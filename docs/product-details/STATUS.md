@@ -112,3 +112,9 @@ status: active
 - 원본16장·실제모바일/소개독립SHIP. 4폭328/358/398/540(소개360/390/430/540),상담자교체·이미지fallback·POST0. API전부mock,실bootstrap호출없음.
 - 관련기존검사31개중30PASS/1기존실패: guardian-fortune contract의isGuardianFortuneRealLlmEnabled export없음. 기준커밋fb02e47c2와테스트/해당src디렉터리diff없음. 변경TSX/catalog ESLint PASS. 결제·인증·API·DB변경없음.
 - 총유료19종+공통소개1종198패널 로컬완료. 같은상담의2persona를상품2개로세지않음. 전체목표미완료,다음영냥이자미두수3종.
+
+## 자미두수 고등어·연어·광어
+- 자기이해8패널/이직선택10/두사람생활합의10 개별제작. 질문목차6/11/15와기본5/8/13구분,필수출생정보·가상예시·AI·시기한계확인. 광어중간목차는3단계관계흐름으로개별편집.
+- 원본28장및두진입실제56패널·36CTA/고지·12원고뷰포트독립SHIP. 두흐름4폭bounds/load/fallback PASS. 긴원고캡처오류는실제360부분뷰포트로재확인,제품코드우회없음.
+- 기존질문/입력검사17PASS. 전체check:fast paid88/88+lint PASS,사이트맵drift중단후 sitemap생성/검사URL955 PASS. 전체PASS나SHA CI증거로표시하지않음.
+- 총유료22종+공통소개1종226패널 로컬검수완료. 전체목표미완료,main은동시작업dirty보호로미병합. 다음자미참치와베다고등어·연어.

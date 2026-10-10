@@ -1,0 +1,9 @@
+{
+  "invocation": "npm run check:fast -- --plan; npm run check:fast",
+  "paidGates": "88/88 PASS in1081.9s",
+  "lint": "PASS",
+  "stop": "sitemap drift after new content commits; not full PASS",
+  "repair": "npm run sitemap:generate; npm run verify:sitemap-drift PASS URL955",
+  "caveat": "Began fe8d010f6 then chat/content changed while running; not immutable SHA evidence; no CI claim",
+  "prePush": "fe8d010f6 clean committed pre-push PASS previously"
+}

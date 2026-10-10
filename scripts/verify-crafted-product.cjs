@@ -1,5 +1,5 @@
 const fs = require('fs'), { chromium } = require('playwright');
-const fish = process.argv[2] || 'mackerel', id = 'yeongnyangi-saju-' + fish, out = 'docs/product-details/verification/' + id, origin = 'http://127.0.0.1:14330';
+const fish = process.argv[2] || 'mackerel', domain = process.argv[3] || 'saju', id = 'yeongnyangi-' + domain + '-' + fish, out = 'docs/product-details/verification/' + id, origin = 'http://127.0.0.1:14330';
 (async () => { const browser = await chromium.launch(); try {
     const page = await browser.newPage({ viewport: { width: 390, height: 900 }, locale: 'ko-KR', reducedMotion: 'reduce' });
     await page.routeWebSocket('**', s => s.close());
@@ -9,7 +9,7 @@ const fish = process.argv[2] || 'mackerel', id = 'yeongnyangi-saju-' + fish, out
     const rows = [];
     for (const flow of ['legacy', 'question']) {
         console.log('checking ' + flow);
-        await page.goto(origin + (flow === 'legacy' ? '/yeongnyangi/readings/saju/?lang=ko' : '/yeongnyangi/fortune/?domain=saju&lang=ko'), { timeout: 120000 });
+        await page.goto(origin + (flow === 'legacy' ? '/yeongnyangi/readings/'+domain+'/?lang=ko' : '/yeongnyangi/fortune/?domain='+domain+'&lang=ko'), { timeout: 120000 });
         await page.evaluate(() => document.fonts.ready);
         if (flow === 'legacy') {
             await page.getByText('질문 없이 전체 성향 리포트 고르기', { exact: true }).click();
@@ -68,8 +68,12 @@ const fish = process.argv[2] || 'mackerel', id = 'yeongnyangi-saju-' + fish, out
         }
         await detail.locator('.craftedDetailTranscript>summary').click();
         await detail.locator('.craftedDetailTranscript').screenshot({ path: out + '/' + flow + '-transcript.png' });
+        await page.setViewportSize({width:360,height:900});
+        const sections=detail.locator('.craftedDetailTranscript section');
+        for(const index of [Math.floor((await sections.count())/2), (await sections.count())-1]){await sections.nth(index).evaluate(el=>el.scrollIntoView({block:'center'}));await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));await page.screenshot({path:out+'/'+flow+'-transcript-viewport-'+(index+1)+'.png'});}
         await detail.locator('.craftedDetailTranscript>summary').click();
         await detail.locator('img').first().scrollIntoViewIfNeeded();
+        await page.route('**/missing-crafted-test.webp', r => r.fulfill({status:404,body:''}));
         await detail.locator('img').first().evaluate(i => { i.loading = 'eager'; i.src = '/missing-crafted-test.webp'; });
         await page.waitForFunction(() => document.querySelector('.craftedDetailTranscript').open);
     }

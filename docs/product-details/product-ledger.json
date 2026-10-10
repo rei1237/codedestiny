@@ -7529,169 +7529,316 @@
       ],
       "priceSource": "worker/yeongnyangi/payments/catalog.ts → worker/lib/billing-feature-registry.js",
       "priceSnapshotKRW": 15000,
-      "inputRequirements": [],
+      "inputRequirements": [
+        "두사람 생년월일·달력·출생시간·성별·지역",
+        "관계유형과질문"
+      ],
       "resultRenderer": [
-        "app/yeongnyangi/_components/Result.tsx",
         "app/yeongnyangi/_components/ReadingBook.tsx"
       ],
-      "actualContents": [
-        {
-          "id": "personal",
-          "partner": false,
-          "chapters": [
-            "삶의 중심(명궁·신궁)",
-            "마음이 끌리는 것과 연애의 즐거움",
-            "배우자 자리와 함께 사는 법",
-            "돈의 그릇과 쌓는 방식",
-            "집과 자산의 자리",
-            "일하는 방식과 사회적 자리",
-            "바깥 무대와 이동",
-            "형제·동료·친구",
-            "부모와 윗사람",
-            "자녀와 아랫사람",
-            "몸의 약한 고리와 회복",
-            "올해와 내년",
-            "앞으로 8년의 유년"
-          ]
-        },
-        {
-          "id": "money",
-          "partner": false,
-          "chapters": [
-            "수입과 자원의 바탕",
-            "일과 재물의 연결",
-            "쌓고 지키는 습관",
-            "지출이 늘어나는 조건",
-            "안정을 선택할 조건",
-            "확장을 선택할 조건",
-            "협력과 자원의 책임",
-            "반복되는 금전 판단",
-            "부담을 줄이는 방법",
-            "자원 배분의 두 선택",
-            "일과 재물 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "business",
-          "partner": false,
-          "chapters": [
-            "재백궁으로 읽는 현금 흐름",
-            "자녀궁으로 읽는 동업과 확장",
-            "관록궁으로 읽는 사업의 형태",
-            "전택궁으로 읽는 사업장과 자산",
-            "동업과 협력의 조건",
-            "확장이 자산을 깎는 조건",
-            "사업 판단에서 반복되는 패턴",
-            "지키는 사업과 키우는 사업",
-            "사업의 부담과 회복",
-            "맞는 시장과 환경",
-            "사업운 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "love",
-          "partner": false,
-          "chapters": [
-            "타고난 연애 기질",
-            "상대에게 보이는 매력",
-            "반복되는 연애 패턴",
-            "지금 연애운의 흐름",
-            "조심해야 할 감정 문제",
-            "좋은 인연이 들어오는 방식",
-            "영냥이식 한 줄 조언",
-            "서로 다른 해석이 가능한 조건",
-            "대화로 확인할 질문",
-            "함께 정할 경계",
-            "생활 속 조율의 사례"
-          ]
-        },
-        {
-          "id": "marriage",
-          "partner": false,
-          "chapters": [
-            "결혼에 대한 기본 성향",
-            "배우자상",
-            "결혼이 잘 맞는 사람의 유형",
-            "결혼 후 강점",
-            "결혼 후 주의할 문제",
-            "결혼운이 강해지는 시기",
-            "현실적인 결혼 조언",
-            "서로 다른 해석이 가능한 조건",
-            "대화로 확인할 질문",
-            "함께 정할 경계",
-            "생활 속 조율의 사례"
-          ]
-        },
-        {
-          "id": "health",
-          "partner": false,
-          "chapters": [
-            "타고난 몸의 리듬",
-            "무리가 쌓이는 조건",
-            "계절과 환경에 따른 컨디션",
-            "회복을 돕는 생활 습관",
-            "에너지를 쓰고 채우는 방식",
-            "마음의 긴장이 몸에 남는 방식",
-            "컨디션을 흔드는 반복 습관",
-            "일의 강도와 쉼의 균형",
-            "관계와 환경이 주는 부담",
-            "컨디션이 떨어질 때의 신호",
-            "건강운 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "compatibility",
-          "partner": true,
-          "chapters": [
-            "두 사람의 첫 끌림",
-            "감정 궁합",
-            "대화와 오해 패턴",
-            "연애 궁합",
-            "결혼 궁합",
-            "돈과 현실 궁합",
-            "갈등 포인트",
-            "장기적으로 이어질 가능성",
-            "올해와 내년의 관계 흐름",
-            "이어가기 위한 조건과 조심할 신호",
-            "영냥이식 최종 판정"
-          ]
-        },
-        {
-          "id": "ask",
-          "partner": false,
-          "chapters": [
-            "삶의 중심(명궁·신궁)",
-            "마음이 끌리는 것과 연애의 즐거움",
-            "배우자 자리와 함께 사는 법",
-            "돈의 그릇과 쌓는 방식",
-            "집과 자산의 자리",
-            "일하는 방식과 사회적 자리",
-            "바깥 무대와 이동",
-            "형제·동료·친구",
-            "부모와 윗사람",
-            "자녀와 아랫사람",
-            "몸의 약한 고리와 회복",
-            "올해와 내년",
-            "앞으로 8년의 유년"
-          ]
-        }
-      ],
+      "actualContents": {
+        "question": [
+          {
+            "title": "내 자미두수의 바탕 · 명궁과 별의 성향",
+            "sections": [
+              "나를 움직이는 기질",
+              "이 고민이 마음에 남는 이유",
+              "지금 지나고 있는 운의 흐름",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "나의 강점과 부담이 되는 순간",
+            "sections": [
+              "살려 쓸 수 있는 강점",
+              "강점의 그림자와 조정할 점",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "두 사람의 궁합 · 두 사람이 잘 맞는 점과 조율할 차이",
+            "sections": [
+              "두 사람이 잘 맞는 점과 조율할 차이",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "두 사람의 궁합 · 판단의 근거와 달라지는 조건",
+            "sections": [
+              "그렇게 읽는 이유",
+              "판단을 바꾸는 조건"
+            ]
+          },
+          {
+            "title": "현재 · 기회와 주의 조건",
+            "sections": [
+              "활용할 기회",
+              "부담과 조정할 부분",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "두 사람의 궁합 · 두 사람의 구조",
+            "sections": [
+              "각자의 성향",
+              "둘 사이의 기본 리듬",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "두 사람의 궁합 · 끌림과 충돌",
+            "sections": [
+              "서로 끌리는 지점",
+              "부딪히는 지점",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "두 사람의 궁합 · 역할과 책임의 분담",
+            "sections": [
+              "자연스럽게 맡는 역할",
+              "합의가 필요한 부분",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "두 사람의 궁합 · 관계가 흔들리는 시기",
+            "sections": [
+              "긴장이 커지는 때",
+              "그때 지킬 원칙",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "두 사람의 궁합 · 회복의 조건",
+            "sections": [
+              "다시 가까워지는 방법",
+              "회복이 어려운 신호",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "질문 밖에서 보이는 흐름 · 재물",
+            "sections": [
+              "재물에서 두드러지는 근거",
+              "재물에서 해 볼 일",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "질문 밖에서 보이는 흐름 · 일과 적성",
+            "sections": [
+              "일과 적성에서 두드러지는 근거",
+              "일과 적성에서 해 볼 일",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "질문 밖에서 보이는 흐름 · 건강 리듬과 회복",
+            "sections": [
+              "건강 리듬과 회복에서 두드러지는 근거",
+              "건강 리듬과 회복에서 해 볼 일",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "질문 밖에서 보이는 흐름 · 올해의 흐름",
+            "sections": [
+              "올해 전체의 흐름",
+              "올해 챙길 것",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "두 사람의 궁합 · 종합 해석과 실행 계획",
+            "sections": [
+              "생활 속에서 적용해 보기",
+              "선택과 다음 행동",
+              "가까워지는 속도와 편안함",
+              "이 해석의 근거"
+            ]
+          }
+        ],
+        "legacy": [
+          {
+            "id": "personal",
+            "partner": false,
+            "chapters": [
+              "삶의 중심(명궁·신궁)",
+              "마음이 끌리는 것과 연애의 즐거움",
+              "배우자 자리와 함께 사는 법",
+              "돈의 그릇과 쌓는 방식",
+              "집과 자산의 자리",
+              "일하는 방식과 사회적 자리",
+              "바깥 무대와 이동",
+              "형제·동료·친구",
+              "부모와 윗사람",
+              "자녀와 아랫사람",
+              "몸의 약한 고리와 회복",
+              "올해와 내년",
+              "앞으로 8년의 유년"
+            ]
+          },
+          {
+            "id": "money",
+            "partner": false,
+            "chapters": [
+              "수입과 자원의 바탕",
+              "일과 재물의 연결",
+              "쌓고 지키는 습관",
+              "지출이 늘어나는 조건",
+              "안정을 선택할 조건",
+              "확장을 선택할 조건",
+              "협력과 자원의 책임",
+              "반복되는 금전 판단",
+              "부담을 줄이는 방법",
+              "자원 배분의 두 선택",
+              "일과 재물 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "business",
+            "partner": false,
+            "chapters": [
+              "재백궁으로 읽는 현금 흐름",
+              "자녀궁으로 읽는 동업과 확장",
+              "관록궁으로 읽는 사업의 형태",
+              "전택궁으로 읽는 사업장과 자산",
+              "동업과 협력의 조건",
+              "확장이 자산을 깎는 조건",
+              "사업 판단에서 반복되는 패턴",
+              "지키는 사업과 키우는 사업",
+              "사업의 부담과 회복",
+              "맞는 시장과 환경",
+              "사업운 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "love",
+            "partner": false,
+            "chapters": [
+              "타고난 연애 기질",
+              "상대에게 보이는 매력",
+              "반복되는 연애 패턴",
+              "지금 연애운의 흐름",
+              "조심해야 할 감정 문제",
+              "좋은 인연이 들어오는 방식",
+              "영냥이식 한 줄 조언",
+              "서로 다른 해석이 가능한 조건",
+              "대화로 확인할 질문",
+              "함께 정할 경계",
+              "생활 속 조율의 사례"
+            ]
+          },
+          {
+            "id": "marriage",
+            "partner": false,
+            "chapters": [
+              "결혼에 대한 기본 성향",
+              "배우자상",
+              "결혼이 잘 맞는 사람의 유형",
+              "결혼 후 강점",
+              "결혼 후 주의할 문제",
+              "결혼운이 강해지는 시기",
+              "현실적인 결혼 조언",
+              "서로 다른 해석이 가능한 조건",
+              "대화로 확인할 질문",
+              "함께 정할 경계",
+              "생활 속 조율의 사례"
+            ]
+          },
+          {
+            "id": "health",
+            "partner": false,
+            "chapters": [
+              "타고난 몸의 리듬",
+              "무리가 쌓이는 조건",
+              "계절과 환경에 따른 컨디션",
+              "회복을 돕는 생활 습관",
+              "에너지를 쓰고 채우는 방식",
+              "마음의 긴장이 몸에 남는 방식",
+              "컨디션을 흔드는 반복 습관",
+              "일의 강도와 쉼의 균형",
+              "관계와 환경이 주는 부담",
+              "컨디션이 떨어질 때의 신호",
+              "건강운 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "compatibility",
+            "partner": true,
+            "chapters": [
+              "두 사람의 첫 끌림",
+              "감정 궁합",
+              "대화와 오해 패턴",
+              "연애 궁합",
+              "결혼 궁합",
+              "돈과 현실 궁합",
+              "갈등 포인트",
+              "장기적으로 이어질 가능성",
+              "올해와 내년의 관계 흐름",
+              "이어가기 위한 조건과 조심할 신호",
+              "영냥이식 최종 판정"
+            ]
+          },
+          {
+            "id": "ask",
+            "partner": false,
+            "chapters": [
+              "삶의 중심(명궁·신궁)",
+              "마음이 끌리는 것과 연애의 즐거움",
+              "배우자 자리와 함께 사는 법",
+              "돈의 그릇과 쌓는 방식",
+              "집과 자산의 자리",
+              "일하는 방식과 사회적 자리",
+              "바깥 무대와 이동",
+              "형제·동료·친구",
+              "부모와 윗사람",
+              "자녀와 아랫사람",
+              "몸의 약한 고리와 회복",
+              "올해와 내년",
+              "앞으로 8년의 유년"
+            ]
+          }
+        ]
+      },
       "conditionalItems": [
-        "질문 상담과 전체 성향 리포트의 manifest가 다름",
-        "차트·요약·행동·추가 질문은 저장된 결과 및 선택한 계약에 따라 표시",
-        "참치 장기 질문은 사주·자미두수·베다만 지원"
+        "질문6/11/15장과기본개인5/8/13장은다른선택",
+        "종류·질문·관계유형에따라목차와해석다름",
+        "시기는실제근거범위,특정사건날짜보장없음"
       ],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
+      "separatePurchase": [
+        "다른체계와장기대한질문범위"
+      ],
+      "reviewSource": [
+        "고객후기없음; 가상편집예시명시"
+      ],
+      "images": [
+        "/feature-details/crafted/yeongnyangi-ziwei-flounder/01-two-ways-to-care.webp",
+        "/feature-details/crafted/yeongnyangi-ziwei-flounder/02-two-voices.webp",
+        "/feature-details/crafted/yeongnyangi-ziwei-flounder/03-a-palace-is-not-the-partner.webp",
+        "/feature-details/crafted/yeongnyangi-ziwei-flounder/04-first-five-chapters.webp",
+        "/feature-details/crafted/yeongnyangi-ziwei-flounder/05-five-places-to-negotiate.webp",
+        "/feature-details/crafted/yeongnyangi-ziwei-flounder/06-the-life-around-the-relationship.webp",
+        "/feature-details/crafted/yeongnyangi-ziwei-flounder/07-turn-a-difference-into-an-agreement.webp",
+        "/feature-details/crafted/yeongnyangi-ziwei-flounder/08-a-different-thirteen.webp",
+        "/feature-details/crafted/yeongnyangi-ziwei-flounder/09-bring-both-profiles.webp",
+        "/feature-details/crafted/yeongnyangi-ziwei-flounder/10-make-room-for-a-conversation.webp"
+      ],
+      "status": "로컬 제작·적용·모바일 독립 검수 완료",
+      "appliedAt": [
+        "ProductGuide featureKey catalogue",
+        "IntakeChat selected product"
+      ],
       "verification": [
-        "docs/product-details/yeongnyangi-contract-snapshot.json"
+        "original independent SHIP",
+        "two entry flows 360/390/430/1280; load/bounds/fallback PASS",
+        "17 existing question/intake tests PASS",
+        "Independent SHIP two flow56panels/36CTA-notices/12transcript viewports across3products"
       ],
       "unconfirmed": [
-        "개별 상품 원고·이미지·모바일 적용 미완료",
-        "각 체계별 입력 조건의 개별 대조 미완료"
+        "main merge/push/CI pending",
+        "real generated result not called"
       ],
       "detailAliases": []
     },
@@ -7706,117 +7853,189 @@
       ],
       "priceSource": "worker/yeongnyangi/payments/catalog.ts → worker/lib/billing-feature-registry.js",
       "priceSnapshotKRW": 3000,
-      "inputRequirements": [],
+      "inputRequirements": [
+        "생년월일·달력·출생시간·성별",
+        "상황과질문"
+      ],
       "resultRenderer": [
-        "app/yeongnyangi/_components/Result.tsx",
         "app/yeongnyangi/_components/ReadingBook.tsx"
       ],
-      "actualContents": [
-        {
-          "id": "personal",
-          "partner": false,
-          "chapters": [
-            "명궁·신궁으로 읽는 삶의 중심",
-            "관록궁으로 읽는 역할과 재능",
-            "부부궁으로 읽는 관계의 방식",
-            "재백궁으로 읽는 자원 관리",
-            "지금의 선택과 실행 계획"
-          ]
-        },
-        {
-          "id": "money",
-          "partner": false,
-          "chapters": [
-            "수입과 자원의 바탕",
-            "일과 재물의 연결",
-            "쌓고 지키는 습관",
-            "지출이 늘어나는 조건",
-            "일과 재물 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "business",
-          "partner": false,
-          "chapters": [
-            "재백궁으로 읽는 현금 흐름",
-            "자녀궁으로 읽는 동업과 확장",
-            "관록궁으로 읽는 사업의 형태",
-            "전택궁으로 읽는 사업장과 자산",
-            "사업운 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "love",
-          "partner": false,
-          "chapters": [
-            "타고난 연애 기질 · 상대에게 보이는 매력",
-            "반복되는 연애 패턴",
-            "지금 연애운의 흐름 · 조심해야 할 감정 문제",
-            "좋은 인연이 들어오는 방식",
-            "영냥이식 한 줄 조언"
-          ]
-        },
-        {
-          "id": "marriage",
-          "partner": false,
-          "chapters": [
-            "결혼에 대한 기본 성향 · 배우자상",
-            "결혼이 잘 맞는 사람의 유형",
-            "결혼 후 강점 · 결혼 후 주의할 문제",
-            "결혼운이 강해지는 시기",
-            "현실적인 결혼 조언"
-          ]
-        },
-        {
-          "id": "health",
-          "partner": false,
-          "chapters": [
-            "타고난 몸의 리듬",
-            "무리가 쌓이는 조건",
-            "계절과 환경에 따른 컨디션",
-            "회복을 돕는 생활 습관",
-            "건강운 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "compatibility",
-          "partner": true,
-          "chapters": [
-            "두 사람의 첫 끌림 · 감정 궁합 · 대화와 오해 패턴",
-            "연애 궁합 · 결혼 궁합",
-            "돈과 현실 궁합 · 갈등 포인트",
-            "장기적으로 이어질 가능성 · 올해와 내년의 관계 흐름",
-            "이어가기 위한 조건과 조심할 신호 · 영냥이식 최종 판정"
-          ]
-        },
-        {
-          "id": "ask",
-          "partner": false,
-          "chapters": [
-            "명궁·신궁으로 읽는 삶의 중심",
-            "관록궁으로 읽는 역할과 재능",
-            "부부궁으로 읽는 관계의 방식",
-            "재백궁으로 읽는 자원 관리",
-            "지금의 선택과 실행 계획"
-          ]
-        }
-      ],
+      "actualContents": {
+        "question": [
+          {
+            "title": "내 자미두수의 바탕 · 명궁과 별의 성향",
+            "sections": [
+              "나를 움직이는 기질",
+              "이 고민이 마음에 남는 이유",
+              "지금 지나고 있는 운의 흐름",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "나의 강점과 부담이 되는 순간",
+            "sections": [
+              "살려 쓸 수 있는 강점",
+              "강점의 그림자와 조정할 점",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "성향·자기이해·일상 · 내 마음과 선택을 이해하는 실마리",
+            "sections": [
+              "내 마음과 선택을 이해하는 실마리",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "성향·자기이해·일상 · 판단의 근거와 달라지는 조건",
+            "sections": [
+              "그렇게 읽는 이유",
+              "판단을 바꾸는 조건"
+            ]
+          },
+          {
+            "title": "현재 · 기회와 주의 조건",
+            "sections": [
+              "활용할 기회",
+              "부담과 조정할 부분",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "성향·자기이해·일상 · 종합 해석과 실행 계획",
+            "sections": [
+              "생활 속에서 적용해 보기",
+              "선택과 다음 행동",
+              "이 해석의 근거"
+            ]
+          }
+        ],
+        "legacy": [
+          {
+            "id": "personal",
+            "partner": false,
+            "chapters": [
+              "명궁·신궁으로 읽는 삶의 중심",
+              "관록궁으로 읽는 역할과 재능",
+              "부부궁으로 읽는 관계의 방식",
+              "재백궁으로 읽는 자원 관리",
+              "지금의 선택과 실행 계획"
+            ]
+          },
+          {
+            "id": "money",
+            "partner": false,
+            "chapters": [
+              "수입과 자원의 바탕",
+              "일과 재물의 연결",
+              "쌓고 지키는 습관",
+              "지출이 늘어나는 조건",
+              "일과 재물 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "business",
+            "partner": false,
+            "chapters": [
+              "재백궁으로 읽는 현금 흐름",
+              "자녀궁으로 읽는 동업과 확장",
+              "관록궁으로 읽는 사업의 형태",
+              "전택궁으로 읽는 사업장과 자산",
+              "사업운 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "love",
+            "partner": false,
+            "chapters": [
+              "타고난 연애 기질 · 상대에게 보이는 매력",
+              "반복되는 연애 패턴",
+              "지금 연애운의 흐름 · 조심해야 할 감정 문제",
+              "좋은 인연이 들어오는 방식",
+              "영냥이식 한 줄 조언"
+            ]
+          },
+          {
+            "id": "marriage",
+            "partner": false,
+            "chapters": [
+              "결혼에 대한 기본 성향 · 배우자상",
+              "결혼이 잘 맞는 사람의 유형",
+              "결혼 후 강점 · 결혼 후 주의할 문제",
+              "결혼운이 강해지는 시기",
+              "현실적인 결혼 조언"
+            ]
+          },
+          {
+            "id": "health",
+            "partner": false,
+            "chapters": [
+              "타고난 몸의 리듬",
+              "무리가 쌓이는 조건",
+              "계절과 환경에 따른 컨디션",
+              "회복을 돕는 생활 습관",
+              "건강운 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "compatibility",
+            "partner": true,
+            "chapters": [
+              "두 사람의 첫 끌림 · 감정 궁합 · 대화와 오해 패턴",
+              "연애 궁합 · 결혼 궁합",
+              "돈과 현실 궁합 · 갈등 포인트",
+              "장기적으로 이어질 가능성 · 올해와 내년의 관계 흐름",
+              "이어가기 위한 조건과 조심할 신호 · 영냥이식 최종 판정"
+            ]
+          },
+          {
+            "id": "ask",
+            "partner": false,
+            "chapters": [
+              "명궁·신궁으로 읽는 삶의 중심",
+              "관록궁으로 읽는 역할과 재능",
+              "부부궁으로 읽는 관계의 방식",
+              "재백궁으로 읽는 자원 관리",
+              "지금의 선택과 실행 계획"
+            ]
+          }
+        ]
+      },
       "conditionalItems": [
-        "질문 상담과 전체 성향 리포트의 manifest가 다름",
-        "차트·요약·행동·추가 질문은 저장된 결과 및 선택한 계약에 따라 표시",
-        "참치 장기 질문은 사주·자미두수·베다만 지원"
+        "질문6/11/15장과기본개인5/8/13장은다른선택",
+        "종류·질문·관계유형에따라목차와해석다름",
+        "시기는실제근거범위,특정사건날짜보장없음"
       ],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
+      "separatePurchase": [
+        "다른체계와장기대한질문범위"
+      ],
+      "reviewSource": [
+        "고객후기없음; 가상편집예시명시"
+      ],
+      "images": [
+        "/feature-details/crafted/yeongnyangi-ziwei-mackerel/01-where-you-stand.webp",
+        "/feature-details/crafted/yeongnyangi-ziwei-mackerel/02-a-small-role.webp",
+        "/feature-details/crafted/yeongnyangi-ziwei-mackerel/03-palaces-in-plain-words.webp",
+        "/feature-details/crafted/yeongnyangi-ziwei-mackerel/04-your-question-in-six.webp",
+        "/feature-details/crafted/yeongnyangi-ziwei-mackerel/05-another-reading-path.webp",
+        "/feature-details/crafted/yeongnyangi-ziwei-mackerel/06-a-role-you-can-adjust.webp",
+        "/feature-details/crafted/yeongnyangi-ziwei-mackerel/07-prepare-the-coordinates.webp",
+        "/feature-details/crafted/yeongnyangi-ziwei-mackerel/08-one-small-change.webp"
+      ],
+      "status": "로컬 제작·적용·모바일 독립 검수 완료",
+      "appliedAt": [
+        "ProductGuide featureKey catalogue",
+        "IntakeChat selected product"
+      ],
       "verification": [
-        "docs/product-details/yeongnyangi-contract-snapshot.json"
+        "original independent SHIP",
+        "two entry flows 360/390/430/1280; load/bounds/fallback PASS",
+        "17 existing question/intake tests PASS",
+        "Independent SHIP two flow56panels/36CTA-notices/12transcript viewports across3products"
       ],
       "unconfirmed": [
-        "개별 상품 원고·이미지·모바일 적용 미완료",
-        "각 체계별 입력 조건의 개별 대조 미완료"
+        "main merge/push/CI pending",
+        "real generated result not called"
       ],
       "detailAliases": []
     },
@@ -7831,141 +8050,256 @@
       ],
       "priceSource": "worker/yeongnyangi/payments/catalog.ts → worker/lib/billing-feature-registry.js",
       "priceSnapshotKRW": 9000,
-      "inputRequirements": [],
+      "inputRequirements": [
+        "생년월일·달력·출생시간·성별",
+        "상황과질문",
+        "선택지·목표시기·현실제약"
+      ],
       "resultRenderer": [
-        "app/yeongnyangi/_components/Result.tsx",
         "app/yeongnyangi/_components/ReadingBook.tsx"
       ],
-      "actualContents": [
-        {
-          "id": "personal",
-          "partner": false,
-          "chapters": [
-            "삶의 중심(명궁·신궁)",
-            "마음이 끌리는 것과 연애의 즐거움",
-            "배우자 자리와 함께 사는 법",
-            "돈의 그릇과 쌓는 방식",
-            "일하는 방식과 사회적 자리",
-            "곁의 사람과 가족",
-            "몸의 약한 고리와 회복",
-            "올해와 내년"
-          ]
-        },
-        {
-          "id": "money",
-          "partner": false,
-          "chapters": [
-            "수입과 자원의 바탕",
-            "일과 재물의 연결",
-            "쌓고 지키는 습관",
-            "지출이 늘어나는 조건",
-            "안정을 선택할 조건",
-            "확장을 선택할 조건",
-            "협력과 자원의 책임",
-            "일과 재물 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "business",
-          "partner": false,
-          "chapters": [
-            "재백궁으로 읽는 현금 흐름",
-            "자녀궁으로 읽는 동업과 확장",
-            "관록궁으로 읽는 사업의 형태",
-            "전택궁으로 읽는 사업장과 자산",
-            "동업과 협력의 조건",
-            "확장이 자산을 깎는 조건",
-            "사업 판단에서 반복되는 패턴",
-            "사업운 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "love",
-          "partner": false,
-          "chapters": [
-            "타고난 연애 기질",
-            "상대에게 보이는 매력",
-            "반복되는 연애 패턴",
-            "지금 연애운의 흐름",
-            "조심해야 할 감정 문제",
-            "좋은 인연이 들어오는 방식",
-            "영냥이식 한 줄 조언",
-            "서로 다른 해석이 가능한 조건"
-          ]
-        },
-        {
-          "id": "marriage",
-          "partner": false,
-          "chapters": [
-            "결혼에 대한 기본 성향",
-            "배우자상",
-            "결혼이 잘 맞는 사람의 유형",
-            "결혼 후 강점",
-            "결혼 후 주의할 문제",
-            "결혼운이 강해지는 시기",
-            "현실적인 결혼 조언",
-            "서로 다른 해석이 가능한 조건"
-          ]
-        },
-        {
-          "id": "health",
-          "partner": false,
-          "chapters": [
-            "타고난 몸의 리듬",
-            "무리가 쌓이는 조건",
-            "계절과 환경에 따른 컨디션",
-            "회복을 돕는 생활 습관",
-            "에너지를 쓰고 채우는 방식",
-            "마음의 긴장이 몸에 남는 방식",
-            "컨디션을 흔드는 반복 습관",
-            "건강운 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "compatibility",
-          "partner": true,
-          "chapters": [
-            "두 사람의 첫 끌림 · 감정 궁합",
-            "대화와 오해 패턴",
-            "연애 궁합 · 결혼 궁합",
-            "돈과 현실 궁합",
-            "갈등 포인트",
-            "장기적으로 이어질 가능성 · 올해와 내년의 관계 흐름",
-            "이어가기 위한 조건과 조심할 신호",
-            "영냥이식 최종 판정"
-          ]
-        },
-        {
-          "id": "ask",
-          "partner": false,
-          "chapters": [
-            "삶의 중심(명궁·신궁)",
-            "마음이 끌리는 것과 연애의 즐거움",
-            "배우자 자리와 함께 사는 법",
-            "돈의 그릇과 쌓는 방식",
-            "일하는 방식과 사회적 자리",
-            "곁의 사람과 가족",
-            "몸의 약한 고리와 회복",
-            "올해와 내년"
-          ]
-        }
-      ],
+      "actualContents": {
+        "question": [
+          {
+            "title": "내 자미두수의 바탕 · 명궁과 별의 성향",
+            "sections": [
+              "나를 움직이는 기질",
+              "이 고민이 마음에 남는 이유",
+              "지금 지나고 있는 운의 흐름",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "나의 강점과 부담이 되는 순간",
+            "sections": [
+              "살려 쓸 수 있는 강점",
+              "강점의 그림자와 조정할 점",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "이직 · 남을지 옮길지, 이직의 판단 기준",
+            "sections": [
+              "남을지 옮길지, 이직의 판단 기준",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "이직 · 판단의 근거와 달라지는 조건",
+            "sections": [
+              "그렇게 읽는 이유",
+              "판단을 바꾸는 조건"
+            ]
+          },
+          {
+            "title": "현재 · 기회와 주의 조건",
+            "sections": [
+              "활용할 기회",
+              "부담과 조정할 부분",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "이직 · 현재 위치와 적성",
+            "sections": [
+              "지금 자리에서 살아나는 역량",
+              "맞지 않아 지치는 지점",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "이직 · 이동과 유지의 비교",
+            "sections": [
+              "머무를 때 얻는 것과 잃는 것",
+              "옮길 때 얻는 것과 치를 비용",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "이직 · 움직이기 좋은 시기",
+            "sections": [
+              "움직이기 좋은 때와 그 근거",
+              "기다리는 편이 나은 때",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "질문 밖에서 보이는 흐름 · 차트에서 두드러진 영역",
+            "sections": [
+              "질문 밖에서 두드러지는 영역",
+              "그 영역에서 해 볼 일",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "질문 밖에서 보이는 흐름 · 올해의 흐름",
+            "sections": [
+              "올해 전체의 흐름",
+              "올해 챙길 것",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "이직 · 종합 해석과 실행 계획",
+            "sections": [
+              "생활 속에서 적용해 보기",
+              "선택과 다음 행동",
+              "이 해석의 근거"
+            ]
+          }
+        ],
+        "legacy": [
+          {
+            "id": "personal",
+            "partner": false,
+            "chapters": [
+              "삶의 중심(명궁·신궁)",
+              "마음이 끌리는 것과 연애의 즐거움",
+              "배우자 자리와 함께 사는 법",
+              "돈의 그릇과 쌓는 방식",
+              "일하는 방식과 사회적 자리",
+              "곁의 사람과 가족",
+              "몸의 약한 고리와 회복",
+              "올해와 내년"
+            ]
+          },
+          {
+            "id": "money",
+            "partner": false,
+            "chapters": [
+              "수입과 자원의 바탕",
+              "일과 재물의 연결",
+              "쌓고 지키는 습관",
+              "지출이 늘어나는 조건",
+              "안정을 선택할 조건",
+              "확장을 선택할 조건",
+              "협력과 자원의 책임",
+              "일과 재물 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "business",
+            "partner": false,
+            "chapters": [
+              "재백궁으로 읽는 현금 흐름",
+              "자녀궁으로 읽는 동업과 확장",
+              "관록궁으로 읽는 사업의 형태",
+              "전택궁으로 읽는 사업장과 자산",
+              "동업과 협력의 조건",
+              "확장이 자산을 깎는 조건",
+              "사업 판단에서 반복되는 패턴",
+              "사업운 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "love",
+            "partner": false,
+            "chapters": [
+              "타고난 연애 기질",
+              "상대에게 보이는 매력",
+              "반복되는 연애 패턴",
+              "지금 연애운의 흐름",
+              "조심해야 할 감정 문제",
+              "좋은 인연이 들어오는 방식",
+              "영냥이식 한 줄 조언",
+              "서로 다른 해석이 가능한 조건"
+            ]
+          },
+          {
+            "id": "marriage",
+            "partner": false,
+            "chapters": [
+              "결혼에 대한 기본 성향",
+              "배우자상",
+              "결혼이 잘 맞는 사람의 유형",
+              "결혼 후 강점",
+              "결혼 후 주의할 문제",
+              "결혼운이 강해지는 시기",
+              "현실적인 결혼 조언",
+              "서로 다른 해석이 가능한 조건"
+            ]
+          },
+          {
+            "id": "health",
+            "partner": false,
+            "chapters": [
+              "타고난 몸의 리듬",
+              "무리가 쌓이는 조건",
+              "계절과 환경에 따른 컨디션",
+              "회복을 돕는 생활 습관",
+              "에너지를 쓰고 채우는 방식",
+              "마음의 긴장이 몸에 남는 방식",
+              "컨디션을 흔드는 반복 습관",
+              "건강운 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "compatibility",
+            "partner": true,
+            "chapters": [
+              "두 사람의 첫 끌림 · 감정 궁합",
+              "대화와 오해 패턴",
+              "연애 궁합 · 결혼 궁합",
+              "돈과 현실 궁합",
+              "갈등 포인트",
+              "장기적으로 이어질 가능성 · 올해와 내년의 관계 흐름",
+              "이어가기 위한 조건과 조심할 신호",
+              "영냥이식 최종 판정"
+            ]
+          },
+          {
+            "id": "ask",
+            "partner": false,
+            "chapters": [
+              "삶의 중심(명궁·신궁)",
+              "마음이 끌리는 것과 연애의 즐거움",
+              "배우자 자리와 함께 사는 법",
+              "돈의 그릇과 쌓는 방식",
+              "일하는 방식과 사회적 자리",
+              "곁의 사람과 가족",
+              "몸의 약한 고리와 회복",
+              "올해와 내년"
+            ]
+          }
+        ]
+      },
       "conditionalItems": [
-        "질문 상담과 전체 성향 리포트의 manifest가 다름",
-        "차트·요약·행동·추가 질문은 저장된 결과 및 선택한 계약에 따라 표시",
-        "참치 장기 질문은 사주·자미두수·베다만 지원"
+        "질문6/11/15장과기본개인5/8/13장은다른선택",
+        "종류·질문·관계유형에따라목차와해석다름",
+        "시기는실제근거범위,특정사건날짜보장없음"
       ],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
+      "separatePurchase": [
+        "다른체계와장기대한질문범위"
+      ],
+      "reviewSource": [
+        "고객후기없음; 가상편집예시명시"
+      ],
+      "images": [
+        "/feature-details/crafted/yeongnyangi-ziwei-salmon/01-a-role-or-a-place.webp",
+        "/feature-details/crafted/yeongnyangi-ziwei-salmon/02-write-the-real-conditions.webp",
+        "/feature-details/crafted/yeongnyangi-ziwei-salmon/03-three-connected-places.webp",
+        "/feature-details/crafted/yeongnyangi-ziwei-salmon/04-start-with-the-answer.webp",
+        "/feature-details/crafted/yeongnyangi-ziwei-salmon/05-compare-then-act.webp",
+        "/feature-details/crafted/yeongnyangi-ziwei-salmon/06-what-changes-the-choice.webp",
+        "/feature-details/crafted/yeongnyangi-ziwei-salmon/07-eight-chapters-without-a-question.webp",
+        "/feature-details/crafted/yeongnyangi-ziwei-salmon/08-a-question-ready-to-read.webp",
+        "/feature-details/crafted/yeongnyangi-ziwei-salmon/09-turn-a-reading-into-a-check.webp",
+        "/feature-details/crafted/yeongnyangi-ziwei-salmon/10-an-explanation-you-can-return-to.webp"
+      ],
+      "status": "로컬 제작·적용·모바일 독립 검수 완료",
+      "appliedAt": [
+        "ProductGuide featureKey catalogue",
+        "IntakeChat selected product"
+      ],
       "verification": [
-        "docs/product-details/yeongnyangi-contract-snapshot.json"
+        "original independent SHIP",
+        "two entry flows 360/390/430/1280; load/bounds/fallback PASS",
+        "17 existing question/intake tests PASS",
+        "Independent SHIP two flow56panels/36CTA-notices/12transcript viewports across3products"
       ],
       "unconfirmed": [
-        "개별 상품 원고·이미지·모바일 적용 미완료",
-        "각 체계별 입력 조건의 개별 대조 미완료"
+        "main merge/push/CI pending",
+        "real generated result not called"
       ],
       "detailAliases": []
     },

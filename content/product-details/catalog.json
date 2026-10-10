@@ -16,7 +16,10 @@
     "fortune-tea-house-saju-compatibility-consultation": "tea-saju-compat",
     "fortune-tea-house-sukuyo-compatibility-consultation": "tea-sukuyo",
     "neo-operation-room-consultation": "neo-operation-room",
-    "fortune-chat-consultation": "chat-yeoni"
+    "fortune-chat-consultation": "chat-yeoni",
+    "yeongnyangi-ziwei-mackerel": "yeongnyangi-ziwei-mackerel",
+    "yeongnyangi-ziwei-salmon": "yeongnyangi-ziwei-salmon",
+    "yeongnyangi-ziwei-flounder": "yeongnyangi-ziwei-flounder"
   },
   "introductions": {
     "fusion-fortune": [
