@@ -259,6 +259,47 @@ function maskBirthDate(value) {
   return match ? `${match[1]}-**-**` : "";
 }
 
+// 🔴 R9 (2026-10-10): 프롬프트에서 원값을 뺐어도 모델이 출생값을 쓰면 본문에서 결정적으로 지운다.
+// maskBirthDate 는 로그 전용이고, 이것이 사용자에게 가는 본문의 필터다. 입력 원값과 일치하는 표기만 바꾼다.
+function birthValuePatterns(birth = {}) {
+  const patterns = [];
+  const date = /^(\d{4})-(\d{2})-(\d{2})$/.exec(clean(birth.birthDate, 10));
+  if (date) {
+    const [, year, month, day] = date;
+    const monthDay = `0?${Number(month)}\\s*월\\s*0?${Number(day)}\\s*일`;
+    const full = `${year}\\s*년\\s*${monthDay}|${year}\\s*[-./]\\s*0?${Number(month)}\\s*[-./]\\s*0?${Number(day)}(?!\\d)|${monthDay}`;
+    patterns.push([new RegExp(`(?<!\\d)(?:${full})(\\s*생)?`, "g"), (_m, born) => (born ? "그날 태생" : "그날")]);
+    patterns.push([new RegExp(`(?<!\\d)${year}\\s*년\\s*생`, "g"), () => "그해 태생"]);
+  }
+  const time = /^(\d{2}):(\d{2})$/.exec(clean(birth.birthTime, 5));
+  if (time && birth.birthTimeUnknown !== true) {
+    const hour = Number(time[1]);
+    const minute = Number(time[2]);
+    const hours = hour > 12 ? `(?:${hour}|0?${hour - 12})` : hour === 0 ? "(?:0?0|12)" : `0?${hour}`;
+    const prefix = "(?:(?:오전|오후|새벽|아침|낮|저녁|밤)\\s*)?";
+    const clock = minute
+      ? `${prefix}${hours}\\s*시\\s*0?${minute}\\s*분`
+      : `${prefix}${hours}\\s*시(?:\\s*(?:00\\s*분|정각))?(?=\\s*(?:에\\s*)?(?:출생|태어|생))`;
+    patterns.push([new RegExp(`(?<!\\d)(?:${time[1]}\\s*:\\s*${time[2]}(?!\\d)|${clock})`, "g"), () => "그 시각"]);
+  }
+  return patterns;
+}
+
+function scrubBirthValues(text, birth = {}) {
+  let output = String(text ?? "");
+  for (const [pattern, replace] of birthValuePatterns(birth)) output = output.replace(pattern, replace);
+  return output;
+}
+
+function scrubSectionBody(body, birth = {}) {
+  if (typeof body === "string") return scrubBirthValues(body, birth);
+  if (Array.isArray(body)) return body.map((item) => scrubSectionBody(item, birth));
+  if (body && typeof body === "object") {
+    return Object.fromEntries(Object.entries(body).map(([key, value]) => [key, scrubSectionBody(value, birth)]));
+  }
+  return body;
+}
+
 function maskName(value) {
   const text = clean(value, 80);
   if (!text) return "";
@@ -1143,6 +1184,7 @@ const SECTION_SAJU_BASE_ROOTS = Object.freeze([
   "seasonalBalance",
   "calculationMeta",
 ]);
+const CALCULATION_META_PROMPT_KEYS = Object.freeze(["available", "timeUnknown", "birthTimeUnknown", "limitation"]);
 
 function pickSajuSlice(sajuResult, evidenceRefs = []) {
   if (!sajuResult || typeof sajuResult !== "object") return sajuResult;
@@ -1155,21 +1197,20 @@ function pickSajuSlice(sajuResult, evidenceRefs = []) {
   for (const root of roots) {
     if (sajuResult[root] !== undefined) slice[root] = sajuResult[root];
   }
+  // calculationMeta 는 원본 생년월일·시각·보정 시계를 통째로 담는다. 프롬프트에는 시각 미상 여부만 보낸다.
+  if (slice.calculationMeta && typeof slice.calculationMeta === "object") {
+    const meta = slice.calculationMeta;
+    slice.calculationMeta = Object.fromEntries(CALCULATION_META_PROMPT_KEYS.filter((key) => meta[key] !== undefined).map((key) => [key, meta[key]]));
+  }
   return slice;
 }
 
-function buildSectionSchema(section, birth, lifeFortune) {
+// 프레임은 profileSummary 를 받지 않는다. 조립본(assembleReport)이 서버 입력으로 채운다.
+function buildSectionSchema(section, lifeFortune) {
   if (section.kind === "frame") {
     return {
       title: lifeFortune ? "인생 총운" : "인생의 책",
       subtitle: "",
-      profileSummary: {
-        name: birth.name || "",
-        birthDate: birth.birthDate || "",
-        calendarType: birth.calendarType === "lunar" ? "음력" : "양력",
-        birthTime: birth.birthTimeUnknown ? "모름" : birth.birthTime || "",
-        gender: birth.gender || "",
-      },
       coreSummary: { oneLine: "", lifeTheme: "", strongestElement: "", neededBalance: "" },
       finalMessage: "",
     };
@@ -1194,11 +1235,10 @@ function buildSectionPrompt(input, sajuSlice, section, digest = "") {
     "반드시 JSON 객체 하나만 반환하세요. Markdown 제목, 코드블록, 안내 문장 없이 JSON만 남기세요.",
     "",
     "[사용자 입력]",
-    `- 이름 또는 닉네임: ${birth.name || "이름 미입력"}`,
+    // 🔴 이름·생년월일·출생시각 원값은 싣지 않는다. 실었더니 본문이 생년월일을 되짚었다(R9, 2026-10-10).
     `- 성별: ${birth.gender}`,
-    `- 생년월일: ${birth.birthDate}`,
-    `- 출생시간: ${birth.birthTimeUnknown ? "모름" : birth.birthTime}`,
     `- 달력 기준: ${birth.calendarType === "lunar" ? "음력" : "양력"}`,
+    `- 출생시각: ${birth.birthTimeUnknown ? "모름" : "입력됨"}`,
     `- 상담 주제: ${input.topic || (lifeFortune ? "전체 인생 총운" : "전체 인생 흐름")}`,
     "",
     "[계산 가능한 사주 명리 데이터]",
@@ -1251,7 +1291,7 @@ function buildSectionPrompt(input, sajuSlice, section, digest = "") {
   lines.push(
     "",
     "[반환 JSON 구조]",
-    JSON.stringify(buildSectionSchema(section, birth, lifeFortune)),
+    JSON.stringify(buildSectionSchema(section, lifeFortune)),
     "",
     "십성 이름은 계산 데이터의 tenGods 키와 허용 목록에 있는 이름만 사용하고, 없는 십성 이름을 새로 만들지 마세요.",
     "출생시간을 모르는 입력이거나 계산 데이터가 제한적이면 단정하지 말고 계산 가능한 범위에서만 상담하세요.",
@@ -1431,7 +1471,7 @@ async function generateSectionOnce(env, section, prompt, options = {}) {
     const ai = await callGeminiText(env, prompt, {
       systemPrompt: buildSystemPrompt(options.consultationType || "lifeBook"),
       responseMimeType: "application/json",
-      responseSchema: jsonSchemaFromExample(buildSectionSchema(section, {}, isLifeFortuneInput(options))),
+      responseSchema: jsonSchemaFromExample(buildSectionSchema(section, isLifeFortuneInput(options))),
       taskType: "fortune",
       temperature: options.temperature || 0.72,
       maxOutputTokens: Math.max(section.maxOutputTokens, tokensRequiredForChars(section.targetChars)),
@@ -1458,7 +1498,7 @@ async function generateSectionOnce(env, section, prompt, options = {}) {
       return base;
     }
     base.parsed = true;
-    const normalizedBody = normalizeSectionBody(section, parsed);
+    const normalizedBody = scrubSectionBody(normalizeSectionBody(section, parsed), options.birthInfo);
     base.body = normalizedBody;
     base.chars = sectionBodyChars(section, normalizedBody);
     base.ok = section.kind === "frame" ? true : base.chars > 0;
@@ -1483,7 +1523,6 @@ function normalizeSectionBody(section, parsed) {
     return {
       title: clean(parsed.title, 120) || section.title,
       subtitle: clean(parsed.subtitle, 300),
-      profileSummary: parsed.profileSummary && typeof parsed.profileSummary === "object" ? parsed.profileSummary : {},
       coreSummary: {
         oneLine: clean(core.oneLine, 400),
         lifeTheme: clean(core.lifeTheme, 200),
@@ -2631,6 +2670,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
             const prompt = buildSectionPrompt(normalized.input, pickSajuSlice(sajuResult, section.evidenceRefs), boosted, digest);
             const result = await generateSectionOnce(env, boosted, prompt, {
               consultationType,
+              birthInfo: normalized.input.birthInfo,
               // 재시도는 캐시를 우회해야 같은 짧은 응답을 다시 받지 않는다.
               cache: attempt > 1 ? null : {
                 store: createLlmCacheStore(env),
@@ -2947,6 +2987,8 @@ export const __lifeBookAiTestUtils = {
   assembleReport,
   mapIssuesToSections,
   reportTotalContentChars,
+  scrubBirthValues,
+  scrubSectionBody,
 };
 
 // Internal cron continuation: only a stored owner/id is accepted, never client input.

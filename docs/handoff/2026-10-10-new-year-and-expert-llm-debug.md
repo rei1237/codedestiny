@@ -1,7 +1,7 @@
 ---
 status: done
 updated: 2026-10-10
-next: "R6·R7·R8 전문가 상담 생성기 결함과 MA·MO 품질 결함 수정 여부를 사용자에게 받는다(결과 절 '남은 결함')."
+next: "남은 결함은 '후속 인수인계 문서' 절의 5개 문서로 넘겼다. 이 문서에서 할 일은 없다."
 created: 2026-10-10
 owner: 다음 세션
 ---
@@ -252,3 +252,11 @@ D7 검증 중 발견했다. D7 과 무관한 기존 운영 결함이다.
 - **기존 별건.**
   - check:fast 의 stale `dist/`·`out/` site-name 테스트 2건 실패(로컬 빌드 산출물).
   - R4·LS1·R3·R2 결함(C절).
+
+### 후속 인수인계 문서 (2026-10-10)
+
+- R6·R7·R8: [2026-10-10-expert-consult-generator-defects.md](2026-10-10-expert-consult-generator-defects.md)
+- MA·MO + 토큰 여유: [2026-10-10-yeongnyangi-fusion-quality-defects.md](2026-10-10-yeongnyangi-fusion-quality-defects.md)
+- R9·R4·LS1·R3·R2 누출: [2026-10-10-result-text-leak-defects.md](2026-10-10-result-text-leak-defects.md)
+- 기본 운세 B1~B7 결과 추가: [2026-10-10-basic-fortune-llm-samples.md](2026-10-10-basic-fortune-llm-samples.md)
+- 속마음 타로 호출 최적화: [2026-10-10-love-tarot-call-optimization.md](2026-10-10-love-tarot-call-optimization.md)

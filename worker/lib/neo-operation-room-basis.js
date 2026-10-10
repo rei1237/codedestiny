@@ -72,7 +72,8 @@ function sajuGroups(summary) {
   const yearly = asArray(summary.yearlyLuck);
   return [
     group("core", [
-      item("사주 네 기둥", [pillars.year, pillars.month, pillars.day, pillars.hour].filter(Boolean).join(" / ")),
+      // 네 기둥을 다 실으면 본문이 연·월·일·시주를 그대로 나열한다(R2). 해석의 축인 일주만 둔다.
+      item("일주", pillars.day),
       item("일간", pillars.dayMaster),
       item("신강약", summary.strength),
       item("용신", summary.usefulGod),

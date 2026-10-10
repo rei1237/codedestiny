@@ -10,6 +10,7 @@ import type {ChapterBody} from './book-contracts';
 import {sanitizeBlockPalaces,withBlockPalacesSchema,ziweiBlockPalaceNames} from './ziwei/block-palaces';
 
 export const PLANET_KO:Record<string,string>={Sun:'태양',Moon:'달',Mercury:'수성',Venus:'금성',Mars:'화성',Jupiter:'목성',Saturn:'토성',Uranus:'천왕성',Neptune:'해왕성',Pluto:'명왕성',Rahu:'라후',Ketu:'케투'};
+export const ELEMENT_KO:Record<string,string>={wood:'목',fire:'화',earth:'토',metal:'금',water:'수'};
 const PILLAR_KO:Record<string,string>={year:'년주',month:'월주',day:'일주',hour:'시주'};
 
 type Fact={label:string;value:unknown};

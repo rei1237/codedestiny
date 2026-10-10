@@ -54,6 +54,32 @@ test('correct claims, general explanations and other locales are untouched',()=>
  assert.equal(whole.body.blocks[0].paragraphs[0],'네 시주는 갑자야.'); // never blank a field to pass
 });
 
+test('MA 1B: a 戌未 형 the engine never computed becomes 미술파 unless 丑 is in the chart or the current luck',()=>{
+ // MA: 辛未 년주, 丙戌 대운, 丁未 세운 — no 丑, so the engine reads the pair as 미술파.
+ const ma={pillars:{year:'辛未',month:'丙申',day:'辛酉',hour:'戊子'},dayMaster:'辛',majorLuck:{currentCycle:{pillar:'丙戌'}},yearlyLuck:[{pillar:'丙午',majorLuckPillar:'丙戌'},{pillar:'丁未',majorLuckPillar:'丙戌'}]};
+ const r=run(['대운 丙戌과 세운 丁未가 戌未 형을 이뤄.','년주 未와는 戌未(술미) 형이라는 관계를 만들어.','지지에서는 未戌刑(미술형)이 보여.','戌과 未 사이에 술미형(戌未刑)이 발생해.','세운의 戌未(술미) 형살(刑殺)은 변동이야.'],ma);
+ assert.deepEqual(r.body.blocks[0].paragraphs,['대운 丙戌과 세운 丁未가 戌未 파를 이뤄.','년주 未와는 戌未(술미) 파라는 관계를 만들어.','지지에서는 未戌破(미술파)가 보여.','戌과 未 사이에 술미파(戌未破)가 발생해.','세운의 戌未(술미) 파(破)는 변동이야.']);
+ assert.equal(r.replaced,5);
+ // 丑 in the natal chart (facts: 丁丑 년주) or the current luck completes 축술미형; general and partner sentences stay too.
+ const kept=['대운 戌과 세운 未가 戌未 형을 이뤄.'];
+ assert.equal(run(kept).body.blocks[0].paragraphs[0],kept[0]);
+ assert.equal(run(kept,{...ma,majorLuck:{currentCycle:{pillar:'己丑'}}}).body.blocks[0].paragraphs[0],kept[0]);
+ for(const text of ['丑戌未 삼형은 세 글자가 모두 있어야 해.','상대의 戌未 형은 따로 봐.','미술 형태의 취미가 좋아.'])assert.equal(run([text],ma).body.blocks[0].paragraphs[0],text);
+});
+
+test('MA/MO 3B: a ten god written right after a named pillar is corrected to that pillar\'s computed ten gods',()=>{
+ const tenGodsByPillar={year:{stemTenGod:'비견',branchTenGods:['편인','편관','편재'],primaryHiddenTenGod:'편인'},month:{stemTenGod:'겁재',branchTenGods:['정재','정관','정인'],primaryHiddenTenGod:'정재'},
+  day:{stemTenGod:'일간',branchTenGods:['비견'],primaryHiddenTenGod:'비견'}};
+ const f={pillars:{year:'辛未',month:'庚寅',day:'辛酉',hour:'壬辰'},dayMaster:'辛',tenGodsByPillar};
+ const r=run(['년지에 편인과 편관이, 월지에 겁재와 정인이 함께 있어.','사주 월지에 편인(偏印)의 기운이 있어.','월지 寅(인목) 속에 편인(偏印)과 편관(偏官)이 숨어 있어.','네 월주 비견이 버팀목이야.','일지에 상관이 앉아 있어.'],f);
+ assert.deepEqual(r.body.blocks[0].paragraphs,['년지에 편인과 편관이, 월지에 정재와 정인이 함께 있어.','사주 월지에 정재(正財)의 기운이 있어.','월지 寅(인목) 속에 정재(正財)와 정관(正官)이 숨어 있어.','네 월주 겁재가 버팀목이야.','일지에 비견이 앉아 있어.']);
+ assert.equal(r.replaced,5);
+ // Correct claims, a list with no free computed ten god left, partners and other words after the pillar stay.
+ const kept=['월지 寅(인목)은 정재, 정관, 정인을 품어.','월주에는 庚寅(경인) 겁재와 정재가 있어.','월주에 있는 겁재(庚金)는 경쟁심이야.','상대의 월지에 편인이 있어.','월지와 일지 사이에 편관이 끼어.','월지 寅(인목)과 시지 辰(진토)에 편인, 편재가 있어.','년지와 월지에 편재(偏財)를 둬.'];
+ assert.deepEqual(run(kept,f).body.blocks[0].paragraphs,kept);
+ assert.equal(run(['월지에 편인, 편관, 편재, 상관이 있어.'],f).body.blocks[0].paragraphs[0],'월지에 정재, 정관, 정인이 있어.');
+});
+
 test('chapter prose correction applies the stored saju facts on both delivery paths',()=>{
  const input={locale:'ko',chapter:{ordinal:0},analysis:{question:'',contexts:{saju:{facts:[{label:'pillars',value:facts.pillars},{label:'dayMaster',value:'癸'},{label:'strengthHeuristic',value:{isStrong:false}}]}}}};
  const out=correctChapterProse(body(['네 일주는 庚申이야. 오늘은 쉬어.']),input);

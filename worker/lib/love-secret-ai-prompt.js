@@ -541,6 +541,11 @@ export function scanConsultationTextIssues(text) {
   return issues;
 }
 
+/** 정밀지표 영문 키가 "매력(attraction)" 처럼 한국어 뒤 괄호로 새어 나온 꼬리를 지운다. */
+function stripMetricKeyTails(text) {
+  return String(text ?? "").replace(/(?<=[가-힣])\((?:attraction|stability|communication|conflict|confidence)\)/gi, "");
+}
+
 /** 토큰 상한에 걸려 문장 중간에 끊긴 본문을 마지막 완결 문장까지 되돌린다. */
 function trimToLastCompleteSentence(text) {
   const value = clean(text);
@@ -595,7 +600,7 @@ export function parseLoveSecretGroupResponse(text, group, { lengthRepair = false
 
   if (!sections.length) return { ...base, reason: "NO_SECTIONS", issues: ["SECTION_EMPTY"] };
 
-  const trimmed = sections.map((section) => ({ title: section.title, body: trimToLastCompleteSentence(section.body) }));
+  const trimmed = sections.map((section) => ({ title: section.title, body: trimToLastCompleteSentence(stripMetricKeyTails(section.body)) }));
   const chars = countSectionBodyChars(trimmed);
   const issues = scanConsultationTextIssues(trimmed.map((section) => section.body).join("\n"));
   const sectionFloor = Math.ceil(LOVE_SECRET_AI_GROUP_MIN_CHARS * 0.7 / Math.max(1, titles.length));

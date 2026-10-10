@@ -2,7 +2,7 @@ import type { ChapterBody, ChapterSpec } from './book-contracts';
 import { FortuneError, type DomainContext } from './shared/contracts';
 import { topicLabel } from './topics';
 import { ASK_PERIOD_RESOLVER, resolveAskPeriods, type AskPeriodRange } from './ask/period';
-import { PLANET_KO } from './block-anchors';
+import { ELEMENT_KO, PLANET_KO } from './block-anchors';
 import { DASHA_ORDER } from '../../lib/vedic-derived-calculations.js';
 
 export interface Consultation {
@@ -271,9 +271,15 @@ export function redactInternalEvidence(body: ChapterBody, question = '', factLab
 // Principle 17: markup the reading screen does not render is corrected, not regenerated. Backticks and '*' footnote or
 // emphasis marks (no footnote ever follows) are dropped. In Korean, the stuttered '미 미치는'/'미 줄' loses the stray
 // syllable and an English '(Dignity: domicile)' label is dropped; an English gloss such as '금성(Venus)' stays.
+// Also in Korean: a bracket carrying an internal score ('(-4점)', '(일간 강약 점수 41)', '(… score -4)') is dropped whole,
+// a bare English element word ('metal') becomes its Korean name, and a word repeated in its own bracket ('형(형)') folds.
+// A bracket with a different value ('辛金(신금)') stays; a dotted ID is left for redactInternalEvidence.
 export function correctProseMarkup(body: ChapterBody, locale = 'ko'): { body: ChapterBody; count: number } {
   const rules: [RegExp, string][] = [[/`+/g, ''], [/(\*{1,2})(?=[^\s*])([^*\n]*?[^\s*])\1/gu, '$2'], [/(?<=[\p{L}\p{N})\]])\*{1,2}(?=[\s.,!?)\]」』:;·]|$)/gu, ''], [/(?<=^|[\s(「『])\*{1,2}(?=[\p{L}\p{N}])/gu, ''],
-    ...(locale === 'ko' ? [[/(?<![가-힣])미\s+(?=미[치쳐칠]|줄|준|주[는고])/gu, ''], [/[ \t]*[(（]\s*[A-Za-z][A-Za-z ]*:\s*[A-Za-z][A-Za-z ,'-]*[)）]/g, '']] as [RegExp, string][] : [])];
+    ...(locale === 'ko' ? [[/(?<![가-힣])미\s+(?=미[치쳐칠]|줄|준|주[는고])/gu, ''], [/[ \t]*[(（]\s*[A-Za-z][A-Za-z ]*:\s*[A-Za-z][A-Za-z ,'-]*[)）]/g, ''],
+      [/[ \t]*[(（](?=[^()（）\n]{0,200}?(?:(?:점수|\bscore\b)\s*[:：]?\s*[-+−]?\d|[-+−]?\d+(?:\.\d+)?\s*점(?![가-힣])))[^()（）\n]{1,200}[)）]/gu, ''],
+      ...Object.entries(ELEMENT_KO).map(([en, ko]) => [new RegExp(`(?<!\\w|\\w\\.)${en}(?!\\w|\\.\\w)`, 'g'), ko]),
+      [/(?<![\p{L}\p{N}])([\p{L}\p{N}]+)\s*[(（]\s*\1\s*[)）]/gu, '$1']] as [RegExp, string][] : [])];
   let count = 0;
   const fix = (value: unknown) => {
     if (typeof value !== 'string' || !value) return value;
@@ -387,14 +393,48 @@ export function validateDashaSequence(text: string, evidence: unknown) {
   }
 }
 
+const DASHA_LEVEL_KO:Record<string,string>={mahadasha:'마하다샤',antardasha:'안타르다샤',pratyantar:'프라티안타르다샤'};
+// The stored lord at each dasha level, highest level first: ask chapters carry dashaPeriods rows, others the current
+// periods of vimshottariDasha or questionTiming.
+function dashaLevels(evidence: unknown) {
+  const found:[string,unknown][]=[];
+  for(const f of (Array.isArray(evidence)?evidence:[]) as any[]){
+    if(f?.label==='dashaPeriods'&&Array.isArray(f.value))for(const r of f.value)found.push([r?.level,r?.lord]);
+    const current=f?.label==='vimshottariDasha'?[f.value]:f?.label==='questionTiming'&&Array.isArray(f.value?.periods)?f.value.periods:[];
+    for(const c of current)found.push(['mahadasha',c?.currentMahadasha],['antardasha',c?.currentAntardasha],['pratyantar',c?.currentPratyantarDasha]);
+  }
+  const level:Record<string,string>={};
+  for(const name of Object.keys(DASHA_LEVEL_KO))for(const [at,value] of found){
+    const lord=PLANET_KO[typeof value==='string'?value:(value as any)?.lord];
+    if(at===name&&lord&&DASHA_ORDER.some(l=>PLANET_KO[l]===lord))level[lord]||=name;
+  }
+  return level;
+}
+const VOWEL_PARTICLE:Record<string,string>={이야:'야',이에요:'예요',이라:'라',이고:'고',이:'가',은:'는',을:'를',과:'와',으로:'로'};
+
 // Principle 17: the antardasha just before the last one, called "the last" ('마지막 안타르다샤인 금성' in a Moon
 // mahadasha whose last is the Sun), is corrected to '마지막 바로 앞'. Any other wrong lord is left for validation.
-export function correctDashaSequence(body: ChapterBody, evidence: unknown): { body: ChapterBody; count: number } {
-  const cycle=dashaCycle(evidence);
-  if(!cycle)return { body, count: 0 };
+// A planet named with the saju word '대운' ('목성 대운', MO 2026-10-10) takes its stored level instead; a planet at no
+// stored level becomes the current mahadasha, the period '대운' stands for. '다음 달 대운' is a month, not the Moon.
+// levelEvidence also carries the stored vedic facts: an ask chapter's selected facts can lack the mahadasha.
+export function correctDashaSequence(body: ChapterBody, evidence: unknown, levelEvidence: unknown = evidence): { body: ChapterBody; count: number } {
+  const cycle=dashaCycle(evidence),levels=dashaLevels(levelEvidence);
+  const mahadasha=Object.keys(levels).find(lord=>levels[lord]==='mahadasha');
+  if(!cycle&&!Object.keys(levels).length)return { body, count: 0 };
+  const others=DASHA_ORDER.map(l=>PLANET_KO[l]).filter(lord=>lord!=='달').join('|');
+  const planetLuck=new RegExp(`(?<![가-힣])(${others}|(?<!(?:이번|다음|지난|이|그|한|매|몇|첫|두|세|네)\\s*)달)(\\s*\\([A-Za-z]+\\))?\\s*대운(이야|이에요|이라|이고|으로|[이은을과](?![가-힣]))?`,'gu');
   let count = 0;
-  const fix = (value: unknown) => {
-    if (typeof value !== 'string' || !value.includes('마지막')) return value;
+  const fix = (input: unknown) => {
+    if (typeof input !== 'string') return input;
+    let value = input;
+    if (value.includes('대운')) value = value.replace(planetLuck, (whole, lord: string, paren: string|undefined, particle: string|undefined) => {
+      const at = levels[lord] ? lord : mahadasha;
+      if (!at) return whole;
+      count++;
+      const english = Object.keys(PLANET_KO).find(k => PLANET_KO[k] === at);
+      return `${at}${paren ? (at === lord ? paren : `(${english})`) : ''} ${DASHA_LEVEL_KO[levels[at]]}${particle ? VOWEL_PARTICLE[particle] : ''}`;
+    });
+    if (!cycle || !value.includes('마지막')) return value;
     return value.split(/(?<=[.!?。\n])/u).map(sentence=>namesOtherMahadasha(sentence,cycle)?sentence:
       sentence.replace(cycle.lastClaim,(whole,link,lord,pair,at)=>{
         if(pair||lord!==cycle.beforeLast)return whole;

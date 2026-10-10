@@ -30,7 +30,7 @@ import { MasterLoveCodexSession, PaidExecutionRecord, Payment, PointHistory, Use
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { recoverCodexSession } from "../lib/master-love-codex-session-access.js";
 import { assertCodexChapterQuality, codexChapterFloor, codexDedupedChapterFloor, dedupeCodexBody, qualityCheckedCodexCache, generateCodexChapterResponse, buildCodexChapterMemory, buildCodexStagingChapter, parseChapterJson } from "../lib/master-love-codex-quality.js";
-import { buildCodexEvidence, formatCodexEvidence, CODEX_EVIDENCE_VERSION } from "../lib/master-love-codex-evidence.js";
+import { buildCodexEvidence, formatCodexEvidence, stripCodexEvidenceIds, CODEX_EVIDENCE_VERSION } from "../lib/master-love-codex-evidence.js";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
@@ -582,10 +582,12 @@ function normalizeLoveDna(parsed, metricDefs = LOVE_DNA_METRICS) {
  * New reports may carry an editorial reading contract alongside their legacy
  * markdown body.  Keep every field optional: previously purchased reports and
  * safe fallbacks only have `body` and must remain readable forever.
+ * Reader-facing prose never keeps evidence IDs; they live only in evidenceId / crossChecks.id.
  */
-function normalizeChapterContent(parsed, fallbackBody = "") {
+function normalizeChapterContent(parsed, fallbackBody = "", evidenceContract = null) {
   const source = asObject(parsed);
-  const text = (value, limit) => clean(value, limit);
+  const text = (value, limit) => stripCodexEvidenceIds(clean(value, limit), evidenceContract);
+  const id = (value, limit) => clean(value, limit);
   const list = (value, limit, max = 4) => (Array.isArray(value) ? value : [])
     .map((item) => text(item, limit))
     .filter(Boolean)
@@ -597,7 +599,7 @@ function normalizeChapterContent(parsed, fallbackBody = "") {
       if (!label) return null;
       return {
         label,
-        evidenceId: text(entry.evidenceId, 120),
+        evidenceId: id(entry.evidenceId, 120),
         subject: text(entry.subject, 16),
         period: text(entry.period, 32),
         certainty: text(entry.certainty, 16),
@@ -623,7 +625,7 @@ function normalizeChapterContent(parsed, fallbackBody = "") {
     narration: text(source.narration, 520),
     evidence,
     crossChecks: Array.isArray(source.crossChecks) ? source.crossChecks.map(item => ({
-      id: text(item.id, 120), status: text(item.status, 24), explanation: text(item.explanation, 600),
+      id: id(item.id, 120), status: id(item.status, 24), explanation: text(item.explanation, 600),
     })) : [],
     insight: text(source.insight, 1200),
     keySentence: text(source.keySentence, 320),
@@ -687,7 +689,7 @@ async function generateChapter(env, {
       if (raced.deferred) throw Object.assign(new Error("LLM_TIMEOUT_UNCERTAIN"), { code: "LLM_TIMEOUT_UNCERTAIN" });
       if (raced.error) throw raced.error;
       const { ai, parsed } = raced.value;
-      const content = normalizeChapterContent(parsed);
+      const content = normalizeChapterContent(parsed, "", evidenceContract);
       const body = content.body;
       const result = {
         status: "ok",
@@ -1433,10 +1435,11 @@ async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, de
       try {
         const cached = JSON.parse(restored.value?.text || "null");
         if (!cached?.parsed || cached.chapter?.id !== chapter.id) continue;
-        assertCodexChapterQuality(cached.parsed, chapter, modeDef.dnaMetrics, buildCodexEvidence({ chapter,
+        const cachedContract = buildCodexEvidence({ chapter,
           saju: doc.sajuResult, ziweiChart: doc.ziweiChart, partnerSaju: doc.partnerSajuResult,
-          partnerZiweiChart: doc.partnerZiweiChart, compatibility: doc.compatibility }), { allowShort: true });
-        const content = normalizeChapterContent(cached.parsed);
+          partnerZiweiChart: doc.partnerZiweiChart, compatibility: doc.compatibility });
+        assertCodexChapterQuality(cached.parsed, chapter, modeDef.dnaMetrics, cachedContract, { allowShort: true });
+        const content = normalizeChapterContent(cached.parsed, "", cachedContract);
         const recovered = dedupeChapterAgainst({ id: chapter.id, order: chapter.order, title: chapter.title, symbol: chapter.symbol,
           body: content.body, content, provider: clean(cached.chapter.provider, 40), ok: true }, [...byId.values()]);
         recovered.lengthDraft = content.body.length < codexChapterFloor(chapter) || recovered.body.length < chapterFloor.get(chapter.id);
@@ -1672,7 +1675,7 @@ export async function handleMasterLoveCodexRoutes(request, env = {}, dependencie
 
 export const __masterLoveCodexTestUtils = {
   FEATURE_KEY, COMPAT_FEATURE_KEY, SERVICE_KEY, MODES,
-  normalizeInput, getPricing, buildBillingGatePayload, normalizeLoveDna,
+  normalizeInput, getPricing, buildBillingGatePayload, normalizeLoveDna, normalizeChapterContent,
   resolveMode, tokenMatchesMode, buildCharts, buildChapterLogContext,
   // 배치 시간 예산 — 검증 스크립트가 LLM 호출 없이 순수 함수로 확인한다.
   withDeadline, acquireBatchLock, runCodexWave,
