@@ -18,8 +18,12 @@ import { REFUND_LOCK_TTL_MS, markOrderCancelled } from "./orders.js";
 import { RESUME_APPROVED_TTL_MS } from "./resume-context.js";
 import { listProducts } from "./catalog.js";
 import { buildPaymentAlert } from "./fulfillment-alert.js";
+import { MANUAL_REVIEW_FAILURE_CODE } from "./birth-identity.js";
 
 const PAID_RAW_STATUSES = Object.freeze(["paid", "success", "fulfilled"]);
+
+/** 지급 대상(출생 정보)을 찾지 못한 오류 — 재시도해도 풀리지 않는다. 사용자가 프로필을 골라야 한다. */
+const BIRTH_PROFILE_REQUIRED_CODES = new Set(["MISSING_PROFILE_ID", "INVALID_PROFILE"]);
 
 /** 결제창을 열고 이탈한 주문을 정리하기까지의 유예. PG 창이 열려 있을 수 있으므로 넉넉히 둔다. */
 export const PENDING_EXPIRY_MS = 30 * 60_000;
@@ -60,6 +64,8 @@ export async function regrantUnfulfilledOrders(db, { grant, now = new Date(), li
       ],
       // 방금 확정된 주문은 건드리지 않는다 — 정상 흐름이 지급을 마무리하는 중일 수 있다.
       updatedAt: { $lt: cutoff },
+      // 프로필 선택 대기로 종결한 주문은 다시 돌리지 않는다 — 사용자가 프로필을 고를 때 지급된다.
+      failureCode: { $ne: MANUAL_REVIEW_FAILURE_CODE },
     },
     // 오래 기다린 주문부터 처리하고 실패한 주문은 다음 재시도 시각까지 양보한다.
     { limit, sort: { updatedAt: 1 } },
@@ -79,8 +85,17 @@ export async function regrantUnfulfilledOrders(db, { grant, now = new Date(), li
         message: String(error?.message || error).slice(0, 200),
       });
       failed += 1;
+      const code = String(error?.code || "GRANT_FAILED");
+      if (BIRTH_PROFILE_REQUIRED_CODES.has(code)) {
+        // 소급 출생 기반 주문(스냅샷 생년월일 없음 + 프로필 결손). 무한 재시도 대신 종결 표식을 단다.
+        await db.updateOne(Payment, { merchantUid: order.merchantUid, status: "paid" }, {
+          $set: { failureCode: MANUAL_REVIEW_FAILURE_CODE, failureStage: "birth_profile_required", "metadata.fulfillmentLastError": code },
+          $inc: { "metadata.fulfillmentAttempts": 1 },
+        }).catch(() => { console.error("[payments] regrant retry state unavailable", { orderId: String(order.merchantUid || "") }); });
+        continue;
+      }
       await db.updateOne(Payment, { merchantUid: order.merchantUid, status: "paid" }, {
-        $set: { "metadata.fulfillmentRetryAt": new Date(now.getTime() + 5 * 60_000), "metadata.fulfillmentLastError": String(error?.code || "GRANT_FAILED") },
+        $set: { "metadata.fulfillmentRetryAt": new Date(now.getTime() + 5 * 60_000), "metadata.fulfillmentLastError": code },
         // 실패 횟수(운영자 알림 본문의 "재지급 실패 N회"). 재시도는 여전히 무제한이다.
         $inc: { "metadata.fulfillmentAttempts": 1 },
       }).catch(() => { console.error("[payments] regrant retry state unavailable", { orderId: String(order.merchantUid || "") }); });

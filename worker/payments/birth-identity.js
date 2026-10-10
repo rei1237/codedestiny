@@ -68,6 +68,17 @@ export function birthIdentityFromSnapshot(snapshot = {}, featureKey = "") {
   };
 }
 
+/** 지급 대상을 식별하지 못해 사람(사용자 프로필 선택·운영자)의 조치를 기다리는 주문 표식.
+ *  구 웹(payments.js)·구글(app-store.js)·V2(reconcile.js)가 같은 값을 쓴다. */
+export const MANUAL_REVIEW_FAILURE_CODE = "delivery_failed_manual_review";
+
+/** 출생 기반 영구 해금인데 주문 스냅샷에 생년월일이 없다 — 출생 기반 전환 전에 만든 주문이다.
+ *  이런 주문은 저장 프로필이 사라지면 지급 대상을 알 수 없어 사용자가 프로필을 골라야 한다. */
+export function orderNeedsBirthProfileSelection(order) {
+  if (!isBirthScopedProduct({ featureKey: order?.featureKey })) return false;
+  return !birthIdentityFromSnapshot(order?.pricingSnapshot || {}, order?.featureKey);
+}
+
 /** pricingSnapshot 에 실을 필드. 합성 profileId("birth:…")는 싣지 않는다 — 실제 구매 프로필만 남긴다. */
 export function birthSnapshotFields(identity) {
   if (!identity) return {};

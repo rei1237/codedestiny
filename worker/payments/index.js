@@ -48,8 +48,7 @@ import { createServicePackRoutes } from "./service-pack-routes.js";
 import { verifyPgPayment } from "./pg.js";
 import { isLegacySingleOrderId } from "./order-id.js";
 import { dropEntitlementByIdentity, findOwnedEntitlement, grantEntitlement, markUserFeatureUnlocked, revokeEntitlementForOrder } from "./entitlements.js";
-import { birthIdentityFromSnapshot, isBirthScopedProduct, resolvePaymentBirthIdentity } from "./birth-identity.js";
-import { settleOrphanSpends, spendMoonstone, reserveOrderMoonstones, releaseOrderMoonstones } from "./moonstone.js";
+import { birthIdentityFromSnapshot, isBirthScopedProduct, orderNeedsBirthProfileSelection, resolvePaymentBirthIdentity } from "./birth-identity.js";import { settleOrphanSpends, spendMoonstone, reserveOrderMoonstones, releaseOrderMoonstones } from "./moonstone.js";
 import { quoteYeongnyangiMoonstoneDiscount } from '../lib/paid-feature-registry.js';
 import { acceptWebhook, claimReplayableEvents, describeEventFailure, markEventFailed, markEventProcessed } from "./webhook.js";
 import { alertPaymentAnomalies, runPaymentReconcile } from "./reconcile.js";
@@ -85,6 +84,7 @@ import {
   resolvePremiumAccessReportType,
 } from "../lib/premium-access-token.js";
 import {
+  BIRTH_PROFILE_SELECTION_MESSAGE,
   legacyBillingCheckoutEnvelope,
   legacyMoonstoneEnvelope,
   legacyOrderDetailEnvelope,
@@ -939,8 +939,9 @@ async function grantPassOrderEntitlement(db, order) {
   return true;
 }
 
-/** 지급. 실패해도 던지지 않는다 — 돈은 이미 받았고, 실패를 오류로 올리면 사용자가 다시 결제한다. */
-async function grantOrderEntitlement(db, order) {
+/** 지급. 실패해도 던지지 않는다 — 돈은 이미 받았고, 실패를 오류로 올리면 사용자가 다시 결제한다.
+ *  `rethrow` 는 크론·프로필 선택 지급 전용이다 — 원래 오류 코드(MISSING_PROFILE_ID 등)로 종결 여부를 가른다. */
+async function grantOrderEntitlement(db, order, { rethrow = false } = {}) {
   try {
     if (order.purchaseType === "GIFT") {
       const { ensureGiftForOrder } = await import("./gifts.js");
@@ -1006,6 +1007,7 @@ async function grantOrderEntitlement(db, order) {
       code: error?.code || "",
       message: error?.message || String(error),
     });
+    if (rethrow) throw error;
     return false;
   }
 }
@@ -1344,13 +1346,19 @@ const ROUTES = {
       await purgeCredentialCache(request, CREDENTIAL_CACHE_PREFIXES);
       if (result.granted) return json({ ok: true, order: presentOrder(result.order), entitlementStatus: "granted" });
       // 🔴 200 이다. 카드는 승인됐고 주문도 기록됐다 — 장애가 아니라 마무리가 남은 성공이다.
+      // 소급 출생 기반 주문은 크론이 풀지 못한다 — code 는 그대로(셸·앱이 GRANT_PENDING 으로 분기) 두고
+      // profileSelectionRequired 로 프로필 선택 지급(/birth-profile-pending)을 안내한다.
+      const profileSelectionRequired = orderNeedsBirthProfileSelection(result.order);
       return json({
         ok: true,
         order: presentOrder(result.order),
         entitlementStatus: "pending",
         code: "GRANT_PENDING",
         pollUrl: `/api/payments/orders/${encodeURIComponent(params.id)}`,
-        message: "결제는 완료됐어요. 콘텐츠 준비를 마무리하는 중이니 다시 결제하지 말아 주세요.",
+        ...(profileSelectionRequired ? { profileSelectionRequired: true } : {}),
+        message: profileSelectionRequired
+          ? BIRTH_PROFILE_SELECTION_MESSAGE
+          : "결제는 완료됐어요. 콘텐츠 준비를 마무리하는 중이니 다시 결제하지 말아 주세요.",
       });
     },
   },
@@ -1383,6 +1391,7 @@ const ROUTES = {
         granted: result.granted,
         replayed: result.replayed,
         unlock: !isPerUseFeatureKey(result.order?.featureKey),
+        profileSelectionRequired: !result.granted && orderNeedsBirthProfileSelection(result.order),
       });
       // 🔴 프리미엄 리포트류는 확정 응답의 premiumAccessToken(+쿠키)이 열람 자격이다 — 구 confirm 의
       // successWithPremiumAccess 승계. 빠지면 결제는 됐는데 콘텐츠 접근이 막힌다(2026-08-12 수정).
@@ -2046,7 +2055,7 @@ export async function runPaymentsV2Reconcile(env) {
   try {
     const report = await withPaymentDb(env, ctx, async (db) => {
       const report = await runPaymentReconcile(db, {
-        grant: (order) => grantOrderEntitlement(db, order).then((granted) => {
+        grant: (order) => grantOrderEntitlement(db, order, { rethrow: true }).then((granted) => {
           if (!granted) throw paymentError("INTERNAL_ERROR", "entitlement grant failed", { orderId: String(order?.merchantUid || "") });
         }),
       });
