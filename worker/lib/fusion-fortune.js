@@ -1274,6 +1274,14 @@ export async function generateFusionFortuneWithRealLLM({
   if (context.version === FUSION_EXPERT_VERSION) composed.evidenceCrossCheck = buildFusionEvidenceCrossCheck(composed, context);
   if (stageNumber === 1) return { result: composed, deliverable: true, generationSource: "gemini", providerCalls, qualityTier: "partial", stage: 1 };
   composed.visualization = normalizeFusionVisualization(composed.visualization, context, { now });
+  // 🔴 검증만 정규화본을 보고 저장은 원본을 하던 탓에, R5의 adapt·pause·advance가 그대로 화면에
+  //    가서 배지·체계 이름이 비었다. 배달본에도 정규화된 입장(과 라벨)을 싣는다. 전문가판의
+  //    confidence는 "확률 아님" 계약대로 원본(0)을 두고, 게이지를 쓰는 기존판만 분포값으로 맞춘다.
+  const normalizedVerdict = normalizeFusionFinalVerdict(composed.finalVerdict);
+  if (normalizedVerdict.ok) {
+    composed.finalVerdict = { ...composed.finalVerdict, systemVerdicts: normalizedVerdict.value.systemVerdicts,
+      ...(context.version === FUSION_EXPERT_VERSION ? {} : { confidence: normalizedVerdict.value.confidence }) };
+  }
   // Every group already passed acceptance above; judge the delivery tier on real length so a
   // report that stayed short after its repairs is labelled degraded, not full.
   const decision = resolveFusionFortuneDelivery(composed, { ...validationOptions, ignoreLength: false });

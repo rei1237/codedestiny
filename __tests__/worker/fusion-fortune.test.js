@@ -977,6 +977,32 @@ it("labels a report that stays short after its repairs as degraded, not full", a
  expect(result.qualityNotice).not.toContain("추가 결제 없이");
 });
 
+describe("final verdict stance contract (R5: systemVerdicts arrived as adapt/pause/advance)", () => {
+  const verdictGroup = FUSION_SECTION_GROUP_SPECS.find(group => group.id === "verdict");
+  it.each([["legacy", { birthTimeKnown: true }], ["expert", { birthTimeKnown: true, locale: "ko", version: "fusion-expert.v2" }]])("%s verdict schema pins the verdict stance vocabulary", (_name, context) => {
+    const prompt = buildFusionSectionGroupPrompt({ context, group: verdictGroup, priorSections: {} });
+    expect(prompt.geminiSchema.properties.finalVerdict.properties.systemVerdicts.items.properties.stance.enum).toEqual(["agree", "conditional", "caution"]);
+  });
+  it("expert verdict prompt separates the verdict stance from first-stage signals", () => {
+    const prompt = buildFusionSectionGroupPrompt({ context: { birthTimeKnown: true, locale: "ko", version: "fusion-expert.v2" }, group: verdictGroup, priorSections: {}, schemaInPrompt: false });
+    expect(prompt.userPrompt).toContain("systemVerdicts[].stance는 agree·conditional·caution");
+    expect(prompt.userPrompt).toContain("advance·pause·adapt");
+  });
+  it("delivers the normalized verdict stance and label instead of the raw model value", async () => {
+    const prior = Object.assign({}, ...FUSION_SECTION_GROUP_SPECS.map(group => buildFusionGroupPayload(group)));
+    const raw = ["adapt", "pause", "advance", "agree", "caution", "conditional"];
+    prior.finalVerdict = { ...prior.finalVerdict, systemVerdicts: prior.finalVerdict.systemVerdicts.map((item, index) => ({ key: item.key, stance: raw[index], note: item.note })) };
+    const env = { ENABLE_FUSION_FORTUNE_REAL_LLM: "true", ALLOW_FUSION_FORTUNE_REAL_LLM: "true", GEMINIF_API_KEY: "mock-only", GEMINI_CONTEXT_CACHE: "false" };
+    const providerCall = jest.fn();
+    const result = await generateFusionFortuneWithRealLLM({ context: { birthTimeKnown: true, birthPlaceKnown: true }, env, stage: 2, priorResult: prior, providerCall });
+    expect(providerCall).not.toHaveBeenCalled();
+    const verdicts = result.result.finalVerdict.systemVerdicts;
+    expect(verdicts.map(item => item.stance)).toEqual(["conditional", "conditional", "conditional", "agree", "caution", "conditional"]);
+    expect(verdicts.every(item => item.label)).toBe(true);
+    expect(result.result.finalVerdict.headline).toBe(prior.finalVerdict.headline);
+  });
+});
+
 it("keeps both total floors independently", () => {
  expect(fusionReportMeetsTotalFloor({openingMessage:"가".repeat(24000)})).toBe(false);
  expect(fusionReportMeetsTotalFloor({openingMessage:"가 ".repeat(16000)})).toBe(false);
