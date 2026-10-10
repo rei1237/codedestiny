@@ -514,7 +514,9 @@ const FUSION_QUALITY_ISSUES = Object.freeze(new Set([
   "birth_time_overclaim", "birth_place_overclaim",
 ]));
 
-export const FUSION_DEGRADED_NOTICE = "일부 묶음이 목표 분량에 못 미친 상태로 전해 드립니다. 같은 요청으로 다시 시도하면 추가 결제 없이 새로 씁니다.";
+// 🔴 "같은 요청으로 다시 시도하면 새로 씁니다"는 거짓이었다 — 완료된 requestId는 저장된 결과를
+//    그대로 돌려준다(routes/fusion-fortune.js). 분량 보완 1회는 배달 전에 이미 썼다.
+export const FUSION_DEGRADED_NOTICE = "일부 묶음이 목표 분량에 못 미친 상태로 전해 드립니다.";
 
 /**
  * 결과 계약을 **끝까지** 평가해 위반을 순서대로 모은다.
@@ -1029,9 +1031,19 @@ export async function generateFusionFortuneWithRealLLM({
   const remainingMs = () => FUSION_GENERATION_DEADLINE_MS - (Date.now() - startedAt);
 
   const model = text(env.FUSION_FORTUNE_LLM_MODEL, 100) || "gemini-2.5-flash";
+  // 🔴 ignoreLength:true is the *acceptance* gate only (rule L1, docs/handoff/2026-09-27-llm-length-never-fatal.md):
+  //    a short valid group is kept, never failed. Length still decides two things below — whether a
+  //    group is owed its one length repair (rule L2), and the delivery tier (degraded vs full).
   const validationOptions = { ...fusionValidationOptions(context, input), locale: context.locale, ignoreLength: true };
   const attemptCounts = { ...priorSnapshot?.attempts };
   const lengthRepairs = { ...priorSnapshot?.lengthRepairs };
+  const attemptLimit = fusionGroupAttemptLimit(priorSnapshot);
+  // R5 (2026-10-09): 42b2ba1ef dropped this, so a report at 28,650/30,000 chars shipped as "full" with
+  // six short sections and zero repairs. One repair per group, inside the existing attempt cap.
+  const owesLengthRepair = (values, group) => !lengthRepairs[group.id]
+    && Number(attemptCounts[group.id] || 0) < attemptLimit
+    && (!validateFusionFortuneGroup(values, group, { ...validationOptions, ignoreLength: false }).ok
+      || countFusionGroupChars(values, group) < group.targetChars * FUSION_GROUP_RETRY_RATIO);
   const providers = new Set();
   const models = new Set();
   let providerCalls = 0;
@@ -1047,11 +1059,11 @@ export async function generateFusionFortuneWithRealLLM({
     const saved = pickKeys(prior, group.keys);
     return validateFusionFortuneGroup(saved, group, validationOptions).ok
       && (context.version !== FUSION_EXPERT_VERSION || group.stage !== 1 || group.systems.every(system => validFusionSignals(saved[`${system}Section`], system, context)))
-;
+      && !owesLengthRepair(saved, group);
   };
   // Paid routes always supply checkpoints. At most two unfinished groups per request;
   // previously verified groups travel in prior and never purchase another call.
-  const attemptLimit = fusionGroupAttemptLimit(priorSnapshot);
+  // A short saved group is "unfinished" until its one length repair is spent.
   const waveGroups = typeof onCheckpoint === 'function' ? groups.filter(group => !savedReady(group))
     .filter(group => Number(attemptCounts[group.id] || 0) < attemptLimit)
     .sort((a, b) => Number(attemptCounts[a.id] || 0) - Number(attemptCounts[b.id] || 0)).slice(0, 2) : groups;
@@ -1094,7 +1106,7 @@ export async function generateFusionFortuneWithRealLLM({
     // Keep the display prompt intact; send each schema only once to the provider.
     const groupPrompt = buildFusionSectionGroupPrompt({ context, group, priorSections: prior, extraInstruction, schemaInPrompt: false });
     if (Number(attemptCounts[group.id] || 0) >= attemptLimit) return { ok: savedValid, group, value: savedValid ? saved : undefined, issue: "budget_exhausted" };
-    const lengthRepair = savedValid && !lengthRepairs[group.id] && (!validateFusionFortuneGroup(saved, group, { ...validationOptions, ignoreLength: false }).ok || countFusionGroupChars(saved, group) < group.targetChars * FUSION_GROUP_RETRY_RATIO);
+    const lengthRepair = savedValid && owesLengthRepair(saved, group);
     const reservedAttempt = typeof onAttempt === "function" ? await onAttempt(group.id, { lengthRepair }) : null;
     attemptCounts[group.id] = reservedAttempt || Number(attemptCounts[group.id] || 0) + 1;
     if (lengthRepair) lengthRepairs[group.id] = true;
@@ -1192,7 +1204,7 @@ export async function generateFusionFortuneWithRealLLM({
     });
 
     // 실패했거나 목표를 크게 밑돈 그룹만 다시 부른다. 그룹 단위라 예산 안에 들어온다.
-    const shortGroups = [];
+    const shortGroups = groups.filter((group) => !failedGroups.includes(group) && owesLengthRepair(merged, group));
     // 🔴 중복은 **모델이 쓴 본문끼리만** 본다. composed(결정론 폴백이 섞인 것)로 재면 폴백이 제
     //    렌즈 문장을 여러 섹션에 재사용하는 구조 때문에 모델 잘못이 아닌 중복이 잡힌다(실측 24건/40자).
     //    2단계는 1단계 본문(prior)까지 포함해 본다 — 2단계가 요약을 그대로 베끼는 것이 잡아야 할 중복이다.
@@ -1203,6 +1215,9 @@ export async function generateFusionFortuneWithRealLLM({
     const retryTargets = [...failedGroups, ...shortGroups, ...duplicatedGroups, ...thinGroups].filter(group => Number(attemptCounts[group.id] || 0) < attemptLimit);
     // 연결이 끊긴 뒤에 보완 호출을 또 태우지 않는다. 1차 호출은 provider 안에서 이미 진행 중이라
     // 여기서 못 끊지만, **두 번째 물결**은 막을 수 있다(비용의 절반이 여기다).
+    // 🔴 체크포인트(유료) 경로는 이 물결을 돌지 않는다 — 요청당 최대 2묶음(PAID_LLM_PARTS_PER_REQUEST,
+    //    엣지 100s)이라 같은 요청에서 보완까지 하면 데드라인을 넘는다. 대신 보완이 남은 묶음은 아래
+    //    `missing`에 남아 pending으로 돌아가고, 다음 요청의 waveGroups가 분량 지시와 함께 다시 쓴다.
     if (typeof onCheckpoint !== 'function' && retryTargets.length && !abortSignal?.aborted && remainingMs() > FUSION_GROUP_RETRY_MIN_BUDGET_MS) {
       const retryTimeoutMs = Math.min(groupTimeoutMs, remainingMs() - FUSION_TAIL_RESERVE_MS);
       const repairProgress = { phase: "repair", total: retryTargets.length, done: 0 };
@@ -1249,7 +1264,8 @@ export async function generateFusionFortuneWithRealLLM({
   await checkpointQueue;
   const composed = { ...prior, ...merged };
   const missing = groups.filter((group) => !validateFusionFortuneGroup(composed, group, validationOptions).ok
-    || (context.version === FUSION_EXPERT_VERSION && group.stage === 1 && !group.systems.every((system) => validFusionSignals(composed[`${system}Section`], system, context))));
+    || (context.version === FUSION_EXPERT_VERSION && group.stage === 1 && !group.systems.every((system) => validFusionSignals(composed[`${system}Section`], system, context)))
+    || (typeof onCheckpoint === "function" && owesLengthRepair(composed, group)));
   if (missing.length) {
     return { result: composed, deliverable: false, generationSource: "gemini_partial", providerCalls,
       automaticRetryAllowed: missing.some(group => Number(attemptCounts[group.id] || 0) < attemptLimit),
@@ -1258,7 +1274,9 @@ export async function generateFusionFortuneWithRealLLM({
   if (context.version === FUSION_EXPERT_VERSION) composed.evidenceCrossCheck = buildFusionEvidenceCrossCheck(composed, context);
   if (stageNumber === 1) return { result: composed, deliverable: true, generationSource: "gemini", providerCalls, qualityTier: "partial", stage: 1 };
   composed.visualization = normalizeFusionVisualization(composed.visualization, context, { now });
-  const decision = resolveFusionFortuneDelivery(composed, validationOptions);
+  // Every group already passed acceptance above; judge the delivery tier on real length so a
+  // report that stayed short after its repairs is labelled degraded, not full.
+  const decision = resolveFusionFortuneDelivery(composed, { ...validationOptions, ignoreLength: false });
   return { result: decision.value || composed, deliverable: decision.deliverable, automaticRetryAllowed: false, generationSource: "gemini", providerCalls, qualityTier: decision.tier, qualityNotice: decision.qualityNotice, qualityIssues: [...(decision.issues || []), ...(collectFusionCrossSectionDuplicates(composed).length ? ["cross_section_duplicate"] : [])], stage: 2 };
 
 }

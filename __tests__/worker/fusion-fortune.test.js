@@ -897,8 +897,9 @@ describe("fusion length drafts and bounded repairs", () => {
       expect(providerCall.mock.calls.length-calls).toBeLessThanOrEqual(2);
     }
     expect(first.deliverable).toBe(true);
-    expect(snapshot.attempts.saju).toBe(1);
-    expect(snapshot.lengthRepairs.saju).toBeUndefined();
+    // R5: a short group gets its one length repair in a later request (2 calls max for the group).
+    expect(snapshot.attempts.saju).toBe(2);
+    expect(snapshot.lengthRepairs.saju).toBe(true);
     expect(first.result.sajuSection.content).toBe(fusionFiller("short valid saju", 1000));
     providerCall.mockClear();
     const resumed = await generateFusionFortuneWithRealLLM({ ...args, priorResult: first.result, priorSnapshot: snapshot });
@@ -944,7 +945,7 @@ it("total repair keeps longer saved groups and marks a depth-only repair once", 
  const snapshot={attempts:{},lengthRepairs:{}};
  const providerCall=jest.fn(async(_env,_prompt,options)=>({ok:true,text:JSON.stringify(buildFusionGroupPayload(FUSION_SECTION_GROUP_SPECS.find(g=>g.id===options.logContext.sectionGroup)))}));
  const first=await generateFusionFortuneWithRealLLM({context:{birthTimeKnown:true,birthPlaceKnown:true},env,stage:2,priorResult:prior,providerCall,onAttempt:async(id,opts)=>{reservations.push([id,opts]);if(opts.lengthRepair)snapshot.lengthRepairs[id]=true;return snapshot.attempts[id]=(snapshot.attempts[id]||0)+1;}});
- expect(reservations).toEqual([]);
+ expect(reservations).toContainEqual(["verdict",{lengthRepair:true}]);
  expect(first.result.finalVerdict.rationale).toBe(prior.finalVerdict.rationale);
  providerCall.mockClear();
  await generateFusionFortuneWithRealLLM({context:{birthTimeKnown:true,birthPlaceKnown:true},env,stage:2,priorResult:first.result,priorSnapshot:snapshot,providerCall});
@@ -963,6 +964,18 @@ it("total repair keeps longer saved groups and marks a depth-only repair once", 
  expect(afterFailure.result.finalVerdict.rationale).toBe(shortPrior.finalVerdict.rationale);
 });
 
+
+it("labels a report that stays short after its repairs as degraded, not full", async () => {
+ const prior=Object.assign({}, ...FUSION_SECTION_GROUP_SPECS.map(group=>buildFusionGroupPayload(group)));
+ prior.integratedReading={...prior.integratedReading,content:fusionFiller("short integration",1000)};
+ const env={ENABLE_FUSION_FORTUNE_REAL_LLM:"true",ALLOW_FUSION_FORTUNE_REAL_LLM:"true",GEMINIF_API_KEY:"mock-only",GEMINI_CONTEXT_CACHE:"false"};
+ const providerCall=jest.fn();
+ const result=await generateFusionFortuneWithRealLLM({context:{birthTimeKnown:true,birthPlaceKnown:true},env,stage:2,priorResult:prior,providerCall,priorSnapshot:{attempts:{integration:2,action:2,verdict:2}},onCheckpoint:async()=>{}});
+ expect(providerCall).not.toHaveBeenCalled();
+ expect(result).toMatchObject({deliverable:true,qualityTier:"degraded"});
+ expect(result.qualityIssues).toContain("section_depth");
+ expect(result.qualityNotice).not.toContain("추가 결제 없이");
+});
 
 it("keeps both total floors independently", () => {
  expect(fusionReportMeetsTotalFloor({openingMessage:"가".repeat(24000)})).toBe(false);
