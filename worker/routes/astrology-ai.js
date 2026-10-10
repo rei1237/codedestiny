@@ -1,6 +1,7 @@
 import { normalizeNarrativeBody } from '../lib/paid-narrative-candidate.js';
 import { trimPaidReportText } from "../lib/paid-report-length.js";
 import { SYSTEM_INSTRUCTION_TERM_PATTERN } from "../lib/system-instruction-term.js";
+import { koreanizeExpertTerms } from "../lib/korean-term-gloss.js";
 import { createHash, randomUUID } from "node:crypto";
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
@@ -1136,7 +1137,18 @@ function sanitizeConsultationText(text) {
   FORBIDDEN_RESULT_PATTERNS.forEach((pattern) => {
     result = result.replace(pattern, "");
   });
-  return result.replace(/\n{3,}/g, "\n\n").trim();
+  return koreanizeExpertTerms(result).replace(/\n{3,}/g, "\n\n").trim();
+}
+
+// R7 2026-10-11: inner parts still ended by inviting questions, so the reading closed three times.
+const LAST_SENTENCE = /\s*([^.!?\n]+[.!?])\s*$/u;
+const isClosingInvitation = (sentence) => /궁금|질문|이야기해|문의/u.test(sentence) && /언제든|편하게|있으신가요|있으시다면|있다면/u.test(sentence);
+function dropClosingInvitation(text) {
+  let body = String(text || "").trimEnd();
+  for (let hit = LAST_SENTENCE.exec(body); hit && isClosingInvitation(hit[1]) && body.length > hit[0].length; hit = LAST_SENTENCE.exec(body)) {
+    body = body.slice(0, hit.index).trimEnd();
+  }
+  return body;
 }
 
 function buildSectionPrompt(input, chart, section, repairLines = []) {
@@ -1214,7 +1226,9 @@ async function generateSectionedConsultation(env, input, chart, options = {}) {
       error.status = 503;
       throw error;
     }
-    return { section, ok: ai?.ok === true, rawText: ai?.rawText || ai?.text || "", text: options.checkpoint ? normalizeNarrativeBody(sanitizeConsultationText(ai?.text || "")) : sanitizeConsultationText(ai?.text || ""), provider, model };
+    const sanitized = sanitizeConsultationText(ai?.text || "");
+    const text = section.key === ASTROLOGY_SECTIONS.at(-1).key ? sanitized : dropClosingInvitation(sanitized);
+    return { section, ok: ai?.ok === true, rawText: ai?.rawText || ai?.text || "", text: options.checkpoint ? normalizeNarrativeBody(text) : text, provider, model };
   };
 
   // 웨이브 1 — 전 섹션 동시 생성. 벽시계는 섹션 시간의 합이 아니라 가장 느린 섹션 하나.
@@ -2006,6 +2020,7 @@ export const __astrologyAiTestUtils = {
   buildSectionPrompt,
   generateSectionedConsultation,
   sanitizeConsultationText,
+  dropClosingInvitation,
   getConsultationQualityIssues,
   ASTROLOGY_AI_MIN_RESULT_CHARS,
   ASTROLOGY_AI_MAX_RESULT_CHARS,

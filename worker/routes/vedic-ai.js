@@ -3,6 +3,7 @@ import { normalizeNarrativeBody } from '../lib/paid-narrative-candidate.js';
 import { salvageTruncatedJsonObject } from '../../lib/llm-text.js';
 import { trimPaidReportSections } from "../lib/paid-report-length.js";
 import { SYSTEM_INSTRUCTION_TERM_PATTERN } from "../lib/system-instruction-term.js";
+import { koreanizeExpertTerms, nakshatraKo } from "../lib/korean-term-gloss.js";
 import { createHash, randomUUID } from "node:crypto";
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
@@ -927,7 +928,7 @@ function gocharaFromMoon(chart) {
 function buildCanonicalFactsLine(chart) {
   const facts = [];
   if (chart?.lagna?.rashiKo) facts.push(`라그나=${chart.lagna.rashiKo}(${chart.lagna.sign})`);
-  if (chart?.moonNakshatra?.name) facts.push(`달의 나크샤트라=${chart.moonNakshatra.name}${chart.moonNakshatra.pada ? ` ${chart.moonNakshatra.pada}파다` : ""}`);
+  if (chart?.moonNakshatra?.name) facts.push(`달의 나크샤트라=${nakshatraKo(chart.moonNakshatra.name)}${chart.moonNakshatra.pada ? ` ${chart.moonNakshatra.pada}파다` : ""}`);
   const mahaLord = chart?.vimshottariDasha?.currentMahadasha?.lord;
   if (mahaLord) facts.push(`현재 마하다샤=${GRAHA_KO_MAP[mahaLord] || mahaLord}(${mahaLord})`);
   const antarLord = chart?.vimshottariDasha?.currentAntardasha?.lord;
@@ -957,7 +958,7 @@ function buildVedicAnalysisBasis(chart) {
     basisItem("라그나", lagnaAvailable && chart?.lagna?.rashiKo ? `${chart.lagna.rashiKo}${chart.lagna.sign ? ` (${chart.lagna.sign})` : ""}` : "출생시간 미상으로 확정하지 않음", { term: "라그나", tone: lagnaAvailable ? "neutral" : "caution" }),
     chart?.moon?.signKo || chart?.moon?.sign ? basisItem("달의 라시", `${chart.moon.signKo || ALL_SIGNS_KO[SIGNS_EN.indexOf(chart.moon.sign)] || chart.moon.sign}`) : null,
     chart?.moonNakshatra?.name
-      ? basisItem("나크샤트라", `${chart.moonNakshatra.name}${chart.moonNakshatra.pada ? ` · ${chart.moonNakshatra.pada}파다` : ""}`)
+      ? basisItem("나크샤트라", `${nakshatraKo(chart.moonNakshatra.name)}${chart.moonNakshatra.pada ? ` · ${chart.moonNakshatra.pada}파다` : ""}`)
       : null,
     chart?.ayanamsa ? basisItem("아야남사", String(chart.ayanamsa)) : null,
   ];
@@ -1112,7 +1113,7 @@ function sanitizeAssistantText(value) {
   text = text.replace(/\bprogress\b/gi, "진행");
   text = text.replace(/프롬프트/g, "질문");
   text = text.replace(SYSTEM_INSTRUCTION_TERM_PATTERN, "상담 기준");
-  return text.trim();
+  return koreanizeExpertTerms(text).trim();
 }
 
 function readingTextLength(value) {
@@ -1163,7 +1164,8 @@ function validateChartConsistency(content, chart) {
 
   const nakshatraName = clean(chart?.moonNakshatra?.name, 40);
   const nakshatraBody = sectionBody("karma_origin");
-  if (nakshatraName && nakshatraBody && !nakshatraBody.includes(nakshatraName)) {
+  // The body writes the Korean name (R8 2026-10-11); an English one still counts.
+  if (nakshatraName && nakshatraBody && !nakshatraBody.includes(nakshatraName) && !nakshatraBody.includes(nakshatraKo(nakshatraName))) {
     issues.push("consistency.moon_nakshatra_unstated");
   }
 

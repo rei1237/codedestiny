@@ -3,6 +3,7 @@ import { normalizeNarrativeBody } from '../lib/paid-narrative-candidate.js';
 import { salvageTruncatedJsonObject } from '../../lib/llm-text.js';
 import { trimPaidReportSections } from "../lib/paid-report-length.js";
 import { SYSTEM_INSTRUCTION_TERM_PATTERN } from "../lib/system-instruction-term.js";
+import { koreanizeExpertTerms } from "../lib/korean-term-gloss.js";
 import { createHash, randomUUID } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { resolveForbiddenPatterns } from "../lib/llm-leak-guard.js";
@@ -1617,7 +1618,7 @@ function buildFirstPrompt(input, chart) {
 }
 
 function cleanForbiddenResult(text) {
-  return clean(text)
+  return koreanizeExpertTerms(clean(text))
     .replace(/\bAI\b/gi, "상담")
     .replace(/PDF/gi, "상담")
     .replace(/챕터/g, "흐름")

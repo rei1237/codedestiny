@@ -227,6 +227,14 @@ it("never offers a placeholder as the reader's name and allows a closing only in
   expect(closing.every(prompt => prompt.includes("추가 질문을 자연스럽게 청하세요"))).toBe(true);
   expect(prompts.filter(prompt => !prompt.includes(`[이번에 쓸 부분] ${last}`)).every(prompt => prompt.includes("맺음말을 새로 쓰지 말고"))).toBe(true);
 });
+// R7 2026-10-11 재실행: 지시에도 4·5부 끝에 추가 질문 안내가 남았고, 괄호 영문 병기가 15건이었다.
+it("drops a follow-up invitation ending an inner part and English glosses from the body", async () => {
+  const { dropClosingInvitation, sanitizeConsultationText } = (await import("../../worker/routes/astrology-ai.js")).__astrologyAiTestUtils;
+  const body = "토성은 책임을 요구합니다.\n\n당신의 선택이 중요합니다. 혹시 더 궁금하거나 깊이 있게 논의하고 싶은 부분이 있으신가요? 언제든지 편하게 질문해 주세요.";
+  expect(dropClosingInvitation(body)).toBe("토성은 책임을 요구합니다.\n\n당신의 선택이 중요합니다.");
+  expect(dropClosingInvitation("궁금한 마음을 충분히 이해합니다. 목성은 확장을 돕습니다.")).toBe("궁금한 마음을 충분히 이해합니다. 목성은 확장을 돕습니다.");
+  expect(sanitizeConsultationText("차트 지배성(Chart Ruler)은 **화성**, 고정(Fixed) 양식과 대립(Jupiter opposition Saturn, 오브 1.2도)")).toBe("차트 지배성은 **화성**, 고정 양식과 대립(오브 1.2도)");
+});
 // R7 2026-10-10: 분기별 흐름을 쓰게 하면서 트랜짓은 오늘 한 시점뿐이었다.
 it("calculates transits at the start of each of the next four quarters", async () => {
   await start();
