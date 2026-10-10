@@ -9,7 +9,7 @@ const catalog = JSON.parse(fs.readFileSync('public/feature-details/catalog.json'
 const sharedHero = '/feature-details/assets/feature-detail-shared-hero-v1-960.webp';
 const shell = fs.readFileSync('index.html', 'utf8');
 
-test('catalog products resolved by billing have an honest, readable sample before the outline', () => {
+test('paid introductions keep an honest sample in the authored essay or before the legacy outline', () => {
   let checked = 0;
   for (const entry of catalog) {
     // A free calculator may expose a paid extension under the same billing key.
@@ -20,6 +20,20 @@ test('catalog products resolved by billing have an honest, readable sample befor
     assert.ok(detail.sample?.text, `${entry.slug}: paid introduction needs a sample`);
     const fragment = JSDOM.fragment(renderFeatureDetailPanels(detail));
     const article = fragment.querySelector('article');
+    if (detail.crafted?.length) {
+      const essays = [...fragment.querySelectorAll('.craftedDetail')];
+      assert.equal(essays.length, detail.crafted.length, `${entry.slug}: every authored edition must be available`);
+      detail.crafted.forEach((essay, index) => {
+        assert.ok(essay.panels.some(panel => /편집 예시/.test(panel.text)), `${essay.id}: illustrative sample is labeled`);
+        assert.match(essays[index].querySelector('.craftedDetailNotice').textContent, /예시/);
+        assert.equal(essays[index].querySelectorAll('img').length, essay.panels.length);
+        assert.ok([...essays[index].querySelectorAll('img')].every(image => image.getAttribute('alt') === ''), 'full transcript avoids duplicate alt narration');
+        for (const panel of essay.panels) assert.ok(essays[index].querySelector('.craftedDetailTranscript').textContent.includes(panel.title));
+      });
+      assert.ok(article.querySelector('[data-fortune-hero-action]'), 'existing conversion slot is preserved');
+      checked++;
+      continue;
+    }
     assert.ok(article.children[1].classList.contains('fortuneSample'), `${entry.slug}: sample must follow hero`);
     assert.match(fragment.querySelector('.fortuneSampleNote').textContent, /예시/);
     assert.ok(fragment.querySelector('.fortuneSamplePage').textContent.includes(detail.sample.text));
@@ -31,8 +45,17 @@ test('catalog products resolved by billing have an honest, readable sample befor
 test('human consultation testimonials are identified separately from AI product results', () => {
   const detail = JSON.parse(fs.readFileSync('public/feature-details/life-book-ai.json', 'utf8'));
   const fragment = JSDOM.fragment(renderFeatureDetailPanels(detail));
-  assert.match(fragment.querySelector('.fortuneFounder').textContent, /사람에게 받은 1:1 상담·강의/);
-  assert.match(fragment.querySelector('.fortuneFounder').textContent, /이 상품의 AI 결과 이용 후기와는 구분/);
+  const notice = fragment.querySelector('.craftedDetailNotice');
+  assert.match(notice.textContent, /과거 직접 1:1 상담 후기/);
+  assert.match(notice.textContent, /디지털 상품의 구매 후기가 아닙니다/);
+});
+
+test('authored introductions escape transcript text and retain only safe image locations', () => {
+  const fragment = JSDOM.fragment(renderFeatureDetailPanels({verification:'verified',title:'test',crafted:[{title:'test',notice:'<script>bad</script>',panels:[{title:'<img src=x onerror=bad()>',text:'<b>example</b>',src:'javascript:alert(1)'},{title:'Safe title',text:'<b>example</b>',src:'/safe.webp'}]}]}));
+  assert.equal(fragment.querySelectorAll('img').length,1);
+  assert.equal(fragment.querySelector('script'),null);
+  assert.equal(fragment.querySelector('.craftedDetailTranscript b'),null);
+  assert.match(fragment.querySelector('.craftedDetailTranscript').textContent, /<b>example<\/b>/);
 });
 
 test('tile popup preserves the selected product art before hydration', () => {
@@ -179,8 +202,16 @@ test('published visual introductions have proven sources, real assets, and disti
     }
     for (const variant of detail.heroVariants || []) assert.ok(fs.statSync(`public${variant.src}`).size <= 180000);
     const rendered = renderFeatureDetailPanels(detail);
-    assert.ok(rendered.includes(detail.headline));
-    assert.ok(rendered.includes('src="' + detail.image + '"'), entry.slug + ': product art missing');
+    if (detail.crafted?.length) {
+      for (const essay of detail.crafted) for (const panel of essay.panels) {
+        assert.ok(rendered.includes('src="' + panel.src + '"'), entry.slug + ': authored artwork missing');
+        assert.ok(fs.statSync('public' + panel.src).size > 0, panel.src);
+        assert.ok(rendered.includes(panel.title), panel.title);
+      }
+    } else {
+      assert.ok(rendered.includes(detail.headline));
+      assert.ok(rendered.includes('src="' + detail.image + '"'), entry.slug + ': product art missing');
+    }
     assert.ok(!rendered.includes(sharedHero));
     if (detail.cardImage) assert.ok(fs.statSync('public' + detail.cardImage).size <= 50000);
     assert.ok(detail.benefits?.length, entry.slug + ': product benefits missing');
@@ -224,7 +255,7 @@ test('popup journey preserves image previews and escapes FAQ without adding chec
   assert.match(html, /&lt;svg onload=x&gt;/);
 });
 
-test('premium introductions reuse founder evidence and contain complete portrait artwork', async () => {
+test('authored premium introductions retain founder provenance and complete portrait panels', async () => {
   const { loadTsModule } = await import('../../scripts/lib/load-ts-module.mjs');
   const founder = loadTsModule('lib/brand/founder.ts').founder;
   for (const [slug, material] of [['life-book-ai', 'book'], ['love-secret-ai', 'letter']]) {
@@ -232,11 +263,12 @@ test('premium introductions reuse founder evidence and contain complete portrait
     assert.equal(detail.material, material);
     assert.deepEqual(detail.founder, { credential: founder.credential, method: founder.method });
     const fragment = JSDOM.fragment(renderFeatureDetailPanels(detail));
-    const portrait = fragment.querySelector('.fortuneObject img');
-    assert.ok(Number(portrait.getAttribute('height')) > Number(portrait.getAttribute('width')));
-    assert.equal(fragment.querySelector('.fortuneObject figcaption').textContent, detail.title);
-    assert.equal(fragment.querySelector('.fortuneFounder a[href="/yeongnyangi/#founder-records"]')?.textContent, '네오 1:1 상담 실제 후기 보기');
-    assert.equal(fragment.querySelectorAll('.fortuneFounder a[target]').length, 0);
+    const portraits = [...fragment.querySelectorAll('.craftedDetail img')];
+    assert.equal(portraits.length,10);
+    assert.ok(portraits.every(image => Number(image.getAttribute('height')) > Number(image.getAttribute('width'))));
+    assert.match(fragment.querySelector('.craftedDetailTranscript').textContent, /10년 경력/);
+    assert.match(fragment.querySelector('.craftedDetail').textContent, /AI/);
+    assert.match(fragment.querySelector('.craftedDetail').textContent, /사람이 결과마다 직접/);
   }
   const unsafe = renderFeatureDetailPanels({ verification: 'verified', founder: { credential: '<img>', method: '<script>' } });
   assert.match(unsafe, /&lt;img&gt;/);

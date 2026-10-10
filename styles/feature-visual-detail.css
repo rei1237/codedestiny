@@ -11,6 +11,13 @@
 .featureVisualDetail[data-fortune-theme=saffron]{--fortune-accent:#885022;--fortune-tint:#f0e5d5}
 .featureVisualDetail[data-fortune-theme=burgundy]{--fortune-accent:#7b354b;--fortune-tint:#efe1e5}
 .featureVisualDetail *{box-sizing:border-box}
+.featureVisualDetail[data-crafted-introduction] .craftedDetail{max-width:540px;margin:24px auto;background:var(--fortune-paper);color:var(--fortune-ink)}
+.featureVisualDetail[data-crafted-introduction] .craftedDetail img{display:block;width:100%;height:auto}
+.featureVisualDetail[data-crafted-introduction] .craftedDetailNotice,.featureVisualDetail[data-crafted-introduction] .craftedDetailTranscript{padding:0 16px;font-size:16px;line-height:1.75}
+.featureVisualDetail[data-crafted-introduction] .craftedDetailTranscript p{white-space:pre-line}
+.featureVisualDetail[data-crafted-introduction] .craftedDetailTranscript h3{font-size:20px;line-height:1.5}
+.featureVisualDetail[data-crafted-introduction] .craftedDetailTranscript section{margin-block:24px}
+.featureVisualDetail[data-crafted-introduction] :is(.craftedEdition>summary,.craftedDetailTranscript>summary){min-height:44px;padding:12px 16px;cursor:pointer;font-size:18px;line-height:1.6}
 /* The two bound/paper products continue the same material as their actual reports. */
 .featureVisualDetail[data-fortune-material=book]{--fortune-paper:#f6f1e6;--fortune-ink:#20362a;--fortune-muted:#52624d;--fortune-accent:#285640;--fortune-tint:#e5e9dc;--fortune-line:#c9cbb7}
 .featureVisualDetail[data-fortune-material=letter]{--fortune-paper:#f6f2ed;--fortune-ink:#35262c;--fortune-muted:#71545f;--fortune-accent:#763d53;--fortune-tint:#efe5e1;--fortune-line:#e0d3cc}

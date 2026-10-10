@@ -1,0 +1,25 @@
+{
+  "products": {
+    "yeongnyangi-saju-mackerel": "yeongnyangi-saju-mackerel",
+    "yeongnyangi-saju-salmon": "yeongnyangi-saju-salmon",
+    "yeongnyangi-saju-flounder": "yeongnyangi-saju-flounder",
+    "yeongnyangi-saju-tuna": "yeongnyangi-saju-tuna",
+    "life-book-ai-consultation": "life-book",
+    "life-fortune-ai-consultation": "life-fortune",
+    "master-love-codex": "master-love-codex",
+    "master-love-codex-compat": "master-love-codex-compat",
+    "love-secret-ai-consultation": "love-secret"
+  },
+  "introductions": {
+    "life-book-ai": [
+      "life-book"
+    ],
+    "love-secret-ai": [
+      "love-secret"
+    ],
+    "master-love-codex": [
+      "master-love-codex",
+      "master-love-codex-compat"
+    ]
+  }
+}

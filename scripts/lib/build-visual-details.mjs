@@ -9,6 +9,13 @@ import { extractObjectLiteral } from './feature-marketing-extract.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const cleanPath = value => String(value || '').replace(/\/+$/, '');
+const craftedCatalog = JSON.parse(fs.readFileSync(path.join(root, 'content/product-details/catalog.json'), 'utf8'));
+function craftedIntroductions(slug) {
+  return (craftedCatalog.introductions[slug] || []).map(id => {
+    if (!/^[a-z0-9-]+$/.test(id)) throw new Error('Invalid crafted product ID');
+    return JSON.parse(fs.readFileSync(path.join(root, 'content/product-details', id, 'manifest.json'), 'utf8'));
+  });
+}
 
 function writeJsonAtomic(destination, value, spacing = 0) {
   const temporary = `${destination}.${process.pid}.tmp`;
@@ -152,6 +159,8 @@ export function buildVisualDetails(html, book) {
       ...verified[record.slug],
     };
     const final = items[record.slug];
+    const crafted = craftedIntroductions(record.slug);
+    if (crafted.length) final.crafted = crafted;
     if (['book', 'letter'].includes(final.material)) {
       final.founder = { credential: founder.credential, method: founder.method };
     }

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, useMemo, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { loadFeatureDetail, renderFeatureDetailPanels, type VisualDetail } from "@/js/feature-detail-panels.mjs";
+import { loadFeatureDetail, renderFeatureDetailPanels, revealCraftedTranscript, type VisualDetail } from "@/js/feature-detail-panels.mjs";
 import "@/styles/feature-visual-detail.css";
 import { shareIntroductionFromButton } from "@/js/feature-introduction-share.mjs";
 
@@ -29,7 +29,7 @@ export default function FeatureVisualDetail({ keys, enabled, onReady, onRequestC
   if (!enabled) return null;
   if (failed) return <button type="button" onClick={() => setAttempt(value => value + 1)} className="min-h-11 rounded-xl border border-white/30 px-4 py-2 text-sm">상세 내용 다시 불러오기</button>;
   if (!detail) return null;
-  return <div ref={hostRef} data-feature-visual-detail={detail.slug} onClick={event => {
+  return <div ref={hostRef} data-feature-visual-detail={detail.slug} onErrorCapture={revealCraftedTranscript} onClick={event => {
     const shareButton = (event.target as HTMLElement).closest<HTMLButtonElement>("[data-feature-share]");
     if (shareButton) { void shareIntroductionFromButton(shareButton, detail); return; }
     if ((event.target as HTMLElement).closest('[data-feature-conversion-request]')) onRequestConversion?.();

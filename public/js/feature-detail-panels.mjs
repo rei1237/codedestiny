@@ -28,6 +28,20 @@ export function renderCraftedDetail(detail) {
   return `<div class="craftedDetail"><div aria-hidden="true">${panels.map((panel, index) => `<img src="${escape(safeImage(panel.src))}" alt="" width="${Number(panel.width) || 1080}" height="${Number(panel.height) || 1440}" loading="${index ? 'lazy' : 'eager'}" decoding="async"${index ? '' : ' fetchpriority="high"'}>`).join('')}</div><p class="craftedDetailNotice">${escape(detail.notice)}</p><details class="craftedDetailTranscript"><summary>상세 안내를 글로 읽기</summary>${panels.map(panel => `<section><h3>${escape(panel.title)}</h3><p>${escape(transcriptBody(panel))}</p></section>`).join('')}</details></div>`;
 }
 
+export function revealCraftedTranscript(event) {
+  if (event.target?.tagName !== 'IMG') return;
+  const transcript = event.target.closest('.craftedDetail')?.querySelector('.craftedDetailTranscript');
+  if (transcript) transcript.open = true;
+}
+
+export async function loadInlineCraftedDetail(detail, fetcher = fetch) {
+  if (!detail?.inlineAliases || !detail.craftedManifest) return detail;
+  if (!/^\/feature-details\/crafted\/[a-z0-9-]+\/manifest\.json$/.test(detail.craftedManifest)) throw new Error('INVALID_CRAFTED_DETAIL');
+  const response = await fetcher(detail.craftedManifest);
+  if (!response.ok) throw new Error('CRAFTED_DETAIL_UNAVAILABLE');
+  return { ...detail, crafted: [await response.json()] };
+}
+
 function renderStory(story, heading) {
   if (!story?.title || !story.text) return '';
   const art = safeImage(story.image);
@@ -71,6 +85,12 @@ export function renderFeatureDetailPanels(detail, { headingLevel = 3, conversion
   const trust = journey.trustNotes?.length ? `<section class="featureDetailPanel featureDetailBody" data-purchase-stage="trust"><${heading}>해석을 읽기 전에</${heading}><ul class="featureDetailItems">${journey.trustNotes.map(note => `<li>${escape(note)}</li>`).join('')}</ul></section>` : '';
   const share = conversionPrompt && !detail.inlineAliases ? `<section class="featureDetailPanel featureDetailBody" data-purchase-stage="advocacy" data-feature-share-section><${heading}>이 이야기가 떠오르는 사람이 있나요?</${heading}><p>함께 궁금했던 질문이라면 이 기능을 소개해 보세요. 개인 결과 대신, 지금 보고 있는 기능 소개가 전달됩니다.</p><div class="featureDetailShareActions"><button type="button" data-feature-share="native">이 기능 소개 공유하기</button><button type="button" data-feature-share="copy">소개 링크 복사</button><button type="button" data-feature-share="site">CODE DESTINY 소개하기</button></div><input hidden readonly aria-label="공유할 소개 링크"><p role="status" aria-live="polite"></p></section>` : '';
   const faq = journey.faq?.length ? `<section class="featureDetailPanel featureDetailBody" data-purchase-stage="consideration"><${heading}>시작 전에 궁금한 점</${heading}>${journey.faq.map(item => `<details class="featureDetailFaq"><summary>${escape(item.q)}</summary><p>${escape(item.a)}</p></details>`).join('')}</section>` : '';
+  if (detail.crafted?.length) {
+    const authored = detail.crafted.map(item => detail.crafted.length > 1
+      ? `<details class="craftedEdition"><summary>${escape(item.title)}</summary>${renderCraftedDetail(item)}</details>`
+      : renderCraftedDetail(item)).join('');
+    return `<article class="featureVisualDetail" data-fortune-theme="${theme}" data-crafted-introduction><header class="featureDetailPanel featureDetailBody" data-purchase-stage="awareness"><${heading}>${escape(detail.title)}</${heading}><div data-fortune-hero-action>${heroActionHtml || prompt}</div></header>${authored}${share}</article>`;
+  }
   return `<article class="featureVisualDetail" data-fortune-theme="${theme}"${material ? ` data-fortune-material="${material}"` : ''}><header data-purchase-stage="awareness" class="featureDetailPanel featureDetailHero">${portrait || (hero ? `<img class="featureDetailArt" src="${escape(hero)}"${srcset ? ` srcset="${srcset}" sizes="(max-width: 699px) 100vw, 720px"` : ''} width="960" height="540" alt="${escape(detail.imageAlt || `${detail.title}의 이야기를 담은 일러스트`)}" loading="eager" decoding="async" fetchpriority="high">` : '')}<div class="featureDetailBody">${material ? '' : `<p class="fortuneCategory">${escape(detail.category || detail.title)}</p>`}<${heading}>${escape(hook)}</${heading}><p>${escape(detail.description)}</p>${detail.edition ? `<p class="fortuneEdition">${escape(detail.edition)}</p>` : ''}<div data-fortune-hero-action>${heroActionHtml || prompt}</div></div></header>${renderSample(detail, heading)}${benefits}${renderContents(detail, heading)}${renderFounder(detail.founder, heading)}${questionList}${method}${renderStory(detail.storySections?.[0], heading)}${renderStory(detail.storySections?.[1], heading)}${trust}${faq}${related}${share}</article>`;
 }
 
