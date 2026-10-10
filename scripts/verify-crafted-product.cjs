@@ -7,7 +7,7 @@ const fish = process.argv[2] || 'mackerel', domain = process.argv[3] || 'saju', 
         return r.abort(); if (u.pathname.startsWith('/api/'))
         return r.fulfill({ json: { ok: true, authenticated: false, profiles: [], data: {} } }); return r.continue(); });
     const rows = [];
-    for (const flow of ['legacy', 'question']) {
+    for (const flow of (process.argv[4] === 'legacy' ? ['legacy'] : ['legacy', 'question'])) {
         console.log('checking ' + flow);
         await page.goto(origin + (flow === 'legacy' ? '/yeongnyangi/readings/'+domain+'/?lang=ko' : '/yeongnyangi/fortune/?domain='+domain+'&lang=ko'), { timeout: 120000 });
         await page.evaluate(() => document.fonts.ready);

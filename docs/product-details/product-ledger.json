@@ -814,7 +814,7 @@
         "public/feature-details/crafted/chat-yeoni",
         "public/feature-details/crafted/chat-neo"
       ],
-      "status": "완료",
+      "status": "적용",
       "appliedAt": [
         "legacy FortuneChatClient character variant",
         "fortune-chat introduction two disclosures"
@@ -828,7 +828,8 @@
       ],
       "detailAliases": [
         "fortune-chat"
-      ]
+      ],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "fortune-chat-question-flounder",
@@ -984,7 +985,7 @@
         "public/images/fortune-tea-house/renewal/yeoni-saju.webp",
         "공식 연이 원본 확인, 새 캐릭터 생성 없음"
       ],
-      "status": "완료",
+      "status": "적용",
       "appliedAt": [
         "TeaConsultConfirmation 선택상품 상세",
         "공용 fortune-tea-house 소개"
@@ -999,7 +1000,8 @@
         "로컬 제작·적용·검수 완료. main 전달 미완료",
         "실제 LLM 문장 품질·실결제 미검증"
       ],
-      "detailAliases": []
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "fortune-tea-house-saju-consultation",
@@ -1046,7 +1048,7 @@
         "public/images/fortune-tea-house/renewal/yeoni-saju.webp",
         "공식 연이 원본 확인, 새 캐릭터 생성 없음"
       ],
-      "status": "완료",
+      "status": "적용",
       "appliedAt": [
         "TeaConsultConfirmation 선택상품 상세",
         "공용 fortune-tea-house 소개"
@@ -1061,7 +1063,8 @@
         "로컬 제작·적용·검수 완료. main 전달 미완료",
         "실제 LLM 문장 품질·실결제 미검증"
       ],
-      "detailAliases": []
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "fortune-tea-house-sukuyo-compatibility-consultation",
@@ -1109,7 +1112,7 @@
         "public/images/fortune-tea-house/renewal/yeoni-sukuyo.webp",
         "공식 연이 원본 확인, 새 캐릭터 생성 없음"
       ],
-      "status": "완료",
+      "status": "적용",
       "appliedAt": [
         "TeaConsultConfirmation 선택상품 상세",
         "공용 fortune-tea-house 소개"
@@ -1124,7 +1127,8 @@
         "로컬 제작·적용·검수 완료. main 전달 미완료",
         "실제 LLM 문장 품질·실결제 미검증"
       ],
-      "detailAliases": []
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "fortune-tea-house-tarot-consultation",
@@ -1545,7 +1549,7 @@
         "public/neo-operation-room/briefing/neo-explain-v1.webp",
         "public/neo-operation-room/strategy-room-v1.webp"
       ],
-      "status": "완료",
+      "status": "적용",
       "appliedAt": [
         "기존상담가치영역",
         "공용소개"
@@ -1562,7 +1566,8 @@
       ],
       "detailAliases": [
         "neo-operation-room"
-      ]
+      ],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "sukuyo-compatibility-ai",
@@ -2072,7 +2077,7 @@
         "/feature-details/crafted/love-secret/09-use-the-report.webp",
         "/feature-details/crafted/love-secret/10-start-with-now.webp"
       ],
-      "status": "로컬 제작·적용·모바일 독립 검수 완료",
+      "status": "적용",
       "appliedAt": [
         "app/love-secret-ai/LoveSecretAiClient.tsx"
       ],
@@ -2091,7 +2096,8 @@
       ],
       "detailAliases": [
         "love-secret-ai"
-      ]
+      ],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "master-love-codex",
@@ -2152,7 +2158,7 @@
         "/feature-details/crafted/master-love-codex/09-reading-profile.webp",
         "/feature-details/crafted/master-love-codex/10-own-pace.webp"
       ],
-      "status": "로컬 제작·적용·모바일 독립 검수 완료",
+      "status": "적용",
       "appliedAt": [
         "src/features/master-love-codex/components/CodexLanding.tsx"
       ],
@@ -2169,7 +2175,8 @@
       ],
       "detailAliases": [
         "master-love-codex"
-      ]
+      ],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "master-love-codex-compat",
@@ -2230,7 +2237,7 @@
         "/feature-details/crafted/master-love-codex-compat/09-relationship-profile.webp",
         "/feature-details/crafted/master-love-codex-compat/10-shared-page.webp"
       ],
-      "status": "로컬 제작·적용·모바일 독립 검수 완료",
+      "status": "적용",
       "appliedAt": [
         "src/features/master-love-codex/components/CodexLanding.tsx"
       ],
@@ -2247,7 +2254,8 @@
       ],
       "detailAliases": [
         "master-love-codex"
-      ]
+      ],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "maya-prompt-generator",
@@ -3471,7 +3479,7 @@
         "/feature-details/crafted/saju-daewun/08-compare.webp",
         "/feature-details/crafted/saju-daewun/09-close.webp"
       ],
-      "status": "검수",
+      "status": "적용",
       "appliedAt": [
         "js/core/saju/reading-personas.js:mountCraftedOffer"
       ],
@@ -3493,7 +3501,8 @@
         "시간을 확인할수록, 범위가 분명해집니다.",
         "그래프는 점수보다, 변화의 맥락을 읽는 자리.",
         "다음 열 해를 기다리기보다, 오늘의 속도를 정해요."
-      ]
+      ],
+      "deliveryStage": "worktree에서 적용·로컬 독립검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "section_summary",
@@ -4256,7 +4265,7 @@
       "images": [
         "/feature-details/crafted/yeongnyangi-astrology-flounder/manifest.json"
       ],
-      "status": "로컬 제작·적용·모바일 검수 완료",
+      "status": "적용",
       "appliedAt": [
         "content/product-details/catalog.json",
         "app/yeongnyangi/_components/ProductGuide.tsx",
@@ -4271,7 +4280,8 @@
         "main 전달·CI 및운영노출 미확인;실LLM·결제미실행"
       ],
       "detailAliases": [],
-      "publicAvailabilityEvidence": "docs/product-details/yeongnyangi-public-catalog.json"
+      "publicAvailabilityEvidence": "docs/product-details/yeongnyangi-public-catalog.json",
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "yeongnyangi-astrology-mackerel",
@@ -4368,7 +4378,7 @@
       "images": [
         "/feature-details/crafted/yeongnyangi-astrology-mackerel/manifest.json"
       ],
-      "status": "로컬 제작·적용·모바일 검수 완료",
+      "status": "적용",
       "appliedAt": [
         "content/product-details/catalog.json",
         "app/yeongnyangi/_components/ProductGuide.tsx",
@@ -4383,7 +4393,8 @@
         "main 전달·CI 및운영노출 미확인;실LLM·결제미실행"
       ],
       "detailAliases": [],
-      "publicAvailabilityEvidence": "docs/product-details/yeongnyangi-public-catalog.json"
+      "publicAvailabilityEvidence": "docs/product-details/yeongnyangi-public-catalog.json",
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "yeongnyangi-astrology-salmon",
@@ -4500,7 +4511,7 @@
       "images": [
         "/feature-details/crafted/yeongnyangi-astrology-salmon/manifest.json"
       ],
-      "status": "로컬 제작·적용·모바일 검수 완료",
+      "status": "적용",
       "appliedAt": [
         "content/product-details/catalog.json",
         "app/yeongnyangi/_components/ProductGuide.tsx",
@@ -4515,144 +4526,156 @@
         "main 전달·CI 및운영노출 미확인;실LLM·결제미실행"
       ],
       "detailAliases": [],
-      "publicAvailabilityEvidence": "docs/product-details/yeongnyangi-public-catalog.json"
+      "publicAvailabilityEvidence": "docs/product-details/yeongnyangi-public-catalog.json",
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "yeongnyangi-astrology-tuna",
       "displayName": "영냥이 서양 점성술 참치",
-      "saleStatus": "공개GET 현재 enabled=true/available=true; 진입과 결과 계약 확인",
+      "saleStatus": "공개catalog enabled/available 및지원진입 확인",
       "entry": [
-        "/yeongnyangi/readings/astrology/",
-        "/yeongnyangi/fortune/?domain=astrology",
-        "/yeongnyangi/fortune/?flow=legacy&domain=astrology&fish=tuna"
+        "/yeongnyangi/readings/astrology/"
       ],
       "priceSource": "worker/yeongnyangi/payments/catalog.ts → worker/lib/billing-feature-registry.js",
       "priceSnapshotKRW": 30000,
-      "inputRequirements": [],
+      "inputRequirements": [
+        "본인 생년월일·출생시간·지역·시간대"
+      ],
       "resultRenderer": [
-        "app/yeongnyangi/_components/Result.tsx",
-        "app/yeongnyangi/_components/ReadingBook.tsx"
+        "app/yeongnyangi/_components/ReadingCharts.tsx",
+        "app/yeongnyangi/_components/Result.tsx"
       ],
-      "actualContents": [
-        {
-          "id": "personal",
-          "partner": false,
-          "chapters": [
-            "상승점과 태양",
-            "달과 감정의 결",
-            "금성과 관계의 자리",
-            "목성과 돈의 흐름",
-            "토성·MC 와 사회적 자리",
-            "수성과 말·배움·모임",
-            "화성과 몸의 에너지",
-            "긴장의 애스펙트",
-            "조화의 애스펙트",
-            "천왕성",
-            "해왕성",
-            "명왕성"
-          ]
-        },
-        {
-          "id": "compatibility",
-          "partner": true,
-          "chapters": [
-            "첫인상과 끌림",
-            "감정 안정성",
-            "연애 케미",
-            "갈등 방식",
-            "장기 관계 가능성",
-            "결혼 가능성과 생활 조건",
-            "관계를 위한 현실 조언",
-            "서로 다른 해석이 가능한 조건",
-            "대화로 확인할 질문",
-            "함께 정할 경계",
-            "생활 속 조율의 사례",
-            "관계가 지칠 때의 회복",
-            "선택을 다시 살필 신호",
-            "다음 행동의 우선순위",
-            "영냥이의 마지막 메시지"
-          ]
-        },
-        {
-          "id": "work",
-          "partner": false,
-          "chapters": [
-            "재능과 일하는 방식",
-            "역량이 살아나는 환경",
-            "책임을 맡는 방식",
-            "협력에서 드러나는 강점",
-            "반복되는 업무 패턴",
-            "강점이 부담이 되는 조건",
-            "성장에 필요한 조건",
-            "현재 역할을 발전시키는 선택",
-            "다른 환경을 준비하는 선택",
-            "업무 소진과 회복",
-            "직업 신호가 엇갈리는 이유",
-            "시간과 자원의 배분",
-            "변화 전에 갖출 조건",
-            "선택을 점검할 현실 기준",
-            "재능과 일 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "health",
-          "partner": false,
-          "chapters": [
-            "타고난 몸의 리듬",
-            "무리가 쌓이는 조건",
-            "계절과 환경에 따른 컨디션",
-            "회복을 돕는 생활 습관",
-            "에너지를 쓰고 채우는 방식",
-            "마음의 긴장이 몸에 남는 방식",
-            "컨디션을 흔드는 반복 습관",
-            "일의 강도와 쉼의 균형",
-            "관계와 환경이 주는 부담",
-            "컨디션이 떨어질 때의 신호",
-            "건강 근거가 엇갈리는 지점",
-            "생활을 바꾸는 두 가지 방식",
-            "해석으로 알 수 없는 부분",
-            "생활에서 점검할 기록과 기준",
-            "건강운 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "ask",
-          "partner": false,
-          "chapters": [
-            "상승점과 태양",
-            "달과 감정의 결",
-            "금성과 관계의 자리",
-            "목성과 돈의 흐름",
-            "토성·MC 와 사회적 자리",
-            "수성과 말·배움·모임",
-            "화성과 몸의 에너지",
-            "긴장의 애스펙트",
-            "조화의 애스펙트",
-            "천왕성",
-            "해왕성",
-            "명왕성"
-          ]
-        }
-      ],
+      "actualContents": {
+        "question": [],
+        "legacy": [
+          {
+            "id": "personal",
+            "partner": false,
+            "chapters": [
+              "상승점과 태양",
+              "달과 감정의 결",
+              "금성과 관계의 자리",
+              "목성과 돈의 흐름",
+              "토성·MC 와 사회적 자리",
+              "수성과 말·배움·모임",
+              "화성과 몸의 에너지",
+              "긴장의 애스펙트",
+              "조화의 애스펙트",
+              "천왕성",
+              "해왕성",
+              "명왕성"
+            ]
+          },
+          {
+            "id": "compatibility",
+            "partner": true,
+            "chapters": [
+              "첫인상과 끌림",
+              "감정 안정성",
+              "연애 케미",
+              "갈등 방식",
+              "장기 관계 가능성",
+              "결혼 가능성과 생활 조건",
+              "관계를 위한 현실 조언",
+              "서로 다른 해석이 가능한 조건",
+              "대화로 확인할 질문",
+              "함께 정할 경계",
+              "생활 속 조율의 사례",
+              "관계가 지칠 때의 회복",
+              "선택을 다시 살필 신호",
+              "다음 행동의 우선순위",
+              "영냥이의 마지막 메시지"
+            ]
+          },
+          {
+            "id": "work",
+            "partner": false,
+            "chapters": [
+              "재능과 일하는 방식",
+              "역량이 살아나는 환경",
+              "책임을 맡는 방식",
+              "협력에서 드러나는 강점",
+              "반복되는 업무 패턴",
+              "강점이 부담이 되는 조건",
+              "성장에 필요한 조건",
+              "현재 역할을 발전시키는 선택",
+              "다른 환경을 준비하는 선택",
+              "업무 소진과 회복",
+              "직업 신호가 엇갈리는 이유",
+              "시간과 자원의 배분",
+              "변화 전에 갖출 조건",
+              "선택을 점검할 현실 기준",
+              "재능과 일 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "health",
+            "partner": false,
+            "chapters": [
+              "타고난 몸의 리듬",
+              "무리가 쌓이는 조건",
+              "계절과 환경에 따른 컨디션",
+              "회복을 돕는 생활 습관",
+              "에너지를 쓰고 채우는 방식",
+              "마음의 긴장이 몸에 남는 방식",
+              "컨디션을 흔드는 반복 습관",
+              "일의 강도와 쉼의 균형",
+              "관계와 환경이 주는 부담",
+              "컨디션이 떨어질 때의 신호",
+              "건강 근거가 엇갈리는 지점",
+              "생활을 바꾸는 두 가지 방식",
+              "해석으로 알 수 없는 부분",
+              "생활에서 점검할 기록과 기준",
+              "건강운 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "ask",
+            "partner": false,
+            "chapters": [
+              "상승점과 태양",
+              "달과 감정의 결",
+              "금성과 관계의 자리",
+              "목성과 돈의 흐름",
+              "토성·MC 와 사회적 자리",
+              "수성과 말·배움·모임",
+              "화성과 몸의 에너지",
+              "긴장의 애스펙트",
+              "조화의 애스펙트",
+              "천왕성",
+              "해왕성",
+              "명왕성"
+            ]
+          }
+        ]
+      },
       "conditionalItems": [
-        "질문 상담과 전체 성향 리포트의 manifest가 다름",
-        "차트·요약·행동·추가 질문은 저장된 결과 및 선택한 계약에 따라 표시",
-        "참치 장기 질문은 사주·자미두수·베다만 지원"
+        "질문추천장기전환미지원",
+        "실시간트랜짓·월별사건예측미포함"
       ],
-      "separatePurchase": [],
+      "separatePurchase": [
+        "선택한상담종류별목차,여러구성동시포함아님"
+      ],
       "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
+      "images": [
+        "/feature-details/crafted/yeongnyangi-astrology-tuna/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "content/product-details/catalog.json",
+        "app/yeongnyangi/_components/ProductGuide.tsx"
+      ],
       "verification": [
-        "docs/product-details/yeongnyangi-contract-snapshot.json"
+        "독립원본26장및실제43패널·30CTA/고지·10원고뷰포트SHIP",
+        "지원진입4폭load/bounds/fallbackPASS",
+        "v7실제근거/목차15검사PASS"
       ],
       "unconfirmed": [
-        "개별 상품 원고·이미지·모바일 적용 미완료",
-        "각 체계별 입력 조건의 개별 대조 미완료"
+        "main 전달·CI 및운영노출미확인;실LLM·결제미실행"
       ],
       "detailAliases": [],
-      "publicAvailabilityEvidence": "docs/product-details/yeongnyangi-public-catalog.json"
+      "publicAvailabilityEvidence": "docs/product-details/yeongnyangi-public-catalog.json",
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "yeongnyangi-fusion-all",
@@ -6106,174 +6129,220 @@
     {
       "productId": "yeongnyangi-sukuyo-mackerel",
       "displayName": "영냥이 숙요 고등어",
-      "saleStatus": "공개GET 현재 enabled=true/available=true; 진입과 결과 계약 확인",
+      "saleStatus": "공개catalog enabled/available 및지원진입 확인",
       "entry": [
         "/yeongnyangi/readings/sukuyo/",
-        "/yeongnyangi/fortune/?domain=sukuyo",
-        "/yeongnyangi/fortune/?flow=legacy&domain=sukuyo&fish=mackerel"
+        "/yeongnyangi/fortune/?domain=sukuyo"
       ],
       "priceSource": "worker/yeongnyangi/payments/catalog.ts → worker/lib/billing-feature-registry.js",
       "priceSnapshotKRW": 3000,
-      "inputRequirements": [],
+      "inputRequirements": [
+        "본인 생년월일·출생시간·지역·시간대"
+      ],
       "resultRenderer": [
-        "app/yeongnyangi/_components/Result.tsx",
-        "app/yeongnyangi/_components/ReadingBook.tsx"
+        "app/yeongnyangi/_components/ReadingCharts.tsx",
+        "app/yeongnyangi/_components/Result.tsx"
       ],
-      "actualContents": [
-        {
-          "id": "personal",
-          "partner": false,
-          "chapters": [
-            "본명숙의 기질",
-            "감정이 움직이는 리듬",
-            "관계에서 드러나는 기본 태도",
-            "마음을 표현하는 방식",
-            "지금의 선택과 실행 계획"
-          ]
-        },
-        {
-          "id": "compatibility",
-          "partner": true,
-          "chapters": [
-            "두 사람의 기질과 관계의 바탕",
-            "관계 유형과 서로 다른 역할",
-            "끌림과 기대의 차이",
-            "서로에게 편안한 표현",
-            "두 사람의 궁합 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "relationship",
-          "partner": true,
-          "chapters": [
-            "우리 관계의 거리와 역할",
-            "다가가는 속도의 차이",
-            "기대와 표현의 조율",
-            "갈등의 반복 원인",
-            "관계 유지 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "ask",
-          "partner": false,
-          "chapters": [
-            "본명숙의 기질",
-            "감정이 움직이는 리듬",
-            "관계에서 드러나는 기본 태도",
-            "마음을 표현하는 방식",
-            "지금의 선택과 실행 계획"
-          ]
-        }
-      ],
+      "actualContents": {
+        "question": [
+          "내 본명숙의 바탕 · 마음과 관계의 리듬",
+          "나의 강점과 부담이 되는 순간",
+          "앞으로 6개월 · 성향·자기이해·일상 · 내 마음과 선택을 이해하는 실마리",
+          "성향·자기이해·일상 · 판단의 근거와 달라지는 조건",
+          "앞으로 6개월 · 기회와 주의 조건",
+          "성향·자기이해·일상 · 종합 해석과 실행 계획"
+        ],
+        "legacy": [
+          {
+            "id": "personal",
+            "partner": false,
+            "chapters": [
+              "본명숙의 기질",
+              "감정이 움직이는 리듬",
+              "관계에서 드러나는 기본 태도",
+              "마음을 표현하는 방식",
+              "지금의 선택과 실행 계획"
+            ]
+          },
+          {
+            "id": "compatibility",
+            "partner": true,
+            "chapters": [
+              "두 사람의 기질과 관계의 바탕",
+              "관계 유형과 서로 다른 역할",
+              "끌림과 기대의 차이",
+              "서로에게 편안한 표현",
+              "두 사람의 궁합 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "relationship",
+            "partner": true,
+            "chapters": [
+              "우리 관계의 거리와 역할",
+              "다가가는 속도의 차이",
+              "기대와 표현의 조율",
+              "갈등의 반복 원인",
+              "관계 유지 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "ask",
+            "partner": false,
+            "chapters": [
+              "본명숙의 기질",
+              "감정이 움직이는 리듬",
+              "관계에서 드러나는 기본 태도",
+              "마음을 표현하는 방식",
+              "지금의 선택과 실행 계획"
+            ]
+          }
+        ]
+      },
       "conditionalItems": [
-        "질문 상담과 전체 성향 리포트의 manifest가 다름",
-        "차트·요약·행동·추가 질문은 저장된 결과 및 선택한 계약에 따라 표시",
-        "참치 장기 질문은 사주·자미두수·베다만 지원"
+        "천문식27숙,본명숙개인지도와실제두사람방향별관계비교구분",
+        "상대정보없으면궁합추정없음"
       ],
-      "separatePurchase": [],
+      "separatePurchase": [
+        "선택한상담종류별목차,여러구성동시포함아님"
+      ],
       "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
+      "images": [
+        "/feature-details/crafted/yeongnyangi-sukuyo-mackerel/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "content/product-details/catalog.json",
+        "app/yeongnyangi/_components/ProductGuide.tsx",
+        "app/yeongnyangi/_components/IntakeChat.tsx"
+      ],
       "verification": [
-        "docs/product-details/yeongnyangi-contract-snapshot.json"
+        "독립원본26장및실제43패널·30CTA/고지·10원고뷰포트SHIP",
+        "지원진입4폭load/bounds/fallbackPASS",
+        "v7실제근거/목차15검사PASS"
       ],
       "unconfirmed": [
-        "개별 상품 원고·이미지·모바일 적용 미완료",
-        "각 체계별 입력 조건의 개별 대조 미완료"
+        "main 전달·CI 및운영노출미확인;실LLM·결제미실행"
       ],
       "detailAliases": [],
-      "publicAvailabilityEvidence": "docs/product-details/yeongnyangi-public-catalog.json"
+      "publicAvailabilityEvidence": "docs/product-details/yeongnyangi-public-catalog.json",
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "yeongnyangi-sukuyo-salmon",
       "displayName": "영냥이 숙요 연어",
-      "saleStatus": "공개GET 현재 enabled=true/available=true; 진입과 결과 계약 확인",
+      "saleStatus": "공개catalog enabled/available 및지원진입 확인",
       "entry": [
         "/yeongnyangi/readings/sukuyo/",
-        "/yeongnyangi/fortune/?domain=sukuyo",
-        "/yeongnyangi/fortune/?flow=legacy&domain=sukuyo&fish=salmon"
+        "/yeongnyangi/fortune/?domain=sukuyo"
       ],
       "priceSource": "worker/yeongnyangi/payments/catalog.ts → worker/lib/billing-feature-registry.js",
       "priceSnapshotKRW": 9000,
-      "inputRequirements": [],
+      "inputRequirements": [
+        "본인 생년월일·출생시간·지역·시간대",
+        "상황·선택지·목표기간·제약"
+      ],
       "resultRenderer": [
-        "app/yeongnyangi/_components/Result.tsx",
-        "app/yeongnyangi/_components/ReadingBook.tsx"
+        "app/yeongnyangi/_components/ReadingCharts.tsx",
+        "app/yeongnyangi/_components/Result.tsx"
       ],
-      "actualContents": [
-        {
-          "id": "personal",
-          "partner": false,
-          "chapters": [
-            "본명숙이 말하는 나",
-            "강하게 끌리고 부딪히는 인연(안괴)",
-            "오래 함께할 인연(영친)",
-            "일에서 만나는 인연(성위)",
-            "친구와 멀어지는 인연(우쇠)",
-            "운명처럼 얽히는 인연(명·업·태)"
-          ]
-        },
-        {
-          "id": "compatibility",
-          "partner": true,
-          "chapters": [
-            "두 사람의 기질과 관계의 바탕",
-            "관계 유형과 서로 다른 역할",
-            "끌림과 기대의 차이",
-            "서로에게 편안한 표현",
-            "가까워지는 속도와 거리",
-            "갈등이 시작되는 반응",
-            "일상과 책임의 조율",
-            "두 사람의 궁합 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "relationship",
-          "partner": true,
-          "chapters": [
-            "우리 관계의 거리와 역할",
-            "다가가는 속도의 차이",
-            "기대와 표현의 조율",
-            "갈등의 반복 원인",
-            "편안한 대화의 조건",
-            "각자의 경계 지키기",
-            "어긋난 뒤의 회복",
-            "관계 유지 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "ask",
-          "partner": false,
-          "chapters": [
-            "본명숙이 말하는 나",
-            "강하게 끌리고 부딪히는 인연(안괴)",
-            "오래 함께할 인연(영친)",
-            "일에서 만나는 인연(성위)",
-            "친구와 멀어지는 인연(우쇠)",
-            "운명처럼 얽히는 인연(명·업·태)"
-          ]
-        }
-      ],
+      "actualContents": {
+        "question": [
+          "내 본명숙의 바탕 · 마음과 관계의 리듬",
+          "나의 강점과 부담이 되는 순간",
+          "앞으로 6개월 · 이직 · 남을지 옮길지, 이직의 판단 기준",
+          "이직 · 판단의 근거와 달라지는 조건",
+          "앞으로 6개월 · 기회와 주의 조건",
+          "이직 · 현재 위치와 적성",
+          "이직 · 이동과 유지의 비교",
+          "이직 · 움직이기 좋은 시기",
+          "질문 밖에서 보이는 흐름 · 차트에서 두드러진 영역",
+          "질문 밖에서 보이는 흐름 · 올해의 흐름",
+          "이직 · 종합 해석과 실행 계획"
+        ],
+        "legacy": [
+          {
+            "id": "personal",
+            "partner": false,
+            "chapters": [
+              "본명숙이 말하는 나",
+              "강하게 끌리고 부딪히는 인연(안괴)",
+              "오래 함께할 인연(영친)",
+              "일에서 만나는 인연(성위)",
+              "친구와 멀어지는 인연(우쇠)",
+              "운명처럼 얽히는 인연(명·업·태)"
+            ]
+          },
+          {
+            "id": "compatibility",
+            "partner": true,
+            "chapters": [
+              "두 사람의 기질과 관계의 바탕",
+              "관계 유형과 서로 다른 역할",
+              "끌림과 기대의 차이",
+              "서로에게 편안한 표현",
+              "가까워지는 속도와 거리",
+              "갈등이 시작되는 반응",
+              "일상과 책임의 조율",
+              "두 사람의 궁합 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "relationship",
+            "partner": true,
+            "chapters": [
+              "우리 관계의 거리와 역할",
+              "다가가는 속도의 차이",
+              "기대와 표현의 조율",
+              "갈등의 반복 원인",
+              "편안한 대화의 조건",
+              "각자의 경계 지키기",
+              "어긋난 뒤의 회복",
+              "관계 유지 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "ask",
+            "partner": false,
+            "chapters": [
+              "본명숙이 말하는 나",
+              "강하게 끌리고 부딪히는 인연(안괴)",
+              "오래 함께할 인연(영친)",
+              "일에서 만나는 인연(성위)",
+              "친구와 멀어지는 인연(우쇠)",
+              "운명처럼 얽히는 인연(명·업·태)"
+            ]
+          }
+        ]
+      },
       "conditionalItems": [
-        "질문 상담과 전체 성향 리포트의 manifest가 다름",
-        "차트·요약·행동·추가 질문은 저장된 결과 및 선택한 계약에 따라 표시",
-        "참치 장기 질문은 사주·자미두수·베다만 지원"
+        "천문식27숙,본명숙개인지도와실제두사람방향별관계비교구분",
+        "상대정보없으면궁합추정없음"
       ],
-      "separatePurchase": [],
+      "separatePurchase": [
+        "선택한상담종류별목차,여러구성동시포함아님"
+      ],
       "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
+      "images": [
+        "/feature-details/crafted/yeongnyangi-sukuyo-salmon/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "content/product-details/catalog.json",
+        "app/yeongnyangi/_components/ProductGuide.tsx",
+        "app/yeongnyangi/_components/IntakeChat.tsx"
+      ],
       "verification": [
-        "docs/product-details/yeongnyangi-contract-snapshot.json"
+        "독립원본26장및실제43패널·30CTA/고지·10원고뷰포트SHIP",
+        "지원진입4폭load/bounds/fallbackPASS",
+        "v7실제근거/목차15검사PASS"
       ],
       "unconfirmed": [
-        "개별 상품 원고·이미지·모바일 적용 미완료",
-        "각 체계별 입력 조건의 개별 대조 미완료"
+        "main 전달·CI 및운영노출미확인;실LLM·결제미실행"
       ],
       "detailAliases": [],
-      "publicAvailabilityEvidence": "docs/product-details/yeongnyangi-public-catalog.json"
+      "publicAvailabilityEvidence": "docs/product-details/yeongnyangi-public-catalog.json",
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "yeongnyangi-sukuyo-tuna",
@@ -7289,7 +7358,7 @@
       "images": [
         "/feature-details/crafted/yeongnyangi-vedic-flounder/manifest.json"
       ],
-      "status": "로컬 제작·적용·모바일 검수 완료",
+      "status": "적용",
       "appliedAt": [
         "content/product-details/catalog.json",
         "app/yeongnyangi/_components/ProductGuide.tsx",
@@ -7304,7 +7373,8 @@
         "main 전달·CI 및운영노출 미확인;실LLM·결제미실행"
       ],
       "detailAliases": [],
-      "publicAvailabilityEvidence": "docs/product-details/yeongnyangi-public-catalog.json"
+      "publicAvailabilityEvidence": "docs/product-details/yeongnyangi-public-catalog.json",
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "yeongnyangi-vedic-mackerel",
@@ -7444,7 +7514,7 @@
         "/feature-details/crafted/yeongnyangi-vedic-mackerel/07-your-birth-coordinates.webp",
         "/feature-details/crafted/yeongnyangi-vedic-mackerel/08-a-word-you-can-use-today.webp"
       ],
-      "status": "로컬 제작·적용·모바일 독립 검수 완료",
+      "status": "적용",
       "appliedAt": [
         "ProductGuide selected featureKey",
         "IntakeChat selected product"
@@ -7459,7 +7529,8 @@
         "real generated text not tested"
       ],
       "detailAliases": [],
-      "publicAvailabilityEvidence": "docs/product-details/yeongnyangi-public-catalog.json"
+      "publicAvailabilityEvidence": "docs/product-details/yeongnyangi-public-catalog.json",
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "yeongnyangi-vedic-salmon",
@@ -7654,7 +7725,7 @@
         "/feature-details/crafted/yeongnyangi-vedic-salmon/09-bring-the-real-choices.webp",
         "/feature-details/crafted/yeongnyangi-vedic-salmon/10-make-the-next-step-visible.webp"
       ],
-      "status": "로컬 제작·적용·모바일 독립 검수 완료",
+      "status": "적용",
       "appliedAt": [
         "ProductGuide selected featureKey",
         "IntakeChat selected product"
@@ -7669,7 +7740,8 @@
         "real generated text not tested"
       ],
       "detailAliases": [],
-      "publicAvailabilityEvidence": "docs/product-details/yeongnyangi-public-catalog.json"
+      "publicAvailabilityEvidence": "docs/product-details/yeongnyangi-public-catalog.json",
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "yeongnyangi-vedic-tuna",
@@ -7850,7 +7922,7 @@
       "images": [
         "/feature-details/crafted/yeongnyangi-vedic-tuna/manifest.json"
       ],
-      "status": "로컬 제작·적용·모바일 검수 완료",
+      "status": "적용",
       "appliedAt": [
         "content/product-details/catalog.json",
         "app/yeongnyangi/_components/ProductGuide.tsx",
@@ -7865,7 +7937,8 @@
         "main 전달·CI 및운영노출 미확인;실LLM·결제미실행"
       ],
       "detailAliases": [],
-      "publicAvailabilityEvidence": "docs/product-details/yeongnyangi-public-catalog.json"
+      "publicAvailabilityEvidence": "docs/product-details/yeongnyangi-public-catalog.json",
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "yeongnyangi-ziwei-flounder",
@@ -8174,7 +8247,7 @@
         "/feature-details/crafted/yeongnyangi-ziwei-flounder/09-bring-both-profiles.webp",
         "/feature-details/crafted/yeongnyangi-ziwei-flounder/10-make-room-for-a-conversation.webp"
       ],
-      "status": "로컬 제작·적용·모바일 독립 검수 완료",
+      "status": "적용",
       "appliedAt": [
         "ProductGuide featureKey catalogue",
         "IntakeChat selected product"
@@ -8190,7 +8263,8 @@
         "real generated result not called"
       ],
       "detailAliases": [],
-      "publicAvailabilityEvidence": "docs/product-details/yeongnyangi-public-catalog.json"
+      "publicAvailabilityEvidence": "docs/product-details/yeongnyangi-public-catalog.json",
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "yeongnyangi-ziwei-mackerel",
@@ -8372,7 +8446,7 @@
         "/feature-details/crafted/yeongnyangi-ziwei-mackerel/07-prepare-the-coordinates.webp",
         "/feature-details/crafted/yeongnyangi-ziwei-mackerel/08-one-small-change.webp"
       ],
-      "status": "로컬 제작·적용·모바일 독립 검수 완료",
+      "status": "적용",
       "appliedAt": [
         "ProductGuide featureKey catalogue",
         "IntakeChat selected product"
@@ -8388,7 +8462,8 @@
         "real generated result not called"
       ],
       "detailAliases": [],
-      "publicAvailabilityEvidence": "docs/product-details/yeongnyangi-public-catalog.json"
+      "publicAvailabilityEvidence": "docs/product-details/yeongnyangi-public-catalog.json",
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "yeongnyangi-ziwei-salmon",
@@ -8637,7 +8712,7 @@
         "/feature-details/crafted/yeongnyangi-ziwei-salmon/09-turn-a-reading-into-a-check.webp",
         "/feature-details/crafted/yeongnyangi-ziwei-salmon/10-an-explanation-you-can-return-to.webp"
       ],
-      "status": "로컬 제작·적용·모바일 독립 검수 완료",
+      "status": "적용",
       "appliedAt": [
         "ProductGuide featureKey catalogue",
         "IntakeChat selected product"
@@ -8653,7 +8728,8 @@
         "real generated result not called"
       ],
       "detailAliases": [],
-      "publicAvailabilityEvidence": "docs/product-details/yeongnyangi-public-catalog.json"
+      "publicAvailabilityEvidence": "docs/product-details/yeongnyangi-public-catalog.json",
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "yeongnyangi-ziwei-tuna",
@@ -9075,7 +9151,7 @@
         "/feature-details/crafted/yeongnyangi-ziwei-tuna/09-the-limits-of-a-timeline.webp",
         "/feature-details/crafted/yeongnyangi-ziwei-tuna/10-leave-room-for-your-choices.webp"
       ],
-      "status": "로컬 제작·적용·모바일 독립 검수 완료",
+      "status": "적용",
       "appliedAt": [
         "ProductGuide selected featureKey",
         "IntakeChat selected product"
@@ -9090,7 +9166,8 @@
         "real generated text not tested"
       ],
       "detailAliases": [],
-      "publicAvailabilityEvidence": "docs/product-details/yeongnyangi-public-catalog.json"
+      "publicAvailabilityEvidence": "docs/product-details/yeongnyangi-public-catalog.json",
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "ziwei_ai_prompt_generator",
@@ -9319,7 +9396,7 @@
       "images": [
         "/feature-details/crafted/yeongnyangi-prashna/manifest.json"
       ],
-      "status": "로컬 제작·적용·모바일 검수 완료",
+      "status": "적용",
       "appliedAt": [
         "app/yeongnyangi/_components/QuestionSkyConsultation.tsx"
       ],
@@ -9331,7 +9408,8 @@
       "unconfirmed": [
         "main 병합·push·CI 및 실제운영 노출 미확인; 실결제/LLM 미실행"
       ],
-      "detailAliases": []
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     }
   ]
 }
