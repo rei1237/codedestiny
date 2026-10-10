@@ -9712,11 +9712,6 @@ body.sukuyo-flower-focus .feature-card--sukuyo-flower {
   overflow: hidden;
   border: 1px solid rgba(232, 213, 163, 0.28);
   border-radius: 22px;
-  background:
-    radial-gradient(circle at 10% 4%, rgba(232, 213, 163, 0.12), transparent 28%),
-    radial-gradient(circle at 92% 12%, rgba(167, 139, 250, 0.16), transparent 32%),
-    linear-gradient(145deg, #171128, #0c0918 78%);
-  box-shadow: 0 18px 36px rgba(10, 8, 24, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 .df-studio-quad::before {
   content: "";
@@ -9754,8 +9749,6 @@ body.sukuyo-flower-focus .feature-card--sukuyo-flower {
   padding: 13px 12px 15px;
   border-radius: 18px;
   border: 1px solid rgba(232, 213, 163, 0.2);
-  background: linear-gradient(160deg, rgba(40, 26, 58, 0.94), rgba(15, 12, 28, 0.96));
-  box-shadow: 0 10px 24px rgba(4, 3, 12, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.07);
   text-align: left;
   cursor: pointer;
   transition: transform 0.22s var(--df-ease), box-shadow 0.22s var(--df-ease), border-color 0.22s var(--df-ease);
@@ -9763,12 +9756,6 @@ body.sukuyo-flower-focus .feature-card--sukuyo-flower {
 .df-quad-card:hover,
 .df-quad-card:focus-visible {
   transform: translateY(-2px);
-  border-color: rgba(232, 213, 163, 0.52);
-  box-shadow: 0 16px 30px rgba(4, 3, 12, 0.42), 0 0 24px rgba(196, 181, 253, 0.12);
-}
-.df-quad-card.is-active {
-  border-color: var(--cd-yehwa-line-2);
-  box-shadow: 0 0 0 1px rgba(232, 213, 163, 0.28), 0 16px 32px rgba(4, 3, 12, 0.42), 0 0 28px rgba(196, 181, 253, 0.16);
 }
 .df-quad-card.is-pending {
   opacity: 0.62;
@@ -9793,12 +9780,7 @@ body.sukuyo-flower-focus .feature-card--sukuyo-flower {
   border-radius: 12px;
   border: 1px solid rgba(232, 213, 163, 0.16);
   overflow: hidden;
-  background:
-    radial-gradient(circle at 74% 22%, rgba(253, 246, 240, 0.18) 0 3px, transparent 4px),
-    radial-gradient(circle at 24% 26%, rgba(196, 181, 253, 0.12), transparent 38%),
-    linear-gradient(160deg, #211535, #090813 82%);
   aspect-ratio: 4 / 3;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), inset 0 -18px 28px rgba(5, 3, 13, 0.34);
 }
 .df-quad-image {
   display: block;
@@ -9927,11 +9909,6 @@ body.sukuyo-flower-focus .feature-card--sukuyo-flower {
   width: min(100%, 560px);
   border-radius: 18px;
   border: 1px solid rgba(244, 213, 141, 0.32);
-  background:
-    radial-gradient(circle at 22% 14%, rgba(102, 70, 172, 0.36), transparent 44%),
-    radial-gradient(circle at 84% 88%, rgba(120, 185, 255, 0.24), transparent 40%),
-    linear-gradient(145deg, rgba(18, 16, 34, 0.9), rgba(25, 22, 46, 0.84));
-  box-shadow: 0 18px 44px rgba(8, 6, 20, 0.46), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   padding: clamp(20px, 3vw, 30px);
   text-align: center;
   display: grid;
@@ -9945,10 +9922,8 @@ body.sukuyo-flower-focus .feature-card--sukuyo-flower {
 
 .df-studio-empty-message {
   margin: 0;
-  color: rgba(251, 241, 221, 0.92);
   line-height: 1.72;
   font-size: clamp(0.9rem, 2.1vw, 1rem);
-  text-shadow: 0 8px 24px rgba(12, 10, 24, 0.48);
 }
 
 .df-studio-link-btn {
@@ -9958,16 +9933,9 @@ body.sukuyo-flower-focus .feature-card--sukuyo-flower {
   padding: 12px 24px;
   border: 1px solid rgba(250, 227, 177, 0.58);
   border-radius: 999px;
-  background:
-    radial-gradient(circle at 18% 24%, rgba(255, 234, 188, 0.26), transparent 38%),
-    linear-gradient(122deg, rgba(251, 212, 141, 0.28), rgba(252, 243, 208, 0.22) 44%, rgba(148, 208, 255, 0.3)),
-    rgba(27, 23, 52, 0.96);
-  color: #fff4dc;
   font-size: 0.9rem;
   font-weight: 800;
   letter-spacing: 0.03em;
-  text-shadow: 0 2px 10px rgba(20, 12, 40, 0.44);
-  box-shadow: 0 16px 30px rgba(13, 10, 31, 0.54), inset 0 1px 0 rgba(255, 255, 255, 0.22);
   transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease, filter 0.24s ease;
 }
 
@@ -9997,8 +9965,6 @@ body.sukuyo-flower-focus .feature-card--sukuyo-flower {
 .df-studio-link-btn:hover,
 .df-studio-link-btn:focus-visible {
   transform: translateY(-3px);
-  border-color: rgba(255, 232, 186, 0.92);
-  box-shadow: 0 20px 34px rgba(13, 11, 30, 0.6), 0 0 0 3px rgba(244, 213, 141, 0.24);
   filter: saturate(1.06) brightness(1.02);
 }
 
@@ -10430,42 +10396,6 @@ body.sukuyo-flower-focus .feature-card--sukuyo-flower {
   box-shadow: 0 8px 20px rgba(99, 102, 241, 0.14);
 }
 
-.df-studio-toast {
-  position: fixed;
-  bottom: max(28px, env(safe-area-inset-bottom, 28px));
-  left: 50%;
-  transform: translateX(-50%) translateY(14px);
-  z-index: 100000;
-  max-width: min(92vw, 420px);
-  padding: 12px 16px;
-  border-radius: 14px;
-  border: 1px solid rgba(99, 102, 241, 0.35);
-  background: rgba(15, 23, 42, 0.94);
-  color: #f8fafc;
-  font-size: 0.84rem;
-  line-height: 1.45;
-  text-align: center;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.24s ease, transform 0.24s ease;
-}
-.df-studio-toast--show {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
-}
-.df-studio-toast--success {
-  border-color: rgba(52, 211, 153, 0.45);
-  color: #d1fae5;
-}
-.df-studio-toast--warn {
-  border-color: rgba(251, 146, 60, 0.5);
-  color: #ffedd5;
-}
-.df-studio-toast--info {
-  border-color: rgba(147, 197, 253, 0.4);
-  color: #e0f2fe;
-}
 .df-studio-chip:hover,
 .df-studio-chip:focus-visible {
   transform: translateY(-1px);

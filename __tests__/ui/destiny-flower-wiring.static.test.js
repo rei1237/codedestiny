@@ -156,7 +156,7 @@ test("마크업이 없는 홈 카드 CSS 를 다시 들이지 않는다", () => 
     !shell.includes("feature-card--destiny-flower"),
     `${SHELL_REL}: 홈 카드가 되살아났다면 이 가드와 삭제된 CSS 를 함께 되돌릴 것`,
   );
-  const revived = [".destiny-flower-stage {", ".destiny-flower-backdrop {", ".df-garden-petal-field {", ".df-bud-icon {"]
+  const revived = [".destiny-flower-stage {", ".destiny-flower-backdrop {", ".df-garden-petal-field {", ".df-bud-icon {", ".df-studio-toast {"]
     .filter((sel) => css.includes(sel));
   assert.deepEqual(
     revived,
