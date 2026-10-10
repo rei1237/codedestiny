@@ -6,6 +6,7 @@ import { trimPaidReportText } from "../lib/paid-report-length.js";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
+import { dedupeCodexBody } from "../lib/master-love-codex-quality.js";
 import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { resolveForbiddenPatterns } from "../lib/llm-leak-guard.js";
@@ -2407,6 +2408,9 @@ async function generateNewYearWave(env, input, fortuneData, options) {
       // 본문이 없는 섹션의 마지막 시도는 무엇이든 살린다: 새 이슈가 생겨도 채택하고, 잘린 응답은 완결 문장까지 남긴다.
       const lastChance = !valid(candidate) && used(candidate.key) >= NEW_YEAR_AI_SECTION_MAX_ATTEMPTS;
       if (lastChance && generated.ok && generated.truncated) Object.assign(generated, { truncated: false, text: trimToLastCompleteSentence(generated.text) });
+      // 월운처럼 같은 틀을 12번 쓰는 섹션은 상투 문장이 글자 그대로 되풀이되기 쉽다. 문장 하나 때문에 응답을 버리지 않고
+      // (원칙 17) 이 섹션 안과 다른 섹션에 이미 있는 문장만 반복 검사와 같은 키로 지운다(NY1 실호출 2026-10-10).
+      if (generated.ok) generated.text = dedupeCodexBody(generated.text, results.filter(row => row !== candidate).map(row => row.text));
       if (valid(generated)) {
         const index = results.indexOf(candidate);
         const before = contentIssues(results);

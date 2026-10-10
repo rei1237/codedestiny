@@ -58,3 +58,13 @@ it('an empty section gets one rescue attempt that keeps a truncated reply up to 
   expect(result.complete).toBe(true);
   expect(result.savedSections[0].text.endsWith('.')).toBe(true);
 });
+it('a reply repeating one stock sentence is adopted with the repeat removed instead of being discarded', async () => {
+  const saved = filled();
+  saved[monthlyIndex] = { ...saved[monthlyIndex], text: '', ok: false };
+  const stock = '중요한 결정을 내릴 때는 주변의 조언을 귀담아듣고 신중하게 접근하는 자세가 필요합니다.';
+  provider.mockResolvedValue({ ok: true, provider: 'gemini', text: `${text('monthly', 5000, pillars.join(' '))}\n\n1월은 흐름입니다. ${stock}\n\n2월은 기회입니다. ${stock}` });
+  const result = await utils.generateConsultationText({}, input, facts, options(saved));
+  expect(provider).toHaveBeenCalledTimes(1);
+  expect(result.complete).toBe(true);
+  expect(result.savedSections[monthlyIndex].text.split(stock)).toHaveLength(2);
+});
