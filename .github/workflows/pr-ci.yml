@@ -835,6 +835,7 @@ jobs:
           WORKERS_AI_ENABLED: "false"
         run: |
           npm run verify:payment-service-boundary
+          npm run verify:birth-scope-client-mirror
           npm run verify:payment-choice-single-instance
           npm run verify:payment-p0-inventory
           npm run verify:pass-check-retry
