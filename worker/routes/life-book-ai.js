@@ -1266,8 +1266,11 @@ function cleanForbiddenResult(value) {
   const trimmed = clean(value, LIFE_BOOK_RESULT_TEXT_MAX_CHARS);
   // 🔴 삭제는 ko 에서만. FORBIDDEN_RESULT_PATTERN 에 \bPDF\b·\bprogress\b·\bjob\b·\bAI\b 가 들어 있어
   // 비-ko 에서 돌리면 영어 상담문의 정상 단어가 문장 중간에서 사라진다.
+  // FORBIDDEN_RESULT_PATTERN 은 판정용이라 g 가 없다 — 그대로 replace 하면 첫 번째만 지워지고, 남은 하나가
+  // 품질 게이트의 forbidden_terms(보강 대상 장 없음)로 책 전체를 실패시킨다(R9 실호출 2026-10-10, "새로운 시스템을 구축").
+  // "시스템"은 일상어라 지우면 문장이 깨지므로 받침이 같은 "기반"으로 바꿔 조사를 그대로 살린다.
   const stripped = canStripForbiddenText()
-    ? trimmed.replace(FORBIDDEN_RESULT_PATTERN, "")
+    ? trimmed.replace(/시스템/g, "기반").replace(new RegExp(FORBIDDEN_RESULT_PATTERN.source, "gi"), "")
     : trimmed;
   return stripped.replace(/\n{3,}/g, "\n\n").trim();
 }
