@@ -11,7 +11,35 @@ export function trimPaidReportText(text, maxChars) {
     if (countPaidReportBodyChars(chars.slice(0, mid).join("")) <= maxChars) low = mid;
     else high = mid - 1;
   }
-  return chars.slice(0, low).join("").trimEnd();
+  // Prefer the last complete sentence (or finished body line) so the reader never sees a word cut
+  // mid-way (R6·R7·R8 2026-10-10). A single overlong sentence still falls back to the plain cut.
+  const cut = lastSentenceBoundary(chars, low) || low;
+  const kept = chars.slice(0, cut).join("").trimEnd();
+  return (kept.match(/\*\*/g) || []).length % 2 ? `${kept}**` : kept;
+}
+
+function lastSentenceBoundary(chars, limit) {
+  const SENTENCE_END = /[.!?…。？！]/u;
+  const SENTENCE_CLOSER = /["'”’)\]」』*]/u;
+  const HEADING_LINE = /^\s*(?:#{1,6}\s|(?:\*\*|__)[^\n]*(?:\*\*|__)\s*$)/u;
+  let best = 0;
+  let lineStart = 0;
+  for (let i = 0; i < limit; i++) {
+    if (chars[i] === "\n") {
+      // A finished body line (list item, label-less paragraph) is complete; headings and blank lines are not.
+      const line = chars.slice(lineStart, i).join("");
+      if (line.trim() && !HEADING_LINE.test(line)) best = i;
+      lineStart = i + 1;
+      continue;
+    }
+    if (!SENTENCE_END.test(chars[i])) continue;
+    let end = i + 1;
+    while (end < chars.length && SENTENCE_CLOSER.test(chars[end])) end++;
+    // "3.5" is not a sentence end: the terminator must be followed by whitespace or the text end.
+    // Closers past the limit are dropped; an open ** is re-closed by the caller.
+    if (end === chars.length || /\s/u.test(chars[end])) best = Math.min(end, limit);
+  }
+  return best;
 }
 
 export function trimPaidReportSections(sections, maxChars) {

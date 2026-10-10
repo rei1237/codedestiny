@@ -29,3 +29,13 @@ it("does not erase tiny required bodies when another body dominates the group", 
   expect(clipped.a.body).toBe("가"); expect(clipped.b.body).toBe("나");
   expect(countPaidReportBodyChars(Object.values(clipped).map(row => row.body).join("\n"))).toBeLessThanOrEqual(300);
 });
+
+it("cuts at the last complete sentence and closes an open bold span", () => {
+  const text = "## 흐름\n\n" + "올해는 **기회가 열리는 해입니다. 선택을 서두르지 마세요.** 3.5배의 힘을 아껴 두세요. ".repeat(20);
+  const clipped = trimPaidReportText(text, 200);
+  expect(countPaidReportBodyChars(clipped)).toBeLessThanOrEqual(200);
+  expect(countPaidReportBodyChars(clipped)).toBeGreaterThan(150);
+  expect(clipped).toMatch(/[.!?…]\**$/u);
+  expect((clipped.match(/\*\*/g) || []).length % 2).toBe(0);
+  expect(clipped).not.toMatch(/3\.$/);
+});
