@@ -68,6 +68,9 @@ function assertBasis(name, payload, { minGroups = 2, minStages = 2 } = {}) {
   const prompt = buildFirstPrompt(normalized.input, chart);
   assert(prompt.includes("[근거 고정 규칙]"), "ziwei: 프롬프트에 근거 고정 규칙이 없음");
   assert(prompt.includes("[분야별 분석 규칙]"), "ziwei: 프롬프트에 분야별 분석 규칙이 없음");
+  // R6~R8 2026-10-10: "표에 적힌 이름 그대로" 가 영문 라벨을 본문으로 옮겼고, 호칭이 당신/선생님으로 섞였다.
+  assert(prompt.includes("영문 표기를 본문에 남기지 않는다") && !prompt.includes("표에 적힌 이름 그대로"), "ziwei: 근거 규칙이 영문 라벨 번역을 요구하지 않음");
+  assert(prompt.includes("'당신'으로 부른다"), "ziwei: 근거 규칙에 호칭 통일이 없음");
   for (const key of REASONING_SECTION_KEYS) {
     assert(prompt.includes(key), `ziwei: 프롬프트 sections에 ${key} 누락`);
   }
