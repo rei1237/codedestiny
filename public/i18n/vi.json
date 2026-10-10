@@ -668,14 +668,14 @@
       "home": "Về màn hình chính",
       "keywords": "phán quyết saju • tái sinh • thuần khiết • dòng chảy",
       "quadAria": "Hoa định mệnh của cả bốn hệ thống",
-      "letterTitle": "Today's flower letter · one thing your heart needs",
-      "letterIntro": "Flower stories for small actions rather than predictions. Pick the letter that fits how you feel right now.",
-      "letterRestTitle": "Like a magnolia · I want to rest for a while",
-      "letterRestBody": "Before a flower blooms, its branches quietly gather strength. Today, set down one thing you have to do, and take a moment to look at the plants or the sky outside your window.",
-      "letterStartTitle": "Like a sprout · I need courage to begin",
-      "letterStartBody": "Instead of a big resolution, let one small sprout break through. Write down just the first step of something you have put off, and spend five minutes working on it.",
-      "letterShareTitle": "Like a bouquet · I want to share how I feel",
-      "letterShareBody": "Rather than what you want to hear, recall one moment you were grateful for. Offer your feelings with a short hello that doesn't press for a reply."
+      "letterTitle": "Lá thư hoa hôm nay · Một điều lòng bạn cần",
+      "letterIntro": "Đây là những câu chuyện về hoa dành cho những hành động nhỏ, thay vì lời tiên đoán. Hãy chọn lá thư hợp với lòng bạn lúc này.",
+      "letterRestTitle": "Như hoa mộc lan · Mình muốn nghỉ ngơi một chút",
+      "letterRestBody": "Trước khi hoa nở, cành cây cũng lặng lẽ tích tụ sức lực. Hôm nay, hãy bớt đi một việc phải làm và dành chút thời gian ngắm cây cỏ hay bầu trời ngoài cửa sổ.",
+      "letterStartTitle": "Như mầm non · Mình cần dũng khí để bắt đầu",
+      "letterStartBody": "Thay vì một quyết tâm lớn, hãy thử để một mầm nhỏ nhú lên. Chỉ ghi ra bước đầu tiên của việc bạn đã trì hoãn, rồi bắt tay làm trong 5 phút.",
+      "letterShareTitle": "Như bó hoa · Mình muốn gửi gắm tấm lòng",
+      "letterShareBody": "Thay vì những lời bạn mong được nghe, hãy nhớ lại một khoảnh khắc bạn thấy biết ơn. Gửi gắm tấm lòng bằng một lời hỏi thăm ngắn, không hối thúc hồi âm."
     },
     "tarotSelfEsteem": {
       "levelUp": "Tiêu chuẩn của bạn rõ thêm một nấc",
@@ -2731,9 +2731,9 @@
         "shareHook": {
           "rarityAnchor": "Bông hoa duy nhất được đọc qua {anchor}"
         },
-        "anonymousName": "Anonymous traveler",
+        "anonymousName": "Lữ khách vô danh",
         "rationaleLabel": {
-          "verdict": "So, this flower"
+          "verdict": "Vì vậy, đóa hoa này"
         }
       },
       "astro": {
@@ -2777,20 +2777,20 @@
           "pisces": "Pisces"
         },
         "rationaleLabel": {
-          "sun": "Sun sign",
-          "risingMoon": "Rising sign · Moon sign"
+          "sun": "Cung Mặt Trời",
+          "risingMoon": "Cung Mọc · Cung Mặt Trăng"
         }
       },
       "ziwei": {
         "brightness": {
-          "miao": "Miêu",
-          "wang": "Vương",
-          "li": "Lí",
-          "de": "Bởi",
-          "ping": "Ping",
-          "han": "Hàn",
-          "xian": "Tây An",
-          "bu": "Bu"
+          "miao": "Miếu (廟)",
+          "wang": "Vượng (旺)",
+          "li": "Lợi (利)",
+          "de": "Đắc (得)",
+          "ping": "Bình (平)",
+          "han": "Nhàn (閑)",
+          "xian": "Hãm (陷)",
+          "bu": "Bất (不)"
         },
         "coreFlow": "dòng vận may cốt lõi",
         "coreEnergy": "biểu hiện năng lượng cốt lõi",
@@ -2846,74 +2846,74 @@
           }
         },
         "stars": {
-          "ziwei": "Zi Wei (紫微)",
-          "tianji": "Tian Ji (天機)",
-          "taiyang": "Tai Yang (太陽)",
-          "wuqu": "Wu Qu (武曲)",
-          "tiantong": "Tian Tong (天同)",
-          "lianzhen": "Lian Zhen (廉貞)",
-          "tianfu": "Tian Fu (天府)",
-          "taiyin": "Tai Yin (太陰)",
-          "tanlang": "Tan Lang (貪狼)",
-          "jumen": "Ju Men (巨門)",
-          "tianxiang": "Tian Xiang (天相)",
-          "tianliang": "Tian Liang (天梁)",
-          "qisha": "Qi Sha (七殺)",
-          "pojun": "Po Jun (破軍)",
-          "wenchang": "Wen Chang (文昌)",
-          "wenqu": "Wen Qu (文曲)",
-          "zuofu": "Zuo Fu (左輔)",
-          "youbi": "You Bi (右弼)",
-          "tianma": "Tian Ma (天馬)",
-          "lucun": "Lu Cun (祿存)",
-          "tiankui": "Tian Kui (天魁)",
-          "tianyue": "Tian Yue (天鉞)",
-          "qingyang": "Qing Yang (擎羊)",
-          "tuoluo": "Tuo Luo (陀羅)",
-          "dikong": "Di Kong (地空)",
-          "dijie": "Di Jie (地劫)",
-          "huoxing": "Huo Xing (火星)",
-          "lingxing": "Ling Xing (鈴星)"
+          "ziwei": "Tử Vi (紫微)",
+          "tianji": "Thiên Cơ (天機)",
+          "taiyang": "Thái Dương (太陽)",
+          "wuqu": "Vũ Khúc (武曲)",
+          "tiantong": "Thiên Đồng (天同)",
+          "lianzhen": "Liêm Trinh (廉貞)",
+          "tianfu": "Thiên Phủ (天府)",
+          "taiyin": "Thái Âm (太陰)",
+          "tanlang": "Tham Lang (貪狼)",
+          "jumen": "Cự Môn (巨門)",
+          "tianxiang": "Thiên Tướng (天相)",
+          "tianliang": "Thiên Lương (天梁)",
+          "qisha": "Thất Sát (七殺)",
+          "pojun": "Phá Quân (破軍)",
+          "wenchang": "Văn Xương (文昌)",
+          "wenqu": "Văn Khúc (文曲)",
+          "zuofu": "Tả Phù (左輔)",
+          "youbi": "Hữu Bật (右弼)",
+          "tianma": "Thiên Mã (天馬)",
+          "lucun": "Lộc Tồn (祿存)",
+          "tiankui": "Thiên Khôi (天魁)",
+          "tianyue": "Thiên Việt (天鉞)",
+          "qingyang": "Kình Dương (擎羊)",
+          "tuoluo": "Đà La (陀羅)",
+          "dikong": "Địa Không (地空)",
+          "dijie": "Địa Kiếp (地劫)",
+          "huoxing": "Hỏa Tinh (火星)",
+          "lingxing": "Linh Tinh (鈴星)"
         },
         "palaces": {
-          "life": "Life Palace",
-          "siblings": "Siblings Palace",
-          "spouse": "Spouse Palace",
-          "children": "Children Palace",
-          "wealth": "Wealth Palace",
-          "health": "Health Palace",
-          "travel": "Travel Palace",
-          "friends": "Friends Palace",
-          "career": "Career Palace",
-          "property": "Property Palace",
-          "fortune": "Fortune Palace",
-          "parents": "Parents Palace"
+          "life": "Cung Mệnh",
+          "siblings": "Cung Huynh Đệ",
+          "spouse": "Cung Phu Thê",
+          "children": "Cung Tử Tức",
+          "wealth": "Cung Tài Bạch",
+          "health": "Cung Tật Ách",
+          "travel": "Cung Thiên Di",
+          "friends": "Cung Nô Bộc",
+          "career": "Cung Quan Lộc",
+          "property": "Cung Điền Trạch",
+          "fortune": "Cung Phúc Đức",
+          "parents": "Cung Phụ Mẫu"
         },
         "palaceTraits": {
-          "life": "a strong sense of self and presence",
-          "siblings": "cooperation and a feel for coordination",
-          "spouse": "relational grace and intimate communication",
-          "children": "creativity and the urge to express",
-          "wealth": "managing resources and expanding abundance",
-          "health": "resilience and a sense of inner balance",
-          "travel": "adaptability and on-the-spot judgment",
-          "friends": "running networks and caring for a team",
-          "career": "social drive and an orientation toward achievement",
-          "property": "building foundations and steady accumulation",
-          "fortune": "emotional recharge and spiritual insight",
-          "parents": "protective instinct and a sense of tradition"
+          "life": "sự vững vàng của bản ngã và khí chất hiện diện",
+          "siblings": "tinh thần hợp tác và khả năng điều phối",
+          "spouse": "nét đẹp trong quan hệ và sự giao tiếp thân mật",
+          "children": "sức sáng tạo và khát khao biểu đạt",
+          "wealth": "khả năng quản lý nguồn lực và mở rộng sự sung túc",
+          "health": "sức phục hồi và cảm nhận cân bằng nội tâm",
+          "travel": "khả năng thích nghi và phán đoán tại chỗ",
+          "friends": "vận hành mạng lưới và chăm lo cho tập thể",
+          "career": "động lực xã hội và khát vọng thành tựu",
+          "property": "xây dựng nền tảng và tích lũy bền vững",
+          "fortune": "nạp lại năng lượng cảm xúc và thấu suốt tinh thần",
+          "parents": "bản năng che chở và ý thức truyền thống"
         },
-        "natalVerdict": "Read through the nature of {stars} in your Life Palace, your flower is {flowerName} ({scientificName}).",
-        "natalScenarioTitle": "Life Palace main-star blooming scenario",
+        "natalVerdict": "Đọc qua khí chất của {stars} trong cung Mệnh, đóa hoa của bạn là {flowerName} ({scientificName}).",
+        "natalScenarioTitle": "Kịch bản nở hoa theo chính tinh cung Mệnh",
         "rationale": {
-          "lifeStar": "Your Life Palace holds {starsJosa}.",
-          "borrowedStar": "Your Life Palace has no main star, so we read {starsObject} borrowed from the opposite Travel Palace.",
-          "personality": "{star}: \"{keyword}\" — {personality}.",
-          "verdict": "So the flower we offer you now is {flowerName}."
+          "lifeStar": "Cung Mệnh của bạn có {starsJosa} tọa thủ.",
+          "borrowedStar": "Cung Mệnh của bạn không có chính tinh, nên chúng tôi mượn {starsObject} từ cung Thiên Di đối diện để luận giải.",
+          "personality": "{star}: \"{keyword}\" — khí chất của {personality}.",
+          "verdict": "Vì vậy, đóa hoa chúng tôi trao bạn lúc này là {flowerName}."
         },
         "rationaleLabel": {
-          "lifeStar": "Life Palace main star",
-          "personality": "Innate personality"
+          "lifeStar": "Chính tinh cung Mệnh",
+          "personality": "Tính cách bẩm sinh"
         }
       },
       "sukuyo": {
@@ -2934,227 +2934,227 @@
         "verdict": "Qua kết cấu ánh trăng của Sukuyo, bông hoa định mệnh của bạn là {flowerName} ({scientificName}). Sự kết hợp của {mansion}, {moon} và {guardian} phù hợp một cách tinh tế với nhịp điệu của mối quan hệ, cảm xúc và hành động hiện nay.",
         "narrative": "Kết cấu quan hệ của {mansion} ({group}), giai đoạn thủy triều của mặt trăng {moon} và mô hình bảo vệ của {guardian} gặp nhau trong khu vườn đêm, làm sâu sắc thêm chất lượng của{symbolism}. Cùng đọc, ba tín hiệu dưới ánh trăng này chỉ ra {flowerName} là bông hoa định mệnh chính xác nhất của bạn lúc này.",
         "mansions": {
-          "m1": "Kaku (角)",
-          "m2": "Kou (亢)",
-          "m3": "Tei (氐)",
-          "m4": "Bou (房)",
-          "m5": "Shin (心)",
-          "m6": "Bi (尾)",
-          "m7": "Ki (箕)",
-          "m8": "To (斗)",
-          "m9": "Jo (女)",
-          "m10": "Kyo (虛)",
-          "m11": "Ki (危)",
-          "m12": "Shitsu (室)",
-          "m13": "Heki (壁)",
-          "m14": "Kei (奎)",
-          "m15": "Ro (婁)",
-          "m16": "I (胃)",
-          "m17": "Bo (昴)",
-          "m18": "Hitsu (畢)",
-          "m19": "Shi (觜)",
-          "m20": "Shin (參)",
-          "m21": "Sei (井)",
-          "m22": "Ki (鬼)",
-          "m23": "Ryu (柳)",
-          "m24": "Sei (星)",
-          "m25": "Cho (張)",
-          "m26": "Yoku (翼)",
-          "m27": "Shin (軫)"
+          "m1": "Giác Tú (角)",
+          "m2": "Cang Tú (亢)",
+          "m3": "Đê Tú (氐)",
+          "m4": "Phòng Tú (房)",
+          "m5": "Tâm Tú (心)",
+          "m6": "Vĩ Tú (尾)",
+          "m7": "Cơ Tú (箕)",
+          "m8": "Đẩu Tú (斗)",
+          "m9": "Nữ Tú (女)",
+          "m10": "Hư Tú (虛)",
+          "m11": "Nguy Tú (危)",
+          "m12": "Thất Tú (室)",
+          "m13": "Bích Tú (壁)",
+          "m14": "Khuê Tú (奎)",
+          "m15": "Lâu Tú (婁)",
+          "m16": "Vị Tú (胃)",
+          "m17": "Mão Tú (昴)",
+          "m18": "Tất Tú (畢)",
+          "m19": "Chủy Tú (觜)",
+          "m20": "Sâm Tú (參)",
+          "m21": "Tỉnh Tú (井)",
+          "m22": "Quỷ Tú (鬼)",
+          "m23": "Liễu Tú (柳)",
+          "m24": "Tinh Tú (星)",
+          "m25": "Trương Tú (張)",
+          "m26": "Dực Tú (翼)",
+          "m27": "Chẩn Tú (軫)"
         },
         "groups": {
-          "anjung": "Steady mansions",
-          "gangseong": "Strong mansions",
-          "gyeongkwae": "Nimble mansions",
-          "jihye": "Wise mansions"
+          "anjung": "Tú vững vàng",
+          "gangseong": "Tú mạnh mẽ",
+          "gyeongkwae": "Tú nhanh nhẹn",
+          "jihye": "Tú trí tuệ"
         },
         "groupLabels": {
-          "anjung": "Steady group",
-          "gangseong": "Strong group",
-          "gyeongkwae": "Nimble group",
-          "jihye": "Wise group"
+          "anjung": "Nhóm vững vàng",
+          "gangseong": "Nhóm mạnh mẽ",
+          "gyeongkwae": "Nhóm nhanh nhẹn",
+          "jihye": "Nhóm trí tuệ"
         },
         "guardians": {
-          "crane": "Crane",
-          "dragon": "Dragon",
-          "marten": "Marten",
-          "rabbit": "Rabbit",
-          "fox": "Fox",
-          "tiger": "Tiger",
-          "leopard": "Leopard",
-          "haetae": "Haetae",
-          "bat": "Bat",
-          "rat": "Rat",
-          "swallow": "Swallow",
-          "pig": "Pig",
-          "hedgehog": "Hedgehog",
-          "wolf": "Wolf",
-          "dog": "Dog",
-          "pheasant": "Pheasant",
-          "rooster": "Rooster",
-          "crow": "Crow",
-          "monkey": "Monkey",
-          "ape": "Ape",
-          "wildDog": "Wild dog",
-          "sheep": "Sheep",
-          "roeDeer": "Roe deer",
-          "horse": "Horse",
-          "deer": "Deer",
-          "snake": "Snake",
-          "earthworm": "Earthworm"
+          "crane": "Hạc",
+          "dragon": "Rồng",
+          "marten": "Chồn",
+          "rabbit": "Thỏ",
+          "fox": "Cáo",
+          "tiger": "Hổ",
+          "leopard": "Báo",
+          "haetae": "Giải Trãi",
+          "bat": "Dơi",
+          "rat": "Chuột",
+          "swallow": "Chim én",
+          "pig": "Lợn",
+          "hedgehog": "Nhím",
+          "wolf": "Sói",
+          "dog": "Chó",
+          "pheasant": "Gà lôi",
+          "rooster": "Gà trống",
+          "crow": "Quạ",
+          "monkey": "Khỉ",
+          "ape": "Vượn",
+          "wildDog": "Chó hoang",
+          "sheep": "Cừu",
+          "roeDeer": "Hoẵng",
+          "horse": "Ngựa",
+          "deer": "Hươu",
+          "snake": "Rắn",
+          "earthworm": "Giun đất"
         },
         "rationaleLabel": {
-          "mansion": "Mansion · Moon phase"
+          "mansion": "Tú · Pha trăng"
         }
       },
       "saju": {
         "scenarios": {
           "default": {
             "title": "{dayMasterBadge} kịch bản nở rộ môi trường",
-            "reason": "We looked at how your day master meshes with the current five-element environment and chose the one flower that suits this period best."
+            "reason": "Chúng tôi xem cách Nhật chủ của bạn ăn khớp với môi trường Ngũ Hành hiện tại, rồi chọn đóa hoa hợp nhất với giai đoạn này."
           },
           "jia": {
             "springWood": {
               "title": "Kịch bản nở hoa thẳng đứng của Jia Wood",
-              "reason": "Jia Wood (甲木) has the nature of a tall tree growing straight upward. Now that spring's wood energy matches that temperament, your power to step forward and open new ground comes into full bloom."
+              "reason": "Giáp Mộc (甲木) mang khí chất vươn thẳng lên cao như một cây đại thụ. Lúc này, khi khí Mộc của mùa xuân hợp với bản tính ấy, sức mạnh tiên phong mở ra cục diện mới của bạn sẽ nở rộ."
             },
             "autumnMetal": {
               "title": "Kịch bản tôi luyện kim loại Jia Wood",
-              "reason": "With autumn's metal energy pressing on Jia Wood (甲木), now is the time to prune the side branches and keep only the trunk that truly matters. The more you let go, the sturdier you become."
+              "reason": "Khi khí Kim mùa thu đè lên Giáp Mộc (甲木), đây là lúc tỉa bớt cành nhánh và chỉ giữ lại thân chính thực sự quan trọng. Càng buông bớt, bạn lại càng vững chắc hơn."
             },
             "dryFire": {
               "title": "Kịch bản chịu nóng khô của Jia Wood",
-              "reason": "For Jia Wood (甲木) set amid dry, hot energy, what matters now is the stamina of its roots. Rather than rushing, build resilience by holding on for the long run, and you will bloom again as tenaciously as the rose of Sharon."
+              "reason": "Với Giáp Mộc (甲木) giữa khí khô nóng, điều cần lúc này là sức bền của bộ rễ. Thay vì vội vàng, hãy bền bỉ trụ vững và nuôi dưỡng sức phục hồi, bạn sẽ lại nở hoa kiên cường như hoa mugunghwa."
             }
           },
           "yi": {
             "metalWater": {
               "title": "Kịch bản hòa hợp kim-thủy Yi Wood",
-              "reason": "Yi Wood (乙木) has a gentle, seeping nature like vines and flowering plants. With metal and water energy strong now, your grace and your clarifying, purifying power come most alive."
+              "reason": "Ất Mộc (乙木) mang khí chất mềm mại, thấm dần như dây leo và cây hoa. Lúc này, khi khí Kim và Thủy mạnh, phẩm cách và sức thanh lọc trong trẻo của bạn được phát huy mạnh mẽ nhất."
             },
             "dryEarth": {
               "title": "Kịch bản sinh tồn trên đất khô Yi Wood",
-              "reason": "For Yi Wood (乙木) standing on dry earth energy, the theme now is the strength to endure. Like a cactus flower that breaks through barren ground and blooms at last, you shine precisely where you hold on."
+              "reason": "Với Ất Mộc (乙木) đứng trên khí Thổ khô cằn, chủ đề lúc này là sức sống bền bỉ. Như hoa xương rồng xuyên qua đất cằn và cuối cùng vẫn nở, bạn tỏa sáng chính ở nơi mình kiên trì trụ lại."
             },
             "autumn": {
               "title": "Kịch bản sàng lọc mùa thu Yi Wood",
-              "reason": "Yi Wood (乙木) passing through autumn's metal energy is in a season of turning delicacy into calm order. The more evenly you sort what is scattered, the tidier your mind becomes as well."
+              "reason": "Đi qua khí Kim mùa thu, Ất Mộc (乙木) đang ở thời kỳ biến sự tinh tế thành trật tự điềm tĩnh. Càng sắp xếp gọn gàng những gì tản mát, lòng bạn cũng càng thêm ngăn nắp."
             },
             "wetSpring": {
               "title": "Kịch bản mở rộng suối ẩm Yi Wood",
-              "reason": "Meeting spring's moist energy, Yi Wood (乙木) grows markedly better at connecting people. Now is a time to reach outward through relationships rather than alone."
+              "reason": "Gặp khí ẩm của mùa xuân, sức kết nối con người của Ất Mộc (乙木) lớn lên rõ rệt. Lúc này là thời điểm vươn ra qua các mối quan hệ thay vì một mình."
             }
           },
           "bing": {
             "springWood": {
               "title": "Kịch bản đánh lửa lò xo Bing Fire",
-              "reason": "Bing Fire (丙火) is energy that catches quickly and spreads wide like the sun. With spring's wood energy as fuel now, your power to start something new and make it known burns strongly."
+              "reason": "Bính Hỏa (丙火) là khí bắt lửa nhanh và lan rộng như mặt trời. Lúc này, lấy khí Mộc mùa xuân làm củi, sức mạnh khởi đầu điều mới và lan tỏa nó của bạn bùng cháy mạnh mẽ."
             },
             "summerFire": {
               "title": "Kịch bản mở rộng mùa hè của Bing Fire",
-              "reason": "With summer's fire energy added, Bing Fire (丙火) burns brighter than ever. This is the season when your power to step forward and lead people peaks."
+              "reason": "Thêm cả khí Hỏa của mùa hè, Bính Hỏa (丙火) cháy rực hơn bao giờ hết. Đây là thời kỳ sức mạnh đứng ra dẫn dắt mọi người của bạn lên đến đỉnh điểm."
             },
             "waterControl": {
               "title": "Kịch bản kiểm soát nước của Bing Fire",
-              "reason": "For Bing Fire (丙火) meeting strong water energy, what matters now is not burning hotter but setting the right direction. Keep your sense of reality and guard the flame, and its light will last."
+              "reason": "Với Bính Hỏa (丙火) gặp khí Thủy mạnh, điều quan trọng lúc này không phải là cháy nóng hơn mà là định đúng hướng. Giữ vững cảm quan thực tế và bảo vệ ngọn lửa, ánh sáng ấy sẽ bền lâu."
             }
           },
           "ding": {
             "coldWet": {
               "title": "Ding Fire kịch bản ấm ẩm",
-              "reason": "Ding Fire (丁火) is energy that glows quietly from within like a candle. In this cold, damp time, keeping that warmth alive for a long time is a greater strength than brilliance."
+              "reason": "Đinh Hỏa (丁火) là khí lặng lẽ tỏa sáng từ bên trong như ngọn nến. Trong lúc lạnh và ẩm này, giữ cho hơi ấm ấy không tắt thật lâu mới là sức mạnh lớn nhất, hơn cả sự rực rỡ."
             },
             "autumnMetal": {
               "title": "Kịch bản luyện kim Ding Fire",
-              "reason": "Meeting metal energy, Ding Fire (丁火) sharpens the precision of its hands and its eye for beauty. This is the time you shine most by holding on to one thing and finishing it beautifully."
+              "reason": "Gặp khí Kim, Đinh Hỏa (丁火) càng sắc bén ở sự tỉ mỉ nơi đầu ngón tay và con mắt thẩm mỹ. Đây là lúc bạn tỏa sáng nhất khi nắm giữ một việc và hoàn thiện nó thật đẹp."
             },
             "resonance": {
               "title": "Ding Kịch bản nở rộ cộng hưởng lửa",
-              "reason": "Ding Fire (丁火) is energy that gently tends the texture of emotions and deepens relationships. The more freely you express your heart, the more your path of fortune opens with it."
+              "reason": "Đinh Hỏa (丁火) là khí tinh tế vỗ về từng thớ cảm xúc, làm sâu sắc các mối quan hệ. Càng không ngại bày tỏ tấm lòng, con đường vận may càng mở ra theo."
             }
           },
           "wu": {
             "fireEarth": {
               "title": "Kịch bản thành tựu đất lửa của Wu Earth",
-              "reason": "Wu Earth (戊土) is broad, dependable energy like a great mountain. With fire and earth supporting you now, large undertakings and large achievements gain unusual strength."
+              "reason": "Mậu Thổ (戊土) là khí rộng lớn và vững chãi như ngọn núi lớn. Lúc này, khi Hỏa và Thổ nâng đỡ, những việc làm lớn và thành tựu lớn được tiếp thêm sức mạnh khác thường."
             },
             "winterWater": {
               "title": "Kịch bản nền tảng mùa đông Trái đất Wu",
-              "reason": "For Wu Earth (戊土) meeting winter's water energy, now is the time to slow down and firm up the ground. The more you pause and solidify the basics, the steadier your next step becomes."
+              "reason": "Với Mậu Thổ (戊土) gặp khí Thủy mùa đông, lúc này là lúc chậm lại và gia cố nền móng. Càng tạm nghỉ và củng cố nền tảng, bước tiếp theo càng vững vàng."
             },
             "center": {
               "title": "Kịch bản xây dựng trung tâm Wu Earth",
-              "reason": "The true strength of Wu Earth (戊土) is the centering power that holds a shaky situation together from the middle. The more steadily you keep your daily routine, the more your results build up."
+              "reason": "Sức mạnh thật sự của Mậu Thổ (戊土) là lực trung tâm giữ vững cục diện chao đảo từ chính giữa. Càng kiên trì giữ thói quen mỗi ngày, thành quả càng tích lũy dần dần."
             }
           },
           "ji": {
             "wetEarth": {
               "title": "Kịch bản mở rộng canh tác Ji Earth",
-              "reason": "Ji Earth (己土) is energy that carefully nurtures things, like a well-tilled field. In this moist time, results grow within relationships where you work together and look after one another."
+              "reason": "Kỷ Thổ (己土) là khí chăm chút nuôi dưỡng mọi thứ như thửa ruộng được vun xới kỹ. Trong lúc ẩm ướt này, thành quả lớn lên trong những mối quan hệ cùng làm việc và chăm sóc lẫn nhau."
             },
             "metalDesign": {
               "title": "Kịch bản thiết kế chính xác Ji Earth",
-              "reason": "Meeting metal energy, Ji Earth (己土) awakens a sense for designing and arranging even the smallest details. Your strengths stand out in work that calls for a high level of finish."
+              "reason": "Gặp khí Kim, Kỷ Thổ (己土) đánh thức khả năng thiết kế và sắp xếp đến cả những chi tiết nhỏ. Thế mạnh của bạn nổi bật trong những việc đòi hỏi độ hoàn thiện cao."
             },
             "balance": {
               "title": "Kịch bản điều chỉnh cân bằng Ji Earth",
-              "reason": "Ji Earth (己土) is energy that excels at gently mediating between people and setting the mood. As long as you manage the pace of give and take well, that itself becomes your luck."
+              "reason": "Kỷ Thổ (己土) là khí giỏi nhẹ nhàng điều hòa giữa mọi người và tạo bầu không khí. Chỉ cần điều chỉnh tốt nhịp nhanh chậm của sự tiến lùi, chính điều đó sẽ trở thành may mắn."
             }
           },
           "geng": {
             "metalEarth": {
               "title": "Kịch bản xuyên suốt nguyên tắc của Geng Metal",
-              "reason": "Geng Metal (庚金) is energy that cuts through boldly and decisively, like an uncut gemstone. With earth and metal supporting you now, your power to push through the principles you set reaches its peak."
+              "reason": "Canh Kim (庚金) là khí cắt đứt dứt khoát, mạnh mẽ như khối đá thô chưa mài giũa. Lúc này, khi Thổ và Kim nâng đỡ, sức mạnh theo đuổi nguyên tắc đã định của bạn lên đến đỉnh điểm."
             },
             "fireTraining": {
               "title": "Kịch bản luyện lửa kim loại Geng",
-              "reason": "Tempered in hot fire, Geng Metal (庚金) hardens in both charisma and skill. This is a time when your focus grows especially sharp at decisive moments."
+              "reason": "Được tôi luyện trong lửa nóng, Canh Kim (庚金) càng vững vàng cả về sức hút lẫn thực lực. Đây là thời kỳ sự tập trung của bạn trở nên đặc biệt sắc bén ở những thời khắc quyết định."
             },
             "clearJudgment": {
               "title": "Kịch bản phán quyết quyết định của Geng Metal",
-              "reason": "The strength of Geng Metal (庚金) is judgment that cuts precisely to the core. Set clear standards, and that clarity carries straight through to results."
+              "reason": "Thế mạnh của Canh Kim (庚金) là khả năng phán đoán cắt chính xác vào cốt lõi. Hãy đặt ra tiêu chuẩn rõ ràng, sự rõ ràng ấy sẽ chuyển thẳng thành thành quả."
             }
           },
           "xin": {
             "metalWater": {
               "title": "Xin Kịch bản tinh chế kim loại-nước",
-              "reason": "Xin Metal (辛金) is energy with refined senses and language, like a finely cut jewel. With metal and water in harmony now, your power to analyze and express becomes even clearer."
+              "reason": "Tân Kim (辛金) là khí có giác quan và ngôn từ tinh luyện như viên ngọc được chế tác kỹ. Lúc này, khi Kim và Thủy hòa quyện, khả năng phân tích và biểu đạt của bạn càng thêm sắc nét."
             },
             "springWood": {
               "title": "Xin Kịch bản chỉnh gỗ bằng kim loại",
-              "reason": "Meeting spring's wood energy, Xin Metal (辛金) goes further by adjusting gently than by sharpening its edge. This is a time when results come from work you refine by feel."
+              "reason": "Gặp khí Mộc mùa xuân, Tân Kim (辛金) đi xa hơn khi nhẹ nhàng điều chỉnh thay vì mài sắc lưỡi dao. Đây là thời kỳ thành quả đến từ những việc bạn tinh chỉnh bằng cảm quan."
             },
             "completion": {
               "title": "Kịch bản hoàn thiện Xin Metal",
-              "reason": "Xin Metal (辛金) is strong when it finishes one thing beautifully rather than spreading wide. The more neatly you wrap up the details, the more people's trust builds."
+              "reason": "Tân Kim (辛金) là khí mạnh nhất khi hoàn thiện một việc thật đẹp thay vì dàn trải rộng. Càng hoàn tất chỉn chu từng chi tiết, niềm tin của mọi người càng được vun đắp."
             }
           },
           "ren": {
             "summerCooling": {
               "title": "Kịch bản giải nhiệt mùa hè Ren Water",
-              "reason": "Ren Water (壬水) is energy that handles great currents like a wide sea. Now, as it cools summer's heat, your power to focus calmly rises markedly."
+              "reason": "Nhâm Thủy (壬水) là khí điều khiển những dòng chảy lớn như biển rộng. Lúc này, khi làm dịu mát cái nóng mùa hè, khả năng tập trung điềm tĩnh của bạn tăng lên rõ rệt."
             },
             "winterCondensing": {
               "title": "Kịch bản ngưng tụ mùa đông nước Ren",
-              "reason": "Resonating with winter's water energy, Ren Water (壬水) is in a time of gathering strength beneath the ice. Though it looks calm on the surface, a solid potential ripens within, like a glacier flower."
+              "reason": "Cộng hưởng với khí Thủy mùa đông, Nhâm Thủy (壬水) đang ở thời kỳ tích tụ sức mạnh dưới lớp băng. Bề ngoài có vẻ tĩnh lặng, nhưng như đóa hoa băng hà, tiềm năng vững chắc đang chín dần bên trong."
             },
             "nightIntuition": {
               "title": "Kịch bản trực giác về đêm của Nước Ren",
-              "reason": "Ren Water (壬水) is energy that finds its way better through the intuition of a quiet night than in bright daylight. When you decide by your own rhythm instead of rushing to an answer, the direction falls into place."
+              "reason": "Nhâm Thủy (壬水) là khí tìm đường giỏi hơn nhờ trực giác của đêm tĩnh lặng thay vì ban ngày sáng rõ. Khi quyết định theo nhịp của riêng mình thay vì vội vàng tìm câu trả lời, phương hướng sẽ khớp đúng."
             }
           },
           "gui": {
             "coldWetPurifying": {
               "title": "Kịch bản lọc ẩm lạnh của Gui Water",
-              "reason": "Gui Water (癸水) is energy that senses the subtle and washes it clean, like dawn dew. In this cold, damp time, that quiet, absorbed stillness becomes your strength."
+              "reason": "Quý Thủy (癸水) là khí cảm nhận những điều vi tế và gột rửa chúng trong trẻo như sương sớm. Trong lúc lạnh và ẩm này, sự tĩnh lặng khi lặng lẽ đắm mình chính là sức mạnh của bạn."
             },
             "summerEmpathy": {
               "title": "Kịch bản đồng cảm mùa hè của Nước Gui",
-              "reason": "For Gui Water (癸水) meeting summer's heat, empathy that soothes hearts and connects people is the greatest asset. Like a hydrangea, the path opens as you gather the warmth of many."
+              "reason": "Với Quý Thủy (癸水) gặp cái nóng Hỏa của mùa hè, sự đồng cảm vỗ về lòng người và kết nối mọi người là vũ khí lớn nhất. Như hoa cẩm tú cầu, con đường sẽ mở ra khi bạn gom góp hơi ấm của nhiều người."
             },
             "subtleSignal": {
               "title": "Kịch bản tín hiệu vi tế của Nước Gui",
-              "reason": "Gui Water (癸水) is energy that reads the small signals others miss before anyone else. Time things well with that keen sense, and that single move decides the outcome."
+              "reason": "Quý Thủy (癸水) là khí đọc ra trước tiên những tín hiệu nhỏ mà người khác bỏ lỡ. Chỉ cần nắm đúng thời điểm bằng giác quan nhạy bén ấy, một nước đi đó sẽ quyết định thành bại."
             }
           }
         },
@@ -3177,12 +3177,12 @@
           "description": "Đọc hoa định mệnh: {description}",
           "vibe": "Hướng dẫn nở hoa: {vibeMessage}",
           "fallback": "Logic điều chỉnh: {note}",
-          "dayMasterSame": "A flower that carries the same {element} energy as your {dayMasterBadge} day master.",
-          "strengthRelease": "Your chart runs strong, so we gave weight to flowers with {elements} energy that lets the built-up energy flow outward.",
-          "strengthSupport": "Your chart runs weak, so we gave weight to flowers with {elements} energy that supports your day master.",
-          "yongshin": "This flower carries the useful element (yongshin) your chart needs — {elements}.",
-          "johuWarm": "Your chart leans cold and damp, so we gave weight to warm flowers that heat it like sunlight.",
-          "johuCool": "Your chart leans hot and dry, so we gave weight to moisture-rich flowers that cool the heat."
+          "dayMasterSame": "Đóa hoa mang cùng khí {element} với Nhật chủ {dayMasterBadge} của bạn.",
+          "strengthRelease": "Lá số của bạn Thân Cường, nên chúng tôi ưu tiên những đóa hoa mang khí {elements} giúp giải tỏa năng lượng dồn đầy ra bên ngoài.",
+          "strengthSupport": "Lá số của bạn Thân Nhược, nên chúng tôi ưu tiên những đóa hoa mang khí {elements} giúp nâng đỡ Nhật chủ.",
+          "yongshin": "Đóa hoa này chứa khí Dụng Thần mà lá số của bạn cần — {elements}.",
+          "johuWarm": "Lá số của bạn thiên về lạnh và ẩm, nên chúng tôi ưu tiên những đóa hoa ấm áp, sưởi ấm như ánh nắng.",
+          "johuCool": "Lá số của bạn thiên về nóng và khô, nên chúng tôi ưu tiên những đóa hoa giàu hơi nước giúp làm dịu cái nóng."
         },
         "elements": {
           "wood": "Mộc",
@@ -3258,41 +3258,41 @@
           "rarityPlain": "Bông hoa lá số của mình chọn trong {total} bông"
         },
         "dayMasters": {
-          "jia": "Jia Wood (甲木)",
-          "yi": "Yi Wood (乙木)",
-          "bing": "Bing Fire (丙火)",
-          "ding": "Ding Fire (丁火)",
-          "wu": "Wu Earth (戊土)",
-          "ji": "Ji Earth (己土)",
-          "geng": "Geng Metal (庚金)",
-          "xin": "Xin Metal (辛金)",
-          "ren": "Ren Water (壬水)",
-          "gui": "Gui Water (癸水)"
+          "jia": "Giáp Mộc (甲木)",
+          "yi": "Ất Mộc (乙木)",
+          "bing": "Bính Hỏa (丙火)",
+          "ding": "Đinh Hỏa (丁火)",
+          "wu": "Mậu Thổ (戊土)",
+          "ji": "Kỷ Thổ (己土)",
+          "geng": "Canh Kim (庚金)",
+          "xin": "Tân Kim (辛金)",
+          "ren": "Nhâm Thủy (壬水)",
+          "gui": "Quý Thủy (癸水)"
         },
         "dayMasterStems": {
-          "jia": "Jia (甲)",
-          "yi": "Yi (乙)",
-          "bing": "Bing (丙)",
-          "ding": "Ding (丁)",
-          "wu": "Wu (戊)",
-          "ji": "Ji (己)",
-          "geng": "Geng (庚)",
-          "xin": "Xin (辛)",
-          "ren": "Ren (壬)",
-          "gui": "Gui (癸)"
+          "jia": "Giáp (甲)",
+          "yi": "Ất (乙)",
+          "bing": "Bính (丙)",
+          "ding": "Đinh (丁)",
+          "wu": "Mậu (戊)",
+          "ji": "Kỷ (己)",
+          "geng": "Canh (庚)",
+          "xin": "Tân (辛)",
+          "ren": "Nhâm (壬)",
+          "gui": "Quý (癸)"
         },
         "dayMasterFallback": {
-          "ziwei": "With limited Saju day master data, the day master's nature was adjusted based on the Zi Wei main star.",
-          "astrology": "With limited Saju day master data, the sun sign's tendencies stood in for the day master's nature.",
-          "dominant": "With limited Saju, Zi Wei and astrology indicators, the day master's nature was estimated from the dominant element."
+          "ziwei": "Do thiếu dữ liệu Nhật chủ Tứ Trụ, tính chất Nhật chủ đã được hiệu chỉnh dựa trên chính tinh Tử Vi.",
+          "astrology": "Do thiếu dữ liệu Nhật chủ Tứ Trụ, khuynh hướng của Cung Mặt Trời đã được dùng thay cho tính chất Nhật chủ.",
+          "dominant": "Do thiếu các chỉ số cốt lõi của Tứ Trụ, Tử Vi và chiêm tinh, tính chất Nhật chủ đã được ước tính dựa trên hành chiếm ưu thế."
         },
         "rationaleLabel": {
-          "dayMaster": "Day master nature",
-          "strengthRelease": "Strong chart",
-          "strengthSupport": "Weak chart",
-          "yongshin": "Useful element",
-          "johuWarm": "Climate balance · cold and damp",
-          "johuCool": "Climate balance · hot and dry"
+          "dayMaster": "Khí chất Nhật chủ",
+          "strengthRelease": "Thân Cường",
+          "strengthSupport": "Thân Nhược",
+          "yongshin": "Dụng Thần",
+          "johuWarm": "Điều Hậu · Hàn Thấp",
+          "johuCool": "Điều Hậu · Ôn Táo"
         }
       },
       "flowers": {
@@ -4582,303 +4582,303 @@
           }
         },
         "cta": {
-          "rebloom": "🌸 Bloom my destiny flower again",
-          "astrologyAgain": "✨ Summon my astrology flower again",
-          "jamidusuAgain": "🌺 Summon my Ziwei flower again",
-          "sukuyoAgain": "🌙 Summon my Sukuyo flower again"
+          "rebloom": "🌸 Cho hoa định mệnh nở lại",
+          "astrologyAgain": "✨ Triệu hồi lại hoa chiêm tinh",
+          "jamidusuAgain": "🌺 Triệu hồi lại hoa Tử Vi",
+          "sukuyoAgain": "🌙 Triệu hồi lại hoa Túc Diệu"
         },
         "status": {
-          "atelierLocked": "The Destiny Flower Atelier needs to be unlocked.",
-          "loginRequired": "Log in to see your destiny flower.",
-          "newlyUnlocked": "✨ Your {source} flower is newly open.",
-          "resultReady": "{verdict} You can save this result or share it on KakaoTalk.",
-          "reloading": "Reloading your data. Please wait a moment.",
-          "linking": "Linking your {source} data. Please wait a moment.",
-          "loaded": "Your {source} data has been loaded.",
-          "copied": "Copied to the clipboard.",
-          "copyPermission": "Clipboard access is not allowed, so please copy it manually.",
-          "copyFailed": "Copy failed.",
-          "kakaoPcCopied": "On a PC, the KakaoTalk link has been copied to the clipboard. Paste it into KakaoTalk to share.",
-          "kakaoNotOpenedCopied": "We couldn't confirm KakaoTalk opened, so the summary has been copied to the clipboard. Paste it into KakaoTalk to share.",
-          "kakaoOpening": "Opening KakaoTalk sharing...",
-          "kakaoFailedCopied": "We couldn't open KakaoTalk sharing, so the summary has been copied to the clipboard.",
-          "refreshed": "Tabs and prompts have been updated based on: {verdict}",
-          "aiOpening": "Opening the AI in a new tab. If it doesn't open, allow pop-ups and try again.",
-          "aiBlocked": "The new tab seems to have been blocked. Allow pop-ups in your browser or open the AI site you want directly.",
-          "summaryCopied": "Summary copied to the clipboard.",
-          "promptCopied": "The main AI flower prompt has been copied to the clipboard.",
-          "promptPackCopied": "The main/negative prompt set has been copied to the clipboard."
+          "atelierLocked": "Cần mở khóa Xưởng hoa định mệnh.",
+          "loginRequired": "Hãy đăng nhập để xem hoa định mệnh của bạn.",
+          "newlyUnlocked": "✨ Hoa {source} vừa được mở.",
+          "resultReady": "{verdict} Bạn có thể lưu kết quả này hoặc chia sẻ qua KakaoTalk.",
+          "reloading": "Đang tải lại dữ liệu. Vui lòng đợi một chút.",
+          "linking": "Đang liên kết dữ liệu {source}. Vui lòng đợi một chút.",
+          "loaded": "Đã tải dữ liệu {source}.",
+          "copied": "Đã sao chép vào bộ nhớ tạm.",
+          "copyPermission": "Không có quyền sao chép, vui lòng sao chép thủ công.",
+          "copyFailed": "Sao chép thất bại.",
+          "kakaoPcCopied": "Trên máy tính, liên kết KakaoTalk đã được sao chép vào bộ nhớ tạm. Hãy dán vào KakaoTalk để chia sẻ.",
+          "kakaoNotOpenedCopied": "Không xác nhận được KakaoTalk đã mở nên bản tóm tắt đã được sao chép vào bộ nhớ tạm. Hãy dán vào KakaoTalk để chia sẻ.",
+          "kakaoOpening": "Đang mở chia sẻ KakaoTalk...",
+          "kakaoFailedCopied": "Không mở được chia sẻ KakaoTalk nên bản tóm tắt đã được sao chép vào bộ nhớ tạm.",
+          "refreshed": "Đã cập nhật tab và prompt dựa trên: {verdict}",
+          "aiOpening": "Đang mở AI trong tab mới. Nếu không mở được, hãy cho phép cửa sổ bật lên rồi thử lại.",
+          "aiBlocked": "Có vẻ tab mới đã bị chặn. Hãy cho phép cửa sổ bật lên trong trình duyệt hoặc tự mở trang AI bạn muốn.",
+          "summaryCopied": "Đã sao chép bản tóm tắt vào bộ nhớ tạm.",
+          "promptCopied": "Đã sao chép prompt chính của hoa AI vào bộ nhớ tạm.",
+          "promptPackCopied": "Đã sao chép bộ prompt chính/phủ định vào bộ nhớ tạm."
         },
         "fallback": {
           "astrology": {
-            "name": "Nebula lavender",
-            "symbolism": "A clear intuition that flows along the grain of starlight",
-            "vibe": "Breathe along with the rhythm of the stars and your intuition grows sharper."
+            "name": "Oải hương tinh vân",
+            "symbolism": "Trực giác trong trẻo trôi theo thớ ánh sao",
+            "vibe": "Hít thở theo nhịp của các vì sao, trực giác của bạn sẽ trở nên rõ nét."
           },
           "jamidusu": {
-            "name": "Tree peony",
-            "symbolism": "Imperial grace and the strength of the center",
-            "keyword1": "Emperor",
-            "keyword2": "Grace",
-            "keyword3": "Center",
-            "vibe": "Holding your center is what carries you furthest in the end."
+            "name": "Mẫu đơn",
+            "symbolism": "Phong thái đế vương và sức mạnh của trung tâm",
+            "keyword1": "Đế vương",
+            "keyword2": "Phong thái",
+            "keyword3": "Trung tâm",
+            "vibe": "Giữ vững trung tâm của mình mới là điều đưa bạn đi xa nhất."
           },
           "sukuyo": {
-            "name": "Lily",
-            "symbolism": "A guardian flower that blooms clear in the moonlight",
-            "keyword1": "Moonlight",
-            "keyword2": "Guardian",
-            "keyword3": "Purification",
-            "vibe": "Match tonight's breath and rhythm of the moon and your choices become clearer.",
-            "keywordMansion": "Sukuyo",
-            "keywordGuardian": "Guardian animal",
-            "keywordPhase": "Moon phase"
+            "name": "Hoa ly",
+            "symbolism": "Đóa hoa hộ mệnh nở trong trẻo dưới ánh trăng",
+            "keyword1": "Ánh trăng",
+            "keyword2": "Hộ mệnh",
+            "keyword3": "Thanh lọc",
+            "vibe": "Hòa theo hơi thở và nhịp điệu của mặt trăng đêm nay, lựa chọn của bạn sẽ rõ ràng hơn.",
+            "keywordMansion": "Túc Diệu",
+            "keywordGuardian": "Linh vật hộ mệnh",
+            "keywordPhase": "Pha trăng"
           }
         },
         "legacy": {
-          "astrologyReading": "Reading your destiny flower from your astrology chart.",
-          "astrologyRhythm": "Setting the rhythm of the stars.",
-          "brightnessEven": "Even (平)",
-          "jamidusuReading": "Reading your destiny flower from today's strong star.",
-          "mainStarUnknown": "Main star unknown",
-          "jamidusuRhythm": "Aligning the energy of the stars.",
-          "imperialGrace": "Imperial grace",
-          "moonQuarter": "Quarter moon",
-          "sukuyoReading": "Reading your destiny flower from the 27 Sukuyo mansions.",
-          "mansionUnknown": "Mansion unknown"
+          "astrologyReading": "Đang giải đọc hoa định mệnh dựa trên lá số chiêm tinh.",
+          "astrologyRhythm": "Đang cố định nhịp điệu của các vì sao.",
+          "brightnessEven": "Bình (平)",
+          "jamidusuReading": "Đang giải đọc hoa định mệnh dựa trên sao mạnh hôm nay.",
+          "mainStarUnknown": "Chưa xác định chính tinh",
+          "jamidusuRhythm": "Đang sắp xếp khí của các vì sao.",
+          "imperialGrace": "Phong thái đế vương",
+          "moonQuarter": "Trăng thượng/hạ huyền",
+          "sukuyoReading": "Đang giải đọc hoa định mệnh dựa trên 27 tú Túc Diệu.",
+          "mansionUnknown": "Chưa xác định tú"
         },
         "badge": {
-          "sun": "Sun sign {value}",
-          "rising": "Rising sign {value}",
-          "moon": "Moon sign {value}",
-          "strongStar": "Today's strong star {value}",
-          "brightness": "Star brightness {value}",
-          "moonPhase": "Moon phase {value}",
-          "guardian": "Guardian animal {value}",
-          "palace": "Palace {value}",
-          "mansionLabel": "Mansion",
-          "group": "{group} group"
+          "sun": "Cung Mặt Trời {value}",
+          "rising": "Cung Mọc {value}",
+          "moon": "Cung Mặt Trăng {value}",
+          "strongStar": "Sao mạnh hôm nay {value}",
+          "brightness": "Độ sáng sao {value}",
+          "moonPhase": "Pha trăng {value}",
+          "guardian": "Linh vật hộ mệnh {value}",
+          "palace": "Cung vị {value}",
+          "mansionLabel": "Tú",
+          "group": "Nhóm {group}"
         },
         "value": {
-          "unknown": "Unknown",
-          "pending": "Awaiting reading",
-          "lifePalace": "Life Palace"
+          "unknown": "Chưa xác định",
+          "pending": "Đang chờ luận giải",
+          "lifePalace": "Cung Mệnh"
         },
         "wait": {
-          "chartSignal": "Awaiting chart signal",
-          "starSignal": "Awaiting main-star signal",
-          "sukuyoSignal": "Awaiting Sukuyo signal",
-          "moonRhythm": "Syncing with the rhythm of the moon.",
-          "nebulaRhythm": "Aligning the nebula rhythm.",
-          "imperialRhythm": "Tuning the imperial energy.",
-          "dayMaster": "Awaiting day master reading",
-          "sourceVerdict": "Awaiting {source} reading",
-          "mainStar": "Awaiting main star reading",
-          "sukuyoReading": "Awaiting Sukuyo reading",
-          "dataLoad": "Waiting to load data",
-          "birth": "Waiting for your birth date"
+          "chartSignal": "Đang chờ tín hiệu lá số",
+          "starSignal": "Đang chờ tín hiệu chính tinh",
+          "sukuyoSignal": "Đang chờ tín hiệu Túc Diệu",
+          "moonRhythm": "Đang đồng bộ với nhịp điệu của mặt trăng.",
+          "nebulaRhythm": "Đang sắp xếp nhịp điệu tinh vân.",
+          "imperialRhythm": "Đang điều hòa khí chất đế vương.",
+          "dayMaster": "Đang chờ luận giải Nhật chủ",
+          "sourceVerdict": "Đang chờ luận giải {source}",
+          "mainStar": "Đang chờ luận giải chính tinh",
+          "sukuyoReading": "Đang chờ luận giải Túc Diệu",
+          "dataLoad": "Đang chờ tải dữ liệu",
+          "birth": "Đang chờ nhập ngày sinh"
         },
         "stage": {
-          "keywords": "{source} keywords · {list}",
-          "astrologyScenario": "Calculating your zodiac blooming scenario.",
-          "jamidusuScenario": "Calculating your Ziwei main-star blooming scenario.",
-          "sukuyoScenario": "Calculating your Sukuyo moonlight blooming scenario.",
-          "seasonTexture": "{season} texture",
-          "seasonDefault": "Season",
-          "environmentMood": "{environment} mood",
-          "environmentDefault": "Environment",
-          "sajuScenario": "Calculating your day master and environment blooming scenario.",
-          "dataSheetPreparing": "Preparing your flower data sheet.",
-          "symbolizes": "This flower symbolizes {symbolism}.",
-          "resonates": "This flower resonates strongly with the current flow of your fortune.",
-          "narrativeFallback": "{verdict} Your blooming point for now is aligned to your {source} balance."
+          "keywords": "Từ khóa {source} · {list}",
+          "astrologyScenario": "Đang tính kịch bản nở hoa theo cung hoàng đạo.",
+          "jamidusuScenario": "Đang tính kịch bản nở hoa theo chính tinh Tử Vi.",
+          "sukuyoScenario": "Đang tính kịch bản nở hoa dưới ánh trăng Túc Diệu.",
+          "seasonTexture": "Sắc thái {season}",
+          "seasonDefault": "Mùa",
+          "environmentMood": "Không khí {environment}",
+          "environmentDefault": "Môi trường",
+          "sajuScenario": "Đang tính kịch bản nở hoa theo Nhật chủ và môi trường.",
+          "dataSheetPreparing": "Đang chuẩn bị bảng dữ liệu hoa.",
+          "symbolizes": "Đóa hoa này tượng trưng cho {symbolism}.",
+          "resonates": "Đóa hoa này cộng hưởng mạnh mẽ với dòng vận hiện tại của bạn.",
+          "narrativeFallback": "{verdict} Điểm nở hoa hiện tại đã được căn chỉnh theo sự cân bằng {source} của bạn."
         },
         "guide": {
-          "allBloomed": "All flowers have bloomed. Revisit any tab you like.",
-          "startSaju": "Next step: open your Saju flower first to start blooming.",
-          "next": "Next step: move on to your {source} flower to keep blooming."
+          "allBloomed": "Tất cả các hoa đã nở. Hãy mở lại tab bạn muốn để ngắm nhé.",
+          "startSaju": "Bước tiếp theo: hãy mở hoa Tứ Trụ trước để bắt đầu nở hoa.",
+          "next": "Bước tiếp theo: chuyển sang hoa {source} để tiếp tục nở hoa."
         },
         "tab": {
-          "lockLabel": "Opens when the atelier is unlocked"
+          "lockLabel": "Mở khi mở khóa xưởng hoa"
         },
         "verdict": {
-          "preparing": "Preparing your destiny flower reading.",
-          "defaultFlower": "Destiny flower",
-          "sukuyo": "Read through Sukuyo, your flower is {name}.",
-          "jamidusu": "Read through Ziwei, your flower is {name}.",
-          "astrology": "Read through astrology, your flower is {name}.",
-          "saju": "Read through Saju, your flower is {name}."
+          "preparing": "Đang chuẩn bị luận giải hoa định mệnh.",
+          "defaultFlower": "Hoa định mệnh",
+          "sukuyo": "Theo Túc Diệu, hoa của bạn là {name}.",
+          "jamidusu": "Theo Tử Vi, hoa của bạn là {name}.",
+          "astrology": "Theo chiêm tinh, hoa của bạn là {name}.",
+          "saju": "Theo Tứ Trụ, hoa của bạn là {name}."
         },
         "snapshot": {
-          "guidance": "Today, matching your rhythm before chasing results helps you bloom faster."
+          "guidance": "Hôm nay, hãy hòa nhịp trước khi chạy theo kết quả để hoa nở nhanh hơn."
         },
         "empty": {
-          "noDomainData": "No {source} data is linked yet. Tap the button below and your own destiny flower will bloom now.",
-          "astroCalculating": "We've read your star chart. Choosing your astrology flower now.",
-          "notLinked": "Your {source} flower blooms the moment you tap the link button. Tap the button below to meet the flower that has come to you now.",
-          "linkButton": "Link my destiny flower",
-          "linking": "Linking...",
-          "dataWaiting": "Waiting to link {source} data",
-          "readingWaiting": "Awaiting {source} reading",
-          "keywordsLoading": "{source} keywords · loading"
+          "noDomainData": "Chưa có dữ liệu {source} nào được liên kết. Nhấn nút bên dưới, hoa định mệnh của riêng bạn sẽ nở ngay bây giờ.",
+          "astroCalculating": "Đã đọc xong lá số chiêm tinh của bạn. Đang chọn hoa chiêm tinh cho bạn.",
+          "notLinked": "Hoa {source} sẽ nở ngay khi bạn nhấn nút liên kết. Nhấn nút bên dưới để gặp đóa hoa đã đến với bạn lúc này.",
+          "linkButton": "Liên kết hoa định mệnh",
+          "linking": "Đang liên kết...",
+          "dataWaiting": "Đang chờ liên kết dữ liệu {source}",
+          "readingWaiting": "Đang chờ luận giải {source}",
+          "keywordsLoading": "Từ khóa {source} · đang tải"
         },
         "artMood": {
-          "astrology": "Dreamy floral wrapped in starlit nebulae and neon glow",
-          "jamidusu": "Floral where imperial dignity meets refined court elegance",
-          "sukuyo": "Clear floral like moonlit meditation and still water",
-          "saju": "Lyrical East Asian floral blooming along the grain of the Five Elements"
+          "astrology": "Phong cách hoa mộng ảo phủ tinh vân ánh sao và ánh neon",
+          "jamidusu": "Phong cách hoa nơi khí chất đế vương hòa cùng nét tinh tế cung đình",
+          "sukuyo": "Phong cách hoa trong trẻo như thiền định dưới trăng và mặt nước tĩnh lặng",
+          "saju": "Phong cách hoa phương Đông trữ tình, nở theo thớ Ngũ Hành"
         },
         "care": {
-          "wood": "Wake your growth point with an 8-minute stretch by an east-facing window in the morning sun",
-          "fire": "Soak in south-facing light for 5 minutes and declare today's goal out loud",
-          "earth": "Tidy one corner of your workspace to firmly set your central axis",
-          "metal": "Write down 3 priorities and boldly prune unnecessary commitments",
-          "water": "Open the circulation of your emotions with a 10-minute evening walk and some water",
-          "default": "Fix your light (morning) and water (evening) routines to stabilize your basic growth rhythm first."
+          "wood": "Đánh thức điểm sinh trưởng bằng 8 phút giãn cơ bên cửa sổ hướng đông đón nắng sớm",
+          "fire": "Đón ánh sáng hướng nam 5 phút và nói to mục tiêu hôm nay",
+          "earth": "Dọn gọn một góc không gian làm việc để dựng vững trục trung tâm",
+          "metal": "Viết ra 3 ưu tiên và mạnh dạn cắt tỉa những hẹn ước không cần thiết",
+          "water": "Khơi thông dòng cảm xúc bằng 10 phút đi dạo buổi tối và bổ sung nước",
+          "default": "Hãy cố định thói quen đón ánh sáng (buổi sáng) và bổ sung nước (buổi tối) để ổn định nhịp sinh trưởng cơ bản trước."
         },
         "synergy": {
-          "astrology": "glass vases, silver frames, soft micro-lighting",
-          "jamidusu": "satin fabric, bronze objects, symmetrical ceramics",
-          "sukuyo": "frosted glass, moonlight-toned linen, wave-patterned trays",
-          "saju": "matte ceramics, natural wood, softly patterned fabric",
-          "line": "Suggested colors: Primary {primary}, Secondary {secondary}, Accent {accent} / Suggested materials: {materials}."
+          "astrology": "bình thủy tinh, khung bạc, đèn chiếu nhỏ dịu nhẹ",
+          "jamidusu": "vải satin, vật trang trí bằng đồng, gốm đối xứng",
+          "sukuyo": "kính mờ, vải lanh tông ánh trăng, khay hoa văn sóng nước",
+          "saju": "gốm mờ, gỗ tự nhiên, vải hoa văn nhẹ nhàng",
+          "line": "Màu gợi ý: Chính {primary}, Phụ {secondary}, Điểm nhấn {accent} / Chất liệu gợi ý: {materials}."
         },
         "atelier": {
-          "scenarioTitle": "{source} blooming scenario",
-          "growthCycleWaiting": "Awaiting blooming cycle calculation",
-          "ritualWaiting": "Calculating today's practice routine.",
+          "scenarioTitle": "Kịch bản nở hoa {source}",
+          "growthCycleWaiting": "Đang chờ tính chu kỳ nở hoa",
+          "ritualWaiting": "Đang tính thói quen thực hành hôm nay.",
           "astrology": {
-            "lightingFire": "Intense sunlight at a high angle, like midsummer noon",
-            "lightingEarth": "Steady light where late-afternoon gold lingers long",
-            "lightingWater": "Cool blue dawn light that spreads slowly",
-            "lightingAir": "Slanted light, tilted like the wind, that lightly opens the space",
-            "humidityWater": "A silver-mist state with high emotional humidity",
-            "humidityFire": "Dry, heat-holding air; a state of quick emotional response",
-            "humidityEarth": "Steady clay-pot humidity; a state where feelings slowly ripen",
-            "humidityAir": "Light, shifting breeze humidity; a state where ideas refresh quickly",
-            "seasonFire": "Bloom accelerator: a stretch where action and presenting push the buds upward",
-            "seasonWater": "Inner nourishment: a stretch where rest and intuition fill the root layer",
-            "seasonBalance": "Balance tuning: a stretch where structure and feeling cross to prepare the next bud",
-            "section": "Celestial light and energy",
-            "matrixLighting": "☀️ Celestial light: {value}",
-            "matrixHumidity": "💧 Atmospheric humidity: {value}",
-            "matrixSeason": "🪐 Cosmic season: {value}",
-            "log": "Gardener's observation journal: the direction of your Sun sign {sun} and the light of your Rising sign {rising} set the angle of the flower stem. The humidity control of your Moon sign {moon} gently opens the veins of emotion, and this week is a pre-bloom stretch where opportunities show first.",
-            "recipe": "Secret recipe: after 9 p.m., dim the window light by one step and write the one thing you will do tomorrow on the first line of your notebook. Focus only on that one thing for the first 12 minutes of the morning and the starlight rhythm aligns fastest.",
-            "flowerLanguage": "Destiny flower language: the courage to trust the angle of the stars and take the first step.",
-            "gardenerWord": "A gardener's word for this flower: today's intuition is not exaggeration but a forecast. Small actions turn the nebula into a real flower bed.",
-            "particle": "Translated into particles, the light of {source} shines most steadily with a \"{particle}\" texture."
+            "lightingFire": "Ánh nắng gay gắt chiếu từ góc cao như giữa trưa hè",
+            "lightingEarth": "Lượng sáng ổn định, nơi sắc vàng cuối chiều lưu lại lâu",
+            "lightingWater": "Ánh sáng xanh lạnh lúc rạng đông lan tỏa chậm rãi",
+            "lightingAir": "Ánh sáng xiên nghiêng như làn gió, nhẹ nhàng mở rộng không gian",
+            "humidityWater": "Trạng thái sương bạc với độ ẩm cảm xúc cao",
+            "humidityFire": "Không khí khô chứa hơi nóng, trạng thái cảm xúc phản ứng nhanh",
+            "humidityEarth": "Độ ẩm ổn định như chậu đất nung, trạng thái cảm xúc chín dần",
+            "humidityAir": "Độ ẩm làn gió nhẹ và linh hoạt, trạng thái ý tưởng được làm mới nhanh chóng",
+            "seasonFire": "Giai đoạn tăng tốc nở hoa: hành động và thể hiện đẩy nụ hoa vươn lên",
+            "seasonWater": "Giai đoạn nuôi dưỡng bên trong: nghỉ ngơi và trực giác bồi đắp tầng rễ",
+            "seasonBalance": "Giai đoạn điều hòa cân bằng: cấu trúc và cảm xúc giao thoa để chuẩn bị nụ hoa kế tiếp",
+            "section": "Ánh sáng và năng lượng thiên thể",
+            "matrixLighting": "☀️ Ánh sáng thiên thể: {value}",
+            "matrixHumidity": "💧 Độ ẩm khí quyển: {value}",
+            "matrixSeason": "🪐 Mùa của vũ trụ: {value}",
+            "log": "Nhật ký quan sát của người làm vườn: hướng đi của Cung Mặt Trời {sun} và ánh sáng của Cung Mọc {rising} định góc cho cành hoa. Độ ẩm do Cung Mặt Trăng {moon} điều tiết nhẹ nhàng mở các gân lá cảm xúc, và tuần này là giai đoạn báo hiệu nở hoa, khi cơ hội xuất hiện trước tiên.",
+            "recipe": "Công thức bí mật: sau 9 giờ tối, hạ đèn bên cửa sổ xuống một nấc và ghi điều duy nhất bạn sẽ làm ngày mai vào dòng đầu tiên của sổ tay. Chỉ tập trung vào điều đó trong 12 phút đầu tiên của buổi sáng, nhịp ánh sao sẽ hòa hợp nhanh nhất.",
+            "flowerLanguage": "Ý nghĩa hoa định mệnh: dũng khí tin vào góc chiếu của các vì sao và bước đi bước đầu tiên.",
+            "gardenerWord": "Lời người làm vườn dành cho bông hoa này: trực giác hôm nay không phải là phóng đại mà là dự báo. Những hành động nhỏ sẽ biến tinh vân thành vườn hoa có thật.",
+            "particle": "Khi chuyển ánh sáng của {source} thành hạt, sắc thái \"{particle}\" tỏa sáng ổn định nhất."
           },
           "jamidusu": {
-            "structureZiwei": "A sturdy stem carrying the imperial grace of the Ziwei star family",
-            "structureBreaker": "A thick, upright stalk shaped by a breakthrough general's temperament",
-            "structureFlexible": "Delicate layered petals, supple yet hard to break",
-            "structureBalanced": "A refined, symmetrical flower frame shaped by a balanced main star",
-            "social": "Like butterflies and bees circling around {palace}, close connections share roles and help you grow.",
-            "thornsDim": "A time when short, dense, highly protective thorns help you set boundaries",
-            "thornsBright": "A time when light-reflecting grain patterns stand in for thorns and protect you with dignity",
-            "section": "The flower's dignity and form",
-            "matrixStructure": "🏛️ Flower frame: {value}",
-            "matrixSocial": "🦋 Butterflies and bees: {value}",
-            "matrixThorns": "🌵 Guardian thorns: {value}",
-            "log": "Gardener's observation journal: today's strong star {star} holds the center of the stem upright, and star brightness {brightness} adjusts the sheen of the petals. Now is a time when structural completeness, more than flashiness, grows your results.",
-            "recipe": "Secret recipe: place one metal object on the left side of your desk, and write down one standard for today and one point where you will yield. The clearer your boundaries, the more gracefully the flower blooms.",
-            "flowerLanguage": "Destiny flower language: dignity is the quietest radiance, blooming from a solid structure.",
-            "gardenerWord": "A gardener's word for this flower: don't rush to be dazzling. A day spent keeping your standards builds the longest-lasting stem.",
-            "particle": "Translated into particles, the hierarchy of {source} shows its order most beautifully with a \"{particle}\" mood."
+            "structureZiwei": "Cành hoa vững chãi mang phong thái hoàng gia của hệ sao Tử Vi",
+            "structureBreaker": "Thân cây to khỏe, cứng cỏi do khí chất tướng quân đột phá tạo nên",
+            "structureFlexible": "Cánh hoa nhiều lớp tinh tế, mềm mại nhưng khó gãy",
+            "structureBalanced": "Bộ khung hoa đối xứng tinh tế do chính tinh cân bằng tạo nên",
+            "social": "Như bướm và ong bay quanh {palace}, những mối duyên gần gũi chia sẻ vai trò và giúp bạn phát triển.",
+            "thornsDim": "Thời kỳ gai ngắn dày đặc với sức phòng vệ cao giúp bạn dựng ranh giới",
+            "thornsBright": "Thời kỳ vân phản chiếu ánh sáng thay cho gai, bảo vệ bạn một cách đầy phẩm cách",
+            "section": "Phẩm cách và hình dáng của hoa",
+            "matrixStructure": "🏛️ Bộ khung hoa: {value}",
+            "matrixSocial": "🦋 Bướm và ong: {value}",
+            "matrixThorns": "🌵 Gai hộ mệnh: {value}",
+            "log": "Nhật ký quan sát của người làm vườn: sao mạnh hôm nay {star} giữ thẳng trục thân cây, và độ sáng sao {brightness} điều chỉnh độ bóng của cánh hoa. Lúc này, sự hoàn thiện về cấu trúc, hơn là vẻ hào nhoáng, mới là điều giúp thành quả lớn lên.",
+            "recipe": "Công thức bí mật: đặt một vật bằng kim loại ở phía bên trái bàn làm việc, rồi ghi cùng lúc một nguyên tắc của hôm nay và một điểm bạn sẵn sàng nhường. Ranh giới càng rõ, hoa càng nở thanh lịch.",
+            "flowerLanguage": "Ý nghĩa hoa định mệnh: phẩm cách là ánh sáng lặng lẽ nhất, nở ra từ một cấu trúc vững chắc.",
+            "gardenerWord": "Lời người làm vườn dành cho bông hoa này: đừng vội tỏa sáng rực rỡ. Một ngày giữ vững nguyên tắc sẽ tạo nên cành hoa bền lâu nhất.",
+            "particle": "Khi chuyển trật tự thứ bậc của {source} thành hạt, không khí \"{particle}\" thể hiện trật tự đẹp nhất."
           },
           "sukuyo": {
-            "scentFriend": "A soft white-musk note that spreads under the moonlight",
-            "scentDanger": "A deep, dense agarwood note that sharpens focus",
-            "scentDefault": "A clear herbal floral note that gently warms the temperature of relationships",
-            "dewFull": "Night dew at its fullest; inspiration and emotional expression are both abundant",
-            "dewNew": "A new-moon stretch with thin dew; observation and preparation come first",
-            "dewDefault": "A moderate amount of dew; emotional balance and drive grow together",
-            "companionDragon": "Wisteria and blue sage, supporting a big flow of expansion",
-            "companionDog": "Rosemary and chamomile, strengthening stable relationships and resilience",
-            "companionTiger": "Eucalyptus and rudbeckia, strengthening decisiveness and protective instinct",
-            "companionDefault": "Lavender and ivy, supporting both emotional stability and long-term growth",
-            "section": "The scent of connection and dew",
-            "matrixScent": "🌙 Destiny scent: {value}",
-            "matrixDew": "💦 Night dew: {value}",
-            "matrixCompanion": "🌿 Companion plants: {value}",
-            "log": "Gardener's observation journal: the relational nature of {mansion} shows first as scent, and moon phase {phase} adjusts your emotional rhythm through the density of the dew. Now, care in matching each other's grain, rather than hurrying the pace of a connection, keeps the flower alive longer.",
-            "recipe": "Secret recipe: before bed, slowly drink a glass of water, then quietly write down one name you were grateful for today. The moon's water rhythm settles and your relationship luck opens gently.",
-            "flowerLanguage": "Destiny flower language: quiet empathy becomes the scent that travels furthest.",
-            "gardenerWord": "A gardener's word for this flower: it's okay not to hurry. Just as night dew gathers, your connections will become clear at exactly the right time.",
-            "particle": "Translated into particles, the moonlight rhythm of {source} wraps you most warmly with a \"{particle}\" mood."
+            "scentFriend": "Hương xạ hương trắng dịu nhẹ lan tỏa dưới ánh trăng",
+            "scentDanger": "Hương trầm đậm và sâu, giúp nâng cao sự tập trung",
+            "scentDefault": "Hương hoa cỏ thảo mộc trong trẻo, nhẹ nhàng điều hòa nhiệt độ của các mối quan hệ",
+            "dewFull": "Sương đêm đầy đặn nhất, cảm hứng và biểu đạt cảm xúc cùng dồi dào",
+            "dewNew": "Giai đoạn trăng non với lớp sương mỏng, ưu tiên quan sát và chuẩn bị",
+            "dewDefault": "Lượng sương vừa phải, cân bằng cảm xúc và sức hành động cùng lớn lên",
+            "companionDragon": "Kết hợp tử đằng và xô thơm xanh, nâng đỡ dòng chảy mở rộng lớn",
+            "companionDog": "Kết hợp hương thảo và cúc La Mã, tăng cường sự ổn định trong quan hệ và khả năng phục hồi",
+            "companionTiger": "Kết hợp bạch đàn và cúc Rudbeckia, tăng cường sự quyết đoán và bản năng bảo vệ",
+            "companionDefault": "Kết hợp oải hương và thường xuân, hỗ trợ cả ổn định cảm xúc lẫn phát triển lâu dài",
+            "section": "Hương thơm nhân duyên và sương đêm",
+            "matrixScent": "🌙 Hương thơm định mệnh: {value}",
+            "matrixDew": "💦 Lượng sương đêm: {value}",
+            "matrixCompanion": "🌿 Cây đồng hành: {value}",
+            "log": "Nhật ký quan sát của người làm vườn: tính quan hệ của {mansion} bộc lộ trước tiên qua hương thơm, còn pha trăng {phase} điều chỉnh nhịp cảm xúc qua mật độ sương. Lúc này, sự tinh tế trong việc hòa nhịp với nhau, thay vì hối thúc nhịp độ của nhân duyên, sẽ giữ hoa tươi lâu hơn.",
+            "recipe": "Công thức bí mật: trước khi ngủ, hãy chậm rãi uống một cốc nước rồi lặng lẽ ghi lại một cái tên mà hôm nay bạn thấy biết ơn. Nhịp nước của mặt trăng sẽ ổn định và vận nhân duyên sẽ nhẹ nhàng mở ra.",
+            "flowerLanguage": "Ý nghĩa hoa định mệnh: sự đồng cảm lặng lẽ trở thành hương thơm lan xa nhất.",
+            "gardenerWord": "Lời người làm vườn dành cho bông hoa này: không vội cũng không sao. Như sương đêm dần tụ lại, nhân duyên của bạn cũng sẽ rõ nét vào đúng thời điểm.",
+            "particle": "Khi chuyển nhịp ánh trăng của {source} thành hạt, không khí \"{particle}\" ôm ấp bạn ấm áp nhất."
           },
           "saju": {
-            "soilCold": "Rich, marshy soil that holds moisture",
-            "soilHot": "Warm, well-draining gravel mix",
-            "soilBalanced": "Fertile soil with even grains and stable minerals",
-            "rootStrong": "A stage where deep roots hold the center even through outside changes",
-            "rootWeak": "A stage where fine rootlets spread first and need support",
-            "rootBalanced": "A balanced stage where mid-depth roots spread evenly",
-            "section": "Soil and roots for growth",
-            "matrixSoil": "🪨 Soil composition: {value}",
-            "matrixRoot": "🌱 Root depth: {value}",
-            "matrixNutrient": "🧪 Gardener's nutrient: {value}",
-            "log": "Gardener's observation journal: today the garden takes on the texture of {soil}, and growth energy moves along the flow of \"{root}\". It may look quiet on the surface, but strength for the next bloom is being firmly stored in the root layer.",
-            "recipe": "Secret recipe: place a green-leaved plant by a north- or east-facing window, loosen your body for 10 minutes in the morning and steady your breathing for 10 minutes in the evening. Fixing this rhythm twice a day lifts your useful element's energy fastest.",
-            "flowerLanguage": "Destiny flower language: strong roots may seem slow, but in the end they bloom the highest.",
-            "gardenerWord": "A gardener's word for this flower: trust accumulation over haste. Today's small care makes next season's great harvest.",
-            "particle": "Translated into particles, the subtle movement of {source} energy is most harmonious with a \"{particle}\" mood."
+            "soilCold": "Đất màu mỡ dạng đầm lầy, giữ nhiều hơi ẩm",
+            "soilHot": "Đất trộn sỏi ấm áp, thoát nước tốt",
+            "soilBalanced": "Đất màu mỡ với hạt đồng đều và khoáng chất ổn định",
+            "rootStrong": "Giai đoạn rễ cắm sâu, giữ vững trung tâm dù bên ngoài thay đổi",
+            "rootWeak": "Giai đoạn rễ con mảnh lan ra trước và cần điểm tựa",
+            "rootBalanced": "Giai đoạn cân bằng, rễ ở độ sâu vừa phải lan rộng đều",
+            "section": "Đất và rễ cho sự sinh trưởng",
+            "matrixSoil": "🪨 Thành phần đất: {value}",
+            "matrixRoot": "🌱 Độ sâu của rễ: {value}",
+            "matrixNutrient": "🧪 Dưỡng chất của người làm vườn: {value}",
+            "log": "Nhật ký quan sát của người làm vườn: hôm nay khu vườn mang sắc thái của {soil}, và năng lượng sinh trưởng chuyển động theo dòng \"{root}\". Bề ngoài có vẻ tĩnh lặng, nhưng ở tầng rễ, sức mạnh cho lần nở hoa kế tiếp đang được tích trữ vững chắc.",
+            "recipe": "Công thức bí mật: đặt một chậu cây lá xanh bên cửa sổ hướng bắc hoặc hướng đông, buổi sáng dành 10 phút thả lỏng cơ thể và buổi tối dành 10 phút điều hòa hơi thở. Giữ cố định nhịp này hai lần mỗi ngày sẽ nâng khí Dụng Thần lên nhanh nhất.",
+            "flowerLanguage": "Ý nghĩa hoa định mệnh: rễ vững dù có vẻ chậm, nhưng cuối cùng sẽ nở cao nhất.",
+            "gardenerWord": "Lời người làm vườn dành cho bông hoa này: hãy tin vào sự tích lũy hơn là vội vàng. Sự chăm sóc nhỏ hôm nay sẽ làm nên mùa gặt lớn của mùa sau.",
+            "particle": "Khi chuyển những chuyển động tinh tế của khí {source} thành hạt, không khí \"{particle}\" hài hòa nhất."
           },
-          "themesWaiting": "Analyzing your relationship and work themes.",
-          "guidance": "{source} destiny flower practice guide: {text}"
+          "themesWaiting": "Đang phân tích chủ đề quan hệ và công việc.",
+          "guidance": "Hướng dẫn thực hành hoa định mệnh {source}: {text}"
         },
         "prompt": {
-          "badgesSukuyo": "Sukuyo badges: {mansion} / moon phase {phase} / guardian animal {guardian}",
-          "badgesJamidusu": "Ziwei badges: today's strong star {star} / star brightness {brightness} / palace {palace}",
-          "badgesAstrology": "Astrology badges: Sun sign {sun} / Rising sign {rising} / Moon sign {moon}",
-          "badgesSaju": "Saju badges: strength {strength} / useful element {yongshin} / seasonal balance {johu}",
-          "symbolismFallback": "A flower symbolizing the flow of destiny",
-          "narrativeFallback": "Destiny flower narrative",
-          "scenarioFallback": "Staging based on the blooming scenario",
-          "toneDirection": "{source} tone direction: {mood} / {background}"
+          "badgesSukuyo": "Huy hiệu Túc Diệu: {mansion} / pha trăng {phase} / linh vật hộ mệnh {guardian}",
+          "badgesJamidusu": "Huy hiệu Tử Vi: sao mạnh hôm nay {star} / độ sáng sao {brightness} / cung vị {palace}",
+          "badgesAstrology": "Huy hiệu chiêm tinh: Cung Mặt Trời {sun} / Cung Mọc {rising} / Cung Mặt Trăng {moon}",
+          "badgesSaju": "Huy hiệu Tứ Trụ: Thân Cường/Thân Nhược {strength} / Dụng Thần {yongshin} / Điều Hậu {johu}",
+          "symbolismFallback": "Đóa hoa tượng trưng cho dòng chảy định mệnh",
+          "narrativeFallback": "Câu chuyện hoa định mệnh",
+          "scenarioFallback": "Dàn dựng dựa trên kịch bản nở hoa",
+          "toneDirection": "Định hướng tông màu {source}: {mood} / {background}"
         },
         "history": {
-          "emptyStatus": "No blooming records have been saved yet. Try saving your current result.",
-          "restore": "Open",
-          "kakao": "Share on Kakao",
-          "delete": "Delete",
-          "saved": "Blooming record saved: {name} ({time})",
-          "notFound": "That record could not be found.",
-          "restored": "Loaded your saved blooming record: {name}",
-          "deleteNotFound": "Could not find the record to delete.",
-          "deleted": "The selected blooming record has been deleted.",
-          "nothingToClear": "There are no blooming records to delete.",
-          "cleared": "All saved blooming records have been deleted.",
-          "shareNotFound": "Could not find the record to share."
+          "emptyStatus": "Chưa có bản ghi nở hoa nào được lưu. Hãy thử lưu kết quả hiện tại.",
+          "restore": "Mở lại",
+          "kakao": "Chia sẻ Kakao",
+          "delete": "Xóa",
+          "saved": "Đã lưu bản ghi nở hoa: {name} ({time})",
+          "notFound": "Không tìm thấy bản ghi này.",
+          "restored": "Đã mở lại bản ghi nở hoa đã lưu: {name}",
+          "deleteNotFound": "Không tìm thấy bản ghi cần xóa.",
+          "deleted": "Đã xóa bản ghi nở hoa đã chọn.",
+          "nothingToClear": "Không có bản ghi nở hoa nào để xóa.",
+          "cleared": "Đã xóa tất cả bản ghi nở hoa đã lưu.",
+          "shareNotFound": "Không tìm thấy bản ghi để chia sẻ."
         },
         "noBirth": {
-          "jamidusu": "Enter your date of birth to see your Ziwei flower.",
-          "sukuyo": "Enter your date of birth to see your Sukuyo flower.",
-          "astrology": "Enter your date and time of birth to see your astrology flower.",
-          "saju": "Enter your name and date of birth first, and your own destiny flower will bloom here."
+          "jamidusu": "Hãy nhập ngày sinh để xem hoa Tử Vi của bạn.",
+          "sukuyo": "Hãy nhập ngày sinh để xem hoa Túc Diệu của bạn.",
+          "astrology": "Hãy nhập ngày và giờ sinh để xem hoa chiêm tinh của bạn.",
+          "saju": "Khi bạn nhập tên và ngày sinh trước, hoa định mệnh của riêng bạn sẽ nở tại đây."
         },
-        "studioTitle": "🌸 Destiny Flower Atelier",
+        "studioTitle": "🌸 Xưởng hoa định mệnh",
         "sourceDesc": {
-          "saju": "We read your day master, birth month and Five Element balance one by one, then choose the single flower that touches your energy most deeply this season.",
-          "astrology": "We layer the three strands of starlight drawn by your Sun, Rising and Moon signs, then bloom the flower that harmonizes most clearly with your chart right now.",
-          "jamidusu": "We trace the main star in your Life Palace, its brightness and the flow of the Four Transformations, then find the flower your chart brings out most vividly right now.",
-          "sukuyo": "We set your birth-day lunar mansion against tonight's moon phase, then hand you the flower that fits the grain of your heart most gently right now."
+          "saju": "Chúng tôi đọc từng yếu tố: Nhật chủ, tháng sinh và sự cân bằng Ngũ Hành của bạn, rồi chọn đóa hoa chạm sâu nhất đến năng lượng của bạn trong mùa này.",
+          "astrology": "Chúng tôi đọc chồng ba dải ánh sao do Cung Mặt Trời, Cung Mọc và Cung Mặt Trăng vẽ nên, rồi làm nở đóa hoa hòa hợp trong trẻo nhất với lá số chiêm tinh của bạn lúc này.",
+          "jamidusu": "Chúng tôi lần theo chính tinh trong cung Mệnh, độ sáng của sao và dòng chảy Tứ Hóa, rồi tìm ra đóa hoa mà lá số Tử Vi của bạn làm nở rõ nét nhất lúc này.",
+          "sukuyo": "Chúng tôi đặt tú ngày sinh trong 27 tú cạnh pha trăng đêm nay, rồi trao bạn đóa hoa khớp dịu dàng nhất với thớ lòng bạn lúc này."
         },
         "sourceShort": {
-          "saju": "Saju",
-          "astrology": "chart",
-          "jamidusu": "Ziwei",
-          "sukuyo": "Sukuyo"
+          "saju": "Tứ Trụ",
+          "astrology": "lá số",
+          "jamidusu": "Tử Vi",
+          "sukuyo": "Túc Diệu"
         },
         "strength": {
-          "strong": "Strong",
-          "weak": "Weak"
+          "strong": "Thân Cường",
+          "weak": "Thân Nhược"
         },
         "johu": {
-          "hot": "Warm & dry",
-          "cold": "Cold & damp",
-          "balanced": "Balanced"
+          "hot": "Ôn Táo",
+          "cold": "Hàn Thấp",
+          "balanced": "Trung Hòa"
         }
       }
     }

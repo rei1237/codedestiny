@@ -668,14 +668,14 @@
       "home": "होम स्क्रीन पर जाएँ",
       "keywords": "सजु निर्णय • पुनर्जन्म • पवित्रता • प्रवाह",
       "quadAria": "चारों पद्धतियों के भाग्य-पुष्प",
-      "letterTitle": "Today's flower letter · one thing your heart needs",
-      "letterIntro": "Flower stories for small actions rather than predictions. Pick the letter that fits how you feel right now.",
-      "letterRestTitle": "Like a magnolia · I want to rest for a while",
-      "letterRestBody": "Before a flower blooms, its branches quietly gather strength. Today, set down one thing you have to do, and take a moment to look at the plants or the sky outside your window.",
-      "letterStartTitle": "Like a sprout · I need courage to begin",
-      "letterStartBody": "Instead of a big resolution, let one small sprout break through. Write down just the first step of something you have put off, and spend five minutes working on it.",
-      "letterShareTitle": "Like a bouquet · I want to share how I feel",
-      "letterShareBody": "Rather than what you want to hear, recall one moment you were grateful for. Offer your feelings with a short hello that doesn't press for a reply."
+      "letterTitle": "आज का फूल-पत्र · आपके मन को जिसकी ज़रूरत है",
+      "letterIntro": "ये भविष्यवाणी नहीं, छोटे-छोटे कदमों के लिए फूलों की कहानियाँ हैं। अभी अपने मन से मेल खाता पत्र चुनें।",
+      "letterRestTitle": "मैगनोलिया की तरह · मुझे थोड़ा आराम चाहिए",
+      "letterRestBody": "फूल खिलने से पहले डालियाँ भी चुपचाप ताक़त जुटाती हैं। आज करने वाले कामों में से एक कम करें और खिड़की के बाहर पेड़ या आसमान को देखने के लिए थोड़ा समय निकालें।",
+      "letterStartTitle": "नई कोंपल की तरह · मुझे शुरुआत का साहस चाहिए",
+      "letterStartBody": "बड़े संकल्प के बजाय एक छोटी कोंपल उगने दें। टाले हुए काम का बस पहला कदम लिखें और 5 मिनट के लिए उसे शुरू करें।",
+      "letterShareTitle": "गुलदस्ते की तरह · मुझे अपने मन की बात पहुँचानी है",
+      "letterShareBody": "जो शब्द आप सुनना चाहते हैं, उनके बजाय वह पल याद करें जब आपने आभार महसूस किया। जवाब की जल्दी किए बिना, एक छोटे हालचाल से अपने मन की बात भेजें।"
     },
     "tarotSelfEsteem": {
       "levelUp": "आपका अपना मानक और साफ़ होता है",
@@ -2731,9 +2731,9 @@
         "shareHook": {
           "rarityAnchor": "{anchor} से पढ़ा गया इकलौता फूल"
         },
-        "anonymousName": "Anonymous traveler",
+        "anonymousName": "अनाम यात्री",
         "rationaleLabel": {
-          "verdict": "So, this flower"
+          "verdict": "इसलिए, यह फूल"
         }
       },
       "astro": {
@@ -2777,20 +2777,20 @@
           "pisces": "Pisces"
         },
         "rationaleLabel": {
-          "sun": "Sun sign",
-          "risingMoon": "Rising sign · Moon sign"
+          "sun": "सूर्य राशि",
+          "risingMoon": "लग्न · चंद्र राशि"
         }
       },
       "ziwei": {
         "brightness": {
-          "miao": "मियाओ",
-          "wang": "वांग",
-          "li": "ली",
-          "de": "डी",
-          "ping": "पिंग",
-          "han": "हां",
-          "xian": "जियान",
-          "bu": "Bu"
+          "miao": "Miao (廟)",
+          "wang": "Wang (旺)",
+          "li": "Li (利)",
+          "de": "De (得)",
+          "ping": "Ping (平)",
+          "han": "Xian (閑)",
+          "xian": "Xian (陷)",
+          "bu": "Bu (不)"
         },
         "coreFlow": "मूल भाग्य प्रवाह",
         "coreEnergy": "कोर ऊर्जा की अभिव्यक्ति",
@@ -2876,44 +2876,44 @@
           "lingxing": "Ling Xing (鈴星)"
         },
         "palaces": {
-          "life": "Life Palace",
-          "siblings": "Siblings Palace",
-          "spouse": "Spouse Palace",
-          "children": "Children Palace",
-          "wealth": "Wealth Palace",
-          "health": "Health Palace",
-          "travel": "Travel Palace",
-          "friends": "Friends Palace",
-          "career": "Career Palace",
-          "property": "Property Palace",
-          "fortune": "Fortune Palace",
-          "parents": "Parents Palace"
+          "life": "जीवन भाव",
+          "siblings": "भाई-बहन भाव",
+          "spouse": "जीवनसाथी भाव",
+          "children": "संतान भाव",
+          "wealth": "धन भाव",
+          "health": "स्वास्थ्य भाव",
+          "travel": "यात्रा भाव",
+          "friends": "मित्र भाव",
+          "career": "करियर भाव",
+          "property": "संपत्ति भाव",
+          "fortune": "सौभाग्य भाव",
+          "parents": "माता-पिता भाव"
         },
         "palaceTraits": {
-          "life": "a strong sense of self and presence",
-          "siblings": "cooperation and a feel for coordination",
-          "spouse": "relational grace and intimate communication",
-          "children": "creativity and the urge to express",
-          "wealth": "managing resources and expanding abundance",
-          "health": "resilience and a sense of inner balance",
-          "travel": "adaptability and on-the-spot judgment",
-          "friends": "running networks and caring for a team",
-          "career": "social drive and an orientation toward achievement",
-          "property": "building foundations and steady accumulation",
-          "fortune": "emotional recharge and spiritual insight",
-          "parents": "protective instinct and a sense of tradition"
+          "life": "स्वयं की स्थिरता और उपस्थिति",
+          "siblings": "सहयोग और तालमेल की क्षमता",
+          "spouse": "रिश्तों का सौंदर्य और आत्मीय संवाद",
+          "children": "रचनात्मकता और अभिव्यक्ति की चाह",
+          "wealth": "संसाधनों का प्रबंधन और समृद्धि का विस्तार",
+          "health": "फिर से सँभलने की शक्ति और भीतरी संतुलन की समझ",
+          "travel": "अनुकूलन क्षमता और मौक़े पर निर्णय",
+          "friends": "नेटवर्क चलाना और समूह की देखभाल",
+          "career": "सामाजिक प्रेरणा और उपलब्धि की चाह",
+          "property": "नींव बनाना और स्थिर संचय",
+          "fortune": "भावनात्मक ऊर्जा फिर से भरना और मानसिक अंतर्दृष्टि",
+          "parents": "संरक्षण की प्रवृत्ति और परंपरा का बोध"
         },
-        "natalVerdict": "Read through the nature of {stars} in your Life Palace, your flower is {flowerName} ({scientificName}).",
-        "natalScenarioTitle": "Life Palace main-star blooming scenario",
+        "natalVerdict": "आपके जीवन भाव में {stars} के स्वभाव को पढ़कर, आपका फूल {flowerName} ({scientificName}) है।",
+        "natalScenarioTitle": "जीवन भाव के मुख्य तारे के अनुसार खिलने का परिदृश्य",
         "rationale": {
-          "lifeStar": "Your Life Palace holds {starsJosa}.",
-          "borrowedStar": "Your Life Palace has no main star, so we read {starsObject} borrowed from the opposite Travel Palace.",
-          "personality": "{star}: \"{keyword}\" — {personality}.",
-          "verdict": "So the flower we offer you now is {flowerName}."
+          "lifeStar": "आपके जीवन भाव में {starsJosa} स्थित है।",
+          "borrowedStar": "आपके जीवन भाव में कोई मुख्य तारा नहीं है, इसलिए हमने सामने के यात्रा भाव से {starsObject} उधार लेकर पढ़ा।",
+          "personality": "{star}: \"{keyword}\" — {personality} का स्वभाव।",
+          "verdict": "इसलिए, अभी हम आपको जो फूल देते हैं, वह है {flowerName}।"
         },
         "rationaleLabel": {
-          "lifeStar": "Life Palace main star",
-          "personality": "Innate personality"
+          "lifeStar": "जीवन भाव का मुख्य तारा",
+          "personality": "जन्मजात स्वभाव"
         }
       },
       "sukuyo": {
@@ -2963,198 +2963,198 @@
           "m27": "Shin (軫)"
         },
         "groups": {
-          "anjung": "Steady mansions",
-          "gangseong": "Strong mansions",
-          "gyeongkwae": "Nimble mansions",
-          "jihye": "Wise mansions"
+          "anjung": "स्थिर नक्षत्र",
+          "gangseong": "प्रबल नक्षत्र",
+          "gyeongkwae": "फुर्तीले नक्षत्र",
+          "jihye": "बुद्धिमान नक्षत्र"
         },
         "groupLabels": {
-          "anjung": "Steady group",
-          "gangseong": "Strong group",
-          "gyeongkwae": "Nimble group",
-          "jihye": "Wise group"
+          "anjung": "स्थिर समूह",
+          "gangseong": "प्रबल समूह",
+          "gyeongkwae": "फुर्तीला समूह",
+          "jihye": "बुद्धिमान समूह"
         },
         "guardians": {
-          "crane": "Crane",
-          "dragon": "Dragon",
-          "marten": "Marten",
-          "rabbit": "Rabbit",
-          "fox": "Fox",
-          "tiger": "Tiger",
-          "leopard": "Leopard",
-          "haetae": "Haetae",
-          "bat": "Bat",
-          "rat": "Rat",
-          "swallow": "Swallow",
-          "pig": "Pig",
-          "hedgehog": "Hedgehog",
-          "wolf": "Wolf",
-          "dog": "Dog",
-          "pheasant": "Pheasant",
-          "rooster": "Rooster",
-          "crow": "Crow",
-          "monkey": "Monkey",
-          "ape": "Ape",
-          "wildDog": "Wild dog",
-          "sheep": "Sheep",
-          "roeDeer": "Roe deer",
-          "horse": "Horse",
-          "deer": "Deer",
-          "snake": "Snake",
-          "earthworm": "Earthworm"
+          "crane": "सारस",
+          "dragon": "ड्रैगन",
+          "marten": "मार्टन",
+          "rabbit": "खरगोश",
+          "fox": "लोमड़ी",
+          "tiger": "बाघ",
+          "leopard": "तेंदुआ",
+          "haetae": "हैटे",
+          "bat": "चमगादड़",
+          "rat": "चूहा",
+          "swallow": "अबाबील",
+          "pig": "सूअर",
+          "hedgehog": "हेजहॉग",
+          "wolf": "भेड़िया",
+          "dog": "कुत्ता",
+          "pheasant": "तीतर",
+          "rooster": "मुर्गा",
+          "crow": "कौआ",
+          "monkey": "बंदर",
+          "ape": "वनमानुष",
+          "wildDog": "जंगली कुत्ता",
+          "sheep": "भेड़",
+          "roeDeer": "रो हिरण",
+          "horse": "घोड़ा",
+          "deer": "हिरण",
+          "snake": "साँप",
+          "earthworm": "केंचुआ"
         },
         "rationaleLabel": {
-          "mansion": "Mansion · Moon phase"
+          "mansion": "नक्षत्र · चंद्र कला"
         }
       },
       "saju": {
         "scenarios": {
           "default": {
             "title": "{dayMasterBadge} पर्यावरण का खिलता हुआ परिदृश्य",
-            "reason": "We looked at how your day master meshes with the current five-element environment and chose the one flower that suits this period best."
+            "reason": "हमने देखा कि आपका डे मास्टर अभी के पाँच तत्वों के परिवेश से कैसे मेल खाता है, और इस दौर के लिए सबसे उपयुक्त फूल चुना।"
           },
           "jia": {
             "springWood": {
               "title": "जिया वुड सीधा-अग्रणी खिलने वाला परिदृश्य",
-              "reason": "Jia Wood (甲木) has the nature of a tall tree growing straight upward. Now that spring's wood energy matches that temperament, your power to step forward and open new ground comes into full bloom."
+              "reason": "Jia लकड़ी (甲木) बड़े पेड़ की तरह सीधे ऊपर बढ़ने वाली ऊर्जा है। अभी, जब वसंत की लकड़ी की ऊर्जा इस स्वभाव से मेल खाती है, नई राह खोलने वाली आपकी अग्रणी शक्ति खिल उठती है।"
             },
             "autumnMetal": {
               "title": "जिया वुड मेटल-टेम्परिंग परिदृश्य",
-              "reason": "With autumn's metal energy pressing on Jia Wood (甲木), now is the time to prune the side branches and keep only the trunk that truly matters. The more you let go, the sturdier you become."
+              "reason": "जब शरद की धातु की ऊर्जा Jia लकड़ी (甲木) पर दबाव डालती है, तो यह शाखाएँ छाँटकर केवल असली ज़रूरी तना रखने का समय है। जितना छोड़ेंगे, उतने ही मज़बूत होंगे।"
             },
             "dryFire": {
               "title": "जिया वुड शुष्क-गर्मी सहनशक्ति परिदृश्य",
-              "reason": "For Jia Wood (甲木) set amid dry, hot energy, what matters now is the stamina of its roots. Rather than rushing, build resilience by holding on for the long run, and you will bloom again as tenaciously as the rose of Sharon."
+              "reason": "सूखी गर्मी के बीच Jia लकड़ी (甲木) को अभी जड़ों की सहनशक्ति चाहिए। जल्दबाज़ी के बजाय डटकर टिके रहें और फिर से सँभलने की शक्ति बढ़ाएँ, आप मुगुनघ्वा की तरह फिर दृढ़ता से खिलेंगे।"
             }
           },
           "yi": {
             "metalWater": {
               "title": "यी लकड़ी धातु-जल सामंजस्य परिदृश्य",
-              "reason": "Yi Wood (乙木) has a gentle, seeping nature like vines and flowering plants. With metal and water energy strong now, your grace and your clarifying, purifying power come most alive."
+              "reason": "Yi लकड़ी (乙木) बेलों और फूलों की तरह कोमलता से फैलने वाली ऊर्जा है। अभी, जब धातु और पानी की ऊर्जा प्रबल है, आपकी गरिमा और निर्मल शुद्ध करने की शक्ति सबसे तेज़ चमकती है।"
             },
             "dryEarth": {
               "title": "यी लकड़ी शुष्क-मिट्टी अस्तित्व परिदृश्य",
-              "reason": "For Yi Wood (乙木) standing on dry earth energy, the theme now is the strength to endure. Like a cactus flower that breaks through barren ground and blooms at last, you shine precisely where you hold on."
+              "reason": "सूखी पृथ्वी की ऊर्जा पर खड़ी Yi लकड़ी (乙木) के लिए अभी का विषय दृढ़ जीवन-शक्ति है। जैसे कैक्टस बंजर ज़मीन चीरकर आख़िर खिलता है, आप वहीं चमकते हैं जहाँ डटे रहते हैं।"
             },
             "autumn": {
               "title": "यी लकड़ी शरद ऋतु शोधन परिदृश्य",
-              "reason": "Yi Wood (乙木) passing through autumn's metal energy is in a season of turning delicacy into calm order. The more evenly you sort what is scattered, the tidier your mind becomes as well."
+              "reason": "शरद की धातु की ऊर्जा से गुज़रते हुए, Yi लकड़ी (乙木) नफ़ासत को शांत व्यवस्था में बदलने के दौर में है। बिखरी चीज़ें जितनी सहेजेंगे, मन भी उतना व्यवस्थित होगा।"
             },
             "wetSpring": {
               "title": "यी वुड नम-वसंत विस्तार परिदृश्य",
-              "reason": "Meeting spring's moist energy, Yi Wood (乙木) grows markedly better at connecting people. Now is a time to reach outward through relationships rather than alone."
+              "reason": "वसंत की नमी से मिलकर Yi लकड़ी (乙木) की लोगों को जोड़ने की शक्ति साफ़ बढ़ती है। अभी अकेले के बजाय रिश्तों के ज़रिए आगे बढ़ने का समय है।"
             }
           },
           "bing": {
             "springWood": {
               "title": "बिंग फायर स्प्रिंग इग्निशन परिदृश्य",
-              "reason": "Bing Fire (丙火) is energy that catches quickly and spreads wide like the sun. With spring's wood energy as fuel now, your power to start something new and make it known burns strongly."
+              "reason": "Bing आग (丙火) सूरज की तरह जल्दी जलकर दूर तक फैलने वाली ऊर्जा है। अभी, वसंत की लकड़ी को ईंधन बनाकर, कुछ नया शुरू करने और फैलाने की आपकी शक्ति तेज़ी से धधकती है।"
             },
             "summerFire": {
               "title": "बिंग फायर ग्रीष्मकालीन विस्तार परिदृश्य",
-              "reason": "With summer's fire energy added, Bing Fire (丙火) burns brighter than ever. This is the season when your power to step forward and lead people peaks."
+              "reason": "गर्मी की आग की ऊर्जा मिलकर Bing आग (丙火) पहले से कहीं ज़्यादा तेज़ जलती है। यह वह दौर है जब आगे बढ़कर लोगों का नेतृत्व करने की आपकी शक्ति चरम पर होती है।"
             },
             "waterControl": {
               "title": "बिंग फायर जल-नियंत्रण परिदृश्य",
-              "reason": "For Bing Fire (丙火) meeting strong water energy, what matters now is not burning hotter but setting the right direction. Keep your sense of reality and guard the flame, and its light will last."
+              "reason": "प्रबल पानी की ऊर्जा से मिली Bing आग (丙火) के लिए अभी ज़्यादा तेज़ जलना नहीं, बल्कि सही दिशा तय करना अहम है। व्यावहारिक समझ थामे रखकर लौ को बचाएँ, वह रोशनी देर तक टिकेगी।"
             }
           },
           "ding": {
             "coldWet": {
               "title": "डिंग फायर ठंडा-नम गर्मी परिदृश्य",
-              "reason": "Ding Fire (丁火) is energy that glows quietly from within like a candle. In this cold, damp time, keeping that warmth alive for a long time is a greater strength than brilliance."
+              "reason": "Ding आग (丁火) मोमबत्ती की तरह भीतर से शांत चमकने वाली ऊर्जा है। इस ठंडे और नम समय में, चमक से भी बड़ी शक्ति उस गर्माहट को देर तक बुझने न देना है।"
             },
             "autumnMetal": {
               "title": "डिंग फायर धातु-शोधन परिदृश्य",
-              "reason": "Meeting metal energy, Ding Fire (丁火) sharpens the precision of its hands and its eye for beauty. This is the time you shine most by holding on to one thing and finishing it beautifully."
+              "reason": "धातु की ऊर्जा से मिलकर Ding आग (丁火) की बारीक कारीगरी और सौंदर्य-दृष्टि और पैनी होती है। यह वह समय है जब आप किसी एक काम को पकड़कर सुंदरता से पूरा करते हुए सबसे ज़्यादा चमकते हैं।"
             },
             "resonance": {
               "title": "डिंग फायर अनुनाद खिलने वाला परिदृश्य",
-              "reason": "Ding Fire (丁火) is energy that gently tends the texture of emotions and deepens relationships. The more freely you express your heart, the more your path of fortune opens with it."
+              "reason": "Ding आग (丁火) भावनाओं की हर परत को सहलाकर रिश्तों को गहरा करने वाली नाज़ुक ऊर्जा है। जितना खुलकर मन की बात कहेंगे, भाग्य की राह उतनी खुलेगी।"
             }
           },
           "wu": {
             "fireEarth": {
               "title": "वू पृथ्वी अग्नि-पृथ्वी उपलब्धि परिदृश्य",
-              "reason": "Wu Earth (戊土) is broad, dependable energy like a great mountain. With fire and earth supporting you now, large undertakings and large achievements gain unusual strength."
+              "reason": "Wu पृथ्वी (戊土) बड़े पहाड़ की तरह विशाल और अडिग ऊर्जा है। अभी, जब आग और पृथ्वी सहारा देती हैं, बड़े काम और बड़ी उपलब्धियों को असाधारण बल मिलता है।"
             },
             "winterWater": {
               "title": "वू अर्थ शीतकालीन नींव परिदृश्य",
-              "reason": "For Wu Earth (戊土) meeting winter's water energy, now is the time to slow down and firm up the ground. The more you pause and solidify the basics, the steadier your next step becomes."
+              "reason": "सर्दी के पानी की ऊर्जा से मिली Wu पृथ्वी (戊土) के लिए अभी धीमे होकर नींव मज़बूत करने का समय है। जितना ठहरकर आधार पक्का करेंगे, अगला कदम उतना ही ठोस होगा।"
             },
             "center": {
               "title": "वू पृथ्वी केंद्र-निर्माण परिदृश्य",
-              "reason": "The true strength of Wu Earth (戊土) is the centering power that holds a shaky situation together from the middle. The more steadily you keep your daily routine, the more your results build up."
+              "reason": "Wu पृथ्वी (戊土) की असली ताक़त डगमगाती स्थिति को बीच से थामने वाली केंद्र-शक्ति है। रोज़ की दिनचर्या जितनी लगन से निभाएँगे, परिणाम उतने ही धीरे-धीरे जमा होंगे।"
             }
           },
           "ji": {
             "wetEarth": {
               "title": "जी पृथ्वी खेती विस्तार परिदृश्य",
-              "reason": "Ji Earth (己土) is energy that carefully nurtures things, like a well-tilled field. In this moist time, results grow within relationships where you work together and look after one another."
+              "reason": "Ji पृथ्वी (己土) अच्छी तरह जुते खेत की तरह सब कुछ सहेजकर पालने वाली ऊर्जा है। इस नम समय में, साथ काम करने और एक-दूसरे का ख़याल रखने वाले रिश्तों में परिणाम बढ़ते हैं।"
             },
             "metalDesign": {
               "title": "जी पृथ्वी परिशुद्धता-डिज़ाइन परिदृश्य",
-              "reason": "Meeting metal energy, Ji Earth (己土) awakens a sense for designing and arranging even the smallest details. Your strengths stand out in work that calls for a high level of finish."
+              "reason": "धातु की ऊर्जा से मिलकर Ji पृथ्वी (己土) बारीक़ियों तक डिज़ाइन और व्यवस्था करने की क्षमता जगाती है। ऊँची पूर्णता माँगने वाले कामों में आपकी ताक़त उभरती है।"
             },
             "balance": {
               "title": "जी पृथ्वी संतुलन-ट्यूनिंग परिदृश्य",
-              "reason": "Ji Earth (己土) is energy that excels at gently mediating between people and setting the mood. As long as you manage the pace of give and take well, that itself becomes your luck."
+              "reason": "Ji पृथ्वी (己土) लोगों के बीच हल्के से तालमेल बिठाकर माहौल बनाने में माहिर ऊर्जा है। आगे बढ़ने और रुकने की गति को अच्छे से साधना ही आपका सौभाग्य बनेगा।"
             }
           },
           "geng": {
             "metalEarth": {
               "title": "गेंग मेटल सिद्धांत-परिदृश्य के माध्यम से",
-              "reason": "Geng Metal (庚金) is energy that cuts through boldly and decisively, like an uncut gemstone. With earth and metal supporting you now, your power to push through the principles you set reaches its peak."
+              "reason": "Geng धातु (庚金) बिना तराशे कच्चे पत्थर की तरह प्रबल और साफ़ काटने वाली ऊर्जा है। अभी, जब पृथ्वी और धातु सहारा देती हैं, तय सिद्धांतों पर चलने की आपकी शक्ति चरम पर होती है।"
             },
             "fireTraining": {
               "title": "गेंग मेटल फायर-टेम्परिंग परिदृश्य",
-              "reason": "Tempered in hot fire, Geng Metal (庚金) hardens in both charisma and skill. This is a time when your focus grows especially sharp at decisive moments."
+              "reason": "गर्म आग में तपकर Geng धातु (庚金) आकर्षण और क्षमता दोनों में और मज़बूत होती है। यह वह दौर है जब निर्णायक पलों में आपकी एकाग्रता ख़ास तौर पर पैनी होती है।"
             },
             "clearJudgment": {
               "title": "गेंग मेटल निर्णायक-निर्णय परिदृश्य",
-              "reason": "The strength of Geng Metal (庚金) is judgment that cuts precisely to the core. Set clear standards, and that clarity carries straight through to results."
+              "reason": "Geng धातु (庚金) की ताक़त मूल बात को सटीक काटने वाली निर्णय-क्षमता है। साफ़ मानदंड तय करें, वह स्पष्टता सीधे परिणाम में बदलेगी।"
             }
           },
           "xin": {
             "metalWater": {
               "title": "Xin धातु धातु-जल शोधन परिदृश्य",
-              "reason": "Xin Metal (辛金) is energy with refined senses and language, like a finely cut jewel. With metal and water in harmony now, your power to analyze and express becomes even clearer."
+              "reason": "Xin धातु (辛金) तराशे हुए रत्न की तरह परिष्कृत इंद्रियों और शब्दों वाली ऊर्जा है। अभी, जब धातु और पानी मिलते हैं, आपकी विश्लेषण और अभिव्यक्ति की क्षमता और पैनी होती है।"
             },
             "springWood": {
               "title": "Xin धातु लकड़ी-ट्यूनिंग परिदृश्य",
-              "reason": "Meeting spring's wood energy, Xin Metal (辛金) goes further by adjusting gently than by sharpening its edge. This is a time when results come from work you refine by feel."
+              "reason": "वसंत की लकड़ी की ऊर्जा से मिलकर Xin धातु (辛金) धार तेज़ करने के बजाय हल्के से सुधारकर ज़्यादा दूर जाती है। यह वह दौर है जब आपकी समझ से निखारे गए कामों से परिणाम आते हैं।"
             },
             "completion": {
               "title": "Xin मेटल पूर्णता परिदृश्य",
-              "reason": "Xin Metal (辛金) is strong when it finishes one thing beautifully rather than spreading wide. The more neatly you wrap up the details, the more people's trust builds."
+              "reason": "Xin धातु (辛金) फैलाने के बजाय एक काम को सुंदरता से पूरा करने में सबसे प्रबल ऊर्जा है। हर ब्योरा जितनी सफ़ाई से पूरा करेंगे, लोगों का भरोसा उतना बढ़ेगा।"
             }
           },
           "ren": {
             "summerCooling": {
               "title": "रेन वॉटर ग्रीष्म-शीतलन परिदृश्य",
-              "reason": "Ren Water (壬水) is energy that handles great currents like a wide sea. Now, as it cools summer's heat, your power to focus calmly rises markedly."
+              "reason": "Ren पानी (壬水) विशाल समुद्र की तरह बड़े प्रवाहों को चलाने वाली ऊर्जा है। अभी, गर्मी की तपिश को ठंडा करते हुए, आपकी शांत एकाग्रता साफ़ बढ़ती है।"
             },
             "winterCondensing": {
               "title": "रेन वॉटर शीतकालीन-संघनक परिदृश्य",
-              "reason": "Resonating with winter's water energy, Ren Water (壬水) is in a time of gathering strength beneath the ice. Though it looks calm on the surface, a solid potential ripens within, like a glacier flower."
+              "reason": "सर्दी के पानी की ऊर्जा से गूँजती Ren पानी (壬水) बर्फ़ के नीचे शक्ति जमा करने के दौर में है। बाहर से शांत दिखता है, पर ग्लेशियर फूल की तरह भीतर ठोस संभावनाएँ पक रही हैं।"
             },
             "nightIntuition": {
               "title": "रेन वाटर रात्रि-अंतर्ज्ञान परिदृश्य",
-              "reason": "Ren Water (壬水) is energy that finds its way better through the intuition of a quiet night than in bright daylight. When you decide by your own rhythm instead of rushing to an answer, the direction falls into place."
+              "reason": "Ren पानी (壬水) उजले दिन से ज़्यादा शांत रात के अंतर्ज्ञान से राह खोजने वाली ऊर्जा है। जवाब की जल्दी के बजाय अपनी लय से फ़ैसला करें, दिशा सही बैठेगी।"
             }
           },
           "gui": {
             "coldWetPurifying": {
               "title": "गुई जल शीत-नम शुद्धिकरण परिदृश्य",
-              "reason": "Gui Water (癸水) is energy that senses the subtle and washes it clean, like dawn dew. In this cold, damp time, that quiet, absorbed stillness becomes your strength."
+              "reason": "Gui पानी (癸水) सुबह की ओस की तरह सूक्ष्म बातों को महसूस करके उन्हें निर्मल करने वाली ऊर्जा है। इस ठंडे और नम समय में, चुपचाप डूब जाने की शांति ही आपकी शक्ति है।"
             },
             "summerEmpathy": {
               "title": "गुई जल ग्रीष्म-सहानुभूति परिदृश्य",
-              "reason": "For Gui Water (癸水) meeting summer's heat, empathy that soothes hearts and connects people is the greatest asset. Like a hydrangea, the path opens as you gather the warmth of many."
+              "reason": "गर्मी की आग की तपिश से मिली Gui पानी (癸水) के लिए मन को सहलाने और लोगों को जोड़ने वाली सहानुभूति सबसे बड़ा हथियार है। हाइड्रेंजिया की तरह, कई लोगों की गर्माहट जोड़ने पर राह खुलती है।"
             },
             "subtleSignal": {
               "title": "गुई जल सूक्ष्म-संकेत परिदृश्य",
-              "reason": "Gui Water (癸水) is energy that reads the small signals others miss before anyone else. Time things well with that keen sense, and that single move decides the outcome."
+              "reason": "Gui पानी (癸水) उन छोटे संकेतों को सबसे पहले पढ़ने वाली ऊर्जा है जिन्हें दूसरे चूक जाते हैं। उस पैनी समझ से बस सही समय पकड़ें, वही एक चाल हार-जीत तय करेगी।"
             }
           }
         },
@@ -3177,12 +3177,12 @@
           "description": "भाग्य पुष्प वाचन: {description}",
           "vibe": "ब्लूमिंग गाइड: {vibeMessage}",
           "fallback": "समायोजन तर्क: {note}",
-          "dayMasterSame": "A flower that carries the same {element} energy as your {dayMasterBadge} day master.",
-          "strengthRelease": "Your chart runs strong, so we gave weight to flowers with {elements} energy that lets the built-up energy flow outward.",
-          "strengthSupport": "Your chart runs weak, so we gave weight to flowers with {elements} energy that supports your day master.",
-          "yongshin": "This flower carries the useful element (yongshin) your chart needs — {elements}.",
-          "johuWarm": "Your chart leans cold and damp, so we gave weight to warm flowers that heat it like sunlight.",
-          "johuCool": "Your chart leans hot and dry, so we gave weight to moisture-rich flowers that cool the heat."
+          "dayMasterSame": "यह फूल आपके डे मास्टर {dayMasterBadge} जैसी ही {element} ऊर्जा रखता है।",
+          "strengthRelease": "आपकी कुंडली प्रबल है, इसलिए हमने भरी हुई ऊर्जा को बाहर निकालने वाले {elements} ऊर्जा के फूलों को प्राथमिकता दी।",
+          "strengthSupport": "आपकी कुंडली दुर्बल है, इसलिए हमने डे मास्टर को सहारा देने वाले {elements} ऊर्जा के फूलों को प्राथमिकता दी।",
+          "yongshin": "इस फूल में वह उपयोगी तत्व है जिसकी आपकी कुंडली को ज़रूरत है — {elements}।",
+          "johuWarm": "आपकी कुंडली ठंड और नमी की ओर झुकी है, इसलिए हमने धूप की तरह गर्माहट देने वाले फूलों को प्राथमिकता दी।",
+          "johuCool": "आपकी कुंडली गर्मी और सूखेपन की ओर झुकी है, इसलिए हमने तपिश शांत करने वाले नमी भरे फूलों को प्राथमिकता दी।"
         },
         "elements": {
           "wood": "लकड़ी",
@@ -3258,16 +3258,16 @@
           "rarityPlain": "मेरे साजू ने {total} फूलों में से चुना एक फूल"
         },
         "dayMasters": {
-          "jia": "Jia Wood (甲木)",
-          "yi": "Yi Wood (乙木)",
-          "bing": "Bing Fire (丙火)",
-          "ding": "Ding Fire (丁火)",
-          "wu": "Wu Earth (戊土)",
-          "ji": "Ji Earth (己土)",
-          "geng": "Geng Metal (庚金)",
-          "xin": "Xin Metal (辛金)",
-          "ren": "Ren Water (壬水)",
-          "gui": "Gui Water (癸水)"
+          "jia": "Jia लकड़ी (甲木)",
+          "yi": "Yi लकड़ी (乙木)",
+          "bing": "Bing आग (丙火)",
+          "ding": "Ding आग (丁火)",
+          "wu": "Wu पृथ्वी (戊土)",
+          "ji": "Ji पृथ्वी (己土)",
+          "geng": "Geng धातु (庚金)",
+          "xin": "Xin धातु (辛金)",
+          "ren": "Ren पानी (壬水)",
+          "gui": "Gui पानी (癸水)"
         },
         "dayMasterStems": {
           "jia": "Jia (甲)",
@@ -3282,17 +3282,17 @@
           "gui": "Gui (癸)"
         },
         "dayMasterFallback": {
-          "ziwei": "With limited Saju day master data, the day master's nature was adjusted based on the Zi Wei main star.",
-          "astrology": "With limited Saju day master data, the sun sign's tendencies stood in for the day master's nature.",
-          "dominant": "With limited Saju, Zi Wei and astrology indicators, the day master's nature was estimated from the dominant element."
+          "ziwei": "साजू डे मास्टर का डेटा सीमित होने के कारण, ज़िवेई के मुख्य तारे के आधार पर डे मास्टर का स्वभाव समायोजित किया गया।",
+          "astrology": "साजू डे मास्टर का डेटा सीमित होने के कारण, डे मास्टर के स्वभाव की जगह सूर्य राशि की प्रवृत्तियाँ ली गईं।",
+          "dominant": "साजू, ज़िवेई और ज्योतिष के मुख्य संकेतक सीमित होने के कारण, प्रमुख तत्व के आधार पर डे मास्टर के स्वभाव का अनुमान लगाया गया।"
         },
         "rationaleLabel": {
-          "dayMaster": "Day master nature",
-          "strengthRelease": "Strong chart",
-          "strengthSupport": "Weak chart",
-          "yongshin": "Useful element",
-          "johuWarm": "Climate balance · cold and damp",
-          "johuCool": "Climate balance · hot and dry"
+          "dayMaster": "डे मास्टर का स्वभाव",
+          "strengthRelease": "प्रबल कुंडली",
+          "strengthSupport": "दुर्बल कुंडली",
+          "yongshin": "उपयोगी तत्व",
+          "johuWarm": "ऋतु संतुलन · ठंडा-नम",
+          "johuCool": "ऋतु संतुलन · गर्म-शुष्क"
         }
       },
       "flowers": {
@@ -4582,303 +4582,303 @@
           }
         },
         "cta": {
-          "rebloom": "🌸 Bloom my destiny flower again",
-          "astrologyAgain": "✨ Summon my astrology flower again",
-          "jamidusuAgain": "🌺 Summon my Ziwei flower again",
-          "sukuyoAgain": "🌙 Summon my Sukuyo flower again"
+          "rebloom": "🌸 भाग्य का फूल फिर से खिलाएँ",
+          "astrologyAgain": "✨ ज्योतिष फूल फिर से बुलाएँ",
+          "jamidusuAgain": "🌺 ज़िवेई फूल फिर से बुलाएँ",
+          "sukuyoAgain": "🌙 सुकुयो फूल फिर से बुलाएँ"
         },
         "status": {
-          "atelierLocked": "The Destiny Flower Atelier needs to be unlocked.",
-          "loginRequired": "Log in to see your destiny flower.",
-          "newlyUnlocked": "✨ Your {source} flower is newly open.",
-          "resultReady": "{verdict} You can save this result or share it on KakaoTalk.",
-          "reloading": "Reloading your data. Please wait a moment.",
-          "linking": "Linking your {source} data. Please wait a moment.",
-          "loaded": "Your {source} data has been loaded.",
-          "copied": "Copied to the clipboard.",
-          "copyPermission": "Clipboard access is not allowed, so please copy it manually.",
-          "copyFailed": "Copy failed.",
-          "kakaoPcCopied": "On a PC, the KakaoTalk link has been copied to the clipboard. Paste it into KakaoTalk to share.",
-          "kakaoNotOpenedCopied": "We couldn't confirm KakaoTalk opened, so the summary has been copied to the clipboard. Paste it into KakaoTalk to share.",
-          "kakaoOpening": "Opening KakaoTalk sharing...",
-          "kakaoFailedCopied": "We couldn't open KakaoTalk sharing, so the summary has been copied to the clipboard.",
-          "refreshed": "Tabs and prompts have been updated based on: {verdict}",
-          "aiOpening": "Opening the AI in a new tab. If it doesn't open, allow pop-ups and try again.",
-          "aiBlocked": "The new tab seems to have been blocked. Allow pop-ups in your browser or open the AI site you want directly.",
-          "summaryCopied": "Summary copied to the clipboard.",
-          "promptCopied": "The main AI flower prompt has been copied to the clipboard.",
-          "promptPackCopied": "The main/negative prompt set has been copied to the clipboard."
+          "atelierLocked": "भाग्य फूल एटेलियर को अनलॉक करना ज़रूरी है।",
+          "loginRequired": "अपना भाग्य का फूल देखने के लिए लॉग इन करें।",
+          "newlyUnlocked": "✨ आपका {source} फूल अभी-अभी खुला है।",
+          "resultReady": "{verdict} आप यह परिणाम सेव कर सकते हैं या KakaoTalk पर साझा कर सकते हैं।",
+          "reloading": "डेटा फिर से लोड हो रहा है। कृपया थोड़ा इंतज़ार करें।",
+          "linking": "आपका {source} डेटा जोड़ा जा रहा है। कृपया थोड़ा इंतज़ार करें।",
+          "loaded": "आपका {source} डेटा लोड हो गया है।",
+          "copied": "क्लिपबोर्ड पर कॉपी हो गया।",
+          "copyPermission": "कॉपी की अनुमति नहीं है, कृपया ख़ुद कॉपी करें।",
+          "copyFailed": "कॉपी नहीं हो सका।",
+          "kakaoPcCopied": "PC पर KakaoTalk लिंक क्लिपबोर्ड पर कॉपी कर दिया गया है। साझा करने के लिए इसे KakaoTalk में पेस्ट करें।",
+          "kakaoNotOpenedCopied": "KakaoTalk खुलने की पुष्टि नहीं हो सकी, इसलिए सारांश क्लिपबोर्ड पर कॉपी कर दिया गया है। साझा करने के लिए इसे KakaoTalk में पेस्ट करें।",
+          "kakaoOpening": "KakaoTalk शेयरिंग खोली जा रही है...",
+          "kakaoFailedCopied": "KakaoTalk शेयरिंग नहीं खुल सकी, इसलिए सारांश क्लिपबोर्ड पर कॉपी कर दिया गया है।",
+          "refreshed": "टैब और प्रॉम्प्ट इसके आधार पर अपडेट किए गए: {verdict}",
+          "aiOpening": "AI नए टैब में खोला जा रहा है। अगर न खुले, तो पॉप-अप की अनुमति देकर फिर कोशिश करें।",
+          "aiBlocked": "लगता है नया टैब ब्लॉक हो गया है। ब्राउज़र में पॉप-अप की अनुमति दें या अपनी पसंद का AI पेज ख़ुद खोलें।",
+          "summaryCopied": "सारांश क्लिपबोर्ड पर कॉपी हो गया।",
+          "promptCopied": "AI फूल का मुख्य प्रॉम्प्ट क्लिपबोर्ड पर कॉपी हो गया।",
+          "promptPackCopied": "मुख्य/नेगेटिव प्रॉम्प्ट पैक क्लिपबोर्ड पर कॉपी हो गया।"
         },
         "fallback": {
           "astrology": {
-            "name": "Nebula lavender",
-            "symbolism": "A clear intuition that flows along the grain of starlight",
-            "vibe": "Breathe along with the rhythm of the stars and your intuition grows sharper."
+            "name": "नेबुला लैवेंडर",
+            "symbolism": "तारों की रोशनी की लय पर बहता निर्मल अंतर्ज्ञान",
+            "vibe": "तारों की लय के साथ साँस लें, आपका अंतर्ज्ञान साफ़ हो जाएगा।"
           },
           "jamidusu": {
-            "name": "Tree peony",
-            "symbolism": "Imperial grace and the strength of the center",
-            "keyword1": "Emperor",
-            "keyword2": "Grace",
-            "keyword3": "Center",
-            "vibe": "Holding your center is what carries you furthest in the end."
+            "name": "पियोनी",
+            "symbolism": "राजसी गरिमा और केंद्र की शक्ति",
+            "keyword1": "राजसी",
+            "keyword2": "गरिमा",
+            "keyword3": "केंद्र",
+            "vibe": "अपना केंद्र थामे रखना ही आपको सबसे दूर तक ले जाता है।"
           },
           "sukuyo": {
-            "name": "Lily",
-            "symbolism": "A guardian flower that blooms clear in the moonlight",
-            "keyword1": "Moonlight",
-            "keyword2": "Guardian",
-            "keyword3": "Purification",
-            "vibe": "Match tonight's breath and rhythm of the moon and your choices become clearer.",
-            "keywordMansion": "Sukuyo",
-            "keywordGuardian": "Guardian animal",
-            "keywordPhase": "Moon phase"
+            "name": "लिली",
+            "symbolism": "चाँदनी में निर्मलता से खिलने वाला रक्षक फूल",
+            "keyword1": "चाँदनी",
+            "keyword2": "रक्षा",
+            "keyword3": "शुद्धि",
+            "vibe": "आज रात चाँद की साँस और लय के साथ चलें, आपके चुनाव और स्पष्ट होंगे।",
+            "keywordMansion": "सुकुयो",
+            "keywordGuardian": "रक्षक पशु",
+            "keywordPhase": "चंद्र कला"
           }
         },
         "legacy": {
-          "astrologyReading": "Reading your destiny flower from your astrology chart.",
-          "astrologyRhythm": "Setting the rhythm of the stars.",
-          "brightnessEven": "Even (平)",
-          "jamidusuReading": "Reading your destiny flower from today's strong star.",
-          "mainStarUnknown": "Main star unknown",
-          "jamidusuRhythm": "Aligning the energy of the stars.",
-          "imperialGrace": "Imperial grace",
-          "moonQuarter": "Quarter moon",
-          "sukuyoReading": "Reading your destiny flower from the 27 Sukuyo mansions.",
-          "mansionUnknown": "Mansion unknown"
+          "astrologyReading": "आपकी ज्योतिष कुंडली से भाग्य का फूल पढ़ा जा रहा है।",
+          "astrologyRhythm": "तारों की लय तय की जा रही है।",
+          "brightnessEven": "सम (平)",
+          "jamidusuReading": "आज के प्रबल तारे से भाग्य का फूल पढ़ा जा रहा है।",
+          "mainStarUnknown": "मुख्य तारा अज्ञात",
+          "jamidusuRhythm": "तारों की ऊर्जा संरेखित की जा रही है।",
+          "imperialGrace": "राजसी गरिमा",
+          "moonQuarter": "अर्धचंद्र",
+          "sukuyoReading": "27 सुकुयो नक्षत्रों से भाग्य का फूल पढ़ा जा रहा है।",
+          "mansionUnknown": "नक्षत्र अज्ञात"
         },
         "badge": {
-          "sun": "Sun sign {value}",
-          "rising": "Rising sign {value}",
-          "moon": "Moon sign {value}",
-          "strongStar": "Today's strong star {value}",
-          "brightness": "Star brightness {value}",
-          "moonPhase": "Moon phase {value}",
-          "guardian": "Guardian animal {value}",
-          "palace": "Palace {value}",
-          "mansionLabel": "Mansion",
-          "group": "{group} group"
+          "sun": "सूर्य राशि {value}",
+          "rising": "लग्न {value}",
+          "moon": "चंद्र राशि {value}",
+          "strongStar": "आज का प्रबल तारा {value}",
+          "brightness": "तारे की चमक {value}",
+          "moonPhase": "चंद्र कला {value}",
+          "guardian": "रक्षक पशु {value}",
+          "palace": "भाव {value}",
+          "mansionLabel": "नक्षत्र",
+          "group": "{group} समूह"
         },
         "value": {
-          "unknown": "Unknown",
-          "pending": "Awaiting reading",
-          "lifePalace": "Life Palace"
+          "unknown": "अज्ञात",
+          "pending": "विश्लेषण की प्रतीक्षा",
+          "lifePalace": "जीवन भाव"
         },
         "wait": {
-          "chartSignal": "Awaiting chart signal",
-          "starSignal": "Awaiting main-star signal",
-          "sukuyoSignal": "Awaiting Sukuyo signal",
-          "moonRhythm": "Syncing with the rhythm of the moon.",
-          "nebulaRhythm": "Aligning the nebula rhythm.",
-          "imperialRhythm": "Tuning the imperial energy.",
-          "dayMaster": "Awaiting day master reading",
-          "sourceVerdict": "Awaiting {source} reading",
-          "mainStar": "Awaiting main star reading",
-          "sukuyoReading": "Awaiting Sukuyo reading",
-          "dataLoad": "Waiting to load data",
-          "birth": "Waiting for your birth date"
+          "chartSignal": "कुंडली के संकेत की प्रतीक्षा",
+          "starSignal": "मुख्य तारे के संकेत की प्रतीक्षा",
+          "sukuyoSignal": "सुकुयो संकेत की प्रतीक्षा",
+          "moonRhythm": "चाँद की लय के साथ तालमेल बिठाया जा रहा है।",
+          "nebulaRhythm": "नेबुला की लय संरेखित की जा रही है।",
+          "imperialRhythm": "राजसी ऊर्जा को साधा जा रहा है।",
+          "dayMaster": "डे मास्टर विश्लेषण की प्रतीक्षा",
+          "sourceVerdict": "{source} विश्लेषण की प्रतीक्षा",
+          "mainStar": "मुख्य तारे के विश्लेषण की प्रतीक्षा",
+          "sukuyoReading": "सुकुयो विश्लेषण की प्रतीक्षा",
+          "dataLoad": "डेटा लोड होने की प्रतीक्षा",
+          "birth": "जन्म तिथि की प्रतीक्षा"
         },
         "stage": {
-          "keywords": "{source} keywords · {list}",
-          "astrologyScenario": "Calculating your zodiac blooming scenario.",
-          "jamidusuScenario": "Calculating your Ziwei main-star blooming scenario.",
-          "sukuyoScenario": "Calculating your Sukuyo moonlight blooming scenario.",
-          "seasonTexture": "{season} texture",
-          "seasonDefault": "Season",
-          "environmentMood": "{environment} mood",
-          "environmentDefault": "Environment",
-          "sajuScenario": "Calculating your day master and environment blooming scenario.",
-          "dataSheetPreparing": "Preparing your flower data sheet.",
-          "symbolizes": "This flower symbolizes {symbolism}.",
-          "resonates": "This flower resonates strongly with the current flow of your fortune.",
-          "narrativeFallback": "{verdict} Your blooming point for now is aligned to your {source} balance."
+          "keywords": "{source} कीवर्ड · {list}",
+          "astrologyScenario": "आपकी राशि के अनुसार खिलने का परिदृश्य गणना किया जा रहा है।",
+          "jamidusuScenario": "ज़िवेई मुख्य तारे के अनुसार खिलने का परिदृश्य गणना किया जा रहा है।",
+          "sukuyoScenario": "सुकुयो चाँदनी में खिलने का परिदृश्य गणना किया जा रहा है।",
+          "seasonTexture": "{season} की बनावट",
+          "seasonDefault": "ऋतु",
+          "environmentMood": "{environment} का माहौल",
+          "environmentDefault": "परिवेश",
+          "sajuScenario": "डे मास्टर और परिवेश के अनुसार खिलने का परिदृश्य गणना किया जा रहा है।",
+          "dataSheetPreparing": "फूल की डेटा शीट तैयार की जा रही है।",
+          "symbolizes": "यह फूल {symbolism} का प्रतीक है।",
+          "resonates": "यह फूल आपके भाग्य के मौजूदा प्रवाह से गहराई से गूँजता है।",
+          "narrativeFallback": "{verdict} अभी आपके खिलने का बिंदु आपके {source} संतुलन के अनुसार साधा गया है।"
         },
         "guide": {
-          "allBloomed": "All flowers have bloomed. Revisit any tab you like.",
-          "startSaju": "Next step: open your Saju flower first to start blooming.",
-          "next": "Next step: move on to your {source} flower to keep blooming."
+          "allBloomed": "सभी फूल खिल चुके हैं। जो टैब चाहें, फिर से खोलकर देखें।",
+          "startSaju": "अगला कदम: खिलना शुरू करने के लिए पहले अपना साजू फूल खोलें।",
+          "next": "अगला कदम: खिलना जारी रखने के लिए {source} फूल पर जाएँ।"
         },
         "tab": {
-          "lockLabel": "Opens when the atelier is unlocked"
+          "lockLabel": "एटेलियर अनलॉक होने पर खुलेगा"
         },
         "verdict": {
-          "preparing": "Preparing your destiny flower reading.",
-          "defaultFlower": "Destiny flower",
-          "sukuyo": "Read through Sukuyo, your flower is {name}.",
-          "jamidusu": "Read through Ziwei, your flower is {name}.",
-          "astrology": "Read through astrology, your flower is {name}.",
-          "saju": "Read through Saju, your flower is {name}."
+          "preparing": "भाग्य फूल का विश्लेषण तैयार किया जा रहा है।",
+          "defaultFlower": "भाग्य का फूल",
+          "sukuyo": "सुकुयो के अनुसार, आपका फूल {name} है।",
+          "jamidusu": "ज़िवेई के अनुसार, आपका फूल {name} है।",
+          "astrology": "ज्योतिष के अनुसार, आपका फूल {name} है।",
+          "saju": "साजू के अनुसार, आपका फूल {name} है।"
         },
         "snapshot": {
-          "guidance": "Today, matching your rhythm before chasing results helps you bloom faster."
+          "guidance": "आज परिणाम के पीछे भागने से पहले लय मिलाएँ, फूल जल्दी खिलेगा।"
         },
         "empty": {
-          "noDomainData": "No {source} data is linked yet. Tap the button below and your own destiny flower will bloom now.",
-          "astroCalculating": "We've read your star chart. Choosing your astrology flower now.",
-          "notLinked": "Your {source} flower blooms the moment you tap the link button. Tap the button below to meet the flower that has come to you now.",
-          "linkButton": "Link my destiny flower",
-          "linking": "Linking...",
-          "dataWaiting": "Waiting to link {source} data",
-          "readingWaiting": "Awaiting {source} reading",
-          "keywordsLoading": "{source} keywords · loading"
+          "noDomainData": "अभी कोई {source} डेटा जुड़ा नहीं है। नीचे का बटन दबाएँ, आपका अपना भाग्य का फूल अभी खिल उठेगा।",
+          "astroCalculating": "आपकी ज्योतिष कुंडली पढ़ ली गई है। अब आपका ज्योतिष फूल चुना जा रहा है।",
+          "notLinked": "लिंक बटन दबाते ही आपका {source} फूल खिल उठेगा। अभी आपके पास आए फूल से मिलने के लिए नीचे का बटन दबाएँ।",
+          "linkButton": "भाग्य का फूल जोड़ें",
+          "linking": "जोड़ा जा रहा है...",
+          "dataWaiting": "{source} डेटा जुड़ने की प्रतीक्षा",
+          "readingWaiting": "{source} विश्लेषण की प्रतीक्षा",
+          "keywordsLoading": "{source} कीवर्ड · लोड हो रहे हैं"
         },
         "artMood": {
-          "astrology": "Dreamy floral wrapped in starlit nebulae and neon glow",
-          "jamidusu": "Floral where imperial dignity meets refined court elegance",
-          "sukuyo": "Clear floral like moonlit meditation and still water",
-          "saju": "Lyrical East Asian floral blooming along the grain of the Five Elements"
+          "astrology": "तारों भरी नेबुला और नियॉन चमक में लिपटी स्वप्निल फूलों की शैली",
+          "jamidusu": "राजसी गरिमा और दरबारी नफ़ासत के मेल वाली फूलों की शैली",
+          "sukuyo": "चाँद और शांत जल पर ध्यान जैसी निर्मल फूलों की शैली",
+          "saju": "पाँच तत्वों की लय पर खिलती भावपूर्ण पूर्वी फूलों की शैली"
         },
         "care": {
-          "wood": "Wake your growth point with an 8-minute stretch by an east-facing window in the morning sun",
-          "fire": "Soak in south-facing light for 5 minutes and declare today's goal out loud",
-          "earth": "Tidy one corner of your workspace to firmly set your central axis",
-          "metal": "Write down 3 priorities and boldly prune unnecessary commitments",
-          "water": "Open the circulation of your emotions with a 10-minute evening walk and some water",
-          "default": "Fix your light (morning) and water (evening) routines to stabilize your basic growth rhythm first."
+          "wood": "पूर्व की खिड़की पर सुबह की धूप में 8 मिनट स्ट्रेचिंग करके विकास बिंदु जगाएँ",
+          "fire": "5 मिनट दक्षिण की रोशनी लें और आज का लक्ष्य ज़ोर से बोलें",
+          "earth": "काम की जगह का एक कोना व्यवस्थित करके केंद्र की धुरी मज़बूत करें",
+          "metal": "3 प्राथमिकताएँ लिखें और ग़ैरज़रूरी वादों को साहस से छाँट दें",
+          "water": "शाम की 10 मिनट की सैर और पानी पीकर भावनाओं का प्रवाह खोलें",
+          "default": "पहले रोशनी (सुबह) और पानी (शाम) की दिनचर्या तय करके विकास की बुनियादी लय स्थिर करें।"
         },
         "synergy": {
-          "astrology": "glass vases, silver frames, soft micro-lighting",
-          "jamidusu": "satin fabric, bronze objects, symmetrical ceramics",
-          "sukuyo": "frosted glass, moonlight-toned linen, wave-patterned trays",
-          "saju": "matte ceramics, natural wood, softly patterned fabric",
-          "line": "Suggested colors: Primary {primary}, Secondary {secondary}, Accent {accent} / Suggested materials: {materials}."
+          "astrology": "काँच के गुलदान, चाँदी के फ़्रेम, हल्की माइक्रो-लाइटिंग",
+          "jamidusu": "साटन कपड़ा, काँसे की वस्तुएँ, सममित सिरेमिक",
+          "sukuyo": "धुँधला काँच, चाँदनी रंग का लिनन, लहरदार ट्रे",
+          "saju": "मैट सिरेमिक, प्राकृतिक लकड़ी, हल्के पैटर्न वाला कपड़ा",
+          "line": "सुझाए गए रंग: मुख्य {primary}, सहायक {secondary}, एक्सेंट {accent} / सुझाई गई सामग्री: {materials}।"
         },
         "atelier": {
-          "scenarioTitle": "{source} blooming scenario",
-          "growthCycleWaiting": "Awaiting blooming cycle calculation",
-          "ritualWaiting": "Calculating today's practice routine.",
+          "scenarioTitle": "{source} खिलने का परिदृश्य",
+          "growthCycleWaiting": "खिलने के चक्र की गणना की प्रतीक्षा",
+          "ritualWaiting": "आज की दिनचर्या की गणना की जा रही है।",
           "astrology": {
-            "lightingFire": "Intense sunlight at a high angle, like midsummer noon",
-            "lightingEarth": "Steady light where late-afternoon gold lingers long",
-            "lightingWater": "Cool blue dawn light that spreads slowly",
-            "lightingAir": "Slanted light, tilted like the wind, that lightly opens the space",
-            "humidityWater": "A silver-mist state with high emotional humidity",
-            "humidityFire": "Dry, heat-holding air; a state of quick emotional response",
-            "humidityEarth": "Steady clay-pot humidity; a state where feelings slowly ripen",
-            "humidityAir": "Light, shifting breeze humidity; a state where ideas refresh quickly",
-            "seasonFire": "Bloom accelerator: a stretch where action and presenting push the buds upward",
-            "seasonWater": "Inner nourishment: a stretch where rest and intuition fill the root layer",
-            "seasonBalance": "Balance tuning: a stretch where structure and feeling cross to prepare the next bud",
-            "section": "Celestial light and energy",
-            "matrixLighting": "☀️ Celestial light: {value}",
-            "matrixHumidity": "💧 Atmospheric humidity: {value}",
-            "matrixSeason": "🪐 Cosmic season: {value}",
-            "log": "Gardener's observation journal: the direction of your Sun sign {sun} and the light of your Rising sign {rising} set the angle of the flower stem. The humidity control of your Moon sign {moon} gently opens the veins of emotion, and this week is a pre-bloom stretch where opportunities show first.",
-            "recipe": "Secret recipe: after 9 p.m., dim the window light by one step and write the one thing you will do tomorrow on the first line of your notebook. Focus only on that one thing for the first 12 minutes of the morning and the starlight rhythm aligns fastest.",
-            "flowerLanguage": "Destiny flower language: the courage to trust the angle of the stars and take the first step.",
-            "gardenerWord": "A gardener's word for this flower: today's intuition is not exaggeration but a forecast. Small actions turn the nebula into a real flower bed.",
-            "particle": "Translated into particles, the light of {source} shines most steadily with a \"{particle}\" texture."
+            "lightingFire": "गर्मियों की दोपहर जैसी ऊँचे कोण से पड़ती तेज़ रोशनी",
+            "lightingEarth": "स्थिर रोशनी, जिसमें ढलती दोपहर की सुनहरी आभा देर तक रहती है",
+            "lightingWater": "भोर की ठंडी नीली रोशनी, जो धीरे-धीरे फैलती है",
+            "lightingAir": "हवा की तरह तिरछी पड़ती रोशनी, जो जगह को हल्के से खोल देती है",
+            "humidityWater": "भावनात्मक नमी से भरी, चाँदी जैसी धुंध की अवस्था",
+            "humidityFire": "गर्माहट भरी सूखी हवा, जिसमें भावनाएँ तेज़ी से प्रतिक्रिया करती हैं",
+            "humidityEarth": "मिट्टी के गमले जैसी स्थिर नमी, जिसमें भावनाएँ धीरे-धीरे पकती हैं",
+            "humidityAir": "हल्की और लचीली हवा जैसी नमी, जिसमें विचार तेज़ी से नए होते हैं",
+            "seasonFire": "खिलने की गति का दौर: कर्म और अभिव्यक्ति कलियों को ऊपर धकेलते हैं",
+            "seasonWater": "भीतरी पोषण का दौर: विश्राम और अंतर्ज्ञान जड़ों को भरते हैं",
+            "seasonBalance": "संतुलन साधने का दौर: संरचना और भावना मिलकर अगली कली तैयार करती हैं",
+            "section": "खगोलीय रोशनी और ऊर्जा",
+            "matrixLighting": "☀️ खगोलीय रोशनी: {value}",
+            "matrixHumidity": "💧 वायुमंडलीय नमी: {value}",
+            "matrixSeason": "🪐 ब्रह्मांड की ऋतु: {value}",
+            "log": "माली की अवलोकन डायरी: सूर्य राशि {sun} की दिशा और लग्न {rising} की रोशनी डाली का कोण तय करती हैं। चंद्र राशि {moon} से नियंत्रित नमी भावनाओं की नसों को हल्के से खोलती है, और यह सप्ताह खिलने का संकेत देने वाला दौर है, जब अवसर सबसे पहले दिखते हैं।",
+            "recipe": "गुप्त नुस्खा: रात 9 बजे के बाद खिड़की की रोशनी एक स्तर कम करें और डायरी की पहली पंक्ति में कल करने वाला बस एक काम लिखें। सुबह के पहले 12 मिनट केवल उसी पर ध्यान दें, तारों की लय सबसे जल्दी मेल खाएगी।",
+            "flowerLanguage": "भाग्य फूल का अर्थ: तारों के कोण पर भरोसा करके पहला कदम उठाने का साहस।",
+            "gardenerWord": "इस फूल के लिए माली की बात: आज का अंतर्ज्ञान अतिशयोक्ति नहीं, पूर्वानुमान है। छोटे कदम नेबुला को असली बगीचे में बदल देते हैं।",
+            "particle": "जब {source} की रोशनी को कणों में बदलते हैं, तो \"{particle}\" की बनावट सबसे स्थिर चमकती है।"
           },
           "jamidusu": {
-            "structureZiwei": "A sturdy stem carrying the imperial grace of the Ziwei star family",
-            "structureBreaker": "A thick, upright stalk shaped by a breakthrough general's temperament",
-            "structureFlexible": "Delicate layered petals, supple yet hard to break",
-            "structureBalanced": "A refined, symmetrical flower frame shaped by a balanced main star",
-            "social": "Like butterflies and bees circling around {palace}, close connections share roles and help you grow.",
-            "thornsDim": "A time when short, dense, highly protective thorns help you set boundaries",
-            "thornsBright": "A time when light-reflecting grain patterns stand in for thorns and protect you with dignity",
-            "section": "The flower's dignity and form",
-            "matrixStructure": "🏛️ Flower frame: {value}",
-            "matrixSocial": "🦋 Butterflies and bees: {value}",
-            "matrixThorns": "🌵 Guardian thorns: {value}",
-            "log": "Gardener's observation journal: today's strong star {star} holds the center of the stem upright, and star brightness {brightness} adjusts the sheen of the petals. Now is a time when structural completeness, more than flashiness, grows your results.",
-            "recipe": "Secret recipe: place one metal object on the left side of your desk, and write down one standard for today and one point where you will yield. The clearer your boundaries, the more gracefully the flower blooms.",
-            "flowerLanguage": "Destiny flower language: dignity is the quietest radiance, blooming from a solid structure.",
-            "gardenerWord": "A gardener's word for this flower: don't rush to be dazzling. A day spent keeping your standards builds the longest-lasting stem.",
-            "particle": "Translated into particles, the hierarchy of {source} shows its order most beautifully with a \"{particle}\" mood."
+            "structureZiwei": "ज़िवेई तारा-समूह की शाही गरिमा वाली मज़बूत डाली",
+            "structureBreaker": "बाधाएँ तोड़ने वाले सेनापति की ऊर्जा से बना मोटा, सख़्त तना",
+            "structureFlexible": "कई परतों वाली नाज़ुक पंखुड़ियाँ, जो कोमल हैं पर आसानी से नहीं टूटतीं",
+            "structureBalanced": "संतुलित मुख्य तारे से बना सुघड़, सममित फूल का ढाँचा",
+            "social": "जैसे तितलियाँ और मधुमक्खियाँ {palace} के आसपास मँडराती हैं, वैसे ही नज़दीकी रिश्ते भूमिकाएँ बाँटकर आपको बढ़ने में मदद करते हैं।",
+            "thornsDim": "घने, छोटे काँटों और ऊँची रक्षा-शक्ति का दौर, जो आपकी सीमाएँ खींचता है",
+            "thornsBright": "काँटों की जगह रोशनी लौटाने वाली बनावट का दौर, जो आपकी गरिमा से रक्षा करता है",
+            "section": "फूल की गरिमा और आकार",
+            "matrixStructure": "🏛️ फूल का ढाँचा: {value}",
+            "matrixSocial": "🦋 तितलियाँ और मधुमक्खियाँ: {value}",
+            "matrixThorns": "🌵 रक्षक काँटे: {value}",
+            "log": "माली की अवलोकन डायरी: आज का प्रबल तारा {star} तने की धुरी सीधी रखता है, और तारे की चमक {brightness} पंखुड़ियों की चमक को साधती है। अभी दिखावे से ज़्यादा संरचना की पूर्णता ही परिणामों को बढ़ाती है।",
+            "recipe": "गुप्त नुस्खा: मेज़ के बाईं ओर धातु की एक वस्तु रखें, और आज का एक सिद्धांत तथा एक बात जिस पर आप झुक सकते हैं, दोनों साथ लिखें। सीमाएँ जितनी स्पष्ट होंगी, फूल उतनी ही शान से खिलेगा।",
+            "flowerLanguage": "भाग्य फूल का अर्थ: गरिमा सबसे शांत रोशनी है, जो मज़बूत संरचना से खिलती है।",
+            "gardenerWord": "इस फूल के लिए माली की बात: चमकने की जल्दी न करें। सिद्धांतों पर टिका एक दिन सबसे टिकाऊ डाली बनाता है।",
+            "particle": "जब {source} के क्रम-विधान को कणों में बदलते हैं, तो \"{particle}\" का माहौल सबसे सुंदर व्यवस्था दिखाता है।"
           },
           "sukuyo": {
-            "scentFriend": "A soft white-musk note that spreads under the moonlight",
-            "scentDanger": "A deep, dense agarwood note that sharpens focus",
-            "scentDefault": "A clear herbal floral note that gently warms the temperature of relationships",
-            "dewFull": "Night dew at its fullest; inspiration and emotional expression are both abundant",
-            "dewNew": "A new-moon stretch with thin dew; observation and preparation come first",
-            "dewDefault": "A moderate amount of dew; emotional balance and drive grow together",
-            "companionDragon": "Wisteria and blue sage, supporting a big flow of expansion",
-            "companionDog": "Rosemary and chamomile, strengthening stable relationships and resilience",
-            "companionTiger": "Eucalyptus and rudbeckia, strengthening decisiveness and protective instinct",
-            "companionDefault": "Lavender and ivy, supporting both emotional stability and long-term growth",
-            "section": "The scent of connection and dew",
-            "matrixScent": "🌙 Destiny scent: {value}",
-            "matrixDew": "💦 Night dew: {value}",
-            "matrixCompanion": "🌿 Companion plants: {value}",
-            "log": "Gardener's observation journal: the relational nature of {mansion} shows first as scent, and moon phase {phase} adjusts your emotional rhythm through the density of the dew. Now, care in matching each other's grain, rather than hurrying the pace of a connection, keeps the flower alive longer.",
-            "recipe": "Secret recipe: before bed, slowly drink a glass of water, then quietly write down one name you were grateful for today. The moon's water rhythm settles and your relationship luck opens gently.",
-            "flowerLanguage": "Destiny flower language: quiet empathy becomes the scent that travels furthest.",
-            "gardenerWord": "A gardener's word for this flower: it's okay not to hurry. Just as night dew gathers, your connections will become clear at exactly the right time.",
-            "particle": "Translated into particles, the moonlight rhythm of {source} wraps you most warmly with a \"{particle}\" mood."
+            "scentFriend": "चाँदनी में फैलती हल्की सफ़ेद कस्तूरी की ख़ुशबू",
+            "scentDanger": "एकाग्रता बढ़ाने वाली गहरी, घनी लकड़ी की ख़ुशबू",
+            "scentDefault": "रिश्तों का तापमान हल्के से साधने वाली साफ़ हर्बल-फूलों की ख़ुशबू",
+            "dewFull": "रात की ओस सबसे भरपूर, प्रेरणा और भावनाओं की अभिव्यक्ति दोनों प्रचुर",
+            "dewNew": "पतली ओस वाला नए चाँद का दौर, जिसमें अवलोकन और तैयारी पहले आते हैं",
+            "dewDefault": "संतुलित ओस, जिसमें भावना और कर्म-शक्ति साथ-साथ बढ़ते हैं",
+            "companionDragon": "विस्टेरिया और ब्लू सेज की जोड़ी, जो बड़े विस्तार के प्रवाह को सहारा देती है",
+            "companionDog": "रोज़मेरी और कैमोमाइल की जोड़ी, जो रिश्तों की स्थिरता और फिर से सँभलने की क्षमता बढ़ाती है",
+            "companionTiger": "यूकेलिप्टस और रुडबेकिया की जोड़ी, जो निर्णय-शक्ति और रक्षा की प्रवृत्ति बढ़ाती है",
+            "companionDefault": "लैवेंडर और आइवी की जोड़ी, जो भावनात्मक स्थिरता और लंबे विकास दोनों में मदद करती है",
+            "section": "संयोग की ख़ुशबू और रात की ओस",
+            "matrixScent": "🌙 भाग्य की ख़ुशबू: {value}",
+            "matrixDew": "💦 रात की ओस: {value}",
+            "matrixCompanion": "🌿 साथी पौधा: {value}",
+            "log": "माली की अवलोकन डायरी: {mansion} का रिश्तों वाला स्वभाव सबसे पहले ख़ुशबू में झलकता है, और चंद्र कला {phase} ओस की घनत्व से भावनाओं की लय साधती है। अभी संयोग की गति को तेज़ करने के बजाय एक-दूसरे से लय मिलाने की नफ़ासत फूल को देर तक ताज़ा रखती है।",
+            "recipe": "गुप्त नुस्खा: सोने से पहले एक गिलास पानी धीरे-धीरे पिएँ और आज जिसके प्रति आभार महसूस हुआ, उसका एक नाम चुपचाप लिखें। चाँद की जल-लय स्थिर होगी और संयोग का भाग्य हल्के से खुलेगा।",
+            "flowerLanguage": "भाग्य फूल का अर्थ: शांत सहानुभूति ही सबसे दूर तक जाने वाली ख़ुशबू बनती है।",
+            "gardenerWord": "इस फूल के लिए माली की बात: जल्दी न करें तो भी चलेगा। जैसे रात की ओस धीरे-धीरे जमा होती है, वैसे ही आपका संयोग सही समय पर स्पष्ट होगा।",
+            "particle": "जब {source} की चाँदनी की लय को कणों में बदलते हैं, तो \"{particle}\" का माहौल आपको सबसे गर्मजोशी से घेरता है।"
           },
           "saju": {
-            "soilCold": "Rich, marshy soil that holds moisture",
-            "soilHot": "Warm, well-draining gravel mix",
-            "soilBalanced": "Fertile soil with even grains and stable minerals",
-            "rootStrong": "A stage where deep roots hold the center even through outside changes",
-            "rootWeak": "A stage where fine rootlets spread first and need support",
-            "rootBalanced": "A balanced stage where mid-depth roots spread evenly",
-            "section": "Soil and roots for growth",
-            "matrixSoil": "🪨 Soil composition: {value}",
-            "matrixRoot": "🌱 Root depth: {value}",
-            "matrixNutrient": "🧪 Gardener's nutrient: {value}",
-            "log": "Gardener's observation journal: today the garden takes on the texture of {soil}, and growth energy moves along the flow of \"{root}\". It may look quiet on the surface, but strength for the next bloom is being firmly stored in the root layer.",
-            "recipe": "Secret recipe: place a green-leaved plant by a north- or east-facing window, loosen your body for 10 minutes in the morning and steady your breathing for 10 minutes in the evening. Fixing this rhythm twice a day lifts your useful element's energy fastest.",
-            "flowerLanguage": "Destiny flower language: strong roots may seem slow, but in the end they bloom the highest.",
-            "gardenerWord": "A gardener's word for this flower: trust accumulation over haste. Today's small care makes next season's great harvest.",
-            "particle": "Translated into particles, the subtle movement of {source} energy is most harmonious with a \"{particle}\" mood."
+            "soilCold": "भरपूर नमी वाली दलदली उपजाऊ मिट्टी",
+            "soilHot": "अच्छी जल-निकासी वाली गर्म, बजरी मिली मिट्टी",
+            "soilBalanced": "एकसार कणों और स्थिर खनिजों वाली उपजाऊ मिट्टी",
+            "rootStrong": "गहरी जड़ों का दौर, जो बाहरी बदलावों में भी केंद्र थामे रखता है",
+            "rootWeak": "पतली जड़ें पहले फैलती हैं और सहारे की ज़रूरत होती है",
+            "rootBalanced": "संतुलन का दौर, जिसमें मध्यम गहराई की जड़ें समान रूप से फैलती हैं",
+            "section": "विकास के लिए मिट्टी और जड़ें",
+            "matrixSoil": "🪨 मिट्टी की बनावट: {value}",
+            "matrixRoot": "🌱 जड़ों की गहराई: {value}",
+            "matrixNutrient": "🧪 माली का पोषक तत्व: {value}",
+            "log": "माली की अवलोकन डायरी: आज बगीचे में {soil} की बनावट है, और विकास की ऊर्जा \"{root}\" के प्रवाह में चल रही है। बाहर से शांत दिखता है, पर जड़ों में अगले खिलने की शक्ति मज़बूती से जमा हो रही है।",
+            "recipe": "गुप्त नुस्खा: उत्तर या पूर्व की खिड़की पर हरी पत्तियों वाला एक पौधा रखें, सुबह 10 मिनट शरीर ढीला करें और शाम 10 मिनट साँसें साधें। दिन में दो बार यह लय तय रखने से उपयोगी तत्व की ऊर्जा सबसे जल्दी बढ़ती है।",
+            "flowerLanguage": "भाग्य फूल का अर्थ: मज़बूत जड़ें धीमी लगती हैं, पर अंत में सबसे ऊँचा खिलती हैं।",
+            "gardenerWord": "इस फूल के लिए माली की बात: जल्दबाज़ी से ज़्यादा संचय पर भरोसा करें। आज की छोटी देखभाल अगले मौसम की बड़ी फ़सल बनती है।",
+            "particle": "जब {source} ऊर्जा की सूक्ष्म हलचल को कणों में बदलते हैं, तो \"{particle}\" का माहौल सबसे सामंजस्यपूर्ण होता है।"
           },
-          "themesWaiting": "Analyzing your relationship and work themes.",
-          "guidance": "{source} destiny flower practice guide: {text}"
+          "themesWaiting": "रिश्तों और काम के विषयों का विश्लेषण किया जा रहा है।",
+          "guidance": "{source} भाग्य फूल अभ्यास मार्गदर्शन: {text}"
         },
         "prompt": {
-          "badgesSukuyo": "Sukuyo badges: {mansion} / moon phase {phase} / guardian animal {guardian}",
-          "badgesJamidusu": "Ziwei badges: today's strong star {star} / star brightness {brightness} / palace {palace}",
-          "badgesAstrology": "Astrology badges: Sun sign {sun} / Rising sign {rising} / Moon sign {moon}",
-          "badgesSaju": "Saju badges: strength {strength} / useful element {yongshin} / seasonal balance {johu}",
-          "symbolismFallback": "A flower symbolizing the flow of destiny",
-          "narrativeFallback": "Destiny flower narrative",
-          "scenarioFallback": "Staging based on the blooming scenario",
-          "toneDirection": "{source} tone direction: {mood} / {background}"
+          "badgesSukuyo": "सुकुयो बैज: {mansion} / चंद्र कला {phase} / रक्षक पशु {guardian}",
+          "badgesJamidusu": "ज़िवेई बैज: आज का प्रबल तारा {star} / तारे की चमक {brightness} / भाव {palace}",
+          "badgesAstrology": "ज्योतिष बैज: सूर्य राशि {sun} / लग्न {rising} / चंद्र राशि {moon}",
+          "badgesSaju": "साजू बैज: बल {strength} / उपयोगी तत्व {yongshin} / ऋतु संतुलन {johu}",
+          "symbolismFallback": "भाग्य के प्रवाह का प्रतीक फूल",
+          "narrativeFallback": "भाग्य फूल की कहानी",
+          "scenarioFallback": "खिलने के परिदृश्य पर आधारित प्रस्तुति",
+          "toneDirection": "{source} टोन दिशा: {mood} / {background}"
         },
         "history": {
-          "emptyStatus": "No blooming records have been saved yet. Try saving your current result.",
-          "restore": "Open",
-          "kakao": "Share on Kakao",
-          "delete": "Delete",
-          "saved": "Blooming record saved: {name} ({time})",
-          "notFound": "That record could not be found.",
-          "restored": "Loaded your saved blooming record: {name}",
-          "deleteNotFound": "Could not find the record to delete.",
-          "deleted": "The selected blooming record has been deleted.",
-          "nothingToClear": "There are no blooming records to delete.",
-          "cleared": "All saved blooming records have been deleted.",
-          "shareNotFound": "Could not find the record to share."
+          "emptyStatus": "अभी कोई खिलने का रिकॉर्ड सेव नहीं है। मौजूदा परिणाम सेव करके देखें।",
+          "restore": "फिर से खोलें",
+          "kakao": "Kakao पर साझा करें",
+          "delete": "हटाएँ",
+          "saved": "खिलने का रिकॉर्ड सेव हुआ: {name} ({time})",
+          "notFound": "यह रिकॉर्ड नहीं मिला।",
+          "restored": "सेव किया गया खिलने का रिकॉर्ड फिर से खोला गया: {name}",
+          "deleteNotFound": "हटाने के लिए रिकॉर्ड नहीं मिला।",
+          "deleted": "चुना गया खिलने का रिकॉर्ड हटा दिया गया।",
+          "nothingToClear": "हटाने के लिए कोई खिलने का रिकॉर्ड नहीं है।",
+          "cleared": "सेव किए गए सभी खिलने के रिकॉर्ड हटा दिए गए।",
+          "shareNotFound": "साझा करने के लिए रिकॉर्ड नहीं मिला।"
         },
         "noBirth": {
-          "jamidusu": "Enter your date of birth to see your Ziwei flower.",
-          "sukuyo": "Enter your date of birth to see your Sukuyo flower.",
-          "astrology": "Enter your date and time of birth to see your astrology flower.",
-          "saju": "Enter your name and date of birth first, and your own destiny flower will bloom here."
+          "jamidusu": "अपना ज़िवेई फूल देखने के लिए जन्म तिथि दर्ज करें।",
+          "sukuyo": "अपना सुकुयो फूल देखने के लिए जन्म तिथि दर्ज करें।",
+          "astrology": "अपना ज्योतिष फूल देखने के लिए जन्म तिथि और समय दर्ज करें।",
+          "saju": "पहले अपना नाम और जन्म तिथि दर्ज करें, आपका अपना भाग्य का फूल यहीं खिलेगा।"
         },
-        "studioTitle": "🌸 Destiny Flower Atelier",
+        "studioTitle": "🌸 भाग्य फूल एटेलियर",
         "sourceDesc": {
-          "saju": "We read your day master, birth month and Five Element balance one by one, then choose the single flower that touches your energy most deeply this season.",
-          "astrology": "We layer the three strands of starlight drawn by your Sun, Rising and Moon signs, then bloom the flower that harmonizes most clearly with your chart right now.",
-          "jamidusu": "We trace the main star in your Life Palace, its brightness and the flow of the Four Transformations, then find the flower your chart brings out most vividly right now.",
-          "sukuyo": "We set your birth-day lunar mansion against tonight's moon phase, then hand you the flower that fits the grain of your heart most gently right now."
+          "saju": "हम आपके डे मास्टर, जन्म माह और पाँच तत्वों के संतुलन को एक-एक करके पढ़ते हैं, फिर वह फूल चुनते हैं जो इस मौसम में आपकी ऊर्जा को सबसे गहराई से छूता है।",
+          "astrology": "हम आपकी सूर्य राशि, लग्न और चंद्र राशि से बनी तारों की तीन धाराओं को एक साथ पढ़ते हैं, फिर वह फूल खिलाते हैं जो अभी आपकी कुंडली से सबसे साफ़ मेल खाता है।",
+          "jamidusu": "हम आपके जीवन भाव के मुख्य तारे, उसकी चमक और चार रूपांतरणों के प्रवाह को देखते हैं, फिर वह फूल खोजते हैं जिसे आपकी कुंडली अभी सबसे स्पष्ट रूप से खिलाती है।",
+          "sukuyo": "हम 27 नक्षत्रों में से आपके जन्म नक्षत्र को आज रात की चंद्र कला के साथ रखकर पढ़ते हैं, फिर वह फूल देते हैं जो अभी आपके मन की लय से सबसे कोमलता से मेल खाता है।"
         },
         "sourceShort": {
-          "saju": "Saju",
-          "astrology": "chart",
-          "jamidusu": "Ziwei",
-          "sukuyo": "Sukuyo"
+          "saju": "साजू",
+          "astrology": "कुंडली",
+          "jamidusu": "ज़िवेई",
+          "sukuyo": "सुकुयो"
         },
         "strength": {
-          "strong": "Strong",
-          "weak": "Weak"
+          "strong": "प्रबल",
+          "weak": "दुर्बल"
         },
         "johu": {
-          "hot": "Warm & dry",
-          "cold": "Cold & damp",
-          "balanced": "Balanced"
+          "hot": "गर्म-शुष्क",
+          "cold": "ठंडा-नम",
+          "balanced": "संतुलित"
         }
       }
     }

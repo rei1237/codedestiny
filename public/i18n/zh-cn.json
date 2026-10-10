@@ -668,14 +668,14 @@
       "home": "前往首页",
       "keywords": "四柱判定 • 重生 • 纯净 • 流动",
       "quadAria": "四种占术的命运之花",
-      "letterTitle": "Today's flower letter · one thing your heart needs",
-      "letterIntro": "Flower stories for small actions rather than predictions. Pick the letter that fits how you feel right now.",
-      "letterRestTitle": "Like a magnolia · I want to rest for a while",
-      "letterRestBody": "Before a flower blooms, its branches quietly gather strength. Today, set down one thing you have to do, and take a moment to look at the plants or the sky outside your window.",
-      "letterStartTitle": "Like a sprout · I need courage to begin",
-      "letterStartBody": "Instead of a big resolution, let one small sprout break through. Write down just the first step of something you have put off, and spend five minutes working on it.",
-      "letterShareTitle": "Like a bouquet · I want to share how I feel",
-      "letterShareBody": "Rather than what you want to hear, recall one moment you were grateful for. Offer your feelings with a short hello that doesn't press for a reply."
+      "letterTitle": "今日花之信 · 心里需要的一件事",
+      "letterIntro": "这是为了小小实践、而非预测的花之故事。选一封契合你此刻心情的信吧。",
+      "letterRestTitle": "像玉兰一样 · 想稍微休息一下",
+      "letterRestBody": "花开之前，枝条也会静静地积蓄力量。今天就放下一件该做的事，花点时间看看窗外的植物或天空吧。",
+      "letterStartTitle": "像新芽一样 · 需要开始的勇气",
+      "letterStartBody": "比起宏大的决心，不如先让一颗小芽破土而出。只写下拖延已久之事的第一步，动手做5分钟试试吧。",
+      "letterShareTitle": "像花束一样 · 想传达心意",
+      "letterShareBody": "比起希望对方说出的话，先回想一个让你心怀感激的瞬间吧。用一句不催促回复的简短问候，传达你的心意。"
     },
     "tarotSelfEsteem": {
       "levelUp": "你的标准又清晰了一格",
@@ -2731,9 +2731,9 @@
         "shareHook": {
           "rarityAnchor": "从{anchor}读出的唯一一朵"
         },
-        "anonymousName": "Anonymous traveler",
+        "anonymousName": "匿名旅人",
         "rationaleLabel": {
-          "verdict": "So, this flower"
+          "verdict": "所以是这朵花"
         }
       },
       "astro": {
@@ -2763,34 +2763,34 @@
         "verdict": "通过占星学，你的命运之花是 {flowerName} ({scientificName})。太阳、上升和月亮星座的三个轴表明这朵花现在与你密切共鸣。",
         "narrative": "从太阳星座 {sun} 升起的 {sunElement} 火花成为此花选择的中心。上升星座{rising} ({risingElement}) 塑造可见的基调，而月亮星座{moon} ({moonElement}) 添加情感露水，让{flowerName}、{flowerSymbolism}、？打开清楚。关键词“{keyword}”是召唤这朵花前进的星光。",
         "signs": {
-          "aries": "Aries",
-          "taurus": "Taurus",
-          "gemini": "Gemini",
-          "cancer": "Cancer",
-          "leo": "Leo",
-          "virgo": "Virgo",
-          "libra": "Libra",
-          "scorpio": "Scorpio",
-          "sagittarius": "Sagittarius",
-          "capricorn": "Capricorn",
-          "aquarius": "Aquarius",
-          "pisces": "Pisces"
+          "aries": "白羊座",
+          "taurus": "金牛座",
+          "gemini": "双子座",
+          "cancer": "巨蟹座",
+          "leo": "狮子座",
+          "virgo": "处女座",
+          "libra": "天秤座",
+          "scorpio": "天蝎座",
+          "sagittarius": "射手座",
+          "capricorn": "摩羯座",
+          "aquarius": "水瓶座",
+          "pisces": "双鱼座"
         },
         "rationaleLabel": {
-          "sun": "Sun sign",
-          "risingMoon": "Rising sign · Moon sign"
+          "sun": "太阳星座",
+          "risingMoon": "上升星座 · 月亮星座"
         }
       },
       "ziwei": {
         "brightness": {
-          "miao": "苗",
-          "wang": "王",
-          "li": "李",
-          "de": "德",
+          "miao": "庙",
+          "wang": "旺",
+          "li": "利",
+          "de": "得",
           "ping": "平",
-          "han": "韩",
-          "xian": "西安",
-          "bu": "Bu"
+          "han": "闲",
+          "xian": "陷",
+          "bu": "不"
         },
         "coreFlow": "核心财富流程",
         "coreEnergy": "核心能量表达",
@@ -2846,74 +2846,74 @@
           }
         },
         "stars": {
-          "ziwei": "Zi Wei (紫微)",
-          "tianji": "Tian Ji (天機)",
-          "taiyang": "Tai Yang (太陽)",
-          "wuqu": "Wu Qu (武曲)",
-          "tiantong": "Tian Tong (天同)",
-          "lianzhen": "Lian Zhen (廉貞)",
-          "tianfu": "Tian Fu (天府)",
-          "taiyin": "Tai Yin (太陰)",
-          "tanlang": "Tan Lang (貪狼)",
-          "jumen": "Ju Men (巨門)",
-          "tianxiang": "Tian Xiang (天相)",
-          "tianliang": "Tian Liang (天梁)",
-          "qisha": "Qi Sha (七殺)",
-          "pojun": "Po Jun (破軍)",
-          "wenchang": "Wen Chang (文昌)",
-          "wenqu": "Wen Qu (文曲)",
-          "zuofu": "Zuo Fu (左輔)",
-          "youbi": "You Bi (右弼)",
-          "tianma": "Tian Ma (天馬)",
-          "lucun": "Lu Cun (祿存)",
-          "tiankui": "Tian Kui (天魁)",
-          "tianyue": "Tian Yue (天鉞)",
-          "qingyang": "Qing Yang (擎羊)",
-          "tuoluo": "Tuo Luo (陀羅)",
-          "dikong": "Di Kong (地空)",
-          "dijie": "Di Jie (地劫)",
-          "huoxing": "Huo Xing (火星)",
-          "lingxing": "Ling Xing (鈴星)"
+          "ziwei": "紫微",
+          "tianji": "天机",
+          "taiyang": "太阳",
+          "wuqu": "武曲",
+          "tiantong": "天同",
+          "lianzhen": "廉贞",
+          "tianfu": "天府",
+          "taiyin": "太阴",
+          "tanlang": "贪狼",
+          "jumen": "巨门",
+          "tianxiang": "天相",
+          "tianliang": "天梁",
+          "qisha": "七杀",
+          "pojun": "破军",
+          "wenchang": "文昌",
+          "wenqu": "文曲",
+          "zuofu": "左辅",
+          "youbi": "右弼",
+          "tianma": "天马",
+          "lucun": "禄存",
+          "tiankui": "天魁",
+          "tianyue": "天钺",
+          "qingyang": "擎羊",
+          "tuoluo": "陀罗",
+          "dikong": "地空",
+          "dijie": "地劫",
+          "huoxing": "火星",
+          "lingxing": "铃星"
         },
         "palaces": {
-          "life": "Life Palace",
-          "siblings": "Siblings Palace",
-          "spouse": "Spouse Palace",
-          "children": "Children Palace",
-          "wealth": "Wealth Palace",
-          "health": "Health Palace",
-          "travel": "Travel Palace",
-          "friends": "Friends Palace",
-          "career": "Career Palace",
-          "property": "Property Palace",
-          "fortune": "Fortune Palace",
-          "parents": "Parents Palace"
+          "life": "命宫",
+          "siblings": "兄弟宫",
+          "spouse": "夫妻宫",
+          "children": "子女宫",
+          "wealth": "财帛宫",
+          "health": "疾厄宫",
+          "travel": "迁移宫",
+          "friends": "交友宫",
+          "career": "官禄宫",
+          "property": "田宅宫",
+          "fortune": "福德宫",
+          "parents": "父母宫"
         },
         "palaceTraits": {
-          "life": "a strong sense of self and presence",
-          "siblings": "cooperation and a feel for coordination",
-          "spouse": "relational grace and intimate communication",
-          "children": "creativity and the urge to express",
-          "wealth": "managing resources and expanding abundance",
-          "health": "resilience and a sense of inner balance",
-          "travel": "adaptability and on-the-spot judgment",
-          "friends": "running networks and caring for a team",
-          "career": "social drive and an orientation toward achievement",
-          "property": "building foundations and steady accumulation",
-          "fortune": "emotional recharge and spiritual insight",
-          "parents": "protective instinct and a sense of tradition"
+          "life": "自我的核心感与存在感",
+          "siblings": "合作与协调的分寸感",
+          "spouse": "关系中的美感与亲密沟通",
+          "children": "创造力与表达欲",
+          "wealth": "资源运用与丰盛的扩展力",
+          "health": "恢复力与内在平衡感",
+          "travel": "环境适应力与临场判断力",
+          "friends": "人脉经营与团队照顾",
+          "career": "社会推动力与成就导向",
+          "property": "打基础与稳定积累的能力",
+          "fortune": "情绪充电与精神洞察",
+          "parents": "保护本能与传统意识"
         },
-        "natalVerdict": "Read through the nature of {stars} in your Life Palace, your flower is {flowerName} ({scientificName}).",
-        "natalScenarioTitle": "Life Palace main-star blooming scenario",
+        "natalVerdict": "以命宫{stars}的特质来解读，你的花是{flowerName}（{scientificName}）。",
+        "natalScenarioTitle": "命宫主星开花情境",
         "rationale": {
-          "lifeStar": "Your Life Palace holds {starsJosa}.",
-          "borrowedStar": "Your Life Palace has no main star, so we read {starsObject} borrowed from the opposite Travel Palace.",
-          "personality": "{star}: \"{keyword}\" — {personality}.",
-          "verdict": "So the flower we offer you now is {flowerName}."
+          "lifeStar": "你的命宫坐守着{starsJosa}。",
+          "borrowedStar": "你的命宫没有主星，因此借对宫迁移宫的{starsObject}来解读。",
+          "personality": "{star}的“{keyword}” — {personality}的特质。",
+          "verdict": "所以，此刻送给你的花是{flowerName}。"
         },
         "rationaleLabel": {
-          "lifeStar": "Life Palace main star",
-          "personality": "Innate personality"
+          "lifeStar": "命宫主星",
+          "personality": "天生性格"
         }
       },
       "sukuyo": {
@@ -2934,227 +2934,227 @@
         "verdict": "通过 Sukuyo 的月光纹理，你的命运之花是 {flowerName} ({scientificName})。 {mansion}、{moon} 和 {guardian} 的组合与现在的关系、情感和行动的节奏微妙地一致。",
         "narrative": "{mansion} ({group}) 的关系纹理、月相潮汐{moon} 和{guardian} 的保护图案在夜花园中相遇，加深了{symbolism} 的品质。一起阅读，这三个月光信号表明 {flowerName} 是你现在最精确的命运之花。",
         "mansions": {
-          "m1": "Kaku (角)",
-          "m2": "Kou (亢)",
-          "m3": "Tei (氐)",
-          "m4": "Bou (房)",
-          "m5": "Shin (心)",
-          "m6": "Bi (尾)",
-          "m7": "Ki (箕)",
-          "m8": "To (斗)",
-          "m9": "Jo (女)",
-          "m10": "Kyo (虛)",
-          "m11": "Ki (危)",
-          "m12": "Shitsu (室)",
-          "m13": "Heki (壁)",
-          "m14": "Kei (奎)",
-          "m15": "Ro (婁)",
-          "m16": "I (胃)",
-          "m17": "Bo (昴)",
-          "m18": "Hitsu (畢)",
-          "m19": "Shi (觜)",
-          "m20": "Shin (參)",
-          "m21": "Sei (井)",
-          "m22": "Ki (鬼)",
-          "m23": "Ryu (柳)",
-          "m24": "Sei (星)",
-          "m25": "Cho (張)",
-          "m26": "Yoku (翼)",
-          "m27": "Shin (軫)"
+          "m1": "角宿",
+          "m2": "亢宿",
+          "m3": "氐宿",
+          "m4": "房宿",
+          "m5": "心宿",
+          "m6": "尾宿",
+          "m7": "箕宿",
+          "m8": "斗宿",
+          "m9": "女宿",
+          "m10": "虚宿",
+          "m11": "危宿",
+          "m12": "室宿",
+          "m13": "壁宿",
+          "m14": "奎宿",
+          "m15": "娄宿",
+          "m16": "胃宿",
+          "m17": "昴宿",
+          "m18": "毕宿",
+          "m19": "觜宿",
+          "m20": "参宿",
+          "m21": "井宿",
+          "m22": "鬼宿",
+          "m23": "柳宿",
+          "m24": "星宿",
+          "m25": "张宿",
+          "m26": "翼宿",
+          "m27": "轸宿"
         },
         "groups": {
-          "anjung": "Steady mansions",
-          "gangseong": "Strong mansions",
-          "gyeongkwae": "Nimble mansions",
-          "jihye": "Wise mansions"
+          "anjung": "安重宿",
+          "gangseong": "刚强宿",
+          "gyeongkwae": "轻快宿",
+          "jihye": "智慧宿"
         },
         "groupLabels": {
-          "anjung": "Steady group",
-          "gangseong": "Strong group",
-          "gyeongkwae": "Nimble group",
-          "jihye": "Wise group"
+          "anjung": "安重组",
+          "gangseong": "刚强组",
+          "gyeongkwae": "轻快组",
+          "jihye": "智慧组"
         },
         "guardians": {
-          "crane": "Crane",
-          "dragon": "Dragon",
-          "marten": "Marten",
-          "rabbit": "Rabbit",
-          "fox": "Fox",
-          "tiger": "Tiger",
-          "leopard": "Leopard",
-          "haetae": "Haetae",
-          "bat": "Bat",
-          "rat": "Rat",
-          "swallow": "Swallow",
-          "pig": "Pig",
-          "hedgehog": "Hedgehog",
-          "wolf": "Wolf",
-          "dog": "Dog",
-          "pheasant": "Pheasant",
-          "rooster": "Rooster",
-          "crow": "Crow",
-          "monkey": "Monkey",
-          "ape": "Ape",
-          "wildDog": "Wild dog",
-          "sheep": "Sheep",
-          "roeDeer": "Roe deer",
-          "horse": "Horse",
-          "deer": "Deer",
-          "snake": "Snake",
-          "earthworm": "Earthworm"
+          "crane": "鹤",
+          "dragon": "龙",
+          "marten": "貂",
+          "rabbit": "兔",
+          "fox": "狐",
+          "tiger": "虎",
+          "leopard": "豹",
+          "haetae": "獬豸",
+          "bat": "蝙蝠",
+          "rat": "鼠",
+          "swallow": "燕",
+          "pig": "猪",
+          "hedgehog": "刺猬",
+          "wolf": "狼",
+          "dog": "狗",
+          "pheasant": "雉",
+          "rooster": "鸡",
+          "crow": "乌鸦",
+          "monkey": "猴",
+          "ape": "猿",
+          "wildDog": "豺",
+          "sheep": "羊",
+          "roeDeer": "獐",
+          "horse": "马",
+          "deer": "鹿",
+          "snake": "蛇",
+          "earthworm": "蚯蚓"
         },
         "rationaleLabel": {
-          "mansion": "Mansion · Moon phase"
+          "mansion": "宿 · 月相"
         }
       },
       "saju": {
         "scenarios": {
           "default": {
             "title": "{dayMasterBadge}的环境中，命运之花正在绽放",
-            "reason": "We looked at how your day master meshes with the current five-element environment and chose the one flower that suits this period best."
+            "reason": "我们观察了你的日干与当下五行环境相互契合的纹理，挑选出最适合这个时期的一朵花。"
           },
           "jia": {
             "springWood": {
               "title": "甲木带着笔直引领的力量绽放命运之花的走势",
-              "reason": "Jia Wood (甲木) has the nature of a tall tree growing straight upward. Now that spring's wood energy matches that temperament, your power to step forward and open new ground comes into full bloom."
+              "reason": "甲木有着如参天大树般笔直向上生长的气质。春天的木气正与这份性情相契，此刻，你挺身而出、开创新局的力量正尽情绽放。"
             },
             "autumnMetal": {
               "title": "甲木带着metal-tempering scenario绽放命运之花的走势",
-              "reason": "With autumn's metal energy pressing on Jia Wood (甲木), now is the time to prune the side branches and keep only the trunk that truly matters. The more you let go, the sturdier you become."
+              "reason": "秋天的金气压向甲木的此刻，正是剪去旁枝、只留下真正重要主干的时候。放下得越多，反而越坚实。"
             },
             "dryFire": {
               "title": "甲木带着dry-heat endurance scenario绽放命运之花的走势",
-              "reason": "For Jia Wood (甲木) set amid dry, hot energy, what matters now is the stamina of its roots. Rather than rushing, build resilience by holding on for the long run, and you will bloom again as tenaciously as the rose of Sharon."
+              "reason": "对于身处干燥炎热之气中的甲木来说，此刻需要的是根的体力。与其急躁，不如长久坚持、培养恢复力，你便会像木槿花一样坚韧地再次绽放。"
             }
           },
           "yi": {
             "metalWater": {
               "title": "乙木带着metal-water harmony scenario绽放命运之花的走势",
-              "reason": "Yi Wood (乙木) has a gentle, seeping nature like vines and flowering plants. With metal and water energy strong now, your grace and your clarifying, purifying power come most alive."
+              "reason": "乙木有着如藤蔓与花草般柔和渗透的气质。在金与水之气强盛的此刻，你的优雅与清澈净化的力量最为鲜活。"
             },
             "dryEarth": {
               "title": "乙木带着dry-soil survival scenario绽放命运之花的走势",
-              "reason": "For Yi Wood (乙木) standing on dry earth energy, the theme now is the strength to endure. Like a cactus flower that breaks through barren ground and blooms at last, you shine precisely where you hold on."
+              "reason": "对于立于干燥土气之上的乙木，此刻的课题是生存的力量。就像突破贫瘠、终于绽放的仙人掌花，你恰恰在坚守之处闪耀光芒。"
             },
             "autumn": {
               "title": "乙木带着autumn refinement scenario绽放命运之花的走势",
-              "reason": "Yi Wood (乙木) passing through autumn's metal energy is in a season of turning delicacy into calm order. The more evenly you sort what is scattered, the tidier your mind becomes as well."
+              "reason": "穿过秋天金气的乙木，正处于把细腻转化为沉稳秩序的时期。越是把散乱之物整理得井然有序，心也会随之变得端正。"
             },
             "wetSpring": {
               "title": "乙木带着moist-spring expansion scenario绽放命运之花的走势",
-              "reason": "Meeting spring's moist energy, Yi Wood (乙木) grows markedly better at connecting people. Now is a time to reach outward through relationships rather than alone."
+              "reason": "遇上春天湿润之气的乙木，连接人与人的力量明显增强。此刻比起独自前行，更适合借由关系向外伸展。"
             }
           },
           "bing": {
             "springWood": {
               "title": "丙火带着spring ignition scenario绽放命运之花的走势",
-              "reason": "Bing Fire (丙火) is energy that catches quickly and spreads wide like the sun. With spring's wood energy as fuel now, your power to start something new and make it known burns strongly."
+              "reason": "丙火是如太阳般迅速燃起、广泛扩散的气。以春天的木气为柴薪的此刻，你开启新事物并让人知晓的力量正熊熊燃烧。"
             },
             "summerFire": {
               "title": "丙火带着summer expansion scenario绽放命运之花的走势",
-              "reason": "With summer's fire energy added, Bing Fire (丙火) burns brighter than ever. This is the season when your power to step forward and lead people peaks."
+              "reason": "再叠加夏天火气的丙火，燃烧得比任何时候都明亮。这是你挺身而出、带领众人的力量达到顶峰的时期。"
             },
             "waterControl": {
               "title": "丙火带着water-control scenario绽放命运之花的走势",
-              "reason": "For Bing Fire (丙火) meeting strong water energy, what matters now is not burning hotter but setting the right direction. Keep your sense of reality and guard the flame, and its light will last."
+              "reason": "对于遇上强盛水气的丙火，此刻重要的不是烧得更旺，而是把握好方向。保持现实感、守护火焰，光芒才能长久。"
             }
           },
           "ding": {
             "coldWet": {
               "title": "丁火带着cold-damp warmth scenario绽放命运之花的走势",
-              "reason": "Ding Fire (丁火) is energy that glows quietly from within like a candle. In this cold, damp time, keeping that warmth alive for a long time is a greater strength than brilliance."
+              "reason": "丁火是如烛光般在内里静静发亮的气。在寒冷潮湿的此刻，比起华丽，让那份温暖长久不熄才是最大的力量。"
             },
             "autumnMetal": {
               "title": "丁火带着metal-refining scenario绽放命运之花的走势",
-              "reason": "Meeting metal energy, Ding Fire (丁火) sharpens the precision of its hands and its eye for beauty. This is the time you shine most by holding on to one thing and finishing it beautifully."
+              "reason": "遇上金气的丁火，指尖的精准与审美的眼光变得敏锐。这是专注一件事、将它细致完成时最闪耀的时期。"
             },
             "resonance": {
               "title": "丁火带着resonance绽放命运之花的走势",
-              "reason": "Ding Fire (丁火) is energy that gently tends the texture of emotions and deepens relationships. The more freely you express your heart, the more your path of fortune opens with it."
+              "reason": "丁火是细腻抚慰情感纹理、让关系更加深厚的气。越是不吝于表达心意，运势之路也会随之敞开。"
             }
           },
           "wu": {
             "fireEarth": {
               "title": "戊土带着fire-earth achievement scenario绽放命运之花的走势",
-              "reason": "Wu Earth (戊土) is broad, dependable energy like a great mountain. With fire and earth supporting you now, large undertakings and large achievements gain unusual strength."
+              "reason": "戊土是如巍峨大山般宽广而可靠的气。在火与土支撑的此刻，大展拳脚、成就大事时格外有力。"
             },
             "winterWater": {
               "title": "戊土带着winter foundation scenario绽放命运之花的走势",
-              "reason": "For Wu Earth (戊土) meeting winter's water energy, now is the time to slow down and firm up the ground. The more you pause and solidify the basics, the steadier your next step becomes."
+              "reason": "对于遇上冬天水气的戊土，此刻是放慢速度、夯实地基的时候。越是稍作停歇、稳固基础，下一步就越踏实。"
             },
             "center": {
               "title": "戊土带着center-building scenario绽放命运之花的走势",
-              "reason": "The true strength of Wu Earth (戊土) is the centering power that holds a shaky situation together from the middle. The more steadily you keep your daily routine, the more your results build up."
+              "reason": "戊土真正的力量，是从中间稳住动荡局面的定力。越是坚持每天的日常节奏，成果就越会一点一滴累积。"
             }
           },
           "ji": {
             "wetEarth": {
               "title": "己土带着cultivation expansion scenario绽放命运之花的走势",
-              "reason": "Ji Earth (己土) is energy that carefully nurtures things, like a well-tilled field. In this moist time, results grow within relationships where you work together and look after one another."
+              "reason": "己土是如精心耕耘的田地般，用心培育事物的气。在湿润的此刻，成果会在一起合作、彼此照顾的关系中壮大。"
             },
             "metalDesign": {
               "title": "己土带着precision-design scenario绽放命运之花的走势",
-              "reason": "Meeting metal energy, Ji Earth (己土) awakens a sense for designing and arranging even the smallest details. Your strengths stand out in work that calls for a high level of finish."
+              "reason": "遇上金气的己土，连细微之处都能规划整理的感觉被唤醒。在讲究完成度的事情上，你的长处格外突出。"
             },
             "balance": {
               "title": "己土带着balance-tuning scenario绽放命运之花的走势",
-              "reason": "Ji Earth (己土) is energy that excels at gently mediating between people and setting the mood. As long as you manage the pace of give and take well, that itself becomes your luck."
+              "reason": "己土是擅长柔和地居中协调、营造气氛的气。只要把推拉之间的节奏掌握好，那本身就会成为好运。"
             }
           },
           "geng": {
             "metalEarth": {
               "title": "庚金带着principle-through scenario绽放命运之花的走势",
-              "reason": "Geng Metal (庚金) is energy that cuts through boldly and decisively, like an uncut gemstone. With earth and metal supporting you now, your power to push through the principles you set reaches its peak."
+              "reason": "庚金是如未经雕琢的原石般，粗犷而果断地斩断的气。在土与金支撑的此刻，坚持既定原则的力量达到顶峰。"
             },
             "fireTraining": {
               "title": "庚金带着fire-tempering scenario绽放命运之花的走势",
-              "reason": "Tempered in hot fire, Geng Metal (庚金) hardens in both charisma and skill. This is a time when your focus grows especially sharp at decisive moments."
+              "reason": "经过烈火淬炼的庚金，魅力与实力一同变得坚实。这是在关键胜负时刻，专注力格外锋利的时期。"
             },
             "clearJudgment": {
               "title": "庚金带着decisive-judgment scenario绽放命运之花的走势",
-              "reason": "The strength of Geng Metal (庚金) is judgment that cuts precisely to the core. Set clear standards, and that clarity carries straight through to results."
+              "reason": "庚金的强项，是精准切中核心的判断力。只要明确立下标准，那份清晰便会直接化为成果。"
             }
           },
           "xin": {
             "metalWater": {
               "title": "辛金带着metal-water refinement scenario绽放命运之花的走势",
-              "reason": "Xin Metal (辛金) is energy with refined senses and language, like a finely cut jewel. With metal and water in harmony now, your power to analyze and express becomes even clearer."
+              "reason": "辛金是如精工细琢的宝石般，感受力与语言都经过淬炼的气。在金与水交融的此刻，分析与表达的能力更加清晰。"
             },
             "springWood": {
               "title": "辛金带着wood-tuning scenario绽放命运之花的走势",
-              "reason": "Meeting spring's wood energy, Xin Metal (辛金) goes further by adjusting gently than by sharpening its edge. This is a time when results come from work you refine by feel."
+              "reason": "遇上春天木气的辛金，比起磨利锋芒，柔和地调和反而走得更远。这是凭感觉细细打磨的事情会出成果的时期。"
             },
             "completion": {
               "title": "辛金带着completion scenario绽放命运之花的走势",
-              "reason": "Xin Metal (辛金) is strong when it finishes one thing beautifully rather than spreading wide. The more neatly you wrap up the details, the more people's trust builds."
+              "reason": "辛金比起广泛铺开，更擅长把一件事细致完成。细节收尾得越利落，人们的信任就越会累积。"
             }
           },
           "ren": {
             "summerCooling": {
               "title": "壬水带着summer-cooling scenario绽放命运之花的走势",
-              "reason": "Ren Water (壬水) is energy that handles great currents like a wide sea. Now, as it cools summer's heat, your power to focus calmly rises markedly."
+              "reason": "壬水是如辽阔大海般驾驭巨大流势的气。在为夏天的热气带来清凉的此刻，沉稳专注的力量明显提升。"
             },
             "winterCondensing": {
               "title": "壬水带着winter-condensing scenario绽放命运之花的走势",
-              "reason": "Resonating with winter's water energy, Ren Water (壬水) is in a time of gathering strength beneath the ice. Though it looks calm on the surface, a solid potential ripens within, like a glacier flower."
+              "reason": "与冬天水气共鸣的壬水，正处于在冰层下聚集力量的时期。表面看似平静，坚实的潜力却如冰川之花般在内里成熟。"
             },
             "nightIntuition": {
               "title": "壬水带着night-intuition scenario绽放命运之花的走势",
-              "reason": "Ren Water (壬水) is energy that finds its way better through the intuition of a quiet night than in bright daylight. When you decide by your own rhythm instead of rushing to an answer, the direction falls into place."
+              "reason": "壬水比起明亮的白天，更擅长在宁静夜晚的直觉中找到方向。与其急着给出答案，不如按自己的节奏做决定，方向自然会对上。"
             }
           },
           "gui": {
             "coldWetPurifying": {
               "title": "癸水带着cold-damp purification scenario绽放命运之花的走势",
-              "reason": "Gui Water (癸水) is energy that senses the subtle and washes it clean, like dawn dew. In this cold, damp time, that quiet, absorbed stillness becomes your strength."
+              "reason": "癸水是如清晨露珠般，能察觉细微之物并将其洗涤澄净的气。在寒冷潮湿的此刻，那份安静专注的沉静正是你的力量。"
             },
             "summerEmpathy": {
               "title": "癸水带着summer-empathy scenario绽放命运之花的走势",
-              "reason": "For Gui Water (癸水) meeting summer's heat, empathy that soothes hearts and connects people is the greatest asset. Like a hydrangea, the path opens as you gather the warmth of many."
+              "reason": "对于遇上夏天火热的癸水，抚慰人心、连接人与人的共情是最大的武器。像绣球花一样汇聚众人的温暖时，道路便会打开。"
             },
             "subtleSignal": {
               "title": "癸水带着subtle-signal scenario绽放命运之花的走势",
-              "reason": "Gui Water (癸水) is energy that reads the small signals others miss before anyone else. Time things well with that keen sense, and that single move decides the outcome."
+              "reason": "癸水是能比别人更早读出他人错过的小信号的气。只要凭那份敏锐的感觉把握好时机，那一步就能决定成败。"
             }
           }
         },
@@ -3177,12 +3177,12 @@
           "description": "命运之花阅读：{description}",
           "vibe": "开花指南：{vibeMessage}",
           "fallback": "调整逻辑：{note}",
-          "dayMasterSame": "A flower that carries the same {element} energy as your {dayMasterBadge} day master.",
-          "strengthRelease": "Your chart runs strong, so we gave weight to flowers with {elements} energy that lets the built-up energy flow outward.",
-          "strengthSupport": "Your chart runs weak, so we gave weight to flowers with {elements} energy that supports your day master.",
-          "yongshin": "This flower carries the useful element (yongshin) your chart needs — {elements}.",
-          "johuWarm": "Your chart leans cold and damp, so we gave weight to warm flowers that heat it like sunlight.",
-          "johuCool": "Your chart leans hot and dry, so we gave weight to moisture-rich flowers that cool the heat."
+          "dayMasterSame": "这是一朵与你的{dayMasterBadge}日干同样蕴含{element}之气的花。",
+          "strengthRelease": "你的八字身强，因此我们更看重能把满溢之气向外疏泄的{elements}之气的花。",
+          "strengthSupport": "你的八字身弱，因此我们更看重能扶助日干的{elements}之气的花。",
+          "yongshin": "这朵花蕴含你的八字所需的用神之气 — {elements}。",
+          "johuWarm": "你的八字偏寒湿，因此我们更看重能像阳光一样带来温暖的花。",
+          "johuCool": "你的八字偏燥热，因此我们更看重水分充足、能消散热气的花。"
         },
         "elements": {
           "wood": "木",
@@ -3258,41 +3258,41 @@
           "rarityPlain": "我的八字从{total}朵中选出的一朵"
         },
         "dayMasters": {
-          "jia": "Jia Wood (甲木)",
-          "yi": "Yi Wood (乙木)",
-          "bing": "Bing Fire (丙火)",
-          "ding": "Ding Fire (丁火)",
-          "wu": "Wu Earth (戊土)",
-          "ji": "Ji Earth (己土)",
-          "geng": "Geng Metal (庚金)",
-          "xin": "Xin Metal (辛金)",
-          "ren": "Ren Water (壬水)",
-          "gui": "Gui Water (癸水)"
+          "jia": "甲木",
+          "yi": "乙木",
+          "bing": "丙火",
+          "ding": "丁火",
+          "wu": "戊土",
+          "ji": "己土",
+          "geng": "庚金",
+          "xin": "辛金",
+          "ren": "壬水",
+          "gui": "癸水"
         },
         "dayMasterStems": {
-          "jia": "Jia (甲)",
-          "yi": "Yi (乙)",
-          "bing": "Bing (丙)",
-          "ding": "Ding (丁)",
-          "wu": "Wu (戊)",
-          "ji": "Ji (己)",
-          "geng": "Geng (庚)",
-          "xin": "Xin (辛)",
-          "ren": "Ren (壬)",
-          "gui": "Gui (癸)"
+          "jia": "甲",
+          "yi": "乙",
+          "bing": "丙",
+          "ding": "丁",
+          "wu": "戊",
+          "ji": "己",
+          "geng": "庚",
+          "xin": "辛",
+          "ren": "壬",
+          "gui": "癸"
         },
         "dayMasterFallback": {
-          "ziwei": "With limited Saju day master data, the day master's nature was adjusted based on the Zi Wei main star.",
-          "astrology": "With limited Saju day master data, the sun sign's tendencies stood in for the day master's nature.",
-          "dominant": "With limited Saju, Zi Wei and astrology indicators, the day master's nature was estimated from the dominant element."
+          "ziwei": "由于八字日干数据不足，已依据紫微斗数主星校正日干特质。",
+          "astrology": "由于八字日干数据不足，已以太阳星座的倾向代替日干特质。",
+          "dominant": "由于八字、紫微、占星的核心指标不足，已依据优势五行推算日干特质。"
         },
         "rationaleLabel": {
-          "dayMaster": "Day master nature",
-          "strengthRelease": "Strong chart",
-          "strengthSupport": "Weak chart",
-          "yongshin": "Useful element",
-          "johuWarm": "Climate balance · cold and damp",
-          "johuCool": "Climate balance · hot and dry"
+          "dayMaster": "日干特质",
+          "strengthRelease": "身强",
+          "strengthSupport": "身弱",
+          "yongshin": "用神",
+          "johuWarm": "调候 · 寒湿",
+          "johuCool": "调候 · 温燥"
         }
       },
       "flowers": {
@@ -4582,303 +4582,303 @@
           }
         },
         "cta": {
-          "rebloom": "🌸 Bloom my destiny flower again",
-          "astrologyAgain": "✨ Summon my astrology flower again",
-          "jamidusuAgain": "🌺 Summon my Ziwei flower again",
-          "sukuyoAgain": "🌙 Summon my Sukuyo flower again"
+          "rebloom": "🌸 让命运之花再次绽放",
+          "astrologyAgain": "✨ 再次召唤占星之花",
+          "jamidusuAgain": "🌺 再次召唤紫微之花",
+          "sukuyoAgain": "🌙 再次召唤宿曜之花"
         },
         "status": {
-          "atelierLocked": "The Destiny Flower Atelier needs to be unlocked.",
-          "loginRequired": "Log in to see your destiny flower.",
-          "newlyUnlocked": "✨ Your {source} flower is newly open.",
-          "resultReady": "{verdict} You can save this result or share it on KakaoTalk.",
-          "reloading": "Reloading your data. Please wait a moment.",
-          "linking": "Linking your {source} data. Please wait a moment.",
-          "loaded": "Your {source} data has been loaded.",
-          "copied": "Copied to the clipboard.",
-          "copyPermission": "Clipboard access is not allowed, so please copy it manually.",
-          "copyFailed": "Copy failed.",
-          "kakaoPcCopied": "On a PC, the KakaoTalk link has been copied to the clipboard. Paste it into KakaoTalk to share.",
-          "kakaoNotOpenedCopied": "We couldn't confirm KakaoTalk opened, so the summary has been copied to the clipboard. Paste it into KakaoTalk to share.",
-          "kakaoOpening": "Opening KakaoTalk sharing...",
-          "kakaoFailedCopied": "We couldn't open KakaoTalk sharing, so the summary has been copied to the clipboard.",
-          "refreshed": "Tabs and prompts have been updated based on: {verdict}",
-          "aiOpening": "Opening the AI in a new tab. If it doesn't open, allow pop-ups and try again.",
-          "aiBlocked": "The new tab seems to have been blocked. Allow pop-ups in your browser or open the AI site you want directly.",
-          "summaryCopied": "Summary copied to the clipboard.",
-          "promptCopied": "The main AI flower prompt has been copied to the clipboard.",
-          "promptPackCopied": "The main/negative prompt set has been copied to the clipboard."
+          "atelierLocked": "需要先解锁命运之花工坊。",
+          "loginRequired": "登录后即可查看命运之花。",
+          "newlyUnlocked": "✨ 新开启了{source}之花。",
+          "resultReady": "{verdict} 你可以保存此结果，或分享到 KakaoTalk。",
+          "reloading": "正在重新加载数据，请稍候。",
+          "linking": "正在同步{source}数据，请稍候。",
+          "loaded": "已加载{source}数据。",
+          "copied": "已复制到剪贴板。",
+          "copyPermission": "没有复制权限，请手动复制。",
+          "copyFailed": "复制失败。",
+          "kakaoPcCopied": "在电脑上已将 KakaoTalk 链接复制到剪贴板。请粘贴到 KakaoTalk 中分享。",
+          "kakaoNotOpenedCopied": "未能确认 KakaoTalk 已打开，已将摘要复制到剪贴板。请粘贴到 KakaoTalk 中分享。",
+          "kakaoOpening": "正在打开 KakaoTalk 分享...",
+          "kakaoFailedCopied": "无法打开 KakaoTalk 分享，已将摘要复制到剪贴板。",
+          "refreshed": "已依据{verdict}更新标签页与提示词。",
+          "aiOpening": "正在新标签页中打开 AI。如果没有打开，请允许弹出窗口后重试。",
+          "aiBlocked": "新标签页似乎被拦截了。请在浏览器中允许弹出窗口，或直接打开想用的 AI 网站。",
+          "summaryCopied": "已将摘要复制到剪贴板。",
+          "promptCopied": "已将 AI 花朵主提示词复制到剪贴板。",
+          "promptPackCopied": "已将主/负面提示词套组复制到剪贴板。"
         },
         "fallback": {
           "astrology": {
-            "name": "Nebula lavender",
-            "symbolism": "A clear intuition that flows along the grain of starlight",
-            "vibe": "Breathe along with the rhythm of the stars and your intuition grows sharper."
+            "name": "星云薰衣草",
+            "symbolism": "沿着星光纹理流淌的清澈直觉",
+            "vibe": "跟随星星的节奏呼吸，直觉会变得更加清晰。"
           },
           "jamidusu": {
-            "name": "Tree peony",
-            "symbolism": "Imperial grace and the strength of the center",
-            "keyword1": "Emperor",
-            "keyword2": "Grace",
-            "keyword3": "Center",
-            "vibe": "Holding your center is what carries you furthest in the end."
+            "name": "牡丹",
+            "symbolism": "帝王的气度与中心的力量",
+            "keyword1": "帝王",
+            "keyword2": "气度",
+            "keyword3": "中心",
+            "vibe": "守住中心的姿态，终将让你走得最远。"
           },
           "sukuyo": {
-            "name": "Lily",
-            "symbolism": "A guardian flower that blooms clear in the moonlight",
-            "keyword1": "Moonlight",
-            "keyword2": "Guardian",
-            "keyword3": "Purification",
-            "vibe": "Match tonight's breath and rhythm of the moon and your choices become clearer.",
-            "keywordMansion": "Sukuyo",
-            "keywordGuardian": "Guardian animal",
-            "keywordPhase": "Moon phase"
+            "name": "百合",
+            "symbolism": "在月光中清澈绽放的守护之花",
+            "keyword1": "月光",
+            "keyword2": "守护",
+            "keyword3": "净化",
+            "vibe": "今晚与月亮的呼吸和节奏同步，你的选择会更加清晰。",
+            "keywordMansion": "宿曜",
+            "keywordGuardian": "守护动物",
+            "keywordPhase": "月相"
           }
         },
         "legacy": {
-          "astrologyReading": "Reading your destiny flower from your astrology chart.",
-          "astrologyRhythm": "Setting the rhythm of the stars.",
-          "brightnessEven": "Even (平)",
-          "jamidusuReading": "Reading your destiny flower from today's strong star.",
-          "mainStarUnknown": "Main star unknown",
-          "jamidusuRhythm": "Aligning the energy of the stars.",
-          "imperialGrace": "Imperial grace",
-          "moonQuarter": "Quarter moon",
-          "sukuyoReading": "Reading your destiny flower from the 27 Sukuyo mansions.",
-          "mansionUnknown": "Mansion unknown"
+          "astrologyReading": "正在根据占星星盘解读你的命运之花。",
+          "astrologyRhythm": "正在锁定星星的节奏。",
+          "brightnessEven": "平",
+          "jamidusuReading": "正在根据今日强星解读你的命运之花。",
+          "mainStarUnknown": "主星未知",
+          "jamidusuRhythm": "正在校准星辰之气。",
+          "imperialGrace": "帝王风范",
+          "moonQuarter": "上弦/下弦月",
+          "sukuyoReading": "正在根据宿曜二十七宿解读你的命运之花。",
+          "mansionUnknown": "本命宿未知"
         },
         "badge": {
-          "sun": "Sun sign {value}",
-          "rising": "Rising sign {value}",
-          "moon": "Moon sign {value}",
-          "strongStar": "Today's strong star {value}",
-          "brightness": "Star brightness {value}",
-          "moonPhase": "Moon phase {value}",
-          "guardian": "Guardian animal {value}",
-          "palace": "Palace {value}",
-          "mansionLabel": "Mansion",
-          "group": "{group} group"
+          "sun": "太阳星座 {value}",
+          "rising": "上升星座 {value}",
+          "moon": "月亮星座 {value}",
+          "strongStar": "今日强星 {value}",
+          "brightness": "星曜亮度 {value}",
+          "moonPhase": "月相 {value}",
+          "guardian": "守护动物 {value}",
+          "palace": "宫位 {value}",
+          "mansionLabel": "宿",
+          "group": "{group}组"
         },
         "value": {
-          "unknown": "Unknown",
-          "pending": "Awaiting reading",
-          "lifePalace": "Life Palace"
+          "unknown": "未知",
+          "pending": "等待判定",
+          "lifePalace": "命宫"
         },
         "wait": {
-          "chartSignal": "Awaiting chart signal",
-          "starSignal": "Awaiting main-star signal",
-          "sukuyoSignal": "Awaiting Sukuyo signal",
-          "moonRhythm": "Syncing with the rhythm of the moon.",
-          "nebulaRhythm": "Aligning the nebula rhythm.",
-          "imperialRhythm": "Tuning the imperial energy.",
-          "dayMaster": "Awaiting day master reading",
-          "sourceVerdict": "Awaiting {source} reading",
-          "mainStar": "Awaiting main star reading",
-          "sukuyoReading": "Awaiting Sukuyo reading",
-          "dataLoad": "Waiting to load data",
-          "birth": "Waiting for your birth date"
+          "chartSignal": "等待星盘信号",
+          "starSignal": "等待主星信号",
+          "sukuyoSignal": "等待宿曜信号",
+          "moonRhythm": "正在与月亮的节奏同步。",
+          "nebulaRhythm": "正在校准星云的节奏。",
+          "imperialRhythm": "正在调和帝王之气。",
+          "dayMaster": "等待日干判读",
+          "sourceVerdict": "等待{source}判定",
+          "mainStar": "等待主星判读",
+          "sukuyoReading": "等待宿曜判读",
+          "dataLoad": "等待加载数据",
+          "birth": "等待输入出生日期"
         },
         "stage": {
-          "keywords": "{source} keywords · {list}",
-          "astrologyScenario": "Calculating your zodiac blooming scenario.",
-          "jamidusuScenario": "Calculating your Ziwei main-star blooming scenario.",
-          "sukuyoScenario": "Calculating your Sukuyo moonlight blooming scenario.",
-          "seasonTexture": "{season} texture",
-          "seasonDefault": "Season",
-          "environmentMood": "{environment} mood",
-          "environmentDefault": "Environment",
-          "sajuScenario": "Calculating your day master and environment blooming scenario.",
-          "dataSheetPreparing": "Preparing your flower data sheet.",
-          "symbolizes": "This flower symbolizes {symbolism}.",
-          "resonates": "This flower resonates strongly with the current flow of your fortune.",
-          "narrativeFallback": "{verdict} Your blooming point for now is aligned to your {source} balance."
+          "keywords": "{source}关键词 · {list}",
+          "astrologyScenario": "正在计算占星星座的开花情境。",
+          "jamidusuScenario": "正在计算紫微斗数主星的开花情境。",
+          "sukuyoScenario": "正在计算宿曜月光的开花情境。",
+          "seasonTexture": "{season}的纹理",
+          "seasonDefault": "季节",
+          "environmentMood": "{environment}氛围",
+          "environmentDefault": "环境",
+          "sajuScenario": "正在计算日干与环境的开花情境。",
+          "dataSheetPreparing": "正在准备花朵数据表。",
+          "symbolizes": "这朵花象征着{symbolism}。",
+          "resonates": "这朵花与你当前的运势流向强烈共鸣。",
+          "narrativeFallback": "{verdict} 已依据{source}的平衡，校准你此刻的开花节点。"
         },
         "guide": {
-          "allBloomed": "All flowers have bloomed. Revisit any tab you like.",
-          "startSaju": "Next step: open your Saju flower first to start blooming.",
-          "next": "Next step: move on to your {source} flower to keep blooming."
+          "allBloomed": "所有的花都已绽放。可以在任意标签页中再次欣赏。",
+          "startSaju": "下一步：先打开八字之花，开始绽放吧。",
+          "next": "下一步：前往{source}之花，继续绽放吧。"
         },
         "tab": {
-          "lockLabel": "Opens when the atelier is unlocked"
+          "lockLabel": "解锁工坊后开放"
         },
         "verdict": {
-          "preparing": "Preparing your destiny flower reading.",
-          "defaultFlower": "Destiny flower",
-          "sukuyo": "Read through Sukuyo, your flower is {name}.",
-          "jamidusu": "Read through Ziwei, your flower is {name}.",
-          "astrology": "Read through astrology, your flower is {name}.",
-          "saju": "Read through Saju, your flower is {name}."
+          "preparing": "正在准备命运之花的判定。",
+          "defaultFlower": "命运之花",
+          "sukuyo": "从宿曜来看，你的花是{name}。",
+          "jamidusu": "从紫微斗数来看，你的花是{name}。",
+          "astrology": "从占星来看，你的花是{name}。",
+          "saju": "从八字来看，你的花是{name}。"
         },
         "snapshot": {
-          "guidance": "Today, matching your rhythm before chasing results helps you bloom faster."
+          "guidance": "今天先调整好节奏，再去追求结果，花会开得更快。"
         },
         "empty": {
-          "noDomainData": "No {source} data is linked yet. Tap the button below and your own destiny flower will bloom now.",
-          "astroCalculating": "We've read your star chart. Choosing your astrology flower now.",
-          "notLinked": "Your {source} flower blooms the moment you tap the link button. Tap the button below to meet the flower that has come to you now.",
-          "linkButton": "Link my destiny flower",
-          "linking": "Linking...",
-          "dataWaiting": "Waiting to link {source} data",
-          "readingWaiting": "Awaiting {source} reading",
-          "keywordsLoading": "{source} keywords · loading"
+          "noDomainData": "还没有已同步的{source}数据。点击下方按钮，此刻专属于你的命运之花就会绽放。",
+          "astroCalculating": "已读取你的星盘，正在挑选你的占星之花。",
+          "notLinked": "按下同步按钮的那一刻，{source}之花就会绽放。点击下方按钮，遇见此刻来到你身边的那一朵花吧。",
+          "linkButton": "同步命运之花",
+          "linking": "同步中...",
+          "dataWaiting": "等待同步{source}数据",
+          "readingWaiting": "等待{source}判读",
+          "keywordsLoading": "{source}关键词 · 加载中"
         },
         "artMood": {
-          "astrology": "Dreamy floral wrapped in starlit nebulae and neon glow",
-          "jamidusu": "Floral where imperial dignity meets refined court elegance",
-          "sukuyo": "Clear floral like moonlit meditation and still water",
-          "saju": "Lyrical East Asian floral blooming along the grain of the Five Elements"
+          "astrology": "星光星云与霓虹光晕交织的梦幻花艺",
+          "jamidusu": "帝王风范与宫廷精致美感并存的花艺",
+          "sukuyo": "如月光冥想与静谧水面般清澈的花艺",
+          "saju": "沿着五行纹理绽放的抒情东方花艺"
         },
         "care": {
-          "wood": "Wake your growth point with an 8-minute stretch by an east-facing window in the morning sun",
-          "fire": "Soak in south-facing light for 5 minutes and declare today's goal out loud",
-          "earth": "Tidy one corner of your workspace to firmly set your central axis",
-          "metal": "Write down 3 priorities and boldly prune unnecessary commitments",
-          "water": "Open the circulation of your emotions with a 10-minute evening walk and some water",
-          "default": "Fix your light (morning) and water (evening) routines to stabilize your basic growth rhythm first."
+          "wood": "在晨光照进的东侧窗边做8分钟拉伸，唤醒生长点",
+          "fire": "沐浴朝南的阳光5分钟，大声宣告今天的目标",
+          "earth": "整理工作区的一个角落，稳稳立起中心轴",
+          "metal": "写下3件优先事项，果断修剪不必要的约定",
+          "water": "用傍晚10分钟散步和补水，打开情绪的循环通道",
+          "default": "固定光照（上午）与补水（傍晚）的日常节奏，先稳定基础的生长节律。"
         },
         "synergy": {
-          "astrology": "glass vases, silver frames, soft micro-lighting",
-          "jamidusu": "satin fabric, bronze objects, symmetrical ceramics",
-          "sukuyo": "frosted glass, moonlight-toned linen, wave-patterned trays",
-          "saju": "matte ceramics, natural wood, softly patterned fabric",
-          "line": "Suggested colors: Primary {primary}, Secondary {secondary}, Accent {accent} / Suggested materials: {materials}."
+          "astrology": "玻璃花器、银色相框、柔和的微光照明",
+          "jamidusu": "缎面织物、青铜摆件、对称造型陶瓷",
+          "sukuyo": "磨砂玻璃、月光色调亚麻、波纹托盘",
+          "saju": "哑光陶瓷、原木、图案柔和的织物",
+          "line": "推荐色彩：主色 {primary}，辅色 {secondary}，点缀色 {accent} / 推荐材质：{materials}。"
         },
         "atelier": {
-          "scenarioTitle": "{source} blooming scenario",
-          "growthCycleWaiting": "Awaiting blooming cycle calculation",
-          "ritualWaiting": "Calculating today's practice routine.",
+          "scenarioTitle": "{source}开花情境",
+          "growthCycleWaiting": "等待计算开花周期",
+          "ritualWaiting": "正在计算今日的实践习惯。",
           "astrology": {
-            "lightingFire": "Intense sunlight at a high angle, like midsummer noon",
-            "lightingEarth": "Steady light where late-afternoon gold lingers long",
-            "lightingWater": "Cool blue dawn light that spreads slowly",
-            "lightingAir": "Slanted light, tilted like the wind, that lightly opens the space",
-            "humidityWater": "A silver-mist state with high emotional humidity",
-            "humidityFire": "Dry, heat-holding air; a state of quick emotional response",
-            "humidityEarth": "Steady clay-pot humidity; a state where feelings slowly ripen",
-            "humidityAir": "Light, shifting breeze humidity; a state where ideas refresh quickly",
-            "seasonFire": "Bloom accelerator: a stretch where action and presenting push the buds upward",
-            "seasonWater": "Inner nourishment: a stretch where rest and intuition fill the root layer",
-            "seasonBalance": "Balance tuning: a stretch where structure and feeling cross to prepare the next bud",
-            "section": "Celestial light and energy",
-            "matrixLighting": "☀️ Celestial light: {value}",
-            "matrixHumidity": "💧 Atmospheric humidity: {value}",
-            "matrixSeason": "🪐 Cosmic season: {value}",
-            "log": "Gardener's observation journal: the direction of your Sun sign {sun} and the light of your Rising sign {rising} set the angle of the flower stem. The humidity control of your Moon sign {moon} gently opens the veins of emotion, and this week is a pre-bloom stretch where opportunities show first.",
-            "recipe": "Secret recipe: after 9 p.m., dim the window light by one step and write the one thing you will do tomorrow on the first line of your notebook. Focus only on that one thing for the first 12 minutes of the morning and the starlight rhythm aligns fastest.",
-            "flowerLanguage": "Destiny flower language: the courage to trust the angle of the stars and take the first step.",
-            "gardenerWord": "A gardener's word for this flower: today's intuition is not exaggeration but a forecast. Small actions turn the nebula into a real flower bed.",
-            "particle": "Translated into particles, the light of {source} shines most steadily with a \"{particle}\" texture."
+            "lightingFire": "如盛夏正午般高角度的强烈阳光",
+            "lightingEarth": "午后金色斜阳久久停留的稳定光量",
+            "lightingWater": "黎明时分冷冽蓝光缓缓晕开的照度",
+            "lightingAir": "如风般倾斜的斜射光，轻盈打开空间的照度",
+            "humidityWater": "情感湿度很高的银色薄雾状态",
+            "humidityFire": "蕴含热气的干燥空气，情绪反应迅速的状态",
+            "humidityEarth": "稳定的陶盆湿度，情感慢慢酝酿成熟的状态",
+            "humidityAir": "轻盈流动的微风湿度，想法迅速焕新的状态",
+            "seasonFire": "开花加速期：行动与发表推动花苞向上的阶段",
+            "seasonWater": "内在滋养期：休息与直觉充实根层的阶段",
+            "seasonBalance": "平衡调和期：结构与感性交会、孕育下一个花芽的阶段",
+            "section": "天体的照度与能量",
+            "matrixLighting": "☀️ 天体的照度：{value}",
+            "matrixHumidity": "💧 大气的湿度：{value}",
+            "matrixSeason": "🪐 宇宙的季节：{value}",
+            "log": "园丁观察日记：太阳星座{sun}的方向性与上升星座{rising}的光芒，为花茎定下角度。月亮星座{moon}的湿度调节温柔地打开情感的叶脉，本周是机会率先显现的开花前兆期。",
+            "recipe": "秘密配方：晚上9点后把窗边的灯光调暗一档，并在笔记本第一行写下明天要做的一件事。早上最初的12分钟只专注于那一件事，星光的节奏就会最快对齐。",
+            "flowerLanguage": "命运花语：相信星星的角度，率先迈出一步的勇气。",
+            "gardenerWord": "园丁给这朵花的一句话：今天的直觉不是夸张，而是预报。小小的行动会把星云变成现实中的花田。",
+            "particle": "若把{source}的光量转译为粒子，“{particle}”的纹理会闪耀得最稳定。"
           },
           "jamidusu": {
-            "structureZiwei": "A sturdy stem carrying the imperial grace of the Ziwei star family",
-            "structureBreaker": "A thick, upright stalk shaped by a breakthrough general's temperament",
-            "structureFlexible": "Delicate layered petals, supple yet hard to break",
-            "structureBalanced": "A refined, symmetrical flower frame shaped by a balanced main star",
-            "social": "Like butterflies and bees circling around {palace}, close connections share roles and help you grow.",
-            "thornsDim": "A time when short, dense, highly protective thorns help you set boundaries",
-            "thornsBright": "A time when light-reflecting grain patterns stand in for thorns and protect you with dignity",
-            "section": "The flower's dignity and form",
-            "matrixStructure": "🏛️ Flower frame: {value}",
-            "matrixSocial": "🦋 Butterflies and bees: {value}",
-            "matrixThorns": "🌵 Guardian thorns: {value}",
-            "log": "Gardener's observation journal: today's strong star {star} holds the center of the stem upright, and star brightness {brightness} adjusts the sheen of the petals. Now is a time when structural completeness, more than flashiness, grows your results.",
-            "recipe": "Secret recipe: place one metal object on the left side of your desk, and write down one standard for today and one point where you will yield. The clearer your boundaries, the more gracefully the flower blooms.",
-            "flowerLanguage": "Destiny flower language: dignity is the quietest radiance, blooming from a solid structure.",
-            "gardenerWord": "A gardener's word for this flower: don't rush to be dazzling. A day spent keeping your standards builds the longest-lasting stem.",
-            "particle": "Translated into particles, the hierarchy of {source} shows its order most beautifully with a \"{particle}\" mood."
+            "structureZiwei": "承载紫微星系帝王风范的坚实花茎",
+            "structureBreaker": "由突破型将军气质塑造的粗壮挺拔的茎干",
+            "structureFlexible": "柔韧却不易折断的细腻重瓣",
+            "structureBalanced": "由平衡型主星塑造的精致对称花骨架",
+            "social": "如同蝴蝶与蜜蜂环绕{palace}往来，身边亲近的缘分分担角色、助你成长。",
+            "thornsDim": "防御力强的短刺密密生长，帮你立起界限的时期",
+            "thornsBright": "反射光线的纹路代替尖刺，有品格地守护自己的时期",
+            "section": "花的品格与形态",
+            "matrixStructure": "🏛️ 花的骨架：{value}",
+            "matrixSocial": "🦋 蝴蝶与蜜蜂：{value}",
+            "matrixThorns": "🌵 守护之刺：{value}",
+            "log": "园丁观察日记：今日强星{star}让花茎的中心挺直，星曜亮度{brightness}调节花瓣的光泽。此刻比起华丽，结构上的完成度更能让成果壮大。",
+            "recipe": "秘密配方：在书桌左侧放一件金属质感的摆件，同时写下今天的1条原则和1条可以让步的底线。界限越清晰，花开得越优雅。",
+            "flowerLanguage": "命运花语：品格是从坚实结构中绽放的、最安静的光彩。",
+            "gardenerWord": "园丁给这朵花的一句话：不要急于展现华丽。守住原则的一天，终将造就最持久的花茎。",
+            "particle": "若把{source}的层级转译为粒子，“{particle}”的氛围最能美丽地展现秩序。"
           },
           "sukuyo": {
-            "scentFriend": "A soft white-musk note that spreads under the moonlight",
-            "scentDanger": "A deep, dense agarwood note that sharpens focus",
-            "scentDefault": "A clear herbal floral note that gently warms the temperature of relationships",
-            "dewFull": "Night dew at its fullest; inspiration and emotional expression are both abundant",
-            "dewNew": "A new-moon stretch with thin dew; observation and preparation come first",
-            "dewDefault": "A moderate amount of dew; emotional balance and drive grow together",
-            "companionDragon": "Wisteria and blue sage, supporting a big flow of expansion",
-            "companionDog": "Rosemary and chamomile, strengthening stable relationships and resilience",
-            "companionTiger": "Eucalyptus and rudbeckia, strengthening decisiveness and protective instinct",
-            "companionDefault": "Lavender and ivy, supporting both emotional stability and long-term growth",
-            "section": "The scent of connection and dew",
-            "matrixScent": "🌙 Destiny scent: {value}",
-            "matrixDew": "💦 Night dew: {value}",
-            "matrixCompanion": "🌿 Companion plants: {value}",
-            "log": "Gardener's observation journal: the relational nature of {mansion} shows first as scent, and moon phase {phase} adjusts your emotional rhythm through the density of the dew. Now, care in matching each other's grain, rather than hurrying the pace of a connection, keeps the flower alive longer.",
-            "recipe": "Secret recipe: before bed, slowly drink a glass of water, then quietly write down one name you were grateful for today. The moon's water rhythm settles and your relationship luck opens gently.",
-            "flowerLanguage": "Destiny flower language: quiet empathy becomes the scent that travels furthest.",
-            "gardenerWord": "A gardener's word for this flower: it's okay not to hurry. Just as night dew gathers, your connections will become clear at exactly the right time.",
-            "particle": "Translated into particles, the moonlight rhythm of {source} wraps you most warmly with a \"{particle}\" mood."
+            "scentFriend": "在月光下晕开的淡雅白麝香调",
+            "scentDanger": "浓郁深沉的沉香调，提升专注力的香气",
+            "scentDefault": "清新的草本花香调，温柔调和关系温度的香气",
+            "dewFull": "夜露最为充盈，灵感与情感表达同样丰沛的状态",
+            "dewNew": "露水薄薄凝结的新月阶段，以观察与准备为先的状态",
+            "dewDefault": "露水适量，情感平衡与执行力一同成长的状态",
+            "companionDragon": "紫藤与蓝鼠尾草组合，支持大幅扩张的流势",
+            "companionDog": "迷迭香与洋甘菊组合，强化关系稳定与复原力",
+            "companionTiger": "桉树与金光菊组合，强化决断力与保护本能",
+            "companionDefault": "薰衣草与常春藤组合，同时支持情绪稳定与长期成长",
+            "section": "缘分的香气与露水",
+            "matrixScent": "🌙 命运的香气：{value}",
+            "matrixDew": "💦 夜露的量：{value}",
+            "matrixCompanion": "🌿 伴生植物：{value}",
+            "log": "园丁观察日记：{mansion}的关系特质首先以香气显现，月相{phase}则以露水的浓度调节情绪节奏。此刻与其催促缘分的速度，不如细心地彼此契合，才能长久守护这朵花。",
+            "recipe": "秘密配方：睡前慢慢喝一杯水，然后静静写下一个今天让你心怀感激的名字。月亮的水分节奏会稳定下来，人际运势也会温柔地打开。",
+            "flowerLanguage": "命运花语：安静的共情，会成为飘得最远的香气。",
+            "gardenerWord": "园丁给这朵花的一句话：不必着急也没关系。就像夜露慢慢凝聚，你的缘分也会在恰好的时机变得清晰。",
+            "particle": "若把{source}的月光节奏转译为粒子，“{particle}”的氛围最能温暖地包裹你。"
           },
           "saju": {
-            "soilCold": "Rich, marshy soil that holds moisture",
-            "soilHot": "Warm, well-draining gravel mix",
-            "soilBalanced": "Fertile soil with even grains and stable minerals",
-            "rootStrong": "A stage where deep roots hold the center even through outside changes",
-            "rootWeak": "A stage where fine rootlets spread first and need support",
-            "rootBalanced": "A balanced stage where mid-depth roots spread evenly",
-            "section": "Soil and roots for growth",
-            "matrixSoil": "🪨 Soil composition: {value}",
-            "matrixRoot": "🌱 Root depth: {value}",
-            "matrixNutrient": "🧪 Gardener's nutrient: {value}",
-            "log": "Gardener's observation journal: today the garden takes on the texture of {soil}, and growth energy moves along the flow of \"{root}\". It may look quiet on the surface, but strength for the next bloom is being firmly stored in the root layer.",
-            "recipe": "Secret recipe: place a green-leaved plant by a north- or east-facing window, loosen your body for 10 minutes in the morning and steady your breathing for 10 minutes in the evening. Fixing this rhythm twice a day lifts your useful element's energy fastest.",
-            "flowerLanguage": "Destiny flower language: strong roots may seem slow, but in the end they bloom the highest.",
-            "gardenerWord": "A gardener's word for this flower: trust accumulation over haste. Today's small care makes next season's great harvest.",
-            "particle": "Translated into particles, the subtle movement of {source} energy is most harmonious with a \"{particle}\" mood."
+            "soilCold": "饱含水分的湿地型沃土",
+            "soilHot": "排水性好的温暖砾石混合土",
+            "soilBalanced": "颗粒均匀、矿物质稳定的肥沃土壤",
+            "rootStrong": "根系深扎、即使外界变化也能守住中心的阶段",
+            "rootWeak": "纤细的须根率先蔓延、需要支撑的阶段",
+            "rootBalanced": "中等深度的根均匀扩展的平衡阶段",
+            "section": "成长的土壤与根",
+            "matrixSoil": "🪨 土壤成分：{value}",
+            "matrixRoot": "🌱 根的深度：{value}",
+            "matrixNutrient": "🧪 园丁营养剂：{value}",
+            "log": "园丁观察日记：今天的花园带着{soil}的纹理，生长能量沿着{root}的流向运行。表面看似平静，根层中却正稳稳积蓄着下一次开花的力量。",
+            "recipe": "秘密配方：在朝北或朝东的窗边放一盆绿叶植物，早上用10分钟舒展身体，晚上用10分钟调匀呼吸。每天两次固定节奏，最能迅速提升用神之气。",
+            "flowerLanguage": "命运花语：坚实的根看似缓慢，终将开得最高。",
+            "gardenerWord": "园丁给这朵花的一句话：比起急躁，请相信积累。今天的小小照料，会成就下一季的丰硕果实。",
+            "particle": "若把{source}之气的细微流动转译为粒子，“{particle}”的氛围最为和谐。"
           },
-          "themesWaiting": "Analyzing your relationship and work themes.",
-          "guidance": "{source} destiny flower practice guide: {text}"
+          "themesWaiting": "正在分析人际与工作主题。",
+          "guidance": "{source}命运之花实践指南：{text}"
         },
         "prompt": {
-          "badgesSukuyo": "Sukuyo badges: {mansion} / moon phase {phase} / guardian animal {guardian}",
-          "badgesJamidusu": "Ziwei badges: today's strong star {star} / star brightness {brightness} / palace {palace}",
-          "badgesAstrology": "Astrology badges: Sun sign {sun} / Rising sign {rising} / Moon sign {moon}",
-          "badgesSaju": "Saju badges: strength {strength} / useful element {yongshin} / seasonal balance {johu}",
-          "symbolismFallback": "A flower symbolizing the flow of destiny",
-          "narrativeFallback": "Destiny flower narrative",
-          "scenarioFallback": "Staging based on the blooming scenario",
-          "toneDirection": "{source} tone direction: {mood} / {background}"
+          "badgesSukuyo": "宿曜徽章：{mansion} / 月相 {phase} / 守护动物 {guardian}",
+          "badgesJamidusu": "紫微斗数徽章：今日强星 {star} / 星曜亮度 {brightness} / 宫位 {palace}",
+          "badgesAstrology": "占星徽章：太阳星座 {sun} / 上升星座 {rising} / 月亮星座 {moon}",
+          "badgesSaju": "八字徽章：身强/身弱 {strength} / 用神 {yongshin} / 调候 {johu}",
+          "symbolismFallback": "象征命运流向的花",
+          "narrativeFallback": "命运之花叙事",
+          "scenarioFallback": "基于开花情境的演绎",
+          "toneDirection": "{source}色调方向：{mood} / {background}"
         },
         "history": {
-          "emptyStatus": "No blooming records have been saved yet. Try saving your current result.",
-          "restore": "Open",
-          "kakao": "Share on Kakao",
-          "delete": "Delete",
-          "saved": "Blooming record saved: {name} ({time})",
-          "notFound": "That record could not be found.",
-          "restored": "Loaded your saved blooming record: {name}",
-          "deleteNotFound": "Could not find the record to delete.",
-          "deleted": "The selected blooming record has been deleted.",
-          "nothingToClear": "There are no blooming records to delete.",
-          "cleared": "All saved blooming records have been deleted.",
-          "shareNotFound": "Could not find the record to share."
+          "emptyStatus": "还没有保存的开花记录。试着保存当前的结果吧。",
+          "restore": "加载",
+          "kakao": "Kakao分享",
+          "delete": "删除",
+          "saved": "开花记录已保存：{name}（{time}）",
+          "notFound": "找不到该记录。",
+          "restored": "已加载保存的开花记录：{name}",
+          "deleteNotFound": "找不到要删除的记录。",
+          "deleted": "已删除所选的开花记录。",
+          "nothingToClear": "没有可删除的开花记录。",
+          "cleared": "已删除所有保存的开花记录。",
+          "shareNotFound": "找不到要分享的记录。"
         },
         "noBirth": {
-          "jamidusu": "Enter your date of birth to see your Ziwei flower.",
-          "sukuyo": "Enter your date of birth to see your Sukuyo flower.",
-          "astrology": "Enter your date and time of birth to see your astrology flower.",
-          "saju": "Enter your name and date of birth first, and your own destiny flower will bloom here."
+          "jamidusu": "请输入出生日期，即可查看紫微之花。",
+          "sukuyo": "请输入出生日期，即可查看宿曜之花。",
+          "astrology": "请输入出生日期与出生时间，即可查看占星之花。",
+          "saju": "先输入姓名与出生日期，专属于你的命运之花就会在这里绽放。"
         },
-        "studioTitle": "🌸 Destiny Flower Atelier",
+        "studioTitle": "🌸 命运之花工坊",
         "sourceDesc": {
-          "saju": "We read your day master, birth month and Five Element balance one by one, then choose the single flower that touches your energy most deeply this season.",
-          "astrology": "We layer the three strands of starlight drawn by your Sun, Rising and Moon signs, then bloom the flower that harmonizes most clearly with your chart right now.",
-          "jamidusu": "We trace the main star in your Life Palace, its brightness and the flow of the Four Transformations, then find the flower your chart brings out most vividly right now.",
-          "sukuyo": "We set your birth-day lunar mansion against tonight's moon phase, then hand you the flower that fits the grain of your heart most gently right now."
+          "saju": "我们逐一解读你的日干、月令与五行平衡，为你挑选此刻这个季节里，与你的气息最深切相契的一朵花。",
+          "astrology": "我们将太阳星座·上升星座·月亮星座描绘出的三缕星光叠加解读，为你绽放此刻与你的星座最清澈和谐的花。",
+          "jamidusu": "我们细察命宫中的主星、它的亮度与四化的流转，为你找到此刻你的命盘最鲜明绽放的花。",
+          "sukuyo": "我们将你出生之日的本命宿与今晚的月相相互对照，为你送上此刻与你心绪最温柔契合的花。"
         },
         "sourceShort": {
-          "saju": "Saju",
-          "astrology": "chart",
-          "jamidusu": "Ziwei",
-          "sukuyo": "Sukuyo"
+          "saju": "八字",
+          "astrology": "星盘",
+          "jamidusu": "紫微斗数",
+          "sukuyo": "宿曜"
         },
         "strength": {
-          "strong": "Strong",
-          "weak": "Weak"
+          "strong": "身强",
+          "weak": "身弱"
         },
         "johu": {
-          "hot": "Warm & dry",
-          "cold": "Cold & damp",
-          "balanced": "Balanced"
+          "hot": "温燥",
+          "cold": "寒湿",
+          "balanced": "中和"
         }
       }
     }

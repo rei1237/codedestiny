@@ -668,14 +668,14 @@
       "home": "Naar startscherm",
       "keywords": "saju oordeel • wedergeboorte • zuiverheid • stroom",
       "quadAria": "Lotsbloemen uit alle vier de systemen",
-      "letterTitle": "Today's flower letter · one thing your heart needs",
-      "letterIntro": "Flower stories for small actions rather than predictions. Pick the letter that fits how you feel right now.",
-      "letterRestTitle": "Like a magnolia · I want to rest for a while",
-      "letterRestBody": "Before a flower blooms, its branches quietly gather strength. Today, set down one thing you have to do, and take a moment to look at the plants or the sky outside your window.",
-      "letterStartTitle": "Like a sprout · I need courage to begin",
-      "letterStartBody": "Instead of a big resolution, let one small sprout break through. Write down just the first step of something you have put off, and spend five minutes working on it.",
-      "letterShareTitle": "Like a bouquet · I want to share how I feel",
-      "letterShareBody": "Rather than what you want to hear, recall one moment you were grateful for. Offer your feelings with a short hello that doesn't press for a reply."
+      "letterTitle": "De bloemenbrief van vandaag · Eén ding dat je hart nodig heeft",
+      "letterIntro": "Bloemenverhalen voor kleine stapjes in plaats van voorspellingen. Kies de brief die nu bij je gevoel past.",
+      "letterRestTitle": "Als een magnolia · Ik wil even op adem komen",
+      "letterRestBody": "Voordat een bloem opengaat, verzamelen ook de takken stil hun kracht. Streep vandaag één ding van je takenlijst en kijk even naar de planten of de lucht buiten je raam.",
+      "letterStartTitle": "Als een scheut · Ik heb moed nodig om te beginnen",
+      "letterStartBody": "Laat in plaats van een groot voornemen een kleine scheut opkomen. Schrijf alleen de eerste stap op van iets wat je hebt uitgesteld, en ga er vijf minuten mee aan de slag.",
+      "letterShareTitle": "Als een boeket · Ik wil laten zien wat ik voel",
+      "letterShareBody": "Denk niet aan wat je wilt horen, maar aan een moment waarvoor je dankbaar was. Laat je gevoel zien met een korte groet die geen antwoord vraagt."
     },
     "tarotSelfEsteem": {
       "levelUp": "Je eigen maatstaf wordt duidelijker",
@@ -2731,9 +2731,9 @@
         "shareHook": {
           "rarityAnchor": "De enige bloem, gelezen vanuit {anchor}"
         },
-        "anonymousName": "Anonymous traveler",
+        "anonymousName": "Anonieme reiziger",
         "rationaleLabel": {
-          "verdict": "So, this flower"
+          "verdict": "Daarom deze bloem"
         }
       },
       "astro": {
@@ -2777,20 +2777,20 @@
           "pisces": "Pisces"
         },
         "rationaleLabel": {
-          "sun": "Sun sign",
-          "risingMoon": "Rising sign · Moon sign"
+          "sun": "Zonneteken",
+          "risingMoon": "Ascendant · maanteken"
         }
       },
       "ziwei": {
         "brightness": {
-          "miao": "Miao",
-          "wang": "Wang",
-          "li": "Li",
-          "de": "De",
-          "ping": "Pingen",
-          "han": "Han",
-          "xian": "Xian",
-          "bu": "Bu"
+          "miao": "Miao (廟)",
+          "wang": "Wang (旺)",
+          "li": "Li (利)",
+          "de": "De (得)",
+          "ping": "Ping (平)",
+          "han": "Xian (閑)",
+          "xian": "Xian (陷)",
+          "bu": "Bu (不)"
         },
         "coreFlow": "kernfortuinstroom",
         "coreEnergy": "expressie van kernenergie",
@@ -2876,44 +2876,44 @@
           "lingxing": "Ling Xing (鈴星)"
         },
         "palaces": {
-          "life": "Life Palace",
-          "siblings": "Siblings Palace",
-          "spouse": "Spouse Palace",
-          "children": "Children Palace",
-          "wealth": "Wealth Palace",
-          "health": "Health Palace",
-          "travel": "Travel Palace",
-          "friends": "Friends Palace",
-          "career": "Career Palace",
-          "property": "Property Palace",
-          "fortune": "Fortune Palace",
-          "parents": "Parents Palace"
+          "life": "Levenspaleis",
+          "siblings": "Broers-en-zussenpaleis",
+          "spouse": "Partnerpaleis",
+          "children": "Kinderpaleis",
+          "wealth": "Rijkdompaleis",
+          "health": "Gezondheidspaleis",
+          "travel": "Reispaleis",
+          "friends": "Vriendenpaleis",
+          "career": "Carrièrepaleis",
+          "property": "Bezitpaleis",
+          "fortune": "Gelukspaleis",
+          "parents": "Ouderpaleis"
         },
         "palaceTraits": {
-          "life": "a strong sense of self and presence",
-          "siblings": "cooperation and a feel for coordination",
-          "spouse": "relational grace and intimate communication",
-          "children": "creativity and the urge to express",
-          "wealth": "managing resources and expanding abundance",
-          "health": "resilience and a sense of inner balance",
-          "travel": "adaptability and on-the-spot judgment",
-          "friends": "running networks and caring for a team",
-          "career": "social drive and an orientation toward achievement",
-          "property": "building foundations and steady accumulation",
-          "fortune": "emotional recharge and spiritual insight",
-          "parents": "protective instinct and a sense of tradition"
+          "life": "een sterk zelfgevoel en uitstraling",
+          "siblings": "samenwerking en gevoel voor afstemming",
+          "spouse": "gevoel voor schoonheid in relaties en intieme communicatie",
+          "children": "creativiteit en de drang om je te uiten",
+          "wealth": "het beheren van middelen en het vergroten van overvloed",
+          "health": "veerkracht en gevoel voor innerlijk evenwicht",
+          "travel": "aanpassingsvermogen en oordeelsvermogen ter plekke",
+          "friends": "het onderhouden van netwerken en zorg voor een team",
+          "career": "maatschappelijke drive en streven naar succes",
+          "property": "het leggen van fundamenten en gestaag opbouwen",
+          "fortune": "emotioneel opladen en spiritueel inzicht",
+          "parents": "beschermingsinstinct en gevoel voor traditie"
         },
-        "natalVerdict": "Read through the nature of {stars} in your Life Palace, your flower is {flowerName} ({scientificName}).",
-        "natalScenarioTitle": "Life Palace main-star blooming scenario",
+        "natalVerdict": "Gelezen uit het karakter van {stars} in je levenspaleis is jouw bloem {flowerName} ({scientificName}).",
+        "natalScenarioTitle": "Bloeiscenario van de hoofdster in het levenspaleis",
         "rationale": {
-          "lifeStar": "Your Life Palace holds {starsJosa}.",
-          "borrowedStar": "Your Life Palace has no main star, so we read {starsObject} borrowed from the opposite Travel Palace.",
-          "personality": "{star}: \"{keyword}\" — {personality}.",
-          "verdict": "So the flower we offer you now is {flowerName}."
+          "lifeStar": "In je levenspaleis staat {starsJosa}.",
+          "borrowedStar": "Je levenspaleis heeft geen hoofdster, dus hebben we {starsObject} geleend uit het tegenoverliggende reispaleis en die gelezen.",
+          "personality": "{star}: ‘{keyword}’ — {personality}.",
+          "verdict": "Daarom is de bloem die we je nu aanreiken {flowerName}."
         },
         "rationaleLabel": {
-          "lifeStar": "Life Palace main star",
-          "personality": "Innate personality"
+          "lifeStar": "Hoofdster in het levenspaleis",
+          "personality": "Aangeboren persoonlijkheid"
         }
       },
       "sukuyo": {
@@ -2963,198 +2963,198 @@
           "m27": "Shin (軫)"
         },
         "groups": {
-          "anjung": "Steady mansions",
-          "gangseong": "Strong mansions",
-          "gyeongkwae": "Nimble mansions",
-          "jihye": "Wise mansions"
+          "anjung": "Standvastige maanhuizen",
+          "gangseong": "Sterke maanhuizen",
+          "gyeongkwae": "Wendbare maanhuizen",
+          "jihye": "Wijze maanhuizen"
         },
         "groupLabels": {
-          "anjung": "Steady group",
-          "gangseong": "Strong group",
-          "gyeongkwae": "Nimble group",
-          "jihye": "Wise group"
+          "anjung": "Standvastige groep",
+          "gangseong": "Sterke groep",
+          "gyeongkwae": "Wendbare groep",
+          "jihye": "Wijze groep"
         },
         "guardians": {
-          "crane": "Crane",
-          "dragon": "Dragon",
-          "marten": "Marten",
-          "rabbit": "Rabbit",
-          "fox": "Fox",
-          "tiger": "Tiger",
-          "leopard": "Leopard",
+          "crane": "Kraanvogel",
+          "dragon": "Draak",
+          "marten": "Marter",
+          "rabbit": "Konijn",
+          "fox": "Vos",
+          "tiger": "Tijger",
+          "leopard": "Luipaard",
           "haetae": "Haetae",
-          "bat": "Bat",
+          "bat": "Vleermuis",
           "rat": "Rat",
-          "swallow": "Swallow",
-          "pig": "Pig",
-          "hedgehog": "Hedgehog",
+          "swallow": "Zwaluw",
+          "pig": "Varken",
+          "hedgehog": "Egel",
           "wolf": "Wolf",
-          "dog": "Dog",
-          "pheasant": "Pheasant",
-          "rooster": "Rooster",
-          "crow": "Crow",
-          "monkey": "Monkey",
-          "ape": "Ape",
-          "wildDog": "Wild dog",
-          "sheep": "Sheep",
-          "roeDeer": "Roe deer",
-          "horse": "Horse",
-          "deer": "Deer",
-          "snake": "Snake",
-          "earthworm": "Earthworm"
+          "dog": "Hond",
+          "pheasant": "Fazant",
+          "rooster": "Haan",
+          "crow": "Kraai",
+          "monkey": "Aap",
+          "ape": "Mensaap",
+          "wildDog": "Wilde hond",
+          "sheep": "Schaap",
+          "roeDeer": "Ree",
+          "horse": "Paard",
+          "deer": "Hert",
+          "snake": "Slang",
+          "earthworm": "Regenworm"
         },
         "rationaleLabel": {
-          "mansion": "Mansion · Moon phase"
+          "mansion": "Maanhuis · maanfase"
         }
       },
       "saju": {
         "scenarios": {
           "default": {
             "title": "{dayMasterBadge} scenario voor bloei van de omgeving",
-            "reason": "We looked at how your day master meshes with the current five-element environment and chose the one flower that suits this period best."
+            "reason": "We hebben bekeken hoe je dagmeester samenspeelt met de huidige omgeving van de Vijf Elementen, en de ene bloem gekozen die in deze periode het best bij je past."
           },
           "jia": {
             "springWood": {
               "title": "Jia Wood rechtopstaand bloeiscenario",
-              "reason": "Jia Wood (甲木) has the nature of a tall tree growing straight upward. Now that spring's wood energy matches that temperament, your power to step forward and open new ground comes into full bloom."
+              "reason": "Jia-hout (甲木) heeft het karakter van een grote boom die recht omhoog groeit. Nu de houtenergie van de lente bij dat temperament past, komt je kracht om voorop te gaan en nieuwe wegen te openen in volle bloei."
             },
             "autumnMetal": {
               "title": "Jia Wood metaal-tempereringsscenario",
-              "reason": "With autumn's metal energy pressing on Jia Wood (甲木), now is the time to prune the side branches and keep only the trunk that truly matters. The more you let go, the sturdier you become."
+              "reason": "Terwijl de metaalenergie van de herfst op Jia-hout (甲木) drukt, is het tijd om de zijtakken te snoeien en alleen de stam te houden die er echt toe doet. Hoe meer je loslaat, hoe steviger je komt te staan."
             },
             "dryFire": {
               "title": "Jia Wood-scenario voor uithoudingsvermogen bij droge hitte",
-              "reason": "For Jia Wood (甲木) set amid dry, hot energy, what matters now is the stamina of its roots. Rather than rushing, build resilience by holding on for the long run, and you will bloom again as tenaciously as the rose of Sharon."
+              "reason": "Voor Jia-hout (甲木) te midden van droge, hete energie telt nu het uithoudingsvermogen van de wortels. Haast je niet, houd lang vol en bouw veerkracht op, dan bloei je net zo volhardend opnieuw als de altheastruik."
             }
           },
           "yi": {
             "metalWater": {
               "title": "Yi Harmoniescenario voor hout, metaal en water",
-              "reason": "Yi Wood (乙木) has a gentle, seeping nature like vines and flowering plants. With metal and water energy strong now, your grace and your clarifying, purifying power come most alive."
+              "reason": "Yi-hout (乙木) heeft een zacht, doordringend karakter, zoals ranken en bloeiende planten. Nu metaal- en waterenergie sterk zijn, komen je gratie en je zuiverende, reinigende kracht het sterkst tot uiting."
             },
             "dryEarth": {
               "title": "Yi Wood-overlevingsscenario op droge grond",
-              "reason": "For Yi Wood (乙木) standing on dry earth energy, the theme now is the strength to endure. Like a cactus flower that breaks through barren ground and blooms at last, you shine precisely where you hold on."
+              "reason": "Voor Yi-hout (乙木) op droge aarde-energie draait het nu om de kracht om vol te houden. Zoals een cactusbloem die door schrale grond breekt en uiteindelijk bloeit, straal je juist daar waar je standhoudt."
             },
             "autumn": {
               "title": "Scenario voor herfstverfijning van Yi Wood",
-              "reason": "Yi Wood (乙木) passing through autumn's metal energy is in a season of turning delicacy into calm order. The more evenly you sort what is scattered, the tidier your mind becomes as well."
+              "reason": "Yi-hout (乙木) dat door de metaalenergie van de herfst trekt, zit in een tijd waarin fijngevoeligheid rustige orde wordt. Hoe gelijkmatiger je ordent wat verspreid ligt, hoe opgeruimder ook je binnenste wordt."
             },
             "wetSpring": {
               "title": "Yi Wood-uitbreidingsscenario in vochtige lente",
-              "reason": "Meeting spring's moist energy, Yi Wood (乙木) grows markedly better at connecting people. Now is a time to reach outward through relationships rather than alone."
+              "reason": "Als Yi-hout (乙木) de vochtige energie van de lente ontmoet, groeit zijn kracht om mensen te verbinden merkbaar. Nu is het tijd om via relaties te groeien in plaats van alleen."
             }
           },
           "bing": {
             "springWood": {
               "title": "Bing Fire-veerontstekingsscenario",
-              "reason": "Bing Fire (丙火) is energy that catches quickly and spreads wide like the sun. With spring's wood energy as fuel now, your power to start something new and make it known burns strongly."
+              "reason": "Bing-vuur (丙火) is een energie die snel ontvlamt en zich wijd verspreidt, zoals de zon. Met de houtenergie van de lente als brandstof laait nu je kracht op om iets nieuws te beginnen en bekend te maken."
             },
             "summerFire": {
               "title": "Bing Fire zomeruitbreidingsscenario",
-              "reason": "With summer's fire energy added, Bing Fire (丙火) burns brighter than ever. This is the season when your power to step forward and lead people peaks."
+              "reason": "Komt de vuurenergie van de zomer erbij, dan brandt Bing-vuur (丙火) feller dan ooit. In deze tijd bereikt je kracht om voorop te gaan en mensen te leiden haar hoogtepunt."
             },
             "waterControl": {
               "title": "Bing Scenario voor brandwaterbeheersing",
-              "reason": "For Bing Fire (丙火) meeting strong water energy, what matters now is not burning hotter but setting the right direction. Keep your sense of reality and guard the flame, and its light will last."
+              "reason": "Voor Bing-vuur (丙火) dat op sterke waterenergie stuit, gaat het nu niet om heter branden, maar om de richting goed te bepalen. Bewaar je realiteitszin en hoed de vlam, dan blijft haar licht lang branden."
             }
           },
           "ding": {
             "coldWet": {
               "title": "Ding Fire koud-vochtig warmtescenario",
-              "reason": "Ding Fire (丁火) is energy that glows quietly from within like a candle. In this cold, damp time, keeping that warmth alive for a long time is a greater strength than brilliance."
+              "reason": "Ding-vuur (丁火) is een energie die als een kaars stil van binnenuit schijnt. In deze koude, vochtige tijd is het een grotere kracht om die warmte lang levend te houden dan om te schitteren."
             },
             "autumnMetal": {
               "title": "Ding Fire-scenario voor metaalraffinage",
-              "reason": "Meeting metal energy, Ding Fire (丁火) sharpens the precision of its hands and its eye for beauty. This is the time you shine most by holding on to one thing and finishing it beautifully."
+              "reason": "Als Ding-vuur (丁火) metaalenergie ontmoet, worden de precisie van zijn handen en zijn oog voor schoonheid scherper. Nu straal je het meest als je bij één ding blijft en het mooi afrondt."
             },
             "resonance": {
               "title": "Ding Fire resonantie bloeiend scenario",
-              "reason": "Ding Fire (丁火) is energy that gently tends the texture of emotions and deepens relationships. The more freely you express your heart, the more your path of fortune opens with it."
+              "reason": "Ding-vuur (丁火) is een energie die de textuur van gevoelens behoedzaam aanraakt en relaties verdiept. Hoe vrijer je je hart laat zien, hoe verder ook je weg naar geluk opengaat."
             }
           },
           "wu": {
             "fireEarth": {
               "title": "Wu Earth vuur-aarde prestatiescenario",
-              "reason": "Wu Earth (戊土) is broad, dependable energy like a great mountain. With fire and earth supporting you now, large undertakings and large achievements gain unusual strength."
+              "reason": "Wu-aarde (戊土) is een weidse, betrouwbare energie, zoals een grote berg. Nu vuur en aarde je steunen, krijgen grote plannen en grote successen bijzondere kracht."
             },
             "winterWater": {
               "title": "Wu Earth winterstichtingsscenario",
-              "reason": "For Wu Earth (戊土) meeting winter's water energy, now is the time to slow down and firm up the ground. The more you pause and solidify the basics, the steadier your next step becomes."
+              "reason": "Voor Wu-aarde (戊土) die de waterenergie van de winter ontmoet, is het nu tijd om het tempo te verlagen en de grond te verstevigen. Hoe meer je stilstaat en de basis versterkt, hoe zekerder je volgende stap wordt."
             },
             "center": {
               "title": "Scenario voor het bouwen van Wu-aardcentra",
-              "reason": "The true strength of Wu Earth (戊土) is the centering power that holds a shaky situation together from the middle. The more steadily you keep your daily routine, the more your results build up."
+              "reason": "De echte kracht van Wu-aarde (戊土) is het centrerende vermogen dat een wankele situatie vanuit het midden bijeenhoudt. Hoe trouwer je je dagelijkse routine volhoudt, hoe meer je successen zich opstapelen."
             }
           },
           "ji": {
             "wetEarth": {
               "title": "Scenario voor uitbreiding van de cultivatie van de aarde",
-              "reason": "Ji Earth (己土) is energy that carefully nurtures things, like a well-tilled field. In this moist time, results grow within relationships where you work together and look after one another."
+              "reason": "Ji-aarde (己土) is een energie die dingen zorgvuldig laat opgroeien, zoals een goed bewerkte akker. In deze vochtige tijd groeien de vruchten in relaties waarin jullie samenwerken en voor elkaar zorgen."
             },
             "metalDesign": {
               "title": "Ji Earth-scenario met precisieontwerp",
-              "reason": "Meeting metal energy, Ji Earth (己土) awakens a sense for designing and arranging even the smallest details. Your strengths stand out in work that calls for a high level of finish."
+              "reason": "Als Ji-aarde (己土) metaalenergie ontmoet, ontwaakt een gevoel om zelfs de kleinste details te plannen en te ordenen. Je sterke punten komen naar voren bij taken die veel zorgvuldigheid vragen."
             },
             "balance": {
               "title": "Ji Scenario voor het afstemmen van het evenwicht op de aarde",
-              "reason": "Ji Earth (己土) is energy that excels at gently mediating between people and setting the mood. As long as you manage the pace of give and take well, that itself becomes your luck."
+              "reason": "Ji-aarde (己土) is een energie die bijzonder goed zacht tussen mensen bemiddelt en de sfeer aanvoelt. Als je het tempo van geven en nemen goed stuurt, wordt juist dat je geluk."
             }
           },
           "geng": {
             "metalEarth": {
               "title": "Geng Metal-principe-door-scenario",
-              "reason": "Geng Metal (庚金) is energy that cuts through boldly and decisively, like an uncut gemstone. With earth and metal supporting you now, your power to push through the principles you set reaches its peak."
+              "reason": "Geng-metaal (庚金) is een energie die stoutmoedig en vastberaden doorsnijdt, zoals een ongeslepen edelsteen. Nu aarde en metaal je steunen, bereikt je kracht om je principes door te zetten haar hoogtepunt."
             },
             "fireTraining": {
               "title": "Geng Metal-brandtemperingsscenario",
-              "reason": "Tempered in hot fire, Geng Metal (庚金) hardens in both charisma and skill. This is a time when your focus grows especially sharp at decisive moments."
+              "reason": "Gehard in heet vuur verstevigt Geng-metaal (庚金) uitstraling en vakmanschap tegelijk. In deze tijd wordt je concentratie op beslissende momenten bijzonder scherp."
             },
             "clearJudgment": {
               "title": "Geng Metal scenario met beslissend oordeel",
-              "reason": "The strength of Geng Metal (庚金) is judgment that cuts precisely to the core. Set clear standards, and that clarity carries straight through to results."
+              "reason": "De kracht van Geng-metaal (庚金) is een oordeelsvermogen dat precies tot de kern doordringt. Stel duidelijke maatstaven, en die helderheid leidt direct tot resultaten."
             }
           },
           "xin": {
             "metalWater": {
               "title": "Xin Metal metaal-waterverfijningsscenario",
-              "reason": "Xin Metal (辛金) is energy with refined senses and language, like a finely cut jewel. With metal and water in harmony now, your power to analyze and express becomes even clearer."
+              "reason": "Xin-metaal (辛金) is een energie met verfijnde zintuigen en fijne taal, zoals een fijn geslepen juweel. Nu metaal en water harmoniëren, wordt je kracht om te analyseren en je uit te drukken nog helderder."
             },
             "springWood": {
               "title": "Xin Metal houtafstemmingsscenario",
-              "reason": "Meeting spring's wood energy, Xin Metal (辛金) goes further by adjusting gently than by sharpening its edge. This is a time when results come from work you refine by feel."
+              "reason": "Als Xin-metaal (辛金) de houtenergie van de lente ontmoet, komt het verder door zacht af te stemmen dan door zijn kling te slijpen. In deze tijd levert werk dat je met gevoel verfijnt resultaten op."
             },
             "completion": {
               "title": "Xin Metal voltooiingsscenario",
-              "reason": "Xin Metal (辛金) is strong when it finishes one thing beautifully rather than spreading wide. The more neatly you wrap up the details, the more people's trust builds."
+              "reason": "Xin-metaal (辛金) is sterk wanneer het één ding mooi afrondt in plaats van zich breed te verspreiden. Hoe zorgvuldiger je de details afwerkt, hoe meer het vertrouwen van mensen groeit."
             }
           },
           "ren": {
             "summerCooling": {
               "title": "Ren Water zomerkoelingscenario",
-              "reason": "Ren Water (壬水) is energy that handles great currents like a wide sea. Now, as it cools summer's heat, your power to focus calmly rises markedly."
+              "reason": "Ren-water (壬水) is een energie die grote stromen stuurt, zoals een wijde zee. Nu het de zomerhitte afkoelt, groeit je kracht om je rustig te concentreren merkbaar."
             },
             "winterCondensing": {
               "title": "Ren Water-wintercondensatiescenario",
-              "reason": "Resonating with winter's water energy, Ren Water (壬水) is in a time of gathering strength beneath the ice. Though it looks calm on the surface, a solid potential ripens within, like a glacier flower."
+              "reason": "In harmonie met de waterenergie van de winter verzamelt Ren-water (壬水) nu kracht onder het ijs. Ook al lijkt het aan de oppervlakte rustig, vanbinnen rijpt een stevig potentieel, zoals een gletsjerbloem."
             },
             "nightIntuition": {
               "title": "Ren Water nacht-intuïtiescenario",
-              "reason": "Ren Water (壬水) is energy that finds its way better through the intuition of a quiet night than in bright daylight. When you decide by your own rhythm instead of rushing to an answer, the direction falls into place."
+              "reason": "Ren-water (壬水) is een energie die haar weg eerder vindt via de intuïtie van een stille nacht dan in het heldere daglicht. Als je op je eigen ritme beslist in plaats van haastig een antwoord te zoeken, klopt de richting."
             }
           },
           "gui": {
             "coldWetPurifying": {
               "title": "Gui Water koud-vochtig zuiveringsscenario",
-              "reason": "Gui Water (癸水) is energy that senses the subtle and washes it clean, like dawn dew. In this cold, damp time, that quiet, absorbed stillness becomes your strength."
+              "reason": "Gui-water (癸水) is een energie die als ochtenddauw het fijne waarneemt en zuiver wast. In deze koude, vochtige tijd wordt die stille, verzonken rust je kracht."
             },
             "summerEmpathy": {
               "title": "Gui Water zomer-empathiescenario",
-              "reason": "For Gui Water (癸水) meeting summer's heat, empathy that soothes hearts and connects people is the greatest asset. Like a hydrangea, the path opens as you gather the warmth of many."
+              "reason": "Voor Gui-water (癸水) dat de zomerhitte ontmoet, is mededogen dat harten troost en mensen verbindt de grootste kracht. Net als bij een hortensia opent de weg zich als je de warmte van velen verzamelt."
             },
             "subtleSignal": {
               "title": "Gui Water subtiel signaalscenario",
-              "reason": "Gui Water (癸水) is energy that reads the small signals others miss before anyone else. Time things well with that keen sense, and that single move decides the outcome."
+              "reason": "Gui-water (癸水) is een energie die kleine signalen die anderen missen als eerste leest. Kies met dat fijne gevoel alleen het juiste moment, en juist die ene zet beslist over succes of mislukking."
             }
           }
         },
@@ -3177,12 +3177,12 @@
           "description": "Bestemmingsbloemlezing: {description}",
           "vibe": "Bloeigids: {vibeMessage}",
           "fallback": "Aanpassingslogica: {note}",
-          "dayMasterSame": "A flower that carries the same {element} energy as your {dayMasterBadge} day master.",
-          "strengthRelease": "Your chart runs strong, so we gave weight to flowers with {elements} energy that lets the built-up energy flow outward.",
-          "strengthSupport": "Your chart runs weak, so we gave weight to flowers with {elements} energy that supports your day master.",
-          "yongshin": "This flower carries the useful element (yongshin) your chart needs — {elements}.",
-          "johuWarm": "Your chart leans cold and damp, so we gave weight to warm flowers that heat it like sunlight.",
-          "johuCool": "Your chart leans hot and dry, so we gave weight to moisture-rich flowers that cool the heat."
+          "dayMasterSame": "Een bloem die dezelfde {element}-energie in zich draagt als je dagmeester {dayMasterBadge}.",
+          "strengthRelease": "Je Saju is sterk, dus hebben we bloemen met {elements}-energie zwaarder laten wegen, die de opgehoopte energie naar buiten laten stromen.",
+          "strengthSupport": "Je Saju is zwak, dus hebben we bloemen met {elements}-energie zwaarder laten wegen, die je dagmeester ondersteunen.",
+          "yongshin": "Deze bloem draagt het nuttig element (Yongshin) dat je Saju nodig heeft — {elements}.",
+          "johuWarm": "Je Saju neigt naar kou en vocht, dus hebben we warme bloemen zwaarder laten wegen, die het als zonlicht verwarmen.",
+          "johuCool": "Je Saju neigt naar hitte en droogte, dus hebben we waterrijke bloemen zwaarder laten wegen, die de hitte afkoelen."
         },
         "elements": {
           "wood": "Hout",
@@ -3258,16 +3258,16 @@
           "rarityPlain": "De ene bloem die mijn Saju uit {total} koos"
         },
         "dayMasters": {
-          "jia": "Jia Wood (甲木)",
-          "yi": "Yi Wood (乙木)",
-          "bing": "Bing Fire (丙火)",
-          "ding": "Ding Fire (丁火)",
-          "wu": "Wu Earth (戊土)",
-          "ji": "Ji Earth (己土)",
-          "geng": "Geng Metal (庚金)",
-          "xin": "Xin Metal (辛金)",
-          "ren": "Ren Water (壬水)",
-          "gui": "Gui Water (癸水)"
+          "jia": "Jia-hout (甲木)",
+          "yi": "Yi-hout (乙木)",
+          "bing": "Bing-vuur (丙火)",
+          "ding": "Ding-vuur (丁火)",
+          "wu": "Wu-aarde (戊土)",
+          "ji": "Ji-aarde (己土)",
+          "geng": "Geng-metaal (庚金)",
+          "xin": "Xin-metaal (辛金)",
+          "ren": "Ren-water (壬水)",
+          "gui": "Gui-water (癸水)"
         },
         "dayMasterStems": {
           "jia": "Jia (甲)",
@@ -3282,17 +3282,17 @@
           "gui": "Gui (癸)"
         },
         "dayMasterFallback": {
-          "ziwei": "With limited Saju day master data, the day master's nature was adjusted based on the Zi Wei main star.",
-          "astrology": "With limited Saju day master data, the sun sign's tendencies stood in for the day master's nature.",
-          "dominant": "With limited Saju, Zi Wei and astrology indicators, the day master's nature was estimated from the dominant element."
+          "ziwei": "Omdat de Saju-gegevens over de dagmeester onvolledig waren, is het karakter van de dagmeester bijgesteld op basis van de Zi Wei-hoofdster.",
+          "astrology": "Omdat de Saju-gegevens over de dagmeester onvolledig waren, zijn de neigingen van het zonneteken gebruikt in plaats van het karakter van de dagmeester.",
+          "dominant": "Omdat de kernwaarden uit Saju, Zi Wei en astrologie onvolledig waren, is het karakter van de dagmeester afgeleid uit het overheersende element."
         },
         "rationaleLabel": {
-          "dayMaster": "Day master nature",
-          "strengthRelease": "Strong chart",
-          "strengthSupport": "Weak chart",
-          "yongshin": "Useful element",
-          "johuWarm": "Climate balance · cold and damp",
-          "johuCool": "Climate balance · hot and dry"
+          "dayMaster": "Karakter van de dagmeester",
+          "strengthRelease": "Sterke Saju",
+          "strengthSupport": "Zwakke Saju",
+          "yongshin": "Nuttig element",
+          "johuWarm": "Seizoensbalans · koud en vochtig",
+          "johuCool": "Seizoensbalans · heet en droog"
         }
       },
       "flowers": {
@@ -4582,303 +4582,303 @@
           }
         },
         "cta": {
-          "rebloom": "🌸 Bloom my destiny flower again",
-          "astrologyAgain": "✨ Summon my astrology flower again",
-          "jamidusuAgain": "🌺 Summon my Ziwei flower again",
-          "sukuyoAgain": "🌙 Summon my Sukuyo flower again"
+          "rebloom": "🌸 Mijn lotsbloem opnieuw laten bloeien",
+          "astrologyAgain": "✨ Mijn astrologiebloem opnieuw oproepen",
+          "jamidusuAgain": "🌺 Mijn Ziwei-bloem opnieuw oproepen",
+          "sukuyoAgain": "🌙 Mijn Sukuyo-bloem opnieuw oproepen"
         },
         "status": {
-          "atelierLocked": "The Destiny Flower Atelier needs to be unlocked.",
-          "loginRequired": "Log in to see your destiny flower.",
-          "newlyUnlocked": "✨ Your {source} flower is newly open.",
-          "resultReady": "{verdict} You can save this result or share it on KakaoTalk.",
-          "reloading": "Reloading your data. Please wait a moment.",
-          "linking": "Linking your {source} data. Please wait a moment.",
-          "loaded": "Your {source} data has been loaded.",
-          "copied": "Copied to the clipboard.",
-          "copyPermission": "Clipboard access is not allowed, so please copy it manually.",
-          "copyFailed": "Copy failed.",
-          "kakaoPcCopied": "On a PC, the KakaoTalk link has been copied to the clipboard. Paste it into KakaoTalk to share.",
-          "kakaoNotOpenedCopied": "We couldn't confirm KakaoTalk opened, so the summary has been copied to the clipboard. Paste it into KakaoTalk to share.",
-          "kakaoOpening": "Opening KakaoTalk sharing...",
-          "kakaoFailedCopied": "We couldn't open KakaoTalk sharing, so the summary has been copied to the clipboard.",
-          "refreshed": "Tabs and prompts have been updated based on: {verdict}",
-          "aiOpening": "Opening the AI in a new tab. If it doesn't open, allow pop-ups and try again.",
-          "aiBlocked": "The new tab seems to have been blocked. Allow pop-ups in your browser or open the AI site you want directly.",
-          "summaryCopied": "Summary copied to the clipboard.",
-          "promptCopied": "The main AI flower prompt has been copied to the clipboard.",
-          "promptPackCopied": "The main/negative prompt set has been copied to the clipboard."
+          "atelierLocked": "Het Atelier van de Lotsbloem moet eerst worden ontgrendeld.",
+          "loginRequired": "Log in om je lotsbloem te bekijken.",
+          "newlyUnlocked": "✨ Je {source}-bloem is nu nieuw geopend.",
+          "resultReady": "{verdict} Je kunt het resultaat opslaan of delen via KakaoTalk.",
+          "reloading": "Je gegevens worden opnieuw geladen. Een ogenblik geduld.",
+          "linking": "Je {source}-gegevens worden gekoppeld. Een ogenblik geduld.",
+          "loaded": "Je {source}-gegevens zijn geladen.",
+          "copied": "Gekopieerd naar het klembord.",
+          "copyPermission": "Geen toegang tot het klembord. Kopieer handmatig.",
+          "copyFailed": "Kopiëren mislukt.",
+          "kakaoPcCopied": "Op de pc is de KakaoTalk-link naar het klembord gekopieerd. Plak hem in KakaoTalk om te delen.",
+          "kakaoNotOpenedCopied": "We konden niet bevestigen dat KakaoTalk is geopend, dus de samenvatting is naar het klembord gekopieerd. Plak hem in KakaoTalk om te delen.",
+          "kakaoOpening": "Delen via KakaoTalk wordt geopend...",
+          "kakaoFailedCopied": "Delen via KakaoTalk kon niet worden geopend, dus de samenvatting is naar het klembord gekopieerd.",
+          "refreshed": "Tabbladen en prompts zijn bijgewerkt op basis van: {verdict}",
+          "aiOpening": "De AI wordt geopend in een nieuw tabblad. Gebeurt er niets, sta dan pop-ups toe en probeer het opnieuw.",
+          "aiBlocked": "Het nieuwe tabblad lijkt geblokkeerd te zijn. Sta pop-ups toe in je browser of open de gewenste AI-site rechtstreeks.",
+          "summaryCopied": "Samenvatting naar het klembord gekopieerd.",
+          "promptCopied": "De hoofdprompt voor de AI-bloem is naar het klembord gekopieerd.",
+          "promptPackCopied": "De set van hoofd- en negatieve prompt is naar het klembord gekopieerd."
         },
         "fallback": {
           "astrology": {
-            "name": "Nebula lavender",
-            "symbolism": "A clear intuition that flows along the grain of starlight",
-            "vibe": "Breathe along with the rhythm of the stars and your intuition grows sharper."
+            "name": "Nevellavendel",
+            "symbolism": "Heldere intuïtie die de nerf van het sterrenlicht volgt",
+            "vibe": "Adem mee op het ritme van de sterren en je intuïtie wordt helderder."
           },
           "jamidusu": {
-            "name": "Tree peony",
-            "symbolism": "Imperial grace and the strength of the center",
-            "keyword1": "Emperor",
-            "keyword2": "Grace",
-            "keyword3": "Center",
-            "vibe": "Holding your center is what carries you furthest in the end."
+            "name": "Boompioen",
+            "symbolism": "Keizerlijke gratie en de kracht van het midden",
+            "keyword1": "Keizer",
+            "keyword2": "Gratie",
+            "keyword3": "Midden",
+            "vibe": "Wie zijn midden bewaart, komt uiteindelijk het verst."
           },
           "sukuyo": {
-            "name": "Lily",
-            "symbolism": "A guardian flower that blooms clear in the moonlight",
-            "keyword1": "Moonlight",
-            "keyword2": "Guardian",
-            "keyword3": "Purification",
-            "vibe": "Match tonight's breath and rhythm of the moon and your choices become clearer.",
+            "name": "Lelie",
+            "symbolism": "Een beschermende bloem die helder bloeit in het maanlicht",
+            "keyword1": "Maanlicht",
+            "keyword2": "Bescherming",
+            "keyword3": "Zuivering",
+            "vibe": "Stem je vannacht af op de adem en het ritme van de maan, en je keuzes worden helderder.",
             "keywordMansion": "Sukuyo",
-            "keywordGuardian": "Guardian animal",
-            "keywordPhase": "Moon phase"
+            "keywordGuardian": "Beschermdier",
+            "keywordPhase": "Maanfase"
           }
         },
         "legacy": {
-          "astrologyReading": "Reading your destiny flower from your astrology chart.",
-          "astrologyRhythm": "Setting the rhythm of the stars.",
-          "brightnessEven": "Even (平)",
-          "jamidusuReading": "Reading your destiny flower from today's strong star.",
-          "mainStarUnknown": "Main star unknown",
-          "jamidusuRhythm": "Aligning the energy of the stars.",
-          "imperialGrace": "Imperial grace",
-          "moonQuarter": "Quarter moon",
-          "sukuyoReading": "Reading your destiny flower from the 27 Sukuyo mansions.",
-          "mansionUnknown": "Mansion unknown"
+          "astrologyReading": "Je lotsbloem wordt gelezen uit je horoscoop.",
+          "astrologyRhythm": "Het ritme van de sterren wordt bepaald.",
+          "brightnessEven": "Gemiddeld (平)",
+          "jamidusuReading": "Je lotsbloem wordt gelezen uit de sterke ster van vandaag.",
+          "mainStarUnknown": "Hoofdster onbekend",
+          "jamidusuRhythm": "De energie van de sterren wordt uitgelijnd.",
+          "imperialGrace": "Keizerlijke gratie",
+          "moonQuarter": "Halve maan",
+          "sukuyoReading": "Je lotsbloem wordt gelezen uit de 27 Sukuyo-maanhuizen.",
+          "mansionUnknown": "Maanhuis onbekend"
         },
         "badge": {
-          "sun": "Sun sign {value}",
-          "rising": "Rising sign {value}",
-          "moon": "Moon sign {value}",
-          "strongStar": "Today's strong star {value}",
-          "brightness": "Star brightness {value}",
-          "moonPhase": "Moon phase {value}",
-          "guardian": "Guardian animal {value}",
-          "palace": "Palace {value}",
-          "mansionLabel": "Mansion",
-          "group": "{group} group"
+          "sun": "Zonneteken {value}",
+          "rising": "Ascendant {value}",
+          "moon": "Maanteken {value}",
+          "strongStar": "Sterke ster vandaag {value}",
+          "brightness": "Sterhelderheid {value}",
+          "moonPhase": "Maanfase {value}",
+          "guardian": "Beschermdier {value}",
+          "palace": "Paleis {value}",
+          "mansionLabel": "Maanhuis",
+          "group": "Groep {group}"
         },
         "value": {
-          "unknown": "Unknown",
-          "pending": "Awaiting reading",
-          "lifePalace": "Life Palace"
+          "unknown": "Onbekend",
+          "pending": "Wachten op lezing",
+          "lifePalace": "Levenspaleis"
         },
         "wait": {
-          "chartSignal": "Awaiting chart signal",
-          "starSignal": "Awaiting main-star signal",
-          "sukuyoSignal": "Awaiting Sukuyo signal",
-          "moonRhythm": "Syncing with the rhythm of the moon.",
-          "nebulaRhythm": "Aligning the nebula rhythm.",
-          "imperialRhythm": "Tuning the imperial energy.",
-          "dayMaster": "Awaiting day master reading",
-          "sourceVerdict": "Awaiting {source} reading",
-          "mainStar": "Awaiting main star reading",
-          "sukuyoReading": "Awaiting Sukuyo reading",
-          "dataLoad": "Waiting to load data",
-          "birth": "Waiting for your birth date"
+          "chartSignal": "Wachten op horoscoopsignaal",
+          "starSignal": "Wachten op hoofdstersignaal",
+          "sukuyoSignal": "Wachten op Sukuyo-signaal",
+          "moonRhythm": "Afstemmen op het ritme van de maan.",
+          "nebulaRhythm": "Het ritme van de nevel wordt uitgelijnd.",
+          "imperialRhythm": "De keizerlijke energie wordt afgestemd.",
+          "dayMaster": "Wachten op lezing van de dagmeester",
+          "sourceVerdict": "Wachten op {source}-lezing",
+          "mainStar": "Wachten op lezing van de hoofdster",
+          "sukuyoReading": "Wachten op Sukuyo-lezing",
+          "dataLoad": "Wachten op het laden van gegevens",
+          "birth": "Wachten op je geboortedatum"
         },
         "stage": {
-          "keywords": "{source} keywords · {list}",
-          "astrologyScenario": "Calculating your zodiac blooming scenario.",
-          "jamidusuScenario": "Calculating your Ziwei main-star blooming scenario.",
-          "sukuyoScenario": "Calculating your Sukuyo moonlight blooming scenario.",
-          "seasonTexture": "{season} texture",
-          "seasonDefault": "Season",
-          "environmentMood": "{environment} mood",
-          "environmentDefault": "Environment",
-          "sajuScenario": "Calculating your day master and environment blooming scenario.",
-          "dataSheetPreparing": "Preparing your flower data sheet.",
-          "symbolizes": "This flower symbolizes {symbolism}.",
-          "resonates": "This flower resonates strongly with the current flow of your fortune.",
-          "narrativeFallback": "{verdict} Your blooming point for now is aligned to your {source} balance."
+          "keywords": "{source}-trefwoorden · {list}",
+          "astrologyScenario": "Het bloeiscenario van je sterrenbeeld wordt berekend.",
+          "jamidusuScenario": "Het bloeiscenario van de Ziwei-hoofdster wordt berekend.",
+          "sukuyoScenario": "Het bloeiscenario van het Sukuyo-maanlicht wordt berekend.",
+          "seasonTexture": "Textuur: {season}",
+          "seasonDefault": "Seizoen",
+          "environmentMood": "Sfeer: {environment}",
+          "environmentDefault": "Omgeving",
+          "sajuScenario": "Het bloeiscenario uit dagmeester en omgeving wordt berekend.",
+          "dataSheetPreparing": "Je bloemengegevensblad wordt voorbereid.",
+          "symbolizes": "Deze bloem symboliseert {symbolism}.",
+          "resonates": "Deze bloem resoneert sterk met de huidige stroom van je geluk.",
+          "narrativeFallback": "{verdict} Je huidige bloeipunt is afgestemd op je {source}-balans."
         },
         "guide": {
-          "allBloomed": "All flowers have bloomed. Revisit any tab you like.",
-          "startSaju": "Next step: open your Saju flower first to start blooming.",
-          "next": "Next step: move on to your {source} flower to keep blooming."
+          "allBloomed": "Alle bloemen zijn opengebloeid. Bekijk ze nog eens in elk tabblad.",
+          "startSaju": "Volgende stap: open eerst je Saju-bloem om het bloeien te beginnen.",
+          "next": "Volgende stap: ga verder met je {source}-bloem, zodat het bloeien doorgaat."
         },
         "tab": {
-          "lockLabel": "Opens when the atelier is unlocked"
+          "lockLabel": "Gaat open zodra het atelier is ontgrendeld"
         },
         "verdict": {
-          "preparing": "Preparing your destiny flower reading.",
-          "defaultFlower": "Destiny flower",
-          "sukuyo": "Read through Sukuyo, your flower is {name}.",
-          "jamidusu": "Read through Ziwei, your flower is {name}.",
-          "astrology": "Read through astrology, your flower is {name}.",
-          "saju": "Read through Saju, your flower is {name}."
+          "preparing": "De lezing van je lotsbloem wordt voorbereid.",
+          "defaultFlower": "Lotsbloem",
+          "sukuyo": "Volgens Sukuyo is jouw bloem {name}.",
+          "jamidusu": "Volgens Ziwei is jouw bloem {name}.",
+          "astrology": "Volgens de astrologie is jouw bloem {name}.",
+          "saju": "Volgens Saju is jouw bloem {name}."
         },
         "snapshot": {
-          "guidance": "Today, matching your rhythm before chasing results helps you bloom faster."
+          "guidance": "Als je vandaag eerst je ritme vindt in plaats van resultaten na te jagen, bloei je sneller."
         },
         "empty": {
-          "noDomainData": "No {source} data is linked yet. Tap the button below and your own destiny flower will bloom now.",
-          "astroCalculating": "We've read your star chart. Choosing your astrology flower now.",
-          "notLinked": "Your {source} flower blooms the moment you tap the link button. Tap the button below to meet the flower that has come to you now.",
-          "linkButton": "Link my destiny flower",
-          "linking": "Linking...",
-          "dataWaiting": "Waiting to link {source} data",
-          "readingWaiting": "Awaiting {source} reading",
-          "keywordsLoading": "{source} keywords · loading"
+          "noDomainData": "Er zijn nog geen {source}-gegevens gekoppeld. Tik op de knop hieronder en je eigen lotsbloem bloeit nu open.",
+          "astroCalculating": "We hebben je horoscoop gelezen. Je astrologiebloem wordt nu gekozen.",
+          "notLinked": "Je {source}-bloem bloeit open op het moment dat je op ‘Koppelen’ tikt. Tik op de knop hieronder en ontmoet de bloem die nu naar je toe is gekomen.",
+          "linkButton": "Lotsbloem koppelen",
+          "linking": "Bezig met koppelen...",
+          "dataWaiting": "Wachten op koppeling van {source}-gegevens",
+          "readingWaiting": "Wachten op {source}-lezing",
+          "keywordsLoading": "{source}-trefwoorden · laden"
         },
         "artMood": {
-          "astrology": "Dreamy floral wrapped in starlit nebulae and neon glow",
-          "jamidusu": "Floral where imperial dignity meets refined court elegance",
-          "sukuyo": "Clear floral like moonlit meditation and still water",
-          "saju": "Lyrical East Asian floral blooming along the grain of the Five Elements"
+          "astrology": "Dromerige bloemenkunst in sterrennevels en neonglans",
+          "jamidusu": "Bloemenkunst waarin keizerlijke waardigheid en hoofse elegantie samenkomen",
+          "sukuyo": "Heldere bloemenkunst als meditatie in maanlicht en stil water",
+          "saju": "Lyrische Oost-Aziatische bloemenkunst die de nerf van de Vijf Elementen volgt"
         },
         "care": {
-          "wood": "Wake your growth point with an 8-minute stretch by an east-facing window in the morning sun",
-          "fire": "Soak in south-facing light for 5 minutes and declare today's goal out loud",
-          "earth": "Tidy one corner of your workspace to firmly set your central axis",
-          "metal": "Write down 3 priorities and boldly prune unnecessary commitments",
-          "water": "Open the circulation of your emotions with a 10-minute evening walk and some water",
-          "default": "Fix your light (morning) and water (evening) routines to stabilize your basic growth rhythm first."
+          "wood": "'s Ochtends 8 minuten rekken in de zon bij een oostraam om het groeipunt te wekken",
+          "fire": "5 minuten licht uit het zuiden opdoen en het doel van vandaag hardop uitspreken",
+          "earth": "Eén hoek van je werkplek opruimen om je eigen midden stevig te verankeren",
+          "metal": "3 prioriteiten opschrijven en onnodige verplichtingen moedig snoeien",
+          "water": "Met 10 minuten avondwandelen en wat water de stroom van je gevoelens openen",
+          "default": "Leg vaste routines vast voor licht ('s ochtends) en water ('s avonds) om eerst je basale groeiritme te stabiliseren."
         },
         "synergy": {
-          "astrology": "glass vases, silver frames, soft micro-lighting",
-          "jamidusu": "satin fabric, bronze objects, symmetrical ceramics",
-          "sukuyo": "frosted glass, moonlight-toned linen, wave-patterned trays",
-          "saju": "matte ceramics, natural wood, softly patterned fabric",
-          "line": "Suggested colors: Primary {primary}, Secondary {secondary}, Accent {accent} / Suggested materials: {materials}."
+          "astrology": "Glazen vazen, zilveren lijsten, zacht microlicht",
+          "jamidusu": "Satijnen stof, bronzen objecten, symmetrisch keramiek",
+          "sukuyo": "Matglas, linnen in maanlichttinten, dienbladen met golfpatroon",
+          "saju": "mat keramiek, natuurlijk hout, subtiel bedrukte stoffen",
+          "line": "Aanbevolen kleuren: primair {primary}, secundair {secondary}, accent {accent} / Aanbevolen materialen: {materials}."
         },
         "atelier": {
-          "scenarioTitle": "{source} blooming scenario",
-          "growthCycleWaiting": "Awaiting blooming cycle calculation",
-          "ritualWaiting": "Calculating today's practice routine.",
+          "scenarioTitle": "{source}-bloeiscenario",
+          "growthCycleWaiting": "Wachten op berekening van de bloeicyclus",
+          "ritualWaiting": "Je praktijkroutine voor vandaag wordt berekend.",
           "astrology": {
-            "lightingFire": "Intense sunlight at a high angle, like midsummer noon",
-            "lightingEarth": "Steady light where late-afternoon gold lingers long",
-            "lightingWater": "Cool blue dawn light that spreads slowly",
-            "lightingAir": "Slanted light, tilted like the wind, that lightly opens the space",
-            "humidityWater": "A silver-mist state with high emotional humidity",
-            "humidityFire": "Dry, heat-holding air; a state of quick emotional response",
-            "humidityEarth": "Steady clay-pot humidity; a state where feelings slowly ripen",
-            "humidityAir": "Light, shifting breeze humidity; a state where ideas refresh quickly",
-            "seasonFire": "Bloom accelerator: a stretch where action and presenting push the buds upward",
-            "seasonWater": "Inner nourishment: a stretch where rest and intuition fill the root layer",
-            "seasonBalance": "Balance tuning: a stretch where structure and feeling cross to prepare the next bud",
-            "section": "Celestial light and energy",
-            "matrixLighting": "☀️ Celestial light: {value}",
-            "matrixHumidity": "💧 Atmospheric humidity: {value}",
-            "matrixSeason": "🪐 Cosmic season: {value}",
-            "log": "Gardener's observation journal: the direction of your Sun sign {sun} and the light of your Rising sign {rising} set the angle of the flower stem. The humidity control of your Moon sign {moon} gently opens the veins of emotion, and this week is a pre-bloom stretch where opportunities show first.",
-            "recipe": "Secret recipe: after 9 p.m., dim the window light by one step and write the one thing you will do tomorrow on the first line of your notebook. Focus only on that one thing for the first 12 minutes of the morning and the starlight rhythm aligns fastest.",
-            "flowerLanguage": "Destiny flower language: the courage to trust the angle of the stars and take the first step.",
-            "gardenerWord": "A gardener's word for this flower: today's intuition is not exaggeration but a forecast. Small actions turn the nebula into a real flower bed.",
-            "particle": "Translated into particles, the light of {source} shines most steadily with a \"{particle}\" texture."
+            "lightingFire": "Fel zonlicht onder een steile hoek, zoals op het middaguur midden in de zomer",
+            "lightingEarth": "Bestendig licht waarin het goud van de late middag lang blijft hangen",
+            "lightingWater": "Een koele, blauwe dageraad die zich langzaam verspreidt",
+            "lightingAir": "Schuin licht, gekanteld als de wind, dat de ruimte licht opent",
+            "humidityWater": "Zilveren nevel met een hoge emotionele vochtigheid",
+            "humidityFire": "Droge, warme lucht; gevoelens reageren snel",
+            "humidityEarth": "Bestendig vocht als in een aarden pot; gevoelens rijpen langzaam",
+            "humidityAir": "Een lichte, wisselende bries; ideeën worden snel ververst",
+            "seasonFire": "Bloeiversneller: een fase waarin daadkracht en uitstraling de knoppen omhoog stuwen",
+            "seasonWater": "Innerlijke voedingsfase: een fase waarin rust en intuïtie de wortellaag vullen",
+            "seasonBalance": "Evenwichtsfase: een fase waarin structuur en gevoel elkaar kruisen en de volgende knop voorbereiden",
+            "section": "Hemels licht en energie",
+            "matrixLighting": "☀️ Hemels licht: {value}",
+            "matrixHumidity": "💧 Luchtvochtigheid: {value}",
+            "matrixSeason": "🪐 Kosmisch seizoen: {value}",
+            "log": "Observatielogboek van de tuinier: de richting van je zonneteken {sun} en het licht van je ascendant {rising} bepalen de hoek van de bloemsteel. De vochtregeling van je maanteken {moon} opent zacht de aderen van je gevoelens, en deze week is een voorbloeifase waarin kansen zich als eerste tonen.",
+            "recipe": "Geheim recept: dim na 21.00 uur het licht bij het raam een stand en schrijf het ene dat je morgen gaat doen op de eerste regel van je notitieboek. Richt je in de eerste 12 minuten van de ochtend alleen daarop, dan stemt het ritme van het sterrenlicht zich het snelst af.",
+            "flowerLanguage": "Bloementaal van het lot: de moed om op de hoek van de sterren te vertrouwen en de eerste stap te zetten.",
+            "gardenerWord": "Een woord van de tuinier voor deze bloem: je intuïtie van vandaag is geen overdrijving maar een voorspelling. Kleine daden veranderen de nevel in een echt bloembed.",
+            "particle": "Vertaald naar deeltjes schijnt het licht van {source} het bestendigst met een ‘{particle}’-textuur."
           },
           "jamidusu": {
-            "structureZiwei": "A sturdy stem carrying the imperial grace of the Ziwei star family",
-            "structureBreaker": "A thick, upright stalk shaped by a breakthrough general's temperament",
-            "structureFlexible": "Delicate layered petals, supple yet hard to break",
-            "structureBalanced": "A refined, symmetrical flower frame shaped by a balanced main star",
-            "social": "Like butterflies and bees circling around {palace}, close connections share roles and help you grow.",
-            "thornsDim": "A time when short, dense, highly protective thorns help you set boundaries",
-            "thornsBright": "A time when light-reflecting grain patterns stand in for thorns and protect you with dignity",
-            "section": "The flower's dignity and form",
-            "matrixStructure": "🏛️ Flower frame: {value}",
-            "matrixSocial": "🦋 Butterflies and bees: {value}",
-            "matrixThorns": "🌵 Guardian thorns: {value}",
-            "log": "Gardener's observation journal: today's strong star {star} holds the center of the stem upright, and star brightness {brightness} adjusts the sheen of the petals. Now is a time when structural completeness, more than flashiness, grows your results.",
-            "recipe": "Secret recipe: place one metal object on the left side of your desk, and write down one standard for today and one point where you will yield. The clearer your boundaries, the more gracefully the flower blooms.",
-            "flowerLanguage": "Destiny flower language: dignity is the quietest radiance, blooming from a solid structure.",
-            "gardenerWord": "A gardener's word for this flower: don't rush to be dazzling. A day spent keeping your standards builds the longest-lasting stem.",
-            "particle": "Translated into particles, the hierarchy of {source} shows its order most beautifully with a \"{particle}\" mood."
+            "structureZiwei": "Een stevige steel met de keizerlijke gratie van de Ziwei-sterrenfamilie",
+            "structureBreaker": "Een dikke, rechte stengel, gevormd door het temperament van een doorbraakgeneraal",
+            "structureFlexible": "Fijne, meerlagige bloemblaadjes, buigzaam en toch moeilijk te breken",
+            "structureBalanced": "Een edel, symmetrisch bloemgeraamte, gevormd door een evenwichtige hoofdster",
+            "social": "Zoals vlinders en bijen die rond {palace} cirkelen, verdelen hechte verbindingen de rollen en helpen ze je groeien.",
+            "thornsDim": "Een tijd waarin korte, dichte doornen met een sterke afweer je helpen grenzen te stellen",
+            "thornsBright": "Een tijd waarin lichtweerkaatsende nerven de doornen vervangen en je met waardigheid beschermen",
+            "section": "Waardigheid en vorm van de bloem",
+            "matrixStructure": "🏛️ Bloemgeraamte: {value}",
+            "matrixSocial": "🦋 Vlinders en bijen: {value}",
+            "matrixThorns": "🌵 Beschermende doornen: {value}",
+            "log": "Observatielogboek van de tuinier: de sterke ster van vandaag {star} richt het midden van de steel op, en de sterhelderheid {brightness} bepaalt de glans van de bloemblaadjes. Nu brengt structurele voltooiing je verder dan uiterlijke glans.",
+            "recipe": "Geheim recept: zet een metalen voorwerp aan de linkerkant van je bureau en noteer tegelijk één principe voor vandaag en één punt waarop je toegeeft. Hoe duidelijker je grenzen, hoe sierlijker de bloem bloeit.",
+            "flowerLanguage": "Bloementaal van het lot: waardigheid is de stilste glans die uit een stevige structuur opbloeit.",
+            "gardenerWord": "Een woord van de tuinier voor deze bloem: heb geen haast om te schitteren. Een dag waarop je trouw blijft aan je principes, laat de stevigste steel groeien.",
+            "particle": "Vertaald naar deeltjes toont de rangorde van {source} haar orde het mooist met een ‘{particle}’-sfeer."
           },
           "sukuyo": {
-            "scentFriend": "A soft white-musk note that spreads under the moonlight",
-            "scentDanger": "A deep, dense agarwood note that sharpens focus",
-            "scentDefault": "A clear herbal floral note that gently warms the temperature of relationships",
-            "dewFull": "Night dew at its fullest; inspiration and emotional expression are both abundant",
-            "dewNew": "A new-moon stretch with thin dew; observation and preparation come first",
-            "dewDefault": "A moderate amount of dew; emotional balance and drive grow together",
-            "companionDragon": "Wisteria and blue sage, supporting a big flow of expansion",
-            "companionDog": "Rosemary and chamomile, strengthening stable relationships and resilience",
-            "companionTiger": "Eucalyptus and rudbeckia, strengthening decisiveness and protective instinct",
-            "companionDefault": "Lavender and ivy, supporting both emotional stability and long-term growth",
-            "section": "The scent of connection and dew",
-            "matrixScent": "🌙 Destiny scent: {value}",
-            "matrixDew": "💦 Night dew: {value}",
-            "matrixCompanion": "🌿 Companion plants: {value}",
-            "log": "Gardener's observation journal: the relational nature of {mansion} shows first as scent, and moon phase {phase} adjusts your emotional rhythm through the density of the dew. Now, care in matching each other's grain, rather than hurrying the pace of a connection, keeps the flower alive longer.",
-            "recipe": "Secret recipe: before bed, slowly drink a glass of water, then quietly write down one name you were grateful for today. The moon's water rhythm settles and your relationship luck opens gently.",
-            "flowerLanguage": "Destiny flower language: quiet empathy becomes the scent that travels furthest.",
-            "gardenerWord": "A gardener's word for this flower: it's okay not to hurry. Just as night dew gathers, your connections will become clear at exactly the right time.",
-            "particle": "Translated into particles, the moonlight rhythm of {source} wraps you most warmly with a \"{particle}\" mood."
+            "scentFriend": "Een zachte witte muskusgeur die zich in het maanlicht verspreidt",
+            "scentDanger": "Een diepe, dichte agarhoutgeur die de concentratie aanscherpt",
+            "scentDefault": "Een heldere, kruidig-bloemige geur die de warmte in relaties zacht in balans brengt",
+            "dewFull": "De nachtdauw is het overvloedigst; inspiratie en emotionele expressie zijn allebei rijk",
+            "dewNew": "Nieuwemaanfase met dunne dauw; observeren en voorbereiden komen eerst",
+            "dewDefault": "Een gematigde hoeveelheid dauw; emotioneel evenwicht en daadkracht groeien samen",
+            "companionDragon": "Blauweregen en blauwe salie die een grote stroom van ontplooiing ondersteunen",
+            "companionDog": "Rozemarijn en kamille die stabiele relaties en veerkracht versterken",
+            "companionTiger": "Eucalyptus en rudbeckia die vastberadenheid en beschermingsinstinct versterken",
+            "companionDefault": "Lavendel en klimop die emotionele stabiliteit en groei op lange termijn tegelijk bevorderen",
+            "section": "Geur van verbondenheid en dauw",
+            "matrixScent": "🌙 Geur van het lot: {value}",
+            "matrixDew": "💦 Nachtdauw: {value}",
+            "matrixCompanion": "🌿 Begeleidende planten: {value}",
+            "log": "Observatielogboek van de tuinier: de relationele aard van {mansion} toont zich eerst als geur, en de maanfase {phase} regelt je gevoelsritme via de dichtheid van de dauw. Nu houdt fijngevoeligheid bij het op elkaar afstemmen de bloem langer in leven dan het tempo van een verbinding opdrijven.",
+            "recipe": "Geheim recept: drink voor het slapengaan langzaam een glas water en schrijf dan stil één naam op waarvoor je vandaag dankbaar was. Het waterritme van de maan komt tot rust en je relatiegeluk opent zich zacht.",
+            "flowerLanguage": "Bloementaal van het lot: stil mededogen wordt de geur die het verst reikt.",
+            "gardenerWord": "Een woord van de tuinier voor deze bloem: je hoeft je niet te haasten. Zoals nachtdauw zich verzamelt, worden ook je verbindingen precies op het juiste moment helder.",
+            "particle": "Vertaald naar deeltjes omhult het maanlichtritme van {source} je het warmst met een ‘{particle}’-sfeer."
           },
           "saju": {
-            "soilCold": "Rich, marshy soil that holds moisture",
-            "soilHot": "Warm, well-draining gravel mix",
-            "soilBalanced": "Fertile soil with even grains and stable minerals",
-            "rootStrong": "A stage where deep roots hold the center even through outside changes",
-            "rootWeak": "A stage where fine rootlets spread first and need support",
-            "rootBalanced": "A balanced stage where mid-depth roots spread evenly",
-            "section": "Soil and roots for growth",
-            "matrixSoil": "🪨 Soil composition: {value}",
-            "matrixRoot": "🌱 Root depth: {value}",
-            "matrixNutrient": "🧪 Gardener's nutrient: {value}",
-            "log": "Gardener's observation journal: today the garden takes on the texture of {soil}, and growth energy moves along the flow of \"{root}\". It may look quiet on the surface, but strength for the next bloom is being firmly stored in the root layer.",
-            "recipe": "Secret recipe: place a green-leaved plant by a north- or east-facing window, loosen your body for 10 minutes in the morning and steady your breathing for 10 minutes in the evening. Fixing this rhythm twice a day lifts your useful element's energy fastest.",
-            "flowerLanguage": "Destiny flower language: strong roots may seem slow, but in the end they bloom the highest.",
-            "gardenerWord": "A gardener's word for this flower: trust accumulation over haste. Today's small care makes next season's great harvest.",
-            "particle": "Translated into particles, the subtle movement of {source} energy is most harmonious with a \"{particle}\" mood."
+            "soilCold": "Vruchtbare, moerassige grond die vocht vasthoudt",
+            "soilHot": "Een warm, goed doorlatend grindmengsel",
+            "soilBalanced": "Vruchtbare grond met een gelijkmatige korrel en stabiele mineralen",
+            "rootStrong": "Een fase waarin diepe wortels ook bij veranderingen van buitenaf het midden houden",
+            "rootWeak": "Een fase waarin eerst fijne wortelhaartjes uitgroeien en steun nodig hebben",
+            "rootBalanced": "Een evenwichtige fase waarin middeldiepe wortels zich gelijkmatig verspreiden",
+            "section": "Bodem en wortels van de groei",
+            "matrixSoil": "🪨 Bodemsamenstelling: {value}",
+            "matrixRoot": "🌱 Worteldiepte: {value}",
+            "matrixNutrient": "🧪 Voeding van de tuinier: {value}",
+            "log": "Observatielogboek van de tuinier: vandaag heeft de tuin de textuur van {soil}, en de groei-energie beweegt in de stroom ‘{root}’. Aan de oppervlakte lijkt het misschien stil, maar in de wortellaag wordt de kracht voor de volgende bloei stevig opgeslagen.",
+            "recipe": "Geheim recept: zet een groene bladplant bij een noord- of oostraam, maak 's ochtends 10 minuten je lichaam los en kalmeer 's avonds 10 minuten je adem. Dit vaste ritme van twee keer per dag versterkt de energie van je nuttig element het snelst.",
+            "flowerLanguage": "Bloementaal van het lot: sterke wortels lijken traag, maar uiteindelijk bloeien ze het hoogst.",
+            "gardenerWord": "Een woord van de tuinier voor deze bloem: vertrouw op opbouwen in plaats van haast. De kleine zorg van vandaag brengt de grote oogst van het volgende seizoen.",
+            "particle": "Vertaald naar deeltjes is de fijne beweging van de {source}-energie het harmonieust met een ‘{particle}’-sfeer."
           },
-          "themesWaiting": "Analyzing your relationship and work themes.",
-          "guidance": "{source} destiny flower practice guide: {text}"
+          "themesWaiting": "Je relatie- en werkthema's worden geanalyseerd.",
+          "guidance": "{source}-praktijkgids voor de lotsbloem: {text}"
         },
         "prompt": {
-          "badgesSukuyo": "Sukuyo badges: {mansion} / moon phase {phase} / guardian animal {guardian}",
-          "badgesJamidusu": "Ziwei badges: today's strong star {star} / star brightness {brightness} / palace {palace}",
-          "badgesAstrology": "Astrology badges: Sun sign {sun} / Rising sign {rising} / Moon sign {moon}",
-          "badgesSaju": "Saju badges: strength {strength} / useful element {yongshin} / seasonal balance {johu}",
-          "symbolismFallback": "A flower symbolizing the flow of destiny",
-          "narrativeFallback": "Destiny flower narrative",
-          "scenarioFallback": "Staging based on the blooming scenario",
-          "toneDirection": "{source} tone direction: {mood} / {background}"
+          "badgesSukuyo": "Sukuyo-badges: {mansion} / maanfase {phase} / beschermdier {guardian}",
+          "badgesJamidusu": "Ziwei-badges: sterke ster vandaag {star} / sterhelderheid {brightness} / paleis {palace}",
+          "badgesAstrology": "Astrologiebadges: zonneteken {sun} / ascendant {rising} / maanteken {moon}",
+          "badgesSaju": "Saju-badges: sterkte {strength} / nuttig element {yongshin} / seizoensbalans {johu}",
+          "symbolismFallback": "Een bloem die de stroom van het lot symboliseert",
+          "narrativeFallback": "Verhaal van de lotsbloem",
+          "scenarioFallback": "Enscenering op basis van het bloeiscenario",
+          "toneDirection": "{source}-toonrichting: {mood} / {background}"
         },
         "history": {
-          "emptyStatus": "No blooming records have been saved yet. Try saving your current result.",
-          "restore": "Open",
-          "kakao": "Share on Kakao",
-          "delete": "Delete",
-          "saved": "Blooming record saved: {name} ({time})",
-          "notFound": "That record could not be found.",
-          "restored": "Loaded your saved blooming record: {name}",
-          "deleteNotFound": "Could not find the record to delete.",
-          "deleted": "The selected blooming record has been deleted.",
-          "nothingToClear": "There are no blooming records to delete.",
-          "cleared": "All saved blooming records have been deleted.",
-          "shareNotFound": "Could not find the record to share."
+          "emptyStatus": "Nog geen bloeiverslagen opgeslagen. Sla je huidige resultaat op.",
+          "restore": "Laden",
+          "kakao": "Delen via Kakao",
+          "delete": "Verwijderen",
+          "saved": "Bloeiverslag opgeslagen: {name} ({time})",
+          "notFound": "Dit verslag is niet gevonden.",
+          "restored": "Opgeslagen bloeiverslag geladen: {name}",
+          "deleteNotFound": "Het te verwijderen verslag is niet gevonden.",
+          "deleted": "Het geselecteerde bloeiverslag is verwijderd.",
+          "nothingToClear": "Er zijn geen bloeiverslagen om te wissen.",
+          "cleared": "Alle opgeslagen bloeiverslagen zijn gewist.",
+          "shareNotFound": "Het te delen verslag is niet gevonden."
         },
         "noBirth": {
-          "jamidusu": "Enter your date of birth to see your Ziwei flower.",
-          "sukuyo": "Enter your date of birth to see your Sukuyo flower.",
-          "astrology": "Enter your date and time of birth to see your astrology flower.",
-          "saju": "Enter your name and date of birth first, and your own destiny flower will bloom here."
+          "jamidusu": "Voer je geboortedatum in om je Ziwei-bloem te zien.",
+          "sukuyo": "Voer je geboortedatum in om je Sukuyo-bloem te zien.",
+          "astrology": "Voer je geboortedatum en -tijd in om je astrologiebloem te zien.",
+          "saju": "Voer eerst je naam en geboortedatum in, dan bloeit hier je eigen lotsbloem open."
         },
-        "studioTitle": "🌸 Destiny Flower Atelier",
+        "studioTitle": "🌸 Atelier van de Lotsbloem",
         "sourceDesc": {
-          "saju": "We read your day master, birth month and Five Element balance one by one, then choose the single flower that touches your energy most deeply this season.",
-          "astrology": "We layer the three strands of starlight drawn by your Sun, Rising and Moon signs, then bloom the flower that harmonizes most clearly with your chart right now.",
-          "jamidusu": "We trace the main star in your Life Palace, its brightness and the flow of the Four Transformations, then find the flower your chart brings out most vividly right now.",
-          "sukuyo": "We set your birth-day lunar mansion against tonight's moon phase, then hand you the flower that fits the grain of your heart most gently right now."
+          "saju": "We lezen je dagmeester, je geboortemaand en de balans van de Vijf Elementen stap voor stap en kiezen de ene bloem die jouw energie in dit seizoen het diepst raakt.",
+          "astrology": "We leggen de drie lichtstrengen van zonneteken, ascendant en maanteken over elkaar en laten de bloem opbloeien die nu het helderst met je horoscoop harmonieert.",
+          "jamidusu": "We volgen de hoofdster in je levenspaleis, haar helderheid en de stroom van de Vier Transformaties, en vinden de bloem die je geboortekaart nu het duidelijkst voortbrengt.",
+          "sukuyo": "We leggen het maanhuis van je geboortedag naast de maanfase van vannacht en reiken je de bloem aan die nu het zachtst bij je hart past."
         },
         "sourceShort": {
           "saju": "Saju",
-          "astrology": "chart",
+          "astrology": "Horoscoop",
           "jamidusu": "Ziwei",
           "sukuyo": "Sukuyo"
         },
         "strength": {
-          "strong": "Strong",
-          "weak": "Weak"
+          "strong": "Sterk",
+          "weak": "Zwak"
         },
         "johu": {
-          "hot": "Warm & dry",
-          "cold": "Cold & damp",
-          "balanced": "Balanced"
+          "hot": "Warm & droog",
+          "cold": "Koud & vochtig",
+          "balanced": "In balans"
         }
       }
     }

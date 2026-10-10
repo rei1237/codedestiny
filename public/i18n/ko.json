@@ -11072,7 +11072,14 @@
           "parents": "보호 본능과 전통의식"
         },
         "brightness": {
-          "bu": "불(不)"
+          "bu": "불(不)",
+          "miao": "묘(廟)",
+          "wang": "왕(旺)",
+          "de": "득(得)",
+          "li": "리(利)",
+          "ping": "평(平)",
+          "han": "한(閑)",
+          "xian": "함(陷)"
         },
         "natalVerdict": "명궁 {stars}의 기질로 읽은 당신의 꽃은 {flowerName}({scientificName})입니다.",
         "natalScenarioTitle": "명궁 주성 개화 시나리오",

@@ -668,14 +668,14 @@
       "home": "Aller à l’accueil",
       "keywords": "verdict saju • renaissance • pureté • flux",
       "quadAria": "Les fleurs du destin des quatre systèmes",
-      "letterTitle": "Today's flower letter · one thing your heart needs",
-      "letterIntro": "Flower stories for small actions rather than predictions. Pick the letter that fits how you feel right now.",
-      "letterRestTitle": "Like a magnolia · I want to rest for a while",
-      "letterRestBody": "Before a flower blooms, its branches quietly gather strength. Today, set down one thing you have to do, and take a moment to look at the plants or the sky outside your window.",
-      "letterStartTitle": "Like a sprout · I need courage to begin",
-      "letterStartBody": "Instead of a big resolution, let one small sprout break through. Write down just the first step of something you have put off, and spend five minutes working on it.",
-      "letterShareTitle": "Like a bouquet · I want to share how I feel",
-      "letterShareBody": "Rather than what you want to hear, recall one moment you were grateful for. Offer your feelings with a short hello that doesn't press for a reply."
+      "letterTitle": "La lettre fleurie du jour · ce dont votre cœur a besoin",
+      "letterIntro": "Des histoires de fleurs pour de petits gestes, plutôt que des prédictions. Choisissez la lettre qui correspond à votre humeur du moment.",
+      "letterRestTitle": "Comme un magnolia · J’ai envie de me reposer un peu",
+      "letterRestBody": "Avant qu’une fleur ne s’ouvre, ses branches rassemblent leurs forces en silence. Aujourd’hui, mettez de côté l’une de vos tâches et prenez un moment pour regarder les plantes ou le ciel par la fenêtre.",
+      "letterStartTitle": "Comme un bourgeon · J’ai besoin de courage pour commencer",
+      "letterStartBody": "Plutôt qu’une grande résolution, laissez poindre une petite pousse. Notez seulement la première étape de ce que vous remettez à plus tard et consacrez-y cinq minutes.",
+      "letterShareTitle": "Comme un bouquet · Je veux exprimer ce que je ressens",
+      "letterShareBody": "Plutôt que ce que vous voulez entendre, repensez à un moment où vous avez ressenti de la gratitude. Transmettez ce que vous ressentez par un bref mot qui n’attend pas de réponse."
     },
     "tarotSelfEsteem": {
       "levelUp": "Votre repère intérieur devient plus clair",
@@ -2731,9 +2731,9 @@
         "shareHook": {
           "rarityAnchor": "L’unique fleur lue à travers {anchor}"
         },
-        "anonymousName": "Anonymous traveler",
+        "anonymousName": "Voyageur anonyme",
         "rationaleLabel": {
-          "verdict": "So, this flower"
+          "verdict": "C’est pourquoi cette fleur"
         }
       },
       "astro": {
@@ -2763,34 +2763,34 @@
         "verdict": "Grâce à l'astrologie, votre fleur de destin est {flowerName} ({scientificName}). Les trois axes des signes du soleil, du lever et de la lune montrent cette fleur qui résonne étroitement avec vous maintenant.",
         "narrative": "L'étincelle {sunElement} s'élevant du signe solaire {sun} devient le centre de ce choix de fleur. Le signe ascendant {rising} ({risingElement}) façonne le ton visible, tandis que le signe lunaire {moon} ({moonElement}) ajoute une rosée émotionnelle, laissant le symbole de {flowerName}, {flowerSymbolism}, ouvrir clairement. Le mot-clé « {keyword} » est la lumière des étoiles qui appelle cette fleur en avant.",
         "signs": {
-          "aries": "Aries",
-          "taurus": "Taurus",
-          "gemini": "Gemini",
+          "aries": "Bélier",
+          "taurus": "Taureau",
+          "gemini": "Gémeaux",
           "cancer": "Cancer",
-          "leo": "Leo",
-          "virgo": "Virgo",
-          "libra": "Libra",
-          "scorpio": "Scorpio",
-          "sagittarius": "Sagittarius",
-          "capricorn": "Capricorn",
-          "aquarius": "Aquarius",
-          "pisces": "Pisces"
+          "leo": "Lion",
+          "virgo": "Vierge",
+          "libra": "Balance",
+          "scorpio": "Scorpion",
+          "sagittarius": "Sagittaire",
+          "capricorn": "Capricorne",
+          "aquarius": "Verseau",
+          "pisces": "Poissons"
         },
         "rationaleLabel": {
-          "sun": "Sun sign",
-          "risingMoon": "Rising sign · Moon sign"
+          "sun": "Signe solaire",
+          "risingMoon": "Ascendant · Signe lunaire"
         }
       },
       "ziwei": {
         "brightness": {
-          "miao": "Miao",
-          "wang": "Wang",
-          "li": "Li",
-          "de": "De",
-          "ping": "Ping",
-          "han": "Han\nLac",
-          "xian": "Xian\nLac",
-          "bu": "Bu"
+          "miao": "Miao (廟)",
+          "wang": "Wang (旺)",
+          "li": "Li (利)",
+          "de": "De (得)",
+          "ping": "Ping (平)",
+          "han": "Xian (閑)",
+          "xian": "Xian (陷)",
+          "bu": "Bu (不)"
         },
         "coreFlow": "flux de fortune principal",
         "coreEnergy": "expression de l'énergie centrale",
@@ -2876,44 +2876,44 @@
           "lingxing": "Ling Xing (鈴星)"
         },
         "palaces": {
-          "life": "Life Palace",
-          "siblings": "Siblings Palace",
-          "spouse": "Spouse Palace",
-          "children": "Children Palace",
-          "wealth": "Wealth Palace",
-          "health": "Health Palace",
-          "travel": "Travel Palace",
-          "friends": "Friends Palace",
-          "career": "Career Palace",
-          "property": "Property Palace",
-          "fortune": "Fortune Palace",
-          "parents": "Parents Palace"
+          "life": "Palais de la Vie",
+          "siblings": "Palais des Frères et Sœurs",
+          "spouse": "Palais du Conjoint",
+          "children": "Palais des Enfants",
+          "wealth": "Palais de la Richesse",
+          "health": "Palais de la Santé",
+          "travel": "Palais des Voyages",
+          "friends": "Palais des Amis",
+          "career": "Palais de la Carrière",
+          "property": "Palais de la Propriété",
+          "fortune": "Palais de la Fortune",
+          "parents": "Palais des Parents"
         },
         "palaceTraits": {
-          "life": "a strong sense of self and presence",
-          "siblings": "cooperation and a feel for coordination",
-          "spouse": "relational grace and intimate communication",
-          "children": "creativity and the urge to express",
-          "wealth": "managing resources and expanding abundance",
-          "health": "resilience and a sense of inner balance",
-          "travel": "adaptability and on-the-spot judgment",
-          "friends": "running networks and caring for a team",
-          "career": "social drive and an orientation toward achievement",
-          "property": "building foundations and steady accumulation",
-          "fortune": "emotional recharge and spiritual insight",
-          "parents": "protective instinct and a sense of tradition"
+          "life": "un fort sentiment de soi et une vraie présence",
+          "siblings": "la coopération et le sens de la coordination",
+          "spouse": "la grâce relationnelle et la communication intime",
+          "children": "la créativité et le désir de s’exprimer",
+          "wealth": "la gestion des ressources et l’expansion de l’abondance",
+          "health": "la résilience et le sens de l’équilibre intérieur",
+          "travel": "l’adaptabilité et le jugement sur le terrain",
+          "friends": "la gestion des réseaux et le soin de l’équipe",
+          "career": "l’élan social et l’orientation vers la réussite",
+          "property": "la construction de fondations et l’accumulation régulière",
+          "fortune": "la recharge émotionnelle et la compréhension spirituelle",
+          "parents": "l’instinct protecteur et le sens de la tradition"
         },
-        "natalVerdict": "Read through the nature of {stars} in your Life Palace, your flower is {flowerName} ({scientificName}).",
-        "natalScenarioTitle": "Life Palace main-star blooming scenario",
+        "natalVerdict": "Lue à travers la nature de {stars} dans votre Palais de la Vie, votre fleur est {flowerName} ({scientificName}).",
+        "natalScenarioTitle": "Scénario de floraison de l’étoile principale du Palais de la Vie",
         "rationale": {
-          "lifeStar": "Your Life Palace holds {starsJosa}.",
-          "borrowedStar": "Your Life Palace has no main star, so we read {starsObject} borrowed from the opposite Travel Palace.",
-          "personality": "{star}: \"{keyword}\" — {personality}.",
-          "verdict": "So the flower we offer you now is {flowerName}."
+          "lifeStar": "Votre Palais de la Vie abrite {starsJosa}.",
+          "borrowedStar": "Votre Palais de la Vie n’a pas d’étoile principale ; nous avons donc lu en empruntant {starsObject} au Palais des Voyages opposé.",
+          "personality": "{star} : « {keyword} » — {personality}.",
+          "verdict": "C’est pourquoi la fleur que nous vous offrons maintenant est {flowerName}."
         },
         "rationaleLabel": {
-          "lifeStar": "Life Palace main star",
-          "personality": "Innate personality"
+          "lifeStar": "Étoile principale du Palais de la Vie",
+          "personality": "Personnalité innée"
         }
       },
       "sukuyo": {
@@ -2963,198 +2963,198 @@
           "m27": "Shin (軫)"
         },
         "groups": {
-          "anjung": "Steady mansions",
-          "gangseong": "Strong mansions",
-          "gyeongkwae": "Nimble mansions",
-          "jihye": "Wise mansions"
+          "anjung": "Demeures stables",
+          "gangseong": "Demeures fortes",
+          "gyeongkwae": "Demeures agiles",
+          "jihye": "Demeures sages"
         },
         "groupLabels": {
-          "anjung": "Steady group",
-          "gangseong": "Strong group",
-          "gyeongkwae": "Nimble group",
-          "jihye": "Wise group"
+          "anjung": "Groupe stable",
+          "gangseong": "Groupe fort",
+          "gyeongkwae": "Groupe agile",
+          "jihye": "Groupe sage"
         },
         "guardians": {
-          "crane": "Crane",
+          "crane": "Grue",
           "dragon": "Dragon",
-          "marten": "Marten",
-          "rabbit": "Rabbit",
-          "fox": "Fox",
-          "tiger": "Tiger",
-          "leopard": "Leopard",
+          "marten": "Martre",
+          "rabbit": "Lapin",
+          "fox": "Renard",
+          "tiger": "Tigre",
+          "leopard": "Léopard",
           "haetae": "Haetae",
-          "bat": "Bat",
+          "bat": "Chauve-souris",
           "rat": "Rat",
-          "swallow": "Swallow",
-          "pig": "Pig",
-          "hedgehog": "Hedgehog",
-          "wolf": "Wolf",
-          "dog": "Dog",
-          "pheasant": "Pheasant",
-          "rooster": "Rooster",
-          "crow": "Crow",
-          "monkey": "Monkey",
-          "ape": "Ape",
-          "wildDog": "Wild dog",
-          "sheep": "Sheep",
-          "roeDeer": "Roe deer",
-          "horse": "Horse",
-          "deer": "Deer",
-          "snake": "Snake",
-          "earthworm": "Earthworm"
+          "swallow": "Hirondelle",
+          "pig": "Cochon",
+          "hedgehog": "Hérisson",
+          "wolf": "Loup",
+          "dog": "Chien",
+          "pheasant": "Faisan",
+          "rooster": "Coq",
+          "crow": "Corbeau",
+          "monkey": "Singe",
+          "ape": "Grand singe",
+          "wildDog": "Chien sauvage",
+          "sheep": "Mouton",
+          "roeDeer": "Chevreuil",
+          "horse": "Cheval",
+          "deer": "Cerf",
+          "snake": "Serpent",
+          "earthworm": "Ver de terre"
         },
         "rationaleLabel": {
-          "mansion": "Mansion · Moon phase"
+          "mansion": "Demeure · Phase lunaire"
         }
       },
       "saju": {
         "scenarios": {
           "default": {
             "title": "{dayMasterBadge} scénario de floraison de l'environnement",
-            "reason": "We looked at how your day master meshes with the current five-element environment and chose the one flower that suits this period best."
+            "reason": "Nous avons observé comment votre maître du jour s’accorde avec l’environnement actuel des Cinq Éléments, et choisi la fleur la mieux adaptée à cette période."
           },
           "jia": {
             "springWood": {
               "title": "Scénario de floraison verticale de Jia Wood",
-              "reason": "Jia Wood (甲木) has the nature of a tall tree growing straight upward. Now that spring's wood energy matches that temperament, your power to step forward and open new ground comes into full bloom."
+              "reason": "Le Bois Jia (甲木) a la nature d’un grand arbre qui pousse droit vers le haut. Maintenant que l’énergie du bois printanier rejoint ce tempérament, votre force d’aller de l’avant et d’ouvrir de nouvelles voies s’épanouit pleinement."
             },
             "autumnMetal": {
               "title": "Scénario de trempe du métal Jia Wood",
-              "reason": "With autumn's metal energy pressing on Jia Wood (甲木), now is the time to prune the side branches and keep only the trunk that truly matters. The more you let go, the sturdier you become."
+              "reason": "L’énergie du métal automnal pesant sur le Bois Jia (甲木), il est temps d’élaguer les branches latérales pour ne garder que le tronc qui compte vraiment. Plus vous lâchez prise, plus vous devenez solide."
             },
             "dryFire": {
               "title": "Scénario d'endurance à la chaleur sèche de Jia Wood",
-              "reason": "For Jia Wood (甲木) set amid dry, hot energy, what matters now is the stamina of its roots. Rather than rushing, build resilience by holding on for the long run, and you will bloom again as tenaciously as the rose of Sharon."
+              "reason": "Pour le Bois Jia (甲木), placé au milieu d’une énergie sèche et chaude, c’est l’endurance des racines qui compte maintenant. Au lieu de vous presser, renforcez votre résilience en tenant sur la durée, et vous refleurirez avec la ténacité de l’hibiscus de Syrie."
             }
           },
           "yi": {
             "metalWater": {
               "title": "Scénario d'harmonie métal-eau Yi Wood",
-              "reason": "Yi Wood (乙木) has a gentle, seeping nature like vines and flowering plants. With metal and water energy strong now, your grace and your clarifying, purifying power come most alive."
+              "reason": "Le Bois Yi (乙木) a une nature douce qui s’infiltre, comme les plantes grimpantes et les plantes à fleurs. Avec une énergie de métal et d’eau forte en ce moment, votre élégance et votre capacité à clarifier et purifier prennent davantage vie."
             },
             "dryEarth": {
               "title": "Scénario de survie sur sol sec de Yi Wood",
-              "reason": "For Yi Wood (乙木) standing on dry earth energy, the theme now is the strength to endure. Like a cactus flower that breaks through barren ground and blooms at last, you shine precisely where you hold on."
+              "reason": "Pour le Bois Yi (乙木), qui se dresse sur une énergie de terre sèche, le thème du moment est la force d’endurer. Comme la fleur du cactus qui perce la terre aride et finit par éclore, vous brillez précisément là où vous tenez bon."
             },
             "autumn": {
               "title": "Scénario de raffinement d'automne de Yi Wood",
-              "reason": "Yi Wood (乙木) passing through autumn's metal energy is in a season of turning delicacy into calm order. The more evenly you sort what is scattered, the tidier your mind becomes as well."
+              "reason": "Le Bois Yi (乙木), en traversant l’énergie du métal automnal, vit une étape où la délicatesse se change en ordre serein. Plus vous rangez ce qui est dispersé, plus votre esprit s’apaise aussi."
             },
             "wetSpring": {
               "title": "Scénario d'expansion de source humide de Yi Wood",
-              "reason": "Meeting spring's moist energy, Yi Wood (乙木) grows markedly better at connecting people. Now is a time to reach outward through relationships rather than alone."
+              "reason": "Au contact de l’énergie humide du printemps, le Bois Yi (乙木) voit nettement grandir sa capacité à relier les gens. C’est le moment de grandir à travers les relations plutôt que seul."
             }
           },
           "bing": {
             "springWood": {
               "title": "Scénario d'allumage à ressort Bing Fire",
-              "reason": "Bing Fire (丙火) is energy that catches quickly and spreads wide like the sun. With spring's wood energy as fuel now, your power to start something new and make it known burns strongly."
+              "reason": "Le Feu Bing (丙火) est une énergie qui s’embrase vite et rayonne au loin, comme le soleil. Avec l’énergie du bois printanier pour combustible, votre force de lancer quelque chose de nouveau et de le faire connaître brûle avec intensité."
             },
             "summerFire": {
               "title": "Scénario d'extension estivale de Bing Fire",
-              "reason": "With summer's fire energy added, Bing Fire (丙火) burns brighter than ever. This is the season when your power to step forward and lead people peaks."
+              "reason": "Avec l’énergie du feu estival en plus, le Feu Bing (丙火) brûle plus vivement que jamais. C’est l’étape où votre force d’aller de l’avant et de guider les autres atteint son sommet."
             },
             "waterControl": {
               "title": "Scénario de contrôle de l'eau Bing Fire",
-              "reason": "For Bing Fire (丙火) meeting strong water energy, what matters now is not burning hotter but setting the right direction. Keep your sense of reality and guard the flame, and its light will last."
+              "reason": "Pour le Feu Bing (丙火), qui rencontre une forte énergie d’eau, l’essentiel n’est pas de brûler davantage mais de bien fixer la direction. Gardez le sens des réalités et protégez la flamme, et sa lumière durera."
             }
           },
           "ding": {
             "coldWet": {
               "title": "Scénario de chaleur froide et humide Ding Fire",
-              "reason": "Ding Fire (丁火) is energy that glows quietly from within like a candle. In this cold, damp time, keeping that warmth alive for a long time is a greater strength than brilliance."
+              "reason": "Le Feu Ding (丁火) est une énergie qui brille en silence de l’intérieur, comme une bougie. En ce temps froid et humide, garder cette chaleur vivante longtemps est une force plus grande que l’éclat."
             },
             "autumnMetal": {
               "title": "Scénario d'affinage des métaux Ding Fire",
-              "reason": "Meeting metal energy, Ding Fire (丁火) sharpens the precision of its hands and its eye for beauty. This is the time you shine most by holding on to one thing and finishing it beautifully."
+              "reason": "Au contact de l’énergie du métal, le Feu Ding (丁火) affine la précision de ses mains et son regard esthétique. C’est l’étape où vous brillez le plus en vous consacrant à une seule chose et en la terminant avec soin."
             },
             "resonance": {
               "title": "Scénario d'épanouissement de la résonance Ding Fire",
-              "reason": "Ding Fire (丁火) is energy that gently tends the texture of emotions and deepens relationships. The more freely you express your heart, the more your path of fortune opens with it."
+              "reason": "Le Feu Ding (丁火) est une énergie qui effleure avec délicatesse la texture des émotions et approfondit les relations. Plus vous exprimez librement votre cœur, plus le chemin de votre fortune s’ouvre avec lui."
             }
           },
           "wu": {
             "fireEarth": {
               "title": "Scénario de réalisation de la terre de feu de Wu Earth",
-              "reason": "Wu Earth (戊土) is broad, dependable energy like a great mountain. With fire and earth supporting you now, large undertakings and large achievements gain unusual strength."
+              "reason": "La Terre Wu (戊土) est une énergie vaste et fiable, comme une grande montagne. Avec le feu et la terre qui vous soutiennent en ce moment, les grands projets et les grandes réussites gagnent une force inhabituelle."
             },
             "winterWater": {
               "title": "Scénario de fondation hivernale de Wu Earth",
-              "reason": "For Wu Earth (戊土) meeting winter's water energy, now is the time to slow down and firm up the ground. The more you pause and solidify the basics, the steadier your next step becomes."
+              "reason": "Pour la Terre Wu (戊土), qui rencontre l’énergie de l’eau hivernale, c’est le moment de ralentir et d’affermir le terrain. Plus vous prenez le temps de consolider les bases, plus votre prochain pas sera assuré."
             },
             "center": {
               "title": "Scénario de construction du centre Wu Earth",
-              "reason": "The true strength of Wu Earth (戊土) is the centering power that holds a shaky situation together from the middle. The more steadily you keep your daily routine, the more your results build up."
+              "reason": "La véritable force de la Terre Wu (戊土) est ce pouvoir de recentrage qui soutient, depuis le milieu, une situation instable. Plus vous êtes constant dans votre routine quotidienne, plus vos résultats s’accumulent."
             }
           },
           "ji": {
             "wetEarth": {
               "title": "Scénario d'expansion de la culture de Ji Earth",
-              "reason": "Ji Earth (己土) is energy that carefully nurtures things, like a well-tilled field. In this moist time, results grow within relationships where you work together and look after one another."
+              "reason": "La Terre Ji (己土) est une énergie qui cultive les choses avec soin, comme un champ bien travaillé. En ce temps humide, les fruits mûrissent dans des relations où l’on travaille en équipe et où l’on prend soin les uns des autres."
             },
             "metalDesign": {
               "title": "Scénario de conception de précision Ji Earth",
-              "reason": "Meeting metal energy, Ji Earth (己土) awakens a sense for designing and arranging even the smallest details. Your strengths stand out in work that calls for a high level of finish."
+              "reason": "Au contact de l’énergie du métal, la Terre Ji (己土) éveille un sens de la conception et de l’organisation jusque dans les moindres détails. Vos forces ressortent dans les tâches qui exigent une finition impeccable."
             },
             "balance": {
               "title": "Scénario de réglage de l'équilibre de Ji Earth",
-              "reason": "Ji Earth (己土) is energy that excels at gently mediating between people and setting the mood. As long as you manage the pace of give and take well, that itself becomes your luck."
+              "reason": "La Terre Ji (己土) est une énergie qui excelle à arbitrer en douceur entre les personnes et à créer la bonne ambiance. Il suffit de bien doser le rythme entre fermeté et souplesse pour que cela devienne votre chance."
             }
           },
           "geng": {
             "metalEarth": {
               "title": "Scénario passant par le principe de Geng Metal",
-              "reason": "Geng Metal (庚金) is energy that cuts through boldly and decisively, like an uncut gemstone. With earth and metal supporting you now, your power to push through the principles you set reaches its peak."
+              "reason": "Le Métal Geng (庚金) est une énergie qui tranche avec audace et décision, comme une pierre brute. Avec la terre et le métal qui vous soutiennent en ce moment, votre force de mener à bien les principes que vous vous êtes fixés atteint son sommet."
             },
             "fireTraining": {
               "title": "Scénario de trempe au feu de Geng Metal",
-              "reason": "Tempered in hot fire, Geng Metal (庚金) hardens in both charisma and skill. This is a time when your focus grows especially sharp at decisive moments."
+              "reason": "Trempé dans le feu ardent, le Métal Geng (庚金) gagne à la fois en charisme et en savoir-faire. C’est une étape où votre concentration devient particulièrement aiguë aux moments décisifs."
             },
             "clearJudgment": {
               "title": "Scénario de jugement décisif de Geng Metal",
-              "reason": "The strength of Geng Metal (庚金) is judgment that cuts precisely to the core. Set clear standards, and that clarity carries straight through to results."
+              "reason": "La force du Métal Geng (庚金), c’est un jugement qui va droit à l’essentiel. Fixez des critères clairs, et cette netteté se traduira directement en résultats."
             }
           },
           "xin": {
             "metalWater": {
               "title": "Scénario de raffinage métal-eau Xin Metal",
-              "reason": "Xin Metal (辛金) is energy with refined senses and language, like a finely cut jewel. With metal and water in harmony now, your power to analyze and express becomes even clearer."
+              "reason": "Le Métal Xin (辛金) est une énergie aux sens et au langage raffinés, comme un joyau finement taillé. Avec le métal et l’eau en harmonie en ce moment, votre capacité d’analyse et d’expression gagne encore en clarté."
             },
             "springWood": {
               "title": "Scénario de réglage du bois Xin Metal",
-              "reason": "Meeting spring's wood energy, Xin Metal (辛金) goes further by adjusting gently than by sharpening its edge. This is a time when results come from work you refine by feel."
+              "reason": "Au contact de l’énergie du bois printanier, le Métal Xin (辛金) va plus loin en ajustant avec douceur qu’en aiguisant sa lame. C’est une étape où les résultats naissent de ce que vous polissez avec sensibilité."
             },
             "completion": {
               "title": "Scénario d'achèvement de Xin Metal",
-              "reason": "Xin Metal (辛金) is strong when it finishes one thing beautifully rather than spreading wide. The more neatly you wrap up the details, the more people's trust builds."
+              "reason": "Le Métal Xin (辛金) est fort quand il achève une seule chose avec soin plutôt que d’en embrasser beaucoup. Plus vous soignez les finitions, plus vous gagnez la confiance des autres."
             }
           },
           "ren": {
             "summerCooling": {
               "title": "Scénario de refroidissement estival de Ren Water",
-              "reason": "Ren Water (壬水) is energy that handles great currents like a wide sea. Now, as it cools summer's heat, your power to focus calmly rises markedly."
+              "reason": "L’Eau Ren (壬水) est une énergie qui maîtrise de grands courants, comme la pleine mer. En ce moment, tandis qu’elle rafraîchit la chaleur de l’été, votre capacité à vous concentrer calmement augmente nettement."
             },
             "winterCondensing": {
               "title": "Scénario de condensation hivernale de Ren Water",
-              "reason": "Resonating with winter's water energy, Ren Water (壬水) is in a time of gathering strength beneath the ice. Though it looks calm on the surface, a solid potential ripens within, like a glacier flower."
+              "reason": "En résonance avec l’énergie de l’eau hivernale, l’Eau Ren (壬水) vit un temps où elle rassemble ses forces sous la glace. Même si la surface paraît calme, un solide potentiel mûrit à l’intérieur, comme une fleur des glaciers."
             },
             "nightIntuition": {
               "title": "Scénario d'intuition nocturne de Ren Water",
-              "reason": "Ren Water (壬水) is energy that finds its way better through the intuition of a quiet night than in bright daylight. When you decide by your own rhythm instead of rushing to an answer, the direction falls into place."
+              "reason": "L’Eau Ren (壬水) est une énergie qui trouve mieux son chemin par l’intuition d’une nuit tranquille qu’en plein jour. Quand vous décidez à votre propre rythme au lieu de vous presser de répondre, la direction se précise."
             }
           },
           "gui": {
             "coldWetPurifying": {
               "title": "Scénario de purification de l'eau froide et humide Gui",
-              "reason": "Gui Water (癸水) is energy that senses the subtle and washes it clean, like dawn dew. In this cold, damp time, that quiet, absorbed stillness becomes your strength."
+              "reason": "L’Eau Gui (癸水) est une énergie qui perçoit le subtil et le purifie, comme la rosée de l’aube. En ce temps froid et humide, cette quiétude silencieuse et absorbée devient votre force."
             },
             "summerEmpathy": {
               "title": "Scénario d'empathie estivale de Gui Water",
-              "reason": "For Gui Water (癸水) meeting summer's heat, empathy that soothes hearts and connects people is the greatest asset. Like a hydrangea, the path opens as you gather the warmth of many."
+              "reason": "Pour l’Eau Gui (癸水), qui rencontre la chaleur de l’été, l’empathie qui apaise les cœurs et relie les gens est le plus grand atout. Comme un hortensia, le chemin s’ouvre à mesure que vous rassemblez la chaleur de nombreuses personnes."
             },
             "subtleSignal": {
               "title": "Scénario de signaux subtils Gui Water",
-              "reason": "Gui Water (癸水) is energy that reads the small signals others miss before anyone else. Time things well with that keen sense, and that single move decides the outcome."
+              "reason": "L’Eau Gui (癸水) est une énergie qui capte avant tout le monde les petits signaux que les autres laissent passer. Si vous choisissez bien le moment grâce à cette sensibilité aiguë, ce seul coup décidera du résultat."
             }
           }
         },
@@ -3177,12 +3177,12 @@
           "description": "Lecture de la fleur du destin: {description}",
           "vibe": "Guide de floraison: {vibeMessage}",
           "fallback": "Logique de réglage: {note}",
-          "dayMasterSame": "A flower that carries the same {element} energy as your {dayMasterBadge} day master.",
-          "strengthRelease": "Your chart runs strong, so we gave weight to flowers with {elements} energy that lets the built-up energy flow outward.",
-          "strengthSupport": "Your chart runs weak, so we gave weight to flowers with {elements} energy that supports your day master.",
-          "yongshin": "This flower carries the useful element (yongshin) your chart needs — {elements}.",
-          "johuWarm": "Your chart leans cold and damp, so we gave weight to warm flowers that heat it like sunlight.",
-          "johuCool": "Your chart leans hot and dry, so we gave weight to moisture-rich flowers that cool the heat."
+          "dayMasterSame": "Une fleur qui porte la même énergie {element} que votre maître du jour {dayMasterBadge}.",
+          "strengthRelease": "Votre thème est fort ; nous avons donc privilégié les fleurs à l’énergie {elements}, qui libère l’énergie accumulée.",
+          "strengthSupport": "Votre thème est faible ; nous avons donc privilégié les fleurs à l’énergie {elements}, qui renforce votre maître du jour.",
+          "yongshin": "Cette fleur porte l’élément utile (yongshin) dont votre thème a besoin — {elements}.",
+          "johuWarm": "Votre thème tend vers le froid et l’humide ; nous avons donc privilégié des fleurs chaleureuses qui le réchauffent comme la lumière du soleil.",
+          "johuCool": "Votre thème tend vers le chaud et le sec ; nous avons donc privilégié des fleurs riches en eau qui rafraîchissent la chaleur."
         },
         "elements": {
           "wood": "Bois",
@@ -3258,16 +3258,16 @@
           "rarityPlain": "La fleur que mon Saju a choisie parmi {total}"
         },
         "dayMasters": {
-          "jia": "Jia Wood (甲木)",
-          "yi": "Yi Wood (乙木)",
-          "bing": "Bing Fire (丙火)",
-          "ding": "Ding Fire (丁火)",
-          "wu": "Wu Earth (戊土)",
-          "ji": "Ji Earth (己土)",
-          "geng": "Geng Metal (庚金)",
-          "xin": "Xin Metal (辛金)",
-          "ren": "Ren Water (壬水)",
-          "gui": "Gui Water (癸水)"
+          "jia": "Bois Jia (甲木)",
+          "yi": "Bois Yi (乙木)",
+          "bing": "Feu Bing (丙火)",
+          "ding": "Feu Ding (丁火)",
+          "wu": "Terre Wu (戊土)",
+          "ji": "Terre Ji (己土)",
+          "geng": "Métal Geng (庚金)",
+          "xin": "Métal Xin (辛金)",
+          "ren": "Eau Ren (壬水)",
+          "gui": "Eau Gui (癸水)"
         },
         "dayMasterStems": {
           "jia": "Jia (甲)",
@@ -3282,17 +3282,17 @@
           "gui": "Gui (癸)"
         },
         "dayMasterFallback": {
-          "ziwei": "With limited Saju day master data, the day master's nature was adjusted based on the Zi Wei main star.",
-          "astrology": "With limited Saju day master data, the sun sign's tendencies stood in for the day master's nature.",
-          "dominant": "With limited Saju, Zi Wei and astrology indicators, the day master's nature was estimated from the dominant element."
+          "ziwei": "Les données du maître du jour Saju étant limitées, la nature du maître du jour a été ajustée d’après l’étoile principale de Zi Wei.",
+          "astrology": "Les données du maître du jour Saju étant limitées, les tendances du signe solaire ont remplacé la nature du maître du jour.",
+          "dominant": "Les indicateurs clés du Saju, du Zi Wei et de l’astrologie étant limités, la nature du maître du jour a été estimée à partir de l’élément dominant."
         },
         "rationaleLabel": {
-          "dayMaster": "Day master nature",
-          "strengthRelease": "Strong chart",
-          "strengthSupport": "Weak chart",
-          "yongshin": "Useful element",
-          "johuWarm": "Climate balance · cold and damp",
-          "johuCool": "Climate balance · hot and dry"
+          "dayMaster": "Nature du maître du jour",
+          "strengthRelease": "Thème fort",
+          "strengthSupport": "Thème faible",
+          "yongshin": "Élément utile",
+          "johuWarm": "Équilibre climatique · froid et humide",
+          "johuCool": "Équilibre climatique · chaud et sec"
         }
       },
       "flowers": {
@@ -4582,303 +4582,303 @@
           }
         },
         "cta": {
-          "rebloom": "🌸 Bloom my destiny flower again",
-          "astrologyAgain": "✨ Summon my astrology flower again",
-          "jamidusuAgain": "🌺 Summon my Ziwei flower again",
-          "sukuyoAgain": "🌙 Summon my Sukuyo flower again"
+          "rebloom": "🌸 Faire éclore à nouveau ma fleur du destin",
+          "astrologyAgain": "✨ Invoquer à nouveau ma fleur astrologique",
+          "jamidusuAgain": "🌺 Invoquer à nouveau ma fleur Ziwei",
+          "sukuyoAgain": "🌙 Invoquer à nouveau ma fleur Sukuyo"
         },
         "status": {
-          "atelierLocked": "The Destiny Flower Atelier needs to be unlocked.",
-          "loginRequired": "Log in to see your destiny flower.",
-          "newlyUnlocked": "✨ Your {source} flower is newly open.",
-          "resultReady": "{verdict} You can save this result or share it on KakaoTalk.",
-          "reloading": "Reloading your data. Please wait a moment.",
-          "linking": "Linking your {source} data. Please wait a moment.",
-          "loaded": "Your {source} data has been loaded.",
-          "copied": "Copied to the clipboard.",
-          "copyPermission": "Clipboard access is not allowed, so please copy it manually.",
-          "copyFailed": "Copy failed.",
-          "kakaoPcCopied": "On a PC, the KakaoTalk link has been copied to the clipboard. Paste it into KakaoTalk to share.",
-          "kakaoNotOpenedCopied": "We couldn't confirm KakaoTalk opened, so the summary has been copied to the clipboard. Paste it into KakaoTalk to share.",
-          "kakaoOpening": "Opening KakaoTalk sharing...",
-          "kakaoFailedCopied": "We couldn't open KakaoTalk sharing, so the summary has been copied to the clipboard.",
-          "refreshed": "Tabs and prompts have been updated based on: {verdict}",
-          "aiOpening": "Opening the AI in a new tab. If it doesn't open, allow pop-ups and try again.",
-          "aiBlocked": "The new tab seems to have been blocked. Allow pop-ups in your browser or open the AI site you want directly.",
-          "summaryCopied": "Summary copied to the clipboard.",
-          "promptCopied": "The main AI flower prompt has been copied to the clipboard.",
-          "promptPackCopied": "The main/negative prompt set has been copied to the clipboard."
+          "atelierLocked": "L’Atelier de la Fleur du Destin doit être débloqué.",
+          "loginRequired": "Connectez-vous pour voir votre fleur du destin.",
+          "newlyUnlocked": "✨ Votre fleur {source} est désormais ouverte.",
+          "resultReady": "{verdict} Vous pouvez enregistrer ce résultat ou le partager sur KakaoTalk.",
+          "reloading": "Rechargement de vos données. Veuillez patienter un instant.",
+          "linking": "Liaison de vos données {source}. Veuillez patienter un instant.",
+          "loaded": "Vos données {source} ont été chargées.",
+          "copied": "Copié dans le presse-papiers.",
+          "copyPermission": "Pas d’autorisation d’accès au presse-papiers ; veuillez copier manuellement.",
+          "copyFailed": "La copie a échoué.",
+          "kakaoPcCopied": "Sur PC, le lien KakaoTalk a été copié dans le presse-papiers. Collez-le dans KakaoTalk pour le partager.",
+          "kakaoNotOpenedCopied": "Nous n’avons pas pu confirmer l’ouverture de KakaoTalk ; le résumé a donc été copié dans le presse-papiers. Collez-le dans KakaoTalk pour le partager.",
+          "kakaoOpening": "Ouverture du partage KakaoTalk...",
+          "kakaoFailedCopied": "Impossible d’ouvrir le partage KakaoTalk ; le résumé a donc été copié dans le presse-papiers.",
+          "refreshed": "Onglets et invites mis à jour selon : {verdict}",
+          "aiOpening": "Ouverture de l’IA dans un nouvel onglet. Si rien ne s’ouvre, autorisez les fenêtres pop-up et réessayez.",
+          "aiBlocked": "Le nouvel onglet semble avoir été bloqué. Autorisez les fenêtres pop-up dans votre navigateur ou ouvrez directement le site d’IA de votre choix.",
+          "summaryCopied": "Résumé copié dans le presse-papiers.",
+          "promptCopied": "L’invite principale de la fleur IA a été copiée dans le presse-papiers.",
+          "promptPackCopied": "L’ensemble d’invites principale et négative a été copié dans le presse-papiers."
         },
         "fallback": {
           "astrology": {
-            "name": "Nebula lavender",
-            "symbolism": "A clear intuition that flows along the grain of starlight",
-            "vibe": "Breathe along with the rhythm of the stars and your intuition grows sharper."
+            "name": "Lavande nébuleuse",
+            "symbolism": "Une intuition limpide qui suit la texture de la lumière des étoiles",
+            "vibe": "Respirez au rythme des étoiles et votre intuition deviendra plus nette."
           },
           "jamidusu": {
-            "name": "Tree peony",
-            "symbolism": "Imperial grace and the strength of the center",
-            "keyword1": "Emperor",
-            "keyword2": "Grace",
-            "keyword3": "Center",
-            "vibe": "Holding your center is what carries you furthest in the end."
+            "name": "Pivoine arbustive",
+            "symbolism": "L’élégance impériale et la force du centre",
+            "keyword1": "Empereur",
+            "keyword2": "Élégance",
+            "keyword3": "Centre",
+            "vibe": "Garder votre centre est, au bout du compte, ce qui vous mène le plus loin."
           },
           "sukuyo": {
-            "name": "Lily",
-            "symbolism": "A guardian flower that blooms clear in the moonlight",
-            "keyword1": "Moonlight",
-            "keyword2": "Guardian",
+            "name": "Lys",
+            "symbolism": "Une fleur gardienne qui s’épanouit nettement au clair de lune",
+            "keyword1": "Clair de lune",
+            "keyword2": "Gardien",
             "keyword3": "Purification",
-            "vibe": "Match tonight's breath and rhythm of the moon and your choices become clearer.",
+            "vibe": "Accordez votre respiration et votre rythme à la lune de ce soir, et vos décisions gagneront en clarté.",
             "keywordMansion": "Sukuyo",
-            "keywordGuardian": "Guardian animal",
-            "keywordPhase": "Moon phase"
+            "keywordGuardian": "Animal gardien",
+            "keywordPhase": "Phase lunaire"
           }
         },
         "legacy": {
-          "astrologyReading": "Reading your destiny flower from your astrology chart.",
-          "astrologyRhythm": "Setting the rhythm of the stars.",
-          "brightnessEven": "Even (平)",
-          "jamidusuReading": "Reading your destiny flower from today's strong star.",
-          "mainStarUnknown": "Main star unknown",
-          "jamidusuRhythm": "Aligning the energy of the stars.",
-          "imperialGrace": "Imperial grace",
-          "moonQuarter": "Quarter moon",
-          "sukuyoReading": "Reading your destiny flower from the 27 Sukuyo mansions.",
-          "mansionUnknown": "Mansion unknown"
+          "astrologyReading": "Lecture de votre fleur du destin à partir de votre thème astral.",
+          "astrologyRhythm": "Calage du rythme des étoiles.",
+          "brightnessEven": "Neutre (平)",
+          "jamidusuReading": "Lecture de votre fleur du destin à partir de l’étoile forte du jour.",
+          "mainStarUnknown": "Étoile principale inconnue",
+          "jamidusuRhythm": "Alignement de l’énergie des étoiles.",
+          "imperialGrace": "Élégance impériale",
+          "moonQuarter": "Premier/dernier quartier",
+          "sukuyoReading": "Lecture de votre fleur du destin à partir des 27 demeures Sukuyo.",
+          "mansionUnknown": "Demeure inconnue"
         },
         "badge": {
-          "sun": "Sun sign {value}",
-          "rising": "Rising sign {value}",
-          "moon": "Moon sign {value}",
-          "strongStar": "Today's strong star {value}",
-          "brightness": "Star brightness {value}",
-          "moonPhase": "Moon phase {value}",
-          "guardian": "Guardian animal {value}",
-          "palace": "Palace {value}",
-          "mansionLabel": "Mansion",
-          "group": "{group} group"
+          "sun": "Signe solaire {value}",
+          "rising": "Signe ascendant {value}",
+          "moon": "Signe lunaire {value}",
+          "strongStar": "Étoile forte du jour {value}",
+          "brightness": "Éclat de l’étoile {value}",
+          "moonPhase": "Phase lunaire {value}",
+          "guardian": "Animal gardien {value}",
+          "palace": "Palais {value}",
+          "mansionLabel": "Demeure",
+          "group": "Groupe {group}"
         },
         "value": {
-          "unknown": "Unknown",
-          "pending": "Awaiting reading",
-          "lifePalace": "Life Palace"
+          "unknown": "Inconnu",
+          "pending": "Lecture en attente",
+          "lifePalace": "Palais de la Vie"
         },
         "wait": {
-          "chartSignal": "Awaiting chart signal",
-          "starSignal": "Awaiting main-star signal",
-          "sukuyoSignal": "Awaiting Sukuyo signal",
-          "moonRhythm": "Syncing with the rhythm of the moon.",
-          "nebulaRhythm": "Aligning the nebula rhythm.",
-          "imperialRhythm": "Tuning the imperial energy.",
-          "dayMaster": "Awaiting day master reading",
-          "sourceVerdict": "Awaiting {source} reading",
-          "mainStar": "Awaiting main star reading",
-          "sukuyoReading": "Awaiting Sukuyo reading",
-          "dataLoad": "Waiting to load data",
-          "birth": "Waiting for your birth date"
+          "chartSignal": "En attente du signal du thème",
+          "starSignal": "En attente du signal de l’étoile principale",
+          "sukuyoSignal": "En attente du signal Sukuyo",
+          "moonRhythm": "Synchronisation avec le rythme de la lune.",
+          "nebulaRhythm": "Alignement du rythme de la nébuleuse.",
+          "imperialRhythm": "Accord de l’énergie impériale.",
+          "dayMaster": "En attente de la lecture du maître du jour",
+          "sourceVerdict": "En attente de la lecture {source}",
+          "mainStar": "En attente de la lecture de l’étoile principale",
+          "sukuyoReading": "En attente de la lecture Sukuyo",
+          "dataLoad": "En attente du chargement des données",
+          "birth": "En attente de votre date de naissance"
         },
         "stage": {
-          "keywords": "{source} keywords · {list}",
-          "astrologyScenario": "Calculating your zodiac blooming scenario.",
-          "jamidusuScenario": "Calculating your Ziwei main-star blooming scenario.",
-          "sukuyoScenario": "Calculating your Sukuyo moonlight blooming scenario.",
-          "seasonTexture": "{season} texture",
-          "seasonDefault": "Season",
-          "environmentMood": "{environment} mood",
-          "environmentDefault": "Environment",
-          "sajuScenario": "Calculating your day master and environment blooming scenario.",
-          "dataSheetPreparing": "Preparing your flower data sheet.",
-          "symbolizes": "This flower symbolizes {symbolism}.",
-          "resonates": "This flower resonates strongly with the current flow of your fortune.",
-          "narrativeFallback": "{verdict} Your blooming point for now is aligned to your {source} balance."
+          "keywords": "Mots-clés {source} · {list}",
+          "astrologyScenario": "Calcul du scénario de floraison de votre signe.",
+          "jamidusuScenario": "Calcul du scénario de floraison de votre étoile principale Ziwei.",
+          "sukuyoScenario": "Calcul de votre scénario de floraison Sukuyo au clair de lune.",
+          "seasonTexture": "Texture {season}",
+          "seasonDefault": "Saison",
+          "environmentMood": "Ambiance {environment}",
+          "environmentDefault": "Environnement",
+          "sajuScenario": "Calcul du scénario de floraison de votre maître du jour et de votre environnement.",
+          "dataSheetPreparing": "Préparation de la fiche technique de votre fleur.",
+          "symbolizes": "Cette fleur symbolise {symbolism}.",
+          "resonates": "Cette fleur résonne fortement avec le flux actuel de votre fortune.",
+          "narrativeFallback": "{verdict} Nous avons aligné votre point de floraison actuel sur l’équilibre de votre {source}."
         },
         "guide": {
-          "allBloomed": "All flowers have bloomed. Revisit any tab you like.",
-          "startSaju": "Next step: open your Saju flower first to start blooming.",
-          "next": "Next step: move on to your {source} flower to keep blooming."
+          "allBloomed": "Toutes les fleurs ont éclos. Revoyez-les dans l’onglet de votre choix.",
+          "startSaju": "Étape suivante : ouvrez d’abord votre fleur Saju pour commencer la floraison.",
+          "next": "Étape suivante : passez à votre fleur {source} pour poursuivre la floraison."
         },
         "tab": {
-          "lockLabel": "Opens when the atelier is unlocked"
+          "lockLabel": "S’ouvre au déblocage de l’atelier"
         },
         "verdict": {
-          "preparing": "Preparing your destiny flower reading.",
-          "defaultFlower": "Destiny flower",
-          "sukuyo": "Read through Sukuyo, your flower is {name}.",
-          "jamidusu": "Read through Ziwei, your flower is {name}.",
-          "astrology": "Read through astrology, your flower is {name}.",
-          "saju": "Read through Saju, your flower is {name}."
+          "preparing": "Préparation de la lecture de votre fleur du destin.",
+          "defaultFlower": "Fleur du destin",
+          "sukuyo": "Selon le Sukuyo, votre fleur est {name}.",
+          "jamidusu": "Selon le Ziwei, votre fleur est {name}.",
+          "astrology": "Selon l’astrologie, votre fleur est {name}.",
+          "saju": "Selon le Saju, votre fleur est {name}."
         },
         "snapshot": {
-          "guidance": "Today, matching your rhythm before chasing results helps you bloom faster."
+          "guidance": "Aujourd’hui, en ajustant votre rythme avant de viser les résultats, vous fleurirez plus vite."
         },
         "empty": {
-          "noDomainData": "No {source} data is linked yet. Tap the button below and your own destiny flower will bloom now.",
-          "astroCalculating": "We've read your star chart. Choosing your astrology flower now.",
-          "notLinked": "Your {source} flower blooms the moment you tap the link button. Tap the button below to meet the flower that has come to you now.",
-          "linkButton": "Link my destiny flower",
-          "linking": "Linking...",
-          "dataWaiting": "Waiting to link {source} data",
-          "readingWaiting": "Awaiting {source} reading",
-          "keywordsLoading": "{source} keywords · loading"
+          "noDomainData": "Aucune donnée {source} n’est encore liée. Touchez le bouton ci-dessous et votre propre fleur du destin éclora tout de suite.",
+          "astroCalculating": "Nous avons lu votre thème astral. Nous choisissons maintenant votre fleur astrologique.",
+          "notLinked": "Votre fleur {source} éclot dès que vous touchez le bouton de liaison. Touchez le bouton ci-dessous pour découvrir la fleur qui vous est venue maintenant.",
+          "linkButton": "Lier ma fleur du destin",
+          "linking": "Liaison en cours...",
+          "dataWaiting": "En attente de la liaison des données {source}",
+          "readingWaiting": "En attente de la lecture {source}",
+          "keywordsLoading": "Mots-clés {source} · chargement"
         },
         "artMood": {
-          "astrology": "Dreamy floral wrapped in starlit nebulae and neon glow",
-          "jamidusu": "Floral where imperial dignity meets refined court elegance",
-          "sukuyo": "Clear floral like moonlit meditation and still water",
-          "saju": "Lyrical East Asian floral blooming along the grain of the Five Elements"
+          "astrology": "Floral onirique enveloppé de nébuleuses étoilées et de lueurs néon",
+          "jamidusu": "Floral où la dignité impériale rencontre l’élégance raffinée de la cour",
+          "sukuyo": "Floral limpide comme une méditation au clair de lune et une eau calme",
+          "saju": "Floral lyrique d’Asie de l’Est qui s’épanouit selon la texture des Cinq Éléments"
         },
         "care": {
-          "wood": "Wake your growth point with an 8-minute stretch by an east-facing window in the morning sun",
-          "fire": "Soak in south-facing light for 5 minutes and declare today's goal out loud",
-          "earth": "Tidy one corner of your workspace to firmly set your central axis",
-          "metal": "Write down 3 priorities and boldly prune unnecessary commitments",
-          "water": "Open the circulation of your emotions with a 10-minute evening walk and some water",
-          "default": "Fix your light (morning) and water (evening) routines to stabilize your basic growth rhythm first."
+          "wood": "Réveillez votre point de croissance avec 8 minutes d’étirements près d’une fenêtre orientée à l’est, au soleil du matin",
+          "fire": "Prenez 5 minutes de lumière orientée au sud et énoncez à voix haute votre objectif du jour",
+          "earth": "Rangez un coin de votre espace de travail pour ancrer votre axe central",
+          "metal": "Notez 3 priorités et élaguez sans hésiter les engagements superflus",
+          "water": "Faites circuler vos émotions avec 10 minutes de marche le soir et un peu d’eau",
+          "default": "Fixez vos routines de lumière (matin) et d’eau (soir) pour stabiliser d’abord votre rythme de croissance de base."
         },
         "synergy": {
-          "astrology": "glass vases, silver frames, soft micro-lighting",
-          "jamidusu": "satin fabric, bronze objects, symmetrical ceramics",
-          "sukuyo": "frosted glass, moonlight-toned linen, wave-patterned trays",
-          "saju": "matte ceramics, natural wood, softly patterned fabric",
-          "line": "Suggested colors: Primary {primary}, Secondary {secondary}, Accent {accent} / Suggested materials: {materials}."
+          "astrology": "vases en verre, cadres argentés, micro-éclairage doux",
+          "jamidusu": "tissu satiné, objets en laiton, céramiques symétriques",
+          "sukuyo": "verre dépoli, lin aux tons de clair de lune, plateaux à motif de vagues",
+          "saju": "céramique mate, bois naturel, tissus à motifs doux",
+          "line": "Couleurs suggérées : principale {primary}, secondaire {secondary}, accent {accent} / Matières suggérées : {materials}."
         },
         "atelier": {
-          "scenarioTitle": "{source} blooming scenario",
-          "growthCycleWaiting": "Awaiting blooming cycle calculation",
-          "ritualWaiting": "Calculating today's practice routine.",
+          "scenarioTitle": "Scénario de floraison {source}",
+          "growthCycleWaiting": "En attente du calcul du cycle de floraison",
+          "ritualWaiting": "Calcul de votre routine pratique du jour.",
           "astrology": {
-            "lightingFire": "Intense sunlight at a high angle, like midsummer noon",
-            "lightingEarth": "Steady light where late-afternoon gold lingers long",
-            "lightingWater": "Cool blue dawn light that spreads slowly",
-            "lightingAir": "Slanted light, tilted like the wind, that lightly opens the space",
-            "humidityWater": "A silver-mist state with high emotional humidity",
-            "humidityFire": "Dry, heat-holding air; a state of quick emotional response",
-            "humidityEarth": "Steady clay-pot humidity; a state where feelings slowly ripen",
-            "humidityAir": "Light, shifting breeze humidity; a state where ideas refresh quickly",
-            "seasonFire": "Bloom accelerator: a stretch where action and presenting push the buds upward",
-            "seasonWater": "Inner nourishment: a stretch where rest and intuition fill the root layer",
-            "seasonBalance": "Balance tuning: a stretch where structure and feeling cross to prepare the next bud",
-            "section": "Celestial light and energy",
-            "matrixLighting": "☀️ Celestial light: {value}",
-            "matrixHumidity": "💧 Atmospheric humidity: {value}",
-            "matrixSeason": "🪐 Cosmic season: {value}",
-            "log": "Gardener's observation journal: the direction of your Sun sign {sun} and the light of your Rising sign {rising} set the angle of the flower stem. The humidity control of your Moon sign {moon} gently opens the veins of emotion, and this week is a pre-bloom stretch where opportunities show first.",
-            "recipe": "Secret recipe: after 9 p.m., dim the window light by one step and write the one thing you will do tomorrow on the first line of your notebook. Focus only on that one thing for the first 12 minutes of the morning and the starlight rhythm aligns fastest.",
-            "flowerLanguage": "Destiny flower language: the courage to trust the angle of the stars and take the first step.",
-            "gardenerWord": "A gardener's word for this flower: today's intuition is not exaggeration but a forecast. Small actions turn the nebula into a real flower bed.",
-            "particle": "Translated into particles, the light of {source} shines most steadily with a \"{particle}\" texture."
+            "lightingFire": "Un soleil intense, haut dans le ciel, comme un midi en plein été",
+            "lightingEarth": "Une lumière stable où l’or de la fin d’après-midi s’attarde longuement",
+            "lightingWater": "Une lumière bleue et fraîche de l’aube qui s’étend lentement",
+            "lightingAir": "Une lumière oblique, inclinée comme le vent, qui ouvre l’espace avec légèreté",
+            "humidityWater": "Une brume argentée, signe d’une forte humidité émotionnelle",
+            "humidityFire": "Un air sec qui garde la chaleur ; les émotions réagissent vite",
+            "humidityEarth": "L’humidité stable d’un pot en terre cuite ; les sentiments mûrissent lentement",
+            "humidityAir": "Une humidité de brise, légère et changeante ; les idées se renouvellent vite",
+            "seasonFire": "Accélérateur de floraison : une période où l’action et la mise en avant font monter les boutons",
+            "seasonWater": "Nutrition intérieure : une période où le repos et l’intuition nourrissent la couche racinaire",
+            "seasonBalance": "Réglage de l’équilibre : une période où structure et sensibilité se croisent pour préparer la prochaine pousse",
+            "section": "Lumière et énergie célestes",
+            "matrixLighting": "☀️ Lumière céleste : {value}",
+            "matrixHumidity": "💧 Humidité atmosphérique : {value}",
+            "matrixSeason": "🪐 Saison cosmique : {value}",
+            "log": "Journal d’observation du jardinier : l’orientation de votre signe solaire {sun} et la lumière de votre ascendant {rising} fixent l’angle de la tige. Le contrôle de l’humidité par votre signe lunaire {moon} ouvre en douceur les nervures de l’émotion, et cette semaine est une période de pré-floraison où les occasions se montrent en premier.",
+            "recipe": "Recette secrète : après 21 h, baissez d’un cran la lumière près de la fenêtre et écrivez sur la première ligne de votre carnet la seule chose que vous ferez demain. Concentrez-vous uniquement sur elle pendant les 12 premières minutes de la matinée, et le rythme de la lumière des étoiles s’ajustera plus vite.",
+            "flowerLanguage": "Langage de la fleur du destin : le courage de se fier à l’angle des étoiles et de faire le premier pas.",
+            "gardenerWord": "Un mot du jardinier pour cette fleur : l’intuition d’aujourd’hui n’est pas une exagération, mais une prévision. Les petites actions transforment la nébuleuse en un vrai jardin fleuri.",
+            "particle": "Traduite en particules, la lumière {source} brille avec le plus de stabilité dans une texture « {particle} »."
           },
           "jamidusu": {
-            "structureZiwei": "A sturdy stem carrying the imperial grace of the Ziwei star family",
-            "structureBreaker": "A thick, upright stalk shaped by a breakthrough general's temperament",
-            "structureFlexible": "Delicate layered petals, supple yet hard to break",
-            "structureBalanced": "A refined, symmetrical flower frame shaped by a balanced main star",
-            "social": "Like butterflies and bees circling around {palace}, close connections share roles and help you grow.",
-            "thornsDim": "A time when short, dense, highly protective thorns help you set boundaries",
-            "thornsBright": "A time when light-reflecting grain patterns stand in for thorns and protect you with dignity",
-            "section": "The flower's dignity and form",
-            "matrixStructure": "🏛️ Flower frame: {value}",
-            "matrixSocial": "🦋 Butterflies and bees: {value}",
-            "matrixThorns": "🌵 Guardian thorns: {value}",
-            "log": "Gardener's observation journal: today's strong star {star} holds the center of the stem upright, and star brightness {brightness} adjusts the sheen of the petals. Now is a time when structural completeness, more than flashiness, grows your results.",
-            "recipe": "Secret recipe: place one metal object on the left side of your desk, and write down one standard for today and one point where you will yield. The clearer your boundaries, the more gracefully the flower blooms.",
-            "flowerLanguage": "Destiny flower language: dignity is the quietest radiance, blooming from a solid structure.",
-            "gardenerWord": "A gardener's word for this flower: don't rush to be dazzling. A day spent keeping your standards builds the longest-lasting stem.",
-            "particle": "Translated into particles, the hierarchy of {source} shows its order most beautifully with a \"{particle}\" mood."
+            "structureZiwei": "Une tige solide portant l’élégance impériale de la famille de l’étoile Ziwei",
+            "structureBreaker": "Une tige épaisse et droite, forgée par le tempérament d’un général qui ouvre la voie",
+            "structureFlexible": "Des pétales en couches délicates, souples mais difficiles à briser",
+            "structureBalanced": "Une structure florale raffinée et symétrique, formée par une étoile principale équilibrée",
+            "social": "Comme des papillons et des abeilles qui virevoltent autour de votre {palace}, vos liens proches se partagent les rôles et vous aident à grandir.",
+            "thornsDim": "Une étape où des épines courtes, denses et très protectrices vous aident à poser des limites",
+            "thornsBright": "Une étape où des veines qui reflètent la lumière remplacent les épines et vous protègent avec dignité",
+            "section": "La dignité et la forme de la fleur",
+            "matrixStructure": "🏛️ Structure de la fleur : {value}",
+            "matrixSocial": "🦋 Papillons et abeilles : {value}",
+            "matrixThorns": "🌵 Épines gardiennes : {value}",
+            "log": "Journal d’observation du jardinier : l’étoile forte du jour, {star}, maintient droit le centre de la tige, et l’éclat de l’étoile, {brightness}, règle le lustre des pétales. C’est un moment où la solidité de la structure, plus que l’apparat, fait grandir vos résultats.",
+            "recipe": "Recette secrète : posez un objet en métal sur le côté gauche de votre bureau et notez à la fois un critère pour aujourd’hui et un point sur lequel vous céderez. Plus vos limites sont claires, plus la fleur s’épanouit avec élégance.",
+            "flowerLanguage": "Langage de la fleur du destin : la dignité est l’éclat le plus silencieux, né d’une structure solide.",
+            "gardenerWord": "Un mot du jardinier pour cette fleur : ne vous pressez pas d’éblouir. Une journée passée à tenir vos critères bâtit la tige la plus durable.",
+            "particle": "Traduite en particules, la hiérarchie {source} révèle son ordre avec le plus de beauté dans une atmosphère « {particle} »."
           },
           "sukuyo": {
-            "scentFriend": "A soft white-musk note that spreads under the moonlight",
-            "scentDanger": "A deep, dense agarwood note that sharpens focus",
-            "scentDefault": "A clear herbal floral note that gently warms the temperature of relationships",
-            "dewFull": "Night dew at its fullest; inspiration and emotional expression are both abundant",
-            "dewNew": "A new-moon stretch with thin dew; observation and preparation come first",
-            "dewDefault": "A moderate amount of dew; emotional balance and drive grow together",
-            "companionDragon": "Wisteria and blue sage, supporting a big flow of expansion",
-            "companionDog": "Rosemary and chamomile, strengthening stable relationships and resilience",
-            "companionTiger": "Eucalyptus and rudbeckia, strengthening decisiveness and protective instinct",
-            "companionDefault": "Lavender and ivy, supporting both emotional stability and long-term growth",
-            "section": "The scent of connection and dew",
-            "matrixScent": "🌙 Destiny scent: {value}",
-            "matrixDew": "💦 Night dew: {value}",
-            "matrixCompanion": "🌿 Companion plants: {value}",
-            "log": "Gardener's observation journal: the relational nature of {mansion} shows first as scent, and moon phase {phase} adjusts your emotional rhythm through the density of the dew. Now, care in matching each other's grain, rather than hurrying the pace of a connection, keeps the flower alive longer.",
-            "recipe": "Secret recipe: before bed, slowly drink a glass of water, then quietly write down one name you were grateful for today. The moon's water rhythm settles and your relationship luck opens gently.",
-            "flowerLanguage": "Destiny flower language: quiet empathy becomes the scent that travels furthest.",
-            "gardenerWord": "A gardener's word for this flower: it's okay not to hurry. Just as night dew gathers, your connections will become clear at exactly the right time.",
-            "particle": "Translated into particles, the moonlight rhythm of {source} wraps you most warmly with a \"{particle}\" mood."
+            "scentFriend": "Une note douce de musc blanc qui se diffuse au clair de lune",
+            "scentDanger": "Une note dense et profonde de bois d’agar qui aiguise la concentration",
+            "scentDefault": "Une note florale herbacée et limpide qui adoucit la température des relations",
+            "dewFull": "La rosée nocturne à son comble ; l’inspiration et l’expression des émotions abondent à la fois",
+            "dewNew": "Une période de nouvelle lune à la rosée fine ; l’observation et la préparation passent d’abord",
+            "dewDefault": "Une rosée modérée ; l’équilibre émotionnel et la capacité d’agir grandissent ensemble",
+            "companionDragon": "Glycine et sauge bleue, qui soutiennent un grand élan d’expansion",
+            "companionDog": "Romarin et camomille, qui renforcent la stabilité des relations et la résilience",
+            "companionTiger": "Eucalyptus et rudbeckia, qui renforcent la détermination et l’instinct protecteur",
+            "companionDefault": "Lavande et lierre, qui soutiennent à la fois la stabilité émotionnelle et la croissance à long terme",
+            "section": "Le parfum du lien et la rosée",
+            "matrixScent": "🌙 Parfum du destin : {value}",
+            "matrixDew": "💦 Rosée nocturne : {value}",
+            "matrixCompanion": "🌿 Plantes compagnes : {value}",
+            "log": "Journal d’observation du jardinier : la nature relationnelle de {mansion} se manifeste d’abord sous forme de parfum, et la phase lunaire {phase} règle votre rythme émotionnel par la densité de la rosée. En ce moment, le soin de s’accorder l’un à l’autre, plutôt que de presser le rythme d’un lien, garde la fleur vivante plus longtemps.",
+            "recipe": "Recette secrète : avant de dormir, buvez lentement un verre d’eau, puis écrivez en silence le nom d’une personne que vous voulez remercier aujourd’hui. Le rythme hydrique de la lune se stabilise et votre chance relationnelle s’ouvre en douceur.",
+            "flowerLanguage": "Langage de la fleur du destin : l’empathie silencieuse devient le parfum qui porte le plus loin.",
+            "gardenerWord": "Un mot du jardinier pour cette fleur : rien ne presse. Comme la rosée nocturne s’accumule, vos liens s’éclairciront au moment opportun.",
+            "particle": "Traduit en particules, le rythme lunaire {source} vous enveloppe avec le plus de chaleur dans une atmosphère « {particle} »."
           },
           "saju": {
-            "soilCold": "Rich, marshy soil that holds moisture",
-            "soilHot": "Warm, well-draining gravel mix",
-            "soilBalanced": "Fertile soil with even grains and stable minerals",
-            "rootStrong": "A stage where deep roots hold the center even through outside changes",
-            "rootWeak": "A stage where fine rootlets spread first and need support",
-            "rootBalanced": "A balanced stage where mid-depth roots spread evenly",
-            "section": "Soil and roots for growth",
-            "matrixSoil": "🪨 Soil composition: {value}",
-            "matrixRoot": "🌱 Root depth: {value}",
-            "matrixNutrient": "🧪 Gardener's nutrient: {value}",
-            "log": "Gardener's observation journal: today the garden takes on the texture of {soil}, and growth energy moves along the flow of \"{root}\". It may look quiet on the surface, but strength for the next bloom is being firmly stored in the root layer.",
-            "recipe": "Secret recipe: place a green-leaved plant by a north- or east-facing window, loosen your body for 10 minutes in the morning and steady your breathing for 10 minutes in the evening. Fixing this rhythm twice a day lifts your useful element's energy fastest.",
-            "flowerLanguage": "Destiny flower language: strong roots may seem slow, but in the end they bloom the highest.",
-            "gardenerWord": "A gardener's word for this flower: trust accumulation over haste. Today's small care makes next season's great harvest.",
-            "particle": "Translated into particles, the subtle movement of {source} energy is most harmonious with a \"{particle}\" mood."
+            "soilCold": "Un sol fertile et marécageux qui retient l’humidité",
+            "soilHot": "Un mélange chaud de gravier bien drainant",
+            "soilBalanced": "Un sol fertile au grain régulier et aux minéraux stables",
+            "rootStrong": "Une étape où des racines profondes gardent le centre même face aux changements extérieurs",
+            "rootWeak": "Une étape où les radicelles fines s’étendent d’abord et ont besoin de soutien",
+            "rootBalanced": "Une étape équilibrée où des racines de profondeur moyenne s’étendent de façon régulière",
+            "section": "Le sol et les racines de la croissance",
+            "matrixSoil": "🪨 Composition du sol : {value}",
+            "matrixRoot": "🌱 Profondeur des racines : {value}",
+            "matrixNutrient": "🧪 Nutriment du jardinier : {value}",
+            "log": "Journal d’observation du jardinier : aujourd’hui, le jardin prend la texture « {soil} », et l’énergie de croissance suit le flux « {root} ». La surface peut sembler calme, mais dans la couche racinaire, la force de la prochaine floraison s’accumule solidement.",
+            "recipe": "Recette secrète : placez une plante verte près d’une fenêtre orientée au nord ou à l’est, détendez votre corps 10 minutes le matin et apaisez votre respiration 10 minutes le soir. Fixer ce rythme deux fois par jour fait monter plus vite l’énergie de votre élément utile.",
+            "flowerLanguage": "Langage de la fleur du destin : des racines fortes peuvent sembler lentes, mais elles finissent par fleurir le plus haut.",
+            "gardenerWord": "Un mot du jardinier pour cette fleur : fiez-vous à la constance plutôt qu’à la hâte. Les petits soins d’aujourd’hui font la grande récolte de la saison prochaine.",
+            "particle": "Traduit en particules, le mouvement subtil de l’énergie {source} devient plus harmonieux dans une atmosphère « {particle} »."
           },
-          "themesWaiting": "Analyzing your relationship and work themes.",
-          "guidance": "{source} destiny flower practice guide: {text}"
+          "themesWaiting": "Analyse de vos thèmes relationnels et professionnels.",
+          "guidance": "Conseil pratique de la fleur du destin {source} : {text}"
         },
         "prompt": {
-          "badgesSukuyo": "Sukuyo badges: {mansion} / moon phase {phase} / guardian animal {guardian}",
-          "badgesJamidusu": "Ziwei badges: today's strong star {star} / star brightness {brightness} / palace {palace}",
-          "badgesAstrology": "Astrology badges: Sun sign {sun} / Rising sign {rising} / Moon sign {moon}",
-          "badgesSaju": "Saju badges: strength {strength} / useful element {yongshin} / seasonal balance {johu}",
-          "symbolismFallback": "A flower symbolizing the flow of destiny",
-          "narrativeFallback": "Destiny flower narrative",
-          "scenarioFallback": "Staging based on the blooming scenario",
-          "toneDirection": "{source} tone direction: {mood} / {background}"
+          "badgesSukuyo": "Badges Sukuyo : {mansion} / phase lunaire {phase} / animal gardien {guardian}",
+          "badgesJamidusu": "Badges Ziwei : étoile forte du jour {star} / éclat de l’étoile {brightness} / palais {palace}",
+          "badgesAstrology": "Badges astrologie : signe solaire {sun} / ascendant {rising} / signe lunaire {moon}",
+          "badgesSaju": "Badges Saju : force {strength} / élément utile {yongshin} / équilibre saisonnier {johu}",
+          "symbolismFallback": "Une fleur qui symbolise le flux du destin",
+          "narrativeFallback": "Récit de la fleur du destin",
+          "scenarioFallback": "Mise en scène fondée sur le scénario de floraison",
+          "toneDirection": "Direction de ton {source} : {mood} / {background}"
         },
         "history": {
-          "emptyStatus": "No blooming records have been saved yet. Try saving your current result.",
-          "restore": "Open",
-          "kakao": "Share on Kakao",
-          "delete": "Delete",
-          "saved": "Blooming record saved: {name} ({time})",
-          "notFound": "That record could not be found.",
-          "restored": "Loaded your saved blooming record: {name}",
-          "deleteNotFound": "Could not find the record to delete.",
-          "deleted": "The selected blooming record has been deleted.",
-          "nothingToClear": "There are no blooming records to delete.",
-          "cleared": "All saved blooming records have been deleted.",
-          "shareNotFound": "Could not find the record to share."
+          "emptyStatus": "Aucun enregistrement de floraison pour l’instant. Essayez d’enregistrer votre résultat actuel.",
+          "restore": "Ouvrir",
+          "kakao": "Partager sur Kakao",
+          "delete": "Supprimer",
+          "saved": "Enregistrement de floraison sauvegardé : {name} ({time})",
+          "notFound": "Enregistrement introuvable.",
+          "restored": "Votre enregistrement de floraison a été chargé : {name}",
+          "deleteNotFound": "L’enregistrement à supprimer est introuvable.",
+          "deleted": "L’enregistrement de floraison sélectionné a été supprimé.",
+          "nothingToClear": "Aucun enregistrement de floraison à supprimer.",
+          "cleared": "Tous les enregistrements de floraison ont été supprimés.",
+          "shareNotFound": "L’enregistrement à partager est introuvable."
         },
         "noBirth": {
-          "jamidusu": "Enter your date of birth to see your Ziwei flower.",
-          "sukuyo": "Enter your date of birth to see your Sukuyo flower.",
-          "astrology": "Enter your date and time of birth to see your astrology flower.",
-          "saju": "Enter your name and date of birth first, and your own destiny flower will bloom here."
+          "jamidusu": "Saisissez votre date de naissance pour voir votre fleur Ziwei.",
+          "sukuyo": "Saisissez votre date de naissance pour voir votre fleur Sukuyo.",
+          "astrology": "Saisissez votre date et votre heure de naissance pour voir votre fleur astrologique.",
+          "saju": "Saisissez d’abord votre nom et votre date de naissance, et votre propre fleur du destin éclora ici."
         },
-        "studioTitle": "🌸 Destiny Flower Atelier",
+        "studioTitle": "🌸 Atelier de la Fleur du Destin",
         "sourceDesc": {
-          "saju": "We read your day master, birth month and Five Element balance one by one, then choose the single flower that touches your energy most deeply this season.",
-          "astrology": "We layer the three strands of starlight drawn by your Sun, Rising and Moon signs, then bloom the flower that harmonizes most clearly with your chart right now.",
-          "jamidusu": "We trace the main star in your Life Palace, its brightness and the flow of the Four Transformations, then find the flower your chart brings out most vividly right now.",
-          "sukuyo": "We set your birth-day lunar mansion against tonight's moon phase, then hand you the flower that fits the grain of your heart most gently right now."
+          "saju": "Nous lisons un à un votre maître du jour, votre mois de naissance et l’équilibre de vos Cinq Éléments, puis choisissons la fleur la plus profondément liée à votre énergie en cette saison.",
+          "astrology": "Nous superposons les trois fils de lumière stellaire tracés par votre signe solaire, votre ascendant et votre signe lunaire, puis faisons éclore la fleur la plus clairement accordée à votre thème en ce moment.",
+          "jamidusu": "Nous suivons l’étoile principale de votre Palais de la Vie, son éclat et le flux des Quatre Transformations, puis trouvons la fleur que votre thème fait éclore le plus nettement aujourd’hui.",
+          "sukuyo": "Nous rapprochons la demeure lunaire de votre jour de naissance de la phase de la lune de ce soir, et vous offrons la fleur la plus délicatement accordée à votre cœur en ce moment."
         },
         "sourceShort": {
           "saju": "Saju",
-          "astrology": "chart",
+          "astrology": "thème",
           "jamidusu": "Ziwei",
           "sukuyo": "Sukuyo"
         },
         "strength": {
-          "strong": "Strong",
-          "weak": "Weak"
+          "strong": "Fort",
+          "weak": "Faible"
         },
         "johu": {
-          "hot": "Warm & dry",
-          "cold": "Cold & damp",
-          "balanced": "Balanced"
+          "hot": "Chaud et sec",
+          "cold": "Froid et humide",
+          "balanced": "Équilibré"
         }
       }
     }

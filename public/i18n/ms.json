@@ -668,14 +668,14 @@
       "home": "Pergi ke skrin utama",
       "keywords": "keputusan saju • kelahiran semula • kesucian • mengalir",
       "quadAria": "Bunga takdir daripada keempat-empat sistem",
-      "letterTitle": "Today's flower letter · one thing your heart needs",
-      "letterIntro": "Flower stories for small actions rather than predictions. Pick the letter that fits how you feel right now.",
-      "letterRestTitle": "Like a magnolia · I want to rest for a while",
-      "letterRestBody": "Before a flower blooms, its branches quietly gather strength. Today, set down one thing you have to do, and take a moment to look at the plants or the sky outside your window.",
-      "letterStartTitle": "Like a sprout · I need courage to begin",
-      "letterStartBody": "Instead of a big resolution, let one small sprout break through. Write down just the first step of something you have put off, and spend five minutes working on it.",
-      "letterShareTitle": "Like a bouquet · I want to share how I feel",
-      "letterShareBody": "Rather than what you want to hear, recall one moment you were grateful for. Offer your feelings with a short hello that doesn't press for a reply."
+      "letterTitle": "Surat bunga hari ini · Satu perkara yang hati anda perlukan",
+      "letterIntro": "Ini bukan ramalan, tetapi kisah bunga untuk tindakan kecil. Pilih surat yang sesuai dengan hati anda sekarang.",
+      "letterRestTitle": "Seperti bunga magnolia · Saya mahu berehat sebentar",
+      "letterRestBody": "Sebelum bunga mekar, dahan juga mengumpul tenaga secara senyap. Hari ini, kurangkan satu tugasan dan luangkan sedikit masa memandang pokok atau langit di luar tingkap.",
+      "letterStartTitle": "Seperti tunas baharu · Saya perlukan keberanian untuk bermula",
+      "letterStartBody": "Daripada tekad yang besar, biarkan satu tunas kecil tumbuh. Tulis hanya langkah pertama perkara yang anda tangguhkan, dan mulakannya selama 5 minit.",
+      "letterShareTitle": "Seperti sejambak bunga · Saya mahu menyampaikan isi hati",
+      "letterShareBody": "Daripada kata-kata yang anda mahu dengar, ingat kembali satu saat anda berasa bersyukur. Sampaikan isi hati dengan satu sapaan ringkas tanpa mendesak balasan."
     },
     "tarotSelfEsteem": {
       "levelUp": "Piawai diri anda menjadi lebih jelas",
@@ -2731,9 +2731,9 @@
         "shareHook": {
           "rarityAnchor": "Satu-satunya bunga yang dibaca melalui {anchor}"
         },
-        "anonymousName": "Anonymous traveler",
+        "anonymousName": "Pengembara tanpa nama",
         "rationaleLabel": {
-          "verdict": "So, this flower"
+          "verdict": "Oleh itu, bunga ini"
         }
       },
       "astro": {
@@ -2777,20 +2777,20 @@
           "pisces": "Pisces"
         },
         "rationaleLabel": {
-          "sun": "Sun sign",
-          "risingMoon": "Rising sign · Moon sign"
+          "sun": "Tanda matahari",
+          "risingMoon": "Ascendant · Tanda bulan"
         }
       },
       "ziwei": {
         "brightness": {
-          "miao": "Miao",
-          "wang": "Wang",
-          "li": "Li",
-          "de": "De",
-          "ping": "Ping",
-          "han": "Han",
-          "xian": "Xian",
-          "bu": "Bu"
+          "miao": "Miao (廟)",
+          "wang": "Wang (旺)",
+          "li": "Li (利)",
+          "de": "De (得)",
+          "ping": "Ping (平)",
+          "han": "Xian (閑)",
+          "xian": "Xian (陷)",
+          "bu": "Bu (不)"
         },
         "coreFlow": "aliran rezeki teras",
         "coreEnergy": "ungkapan tenaga teras",
@@ -2876,44 +2876,44 @@
           "lingxing": "Ling Xing (鈴星)"
         },
         "palaces": {
-          "life": "Life Palace",
-          "siblings": "Siblings Palace",
-          "spouse": "Spouse Palace",
-          "children": "Children Palace",
-          "wealth": "Wealth Palace",
-          "health": "Health Palace",
-          "travel": "Travel Palace",
-          "friends": "Friends Palace",
-          "career": "Career Palace",
-          "property": "Property Palace",
-          "fortune": "Fortune Palace",
-          "parents": "Parents Palace"
+          "life": "Istana Ming",
+          "siblings": "Istana Adik-beradik",
+          "spouse": "Istana Pasangan",
+          "children": "Istana Anak",
+          "wealth": "Istana Kekayaan",
+          "health": "Istana Kesihatan",
+          "travel": "Istana Perjalanan",
+          "friends": "Istana Sahabat",
+          "career": "Istana Kerjaya",
+          "property": "Istana Harta",
+          "fortune": "Istana Tuah",
+          "parents": "Istana Ibu Bapa"
         },
         "palaceTraits": {
-          "life": "a strong sense of self and presence",
-          "siblings": "cooperation and a feel for coordination",
-          "spouse": "relational grace and intimate communication",
-          "children": "creativity and the urge to express",
-          "wealth": "managing resources and expanding abundance",
-          "health": "resilience and a sense of inner balance",
-          "travel": "adaptability and on-the-spot judgment",
-          "friends": "running networks and caring for a team",
-          "career": "social drive and an orientation toward achievement",
-          "property": "building foundations and steady accumulation",
-          "fortune": "emotional recharge and spiritual insight",
-          "parents": "protective instinct and a sense of tradition"
+          "life": "kestabilan diri dan kehadiran",
+          "siblings": "semangat kerjasama dan kebolehan menyelaras",
+          "spouse": "keindahan hubungan dan komunikasi yang mesra",
+          "children": "daya kreatif dan keinginan untuk berekspresi",
+          "wealth": "pengurusan sumber dan perluasan kemewahan",
+          "health": "daya pemulihan dan rasa keseimbangan dalaman",
+          "travel": "kebolehsuaian dan pertimbangan di tempat kejadian",
+          "friends": "mengurus rangkaian dan menjaga komuniti",
+          "career": "dorongan sosial dan cita-cita pencapaian",
+          "property": "membina asas dan pengumpulan yang stabil",
+          "fortune": "mengecas semula tenaga emosi dan celik minda",
+          "parents": "naluri melindungi dan kesedaran tradisi"
         },
-        "natalVerdict": "Read through the nature of {stars} in your Life Palace, your flower is {flowerName} ({scientificName}).",
-        "natalScenarioTitle": "Life Palace main-star blooming scenario",
+        "natalVerdict": "Ditafsir melalui sifat {stars} di Istana Ming anda, bunga anda ialah {flowerName} ({scientificName}).",
+        "natalScenarioTitle": "Senario mekar mengikut bintang utama Istana Ming",
         "rationale": {
-          "lifeStar": "Your Life Palace holds {starsJosa}.",
-          "borrowedStar": "Your Life Palace has no main star, so we read {starsObject} borrowed from the opposite Travel Palace.",
-          "personality": "{star}: \"{keyword}\" — {personality}.",
-          "verdict": "So the flower we offer you now is {flowerName}."
+          "lifeStar": "Istana Ming anda menempatkan {starsJosa}.",
+          "borrowedStar": "Istana Ming anda tiada bintang utama, jadi kami mentafsir dengan meminjam {starsObject} daripada Istana Perjalanan yang bertentangan.",
+          "personality": "{star}: \"{keyword}\" — sifat {personality}.",
+          "verdict": "Oleh itu, bunga yang kami berikan kepada anda sekarang ialah {flowerName}."
         },
         "rationaleLabel": {
-          "lifeStar": "Life Palace main star",
-          "personality": "Innate personality"
+          "lifeStar": "Bintang utama Istana Ming",
+          "personality": "Sifat semula jadi"
         }
       },
       "sukuyo": {
@@ -2963,198 +2963,198 @@
           "m27": "Shin (軫)"
         },
         "groups": {
-          "anjung": "Steady mansions",
-          "gangseong": "Strong mansions",
-          "gyeongkwae": "Nimble mansions",
-          "jihye": "Wise mansions"
+          "anjung": "Rumah bulan teguh",
+          "gangseong": "Rumah bulan kuat",
+          "gyeongkwae": "Rumah bulan lincah",
+          "jihye": "Rumah bulan bijak"
         },
         "groupLabels": {
-          "anjung": "Steady group",
-          "gangseong": "Strong group",
-          "gyeongkwae": "Nimble group",
-          "jihye": "Wise group"
+          "anjung": "Kumpulan teguh",
+          "gangseong": "Kumpulan kuat",
+          "gyeongkwae": "Kumpulan lincah",
+          "jihye": "Kumpulan bijak"
         },
         "guardians": {
-          "crane": "Crane",
-          "dragon": "Dragon",
-          "marten": "Marten",
-          "rabbit": "Rabbit",
-          "fox": "Fox",
-          "tiger": "Tiger",
-          "leopard": "Leopard",
+          "crane": "Bangau",
+          "dragon": "Naga",
+          "marten": "Mengkira",
+          "rabbit": "Arnab",
+          "fox": "Musang",
+          "tiger": "Harimau",
+          "leopard": "Harimau bintang",
           "haetae": "Haetae",
-          "bat": "Bat",
-          "rat": "Rat",
-          "swallow": "Swallow",
-          "pig": "Pig",
-          "hedgehog": "Hedgehog",
-          "wolf": "Wolf",
-          "dog": "Dog",
-          "pheasant": "Pheasant",
-          "rooster": "Rooster",
-          "crow": "Crow",
-          "monkey": "Monkey",
-          "ape": "Ape",
-          "wildDog": "Wild dog",
-          "sheep": "Sheep",
-          "roeDeer": "Roe deer",
-          "horse": "Horse",
-          "deer": "Deer",
-          "snake": "Snake",
-          "earthworm": "Earthworm"
+          "bat": "Kelawar",
+          "rat": "Tikus",
+          "swallow": "Burung layang-layang",
+          "pig": "Babi",
+          "hedgehog": "Landak",
+          "wolf": "Serigala",
+          "dog": "Anjing",
+          "pheasant": "Kuang",
+          "rooster": "Ayam jantan",
+          "crow": "Gagak",
+          "monkey": "Monyet",
+          "ape": "Mawas",
+          "wildDog": "Anjing liar",
+          "sheep": "Biri-biri",
+          "roeDeer": "Kijang",
+          "horse": "Kuda",
+          "deer": "Rusa",
+          "snake": "Ular",
+          "earthworm": "Cacing tanah"
         },
         "rationaleLabel": {
-          "mansion": "Mansion · Moon phase"
+          "mansion": "Rumah bulan · Fasa bulan"
         }
       },
       "saju": {
         "scenarios": {
           "default": {
             "title": "{dayMasterBadge} senario mekar persekitaran",
-            "reason": "We looked at how your day master meshes with the current five-element environment and chose the one flower that suits this period best."
+            "reason": "Kami melihat bagaimana day master anda sepadan dengan persekitaran Lima Unsur semasa, lalu memilih bunga yang paling sesuai untuk tempoh ini."
           },
           "jia": {
             "springWood": {
               "title": "Jia Wood senario mekar yang mendahului tegak",
-              "reason": "Jia Wood (甲木) has the nature of a tall tree growing straight upward. Now that spring's wood energy matches that temperament, your power to step forward and open new ground comes into full bloom."
+              "reason": "Jia Kayu (甲木) ialah tenaga yang tumbuh lurus ke atas seperti pokok besar. Kini, apabila tenaga Kayu musim bunga selari dengan sifat itu, kekuatan perintis anda untuk membuka jalan baharu mekar dengan megah."
             },
             "autumnMetal": {
               "title": "Senario pembajaan logam Jia Wood",
-              "reason": "With autumn's metal energy pressing on Jia Wood (甲木), now is the time to prune the side branches and keep only the trunk that truly matters. The more you let go, the sturdier you become."
+              "reason": "Apabila tenaga Logam musim luruh menekan Jia Kayu (甲木), inilah masa untuk mencantas dahan dan menyimpan hanya batang yang benar-benar penting. Semakin banyak anda lepaskan, semakin kukuh anda."
             },
             "dryFire": {
               "title": "Senario ketahanan haba kering kayu Jia",
-              "reason": "For Jia Wood (甲木) set amid dry, hot energy, what matters now is the stamina of its roots. Rather than rushing, build resilience by holding on for the long run, and you will bloom again as tenaciously as the rose of Sharon."
+              "reason": "Bagi Jia Kayu (甲木) di tengah haba kering, yang diperlukan sekarang ialah ketahanan akar. Daripada tergesa-gesa, bertahanlah dengan tabah dan pupuk daya pemulihan, dan anda akan mekar semula dengan teguh seperti bunga mugunghwa."
             }
           },
           "yi": {
             "metalWater": {
               "title": "Yi Senario keharmonian logam-air kayu",
-              "reason": "Yi Wood (乙木) has a gentle, seeping nature like vines and flowering plants. With metal and water energy strong now, your grace and your clarifying, purifying power come most alive."
+              "reason": "Yi Kayu (乙木) ialah tenaga yang lembut meresap seperti tumbuhan menjalar dan bunga. Kini, ketika tenaga Logam dan Air kuat, maruah dan daya penyucian anda yang jernih bersinar paling terang."
             },
             "dryEarth": {
               "title": "Senario kemandirian tanah kering kayu Yi",
-              "reason": "For Yi Wood (乙木) standing on dry earth energy, the theme now is the strength to endure. Like a cactus flower that breaks through barren ground and blooms at last, you shine precisely where you hold on."
+              "reason": "Bagi Yi Kayu (乙木) yang berdiri di atas tenaga Tanah yang kering, tema sekarang ialah daya hidup yang gigih. Seperti kaktus yang menembusi tanah gersang dan akhirnya mekar, anda bersinar tepat di tempat anda bertahan."
             },
             "autumn": {
               "title": "Senario penghalusan musim luruh Kayu Yi",
-              "reason": "Yi Wood (乙木) passing through autumn's metal energy is in a season of turning delicacy into calm order. The more evenly you sort what is scattered, the tidier your mind becomes as well."
+              "reason": "Melalui tenaga Logam musim luruh, Yi Kayu (乙木) berada dalam fasa mengubah kehalusan menjadi susunan yang tenang. Semakin anda kemaskan perkara yang berselerak, semakin teratur juga hati anda."
             },
             "wetSpring": {
               "title": "Senario pengembangan mata air lembap Kayu Yi",
-              "reason": "Meeting spring's moist energy, Yi Wood (乙木) grows markedly better at connecting people. Now is a time to reach outward through relationships rather than alone."
+              "reason": "Bertemu kelembapan musim bunga, daya Yi Kayu (乙木) untuk menghubungkan orang tumbuh dengan ketara. Inilah masa untuk berkembang melalui hubungan, bukan bersendirian."
             }
           },
           "bing": {
             "springWood": {
               "title": "Senario pencucuhan spring api Bing",
-              "reason": "Bing Fire (丙火) is energy that catches quickly and spreads wide like the sun. With spring's wood energy as fuel now, your power to start something new and make it known burns strongly."
+              "reason": "Bing Api (丙火) ialah tenaga yang cepat menyala dan merebak luas seperti matahari. Kini, dengan Kayu musim bunga sebagai bahan bakar, kekuatan anda untuk memulakan sesuatu yang baharu dan menyebarkannya marak dengan kuat."
             },
             "summerFire": {
               "title": "Senario pengembangan musim panas Bing Fire",
-              "reason": "With summer's fire energy added, Bing Fire (丙火) burns brighter than ever. This is the season when your power to step forward and lead people peaks."
+              "reason": "Ditambah tenaga Api musim panas, Bing Api (丙火) menyala lebih terang daripada sebelumnya. Inilah fasa ketika kekuatan anda untuk tampil ke hadapan dan memimpin orang berada di puncak."
             },
             "waterControl": {
               "title": "Senario kawalan air Kebakaran Bing",
-              "reason": "For Bing Fire (丙火) meeting strong water energy, what matters now is not burning hotter but setting the right direction. Keep your sense of reality and guard the flame, and its light will last."
+              "reason": "Bagi Bing Api (丙火) yang bertemu tenaga Air yang kuat, yang penting sekarang bukan menyala lebih panas, tetapi menetapkan arah yang betul. Kekalkan pertimbangan praktikal dan lindungi nyalaan itu, dan cahayanya akan bertahan lama."
             }
           },
           "ding": {
             "coldWet": {
               "title": "Senario kehangatan sejuk-lembap Ding Fire",
-              "reason": "Ding Fire (丁火) is energy that glows quietly from within like a candle. In this cold, damp time, keeping that warmth alive for a long time is a greater strength than brilliance."
+              "reason": "Ding Api (丁火) ialah tenaga yang bersinar tenang dari dalam seperti lilin. Dalam masa yang sejuk dan lembap ini, kekuatan terbesar bukan kecemerlangan, tetapi menjaga kehangatan itu agar tidak padam lama."
             },
             "autumnMetal": {
               "title": "Senario penapisan logam Ding Fire",
-              "reason": "Meeting metal energy, Ding Fire (丁火) sharpens the precision of its hands and its eye for beauty. This is the time you shine most by holding on to one thing and finishing it beautifully."
+              "reason": "Bertemu tenaga Logam, ketelitian hujung jari dan mata estetik Ding Api (丁火) menjadi lebih tajam. Inilah masa anda paling bersinar apabila memegang satu tugasan dan menyiapkannya dengan indah."
             },
             "resonance": {
               "title": "Senario berkembang resonans Api Ding",
-              "reason": "Ding Fire (丁火) is energy that gently tends the texture of emotions and deepens relationships. The more freely you express your heart, the more your path of fortune opens with it."
+              "reason": "Ding Api (丁火) ialah tenaga halus yang membelai setiap lapisan emosi dan mendalamkan hubungan. Semakin anda tidak segan meluahkan isi hati, semakin terbuka jalan tuah anda."
             }
           },
           "wu": {
             "fireEarth": {
               "title": "Senario pencapaian bumi api Wu Earth",
-              "reason": "Wu Earth (戊土) is broad, dependable energy like a great mountain. With fire and earth supporting you now, large undertakings and large achievements gain unusual strength."
+              "reason": "Wu Tanah (戊土) ialah tenaga yang luas dan teguh seperti gunung besar. Kini, ketika Api dan Tanah menyokong, kerja besar dan pencapaian besar mendapat kekuatan yang luar biasa."
             },
             "winterWater": {
               "title": "Senario asas musim sejuk Wu Earth",
-              "reason": "For Wu Earth (戊土) meeting winter's water energy, now is the time to slow down and firm up the ground. The more you pause and solidify the basics, the steadier your next step becomes."
+              "reason": "Bagi Wu Tanah (戊土) yang bertemu tenaga Air musim sejuk, inilah masa untuk perlahan dan mengukuhkan asas. Semakin anda berhenti seketika dan memantapkan asas, semakin kukuh langkah seterusnya."
             },
             "center": {
               "title": "Senario pembinaan pusat Wu Earth",
-              "reason": "The true strength of Wu Earth (戊土) is the centering power that holds a shaky situation together from the middle. The more steadily you keep your daily routine, the more your results build up."
+              "reason": "Kekuatan sebenar Wu Tanah (戊土) ialah daya pusat yang memegang keadaan goyah dari tengah. Semakin tekun anda mengekalkan rutin harian, semakin hasil terkumpul sedikit demi sedikit."
             }
           },
           "ji": {
             "wetEarth": {
               "title": "Senario pengembangan penanaman Ji Earth",
-              "reason": "Ji Earth (己土) is energy that carefully nurtures things, like a well-tilled field. In this moist time, results grow within relationships where you work together and look after one another."
+              "reason": "Ji Tanah (己土) ialah tenaga yang memupuk segala-galanya dengan teliti seperti ladang yang diusahakan dengan baik. Dalam masa yang lembap ini, hasil berkembang dalam hubungan yang bekerja bersama dan saling menjaga."
             },
             "metalDesign": {
               "title": "Senario reka bentuk ketepatan Ji Earth",
-              "reason": "Meeting metal energy, Ji Earth (己土) awakens a sense for designing and arranging even the smallest details. Your strengths stand out in work that calls for a high level of finish."
+              "reason": "Bertemu tenaga Logam, Ji Tanah (己土) membangkitkan kebolehan mereka bentuk dan menyusun hingga ke butiran kecil. Kekuatan anda terserlah dalam kerja yang menuntut kesempurnaan tinggi."
             },
             "balance": {
               "title": "Senario penalaan imbangan Ji Earth",
-              "reason": "Ji Earth (己土) is energy that excels at gently mediating between people and setting the mood. As long as you manage the pace of give and take well, that itself becomes your luck."
+              "reason": "Ji Tanah (己土) ialah tenaga yang mahir menyelaras orang dengan lembut dan mencipta suasana. Asalkan anda menala laju dan perlahan setiap langkah dengan baik, itulah yang akan menjadi tuah anda."
             }
           },
           "geng": {
             "metalEarth": {
               "title": "Senario melalui prinsip Geng Metal",
-              "reason": "Geng Metal (庚金) is energy that cuts through boldly and decisively, like an uncut gemstone. With earth and metal supporting you now, your power to push through the principles you set reaches its peak."
+              "reason": "Geng Logam (庚金) ialah tenaga yang kuat dan memotong dengan tegas seperti batu mentah yang belum diasah. Kini, ketika Tanah dan Logam menyokong, kekuatan anda untuk berpegang pada prinsip yang ditetapkan berada di puncak."
             },
             "fireTraining": {
               "title": "Senario pembajaan api Geng Metal",
-              "reason": "Tempered in hot fire, Geng Metal (庚金) hardens in both charisma and skill. This is a time when your focus grows especially sharp at decisive moments."
+              "reason": "Ditempa dalam api yang panas, Geng Logam (庚金) menjadi lebih kukuh dari segi daya tarikan dan kemampuan. Inilah fasa ketika tumpuan anda menjadi sangat tajam pada saat-saat penentu."
             },
             "clearJudgment": {
               "title": "Senario penghakiman penentu Geng Metal",
-              "reason": "The strength of Geng Metal (庚金) is judgment that cuts precisely to the core. Set clear standards, and that clarity carries straight through to results."
+              "reason": "Kekuatan Geng Logam (庚金) ialah pertimbangan yang memotong tepat ke inti. Tetapkan piawaian yang jelas, dan kejelasan itu akan terus menjadi hasil."
             }
           },
           "xin": {
             "metalWater": {
               "title": "Xin Senario penapisan logam logam-air",
-              "reason": "Xin Metal (辛金) is energy with refined senses and language, like a finely cut jewel. With metal and water in harmony now, your power to analyze and express becomes even clearer."
+              "reason": "Xin Logam (辛金) ialah tenaga dengan deria dan kata-kata yang halus seperti permata yang digilap. Kini, ketika Logam dan Air bertemu, kebolehan anda untuk menganalisis dan berekspresi menjadi lebih tajam."
             },
             "springWood": {
               "title": "Senario penalaan kayu Xin Metal",
-              "reason": "Meeting spring's wood energy, Xin Metal (辛金) goes further by adjusting gently than by sharpening its edge. This is a time when results come from work you refine by feel."
+              "reason": "Bertemu tenaga Kayu musim bunga, Xin Logam (辛金) pergi lebih jauh dengan penalaan lembut berbanding mengasah mata pisau. Inilah fasa ketika hasil datang daripada kerja yang anda perhalusi dengan deria anda."
             },
             "completion": {
               "title": "Senario penyiapan Xin Metal",
-              "reason": "Xin Metal (辛金) is strong when it finishes one thing beautifully rather than spreading wide. The more neatly you wrap up the details, the more people's trust builds."
+              "reason": "Xin Logam (辛金) ialah tenaga yang paling kuat apabila menyiapkan satu perkara dengan indah, bukan meluaskannya. Semakin kemas anda menyelesaikan setiap butiran, semakin kepercayaan orang bertambah."
             }
           },
           "ren": {
             "summerCooling": {
               "title": "Ren Water senario penyejukan musim panas",
-              "reason": "Ren Water (壬水) is energy that handles great currents like a wide sea. Now, as it cools summer's heat, your power to focus calmly rises markedly."
+              "reason": "Ren Air (壬水) ialah tenaga yang menggerakkan aliran besar seperti lautan luas. Kini, sambil menyejukkan bahang musim panas, tumpuan tenang anda meningkat dengan ketara."
             },
             "winterCondensing": {
               "title": "Ren Water senario pemeluwapan musim sejuk",
-              "reason": "Resonating with winter's water energy, Ren Water (壬水) is in a time of gathering strength beneath the ice. Though it looks calm on the surface, a solid potential ripens within, like a glacier flower."
+              "reason": "Bergema dengan tenaga Air musim sejuk, Ren Air (壬水) berada dalam fasa mengumpul kekuatan di bawah ais. Di luar ia kelihatan tenang, tetapi seperti bunga glasier, potensi yang kukuh sedang matang di dalam."
             },
             "nightIntuition": {
               "title": "Ren Water senario intuisi malam",
-              "reason": "Ren Water (壬水) is energy that finds its way better through the intuition of a quiet night than in bright daylight. When you decide by your own rhythm instead of rushing to an answer, the direction falls into place."
+              "reason": "Ren Air (壬水) ialah tenaga yang lebih mudah mencari jalan melalui gerak hati malam yang tenang berbanding siang yang terang. Apabila anda membuat keputusan mengikut rentak sendiri dan bukan tergesa-gesa mencari jawapan, arah akan menjadi tepat."
             }
           },
           "gui": {
             "coldWetPurifying": {
               "title": "Senario penulenan sejuk-lembap Air Gui",
-              "reason": "Gui Water (癸水) is energy that senses the subtle and washes it clean, like dawn dew. In this cold, damp time, that quiet, absorbed stillness becomes your strength."
+              "reason": "Gui Air (癸水) ialah tenaga yang merasai perkara halus dan menyucikannya jernih seperti embun pagi. Dalam masa yang sejuk dan lembap ini, ketenangan untuk tenggelam dalam diri secara senyap itulah kekuatan anda."
             },
             "summerEmpathy": {
               "title": "Senario empati musim panas Air Gui",
-              "reason": "For Gui Water (癸水) meeting summer's heat, empathy that soothes hearts and connects people is the greatest asset. Like a hydrangea, the path opens as you gather the warmth of many."
+              "reason": "Bagi Gui Air (癸水) yang bertemu bahang Api musim panas, empati yang menenangkan hati dan menghubungkan orang ialah senjata terbesar. Seperti bunga hidrangea, jalan terbuka apabila anda mengumpulkan kehangatan ramai orang."
             },
             "subtleSignal": {
               "title": "Senario isyarat halus Air Gui",
-              "reason": "Gui Water (癸水) is energy that reads the small signals others miss before anyone else. Time things well with that keen sense, and that single move decides the outcome."
+              "reason": "Gui Air (癸水) ialah tenaga yang paling awal membaca isyarat kecil yang terlepas pandang oleh orang lain. Tangkap sahaja masa yang tepat dengan deria tajam itu, dan satu langkah itu akan menentukan menang kalah."
             }
           }
         },
@@ -3177,12 +3177,12 @@
           "description": "Bacaan bunga takdir: {description}",
           "vibe": "Panduan mekar: {vibeMessage}",
           "fallback": "Logik pelarasan: {note}",
-          "dayMasterSame": "A flower that carries the same {element} energy as your {dayMasterBadge} day master.",
-          "strengthRelease": "Your chart runs strong, so we gave weight to flowers with {elements} energy that lets the built-up energy flow outward.",
-          "strengthSupport": "Your chart runs weak, so we gave weight to flowers with {elements} energy that supports your day master.",
-          "yongshin": "This flower carries the useful element (yongshin) your chart needs — {elements}.",
-          "johuWarm": "Your chart leans cold and damp, so we gave weight to warm flowers that heat it like sunlight.",
-          "johuCool": "Your chart leans hot and dry, so we gave weight to moisture-rich flowers that cool the heat."
+          "dayMasterSame": "Bunga yang membawa tenaga {element} yang sama dengan day master {dayMasterBadge} anda.",
+          "strengthRelease": "Carta anda kuat, jadi kami mengutamakan bunga bertenaga {elements} yang membantu menyalurkan tenaga yang melimpah ke luar.",
+          "strengthSupport": "Carta anda lemah, jadi kami mengutamakan bunga bertenaga {elements} yang menyokong day master anda.",
+          "yongshin": "Bunga ini membawa unsur berguna yang diperlukan oleh carta anda — {elements}.",
+          "johuWarm": "Carta anda condong kepada sejuk dan lembap, jadi kami mengutamakan bunga hangat yang memanaskan seperti cahaya matahari.",
+          "johuCool": "Carta anda condong kepada panas dan kering, jadi kami mengutamakan bunga yang kaya air untuk meredakan bahang."
         },
         "elements": {
           "wood": "Kayu",
@@ -3258,16 +3258,16 @@
           "rarityPlain": "Sekuntum yang dipilih Saju aku daripada {total}"
         },
         "dayMasters": {
-          "jia": "Jia Wood (甲木)",
-          "yi": "Yi Wood (乙木)",
-          "bing": "Bing Fire (丙火)",
-          "ding": "Ding Fire (丁火)",
-          "wu": "Wu Earth (戊土)",
-          "ji": "Ji Earth (己土)",
-          "geng": "Geng Metal (庚金)",
-          "xin": "Xin Metal (辛金)",
-          "ren": "Ren Water (壬水)",
-          "gui": "Gui Water (癸水)"
+          "jia": "Jia Kayu (甲木)",
+          "yi": "Yi Kayu (乙木)",
+          "bing": "Bing Api (丙火)",
+          "ding": "Ding Api (丁火)",
+          "wu": "Wu Tanah (戊土)",
+          "ji": "Ji Tanah (己土)",
+          "geng": "Geng Logam (庚金)",
+          "xin": "Xin Logam (辛金)",
+          "ren": "Ren Air (壬水)",
+          "gui": "Gui Air (癸水)"
         },
         "dayMasterStems": {
           "jia": "Jia (甲)",
@@ -3282,17 +3282,17 @@
           "gui": "Gui (癸)"
         },
         "dayMasterFallback": {
-          "ziwei": "With limited Saju day master data, the day master's nature was adjusted based on the Zi Wei main star.",
-          "astrology": "With limited Saju day master data, the sun sign's tendencies stood in for the day master's nature.",
-          "dominant": "With limited Saju, Zi Wei and astrology indicators, the day master's nature was estimated from the dominant element."
+          "ziwei": "Oleh sebab data day master Saju terhad, sifat day master telah dilaraskan berdasarkan bintang utama Ziwei.",
+          "astrology": "Oleh sebab data day master Saju terhad, kecenderungan tanda matahari digunakan sebagai ganti sifat day master.",
+          "dominant": "Oleh sebab penunjuk utama Saju, Ziwei dan astrologi terhad, sifat day master dianggarkan berdasarkan unsur yang dominan."
         },
         "rationaleLabel": {
-          "dayMaster": "Day master nature",
-          "strengthRelease": "Strong chart",
-          "strengthSupport": "Weak chart",
-          "yongshin": "Useful element",
-          "johuWarm": "Climate balance · cold and damp",
-          "johuCool": "Climate balance · hot and dry"
+          "dayMaster": "Sifat day master",
+          "strengthRelease": "Carta kuat",
+          "strengthSupport": "Carta lemah",
+          "yongshin": "Unsur berguna",
+          "johuWarm": "Imbangan iklim · sejuk dan lembap",
+          "johuCool": "Imbangan iklim · panas dan kering"
         }
       },
       "flowers": {
@@ -4582,303 +4582,303 @@
           }
         },
         "cta": {
-          "rebloom": "🌸 Bloom my destiny flower again",
-          "astrologyAgain": "✨ Summon my astrology flower again",
-          "jamidusuAgain": "🌺 Summon my Ziwei flower again",
-          "sukuyoAgain": "🌙 Summon my Sukuyo flower again"
+          "rebloom": "🌸 Mekarkan semula bunga takdir",
+          "astrologyAgain": "✨ Panggil semula bunga astrologi",
+          "jamidusuAgain": "🌺 Panggil semula bunga Ziwei",
+          "sukuyoAgain": "🌙 Panggil semula bunga Sukuyo"
         },
         "status": {
-          "atelierLocked": "The Destiny Flower Atelier needs to be unlocked.",
-          "loginRequired": "Log in to see your destiny flower.",
-          "newlyUnlocked": "✨ Your {source} flower is newly open.",
-          "resultReady": "{verdict} You can save this result or share it on KakaoTalk.",
-          "reloading": "Reloading your data. Please wait a moment.",
-          "linking": "Linking your {source} data. Please wait a moment.",
-          "loaded": "Your {source} data has been loaded.",
-          "copied": "Copied to the clipboard.",
-          "copyPermission": "Clipboard access is not allowed, so please copy it manually.",
-          "copyFailed": "Copy failed.",
-          "kakaoPcCopied": "On a PC, the KakaoTalk link has been copied to the clipboard. Paste it into KakaoTalk to share.",
-          "kakaoNotOpenedCopied": "We couldn't confirm KakaoTalk opened, so the summary has been copied to the clipboard. Paste it into KakaoTalk to share.",
-          "kakaoOpening": "Opening KakaoTalk sharing...",
-          "kakaoFailedCopied": "We couldn't open KakaoTalk sharing, so the summary has been copied to the clipboard.",
-          "refreshed": "Tabs and prompts have been updated based on: {verdict}",
-          "aiOpening": "Opening the AI in a new tab. If it doesn't open, allow pop-ups and try again.",
-          "aiBlocked": "The new tab seems to have been blocked. Allow pop-ups in your browser or open the AI site you want directly.",
-          "summaryCopied": "Summary copied to the clipboard.",
-          "promptCopied": "The main AI flower prompt has been copied to the clipboard.",
-          "promptPackCopied": "The main/negative prompt set has been copied to the clipboard."
+          "atelierLocked": "Atelier Bunga Takdir perlu dibuka kunci.",
+          "loginRequired": "Log masuk untuk melihat bunga takdir anda.",
+          "newlyUnlocked": "✨ Bunga {source} anda baru sahaja dibuka.",
+          "resultReady": "{verdict} Anda boleh menyimpan keputusan ini atau berkongsinya di KakaoTalk.",
+          "reloading": "Memuatkan semula data anda. Sila tunggu sebentar.",
+          "linking": "Memautkan data {source} anda. Sila tunggu sebentar.",
+          "loaded": "Data {source} anda telah dimuatkan.",
+          "copied": "Disalin ke papan klip.",
+          "copyPermission": "Akses papan klip tidak dibenarkan, sila salin secara manual.",
+          "copyFailed": "Gagal menyalin.",
+          "kakaoPcCopied": "Di PC, pautan KakaoTalk telah disalin ke papan klip. Tampalkannya di KakaoTalk untuk berkongsi.",
+          "kakaoNotOpenedCopied": "Kami tidak dapat mengesahkan KakaoTalk telah dibuka, jadi ringkasan telah disalin ke papan klip. Tampalkannya di KakaoTalk untuk berkongsi.",
+          "kakaoOpening": "Membuka perkongsian KakaoTalk...",
+          "kakaoFailedCopied": "Perkongsian KakaoTalk tidak dapat dibuka, jadi ringkasan telah disalin ke papan klip.",
+          "refreshed": "Tab dan prompt telah dikemas kini berdasarkan: {verdict}",
+          "aiOpening": "Membuka AI dalam tab baharu. Jika tidak terbuka, benarkan pop-up dan cuba lagi.",
+          "aiBlocked": "Tab baharu nampaknya telah disekat. Benarkan pop-up dalam pelayar anda atau buka sendiri halaman AI pilihan anda.",
+          "summaryCopied": "Ringkasan disalin ke papan klip.",
+          "promptCopied": "Prompt utama bunga AI disalin ke papan klip.",
+          "promptPackCopied": "Pek prompt utama/negatif disalin ke papan klip."
         },
         "fallback": {
           "astrology": {
-            "name": "Nebula lavender",
-            "symbolism": "A clear intuition that flows along the grain of starlight",
-            "vibe": "Breathe along with the rhythm of the stars and your intuition grows sharper."
+            "name": "Lavender Nebula",
+            "symbolism": "Gerak hati jernih yang mengalir mengikut urat cahaya bintang",
+            "vibe": "Bernafaslah mengikut rentak bintang, gerak hati anda akan menjadi jelas."
           },
           "jamidusu": {
-            "name": "Tree peony",
-            "symbolism": "Imperial grace and the strength of the center",
-            "keyword1": "Emperor",
-            "keyword2": "Grace",
-            "keyword3": "Center",
-            "vibe": "Holding your center is what carries you furthest in the end."
+            "name": "Peoni",
+            "symbolism": "Keagungan diraja dan kekuatan pusat",
+            "keyword1": "Diraja",
+            "keyword2": "Keagungan",
+            "keyword3": "Pusat",
+            "vibe": "Berpegang pada pusat diri anda itulah yang membawa anda paling jauh."
           },
           "sukuyo": {
-            "name": "Lily",
-            "symbolism": "A guardian flower that blooms clear in the moonlight",
-            "keyword1": "Moonlight",
-            "keyword2": "Guardian",
-            "keyword3": "Purification",
-            "vibe": "Match tonight's breath and rhythm of the moon and your choices become clearer.",
+            "name": "Bunga lili",
+            "symbolism": "Bunga pelindung yang mekar jernih di bawah cahaya bulan",
+            "keyword1": "Cahaya bulan",
+            "keyword2": "Pelindung",
+            "keyword3": "Penyucian",
+            "vibe": "Ikutilah nafas dan rentak bulan malam ini, pilihan anda akan menjadi lebih jelas.",
             "keywordMansion": "Sukuyo",
-            "keywordGuardian": "Guardian animal",
-            "keywordPhase": "Moon phase"
+            "keywordGuardian": "Haiwan pelindung",
+            "keywordPhase": "Fasa bulan"
           }
         },
         "legacy": {
-          "astrologyReading": "Reading your destiny flower from your astrology chart.",
-          "astrologyRhythm": "Setting the rhythm of the stars.",
-          "brightnessEven": "Even (平)",
-          "jamidusuReading": "Reading your destiny flower from today's strong star.",
-          "mainStarUnknown": "Main star unknown",
-          "jamidusuRhythm": "Aligning the energy of the stars.",
-          "imperialGrace": "Imperial grace",
-          "moonQuarter": "Quarter moon",
-          "sukuyoReading": "Reading your destiny flower from the 27 Sukuyo mansions.",
-          "mansionUnknown": "Mansion unknown"
+          "astrologyReading": "Mentafsir bunga takdir berdasarkan carta astrologi anda.",
+          "astrologyRhythm": "Menetapkan rentak bintang.",
+          "brightnessEven": "Sekata (平)",
+          "jamidusuReading": "Mentafsir bunga takdir berdasarkan bintang kuat hari ini.",
+          "mainStarUnknown": "Bintang utama tidak diketahui",
+          "jamidusuRhythm": "Menyelaraskan tenaga bintang.",
+          "imperialGrace": "Keagungan diraja",
+          "moonQuarter": "Bulan separa",
+          "sukuyoReading": "Mentafsir bunga takdir berdasarkan 27 rumah bulan Sukuyo.",
+          "mansionUnknown": "Rumah bulan tidak diketahui"
         },
         "badge": {
-          "sun": "Sun sign {value}",
-          "rising": "Rising sign {value}",
-          "moon": "Moon sign {value}",
-          "strongStar": "Today's strong star {value}",
-          "brightness": "Star brightness {value}",
-          "moonPhase": "Moon phase {value}",
-          "guardian": "Guardian animal {value}",
-          "palace": "Palace {value}",
-          "mansionLabel": "Mansion",
-          "group": "{group} group"
+          "sun": "Tanda matahari {value}",
+          "rising": "Ascendant {value}",
+          "moon": "Tanda bulan {value}",
+          "strongStar": "Bintang kuat hari ini {value}",
+          "brightness": "Kecerahan bintang {value}",
+          "moonPhase": "Fasa bulan {value}",
+          "guardian": "Haiwan pelindung {value}",
+          "palace": "Istana {value}",
+          "mansionLabel": "Rumah bulan",
+          "group": "Kumpulan {group}"
         },
         "value": {
-          "unknown": "Unknown",
-          "pending": "Awaiting reading",
-          "lifePalace": "Life Palace"
+          "unknown": "Tidak diketahui",
+          "pending": "Menunggu tafsiran",
+          "lifePalace": "Istana Ming"
         },
         "wait": {
-          "chartSignal": "Awaiting chart signal",
-          "starSignal": "Awaiting main-star signal",
-          "sukuyoSignal": "Awaiting Sukuyo signal",
-          "moonRhythm": "Syncing with the rhythm of the moon.",
-          "nebulaRhythm": "Aligning the nebula rhythm.",
-          "imperialRhythm": "Tuning the imperial energy.",
-          "dayMaster": "Awaiting day master reading",
-          "sourceVerdict": "Awaiting {source} reading",
-          "mainStar": "Awaiting main star reading",
-          "sukuyoReading": "Awaiting Sukuyo reading",
-          "dataLoad": "Waiting to load data",
-          "birth": "Waiting for your birth date"
+          "chartSignal": "Menunggu isyarat carta",
+          "starSignal": "Menunggu isyarat bintang utama",
+          "sukuyoSignal": "Menunggu isyarat Sukuyo",
+          "moonRhythm": "Menyelaraskan dengan rentak bulan.",
+          "nebulaRhythm": "Menyelaraskan rentak nebula.",
+          "imperialRhythm": "Menala tenaga diraja.",
+          "dayMaster": "Menunggu tafsiran day master",
+          "sourceVerdict": "Menunggu tafsiran {source}",
+          "mainStar": "Menunggu tafsiran bintang utama",
+          "sukuyoReading": "Menunggu tafsiran Sukuyo",
+          "dataLoad": "Menunggu data dimuatkan",
+          "birth": "Menunggu tarikh lahir anda"
         },
         "stage": {
-          "keywords": "{source} keywords · {list}",
-          "astrologyScenario": "Calculating your zodiac blooming scenario.",
-          "jamidusuScenario": "Calculating your Ziwei main-star blooming scenario.",
-          "sukuyoScenario": "Calculating your Sukuyo moonlight blooming scenario.",
-          "seasonTexture": "{season} texture",
-          "seasonDefault": "Season",
-          "environmentMood": "{environment} mood",
-          "environmentDefault": "Environment",
-          "sajuScenario": "Calculating your day master and environment blooming scenario.",
-          "dataSheetPreparing": "Preparing your flower data sheet.",
-          "symbolizes": "This flower symbolizes {symbolism}.",
-          "resonates": "This flower resonates strongly with the current flow of your fortune.",
-          "narrativeFallback": "{verdict} Your blooming point for now is aligned to your {source} balance."
+          "keywords": "Kata kunci {source} · {list}",
+          "astrologyScenario": "Mengira senario mekar mengikut zodiak anda.",
+          "jamidusuScenario": "Mengira senario mekar mengikut bintang utama Ziwei anda.",
+          "sukuyoScenario": "Mengira senario mekar di bawah cahaya bulan Sukuyo.",
+          "seasonTexture": "Tekstur {season}",
+          "seasonDefault": "Musim",
+          "environmentMood": "Suasana {environment}",
+          "environmentDefault": "Persekitaran",
+          "sajuScenario": "Mengira senario mekar mengikut day master dan persekitaran anda.",
+          "dataSheetPreparing": "Menyediakan helaian data bunga anda.",
+          "symbolizes": "Bunga ini melambangkan {symbolism}.",
+          "resonates": "Bunga ini bergema kuat dengan aliran tuah anda sekarang.",
+          "narrativeFallback": "{verdict} Titik mekar anda buat masa ini diselaraskan dengan keseimbangan {source} anda."
         },
         "guide": {
-          "allBloomed": "All flowers have bloomed. Revisit any tab you like.",
-          "startSaju": "Next step: open your Saju flower first to start blooming.",
-          "next": "Next step: move on to your {source} flower to keep blooming."
+          "allBloomed": "Semua bunga telah mekar. Buka semula mana-mana tab yang anda mahu.",
+          "startSaju": "Langkah seterusnya: buka bunga Saju anda dahulu untuk mula mekar.",
+          "next": "Langkah seterusnya: beralih ke bunga {source} untuk terus mekar."
         },
         "tab": {
-          "lockLabel": "Opens when the atelier is unlocked"
+          "lockLabel": "Dibuka apabila atelier dibuka kunci"
         },
         "verdict": {
-          "preparing": "Preparing your destiny flower reading.",
-          "defaultFlower": "Destiny flower",
-          "sukuyo": "Read through Sukuyo, your flower is {name}.",
-          "jamidusu": "Read through Ziwei, your flower is {name}.",
-          "astrology": "Read through astrology, your flower is {name}.",
-          "saju": "Read through Saju, your flower is {name}."
+          "preparing": "Menyediakan tafsiran bunga takdir anda.",
+          "defaultFlower": "Bunga takdir",
+          "sukuyo": "Menurut Sukuyo, bunga anda ialah {name}.",
+          "jamidusu": "Menurut Ziwei, bunga anda ialah {name}.",
+          "astrology": "Menurut astrologi, bunga anda ialah {name}.",
+          "saju": "Menurut Saju, bunga anda ialah {name}."
         },
         "snapshot": {
-          "guidance": "Today, matching your rhythm before chasing results helps you bloom faster."
+          "guidance": "Hari ini, selaraskan rentak dahulu sebelum mengejar hasil, dan bunga anda akan mekar lebih cepat."
         },
         "empty": {
-          "noDomainData": "No {source} data is linked yet. Tap the button below and your own destiny flower will bloom now.",
-          "astroCalculating": "We've read your star chart. Choosing your astrology flower now.",
-          "notLinked": "Your {source} flower blooms the moment you tap the link button. Tap the button below to meet the flower that has come to you now.",
-          "linkButton": "Link my destiny flower",
-          "linking": "Linking...",
-          "dataWaiting": "Waiting to link {source} data",
-          "readingWaiting": "Awaiting {source} reading",
-          "keywordsLoading": "{source} keywords · loading"
+          "noDomainData": "Belum ada data {source} yang dipautkan. Tekan butang di bawah dan bunga takdir anda sendiri akan mekar sekarang juga.",
+          "astroCalculating": "Carta bintang anda telah dibaca. Sedang memilih bunga astrologi anda.",
+          "notLinked": "Bunga {source} anda mekar sebaik sahaja anda menekan butang pautan. Tekan butang di bawah untuk bertemu bunga yang datang kepada anda sekarang.",
+          "linkButton": "Pautkan bunga takdir saya",
+          "linking": "Memautkan...",
+          "dataWaiting": "Menunggu data {source} dipautkan",
+          "readingWaiting": "Menunggu tafsiran {source}",
+          "keywordsLoading": "Kata kunci {source} · sedang dimuatkan"
         },
         "artMood": {
-          "astrology": "Dreamy floral wrapped in starlit nebulae and neon glow",
-          "jamidusu": "Floral where imperial dignity meets refined court elegance",
-          "sukuyo": "Clear floral like moonlit meditation and still water",
-          "saju": "Lyrical East Asian floral blooming along the grain of the Five Elements"
+          "astrology": "Gaya bunga penuh impian yang diselubungi nebula berbintang dan cahaya neon",
+          "jamidusu": "Gaya bunga yang memadukan keagungan diraja dengan keanggunan istana",
+          "sukuyo": "Gaya bunga jernih seperti bertafakur di bawah bulan dan air yang tenang",
+          "saju": "Gaya bunga Timur yang puitis, mekar mengikut urat Lima Unsur"
         },
         "care": {
-          "wood": "Wake your growth point with an 8-minute stretch by an east-facing window in the morning sun",
-          "fire": "Soak in south-facing light for 5 minutes and declare today's goal out loud",
-          "earth": "Tidy one corner of your workspace to firmly set your central axis",
-          "metal": "Write down 3 priorities and boldly prune unnecessary commitments",
-          "water": "Open the circulation of your emotions with a 10-minute evening walk and some water",
-          "default": "Fix your light (morning) and water (evening) routines to stabilize your basic growth rhythm first."
+          "wood": "Bangkitkan titik pertumbuhan dengan regangan 8 minit di tingkap timur yang disinari matahari pagi",
+          "fire": "Terima cahaya dari arah selatan selama 5 minit dan sebut matlamat hari ini dengan lantang",
+          "earth": "Kemaskan satu sudut ruang kerja anda untuk meneguhkan paksi pusat",
+          "metal": "Tulis 3 keutamaan dan berani pangkas janji yang tidak perlu",
+          "water": "Lancarkan aliran emosi dengan berjalan 10 minit pada waktu petang dan minum air",
+          "default": "Tetapkan dahulu rutin cahaya (pagi) dan air (malam) untuk menstabilkan rentak asas pertumbuhan."
         },
         "synergy": {
-          "astrology": "glass vases, silver frames, soft micro-lighting",
-          "jamidusu": "satin fabric, bronze objects, symmetrical ceramics",
-          "sukuyo": "frosted glass, moonlight-toned linen, wave-patterned trays",
-          "saju": "matte ceramics, natural wood, softly patterned fabric",
-          "line": "Suggested colors: Primary {primary}, Secondary {secondary}, Accent {accent} / Suggested materials: {materials}."
+          "astrology": "pasu kaca, bingkai perak, pencahayaan mikro yang lembut",
+          "jamidusu": "kain satin, objek gangsa, seramik simetri",
+          "sukuyo": "kaca kabur, linen berwarna cahaya bulan, dulang bercorak ombak",
+          "saju": "seramik matte, kayu asli, kain bercorak lembut",
+          "line": "Warna dicadangkan: utama {primary}, sokongan {secondary}, aksen {accent} / Bahan dicadangkan: {materials}."
         },
         "atelier": {
-          "scenarioTitle": "{source} blooming scenario",
-          "growthCycleWaiting": "Awaiting blooming cycle calculation",
-          "ritualWaiting": "Calculating today's practice routine.",
+          "scenarioTitle": "Senario mekar {source}",
+          "growthCycleWaiting": "Menunggu pengiraan kitaran mekar",
+          "ritualWaiting": "Mengira rutin amalan hari ini.",
           "astrology": {
-            "lightingFire": "Intense sunlight at a high angle, like midsummer noon",
-            "lightingEarth": "Steady light where late-afternoon gold lingers long",
-            "lightingWater": "Cool blue dawn light that spreads slowly",
-            "lightingAir": "Slanted light, tilted like the wind, that lightly opens the space",
-            "humidityWater": "A silver-mist state with high emotional humidity",
-            "humidityFire": "Dry, heat-holding air; a state of quick emotional response",
-            "humidityEarth": "Steady clay-pot humidity; a state where feelings slowly ripen",
-            "humidityAir": "Light, shifting breeze humidity; a state where ideas refresh quickly",
-            "seasonFire": "Bloom accelerator: a stretch where action and presenting push the buds upward",
-            "seasonWater": "Inner nourishment: a stretch where rest and intuition fill the root layer",
-            "seasonBalance": "Balance tuning: a stretch where structure and feeling cross to prepare the next bud",
-            "section": "Celestial light and energy",
-            "matrixLighting": "☀️ Celestial light: {value}",
-            "matrixHumidity": "💧 Atmospheric humidity: {value}",
-            "matrixSeason": "🪐 Cosmic season: {value}",
-            "log": "Gardener's observation journal: the direction of your Sun sign {sun} and the light of your Rising sign {rising} set the angle of the flower stem. The humidity control of your Moon sign {moon} gently opens the veins of emotion, and this week is a pre-bloom stretch where opportunities show first.",
-            "recipe": "Secret recipe: after 9 p.m., dim the window light by one step and write the one thing you will do tomorrow on the first line of your notebook. Focus only on that one thing for the first 12 minutes of the morning and the starlight rhythm aligns fastest.",
-            "flowerLanguage": "Destiny flower language: the courage to trust the angle of the stars and take the first step.",
-            "gardenerWord": "A gardener's word for this flower: today's intuition is not exaggeration but a forecast. Small actions turn the nebula into a real flower bed.",
-            "particle": "Translated into particles, the light of {source} shines most steadily with a \"{particle}\" texture."
+            "lightingFire": "Cahaya terik yang jatuh dari sudut tinggi seperti tengah hari musim panas",
+            "lightingEarth": "Cahaya stabil dengan rona keemasan lewat petang yang kekal lama",
+            "lightingWater": "Cahaya biru sejuk waktu subuh yang merebak perlahan-lahan",
+            "lightingAir": "Cahaya condong seperti angin yang membuka ruang dengan ringan",
+            "humidityWater": "Keadaan kabus perak dengan kelembapan emosi yang tinggi",
+            "humidityFire": "Udara kering yang membawa haba, keadaan emosi yang cepat bertindak balas",
+            "humidityEarth": "Kelembapan stabil seperti pasu tanah liat, keadaan emosi yang matang perlahan-lahan",
+            "humidityAir": "Kelembapan angin yang ringan dan fleksibel, keadaan idea yang cepat diperbaharui",
+            "seasonFire": "Fasa pecutan mekar: tindakan dan ekspresi menolak kuntum ke atas",
+            "seasonWater": "Fasa pemupukan dalaman: rehat dan gerak hati mengisi lapisan akar",
+            "seasonBalance": "Fasa penalaan keseimbangan: struktur dan emosi bersilang untuk menyediakan kuntum seterusnya",
+            "section": "Cahaya dan tenaga cakerawala",
+            "matrixLighting": "☀️ Cahaya cakerawala: {value}",
+            "matrixHumidity": "💧 Kelembapan atmosfera: {value}",
+            "matrixSeason": "🪐 Musim kosmik: {value}",
+            "log": "Catatan pemerhatian tukang kebun: arah tanda matahari {sun} dan cahaya ascendant {rising} menentukan sudut dahan. Kelembapan yang diatur oleh tanda bulan {moon} membuka urat emosi dengan lembut, dan minggu ini ialah fasa isyarat mekar, ketika peluang muncul paling awal.",
+            "recipe": "Resipi rahsia: selepas jam 9 malam, malapkan lampu tingkap satu tahap dan tulis satu perkara yang akan anda lakukan esok pada baris pertama buku nota. Fokus hanya pada perkara itu dalam 12 minit pertama pagi, dan rentak cahaya bintang akan selari paling cepat.",
+            "flowerLanguage": "Maksud bunga takdir: keberanian untuk mempercayai sudut bintang dan mengambil langkah pertama.",
+            "gardenerWord": "Pesan tukang kebun untuk bunga ini: gerak hati hari ini bukan keterlaluan, tetapi ramalan. Tindakan kecil akan mengubah nebula menjadi taman yang sebenar.",
+            "particle": "Apabila cahaya {source} diubah menjadi zarah, tekstur \"{particle}\" bersinar paling stabil."
           },
           "jamidusu": {
-            "structureZiwei": "A sturdy stem carrying the imperial grace of the Ziwei star family",
-            "structureBreaker": "A thick, upright stalk shaped by a breakthrough general's temperament",
-            "structureFlexible": "Delicate layered petals, supple yet hard to break",
-            "structureBalanced": "A refined, symmetrical flower frame shaped by a balanced main star",
-            "social": "Like butterflies and bees circling around {palace}, close connections share roles and help you grow.",
-            "thornsDim": "A time when short, dense, highly protective thorns help you set boundaries",
-            "thornsBright": "A time when light-reflecting grain patterns stand in for thorns and protect you with dignity",
-            "section": "The flower's dignity and form",
-            "matrixStructure": "🏛️ Flower frame: {value}",
-            "matrixSocial": "🦋 Butterflies and bees: {value}",
-            "matrixThorns": "🌵 Guardian thorns: {value}",
-            "log": "Gardener's observation journal: today's strong star {star} holds the center of the stem upright, and star brightness {brightness} adjusts the sheen of the petals. Now is a time when structural completeness, more than flashiness, grows your results.",
-            "recipe": "Secret recipe: place one metal object on the left side of your desk, and write down one standard for today and one point where you will yield. The clearer your boundaries, the more gracefully the flower blooms.",
-            "flowerLanguage": "Destiny flower language: dignity is the quietest radiance, blooming from a solid structure.",
-            "gardenerWord": "A gardener's word for this flower: don't rush to be dazzling. A day spent keeping your standards builds the longest-lasting stem.",
-            "particle": "Translated into particles, the hierarchy of {source} shows its order most beautifully with a \"{particle}\" mood."
+            "structureZiwei": "Dahan teguh yang membawa keagungan diraja sistem bintang Ziwei",
+            "structureBreaker": "Batang tebal dan keras yang dibentuk oleh tenaga panglima penembus halangan",
+            "structureFlexible": "Kelopak berlapis yang halus, lembut tetapi sukar patah",
+            "structureBalanced": "Rangka bunga simetri yang kemas, dibentuk oleh bintang utama yang seimbang",
+            "social": "Seperti rama-rama dan lebah yang berlegar di sekitar {palace}, hubungan rapat berkongsi peranan dan membantu anda berkembang.",
+            "thornsDim": "Fasa duri pendek yang rapat dengan daya pertahanan tinggi, membantu anda menetapkan sempadan",
+            "thornsBright": "Fasa tekstur yang memantulkan cahaya menggantikan duri, melindungi anda dengan penuh maruah",
+            "section": "Maruah dan bentuk bunga",
+            "matrixStructure": "🏛️ Rangka bunga: {value}",
+            "matrixSocial": "🦋 Rama-rama dan lebah: {value}",
+            "matrixThorns": "🌵 Duri pelindung: {value}",
+            "log": "Catatan pemerhatian tukang kebun: bintang kuat hari ini {star} meluruskan paksi batang, dan kecerahan bintang {brightness} menala kilauan kelopak. Kini, kesempurnaan struktur, bukan kemewahan, yang membesarkan hasil anda.",
+            "recipe": "Resipi rahsia: letakkan satu objek logam di sebelah kiri meja, kemudian tulis satu prinsip hari ini dan satu perkara yang sanggup anda alah bersama-sama. Semakin jelas sempadan, semakin anggun bunga mekar.",
+            "flowerLanguage": "Maksud bunga takdir: maruah ialah cahaya paling tenang yang mekar daripada struktur yang kukuh.",
+            "gardenerWord": "Pesan tukang kebun untuk bunga ini: jangan tergesa-gesa untuk bersinar terang. Sehari yang berpegang pada prinsip membina dahan yang paling tahan lama.",
+            "particle": "Apabila susunan hierarki {source} diubah menjadi zarah, suasana \"{particle}\" menunjukkan susunan yang paling indah."
           },
           "sukuyo": {
-            "scentFriend": "A soft white-musk note that spreads under the moonlight",
-            "scentDanger": "A deep, dense agarwood note that sharpens focus",
-            "scentDefault": "A clear herbal floral note that gently warms the temperature of relationships",
-            "dewFull": "Night dew at its fullest; inspiration and emotional expression are both abundant",
-            "dewNew": "A new-moon stretch with thin dew; observation and preparation come first",
-            "dewDefault": "A moderate amount of dew; emotional balance and drive grow together",
-            "companionDragon": "Wisteria and blue sage, supporting a big flow of expansion",
-            "companionDog": "Rosemary and chamomile, strengthening stable relationships and resilience",
-            "companionTiger": "Eucalyptus and rudbeckia, strengthening decisiveness and protective instinct",
-            "companionDefault": "Lavender and ivy, supporting both emotional stability and long-term growth",
-            "section": "The scent of connection and dew",
-            "matrixScent": "🌙 Destiny scent: {value}",
-            "matrixDew": "💦 Night dew: {value}",
-            "matrixCompanion": "🌿 Companion plants: {value}",
-            "log": "Gardener's observation journal: the relational nature of {mansion} shows first as scent, and moon phase {phase} adjusts your emotional rhythm through the density of the dew. Now, care in matching each other's grain, rather than hurrying the pace of a connection, keeps the flower alive longer.",
-            "recipe": "Secret recipe: before bed, slowly drink a glass of water, then quietly write down one name you were grateful for today. The moon's water rhythm settles and your relationship luck opens gently.",
-            "flowerLanguage": "Destiny flower language: quiet empathy becomes the scent that travels furthest.",
-            "gardenerWord": "A gardener's word for this flower: it's okay not to hurry. Just as night dew gathers, your connections will become clear at exactly the right time.",
-            "particle": "Translated into particles, the moonlight rhythm of {source} wraps you most warmly with a \"{particle}\" mood."
+            "scentFriend": "Haruman kasturi putih yang lembut merebak di bawah cahaya bulan",
+            "scentDanger": "Haruman kayu yang pekat dan dalam, meningkatkan tumpuan",
+            "scentDefault": "Haruman herba bunga yang segar, menala suhu hubungan dengan lembut",
+            "dewFull": "Embun malam paling penuh, inspirasi dan ekspresi emosi sama-sama melimpah",
+            "dewNew": "Fasa anak bulan dengan embun nipis, pemerhatian dan persediaan didahulukan",
+            "dewDefault": "Embun sederhana, emosi dan daya tindakan berkembang seiring",
+            "companionDragon": "Gandingan wisteria dan sage biru, menyokong aliran pengembangan yang besar",
+            "companionDog": "Gandingan rosemary dan kamomil, menguatkan kestabilan hubungan dan daya pemulihan",
+            "companionTiger": "Gandingan eukaliptus dan rudbeckia, menguatkan ketegasan dan naluri melindungi",
+            "companionDefault": "Gandingan lavender dan ivi, membantu kestabilan emosi dan pertumbuhan jangka panjang",
+            "section": "Haruman jodoh dan embun malam",
+            "matrixScent": "🌙 Haruman takdir: {value}",
+            "matrixDew": "💦 Embun malam: {value}",
+            "matrixCompanion": "🌿 Tumbuhan teman: {value}",
+            "log": "Catatan pemerhatian tukang kebun: sifat hubungan {mansion} terserlah dahulu melalui haruman, dan fasa bulan {phase} menala rentak emosi melalui ketumpatan embun. Kini, kehalusan menyelaraskan rentak bersama, bukan mendesak laju jodoh, yang mengekalkan kesegaran bunga lebih lama.",
+            "recipe": "Resipi rahsia: sebelum tidur, minum segelas air perlahan-lahan dan tulis secara senyap satu nama yang anda syukuri hari ini. Rentak air bulan akan stabil dan tuah jodoh akan terbuka dengan lembut.",
+            "flowerLanguage": "Maksud bunga takdir: empati yang senyap menjadi haruman yang paling jauh tersebar.",
+            "gardenerWord": "Pesan tukang kebun untuk bunga ini: tidak perlu tergesa-gesa. Seperti embun malam yang berkumpul perlahan-lahan, jodoh anda juga akan menjadi jelas pada masa yang tepat.",
+            "particle": "Apabila rentak cahaya bulan {source} diubah menjadi zarah, suasana \"{particle}\" memeluk anda paling hangat."
           },
           "saju": {
-            "soilCold": "Rich, marshy soil that holds moisture",
-            "soilHot": "Warm, well-draining gravel mix",
-            "soilBalanced": "Fertile soil with even grains and stable minerals",
-            "rootStrong": "A stage where deep roots hold the center even through outside changes",
-            "rootWeak": "A stage where fine rootlets spread first and need support",
-            "rootBalanced": "A balanced stage where mid-depth roots spread evenly",
-            "section": "Soil and roots for growth",
-            "matrixSoil": "🪨 Soil composition: {value}",
-            "matrixRoot": "🌱 Root depth: {value}",
-            "matrixNutrient": "🧪 Gardener's nutrient: {value}",
-            "log": "Gardener's observation journal: today the garden takes on the texture of {soil}, and growth energy moves along the flow of \"{root}\". It may look quiet on the surface, but strength for the next bloom is being firmly stored in the root layer.",
-            "recipe": "Secret recipe: place a green-leaved plant by a north- or east-facing window, loosen your body for 10 minutes in the morning and steady your breathing for 10 minutes in the evening. Fixing this rhythm twice a day lifts your useful element's energy fastest.",
-            "flowerLanguage": "Destiny flower language: strong roots may seem slow, but in the end they bloom the highest.",
-            "gardenerWord": "A gardener's word for this flower: trust accumulation over haste. Today's small care makes next season's great harvest.",
-            "particle": "Translated into particles, the subtle movement of {source} energy is most harmonious with a \"{particle}\" mood."
+            "soilCold": "Tanah subur berpaya yang menyimpan banyak kelembapan",
+            "soilHot": "Tanah bercampur kerikil yang hangat dan mudah menyalirkan air",
+            "soilBalanced": "Tanah subur dengan butiran sekata dan mineral yang stabil",
+            "rootStrong": "Fasa akar tunjang yang dalam, berpegang pada pusat walaupun dunia luar berubah",
+            "rootWeak": "Fasa akar halus yang merebak dahulu dan memerlukan sokongan",
+            "rootBalanced": "Fasa seimbang, akar sederhana dalam yang merebak sekata",
+            "section": "Tanah dan akar untuk pertumbuhan",
+            "matrixSoil": "🪨 Komposisi tanah: {value}",
+            "matrixRoot": "🌱 Kedalaman akar: {value}",
+            "matrixNutrient": "🧪 Nutrien tukang kebun: {value}",
+            "log": "Catatan pemerhatian tukang kebun: hari ini taman membawa tekstur {soil}, dan tenaga pertumbuhan bergerak dalam aliran \"{root}\". Di luar ia kelihatan tenang, tetapi di lapisan akar, kekuatan untuk mekar seterusnya sedang dikumpul dengan kukuh.",
+            "recipe": "Resipi rahsia: letakkan satu pokok berdaun hijau di tingkap utara atau timur, longgarkan badan 10 minit pada waktu pagi dan atur pernafasan 10 minit pada waktu malam. Mengekalkan rentak dua kali sehari ini menaikkan tenaga unsur berguna paling cepat.",
+            "flowerLanguage": "Maksud bunga takdir: akar yang kukuh mungkin kelihatan perlahan, tetapi akhirnya mekar paling tinggi.",
+            "gardenerWord": "Pesan tukang kebun untuk bunga ini: percayalah pada pengumpulan, bukan ketergesaan. Penjagaan kecil hari ini menjadi tuaian besar musim depan.",
+            "particle": "Apabila gerak halus tenaga {source} diubah menjadi zarah, suasana \"{particle}\" paling harmoni."
           },
-          "themesWaiting": "Analyzing your relationship and work themes.",
-          "guidance": "{source} destiny flower practice guide: {text}"
+          "themesWaiting": "Menganalisis tema hubungan dan kerja.",
+          "guidance": "Panduan amalan bunga takdir {source}: {text}"
         },
         "prompt": {
-          "badgesSukuyo": "Sukuyo badges: {mansion} / moon phase {phase} / guardian animal {guardian}",
-          "badgesJamidusu": "Ziwei badges: today's strong star {star} / star brightness {brightness} / palace {palace}",
-          "badgesAstrology": "Astrology badges: Sun sign {sun} / Rising sign {rising} / Moon sign {moon}",
-          "badgesSaju": "Saju badges: strength {strength} / useful element {yongshin} / seasonal balance {johu}",
-          "symbolismFallback": "A flower symbolizing the flow of destiny",
-          "narrativeFallback": "Destiny flower narrative",
-          "scenarioFallback": "Staging based on the blooming scenario",
-          "toneDirection": "{source} tone direction: {mood} / {background}"
+          "badgesSukuyo": "Lencana Sukuyo: {mansion} / fasa bulan {phase} / haiwan pelindung {guardian}",
+          "badgesJamidusu": "Lencana Ziwei: bintang kuat hari ini {star} / kecerahan bintang {brightness} / istana {palace}",
+          "badgesAstrology": "Lencana astrologi: tanda matahari {sun} / ascendant {rising} / tanda bulan {moon}",
+          "badgesSaju": "Lencana Saju: kekuatan {strength} / unsur berguna {yongshin} / imbangan musim {johu}",
+          "symbolismFallback": "Bunga yang melambangkan aliran takdir",
+          "narrativeFallback": "Kisah bunga takdir",
+          "scenarioFallback": "Penataan berdasarkan senario mekar",
+          "toneDirection": "Hala tuju nada {source}: {mood} / {background}"
         },
         "history": {
-          "emptyStatus": "No blooming records have been saved yet. Try saving your current result.",
-          "restore": "Open",
-          "kakao": "Share on Kakao",
-          "delete": "Delete",
-          "saved": "Blooming record saved: {name} ({time})",
-          "notFound": "That record could not be found.",
-          "restored": "Loaded your saved blooming record: {name}",
-          "deleteNotFound": "Could not find the record to delete.",
-          "deleted": "The selected blooming record has been deleted.",
-          "nothingToClear": "There are no blooming records to delete.",
-          "cleared": "All saved blooming records have been deleted.",
-          "shareNotFound": "Could not find the record to share."
+          "emptyStatus": "Belum ada rekod mekar yang disimpan. Cuba simpan keputusan semasa.",
+          "restore": "Buka semula",
+          "kakao": "Kongsi di Kakao",
+          "delete": "Padam",
+          "saved": "Rekod mekar disimpan: {name} ({time})",
+          "notFound": "Rekod ini tidak ditemui.",
+          "restored": "Rekod mekar yang disimpan telah dibuka semula: {name}",
+          "deleteNotFound": "Rekod untuk dipadam tidak ditemui.",
+          "deleted": "Rekod mekar yang dipilih telah dipadam.",
+          "nothingToClear": "Tiada rekod mekar untuk dipadam.",
+          "cleared": "Semua rekod mekar yang disimpan telah dipadam.",
+          "shareNotFound": "Rekod untuk dikongsi tidak ditemui."
         },
         "noBirth": {
-          "jamidusu": "Enter your date of birth to see your Ziwei flower.",
-          "sukuyo": "Enter your date of birth to see your Sukuyo flower.",
-          "astrology": "Enter your date and time of birth to see your astrology flower.",
-          "saju": "Enter your name and date of birth first, and your own destiny flower will bloom here."
+          "jamidusu": "Masukkan tarikh lahir anda untuk melihat bunga Ziwei anda.",
+          "sukuyo": "Masukkan tarikh lahir anda untuk melihat bunga Sukuyo anda.",
+          "astrology": "Masukkan tarikh dan masa lahir anda untuk melihat bunga astrologi anda.",
+          "saju": "Masukkan nama dan tarikh lahir anda dahulu, dan bunga takdir anda sendiri akan mekar di sini."
         },
-        "studioTitle": "🌸 Destiny Flower Atelier",
+        "studioTitle": "🌸 Atelier Bunga Takdir",
         "sourceDesc": {
-          "saju": "We read your day master, birth month and Five Element balance one by one, then choose the single flower that touches your energy most deeply this season.",
-          "astrology": "We layer the three strands of starlight drawn by your Sun, Rising and Moon signs, then bloom the flower that harmonizes most clearly with your chart right now.",
-          "jamidusu": "We trace the main star in your Life Palace, its brightness and the flow of the Four Transformations, then find the flower your chart brings out most vividly right now.",
-          "sukuyo": "We set your birth-day lunar mansion against tonight's moon phase, then hand you the flower that fits the grain of your heart most gently right now."
+          "saju": "Kami membaca day master, bulan lahir dan imbangan Lima Unsur anda satu demi satu, kemudian memilih bunga yang paling menyentuh tenaga anda pada musim ini.",
+          "astrology": "Kami menindih tiga jalur cahaya bintang yang dilukis oleh tanda matahari, ascendant dan tanda bulan anda, kemudian memekarkan bunga yang paling jernih selaras dengan carta anda sekarang.",
+          "jamidusu": "Kami menjejaki bintang utama di Istana Ming anda, kecerahannya dan aliran Empat Transformasi, kemudian mencari bunga yang paling jelas dimekarkan oleh carta anda sekarang.",
+          "sukuyo": "Kami meletakkan rumah bulan kelahiran anda daripada 27 rumah bulan di samping fasa bulan malam ini, kemudian memberikan bunga yang paling lembut sepadan dengan urat hati anda sekarang."
         },
         "sourceShort": {
           "saju": "Saju",
-          "astrology": "chart",
+          "astrology": "carta",
           "jamidusu": "Ziwei",
           "sukuyo": "Sukuyo"
         },
         "strength": {
-          "strong": "Strong",
-          "weak": "Weak"
+          "strong": "Kuat",
+          "weak": "Lemah"
         },
         "johu": {
-          "hot": "Warm & dry",
-          "cold": "Cold & damp",
-          "balanced": "Balanced"
+          "hot": "Hangat & kering",
+          "cold": "Sejuk & lembap",
+          "balanced": "Seimbang"
         }
       }
     }
