@@ -7,7 +7,7 @@ import {createRequire} from 'node:module';
 import path from 'node:path';
 import {
   TAROT_SHARED_RULES, TAROT_SHARED_RULE_PARAGRAPH, TAROT_EVIDENCE_LIMIT, TAROT_SAFETY_NOTICE,
-  isTarotCrisisQuestion, findTarotProseViolation,
+  isTarotCrisisQuestion, findTarotProseViolation, canonicalTarotNamesKo,
 } from '../../lib/tarot/paid-reading-contract.mjs';
 
 const require=createRequire(import.meta.url),Module=require('node:module');
@@ -51,4 +51,28 @@ test('a card dealt in both orientations is checked for presence only',()=>{
   assert.equal(findTarotProseViolation('바보 정방향',{drawn}),null);
   assert.equal(findTarotProseViolation('바보 카드 역방향',{drawn}),null);
   assert.equal(findTarotProseViolation('탑 카드',{drawn}),'TAROT_UNDRAWN_CARD');
+});
+
+test('card names in deck labels, quotes, brackets and English glosses become the stored name and orientation',()=>{
+  const cases=[
+    ["'완드 투'(정방향)",'완드 투 정방향'],['<소드 나인 (역방향)>','소드 나인 역방향'],["'은둔자'(역방향)",'은둔자 역방향'],
+    ["'매달린 사람' (정방향)",'매달린 사람 정방향'],['「컵 세븐 역방향」','컵 세븐 역방향'],
+    ['컵 세븐 역방향(Seven of Cups, Reversed)','컵 세븐 역방향'],['매달린 사람(The Hanged Man) 카드','매달린 사람 카드'],
+    ['완드 투(Two of Wands)','완드 투'],['컵 에이스(Ace of Cups, Reversed)가','컵 에이스 역방향이'],['은둔자(역방향)는','은둔자 역방향은'],
+    ['광대 카드','바보 카드'],["'광대'",'바보'],['소드 9 역방향','소드 나인 역방향'],['펜타클 10이','펜타클 텐이'],
+    ['컵의 기사가','컵 나이트가'],['펜타클 여왕 카드','펜타클 퀸 카드'],['완드 왕은','완드 킹은'],['소드 페이지','소드 페이지'],
+  ];
+  for(const [raw,want] of cases)assert.equal(canonicalTarotNamesKo(raw),want,raw);
+  // Ordinary words that start like a card name stay as written.
+  for(const text of ['소드 투자를 줄여','컵 포기','컵 왕관','컵 2잔',"'잔류의 자원'으로",'광대뼈','수레바퀴 자국'])assert.equal(canonicalTarotNamesKo(text),text);
+});
+
+test('the shared prose check reads deck labels, brackets and bare minor names',()=>{
+  const drawn=[{name:'소드 나인',orientation:'upright'},{name:'바보',orientation:'reversed'}];
+  assert.equal(findTarotProseViolation('소드 9 역방향이 보여',{drawn}),'TAROT_ORIENTATION_MISMATCH');
+  assert.equal(findTarotProseViolation('<소드 나인 (역방향)>',{drawn}),'TAROT_ORIENTATION_MISMATCH');
+  assert.equal(findTarotProseViolation("'광대'(정방향)",{drawn}),'TAROT_ORIENTATION_MISMATCH');
+  assert.equal(findTarotProseViolation('컵 에이스가 기회를 말해',{drawn}),'TAROT_UNDRAWN_CARD');
+  assert.equal(findTarotProseViolation('소드 나인이 걱정을, 광대 역방향이 망설임을 비춰',{drawn}),null);
+  assert.equal(findTarotProseViolation('소드 투자를 줄여',{drawn}),null);
 });
