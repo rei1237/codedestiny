@@ -19,7 +19,12 @@
  *    birthScopeExcludedAt 으로 **표시만** 한다(삭제 X).
  */
 import { computeBirthKey, toBirthEntitlementProfileId, BIRTH_ENTITLEMENT_SCOPE } from "../../worker/lib/birth-key.js";
-import { isBirthScopedUnlockFeatureKey, normalizePaidFeatureKey } from "../../worker/lib/paid-feature-registry.js";
+import {
+  BIRTH_SCOPED_UNLOCK_FEATURE_KEYS,
+  PAID_FEATURE_KEY_ALIASES,
+  isBirthScopedUnlockFeatureKey,
+  normalizePaidFeatureKey,
+} from "../../worker/lib/paid-feature-registry.js";
 import {
   USER_SCOPE_PROFILE_ID,
   resolvePaidContentUnlockTarget,
@@ -55,9 +60,125 @@ function isActive(row, now) {
   return !expiresAt || expiresAt > now;
 }
 
+function swapSeparators(key) {
+  return [key, key.replace(/_/g, "-"), key.replace(/-/g, "_")];
+}
+
+/**
+ * 출생 기반 키가 원천에 남아 있을 수 있는 표기 전부 — 정본, `_`/`-` 바꿈, 정본이 출생 기반인 별칭(원형·소문자).
+ * 마이그레이션 조회의 $in 과 `^(표기):` 접두 정규식(연도 접미사 키)에 쓴다.
+ */
+export function birthScopedFeatureKeyVariants() {
+  const keys = new Set();
+  for (const key of BIRTH_SCOPED_UNLOCK_FEATURE_KEYS) for (const variant of swapSeparators(key)) keys.add(variant);
+  for (const alias of Object.keys(PAID_FEATURE_KEY_ALIASES)) {
+    if (!isBirthScopedUnlockFeatureKey(PAID_FEATURE_KEY_ALIASES[alias])) continue;
+    keys.add(alias);
+    keys.add(alias.toLowerCase());
+  }
+  return Array.from(keys);
+}
+
+/**
+ * 원 키(별칭·대소문자·`_`/`-` 바꿈·`:접미사`)를 정본 출생 기반 키로 접는다. 출생 기반이 아니면 "".
+ * `:접미사`는 연도 상품의 콘텐츠 구분이라 남긴다(sukyo_yearly_fortune_unlock:2027).
+ */
+export function canonicalBirthFeatureKey(raw) {
+  const text = clean(raw);
+  if (!text) return "";
+  const cut = text.indexOf(":");
+  const base = cut >= 0 ? text.slice(0, cut) : text;
+  const suffix = cut >= 0 ? text.slice(cut) : "";
+  for (const candidate of swapSeparators(base)) {
+    const key = normalizePaidFeatureKey(candidate) || candidate;
+    if (isBirthScopedUnlockFeatureKey(key)) return `${key}${suffix}`;
+  }
+  return "";
+}
+
+const POINT_REFUND_LINK_FIELDS = ["refundForPointHistoryId", "sourceTransactionId", "originalPointHistoryId", "refundedEvidenceId"];
+// 월정석 환불은 refund 행 없이 원 차감에 표식만 남긴다(worker/routes/fortune.js findAIPromptPaymentEvidence 와 같은 목록).
+const POINT_DEDUCT_REFUND_FLAGS = [
+  "refundedForUnlockFailure",
+  "monthlyCreditRefundedForUnlockFailure",
+  "monthlyCreditRefundedForLedgerFailure",
+  "monthlyCreditRefundedForServiceExecution",
+];
+
+/**
+ * 코인 차감과 환불을 짝지어 **환불되지 않은 차감만** 남긴다. 환불 한 건이 같은 키의 다른 구매까지 지우지 않게 한다.
+ * 입력 행: { _id, userId, featureKey(정본), metadata, createdAt }.
+ * 짝 찾는 순서: 환불 metadata 의 원 차감 id → 같은 requestId → (차감 자체의 환불 표식은 먼저 뺀다) →
+ * 짝이 없으면 같은 사용자·키에서 환불 시각 이전의 가장 최근 차감 하나만 상쇄한다(휴리스틱 — 건수를 보고한다).
+ */
+export function pairPointRefunds(deducts = [], refunds = []) {
+  const stats = { deducts: deducts.length, refunds: refunds.length, byFlag: 0, byLink: 0, byRequestId: 0, byFallback: 0, linkedElsewhere: 0, unmatched: 0 };
+  const userKey = (row) => `${clean(row?.userId, 120)}\u0000${clean(row?.featureKey)}`;
+  const removed = new Set();
+  const byId = new Map(deducts.map((row) => [clean(row?._id, 64), row]));
+  for (const row of deducts) {
+    if (POINT_DEDUCT_REFUND_FLAGS.some((flag) => row?.metadata?.[flag] === true)) {
+      removed.add(row);
+      stats.byFlag += 1;
+    }
+  }
+
+  // 1) 원 차감 id 로 이어진 환불. 이미 표식으로 빠진 차감을 가리키면 그 환불은 소진된 것으로 본다.
+  const pending = [];
+  for (const refund of refunds) {
+    const linkIds = POINT_REFUND_LINK_FIELDS.map((field) => clean(refund?.metadata?.[field], 64)).filter(Boolean);
+    const target = linkIds.map((id) => byId.get(id)).find(Boolean);
+    if (target) {
+      if (!removed.has(target)) {
+        removed.add(target);
+        stats.byLink += 1;
+      }
+      continue;
+    }
+    // 우리가 모르는 차감(다른 키·다른 시스템)을 가리키는 환불은 여기 차감을 상쇄하지 않는다.
+    if (linkIds.length) {
+      stats.linkedElsewhere += 1;
+      continue;
+    }
+    pending.push(refund);
+  }
+
+  // 2) 같은 requestId. 3) 짝 없는 환불은 가장 최근 차감 하나.
+  const unmatched = [];
+  for (const refund of pending) {
+    const requestId = clean(refund?.metadata?.requestId, 160);
+    const sameRequest = requestId
+      ? deducts.filter((row) => userKey(row) === userKey(refund) && clean(row?.metadata?.requestId, 160) === requestId)
+      : [];
+    if (!sameRequest.length) {
+      unmatched.push(refund);
+      continue;
+    }
+    const target = sameRequest.find((row) => !removed.has(row));
+    if (target) {
+      removed.add(target);
+      stats.byRequestId += 1;
+    }
+  }
+  for (const refund of unmatched) {
+    const at = toDate(refund?.createdAt);
+    const candidates = deducts
+      .filter((row) => !removed.has(row) && userKey(row) === userKey(refund))
+      .sort((a, b) => (toDate(b?.createdAt)?.getTime() || 0) - (toDate(a?.createdAt)?.getTime() || 0));
+    const target = candidates.find((row) => !at || !toDate(row?.createdAt) || toDate(row.createdAt) <= at) || candidates[0];
+    if (target) {
+      removed.add(target);
+      stats.byFallback += 1;
+    } else {
+      stats.unmatched += 1;
+    }
+  }
+  return { kept: deducts.filter((row) => !removed.has(row)), stats };
+}
+
 function rowFeatureKey(row) {
   const raw = clean(row?.featureKey) || resolveUnlockedFeatureKeyFromContentKey(row?.contentKey || row?.contentId);
-  return normalizePaidFeatureKey(raw) || raw;
+  return canonicalBirthFeatureKey(raw) || normalizePaidFeatureKey(raw) || raw;
 }
 
 function profileMapKey(userId, profileId) {
@@ -223,9 +344,8 @@ export function planBirthScopeMigration({
   }
 
   for (const item of evidence) {
-    const raw = clean(item?.featureKey);
-    const featureKey = normalizePaidFeatureKey(raw) || raw;
-    if (!isBirthScopedUnlockFeatureKey(featureKey)) continue;
+    const featureKey = canonicalBirthFeatureKey(item?.featureKey);
+    if (!featureKey) continue;
     addSource({
       userId: item.userId,
       featureKey,
@@ -242,8 +362,8 @@ export function planBirthScopeMigration({
     const userId = clean(user?._id, 120);
     const keys = new Set(
       [...(user?.unlockedFeatures || []), ...(user?.paidFeatures || [])]
-        .map((key) => normalizePaidFeatureKey(clean(key)) || clean(key))
-        .filter((key) => isBirthScopedUnlockFeatureKey(key)),
+        .map((key) => canonicalBirthFeatureKey(key))
+        .filter(Boolean),
     );
     for (const key of keys) {
       if (coveredUserFeatures.has(`${userId}\u0000${key}`)) continue;

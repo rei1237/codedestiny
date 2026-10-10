@@ -17,8 +17,12 @@
 import { config } from "dotenv";
 import { connectDb, mongoose } from "../../worker/lib/db.js";
 import { ContentEntitlement, Payment, PointHistory, ProfileCard, User } from "../../worker/lib/models.js";
-import { BIRTH_SCOPED_UNLOCK_FEATURE_KEYS } from "../../worker/lib/paid-feature-registry.js";
-import { planBirthScopeMigration } from "../lib/birth-scope-unlock-plan.mjs";
+import {
+  birthScopedFeatureKeyVariants,
+  canonicalBirthFeatureKey,
+  pairPointRefunds,
+  planBirthScopeMigration,
+} from "../lib/birth-scope-unlock-plan.mjs";
 
 config({ path: ".env.local" });
 config({ path: ".env" });
@@ -44,14 +48,20 @@ const options = {
 const PAID_PAYMENT_STATUSES = ["paid", "success", "fulfilled"];
 const SAMPLE_LIMIT = 20;
 
-function featureKeyVariants() {
-  const keys = new Set();
-  for (const key of BIRTH_SCOPED_UNLOCK_FEATURE_KEYS) {
-    keys.add(key);
-    keys.add(key.replace(/_/g, "-"));
-    keys.add(key.replace(/-/g, "_"));
-  }
-  return Array.from(keys);
+/** 출생 기반 키의 모든 표기(정본·`_`/`-`·별칭) + 연도 접미사(`키:2027`)를 잡는 $in 값. */
+function featureKeyMatchers() {
+  const variants = birthScopedFeatureKeyVariants();
+  const escaped = variants.map((key) => key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  return [...variants, new RegExp(`^(?:${escaped.join("|")}):`)];
+}
+
+// 정본과 다른 표기로 저장된 원천 수 — 예상 밖 표기를 dry-run 에서 확인한다.
+const variantKeysSeen = {};
+let pointRefundStats = null;
+function noteVariant(raw) {
+  const key = str(raw);
+  const canonical = canonicalBirthFeatureKey(key);
+  if (canonical && canonical !== key) variantKeysSeen[key] = (variantKeysSeen[key] || 0) + 1;
 }
 
 function str(value) {
@@ -73,7 +83,7 @@ function toObjectId(value) {
 }
 
 async function loadSources() {
-  const featureKeys = featureKeyVariants();
+  const featureKeys = featureKeyMatchers();
   const entitlements = await ContentEntitlement.find({
     status: "ACTIVE",
     scope: { $ne: "BIRTH" },
@@ -114,6 +124,7 @@ async function loadSources() {
     status: { $in: PAID_PAYMENT_STATUSES },
   }).select("userId featureKey merchantUid impUid pricingSnapshot metadata paidAt createdAt").lean();
   for (const payment of paidPayments) {
+    noteVariant(payment.featureKey);
     evidence.push({
       userId: str(payment.userId),
       featureKey: str(payment.featureKey),
@@ -128,12 +139,15 @@ async function loadSources() {
   const pointRows = await PointHistory.find({
     kind: { $in: ["deduct", "refund"] },
     featureKey: { $in: featureKeys },
-  }).select("userId kind featureKey metadata createdAt").lean();
-  const refunded = new Set(pointRows.filter((row) => row.kind === "refund").map((row) => `${row.userId}\u0000${row.featureKey}`));
-  for (const row of pointRows) {
-    if (row.kind !== "deduct") continue;
-    // 같은 키의 코인 환불이 있으면 이 차감은 근거로 쓰지 않는다(보수적).
-    if (refunded.has(`${row.userId}\u0000${row.featureKey}`)) continue;
+  }).select("_id userId kind featureKey metadata createdAt").lean();
+  // 환불은 짝지은 차감만 근거에서 뺀다 — 같은 키의 다른 구매까지 지우지 않는다.
+  const pointByKind = (kind) => pointRows
+    .filter((row) => row.kind === kind)
+    .map((row) => ({ ...row, _id: str(row._id), userId: str(row.userId), rawFeatureKey: str(row.featureKey), featureKey: canonicalBirthFeatureKey(row.featureKey) }));
+  const paired = pairPointRefunds(pointByKind("deduct"), pointByKind("refund"));
+  pointRefundStats = paired.stats;
+  for (const row of paired.kept) {
+    noteVariant(row.rawFeatureKey);
     evidence.push({
       userId: str(row.userId),
       featureKey: str(row.featureKey),
@@ -254,6 +268,8 @@ async function migrate() {
   for (const [key, value] of Object.entries(plan.stats)) {
     console.log(`STAT ${key} ${typeof value === "object" ? JSON.stringify(value) : value}`);
   }
+  console.log(`STAT pointRefundPairing ${JSON.stringify(pointRefundStats)}`);
+  console.log(`STAT variantKeysSeen ${JSON.stringify(variantKeysSeen)}`);
   for (const item of plan.creates.slice(0, SAMPLE_LIMIT)) {
     console.log(`PLAN_BIRTH ${item.filter.userId} ${item.doc.featureKey} ${item.filter.contentKey} from=${item.purchaseProfileIds.join(",")} sources=${item.doc.sourceEntitlementIds.length}`);
   }

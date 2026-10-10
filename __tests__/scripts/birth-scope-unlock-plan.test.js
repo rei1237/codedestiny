@@ -2,7 +2,13 @@
  * @jest-environment node
  */
 
-import { planBirthScopeMigration, EXCLUDE_REASONS } from "../../scripts/lib/birth-scope-unlock-plan.mjs";
+import {
+  planBirthScopeMigration,
+  EXCLUDE_REASONS,
+  birthScopedFeatureKeyVariants,
+  canonicalBirthFeatureKey,
+  pairPointRefunds,
+} from "../../scripts/lib/birth-scope-unlock-plan.mjs";
 import { computeBirthKey, toBirthEntitlementProfileId } from "../../worker/lib/birth-key.js";
 
 const U1 = "64b000000000000000000001";
@@ -124,4 +130,50 @@ test("payment evidence without an entitlement row creates a BIRTH row; array-onl
   expect(creates[0].doc.contentKey).toBe("saju.daeunAnalysis");
   expect(stats.arrayOnlyUnknownProfileKeys).toBe(1);
   expect(stats.arrayOnlyUnknownProfileUsers).toBe(1);
+});
+
+test("aliases, separator swaps and year suffixes fold to the canonical birth key", () => {
+  expect(canonicalBirthFeatureKey("openSajuGuardianPage")).toBe("saju-guardian-unlock");
+  expect(canonicalBirthFeatureKey("premium_fpti_report")).toBe("premium-fpti-report");
+  expect(canonicalBirthFeatureKey("saju_guardian_unlock")).toBe("saju-guardian-unlock");
+  expect(canonicalBirthFeatureKey("sukyo_yearly_fortune_unlock:2027")).toBe("sukyo_yearly_fortune_unlock:2027");
+  expect(canonicalBirthFeatureKey("flower-fc")).toBe("");
+  const variants = birthScopedFeatureKeyVariants();
+  expect(variants).toEqual(expect.arrayContaining(["section_summary", "opensajuguardianpage", "generateFptiDeepReport"]));
+  expect(variants).not.toContain("flower-fc");
+
+  const { creates, stats } = planBirthScopeMigration({
+    evidence: [
+      { userId: U1, featureKey: "openSajuGuardianPage", profileId: "p1", orderId: "pay1" },
+      { userId: U1, featureKey: "sukyo_yearly_fortune_unlock:2027", profileId: "p1", orderId: "pay2" },
+    ],
+    profiles: [card(U1, "p1")],
+    users: [{ _id: U1, unlockedFeatures: ["openSajuGuardianPage", "sukyo_yearly_fortune_unlock:2027"] }],
+  });
+  expect(creates.map((item) => item.doc.featureKey).sort()).toEqual(["saju-guardian-unlock", "sukyo_yearly_fortune_unlock:2027"]);
+  expect(stats.arrayOnlyUnknownProfileKeys).toBe(0);
+});
+
+test("coin refunds cancel only the deduction they pair with", () => {
+  const at = (day) => new Date(`2026-0${day}-01T00:00:00Z`);
+  const d = (id, overrides = {}) => ({ _id: id, userId: U1, featureKey: "section_summary", metadata: {}, createdAt: at(1), ...overrides });
+  const deducts = [
+    d("d1", { metadata: { requestId: "r1" }, createdAt: at(1) }),
+    d("d2", { metadata: { requestId: "r2" }, createdAt: at(2) }),
+    d("d3", { metadata: { requestId: "r3" }, createdAt: at(3) }),
+    d("d4", { metadata: { monthlyCreditRefundedForUnlockFailure: true }, createdAt: at(4) }),
+    d("d5", { createdAt: at(5) }),
+    d("d6", { createdAt: at(7) }),
+  ];
+  const refunds = [
+    { _id: "x1", userId: U1, featureKey: "section_summary", metadata: { refundForPointHistoryId: "d1" }, createdAt: at(1) },
+    { _id: "x2", userId: U1, featureKey: "section_summary", metadata: { requestId: "r2" }, createdAt: at(2) },
+    // 표식으로 이미 빠진 차감을 가리키는 환불은 다른 차감을 지우지 않는다.
+    { _id: "x3", userId: U1, featureKey: "section_summary", metadata: { sourceTransactionId: "d4" }, createdAt: at(4) },
+    // 짝 없는 환불은 그 시각 이전의 가장 최근 차감 하나만 상쇄한다.
+    { _id: "x4", userId: U1, featureKey: "section_summary", metadata: {}, createdAt: at(6) },
+  ];
+  const { kept, stats } = pairPointRefunds(deducts, refunds);
+  expect(kept.map((row) => row._id)).toEqual(["d3", "d6"]);
+  expect(stats).toMatchObject({ byFlag: 1, byLink: 1, byRequestId: 1, byFallback: 1, unmatched: 0 });
 });
