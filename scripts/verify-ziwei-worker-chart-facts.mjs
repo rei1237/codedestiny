@@ -322,6 +322,12 @@ ok(
   ok("⑫ triad_axis 규칙이 회조 별의 강약 판정을 지시한다", prompt.includes("회조하는 별의 강약 표기"), "");
   ok("⑫ twelve_palaces 규칙이 자화를 구분해 읽도록 지시한다", prompt.includes("'자화' 줄이 있으면"), "");
   ok("⑫ 확정값 블록이 프롬프트에 실린다", prompt.includes("삼방사정 회조(명궁 기준)"), "");
+  // R6 2026-10-11: 이름이 없으면 meta 예시의 "이름 미입력"이 그대로 저장됐다.
+  const unnamed = { ...mockInput, birthInfo: { ...mockInput.birthInfo, name: "" } };
+  const metaPrompt = __ziweiAiTestUtils.buildMetaPrompt(unnamed, chart);
+  ok("⑫ 이름이 없으면 meta·그룹 프롬프트에 '미입력' 이름이 없다", !/이름 미입력|"name":"미입력/.test(metaPrompt + buildSectionGroupPrompt(unnamed, chart, flowGroup)), "");
+  const stored = JSON.parse(__ziweiAiTestUtils.enforceZiweiChartFacts(JSON.stringify({ meta: { name: "이름 미입력" }, sections: {} }), chart).text);
+  check("⑫ 모델이 대체 이름을 써도 meta.name 은 비운다", stored.meta.name, "");
 }
 
 // ── ⑬ 한 프롬프트 안에서 나이 기준이 갈리지 않는다 ─────────────────────────

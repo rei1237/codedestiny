@@ -1308,6 +1308,7 @@ function enforceZiweiChartFacts(text, chart) {
   const sihua = resolveSihuaPlacements(chart);
   const meta = parsed.meta && typeof parsed.meta === "object" ? parsed.meta : {};
 
+  if (typeof meta.name === "string" && /미입력|^없음/u.test(meta.name)) meta.name = "";
   meta.mingong = {
     ...(meta.mingong && typeof meta.mingong === "object" ? meta.mingong : {}),
     branch: lifeData?.earthlyBranch || "",
@@ -1392,7 +1393,8 @@ function buildConsultationHeaderLines(input, chart) {
   const domainTemplate = getZiweiPromptTemplate(domain);
   return [
     "[상담 정보]",
-    `이름 또는 닉네임: ${birth.name || "이름 미입력"}`,
+    // R6 2026-10-11: 대체값 "이름 미입력"이 meta.name 으로 저장됐다.
+    `이름 또는 닉네임: ${birth.name || "없음 — 본문에서는 이름 없이 '당신'으로만 부른다"}`,
     `성별: ${birth.gender}`,
     `생년월일: ${birth.birthDate}`,
     `출생시간: ${birth.birthTimeUnknown ? "모름" : birth.birthTime}`,
@@ -1551,7 +1553,7 @@ function buildMetaOutputExample(input = {}) {
   const birth = input.birthInfo || {};
   return {
       meta: {
-        name: birth.name || "이름 미입력",
+        name: birth.name || "",
         gender: birth.gender || "미입력",
         mingong: {
           branch: "명궁 지지",
