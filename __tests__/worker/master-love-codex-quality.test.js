@@ -202,6 +202,13 @@ test.each([["LLM_OUTPUT_TRUNCATED", 11000], ["LLM_EVIDENCE_INVALID", 8000], ["LL
   expect(call.mock.calls[0][1]).toMatchObject({ attempts: 1, maxProviderAttempts: 1, baseTokens: tokens });
 });
 
+test("a length repair names the chapter's character target instead of a generic rewrite", async () => {
+  const chapter = utils.resolveMode("solo").chapters[0];
+  const call = jest.fn().mockResolvedValue({ text: JSON.stringify(fixture(chapter)) });
+  await generateCodexChapterResponse(call, "prompt", { chapter, previousError: "LLM_OUTPUT_TOO_SHORT", maxAttempts: 1 });
+  expect(call.mock.calls[0][0]).toContain(`최소 ${chapter.minChars}자`);
+});
+
 
 test("paid draft extraction relaxes only length and retains structure, DNA and empty-body checks", async () => {
   const chapter = utils.resolveMode("solo").chapters[0];
