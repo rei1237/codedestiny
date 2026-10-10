@@ -165,3 +165,18 @@ test('a part whose two answers both name an undrawn card stops at the cap withou
  inject('card-0','탑 카드가 이 관계의 결말을 말합니다.',Infinity);await start();await finish();
  const state=docs[0].metadata.paidNarrative;expect(callsFor('card-0')).toBe(2);expect(state.parts['card-0']).toBeUndefined();expect(state.attempts['card-0']).toBe(2);expect(docs[0].status).not.toBe('success');
 });
+// The automated eval rubric (fixtures/yeongnyangi-tarot-eval) on the delivered prose: every stored position and card
+// is named, and a forbidden claim a part carries reaches the reader, so the rubric must see it in the saved text.
+const pinned=prompt=>{const [,label,named]=prompt.match(/\[이 부분의 카드\] 위치 "([^"]+)"[^:]*: ([^.]+)\./)||[];return label?`${label} 자리의 ${named} 카드가 지금의 조건을 비춥니다. `:'';};
+test('the delivered love reading passes the eval rubric, and the rubric sees a forbidden claim a part carries',async()=>{
+ const {scoreReading}=await import('../fixtures/yeongnyangi-tarot-eval/cases.mjs'),{getTarotCardByAnyId}=await import('../../lib/tarot/tarot-cards.mjs');
+ const base=provider.getMockImplementation(),claim='두 사람이 다시 가까워질 확률은 70%입니다.';
+ provider.mockImplementation(async(...args)=>{const ai=await base(...args),value=JSON.parse(ai.text);value.body=pinned(args[1])+value.body;
+  if(args[1].includes('[이번 부분 final]'))value.body=`${claim} ${value.body}`;return {...ai,text:JSON.stringify(value)};});
+ await start();const data=await (await finish()).json();
+ const prompt={savedCardsOnly:docs[0].metadata.paidNarrative.base.reading.positionBreakdown.map(row=>({positionLabel:row.positionTitle,name:getTarotCardByAnyId(row.cardId).nameKo}))};
+ const text=data.deliverySections.map(section=>section.body).join('\n\n');
+ expect(scoreReading(text.replace(claim,''),prompt,{id:'love-route'})).toEqual({pass:true,findings:[]});
+ expect(scoreReading(text,prompt,{id:'love-route'}).findings.map(f=>f.rule)).toEqual(['probability']);
+ expect(provider).toHaveBeenCalledTimes(9);
+});

@@ -115,3 +115,18 @@ test('a generic position word next to a drawn card is not a violation',async()=>
  inject('card.0.0',sentence,1);await start();expect((await finish()).status).toBe(200);
  expect(callsFor('card.0.0')).toBe(1);expect(docs[0].metadata.paidNarrative.parts['card.0.0']).toContain(sentence);
 });
+// The automated eval rubric (fixtures/yeongnyangi-tarot-eval) on the delivered prose: every submitted position and card
+// is named, and a forbidden claim a part carries reaches the reader, so the rubric must see it in the saved text.
+const pinned=prompt=>{const [,label,named]=prompt.match(/\[이 부분의 카드\] 위치 "([^"]+)"[^:]*: ([^.]+)\./)||[];return label?`${label} 자리의 ${named} 카드가 지금의 조건을 비춥니다. `:'';};
+test('the delivered oracle consultation passes the eval rubric, and the rubric sees a forbidden claim a part carries',async()=>{
+ const {scoreReading}=await import('../fixtures/yeongnyangi-tarot-eval/cases.mjs'),{getTarotCardByAnyId}=await import('../../lib/tarot/tarot-cards.mjs');
+ const base=provider.getMockImplementation(),claim='3월 5일에 결과가 나옵니다.';
+ provider.mockImplementation(async(...args)=>{const ai=await base(...args),value=JSON.parse(ai.text);value.body=pinned(args[1])+value.body;
+  if(args[1].includes('[이번 부분 timeline.near]'))value.body=`${claim} ${value.body}`;return {...ai,text:JSON.stringify(value)};});
+ await start();const data=await (await finish()).json();
+ const prompt={savedCardsOnly:original().cards.map(card=>({positionLabel:card.positionLabel,name:getTarotCardByAnyId(card.cardId).nameKo}))};
+ const text=data.sections.map(section=>section.body).join('\n\n');
+ expect(scoreReading(text.replace(claim,''),prompt,{id:'oracle-route'})).toEqual({pass:true,findings:[]});
+ expect(scoreReading(text,prompt,{id:'oracle-route'}).findings).toEqual([{rule:'fixed-date',detail:'3월 5일'}]);
+ expect(provider).toHaveBeenCalledTimes(17);
+});
