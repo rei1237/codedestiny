@@ -85,10 +85,22 @@ export const ASK_PERIOD_ANSWER_CHARS = 700;
 
 // Prompt copy only: the validator keeps reading the full packet. A six-system ask chapter otherwise sends every
 // value twice (here and in CALCULATED_DATA) plus provenance the F/T ID already implies, past the input limit.
-export const ASK_PROMPT_VIEW_GUIDE = 'askFirstChapter.evidence 항목에 value 대신 valueInCalculatedData가 있으면 그 값은 CALCULATED_DATA.facts에서 id가 source.factId인 사실의 value를 source.path(점으로 구분, 숫자는 배열 순번 0부터, 없으면 전체)로 따라간 값과 같다. source.system이 없으면 source.factId의 점 앞 체계이고, source.contextDomain이 없으면 system과 같고, engineVersion이 없으면 engineVersions의 해당 체계 값이며, subject가 없으면 self다.';
+export const ASK_PROMPT_VIEW_GUIDE = 'askFirstChapter.evidence 항목에 value 대신 valueInCalculatedData가 있으면 그 값은 CALCULATED_DATA.facts에서 id가 source.factId인 사실의 value를 source.path(점으로 구분, 없으면 전체)로 따라간 곳에 있다. 배열에서는 positionKey·position·name·year·house 중 처음 있는 값이 그 키와 같은 항목을 고르고, 그런 필드가 없으면 0부터 센 순번이다. 값에 palaces 배열이 있고 키가 없으면 palaces 배열 안에서 고른다. CALCULATED_DATA 쪽 항목에는 증거 값에 없는 보조 필드(시기 설명·관계표 등)가 더 있을 수 있다. source.system이 없으면 source.factId의 점 앞 체계이고, source.contextDomain이 없으면 system과 같고, engineVersion이 없으면 engineVersions의 해당 체계 값이며, subject가 없으면 self다.';
 type AskPrompt = ReturnType<typeof buildAskFirstChapterPrompt>;
-const valueAt = (value: unknown, path: string) => path ? path.split('.').reduce<unknown>((v, key) =>
-  Array.isArray(v) ? (/^\d+$/.test(key) ? v[Number(key)] : undefined) : v && typeof v === 'object' ? (v as Record<string, unknown>)[key] : undefined, value) : value;
+// The same row key the packet used (packet.ts pieces): a named field first, the array position otherwise. A fusion
+// palaces fact is wrapped as {palaces,...}, so a palace name falls through to that array.
+const rowKey = (row: unknown, i: number) => { const r = row && typeof row === 'object' && !Array.isArray(row) ? row as Record<string, unknown> : {};
+  return String(r.positionKey ?? r.position ?? r.name ?? r.year ?? r.house ?? i); };
+const step = (v: unknown, key: string): unknown => Array.isArray(v) ? v.find((row, i) => rowKey(row, i) === key)
+  : v && typeof v === 'object' ? Object.hasOwn(v, key) ? (v as Record<string, unknown>)[key]
+    : Array.isArray((v as Record<string, unknown>).palaces) ? step((v as Record<string, unknown>).palaces, key) : undefined : undefined;
+const valueAt = (value: unknown, path: string) => path ? path.split('.').reduce<unknown>(step, value) : value;
+// The evidence value must appear unchanged in CALCULATED_DATA; the chapter copy may carry extra annotation fields.
+const within = (part: unknown, whole: unknown): boolean => Array.isArray(part)
+  ? Array.isArray(whole) && part.length === whole.length && part.every((item, i) => within(item, whole[i]))
+  : part && typeof part === 'object' ? Boolean(whole) && typeof whole === 'object' && !Array.isArray(whole)
+    && Object.entries(part).every(([key, item]) => Object.hasOwn(whole as object, key) && within(item, (whole as Record<string, unknown>)[key]))
+  : part === whole;
 export function askPromptView(prompt: AskPrompt, calculated: { id: string; value: unknown }[]) {
   const byId = new Map(calculated.map(fact => [fact.id, fact.value]));
   const entries = [...prompt.evidence.facts, ...prompt.evidence.timing];
@@ -97,7 +109,7 @@ export function askPromptView(prompt: AskPrompt, calculated: { id: string; value
   const view = <T extends AskPrompt['evidence']['facts'][number]>(entry: T) => {
     const { value, source, subject, ...rest } = entry;
     const { system, contextDomain, engineVersion, factId, path } = source;
-    const known = byId.has(factId) && value !== undefined && JSON.stringify(valueAt(byId.get(factId), path)) === JSON.stringify(value);
+    const known = byId.has(factId) && value !== undefined && within(value, valueAt(byId.get(factId), path));
     return { ...rest, ...(known ? { valueInCalculatedData: true } : { value }),
       source: { factId, ...(path ? { path } : {}), ...(system !== factId.split('.')[0] ? { system } : {}),
         ...(contextDomain !== system ? { contextDomain } : {}), ...(engineVersion !== engineVersions[system] ? { engineVersion } : {}) },

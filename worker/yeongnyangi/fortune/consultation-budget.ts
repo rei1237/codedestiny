@@ -65,6 +65,14 @@ export function allocateConsultationBudget(rows:ChapterSpec[],tier:PackageId):Ch
  const sums=[0,1].map(i=>rows.reduce((sum,row)=>sum+row.targetChars![i],0));
  return rows.map(row=>scaled(row,row.targetChars!.map((n,i)=>Math.floor(n/sums[i]*budget.initial[i])) as [number,number],0));
 }
+/** 4: in a fusion ask, the opening answer and the question chapters read the requested period's years and dates.
+ * 'question-year' (질문과 이어진 올해) and the life/foundation/expert/synthesis chapters keep the stored calculation year. */
+export const readsRequestedPeriod=(row:ChapterSpec)=>row.ordinal===0||['answer','question'].includes(row.layoutRole||'')&&row.key!=='question-year';
+export function withRequestedPeriodScope(rows:ChapterSpec[],period:{kind:string;start?:string;end?:string;years?:{year:number}[]}|undefined):ChapterSpec[]{
+ if(period?.kind!=='requested'||!period.start||!period.end||!period.years?.length||!rows.some(row=>row.consultationLayout===FUSION_LAYOUT_VERSION))return rows;
+ const timeScope={years:period.years.map(y=>y.year),start:period.start,end:period.end};
+ return rows.map(row=>readsRequestedPeriod(row)?{...row,timeScope}:row);
+}
 function scaled(row:ChapterSpec,targetChars:[number,number],minimumChars:number):ChapterSpec{
  const sections=row.sections?.map(section=>({...section,minimumChars:0,targetChars:section.targetChars.map((n,i)=>Math.floor(n/row.targetChars![i]*targetChars[i])) as [number,number]}));
  return {...row,minimumChars,targetChars,sections,outputBudgetVersion:CONCISE_READING_VERSION,outputTokens:Math.max(8192,conciseOutputTokens({targetChars,sections}))};
