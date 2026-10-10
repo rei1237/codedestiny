@@ -90,4 +90,20 @@ win.resetTarotLoveFlow();win.startTarotLoveReading();deal('서버');await flush(
 win.startTarotLoveReading();const staleDraw=pending('/paid-draw').at(-1);win.resetTarotLoveFlow();staleDraw.resolveWith({ok:true,cards:cards('낡은카드')});await flush();assert.doesNotMatch(grid.textContent,/낡은카드/);assert.equal(draw.classList.contains('is-active'),false);
 // A failed server draw asks for a new draw instead of reading local cards.
 win.startTarotLoveReading();pending('/paid-draw').at(-1).resolveWith({ok:false,reason:'INVALID_TAROT_DRAW'},400);await flush();assert.equal(alerts.at(-1),'카드를 받아오지 못했습니다. 잠시 후 다시 뽑아 주세요.');assert.equal(draw.classList.contains('is-active'),false);
-win.close();console.log('verify-tarot-love-instant-flow: OK (instant draw, server-held cards, paid identity, partial delivery, storage retry, reopening, terminal refund and account isolation)');
+// A refused draw (a tab opened before the server draw, or swapped cards) asks for a redraw and keeps the paid
+// request: no refund, no second checkout, and the new server cards finish under the original requestId.
+const redrawCopy="카드를 다시 뽑아 주세요. 이미 결제한 요청으로 이어지며 추가 결제는 없습니다.";
+win.resetTarotLoveFlow();win.startTarotLoveReading();deal("서버");await flush();for(let i=0;i<6;i++)win.flipTarotLoveCard(i);
+const gatesBefore=gates.length,refundsBefore=calls("/billing/refund").length;auto=[[409,{ok:false,retryable:false,reason:"TAROT_DRAW_REQUIRED",message:"카드를 다시 뽑아 주세요."}]];
+win.showTarotLoveFinalReading();await flush();const refused=calls("/love-reading").at(-1).body;
+assert.equal(gates.length,gatesBefore+1);assert.equal(calls("/billing/refund").length,refundsBefore,"A draw refusal is not a refund");assert.equal(alerts.at(-1),redrawCopy);
+win.startTarotLoveReading();deal("새카드");await flush();for(let i=0;i<6;i++)win.flipTarotLoveCard(i);auto=[[200,complete]];win.showTarotLoveFinalReading();await flush();
+const redrawn=calls("/love-reading").at(-1).body;assert.equal(gates.length,gatesBefore+1,"No second checkout for the redraw");assert.equal(redrawn.requestId,refused.requestId);
+assert.notEqual(redrawn.drawId,refused.drawId);assert.match(redrawn.cards.map(card=>card.cardId).join(),/M00/);assert.match(content.textContent,/끝까지 전달/);
+// A reopened page whose saved request names no draw (written before the server draw) asks for the same redraw.
+const legacyEntry={body:{requestId:"tarot-love:pre-deploy",locale:"ko",cards:cards("옛카드").map(({cardId,position,orientation})=>({cardId,position,orientation}))},lastChargeTransactionId:"0123456789abcdef01234567"};
+win.localStorage.setItem("cd:love-tarot-delivery:v1:owner-b",JSON.stringify(legacyEntry));const readsBefore=calls("/love-reading").length;
+win.closeTarotLoveModal();win.openTarotLoveModal();await flush();assert.equal(calls("/love-reading").length,readsBefore,"The draw-less request is not resent");assert.equal(alerts.at(-1),redrawCopy);
+win.startTarotLoveReading();deal("다시뽑은");await flush();for(let i=0;i<6;i++)win.flipTarotLoveCard(i);auto=[[200,complete]];win.showTarotLoveFinalReading();await flush();
+assert.equal(calls("/love-reading").at(-1).body.requestId,"tarot-love:pre-deploy");assert.ok(calls("/love-reading").at(-1).body.drawId);assert.equal(gates.length,gatesBefore+1);
+win.close();console.log('verify-tarot-love-instant-flow: OK (instant draw, server-held cards, paid identity, partial delivery, storage retry, reopening, terminal refund, account isolation and redraw after a draw refusal)');

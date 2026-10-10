@@ -14,7 +14,7 @@ import { formatKrwFromMonthlyCredits } from "@/lib/payment/coin-pricing";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { detectLocale } from "@/lib/i18n/dictionary";
 import { getAuthState, refreshAuth, useAuthStore } from "@/app/_lib/auth-store";
-import { continueOracleDelivery, registerPaidNarrativeIntent, type OracleDeliveryResponse } from "@/app/_lib/oracle-delivery";
+import { continueOracleDelivery, needsTarotRedraw, registerPaidNarrativeIntent, type OracleDeliveryResponse } from "@/app/_lib/oracle-delivery";
 import { getMindScanTarotCopy, type MindScanTarotCopy } from "./_lib/mind-scan-tarot-copy";
 
 // ── TYPES ──────────────────────────────────────────────────────────────────────
@@ -1473,6 +1473,8 @@ export default function MindScanTarot() {
   //    /api/tarot/mindscan 에 결제 게이트를 달았다). 재시도 경로도 처음 결제한 id 를 그대로
   //    써야 하므로 ref 에 둔다 — 새로 만들면 결제한 사용자가 402 를 맞는다.
   const paidRequestIdRef = useRef("");
+  // The paid requestId the next server draw continues after a draw refusal (askRedraw).
+  const redrawRequestIdRef = useRef("");
 
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -1516,6 +1518,8 @@ export default function MindScanTarot() {
       const main: Record<string, number> = {}, sub: Record<string, number> = {};
       POSITIONS.forEach((pos, idx) => { main[pos.id] = Number(cards[idx].numericId); sub[pos.id] = Number(cards[idx + POSITIONS.length].numericId); });
       drawIdRef.current = drawId;
+      // A refused draw's paid request continues on these cards without a second checkout.
+      if (redrawRequestIdRef.current) { paidRequestIdRef.current = redrawRequestIdRef.current; paidAccessGrantedRef.current = true; setReadingError(''); }
       drawnRef.current = main; drawnSubRef.current = sub; setDrawn(main); setDrawnSub(sub);
       setTimeout(() => { if (run === runRef.current) setStage("spread"); }, 900);
     } catch {
@@ -1547,6 +1551,19 @@ export default function MindScanTarot() {
     try { localStorage.setItem(mindscanRecoveryKey(expectedOwner), JSON.stringify(entry)); } catch { /* Server recovery remains available. */ }
   }, []);
 
+  // The server refuses paid cards that are not its held draw before any payment lookup (worker/lib/paid-tarot-draw.js).
+  // The paid requestId waits for the next server draw, and a carry without cards replaces the saved entry,
+  // so a reload asks for the redraw again instead of resending the refused body.
+  const askRedraw = useCallback((paidRequestId: string) => {
+    const expectedOwner = mindscanOwner();
+    recoveryRef.current = null; drawIdRef.current = '';
+    if (paidRequestId) redrawRequestIdRef.current = paidRequestId;
+    try { if (expectedOwner && paidRequestId) localStorage.setItem(mindscanRecoveryKey(expectedOwner), JSON.stringify({ body: { pairs: [], question: '', requestId: paidRequestId, locale: detectLocale() } })); } catch { /* The carry stays in memory. */ }
+    drawnRef.current = {}; drawnSubRef.current = {}; setDrawn({}); setDrawnSub({}); setDelivery(null); setReading(null);
+    setMainPicks([]); setSubPicks([]); setPickRound('main'); setStage('picking');
+    showToast(getMindScanTarotCopy(getCurrentLoadingLocale()).redrawRequired, 'info');
+  }, []);
+
   const performReading = useCallback(async (pairs: ReadingPair[], askedQuestion: string, requestId: string) => {
     if (busyRef.current) return;
     const expectedOwner = mindscanOwner();
@@ -1566,14 +1583,15 @@ export default function MindScanTarot() {
           if (data.resultId) { entry.resultId = data.resultId; remember(entry, expectedOwner); }
         } });
       if (!active() || !result) return;
-      if (result.saved && result.status === 'completed' && result.reading) { setReading(result.reading as ReadingResult); setStage('result'); return; }
+      if (result.saved && result.status === 'completed' && result.reading) { redrawRequestIdRef.current = ''; setReading(result.reading as ReadingResult); setStage('result'); return; }
+      if (needsTarotRedraw(result)) { askRedraw(requestId); throw new Error(copy.redrawRequired); }
       throw new Error(locale === 'ko' ? '저장된 본문을 보존했습니다. 잠시 후 이어서 생성해 주세요.' : 'Saved sections are retained. Continue the reading shortly.');
     } finally { if (active()) { busyRef.current = false; setReadingLoading(false); } }
-  }, [copy, locale, remember]);
+  }, [askRedraw, copy, locale, remember]);
 
   useEffect(() => {
     const run = ++runRef.current;
-    busyRef.current = false; recoveryRef.current = null; paidAccessGrantedRef.current = false;
+    busyRef.current = false; recoveryRef.current = null; paidAccessGrantedRef.current = false; redrawRequestIdRef.current = '';
     setDelivery(null); setReading(null); setReadingLoading(false); setReadingError(''); setQuestion(''); setStage('intro');
     drawnRef.current = {}; drawnSubRef.current = {}; setDrawn({}); setDrawnSub({});
     if (!owner || !auth.authReady) return;
@@ -1592,6 +1610,8 @@ export default function MindScanTarot() {
         else if ([401, 403].includes(response.status)) return;
       } catch { /* Local original payment request survives transport failure. */ }
       if (!active() || !entry?.body?.requestId || !Array.isArray(entry.body.pairs)) return;
+      // Saved before the server draw (or a refused draw's carry): the paid request continues on a new draw.
+      if (!entry.resultId && !entry.body.drawId) { askRedraw(entry.body.requestId); return; }
       remember(entry, owner); paidRequestIdRef.current = entry.body.requestId; drawIdRef.current = entry.body.drawId || ''; paidAccessGrantedRef.current = true;
       const main: Record<string, number> = {}, sub: Record<string, number> = {};
       entry.body.pairs.forEach(pair => { main[pair.positionId] = pair.mainCardId; sub[pair.positionId] = pair.subCardId; });
@@ -1600,7 +1620,7 @@ export default function MindScanTarot() {
       else setStage('delivery');
     })().catch(() => {});
     return () => { disposed = true; runRef.current += 1; };
-  }, [owner, auth.authReady, remember]);
+  }, [owner, auth.authReady, remember, askRedraw]);
 
   const resumeSaved = useCallback(() => {
     const entry = recoveryRef.current;
@@ -1656,6 +1676,8 @@ export default function MindScanTarot() {
       setReadingError(copy.questionRequiredError);
       return;
     }
+    // Paid cards come only from the server draw; a saved result id still resumes as before.
+    if (!drawIdRef.current && !recoveryRef.current?.resultId) { askRedraw(paidAccessGrantedRef.current ? paidRequestIdRef.current : ''); return; }
     const pairs = POSITIONS.map((pos, idx) => ({
       slot: idx + 1,
       positionId: pos.id,
@@ -1772,7 +1794,7 @@ export default function MindScanTarot() {
     } finally {
       setReadingLoading(false);
     }
-  }, [buildResume, copy, ensurePaidAccess, performReading, question, readingLoading, reading, remember]);
+  }, [askRedraw, buildResume, copy, ensurePaidAccess, performReading, question, readingLoading, reading, remember]);
 
   const restart = useCallback(() => {
     runRef.current += 1; busyRef.current = false; recoveryRef.current = null; setDelivery(null);
