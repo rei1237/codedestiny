@@ -4592,7 +4592,8 @@ async function handleVedicAIPrompt(request, auth, env) {
     return await deliverFeatureQuestion(request, env, auth, { ...body, requestId }, {
       featureKey: VEDIC_AI_PROMPT_FEATURE_KEY,
       verify: async () => ({ chargedCoins, sourceTransactionId, isPointSpend, isCardSpend, passRefund, balanceAfter }),
-      prepare: async () => ({ built: builtPrompt, factsInput: { vedicResult, compatibilityResult } }),
+      // House rulers first: they must survive the 100-fact cap that a full chart reaches (B7).
+      prepare: async () => ({ built: builtPrompt, factsInput: { houseRulers: builtPrompt.houseRulers, vedicResult, compatibilityResult } }),
       refund: async proof => {
         ({ chargedCoins, sourceTransactionId, isPointSpend, isCardSpend, passRefund } = proof);
         return refundGeneration(Object.assign(new Error('Generation attempts exhausted'), { code: 'LLM_GENERATION_RETRYABLE' }));
@@ -5830,7 +5831,8 @@ async function handleSukuyoAIPrompt(request, auth, env) {
     return await deliverFeatureQuestion(request, env, auth, { ...body, requestId }, {
       featureKey: SUKUYO_AI_PROMPT_FEATURE_KEY,
       verify: async () => ({ chargedCoins, sourceTransactionId, isPointSpend, isCardSpend, passRefund, balanceAfter }),
-      prepare: async () => ({ built: builtPrompt, factsInput: { basicResult, compatibilityResult } }),
+      // daily is today's date-seeded signal, not a natal fact; B5 cited it as career evidence.
+      prepare: async () => ({ built: builtPrompt, factsInput: { basicResult: { ...basicResult, daily: undefined }, compatibilityResult } }),
       refund: async proof => {
         ({ chargedCoins, sourceTransactionId, isPointSpend, isCardSpend, passRefund } = proof);
         return refundGeneration(Object.assign(new Error('Generation attempts exhausted'), { code: 'LLM_GENERATION_RETRYABLE' }));
