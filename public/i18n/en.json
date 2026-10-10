@@ -2625,19 +2625,19 @@
       "packages": {
         "standard": {
           "name": "Standard Honey 30 Days",
-          "desc": "30 days · Content up to KRW 5,000 · Up to KRW 20,000 worth per month · Up to 3 profiles"
+          "desc": "30 days · Content up to KRW 5,000 · Up to KRW 20,000 worth per month"
         },
         "premium": {
           "name": "Premium Honey 30 Days",
-          "desc": "30 days · Content up to KRW 10,000 · Up to KRW 60,000 worth per month · Up to 7 profiles"
+          "desc": "30 days · Content up to KRW 10,000 · Up to KRW 60,000 worth per month"
         },
         "vvip": {
           "name": "VVIP Honey Jar 30 Days",
-          "desc": "30 days · Content up to KRW 30,000 · Up to KRW 120,000 worth per month · Up to 15 profiles"
+          "desc": "30 days · Content up to KRW 30,000 · Up to KRW 120,000 worth per month"
         },
         "family": {
           "name": "Code Destiny Family 30 Days",
-          "desc": "30 days · All pass-eligible content · Up to KRW 350,000 worth per month · Unlimited profiles"
+          "desc": "30 days · All pass-eligible content · Up to KRW 350,000 worth per month"
         }
       },
       "monthlyStatusChecking": "Checking remaining balance and Pass status.",

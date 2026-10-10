@@ -650,7 +650,6 @@ const SUBSCRIPTION_BASE_PLANS = [
     theme:        "amber",
     badge:        "",
     features:     [
-      "profile3",
       "under3000",
       "monthlyCap",
       "over3000Single",
@@ -667,7 +666,6 @@ const SUBSCRIPTION_BASE_PLANS = [
     freeUpTo:     100,
     theme:        "rose",
     features:     [
-      "profile7",
       "under5000",
       "monthlyCap",
       "over5000Single",
@@ -685,7 +683,6 @@ const SUBSCRIPTION_BASE_PLANS = [
     freeUpTo:     200,
     theme:        "purple",
     features:     [
-      "profile15",
       "under10000",
       "monthlyCap",
       "over10000Single",
@@ -703,7 +700,6 @@ const SUBSCRIPTION_BASE_PLANS = [
     freeUpTo:     null,
     theme:        "purple",
     features:     [
-      "profileUnlimited",
       "monthlyCap",
       "allPaidPdf",
       "notAutoBilling",
@@ -900,7 +896,6 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
     planFeatures: {
       free: {},
       standard: {
-        profile3: "프로필 최대 3개 생성",
         under3000: "5천원급 콘텐츠까지 이용",
         monthlyCap: "월 최대 3만원 상당",
         over3000Single: "30일 동안 스탠다드 혜택 유지",
@@ -909,7 +904,6 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
         notAutoBilling: "원화 단건 결제로 구매 가능",
       },
       premium: {
-        profile7: "프로필 최대 7개 생성",
         under5000: "1만원급 콘텐츠까지 이용",
         monthlyCap: "월 최대 10만원 상당",
         over5000Single: "30일 동안 프리미엄 혜택 유지",
@@ -918,7 +912,6 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
         notAutoBilling: "원화 단건 결제로 구매 가능",
       },
       vvip: {
-        profile15: "프로필 최대 15개 생성",
         under10000: "3만원급 콘텐츠까지 이용",
         monthlyCap: "월 최대 20만원 상당",
         over10000Single: "30일 동안 VVIP 혜택 유지",
@@ -927,7 +920,6 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
         notAutoBilling: "원화 단건 결제로 구매 가능",
       },
       family: {
-        profileUnlimited: "프로필 추가·수정·삭제 무료, 제한 없음",
         allPaidPdf: "꿀꿀·영냥이의 이용권 대상 유료 리딩",
         monthlyCap: "30일 최대 50만원 상당",
         activeImmediately: "결제 즉시 30일 이용권 활성화",
@@ -1030,7 +1022,6 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
     planFeatures: {
       free: {},
       standard: {
-        profile3: "Create up to 3 profiles",
         under3000: "Content priced around KRW 5,000 and below",
         monthlyCap: "Up to KRW 30,000 worth per month",
         over3000Single: "Standard benefits stay active for 30 days",
@@ -1039,7 +1030,6 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
         notAutoBilling: "Monthly credits or KRW purchase available",
       },
       premium: {
-        profile7: "Create up to 7 profiles",
         under5000: "Content priced around KRW 10,000 and below",
         monthlyCap: "Up to KRW 100,000 worth per month",
         over5000Single: "Premium benefits stay active for 30 days",
@@ -1048,7 +1038,6 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
         notAutoBilling: "Monthly credits or KRW purchase available",
       },
       vvip: {
-        profile15: "Create up to 15 profiles",
         under10000: "Content priced around KRW 30,000 and below",
         monthlyCap: "Up to KRW 200,000 worth per month",
         over10000Single: "VVIP benefits stay active for 30 days",
@@ -1057,7 +1046,6 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
         notAutoBilling: "Monthly credits or KRW purchase available",
       },
       family: {
-        profileUnlimited: "Unlimited profile add/edit/delete",
         allPaidPdf: "Eligible paid Ggulggul and Yeongnyangi readings",
         monthlyCap: "Up to KRW 500,000 worth over 30 days",
         activeImmediately: "30-day pass activates after payment",
@@ -2096,11 +2084,6 @@ function getMoonlightExpiryLabel(expiresAt: string | null | undefined, formatLoc
   return date.toLocaleDateString(formatLocale, { year: "numeric", month: "long", day: "numeric" });
 }
 
-function getMoonlightProfileLabel(subscription: SubscriptionStatus) {
-  const limit = subscription.profileLimit || getSubscriptionPolicyProfileLimit(subscription.tier);
-  return limit <= 0 ? "프로필 무제한" : `프로필 최대 ${limit.toLocaleString(FORMAT_LOCALE_BY_LANG[getCurrentLoadingLocale()])}개`;
-}
-
 // 🔴 2026-08-24 문구 정책: 모든 등급에 월 이용 한도가 있으므로 한도가 없다는 뜻의 표현을 쓰지
 //    않는다. 금액은 worker/lib/profile-limits.js 의 PASS_LIMITS 와 뜻이 같아야 한다
 //    (5,000 / 10,000 / 30,000원, family 상한 없음). 가드: verify:pass-tier-policy
@@ -2137,7 +2120,6 @@ function MoonlightActivePassCard({
   const expiryLabel = getMoonlightExpiryLabel(subscription.expiresAt, formatLocale);
   const title = MOONLIGHT_TIER_LABELS[tier];
   const benefits = [
-    { icon: "👤", label: getMoonlightProfileLabel(subscription) },
     { icon: "✨", label: getMoonlightBenefitLabel(tier) },
     { icon: "🌙", label: copy.planFeatures.standard.notAutoBilling },
     { icon: "🗝️", label: tier === "family" ? "초융합 심층 리딩까지 이용권으로" : "한도 내 유료 리딩 혜택" },

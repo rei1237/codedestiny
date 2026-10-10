@@ -52,20 +52,16 @@
   - 유료 심화는 **프리미엄 리포트**(`human-design-report`)가 맡는다 — 위 B유형 항목 참고.
 - **UI**: 잠금 UI 없이 바로 노출
 
-## D. 프로필 카드 추가/삭제 (고정 관리 수수료)
+## D. 프로필 카드 추가/수정/삭제 — 무료 · 개수 상한 없음 (2026-10-11 개정)
 
-- **정의**: 운세 대상 인물(프로필 카드)의 추가·삭제에 부과되는 **건당 고정 수수료**. 잠금 콘텐츠(A)도 회당 결제(B)도 아닌 별도 유형이다.
-- **금액**: **건당 1,000원 단건결제** 또는 **월정석 100**(코인 10 상당). 추가·수정·삭제 공통. 서버 상수 `PROFILE_CARD_DELETE_COST_KRW = 1000`(`worker/lib/profile-card-mutation-policy.js`). 클라이언트가 보낸 금액은 신뢰하지 않고 서버 상수와 일치 검증(`worker/routes/payments.js`의 `CLIENT_AMOUNT_MISMATCH`).
-  - 2026-10-10 인하: 5,000원(코인 50 · 월정석 500) → 1,000원(코인 10 · 월정석 100). 해금이 출생정보(birth) 단위로 묶여 프로필을 수정·재생성해도 기존 구매를 우회할 수 없게 되었기 때문이다. 인하 전 가격은 `LEGACY_PROFILE_CARD_COSTS`(코인 50 · 5,000원 · 월정석 500)로 남겨 **이미 결제된 증빙만** 인정한다 — 결제 완료된 5,000원 주문은 주문 자신의 금액으로 확정되고, 월정석 증빙은 현행가 100 또는 레거시 500 정확값만 인정한다(`PROFILE_CARD_ACCEPTED_MONTHLY_STONE_COSTS`). 미결제 대기 주문은 가격 변동 감지로 새 가격 주문을 다시 발급한다. 신규 결제에 레거시 가격을 쓰지 말 것.
-  - 앱(Google Play): 10코인이라 앱 무료 구간(≤10코인)에 들지만 `APP_PAID_LOW_PRICE_FEATURE_KEYS`에 넣어 무료 통과를 막았다. ₩1,000 SKU 등록 전까지 앱 단건 구매는 `APP_SKU_NOT_VERIFIED`(503)로 닫힌다.
-- **첫 프로필 무료**: 계정당 최초 1개는 무료 생성(`FREE_INITIAL_PROFILE_CARD_COUNT = 1`).
-- **개수 상한은 client-first 기본 슬롯 기준값**: 이용권 등급별 개수(standard 3 / premium 7 / vvip 15 / family 무제한, 이용권 미보유 1)는 클라이언트가 로그인/앱 시작 시 받은 `profilePolicySnapshot.maxProfileCount`로 먼저 판정한다. **슬롯 이내 생성은 무료이고, 1,000원이 붙는 것은 슬롯을 초과할 때뿐이다**(2026-08-24 재확인 — 유료 초과 추가 경로는 유지 결정). 한도 도달 안내는 단순 오류가 아니라 상위 등급의 프로필 수를 함께 보여준다. 일반 생성 버튼은 로컬 프로필 수가 기준값 이상이면 `/api/profile` POST 없이 차단하고, 기존 카드 정리 또는 이용권 확인 CTA로 안내한다. 초과 생성은 자동 호출하지 않으며, 명시적 단건결제/월정석 컨텍스트가 있는 별도 결제 흐름에서만 서버 최종 검증을 통과할 수 있다.
-- **삭제**: 건당 1,000원(또는 월정석 100). **보유 개수 하한 없음 — 프로필이 1개여도 삭제 가능**(결제는 필수). 삭제 후 최초 무료 슬롯이 다시 열린다.
-- **family 이용권만 무료**: family 등급은 추가·삭제 모두 무료·무제한(`isFamilyOrAbove`). 그 외 등급은 이용권 보유와 무관하게 결제 필요. **이 무료는 "이용권으로 결제"가 아니라 가격 자체가 0원인 정책 바이패스**이며, 판정은 결제 게이트(`billing.js`/coin-gate)가 아니라 **정책 계층(`worker/lib/profile-card-mutation-policy.js` → `worker/routes/profile.js`)에서만** 이뤄진다. coin-gate는 `profile.js`가 402(결제 필요)를 준 뒤에만 열리므로 무료 카드는 이용권 경로에 아예 도달하지 않는다.
-- **⚠️ 이용권(pass)으로는 결제 불가 (family 포함 전 등급)**: 프로필 추가/삭제는 **오직 단건결제(`single_purchase`) 또는 월정석(`membership_credit`)** 으로만 정산된다. 이용권 잔여/커버 한도로 대체 결제되지 않으며(`evidenceCostMatches`가 두 방식만 인정), 프론트에도 이용권 결제 옵션을 노출하지 않는다(`ProfileActionPaymentMethod = "card" | "monthly_stones"`).
-- **🔒 서버 최종 안전망**: 이용권 제외 판정의 서버 정본은 `worker/routes/billing.js`의 `PASS_EXCLUDED_FEATURE_KEYS`(→ `isPassExcludedPricing`) **하나**다. `buildPassPaymentDecision`·`processCoinGateFromPricing`에서 featureKey별 예외 분기(`&& !isProfileCardManage` 류)로 제외를 되푸는 것을 **금지**한다 — 과거 이 우회가 premium/vvip에게 `PASS_COVERED` + 결제수단 전부 숨김을 내준 뒤 소비 단계에서 거부하는 막다른 길을 만들었다. 프로필 생성의 개수 제한은 클라이언트가 soft validation을 맡고, Worker `POST /api/profile`은 birth/ownership/duplicate와 최종 count hard validation만 수행한다. 회귀 가드: `scripts/verify-billing-pass-policy.mjs`(제외 기능은 전 tier 미커버·숨김없음) + `scripts/verify-profile-card-action-policy.mjs` + `scripts/verify-profile-client-first.mjs`.
-- **결제 계층 위치**: PortOne 서명·멱등·환불을 포함한 결제 검증은 **Cloudflare Worker(`worker/routes/profile.js`)에만 존재**. 레거시 Express(`server/routes/profile.routes.js`)의 프로필 추가/삭제 라우트는 결제 계층이 없어 **위임 응답(410 `USE_WORKER_PROFILE_ENDPOINT`)으로 차단**되어 있다.
-- **UI**: 추가/삭제 모달에 "1,000원 단건결제 / 월정석" 2개 결제수단만 노출. **정본은 정적 셸 하나**(`js/destiny-profile.js`의 `_dpRunProfileManageGate`, `public/js/`에 사본) — 과거 React `/me`(`app/me/MeClient.tsx`)에 같은 CRUD가 두 벌로 있었으나 같은 결제 정책을 두 번 유지해야 해 제거했다. 관리 진입점은 하단 시트(`dpOpenList`)와 입력폼(`#destinyCardForm`)이며, React 하단 네비·앱 탭바의 "마이" 탭은 `/?action=dpOpenList`로 셸에 넘긴다.
+- **정책**: 프로필 카드(운세 대상 인물)의 추가·수정·삭제는 **모두 무료이고 개수 상한이 없다**. 이용권 등급(none/standard/premium/vvip/family)과 무관하며 결제 게이트를 띄우지 않는다.
+- **서버 판정**: `worker/lib/profile-card-mutation-policy.js`의 `getProfileCardMutationPolicy`·`resolveProfileCardActionAccess`·`canAddProfile`이 항상 무료 허용(`PROFILE_CARD_MUTATION_FREE`)을 돌려준다. `worker/routes/profile.js`(`POST/PATCH/DELETE /api/profile`)와 레거시 일괄 동기화(`worker/routes/user.js`의 `/api/user/destiny-profiles`)는 402를 내지 않는다. 서버는 birth/ownership/duplicate 검증만 한다.
+- **클라이언트 기준값**: `profilePolicySnapshot.maxProfileCount`·`resolveProfileLimitForClient()`는 0(=무제한)을 보낸다. `HONEY_PASS_POLICY`·`PROFILE_LIMIT_BY_TIER`의 `maxProfiles` 숫자는 하위호환 데이터로만 남아 있고 판정에 쓰이지 않는다. `User.profileSubscription.profileLimit`도 같다.
+- **이용권 문구**: 이용권 카드·상품 설명에 "프로필 최대 N개"를 표기하지 않는다(`scripts/verify-pass-tier-policy.mjs` ⑤가 설명 문구를 '기간 · 가격대 · 월 한도' 3토막으로 고정).
+- **결제 결과와의 관계**: 카드 수정이 무료가 되었어도 남의 출생정보로 고쳐 유료 결과를 공짜로 볼 수는 없다. 잠금 해제는 **계정 + 출생정보(birthKey)** 단위(`hasPaidUnlockForProfile`)라, 카드의 출생정보를 바꾸면 그 카드에서 다시 잠기고 되돌리면 다시 열린다(`__tests__/worker/birth-scope-unlock-policy.test.js` D). 카드를 삭제해도 그 카드로 결제한 보관함 기록은 계정 단위라 계속 열린다.
+- **과거 결제**: 2026-10-10까지 카드 관리 수수료(1,000원/월정석 100, 그 전 5,000원)를 받았다. 이미 낸 수수료의 소급 처리 여부는 이 변경의 범위가 아니며 운영 결정이 필요하다. 가격 상수(`PROFILE_CARD_DELETE_COST_KRW`, `LEGACY_PROFILE_CARD_COSTS`)와 `profile-card-manage` 레지스트리 항목은 과거 주문·환불 조회용으로 남아 있다. 신규 결제에 쓰지 말 것.
+- **결제 계층**: 레거시 Express(`server/routes/profile.routes.js`)의 프로필 추가/삭제 라우트는 계속 410 `USE_WORKER_PROFILE_ENDPOINT`로 차단된다. 관리 UI 정본은 정적 셸(`js/destiny-profile.js`, `public/js/`에 사본) 하나다.
+- 회귀 가드: `scripts/verify-profile-card-action-policy.mjs`, `scripts/verify-profile-card-add-entry.mjs`, `scripts/verify-portone-single-payment-regression.mjs`(카드 관리 결제 게이트 0건), `__tests__/worker/profile.create-first-card.test.js`, `__tests__/worker/user.destiny-profiles-sync-free.test.js`.
 
 ## E. 음악 트랙 — 재생 무료 · 다운로드 유료 (UX 게이트) — 2026-07 개정
 
@@ -90,7 +86,7 @@
 1. 결과가 저장되어 재열람 가능한 고정 콘텐츠인가? → **A. 잠금 콘텐츠**
 2. 매번 새로 생성되는 개인화 리딩/AI 상담인가? → **B. 회당 결제**
 3. 유료 레지스트리에 등록하지 않아도 되는 기본 기능인가? → **C. 무료**
-4. 프로필 카드 추가/삭제처럼 건당 고정 관리 수수료(이용권 결제 불가)인가? → **D. 프로필 카드 추가/삭제**
+4. 프로필 카드 추가·수정·삭제인가? → **D. 프로필 카드 (무료 · 상한 없음)**
 5. 음악실(`/music`) 트랙인가? → **E. 음악 트랙 (재생 무료 · 다운로드 유료 UNLOCK)**
 6. 가격 표시는 항상 원화(추후 현지 통화)로 — [1부 코인 표시 규칙](payment-policy-overview.md#2-코인레거시-내부-단위-표시-규칙) 참고
 

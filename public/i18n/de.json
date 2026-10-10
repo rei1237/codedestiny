@@ -2625,19 +2625,19 @@
       "packages": {
         "standard": {
           "name": "Standardhonig 30 Tage",
-          "desc": "30 Tage · Inhalte bis 5.000 KRW · Bis zu 20.000 KRW pro Monat · Bis zu 3 Profile"
+          "desc": "30 Tage · Inhalte bis 5.000 KRW · Bis zu 20.000 KRW pro Monat"
         },
         "premium": {
           "name": "Premium-Honig 30 Tage",
-          "desc": "30 Tage · Inhalte bis 10.000 KRW · Bis zu 60.000 KRW pro Monat · Bis zu 7 Profile"
+          "desc": "30 Tage · Inhalte bis 10.000 KRW · Bis zu 60.000 KRW pro Monat"
         },
         "vvip": {
           "name": "VVIP Honigglas 30 Tage",
-          "desc": "30 Tage · Inhalte bis 30.000 KRW · Bis zu 120.000 KRW pro Monat · Bis zu 15 Profile"
+          "desc": "30 Tage · Inhalte bis 30.000 KRW · Bis zu 120.000 KRW pro Monat"
         },
         "family": {
           "name": "Code Destiny Family 30 Tage",
-          "desc": "30 Tage · Alle im Pass enthaltenen Inhalte · Bis zu 350.000 KRW pro Monat · Unbegrenzte Profile"
+          "desc": "30 Tage · Alle im Pass enthaltenen Inhalte · Bis zu 350.000 KRW pro Monat"
         }
       },
       "monthlyStatusChecking": "Guthaben und Pass-Status werden überprüft.",

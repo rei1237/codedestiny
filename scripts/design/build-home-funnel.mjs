@@ -72,7 +72,6 @@ vars.pass = `<section class="cdh-pass" aria-labelledby="cdhPassTitle" data-desig
       <strong class="cdh-pass__tier-price"><span data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"${Number(plan.wonPrice).toLocaleString('en-US')}"}'>${won(plan.wonPrice)}</span> <small data-cd-trans="home.gardenCopy.passPer">/ 30일</small></strong>
       <span class="cdh-pass__tier-line" data-cd-trans="home.overseasCopy.${plan.tier === 'family' ? 'passNoLimit' : 'passPerLimit'}" data-cd-vars='{"amount":"${Number(plan.maxCoveredCoin * 100).toLocaleString('en-US')}"}'>${plan.tier === 'family' ? '유료 리딩 건당 한도 없음' : `건당 ${won(plan.maxCoveredCoin * 100)} 이하`}</span>
       <span class="cdh-pass__tier-line" data-cd-trans="home.overseasCopy.passTotal" data-cd-vars='{"amount":"${Number(plan.monthlyLimitCoin * 100).toLocaleString('en-US')}"}'>누적 ${won(plan.monthlyLimitCoin * 100)}까지</span>
-      <span class="cdh-pass__tier-line">${plan.profileLimit === 0 ? '프로필 무제한' : `프로필 최대 ${plan.profileLimit}개`}</span>
     </a></li>`).join('')}
   </ul>
   <p class="cdh-pass__note" data-cd-trans="home.gardenCopy.passNote">Standard·Premium·VVIP는 꽃돼지 운세에, Family는 꽃돼지와 영냥이 유료 리딩에 적용됩니다. 기존에 구매한 이용권은 구매 당시 조건을 유지합니다.</p>

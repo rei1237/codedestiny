@@ -119,7 +119,7 @@ test("returns the authoritative access state without calling payment providers",
     monthlyStoneBalance: 250,
     profileCount: null,
     profileCountDeferred: true,
-    maxProfileCount: 7,
+    maxProfileCount: 0, // 2026-10-11: 프로필 카드 개수 상한 없음(0 = 무제한)
     currentProfileId: "profile-main",
     unlockedFeatureIds: ["premium-sibyl-dominator", "section_compat"],
     // 출생 기반 키(section_daewun)는 계정 배열(paidFeatures)이 아니라 요청 프로필의 BIRTH 스냅샷으로만 보유가 된다.

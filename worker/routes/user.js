@@ -1,5 +1,5 @@
 import { connectDb } from "../lib/db.js";
-import { PointHistory, ProfileCard, User } from "../lib/models.js";
+import { ProfileCard, User } from "../lib/models.js";
 import { getOptionalUserFromRequest, requireUserFromRequest } from "../lib/auth.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import {
@@ -7,21 +7,11 @@ import {
   resolveCurrentProfileId as resolveCurrentId,
   resolveSingleProfileAccess,
 } from "../lib/profile-limits.js";
-import {
-  PROFILE_CARD_DELETE_COST_COINS,
-  PROFILE_CARD_DELETE_COST_KRW,
-  PROFILE_CARD_DELETE_COST_MONTHLY_STONES,
-} from "../lib/profile-card-mutation-policy.js";
 
 const MAX_SYNC_PROFILES = 30;
 const MAX_PROFILE_ID_LEN = 80;
 const MAX_NAME_LEN = 80;
 const MAX_TAMAGOTCHI_TEXT_LEN = 180;
-const PROFILE_CARD_MANAGE_FEATURE_KEY = "profile-card-manage";
-// 가격 정본은 profile-card-mutation-policy.js 하나다(과거 여기 별도 리터럴 50/5000 이 있었다).
-const PROFILE_CARD_MANAGE_COST = PROFILE_CARD_DELETE_COST_COINS;
-const PROFILE_CARD_MANAGE_AMOUNT_KRW = PROFILE_CARD_DELETE_COST_KRW;
-const PROFILE_CARD_MANAGE_MEMBERSHIP_COST = PROFILE_CARD_DELETE_COST_MONTHLY_STONES;
 
 // 서버 로그용. 원문 메시지를 포함한다 — 진단에 필요하고 콘솔은 클라이언트에 안 나간다.
 function buildErrorDetails(stage, error, extras = {}) {
@@ -275,48 +265,6 @@ function markCurrentProfile(profiles, currentId) {
   }));
 }
 
-function profilePaymentRequiredResponse(requestId) {
-  return json({
-    ok: false,
-    code: "PAYMENT_REQUIRED",
-    message: `프로필 카드 추가/삭제는 ${PROFILE_CARD_MANAGE_AMOUNT_KRW.toLocaleString("ko-KR")}원 단건 결제 또는 월정석 ${PROFILE_CARD_MANAGE_MEMBERSHIP_COST.toLocaleString("ko-KR")}개 사용 후 가능합니다.`,
-    pricing: {
-      featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
-      reason: "프로필 카드 추가/삭제",
-      coinPrice: PROFILE_CARD_MANAGE_COST,
-      membershipCreditCost: PROFILE_CARD_MANAGE_MEMBERSHIP_COST,
-      amountKRW: PROFILE_CARD_MANAGE_AMOUNT_KRW,
-    },
-    checkout: {
-      endpoint: "/api/billing/checkout",
-      payload: {
-        paymentType: "digital_content",
-        featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
-        reason: "프로필 카드 추가/삭제",
-        paymentAmount: PROFILE_CARD_MANAGE_AMOUNT_KRW,
-        coinPrice: PROFILE_CARD_MANAGE_COST,
-        membershipCreditCost: PROFILE_CARD_MANAGE_MEMBERSHIP_COST,
-        requestId,
-      },
-    },
-  }, { status: 402 });
-}
-
-async function ensureSyncProfileMutationPayment(auth, requestId) {
-  const paymentRequestId = sanitizeString(requestId, 120) || `profile-card:sync:${Date.now().toString(36)}`;
-  const existing = await PointHistory.findOne({
-    userId: auth.userId,
-    kind: "deduct",
-    featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
-    $or: [
-      { "metadata.requestId": paymentRequestId },
-      { "metadata.profilePaymentKey": paymentRequestId },
-    ],
-  }).lean();
-  if (existing) return { ok: true };
-  return { ok: false, response: profilePaymentRequiredResponse(paymentRequestId) };
-}
-
 /* 인증 조회(resolveActiveUserAuth)를 이 필드까지 확장해 auth.authUserDoc 로 받는다 —
    아래 handleGetDestinyProfiles 가 같은 User 를 재조회하던 왕복을 없앤다.
    🔴 바로 아래 select 문자열과 같은 집합을 유지할 것(필드가 빠지면 구독 등급이 조용히 오판된다). */
@@ -424,19 +372,8 @@ async function handleSyncDestinyProfiles(request, auth) {
   const requestedCurrentId = sanitizeProfileId(body?.currentId);
   const baseCurrentId = sanitizeProfileId(body?.baseCurrentId);
   const storedCurrentId = sanitizeProfileId(user.destinyProfilesCurrentId);
-  const existingProfiles = await listUserProfiles(auth.userId);
-  const existingIds = new Set(existingProfiles.map((profile) => String(profile?.profileId || profile?.id || "")));
-  const nextIdSet = new Set(normalizedProfiles.map((profile) => String(profile?.profileId || "")));
-  const hasProfileAddition = normalizedProfiles.some((profile) => !existingIds.has(String(profile?.profileId || "")));
-  const hasProfileDeletion = existingProfiles.some((profile) => !nextIdSet.has(String(profile?.profileId || profile?.id || "")));
-  const isInitialProfileCreate = hasProfileAddition
-    && !hasProfileDeletion
-    && existingProfiles.length === 0
-    && normalizedProfiles.length <= 1;
-  if ((hasProfileAddition || hasProfileDeletion) && !isInitialProfileCreate) {
-    const payment = await ensureSyncProfileMutationPayment(auth, body?.requestId || body?.payment?.requestId || body?.consume?.requestId || body?.accessGrant?.requestId);
-    if (!payment.ok) return payment.response;
-  }
+  /* 2026-10-11: 프로필 카드 추가·삭제는 개수·결제와 무관하게 허용한다(worker/lib/profile-card-mutation-policy.js).
+     해금은 출생정보 단위라 카드를 갈아 끼워도 기존 구매를 우회할 수 없다. */
 
   /* single 모드(이용권 종료 후 카드 1개 확정)와 무료 계정 카드 수 상한은 서버 전역에서 꺼져 있다 —
      worker/lib/profile-limits.js 의 resolveSingleProfileAccess 도 같은 상수로 subscription 모드만

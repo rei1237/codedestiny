@@ -658,15 +658,13 @@ export function resolveActivePassPolicy(userOrSubscription = {}) {
   return normalizeHoneyPassEntitlement(userOrSubscription);
 }
 
-export function resolveProfileLimitForClient(subscription, options = {}) {
-  const tier = String(subscription?.tier || "").trim().toLowerCase();
-  if (subscription?.isActive && tier === "family") return 0;
-  const rawLimit = Number(subscription?.profileLimit);
-  const allowZeroLimit = options?.allowZeroLimit === true;
-  if (Number.isFinite(rawLimit) && (rawLimit > 0 || (allowZeroLimit && rawLimit >= 0))) {
-    return Math.floor(rawLimit);
-  }
-  return 1;
+/* 2026-10-11 정책 변경: 프로필 카드 개수 상한이 없다(이용권 등급 무관). 0 은 무제한이다.
+   이용권 정의에 남아 있는 maxProfiles/profileLimit(3/7/15)은 과거 결제 기록 호환용 값일 뿐
+   카드 생성 판정에 쓰지 않는다 — 판정과 클라이언트 표시는 모두 이 함수와 아래 스냅샷을 거친다. */
+export const PROFILE_CARD_COUNT_UNLIMITED = 0;
+
+export function resolveProfileLimitForClient() {
+  return PROFILE_CARD_COUNT_UNLIMITED;
 }
 
 export const PROFILE_POLICY_SNAPSHOT_TTL_MS = 10 * 60 * 1000;
@@ -683,20 +681,14 @@ export function buildProfilePolicySnapshot(userOrSubscription = {}, options = {}
     ? String(entitlement.tier || "free").toLowerCase()
     : "free";
   const isActive = tier !== "free";
-  const maxProfileCount = isActive
-    ? resolveProfileLimitForClient({
-      tier,
-      isActive: true,
-      profileLimit: entitlement.maxProfiles,
-    }, { allowZeroLimit: true })
-    : 1;
+  const maxProfileCount = resolveProfileLimitForClient();
 
   return {
     tier,
     isActive,
     profileLimit: maxProfileCount,
     maxProfileCount,
-    unlimited: maxProfileCount === 0,
+    unlimited: true,
     expiresAt: isActive ? (entitlement.expiresAt || null) : null,
     fetchedAt,
     ttlMs,

@@ -1494,10 +1494,9 @@ function runClientStaticTests() {
   );
   assertNotContains(pointsPageSource, "paymentPhonePrefetchRef", "points page must not prefetch payment phone before checkout");
   assertContains(pointsPageSource, "phoneNumber: resolvedPhoneNumber", "points page PortOne phoneNumber");
-  // 프로필 카드 관리는 React(app/me)에서 정적 셸 하나로 합쳐졌다. 같은 보장을 셸 기준으로 계속 건다 —
-  // 추가·수정·삭제는 공용 코인 게이트를 타야 하고, 별도 주문 준비 경로를 새로 파면 안 된다.
-  assertContains(destinyProfileSource, "window._cdCoinGatePerUse(PROFILE_CARD_MANAGE_COST", "profile card mutations delegate checkout to the shared coin gate");
-  assertContains(destinyProfileSource, "amountKrw: PROFILE_CARD_MANAGE_COST * 100", "profile card mutations price through the shared gate payload");
+  // 프로필 카드 관리는 React(app/me)에서 정적 셸 하나로 합쳐졌다. 2026-10-11 부터 추가·수정·삭제는 무료라
+  // 셸이 결제창을 열지 않는다. 별도 주문 준비 경로가 생기면 안 된다는 보장만 셸 기준으로 계속 건다.
+  assertNotContains(destinyProfileSource, "window._cdCoinGatePerUse(PROFILE_CARD_MANAGE_COST", "profile card mutations must not open a payment gate");
   assertNotContains(destinyProfileSource, "/api/payments/prepare", "profile actions must not prepare orders outside the shared checkout");
   assertContains(clientPaymentSource, "if (!rsp || rsp.code || !paymentId)", "PortOne response.code failure handling");
   assertContains(clientPaymentSource, "paymentFailed", "failure UI state");

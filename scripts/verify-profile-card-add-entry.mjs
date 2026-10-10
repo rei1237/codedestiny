@@ -207,9 +207,10 @@ async function runTarget(relPath) {
       !formAddBtn(window) && window.document.querySelectorAll(".dp-form-add").length === 0,
       `formAdd=${formAddBtn(window) ? "있음" : "없음"}`,
     );
+    // 2026-10-11: 카드 개수 상한·추가 요금이 없어져 생성 모드의 슬롯·가격 안내도 없앴다.
     check(
-      "슬롯 안내 문구가 실제로 채워진다",
-      quotaLabel(window).length > 0,
+      "생성 모드에는 개수 상한·추가 요금 문구가 없다",
+      !/최대|사용 완료|원|월정석/.test(quotaLabel(window)),
       `quota=${quotaLabel(window)}`,
     );
     const addBtnCountBefore = window.document.querySelectorAll(".dp-list-add").length;
