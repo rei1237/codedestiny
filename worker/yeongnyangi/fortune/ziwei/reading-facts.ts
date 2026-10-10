@@ -160,8 +160,25 @@ function annualYearly(entry:unknown,palaces:unknown):unknown{
  const annual=ziweiAnnualTransformations(rest.year,palaces);
  return {...rest,annualStem:annual.stem,annualTransformations:annual.transformations};
 }
+/** 2A: 12궁 전체의 대궁·삼합 이름표. 부분집합 궁 목록이나 대한·유년 행만 받은 장도 궁 사이 관계를 계산값으로 읽는다. */
+export function ziweiPalaceRelationTable(palaces:unknown):Record<string,{facing:string;trines:string[]}>{
+ if(!Array.isArray(palaces))return {};
+ const byBranch=branchMap(palaces as O[]);
+ return Object.fromEntries((palaces as O[]).filter(p=>p&&validBranch(p.branchIndex)&&p.name).map(p=>{
+  const a=around(p,byBranch);
+  return [String(p.name),{facing:String(a.facing?.name||''),trines:a.trines.flatMap(t=>t?.name?[String(t.name)]:[])}];
+ }));
+}
+// 대한·유년 행의 palaceName 은 원국 궁 이름이다. 그 궁의 대궁·삼합을 행에 붙인다(같은 값을 다시 붙여도 결과가 같다).
+function withRowRelations(value:unknown,table:Record<string,{facing:string;trines:string[]}>):unknown{
+ if(Array.isArray(value))return value.map(v=>withRowRelations(v,table));
+ if(!value||typeof value!=='object')return value;
+ const row=value as O,rel=table[String(row.palaceName)];
+ return rel?{...row,palaceRelations:rel}:value;
+}
 function withAnnualTransformations(label:string,value:unknown,palaces:unknown):unknown{
- if(label==='yearlyLuck'||label==='yearlyTimeline')return annualYearly(value,palaces);
+ if(label==='yearlyLuck'||label==='yearlyTimeline')return withRowRelations(annualYearly(value,palaces),ziweiPalaceRelationTable(palaces));
+ if(label==='majorLuck')return withRowRelations(value,ziweiPalaceRelationTable(palaces));
  if(label==='partnerChart'&&value&&typeof value==='object'){
   const chart=value as O;
   return {...chart,...('yearlyLuck' in chart?{yearlyLuck:annualYearly(chart.yearlyLuck,chart.palaces)}:{}),...('yearlyTimeline' in chart?{yearlyTimeline:annualYearly(chart.yearlyTimeline,chart.palaces)}:{})};
