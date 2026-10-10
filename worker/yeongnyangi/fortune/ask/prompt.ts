@@ -82,3 +82,26 @@ export const ASK_COUNSEL_PRINCIPLES = '영냥이 상담 원칙: 질문에 대한
 export const ASK_PERIOD_ANSWER_SLOTS = 'questionAnswers의 칸마다 역할이 있다. answer는 질문에 대한 한 줄 답(80~120자). reason은 그 기간의 핵심 흐름과 쉬운 근거, 질문과 맞닿은 구체 장면, 강점과 주의할 패턴(120~180자). timing은 상담 기간의 절대 날짜와 근거의 해상도에서 말할 수 있는 범위·한계(80~120자). action은 그 기간에 바로 할 행동 2~3개(120~180자). review는 그 기간이 지난 뒤 스스로 돌아볼 질문 하나(20~80자)이며, 매일 확인하거나 상담을 더 받으라고 권하지 않고 알림·기록 기능이 있다고 말하지 않는다. 상세 설명은 기존 blocks에서 이어가며 같은 문장을 반복하지 않는다.';
 // Upper targets above (120+180+120+180+80) plus headroom; the pre-period answers keep 480.
 export const ASK_PERIOD_ANSWER_CHARS = 700;
+
+// Prompt copy only: the validator keeps reading the full packet. A six-system ask chapter otherwise sends every
+// value twice (here and in CALCULATED_DATA) plus provenance the F/T ID already implies, past the input limit.
+export const ASK_PROMPT_VIEW_GUIDE = 'askFirstChapter.evidence 항목에 value 대신 valueInCalculatedData가 있으면 그 값은 CALCULATED_DATA.facts에서 id가 source.factId인 사실의 value를 source.path(점으로 구분, 숫자는 배열 순번 0부터, 없으면 전체)로 따라간 값과 같다. source.system이 없으면 source.factId의 점 앞 체계이고, source.contextDomain이 없으면 system과 같고, engineVersion이 없으면 engineVersions의 해당 체계 값이며, subject가 없으면 self다.';
+type AskPrompt = ReturnType<typeof buildAskFirstChapterPrompt>;
+const valueAt = (value: unknown, path: string) => path ? path.split('.').reduce<unknown>((v, key) =>
+  Array.isArray(v) ? (/^\d+$/.test(key) ? v[Number(key)] : undefined) : v && typeof v === 'object' ? (v as Record<string, unknown>)[key] : undefined, value) : value;
+export function askPromptView(prompt: AskPrompt, calculated: { id: string; value: unknown }[]) {
+  const byId = new Map(calculated.map(fact => [fact.id, fact.value]));
+  const entries = [...prompt.evidence.facts, ...prompt.evidence.timing];
+  const engineVersions: Record<string, string> = {};
+  for (const { source } of entries) engineVersions[source.system] ??= source.engineVersion;
+  const view = <T extends AskPrompt['evidence']['facts'][number]>(entry: T) => {
+    const { value, source, subject, ...rest } = entry;
+    const { system, contextDomain, engineVersion, factId, path } = source;
+    const known = byId.has(factId) && value !== undefined && JSON.stringify(valueAt(byId.get(factId), path)) === JSON.stringify(value);
+    return { ...rest, ...(known ? { valueInCalculatedData: true } : { value }),
+      source: { factId, ...(path ? { path } : {}), ...(system !== factId.split('.')[0] ? { system } : {}),
+        ...(contextDomain !== system ? { contextDomain } : {}), ...(engineVersion !== engineVersions[system] ? { engineVersion } : {}) },
+      ...(subject !== 'self' ? { subject } : {}) };
+  };
+  return { ...prompt, engineVersions, evidence: { facts: prompt.evidence.facts.map(view), timing: prompt.evidence.timing.map(view) } };
+}

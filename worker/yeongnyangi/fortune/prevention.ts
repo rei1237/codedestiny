@@ -91,5 +91,36 @@ export function withPreventionReading(manifest:ChapterSpec[],analysis:MasterAnal
 export function preventionFacts(context:DomainContext,chapter:ChapterSpec):Evidence[] {
  if(!hasPrevention(chapter)||chapter.key!=='prevention')return [];
  const fact=context.facts.find(f=>f.label===LABEL);
- return fact?[fact]:[];
+ return fact?[compactPrevention(fact)]:[];
+}
+// 상위 등급 사주 앵커는 대운 전체를 통째로 담아 모듬·오마카세 예방 장이 시도당 입력 상한을 넘었다
+// (2026-10-10 countTokens 실측 MA 51,874·MO 64,725토큰). 주의점 판단(buildPreventionFact periods)은 현재 대운 1개·세운 10년·
+// 월운 12개월만 쓰므로 보낼 때 그 범위만 남긴다: 다른 대운(cycles)과, 세운 행·후보가 따로 싣는 현재 대운의 연도별 해석(annual)을 뺀다.
+// 후보마다 되풀이되는 설명문은 key별로 한 번만 싣는다. 저장된 근거는 그대로 두고 여기서 줄여, 결제 후 멈춘 주문도 같은 코드로 이어진다.
+const GUIDE_FIELDS=['opportunity','burden','observe','action','buffering','limitation'];
+function compactPrevention(fact:Evidence):Evidence {
+ const value=fact.value as Record<string,any>;
+ if(value?.system!=='saju'||!Array.isArray(value.anchors))return fact;
+ const omit=(v:any,keys:string[])=>v&&typeof v==='object'&&!Array.isArray(v)?Object.fromEntries(Object.entries(v).filter(([key])=>!keys.includes(key))):v;
+ // 주의점 후보가 있는 기간은 후보 anchors 가 그 기간의 원국 상호작용을 그대로 싣는다 — 행에서는 빼고 후보가 없는 기간만 남긴다.
+ const covered=new Set((value.saju?.candidates||[]).map((c:any)=>`${c.period?.kind}:${c.period?.year}:${c.period?.month??''}`));
+ const rows=(v:any,limit:number,key:(r:any)=>string)=>Array.isArray(v)?v.slice(0,limit).map(r=>covered.has(key(r))?omit(r,['natalInteractions']):r):v;
+ const periods:Record<string,(v:any)=>any>={
+  majorLuck:v=>{const rest=omit(v,['cycles']);return rest?.currentCycle?{...rest,currentCycle:{...rest.currentCycle,interpretation:omit(rest.currentCycle.interpretation,['annual'])}}:rest;},
+  yearlyLuck:v=>rows(v,10,r=>`year:${r.year}:`),
+  monthlyLuck:v=>rows(v,12,r=>`month:${r.start?.year}:${r.start?.month??''}`),
+ };
+ const anchors=value.anchors.map((a:Evidence)=>periods[a.label]?{...a,value:periods[a.label](a.value)}:a);
+ const compactPacket=(packet:any)=>{
+  if(!Array.isArray(packet?.candidates))return packet;
+  const guides:Record<string,Record<string,unknown>>={};
+  const candidates=packet.candidates.map((c:any)=>{
+   const guide=Object.fromEntries(GUIDE_FIELDS.filter(k=>c[k]!==undefined).map(k=>[k,c[k]]));
+   const id=Object.entries(guides).find(([,g])=>JSON.stringify(g)===JSON.stringify(guide))?.[0]||`${c.key}#${Object.keys(guides).length+1}`;
+   guides[id]=guide;
+   return {...omit(c,GUIDE_FIELDS),guide:id};
+  });
+  return {...packet,candidates,guides,guideRule:'후보의 guide 값은 guides의 같은 키 설명을 가리킨다.'};
+ };
+ return {...fact,value:{...value,anchors,...(value.saju?{saju:compactPacket(value.saju)}:{}),...(value.partner?{partner:compactPacket(value.partner)}:{})}};
 }
