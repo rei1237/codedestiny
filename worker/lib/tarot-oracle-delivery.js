@@ -9,6 +9,7 @@ import { connectDb } from './db.js';
 import { getAmbientAiLocale } from './ai-locale-context.js';
 import { callGeminiText } from './gemini.js';
 import { createHttpError, json } from './http.js';
+import { buildTarotPositionPin, TAROT_SHARED_RULE_BLOCK } from '../../lib/tarot/paid-reading-contract.mjs';
 
 const GENERAL = [
   ['coreQuestion', '질문을 해석하는 기준', 1200], ['bigPicture', '전체 배열의 흐름', 2500],
@@ -34,7 +35,8 @@ function seedOracle(body, env) {
   input.cards.forEach((card, index) => {
     for (let part = 0; part < segments; part += 1) tasks.push({
       id: `card.${index}.${part}`, title: card.positionLabel, cardIndex: index, part,
-      prompt: `${card.index}번 ${card.positionLabel}, ${segments}개 부분 중 ${part + 1}번째 해석. 카드의 정체성과 정역방향을 그대로 유지한다. 포지션 의미와 질문의 실제 조건을 연결한다. 최소 두 문단으로 쓰고 마지막 문단은 이 해석에 따른 현실적인 행동 조언이다.`,
+      prompt: `${card.index}번 ${card.positionLabel}, ${segments}개 부분 중 ${part + 1}번째 해석. 카드의 정체성과 정역방향을 그대로 유지한다. 포지션 의미와 질문의 실제 조건을 연결한다. 최소 두 문단으로 쓰고 마지막 문단은 이 해석에 따른 현실적인 행동 조언이다.\n${buildTarotPositionPin({ label: card.positionLabel, question: card.positionDescription,
+        cards: [{ name: card.card.nameKo, orientation: card.orientation }] })}`,
       minChars: Math.ceil(cardMinimum / segments),
     });
   });
@@ -44,7 +46,7 @@ function seedOracle(body, env) {
   return { input, pairs, segments, tasks, systemPrompt: built.systemPrompt,
     // Keep canonical card/topic facts; the old whole-report JSON/short field limits
     // are replaced by the bounded part contract below.
-    prompt: built.userPrompt.split('[출력 형식]')[0],
+    prompt: `${built.userPrompt.split('[출력 형식]')[0]}\n${TAROT_SHARED_RULE_BLOCK}`,
     minBodyChars: Math.max(20000, resolveOracleConsultationTargetChars(input.cards.length, env)) };
 }
 

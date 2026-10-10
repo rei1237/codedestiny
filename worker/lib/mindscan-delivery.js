@@ -7,6 +7,7 @@ import { normalizeNarrativeParagraphs } from './narrative-format.js';
 import { countPaidReportBodyChars, dropRepeatedReportSentences, hasRepeatedReportPassage } from './paid-report-quality.js';
 import { createHttpError } from './http.js';
 import { bindPaidTarotDraw } from './paid-tarot-draw.js';
+import { buildTarotPositionPin, TAROT_SHARED_RULE_BLOCK } from '../../lib/tarot/paid-reading-contract.mjs';
 
 const paragraphs = value => String(value || '').split(/\n\s*\n/).map(text => text.trim()).filter(Boolean);
 const SUMMARY = ['emotionalTemperatureText', 'corePsychology', 'contactChance', 'relationFlow', 'reApproachChance',
@@ -23,13 +24,14 @@ async function seed(env, userId, body) {
   if (!facts.ok) throw createHttpError(400, '질문과 카드 5쌍을 확인해 주세요.', { reason: facts.reason });
   const tasks = facts.sectionInputs.flatMap((section, index) => FIELDS.map(([key, title]) => ({
     id: `section-${index}-${key}`, title: `${section.positionLabel}: ${title}`, sectionIndex: index, field: key, minChars: 1000,
-    prompt: `${index + 1}번 ${section.positionLabel}의 ${title}만 해설한다. 메인/보조 카드와 정역방향은 확정 입력을 따른다. 최소 두 문단으로 작성한다. 마지막 문단은 ${key === 'meaning' ? '위치의 질문과 연결' : key === 'emotion' ? '숨은 조건과 단정할 수 없는 이유' : '실행할 행동과 확인 기준'}이다.`,
+    prompt: `${index + 1}번 ${section.positionLabel}의 ${title}만 해설한다. 메인/보조 카드와 정역방향은 확정 입력을 따른다. 최소 두 문단으로 작성한다. 마지막 문단은 ${key === 'meaning' ? '위치의 질문과 연결' : key === 'emotion' ? '숨은 조건과 단정할 수 없는 이유' : '실행할 행동과 확인 기준'}이다.\n${buildTarotPositionPin({ label: section.positionLabel, question: section.positionQuestion,
+      cards: [{ role: '메인', name: section.mainCard.nameKo, orientation: section.orientation }, { role: '보조', name: section.subCard.nameKo }] })}`,
   })));
   tasks.push({ id: 'intro', title: '질문의 핵심과 해석 기준', prompt: '질문의 핵심과 일곱 위치를 함께 읽는 기준을 설명한다.', minChars: 1000 },
     { id: 'summary', title: '관계 흐름 종합', prompt: `정확히 열 문단으로 ${SUMMARY.join(', ')}를 순서대로 해설한다. 한 문단은 한 항목이며 항목명/번호 없이 본문만 쓴다. 감정과 연락 가능성을 확정하거나 확률로 만들지 않는다.`, minChars: 2000 },
     { id: 'masterAdvice', title: '현실적인 실천 계획', prompt: '지금의 관계에서 실행할 계획과 중단/재검토 기준을 설명한다.', minChars: 1200 },
     { id: 'closing', title: '마지막 상담 편지', prompt: '전체 조건을 종합해 질문에 답하고 선택의 여지를 남기는 상담 편지를 쓴다.', minChars: 800 });
-  return { ...facts, tasks, minBodyChars: 20000 };
+  return { ...facts, prompt: `${facts.prompt}\n${TAROT_SHARED_RULE_BLOCK}`, tasks, minBodyChars: 20000 };
 }
 function render(state) {
   const text = id => state.parts[id] || '';

@@ -138,3 +138,15 @@ test('a sentence repeated from an earlier card is removed instead of buying a ne
  await start();expect((await finish()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(9);
  expect(Object.values(docs[0].metadata.paidNarrative.parts).join('\n').split(lead)).toHaveLength(2);
 });
+test('every part carries the shared tarot rules and each card part pins its own position, card and orientation',async()=>{
+ const {TAROT_SHARED_RULE_PARAGRAPH}=await import('../../lib/tarot/paid-reading-contract.mjs'),{getTarotCardByAnyId}=await import('../../lib/tarot/tarot-cards.mjs');
+ await start();expect((await finish()).status).toBe(200);
+ const prompts=provider.mock.calls.map(call=>call[1]),rows=docs[0].metadata.paidNarrative.base.reading.positionBreakdown;
+ for(const prompt of prompts)expect(prompt).toContain(TAROT_SHARED_RULE_PARAGRAPH);
+ DRAWN.forEach((card,i)=>{
+  const pin=prompts.find(text=>text.includes(`[이번 부분 card-${i}]`)).match(/\[이 부분의 카드\][^\n]*/)?.[0];
+  expect(pin).toContain(rows[i].positionTitle);
+  expect(pin).toContain(`${getTarotCardByAnyId(card.cardId).nameKo} ${card.orientation==='reversed'?'역방향':'정방향'}`);
+  expect(pin.match(/[정역]방향/g)).toHaveLength(1);
+ });
+});

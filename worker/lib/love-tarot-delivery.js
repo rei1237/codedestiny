@@ -4,6 +4,8 @@ import { buildLoveConsultingHighlights } from '../../lib/tarot/love-reading-norm
 import { buildOutputLanguageDirective } from '../../lib/i18n/ai-locale.js';
 import { runPaidNarrativeDelivery } from './paid-narrative-delivery.js';
 import { bindPaidTarotDraw } from './paid-tarot-draw.js';
+import { buildTarotPositionPin, TAROT_SHARED_RULE_BLOCK } from '../../lib/tarot/paid-reading-contract.mjs';
+import { getTarotCardByAnyId } from '../../lib/tarot/tarot-cards.mjs';
 import { getAmbientAiLocale } from './ai-locale-context.js';
 import { callGeminiText } from './gemini.js';
 import { normalizeNarrativeParagraphs } from './narrative-format.js';
@@ -21,7 +23,8 @@ async function seed(env, userId, body, buildBase) {
   const locale = getAmbientAiLocale() || body.locale || 'ko';
   const base = buildBase(body, locale);
   const tasks = base.reading.positionBreakdown.map((card, index) => ({ id: `card-${index}`, title: card.positionTitle, cardIndex: index, paragraphs: 4, minChars: 3000,
-    prompt: `${index + 1}번 카드만 정확히 네 문단으로 해설한다. 첫 문단은 카드의 상징·방향·포지션 질문을 연결한 구체적인 생활 장면, 둘째 문단은 관계에서 드러나는 감정의 신호와 반대 조건, 셋째 문단은 사용자가 실행할 조언, 넷째 문단은 조심할 조건과 중단·재검토 기준이다. 다른 카드는 이름만 짧게 언급한다.` }));
+    prompt: `${index + 1}번 카드만 정확히 네 문단으로 해설한다. 첫 문단은 카드의 상징·방향·포지션 질문을 연결한 구체적인 생활 장면, 둘째 문단은 관계에서 드러나는 감정의 신호와 반대 조건, 셋째 문단은 사용자가 실행할 조언, 넷째 문단은 조심할 조건과 중단·재검토 기준이다. 다른 카드는 이름만 짧게 언급한다.\n${buildTarotPositionPin({ label: card.positionTitle,
+      cards: [{ name: getTarotCardByAnyId(card.cardId)?.nameKo || card.cardName, orientation: card.orientation }] })}` }));
   tasks.push({ id: 'overview', title: '관계의 온도와 흐름', paragraphs: 3, minChars: 3600,
     prompt: '정확히 세 문단으로 현재 관계의 온도, 겉모습과 속마음의 간극, 현실 조건과 가까운 흐름을 순서대로 여섯 카드의 연결 근거와 함께 해석한다. 카드별 해설을 반복하지 않는다.' });
   tasks.push({ id: 'final', title: '실천과 계획', paragraphs: 4, minChars: 2000,
@@ -29,7 +32,7 @@ async function seed(env, userId, body, buildBase) {
   tasks.push({ id: 'matrix', title: '여섯 카드의 연결과 구성', paragraphs: 8, minChars: 2800,
     prompt: `정확히 여덟 문단으로 ${MATRIX_SCOPE.join(', ')}을 순서대로 해설한다. 고정 입력의 카드와 방향을 바꾸지 않는다.` });
   return { base, tasks, minBodyChars: 20000,
-    prompt: `${buildOutputLanguageDirective(locale)}\n${buildLoveReadingPrompt(base.reading, locale, { userQuestion: body.userQuestion }).split('[리딩 작성 형식]')[0]}` };
+    prompt: `${buildOutputLanguageDirective(locale)}\n${buildLoveReadingPrompt(base.reading, locale, { userQuestion: body.userQuestion }).split('[리딩 작성 형식]')[0]}\n${TAROT_SHARED_RULE_BLOCK}` };
 }
 // Records started before the 9-part layout keep rendering from their 21 part ids.
 function render(state) {

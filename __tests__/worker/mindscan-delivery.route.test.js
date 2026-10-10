@@ -103,3 +103,16 @@ test('prompts carry no evidence hash and a reused card sentence is removed, not 
  expect(provider.mock.calls.some(call=>/[a-f0-9]{64}/.test(call[1]))).toBe(false);
  expect(Object.values(docs[0].metadata.paidNarrative.parts).join('\n').split(lead)).toHaveLength(2);
 });
+test('every part carries the shared tarot rules and each section part pins its own position, cards and orientation',async()=>{
+ const {TAROT_SHARED_RULE_PARAGRAPH}=await import('../../lib/tarot/paid-reading-contract.mjs');
+ await start();expect((await finish()).status).toBe(200);
+ const prompts=provider.mock.calls.map(call=>call[1]),sections=docs[0].metadata.paidNarrative.sectionInputs;
+ for(const prompt of prompts)expect(prompt).toContain(TAROT_SHARED_RULE_PARAGRAPH);
+ expect(sections).toHaveLength(7);
+ sections.forEach((section,i)=>{for(const key of ['meaning','emotion','action']){
+  const pin=prompts.find(text=>text.includes(`[이번 부분 section-${i}-${key}]`)).match(/\[이 부분의 카드\][^\n]*/)?.[0];
+  expect(pin).toContain(section.positionLabel);
+  expect(pin).toContain(`메인 ${section.mainCard.nameKo} ${section.orientation==='reversed'?'역방향':'정방향'}`);
+  expect(pin).toContain(`보조 ${section.subCard.nameKo}`);
+ }});
+});
