@@ -119,3 +119,20 @@ test('heading lines separated by a blank line stay attached to their section', a
   const consult = await deep({}, {});
   expect(consult.text).toBe(`■ 한 문장 요약\n${body}\n\n■ 타고난 성향\n${body}`);
 });
+test('pass read before the background usage record confirms the pass under the same requestId', async () => {
+  await save({}, owner, 'palm-original', result);
+  payment.mockImplementation(async (_env, input) => ({ proven: input.requireExisting ? false : true, source: 'pass' }));
+  try {
+    await expect(read({}, owner, 'palm-original')).rejects.toMatchObject({ status: 403 });
+    const response = await route(new Request('https://mock.test/api/palm/result?requestId=palm-original&accessMethod=pass'), {});
+    expect(response.status).toBe(200);
+    expect(payment.mock.calls.at(-1)[1]).toMatchObject({ requestId: 'palm-original' });
+    expect(payment.mock.calls.at(-1)[1].requireExisting).toBeUndefined();
+    // Reading "the latest reading" without a requestId never spends a pass.
+    payment.mockClear();
+    await expect(read({}, owner, '', 'pass')).rejects.toMatchObject({ status: 403 });
+    expect(payment).toHaveBeenCalledTimes(1);
+  } finally {
+    payment.mockImplementation(async () => ({ proven: proof, source: 'payment' }));
+  }
+});

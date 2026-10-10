@@ -80,7 +80,7 @@ export default function NakshatraCompatClient() {
   const [error, setError] = useState<string | null>(null);
   // 결제는 끝났는데 본문만 못 받은 상태 — 재결제 없이 다시 받을 수 있게 입력을 붙들어 둔다.
   const [canRetry, setCanRetry] = useState(false);
-  const paidRef = useRef<{ a: unknown; b: unknown; requestId: string } | null>(null);
+  const paidRef = useRef<{ a: unknown; b: unknown; requestId: string; accessMethod?: string } | null>(null);
   const busyRef = useRef(false);
   const [loading, setLoading] = useState(false);
   useEffect(() => {
@@ -160,12 +160,13 @@ export default function NakshatraCompatClient() {
     if (!gate || !gate.ok) { setError((gate && gate.message) || copy.compatGateFailedError); return; }
     // 🔴 결제가 끝났다. 여기서부터는 실패해도 재결제를 요구하지 않는다 —
     //    일시 장애는 자동 재시도하고, 그래도 안 되면 '다시 받기'로 같은 결제를 재사용한다.
-    paidRef.current = { a: payload(a), b: payload(b), requestId };
+    // 이용권 통과는 사용 기록을 뒤에서 쓴다 — 서버가 기다리지 않고 같은 requestId 로 이용권을 확정하게 알린다.
+    paidRef.current = { a: payload(a), b: payload(b), requestId, ...(gate.code === "PASS_FREE" ? { accessMethod: "pass" } : {}) };
     await fetchCompat(paidRef.current);
   }
 
   // 결제 뒤의 본문 요청만 담당한다. 결제는 다시 하지 않는다.
-  async function fetchCompat(paid: { a: unknown; b: unknown; requestId: string }) {
+  async function fetchCompat(paid: { a: unknown; b: unknown; requestId: string; accessMethod?: string }) {
     setLoading(true);
     setError(null);
     try {
