@@ -108,3 +108,21 @@ test('the after-period reflection question is kept when sound and dropped, never
   const old=body();old.questionAnswers[0].review='이번 해의 선택을 돌아볼까요?';
   assert.equal('review' in check(old).questionAnswers[0],false);
 });
+test('the ask prompt copy points repeated values at CALCULATED_DATA and keeps every other value and source',async()=>{
+  const {askPromptView}=await import(`data:text/javascript;base64,${Buffer.from((await build({entryPoints:['worker/yeongnyangi/fortune/ask/prompt.ts'],bundle:true,platform:'node',format:'esm',write:false})).outputFiles[0].text).toString('base64')}`);
+  const at=(factId,path,value,extra={})=>({id:'F',label:factId,value,source:{system:factId.split('.')[0],contextDomain:factId.split('.')[0],factId,path,engineVersion:'v1'},subject:'self',...extra});
+  const prompt={version:'ask-first-chapter-v3',questions:[],evidence:{facts:[
+    at('saju.pillars','',{day:'甲子'}),at('astrology.planets','Sun',{sign:11,dignity:'peregrine'}),
+    at('saju.monthlyLuck','1',{pillar:'丁酉'}),at('vedic.lagna','',{sign:3},{subject:'partner'})],
+    timing:[at('saju.yearlyLuck','0',{year:2027},{source:{system:'saju',contextDomain:'saju',factId:'saju.yearlyLuck',path:'0',engineVersion:'daily'}})]}};
+  const calculated=[{id:'saju.pillars',value:{day:'甲子'}},{id:'astrology.planets',value:{Sun:{sign:11,dignity:'중립(페레그린)'}}},
+    {id:'saju.monthlyLuck',value:[{pillar:'丙申'},{pillar:'丁酉'}]},{id:'saju.yearlyLuck',value:[{year:2027}]}];
+  const view=askPromptView(prompt,calculated),[pillars,sun,month,lagna]=view.evidence.facts,[year]=view.evidence.timing;
+  assert.deepEqual(pillars,{id:'F',label:'saju.pillars',valueInCalculatedData:true,source:{factId:'saju.pillars'}});
+  assert.deepEqual(sun.value,{sign:11,dignity:'peregrine'});
+  assert.deepEqual(month,{id:'F',label:'saju.monthlyLuck',valueInCalculatedData:true,source:{factId:'saju.monthlyLuck',path:'1'}});
+  assert.equal(lagna.subject,'partner');
+  assert.deepEqual(year.source,{factId:'saju.yearlyLuck',path:'0',engineVersion:'daily'});
+  assert.deepEqual(view.engineVersions,{saju:'v1',astrology:'v1',vedic:'v1'});
+  assert.deepEqual(prompt.evidence.facts[0].value,{day:'甲子'});
+});
