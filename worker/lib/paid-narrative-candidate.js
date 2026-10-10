@@ -9,20 +9,39 @@ export const NARRATIVE_RESPONSE_SCHEMA = Object.freeze({
 
 // Keep provider prose, removing exact duplicate paragraphs and an unfinished tail.
 // JSON products retain their adapter's validation; never treat JSON syntax as prose.
+// A bold or markdown label paragraph ("**힘을 실어주는 요소:**") introduces the next paragraph.
+const LABEL_PARAGRAPH = /^(?:#{1,6}\s+\S.*|\*\*[^*\n]+\*\*:?)$/u;
+const SENTENCE_DONE = /[.!?。？！]["'”’)\]」』]*\s*$/u;
 export function normalizeNarrativeBody(body) {
   if (typeof body !== 'string' || /^\s*[\[{]/u.test(body)) return body;
-  return [...new Set(body.split(/\n\s*\n/u).map(paragraph => {
+  const paragraphs = [...new Set(body.split(/\n\s*\n/u).map(paragraph => {
     const text = paragraph.trim();
-    if (/[.!?。？！]["'”’)\]」』]*\s*$/u.test(text)) return text;
+    // R6 2026-10-10: a finished sentence followed by a balanced evidence citation "(명궁: … 천동(평))" is complete.
+    if (paragraphComplete(text)) return text;
     const sentences = [...text.matchAll(/[.!?。？！]["'”’)\]」』]*(?=\s|$)/gu)];
     const last = sentences.at(-1);
     return last ? text.slice(0, last.index + last[0].length) : '';
-  }).filter(Boolean))].join('\n\n');
+  }).filter(Boolean))];
+  while (paragraphs.length && LABEL_PARAGRAPH.test(paragraphs.at(-1))) paragraphs.pop();
+  return paragraphs.join('\n\n');
+}
+function paragraphComplete(paragraph) {
+  const text = paragraph.trim();
+  return SENTENCE_DONE.test(text) || LABEL_PARAGRAPH.test(text) || SENTENCE_DONE.test(withoutClosingCitation(text));
+}
+function withoutClosingCitation(text) {
+  if (!/[)）]$/u.test(text)) return '';
+  for (let i = text.length - 1, depth = 0; i >= 0; i--) {
+    if (/[)）]/u.test(text[i])) depth++;
+    else if (/[(（]/u.test(text[i]) && --depth === 0) return text.slice(0, i).trimEnd();
+  }
+  return '';
 }
 export function completeNarrativeBody(body) {
   if (typeof body !== 'string' || hasRepeatedReportPassage(body)) return false;
   const paragraphs = body.trim().split(/\n\s*\n/u).filter(Boolean);
-  return (paragraphs.length > 1 || countPaidReportBodyChars(body) >= 40) && paragraphs.every(text => /[.!?。？！]["'”’)\]」』]*\s*$/u.test(text));
+  return (paragraphs.length > 1 || countPaidReportBodyChars(body) >= 40) && paragraphs.every(paragraphComplete)
+    && !LABEL_PARAGRAPH.test(paragraphs.at(-1).trim());
 }
 
 // A structured adapter passes its own completeness and length (see the delivery

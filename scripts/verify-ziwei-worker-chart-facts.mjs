@@ -216,6 +216,10 @@ ok(
   ok("⑨ 현재 대한 줄에 궁간이 있다", lines.some((line) => line.startsWith("현재 대한:") && line.includes("궁간")), text);
   ok("⑨ 대한사화 줄이 있다", lines.some((line) => line.startsWith("대한사화")), text);
   ok("⑨ 소한 줄이 있다", lines.some((line) => line.startsWith("소한:")), text);
+  // R6 2026-10-10: 기준 연도가 없어 "내년 2026"이 나왔다. 올해·내년 세운이 연이은 연도로 실린다.
+  const yearly = lines.filter((line) => line.startsWith("세운("));
+  const thisYear = Number(yearly[0]?.match(/올해 (\d{4})년/)?.[1]);
+  ok("⑨ 올해·내년 세운 줄이 있다", yearly.length === 2 && Number.isFinite(thisYear) && yearly[1].includes(`내년 ${thisYear + 1}년`), yearly.join("\n"));
 
   // 🔴 삼방사정 회조 줄은 요약본의 flatMap(강약 소실)이 아니라 궁별 brightness 를 다시 읽어야 한다.
   const triadLine = lines.find((line) => line.startsWith("삼방사정 회조")) || "";
