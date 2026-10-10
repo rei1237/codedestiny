@@ -1473,7 +1473,11 @@ async function generateInitialReading(env, input, chart, context, options = {}) 
         && !hasRepeatedReportPassage(text)
         && !validateConsultationQuality(row.text).issues.some(issue => ["raw_leak", "mechanical_label"].includes(issue));
     };
-    const accepted = group => valid(group, rows[group.key]);
+    // A group under minChars gets one length repair within its attempts; after that it is delivered as is
+    // (ai-and-db.md: length shortfall is never fatal). R8 2026-10-10 shipped under 15,000 chars without one.
+    const accepted = group => valid(group, rows[group.key])
+      && (countPaidReportBodyChars(bodies(rows[group.key].text)) >= group.minChars
+        || Boolean(attempts[`${group.key}:lengthRepair`]) || Number(attempts[group.key] || 0) >= 2);
     const pending = VEDIC_SECTION_GROUPS.filter(group => !accepted(group));
     if (pending.some(group => Number(attempts[group.key] || 0) >= 2)) throw Object.assign(new Error("LLM_QUALITY_FAILED"), { code: "LLM_QUALITY_FAILED" });
     const group = pending[0];
@@ -1511,8 +1515,9 @@ async function generateInitialReading(env, input, chart, context, options = {}) 
     }
     const content = mergeVedicGroupPayloads(VEDIC_SECTION_GROUPS.map(group => rows[group.key]).filter(Boolean));
     const complete = VEDIC_SECTION_GROUPS.every(accepted);
-    const quality = validateConsultationQuality(content, { ...qualityOptions, minTotalChars: 0 });
-    // Detailed quality diagnostics are advisory once every group has usable prose.
+    // Detailed quality diagnostics are advisory once every group has usable prose, but a result under
+    // MIN_INITIAL_READING_CHARS must not be recorded as ok.
+    const quality = validateConsultationQuality(content, qualityOptions);
     const first = Object.values(rows)[0];
     return { content, complete, meta: { provider: first?.provider || "", model: first?.model || "", quality, groups: rows, attempts } };
   }

@@ -1828,7 +1828,11 @@ async function generateCheckpointedZiwei(env, { input, chart, logContext, checkp
   const valid = (group, value) => Object.keys(value || {}).some(key => group.sections.includes(key)
     && typeof value[key]?.body === 'string' && countPaidReportBodyChars(value[key].body) >= 40)
     && !hasRepeatedReportPassage(ziweiSectionBody(value)) && !collectZiweiCrossSectionDuplicates(value).length;
-  const accepted = group => valid(group, groups[group.id]);
+  // A group under minChars gets one length repair within its attempts; after that it is delivered as is
+  // (ai-and-db.md: length shortfall is never fatal). R6 2026-10-10 shipped short groups without one.
+  const accepted = group => valid(group, groups[group.id])
+    && (countPaidReportBodyChars(ziweiSectionBody(groups[group.id])) >= group.minChars
+      || Boolean(attempts[`${group.id}:lengthRepair`]) || Number(attempts[group.id] || 0) >= ZIWEI_GROUP_MAX_ATTEMPTS);
   const group = SECTION_GROUP_SPECS.find(row => !accepted(row) || repairIds.includes(row.id));
   if (group) {
     if (Number(attempts[group.id] || 0) >= ZIWEI_GROUP_MAX_ATTEMPTS) {

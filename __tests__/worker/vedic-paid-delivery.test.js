@@ -130,8 +130,9 @@ it("removes a contradictory lagna sentence locally and retains the group", async
   const first = await (await start()).json(); expect(first.consultation.completedGroups).toEqual(["karma_origin"]);
   expect(docs[0].llmMeta.groups.karma_origin.text).not.toContain("황소자리 라그나");
   expect(docs[0].llmMeta.rawResponses.karma_origin).toContain("황소자리 라그나");
-  for(let i=0;i<4;i++)await start();
-  expect(docs[0].status).toBe("completed"); expect(provider).toHaveBeenCalledTimes(5);
+  for(let i=0;i<6 && docs[0].status !== "completed";i++)await start();
+  // The trimmed group falls under minChars, so it gets its one length repair.
+  expect(docs[0].status).toBe("completed"); expect(provider).toHaveBeenCalledTimes(6);
   expect(chart).toHaveBeenCalledTimes(1);
 });
 it("returns independent responses for simultaneous requests with the same key", async () => {
@@ -178,11 +179,11 @@ it("rechecks cancellation after generation and before completing delivery", asyn
   expect((await start()).status).toBe(402); expect(docs[0].status).toBe("delivery_pending"); expect(refund).not.toHaveBeenCalled();
 });
 
-for (const repair of ["shorter", "repeated", "empty", "truncated", "wrong-chart"]) it(`retains a short valid group without a ${repair} repair`, async () => {
+for (const repair of ["shorter", "repeated", "empty", "truncated", "wrong-chart"]) it(`retains a short valid group through one ${repair} repair`, async () => {
   const normal = provider.getMockImplementation();
   provider.mockImplementation(async (...args) => {
     const result = await normal(...args);
-    if (provider.mock.calls.length > 1) {
+    if (provider.mock.calls.length > 2) {
       const parsed = JSON.parse(result.text);
       if (args[2].logContext.group !== "reasoning_flows") for (const [key, row] of Object.entries(parsed.sections)) row.body = prose(key, 4800);
       return { ...result, text: JSON.stringify(parsed) };
@@ -197,8 +198,11 @@ for (const repair of ["shorter", "repeated", "empty", "truncated", "wrong-chart"
   expect((await start()).status).toBe(202);
   const [key] = Object.keys(docs[0].llmMeta.groups); const draft = clone(docs[0].llmMeta.groups[key]);
   for (let i = 0; i < 6 && docs[0].status !== "completed"; i++) await start();
-  expect(docs[0].status).toBe("completed"); expect(docs[0].llmMeta.groups[key]).toEqual(draft);
-  expect(docs[0].llmMeta.attempts[key]).toBe(1); expect(provider).toHaveBeenCalledTimes(5); expect(refund).not.toHaveBeenCalled();
+  expect(docs[0].status).toBe("completed");
+  // A wrong-chart repair is corrected locally (contradicting sentence removed) and adopted because it is longer.
+  if (repair === "wrong-chart") expect(docs[0].llmMeta.groups[key].text).not.toContain("황소자리 라그나");
+  else expect(docs[0].llmMeta.groups[key]).toEqual(draft);
+  expect(docs[0].llmMeta.attempts[key]).toBe(2); expect(provider).toHaveBeenCalledTimes(6); expect(refund).not.toHaveBeenCalled();
 });
 it("trims overlong JSON bodies while retaining keys and scores", async () => {
   const normal = provider.getMockImplementation();
@@ -216,16 +220,19 @@ it("trims overlong JSON bodies while retaining keys and scores", async () => {
     if (group.includeScores) expect(parsed.scores).toEqual({ overall: 70 });
   }
 });
-it("delivers usable short groups without total length regeneration", async () => {
+it("delivers usable short groups after one length repair each", async () => {
   const normal = provider.getMockImplementation();
   provider.mockImplementation(async (...args) => {
     const result = await normal(...args); const parsed = JSON.parse(result.text);
     for (const [key, row] of Object.entries(parsed.sections)) row.body = prose(key, 600);
     return { ...result, text: JSON.stringify(parsed) };
   });
-  for (let i = 0; i < 4; i++) expect((await start()).status).toBe(202);
+  for (let i = 0; i < 12 && docs[0]?.status !== "completed"; i++) expect((await start()).status).not.toBe(503);
   expect((await start()).status).toBe(200);
-  expect(provider).toHaveBeenCalledTimes(5); expect(docs[0].status).toBe("completed");
+  expect(provider).toHaveBeenCalledTimes(9); expect(docs[0].status).toBe("completed");
+  // The reasoning group already meets its 2,600 floor; only the four reading groups get a length repair.
+  for (const group of utils.VEDIC_SECTION_GROUPS) expect(docs[0].llmMeta.attempts[group.key]).toBe(group.includeReasoning ? 1 : 2);
+  expect(docs[0].llmMeta.quality.ok).toBe(false); expect(docs[0].llmMeta.quality.issues).toContain("total_body_too_short");
   expect(refund).not.toHaveBeenCalled();
 });
 

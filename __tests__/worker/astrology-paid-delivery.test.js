@@ -160,7 +160,7 @@ it("discovers the owned pending result after a new login", async () => {
   expect(await (await getPending()).json()).toMatchObject({ sessionId: "" });
 });
 
-for (const repair of ["shorter", "repeated", "empty", "truncated", "throw"]) it(`keeps a valid short draft without requesting ${repair} repair`, async () => {
+for (const repair of ["shorter", "repeated", "empty", "truncated", "throw"]) it(`preserves the longer valid short draft after one ${repair} repair`, async () => {
   const normal = provider.getMockImplementation();
   provider.mockImplementation(async (...args) => {
     const call = provider.mock.calls.length;
@@ -179,8 +179,8 @@ for (const repair of ["shorter", "repeated", "empty", "truncated", "throw"]) it(
   for (let i = 0; i < 4 && docs[0].status !== "completed"; i++) await start();
   expect(docs[0].status).toBe("completed");
   expect(docs[0].llmMeta.sections[key]).toEqual(draft);
-  expect(docs[0].llmMeta.attempts[key]).toBe(1);
-  expect(provider).toHaveBeenCalledTimes(6); expect(refund).not.toHaveBeenCalled();
+  expect(docs[0].llmMeta.attempts[key]).toBe(2);
+  expect(provider).toHaveBeenCalledTimes(7); expect(refund).not.toHaveBeenCalled();
 });
 it("accepts a valid short section on the last attempt after structural failures", async () => {
   const normal = provider.getMockImplementation();
@@ -197,11 +197,13 @@ it("trims overlong sections without rejecting or regenerating them", async () =>
   expect(docs[0].status).toBe("completed"); expect(provider).toHaveBeenCalledTimes(6);
   for (const row of Object.values(docs[0].llmMeta.sections)) expect(countPaidReportBodyChars(row.text)).toBeLessThanOrEqual(6000);
 });
-it("delivers all usable sections below the length target without more calls", async () => {
+it("delivers all usable short sections after one length repair each", async () => {
   provider.mockImplementation(async () => ({ ok: true, provider: "gemini", text: prose(`부족${provider.mock.calls.length}`, 1000) }));
-  for (let i = 0; i < 2; i++) expect((await start()).status).toBe(202);
+  for (let i = 0; i < 14 && docs[0]?.status !== "completed"; i++) expect((await start()).status).not.toBe(503);
   expect((await start()).status).toBe(200);
-  expect(provider).toHaveBeenCalledTimes(6); expect(docs[0].status).toBe("completed");
+  expect(provider).toHaveBeenCalledTimes(12); expect(docs[0].status).toBe("completed");
+  for (const value of Object.values(docs[0].llmMeta.attempts).filter(Number.isFinite)) expect([1, 2]).toContain(value);
+  expect(Object.keys(docs[0].llmMeta.attempts).filter(key => key.endsWith(":lengthRepair"))).toHaveLength(6);
   expect(refund).not.toHaveBeenCalled();
 });
 

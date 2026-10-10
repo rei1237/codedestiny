@@ -1190,7 +1190,11 @@ async function generateSectionedConsultation(env, input, chart, options = {}) {
       && !hasRepeatedReportPassage(text)
       && !getConsultationQualityIssues(text).length;
     const valid = section => validText(section, sections[section.key]?.text || "");
-    const accepted = section => valid(section);
+    // A section under minChars gets one length repair within its attempts; after that it is delivered as is
+    // (ai-and-db.md: length shortfall is never fatal). R7 2026-10-10 shipped short sections without one.
+    const accepted = section => valid(section)
+      && (countPaidReportBodyChars(sections[section.key].text) >= section.minChars
+        || Boolean(attempts[`${section.key}:lengthRepair`]) || Number(attempts[section.key] || 0) >= 2);
     const pending = ASTROLOGY_SECTIONS.filter(section => !accepted(section));
     if (pending.some(section => Number(attempts[section.key] || 0) >= 2)) {
       throw Object.assign(new Error("LLM_QUALITY_CHECK_FAILED"), { code: "LLM_QUALITY_CHECK_FAILED" });
