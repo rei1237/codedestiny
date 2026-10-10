@@ -44,6 +44,7 @@ import {buildConsultationQuality} from '../prompts/domain/consultation-quality';
 import { taskRules } from "../prompts/task/rules";
 import {tokensRequiredForChars} from '../../lib/llm-budget.js';
 import {attachTarotSafetyNotice,buildTarotMasterContract,validateTarotChapter} from '../fortune/tarot/master-reading';
+import {TAROT_POSITION_RULE,TAROT_TIMING_RULE,TAROT_VERDICT_RULE,correctTarotChapter,tarotCardListing,tarotChapterDiscipline,validateTarotDiscipline} from '../fortune/tarot/chapter-discipline';
 import {correctNatalClaims} from '../fortune/saju/natal-claims';
 import {correctZiweiClaims} from '../fortune/ziwei/claims';
 import {sexagenaryYearOfDate} from '../fortune/saju/sexagenary-year';
@@ -110,6 +111,11 @@ export function correctChapterProse(v: ChapterBody, input: ChapterRequest): Chap
   // A 삼합·대궁 pair or a year's 유년사화 is fixed by the palace order and the year's stem (fortune/ziwei/claims.ts).
   const ziwei=input.analysis.contexts?.ziwei?correctZiweiClaims(v,input.locale||'ko'):{body:v,replaced:0,dropped:0};
   if(ziwei.replaced||ziwei.dropped){v=ziwei.body;console.log('[yeongnyangi-ziwei-correction]',JSON.stringify({chapter:input.chapter.ordinal,replaced:ziwei.replaced,dropped:ziwei.dropped}));}
+  // Korean tarot: stored card names, 영냥이's own endings, the first chapter's answer and card-only timing (fortune/tarot/chapter-discipline.ts).
+  const tarot=correctTarotChapter(v,input);
+  if(Object.values(tarot.counts).some(Boolean)){v=tarot.body;console.log('[yeongnyangi-tarot-correction]',JSON.stringify({chapter:input.chapter.ordinal,...tarot.counts}));}
+  const listing=input.analysis.contexts.tarot&&(input.locale||'ko')==='ko'?tarotCardListing(v,input.analysis.contexts.tarot,input.chapter):undefined;
+  if(listing)console.log('[yeongnyangi-tarot-listing]',JSON.stringify({chapter:input.chapter.ordinal,...listing}));
   return v;
 }
 // The fallback delivers a chapter the evidence check rejected (delivery.ts). A chapter system that another block already
@@ -260,6 +266,7 @@ export function validateChapter(
   validateReadingLanguage(v,readingLocale(input.locale));
   validateReadingQuality(v,input.chapter,input.previous,input.locale,{lengthRepair:LENGTH_FAILURES.includes(input.repair?.code||''),...(symbolic&&nativeLocale!=='ko'?{requiredSectionIds:symbolicSectionIds(input.chapter)}:{})});
   if(input.analysis.contexts.tarot)validateTarotChapter(v,input.analysis.contexts.tarot,readingLocale(input.locale));
+  validateTarotDiscipline(v,input);
   if(input.chapter.version===READING_V7_VERSION){
     // v7 has no fixed 'evidence' section: every insight unit carries its own citation, so the rule moves onto
     // the blocks themselves. validateReadingQuality already rejected a block without sources, so what is left
@@ -352,6 +359,9 @@ const REPAIR_INSTRUCTIONS:Record<string,string>={
   ASK_UNSAFE_CLAIM:'F/T 내부 ID를 사용자 문장에 노출하지 않는다. 재회·결혼·성공을 확정하거나 100%라고 말하지 않는다.',
   TAROT_UNDRAWN_CARD:'savedCardsOnly에 없는 카드 이름을 쓰지 않는다. 서버가 저장한 카드만 해석한다.',
   TAROT_ORIENTATION_MISMATCH:'savedCardsOnly의 orientation을 그대로 따른다. 정방향과 역방향을 바꾸지 않는다.',
+  TAROT_POSITION_MISMATCH:TAROT_POSITION_RULE,
+  TAROT_VERDICT_REVERSED:TAROT_VERDICT_RULE,
+  TAROT_UNGROUNDED_TIMING:TAROT_TIMING_RULE,
   CHAPTER_DEPTH_INCOMPLETE:'blocks는 sectionContract의 id를 순서와 개수 그대로 한 번씩 쓴다. sectionContract가 없으면 requiredSections의 모든 제목을 title로 그대로 쓴다.',
   V7_FOREIGN_FACT:'factOwnership.owns의 사실만 이 장에서 새로 해설한다. 다른 장이 소유한 십신·신살·궁·사화·행성·하우스를 끌어와 다시 설명하지 않고, 제공되지 않은 이름은 아예 쓰지 않는다. 지운 자리는 이 장이 소유한 근거의 새 해설로 채운다.',
   V7_ANCHOR_REPEAT:'기준점(일간·일주·신강·신약·오행·명궁·신궁·라그나·나크샤트라·상승점·태양·본명숙·스프레드)은 그 기준점을 소유한 장에서만 설명한다. 이 장에서는 이번 해석을 잇는 한 문장으로만 가리키고 뜻이나 성향을 다시 풀지 않는다.',
@@ -547,6 +557,7 @@ export class StructuredChapterProvider implements FortuneChapterProvider {
         independence:"같은 천문 관측을 공유하는 숙요·베다·점성술은 독립된 세 증거가 아니다. 타로는 질문 당시 상징이며 천문 사실의 교차검증 수에 포함하지 않는다. 근거 일치도는 적중 확률이 아니다.",
         ...(locale!=='ko'&&input.analysis.contexts.tarot?{tarotVocabulary:tarotReadingVocabulary(input.analysis.contexts.tarot,locale)}:{}),
         tarotMaster: input.analysis.contexts.tarot?buildTarotMasterContract(input.analysis.contexts.tarot,input.analysis.question,input.chapter):undefined,
+        tarotDiscipline: tarotChapterDiscipline(input),
         domain: contexts.map((c) => domainRules[c.domain]),
         task: taskRules[input.chapter.theme],
         chapter: input.chapter,
