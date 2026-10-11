@@ -24,7 +24,7 @@ test('paid introductions keep an honest sample in the authored essay or before t
       const essays = [...fragment.querySelectorAll('.craftedDetail')];
       assert.equal(essays.length, detail.crafted.length, `${entry.slug}: every authored edition must be available`);
       detail.crafted.forEach((essay, index) => {
-        assert.ok(essay.panels.some(panel => /편집 예시/.test(panel.text)), `${essay.id}: illustrative sample is labeled`);
+        assert.ok(essay.panels.some(panel => /(?:편집 예시|가상(?: 활용)? 예시)/.test(panel.text)), `${essay.id}: illustrative sample is labeled`);
         assert.match(essays[index].querySelector('.craftedDetailNotice').textContent, /예시/);
         assert.equal(essays[index].querySelectorAll('img').length, essay.panels.length);
         assert.ok([...essays[index].querySelectorAll('img')].every(image => image.getAttribute('alt') === ''), 'full transcript avoids duplicate alt narration');
