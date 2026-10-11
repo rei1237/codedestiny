@@ -14,6 +14,8 @@ next: 기존 main CI 복구 확인 후 이 워크트리 변경을 main에 통합
 
 ## 전달 차단
 
+최종 1회 확인에서는 다른 세션이 main `bddfe0b64deb0ee35eb0b8d20cc06e477e98020d`를 push했고 새 CI https://github.com/rei1237/codedestiny/actions/runs/38151587362 는 `in_progress`였다. 기존 실패의 복구는 아직 확인되지 않았다. CI를 기다리거나 반복 조회하지 않는 지침에 따라 종료하며, 재개 때 이 결과를 먼저 확인한다.
+
 기존 main CI https://github.com/rei1237/codedestiny/actions/runs/38148771754 가 `verify:ziwei-chart-detail-view`에서 실패했다. `js/saju-engine.js:21591 panel.before(questionGuide)`에 대해 `TypeError: panel.before is not a function`이다. 이번 변경은 해당 파일을 수정하지 않았다. 기존 main이 실패 중이면 그 위에 push하지 않는 프로젝트 지침을 적용했다. 다른 세션의 미커밋 변경과 main HEAD는 보존했다. 미통합 변경을 잃지 않도록 워크트리는 유지한다.
 
 ## 진단

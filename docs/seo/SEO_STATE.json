@@ -3180,7 +3180,10 @@
       "prePush": "passed: home-service-registry, public-mirror-fresh, sitemap-drift (962 URLs); initial baseline .ignore mirror omission repaired via sync:public"
     },
     "delivery": {
-      "status": "blocked by pre-existing main CI failure",
+      "status": "awaiting recovery confirmation: prior main CI failed, latest main CI still in progress at final check",
+      "latestMainSha": "bddfe0b64deb0ee35eb0b8d20cc06e477e98020d",
+      "latestMainCiUrl": "https://github.com/rei1237/codedestiny/actions/runs/38151587362",
+      "latestMainCiStatus": "in_progress",
       "baseSha": "aa70afbcd951ab84daab1874b187756c65c05250",
       "ciUrl": "https://github.com/rei1237/codedestiny/actions/runs/38148771754",
       "error": "verify:ziwei-chart-detail-view: TypeError panel.before is not a function",
