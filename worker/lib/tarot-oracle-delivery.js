@@ -14,7 +14,7 @@ import { buildTarotPositionPin, findTarotProseViolation, TAROT_SHARED_RULE_BLOCK
 import { getTarotCardByAnyId } from '../../lib/tarot/tarot-cards.mjs';
 
 // 분량은 가격 대비 목표다(짧아도 완결된 부분은 전달한다). 공통 12부분 5,300자 + 카드 + 짝 400자씩:
-// 3,000원(1~7장) 약 8,300~9,700자, 5,000원(8~14장) 약 12,000~12,800자.
+// 5,000원(1~7장) 약 8,300~9,700자, 10,000원(8~14장) 약 12,000~12,800자. 가격 인상분의 분량 상향은 premium-repricing ④에서 한다.
 const GENERAL = [
   ['coreQuestion', '질문을 해석하는 기준', 500], ['bigPicture', '전체 배열의 흐름', 800],
   ['tension', '카드 사이의 긴장과 반대 조건', 600], ['categoryFocus', '질문 주제에 맞춘 심화 해석', 800],
@@ -24,8 +24,8 @@ const GENERAL = [
   ['action.0', '오늘 실천할 행동과 확인 방법', 200], ['action.1', '일주일 동안 점검할 행동', 200],
   ['action.2', '선택을 다시 검토할 기준', 200],
 ];
-// 카드 전체 목표(코인 가격별): 30코인 3,000자, 50코인 5,500자. 카드당 최소 450자.
-const CARD_BUDGET = { 30: 3000, 50: 5500 };
+// 카드 전체 목표(코인 가격별): 50코인 3,000자, 100코인 5,500자. 카드당 최소 450자.
+const CARD_BUDGET = { 50: 3000, 100: 5500 };
 // A bare title let the closing part restate the whole consultation (B1a).
 const SCOPE = { closingLine: '앞의 해석을 요약해 다시 쓰지 않고, 질문에 대한 마지막 조언과 스스로 확인할 기준만 두세 문단으로 맺는다.' };
 const paragraphs = body => String(body || '').split(/\n\s*\n/).map(value => value.trim()).filter(Boolean);
@@ -37,7 +37,7 @@ function seedOracle(body, env) {
   const built = buildOracleConsultationPrompt({ ...input, locale: getAmbientAiLocale() || body.locale || 'ko', env });
   const tasks = GENERAL.map(([id, title, minChars]) => ({ id, title, prompt: SCOPE[id] ? `${title}: ${SCOPE[id]}` : title, minChars }));
   const cost = FEATURE_KEY_PRICE_TABLE[resolveOracleConsultationTier(input.cards.length).featureKey]?.cost;
-  const cardMinimum = Math.max(450, Math.ceil((CARD_BUDGET[cost] || CARD_BUDGET[50]) / input.cards.length));
+  const cardMinimum = Math.max(450, Math.ceil((CARD_BUDGET[cost] || CARD_BUDGET[100]) / input.cards.length));
   const segments = Math.ceil(cardMinimum / 2200);
   input.cards.forEach((card, index) => {
     for (let part = 0; part < segments; part += 1) tasks.push({

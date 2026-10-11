@@ -130,7 +130,7 @@ test('the delivered oracle consultation passes the eval rubric, and the rubric s
  expect(scoreReading(text,prompt,{id:'oracle-route'}).findings).toEqual([{rule:'fixed-date',detail:'3월 5일'}]);
  expect(provider).toHaveBeenCalledTimes(17);
 });
-// 분량은 가격 대비 목표다: 3,000원(1~7장) 약 9,000자, 5,000원(8~14장) 약 12,000~14,000자.
+// 분량은 가격 대비 목표다: 5,000원(1~7장) 약 9,000자, 10,000원(8~14장) 약 12,000~14,000자.
 test.each([[1,8000,10000],[4,8000,10000],[7,8000,10000],[8,11500,14000],[10,11500,14000],[11,11500,14000],[14,11500,14000]])('%s cards seed part targets within the tier length (%s~%s)',async(count,low,high)=>{
  const {seedTarotOracleNarrative}=await import('../../worker/lib/tarot-oracle-delivery.js');
  const seeded=seedTarotOracleNarrative({...original(),cards:Array.from({length:count},(_,i)=>({cardId:`M${String(i).padStart(2,'0')}`,orientation:'upright',positionLabel:`위치${i+1}`}))},{});
