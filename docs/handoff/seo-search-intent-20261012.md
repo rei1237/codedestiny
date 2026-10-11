@@ -1,7 +1,7 @@
 ---
 status: blocked
 updated: 2026-10-12
-next: 다른 작업의 main CI 복구 확인 후 검증된 SEO 커밋을 main에 통합하고 pre-push 및 push, CI 확인; 승인된 운영 반영 뒤 D0 기록
+next: origin/main의 949be171c 이후 CI 성공 확인 후 승인된 운영 승격 1회 실행; Pages/Worker SHA와 SEO 공개 HTML 확인 후 D0 기록
 ---
 
 # 꿀꿀 사주 검색 의도·사이트맵 실무 인수인계
@@ -73,3 +73,11 @@ next: 다른 작업의 main CI 복구 확인 후 검증된 SEO 커밋을 main에
 - 기본 main 체크아웃은 다른 세션의 미커밋 변경으로 dirty이며 덮어쓰기/초기화/스태시하지 않음. 원격 main 통합 후 로컬 main 동기화와 워크트리 배수 가능 여부를 별도 확인.
 
 - 통합 커밋 `1b79b5dc912b8def3f1caaa11ff0ba0f243a63ff`. check:pre-push 종료0(레지스트리/미러/955 URL 사이트맵). 원격 main push 및 해당 SHA CI/운영 승격은 다음 단계.
+
+## 원격 main 전달 완료
+
+- SEO 통합 SHA `949be171cd867980df77e470bbd45a21fb35af62`를 `git push origin HEAD:main`으로 전달 완료. 기본 main 체크아웃의 다른 세션 변경을 보존하기 위해 기존 워크트리에서 원격 main으로 직접 fast-forward push했다. PR/새 브랜치 없음.
+- 검증 뒤 들어온 `13dc085b5c760cb71c13babb030dd85364488221`은 다른 인수인계 문서 한 줄뿐이며 통합 후 pre-push 재통과.
+- 다음: 최종 원격 main CI 성공 확인 → `gh workflow run "Release Cloudflare Pages and Worker" --ref main -f mode=production` 1회 → 완료된 공개 버전/본문/Article image 확인 → D0 기록. 승격 승인은 이미 받았으며 재요청 불필요. CI/배포 대기 반복폴링 금지는 유지한다.
+- 아직 운영 승격 미실행, D0=null. 실결제·실 LLM·운영 DB 변경 없음. 완료 전이므로 워크트리 유지.
+- 재개 위치: `D:\Development\codedestiny-worktrees\seo-evidence-20261012-20261012-015123`, 문서: `docs/handoff/seo-search-intent-20261012.md`. 현재 HEAD와 원격 main을 확인하고 위 다음 단계부터 진행한다.
