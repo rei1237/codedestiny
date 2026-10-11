@@ -442,3 +442,7 @@ status: active
 ## 천체의 선율 타로
 - 11천체상징질문·개별8항목·통합·12부분저장/복사를10장개별편집. 원본10/native23 최종독립SHIP. 07넘침·02/05제목/10고지고아줄수정.334/364/404/538 clipping/fallback/CTAtrial PASS POST0;Jest34/Node3 PASS.
 - 유료구성114종+공통소개1종1029패널 로컬검수. 직전146109797 pre-pushPASS. mainCI복구질문pending/운영배포없음. 다음말과행동사이타로 실제5쌍/질문/19부분저장구성조사.
+
+## 말과 행동 사이 타로
+- 실제5쌍·질문·19부분저장/공유를10장 개별 편집. 원본10/native23 최종독립SHIP. 제목넘침/summary고아줄/CTA하단여백 수정. 328/358/398/540 clipping/fallback/CTA trial PASS. mock drawPOST1/auth0/other0,실결제없음. Jest47/Node3/typecheck PASS,ESLint0errors16기존warnings.
+- 유료구성115종+공통소개1종1039패널 로컬검수. 직전38b3abb4f pre-pushPASS. main CI 복구질문pending/운영배포없음. 전체/main전달미완료. 다음원석소울 실제규칙형5자리·원석관점·후속질문문구성조사.

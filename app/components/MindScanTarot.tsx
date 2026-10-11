@@ -1,4 +1,5 @@
 "use client";
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import ReviewRewardBanner from "@/app/components/ReviewRewardBanner";
 
 import CardBack from "./TarotCardBack";
@@ -322,12 +323,12 @@ function CardFace({ pos, cardId, copy }: { pos: TarotPos; cardId: number; copy: 
 }
 
 // ── INTRO STAGE ───────────────────────────────────────────────────────────────
-function IntroStage({ onStart, copy }: { onStart: () => void; copy: MindScanTarotCopy }) {
+function IntroStage({ onStart, copy, showDetails }: { onStart: () => void; copy: MindScanTarotCopy; showDetails: boolean }) {
   return (
-    <m.div className="fixed inset-0 flex flex-col items-center justify-center px-6 z-20 overflow-y-auto"
+    <m.div className="fixed inset-0 flex flex-col items-center justify-start px-6 z-20 overflow-y-auto"
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, scale: 0.97 }}
       transition={{ duration: 0.65 }}>
-      <div className="min-h-full w-full max-w-4xl relative flex flex-col items-center justify-center py-14 text-center">
+      <div className="min-h-full w-full max-w-4xl shrink-0 relative flex flex-col items-center justify-center py-14 text-center">
         <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_12%_24%,rgba(34,211,238,0.14),transparent_38%),radial-gradient(circle_at_84%_16%,rgba(196,181,253,0.14),transparent_36%),radial-gradient(circle_at_50%_82%,rgba(244,114,182,0.10),transparent_42%)]" />
         <m.div className={`${COSMIC_PANEL} relative px-6 sm:px-8 py-8 sm:py-10 w-full max-w-3xl`} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}>
           <div className="absolute inset-0 rounded-[1.6rem] border border-cyan-200/10" />
@@ -422,6 +423,7 @@ function IntroStage({ onStart, copy }: { onStart: () => void; copy: MindScanTaro
           {copy.introFooterHint}
         </m.p>
         </m.div>
+        {showDetails && <div className="relative z-10 mt-6 w-full max-w-[540px] text-left"><CraftedProductDisclosure featureKey="tarot-mindscan" summaryLabel="상담 상세 안내 보기" /></div>}
       </div>
     </m.div>
   );
@@ -571,10 +573,10 @@ function SpreadStage({ drawn, drawnSub, revealedCount, readingLoading, readingEr
   const questionReady = String(question || "").trim().length > 0;
 
   return (
-    <m.div className="fixed inset-0 flex flex-col items-center justify-center z-20 overflow-y-auto bg-[radial-gradient(circle_at_24%_14%,rgba(56,189,248,0.10),transparent_35%),radial-gradient(circle_at_76%_16%,rgba(217,70,239,0.11),transparent_34%)]"
+    <m.div className="fixed inset-0 flex flex-col items-center justify-start z-20 overflow-y-auto bg-[radial-gradient(circle_at_24%_14%,rgba(56,189,248,0.10),transparent_35%),radial-gradient(circle_at_76%_16%,rgba(217,70,239,0.11),transparent_34%)]"
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       transition={{ duration: 0.45 }}>
-      <div className="min-h-full w-full max-w-4xl flex flex-col items-center justify-center px-4 py-10">
+      <div className="min-h-full w-full max-w-4xl shrink-0 flex flex-col items-center justify-center px-4 py-10">
 
         {/* Header */}
         <m.div className={`text-center mb-7 w-full max-w-2xl px-5 py-5 ${COSMIC_PANEL}`} initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }}>
@@ -1815,7 +1817,7 @@ export default function MindScanTarot() {
       <StarField />
       <AnimatePresence mode="wait">
         {stage === "intro" && (
-          <IntroStage key="intro" onStart={() => setStage("picking")} copy={copy} />
+          <IntroStage key="intro" onStart={() => setStage("picking")} copy={copy} showDetails={locale === "ko"} />
         )}
         {stage === "picking" && (
           <PickingStage key={`picking-${pickRound}`}

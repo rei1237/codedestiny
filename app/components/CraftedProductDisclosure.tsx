@@ -6,7 +6,7 @@ import type {ComponentProps} from 'react';
 import styles from './crafted-product-disclosure.module.css';
 
 type Detail=ComponentProps<typeof CraftedProductDetail>['detail'];
-function AuthoredDisclosure({id}:{id:string}){
+function AuthoredDisclosure({id,summaryLabel}:{id:string;summaryLabel:string}){
  const [detail,setDetail]=useState<Detail|null>(null);
  const [error,setError]=useState(false);
  const loading=useRef(false);
@@ -19,11 +19,11 @@ function AuthoredDisclosure({id}:{id:string}){
    setDetail(await response.json());
   }catch{setError(true);}finally{loading.current=false;}
  }}>
-  <summary>이 상담을 글과 그림으로 자세히 보기</summary>
+  <summary>{summaryLabel}</summary>
   {detail?<CraftedProductDetail detail={detail}/>:<p role="status">{error?'상세 안내를 불러오지 못했어요. 접었다 다시 펼쳐 주세요.':'상세 안내를 준비하고 있어요.'}</p>}
  </details>;
 }
-export default function CraftedProductDisclosure({featureKey,variant}:{featureKey:string;variant?:string}){
+export default function CraftedProductDisclosure({featureKey,variant,summaryLabel="이 상담을 글과 그림으로 자세히 보기"}:{featureKey:string;variant?:string;summaryLabel?:string}){
  const id=(variant&&craftedVariantProductIds[featureKey]?.[variant])||craftedProductIds[featureKey];
- return id?<AuthoredDisclosure key={id} id={id}/>:null;
+ return id?<AuthoredDisclosure key={id} id={id} summaryLabel={summaryLabel}/>:null;
 }
