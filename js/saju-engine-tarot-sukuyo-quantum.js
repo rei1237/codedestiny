@@ -15841,6 +15841,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       + '</div>'
       // 접힌 채로 시작한다. 비어 있는 것이 맞다 — 펼치기 전에는 조회도 결제도 하지 않으므로
       // 로딩 문구를 두면 아무 일도 안 하면서 무언가 기다리는 것처럼 보인다.
+      + '<div data-crafted-static-offer="sukyo_yearly_fortune_unlock"></div>'
       + '<div id="syYearlyFortuneContent"></div>'
       + '</div>';
   }

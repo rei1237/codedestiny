@@ -4586,25 +4586,61 @@
     },
     {
       "productId": "sukyo_yearly_fortune_unlock",
-      "displayName": "숙요점 1년운 전체 해석 잠금 해제",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
-      "priceSource": "worker/lib/paid-feature-registry.js",
-      "priceSnapshotKRW": 5000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "displayName": "숙요점 1년운",
+      "saleStatus": "숙요 결과의 연도 선택과 실제 해금 버튼 확인",
+      "entry": [
+        "[data-sy-yearly-fortune-card]",
+        "[data-sy-yearly-view] 펼침 후 [data-sy-yearly-unlock]"
       ],
-      "detailAliases": []
+      "priceSource": "worker/lib/paid-feature-registry.js cost50",
+      "priceSnapshotKRW": 5000,
+      "inputRequirements": [
+        "저장 프로필 출생 정보",
+        "대상 연도1900~2100"
+      ],
+      "resultRenderer": [
+        "worker/routes/sukuyo.js buildSukuyoYearlyFortuneResultV2",
+        "js/saju-engine-tarot-sukuyo-quantum.js syRenderSukuyoYearlyFullV2/syRenderSukuyoMonthlyGridV2"
+      ],
+      "actualContents": [
+        "주제/총운/상하반기",
+        "사랑관계/일사업학업/금전/건강마음",
+        "귀인주의인연/숙요핵심/한줄처방",
+        "각월 기준일·월숙·관계·주제·관계·일돈·건강마음·주의 12개월"
+      ],
+      "conditionalItems": [
+        "매월15일정오한국시간 기준 월숙과 본명숙 비교",
+        "내부seed기반점수와 작성문구조합;AI아님",
+        "저장결과구버전은계산근거표시다름",
+        "선택프로필·연도 해금 범위는기존서버계약유지"
+      ],
+      "separatePurchase": [
+        "기본·정밀궁합",
+        "인연도감",
+        "AI질문상담"
+      ],
+      "reviewSource": [
+        "가상편집예시;디지털구매후기사용안함"
+      ],
+      "images": [
+        "/feature-details/crafted/sukuyo-yearly/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "js/core/saju/crafted-product-details.mjs",
+        "js/saju-engine-tarot-sukuyo-quantum.js"
+      ],
+      "verification": [
+        "원본10장독립최종SHIP;3번paint누락은렌더대기로수정",
+        "4폭304/334/374/540경계·로드·오류원고PASS",
+        "정적가이드2·yearlyhydration8·ESLint·구문PASS",
+        "실제10패널·고지·원고·CTA4폭 독립SHIP"
+      ],
+      "unconfirmed": [
+        "main/CI 미확인;실결제/운영조회 미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "tarot-numerology-reading",

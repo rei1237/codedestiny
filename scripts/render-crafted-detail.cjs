@@ -34,7 +34,10 @@ catch {
     const titles = await page.locator('.panel').evaluateAll(ps => ps.map(p => p.querySelector('h1,h2')?.innerText.replace(/\s+/g, ' ').trim()));
     for (let i = 0; i < book.panels.length; i++) {
         const png = path.join(review, book.panels[i].id + '.png');
-        await page.locator('.panel').nth(i).screenshot({ path: png });
+        const panel = page.locator('.panel').nth(i);
+        await panel.evaluate(el => el.scrollIntoView({block: 'start', behavior: 'instant'}));
+        await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+        await panel.screenshot({ path: png });
         await sharp(png).webp({ quality: 93 }).toFile(path.join(output, book.panels[i].id + '.webp'));
     }
     const panels = book.panels.map((p, i) => ({ id: p.id, title: titles[i] || p.title, alt: p.alt, src: `/feature-details/crafted/${id}/${p.id}.webp`, width: 1080, height: 1440, text: texts[i] }));
