@@ -143,6 +143,7 @@
     "verify:birth-scope-client-mirror":"node scripts/verify-birth-scope-client-mirror.mjs",
     "migrate:v2-entitlement-service-keys": "node scripts/migrations/20260813-normalize-v2-entitlement-service-keys.mjs --apply",
     "repair:love-code-unlocks": "node scripts/migrations/repair-love-code-unlocks.mjs",
+    "repair:legacy-saju-profile-unlocks": "node scripts/migrations/20261011-backfill-legacy-saju-profile-unlocks.mjs",
     "verify:v2-entitlement-service-keys": "node scripts/migrations/20260813-normalize-v2-entitlement-service-keys.mjs --check",
     "migrate:fusion-fortune-indexes": "node scripts/migrations/20260804-add-fusion-fortune-indexes.mjs",
     "verify:fusion-fortune-indexes": "node scripts/migrations/20260804-add-fusion-fortune-indexes.mjs --check",
