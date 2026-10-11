@@ -57,6 +57,8 @@ for(const productId of ids)test(`${productId}: engine -> snapshot -> every promp
   assert.deepEqual([...new Set(facts.map(f=>f.id.split('.')[0]))].sort(),[...chapter.systems].sort(),chapter.title);
   const rules=JSON.parse(request.domainRules);
   assert.deepEqual(rules.chapter.factSelectors,chapter.factSelectors);
+  // 4: the asked period goes only to the chapters that answer the question.
+  if(['life','foundation'].includes(chapter.layoutRole))assert.equal(rules.consultation.period,undefined,chapter.title);
   for(const system of chapter.systems){
    const selected=m.selectChapterFacts(snapshot.analysis.contexts[system],chapter);
    assert.ok(selected.length,`${chapter.title}: ${system} facts`);
@@ -108,8 +110,46 @@ for(const productId of ids)test(`${productId}: ask retry keeps the original snap
  const repeated=await m.prepareFortune(env,'owner',body);
  assert.equal(repeated._id,row._id);assert.deepEqual(repeated.snapshot,snapshot);
  assert.deepEqual(repeated.snapshot.manifest[0].systems,repeated.snapshot.product.systems);
+ // 12: the all-system answer chapter is not titled after the first system.
+ assert.match(snapshot.manifest[0].title,/^.+ · 질문에 대한 답과 지금의 흐름$/);
  if(snapshot.analysis.contexts.tarot){
   const cards=snapshot.analysis.contexts.tarot.facts.find(f=>f.label==='cards');
   assert.ok(cards.value.length);assert.deepEqual(repeated.snapshot.analysis.contexts.tarot.facts.find(f=>f.label==='cards'),cards);
  }
+});
+test('life timing chapters see their own year and decade; base pillar ten gods; only self and money chapters add the body palace',async()=>{
+ globalThis.__invariance.rows=new Map();
+ const row=await m.prepareFortune(env,'owner',{productId:'fusion_saju_ziwei',profileId:'self',timezone:'Asia/Seoul',consultationKind:'personal'});
+ const {manifest,analysis:{contexts}}=row.snapshot,year=Number(contexts.saju.calculatedAt.slice(0,4));
+ const facts=(c,system,label)=>m.selectChapterFacts(contexts[system],c).find(f=>f.label===label)?.value;
+ const life=key=>manifest.find(c=>c.key===key),years=rows=>[...new Set((Array.isArray(rows)?rows:[rows]).map(r=>r.year??r.start.year))];
+ for(const [key,target] of [['life-year',year],['life-next-year',year+1]]){
+  assert.deepEqual(years(facts(life(key),'saju','yearlyLuck')),[target],key);
+  assert.deepEqual(years(facts(life(key),'ziwei','yearlyTimeline')),[target],key);
+  const months=facts(life(key),'saju','monthlyLuck');
+  assert.ok(!months||years(months).every(y=>y===target),key);
+ }
+ assert.equal(facts(life('life-next-year'),'ziwei','yearlyLuck'),undefined);
+ const decade=facts(life('life-decade'),'saju','majorLuck');
+ assert.deepEqual(decade.cycles.map(c=>c.index),[decade.currentCycle.index+1]);
+ // 3A: every saju chapter names each pillar's ten gods; the full table stays with the chapters that pick it.
+ const pillarsOf=key=>facts(life(key),'saju','tenGodsByPillar');
+ assert.deepEqual(Object.keys(pillarsOf('life-year').month).sort(),['label','pillar','primaryHiddenTenGod','stemTenGod']);
+ assert.ok(pillarsOf('life-money').month.hiddenStemTenGods.length);
+ // 14A: P1's body palace is 명궁, so move it to a palace no chapter picks; past chapters that take every palace, only self and money chapters then add it.
+ const ziwei=structuredClone(contexts.ziwei);ziwei.facts.find(f=>f.label==='bodyPalace').value='질액궁';
+ const withBody=manifest.filter(c=>c.systems.includes('ziwei')&&!c.factSelectors.ziwei.includes('palaces')&&m.selectChapterFacts(ziwei,c).find(f=>f.label==='palaces')?.value.palaces.some(p=>p.name==='질액궁'));
+ assert.deepEqual(withBody.map(c=>c.key),['self','life-nature','life-money']);
+});
+test('tarot cards carry the time their position means, never a calendar period (9A)',async()=>{
+ globalThis.__invariance.rows=new Map();
+ const row=await m.prepareFortune(env,'owner',{productId:'fusion_astrology_tarot',profileId:'self',timezone:'Asia/Seoul',consultationKind:'personal'});
+ const {manifest,analysis:{contexts}}=row.snapshot,stored=contexts.tarot.facts.find(f=>f.label==='cards').value;
+ const chapter=manifest.find(c=>c.systems.includes('tarot')&&m.selectChapterFacts(contexts.tarot,c).some(f=>f.label==='cards'));
+ const cards=m.selectChapterFacts(contexts.tarot,chapter).find(f=>f.label==='cards').value;
+ const frame=key=>cards.find(c=>c.positionKey===key).timeFrame;
+ assert.equal(frame('current'),'카드를 뽑은 지금 · 달력 시기 아님');
+ assert.match(frame('obstacle'),/^시기가 아닌 자리/);
+ assert.ok(cards.every(c=>/달력 시기 아님$/.test(c.timeFrame)));
+ assert.ok(stored.every(c=>!('timeFrame' in c)));
 });

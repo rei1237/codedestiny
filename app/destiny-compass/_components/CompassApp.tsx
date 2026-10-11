@@ -38,29 +38,33 @@ export function CompassApp({ start = "hub" }: { start?: CompassStep } = {}) {
    * 생년·고민·field 는 세션 스냅샷에서 되살리고, 없으면 false 를 돌려 '지금 열기' 카드로 떨어뜨린다.
    */
   const [resumedStep, setResumedStep] = useState<CompassStep | null>(null);
-  const [resumedCrossroad, setResumedCrossroad] = useState<{ a: string; b: string } | null>(null);
+  const [resumedCrossroad, setResumedCrossroad] = useState<{ a: string; b: string; requestId: string } | null>(null);
+  // 결제 복귀의 결제 requestId — 잎 화면이 보관함 저장 증빙으로 쓴다.
+  const [resumedRequestId, setResumedRequestId] = useState("");
   const [resumedReportGrant, setResumedReportGrant] = useState<PaidResumeGrant | null>(null);
 
-  const buildCrossroadResume = usePaidResume("destiny-compass-crossroads", (args) => {
+  const buildCrossroadResume = usePaidResume("destiny-compass-crossroads", (args, grant) => {
     if (!s.restoreSnapshot()) return false;
     const a = typeof args.a === "string" ? args.a : "";
     const b = typeof args.b === "string" ? args.b : "";
     if (!a.trim() || !b.trim()) return false;
-    setResumedCrossroad({ a, b });
+    setResumedCrossroad({ a, b, requestId: grant?.requestId || "" });
     setResumedStep("crossroad");
     s.setStep("crossroad");
     return true;
   });
 
-  const buildFutureSimResume = usePaidResume("destiny-compass-future-sim", () => {
+  const buildFutureSimResume = usePaidResume("destiny-compass-future-sim", (_args, grant) => {
     if (!s.restoreSnapshot()) return false;
+    setResumedRequestId(grant?.requestId || "");
     setResumedStep("futureSim");
     s.setStep("futureSim");
     return true;
   });
 
-  const buildVoyageResume = usePaidResume("destiny-compass-life-voyage", () => {
+  const buildVoyageResume = usePaidResume("destiny-compass-life-voyage", (_args, grant) => {
     if (!s.restoreSnapshot()) return false;
+    setResumedRequestId(grant?.requestId || "");
     setResumedStep("voyage");
     s.setStep("voyage");
     return true;
@@ -90,6 +94,7 @@ export function CompassApp({ start = "hub" }: { start?: CompassStep } = {}) {
   const clearResumeMarks = useCallback(() => {
     setResumedStep(null);
     setResumedCrossroad(null);
+    setResumedRequestId("");
     setResumedReportGrant(null);
   }, []);
 
@@ -183,6 +188,7 @@ export function CompassApp({ start = "hub" }: { start?: CompassStep } = {}) {
         onBack={() => goStep("result")}
         buildResume={buildFutureSimResume}
         autoRevealed={resumedStep === "futureSim"}
+        resumeRequestId={resumedStep === "futureSim" ? resumedRequestId : ""}
       />
     );
   }
@@ -194,6 +200,7 @@ export function CompassApp({ start = "hub" }: { start?: CompassStep } = {}) {
         onBack={() => goStep("result")}
         buildResume={buildVoyageResume}
         autoRevealed={resumedStep === "voyage"}
+        resumeRequestId={resumedStep === "voyage" ? resumedRequestId : ""}
       />
     );
   }

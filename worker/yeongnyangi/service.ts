@@ -290,6 +290,8 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   // The question chapter may cross every area, so it keeps only the system-forbidden subjects and drops the
   // sibling-chapter titles the catalog excluded. Ownership is untouched: the other chapters still own their facts.
   if(v7){const titles=new Set(manifest.map(c=>c.title));const first=manifest[0] as ChapterSpecV7;first.mustNotCover=first.mustNotCover.filter(t=>!titles.has(t));}
+  // A fusion ask opens with the answer across every system, not the first system's temperament row (12).
+  if(kind?.id==='ask'&&manifest[0].consultationLayout)manifest[0].title=`${analysis.consultation.topicLabel||'지금의 고민'} · 질문에 대한 답과 지금의 흐름`;
   }
   if(spiritInput){
     spiritEvidence(contexts.saju!);

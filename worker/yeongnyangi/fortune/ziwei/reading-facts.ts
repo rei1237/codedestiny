@@ -160,8 +160,21 @@ function annualYearly(entry:unknown,palaces:unknown):unknown{
  const annual=ziweiAnnualTransformations(rest.year,palaces);
  return {...rest,annualStem:annual.stem,annualTransformations:annual.transformations};
 }
+// 궁 순서는 명반마다 같다(ziwei/claims.ts 와 같은 순서). 대궁은 6칸, 삼합은 4·8칸 떨어진 궁이다.
+const PALACE_ORDER=['명궁','형제궁','부부궁','자녀궁','재백궁','질액궁','천이궁','노복궁','관록궁','전택궁','복덕궁','부모궁'];
+/** 12궁 관계표: 궁 이름 → 대궁·삼합 궁 이름(원국 이름). */
+export const ZIWEI_PALACE_RELATIONS:Record<string,{facingPalace:string;trinePalaces:string[]}>=Object.fromEntries(PALACE_ORDER.map((name,i)=>[name,{facingPalace:PALACE_ORDER[(i+6)%12],trinePalaces:[PALACE_ORDER[(i+4)%12],PALACE_ORDER[(i+8)%12]]}]));
+// 대한·유년 행은 그 시기의 명궁이 앉은 원국 궁(palaceName)만 말한다. 그 궁의 대궁·삼합을 원국 이름으로 붙여
+// 시기 명궁 기준의 대궁·삼합을 모델이 다시 세지 않게 한다(2A).
+function withRelations(entry:unknown):unknown{
+ if(Array.isArray(entry))return entry.map(withRelations);
+ if(!entry||typeof entry!=='object'||'facingPalace' in entry)return entry;
+ const relation=ZIWEI_PALACE_RELATIONS[String((entry as O).palaceName)];
+ return relation?{...entry,...relation}:entry;
+}
 function withAnnualTransformations(label:string,value:unknown,palaces:unknown):unknown{
- if(label==='yearlyLuck'||label==='yearlyTimeline')return annualYearly(value,palaces);
+ if(label==='majorLuck')return withRelations(value);
+ if(label==='yearlyLuck'||label==='yearlyTimeline')return withRelations(annualYearly(value,palaces));
  if(label==='partnerChart'&&value&&typeof value==='object'){
   const chart=value as O;
   return {...chart,...('yearlyLuck' in chart?{yearlyLuck:annualYearly(chart.yearlyLuck,chart.palaces)}:{}),...('yearlyTimeline' in chart?{yearlyTimeline:annualYearly(chart.yearlyTimeline,chart.palaces)}:{})};
