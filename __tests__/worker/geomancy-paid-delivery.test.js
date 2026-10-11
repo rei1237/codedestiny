@@ -154,6 +154,7 @@ test('part prompts carry no whole-oracle schema, later parts get the earlier gis
  const prompts=provider.mock.calls.map(call=>call[1]);
  for(const prompt of prompts)expect(prompt).not.toMatch(/JSON 스키마|"keyJudgement"|"answer":""|최소 5~7문장/);
  expect(prompts.at(-1)).toContain('[앞 부분 요지]');
+ const timing=prompts.find(p=>p.includes('[이번 호출 범위] timing:'));expect(timing).toContain('7일·21일·40일을 각각 하나의 점검 단계');expect(timing).toContain('종합 해석을 다시 쓰지 마세요');
  const total=docs[0].metadata.paidNarrative.tasks.reduce((sum,task)=>sum+task.minChars,0);
  expect(total).toBeGreaterThanOrEqual(12000);expect(total).toBeLessThanOrEqual(14000);
 });

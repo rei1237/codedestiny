@@ -107,7 +107,8 @@ export function geomancyNarrativeAdapter(env) {
     reportType: "geomancyOracle",
     produce: async (task, state) => {
       const scope = task.id === "answer" ? "" : " 세 형상의 기본 상징 설명은 앞 부분에서 했으니 반복하지 말고 이번 범위로 바로 들어가세요.";
-      const prompt = `${state.prompt}\n[이번 호출 범위] ${task.id}: ${task.prompt}${narrativePriorDigest(state, task)}\n이번 부분만 JSON {"body":"본문"}로 출력하세요. 제목·목차·마크다운·공백 제외 최소 ${task.minChars}자, 목표 ${Math.ceil(task.minChars * 1.3)}~${Math.ceil(task.minChars * 1.5)}자입니다.${scope} 세 형상의 실제 근거와 적용 조건을 연결하세요. 시간은 실천 점검 시점이며 확정 예언이 아닙니다.`;
+      const timingScope = task.id === "timing" ? "\n7일·21일·40일을 각각 하나의 점검 단계로 쓰세요. 각 단계에는 확인할 현실 자료, 실행할 작은 행동, 중단하거나 수정할 조건을 넣으세요. 형상의 뜻·불의 충동·질문 요약으로 시작하지 말고 '7일 동안'의 행동부터 시작하세요. 세 단계가 끝나면 마무리하며 종합 해석을 다시 쓰지 마세요." : "";
+      const prompt = `${state.prompt}\n[이번 호출 범위] ${task.id}: ${task.prompt}${narrativePriorDigest(state, task)}\n이번 부분만 JSON {"body":"본문"}로 출력하세요. 제목·목차·마크다운·공백 제외 최소 ${task.minChars}자, 목표 ${Math.ceil(task.minChars * 1.3)}~${Math.ceil(task.minChars * 1.5)}자입니다.${scope} 세 형상의 실제 근거와 적용 조건을 연결하세요. 시간은 실천 점검 시점이며 확정 예언이 아닙니다.${timingScope}`;
       const ai = await callGeminiText(env, prompt, { model: clean(env.GEOMANCY_GEMINI_MODEL), temperature: 0.65,
         timeoutMs: Math.min(45000, Math.max(15000, Number(env.GEOMANCY_PROVIDER_TIMEOUT_MS) || 45000)),
         maxOutputTokens: 11000, thinkingBudget: 0, fallbackToWorkersAI: false, responseMimeType: "application/json", responseSchema: NARRATIVE_RESPONSE_SCHEMA });
