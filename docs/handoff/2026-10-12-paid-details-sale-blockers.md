@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-12
-next: 승인된 주역 계산 수정의 검증 기록을 확인하고 main CI 복구 후 통합·push한다. 이후 주역 전용 상세페이지 제작을 이어간다.
+next: 메모리 여유 확보 후 미완료 check:fast와 실패한 check:pre-push를 재검증하고 main CI 복구 후 통합·push한다. 이후 주역 전용 상세페이지 제작을 이어간다.
 ---
 
 # 유료 상세페이지 — 11개 후보 재확인 후 차단 사항
@@ -40,5 +40,7 @@ next: 승인된 주역 계산 수정의 검증 기록을 확인하고 main CI �
 - 가격·이용권·월정석·단건 결제·인증·API·DB·입력·결제 복귀 로직 무변경. 생성 미러·로더·셸 캐시 키를 동기화했다.
 - 단위 회귀 `node --test __tests__/ui/iching-hexagram.test.mjs`: 3/3 통과. 상세페이지 제작·모바일 검수·실결제·실 LLM은 미실행.
 - 계산 수정 커밋: `1a8094a9a89c351d984094057a70dd9aa0b3328d`. 수정 전 커밋의 소스에 같은 회귀 검사를 적용하면 3개 모두 실패함을 확인했다.
-- `npm run check:fast -- --plan`은 critical로 자동 승격했다. 실행 중 내부 `npm test`는 통과(786.6초). 나머지 검사 결과는 종료 후 갱신한다.
+- `npm run check:fast -- --plan`은 critical로 자동 승격했다. 내부 `npm test`는 통과(786.6초). 프로필·인증·결제 선택·휴대폰 동의 등 추가 가드까지 통과했으나, 아래 메모리 오류 확인 후 이번 검사 프로세스 트리만 중단했다. 전체 check:fast 통과로 보고하지 않는다.
+- 커밋된 clean 트리에서 `npm run check:pre-push`: home-service-registry 통과, public-mirror-fresh 생성기에서 `fatal error: out of memory allocating heap arena map`으로 실패. sitemap-drift 단계는 미실행. 소스/public 주역 엔진의 바이트 일치는 별도 확인했다. 앞서 `npm run sync:public`은 두 번 완료했다.
+- `git diff --check` 통과. 로컬 전체 검사·미러 신선도는 메모리 여유 확보 후 재실행해야 한다. 실패를 우회하지 않으며 운영 배포도 실행하지 않았다.
 - 현재 전달 차단: main `bddfe0b64deb0ee35eb0b8d20cc06e477e98020d`, CI 38151587362 실패. `Verify ziwei chart detail view and compatibility card`의 기존 오류이며 이번 주역 변경을 push하지 않는다. 워크트리는 미전달 변경 보존을 위해 유지한다.
