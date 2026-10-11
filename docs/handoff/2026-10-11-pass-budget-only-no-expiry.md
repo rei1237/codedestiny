@@ -1,7 +1,7 @@
 ---
-status: active
+status: done
 updated: 2026-10-11
-next: "1단계(만료 판정 단일화)부터 시작한다. 작업은 새 worktree 브랜치에서 하고, main 의 미커밋 변경은 건드리지 않는다."
+next: "완료. 운영 마이그레이션 dry-run·--apply 는 사용자 승인 대기(결과 절)."
 ---
 
 # 이용권 기간 제거: 한도 소진으로만 중지 + 프로필 상한 제거
@@ -94,13 +94,13 @@ next: "1단계(만료 판정 단일화)부터 시작한다. 작업은 새 worktr
 
 ## 단계
 
-- [ ] 1. 활성 판정 헬퍼·사이클 키 분리·종료 필드 변경(worker/lib/profile-limits.js, payments/passes.js). 옛 문서 호환 읽기 테스트.
-- [ ] 2. 구매·선물·앱·해외카드·dev 경로에서 만료 계산 제거와 재구매 규칙.
-- [ ] 3. 환불·소진 복구를 한도 기준으로.
-- [ ] 4. 프로필 상한 제거(canAddProfile, maxProfiles/profileLimit 응답과 클라 분기).
-- [ ] 5. 마이그레이션 스크립트(dry-run 기본).
-- [ ] 6. 문구·약관·문서, 생성물 재생성.
-- [ ] 7. 테스트·검증기 갱신, 아래 '완료 확인' 전부 통과.
+- [x] 1. 활성 판정 헬퍼·사이클 키 분리·종료 필드 변경(worker/lib/profile-limits.js, payments/passes.js). 옛 문서 호환 읽기 테스트.
+- [x] 2. 구매·선물·앱·해외카드·dev 경로에서 만료 계산 제거와 재구매 규칙.
+- [x] 3. 환불·소진 복구를 한도 기준으로.
+- [x] 4. 프로필 상한 제거(canAddProfile, maxProfiles/profileLimit 응답과 클라 분기).
+- [x] 5. 마이그레이션 스크립트(dry-run 기본).
+- [x] 6. 문구·약관·문서, 생성물 재생성.
+- [x] 7. 테스트·검증기 갱신, 아래 '완료 확인' 전부 통과.
 
 ## 완료 확인
 
@@ -115,4 +115,19 @@ next: "1단계(만료 판정 단일화)부터 시작한다. 작업은 새 worktr
 
 ## 결과
 
-(작업 후 커밋 SHA, 테스트 수, dry-run 수치, 후속 항목을 여기에 적는다.)
+2026-10-11 완료. 커밋: 6ad346571(1~5단계 서버·마이그레이션), 067748135(6·7단계 문구·이름·검증기), 686dc83b4(origin/main 병합·캐시 핀·환불 테스트 시각 비교 보정).
+
+- 검증: `npm run check:critical`·`npm run check:fast` 통과(jest 378 스위트 / 5718 테스트). `npm run i18n:check`, verify-pass-tier-policy·verify-billing-pass-policy·verify-payment-copy-dictionary·verify-payment-choice-parity·verify-payment-freeze·sitemap:check 통과.
+- 설계 편차: 'active 플래그' 대신 **만료일 센티널**을 썼다. 새 이용권의 `expiresAt` 은 활성화 + 100년(`PASS_OPEN_ENDED_MS`)이고, 남은 기간이 10년을 넘으면 기간 없음으로 본다(`isOpenEndedPassExpiry`). 그래서 기존 `expiresAt > now` 판정·사이클 키·소진 CAS 는 그대로 두었다. 위 '완료 확인'의 "`expiresAt > now` 직접 비교 0건"은 이 설계에서는 적용하지 않는다.
+- 환불 회수: 기간 되감기 대신 그 주문이 더한 한도를 빼고, 남은 한도로 열 수 있는 게 없으면 free 로 내린다(`buildPassRefundRevokeFields`, 이때 `expiresAt = 회수 시각`).
+- 마이그레이션 `scripts/migrations/20261011-pass-open-ended-expiry.mjs`: `--self-test` 만 확인했다. 🔴 운영 dry-run·`--apply` 는 사용자 승인 대기다(새 코드 배포 → 백업 → dry-run → `--apply --expect <n>`). 그 전까지 옛 활성 이용권은 원래 만료일에 끝난다.
+- 이름 변경(사용자 승인 '꿀단지 크기' 안, 표시 이름만): standard=작은 꿀단지, premium=중간 꿀단지, vvip=큰 꿀단지, family=패밀리 꿀단지(en Small/Medium/Large/Family Honey Jar). 등급 ID·앱 SKU `cd_pass_*_30d_vN`·가격·한도 불변. 서버의 이름 기반 등급 인식(profile-limits tierFromValue·billing.js 별칭·fortune.js·pass-verdict normalizeTier)은 옛 이름을 그대로 인식한다.
+
+### 후속(범위 밖)
+
+- 운영 마이그레이션 dry-run·`--apply`(사용자 승인 필요). Play Console 상품 제목은 콘솔에서 직접 바꿔야 한다(docs/play-console-submission-values.md 참고).
+- 약관 법무 검토: "유효한 이용권 계약기간 동안", "이용권 기간 연장" 잔여 표현, 약관 한도 숫자(30/100/200/500k)와 정책 불일치, family "10회" 조항, `TERMS_EFFECTIVE_DATE` 미갱신, 비-CJK legalContent 영어 폴백.
+- isPassPolicyMix: 옛 정책 이용권이 활성인 동안 새 정책 이용권을 살 수 없다(소진해야 한다).
+- worker/routes/payments.js `SUBSCRIPTION_BASE_PLANS` 상품명 "30일"(호출부 없음), PaymentProcessingContext 레거시 메시지 정규식.
+- verify-play-console-products `_vN` SKU 불일치, `_moduleCopy-skeleton` 번역 누락이 `i18n-merge-authored --core` 를 막음.
+- goldenPackages 옛 금액, en notAutoBilling 불일치, 미사용 키 payment.passShop.profileUnlimited, featurePreview.paywall.passActive* "프리미엄 이용권" 표기, fusion_fortune FAQ 비-ko 옛 문구, PointsClient 의 en 화면 ko 이름 표시(:2443)·family 분기 없음(:4963), goldenGrainBalanceText 자리표시자, docs/purchase-journey/inventory.json 미재생성.
