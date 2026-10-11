@@ -495,3 +495,7 @@ status: active
 ## 타로 오라클 5~7장
 - 마음·외부조건을구분하는실제5장자리/7장차이/가상연락사례9장개별편집.원본9/native22독립SHIP,328/358/398/540 clipping/fallback/배열전환/5장뽑기/CTAtrial PASS,POST0.공유로직직전Jest47/oracle mock PASS.
 - 유료구성128종+공통소개1종1158패널로컬검수.직전cc7f30d31 pre-pushPASS.전체/main미완료,엔진운영미배포.다음8~10장원본검수중.
+
+## 타로 오라클 8~10장 / 11~14장
+- 켈틱크로스과거·태도·환경,12/14장방향·행동자리로각9장개별편집.각원본9/native22최종독립SHIP;328/358/398/540 clipping/fallback/실제10·14장뽑기/CTAtrial PASS;POST0.공유로직직전Jest47/oracle mock PASS.
+- 유료구성130종+공통소개1종1176패널로컬검수.직전c2e583972 pre-pushPASS(미러PASS/sitemap config재생성후amend).전체/main미완료,엔진운영미배포.다음운명의지도3개규칙형해금+별도AI심층조사.
