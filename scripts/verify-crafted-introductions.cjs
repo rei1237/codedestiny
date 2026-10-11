@@ -17,7 +17,7 @@ async function capture(page,id,surface,detail,cta){
   let index=0;
   for(const img of await detail.locator('img').all()){
    await img.evaluate(el=>el.scrollIntoView({block:'center'}));await img.evaluate(el=>el.decode());
-   if(width===360&&[0,4,9].includes(index))await page.screenshot({path:out+'/panel-'+(index+1)+'-360.png'});
+   if(width===360&&(['animal-destiny','animal-totem-basic','animal-totem-deep'].includes(id)||[0,4,9].includes(index)))await page.screenshot({path:out+'/panel-'+(index+1)+'-360.png'});
    index++;
   }
   await detail.locator('.craftedDetailNotice').evaluate(el=>el.scrollIntoView({block:'center'}));await page.screenshot({path:out+'/notice-'+width+'.png'});
@@ -35,7 +35,7 @@ async function capture(page,id,surface,detail,cta){
  console.log(id,surface,rows.map(r=>[r.width,r.images[0].width]));
 }
 (async()=>{const browser=await chromium.launch();try{
- for(const [slug,ids] of (process.argv.includes('--popups-only')?[]:[['life-book-ai',['life-book']],['love-secret-ai',['love-secret']],['master-love-codex',['master-love-codex','master-love-codex-compat']],['fusion-fortune',['fusion-fortune']],['fortune-chat',['chat-yeoni','chat-neo']],['neo-operation-room',['neo-operation-room']],['fortune-tea-house',['tea-saju','tea-saju-compat','tea-sukuyo','tea-tarot-three','tea-tarot-five']]])){
+ for(const [slug,ids] of (process.argv.includes('--popups-only')?[]:[['animal-destiny',['animal-destiny']],['animal-totem',['animal-totem-basic','animal-totem-deep']],['life-book-ai',['life-book']],['love-secret-ai',['love-secret']],['master-love-codex',['master-love-codex','master-love-codex-compat']],['fusion-fortune',['fusion-fortune']],['fortune-chat',['chat-yeoni','chat-neo']],['neo-operation-room',['neo-operation-room']],['fortune-tea-house',['tea-saju','tea-saju-compat','tea-sukuyo','tea-tarot-three','tea-tarot-five']]])){
   for(const [index,id] of ids.entries()){
    if(requested&&requested!==id)continue;
    const p=await setup(browser);await p.goto(origin+'/features/'+slug+'/',{timeout:120000});

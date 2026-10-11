@@ -40,7 +40,10 @@
     "yeongnyangi-fusion-saju-ziwei": "yeongnyangi-fusion-saju-ziwei",
     "yeongnyangi-fusion-sukuyo-vedic": "yeongnyangi-fusion-sukuyo-vedic",
     "yeongnyangi-fusion-astrology-tarot": "yeongnyangi-fusion-astrology-tarot",
-    "yeongnyangi-fusion-all": "yeongnyangi-fusion-all"
+    "yeongnyangi-fusion-all": "yeongnyangi-fusion-all",
+    "animal-destiny-unlock": "animal-destiny",
+    "animal-totem-basic": "animal-totem-basic",
+    "animal-totem-deep": "animal-totem-deep"
   },
   "introductions": {
     "fusion-fortune": [
@@ -69,6 +72,13 @@
     "fortune-chat": [
       "chat-yeoni",
       "chat-neo"
+    ],
+    "animal-destiny": [
+      "animal-destiny"
+    ],
+    "animal-totem": [
+      "animal-totem-basic",
+      "animal-totem-deep"
     ]
   },
   "variants": {

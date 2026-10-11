@@ -7,72 +7,163 @@
     {
       "productId": "animal-destiny-unlock",
       "displayName": "십이운성 동물점 해금",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "saleStatus": "기존홈카드·결제진입소스확인",
+      "entry": [
+        "js/core/saju/reportDashboard.js 유료tile해금",
+        "/saju/animal-destiny/",
+        "/features/animal-destiny/"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 5000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "inputRequirements": [
+        "생년월일·양력/음력·윤달",
+        "출생시간선택;시간미상시시주제한",
+        "상대비교는상대정보별도입력"
       ],
-      "detailAliases": []
+      "resultRenderer": [
+        "app/saju/animal-destiny/components/AnimalResultScreen.tsx",
+        "app/saju/animal-destiny/components/TwelveAnimalTabs.tsx"
+      ],
+      "actualContents": [
+        "대표동물·네기둥운성·리듬",
+        "핵심성향/강약/연애관계/일돈/반복/오해/스트레스/오늘/동반/성장10탭",
+        "성격연애직업재물관계오늘6사주설명",
+        "성장루틴·도감·조언",
+        "상대입력후비교·요약이미지저장공유"
+      ],
+      "conditionalItems": [
+        "직접라우트와기존유료타일진입구분;가격정책변경없음",
+        "동반유형과상대비교구분;시간미상시제한"
+      ],
+      "separatePurchase": [
+        "요약이미지저장은PDF리포트아님"
+      ],
+      "reviewSource": [],
+      "images": [
+        "/feature-details/crafted/animal-destiny/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "content/product-details/catalog.json",
+        "public/feature-details/animal-destiny.json"
+      ],
+      "verification": [
+        "원본24장·소개24패널/18CTA고지/3원고독립SHIP",
+        "4폭load/bounds/fallbackPASS",
+        "기존소개/복구17검사PASS",
+        "mock토템실렌더회귀PASS"
+      ],
+      "unconfirmed": [
+        "main전달·CI및운영노출미확인;실결제실LLM미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "animal-totem-basic",
       "displayName": "애니멀 토템",
-      "saleStatus": "진입 확인·구성 대조 중",
+      "saleStatus": "기존홈카드·결제진입소스확인",
       "entry": [
-        "/index.html?action=openAnimalTotemModal"
+        "index.html openAnimalTotemModal → 질문 → 의식선택",
+        "/features/animal-totem/"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 3000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
+      "inputRequirements": [
+        "질문300자또는건너뛰기",
+        "로그인·선택모드"
+      ],
+      "resultRenderer": [
+        "js/animal-totem-experience.js renderConsultation/renderCardPanel/renderNarrativePanel"
+      ],
+      "actualContents": [
+        "one:오늘수호메시지1자리;실천5개",
+        "three:과거상처/현재에너지/통합방향;실천3개씩",
+        "동물별본질/속삭임/실천/리추얼/저널링/그림자/확언",
+        "AI전체질문해설·카드연결·행동계획"
+      ],
+      "conditionalItems": [
+        "AI연결해설과정적카드본문구분",
+        "준비된동물카드+성좌시길;삽화는분위기용",
+        "중단시같은요청재개;실제LLM미검증"
+      ],
+      "separatePurchase": [
+        "one/three/five중선택;한번에모든모드제공아님"
+      ],
       "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
+      "images": [
+        "/feature-details/crafted/animal-totem-basic/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "content/product-details/catalog.json",
+        "public/feature-details/animal-totem.json"
+      ],
+      "verification": [
+        "원본24장·소개24패널/18CTA고지/3원고독립SHIP",
+        "4폭load/bounds/fallbackPASS",
+        "기존소개/복구17검사PASS",
+        "mock토템실렌더회귀PASS"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "main전달·CI및운영노출미확인;실결제실LLM미실행"
       ],
       "detailAliases": [
         "animal-totem"
-      ]
+      ],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "animal-totem-deep",
       "displayName": "애니멀 토템 심화 리딩",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "saleStatus": "기존홈카드·결제진입소스확인",
+      "entry": [
+        "index.html openAnimalTotemModal → 질문 → 의식선택",
+        "/features/animal-totem/"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 3000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "inputRequirements": [
+        "질문300자또는건너뛰기",
+        "로그인·선택모드"
       ],
-      "detailAliases": []
+      "resultRenderer": [
+        "js/animal-totem-experience.js renderConsultation/renderCardPanel/renderNarrativePanel"
+      ],
+      "actualContents": [
+        "five:이성/감정/그림자/잠재선물/다음행동",
+        "동물별7레이어·실천3개씩",
+        "AI질문답·카드연결·그림자선물통합·행동계획"
+      ],
+      "conditionalItems": [
+        "AI연결해설과정적카드본문구분",
+        "준비된동물카드+성좌시길;삽화는분위기용",
+        "중단시같은요청재개;실제LLM미검증"
+      ],
+      "separatePurchase": [
+        "one/three/five중선택;한번에모든모드제공아님"
+      ],
+      "reviewSource": [],
+      "images": [
+        "/feature-details/crafted/animal-totem-deep/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "content/product-details/catalog.json",
+        "public/feature-details/animal-totem.json"
+      ],
+      "verification": [
+        "원본24장·소개24패널/18CTA고지/3원고독립SHIP",
+        "4폭load/bounds/fallbackPASS",
+        "기존소개/복구17검사PASS",
+        "mock토템실렌더회귀PASS"
+      ],
+      "unconfirmed": [
+        "main전달·CI및운영노출미확인;실결제실LLM미실행",
+        "기존서버MODE_SPEC.coinPrice50과가격정본/client30차이존재;증빙조회통과후pass분기에사용. 범위밖결제코드는변경하지않음"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "astro_basic_deep_pack",

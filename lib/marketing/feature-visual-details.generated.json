@@ -1937,7 +1937,7 @@
             },
             {
               "id": "06-a-conversation-example",
-              "title": "말을 더 하는 대신, 대화의 시간을 약속한다면.",
+              "title": "다그치기보다, 대화 시간을 정한다면.",
               "alt": "즉시 대화를 원하는 사람과 시간이 필요한 사람이 구체적인 재대화 시점을 정하는 편집 예시.",
               "src": "/feature-details/crafted/tea-saju-compat/06-a-conversation-example.webp",
               "width": 1080,
@@ -2671,7 +2671,7 @@
             },
             {
               "id": "06-continue-with-context",
-              "title": "다음 질문은, 앞의 대답에서 더 구체적으로.",
+              "title": "이어서 물을수록, 더 구체적인 질문으로.",
               "alt": "최근 일부 대화를 이어받되 추천질문 전송은 새 답변의 조건 확인이라는 안내.",
               "src": "/feature-details/crafted/chat-neo/06-continue-with-context.webp",
               "width": 1080,
@@ -5831,6 +5831,88 @@
           }
         ]
       },
+      "crafted": [
+        {
+          "id": "animal-destiny",
+          "featureKey": "animal-destiny-unlock",
+          "title": "십이운성 동물점",
+          "notice": "사주의 십이운성을 동물 캐릭터로 풀어 읽는 콘텐츠입니다. 띠 동물이나 실제 동물의 성격 검사와는 다릅니다. 생년월일과 양력·음력 구분을 입력하며, 출생시간을 모르면 비워둘 수 있습니다. 시간 미상에서는 시주 해석이 제한됩니다. 동반 에너지는 유형 안내이고 상대와의 비교는 상대 정보 입력 후 확인합니다. 예시는 가상 편집이며 카드 이미지 저장은 전체 리포트 PDF 제공을 뜻하지 않습니다. 기존 진입 화면의 이용 조건을 따릅니다.",
+          "panels": [
+            {
+              "id": "01-your-own-pace",
+              "title": "남의 속도를 따라가다, 내 강점을 놓쳤다면.",
+              "alt": "남의 속도를 따라가다, 내 강점을 놓쳤다면.",
+              "src": "/feature-details/crafted/animal-destiny/01-your-own-pace.webp",
+              "width": 1080,
+              "height": 1440,
+              "text": "남의 속도를 따라가다,\n내 강점을 놓쳤다면.\n\n사주의 십이운성을 동물의 언어로 풀어\n나답게 힘을 쓰는 방식을 살펴보세요.\n\n십이운성 동물점 · 운명의 동물 도감"
+            },
+            {
+              "id": "02-energy-not-rank",
+              "title": "누가 더 센지보다, 어떻게 힘을 쓰는지.",
+              "alt": "누가 더 센지보다, 어떻게 힘을 쓰는지.",
+              "src": "/feature-details/crafted/animal-destiny/02-energy-not-rank.webp",
+              "width": 1080,
+              "height": 1440,
+              "text": "누가 더 센지보다,\n어떻게 힘을 쓰는지.\n펼치는 힘\n\n시작하고 역할을 넓히는 방향\n\n다듬는 힘\n\n속도를 낮추고 안쪽을 정리하는 방향\n\n다시 준비하는 힘\n\n자원을 모아 다음 변화를 맞는 방향\n\n십이운성은 기운의 열두 단계를 뜻해요.\n좋은 동물·나쁜 동물로 순위를 매기지 않아요."
+            },
+            {
+              "id": "03-four-pillar-map",
+              "title": "하나의 동물 뒤에는, 네 기둥의 근거가 있어요.",
+              "alt": "하나의 동물 뒤에는, 네 기둥의 근거가 있어요.",
+              "src": "/feature-details/crafted/animal-destiny/03-four-pillar-map.webp",
+              "width": 1080,
+              "height": 1440,
+              "text": "하나의 동물 뒤에는,\n네 기둥의 근거가 있어요.\n대표 동물\n\n일주의 십이운성을 중심으로\n나의 대표 캐릭터를 만나요.\n\n년·월·일·시의 네 기둥\n\n각 기둥의 운성과 동물을 비교하며\n어느 리듬이 드러나는지 살펴요.\n\n띠만 보고 정하는 동물점이 아니에요.\n사주에서 읽은 기세를 캐릭터로 풀어요.\n\n출생시간을 모르면 시주 설명은 제한돼요."
+            },
+            {
+              "id": "04-ten-reading-doors",
+              "title": "캐릭터 소개에서, 내 생활의 패턴까지.",
+              "alt": "캐릭터 소개에서, 내 생활의 패턴까지.",
+              "src": "/feature-details/crafted/animal-destiny/04-ten-reading-doors.webp",
+              "width": 1080,
+              "height": 1440,
+              "text": "캐릭터 소개에서,\n내 생활의 패턴까지.\n나를 이해하는 다섯 갈래\n\n핵심 성향 · 강점과 약점\n연애와 인간관계 · 일과 재물 감각\n반복 패턴\n\n생활로 옮기는 다섯 갈래\n\n자주 생기는 오해 · 스트레스 패턴\n오늘의 실전 조언 · 동반 에너지\n성장 미션\n\n결과의 열 가지 상세 해석 탭을 따라 읽어요."
+            },
+            {
+              "id": "05-from-pattern-to-practice",
+              "title": "일할 때와 사랑할 때, 다른 모습도 연결해요.",
+              "alt": "일할 때와 사랑할 때, 다른 모습도 연결해요.",
+              "src": "/feature-details/crafted/animal-destiny/05-from-pattern-to-practice.webp",
+              "width": 1080,
+              "height": 1440,
+              "text": "일할 때와 사랑할 때,\n다른 모습도 연결해요.\n사주 근거를 곁들인 설명\n\n성격 · 연애 · 직업 · 재물\n인간관계 · 오늘의 조언\n\n작은 성장 루틴\n\n일상에서 시도할 미션과\n오늘의 조언을 남겨요.\n\n동물 도감\n\n다른 동물의 성향을 함께 보며\n내 리듬을 비교해봐요.\n\n오늘의 조언은 특정 사건을 보장하지 않아요."
+            },
+            {
+              "id": "06-when-there-is-a-partner",
+              "title": "잘 맞는 유형과, 두 사람의 비교는 달라요.",
+              "alt": "잘 맞는 유형과, 두 사람의 비교는 달라요.",
+              "src": "/feature-details/crafted/animal-destiny/06-when-there-is-a-partner.webp",
+              "width": 1080,
+              "height": 1440,
+              "text": "잘 맞는 유형과,\n두 사람의 비교는 달라요.\n동반 에너지 안내\n\n나와 어울리는 유형을 살펴요.\n특정 상대의 마음을 뜻하지 않아요.\n\n상대 정보 입력 후\n\n두 사람의 동물과 관계 흐름을\n비교하는 결과를 확인해요.\n\n다름을 점수로만 받아들이기보다,\n서로 맞출 생활의 조건을 찾아보세요.\n\n상대 정보 없이 궁합을 확정하지 않아요."
+            },
+            {
+              "id": "07-fictional-hamster",
+              "title": "모으는 힘이 있다면, 쌓아둔 것을 써보세요.",
+              "alt": "모으는 힘이 있다면, 쌓아둔 것을 써보세요.",
+              "src": "/feature-details/crafted/animal-destiny/07-fictional-hamster.webp",
+              "width": 1080,
+              "height": 1440,
+              "text": "모으는 힘이 있다면,\n쌓아둔 것을 써보세요.\n\n가상 편집 예시 · 실제 개인 결과가 아닙니다\n\n“준비를 잘하는 사람은\n작게 쌓아둔 자원도 많아요.\n새 자료를 하나 더 찾기 전에,\n이미 정리한 것에서 한 가지를 써보세요.\n준비가 행동으로 이어지는 순간을\n오늘의 작은 기록으로 남겨보세요.”\n\n보물 햄스터의 축적 성향을 풀어 쓴 예시예요."
+            },
+            {
+              "id": "08-a-card-to-remember",
+              "title": "나를 설명할 한 장을, 생활 가까이에 남겨요.",
+              "alt": "나를 설명할 한 장을, 생활 가까이에 남겨요.",
+              "src": "/feature-details/crafted/animal-destiny/08-a-card-to-remember.webp",
+              "width": 1080,
+              "height": 1440,
+              "text": "나를 설명할 한 장을,\n생활 가까이에 남겨요.\n\n생년월일과 달력 종류를 확인해요.\n출생시간을 모르면 비워도 괜찮아요.\n\n결과 요약 카드를 이미지로 저장·공유해요.\n전체 리포트 PDF를 뜻하지는 않아요.\n기존 화면의 이용 조건과 버튼을 따라 시작해요."
+            }
+          ]
+        }
+      ],
       "theme": "emerald",
       "heroVariants": [
         {
@@ -6518,6 +6600,168 @@
         "trustNotes": [],
         "faq": []
       },
+      "crafted": [
+        {
+          "id": "animal-totem-basic",
+          "featureKey": "animal-totem-basic",
+          "title": "애니멀 토템 · 달빛 한 장과 숲의 세 길",
+          "notice": "동물 상징 카드로 마음을 돌아보는 콘텐츠입니다. 달빛 한 장과 숲의 세 길은 같은 기본 결제 항목을 쓰는 선택 모드이며, 한 번에 두 모드를 모두 제공한다는 뜻은 아닙니다. 질문은 300자까지 쓰거나 지금 마음 상태로 진행할 수 있습니다. AI의 질문 연결 해설과 동물별 정적 안내가 함께 표시됩니다. 예시는 가상 편집입니다. 일러스트는 분위기 이미지이며 실제 카드는 성좌 문양으로 표시됩니다. 가격과 재이용 조건은 기존 선택·결제 화면을 따릅니다.",
+          "panels": [
+            {
+              "id": "01-a-place-for-your-mood",
+              "title": "무슨 일인지 몰라도, 마음은 먼저 무거울 때.",
+              "alt": "무슨 일인지 몰라도, 마음은 먼저 무거울 때.",
+              "src": "/feature-details/crafted/animal-totem-basic/01-a-place-for-your-mood.webp",
+              "width": 1080,
+              "height": 1440,
+              "text": "무슨 일인지 몰라도,\n마음은 먼저 무거울 때.\n\n수호 동물의 상징을 빌려\n지금의 마음에 말을 붙여보세요.\n\n애니멀 토템 · 기본 리딩"
+            },
+            {
+              "id": "02-one-or-three",
+              "title": "한 마음을 깊게, 또는 흐름을 차례로.",
+              "alt": "한 마음을 깊게, 또는 흐름을 차례로.",
+              "src": "/feature-details/crafted/animal-totem-basic/02-one-or-three.webp",
+              "width": 1080,
+              "height": 1440,
+              "text": "한 마음을 깊게,\n또는 흐름을 차례로.\n달빛 한 장\n\n한 동물의 메시지를 천천히 읽어요.\n오늘 붙잡을 한 가지에 집중해요.\n\n숲의 세 길\n\n과거 상처 → 현재 에너지 → 통합 방향\n세 자리의 이야기를 연결해요.\n\n둘 중 하나의 모드를 선택해 진행해요.\n두 상담이 한 번에 묶여 제공되지는 않아요."
+            },
+            {
+              "id": "03-let-the-question-arrive",
+              "title": "정리된 고민이 아니어도, 한 문장부터 적어보세요.",
+              "alt": "정리된 고민이 아니어도, 한 문장부터 적어보세요.",
+              "src": "/feature-details/crafted/animal-totem-basic/03-let-the-question-arrive.webp",
+              "width": 1080,
+              "height": 1440,
+              "text": "정리된 고민이 아니어도,\n한 문장부터 적어보세요.\n떠오르는 질문이 있다면\n\n“사소한 부탁에도 지치는 이유가 뭘까요?”\n지금의 상황을 짧게 적어보세요.\n\n말이 잘 나오지 않는다면\n\n‘지금 마음 상태로 봐 주세요’를 골라\n질문을 건너뛸 수도 있어요.\n\n질문은 최대 300자예요.\n위 문장은 입력을 돕는 가상 예시입니다."
+            },
+            {
+              "id": "04-one-animal-seven-layers",
+              "title": "한 동물의 메시지를, 일곱 갈래로 읽어요.",
+              "alt": "한 동물의 메시지를, 일곱 갈래로 읽어요.",
+              "src": "/feature-details/crafted/animal-totem-basic/04-one-animal-seven-layers.webp",
+              "width": 1080,
+              "height": 1440,
+              "text": "한 동물의 메시지를,\n일곱 갈래로 읽어요.\n마음을 이해하는 글\n\n동물의 본질 · 내게 건네는 속삭임\n\n생활로 이어지는 안내\n\n오늘의 실천 · 짧은 리추얼\n저널링 질문\n\n균형을 잡는 마무리\n\n주의할 그림자 · 나를 위한 확언\n\n한 장 모드는 실천 다섯 가지를 보여줘요.\n리추얼은 일상에서 해볼 짧은 활동이에요."
+            },
+            {
+              "id": "05-three-paths-one-question",
+              "title": "지나온 마음에서, 다음 방향으로 이어져요.",
+              "alt": "지나온 마음에서, 다음 방향으로 이어져요.",
+              "src": "/feature-details/crafted/animal-totem-basic/05-three-paths-one-question.webp",
+              "width": 1080,
+              "height": 1440,
+              "text": "지나온 마음에서,\n다음 방향으로 이어져요.\n과거 상처\n\n되풀이되는 반응의 배경을 돌아봐요.\n\n현재 에너지\n\n지금 눈여겨볼 마음과 조건을 살펴요.\n\n통합 방향\n\n앞선 이야기를 다음 행동으로 연결해요.\n\n세 장 모드는 카드별 실천 세 가지와\n질문을 잇는 해설을 함께 읽어요."
+            },
+            {
+              "id": "06-a-letter-and-card-tabs",
+              "title": "전체 이야기와, 카드별 안내를 오가요.",
+              "alt": "전체 이야기와, 카드별 안내를 오가요.",
+              "src": "/feature-details/crafted/animal-totem-basic/06-a-letter-and-card-tabs.webp",
+              "width": 1080,
+              "height": 1440,
+              "text": "전체 이야기와,\n카드별 안내를 오가요.\n전체 해설\n\n여는 말 · 질문에 대한 답\n실천 계획 · 마무리\n\n카드별 안내\n\n각 동물의 일곱 갈래 해석과\n내 질문을 잇는 문장\n\n전체 흐름을 먼저 읽은 뒤,\n마음에 남은 동물의 탭을 열어보세요.\n\n질문 연결 글은 AI가 작성해요.\n동물별 기본 안내는 준비된 콘텐츠예요."
+            },
+            {
+              "id": "07-fictional-boundary",
+              "title": "부탁을 거절하기 전에, 내 여유부터 물어봐요.",
+              "alt": "부탁을 거절하기 전에, 내 여유부터 물어봐요.",
+              "src": "/feature-details/crafted/animal-totem-basic/07-fictional-boundary.webp",
+              "width": 1080,
+              "height": 1440,
+              "text": "부탁을 거절하기 전에,\n내 여유부터 물어봐요.\n\n가상 편집 예시 · 실제 카드 결과가 아닙니다\n\n“도와주고 싶은 마음과\n쉬고 싶은 마음이 함께 있네요.\n바로 답하기보다\n오늘 남은 시간을 먼저 살펴보세요.\n가능한 만큼만 제안하는 것도\n관계를 지키는 방법이에요.”\n\n카드가 결정을 대신하기보다,\n내가 확인할 작은 질문을 남겨요."
+            },
+            {
+              "id": "08-your-ritual",
+              "title": "지금의 마음에 맞는 읽는 방식을 골라요.",
+              "alt": "지금의 마음에 맞는 읽는 방식을 골라요.",
+              "src": "/feature-details/crafted/animal-totem-basic/08-your-ritual.webp",
+              "width": 1080,
+              "height": 1440,
+              "text": "지금의 마음에 맞는\n읽는 방식을 골라요.\n\n질문 입력 → 한 장 또는 세 장 선택\n기존 결제 확인 → 카드 공개 → 결과\n\n실제 카드는 성좌 문양으로 표시돼요.\n위 일러스트는 분위기를 담은 이미지예요.\n가격과 이용 조건은 기존 선택 화면을 따릅니다."
+            }
+          ]
+        },
+        {
+          "id": "animal-totem-deep",
+          "featureKey": "animal-totem-deep",
+          "title": "애니멀 토템 · 별자리 다섯 동물",
+          "notice": "이성·감정·그림자·잠재 선물·다음 행동의 다섯 자리를 읽는 심화 모드입니다. 미래나 타인의 마음을 확정하는 검사가 아닙니다. 질문은 최대 300자이며 건너뛰기도 가능합니다. AI 질문 해설, 카드별 정적 안내와 그림자·선물 통합 해설이 제공됩니다. 예시는 가상 편집입니다. 일러스트는 분위기 이미지이며 실제 카드는 성좌 문양입니다. 기본 한 장·세 장 상담은 별도 모드입니다. 가격·재이용 조건은 기존 선택·결제 화면을 따릅니다.",
+          "panels": [
+            {
+              "id": "01-a-divided-heart",
+              "title": "머리로는 아는데, 마음은 따라오지 않을 때.",
+              "alt": "머리로는 아는데, 마음은 따라오지 않을 때.",
+              "src": "/feature-details/crafted/animal-totem-deep/01-a-divided-heart.webp",
+              "width": 1080,
+              "height": 1440,
+              "text": "머리로는 아는데,\n마음은 따라오지 않을 때.\n\n다섯 동물의 자리에서\n나를 당기는 서로 다른 마음을 읽어요.\n\n애니멀 토템 · 별자리 다섯 동물"
+            },
+            {
+              "id": "02-two-voices",
+              "title": "옳은 답을 찾기 전에, 두 목소리를 들어봐요.",
+              "alt": "옳은 답을 찾기 전에, 두 목소리를 들어봐요.",
+              "src": "/feature-details/crafted/animal-totem-deep/02-two-voices.webp",
+              "width": 1080,
+              "height": 1440,
+              "text": "옳은 답을 찾기 전에,\n두 목소리를 들어봐요.\n이성 · 사고\n\n지금 머리가 붙잡은 기준과 판단\n\n감정 · 욕구\n\n그 판단 아래 마음이 바라는 것\n\n“쉬어야 한다”는 생각과\n“뒤처질까 걱정된다”는 마음을\n하나의 모순으로 몰아가지 않아요.\n\n상황을 설명하기 위한 가상 예시입니다."
+            },
+            {
+              "id": "03-shadow-and-gift",
+              "title": "숨기고 싶은 모습에도, 쓰임을 바꿀 힘이 있어요.",
+              "alt": "숨기고 싶은 모습에도, 쓰임을 바꿀 힘이 있어요.",
+              "src": "/feature-details/crafted/animal-totem-deep/03-shadow-and-gift.webp",
+              "width": 1080,
+              "height": 1440,
+              "text": "숨기고 싶은 모습에도,\n쓰임을 바꿀 힘이 있어요.\n그림자\n\n아직 바라보지 못한 반응과 부담\n\n잠재 선물\n\n이미 지녔지만 덜 쓰고 있는 자원\n\n그림자를 나쁜 성격으로 정하지 않아요.\n부담이 된 습관과 도움이 되는 힘을\n같은 이야기 안에서 살펴봐요.\n\n그림자와 선물을 연결하는 통합 해설이 있어요."
+            },
+            {
+              "id": "04-the-fifth-place",
+              "title": "마지막 자리는, 다음 한 걸음에 남겨요.",
+              "alt": "마지막 자리는, 다음 한 걸음에 남겨요.",
+              "src": "/feature-details/crafted/animal-totem-deep/04-the-fifth-place.webp",
+              "width": 1080,
+              "height": 1440,
+              "text": "마지막 자리는,\n다음 한 걸음에 남겨요.\n다섯 번째 · 다음 행동\n\n앞선 네 자리의 이야기를\n오늘 해볼 일로 연결해요.\n\n전체 해설의 실천 계획\n\n읽고 넘기는 조언에서 한발 더 나아가\n생활에서 확인할 행동을 정리해요.\n\n마음이 완전히 정리될 때까지 기다리기보다,\n작게 해보고 다시 느껴볼 일을 찾는 거예요."
+            },
+            {
+              "id": "05-what-the-result-includes",
+              "title": "다섯 장의 나열에서, 하나의 해설로 이어져요.",
+              "alt": "다섯 장의 나열에서, 하나의 해설로 이어져요.",
+              "src": "/feature-details/crafted/animal-totem-deep/05-what-the-result-includes.webp",
+              "width": 1080,
+              "height": 1440,
+              "text": "다섯 장의 나열에서,\n하나의 해설로 이어져요.\n전체 이야기\n\n여는 말 · 질문에 대한 답\n카드별 연결 문장 · 마무리\n\n심화의 중심\n\n그림자와 선물의 통합 해설\n\n생활로 가져갈 것\n\n실천 계획과 다음 행동\n\n질문 연결 해설은 AI가 작성해요.\n모든 반응을 심리 진단으로 받아들이지 않아요."
+            },
+            {
+              "id": "06-five-card-library",
+              "title": "마음에 남은 카드는, 한 번 더 펼쳐 읽어요.",
+              "alt": "마음에 남은 카드는, 한 번 더 펼쳐 읽어요.",
+              "src": "/feature-details/crafted/animal-totem-deep/06-five-card-library.webp",
+              "width": 1080,
+              "height": 1440,
+              "text": "마음에 남은 카드는,\n한 번 더 펼쳐 읽어요.\n동물마다 읽는 일곱 갈래\n\n본질 · 속삭임 · 오늘의 실천\n짧은 리추얼 · 저널링\n그림자 · 확언\n\n결과 안의 카드별 탭\n\n다섯 동물의 안내를\n각각 다시 살펴볼 수 있어요.\n\n카드별 실천은 세 가지씩 표시돼요.\n기본 한 장·세 장은 별도의 선택 모드예요."
+            },
+            {
+              "id": "07-fictional-rest",
+              "title": "계속 잘하고 싶은 마음에, 쉴 자리도 남겨주세요.",
+              "alt": "계속 잘하고 싶은 마음에, 쉴 자리도 남겨주세요.",
+              "src": "/feature-details/crafted/animal-totem-deep/07-fictional-rest.webp",
+              "width": 1080,
+              "height": 1440,
+              "text": "계속 잘하고 싶은 마음에,\n쉴 자리도 남겨주세요.\n\n가상 편집 예시 · 실제 카드 결과가 아닙니다\n\n“끝까지 해내려는 힘이\n쉬는 시간까지 밀어냈을 수 있어요.\n오늘은 끝내야 할 일 하나와\n내일로 미룰 일 하나를 나눠보세요.\n성실함을 버리는 대신,\n쓸 수 있는 힘을 지키는 연습이에요.”\n\n나를 몰아붙이는 말보다,\n다르게 해볼 행동을 남겨요."
+            },
+            {
+              "id": "08-before-five-animals",
+              "title": "다섯 자리 앞에, 지금의 질문을 놓아봐요.",
+              "alt": "다섯 자리 앞에, 지금의 질문을 놓아봐요.",
+              "src": "/feature-details/crafted/animal-totem-deep/08-before-five-animals.webp",
+              "width": 1080,
+              "height": 1440,
+              "text": "다섯 자리 앞에,\n지금의 질문을 놓아봐요.\n\n최대 300자의 질문을 적거나 건너뛰고,\n‘별자리 다섯 동물’을 선택해요.\n\n기존 결제 확인 후 카드를 공개해요.\n실제 카드는 성좌 문양으로 표시됩니다.\n가격·이용 조건은 현재 선택 화면을 따릅니다."
+            }
+          ]
+        }
+      ],
       "theme": "emerald",
       "heroVariants": [
         {
