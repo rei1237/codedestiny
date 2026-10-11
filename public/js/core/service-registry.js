@@ -105,8 +105,7 @@ window.__cdServiceRegistry = [
     price: "5,000원",
     purposes: ["love", "self", "life", "etc"],
     methods: ["ai"],
-    keys: "상담 채팅 대화 연이 네오 고민 무료상담",
-    badge: "가입 후 1회 무료",
+    keys: "상담 채팅 대화 연이 네오 고민",
   },
 
   {
