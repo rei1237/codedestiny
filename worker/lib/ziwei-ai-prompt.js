@@ -1,4 +1,5 @@
 import { FEATURE_KEY_PRICE_TABLE, normalizePaidFeatureKey } from "./paid-feature-registry.js";
+import { stripPromptBirth } from "./prompt-birth.js";
 import { buildFortuneQuestionPromptPackage } from "./fortune-question-prompt.js";
 import {
   classifyQuestionToZiweiDomain,
@@ -773,13 +774,10 @@ export function buildZiweiAIPromptWithDomain({ question, chartResult, domain }) 
     fortuneLabel: "자미두수",
     expertLabel: "자미두수 명반 해석 전문가",
     userQuestion: normalizedQuestion,
-    analysisResult: chartResult,
+    analysisResult: stripPromptBirth(chartResult),
     profile: {
       gender: normalizedChart.gender,
       calendarType: normalizedChart.calendarType,
-      birthDate: normalizedChart.birthDate,
-      birthTime: normalizedChart.birthTime,
-      birthPlace: normalizedChart.birthPlace,
       timezone: normalizedChart.timezone,
     },
     questionTypeLabel,

@@ -1,7 +1,7 @@
 import {questionEvidence,questionPeriodTiming} from './fortune/ask/question-evidence';
 import {conversationView} from './fortune/ask/conversation';
 import {questionSkyCalculationInput} from './fortune/question-sky-locale-input';
-import {consultationBudget,fusionConsultationManifest,allocateConsultationBudget} from './fortune/consultation-budget';
+import {consultationBudget,fusionConsultationManifest,allocateConsultationBudget,withRequestedPeriodScope} from './fortune/consultation-budget';
 import {QUESTION_POLICY_VERSION,questionDecision,questionTopic,assertQuestionOrder,questionManifest,type QuestionFish} from './fortune/ask/question-policy';
 import {COUNSEL_VERSION,counselManifest} from './fortune/counsel-purpose';
 import {withSajuCycleEvidence} from './fortune/saju/cycle-evidence';
@@ -24,7 +24,7 @@ import {withChatTarotVoice} from './fortune/tarot/consultation-evidence';
 import {TAROT_SPREAD_VERSION,TAROT_SPREAD_KIND,TAROT_DECK_VERSION,tarotSpreadOrder,commitTarotDeck,tarotPicks,tarotSpreadContext,spreadSnapshot,publicTarotSpread} from './fortune/tarot/spread-v3';
 import {context as domainContext} from './fortune/shared/domain';
 import {readingCharts} from './fortune/reading-presentation';
-import { FUSION_READING_VERSION, READING_VERSION, READING_V5_VERSION, READING_V6_VERSION, READING_V7_VERSION, QUESTION_SKY_TWO_STAGE_VERSION, readingChapterCount } from './fortune/reading-policy';
+import { FUSION_LAYOUT_VERSION, FUSION_READING_VERSION, READING_VERSION, READING_V5_VERSION, READING_V6_VERSION, READING_V7_VERSION, QUESTION_SKY_TWO_STAGE_VERSION, readingChapterCount } from './fortune/reading-policy';
 import { v7Applies, type ChapterSpecV7 } from './fortune/reading-v7';
 import { resolveV7Ledger } from './fortune/reading-v7-ledger';
 import { buildV7TimingMatrix, v7TimingSummaries, withV7Timing } from './fortune/reading-v7-timing';
@@ -290,9 +290,14 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   // The question chapter may cross every area, so it keeps only the system-forbidden subjects and drops the
   // sibling-chapter titles the catalog excluded. Ownership is untouched: the other chapters still own their facts.
   if(v7){const titles=new Set(manifest.map(c=>c.title));const first=manifest[0] as ChapterSpecV7;first.mustNotCover=first.mustNotCover.filter(t=>!titles.has(t));}
-  // A fusion ask opens with the answer across every system, not the first system's temperament row (12).
-  if(kind?.id==='ask'&&manifest[0].consultationLayout)manifest[0].title=`${analysis.consultation.topicLabel||'지금의 고민'} · 질문에 대한 답과 지금의 흐름`;
+  // 12: the fusion opening now answers the question across every system, so the catalog title (첫 체계의 성향) misnames
+  // it. It stays distinct from the later '질문에 대한 답' chapter, which goes deeper on the same question.
+  if(manifest[0].consultationLayout===FUSION_LAYOUT_VERSION&&kind?.question){
+   const prefix=manifest.find(c=>c.layoutRole==='answer')?.title.split(' · ')[0]||'지금의 고민';
+   manifest[0].title=`${prefix} · 먼저 짚어 보는 답과 그 바탕`;
   }
+  }
+  manifest=withRequestedPeriodScope(manifest,analysis.consultation.period);
   if(spiritInput){
     spiritEvidence(contexts.saju!);
     analysis.consultation.spirit=spiritPublic(spiritInput,now.toISOString(),contexts.saju);
@@ -408,6 +413,10 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
       if(storedOnly||!providerReady(env))throw new FortuneError('LLM_NOT_CONFIGURED',503);
       // Before the draw the tarot context is only {spreadId, drawPending}; a call then invents the cards.
       if(row.snapshot?.tarotConsultation?.version===TAROT_SPREAD_VERSION&&!row.snapshot.tarotDraw)throw new FortuneError('TAROT_DRAW_REQUIRED',409);
+      // The context itself decides: a placeholder with no cards fails whatever the snapshot markers say.
+      const tarotFacts=row.snapshot?.analysis?.contexts?.tarot?.facts;
+      if(Array.isArray(tarotFacts)&&tarotFacts.some((f:any)=>f?.label==='drawPending'&&f.value===true)&&!tarotFacts.some((f:any)=>f?.label==='cards'&&Array.isArray(f.value)&&f.value.length))
+        throw new FortuneError('TAROT_DRAW_REQUIRED',409);
       sharedProvider=new CodeDestinyProvider(env,{serviceId:row.featureKey,requestId,
         access:row.accessMethod || (row.paymentId?'DIRECT_KRW':''),sectionGroup:String(ordinal+1),
         attempt:Number(row.chapterAttempts?.[ordinal] || 1),generationSource:source},

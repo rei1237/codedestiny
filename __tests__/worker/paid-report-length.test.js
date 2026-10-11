@@ -29,3 +29,24 @@ it("does not erase tiny required bodies when another body dominates the group", 
   expect(clipped.a.body).toBe("가"); expect(clipped.b.body).toBe("나");
   expect(countPaidReportBodyChars(Object.values(clipped).map(row => row.body).join("\n"))).toBeLessThanOrEqual(300);
 });
+
+it("cuts at the last complete sentence and closes an open bold span", () => {
+  const text = "## 흐름\n\n" + "올해는 **기회가 열리는 해입니다. 선택을 서두르지 마세요.** 3.5배의 힘을 아껴 두세요. ".repeat(20);
+  const clipped = trimPaidReportText(text, 200);
+  expect(countPaidReportBodyChars(clipped)).toBeLessThanOrEqual(200);
+  expect(countPaidReportBodyChars(clipped)).toBeGreaterThan(150);
+  expect(clipped).toMatch(/[.!?…]\**$/u);
+  expect((clipped.match(/\*\*/g) || []).length % 2).toBe(0);
+  expect(clipped).not.toMatch(/3\.$/);
+});
+
+it("never ends on a list number such as \"3.\" (R8 2026-10-11)", () => {
+  const item = n => `${n}. **기록하는 연습**: 진행했던 프로젝트와 해결했던 문제를 구체적인 데이터와 함께 정리하는 습관을 들이면 좋습니다.`;
+  for (const sep of [" ", "\n"]) {
+    const text = "몇 가지 추천 행동을 제안합니다." + sep + [1, 2, 3, 4].map(item).join(sep);
+    const limit = countPaidReportBodyChars(text.slice(0, text.indexOf("3.") + 2)) + 1;
+    const clipped = trimPaidReportText(text, limit);
+    expect(clipped).not.toMatch(/\d\.\**$/u);
+    expect(clipped).toMatch(/좋습니다\.$/u);
+  }
+});

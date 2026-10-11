@@ -19,6 +19,7 @@
  */
 
 import { canonicalStringify, hashSignature } from "./island/island-weights.js";
+import { withJosa } from "./pet/pet-elements.js";
 
 export const MASTER_LOVE_CODEX_COMPAT_VERSION = "mlc-compat-v2";
 
@@ -145,14 +146,20 @@ function tenGodOf(baseStem, otherStem) {
   return "";
 }
 
-/** 두 오행의 관계를 방향까지 담아 판정 */
+/**
+ * 두 오행의 관계를 방향까지 담아 판정. from 은 본인, to 는 상대 일간 오행이다.
+ * R4(2026-10-09): 고정 조사("금이 목를")와 인물 없는 문장 때문에 모델이 극의 방향을 뒤집었다.
+ */
 function elementRelation(fromElement, toElement) {
   if (!fromElement || !toElement) return { kind: "", label: "" };
   if (fromElement === toElement) return { kind: "same", label: "비화(比和) — 같은 오행" };
-  if (PRODUCES[fromElement] === toElement) return { kind: "produces", label: `상생 — ${fromElement}이 ${toElement}를 살린다` };
-  if (PRODUCES[toElement] === fromElement) return { kind: "produced", label: `상생 — ${toElement}가 ${fromElement}을 살린다` };
-  if (CONTROLS[fromElement] === toElement) return { kind: "controls", label: `상극 — ${fromElement}이 ${toElement}를 누른다` };
-  if (CONTROLS[toElement] === fromElement) return { kind: "controlled", label: `상극 — ${toElement}가 ${fromElement}을 누른다` };
+  const act = (subject, object, verb) => `${subject.who}의 ${withJosa(subject.element, "이", "가")} ${object.who}의 ${withJosa(object.element, "을", "를")} ${verb}`;
+  const self = { who: "본인", element: fromElement };
+  const partner = { who: "상대", element: toElement };
+  if (PRODUCES[fromElement] === toElement) return { kind: "produces", label: `상생 — ${act(self, partner, "살린다")}` };
+  if (PRODUCES[toElement] === fromElement) return { kind: "produced", label: `상생 — ${act(partner, self, "살린다")}` };
+  if (CONTROLS[fromElement] === toElement) return { kind: "controls", label: `상극 — ${act(self, partner, "누른다")}` };
+  if (CONTROLS[toElement] === fromElement) return { kind: "controlled", label: `상극 — ${act(partner, self, "누른다")}` };
   return { kind: "", label: "" };
 }
 

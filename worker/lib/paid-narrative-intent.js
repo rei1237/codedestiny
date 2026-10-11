@@ -61,16 +61,16 @@ const invalid = reason => Object.assign(new Error("Paid intent input rejected"),
 // The product's own route seed; it validates the body exactly as the route does.
 // The route also derives oracle and totem feature keys from the body, so a body
 // that would land under another key is rejected here.
-async function seedIntent(env, featureKey, body) {
+async function seedIntent(env, featureKey, body, userId) {
   switch (INTENT_PRODUCTS[featureKey]) {
     case "loveTarot": {
       const { seedLoveTarot } = await import("./love-tarot-delivery.js");
       const { buildLoveTarotBase } = await import("../routes/tarot.js");
-      return seedLoveTarot(body, buildLoveTarotBase);
+      return seedLoveTarot(env, userId, body, buildLoveTarotBase);
     }
     case "mindscan": {
       const { seedMindscanNarrative } = await import("./mindscan-delivery.js");
-      return seedMindscanNarrative(body);
+      return seedMindscanNarrative(env, userId, body);
     }
     case "tarotOracleConsultation": {
       const { seedTarotOracleNarrative } = await import("./tarot-oracle-delivery.js");
@@ -108,7 +108,7 @@ export async function registerPaidNarrativeIntent(env, { userId, featureKey, bod
   const requestId = body.requestId;
   if (typeof requestId !== "string" || requestId.length < 8 || requestId.length > 180) return reply(422, { ok: false, reason: "REQUEST_ID_REQUIRED" });
   const original = cleanPaidNarrativeBody(body);
-  try { await seedIntent(env, featureKey, original); }
+  try { await seedIntent(env, featureKey, original, userId); }
   catch (error) {
     console.warn("[paid-narrative-intent] input rejected", JSON.stringify({ featureKey, name: error?.name, reason: error?.reason || error?.payload?.reason || "" }));
     return reply(400, { ok: false, reason: "INVALID_INPUT" });
@@ -170,7 +170,7 @@ async function promoteOne(env, intent) {
       return "revoked";
     }
     const locale = state.locale || "ko";
-    const seeded = await runWithAiLocale(locale, () => seedIntent(env, featureKey, body));
+    const seeded = await runWithAiLocale(locale, () => seedIntent(env, featureKey, body, userId));
     // The record starts like one the route inserts (ten-minute deadline), so the
     // recovery task resumes it once idle.
     const promotedAt = new Date();

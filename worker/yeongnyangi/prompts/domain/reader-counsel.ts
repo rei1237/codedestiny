@@ -25,15 +25,36 @@ function readableProfile(value:unknown):unknown {
       :item]));
 }
 
-/** Remove ten-god weights from both chapter facts and the nested ask evidence packet. */
+// 5A: the 조후 score and its element counts, and the 일간 강약 score, reached prose as '(-4점)', 'score -4', '점수 41'.
+// The prompt copy carries only words; the engine values stay in the stored facts.
+const TEMPERATURE:Record<string,string>={hot:'매우 뜨거운 편',warm:'따뜻한 편',neutral:'한난이 균형에 가까운 편',cool:'서늘한 편',cold:'매우 차가운 편'};
+const HUMIDITY:Record<string,string>={wet:'습한 편',dry:'건조한 편',balanced:'습조가 균형에 가까운 편'};
+const SEASON_NUMBERS=['score','type','moistType','fc','wc','wdc','mc','moistCnt','dryCnt','badgeCls','badgeTxt'];
+function readableSeason(value:unknown):unknown {
+  if(!value||typeof value!=='object'||Array.isArray(value))return value;
+  const v=value as Record<string,unknown>;
+  return {...Object.fromEntries(Object.entries(v).filter(([key])=>!SEASON_NUMBERS.includes(key))),
+    ...(TEMPERATURE[String(v.type)]?{temperature:TEMPERATURE[String(v.type)]}:{}),...(HUMIDITY[String(v.moistType)]?{humidity:HUMIDITY[String(v.moistType)]}:{})};
+}
+// calcPower reads 신강 at 30; one peripheral stem or branch is worth 7 (saju/jong-check.ts), so within 7 is a boundary reading.
+function readableStrength(value:unknown):unknown {
+  if(!value||typeof value!=='object'||Array.isArray(value))return value;
+  const {score,...rest}=value as Record<string,unknown>;
+  if(typeof rest.isStrong!=='boolean'||typeof score!=='number')return rest;
+  const near=Math.abs(score-30)<7;
+  return {...rest,strengthLevel:rest.isStrong?(near?'신강 쪽이지만 경계에 가까움':'신강이 뚜렷함'):(near?'신약 쪽이지만 경계에 가까움':'신약이 뚜렷함')};
+}
+const READABLE:Record<string,(value:unknown)=>unknown>={tenGods:readableWeights,tenGodProfile:readableProfile,seasonalBalance:readableSeason,strengthHeuristic:readableStrength};
+
+/** Remove ten-god weights and 조후·강약 scores from both chapter facts and the nested ask evidence packet. */
 export function readerEvidence<T>(input:T):T {
   if(Array.isArray(input))return input.map(readerEvidence) as T;
   if(!input||typeof input!=='object')return input;
   const row=input as Record<string,unknown>;
-  return Object.fromEntries(Object.entries(row).map(([key,value])=>[key,
-    key==='tenGods'||key==='value'&&row.label==='tenGods'
-      ?readableWeights(value)
-      :key==='tenGodProfile'||key==='value'&&row.label==='tenGodProfile'?readableProfile(value):readerEvidence(value)])) as T;
+  return Object.fromEntries(Object.entries(row).map(([key,value])=>{
+    const readable=READABLE[key]||(key==='value'?READABLE[String(row.label)]:undefined);
+    return [key,readable?readable(value):readerEvidence(value)];
+  })) as T;
 }
 
 export function readerCounsel(opening:boolean,symbolic:boolean){

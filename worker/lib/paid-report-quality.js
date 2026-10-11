@@ -43,3 +43,24 @@ export function hasRepeatedReportPassage(text) {
   }
   return false;
 }
+
+const sentenceKeys = (text) => text.split(/[.!?。？！]+/u).map(reportSentenceKey).filter((key) => key.length >= 24);
+/**
+ * Removes a later copy of any sentence hasRepeatedReportPassage would flag, inside text and
+ * against prior (earlier accepted parts), so one repeated sentence never discards a paid part.
+ * Only whole sentences are dropped; the caller rechecks length and repetition afterwards.
+ */
+export function dropRepeatedReportSentences(text, prior = "") {
+  if (typeof text !== "string") return text;
+  const seen = new Set(paidReportBody(prior).split(/[.!?。？！\n]+/u).map(reportSentenceKey).filter((key) => key.length >= 24));
+  const keep = (sentence) => {
+    const keys = sentenceKeys(sentence);
+    if (keys.some((key) => seen.has(key))) return false;
+    keys.forEach((key) => seen.add(key));
+    return true;
+  };
+  return text.split(/\n\s*\n/u).map((paragraph) => paragraph.split("\n").map((line) => line
+    .split(/(?<=[.!?。？！]["'”’)\]」』]*)\s+|(?<=[。？！]["'”’)\]」』]*)(?=\S)/u)
+    .filter(keep).join(" ").trimEnd()).filter((line) => line.trim()).join("\n").trim())
+    .filter(Boolean).join("\n\n");
+}
