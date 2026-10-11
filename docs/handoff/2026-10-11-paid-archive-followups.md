@@ -101,10 +101,10 @@ docs/handoff/2026-10-11-paid-archive-followups.md 를 읽고 P0-1 을 진행해�
 - 할 일: 사용자가 "기록이 쌓인다"고 느끼면 시그니처에서 날짜를 빼고 최신으로 덮어쓰는 쪽으로 바꾼다.
 - 2026-10-11: 조건부 과제라 코드는 바꾸지 않았다. 사용자 체감 보고가 오면 진행한다.
 
-**P1-3. 아직 보관함이 없는 브라우저 계산형 유료 결과** — 🟡 1차 완료 2026-10-11 (ebeaf72f9)
+**P1-3. 아직 보관함이 없는 브라우저 계산형 유료 결과** — 🟡 1차 완료 2026-10-11 (aaaea2bd2)
 - 이번 범위는 사용자가 지정한 숙요·점성술·자미두수 결과까지다. 그 밖에도 결제 뒤 브라우저에서만 계산되고 저장되지 않는 결과가 있다. 예: 관상(physiognomy), 베다 궁합(vedic-compatibility), 스톤헨지, destiny-compass 일부.
 - 할 일: `worker/lib/paid-feature-registry.js` 의 회당 목록과 `lib/records/service-registry.js` 의 `SAVED_FEATURES` 를 대조해 목록을 만든다. 그다음 `compat-result-archive.js` 패턴으로 하나씩 붙인다. 무료 결과는 넣지 않는다.
-- 1차 결과(ebeaf72f9): 운명의 나침반 심화 3종을 붙였다.
+- 1차 결과(aaaea2bd2): 운명의 나침반 심화 3종을 붙였다.
   - 서버: `POST /api/result-archive/<destiny-compass-crossroads|destiny-compass-future-sim|destiny-compass-life-voyage>`. `compat-result-archive.js` 처리기를 기능 표를 받게 일반화해 그대로 쓴다(결제 requestId 확인 → 결제 1건 = 기록 1건, 이용권 즉시 사용 폴백 포함). 프로필 카드는 없어도 된다.
   - 클라이언트: `app/destiny-compass/_lib/archive.ts`. 결제마다 requestId 를 만들어 게이트·복귀 서술자에 싣고, 결과가 그려지면 한 번 보낸다. 403·5xx·네트워크 오류는 4·12·30초 뒤 다시 보낸다.
   - 보관함: `SAVED_FEATURES`·`READING_FEATURES`(compass 계열 장 표시)·공용 픽스처에 3개 키.
@@ -166,4 +166,4 @@ docs/handoff/2026-10-11-paid-archive-followups.md 를 읽고 P0-1 을 진행해�
 **P2-4. `verify-records-hub` 가 이 환경에서 시간 초과**
 - 로컬 Windows 환경에서 시간 초과로 끝난다. CI 에서 통과하는지 확인하고, 필요하면 타임아웃을 조정한다.
 - 2026-10-11 확인: `scripts/design/verify-records-hub.mjs` 는 로컬 dev 서버(`RECORDS_TEST_ORIGIN`, 기본 :3194)를 띄워 놓고 도는 Playwright 스크립트다. package.json 스크립트에도, `.github/workflows` 에도 연결돼 있지 않아 CI 에서는 돌지 않는다. 그래서 타임아웃은 손대지 않았다. CI 에 넣으려면 dev 서버 기동 단계가 있는 작업을 따로 만들어야 한다. `SAVED_FEATURES` 를 순회하므로 P1-3 으로 상세 화면 3개가 늘었다.
-- 같은 날 CI 확인 중 발견: 9973db561 이 셸 캐시 핀 연쇄(init.js → uiBindings.js)를 끝까지 맞추지 못해 Main drift watchdog 가 실패했다. 30dd40e34 에서 sync:public 을 수렴할 때까지 돌려 고쳤다.
+- 같은 날 CI 확인 중 발견: 9973db561 이 셸 캐시 핀 연쇄(init.js → uiBindings.js)를 끝까지 맞추지 못해 Main drift watchdog 가 실패했다. c01210550 에서 sync:public 을 수렴할 때까지 돌려 고쳤다.
