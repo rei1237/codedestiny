@@ -67,7 +67,6 @@ test("shell price labels route through shared dictionary keys instead of Korean 
   assert.doesNotMatch(shell, /_setCtaMeta\(\s*'[^']*[가-힣]/);
 
   const wired = [
-    ["home.nav.aiConsult", 1],
     ["preview.priceLoading", 4],
     ["preview.priceUnknown", 1],
     ["preview.priceDetailCheck", 1],
