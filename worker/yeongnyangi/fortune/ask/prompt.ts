@@ -85,10 +85,29 @@ export const ASK_PERIOD_ANSWER_CHARS = 700;
 
 // Prompt copy only: the validator keeps reading the full packet. A six-system ask chapter otherwise sends every
 // value twice (here and in CALCULATED_DATA) plus provenance the F/T ID already implies, past the input limit.
-export const ASK_PROMPT_VIEW_GUIDE = 'askFirstChapter.evidence 항목에 value 대신 valueInCalculatedData가 있으면 그 값은 CALCULATED_DATA.facts에서 id가 source.factId인 사실의 value를 source.path(점으로 구분, 숫자는 배열 순번 0부터, 없으면 전체)로 따라간 값과 같다. source.system이 없으면 source.factId의 점 앞 체계이고, source.contextDomain이 없으면 system과 같고, engineVersion이 없으면 engineVersions의 해당 체계 값이며, subject가 없으면 self다.';
+export const ASK_PROMPT_VIEW_GUIDE = 'askFirstChapter.evidence 항목에 value 대신 valueInCalculatedData가 있으면 그 값은 CALCULATED_DATA.facts에서 id가 source.factId인 사실의 value를 source.path(점으로 구분, 없으면 전체)로 따라간 값에 모두 들어 있다(그 값에는 필드가 더 있을 수 있다). 경로 조각은 객체의 키이고, 배열에서는 positionKey·position·name·year·house 값이 그 조각과 같은 항목, 그런 항목이 없으면 0부터 센 순번이다. {palaces:[...]} 형태는 palaces 배열로 본다. source.system이 없으면 source.factId의 점 앞 체계이고, source.contextDomain이 없으면 system과 같고, engineVersion이 없으면 engineVersions의 해당 체계 값이며, subject가 없으면 self다.';
 type AskPrompt = ReturnType<typeof buildAskFirstChapterPrompt>;
-const valueAt = (value: unknown, path: string) => path ? path.split('.').reduce<unknown>((v, key) =>
-  Array.isArray(v) ? (/^\d+$/.test(key) ? v[Number(key)] : undefined) : v && typeof v === 'object' ? (v as Record<string, unknown>)[key] : undefined, value) : value;
+type Row = Record<string, unknown>;
+const rowKey = (row: unknown) => row && typeof row === 'object' ? (row as Row).positionKey ?? (row as Row).position ?? (row as Row).name ?? (row as Row).year ?? (row as Row).house : undefined;
+const unwrap = (v: unknown) => v && typeof v === 'object' && !Array.isArray(v) && Array.isArray((v as Row).palaces) ? (v as Row).palaces : v;
+// Mirrors packet.ts pieces(): array rows are keyed by positionKey/position/name/year/house, else by index.
+const step = (v: unknown, key: string) => { v = unwrap(v);
+  return Array.isArray(v) ? v.find(row => rowKey(row) !== undefined && String(rowKey(row)) === key) ?? (/^\d+$/.test(key) ? v[Number(key)] : undefined)
+    : v && typeof v === 'object' ? (v as Row)[key] : undefined; };
+const valueAt = (value: unknown, path: string) => path ? path.split('.').reduce<unknown>(step, value) : value;
+// The chapter copy may carry more fields than the packet value (tarot image keys, ziwei decade ranges).
+const within = (part: unknown, whole: unknown): boolean => part === whole || (Array.isArray(part)
+  ? Array.isArray(whole) && part.length === whole.length && part.every((v, i) => within(v, whole[i]))
+  : Boolean(part && typeof part === 'object' && whole && typeof whole === 'object' && !Array.isArray(whole)
+    && Object.entries(part as Row).every(([k, v]) => within(v, (whole as Row)[k]))));
+// A packet index can point past the chapter copy's rows (the packet cuts from a longer list), so a row the copy does
+// carry is found by content and its path rewritten to the copy's key or position.
+function locate(calculated: unknown, path: string, value: unknown) {
+  if (within(value, valueAt(calculated, path))) return path;
+  const parts = path.split('.'), rows = unwrap(valueAt(calculated, parts.slice(0, -1).join('.')));
+  const index = path && Array.isArray(rows) ? rows.findIndex(row => within(value, row)) : -1;
+  return index < 0 ? undefined : [...parts.slice(0, -1), String(rowKey((rows as unknown[])[index]) ?? index)].join('.');
+}
 export function askPromptView(prompt: AskPrompt, calculated: { id: string; value: unknown }[]) {
   const byId = new Map(calculated.map(fact => [fact.id, fact.value]));
   const entries = [...prompt.evidence.facts, ...prompt.evidence.timing];
@@ -96,12 +115,44 @@ export function askPromptView(prompt: AskPrompt, calculated: { id: string; value
   for (const { source } of entries) engineVersions[source.system] ??= source.engineVersion;
   const view = <T extends AskPrompt['evidence']['facts'][number]>(entry: T) => {
     const { value, source, subject, ...rest } = entry;
-    const { system, contextDomain, engineVersion, factId, path } = source;
-    const known = byId.has(factId) && value !== undefined && JSON.stringify(valueAt(byId.get(factId), path)) === JSON.stringify(value);
-    return { ...rest, ...(known ? { valueInCalculatedData: true } : { value }),
+    const { system, contextDomain, engineVersion, factId } = source;
+    const found = byId.has(factId) && value !== undefined ? locate(byId.get(factId), source.path, value) : undefined;
+    const path = found ?? source.path;
+    return { ...rest, ...(found !== undefined ? { valueInCalculatedData: true } : { value }),
       source: { factId, ...(path ? { path } : {}), ...(system !== factId.split('.')[0] ? { system } : {}),
         ...(contextDomain !== system ? { contextDomain } : {}), ...(engineVersion !== engineVersions[system] ? { engineVersion } : {}) },
       ...(subject !== 'self' ? { subject } : {}) };
   };
   return { ...prompt, engineVersions, evidence: { facts: prompt.evidence.facts.map(view), timing: prompt.evidence.timing.map(view) } };
+}
+
+// About 40,000 input tokens for the whole first-chapter request (≈2.4 chars/token; the rest of the request is ≈26,000
+// chars). The provider cap is 50,000 and fail-closed, so the ladder below trims before sending, never after.
+export const ASK_EVIDENCE_CHAR_BUDGET = 64_000;
+const pad2 = (n: unknown) => String(n).padStart(2, '0');
+const termDay = (row: unknown) => { const at = (row as Row)?.start as Row | undefined;
+  return at && [at.year, at.month, at.day].every(Number.isInteger) ? `${at.year}-${pad2(at.month)}-${pad2(at.day)}` : undefined; };
+/**
+ * Ask chapter 1's CALCULATED_DATA copy; validators keep the chapter facts. A dated request keeps only what it covers:
+ * today's cards when today is inside it, and the 월운 rows starting inside it plus the one in effect at its start.
+ * Then, while the evidence pair is over budget, the largest fact no question cites is dropped.
+ */
+export function askCalculatedData<T extends { facts: { id: string; label: string; value: unknown }[] }>(data: T, consultation: Consultation, prompt: AskPrompt): T {
+  const { start, end } = consultation.period;
+  let facts = data.facts.flatMap(fact => {
+    if (!start || !end) return [fact];
+    if (/^today/.test(fact.label)) return consultation.asOf < start || consultation.asOf > end ? [] : [fact];
+    if (!/monthlyLuck$/i.test(fact.label) || !Array.isArray(fact.value)) return [fact];
+    const before = fact.value.reduce<unknown>((at, row) => (termDay(row) ?? '9') < start && (termDay(row) ?? '') > (termDay(at) ?? '') ? row : at, undefined);
+    const rows = fact.value.filter(row => row === before || (termDay(row) ?? '') >= start && (termDay(row) ?? '9') <= end);
+    return rows.length ? [{ ...fact, value: rows }] : [];
+  });
+  const cited = new Set([...prompt.evidence.facts, ...prompt.evidence.timing].map(entry => entry.source.factId));
+  const size = () => JSON.stringify(askPromptView(prompt, facts)).length + JSON.stringify(facts).length;
+  while (size() > ASK_EVIDENCE_CHAR_BUDGET) {
+    const largest = facts.filter(fact => !cited.has(fact.id)).sort((a, b) => JSON.stringify(b.value).length - JSON.stringify(a.value).length)[0];
+    if (!largest) break;
+    facts = facts.filter(fact => fact !== largest);
+  }
+  return { ...data, facts };
 }

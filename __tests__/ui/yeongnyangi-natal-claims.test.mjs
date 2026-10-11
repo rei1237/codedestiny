@@ -2,8 +2,8 @@ import '../../scripts/lib/mock-network-guard.cjs';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {build} from 'esbuild';
-const built=await build({stdin:{contents:"export {correctNatalClaims} from './worker/yeongnyangi/fortune/saju/natal-claims'; export {correctChapterProse} from './worker/yeongnyangi/providers/chapter';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'esm',write:false});
-const {correctNatalClaims,correctChapterProse}=await import('data:text/javascript;base64,'+Buffer.from(built.outputFiles[0].text).toString('base64'));
+const built=await build({stdin:{contents:"export {correctNatalClaims} from './worker/yeongnyangi/fortune/saju/natal-claims'; export {correctChapterProse} from './worker/yeongnyangi/providers/chapter'; export {enrichSajuLuckOverlap} from './worker/yeongnyangi/fortune/saju/luck-overlap'; export {selectChapterFacts} from './worker/yeongnyangi/fortune/chapter-facts'; export {READING_V5_VERSION} from './worker/yeongnyangi/fortune/reading-policy';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'esm',write:false});
+const {correctNatalClaims,correctChapterProse,enrichSajuLuckOverlap,selectChapterFacts,READING_V5_VERSION}=await import('data:text/javascript;base64,'+Buffer.from(built.outputFiles[0].text).toString('base64'));
 // 1997-02-10 12:00 여성 (engine output): 丁丑 壬寅 癸未 戊午, 일간 癸, 신약.
 const facts={pillars:{year:'丁丑',month:'壬寅',day:'癸未',hour:'戊午'},dayMaster:'癸',strength:{isStrong:false}};
 const body=paragraphs=>({summary:'요약',analysis:[],blocks:[{id:'one',title:'기질',paragraphs,sources:[]}]});
@@ -84,4 +84,27 @@ test('chapter prose correction applies the stored saju facts on both delivery pa
  const input={locale:'ko',chapter:{ordinal:0},analysis:{question:'',contexts:{saju:{facts:[{label:'pillars',value:facts.pillars},{label:'dayMaster',value:'癸'},{label:'strengthHeuristic',value:{isStrong:false}}]}}}};
  const out=correctChapterProse(body(['네 일주는 庚申이야. 오늘은 쉬어.']),input);
  assert.equal(out.blocks[0].paragraphs[0],'네 일주는 癸未야. 오늘은 쉬어.');
+});
+
+test('1A: 세운×대운 and 월운×대운 relations, and a 형 that needs the 대운, the 세운 and the chart together',()=>{
+ const labels={year:'년주',month:'월주',day:'일주',hour:'시주'};
+ const pillarDetails=Object.fromEntries(Object.entries(facts.pillars).map(([k,p])=>[k,{key:k,label:labels[k],pillar:p,heavenlyStem:p[0],earthlyBranch:p[1]}]));
+ const context={domain:'saju',calculatedAt:'2026-09-22',facts:[{id:'saju.pillarDetails',label:'pillarDetails',value:pillarDetails},
+  {id:'saju.majorLuck',label:'majorLuck',value:{cycles:[{index:3,startYear:2020,endYear:2029,pillar:'己巳'}]}},
+  {id:'saju.yearlyLuck',label:'yearlyLuck',value:[{year:2028,pillar:'戊申'},{year:2029,pillar:'己酉'},{year:2031,pillar:'辛亥'}]},
+  {id:'saju.monthlyLuck',label:'monthlyLuck',value:[{start:{year:2026,month:2},pillar:'庚寅'}]}]};
+ const enriched=enrichSajuLuckOverlap(context),rows=label=>enriched.facts.find(f=>f.label===label).value;
+ const [y2028,y2029,y2031]=rows('yearlyLuck').map(r=>r.majorLuckOverlap);
+ // 寅 is in the chart, so 巳 대운 + 申 세운 complete 인사신형; the two lucks also make 사신합·사신파.
+ assert.deepEqual(y2028.relations.map(r=>r.label).sort(),['사신파','사신합','인사신형']);
+ assert.deepEqual(y2028.relations.find(r=>r.label==='인사신형').pillarLabels.sort(),['대운','세운','월주'].sort());
+ assert.deepEqual(y2029.relations.map(r=>r.label),['사유축 삼합']);
+ assert.deepEqual(y2031,undefined,'no 대운 covers that year');
+ const month=rows('monthlyLuck')[0].majorLuckOverlap;
+ assert.equal(month.majorLuckPillar,'己巳');assert.ok(month.relations.every(r=>r.pillarLabels.includes('월운')&&r.pillarLabels.includes('대운')));
+ assert.deepEqual(enrichSajuLuckOverlap(enriched),enriched);assert.equal('majorLuckOverlap' in context.facts[2].value[0],false);
+ // Tiers without 대운 lose it with majorLuck.
+ const chapter=tier=>({key:'year',version:READING_V5_VERSION,tier,factSelectors:{saju:['yearlyLuck']}});
+ assert.ok(selectChapterFacts(context,chapter('omakase'))[0].value[0].majorLuckOverlap);
+ assert.equal(selectChapterFacts(context,chapter('mackerel'))[0].value[0].majorLuckOverlap,undefined);
 });

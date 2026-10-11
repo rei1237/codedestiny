@@ -112,6 +112,19 @@ test('real engine: stored context keeps legacy brightness, the enriched copy onl
   assert.deepEqual(m.enrichZiweiContext(m.enrichZiweiContext(stored)),enriched);
 });
 
+test('대한·유년 rows and the structured palace wrapper carry the fixed 12-palace 대궁·삼합 table (2A)',()=>{
+  const table=m.ZIWEI_PALACE_RELATIONS;
+  assert.deepEqual(table.재백궁,{facingPalace:'복덕궁',trinePalaces:['관록궁','명궁']});
+  for(const [name,r] of Object.entries(table)){assert.equal(table[r.facingPalace].facingPalace,name);assert.ok(r.trinePalaces.every(t=>table[t].trinePalaces.includes(name)));}
+  const enriched=m.enrichZiweiContext(stored);
+  const rows=['majorLuck','yearlyLuck','yearlyTimeline'].flatMap(label=>[enriched.facts.find(f=>f.label===label)?.value].flat()).filter(Boolean);
+  assert.ok(rows.length>2);
+  for(const r of rows)assert.deepEqual({facingPalace:r.facingPalace,trinePalaces:r.trinePalaces},table[r.palaceName],r.palaceName);
+  assert.deepEqual(m.enrichZiweiContext(enriched),enriched);
+  const v6=m.consultationManifest(m.products.find(p=>p.id==='ziwei_mackerel'),{id:'personal'});
+  assert.ok(v6.some(c=>m.selectChapterFacts(stored,c).find(f=>f.label==='palaces')?.value.palaceRelations?.재백궁?.facingPalace==='복덕궁'));
+});
+
 const single=fish=>m.products.find(p=>p.id===`ziwei_${fish}`);
 // Mackerel stays on v6; salmon and flounder get v7, whose chapters are resolved to ledger IDs at prepare.
 const manifests=[

@@ -126,3 +126,25 @@ test('the ask prompt copy points repeated values at CALCULATED_DATA and keeps ev
   assert.deepEqual(view.engineVersions,{saju:'v1',astrology:'v1',vedic:'v1'});
   assert.deepEqual(prompt.evidence.facts[0].value,{day:'甲子'});
 });
+test('the ask prompt copy finds keyed and wrapped rows, keeps only the requested period and trims uncited facts to budget',async()=>{
+  const {askPromptView,askCalculatedData,ASK_EVIDENCE_CHAR_BUDGET}=await import(`data:text/javascript;base64,${Buffer.from((await build({entryPoints:['worker/yeongnyangi/fortune/ask/prompt.ts'],bundle:true,platform:'node',format:'esm',write:false})).outputFiles[0].text).toString('base64')}`);
+  const at=(factId,path,value)=>({id:'F',label:factId,value,source:{system:factId.split('.')[0],contextDomain:factId.split('.')[0],factId,path,engineVersion:'v1'},subject:'self'});
+  const term=(year,month,pillar)=>({start:{year,month,day:5},pillar});
+  const prompt={questions:[],evidence:{facts:[at('ziwei.palaces','관록궁',{name:'관록궁',mainStars:['천기']}),
+    at('vedic.planets','Moon',{name:'Moon',sign:4}),at('tarot.cards','inner',{positionKey:'inner',keywords:['상실']})],
+    timing:[at('saju.monthlyLuck','23',term(2027,2,'壬寅')),at('saju.monthlyLuck','29',term(2027,9,'己酉'))]}};
+  const facts=[{id:'ziwei.palaces',label:'palaces',value:{palaces:[{name:'명궁'},{name:'관록궁',mainStars:['천기'],majorLuck:{range:'83-92'}}]}},
+    {id:'vedic.planets',label:'planets',value:[{name:'Sun',sign:1},{name:'Moon',sign:4}]},
+    {id:'tarot.cards',label:'cards',value:[{positionKey:'inner',keywords:['상실'],imageKey:'c05'}]},
+    {id:'saju.todaySaju',label:'todaySaju',value:{pillar:'甲子'}},{id:'saju.tenGods',label:'tenGods',value:{note:'x'.repeat(ASK_EVIDENCE_CHAR_BUDGET)}},
+    {id:'saju.monthlyLuck',label:'monthlyLuck',value:[term(2026,11,'己亥'),term(2026,12,'庚子'),term(2027,1,'辛丑'),term(2027,2,'壬寅'),term(2027,7,'丁未')]}];
+  const consultation={asOf:'2026-10-11',period:{start:'2027-01-01',end:'2027-06-30'}};
+  const data=askCalculatedData({facts},consultation,prompt);
+  assert.deepEqual(data.facts.map(f=>f.id),['ziwei.palaces','vedic.planets','tarot.cards','saju.monthlyLuck']);
+  assert.deepEqual(data.facts.at(-1).value.map(r=>r.pillar),['庚子','辛丑','壬寅']);
+  const view=askPromptView(prompt,data.facts),[palace,moon,card]=view.evidence.facts,[feb,sep]=view.evidence.timing;
+  for(const entry of [palace,moon,card,feb])assert.equal(entry.valueInCalculatedData,true,entry.source.factId);
+  assert.equal(feb.source.path,'2');
+  assert.deepEqual(sep.value,term(2027,9,'己酉'));
+  assert.equal(askCalculatedData({facts},{asOf:'2026-10-11',period:{start:'2026-10-01',end:'2026-10-31'}},prompt).facts.some(f=>f.id==='saju.todaySaju'),true);
+});
