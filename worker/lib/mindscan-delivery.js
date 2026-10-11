@@ -27,14 +27,14 @@ async function seed(env, userId, body) {
     prompt: `${index + 1}번 ${section.positionLabel}의 ${title}만 해설한다. 메인/보조 카드와 정역방향은 확정 입력을 따른다. 최소 두 문단으로 작성한다. 마지막 문단은 ${key === 'meaning' ? '위치의 질문과 연결' : key === 'emotion' ? '숨은 조건과 단정할 수 없는 이유' : '실행할 행동과 확인 기준'}이다.\n${buildTarotPositionPin({ label: section.positionLabel, question: section.positionQuestion,
       cards: [{ role: '메인', name: section.mainCard.nameKo, orientation: section.orientation }, { role: '보조', name: section.subCard.nameKo }] })}`,
   })));
-  tasks.push({ id: 'intro', title: '질문의 핵심과 해석 기준', prompt: '질문의 핵심과 일곱 위치를 함께 읽는 기준을 설명한다.', minChars: 1000 },
+  tasks.push({ id: 'intro', title: '질문의 핵심과 해석 기준', prompt: '질문의 핵심과 다섯 위치를 함께 읽는 기준을 설명한다.', minChars: 1000 },
     { id: 'summary', title: '관계 흐름 종합', prompt: `정확히 열 문단으로 ${SUMMARY.join(', ')}를 순서대로 해설한다. 한 문단은 한 항목이며 항목명/번호 없이 본문만 쓴다. 감정과 연락 가능성을 확정하거나 확률로 만들지 않는다.`, minChars: 2000 },
     { id: 'masterAdvice', title: '현실적인 실천 계획', prompt: '지금의 관계에서 실행할 계획과 중단/재검토 기준을 설명한다.', minChars: 1200 },
     { id: 'closing', title: '마지막 상담 편지', prompt: '전체 조건을 종합해 질문에 답하고 선택의 여지를 남기는 상담 편지를 쓴다.', minChars: 800 });
   return { ...facts, prompt: `${facts.prompt}\n${TAROT_SHARED_RULE_BLOCK}`, tasks, minBodyChars: 20000 };
 }
-// The stored cards a part may name. The seven derived positions reuse cards, so a card dealt both
-// ways is checked for presence only. Positions hold a main and a sub card and are not checked.
+// The stored cards a part may name. Each position reads its own pair; a state seeded under the former
+// seven positions reused cards, so a card stored both ways is checked for presence only. Positions hold a main and a sub card and are not checked.
 // A state with no stored draw has nothing to check against; every seeded delivery holds one.
 function drawnEvidence(state) {
   if (!state.sectionInputs?.length) return null;

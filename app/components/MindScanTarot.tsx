@@ -1831,7 +1831,7 @@ export default function MindScanTarot() {
         {stage === 'delivery' && <div key="delivery" className="fixed inset-0 z-20 overflow-y-auto px-4 py-20 text-stone-100">
           <div className="mx-auto max-w-2xl space-y-5 [overflow-wrap:anywhere]">
             <h2 className="text-xl font-bold">{locale === 'ko' ? '마인드스캔 상담' : 'Mindscan reading'}</h2>
-            <p role="status">{locale === 'ko' ? '본문 저장' : 'Saved sections'} {delivery?.completedParts?.length || 0} / {delivery?.totalParts || 25}{readingLoading ? ' · …' : ''}</p>
+            <p role="status">{locale === 'ko' ? '본문 저장' : 'Saved sections'} {delivery?.completedParts?.length || 0} / {delivery?.totalParts || 19}{readingLoading ? ' · …' : ''}</p>
             {readingError && <p role="alert">{readingError}</p>}
             {!readingLoading && delivery?.retryable !== false && <button type="button" onClick={resumeSaved} className="rounded-xl border border-violet-200/50 bg-violet-900 px-5 py-3 font-semibold">{locale === 'ko' ? '이어서 생성하기' : 'Continue reading'}</button>}
             {delivery?.retryable === false && <p>{locale === 'ko' ? '생성 한도에 도달했습니다. 저장된 내용을 보존했으며 결제 내역으로 문의해 주세요.' : 'Generation limit reached. Saved sections are retained; contact support with your payment record.'}</p>}
