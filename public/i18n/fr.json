@@ -872,7 +872,10 @@
     "promptHub": {
       "aria": "Accéder aux invites de fortune complètes",
       "alt": "Invites de fortune complètes",
-      "sr": "Invites de fortune complètes"
+      "sr": "Invites de fortune complètes",
+      "honeyLabel": "Mes gouttes de miel",
+      "honeyAttend": "Pointez aujourd'hui pour des gouttes de miel",
+      "honeyAttended": "Présence du jour validée"
     },
     "premiumArchive": {
       "kicker": "ARCHIVES DU DESTIN VVIP",
@@ -7143,7 +7146,7 @@
         "k53h7ds": "Test psychologique",
         "k79pfmc": "Nakshatra",
         "k871xeu": "Gratuit · Analyse faciale selfie",
-        "ka0v1mf": "Gratuit · 11 outils",
+        "ka0v1mf": "Gouttes de miel · 16 outils",
         "kry6axn": "27 Nakshatras lunaires",
         "kslqazg": "Invite de lecture complète",
         "kxgi8q8": "Poisson diseur de bonne aventure",
@@ -7468,7 +7471,7 @@
         "k1ygnp9f2": {
           "ariaLabel": "Points clés"
         },
-        "k231dx8": "Créez instantanément des prompts de consultation gratuits avec 16 outils, y compris les Quatre Piliers, le Tarot, l'astrologie et le Zi Wei Dou Shu.",
+        "k231dx8": "Créez tout de suite des prompts de consultation avec 16 outils : Saju, tarot, astrologie, Zi Wei Dou Shu et plus.",
         "k3baulf": "Bureau de Nommage Hunminjeongeum",
         "k6uqkuq": {
           "ariaLabel": "Résumé des points clés"
@@ -7520,7 +7523,7 @@
         "k1scb7d8": {
           "alt": "Image représentative de l'entreprise du destin"
         },
-        "koe32kc": "Essai gratuit",
+        "koe32kc": "Gouttes de miel",
         "ktgbfsy": "NOUVEAU · Édition Définitive",
         "n50001000020000": "Tarot 5 000 KRW · Quatre Piliers (BaZi) 10 000 KRW · Compatibilité 20 000 KRW",
         "k1dw3t0h": "Thème gratuit · consultation experte payante",
@@ -7541,7 +7544,7 @@
     "tarotTileBody": {
       "featuredContentCardCta": {
         "k1f1oofn": "Entrer au salon de thé du destin",
-        "kdyjsns": "Essai gratuit",
+        "kdyjsns": "Créer un prompt",
         "kwux29x": "Entrer dans la salle de stratégie"
       },
       "pvcPremMeta": {
@@ -7611,7 +7614,7 @@
         "ko4w810": "16 outils dont Quatre Piliers (BaZi), Tarot, Astrologie",
         "kozjlt4": "Conseils pratiques pour les relations, les finances, le travail, les choix",
         "kqwk9o": "Consultation des flux des maisons et des étoiles par thème",
-        "krx9ppb": "1 essai gratuit · illimité après inscription",
+        "krx9ppb": "1 goutte de miel toutes les 3 présences · 1 goutte par prompt",
         "ktv5xm9": "Lecture du thème natal des Quatre Piliers (BaZi) et de l'équilibre des Cinq Éléments",
         "ktx0v26": "Carte du destin choisie sous l'emblème du lion",
         "kvigm32": "Conseils pratiques adaptés à votre relation actuelle",

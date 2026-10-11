@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-12
-next: "①·② 운영 승격 및 측정 완료. 사용자 선택으로 ③ 출석·프롬프트 서버화와 ④ 나머지 개편은 다음 작업에서 진행. 추가 품질·상세페이지 코드의 운영 반영은 별도 release 확인 필요."
+next: "P0-2 이관(staging·운영)과 B 포함 운영 승격(0127beb44) 완료. ③ 꿀방울 출석·프롬프트 허브 서버화는 main push 후 운영 승격. 다음은 ④(대운·종합 서버 이전, 찻집·네오·영냥이 분량, 참치 사양)."
 ---
 
 # [마케팅 지시서] 프리미엄 라인 전면 개편 — 가격 인상 + 무료 범위 축소
@@ -342,3 +342,17 @@ next: "①·② 운영 승격 및 측정 완료. 사용자 선택으로 ③ 출�
 - 시작 확인(2026-10-12): 마지막 전달 커밋 `082c8c04a`의 main PR CI `38173599605` 성공.
 - 사용자 추가 지시: 마스터 인연의 서 개인 10,000 → 30,000원(300코인), 궁합 30,000 → 50,000원(500코인). 정본·폴백 상수·홈/레지스트리 문구·12로케일 사전·결제 P0 인벤토리·Play 문서를 맞추고 `docs/context/payment-gating.md`에 결정 절을 추가했다. 이용권 영향: 두 SKU 모두 standard·premium·vvip 건당 상한을 넘어 단건 결제로 넘어가고, family는 월 한도 안에서 계속 커버한다. 옛 금액을 고정한 테스트(홈 탐색기, payments-v2 context·foundation·pass-check, pass-budget-hard-gate)와 `verify-master-love-codex-flow`를 새 가격으로 갱신했고, 홈 사본 해시가 바뀐 라우트의 sitemap lastmod 원장을 재생성했다.
 - Play dry-run 재실행(2026-10-12): 서비스 계정이 없어 23개 전체가 `+`로 표시돼 apply하지 않았다. 사용자가 수동 등록을 승인했으므로 `docs/pricing/PLAY_CONSOLE_TASKS.md` 체크리스트대로 `tier_15`~`tier_18`을 등록하면 된다. `tier_17`은 인연의 서 궁합판도 쓴다.
+- P0-2 이관과 B 승격(2026-10-12): B(전환 이전 해금 유지 `0d33795d9`)는 이미 운영에 있었습니다. 다만 P0-2 이관은 그때까지 실행되지 않았습니다. 그래서 staging과 운영 순서로 백업 → dry-run → apply → index → check → audit → verify를 진행했습니다.
+  - 운영 결과: BIRTH 58, MARKED_EXCLUDED 768, LEGACY_CLAIMS 2911, 대기 0, 위험 0.
+  - 백업은 레포 밖 `D:\Development\codedestiny-backups\20261012-p0-2\{staging,production}`에 있습니다. 개인정보가 들어 있습니다.
+  - 레거시 백업 `backups/mongodb/20261011-legacy-saju-unlocks`는 검증이 끝난 뒤 삭제했습니다.
+  - 그 다음 운영 release `38180479040`이 성공했습니다. Pages와 Worker 모두 `0127beb449f1`이고 deploy-smoke도 PASS입니다.
+  - 라이브 홈은 인연의 서 "30,000원부터"이고, 번들은 compat `cost:500, amountKRW:50000`입니다.
+- ③ 꿀방울 출석과 프롬프트 허브 서버화:
+  - 출석은 `worker/lib/honey-wallet.js`가 처리합니다. 3일 출석마다 1방울이고, 지갑은 찻집 지갑과 공유합니다.
+  - 생성은 `worker/routes/prompt-hub.js`가 맡습니다. 원장 멱등으로 처리하고, 입력이 다르면 409를 돌려줍니다. 방울이 부족하면 402와 함께 ₩3,000 `fortune-prompt-hub-generate` 결제를 안내합니다.
+  - 템플릿은 `lib/fortune/prompt-hub-template.js`로 서버에 두었고, 클라이언트 번들에는 원칙 문장이 없습니다.
+  - 홈 카드와 출석 위젯도 바꿨습니다.
+  - 영냥이는 이제 멸치 3마리로 오늘의 16종을 엽니다.
+  - 계획과 다른 점이 하나 있습니다. horary는 차감 전에 계산합니다. 계산이 실패했을 때 방울만 빠지는 일을 막기 위해서입니다.
+  - 게스트 무료 1회는 없앴습니다. 이제 로그인해야 합니다.

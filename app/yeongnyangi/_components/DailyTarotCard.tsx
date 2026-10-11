@@ -29,7 +29,7 @@ export default function DailyTarotCard(){
  },[pass?.unlocked]);
  return <section id="daily-tarot" tabIndex={-1} className="daily-tarot" aria-labelledby="daily-tarot-title">
   <div className="daily-tarot-copy"><Moon size={20}/><h2 id="daily-tarot-title">오늘의 타로, 세 장의 작은 힌트</h2><p>마음에 닿는 카드부터 톡, 뒤집어봐. 오늘의 흐름과 마음, 해볼 일을 같이 살펴줄게.<br/>출석 멸치로 오늘의 운세를 연 뒤 함께 볼 수 있어. 카드는 미래를 확정하지 않는 상징 이야기야.</p></div>
-  {!pass?.unlocked?<div className="daily-tarot-luck"><Sparkles size={17}/><span>오늘의 운세 잠김</span><b>출석하고 멸치 1마리로 오늘의 16종과 타로 세 장을 함께 열어줘.</b>{guest?<button type="button" onClick={loginForCurrentPage}>로그인하고 출석하기</button>:<a href="#daily">출석 멸치로 열기<ArrowRight size={16}/></a>}</div>:<>
+  {!pass?.unlocked?<div className="daily-tarot-luck"><Sparkles size={17}/><span>오늘의 운세 잠김</span><b>사흘 출석해 모은 멸치 3마리로 오늘의 16종과 타로 세 장을 함께 열어줘.</b>{guest?<button type="button" onClick={loginForCurrentPage}>로그인하고 출석하기</button>:<a href="#daily">출석 멸치로 열기<ArrowRight size={16}/></a>}</div>:<>
   <div className="daily-tarot-spread" role="group" aria-label="오늘의 타로 세 장">
    {positions.map((position,index)=>{const card=reading?.[index],open=opened.includes(index);return <button key={position} type="button" className={`daily-tarot-flip${open?' is-open':''}`} disabled={!card} aria-expanded={open} aria-controls={`daily-tarot-reading-${index}`} aria-label={open&&card?`${position}: ${card.cardName} ${card.orientationLabel}`:`${position} 카드 뒤집기`} onClick={()=>setOpened(current=>current.includes(index)?current:[...current,index])}>
     <span className="daily-tarot-position">{position}</span>

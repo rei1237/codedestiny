@@ -872,7 +872,10 @@
     "promptHub": {
       "aria": "Ga naar uitgebreide fortuinprompts",
       "alt": "Uitgebreide fortuinaanwijzingen",
-      "sr": "Uitgebreide fortuinaanwijzingen"
+      "sr": "Uitgebreide fortuinaanwijzingen",
+      "honeyLabel": "Mijn honingdruppels",
+      "honeyAttend": "Check vandaag in voor honingdruppels",
+      "honeyAttended": "Vandaag ingecheckt"
     },
     "premiumArchive": {
       "kicker": "VVIP BESTEMMINGSARCHIEF",
@@ -7143,7 +7146,7 @@
         "k53h7ds": "Psychologische test",
         "k79pfmc": "Nakshatra",
         "k871xeu": "Gratis · Selfie gezichtsanalyse",
-        "ka0v1mf": "Gratis · 11 tools",
+        "ka0v1mf": "Honingdruppels · 16 tools",
         "kry6axn": "27 Sukuyo Maanposities",
         "kslqazg": "Algemene reading-prompt",
         "kxgi8q8": "Fortune Teller Vis",
@@ -7468,7 +7471,7 @@
         "k1ygnp9f2": {
           "ariaLabel": "Kernpunten"
         },
-        "k231dx8": "Maak direct gratis consultprompts met 16 tools zoals Vier Pijlers (BaZi), tarot, astrologie en Zi Wei Dou Shu.",
+        "k231dx8": "Maak meteen consultprompts met 16 tools: Saju, tarot, astrologie, Zi Wei Dou Shu en meer.",
         "k3baulf": "Hunminjeongeum Naamgevingsbureau",
         "k6uqkuq": {
           "ariaLabel": "Kernsamenvatting"
@@ -7520,7 +7523,7 @@
         "k1scb7d8": {
           "alt": "Representatieve afbeelding van de Lot-app"
         },
-        "koe32kc": "Gratis proefversie",
+        "koe32kc": "Honingdruppels",
         "ktgbfsy": "NIEUW · Definitieve Editie",
         "n50001000020000": "Tarot 5.000 KRW · Vier Pijlers (BaZi) 10.000 KRW · Compatibiliteit 20.000 KRW",
         "k1dw3t0h": "Kaart gratis · expertconsult betaald",
@@ -7541,7 +7544,7 @@
     "tarotTileBody": {
       "featuredContentCardCta": {
         "k1f1oofn": "Betreed het Lotstheehuys",
-        "kdyjsns": "Gratis proberen",
+        "kdyjsns": "Prompt maken",
         "kwux29x": "Betreed de Strategiekamer"
       },
       "pvcPremMeta": {
@@ -7611,7 +7614,7 @@
         "ko4w810": "16 instrumenten, waaronder Vier Pijlers (BaZi), Tarot en astrologie",
         "kozjlt4": "Praktisch advies voor relaties, financiën, werk en keuzes",
         "kqwk9o": "Consult over huizen en sterrenstromen per onderwerp",
-        "krx9ppb": "1 gratis proef · onbeperkt na registratie",
+        "krx9ppb": "1 honingdruppel per 3 check-ins · 1 druppel per prompt",
         "ktv5xm9": "Analyse van geboortekaart en Vijf Elementen balans",
         "ktx0v26": "Kies een lotskaart onder het leeuwenembleem",
         "kvigm32": "Praktisch advies afgestemd op de huidige relatie",

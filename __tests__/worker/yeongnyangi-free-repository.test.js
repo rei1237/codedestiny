@@ -74,10 +74,12 @@ test('KST attendance is awarded once even under concurrent requests',async()=>{
   expect(results.filter(result=>result.awarded)).toHaveLength(1);
 });
 
-test('one anchovy unlocks all categories for the day and repeat unlock does not debit again',async()=>{
-  const at=new Date('2026-09-16T03:00:00.000Z');await repo.attend({},owner,at);
+test('three anchovies unlock all categories for the day and repeat unlock does not debit again',async()=>{
+  const at=new Date('2026-09-16T03:00:00.000Z');
+  for(const day of ['2026-09-14','2026-09-15'])await repo.attend({},owner,new Date(`${day}T03:00:00.000Z`));
+  await repo.attend({},owner,at);
   const results=await Promise.all([repo.unlockToday({},owner,at),repo.unlockToday({},owner,at)]);
-  expect(accounts[0].balance).toBe(0);expect(ledgers.filter(row=>row.kind==='unlock')).toHaveLength(1);
+  expect(accounts[0].balance).toBe(0);expect(ledgers.filter(row=>row.kind==='unlock')).toMatchObject([{amount:-3}]);
   expect(results.filter(result=>result.newlyUnlocked)).toHaveLength(1);
   await expect(repo.requireDailyPass({},owner,at)).resolves.toMatchObject({unlocked:true});
   await expect(repo.requireDailyPass({},other,at)).rejects.toMatchObject({status:403});
@@ -86,6 +88,9 @@ test('one anchovy unlocks all categories for the day and repeat unlock does not 
 test('insufficient balance never creates an unlock ledger or negative balance',async()=>{
   await expect(repo.unlockToday({},owner,new Date('2026-09-16T03:00:00Z'))).rejects.toMatchObject({status:409});
   expect(accounts).toHaveLength(0);expect(ledgers).toHaveLength(0);
+  for(const day of ['2026-09-15','2026-09-16'])await repo.attend({},owner,new Date(`${day}T03:00:00.000Z`));
+  await expect(repo.unlockToday({},owner,new Date('2026-09-16T03:00:00Z'))).rejects.toMatchObject({status:409});
+  expect(accounts[0].balance).toBe(2);expect(ledgers.filter(row=>row.kind==='unlock')).toHaveLength(0);
 });
 
 test('first reading input is frozen and only the owner claim can complete it',async()=>{

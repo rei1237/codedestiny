@@ -52,6 +52,13 @@ export const PAID_NON_LLM_DELIVERY_FIXTURES = Object.freeze([
     "setData(payload)",
   ),
   sameSurface(
+    "fortune-prompt-hub-generate",
+    "per_use",
+    "app/fortune/prompt-hub/PromptHubClient.tsx",
+    "featureKey: PROMPT_HUB_GENERATE_FEATURE_KEY",
+    "await runPromptGeneration(shortfall.toolId, shortfall.draft, requestId)",
+  ),
+  sameSurface(
     "dream-prompt-generator",
     "per_use",
     "js/dream-ledger.js",
