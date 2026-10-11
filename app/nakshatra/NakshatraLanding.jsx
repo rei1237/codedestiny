@@ -15,8 +15,8 @@ export default function NakshatraLanding({ page }) {
         <div>
           <h1>나크샤트라 결정판<span>두 개의 시선으로<br />깊어지는 나의 이야기</span></h1>
           <p className={styles.lead}>타고난 성향부터 일과 사랑, 함께 살아가는 방식까지.<br />일본 숙요의 본명숙과 인도 베다의 달을 나란히 놓고, 지금의 나를 차분히 읽어 보세요.</p>
-          <div className={styles.actions}><a href="#nakshatra-form" className={styles.button}>나의 별 읽기 · 무료</a><Link href="/nakshatra/compat/" className={styles.secondary}>두 사람의 궁합</Link></div>
-          <p className={styles.price}>개인 주제별 요약 무료 · 개인 심화는 기존 유료 상담<br />선택형 궁합 {NAKSHATRA_COMPAT_PRICE_LABEL} · 이용권·월정석 적용은 결제창에서 확인</p>
+          <div className={styles.actions}><a href="#nakshatra-form" className={styles.button}>나의 별 읽기 · 3,000원</a><Link href="/nakshatra/compat/" className={styles.secondary}>두 사람의 궁합</Link></div>
+          <p className={styles.price}>개인 기본 리딩 3,000원 · 개인 심화는 기존 유료 상담<br />선택형 궁합 {NAKSHATRA_COMPAT_PRICE_LABEL} · 이용권·월정석 적용은 결제창에서 확인</p>
         </div>
         <figure className={styles.art}>
           <img src="/images/nakshatra/moonlight-library-1672.webp" srcSet="/images/nakshatra/moonlight-library-480.webp 480w, /images/nakshatra/moonlight-library-960.webp 960w, /images/nakshatra/moonlight-library-1672.webp 1672w" sizes="(max-width: 760px) calc(100vw - 40px), 600px" width="1672" height="941" fetchPriority="high" alt="달빛 연못을 바라보는 인도 석조 아치와 금박 천문 병풍, 별의 책이 펼쳐진 서고" />

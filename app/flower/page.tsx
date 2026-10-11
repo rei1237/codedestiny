@@ -21,7 +21,7 @@ export function generateMetadata() {
 }
 
 const SERVICE = {
-  h1: "무료로 만나는 나의 운명의 꽃",
+  h1: "네 갈래 운세로 피우는 나의 운명의 꽃",
   description: META.description,
   ogImage: META.image,
   landingPoints: ["4개 운세 소스 탭 전환", "소스별 꽃·키워드·해석 패널", "프롬프트/저장/공유 도구"],

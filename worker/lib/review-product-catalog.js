@@ -39,6 +39,7 @@ export const REVIEW_PRODUCTS = Object.freeze([
       "section_compat",
       "rpgCharacter",
       "fun.quantumLotto.ritualReport",
+      "daily-fortune-reading",
     ]),
   },
   {
@@ -175,6 +176,7 @@ export const REVIEW_PRODUCTS = Object.freeze([
       "nakshatra-vvip-codex",
       "nakshatra-lord-report",
       "nakshatra-dasha-map",
+      "nakshatra-basic-reading",
     ]),
   },
   {
@@ -296,6 +298,7 @@ export const REVIEW_PRODUCTS = Object.freeze([
       "animal-totem-deep",
       "olympus-fc",
       "premiumDivinationPack",
+      "dream-prompt-generator",
     ]),
   },
   {
@@ -307,6 +310,8 @@ export const REVIEW_PRODUCTS = Object.freeze([
       "premium-fpti-report",
       "tetogen_deep_report",
       "premium-sibyl-dominator",
+      "psychotest-reading",
+      "mbti-animal-compat",
     ]),
   },
   {
@@ -336,6 +341,7 @@ export const REVIEW_PRODUCTS = Object.freeze([
     summary: "최애와 나의 운명을 겹쳐 보는 심화 분석",
     href: "/saju/destiny-bias",
     featureKeys: Object.freeze([
+      "destiny-bias-analyze",
     ]),
   },
   {

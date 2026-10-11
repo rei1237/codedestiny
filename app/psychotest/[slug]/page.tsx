@@ -9,6 +9,7 @@ import {
 import ContentIntegrityNote from "../../components/ContentIntegrityNote";
 import DeferredShareWidget from "../../components/DeferredShareWidget";
 import DestinyBiasPromoSection from "../_components/DestinyBiasPromoSection";
+import PaidPsychotestLink from "../_components/PaidPsychotestLink";
 
 type PageProps = {
   params: {
@@ -19,11 +20,11 @@ type PageProps = {
 const PSYCHOTEST_DETAIL_METADATA_COPY = {
   ko: {
     fallbackTitle: "심리테스트",
-    titleSuffix: "무료 심리테스트",
+    titleSuffix: "심리테스트",
     descriptionSuffix(minutes: number) {
       return `평균 ${minutes}분 내외로 가볍게 확인하고, 결과 해석 포인트까지 정리해 보세요.`;
     },
-    freeKeyword: "무료 심리테스트",
+    freeKeyword: "심리테스트",
     categoryKeyword(category: string) {
       return `${category} 테스트`;
     },
@@ -34,11 +35,11 @@ const PSYCHOTEST_DETAIL_METADATA_COPY = {
   },
   en: {
     fallbackTitle: "Psychological Test",
-    titleSuffix: "Free Psychological Test",
+    titleSuffix: "Psychological Test",
     descriptionSuffix(minutes: number) {
       return `Check it lightly in about ${minutes} minutes and review the key points in your result.`;
     },
-    freeKeyword: "free psychological test",
+    freeKeyword: "psychological test",
     categoryKeyword(category: string) {
       return `${category} test`;
     },
@@ -49,11 +50,11 @@ const PSYCHOTEST_DETAIL_METADATA_COPY = {
   },
   ja: {
     fallbackTitle: "心理テスト",
-    titleSuffix: "無料心理テスト",
+    titleSuffix: "心理テスト",
     descriptionSuffix(minutes: number) {
       return `平均${minutes}分ほどで気軽に確認し、結果の解釈ポイントまで整理できます。`;
     },
-    freeKeyword: "無料心理テスト",
+    freeKeyword: "心理テスト",
     categoryKeyword(category: string) {
       return `${category}テスト`;
     },
@@ -64,11 +65,11 @@ const PSYCHOTEST_DETAIL_METADATA_COPY = {
   },
   zh: {
     fallbackTitle: "心理测试",
-    titleSuffix: "免费心理测试",
+    titleSuffix: "心理测试",
     descriptionSuffix(minutes: number) {
       return `约 ${minutes} 分钟即可轻松确认，并整理结果解读要点。`;
     },
-    freeKeyword: "免费心理测试",
+    freeKeyword: "心理测试",
     categoryKeyword(category: string) {
       return `${category}测试`;
     },
@@ -138,9 +139,9 @@ export default function PsychotestDetailPage({ params }: PageProps) {
 
   const meta = {
     path: `/psychotest/${test.slug}`,
-    title: `${test.title} | ${test.category} 무료 심리테스트`,
+    title: `${test.title} | ${test.category} 심리테스트`,
     description: `${test.summary}. 평균 ${test.estimatedMinutes}분 내외로 가볍게 확인하고, 결과 해석 포인트까지 정리해 보세요.`,
-    keywords: [...test.keywords, "무료 심리테스트", `${test.category} 테스트`, test.title],
+    keywords: [...test.keywords, "심리테스트", `${test.category} 테스트`, test.title],
     featureList: [
       `평균 소요 ${test.estimatedMinutes}분`,
       `${test.focusPoints.join(" · ")}`,
@@ -231,14 +232,12 @@ export default function PsychotestDetailPage({ params }: PageProps) {
           ))}
         </div>
 
-        <a
+        <PaidPsychotestLink
           href={externalUrl}
-          target="_blank"
-          rel="noopener noreferrer"
           className="mt-6 inline-flex items-center justify-center rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white hover:opacity-90"
         >
-          테스트 시작하기
-        </a>
+          3,000원으로 테스트 시작하기
+        </PaidPsychotestLink>
       </header>
 
       <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-6">

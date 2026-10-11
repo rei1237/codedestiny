@@ -38,6 +38,48 @@ const SUKUYO_STATIC_PRODUCTS = [
 
 export const PAID_NON_LLM_DELIVERY_FIXTURES = Object.freeze([
   sameSurface(
+    "destiny-bias-analyze",
+    "per_use",
+    "app/saju/destiny-bias/DestinyBiasClient.tsx",
+    "featureKey: DESTINY_BIAS_ANALYZE_FEATURE_KEY",
+    "const report = buildChemiReport({",
+  ),
+  sameSurface(
+    "daily-fortune-reading",
+    "per_use",
+    "app/today/TodayHubClient.tsx",
+    "featureKey: TODAY_FEATURE_KEY",
+    "setData(payload)",
+  ),
+  sameSurface(
+    "dream-prompt-generator",
+    "per_use",
+    "js/dream-ledger.js",
+    "featureKey: 'dream-prompt-generator'",
+    "openDreamModalCore",
+  ),
+  sameSurface(
+    "psychotest-reading",
+    "per_use",
+    "app/psychotest/_components/PaidPsychotestLink.tsx",
+    "featureKey: FEATURE_KEY",
+    "window.location.assign(href)",
+  ),
+  sameSurface(
+    "mbti-animal-compat",
+    "per_use",
+    "js/astral-soul.js",
+    "featureKey: 'mbti-animal-compat'",
+    "openMbtiModalCore",
+  ),
+  sameSurface(
+    "nakshatra-basic-reading",
+    "per_use",
+    "app/nakshatra/NakshatraFormClient.tsx",
+    "featureKey: BASIC_READING_FEATURE_KEY",
+    "resolveReading(body)",
+  ),
+  sameSurface(
     "love-code",
     "per_use",
     "app/saju/love-simulation/_components/LoveSimulationEngine.tsx",

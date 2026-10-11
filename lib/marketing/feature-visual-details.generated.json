@@ -543,10 +543,11 @@
       "slug": "nakshatra",
       "title": "나크샤트라 결정판",
       "href": "/nakshatra/",
-      "featureKey": "nakshatra",
-      "accessType": "free",
+      "featureKey": "nakshatra-basic-reading",
+      "accessType": "unknown",
       "image": "/feature-details/assets/nakshatra-960.webp",
       "aliases": [
+        "nakshatra-basic-reading",
         "nakshatra",
         "/nakshatra/",
         "/nakshatra"
@@ -577,10 +578,11 @@
       "slug": "daily-fortune",
       "title": "오늘의 운세",
       "href": "/today/",
-      "featureKey": "today-hub",
-      "accessType": "free",
+      "featureKey": "daily-fortune-reading",
+      "accessType": "unknown",
       "image": "/feature-details/assets/daily-fortune-960.webp",
       "aliases": [
+        "daily-fortune-reading",
         "daily-fortune",
         "/today/",
         "/today"
@@ -594,10 +596,11 @@
       "slug": "today-hub",
       "title": "오늘의 운세 허브",
       "href": "/today/",
-      "featureKey": "today-hub",
-      "accessType": "free",
+      "featureKey": "daily-fortune-reading",
+      "accessType": "unknown",
       "image": "/feature-details/assets/today-hub-960.webp",
       "aliases": [
+        "daily-fortune-reading",
         "today-hub",
         "/today/",
         "/today"
@@ -646,10 +649,11 @@
       "slug": "dream",
       "title": "꿈해몽",
       "href": "/dream/",
-      "featureKey": "dream",
-      "accessType": "free",
+      "featureKey": "dream-prompt-generator",
+      "accessType": "unknown",
       "image": "/feature-details/assets/dream-960.webp",
       "aliases": [
+        "dream-prompt-generator",
         "openDreamModal",
         "dream",
         "/dream/",
@@ -664,10 +668,11 @@
       "slug": "psychotest",
       "title": "심리테스트",
       "href": "/psychotest/",
-      "featureKey": "psychotest",
-      "accessType": "free",
+      "featureKey": "psychotest-reading",
+      "accessType": "unknown",
       "image": "/feature-details/assets/psychotest-960.webp",
       "aliases": [
+        "psychotest-reading",
         "psychotest",
         "/psychotest/",
         "/psychotest"
@@ -682,7 +687,7 @@
       "title": "만세력",
       "href": "/manse/",
       "featureKey": "manse",
-      "accessType": "free",
+      "accessType": "unknown",
       "image": "/feature-details/assets/manse-960.webp",
       "aliases": [
         "manse",
@@ -699,7 +704,7 @@
       "title": "유명인 사주",
       "href": "/insights/famous-saju/",
       "featureKey": "famous-saju",
-      "accessType": "free",
+      "accessType": "unknown",
       "image": "/feature-details/assets/famous-saju-960.webp",
       "aliases": [
         "famous-saju",
@@ -880,11 +885,11 @@
       "title": "MBTI 동물 궁합",
       "href": "/index.html?action=openMbtiModal",
       "featureKey": "mbti-animal-compat",
-      "accessType": "free",
+      "accessType": "unknown",
       "image": "/feature-details/assets/mbti-animal-compat-960.webp",
       "aliases": [
-        "openMbtiModal",
         "mbti-animal-compat",
+        "openMbtiModal",
         "/index.html?action=openMbtiModal",
         "/index.html?action=openMbtiModal/"
       ],
@@ -971,7 +976,7 @@
       "title": "운기 다이어리와 플래너",
       "href": "/diary/",
       "featureKey": "luck-sync-diary",
-      "accessType": "free",
+      "accessType": "unknown",
       "image": "/feature-details/assets/luck-sync-diary-960.webp",
       "aliases": [
         "openLuckSyncDiary",
@@ -1006,7 +1011,7 @@
       "title": "라이트 노벨",
       "href": "/codedestiny-novel.html",
       "featureKey": "novel",
-      "accessType": "free",
+      "accessType": "unknown",
       "image": "/feature-details/assets/novel-960.webp",
       "aliases": [
         "novel",
@@ -1090,9 +1095,10 @@
       "title": "최애운명",
       "href": "/saju/destiny-bias",
       "featureKey": "destiny-bias-analyze",
-      "accessType": "free",
+      "accessType": "paid",
       "image": "/feature-details/assets/bias-destiny-960.webp",
       "aliases": [
+        "destiny-bias-analyze",
         "bias-destiny",
         "/saju/destiny-bias",
         "/saju/destiny-bias/"
@@ -5229,11 +5235,12 @@
       "slug": "nakshatra",
       "title": "나크샤트라 결정판",
       "href": "/nakshatra/",
-      "featureKey": "nakshatra",
+      "featureKey": "nakshatra-basic-reading",
       "featureKeyTo": "",
-      "accessType": "free",
+      "accessType": "unknown",
       "image": "/feature-details/assets/nakshatra-960.webp",
       "aliases": [
+        "nakshatra-basic-reading",
         "nakshatra",
         "/nakshatra/",
         "/nakshatra"
@@ -5242,7 +5249,7 @@
       "headline": "스물일곱 별의 자리 중, 나의 자리는 어디일까요?",
       "description": "달이 머물던 나크샤트라에는 서로 다른 기질의 상징이 담겨 있습니다. 나의 별을 만나고, 익숙했던 감정에 새로운 이름을 붙여보세요.",
       "panels": [],
-      "ctaLabel": "무료로 나크샤트라 보기",
+      "ctaLabel": "나크샤트라 보기 · 3,000원",
       "evidence": [
         "app/nakshatra/page.js",
         "index.html",
@@ -5341,11 +5348,12 @@
       "slug": "daily-fortune",
       "title": "오늘의 운세",
       "href": "/today/",
-      "featureKey": "today-hub",
+      "featureKey": "daily-fortune-reading",
       "featureKeyTo": "",
-      "accessType": "free",
+      "accessType": "unknown",
       "image": "/feature-details/assets/daily-fortune-960.webp",
       "aliases": [
+        "daily-fortune-reading",
         "daily-fortune",
         "/today/",
         "/today"
@@ -5354,7 +5362,7 @@
       "headline": "오늘, 나에게 건네고 싶은 한마디",
       "description": "바쁘게 하루를 시작하기 전에 잠시 멈춰보세요. 오늘의 흐름과 작고 구체적인 행동 힌트를 가볍게 읽고 출발합니다.",
       "panels": [],
-      "ctaLabel": "오늘의 운세 허브 열기",
+      "ctaLabel": "오늘의 운세 보기 · 3,000원",
       "evidence": [
         "index.html",
         "index.html",
@@ -5397,11 +5405,12 @@
       "slug": "today-hub",
       "title": "오늘의 운세 허브",
       "href": "/today/",
-      "featureKey": "today-hub",
+      "featureKey": "daily-fortune-reading",
       "featureKeyTo": "",
-      "accessType": "free",
+      "accessType": "unknown",
       "image": "/feature-details/assets/today-hub-960.webp",
       "aliases": [
+        "daily-fortune-reading",
         "today-hub",
         "/today/",
         "/today"
@@ -5410,7 +5419,7 @@
       "headline": "오늘의 나를 만나는 여러 개의 문",
       "description": "하루의 운세도 마음의 질문도 모두 같을 필요는 없죠. 지금 궁금한 주제를 골라 오늘의 이야기를 펼쳐보세요.",
       "panels": [],
-      "ctaLabel": "오늘의 운세 허브 열기",
+      "ctaLabel": "오늘의 운세 보기 · 3,000원",
       "evidence": [
         "app/today/page.js",
         "index.html",
@@ -5601,11 +5610,12 @@
       "slug": "dream",
       "title": "꿈해몽",
       "href": "/dream/",
-      "featureKey": "dream",
+      "featureKey": "dream-prompt-generator",
       "featureKeyTo": "",
-      "accessType": "free",
+      "accessType": "unknown",
       "image": "/feature-details/assets/dream-960.webp",
       "aliases": [
+        "dream-prompt-generator",
         "openDreamModal",
         "dream",
         "/dream/",
@@ -5615,7 +5625,7 @@
       "headline": "깨어난 뒤에도 남는 꿈이 있나요?",
       "description": "사라지기 전에 꿈속 장면을 떠올려보세요. 등장한 상징과 그때의 감정을 함께 읽으면, 지금 마음이 붙잡고 있는 질문이 보일 수 있습니다.",
       "panels": [],
-      "ctaLabel": "무료로 꿈 해몽하기",
+      "ctaLabel": "꿈 해몽하기 · 3,000원",
       "evidence": [
         "app/dream/page.js",
         "index.html",
@@ -5658,11 +5668,12 @@
       "slug": "psychotest",
       "title": "심리테스트",
       "href": "/psychotest/",
-      "featureKey": "psychotest",
+      "featureKey": "psychotest-reading",
       "featureKeyTo": "",
-      "accessType": "free",
+      "accessType": "unknown",
       "image": "/feature-details/assets/psychotest-960.webp",
       "aliases": [
+        "psychotest-reading",
         "psychotest",
         "/psychotest/",
         "/psychotest"
@@ -5671,7 +5682,7 @@
       "headline": "무심코 고른 답에 내가 숨어 있을까요?",
       "description": "맞고 틀린 답을 찾지 않아도 됩니다. 마음이 먼저 향하는 선택을 따라가며, 평소 미처 말로 옮기지 못한 나를 만나보세요.",
       "panels": [],
-      "ctaLabel": "무료 심리테스트 하기",
+      "ctaLabel": "심리테스트 하기 · 3,000원",
       "evidence": [
         "app/psychotest/page.tsx",
         "index.html",
@@ -5716,7 +5727,7 @@
       "href": "/manse/",
       "featureKey": "manse",
       "featureKeyTo": "",
-      "accessType": "free",
+      "accessType": "unknown",
       "image": "/feature-details/assets/manse-960.webp",
       "aliases": [
         "manse",
@@ -5772,7 +5783,7 @@
       "href": "/insights/famous-saju/",
       "featureKey": "famous-saju",
       "featureKeyTo": "",
-      "accessType": "free",
+      "accessType": "unknown",
       "image": "/feature-details/assets/famous-saju-960.webp",
       "aliases": [
         "famous-saju",
@@ -6841,11 +6852,11 @@
       "href": "/index.html?action=openMbtiModal",
       "featureKey": "mbti-animal-compat",
       "featureKeyTo": "",
-      "accessType": "free",
+      "accessType": "unknown",
       "image": "/feature-details/assets/mbti-animal-compat-960.webp",
       "aliases": [
-        "openMbtiModal",
         "mbti-animal-compat",
+        "openMbtiModal",
         "/index.html?action=openMbtiModal",
         "/index.html?action=openMbtiModal/"
       ],
@@ -6853,7 +6864,7 @@
       "headline": "닮은 우리, 다른 우리 — 어떤 동물의 만남일까요?",
       "description": "두 사람의 MBTI를 동물의 성향으로 옮겨봅니다. 잘 맞는 점만 찾기보다 서로 다른 반응을 이해하는 데 마음을 써보세요.",
       "panels": [],
-      "ctaLabel": "MBTI 동물 궁합 보기",
+      "ctaLabel": "MBTI 동물 궁합 보기 · 3,000원",
       "evidence": [
         "index.html",
         "index.html",
@@ -7251,7 +7262,7 @@
       "href": "/diary/",
       "featureKey": "luck-sync-diary",
       "featureKeyTo": "",
-      "accessType": "free",
+      "accessType": "unknown",
       "image": "/feature-details/assets/luck-sync-diary-960.webp",
       "aliases": [
         "openLuckSyncDiary",
@@ -7364,7 +7375,7 @@
       "href": "/codedestiny-novel.html",
       "featureKey": "novel",
       "featureKeyTo": "",
-      "accessType": "free",
+      "accessType": "unknown",
       "image": "/feature-details/assets/novel-960.webp",
       "aliases": [
         "novel",
@@ -7714,9 +7725,10 @@
       "href": "/saju/destiny-bias",
       "featureKey": "destiny-bias-analyze",
       "featureKeyTo": "",
-      "accessType": "free",
+      "accessType": "paid",
       "image": "/feature-details/assets/bias-destiny-960.webp",
       "aliases": [
+        "destiny-bias-analyze",
         "bias-destiny",
         "/saju/destiny-bias",
         "/saju/destiny-bias/"
@@ -7725,7 +7737,7 @@
       "headline": "최애와 나, 어떤 케미의 이야기가 될까요?",
       "description": "좋아하는 마음을 한 장의 운명 카드에 담습니다. 두 사람의 사주에서 읽은 케미와 무드, 오행의 조합을 만나보세요.",
       "panels": [],
-      "ctaLabel": "최애운명 열람하기",
+      "ctaLabel": "5,000원으로 최애운명 보기",
       "evidence": [
         "app/saju/destiny-bias/page.tsx",
         "index.html",
@@ -7749,8 +7761,8 @@
         "trustNotes": [],
         "faq": [
           {
-            "q": "유료인가요?",
-            "a": "아니요. 로그인만 하면 열리는 무료 기능입니다."
+            "q": "이용 가격은 얼마인가요?",
+            "a": "1회 5,000원이며 결제 화면에서 적용 가능한 이용권과 결제 수단을 확인할 수 있습니다."
           },
           {
             "q": "같은 정보를 다시 넣으면 결과가 달라지나요?",

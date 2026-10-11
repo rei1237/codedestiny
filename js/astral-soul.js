@@ -463,7 +463,7 @@ function __unlockMbtiBody() {
     __mbtiBodyLocked = false;
 }
 
-function openMbtiModal() {
+function openMbtiModalCore() {
     const modal = document.getElementById('astralModal');
     // 다른 모달/오류로 body가 fixed 상태로 남았을 때 스크롤 잠김 방지
     if (window._perf && typeof window._perf.unlockBody === 'function') {
@@ -511,6 +511,40 @@ function openMbtiModal() {
     if(ritualStage) ritualStage.style.display = 'none';
     document.getElementById('astralGrid').style.display = 'grid';
     document.querySelector('.astral-header').style.display = 'block';
+}
+
+function openMbtiModal() {
+    if (typeof window._cdOpenPaidServiceGate !== 'function') {
+        window.alert('결제 모듈을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.');
+        return;
+    }
+    let opened = false;
+    const finish = () => {
+        if (opened) return;
+        opened = true;
+        openMbtiModalCore();
+    };
+    return Promise.resolve(window._cdOpenPaidServiceGate({
+        title: 'MBTI 동물 궁합',
+        reason: 'MBTI 동물 궁합 티저 해석',
+        featureKey: 'mbti-animal-compat',
+        coinPrice: 30,
+        cost: 30,
+        amountKRW: 3000,
+        requestId: 'mbti-animal-compat:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9),
+        resume: { kind: 'mbti-animal-compat', action: 'openMbtiModal', args: {} },
+        onGranted: finish,
+        onPassApplied: finish
+    })).then(result => {
+        if (result && (result.status === 'granted' || result.ok === true || result.payload)) finish();
+    }).catch(() => {});
+}
+
+if (window.__cdCheckoutEntry && typeof window.__cdCheckoutEntry.registerPaidResumeHandler === 'function') {
+    window.__cdCheckoutEntry.registerPaidResumeHandler('mbti-animal-compat', function () {
+        openMbtiModalCore();
+        return true;
+    });
 }
 
 function closeMbtiModal() {
