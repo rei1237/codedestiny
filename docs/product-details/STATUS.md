@@ -491,3 +491,7 @@ status: active
 ## 타로 오라클 1~4장
 - 한질문집중/실제자리/3장이상카드쌍/행동/저장을9장개별편집.원본9/native22독립SHIP;328/358/398/540 clipping/fallback/질문·로컬3장뽑기·CTAtrial PASS,POST0.
 - oracle mock전체검증/Jest47/typecheck/resume wiring PASS.ESLint0errors(기존2warnings).유료구성127종+공통소개1종1149패널로컬검수.직전8a5e512bf pre-pushPASS.전체/main미완료,엔진운영미배포.다음5~7장원본검수중.
+
+## 타로 오라클 5~7장
+- 마음·외부조건을구분하는실제5장자리/7장차이/가상연락사례9장개별편집.원본9/native22독립SHIP,328/358/398/540 clipping/fallback/배열전환/5장뽑기/CTAtrial PASS,POST0.공유로직직전Jest47/oracle mock PASS.
+- 유료구성128종+공통소개1종1158패널로컬검수.직전cc7f30d31 pre-pushPASS.전체/main미완료,엔진운영미배포.다음8~10장원본검수중.

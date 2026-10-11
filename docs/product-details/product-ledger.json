@@ -6077,24 +6077,49 @@
     {
       "productId": "tarot-prompt-maker-standard",
       "displayName": "타로 오라클 상담 (5~7카드)",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "saleStatus": "5~7장선택시타로AI상담",
+      "entry": [
+        "/tarot/prompt-maker/"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 3000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
+      "inputRequirements": [
+        "질문/분야/5~7장배열/카드/정역선택"
+      ],
+      "resultRenderer": [
+        "app/tarot/prompt-maker/TarotPromptMakerClient.tsx",
+        "worker/lib/tarot-oracle-delivery.js"
+      ],
+      "actualContents": [
+        "질문/전체/자리별해석/선택세쌍/긴장/주제심화",
+        "현재/가까운흐름/분기점/행동3관점/마무리"
+      ],
+      "conditionalItems": [
+        "실제5장현재/장애/마음/외부/조언;배열별상이",
+        "저장재열람/읽던위치/중단안내",
+        "PDF/후속대화없음"
+      ],
       "separatePurchase": [],
       "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "images": [
+        "/feature-details/crafted/tarot-oracle-context/manifest.json"
       ],
-      "detailAliases": []
+      "status": "적용",
+      "appliedAt": [
+        "content/product-details/catalog.json",
+        "app/tarot/prompt-maker/TarotPromptMakerClient.tsx"
+      ],
+      "verification": [
+        "원본9/native22독립SHIP",
+        "328/358/398/540 clipping/fallback/배열변경/5장뽑기/CTAtrial PASS;POST0",
+        "공유로직직전Jest47/oracle mock검증PASS"
+      ],
+      "unconfirmed": [
+        "main전달전로컬검수;실결제/AI없음"
+      ],
+      "detailAliases": [
+        "tarot-oracle-context"
+      ]
     },
     {
       "productId": "travelDestiny",

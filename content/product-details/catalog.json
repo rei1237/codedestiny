@@ -124,7 +124,8 @@
     "karma-destiny-ai-consultation": "karma-destiny",
     "tetogen_deep_report": "teto-egen-deep",
     "destiny_meeting_place": "destiny-meeting-place",
-    "tarot-prompt-maker": "tarot-oracle-focus"
+    "tarot-prompt-maker": "tarot-oracle-focus",
+    "tarot-prompt-maker-standard": "tarot-oracle-context"
   },
   "introductions": {
     "fusion-fortune": [
