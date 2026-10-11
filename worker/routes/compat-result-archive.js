@@ -11,6 +11,9 @@
 //    다른 사람의 requestId 로는 증빙이 없다. 결제 1건 = 기록 1건(executionKey 에 requestId).
 // 🔴 이용권 즉시 사용(accessMethod:'pass')은 사용 기록이 아직 없으면 같은 requestId 로 이용권을 직접
 //    소비해 증빙을 남긴다(멱등 — 뒤늦은 pass-check 와 두 번 깎이지 않는다). sukuyo-archive.js 와 같다.
+//
+// 궁합이 아닌 브라우저 계산형 회당 결과도 같은 검증·저장을 쓴다:
+// POST /api/result-archive/<destiny-compass-crossroads|destiny-compass-future-sim|destiny-compass-life-voyage>
 import { FEATURE_KEY_PRICE_TABLE } from "../lib/paid-feature-registry.js";
 import { requireUserFromRequest } from "../lib/auth.js";
 import { connectDb } from "../lib/db.js";
@@ -93,6 +96,43 @@ export const COMPAT_ARCHIVE_FEATURES = Object.freeze({
   }),
 });
 
+// 운명의 나침반 심화 3종(app/destiny-compass) — 이미 계산된 방향장(field)을 결제 뒤에 펼쳐 보이는 화면이라
+// 서버에 남는 것이 없었다. score 는 갈림길이 추천 쪽 총점, 시뮬레이션·항로는 지금 기운이다.
+const COMPASS_TIMELINE_FACTS = Object.freeze({ textKeys: [], numberKeys: ["score", "d30", "d90", "y1", "y3"] });
+const describeCompassTimeline = (facts) => ({
+  summary: Number.isFinite(facts.score) ? `지금 기운 ${facts.score}` : "",
+  targetName: "",
+  chart: {},
+});
+
+export const RESULT_ARCHIVE_FEATURES = Object.freeze({
+  "destiny-compass-crossroads": Object.freeze({
+    featureKey: "destiny-compass-crossroads",
+    reportType: "destiny-compass-crossroads",
+    title: "운명의 나침반 · 갈림길",
+    facts: { textKeys: ["optionA", "optionB", "recommended"], numberKeys: ["score", "scoreA", "scoreB"] },
+    describe: (facts) => ({
+      summary: [facts.recommended, Number.isFinite(facts.score) ? `${facts.score}점` : ""].filter(Boolean).join(" · "),
+      targetName: [facts.optionA, facts.optionB].filter(Boolean).join(" vs "),
+      chart: {},
+    }),
+  }),
+  "destiny-compass-future-sim": Object.freeze({
+    featureKey: "destiny-compass-future-sim",
+    reportType: "destiny-compass-future-sim",
+    title: "운명의 나침반 · 미래 시뮬레이션",
+    facts: COMPASS_TIMELINE_FACTS,
+    describe: describeCompassTimeline,
+  }),
+  "destiny-compass-life-voyage": Object.freeze({
+    featureKey: "destiny-compass-life-voyage",
+    reportType: "destiny-compass-life-voyage",
+    title: "운명의 나침반 · 삶의 항로",
+    facts: COMPASS_TIMELINE_FACTS,
+    describe: describeCompassTimeline,
+  }),
+});
+
 async function provePerUse(env, spec, { userId, requestId, profileId, accessMethod }) {
   const input = {
     userId,
@@ -107,8 +147,8 @@ async function provePerUse(env, spec, { userId, requestId, profileId, accessMeth
   return proof;
 }
 
-export async function handleCompatResultArchive(request, env, featureSlug) {
-  const spec = COMPAT_ARCHIVE_FEATURES[featureSlug];
+export async function handleCompatResultArchive(request, env, featureSlug, features = COMPAT_ARCHIVE_FEATURES) {
+  const spec = Object.hasOwn(features, featureSlug) ? features[featureSlug] : null;
   if (!spec) return fail(404, "NOT_FOUND", "저장할 수 없는 기능입니다.");
   const auth = await requireUserFromRequest(request, env);
   const parsed = await readArchiveJson(request);
@@ -193,5 +233,17 @@ export async function handleCompatResultArchiveRoutes(request, env = {}) {
     return await handleCompatResultArchive(request, env, match[1]);
   } catch (error) {
     return handleRouteError(error, { route: "compat-archive", request });
+  }
+}
+
+export async function handleResultArchiveRoutes(request, env = {}) {
+  try {
+    const path = getRoutePath(request, "/api/result-archive");
+    const match = /^\/([a-z-]+)$/.exec(path);
+    if (!match) return notFound();
+    if (request.method.toUpperCase() !== "POST") return methodNotAllowed();
+    return await handleCompatResultArchive(request, env, match[1], RESULT_ARCHIVE_FEATURES);
+  } catch (error) {
+    return handleRouteError(error, { route: "result-archive", request });
   }
 }

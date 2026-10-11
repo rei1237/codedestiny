@@ -1628,6 +1628,11 @@ const app = {
         const { handleCompatResultArchiveRoutes } = await import("./routes/compat-result-archive.js");
         return withCorsHeaders(request, env, await handleCompatResultArchiveRoutes(request, env));
       }
+      // 그 밖의 브라우저 계산 회당 결과(운명의 나침반 심화 등) — 같은 검증·저장.
+      if (url.pathname.startsWith("/api/result-archive/")) {
+        const { handleResultArchiveRoutes } = await import("./routes/compat-result-archive.js");
+        return withCorsHeaders(request, env, await handleResultArchiveRoutes(request, env));
+      }
 
       // 운명의 섬 청사진 (무인증·무DB 순수 계산 — /api/ziwei 툼스톤보다 먼저 매칭될 필요는 없으나 ziwei 계열과 함께 둔다)
       if (url.pathname === "/api/ziwei-island-ai" || url.pathname.startsWith("/api/ziwei-island-ai/")) {

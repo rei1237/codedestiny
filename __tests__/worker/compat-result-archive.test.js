@@ -4,6 +4,7 @@
  * POST /api/compat-archive/<astro-synastry|astro-direct-synastry|ziwei-compat> — 점성술·자미두수 궁합 결과의 보관함 저장.
  * 상대가 매번 바뀌는 회당 결제라 requestId 는 셸이 결제마다 새로 만든다. 서버는 그 requestId 가
  * 이 사용자·이 기능의 결제인지 확인한 뒤에만 저장하고, 결제 1건 = 기록 1건이다.
+ * POST /api/result-archive/<destiny-compass-*> 도 같은 처리기로 운명의 나침반 심화 3종을 남긴다.
  */
 
 import { jest } from "@jest/globals";
@@ -34,6 +35,7 @@ const findOneAndUpdate = jest.fn((filter, update) => ({
 }));
 
 let handleCompatResultArchiveRoutes;
+let handleResultArchiveRoutes;
 
 beforeAll(async () => {
   await jest.unstable_mockModule("../../worker/lib/db.js", () => ({
@@ -53,7 +55,7 @@ beforeAll(async () => {
     verifyPerUsePayment,
     logPerUsePaymentProof: () => {},
   }));
-  ({ handleCompatResultArchiveRoutes } = await import("../../worker/routes/compat-result-archive.js"));
+  ({ handleCompatResultArchiveRoutes, handleResultArchiveRoutes } = await import("../../worker/routes/compat-result-archive.js"));
 });
 
 beforeEach(() => {
@@ -148,4 +150,43 @@ test("requestId·점수·본문이 없거나 HTML 이 섞이면 400, 모르는 �
   expect((await save(null, "astro-synastry", "GET")).status).toBe(405);
   expect(verifyPerUsePayment).not.toHaveBeenCalled();
   expect(store.executions).toHaveLength(0);
+});
+
+function saveResult(body, slug = "destiny-compass-crossroads") {
+  return handleResultArchiveRoutes(new Request(`https://example.com/api/result-archive/${slug}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  }), {});
+}
+
+const COMPASS_REQUEST_ID = "destiny-compass-crossroads:1760000000000-abc1234";
+
+test("운명의 나침반 갈림길은 결제 requestId 를 확인한 뒤 프로필 카드 없이도 저장한다", async () => {
+  const response = await saveResult({
+    requestId: COMPASS_REQUEST_ID,
+    facts: { optionA: "이직", optionB: "잔류", recommended: "이직", score: 74, scoreA: 74, scoreB: 61 },
+    sections: [{ title: "이직 · 추천", body: "총 기운 74" }],
+  });
+
+  expect(response.status).toBe(200);
+  expect(verifyPerUsePayment.mock.calls[0][1]).toMatchObject({ featureKey: "destiny-compass-crossroads", requestId: COMPASS_REQUEST_ID, requireExisting: true });
+  const [row] = store.executions;
+  expect(row.featureKey).toBe("destiny-compass-crossroads");
+  expect(row.metadata.archive).toMatchObject({ title: "운명의 나침반 · 갈림길", targetName: "이직 vs 잔류", summary: "이직 · 74점" });
+  expect(row.metadata.archive.result.facts).toEqual({ optionA: "이직", optionB: "잔류", recommended: "이직", score: 74, scoreA: 74, scoreB: 61 });
+});
+
+test("나침반 시뮬레이션도 이용권 즉시 사용을 같은 requestId 로 확정하고, 궁합 기능 이름은 받지 않는다", async () => {
+  verifyPerUsePayment
+    .mockResolvedValueOnce({ proven: false, reason: "NO_EXISTING_CONSUMPTION" })
+    .mockResolvedValueOnce({ proven: true, source: "pass", transactionId: "ph-2" });
+  const body = { requestId: COMPASS_REQUEST_ID, accessMethod: "pass", facts: { score: 62, d30: 58, d90: 66, y1: 71 }, sections: [{ title: "30일", body: "58" }] };
+
+  expect((await saveResult(body, "destiny-compass-future-sim")).status).toBe(200);
+  expect(verifyPerUsePayment.mock.calls[1][1]).toMatchObject({ featureKey: "destiny-compass-future-sim" });
+  expect(store.executions[0].metadata.archive.summary).toBe("지금 기운 62");
+
+  expect((await saveResult(body, "astro-synastry")).status).toBe(404);
+  expect((await save(payload(), "destiny-compass-life-voyage")).status).toBe(404);
 });
