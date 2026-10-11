@@ -12,7 +12,7 @@
  * 부수 효과로 재열람은 차감·원장 기록을 통째로 건너뛰어 더 빠르다.
  */
 import { handlePaymentsContext } from "../../worker/payments/index.js";
-import { listProducts } from "../../worker/payments/catalog.js";
+import { listProducts, resolveProduct } from "../../worker/payments/catalog.js";
 import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
 import { testCard } from "../fixtures/profile-card-model.mjs";
 import { isBirthScopedUnlockFeatureKey } from "../../worker/lib/paid-feature-registry.js";
@@ -203,4 +203,60 @@ test('profile moonstone adapter retains operation metadata and replays without d
  expect(spends[0].metadata).toMatchObject({profileAction:'delete',profileId:'yn_test',requestId});
  expect(spends[0].amount).toBe(100);expect(user.profileSubscription.membershipCreditBalance).toBe(99900);
  expect((await send('profile_card_update')).status).toBe(409);
+});
+
+/**
+ * 🔴 출생 기반 전환 이전에 산 고객(레거시 USER·PROFILE 행)은 월정석·이용권을 골라도 다시 깎이지 않는다.
+ * coin-gate 의 월정석·이용권 갈래는 billing.js 를 거치지 않고 여기로 오므로 같은 레거시 규칙을 따로 고정한다.
+ * 2026-06 무렵 행은 featureKey 없이 contentKey 만 있다.
+ */
+describe("레거시 해금 행(출생 기반 전환 이전 구매)", () => {
+  const DAEWUN = resolveProduct({ featureKey: "section_daewun" });
+  const legacyRow = (extra) => ({ userId: USER, serviceKey: "saju", contentKey: "saju.daeunAnalysis", status: "ACTIVE", expiresAt: null, grantType: "permanent_unlock", ...extra });
+
+  async function post(db, path, body) {
+    const request = new Request(`https://code-destiny.com/api/payments/coin-gate/${path}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${await tokenFor(USER)}` },
+      body: JSON.stringify({ featureKey: DAEWUN.featureKey, ...body }),
+    });
+    const response = await handlePaymentsContext(request, ENV, { prefix: "/api/payments", withDb: (_env, _ctx, fn) => fn(db) });
+    return { response, payload: await response.json() };
+  }
+
+  test.each([
+    ["USER 행 · 프로필 없음", { scope: "USER", profileId: "__user__" }, ""],
+    ["USER 행 · 다른 출생 카드", { scope: "USER", profileId: "__user__" }, "p3"],
+    ["PROFILE 행 · 그 카드", { scope: "PROFILE", profileId: "p1" }, "p1"],
+  ])("월정석: %s 는 차감 없이 already_unlocked", async (_label, row, profileId) => {
+    const db = makeDb();
+    const user = seedFundedUser(db);
+    db.rows.push(legacyRow(row));
+    const { response, payload } = await post(db, "moonstone", { paymentMode: "MOONLIGHT_STONE", requestId: `legacy-${profileId || "none"}`, ...(profileId ? { profileId } : {}) });
+    expect(response.status).toBe(200);
+    expect(payload.data.consume.alreadyUnlocked).toBe(true);
+    expect(Number(user.profileSubscription.membershipCreditBalance)).toBe(100000);
+    expect(ledgerCount(db)).toBe(0);
+  });
+
+  test("월정석: 다른 카드의 레거시 PROFILE 행으로는 열리지 않고 새로 차감한다", async () => {
+    const db = makeDb();
+    const user = seedFundedUser(db);
+    db.rows.push(legacyRow({ scope: "PROFILE", profileId: "p1" }));
+    const { response, payload } = await post(db, "moonstone", { paymentMode: "MOONLIGHT_STONE", requestId: "legacy-other-card", profileId: "p3" });
+    expect(response.status).toBe(200);
+    expect(payload.data.consume.alreadyUnlocked).toBe(false);
+    expect(Number(user.profileSubscription.membershipCreditBalance)).toBeLessThan(100000);
+  });
+
+  test("이용권: 레거시 USER 행이면 저장 프로필 없이도 예산을 깎지 않는다", async () => {
+    const db = makeDb();
+    const pass = { tier: "family", passTier: "family", isActive: true, expiresAt: new Date(Date.now() + 10 * 86400000) };
+    const user = { _id: USER, points: 0, profileSubscription: pass };
+    db.rows.push(user, legacyRow({ scope: "USER", profileId: "__user__" }));
+    const { response, payload } = await post(db, "pass-check", { paymentMode: "MEMBERSHIP_PASS", requestId: "legacy-pass" });
+    expect(response.status).toBe(200);
+    expect(payload.data.consume.alreadyUnlocked).toBe(true);
+    expect(Number(user.profileSubscription.monthlySpendCoin || 0)).toBe(0);
+  });
 });

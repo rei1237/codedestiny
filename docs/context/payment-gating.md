@@ -11,7 +11,7 @@
 - 저장: `ContentEntitlement` 행을 `scope:"BIRTH"`, `profileId:"birth:<birthKey>"`로 쓰고 `birthKey`·`purchaseProfileId`(감사용)·궁합이면 `partnerBirthKey`·`purchasePartnerProfileId`를 남긴다. 기존 유니크 인덱스가 출생 정보 단위로 걸리고, 보조 유니크 인덱스 `{userId, birthKey, serviceKey, contentKey}`(BIRTH 한정)를 선언한다. 합성 profileId는 응답으로 내보내지 않는다.
 - 🔴 **USER 스코프 행, `__user__`, `User.unlockedFeatures/paidFeatures` 배열은 출생 기반 키의 근거가 아니다.** 배열은 되돌리기용으로 계속 쓰지만 읽지 않고, 응답에서도 뺀다.
 - 🔴 **예외 — 전환 이전 해금 유지(2026-10-11, 사용자 결정 "결제한 사람이 다시 잠기는 문제가 없도록"):** 출생 기반 키의 ACTIVE **레거시 행**은 계속 연다. 새 코드는 출생 기반 키에 USER·PROFILE 행을 쓰지 않으므로(`upsertContentUnlock`/`grantPermanentUnlock`가 BIRTH로 강제) 날짜가 아니라 scope 로만 레거시를 가린다.
-  - `scope:"USER"` 또는 `profileId:"__user__"` 행: 운영과 같이 **계정의 모든 프로필**에서 열린다. 저장 카드가 없거나 직접 입력 중이어도 열린다. 프로필 없이 다시 열어도 `already_unlocked`로 재과금하지 않는다(`billing.js` `hasLegacyBirthScopedUnlock`).
+  - `scope:"USER"` 또는 `profileId:"__user__"` 행: 운영과 같이 **계정의 모든 프로필**에서 열린다. 저장 카드가 없거나 직접 입력 중이어도 열린다. 프로필 없이 다시 열어도 `already_unlocked`로 재과금하지 않는다(`billing.js` `hasLegacyBirthScopedUnlock`; coin-gate 의 월정석·이용권 갈래는 결제 V2 `findLegacyBirthUnlock`이 차감 전에 같은 판정을 한다).
   - `scope:"PROFILE"` + 실제 profileId 행: **그 profileId 에서** 열린다. 그 카드의 생년월일을 고쳐도 열린다. 다른 카드·같은 생일의 다른 카드에서는 열리지 않는다.
   - 정본: `worker/lib/content-unlocks.js` 레거시 판정(`isLegacyAccountUnlockRow` 등). 스냅샷은 `legacyAccountUnlockedFeatureIds`·`legacyProfileUnlockedFeatureIds`를 함께 내보내고, 브라우저는 서버가 준 `legacyAccountUnlockedFeatureIds`만 `window.cdIsLegacyAccountUnlockKey`로 계정 키처럼 다룬다(로컬 원장은 여전히 근거 아님).
   - 남는 위험(허용, 사용자 결정): 레거시 PROFILE 행이 있는 카드는 생년월일을 바꿔 다른 사람 결과를 열 수 있다. 막지 않고 `handleUpdateProfile`이 `legacy_profile_unlock_birth_edit` 경고 로그·보안 로그를 남긴다. 2026-06 무렵 행은 `featureKey` 없이 `contentKey`만 있으니 조회·집계 때 `contentKey`에서 유도한다.

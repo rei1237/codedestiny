@@ -274,8 +274,21 @@ export async function listLegacyProfileBirthUnlockKeys({ userId, profileId } = {
     scope: CONTENT_ENTITLEMENT_SCOPES.PROFILE,
     status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE,
     $and: [activeExpiryClause()],
-  }).select("featureKey contentKey contentId scope profileId").lean();
+  }).select(["featureKey", "contentKey", "contentId", "scope", "profileId"]).lean();
   return Array.from(new Set(docs.filter((doc) => isBirthScopedLegacyDoc(doc, pid)).map(entitlementDocFeatureKey)));
+}
+
+/** 출생 기반 키의 레거시 USER·PROFILE 해금 행 조회 필터. 결제 V2(월정석·이용권)가 차감 전에 재과금을 막는 데 쓴다. 출생 기반이 아니면 null. */
+export function buildLegacyBirthUnlockFilter(input = {}) {
+  const target = resolvePaidContentUnlockTarget(input);
+  if (!target.userId || !target.serviceKey || !target.contentKey || !target.birthScoped) return null;
+  return {
+    userId: target.userId,
+    serviceKey: target.serviceKey,
+    ...buildContentKeyClause(target.contentKey),
+    status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE,
+    $and: [activeExpiryClause(), { $or: legacyGrandfatheredScopeClauses(target.profileId) }],
+  };
 }
 
 function presentBirthDoc(doc, profileId = "") {
