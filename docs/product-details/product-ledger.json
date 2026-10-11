@@ -20789,69 +20789,169 @@
     },
     {
       "productId": "ziwei_decade_luck",
-      "displayName": "자미두수 대한 흐름 해금",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "displayName": "자미두수 대한 흐름",
+      "saleStatus": "기본명반 종합리포트 실제구매진입 확인",
+      "entry": [
+        "js/saju-engine.js #zwBasicPaidGate_ziwei_decade_luck"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 1000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "inputRequirements": [
+        "기존 본인 자미두수 명반·출생정보"
       ],
-      "detailAliases": []
+      "resultRenderer": [
+        "js/saju-engine.js dahanTimelineHtml",
+        "js/saju-engine.js zwDahanPremiumShellHtml",
+        "js/saju-engine.js decadeRowsHtml"
+      ],
+      "actualContents": [
+        "현재·다음대한·전체12단계타임라인",
+        "궁간·주성·사화·삼방사정·내부등급",
+        "종합·직업학업·재물·관계·건강·전환·전략·주의·주목시점",
+        "연간화면내 현재대한시작~끝 최대10연도"
+      ],
+      "conditionalItems": [
+        "대한자료필요·시작끝나이확인",
+        "현재대한은 미래10년이아님;지난연도포함가능",
+        "연간화면내10년운은별도상위생애연간해금범위확인"
+      ],
+      "separatePurchase": [
+        "생애총론연간·새AI·전문가상담·PDF"
+      ],
+      "reviewSource": [
+        "가상편집예시;구매후기없음"
+      ],
+      "images": [
+        "/feature-details/crafted/ziwei-decade/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "js/saju-engine.js",
+        "js/core/saju/crafted-product-details.mjs",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본8 독립SHIP",
+        "304/334/374/540 allancestor/fallbackPASS",
+        "정적·상담복구8PASS",
+        "원본 및 native360/390/430/1280 패널·고지·CTA·원고 독립최종SHIP"
+      ],
+      "unconfirmed": [
+        "main전달·CI미확인;실결제실LLM미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "ziwei_life_yearly_flow",
-      "displayName": "자미두수 생애 총론과 연간 흐름 해금",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "displayName": "자미두수 생애 총론과 연간 흐름",
+      "saleStatus": "기본명반 종합리포트 실제구매진입 확인",
+      "entry": [
+        "js/saju-engine.js #zwBasicPaidGate_ziwei_life_yearly_flow"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 1000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "inputRequirements": [
+        "기존 본인 자미두수 명반·출생정보"
       ],
-      "detailAliases": []
+      "resultRenderer": [
+        "js/saju-engine.js buildZwGrandLifeDeepHtml",
+        "js/saju-engine.js sec_grand",
+        "js/saju-engine.js sec_ziwei_flow",
+        "js/saju-engine.js buildZwYearlyFlowDeepHtml"
+      ],
+      "actualContents": [
+        "명궁성장곡선·전성기조건·후반수렴",
+        "대한3생애구간·생활4축",
+        "기존총론·올해12개월궁/주성/사화/내부지수/일돈관계주의실행",
+        "올해·내년·내후년 유년정밀3카드"
+      ],
+      "conditionalItems": [
+        "주성·대한·사화자료에 따른 조건부표시",
+        "올해는 열람시점 연도",
+        "신화상징은 보조서사로 분리"
+      ],
+      "separatePurchase": [
+        "대한12단계와중첩10년운별도해금",
+        "새AI·전문가상담·PDF·일별예측"
+      ],
+      "reviewSource": [
+        "가상편집예시;구매후기없음"
+      ],
+      "images": [
+        "/feature-details/crafted/ziwei-life-yearly/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "js/saju-engine.js",
+        "js/core/saju/crafted-product-details.mjs",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본8 독립SHIP",
+        "304/334/374/540 allancestor/fallbackPASS",
+        "정적·상담복구8PASS",
+        "원본 및 native360/390/430/1280 패널·고지·CTA·원고 독립최종SHIP"
+      ],
+      "unconfirmed": [
+        "main전달·CI미확인;실결제실LLM미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "ziwei_love_deep",
-      "displayName": "자미두수 부부궁 심화 상담 해금",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "displayName": "자미두수 부부궁 심화 해설",
+      "saleStatus": "기본명반 종합리포트 실제구매진입 확인",
+      "entry": [
+        "js/saju-engine.js #zwBasicPaidGate_ziwei_love_deep"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 1000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "inputRequirements": [
+        "기존 본인 자미두수 명반·출생정보"
       ],
-      "detailAliases": []
+      "resultRenderer": [
+        "js/saju-engine.js buildZwSpouseDeepHtml",
+        "js/saju-engine.js sec_love_compat_spread",
+        "js/saju-engine.js sec_love"
+      ],
+      "actualContents": [
+        "관계흐름 내부지표·보조그림",
+        "관계방식·끌림반복·조율·공식화·실천·회복6코칭",
+        "배우자상·조건부명궁케미·만남갈등정착",
+        "대한부부/관록나이구간·대화3문장"
+      ],
+      "conditionalItems": [
+        "명궁케미·대한시기는 자료에 따라 생략",
+        "백분율은 내부지표이며성공확률아님"
+      ],
+      "separatePurchase": [
+        "두사람궁합·새AI·전문가상담·PDF"
+      ],
+      "reviewSource": [
+        "가상편집예시;구매후기없음"
+      ],
+      "images": [
+        "/feature-details/crafted/ziwei-spouse/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "js/saju-engine.js",
+        "js/core/saju/crafted-product-details.mjs",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본6 독립SHIP",
+        "304/334/374/540 allancestor/fallbackPASS",
+        "정적·상담복구8PASS",
+        "원본 및 native360/390/430/1280 패널·고지·CTA·원고 독립최종SHIP"
+      ],
+      "unconfirmed": [
+        "main전달·CI미확인;실결제실LLM미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "ziwei_symbolic_layer",

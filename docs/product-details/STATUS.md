@@ -297,3 +297,8 @@ status: active
 - 전문가328/358/398/540, 나머지304/334/374/540 clipping/fallbackPASS. 고정폼·잠금박스 밖 배치 및 질문가이드의 대시보드 접힘/이미지숨김 제외. 기존 입력·결제·API·계산 유지.
 - 정적·상담복구8건/구문/ESLint PASS. check:fast npm test·paidgate88·typecheck·node PASS였으나 다음상품 sync와 겹쳐 mirror검사FAIL. 동기화 후 ai-consultation-flows PASS, 남은10검사(Worker dry-run 및 Jest382스위트5830건 포함) PASS. 단일 전체 check:fast PASS로 주장하지 않음.
 - 유료구성79종(대체전용4포함)+공통소개1종731패널 로컬검수완료. 전체/main전달미완료. 다음 부부궁·대한·생애연간 계약확인. main399a2ddab 기존 CI실패와 엔진활성화 범위답변 대기 유지.
+
+## 자미두수 부부궁·생애연간·대한
+- 6/8/8장 개별편집. 본인관계지표·코칭과별도궁합, 생애총론+올해12개월+3개년, 현재/다음/12단계+현재대한연도별범위를각각실제호출부까지확인. 미래10년과현재대한구간구분;중첩별도해금명시.
+- 원본22·실제49캡처독립최종SHIP,304/334/374/540 allancestor/fallbackPASS. 기존해금패널밖선택형안내,가격계산입력결제API보존. 정적·상담복구8/구문/ESLintPASS.
+- 직전916e208f5 pre-push PASS(캐시연쇄·sitemap955정리). 유료구성82종(대체전용4포함)+공통소개1종753패널로컬검수완료. 전체/main전달미완료. 다음상징보조/심층PDF/운명의섬실제구성확인.

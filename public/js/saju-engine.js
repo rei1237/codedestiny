@@ -26388,16 +26388,17 @@ function renderZiwei(p, natal, targetId) {
           }).sort(function(a, b) { return a.startAge - b.startAge; })
         };
         wrapper.innerHTML = panelHtml;
-        var zwTwelveGate = wrapper.querySelector('#zwBasicPaidGate_ziwei_twelve_palaces');
-        if (zwTwelveGate) {
-          var zwTwelveGuide = document.createElement('div');
-          zwTwelveGuide.setAttribute('data-crafted-static-offer', 'ziwei_twelve_palaces');
-          var zwTwelvePanel = zwTwelveGate.closest('.zw-reading-panel') || zwTwelveGate;
-          zwTwelvePanel.before(zwTwelveGuide);
+        ['ziwei_twelve_palaces', 'ziwei_love_deep', 'ziwei_life_yearly_flow', 'ziwei_decade_luck'].forEach(function(featureKey) {
+          var gate = wrapper.querySelector('#zwBasicPaidGate_' + featureKey);
+          if (!gate) return;
+          var guide = document.createElement('div');
+          guide.setAttribute('data-crafted-static-offer', featureKey);
+          var readingPanel = gate.closest('.zw-reading-panel') || gate;
+          readingPanel.before(guide);
           import('/js/core/saju/crafted-product-details.mjs').then(function(module) {
-            if (zwTwelveGuide.isConnected) module.mountCraftedStaticOffer(zwTwelveGuide);
-          }).catch(function() { /* Keep the existing palace reading available. */ });
-        }
+            if (guide.isConnected) module.mountCraftedStaticOffer(guide);
+          }).catch(function() { /* Keep the existing reading available. */ });
+        });
         var zwCraftedOffer = wrapper.querySelector('[data-saju-static-offer="compat-ziwei-compatibility"]');
         if (zwCraftedOffer) import('/js/core/saju/crafted-product-details.mjs').then(function(module) {
           if (zwCraftedOffer.isConnected) module.mountCraftedStaticOffer(zwCraftedOffer);

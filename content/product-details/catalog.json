@@ -75,7 +75,10 @@
     "vedic-compatibility-per-use": "vedic-compatibility",
     "ziwei-ai-consultation": "ziwei-expert",
     "ziwei_ai_prompt_generator": "ziwei-question-ai",
-    "ziwei_twelve_palaces": "ziwei-twelve-palaces"
+    "ziwei_twelve_palaces": "ziwei-twelve-palaces",
+    "ziwei_love_deep": "ziwei-spouse",
+    "ziwei_life_yearly_flow": "ziwei-life-yearly",
+    "ziwei_decade_luck": "ziwei-decade"
   },
   "introductions": {
     "fusion-fortune": [
