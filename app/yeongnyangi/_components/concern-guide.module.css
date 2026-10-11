@@ -1,0 +1,6 @@
+.tiers {list-style:none;padding:0;margin:16px 0;display:grid;gap:8px}
+.tiers li {display:flex;flex-direction:column;gap:4px;border:1px solid var(--yn-line);border-radius:12px;background:var(--yn-surface);padding:14px}
+.tiers li[data-recommended] {border-color:var(--yn-gold)}
+.tiers strong {color:var(--yn-gold)}
+.badge {align-self:flex-start;font-size:13px;font-weight:700;color:var(--yn-deep);background:var(--yn-gold);border-radius:999px;padding:2px 10px}
+.price {font-size:14px;color:var(--yn-muted);font-variant-numeric:tabular-nums}
