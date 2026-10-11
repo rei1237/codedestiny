@@ -3695,46 +3695,109 @@
     {
       "productId": "pet-compatibility-ai",
       "displayName": "반려동물 궁합 분석",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
-      "priceSource": "worker/lib/paid-feature-registry.js",
-      "priceSnapshotKRW": 3000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "saleStatus": "pet-saju.html 기본결과 기존구매카드확인",
+      "entry": [
+        "/pet-saju.html"
       ],
-      "detailAliases": []
+      "priceSource": "worker/lib/paid-feature-registry.js;기존HTML PRICE동일",
+      "priceSnapshotKRW": 3000,
+      "inputRequirements": [
+        "등록된두동물선택"
+      ],
+      "resultRenderer": [
+        "worker/lib/pet-report-delivery.js",
+        "pet-saju.html"
+      ],
+      "actualContents": [
+        "관계요약·종합점수등급",
+        "활력·안정·소통·영역갈등·회복",
+        "공유공간·주의·하루"
+      ],
+      "conditionalItems": [
+        "내부참고지표·진단/합사성공률아님",
+        "종/입력별환경후보차이",
+        "부분과완성구분·목차읽던장"
+      ],
+      "separatePurchase": [
+        "한아이심층리포트·다른조합"
+      ],
+      "reviewSource": [
+        "가상편집;실제결과후기없음"
+      ],
+      "images": [
+        "/feature-details/crafted/pet-compatibility/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "pet-saju.html",
+        "js/core/pet/crafted-details.mjs",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본8/native21독립SHIP",
+        "326/356/396/540 clipping/fallbackPASS",
+        "로컬순수blueprint만mockPOST1;유료POST0",
+        "Jest전달35·입력3·결정론180PASS;ESLintPASS"
+      ],
+      "unconfirmed": [
+        "main전달·CI미확인;실결제실LLM미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "pet-saju-ai-consultation",
       "displayName": "반려동물 사주 AI 심층 리포트",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
-      "priceSource": "worker/lib/paid-feature-registry.js",
-      "priceSnapshotKRW": 3000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "saleStatus": "pet-saju.html 기본결과 기존구매카드확인",
+      "entry": [
+        "/pet-saju.html"
       ],
-      "detailAliases": []
+      "priceSource": "worker/lib/paid-feature-registry.js;기존HTML PRICE동일",
+      "priceSnapshotKRW": 3000,
+      "inputRequirements": [
+        "종·품종·이름·생일·시간선택·성별·활동·환경·동거동물·성격"
+      ],
+      "resultRenderer": [
+        "worker/lib/pet-report-delivery.js",
+        "pet-saju.html"
+      ],
+      "actualContents": [
+        "성격",
+        "환경5곳·별점·해설",
+        "추천놀이3",
+        "행복코치·생활관리·마무리"
+      ],
+      "conditionalItems": [
+        "내부참고지표·진단/합사성공률아님",
+        "종/입력별환경후보차이",
+        "부분과완성구분·목차읽던장"
+      ],
+      "separatePurchase": [
+        "두동물궁합"
+      ],
+      "reviewSource": [
+        "가상편집;실제결과후기없음"
+      ],
+      "images": [
+        "/feature-details/crafted/pet-saju-report/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "pet-saju.html",
+        "js/core/pet/crafted-details.mjs",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본8/native21독립SHIP",
+        "326/356/396/540 clipping/fallbackPASS",
+        "로컬순수blueprint만mockPOST1;유료POST0",
+        "Jest전달35·입력3·결정론180PASS;ESLintPASS"
+      ],
+      "unconfirmed": [
+        "main전달·CI미확인;실결제실LLM미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "physiognomy-compatibility",

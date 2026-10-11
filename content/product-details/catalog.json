@@ -83,7 +83,9 @@
     "ziwei-deep-pdf": "ziwei-deep-pdf",
     "ziwei-island-deep-report": "island-report",
     "ziwei-island-palace-consult": "island-palace-consult",
-    "saju_ai_question_prompt": "saju-question-ai"
+    "saju_ai_question_prompt": "saju-question-ai",
+    "pet-saju-ai-consultation": "pet-saju-report",
+    "pet-compatibility-ai": "pet-compatibility"
   },
   "introductions": {
     "fusion-fortune": [
