@@ -13783,7 +13783,7 @@ function renderAstroInsightLegacyNeon() {
         +'</div>'
         +'<div style="flex:0 0 auto;">'
         +'<label class="astro-label" for="asDirect_time">태어난 시각</label>'
-        +'<input type="time" class="astro-neon-input" id="asDirect_time" value="12:00" style="width:120px;">'
+        +'<input type="time" class="astro-neon-input" id="asDirect_time" value="12:00" style="width:160px;max-width:100%;">'
         +'</div>'
         +'<div style="flex:0 0 auto;">'
         +'<label class="astro-label" for="asDirect_gender">상대 성별</label>'
@@ -14533,6 +14533,7 @@ function renderAstroInsightLegacyNeon() {
     _astroMountPromptSection();
 
     /* ── 시나스트리 성궁 진법 초기화 (DOM 삽입 후) ── */
+    var astroSynastryRoot = document.getElementById('astroBodyWrap');
     setTimeout(function() {
         /* userSunIdx: 내 태양 별자리 인덱스 (12궁) */
         var _mySunIdx   = sunIndex;
@@ -14541,7 +14542,7 @@ function renderAstroInsightLegacyNeon() {
 
       /* 점성술 직접 입력: 시/군 단위 도시 선택 → tz/위도/경도 자동 반영 */
       (function initAstroDirectCitySelector(){
-        var citySel = document.getElementById('asDirect_city');
+        var citySel = astroSynastryRoot.querySelector('#asDirect_city');
         if (!citySel || typeof BIRTH_PLACE_GROUPS === 'undefined') return;
 
         var hasSeed = citySel.options && citySel.options.length > 1;
@@ -14569,7 +14570,7 @@ function renderAstroInsightLegacyNeon() {
           var tzName = o.getAttribute('data-tz-name') || 'Asia/Seoul';
           var baseTz = parseFloat(o.getAttribute('data-base-tz') || '9');
           var bDate = _cdReadBirthDateInput('asDirect_date');
-          var bTime = (document.getElementById('asDirect_time') || {}).value || '12:00';
+          var bTime = (astroSynastryRoot.querySelector('#asDirect_time') || {}).value || '12:00';
           var y = 2000, m = 1, d = 1, hh = 12, mm = 0;
           if (bDate) {
             var dp = bDate.split('-');
@@ -14586,9 +14587,9 @@ function renderAstroInsightLegacyNeon() {
           citySel.setAttribute('data-resolved-tz', String(resolved.tzOffsetHours));
         };
 
-        var directDateEl = document.getElementById('asDirect_date');
+        var directDateEl = astroSynastryRoot.querySelector('#asDirect_date');
         _cdInstallBirthDateDigitInputs(document);
-        var directTimeEl = document.getElementById('asDirect_time');
+        var directTimeEl = astroSynastryRoot.querySelector('#asDirect_time');
         var refreshByCity = function() {
           if (citySel.selectedIndex > 0 && typeof citySel.onchange === 'function') citySel.onchange();
         };
@@ -14612,7 +14613,7 @@ function renderAstroInsightLegacyNeon() {
         }
 
         /* ── [🎭 Cosmic Twins] 같은 태양 or 금성 별자리 유명인 ── */
-        var twinsDiv = document.getElementById('astroCosmicTwins');
+        var twinsDiv = astroSynastryRoot.querySelector('#astroCosmicTwins');
         if (twinsDiv && typeof CELEBS !== 'undefined') {
             var twins = [];
             CELEBS.forEach(function(c) {
@@ -14648,9 +14649,9 @@ function renderAstroInsightLegacyNeon() {
 
         function _astroRenderCelebList() {
             if (typeof CELEBS === 'undefined') return;
-            var listDiv = document.getElementById('astroSyCelebs');
+            var listDiv = astroSynastryRoot.querySelector('#astroSyCelebs');
             if (!listDiv) return;
-            var q = (document.getElementById('astroSyQ') || {}).value || '';
+            var q = (astroSynastryRoot.querySelector('#astroSyQ') || {}).value || '';
             q = q.trim().toLowerCase();
             var filtered = CELEBS.filter(function(c) {
                 var ctOk  = !_astroActiveCtry || (c.nationality || 'KR') === _astroActiveCtry;
@@ -14687,7 +14688,7 @@ function renderAstroInsightLegacyNeon() {
         }
 
         /* 국가 탭 */
-        var ctryDiv = document.getElementById('astroCtryTabs');
+        var ctryDiv = astroSynastryRoot.querySelector('#astroCtryTabs');
         if (ctryDiv && typeof COUNTRY_CONFIG !== 'undefined') {
             function _mkCtryBtn(code, label) {
                 var b = document.createElement('button'); b.type = 'button';
@@ -14710,7 +14711,7 @@ function renderAstroInsightLegacyNeon() {
         }
 
         /* 카테고리 탭 */
-        var catDiv = document.getElementById('astroCatTabs');
+        var catDiv = astroSynastryRoot.querySelector('#astroCatTabs');
         if (catDiv && typeof CELEB_CATS !== 'undefined') {
             var ic = typeof CELEB_CAT_ICONS !== 'undefined' ? CELEB_CAT_ICONS : {};
             ['전체'].concat(CELEB_CATS).forEach(function(c, i) {
@@ -14729,7 +14730,7 @@ function renderAstroInsightLegacyNeon() {
         }
 
         /* 검색 입력 */
-        var qEl = document.getElementById('astroSyQ');
+        var qEl = astroSynastryRoot.querySelector('#astroSyQ');
         if (qEl) qEl.addEventListener('input', _astroRenderCelebList);
 
         /* 초기 목록 */

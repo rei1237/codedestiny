@@ -851,46 +851,113 @@
     {
       "productId": "compat-astro-direct-synastry",
       "displayName": "점성술 직접 입력 시나스트리 궁합",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "saleStatus": "기본점성술모달별도퍼유즈결제진입확인",
+      "entry": [
+        "openAstroModal",
+        ".astro-compat-panel--direct"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 3000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "inputRequirements": [
+        "본인기본출생차트",
+        "상대생년월일·시각·성별·도시;이름선택",
+        "시각미입력정오기본값"
       ],
-      "detailAliases": []
+      "resultRenderer": [
+        "js/saju-engine.js _astroDirectSynastryCore",
+        "js/saju-engine.js _syScore/_syWsHouseOf"
+      ],
+      "actualContents": [
+        "빠른요약·100점척도·관계유형",
+        "태양달금성화성·주요각/오브가중치",
+        "연애/비즈니스/영적성장해석",
+        "WholeSign하우스겹침",
+        "빛과그림자/개선",
+        "결과기반질문문복사"
+      ],
+      "conditionalItems": [
+        "시각/좌표불확실하면달·상승궁·하우스제한",
+        "점수·자료신뢰도는성공확률아님"
+      ],
+      "separatePurchase": [
+        "직접입력/유명인각별도",
+        "질문문복사에외부AI답변·별도AI상담불포함"
+      ],
+      "reviewSource": [],
+      "images": [
+        "/feature-details/crafted/astro-direct-synastry/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "js/core/astro/crafted-details.mjs"
+      ],
+      "verification": [
+        "원본16독립SHIP;직접입력본문54px및고아줄수정",
+        "4폭309/339/379/540로드경계·이미지오류원고PASS;API전부mock",
+        "직접입력·유명인독립최종SHIP;필터중복수정후CTA4재검수SHIP",
+        "가이드배치전후·지연초기화회귀3PASS;공통renderer7PASS"
+      ],
+      "unconfirmed": [
+        "main전달·CI·운영노출미확인;실결제실LLM미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "compat-astro-synastry",
       "displayName": "점성술 셜럭 시나스트리 궁합",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "saleStatus": "기본점성술모달별도퍼유즈결제진입확인",
+      "entry": [
+        "openAstroModal",
+        "#astroSynastrySection #astroSyCelebs"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 3000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "inputRequirements": [
+        "본인기본출생차트",
+        "목록의인물선택",
+        "등록출생자료·시각불확실정오·좌표미상대표도시"
       ],
-      "detailAliases": []
+      "resultRenderer": [
+        "js/saju-engine.js _astroPickCelebCore",
+        "js/saju-engine.js _syScore/_syWsHouseOf"
+      ],
+      "actualContents": [
+        "빠른요약·100점척도·관계유형",
+        "태양달금성화성·주요각/오브가중치",
+        "연애/비즈니스/영적성장해석",
+        "WholeSign하우스겹침",
+        "빛과그림자/개선",
+        "결과기반질문문복사"
+      ],
+      "conditionalItems": [
+        "시각/좌표불확실하면달·상승궁·하우스제한",
+        "점수·자료신뢰도는성공확률아님",
+        "실제관계나대상감정확인아님"
+      ],
+      "separatePurchase": [
+        "직접입력/유명인각별도",
+        "질문문복사에외부AI답변·별도AI상담불포함"
+      ],
+      "reviewSource": [],
+      "images": [
+        "/feature-details/crafted/astro-celebrity-synastry/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "js/core/astro/crafted-details.mjs"
+      ],
+      "verification": [
+        "원본16독립SHIP;직접입력본문54px및고아줄수정",
+        "4폭309/339/379/540로드경계·이미지오류원고PASS;API전부mock",
+        "직접입력·유명인독립최종SHIP;필터중복수정후CTA4재검수SHIP",
+        "가이드배치전후·지연초기화회귀3PASS;공통renderer7PASS"
+      ],
+      "unconfirmed": [
+        "main전달·CI·운영노출미확인;실결제실LLM미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "compat-saju-compatibility",

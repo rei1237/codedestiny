@@ -55,7 +55,9 @@
     "astro_relationship_deep": "astro-relationship",
     "astro_yearly_transit": "astro-yearly-transit",
     "astrology_ai_prompt_generator": "astro-question-consultation",
-    "astrology-ai-consultation": "astrology-expert"
+    "astrology-ai-consultation": "astrology-expert",
+    "compat-astro-direct-synastry": "astro-direct-synastry",
+    "compat-astro-synastry": "astro-celebrity-synastry"
   },
   "introductions": {
     "fusion-fortune": [

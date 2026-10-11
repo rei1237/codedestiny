@@ -209,3 +209,9 @@ status: active
 - 실제20패널·12모바일CTA고지·2원고·2desktopCTA독립SHIP. 질문313/343/383/540,전문가328/358/398/540로드경계오류원고PASS;expertPOST0. API전부mock.
 - 공통React상세의고지/전체원고keep-all+overflow-wrap으로음절고아줄개선,expert4캡처재검수SHIP. 결제/권한/생성API무변경. 공통renderer7PASS,integrationESLintclean.
 - 공통coin-gate-per-use는명시적generic키판별함수로별도상품아님을확인,대상제외. 유료구성59종(대체전용4포함)+공통소개1종549패널로컬검수완료. 전체/main전달미완료. 다음실제궁합판매3종조사.
+
+## 직접 입력·유명인 시나스트리
+- 각8장개별편집,원본16독립SHIP. 직접입력본문/고지54px확대후3고아줄교정. 실제두상품16패널·고지·원고·CTA독립SHIP,필터중복수정후CTA4재검수SHIP.
+- 실제mock저장프로필과기존openAstroModal로4폭309/339/379/540검증. 이전raw모달과구별. 가이드와기존구매영역동반재배치,교체된shell의기존표시설정재적용. 지연초기화는자신의DOM범위로한정해필터중복제거. 시간입력폭160으로시각잘림수정. 가격/권한/계산/API무변경.
+- 삽입전후/지연초기화회귀3PASS,공통renderer7PASS,표시모듈ESLint0errors. check:fast는paidgate88/88+lint통과후sitemap서명드리프트로중단;재생성뒤955URL PASS. 기존verify-basic-fortune-library는비교용baseline부재로실행불가(통과주장안함).
+- 유료구성61종(대체전용4포함)+공통소개1종565패널로컬검수완료. 전체/main전달미완료. 다음사주궁합실제4생성그룹과렌더러조건별목차개별편집.

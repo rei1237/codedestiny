@@ -837,7 +837,11 @@
       var section = node('section', 'astro-house-section'); section.id = id;
       section.appendChild(heading(label));
       selectors.forEach(function (selector) {
-        root.querySelectorAll(selector).forEach(function (el) { section.appendChild(el); });
+        root.querySelectorAll(selector).forEach(function (el) {
+          // Keep an optional product guide beside its original purchase section.
+          var pair = el.closest('.astro-crafted-pair');
+          section.appendChild(pair && root.contains(pair) ? pair : el);
+        });
       });
       return section.children.length > 1 ? section : null;
     }
