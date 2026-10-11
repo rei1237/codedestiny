@@ -1,0 +1,63 @@
+{
+  "checkedAt": "2026-10-11T17:15:53.977Z",
+  "mode": "mock dev; no live API fallback",
+  "rows": [
+    {
+      "path": "/vedic/",
+      "status": 200,
+      "title": "베다점 | 인도 점성술로 읽는 기질과 시기 | 꿀꿀 사주",
+      "canonical": "https://code-destiny.com/vedic/",
+      "h1Count": 1,
+      "schemas": [
+        "graph",
+        "WebPage",
+        "Service",
+        "BreadcrumbList",
+        "FAQPage"
+      ],
+      "noindex": false,
+      "exampleInInitialHtml": true
+    },
+    {
+      "path": "/compare/sukuyo-vs-vedic/",
+      "status": 200,
+      "title": "숙요점 vs 베다 점성술 — 같은 27수를 다르게 읽는 이유",
+      "canonical": "https://code-destiny.com/compare/sukuyo-vs-vedic/",
+      "h1Count": 1,
+      "schemas": [
+        "graph",
+        "WebPage",
+        "BreadcrumbList",
+        "FAQPage"
+      ],
+      "noindex": false,
+      "faqMatchesVisible": true
+    },
+    {
+      "path": "/ggulggul/",
+      "status": 200,
+      "title": "꿀꿀 사주 — 사주·궁합·타로",
+      "canonical": "https://code-destiny.com/ggulggul/",
+      "h1Count": 1,
+      "schemas": [
+        "graph"
+      ],
+      "noindex": false
+    },
+    {
+      "path": "/sukuyo/",
+      "status": 200,
+      "title": "숙요점 — 본명숙과 27숙 궁합 | 꿀꿀 사주",
+      "canonical": "https://code-destiny.com/sukuyo/",
+      "h1Count": 1,
+      "schemas": [
+        "graph",
+        "WebPage",
+        "Service",
+        "BreadcrumbList",
+        "FAQPage"
+      ],
+      "noindex": false
+    }
+  ]
+}

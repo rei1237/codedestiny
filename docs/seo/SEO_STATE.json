@@ -3078,5 +3078,110 @@
     "productionReleasedSha": "76aab4afda3fe222722a687c5c0e9eefe5ca162b",
     "productionReleasedAt": "2026-10-09T18:34:44Z",
     "searchConsoleManualSteps": "미실행 — 문서의 운영자 수동 작업 참고"
+  },
+  "searchIntent20261012": {
+    "observedAt": "2026-10-11T17:28:37.717Z",
+    "report": "docs/seo/2026-10-12-search-intent-evidence.md",
+    "evidence": "docs/seo/evidence/2026-10-12/",
+    "gsc": {
+      "period": [
+        "2026-07-10",
+        "2026-10-09"
+      ],
+      "recent28": {
+        "start": "2026-09-12",
+        "end": "2026-10-09",
+        "impressions": 214,
+        "clicks": 11,
+        "ctr": 5.1,
+        "position": 13.8
+      },
+      "previous28": {
+        "start": "2026-08-15",
+        "end": "2026-09-11",
+        "impressions": 115,
+        "clicks": 8,
+        "ctr": 7,
+        "position": 27
+      },
+      "indexedAtReportDate": 370,
+      "indexReportDate": "2026-10-04"
+    },
+    "naver": {
+      "updated": "2026-10-10",
+      "last30Display": {
+        "impressions": "83.0만",
+        "clicks": "3.7천",
+        "averagePageCtr": "0.4%"
+      },
+      "sitemap": {
+        "url": "https://code-destiny.com/sitemap-index.xml",
+        "acceptedAt": "2026-10-12T01:59:45+09:00",
+        "processing": "unverified"
+      }
+    },
+    "priorityQueries": [
+      "베다 서양",
+      "인도 점성술",
+      "숙요점 업태",
+      "숙요점 영친"
+    ],
+    "competition": "unquantified; narrow-intent hypothesis only",
+    "changeScope": "Vedic comparison body and modified date; comparison limits; sitemap-index health traversal; Article image URL retains asset path",
+    "titlesChanged": false,
+    "d0": null,
+    "productionVerified": false,
+    "repositoryDelivery": "pending validation and existing main CI recovery",
+    "existingExperimentsPreserved": true,
+    "bing": {
+      "property": "https://code-destiny.com/",
+      "sitemap": {
+        "url": "https://code-destiny.com/sitemap.xml",
+        "status": "Success",
+        "lastCrawl": "2026-10-09",
+        "urlsDiscovered": 955,
+        "action": "retained healthy existing submission"
+      },
+      "recent28": {
+        "clicks": 13,
+        "impressions": 555
+      },
+      "previous28": {
+        "clicks": 19,
+        "impressions": 467
+      },
+      "ai": {
+        "source": "Microsoft Copilots and Partners sample",
+        "threeMonthCitations": 203,
+        "previous28Citations": 74,
+        "recent28Citations": 78,
+        "groundingQueries": "No data available",
+        "fixedPromptAudit": false
+      },
+      "keywordResearch": {
+        "query": "베다 점성술",
+        "trend": "insufficient data",
+        "competition": "not quantified"
+      }
+    },
+    "articleImageDefect": {
+      "confirmedProduction": "JSON-LD .png/ returns 404 while visible img and OG .png return 200",
+      "localFixed": true,
+      "productionFixed": false
+    },
+    "naverDiagnosis": {
+      "reportDate": "2026-10-10",
+      "indexedDisplay": "8.3백",
+      "robotsExcluded": 945,
+      "inaccessible": 14,
+      "redirect": 29,
+      "duplicateTitle": 351,
+      "duplicateDescription": 353
+    },
+    "googleInspectedIndexed": [
+      "/ggulggul/",
+      "/kkul-kkul-unse/",
+      "/vedic/"
+    ]
   }
 }

@@ -1,0 +1,42 @@
+{
+  "bing-home-daily": {
+    "first": "2026-07-11",
+    "last": "2026-10-09",
+    "periods": [
+      {
+        "start": "2026-08-15",
+        "end": "2026-09-11",
+        "days": 28,
+        "clicksOrCitations": 19,
+        "impressions": 467
+      },
+      {
+        "start": "2026-09-12",
+        "end": "2026-10-09",
+        "days": 28,
+        "clicksOrCitations": 13,
+        "impressions": 555
+      }
+    ]
+  },
+  "bing-ai-daily": {
+    "first": "2026-07-11",
+    "last": "2026-10-09",
+    "periods": [
+      {
+        "start": "2026-08-15",
+        "end": "2026-09-11",
+        "days": 28,
+        "clicksOrCitations": 74,
+        "impressions": null
+      },
+      {
+        "start": "2026-09-12",
+        "end": "2026-10-09",
+        "days": 28,
+        "clicksOrCitations": 78,
+        "impressions": null
+      }
+    ]
+  }
+}

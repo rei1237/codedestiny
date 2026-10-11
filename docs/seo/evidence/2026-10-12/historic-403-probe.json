@@ -1,0 +1,80 @@
+{
+  "checkedAt": "2026-10-11T17:17:35.908Z",
+  "rows": [
+    {
+      "path": "/fortune/tomorrow/ziwei/janyeo.html",
+      "chain": [
+        {
+          "url": "https://code-destiny.com/fortune/tomorrow/ziwei/janyeo.html",
+          "status": 301,
+          "location": "https://code-destiny.com/ziwei/"
+        },
+        {
+          "url": "https://code-destiny.com/ziwei/",
+          "status": 200,
+          "location": null
+        }
+      ]
+    },
+    {
+      "path": "/fortune/monthly/ziwei/chunyi.html",
+      "chain": [
+        {
+          "url": "https://code-destiny.com/fortune/monthly/ziwei/chunyi.html",
+          "status": 301,
+          "location": "https://code-destiny.com/ziwei/"
+        },
+        {
+          "url": "https://code-destiny.com/ziwei/",
+          "status": 200,
+          "location": null
+        }
+      ]
+    },
+    {
+      "path": "/fortune/weekly/ziwei/hyeongje.html",
+      "chain": [
+        {
+          "url": "https://code-destiny.com/fortune/weekly/ziwei/hyeongje.html",
+          "status": 301,
+          "location": "https://code-destiny.com/ziwei/"
+        },
+        {
+          "url": "https://code-destiny.com/ziwei/",
+          "status": 200,
+          "location": null
+        }
+      ]
+    },
+    {
+      "path": "/fortune/tomorrow/sukuyo/27.html",
+      "chain": [
+        {
+          "url": "https://code-destiny.com/fortune/tomorrow/sukuyo/27.html",
+          "status": 301,
+          "location": "https://code-destiny.com/sukuyo/"
+        },
+        {
+          "url": "https://code-destiny.com/sukuyo/",
+          "status": 200,
+          "location": null
+        }
+      ]
+    },
+    {
+      "path": "/fortune/tomorrow/sukuyo/6.html",
+      "chain": [
+        {
+          "url": "https://code-destiny.com/fortune/tomorrow/sukuyo/6.html",
+          "status": 301,
+          "location": "https://code-destiny.com/sukuyo/"
+        },
+        {
+          "url": "https://code-destiny.com/sukuyo/",
+          "status": 200,
+          "location": null
+        }
+      ]
+    }
+  ]
+}

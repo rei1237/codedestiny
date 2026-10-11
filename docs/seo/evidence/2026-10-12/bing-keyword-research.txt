@@ -1,0 +1,208 @@
+- banner:
+  - link "Skip to main content":
+    - /url: "#content"
+  - button "Show Bing tools":
+    - generic: 
+  - img "white bwt logo microsoft bing webmaster"
+  - button "Copilot":
+  - button "Notifications":
+    - generic: 
+  - button "Help":
+    - generic: 
+  - button "Feedback":
+    - generic: 
+  - button "Settings":
+    - generic: 
+  - button "Profile":
+- button "Select website":
+  - generic: 
+  - generic: code-destiny.com/
+  - generic: 
+- navigation "Main menu":
+  - tree:
+    - treeitem "Home":
+      - generic: 
+      - text: Home
+    - treeitem "Search Performance":
+      - generic: 
+      - text: Search Performance
+    - treeitem "AI Performance BETA":
+      - generic: 
+      - text: AI Performance
+      - generic: BETA
+    - treeitem "URL Inspection":
+      - generic: 
+      - text: URL Inspection
+    - treeitem "Site Explorer":
+      - generic: 
+      - text: Site Explorer
+    - treeitem "Sitemaps":
+      - generic: 
+      - text: Sitemaps
+    - treeitem "IndexNow":
+      - text: IndexNow
+    - treeitem "Backlinks":
+      - generic: 
+      - text: Backlinks
+    - treeitem "Keyword Research":
+      - generic: 
+      - text: Keyword Research
+    - treeitem "Recommendations":
+      - generic: 
+      - text: Recommendations
+    - treeitem "Site Scan":
+      - generic: 
+      - text: Site Scan
+    - treeitem "Configuration":
+      - text: Configuration
+      - generic: 
+    - treeitem "Tools & Enhancements":
+      - text: Tools & Enhancements
+      - generic: 
+    - treeitem "Security & Privacy":
+      - text: Security & Privacy
+      - generic: 
+    - treeitem "User management":
+      - generic: 
+      - text: User management
+    - treeitem "Microsoft Clarity":
+      - generic: 
+      - text: Microsoft Clarity
+- main:
+  - heading "Keyword Research" [level=2]
+  - textbox "Enter keyword phrases": 베다 점성술
+  - button "Get details" [active]:
+    - generic: Get details
+  - combobox "dropdown filter":
+    - generic: All
+    - generic: 
+  - combobox "dropdown filter":
+    - generic: All
+    - generic: 
+  - combobox "Select Device":
+    - generic: All
+    - generic: 
+  - combobox "Duration":
+    - generic: 
+    - generic: 3 M
+    - generic: 
+  - heading "Keyword" [level=4]
+  - heading "베다 점성술" [level=1]
+  - generic: 
+  - generic: Bing doesn’t have enough data to show trend here.
+  - heading "List By" [level=3]
+  - tablist:
+    - tab "Related keywords" [selected]:
+      - generic: Related keywords
+    - tab "Question keywords":
+      - generic: Question keywords
+    - tab "Newly discovered":
+      - generic: Newly discovered
+  - tabpanel "Related keywords"
+  - button "Download all":
+    - generic: Download all
+    - generic: 
+  - grid "keyword ideas details":
+    - row "select all items Keywords, sortable Trends Impressions, sortable":
+      - columnheader "select all items":
+        - checkbox "select all items":
+          - generic: 
+      - generic: select all items
+      - columnheader "Keywords, sortable":
+        - button "Keywords, sortable":
+          - generic: Keywords
+      - columnheader "Trends":
+        - generic: Trends
+      - columnheader "Impressions, sortable":
+        - button "Impressions, sortable":
+          - generic: Impressions
+    - paragraph: No data available
+  - navigation:
+    - generic: 0 rows
+  - heading "Top 10 url ranking on this keyword" [level=3]
+  - grid "Top 10 url ranking on this keyword":
+    - row "Title & URL Topics":
+      - columnheader "Title & URL":
+        - generic: Title & URL
+      - columnheader "Topics":
+        - generic: Topics
+    - 'row "베다 점성술: 고대 인도의 조티쉬 시스템 | Anahana https://www.anahana.com/ko/astrology/vedic/ -"':
+      - 'rowheader "베다 점성술: 고대 인도의 조티쉬 시스템 | Anahana https://www.anahana.com/ko/astrology/vedic/"':
+        - 'link "베다 점성술: 고대 인도의 조티쉬 시스템 | Anahana"':
+          - /url: https://www.bing.com/search?q=%EB%B2%A0%EB%8B%A4%20%EC%A0%90%EC%84%B1%EC%88%A0%3A%20%EA%B3%A0%EB%8C%80%20%EC%9D%B8%EB%8F%84%EC%9D%98%20%EC%A1%B0%ED%8B%B0%EC%89%AC%20%EC%8B%9C%EC%8A%A4%ED%85%9C%20%7C%20Anahana
+        - link "https://www.anahana.com/ko/astrology/vedic/":
+          - /url: https://www.anahana.com/ko/astrology/vedic/
+      - rowheader "-":
+        - generic: "-"
+    - 'row "베다 점성술 (인도점성술) 입문: 기초와 핵심 개념 | 마이팜리프 https://mypalmleaf.com/ko/ko-an-intro-to-vedic-astrology/ -"':
+      - 'rowheader "베다 점성술 (인도점성술) 입문: 기초와 핵심 개념 | 마이팜리프 https://mypalmleaf.com/ko/ko-an-intro-to-vedic-astrology/"':
+        - 'link "베다 점성술 (인도점성술) 입문: 기초와 핵심 개념 | 마이팜리프"':
+          - /url: https://www.bing.com/search?q=%EB%B2%A0%EB%8B%A4%20%EC%A0%90%EC%84%B1%EC%88%A0%20(%EC%9D%B8%EB%8F%84%EC%A0%90%EC%84%B1%EC%88%A0)%20%EC%9E%85%EB%AC%B8%3A%20%EA%B8%B0%EC%B4%88%EC%99%80%20%ED%95%B5%EC%8B%AC%20%EA%B0%9C%EB%85%90%20%7C%20%EB%A7%88%EC%9D%B4%ED%8C%9C%EB%A6%AC%ED%94%84
+        - link "https://mypalmleaf.com/ko/ko-an-intro-to-vedic-astrology/":
+          - /url: https://mypalmleaf.com/ko/ko-an-intro-to-vedic-astrology/
+      - rowheader "-":
+        - generic: "-"
+    - row "베딕 점성술 완전 가이드 — 입문부터 차트 해석까지 | 나미찌 | 나미찌 베딕 점성술 https://namizziastrology.com/astrology/guide/vedic-astrology-complete-guide -":
+      - rowheader "베딕 점성술 완전 가이드 — 입문부터 차트 해석까지 | 나미찌 | 나미찌 베딕 점성술 https://namizziastrology.com/astrology/guide/vedic-astrology-complete-guide":
+        - link "베딕 점성술 완전 가이드 — 입문부터 차트 해석까지 | 나미찌 | 나미찌 베딕 점성술":
+          - /url: https://www.bing.com/search?q=%EB%B2%A0%EB%94%95%20%EC%A0%90%EC%84%B1%EC%88%A0%20%EC%99%84%EC%A0%84%20%EA%B0%80%EC%9D%B4%EB%93%9C%20%E2%80%94%20%EC%9E%85%EB%AC%B8%EB%B6%80%ED%84%B0%20%EC%B0%A8%ED%8A%B8%20%ED%95%B4%EC%84%9D%EA%B9%8C%EC%A7%80%20%7C%20%EB%82%98%EB%AF%B8%EC%B0%8C%20%7C%20%EB%82%98%EB%AF%B8%EC%B0%8C%20%EB%B2%A0%EB%94%95%20%EC%A0%90%EC%84%B1%EC%88%A0
+        - link "https://namizziastrology.com/astrology/guide/vedic-astrology-complete-guide":
+          - /url: https://namizziastrology.com/astrology/guide/vedic-astrology-complete-guide
+      - rowheader "-":
+        - generic: "-"
+    - row "베다 점성술 (조티시) — ZodiAtlas https://zodiatlas.org/ko/zodiac/vedic/ -":
+      - rowheader "베다 점성술 (조티시) — ZodiAtlas https://zodiatlas.org/ko/zodiac/vedic/":
+        - link "베다 점성술 (조티시) — ZodiAtlas":
+          - /url: https://www.bing.com/search?q=%EB%B2%A0%EB%8B%A4%20%EC%A0%90%EC%84%B1%EC%88%A0%20(%EC%A1%B0%ED%8B%B0%EC%8B%9C)%20%E2%80%94%20ZodiAtlas
+        - link "https://zodiatlas.org/ko/zodiac/vedic/":
+          - /url: https://zodiatlas.org/ko/zodiac/vedic/
+      - rowheader "-":
+        - generic: "-"
+    - row "베다 점성술 스쿨 — 무료 레슨 & 가이드 https://mysticos.ai/ko/learn/vedic-astrology -":
+      - rowheader "베다 점성술 스쿨 — 무료 레슨 & 가이드 https://mysticos.ai/ko/learn/vedic-astrology":
+        - link "베다 점성술 스쿨 — 무료 레슨 & 가이드":
+          - /url: https://www.bing.com/search?q=%EB%B2%A0%EB%8B%A4%20%EC%A0%90%EC%84%B1%EC%88%A0%20%EC%8A%A4%EC%BF%A8%20%E2%80%94%20%EB%AC%B4%EB%A3%8C%20%EB%A0%88%EC%8A%A8%20%26%20%EA%B0%80%EC%9D%B4%EB%93%9C
+        - link "https://mysticos.ai/ko/learn/vedic-astrology":
+          - /url: https://mysticos.ai/ko/learn/vedic-astrology
+      - rowheader "-":
+        - generic: "-"
+    - row "힌두 점성술 - 위키백과, 우리 모두의 백과사전 https://ko.wikipedia.org/wiki/%ED%9E%8C%EB%91%90_%EC%A0%90%EC%84%B1%EC%88%A0 -":
+      - rowheader "힌두 점성술 - 위키백과, 우리 모두의 백과사전 https://ko.wikipedia.org/wiki/%ED%9E%8C%EB%91%90_%EC%A0%90%EC%84%B1%EC%88%A0":
+        - link "힌두 점성술 - 위키백과, 우리 모두의 백과사전":
+          - /url: https://www.bing.com/search?q=%ED%9E%8C%EB%91%90%20%EC%A0%90%EC%84%B1%EC%88%A0%20-%20%EC%9C%84%ED%82%A4%EB%B0%B1%EA%B3%BC%2C%20%EC%9A%B0%EB%A6%AC%20%EB%AA%A8%EB%91%90%EC%9D%98%20%EB%B0%B1%EA%B3%BC%EC%82%AC%EC%A0%84
+        - link "https://ko.wikipedia.org/wiki/%ED%9E%8C%EB%91%90_%EC%A0%90%EC%84%B1%EC%88%A0":
+          - /url: https://ko.wikipedia.org/wiki/%ED%9E%8C%EB%91%90_%EC%A0%90%EC%84%B1%EC%88%A0
+      - rowheader "-":
+        - generic: "-"
+    - row "AI 베다 점성술 계산기 - 개인 맞춤형 출생 차트 분석 https://www.iweaver.ai/ko/agents/ai-vedic-astrology-calculator/ -":
+      - rowheader "AI 베다 점성술 계산기 - 개인 맞춤형 출생 차트 분석 https://www.iweaver.ai/ko/agents/ai-vedic-astrology-calculator/":
+        - link "AI 베다 점성술 계산기 - 개인 맞춤형 출생 차트 분석":
+          - /url: https://www.bing.com/search?q=AI%20%EB%B2%A0%EB%8B%A4%20%EC%A0%90%EC%84%B1%EC%88%A0%20%EA%B3%84%EC%82%B0%EA%B8%B0%20-%20%EA%B0%9C%EC%9D%B8%20%EB%A7%9E%EC%B6%A4%ED%98%95%20%EC%B6%9C%EC%83%9D%20%EC%B0%A8%ED%8A%B8%20%EB%B6%84%EC%84%9D
+        - link "https://www.iweaver.ai/ko/agents/ai-vedic-astrology-calculator/":
+          - /url: https://www.iweaver.ai/ko/agents/ai-vedic-astrology-calculator/
+      - rowheader "-":
+        - generic: "-"
+    - 'row "베다점이란? 인도 점성술의 기본부터 쉽게 이해하기 : 네이버 블로그 https://blog.naver.com/goodbyejieun/224333659879 -"':
+      - 'rowheader "베다점이란? 인도 점성술의 기본부터 쉽게 이해하기 : 네이버 블로그 https://blog.naver.com/goodbyejieun/224333659879"':
+        - 'link "베다점이란? 인도 점성술의 기본부터 쉽게 이해하기 : 네이버 블로그"':
+          - /url: https://www.bing.com/search?q=%EB%B2%A0%EB%8B%A4%EC%A0%90%EC%9D%B4%EB%9E%80%3F%20%EC%9D%B8%EB%8F%84%20%EC%A0%90%EC%84%B1%EC%88%A0%EC%9D%98%20%EA%B8%B0%EB%B3%B8%EB%B6%80%ED%84%B0%20%EC%89%BD%EA%B2%8C%20%EC%9D%B4%ED%95%B4%ED%95%98%EA%B8%B0%20%3A%20%EB%84%A4%EC%9D%B4%EB%B2%84%20%EB%B8%94%EB%A1%9C%EA%B7%B8
+        - link "https://blog.naver.com/goodbyejieun/224333659879":
+          - /url: https://blog.naver.com/goodbyejieun/224333659879
+      - rowheader "-":
+        - generic: "-"
+    - row "베딕 점성술 - 5000년 전통 인도 정통 점성술 https://soultest.kr/vedic-astro -":
+      - rowheader "베딕 점성술 - 5000년 전통 인도 정통 점성술 https://soultest.kr/vedic-astro":
+        - link "베딕 점성술 - 5000년 전통 인도 정통 점성술":
+          - /url: https://www.bing.com/search?q=%EB%B2%A0%EB%94%95%20%EC%A0%90%EC%84%B1%EC%88%A0%20-%205000%EB%85%84%20%EC%A0%84%ED%86%B5%20%EC%9D%B8%EB%8F%84%20%EC%A0%95%ED%86%B5%20%EC%A0%90%EC%84%B1%EC%88%A0
+        - link "https://soultest.kr/vedic-astro":
+          - /url: https://soultest.kr/vedic-astro
+      - rowheader "-":
+        - generic: "-"
+    - row "베다 점성술 기본 구조 - Code Destiny https://code-destiny.com/vedic/guide/ -":
+      - rowheader "베다 점성술 기본 구조 - Code Destiny https://code-destiny.com/vedic/guide/":
+        - link "베다 점성술 기본 구조 - Code Destiny":
+          - /url: https://www.bing.com/search?q=%EB%B2%A0%EB%8B%A4%20%EC%A0%90%EC%84%B1%EC%88%A0%20%EA%B8%B0%EB%B3%B8%20%EA%B5%AC%EC%A1%B0%20-%20Code%20Destiny
+        - link "https://code-destiny.com/vedic/guide/":
+          - /url: https://code-destiny.com/vedic/guide/
+      - rowheader "-":
+        - generic: "-"

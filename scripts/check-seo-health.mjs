@@ -1,9 +1,9 @@
 /* eslint-disable no-console */
 import { mkdir, writeFile } from 'node:fs/promises';
-import { inspectPage, robotsAllows, sitemapDirectives } from './seo/health-policy.mjs';
+import { collectSitemapUrls, inspectPage, robotsAllows, sitemapDirectives } from './seo/health-policy.mjs';
 
 const BASE = (process.env.SITE_URL || 'https://code-destiny.com').replace(/\/$/, '');
-const targets = ['/', '/saju/', '/manse/', '/ziwei/', '/sukuyo/', '/vedic/', '/astrology/',
+const targets = ['/ggulggul/', '/saju/', '/manse/', '/ziwei/', '/sukuyo/', '/vedic/', '/astrology/',
   '/tarot/', '/compatibility/', '/today/', '/insights/', '/guides/', '/ja/', '/en/', '/zh/',
   '/ja/saju/', '/ja/vedic/', '/ja/sukuyo/', '/ja/ziwei/'];
 const issues = [];
@@ -25,19 +25,13 @@ const urls = [...sitemap.html.matchAll(/<loc>\s*([^<]+)\s*<\/loc>/g)].map(m => m
 if (!urls.length || new Set(urls).size !== urls.length) issues.push('empty or duplicate sitemap URLs');
 const declaredSitemaps = sitemapDirectives(robots.html);
 if (!declaredSitemaps.length) issues.push('robots sitemap directive missing');
-const declaredUrls = new Set();
-for (const url of declaredSitemaps) {
-  const parsed = new URL(url);
-  if (parsed.origin !== BASE || parsed.search || parsed.hash) {
-    issues.push(`unexpected declared sitemap URL: ${url}`);
-    continue;
-  }
-  const entry = url === sitemap.url ? sitemap : await get(parsed.pathname);
-  if (entry.status !== 200 || !/<urlset\b/.test(entry.html)) {
-    issues.push(`declared sitemap missing or invalid: ${url}`);
-    continue;
-  }
-  for (const match of entry.html.matchAll(/<loc>\s*([^<]+)\s*<\/loc>/g)) declaredUrls.add(match[1].trim());
+const declared = await collectSitemapUrls(declaredSitemaps, BASE,
+  path => path === '/sitemap.xml' ? Promise.resolve(sitemap) : get(path));
+const declaredUrls = declared.urls;
+issues.push(...declared.issues);
+const rootRedirect = await get('/');
+if (rootRedirect.status !== 301 || new URL(rootRedirect.location || '/', BASE).href !== `${BASE}/ggulggul/`) {
+  issues.push('root must permanently redirect to /ggulggul/');
 }
 for (const url of urls) {
   if (!declaredUrls.has(url)) issues.push(`URL absent from declared sitemaps: ${url}`);
@@ -59,7 +53,8 @@ for (const url of urls) {
   } catch { issues.push(`invalid sitemap URL: ${url}`); }
 }
 const report = { checkedAt: new Date().toISOString(), base: BASE, sitemapCount: urls.length,
-  coverage: 'critical landing sample plus robots and declared sitemap coverage for every sitemap URL', declaredSitemaps, rows, issues };
+  coverage: 'critical landing sample plus robots and declared sitemap coverage for every sitemap URL', declaredSitemaps,
+  sitemapFiles: declared.files, rootRedirect: { status: rootRedirect.status, location: rootRedirect.location }, rows, issues };
 await mkdir('seo-qa/operations', { recursive: true });
 await writeFile('seo-qa/operations/health.json', JSON.stringify(report, null, 2) + '\n');
 console.log(`[seo-health] ${rows.length} landings, ${urls.length} sitemap URLs, ${issues.length} issues`);
