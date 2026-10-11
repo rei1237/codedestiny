@@ -1,4 +1,6 @@
 "use client";
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
+import { detectLocale } from "@/lib/i18n/dictionary";
 import { NAKSHATRA_COMPAT_PRICING } from "../_lib/pricing";
 
 import { authFetch } from "@/app/_lib/auth-client";
@@ -200,6 +202,7 @@ export default function NakshatraCompatClient() {
 
   return (
     <div className="mx-auto w-full max-w-2xl">
+      {detectLocale() === "ko" && <div style={{width:"100%",maxWidth:540,minWidth:0,margin:"0 auto 24px",background:"#efe7df",color:"#3e414d",borderRadius:12}}><CraftedProductDisclosure featureKey="nakshatra-compat" summaryLabel="동서 통합 궁합 상세 안내" /></div>}
       <NakshatraProfilePicker context={profilePicker} copy={copy} disabled={aLocked || isPaying || loading} />
       <div className="grid gap-4">
         <Person title={copy.compatMeLabel} v={a} set={setA} locked={aLocked} copy={copy} />

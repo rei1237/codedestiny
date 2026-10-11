@@ -3508,28 +3508,58 @@
     {
       "productId": "nakshatra-compat",
       "displayName": "동서 통합 궁합",
-      "saleStatus": "진입 확인·구성 대조 중",
+      "saleStatus": "실판매진입·결과대조",
       "entry": [
         "/nakshatra/compat/"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 20000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
+      "inputRequirements": [
+        "두 사람 생년월일·시각 또는 미상·성별선택·출생도시",
+        "저장된 내 프로필 활용"
+      ],
+      "resultRenderer": [
+        "app/nakshatra/compat/CompatResultView.tsx",
+        "worker/lib/nakshatra-compat.js",
+        "worker/lib/nakshatra-ashtakuta-v2.js",
+        "worker/lib/nakshatra-compat-delivery.js"
+      ],
+      "actualContents": [
+        "베다8항목36척도·숙요관계유형거리·행동안내",
+        "통합논의주제·체계별해석(점수평균없음)",
+        "같은계정 결과주소재열람"
+      ],
+      "conditionalItems": [
+        "시간미상 구간불확실성·성별역할 미지정 방향범위",
+        "숙요 및 역할 가이드 조건부",
+        "AI질문/PDF없음·초대링크 출생정보포함"
+      ],
+      "separatePurchase": [
+        "통합AI상담",
+        "VVIP통합서"
+      ],
       "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
+      "images": [
+        "/feature-details/crafted/nakshatra-compat/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "app/nakshatra/compat/NakshatraCompatClient.tsx",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본9/native22 독립SHIP",
+        "328/358/398/540 clipping/입력/fallback/CTAtrial PASS",
+        "무료별위치mockPOST2/유료POST0",
+        "Jest3/ESLint/typecheck PASS;기존버튼대비 advisory1"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "main전달·CI대기;실결제·운영계산미실행"
       ],
       "detailAliases": [
         "nakshatra-compat"
-      ]
+      ],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "nakshatra-dasha-map",

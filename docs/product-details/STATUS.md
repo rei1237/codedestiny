@@ -522,3 +522,7 @@ status: active
 ## 나크샤트라 통합서 / 택일 / AI 상담
 - 각각10/8/9장 개별편집. 원본과 native23/21/22 독립SHIP. 모바일360/390/430 및 데스크톱 clipping/fallback/저장프로필/CTAtrial PASS; 무료별위치mockPOST2/유료POST0. Jest29/ESLint/typecheck PASS. 기존 AI버튼 대비검출 advisory2(amber200 위 slate950). 택일 단정표현 완화·소개페이지 연결.
 - 유료구성142원본+공통1원본1263패널 로컬검수. 직전c2ea6f066 pre-push PASS. 전체/main전달미완료·엔진운영미배포. 다음 동서 통합 궁합.
+
+## 동서 통합 궁합
+- 베다8항목과 숙요 관계·행동을 9장 개별편집. 원본9/native22 독립SHIP.328/358/398/540 clipping/두사람입력/fallback/CTAtrial PASS;무료별위치mock2/유료POST0. Jest저장계약3/ESLint/typecheck PASS. 기존버튼 대비검출 advisory1.
+- 유료구성143원본+공통1원본1272패널 로컬검수. 직전593c85202 pre-push PASS. 전체/main전달미완료·엔진운영미배포. 다음 러브코드/관상 현재판매구성 조사.
