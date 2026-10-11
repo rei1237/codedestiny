@@ -39,6 +39,8 @@ next: "[최적화 문서](2026-10-10-love-tarot-call-optimization.md)가 status:
 
 ### 후속(범위 밖, 고치지 않음)
 
+1번은 다른 세션(`wt/paid-narrative-engine-20261011-020659`, 미푸시 c5d5ee328·33e72b685)이 고친다. 2·3·6번과 나머지 상품 조사는 [유료 상담 품질 후속](2026-10-11-paid-report-quality-followups.md)에서 이어 간다.
+
 1. **유료 서사 엔진 공통.** 부분 프롬프트가 제목 한 줄뿐이다. 그래서 모델이 부분마다 상담 전체를 다시 쓴다(B6·B1a·B1b, B5·B7 일부).
    - `paid-narrative-delivery.js:175` 는 minChars 미달 본문을 수락한다.
    - 64자리 evidenceHash 를 되풀이시키는 계약이 정상 응답을 무작위로 버린다.
