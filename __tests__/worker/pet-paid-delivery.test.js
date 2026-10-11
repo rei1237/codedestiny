@@ -88,3 +88,12 @@ test('a JSON report body is not a part, and its text is delivered on the last at
 test.each(['report','compat'])('%s part targets add up to about 9,000 chars for a 3,000-won product',async type=>{
  kind=type;const total=(await seedPet(type,original())).tasks.reduce((sum,task)=>sum+task.minChars,0);expect(total).toBeGreaterThanOrEqual(8000);expect(total).toBeLessThanOrEqual(10000);
 });
+// 실호출(2026-10-12)에서 13부분 중 9부분이 문단 없는 한 덩어리였다. 화면은 부분마다 한 블록(pre-line)이라 렌더가 문장 끝에서 나눈다.
+test('a long one-paragraph part renders as sentence-bounded paragraphs without changing the text',async()=>{
+ const {renderPetNarrative}=await import('../../worker/lib/pet-report-delivery.js');
+ const {blueprint}=seedPet('report',original()),wall=Array.from({length:30},(_,i)=>`보리는 ${i}번째 상황에서 활동과 휴식의 균형을 살펴야 합니다.`).join(' '),split='첫 문단입니다.\n\n둘째 문단입니다.';
+ const report=renderPetNarrative({kind:'report',blueprint,parts:{'personality:0':wall,'personality:1':split,coach:'짧은 조언입니다. 오늘은 쉬세요.'}}).report;
+ const paras=report.personality[0].split('\n\n');
+ expect(paras.length).toBeGreaterThanOrEqual(3);expect(paras.every(p=>p.length<=600&&/[.!?]$/.test(p))).toBe(true);
+ expect(paras.join(' ')).toBe(wall);expect(report.personality[1]).toBe(split);expect(report.coach).toBe('짧은 조언입니다. 오늘은 쉬세요.');
+});
