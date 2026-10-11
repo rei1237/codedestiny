@@ -849,6 +849,7 @@
     ensureMeditationPrepared();
     bindTarotReunionStaticActions();
     resetTarotReunionFlow();
+    import('/js/core/oracle/crafted-details.mjs').then(function(module){module.mountOracleCraftedDetails(overlay.querySelector('.tarot-reunion-shell'),{target:'.tarot-reunion-panel',id:'reunion-tarot',title:'재회운 타로'});}).catch(function(){});
   }
 
   function bindTarotReunionStaticActions() {

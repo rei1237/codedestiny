@@ -72,7 +72,7 @@ const __lazyActionLoaders = {
   openDestinyEggPage: () => Promise.resolve(window.location.assign('/tadagochi')),
   openFortuneTellerFishPage: () => Promise.resolve(window.location.assign('/fortune-teller-fish.html')),
   openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=build-b9e193b46c19'),
-  openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=build-9b771f6b8215'),
+  openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=build-81de2b61b3b3'),
   openTarotHealingPage: () => Promise.resolve(window.location.assign('/tarot/healing/')),
   openTarotHealingModal: () => Promise.resolve(window.location.assign('/tarot/healing/')),
   openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-86062dc39929'),

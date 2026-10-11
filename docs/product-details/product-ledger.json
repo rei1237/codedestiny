@@ -4044,24 +4044,52 @@
     {
       "productId": "tarot-reunion-reading",
       "displayName": "재회운 타로",
-      "saleStatus": "진입 확인·구성 대조 중",
+      "saleStatus": "현행등대모달5카드공개후유료리딩",
       "entry": [
         "/index.html?action=openTarotReunionModal"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 3000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
+      "inputRequirements": [
+        "5카드순차공개",
+        "생년/사연입력없음"
+      ],
+      "resultRenderer": [
+        "js/tarot-reunion-experience.js",
+        "lib/tarot/tarot-interpretation-engine.mjs",
+        "worker/routes/tarot.js"
+      ],
+      "actualContents": [
+        "5자리카드/신호/장면/재회해석/조언/주의",
+        "종합회복조건·연락전기준·첫문장·7일루틴",
+        "결과체크리스트·질문문복사·공유"
+      ],
+      "conditionalItems": [
+        "규칙형리딩;AI자유상담아님",
+        "상대마음확정·측정확률·재회보장아님",
+        "PDF/전체결과파일저장없음"
+      ],
       "separatePurchase": [],
       "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
+      "images": [
+        "/feature-details/crafted/reunion-tarot/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "js/tarot-reunion-experience.js",
+        "public/js/tarot-reunion-experience.js",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본9/native23 최종독립SHIP",
+        "312/342/378/538 clipping/fallback/CTAtrial PASS",
+        "무료drawmockPOST1/그외0;실제5장순차공개",
+        "ESLint0errors281기존warnings",
+        "제목/닫기공간분리·앞면애니메이션완료후캡처"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "레지스트리3000원;진입CTA금액미표시",
+        "main전달전로컬검수;실결제없음"
       ],
       "detailAliases": [
         "tarot-reunion"

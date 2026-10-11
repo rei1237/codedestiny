@@ -458,3 +458,7 @@ status: active
 ## 우리는 무슨 사이?
 - 6자리/시선차이/행동과경계/9부분저장을10장개별편집. 원본10/native23 최종독립SHIP.04·10넘침/07인용고아줄/모바일제목과닫기겹침수정.312/342/378/538 clipping/fallback/CTAtrial PASS. 실제6장순차공개,mockdrawPOST1/그외0. Jest52/Node3 PASS,ESLint0errors322기존warnings.
 - 유료구성118종+공통소개1종1068패널 로컬검수. 직전815a0034e pre-pushPASS. 전달전확인mainCI54b5476b/38114013113여전히실패,복구질문pending/운영배포없음. 전체/main전달미완료. 다음재회운9장원본SHIP·native연결예정.
+
+## 재회운 타로
+- 5자리/규칙형해설/회복조건/연락전기준·7일루틴/질문문복사를9장개별편집. 원본9/native23 최종독립SHIP.07·09넘침/초기·공개제목과닫기겹침수정.앞면애니메이션완료후캡처.312/342/378/538 clipping/fallback/CTAtrial PASS,무료drawmockPOST1/그외0. ESLint0errors281기존warnings.
+- 유료구성119종+공통소개1종1077패널 로컬검수. 직전6de60d71e pre-pushPASS. mainCI복구질문pending/운영배포없음. 전체/main전달미완료. 다음십이지신천운10장원본SHIP·native연결예정.

@@ -1914,7 +1914,7 @@ var __cdLazyActionLoaders = {
   openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-b7d07cb6850b').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-81c843ae9e30'); }); },
   openDestinyEggPage: function() { return Promise.resolve(window.location.assign('/tadagochi.html')); },
   openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=build-b9e193b46c19'); },
-  openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=build-9b771f6b8215'); },
+  openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=build-81de2b61b3b3'); },
   openTarotHealingModal: function() { return Promise.resolve(window.location.assign('/tarot/healing/')); },
   openTarotHealingPage: function() { return Promise.resolve(window.location.assign('/tarot/healing/')); },
   openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-86062dc39929'); },
