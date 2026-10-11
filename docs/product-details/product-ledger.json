@@ -3515,28 +3515,53 @@
     {
       "productId": "tarot-celestial-harmony",
       "displayName": "천체의 선율",
-      "saleStatus": "진입 확인·구성 대조 중",
+      "saleStatus": "현행카드배치후5000원통합리딩",
       "entry": [
         "/celestial-harmony.html"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 5000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
+      "inputRequirements": [
+        "출생정보없음;11천체자리카드와통합카드"
+      ],
+      "resultRenderer": [
+        "celestial-harmony.html",
+        "worker/lib/celestial-report-delivery.js",
+        "worker/lib/celestial-delivery-store.js"
+      ],
+      "actualContents": [
+        "11천체질문축별8해설항목",
+        "별빛통합오라클·영역별힌트",
+        "12부분저장/이어읽기·요약/오라클복사"
+      ],
+      "conditionalItems": [
+        "출생점성술차트아님",
+        "실천/7일계획은결과포함시",
+        "시간·분량·PDF보장없음"
+      ],
       "separatePurchase": [],
       "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
+      "images": [
+        "/feature-details/crafted/celestial-harmony/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "celestial-harmony.html",
+        "public/celestial-harmony.html",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본10/native23 최종독립SHIP",
+        "334/364/404/538 clipping/fallback/CTAtrial PASS POST0",
+        "Jest34/Node3 PASS;07넘침·02/05/10고아줄수정"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "main전달·CI미완료;실결제/실LLM없음"
       ],
       "detailAliases": [
         "tarot-celestial-harmony"
-      ]
+      ],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "tarot-crystal-soul-reading",
