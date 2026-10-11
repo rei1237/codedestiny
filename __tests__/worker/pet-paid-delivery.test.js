@@ -85,3 +85,6 @@ test('a JSON report body is not a part, and its text is delivered on the last at
  expect((await finish()).status).toBe(200);const {parts,tasks}=docs[0].metadata.paidNarrative;expect(provider).toHaveBeenCalledTimes(tasks.length*2);
  for(const task of tasks){expect(parts[task.id]).not.toMatch(/^\s*[\[{]|"personality"|sunny-window/);expect(parts[task.id]).toContain('번째 사례는');}
 });
+test.each(['report','compat'])('%s part targets add up to about 9,000 chars for a 3,000-won product',async type=>{
+ kind=type;const total=(await seedPet(type,original())).tasks.reduce((sum,task)=>sum+task.minChars,0);expect(total).toBeGreaterThanOrEqual(8000);expect(total).toBeLessThanOrEqual(10000);
+});

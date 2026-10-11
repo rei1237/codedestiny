@@ -1,22 +1,19 @@
 function task(id, title, minChars) { return { id, minChars, prompt: `${title} 부분만 해설하세요. 다른 부분의 내용을 요약하거나 반복하지 마세요.` }; }
-function withFloor(tasks) {
-  const addition = Math.ceil(Math.max(0, 20000 - tasks.reduce((sum, item) => sum + item.minChars, 0)) / tasks.length);
-  return tasks.map(item => ({ ...item, minChars: item.minChars + addition }));
-}
+// 3,000원 상품: 부분 minChars 합계 약 9,000자. 분량은 목표일 뿐이고 짧아도 완결된 본문은 전달한다.
 export function seedPetReport(blueprint, prompt, systemPrompt) {
-  const tasks = [task('personality:0', '명식·종·성장 단계로 읽는 기본 기질과 강점', 2200), task('personality:1', '기질의 반대 조건·과잉 양상과 보호자의 관찰 방법', 2200),
-    ...blueprint.deep.habitats.map(item => task(`habitat:${item.id}`, `${item.labelKo} 환경의 장점·반대 조건·현실적인 이용 방법`, 1600)),
-    ...blueprint.deep.plays.slice(0, 3).map((item, i) => task(`play:${i}`, `${item.labelKo} 놀이를 아이의 상태에 맞추는 방법`, 1000)),
-    task('coach', '보호자가 일상에서 관찰하고 조정할 단계별 행동', 1600), task('care', '생활 리듬과 휴식·자극 관리의 조건과 주의점 (진단·처방 금지)', 2200), task('closing', '개별 관찰을 이어 가는 보호자의 선택과 마무리', 1000)];
-  return { blueprint, prompt, systemPrompt, tasks: withFloor(tasks), minBodyChars: 20000, kind: 'report' };
+  const tasks = [task('personality:0', '명식·종·성장 단계로 읽는 기본 기질과 강점', 1000), task('personality:1', '기질의 반대 조건·과잉 양상과 보호자의 관찰 방법', 1000),
+    ...blueprint.deep.habitats.map(item => task(`habitat:${item.id}`, `${item.labelKo} 환경의 장점·반대 조건·현실적인 이용 방법`, 700)),
+    ...blueprint.deep.plays.slice(0, 3).map((item, i) => task(`play:${i}`, `${item.labelKo} 놀이를 아이의 상태에 맞추는 방법`, 400)),
+    task('coach', '보호자가 일상에서 관찰하고 조정할 단계별 행동', 700), task('care', '생활 리듬과 휴식·자극 관리의 조건과 주의점 (진단·처방 금지)', 1000), task('closing', '개별 관찰을 이어 가는 보호자의 선택과 마무리', 500)];
+  return { blueprint, prompt, systemPrompt, tasks, kind: 'report' };
 }
 export function seedPetCompat(compat, pets, prompt, systemPrompt) {
-  const tasks = [task('overview:0', '두 아이의 명식·종·기질이 서로 보완하는 생활 패턴', 2000), task('overview:1', '두 아이의 긴장 조건과 반대 상황에서 달라지는 해석', 2000),
-    ...compat.dimensions.map(item => task(`dimension:${item.key}`, `${item.labelKo} ${item.value}점의 근거·조건·생활 적용`, 2000)),
-    ...compat.sharedPlaces.map(item => task(`place:${item.id}`, `${item.labelKo} 공간을 함께 이용할 때의 거리·순서·관찰 기준`, Math.ceil(3000 / Math.max(1, compat.sharedPlaces.length)))),
-    task('caution:0', '활동량·자원·자극이 겹칠 때 주의할 상황과 안전한 조정', 800), task('caution:1', '각자의 휴식·거리·감정 신호를 존중하는 방법', 800),
-    task('routine', '두 아이에게 맞추는 일과 예시와 상태별 조정', 1500), task('verdict', '관계의 핵심 조건을 짧게 요약 (결과를 단정하지 않기)', 60)];
-  return { compat, pets, prompt, systemPrompt, tasks: withFloor(tasks), minBodyChars: 20000, kind: 'compat' };
+  const tasks = [task('overview:0', '두 아이의 명식·종·기질이 서로 보완하는 생활 패턴', 900), task('overview:1', '두 아이의 긴장 조건과 반대 상황에서 달라지는 해석', 900),
+    ...compat.dimensions.map(item => task(`dimension:${item.key}`, `${item.labelKo} ${item.value}점의 근거·조건·생활 적용`, 800)),
+    ...compat.sharedPlaces.map(item => task(`place:${item.id}`, `${item.labelKo} 공간을 함께 이용할 때의 거리·순서·관찰 기준`, Math.ceil(1300 / Math.max(1, compat.sharedPlaces.length)))),
+    task('caution:0', '활동량·자원·자극이 겹칠 때 주의할 상황과 안전한 조정', 400), task('caution:1', '각자의 휴식·거리·감정 신호를 존중하는 방법', 400),
+    task('routine', '두 아이에게 맞추는 일과 예시와 상태별 조정', 800), task('verdict', '관계의 핵심 조건을 짧게 요약 (결과를 단정하지 않기)', 60)];
+  return { compat, pets, prompt, systemPrompt, tasks, kind: 'compat' };
 }
 export function renderPetNarrative(state) {
   const parts = state.parts, text = id => parts[id] || '';
