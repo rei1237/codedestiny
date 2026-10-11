@@ -1,9 +1,10 @@
 import { narrativePriorDigest, normalizeNarrativeBody, parseNarrativeResponse, NARRATIVE_RESPONSE_SCHEMA } from './paid-narrative-candidate.js';
 import { normalizeNarrativeParagraphs } from './narrative-format.js';
 import { dropRepeatedReportSentences } from './paid-report-quality.js';
-import { buildOracleConsultationPrompt, validateOracleConsultationInput, resolveOracleConsultationTargetChars } from '../../lib/tarot/oracle-consultation.mjs';
+import { buildOracleConsultationPrompt, validateOracleConsultationInput } from '../../lib/tarot/oracle-consultation.mjs';
 import { ORACLE_CONSULTATION_TIERS, resolveOracleConsultationTier } from '../../lib/tarot/oracle-consultation-pricing.mjs';
 import { runPaidNarrativeDelivery } from './paid-narrative-delivery.js';
+import { FEATURE_KEY_PRICE_TABLE } from './paid-feature-registry.js';
 import { ServiceExecutionTransaction } from './models.js';
 import { connectDb } from './db.js';
 import { getAmbientAiLocale } from './ai-locale-context.js';
@@ -12,15 +13,19 @@ import { createHttpError, json } from './http.js';
 import { buildTarotPositionPin, findTarotProseViolation, TAROT_SHARED_RULE_BLOCK } from '../../lib/tarot/paid-reading-contract.mjs';
 import { getTarotCardByAnyId } from '../../lib/tarot/tarot-cards.mjs';
 
+// 분량은 가격 대비 목표다(짧아도 완결된 부분은 전달한다). 공통 12부분 5,300자 + 카드 + 짝 400자씩:
+// 3,000원(1~7장) 약 8,300~9,700자, 5,000원(8~14장) 약 12,000~12,800자.
 const GENERAL = [
-  ['coreQuestion', '질문을 해석하는 기준', 1200], ['bigPicture', '전체 배열의 흐름', 2500],
-  ['tension', '카드 사이의 긴장과 반대 조건', 2000], ['categoryFocus', '질문 주제에 맞춘 심화 해석', 2500],
-  ['caution', '주의점과 현실의 확인 기준', 1500], ['closingLine', '상담을 맺는 조언', 500],
-  ['timeline.now', '현재 국면의 근거', 1000], ['timeline.near', '가까운 흐름의 조건', 1000],
-  ['timeline.turning', '변화의 분기점과 확인 신호', 1000],
-  ['action.0', '오늘 실천할 행동과 확인 방법', 500], ['action.1', '일주일 동안 점검할 행동', 500],
-  ['action.2', '선택을 다시 검토할 기준', 500],
+  ['coreQuestion', '질문을 해석하는 기준', 500], ['bigPicture', '전체 배열의 흐름', 800],
+  ['tension', '카드 사이의 긴장과 반대 조건', 600], ['categoryFocus', '질문 주제에 맞춘 심화 해석', 800],
+  ['caution', '주의점과 현실의 확인 기준', 500], ['closingLine', '상담을 맺는 조언', 300],
+  ['timeline.now', '현재 국면의 근거', 400], ['timeline.near', '가까운 흐름의 조건', 400],
+  ['timeline.turning', '변화의 분기점과 확인 신호', 400],
+  ['action.0', '오늘 실천할 행동과 확인 방법', 200], ['action.1', '일주일 동안 점검할 행동', 200],
+  ['action.2', '선택을 다시 검토할 기준', 200],
 ];
+// 카드 전체 목표(코인 가격별): 30코인 3,000자, 50코인 5,500자. 카드당 최소 450자.
+const CARD_BUDGET = { 30: 3000, 50: 5500 };
 // A bare title let the closing part restate the whole consultation (B1a).
 const SCOPE = { closingLine: '앞의 해석을 요약해 다시 쓰지 않고, 질문에 대한 마지막 조언과 스스로 확인할 기준만 두세 문단으로 맺는다.' };
 const paragraphs = body => String(body || '').split(/\n\s*\n/).map(value => value.trim()).filter(Boolean);
@@ -31,7 +36,8 @@ function seedOracle(body, env) {
   const input = validated.data;
   const built = buildOracleConsultationPrompt({ ...input, locale: getAmbientAiLocale() || body.locale || 'ko', env });
   const tasks = GENERAL.map(([id, title, minChars]) => ({ id, title, prompt: SCOPE[id] ? `${title}: ${SCOPE[id]}` : title, minChars }));
-  const cardMinimum = Math.max(1100, Math.ceil(6500 / input.cards.length));
+  const cost = FEATURE_KEY_PRICE_TABLE[resolveOracleConsultationTier(input.cards.length).featureKey]?.cost;
+  const cardMinimum = Math.max(450, Math.ceil((CARD_BUDGET[cost] || CARD_BUDGET[50]) / input.cards.length));
   const segments = Math.ceil(cardMinimum / 2200);
   input.cards.forEach((card, index) => {
     for (let part = 0; part < segments; part += 1) tasks.push({
@@ -43,12 +49,11 @@ function seedOracle(body, env) {
   });
   const pairs = input.cards.length < 3 ? [] : Array.from({ length: Math.min(3, input.cards.length - 1) }, (_, i) => [0, i + 1]);
   pairs.forEach(([a, b], index) => tasks.push({ id: `synergy.${index}`, title: `${a + 1}번 × ${b + 1}번`,
-    prompt: `${a + 1}번과 ${b + 1}번 카드의 관계를 함께 해석한다. 각 카드의 단독 설명을 반복하지 말고 두 카드가 만날 때 달라지는 조건을 설명한다.`, minChars: 600 }));
+    prompt: `${a + 1}번과 ${b + 1}번 카드의 관계를 함께 해석한다. 각 카드의 단독 설명을 반복하지 말고 두 카드가 만날 때 달라지는 조건을 설명한다.`, minChars: 400 }));
   return { input, pairs, segments, tasks, systemPrompt: built.systemPrompt,
     // Keep canonical card/topic facts; the old whole-report JSON/short field limits
     // are replaced by the bounded part contract below.
-    prompt: `${built.userPrompt.split('[출력 형식]')[0]}\n${TAROT_SHARED_RULE_BLOCK}`,
-    minBodyChars: Math.max(20000, resolveOracleConsultationTargetChars(input.cards.length, env)) };
+    prompt: `${built.userPrompt.split('[출력 형식]')[0]}\n${TAROT_SHARED_RULE_BLOCK}` };
 }
 
 function renderOracle(state) {
@@ -90,7 +95,7 @@ export async function deliverTarotOracle(request, env, auth, body, verify) {
 // The route and the server resume task share render and produce.
 export function tarotOracleNarrativeAdapter(env) {
   return {
-    reportType: 'tarotOracleConsultation', render: renderOracle, repairShortParts: true,
+    reportType: 'tarotOracleConsultation', render: renderOracle,
     produce: async (task, state) => {
       const ai = await callGeminiText(env, `${state.prompt}\n[이번 부분 ${task.id}] ${task.prompt}${narrativePriorDigest(state, task)}\nJSON {"body":"본문"}만 출력한다. 제목·목차·기호·공백 제외 최소 ${task.minChars}자, 목표 ${Math.ceil(task.minChars * 1.3)}~${Math.ceil(task.minChars * 1.5)}자. 각 문단에 서로 다른 근거, 생활 사례, 반대 조건과 행동 조언을 배분한다. 다른 부분을 반복하지 않는다.`, {
         systemPrompt: state.systemPrompt, timeoutMs: 45000, maxOutputTokens: 9500, thinkingBudget: 0,

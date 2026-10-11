@@ -130,3 +130,16 @@ test('the delivered oracle consultation passes the eval rubric, and the rubric s
  expect(scoreReading(text,prompt,{id:'oracle-route'}).findings).toEqual([{rule:'fixed-date',detail:'3월 5일'}]);
  expect(provider).toHaveBeenCalledTimes(17);
 });
+// 분량은 가격 대비 목표다: 3,000원(1~7장) 약 9,000자, 5,000원(8~14장) 약 12,000~14,000자.
+test.each([[1,8000,10000],[4,8000,10000],[7,8000,10000],[8,11500,14000],[10,11500,14000],[11,11500,14000],[14,11500,14000]])('%s cards seed part targets within the tier length (%s~%s)',async(count,low,high)=>{
+ const {seedTarotOracleNarrative}=await import('../../worker/lib/tarot-oracle-delivery.js');
+ const seeded=seedTarotOracleNarrative({...original(),cards:Array.from({length:count},(_,i)=>({cardId:`M${String(i).padStart(2,'0')}`,orientation:'upright',positionLabel:`위치${i+1}`}))},{});
+ const total=seeded.tasks.reduce((sum,task)=>sum+task.minChars,0);
+ expect(total).toBeGreaterThanOrEqual(low);expect(total).toBeLessThanOrEqual(high);
+});
+test('a short complete part is delivered without a repair call',async()=>{
+ const base=provider.getMockImplementation(),short='질문의 기준은 지금 선택의 속도입니다.\n\n카드의 흐름을 그 기준으로 읽습니다.';
+ provider.mockImplementation(async(...args)=>{const ai=await base(...args);if(!args[1].includes('[이번 부분 coreQuestion]'))return ai;return {...ai,text:JSON.stringify({body:short})};});
+ await start();expect((await finish()).status).toBe(200);
+ expect(docs[0].metadata.paidNarrative.parts.coreQuestion).toBe(short);expect(callsFor('coreQuestion')).toBe(1);expect(provider).toHaveBeenCalledTimes(17);
+});
