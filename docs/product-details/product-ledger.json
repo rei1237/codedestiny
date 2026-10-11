@@ -3937,24 +3937,52 @@
     {
       "productId": "saju-guardian-unlock",
       "displayName": "사주 가디언 소환진",
-      "saleStatus": "진입 확인·구성 대조 중",
+      "saleStatus": "현행잠금화면5000원해금링크확인",
       "entry": [
+        "/saju-guardian/",
         "/index.html?action=openSajuGuardianPage"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 5000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
+      "inputRequirements": [
+        "양력생년월일·시간선택",
+        "이미지는저장프로필과해당생일해금필요"
+      ],
+      "resultRenderer": [
+        "app/saju-guardian/SajuGuardianClient.tsx",
+        "app/_lib/fortune/guardianIdentity.ts",
+        "worker/routes/guardian-image.js"
+      ],
+      "actualContents": [
+        "일주/월지/시지/오행·인장/성격/서사",
+        "인장·흐름·의식·7일·운용5탭",
+        "7일미션·수호문장·조건부이미지생성"
+      ],
+      "conditionalItems": [
+        "시간모르면시지보류",
+        "이미지생성은저장프로필별출생해금",
+        "보호효능·운변화·생성시간보장없음",
+        "PDF/전체리포트파일저장없음"
+      ],
       "separatePurchase": [],
       "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
+      "images": [
+        "/feature-details/crafted/saju-guardian/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "app/saju-guardian/SajuGuardianClient.tsx",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본10/native23 최종독립SHIP",
+        "328/358/398/540 clipping/fallback/CTAtrial PASS5000원",
+        "mock권한확인POST4/그외0;기존오류닫은후잠금화면검수",
+        "Node3/Jest16/typecheck PASS;ESLint0errors37기존warnings"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "main전달전로컬검수",
+        "실결제·이미지생성미실행"
       ],
       "detailAliases": [
         "saju-guardian"

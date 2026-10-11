@@ -1,4 +1,5 @@
 "use client";
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
 
 
@@ -2163,6 +2164,7 @@ export default function SajuGuardianPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#fff7ed] via-[#fff1f2] to-[#eef2ff] px-5 py-8">
         <div className="mx-auto flex min-h-[76vh] w-full max-w-5xl flex-col justify-center gap-6">
+          {locale === "ko" && <div className="mx-auto w-full max-w-[540px] text-slate-800"><CraftedProductDisclosure featureKey="saju-guardian-unlock" summaryLabel="사주 가디언 상세 안내" /></div>}
           <div className="grid gap-6 lg:grid-cols-[0.92fr,1.08fr] lg:items-center">
             <section className="rounded-[2rem] border border-white/70 bg-white/80 p-6 shadow-xl backdrop-blur-xl">
               <p className="text-xs font-black tracking-[0.16em] text-rose-500">{tx("프리미엄 수호 인장")}</p>

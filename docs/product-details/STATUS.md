@@ -450,3 +450,7 @@ status: active
 ## 원석 소울 타로
 - 12원석선택·규칙형5자리·원석관점·종합·질문문복사/공유를9장개별편집. 원본9/native22 독립SHIP. 09넘침본문단축.328/358/398/540 clipping/fallback/CTAtrial PASS3000원일치. 실제문지르기,API POST0/devstack조회POST1별도. Jest9 PASS,ESLint0errors3기존warnings.
 - 유료구성116종+공통소개1종1048패널 로컬검수. 직전f8e9577dd pre-pushPASS(생성lastmod포함후재검증). mainCI복구질문pending/운영배포없음. 전체/main전달미완료. 다음사주가디언5탭·7일미션·저장프로필별이미지생성조건조사.
+
+## 사주 가디언 소환진
+- 출생좌표/오행/5탭/7일미션/저장프로필별이미지조건을10장개별편집. 원본10/native23 최종독립SHIP.05도해/07·10본문넘침과밝은배경고지·원고대비수정.328/358/398/540 clipping/fallback/CTAtrial PASS5000원. mock권한확인POST4/그외0,이미지생성없음. Node3/Jest16/typecheck PASS,ESLint0errors37기존warnings.
+- 유료구성117종+공통소개1종1058패널 로컬검수. 직전10abf2856 pre-pushPASS. mainCI복구질문pending/운영배포없음. 전체/main전달미완료. 다음우리는무슨사이6카드·9부분저장실제모달구성조사.
