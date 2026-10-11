@@ -3622,28 +3622,52 @@
     {
       "productId": "tarot-ijik",
       "displayName": "이직 운명의 카드",
-      "saleStatus": "진입 확인·구성 대조 중",
+      "saleStatus": "현행 무료7카드 펼침 후3000원 리딩",
       "entry": [
         "/tarot-ijik.html"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 3000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
+      "inputRequirements": [
+        "출생/이력서 입력 없음;7카드와 정역방향"
+      ],
+      "resultRenderer": [
+        "tarot-ijik.html",
+        "worker/lib/tarot-ijik-reading.js"
+      ],
+      "actualContents": [
+        "방향·시기·현직유지·결정전조건",
+        "7자리별상징/해설/작은실천",
+        "30일선택기준·텍스트공유·후속질문문복사"
+      ],
+      "conditionalItems": [
+        "서버규칙형 해설;실시간AI아님",
+        "시기는정확한퇴사/입사/합격일아님",
+        "PDF없음"
+      ],
       "separatePurchase": [],
       "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
+      "images": [
+        "/feature-details/crafted/career-transition-tarot/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "tarot-ijik.html",
+        "public/tarot-ijik.html",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본9/native22 최종독립SHIP",
+        "302/332/372/538 clipping/fallback/CTA trial PASS;POST0",
+        "Node15/Jest7 PASS;08제목·360CTA 고아줄수정"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "main전달·CI미완료;실구매없음"
       ],
       "detailAliases": [
         "tarot-ijik"
-      ]
+      ],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "openJuyukModal",
