@@ -5373,9 +5373,18 @@
 
   // 낙관적 즉시 허용 후 서버에 pass 사용을 기록(fire-and-forget). pass는 무료라 기록 실패해도 금전영향 0.
   // 서버가 미커버(402)로 응답하면 로컬 스냅샷이 낡은 것이므로 세션을 갱신하고 낙관적 허용을 잠시 비활성화한다.
-  function _dpRecordMembershipPassInBackground(opts, title, coinPrice, requestId) {
+  // 백그라운드 이용권 기록의 일시장애 재시도 간격(셸 _CD_PASS_RECORD_RETRY_DELAYS_MS 와 같다).
+  var _DP_PASS_RECORD_RETRY_DELAYS_MS = [4000, 12000, 30000];
+
+  function _dpRecordMembershipPassInBackground(opts, title, coinPrice, requestId, retryAttempt) {
     try {
       var bgRequestId = String(requestId || '').trim() || ('opt-pass-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8));
+      var attempt = Math.max(0, Math.floor(Number(retryAttempt || 0)));
+      // 5xx·타임아웃·네트워크 오류는 같은 requestId 로 최대 3번 다시 보낸다. 서버 소비 마커가 이중 차감을 막는다.
+      var scheduleRetry = function() {
+        if (attempt >= _DP_PASS_RECORD_RETRY_DELAYS_MS.length) return;
+        setTimeout(function() { _dpRecordMembershipPassInBackground(opts, title, coinPrice, bgRequestId, attempt + 1); }, _DP_PASS_RECORD_RETRY_DELAYS_MS[attempt]);
+      };
       _dpPaymentFetchJson('/api/billing/coin-gate', { method: 'POST', body: JSON.stringify(_dpBuildPaidGatePayload(opts, title, coinPrice, bgRequestId, 'MEMBERSHIP_PASS')) })
         .then(function(res) {
           var payload = res && res.payload ? res.payload : res;
@@ -5412,10 +5421,12 @@
               && Math.max(0, Math.floor(Number(coinPrice || 0))) > _dpMembershipPassLimitForTier(deniedSnapshot.tier)) return;
             _dpDisableOptimisticPassBriefly();
             try { _dpRefreshAuthSessionSilently({}); } catch (_) {}
+            return;
           }
-          // 5xx/degraded는 일시장애 — 무시(재시도 불필요).
+          // 5xx/degraded·네트워크(status 0)는 일시장애 — 다시 보낸다. 다른 4xx 는 다시 보내도 같다.
+          if (statusCode === 0 || statusCode >= 500) scheduleRetry();
         })
-        .catch(function() {});
+        .catch(function() { scheduleRetry(); });
     } catch (_) {}
   }
 

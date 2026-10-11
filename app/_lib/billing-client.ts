@@ -464,7 +464,7 @@ const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 20000;
 const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 40000;
 const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 60000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-a11f6a17f824";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-d93b57bed522";
 // 🔴 이용권 스냅샷의 상수·읽기·쓰기·판정은 전부 js/core/pass-verdict.js 가 소유한다.
 // 셸(index.html)·독립 정적(js/destiny-profile.js)과 **같은 localStorage 키**를 공유하므로 값이 갈리면
 // 같은 사용자가 어느 런타임에서 클릭했느냐에 따라 판정이 달라지고, 한쪽이 만료로 보고 지운 캐시가
@@ -3979,7 +3979,15 @@ function disableOptimisticPassBriefly() { optimisticPassDisabledUntil = Date.now
 
 // 낙관적 즉시 허용 후 서버에 pass 사용을 기록(fire-and-forget). pass는 무료라 기록 실패해도 금전영향 0.
 // 서버가 미커버(402)로 응답하면 로컬 스냅샷이 낡은 것이므로 낙관적 허용을 잠시 끄고 세션을 갱신한다.
-async function recordMembershipPassInBackground(input: BillingCoinGateInput, attemptId: string) {
+// 5xx·타임아웃·네트워크 오류는 같은 attemptId 로 4·12·30초 뒤 최대 3번 다시 보낸다. 기록이 빠지면 결과는
+// 열렸는데 서버에 이용 증빙이 없어 보관함 저장 같은 후속 요청이 거절된다. 서버가 (기능, requestId) 소비
+// 마커로 멱등이라 이중 차감은 없다. 금전 결제 POST 의 자동 재시도 금지와는 별개다(이 경로는 무료다).
+const PASS_RECORD_RETRY_DELAYS_MS = [4_000, 12_000, 30_000];
+function schedulePassRecordRetry(input: BillingCoinGateInput, attemptId: string, retryAttempt: number) {
+  if (!attemptId || retryAttempt >= PASS_RECORD_RETRY_DELAYS_MS.length) return;
+  setTimeout(() => { void recordMembershipPassInBackground(input, attemptId, retryAttempt + 1); }, PASS_RECORD_RETRY_DELAYS_MS[retryAttempt]);
+}
+async function recordMembershipPassInBackground(input: BillingCoinGateInput, attemptId: string, retryAttempt = 0) {
   try {
     const { forceDeduct: _legacyForceDeduct, ...billingInput } = input;
     const response = await authFetchBilling("/api/billing/coin-gate", {
@@ -4042,9 +4050,11 @@ async function recordMembershipPassInBackground(input: BillingCoinGateInput, att
         ).catch(() => null);
       }
     }
-    // 5xx/degraded는 일시장애 — 무시(재시도 불필요).
+    // 5xx/degraded(타임아웃은 합성 503 으로 온다)는 일시장애 — 다시 보낸다. 다른 4xx 는 다시 보내도 같다.
+    if (parsed.status >= 500) schedulePassRecordRetry(input, attemptId, retryAttempt);
   } catch {
-    // 네트워크 실패 무시.
+    // 네트워크 실패도 일시장애다.
+    schedulePassRecordRetry(input, attemptId, retryAttempt);
   }
 }
 
