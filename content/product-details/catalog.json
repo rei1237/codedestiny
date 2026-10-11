@@ -100,7 +100,8 @@
     "human-design-report": "human-design-report",
     "palm-reading-general": "palm-reading",
     "rpt_skillTreeCard": "life-skill-tree",
-    "rpt_specialCharmCard": "personal-charm"
+    "rpt_specialCharmCard": "personal-charm",
+    "rpt_villainCard": "relationship-boundaries"
   },
   "introductions": {
     "fusion-fortune": [
