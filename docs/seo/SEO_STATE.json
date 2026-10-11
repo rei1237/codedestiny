@@ -3175,7 +3175,9 @@
       "paidGateSuite": "88/88 mock checks passed",
       "buildCf": "not run; official build deferred to CI",
       "checkFast": "Initial run stopped on sitemap ledger drift after final UI edits; regenerated and drift check passed; remaining plan checks run individually",
-      "jest": "pending"
+      "jest": "385 suites, 5883/5883 passed",
+      "workerBuild": "dry-run passed",
+      "prePush": "Initial public-mirror-fresh failed on baseline .ignore missing saju-reading mirror; regenerated via sync:public; final check pending"
     },
     "delivery": {
       "status": "blocked by pre-existing main CI failure",
