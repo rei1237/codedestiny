@@ -94,7 +94,8 @@
     "stonehenge-runes-yearly": "rune-yearly",
     "openGeomancyOracle": "geomancy-oracle",
     "geomancy": "geomancy-oracle",
-    "maya-prompt-generator": "maya-prompt"
+    "maya-prompt-generator": "maya-prompt",
+    "openKemetModal": "kemet-oracle"
   },
   "introductions": {
     "fusion-fortune": [
