@@ -3153,8 +3153,11 @@
         "/recipes/",
         "/crystals/"
       ],
-      "recipeDetailCount": 5,
-      "generatedAssetCount": 6,
+      "recipeDetailCount": 10,
+      "generatedAssetCount": 20,
+      "activeRecipeIllustrations": 14,
+      "retainedEarlierRecipeAssets": 5,
+      "recipeStyle": "2D storybook illustrations with Yeoni chef, 4 guide poses and 43 step-specific notes",
       "productionD0": null,
       "indexingConfirmed": false,
       "ctrLift": null
@@ -3181,14 +3184,28 @@
     },
     "delivery": {
       "status": "awaiting recovery confirmation: prior main CI failed, latest main CI still in progress at final check",
-      "latestMainSha": "bddfe0b64deb0ee35eb0b8d20cc06e477e98020d",
-      "latestMainCiUrl": "https://github.com/rei1237/codedestiny/actions/runs/38151587362",
+      "latestMainSha": "4559a04690b97cbf95127938e7a4f41e8f09aec2",
+      "latestMainCiUrl": "https://github.com/rei1237/codedestiny/actions/runs/38154064944",
       "latestMainCiStatus": "in_progress",
       "baseSha": "aa70afbcd951ab84daab1874b187756c65c05250",
       "ciUrl": "https://github.com/rei1237/codedestiny/actions/runs/38148771754",
       "error": "verify:ziwei-chart-detail-view: TypeError panel.before is not a function",
       "pushed": false,
       "productionReleased": false
+    },
+    "recipe2dValidation": {
+      "implementationCommit": "992fb7021396ae8029a9cf1fa9334caa1fd3a0b6",
+      "npmTest": "passed as part of paid gate suite",
+      "paidGateSuite": "88/88 passed",
+      "contractTests": "3/3 passed",
+      "nodeTests": "3174/3174 passed",
+      "lintAndTypecheck": "passed",
+      "visual": "16 screens passed; 10 detail SSR routes HTTP200 and Recipe steps match",
+      "mechanicalDesignDetector": "no findings",
+      "sitemap": "967 URLs, drift passed",
+      "checkFast": "final Jest step running",
+      "prePush": "first attempt blocked by uncommitted evidence docs, rerun after committing them",
+      "sourceOrPolicyBoundaries": "no payment/auth/API/DB changes"
     }
   }
 }

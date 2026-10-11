@@ -1,0 +1,444 @@
+{
+  "screens": [
+    {
+      "n": "hub",
+      "width": 360,
+      "status": 200,
+      "h1": [
+        "연이와 만드는 오행의 식탁"
+      ],
+      "overflow": false,
+      "badImages": [],
+      "shortLinks": [],
+      "steps": 0,
+      "focused": {
+        "tag": "A",
+        "href": "/ggulggul/",
+        "outline": "solid"
+      }
+    },
+    {
+      "n": "hub",
+      "width": 390,
+      "status": 200,
+      "h1": [
+        "연이와 만드는 오행의 식탁"
+      ],
+      "overflow": false,
+      "badImages": [],
+      "shortLinks": [],
+      "steps": 0,
+      "focused": {
+        "tag": "A",
+        "href": "/ggulggul/",
+        "outline": "solid"
+      }
+    },
+    {
+      "n": "hub",
+      "width": 430,
+      "status": 200,
+      "h1": [
+        "연이와 만드는 오행의 식탁"
+      ],
+      "overflow": false,
+      "badImages": [],
+      "shortLinks": [],
+      "steps": 0,
+      "focused": {
+        "tag": "A",
+        "href": "/ggulggul/",
+        "outline": "solid"
+      }
+    },
+    {
+      "n": "hub",
+      "width": 1280,
+      "status": 200,
+      "h1": [
+        "연이와 만드는 오행의 식탁"
+      ],
+      "overflow": false,
+      "badImages": [],
+      "shortLinks": [],
+      "steps": 0,
+      "focused": {
+        "tag": "A",
+        "href": "/ggulggul/",
+        "outline": "solid"
+      }
+    },
+    {
+      "n": "risotto",
+      "width": 360,
+      "status": 200,
+      "h1": [
+        "단호박 버섯 리조또"
+      ],
+      "overflow": false,
+      "badImages": [],
+      "shortLinks": [],
+      "steps": 5,
+      "focused": {
+        "tag": "A",
+        "href": "/ggulggul/",
+        "outline": "solid"
+      }
+    },
+    {
+      "n": "risotto",
+      "width": 390,
+      "status": 200,
+      "h1": [
+        "단호박 버섯 리조또"
+      ],
+      "overflow": false,
+      "badImages": [],
+      "shortLinks": [],
+      "steps": 5,
+      "focused": {
+        "tag": "A",
+        "href": "/ggulggul/",
+        "outline": "solid"
+      }
+    },
+    {
+      "n": "risotto",
+      "width": 430,
+      "status": 200,
+      "h1": [
+        "단호박 버섯 리조또"
+      ],
+      "overflow": false,
+      "badImages": [],
+      "shortLinks": [],
+      "steps": 5
+    },
+    {
+      "n": "risotto",
+      "width": 1280,
+      "status": 200,
+      "h1": [
+        "단호박 버섯 리조또"
+      ],
+      "overflow": false,
+      "badImages": [],
+      "shortLinks": [],
+      "steps": 5,
+      "focused": {
+        "tag": "A",
+        "href": "https://www.foodsafety.gov/food-safety-charts/safe-minimum-internal-temperatures",
+        "outline": "solid"
+      }
+    },
+    {
+      "n": "soba",
+      "width": 360,
+      "status": 200,
+      "h1": [
+        "매실 오이 메밀국수"
+      ],
+      "overflow": false,
+      "badImages": [],
+      "shortLinks": [],
+      "steps": 4,
+      "focused": {
+        "tag": "A",
+        "href": "https://www.foodsafety.gov/food-safety-charts/safe-minimum-internal-temperatures",
+        "outline": "solid"
+      }
+    },
+    {
+      "n": "soba",
+      "width": 390,
+      "status": 200,
+      "h1": [
+        "매실 오이 메밀국수"
+      ],
+      "overflow": false,
+      "badImages": [],
+      "shortLinks": [],
+      "steps": 4,
+      "focused": {
+        "tag": "A",
+        "href": "https://www.foodsafety.gov/food-safety-charts/safe-minimum-internal-temperatures",
+        "outline": "solid"
+      }
+    },
+    {
+      "n": "soba",
+      "width": 430,
+      "status": 200,
+      "h1": [
+        "매실 오이 메밀국수"
+      ],
+      "overflow": false,
+      "badImages": [],
+      "shortLinks": [],
+      "steps": 4,
+      "focused": {
+        "tag": "A",
+        "href": "https://www.foodsafety.gov/food-safety-charts/safe-minimum-internal-temperatures",
+        "outline": "solid"
+      }
+    },
+    {
+      "n": "soba",
+      "width": 1280,
+      "status": 200,
+      "h1": [
+        "매실 오이 메밀국수"
+      ],
+      "overflow": false,
+      "badImages": [],
+      "shortLinks": [],
+      "steps": 4,
+      "focused": {
+        "tag": "A",
+        "href": "https://www.foodsafety.gov/food-safety-charts/safe-minimum-internal-temperatures",
+        "outline": "solid"
+      }
+    },
+    {
+      "n": "oats",
+      "width": 360,
+      "status": 200,
+      "h1": [
+        "고구마 사과 오트밀"
+      ],
+      "overflow": false,
+      "badImages": [],
+      "shortLinks": [],
+      "steps": 4,
+      "focused": {
+        "tag": "A",
+        "href": "https://www.foodsafety.gov/food-safety-charts/safe-minimum-internal-temperatures",
+        "outline": "solid"
+      }
+    },
+    {
+      "n": "oats",
+      "width": 390,
+      "status": 200,
+      "h1": [
+        "고구마 사과 오트밀"
+      ],
+      "overflow": false,
+      "badImages": [],
+      "shortLinks": [],
+      "steps": 4,
+      "focused": {
+        "tag": "A",
+        "href": "https://www.foodsafety.gov/food-safety-charts/safe-minimum-internal-temperatures",
+        "outline": "solid"
+      }
+    },
+    {
+      "n": "oats",
+      "width": 430,
+      "status": 200,
+      "h1": [
+        "고구마 사과 오트밀"
+      ],
+      "overflow": false,
+      "badImages": [],
+      "shortLinks": [],
+      "steps": 4,
+      "focused": {
+        "tag": "A",
+        "href": "https://www.foodsafety.gov/food-safety-charts/safe-minimum-internal-temperatures",
+        "outline": "solid"
+      }
+    },
+    {
+      "n": "oats",
+      "width": 1280,
+      "status": 200,
+      "h1": [
+        "고구마 사과 오트밀"
+      ],
+      "overflow": false,
+      "badImages": [],
+      "shortLinks": [],
+      "steps": 4,
+      "focused": {
+        "tag": "A",
+        "href": "https://www.foodsafety.gov/food-safety-charts/safe-minimum-internal-temperatures",
+        "outline": "solid"
+      }
+    }
+  ],
+  "notes": [
+    "Hub lazy images verified decoded at 360 and 1280; initial unloaded lazy images were not broken.",
+    "First risotto 1280 and SSR failed during dev manifest contention; after paid mock completion and restart HTTP200 and full checks pass.",
+    "All external and API requests blocked. No API request observed."
+  ],
+  "ssr": [
+    {
+      "slug": "lemon-chickpea-salad",
+      "status": 200,
+      "title": "레몬 허브 병아리콩 샐러드 레시피, 신맛의 오행 요리 | 꿀꿀 사주",
+      "canonical": "https://code-destiny.com/recipes/lemon-chickpea-salad/",
+      "h1": 1,
+      "stepCount": 4,
+      "jsonLdCount": 4,
+      "stepsMatch": true,
+      "tipCount": 4,
+      "poses": [
+        "/images/five-elements/yeoni-prepare-2d.webp",
+        "/images/five-elements/yeoni-prepare-2d.webp",
+        "/images/five-elements/yeoni-mix-2d.webp",
+        "/images/five-elements/yeoni-chef-2d.webp"
+      ]
+    },
+    {
+      "slug": "chicory-chicken-salad",
+      "status": 200,
+      "title": "치커리와 구운 닭고기 샐러드 레시피, 쓴맛의 오행 요리 | 꿀꿀 사주",
+      "canonical": "https://code-destiny.com/recipes/chicory-chicken-salad/",
+      "h1": 1,
+      "stepCount": 4,
+      "jsonLdCount": 4,
+      "stepsMatch": true,
+      "tipCount": 4,
+      "poses": [
+        "/images/five-elements/yeoni-prepare-2d.webp",
+        "/images/five-elements/yeoni-cook-2d.webp",
+        "/images/five-elements/yeoni-cook-2d.webp",
+        "/images/five-elements/yeoni-chef-2d.webp"
+      ]
+    },
+    {
+      "slug": "pumpkin-mushroom-risotto",
+      "status": 200,
+      "title": "단호박 버섯 리조또 레시피, 단맛의 오행 요리 | 꿀꿀 사주",
+      "canonical": "https://code-destiny.com/recipes/pumpkin-mushroom-risotto/",
+      "h1": 1,
+      "stepCount": 5,
+      "jsonLdCount": 5,
+      "stepsMatch": true,
+      "tipCount": 5
+    },
+    {
+      "slug": "ginger-scallion-tofu",
+      "status": 200,
+      "title": "생강 대파 두부구이 레시피, 매운맛의 오행 요리 | 꿀꿀 사주",
+      "canonical": "https://code-destiny.com/recipes/ginger-scallion-tofu/",
+      "h1": 1,
+      "stepCount": 5,
+      "jsonLdCount": 5,
+      "stepsMatch": true,
+      "tipCount": 5,
+      "poses": [
+        "/images/five-elements/yeoni-prepare-2d.webp",
+        "/images/five-elements/yeoni-mix-2d.webp",
+        "/images/five-elements/yeoni-cook-2d.webp",
+        "/images/five-elements/yeoni-cook-2d.webp",
+        "/images/five-elements/yeoni-chef-2d.webp"
+      ]
+    },
+    {
+      "slug": "seaweed-mushroom-soup",
+      "status": 200,
+      "title": "미역 버섯 두부 맑은국 레시피, 짠맛의 오행 요리 | 꿀꿀 사주",
+      "canonical": "https://code-destiny.com/recipes/seaweed-mushroom-soup/",
+      "h1": 1,
+      "stepCount": 5,
+      "jsonLdCount": 5,
+      "stepsMatch": true,
+      "tipCount": 5,
+      "poses": [
+        "/images/five-elements/yeoni-prepare-2d.webp",
+        "/images/five-elements/yeoni-prepare-2d.webp",
+        "/images/five-elements/yeoni-cook-2d.webp",
+        "/images/five-elements/yeoni-cook-2d.webp",
+        "/images/five-elements/yeoni-chef-2d.webp"
+      ]
+    },
+    {
+      "slug": "plum-cucumber-soba",
+      "status": 200,
+      "title": "매실 오이 메밀국수 레시피, 신맛의 오행 요리 | 꿀꿀 사주",
+      "canonical": "https://code-destiny.com/recipes/plum-cucumber-soba/",
+      "h1": 1,
+      "stepCount": 4,
+      "jsonLdCount": 4,
+      "stepsMatch": true,
+      "tipCount": 4,
+      "poses": [
+        "/images/five-elements/yeoni-mix-2d.webp",
+        "/images/five-elements/yeoni-prepare-2d.webp",
+        "/images/five-elements/yeoni-cook-2d.webp",
+        "/images/five-elements/yeoni-chef-2d.webp"
+      ]
+    },
+    {
+      "slug": "chicory-orange-toast",
+      "status": 200,
+      "title": "치커리 오렌지 호두 토스트 레시피, 쓴맛의 오행 요리 | 꿀꿀 사주",
+      "canonical": "https://code-destiny.com/recipes/chicory-orange-toast/",
+      "h1": 1,
+      "stepCount": 4,
+      "jsonLdCount": 4,
+      "stepsMatch": true,
+      "tipCount": 4,
+      "poses": [
+        "/images/five-elements/yeoni-prepare-2d.webp",
+        "/images/five-elements/yeoni-cook-2d.webp",
+        "/images/five-elements/yeoni-cook-2d.webp",
+        "/images/five-elements/yeoni-chef-2d.webp"
+      ]
+    },
+    {
+      "slug": "sweet-potato-apple-oats",
+      "status": 200,
+      "title": "고구마 사과 오트밀 레시피, 단맛의 오행 요리 | 꿀꿀 사주",
+      "canonical": "https://code-destiny.com/recipes/sweet-potato-apple-oats/",
+      "h1": 1,
+      "stepCount": 4,
+      "jsonLdCount": 4,
+      "stepsMatch": true,
+      "tipCount": 4,
+      "poses": [
+        "/images/five-elements/yeoni-prepare-2d.webp",
+        "/images/five-elements/yeoni-cook-2d.webp",
+        "/images/five-elements/yeoni-cook-2d.webp",
+        "/images/five-elements/yeoni-chef-2d.webp"
+      ]
+    },
+    {
+      "slug": "ginger-mushroom-rice-noodles",
+      "status": 200,
+      "title": "생강 버섯 청경채 쌀국수 레시피, 매운맛의 오행 요리 | 꿀꿀 사주",
+      "canonical": "https://code-destiny.com/recipes/ginger-mushroom-rice-noodles/",
+      "h1": 1,
+      "stepCount": 4,
+      "jsonLdCount": 4,
+      "stepsMatch": true,
+      "tipCount": 4,
+      "poses": [
+        "/images/five-elements/yeoni-prepare-2d.webp",
+        "/images/five-elements/yeoni-cook-2d.webp",
+        "/images/five-elements/yeoni-cook-2d.webp",
+        "/images/five-elements/yeoni-chef-2d.webp"
+      ]
+    },
+    {
+      "slug": "seaweed-tofu-riceballs",
+      "status": 200,
+      "title": "김 두부 참깨 주먹밥 레시피, 짠맛의 오행 요리 | 꿀꿀 사주",
+      "canonical": "https://code-destiny.com/recipes/seaweed-tofu-riceballs/",
+      "h1": 1,
+      "stepCount": 4,
+      "jsonLdCount": 4,
+      "stepsMatch": true,
+      "tipCount": 4,
+      "poses": [
+        "/images/five-elements/yeoni-cook-2d.webp",
+        "/images/five-elements/yeoni-prepare-2d.webp",
+        "/images/five-elements/yeoni-mix-2d.webp",
+        "/images/five-elements/yeoni-chef-2d.webp"
+      ]
+    }
+  ]
+}

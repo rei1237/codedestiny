@@ -6,13 +6,26 @@ next: 기존 main CI 복구 확인 후 이 워크트리 변경을 main에 통합
 
 # 검색 노출 진단과 오행 콘텐츠 전달
 
+## 10월 12일 후속 요청: 2D 캐릭터 요리
+
+사용자가 실사 대신 2D 그림, 캐릭터를 활용한 귀여운 조리 과정 소개, 메뉴 다양화를 요청했다. 기존 5개를 유지하면서 매실 오이 메밀국수·치커리 오렌지 호두 토스트·고구마 사과 오트밀·생강 버섯 청경채 쌀국수·김 두부 참깨 주먹밥을 추가해 10개로 확장했다. 요리 화면은 새 2D 일러스트 10장만 사용하고, 연이 안내 포즈 4종과 단계별 조리 메모를 연결한다. 오행별 2개씩 묶은 메뉴 탐색을 추가했다. 2D 프롬프트·원본 출처는 `public/images/five-elements/provenance-2d.json`, `provenance-2d-stages.json`에 기록했다. 천연석 이미지와 기존 결제·인증·API·DB는 유지했다. 아래 초회 검증 기록은 이전 5개 버전 기준이며 후속 검증은 완료 후 별도 기록한다.
+
 - 작업 디렉터리: `D:\Development\codedestiny-worktrees\seo-five-elements-20261011-20261011-235701`
 - 브랜치: `wt/seo-five-elements-20261011-20261011-235701`
 - 기반: `aa70afbcd951ab84daab1874b187756c65c05250`
 - 구현 커밋: `efdc087f479364c3b94d7ea14c0d551a860f89b5`
 - PR 생성, main 통합, push, 운영 배포: 미실행.
 
-## 전달 차단
+## 후속 검증 현황
+
+- 구현 커밋 `992fb7021396ae8029a9cf1fa9334caa1fd3a0b6`: 10개 레시피·43개 단계별 메모·2D 이미지 14개.
+- 콘텐츠 계약 3/3, `npm test`, paid mock 88/88, lint, typecheck, Node 3174/3174 통과. `check:fast` 마지막 Jest 단계 진행 중.
+- 시각 검증: 4페이지×4폭(360/390/430/1280) 16개 통과. 상세 10개 SSR HTTP200, canonical·Recipe 단계·메모 일치. 개발 서버 재생성 중 발생한 500은 서버 재시작 뒤 해소됐고 정상 결과를 다시 확인했다. 기록: `docs/seo/recipe-2d-visual-20261012.json`.
+- 사이트맵 967 URL, drift 통과. `check:pre-push` 첫 시도는 미커밋 검증 문서 때문에 거부돼 문서를 커밋한 뒤 재실행한다.
+- 원격 통합 사전 확인(`git merge-tree`)은 `config/sitemap-lastmod.json`의 자동 생성 원장 충돌만 보고했다. 실제 merge는 하지 않았다. main 통합 시 생성기를 실행해 해결하며 다른 세션 변경을 보존한다.
+- 최신 main 조회: `4559a04690b97cbf95127938e7a4f41e8f09aec2`, https://github.com/rei1237/codedestiny/actions/runs/38154064944, 조회 당시 `in_progress`.
+
+## 초회 전달 차단 이력
 
 최종 1회 확인에서는 다른 세션이 main `bddfe0b64deb0ee35eb0b8d20cc06e477e98020d`를 push했고 새 CI https://github.com/rei1237/codedestiny/actions/runs/38151587362 는 `in_progress`였다. 기존 실패의 복구는 아직 확인되지 않았다. CI를 기다리거나 반복 조회하지 않는 지침에 따라 종료하며, 재개 때 이 결과를 먼저 확인한다.
 
