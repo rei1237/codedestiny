@@ -133,7 +133,7 @@ const REFERENCE_FN = "formatReferenceAmount";
 // verify:payment-choice-single-instance 가 따로 강제한다(위 "범위" 주석 참고).
 const LEAK_SCAN_EXCLUDED = /^(public\/|scripts\/|__tests__\/|docs\/)|\.d\.ts$/;
 
-const trackedSources = execFileSync("git", ["ls-files"], { cwd: root, encoding: "utf8" })
+const trackedSources = execFileSync("git", ["ls-files"], { cwd: root, encoding: "utf8", maxBuffer: 32 * 1024 * 1024 })
   .split("\n")
   .map((rel) => rel.trim())
   .filter((rel) => /\.(html|ts|tsx|js|mjs)$/.test(rel) && !LEAK_SCAN_EXCLUDED.test(rel));
