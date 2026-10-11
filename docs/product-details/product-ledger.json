@@ -2473,7 +2473,7 @@
     {
       "productId": "human-design-chart",
       "displayName": "휴먼 디자인",
-      "saleStatus": "진입 확인·구성 대조 중",
+      "saleStatus": "현재 무료화·기존 주문용 가격키 보존",
       "entry": [
         "/human-design/"
       ],
@@ -2486,12 +2486,13 @@
       "separatePurchase": [],
       "reviewSource": [],
       "images": [],
-      "status": "조사",
+      "status": "대상 제외",
       "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "verification": [
+        "worker/lib/paid-feature-registry.js 276-278 판매중단 주석",
+        "app/human-design/HumanDesignClient.tsx 무료계산 진입과 별도 유료 report 확인"
       ],
+      "unconfirmed": [],
       "detailAliases": [
         "human-design"
       ]
@@ -3629,28 +3630,56 @@
     {
       "productId": "royal-tea-oracle",
       "displayName": "영국 홍차점",
-      "saleStatus": "진입 확인·구성 대조 중",
+      "saleStatus": "현재 주제 선택·시계 버튼·결제게이트 확인",
       "entry": [
-        "/index.html?action=openRoyalTeaOracle"
+        "/royal-tea-oracle.html"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 1000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
+      "inputRequirements": [
+        "연애/일/돈/가족/선택 중 한 영역;질문문장/생년 입력 없음"
+      ],
+      "resultRenderer": [
+        "royal-tea-oracle.html buildCertificateHtml"
+      ],
+      "actualContents": [
+        "테두리/잔벽/바닥 세 형상·방향·선명도·영역관점",
+        "형상의 만남·부가 사인·경고·행동·어휘록 총8부분",
+        "현재 페이지 최근8잔·요약 또는 링크 공유"
+      ],
+      "conditionalItems": [
+        "같은사용자/한국날짜/영역 동일잔",
+        "로컬 상징·준비문장 조합;실제찻잎분석/AI답변 아님",
+        "기간/선명도는 사건날짜/확률 아님"
+      ],
+      "separatePurchase": [
+        "계정보관함/PDF/전문공유 포함안함"
+      ],
+      "reviewSource": [
+        "가상 편집 예시;실제 후기 없음"
+      ],
+      "images": [
+        "/feature-details/crafted/royal-tea-oracle/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "royal-tea-oracle.html",
+        "public/royal-tea-oracle.html",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본9/native22 독립 SHIP",
+        "318/348/388/538 clipping/fallback PASS POST0 API mock",
+        "paid-resume React43/43 static46/46 kinds44 PASS"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "main 전달·CI 미확인;실결제 실LLM 없음",
+        "기존 금색 보조문 대비 낮음"
       ],
       "detailAliases": [
         "royal-tea-oracle"
-      ]
+      ],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "stonehengeRunes",

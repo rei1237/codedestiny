@@ -95,7 +95,8 @@
     "openGeomancyOracle": "geomancy-oracle",
     "geomancy": "geomancy-oracle",
     "maya-prompt-generator": "maya-prompt",
-    "openKemetModal": "kemet-oracle"
+    "openKemetModal": "kemet-oracle",
+    "royal-tea-oracle": "royal-tea-oracle"
   },
   "introductions": {
     "fusion-fortune": [
