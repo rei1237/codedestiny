@@ -428,3 +428,9 @@ status: active
 - 9장 개별 편집과 실제 무료 5장 선택 후 native22 독립 SHIP. 328/358/398/540 clipping/fallback PASS, POST0. ESLint/Jest17 PASS.
 - 유료 구성112종+공통소개1종1010패널 로컬 검수. 시빌라 pre-push는 이 수비학 미커밋 변경으로 중단됐으며 커밋 후 재검증한다. main 전달 미완료.
 - 연이·네오 공유 엔진 운영 활성화 요청 확인. 원격 main 54b5476b 공식 PR CI 38114013113 실패가 지속되어 push/운영 승격 차단. 활성화 범위는 기존 공유 상담 엔진이며 다른 세션 선택형 UI 미완료분은 포함하지 않는다.
+
+## 연이·네오 공유 상담 엔진 운영 활성화 준비
+- 사용자 운영 반영 요청에 따라 ENABLE_FORTUNE_CHAT_CONSULTATIONS 운영 true 준비. 기존 공유 엔진/ConsultationRoom 범위이며 다른 세션의 선택형 UI 미완료 코드는 포함하지 않음. 설정 동등성 guard와 fixture를 함께 변경.
+- 운영 GET 실측: Pages/Worker 54862e3094e756f998712dcfaa5102de0ac54ba1, enabled:false. 운영 시크릿 metadata 2026-10-11T09:03:09Z 51개, vars57, 중복0, COMMIT_SHA 포함109/128·여유19. 값 출력/수정 없음. 과거69개 관측 fixture만 최신51개로 갱신;합성69개 경계 검사는 유지.
+- targeted route Jest16/Node9 PASS; config parity/self-test20 PASS. check:fast 최초 실패: npm test 내 Node2건(과거69개 fixture/기존 visitWebpackRules dev인자 정규식). Jest382 suites5830 PASS,Node3163/3165,나머지가드87 PASS. 두검사수정후 targeted16 PASS. 나머지 fast gates 재개하여 lint/typecheck/env/Worker dry-run/encoding 등 PASS. 단일 check:fast 전체PASS로 표기하지 않음.
+- pre-push는 수비학0dc927ea7까지PASS. 원격 main54b5476b CI38114013113의 생성미러10파일불일치가 운영반영을 막음. 복구범위 사용자확인질문 pending. push/운영배포없음. 롤백은 상담스위치off로 신규진입을막되 기존상담읽기·이어쓰기유지;정식배포실패는기존Actions롤백계약사용.

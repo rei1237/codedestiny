@@ -120,6 +120,8 @@ ADMIN_MONTHLY_CREDIT_GRANT_ENABLED = "true"
 # without it the real-LLM flags below are necessary but not sufficient and the
 # route silently falls back to the mock generator).
 ENABLE_GUARDIAN_FORTUNE_API = "true"
+# 연이·네오 공유 상담 엔진. 새 상담 진입만 제어하며 기존 결과 읽기/이어 쓰기는 유지한다.
+ENABLE_FORTUNE_CHAT_CONSULTATIONS = "true"
 ENABLE_GUARDIAN_FORTUNE_SHARE = "true"
 # 🔴 정적 셸(타로·사주) 결과 공유 스냅샷의 킬 스위치 ENABLE_RESULT_SHARE 는 프로덕션 toml 에서
 # **일부러 비워 둔다**. POST /api/fortune/share 와 GET /api/fortune/share/{sr_id} 가 이 스위치에
