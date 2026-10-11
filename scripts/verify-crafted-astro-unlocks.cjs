@@ -1,5 +1,5 @@
 const fs=require('fs'),assert=require('assert/strict'),{chromium}=require('playwright');
-const origin='http://127.0.0.1:14330',products={astro_basic_deep_pack:'astro-basic-deep',astro_career_talent_deep:'astro-career-talent',astro_growth_shadow_deep:'astro-growth-shadow'};
+const origin='http://127.0.0.1:14330',products={astro_basic_deep_pack:'astro-basic-deep',astro_career_talent_deep:'astro-career-talent',astro_growth_shadow_deep:'astro-growth-shadow',astro_stellar_career_room:'astro-stellar-career',astro_stellar_relationship_room:'astro-stellar-relationship',astro_stellar_growth_room:'astro-stellar-growth'};
 (async()=>{const browser=await chromium.launch();try{
  for(const [key,id]of Object.entries(products)){
   if(process.argv[2]&&process.argv[2]!==id)continue;
@@ -10,7 +10,7 @@ const origin='http://127.0.0.1:14330',products={astro_basic_deep_pack:'astro-bas
   await page.waitForFunction(()=>typeof window.openAstroModal==='function');await page.evaluate(()=>window.openAstroModal());
   // These two older SKUs exist only in the shipped renderer fallback. Exercise
   // that exact path explicitly; do not mistake the normal stellar-room SKUs for them.
-  if(key!=='astro_basic_deep_pack'){await page.waitForFunction(()=>typeof window.renderAstroInsight==='function');await page.evaluate(()=>{window.renderAstroInsightLegacyNeon=()=>{throw Error('MOCK_LEGACY_RENDER_FAILURE')};window.renderAstroInsight();});}
+  if(['astro_career_talent_deep','astro_growth_shadow_deep'].includes(key)){await page.waitForFunction(()=>typeof window.renderAstroInsight==='function');await page.evaluate(()=>{window.renderAstroInsightLegacyNeon=()=>{throw Error('MOCK_LEGACY_RENDER_FAILURE')};window.renderAstroInsight();});}
   const detail=page.locator('[data-astro-crafted="'+key+'"]');await detail.waitFor({timeout:60000});await detail.locator(':scope>summary').click();await detail.locator('img').first().waitFor();
   await page.addStyleTag({content:'button[aria-label="개발 결제 테스터"]{display:none!important}'});
   const dir='docs/product-details/verification/'+id;const rows=[];
@@ -23,10 +23,10 @@ const origin='http://127.0.0.1:14330',products={astro_basic_deep_pack:'astro-bas
    }}
    const notice=detail.locator('.craftedDetailNotice');await notice.evaluate(e=>e.scrollIntoView({block:'center'}));await page.screenshot({path:dir+'/native-notice-'+width+'.png'});
    const cta=key==='astro_basic_deep_pack'?page.locator('[data-astro-server-detail] [data-unlock-key="'+key+'"]'):page.locator('#astroPaidGate_'+key+' button[data-unlock-key]');await cta.evaluate(e=>e.scrollIntoView({block:'center'}));await page.screenshot({path:dir+'/native-cta-'+width+'.png'});
-   const row=await detail.evaluate(e=>({width:innerWidth,images:[...e.querySelectorAll('img')].map(i=>({loaded:i.naturalWidth===1080,left:i.getBoundingClientRect().left,right:i.getBoundingClientRect().right,width:i.clientWidth}))}));assert(row.images.every(i=>i.loaded&&i.left>=0&&i.right<=width));rows.push(row);
+   const row=await detail.evaluate(e=>({width:innerWidth,ancestors:(()=>{let a=[],n=e;while(n&&a.length<7){a.push({tag:n.tagName,cls:n.className,width:n.clientWidth});n=n.parentElement}return a})(),images:[...e.querySelectorAll('img')].map(i=>({loaded:i.naturalWidth===1080,left:i.getBoundingClientRect().left,right:i.getBoundingClientRect().right,width:i.clientWidth}))}));assert(row.images.every(i=>i.loaded&&i.left>=0&&i.right<=width));rows.push(row);
   }
   await page.setViewportSize({width:360,height:900});await detail.locator('.craftedDetailTranscript>summary').click();await detail.locator('.craftedDetailTranscript section').nth(4).evaluate(e=>e.scrollIntoView({block:'center'}));await page.screenshot({path:dir+'/native-transcript.png'});await detail.locator('.craftedDetailTranscript>summary').click();
   await page.route('**/missing-crafted-test.webp',r=>r.fulfill({status:404,body:''}));await detail.locator('img').first().evaluate(i=>{i.loading='eager';i.src='/missing-crafted-test.webp';});await detail.locator('.craftedDetailTranscript[open]').waitFor();
-  fs.writeFileSync(dir+'/mobile.json',JSON.stringify({rows,fallback:true,entry:key==='astro_basic_deep_pack'?'Existing openAstroModal invoked after mock saju input; render evidence, not isolated tile click':'Existing fallback renderer forced by mocked legacy renderer failure; these are not normal stellar-room SKUs',requests,mode:'All API mocked; basic-deep 402 pricing mock; no live purchase/LLM; production-hidden dev tester excluded'},null,2)+'\n');console.log(id,rows.map(r=>[r.width,r.images[0].width]));await page.close();
+  fs.writeFileSync(dir+'/mobile.json',JSON.stringify({rows,fallback:true,entry:!['astro_career_talent_deep','astro_growth_shadow_deep'].includes(key)?'Existing openAstroModal invoked after mock saju input; render evidence, not isolated tile click':'Existing fallback renderer forced by mocked legacy renderer failure; these are not normal stellar-room SKUs',requests,mode:'All API mocked; basic-deep 402 pricing mock; no live purchase/LLM; production-hidden dev tester excluded'},null,2)+'\n');console.log(id,rows.map(r=>[r.width,r.images[0].width]));await page.close();
  }
 }finally{await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1});

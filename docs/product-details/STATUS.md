@@ -184,3 +184,9 @@ status: active
 - 네폭로드경계fallbackPASS. 권한/재조회/PDF8,공통renderer7검사PASS. ESLint0errors/기존23warnings. basicclient선택안내import1줄외권한/결제/계산변경없음. sync:public미러·자산해시갱신.
 - d96baf11f clean pre-push PASS(이전시점의sitemap드리프트재생성955확인). 현재check:fast계획은공유소스/생성.ignore로전체자동승격,실행중이며미통과로기록.
 - 유료구성50종(대체화면전용2포함)+공통소개1종475패널로컬검수완료. 전체/main전달미완료. 다음일반화면봉인된별의방3종조사/제작.
+
+## 別의 방 일과 역할·관계·성장
+- 정상렌더러3상품을각8장개별편집. 9해석문단+5조언실제구성,개인관계와실제궁합·시기계산과구분. 원본24장독립SHIP;고아줄3곳수정.
+- 실제24패널·18모바일CTA고지·3원고·3desktopCTA독립SHIP. 4폭313/343/383/540px로드/경계/이미지실패원고PASS. 별의방grid에상품별안내+기존gate를묶어관계유지,이미지외곽clipping제거.
+- 공통renderer7PASS,displaymoduleESLint0errors0warnings. 가격/권한/차트계산무변경. 기존check:fast실행중이므로아직통과주장없음.
+- 유료구성53종(대체화면전용2포함)+공통소개1종499패널로컬검수완료. 전체/main전달미완료.

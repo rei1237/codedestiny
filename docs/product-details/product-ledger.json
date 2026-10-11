@@ -373,68 +373,155 @@
     {
       "productId": "astro_stellar_career_room",
       "displayName": "점성술 봉인된 별의 방 일과 역할",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "saleStatus": "일반 점성술 모달 봉인된 별의 방 정상 렌더러 개별 해금 진입 확인",
+      "entry": [
+        "openAstroModal",
+        "_astroCounselDeepLockedHtml",
+        "#astroPaidGate_astro_stellar_career_room"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 1000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "inputRequirements": [
+        "본인생년월일·출생시간·지역·시간대",
+        "하우스와축은입력시각·지역에영향받음"
       ],
-      "detailAliases": []
+      "resultRenderer": [
+        "js/saju-engine.js _astroCounselDeepLockedHtml",
+        "js/saju-engine.js _astroCounselDeepPanel"
+      ],
+      "actualContents": [
+        "상담의첫문장·MC의방향·10하우스룰러의통로·6하우스노동리듬·ASC룰러의시작방식",
+        "목성이키우는무대·현실장면·그림자·종합처방",
+        "환경·수익화조건·회피환경·30일실천·마지막메시지5조언"
+      ],
+      "conditionalItems": [
+        "개인출생차트해석;실제상대입력궁합계산아님",
+        "9문단+5조언의준비된해석;실시간AI상담아님"
+      ],
+      "separatePurchase": [
+        "기본심층패키지·다른별의방·월간연간트랜짓·전문가상담별도"
+      ],
+      "reviewSource": [],
+      "images": [
+        "/feature-details/crafted/astro-stellar-career/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "js/core/astro/crafted-details.mjs"
+      ],
+      "verification": [
+        "원본24장독립SHIP;고아줄3수정재검수",
+        "실제24패널·18CTA고지·3원고·desktop3CTA독립SHIP",
+        "4폭load/bounds/이미지오류fallbackPASS;313/343/383/540px",
+        "공통renderer7PASS;displaymoduleESLint0error0warning"
+      ],
+      "unconfirmed": [
+        "main전달·CI·운영노출미확인;실결제실LLM미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "astro_stellar_growth_room",
       "displayName": "점성술 봉인된 별의 방 과제와 변화",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "saleStatus": "일반 점성술 모달 봉인된 별의 방 정상 렌더러 개별 해금 진입 확인",
+      "entry": [
+        "openAstroModal",
+        "_astroCounselDeepLockedHtml",
+        "#astroPaidGate_astro_stellar_growth_room"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 1000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "inputRequirements": [
+        "본인생년월일·출생시간·지역·시간대",
+        "하우스와축은입력시각·지역에영향받음"
       ],
-      "detailAliases": []
+      "resultRenderer": [
+        "js/saju-engine.js _astroCounselDeepLockedHtml",
+        "js/saju-engine.js _astroCounselDeepPanel"
+      ],
+      "actualContents": [
+        "첫문장·토성의문턱·토성훈련·명왕성전환·명왕성해석주의",
+        "해왕성안개·현실회복의식·세행성연결·종합처방",
+        "일정역할회복·경계·통제불안·구원자주의·마지막메시지5조언"
+      ],
+      "conditionalItems": [
+        "개인출생차트해석;실제상대입력궁합계산아님",
+        "9문단+5조언의준비된해석;실시간AI상담아님"
+      ],
+      "separatePurchase": [
+        "기본심층패키지·다른별의방·월간연간트랜짓·전문가상담별도"
+      ],
+      "reviewSource": [],
+      "images": [
+        "/feature-details/crafted/astro-stellar-growth/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "js/core/astro/crafted-details.mjs"
+      ],
+      "verification": [
+        "원본24장독립SHIP;고아줄3수정재검수",
+        "실제24패널·18CTA고지·3원고·desktop3CTA독립SHIP",
+        "4폭load/bounds/이미지오류fallbackPASS;313/343/383/540px",
+        "공통renderer7PASS;displaymoduleESLint0error0warning"
+      ],
+      "unconfirmed": [
+        "main전달·CI·운영노출미확인;실결제실LLM미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "astro_stellar_relationship_room",
       "displayName": "점성술 봉인된 별의 방 관계의 문",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "saleStatus": "일반 점성술 모달 봉인된 별의 방 정상 렌더러 개별 해금 진입 확인",
+      "entry": [
+        "openAstroModal",
+        "_astroCounselDeepLockedHtml",
+        "#astroPaidGate_astro_stellar_relationship_room"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 1000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "inputRequirements": [
+        "본인생년월일·출생시간·지역·시간대",
+        "하우스와축은입력시각·지역에영향받음"
       ],
-      "detailAliases": []
+      "resultRenderer": [
+        "js/saju-engine.js _astroCounselDeepLockedHtml",
+        "js/saju-engine.js _astroCounselDeepPanel"
+      ],
+      "actualContents": [
+        "첫문장·금성의애정언어·화성의끌림갈등·7하우스상대상·7룰러의생활화",
+        "궁합에서먼저볼것·맞는분위기·관계반복패턴·종합처방",
+        "끌림/회복/생활합의·시너스트리참고기준·속도·요청/불편/약속·마지막메시지5조언"
+      ],
+      "conditionalItems": [
+        "개인출생차트해석;실제상대입력궁합계산아님",
+        "9문단+5조언의준비된해석;실시간AI상담아님"
+      ],
+      "separatePurchase": [
+        "기본심층패키지·다른별의방·월간연간트랜짓·전문가상담별도"
+      ],
+      "reviewSource": [],
+      "images": [
+        "/feature-details/crafted/astro-stellar-relationship/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "js/core/astro/crafted-details.mjs"
+      ],
+      "verification": [
+        "원본24장독립SHIP;고아줄3수정재검수",
+        "실제24패널·18CTA고지·3원고·desktop3CTA독립SHIP",
+        "4폭load/bounds/이미지오류fallbackPASS;313/343/383/540px",
+        "공통renderer7PASS;displaymoduleESLint0error0warning"
+      ],
+      "unconfirmed": [
+        "main전달·CI·운영노출미확인;실결제실LLM미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "astro_stellar_talent_room",

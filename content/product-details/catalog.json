@@ -46,7 +46,10 @@
     "animal-totem-deep": "animal-totem-deep",
     "astro_basic_deep_pack": "astro-basic-deep",
     "astro_career_talent_deep": "astro-career-talent",
-    "astro_growth_shadow_deep": "astro-growth-shadow"
+    "astro_growth_shadow_deep": "astro-growth-shadow",
+    "astro_stellar_career_room": "astro-stellar-career",
+    "astro_stellar_relationship_room": "astro-stellar-relationship",
+    "astro_stellar_growth_room": "astro-stellar-growth"
   },
   "introductions": {
     "fusion-fortune": [
