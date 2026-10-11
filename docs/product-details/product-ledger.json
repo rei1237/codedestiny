@@ -1280,28 +1280,58 @@
     {
       "productId": "dream-psycho-analysis",
       "displayName": "정신분석 해몽",
-      "saleStatus": "진입 확인·구성 대조 중",
+      "saleStatus": "꿀꿀사주 정신분석꿈모달실제입력/구매확인",
       "entry": [
-        "/index.html?action=openPsychoDreamModal"
+        "/ggulggul/?action=openPsychoDreamModal"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 3000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
+      "inputRequirements": [
+        "꿈본문8~6000자"
+      ],
+      "resultRenderer": [
+        "worker/routes/dream.js PSYCHO_DREAM_REQUIRED_HEADERS",
+        "js/psycho-dream-analyzer-freuds-study.js"
+      ],
+      "actualContents": [
+        "꿈장면상징",
+        "프로이트소망갈등",
+        "융원형통합",
+        "영적상징",
+        "현실조언치유방향",
+        "목차·텍스트공유"
+      ],
+      "conditionalItems": [
+        "가능한해석;진단예언/실제프로이트소견아님",
+        "부분저장과완성구분"
+      ],
+      "separatePurchase": [
+        "다른꿈새해석·다른타로꿈상품"
+      ],
+      "reviewSource": [
+        "가상예시;실제결과후기없음"
+      ],
+      "images": [
+        "/feature-details/crafted/dream-psycho/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "js/psycho-dream-analyzer-freuds-study.js",
+        "js/core/dream/crafted-details.mjs",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본9/native22독립최종SHIP;본문고지54px",
+        "278/308/348/540 clipping/fallbackPASS POST0",
+        "UI2·Jest38PASS;ESLint오류0기존경고151"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "main전달·CI미확인;실결제실LLM미실행"
       ],
       "detailAliases": [
         "dream-psycho-analysis"
-      ]
+      ],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "egyptOracle",
@@ -3212,29 +3242,59 @@
     },
     {
       "productId": "new-year-ai-consultation",
-      "displayName": "신년운세",
-      "saleStatus": "진입 확인·구성 대조 중",
+      "displayName": "신년운세 전문가 상담",
+      "saleStatus": "실제전문가페이지 상담폼확인",
       "entry": [
         "/new-year-ai-consultation/"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 30000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
+      "inputRequirements": [
+        "닉네임·성별·생일·시간선택·양음력",
+        "대상연도·집중주제",
+        "질문최대1000;직접주제2자필수"
+      ],
+      "resultRenderer": [
+        "worker/routes/new-year-ai.js NEW_YEAR_AI_SECTIONS",
+        "app/new-year-ai-consultation/NewYearAiClient.tsx"
+      ],
+      "actualContents": [
+        "6생성부분:질문성향/총운/재물직업/애정관계/12월/건강개운",
+        "화면질문답·원국·5분야·월별달력편지",
+        "PDF·상담기록"
+      ],
+      "conditionalItems": [
+        "시간미상자료한계",
+        "부분상담과완성구분",
+        "건강진단·색방향성과보장아님"
+      ],
+      "separatePurchase": [
+        "종합사주·인생책·다른연도새상담"
+      ],
+      "reviewSource": [
+        "가상예시;실제응답후기아님"
+      ],
+      "images": [
+        "/feature-details/crafted/new-year-expert/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "app/new-year-ai-consultation/NewYearAiClient.tsx",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본10/native23독립SHIP",
+        "328/358/398/540 clipping/fallbackPASS POST0",
+        "verify:new-year-ai-flowPASS;ESLint오류0기존경고1",
+        "typecheckPASS"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "main전달·CI미확인;실결제실LLM미실행"
       ],
       "detailAliases": [
         "new-year-ai"
-      ]
+      ],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "olympus-fc",

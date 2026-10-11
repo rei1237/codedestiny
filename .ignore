@@ -131,6 +131,7 @@
 /public/js/core/checkout-entry.d.ts
 /public/js/core/checkout-entry.js
 /public/js/core/cms-static.js
+/public/js/core/dream/crafted-details.mjs
 /public/js/core/feature-pricing-store.js
 /public/js/core/fortune-consultation-ui.js
 /public/js/core/fortune-report-content.mjs
