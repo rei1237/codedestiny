@@ -4150,25 +4150,56 @@
     },
     {
       "productId": "saju_ai_question_prompt",
-      "displayName": "사주 전문가 상담 결과 생성",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "displayName": "명식이 답하는 사주 AI 상담",
+      "saleStatus": "기존사주결과 내 상담진입 확인",
+      "entry": [
+        "/ggulggul/"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 10000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "inputRequirements": [
+        "이미 계산한명식",
+        "질문5~1000자·주제",
+        "원문정보제외·기억시기선택"
       ],
-      "detailAliases": []
+      "resultRenderer": [
+        "worker/lib/saju-ai-prompt.js SAJU_AI_SECTION_GROUPS",
+        "js/saju-engine.js _buildSajuQuestionPromptHtml"
+      ],
+      "actualContents": [
+        "실제12챕터",
+        "연이네오 동일결과읽기전환",
+        "저장·복사·공유·상담보관함"
+      ],
+      "conditionalItems": [
+        "시간미상·없는시기자료한계",
+        "부분저장과완성구분"
+      ],
+      "separatePurchase": [
+        "새질문·종합사주·인생책·다른상담실"
+      ],
+      "reviewSource": [
+        "가상편집;실제결과후기아님"
+      ],
+      "images": [
+        "/feature-details/crafted/saju-question-ai/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "js/saju-engine.js _bindSajuQuestionPromptCard",
+        "js/core/saju/crafted-product-details.mjs",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본10·native19 독립최종SHIP",
+        "304/334/374/540 clipping/fallbackPASS",
+        "상담복구PASS·챕터계약241·정적2PASS"
+      ],
+      "unconfirmed": [
+        "main전달CI미확인;실결제실LLM미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "secretHouseEpisodes",

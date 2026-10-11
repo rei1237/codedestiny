@@ -8355,6 +8355,13 @@ function renderSajuQuestionPromptGenerator() {
 function _bindSajuQuestionPromptCard(rootEl) {
   if (!rootEl || rootEl.dataset.sajuAiPromptBound === '1') return;
   rootEl.dataset.sajuAiPromptBound = '1';
+  var sajuQuestionGuide = document.createElement('div');
+  sajuQuestionGuide.setAttribute('data-crafted-static-offer', 'saju_ai_question_prompt');
+  rootEl.prepend(sajuQuestionGuide);
+  import('/js/core/saju/crafted-product-details.mjs').then(function(module) {
+    if (sajuQuestionGuide.isConnected) module.mountCraftedStaticOffer(sajuQuestionGuide);
+  }).catch(function() { /* Keep the existing consultation available. */ });
+
   _sajuPromptBindCalibrationSection(rootEl);
 
   var inputEl = rootEl.querySelector('[data-saju-ai-question]');
