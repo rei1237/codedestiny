@@ -3156,18 +3156,30 @@
     "d0": null,
     "productionVerified": false,
     "repositoryDelivery": {
-      "status": "blocked",
+      "status": "validated_pending_push",
       "implementationCommit": "1b71a426d3844888239e4e4131b969b1815dea1c",
       "prePush": "passed",
-      "mainCiSha": "d733a80a818235c479524433d1dc9f3560346c8a",
-      "mainCiUrl": "https://github.com/rei1237/codedestiny/actions/runs/38162141155",
-      "reason": "latest main CI is in progress; recovery from the previous Static guards failure is not confirmed",
+      "mainCiSha": "304b3667844b685a9754e4724bba08aa76c97b9b",
+      "mainCiUrl": "https://github.com/rei1237/codedestiny/actions/runs/38164701136",
+      "reason": "Latest main recovery confirmed; integrated tree passed local checks; integrated SHA CI and production verification pending",
       "pushed": false,
       "handoff": "docs/handoff/seo-search-intent-20261012.md",
       "naverHealthCommit": "ebf75bb31cf6ef05b0623887d31f0670444da2d4",
       "lastFailedMainCiSha": "e419b55bdec7b0aa667b0373323cbd4ee5fbabed",
       "lastFailedMainCiUrl": "https://github.com/rei1237/codedestiny/actions/runs/38159918088",
-      "mainCiStatus": "in_progress"
+      "mainCiStatus": "success",
+      "integrationCommit": "1b79b5dc912b8def3f1caaa11ff0ba0f243a63ff",
+      "validation": {
+        "targeted": 13,
+        "paidGuards": 88,
+        "nodeTests": 3177,
+        "jestSuites": 385,
+        "jestTests": 5905,
+        "checkFast": "passed",
+        "verifyRelease": "passed",
+        "prePush": "passed"
+      },
+      "productionPromotionAuthorized": true
     },
     "existingExperimentsPreserved": true,
     "bing": {
