@@ -403,3 +403,7 @@ status: active
 ## 사주로 보는 여행지
 - 실제장소카드/룰렛4/여행타입6/미션3을9장 개별편집. 원본9/native22 독립SHIP;360/390/430/540 clipping/fallbackPASS;CTA5000 일치. 무료달력 mock POST4/그외POST0. 구travelDestiny별칭중복제외.
 - 유료구성106종+공통소개1종955패널 로컬검수. 직전2198f505a pre-pushPASS. 전체/main 전달미완료. 다음작명10장 원본검수중;한자조건별 결과구분.
+
+## 사주 맞춤 작명
+- 실제한자조건별 계산형/8장해설·3후보비교·PDF/조건부PNG를10장개별편집. 원본10/native23 최종독립SHIP;328/358/398/540 clipping/fallbackPASS POST0. 기존소개 프롬프트생성표현충돌수정후CTA4폭 재검수,30000일치. ESLint/typecheckPASS.
+- 유료구성107종+공통소개1종965패널 로컬검수. 직전08bc34c91 pre-pushPASS. 전체/main 전달미완료. 다음관계성향 실제5장/점수/부분저장계약확인.

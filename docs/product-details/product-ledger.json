@@ -2177,28 +2177,52 @@
     {
       "productId": "premium-naming-prompt",
       "displayName": "전문가 작명소",
-      "saleStatus": "진입 확인·구성 대조 중",
+      "saleStatus": "현행 /naming-ai/ 이름후보·작명해설;키에만prompt 유지;30000 정본일치",
       "entry": [
         "/naming-ai/"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 30000,
-      "inputRequirements": [],
+      "inputRequirements": [
+        "출생일·성별·달력·성씨 필수;시각미상 가능",
+        "이름길이·원하는/피할글자·후보·돌림자·가족조화",
+        "한자사용·성씨한자선택·이름1~2자일때 계산형"
+      ],
       "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
+      "actualContents": [
+        "계산형:표지·사주·후보·획수·소리·4격·삼재·점수·3후보비교",
+        "조건부 AI이름해설·편지;다른조건 기존8장해설",
+        "결과PDF/계산형표지PNG"
+      ],
+      "conditionalItems": [
+        "성씨한자 직접선택;학파별판정차이",
+        "후보수·해설·편지 결과조건따름",
+        "등록요건 별도확인;성공·건강보장아님"
+      ],
       "separatePurchase": [],
       "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
+      "images": [
+        "/feature-details/crafted/naming-ai/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "app/naming-ai/NamingAiClient.tsx 입력폼앞 한국어상세",
+        "app/naming-ai/page.tsx 실제제공범위 소개교정",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본10/native23 독립SHIP;06/08하단고지축약",
+        "기존 프롬프트생성 소개충돌 수정후CTA4폭 재SHIP",
+        "328/358/398/540 clipping/fallbackPASS;30000표시/미입력CTA비활성 정상",
+        "전API mock POST0;ESLint/typecheckPASS"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "main전달·CI미확인;실결제·실LLM 없음"
       ],
       "detailAliases": [
         "naming-ai"
-      ]
+      ],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "neo-operation-room-consultation",

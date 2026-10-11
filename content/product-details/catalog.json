@@ -103,7 +103,8 @@
     "rpt_specialCharmCard": "personal-charm",
     "rpt_villainCard": "relationship-boundaries",
     "rpt_quantumCard": "quantum-saju",
-    "rpt_energyCoordCard": "energy-travel"
+    "rpt_energyCoordCard": "energy-travel",
+    "premium-naming-prompt": "naming-ai"
   },
   "introductions": {
     "fusion-fortune": [
