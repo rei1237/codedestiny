@@ -4368,24 +4368,42 @@
     {
       "productId": "rpt_quantumCard",
       "displayName": "퀀텀 명리 엔진 영구 해금",
-      "saleStatus": "판매 진입 확인 필요",
+      "saleStatus": "실제 결과 타일 가격100/10000 확인",
       "entry": [],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 10000,
       "inputRequirements": [],
       "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
+      "actualContents": [
+        "전문판정/상담핵심/구조/4주/좌표/관계/십성/오행세력/용신요약",
+        "대운전체/세운5개년/월운12개월/일운7일/현재운요약",
+        "합·합화·충조건/신살/핵심판정/행동조언:총18구역"
+      ],
+      "conditionalItems": [
+        "시각미상 시주·대운시점/구간미확정",
+        "원국계산불일치 합충보류",
+        "규칙해석;새AI상담·PDF없음"
+      ],
       "separatePurchase": [],
       "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "images": [
+        "/feature-details/crafted/quantum-saju/manifest.json"
       ],
-      "detailAliases": []
+      "status": "적용",
+      "appliedAt": [
+        "index.html 인라인 craftedManifest",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본10/native23 독립SHIP;07대비/제목수정",
+        "360/390/430/540 clipping/fallbackPASS;CTA10000 일치",
+        "전API mock;무료달력POST4/그외POST0"
+      ],
+      "unconfirmed": [
+        "main전달·CI미확인;실결제·실LLM 없음"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "rpt_secretHouseEntryCard",
