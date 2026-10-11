@@ -49,7 +49,10 @@
     "astro_growth_shadow_deep": "astro-growth-shadow",
     "astro_stellar_career_room": "astro-stellar-career",
     "astro_stellar_relationship_room": "astro-stellar-relationship",
-    "astro_stellar_growth_room": "astro-stellar-growth"
+    "astro_stellar_growth_room": "astro-stellar-growth",
+    "astro_stellar_talent_room": "astro-stellar-talent",
+    "astro_talent_attraction_deep": "astro-talent-attraction",
+    "astro_relationship_deep": "astro-relationship"
   },
   "introductions": {
     "fusion-fortune": [

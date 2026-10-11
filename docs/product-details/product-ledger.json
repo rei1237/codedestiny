@@ -351,24 +351,49 @@
     {
       "productId": "astro_relationship_deep",
       "displayName": "점성술 관계·끌림 심화 분석",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "saleStatus": "legacy renderer 실패시 대체화면 전용 개별해금;정상별의방과별도",
+      "entry": [
+        "openAstroModal",
+        "#astroPaidGate_astro_relationship_deep"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 1000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "inputRequirements": [
+        "본인생년월일·출생시간·지역·시간대"
       ],
-      "detailAliases": []
+      "resultRenderer": [
+        "js/saju-engine.js _astroCounselRelationship"
+      ],
+      "actualContents": [
+        "금성의취향·화성의행동속도·7하우스관계거울3카드",
+        "시너스트리에서참고할상대행성기준;실제상대계산아님"
+      ],
+      "conditionalItems": [
+        "하우스는출생시간지역에영향",
+        "준비된해석이며실시간AI상담아님"
+      ],
+      "separatePurchase": [
+        "기본패키지·다른개별해금·별의방·실제궁합별도"
+      ],
+      "reviewSource": [],
+      "images": [
+        "/feature-details/crafted/astro-relationship/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "js/core/astro/crafted-details.mjs"
+      ],
+      "verification": [
+        "원본20장독립SHIP;제목4곳수정재검수",
+        "실제20패널·18모바일CTA고지·3원고·3desktopCTA독립SHIP;수정4패널+대체CTA2재검수",
+        "4폭load/bounds/이미지오류fallbackPASS;normal313/343/383/540;fallback333/363/403/540",
+        "displaymoduleESLint0error0warning"
+      ],
+      "unconfirmed": [
+        "main전달·CI·운영노출미확인;실결제실LLM미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "astro_stellar_career_room",
@@ -526,46 +551,97 @@
     {
       "productId": "astro_stellar_talent_room",
       "displayName": "점성술 봉인된 별의 방 재능과 끌림",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "saleStatus": "일반 점성술 모달 정상 렌더러의 별의방 개별해금",
+      "entry": [
+        "openAstroModal",
+        "#astroPaidGate_astro_stellar_talent_room"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 1000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "inputRequirements": [
+        "본인생년월일·출생시간·지역·시간대"
       ],
-      "detailAliases": []
+      "resultRenderer": [
+        "js/saju-engine.js _astroCounselDeepLockedHtml talentBody"
+      ],
+      "actualContents": [
+        "첫문장·금성취향·화성점화·목성확장·세별연결",
+        "브랜딩·관계매력·과잉그림자·종합처방",
+        "브랜딩/창작/관계/주의/마지막메시지5조언"
+      ],
+      "conditionalItems": [
+        "하우스는출생시간지역에영향",
+        "준비된해석이며실시간AI상담아님"
+      ],
+      "separatePurchase": [
+        "기본패키지·다른개별해금·별의방·실제궁합별도"
+      ],
+      "reviewSource": [],
+      "images": [
+        "/feature-details/crafted/astro-stellar-talent/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "js/core/astro/crafted-details.mjs"
+      ],
+      "verification": [
+        "원본20장독립SHIP;제목4곳수정재검수",
+        "실제20패널·18모바일CTA고지·3원고·3desktopCTA독립SHIP;수정4패널+대체CTA2재검수",
+        "4폭load/bounds/이미지오류fallbackPASS;normal313/343/383/540;fallback333/363/403/540",
+        "displaymoduleESLint0error0warning"
+      ],
+      "unconfirmed": [
+        "main전달·CI·운영노출미확인;실결제실LLM미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "astro_talent_attraction_deep",
       "displayName": "점성술 재능과 끌림 심화 분석",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "saleStatus": "legacy renderer 실패시 대체화면 전용 개별해금;정상별의방과별도",
+      "entry": [
+        "openAstroModal",
+        "#astroPaidGate_astro_talent_attraction_deep"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 1000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "inputRequirements": [
+        "본인생년월일·출생시간·지역·시간대"
       ],
-      "detailAliases": []
+      "resultRenderer": [
+        "js/saju-engine.js _astroCounselPlanetRow Venus/Mars/Jupiter"
+      ],
+      "actualContents": [
+        "금성재능매력·화성욕망추진력·목성확장기회3카드",
+        "행성의의미·별자리·현실의생활영역"
+      ],
+      "conditionalItems": [
+        "하우스는출생시간지역에영향",
+        "준비된해석이며실시간AI상담아님"
+      ],
+      "separatePurchase": [
+        "기본패키지·다른개별해금·별의방·실제궁합별도"
+      ],
+      "reviewSource": [],
+      "images": [
+        "/feature-details/crafted/astro-talent-attraction/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "js/core/astro/crafted-details.mjs"
+      ],
+      "verification": [
+        "원본20장독립SHIP;제목4곳수정재검수",
+        "실제20패널·18모바일CTA고지·3원고·3desktopCTA독립SHIP;수정4패널+대체CTA2재검수",
+        "4폭load/bounds/이미지오류fallbackPASS;normal313/343/383/540;fallback333/363/403/540",
+        "displaymoduleESLint0error0warning"
+      ],
+      "unconfirmed": [
+        "main전달·CI·운영노출미확인;실결제실LLM미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "astro_yearly_transit",

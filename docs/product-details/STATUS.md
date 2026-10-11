@@ -190,3 +190,9 @@ status: active
 - 실제24패널·18모바일CTA고지·3원고·3desktopCTA독립SHIP. 4폭313/343/383/540px로드/경계/이미지실패원고PASS. 별의방grid에상품별안내+기존gate를묶어관계유지,이미지외곽clipping제거.
 - 공통renderer7PASS,displaymoduleESLint0errors0warnings. 가격/권한/차트계산무변경. 기존check:fast실행중이므로아직통과주장없음.
 - 유료구성53종(대체화면전용2포함)+공통소개1종499패널로컬검수완료. 전체/main전달미완료.
+
+## 별의 방 재능·대체 화면 재능/관계
+- 정상9문단+5조언8장,대체3카드해석각6장개별편집. 원본20장독립SHIP;제목4곳고아줄수정.
+- 실제20패널·18모바일CTA고지·3원고·3desktopCTA및수정제목4/대체CTA2재검수독립SHIP. 4폭normal313/343/383/540,fallback333/363/403/540로드/경계/오류원고PASS. 표시모듈ESLintclean.
+- check:fast 실행은paidgate88/88+lint통과후sitemap드리프트에서중단. 재생성후verify:sitemap-drift955URL PASS. 이후단계전체통과나현재SHA불변검증으로주장하지않음.
+- 유료구성56종(대체화면전용4포함)+공통소개1종519패널로컬검수완료. 전체/main전달미완료. 다음실제12개월트랜짓조사;월간키는가격목록외판매진입미발견.
