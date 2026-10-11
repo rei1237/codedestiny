@@ -2100,24 +2100,46 @@
     {
       "productId": "premium-fpti-report",
       "displayName": "FPTI 프리미엄 리포트 생성",
-      "saleStatus": "판매 진입 확인 필요",
+      "saleStatus": "현행 기본FPTI 후 심층해금;10000 정본일치",
       "entry": [],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 10000,
-      "inputRequirements": [],
+      "inputRequirements": [
+        "출생정보로 기본분석;심층구매·보유조회는 저장프로필 필요"
+      ],
       "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
+      "actualContents": [
+        "7장 각6항목 총42항목",
+        "유형·감정·관계·일·돈·스트레스·성장",
+        "강점·주의·행동,마지막장30일/90일계획",
+        "해금후PDF"
+      ],
+      "conditionalItems": [
+        "준비된 규칙형 해설;실시간AI아님",
+        "계정과 출생정보 기준해금",
+        "시각미상분석제한;심리진단/능력검사아님"
+      ],
       "separatePurchase": [],
       "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "images": [
+        "/feature-details/crafted/fpti-deep-report/manifest.json"
       ],
-      "detailAliases": []
+      "status": "적용",
+      "appliedAt": [
+        "components/fpti/FptiExperience.tsx 한국어기본결과앞",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본10/native23 독립SHIP",
+        "328/358/398/540 clipping/fallbackPASS;10000CTA",
+        "직접출생입력 무료로컬계산;전API mock POST0",
+        "ESLint/Node PDF11 PASS"
+      ],
+      "unconfirmed": [
+        "main전달·CI미확인;실결제·실LLM 없음"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "premium-sibyl-dominator",

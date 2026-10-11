@@ -411,3 +411,7 @@ status: active
 ## 관계 성향 리포트
 - 실제5장·성향점수·부분저장을9장 개별편집. 원본9/standalone22/iframe12 최종독립SHIP. iframe 작은본문/CTA줄바꿈/캡처흰공백 수정. 폭298이상·본문환산14.9px·5000원한줄. Node6/ESLintPASS.
 - 무료달력 mock POST4/그외POST0. 초기 iframe 대기실패는 초기화높이 변경 대기로 검증기수정,실결제없음. 유료구성108종+공통소개1종974패널 로컬검수. 직전59136d6eb pre-pushPASS. 전체/main전달미완료. 다음FPTI10장 작성.
+
+## FPTI 심층 리포트
+- 실제7장42항목·규칙형해설·저장프로필조건·해금PDF를10장 개별편집. 원본10/native23 독립SHIP;328/358/398/540 clipping/fallbackPASS POST0. ESLint/Node11 PASS.
+- 유료구성109종+공통소개1종984패널 로컬검수. 직전e46b7ffb9 pre-push/typecheckPASS. 전체/main전달미완료. 다음달빛럭키8장 원본검수중.

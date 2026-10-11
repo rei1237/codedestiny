@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import FptiHero from "./FptiHero";
 import FptiInputForm from "./FptiInputForm";
@@ -722,6 +723,7 @@ export default function FptiExperience() {
 
         {phase === "result" && result && (
           <section id="fpti-result">
+            {locale === "ko" && <div style={{ width: "100%", maxWidth: 540, margin: "0 auto 24px" }}><CraftedProductDisclosure featureKey="premium-fpti-report" /></div>}
             <FptiResultCard
               result={result}
               savedProfileId={linkedProfile && linkedProfile.signature === resultSignature ? linkedProfile.profileId : ""}
