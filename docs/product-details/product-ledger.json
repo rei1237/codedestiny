@@ -4503,25 +4503,63 @@
     },
     {
       "productId": "sukuyo-past-life-reading",
-      "displayName": "숙요 전생 인연 리딩",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
-      "priceSource": "worker/lib/paid-feature-registry.js",
-      "priceSnapshotKRW": 5000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "displayName": "숙요 인연 레이더",
+      "saleStatus": "숙요 결과 인연 레이더 폼과 실제 해금 진입 확인",
+      "entry": [
+        "[data-sy-bond-card] [data-sy-bond-form]"
       ],
-      "detailAliases": []
+      "priceSource": "worker/lib/paid-feature-registry.js cost50",
+      "priceSnapshotKRW": 5000,
+      "inputRequirements": [
+        "기준 프로필 또는 직접 출생 정보",
+        "상대 이름·생년월일·달력·시간(미입력12:00)",
+        "전체/연애/재회/결혼/짝사랑/친구/가족/동업/직장 9목적"
+      ],
+      "resultRenderer": [
+        "js/saju-engine-tarot-sukuyo-quantum.js SukuyoBondReportEngine.build/render",
+        "worker/routes/sukuyo.js past-life-reading 저장·회복계약"
+      ],
+      "actualContents": [
+        "9축레이더와10지표",
+        "핵심/첫인상/나/상대/관계명/끌림/거리/방향/오행/강점그림자",
+        "상징전생/반복/숙제/감정버튼/마찰/안정장기/소모/관계과제/오래가는법",
+        "리듬/목적별리딩과조언/4주실행계획/위험신호/회복행동/대화문장",
+        "외부AI질문문 복사·열기"
+      ],
+      "conditionalItems": [
+        "생활현실해설 데이터있을때",
+        "역할행동은역할가이드있을때",
+        "결제서버응답을확인하고로컬build결과표시;실LLM본문생성아님",
+        "30일은4주행동제안;날짜예측아님",
+        "같은상대·목적의서버archive확인;모든상대일괄해금아님"
+      ],
+      "separatePurchase": [
+        "기본/정밀궁합",
+        "인연도감",
+        "서비스내AI상담",
+        "외부AI요금"
+      ],
+      "reviewSource": [
+        "가상편집예시;구매후기아님"
+      ],
+      "images": [
+        "/feature-details/crafted/sukuyo-bond-radar/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "js/saju-engine-tarot-sukuyo-quantum.js 숙요 인연 폼 앞",
+        "js/core/saju/crafted-product-details.mjs"
+      ],
+      "verification": [
+        "원본10장·실제18캡처 독립최종SHIP",
+        "304/334/374/540 이미지와모든clippingancestor·오류원고PASS;입력/시간/목적/버튼검수",
+        "정적가이드2·ESLint·구문PASS"
+      ],
+      "unconfirmed": [
+        "main/CI미확인;실결제실LLM미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "sukuyo-relationship-encyclopedia",

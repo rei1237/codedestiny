@@ -1,7 +1,7 @@
 import {renderCraftedDetail} from '../../feature-detail-panels.mjs';
 
 // Optional authored content has no access to chart calculations or purchase state.
-const products={section_summary:'saju-summary',section_daewun:'saju-daewun','compat-saju-compatibility':'saju-compatibility','compat-sukuyo-compatibility':'sukuyo-compatibility','premium-sukuyo-compat-extra':'sukuyo-compatibility-precision','compat-ziwei-compatibility':'ziwei-compatibility','sukuyo-nature-deep-dive':'sukuyo-nature','sukuyo-relationship-encyclopedia':'sukuyo-encyclopedia','sukyo_yearly_fortune_unlock':'sukuyo-yearly','sukuyo-extreme-t-relationship':'extreme-t-relationship'};
+const products={section_summary:'saju-summary',section_daewun:'saju-daewun','compat-saju-compatibility':'saju-compatibility','compat-sukuyo-compatibility':'sukuyo-compatibility','premium-sukuyo-compat-extra':'sukuyo-compatibility-precision','compat-ziwei-compatibility':'ziwei-compatibility','sukuyo-nature-deep-dive':'sukuyo-nature','sukuyo-relationship-encyclopedia':'sukuyo-encyclopedia','sukyo_yearly_fortune_unlock':'sukuyo-yearly','sukuyo-extreme-t-relationship':'extreme-t-relationship','sukuyo-past-life-reading':'sukuyo-bond-radar'};
 function mount(el){
  const staticKey=el.getAttribute('data-crafted-static-offer')||el.getAttribute('data-saju-static-offer');
  const id=products[staticKey||el.getAttribute('data-saju-offer')];

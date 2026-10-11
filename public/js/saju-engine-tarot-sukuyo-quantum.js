@@ -11559,6 +11559,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           서로에게 편안한 점과 유난히 마음이 쓰이는 지점을 살펴봅니다. 두 사람의 본명숙과 27숙 관계법을 바탕으로 끌림, 관계의 거리, 반복되는 감정 패턴을 읽고 현실적인 대화의 실마리를 찾습니다.
         </p>
         <div class="sy-radar-self-note">전생을 사실로 단정하지 않고, 숙요 관계 구조가 만드는 익숙함과 흔들림의 결을 살핍니다. ${_radarHasSelf ? ('기준 프로필: ' + _radarProfileName + (_radarBirth ? ' · ' + _radarBirth : '') + ' · ' + syCanonicalEsc(sData.mansion) + '숙') : '저장된 프로필이 없으면 아래 내 정보를 함께 입력해 주세요.'}</div>
+        <div data-crafted-static-offer="sukuyo-past-life-reading"></div>
         <form class="sy-radar-form" data-sy-bond-form data-my-idx="${sData ? sData.mansionIdx : ''}" data-my-mansion="${sData ? syCanonicalEsc(sData.mansion) : ''}" data-has-self="${_radarHasSelf ? '1' : '0'}">
           <div class="sy-radar-self-fields ${_radarHasSelf ? '' : 'is-visible'}" data-sy-bond-self-fields>
             <div class="sy-radar-grid">
