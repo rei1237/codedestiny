@@ -8685,12 +8685,12 @@
     "deliverable": {
       "title": "Dit krijgt u voor uw betaling",
       "volumeLabel": "Omvang",
-      "volumeValue": "Minimaal 30.000 tekens",
+      "volumeValue": "Uitgebreid advies",
       "chaptersLabel": "Opbouw",
-      "chaptersValue": "16 hoofdstukken · elk 1.900–2.400 tekens",
+      "chaptersValue": "15 hoofdstukken · thematische duiding en slotbrief",
       "keepLabel": "Bewaren",
-      "keepValue": "Sla op als PDF en houd het voorgoed",
-      "guarantee": "Elk hoofdstuk dat te kort is wordt automatisch herschreven, tot twee keer toe. Lukt dat alsnog niet, dan mislukt de aanvraag in plaats van te worden geleverd — opnieuw proberen en terugbetaling blijven dus mogelijk."
+      "keepValue": "PDF opslaan · hoofdstukken kopiëren",
+      "guarantee": "De reikwijdte hangt af van de geboortegegevens en beschikbare berekeningen. Voltooide inhoud is opnieuw te lezen in het opgeslagen advies."
     }
   },
   "errorBoundary": {

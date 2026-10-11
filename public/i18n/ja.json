@@ -8685,12 +8685,12 @@
     "deliverable": {
       "title": "決済で受け取るもの",
       "volumeLabel": "分量",
-      "volumeValue": "最低30,000文字",
+      "volumeValue": "長文の相談レポート",
       "chaptersLabel": "構成",
-      "chaptersValue": "全16章・各章1,900〜2,400文字",
+      "chaptersValue": "15章 · テーマ別の解釈と最後の手紙",
       "keepLabel": "保存",
-      "keepValue": "PDFで保存して永久保存",
-      "guarantee": "基準分量に届かない章は最大2回まで自動で書き直します。それでも満たせないときは結果を出さず失敗として扱うため、再試行と返金の導線がそのまま残ります。"
+      "keepValue": "PDF保存 · 章ごとのコピー",
+      "guarantee": "出生情報と計算データにより解釈できる範囲は異なります。保存された相談から完成済みの内容を再確認できます。"
     }
   },
   "errorBoundary": {

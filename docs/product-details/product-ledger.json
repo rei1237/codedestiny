@@ -2719,24 +2719,51 @@
     {
       "productId": "karma-destiny-ai-consultation",
       "displayName": "운명의 업",
-      "saleStatus": "진입 확인·구성 대조 중",
+      "saleStatus": "출생정보/주제입력후AI장문상담",
       "entry": [
         "/karma-destiny-ai/"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 30000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
+      "inputRequirements": [
+        "생년/성별/양음력/출생시각또는모름",
+        "출생지/시간대/주제;직접질문시본문필수"
+      ],
+      "resultRenderer": [
+        "app/karma-destiny-ai/KarmaDestinyAiClient.tsx",
+        "app/karma-destiny-ai/result/KarmaDestinyAiResultClient.tsx",
+        "worker/routes/karma-destiny-ai.js"
+      ],
+      "actualContents": [
+        "사주/자미두수/숙요/서양/베다다섯관점",
+        "현행15장/본문/요약/핵심포인트/근거",
+        "목차/장복사/PDF/저장재열람/후속질문"
+      ],
+      "conditionalItems": [
+        "출생시간/계산자료범위따라해석근거달라짐",
+        "건강에너지진단아님/업을벌로확정안함",
+        "후속질문은새리포트/무제한뜻아님"
+      ],
       "separatePurchase": [],
       "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
+      "images": [
+        "/feature-details/crafted/karma-destiny/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "app/karma-destiny-ai/KarmaDestinyAiClient.tsx",
+        "content/product-details/catalog.json",
+        "i18n/authored/karmaDeliverable-01.json"
+      ],
+      "verification": [
+        "원본10/native23최종독립SHIP",
+        "328/358/398/540 clipping/fallback/CTAtrial PASS",
+        "API POST0;실제AI없음",
+        "Jest27/Node9/typecheck/ESLint PASS",
+        "HTML대비/기존16장안내정정;4키12언어"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "main전달전로컬검수;실결제없음"
       ],
       "detailAliases": [
         "karma-destiny-ai"

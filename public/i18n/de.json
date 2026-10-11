@@ -8685,12 +8685,12 @@
     "deliverable": {
       "title": "Das bekommen Sie für Ihre Zahlung",
       "volumeLabel": "Umfang",
-      "volumeValue": "Mindestens 30.000 Zeichen",
+      "volumeValue": "Ausführliche Beratung",
       "chaptersLabel": "Aufbau",
-      "chaptersValue": "16 Kapitel · je 1.900–2.400 Zeichen",
+      "chaptersValue": "15 Kapitel · thematische Deutungen und Schlussbrief",
       "keepLabel": "Aufbewahren",
-      "keepValue": "Als PDF speichern und dauerhaft behalten",
-      "guarantee": "Jedes zu kurze Kapitel wird automatisch neu geschrieben, bis zu zweimal. Wird die Vorgabe dennoch nicht erreicht, gilt die Anfrage als fehlgeschlagen statt ausgeliefert — Wiederholung und Erstattung bleiben damit offen."
+      "keepValue": "Als PDF speichern · Kapitel kopieren",
+      "guarantee": "Der Umfang hängt von den Geburtsangaben und verfügbaren Berechnungsdaten ab. Fertige Inhalte lassen sich in der gespeicherten Beratung erneut lesen."
     }
   },
   "errorBoundary": {

@@ -8685,12 +8685,12 @@
     "deliverable": {
       "title": "Apa yang anda dapat apabila membayar",
       "volumeLabel": "Panjang",
-      "volumeValue": "Sekurang-kurangnya 30,000 aksara",
+      "volumeValue": "Kandungan konsultasi terperinci",
       "chaptersLabel": "Struktur",
-      "chaptersValue": "16 bab · setiap satu 1,900–2,400 aksara",
+      "chaptersValue": "15 bab · tafsiran mengikut tema dan surat akhir",
       "keepLabel": "Simpan",
-      "keepValue": "Simpan sebagai PDF dan miliki selamanya",
-      "guarantee": "Mana-mana bab yang tidak cukup panjang akan ditulis semula secara automatik, sehingga dua kali. Jika masih tidak cukup, permintaan digagalkan dan bukannya dihantar — jadi laluan cuba semula dan bayaran balik kekal terbuka."
+      "keepValue": "Simpan PDF · salin setiap bab",
+      "guarantee": "Skop tafsiran bergantung pada maklumat kelahiran dan data pengiraan yang tersedia. Kandungan yang telah siap boleh dibaca semula dalam konsultasi tersimpan."
     }
   },
   "errorBoundary": {

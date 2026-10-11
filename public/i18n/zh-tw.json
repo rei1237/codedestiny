@@ -8685,12 +8685,12 @@
     "deliverable": {
       "title": "付費後你會得到",
       "volumeLabel": "篇幅",
-      "volumeValue": "至少30,000字",
+      "volumeValue": "長篇諮詢正文",
       "chaptersLabel": "結構",
-      "chaptersValue": "共16章 · 每章1,900～2,400字",
+      "chaptersValue": "15章 · 主題解讀與最後的信",
       "keepLabel": "保存",
-      "keepValue": "匯出PDF，永久保存",
-      "guarantee": "篇幅未達標準的章節最多自動重寫兩次。若仍無法達標，則判定為失敗而不交付結果，重試與退款通道保持有效。"
+      "keepValue": "儲存PDF · 複製各章內容",
+      "guarantee": "解讀範圍取決於出生資訊與可用的計算資料。可在已儲存的諮詢中再次查看已完成的內容。"
     }
   },
   "errorBoundary": {

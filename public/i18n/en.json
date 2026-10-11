@@ -8685,12 +8685,12 @@
     "deliverable": {
       "title": "What your payment gets you",
       "volumeLabel": "Length",
-      "volumeValue": "30,000 characters minimum",
+      "volumeValue": "Long-form consultation",
       "chaptersLabel": "Structure",
-      "chaptersValue": "16 chapters · 1,900–2,400 characters each",
+      "chaptersValue": "15 chapters · themed readings and a final letter",
       "keepLabel": "Keep it",
-      "keepValue": "Save as PDF and own it for good",
-      "guarantee": "Any chapter that falls short is rewritten automatically, up to twice. If it still cannot reach the bar, we fail the request rather than ship it — so retry and refund stay available."
+      "keepValue": "Save as PDF · copy individual chapters",
+      "guarantee": "The scope of interpretation depends on birth information and available calculation data. Completed content can be revisited in your saved consultation."
     }
   },
   "errorBoundary": {

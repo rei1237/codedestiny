@@ -1,4 +1,5 @@
 "use client";
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { CalendarDays, Clock3, Download, Loader2, MapPin, Maximize2, Moon, Send, Sparkles, WalletCards, X } from "lucide-react";
@@ -447,8 +448,8 @@ const KARMA_DESTINY_COPY: Partial<Record<LoadingLocale, KarmaDestinyCopy>> = {
     heroTitle: "운명의 업 전문가 상담",
     heroDescription: "반복되는 인생의 흐름 속에서, 지금 끊어내야 할 패턴과 새롭게 열어야 할 길을 읽어드립니다.",
     premiumMapAriaLabel: "운명의 업 상담 구성",
-    premiumMapHeading: "30,000자 이상으로 여는 운명의 업 리포트",
-    premiumMapDesc: "프리미엄 상담에 맞게 명리, 점성, 베다 상징과 현실 행동 전략을 16장 장문 흐름으로 엮습니다.",
+    premiumMapHeading: "다섯 관점으로 읽는 운명의 업 리포트",
+    premiumMapDesc: "사주·자미두수·숙요·서양 점성술·베다의 관점과 현실 행동 전략을 15장 흐름으로 엮습니다.",
     formHeading: "운명의 실을 읽기 위한 정보",
     profileLoadAria: "프로필 카드에서 출생 정보 불러오기",
     profileLoadCta: "프로필 카드에서 불러오기",
@@ -2633,6 +2634,7 @@ export default function KarmaDestinyAiPage() {
         </div>
       </section>
 
+      {getCurrentLoadingLocale() === "ko" && <div style={{width:"100%",maxWidth:540,margin:"24px auto",position:"relative",zIndex:1,textAlign:"left",color:"#463a31",background:"#eee7dc",borderRadius:12}}><CraftedProductDisclosure featureKey="karma-destiny-ai-consultation" summaryLabel="운명의 업 상담 상세 안내" /></div>}
       <section className="kdai-workspace">
         <form id="karma-destiny-consultation" className="kdai-form kdai-panel" onSubmit={handleSubmit}>
           <div className="kdai-panel-title kdai-panel-title--split">

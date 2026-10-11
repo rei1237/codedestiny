@@ -479,3 +479,7 @@ status: active
 - 상태글/30·60분/AI단계동작·호흡·주의/저장코스를9장개별편집.원본9/native22최종독립SHIP.330/360/400/538 clipping/fallback/CTAtrial PASS,API POST0.Jest29/Node3 PASS.원래장식CTA가로채기pointer-events수정,버튼단축.
 - 기계검출:네빌·코스믹58패턴/34advisory,요가19패턴/19advisory는기존glow·gradient·타이포토큰등.원본패널은사용자지정큰글씨래스터규격을유지,실제모바일검수로읽기/클릭문제수정.
 - 유료구성123종+공통소개1종1115패널로컬검수.직전989fb2c2b pre-pushPASS.mainCI복구질문pending/운영배포없음.전체/main전달미완료.다음운명의업10장원본1곳고지단축필요.
+
+## 운명의 업 전문가 상담
+- 5체계/현행15장/근거/가상관계예시/PDF·저장·후속질문을10장개별편집.원본10/native23최종독립SHIP.328/358/398/540 clipping/fallback/CTAtrial PASS,API POST0.Jest27/Node9/typecheck/ESLint PASS.기존16장별도안내4키12언어정리,HTML대비수정.
+- 유료구성124종+공통소개1종1125패널로컬검수.직전272d92f2f pre-pushPASS.전달전재확인mainCI54b5476b/38114013113실패동일,main타세션미커밋보존.복구질문pending/운영배포없음.전체/main전달미완료.다음테토에겐상세잠금해제6장조사.

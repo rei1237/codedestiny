@@ -8685,12 +8685,12 @@
     "deliverable": {
       "title": "Ce que votre paiement vous apporte",
       "volumeLabel": "Longueur",
-      "volumeValue": "30 000 caractères minimum",
+      "volumeValue": "Consultation détaillée",
       "chaptersLabel": "Structure",
-      "chaptersValue": "16 chapitres · 1 900 à 2 400 caractères chacun",
+      "chaptersValue": "15 chapitres · lectures thématiques et lettre finale",
       "keepLabel": "Conservation",
-      "keepValue": "Enregistrez en PDF et gardez-le à vie",
-      "guarantee": "Tout chapitre trop court est réécrit automatiquement, jusqu'à deux fois. S'il n'y parvient toujours pas, la demande échoue au lieu d'être livrée — la relance et le remboursement restent donc possibles."
+      "keepValue": "Enregistrer en PDF · copier un chapitre",
+      "guarantee": "La portée dépend des informations de naissance et des données de calcul disponibles. Le contenu terminé reste consultable dans la consultation enregistrée."
     }
   },
   "errorBoundary": {
