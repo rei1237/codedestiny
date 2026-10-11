@@ -530,3 +530,9 @@ status: active
 ## 러브 코드
 - 16캐릭터/명식궁합고정/선택형데이트를9장개별편집. 원본9/native22 독립SHIP.328/358/398/497 clipping/fallback/캐릭터선택CTAtrial PASS;POST0. Node3/typecheck/i18n parity PASS;ESLint0error 기존7warning. KO기존제목 고아줄은 authored사전정본수정 및 core병합후해소.
 - 유료구성144원본+공통1원본1281패널 로컬검수. 직전37cbab027 pre-push PASS. 전체/main전달미완료·엔진운영미배포. 다음 관상3종.
+
+## 관상 오관·점 / 관상 궁합 / 전생 관상 궁합
+- 6/8/8장 개별편집. 원본 전부독립SHIP. 실제모달+합성결과 native19/21/21, 304/334/374/418(전생desktop540) clipping/fallback/CTAtrial PASS;POST0·사진/카메라없음. 관상버튼 세로배치·전생hover테마대비 수정.
+- 관상리포트/전생1485조합/JS문법 PASS. VM의새브라우저전용 상세로더는회귀검사에서mock, 실제native에서별도검수. 기존스타일83advisory기록.
+- 유료구성147원본+공통1원본1303패널 로컬검수. 직전7bcd3c051 pre-push PASS. 전체/main전달미완료·엔진운영미배포. 다음 명리타로/헬스/시크릿하우스/올림푸스 및레거시별칭확정.
+- 관상궁합·전생궁합 수정 CTA 각4폭 재검수 최종SHIP.

@@ -4848,68 +4848,152 @@
     {
       "productId": "physiognomy-compatibility",
       "displayName": "관상 궁합 분석",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "saleStatus": "현재 결과화면의 회당구매CTA확인",
+      "entry": [
+        "PhysiognomyUI.js 결과화면"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 3000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "inputRequirements": [
+        "내기본분석선행·상대사진이용동의"
       ],
-      "detailAliases": []
+      "resultRenderer": [
+        "PhysiognomyUI.js",
+        "AnalysisEngine.js"
+      ],
+      "actualContents": [
+        "두분석결과·종합점수·동물상·얼굴형오행·삼정·5부위",
+        "보완관계·조언·요약"
+      ],
+      "conditionalItems": [
+        "내기본분석선행·상대사진이용동의",
+        "전통오락·성격인품실제관계판정아님",
+        "자유질문 AI 상담 없음"
+      ],
+      "separatePurchase": [
+        "다른 관상 유료해금·궁합"
+      ],
+      "reviewSource": [],
+      "images": [
+        "/feature-details/crafted/physiognomy-compat/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "PhysiognomyUI.js",
+        "js/core/saju/crafted-product-details.mjs",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본8/native21 독립SHIP",
+        "실제기존모달+합성결과,304/334/374/418 clipping/fallback/CTAtrial PASS",
+        "POST0·사진/카메라/결제없음",
+        "관상리포트검사·전생1485조합검사·문법검사 PASS;기존스타일advisory83"
+      ],
+      "unconfirmed": [
+        "main전달·CI대기;실제사진분석·결제미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수; main 전달·CI 대기"
     },
     {
       "productId": "physiognomy-ogwan-mole-deep",
       "displayName": "오관·점 정밀 분석",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "saleStatus": "현재 결과화면의 회당구매CTA확인",
+      "entry": [
+        "PhysiognomyUI.js 결과화면"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 3000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "inputRequirements": [
+        "새분석별도·점감지/사진품질조건"
       ],
-      "detailAliases": []
+      "resultRenderer": [
+        "PhysiognomyUI.js",
+        "AnalysisEngine.js"
+      ],
+      "actualContents": [
+        "기본결과 오관·피부점2영역 회당해금",
+        "5부위유형·경합후보·감지점위치해설"
+      ],
+      "conditionalItems": [
+        "새분석별도·점감지/사진품질조건",
+        "일치도는분류값·성격인품미래확률아님·피부진단아님",
+        "자유질문 AI 상담 없음"
+      ],
+      "separatePurchase": [
+        "다른 관상 유료해금·궁합"
+      ],
+      "reviewSource": [],
+      "images": [
+        "/feature-details/crafted/physiognomy-ogwan/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "PhysiognomyUI.js",
+        "js/core/saju/crafted-product-details.mjs",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본6/native19 독립SHIP",
+        "실제기존모달+합성결과,304/334/374/418 clipping/fallback/CTAtrial PASS",
+        "POST0·사진/카메라/결제없음",
+        "관상리포트검사·전생1485조합검사·문법검사 PASS;기존스타일advisory83"
+      ],
+      "unconfirmed": [
+        "main전달·CI대기;실제사진분석·결제미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수; main 전달·CI 대기"
     },
     {
       "productId": "physiognomy-pastlife-compatibility",
       "displayName": "전생 관상 궁합 분석",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "saleStatus": "현재 결과화면의 회당구매CTA확인",
+      "entry": [
+        "PastLifeFaceUI.js 결과화면"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 3000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "inputRequirements": [
+        "내전생결과선행·상대사진20MB이하·동의"
       ],
-      "detailAliases": []
+      "resultRenderer": [
+        "PastLifeFaceUI.js",
+        "AnalysisEngine.js"
+      ],
+      "actualContents": [
+        "배역/시대/사건/헤어짐/수호령/재회이유/관계미션7장면",
+        "종합점수·5게이지"
+      ],
+      "conditionalItems": [
+        "내전생결과선행·상대사진20MB이하·동의",
+        "규칙형판타지·실제전생/업장/재회확률아님",
+        "자유질문 AI 상담 없음"
+      ],
+      "separatePurchase": [
+        "다른 관상 유료해금·궁합"
+      ],
+      "reviewSource": [],
+      "images": [
+        "/feature-details/crafted/physiognomy-pastlife/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "PastLifeFaceUI.js",
+        "js/core/saju/crafted-product-details.mjs",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본8/native21 독립SHIP",
+        "실제기존모달+합성결과,304/334/374/540 clipping/fallback/CTAtrial PASS",
+        "POST0·사진/카메라/결제없음",
+        "관상리포트검사·전생1485조합검사·문법검사 PASS;기존스타일advisory83"
+      ],
+      "unconfirmed": [
+        "main전달·CI대기;실제사진분석·결제미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수; main 전달·CI 대기"
     },
     {
       "productId": "premium-sukuyo-compat-extra",

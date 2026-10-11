@@ -1867,14 +1867,14 @@
 
     // 심화 CTA — 신규 유료 기능이 아니라 기존 기능으로 인계한다.
     '.plf-deeper{margin:20px 0 0;border:1px solid var(--plf-border-strong);border-radius:18px;padding:18px;',
-    '  background:linear-gradient(160deg,rgba(46,34,88,.92),rgba(18,14,38,.94));}',
+    '  background:var(--plf-surface-2);}',
     '.plf-deeper__title{margin:0;font-size:1rem;font-weight:800;color:var(--plf-text);}',
     '.plf-deeper__grid{margin:14px 0 0;display:grid;gap:9px;grid-template-columns:1fr;}',
     '@media (min-width:520px){.plf-deeper__grid{grid-template-columns:1fr 1fr;}}',
     '.plf-deepcard{display:grid;gap:3px;text-align:left;width:100%;min-height:44px;cursor:pointer;',
     '  border:1px solid var(--plf-border);border-radius:14px;padding:13px 15px;font-family:inherit;',
     '  background:var(--plf-surface-2);transition:border-color .18s ease-out,background .18s ease-out;}',
-    '.plf-deepcard:hover{border-color:var(--plf-border-strong);background:rgba(196,181,253,.1);}',
+    '.plf-deepcard:hover{border-color:var(--plf-border-strong);background:var(--plf-surface);}',
     '.plf-deepcard:focus-visible{outline:2px solid var(--plf-accent);outline-offset:2px;}',
     '.plf-deepcard--paid{border-color:var(--plf-gold);}',
     '.plf-deepcard__price{font-size:.72rem;font-weight:800;letter-spacing:.02em;color:var(--plf-gold);}',
@@ -3348,6 +3348,7 @@
     return [
       '<div class="plf-deeper plf-reveal-item">',
       '  <h3 class="plf-deeper__title">🔮 당신의 전생을 더 깊게 열어보기</h3>',
+      '  <div data-crafted-static-offer="physiognomy-pastlife-compatibility" style="width:100%;max-width:540px;margin:16px auto;background:#eee6ed;color:#4d405d;border-radius:12px"></div>',
       '  <div class="plf-deeper__grid">',
       PLF_DEEPER_CTAS.map(function (cta, index) {
         // 전생 인연 궁합(유료)은 id 를 유지한다 — 검증 스크립트와 외부 진입점이 이 id 를 잡는다.
@@ -3399,6 +3400,9 @@
       plfBindStoryImages();
       plfBindSceneReveal();
       plfBindDeeperCtas();
+      import('/js/core/saju/crafted-product-details.mjs').then(function(module) {
+        plfEl('plfRevealBody').querySelectorAll('[data-crafted-static-offer]').forEach(function(el) { if (el.isConnected) module.mountCraftedStaticOffer(el); });
+      });
     }
     plfApplyStagger();
     plfShowStage('reveal');

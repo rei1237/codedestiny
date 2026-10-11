@@ -1348,11 +1348,11 @@
   var LAZY_LOAD_ACTIONS = {
     openPhysiognomyApp: [
       'AnalysisEngine.js?v=h96b7981840e2',
-      'PhysiognomyUI.js?v=hc500a55c5938'
+      'PhysiognomyUI.js?v=h9d7c7604dc78'
     ],
     openPastLifeFaceApp: [
       'AnalysisEngine.js?v=h96b7981840e2',
-      'PastLifeFaceUI.js?v=h18a3c245e2db'
+      'PastLifeFaceUI.js?v=hc232cb1eeb5b'
     ],
     openMbtiModal: ['js/astral-soul.js'],
     openAnimalTotemModal: [

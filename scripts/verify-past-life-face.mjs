@@ -145,7 +145,10 @@ const { window } = dom;
 window.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
 
 const context = vm.createContext(window);
-const runScript = (file) => vm.runInContext(read(file), context, { filename: file });
+// The browser-only optional detail loader is exercised by verify-crafted-physiognomy.cjs.
+// Keep this VM suite focused on the existing reading and payment-resume renderers.
+const mockDetailLoader = (code) => code.replaceAll("import('/js/core/saju/crafted-product-details.mjs')", "Promise.resolve({mountCraftedStaticOffer() {}})");
+const runScript = (file) => vm.runInContext(mockDetailLoader(read(file)), context, { filename: file });
 
 // PhysiognomyUI 를 사이에 끼워 "같은 페이지 동시 로드"를 실제로 재현한다.
 runScript('AnalysisEngine.js');
@@ -157,7 +160,7 @@ runScript('PhysiognomyUI.js');
 const TEST_HOOK = `window.__plfTestHooks = { buildReading: plfBuildReading, buildStory: plfBuildStory, renderCompat: plfRenderCompatResult };\n})();`;
 const plfSource = source.replace(/\}\)\(\);\s*$/, TEST_HOOK);
 assert.notEqual(plfSource, source, '검증용 훅 주입에 실패했다 — PastLifeFaceUI.js 의 IIFE 종료 형태가 바뀌었는지 확인할 것');
-vm.runInContext(plfSource, context, { filename: 'PastLifeFaceUI.js' });
+vm.runInContext(mockDetailLoader(plfSource), context, { filename: 'PastLifeFaceUI.js' });
 
 const engine = window.faceAnalysisEngine;
 await engine.loadDatabase();

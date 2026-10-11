@@ -138,7 +138,10 @@
     "nakshatra-muhurta": "nakshatra-muhurta",
     "nakshatra-ai-consultation": "nakshatra-ai",
     "nakshatra-compat": "nakshatra-compat",
-    "love-code": "love-code"
+    "love-code": "love-code",
+    "physiognomy-ogwan-mole-deep": "physiognomy-ogwan",
+    "physiognomy-compatibility": "physiognomy-compat",
+    "physiognomy-pastlife-compatibility": "physiognomy-pastlife"
   },
   "introductions": {
     "fusion-fortune": [
