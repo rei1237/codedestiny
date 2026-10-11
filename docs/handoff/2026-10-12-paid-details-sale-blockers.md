@@ -1,7 +1,7 @@
 ---
-status: active
+status: done
 updated: 2026-10-12
-next: 메모리 여유 확보 후 미완료 check:fast와 실패한 check:pre-push를 재검증하고 main CI 복구 후 통합·push한다. 이후 주역 전용 상세페이지 제작을 이어간다.
+next: 없음. 주역 계산 수정과 main CI 복구를 검증·통합했으며, 별도 상세페이지 제작은 새 작업으로 시작한다.
 ---
 
 # 유료 상세페이지 — 11개 후보 재확인 후 차단 사항
@@ -44,3 +44,14 @@ next: 메모리 여유 확보 후 미완료 check:fast와 실패한 check:pre-pu
 - 커밋된 clean 트리에서 `npm run check:pre-push`: home-service-registry 통과, public-mirror-fresh 생성기에서 `fatal error: out of memory allocating heap arena map`으로 실패. sitemap-drift 단계는 미실행. 소스/public 주역 엔진의 바이트 일치는 별도 확인했다. 앞서 `npm run sync:public`은 두 번 완료했다.
 - `git diff --check` 통과. 로컬 전체 검사·미러 신선도는 메모리 여유 확보 후 재실행해야 한다. 실패를 우회하지 않으며 운영 배포도 실행하지 않았다.
 - 현재 전달 차단: main `bddfe0b64deb0ee35eb0b8d20cc06e477e98020d`, CI 38151587362 실패. `Verify ziwei chart detail view and compatibility card`의 기존 오류이며 이번 주역 변경을 push하지 않는다. 워크트리는 미전달 변경 보존을 위해 유지한다.
+
+## 2026-10-12 검증·통합 완료
+
+- 메모리 부족 원인은 동시에 남아 있던 Jest 2개가 약 5.9GB를 점유한 것이었다. 이 작업 소유 Jest만 종료해 여유 메모리를 약 7.5GB까지 회복했고, 이후 다른 세션의 별도 워크트리 검사는 종료하지 않았다.
+- 최신 `origin/main` `96c567e524b071a3cfab5ec25c5526b6786a06a2`를 병합했다. 충돌은 없었다.
+- main CI 38156148707의 직접 실패는 헤드리스 셸 하네스가 브라우저 표준 `Element.before()`를 구현하지 않아 `verify:ziwei-chart-detail-view`가 죽는 문제였다. `scripts/lib/shell-ganji-harness.cjs`의 더미 요소에 `before()`를 추가했고, 제품 렌더 로직은 변경하지 않았다.
+- CI 복구 커밋: `b49e57dd2b7963e0cf14b9abe4ae8fcda527b8d2`. `npm run verify:ziwei-chart-detail-view` 48개 검사 통과.
+- 병합 뒤 생성 미러의 자산 해시를 `npm run sync:public` 두 번으로 동기화했다. 미러 커밋: `6342a2ea4`.
+- `check:fast -- --committed-head`는 다른 세션 Jest와의 메모리 경쟁을 피하려 마지막 Jest만 두 번 중단했지만, 같은 계획의 앞 단계는 전부 통과했다. 다른 세션 종료 뒤 정확히 같은 마지막 단계 `npm run test:jest`를 단독 실행해 385 suite, 5,898 tests 전부 통과했다.
+- `npm run check:pre-push` 통과: home service registry, public mirror freshness, sitemap drift(955 URL). 실결제·실 LLM·운영 DB·운영 배포는 실행하지 않았다.
+- 가격·이용권·월정석·단건 결제·인증·API·DB 계약은 변경하지 않았다.
