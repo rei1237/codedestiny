@@ -1,4 +1,6 @@
 "use client";
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
+import { detectLocale } from "@/lib/i18n/dictionary";
 import library from '../library.module.css';
 import ReviewRewardBanner from "@/app/components/ReviewRewardBanner";
 
@@ -490,6 +492,7 @@ export default function NakshatraAiClient() {
         <WaitingView phase={phase} statusMsg={statusMsg} identity={identity} progress={progress} copy={copy} />
       ) : (
         <div className="mx-auto grid w-full max-w-lg gap-4">
+          {detectLocale() === "ko" && <div style={{width:"100%",maxWidth:540,minWidth:0,margin:"0 auto",background:"#eee7dc",color:"#463a31",borderRadius:12}}><CraftedProductDisclosure featureKey="nakshatra-ai-consultation" summaryLabel="나크샤트라 AI 심화 상담 상세 안내" /></div>}
           <NakshatraProfilePicker context={profilePicker} copy={copy} disabled={working || profilePicker.selecting} />
           <IntroView
             identity={identity}

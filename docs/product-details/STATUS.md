@@ -518,3 +518,7 @@ status: active
 - 각8장 개별편집, 원본8/native21 각각독립SHIP.328/358/398/540 clipping/fallback/저장프로필/CTAtrial PASS.무료별위치mockPOST2/유료POST0.Jest39/Node9/ESLint/typecheck PASS.다샤대주기수는출생구간잔여에따라달라져기존90확정문구를12언어두항목에서삭제(계산/가격불변).
 - 유료구성139원본+공통1원본1236패널 로컬검수. 직전9a3380cc4 pre-push PASS.전체/main전달미완료·엔진운영미배포.다음나크샤트라VVIP/택일/AI상담.
 
+
+## 나크샤트라 통합서 / 택일 / AI 상담
+- 각각10/8/9장 개별편집. 원본과 native23/21/22 독립SHIP. 모바일360/390/430 및 데스크톱 clipping/fallback/저장프로필/CTAtrial PASS; 무료별위치mockPOST2/유료POST0. Jest29/ESLint/typecheck PASS. 기존 AI버튼 대비검출 advisory2(amber200 위 slate950). 택일 단정표현 완화·소개페이지 연결.
+- 유료구성142원본+공통1원본1263패널 로컬검수. 직전c2ea6f066 pre-push PASS. 전체/main전달미완료·엔진운영미배포. 다음 동서 통합 궁합.

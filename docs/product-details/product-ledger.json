@@ -3456,28 +3456,54 @@
     {
       "productId": "nakshatra-ai-consultation",
       "displayName": "숙요·나크샤트라 통합 상담",
-      "saleStatus": "진입 확인·구성 대조 중",
+      "saleStatus": "실제 프로필·구매진입 및 결과 대조",
       "entry": [
         "/nakshatra/ai"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 30000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
+      "inputRequirements": [
+        "저장된 출생프로필",
+        "질문 선택"
+      ],
+      "resultRenderer": [
+        "app/nakshatra/ai/NakshatraAiClient.tsx",
+        "worker/routes/nakshatra-premium.js"
+      ],
+      "actualContents": [
+        "AI9항목: 두별요약·기질·내면·관계·일·그림자·체계차이·생활사용법·맺음말",
+        "완료 결과 PDF·기록 다시보기"
+      ],
+      "conditionalItems": [
+        "질문선택 최대1000자",
+        "출생시간 미상 세부해석제한",
+        "무료후속질문·실제사람상담 아님"
+      ],
+      "separatePurchase": [
+        "다른 나크샤트라 유료상품"
+      ],
       "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
+      "images": [
+        "/feature-details/crafted/nakshatra-ai/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "app/nakshatra/ai/NakshatraAiClient.tsx",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본9/native22 독립SHIP",
+        "360/390/430/1280 viewport·clipping/fallback/CTAtrial PASS",
+        "무료별위치mockPOST2/유료POST0",
+        "Jest29/ESLint/typecheck PASS; 기존 AI 버튼 대비 advisory2"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "main전달·CI대기;실결제·운영AI미실행"
       ],
       "detailAliases": [
         "nakshatra-ai"
-      ]
+      ],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "nakshatra-compat",
@@ -3606,54 +3632,105 @@
     {
       "productId": "nakshatra-muhurta",
       "displayName": "택일 무후르타",
-      "saleStatus": "진입 확인·구성 대조 중",
+      "saleStatus": "실제 프로필·구매진입 및 결과 대조",
       "entry": [
         "/nakshatra/muhurta/"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 5000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
+      "inputRequirements": [
+        "저장된 출생프로필",
+        "목적·조회시작일"
+      ],
+      "resultRenderer": [
+        "app/nakshatra/muhurta/MuhurtaClient.tsx",
+        "worker/routes/nakshatra-premium.js"
+      ],
+      "actualContents": [
+        "목적6개·조회시작일·기본60일 비교",
+        "추천최대7·주의최대4·해석가이드·전체날짜목록"
+      ],
+      "conditionalItems": [
+        "규칙형이며 새AI 아님",
+        "후보수 조건부·PDF/예약/알림/별도보관함 없음",
+        "전통지수이며 성공확률·의료판단 아님"
+      ],
+      "separatePurchase": [
+        "다른 나크샤트라 유료상품"
+      ],
       "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
+      "images": [
+        "/feature-details/crafted/nakshatra-muhurta/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "app/nakshatra/muhurta/MuhurtaClient.tsx",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본8/native21 독립SHIP",
+        "360/390/430/1280 viewport·clipping/fallback/CTAtrial PASS",
+        "무료별위치mockPOST2/유료POST0",
+        "Jest29/ESLint/typecheck PASS; 기존 AI 버튼 대비 advisory2"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "main전달·CI대기;실결제·운영AI미실행"
       ],
       "detailAliases": [
         "nakshatra-muhurta"
-      ]
+      ],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "nakshatra-vvip-codex",
       "displayName": "나크샤트라 VVIP 코덱스",
-      "saleStatus": "진입 확인·구성 대조 중",
+      "saleStatus": "실제 프로필·구매진입 및 결과 대조",
       "entry": [
         "/nakshatra/vvip"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 30000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
+      "inputRequirements": [
+        "저장된 출생프로필"
+      ],
+      "resultRenderer": [
+        "app/nakshatra/vvip/VvipClient.tsx",
+        "worker/routes/nakshatra-premium.js"
+      ],
+      "actualContents": [
+        "규칙형5챕터: 명식총람·관점별해석·27숙관계·지배성·다샤",
+        "완성 통합서 PDF"
+      ],
+      "conditionalItems": [
+        "세 대가는 사전작성 관점으로 실제 전문가3인 아님",
+        "시간미상 파다제외·성별없으면 동양대운제외",
+        "별도 지배성/다샤 상품 해금권 미포함·별도보관함 없음"
+      ],
+      "separatePurchase": [
+        "다른 나크샤트라 유료상품"
+      ],
       "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
+      "images": [
+        "/feature-details/crafted/nakshatra-vvip/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "app/nakshatra/vvip/VvipClient.tsx",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본10/native23 독립SHIP",
+        "360/390/430/1280 viewport·clipping/fallback/CTAtrial PASS",
+        "무료별위치mockPOST2/유료POST0",
+        "Jest29/ESLint/typecheck PASS; 기존 AI 버튼 대비 advisory2"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "main전달·CI대기;실결제·운영AI미실행"
       ],
       "detailAliases": [
         "nakshatra-vvip-codex"
-      ]
+      ],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "neville-meditation",

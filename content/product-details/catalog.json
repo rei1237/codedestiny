@@ -133,7 +133,10 @@
     "destiny-compass-life-voyage": "compass-life-voyage",
     "destiny-compass-deep-report": "compass-deep-report",
     "nakshatra-lord-report": "nakshatra-lord",
-    "nakshatra-dasha-map": "nakshatra-dasha"
+    "nakshatra-dasha-map": "nakshatra-dasha",
+    "nakshatra-vvip-codex": "nakshatra-vvip",
+    "nakshatra-muhurta": "nakshatra-muhurta",
+    "nakshatra-ai-consultation": "nakshatra-ai"
   },
   "introductions": {
     "fusion-fortune": [
@@ -169,6 +172,9 @@
     "animal-totem": [
       "animal-totem-basic",
       "animal-totem-deep"
+    ],
+    "nakshatra-muhurta": [
+      "nakshatra-muhurta"
     ]
   },
   "variants": {
