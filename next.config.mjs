@@ -32,17 +32,18 @@ function matchesExclude(exclude, resourcePath) {
   return Boolean(exclude?.test?.(resourcePath));
 }
 
-function excludeLegacySharedBrowserModules(rule) {
+function excludeLegacySharedBrowserModules(rule, dev) {
   const previousExclude = rule.exclude;
   rule.exclude = (resourcePath) => LEGACY_SHARED_BROWSER_MODULE.test(resourcePath)
+    || (dev && /[\\/]lib[\\/]palm[\\/]palm-ui-state\.js$/.test(resourcePath))
     || matchesExclude(previousExclude, resourcePath);
 }
 
-function visitWebpackRules(rules) {
+function visitWebpackRules(rules, dev) {
   for (const rule of rules || []) {
-    if (isRefreshOrSwcRule(rule)) excludeLegacySharedBrowserModules(rule);
-    visitWebpackRules(rule.oneOf);
-    visitWebpackRules(rule.rules);
+    if (isRefreshOrSwcRule(rule)) excludeLegacySharedBrowserModules(rule, dev);
+    visitWebpackRules(rule.oneOf, dev);
+    visitWebpackRules(rule.rules, dev);
   }
 }
 
@@ -192,7 +193,7 @@ function createNextConfig(phase) {
     },
     trailingSlash: true,
     webpack(config, { dev }) {
-      visitWebpackRules(config.module?.rules);
+      visitWebpackRules(config.module?.rules, dev);
       if (!dev) {
         // 기본값은 2026-06-29 부터의 동작 그대로 — 프로덕션 빌드는 webpack 영속 캐시를 끈다
         // (그 줄이 들어온 커밋 94acc1538 에 사유가 없어, 산출 바이트가 걸린 릴리스 빌드는 건드리지 않는다).
