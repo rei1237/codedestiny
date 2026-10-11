@@ -1,7 +1,7 @@
 ---
-status: active
+status: done
 updated: 2026-10-11
-next: "docs/handoff/2026-10-11-paid-archive-followups.md 를 읽고 P0-2 를 진행해줘"
+next: "P2-1 카드 수수료 환불 여부 사용자 결정 대기. P1-3 나머지 미보관 결과는 별도 인수인계로"
 ---
 
 # 유료 결과 보관함 저장·이용권 증빙 — 남은 문제와 후속 과제
@@ -70,7 +70,7 @@ docs/handoff/2026-10-11-paid-archive-followups.md 를 읽고 P0-1 을 진행해�
   - 수정: 궁합 2종만 결제마다 `sukuyo-paid:<fk>|<profileId>|<꼬리>`. 복귀 서술자 args 에 requestId·profileId. 서버는 이 기능·이 카드 접두사일 때만 받아(아니면 400) 그 값으로 증빙을 찾고 결제 1건 = 기록 1건. requestId 가 없으면(배포 전 JS·결제) 예전 고정값으로 찾는다.
   - 남은 것: 수동 E2E(P1-6) 미실시. 캐시된 예전 JS 는 고정값을 계속 써 배포 전과 같다(P2-2). 다른 숙요 회당 기능(전생·월운 등)이 같은 고정값을 쓰는지는 이번 범위 밖이라 보지 않았다.
 
-**P0-2. 같은 경합을 가진 다른 `requireExisting` 소비자** — 🟠
+**P0-2. 같은 경합을 가진 다른 `requireExisting` 소비자** — 🟠 ✅ 완료 2026-10-11 (977eab2a7)
 - 이용권 즉시 사용 뒤 서버가 `requireExisting:true` 로 증빙을 찾는 경로는 모두 같은 403 경합을 가진다. 이번에는 보관함 저장 두 라우트만 고쳤다.
 - 남은 곳:
   - `ziwei-deep-report`
@@ -79,57 +79,91 @@ docs/handoff/2026-10-11-paid-archive-followups.md 를 읽고 P0-1 을 진행해�
   - `palm-result-delivery`
 - 할 일: 각 경로가 403 에서 재시도하거나, `accessMethod:'pass'` 일 때 이용권을 직접 확정하는지 확인한다. 둘 다 아니면 같은 방식으로 맞춘다.
 - 근본 해결안: `index.html` 의 `_cdRecordMembershipPassInBackground` 에 5xx·네트워크 오류 재시도를 넣는다. 이 함수는 동결 영역이 아니다. React 쪽 `billing-client.ts` 의 백그라운드 기록은 동결 파일이라 승인이 필요하다.
+- 결과(977eab2a7):
+  - `nakshatra-compat-delivery`(402)·`palm-result-delivery`(403)에 같은 방식을 붙였다. 증빙이 없고 `accessMethod:'pass'` 이면 같은 requestId 로 이용권을 직접 확정한다(소비 마커로 멱등). DB 장애(`proven:null`)는 503 그대로다. 손금은 requestId 를 지정한 조회에서만 확정하고 '최근 판독' 조회는 소비하지 않는다. 클라이언트는 게이트가 이용권으로 통과하면 `accessMethod:'pass'` 를 같이 보낸다.
+  - `ziwei-deep-report` 는 cron 전용, `paid-narrative-intent` 는 등록·승격만 하고 소비하지 않아 대상이 아니다.
+  - 근본 해결안은 하지 않았다. `_cdRecordMembershipPassInBackground` 는 "재시도하지 않는다"는 의도된 설계라 바꾸지 않았다. `billing-client.ts` 쪽 재시도는 동결 파일이라 승인이 필요하다. 인플라이트 키에 requestId 가 없는 점도 그대로다.
 
-**P0-3. 회당 결제 → 영구 해금 분류 누락** — 🟠
+**P0-3. 회당 결제 → 영구 해금 분류 누락** — 🟠 ✅ 완료 2026-10-11 (f81feb15a)
 - `worker/routes/fortune.js:2510` 의 `PERSISTENT_UNLOCK_KEY_SET` 에 `sukuyo-extreme-t-relationship` 이 없다. 이 목록을 읽는 경로(레거시 해금 조회)에서 극T 해금이 영구로 취급되지 않을 수 있다.
 - 할 일: 이 목록을 `worker/lib/paid-feature-registry.js` 의 출생 기반·영구 해금 목록과 대조한다. 빠진 키를 넣거나, 레지스트리에서 파생하게 바꾼다.
+- 결과(f81feb15a): 극T 하나가 아니라 레지스트리 `UNLOCK_PAID_FEATURE_KEYS` 전체를 펼쳐 넣어 파생하게 했다. 손으로 적은 목록은 별칭·구 번들 호환으로 남겼다. 회당 키는 섞이지 않는다는 테스트를 붙였다.
 
 ### P1. 기능·표시
 
-**P1-1. 극T 대체(fallback) 렌더 경로는 보관함에 저장하지 않는다**
+**P1-1. 극T 대체(fallback) 렌더 경로는 보관함에 저장하지 않는다** ✅ 완료 2026-10-11 (e8dd28ee8)
 - 빌더(`builderHtml`) 경로만 저장한다. 빌더를 못 쓰는 예전 렌더 경로로 그려지면 기록이 남지 않는다.
 - 할 일: 대체 경로가 실제로 쓰이는지 확인한다. 쓰이면 같은 저장 호출을 붙인다.
+- 결과(e8dd28ee8): 결과 영역 폴백(`hasFallbackExtremeTRelationshipAccess`)으로 그려질 때 저장이 빠졌다. 정상 경로와 같은 facts·sections 로 저장한다.
 
 **P1-2. 본성 심화 기록은 날짜마다 하나 생긴다**
 - 시그니처에 `dailyDate`(오늘 날짜)가 들어간다. 오늘의 흐름 문단이 날마다 달라서다. 같은 날 다시 열면 갱신되고, 다른 날 다시 열면 새 기록이 생긴다(구매·복귀 직후에만 저장하므로 자주 생기지는 않는다).
 - 할 일: 사용자가 "기록이 쌓인다"고 느끼면 시그니처에서 날짜를 빼고 최신으로 덮어쓰는 쪽으로 바꾼다.
+- 2026-10-11: 조건부 과제라 코드는 바꾸지 않았다. 사용자 체감 보고가 오면 진행한다.
 
-**P1-3. 아직 보관함이 없는 브라우저 계산형 유료 결과**
+**P1-3. 아직 보관함이 없는 브라우저 계산형 유료 결과** — 🟡 1차 완료 2026-10-11 (aaaea2bd2)
 - 이번 범위는 사용자가 지정한 숙요·점성술·자미두수 결과까지다. 그 밖에도 결제 뒤 브라우저에서만 계산되고 저장되지 않는 결과가 있다. 예: 관상(physiognomy), 베다 궁합(vedic-compatibility), 스톤헨지, destiny-compass 일부.
 - 할 일: `worker/lib/paid-feature-registry.js` 의 회당 목록과 `lib/records/service-registry.js` 의 `SAVED_FEATURES` 를 대조해 목록을 만든다. 그다음 `compat-result-archive.js` 패턴으로 하나씩 붙인다. 무료 결과는 넣지 않는다.
+- 1차 결과(aaaea2bd2): 운명의 나침반 심화 3종을 붙였다.
+  - 서버: `POST /api/result-archive/<destiny-compass-crossroads|destiny-compass-future-sim|destiny-compass-life-voyage>`. `compat-result-archive.js` 처리기를 기능 표를 받게 일반화해 그대로 쓴다(결제 requestId 확인 → 결제 1건 = 기록 1건, 이용권 즉시 사용 폴백 포함). 프로필 카드는 없어도 된다.
+  - 클라이언트: `app/destiny-compass/_lib/archive.ts`. 결제마다 requestId 를 만들어 게이트·복귀 서술자에 싣고, 결과가 그려지면 한 번 보낸다. 403·5xx·네트워크 오류는 4·12·30초 뒤 다시 보낸다.
+  - 보관함: `SAVED_FEATURES`·`READING_FEATURES`(compass 계열 장 표시)·공용 픽스처에 3개 키.
+- 남은 미보관 회당 결과(대조 목록):
+  - 관상: `physiognomy-ogwan-mole-deep`, `physiognomy-compatibility`, `physiognomy-pastlife-compatibility`
+  - `vedic-compatibility-per-use`
+  - 스톤헨지 `stonehenge-runes-single`·`triad` — `index.html` FAQ 가 "룬은 저장되지 않는다"고 안내한다. 넣으려면 제품 결정과 FAQ 수정이 같이 필요하다.
+  - `tarot-myeongri-three-card`, `fun.quantumLotto.ritualReport`
+  - `openKemetModal`, `openJuyukModal`, `ifa-oracle`, `royal-tea-oracle`, `maya-prompt-generator`, `destiny_meeting_place`
+  - 서버가 계산하지만 저장하지 않는 것: `tarot-reunion`·`numerology`·`ijik`·`crystal-soul`, `nakshatra-muhurta`·`vvip-codex`
+- 참고: `RECORD_SERVICES` 의 나침반 항목 대체 featureKey 가 `destiny-compass-life-voyage` 로 적혀 있다. 나침반 출처는 동적이 아니라 이번 키와 충돌하지 않지만, 이름이 어긋나 보이니 확인이 필요하다.
 
-**P1-4. 출생정보 수정 시 결과가 다시 잠긴다는 안내 부족**
+**P1-4. 출생정보 수정 시 결과가 다시 잠긴다는 안내 부족** ✅ 완료 2026-10-11 (9973db561)
 - 카드 수정이 무료가 됐다. 출생정보를 바꾸면 출생 기반 해금이 잠기는 것은 의도된 동작이지만, 수정 화면에 안내가 없다.
 - 할 일: 카드 수정 저장 전에 "이 카드로 연 결과는 원래 생년월일로 되돌리면 다시 열립니다" 류의 안내를 넣는다. 정책 문구 확인이 필요하다.
+- 결과(9973db561): 사용자가 고른 제안 문구를 카드 수정 모드 안내 줄에 5개 언어로 넣었다. 잠기는 조건은 생년월일·시각·양음력·성별 변경으로 넓혀 적었다(서버의 출생 키가 이 넷으로 만들어진다).
 
-**P1-5. 프로필 상한 잔재**
+**P1-5. 프로필 상한 잔재** ✅ 완료 2026-10-11 (2b6ec36a7)
 - `worker/routes/fortune.js`·billing 응답이 아직 `profileLimit` 숫자를 내보내는 곳이 있다. 서버 판정에는 쓰지 않지만 클라이언트가 보여 줄 수 있다.
 - `home.passMini` 계열 번역 키 중 상한 문구용 키가 쓰이지 않은 채 남아 있다.
 - Play Console 상품 설명에 "프로필 무제한"·"프로필 N개" 문구가 있으면 콘솔에서 직접 고쳐야 한다(코드 밖).
 - `worker/routes/user.js:11` 의 레거시 동기화는 `MAX_SYNC_PROFILES = 30` 을 넘는 카드를 자른다. 그리고 `deleteMany` 의 `$nin` 이 잘린 카드를 지울 수 있다. 상한을 없앤 정책과 충돌하므로 확인이 필요하다.
 - 할 일: 위 항목을 하나씩 확인하고 정리한다. 동기화 상한은 서버 보호(요청 크기)와 정책 사이에서 값을 정해야 하므로 사용자 확인이 필요하다.
+- 결과(2b6ec36a7):
+  - 사용자 결정대로 동기화 목록이 상한(30)으로 잘리면 `deleteMany` 를 건너뛴다. 상한 30 은 요청 크기 보호로 남겼다.
+  - 쓰이지 않는 `home.passMini.*Benefit2` 12개 로케일에서 지웠다.
+  - 남김: 응답의 `profileLimit` 필드와 `shellRuntime` 쪽 잔재는 호환 때문에 그대로 뒀다. Play Console 문구는 코드 밖이라 콘솔에서 직접 고쳐야 한다.
 
-**P1-6. 수동 E2E 미실행**
+**P1-6. 수동 E2E 미실행** — 미실시(2026-10-11)
 - 로컬 `wrangler dev` + `next dev` 로 다음을 확인한다. 실결제가 아니라 테스트 모드여야 한다.
   1. 이용권 사용자로 점성술 궁합(셀럽)을 연다 → 결과 표시 → `/records/` 에 "점성술 궁합" 기록이 생긴다.
   2. 같은 카드로 다른 셀럽을 연다 → 기록이 2건이 된다.
   3. 자미두수 궁합을 KRW 결제(모바일 리다이렉트 복귀)로 연다 → 복귀 뒤 결과와 기록이 생긴다.
   4. 본성 심화·극T 를 산다 → 기록이 생긴다. 다른 탭에서 해금 → 이벤트로 바로 열린다.
   5. 숙요 인연 도감을 해금한다 → 새로고침 없이 '해금 완료' 로 바뀐다.
+  6. 운명의 나침반 갈림길·미래 시뮬레이션·삶의 항로를 산다 → `/records/` 에 각 기록이 생긴다(P1-3 1차).
+  7. 이용권으로 낙샤트라 궁합·손금 판독을 연다 → 첫 요청에 결과가 나온다(P0-2).
+- 2026-10-11: 이 세션은 브라우저·테스트 결제 환경이 없어 하지 못했다. 자동 테스트만 통과했다.
 
 ### P2. 정리
 
-**P2-1. 과거 카드 수수료 환불 여부** — 사용자 결정 필요
+**P2-1. 과거 카드 수수료 환불 여부** — 사용자 결정 필요 · ⏸ 보류(2026-10-11 사용자 결정)
 - 수수료 정책이 바뀌기 전에 프로필 카드 추가·수정·삭제 비용을 낸 사용자가 있다. 환불·포인트 보상 여부는 운영 결정이다. 코드 작업 전에 대상 주문 수를 읽기 전용으로 센다.
 
 **P2-2. 오래된 캐시 JS**
 - 셸 JS 는 빌드 해시로 캐시를 깬다. 그래도 서비스 워커나 앱 WebView 가 예전 JS 를 쥐고 있으면, 그 사용자는 저장 호출이 없는 예전 흐름을 계속 쓴다. 배포 뒤 며칠 동안 신규 기록 수를 지켜본다.
+- 2026-10-11: 관찰 과제라 코드는 바꾸지 않았다. 배포 뒤 확인한다.
 
-**P2-3. 죽은 코드·인벤토리**
+**P2-3. 죽은 코드·인벤토리** ✅ 일부 완료 2026-10-11 (9973db561)
 - `js/destiny-profile.js:6132` 의 첫 `_cdCoinGatePerUse` 정의는 `:13013` 정의가 덮어써서 쓰이지 않는다.
 - `payment-inventory.json` 에 정리되지 않은 항목이 있다.
 - 월 지표 문서의 수치가 실제와 어긋난다(monthly figure drift).
 - 할 일: 참조처를 확인한 뒤 지운다. 동결 영역 근처라 `verify-payment-freeze` 를 함께 돌린다.
+- 결과(9973db561):
+  - 첫 `_cdCoinGatePerUse` 정의를 지웠다. 참조는 스크립트·목에만 있었고 로드 중 호출은 없었다. `verify-payment-freeze` 통과.
+  - `destiny-profile.js` 내용이 바뀌어 캐시 핀(`?v=build-…`)을 독립 정적 페이지·verify 스크립트·`billing-client.ts` 의 `PAID_SERVICE_RUNTIME_SRC` 에서 갱신했다. 동결 파일은 이 문자열과 매니페스트 sha 만 사용자 승인을 받고 바꿨다.
+  - 남김: `payment-inventory.json` 은 생성기가 60d7c42c2 에서 지워져 다시 만들 수 없다(`unresolvedCount` 1091). "월 지표 문서"는 어느 파일인지 특정하지 못했다.
 
 **P2-4. `verify-records-hub` 가 이 환경에서 시간 초과**
 - 로컬 Windows 환경에서 시간 초과로 끝난다. CI 에서 통과하는지 확인하고, 필요하면 타임아웃을 조정한다.
+- 2026-10-11 확인: `scripts/design/verify-records-hub.mjs` 는 로컬 dev 서버(`RECORDS_TEST_ORIGIN`, 기본 :3194)를 띄워 놓고 도는 Playwright 스크립트다. package.json 스크립트에도, `.github/workflows` 에도 연결돼 있지 않아 CI 에서는 돌지 않는다. 그래서 타임아웃은 손대지 않았다. CI 에 넣으려면 dev 서버 기동 단계가 있는 작업을 따로 만들어야 한다. `SAVED_FEATURES` 를 순회하므로 P1-3 으로 상세 화면 3개가 늘었다.
+- 같은 날 CI 확인 중 발견: 9973db561 이 셸 캐시 핀 연쇄(init.js → uiBindings.js)를 끝까지 맞추지 못해 Main drift watchdog 가 실패했다. c01210550 에서 sync:public 을 수렴할 때까지 돌려 고쳤다.

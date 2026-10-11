@@ -49,6 +49,13 @@ next: "단계 A·B·C 코드는 끝났다(d361f09b6·171df2ade·a208bea08). 남�
 - 13A: 새 `fortune/input-budget.ts` 전송 전 토큰 사다리. askPromptView 가 palaces 래퍼를 인식하고, monthlyLuck 은 요청 기간만 보낸다.
   - ch1 추정 입력(기록 호출 보정): MA 약 31,580 → 24,966, MO 약 45,541(기록 46,152) → 35,916. 사다리는 두 표본 모두 발동하지 않았다.
 - 14A: bodyPalace 강제 포함을 self/wealth 장으로 한정한다.
+- main 머지(2026-10-11): main 에는 같은 단계 A 의 다른 구현(556d2af0e)이 먼저 들어가 있었다. 단계 C 가 이 구현(timeScope·readsRequestedPeriod·chapterConsultation)을 딛고 있어 이쪽을 채택했다. main 에만 있던 다섯 가지는 fusion-quality 테스트를 먼저 실패시킨 뒤 옮겼다.
+  - 대운을 못 보는 등급에서 luckOverlap 을 뺀다.
+  - 올해 장의 월운은 그해로 한정하고, 내년 예고 장에서는 기준 연도 자미 유년을 뺀다.
+  - 요청 기간을 받지 않는 장의 timeContract 는 period 문장 대신 "이 장의 주제와 계산 근거의 기간만" 문장을 쓴다.
+  - 타로 timeFrame 은 main 의 `fortune/tarot/time-frame.ts` 로 바꿨다(cards·tarotConsultation.cards, 한 달 스프레드 1~4주 차만 뽑은 날 기준 날짜).
+  - ASK_PERIOD_GUIDE 의 9C 문장에 1~4주 차 예외를 붙였다.
+  - 인사신형(寅 원국+巳 대운+申 세운) 사례를 테스트에 더했고, 해시는 76행 갱신했다.
 
 ## 단계 C 결과 (171df2ade, 2026-10-11)
 

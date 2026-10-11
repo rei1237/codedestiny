@@ -6,6 +6,7 @@ import {preventionFacts,hasPrevention} from './prevention';
 import type {ChapterSpecV7} from './reading-v7';
 import {enrichZiweiContext,ziweiPalaceRelationTable} from './ziwei/reading-facts';
 import {buildLuckOverlap} from './saju/luck-overlap';
+import {enrichTarotTimeFrames} from './tarot/time-frame';
 
 export function relationshipSignals(value:unknown) {
  const data=value as {byName?:Record<string,{present?:boolean;hits?:unknown[];state?:string}>};
@@ -21,18 +22,12 @@ function cleanEvidence(value:unknown,premium:boolean):unknown {
  if(!value||typeof value!=='object')return value;
  return Object.fromEntries(Object.entries(value).filter(([key])=>! /prompt|summaryForPrompt/i.test(key) && (premium||! /useful|unfavorable|yongshin|heeShin|jong|majorLuck|dasha|divisional|yogas|fourTransformations|sanFangSiZheng/i.test(key))).map(([key,v])=>[key,cleanEvidence(v,premium)]));
 }
-// 9A: a card position is a symbol of the moment the question was asked, never a calendar period. Image fields are
+// 9A: each card's timeFrame comes from tarot/time-frame.ts at the selectChapterFacts boundary. Image fields are
 // presentation-only, so the prompt copy drops them.
-const TAROT_NOW='질문한 지금의 상태다. 요청 기간이나 특정 달의 사건으로 옮기지 않는다.';
-const TAROT_BACKGROUND='지금 마음에 남아 있는 배경이다. 날짜나 지나간 시기가 아니다.';
-const TAROT_DIRECTION='지금 흐름이 이어질 때의 방향이다. 특정 달·연도의 결과가 아니다.';
-const TAROT_TIME_FRAMES:Record<string,string>={current:TAROT_NOW,present:TAROT_NOW,past:TAROT_BACKGROUND,cause:TAROT_BACKGROUND,outcome:TAROT_DIRECTION,future:TAROT_DIRECTION,short_term_outcome:TAROT_DIRECTION,result:TAROT_DIRECTION};
-const TAROT_TIME_FRAME='질문 순간의 상징이다. 시기 근거가 아니며 기간으로 옮기지 않는다.';
 const TAROT_IMAGE_FIELDS=['imageKey','imageUrl','imageCandidates','proxyImageUrl','localImageUrl'];
 function tarotPromptCards(value:unknown){
  if(!Array.isArray(value))return value;
- return value.map(card=>card&&typeof card==='object'?{...Object.fromEntries(Object.entries(card).filter(([key])=>!TAROT_IMAGE_FIELDS.includes(key))),
-  timeFrame:TAROT_TIME_FRAMES[String((card as Record<string,unknown>).positionKey)]||TAROT_TIME_FRAME}:card);
+ return value.map(card=>card&&typeof card==='object'?Object.fromEntries(Object.entries(card).filter(([key])=>!TAROT_IMAGE_FIELDS.includes(key))):card);
 }
 // 3A: the base selector carries each pillar's ten gods so a chapter never names a pillar's ten god from memory.
 function tenGodsSummary(value:unknown){
@@ -57,7 +52,8 @@ function monthsInScope<T extends {start?:any}>(rows:T[],chapter:ChapterSpec,firs
   const until=dayOf(rows[i+1]?.start)||new Date(Date.parse(from)+32*864e5).toISOString().slice(0,10);
   return from<=scope.end&&until>scope.start;
  });
- return chapter.key==='life-next-year'&&typeof first==='number'?rows.filter(r=>r.start?.year===first+1):rows;
+ const years=scopeYears(chapter,first);
+ return years?rows.filter(r=>years.includes(r.start?.year)):rows;
 }
 function selectedFacts(context:DomainContext,chapter:ChapterSpec) {
  const premium=Boolean(chapter.questionPolicy)||['tuna','assorted','omakase'].includes(chapter.tier||'');
@@ -66,14 +62,18 @@ function selectedFacts(context:DomainContext,chapter:ChapterSpec) {
  for(const selector of selectors){const match=selector.match(/^([^.[\]]+)(?:\[([^\]]+)\]|\.(.+))?$/);if(!match)continue;const [,label,names,path]=match;const entry=allowed.get(label)||{whole:false,paths:[],palaces:[]};if(names)entry.palaces.push(...names.split(','));else if(path)entry.paths.push(path);else entry.whole=true;allowed.set(label,entry);}
  return context.facts.flatMap(f=>{
   const selection=allowed.get(f.label);if(!selection||chapter.factIds&&!chapter.factIds.includes(f.id))return [];
-  if(!premium&&/usefulGod|jong|majorLuck|vimshottariDasha|dasha|yogas|divisionalCharts|fourTransformations|sanFangSiZheng/.test(f.label))return [];
+  if(!premium&&/usefulGod|jong|majorLuck|luckOverlap|vimshottariDasha|dasha|yogas|divisionalCharts|fourTransformations|sanFangSiZheng/.test(f.label))return [];
   let value=f.value;
   // 4·13A: a chapter scoped to a requested period drops rows that describe another time — the 기준일 하루 근거
   // (today*) when 기준일 is outside the period, and a stored 유년 of a year the period does not cover.
   if(chapter.timeScope){
    const day=context.calculatedAt?.slice(0,10);
    if(/^today/.test(f.label)&&day&&(day<chapter.timeScope.start||day>chapter.timeScope.end))return [];
-   if(context.domain==='ziwei'&&f.label==='yearlyLuck'&&typeof (value as {year?:unknown})?.year==='number'&&!chapter.timeScope.years.includes((value as {year:number}).year))return [];
+  }
+  // The stored 유년 is the base year's; a chapter that reads another year (내년 예고, a later requested period) drops it.
+  if(context.domain==='ziwei'&&f.label==='yearlyLuck'&&typeof (value as {year?:unknown})?.year==='number'){
+   const year=(value as {year:number}).year,years=chapter.timeScope?.years||(chapter.questionPolicy?undefined:scopeYears(chapter,year));
+   if(years&&!years.includes(year))return [];
   }
   if(!selection.whole){
    // 14A: 신궁 is forced in only where the reader's own nature or money is the subject.
@@ -135,7 +135,7 @@ function withLuckOverlap(context:DomainContext):DomainContext{
 }
 export function selectChapterFacts(context:DomainContext,chapter:ChapterSpec,topic='general'){
  // 자미 궁 강약·관계·판단 문장은 저장 context 가 아니라 여기서 붙인다 — v6·v7·주의점·옛 주제 경로가 모두 이 입구를 지난다.
- context=enrichZiweiContext(context);
+ context=enrichTarotTimeFrames(enrichZiweiContext(context));
  const prevention=preventionFacts(context,chapter);
  if(hasPrevention(chapter)&&chapter.key==='prevention')return prevention;
  // v7 replaces selectors with the fact ledger: a chapter sees exactly the IDs it owns plus the ones it may reference.

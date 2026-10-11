@@ -34,6 +34,7 @@ const bundle=await build({stdin:{contents:[
   "export {readerEvidence} from './worker/yeongnyangi/prompts/domain/reader-counsel';",
   "export {ASK_PERIOD_GUIDE} from './worker/yeongnyangi/fortune/ask/prompt';",
   "export {preventionFacts} from './worker/yeongnyangi/fortune/prevention';",
+  "export {tarotTimeFrame} from './worker/yeongnyangi/fortune/tarot/time-frame';",
  ].join('\n'),resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'},
  plugins:[{name:'mock-boundaries',setup(b){b.onLoad({filter:/worker[\\/](?:lib|yeongnyangi)[\\/]/},args=>{const p=args.path.replaceAll('\\','/');const key=Object.keys(replacements).find(k=>p.endsWith(k)||p.endsWith(k+'.ts')||p.endsWith(k.replace(/\.js$/,'.ts')));return key?{contents:replacements[key],loader:'ts'}:undefined;});}}]});
 const loaded=new Module(path.resolve('fusion-quality-tests.cjs'));loaded.paths=Module._nodeModulePaths(process.cwd());loaded._compile(bundle.outputFiles[0].text,loaded.id);
@@ -73,6 +74,19 @@ test('1A luckOverlap: 戌 대운 × 未 세운 is 미술파, and a 축술미형 
  assert.ok(!without.months[0].relations.some(r=>r.type==='지지형'));
  assert.equal(m.buildLuckOverlap([{label:'pillarDetails',value:{}}]),undefined,'no 대운, no overlap');
 });
+test('1A luckOverlap: 寅 in the chart completes 인사신형 with 巳 대운 and 申 세운; a year no 대운 covers has no row',()=>{
+ const facts=[{label:'pillarDetails',value:{year:pillar('연주','丁丑'),month:pillar('월주','壬寅'),day:pillar('일주','癸未'),hour:pillar('시주','戊午')}},
+  {label:'majorLuck',value:{cycles:[{index:3,startYear:2020,endYear:2029,pillar:'己巳',heavenlyStem:'己',earthlyBranch:'巳'}]}},
+  {label:'yearlyLuck',value:[{year:2028,pillar:'戊申'},{year:2029,pillar:'己酉'},{year:2031,pillar:'辛亥'}]},
+  {label:'monthlyLuck',value:[{start:{year:2026,month:2,day:4},pillar:'庚寅'}]}];
+ const {years,months}=m.buildLuckOverlap(facts),labels=year=>years.find(r=>r.year===year).relations.map(r=>r.label).sort();
+ assert.deepEqual(labels(2028),['사신파','사신합','인사신형']);
+ assert.deepEqual([...years[0].relations.find(r=>r.label==='인사신형').between].sort(),['대운','세운','월주'].sort());
+ assert.deepEqual(labels(2029),['사유축 삼합']);
+ assert.equal(years.some(r=>r.year===2031),false);
+ assert.equal(months[0].majorLuckPillar,'己巳');
+ assert.ok(months[0].relations.every(r=>r.between.includes('월운')&&r.between.includes('대운')));
+});
 test('1A luckOverlap reaches a timing chapter as a fact it may cite',async()=>{
  const row=await prepare('fusion_all');
  const chapter=byKey(row.snapshot.manifest,'life-year');
@@ -81,6 +95,9 @@ test('1A luckOverlap reaches a timing chapter as a fact it may cite',async()=>{
  assert.ok(overlap&&overlap.rule&&overlap.years.length===1,'one scoped year');
  assert.equal(overlap.years[0].year,fact(facts,'yearlyLuck')[0].year);
  assert.ok(!row.snapshot.analysis.contexts.saju.facts.some(f=>f.label==='luckOverlap'),'derived per request, not stored');
+ // Tiers without 대운 lose the 대운 overlap with it.
+ const tier=t=>fact(m.selectChapterFacts(row.snapshot.analysis.contexts.saju,{...chapter,tier:t}),'luckOverlap');
+ assert.ok(tier('omakase'));assert.equal(tier('mackerel'),undefined);
 });
 
 // 2A: a palace subset and 대한·유년 rows carry the 12-palace 대궁·삼합 names.
@@ -93,6 +110,7 @@ test('2A ziwei: relation table on a palace subset and palaceRelations on 대한�
  assert.ok(palaces.palaces.length<12);
  assert.equal(Object.keys(palaces.relationTable).length,12);
  assert.deepEqual({...palaces.relationTable['명궁'],trines:[...palaces.relationTable['명궁'].trines].sort()},{facing:'천이궁',trines:['관록궁','재백궁']});
+ for(const [name,r] of Object.entries(palaces.relationTable)){assert.equal(palaces.relationTable[r.facing].facing,name);assert.ok(r.trines.every(t=>palaces.relationTable[t].trines.includes(name)),name);}
  const decade=m.selectChapterFacts(row.snapshot.analysis.contexts.ziwei,{...chapter,factSelectors:{ziwei:['majorLuck','yearlyTimeline']},questionPolicy:'test'});
  const rows=[...fact(decade,'majorLuck'),...fact(decade,'yearlyTimeline')];
  assert.ok(rows.length&&rows.every(r=>r.palaceRelations&&r.palaceRelations.facing===palaces.relationTable[r.palaceName].facing),'every row names its 대궁');
@@ -121,6 +139,13 @@ test('4 scope: 올해·내년 예고·10년 주기 장이 각자의 시기를 �
  assert.deepEqual(years('life-next-year'),[first+1]);
  const months=fact(m.selectChapterFacts(saju,byKey(row.snapshot.manifest,'life-next-year')),'monthlyLuck')||[];
  assert.ok(months.every(r=>r.start.year===first+1));
+ const thisYear=fact(m.selectChapterFacts(saju,byKey(row.snapshot.manifest,'life-year')),'monthlyLuck')||[];
+ assert.ok(thisYear.length&&thisYear.every(r=>r.start.year===first),'올해 장은 그해 월운만');
+ const spill={...saju,facts:saju.facts.map(f=>f.label==='monthlyLuck'?{...f,value:[...f.value,{start:{year:first+1,month:2,day:4},pillar:'甲寅'}]}:f)};
+ assert.ok(fact(m.selectChapterFacts(spill,byKey(row.snapshot.manifest,'life-year')),'monthlyLuck').every(r=>r.start.year===first),'다음 해 월운은 올해 장에 없다');
+ const ziwei=row.snapshot.analysis.contexts.ziwei;
+ assert.equal(fact(m.selectChapterFacts(ziwei,byKey(row.snapshot.manifest,'life-next-year')),'yearlyLuck'),undefined,'기준 연도 유년은 내년 장에 없다');
+ assert.ok(fact(m.selectChapterFacts(ziwei,byKey(row.snapshot.manifest,'life-year')),'yearlyLuck'));
  const major=fact(m.selectChapterFacts(saju,byKey(row.snapshot.manifest,'life-decade')),'majorLuck');
  const stored=fact(saju.facts,'majorLuck');
  assert.equal(major.currentCycle.index,stored.currentCycle.index);
@@ -143,8 +168,10 @@ test('4 scope: ask question chapters read the requested period; life chapters do
  }
  const life=JSON.parse((await captureRequest(row,byKey(manifest,'life-year'))).domainRules);
  assert.equal(life.consultation.period.kind,'default');
+ assert.doesNotMatch(life.timeContract,/period.years에 이미 확정|period.label에 명시한 기간/);
  const answer=JSON.parse((await captureRequest(row,byKey(manifest,'answer'))).domainRules);
  assert.deepEqual(answer.consultation.period,period);
+ assert.match(answer.timeContract,/period.years에 이미 확정/);
 });
 
 // 9A: a tarot position is the moment of the question, never a month of the requested period.
@@ -154,11 +181,16 @@ test('9A tarot: each card names its time frame and the prompt copy drops image f
  const cards=fact(m.selectChapterFacts(tarot,chapter),'cards');
  assert.ok(cards.length);
  for(const card of cards){
-  assert.ok(card.timeFrame&&/기간|시기|달|날짜/.test(card.timeFrame),card.positionKey);
+  assert.match(card.timeFrame,/달력 시기 아님$/,card.positionKey);
   assert.ok(!Object.keys(card).some(k=>/image/i.test(k)),'no image fields');
  }
  const current=cards.find(c=>c.positionKey==='current');
- if(current)assert.match(current.timeFrame,/지금/);
+ if(current)assert.equal(current.timeFrame,'카드를 뽑은 지금 · 달력 시기 아님');
+ assert.ok(fact(tarot.facts,'cards').every(c=>!('timeFrame' in c)),'stored draw unchanged');
+ // Only the month spread's 1–4주 차 positions are dated, and only from the draw.
+ assert.equal(m.tarotTimeFrame('week2'),'카드를 뽑은 날부터 2주 차');
+ const consult=fact(m.selectChapterFacts({...tarot,facts:[{id:'tarot.tarotConsultation',label:'tarotConsultation',value:{cards:[{positionKey:'current',imageKey:'x'}]}}]},{...chapter,factSelectors:{tarot:['tarotConsultation']}}),'tarotConsultation');
+ assert.equal(consult.cards[0].timeFrame,'카드를 뽑은 지금 · 달력 시기 아님');
 });
 
 // 12: the ask opening answers the question across systems; its catalog title named only the first system.
@@ -265,6 +297,7 @@ test('C8 the fusion ask opening carries one evidence slot per system',async()=>{
 });
 test('C9 ASK_PERIOD_GUIDE keeps tarot positions out of the requested period',()=>{
  assert.match(m.ASK_PERIOD_GUIDE,/타로 position을 시기로 옮기지 않는다/);
+ assert.match(m.ASK_PERIOD_GUIDE,/1~4주 차 자리는 카드를 뽑은 날부터/);
 });
 test('C10 saju prevention candidates are pre-ranked, and conditions·signals must name the 충·파 anchor',async()=>{
  const tension=(kind,label)=>({kind,label});
