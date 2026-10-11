@@ -872,7 +872,10 @@
     "promptHub": {
       "aria": "Gehen Sie zu umfassenden Glücksfragen",
       "alt": "Umfassende Glückshinweise",
-      "sr": "Umfassende Glückshinweise"
+      "sr": "Umfassende Glückshinweise",
+      "honeyLabel": "Meine Honigtropfen",
+      "honeyAttend": "Heute einchecken und Honigtropfen sammeln",
+      "honeyAttended": "Heute eingecheckt"
     },
     "premiumArchive": {
       "kicker": "VVIP DESTINY ARCHIV",
@@ -7134,7 +7137,7 @@
         "k53h7ds": "Psychotest",
         "k79pfmc": "Nakshatra",
         "k871xeu": "Kostenlos · Selfie-Gesichtsanalyse",
-        "ka0v1mf": "Kostenlos · 11 Tools",
+        "ka0v1mf": "Honigtropfen · 16 Werkzeuge",
         "kry6axn": "27 Sukuyo Mondpositionen",
         "kslqazg": "Umfassender Deutungs-Prompt",
         "kxgi8q8": "Wahrsager-Fisch",
@@ -7459,7 +7462,7 @@
         "k1ygnp9f2": {
           "ariaLabel": "Kernpunkte"
         },
-        "k231dx8": "Erstellen Sie sofort kostenlose Beratungs-Prompts mit 16 Werkzeugen wie Vier Säulen (BaZi), Tarot, Astrologie und Zi Wei Dou Shu.",
+        "k231dx8": "Erstelle sofort Beratungs-Prompts mit 16 Werkzeugen – Saju, Tarot, Astrologie, Zi Wei Dou Shu und mehr.",
         "k3baulf": "Hunminjeongeum Namensgebung",
         "k6uqkuq": {
           "ariaLabel": "Zusammenfassung der Kernpunkte"
@@ -7511,7 +7514,7 @@
         "k1scb7d8": {
           "alt": "Repräsentatives Bild des Schicksals"
         },
-        "koe32kc": "Kostenlose Testphase",
+        "koe32kc": "Honigtropfen",
         "ktgbfsy": "NEU · Definitive Ausgabe",
         "n50001000020000": "Tarot 5.000 ₩ · Vier Säulen (BaZi) 10.000 ₩ · Partnerschaftsanalyse 20.000 ₩",
         "k1dw3t0h": "Diagramm kostenlos · Expertenberatung kostenpflichtig",
@@ -7532,7 +7535,7 @@
     "tarotTileBody": {
       "featuredContentCardCta": {
         "k1f1oofn": "Teestube betreten",
-        "kdyjsns": "Kostenlos testen",
+        "kdyjsns": "Prompt erstellen",
         "kwux29x": "Strategieraum betreten"
       },
       "pvcPremMeta": {
@@ -7602,7 +7605,7 @@
         "ko4w810": "16 Werkzeuge wie Vier Säulen · Tarot · Astrologie",
         "kozjlt4": "Praktische Ratschläge für Beziehungen · Finanzen · Arbeit · Entscheidungen",
         "kqwk9o": "Beratung zu Häusern und Sternenflüssen nach Themen",
-        "krx9ppb": "1 Gratistest · unbegrenzt nach Anmeldung",
+        "krx9ppb": "1 Honigtropfen je 3 Check-ins · 1 Tropfen pro Prompt",
         "ktv5xm9": "Deutung des Vier Säulen Geburtsdiagramms und des Fünf Elemente Gleichgewichts",
         "ktx0v26": "Wählen Sie Ihre Schicksalskarte unter dem Löwenwappen",
         "kvigm32": "Praktische Ratschläge, abgestimmt auf Ihre aktuelle Beziehung",

@@ -229,7 +229,7 @@ while ((match = TILE_OPEN.exec(shell))) {
   const feature = resolveFeature(featureKey);
   if (!feature) {
     /* 값이 걸린 타일만 정본 등재를 강제한다. 코인·가격이 전혀 없는 타일의 data-feature-key 는
-       과금 키가 아니라 단순 마커다(예: fortune-prompt-hub — 무료 진입). 돈 냄새가 나면 실패. */
+       과금 키가 아니라 단순 마커다(예: fortune-prompt-hub — 출석 꿀방울 진입). 돈 냄새가 나면 실패. */
     if (coin || shown) {
       fail(`셸 타일 "${label}": data-feature-key "${featureKey}" 가 결제 정본에 없는데 가격이 걸려 있다 (coin=${coin || "-"}, 배지="${badge.trim() || "-"}")`);
     } else {

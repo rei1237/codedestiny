@@ -872,7 +872,10 @@
     "promptHub": {
       "aria": "Pergi ke gesaan nasib yang komprehensif",
       "alt": "Gesaan nasib yang komprehensif",
-      "sr": "Gesaan nasib yang komprehensif"
+      "sr": "Gesaan nasib yang komprehensif",
+      "honeyLabel": "Titisan madu saya",
+      "honeyAttend": "Hadir hari ini untuk titisan madu",
+      "honeyAttended": "Sudah hadir hari ini"
     },
     "premiumArchive": {
       "kicker": "ARKIB DESTINY VVIP",
@@ -7134,7 +7137,7 @@
         "k53h7ds": "Ujian Psikologi",
         "k79pfmc": "Nakshatra",
         "k871xeu": "Percuma · Analisis Wajah Selfie",
-        "ka0v1mf": "Percuma · 11 Alat",
+        "ka0v1mf": "Titisan madu · 16 alat",
         "kry6axn": "27 Nakshatra",
         "kslqazg": "Prom Bacaan Komprehensif",
         "kxgi8q8": "Ikan Fortune Teller",
@@ -7459,7 +7462,7 @@
         "k1ygnp9f2": {
           "ariaLabel": "Poin Utama"
         },
-        "k231dx8": "Cipta prompt konsultasi percuma dengan 16 alat seperti Empat Tiang, Tarot, Astrologi, Zi Wei Dou Shu, dan banyak lagi.",
+        "k231dx8": "Bina prompt rundingan serta-merta dengan 16 alat: Saju, tarot, astrologi, Zi Wei Dou Shu dan lain-lain.",
         "k3baulf": "Pusat Penamaan Hunminjeongeum",
         "k6uqkuq": {
           "ariaLabel": "Ringkasan Utama"
@@ -7511,7 +7514,7 @@
         "k1scb7d8": {
           "alt": "Imej wakil Takdir"
         },
-        "koe32kc": "Cuba Percuma",
+        "koe32kc": "Titisan madu",
         "ktgbfsy": "BARU · Edisi Muktamad",
         "n50001000020000": "Tarot 5,000 won · Empat Tiang 10,000 won · Keserasian 20,000 won",
         "k1dw3t0h": "Carta percuma · rundingan pakar berbayar",
@@ -7532,7 +7535,7 @@
     "tarotTileBody": {
       "featuredContentCardCta": {
         "k1f1oofn": "Masuk Kedai Teh Takdir",
-        "kdyjsns": "Cuba secara percuma",
+        "kdyjsns": "Bina prompt",
         "kwux29x": "Masuk Bilik Strategi"
       },
       "pvcPremMeta": {
@@ -7602,7 +7605,7 @@
         "ko4w810": "16 alat termasuk Empat Tiang (BaZi) · Tarot · Astrologi",
         "kozjlt4": "Nasihat praktikal untuk hubungan · kekayaan · kerja · pilihan",
         "kqwk9o": "Konsultasi aliran rumah dan bintang mengikut topik",
-        "krx9ppb": "1 percubaan percuma · tanpa had selepas daftar",
+        "krx9ppb": "1 titisan madu setiap 3 kehadiran · 1 titisan setiap prompt",
         "ktv5xm9": "Pembacaan carta kelahiran Empat Tiang (BaZi) dan keseimbangan Lima Unsur",
         "ktx0v26": "Peta nasib yang dipilih di bawah lambang singa",
         "kvigm32": "Nasihat praktikal yang disesuaikan dengan hubungan semasa",

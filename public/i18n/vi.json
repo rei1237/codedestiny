@@ -872,7 +872,10 @@
     "promptHub": {
       "aria": "Đến phần gợi ý bói toàn diện",
       "alt": "Lời nhắc bói toàn diện",
-      "sr": "Lời nhắc bói toàn diện"
+      "sr": "Lời nhắc bói toàn diện",
+      "honeyLabel": "Giọt mật của tôi",
+      "honeyAttend": "Điểm danh hôm nay để nhận giọt mật",
+      "honeyAttended": "Đã điểm danh hôm nay"
     },
     "premiumArchive": {
       "kicker": "LƯU TRỮ VVIP SỐ mệnh",
@@ -7134,7 +7137,7 @@
         "k53h7ds": "Trắc nghiệm tâm lý",
         "k79pfmc": "Nakshatra",
         "k871xeu": "Miễn phí · Phân tích khuôn mặt selfie",
-        "ka0v1mf": "Miễn phí · 11 công cụ",
+        "ka0v1mf": "Giọt mật điểm danh · 16 công cụ",
         "kry6axn": "27 Túc Diệu",
         "kslqazg": "Lời nhắc vận mệnh tổng hợp",
         "kxgi8q8": "Cá Thầy bói",
@@ -7459,7 +7462,7 @@
         "k1ygnp9f2": {
           "ariaLabel": "Điểm chính"
         },
-        "k231dx8": "Tạo ngay prompt tư vấn miễn phí với 16 công cụ như Tứ Trụ, Tarot, Chiêm tinh học, Tử Vi Đẩu Số.",
+        "k231dx8": "Tạo ngay prompt tư vấn với 16 công cụ: Tứ trụ, tarot, chiêm tinh, Tử vi đẩu số và hơn thế.",
         "k3baulf": "Phòng Đặt Tên Huấn Dân Chính Âm",
         "k6uqkuq": {
           "ariaLabel": "Tóm tắt chính"
@@ -7511,7 +7514,7 @@
         "k1scb7d8": {
           "alt": "Hình ảnh đại diện của nghiệp vận mệnh"
         },
-        "koe32kc": "Trải nghiệm miễn phí",
+        "koe32kc": "Giọt mật điểm danh",
         "ktgbfsy": "MỚI · Phiên bản quyết định",
         "n50001000020000": "Tarot 5.000 KRW · Tứ Trụ 10.000 KRW · Hợp duyên 20.000 KRW",
         "k1dw3t0h": "Lá số miễn phí · tư vấn chuyên sâu có phí",
@@ -7532,7 +7535,7 @@
     "tarotTileBody": {
       "featuredContentCardCta": {
         "k1f1oofn": "Vào quán trà vận mệnh",
-        "kdyjsns": "Trải nghiệm miễn phí",
+        "kdyjsns": "Tạo prompt",
         "kwux29x": "Vào phòng tác chiến"
       },
       "pvcPremMeta": {
@@ -7602,7 +7605,7 @@
         "ko4w810": "16 công cụ như Tứ Trụ · Tarot · Chiêm tinh",
         "kozjlt4": "Lời khuyên thực tế cho quan hệ · tài lộc · công việc · lựa chọn",
         "kqwk9o": "Tư vấn dòng chảy cung và sao theo chủ đề",
-        "krx9ppb": "1 lần miễn phí · không giới hạn sau khi đăng ký",
+        "krx9ppb": "Cứ 3 lần điểm danh được 1 giọt mật · mỗi lượt dùng 1 giọt",
         "ktv5xm9": "Phân tích lá số Tứ Trụ và cân bằng Ngũ Hành",
         "ktx0v26": "Bản đồ vận mệnh được chọn dưới huy hiệu Sư Tử",
         "kvigm32": "Lời khuyên thực tế phù hợp với mối quan hệ hiện tại",

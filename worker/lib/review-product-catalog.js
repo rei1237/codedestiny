@@ -40,6 +40,7 @@ export const REVIEW_PRODUCTS = Object.freeze([
       "rpgCharacter",
       "fun.quantumLotto.ritualReport",
       "daily-fortune-reading",
+      "fortune-prompt-hub-generate",
     ]),
   },
   {

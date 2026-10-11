@@ -71,3 +71,13 @@ Cloudflare Workers는 런타임에 파일을 읽을 수 없으므로, 이 문서
 > 코드(`worker/lib/paid-feature-registry.js`)는 이미 반영돼 있었는데 이 가드 표만 갱신이 누락돼
 > `verify:payment-policy-md`가 실패하고 있었다. 위 "이 문서가 정본" 규칙은 그대로 유효하며,
 > 앞으로 이 표의 값을 바꿀 때는 **정책 결정을 먼저 문서에 적고 코드를 맞추는** 순서를 지킨다.
+
+## 운세 프롬프트 허브 — 꿀방울과 대체 결제
+
+2026-10-12 사용자 승인. 프롬프트 1회 생성 = 꿀방울 1개이며, 꿀방울은 출석 3회마다 1개 지급된다
+(찻집과 같은 지갑 `fortune_tea_house_honey_wallets`). 꿀방울이 없을 때만 아래 단건 결제로 1회 생성한다.
+조립 템플릿은 서버(`lib/fortune/prompt-hub-template.js`)에만 있고 `POST /api/fortune/prompt-hub/generate` 가 차감 후 내려준다.
+
+| 상품 | featureKey | 가격(KRW) | cost(코인) | 비고 |
+|------|-----------|-----------|-----------|------|
+| 운세 프롬프트 1회 생성 | `fortune-prompt-hub-generate` | 3,000원 | 30 | 단건 · 꿀방울 대체 · Play `cd_content_tier_01` |

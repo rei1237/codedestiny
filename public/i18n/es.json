@@ -872,7 +872,10 @@
     "promptHub": {
       "aria": "Ir a indicaciones completas sobre la fortuna",
       "alt": "Indicaciones completas de fortuna",
-      "sr": "Indicaciones completas de fortuna"
+      "sr": "Indicaciones completas de fortuna",
+      "honeyLabel": "Mis gotas de miel",
+      "honeyAttend": "Asiste hoy y gana gotas de miel",
+      "honeyAttended": "Asistencia de hoy hecha"
     },
     "premiumArchive": {
       "kicker": "ARCHIVO DE DESTINO VVIP",
@@ -7134,7 +7137,7 @@
         "k53h7ds": "Test de personalidad",
         "k79pfmc": "Nakshatra",
         "k871xeu": "Gratis · Análisis facial con selfie",
-        "ka0v1mf": "Gratis · 11 herramientas",
+        "ka0v1mf": "Gotas de miel · 16 herramientas",
         "kry6axn": "27 Nakshatras",
         "kslqazg": "Prompt de lectura completa",
         "kxgi8q8": "Pez adivino",
@@ -7459,7 +7462,7 @@
         "k1ygnp9f2": {
           "ariaLabel": "Puntos clave"
         },
-        "k231dx8": "Crea prompts de consulta gratuitos al instante con 16 herramientas como Cuatro Pilares (BaZi), Tarot, Astrología y Zi Wei Dou Shu.",
+        "k231dx8": "Crea al instante prompts de consulta con 16 herramientas: Saju, tarot, astrología, Zi Wei Dou Shu y más.",
         "k3baulf": "Estudio de Nombres Hunminjeongeum",
         "k6uqkuq": {
           "ariaLabel": "Resumen clave"
@@ -7511,7 +7514,7 @@
         "k1scb7d8": {
           "alt": "Imagen representativa del destino"
         },
-        "koe32kc": "Prueba gratuita",
+        "koe32kc": "Gotas de miel",
         "ktgbfsy": "NUEVO · Edición definitiva",
         "n50001000020000": "Tarot 5.000 KRW · Cuatro Pilares (BaZi) 10.000 KRW · Compatibilidad 20.000 KRW",
         "k1dw3t0h": "Carta gratis · consulta experta de pago",
@@ -7532,7 +7535,7 @@
     "tarotTileBody": {
       "featuredContentCardCta": {
         "k1f1oofn": "Entrar a la casa de té del destino",
-        "kdyjsns": "Probar gratis",
+        "kdyjsns": "Crear un prompt",
         "kwux29x": "Entrar a la sala de estrategia"
       },
       "pvcPremMeta": {
@@ -7602,7 +7605,7 @@
         "ko4w810": "16 herramientas como Cuatro Pilares, Tarot y astrología",
         "kozjlt4": "Consejos prácticos para relaciones, finanzas, trabajo y decisiones",
         "kqwk9o": "Consulta de casas temáticas y flujo estelar",
-        "krx9ppb": "1 prueba gratis · ilimitado al registrarte",
+        "krx9ppb": "1 gota de miel cada 3 asistencias · 1 gota por prompt",
         "ktv5xm9": "Lectura de la carta natal de Cuatro Pilares y equilibrio de los Cinco Elementos",
         "ktx0v26": "Mapa del destino elegido bajo el emblema del león",
         "kvigm32": "Consejos prácticos adaptados a tu relación actual",

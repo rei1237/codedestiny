@@ -872,7 +872,10 @@
     "promptHub": {
       "aria": "Go to comprehensive fortune prompts",
       "alt": "Comprehensive fortune prompts",
-      "sr": "Comprehensive fortune prompts"
+      "sr": "Comprehensive fortune prompts",
+      "honeyLabel": "My honey drops",
+      "honeyAttend": "Check in today for honey drops",
+      "honeyAttended": "Checked in today"
     },
     "premiumArchive": {
       "kicker": "VVIP DESTINY ARCHIVE",
@@ -7134,7 +7137,7 @@
         "k53h7ds": "Personality Test",
         "k79pfmc": "Nakshatra",
         "k871xeu": "Free · Selfie Face Analysis",
-        "ka0v1mf": "Free · 11 Tools",
+        "ka0v1mf": "Honey drops · 16 tools",
         "kry6axn": "27 Lunar Mansions",
         "kslqazg": "Comprehensive Reading Prompt",
         "kxgi8q8": "Fortune Teller Fish",
@@ -7459,7 +7462,7 @@
         "k1ygnp9f2": {
           "ariaLabel": "Key Points"
         },
-        "k231dx8": "Instantly create free consultation prompts using 16 tools, including Four Pillars (BaZi), Tarot, Astrology, and Zi Wei Dou Shu.",
+        "k231dx8": "Build consultation prompts right away with 16 tools — Saju, tarot, astrology, Zi Wei Dou Shu and more.",
         "k3baulf": "Hunminjeongeum Naming Service",
         "k6uqkuq": {
           "ariaLabel": "Key Summary"
@@ -7511,7 +7514,7 @@
         "k1scb7d8": {
           "alt": "Image representing the destiny business"
         },
-        "koe32kc": "Free Trial",
+        "koe32kc": "Honey drops",
         "ktgbfsy": "NEW · Definitive Ed.",
         "n50001000020000": "Tarot ₩5,000 · Four Pillars (BaZi) ₩10,000 · Compatibility ₩20,000",
         "k1dw3t0h": "Chart free · expert reading paid",
@@ -7532,7 +7535,7 @@
     "tarotTileBody": {
       "featuredContentCardCta": {
         "k1f1oofn": "Enter Destiny Teahouse",
-        "kdyjsns": "Try for Free",
+        "kdyjsns": "Build a prompt",
         "kwux29x": "Enter Ops Room"
       },
       "pvcPremMeta": {
@@ -7602,7 +7605,7 @@
         "ko4w810": "16 tools including Four Pillars · Tarot · Astrology",
         "kozjlt4": "Practical advice for relationships · wealth · work · choices",
         "kqwk9o": "Counseling on palaces and star flows by topic",
-        "krx9ppb": "1 free try · unlimited after signup",
+        "krx9ppb": "1 honey drop every 3 check-ins · 1 drop per prompt",
         "ktv5xm9": "Four Pillars birth chart and Five Elements balance analysis",
         "ktx0v26": "Choose your destiny map under the lion emblem",
         "kvigm32": "Practical advice tailored to your current relationship",

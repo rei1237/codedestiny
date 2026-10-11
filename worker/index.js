@@ -487,6 +487,7 @@ const handleAppStoreRoutes = createLazyRouteHandler("./routes/app-store.js", () 
 const handleAdminRoutes = createLazyRouteHandler("./routes/admin.js", () => import("./routes/admin.js"), "handleAdminRoutes");
 const handleFortuneRoutes = createLazyRouteHandler("./routes/fortune.js", () => import("./routes/fortune.js"), "handleFortuneRoutes");
 const handleFortuneTodayRoutes = createLazyRouteHandler("./routes/fortune-today.js", () => import("./routes/fortune-today.js"), "handleFortuneTodayRoutes");
+const handlePromptHubRoutes = createLazyRouteHandler("./routes/prompt-hub.js", () => import("./routes/prompt-hub.js"), "handlePromptHubRoutes", "api/prompt-hub");
 const handleFusionFortuneRoutes = createLazyRouteHandler("./routes/fusion-fortune.js", () => import("./routes/fusion-fortune.js"), "handleFusionFortuneRoutes", "api/fusion-fortune");
 const handleFortuneChatRoutes = createLazyRouteHandler("./routes/fortune-chat.js", () => import("./routes/fortune-chat.js"), "handleFortuneChatRoutes", "api/fortune-chat");
 const handleTarotRoutes = createLazyRouteHandler("./routes/tarot.js", () => import("./routes/tarot.js"), "handleTarotRoutes");
@@ -1511,6 +1512,10 @@ const app = {
       if (url.pathname === '/api/fortune/cards' || url.pathname.startsWith('/api/fortune/cards/')) {
         const { handleInsightCardRoutes } = await import('./routes/insight-cards.js');
         return withCorsHeaders(request, env, await handleInsightCardRoutes(request, env, {allowOrigin: origin => isAllowedOrigin(origin, env)}));
+      }
+      // 프롬프트 허브 조립·꿀방울 출석 — 템플릿은 서버에만 있고 꿀방울(또는 회당 결제)로 연다.
+      if (url.pathname === "/api/fortune/prompt-hub/generate" || url.pathname === "/api/honey/attendance") {
+        return withCorsHeaders(request, env, await handlePromptHubRoutes(request, env));
       }
       if (url.pathname === "/api/fortune/today-hub") {
         return withCorsHeaders(request, env, await handleFortuneTodayRoutes(request, env));
