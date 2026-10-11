@@ -544,3 +544,7 @@ status: active
 ## 시크릿 하우스
 - 5가상인물/4박5일15기본장면/7엔딩유형을8장 개별편집. 원본SHIP. native21 360/390/430/540 clipping/fallback/CTA PASS;무료달력mock4/유료POST0. 카드의미구현엔딩저장문구를실제문구링크공유로수정. 문법/detect PASS.
 - 유료구성149원본+공통1원본1319패널 로컬검수. health묶음 pre-push PASS. 전체/main전달미완료·운영미배포. 다음명리타로/올림푸스.
+
+## 명리학 타로 세 장
+- 8주제/자동3장/카드십성규칙해석/AI질문문복사를9장 개별편집. 원본제목고아줄수정후SHIP. 실제3모드 안내상단이동으로clipping해소;기존고정높이CTA가림은sourceheight:auto수정,criticalsubset기존규칙CSSOM갱신. native22 304/334/374/380 clipping/fallback/CTAtrial PASS POST0. topic-lock352+1092/문법/detector PASS.
+- 유료구성150원본+공통1원본1328패널. 직전813ded8c6 pre-push PASS. sajuDiary/section_compat는현재판매진입미확인으로판매확인보류;올림푸스마지막조사. main전달/운영미완료.

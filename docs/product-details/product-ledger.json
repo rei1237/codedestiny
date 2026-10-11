@@ -5509,7 +5509,7 @@
     {
       "productId": "sajuDiary",
       "displayName": "Saju diary unlock",
-      "saleStatus": "판매 진입 확인 필요",
+      "saleStatus": "레거시가격키존재;현재단독판매진입미확인",
       "entry": [],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 10000,
@@ -5520,11 +5520,14 @@
       "separatePurchase": [],
       "reviewSource": [],
       "images": [],
-      "status": "조사",
+      "status": "판매 확인 보류",
       "appliedAt": [],
-      "verification": [],
+      "verification": [
+        "app/js/index.html 범위심볼검색:직접상품진입없음",
+        "현재luck-sync-diary 상품은별도대장;이키와동일상품으로추정하지않음"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "이레거시키의현재판매화면·제공물근거필요;키만보고상세제작하지않음"
       ],
       "detailAliases": []
     },
@@ -5608,7 +5611,7 @@
     {
       "productId": "section_compat",
       "displayName": "Section compat unlock",
-      "saleStatus": "판매 진입 확인 필요",
+      "saleStatus": "레거시가격키존재;현재단독판매진입미확인",
       "entry": [],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 3000,
@@ -5619,11 +5622,14 @@
       "separatePurchase": [],
       "reviewSource": [],
       "images": [],
-      "status": "조사",
+      "status": "판매 확인 보류",
       "appliedAt": [],
-      "verification": [],
+      "verification": [
+        "app/js/index.html 범위심볼검색:직접상품진입없음",
+        "index.html·access-store.js·birth-scope-unlocks.js의이용권별칭/범위처리만남음;현행compat-saju-compatibility 별도대장"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "이레거시키의현재판매화면·제공물근거필요;키만보고상세제작하지않음"
       ],
       "detailAliases": []
     },
@@ -5793,25 +5799,56 @@
     },
     {
       "productId": "tarot-myeongri-three-card",
-      "displayName": "명리학 타로 3장 스프레드",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "displayName": "명리학 타로 · 세 장의 흐름",
+      "saleStatus": "명리타로3모드 최종리딩3000원·정본게이트확인",
+      "entry": [
+        "index.html tarotModalOverlay/setTarotMode three/tarotFinalBtn"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 3000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "inputRequirements": [
+        "8주제중선택",
+        "자동3장배치후순차공개;개인출생명식전체계산없음"
       ],
-      "detailAliases": []
+      "resultRenderer": [
+        "js/saju-engine-tarot-sukuyo-quantum.js _runShowTarotFinalInterpretation/buildTarotRealityPlan/buildMyeongriPositionReadingHtml"
+      ],
+      "actualContents": [
+        "세장흐름요약",
+        "자리별핵심판정/카드와십성의결/오늘의선택/오늘의한문장",
+        "오늘조율문장/봉인오라클",
+        "카드·정역·자리·주제기반 AI질문문복사"
+      ],
+      "conditionalItems": [
+        "질문분야별자리명/주제문장차이",
+        "카드연결십성;개인명식전체해석아님",
+        "AI질문문복사이지서비스AI답변아님",
+        "PDF/결과보관함없음"
+      ],
+      "separatePurchase": [
+        "기존한장리딩과세장통합범위구분",
+        "외부AI이용포함아님"
+      ],
+      "reviewSource": [],
+      "images": [
+        "public/images/feature-details/tarot-hero-v2.webp 기존삽화직접시각확인",
+        "/feature-details/crafted/myeongri-tarot-three/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "3모드에서 모달상단 상세안내→shared static loader"
+      ],
+      "verification": [
+        "원본9 제목고아줄수정후 독립SHIP",
+        "native22 304/334/374/380 clipping/fallback/CTAtrial PASS;POST0",
+        "topic-lock352+1092케이스및프롬프트계약PASS;JS문법/detector PASS",
+        "카드영역고정높이의desktopCTA가림을height:auto로수정;criticalsubset기존1규칙을authoredCSSOM에서재생성"
+      ],
+      "unconfirmed": [
+        "main전달/CI대기;실결제·실LLM미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "stonehenge-runes-ai-prompt",

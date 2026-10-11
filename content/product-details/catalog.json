@@ -143,7 +143,8 @@
     "physiognomy-compatibility": "physiognomy-compat",
     "physiognomy-pastlife-compatibility": "physiognomy-pastlife",
     "rpt_healthReportCard": "health-rhythm",
-    "rpt_secretHouseEntryCard": "secret-house"
+    "rpt_secretHouseEntryCard": "secret-house",
+    "tarot-myeongri-three-card": "myeongri-tarot-three"
   },
   "introductions": {
     "fusion-fortune": [

@@ -1121,9 +1121,14 @@ function setTarotMode(mode) {
   var sceneThree = document.getElementById('tarotSceneThree');
   var btns = document.querySelectorAll('.tarot-mode-btn');
   if (!sceneOne || !sceneThree) return;
+  var craftedOffer = document.querySelector('[data-crafted-static-offer="tarot-myeongri-three-card"]');
+  if (craftedOffer) craftedOffer.hidden = mode !== 'three';
   if (mode === 'three') {
     sceneOne.style.display = 'none';
     sceneThree.style.display = 'flex';
+    if (craftedOffer) import('/js/core/saju/crafted-product-details.mjs').then(function(module) {
+      if (craftedOffer.isConnected) module.mountCraftedStaticOffer(craftedOffer);
+    }).catch(function() {});
     btns.forEach(function(b) {
       b.classList.toggle('active', b.getAttribute('data-action-args') === 'three');
     });

@@ -1250,7 +1250,7 @@ body::before, body::after { display: none !important; }
 .tarot-mode-btn { padding: 8px 18px; border-radius: 999px; font-size: 0.88rem; font-weight: 700; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); color: rgba(243, 231, 216, 0.65); cursor: pointer; transition: 0.3s; touch-action: manipulation; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
 .tarot-mode-btn:hover { background: rgba(255, 255, 255, 0.12); color: rgb(243, 231, 216); }
 .tarot-mode-btn.active { background: rgba(179, 25, 85, 0.35); border-color: rgba(234, 208, 137, 0.55); color: rgb(255, 255, 255); box-shadow: rgba(179, 25, 85, 0.4) 0px 0px 12px; }
-.oracle-scene-three { flex-direction: column; min-height: 380px; }
+.oracle-scene-three { flex-direction: column; height: auto; min-height: 380px; }
 .tarot-spread-guide { text-align: center; color: rgb(227, 180, 198); font-size: 0.95rem; margin-bottom: 16px; font-style: italic; min-height: 24px; transition: opacity 0.3s; }
 .tarot-spread-cards { display: flex; justify-content: center; align-items: flex-end; gap: 12px; perspective: 1600px; flex-wrap: wrap; padding: 0px 8px; }
 .tarot-slot { display: flex; flex-direction: column; align-items: center; flex: 0 0 auto; transform-style: preserve-3d; }

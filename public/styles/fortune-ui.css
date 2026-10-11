@@ -12356,7 +12356,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
               box-shadow: 0 0 12px rgba(179,25,85,0.4);
             }
             /* 쓰리카드 스프레드 */
-            .oracle-scene-three { flex-direction: column; min-height: 380px; }
+            .oracle-scene-three { flex-direction: column; height: auto; min-height: 380px; }
             .tarot-spread-guide {
               text-align: center; color: #e3b4c6; font-size: 0.95rem; margin-bottom: 16px;
               font-style: italic; min-height: 24px; transition: opacity 0.3s;
