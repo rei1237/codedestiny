@@ -50,7 +50,7 @@ test.each(['single', 'excess'])('summary %s paragraphs are saved and reopened wi
  expect(state.parts.summary.split('\n\n')).toHaveLength(10);
  expect(state.parts.summary.replace(/\s/g,'')).toBe(originalSummary.replace(/\s/g,''));
  expect((await (await resume()).json()).reading).toEqual(data.reading);
- expect(provider).toHaveBeenCalledTimes(19);
+ expect(provider).toHaveBeenCalledTimes(9);
 });
 beforeEach(()=>{docs=[];draws=[{_id:paidTarotDrawKey('tarot-mindscan','original-mindscan-draw'),featureKey:'tarot-mindscan',drawId:'original-mindscan-draw',owner:'',cards:DRAWN}];revoked=false;userId=owner;fault=null;lost=false;mode='pass';proofs=[];authError=null;
  provider=jest.fn(async(_env,prompt,options)=>{expect(options.timeoutMs).toBeLessThanOrEqual(45000);expect(options.fallbackToWorkersAI).toBe(false);
@@ -65,13 +65,13 @@ const original=()=>({requestId:'original-paid-mindscan',drawId:'original-mindsca
 const post=body=>route(new Request('https://mock.test/api/tarot/mindscan',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)}),{});
 const start=()=>post(original()),resume=()=>post({resumeResultId:docs[0].executionKey});
 const finish=async()=>{let result;for(let i=0;i<8;i++){result=await resume();if(result.status!==202)return result;}return result;};
-test.each(['pass','monthly','single'])('%s saves and reopens all nineteen parts without regeneration',async pay=>{mode=pay;expect((await start()).status).toBe(202);const result=await finish();expect(result.status).toBe(200);const data=await result.json();expect(data.saved).toBe(true);expect(data.source).toBe('llm');expect(provider).toHaveBeenCalledTimes(19);expect((await resume()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(19);expect(proofs.every(p=>p.requestId===original().requestId)).toBe(true);});
-test.each(['pass','monthly','single'].flatMap(pay=>['throw','null','confirm'].map(kind=>[pay,kind])))('%s final storage %s retains generated parts',async(pay,kind)=>{mode=pay;await start();fault={kind};const failed=await finish();expect(failed.status).toBe(503);expect(await failed.json()).toMatchObject({ok:false,retryable:true,reason:'RESULT_STORAGE_UNAVAILABLE',resultId:docs[0].executionKey});expect((await finish()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(19);});
+test.each(['pass','monthly','single'])('%s saves and reopens all nine parts (one per position) without regeneration',async pay=>{mode=pay;expect((await start()).status).toBe(202);const result=await finish();expect(result.status).toBe(200);const data=await result.json();expect(data.saved).toBe(true);expect(data.source).toBe('llm');expect(provider).toHaveBeenCalledTimes(9);expect((await resume()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(9);expect(proofs.every(p=>p.requestId===original().requestId)).toBe(true);});
+test.each(['pass','monthly','single'].flatMap(pay=>['throw','null','confirm'].map(kind=>[pay,kind])))('%s final storage %s retains generated parts',async(pay,kind)=>{mode=pay;await start();fault={kind};const failed=await finish();expect(failed.status).toBe(503);expect(await failed.json()).toMatchObject({ok:false,retryable:true,reason:'RESULT_STORAGE_UNAVAILABLE',resultId:docs[0].executionKey});expect((await finish()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(9);});
 test.each(['throw','null','confirm'])('checkpoint %s stops before provider',async kind=>{fault={kind,metadata:true};expect((await start()).status).toBe(503);expect(provider).not.toHaveBeenCalled();expect((await resume()).status).toBe(202);});
-test.each(['short','missing','wrong-facts','truncated','interrupted','mock'])('%s preserves usable raw text and retries only an unusable answer',async kind=>{const base=provider.getMockImplementation();provider.mockImplementationOnce(async(...args)=>{if(kind==='interrupted')throw Error('lost');const ai=await base(...args),value=JSON.parse(ai.text);if(kind==='short')value.body='짧음';if(kind==='missing')delete value.body;if(kind==='wrong-facts')value.evidenceHash='wrong';return {...ai,truncated:kind==='truncated',isMock:kind==='mock',text:JSON.stringify(value)};});expect((await start()).status).toBe(202);expect(Object.keys(docs[0].metadata.paidNarrative.parts)).toHaveLength(kind==='truncated'?4:3);expect((await finish()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(kind==='truncated'?19:20);});
+test.each(['short','missing','wrong-facts','truncated','interrupted','mock'])('%s preserves usable raw text and retries only an unusable answer',async kind=>{const base=provider.getMockImplementation();provider.mockImplementationOnce(async(...args)=>{if(kind==='interrupted')throw Error('lost');const ai=await base(...args),value=JSON.parse(ai.text);if(kind==='short')value.body='짧음';if(kind==='missing')delete value.body;if(kind==='wrong-facts')value.evidenceHash='wrong';return {...ai,truncated:kind==='truncated',isMock:kind==='mock',text:JSON.stringify(value)};});expect((await start()).status).toBe(202);expect(Object.keys(docs[0].metadata.paidNarrative.parts)).toHaveLength(kind==='truncated'?4:3);expect((await finish()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(kind==='truncated'?9:10);});
 test('original owner, input and revoked/denied evidence are enforced',async()=>{mode='denied';expect((await start()).status).toBe(402);expect(provider).not.toHaveBeenCalled();mode='pass';await start();userId='other';expect((await resume()).status).toBe(404);userId=owner;expect((await post({...original(),question:'변경한 질문입니다.'})).status).toBe(409);mode='denied';expect((await resume()).status).toBe(402);mode='pass';revoked=true;expect((await resume()).status).toBe(403);expect(provider).toHaveBeenCalledTimes(4);});
 test('concurrent original requests share a lease and retain original locale',async()=>{const {runWithAiLocale,getAmbientAiLocale}=await import('../../worker/lib/ai-locale-context.js');let release;const hold=new Promise(resolve=>release=resolve),base=provider.getMockImplementation(),locales=[];provider.mockImplementation(async(...args)=>{locales.push(getAmbientAiLocale());await hold;return base(...args);});const first=runWithAiLocale('ja',start);for(let i=0;i<100&&provider.mock.calls.length<4;i++)await new Promise(resolve=>setImmediate(resolve));expect((await start()).status).toBe(202);release();await first;expect(locales).toEqual(['ja','ja','ja','ja']);const pending=await route(new Request('https://mock.test/api/tarot/mindscan-result'),{});expect(pending.status).toBe(202);expect((await pending.json()).locale).toBe('ja');expect(provider).toHaveBeenCalledTimes(4);});
-test('provider interruptions have two attempts per part without false refund or completion',async()=>{provider.mockResolvedValue({ok:false});await start();for(let i=0;i<20;i++)await resume();expect(provider).toHaveBeenCalledTimes(38);expect(docs[0].status).toBe('pending');expect(Object.values(docs[0].metadata.paidNarrative.attempts).every(n=>n===2)).toBe(true);});
+test('provider interruptions have two attempts per part without false refund or completion',async()=>{provider.mockResolvedValue({ok:false});await start();for(let i=0;i<20;i++)await resume();expect(provider).toHaveBeenCalledTimes(18);expect(docs[0].status).toBe('pending');expect(Object.values(docs[0].metadata.paidNarrative.attempts).every(n=>n===2)).toBe(true);});
 
 test('invalid card is rejected before provider and storage',async()=>{expect((await post({...original(),pairs:original().pairs.map((pair,i)=>i?pair:{...pair,mainCardId:'INVALID'})})).status).toBe(400);expect(docs).toHaveLength(0);expect(provider).not.toHaveBeenCalled();});
 test.each([
@@ -101,14 +101,14 @@ test('each dealt card is read in exactly one position, in screen order',async()=
  const sections=docs[0].metadata.paidNarrative.sectionInputs;
  expect(sections.map(section=>section.positionLabel)).toEqual(['겉으로 보이는 태도','상대의 현재 마음','상대가 망설이는 이유','드러나지 않은 마음의 결','관계가 향하는 흐름']);
  expect(new Set(sections.flatMap(section=>[section.mainCard.nameKo,section.subCard.nameKo])).size).toBe(10);
- expect(provider).toHaveBeenCalledTimes(19);
+ expect(provider).toHaveBeenCalledTimes(9);
 });
 
 // B1b: a 64-char hash copy dropped a usable answer; the server now binds it.
 test('prompts carry no evidence hash and a reused card sentence is removed, not re-bought',async()=>{
  const base=provider.getMockImplementation(),lead='상대는 지금 연락의 속도를 스스로 정하고 싶어 하는 상태로 읽힙니다.';
- provider.mockImplementation(async(...args)=>{const ai=await base(...args),value=JSON.parse(ai.text);if(/\[이번 부분 section-[01]-meaning\]/.test(args[1]))value.body=lead+'\n\n'+value.body;return {...ai,text:JSON.stringify(value)};});
- await start();expect((await finish()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(19);
+ provider.mockImplementation(async(...args)=>{const ai=await base(...args),value=JSON.parse(ai.text);if(/\[이번 부분 section-[01]\]/.test(args[1]))value.body=lead+'\n\n'+value.body;return {...ai,text:JSON.stringify(value)};});
+ await start();expect((await finish()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(9);
  expect(provider.mock.calls.some(call=>/[a-f0-9]{64}/.test(call[1]))).toBe(false);
  expect(Object.values(docs[0].metadata.paidNarrative.parts).join('\n').split(lead)).toHaveLength(2);
 });
@@ -118,12 +118,12 @@ test('every part carries the shared tarot rules and each section part pins its o
  const prompts=provider.mock.calls.map(call=>call[1]),sections=docs[0].metadata.paidNarrative.sectionInputs;
  for(const prompt of prompts)expect(prompt).toContain(TAROT_SHARED_RULE_PARAGRAPH);
  expect(sections).toHaveLength(5);
- sections.forEach((section,i)=>{for(const key of ['meaning','emotion','action']){
-  const pin=prompts.find(text=>text.includes(`[이번 부분 section-${i}-${key}]`)).match(/\[이 부분의 카드\][^\n]*/)?.[0];
+ sections.forEach((section,i)=>{
+  const pin=prompts.find(text=>text.includes(`[이번 부분 section-${i}]`)).match(/\[이 부분의 카드\][^\n]*/)?.[0];
   expect(pin).toContain(section.positionLabel);
   expect(pin).toContain(`메인 ${section.mainCard.nameKo} ${section.orientation==='reversed'?'역방향':'정방향'}`);
   expect(pin).toContain(`보조 ${section.subCard.nameKo}`);
- }});
+ });
 });
 const inject=(id,sentence,times)=>{const base=provider.getMockImplementation();let left=times;
  provider.mockImplementation(async(...args)=>{const ai=await base(...args);if(!args[1].includes(`[이번 부분 ${id}]`)||left<=0)return ai;left-=1;
@@ -131,8 +131,8 @@ const inject=(id,sentence,times)=>{const base=provider.getMockImplementation();l
 const callsFor=id=>provider.mock.calls.filter(call=>call[1].includes(`[이번 부분 ${id}]`)).length;
 // 마법사 is dealt only reversed.
 test.each([['TAROT_UNDRAWN_CARD','탑 카드가 이 마음의 결말을 말합니다.'],['TAROT_ORIENTATION_MISMATCH','마법사 정방향이 상대의 태도를 보여 줍니다.']])('a %s answer is bought once more and never saved',async(_code,sentence)=>{
- inject('section-0-meaning',sentence,1);await start();expect((await finish()).status).toBe(200);
- expect(callsFor('section-0-meaning')).toBe(2);expect(docs[0].metadata.paidNarrative.parts['section-0-meaning']).not.toContain(sentence);
+ inject('section-0',sentence,1);await start();expect((await finish()).status).toBe(200);
+ expect(callsFor('section-0')).toBe(2);expect(docs[0].metadata.paidNarrative.parts['section-0']).not.toContain(sentence);
 });
 // The automated eval rubric (fixtures/yeongnyangi-tarot-eval) on the delivered prose: every stored position and its main
 // and sub card are named, and a forbidden claim a part carries reaches the reader, so the rubric must see it in the saved text.
@@ -147,7 +147,7 @@ test('the delivered mindscan reading passes the eval rubric, and the rubric sees
  const text=data.deliverySections.map(section=>section.body).join('\n\n');
  expect(scoreReading(text.replace(claim,''),prompt,{id:'mindscan-route'})).toEqual({pass:true,findings:[]});
  expect(scoreReading(text,prompt,{id:'mindscan-route'}).findings).toEqual([{rule:'invented-third-party',detail:'다른 사람이 생겼'}]);
- expect(provider).toHaveBeenCalledTimes(19);
+ expect(provider).toHaveBeenCalledTimes(9);
 });
 // A tab opened before the server draw shipped can still post without drawId. The draw is checked before any payment
 // proof is read, so a pass is never consumed for a request that cannot run, and a redraw under the same requestId
@@ -161,4 +161,22 @@ test('a redraw under the same request id completes on the original payment',asyn
  mode='single';const stale=original();delete stale.drawId;expect((await post(stale)).status).toBe(409);
  expect((await post(original())).status).toBe(202);expect((await finish()).status).toBe(200);
  expect(proofs.length).toBeGreaterThan(0);expect(proofs.every(p=>p.requestId===original().requestId)).toBe(true);
+});
+// 3,000원 상품: 부분 목표 합계 약 9,000자. 분량은 목표이며 짧아도 완결된 부분은 재구매 없이 전달한다.
+test('part targets total ~9,000 chars and a short complete part is delivered without a repair call',async()=>{
+ const base=provider.getMockImplementation(),short='질문의 핵심은 연락의 속도입니다.\n\n다섯 위치를 함께 읽으며 조건을 확인합니다.';
+ provider.mockImplementation(async(...args)=>{const ai=await base(...args);if(!args[1].includes('[이번 부분 intro]'))return ai;return {...ai,text:JSON.stringify({body:short})};});
+ await start();expect((await finish()).status).toBe(200);
+ const state=docs[0].metadata.paidNarrative,total=state.tasks.reduce((sum,task)=>sum+task.minChars,0);
+ expect(total).toBeGreaterThanOrEqual(8000);expect(total).toBeLessThanOrEqual(10000);
+ expect(state.parts.intro).toBe(short);expect(callsFor('intro')).toBe(1);expect(provider).toHaveBeenCalledTimes(9);
+});
+// A state seeded before the merge keeps its three parts per position and renders the same fields.
+test('a legacy state with three parts per position still renders every field',async()=>{
+ const {mindscanNarrativeAdapter}=await import('../../worker/lib/mindscan-delivery.js');
+ await start();expect((await finish()).status).toBe(200);
+ const state=structuredClone(docs[0].metadata.paidNarrative);
+ for(let i=0;i<5;i++){delete state.parts[`section-${i}`];for(const key of ['meaning','emotion','action'])state.parts[`section-${i}-${key}`]=`${key} 첫 문단입니다.\n\n${key} 둘째 문단입니다.`;}
+ const section=mindscanNarrativeAdapter({}).render(state).reading.sections[0];
+ expect(section).toMatchObject({cardMeaning:'meaning 첫 문단입니다.',positionMeaning:'meaning 둘째 문단입니다.',emotionalReading:'emotion 첫 문단입니다.',hiddenMessage:'emotion 둘째 문단입니다.',caution:'action 첫 문단입니다.',advice:'action 둘째 문단입니다.'});
 });
