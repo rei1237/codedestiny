@@ -1136,24 +1136,50 @@
     {
       "productId": "cosmic-soul-meditation",
       "displayName": "코스믹 소울 명상",
-      "saleStatus": "진입 확인·구성 대조 중",
+      "saleStatus": "로그인후의도/코스선택회당실습",
       "entry": [
         "/cosmic-soul-meditation.html"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 10000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
+      "inputRequirements": [
+        "의도4가지",
+        "30분/60분선택"
+      ],
+      "resultRenderer": [
+        "cosmic-soul-meditation.html"
+      ],
+      "actualContents": [
+        "30분5단계/60분7단계화면문장",
+        "의도별문장/완료행동/저널질문",
+        "타이머/배경음/일시정지/재개/종료",
+        "브라우저저널최근50/완료통계"
+      ],
+      "conditionalItems": [
+        "준비문장;AI/음성/개인리포트아님",
+        "브라우저저장;계정동기화없음",
+        "Hz등연출;뇌파측정/효과보장아님",
+        "30분5000/60분10000코스별기존요금"
+      ],
       "separatePurchase": [],
       "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
+      "images": [
+        "/feature-details/crafted/cosmic-soul-meditation/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "cosmic-soul-meditation.html",
+        "public/cosmic-soul-meditation.html",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본10/native23최종독립SHIP",
+        "318/348/388/538 clipping/fallback/CTAtrial PASS",
+        "API POST0;실습/결제없음",
+        "verify-paid-resume-wiring PASS React43/정적46"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "main전달전로컬검수;실결제없음"
       ],
       "detailAliases": [
         "cosmic-soul-meditation"
