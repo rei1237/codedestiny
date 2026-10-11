@@ -1,4 +1,5 @@
 "use client";
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
 import ReviewRewardBanner from "@/app/components/ReviewRewardBanner";
 
@@ -1748,6 +1749,7 @@ export default function SukuyoCompatibilityAiClient() {
     <main className={styles.screen} data-sukuyo-ai-consultation data-duo-linked={bothComplete ? "true" : undefined}>
       <div className={styles.threadLine} />
       <div className={styles.starField} aria-hidden="true" />
+      {!consultation && getCurrentLoadingLocale() === "ko" && <div className={styles.productGuide}><CraftedProductDisclosure featureKey="sukuyo-compatibility-ai" /></div>}
       <section className={`${styles.shell} mx-auto w-full`}>
         <m.aside
           className={styles.visualPanel}
@@ -1825,7 +1827,7 @@ export default function SukuyoCompatibilityAiClient() {
               </div>
               <p className={styles.ctaNote}>
                 <span>태어난 시간은 필요하지 않습니다.</span>
-                <span>궁합을 점수로 매기지 않습니다. 두 사람이 반복해서 만나게 되는 관계의 리듬을 읽습니다.</span>
+                <span>관계 지표는 참고로 살피고, 두 사람이 반복해서 만나게 되는 관계의 리듬을 읽습니다.</span>
               </p>
               <div className={styles.heroMeta} aria-label={copy.heroMetaAria}>
                 <span><Orbit size={14} /> 27숙 본명숙</span>

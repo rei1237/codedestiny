@@ -16786,6 +16786,15 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
     var isLoading = false;
     var isFreePrompt = opts.freePrompt === true;
+    if (!isFreePrompt) {
+      var questionGuide = document.createElement('div');
+      questionGuide.setAttribute('data-crafted-static-offer', 'sukuyo_ai_prompt_generator');
+      var questionForm = rootEl.querySelector('.fc-form');
+      if (questionForm) questionForm.before(questionGuide); else rootEl.prepend(questionGuide);
+      import('/js/core/saju/crafted-product-details.mjs').then(function(module) {
+        if (questionGuide.isConnected) module.mountCraftedStaticOffer(questionGuide);
+      }).catch(function() { /* Keep the existing question form available. */ });
+    }
     var generateLabel = opts.generateLabel || '5,000원 AI 상담 받기';
     var loadingLabel = opts.loadingLabel || 'AI 상담 생성 중...';
     // 카드 인스턴스마다 별도 보관소 — 솔로 카드와 궁합 카드가 증거를 공유하면 안 된다.
@@ -18413,7 +18422,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
                   <span style="font-size:0.72rem;color:#e9d5ff;">1회 5,000원</span>
                 </div>
                 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px;">
-                  <button data-sy-ai-generate type="button" style="background:rgba(251,191,36,0.16);color:#fef3c7;border:1px solid rgba(251,191,36,0.44);padding:8px 12px;border-radius:10px;font-size:0.8rem;font-weight:900;cursor:pointer;box-shadow:none;">10,000원 AI 상담 받기</button>
+                  <button data-sy-ai-generate type="button" style="background:rgba(251,191,36,0.16);color:#fef3c7;border:1px solid rgba(251,191,36,0.44);padding:8px 12px;border-radius:10px;font-size:0.8rem;font-weight:900;cursor:pointer;box-shadow:none;">상담 시작하기</button>
                   <button data-sy-ai-regenerate type="button" style="display:none;background:linear-gradient(135deg,#1d4ed8,#4338ca);color:#fff;border:1px solid rgba(147,197,253,0.75);padding:8px 12px;border-radius:10px;font-size:0.78rem;font-weight:700;cursor:pointer;">다시 상담</button>
                   <button data-sy-ai-copy type="button" style="display:none;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;border:1px solid rgba(196,181,253,0.72);padding:8px 12px;border-radius:10px;font-size:0.78rem;font-weight:700;cursor:pointer;">프롬프트 복사</button>
                   ${SY_AI_TARGETS.map(function(t){return '<button data-sy-ai-open data-ai-url="'+t.url+'" type="button" style="display:none;background:linear-gradient(135deg,rgba(180,83,9,0.74),rgba(124,58,237,0.74));color:#fff;border:1px solid rgba(253,224,71,0.38);padding:8px 12px;border-radius:10px;font-size:0.78rem;font-weight:700;cursor:pointer;">'+t.label+'</button>';}).join('')}
@@ -18466,7 +18475,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
           var compatAiPromptCard = rd.querySelector('#syCompatAiPromptCard');
           if (compatAiPromptCard && typeof syBindSukuyoPromptComposer === 'function') {
-            syBindSukuyoPromptComposer(compatAiPromptCard, { preferCompatibility: true, generateLabel: '5,000원 AI 상담 받기', freePrompt: false });
+            // Keep the question guide and existing controls outside the clipped report sheet.
+            rd.appendChild(compatAiPromptCard);
+            syBindSukuyoPromptComposer(compatAiPromptCard, { preferCompatibility: true, generateLabel: '상담 시작하기', freePrompt: false });
           }
 
           // innerHTML 완성 후 display:block — 빈 컨테이너 레이아웃 계산 1회 절약

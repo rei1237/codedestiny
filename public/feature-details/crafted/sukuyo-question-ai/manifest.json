@@ -1,0 +1,98 @@
+{
+  "id": "sukuyo-question-ai",
+  "featureKey": "sukuyo_ai_prompt_generator",
+  "title": "숙요 질문 AI 상담",
+  "notice": "기본 숙요 결과와 입력한 질문을 바탕으로 AI가 해설하는 질문 상담입니다. 기본 숙요 화면과 궁합 결과의 질문 상담은 같은 상품의 진입 경로입니다. 궁합을 다루는 질문에는 계산된 상대 궁합 결과가 필요하며, 개인 질문은 본인의 기질과 리듬을 중심으로 다룹니다. 완료된 답변은 질문의 핵심, 기질, 근거, 강점, 관계 패턴, 일과 재물의 조건, 약점과 반대 가능성, 변화와 시기 해석의 한계, 행동 계획, 종합 판단의 열 부분으로 구성됩니다. 생성 진행 중에는 완성된 부분부터 표시될 수 있으며, 질문과 제공된 자료에 따라 각 부분의 내용과 비중이 달라집니다. 계산 자료에 없는 날짜나 상대의 마음을 확정하는 서비스가 아닙니다. 상담에 사용된 질문문도 함께 확인하고 복사할 수 있으나 외부 AI의 답변·이용 요금은 포함하지 않습니다. 다시 상담은 별도 요청이며 무제한 후속 대화를 뜻하지 않습니다. 궁합 전문가 상담, 인연 레이더, 도감·연간 운세는 별도 상품입니다. 예시는 이해를 돕기 위한 가상 편집이며 실제 AI 응답이나 고객 후기가 아닙니다. 건강은 자기 돌봄, 재물은 선택 조건을 살피는 참고입니다. 현재 결제 조건을 확인해 주세요.",
+  "panels": [
+    {
+      "id": "01-the-question-you-keep-returning-to",
+      "title": "비슷한 선택 앞에서, 왜 자꾸 마음이 흔들릴까요?",
+      "alt": "반복되는 선택과 고민을 질문으로 풀어보는 숙요 AI 상담",
+      "src": "/feature-details/crafted/sukuyo-question-ai/01-the-question-you-keep-returning-to.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "비슷한 선택 앞에서,\n왜 자꾸 마음이 흔들릴까요?\n\n내 기질을 안다는 것에서 한 걸음 더.\n지금의 고민을 숙요 결과와 연결해\n다음 선택의 기준을 찾아보세요.\n\n기본 숙요 결과를 바탕으로\n나의 질문에 답하는 AI 상담."
+    },
+    {
+      "id": "02-write-the-situation-before-the-wish",
+      "title": "궁금한 미래보다 먼저, 지금의 상황을 들려주세요.",
+      "alt": "질문을 구체적으로 작성하는 가상 예시",
+      "src": "/feature-details/crafted/sukuyo-question-ai/02-write-the-situation-before-the-wish.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "궁금한 미래보다 먼저,\n지금의 상황을 들려주세요.\n\n이해를 돕기 위한 질문 예시\n\n“부탁을 거절하지 못해서\n일이 자꾸 늘어나요.\n좋은 관계를 유지하면서\n어떤 기준으로 선을 그을까요?”\n\n무슨 일이 있었는지,\n어떤 선택 사이에서 고민하는지,\n무엇을 바꾸고 싶은지 적어보세요.\n\n질문은 5~1,000자로 입력해요.\n구체적인 상황이 해석의 초점을 잡아줘요."
+    },
+    {
+      "id": "03-the-basis-behind-the-answer",
+      "title": "본명숙을 읽고, 질문의 장면으로 돌아와요.",
+      "alt": "본명숙 기질 자료와 질문을 연결하는 해석 방식",
+      "src": "/feature-details/crafted/sukuyo-question-ai/03-the-basis-behind-the-answer.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "본명숙을 읽고,\n질문의 장면으로 돌아와요.\n기본 숙요 결과\n\n본명숙과 기질 · 강점과 그림자\n관계·일·돈을 대하는 리듬\n\n지금의 질문\n\n궁금한 주제와 실제 상황을\n제공된 계산 자료에 연결해요.\n\n근거와 반대 조건\n\n한 가지 결론으로 몰기보다\n다르게 작용할 가능성도 함께 살펴요.\n\n숙요를 사주나 서양 점성술로 바꾸어\n설명하는 상담은 아니에요."
+    },
+    {
+      "id": "04-the-opening-three-parts",
+      "title": "답변의 시작은, 질문과 나와 근거를 잇는 일.",
+      "alt": "질문의 핵심 기질과 반복 선택 현재 흐름 근거의 세 부분",
+      "src": "/feature-details/crafted/sukuyo-question-ai/04-the-opening-three-parts.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "답변의 시작은,\n질문과 나와 근거를 잇는 일.\n질문의 핵심과 한 줄 답변\n\n지금 무엇을 결정하고 싶은지,\n상담의 중심을 먼저 짚어요.\n\n기질과 반복되는 선택\n\n나에게 익숙한 반응과\n되풀이하기 쉬운 선택을 살펴요.\n\n현재 흐름을 보여 주는 근거\n\n막연한 느낌에 머물지 않고\n어떤 자료로 읽었는지 설명해요."
+    },
+    {
+      "id": "05-strengths-and-the-other-side",
+      "title": "강점만큼 중요한 것은, 잘 안 풀리는 조건이에요.",
+      "alt": "강점 관계 패턴 일과돈의 조건 약점과 반대 가능성 목차",
+      "src": "/feature-details/crafted/sukuyo-question-ai/05-strengths-and-the-other-side.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "강점만큼 중요한 것은,\n잘 안 풀리는 조건이에요.\n강점과 활용할 자원\n\n이미 가진 힘을 어디에 쓸지\n\n관계에서 드러나는 패턴\n\n표현·거리·기대가 어긋나는 지점\n\n일과 재물에서 확인할 조건\n\n역할과 자원, 현실에서 점검할 것\n\n약점과 반대 가능성\n\n내 해석이 빗나갈 수 있는 조건\n\n질문에 따라 각 항목의 비중이 달라져요."
+    },
+    {
+      "id": "06-from-timing-to-a-practical-step",
+      "title": "언제 바뀔지의 불안에서, 무엇을 할지의 기준으로.",
+      "alt": "시기 해석의 한계 행동 계획 종합 판단의 마지막 세 부분",
+      "src": "/feature-details/crafted/sukuyo-question-ai/06-from-timing-to-a-practical-step.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "언제 바뀔지의 불안에서,\n무엇을 할지의 기준으로.\n가까운 변화와 시기 해석의 한계\n\n가능한 흐름을 읽되,\n근거 없는 날짜는 확정하지 않아요.\n\n현실적인 행동 계획\n\n오늘부터 시도할 말과 행동,\n선택 전에 확인할 조건을 정리해요.\n\n종합 판단과 마지막 메시지\n\n앞의 근거와 조언을 이어\n지금의 질문으로 돌아와요."
+    },
+    {
+      "id": "07-a-boundary-that-keeps-the-relationship",
+      "title": "관계를 지키면서, 나의 여유도 남기는 말.",
+      "alt": "기질 해석을 거절과 일정 조정에 적용한 가상의 상담 예시",
+      "src": "/feature-details/crafted/sukuyo-question-ai/07-a-boundary-that-keeps-the-relationship.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "관계를 지키면서,\n나의 여유도 남기는 말.\n\n이해를 돕기 위한 예시 · 가상 편집\n\n“바로 수락하기보다\n가능한 범위를 먼저 말해보세요.\n‘오늘은 여기까지 할 수 있어요.\n나머지는 내일 함께 정할까요?’”\n\n실제 AI 답변을 가져온 문장이 아니에요.\n기질의 설명을 행동으로 연결하는 예시예요."
+    },
+    {
+      "id": "08-personal-or-relationship-context",
+      "title": "나의 고민과 두 사람의 고민.",
+      "alt": "개인 숙요 질문과 궁합 질문의 입력 조건 및 같은 상품 진입 구분",
+      "src": "/feature-details/crafted/sukuyo-question-ai/08-personal-or-relationship-context.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "나의 고민과\n두 사람의 고민.\n개인 질문\n\n기본 숙요 결과로\n나의 기질과 리듬,\n선택 습관을 읽어요.\n\n궁합 질문\n\n계산된 궁합 결과로\n상대와의 관계 유형,\n역할·거리 해석\n\n상대 자료가 필요한 질문은\n숙요 궁합을 먼저 계산해 주세요.\n\n기본 화면과 궁합 화면의 질문 상담은\n같은 상품으로 이어지는 두 진입이에요.\n궁합 전문가 리포트는 별도 상품이에요."
+    },
+    {
+      "id": "09-the-answer-and-the-prompt",
+      "title": "상담 답변과 함께, 질문문도 확인할 수 있어요.",
+      "alt": "상담 답변 질문문 복사 및 별도 요청의 범위",
+      "src": "/feature-details/crafted/sukuyo-question-ai/09-the-answer-and-the-prompt.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "상담 답변과 함께,\n질문문도 확인할 수 있어요.\nAI 상담 본문\n\n완료된 답변은 열 부분으로 읽어요.\n생성 중에는 준비된 부분부터 보여요.\n\n이 상담에 쓰인 질문문\n\n펼쳐 읽고 복사한 뒤,\n원하는 외부 AI에서도 활용할 수 있어요.\n\n추가 이용의 범위\n\n외부 AI 답변·요금은 포함하지 않아요.\n다시 상담은 별도 요청이에요.\n\n무제한 후속 대화가 포함된 상품은 아니에요."
+    },
+    {
+      "id": "10-one-question-one-next-step",
+      "title": "내 이야기에 가까운 질문, 오늘의 한 걸음으로.",
+      "alt": "기본 숙요 결과와 질문을 준비해 기존 상담 버튼으로 시작하기",
+      "src": "/feature-details/crafted/sukuyo-question-ai/10-one-question-one-next-step.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "내 이야기에 가까운 질문,\n오늘의 한 걸음으로.\n\n기본 숙요 결과를 확인하고\n지금 가장 마음에 걸리는 질문을 적어요.\n답변에서 실천 하나를 골라보세요.\n\n현재 결제 조건을 확인한 뒤\n기존 상담 시작 버튼에서 이어가세요."
+    }
+  ]
+}
