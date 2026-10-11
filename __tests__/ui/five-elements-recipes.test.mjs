@@ -4,11 +4,16 @@ import { existsSync, readFileSync } from 'node:fs';
 import { RECIPES, recipePath, recipeImage, recipeJsonLd } from '../../lib/lifestyle/recipes.mjs';
 
 test('five flavour recipes have distinct stable URLs and real local assets', () => {
-  assert.equal(new Set(RECIPES.map(recipePath)).size, 5);
-  assert.deepEqual(RECIPES.map((r) => r.taste), ['신맛', '쓴맛', '단맛', '매운맛', '짠맛']);
+  assert.equal(new Set(RECIPES.map(recipePath)).size, 10);
+  for (const taste of ['신맛', '쓴맛', '단맛', '매운맛', '짠맛']) assert.equal(RECIPES.filter((r) => r.taste === taste).length, 2);
   for (const recipe of RECIPES) {
     assert.match(recipePath(recipe), /^\/recipes\/[a-z-]+\/$/);
     assert.ok(existsSync(`public${recipeImage(recipe)}`));
+    assert.match(recipeImage(recipe), /-2d\.webp$/);
+    assert.equal(recipe.tips.length, recipe.steps.length, recipe.slug);
+    assert.equal(recipe.stages.length, recipe.steps.length, recipe.slug);
+    for (const stage of recipe.stages) assert.ok(existsSync(`public/images/five-elements/yeoni-${stage}-2d.webp`));
+    assert.ok(recipe.tips.every((tip) => typeof tip === 'string' && tip.length > 10));
   }
 });
 

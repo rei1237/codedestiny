@@ -51,7 +51,7 @@
       "lastmod": "2026-10-09"
     },
     "/crystals/": {
-      "signature": "3ac113a036cad172",
+      "signature": "07e390c5820cf21c",
       "lastmod": "2026-10-11"
     },
     "/destiny-compass/": {
@@ -1783,27 +1783,47 @@
       "lastmod": "2026-10-09"
     },
     "/recipes/": {
-      "signature": "f06848283cb15f3f",
+      "signature": "8250f2e566111042",
       "lastmod": "2026-10-11"
     },
     "/recipes/chicory-chicken-salad/": {
-      "signature": "cb59a5ef0fe93742",
+      "signature": "5a733f871727e546",
+      "lastmod": "2026-10-11"
+    },
+    "/recipes/chicory-orange-toast/": {
+      "signature": "5a733f871727e546",
+      "lastmod": "2026-10-11"
+    },
+    "/recipes/ginger-mushroom-rice-noodles/": {
+      "signature": "5a733f871727e546",
       "lastmod": "2026-10-11"
     },
     "/recipes/ginger-scallion-tofu/": {
-      "signature": "cb59a5ef0fe93742",
+      "signature": "5a733f871727e546",
       "lastmod": "2026-10-11"
     },
     "/recipes/lemon-chickpea-salad/": {
-      "signature": "cb59a5ef0fe93742",
+      "signature": "5a733f871727e546",
+      "lastmod": "2026-10-11"
+    },
+    "/recipes/plum-cucumber-soba/": {
+      "signature": "5a733f871727e546",
       "lastmod": "2026-10-11"
     },
     "/recipes/pumpkin-mushroom-risotto/": {
-      "signature": "cb59a5ef0fe93742",
+      "signature": "5a733f871727e546",
       "lastmod": "2026-10-11"
     },
     "/recipes/seaweed-mushroom-soup/": {
-      "signature": "cb59a5ef0fe93742",
+      "signature": "5a733f871727e546",
+      "lastmod": "2026-10-11"
+    },
+    "/recipes/seaweed-tofu-riceballs/": {
+      "signature": "5a733f871727e546",
+      "lastmod": "2026-10-11"
+    },
+    "/recipes/sweet-potato-apple-oats/": {
+      "signature": "5a733f871727e546",
       "lastmod": "2026-10-11"
     },
     "/refund-policy/": {
