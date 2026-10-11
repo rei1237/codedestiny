@@ -20723,25 +20723,58 @@
     },
     {
       "productId": "ziwei-deep-pdf",
-      "displayName": "심화 자미두수 PDF 심층 리포트 생성",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "displayName": "심화 자미두수 PDF 리포트",
+      "saleStatus": "심화명반 결과 PDF영역 실제생성진입 확인",
+      "entry": [
+        "/ziwei/chart/ → 명반계산 → #ziwei-result-pdf"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 30000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "inputRequirements": [
+        "이름·성별·생년월일·양음력·윤달",
+        "시각 또는 미상",
+        "8관심분야·선택질문;직접질문은필수"
       ],
-      "detailAliases": []
+      "resultRenderer": [
+        "app/components/ziwei/ZiweiDeepPdfPanel.tsx",
+        "worker/lib/ziwei-deep-report-prompt.mjs"
+      ],
+      "actualContents": [
+        "개관·12궁·사화삼방사정·대한유년종합15챕터",
+        "표지·장별요약·펼침본문",
+        "PDF저장·리포트목록재열람"
+      ],
+      "conditionalItems": [
+        "부분과완성상태구분",
+        "생시미상해석제한",
+        "페이지수·정확도·수익·진단보장없음"
+      ],
+      "separatePurchase": [
+        "19주제전문가상담·기본해금·질문AI",
+        "새리포트별도이용"
+      ],
+      "reviewSource": [
+        "가상예시;실제AI응답후기아님"
+      ],
+      "images": [
+        "/feature-details/crafted/ziwei-deep-pdf/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "app/components/ziwei/ZiweiDeepPdfPanel.tsx",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본10 독립SHIP",
+        "328/358/398/540 allancestor/fallbackPASS POST0",
+        "심층전달·정적59검사PASS;ESLintPASS",
+        "실제23캡처 독립최종SHIP"
+      ],
+      "unconfirmed": [
+        "main전달·CI미확인;실결제실LLM미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "ziwei-island-deep-report",
@@ -20955,25 +20988,54 @@
     },
     {
       "productId": "ziwei_symbolic_layer",
-      "displayName": "자미두수 상징 보조층 해금",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "displayName": "자미두수 상징 보조층",
+      "saleStatus": "기본명반 실제상징해금진입 확인",
+      "entry": [
+        "js/saju-engine.js #zwBasicPaidGate_ziwei_symbolic_layer"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 1000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "inputRequirements": [
+        "기존 본인명반"
       ],
-      "detailAliases": []
+      "resultRenderer": [
+        "js/saju-engine.js sec_olympus_ziwei/buildZwSymbolicDeepHtml"
+      ],
+      "actualContents": [
+        "명궁·신궁현실축·사화·그림자 인장과중복요약",
+        "상징변환근거·5생활영역참고지수",
+        "인장유래·의미·활용",
+        "조건부빛그림자·생활적용"
+      ],
+      "conditionalItems": [
+        "별/명반자료에따라일부항목달라짐",
+        "신화명칭은상징변환;별도서양점성술계산아님",
+        "지수성공확률아님"
+      ],
+      "separatePurchase": [
+        "AI·전문가·PDF별도;실물상품아님"
+      ],
+      "reviewSource": [
+        "가상예시;후기없음"
+      ],
+      "images": [
+        "/feature-details/crafted/ziwei-symbolic/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "js/saju-engine.js",
+        "js/core/saju/crafted-product-details.mjs",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본6·native15 독립최종SHIP",
+        "304/334/374/540 clipping/fallbackPASS"
+      ],
+      "unconfirmed": [
+        "main전달·CI미확인;실결제실LLM미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "ziwei_twelve_palaces",

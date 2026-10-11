@@ -26388,7 +26388,7 @@ function renderZiwei(p, natal, targetId) {
           }).sort(function(a, b) { return a.startAge - b.startAge; })
         };
         wrapper.innerHTML = panelHtml;
-        ['ziwei_twelve_palaces', 'ziwei_love_deep', 'ziwei_life_yearly_flow', 'ziwei_decade_luck'].forEach(function(featureKey) {
+        ['ziwei_twelve_palaces', 'ziwei_love_deep', 'ziwei_life_yearly_flow', 'ziwei_decade_luck', 'ziwei_symbolic_layer'].forEach(function(featureKey) {
           var gate = wrapper.querySelector('#zwBasicPaidGate_' + featureKey);
           if (!gate) return;
           var guide = document.createElement('div');

@@ -1,4 +1,5 @@
 "use client";
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 
 /**
@@ -471,6 +472,8 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
   }
 
   return (
+    <>
+    {phase !== "ready" && locale === "ko" && <div style={{maxWidth:540,margin:"24px auto"}}><CraftedProductDisclosure featureKey={FEATURE_KEY} /></div>}
     <section className={`${styles.surface} rounded-xl border border-white/20 p-5 md:p-7`}>
       <div className="relative z-10">
         <h3 className="font-display mt-2 text-xl font-black text-white md:text-2xl">{copy.title}</h3>
@@ -619,5 +622,6 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
         )}
       </div>
     </section>
+    </>
   );
 }
