@@ -198,6 +198,26 @@ test("🔴 레거시 해금: 같은 모양으로 목록에 뜨고, 고른 프로
   expect(await opens("p2")).toBe(false); // 재생은 다른 생년월일을 열지 않는다
 });
 
+test("이미 같은 BIRTH 권한이 있으면 중복 레거시 증빙으로 프로필을 다시 묻지 않는다", async () => {
+  db.rows.push(
+    sourceRow(),
+    legacyClaim({ claimId: "d".repeat(24), sourceKind: "point_history", sourceId: "point-old-1" }),
+    {
+      userId: String(USER),
+      profileId: `birth:${"a".repeat(64)}`,
+      birthKey: "a".repeat(64),
+      featureKey: "section_summary",
+      serviceKey: "saju",
+      contentKey: "saju.fullReading",
+      scope: "BIRTH",
+      status: "ACTIVE",
+      grantType: "permanent_unlock",
+    },
+  );
+
+  expect((await call("GET", "/birth-profile-pending")).payload.orders).toEqual([]);
+});
+
 test("레거시 해금: 다른 생년월일 선점·환불된 원 구매·남의 claim 은 지급하지 않는다", async () => {
   db.rows.push(sourceRow(), legacyClaim({ claim: { profileId: "p2", birthKey: "b".repeat(64) } }));
   expect((await call("POST", `/birth-profile-pending/legacy-${LEGACY_ID}/claim`, { profileId: "p1" })).status).toBe(409);

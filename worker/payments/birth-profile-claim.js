@@ -10,7 +10,13 @@
  * (형제 파일은 서로를 부르지 않는다 — birth-identity.js 는 공용 leaf 다).
  * 목록·지급·집계 스크립트(scripts/audit-birth-scope-pending-orders.mjs)가 이 정의 하나를 쓴다.
  */
-import { BirthScopeLegacyClaim, Payment } from "../lib/models.js";
+import {
+  BirthScopeLegacyClaim,
+  CONTENT_ENTITLEMENT_SCOPES,
+  CONTENT_ENTITLEMENT_STATUSES,
+  ContentEntitlement,
+  Payment,
+} from "../lib/models.js";
 import { FEATURE_KEY_PRICE_TABLE, UNLOCK_PRODUCT_BY_FEATURE_KEY, normalizePaidFeatureKey } from "../lib/paid-feature-registry.js";
 import { requiresPartnerProfile } from "../lib/birth-scoped-unlock-identity.js";
 import { MANUAL_REVIEW_FAILURE_CODE, orderNeedsBirthProfileSelection } from "./birth-identity.js";
@@ -151,8 +157,36 @@ export function legacyBirthClaimPendingFilter(userId) {
 }
 
 export async function listLegacyBirthClaims(db, { userId }) {
-  if (!toUserIdString(userId)) return [];
-  return db.find(BirthScopeLegacyClaim, legacyBirthClaimPendingFilter(userId), { sort: { paidAt: -1 }, limit: LIST_LIMIT });
+  const uid = toUserIdString(userId);
+  if (!uid) return [];
+  const claims = await db.find(BirthScopeLegacyClaim, legacyBirthClaimPendingFilter(userId), { sort: { paidAt: -1 }, limit: LIST_LIMIT });
+  if (!claims.length) return [];
+
+  /* 이미 같은 출생 기반 권한이 지급된 과거 증빙은 다시 프로필을 묻지 않는다.
+     마이그레이션은 결제·포인트·옛 권한 행을 서로 다른 claim 으로 보존한다. 한 증빙을 골라 BIRTH 행을
+     만든 뒤에도 나머지 증빙 claim 이 pending 으로 남으면, 사용자는 같은 상품의 같은 프로필을 계속
+     고르게 된다. 권한의 실제 신원(serviceKey + contentKey)이 ACTIVE BIRTH 행에 있으면 그 claim 은 이미
+     충족된 것이다. 원본 claim 은 감사용으로 보존하고 목록에서만 제외한다. */
+  const identities = [];
+  const seen = new Set();
+  for (const claim of claims) {
+    const serviceKey = String(claim.serviceKey || "").trim();
+    const contentKey = String(claim.contentKey || "").trim();
+    if (!serviceKey || !contentKey) continue;
+    const key = `${serviceKey}\u0000${contentKey}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    identities.push({ serviceKey, contentKey });
+  }
+  if (!identities.length) return claims;
+  const entitlements = await db.find(ContentEntitlement, {
+    userId: uid,
+    scope: CONTENT_ENTITLEMENT_SCOPES.BIRTH,
+    status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE,
+    $or: identities,
+  });
+  const owned = new Set(entitlements.map((row) => `${String(row.serviceKey || "").trim()}\u0000${String(row.contentKey || "").trim()}`));
+  return claims.filter((claim) => !owned.has(`${String(claim.serviceKey || "").trim()}\u0000${String(claim.contentKey || "").trim()}`));
 }
 
 export async function findLegacyBirthClaim(db, { claimId }) {
