@@ -446,3 +446,7 @@ status: active
 ## 말과 행동 사이 타로
 - 실제5쌍·질문·19부분저장/공유를10장 개별 편집. 원본10/native23 최종독립SHIP. 제목넘침/summary고아줄/CTA하단여백 수정. 328/358/398/540 clipping/fallback/CTA trial PASS. mock drawPOST1/auth0/other0,실결제없음. Jest47/Node3/typecheck PASS,ESLint0errors16기존warnings.
 - 유료구성115종+공통소개1종1039패널 로컬검수. 직전38b3abb4f pre-pushPASS. main CI 복구질문pending/운영배포없음. 전체/main전달미완료. 다음원석소울 실제규칙형5자리·원석관점·후속질문문구성조사.
+
+## 원석 소울 타로
+- 12원석선택·규칙형5자리·원석관점·종합·질문문복사/공유를9장개별편집. 원본9/native22 독립SHIP. 09넘침본문단축.328/358/398/540 clipping/fallback/CTAtrial PASS3000원일치. 실제문지르기,API POST0/devstack조회POST1별도. Jest9 PASS,ESLint0errors3기존warnings.
+- 유료구성116종+공통소개1종1048패널 로컬검수. 직전f8e9577dd pre-pushPASS(생성lastmod포함후재검증). mainCI복구질문pending/운영배포없음. 전체/main전달미완료. 다음사주가디언5탭·7일미션·저장프로필별이미지생성조건조사.

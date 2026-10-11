@@ -3566,24 +3566,49 @@
     {
       "productId": "tarot-crystal-soul-reading",
       "displayName": "원석 소울 타로",
-      "saleStatus": "진입 확인·구성 대조 중",
+      "saleStatus": "현행원석선택·문지르기후3000원유료리딩",
       "entry": [
         "/tarot/crystal-soul/"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 3000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
+      "inputRequirements": [
+        "12원석중1선택·원석문지르기",
+        "생년월일·질문입력없음"
+      ],
+      "resultRenderer": [
+        "app/tarot/crystal-soul/CrystalSoulTarotClient.jsx",
+        "lib/tarot/crystal-soul-reading.mjs"
+      ],
+      "actualContents": [
+        "규칙형5자리카드·정역방향해설",
+        "원석관점·그림자·균형·한줄신호",
+        "종합메시지·후속질문문복사·짧은공유"
+      ],
+      "conditionalItems": [
+        "현재gem-v3는LLM자유상담아님",
+        "실물판매·효능검증아님",
+        "PDF·이미지저장없음;질문문은추가상담권아님"
+      ],
       "separatePurchase": [],
       "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
+      "images": [
+        "/feature-details/crafted/crystal-soul-tarot/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "app/tarot/crystal-soul/CrystalSoulTarotClient.jsx",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본9/native22독립SHIP",
+        "328/358/398/540 clipping/fallback/CTAtrial PASS 3000원",
+        "API POST0 devstack조회POST1별도",
+        "Jest9 PASS;ESLint0errors3기존warnings"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "360CTA위안내타이핑중캡처;다른폭완성문장확인",
+        "main전달전로컬검수;실결제없음"
       ],
       "detailAliases": [
         "tarot-crystal-soul"
