@@ -158,8 +158,8 @@
       "neo-operation-room"
     ],
     "fortune-chat": [
-      "chat-yeoni",
-      "chat-neo"
+      "chat-engine-yeoni",
+      "chat-engine-neo"
     ],
     "animal-destiny": [
       "animal-destiny"
@@ -172,7 +172,9 @@
   "variants": {
     "fortune-chat-consultation": {
       "yeoni": "chat-yeoni",
-      "neo": "chat-neo"
+      "neo": "chat-neo",
+      "engine-yeoni": "chat-engine-yeoni",
+      "engine-neo": "chat-engine-neo"
     },
     "yeongnyangi-saju-flounder": {
       "prashna": "yeongnyangi-prashna"

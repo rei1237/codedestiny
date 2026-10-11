@@ -1,4 +1,5 @@
 "use client";
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import Image from "next/image";
 import { PriceBadge } from "@/app/components/PriceBadge";
@@ -410,6 +411,7 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
       </header>
 
       <div className={base.timeline}>
+        {!row && <div style={{width:"100%",maxWidth:540,minWidth:0,margin:"0 auto",background:"#eee7dc",color:"#463a31",borderRadius:12}}><CraftedProductDisclosure featureKey="fortune-chat-consultation" variant={`engine-${persona}`} summaryLabel={`${personaName} 상담 구성 자세히 보기`} /></div>}
         {!row && (
           <>
             <section className={styles.panel} aria-labelledby="consultation-persona">

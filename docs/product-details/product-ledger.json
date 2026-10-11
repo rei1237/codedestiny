@@ -1635,7 +1635,7 @@
     {
       "productId": "fortune-chat-consultation",
       "displayName": "대화형 운명 상담 · 연이/네오",
-      "saleStatus": "기존 상담화면 판매진입 확인; 신규공통엔진 비활성 공개GET 확인",
+      "saleStatus": "구 엔진 fallback 상세 유지; 운영 활성화 시 새 엔진 상세 사용",
       "entry": [
         "/fortune-chat/",
         "/features/fortune-chat/"
@@ -22518,6 +22518,112 @@
       ],
       "unconfirmed": [
         "main 병합·push·CI 및 실제운영 노출 미확인; 실결제/LLM 미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
+    },
+    {
+      "productId": "fortune-chat-consultation:engine-yeoni",
+      "displayName": "새 상담실 연이",
+      "saleStatus": "새 엔진 코드 실제진입 검수; 운영활성화 배포 대기",
+      "entry": [
+        "/fortune-chat/?character=yeoni"
+      ],
+      "priceSource": "worker/lib/paid-feature-registry.js fortune-chat-consultation",
+      "priceSnapshotKRW": 3000,
+      "inputRequirements": [
+        "로그인·300자질문·체계1개",
+        "명식은프로필;타로는생년정보불필요"
+      ],
+      "resultRenderer": [
+        "app/fortune-chat/ConsultationRoom.tsx",
+        "app/fortune-chat/ConsultationResult.tsx",
+        "app/fortune-chat/consultation-world.ts"
+      ],
+      "actualContents": [
+        "핵심답변→요약→근거→흐름→시기→행동",
+        "챕터별 이어받기·상담자별 기록"
+      ],
+      "conditionalItems": [
+        "세부목차는체계/질문에따름",
+        "PDF/무제한후속채팅없음",
+        "다른상담자로기존답변재생성하지않음"
+      ],
+      "separatePurchase": [
+        "새 질문은 새 상담 준비"
+      ],
+      "reviewSource": [
+        "가상편집예시 명시"
+      ],
+      "images": [
+        "/feature-details/crafted/chat-engine-yeoni/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "app/fortune-chat/ConsultationRoom.tsx",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본8/native21 독립 SHIP",
+        "328/358/398/540 clipping/fallback/타로질문/준비CTA trial PASS;POST0",
+        "Node9/Jest16/typecheck/ESLint PASS"
+      ],
+      "unconfirmed": [
+        "main전달/CI/운영반영대기",
+        "이검수는mock200프로필경로;게스트401로그인·실결제·실LLM미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
+    },
+    {
+      "productId": "fortune-chat-consultation:engine-neo",
+      "displayName": "새 상담실 네오",
+      "saleStatus": "새 엔진 코드 실제진입 검수; 운영활성화 배포 대기",
+      "entry": [
+        "/fortune-chat/?character=neo"
+      ],
+      "priceSource": "worker/lib/paid-feature-registry.js fortune-chat-consultation",
+      "priceSnapshotKRW": 3000,
+      "inputRequirements": [
+        "로그인·300자질문·체계1개",
+        "명식은프로필;타로는생년정보불필요"
+      ],
+      "resultRenderer": [
+        "app/fortune-chat/ConsultationRoom.tsx",
+        "app/fortune-chat/ConsultationResult.tsx",
+        "app/fortune-chat/consultation-world.ts"
+      ],
+      "actualContents": [
+        "핵심판단→할일→시기→근거→판세→브리핑",
+        "챕터별 이어받기·상담자별 기록"
+      ],
+      "conditionalItems": [
+        "세부목차는체계/질문에따름",
+        "PDF/무제한후속채팅없음",
+        "다른상담자로기존답변재생성하지않음"
+      ],
+      "separatePurchase": [
+        "새 질문은 새 상담 준비"
+      ],
+      "reviewSource": [
+        "가상편집예시 명시"
+      ],
+      "images": [
+        "/feature-details/crafted/chat-engine-neo/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "app/fortune-chat/ConsultationRoom.tsx",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본8/native21 독립 SHIP",
+        "328/358/398/540 clipping/fallback/타로질문/준비CTA trial PASS;POST0",
+        "Node9/Jest16/typecheck/ESLint PASS"
+      ],
+      "unconfirmed": [
+        "main전달/CI/운영반영대기",
+        "이검수는mock200프로필경로;게스트401로그인·실결제·실LLM미실행"
       ],
       "detailAliases": [],
       "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"

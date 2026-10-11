@@ -507,3 +507,9 @@ status: active
 ## 운명의 지도 심층 리포트
 - AI10섹션/9UI칸·체계별 범위·저장/PDF·가상질문을10장개별편집. 원본10/native23 독립 SHIP.328/358/398/540 clipping/fallback/CTAtrial PASS;진입mock8/유료POST0.Jest36/ESLint/typecheck PASS(node runner 오선택을 Jest로 정정).
 - 유료구성134종+공통소개1종1204패널 로컬검수. 직전3799aca6b pre-push PASS. main CI54b5476b/38114013113실패 동일·다른 세션 변경보존·운영미배포. 새상담실 fish4키는서버만존재하고현재UI미연결로근거부족. 다음 새상담실 연이/네오 안내.
+
+## 새 상담실 연이·네오
+- 새 엔진 실제입력/챕터결과/상담자별순서·기록에 맞춰 각8장 새편집. 원본8/native21 각각독립SHIP.328/358/398/540 clipping/fallback/타로질문/준비CTAtrial PASS;POST0.Node9/Jest16/typecheck/ESLint PASS.구엔진상세는fallback유지,소개페이지는새원본연결.
+- 수량 재대조: catalog고유135원본1191패널+직접연결사주2원본19패널+공통소개10패널=유료구성137원본+공통1원본1220패널(판매상품수아님).이전수동원본누계는1개부족,패널누계는일치.보류IFA6패널제외.
+- 직전b61f78fb9 pre-push PASS.전체/main전달미완료·엔진운영미배포.다음나크샤트라 지배성/다샤지도 개별편집.
+- 추가 소개페이지 첫패널 2종×4폭 독립SHIP. 구엔진 후속대화 마케팅문구를 현행 상담 구성으로 정리. 생성카피 Node7 PASS(Jest UI 제외 설정 확인 후 정식 Node runner 사용).
