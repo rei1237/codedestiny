@@ -2287,7 +2287,7 @@ function __cdEnsureSajuCoreLoaded() {
       '/js/core/saju/extremeTResult.js?v=build-2c30eaeaaf14',
       /* 숙요 정본(Swiss 항성 달 황경). quantum.js 의 calcSukuyoData 가 이것 없이는 수(宿)를 내지 않는다. */
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-0a4ec13e7d85',
+      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-f9b3fa8c114f',
     '/js/core/saju/basicFortunePresentation.js?v=build-eb8d27ea0abf',
     '/js/core/saju/modalProfileState.js?v=build-70bc2c91ff63',
     '/js/core/saju/reportDashboard.js?v=build-926a44c5f6a1',
@@ -2317,7 +2317,7 @@ function __cdEnsureDestinyProfileLoaded() {
   if (window.DestinyProfileManager) return Promise.resolve(true);
   if (__cdDestinyProfileLoadPromise) return __cdDestinyProfileLoadPromise;
 
-  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-425a8c3ccb75')
+  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-469ef8b928b9')
     .then(function() { return true; })
     .catch(function(err) {
       __cdDestinyProfileLoadPromise = null;
@@ -9325,7 +9325,7 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
       '/js/saju-engine.js?v=build-031b8e9c2bd3',
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-0a4ec13e7d85'
+      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-f9b3fa8c114f'
   ];
 
   /* 🔴 예전에는 이 체인 앞에 lunar-javascript CDN 대기가 있었고, 그것이 reject 되면 생년월일
