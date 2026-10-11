@@ -1,5 +1,6 @@
 "use client";
 
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { useState, useCallback, useEffect } from "react";
 import { useCoinGate } from "@/app/hooks/useCoinGate";
 import { formatKrwFromCoins } from "@/lib/payment/coin-pricing";
@@ -1154,7 +1155,7 @@ export default function StonehengeRune() {
 
         /* ── MOON ── */
         .sr-moon {
-          position: fixed;
+          position: absolute;
           top: 28px;
           right: clamp(20px, 8%, 80px);
           width: 52px;
@@ -2079,6 +2080,8 @@ export default function StonehengeRune() {
               </button>
             ))}
           </div>
+
+          {[1, 3].includes(spread) && getCurrentLoadingLocale() === "ko" && <div style={{width:"100%",maxWidth:540,margin:"20px auto"}}><CraftedProductDisclosure featureKey={RUNE_FALLBACK_FEATURE_BY_SPREAD[spread]} /></div>}
 
           {/* Draw button */}
           <button

@@ -4618,51 +4618,108 @@
     },
     {
       "productId": "stonehenge-runes-single",
-      "displayName": "스톤헨지 룬",
-      "saleStatus": "진입 확인·구성 대조 중",
+      "displayName": "스톤헨지 1-룬 리딩",
+      "saleStatus": "현재4배열선택·ensurePaidAccess확인",
       "entry": [
-        "/index.html?action=openRuneOracle"
+        "/oracle/rune/ 1룬선택"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 1000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
+      "inputRequirements": [
+        "1룬배열선택;질문·생년입력없음"
+      ],
+      "resultRenderer": [
+        "StonehengeRune.jsx getDetailedReading/getSpreadInsight"
+      ],
+      "actualContents": [
+        "25룬중1개·방향·핵심축",
+        "관계/일/주의상세·행동·기억문장",
+        "중심메시지·실천·주의",
+        "로컬복사용AI질문문"
+      ],
+      "conditionalItems": [
+        "대칭룬/공백룬역방향없음",
+        "준비해석;AI새답변아님",
+        "페이지상태만유지;공유는페이지링크"
+      ],
+      "separatePurchase": [
+        "3/5/12룬·새뽑기조건확인"
+      ],
+      "reviewSource": [
+        "가상편집예시;실제후기없음"
+      ],
+      "images": [
+        "/feature-details/crafted/rune-single/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "StonehengeRune.jsx",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본6/native19독립SHIP;04제목수정·달fixed겹침absolute수정",
+        "328/358/398/540 clipping/fallbackPASS POST0",
+        "ESLint0오류7기존경고",
+        "typecheckPASS"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "main전달·CI미확인;실결제실LLM미실행"
       ],
       "detailAliases": [
         "stonehenge-runes"
-      ]
+      ],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "stonehenge-runes-triad",
-      "displayName": "스톤헨지 룬 3-룬 리딩",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "displayName": "스톤헨지 3-룬 노른의 흐름",
+      "saleStatus": "현재4배열선택·ensurePaidAccess확인",
+      "entry": [
+        "/oracle/rune/ 3룬선택"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 1000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "inputRequirements": [
+        "3룬배열선택;질문·생년입력없음"
       ],
-      "detailAliases": []
+      "resultRenderer": [
+        "StonehengeRune.jsx getDetailedReading/getSpreadInsight"
+      ],
+      "actualContents": [
+        "과거우르드/현재베르단디/미래스쿨드",
+        "각룬상세·전체이야기·핵심축흐름",
+        "정방향/역방향개수",
+        "로컬복사용AI질문문"
+      ],
+      "conditionalItems": [
+        "대칭룬/공백룬역방향없음",
+        "준비해석;AI새답변아님",
+        "페이지상태만유지;공유는페이지링크"
+      ],
+      "separatePurchase": [
+        "1/5/12룬·새뽑기조건확인"
+      ],
+      "reviewSource": [
+        "가상편집예시;실제후기없음"
+      ],
+      "images": [
+        "/feature-details/crafted/rune-triad/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "StonehengeRune.jsx",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본6/native19독립SHIP",
+        "328/358/398/540 clipping/fallbackPASS POST0",
+        "ESLint0오류7기존경고;typecheckPASS"
+      ],
+      "unconfirmed": [
+        "main전달·CI미확인;실결제실LLM미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "stonehenge-runes-yearly",

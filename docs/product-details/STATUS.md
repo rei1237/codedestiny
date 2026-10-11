@@ -337,3 +337,12 @@ status: active
 - profile-card-manage는2026-10-11프런트/서버무료화분기확인하여대상제외. 가격키만보고유료페이지를만들지않음. 정책코드무수정.
 - stonehenge-runes-ai-prompt는현재StonehengeRune.jsx에서로컬질문문생성/복사만하여독립유료대상제외. 실제유료4종은1/3/5/12룬(각1000원정본/선택UI/ensurePaidAccess확인). 결과공유는페이지링크,저장결과공유가아님.
 - 020c90129 신년/꿈커밋후pre-push캐시참조FAIL;공식sync재실행및f62ede595커밋후pre-pushPASS. main/push/운영승격없음.
+
+## 룬 1개 리딩
+- 실제25룬/방향/개별상세/중심메시지/로컬질문문을6장개별편집. 원본6/native19독립SHIP;04제목수정·달장식본문겹침을absolute수정후재확인.328/358/398/540 clipping/fallbackPASS POST0. ESLint0오류7기존경고.
+- 초기개발검사POST1실패(원인미확인)후동일검사PASS. 유료구성92종+공통소개1종837패널로컬검수. 다음3룬원본6SHIP/native19검수중. main전달미완료·운영범위답변대기.
+
+
+## 룬 3개 노른의 흐름
+- 3시간자리·핵심축흐름·정역개수·각룬상세를6장개별편집. 원본6/native19독립SHIP,328/358/398/540 clipping/fallbackPASS POST0. 두상품typecheckPASS;ESLint오류0기존경고7.
+- 유료구성93종+공통소개1종843패널로컬검수. 다음5룬실제성향/주의자리포함8장원본검수중. 전체/main전달미완료.
