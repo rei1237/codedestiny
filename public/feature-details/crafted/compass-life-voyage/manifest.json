@@ -1,0 +1,56 @@
+{
+  "id": "compass-life-voyage",
+  "featureKey": "destiny-compass-life-voyage",
+  "title": "삶의 항로 · 네 구간",
+  "notice": "생년 정보와 고민으로 운명의 지도 계산 자료를 준비한 뒤 여는 별도 유료 항로 화면입니다. 추가 사연 입력은 없습니다. 30일/90일/1년/3년 뒤를 세로로 이어진 카드에서 날씨/순항도/막대/짧은 안내로 봅니다. 기존 계산값과 시기별 규칙에서 만든 상징 지수로 실제 날씨나 사건/성공 확률을 예측하지 않습니다. 새 장문 AI 해석은 생성하지 않습니다. 결제 확인 후 시기별 지수와 짧은 안내를 보관함에 저장하며 저장 실패 시 기록을 확인해야 합니다. PDF/개인 계획표/일정 알림은 제공하지 않습니다. 미래 시뮬레이션/갈림길 비교/심층 리포트는 각각 별도 상품입니다. 도식/문장은 구성 설명과 가상 활용 예시입니다. 현재 가격과 이용권·월정석·단건 결제 조건을 기존 화면에서 확인합니다.",
+  "panels": [
+    {
+      "id": "01-a-longer-voyage",
+      "title": "빠르게 가는 날도, 천천히 가는 날도.",
+      "src": "/feature-details/crafted/compass-life-voyage/01-a-longer-voyage.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "빠르게 가는 날도,\n천천히 가는 날도.\n\n30일 뒤\n\n90일 뒤\n\n1년 뒤\n\n3년 뒤\n\n운명의 지도 안에서 여는 ‘삶의 항로’.\n네 구간의 기운을 날씨와 순항도로 표현해\n세로로 이어진 항해 카드로 살펴봅니다."
+    },
+    {
+      "id": "02-four-cards",
+      "title": "각 구간에서 보는 네 가지.",
+      "src": "/feature-details/crafted/compass-life-voyage/02-four-cards.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "각 구간에서 보는\n네 가지.\n\n시기\n30일 · 90일 · 1년 · 3년 뒤\n\n날씨\n기운을 표현하는 상징\n\n순항도\n숫자와 막대의 비교\n\n한 문장\n해당 날씨에 맞는 짧은 안내\n\n카드의 구성 설명입니다.\n새 장문 AI 해석은 제공하지 않습니다."
+    },
+    {
+      "id": "03-weather-is-a-metaphor",
+      "title": "안개가 끼어도, 길은 이어집니다.",
+      "src": "/feature-details/crafted/compass-life-voyage/03-weather-is-a-metaphor.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "안개가 끼어도,\n길은 이어집니다.\n\n맑음·순풍·안개·높은 물결은\n기존 지도 계산값과 시기별 규칙에서\n정해지는 지수 구간의 이름입니다.\n\n날씨 표현을 내 생활의 속도를\n돌아보는 비유로 읽어보세요.\n\n실제 날씨나 미래 사건을 예측하지 않습니다.\n순항도는 성공 확률이나 안전을\n보장하는 숫자가 아닙니다."
+    },
+    {
+      "id": "04-your-own-pace",
+      "title": "긴 계획에도, 중간에 돌아볼 자리를.",
+      "src": "/feature-details/crafted/compass-life-voyage/04-your-own-pace.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "긴 계획에도,\n중간에 돌아볼 자리를.\n한 달은 생활을 정리하고,\n세 달 뒤에는 계속할 일을 점검하고,\n더 먼 계획은 지금의 마음과\n달라졌는지 다시 살펴보기.\n\n항로를 읽은 뒤 나의 목표와 일정에\n맞는 점검 시점을 정해보세요.\n\n활용 방식을 보여주는 가상 예시입니다.\n개인 계획표나 일정 알림을\n제공하는 기능은 아닙니다."
+    },
+    {
+      "id": "05-a-different-view",
+      "title": "3년까지 이어 읽는 항로입니다.",
+      "src": "/feature-details/crafted/compass-life-voyage/05-a-different-view.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "3년까지 이어 읽는\n항로입니다.\n삶의 항로 · 이 상품\n\n30일·90일·1년·3년의\n네 구간 카드를 한 흐름으로 읽습니다.\n\n미래 시뮬레이션 · 별도\n\n지금·30일·90일·1년을\n지도 위 마커로 눌러 봅니다.\n\n같은 지도 계산 자료를 사용하지만\n시점 범위와 화면이 다릅니다.\n두 상품은 각각 이용 조건을 확인합니다."
+    },
+    {
+      "id": "06-before-you-set-sail",
+      "title": "준비된 지도에서, 항로를 펼쳐보세요.",
+      "src": "/feature-details/crafted/compass-life-voyage/06-before-you-set-sail.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "준비된 지도에서,\n항로를 펼쳐보세요.\n\n생년 정보와 고민으로 지도를 준비하고\n‘삶의 항로’를 엽니다.\n추가 사연을 입력할 필요는 없습니다.\n\n결제 확인 후 시기별 순항도와\n짧은 안내를 보관함에 저장합니다.\n저장 오류가 나면 기록을 확인해 주세요.\n\nPDF와 새 장문 AI 상담은 제공하지 않습니다.\n심층 리포트·갈림길 비교는 별도 상품입니다.\n현재 이용권·월정석·단건 결제 조건은\n기존 결제 화면을 따릅니다."
+    }
+  ]
+}

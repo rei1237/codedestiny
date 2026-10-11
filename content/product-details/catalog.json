@@ -127,7 +127,10 @@
     "tarot-prompt-maker": "tarot-oracle-focus",
     "tarot-prompt-maker-standard": "tarot-oracle-context",
     "tarot-prompt-maker-deep": "tarot-oracle-depth",
-    "tarot-prompt-maker-master": "tarot-oracle-horizon"
+    "tarot-prompt-maker-master": "tarot-oracle-horizon",
+    "destiny-compass-crossroads": "compass-crossroads",
+    "destiny-compass-future-sim": "compass-future-sim",
+    "destiny-compass-life-voyage": "compass-life-voyage"
   },
   "introductions": {
     "fusion-fortune": [

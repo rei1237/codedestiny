@@ -1,4 +1,5 @@
 "use client";
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
 
 /**
@@ -100,6 +101,7 @@ export function LifeVoyage({
       </header>
 
       <div className={styles.resultBody}>
+        {!revealed && detectLocale() === "ko" && <div style={{width:"100%",maxWidth:540,margin:"0 auto 24px",color:"#463a31",background:"#eee7dc",borderRadius:12}}><CraftedProductDisclosure featureKey="destiny-compass-life-voyage" summaryLabel="삶의 항로 상세 안내" /></div>}
         <div className={styles.resultSpeak}>
           <PigFace expression="talk" height={80} className={styles.speakPigDark} />
           <div className={styles.resultBubble}>

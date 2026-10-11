@@ -499,3 +499,7 @@ status: active
 ## 타로 오라클 8~10장 / 11~14장
 - 켈틱크로스과거·태도·환경,12/14장방향·행동자리로각9장개별편집.각원본9/native22최종독립SHIP;328/358/398/540 clipping/fallback/실제10·14장뽑기/CTAtrial PASS;POST0.공유로직직전Jest47/oracle mock PASS.
 - 유료구성130종+공통소개1종1176패널로컬검수.직전c2e583972 pre-pushPASS(미러PASS/sitemap config재생성후amend).전체/main미완료,엔진운영미배포.다음운명의지도3개규칙형해금+별도AI심층조사.
+
+## 나침반 규칙형 해금 3종
+- 갈림길/미래 시뮬레이션/삶의 항로 각6장 개별편집. 원본6/native19 각각 독립 SHIP. 328/358/398/540 clipping·HTML고지·원고·입력·CTAtrial PASS. 진입mock calendar3+기타5 별도, 유료POST0. 그리드 intrinsic 폭/입력 및 잠금안내 대비 수정.
+- 결정론검사/Node resume6/ESLint/impeccable검출 PASS. 유료구성133종+공통소개1종1194패널 로컬검수. 직전dc36c1d5e pre-push PASS. 전체/main전달 미완료, 연이·네오 운영 미배포. 다음 별도 AI 심층 리포트.
