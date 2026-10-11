@@ -5982,27 +5982,52 @@
     {
       "productId": "tarot-prompt-maker",
       "displayName": "타로 오라클 상담",
-      "saleStatus": "진입 확인·구성 대조 중",
+      "saleStatus": "1~4장선택시타로AI상담",
       "entry": [
-        "/tarot/prompt-maker"
+        "/tarot/prompt-maker/"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 3000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
+      "inputRequirements": [
+        "질문/분야/1~4장배열/카드/정역방향선택",
+        "생년입력없음"
+      ],
+      "resultRenderer": [
+        "app/tarot/prompt-maker/TarotPromptMakerClient.tsx",
+        "worker/lib/tarot-oracle-delivery.js"
+      ],
+      "actualContents": [
+        "질문기준/전체흐름/긴장/주제심화/주의/마무리",
+        "현재/가까운흐름/분기점/행동3관점",
+        "자리별해석/3장이상선택카드쌍"
+      ],
+      "conditionalItems": [
+        "1~2장카드쌍없음",
+        "목차/서버저장재열람/브라우저읽던위치/중단시안내",
+        "PDF/후속대화없음;레노먼드별도"
+      ],
       "separatePurchase": [],
       "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
+      "images": [
+        "/feature-details/crafted/tarot-oracle-focus/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "app/tarot/prompt-maker/TarotPromptMakerClient.tsx",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본9/native22독립SHIP",
+        "328/358/398/540 clipping/fallback/질문/3장뽑기/CTAtrial PASS",
+        "POST0",
+        "oracle mock검증/Jest47/typecheck/resume wiring PASS",
+        "ESLint0errors/기존2warnings"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "main전달전로컬검수;실결제/AI없음"
       ],
       "detailAliases": [
-        "tarot-prompt-maker"
+        "tarot-oracle-focus"
       ]
     },
     {

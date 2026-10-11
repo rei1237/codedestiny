@@ -1,0 +1,80 @@
+{
+  "id": "tarot-oracle-focus",
+  "featureKey": "tarot-prompt-maker",
+  "title": "타로 오라클 · 1~4장",
+  "notice": "1~4장 배열을 선택하는 타로 오라클 AI 상담입니다. 질문과 분야·배열을 정하고 카드를 선택하며 생년월일은 받지 않습니다. 질문 해석 기준, 전체 흐름, 카드 자리별 해석과 조언, 긴장 조건, 주제별 심화, 주의점, 현재·가까운 흐름·분기점, 세 가지 행동 관점과 마무리를 읽습니다. 카드 쌍 해석은 3장부터 포함되고 모든 조합을 분석하지는 않습니다. 같은 계정의 저장된 상담과 중단된 생성 안내를 확인할 수 있으며 읽던 위치는 같은 브라우저에 저장됩니다. PDF와 추가 후속 대화는 제공하지 않습니다. 레노먼드 프롬프트는 별도 기능입니다. 도식·문장은 구성 설명과 가상 예시이며 실제 개인 결과/고객후기가 아닙니다. 현재 가격과 이용권·월정석·단건 결제 조건은 기존 결제 화면을 따릅니다.",
+  "panels": [
+    {
+      "id": "01-one-question",
+      "title": "답을 서두르기 전에, 질문 하나를 선명하게.",
+      "src": "/feature-details/crafted/tarot-oracle-focus/01-one-question.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "답을 서두르기 전에,\n질문 하나를 선명하게.\n✦\n\n지금 내가\n먼저 바라볼 것은?\n\n1~4장 타로 오라클 상담.\n짧은 질문에서 출발해 카드의 의미와\n현실에서 선택할 행동까지 읽습니다."
+    },
+    {
+      "id": "02-a-question-with-a-scene",
+      "title": "막연한 운보다, 지금의 장면을.",
+      "src": "/feature-details/crafted/tarot-oracle-focus/02-a-question-with-a-scene.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "막연한 운보다,\n지금의 장면을.\n이렇게 질문해 보세요\n연락을 기다리느라\n하루가 자꾸 흔들립니다.\n지금 내 마음을 지키려면\n어떤 태도가 필요할까요?\n\n질문과 분야를 고르고,\n고민에 맞는 카드 배열을 선택합니다.\n\n가상 질문 예시입니다.\n상대의 마음을 확정하는 상담은 아닙니다."
+    },
+    {
+      "id": "03-one-to-four",
+      "title": "적은 카드, 서로 다른 질문의 자리.",
+      "src": "/feature-details/crafted/tarot-oracle-focus/03-one-to-four.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "적은 카드,\n서로 다른 질문의 자리.\n한 장의 핵심\n\n지금 가장 먼저 붙잡을\n메시지와 태도를 살펴봅니다.\n\n세 장의 기본 상담\n\n현재 상황 · 숨은 흐름 · 조언을\n서로 다른 자리에서 읽습니다.\n\n이 구간은 1~4장 배열에 적용됩니다.\n질문과 목차는 선택한 배열에 따라 달라집니다."
+    },
+    {
+      "id": "04-the-reading-map",
+      "title": "한 문장으로 끝내지 않는 해석.",
+      "src": "/feature-details/crafted/tarot-oracle-focus/04-the-reading-map.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "한 문장으로\n끝내지 않는 해석.\n\n질문을 해석하는 기준과 전체 흐름\n\n각 카드 자리의 해석과 조언\n\n긴장하는 조건과 주제별 심화\n\n현재 · 가까운 흐름 · 변화의 분기점\n\n주의점 · 실천 행동 · 마지막 조언\n\n선택한 카드와 정·역방향을 유지해\nAI가 상담 본문을 작성합니다."
+    },
+    {
+      "id": "05-why-this-card",
+      "title": "카드 이름보다, 이 자리에 놓인 이유.",
+      "src": "/feature-details/crafted/tarot-oracle-focus/05-why-this-card.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "카드 이름보다,\n이 자리에 놓인 이유.\n\n조언의 자리에 놓인 은둔자\n\n잠시 거리를 두는 일이\n관계를 포기하라는 뜻만은 아닙니다.\n기다림 때문에 놓친 내 일상을\n먼저 되찾는 선택일 수 있습니다.\n\n해석 방식을 보여주는 가상 예시입니다.\n실제 결과나 고객 후기가 아닙니다."
+    },
+    {
+      "id": "06-reading-the-connection",
+      "title": "카드가 만날 때, 달라지는 조건.",
+      "src": "/feature-details/crafted/tarot-oracle-focus/06-reading-the-connection.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "카드가 만날 때,\n달라지는 조건.\n\n한 장의 신호\n\n＋\n\n다른 자리의 맥락\n\n↓\n\n함께 읽을 때의 선택\n\n세 장 이상을 골랐다면\n선택된 카드 쌍의 관계도 함께 읽습니다.\n\n1~2장 배열에는 카드 쌍 해석이 없습니다.\n모든 카드 조합을 따로 분석하는\n구성은 아닙니다."
+    },
+    {
+      "id": "07-from-reading-to-action",
+      "title": "오늘 할 일과, 다시 볼 기준.",
+      "src": "/feature-details/crafted/tarot-oracle-focus/07-from-reading-to-action.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "오늘 할 일과,\n다시 볼 기준.\n\n오늘\n실천할 행동과 확인 방법\n\n일주일\n조금씩 점검할 행동\n\n다음 선택\n판단을 다시 검토할 기준\n\n변화를 기다리는 동안 무엇을 볼지,\n어떤 신호에서 판단을 바꿀지까지\n나의 상황에 대입해 보세요."
+    },
+    {
+      "id": "08-reading-again",
+      "title": "길게 읽는 상담, 다시 돌아올 수 있게.",
+      "src": "/feature-details/crafted/tarot-oracle-focus/08-reading-again.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "길게 읽는 상담,\n다시 돌아올 수 있게.\n목차와 읽던 위치\n\n목차를 따라 읽고, 같은 브라우저의\n읽던 위치로 이동할 수 있습니다.\n\n저장된 상담 이어보기\n\n같은 계정으로 저장된 상담을 불러옵니다.\n중단된 경우 제공되는 안내에 따라\n이어받을 수 있습니다.\n\nPDF 저장이나 후속 대화 상담은\n제공하지 않습니다."
+    },
+    {
+      "id": "09-before-the-cards",
+      "title": "질문을 적고, 카드를 고르고, 내 선택으로 돌아오세요.",
+      "src": "/feature-details/crafted/tarot-oracle-focus/09-before-the-cards.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "질문을 적고,\n카드를 고르고,\n내 선택으로 돌아오세요.\n\n이 안내는 1~4장 타로 상담입니다.\n더 많은 카드 배열을 선택하면\n해당 구간의 이용 조건을 확인합니다.\n\n생년월일 대신 질문과 카드를 사용합니다.\n결제 조건은 기존 이용권·월정석·\n단건 결제 화면에서 확인하세요.\n\n레노먼드 프롬프트 만들기는 별도 기능입니다.\n타로는 가능성과 선택을 살피는 참고이며\n관계의 결과나 성공을 보장하지 않습니다."
+    }
+  ]
+}

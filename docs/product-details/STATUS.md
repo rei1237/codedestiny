@@ -487,3 +487,7 @@ status: active
 ## 테토·에겐 / 인연 장소
 - 각각6/9장개별편집;원본및native19/22최종독립SHIP.테토294/324/364/538,인연328/358/398/540;clipping/fallback/CTAtrial PASS.무료calendar mock4별도/유료POST0.테토기존화면5000하드코딩은기존KRW1000정본상수에연결(정책변경없음).
 - ESLint0errors(기존770warnings),resume wiring React43/정적46 PASS.유료구성126종+공통소개1종1140패널로컬검수.꽃은서버·UI무료전환확인으로판매대상제외.직전5a2d6d127 pre-pushPASS.전체/main전달미완료,mainCI복구질문pending/운영배포없음.
+
+## 타로 오라클 1~4장
+- 한질문집중/실제자리/3장이상카드쌍/행동/저장을9장개별편집.원본9/native22독립SHIP;328/358/398/540 clipping/fallback/질문·로컬3장뽑기·CTAtrial PASS,POST0.
+- oracle mock전체검증/Jest47/typecheck/resume wiring PASS.ESLint0errors(기존2warnings).유료구성127종+공통소개1종1149패널로컬검수.직전8a5e512bf pre-pushPASS.전체/main미완료,엔진운영미배포.다음5~7장원본검수중.
