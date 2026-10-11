@@ -165,3 +165,5 @@ docs/handoff/2026-10-11-paid-archive-followups.md 를 읽고 P0-1 을 진행해�
 
 **P2-4. `verify-records-hub` 가 이 환경에서 시간 초과**
 - 로컬 Windows 환경에서 시간 초과로 끝난다. CI 에서 통과하는지 확인하고, 필요하면 타임아웃을 조정한다.
+- 2026-10-11 확인: `scripts/design/verify-records-hub.mjs` 는 로컬 dev 서버(`RECORDS_TEST_ORIGIN`, 기본 :3194)를 띄워 놓고 도는 Playwright 스크립트다. package.json 스크립트에도, `.github/workflows` 에도 연결돼 있지 않아 CI 에서는 돌지 않는다. 그래서 타임아웃은 손대지 않았다. CI 에 넣으려면 dev 서버 기동 단계가 있는 작업을 따로 만들어야 한다. `SAVED_FEATURES` 를 순회하므로 P1-3 으로 상세 화면 3개가 늘었다.
+- 같은 날 CI 확인 중 발견: 9973db561 이 셸 캐시 핀 연쇄(init.js → uiBindings.js)를 끝까지 맞추지 못해 Main drift watchdog 가 실패했다. 30dd40e34 에서 sync:public 을 수렴할 때까지 돌려 고쳤다.
