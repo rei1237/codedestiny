@@ -15,6 +15,9 @@ next: "docs/handoff/2026-10-10-birth-scope-unlock-followups.md 를 읽고 P0-2(�
 - 출생 기반 해금(`userId + birthKey + contentKey`)과 프로필 카드 1,000원 인하가 main 41be9ef2c 에 들어가 있다. staging 은 push 로 배포됐고 **운영 승격은 아직이다.**
 - 운영 DB·staging DB 모두 이관 마이그레이션을 **아직 돌리지 않았다.** 그래서 staging 의 기존 구매는 지금 잠겨 보인다.
 - 2026-10-11: 기존 해금 유지 보강(마이그레이션 조회·환불 짝짓기, 프로필 모르는 기존 해금의 프로필 선택 지급, 프로필 전환 복귀 재해금)이 들어갔다. 자세한 내용은 P0-2 의 "2026-10-11 보강" 이다.
+- 2026-10-11 (브랜치 `fix/legacy-saju-unlock-20261011`): 🔴 **전환 이전 해금 유지(grandfathering)가 승격 전 필수로 추가됐다.** 출생 기반 키의 ACTIVE USER 행은 계정 전체에서, PROFILE 행은 그 profileId 에서(생년월일을 고쳐도) 계속 열린다. 이것 없이 승격하면 운영의 최근 대운·종합 구매자 16명 중 USER 행 8명이 모든 프로필에서 잠기고(저장 카드 0개 2명 포함), PROFILE 행 8명은 생년월일 수정 때 다시 잠긴다. 이관 계획기도 USER 행을 claim 대신 `grandfathered`로 센다. 규칙은 `docs/context/payment-gating.md`의 "예외 — 전환 이전 해금 유지"다.
+  - 같은 날 운영 데이터 핫픽스(A): 6월 프로필 단위 전환 전 코인 구매로 해금 행이 없던 고객에게 `scripts/migrations/20261011-backfill-legacy-saju-profile-unlocks.mjs`(`npm run repair:legacy-saju-profile-unlocks`)로 PROFILE BACKFILL 행 5개를 넣었다. 카드가 여러 개라 대상을 정할 수 없는 2건은 REPORT_ONLY 로 남겼고, 승격 뒤 이관의 claim(프로필 선택)으로 처리된다. 이 행들도 레거시 PROFILE 행이라 위 규칙으로 계속 열린다.
+  - 남는 위험(사용자가 허용): 레거시 PROFILE 카드의 생년월일을 바꿔 다른 생일 결과를 볼 수 있다. 로그 `legacy_profile_unlock_birth_edit` 로만 감시한다.
 - 정책 정본은 `docs/context/payment-gating.md:7-19`, `docs/PAYMENT_AND_ACCESS.md` 출생 기반 절이다. 신원 해석은 `worker/lib/birth-scoped-unlock-identity.js` 에 있다.
 
 ## 다음 세션 시작 명령
@@ -25,7 +28,7 @@ next: "docs/handoff/2026-10-10-birth-scope-unlock-followups.md 를 읽고 P0-2(�
 docs/handoff/2026-10-10-birth-scope-unlock-followups.md 를 읽고 P0-2 를 진행해줘
 ```
 
-- 🔴 **운영 승격 전 필수:** P0-1, P0-2. 순서는 P0-1 코드 → main push → P0-2 staging 리허설 → P0-2 운영 → 승격이다.
+- 🔴 **운영 승격 전 필수:** P0-1, P0-2, 그리고 레거시 해금 유지(2026-10-11 브랜치, main 반영 확인). 순서는 P0-1 코드 → main push → P0-2 staging 리허설 → P0-2 운영 → 승격이다. P0-2 dry-run 에서 USER 행이 claim 없이 `grandfathered`로 잡히는지 본다.
 - 동시에 돌리지 않는다:
   - P0-1·P1-4 는 둘 다 `worker/routes/payments.js` 를 고친다.
   - P1-1·P1-2·P3-1 은 셋 다 `worker/routes/app-store.js` 를 고친다.

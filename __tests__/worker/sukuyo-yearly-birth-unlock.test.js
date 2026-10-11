@@ -139,11 +139,17 @@ test("다른 연도 권한으로는 열리지 않는다", async () => {
   expect((await unlock({ profileId: "p1" })).body.unlocked).toBe(false);
 });
 
+// 출생 기반 전환 이전 USER·PROFILE 행(운영 구매자)은 계속 연다 — 재잠금 방지. 다른 카드의 PROFILE 행은 닫힌다.
 test.each([
   ["USER", { scope: "USER", profileId: "__user__" }],
   ["PROFILE", { scope: "PROFILE", profileId: "p1" }],
-])("레거시 %s 행은 출생 기반 1년운의 근거가 아니다", async (_label, overrides) => {
+])("레거시 %s 행은 출생 기반 1년운을 계속 연다", async (_label, overrides) => {
   grant(overrides);
+  expect((await unlock({ profileId: "p1" })).body.unlocked).toBe(true);
+});
+
+test("다른 카드의 레거시 PROFILE 행으로는 열리지 않는다", async () => {
+  grant({ scope: "PROFILE", profileId: "p3" });
   expect((await unlock({ profileId: "p1" })).body.unlocked).toBe(false);
 });
 

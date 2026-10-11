@@ -154,12 +154,20 @@ test("missing, foreign or synthetic profile ids are rejected without generation"
 
 test.each([
   { userId: OTHER_USER_ID }, { status: "REFUNDED" }, { expiresAt: new Date("2020-01-01") },
-  { scope: "PROFILE", profileId: "p1" }, { scope: "USER", profileId: "__user__" },
+  { scope: "PROFILE", profileId: "p2" },
   { profileId: "birth:" + "0".repeat(64) }, { contentKey: "premium-sibyl-dominator" },
-])("an unrelated, legacy or inactive grant never opens the image: %j", async (override) => {
+])("an unrelated, other-card or inactive grant never opens the image: %j", async (override) => {
   grant(override);
   expect((await request()).status).toBe(402);
   expect(nvidia).not.toHaveBeenCalled();
+});
+
+// 출생 기반 전환 이전 USER·PROFILE 행(운영 구매자)은 계속 연다 — 재잠금 방지. 다른 카드의 PROFILE 행은 닫힌다.
+test.each([
+  { scope: "PROFILE", profileId: "p1" }, { scope: "USER", profileId: "__user__" },
+])("a legacy grant from before the birth-scope switch keeps opening the image: %j", async (override) => {
+  grant(override);
+  expect((await request()).status).toBe(200);
 });
 
 test("DB failures stay retryable instead of prompting purchase", async () => {

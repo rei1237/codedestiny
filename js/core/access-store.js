@@ -46,11 +46,27 @@
       return false;
     }
   }
+  /* 출생 기반 전환 이전 USER/PROFILE 행으로 열린 키(레거시 유지, worker/lib/access-state.js
+     legacyAccountUnlockedFeatureIds · legacyProfileUnlockedFeatureIds). 서버 스냅샷에 실린 값만 믿는다.
+     계정 키는 저장 카드가 없어도 열리고, 둘 다 카드의 출생 정보를 고쳐도 지우지 않는다. */
+  function legacyUnlockKeyListed(field, rawKey) {
+    var snapshot = state && state.entitlementSnapshot;
+    var list = snapshot && Array.isArray(snapshot[field]) ? snapshot[field] : null;
+    if (!list) return false;
+    var key = normalizeFeatureKey(rawKey);
+    return list.some(function (entry) { return normalizeFeatureKey(entry) === key; });
+  }
+  function isLegacyAccountUnlockKey(rawKey) {
+    return legacyUnlockKeyListed('legacyAccountUnlockedFeatureIds', rawKey);
+  }
+  function isLegacyUnlockKey(rawKey) {
+    return isLegacyAccountUnlockKey(rawKey) || legacyUnlockKeyListed('legacyProfileUnlockedFeatureIds', rawKey);
+  }
   function stripBirthScopedKeys(map) {
     var removed = false;
     if (!map || typeof map !== 'object') return removed;
     Object.keys(map).forEach(function (key) {
-      if (isBirthScopedKey(key)) {
+      if (isBirthScopedKey(key) && !isLegacyUnlockKey(key)) {
         delete map[key];
         removed = true;
       }
@@ -1263,7 +1279,9 @@
 
   function ensureLoaded(options) {
     var context = ensureContext(options || {});
-    if (!context.profileId || !hasSessionHint(options || {})) {
+    /* accountScope: 저장 카드가 없는 계정도 레거시 계정 해금(출생 기반 전환 이전 USER 행)을 받아야 한다.
+       그 호출만 profileId 없이 묻는다 — 서버가 계정 범위 행만 근거로 싣는다. */
+    if ((!context.profileId && (options || {}).accountScope !== true) || !hasSessionHint(options || {})) {
       state.status = hasUsableCache() ? 'ready' : 'ready';
       notify();
       return Promise.resolve({ ok: true, skipped: true, reason: 'NO_AUTH_PROFILE' });
@@ -1338,6 +1356,7 @@
       return { unlocked: isUnlocked(featureKey), status: state.status, error: state.error };
     },
     isUnlocked: isUnlocked,
+    isLegacyAccountUnlockKey: isLegacyAccountUnlockKey,
     ensureLoaded: ensureLoaded,
     revalidate: revalidate,
     refreshEntitlements: revalidate,
@@ -1381,6 +1400,9 @@
   };
 
   global.CodeDestinyAccessStore = store;
+  global.cdIsLegacyAccountUnlockKey = function (featureKey) {
+    return isLegacyAccountUnlockKey(featureKey) && isUnlocked(featureKey);
+  };
   global.addEventListener && global.addEventListener('cd:auth-changed', function (event) {
     var detail = event && event.detail || {};
     if (detail.type === 'logout' || detail.loggedIn === false || detail.user === null) {

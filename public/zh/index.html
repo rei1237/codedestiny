@@ -21562,11 +21562,21 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
     }
   }
 
+  // 출생 기반 전환 이전 USER 행으로 열린 키(서버 스냅샷 legacyAccountUnlockedFeatureIds)는 계정 키처럼 다룬다 —
+  // 저장 카드가 없거나 직접 입력 중이어도 열리고, 카드 전환으로 지우지 않는다.
+  function _cdIsLegacyAccountTileKey(key) {
+    try {
+      return typeof window.cdIsLegacyAccountUnlockKey === 'function' && window.cdIsLegacyAccountUnlockKey(key) === true;
+    } catch (_legacyAccountErr) {
+      return false;
+    }
+  }
+
   function _cdStripBirthScopedTileKeys(mapObj) {
     if (!mapObj || typeof mapObj !== 'object') return 0;
     var removed = 0;
     Object.keys(mapObj).forEach(function(key) {
-      if (!_cdIsBirthScopedTileKey(key)) return;
+      if (!_cdIsBirthScopedTileKey(key) || _cdIsLegacyAccountTileKey(key)) return;
       delete mapObj[key];
       removed += 1;
     });
@@ -21625,7 +21635,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
     var keys = resolveTileLockAliasKeys(rawKey);
     for (var i = 0; i < keys.length; i += 1) {
       // 저장 안 된 출생 정보(직접 입력)·프로필 미선택이면 출생 기반 키는 잠금이다.
-      if (!birthScopeProfileId && _cdIsBirthScopedTileKey(keys[i])) continue;
+      if (!birthScopeProfileId && _cdIsBirthScopedTileKey(keys[i]) && !_cdIsLegacyAccountTileKey(keys[i])) continue;
       if (unlockedFeatureMap[keys[i]] === true) {
         if (isSajuAccessFeatureKey(keys[i])) return isSajuSectionUnlockedForRender(keys[i]);
         return true;
@@ -21645,7 +21655,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
     // 먼저 병합해야 이미 렌더된 종합 사주 풀이가 다음 unlock 이벤트에서 다시 숨겨지지 않는다.
     mergeAccessStoreUnlocksIntoLegacyMap();
     // 출생 기반 섹션은 저장된 카드의 출생 정보를 보고 있을 때만 열린다(직접 입력은 잠금 유지).
-    if (_cdIsBirthScopedTileKey(key) && !_cdBirthUnlockScopeProfileId) return false;
+    if (_cdIsBirthScopedTileKey(key) && !_cdBirthUnlockScopeProfileId && !_cdIsLegacyAccountTileKey(key)) return false;
     if (!isSajuAccessFeatureKey(key)) return unlockedFeatureMap[key] === true;
     if (isAdminUser()) return unlockedFeatureMap[key] === true;
     return unlockedFeatureMap[key] === true;
@@ -21675,7 +21685,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
         Object.keys(unlockedFeatureMap).forEach(function(key) { delete unlockedFeatureMap[key]; });
       }
       Object.keys(storeUnlocks).forEach(function(key) {
-        if (!snapshotBirthScopeOk && _cdIsBirthScopedTileKey(key)) return;
+        if (!snapshotBirthScopeOk && _cdIsBirthScopedTileKey(key) && !_cdIsLegacyAccountTileKey(key)) return;
         if (storeUnlocks[key] === true) unlockedFeatureMap[key] = true;
       });
       Object.keys(storeOptimistic).forEach(function(key) {
@@ -24639,7 +24649,8 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
     var coinPrice = _cdResolvePaidGateCoinPrice(opts);
     var amountKrw = _cdResolvePaidGateAmountKrw(opts, coinPrice);
     var featureKey = _cdResolvePaidGateFeatureKey(opts, title);
-    if (_cdIsBirthScopedTileKey(featureKey)) {
+    // 레거시 계정 해금 키는 카드 없이도 서버가 already_unlocked 로 돌려준다(재과금 없음).
+    if (_cdIsBirthScopedTileKey(featureKey) && !_cdIsLegacyAccountTileKey(featureKey)) {
       var gateBirthScopeProfileId = _cdBirthScopeCurrentProfileId();
       if (!gateBirthScopeProfileId) {
         var gateBirthScopeMessage = _cdAlertBirthScopeProfileRequired();
@@ -30718,6 +30729,13 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
       try { profileId = _cdResolveCurrentProfileIdForAccess(); } catch (_profileErr) { profileId = ''; }
     }
     if (!profileId) {
+      // 저장 카드가 없어도 레거시 계정 해금(전환 이전 USER 행)은 열린다 — 계정 범위로 한 번 묻는다.
+      var accountScopeStore = window.CodeDestinyAccessStore;
+      if (accountScopeStore && typeof accountScopeStore.ensureLoaded === 'function') {
+        try {
+          await accountScopeStore.ensureLoaded({ accountScope: true, reason: 'saju-entitlements-account' });
+        } catch (_accountScopeErr) {}
+      }
       sajuAccessUnlockState = 'ready';
       sajuAccessUnlockLastProfileId = '';
       if (typeof applySectionGates === 'function') applySectionGates();
@@ -30945,7 +30963,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
 
     for (var i = 0; i < knownKeys.length; i += 1) {
       var key = knownKeys[i];
-      if (!birthPayloadMatches && _cdIsBirthScopedTileKey(key)) continue;
+      if (!birthPayloadMatches && _cdIsBirthScopedTileKey(key) && !_cdIsLegacyAccountTileKey(key)) continue;
       var shouldUnlock = next[key] === true;
       var isUnlocked = unlockedFeatureMap[key] === true;
 
@@ -31174,6 +31192,13 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
     var fetchOpts = options && typeof options === 'object' ? options : {};
     var profileId = _cdResolveCurrentProfileIdForAccess();
     if (!profileId) {
+      // 저장 카드가 없어도 레거시 계정 해금(전환 이전 USER 행)은 열린다 — 계정 범위로 한 번 묻는다.
+      var accountScopeStore = window.CodeDestinyAccessStore;
+      if (accountScopeStore && typeof accountScopeStore.ensureLoaded === 'function') {
+        try {
+          await accountScopeStore.ensureLoaded({ accountScope: true, reason: 'saju-entitlements-account' });
+        } catch (_accountScopeErr) {}
+      }
       sajuAccessUnlockState = 'ready';
       sajuAccessUnlockLastProfileId = '';
       if (typeof applySectionGates === 'function') applySectionGates();

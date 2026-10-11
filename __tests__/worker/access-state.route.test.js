@@ -345,6 +345,25 @@ test("isolates complete access snapshots by selected profile", async () => {
   expect(getUnlockedContentSnapshot).toHaveBeenCalledTimes(2);
 });
 
+test("exposes birth-scope keys opened by legacy USER/PROFILE rows so the client keeps them open", async () => {
+  getUnlockedContentSnapshot.mockResolvedValueOnce({
+    featureKeys: ["section_daewun", "section_summary", "section_compat"],
+    contentKeys: ["saju.daeunAnalysis", "saju.fullReading", "saju.compatibility"],
+    unlockMap: { section_daewun: true, section_summary: true, section_compat: true },
+    legacyAccountFeatureKeys: ["section_daewun"],
+    legacyProfileFeatureKeys: ["section_summary"],
+    profileScopedAuthoritative: true,
+  });
+
+  const payload = await (await handleAccessStateRoutes(request(), {})).json();
+
+  for (const view of [payload.data, payload.data.entitlementSnapshot]) {
+    expect(view.legacyAccountUnlockedFeatureIds).toEqual(["section_daewun"]);
+    expect(view.legacyProfileUnlockedFeatureIds).toEqual(["section_summary"]);
+    expect(view.unlockedFeatureIds).toEqual(expect.arrayContaining(["section_daewun", "section_summary", "section_compat"]));
+  }
+});
+
 test("requested profile takes precedence over the stored previous profile", async () => {
   const response = await handleAccessStateRoutes(new Request(
     "https://example.com/api/me/access-state?profileId=profile-requested",

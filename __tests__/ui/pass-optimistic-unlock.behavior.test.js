@@ -78,6 +78,7 @@ function grabObjectVar(name) {
 
 const SHELL_FUNCTIONS = [
   "function _cdIsBirthScopedTileKey(rawKey) {",
+  "function _cdIsLegacyAccountTileKey(key) {",
   "function _cdStripBirthScopedTileKeys(mapObj) {",
   "function _cdBirthScopeCurrentProfileId() {",
   "function _cdEnsureBirthUnlockScope() {",
@@ -320,4 +321,42 @@ test("출생 기반: 저장 안 된 출생 정보(직접 입력)를 보고 있�
   store.markOptimisticallyUnlocked("section_summary", "profile-1", { source: "PaymentSuccessEvent" });
 
   assert.equal(shell.isTileKeyUnlocked("section_summary"), false);
+});
+
+// 출생 기반 전환 이전 USER 행(레거시 계정 해금)은 저장 카드가 없어도 열린다 — 서버 스냅샷의
+// legacyAccountUnlockedFeatureIds 가 근거다. 레거시가 아닌 출생 키는 같은 상태에서 계속 잠긴다.
+function applyLegacySnapshot(store, profileId, accountKeys, otherKeys = []) {
+  const ids = [...accountKeys, ...otherKeys];
+  return store.applyAccessStateSnapshot({
+    userId: "user-1",
+    currentProfileId: profileId,
+    completeness: "full",
+    authority: "server",
+    unlockedFeatureIds: ids,
+    entitlementSnapshot: { unlockedFeatureIds: ids, legacyAccountUnlockedFeatureIds: accountKeys, legacyProfileUnlockedFeatureIds: [] },
+  }, { profileId });
+}
+
+test("레거시 계정 키: 저장 카드 없이(직접 입력) 보고 있어도 열리고, 레거시 아닌 출생 키는 잠긴다", () => {
+  const { shell, store } = boot({ birthScope: true, birthScopeProfileId: "" });
+  assert.equal(applyLegacySnapshot(store, "profile-1", ["section_daewun"], ["section_summary"]), true);
+
+  assert.equal(shell.isTileKeyUnlocked("section_daewun"), true, "전환 이전에 산 대운은 계속 열려야 합니다");
+  assert.equal(shell.isTileKeyUnlocked("section_summary"), false, "BIRTH 근거만 있는 키는 카드 없이 열리면 안 됩니다");
+});
+
+test("레거시 계정 키: 다른 카드로 바꿔도 지우지 않는다", () => {
+  const { shell, store, sandbox } = boot({ birthScope: true });
+  applyLegacySnapshot(store, "profile-1", ["section_daewun"]);
+  assert.equal(shell.isTileKeyUnlocked("section_daewun"), true);
+
+  sandbox.__testBirthScopeProfileId = "profile-2";
+  assert.equal(shell.isTileKeyUnlocked("section_daewun"), true);
+});
+
+test("레거시 계정 키는 계정 저장소(로컬)만으로는 생기지 않는다", () => {
+  const { shell, storage } = boot({ birthScope: true, birthScopeProfileId: "" });
+  storage.set(ACCOUNT_STORAGE_KEY, JSON.stringify({ section_daewun: true }));
+  shell.loadTileLocks();
+  assert.equal(shell.isTileKeyUnlocked("section_daewun"), false);
 });

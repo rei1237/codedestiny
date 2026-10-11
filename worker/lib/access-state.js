@@ -200,6 +200,11 @@ export function buildAccessState({
       : resolvedUnlockedFeatureIds,
   );
   const unlockedFeatureGrants = buildUnlockGrants(contentState, unlockedFeatureIds);
+  // 출생 기반 키 중 전환 이전 USER/PROFILE 행으로 열린 것(레거시 유지). 계정 키는 클라이언트가 저장 프로필 없이도 연다.
+  const legacyUnlockedIds = (keys) => normalizeUnlockFeatureArray(Array.isArray(keys) ? keys : [])
+    .filter((key) => unlockedFeatureIds.includes(key));
+  const legacyAccountUnlockedFeatureIds = legacyUnlockedIds(contentState?.legacyAccountFeatureKeys);
+  const legacyProfileUnlockedFeatureIds = legacyUnlockedIds(contentState?.legacyProfileFeatureKeys);
   const normalizedContentKeys = normalizeStringArray([
     ...unlockedContentKeys,
     ...(Array.isArray(contentState?.contentKeys) ? contentState.contentKeys : []),
@@ -252,6 +257,8 @@ export function buildAccessState({
     passUsage,
     unlockedFeatureIds,
     unlockedFeatureGrants,
+    legacyAccountUnlockedFeatureIds,
+    legacyProfileUnlockedFeatureIds,
     monthlyBalance,
     profileEntitlements,
     ownedProductIds,
@@ -294,6 +301,8 @@ export function buildAccessState({
     unlockedFeatureIds,
     unlockedFeatures: unlockedFeatureIds,
     unlockedFeatureGrants,
+    legacyAccountUnlockedFeatureIds,
+    legacyProfileUnlockedFeatureIds,
     unlockMap,
     lockMap,
     profileEntitlements,
