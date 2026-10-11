@@ -3124,28 +3124,55 @@
     {
       "productId": "love-code",
       "displayName": "LOVE CODE 연애 시뮬레이션",
-      "saleStatus": "진입 확인·구성 대조 중",
+      "saleStatus": "실제 구매시작·결과대조",
       "entry": [
         "/saju/love-simulation/"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 5000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
+      "inputRequirements": [
+        "내 출생프로필 필요",
+        "캐릭터직접선택 또는 상대 생년월일·달력·성별·시각"
+      ],
+      "resultRenderer": [
+        "app/saju/love-simulation/_components/LoveSimulationEngine.tsx",
+        "app/saju/love-simulation/_components/LoveCharacterStorySection.tsx"
+      ],
+      "actualContents": [
+        "16캐릭터·최소10개장면·선택형이야기",
+        "명식고정궁합5지표/선택데이트결말분리",
+        "최근선택분석·인물배경아코디언"
+      ],
+      "conditionalItems": [
+        "필수명식계산실패시궁합결과없음",
+        "자유대화AI/PDF/진행결과별도보관함없음"
+      ],
+      "separatePurchase": [
+        "연이·네오 상담실"
+      ],
       "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
+      "images": [
+        "/feature-details/crafted/love-code/manifest.json",
+        "공식 강태준·새벽 캐릭터자산 CSS크롭"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "app/saju/love-simulation/_components/LoveSimulationEngine.tsx",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본9/native22 독립SHIP",
+        "328/358/398/497 clipping/fallback/캐릭터선택CTAtrial PASS;POST0",
+        "Node3/typecheck PASS;ESLint0error·기존7warning",
+        "i18n parity PASS;KO제목정본수정후재검수"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "main전달·CI대기;유료게임진행·실결제미실행"
       ],
       "detailAliases": [
         "love-simulation"
-      ]
+      ],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "love-secret-ai-consultation",

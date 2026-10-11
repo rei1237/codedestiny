@@ -1,4 +1,5 @@
 "use client";
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 
 import React, { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { m, AnimatePresence } from "framer-motion";
@@ -166,7 +167,7 @@ const LOVE_SIMULATION_CHROME_KO = {
 
   // ── 인트로 ──
   introEyebrow: "사주 성향과 선택으로 흐름이 달라지는 대화",
-  introTitle: "Love Code: 운명의 상대와 대화하기",
+  introTitle: "러브 코드",
   introDescription: "캐릭터의 성향, 취향, 거리감을 따라가는 비주얼 노벨 궁합입니다.",
   introChips: { saju: "사주 성향", dialogue: "캐릭터 대화", flow: "관계 흐름" },
   selectCharacterButton: "캐릭터 선택하기",
@@ -1956,6 +1957,7 @@ export const LoveSimulationEngine: React.FC = () => {
                 {copy.introDescription}
               </p>
               </div>
+              {locale === "ko" && <div style={{width:"100%",maxWidth:540,minWidth:0,margin:"24px 0",background:"#f2e4df",color:"#583744",borderRadius:12}}><CraftedProductDisclosure featureKey="love-code" summaryLabel="러브 코드 상세 안내" /></div>}
               <div className="mt-9 flex flex-col gap-3 sm:flex-row">
                 <button
                   onClick={() => setScreen("select")}

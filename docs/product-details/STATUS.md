@@ -526,3 +526,7 @@ status: active
 ## 동서 통합 궁합
 - 베다8항목과 숙요 관계·행동을 9장 개별편집. 원본9/native22 독립SHIP.328/358/398/540 clipping/두사람입력/fallback/CTAtrial PASS;무료별위치mock2/유료POST0. Jest저장계약3/ESLint/typecheck PASS. 기존버튼 대비검출 advisory1.
 - 유료구성143원본+공통1원본1272패널 로컬검수. 직전593c85202 pre-push PASS. 전체/main전달미완료·엔진운영미배포. 다음 러브코드/관상 현재판매구성 조사.
+
+## 러브 코드
+- 16캐릭터/명식궁합고정/선택형데이트를9장개별편집. 원본9/native22 독립SHIP.328/358/398/497 clipping/fallback/캐릭터선택CTAtrial PASS;POST0. Node3/typecheck/i18n parity PASS;ESLint0error 기존7warning. KO기존제목 고아줄은 authored사전정본수정 및 core병합후해소.
+- 유료구성144원본+공통1원본1281패널 로컬검수. 직전37cbab027 pre-push PASS. 전체/main전달미완료·엔진운영미배포. 다음 관상3종.
