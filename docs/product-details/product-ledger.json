@@ -4300,7 +4300,7 @@
     {
       "productId": "rpgCharacter",
       "displayName": "RPG character unlock",
-      "saleStatus": "별칭: 동일 해금으로 연결",
+      "saleStatus": "기존권한별칭;현행rpt_skillTreeCard중복",
       "entry": [],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 3000,
@@ -4311,14 +4311,13 @@
       "separatePurchase": [],
       "reviewSource": [],
       "images": [],
-      "status": "조사",
+      "status": "대상 제외",
       "appliedAt": [],
       "verification": [
-        "index.html:resolveTileLockAliasKeys의 양방향 별칭"
+        "js/core/index-inline-runtime.js1531-1532 쌍방별칭",
+        "reportDashboard.js 현재타일 coinCost10/key rpt_skillTreeCard"
       ],
-      "unconfirmed": [
-        "개별 판매 구성은 rpt_skillTreeCard에서 대조"
-      ],
+      "unconfirmed": [],
       "detailAliases": [],
       "mergedInto": "rpt_skillTreeCard"
     },
@@ -4413,24 +4412,54 @@
     {
       "productId": "rpt_skillTreeCard",
       "displayName": "인생 스킬 트리 영구 해금",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "saleStatus": "실제사주결과타일 lockKey와가격10 확인",
+      "entry": [
+        "/ggulggul/ 사주결과 인생스킬트리 타일"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 1000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "inputRequirements": [
+        "기존사주 생년월일시 계산결과"
       ],
-      "detailAliases": []
+      "resultRenderer": [
+        "js/saju-engine.js renderSkillTree",
+        "js/core/saju/reportDashboard.js"
+      ],
+      "actualContents": [
+        "클래스/주력십성축/랭크/나이CH경험치",
+        "5오행스탯/궤도분포/조건부일주능력",
+        "주력·보유·잠긴스킬/현재세운성장축조언"
+      ],
+      "conditionalItems": [
+        "보유/잠긴스킬 없을수있음",
+        "스탯실제능력검사아님/잠김추가구매아님",
+        "브라우저준비문장/AI생성·게임·PDF·이미지저장아님"
+      ],
+      "separatePurchase": [
+        "구rpgCharacter는기존권한별칭;현재타일결제키rpt_skillTreeCard"
+      ],
+      "reviewSource": [
+        "가상편집예시;실제후기아님"
+      ],
+      "images": [
+        "/feature-details/crafted/life-skill-tree/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "index.html 인라인상세 craftedManifest",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본8/native21독립SHIP;01고아줄수정",
+        "360/390/430/540 clipping/fallbackPASS;화면1000정본일치",
+        "API모두mock;무료달력POST4/그외POST0;실제타일클릭으로팝업열기",
+        "상세패널Node7 PASS"
+      ],
+      "unconfirmed": [
+        "main전달·CI미확인;실결제실LLM없음"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "rpt_specialCharmCard",

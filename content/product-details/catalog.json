@@ -98,7 +98,8 @@
     "openKemetModal": "kemet-oracle",
     "royal-tea-oracle": "royal-tea-oracle",
     "human-design-report": "human-design-report",
-    "palm-reading-general": "palm-reading"
+    "palm-reading-general": "palm-reading",
+    "rpt_skillTreeCard": "life-skill-tree"
   },
   "introductions": {
     "fusion-fortune": [

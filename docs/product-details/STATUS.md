@@ -383,3 +383,7 @@ status: active
 - 최소한손/주사용손/7선+구/6분야/통합심층을9장 개별편집. 원본9/native22 독립SHIP.328/358/398/540 clipping/fallback PASS POST0. Jest22/typecheck/ESLint오류0경고9 PASS. 사진미등록CTA비활성정상.
 - 초기native500 원인은기존palm-ui-state CJS에dev refresh import.meta주입;기존제외규칙에dev한정추가, Node1로prod미적용확인. 결제계산무수정. 구palm-reading-ai-consult 현재기본통합으로독립대상제외.
 - 유료구성101종+공통소개1종912패널 로컬검수. 직전d66c69fef pre-push PASS. 최신mainCI재확인도54b5476b 실패38114013113 동일,main다른세션미커밋보존/push안함. 전체전달미완료;연이네오 운영범위답변대기.
+
+## 인생 스킬 트리
+- 실제클래스/5스탯/조건부스킬/현재세운/나이CH를8장개별편집. 원본8/native21독립SHIP;01표지고아줄수정.360/390/430/540 clipping/fallbackPASS. 실제타일클릭·CTA1000일치. 전API mock무료달력POST4/그외POST0;초기전체POST0단언실패후분리기록. Node7PASS.
+- 유료구성102종+공통소개1종920패널 로컬검수. rpgCharacter는현행타일권한별칭중복제외. 직전6f35feae5 pre-pushPASS. 전체/main전달미완료·연이네오 운영범위답변대기. 다음매력클래스8장원본검수중.

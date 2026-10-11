@@ -1,0 +1,39 @@
+{
+  "mode": "local browser render; no external requests",
+  "bounds": [
+    {
+      "panel": "1",
+      "overflow": []
+    },
+    {
+      "panel": "2",
+      "overflow": []
+    },
+    {
+      "panel": "3",
+      "overflow": []
+    },
+    {
+      "panel": "4",
+      "overflow": []
+    },
+    {
+      "panel": "5",
+      "overflow": []
+    },
+    {
+      "panel": "6",
+      "overflow": []
+    },
+    {
+      "panel": "7",
+      "overflow": []
+    },
+    {
+      "panel": "8",
+      "overflow": []
+    }
+  ],
+  "fontLoaded": true,
+  "images": 8
+}
