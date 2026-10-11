@@ -25,7 +25,7 @@ export function renderCraftedDetail(detail) {
   if (!detail?.panels?.length) return '';
   const panels = detail.panels.filter(panel => safeImage(panel.src) && panel.text);
   if (!panels.length) return '';
-  return `<div class="craftedDetail"><div aria-hidden="true">${panels.map((panel, index) => `<img src="${escape(safeImage(panel.src))}" alt="" width="${Number(panel.width) || 1080}" height="${Number(panel.height) || 1440}" loading="${index ? 'lazy' : 'eager'}" decoding="async"${index ? '' : ' fetchpriority="high"'}>`).join('')}</div><p class="craftedDetailNotice">${escape(detail.notice)}</p><details class="craftedDetailTranscript"><summary>상세 안내를 글로 읽기</summary>${panels.map(panel => `<section><h3>${escape(panel.title)}</h3><p>${escape(transcriptBody(panel))}</p></section>`).join('')}</details></div>`;
+  return `<div class="craftedDetail"><div aria-hidden="true">${panels.map((panel, index) => `<img src="${escape(safeImage(panel.src))}" alt="" width="${Number(panel.width) || 1080}" height="${Number(panel.height) || 1440}" loading="${index ? 'lazy' : 'eager'}" decoding="async"${index ? '' : ' fetchpriority="high" data-lcp-candidate="1"'}>`).join('')}</div><p class="craftedDetailNotice">${escape(detail.notice)}</p><details class="craftedDetailTranscript"><summary>상세 안내를 글로 읽기</summary>${panels.map(panel => `<section><h3>${escape(panel.title)}</h3><p>${escape(transcriptBody(panel))}</p></section>`).join('')}</details></div>`;
 }
 
 export function revealCraftedTranscript(event) {
