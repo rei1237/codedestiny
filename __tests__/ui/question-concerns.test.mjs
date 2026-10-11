@@ -19,7 +19,7 @@ test('102 unique concerns keep legacy identifiers, valid catalog contracts and s
  for(const q of m.concernGuides.slice(m.questionGuides.length))assert.equal(m.questionOffer(q).kind.question,true);
 });
 test('question entry quotes the scope price and leaves confirmation to the user',()=>{
- for(const [id,fish,price] of [['mind','mackerel',3000],['career','salmon',9000],['money','salmon',9000],['distance','flounder',15000]]){
+ for(const [id,fish,price] of [['mind','mackerel',5000],['career','salmon',10000],['money','salmon',10000],['distance','flounder',15000]]){
   const entry=m.questionScopeEntry(m.getQuestionGuide(id));
   assert.equal(entry.product.fishId,fish);assert.equal(entry.product.priceKRW,price);
   assert.equal(entry.decision.confirmed,false);assert.ok(entry.plan.missing.length>0);

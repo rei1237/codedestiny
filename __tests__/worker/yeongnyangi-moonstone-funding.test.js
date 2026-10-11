@@ -150,9 +150,9 @@ test.each(['standard','premium','vvip'])('%s remains excluded from Yeongnyangi',
  expect(f.user.profileSubscription.monthlySpendCoin).toBe(0);
  expect(f.user.profileSubscription.membershipCreditBalance).toBe(STONES);
 });
-test('registry authorizes exactly 300 stones for one 3,000 KRW consultation',()=>{
- expect(product.monthlyCost).toBe(300);
- expect(calculatePaidFeatureMembershipCreditCost(product.featureKey)).toBe(300);
+test('registry authorizes exactly 500 stones for one 5,000 KRW consultation',()=>{
+ expect(product.monthlyCost).toBe(500);
+ expect(calculatePaidFeatureMembershipCreditCost(product.featureKey)).toBe(500);
  expect(getPaidFeaturePaymentPolicy(product.featureKey)).toMatchObject({familyPassOnly:true,monthlyExcluded:false,membershipCreditMultiplier:1});
  expect(getPaidFeaturePaymentPolicy('fusion-fortune-consultation').monthlyExcluded).toBe(false);
 });

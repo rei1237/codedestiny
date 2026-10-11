@@ -744,7 +744,7 @@ test('stored-only completion keeps the existing paid proof and does not claim an
 });
 
 describe('fortune-chat per-use access',()=>{
-  test.each([['mackerel',3000],['salmon',9000],['flounder',15000],['tuna',30000]])('tier %s pins its own paid evidence and amount',async(fish,amount)=>{
+  test.each([['mackerel',5000],['salmon',10000],['flounder',15000],['tuna',30000]])('tier %s pins its own paid evidence and amount',async(fish,amount)=>{
     const featureKey='fortune-chat-question-'+fish;
     payments.push({_id:'pay-tier',requestId:'fc-id',userId:owner,featureKey,status:'paid',metadata:{}});
     verifyPerUse.mockResolvedValue({proven:true,source:'payment',transactionId:'pay-tier'});
@@ -753,10 +753,10 @@ describe('fortune-chat per-use access',()=>{
     expect(verifyPerUse).toHaveBeenCalledWith({},{userId:owner,featureKey,coinPrice:amount/100,requestId:'fc-id',requireExisting:true});
     expect((await repo.claimChapter({},owner,'id')).token).toBeTruthy();
   });
-  const chat={...values,productId:'chat_saju',featureKey:'fortune-chat-consultation',amountKRW:3000,persona:'yeoni'};
+  const chat={...values,productId:'chat_saju',featureKey:'fortune-chat-consultation',amountKRW:5000,persona:'yeoni'};
   const chatPayment={_id:'pay-fc',requestId:'fc-id',userId:owner,featureKey:chat.featureKey,status:'paid',metadata:{}};
   const passReceipt={_id:'507f1f77bcf86cd799439099',userId:owner,featureKey:chat.featureKey,kind:'deduct',metadata:{requestId:'fc-id',accessMethod:'FAMILY'}};
-  const activate=(access,id='id')=>repo.attachPayment({},owner,id,3000,{currentAmountKRW:3000,...(access?{access}:{})});
+  const activate=(access,id='id')=>repo.attachPayment({},owner,id,5000,{currentAmountKRW:5000,...(access?{access}:{})});
 
   test('an existing fc- payment is pinned, generates, and a later refund stops it',async()=>{
     payments.push({...chatPayment});
@@ -766,7 +766,7 @@ describe('fortune-chat per-use access',()=>{
     expect(row).toMatchObject({accessMethod:'PER_USE',perUseSource:'payment',perUseEvidenceId:'pay-fc',state:'PAID'});
     expect(row.paymentId).toBeFalsy();
     expect(verifyPerUse).toHaveBeenCalledTimes(1);
-    expect(verifyPerUse).toHaveBeenCalledWith({},{userId:owner,featureKey:chat.featureKey,coinPrice:30,requestId:'fc-id',requireExisting:true});
+    expect(verifyPerUse).toHaveBeenCalledWith({},{userId:owner,featureKey:chat.featureKey,coinPrice:50,requestId:'fc-id',requireExisting:true});
     expect((await repo.claimChapter({},owner,'id')).token).toBeTruthy();
     expect(payments.find(p=>p._id==='pay1').metadata.consumedBy).toBeUndefined();
     payments.find(p=>p._id==='pay-fc').status='refunded';
@@ -887,7 +887,7 @@ describe('fortune-chat per-use access',()=>{
 
   test('a changed chat price is confirmed before any proof is read',async()=>{
     await repo.createRequest({},owner,'id',chat);
-    await expect(repo.attachPayment({},owner,'id',3000,{currentAmountKRW:5000})).rejects.toMatchObject({status:409,code:'PRICE_CHANGED'});
+    await expect(repo.attachPayment({},owner,'id',5000,{currentAmountKRW:6000})).rejects.toMatchObject({status:409,code:'PRICE_CHANGED'});
     expect(verifyPerUse).not.toHaveBeenCalled();
   });
 

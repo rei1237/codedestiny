@@ -49,6 +49,10 @@ const CONTENT_LISTINGS = {
   cd_content_tier_10: { title: "AI 상담 30,000원", description: "선택하신 AI 운세 상담 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다." },
   cd_content_tier_12: { title: "AI 상담 65,000원", description: "선택하신 심층 AI 운세 상담 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다." },
   cd_content_tier_14: { title: "운세 콘텐츠 7,000원", description: "선택하신 심화 운세 기능 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다." },
+  cd_content_tier_15: { title: "운세 콘텐츠 1,000원", description: "선택하신 운세 콘텐츠 또는 프로필 카드 관리 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다." },
+  cd_content_tier_16: { title: "운세 콘텐츠 15,000원", description: "선택하신 심화 운세 기능 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다." },
+  cd_content_tier_17: { title: "AI 상담 50,000원", description: "선택하신 AI 운세 상담 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다." },
+  cd_content_tier_18: { title: "AI 상담 70,000원", description: "선택하신 AI 운세 상담 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다." },
 };
 
 // 이용권: 기간 없음(2026-10-11, 한도 소진 시 종료) · 자동갱신 없음 · 등급별 이용 한도 있음.
@@ -61,6 +65,15 @@ const PASS_LISTINGS = {
   cd_pass_premium_30d: { title: "중간 꿀단지", coverage: "10,000원 이하" },
   cd_pass_vvip_30d: { title: "큰 꿀단지", coverage: "20,000원 이하" },
   cd_pass_family_30d: { title: "패밀리 꿀단지", coverage: "이용권 대상 전체" },
+  cd_pass_standard_30d_v2: { title: "작은 꿀단지", coverage: "5,000원 이하" },
+  cd_pass_premium_30d_v2: { title: "중간 꿀단지", coverage: "10,000원 이하" },
+  cd_pass_vvip_30d_v2: { title: "큰 꿀단지", coverage: "30,000원 이하" },
+  cd_pass_standard_30d_v3: { title: "작은 꿀단지", coverage: "5,000원 이하" },
+  cd_pass_premium_30d_v3: { title: "중간 꿀단지", coverage: "10,000원 이하" },
+  cd_pass_vvip_30d_v3: { title: "큰 꿀단지", coverage: "30,000원 이하" },
+  cd_pass_standard_30d_v4: { title: "작은 꿀단지", coverage: "5,000원 이하" },
+  cd_pass_premium_30d_v4: { title: "중간 꿀단지", coverage: "10,000원 이하" },
+  cd_pass_vvip_30d_v4: { title: "큰 꿀단지", coverage: "30,000원 이하" },
 };
 
 const PASS_TIER_BY_SKU = Object.fromEntries(listAppPassProducts().map((pass) => [pass.productId, pass.passTier]));

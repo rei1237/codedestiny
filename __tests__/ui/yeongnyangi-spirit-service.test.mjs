@@ -62,7 +62,7 @@ for(const mode of ['prashna-v1'])test(mode+' uses question moment without a prof
   assert.equal(a.amountKRW,15000);assert.equal(a.featureKey,'yeongnyangi-saju-flounder');
   assert.ok(a.snapshot.manifest.every(c=>c.title&&c.focus&&c.requiredSections.length>=2));
   assert.ok(a.snapshot.analysis.contexts.vedic.facts.some(f=>f.label==='프라슈나 계산 근거'));
-  assert.equal((await prepareFortune(env,'owner',body)).amountKRW,3000);
+  assert.equal((await prepareFortune(env,'owner',body)).amountKRW,5000);
   a.paymentId='original-payment';a.state='GENERATING';a.chapters=[{summary:'saved chapter',sources:['private-calculation']}];
   const replay=await prepareFortune({},'sky-owner',questionBody);
   assert.equal(replay.paymentId,'original-payment');assert.equal(replay.chapters.length,1);
@@ -81,7 +81,7 @@ test('new horary purchase is refused before DB/provider and old saved horary rem
  assert.equal(globalThis.__spiritTest.rows.size,before);assert.equal(globalThis.__spiritTest.calls,0);
  const row=await prepareFortune(env,'owner',body);
  const legacy={...row,paymentId:'legacy-horary',snapshot:{...row.snapshot,analysis:{...row.snapshot.analysis,consultation:{questionSky:{mode:'horary-v1'}}}}};
- const result=presentFortune(legacy);assert.equal(result.paid,true);assert.equal(result.product.priceKRW,3000);
+ const result=presentFortune(legacy);assert.equal(result.paid,true);assert.equal(result.product.priceKRW,5000);
 });
 
 test('new consultation attempts separate identical purchases while retries and saved results keep their identity',async()=>{
@@ -192,7 +192,7 @@ test('symbolic purchases preserve all 12 locales, separate identities, native he
   for(const locale of RUNTIME_LOCALES){
    const row=await prepareFortune(env,'symbolic-native',{...input,locale});ids.push(row._id);
    assert.equal(row.snapshot.locale||'ko',locale);
-   assert.equal(row.amountKRW,input.mode==='spirit-v1'?3000:15000);
+   assert.equal(row.amountKRW,input.mode==='spirit-v1'?5000:15000);
    if(input.mode==='spirit-v1'&&locale!=='ko')assert.equal(row.snapshot.analysis.consultation.spirit.boundary,true);
    row.paymentId='mock-existing';row.state='COMPLETED';row.chapters=[{title:'Saved native heading',summary:'Saved native prose',sources:['private'],internalBasis:{questionAnswers:[]}}];
    const replay=await prepareFortune(env,'symbolic-native',{...input,locale});assert.equal(replay,row);

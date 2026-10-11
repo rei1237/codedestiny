@@ -5,7 +5,7 @@ import { paymentError } from './errors.js';
 // direct PG purchase. 5·10·20 uses at 20/30/40% off the new single price — the discount grew with the
 // price rise. Prices are written out, not derived, so a unit price change cannot silently reprice packs. This table is the only source of pack price/quantity.
 const PACK_USES = Object.freeze([5, 10, 20]);
-export const SERVICE_PACK_PLANS = Object.freeze(Object.fromEntries([
+const LEGACY_SERVICE_PACK_PLANS = Object.fromEntries([
   ['mackerel', '고등어', [12000, 21000, 36000]],
   ['salmon', '연어', [36000, 63000, 108000]],
   ['flounder', '광어', [60000, 105000, 180000]],
@@ -15,13 +15,24 @@ export const SERVICE_PACK_PLANS = Object.freeze(Object.fromEntries([
   Object.freeze({ name: `${label} 세트 ${PACK_USES[index]}회`, fishId,
     priceKRW: prices[index], totalUses: PACK_USES[index], validityDays: 30,
     policyVersion: 'yeongnyangi-pack-20261005-ratio-corrected' }),
-]))));
+  ])));
+const CURRENT_SERVICE_PACK_PLANS = Object.fromEntries([
+  ['mackerel', '고등어', 20000],
+  ['salmon', '연어', 40000],
+  ['flounder', '광어', 60000],
+  ['tuna', '참치', 120000],
+].map(([fishId, label, priceKRW]) => [
+  `yeongnyangi-pack-${fishId}-small-v4`,
+  Object.freeze({ name: `${label} 세트 5회`, fishId, priceKRW, totalUses: 5, validityDays: 30,
+    policyVersion: 'yeongnyangi-pack-20261011-premium-repricing' }),
+]));
+export const SERVICE_PACK_PLANS = Object.freeze({ ...LEGACY_SERVICE_PACK_PLANS, ...CURRENT_SERVICE_PACK_PLANS });
 const FISH = Object.freeze(['mackerel','salmon','flounder','tuna']);
 
 // Historical definitions remain readable for fulfillment, gifts and order recovery.
 // Only five-use packs are offered for new purchases.
 export const SERVICE_PACK_SALE_IDS = Object.freeze(Object.keys(SERVICE_PACK_PLANS)
-  .filter(id => SERVICE_PACK_PLANS[id].totalUses === 5));
+  .filter(id => id.endsWith('-small-v4')));
 export function isRetiredServicePack(planId) {
   return Boolean(SERVICE_PACK_PLANS[planId]) && !SERVICE_PACK_SALE_IDS.includes(planId);
 }

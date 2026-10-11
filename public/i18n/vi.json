@@ -578,7 +578,7 @@
       "sajuFptiImgAlt": "Saju FPTI Test",
       "basicFreeBadge": "Cơ bản miễn phí",
       "price3000": "Một lần 3.000 KRW",
-      "price5000": "Một lần 3.000 KRW",
+      "price5000": "Một lần 5.000 KRW",
       "price10000": "Một lần 10.000 KRW",
       "cosmicSoulPrice": "30 phút 5.000 KRW · 60 phút 10.000 KRW",
       "compatibilityPrice": "Khả năng tương thích 3.000 KRW",
@@ -600,7 +600,9 @@
       "price5000Price3000": "Một lần 3.000 KRW",
       "price10000Price5000": "Một lần 5.000 KRW",
       "unlock1000": "Mở khóa 1.000 KRW",
-      "price1000": "Một lần 1.000 KRW"
+      "price1000": "Một lần 1.000 KRW",
+      "sajuGuardianPricePrice5000Price7000": "Mở khóa vĩnh viễn 7.000 KRW",
+      "unlock1000Price5000": "Mở khóa 5.000 KRW"
     },
     "destinyFlowerStudio": {
       "closeAria": "Đóng Xưởng Hoa Định Mệnh",
@@ -1353,7 +1355,8 @@
         "w20000": "₩20,000",
         "from3000": "From ₩3,000",
         "w1000": "₩1,000",
-        "from9000": "From ₩9,000"
+        "from5000": "From ₩5,000",
+        "w7000": "₩7,000"
       },
       "chip": {
         "love": "Their feelings · My next love",
@@ -1614,14 +1617,14 @@
       "pass": "Gói sử dụng",
       "login": "Đăng nhập",
       "account": "Tài khoản của tôi",
-      "offerTitle": "Lá số Tứ trụ từng được luận trong buổi tư vấn 1:1 giá 300.000 won, nay chỉ từ 3.000 won",
+      "offerTitle": "Lá số Tứ trụ từng được luận trong buổi tư vấn 1:1 giá 300.000 won, nay chỉ từ 5.000 won",
       "reviewsLead": "Tin nhắn KakaoTalk thật từ khách tư vấn 1:1 của Neo, giữ nguyên tiếng Hàn. Phần lược bỏ được đánh dấu bằng ….",
       "reviewsBar": "Tư vấn 1:1 với Neo · KakaoTalk",
       "reviewsMeta": "Đánh giá thật · đã đồng ý đăng",
       "reviewsPosted": "đăng trên blog",
       "reviewsFine": "Đánh giá dựa trên trải nghiệm cá nhân và không đảm bảo kết quả. Luận giải Tứ trụ chỉ mang tính tham khảo.",
-      "offerNote": "Buổi tư vấn 1:1 do Neo trực tiếp thực hiện; gói 3.000 won được cung cấp bằng công cụ tính toán và lời giải của AI.",
-      "offerCta": "Xem gói Tứ trụ 3.000 won →",
+      "offerNote": "Buổi tư vấn 1:1 do Neo trực tiếp thực hiện; gói 5.000 won được cung cấp bằng công cụ tính toán và lời giải của AI.",
+      "offerCta": "Xem gói Tứ trụ 5.000 won →",
       "expertiseTitle": "Tính toán theo quy tắc, AI viết lời giải",
       "expertise": {
         "engine": "Lá số được lập theo quy tắc tính cố định, AI viết lời giải dựa trên kết quả đó. Nếu lời giải ghi trụ ngày hoặc trụ giờ khác với kết quả tính, máy chủ sẽ loại bỏ.",
@@ -7740,7 +7743,9 @@
         "n30000": "30.000 KRW",
         "n20000Price10000": "Từ 10.000 KRW",
         "n50000": "50.000 KRW",
-        "n30000Price20000": "20.000 KRW"
+        "n30000Price20000": "20.000 KRW",
+        "n5000Price10000": "Từ 10.000 KRW",
+        "n30000Price20000Price30000": "30.000 KRW"
       }
     },
     "cdSigCardBody": {
@@ -7804,7 +7809,7 @@
       "fortuneGatewayDoorMeta": {
         "n130000": "30.000 KRW mỗi lượt",
         "k1lo4ibg": "đối chiếu chung cuộc",
-        "n13000": "3.000 KRW mỗi lượt"
+        "n13000": "5.000 KRW mỗi lượt"
       },
       "fortuneGatewayDoorGo": {
         "kkmvgqi": "Start a reading",

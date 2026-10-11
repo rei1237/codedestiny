@@ -84,10 +84,10 @@ for (const fish of ['mackerel', 'salmon', 'flounder', 'tuna']) {
   if (!Number.isSafeInteger(price) || price <= 0) throw new Error(`Missing Yeongnyangi home price: ${featureKey}`);
   vars[`yeongnyangi${fish[0].toUpperCase()}${fish.slice(1)}Price`] = price.toLocaleString('ko-KR');
 }
-// 신뢰 블록 제목·고지·CTA 는 12개 로케일 사전에 "3,000원" 을 문구로 굽는다(2026-10-05 고등어 정식가). 가격이 바뀌면 문구가 거짓이 되므로 빌드를 멈춘다.
-if (Number(FEATURE_KEY_PRICE_TABLE['yeongnyangi-saju-mackerel'].amountKRW) !== 3000) throw new Error('home funnel trust offer copy says 3,000원: update offerTitle/offerNote/offerCta before changing the mackerel price');;
-// 홈 두 상담 카드(#fortuneGatewayEntry)의 '1회 3,000원'은 사전 문구다 — 가격이 바뀌면 문구부터 고친다.
-if (Number(FEATURE_KEY_PRICE_TABLE['fortune-chat-consultation'].amountKRW) !== 3000) throw new Error('home chat doors say 3,000원: update shell.fortuneGatewayDoor.fortuneGatewayDoorMeta.n13000 before changing the fortune chat price');
+// 신뢰 블록 제목·고지·CTA 는 12개 로케일 사전에 "3,000원" 을 문구로 굽는다(2026-10-12 고등어 가격). 가격이 바뀌면 문구가 거짓이 되므로 빌드를 멈춘다.
+if (Number(FEATURE_KEY_PRICE_TABLE['yeongnyangi-saju-mackerel'].amountKRW) !== 5000) throw new Error('home funnel trust offer copy says 5,000원: update offerTitle/offerNote/offerCta before changing the mackerel price');;
+// 홈 두 상담 카드(#fortuneGatewayEntry)의 '1회 5,000원'은 사전 문구다 — 가격이 바뀌면 문구부터 고친다.
+if (Number(FEATURE_KEY_PRICE_TABLE['fortune-chat-consultation'].amountKRW) !== 5000) throw new Error('home chat doors say 5,000원: update shell.fortuneGatewayDoor.fortuneGatewayDoorMeta.n13000 before changing the fortune chat price');
 const escapeHtml = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
 // 채팅형 카드 — App Router CustomerReviews 와 같은 시각 언어(인용 · 상단 바 · 아바타 · 발신자 · 말풍선 · 메타).
 // 인용(highlight)은 말풍선 원문의 부분 문자열이라 보조기기에는 숨긴다. 대표는 splitReviews 가 neo-1on1 에서만 뽑으므로 바 문구는 고정이다.

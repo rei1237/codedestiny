@@ -227,7 +227,7 @@ test('v3 adds position questions, link groups and inputs that v2 never had',asyn
 test('question purpose allows a seven-card reunion at mackerel price and persists the same draw',async()=>{
  const request=order({tarotSpreadId:'yn_reunion_seven',question:'다시 대화하려면 내 마음을 어떻게 정리할까?',questionDecision:{version:'question-consultation-20261007',category:'reunion',target:'self',horizon:'current',situation:'헤어진 뒤 생각을 정리 중이에요',options:'',period:'',constraints:'',confirmed:true}});
  const row=await prepareFortune(env,'purpose-tarot',request);
- assert.equal(row.amountKRW,3000);assert.equal(row.snapshot.questionContract.followups,0);
+ assert.equal(row.amountKRW,5000);assert.equal(row.snapshot.questionContract.followups,0);
  assert.equal(row.snapshot.tarotSpread.cardCount,7);
  for(const pos of row.snapshot.tarotSpread.positions)assert.ok(row.snapshot.manifest.flatMap(chapter=>chapter.sections).some(s=>s.title===pos.label));
  const drawn=await drawTarotSpread(env,'purpose-tarot',row._id,{auto:true});

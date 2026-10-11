@@ -28,7 +28,7 @@ async function withFixture(run,chat=null,purchasedProduct=product) {
  db.rows.push({_id:USER,recentConsumeRequestIds:[],profileSubscription:{
   membershipCreditBalance:purchasedStones,membershipCreditUsed:0,membershipCreditLotsVersion:0,
   membershipCreditLots:[{lotId:'signup',amount:purchasedStones,remaining:purchasedStones,grantedAt:new Date(),expiresAt}]}},
- {_id:ID,userId:USER,featureKey:(chat||product).featureKey,amountKRW:chat?3000:product.priceKRW,state:'CREATED',paymentId:null,
+ {_id:ID,userId:USER,featureKey:(chat||product).featureKey,amountKRW:(chat||product).priceKRW,state:'CREATED',paymentId:null,
   accessMethod:null,paymentClaimOrderId:'',chapters:[],completedChapters:0,chapterAttempts:{},attempts:0,
   leaseUntil:null,nextAttemptAt:null,snapshot:{manifest:[{},{}]}});
  active={db,get row(){return db.rows.find(r=>r._id===ID)},get user(){return db.rows.find(r=>String(r._id)===USER)}};
@@ -144,10 +144,10 @@ test('terminal update racing chapter transaction rolls back late content before 
  expect(f.user.profileSubscription.membershipCreditBalance).toBe(STONES);
 }));
 test('a fortune-chat consultation paid with stones gets them back once when it delivered nothing',()=>withFixture(async f=>{
- expect(f.user.profileSubscription.membershipCreditBalance).toBe(STONES-300);
+ expect(f.user.profileSubscription.membershipCreditBalance).toBe(STONES-500);
  terminal(f);
  const first=await refundTerminalMoonstone(f.db,{userId:USER,requestId:ID,perUse:true});
- expect(first).toMatchObject({refunded:true,replayed:false,amount:300});
+ expect(first).toMatchObject({refunded:true,replayed:false,amount:500});
  expect(f.row).toMatchObject({state:'REFUNDED',errorCode:'MONTHLY_CREDIT_RESTORED'});
  expect(f.user.profileSubscription.membershipCreditBalance).toBe(STONES);
  const receipt=f.db.rows.find(r=>r.type==='MONTHLY_CREDIT_GRANT');

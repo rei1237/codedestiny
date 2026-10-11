@@ -578,7 +578,7 @@
       "sajuFptiImgAlt": "Ujian FPTI Saju",
       "basicFreeBadge": "Asas percuma",
       "price3000": "Sekali KRW 3,000",
-      "price5000": "Sekali KRW 3,000",
+      "price5000": "Sekali KRW 5,000",
       "price10000": "Sekali KRW 10,000",
       "cosmicSoulPrice": "30 min KRW 5,000 · 60 min KRW 10,000",
       "compatibilityPrice": "Keserasian KRW 3,000",
@@ -600,7 +600,9 @@
       "price5000Price3000": "Sekali KRW 3,000",
       "price10000Price5000": "Sekali KRW 5,000",
       "unlock1000": "Buka kunci KRW 1,000",
-      "price1000": "Sekali KRW 1,000"
+      "price1000": "Sekali KRW 1,000",
+      "sajuGuardianPricePrice5000Price7000": "Buka kunci kekal KRW 7,000",
+      "unlock1000Price5000": "Buka kunci KRW 5,000"
     },
     "destinyFlowerStudio": {
       "closeAria": "Tutup Atelier Bunga Takdir",
@@ -1353,7 +1355,8 @@
         "w20000": "₩20,000",
         "from3000": "From ₩3,000",
         "w1000": "₩1,000",
-        "from9000": "From ₩9,000"
+        "from5000": "From ₩5,000",
+        "w7000": "₩7,000"
       },
       "chip": {
         "love": "Their feelings · My next love",
@@ -1614,14 +1617,14 @@
       "pass": "Pas",
       "login": "Log masuk",
       "account": "Akaun saya",
-      "offerTitle": "Saju yang dahulu dibaca dalam sesi 1:1 bernilai ₩300,000, kini dari ₩3,000",
+      "offerTitle": "Saju yang dahulu dibaca dalam sesi 1:1 bernilai ₩300,000, kini dari ₩5,000",
       "reviewsLead": "Mesej KakaoTalk sebenar daripada pelanggan sesi 1:1 Neo, dipetik dalam bahasa Korea asal. Bahagian yang ditinggalkan ditanda dengan ….",
       "reviewsBar": "Sesi 1:1 bersama Neo · KakaoTalk",
       "reviewsMeta": "Ulasan sebenar · disiarkan dengan persetujuan",
       "reviewsPosted": "disiarkan di blog",
       "reviewsFine": "Ulasan berdasarkan pengalaman peribadi dan tidak menjamin hasil. Bacaan Saju hanya sebagai rujukan.",
-      "offerNote": "Sesi 1:1 dikendalikan sendiri oleh Neo; bacaan ₩3,000 disediakan oleh enjin pengiraan dengan ulasan AI.",
-      "offerCta": "Lihat bacaan Saju ₩3,000 →",
+      "offerNote": "Sesi 1:1 dikendalikan sendiri oleh Neo; bacaan ₩5,000 disediakan oleh enjin pengiraan dengan ulasan AI.",
+      "offerCta": "Lihat bacaan Saju ₩5,000 →",
       "expertiseTitle": "Pengiraan ikut peraturan, ulasan oleh AI",
       "expertise": {
         "engine": "Carta kelahiran dibina dengan peraturan pengiraan tetap, dan AI menulis ulasan berdasarkan hasil itu. Jika ulasan menyebut tiang hari atau jam yang berbeza daripada pengiraan, pelayan akan menolaknya.",
@@ -7740,7 +7743,9 @@
         "n30000": "₩30,000",
         "n20000Price10000": "Dari ₩10,000",
         "n50000": "₩50,000",
-        "n30000Price20000": "₩20,000"
+        "n30000Price20000": "₩20,000",
+        "n5000Price10000": "Dari ₩10,000",
+        "n30000Price20000Price30000": "₩30,000"
       }
     },
     "cdSigCardBody": {
@@ -7804,7 +7809,7 @@
       "fortuneGatewayDoorMeta": {
         "n130000": "₩30,000 setiap bacaan",
         "k1lo4ibg": "semakan silang akhir",
-        "n13000": "₩3,000 setiap sesi"
+        "n13000": "₩5,000 setiap sesi"
       },
       "fortuneGatewayDoorGo": {
         "kkmvgqi": "Start a reading",

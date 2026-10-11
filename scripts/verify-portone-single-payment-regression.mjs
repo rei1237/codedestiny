@@ -959,13 +959,13 @@ function makePayment(overrides = {}) {
     merchantUid: "cd-single-test-1710000000000-abcd1234",
     impUid: "",
     idempotencyKey: "",
-    paymentAmount: 5000,
-    expectedChargedPoints: 50,
+    paymentAmount: 30000,
+    expectedChargedPoints: 300,
     chargedPoints: 0,
     featureKey: "section_summary",
     productId: "code-destiny",
-    coinPrice: 50,
-    membershipCreditCost: 50,
+    coinPrice: 300,
+    membershipCreditCost: 3000,
     accessType: "single_purchase",
     pricingSnapshot: {
       profileId: "profile-a",
@@ -973,7 +973,7 @@ function makePayment(overrides = {}) {
       serviceId: "code-destiny",
       contentId: "section_summary",
       contentType: "saju",
-      amountKRW: 5000,
+      amountKRW: 30000,
     },
     paymentMethod: "CARD",
     status: "pending",
@@ -991,7 +991,7 @@ function makePortOnePayment(overrides = {}) {
     id: "cd-single-test-1710000000000-abcd1234",
     status: "PAID",
     storeId: ENV.PORTONE_STORE_ID,
-    amount: { total: 5000, paid: 5000, currency: "KRW" },
+    amount: { total: 30000, paid: 30000, currency: "KRW" },
     currency: "KRW",
     paidAt: "2026-06-04T00:00:00.000Z",
     method: { type: "CARD" },
@@ -1272,7 +1272,7 @@ async function runServerTests() {
     contentId: "section_summary",
     contentType: "saju",
     productName: "Code Destiny 운세",
-    coinPrice: 50,
+    coinPrice: 300,
   }), ENV, AUTH);
   let result = await jsonResponse(response);
   assert.equal(result.status, 200, "already unlocked start should succeed");
@@ -1286,13 +1286,13 @@ async function runServerTests() {
     contentId: "section_summary",
     contentType: "saju",
     productName: "Code Destiny 운세",
-    coinPrice: 50,
+    coinPrice: 300,
     amount: 1,
   }), ENV, AUTH);
   result = await jsonResponse(response);
   assert.equal(result.status, 201, "single start should create order");
-  assert.equal(result.payload.order.totalAmount, 5000, "50 coins should become 5000 KRW");
-  assert.equal(state.createdPayments[0].paymentAmount, 5000, "server amount should ignore client amount");
+  assert.equal(result.payload.order.totalAmount, 30000, "300 coins should become 30000 KRW");
+  assert.equal(state.createdPayments[0].paymentAmount, 30000, "server amount should ignore client amount");
   assert.equal(JSON.stringify(result.payload).includes(ENV.PORTONE_API_SECRET), false, "client response should not include API secret");
   assert.equal(JSON.stringify(result.payload).includes(ENV.INIsignkey), false, "client response should not include Inicis signkey");
 
@@ -1305,7 +1305,7 @@ async function runServerTests() {
     contentId: "section_summary",
     contentType: "saju",
     productName: "Code Destiny 운세",
-    coinPrice: 50,
+    coinPrice: 300,
     idempotencyKey: "single-race-key",
   };
 
@@ -1328,7 +1328,7 @@ async function runServerTests() {
   //    돌려주면 사용자가 존재하지 않는 주문으로 PG 창을 연다.
   resetState();
   const winnerOrder = {
-    ...makePayment({ paymentAmount: 5000, expectedChargedPoints: 50, coinPrice: 50, pricingSnapshot: { profileId: "profile-a", selectedProfileId: "profile-a", serviceId: "code-destiny", contentId: "section_summary", contentType: "saju", amountKRW: 5000 } }),
+    ...makePayment({ paymentAmount: 30000, expectedChargedPoints: 300, coinPrice: 300, pricingSnapshot: { profileId: "profile-a", selectedProfileId: "profile-a", serviceId: "code-destiny", contentId: "section_summary", contentType: "saju", amountKRW: 30000 } }),
     _id: "pay_created_winner",
     merchantUid: "cd-single-winner-1710000000000-abcd1234",
     idempotencyKey: "single-race-key",
@@ -1374,7 +1374,7 @@ async function runServerTests() {
   assert.equal(state.entitlementByKey.size, 0, "non-PAID status should not unlock");
 
   resetState();
-  state.portonePayment = makePortOnePayment({ amount: { total: 4900, paid: 4900, currency: "KRW" } });
+  state.portonePayment = makePortOnePayment({ amount: { total: 29900, paid: 29900, currency: "KRW" } });
   response = await handleSinglePaymentComplete(completeRequest(state.payment.merchantUid), ENV, AUTH);
   result = await jsonResponse(response);
   assert.equal(result.status, 400, "amount mismatch should fail");
