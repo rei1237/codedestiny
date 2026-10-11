@@ -131,7 +131,9 @@
     "destiny-compass-crossroads": "compass-crossroads",
     "destiny-compass-future-sim": "compass-future-sim",
     "destiny-compass-life-voyage": "compass-life-voyage",
-    "destiny-compass-deep-report": "compass-deep-report"
+    "destiny-compass-deep-report": "compass-deep-report",
+    "nakshatra-lord-report": "nakshatra-lord",
+    "nakshatra-dasha-map": "nakshatra-dasha"
   },
   "introductions": {
     "fusion-fortune": [

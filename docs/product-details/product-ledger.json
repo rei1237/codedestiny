@@ -3508,46 +3508,100 @@
     {
       "productId": "nakshatra-dasha-map",
       "displayName": "나크샤트라 다샤 인생지도 해금",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
-      "priceSource": "worker/lib/paid-feature-registry.js",
-      "priceSnapshotKRW": 1000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "saleStatus": "실제 저장프로필·잠금구매 진입확인",
+      "entry": [
+        "/nakshatra/dasha-map/"
       ],
-      "detailAliases": []
+      "priceSource": "worker/lib/paid-feature-registry.js + 기존 product config 일치",
+      "priceSnapshotKRW": 1000,
+      "inputRequirements": [
+        "저장된 내 프로필·출생정보·출생시간조건"
+      ],
+      "resultRenderer": [
+        "app/nakshatra/dasha-map/DashaMapClient.tsx",
+        "worker/routes/nakshatra-premium.js"
+      ],
+      "actualContents": [
+        "120년다샤·대주기별9부주기",
+        "현재·과거·다가오는구간·전환·기회요구주의",
+        "성별없으면동양대운누락"
+      ],
+      "conditionalItems": [
+        "새AI/자유질문/PDF/별도결과보관함없음",
+        "출생정보기준해금;다른프로필조건별도확인"
+      ],
+      "separatePurchase": [
+        "지배성심화리포트"
+      ],
+      "reviewSource": [],
+      "images": [
+        "/feature-details/crafted/nakshatra-dasha/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "app/nakshatra/dasha-map/DashaMapClient.tsx",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본8/native21 독립SHIP",
+        "328/358/398/540 clipping/fallback/CTAtrial PASS",
+        "무료별위치mockPOST2/유료POST0",
+        "Jest출생해금39/Node UI9/ESLint/typecheck PASS"
+      ],
+      "unconfirmed": [
+        "main전달·CI대기;실결제·운영계산미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "nakshatra-lord-report",
       "displayName": "나크샤트라 지배성 심화 리포트 해금",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
-      "priceSource": "worker/lib/paid-feature-registry.js",
-      "priceSnapshotKRW": 1000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "saleStatus": "실제 저장프로필·잠금구매 진입확인",
+      "entry": [
+        "/nakshatra/lord-report/"
       ],
-      "detailAliases": []
+      "priceSource": "worker/lib/paid-feature-registry.js + 기존 product config 일치",
+      "priceSnapshotKRW": 1000,
+      "inputRequirements": [
+        "저장된 내 프로필·출생정보·출생시간조건"
+      ],
+      "resultRenderer": [
+        "app/nakshatra/lord-report/LordReportClient.tsx",
+        "worker/routes/nakshatra-premium.js"
+      ],
+      "actualContents": [
+        "규칙형11섹션",
+        "지배성·파다·기질·재능·관계·일·시기·생활실천",
+        "시간미상파다제한"
+      ],
+      "conditionalItems": [
+        "새AI/자유질문/PDF/별도결과보관함없음",
+        "출생정보기준해금;다른프로필조건별도확인"
+      ],
+      "separatePurchase": [
+        "다샤인생지도"
+      ],
+      "reviewSource": [],
+      "images": [
+        "/feature-details/crafted/nakshatra-lord/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "app/nakshatra/lord-report/LordReportClient.tsx",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본8/native21 독립SHIP",
+        "328/358/398/540 clipping/fallback/CTAtrial PASS",
+        "무료별위치mockPOST2/유료POST0",
+        "Jest출생해금39/Node UI9/ESLint/typecheck PASS"
+      ],
+      "unconfirmed": [
+        "main전달·CI대기;실결제·운영계산미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "nakshatra-muhurta",
