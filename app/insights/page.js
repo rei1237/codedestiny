@@ -166,6 +166,8 @@ export default async function InsightsPage() {
   ]);
 
   const topicHubs = [
+    { href: "/recipes/", label: "오행 건강 요리 레시피" },
+    { href: "/crystals/", label: "오행과 천연석 이야기" },
     { href: "/insights/saju/", label: "사주 인사이트" },
     { href: "/insights/ziwei/", label: "자미두수 인사이트" },
     { href: "/insights/sukuyo/", label: "숙요점 인사이트" },

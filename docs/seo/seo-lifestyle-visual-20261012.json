@@ -1,0 +1,948 @@
+{
+  "checkedAt": "2026-10-12",
+  "environment": "localhost:3127, external hosts and APIs blocked",
+  "reviewer": "visual_check subagent",
+  "screenshotsReviewed": 12,
+  "viewports": [
+    {
+      "page": "recipes",
+      "width": 360,
+      "status": 200,
+      "title": "오행 건강 요리 레시피, 다섯 가지 맛의 식탁 | 꿀꿀 사주",
+      "canonical": "https://code-destiny.com/recipes/",
+      "overflow": false,
+      "h1Count": 1,
+      "failedImages": 0,
+      "minimumLinkHeight": 44,
+      "colors": [
+        {
+          "tag": "MAIN",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgb(255, 250, 247)",
+          "size": "16px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "H1",
+          "color": "rgb(60, 24, 48)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "36px"
+        },
+        {
+          "tag": "P",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "18px"
+        },
+        {
+          "tag": "P",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "16px"
+        },
+        {
+          "tag": "P",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "16px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "16px"
+        }
+      ]
+    },
+    {
+      "page": "recipes",
+      "width": 390,
+      "status": 200,
+      "title": "오행 건강 요리 레시피, 다섯 가지 맛의 식탁 | 꿀꿀 사주",
+      "canonical": "https://code-destiny.com/recipes/",
+      "overflow": false,
+      "h1Count": 1,
+      "failedImages": 0,
+      "minimumLinkHeight": 44,
+      "colors": [
+        {
+          "tag": "MAIN",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgb(255, 250, 247)",
+          "size": "16px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "H1",
+          "color": "rgb(60, 24, 48)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "36px"
+        },
+        {
+          "tag": "P",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "18px"
+        },
+        {
+          "tag": "P",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "16px"
+        },
+        {
+          "tag": "P",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "16px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "16px"
+        }
+      ]
+    },
+    {
+      "page": "recipes",
+      "width": 430,
+      "status": 200,
+      "title": "오행 건강 요리 레시피, 다섯 가지 맛의 식탁 | 꿀꿀 사주",
+      "canonical": "https://code-destiny.com/recipes/",
+      "overflow": false,
+      "h1Count": 1,
+      "failedImages": 0,
+      "minimumLinkHeight": 44,
+      "colors": [
+        {
+          "tag": "MAIN",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgb(255, 250, 247)",
+          "size": "16px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "H1",
+          "color": "rgb(60, 24, 48)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "36px"
+        },
+        {
+          "tag": "P",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "18px"
+        },
+        {
+          "tag": "P",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "16px"
+        },
+        {
+          "tag": "P",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "16px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "16px"
+        }
+      ]
+    },
+    {
+      "page": "recipes",
+      "width": 1280,
+      "status": 200,
+      "title": "오행 건강 요리 레시피, 다섯 가지 맛의 식탁 | 꿀꿀 사주",
+      "canonical": "https://code-destiny.com/recipes/",
+      "overflow": false,
+      "h1Count": 1,
+      "failedImages": 0,
+      "minimumLinkHeight": 44,
+      "colors": [
+        {
+          "tag": "MAIN",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgb(255, 250, 247)",
+          "size": "16px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "H1",
+          "color": "rgb(60, 24, 48)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "48px"
+        },
+        {
+          "tag": "P",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "18px"
+        },
+        {
+          "tag": "P",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "16px"
+        },
+        {
+          "tag": "P",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "16px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "16px"
+        }
+      ]
+    },
+    {
+      "page": "risotto",
+      "width": 360,
+      "status": 200,
+      "title": "단호박 버섯 리조또 레시피, 단맛의 오행 요리 | 꿀꿀 사주",
+      "canonical": "https://code-destiny.com/recipes/pumpkin-mushroom-risotto/",
+      "overflow": false,
+      "h1Count": 1,
+      "failedImages": 0,
+      "minimumLinkHeight": 44,
+      "colors": [
+        {
+          "tag": "MAIN",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgb(255, 250, 247)",
+          "size": "16px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "H1",
+          "color": "rgb(60, 24, 48)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "36px"
+        },
+        {
+          "tag": "P",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "18px"
+        },
+        {
+          "tag": "P",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "16px"
+        },
+        {
+          "tag": "P",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "16px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "16px"
+        }
+      ]
+    },
+    {
+      "page": "risotto",
+      "width": 390,
+      "status": 200,
+      "title": "단호박 버섯 리조또 레시피, 단맛의 오행 요리 | 꿀꿀 사주",
+      "canonical": "https://code-destiny.com/recipes/pumpkin-mushroom-risotto/",
+      "overflow": false,
+      "h1Count": 1,
+      "failedImages": 0,
+      "minimumLinkHeight": 44,
+      "colors": [
+        {
+          "tag": "MAIN",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgb(255, 250, 247)",
+          "size": "16px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "H1",
+          "color": "rgb(60, 24, 48)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "36px"
+        },
+        {
+          "tag": "P",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "18px"
+        },
+        {
+          "tag": "P",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "16px"
+        },
+        {
+          "tag": "P",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "16px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "16px"
+        }
+      ]
+    },
+    {
+      "page": "risotto",
+      "width": 430,
+      "status": 200,
+      "title": "단호박 버섯 리조또 레시피, 단맛의 오행 요리 | 꿀꿀 사주",
+      "canonical": "https://code-destiny.com/recipes/pumpkin-mushroom-risotto/",
+      "overflow": false,
+      "h1Count": 1,
+      "failedImages": 0,
+      "minimumLinkHeight": 44,
+      "colors": [
+        {
+          "tag": "MAIN",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgb(255, 250, 247)",
+          "size": "16px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "H1",
+          "color": "rgb(60, 24, 48)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "36px"
+        },
+        {
+          "tag": "P",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "18px"
+        },
+        {
+          "tag": "P",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "16px"
+        },
+        {
+          "tag": "P",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "16px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "16px"
+        }
+      ]
+    },
+    {
+      "page": "risotto",
+      "width": 1280,
+      "status": 200,
+      "title": "단호박 버섯 리조또 레시피, 단맛의 오행 요리 | 꿀꿀 사주",
+      "canonical": "https://code-destiny.com/recipes/pumpkin-mushroom-risotto/",
+      "overflow": false,
+      "h1Count": 1,
+      "failedImages": 0,
+      "minimumLinkHeight": 44,
+      "colors": [
+        {
+          "tag": "MAIN",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgb(255, 250, 247)",
+          "size": "16px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "H1",
+          "color": "rgb(60, 24, 48)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "48px"
+        },
+        {
+          "tag": "P",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "18px"
+        },
+        {
+          "tag": "P",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "16px"
+        },
+        {
+          "tag": "P",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "16px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "16px"
+        }
+      ]
+    },
+    {
+      "page": "crystals",
+      "width": 360,
+      "status": 200,
+      "title": "오행과 천연석, 색의 의미와 안전한 관리법 | 꿀꿀 사주",
+      "canonical": "https://code-destiny.com/crystals/",
+      "overflow": false,
+      "h1Count": 1,
+      "failedImages": 0,
+      "minimumLinkHeight": 44,
+      "colors": [
+        {
+          "tag": "MAIN",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgb(255, 250, 247)",
+          "size": "16px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "H1",
+          "color": "rgb(60, 24, 48)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "36px"
+        },
+        {
+          "tag": "P",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "18px"
+        },
+        {
+          "tag": "P",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "16px"
+        },
+        {
+          "tag": "P",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "16px"
+        },
+        {
+          "tag": "P",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "16px"
+        }
+      ]
+    },
+    {
+      "page": "crystals",
+      "width": 390,
+      "status": 200,
+      "title": "오행과 천연석, 색의 의미와 안전한 관리법 | 꿀꿀 사주",
+      "canonical": "https://code-destiny.com/crystals/",
+      "overflow": false,
+      "h1Count": 1,
+      "failedImages": 0,
+      "minimumLinkHeight": 44,
+      "colors": [
+        {
+          "tag": "MAIN",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgb(255, 250, 247)",
+          "size": "16px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "H1",
+          "color": "rgb(60, 24, 48)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "36px"
+        },
+        {
+          "tag": "P",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "18px"
+        },
+        {
+          "tag": "P",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "16px"
+        },
+        {
+          "tag": "P",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "16px"
+        },
+        {
+          "tag": "P",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "16px"
+        }
+      ]
+    },
+    {
+      "page": "crystals",
+      "width": 430,
+      "status": 200,
+      "title": "오행과 천연석, 색의 의미와 안전한 관리법 | 꿀꿀 사주",
+      "canonical": "https://code-destiny.com/crystals/",
+      "overflow": false,
+      "h1Count": 1,
+      "failedImages": 0,
+      "minimumLinkHeight": 44,
+      "colors": [
+        {
+          "tag": "MAIN",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgb(255, 250, 247)",
+          "size": "16px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "H1",
+          "color": "rgb(60, 24, 48)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "36px"
+        },
+        {
+          "tag": "P",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "18px"
+        },
+        {
+          "tag": "P",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "16px"
+        },
+        {
+          "tag": "P",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "16px"
+        },
+        {
+          "tag": "P",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "16px"
+        }
+      ]
+    },
+    {
+      "page": "crystals",
+      "width": 1280,
+      "status": 200,
+      "title": "오행과 천연석, 색의 의미와 안전한 관리법 | 꿀꿀 사주",
+      "canonical": "https://code-destiny.com/crystals/",
+      "overflow": false,
+      "h1Count": 1,
+      "failedImages": 0,
+      "minimumLinkHeight": 44,
+      "colors": [
+        {
+          "tag": "MAIN",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgb(255, 250, 247)",
+          "size": "16px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "A",
+          "color": "rgb(179, 25, 85)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "14px"
+        },
+        {
+          "tag": "H1",
+          "color": "rgb(60, 24, 48)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "48px"
+        },
+        {
+          "tag": "P",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "18px"
+        },
+        {
+          "tag": "P",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "16px"
+        },
+        {
+          "tag": "P",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "16px"
+        },
+        {
+          "tag": "P",
+          "color": "rgb(95, 64, 81)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "size": "16px"
+        }
+      ]
+    }
+  ],
+  "ssr": [
+    {
+      "path": "/recipes/",
+      "status": 200,
+      "ssrTitle": "오행 건강 요리 레시피, 다섯 가지 맛의 식탁 | 꿀꿀 사주",
+      "ssrCanonical": "https://code-destiny.com/recipes/",
+      "ssrH1": true,
+      "jsonLd": true
+    },
+    {
+      "path": "/crystals/",
+      "status": 200,
+      "ssrTitle": "오행과 천연석, 색의 의미와 안전한 관리법 | 꿀꿀 사주",
+      "ssrCanonical": "https://code-destiny.com/crystals/",
+      "ssrH1": true,
+      "jsonLd": true
+    },
+    {
+      "path": "/recipes/lemon-chickpea-salad/",
+      "status": 200,
+      "ssrTitle": "레몬 허브 병아리콩 샐러드 레시피, 신맛의 오행 요리 | 꿀꿀 사주",
+      "ssrCanonical": "https://code-destiny.com/recipes/lemon-chickpea-salad/",
+      "ssrH1": true,
+      "jsonLd": true
+    },
+    {
+      "path": "/recipes/chicory-chicken-salad/",
+      "status": 200,
+      "ssrTitle": "치커리와 구운 닭고기 샐러드 레시피, 쓴맛의 오행 요리 | 꿀꿀 사주",
+      "ssrCanonical": "https://code-destiny.com/recipes/chicory-chicken-salad/",
+      "ssrH1": true,
+      "jsonLd": true
+    },
+    {
+      "path": "/recipes/pumpkin-mushroom-risotto/",
+      "status": 200,
+      "ssrTitle": "단호박 버섯 리조또 레시피, 단맛의 오행 요리 | 꿀꿀 사주",
+      "ssrCanonical": "https://code-destiny.com/recipes/pumpkin-mushroom-risotto/",
+      "ssrH1": true,
+      "jsonLd": true
+    },
+    {
+      "path": "/recipes/ginger-scallion-tofu/",
+      "status": 200,
+      "ssrTitle": "생강 대파 두부구이 레시피, 매운맛의 오행 요리 | 꿀꿀 사주",
+      "ssrCanonical": "https://code-destiny.com/recipes/ginger-scallion-tofu/",
+      "ssrH1": true,
+      "jsonLd": true
+    },
+    {
+      "path": "/recipes/seaweed-mushroom-soup/",
+      "status": 200,
+      "ssrTitle": "미역 버섯 두부 맑은국 레시피, 짠맛의 오행 요리 | 꿀꿀 사주",
+      "ssrCanonical": "https://code-destiny.com/recipes/seaweed-mushroom-soup/",
+      "ssrH1": true,
+      "jsonLd": true
+    }
+  ],
+  "notes": [
+    "Initial development manifest JSON error did not recur after guard suite completed",
+    "Global chrome removed using existing immersive route list",
+    "No visual blocking defect in final capture batch",
+    "External links not verified by browser; no production API or payment calls"
+  ]
+}

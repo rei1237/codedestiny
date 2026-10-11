@@ -3078,5 +3078,112 @@
     "productionReleasedSha": "76aab4afda3fe222722a687c5c0e9eefe5ca162b",
     "productionReleasedAt": "2026-10-09T18:34:44Z",
     "searchConsoleManualSteps": "미실행 — 문서의 운영자 수동 작업 참고"
+  },
+  "naverDrop20261012": {
+    "observedAt": "2026-10-12",
+    "source": "User screenshot updated 2026-10-10; read-only production HTTP and git history",
+    "screenshot": {
+      "period": "최근 30일 PC+Mobile",
+      "clicksDisplayed": "3.7천",
+      "impressionsDisplayed": "83.0만",
+      "ctrPercentDisplayed": 0.4,
+      "rounded": true,
+      "dailyDecline": "Visually around Oct 6-7 onward; exact CSV unavailable"
+    },
+    "finding": {
+      "brandRenameCommit": "8edecf7f1",
+      "brandRenameCommitAt": "2026-10-10T00:30:23+09:00",
+      "brandOnlyCause": "Not established; apparent decline predates commit",
+      "priorityCandidate": {
+        "commit": "8d9843c1b",
+        "commitAt": "2026-10-06T12:25:26+09:00",
+        "change": "360 /fortune/date archive URLs deliberately excluded from sitemap and noindexed",
+        "causalStatus": "Plausible only if these URLs lost impressions; URL-level before/after unavailable",
+        "sitemapKoBefore": 361,
+        "sitemapKoAfter": 0,
+        "countNote": "360 detail URLs plus archive hub, counted from committed sitemap-ko.xml before/after 8d9843c1b"
+      },
+      "otherCandidate": {
+        "commit": "02ccbb663",
+        "change": "October 7 consolidation and redirects",
+        "causalStatus": "Need lost-URL cohort matching"
+      }
+    },
+    "production": {
+      "pagesSha": "54862e3094e756f998712dcfaa5102de0ac54ba1",
+      "buildTime": "2026-10-10T15:35:04.793Z",
+      "deploymentTime": null,
+      "homeTitle": "꿀꿀 사주 — 사주·궁합·타로",
+      "checkedRoutes": [
+        "/",
+        "/ggulggul/",
+        "/fortune/tomorrow/",
+        "/robots.txt"
+      ],
+      "homeFinalPath": "/ggulggul/",
+      "homeAndTomorrowStatus": 200,
+      "indexableMeta": true,
+      "googlebotAndYetiSitewideRobotsBlock": false,
+      "actualVerifiedCrawlerAccess": null,
+      "googleSelectedCanonical": null,
+      "archiveSample": {
+        "path": "/fortune/date/2026-10-10/rat/",
+        "status": 200,
+        "metaRobots": "noindex, follow",
+        "xRobotsTag": "noindex, follow"
+      },
+      "userAgentSamples": {
+        "paths": [
+          "/ggulggul/",
+          "/fortune/tomorrow/aquarius/",
+          "/fortune/date/2026-10-10/rat/"
+        ],
+        "agents": [
+          "browser",
+          "Googlebot UA string",
+          "Yeti UA string"
+        ],
+        "allStatus": 200,
+        "robotsConsistentAcrossAgents": true,
+        "limitation": "UA-string requests from this machine are not verified search-engine crawls"
+      }
+    },
+    "newContent": {
+      "routes": [
+        "/recipes/",
+        "/crystals/"
+      ],
+      "recipeDetailCount": 5,
+      "generatedAssetCount": 6,
+      "productionD0": null,
+      "indexingConfirmed": false,
+      "ctrLift": null
+    },
+    "missingEvidence": [
+      "Naver daily per-URL impressions/clicks before and after Oct 6",
+      "GSC query/page/device/position and indexing/URL-inspection",
+      "Actual deployment timestamps for candidate changes"
+    ],
+    "policy": "Retain existing archive noindex and tomorrow-title experiment; no mass reindex or name rollback without evidence",
+    "validation": {
+      "recipeContractTests": "3/3 passed",
+      "nodeTests": "3174/3174 passed",
+      "typecheck": "passed",
+      "lint": "passed; static shell hard-navigation warning retained",
+      "visual": "12 viewport captures passed; SSR 7 routes HTTP 200",
+      "sitemap": "962 URLs, drift check passed",
+      "paidGateSuite": "88/88 mock checks passed",
+      "buildCf": "not run; official build deferred to CI",
+      "checkFast": "Initial run stopped on sitemap ledger drift after final UI edits; regenerated and drift check passed; remaining plan checks run individually",
+      "jest": "pending"
+    },
+    "delivery": {
+      "status": "blocked by pre-existing main CI failure",
+      "baseSha": "aa70afbcd951ab84daab1874b187756c65c05250",
+      "ciUrl": "https://github.com/rei1237/codedestiny/actions/runs/38148771754",
+      "error": "verify:ziwei-chart-detail-view: TypeError panel.before is not a function",
+      "pushed": false,
+      "productionReleased": false
+    }
   }
 }

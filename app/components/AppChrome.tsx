@@ -97,6 +97,9 @@ const FEATURE_NAV_EXTRA_ROUTES = [
 // Premium fortune routes that own their complete in-experience navigation.
 // They must not inherit the site header, footer, floating feature nav, or mobile tab bar.
 const IMMERSIVE_FORTUNE_ROUTES = [
+  // 생활문화 읽기 페이지는 자체 목차와 홈 이동을 제공한다.
+  "/recipes",
+  "/crystals",
   "/checkout",
   "/yeongnyangi",
   "/features",

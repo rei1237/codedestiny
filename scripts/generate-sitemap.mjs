@@ -3,6 +3,7 @@ import { INTRO_TOPICS, introductionRoutes } from "../lib/i18n/feature-introducti
 import { TRUST_KEYS, trustRoutes } from "../lib/i18n/public-trust-copy.mjs";
 import { splitLocaleSitemaps, sitemapIndex } from "./lib/locale-sitemaps.mjs";
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { RECIPES, recipePath } from "../lib/lifestyle/recipes.mjs";
 import { register } from "node:module";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -176,6 +177,9 @@ const staticCanonicalRouteEntries = STATIC_CANONICAL_ROUTES.map((route) => ({
 }));
 
 const coreRoutes = [
+  { path: "/recipes", changefreq: "monthly", priority: 0.7 },
+  { path: "/crystals", changefreq: "monthly", priority: 0.7 },
+  ...RECIPES.map((recipe) => ({ path: recipePath(recipe), changefreq: "monthly", priority: 0.65 })),
   // 🔴 "/" 는 넣지 않는다 — 워커가 /ggulggul/ 로 301 한다(2026-10-02 사용자 결정: /ggulggul/ 단일 대표).
   //    리다이렉트 URL 을 사이트맵에 내면 대표 URL 신호가 둘로 갈린다.
   // 브랜드 별칭("꿀꿀 운세") 의 대표 URL 은 /ggulggul/ 다. 이 페이지는 그 관계를
