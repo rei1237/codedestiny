@@ -311,3 +311,5 @@ body.neo-mode #modalBody .saju-reading > h3 {padding-right:44px;}
     margin-inline:calc((100% - (100vw - 30px)) / 2);
   }
 }
+
+.saju-crafted-offer :is(.craftedDetailNotice,.craftedDetailTranscript){word-break:keep-all;overflow-wrap:anywhere;}

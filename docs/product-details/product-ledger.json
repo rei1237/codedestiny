@@ -962,24 +962,58 @@
     {
       "productId": "compat-saju-compatibility",
       "displayName": "사주 궁합 분석",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "saleStatus": "기존사주결과궁합입력/유형별구매버튼확인",
+      "entry": [
+        "index.html #compatCard/#compatRunBtn",
+        "js/saju-engine.js runCompat/_seSajuCompatLlmEntry"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 5000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "inputRequirements": [
+        "본인사주",
+        "상대이름·생년월일·양력/음력/윤달·시각",
+        "연애결혼/사업동업/친구동료유형"
       ],
-      "detailAliases": []
+      "resultRenderer": [
+        "js/saju-compat-render.mjs renderSajuCompat",
+        "worker/lib/saju-compat-schema.js SAJU_COMPAT_GROUPS"
+      ],
+      "actualContents": [
+        "점수등급총평",
+        "에너지조화4항목",
+        "감정/갈등/현실/장기4항목",
+        "계산근거궁합포인트",
+        "현실패턴·처방",
+        "전생상징서사·성찰질문3"
+      ],
+      "conditionalItems": [
+        "연애결혼심화는love유형만",
+        "reasons근거는계산결과조건",
+        "시각미입력정오기본값"
+      ],
+      "separatePurchase": [
+        "찻집/연애총서/다른체계궁합은별도"
+      ],
+      "reviewSource": [],
+      "images": [
+        "/feature-details/crafted/saju-compatibility/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "index.html 구매전미리보기",
+        "js/core/saju/crafted-product-details.mjs"
+      ],
+      "verification": [
+        "원본10독립SHIP",
+        "모바일10패널/고지/원고/CTA독립최종SHIP",
+        "4폭330/360/400/540로드경계오류원고PASS",
+        "정적성공실패CTA보존2PASS;ESLintclean"
+      ],
+      "unconfirmed": [
+        "main전달·CI·운영노출미확인;실결제실LLM미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "compat-sukuyo-compatibility",

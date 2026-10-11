@@ -57,7 +57,8 @@
     "astrology_ai_prompt_generator": "astro-question-consultation",
     "astrology-ai-consultation": "astrology-expert",
     "compat-astro-direct-synastry": "astro-direct-synastry",
-    "compat-astro-synastry": "astro-celebrity-synastry"
+    "compat-astro-synastry": "astro-celebrity-synastry",
+    "compat-saju-compatibility": "saju-compatibility"
   },
   "introductions": {
     "fusion-fortune": [
