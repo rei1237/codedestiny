@@ -416,7 +416,7 @@ test("필터를 켰다가 모두 끄면 기본 목록으로 되돌아온다", as
 // 델리게이션 선택자에 걸리는 표식이 하나도 없어 시트가 안 열렸다(2026-09-01 실측: 표면 0/2).
 // 🔴 여기서 지키는 것은 "무엇이 붙는가" 보다 **무엇이 안 붙는가** 다 — data-coin-cost 계열이
 //    붙는 순간 이 카드에서 _cdRunPerUseCoinGate 가 결제 게이트를 무장한다.
-test("추천 카드는 결제 게이트를 무장하지 않고 유료/무료 표식만 싣는다", async () => {
+test("추천 카드는 결제 게이트를 무장하지 않고 결제 여부 표식만 싣는다", async () => {
   const { doc } = await boot();
   const panel = doc.getElementById("fortuneGatewayRecs");
   const input = doc.getElementById("fortuneGatewaySearch");
@@ -438,10 +438,11 @@ test("추천 카드는 결제 게이트를 무장하지 않고 유료/무료 표
     "시트 제목으로 읽힐 노드가 없거나 배지 문구가 섞였다",
   );
 
-  const free = cards.find((c) => c.getAttribute("data-pvw-free"));
-  assert.ok(free, "무료 면제 표식이 붙은 카드가 하나도 없다");
-  assert.equal(free.getAttribute("data-pvw-paid"), null, "무료 카드에 유료 표식이 붙었다");
-  assert.equal(free.getAttribute("data-feature-key"), null, "무료 카드에 featureKey 가 실려 유료로 프레이밍된다");
+  assert.equal(
+    cards.filter((c) => c.getAttribute("data-pvw-free")).length,
+    0,
+    "궁합 추천에 무상 운세 카드가 남았다",
+  );
 
   // 경계 항목 둘. 여기가 갈리면 /points 프로그래매틱 이동(결제 금지 패턴 ⑦)이 열린다.
   // 🔴 가격 칩으로 고른다 — 검색 입력은 120ms 디바운스라 이 동기 단언이 이전 목록을 읽는다.

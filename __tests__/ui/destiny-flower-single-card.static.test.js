@@ -33,11 +33,12 @@ function lockTileKeys() {
   return keys;
 }
 
-test("꽃은 하나의 무료 서비스로 소개하고 구매 타일을 남기지 않는다", () => {
- assert.equal(lockTileKeys().filter(key=>key==='flower-fc').length,0);
+test("꽃은 하나의 5,000원 상품으로 소개하고 공용 해금 키를 쓴다", () => {
+ assert.equal(lockTileKeys().filter(key=>key==='flower-fc').length,1);
  assert.match(shell,/id="cdhFlowerTitle"/);
- assert.match(shell,/로그인 후 무료로 이용할 수 있어요/);
- assert.match(read('worker/lib/billing-feature-registry.js'),/FEATURE_NOW_FREE/);
+ assert.match(shell,/운명의 꽃 전체 · 1회 5,000원/);
+ assert.doesNotMatch(shell,/로그인 후 무료로 이용할 수 있어요/);
+ assert.doesNotMatch(read('worker/lib/billing-feature-registry.js'),/FEATURE_NOW_FREE/);
 });
 
 test("랜딩은 /flower 하나이고 옛 경로는 리다이렉트다", () => {

@@ -112,8 +112,8 @@ test('restored hero artwork, catalog reuse, and collection previews stay in sync
     const staticImage = wrapper.querySelector('img');
     if (staticImage) assert.equal(staticImage.getAttribute('src'), expected, `${slug}: static and deferred previews differ`);
   }
-  assert.equal(mappedCards, 47);
-  assert.equal(wrappers.length - mappedCards, 15);
+  assert.equal(mappedCards, 48);
+  assert.equal(wrappers.length - mappedCards, 14);
 
   const restored = {
     'fortune-tea-house': '/images/fortune-tea-house/premium-tea-house-desktop.webp',
