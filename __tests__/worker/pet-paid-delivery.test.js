@@ -79,3 +79,9 @@ test.each(['report','compat'])('%s part prompts carry the facts without the whol
 test('admin prompt lab shows the production report seed',async()=>{
  const body={...original(),pet};expect(lab(body).prompt).toBe((await seedPet('report',body)).prompt);
 });
+test('a JSON report body is not a part, and its text is delivered on the last attempt',async()=>{
+ const base=provider.getMockImplementation();provider.mockImplementation(async(...args)=>{const response=await base(...args),value=JSON.parse(response.text);value.body=JSON.stringify({personality:value.body.split('\n\n'),habitats:[{id:'sunny-window',reading:'창가 자리'}]});return {...response,text:JSON.stringify(value)};});
+ await start();expect(provider).toHaveBeenCalledTimes(4);expect(docs[0].metadata.paidNarrative.parts).toEqual({});
+ expect((await finish()).status).toBe(200);const {parts,tasks}=docs[0].metadata.paidNarrative;expect(provider).toHaveBeenCalledTimes(tasks.length*2);
+ for(const task of tasks){expect(parts[task.id]).not.toMatch(/^\s*[\[{]|"personality"|sunny-window/);expect(parts[task.id]).toContain('번째 사례는');}
+});
