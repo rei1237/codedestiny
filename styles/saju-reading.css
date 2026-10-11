@@ -319,3 +319,5 @@ body.neo-mode #modalBody .saju-reading > h3 {padding-right:44px;}
 .t-test-card [data-saju-static-offer="sukuyo-extreme-t-relationship"] {margin-inline:-15px;}
 
 .saju-crafted-offer :is(.craftedDetailNotice,.craftedDetailTranscript){word-break:keep-all;overflow-wrap:anywhere;}
+
+@media (max-width:600px){#lottoCard .saju-crafted-offer .craftedDetail>div{width:calc(100vw - 62px);margin-inline:calc((100% - (100vw - 62px))/2)}}

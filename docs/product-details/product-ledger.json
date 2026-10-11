@@ -2009,24 +2009,48 @@
     {
       "productId": "fun.quantumLotto.ritualReport",
       "displayName": "달빛 럭키 리추얼 리포트 1회",
-      "saleStatus": "판매 진입 확인 필요",
+      "saleStatus": "현행 무료번호 후 별도리포트;1000 정본일치",
       "entry": [],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 1000,
-      "inputRequirements": [],
+      "inputRequirements": [
+        "현재사주와 기본5게임;첫게임6번호해석"
+      ],
       "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
+      "actualContents": [
+        "금전흐름과3조언·루틴5항목",
+        "대표6번호상징·행동",
+        "공유카드·회고3질문",
+        "같은브라우저 계정/프로필/주차24기록·PNG/문구공유"
+      ],
+      "conditionalItems": [
+        "규칙형오락·성찰;AI/당첨예측/확률향상아님",
+        "다른기기동기화/PDF없음",
+        "번호뽑기와리포트별개;로컬데이터삭제주의"
+      ],
       "separatePurchase": [],
       "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "images": [
+        "/feature-details/crafted/moon-lucky-ritual/manifest.json"
       ],
-      "detailAliases": []
+      "status": "적용",
+      "appliedAt": [
+        "index.html lottoCard 정적안내",
+        "js/core/saju/crafted-product-details.mjs",
+        "styles/saju-reading.css 해당중첩폭",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본8/native21 독립SHIP",
+        "298/328/368/540 clipping/fallbackPASS;1000CTA",
+        "초기가로클립FAIL 후해당구역폭수정",
+        "무료달력mockPOST4/그외POST0;Node9PASS"
+      ],
+      "unconfirmed": [
+        "main전달·CI미확인;실결제없음"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "fusion-fortune-consultation",

@@ -415,3 +415,7 @@ status: active
 ## FPTI 심층 리포트
 - 실제7장42항목·규칙형해설·저장프로필조건·해금PDF를10장 개별편집. 원본10/native23 독립SHIP;328/358/398/540 clipping/fallbackPASS POST0. ESLint/Node11 PASS.
 - 유료구성109종+공통소개1종984패널 로컬검수. 직전e46b7ffb9 pre-push/typecheckPASS. 전체/main전달미완료. 다음달빛럭키8장 원본검수중.
+
+## 달빛 럭키 리추얼
+- 무료번호/유료해석·루틴·공유·회고·로컬저장범위를8장개별편집. 원본8/native21 독립SHIP;298/328/368/540 clipping/fallbackPASS. 초기중첩가로클립해당폭수정. 무료달력mockPOST4/그외POST0,Node9PASS.
+- 유료구성110종+공통소개1종992패널 로컬검수. 직전fd12fc175 pre-pushPASS. 전체/main전달미완료. 다음시빌라 실제규칙형10장/분량보장없음확인.
