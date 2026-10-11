@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-10-10
-next: "단계 A(결정적 데이터)부터 한다: 1A luckOverlap·2A 12궁 관계표·3A tenGodsByPillar 요약을 모아 requests·prepare 해시를 한 번에 갱신한다. 단계 B 는 a208bea08 에서 끝났다."
+updated: 2026-10-11
+next: "단계 C(프롬프트 계약: 4 timeContract·5A·8C·9C·10·11·14C)를 한다. 효과는 MA·MO 재실호출로만 확인하므로 실호출은 따로 승인받는다. 단계 B 는 a208bea08, 단계 A 는 556d2af0e 에서 끝났다."
 ---
 
 # 영냥이 퓨전(MA 모듬·MO 오마카세) 품질 결함 14건 + 토큰 여유
@@ -12,7 +12,7 @@ next: "단계 A(결정적 데이터)부터 한다: 1A luckOverlap·2A 12궁 관�
 
 ## 지금 상태
 
-- 단계 B(6·5B·1B·2B·3B·7·8B)는 끝났다(아래 '단계 B 결과'). 단계 A·C 와 재실호출은 남았다. 규칙은 [2026-10-10-new-year-and-expert-llm-debug.md](2026-10-10-new-year-and-expert-llm-debug.md) '지켜야 할 규칙'을 따른다.
+- 단계 B(6·5B·1B·2B·3B·7·8B)와 단계 A(1A·2A·3A·4·9A·12·13A·14A)는 끝났다(아래 '단계 A 결과'·'단계 B 결과'). 단계 C 와 재실호출은 남았다. 규칙은 [2026-10-10-new-year-and-expert-llm-debug.md](2026-10-10-new-year-and-expert-llm-debug.md) '지켜야 할 규칙'을 따른다.
 - 🔴 **strict 검사는 배달을 막지 못한다.**
   - `worker/yeongnyangi/providers/delivery.ts:51-56` 이 validateChapter 의 오류를 받아 fallback 으로 배달한다.
   - 그래서 새 strict 검사를 더해도 효과가 없다. 효과가 있는 수정은 세 가지뿐이다: (A) 결정적 데이터, (B) `correctChapterProse`(providers/chapter.ts:92-109) 결정적 교정, (C) 프롬프트 계약.
@@ -36,6 +36,23 @@ next: "단계 A(결정적 데이터)부터 한다: 1A luckOverlap·2A 12궁 관�
   - 그런 ID 가 없으면, 한국어 본문이 체계명을 말한 경우에만 그 체계의 첫 장 fact 를 넣는다.
   - 쓰지 않은 체계는 비워 둔다(MO ch13 류는 그대로 남는다).
 
+## 단계 A 결과 (556d2af0e, 2026-10-11)
+
+모두 장 fact 입구(`selectChapterFacts`)나 프롬프트 입력에서 붙인다. 저장된 context·뽑은 카드는 그대로다. 불변성 해시는 한 번 갱신했다(199행 중 103행: requests 103, prepare 17, validated 8, manifests 6, id 0).
+
+- 1A: 새 `fortune/saju/luck-overlap.ts`. 사주 세운·월운 행에 `majorLuckOverlap`(그해 대운 기둥, 대운과 그 운이 함께 있어야 성립하는 합·충·형·파·해·삼합·방합)을 붙인다. 3자 형은 대운+세운(월운)+원국을 합쳐 판정한다. 키에 majorLuck 이 들어 있어 대운을 못 보는 등급에서는 함께 빠진다.
+  - 가정: 월운의 대운은 월운 시작 해로 고른다(엔진의 연 단위 대운 경계와 같다).
+- 2A: `ZIWEI_PALACE_RELATIONS`(명궁 기준 고정 순서, 대궁 +6·삼합 +4/+8). 대한·유년 행에 `facingPalace`·`trinePalaces`, palaces 래퍼에 `palaceRelations` 를 붙인다.
+- 3A: 사주 base selector 에 `tenGodsByPillar.summary`. 기둥마다 {label, pillar, stemTenGod, primaryHiddenTenGod} 만 준다. 전체 표는 그것을 고른 장만 받는다.
+- 4: 인생 장 `life-year`·`life-next-year` 는 계산 해·다음 해의 세운·유년·월운 행만, `life-decade` 는 현재+다음 대운을 본다. 상담 period 와 그 timeContract 문장은 질문 장(질문 배정·questionPolicy·question/answer 역할)에만 간다.
+  - 가정: 문서의 "next 조건에 life-decade 추가" 대신 compare 분기를 썼다. next 분기는 현재 대운을 빼므로 '지금의 10년' 절이 근거를 잃는다.
+- 9A: 새 `fortune/tarot/time-frame.ts`. 카드(`cards`·`tarotConsultation.cards`)마다 `timeFrame` 을 붙인다. 과거·현재·이어질 방향·시기 아닌 자리는 모두 '달력 시기 아님'이고, 한 달 스프레드의 1~4주 차만 '카드를 뽑은 날부터 N주 차'다.
+- 12: 융합 ask 1장 제목을 `{주제} · 질문에 대한 답과 지금의 흐름` 으로 덮어쓴다(service.ts). 단일 체계 ask 는 그대로다.
+- 13A: `askCalculatedData`(ask/prompt.ts). today*·monthlyLuck 을 요청 기간으로 줄이고, 인용되지 않은 fact 를 큰 것부터 빼서 CALCULATED_DATA 를 `ASK_EVIDENCE_CHAR_BUDGET`(64,000자) 안에 둔다. ASK_PROMPT_VIEW_GUIDE 는 palaces 래퍼 경로를 설명한다.
+  - MO ch1 추정(호출 002 + 새 fact 선택, countTokens 비율 환산): 46,152 → 약 35,900 토큰. 단계 A 가 붙인 fact 는 상한 전 3,150자였다.
+- 14A: 신궁은 self·inner·money·spending·expansion·life-nature·life-money 장에서만 따로 붙는다.
+- 남은 것: 궁합 상대 차트(partnerChart) 유년 행에는 관계를 붙이지 않았다. ask 패킷은 설계대로 majorLuck 키(majorLuckOverlap 포함)를 뺀다.
+
 ## 남은 작업
 
 경로 앞의 `fortune/`, `providers/` 는 `worker/yeongnyangi/` 아래다.
@@ -52,7 +69,7 @@ next: "단계 A(결정적 데이터)부터 한다: 1A luckOverlap·2A 12궁 관�
 | 7 | "목성 대운" | correctDashaSequence(consultation.ts:367-418) | 행성명이 붙은 대운을 마하·안타르·프라티안타르 단계로 바꾼다 |
 | 8B | 체계 sources 누락 | chapter.ts:235-239 검사를 fallback 이 우회 | 본문이 이미 언급한 체계의 sources 만 보충한다 |
 
-**단계 A. 결정적 데이터.** requests·prepare 해시가 크게 움직인다. 모아서 한 번에 갱신한다.
+**단계 A. 결정적 데이터.** ✅ 끝남(위 '단계 A 결과'). 아래는 기록용이다.
 - 1A: 세운×대운·월운×대운 관계 `luckOverlap` 을 만든다. 3자 형은 대운+세운+원국 지지를 합쳐 판정한다(L480-499·605-629 는 운×원국만 봄).
 - 2A: 12궁 `{facing, trines}` 관계표를 넣는다(reading-facts.ts:56-61·110-122). 대한·유년 행에도 붙인다.
 - 3A: base selector(reading-manifest.ts:46)에 tenGodsByPillar 요약을 넣는다.
@@ -100,7 +117,7 @@ next: "단계 A(결정적 데이터)부터 한다: 1A luckOverlap·2A 12궁 관�
 ## 검증
 
 ```
-npx jest __tests__/ui/yeongnyangi-consultation.test.mjs __tests__/ui/yeongnyangi-natal-claims.test.mjs __tests__/ui/yeongnyangi-fusion-delivery.test.mjs __tests__/ui/yeongnyangi-prevention.test.mjs __tests__/ui/yeongnyangi-ask-validation.test.mjs __tests__/ui/yeongnyangi-benchmark-budget.test.mjs __tests__/ui/yeongnyangi-reading-invariance.test.mjs
+node --test __tests__/ui/yeongnyangi-consultation.test.mjs __tests__/ui/yeongnyangi-natal-claims.test.mjs __tests__/ui/yeongnyangi-fusion-delivery.test.mjs __tests__/ui/yeongnyangi-prevention.test.mjs __tests__/ui/yeongnyangi-ask-validation.test.mjs __tests__/ui/yeongnyangi-benchmark-budget.test.mjs __tests__/ui/yeongnyangi-reading-invariance.test.mjs __tests__/ui/yeongnyangi-ziwei-palace-strength.test.mjs
 npm run check:fast
 ```
 
