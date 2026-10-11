@@ -3177,7 +3177,7 @@
       "checkFast": "Initial run stopped on sitemap ledger drift after final UI edits; regenerated and drift check passed; remaining plan checks run individually",
       "jest": "385 suites, 5883/5883 passed",
       "workerBuild": "dry-run passed",
-      "prePush": "Initial public-mirror-fresh failed on baseline .ignore missing saju-reading mirror; regenerated via sync:public; final check pending"
+      "prePush": "passed: home-service-registry, public-mirror-fresh, sitemap-drift (962 URLs); initial baseline .ignore mirror omission repaired via sync:public"
     },
     "delivery": {
       "status": "blocked by pre-existing main CI failure",

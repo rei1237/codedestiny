@@ -41,7 +41,7 @@ next: 기존 main CI 복구 확인 후 이 워크트리 변경을 main에 통합
 - `npm run sitemap:generate`, `npm run verify:sitemap-drift`: 수정 후 통과, 962 URL.
 - 나머지 계획 검사를 개별 실행: typecheck 통과, Node 3174/3174, Jest 385 suites·5883/5883, Worker dry-run 및 strict encoding 등 통과.
 - 신규 콘텐츠 계약 3/3 통과. 시각 검증 3페이지×4뷰포트(360/390/430/1280) 12개 통과, 7개 경로 SSR HTTP200·H1·canonical·JSON-LD 확인.
-- `npm run check:pre-push`: 최초 `.ignore`의 기존 mirror 항목 누락으로 실패. `npm run sync:public`으로 `/public/styles/saju-reading.css` 자동 생성 항목을 보완했다. 최종 결과는 SEO_STATE validation.prePush 참고.
+- `npm run check:pre-push`: 최종 통과(home-service-registry, public-mirror-fresh, sitemap-drift 962 URL). 최초 `.ignore`의 기존 mirror 항목 누락은 `npm run sync:public`으로 `/public/styles/saju-reading.css` 자동 생성 항목을 보완해 해결했다.
 - `build:cf`, Google Rich Results Test, 실제 검색 색인·노출·CTR 개선, 운영 배포: 미검증.
 
 ## 재개
