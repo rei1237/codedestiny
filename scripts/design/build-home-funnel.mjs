@@ -84,6 +84,12 @@ for (const fish of ['mackerel', 'salmon', 'flounder', 'tuna']) {
   if (!Number.isSafeInteger(price) || price <= 0) throw new Error(`Missing Yeongnyangi home price: ${featureKey}`);
   vars[`yeongnyangi${fish[0].toUpperCase()}${fish.slice(1)}Price`] = price.toLocaleString('ko-KR');
 }
+// 홈 '연애·궁합' 입구는 인연의 서 상세로 바로 간다. 가격은 registry 값을 그대로 쓴다.
+for (const [token, featureKey] of [['codexPrice', 'master-love-codex'], ['codexCompatPrice', 'master-love-codex-compat']]) {
+  const price = FEATURE_KEY_PRICE_TABLE[featureKey]?.amountKRW;
+  if (!Number.isSafeInteger(price) || price <= 0) throw new Error(`Missing master love codex home price: ${featureKey}`);
+  vars[token] = price.toLocaleString('ko-KR');
+}
 // 신뢰 블록 제목·고지·CTA 는 12개 로케일 사전에 "3,000원" 을 문구로 굽는다(2026-10-12 고등어 가격). 가격이 바뀌면 문구가 거짓이 되므로 빌드를 멈춘다.
 if (Number(FEATURE_KEY_PRICE_TABLE['yeongnyangi-saju-mackerel'].amountKRW) !== 5000) throw new Error('home funnel trust offer copy says 5,000원: update offerTitle/offerNote/offerCta before changing the mackerel price');;
 // 홈 두 상담 카드(#fortuneGatewayEntry)의 '1회 5,000원'은 사전 문구다 — 가격이 바뀌면 문구부터 고친다.
