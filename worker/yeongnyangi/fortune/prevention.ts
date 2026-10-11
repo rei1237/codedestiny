@@ -98,6 +98,27 @@ export function preventionFacts(context:DomainContext,chapter:ChapterSpec):Evide
 // 월운 12개월만 쓰므로 보낼 때 그 범위만 남긴다: 다른 대운(cycles)과, 세운 행·후보가 따로 싣는 현재 대운의 연도별 해석(annual)을 뺀다.
 // 후보마다 되풀이되는 설명문은 key별로 한 번만 싣는다. 저장된 근거는 그대로 두고 여기서 줄여, 결제 후 멈춘 주문도 같은 코드로 이어진다.
 const GUIDE_FIELDS=['opportunity','burden','observe','action','buffering','limitation'];
+// 10: MA·MO 예방 장의 conditions·signals 소절이 후보를 고르지 못해 실제 성립한 충·파 대신 일반론을 썼다. 보낼 때 후보를
+// 형충파해의 세기 → 기간(세운·월운·대운·원국) → 이른 시기 순으로 rank를 매긴다. 목록 순서와 저장된 후보 내용은 그대로 두고 rank·tensionNames만 붙인다.
+const TENSION_WEIGHT:Record<string,number>={branchClashes:5,stemClashes:4,branchPunishments:4,branchBreaks:3,branchHarms:2};
+const PERIOD_ORDER:Record<string,number>={year:0,month:1,major:2,natal:3};
+export const RANK_RULE='candidates 목록 순서가 아니라 rank 숫자 순으로 읽는다. rank 1이 먼저 다룰 후보다. 충 > 형 > 파 > 해 순으로 강한 관계가 있는 후보를 앞에 두고, 같은 세기면 세운 → 월운 → 대운 → 원국, 이른 시기 순이다. tensionNames가 없는 후보(십성·이동)는 충·파 근거가 아니며 뒤에 둔다. 질문과 맞지 않는 후보만 건너뛴다.';
+function rankCandidates(candidates:any[]):number[] {
+ const tensions=(c:any)=>Array.isArray(c?.anchors?.tensions)?c.anchors.tensions:[];
+ const weight=(c:any)=>Math.max(0,...tensions(c).map((t:any)=>TENSION_WEIGHT[t.kind]||1));
+ const when=(c:any)=>(c.period?.year||0)*100+(c.period?.month||0);
+ return candidates.map((c,i)=>({c,i})).sort((a,b)=>weight(b.c)-weight(a.c)
+   ||(PERIOD_ORDER[a.c.period?.kind]??9)-(PERIOD_ORDER[b.c.period?.kind]??9)||when(a.c)-when(b.c)||a.i-b.i)
+  .reduce((ranks,{i},rank)=>(ranks[i]=rank+1,ranks),[] as number[]);
+}
+function withRanks(candidates:any[]):any[] {
+ const ranks=rankCandidates(candidates);
+ return candidates.map((c,i)=>{
+  const tensions=Array.isArray(c?.anchors?.tensions)?c.anchors.tensions:[];
+  const names=[...tensions].sort((x:any,y:any)=>(TENSION_WEIGHT[y.kind]||1)-(TENSION_WEIGHT[x.kind]||1)).map((t:any)=>t.label).filter(Boolean);
+  return {rank:ranks[i],...(names.length?{tensionNames:[...new Set(names)]}:{}),...c};
+ });
+}
 function compactPrevention(fact:Evidence):Evidence {
  const value=fact.value as Record<string,any>;
  if(value?.system!=='saju'||!Array.isArray(value.anchors))return fact;
@@ -114,13 +135,13 @@ function compactPrevention(fact:Evidence):Evidence {
  const compactPacket=(packet:any)=>{
   if(!Array.isArray(packet?.candidates))return packet;
   const guides:Record<string,Record<string,unknown>>={};
-  const candidates=packet.candidates.map((c:any)=>{
+  const candidates=withRanks(packet.candidates).map((c:any)=>{
    const guide=Object.fromEntries(GUIDE_FIELDS.filter(k=>c[k]!==undefined).map(k=>[k,c[k]]));
    const id=Object.entries(guides).find(([,g])=>JSON.stringify(g)===JSON.stringify(guide))?.[0]||`${c.key}#${Object.keys(guides).length+1}`;
    guides[id]=guide;
    return {...omit(c,GUIDE_FIELDS),guide:id};
   });
-  return {...packet,candidates,guides,guideRule:'후보의 guide 값은 guides의 같은 키 설명을 가리킨다.'};
+  return {...packet,candidates,guides,guideRule:'후보의 guide 값은 guides의 같은 키 설명을 가리킨다.',rankRule:RANK_RULE};
  };
  return {...fact,value:{...value,anchors,...(value.saju?{saju:compactPacket(value.saju)}:{}),...(value.partner?{partner:compactPacket(value.partner)}:{})}};
 }

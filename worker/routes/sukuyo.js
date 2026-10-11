@@ -2506,6 +2506,15 @@ export async function handleSukuyoRoutes(request, env = {}, ctx = null) {
       return await handleSukuyoPastLifeReading(request, env);
     }
 
+    // 유료 결과의 보관함 저장 — 기본·정밀 궁합(회당 결제), 본성 심화·극T(출생 기준 잠금 해제).
+    // worker/routes/sukuyo-archive.js
+    const archiveMatch = /^\/(compat|compat-precision|nature-deep-dive|extreme-t)\/archive$/.exec(path);
+    if (archiveMatch) {
+      if (method !== "POST") return methodNotAllowed();
+      const { handleSukuyoResultArchive } = await import("./sukuyo-archive.js");
+      return await handleSukuyoResultArchive(request, env, archiveMatch[1]);
+    }
+
     if (path === "/compatibility-ai-consultation" || path === "/ai-compatibility") {
       if (method !== "POST") return methodNotAllowed();
       return sukuyoCompatibilityAiMovedResponse();

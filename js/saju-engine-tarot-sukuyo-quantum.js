@@ -4957,7 +4957,11 @@ function renderTTest(p, natal, johu, pw) {
     }).catch(function() { /* Optional guide; retain the existing unlock form. */ });
     // 결제 후 리다이렉트 복귀는 이 클로저를 잃으므로, 렌더할 때마다 최신 것을 전역에 걸어 둔다.
     // 🔴 버튼 유무와 무관하게 먼저 건다 — 아래 early return 뒤에 두면 재개가 코어를 못 찾는다.
-    window._syRenderTTestCore = function() { renderTTest.apply(null, renderArgs); };
+    // 복귀 재개는 인자 없이 부른다(= 결제 직후라 보관함에 저장). 잠금 해제 이벤트로 다시 그릴 때만 {archive:false}.
+    window._syRenderTTestCore = function(options) {
+      if (!(options && options.archive === false)) window.__syExtremeTArchiveNext = true;
+      renderTTest.apply(null, renderArgs);
+    };
     var buttons = area.querySelectorAll('[data-extreme-t-lock-button]');
     if (!buttons.length) return;
     for (var i = 0; i < buttons.length; i += 1) {
@@ -4970,6 +4974,7 @@ function renderTTest(p, natal, johu, pw) {
           : { key: 'extreme-t-relationship-circuit', cost: 30, reason: '극T 관계 회로 잠금 해제' };
         syRequirePaidSukuyoFeature(feature, function() {
           syMarkPaidSukuyoFeatureUnlocked(feature.key);
+          window.__syExtremeTArchiveNext = true;
           renderTTest.apply(null, renderArgs);
         }, syBuildUnlockResumeDescriptor(SY_EXTREME_T_RESUME_KIND, 'cdSajuTabEntry'));
       });
@@ -5097,6 +5102,27 @@ function renderTTest(p, natal, johu, pw) {
 
       area.innerHTML = builderHtml;
       bindExtremeTRelationshipUnlock(area, [p, natal, johu, pw]);
+      // 결제(또는 결제 복귀) 직후 연 렌더만 보관함에 남긴다 — 평소 열람마다 저장하지 않는다.
+      if (hasExtremeTRelationshipAccess && window.__syExtremeTArchiveNext === true) {
+        window.__syExtremeTArchiveNext = false;
+        try {
+          sySaveSukuyoResultArchive('extreme-t', {
+            facts: {
+              typeName: syArchiveFactText(builtResult.typeName),
+              tTier: syArchiveFactText(builtResult.tTier),
+              headline: syArchiveFactText(builtResult.headline),
+              catchphrase: syArchiveFactText(builtResult.catchphrase),
+              summaryMood: syArchiveFactText(builtResult.summaryMood),
+              emotionSpeed: syArchiveFactText(builtResult.emotionSpeed),
+              toneRisk: syArchiveFactText(builtResult.toneRisk),
+              loveDifficulty: syArchiveFactText(builtResult.loveDifficulty),
+              summaryTip: syArchiveFactText(builtResult.summaryTip),
+              finalScore: Number(builtResult.finalScore)
+            },
+            sections: syArchiveCardSections(area, '.t-hero-card, .t-panel, .t-mission-card, .t-summary-card', '.t-panel-title, .t-mission-title, .t-summary-title')
+          });
+        } catch (_syExtremeTArchiveError) {}
+      }
       card.style.display = 'block';
       if (typeof syncReportHeightFromNode === 'function') {
         syncReportHeightFromNode(card);
@@ -5602,6 +5628,27 @@ function renderTTest(p, natal, johu, pw) {
 
   area.innerHTML = html;
   bindExtremeTRelationshipUnlock(area, [p, natal, johu, pw]);
+  // 빌더(extremeTResult.js)가 아직 안 실린 화면도 같은 결과를 그린다 — 빌더 경로와 같은 조건·형태로 보관함에 남긴다.
+  if (hasFallbackExtremeTRelationshipAccess && window.__syExtremeTArchiveNext === true) {
+    window.__syExtremeTArchiveNext = false;
+    try {
+      sySaveSukuyoResultArchive('extreme-t', {
+        facts: {
+          typeName: syArchiveFactText(scoreBand.typeName),
+          tTier: syArchiveFactText(tTier),
+          headline: syArchiveFactText(scoreBand.headline),
+          catchphrase: syArchiveFactText(catchphrase),
+          summaryMood: syArchiveFactText(scoreBand.summaryMood),
+          emotionSpeed: syArchiveFactText(emotionSpeed),
+          toneRisk: syArchiveFactText(toneRisk),
+          loveDifficulty: syArchiveFactText(loveDifficulty),
+          summaryTip: syArchiveFactText(scoreBand.summaryTip),
+          finalScore: Number(finalScore)
+        },
+        sections: syArchiveCardSections(area, '.t-hero-card, .t-panel, .t-mission-card, .t-summary-card', '.t-panel-title, .t-mission-title, .t-summary-title')
+      });
+    } catch (_syExtremeTFallbackArchiveError) {}
+  }
   card.style.display = 'block';
   if (typeof syncReportHeightFromNode === 'function') {
     syncReportHeightFromNode(card);
@@ -8259,8 +8306,9 @@ var SY_PAID_FEATURES = Object.freeze({
   natureDeepDive: { key: 'sukuyo-nature-deep-dive', cost: 30, reason: '본성 심화 해석' },
   pastLifeReading: { key: 'sukuyo-past-life-reading', cost: 50, reason: '숙요 인연 레이더' },
   monthlyFortune: { key: 'sukuyo-monthly-fortune', cost: 30, reason: '월별 숙요 운세 확장' },
-  compatibility: { key: 'compat-sukuyo-compatibility', cost: 30, reason: '숙요점 궁합 분석' },
-  compatibilityPrecision: { key: 'premium-sukuyo-compat-extra', cost: 30, reason: '숙요점 정밀 궁합 확장 분석' }
+  // perPayment: 상대가 매번 바뀌는 회당 결제 — 결제마다 새 requestId 를 쓴다(syOpenPaidSukuyoFeature).
+  compatibility: { key: 'compat-sukuyo-compatibility', cost: 30, reason: '숙요점 궁합 분석', perPayment: true },
+  compatibilityPrecision: { key: 'premium-sukuyo-compat-extra', cost: 30, reason: '숙요점 정밀 궁합 확장 분석', perPayment: true }
 });
 
 function syResolveCurrentProfileIdForPaidGate() {
@@ -8309,6 +8357,15 @@ function syIsPaidGateGranted(result) {
 var _sySukuyoPaidGateInFlight = Object.create(null);
 var SY_SUKUYO_PAID_GATE_TTL_MS = 45000;
 
+/* 🔴 회당 결제(perPayment — 기본·정밀 궁합)는 결제마다 새 requestId 를 쓴다. 카드에 고정하면 다른 상대를
+   볼 때 월정석 원장(purchaseId)·이용권 멱등 마커가 같은 값이라 서버가 첫 결제의 재생으로 처리해 두 번째
+   결제가 일어나지 않았다. 연타는 위 인플라이트 맵(45초)이 게이트 진입 자체를 막으므로 값이 달라도 한 번만
+   열린다. 앞부분(기능|카드)은 보관함 저장 때 서버가 이 카드·이 기능의 결제인지 확인하는 데 쓴다
+   (worker/routes/sukuyo-archive.js). */
+function syNewSukuyoPaymentRequestId(inFlightKey) {
+  return 'sukuyo-paid:' + inFlightKey + '|' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+}
+
 /* resume 은 모바일 리다이렉트 복귀에서 이 기능을 **스스로 다시 열기 위한** 직렬화 가능한 서술자다
    ({kind, action, args}). 넘기지 않으면 종전과 같다 — 복귀 시 '지금 열기' 카드로 떨어진다. */
 function syOpenPaidSukuyoFeature(feature, onGranted, resume) {
@@ -8323,6 +8380,8 @@ function syOpenPaidSukuyoFeature(feature, onGranted, resume) {
   // 형제 가드들과 같은 계약 — 시간으로 자기치유한다(락이 새도 45초 뒤엔 다시 열린다).
   if (startedAt && (Date.now() - startedAt) < SY_SUKUYO_PAID_GATE_TTL_MS) return true;
   _sySukuyoPaidGateInFlight[inFlightKey] = Date.now();
+  // 출생 기반 해금은 카드당 한 번이라 고정값을 유지한다. 회당 결제만 결제마다 새 값이다.
+  var requestId = config.perPayment === true ? syNewSukuyoPaymentRequestId(inFlightKey) : 'sukuyo-paid:' + inFlightKey;
   var gateOptions = {
     title: reason,
     reason: reason,
@@ -8330,15 +8389,21 @@ function syOpenPaidSukuyoFeature(feature, onGranted, resume) {
     categoryKey: 'sukuyo',
     coinPrice: cost,
     cost: cost,
-    // 같은 기능·같은 프로필이면 같은 requestId. 연타가 commandKey 디듀프에 걸려 한 번만 결제된다.
-    requestId: 'sukuyo-paid:' + inFlightKey
+    requestId: requestId
   };
   if (profileId) {
     gateOptions.profileId = profileId;
     gateOptions.selectedProfileId = profileId;
   }
-  if (resume && typeof resume === 'object') gateOptions.resume = resume;
+  if (resume && typeof resume === 'object') {
+    // 복귀 페이지가 같은 결제 requestId·카드로 보관함에 저장하도록 서술자에 싣는다(인자는 원시값만 통과한다).
+    if (config.perPayment === true && resume.args && typeof resume.args === 'object') {
+      resume = Object.assign({}, resume, { args: Object.assign({}, resume.args, { requestId: requestId, profileId: profileId }) });
+    }
+    gateOptions.resume = resume;
+  }
   window._cdOpenPaidServiceGate(gateOptions).then(function(result) {
+    if (syIsPaidGateGranted(result)) syRememberPaidGateAccess(featureKey, profileId, result, config.perPayment === true ? requestId : '');
     if (syIsPaidGateGranted(result) && typeof onGranted === 'function') onGranted(result);
   }).catch(function(error) {
     var message = error && error.message ? String(error.message) : '결제 확인에 실패했습니다. 잠시 후 다시 시도해 주세요.';
@@ -8369,6 +8434,202 @@ function syRequirePaidSukuyoFeature(feature, onGranted, resume) {
   }
   window.alert('결제 모듈을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');
   return true;
+}
+
+/* ── 유료 결과의 보관함 저장 ─────────────────────────────────────────────────
+   기본·정밀 궁합(회당 결제)과 본성 심화·극T(출생 기준 잠금 해제)는 이 파일이 계산해 그리므로 서버에는
+   남지 않았다. 결제(또는 결제 복귀) 뒤 렌더가 끝나면 계산된 사실과 화면의 글(텍스트만)을
+   POST /api/sukuyo/<slug>/archive 로 보낸다. 서버가 이 카드의 결제·잠금 해제 기록을 직접 찾아 확인한
+   뒤에만 저장한다(worker/routes/sukuyo-archive.js) — 여기서 결제 여부를 판단하지 않는다.
+   🔴 저장 실패가 결과 표시를 막으면 안 된다. 조용히 다시 시도하고 콘솔에만 남긴다.
+   🔴 이용권 즉시 적용은 셸이 먼저 열고 서버 기록(pass-check)을 뒤에서 쓴다 — 그 기록보다 저장이 먼저
+      도착하면 403 이다. 그래서 (1) 이용권으로 열었다는 사실(accessMethod:'pass')을 함께 보내 서버가 같은
+      requestId 로 이용권 사용을 직접 확정할 수 있게 하고, (2) 403·503·네트워크 실패는 간격을 늘려 재시도한다. */
+var SY_ARCHIVE_RETRY_DELAYS_MS = [4000, 12000, 30000];
+var SY_ARCHIVE_FEATURE_KEYS = {
+  'compat': 'compat-sukuyo-compatibility',
+  'compat-precision': 'premium-sukuyo-compat-extra',
+  'nature-deep-dive': 'sukuyo-nature-deep-dive',
+  'extreme-t': 'sukuyo-extreme-t-relationship'
+};
+// 기능키 → 마지막으로 열린 게이트의 카드·결제 방식. 저장이 결제한 그 카드로 증빙을 찾게 한다.
+var _syPaidGateAccess = Object.create(null);
+var SY_PAID_GATE_ACCESS_TTL_MS = 30 * 60 * 1000;
+
+function syPaidGateAccessMethod(result) {
+  var gate = result && typeof result === 'object' ? result : {};
+  var payload = gate.payload && typeof gate.payload === 'object' ? gate.payload : gate;
+  var data = payload.data && typeof payload.data === 'object' ? payload.data : payload;
+  var status = String(gate.status || '').toLowerCase();
+  var accessType = String(data.accessType || payload.accessType || '').toLowerCase();
+  if (payload.__cdOptimisticPass === true || data.__cdOptimisticPass === true) return 'pass';
+  if (status === 'pass' || status === 'pass_applied' || accessType === 'membership_pass' || accessType === 'pass_applied') return 'pass';
+  return '';
+}
+
+// requestId 는 회당 결제만 있다 — 그 결제로 저장한 기록 하나에만 쓰이도록 저장 때 한 번 꺼내 쓴다.
+function syRememberPaidGateAccess(featureKey, profileId, result, requestId) {
+  try {
+    _syPaidGateAccess[String(featureKey || '')] = {
+      profileId: String(profileId || ''),
+      accessMethod: syPaidGateAccessMethod(result),
+      requestId: String(requestId || ''),
+      at: Date.now()
+    };
+  } catch (_) {}
+}
+
+function syRecentPaidGateAccess(featureKey) {
+  var row = _syPaidGateAccess[String(featureKey || '')];
+  if (!row || (Date.now() - Number(row.at || 0)) > SY_PAID_GATE_ACCESS_TTL_MS) return null;
+  return row;
+}
+
+/* 블록의 글을 줄 단위로 모은다. 탭으로 가려진 패널도 담아야 하므로 innerText 가 아니라 textContent 를
+   쓰고, 블록 요소 끝마다 줄을 바꿔 문단을 살린다. 버튼·입력 영역은 뺀다. */
+function syArchiveBlockText(node, dropSelector) {
+  if (!node || typeof node.cloneNode !== 'function') return '';
+  var clone = node.cloneNode(true);
+  var drop = clone.querySelectorAll('button, script, style, textarea, input, select' + (dropSelector ? ', ' + dropSelector : ''));
+  for (var i = 0; i < drop.length; i += 1) { if (drop[i].parentNode) drop[i].parentNode.removeChild(drop[i]); }
+  var blocks = clone.querySelectorAll('h1, h2, h3, h4, h5, h6, p, li, div, article, section, br');
+  for (var j = 0; j < blocks.length; j += 1) blocks[j].appendChild(document.createTextNode('\n'));
+  return String(clone.textContent || '').split('\n').map(function(line) { return line.replace(/\s+/g, ' ').trim(); }).filter(Boolean).join('\n');
+}
+
+/* 카드 단위로 섹션을 만든다. 카드 안에 탭 패널이 있으면 패널마다 '카드 제목 · 탭 이름' 섹션으로 나눈다. */
+function syArchiveCardSections(root, cardSelector, titleSelector) {
+  var out = [];
+  if (!root || typeof root.querySelectorAll !== 'function') return out;
+  var cards = root.querySelectorAll(cardSelector);
+  for (var i = 0; i < cards.length && out.length < 40; i += 1) {
+    var card = cards[i];
+    var outer = card.parentElement && card.parentElement.closest ? card.parentElement.closest(cardSelector) : null;
+    if (outer && root.contains(outer)) continue;
+    var head = card.querySelector(titleSelector);
+    var cardTitle = syArchiveText(head ? head.textContent : '', 120);
+    var panels = card.querySelectorAll('[role="tabpanel"], [data-rel-panel]');
+    if (!panels.length) {
+      var body = syArchiveText(syArchiveBlockText(card, titleSelector), 4000);
+      if (body) out.push({ title: cardTitle || '상세 해석', body: body });
+      continue;
+    }
+    for (var k = 0; k < panels.length && out.length < 40; k += 1) {
+      var panel = panels[k];
+      var tabId = panel.getAttribute('aria-labelledby');
+      var relKey = panel.getAttribute('data-rel-panel');
+      var tab = tabId ? card.querySelector('[id="' + tabId + '"]') : (relKey ? card.querySelector('[data-rel-tab="' + relKey + '"]') : null);
+      var tabTitle = syArchiveText(tab ? tab.textContent : '', 60);
+      var panelBody = syArchiveText(syArchiveBlockText(panel), 4000);
+      if (panelBody) out.push({ title: [cardTitle, tabTitle].filter(Boolean).join(' · ').slice(0, 120) || '상세 해석', body: panelBody });
+    }
+  }
+  return out;
+}
+
+// 사실표 값 — 화면 조립용 문자열에 태그가 섞여 있을 수 있어 글자만 남긴다.
+function syArchiveFactText(value) {
+  if (typeof value === 'number') return value;
+  return typeof value === 'string' ? syArchiveText(value.replace(/<[^>]*>/g, ''), 200) : '';
+}
+
+function syTodayKey() {
+  var now = new Date();
+  return now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+}
+
+function syArchiveText(value, max) {
+  // 서버는 '<' 가 든 글을 HTML 로 보고 거절한다 — 화면 글자 그대로의 부등호는 비슷한 모양으로 바꾼다.
+  return String(value == null ? '' : value).replace(/</g, '‹').replace(/[ \t ]+/g, ' ').replace(/\n\s*\n\s*\n+/g, '\n\n').trim().slice(0, max);
+}
+
+function syArchiveSectionsFrom(root, skipSelector) {
+  var out = [];
+  if (!root || typeof root.querySelectorAll !== 'function') return out;
+  var nodes = root.querySelectorAll('section, .sy-sec');
+  for (var i = 0; i < nodes.length && out.length < 40; i += 1) {
+    var node = nodes[i];
+    if (skipSelector && node.closest && node.closest(skipSelector)) continue;
+    // 바깥 섹션만 — 안쪽 섹션의 글은 바깥 섹션 본문에 이미 들어 있다.
+    var parent = node.parentElement && node.parentElement.closest ? node.parentElement.closest('section, .sy-sec') : null;
+    if (parent && root.contains(parent)) continue;
+    var head = node.firstElementChild;
+    var title = syArchiveText(head ? head.textContent : '', 120);
+    var whole = syArchiveText(node.innerText || node.textContent || '', 4000);
+    var body = title && whole.indexOf(title) === 0 ? whole.slice(title.length).trim() : whole;
+    if (body) out.push({ title: title || '상세 해석', body: body });
+  }
+  return out;
+}
+
+function syArchiveFactsFromCompat(compat, myMansionName) {
+  var c = compat && typeof compat === 'object' ? compat : {};
+  return {
+    myMansion: String(myMansionName || ''),
+    partnerMansion: c.partnerMansion || '',
+    relationType: c.relationType || '',
+    relationTypeHan: c.relationTypeHan || '',
+    myRole: c.myRole || '',
+    partnerRole: c.partnerRole || '',
+    distanceLabel: c.distanceLabel || '',
+    partnerGender: c.partnerGender || '',
+    stamp: c.stamp || '',
+    score: c.score,
+    compatibilityIndex: c.compatibilityIndex,
+    temperature: c.temperature,
+    magnetism: c.magnetism,
+    forwardDistance: c.forwardDistance,
+    reverseDistance: c.reverseDistance
+  };
+}
+
+function sySaveSukuyoResultArchive(featureSlug, payload, attempt) {
+  try {
+    if (typeof fetch !== 'function' || !payload) return;
+    var tries = Number(attempt || 0);
+    // 게이트에서 기억한 카드·결제 방식을 첫 시도 때 굳힌다(재시도 사이에 카드를 바꿔도 결제한 카드로 보낸다).
+    if (!tries) {
+      var gateAccess = syRecentPaidGateAccess(SY_ARCHIVE_FEATURE_KEYS[featureSlug]);
+      payload = Object.assign({}, payload, {
+        profileId: (gateAccess && gateAccess.profileId) || syResolveCurrentProfileIdForPaidGate(),
+        accessMethod: (gateAccess && gateAccess.accessMethod) || '',
+        requestId: (gateAccess && gateAccess.requestId) || ''
+      });
+      // 결제 1건 = 기록 1건. 같은 결제(requestId·이용권 표시)로 다른 상대를 또 저장하지 않게 지운다.
+      if (gateAccess && gateAccess.requestId) delete _syPaidGateAccess[SY_ARCHIVE_FEATURE_KEYS[featureSlug]];
+    }
+    if (!payload.profileId) return;
+    var headers = { 'Content-Type': 'application/json' };
+    try {
+      var token = localStorage.getItem('fortune_auth_token') || '';
+      if (token) headers.Authorization = 'Bearer ' + token;
+    } catch (_) {}
+    var body = JSON.stringify({
+      profileId: payload.profileId,
+      requestId: payload.requestId || undefined,
+      accessMethod: payload.accessMethod || undefined,
+      facts: payload.facts,
+      partner: payload.partner,
+      sections: payload.sections
+    });
+    var retry = function(reason) {
+      if (tries >= SY_ARCHIVE_RETRY_DELAYS_MS.length) {
+        try { console.warn('[sukuyo-archive] 보관함 저장 실패', featureSlug, reason); } catch (_) {}
+        return;
+      }
+      setTimeout(function() { sySaveSukuyoResultArchive(featureSlug, payload, tries + 1); }, SY_ARCHIVE_RETRY_DELAYS_MS[tries]);
+    };
+    fetch('/api/sukuyo/' + featureSlug + '/archive', { method: 'POST', headers: headers, credentials: 'include', body: body })
+      .then(function(res) {
+        // 400·401·404·413 은 다시 보내도 같다. 403(기록이 아직 안 씀)·503·5xx 는 다시 본다.
+        if (!res || res.ok || res.status === 400 || res.status === 401 || res.status === 404 || res.status === 413) {
+          if (res && !res.ok) { try { console.warn('[sukuyo-archive] 저장 거절', featureSlug, res.status); } catch (_) {} }
+          return;
+        }
+        retry(res.status);
+      })
+      .catch(function(error) { retry(error && error.message ? error.message : 'network'); });
+  } catch (_) {}
 }
 
 function syPaidFeatureUserScope() {
@@ -8607,6 +8868,39 @@ function syRunSukuyoAiPromptResume(descriptor, grant) {
     return syRunUnlockResume('_syRevealEncyclopediaCore', SY_PAID_FEATURES.relationshipEncyclopedia.key);
   });
   syRegisterUnlockResumeHandler(SY_AI_PROMPT_RESUME_KIND, syRunSukuyoAiPromptResume);
+})();
+
+/* 잠금 해제 상태가 늦게 도착하면(접근 상태 동기화·이용권 백그라운드 기록·카드 전환) 이미 그린 잠금 카드가
+   그대로 남았다. 출생 기준 잠금 해제 3종(인연 도감·본성 심화·극T)은 해제 이벤트 때 다시 확인해 연다.
+   결제 직후가 아니므로 보관함에는 저장하지 않는다({archive:false}). 재잠금은 다음 렌더가 맡는다. */
+(function syBindBirthUnlockRefresh() {
+  if (typeof window === 'undefined' || window.__syBirthUnlockRefreshBound) return;
+  window.__syBirthUnlockRefreshBound = true;
+  var timer = 0;
+  function refresh() {
+    timer = 0;
+    try { if (typeof window._syRefreshEncyclopediaUnlock === 'function') window._syRefreshEncyclopediaUnlock(); } catch (_) {}
+    try {
+      if (document.querySelector('[data-sy-nature-deep-dive-unlock]')
+        && typeof window._syRevealNatureDeepDiveCore === 'function'
+        && syIsPaidSukuyoFeatureUnlocked(SY_PAID_FEATURES.natureDeepDive.key)) {
+        window._syRevealNatureDeepDiveCore({ archive: false });
+      }
+    } catch (_) {}
+    try {
+      if (document.querySelector('[data-extreme-t-lock-button]')
+        && typeof window._syRenderTTestCore === 'function'
+        && syIsPaidSukuyoFeatureUnlocked(SY_PAID_FEATURES.extremeTRelationshipCircuit.key)) {
+        window._syRenderTTestCore({ archive: false });
+      }
+    } catch (_) {}
+  }
+  function schedule() {
+    if (timer) return;
+    timer = setTimeout(refresh, 120);
+  }
+  window.addEventListener('cd:unlocks-changed', schedule);
+  window.addEventListener('cd:tile-locks-updated', schedule);
 })();
 
 function syPaidPriceLabel(feature) {
@@ -10769,8 +11063,25 @@ function syBindSukuyoNatureDeepDiveInteractions(host) {
   });
 }
 
+function syArchiveNatureDeepDive(host, sData, dailyFlow, lunarObj) {
+  var tr = (sData && sData.traits) || {};
+  var daily = null;
+  try { daily = dailyFlow || (lunarObj ? getDailyKarmicGuidance(lunarObj, sData.mansion) : null); } catch (_) {}
+  sySaveSukuyoResultArchive('nature-deep-dive', {
+    facts: {
+      myMansion: syArchiveFactText(String((sData && sData.mansion) || '')),
+      moonTone: syArchiveFactText(daily && daily.moon && daily.moon.label ? String(daily.moon.label) : ''),
+      mantra: syArchiveFactText(String(tr.mantra || '')),
+      // 일상 적용 탭은 그날의 달 흐름으로 바뀐다 — 어느 날 본 글인지 함께 남긴다.
+      dailyDate: syTodayKey()
+    },
+    sections: syArchiveCardSections(host, '.sy-card', 'h4')
+  });
+}
+
 function syBindSukuyoNatureDeepDiveUnlock(sData, reading, dailyFlow, lunarObj) {
-  function revealNatureDeepDive() {
+  // options.archive === false 는 잠금 해제 이벤트로 다시 그릴 때다(결제 직후가 아니므로 저장하지 않는다).
+  function revealNatureDeepDive(options) {
     var host = document.getElementById('syNatureDeepDiveHost');
     if (!host) return;
     host.innerHTML = syBuildSukuyoNatureDeepDiveHtml(sData, reading, dailyFlow, lunarObj);
@@ -10780,6 +11091,9 @@ function syBindSukuyoNatureDeepDiveUnlock(sData, reading, dailyFlow, lunarObj) {
         syHighlightRelationMiniMap(window._syLastCompat.relationType);
       }
     } catch (_) {}
+    if (!(options && options.archive === false)) {
+      try { syArchiveNatureDeepDive(host, sData, dailyFlow, lunarObj); } catch (_) {}
+    }
   }
   // 결제 후 리다이렉트 복귀는 이 클로저를 잃으므로, 렌더할 때마다 최신 것을 전역에 걸어 둔다.
   // 🔴 아래 early return 앞에 둔다 — 뒤에 두면 재바인딩이 없는 렌더에서 재개가 코어를 못 찾는다.
@@ -14036,6 +14350,18 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     // 결제 후 리다이렉트 복귀는 이 클로저를 잃으므로, 렌더할 때마다 최신 것을 전역에 걸어 둔다.
     // 🔴 아래 중복 바인딩 가드 앞에 둔다 — 뒤에 두면 같은 버튼 노드가 살아남은 렌더에서 코어가 낡는다.
     window._syRevealEncyclopediaCore = function() { renderResult(true); };
+    /* 도감은 보관함이 아니라 잠금 해제로 보는 기능이다. 바인딩 시점엔 접근 상태가 아직 안 와서 잠김으로
+       보였다가 뒤늦게 풀리는 일이 있다 — 잠금 해제 이벤트 때 표시를 고치고, 미리보기를 펼쳐 둔 상태면 전체로 다시 그린다. */
+    window._syRefreshEncyclopediaUnlock = function() {
+      if (!syIsPaidSukuyoFeatureUnlocked(SY_PAID_FEATURES.relationshipEncyclopedia.key)) return;
+      if (statusPill && !statusPill.classList.contains('is-unlocked')) {
+        statusPill.textContent = '해금 완료';
+        statusPill.classList.add('is-unlocked');
+      }
+      if (resultHost && resultHost.innerHTML.trim()) {
+        try { renderResult(true); } catch (_) {}
+      }
+    };
     if (button.__syDogamBound) return;
     button.__syDogamBound = true;
     button.addEventListener('click', function() {
@@ -17161,12 +17487,18 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
   /* 🔴 여기서 화면을 이동시키지 않는다 — 표면을 여는 책임은 checkout-entry 의 runPaidResume 하나다.
      이 파일은 지연 로드라 runPaidResume 이 딥링크로 숙요 모달을 먼저 열어 이 스크립트를 불러온 뒤
      핸들러를 부른다. 여기서 또 열면 이중 이동이 되어 재개가 통째로 날아간다. */
-  function syRunCompatResume(descriptor) {
+  // 게이트가 서술자에 실어 둔 결제 requestId·카드를 되살린다 — 복귀 뒤 보관함 저장이 그 결제로 증빙을 찾는다.
+  function syResumeCompatGateAccess(featureKey, args, grant) {
+    if (args && args.requestId) syRememberPaidGateAccess(featureKey, args.profileId, grant, args.requestId);
+  }
+
+  function syRunCompatResume(descriptor, grant) {
     var args = (descriptor && descriptor.args && typeof descriptor.args === 'object') ? descriptor.args : {};
     if (!args.y || !args.m || !args.d) return false;
     return syWaitForCompatForm(SY_COMPAT_FORM_WAIT_MS).then(function(ready) {
       // 폼이 끝내 안 뜨면 false — 호출부(destiny-profile 의 복귀 처리)가 '지금 열기' 카드를 그린다.
       if (!ready || typeof window._triggerSynergyCheckCore !== 'function') return false;
+      syResumeCompatGateAccess(SY_PAID_FEATURES.compatibility.key, args, grant);
       sySetCompatFieldValue('sy3BirthY', args.y);
       sySetCompatFieldValue('sy3BirthM', args.m);
       sySetCompatFieldValue('sy3BirthD', args.d);
@@ -17210,18 +17542,23 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     });
   }
 
-  function syRunCompatPrecisionResume(descriptor) {
+  function syRunCompatPrecisionResume(descriptor, grant) {
     var args = (descriptor && descriptor.args && typeof descriptor.args === 'object') ? descriptor.args : {};
     if (!args.y || !args.m || !args.d) return false;
     /* 🔴 지난 렌더의 열기 코어가 남아 있으면 새 보고서를 기다리지 않고 옛 클로저를 열어 버린다 —
        보고서를 다시 그리기 '전에' 지운다. */
     try { window._syRevealCompatPrecisionCore = null; } catch (_syPrecisionResetError) {}
+    // 🔴 이 결제 requestId 는 정밀 확장의 것이다 — 기본 보고서 재현에 넘기면 기본 궁합 결제로 오인된다.
+    var baseArgs = Object.assign({}, args);
+    delete baseArgs.requestId;
+    delete baseArgs.profileId;
     return Promise.resolve(
-      syRunCompatResume({ kind: SY_COMPAT_RESUME_KIND, action: descriptor && descriptor.action, args: args })
+      syRunCompatResume({ kind: SY_COMPAT_RESUME_KIND, action: descriptor && descriptor.action, args: baseArgs })
     ).then(function(rendered) {
       if (rendered !== true) return false;
       return syWaitForCompatPrecisionCore(SY_COMPAT_FORM_WAIT_MS).then(function(ready) {
         if (!ready) return false;
+        syResumeCompatGateAccess(SY_PAID_FEATURES.compatibilityPrecision.key, args, grant);
         try { window._syRevealCompatPrecisionCore(); } catch (_syPrecisionRevealError) { return false; }
         return true;
       });
@@ -17336,6 +17673,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       const calType = document.getElementById('sy3CalType').value || "solar";
       const partnerGender = (document.getElementById('sy3PartnerGender') || {}).value || 'OTHER';
       const partnerGenderLabel = partnerGender === 'M' ? '남성' : (partnerGender === 'F' ? '여성' : '기타');
+      // 보관함 기록의 '같은 입력' 판정에 쓰는 상대 입력(서버가 이 값으로 기록 키를 만든다).
+      const compatArchivePartner = { y: String(yVal || ''), m: String(mVal || ''), d: String(dVal || ''), time: timeStr, cal: calType, gender: partnerGender };
 
       if(!dateStr) {
           clearTimeout(_sy3Guard);
@@ -18456,6 +18795,12 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
               precisionContent.style.display = 'block';
               if (precisionBtn) precisionBtn.style.display = 'none';
               if (precisionStatus) precisionStatus.textContent = '정밀 궁합 확장이 열렸습니다.';
+              // 결제 후(또는 결제 복귀 후)에만 열리는 확장 — 열린 글을 보관함에 남긴다.
+              sySaveSukuyoResultArchive('compat-precision', {
+                facts: syArchiveFactsFromCompat(window._syLastCompat, myMansionName),
+                partner: compatArchivePartner,
+                sections: syArchiveSectionsFrom(precisionContent, '')
+              });
             };
             /* 결제 후 재개가 부를 '게이트 없는 열기 코어'. 확장 내용은 이 렌더의 클로저(precisionExtensionSections)
                안에만 있어서 보고서를 다시 그릴 때마다 새 함수로 갱신된다. */
@@ -18485,6 +18830,14 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           try {
             syHighlightRelationMiniMap(enhanced.relationTypeKo || rel.typeLabel || rel.type);
           } catch (_relMapErr) {}
+
+          // 이 코어는 결제 게이트(또는 결제 복귀) 뒤에서만 불린다 — 그린 기본 궁합을 보관함에 남긴다.
+          // 정밀 확장·AI 상담 카드는 각자 따로 결제하므로 여기서 빼고 저장한다.
+          sySaveSukuyoResultArchive('compat', {
+            facts: syArchiveFactsFromCompat(window._syLastCompat, myMansionName),
+            partner: compatArchivePartner,
+            sections: syArchiveSectionsFrom(rd, '#syCompatPrecisionGate, #syCompatAiPromptCard')
+          });
 
           // 온도 바 애니메이션 (인라인 결과)
           setTimeout(function() {

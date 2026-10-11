@@ -58,7 +58,7 @@ const INTENSITY_GUIDES = Object.freeze({
   soft: {
     label: "순한맛",
     rules: [
-      "단호하게 진단하되 문장 끝은 부드럽게 마무리한다.",
+      "단호하게 진단하되 문장 끝은 반말 안에서 부드럽게(~하자, ~해 보자) 마무리한다.",
       "팩폭 문장 뒤에는 반드시 사용자가 지킬 수 있는 방어선 한 줄을 세워준다.",
       "명령문보다 '~부터 잡아라', '~는 지켜라' 같은 지시형 권유를 쓴다.",
       "과장, 조롱, 극단적 단정은 금지한다.",
@@ -670,6 +670,9 @@ const NEO_DOMAIN_COVERAGE = Object.freeze({
 const NEO_COMMON_RULES = Object.freeze([
   ...NEO_STRENGTH_CONVERSION_RULES,
   "역할은 위로가 아니라 진단과 작전 재정비다. 말투는 직설적이고 차갑지만 사용자를 깎아내리거나 조롱하지 않는다.",
+  // 🔴 R2: 챕터마다 따로 생성되다 보니 어떤 챕터는 반말, 어떤 챕터는 "~습니다/당신"으로 나왔다.
+  //    작전실의 말투 예시·강도 지침이 전부 반말이므로 반말 하나로 못 박는다(neoRegisterDrift 가 검사한다).
+  "어조는 처음부터 끝까지 해라체 반말 한 가지다(~다, ~해라, ~하자, 질문은 ~니?/~해?). 사용자는 '너'로 부르고 '당신'은 쓰지 않는다. ~습니다·~합니까·~세요·~십시오·~해요 같은 존댓말 어미는 한 문장도 섞지 않는다.",
   "입력된 계산 확정값만 근거로 삼고, 생년월일을 직접 점치는 척하거나 없는 계산값을 만들지 않는다. 없는 항목은 지어내지 말고 '현재 계산 가능한 범위에서 해석했다'고 자연스럽게 밝힌다.",
   "개발자식 장애 지점 표현은 쓰지 말고 '막힌 지점', '흔들리는 자리', '어긋난 흐름', '운이 새는 틈', '전선이 밀리는 곳', '반복되는 선택', '흐려진 판단', '놓친 신호', '다시 잡아야 할 기준' 같은 상담 언어를 쓴다.",
   "mock, dry-run, provider, system, prompt 같은 내부 구현 단어를 결과에 쓰지 않는다.",
@@ -796,10 +799,15 @@ function neoBasisLines(section, ctx) {
     return fallback ? ["[계산 확정값]", fallback] : ["[계산 확정값]", "(이번 요청에서 계산된 값이 없다)"];
   }
   const labels = collectBasisLabels(payload);
+  // 🔴 R2: 시기 표를 못 받은 챕터도 [주제별 판독 지침]의 "대운·세운 십성으로 판단하라"를 읽고
+  //    없는 대운 간지·십성을 지어냈다. 표가 없다는 사실을 직접 알려 준다.
+  const hidesTiming = section.basisGroups !== "*" && !safeArray(section.basisGroups).includes("timing")
+    && safeArray(buildNeoBasisPayload(ctx.methodSummary).groups).some((entry) => entry?.key === "timing");
   return [
     "[계산 확정값]",
     "아래 값은 서버가 계산한 확정값이다. 본문은 이 값과 어긋나면 안 되고, 표에 없는 수치는 새로 만들지 않는다.",
     ...factLines,
+    ...(hidesTiming ? ["이 챕터에는 시기 흐름 표가 없다. 대운·세운·유년·다샤·트랜짓의 간지나 십성, 날짜를 새로 꺼내거나 추측하지 않는다. 시기 판단은 '주제 시기 흐름' 챕터가 맡는다."] : []),
     ...(labels.length ? ["", `[인용 가능한 항목명] ${labels.join(", ")}`] : []),
   ];
 }
@@ -819,6 +827,74 @@ function otherChapterScopeLines(section) {
   ];
 }
 
+// 🔴 R2: 스키마 예시("타고난 구조상 힘이 나는 방식")가 본문 자리에 그대로 돌아와 배달됐다.
+//    프롬프트에서는 산문 자리 예시를 <…> 안내로 바꾸고, 병합에서는 그대로 돌아온 예시를 지운다.
+//    제목·enum 성격의 자리(title·status 등)는 결과에 그 문자열이 쓰이거나 폴백 제목과 같으므로 손대지 않는다.
+const NEO_SCHEMA_LABEL_KEYS = /^(title|operationTitle|name|label|area|palace|status|stage|speaker)$/;
+
+function neoSchemaPlaceholders(node, key = "") {
+  if (Array.isArray(node)) return node.map((item) => neoSchemaPlaceholders(item));
+  if (node && typeof node === "object") {
+    return Object.fromEntries(Object.entries(node).map(([name, item]) => [name, neoSchemaPlaceholders(item, name)]));
+  }
+  return typeof node === "string" && !NEO_SCHEMA_LABEL_KEYS.test(key) ? `<${node}>` : node;
+}
+
+function collectSchemaExamples(node, out, key = "") {
+  if (Array.isArray(node)) node.forEach((item) => collectSchemaExamples(item, out));
+  else if (node && typeof node === "object") Object.entries(node).forEach(([name, item]) => collectSchemaExamples(item, out, name));
+  else if (typeof node === "string" && !NEO_SCHEMA_LABEL_KEYS.test(key) && node.trim()) out.add(node.trim());
+  return out;
+}
+
+let neoSchemaExampleIndex = null;
+function neoSchemaExamplesFor(sectionId) {
+  if (!neoSchemaExampleIndex) {
+    neoSchemaExampleIndex = new Map();
+    for (const entry of [...NEO_INITIAL_SECTIONS, ...Object.values(NEO_COMPAT_SECTIONS_BY_METHOD).flat(), ...NEO_REFINED_SECTIONS]) {
+      const examples = neoSchemaExampleIndex.get(entry.id) || new Set();
+      neoSchemaExampleIndex.set(entry.id, collectSchemaExamples(entry.schema, examples));
+    }
+  }
+  return neoSchemaExampleIndex.get(sectionId) || new Set();
+}
+
+function stripSchemaEcho(value, examples, key = "") {
+  if (typeof value === "string") {
+    if (NEO_SCHEMA_LABEL_KEYS.test(key)) return value;
+    const text = value.trim();
+    return examples.has(text) || examples.has(text.replace(/^<\s*|\s*>$/g, "")) ? "" : value;
+  }
+  if (Array.isArray(value)) {
+    return value.map((item) => stripSchemaEcho(item, examples)).filter((item) => item !== "");
+  }
+  if (value && typeof value === "object") {
+    return Object.fromEntries(Object.entries(value).map(([name, item]) => [name, stripSchemaEcho(item, examples, name)]));
+  }
+  return value;
+}
+
+/**
+ * 챕터 본문이 반말(해라체)에서 존댓말로 미끄러졌는지 결정적으로 판정한다.
+ * ㅂ받침 + 니다/니까(합니다·했습니까), ~요(필요·중요 같은 명사 제외), ~십시오, '당신'을 존댓말 문장으로 센다.
+ * 인용·대사 몇 줄은 허용하도록 3문장 이상이면서 20%를 넘을 때만 참이다.
+ */
+const NEO_YO_NOUNS = /(필요|중요|주요|개요|강요|수요|요요)$/;
+export function neoRegisterDrift(text) {
+  const sentences = String(text || "").split(/(?<=[.!?。])\s+|\n+/).map((line) => line.trim()).filter(Boolean);
+  if (!sentences.length) return false;
+  const formal = sentences.filter((sentence) => {
+    if (/십시오|당신/.test(sentence)) return true;
+    const body = sentence.replace(/[\s.!?。"'”’)\]…~]+$/u, "");
+    if (/(니다|니까)$/.test(body)) {
+      const code = body.charCodeAt(body.length - 3) - 0xac00;
+      return code >= 0 && code < 11172 && code % 28 === 17;
+    }
+    return /요$/.test(body) && !NEO_YO_NOUNS.test(body);
+  }).length;
+  return formal >= 3 && formal / sentences.length > 0.2;
+}
+
 // 챕터 공통 마무리(분량·JSON 지시).
 function neoSectionClosingLines(section) {
   return [
@@ -828,7 +904,8 @@ function neoSectionClosingLines(section) {
     `범위: ${section.scope}`,
     "",
     "[반환 JSON 스키마]",
-    JSON.stringify(section.schema),
+    JSON.stringify(neoSchemaPlaceholders(section.schema)),
+    "<…> 안의 글은 그 자리에 무엇을 쓸지 알려 주는 안내일 뿐이다. 안내 문구를 그대로 옮기지 말고 실제 상담 문장으로 채운다.",
     "",
     ...safeArray(section.rules),
     `분량: 이 챕터의 제목·공백을 제외한 본문이 ${Math.ceil(section.minChars / 0.8)}~${Math.ceil(section.minChars * 1.5)}자가 되도록 충분히 전개한다. 얕게 끝내지 말고 근거→해석→구체적 장면→실행 조언 순으로 두텁게 쓴다.`,
@@ -947,7 +1024,7 @@ export const NEO_INITIAL_SECTIONS = Object.freeze([
   },
   {
     id: "misalignedFlow",
-    basisGroups: ["core", "strength"],
+    basisGroups: ["core", "strength", "timing"],
     title: "어긋난 전선 — 지금 흐름이 밀리는 자리",
     minChars: 1300,
     scope: "타고난 방식과 현재 삶이 어긋난 지점을 진단한다.",
@@ -969,7 +1046,7 @@ export const NEO_INITIAL_SECTIONS = Object.freeze([
   },
   {
     id: "bluntTruth",
-    basisGroups: ["core", "strength"],
+    basisGroups: ["core", "strength", "timing"],
     title: "급소 타격 — 네오의 팩폭",
     minChars: 1300,
     scope: "계산값과 연결된 반복 패턴의 손실을 직설적으로 짚고, 같은 성향을 강점으로 활용할 조건과 첫 행동을 제시한다.",
@@ -981,7 +1058,7 @@ export const NEO_INITIAL_SECTIONS = Object.freeze([
   },
   {
     id: "todayOrders",
-    basisGroups: ["core", "strength"],
+    basisGroups: ["core", "strength", "timing"],
     title: "즉시 작전 — 오늘 금지 행동과 바로 할 작전",
     minChars: 1150,
     scope: "오늘 당장 금지할 행동 하나와, 바로 실행할 작전 3개를 준다.",
@@ -991,7 +1068,7 @@ export const NEO_INITIAL_SECTIONS = Object.freeze([
   },
   {
     id: "sevenDayMission",
-    basisGroups: ["core", "strength"],
+    basisGroups: ["core", "strength", "timing"],
     title: "7일 전투 계획",
     minChars: 1650,
     scope: "1일차부터 7일차까지 하루 단위 작전을 설계한다.",
@@ -1442,7 +1519,7 @@ function neoKeyLabelMap(methodSummary) {
 function sectionMap(results) {
   const map = {};
   safeArray(results).forEach((entry) => {
-    if (entry && entry.id) map[entry.id] = firstObject(entry.parsed);
+    if (entry && entry.id) map[entry.id] = stripSchemaEcho(firstObject(entry.parsed), neoSchemaExamplesFor(entry.id));
   });
   return map;
 }

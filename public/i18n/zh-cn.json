@@ -836,7 +836,6 @@
       "standardPrice": "30 天 · 9,900 韩元",
       "standardLine": "5,000韩元级内容",
       "standardBenefit1": "每月最多20,000韩元",
-      "standardBenefit2": "最多 3 个配置文件",
       "standardCta": "查看标准",
       "recommendedAria": "推荐计划",
       "recommendedBadge": "推荐",
@@ -844,19 +843,16 @@
       "premiumPrice": "30 天 · 29,900 韩元",
       "premiumLine": "10,000韩元级内容",
       "premiumBenefit1": "每月最多 60,000韩元",
-      "premiumBenefit2": "最多 7 个配置文件",
       "premiumCta": "查看推荐计划",
       "vvipName": "VVIP 蜂蜜罐 30 天",
       "vvipPrice": "30 天 · 59,900 韩元",
       "vvipLine": "30,000韩元级内容",
       "vvipBenefit1": "每月最多 120,000韩元",
-      "vvipBenefit2": "最多 15 个配置文件",
       "vvipCta": "查看 VVIP 福利",
       "familyName": "代码命运家庭 30 天",
       "familyPrice": "30 天 · 149,000 韩元",
       "familyLine": "使用权涵盖的全部内容",
       "familyBenefit1": "每月最多350,000韩元",
-      "familyBenefit2": "档案数量不限",
       "familyCta": "查看系列",
       "premiumNote": "如果您常看10,000韩元级内容,高级蜂蜜最为均衡。",
       "footnote": "新通行证仅作为 30 天通行证出售。此 30 天通行证不是自动续订订阅。通行证范围外的服务可通过按产品一次性支付韩元的方式使用。",
@@ -2625,19 +2621,19 @@
       "packages": {
         "standard": {
           "name": "标准蜂蜜30天",
-          "desc": "30天 · 5,000韩元级内容 · 每月最多20,000韩元 · 最多 3 个配置文件"
+          "desc": "30天 · 5,000韩元级内容 · 每月最多20,000韩元"
         },
         "premium": {
           "name": "高级蜂蜜30天",
-          "desc": "30天 · 10,000韩元级内容 · 每月最多 60,000韩元 · 最多 7 个配置文件"
+          "desc": "30天 · 10,000韩元级内容 · 每月最多 60,000韩元"
         },
         "vvip": {
           "name": "VVIP蜂蜜罐30天",
-          "desc": "30天 · 30,000韩元级内容 · 每月最多 120,000韩元 · 最多 15 个配置文件"
+          "desc": "30天 · 30,000韩元级内容 · 每月最多 120,000韩元"
         },
         "family": {
           "name": "Code Destiny Family 30天",
-          "desc": "30天 · 使用权涵盖的全部内容 · 每月最多350,000韩元 · 档案数量不限"
+          "desc": "30天 · 使用权涵盖的全部内容 · 每月最多350,000韩元"
         }
       },
       "monthlyStatusChecking": "正在确认余额和通行证状态。",

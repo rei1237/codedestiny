@@ -53,7 +53,7 @@ test("access-state preserves zero balance and inactive entitlement", () => {
 
   expect(state.coinBalance).toBe(0);
   expect(state.hasActivePass).toBe(false);
-  expect(state.maxProfileCount).toBe(1);
+  expect(state.maxProfileCount).toBe(0); // 2026-10-11: 프로필 카드 개수 상한 없음(0 = 무제한)
 });
 
 test("access-state merges profile entitlements and product ownership into one snapshot", () => {

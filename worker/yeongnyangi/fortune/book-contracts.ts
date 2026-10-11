@@ -43,6 +43,9 @@ export interface ChapterSpec {
   factIds?:string[];
   focus?:string;
   periodScope?:string;
+  // Fusion ask chapters that answer the question (prepare sets it from consultation.period). Their yearly and
+  // monthly luck rows are the requested years and dates; chapters without it read the stored calculation year.
+  timeScope?:{years:number[];start:string;end:string};
   id: string;
   title: string;
   part: string;

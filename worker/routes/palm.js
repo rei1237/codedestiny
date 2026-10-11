@@ -215,7 +215,8 @@ export async function handlePalmRoutes(request, env) {
   if (request.method === 'GET' && new URL(request.url).pathname.endsWith('/result')) {
     try {
       const auth = await requirePalmAuth(request, env);
-      return json(await readPaidPalmAnalysis(env, auth.userId, new URL(request.url).searchParams.get('requestId') || ''));
+      const params = new URL(request.url).searchParams;
+      return json(await readPaidPalmAnalysis(env, auth.userId, params.get('requestId') || '', params.get('accessMethod') || ''));
     } catch (error) { return handleRouteError(error, { request, env }); }
   }
   if (request.method.toUpperCase() !== "POST") {

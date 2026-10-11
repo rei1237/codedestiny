@@ -163,6 +163,17 @@ describe("POST /api/profile — 신규 회원 첫 카드", () => {
     expect(profileCardCreate).toHaveBeenCalledTimes(1);
   });
 
+  test("무료 등급도 카드 개수와 무관하게 결제 없이 추가 카드를 만든다 (2026-10-11 상한 폐지)", async () => {
+    for (const existing of [1, 2, 9]) {
+      profileCardCountDocuments.mockResolvedValue(existing);
+      const response = await callCreate();
+      const payload = await response.json();
+      expect(response.status).toBe(201);
+      expect(payload.canCreateMore).toBe(true);
+    }
+    expect(profileCardCreate).toHaveBeenCalledTimes(3);
+  });
+
   test("첫 카드 생성이 admission 슬롯을 3개만 쓴다 (읽기 1 + 생성 1 + 마무리 1)", async () => {
     await callCreate();
 
@@ -248,12 +259,15 @@ describe("영냥이 전용 프로필 정책", () => {
     expect(profileCardCreate).toHaveBeenCalledWith(expect.objectContaining({ userId: TEST_USER_ID }));
     expect(userUpdateOne).not.toHaveBeenCalled();
   });
-  test("공용 API는 body의 영냥이 플래그와 무관하게 기존 생성 제한을 유지한다", async () => {
+  test("공용 API는 body의 영냥이 플래그를 무시하고 공용 기본 프로필을 옮긴다", async () => {
+    // 2026-10-11 부터 개수 상한이 없으므로 생성 자체는 허용된다. 플래그가 바꿀 수 있는 것이 없어야 한다.
     profileCardCountDocuments.mockResolvedValue(50);
     const response = await callCreate({ profile: NEW_CARD, yeongnyangi: true, source: "yeongnyangi" });
-    expect(response.status).toBe(402);
-    expect((await response.json()).code).toBe("PAYMENT_REQUIRED");
-    expect(profileCardCreate).not.toHaveBeenCalled();
+    expect(response.status).toBe(201);
+    expect(userUpdateOne).toHaveBeenCalledWith(
+      { _id: TEST_USER_ID },
+      { $set: { destinyProfilesCurrentId: NEW_CARD.profileId } },
+    );
   });
   test("영냥이 목록은 소유 프로필 전체를 반환하고 GET에서 기본 프로필을 쓰지 않는다", async () => {
     profileCardFind.mockReturnValue(chain([storedCard(), storedCard({ profileId: "second" })]));

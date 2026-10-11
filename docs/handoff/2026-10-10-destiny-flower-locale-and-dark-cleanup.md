@@ -1,7 +1,7 @@
 ---
 status: done
 updated: 2026-10-10
-next: main 푸시 완료(스테이징 자동 배포). 운영 승격은 별도 승인. 아래 후속 과제는 별건
+next: 완료. 후속 과제는 docs/handoff/2026-10-11-destiny-flower-followups.md
 ---
 
 # 운명의 꽃 — 다국어 확장 + fortune-ui.css 잔존 다크 규칙 삭제
@@ -54,7 +54,7 @@ hi·ms·vi는 고유 꽃말 전통이 얇아 번역 비중이 높다. zh-TW는 �
 - `build-fortune-ui-critical`은 `dist/index.html`이 있어야 돌아서 이번에 실행하지 않았다. 삭제한 선언이 critical 블록에 없음을 grep으로 확인했다.
 - `sync:public`이 `UNKNOWN errno -4094`로 멈추면 `git checkout -- public/styles/static-policy.css` 후 다시 실행한다.
 
-## 후속 과제 (이번 범위 밖, 기존 문제)
+## 후속 과제 (이번 범위 밖, 기존 문제) → `2026-10-11-destiny-flower-followups.md`
 
 - 별자리 이름이 영어 원값으로 나온다: ko "태양궁 Cancer", ja 쿼드 카드 "太陽宮Cancer"(같은 화면 본문은 蟹座). 엔진 `day_master_badge`·런타임 `badges.sun`이 `sun_sign` 원값을 쓴다. `fortuneVar.sign`도 es·fr·de·nl·vi·ms·hi에서 영어다.
 - 자미 밝기 `불`이 `ping`으로 매핑돼 있다. `han`(閑)과 `xian`(陷)의 로마자가 둘 다 "Xian"이라 hanzi로만 구분된다.
@@ -62,7 +62,6 @@ hi·ms·vi는 고유 꽃말 전통이 얇아 번역 비중이 높다. zh-TW는 �
 - ko `askAi`·`close` 키 누락, en `growthCycle` 따옴표 깨짐, `fallbackNote` 불일치, `_dfUiText` 폴백이 자리표시자를 치환하지 않음.
 - OG 이미지 폰트가 hi·zh-CN 글리프를 못 그릴 수 있다(두부).
 - vi `ui.source.saju`는 "Saju", 새 문구는 "Tứ Trụ"로 섞여 있다. ms도 "Empat Tiang"/"Saju", "Istana Ming"/"Istana Kehidupan"이 섞여 있다.
-- `check:fast`의 `__tests__/release/sitemap-volatile-lastmod-kst.test.js` 실패는 base `8195f15dc`에서도 같은 날짜 의존 실패다.
 
 ## 검증
 

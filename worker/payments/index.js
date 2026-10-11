@@ -1737,7 +1737,7 @@ const ROUTES = {
 
         if (!unlock) {
           const consumed = await consumePassForFeature({ db, user, entitlement, userId,
-            featureKey: product.featureKey, requestId, coinCost: product.priceCoins });
+            featureKey: product.featureKey, requestId, coinCost: product.priceCoins, profileId });
           return { coverage: consumed.coverage, entitlement, user: consumed.user || user, replayed: consumed.replayed };
         }
 

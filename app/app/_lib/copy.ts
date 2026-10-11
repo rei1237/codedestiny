@@ -9,7 +9,6 @@ export type PassTier = "standard" | "premium" | "vvip" | "family";
 interface PassPlanCopy {
   title: string;
   blurb: string;
-  profileLabel: string;
 }
 
 export interface AppShellCopy {
@@ -125,10 +124,10 @@ const APP_SHELL_COPY_EN: AppShellCopy = {
   passPageBody: "With a pass, features within its coverage open instantly without payment.",
 
   passPlans: {
-    standard: { title: "Standard", blurb: "A light 30-day start", profileLabel: "3 profiles" },
-    premium: { title: "Premium", blurb: "The most popular choice", profileLabel: "7 profiles" },
-    vvip: { title: "VVIP", blurb: "Plenty of room for deep consultations", profileLabel: "15 profiles" },
-    family: { title: "Family", blurb: "Use every paid feature", profileLabel: "Unlimited profiles" },
+    standard: { title: "Standard", blurb: "A light 30-day start" },
+    premium: { title: "Premium", blurb: "The most popular choice" },
+    vvip: { title: "VVIP", blurb: "Plenty of room for deep consultations" },
+    family: { title: "Family", blurb: "Use every paid feature" },
   },
   benefitCoverageFree: (coverageLabel) => `Features up to ${coverageLabel} are free`,
   benefitAllFree: "All pass-eligible content",
@@ -194,10 +193,10 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     passPageBody: "이용권이 있으면 커버 범위 안의 기능은 결제 없이 바로 열립니다.",
 
     passPlans: {
-      standard: { title: "스탠다드", blurb: "가볍게 시작하는 30일", profileLabel: "프로필 3개" },
-      premium: { title: "프리미엄", blurb: "가장 많이 고르는 구성", profileLabel: "프로필 7개" },
-      vvip: { title: "VVIP", blurb: "깊은 상담까지 넉넉하게", profileLabel: "프로필 15개" },
-      family: { title: "패밀리", blurb: "모든 유료 기능 이용", profileLabel: "프로필 무제한" },
+      standard: { title: "스탠다드", blurb: "가볍게 시작하는 30일" },
+      premium: { title: "프리미엄", blurb: "가장 많이 고르는 구성" },
+      vvip: { title: "VVIP", blurb: "깊은 상담까지 넉넉하게" },
+      family: { title: "패밀리", blurb: "모든 유료 기능 이용" },
     },
     benefitCoverageFree: (coverageLabel) => `${coverageLabel} 이하 기능 무료`,
     benefitAllFree: "이용권 대상 전체",
@@ -261,10 +260,10 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     passPageBody: "利用券があれば適用範囲内の機能は決済なしですぐに開きます。",
 
     passPlans: {
-      standard: { title: "スタンダード", blurb: "気軽に始める30日", profileLabel: "プロフィール3個" },
-      premium: { title: "プレミアム", blurb: "最も選ばれる構成", profileLabel: "プロフィール7個" },
-      vvip: { title: "VVIP", blurb: "深い相談まで十分に", profileLabel: "プロフィール15個" },
-      family: { title: "ファミリー", blurb: "すべての有料機能を利用", profileLabel: "プロフィール無制限" },
+      standard: { title: "スタンダード", blurb: "気軽に始める30日" },
+      premium: { title: "プレミアム", blurb: "最も選ばれる構成" },
+      vvip: { title: "VVIP", blurb: "深い相談まで十分に" },
+      family: { title: "ファミリー", blurb: "すべての有料機能を利用" },
     },
     benefitCoverageFree: (coverageLabel) => `${coverageLabel}以下の機能が無料`,
     benefitAllFree: "利用券対象コンテンツすべて",
@@ -328,10 +327,10 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     passPageBody: "拥有使用权后,覆盖范围内的功能无需支付即可立即开启。",
 
     passPlans: {
-      standard: { title: "标准", blurb: "轻松开始的30天", profileLabel: "3个档案" },
-      premium: { title: "高级", blurb: "最受欢迎的组合", profileLabel: "7个档案" },
-      vvip: { title: "VVIP", blurb: "深度咨询也绰绰有余", profileLabel: "15个档案" },
-      family: { title: "家庭版", blurb: "使用所有付费功能", profileLabel: "档案数无限制" },
+      standard: { title: "标准", blurb: "轻松开始的30天" },
+      premium: { title: "高级", blurb: "最受欢迎的组合" },
+      vvip: { title: "VVIP", blurb: "深度咨询也绰绰有余" },
+      family: { title: "家庭版", blurb: "使用所有付费功能" },
     },
     benefitCoverageFree: (coverageLabel) => `${coverageLabel}以下功能免费`,
     benefitAllFree: "使用权涵盖的全部内容",
@@ -395,10 +394,10 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     passPageBody: "擁有使用權後,涵蓋範圍內的功能無需付款即可立即開啟。",
 
     passPlans: {
-      standard: { title: "標準", blurb: "輕鬆開始的30天", profileLabel: "3個檔案" },
-      premium: { title: "高級", blurb: "最受歡迎的組合", profileLabel: "7個檔案" },
-      vvip: { title: "VVIP", blurb: "深度諮詢也綽綽有餘", profileLabel: "15個檔案" },
-      family: { title: "家庭版", blurb: "使用所有付費功能", profileLabel: "檔案數無限制" },
+      standard: { title: "標準", blurb: "輕鬆開始的30天" },
+      premium: { title: "高級", blurb: "最受歡迎的組合" },
+      vvip: { title: "VVIP", blurb: "深度諮詢也綽綽有餘" },
+      family: { title: "家庭版", blurb: "使用所有付費功能" },
     },
     benefitCoverageFree: (coverageLabel) => `${coverageLabel}以下功能免費`,
     benefitAllFree: "使用權涵蓋的全部內容",
@@ -462,10 +461,10 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     passPageBody: "Có vé sử dụng, các tính năng trong phạm vi bao phủ sẽ mở ngay mà không cần thanh toán.",
 
     passPlans: {
-      standard: { title: "Tiêu chuẩn", blurb: "Khởi đầu nhẹ nhàng 30 ngày", profileLabel: "3 hồ sơ" },
-      premium: { title: "Cao cấp", blurb: "Lựa chọn phổ biến nhất", profileLabel: "7 hồ sơ" },
-      vvip: { title: "VVIP", blurb: "Đủ rộng rãi cho tư vấn chuyên sâu", profileLabel: "15 hồ sơ" },
-      family: { title: "Gia đình", blurb: "Sử dụng mọi tính năng trả phí", profileLabel: "Hồ sơ không giới hạn" },
+      standard: { title: "Tiêu chuẩn", blurb: "Khởi đầu nhẹ nhàng 30 ngày" },
+      premium: { title: "Cao cấp", blurb: "Lựa chọn phổ biến nhất" },
+      vvip: { title: "VVIP", blurb: "Đủ rộng rãi cho tư vấn chuyên sâu" },
+      family: { title: "Gia đình", blurb: "Sử dụng mọi tính năng trả phí" },
     },
     benefitCoverageFree: (coverageLabel) => `Tính năng đến ${coverageLabel} là miễn phí`,
     benefitAllFree: "Toàn bộ nội dung áp dụng gói",
@@ -529,10 +528,10 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     passPageBody: "पास होने पर, इसके कवरेज के भीतर की सुविधाएँ बिना भुगतान के तुरंत खुल जाती हैं।",
 
     passPlans: {
-      standard: { title: "स्टैंडर्ड", blurb: "हल्की 30-दिन की शुरुआत", profileLabel: "3 प्रोफ़ाइलें" },
-      premium: { title: "प्रीमियम", blurb: "सबसे लोकप्रिय विकल्प", profileLabel: "7 प्रोफ़ाइलें" },
-      vvip: { title: "VVIP", blurb: "गहन परामर्श के लिए पर्याप्त", profileLabel: "15 प्रोफ़ाइलें" },
-      family: { title: "फ़ैमिली", blurb: "सभी सशुल्क सुविधाओं का उपयोग करें", profileLabel: "असीमित प्रोफ़ाइलें" },
+      standard: { title: "स्टैंडर्ड", blurb: "हल्की 30-दिन की शुरुआत" },
+      premium: { title: "प्रीमियम", blurb: "सबसे लोकप्रिय विकल्प" },
+      vvip: { title: "VVIP", blurb: "गहन परामर्श के लिए पर्याप्त" },
+      family: { title: "फ़ैमिली", blurb: "सभी सशुल्क सुविधाओं का उपयोग करें" },
     },
     benefitCoverageFree: (coverageLabel) => `${coverageLabel} तक की सुविधाएँ मुफ़्त`,
     benefitAllFree: "पास में शामिल सभी सामग्री",
@@ -596,10 +595,10 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     passPageBody: "Con un pase, las funciones dentro de su cobertura se abren al instante sin pago.",
 
     passPlans: {
-      standard: { title: "Estándar", blurb: "Un inicio ligero de 30 días", profileLabel: "3 perfiles" },
-      premium: { title: "Premium", blurb: "La opción más popular", profileLabel: "7 perfiles" },
-      vvip: { title: "VVIP", blurb: "Amplio espacio para consultas profundas", profileLabel: "15 perfiles" },
-      family: { title: "Familiar", blurb: "Usa todas las funciones de pago", profileLabel: "Perfiles ilimitados" },
+      standard: { title: "Estándar", blurb: "Un inicio ligero de 30 días" },
+      premium: { title: "Premium", blurb: "La opción más popular" },
+      vvip: { title: "VVIP", blurb: "Amplio espacio para consultas profundas" },
+      family: { title: "Familiar", blurb: "Usa todas las funciones de pago" },
     },
     benefitCoverageFree: (coverageLabel) => `Funciones hasta ${coverageLabel} son gratis`,
     benefitAllFree: "Todo el contenido incluido en el pase",
@@ -663,10 +662,10 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     passPageBody: "Avec un pass, les fonctionnalités dans sa couverture s'ouvrent instantanément sans paiement.",
 
     passPlans: {
-      standard: { title: "Standard", blurb: "Un départ léger de 30 jours", profileLabel: "3 profils" },
-      premium: { title: "Premium", blurb: "Le choix le plus populaire", profileLabel: "7 profils" },
-      vvip: { title: "VVIP", blurb: "Largement suffisant pour des consultations approfondies", profileLabel: "15 profils" },
-      family: { title: "Famille", blurb: "Utilisez toutes les fonctionnalités payantes", profileLabel: "Profils illimités" },
+      standard: { title: "Standard", blurb: "Un départ léger de 30 jours" },
+      premium: { title: "Premium", blurb: "Le choix le plus populaire" },
+      vvip: { title: "VVIP", blurb: "Largement suffisant pour des consultations approfondies" },
+      family: { title: "Famille", blurb: "Utilisez toutes les fonctionnalités payantes" },
     },
     benefitCoverageFree: (coverageLabel) => `Les fonctionnalités jusqu'à ${coverageLabel} sont gratuites`,
     benefitAllFree: "Tout le contenu inclus dans le pass",
@@ -730,10 +729,10 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     passPageBody: "Mit einem Pass öffnen sich Funktionen innerhalb seiner Abdeckung sofort ohne Zahlung.",
 
     passPlans: {
-      standard: { title: "Standard", blurb: "Ein leichter 30-Tage-Start", profileLabel: "3 Profile" },
-      premium: { title: "Premium", blurb: "Die beliebteste Wahl", profileLabel: "7 Profile" },
-      vvip: { title: "VVIP", blurb: "Reichlich Raum für tiefe Beratungen", profileLabel: "15 Profile" },
-      family: { title: "Familie", blurb: "Nutze alle kostenpflichtigen Funktionen", profileLabel: "Unbegrenzte Profile" },
+      standard: { title: "Standard", blurb: "Ein leichter 30-Tage-Start" },
+      premium: { title: "Premium", blurb: "Die beliebteste Wahl" },
+      vvip: { title: "VVIP", blurb: "Reichlich Raum für tiefe Beratungen" },
+      family: { title: "Familie", blurb: "Nutze alle kostenpflichtigen Funktionen" },
     },
     benefitCoverageFree: (coverageLabel) => `Funktionen bis ${coverageLabel} sind kostenlos`,
     benefitAllFree: "Alle im Pass enthaltenen Inhalte",
@@ -797,10 +796,10 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     passPageBody: "Met een pas openen functies binnen de dekking direct zonder betaling.",
 
     passPlans: {
-      standard: { title: "Standaard", blurb: "Een lichte start van 30 dagen", profileLabel: "3 profielen" },
-      premium: { title: "Premium", blurb: "De populairste keuze", profileLabel: "7 profielen" },
-      vvip: { title: "VVIP", blurb: "Ruim voldoende voor diepgaand advies", profileLabel: "15 profielen" },
-      family: { title: "Familie", blurb: "Gebruik alle betaalde functies", profileLabel: "Onbeperkte profielen" },
+      standard: { title: "Standaard", blurb: "Een lichte start van 30 dagen" },
+      premium: { title: "Premium", blurb: "De populairste keuze" },
+      vvip: { title: "VVIP", blurb: "Ruim voldoende voor diepgaand advies" },
+      family: { title: "Familie", blurb: "Gebruik alle betaalde functies" },
     },
     benefitCoverageFree: (coverageLabel) => `Functies tot ${coverageLabel} zijn gratis`,
     benefitAllFree: "Alle content die de pass dekt",
@@ -864,10 +863,10 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     passPageBody: "Dengan pas, ciri dalam liputannya terbuka serta-merta tanpa pembayaran.",
 
     passPlans: {
-      standard: { title: "Standard", blurb: "Permulaan ringan 30 hari", profileLabel: "3 profil" },
-      premium: { title: "Premium", blurb: "Pilihan paling popular", profileLabel: "7 profil" },
-      vvip: { title: "VVIP", blurb: "Ruang mencukupi untuk konsultasi mendalam", profileLabel: "15 profil" },
-      family: { title: "Keluarga", blurb: "Gunakan semua ciri berbayar", profileLabel: "Profil tanpa had" },
+      standard: { title: "Standard", blurb: "Permulaan ringan 30 hari" },
+      premium: { title: "Premium", blurb: "Pilihan paling popular" },
+      vvip: { title: "VVIP", blurb: "Ruang mencukupi untuk konsultasi mendalam" },
+      family: { title: "Keluarga", blurb: "Gunakan semua ciri berbayar" },
     },
     benefitCoverageFree: (coverageLabel) => `Ciri sehingga ${coverageLabel} adalah percuma`,
     benefitAllFree: "Semua kandungan yang dilindungi pas",

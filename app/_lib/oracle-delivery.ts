@@ -6,6 +6,11 @@ export type OracleDeliveryResponse = {
   reading?: unknown; deliverySections?: { key: string; title: string; body: string }[];
 };
 
+// A paid love or mindscan body whose cards are not a held server draw is refused before any payment lookup
+// (worker/lib/paid-tarot-draw.js). The paid requestId stays valid, so the client asks for a redraw under it.
+export const TAROT_REDRAW_REASONS = ['TAROT_DRAW_REQUIRED', 'TAROT_CARDS_FORGED', 'TAROT_DRAW_OWNER_MISMATCH'];
+export const needsTarotRedraw = (data?: { reason?: string } | null) => Boolean(data && TAROT_REDRAW_REASONS.includes(String(data.reason || '')));
+
 // Before checkout, send the exact first POST body through the same authFetch (its locale rewrite included) so
 // the server keeps it as a payment intent (worker/lib/paid-narrative-intent.js): a page that dies after payment
 // still leaves the server its input. The reply is unused and checkout never waits more than 1.5 s for it.

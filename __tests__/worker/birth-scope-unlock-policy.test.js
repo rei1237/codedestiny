@@ -166,9 +166,11 @@ describe("C: 추가 리포트(rpt_*)도 계정 공유가 아니다", () => {
 });
 
 describe("D: 생년월일 수정", () => {
-  test("고치면 다시 잠기고, 되돌리면 다시 열린다", async () => {
+  // 2026-10-11 부터 카드 수정이 무료라, 이 재잠금이 "남의 출생 정보로 고쳐 공짜로 보기"를 막는 유일한 장치다.
+  test("결제한 카드에서 열리고, 고치면 다시 잠기고, 되돌리면 다시 열린다", async () => {
     await grant("section_summary");
     const card = cards.find((item) => item.profileId === "p1");
+    expect(await opens("section_summary", "p1")).toBe(true);
 
     card.birth = { ...card.birth, day: 18 };
     expect(await opens("section_summary", "p1")).toBe(false);

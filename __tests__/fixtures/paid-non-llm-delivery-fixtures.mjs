@@ -414,6 +414,14 @@ export const PAID_NON_LLM_DELIVERY_FIXTURES = Object.freeze([
 
 export const HISTORICAL_PAID_FEATURE_FIXTURES = Object.freeze([
   {
+    // 2026-10-11: 프로필 카드 추가·수정·삭제가 무료가 되어 결제 CTA 가 사라졌다. 정책 변경 전 주문의
+    // 모바일 복귀와 증빙 대조를 위해 가격 키만 남는다.
+    featureKey: "profile-card-manage",
+    billingType: "per_use",
+    retained: { file: "worker/lib/profile-card-mutation-policy.js", marker: "아래 가격 상수는 정책 변경 전에 이미 만들어진 주문·월정석 차감 증빙을 대조하는 용도로만 남긴다" },
+    replacement: { file: "worker/lib/profile-card-mutation-policy.js", marker: 'reason: "PROFILE_CARD_MUTATION_FREE"' },
+  },
+  {
     featureKey: "palm-reading-ai-consult",
     billingType: "per_use",
     retained: { file: "worker/lib/billing-feature-registry.js", marker: "aiConsult: Object.freeze" },
@@ -446,12 +454,6 @@ export const REGISTRY_ONLY_NON_LLM_KEYS = Object.freeze([
 ]);
 
 export const PAID_NON_RESULT_FIXTURES = Object.freeze([
-  {
-    featureKey: "profile-card-manage",
-    billingType: "per_use",
-    cta: { file: "js/destiny-profile.js", marker: "window._cdCoinGatePerUse(PROFILE_CARD_MANAGE_COST, reason," },
-    consumer: { file: "worker/routes/profile.js", marker: "async function findProfileMutationPaymentEvidence(" },
-  },
 ]);
 
 export const ACTIVE_NON_LLM_ALIAS_FIXTURES = Object.freeze([

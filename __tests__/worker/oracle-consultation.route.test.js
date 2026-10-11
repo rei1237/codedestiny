@@ -32,7 +32,7 @@ beforeAll(async()=>{
 let proofs=[];
 beforeEach(()=>{docs=[];revoked=false;userId=owner;fault=null;lost=false;mode='pass';proofs=[];authError=null;
  provider=jest.fn(async(_env,prompt,options)=>{expect(options.timeoutMs).toBeLessThanOrEqual(45000);expect(options.fallbackToWorkersAI).toBe(false);
- const evidenceHash=prompt.match(/evidenceHash":"([a-f0-9]{64})/)[1],label=prompt.match(/\[이번 부분 ([^\]]+)\]/)[1].replaceAll('.', '-');
+ const evidenceHash=prompt.match(/evidenceHash":"([a-f0-9]{64})/)?.[1],label=prompt.match(/\[이번 부분 ([^\]]+)\]/)[1].replaceAll('.', '-');
  return {ok:true,provider:'gemini',text:JSON.stringify({evidenceHash,body:Array.from({length:65},(_,i)=>`${label} ${i}번째 해석은 세 형상의 관계에 비추어 지금의 선택을 검토하는 과정이며 확정된 사건을 예언하지 않습니다. ${label} ${i}번째 관찰에서는 생활 속 조건과 실천의 결과를 기록하며 자신에게 맞는 방향을 선택할 수 있습니다.`).join('\n\n')})};
  });external=jest.spyOn(globalThis,'fetch').mockImplementation(()=>{throw Error('external fetch forbidden');});
 });
@@ -69,3 +69,64 @@ test('unavailable payment lookup is 503 and never generates',async()=>{mode='una
 
 test.each([401,403,503])('authentication status %s prevents provider calls',async status=>{authError=Object.assign(Error('auth'),{status});expect((await start()).status).toBe(status);expect(provider).not.toHaveBeenCalled();expect(docs).toHaveLength(0);});
 test('a lower tier receipt cannot authorize fourteen cards',async()=>{mode='denied';const body={...original(),cards:Array.from({length:14},(_,i)=>({cardId:`M${String(i).padStart(2,'0')}`,orientation:'upright'}))};expect((await post(body)).status).toBe(402);expect(proofs[0].featureKey).toBe('tarot-prompt-maker-master');const {FEATURE_KEY_PRICE_TABLE}=await import('../../worker/lib/paid-feature-registry.js');expect(proofs[0].coinPrice).toBe(FEATURE_KEY_PRICE_TABLE['tarot-prompt-maker-master'].cost);expect(provider).not.toHaveBeenCalled();});
+
+// B1a/B1b: no hash to copy, a one-paragraph card is split, the closing part keeps its scope.
+test('prompts carry no evidence hash and the closing part is scoped',async()=>{
+ await start();await finish();const prompts=provider.mock.calls.map(call=>call[1]);
+ expect(prompts.some(prompt=>/[a-f0-9]{64}/.test(prompt))).toBe(false);
+ expect(prompts.find(prompt=>prompt.includes('[이번 부분 closingLine]'))).toContain('요약해 다시 쓰지 않고');
+});
+test('a one-paragraph card answer is split instead of buying it again',async()=>{
+ const base=provider.getMockImplementation();
+ provider.mockImplementation(async(...args)=>{const ai=await base(...args),value=JSON.parse(ai.text);if(args[1].includes('[이번 부분 card.0.0]'))value.body=value.body.replace(/\n\s*\n/g,' ');return {...ai,text:JSON.stringify(value)};});
+ await start();expect((await finish()).status).toBe(200);
+ expect(provider.mock.calls.filter(call=>call[1].includes('[이번 부분 card.0.0]'))).toHaveLength(1);
+ expect(docs[0].metadata.paidNarrative.parts['card.0.0'].split('\n\n')).toHaveLength(2);
+});
+test('a sentence repeated from an earlier part is removed instead of buying the part again',async()=>{
+ const base=provider.getMockImplementation(),lead='이 배열은 지금 선택을 서두르기보다 조건을 확인하라는 신호로 읽는 편이 안전합니다.';
+ provider.mockImplementation(async(...args)=>{const ai=await base(...args),value=JSON.parse(ai.text);if(/\[이번 부분 (coreQuestion|closingLine)\]/.test(args[1]))value.body=lead+'\n\n'+value.body;return {...ai,text:JSON.stringify(value)};});
+ await start();expect((await finish()).status).toBe(200);
+ expect(provider.mock.calls.filter(call=>call[1].includes('[이번 부분 closingLine]'))).toHaveLength(1);
+ expect(Object.values(docs[0].metadata.paidNarrative.parts).join('\n').split(lead)).toHaveLength(2);
+});
+test('every part carries the shared tarot rules and each card part pins its own position, card and orientation',async()=>{
+ const {TAROT_SHARED_RULE_PARAGRAPH}=await import('../../lib/tarot/paid-reading-contract.mjs'),{getTarotCardByAnyId}=await import('../../lib/tarot/tarot-cards.mjs');
+ await start();expect((await finish()).status).toBe(200);
+ const prompts=provider.mock.calls.map(call=>call[1]);
+ for(const prompt of prompts)expect(prompt).toContain(TAROT_SHARED_RULE_PARAGRAPH);
+ original().cards.forEach((card,i)=>{
+  const pin=prompts.find(text=>text.includes(`[이번 부분 card.${i}.0]`)).match(/\[이 부분의 카드\][^\n]*/)?.[0];
+  expect(pin).toContain(card.positionLabel);
+  expect(pin).toContain(`${getTarotCardByAnyId(card.cardId).nameKo} ${card.orientation==='reversed'?'역방향':'정방향'}`);
+  expect(pin.match(/[정역]방향/g)).toHaveLength(1);
+ });
+});
+const inject=(id,sentence,times)=>{const base=provider.getMockImplementation();let left=times;
+ provider.mockImplementation(async(...args)=>{const ai=await base(...args);if(!args[1].includes(`[이번 부분 ${id}]`)||left<=0)return ai;left-=1;
+  const value=JSON.parse(ai.text);value.body=`${sentence}\n\n${value.body}`;return {...ai,text:JSON.stringify(value)};});};
+const callsFor=id=>provider.mock.calls.filter(call=>call[1].includes(`[이번 부분 ${id}]`)).length;
+test.each([['TAROT_UNDRAWN_CARD','탑 카드가 이 선택의 결말을 말합니다.'],['TAROT_ORIENTATION_MISMATCH','바보 정방향이 지금의 선택을 보여 줍니다.']])('a %s answer is bought once more and never saved',async(_code,sentence)=>{
+ inject('card.0.0',sentence,1);await start();expect((await finish()).status).toBe(200);
+ expect(callsFor('card.0.0')).toBe(2);expect(docs[0].metadata.paidNarrative.parts['card.0.0']).not.toContain(sentence);
+});
+test('a generic position word next to a drawn card is not a violation',async()=>{
+ const sentence='미래를 생각할 때 바보 역방향은 서두르지 말라고 말합니다.';
+ inject('card.0.0',sentence,1);await start();expect((await finish()).status).toBe(200);
+ expect(callsFor('card.0.0')).toBe(1);expect(docs[0].metadata.paidNarrative.parts['card.0.0']).toContain(sentence);
+});
+// The automated eval rubric (fixtures/yeongnyangi-tarot-eval) on the delivered prose: every submitted position and card
+// is named, and a forbidden claim a part carries reaches the reader, so the rubric must see it in the saved text.
+const pinned=prompt=>{const [,label,named]=prompt.match(/\[이 부분의 카드\] 위치 "([^"]+)"[^:]*: ([^.]+)\./)||[];return label?`${label} 자리의 ${named} 카드가 지금의 조건을 비춥니다. `:'';};
+test('the delivered oracle consultation passes the eval rubric, and the rubric sees a forbidden claim a part carries',async()=>{
+ const {scoreReading}=await import('../fixtures/yeongnyangi-tarot-eval/cases.mjs'),{getTarotCardByAnyId}=await import('../../lib/tarot/tarot-cards.mjs');
+ const base=provider.getMockImplementation(),claim='3월 5일에 결과가 나옵니다.';
+ provider.mockImplementation(async(...args)=>{const ai=await base(...args),value=JSON.parse(ai.text);value.body=pinned(args[1])+value.body;
+  if(args[1].includes('[이번 부분 timeline.near]'))value.body=`${claim} ${value.body}`;return {...ai,text:JSON.stringify(value)};});
+ await start();const data=await (await finish()).json();
+ const prompt={savedCardsOnly:original().cards.map(card=>({positionLabel:card.positionLabel,name:getTarotCardByAnyId(card.cardId).nameKo}))};
+ const text=data.sections.map(section=>section.body).join('\n\n');
+ expect(scoreReading(text.replace(claim,''),prompt,{id:'oracle-route'})).toEqual({pass:true,findings:[]});
+ expect(scoreReading(text,prompt,{id:'oracle-route'}).findings).toEqual([{rule:'fixed-date',detail:'3월 5일'}]);
+ expect(provider).toHaveBeenCalledTimes(17);
+});

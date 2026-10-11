@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-10-10
-next: "단계 A(결정적 데이터)부터 한다: 1A luckOverlap·2A 12궁 관계표·3A tenGodsByPillar 요약을 모아 requests·prepare 해시를 한 번에 갱신한다. 단계 B 는 a208bea08 에서 끝났다."
+updated: 2026-10-11
+next: "단계 A·B·C 코드는 끝났다(d361f09b6·171df2ade·a208bea08). 남은 것은 승인받은 MA·MO 재실호출 각 1회(약 29·39회, 약 $0.92)와 그 결과로 '끝난 판정'을 확인하는 일, fallback 로그 code 별 집계다."
 ---
 
 # 영냥이 퓨전(MA 모듬·MO 오마카세) 품질 결함 14건 + 토큰 여유
@@ -12,7 +12,7 @@ next: "단계 A(결정적 데이터)부터 한다: 1A luckOverlap·2A 12궁 관�
 
 ## 지금 상태
 
-- 단계 B(6·5B·1B·2B·3B·7·8B)는 끝났다(아래 '단계 B 결과'). 단계 A·C 와 재실호출은 남았다. 규칙은 [2026-10-10-new-year-and-expert-llm-debug.md](2026-10-10-new-year-and-expert-llm-debug.md) '지켜야 할 규칙'을 따른다.
+- 단계 B(6·5B·1B·2B·3B·7·8B)는 끝났다(아래 '단계 B 결과'). 단계 A·C 도 끝났다(아래 '단계 A 결과'·'단계 C 결과'). 재실호출과 fallback 로그 집계가 남았다. 규칙은 [2026-10-10-new-year-and-expert-llm-debug.md](2026-10-10-new-year-and-expert-llm-debug.md) '지켜야 할 규칙'을 따른다.
 - 🔴 **strict 검사는 배달을 막지 못한다.**
   - `worker/yeongnyangi/providers/delivery.ts:51-56` 이 validateChapter 의 오류를 받아 fallback 으로 배달한다.
   - 그래서 새 strict 검사를 더해도 효과가 없다. 효과가 있는 수정은 세 가지뿐이다: (A) 결정적 데이터, (B) `correctChapterProse`(providers/chapter.ts:92-109) 결정적 교정, (C) 프롬프트 계약.
@@ -36,6 +36,44 @@ next: "단계 A(결정적 데이터)부터 한다: 1A luckOverlap·2A 12궁 관�
   - 그런 ID 가 없으면, 한국어 본문이 체계명을 말한 경우에만 그 체계의 첫 장 fact 를 넣는다.
   - 쓰지 않은 체계는 비워 둔다(MO ch13 류는 그대로 남는다).
 
+## 단계 A 결과 (d361f09b6, 2026-10-11)
+
+모두 mock 테스트로만 확인했다(새 `__tests__/ui/yeongnyangi-fusion-quality.test.mjs`). 해시는 한 번 갱신했다: 98행 이동(전부 requests, prepare 19, validated 13, manifests 6, id 0).
+
+- 1A: 새 `fortune/saju/luck-overlap.ts`. 대운×세운·월운의 충·형·파·해·합을 계산하고, 3자 형은 대운+세운+원국 지지를 합쳐 판정한다.
+- 2A: 자미 12궁·대한·유년 행에 `{facing, trines}` 관계를 붙인다(ziwei/reading-facts.ts).
+- 3A: base selector 에 tenGodsByPillar.summary 를 넣는다.
+- 4(데이터): 퓨전 ask 장만 요청 기간(`timeScope`, consultation-budget.ts withRequestedPeriodScope)을 읽고, 다른 장은 저장 연도를 읽는다.
+- 9A: 타로 카드에 timeFrame 라벨을 붙이고 이미지 필드를 뺀다.
+- 12: 퓨전 ask 1장 title 이 질문을 말한다(service.ts).
+- 13A: 새 `fortune/input-budget.ts` 전송 전 토큰 사다리. askPromptView 가 palaces 래퍼를 인식하고, monthlyLuck 은 요청 기간만 보낸다.
+  - ch1 추정 입력(기록 호출 보정): MA 약 31,580 → 24,966, MO 약 45,541(기록 46,152) → 35,916. 사다리는 두 표본 모두 발동하지 않았다.
+- 14A: bodyPalace 강제 포함을 self/wealth 장으로 한정한다.
+- main 머지(2026-10-11): main 에는 같은 단계 A 의 다른 구현(556d2af0e)이 먼저 들어가 있었다. 단계 C 가 이 구현(timeScope·readsRequestedPeriod·chapterConsultation)을 딛고 있어 이쪽을 채택했다. main 에만 있던 다섯 가지는 fusion-quality 테스트를 먼저 실패시킨 뒤 옮겼다.
+  - 대운을 못 보는 등급에서 luckOverlap 을 뺀다.
+  - 올해 장의 월운은 그해로 한정하고, 내년 예고 장에서는 기준 연도 자미 유년을 뺀다.
+  - 요청 기간을 받지 않는 장의 timeContract 는 period 문장 대신 "이 장의 주제와 계산 근거의 기간만" 문장을 쓴다.
+  - 타로 timeFrame 은 main 의 `fortune/tarot/time-frame.ts` 로 바꿨다(cards·tarotConsultation.cards, 한 달 스프레드 1~4주 차만 뽑은 날 기준 날짜).
+  - ASK_PERIOD_GUIDE 의 9C 문장에 1~4주 차 예외를 붙였다.
+  - 인사신형(寅 원국+巳 대운+申 세운) 사례를 테스트에 더했고, 해시는 76행 갱신했다.
+
+## 단계 C 결과 (171df2ade, 2026-10-11)
+
+프롬프트 계약이다. 효과는 재실호출로만 확인할 수 있다. 해시는 한 번 갱신했다: 66행 requests 이동(사주 전 행, 모든 ask 행, 퓨전 v2 네 상품), 그중 퓨전 v2 12행은 prepare 도 이동(manifest minimumChars). validated·manifests·id 는 그대로다.
+
+- 4: 퓨전 장마다 `timeContract` 에 장별 시기 문장을 붙인다(providers/chapter.ts chapterTimeContract). 질문 장은 요청 기간, life-next-year 는 다음 해, life-year·question-year 는 기준 연도, life-decade 는 현재 대운과 다음 대운, foundation·expert 는 출생 구조다.
+- 5A: readerEvidence 가 seasonalBalance 의 점수·원소 개수를 `temperature`·`humidity` 낱말로, strengthHeuristic 의 score 를 `strengthLevel`(뚜렷함/경계에 가까움, 기준 30±7)로 바꾼다. 저장 fact 는 그대로다.
+- 8C: 체계가 2개 이상인 퓨전 ask 장에 `systemSlots`(체계별 이름·앞 fact 3개 ID)를 넣는다.
+- 9C: ASK_PERIOD_GUIDE 에 "타로 position·timeFrame 을 요청 기간의 달·주·날짜나 세운·월운·유년에 대응시키지 않는다"를 넣었다.
+- 10: 사주 예방 후보에 `rank`·`tensionNames` 를 붙인다(충 > 형 > 파 > 해, 그다음 세운 → 월운 → 대운 → 원국, 이른 시기). 목록 순서와 저장 근거는 그대로다(prevention.test 가 순서를 고정한다). 퓨전 예방 장에는 conditions·signals 가 rank 앞 후보의 충·파 이름을 쓰라는 `preventionAnchorContract` 를 넣었다.
+- 11: 퓨전 layout 의 minimumChars 를 target 하한의 0.8 로 올렸다(consultation-budget.ts FUSION_LAYOUT_MINIMUM_RATIO). 질문 layout 은 0.55 그대로다. chapter-delivery-contract.js 코드는 그대로다.
+  - 실효 변화: length repair 선(reading-quality chapterFloor = min(minimum, 0.7×하한))이 하한의 55% → 70% 로, 배달 floor(minimum×0.5)가 약 27.5% → 40% 로 오른다.
+  - 비용 추정(기록 길이 기준): 첫 시도 길이/하한이 MA 최소 0.59·중앙 1.05, MO 최소 0.73·중앙 1.23 이다. 70% 미만은 MA 1장뿐이라 repair 약 +1회(약 $0.013, MA 회당 +4%)다. MO 는 0이다. 40% 미만은 둘 다 없다.
+  - `scripts/report-pass-economics.mjs`(--write 없이)는 minimumChars 를 모델링하지 않아 이 변경으로 바뀌는 값이 없다. 다만 출력이 커밋된 `docs/verification/pass-economics-scenarios-20260921.json` 과 132곳 다르다(현재 CURRENT_PASS_PLANS 가격 기준). 이 작업과 무관한 기존 차이다.
+- 14C: 퓨전 장에 `claimLedger`(앞 장들이 2장 이상 인용한 source ID 와 횟수)를 넣는다.
+- 토큰(단계 C 후, 기록 호출 보정 추정): MA ch1 25,176, MO ch1 36,247, MA 예방 25,415, MO 예방 41,269(기록 44,412). 모두 50,000 미만이고 ask 첫 장은 40,000 이하다.
+- 기존 불일치(고치지 않음): astrology.planets 의 `dignity` 가 ask packet 과 CALCULATED_DATA 에서 다르다.
+
 ## 남은 작업
 
 경로 앞의 `fortune/`, `providers/` 는 `worker/yeongnyangi/` 아래다.
@@ -52,7 +90,7 @@ next: "단계 A(결정적 데이터)부터 한다: 1A luckOverlap·2A 12궁 관�
 | 7 | "목성 대운" | correctDashaSequence(consultation.ts:367-418) | 행성명이 붙은 대운을 마하·안타르·프라티안타르 단계로 바꾼다 |
 | 8B | 체계 sources 누락 | chapter.ts:235-239 검사를 fallback 이 우회 | 본문이 이미 언급한 체계의 sources 만 보충한다 |
 
-**단계 A. 결정적 데이터.** requests·prepare 해시가 크게 움직인다. 모아서 한 번에 갱신한다.
+**단계 A. 결정적 데이터.** ✅ 끝남(위 '단계 A 결과'). requests·prepare 해시가 크게 움직인다. 모아서 한 번에 갱신한다.
 - 1A: 세운×대운·월운×대운 관계 `luckOverlap` 을 만든다. 3자 형은 대운+세운+원국 지지를 합쳐 판정한다(L480-499·605-629 는 운×원국만 봄).
 - 2A: 12궁 `{facing, trines}` 관계표를 넣는다(reading-facts.ts:56-61·110-122). 대한·유년 행에도 붙인다.
 - 3A: base selector(reading-manifest.ts:46)에 tenGodsByPillar 요약을 넣는다.
@@ -69,7 +107,7 @@ next: "단계 A(결정적 데이터)부터 한다: 1A luckOverlap·2A 12궁 관�
   - 전송 전 토큰 사다리를 둔다.
 - 14A: chapter-facts.ts:33 의 bodyPalace(재백궁) 강제 포함을 self/money 장으로 한정한다.
 
-**단계 C. 프롬프트 계약.** 효과는 재실호출로만 확인할 수 있다.
+**단계 C. 프롬프트 계약.** ✅ 끝남(위 '단계 C 결과'). 효과는 재실호출로만 확인할 수 있다.
 - 4: 장별 timeContract.
 - 5A: readerEvidence(prompts/domain/reader-counsel.ts:29-42) 점수를 범주어로.
 - 8C: ask 1장에 체계별 슬롯.
@@ -100,10 +138,12 @@ next: "단계 A(결정적 데이터)부터 한다: 1A luckOverlap·2A 12궁 관�
 ## 검증
 
 ```
-npx jest __tests__/ui/yeongnyangi-consultation.test.mjs __tests__/ui/yeongnyangi-natal-claims.test.mjs __tests__/ui/yeongnyangi-fusion-delivery.test.mjs __tests__/ui/yeongnyangi-prevention.test.mjs __tests__/ui/yeongnyangi-ask-validation.test.mjs __tests__/ui/yeongnyangi-benchmark-budget.test.mjs __tests__/ui/yeongnyangi-reading-invariance.test.mjs
+LLM_DRY_RUN=true WORKERS_AI_ENABLED=false node --test __tests__/ui/yeongnyangi-fusion-quality.test.mjs __tests__/ui/yeongnyangi-consultation.test.mjs __tests__/ui/yeongnyangi-natal-claims.test.mjs __tests__/ui/yeongnyangi-fusion-delivery.test.mjs __tests__/ui/yeongnyangi-prevention.test.mjs __tests__/ui/yeongnyangi-ask-validation.test.mjs __tests__/ui/yeongnyangi-benchmark-budget.test.mjs __tests__/ui/yeongnyangi-reading-invariance.test.mjs
 npm run check:fast
 ```
 
+- 이 파일들은 node:test 다. `npx jest` 로는 돌지 않는다(2026-10-11 결과: 8개 파일 91/91 통과).
+- 2026-10-11 `npm run check:fast`: 가드 87개 ok, npm test 3139/3140. 실패 1건은 consultation-budget.test 가 퓨전 minimumChars 를 0.55 로 고정한 것이었고, 11번 사양에 맞춰 0.8 로 바꿨다(별도 test 커밋). 재실행한 그 파일은 8/8 통과다.
 - 토큰 측정: scratch `prevention_tokens.mjs` 패턴을 따른다. countTokens 만 쓰므로 비용은 0 이다.
 
 ## 모르는 것

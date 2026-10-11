@@ -349,9 +349,10 @@ for (const [label, texts] of [["셸 이용권 카드", goldenDescs], ["/points �
    11개 로케일이 "KRW 30,000 이하 무제한 · 상담 10회"를 계속 서빙했다(2026-08-24 실측).
 
    금지어 목록을 12개 언어로 다시 쓰는 대신, **같은 사전 안의 조각과 대조**한다 —
-   home.passMini.<tier>Line(가격대) · Benefit1(월 한도) · Benefit2(프로필). 이 세 조각은
+   home.passMini.<tier>Line(가격대) · Benefit1(월 한도). 이 두 조각은
    ②③이 지키는 숫자에서 나온 문구이고 로케일마다 이미 번역돼 있다. desc 가 그 조합이
    아니게 되는 순간(무제한이 끼어들든, 밴드가 낡든) 실패한다.
+   2026-10-11 프로필 카드 개수 상한이 없어져 '프로필' 토막(Benefit2)을 뺐다. 되살아나면 4토막이 되어 실패한다.
 
    fail-closed: 사전 파일을 손으로 열거하지 않고 디렉터리에서 전수 발견하며,
    조각이나 desc 가 없으면 통과가 아니라 실패다. */
@@ -366,26 +367,26 @@ for (const file of localeFiles) {
   const dict = JSON.parse(readFileSync(path.join(I18N_DIR, file), "utf8"));
   for (const tier of TIERS) {
     const desc = dictValue(dict, `payment.passShop.packages.${tier}.desc`);
-    const fragments = ["Line", "Benefit1", "Benefit2"].map((suffix) => dictValue(dict, `home.passMini.${tier}${suffix}`));
+    const fragments = ["Line", "Benefit1"].map((suffix) => dictValue(dict, `home.passMini.${tier}${suffix}`));
     if (typeof desc !== "string" || !desc.trim()) {
       failures.push(`[${locale}] payment.passShop.packages.${tier}.desc 가 없다 — 사전이 이 등급 카드를 번역하지 못한다`);
       continue;
     }
     if (fragments.some((fragment) => typeof fragment !== "string" || !fragment.trim())) {
-      failures.push(`[${locale}] home.passMini.${tier}{Line,Benefit1,Benefit2} 조각이 비어 있다 — desc 를 대조할 기준이 없다`);
+      failures.push(`[${locale}] home.passMini.${tier}{Line,Benefit1} 조각이 비어 있다 — desc 를 대조할 기준이 없다`);
       continue;
     }
     const segments = desc.split(" · ").map((part) => part.trim());
     check(
-      `[${locale}] ${tier} 카드는 '기간 · 가격대 · 월 한도 · 프로필' 4토막`,
-      segments.length === 4,
+      `[${locale}] ${tier} 카드는 '기간 · 가격대 · 월 한도' 3토막`,
+      segments.length === 3,
       `실제 ${segments.length}토막 문구="${desc}"`,
     );
     check(
       `[${locale}] ${tier} 카드 문구가 사전 조각과 일치`,
       segments.slice(1).join(" · ") === fragments.join(" · "),
       `문구="${desc}" 기대="… · ${fragments.join(" · ")}"`
-      + ` / desc 와 home.passMini.${tier}{Line,Benefit1,Benefit2} 는 같은 정책 한 줄이라 함께 고쳐야 한다`
+      + ` / desc 와 home.passMini.${tier}{Line,Benefit1} 은 같은 정책 한 줄이라 함께 고쳐야 한다`
       + " (문안을 바꿀 때는 i18n/authored/passShopPackages-01.json 을 고치고 i18n-merge-authored.mjs --core 로 다시 병합)",
     );
   }

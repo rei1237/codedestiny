@@ -770,20 +770,6 @@
     "nl": "Tot KRW 20.000 per maand",
     "ms": "Sehingga KRW 20,000 sebulan"
   },
-  "home.passMini.standardBenefit2": {
-    "ko": "프로필 최대 3개",
-    "en": "Up to 3 profiles",
-    "ja": "最大 3 つのプロファイル",
-    "zh-CN": "最多 3 个配置文件",
-    "zh-TW": "最多 3 個設定檔",
-    "vi": "Tối đa 3 hồ sơ",
-    "hi": "3 प्रोफ़ाइल तक",
-    "es": "Hasta 3 perfiles",
-    "fr": "Jusqu'à 3 profils",
-    "de": "Bis zu 3 Profile",
-    "nl": "Maximaal 3 profielen",
-    "ms": "Sehingga 3 profil"
-  },
   "home.passMini.premiumName": {
     "ko": "프리미엄 꿀 30일",
     "en": "Premium Honey 30 days",
@@ -825,20 +811,6 @@
     "de": "Bis zu 60.000 KRW pro Monat",
     "nl": "Tot KRW 60.000 per maand",
     "ms": "Sehingga KRW 60,000 sebulan"
-  },
-  "home.passMini.premiumBenefit2": {
-    "ko": "프로필 최대 7개",
-    "en": "Up to 7 profiles",
-    "ja": "最大 7 つのプロファイル",
-    "zh-CN": "最多 7 个配置文件",
-    "zh-TW": "最多 7 個設定檔",
-    "vi": "Tối đa 7 hồ sơ",
-    "hi": "7 प्रोफ़ाइल तक",
-    "es": "Hasta 7 perfiles",
-    "fr": "Jusqu'à 7 profils",
-    "de": "Bis zu 7 Profile",
-    "nl": "Maximaal 7 profielen",
-    "ms": "Sehingga 7 profil"
   },
   "home.passMini.vvipName": {
     "ko": "VVIP 꿀단지 30일",
@@ -882,20 +854,6 @@
     "nl": "Tot KRW 120.000 per maand",
     "ms": "Sehingga KRW 120,000 sebulan"
   },
-  "home.passMini.vvipBenefit2": {
-    "ko": "프로필 최대 15개",
-    "en": "Up to 15 profiles",
-    "ja": "最大 15 個のプロファイル",
-    "zh-CN": "最多 15 个配置文件",
-    "zh-TW": "最多 15 個設定檔",
-    "vi": "Tối đa 15 hồ sơ",
-    "hi": "15 प्रोफ़ाइल तक",
-    "es": "Hasta 15 perfiles",
-    "fr": "Jusqu'à 15 profils",
-    "de": "Bis zu 15 Profile",
-    "nl": "Maximaal 15 profielen",
-    "ms": "Sehingga 15 profil"
-  },
   "home.passMini.familyName": {
     "ko": "Code Destiny Family 30일",
     "en": "Code Destiny Family 30 days",
@@ -909,20 +867,6 @@
     "de": "Code Destiny Family 30 Tage",
     "nl": "Code Destiny Familie 30 dagen",
     "ms": "Keluarga Kod Destiny 30 hari"
-  },
-  "home.passMini.familyBenefit2": {
-    "ko": "프로필 무제한",
-    "en": "Unlimited profiles",
-    "ja": "プロフィール無制限",
-    "zh-CN": "档案数量不限",
-    "zh-TW": "檔案數量不限",
-    "vi": "Hồ sơ không giới hạn",
-    "hi": "असीमित प्रोफ़ाइल",
-    "es": "Perfiles ilimitados",
-    "fr": "Profils illimités",
-    "de": "Unbegrenzte Profile",
-    "nl": "Onbeperkt profielen",
-    "ms": "Profil tanpa had"
   },
   "home.passMini.premiumNote": {
     "ko": "프리미엄 꿀은 1만원급 콘텐츠를 자주 보는 분께 가장 균형이 잘 맞습니다.",

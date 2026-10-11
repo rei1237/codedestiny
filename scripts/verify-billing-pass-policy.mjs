@@ -712,7 +712,7 @@ const legacyPdfDiscountCopy = [
   "할인",
 ].join("");
 assertNotContains(pointsSource, legacyPdfDiscountCopy, "standard pass legacy pricing UI removed");
-assertContains(pointsSource, "프로필 추가·수정·삭제 무료, 제한 없음", "family profile unlimited UI");
+assertNotContains(pointsSource, "프로필 최대", "pass plans no longer advertise a profile card cap (2026-10-11)");
 assertContains(pointsSource, "formatSubscriptionPlanPolicy", "subscription pass policy formatter");
 assertContains(statusCardSource, "Family 이용권으로 모든 서비스가 무료 처리됩니다.", "family status card policy");
 assertContains(statusCardSource, "한도 초과 서비스와 PDF는 상품별 원화 단건 결제로 이용할 수 있습니다.", "non-family paid service/PDF status policy");

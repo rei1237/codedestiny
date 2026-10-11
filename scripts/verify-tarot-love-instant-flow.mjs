@@ -50,7 +50,7 @@ win.fetch=(url,init={})=>{
  else if(url.includes('/love-result'))call.resolveWith(stored||{ok:false},stored?(stored.saved?200:202):404);
  else if(url.includes('/billing/refund'))call.resolveWith({ok:true});
  else if(url.includes('/love-reading')&&auto.length){const [status,data]=auto.shift();call.resolveWith(data,status);}
- else if(!url.includes('/love-reading')&&!url.includes('/draw'))throw Error('Unexpected request: '+url);
+ else if(!url.includes('/love-reading')&&!url.includes('/paid-draw'))throw Error('Unexpected request: '+url);
  return promise;
 };
 win._cdCoinGatePerUse=(cost,reason,onOk,_cancel,options)=>{gates.push(options);onOk('0123456789abcdef01234567',{});};
@@ -60,27 +60,50 @@ const flush=async()=>{for(let i=0;i<12;i++)await new Promise(resolve=>setTimeout
 const calls=end=>fetchCalls.filter(call=>call.url.includes(end));
 const pending=end=>calls(end).filter(call=>!call.settled);
 const cards=marker=>Array.from({length:6},(_,i)=>({cardId:'M'+String(i).padStart(2,'0'),nameKr:marker+i,position:'position_'+(i+1),orientation:'upright'}));
+// The paid cards are the server draw (worker/lib/paid-tarot-draw.js); flips wait for it.
+const deal=marker=>pending('/paid-draw').at(-1).resolveWith({ok:true,cards:cards(marker)});
 const draw=doc.getElementById('tarotLoveDrawStage'),grid=doc.getElementById('tarotLoveCardGrid'),content=doc.getElementById('tarotLoveReadingContent');
 const partial={ok:true,status:'partial',saved:false,retryable:true,resultId:'saved-love-result',resumeBody:{resumeResultId:'saved-love-result'},completedParts:['first'],totalParts:21,deliverySections:[{key:'first',title:'카드 근거',body:'먼저 저장된 해석입니다.'}]};
 const complete={...partial,status:'completed',saved:true,reading:{overallVibe:'완료'},deliverySections:[...partial.deliverySections,{key:'last',title:'마지막 조언',body:'끝까지 전달한 해석입니다.'}]};
 win.startTarotLoveReading();assert.equal(draw.classList.contains('is-active'),true);assert.equal(grid.querySelectorAll('.tarot-love-slot').length,6);
-calls('/draw')[0].resolveWith({ok:true,cards:cards('서버')});await flush();assert.match(grid.textContent,/서버0/);
+const dealt=calls('/paid-draw')[0].body;assert.equal(dealt.featureKey,'tarot-love-relationship');assert.equal(dealt.auto,true);assert.ok(dealt.drawId);
+win.flipTarotLoveCard(0);assert.equal(grid.querySelectorAll('[data-revealed="1"]').length,0,'No flip before the server cards arrive');
+deal('서버');await flush();assert.match(grid.textContent,/서버0/);
 for(let i=0;i<6;i++)win.flipTarotLoveCard(i);assert.equal(calls('/love-reading').length,0,'No paid LLM before gate');
 win.showTarotLoveFinalReading();await flush();assert.equal(calls('/love-reading').length,1);
 const original=calls('/love-reading')[0].body;assert.equal(original.requestId,gates[0].requestId);assert.equal(gates[0].resume.args.requestId,original.requestId);
+assert.equal(original.drawId,dealt.drawId);assert.equal(gates[0].resume.args.drawId,dealt.drawId);assert.deepEqual(original.cards.map(card=>card.cardId),cards('서버').map(card=>card.cardId));
 calls('/love-reading')[0].resolveWith(partial,202);await flush();assert.match(content.textContent,/먼저 저장된/);assert.deepEqual(pending('/love-reading')[0].body,{resumeResultId:'saved-love-result'});
 pending('/love-reading')[0].resolveWith(complete);await flush();assert.match(content.textContent,/끝까지 전달/);assert.equal(calls('/billing/refund').length,0);
 // Storage failures preserve the paid attempt and keep manual retry outside the gate.
-win.resetTarotLoveFlow();win.startTarotLoveReading();for(let i=0;i<6;i++)win.flipTarotLoveCard(i);
+win.resetTarotLoveFlow();win.startTarotLoveReading();deal('서버');await flush();for(let i=0;i<6;i++)win.flipTarotLoveCard(i);
 auto=Array.from({length:4},()=>[503,{ok:false,retryable:true,reason:'RESULT_STORAGE_UNAVAILABLE'}]);win.showTarotLoveFinalReading();await flush();
 assert.ok(content.querySelector('[data-love-continue]'));assert.equal(gates.length,2);assert.equal(calls('/billing/refund').length,0);
 const failedOriginal=calls('/love-reading').at(-1).body;auto=[[200,complete]];content.querySelector('[data-love-continue]').click();await flush();assert.equal(gates.length,2);assert.deepEqual(calls('/love-reading').at(-1).body,failedOriginal);
 // Reopening retrieves the saved result without a new LLM request or payment.
 stored={...complete,resumeInputs:failedOriginal};const before=calls('/love-reading').length;win.closeTarotLoveModal();win.openTarotLoveModal();await flush();assert.match(content.textContent,/끝까지 전달/);assert.equal(calls('/love-reading').length,before);assert.equal(gates.length,2);
 // A confirmed exhausted generation with its original charge keeps the existing refund path.
-stored=null;win.resetTarotLoveFlow();win.startTarotLoveReading();for(let i=0;i<6;i++)win.flipTarotLoveCard(i);auto=[[202,{...partial,retryable:false}]];win.showTarotLoveFinalReading();await flush();assert.equal(calls('/billing/refund').length,1);assert.equal(calls('/billing/refund')[0].body.sourceTransactionId,'0123456789abcdef01234567');
+stored=null;win.resetTarotLoveFlow();win.startTarotLoveReading();deal('서버');await flush();for(let i=0;i<6;i++)win.flipTarotLoveCard(i);auto=[[202,{...partial,retryable:false}]];win.showTarotLoveFinalReading();await flush();assert.equal(calls('/billing/refund').length,1);assert.equal(calls('/billing/refund')[0].body.sourceTransactionId,'0123456789abcdef01234567');
 // An account change discards a late generated result.
-win.resetTarotLoveFlow();win.startTarotLoveReading();for(let i=0;i<6;i++)win.flipTarotLoveCard(i);win.showTarotLoveFinalReading();await flush();const staleReading=pending('/love-reading')[0];win.localStorage.setItem('fortune_auth_user',JSON.stringify({id:'owner-b'}));win.dispatchEvent(new win.Event('cd:auth-changed'));await flush();staleReading.resolveWith(complete);await flush();assert.doesNotMatch(content.textContent,/끝까지 전달/);
+win.resetTarotLoveFlow();win.startTarotLoveReading();deal('서버');await flush();for(let i=0;i<6;i++)win.flipTarotLoveCard(i);win.showTarotLoveFinalReading();await flush();const staleReading=pending('/love-reading')[0];win.localStorage.setItem('fortune_auth_user',JSON.stringify({id:'owner-b'}));win.dispatchEvent(new win.Event('cd:auth-changed'));await flush();staleReading.resolveWith(complete);await flush();assert.doesNotMatch(content.textContent,/끝까지 전달/);
 // Late draw responses cannot revive a reset session.
-win.startTarotLoveReading();const staleDraw=pending('/draw').at(-1);win.resetTarotLoveFlow();staleDraw.resolveWith({ok:true,cards:cards('낡은카드')});await flush();assert.doesNotMatch(grid.textContent,/낡은카드/);assert.equal(draw.classList.contains('is-active'),false);
-win.close();console.log('verify-tarot-love-instant-flow: OK (instant draw, paid identity, partial delivery, storage retry, reopening, terminal refund and account isolation)');
+win.startTarotLoveReading();const staleDraw=pending('/paid-draw').at(-1);win.resetTarotLoveFlow();staleDraw.resolveWith({ok:true,cards:cards('낡은카드')});await flush();assert.doesNotMatch(grid.textContent,/낡은카드/);assert.equal(draw.classList.contains('is-active'),false);
+// A failed server draw asks for a new draw instead of reading local cards.
+win.startTarotLoveReading();pending('/paid-draw').at(-1).resolveWith({ok:false,reason:'INVALID_TAROT_DRAW'},400);await flush();assert.equal(alerts.at(-1),'카드를 받아오지 못했습니다. 잠시 후 다시 뽑아 주세요.');assert.equal(draw.classList.contains('is-active'),false);
+// A refused draw (a tab opened before the server draw, or swapped cards) asks for a redraw and keeps the paid
+// request: no refund, no second checkout, and the new server cards finish under the original requestId.
+const redrawCopy="카드를 다시 뽑아 주세요. 이미 결제한 요청으로 이어지며 추가 결제는 없습니다.";
+win.resetTarotLoveFlow();win.startTarotLoveReading();deal("서버");await flush();for(let i=0;i<6;i++)win.flipTarotLoveCard(i);
+const gatesBefore=gates.length,refundsBefore=calls("/billing/refund").length;auto=[[409,{ok:false,retryable:false,reason:"TAROT_DRAW_REQUIRED",message:"카드를 다시 뽑아 주세요."}]];
+win.showTarotLoveFinalReading();await flush();const refused=calls("/love-reading").at(-1).body;
+assert.equal(gates.length,gatesBefore+1);assert.equal(calls("/billing/refund").length,refundsBefore,"A draw refusal is not a refund");assert.equal(alerts.at(-1),redrawCopy);
+win.startTarotLoveReading();deal("새카드");await flush();for(let i=0;i<6;i++)win.flipTarotLoveCard(i);auto=[[200,complete]];win.showTarotLoveFinalReading();await flush();
+const redrawn=calls("/love-reading").at(-1).body;assert.equal(gates.length,gatesBefore+1,"No second checkout for the redraw");assert.equal(redrawn.requestId,refused.requestId);
+assert.notEqual(redrawn.drawId,refused.drawId);assert.match(redrawn.cards.map(card=>card.cardId).join(),/M00/);assert.match(content.textContent,/끝까지 전달/);
+// A reopened page whose saved request names no draw (written before the server draw) asks for the same redraw.
+const legacyEntry={body:{requestId:"tarot-love:pre-deploy",locale:"ko",cards:cards("옛카드").map(({cardId,position,orientation})=>({cardId,position,orientation}))},lastChargeTransactionId:"0123456789abcdef01234567"};
+win.localStorage.setItem("cd:love-tarot-delivery:v1:owner-b",JSON.stringify(legacyEntry));const readsBefore=calls("/love-reading").length;
+win.closeTarotLoveModal();win.openTarotLoveModal();await flush();assert.equal(calls("/love-reading").length,readsBefore,"The draw-less request is not resent");assert.equal(alerts.at(-1),redrawCopy);
+win.startTarotLoveReading();deal("다시뽑은");await flush();for(let i=0;i<6;i++)win.flipTarotLoveCard(i);auto=[[200,complete]];win.showTarotLoveFinalReading();await flush();
+assert.equal(calls("/love-reading").at(-1).body.requestId,"tarot-love:pre-deploy");assert.ok(calls("/love-reading").at(-1).body.drawId);assert.equal(gates.length,gatesBefore+1);
+win.close();console.log('verify-tarot-love-instant-flow: OK (instant draw, server-held cards, paid identity, partial delivery, storage retry, reopening, terminal refund, account isolation and redraw after a draw refusal)');

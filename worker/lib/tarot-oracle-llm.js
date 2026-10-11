@@ -21,7 +21,10 @@ const oracleResponseSchema = jsonSchemaFromExample({
   tension: '', categoryFocus: '', caution: '', actions: [''], closingLine: '',
 });
 
-// 이 라우트는 Gemini 가 죽어도 결과를 내야 하므로 폴백을 켠다. 대신 폴백 응답이 너무 짧으면
+// 유료 오라클 상담(worker/lib/tarot-oracle-delivery.js)은 이 어댑터를 쓰지 않는다. 그 경로는
+// fallbackToWorkersAI:false 로 부분마다 Gemini 를 부르고, 짧은 부분은 두 번 시도 상한 안에서
+// 다시 산다. 아래 문턱은 이 어댑터를 쓰는 generateOracleConsultation 과 그 verify 스크립트에만 걸린다.
+// 이 어댑터는 Gemini 가 죽어도 결과를 내야 하므로 폴백을 켠다. 대신 폴백 응답이 너무 짧으면
 // 거절해야 한다 — 안 그러면 8% 분량이 정상 결제 결과로 나간다(gemini.js 의 rejectShortFallback).
 // 문턱은 목표 분량에 비례시킨다. 고정 상수를 쓰면 1장 스프레드에서 정상 응답이 거절되고
 // 14장에서 미달 응답이 통과한다.

@@ -85,7 +85,6 @@ const TIER_META: Record<SubscriptionTier, {
 type TierCopy = {
   label: string;
   desc: string;
-  profileMax: string;
   freeUpTo: string | null;
 };
 
@@ -101,7 +100,6 @@ type SubscriptionStatusCopy = {
   startDate: string;
   expiryDate: string;
   daysLeft: (days: number) => string;
-  profileMax: string;
   singlePayment: string;
   autoPayment: string;
   autoPaymentValue: string;
@@ -131,7 +129,6 @@ const SUBSCRIPTION_STATUS_COPY: Record<LoadingLocale, SubscriptionStatusCopy> = 
     startDate: "시작일",
     expiryDate: "만료일",
     daysLeft: (days) => `${days}일 남음`,
-    profileMax: "프로필 최대",
     singlePayment: "단건 결제",
     autoPayment: "자동결제 여부",
     autoPaymentValue: "자동결제 아님 · 만료 후 직접 재구매",
@@ -148,31 +145,26 @@ const SUBSCRIPTION_STATUS_COPY: Record<LoadingLocale, SubscriptionStatusCopy> = 
       free: {
         label: "무료 플랜",
         desc: "기본 운세 서비스를 무료로 이용 중입니다. 단건 결제 서비스는 원화 결제로 이용할 수 있습니다.",
-        profileMax: "1개",
         freeUpTo: null,
       },
       standard: {
         label: "스탠다드 꿀 30일",
-        desc: "일반 유료 서비스 5,000원 이하 이용 · PDF 별도 원화 결제 · 최대 3개 프로필",
-        profileMax: "3개",
+        desc: "일반 유료 서비스 5,000원 이하 이용 · PDF 별도 원화 결제",
         freeUpTo: "일반 5,000원 이하 이용 가능",
       },
       premium: {
         label: "프리미엄 꿀 30일",
-        desc: "일반 유료 서비스 10,000원 이하 이용 · PDF 별도 원화 결제 · 최대 7개 프로필",
-        profileMax: "7개",
+        desc: "일반 유료 서비스 10,000원 이하 이용 · PDF 별도 원화 결제",
         freeUpTo: "일반 10,000원 이하 이용 가능",
       },
       vvip: {
         label: "VVIP 꿀단지 30일",
-        desc: "일반 유료 서비스 20,000원 이하 이용 · PDF 별도 원화 결제 · 최대 15개 프로필",
-        profileMax: "15개",
+        desc: "일반 유료 서비스 20,000원 이하 이용 · PDF 별도 원화 결제",
         freeUpTo: "일반 20,000원 이하 이용 가능",
       },
       family: {
         label: "Code Destiny Family 30일",
-        desc: "PDF 포함 모든 유료 서비스 무료 · 프로필 수정·삭제 무료, 제한 없음",
-        profileMax: "무제한",
+        desc: "PDF 포함 모든 유료 서비스 무료",
         freeUpTo: "모든 유료/PDF 서비스 무료",
       },
     },
@@ -189,7 +181,6 @@ const SUBSCRIPTION_STATUS_COPY: Record<LoadingLocale, SubscriptionStatusCopy> = 
     startDate: "Start date",
     expiryDate: "Expiration date",
     daysLeft: (days) => `${days} days left`,
-    profileMax: "Profile limit",
     singlePayment: "Single payment",
     autoPayment: "Auto-payment",
     autoPaymentValue: "No auto-payment · Buy again after expiration",
@@ -206,31 +197,26 @@ const SUBSCRIPTION_STATUS_COPY: Record<LoadingLocale, SubscriptionStatusCopy> = 
       free: {
         label: "Free plan",
         desc: "You are using the basic fortune services for free. Paid single-use services are available in KRW.",
-        profileMax: "1 profile",
         freeUpTo: null,
       },
       standard: {
         label: "Standard Honey 30-day",
-        desc: "General paid services up to KRW 5,000 · PDFs billed separately · Up to 3 profiles",
-        profileMax: "3 profiles",
+        desc: "General paid services up to KRW 5,000 · PDFs billed separately",
         freeUpTo: "General services up to KRW 5,000",
       },
       premium: {
         label: "Premium Honey 30-day",
-        desc: "General paid services up to KRW 10,000 · PDFs billed separately · Up to 7 profiles",
-        profileMax: "7 profiles",
+        desc: "General paid services up to KRW 10,000 · PDFs billed separately",
         freeUpTo: "General services up to KRW 10,000",
       },
       vvip: {
         label: "VVIP Honey Jar 30-day",
-        desc: "General paid services up to KRW 20,000 · PDFs billed separately · Up to 15 profiles",
-        profileMax: "15 profiles",
+        desc: "General paid services up to KRW 20,000 · PDFs billed separately",
         freeUpTo: "General services up to KRW 20,000",
       },
       family: {
         label: "Code Destiny Family 30-day",
-        desc: "All paid services including PDFs · Free profile edits and deletion · No limit",
-        profileMax: "Unlimited",
+        desc: "All paid services including PDFs",
         freeUpTo: "All paid/PDF services included",
       },
     },
@@ -247,7 +233,6 @@ const SUBSCRIPTION_STATUS_COPY: Record<LoadingLocale, SubscriptionStatusCopy> = 
     startDate: "開始日",
     expiryDate: "満了日",
     daysLeft: (days) => `残り${days}日`,
-    profileMax: "プロフィール上限",
     singlePayment: "単品決済",
     autoPayment: "自動決済",
     autoPaymentValue: "自動決済なし · 満了後に再購入",
@@ -264,31 +249,26 @@ const SUBSCRIPTION_STATUS_COPY: Record<LoadingLocale, SubscriptionStatusCopy> = 
       free: {
         label: "無料プラン",
         desc: "基本の占いサービスを無料で利用中です。単品決済サービスはウォン決済で利用できます。",
-        profileMax: "1件",
         freeUpTo: null,
       },
       standard: {
         label: "スタンダード蜜 30日",
-        desc: "一般有料サービス5,000ウォン以下 · PDFは別途ウォン決済 · 最大3プロフィール",
-        profileMax: "3件",
+        desc: "一般有料サービス5,000ウォン以下 · PDFは別途ウォン決済",
         freeUpTo: "一般5,000ウォン以下まで利用可能",
       },
       premium: {
         label: "プレミアム蜜 30日",
-        desc: "一般有料サービス10,000ウォン以下 · PDFは別途ウォン決済 · 最大7プロフィール",
-        profileMax: "7件",
+        desc: "一般有料サービス10,000ウォン以下 · PDFは別途ウォン決済",
         freeUpTo: "一般10,000ウォン以下まで利用可能",
       },
       vvip: {
         label: "VVIP 蜜壺 30日",
-        desc: "一般有料サービス20,000ウォン以下 · PDFは別途ウォン決済 · 最大15プロフィール",
-        profileMax: "15件",
+        desc: "一般有料サービス20,000ウォン以下 · PDFは別途ウォン決済",
         freeUpTo: "一般20,000ウォン以下まで利用可能",
       },
       family: {
         label: "Code Destiny Family 30日",
-        desc: "PDFを含むすべての有料サービス · プロフィール編集/削除無料 · 制限なし",
-        profileMax: "無制限",
+        desc: "PDFを含むすべての有料サービス",
         freeUpTo: "すべての有料/PDFサービス込み",
       },
     },
@@ -305,7 +285,6 @@ const SUBSCRIPTION_STATUS_COPY: Record<LoadingLocale, SubscriptionStatusCopy> = 
     startDate: "开始日",
     expiryDate: "到期日",
     daysLeft: (days) => `剩余 ${days} 天`,
-    profileMax: "档案上限",
     singlePayment: "单次付款",
     autoPayment: "自动续费",
     autoPaymentValue: "非自动续费 · 到期后需重新购买",
@@ -322,31 +301,26 @@ const SUBSCRIPTION_STATUS_COPY: Record<LoadingLocale, SubscriptionStatusCopy> = 
       free: {
         label: "免费方案",
         desc: "你正在免费使用基础运势服务。单次付费服务可使用韩元付款。",
-        profileMax: "1个",
         freeUpTo: null,
       },
       standard: {
         label: "标准蜜糖 30天",
-        desc: "一般付费服务5,000韩元以下 · PDF另行韩元付款 · 最多3个档案",
-        profileMax: "3个",
+        desc: "一般付费服务5,000韩元以下 · PDF另行韩元付款",
         freeUpTo: "可使用5,000韩元以下的一般服务",
       },
       premium: {
         label: "高级蜜糖 30天",
-        desc: "一般付费服务10,000韩元以下 · PDF另行韩元付款 · 最多7个档案",
-        profileMax: "7个",
+        desc: "一般付费服务10,000韩元以下 · PDF另行韩元付款",
         freeUpTo: "可使用10,000韩元以下的一般服务",
       },
       vvip: {
         label: "VVIP 蜜罐 30天",
-        desc: "一般付费服务20,000韩元以下 · PDF另行韩元付款 · 最多15个档案",
-        profileMax: "15个",
+        desc: "一般付费服务20,000韩元以下 · PDF另行韩元付款",
         freeUpTo: "可使用20,000韩元以下的一般服务",
       },
       family: {
         label: "Code Destiny Family 30天",
-        desc: "包含PDF在内的所有付费服务 · 免费编辑/删除档案 · 无限制",
-        profileMax: "无限制",
+        desc: "包含PDF在内的所有付费服务",
         freeUpTo: "所有付费/PDF服务均包含",
       },
     },
@@ -363,7 +337,6 @@ const SUBSCRIPTION_STATUS_COPY: Record<LoadingLocale, SubscriptionStatusCopy> = 
     startDate: "開始日",
     expiryDate: "到期日",
     daysLeft: (days) => `剩餘 ${days} 天`,
-    profileMax: "檔案上限",
     singlePayment: "單次付款",
     autoPayment: "自動續費",
     autoPaymentValue: "非自動續費 · 到期後需重新購買",
@@ -380,31 +353,26 @@ const SUBSCRIPTION_STATUS_COPY: Record<LoadingLocale, SubscriptionStatusCopy> = 
       free: {
         label: "免費方案",
         desc: "你正在免費使用基礎運勢服務。單次付費服務可使用韓元付款。",
-        profileMax: "1個",
         freeUpTo: null,
       },
       standard: {
         label: "標準蜜糖 30天",
-        desc: "一般付費服務5,000韓元以下 · PDF另行韓元付款 · 最多3個檔案",
-        profileMax: "3個",
+        desc: "一般付費服務5,000韓元以下 · PDF另行韓元付款",
         freeUpTo: "可使用5,000韓元以下的一般服務",
       },
       premium: {
         label: "高級蜜糖 30天",
-        desc: "一般付費服務10,000韓元以下 · PDF另行韓元付款 · 最多7個檔案",
-        profileMax: "7個",
+        desc: "一般付費服務10,000韓元以下 · PDF另行韓元付款",
         freeUpTo: "可使用10,000韓元以下的一般服務",
       },
       vvip: {
         label: "VVIP 蜜罐 30天",
-        desc: "一般付費服務20,000韓元以下 · PDF另行韓元付款 · 最多15個檔案",
-        profileMax: "15個",
+        desc: "一般付費服務20,000韓元以下 · PDF另行韓元付款",
         freeUpTo: "可使用20,000韓元以下的一般服務",
       },
       family: {
         label: "Code Destiny Family 30天",
-        desc: "包含PDF在內的所有付費服務 · 免費編輯/刪除檔案 · 無限制",
-        profileMax: "無限制",
+        desc: "包含PDF在內的所有付費服務",
         freeUpTo: "所有付費/PDF服務均包含",
       },
     },
@@ -583,10 +551,6 @@ export default function SubscriptionStatusCard({ subscription }: Props) {
 
             {/* 혜택 요약 */}
             <div className="grid grid-cols-2 gap-2 mt-1">
-              <div className="rounded-[12px] bg-white/8 border border-white/12 px-3 py-2">
-                <p className="text-[10px] text-slate-300 font-bold">{copy.profileMax}</p>
-                <p className="text-[14px] font-black text-white">{meta.profileMax}</p>
-              </div>
               {meta.freeUpTo && (
                 <div className="rounded-[12px] bg-white/8 border border-white/12 px-3 py-2">
                   <p className="text-[10px] text-slate-300 font-bold">{benefitLabel}</p>
