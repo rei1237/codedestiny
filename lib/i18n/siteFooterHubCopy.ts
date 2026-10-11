@@ -311,7 +311,7 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
     refundAriaLabel: "환불 정책 안내",
     refundTitle: "디지털 운세 서비스 환불 안내",
     refundIntro:
-      "유료 결제 상품은 30일 이용권과 상품별 원화 단건 결제이며, 월정석은 별도 구매·충전 상품이 아닙니다.",
+      "유료 결제 상품은 이용권과 상품별 원화 단건 결제이며, 월정석은 별도 구매·충전 상품이 아닙니다.",
     refundClosingPolicy:
       "본 안내는 이용약관 및 결제대행사 정책과 함께 적용되며, 강행규정과 충돌하는 경우 관계 법령을 우선합니다. 환불 접수는 문의하기 또는 고객지원 이메일을 통해 진행하시기 바랍니다.",
     refundClosingMethod: "환불 처리는 결제 수단(카드)으로만 가능합니다.",
@@ -447,7 +447,7 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
     refundAriaLabel: "返金ポリシー案内",
     refundTitle: "デジタル占いサービスの返金案内",
     refundIntro:
-      "有料決済商品は30日パスおよび商品ごとのウォン建て都度決済であり、ムーンストーンは別途購入・チャージする商品ではありません。",
+      "有料決済商品はパスおよび商品ごとのウォン建て都度決済であり、ムーンストーンは別途購入・チャージする商品ではありません。",
     refundClosingPolicy:
       "本案内は利用規約および決済代行会社のポリシーと併せて適用され、強行規定と抵触する場合は関係法令が優先します。返金のお申し込みは、お問い合わせまたはカスタマーサポートのメールからお願いします。",
     refundClosingMethod: "返金は、決済に使用された手段（カード）へのみ行われます。",
@@ -582,7 +582,7 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
     refundAriaLabel: "退款政策说明",
     refundTitle: "数字运势服务退款说明",
     refundIntro:
-      "付费商品为30天通行证与各商品的韩元单次付款，月晶石并非另行购买或充值的商品。",
+      "付费商品为通行证与各商品的韩元单次付款，月晶石并非另行购买或充值的商品。",
     refundClosingPolicy:
       "本说明与服务条款及支付服务商政策一并适用；如与强制性法规冲突，以相关法令为准。退款申请请通过联系我们或客服邮箱提出。",
     refundClosingMethod: "退款仅可退回至原支付方式（银行卡）。",
@@ -717,7 +717,7 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
     refundAriaLabel: "退款政策說明",
     refundTitle: "數位運勢服務退款說明",
     refundIntro:
-      "付費商品為30天通行證與各商品的韓元單次付款，月晶石並非另行購買或儲值的商品。",
+      "付費商品為通行證與各商品的韓元單次付款，月晶石並非另行購買或儲值的商品。",
     refundClosingPolicy:
       "本說明與服務條款及金流服務商政策一併適用；如與強行規定衝突，以相關法令為準。退款申請請透過聯絡我們或客服信箱提出。",
     refundClosingMethod: "退款僅可退回至原支付方式（信用卡）。",
@@ -852,7 +852,7 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
     refundAriaLabel: "Refund policy information",
     refundTitle: "Refund guide for digital fortune services",
     refundIntro:
-      "The paid products are the 30-day Pass and per-item single payments in KRW. Moonstones are not a separately purchased or topped-up product.",
+      "The paid products are the Pass and per-item single payments in KRW. Moonstones are not a separately purchased or topped-up product.",
     refundClosingPolicy:
       "This guide applies together with the Terms of Service and the payment provider's policies; where it conflicts with mandatory law, the applicable statutes prevail. Refund requests can be made through Contact or the customer support email.",
     refundClosingMethod: "Refunds can only be issued to the original payment method (card).",

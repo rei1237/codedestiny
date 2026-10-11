@@ -814,10 +814,10 @@
       "aria": "月光通行证指南",
       "kicker": "月光通行证",
       "title": "让你的运程在月光下更加温柔地流动",
-      "desc": "月光通行证会在 30 天里，把您常回来看的解读，先在设定的范围内为您打开。今日的征兆不必中断，可以安静地一路读下去。",
+      "desc": "月光通行证会在额度用完之前，把您常回来看的解读，先在设定的范围内为您打开。今日的征兆不必中断，可以安静地一路读下去。",
       "guideLabel": "MOONLIGHT GUIDE",
-      "guideTitle": "For 30 days, readings you open often unfold first with a softer flow",
-      "guideText": "From Standard to Family, tarot, oracle, and saju readings open first within your moonlight range. Deeper readings outside that range continue to one-time KRW payment only when needed.",
+      "guideTitle": "在额度用完之前，常打开的运势先柔和展开",
+      "guideText": "从小蜜罐到家庭蜜罐，在所选的月光范围内，塔罗、神谕与八字解读无需经过付款流程即可优先开启。范围之外的深度解读，仅在需要时才转为韩元单次付款。",
       "toggle": "开放月光福利",
       "heroAria": "检查月光流中免费提供的服务",
       "heroTitle": "查看月光通行证范围",
@@ -829,46 +829,47 @@
       "primaryAction": "找到适合我的通行证",
       "chipsAria": "核心通行证优势",
       "chipIncluded": "在通过范围内自由",
-      "chipThirtyDays": "30 天通行证",
+      "chipThirtyDays": "通行证",
       "chipShareReward": "范围外单次付费",
       "plansAria": "通过计划摘要卡",
-      "standardName": "标准蜂蜜 30 天",
-      "standardPrice": "30 天 · 9,900 韩元",
+      "standardName": "小蜜罐",
+      "standardPrice": "9,900 韩元",
       "standardLine": "5,000韩元级内容",
-      "standardBenefit1": "每月最多20,000韩元",
-      "standardBenefit2": "最多 3 个配置文件",
-      "standardCta": "查看标准",
+      "standardBenefit1": "最多20,000韩元",
+      "standardBenefit2": "无期限限制 · 额度用完即结束",
+      "standardCta": "查看小蜜罐",
       "recommendedAria": "推荐计划",
       "recommendedBadge": "推荐",
-      "premiumName": "优质蜂蜜 30 天",
-      "premiumPrice": "30 天 · 29,900 韩元",
+      "premiumName": "中蜜罐",
+      "premiumPrice": "29,900 韩元",
       "premiumLine": "10,000韩元级内容",
-      "premiumBenefit1": "每月最多 60,000韩元",
-      "premiumBenefit2": "最多 7 个配置文件",
+      "premiumBenefit1": "最多60,000韩元",
+      "premiumBenefit2": "无期限限制 · 额度用完即结束",
       "premiumCta": "查看推荐计划",
-      "vvipName": "VVIP 蜂蜜罐 30 天",
-      "vvipPrice": "30 天 · 59,900 韩元",
+      "vvipName": "大蜜罐",
+      "vvipPrice": "59,900 韩元",
       "vvipLine": "30,000韩元级内容",
-      "vvipBenefit1": "每月最多 120,000韩元",
-      "vvipBenefit2": "最多 15 个配置文件",
-      "vvipCta": "查看 VVIP 福利",
-      "familyName": "代码命运家庭 30 天",
-      "familyPrice": "30 天 · 149,000 韩元",
+      "vvipBenefit1": "最多120,000韩元",
+      "vvipBenefit2": "无期限限制 · 额度用完即结束",
+      "vvipCta": "查看大蜜罐福利",
+      "familyName": "家庭蜜罐",
+      "familyPrice": "149,000 韩元",
       "familyLine": "使用权涵盖的全部内容",
-      "familyBenefit1": "每月最多350,000韩元",
-      "familyBenefit2": "档案数量不限",
-      "familyCta": "查看系列",
-      "premiumNote": "如果您常看10,000韩元级内容,高级蜂蜜最为均衡。",
-      "footnote": "新通行证仅作为 30 天通行证出售。此 30 天通行证不是自动续订订阅。通行证范围外的服务可通过按产品一次性支付韩元的方式使用。",
+      "familyBenefit1": "最多350,000韩元",
+      "familyBenefit2": "无期限限制 · 额度用完即结束",
+      "familyCta": "查看家庭蜜罐",
+      "premiumNote": "如果您常看10,000韩元级内容，中蜜罐最为均衡。",
+      "footnote": "通行证没有期限限制，额度用完即结束。此通行证不是自动续订订阅。通行证范围外的服务可通过按产品一次性支付韩元的方式使用。",
       "howtoAria": "月光通行证使用方法",
       "howtoTitle": "月光通行证，这样延续",
-      "step1Label": "选择 30 天月光范围",
-      "step1Text": "用不自动续订的 30 天通行证，先定下你常看的解读价位。",
+      "step1Label": "选择月光范围",
+      "step1Text": "用没有期限、不自动续订的通行证，先定下你常看的解读价位。",
       "step2Label": "范围内解读无需支付即刻开启",
       "step2Text": "所选范围内的塔罗、神谕、四柱解读，无需支付页面即可直接开启。",
       "step3Label": "仅范围外的深度解读按次支付",
       "step3Text": "范围外的深度解读，只在需要时用韩元支付一次。",
-      "terminationNote": "即使每月额度变为0，通行证的到期日、等级和个人资料上限仍会保留。额外付费内容可通过单次付费或月度通行证使用。"
+      "terminationNote": "用完使用额度后，通行证即结束。再次购买将以新的使用额度开始。额外付费内容可通过单次付费或月精石使用。",
+      "noExpiryNote": "无期限限制 · 额度用完即结束"
     },
     "promptHub": {
       "aria": "进入综合运势提示",
@@ -909,11 +910,11 @@
       "eyebrow": "月光通行证",
       "savingsBadge": "使用通行证，价格最高可降至三分之一",
       "title": "两次5,000韩元的解读,已经比9,900韩元的使用权更贵",
-      "desc": "所选价位内的解读在30天里可在每月使用额度内打开,只有更贵的解读才在需要时单次支付。范围分为5,000韩元级、10,000韩元级、20,000韩元级和使用权涵盖的全部内容四档,选择您常看的价位即可。",
+      "desc": "所选价位内的解读可在使用额度用完之前打开,只有更贵的解读才在需要时单次支付。范围分为5,000韩元级、10,000韩元级、20,000韩元级和使用权涵盖的全部内容四档,选择您常看的价位即可。",
       "pointsAria": "核心通行证指南",
       "point1": "无需结账，立即开启",
-      "point2": "可保存 3 张以上资料卡",
-      "point3": "不自动续费的 30 天通行证",
+      "point2": "无期限限制 · 额度用完即结束",
+      "point3": "不自动续费的通行证",
       "mascotAria": "查看月光通行证权益 · 月光通行证商店",
       "mascotAlt": "月光通行证权益图",
       "mascotKicker": "Moonlight Pass Guide",
@@ -1656,12 +1657,12 @@
       "saysName": "妍伊",
       "saysLine": "先看哪种运势呢？选一个就够了。",
       "passMascotAlt": "拿着使用券卡片微笑的花猪妍伊",
-      "passEyebrow": "不自动续订的30天使用券",
-      "passTitle": "经常看运势的话，就选30天使用券",
-      "passDesc": "每次咨询按价格从额度中扣除。30天后自动结束。",
-      "passPer": "/ 30天",
+      "passEyebrow": "无期限、不自动续订的使用券",
+      "passTitle": "Yeoni 为你介绍的使用券",
+      "passDesc": "偶尔看就单次付款，常看就用使用券。请确认可使用的咨询与使用额度。",
+      "passPer": "· 无期限限制",
       "passBadge": "含灵喵",
-      "passNote": "Standard、Premium、VVIP 适用于花猪运势，Family 适用于花猪和灵喵的付费解读。已购买的使用券保持购买时的条件。",
+      "passNote": "小蜜罐、中蜜罐、大蜜罐适用于花猪运势，家庭蜜罐适用于花猪和灵喵的付费解读。已购买的使用券保持购买时的条件。",
       "passCta": "查看4种使用券",
       "moreTitle": "探索妍伊的工作室",
       "moreItems": "Daily readings · consultations · records · stories",
@@ -1836,9 +1837,9 @@
       "reviewReward": "公开审核通过后发放月光石",
       "reviewDetail": "可在Ggulggul使用，每个商品限发放一次。",
       "reviewAction": "写评价",
-      "passStandard": "妍伊 Standard",
-      "passPremium": "妍伊 Premium",
-      "passVvip": "妍伊 VVIP",
+      "passStandard": "小蜜罐",
+      "passPremium": "中蜜罐",
+      "passVvip": "大蜜罐",
       "passPerLimit": "每次解读上限{amount}韩元",
       "passTotal": "总额度：{amount}韩元",
       "passNoLimit": "付费解读无单次价格上限",
@@ -1866,7 +1867,8 @@
       "neoClassSource": "八字课程学员 · KakaoTalk评价摘录（韩文）",
       "neoNote": "以下摘录来自Neo本人提供的咨询和课程，与AI咨询属于不同服务。个人经历不保证相同结果。",
       "neoAbout": "了解Neo与服务",
-      "neoMore": "更多咨询评价"
+      "neoMore": "更多咨询评价",
+      "passFamily": "家庭蜜罐"
     },
     "simple": {
       "lead": "说说你的烦恼，先了解解读内容和价格。",
@@ -2349,7 +2351,7 @@
       "passStoreTitle": "月光通行券商店",
       "passRetryTitle": "重新检查通行券",
       "passHint": {
-        "store": "支付一次，30天内可打开多个内容。已经有了？点一下即可确认。",
+        "store": "支付一次，在额度用完之前可打开多个内容。已经有了？点一下即可确认。",
         "retry": "服务器将重新检查持有通行券是否可免支付开启。",
         "upgrade": "当前等级无法打开此内容。看看更高的等级吧。"
       },
@@ -2422,7 +2424,7 @@
         "comingSoon": "敬请期待",
         "back": "返回"
       },
-      "passMonthlyExhausted": "通行证额度已全部用完，通行证已结束。重新购买将重新开始 30 天，现在可以通过单次支付或月精石解锁。",
+      "passMonthlyExhausted": "通行证额度已全部用完，通行证已结束。重新购买将以新的额度开始，现在可以通过单次支付或月精石解锁。",
       "passMonthlyRemaining": "通行证剩余额度 {remaining} / {limit}",
       "wait": {
         "card": "在银行卡或快捷支付应用中完成认证后，返回此浏览器即可自动继续。",
@@ -2454,7 +2456,7 @@
         "pass": {
           "eyebrow": "月光通行证检查",
           "title": "正在确认通行券",
-          "message": "正在确认持有的30天通行券是否可立即开启。",
+          "message": "正在确认持有的通行券是否可立即开启。",
           "meta": "如可使用，将无需打开支付窗口继续。"
         },
         "passApplied": {
@@ -2525,7 +2527,7 @@
         "pass": {
           "eyebrow": "月光通行证检查",
           "title": "正在确认通行券",
-          "message": "正在确认持有的30天通行券是否可立即开启。",
+          "message": "正在确认持有的通行券是否可立即开启。",
           "meta": "如可使用，将无需打开支付窗口继续。"
         },
         "passApplied": {
@@ -2609,7 +2611,7 @@
     "passShop": {
       "monthlyStatus": "已确认月精石余量。",
       "chargeButton": "前往 {amount} 支付页面",
-      "chargeNotice": "通行证商品 {price} · 这是 30 天通行证，并非自动续费。通行证仅可通过韩元单次支付购买。",
+      "chargeNotice": "通行证商品 {price} · 这是通行证，并非自动续费。通行证仅可通过韩元单次支付购买。",
       "best": "BEST",
       "monthlyBasisWithPrice": "月定石基准 {credits} · {price}",
       "profileUnlimited": "不限资料",
@@ -2620,24 +2622,24 @@
       "closeAria": "关闭月光通行券商店说明",
       "openAria": "打开月光通行券商店说明",
       "title": "月光通行券商店说明",
-      "subtitle": "查看月光停留的30天通行券与月定石流程。",
-      "footerNotice": "此30天通行券不是自动续费商品。到期后需要重新购买。",
+      "subtitle": "使用券以韩元单次付款购买，月精石用于单项付费功能。",
+      "footerNotice": "此通行券不是自动续费商品。额度用完后需要重新购买。",
       "packages": {
         "standard": {
-          "name": "标准蜂蜜30天",
-          "desc": "30天 · 5,000韩元级内容 · 每月最多20,000韩元"
+          "name": "小蜜罐",
+          "desc": "5,000韩元级内容 · 最多20,000韩元"
         },
         "premium": {
-          "name": "高级蜂蜜30天",
-          "desc": "30天 · 10,000韩元级内容 · 每月最多 60,000韩元"
+          "name": "中蜜罐",
+          "desc": "10,000韩元级内容 · 最多60,000韩元"
         },
         "vvip": {
-          "name": "VVIP蜂蜜罐30天",
-          "desc": "30天 · 30,000韩元级内容 · 每月最多 120,000韩元"
+          "name": "大蜜罐",
+          "desc": "30,000韩元级内容 · 最多120,000韩元"
         },
         "family": {
-          "name": "Code Destiny Family 30天",
-          "desc": "30天 · 使用权涵盖的全部内容 · 每月最多350,000韩元"
+          "name": "家庭蜜罐",
+          "desc": "使用权涵盖的全部内容 · 最多350,000韩元"
         }
       },
       "monthlyStatusChecking": "正在确认余额和通行证状态。",
@@ -2646,7 +2648,7 @@
       "monthlyButton": "使用月定石 {credits} 支付",
       "monthlyButtonBusy": "正在用月定石激活通行证...",
       "monthlyButtonShort": "需要月定石 {credits} · 余额不足",
-      "terminationNotice": "用完每月额度后，无论还剩多少天，通行证都会结束。重新购买将从当天起重新开始 30 天。"
+      "terminationNotice": "用完使用额度后，通行证即结束。再次购买将以新的使用额度开始。额外付费内容可通过单次付费或月精石使用。"
     },
     "access": {
       "passAppliedContinue": "已使用通行券打开。"

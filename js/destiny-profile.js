@@ -2531,7 +2531,7 @@
     try {
       var info = meta && typeof meta === 'object' ? meta : {};
       var tierRaw = String(info.subscriptionTier || info.tier || '').trim().toLowerCase();
-      var tierLabel = tierRaw === 'vvip' ? 'VVIP' : (tierRaw === 'premium' ? '프리미엄' : (tierRaw === 'standard' ? '스탠다드' : '구독'));
+      var tierLabel = tierRaw.indexOf('family') >= 0 ? '패밀리 꿀단지' : (tierRaw === 'vvip' ? '큰 꿀단지' : (tierRaw === 'premium' ? '중간 꿀단지' : (tierRaw === 'standard' ? '작은 꿀단지' : '구독')));
       var requiredCoins = Number(info.requiredCoins || 0);
       var freeLimit = Number(info.freeLimit || 0);
       var message = String(info.message || '').trim() || (tierLabel + ' 혜택으로 이번 리딩은 추가 결제 없이 열렸어요. 연이가 별빛 방패로 지켜드렸어요.');
@@ -12548,7 +12548,7 @@
       : _dpCheckoutText('payment.directModal.passBuyTitle', '이용권으로 열기');
     var passHint = hasActivePassTier
       ? _dpCheckoutText('payment.directModal.passHint.upgrade', '지금 등급으로는 이 콘텐츠가 열리지 않아요. 더 넓은 등급을 확인해 보세요.')
-      : _dpCheckoutText('payment.directModal.passHint.store', '한 번 결제하고 30일 동안 여러 콘텐츠를 열 수 있어요. 이미 있다면 눌러서 바로 확인돼요.');
+      : _dpCheckoutText('payment.directModal.passHint.store', '한 번 결제하고 이용 한도를 다 쓸 때까지 여러 콘텐츠를 열 수 있어요. 이미 있다면 눌러서 바로 확인돼요.');
     // 활성 스냅샷이 월 잔여를 알면 "이번 달 남은 한도"를 덧붙인다(coin-gate 응답이 되쓴 값). 모르면 붙이지 않는다.
     try {
       var passCardApi = _dpPassVerdict();
@@ -12923,7 +12923,7 @@
               hit.classList.remove('is-loading');
               var passMonthlyNode = root.querySelector('[data-payment-status]');
               if (passMonthlyNode) {
-                passMonthlyNode.textContent = _dpCheckoutText('payment.directModal.passMonthlyExhausted', '이용권 월 한도를 모두 사용했어요. 만료일까지 등급과 프로필 상한은 유지되며, 추가 콘텐츠는 단건 결제나 월정석으로 이용할 수 있어요.');
+                passMonthlyNode.textContent = _dpCheckoutText('payment.directModal.passMonthlyExhausted', '이용 한도를 모두 사용해 이용권이 종료되었어요. 다시 구매하면 새 이용 한도로 시작하며, 지금은 단건 결제나 월정석으로 열 수 있어요.');
                 passMonthlyNode.style.color = '#fca5a5';
               }
               return;

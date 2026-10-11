@@ -814,10 +814,10 @@
       "aria": "Guía del pase a la luz de la luna",
       "kicker": "PASE A LA LUZ DE LA LUNA",
       "title": "Deja que tu rutina de la fortuna fluya más suavemente con un pase a la luz de la luna",
-      "desc": "El Moonlight Pass abre durante 30 días, dentro de un rango definido, las lecturas a las que vuelves con frecuencia. Las señales de hoy siguen su curso sin interrupciones.",
+      "desc": "El Moonlight Pass abre, dentro de un rango definido y hasta que agotes su límite de uso, las lecturas a las que vuelves con frecuencia. Las señales de hoy siguen su curso sin interrupciones.",
       "guideLabel": "GUIA DE LUZ LUNAR",
-      "guideTitle": "Durante 30 dias, las lecturas que abres a menudo se despliegan primero con suavidad",
-      "guideText": "De Standard a Family, las lecturas de tarot, oraculo y saju se abren primero dentro de tu alcance de luz lunar. Las lecturas mas profundas fuera de ese alcance pasan a pago unico en KRW solo cuando lo necesitas.",
+      "guideTitle": "Hasta agotar tu límite de uso, las lecturas que abres a menudo se despliegan primero con suavidad",
+      "guideText": "Del Tarro de miel pequeño al Tarro de miel familiar, las lecturas de tarot, oráculo y saju se abren primero dentro de tu alcance de luz lunar. Las lecturas más profundas fuera de ese alcance pasan a pago único en KRW solo cuando lo necesitas.",
       "toggle": "Beneficios abiertos a la luz de la luna",
       "heroAria": "Consulta los servicios disponibles de forma gratuita en el flujo de luz de la luna.",
       "heroTitle": "Ver el rango del Moonlight Pass",
@@ -829,46 +829,47 @@
       "primaryAction": "Encuentra el pase que me conviene",
       "chipsAria": "Beneficios del pase principal",
       "chipIncluded": "Libre dentro del rango de pase",
-      "chipThirtyDays": "Pase de 30 días",
+      "chipThirtyDays": "Pase",
       "chipShareReward": "Pago único fuera del rango",
       "plansAria": "Tarjetas de resumen del plan de pase",
-      "standardName": "Miel Estándar 30 días",
-      "standardPrice": "30 días · KRW 9.900",
+      "standardName": "Tarro de miel pequeño",
+      "standardPrice": "KRW 9.900",
       "standardLine": "Contenido de hasta 5000 KRW",
-      "standardBenefit1": "Hasta 20.000 KRW al mes",
-      "standardBenefit2": "Hasta 3 perfiles",
-      "standardCta": "Ver estándar",
+      "standardBenefit1": "Hasta 20.000 KRW",
+      "standardBenefit2": "Sin límite de tiempo · Termina al agotar el límite de uso",
+      "standardCta": "Ver Tarro de miel pequeño",
       "recommendedAria": "Plan recomendado",
       "recommendedBadge": "Recomendado",
-      "premiumName": "Miel Premium 30 días",
-      "premiumPrice": "30 días · KRW 29.900",
+      "premiumName": "Tarro de miel mediano",
+      "premiumPrice": "KRW 29.900",
       "premiumLine": "Contenido de hasta 10.000 KRW",
-      "premiumBenefit1": "Hasta 60.000 KRW al mes",
-      "premiumBenefit2": "Hasta 7 perfiles",
+      "premiumBenefit1": "Hasta 60.000 KRW",
+      "premiumBenefit2": "Sin límite de tiempo · Termina al agotar el límite de uso",
       "premiumCta": "Ver plan recomendado",
-      "vvipName": "VVIP Tarro Miel 30 días",
-      "vvipPrice": "30 días · KRW 59.900",
+      "vvipName": "Tarro de miel grande",
+      "vvipPrice": "KRW 59.900",
       "vvipLine": "Contenido de hasta 30.000 KRW",
-      "vvipBenefit1": "Hasta 120.000 KRW al mes",
-      "vvipBenefit2": "Hasta 15 perfiles",
-      "vvipCta": "Ver beneficios VVIP",
-      "familyName": "Código Destino Familia 30 días",
-      "familyPrice": "30 días · KRW 149.000",
+      "vvipBenefit1": "Hasta 120.000 KRW",
+      "vvipBenefit2": "Sin límite de tiempo · Termina al agotar el límite de uso",
+      "vvipCta": "Ver beneficios del Tarro de miel grande",
+      "familyName": "Tarro de miel familiar",
+      "familyPrice": "KRW 149.000",
       "familyLine": "Todo el contenido incluido en el pase",
-      "familyBenefit1": "Hasta 350.000 KRW al mes",
-      "familyBenefit2": "Perfiles ilimitados",
-      "familyCta": "Ver familia",
-      "premiumNote": "Premium Honey es la opción más equilibrada si sueles usar contenido de unos 10.000 KRW.",
-      "footnote": "Los pases nuevos se venden únicamente como pases de 30 días. Este pase de 30 días no es una suscripción que se renueva automáticamente. Los servicios fuera del rango del pase se pueden utilizar con un pago único en KRW por producto.",
+      "familyBenefit1": "Hasta 350.000 KRW",
+      "familyBenefit2": "Sin límite de tiempo · Termina al agotar el límite de uso",
+      "familyCta": "Ver Tarro de miel familiar",
+      "premiumNote": "El Tarro de miel mediano es la opción más equilibrada si sueles usar contenido de unos 10.000 KRW.",
+      "footnote": "Los pases no tienen límite de tiempo y terminan al agotar el límite de uso. Este pase no es una suscripción que se renueva automáticamente. Los servicios fuera del rango del pase se pueden utilizar con un pago único en KRW por producto.",
       "howtoAria": "Cómo usar el pase moonlight",
       "howtoTitle": "Así fluye el pase moonlight",
-      "step1Label": "Elige un rango moonlight de 30 días",
-      "step1Text": "Con un pase de 30 días sin renovación automática, primero fija el rango de precio de las lecturas que consultas a menudo.",
+      "step1Label": "Elige un rango moonlight",
+      "step1Text": "Con un pase sin límite de tiempo ni renovación automática, primero fija el rango de precio de las lecturas que consultas a menudo.",
       "step2Label": "Las lecturas dentro del rango se abren sin pago",
       "step2Text": "Las lecturas de tarot, oráculo y saju dentro de tu rango se abren al instante, sin ventana de pago.",
       "step3Label": "Solo las lecturas más profundas se pagan por uso",
       "step3Text": "Las lecturas fuera de tu rango continúan con un pago único en KRW solo cuando lo necesitas.",
-      "terminationNote": "Aunque el límite mensual llegue a cero, se mantienen la fecha de vencimiento, el nivel y el límite de perfiles del pase. El contenido adicional de pago está disponible con un pago único o un pase mensual."
+      "terminationNote": "Cuando se agota el límite de uso, el pase termina. Si lo vuelves a comprar, empiezas con un nuevo límite de uso. El contenido adicional de pago está disponible con un pago único o Piedras de Luz Lunar.",
+      "noExpiryNote": "Sin límite de tiempo · Termina al agotar el límite de uso"
     },
     "promptHub": {
       "aria": "Ir a indicaciones completas sobre la fortuna",
@@ -909,11 +910,11 @@
       "eyebrow": "Pase a la luz de la luna",
       "savingsBadge": "Con el pase, hasta un tercio del precio",
       "title": "Dos lecturas de 5.000 KRW ya cuestan más que el pase de 9.900 KRW",
-      "desc": "Las lecturas dentro del rango que elijas se abren durante 30 días, hasta tu límite de uso mensual; solo las más caras se pagan una a una cuando las necesitas. Los cuatro rangos son 5.000 KRW · 10.000 KRW · 20.000 KRW y todo el contenido incluido en el pase, así que elige el precio que más consultas.",
+      "desc": "Las lecturas dentro del rango que elijas se abren hasta que agotes tu límite de uso; solo las más caras se pagan una a una cuando las necesitas. Los cuatro rangos son 5.000 KRW · 10.000 KRW · 20.000 KRW y todo el contenido incluido en el pase, así que elige el precio que más consultas.",
       "pointsAria": "Guía de pase básico",
       "point1": "Se abre al instante, sin pago",
-      "point2": "Guarda 3 perfiles o más",
-      "point3": "Pase de 30 días sin renovación automática",
+      "point2": "Sin límite de tiempo · Termina al agotar el límite de uso",
+      "point3": "Pase sin renovación automática",
       "mascotAria": "Ver las ventajas del Moonlight Pass · Tienda del Moonlight Pass",
       "mascotAlt": "Imagen de las ventajas del Moonlight Pass",
       "mascotKicker": "Moonlight Pass Guide",
@@ -1656,12 +1657,12 @@
       "saysName": "Yeoni",
       "saysLine": "Which reading shall we start with? Just one is plenty.",
       "passMascotAlt": "Yeoni the flower pig smiling with a pass card",
-      "passEyebrow": "30-day pass, no auto-renewal",
-      "passTitle": "Reading often? Try a 30-day pass",
-      "passDesc": "Each reading's price is deducted from your allowance. It ends automatically after 30 days.",
-      "passPer": "/ 30 days",
+      "passEyebrow": "Pase sin límite de tiempo ni renovación automática",
+      "passTitle": "Yeoni te presenta el pase",
+      "passDesc": "Paga por lectura de vez en cuando o usa un pase si lees a menudo. Revisa las consultas disponibles y tu límite de uso.",
+      "passPer": "· Sin límite de tiempo",
       "passBadge": "Incl. Yeongnyangi",
-      "passNote": "Standard, Premium and VVIP apply to Flower Pig readings; Family applies to paid readings from both Flower Pig and Yeongnyangi. Passes you already bought keep the terms from the time of purchase.",
+      "passNote": "Los Tarros de miel pequeño, mediano y grande se aplican a las lecturas de Flower Pig; el Tarro de miel familiar se aplica a las lecturas de pago de Flower Pig y Yeongnyangi. Los pases que ya compraste conservan las condiciones del momento de la compra.",
       "passCta": "See all 4 passes",
       "moreTitle": "Explora el taller de Yeoni",
       "moreItems": "Daily readings · consultations · records · stories",
@@ -1836,9 +1837,9 @@
       "reviewReward": "Moonstones after publication approval",
       "reviewDetail": "Use them in Ggulggul. Awarded once per product.",
       "reviewAction": "Write a review",
-      "passStandard": "Yeoni Standard",
-      "passPremium": "Yeoni Premium",
-      "passVvip": "Yeoni VVIP",
+      "passStandard": "Tarro de miel pequeño",
+      "passPremium": "Tarro de miel mediano",
+      "passVvip": "Tarro de miel grande",
       "passPerLimit": "Up to KRW {amount} per reading",
       "passTotal": "Total allowance: KRW {amount}",
       "passNoLimit": "No per-reading price limit",
@@ -1866,7 +1867,8 @@
       "neoClassSource": "Saju student · KakaoTalk excerpt (Korean)",
       "neoNote": "Excerpts from Neo’s personal consultations and classes, separate from the AI reading service. Individual experiences do not guarantee similar results.",
       "neoAbout": "About Neo and the service",
-      "neoMore": "More consultation reviews"
+      "neoMore": "More consultation reviews",
+      "passFamily": "Tarro de miel familiar"
     },
     "simple": {
       "lead": "Cuéntanos qué te preocupa. Consulta el contenido y el precio antes de empezar.",
@@ -2343,13 +2345,13 @@
         "passSaveUnverified": "No hemos podido guardar el resultado de aplicar tu pase. Vuelve a comprobarlo con la tarjeta de pase de abajo o elige otro método de pago.",
         "passCheckFailed": "No hemos podido comprobar tu pase. Vuelve a intentarlo con la tarjeta de pase de abajo o elige otro método de pago.",
         "passMiss": "Tu pase no abre este contenido gratis, así que aquí tienes las opciones de pago.",
-        "passMonthlyExhausted": "Your pass allowance is fully used, so the pass has ended. Here are the payment options."
+        "passMonthlyExhausted": "Your pass usage limit is fully used, so the pass has ended. Here are the payment options."
       },
       "passBadge": "Pase a la luz de la luna",
       "passStoreTitle": "Tienda de pases a la luz de la luna",
       "passRetryTitle": "Verificar pase nuevamente",
       "passHint": {
-        "store": "Paga una vez y abre muchos contenidos durante 30 días. ¿Ya tienes uno? Toca para comprobarlo.",
+        "store": "Paga una vez y abre muchos contenidos hasta agotar el límite de uso. ¿Ya tienes uno? Toca para comprobarlo.",
         "retry": "Revisaremos el servidor nuevamente para ver si su pase puede abrirlo sin pago.",
         "upgrade": "Tu nivel actual no abre este contenido. Echa un vistazo a un nivel superior."
       },
@@ -2422,7 +2424,7 @@
         "comingSoon": "Próximamente",
         "back": "Atrás"
       },
-      "passMonthlyExhausted": "Your pass allowance is fully used, so the pass has ended. Buying a new pass starts another 30 days; for now you can open this with a one-time payment or moonstones.",
+      "passMonthlyExhausted": "Your pass usage limit is fully used, so the pass has ended. Buying again starts a new usage limit; for now you can open this with a one-time payment or moonstones.",
       "passMonthlyRemaining": "Pass allowance left {remaining} / {limit}",
       "wait": {
         "card": "After you finish verifying in your card or payment app, come back to this browser and checkout will continue automatically.",
@@ -2454,7 +2456,7 @@
         "pass": {
           "eyebrow": "VERIFICACIÓN DEL PASE A LA LUZ DE LA LUNA",
           "title": "Comprobando tu pase",
-          "message": "Comprobando si su pase de 30 días puede abrir esto de inmediato.",
+          "message": "Comprobando si su pase puede abrir esto de inmediato.",
           "meta": "Si está disponible, continuará sin una ventana de pago."
         },
         "passApplied": {
@@ -2525,7 +2527,7 @@
         "pass": {
           "eyebrow": "VERIFICACIÓN DEL PASE A LA LUZ DE LA LUNA",
           "title": "Comprobando tu pase",
-          "message": "Comprobando si su pase de 30 días puede abrir esto de inmediato.",
+          "message": "Comprobando si su pase puede abrir esto de inmediato.",
           "meta": "Si está disponible, continuará sin una ventana de pago."
         },
         "passApplied": {
@@ -2609,7 +2611,7 @@
     "passShop": {
       "monthlyStatus": "Tu saldo de piedras lunares está confirmado.",
       "chargeButton": "Ir a la página de pago de {amount}",
-      "chargeNotice": "Producto de pase {price} · Es un pase de 30 días, no un pago con renovación automática. Los pases solo se compran con un pago único en KRW.",
+      "chargeNotice": "Producto de pase {price} · Es un pase, no un pago con renovación automática. Los pases solo se compran con un pago único en KRW.",
       "best": "BEST",
       "monthlyBasisWithPrice": "Base de crédito mensual {credits} · {price}",
       "profileUnlimited": "Perfiles ilimitados",
@@ -2620,24 +2622,24 @@
       "closeAria": "Cerrar Guía de la tienda Moonlight Pass",
       "openAria": "Guía de la tienda Open Moonlight Pass",
       "title": "Guía de compras del Moonlight Pass",
-      "subtitle": "Revise el pase de 30 días y el flujo de crédito mensual a la luz de la luna.",
-      "footerNotice": "Este pase de 30 días no es un producto que se renueva automáticamente. Debes comprarlo nuevamente después de que caduque.",
+      "subtitle": "Los pases se compran con un pago único en KRW y las Piedras de Luz Lunar se usan en funciones de pago individuales.",
+      "footerNotice": "Este pase no es un producto que se renueva automáticamente. Debes comprarlo nuevamente después de agotar su límite de uso.",
       "packages": {
         "standard": {
-          "name": "Miel Estándar 30 Días",
-          "desc": "30 días · Contenido de hasta 5000 KRW · Hasta 20.000 KRW al mes"
+          "name": "Tarro de miel pequeño",
+          "desc": "Contenido de hasta 5000 KRW · Hasta 20.000 KRW"
         },
         "premium": {
-          "name": "Miel Premium 30 Días",
-          "desc": "30 días · Contenido de hasta 10.000 KRW · Hasta 60.000 KRW al mes"
+          "name": "Tarro de miel mediano",
+          "desc": "Contenido de hasta 10.000 KRW · Hasta 60.000 KRW"
         },
         "vvip": {
-          "name": "Tarro de Miel VVIP 30 Días",
-          "desc": "30 días · Contenido de hasta 30.000 KRW · Hasta 120.000 KRW al mes"
+          "name": "Tarro de miel grande",
+          "desc": "Contenido de hasta 30.000 KRW · Hasta 120.000 KRW"
         },
         "family": {
-          "name": "Código Destino Familia 30 Días",
-          "desc": "30 días · Todo el contenido incluido en el pase · Hasta 350.000 KRW al mes"
+          "name": "Tarro de miel familiar",
+          "desc": "Todo el contenido incluido en el pase · Hasta 350.000 KRW"
         }
       },
       "monthlyStatusChecking": "Verificando el saldo y el estado del Pase.",
@@ -2646,7 +2648,7 @@
       "monthlyButton": "Pagar con {credits} créditos mensuales",
       "monthlyButtonBusy": "Activando tu pase con créditos mensuales...",
       "monthlyButtonShort": "Se necesitan {credits} · saldo insuficiente",
-      "terminationNotice": "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day."
+      "terminationNotice": "Cuando se agota el límite de uso, el pase termina. Si lo vuelves a comprar, empiezas con un nuevo límite de uso. El contenido adicional de pago está disponible con un pago único o Piedras de Luz Lunar."
     },
     "access": {
       "passAppliedContinue": "Abierto con su pase."

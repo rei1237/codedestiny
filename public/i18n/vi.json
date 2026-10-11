@@ -814,10 +814,10 @@
       "aria": "Hướng dẫn sử dụng thẻ Moonlight",
       "kicker": "THƯ VIỆN NGĂNG",
       "title": "Hãy để vận may của bạn trôi qua nhẹ nhàng hơn với ánh trăng trôi qua",
-      "desc": "Moonlight Pass mở trước những bài đọc bạn hay quay lại, trong một phạm vi đã định, suốt 30 ngày. Điềm báo hôm nay cứ thế tiếp diễn mà không bị ngắt quãng.",
+      "desc": "Moonlight Pass mở trước những bài đọc bạn hay quay lại, trong một phạm vi đã định, cho đến khi bạn dùng hết hạn mức sử dụng. Điềm báo hôm nay cứ thế tiếp diễn mà không bị ngắt quãng.",
       "guideLabel": "HUONG DAN ANH TRANG",
-      "guideTitle": "Trong 30 ngay, nhung lan xem ban thuong mo se duoc mo truoc that em diu",
-      "guideText": "Tu Standard den Family, cac bai tarot, oracle va saju trong pham vi anh trang ban chon se mo truoc ma khong can di qua luong thanh toan. Nhung bai xem sau hon ngoai pham vi do chi chuyen sang thanh toan mot lan bang KRW khi can.",
+      "guideTitle": "Cho đến khi dùng hết hạn mức, những lần xem bạn thường mở sẽ được mở trước thật êm dịu",
+      "guideText": "Từ Hũ mật ong nhỏ đến Hũ mật ong gia đình, các bài tarot, oracle và saju trong phạm vi ánh trăng bạn chọn sẽ mở trước mà không cần qua luồng thanh toán. Những bài xem sâu hơn ngoài phạm vi đó chỉ chuyển sang thanh toán một lần bằng KRW khi cần.",
       "toggle": "Mở lợi ích ánh trăng",
       "heroAria": "Kiểm tra các dịch vụ có sẵn miễn phí dưới ánh trăng",
       "heroTitle": "Xem phạm vi Moonlight Pass",
@@ -829,46 +829,47 @@
       "primaryAction": "Tìm pass phù hợp với tôi",
       "chipsAria": "Lợi ích của thẻ cốt lõi",
       "chipIncluded": "Miễn phí trong phạm vi vượt qua",
-      "chipThirtyDays": "Thẻ 30 ngày",
+      "chipThirtyDays": "Thẻ pass",
       "chipShareReward": "Ngoài phạm vi: thanh toán từng lần",
       "plansAria": "Vượt qua thẻ tóm tắt kế hoạch",
-      "standardName": "Mật ong chuẩn 30 ngày",
-      "standardPrice": "30 ngày · 9.900 KRW",
+      "standardName": "Hũ mật ong nhỏ",
+      "standardPrice": "9.900 KRW",
       "standardLine": "Nội dung đến khoảng 5.000 KRW",
-      "standardBenefit1": "Tối đa 20.000 KRW mỗi tháng",
-      "standardBenefit2": "Tối đa 3 hồ sơ",
-      "standardCta": "Xem tiêu chuẩn",
+      "standardBenefit1": "Tối đa 20.000 KRW",
+      "standardBenefit2": "Không giới hạn thời gian · Kết thúc khi dùng hết hạn mức",
+      "standardCta": "Xem Hũ mật ong nhỏ",
       "recommendedAria": "Gói đề xuất",
       "recommendedBadge": "Được đề xuất",
-      "premiumName": "Mật ong cao cấp 30 ngày",
-      "premiumPrice": "30 ngày · 29.900 KRW",
+      "premiumName": "Hũ mật ong vừa",
+      "premiumPrice": "29.900 KRW",
       "premiumLine": "Nội dung đến khoảng 10.000 KRW",
-      "premiumBenefit1": "Tối đa 60.000 KRW mỗi tháng",
-      "premiumBenefit2": "Tối đa 7 hồ sơ",
+      "premiumBenefit1": "Tối đa 60.000 KRW",
+      "premiumBenefit2": "Không giới hạn thời gian · Kết thúc khi dùng hết hạn mức",
       "premiumCta": "Xem gói đề xuất",
-      "vvipName": "Hũ mật ong VVIP 30 ngày",
-      "vvipPrice": "30 ngày · 59.900 KRW",
+      "vvipName": "Hũ mật ong lớn",
+      "vvipPrice": "59.900 KRW",
       "vvipLine": "Nội dung đến khoảng 30.000 KRW",
-      "vvipBenefit1": "Tối đa 120.000 KRW mỗi tháng",
-      "vvipBenefit2": "Tối đa 15 hồ sơ",
-      "vvipCta": "Xem lợi ích VVIP",
-      "familyName": "Mã Định Mệnh Gia Đình 30 ngày",
-      "familyPrice": "30 ngày · 149.000 KRW",
+      "vvipBenefit1": "Tối đa 120.000 KRW",
+      "vvipBenefit2": "Không giới hạn thời gian · Kết thúc khi dùng hết hạn mức",
+      "vvipCta": "Xem lợi ích Hũ mật ong lớn",
+      "familyName": "Hũ mật ong gia đình",
+      "familyPrice": "149.000 KRW",
       "familyLine": "Toàn bộ nội dung áp dụng gói",
-      "familyBenefit1": "Tối đa 350.000 KRW mỗi tháng",
-      "familyBenefit2": "Hồ sơ không giới hạn",
-      "familyCta": "Xem gia đình",
-      "premiumNote": "Premium Honey cân bằng nhất nếu bạn thường dùng nội dung khoảng 10.000 KRW.",
-      "footnote": "Vé mới chỉ được bán dưới dạng vé 30 ngày. Thẻ 30 ngày này không phải là đăng ký tự động gia hạn. Các dịch vụ nằm ngoài phạm vi vượt qua có thể được sử dụng bằng cách thanh toán KRW một lần cho từng sản phẩm.",
+      "familyBenefit1": "Tối đa 350.000 KRW",
+      "familyBenefit2": "Không giới hạn thời gian · Kết thúc khi dùng hết hạn mức",
+      "familyCta": "Xem Hũ mật ong gia đình",
+      "premiumNote": "Hũ mật ong vừa cân bằng nhất nếu bạn thường dùng nội dung khoảng 10.000 KRW.",
+      "footnote": "Vé không giới hạn thời gian và kết thúc khi dùng hết hạn mức sử dụng. Vé này không phải là đăng ký tự động gia hạn. Các dịch vụ nằm ngoài phạm vi vé có thể được sử dụng bằng cách thanh toán KRW một lần cho từng sản phẩm.",
       "howtoAria": "Cách dùng moonlight pass",
       "howtoTitle": "Moonlight pass, tiếp nối như thế này",
-      "step1Label": "Chọn phạm vi moonlight 30 ngày",
-      "step1Text": "Với vé 30 ngày không tự động gia hạn, hãy đặt trước khoảng giá của những lượt đọc bạn hay xem.",
+      "step1Label": "Chọn phạm vi moonlight",
+      "step1Text": "Với vé không giới hạn thời gian và không tự động gia hạn, hãy đặt trước khoảng giá của những lượt đọc bạn hay xem.",
       "step2Label": "Lượt đọc trong phạm vi mở ngay không cần thanh toán",
       "step2Text": "Các lượt đọc tarot, thần dụ và tứ trụ trong phạm vi của bạn mở ra ngay, không cần cửa sổ thanh toán.",
       "step3Label": "Chỉ lượt đọc sâu ngoài phạm vi mới trả từng lần",
       "step3Text": "Lượt đọc sâu ngoài phạm vi chỉ tiếp tục bằng một lần thanh toán KRW khi bạn cần.",
-      "terminationNote": "Ngay cả khi hạn mức tháng về 0, ngày hết hạn, hạng và giới hạn hồ sơ của vé vẫn được giữ nguyên. Nội dung trả phí bổ sung có thể dùng bằng thanh toán một lần hoặc vé tháng."
+      "terminationNote": "Khi dùng hết hạn mức sử dụng, vé sẽ kết thúc. Mua lại sẽ bắt đầu với hạn mức sử dụng mới. Nội dung trả phí bổ sung có thể dùng bằng thanh toán một lần hoặc Nguyệt Tinh Thạch.",
+      "noExpiryNote": "Không giới hạn thời gian · Kết thúc khi dùng hết hạn mức"
     },
     "promptHub": {
       "aria": "Đến phần gợi ý bói toàn diện",
@@ -909,11 +910,11 @@
       "eyebrow": "Thẻ ánh trăng",
       "savingsBadge": "Dùng gói, giá chỉ còn tối đa một phần ba",
       "title": "Chỉ hai lần đọc 5.000 KRW đã đắt hơn gói 9.900 KRW",
-      "desc": "Các bài đọc trong khoảng giá bạn chọn sẽ mở suốt 30 ngày, trong hạn mức sử dụng hằng tháng; chỉ những bài đắt hơn mới thanh toán từng lần khi cần. Bốn mức là 5.000 KRW · 10.000 KRW · 20.000 KRW và toàn bộ nội dung áp dụng gói, nên hãy chọn mức giá bạn hay xem nhất.",
+      "desc": "Các bài đọc trong khoảng giá bạn chọn sẽ mở cho đến khi bạn dùng hết hạn mức sử dụng; chỉ những bài đắt hơn mới thanh toán từng lần khi cần. Bốn mức là 5.000 KRW · 10.000 KRW · 20.000 KRW và toàn bộ nội dung áp dụng gói, nên hãy chọn mức giá bạn hay xem nhất.",
       "pointsAria": "Hướng dẫn vượt qua lõi",
       "point1": "Mở ngay, không cần thanh toán",
-      "point2": "Lưu từ 3 hồ sơ trở lên",
-      "point3": "Thẻ 30 ngày, không tự động gia hạn",
+      "point2": "Không giới hạn thời gian · Kết thúc khi dùng hết hạn mức",
+      "point3": "Thẻ không tự động gia hạn",
       "mascotAria": "Xem quyền lợi Moonlight Pass · Cửa hàng Moonlight Pass",
       "mascotAlt": "Ảnh quyền lợi Moonlight Pass",
       "mascotKicker": "Moonlight Pass Guide",
@@ -1656,12 +1657,12 @@
       "saysName": "Yeoni",
       "saysLine": "Which reading shall we start with? Just one is plenty.",
       "passMascotAlt": "Yeoni the flower pig smiling with a pass card",
-      "passEyebrow": "30-day pass, no auto-renewal",
-      "passTitle": "Reading often? Try a 30-day pass",
-      "passDesc": "Each reading's price is deducted from your allowance. It ends automatically after 30 days.",
-      "passPer": "/ 30 days",
+      "passEyebrow": "Vé không giới hạn thời gian, không tự động gia hạn",
+      "passTitle": "Yeoni giới thiệu vé sử dụng",
+      "passDesc": "Thỉnh thoảng thì thanh toán từng lần, xem thường xuyên thì dùng vé. Hãy kiểm tra các buổi tư vấn bạn có thể dùng và hạn mức sử dụng.",
+      "passPer": "· Không giới hạn thời gian",
       "passBadge": "Incl. Yeongnyangi",
-      "passNote": "Standard, Premium and VVIP apply to Flower Pig readings; Family applies to paid readings from both Flower Pig and Yeongnyangi. Passes you already bought keep the terms from the time of purchase.",
+      "passNote": "Hũ mật ong nhỏ, vừa và lớn áp dụng cho các bài xem Flower Pig; Hũ mật ong gia đình áp dụng cho các bài xem trả phí của cả Flower Pig và Yeongnyangi. Thẻ pass bạn đã mua vẫn giữ điều kiện tại thời điểm mua.",
       "passCta": "See all 4 passes",
       "moreTitle": "Khám phá xưởng của Yeoni",
       "moreItems": "Daily readings · consultations · records · stories",
@@ -1836,9 +1837,9 @@
       "reviewReward": "Moonstones after publication approval",
       "reviewDetail": "Use them in Ggulggul. Awarded once per product.",
       "reviewAction": "Write a review",
-      "passStandard": "Yeoni Standard",
-      "passPremium": "Yeoni Premium",
-      "passVvip": "Yeoni VVIP",
+      "passStandard": "Hũ mật ong nhỏ",
+      "passPremium": "Hũ mật ong vừa",
+      "passVvip": "Hũ mật ong lớn",
       "passPerLimit": "Up to KRW {amount} per reading",
       "passTotal": "Total allowance: KRW {amount}",
       "passNoLimit": "No per-reading price limit",
@@ -1866,7 +1867,8 @@
       "neoClassSource": "Saju student · KakaoTalk excerpt (Korean)",
       "neoNote": "Excerpts from Neo’s personal consultations and classes, separate from the AI reading service. Individual experiences do not guarantee similar results.",
       "neoAbout": "About Neo and the service",
-      "neoMore": "More consultation reviews"
+      "neoMore": "More consultation reviews",
+      "passFamily": "Hũ mật ong gia đình"
     },
     "simple": {
       "lead": "Chia sẻ băn khoăn để xem nội dung và giá trước khi bắt đầu.",
@@ -2343,13 +2345,13 @@
         "passSaveUnverified": "Chúng tôi không lưu được kết quả áp dụng Pass. Hãy kiểm tra lại bằng thẻ Pass bên dưới hoặc chọn phương thức thanh toán khác.",
         "passCheckFailed": "Chúng tôi không kiểm tra được Pass của bạn. Hãy thử lại bằng thẻ Pass bên dưới hoặc chọn phương thức thanh toán khác.",
         "passMiss": "Vé của bạn không mở nội dung này miễn phí, đây là các tuỳ chọn thanh toán.",
-        "passMonthlyExhausted": "Your pass allowance is fully used, so the pass has ended. Here are the payment options."
+        "passMonthlyExhausted": "Your pass usage limit is fully used, so the pass has ended. Here are the payment options."
       },
       "passBadge": "Thẻ ánh trăng",
       "passStoreTitle": "Cửa hàng vé ánh trăng",
       "passRetryTitle": "Kiểm tra lại thẻ",
       "passHint": {
-        "store": "Thanh toán một lần và mở nhiều nội dung trong 30 ngày. Đã có rồi? Chạm để kiểm tra.",
+        "store": "Thanh toán một lần và mở nhiều nội dung cho đến khi dùng hết hạn mức. Đã có rồi? Chạm để kiểm tra.",
         "retry": "Chúng tôi sẽ kiểm tra lại máy chủ để xem thẻ của bạn có thể mở cái này mà không cần thanh toán hay không.",
         "upgrade": "Hạng hiện tại không mở được nội dung này. Hãy xem hạng cao hơn."
       },
@@ -2422,7 +2424,7 @@
         "comingSoon": "Sắp ra mắt",
         "back": "Quay lại"
       },
-      "passMonthlyExhausted": "Your pass allowance is fully used, so the pass has ended. Buying a new pass starts another 30 days; for now you can open this with a one-time payment or moonstones.",
+      "passMonthlyExhausted": "Your pass usage limit is fully used, so the pass has ended. Buying again starts a new usage limit; for now you can open this with a one-time payment or moonstones.",
       "passMonthlyRemaining": "Pass allowance left {remaining} / {limit}",
       "wait": {
         "card": "After you finish verifying in your card or payment app, come back to this browser and checkout will continue automatically.",
@@ -2454,7 +2456,7 @@
         "pass": {
           "eyebrow": "KIỂM TRA VƯỢT QUA ÁNH SÁNG",
           "title": "Đang kiểm tra thẻ của bạn",
-          "message": "Đang kiểm tra xem thẻ 30 ngày của bạn có thể mở thẻ này ngay lập tức hay không.",
+          "message": "Đang kiểm tra xem thẻ pass của bạn có mở được nội dung này ngay hay không.",
           "meta": "Nếu có sẵn, bạn sẽ tiếp tục mà không cần cửa sổ thanh toán."
         },
         "passApplied": {
@@ -2525,7 +2527,7 @@
         "pass": {
           "eyebrow": "KIỂM TRA VƯỢT QUA ÁNH SÁNG",
           "title": "Đang kiểm tra thẻ của bạn",
-          "message": "Đang kiểm tra xem thẻ 30 ngày của bạn có thể mở thẻ này ngay lập tức hay không.",
+          "message": "Đang kiểm tra xem thẻ pass của bạn có mở được nội dung này ngay hay không.",
           "meta": "Nếu có sẵn, bạn sẽ tiếp tục mà không cần cửa sổ thanh toán."
         },
         "passApplied": {
@@ -2609,7 +2611,7 @@
     "passShop": {
       "monthlyStatus": "Đã xác nhận số dư nguyệt tinh thạch của bạn.",
       "chargeButton": "Chuyển đến trang thanh toán cho {amount}",
-      "chargeNotice": "Sản phẩm Pass {price} · Đây là Pass 30 ngày, không tự động gia hạn. Pass chỉ mua được bằng thanh toán một lần theo KRW.",
+      "chargeNotice": "Sản phẩm Pass {price} · Đây là Pass, không tự động gia hạn. Pass chỉ mua được bằng thanh toán một lần theo KRW.",
       "best": "BEST",
       "monthlyBasisWithPrice": "Cơ sở tín dụng hàng tháng {credits} · {price}",
       "profileUnlimited": "Hồ sơ không giới hạn",
@@ -2620,24 +2622,24 @@
       "closeAria": "Đóng Hướng dẫn về cửa hàng Moonlight Pass",
       "openAria": "Hướng dẫn mở cửa hàng Moonlight Pass",
       "title": "Hướng dẫn mua thẻ Moonlight Pass",
-      "subtitle": "Xem lại thẻ 30 ngày và dòng tín dụng hàng tháng được giữ dưới ánh trăng.",
-      "footerNotice": "Thẻ 30 ngày này không phải là sản phẩm tự động gia hạn. Bạn cần mua lại sau khi hết hạn.",
+      "subtitle": "Vé được mua bằng thanh toán một lần theo KRW, còn Nguyệt Tinh Thạch dùng cho từng tính năng trả phí.",
+      "footerNotice": "Thẻ này không phải là sản phẩm tự động gia hạn. Bạn cần mua lại sau khi dùng hết hạn mức.",
       "packages": {
         "standard": {
-          "name": "Mật Ong Tiêu Chuẩn 30 Ngày",
-          "desc": "30 ngày · Nội dung đến khoảng 5.000 KRW · Tối đa 20.000 KRW mỗi tháng"
+          "name": "Hũ mật ong nhỏ",
+          "desc": "Nội dung đến khoảng 5.000 KRW · Tối đa 20.000 KRW"
         },
         "premium": {
-          "name": "Mật Ong Cao Cấp 30 Ngày",
-          "desc": "30 ngày · Nội dung đến khoảng 10.000 KRW · Tối đa 60.000 KRW mỗi tháng"
+          "name": "Hũ mật ong vừa",
+          "desc": "Nội dung đến khoảng 10.000 KRW · Tối đa 60.000 KRW"
         },
         "vvip": {
-          "name": "Hũ Mật Ong VVIP 30 Ngày",
-          "desc": "30 ngày · Nội dung đến khoảng 30.000 KRW · Tối đa 120.000 KRW mỗi tháng"
+          "name": "Hũ mật ong lớn",
+          "desc": "Nội dung đến khoảng 30.000 KRW · Tối đa 120.000 KRW"
         },
         "family": {
-          "name": "Mã Định Mệnh Gia Đình 30 Ngày",
-          "desc": "30 ngày · Toàn bộ nội dung áp dụng gói · Tối đa 350.000 KRW mỗi tháng"
+          "name": "Hũ mật ong gia đình",
+          "desc": "Toàn bộ nội dung áp dụng gói · Tối đa 350.000 KRW"
         }
       },
       "monthlyStatusChecking": "Đang kiểm tra số dư và trạng thái Thẻ Pass.",
@@ -2646,7 +2648,7 @@
       "monthlyButton": "Thanh toán bằng {credits} nguyệt thạch",
       "monthlyButtonBusy": "Đang kích hoạt vé bằng nguyệt thạch...",
       "monthlyButtonShort": "Cần {credits} · số dư không đủ",
-      "terminationNotice": "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day."
+      "terminationNotice": "Khi dùng hết hạn mức sử dụng, vé sẽ kết thúc. Mua lại sẽ bắt đầu với hạn mức sử dụng mới. Nội dung trả phí bổ sung có thể dùng bằng thanh toán một lần hoặc Nguyệt Tinh Thạch."
     },
     "access": {
       "passAppliedContinue": "Đã mở bằng thẻ của bạn."

@@ -28,8 +28,8 @@ test("fusion fortune charges through the shared coin gate, not its own PortOne f
   assert.match(client, /ensurePaidAccess/);
   // 결제 게이트와 생성이 같은 requestId 를 써야 증빙이 잡힌다.
   assert.match(client, /paidRequestIdRef/);
-  assert.match(client, /Family 이용권 또는 단건 결제만 이용할 수 있어요/);
-  assert.match(client, /Standard·Premium·VVIP와 월정석은 적용되지 않습니다/);
+  assert.match(client, /패밀리 꿀단지 이용권 또는 단건 결제만 이용할 수 있어요/);
+  assert.match(client, /작은·중간·큰 꿀단지와 월정석은 적용되지 않습니다/);
   // 페이지 전용 결제창을 되살리지 말 것 — 공용 게이트만 이용권 카드를 띄운다.
   assert.doesNotMatch(client, /cdn\.portone\.io/);
   assert.doesNotMatch(client, /fusion_fortune_ticket_1/);
@@ -190,7 +190,8 @@ test("family shop copy states the real fusion coverage", () => {
   assert.doesNotMatch(points, /Fusion Fortune excluded/);
   assert.doesNotMatch(points, /별도 상담권/);
   assert.doesNotMatch(points, /모든 유료 서비스(?:를)? 이용/);
-  assert.match(html, /이용권 대상 전체\(초융합 심층 리딩 포함\) · 월 최대 50만원 상당/);
+  // 2026-10-11 기간 없는 이용권: "월 최대" → "최대". index.html(별도 작업) 갱신 전후 모두 허용.
+  assert.match(html, /이용권 대상 전체\(초융합 심층 리딩 포함\) · (?:월 )?최대 50만원 상당/);
   assert.doesNotMatch(html, /모든 유료 서비스(?:를)? 이용/);
   // 🔴 월 이용 한도가 있는 등급에 '무제한'·'월 누적'을 쓰지 않는다(2026-08-24 문구 정책).
   assert.doesNotMatch(points, /상담 10회|무제한\(월/);

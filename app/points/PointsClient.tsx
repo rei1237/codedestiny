@@ -47,6 +47,7 @@ import { runAccessCheckWithTransientRetry } from "../_lib/consultationResultPoll
 import { refreshUserAccessAfterPayment, useUserAccess } from "../_lib/user-session-cache";
 import PassCycleCard from "../components/PassCycleCard";
 import { getPassTierLabel } from "@/lib/payment/pass-eligibility";
+import { isOpenEndedPassExpiry, openEndedPassLabel } from "@/lib/payment/pass-expiry";
 
 type PaymentLoadingVariant = NonNullable<PaymentLoadingProps["variant"]>;
 
@@ -690,7 +691,7 @@ const SUBSCRIPTION_BASE_PLANS = [
       "activeImmediately",
       "notAutoBilling",
     ],
-    badge:        "VVIP",
+    badge:        "vvip",
   },
   {
     tier:         "family",
@@ -704,7 +705,7 @@ const SUBSCRIPTION_BASE_PLANS = [
       "allPaidPdf",
       "notAutoBilling",
     ],
-    badge:        "Family",
+    badge:        "family",
   },
 ] as const;
 
@@ -809,8 +810,9 @@ function getFlowerAdminTokenClient(): string {
 type PointsPageCopy = {
   defaultUserName: string;
   defaultMemberName: string;
-  duration30: string;
-  /** 월 최대 한도 소진 시 잔여 기간과 무관하게 이용권이 종료된다는 고지(2026-09-04 정책). */
+  /** 가격 줄 꼬리("· 기간 제한 없음"). 2026-10-11 이용권은 기간이 없다. */
+  periodLabel: string;
+  /** 이용 한도를 모두 쓰면 이용권이 종료된다는 고지(2026-10-11 기간 없는 이용권). */
   passTerminationNote: string;
   heldPass: string;
   allPaidPdfPolicy: string;
@@ -872,57 +874,57 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
   ko: {
     defaultUserName: "사용자",
     defaultMemberName: "회원",
-    duration30: "30일",
-    passTerminationNote: "월 최대 한도를 모두 사용하면 남은 기간과 관계없이 이용권이 종료됩니다. 새로 구매하면 그날부터 30일이 다시 시작됩니다.",
+    periodLabel: "기간 제한 없음",
+    passTerminationNote: "이용 한도를 모두 사용하면 이용권이 종료됩니다. 다시 구매하면 새 이용 한도로 시작합니다.",
     heldPass: "보유 이용권",
-    allPaidPdfPolicy: "건당 금액 상한 없음 · 30일 최대 50만원 상당",
+    allPaidPdfPolicy: "건당 금액 상한 없음 · 최대 50만원 상당",
     generalLimitPolicy: (value) => `일반 ${value} 이하 이용 가능`,
-    familyValueLine: (duration) => `Family 혜택 · 최대 50만원 상당 / ${duration}`,
-    planValueLine: (value, duration) => `${value} 이하 기능 / ${duration}`,
+    familyValueLine: (duration) => `패밀리 꿀단지 혜택 · 최대 50만원 상당 · ${duration}`,
+    planValueLine: (value, duration) => `${value} 이하 기능 · ${duration}`,
     monthlyCreditValue: (amount, locale) => `${Math.max(0, Math.floor(Number(amount || 0))).toLocaleString(locale)} 월정석`,
     won: (amount, locale) => `${Number(amount || 0).toLocaleString(locale)}원`,
     planTitles: {
       free: "무료 플랜",
-      standard: "스탠다드 꿀 30일",
-      premium: "프리미엄 꿀 30일",
-      vvip: "VVIP 꿀단지 30일",
-      family: "Code Destiny Family 30일",
+      standard: "작은 꿀단지",
+      premium: "중간 꿀단지",
+      vvip: "큰 꿀단지",
+      family: "패밀리 꿀단지",
     },
     planBadges: {
       recommended: "추천",
-      family: "Family",
-      vvip: "VVIP",
+      family: "영냥이까지",
+      vvip: "꽃돼지 최상위",
     },
     planFeatures: {
       free: {},
       standard: {
         under3000: "5천원급 콘텐츠까지 이용",
-        monthlyCap: "월 최대 3만원 상당",
-        over3000Single: "30일 동안 스탠다드 혜택 유지",
+        monthlyCap: "최대 3만원 상당",
+        over3000Single: "이용 한도를 다 쓸 때까지 작은 꿀단지 혜택 유지",
         pdfSingle: "PDF 상품 조건은 결제 전 안내",
-        activeImmediately: "결제 즉시 30일 이용권 활성화",
+        activeImmediately: "결제 즉시 이용권 활성화",
         notAutoBilling: "원화 단건 결제로 구매 가능",
       },
       premium: {
         under5000: "1만원급 콘텐츠까지 이용",
-        monthlyCap: "월 최대 10만원 상당",
-        over5000Single: "30일 동안 프리미엄 혜택 유지",
+        monthlyCap: "최대 10만원 상당",
+        over5000Single: "이용 한도를 다 쓸 때까지 중간 꿀단지 혜택 유지",
         pdfSingle: "PDF 상품 조건은 결제 전 안내",
-        activeImmediately: "결제 즉시 30일 이용권 활성화",
+        activeImmediately: "결제 즉시 이용권 활성화",
         notAutoBilling: "원화 단건 결제로 구매 가능",
       },
       vvip: {
         under10000: "3만원급 콘텐츠까지 이용",
-        monthlyCap: "월 최대 20만원 상당",
-        over10000Single: "30일 동안 VVIP 혜택 유지",
+        monthlyCap: "최대 20만원 상당",
+        over10000Single: "이용 한도를 다 쓸 때까지 큰 꿀단지 혜택 유지",
         pdfSingle: "PDF 상품 조건은 결제 전 안내",
-        activeImmediately: "결제 즉시 30일 이용권 활성화",
+        activeImmediately: "결제 즉시 이용권 활성화",
         notAutoBilling: "원화 단건 결제로 구매 가능",
       },
       family: {
         allPaidPdf: "꿀꿀·영냥이의 이용권 대상 유료 리딩",
-        monthlyCap: "30일 최대 50만원 상당",
-        activeImmediately: "결제 즉시 30일 이용권 활성화",
+        monthlyCap: "최대 50만원 상당",
+        activeImmediately: "결제 즉시 이용권 활성화",
         notAutoBilling: "자동갱신 없음",
       },
     },
@@ -945,11 +947,11 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       failed: "실패",
       pending: "대기",
     },
-    subscriptionAria: "달빛 30일 이용권",
+    subscriptionAria: "달빛 이용권",
     toastCloseLabel: "알림 닫기",
     monthlyBonusAria: "월정석 보너스 잔량과 사용 내역",
     walletAria: "이용권 상점 안내",
-    refundAgreement: "원화 결제된 30일 이용권은 결제 즉시 활성화되며, 유료 기능 이용 시작 후에는 환불이 제한될 수 있음을 확인했습니다.",
+    refundAgreement: "원화 결제된 이용권은 결제 즉시 활성화되며, 유료 기능 이용 시작 후에는 환불이 제한될 수 있음을 확인했습니다.",
     passAlt: "달빛 이용권",
     wonSinglePaymentAria: "원화 결제 안내",
     paymentFailureGuide: [
@@ -959,7 +961,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
     ],
     accountInfoAria: "계정 정보",
     currentPassAria: "현재 달빛 이용권",
-    passRemainingTitle: "달빛 이용권 남은 기간",
+    passRemainingTitle: "달빛 이용권 상태",
     monthlyBonusPendingTitle: "월정석 정보 대기",
     monthlyBonusEmptyTitle: "월정석 사용 내역 없음",
     passOrderHistoryPendingTitle: "이용권 주문 내역 대기",
@@ -972,20 +974,20 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
     currentPlan: "현재 플랜",
     lowerTierBlocked: "상위 티어 사용 중 (구매 불가)",
     lowerTierBlockedHelp: "현재 상위 티어 이용권이 활성화되어 하위 플랜은 선택할 수 없습니다.",
-    activePassLabel: "30일 이용권 활성화",
-    passCycleAria: "이번 이용권 기간의 월 이용 한도",
-    passCycleTitle: "이번 이용권 기간 한도",
+    activePassLabel: "이용권 활성화",
+    passCycleAria: "이번 이용권의 이용 한도",
+    passCycleTitle: "이번 이용권 이용 한도",
     passCycleSummary: (spent, cap) => `${spent} / ${cap} 사용`,
     passCycleRemaining: (remaining) => `${remaining} 남음`,
     subscriptionPaymentChoiceTitle: "달빛 이용권 결제 방식 선택",
     passWonOnlyNotice: "이용권은 원화 단건 결제로만 구매할 수 있습니다.",
-    passConditionsTitle: "30일 이용권 조건",
-    giftActivationNotice: "서버 결제 확인 후 선물 링크를 만들 수 있으며, 받는 사람이 로그인하여 수령한 날부터 이용 기간이 시작됩니다.",
-    selfActivationNotice: "결제 완료 즉시 계정에 활성화되며, 서버 결제 검증 성공 시각부터 30일간 유지됩니다.",
+    passConditionsTitle: "이용권 조건",
+    giftActivationNotice: "서버 결제 확인 후 선물 링크를 만들 수 있으며, 받는 사람이 로그인하여 수령한 날부터 이용권이 활성화됩니다.",
+    selfActivationNotice: "결제 완료 즉시 계정에 활성화되며, 서버 결제 검증 성공 시각부터 이용 한도를 모두 사용할 때까지 유지됩니다(별도 이용 기간 없음).",
     passWonOnlyActivationNotice: "이용권은 원화 단건 결제로만 활성화할 수 있으며, 월정석으로는 구매할 수 없습니다.",
     monthlyStoneNotUsableForPass: "보유한 월정석은 이용권 구매에 사용할 수 없습니다. 월정석 자체는 구매·충전하거나 현금 환불할 수 없으며, 각 지급분은 지급일로부터 30일간만 유효하고 미사용분은 소멸합니다.",
     giftPendingRefundNotice: "미수령 선물은 기존 환불 규정에 따라 환불 검토를 요청할 수 있습니다. 수령한 선물은 운영 확인이 필요합니다.",
-    passRefundWindowNotice: "원화 결제된 30일 이용권은 유료 기능 이용 전 결제일로부터 7일 이내 환불 요청이 가능하며, 이용권 혜택 사용이 시작된 부분은 환불이 제한될 수 있습니다.",
+    passRefundWindowNotice: "원화 결제된 이용권은 유료 기능 이용 전 결제일로부터 7일 이내 환불 요청이 가능하며, 이용권 혜택 사용이 시작된 부분은 환불이 제한될 수 있습니다.",
     refundPolicyLinkLabel: "자세한 환불 규정 보기",
     giftPrepareLegend: "운명의 선물 준비하기",
     giftNoAccountNotice: "받는 사람의 계정 정보 없이 선물 링크로 보낼 수 있어요.",
@@ -998,57 +1000,57 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
   en: {
     defaultUserName: "User",
     defaultMemberName: "Member",
-    duration30: "30 days",
-    passTerminationNote: "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day.",
+    periodLabel: "No time limit",
+    passTerminationNote: "When the usage limit is fully used, the pass ends. Buying again starts a new usage limit.",
     heldPass: "Active pass",
-    allPaidPdfPolicy: "No per-item price cap · Up to KRW 500,000 worth over 30 days",
+    allPaidPdfPolicy: "No per-item price cap · Up to KRW 500,000 worth",
     generalLimitPolicy: (value) => `General services up to ${value}`,
-    familyValueLine: (duration) => `Family benefits · Up to KRW 500,000 worth / ${duration}`,
-    planValueLine: (value, duration) => `Services up to ${value} / ${duration}`,
+    familyValueLine: (duration) => `Family Honey Jar benefits · Up to KRW 500,000 worth · ${duration}`,
+    planValueLine: (value, duration) => `Services up to ${value} · ${duration}`,
     monthlyCreditValue: (amount, locale) => `${Math.max(0, Math.floor(Number(amount || 0))).toLocaleString(locale)} moon credits`,
     won: (amount, locale) => `KRW ${Number(amount || 0).toLocaleString(locale)}`,
     planTitles: {
       free: "Free plan",
-      standard: "Standard Honey 30-day",
-      premium: "Premium Honey 30-day",
-      vvip: "VVIP Honey Jar 30-day",
-      family: "Code Destiny Family 30-day",
+      standard: "Small Honey Jar",
+      premium: "Medium Honey Jar",
+      vvip: "Large Honey Jar",
+      family: "Family Honey Jar",
     },
     planBadges: {
       recommended: "Recommended",
-      family: "Family",
-      vvip: "VVIP",
+      family: "Incl. Yeongnyangi",
+      vvip: "Top Flower Pig tier",
     },
     planFeatures: {
       free: {},
       standard: {
         under3000: "Content priced around KRW 5,000 and below",
-        monthlyCap: "Up to KRW 30,000 worth per month",
-        over3000Single: "Standard benefits stay active for 30 days",
+        monthlyCap: "Up to KRW 30,000 worth",
+        over3000Single: "Small Honey Jar benefits stay active until the usage limit is used up",
         pdfSingle: "PDF terms are shown before purchase",
-        activeImmediately: "30-day pass activates after payment",
+        activeImmediately: "Pass activates right after payment",
         notAutoBilling: "Monthly credits or KRW purchase available",
       },
       premium: {
         under5000: "Content priced around KRW 10,000 and below",
-        monthlyCap: "Up to KRW 100,000 worth per month",
-        over5000Single: "Premium benefits stay active for 30 days",
+        monthlyCap: "Up to KRW 100,000 worth",
+        over5000Single: "Medium Honey Jar benefits stay active until the usage limit is used up",
         pdfSingle: "PDF terms are shown before purchase",
-        activeImmediately: "30-day pass activates after payment",
+        activeImmediately: "Pass activates right after payment",
         notAutoBilling: "Monthly credits or KRW purchase available",
       },
       vvip: {
         under10000: "Content priced around KRW 30,000 and below",
-        monthlyCap: "Up to KRW 200,000 worth per month",
-        over10000Single: "VVIP benefits stay active for 30 days",
+        monthlyCap: "Up to KRW 200,000 worth",
+        over10000Single: "Large Honey Jar benefits stay active until the usage limit is used up",
         pdfSingle: "PDF terms are shown before purchase",
-        activeImmediately: "30-day pass activates after payment",
+        activeImmediately: "Pass activates right after payment",
         notAutoBilling: "Monthly credits or KRW purchase available",
       },
       family: {
         allPaidPdf: "Eligible paid Ggulggul and Yeongnyangi readings",
-        monthlyCap: "Up to KRW 500,000 worth over 30 days",
-        activeImmediately: "30-day pass activates after payment",
+        monthlyCap: "Up to KRW 500,000 worth",
+        activeImmediately: "Pass activates right after payment",
         notAutoBilling: "No automatic renewal",
       },
     },
@@ -1071,11 +1073,11 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       failed: "Failed",
       pending: "Pending",
     },
-    subscriptionAria: "Moonlight 30-day pass",
+    subscriptionAria: "Moonlight pass",
     toastCloseLabel: "Close notification",
     monthlyBonusAria: "Moon credit bonus balance and activity",
     walletAria: "Pass shop guide",
-    refundAgreement: "I understand that the 30-day KRW pass activates immediately after payment and refunds may be limited once paid features are used.",
+    refundAgreement: "I understand that the KRW pass activates immediately after payment and refunds may be limited once paid features are used.",
     passAlt: "Moonlight pass",
     wonSinglePaymentAria: "KRW payment guide",
     paymentFailureGuide: [
@@ -1085,7 +1087,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
     ],
     accountInfoAria: "Account information",
     currentPassAria: "Current moonlight pass",
-    passRemainingTitle: "Moonlight pass time remaining",
+    passRemainingTitle: "Moonlight pass status",
     monthlyBonusPendingTitle: "Moonstone info unavailable",
     monthlyBonusEmptyTitle: "No moonstone usage history",
     passOrderHistoryPendingTitle: "Pass order history unavailable",
@@ -1098,20 +1100,20 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
     currentPlan: "Current plan",
     lowerTierBlocked: "Higher tier active",
     lowerTierBlockedHelp: "A higher-tier pass is active, so lower plans cannot be selected.",
-    activePassLabel: "30-day pass active",
-    passCycleAria: "Monthly usage limit for this pass period",
-    passCycleTitle: "Current pass period limit",
+    activePassLabel: "pass active",
+    passCycleAria: "Usage limit for this pass",
+    passCycleTitle: "Current pass usage limit",
     passCycleSummary: (spent, cap) => `${spent} of ${cap} used`,
     passCycleRemaining: (remaining) => `${remaining} left`,
     subscriptionPaymentChoiceTitle: "Choose a payment method for the pass",
     passWonOnlyNotice: "Passes can only be purchased with a KRW single payment.",
-    passConditionsTitle: "30-day pass conditions",
-    giftActivationNotice: "Once the server confirms payment, you can create the gift link. The pass period starts on the day the recipient signs in and claims it.",
-    selfActivationNotice: "It activates on your account immediately after payment and stays active for 30 days from the server's payment verification time.",
+    passConditionsTitle: "Pass conditions",
+    giftActivationNotice: "Once the server confirms payment, you can create the gift link. The pass activates on the day the recipient signs in and claims it.",
+    selfActivationNotice: "It activates on your account immediately after payment and stays active from the server's payment verification time until the usage limit is used up (no separate time limit).",
     passWonOnlyActivationNotice: "Passes can only be activated with a KRW single payment and cannot be purchased with moon credits.",
     monthlyStoneNotUsableForPass: "Moon credits you hold cannot be used to buy a pass. Moon credits themselves cannot be purchased, recharged, or refunded in cash; each grant is valid for only 30 days from its grant date and unused amounts expire.",
     giftPendingRefundNotice: "Unclaimed gifts can request a refund review under the existing refund policy. Claimed gifts require operator confirmation.",
-    passRefundWindowNotice: "A 30-day pass paid in KRW can be refunded within 7 days of the payment date before any paid features are used; refunds may be limited once pass benefits have started being used.",
+    passRefundWindowNotice: "A pass paid in KRW can be refunded within 7 days of the payment date before any paid features are used; refunds may be limited once pass benefits have started being used.",
     refundPolicyLinkLabel: "View full refund policy",
     giftPrepareLegend: "Prepare your gift of destiny",
     giftNoAccountNotice: "You can send a gift link without the recipient's account information.",
@@ -1133,9 +1135,9 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
   ms: null as unknown as PointsPageCopy,
 };
 
-POINTS_PAGE_COPY.ja = { ...POINTS_PAGE_COPY.en, defaultUserName: "ユーザー", defaultMemberName: "会員", duration30: "30日", passAlt: "月明かり利用券", closeLabel: "閉じる", passCycleAria: "今回の利用券期間の月間利用上限", passCycleTitle: "今回の利用券期間の上限", passCycleSummary: (spent, cap) => `${spent} / ${cap} 利用`, passCycleRemaining: (remaining) => `残り ${remaining}`, subscriptionPaymentChoiceTitle: "月明かり利用券の決済方法を選択", passWonOnlyNotice: "利用券はウォン単発決済でのみ購入できます。", passConditionsTitle: "30日利用券の条件", giftActivationNotice: "サーバー決済確認後にギフトリンクを作成でき、受取人がログインして受け取った日から利用期間が始まります。", selfActivationNotice: "決済完了と同時にアカウントで有効化され、サーバー決済検証の成功時刻から30日間維持されます。", passWonOnlyActivationNotice: "利用券はウォン単発決済でのみ有効化でき、月光石では購入できません。", monthlyStoneNotUsableForPass: "保有している月光石は利用券の購入に使用できません。月光石自体は購入・チャージや現金払い戻しができず、各付与分は付与日から30日間のみ有効で未使用分は消滅します。", giftPendingRefundNotice: "未受領のギフトは既存の払い戻し規定に従って払い戻し審査を依頼できます。受領済みのギフトは運営確認が必要です。", passRefundWindowNotice: "ウォンで決済された30日利用券は、有料機能利用前であれば決済日から7日以内に払い戻しを申請でき、利用権の特典利用が開始された部分は払い戻しが制限される場合があります。", refundPolicyLinkLabel: "払い戻し規定の詳細を見る", giftPrepareLegend: "運命のギフトを準備する", giftNoAccountNotice: "受取人のアカウント情報なしでギフトリンクを送ることができます。", giftSenderNameLabel: "送り主の名前(任意)", giftRecipientNameLabel: "受取人の名前(任意)", giftMessageLabel: "ギフトメッセージ(任意)", giftGuidanceSummaryLabel: "ギフトの受け取り・利用・払い戻し案内", contentValueWonNotice: "コンテンツの価値はウォンで表示され、安全な決済ウィンドウで決済します。" };
-POINTS_PAGE_COPY["zh-CN"] = { ...POINTS_PAGE_COPY.en, defaultUserName: "用户", defaultMemberName: "会员", duration30: "30天", passAlt: "月光通行证", closeLabel: "关闭", passCycleAria: "本次通行证周期的每月使用额度", passCycleTitle: "本次通行证周期额度", passCycleSummary: (spent, cap) => `已使用 ${spent} / ${cap}`, passCycleRemaining: (remaining) => `剩余 ${remaining}`, subscriptionPaymentChoiceTitle: "选择月光通行证的支付方式", passWonOnlyNotice: "通行证仅支持韩元单笔支付购买。", passConditionsTitle: "30天通行证条件", giftActivationNotice: "服务器确认支付后即可生成礼物链接,使用期限从接收人登录领取当天开始计算。", selfActivationNotice: "支付完成后立即在账户中激活,自服务器支付验证成功时刻起维持30天。", passWonOnlyActivationNotice: "通行证仅可通过韩元单笔支付激活,无法使用月光石购买。", monthlyStoneNotUsableForPass: "您持有的月光石无法用于购买通行证。月光石本身无法购买、充值或兑换现金,每笔发放自发放之日起仅30天内有效,未使用部分将失效。", giftPendingRefundNotice: "未领取的礼物可依据现行退款政策申请退款审核。已领取的礼物需要运营方确认。", passRefundWindowNotice: "以韩元支付的30天通行证可在付费功能使用前、自付款日起7天内申请退款,通行证权益已开始使用的部分退款可能受限。", refundPolicyLinkLabel: "查看退款政策详情", giftPrepareLegend: "准备命运之礼", giftNoAccountNotice: "无需接收人的账户信息即可发送礼物链接。", giftSenderNameLabel: "赠送人姓名(选填)", giftRecipientNameLabel: "接收人姓名(选填)", giftMessageLabel: "礼物留言(选填)", giftGuidanceSummaryLabel: "礼物领取、使用与退款说明", contentValueWonNotice: "内容价值以韩元显示,通过安全支付窗口完成支付。" };
-POINTS_PAGE_COPY["zh-TW"] = { ...POINTS_PAGE_COPY["zh-CN"], defaultUserName: "使用者", defaultMemberName: "會員", passAlt: "月光通行證", closeLabel: "關閉", passCycleAria: "本次通行證週期的每月使用額度", passCycleTitle: "本次通行證週期額度", passCycleSummary: (spent, cap) => `已使用 ${spent} / ${cap}`, passCycleRemaining: (remaining) => `剩餘 ${remaining}`, subscriptionPaymentChoiceTitle: "選擇月光通行證的支付方式", passWonOnlyNotice: "通行證僅支援韓元單筆支付購買。", passConditionsTitle: "30天通行證條件", giftActivationNotice: "伺服器確認支付後即可產生禮物連結,使用期限從接收人登入領取當天開始計算。", selfActivationNotice: "支付完成後立即在帳戶中啟用,自伺服器支付驗證成功時刻起維持30天。", passWonOnlyActivationNotice: "通行證僅可透過韓元單筆支付啟用,無法使用月光石購買。", monthlyStoneNotUsableForPass: "您持有的月光石無法用於購買通行證。月光石本身無法購買、儲值或兌換現金,每筆發放自發放之日起僅30天內有效,未使用部分將失效。", giftPendingRefundNotice: "未領取的禮物可依現行退款政策申請退款審核。已領取的禮物需要營運方確認。", passRefundWindowNotice: "以韓元支付的30天通行證可在付費功能使用前、自付款日起7天內申請退款,通行證權益已開始使用的部分退款可能受限。", refundPolicyLinkLabel: "查看退款政策詳情", giftPrepareLegend: "準備命運之禮", giftNoAccountNotice: "無需接收人的帳戶資訊即可傳送禮物連結。", giftSenderNameLabel: "贈送人姓名(選填)", giftRecipientNameLabel: "接收人姓名(選填)", giftMessageLabel: "禮物留言(選填)", giftGuidanceSummaryLabel: "禮物領取、使用與退款說明", contentValueWonNotice: "內容價值以韓元顯示,並透過安全支付頁面完成付款。" };
+POINTS_PAGE_COPY.ja = { ...POINTS_PAGE_COPY.en, defaultUserName: "ユーザー", defaultMemberName: "会員", periodLabel: "期間制限なし", passTerminationNote: "利用上限を使い切るとパスは終了します。再度購入すると新しい利用上限で始まります。", passAlt: "月明かり利用券", closeLabel: "閉じる", passCycleAria: "今回の利用券の利用上限", passCycleTitle: "今回の利用券の利用上限", passCycleSummary: (spent, cap) => `${spent} / ${cap} 利用`, passCycleRemaining: (remaining) => `残り ${remaining}`, subscriptionPaymentChoiceTitle: "月明かり利用券の決済方法を選択", passWonOnlyNotice: "利用券はウォン単発決済でのみ購入できます。", passConditionsTitle: "利用券の条件", giftActivationNotice: "サーバー決済確認後にギフトリンクを作成でき、受取人がログインして受け取った日から利用券が有効になります。", selfActivationNotice: "決済完了と同時にアカウントで有効化され、サーバー決済検証の成功時刻から利用上限を使い切るまで維持されます（利用期間の定めなし）。", passWonOnlyActivationNotice: "利用券はウォン単発決済でのみ有効化でき、月光石では購入できません。", monthlyStoneNotUsableForPass: "保有している月光石は利用券の購入に使用できません。月光石自体は購入・チャージや現金払い戻しができず、各付与分は付与日から30日間のみ有効で未使用分は消滅します。", giftPendingRefundNotice: "未受領のギフトは既存の払い戻し規定に従って払い戻し審査を依頼できます。受領済みのギフトは運営確認が必要です。", passRefundWindowNotice: "ウォンで決済された利用券は、有料機能利用前であれば決済日から7日以内に払い戻しを申請でき、利用権の特典利用が開始された部分は払い戻しが制限される場合があります。", refundPolicyLinkLabel: "払い戻し規定の詳細を見る", giftPrepareLegend: "運命のギフトを準備する", giftNoAccountNotice: "受取人のアカウント情報なしでギフトリンクを送ることができます。", giftSenderNameLabel: "送り主の名前(任意)", giftRecipientNameLabel: "受取人の名前(任意)", giftMessageLabel: "ギフトメッセージ(任意)", giftGuidanceSummaryLabel: "ギフトの受け取り・利用・払い戻し案内", contentValueWonNotice: "コンテンツの価値はウォンで表示され、安全な決済ウィンドウで決済します。" };
+POINTS_PAGE_COPY["zh-CN"] = { ...POINTS_PAGE_COPY.en, defaultUserName: "用户", defaultMemberName: "会员", periodLabel: "不限期限", passTerminationNote: "使用额度用完后，通行证即结束。重新购买将以新的使用额度开始。", passAlt: "月光通行证", closeLabel: "关闭", passCycleAria: "本次通行证的使用额度", passCycleTitle: "本次通行证使用额度", passCycleSummary: (spent, cap) => `已使用 ${spent} / ${cap}`, passCycleRemaining: (remaining) => `剩余 ${remaining}`, subscriptionPaymentChoiceTitle: "选择月光通行证的支付方式", passWonOnlyNotice: "通行证仅支持韩元单笔支付购买。", passConditionsTitle: "通行证条件", giftActivationNotice: "服务器确认支付后即可生成礼物链接,通行证从接收人登录领取当天起生效。", selfActivationNotice: "支付完成后立即在账户中激活,自服务器支付验证成功时刻起维持到使用额度用完为止(不设使用期限)。", passWonOnlyActivationNotice: "通行证仅可通过韩元单笔支付激活,无法使用月光石购买。", monthlyStoneNotUsableForPass: "您持有的月光石无法用于购买通行证。月光石本身无法购买、充值或兑换现金,每笔发放自发放之日起仅30天内有效,未使用部分将失效。", giftPendingRefundNotice: "未领取的礼物可依据现行退款政策申请退款审核。已领取的礼物需要运营方确认。", passRefundWindowNotice: "以韩元支付的通行证可在付费功能使用前、自付款日起7天内申请退款,通行证权益已开始使用的部分退款可能受限。", refundPolicyLinkLabel: "查看退款政策详情", giftPrepareLegend: "准备命运之礼", giftNoAccountNotice: "无需接收人的账户信息即可发送礼物链接。", giftSenderNameLabel: "赠送人姓名(选填)", giftRecipientNameLabel: "接收人姓名(选填)", giftMessageLabel: "礼物留言(选填)", giftGuidanceSummaryLabel: "礼物领取、使用与退款说明", contentValueWonNotice: "内容价值以韩元显示,通过安全支付窗口完成支付。" };
+POINTS_PAGE_COPY["zh-TW"] = { ...POINTS_PAGE_COPY["zh-CN"], defaultUserName: "使用者", defaultMemberName: "會員", passTerminationNote: "使用額度用完後，通行證即結束。重新購買將以新的使用額度開始。", passAlt: "月光通行證", closeLabel: "關閉", passCycleAria: "本次通行證的使用額度", passCycleTitle: "本次通行證使用額度", passCycleSummary: (spent, cap) => `已使用 ${spent} / ${cap}`, passCycleRemaining: (remaining) => `剩餘 ${remaining}`, subscriptionPaymentChoiceTitle: "選擇月光通行證的支付方式", passWonOnlyNotice: "通行證僅支援韓元單筆支付購買。", passConditionsTitle: "通行證條件", giftActivationNotice: "伺服器確認支付後即可產生禮物連結,通行證從接收人登入領取當天起生效。", selfActivationNotice: "支付完成後立即在帳戶中啟用,自伺服器支付驗證成功時刻起維持到使用額度用完為止(不設使用期限)。", passWonOnlyActivationNotice: "通行證僅可透過韓元單筆支付啟用,無法使用月光石購買。", monthlyStoneNotUsableForPass: "您持有的月光石無法用於購買通行證。月光石本身無法購買、儲值或兌換現金,每筆發放自發放之日起僅30天內有效,未使用部分將失效。", giftPendingRefundNotice: "未領取的禮物可依現行退款政策申請退款審核。已領取的禮物需要營運方確認。", passRefundWindowNotice: "以韓元支付的通行證可在付費功能使用前、自付款日起7天內申請退款,通行證權益已開始使用的部分退款可能受限。", refundPolicyLinkLabel: "查看退款政策詳情", giftPrepareLegend: "準備命運之禮", giftNoAccountNotice: "無需接收人的帳戶資訊即可傳送禮物連結。", giftSenderNameLabel: "贈送人姓名(選填)", giftRecipientNameLabel: "接收人姓名(選填)", giftMessageLabel: "禮物留言(選填)", giftGuidanceSummaryLabel: "禮物領取、使用與退款說明", contentValueWonNotice: "內容價值以韓元顯示,並透過安全支付頁面完成付款。" };
 
 for (const locale of ["vi", "hi", "es", "fr", "de", "nl", "ms"] as LoadingLocale[]) {
   POINTS_PAGE_COPY[locale] = POINTS_PAGE_COPY.en;
@@ -1184,8 +1186,8 @@ function normalizeSubscriptionDurationMonths(value: unknown, planIdRaw?: unknown
 
 function formatSubscriptionDurationLabel(months: unknown, copy: PointsPageCopy = POINTS_PAGE_COPY.ko) {
   const normalized = normalizeSubscriptionDurationMonths(months);
-  if (!normalized) return copy.duration30;
-  if (normalized === 1) return copy.duration30;
+  if (!normalized) return copy.periodLabel;
+  if (normalized === 1) return copy.periodLabel;
   return copy.heldPass;
 }
 
@@ -1196,7 +1198,7 @@ function formatSubscriptionPlanPolicy(plan: Pick<SubscriptionPlan, "freeUpTo">, 
 
 function formatSubscriptionPlanValueLine(plan: Pick<SubscriptionPlan, "tier" | "freeUpTo" | "durationMonths">, copy: PointsPageCopy = POINTS_PAGE_COPY.ko, locale = FORMAT_LOCALE_BY_LANG.ko) {
   const duration = formatSubscriptionDurationLabel(plan.durationMonths, copy);
-  if (plan.tier === "family") return formatSalePlanFeature(plan.tier, "monthlyCap", copy, locale) + " / " + duration;
+  if (plan.tier === "family") return formatSalePlanFeature(plan.tier, "monthlyCap", copy, locale) + " · " + duration;
   return copy.planValueLine(formatCoinValue(Number(plan.freeUpTo || 0), copy, locale), duration);
 }
 
@@ -1204,7 +1206,7 @@ function formatSalePlanFeature(tier: SubscriptionTier, feature: string, copy: Po
   const offer = currentPassPlan(tier);
   if (offer && feature === "monthlyCap") {
     const amount = formatCoinValue(offer.monthlyLimitCoin, copy, locale);
-    return langSensitiveLabel(copy, `30일 최대 ${amount} 상당`, `Up to ${amount} worth over 30 days`);
+    return langSensitiveLabel(copy, `최대 ${amount} 상당`, `Up to ${amount} worth`);
   }
   if (offer && feature.startsWith("under")) return copy.generalLimitPolicy(formatCoinValue(offer.maxCoveredCoin, copy, locale));
   return copy.planFeatures[tier]?.[feature] || feature;
@@ -2041,11 +2043,11 @@ function WalletCard({ name, copy }: { name: string; copy: PointsPageCopy }) {
             </p>
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-[22px] font-black leading-none text-white">
-                30일 이용권
+                이용권
               </span>
             </div>
             <p className="max-w-[300px] text-[12.5px] leading-5 text-slate-100 sm:text-right">
-              원화 단건 결제로 여는 30일 이용권이며, PDF와 고가 서비스 조건은 상품별 안내에 따릅니다.
+              원화 단건 결제로 여는 기간 제한 없는 이용권이며, PDF와 고가 서비스 조건은 상품별 안내에 따릅니다.
             </p>
             <p className="max-w-[300px] text-[12.5px] font-bold leading-5 text-[#ffe8a3] sm:text-right">
               월정석은 보너스 혜택으로만 지급되며 월정석 자체는 구매·충전할 수 없습니다.
@@ -2064,10 +2066,10 @@ function WalletCard({ name, copy }: { name: string; copy: PointsPageCopy }) {
 
 const MOONLIGHT_TIER_LABELS: Record<SubscriptionTier, string> = {
   free: "이용권 없음",
-  standard: "Standard 달빛 30일",
-  premium: "Premium 달빛 30일",
-  vvip: "VVIP 달빛 30일",
-  family: "Code Destiny Family 30일",
+  standard: "작은 꿀단지",
+  premium: "중간 꿀단지",
+  vvip: "큰 꿀단지",
+  family: "패밀리 꿀단지",
 };
 
 function getMoonlightDaysLeft(expiresAt: string | null | undefined) {
@@ -2092,7 +2094,7 @@ function getMoonlightBenefitLabel(tier: SubscriptionTier) {
   if (tier === "vvip") return "3만원급 콘텐츠까지";
   if (tier === "premium") return "1만원급 콘텐츠까지";
   if (tier === "standard") return "5천원급 콘텐츠까지";
-  return "30일 혜택 선택 가능";
+  return "이용권 혜택 선택 가능";
 }
 
 // 🔴 ShopPigImage · MoonlightShopHero 는 app/points/MoonShopFrame.tsx 로 옮겼다(2026-09-07).
@@ -2114,9 +2116,11 @@ function MoonlightActivePassCard({
 }) {
   const isActivePass = subscription.isActive && subscription.tier !== "free";
   const tier = isActivePass ? subscription.tier : "free";
-  const daysLeft = getMoonlightDaysLeft(subscription.expiresAt);
+  // 기간 없는 이용권(서버 센티널 만료일)은 날짜·D-day 대신 "기간 제한 없음 · 한도 소진 시 종료".
+  const isOpenEnded = isOpenEndedPassExpiry(subscription.expiresAt);
+  const daysLeft = isOpenEnded ? null : getMoonlightDaysLeft(subscription.expiresAt);
   const daysLeftLabel = daysLeft === null ? "남은 기간 확인 중" : `${daysLeft}일 남음`;
-  const progress = isActivePass ? Math.max(0, Math.min(1, (daysLeft ?? 0) / 30)) : 0;
+  const progress = isActivePass ? (isOpenEnded ? 1 : Math.max(0, Math.min(1, (daysLeft ?? 0) / 30))) : 0;
   const expiryLabel = getMoonlightExpiryLabel(subscription.expiresAt, formatLocale);
   const title = MOONLIGHT_TIER_LABELS[tier];
   const benefits = [
@@ -2142,12 +2146,12 @@ function MoonlightActivePassCard({
               <h2 className="mt-1 text-xl font-black leading-tight text-white">{title}</h2>
               <p className="mt-2 flex flex-wrap items-center gap-2 text-sm font-bold text-[color:var(--moon-teal)]">
                 <span className="h-2 w-2 rounded-full bg-[color:var(--moon-teal)] shadow-[0_0_12px_rgba(94,234,212,0.76)]" aria-hidden="true" />
-                {isActivePass ? `${title} 이용 중 · 만료일까지 이용 가능` : "활성 이용권이 없습니다"}
+                {isActivePass ? `${title} 이용 중 · 이용 한도 안에서 이용 가능` : "활성 이용권이 없습니다"}
               </p>
             </div>
           </div>
           <span className="moon-family-badge absolute right-0 top-0 rounded-full px-3 py-1 text-[11px] font-black sm:static">
-            {tier === "family" ? "FAMILY" : tier === "free" ? "READY" : tier.toUpperCase()}
+            {tier === "family" ? "FAMILY HONEY JAR" : tier === "vvip" ? "LARGE HONEY JAR" : tier === "premium" ? "MEDIUM HONEY JAR" : tier === "standard" ? "SMALL HONEY JAR" : tier === "free" ? "READY" : String(tier).toUpperCase()}
           </span>
         </div>
 
@@ -2161,11 +2165,11 @@ function MoonlightActivePassCard({
             <div className="flex items-center gap-4">
               <MoonIcon phase="progress" progress={progress} className="h-20 w-20 flex-shrink-0" title={copy.passRemainingTitle} />
               <div>
-                <p className="text-xs font-bold text-[color:var(--moon-mist)]">만료일</p>
-                <p className="mt-1 text-base font-black text-white">{isActivePass ? expiryLabel : "이용권 구매 후 표시됩니다"}</p>
+                <p className="text-xs font-bold text-[color:var(--moon-mist)]">{isActivePass && isOpenEnded ? "이용 기간" : "만료일"}</p>
+                <p className="mt-1 text-base font-black text-white">{isActivePass ? (isOpenEnded ? openEndedPassLabel("ko") : expiryLabel) : "이용권 구매 후 표시됩니다"}</p>
               </div>
             </div>
-            <p className="text-xl font-black text-[color:var(--moon-teal)]">{isActivePass ? daysLeftLabel : "0일 남음"}</p>
+            <p className="text-xl font-black text-[color:var(--moon-teal)]">{isActivePass ? (isOpenEnded ? null : daysLeftLabel) : "0일 남음"}</p>
           </div>
         </div>
 
@@ -2446,7 +2450,7 @@ function MoonlightShopPlans({
                       <span className="rounded-full bg-[rgba(94,234,212,0.16)] px-2.5 py-1 text-xs font-black text-[color:var(--moon-teal)]">현재 이용 중</span>
                     ) : null}
                   </div>
-                  <p className="mt-1 text-sm font-bold text-[color:var(--moon-mist)]">원화 단건 결제로 구매하는 30일 이용권</p>
+                  <p className="mt-1 text-sm font-bold text-[color:var(--moon-mist)]">원화 단건 결제로 구매하는 이용권 · 기간 제한 없음</p>
                   <div className="mt-3 flex flex-wrap gap-2">
                     <span className="rounded-full border border-[color:var(--moon-rim)] px-2.5 py-1 text-xs font-bold text-[color:var(--moon-silver)]">
                       {formatSubscriptionPlanPolicy(plan, copy, formatLocale)}
@@ -2636,7 +2640,7 @@ function MoonlightOrderHistory({
 function MoonlightPaymentNotice() {
   return (
     <section className="moon-card rounded-[20px] px-5 py-4 text-sm font-semibold leading-7 text-[color:var(--moon-silver)]">
-      Standard·Premium·VVIP는 꽃돼지 서비스에 적용되며, Family는 꽃돼지와 영냥이 유료 리딩을 함께 커버합니다. 자동갱신은 없고, 기존 구매와 선물은 원래 조건을 유지합니다.
+      작은·중간·큰 꿀단지는 꽃돼지 서비스에 적용되며, 패밀리 꿀단지는 꽃돼지와 영냥이 유료 리딩을 함께 커버합니다. 자동갱신은 없고, 기존 구매와 선물은 원래 조건을 유지합니다.
     </section>
   );
 }
@@ -4102,7 +4106,7 @@ export default function PointsPage() {
     }
 
     if (plan.durationMonths !== 1) {
-      pushToast("error", "현재 신규 판매 이용권은 30일권만 선택할 수 있습니다.");
+      pushToast("error", "현재 신규 판매 중인 이용권만 선택할 수 있습니다.");
       return;
     }
 
@@ -4134,7 +4138,7 @@ export default function PointsPage() {
 
       setPendingSubscriptionPaymentPlan(null);
       setProcessingStage(
-        withSubscriptionMethod(orderMethod, "30일 이용권 결제 정보를 준비하고 있어요.\n중복 결제를 시도하지 말아 주세요.", { wait: true }),
+        withSubscriptionMethod(orderMethod, "이용권 결제 정보를 준비하고 있어요.\n중복 결제를 시도하지 말아 주세요.", { wait: true }),
         "checkout",
       );
       setIsProcessing(true);
@@ -4417,7 +4421,7 @@ export default function PointsPage() {
 
     const confirmText = resume
       ? "이용권 상태를 다시 확인할까요?"
-      : "이용권 상태를 확인할까요? 만료일까지는 모든 혜택을 유지합니다.";
+      : "이용권 상태를 확인할까요? 이용권이 종료될 때까지 모든 혜택을 유지합니다.";
     if (!window.confirm(confirmText)) return;
 
     const actionLockKey = `subscription-cancel:${resume ? "resume" : "cancel"}`;
@@ -4710,7 +4714,7 @@ export default function PointsPage() {
         />
         </details>
         <ServicePackShop locale={lang} overseasCharge={overseasCharge} onWalletChange={setOwnedPacks} context={consultationContext} contextual={consultationShop}/>
-        {!consultationShop&&<section aria-label={lang==='ko'?'꿀꿀 사주 월간 이용권':'Ggulggul monthly passes'}><h2 className="mb-4 text-2xl font-black">{lang==='ko'?'꿀꿀 사주 월간 이용권':'Ggulggul monthly passes'}</h2>
+        {!consultationShop&&<section aria-label={lang==='ko'?'꿀꿀 사주 이용권':'Ggulggul passes'}><h2 className="mb-4 text-2xl font-black">{lang==='ko'?'꿀꿀 사주 이용권':'Ggulggul passes'}</h2>
         <MoonlightShopPlans
           subscription={subscription}
           onSubscribe={openSelfPurchase}
@@ -4827,7 +4831,7 @@ export default function PointsPage() {
           aria-label={copy.wonSinglePaymentAria}
           className="rounded-[20px] border border-white/16 bg-[#0b1028]/82 px-5 py-4 text-[15px] leading-7 text-slate-100"
         >
-          Standard·Premium·VVIP는 꽃돼지 서비스에 적용되며, Family는 꽃돼지와 영냥이 유료 리딩을 함께 커버합니다. 자동갱신은 없고, 기존 구매와 선물은 원래 조건을 유지합니다.
+          작은·중간·큰 꿀단지는 꽃돼지 서비스에 적용되며, 패밀리 꿀단지는 꽃돼지와 영냥이 유료 리딩을 함께 커버합니다. 자동갱신은 없고, 기존 구매와 선물은 원래 조건을 유지합니다.
         </section>
 
         <section className="rounded-[20px] border border-white/16 bg-[#0b1028]/82 p-5">
@@ -4956,9 +4960,9 @@ export default function PointsPage() {
                 <p className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400 mb-1">현재 이용권</p>
                 <p className="text-sm font-semibold text-slate-700">
                   {!subscription.isActive || subscription.tier === "free" ? "이용권 없음"
-                   : subscription.tier === "standard" ? "스탠다드 달빛 이용권"
-                   : subscription.tier === "premium" ? "프리미엄 달빛 이용권"
-                   : subscription.tier === "vvip" ? "VVIP 달빛 이용권"
+                   : subscription.tier === "standard" ? "작은 꿀단지"
+                   : subscription.tier === "premium" ? "중간 꿀단지"
+                   : subscription.tier === "vvip" ? "큰 꿀단지"
                    : "—"}
                 </p>
               </div>

@@ -59,11 +59,12 @@ export interface AppShellCopy {
   passPlans: Record<PassTier, PassPlanCopy>;
   benefitCoverageFree: (coverageLabel: string) => string;
   benefitAllFree: string;
-  /* 🔴 구 benefitNoLimitUse("횟수 제한 없이 이용")를 대체한다(2026-08-24). 모든 등급에 월 이용
+  /* 🔴 구 benefitNoLimitUse("횟수 제한 없이 이용")를 대체한다(2026-08-24). 모든 등급에 이용
      한도가 있어 그 문구가 실제 정책과 모순됐다. 금액은 호출부가 서버 정본
      MONTHLY_PASS_LIMITS_KRW 에서 뽑아 넘긴다 — 여기에 숫자를 적으면 사본이 하나 더 생긴다. */
   benefitMonthlyCap: (capLabel: string) => string;
-  benefit30Days: string;
+  /** "기간 제한 없음 · 자동 갱신 없음"(2026-10-11 기간 없는 이용권). */
+  benefitNoTimeLimit: string;
   billingNotReadyMessage: string;
   productLoadFailedMessage: string;
   paymentIncompleteMessage: string;
@@ -80,7 +81,7 @@ export interface AppShellCopy {
   purchasingButton: string;
   buyButton: string;
   footerNote: string;
-  /** 월 최대 한도 소진 시 잔여 기간과 무관하게 이용권이 종료된다는 고지(2026-09-04 정책). */
+  /** 이용 한도를 모두 쓰면 이용권이 종료된다는 고지(2026-10-11 기간 없는 이용권). */
   passTerminationNote: string;
 }
 
@@ -124,15 +125,15 @@ const APP_SHELL_COPY_EN: AppShellCopy = {
   passPageBody: "With a pass, features within its coverage open instantly without payment.",
 
   passPlans: {
-    standard: { title: "Standard", blurb: "A light 30-day start" },
-    premium: { title: "Premium", blurb: "The most popular choice" },
-    vvip: { title: "VVIP", blurb: "Plenty of room for deep consultations" },
-    family: { title: "Family", blurb: "Use every paid feature" },
+    standard: { title: "Small Honey Jar", blurb: "A light way to start" },
+    premium: { title: "Medium Honey Jar", blurb: "The most popular choice" },
+    vvip: { title: "Large Honey Jar", blurb: "Plenty of room for deep consultations" },
+    family: { title: "Family Honey Jar", blurb: "Use every paid feature" },
   },
   benefitCoverageFree: (coverageLabel) => `Features up to ${coverageLabel} are free`,
   benefitAllFree: "All pass-eligible content",
-  benefitMonthlyCap: (capLabel) => `Up to ${capLabel} worth per month`,
-  benefit30Days: "30 days · no auto-renewal",
+  benefitMonthlyCap: (capLabel) => `Up to ${capLabel} worth`,
+  benefitNoTimeLimit: "No time limit · no auto-renewal",
   billingNotReadyMessage: "The in-app payment connection isn't ready yet. Please restart the app.",
   productLoadFailedMessage: "Couldn't load the pass product.",
   paymentIncompleteMessage: "The payment wasn't completed.",
@@ -148,8 +149,8 @@ const APP_SHELL_COPY_EN: AppShellCopy = {
   verifyingButton: "Verifying",
   purchasingButton: "Processing",
   buyButton: "Buy",
-  footerNote: "The pass is valid for 30 days, within each tier's monthly usage limit. It does not auto-renew. Features beyond its coverage can be used via one-time payment or moonstones. Payments and refunds follow Google Play policy and e-commerce law.",
-  passTerminationNote: "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day.",
+  footerNote: "The pass has no time limit: use it within each tier's usage limit, and it ends when the limit is fully used. It does not auto-renew. Features beyond its coverage can be used via one-time payment or moonstones. Payments and refunds follow Google Play policy and e-commerce law.",
+  passTerminationNote: "When the usage limit is fully used, the pass ends. Buying again starts a new usage limit.",
 };
 
 const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
@@ -193,15 +194,15 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     passPageBody: "이용권이 있으면 커버 범위 안의 기능은 결제 없이 바로 열립니다.",
 
     passPlans: {
-      standard: { title: "스탠다드", blurb: "가볍게 시작하는 30일" },
-      premium: { title: "프리미엄", blurb: "가장 많이 고르는 구성" },
-      vvip: { title: "VVIP", blurb: "깊은 상담까지 넉넉하게" },
-      family: { title: "패밀리", blurb: "모든 유료 기능 이용" },
+      standard: { title: "작은 꿀단지", blurb: "가볍게 시작하는 이용권" },
+      premium: { title: "중간 꿀단지", blurb: "가장 많이 고르는 구성" },
+      vvip: { title: "큰 꿀단지", blurb: "깊은 상담까지 넉넉하게" },
+      family: { title: "패밀리 꿀단지", blurb: "모든 유료 기능 이용" },
     },
     benefitCoverageFree: (coverageLabel) => `${coverageLabel} 이하 기능 무료`,
     benefitAllFree: "이용권 대상 전체",
-    benefitMonthlyCap: (capLabel) => `월 최대 ${capLabel} 상당`,
-    benefit30Days: "30일 · 자동 갱신 없음",
+    benefitMonthlyCap: (capLabel) => `최대 ${capLabel} 상당`,
+    benefitNoTimeLimit: "기간 제한 없음 · 자동 갱신 없음",
     billingNotReadyMessage: "앱 결제 연결이 준비되지 않았습니다. 앱을 다시 시작해 주세요.",
     productLoadFailedMessage: "이용권 상품을 불러오지 못했습니다.",
     paymentIncompleteMessage: "결제가 완료되지 않았습니다.",
@@ -217,8 +218,8 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     verifyingButton: "확인 중",
     purchasingButton: "결제 중",
     buyButton: "구매",
-    footerNote: "이용권은 30일간 유효하며, 등급별 월 이용 한도 안에서 이용합니다. 자동 갱신되지 않습니다. 커버 범위를 넘는 기능은 단건 결제 또는 월정석으로 이용할 수 있습니다. 결제·환불은 Google Play 정책과 전자상거래법에 따릅니다.",
-    passTerminationNote: "월 최대 한도를 모두 사용하면 남은 기간과 관계없이 이용권이 종료됩니다. 새로 구매하면 그날부터 30일이 다시 시작됩니다.",
+    footerNote: "이용권은 별도 이용 기간 없이 등급별 이용 한도 안에서 이용하며, 한도를 모두 사용하면 종료됩니다. 자동 갱신되지 않습니다. 커버 범위를 넘는 기능은 단건 결제 또는 월정석으로 이용할 수 있습니다. 결제·환불은 Google Play 정책과 전자상거래법에 따릅니다.",
+    passTerminationNote: "이용 한도를 모두 사용하면 이용권이 종료됩니다. 다시 구매하면 새 이용 한도로 시작합니다.",
   },
   ja: {
     appHomeAriaLabel: "Code Destiny アプリホーム",
@@ -260,15 +261,15 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     passPageBody: "利用券があれば適用範囲内の機能は決済なしですぐに開きます。",
 
     passPlans: {
-      standard: { title: "スタンダード", blurb: "気軽に始める30日" },
-      premium: { title: "プレミアム", blurb: "最も選ばれる構成" },
-      vvip: { title: "VVIP", blurb: "深い相談まで十分に" },
-      family: { title: "ファミリー", blurb: "すべての有料機能を利用" },
+      standard: { title: "小さなはちみつ壺", blurb: "気軽に始める利用券" },
+      premium: { title: "中くらいのはちみつ壺", blurb: "最も選ばれる構成" },
+      vvip: { title: "大きなはちみつ壺", blurb: "深い相談まで十分に" },
+      family: { title: "ファミリーはちみつ壺", blurb: "すべての有料機能を利用" },
     },
     benefitCoverageFree: (coverageLabel) => `${coverageLabel}以下の機能が無料`,
     benefitAllFree: "利用券対象コンテンツすべて",
-    benefitMonthlyCap: (capLabel) => `月あたり最大${capLabel}相当`,
-    benefit30Days: "30日 · 自動更新なし",
+    benefitMonthlyCap: (capLabel) => `最大${capLabel}相当`,
+    benefitNoTimeLimit: "期間制限なし · 自動更新なし",
     billingNotReadyMessage: "アプリ決済の接続がまだ準備できていません。アプリを再起動してください。",
     productLoadFailedMessage: "利用券商品を読み込めませんでした。",
     paymentIncompleteMessage: "決済が完了しませんでした。",
@@ -284,8 +285,8 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     verifyingButton: "確認中",
     purchasingButton: "決済中",
     buyButton: "購入",
-    footerNote: "利用券は30日間有効で、等級別の月間利用上限の範囲内でご利用いただけます。自動更新はされません。適用範囲を超える機能は都度決済または月精石で利用できます。決済・返金はGoogle Playポリシーおよび電子商取引法に従います。",
-    passTerminationNote: "月の利用上限を使い切ると、残り日数に関係なくパスは終了します。新しく購入すると、その日から30日が改めて始まります。",
+    footerNote: "利用券に利用期間の定めはなく、等級別の利用上限の範囲内でご利用いただけ、上限を使い切ると終了します。自動更新はされません。適用範囲を超える機能は都度決済または月精石で利用できます。決済・返金はGoogle Playポリシーおよび電子商取引法に従います。",
+    passTerminationNote: "利用上限を使い切るとパスは終了します。再度購入すると新しい利用上限で始まります。",
   },
   "zh-CN": {
     appHomeAriaLabel: "Code Destiny 应用主页",
@@ -327,15 +328,15 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     passPageBody: "拥有使用权后,覆盖范围内的功能无需支付即可立即开启。",
 
     passPlans: {
-      standard: { title: "标准", blurb: "轻松开始的30天" },
-      premium: { title: "高级", blurb: "最受欢迎的组合" },
-      vvip: { title: "VVIP", blurb: "深度咨询也绰绰有余" },
-      family: { title: "家庭版", blurb: "使用所有付费功能" },
+      standard: { title: "小蜜罐", blurb: "轻松开始" },
+      premium: { title: "中蜜罐", blurb: "最受欢迎的组合" },
+      vvip: { title: "大蜜罐", blurb: "深度咨询也绰绰有余" },
+      family: { title: "家庭蜜罐", blurb: "使用所有付费功能" },
     },
     benefitCoverageFree: (coverageLabel) => `${coverageLabel}以下功能免费`,
     benefitAllFree: "使用权涵盖的全部内容",
-    benefitMonthlyCap: (capLabel) => `每月最多${capLabel}`,
-    benefit30Days: "30天 · 不自动续订",
+    benefitMonthlyCap: (capLabel) => `最多${capLabel}`,
+    benefitNoTimeLimit: "不限期限 · 不自动续订",
     billingNotReadyMessage: "应用内支付连接尚未就绪。请重新启动应用。",
     productLoadFailedMessage: "无法加载使用权商品。",
     paymentIncompleteMessage: "支付未完成。",
@@ -351,8 +352,8 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     verifyingButton: "确认中",
     purchasingButton: "支付中",
     buyButton: "购买",
-    footerNote: "使用权有效期30天,在各等级的每月使用额度内使用。不会自动续订。超出覆盖范围的功能可通过单次支付或月精石使用。支付·退款遵循Google Play政策及电子商务法。",
-    passTerminationNote: "用完每月额度后，无论还剩多少天，通行证都会结束。重新购买将从当天起重新开始 30 天。",
+    footerNote: "使用权不设使用期限,在各等级的使用额度内使用,额度用完即结束。不会自动续订。超出覆盖范围的功能可通过单次支付或月精石使用。支付·退款遵循Google Play政策及电子商务法。",
+    passTerminationNote: "使用额度用完后，通行证即结束。重新购买将以新的使用额度开始。",
   },
   "zh-TW": {
     appHomeAriaLabel: "Code Destiny 應用程式首頁",
@@ -394,15 +395,15 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     passPageBody: "擁有使用權後,涵蓋範圍內的功能無需付款即可立即開啟。",
 
     passPlans: {
-      standard: { title: "標準", blurb: "輕鬆開始的30天" },
-      premium: { title: "高級", blurb: "最受歡迎的組合" },
-      vvip: { title: "VVIP", blurb: "深度諮詢也綽綽有餘" },
-      family: { title: "家庭版", blurb: "使用所有付費功能" },
+      standard: { title: "小蜜罐", blurb: "輕鬆開始" },
+      premium: { title: "中蜜罐", blurb: "最受歡迎的組合" },
+      vvip: { title: "大蜜罐", blurb: "深度諮詢也綽綽有餘" },
+      family: { title: "家庭蜜罐", blurb: "使用所有付費功能" },
     },
     benefitCoverageFree: (coverageLabel) => `${coverageLabel}以下功能免費`,
     benefitAllFree: "使用權涵蓋的全部內容",
-    benefitMonthlyCap: (capLabel) => `每月最多${capLabel}`,
-    benefit30Days: "30天 · 不自動續訂",
+    benefitMonthlyCap: (capLabel) => `最多${capLabel}`,
+    benefitNoTimeLimit: "不限期限 · 不自動續訂",
     billingNotReadyMessage: "應用程式內付款連線尚未就緒。請重新啟動應用程式。",
     productLoadFailedMessage: "無法載入使用權商品。",
     paymentIncompleteMessage: "付款未完成。",
@@ -418,8 +419,8 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     verifyingButton: "確認中",
     purchasingButton: "付款中",
     buyButton: "購買",
-    footerNote: "使用權有效期30天,在各等級的每月使用額度內使用。不會自動續訂。超出涵蓋範圍的功能可透過單次付款或月精石使用。付款·退款遵循Google Play政策及電子商務法。",
-    passTerminationNote: "用完每月額度後，無論還剩多少天，通行證都會結束。重新購買將從當天起重新開始 30 天。",
+    footerNote: "使用權不設使用期限,在各等級的使用額度內使用,額度用完即結束。不會自動續訂。超出涵蓋範圍的功能可透過單次付款或月精石使用。付款·退款遵循Google Play政策及電子商務法。",
+    passTerminationNote: "使用額度用完後，通行證即結束。重新購買將以新的使用額度開始。",
   },
   vi: {
     appHomeAriaLabel: "Trang chủ ứng dụng Code Destiny",
@@ -461,15 +462,15 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     passPageBody: "Có vé sử dụng, các tính năng trong phạm vi bao phủ sẽ mở ngay mà không cần thanh toán.",
 
     passPlans: {
-      standard: { title: "Tiêu chuẩn", blurb: "Khởi đầu nhẹ nhàng 30 ngày" },
-      premium: { title: "Cao cấp", blurb: "Lựa chọn phổ biến nhất" },
-      vvip: { title: "VVIP", blurb: "Đủ rộng rãi cho tư vấn chuyên sâu" },
-      family: { title: "Gia đình", blurb: "Sử dụng mọi tính năng trả phí" },
+      standard: { title: "Hũ mật ong nhỏ", blurb: "Khởi đầu nhẹ nhàng" },
+      premium: { title: "Hũ mật ong vừa", blurb: "Lựa chọn phổ biến nhất" },
+      vvip: { title: "Hũ mật ong lớn", blurb: "Đủ rộng rãi cho tư vấn chuyên sâu" },
+      family: { title: "Hũ mật ong gia đình", blurb: "Sử dụng mọi tính năng trả phí" },
     },
     benefitCoverageFree: (coverageLabel) => `Tính năng đến ${coverageLabel} là miễn phí`,
     benefitAllFree: "Toàn bộ nội dung áp dụng gói",
-    benefitMonthlyCap: (capLabel) => `Tối đa ${capLabel} mỗi tháng`,
-    benefit30Days: "30 ngày · không tự động gia hạn",
+    benefitMonthlyCap: (capLabel) => `Tối đa ${capLabel}`,
+    benefitNoTimeLimit: "Không giới hạn thời gian · không tự động gia hạn",
     billingNotReadyMessage: "Kết nối thanh toán trong ứng dụng chưa sẵn sàng. Vui lòng khởi động lại ứng dụng.",
     productLoadFailedMessage: "Không thể tải sản phẩm vé sử dụng.",
     paymentIncompleteMessage: "Thanh toán chưa hoàn tất.",
@@ -485,8 +486,8 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     verifyingButton: "Đang xác minh",
     purchasingButton: "Đang xử lý",
     buyButton: "Mua",
-    footerNote: "Vé sử dụng có hiệu lực trong 30 ngày, trong hạn mức sử dụng hằng tháng của từng hạng. Không tự động gia hạn. Các tính năng vượt phạm vi bao phủ có thể dùng qua thanh toán một lần hoặc đá trăng. Thanh toán·hoàn tiền tuân theo chính sách Google Play và luật thương mại điện tử.",
-    passTerminationNote: "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day.",
+    footerNote: "Vé sử dụng không giới hạn thời gian, được dùng trong hạn mức sử dụng của từng hạng và kết thúc khi dùng hết hạn mức. Không tự động gia hạn. Các tính năng vượt phạm vi bao phủ có thể dùng qua thanh toán một lần hoặc đá trăng. Thanh toán·hoàn tiền tuân theo chính sách Google Play và luật thương mại điện tử.",
+    passTerminationNote: "Khi dùng hết hạn mức sử dụng, vé sẽ kết thúc. Mua lại sẽ bắt đầu với hạn mức sử dụng mới.",
   },
   hi: {
     appHomeAriaLabel: "Code Destiny ऐप होम",
@@ -528,15 +529,15 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     passPageBody: "पास होने पर, इसके कवरेज के भीतर की सुविधाएँ बिना भुगतान के तुरंत खुल जाती हैं।",
 
     passPlans: {
-      standard: { title: "स्टैंडर्ड", blurb: "हल्की 30-दिन की शुरुआत" },
-      premium: { title: "प्रीमियम", blurb: "सबसे लोकप्रिय विकल्प" },
-      vvip: { title: "VVIP", blurb: "गहन परामर्श के लिए पर्याप्त" },
-      family: { title: "फ़ैमिली", blurb: "सभी सशुल्क सुविधाओं का उपयोग करें" },
+      standard: { title: "छोटा शहद जार", blurb: "हल्की शुरुआत" },
+      premium: { title: "मध्यम शहद जार", blurb: "सबसे लोकप्रिय विकल्प" },
+      vvip: { title: "बड़ा शहद जार", blurb: "गहन परामर्श के लिए पर्याप्त" },
+      family: { title: "फ़ैमिली शहद जार", blurb: "सभी सशुल्क सुविधाओं का उपयोग करें" },
     },
     benefitCoverageFree: (coverageLabel) => `${coverageLabel} तक की सुविधाएँ मुफ़्त`,
     benefitAllFree: "पास में शामिल सभी सामग्री",
-    benefitMonthlyCap: (capLabel) => `हर महीने ${capLabel} तक`,
-    benefit30Days: "30 दिन · कोई ऑटो-नवीनीकरण नहीं",
+    benefitMonthlyCap: (capLabel) => `${capLabel} तक`,
+    benefitNoTimeLimit: "कोई समय सीमा नहीं · कोई ऑटो-नवीनीकरण नहीं",
     billingNotReadyMessage: "ऐप भुगतान कनेक्शन अभी तैयार नहीं है। कृपया ऐप को फिर से शुरू करें।",
     productLoadFailedMessage: "पास उत्पाद लोड नहीं हो सका।",
     paymentIncompleteMessage: "भुगतान पूरा नहीं हुआ।",
@@ -552,8 +553,8 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     verifyingButton: "सत्यापित हो रहा है",
     purchasingButton: "भुगतान हो रहा है",
     buyButton: "खरीदें",
-    footerNote: "पास 30 दिनों के लिए वैध है और हर स्तर की मासिक उपयोग सीमा के भीतर काम करता है। यह स्वतः नवीनीकृत नहीं होता। कवरेज से परे सुविधाओं का उपयोग एकमुश्त भुगतान या मूनस्टोन से किया जा सकता है। भुगतान·धनवापसी Google Play नीति और ई-कॉमर्स कानून का पालन करते हैं।",
-    passTerminationNote: "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day.",
+    footerNote: "पास की कोई समय सीमा नहीं है; यह हर स्तर की उपयोग सीमा के भीतर काम करता है और सीमा पूरी इस्तेमाल होने पर समाप्त हो जाता है। यह स्वतः नवीनीकृत नहीं होता। कवरेज से परे सुविधाओं का उपयोग एकमुश्त भुगतान या मूनस्टोन से किया जा सकता है। भुगतान·धनवापसी Google Play नीति और ई-कॉमर्स कानून का पालन करते हैं।",
+    passTerminationNote: "उपयोग सीमा पूरी तरह इस्तेमाल होने पर पास समाप्त हो जाता है। दोबारा खरीदने पर नई उपयोग सीमा से शुरुआत होती है।",
   },
   es: {
     appHomeAriaLabel: "Inicio de la app Code Destiny",
@@ -595,15 +596,15 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     passPageBody: "Con un pase, las funciones dentro de su cobertura se abren al instante sin pago.",
 
     passPlans: {
-      standard: { title: "Estándar", blurb: "Un inicio ligero de 30 días" },
-      premium: { title: "Premium", blurb: "La opción más popular" },
-      vvip: { title: "VVIP", blurb: "Amplio espacio para consultas profundas" },
-      family: { title: "Familiar", blurb: "Usa todas las funciones de pago" },
+      standard: { title: "Tarro de miel pequeño", blurb: "Un inicio ligero" },
+      premium: { title: "Tarro de miel mediano", blurb: "La opción más popular" },
+      vvip: { title: "Tarro de miel grande", blurb: "Amplio espacio para consultas profundas" },
+      family: { title: "Tarro de miel familiar", blurb: "Usa todas las funciones de pago" },
     },
     benefitCoverageFree: (coverageLabel) => `Funciones hasta ${coverageLabel} son gratis`,
     benefitAllFree: "Todo el contenido incluido en el pase",
-    benefitMonthlyCap: (capLabel) => `Hasta ${capLabel} al mes`,
-    benefit30Days: "30 días · sin renovación automática",
+    benefitMonthlyCap: (capLabel) => `Hasta ${capLabel}`,
+    benefitNoTimeLimit: "Sin límite de tiempo · sin renovación automática",
     billingNotReadyMessage: "La conexión de pago en la app aún no está lista. Reinicia la app.",
     productLoadFailedMessage: "No se pudo cargar el producto del pase.",
     paymentIncompleteMessage: "El pago no se completó.",
@@ -619,8 +620,8 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     verifyingButton: "Verificando",
     purchasingButton: "Procesando",
     buyButton: "Comprar",
-    footerNote: "El pase es válido por 30 días, dentro del límite de uso mensual de cada nivel. No se renueva automáticamente. Las funciones fuera de su cobertura se pueden usar mediante pago único o piedras lunares. Los pagos y reembolsos siguen la política de Google Play y la ley de comercio electrónico.",
-    passTerminationNote: "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day.",
+    footerNote: "El pase no tiene límite de tiempo: se usa dentro del límite de uso de cada nivel y termina cuando ese límite se agota. No se renueva automáticamente. Las funciones fuera de su cobertura se pueden usar mediante pago único o piedras lunares. Los pagos y reembolsos siguen la política de Google Play y la ley de comercio electrónico.",
+    passTerminationNote: "Cuando se agota el límite de uso, el pase termina. Si vuelves a comprarlo, empiezas con un nuevo límite de uso.",
   },
   fr: {
     appHomeAriaLabel: "Accueil de l'app Code Destiny",
@@ -662,15 +663,15 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     passPageBody: "Avec un pass, les fonctionnalités dans sa couverture s'ouvrent instantanément sans paiement.",
 
     passPlans: {
-      standard: { title: "Standard", blurb: "Un départ léger de 30 jours" },
-      premium: { title: "Premium", blurb: "Le choix le plus populaire" },
-      vvip: { title: "VVIP", blurb: "Largement suffisant pour des consultations approfondies" },
-      family: { title: "Famille", blurb: "Utilisez toutes les fonctionnalités payantes" },
+      standard: { title: "Petit pot de miel", blurb: "Un départ léger" },
+      premium: { title: "Pot de miel moyen", blurb: "Le choix le plus populaire" },
+      vvip: { title: "Grand pot de miel", blurb: "Largement suffisant pour des consultations approfondies" },
+      family: { title: "Pot de miel familial", blurb: "Utilisez toutes les fonctionnalités payantes" },
     },
     benefitCoverageFree: (coverageLabel) => `Les fonctionnalités jusqu'à ${coverageLabel} sont gratuites`,
     benefitAllFree: "Tout le contenu inclus dans le pass",
-    benefitMonthlyCap: (capLabel) => `Jusqu'à ${capLabel} par mois`,
-    benefit30Days: "30 jours · pas de renouvellement automatique",
+    benefitMonthlyCap: (capLabel) => `Jusqu'à ${capLabel}`,
+    benefitNoTimeLimit: "Sans limite de durée · pas de renouvellement automatique",
     billingNotReadyMessage: "La connexion de paiement dans l'app n'est pas encore prête. Veuillez redémarrer l'app.",
     productLoadFailedMessage: "Impossible de charger le produit du pass.",
     paymentIncompleteMessage: "Le paiement n'a pas été complété.",
@@ -686,8 +687,8 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     verifyingButton: "Vérification",
     purchasingButton: "Traitement",
     buyButton: "Acheter",
-    footerNote: "Le pass est valable 30 jours, dans la limite d'utilisation mensuelle de chaque niveau. Il ne se renouvelle pas automatiquement. Les fonctionnalités hors de sa couverture peuvent être utilisées via un paiement unique ou des pierres de lune. Les paiements et remboursements suivent la politique de Google Play et le droit du commerce électronique.",
-    passTerminationNote: "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day.",
+    footerNote: "Le pass n'a pas de limite de durée : il s'utilise dans la limite d'utilisation de chaque niveau et prend fin une fois cette limite épuisée. Il ne se renouvelle pas automatiquement. Les fonctionnalités hors de sa couverture peuvent être utilisées via un paiement unique ou des pierres de lune. Les paiements et remboursements suivent la politique de Google Play et le droit du commerce électronique.",
+    passTerminationNote: "Lorsque la limite d'utilisation est entièrement utilisée, le pass prend fin. Un nouvel achat repart avec une nouvelle limite d'utilisation.",
   },
   de: {
     appHomeAriaLabel: "Code Destiny App-Startseite",
@@ -729,15 +730,15 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     passPageBody: "Mit einem Pass öffnen sich Funktionen innerhalb seiner Abdeckung sofort ohne Zahlung.",
 
     passPlans: {
-      standard: { title: "Standard", blurb: "Ein leichter 30-Tage-Start" },
-      premium: { title: "Premium", blurb: "Die beliebteste Wahl" },
-      vvip: { title: "VVIP", blurb: "Reichlich Raum für tiefe Beratungen" },
-      family: { title: "Familie", blurb: "Nutze alle kostenpflichtigen Funktionen" },
+      standard: { title: "Kleines Honigglas", blurb: "Ein leichter Start" },
+      premium: { title: "Mittleres Honigglas", blurb: "Die beliebteste Wahl" },
+      vvip: { title: "Großes Honigglas", blurb: "Reichlich Raum für tiefe Beratungen" },
+      family: { title: "Familien-Honigglas", blurb: "Nutze alle kostenpflichtigen Funktionen" },
     },
     benefitCoverageFree: (coverageLabel) => `Funktionen bis ${coverageLabel} sind kostenlos`,
     benefitAllFree: "Alle im Pass enthaltenen Inhalte",
-    benefitMonthlyCap: (capLabel) => `Bis zu ${capLabel} pro Monat`,
-    benefit30Days: "30 Tage · keine automatische Verlängerung",
+    benefitMonthlyCap: (capLabel) => `Bis zu ${capLabel}`,
+    benefitNoTimeLimit: "Keine Laufzeitbegrenzung · keine automatische Verlängerung",
     billingNotReadyMessage: "Die In-App-Zahlungsverbindung ist noch nicht bereit. Bitte starte die App neu.",
     productLoadFailedMessage: "Das Pass-Produkt konnte nicht geladen werden.",
     paymentIncompleteMessage: "Die Zahlung wurde nicht abgeschlossen.",
@@ -753,8 +754,8 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     verifyingButton: "Wird geprüft",
     purchasingButton: "Wird verarbeitet",
     buyButton: "Kaufen",
-    footerNote: "Der Pass ist 30 Tage gültig, im Rahmen des monatlichen Nutzungslimits der jeweiligen Stufe. Er verlängert sich nicht automatisch. Funktionen außerhalb seiner Abdeckung können über Einmalzahlung oder Mondsteine genutzt werden. Zahlungen und Rückerstattungen folgen der Google-Play-Richtlinie und dem E-Commerce-Recht.",
-    passTerminationNote: "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day.",
+    footerNote: "Der Pass hat keine Laufzeitbegrenzung: Er wird im Rahmen des Nutzungslimits der jeweiligen Stufe genutzt und endet, wenn das Limit aufgebraucht ist. Er verlängert sich nicht automatisch. Funktionen außerhalb seiner Abdeckung können über Einmalzahlung oder Mondsteine genutzt werden. Zahlungen und Rückerstattungen folgen der Google-Play-Richtlinie und dem E-Commerce-Recht.",
+    passTerminationNote: "Wenn das Nutzungslimit aufgebraucht ist, endet der Pass. Ein erneuter Kauf beginnt mit einem neuen Nutzungslimit.",
   },
   nl: {
     appHomeAriaLabel: "Code Destiny app-startpagina",
@@ -796,15 +797,15 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     passPageBody: "Met een pas openen functies binnen de dekking direct zonder betaling.",
 
     passPlans: {
-      standard: { title: "Standaard", blurb: "Een lichte start van 30 dagen" },
-      premium: { title: "Premium", blurb: "De populairste keuze" },
-      vvip: { title: "VVIP", blurb: "Ruim voldoende voor diepgaand advies" },
-      family: { title: "Familie", blurb: "Gebruik alle betaalde functies" },
+      standard: { title: "Kleine honingpot", blurb: "Een lichte start" },
+      premium: { title: "Middelgrote honingpot", blurb: "De populairste keuze" },
+      vvip: { title: "Grote honingpot", blurb: "Ruim voldoende voor diepgaand advies" },
+      family: { title: "Gezinshoningpot", blurb: "Gebruik alle betaalde functies" },
     },
     benefitCoverageFree: (coverageLabel) => `Functies tot ${coverageLabel} zijn gratis`,
     benefitAllFree: "Alle content die de pass dekt",
-    benefitMonthlyCap: (capLabel) => `Tot ${capLabel} per maand`,
-    benefit30Days: "30 dagen · geen automatische verlenging",
+    benefitMonthlyCap: (capLabel) => `Tot ${capLabel}`,
+    benefitNoTimeLimit: "Geen tijdslimiet · geen automatische verlenging",
     billingNotReadyMessage: "De in-app betalingsverbinding is nog niet klaar. Herstart de app.",
     productLoadFailedMessage: "Kon het pasproduct niet laden.",
     paymentIncompleteMessage: "De betaling is niet voltooid.",
@@ -820,8 +821,8 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     verifyingButton: "Verifiëren",
     purchasingButton: "Verwerken",
     buyButton: "Kopen",
-    footerNote: "De pas is 30 dagen geldig, binnen de maandelijkse gebruikslimiet van elk niveau. Wordt niet automatisch verlengd. Functies buiten de dekking kunnen worden gebruikt via eenmalige betaling of maanstenen. Betalingen en terugbetalingen volgen het Google Play-beleid en de e-commercewetgeving.",
-    passTerminationNote: "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day.",
+    footerNote: "De pas heeft geen tijdslimiet: je gebruikt hem binnen de gebruikslimiet van elk niveau en hij eindigt zodra die limiet op is. Wordt niet automatisch verlengd. Functies buiten de dekking kunnen worden gebruikt via eenmalige betaling of maanstenen. Betalingen en terugbetalingen volgen het Google Play-beleid en de e-commercewetgeving.",
+    passTerminationNote: "Zodra de gebruikslimiet volledig is gebruikt, eindigt de pas. Bij een nieuwe aankoop begin je met een nieuwe gebruikslimiet.",
   },
   ms: {
     appHomeAriaLabel: "Laman utama aplikasi Code Destiny",
@@ -863,15 +864,15 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     passPageBody: "Dengan pas, ciri dalam liputannya terbuka serta-merta tanpa pembayaran.",
 
     passPlans: {
-      standard: { title: "Standard", blurb: "Permulaan ringan 30 hari" },
-      premium: { title: "Premium", blurb: "Pilihan paling popular" },
-      vvip: { title: "VVIP", blurb: "Ruang mencukupi untuk konsultasi mendalam" },
-      family: { title: "Keluarga", blurb: "Gunakan semua ciri berbayar" },
+      standard: { title: "Balang Madu Kecil", blurb: "Permulaan ringan" },
+      premium: { title: "Balang Madu Sederhana", blurb: "Pilihan paling popular" },
+      vvip: { title: "Balang Madu Besar", blurb: "Ruang mencukupi untuk konsultasi mendalam" },
+      family: { title: "Balang Madu Keluarga", blurb: "Gunakan semua ciri berbayar" },
     },
     benefitCoverageFree: (coverageLabel) => `Ciri sehingga ${coverageLabel} adalah percuma`,
     benefitAllFree: "Semua kandungan yang dilindungi pas",
-    benefitMonthlyCap: (capLabel) => `Sehingga ${capLabel} sebulan`,
-    benefit30Days: "30 hari · tiada pembaharuan automatik",
+    benefitMonthlyCap: (capLabel) => `Sehingga ${capLabel}`,
+    benefitNoTimeLimit: "Tiada had masa · tiada pembaharuan automatik",
     billingNotReadyMessage: "Sambungan pembayaran dalam aplikasi belum bersedia. Sila mulakan semula aplikasi.",
     productLoadFailedMessage: "Tidak dapat memuatkan produk pas.",
     paymentIncompleteMessage: "Pembayaran tidak selesai.",
@@ -887,8 +888,8 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     verifyingButton: "Mengesahkan",
     purchasingButton: "Memproses",
     buyButton: "Beli",
-    footerNote: "Pas sah selama 30 hari, dalam had penggunaan bulanan bagi setiap peringkat. Ia tidak diperbaharui secara automatik. Ciri di luar liputannya boleh digunakan melalui pembayaran sekali atau batu bulan. Pembayaran·bayaran balik mematuhi dasar Google Play dan undang-undang e-dagang.",
-    passTerminationNote: "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day.",
+    footerNote: "Pas tiada had masa: ia digunakan dalam had penggunaan setiap peringkat dan tamat apabila had itu habis digunakan. Ia tidak diperbaharui secara automatik. Ciri di luar liputannya boleh digunakan melalui pembayaran sekali atau batu bulan. Pembayaran·bayaran balik mematuhi dasar Google Play dan undang-undang e-dagang.",
+    passTerminationNote: "Apabila had penggunaan habis digunakan, pas akan tamat. Membeli semula akan bermula dengan had penggunaan baharu.",
   },
 };
 

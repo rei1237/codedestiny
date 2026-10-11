@@ -174,7 +174,7 @@ for (const product of [...listAppContentTiers(), ...listAppPassProducts()]) {
   }
 
   // 이용권 구매 화면이 서버의 shouldConsume 을 실제로 이행하는지.
-  // (여기가 빠져 있으면 이용권이 30일 뒤 재구매 불가가 된다 — 갱신 매출 전멸)
+  // (여기가 빠져 있으면 이용권이 끝난 뒤 재구매 불가가 된다 — 갱신 매출 전멸)
   const passStoreSource = readSource("app/app/store/AppPassStoreClient.tsx");
   if (!passStoreSource) {
     failures.push("app/app/store/AppPassStoreClient.tsx 를 읽지 못했다 — 이용권 소비를 검증할 수 없다");
