@@ -2500,24 +2500,57 @@
     {
       "productId": "human-design-report",
       "displayName": "휴먼 디자인 프리미엄 리포트",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "saleStatus": "무료차트후 잠금화면 구매버튼·서버가격 확인",
+      "entry": [
+        "/human-design/report/"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 5000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "inputRequirements": [
+        "무료 바디그래프 계산",
+        "출생일/시각/시간대/달력 입력 재사용"
       ],
-      "detailAliases": []
+      "resultRenderer": [
+        "lib/human-design/report-sections.js",
+        "lib/human-design/report-plan.js",
+        "app/human-design/report/HumanDesignReportClient.tsx"
+      ],
+      "actualContents": [
+        "자기요약/설계도/타입/전략/권위/프로파일",
+        "정의/열린센터/채널/게이트/행성/크로스",
+        "관계/일돈/성장/조건화/실천/종합 총18장",
+        "차트 기반 표·도표/목차·부분생성/이어보기/완성후PDF"
+      ],
+      "conditionalItems": [
+        "PDF지원본문언어 ko/en/vi/es/fr/de/nl/ms;미지원웹",
+        "웹PDF 동일저장본문;PDF로 새AI생성안함",
+        "분량·생성시간 고정약속안함"
+      ],
+      "separatePurchase": [
+        "무료차트와 유료리포트 구분"
+      ],
+      "reviewSource": [
+        "가상 편집 예시;실제AI출력후기아님"
+      ],
+      "images": [
+        "/feature-details/crafted/human-design-report/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "app/human-design/report/HumanDesignReportClient.tsx",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본10/native23 독립SHIP;4폭 구매CTA5000 정본일치",
+        "328/358/398/540 clipping/fallback PASS POST0 차트fixture/API mock",
+        "관련Node32/typecheck/ESLint PASS"
+      ],
+      "unconfirmed": [
+        "main전달·CI미확인;실결제실LLM없음",
+        "기존390px구매목차 힘 한단어줄바꿈 비차단"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "ifa-oracle",

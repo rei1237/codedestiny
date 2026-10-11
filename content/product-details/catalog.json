@@ -96,7 +96,8 @@
     "geomancy": "geomancy-oracle",
     "maya-prompt-generator": "maya-prompt",
     "openKemetModal": "kemet-oracle",
-    "royal-tea-oracle": "royal-tea-oracle"
+    "royal-tea-oracle": "royal-tea-oracle",
+    "human-design-report": "human-design-report"
   },
   "introductions": {
     "fusion-fortune": [
