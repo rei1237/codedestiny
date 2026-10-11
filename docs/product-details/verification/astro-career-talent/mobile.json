@@ -1,0 +1,177 @@
+{
+  "rows": [
+    {
+      "width": 360,
+      "images": [
+        {
+          "loaded": true,
+          "left": 6,
+          "right": 339,
+          "width": 333
+        },
+        {
+          "loaded": true,
+          "left": 6,
+          "right": 339,
+          "width": 333
+        },
+        {
+          "loaded": true,
+          "left": 6,
+          "right": 339,
+          "width": 333
+        },
+        {
+          "loaded": true,
+          "left": 6,
+          "right": 339,
+          "width": 333
+        },
+        {
+          "loaded": true,
+          "left": 6,
+          "right": 339,
+          "width": 333
+        },
+        {
+          "loaded": true,
+          "left": 6,
+          "right": 339,
+          "width": 333
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "images": [
+        {
+          "loaded": true,
+          "left": 6,
+          "right": 369,
+          "width": 363
+        },
+        {
+          "loaded": true,
+          "left": 6,
+          "right": 369,
+          "width": 363
+        },
+        {
+          "loaded": true,
+          "left": 6,
+          "right": 369,
+          "width": 363
+        },
+        {
+          "loaded": true,
+          "left": 6,
+          "right": 369,
+          "width": 363
+        },
+        {
+          "loaded": true,
+          "left": 6,
+          "right": 369,
+          "width": 363
+        },
+        {
+          "loaded": true,
+          "left": 6,
+          "right": 369,
+          "width": 363
+        }
+      ]
+    },
+    {
+      "width": 430,
+      "images": [
+        {
+          "loaded": true,
+          "left": 6,
+          "right": 409,
+          "width": 403
+        },
+        {
+          "loaded": true,
+          "left": 6,
+          "right": 409,
+          "width": 403
+        },
+        {
+          "loaded": true,
+          "left": 6,
+          "right": 409,
+          "width": 403
+        },
+        {
+          "loaded": true,
+          "left": 6,
+          "right": 409,
+          "width": 403
+        },
+        {
+          "loaded": true,
+          "left": 6,
+          "right": 409,
+          "width": 403
+        },
+        {
+          "loaded": true,
+          "left": 6,
+          "right": 409,
+          "width": 403
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "images": [
+        {
+          "loaded": true,
+          "left": 362.5,
+          "right": 902.5,
+          "width": 540
+        },
+        {
+          "loaded": true,
+          "left": 362.5,
+          "right": 902.5,
+          "width": 540
+        },
+        {
+          "loaded": true,
+          "left": 362.5,
+          "right": 902.5,
+          "width": 540
+        },
+        {
+          "loaded": true,
+          "left": 362.5,
+          "right": 902.5,
+          "width": 540
+        },
+        {
+          "loaded": true,
+          "left": 362.5,
+          "right": 902.5,
+          "width": 540
+        },
+        {
+          "loaded": true,
+          "left": 362.5,
+          "right": 902.5,
+          "width": 540
+        }
+      ]
+    }
+  ],
+  "fallback": true,
+  "entry": "Existing fallback renderer forced by mocked legacy renderer failure; these are not normal stellar-room SKUs",
+  "requests": [
+    "/api/astro/basic-deep",
+    "/api/astro/basic-deep",
+    "/api/astro/basic-deep",
+    "/api/astro/basic-deep"
+  ],
+  "mode": "All API mocked; basic-deep 402 pricing mock; no live purchase/LLM; production-hidden dev tester excluded"
+}

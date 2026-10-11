@@ -1,0 +1,6 @@
+{
+  "original": "Independent SHIP20;career05 heading shortened",
+  "mobile": "Independent final SHIP20 panels,18 CTA/notice,3 transcripts;6 consecutive-image rechecks and final2 decode/frame rechecks SHIP",
+  "checks": "4 widths load/bounds/fallback PASS;basic normal;career/growth mocked legacy renderer failure;8 authority/PDF tests and7 renderer tests PASS;ESLint0errors23 existing warnings",
+  "limits": "All API mocked; no live payment/LLM;main pending"
+}

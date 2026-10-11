@@ -168,68 +168,163 @@
     {
       "productId": "astro_basic_deep_pack",
       "displayName": "점성술 기본 차트 심층 패키지",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "saleStatus": "일반 점성술 모달의 서버권한확인형 상세해석 진입확인",
+      "entry": [
+        "openAstroModal",
+        "data-astro-server-detail"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 1000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "inputRequirements": [
+        "본인생년월일·출생시간·지역·시간대",
+        "시간미상정오차트·하우스축제외"
       ],
-      "detailAliases": []
+      "resultRenderer": [
+        "worker/lib/astro-basic-deep-report.js",
+        "worker/lib/astro-natal-reading.cjs",
+        "js/core/astro/basic-deep-client.js"
+      ],
+      "actualContents": [
+        "성향초상",
+        "연애/재물/인간관계/일/회복/성장6영역",
+        "행성10·각·원소기질균형·계산설명",
+        "조건부피르다리아/프로펙션",
+        "상세권한확인후브라우저인쇄PDF"
+      ],
+      "conditionalItems": [
+        "시기근거없으면미상설명",
+        "무료요약과유료본문분리"
+      ],
+      "separatePurchase": [
+        "기본패키지/개별해금/봉인된별의방/전문가상담서로별도"
+      ],
+      "reviewSource": [],
+      "images": [
+        "/feature-details/crafted/astro-basic-deep/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "js/core/astro/crafted-details.mjs",
+        "js/core/astro/basic-deep-client.js"
+      ],
+      "verification": [
+        "원본20장독립SHIP",
+        "실제대상20패널·18CTA고지·3원고독립SHIP",
+        "4폭load/bounds/이미지오류fallbackPASS",
+        "기본일반경로·2종대체경로mock실패유도검증",
+        "권한/재조회/PDF8검사·기존renderer7검사PASS",
+        "ESLint0errors/기존23warnings"
+      ],
+      "unconfirmed": [
+        "main전달·CI·운영노출미확인;실결제실LLM미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "astro_career_talent_deep",
       "displayName": "점성술 커리어·재능 정밀 분석",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "saleStatus": "기존 대체 렌더 경로에서만 유료해금 노출; 정상 화면의 stellar 상품과 별도",
+      "entry": [
+        "openAstroModal",
+        "renderAstroInsightCounselV20260613 legacy renderer 실패/부재 분기"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 1000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "inputRequirements": [
+        "본인생년월일·출생시간·지역·시간대",
+        "시각미상하우스정밀해석제한"
       ],
-      "detailAliases": []
+      "resultRenderer": [
+        "js/saju-engine.js _astroCounselCareer"
+      ],
+      "actualContents": [
+        "MC",
+        "10하우스룰러",
+        "6하우스업무스타일",
+        "ASC룰러",
+        "목성하우스",
+        "직업분야와이유"
+      ],
+      "conditionalItems": [
+        "정상stellar상품본문아님;대체렌더화면전용",
+        "출생시간·지역확인필요"
+      ],
+      "separatePurchase": [
+        "기본패키지/개별해금/봉인된별의방/전문가상담서로별도"
+      ],
+      "reviewSource": [],
+      "images": [
+        "/feature-details/crafted/astro-career-talent/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "js/core/astro/crafted-details.mjs",
+        "js/core/astro/basic-deep-client.js"
+      ],
+      "verification": [
+        "원본20장독립SHIP",
+        "실제대상20패널·18CTA고지·3원고독립SHIP",
+        "4폭load/bounds/이미지오류fallbackPASS",
+        "기본일반경로·2종대체경로mock실패유도검증",
+        "권한/재조회/PDF8검사·기존renderer7검사PASS",
+        "ESLint0errors/기존23warnings"
+      ],
+      "unconfirmed": [
+        "main전달·CI·운영노출미확인;실결제실LLM미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "astro_growth_shadow_deep",
       "displayName": "점성술 과제와 변화 심화 리딩",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "saleStatus": "기존 대체 렌더 경로에서만 유료해금 노출; 정상 화면의 stellar 상품과 별도",
+      "entry": [
+        "openAstroModal",
+        "renderAstroInsightCounselV20260613 legacy renderer 실패/부재 분기"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 1000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "inputRequirements": [
+        "본인생년월일·출생시간·지역·시간대",
+        "시각미상하우스정밀해석제한"
       ],
-      "detailAliases": []
+      "resultRenderer": [
+        "js/saju-engine.js _astroCounselPlanetRow"
+      ],
+      "actualContents": [
+        "토성/명왕성/해왕성 각각별자리·행성의미·현실배치"
+      ],
+      "conditionalItems": [
+        "정상stellar상품본문아님;대체렌더화면전용",
+        "출생시간·지역확인필요"
+      ],
+      "separatePurchase": [
+        "기본패키지/개별해금/봉인된별의방/전문가상담서로별도"
+      ],
+      "reviewSource": [],
+      "images": [
+        "/feature-details/crafted/astro-growth-shadow/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "js/core/astro/crafted-details.mjs",
+        "js/core/astro/basic-deep-client.js"
+      ],
+      "verification": [
+        "원본20장독립SHIP",
+        "실제대상20패널·18CTA고지·3원고독립SHIP",
+        "4폭load/bounds/이미지오류fallbackPASS",
+        "기본일반경로·2종대체경로mock실패유도검증",
+        "권한/재조회/PDF8검사·기존renderer7검사PASS",
+        "ESLint0errors/기존23warnings"
+      ],
+      "unconfirmed": [
+        "main전달·CI·운영노출미확인;실결제실LLM미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "astro_monthly_transit",

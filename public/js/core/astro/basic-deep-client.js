@@ -129,6 +129,7 @@
     readButton.addEventListener('click', function () { void read(state); });
     pdf.addEventListener('click', function () { void printPdf(state); });
     void read(state);
+    import('/js/core/astro/crafted-details.mjs').then(function (module) { if (area.isConnected) module.mountAstroCraftedDetails(area); }).catch(function () { /* Optional guide must not interrupt the existing report. */ });
   }
   root.addEventListener('cd:auth-changed', invalidate);
   document.addEventListener('cd:profile-card-published', invalidate);

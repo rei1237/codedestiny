@@ -176,3 +176,11 @@ status: active
 - 원본24장/소개24패널·18CTA고지·3원고독립SHIP,동물점고아줄2수정재검수. 4폭로드경계fallbackPASS. 기존소개/복구17검사PASS,토템mock실렌더PASS.
 - 소개generator재실행으로이전원고제목정합화의chat/tea파생본도갱신(본문/이미지변경없음). 동물점현재라우트와유료타일구분,정책무변경. 토템deep기존서버coinPrice50/client정본30차이는대장미확인에기록,수정하지않음.
 - 유료기본47종+공통소개1종455패널로컬검수완료. 전체및main전달미완료. 다음점성술기본심층/커리어/성장후보의실제진입과구성조사.
+
+## 점성술 기본 심층·커리어·과제변화
+- 8/6/6장개별편집. 기본서버정본6생활영역·행성/각/시기/균형/PDF,두개별항목5커리어근거·3행성설명. fixture로시각유무조건실행확인.
+- 기본은정상모달,커리어/성장은legacy renderer실패시기존대체경로전용임을실제검수에서확인. 일반stellar키와구분하여대장에기록.
+- 원본20장및실제20패널·18CTA고지·3원고최종독립SHIP. career제목고아줄수정. nestedpadding밖에안내를배치해모바일폭확보. 인접이미지complete/decode/2frame대기후연속6장·최종2장재검수SHIP.
+- 네폭로드경계fallbackPASS. 권한/재조회/PDF8,공통renderer7검사PASS. ESLint0errors/기존23warnings. basicclient선택안내import1줄외권한/결제/계산변경없음. sync:public미러·자산해시갱신.
+- d96baf11f clean pre-push PASS(이전시점의sitemap드리프트재생성955확인). 현재check:fast계획은공유소스/생성.ignore로전체자동승격,실행중이며미통과로기록.
+- 유료구성50종(대체화면전용2포함)+공통소개1종475패널로컬검수완료. 전체/main전달미완료. 다음일반화면봉인된별의방3종조사/제작.

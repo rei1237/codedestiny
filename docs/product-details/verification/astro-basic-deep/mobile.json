@@ -1,0 +1,225 @@
+{
+  "rows": [
+    {
+      "width": 360,
+      "images": [
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 329,
+          "width": 313
+        },
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 329,
+          "width": 313
+        },
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 329,
+          "width": 313
+        },
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 329,
+          "width": 313
+        },
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 329,
+          "width": 313
+        },
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 329,
+          "width": 313
+        },
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 329,
+          "width": 313
+        },
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 329,
+          "width": 313
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "images": [
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 359,
+          "width": 343
+        },
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 359,
+          "width": 343
+        },
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 359,
+          "width": 343
+        },
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 359,
+          "width": 343
+        },
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 359,
+          "width": 343
+        },
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 359,
+          "width": 343
+        },
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 359,
+          "width": 343
+        },
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 359,
+          "width": 343
+        }
+      ]
+    },
+    {
+      "width": 430,
+      "images": [
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 399,
+          "width": 383
+        },
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 399,
+          "width": 383
+        },
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 399,
+          "width": 383
+        },
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 399,
+          "width": 383
+        },
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 399,
+          "width": 383
+        },
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 399,
+          "width": 383
+        },
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 399,
+          "width": 383
+        },
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 399,
+          "width": 383
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "images": [
+        {
+          "loaded": true,
+          "left": 362.5,
+          "right": 902.5,
+          "width": 540
+        },
+        {
+          "loaded": true,
+          "left": 362.5,
+          "right": 902.5,
+          "width": 540
+        },
+        {
+          "loaded": true,
+          "left": 362.5,
+          "right": 902.5,
+          "width": 540
+        },
+        {
+          "loaded": true,
+          "left": 362.5,
+          "right": 902.5,
+          "width": 540
+        },
+        {
+          "loaded": true,
+          "left": 362.5,
+          "right": 902.5,
+          "width": 540
+        },
+        {
+          "loaded": true,
+          "left": 362.5,
+          "right": 902.5,
+          "width": 540
+        },
+        {
+          "loaded": true,
+          "left": 362.5,
+          "right": 902.5,
+          "width": 540
+        },
+        {
+          "loaded": true,
+          "left": 362.5,
+          "right": 902.5,
+          "width": 540
+        }
+      ]
+    }
+  ],
+  "fallback": true,
+  "entry": "Existing openAstroModal invoked after mock saju input; render evidence, not isolated tile click",
+  "requests": [
+    "/api/astro/basic-deep",
+    "/api/astro/basic-deep",
+    "/api/astro/basic-deep",
+    "/api/astro/basic-deep"
+  ],
+  "mode": "All API mocked; basic-deep 402 pricing mock; no live purchase/LLM; production-hidden dev tester excluded"
+}
