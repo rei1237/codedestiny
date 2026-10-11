@@ -82,7 +82,11 @@ docs/handoff/2026-10-11-paid-archive-followups.md 를 읽고 P0-1 을 진행해�
 - 결과(977eab2a7):
   - `nakshatra-compat-delivery`(402)·`palm-result-delivery`(403)에 같은 방식을 붙였다. 증빙이 없고 `accessMethod:'pass'` 이면 같은 requestId 로 이용권을 직접 확정한다(소비 마커로 멱등). DB 장애(`proven:null`)는 503 그대로다. 손금은 requestId 를 지정한 조회에서만 확정하고 '최근 판독' 조회는 소비하지 않는다. 클라이언트는 게이트가 이용권으로 통과하면 `accessMethod:'pass'` 를 같이 보낸다.
   - `ziwei-deep-report` 는 cron 전용, `paid-narrative-intent` 는 등록·승격만 하고 소비하지 않아 대상이 아니다.
-  - 근본 해결안은 하지 않았다. `_cdRecordMembershipPassInBackground` 는 "재시도하지 않는다"는 의도된 설계라 바꾸지 않았다. `billing-client.ts` 쪽 재시도는 동결 파일이라 승인이 필요하다. 인플라이트 키에 requestId 가 없는 점도 그대로다.
+  - 근본 해결안: ✅ 완료 2026-10-11 (a2b89a51c, 동결 파일 수정은 사용자 승인).
+    - 백그라운드 이용권 기록 세 곳이 5xx·타임아웃·네트워크 오류면 같은 requestId 로 4·12·30초 뒤 최대 3번 다시 보낸다. 대상은 셸 `_cdRecordMembershipPassInBackground`, React `billing-client.ts` `recordMembershipPassInBackground`, 독립 정적 페이지 `destiny-profile.js` `_dpRecordMembershipPassInBackground` 다.
+    - 서버가 (기능, requestId) 소비 마커로 멱등이라 이중 차감은 없다. 402·로그아웃·프로필 누락 같은 4xx 는 다시 보내지 않는다. 셸은 requestId 가 비면 다시 보내지 않는다.
+    - 셸 인플라이트 키에 requestId 를 넣었다.
+    - 금전 결제 POST 의 자동 재시도 금지 가드는 그대로다. `verify-pass-recovery-path` 에 세 곳의 재시도 검사를 붙였다.
 
 **P0-3. 회당 결제 → 영구 해금 분류 누락** — 🟠 ✅ 완료 2026-10-11 (f81feb15a)
 - `worker/routes/fortune.js:2510` 의 `PERSISTENT_UNLOCK_KEY_SET` 에 `sukuyo-extreme-t-relationship` 이 없다. 이 목록을 읽는 경로(레거시 해금 조회)에서 극T 해금이 영구로 취급되지 않을 수 있다.
@@ -115,7 +119,9 @@ docs/handoff/2026-10-11-paid-archive-followups.md 를 읽고 P0-1 을 진행해�
   - `tarot-myeongri-three-card`, `fun.quantumLotto.ritualReport`
   - `openKemetModal`, `openJuyukModal`, `ifa-oracle`, `royal-tea-oracle`, `maya-prompt-generator`, `destiny_meeting_place`
   - 서버가 계산하지만 저장하지 않는 것: `tarot-reunion`·`numerology`·`ijik`·`crystal-soul`, `nakshatra-muhurta`·`vvip-codex`
-- 참고: `RECORD_SERVICES` 의 나침반 항목 대체 featureKey 가 `destiny-compass-life-voyage` 로 적혀 있다. 나침반 출처는 동적이 아니라 이번 키와 충돌하지 않지만, 이름이 어긋나 보이니 확인이 필요하다.
+- 참고: `RECORD_SERVICES` 의 나침반 항목 대체 featureKey 가 `destiny-compass-life-voyage` 로 적혀 있었다. ✅ 정정 2026-10-11 (a2b89a51c)
+  - 이 항목(`DestinyCompassReport`)은 나침반 AI 심층 리포트(`destiny-compass-deep-report`)를 저장한다. 문서에 featureKey 가 없어 대체 키가 그대로 쓰였다. 그래서 보관함의 환불 철회 판정이 다른 상품 키로 이뤄져, 환불된 심층 리포트가 목록에 남을 수 있었다.
+  - `destiny-compass-deep-report` 로 고치고 `record-library` 테스트를 붙였다. 판독 화면은 출처로 고르므로 영향이 없다.
 
 **P1-4. 출생정보 수정 시 결과가 다시 잠긴다는 안내 부족** ✅ 완료 2026-10-11 (9973db561)
 - 카드 수정이 무료가 됐다. 출생정보를 바꾸면 출생 기반 해금이 잠기는 것은 의도된 동작이지만, 수정 화면에 안내가 없다.
