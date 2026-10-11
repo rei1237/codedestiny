@@ -1,0 +1,88 @@
+{
+  "id": "year-fortune-tarot",
+  "featureKey": "tarot-year-fortune",
+  "title": "십이지신 천운 타로",
+  "notice": "생년월일이나 띠를 입력하지 않고 현재 연도를 기준으로 유료 리딩을 엽니다. 열두 달의 카드·십이지신 상징과 올해의 핵심 카드, 총운, 월별 해설, 분야별 리딩, 전환점, 행운 행동, 마지막 메시지를 확인합니다. 월별 화면에서 종합·재물·연애·인간관계·컨디션·시험 관점을 고를 수 있으며 추가 세 카드가 준비되면 원인·과정·결과 해설을 더합니다. 준비되지 않으면 기본 해설이 표시됩니다. 현재 해설은 카드 자료를 조합하는 규칙형 리딩이며 AI 자유 상담이나 생년월일 기반 명리 리포트가 아닙니다. 서버에 저장된 연간 결과는 같은 계정에서 다시 불러오며 짧은 메시지 공유를 지원합니다. PDF나 전체 결과 파일 저장은 제공하지 않습니다. 건강·컨디션은 생활 리듬 관점으로 질병 진단이나 치료 판단이 아닙니다. 특정 시기의 사건·수익·성공이나 행운 효과를 보장하지 않습니다. 표지와 예시는 콘셉트·가상 편집으로 개인 결과나 고객 후기가 아닙니다. 이용권·월정석·단건 결제 및 현재 연도 이용 조건은 결제 안내에서 확인하세요.",
+  "panels": [
+    {
+      "id": "01-twelve-windows",
+      "title": "한 해를 한 문장으로 단정하지 않도록.",
+      "src": "/feature-details/crafted/year-fortune-tarot/01-twelve-windows.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "한 해를 한 문장으로\n단정하지 않도록.\n\n열두 달의 카드와 십이지신 상징을\n총운·월별 흐름·생활의 선택으로 잇는\n십이지신 천운 타로입니다.\n\n콘셉트 이미지 · 개인 결과가 아닙니다.\n출생 사주를 계산하는 서비스와는 달라요."
+    },
+    {
+      "id": "02-a-year-in-twelve-cards",
+      "title": "열두 달, 서로 다른 장면.",
+      "src": "/feature-details/crafted/year-fortune-tarot/02-a-year-in-twelve-cards.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "열두 달,\n서로 다른 장면.\n1월\n2월\n3월\n4월\n5월\n6월\n7월\n8월\n9월\n10월\n11월\n12월\n\n한 해에 배치된 열두 카드가\n월별 주제와 행동 방향을 만듭니다.\n\n움직일 때와 점검할 때의\n차이를 살펴보세요.\n\n달력은 구성 설명용입니다.\n현재 연도를 기준으로 리딩을 엽니다."
+    },
+    {
+      "id": "03-the-core-card",
+      "title": "올해의 핵심 카드부터, 밝은 면과 그림자까지.",
+      "src": "/feature-details/crafted/year-fortune-tarot/03-the-core-card.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "올해의 핵심 카드부터,\n밝은 면과 그림자까지.\n한 해를 관통하는 주제\n\n핵심 카드의 의미와\n올해 생활에서 드러날 관점을 읽어요.\n\n힘이 되는 면과 살필 면\n\n좋은 신호만 고르지 않고\n과해졌을 때의 그림자도 함께 봅니다.\n\n잘 쓰는 방법\n\n일과 돈, 관계와 생활 리듬에서\n카드를 활용하는 태도와\n피할 선택을 정리합니다."
+    },
+    {
+      "id": "04-zodiac-as-symbol",
+      "title": "십이지신은, 흐름을 읽는 상징입니다.",
+      "src": "/feature-details/crafted/year-fortune-tarot/04-zodiac-as-symbol.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "십이지신은,\n흐름을 읽는 상징입니다.\n강점\n주의\n행동\n\n동물마다 지닌 상징과\n타로 카드의 의미를 함께 읽어요.\n\n카드 × 동물의 관점\n\n열두 동물의 주제·강점·주의점과\n실천 제안을 확인하고,\n카드와 만났을 때의 조합을 읽습니다.\n\n출생 정보는 입력하지 않습니다.\n개인의 띠를 판정하는 기능이 아니에요."
+    },
+    {
+      "id": "05-read-a-month-up-close",
+      "title": "궁금한 달은, 조금 더 가까이.",
+      "src": "/feature-details/crafted/year-fortune-tarot/05-read-a-month-up-close.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "궁금한 달은,\n조금 더 가까이.\n달의 카드와 기본 흐름\n\n월별 카드를 눌러 주제와 상징,\n영역별 해설과 실천을 읽습니다.\n\n영역을 바꾸어 보기\n\n종합·재물·연애·인간관계·컨디션·\n시험의 관점을 선택할 수 있어요.\n\n원인·과정·결과의 세 자리\n\n월별 추가 카드가 준비되면\n그 흐름을 연결해 읽습니다.\n준비되지 않으면 기본 해설을 봅니다."
+    },
+    {
+      "id": "06-from-calendar-to-life",
+      "title": "달력의 흐름을, 생활의 질문으로.",
+      "src": "/feature-details/crafted/year-fortune-tarot/06-from-calendar-to-life.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "달력의 흐름을,\n생활의 질문으로.\n\n돈과 일 · 지출 기준과 역할\n\n연애와 관계 · 표현과 거리\n\n가족과 생활 · 돌봄과 균형\n\n공부와 성장 · 반복할 루틴\n\n기회와 전환점 · 선택의 방향\n\n분야별 상세 리딩의 일부 예입니다.\n건강·컨디션 해설은 생활 리듬의 관점이며\n질병 진단이나 치료 판단이 아닙니다."
+    },
+    {
+      "id": "07-a-monthly-example",
+      "title": "기회가 보이는 달에도, 확인할 기준은 남아요.",
+      "src": "/feature-details/crafted/year-fortune-tarot/07-a-monthly-example.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "가상 편집 예시 · 실제 결과가 아닙니다\n\n기회가 보이는 달에도,\n확인할 기준은 남아요.\n“새 제안을 넓게 살펴보되,\n일정과 비용을 적어본 뒤\n지금 감당할 수 있는\n한 가지부터 선택해 보세요.”\n\n유리한 흐름이라는 표현을\n성공 보장으로 받아들이기보다\n준비할 행동으로 바꿔 읽어주세요.\n\n특정 달의 실제 결과가 아닌 편집 예시입니다."
+    },
+    {
+      "id": "08-one-year-one-story",
+      "title": "열두 장을 읽은 뒤, 한 해의 이야기로.",
+      "src": "/feature-details/crafted/year-fortune-tarot/08-one-year-one-story.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "열두 장을 읽은 뒤,\n한 해의 이야기로.\n1년의 서사\n\n각 달의 흐름을 연결해\n반복되는 주제와 변화를 읽어요.\n\n전환점과 행운 행동\n\n주목할 시기와 행동 제안을\n생활에서 확인할 기준으로 삼습니다.\n\n마지막 메시지\n\n필요한 태도, 붙잡을 기회,\n내려놓을 습관을 정리해요.\n\n사건이나 수익을 보장하지 않습니다."
+    },
+    {
+      "id": "09-opening-and-returning",
+      "title": "처음 열 때와, 다시 볼 때.",
+      "src": "/feature-details/crafted/year-fortune-tarot/09-opening-and-returning.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "처음 열 때와,\n다시 볼 때.\n현재 연도의 리딩 열기\n\n결제 안내를 확인한 뒤\n열두 카드와 연간 해설을 엽니다.\n\n저장된 연간 결과 확인\n\n서버에 저장된 결과가 있으면\n같은 계정에서 다시 불러옵니다.\n\n규칙형 해설과 짧은 공유\n\n현재 해설은 카드 자료 조합입니다.\nAI 자유 상담이나 PDF가 아니며,\n짧은 결과 메시지를 공유할 수 있어요."
+    },
+    {
+      "id": "10-a-calendar-for-your-choices",
+      "title": "한 해의 답보다, 선택을 돌아볼 달력으로.",
+      "src": "/feature-details/crafted/year-fortune-tarot/10-a-calendar-for-your-choices.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "한 해의 답보다,\n선택을 돌아볼 달력으로.\n\n카드가 던지는 질문을 다시 읽고,\n확인할 조건 하나를\n현실의 일정에 적어보세요.\n\n십이지신과 카드는 상징입니다.\n일·돈·관계의 결과를 확정하거나\n행운의 효과를 보장하지 않습니다.\n\n이용권·월정석·단건 결제와\n현재 연도의 이용 조건은\n결제 안내에서 확인해 주세요.\n\n예시는 가상 편집이며 고객 후기가 아닙니다.\n생년월일 기반 명리 리포트와는 다릅니다."
+    }
+  ]
+}

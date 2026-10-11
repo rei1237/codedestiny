@@ -462,3 +462,7 @@ status: active
 ## 재회운 타로
 - 5자리/규칙형해설/회복조건/연락전기준·7일루틴/질문문복사를9장개별편집. 원본9/native23 최종독립SHIP.07·09넘침/초기·공개제목과닫기겹침수정.앞면애니메이션완료후캡처.312/342/378/538 clipping/fallback/CTAtrial PASS,무료drawmockPOST1/그외0. ESLint0errors281기존warnings.
 - 유료구성119종+공통소개1종1077패널 로컬검수. 직전6de60d71e pre-pushPASS. mainCI복구질문pending/운영배포없음. 전체/main전달미완료. 다음십이지신천운10장원본SHIP·native연결예정.
+
+## 십이지신 천운 타로
+- 현재연도12카드/십이지신/핵심명암/월별6관점/조건부3카드/저장재열람을10장개별편집. 원본10/native23 독립SHIP.312/342/382/538 clipping/fallback/CTAtrial PASS,API POST0. Jest11 PASS(공식ESMscript),ESLint0errors301기존warnings.
+- 유료구성120종+공통소개1종1087패널 로컬검수. 직전67ab949e9 pre-pushPASS. mainCI복구질문pending/운영배포없음. 전체/main전달미완료. 다음네빌명상9장원본편집.

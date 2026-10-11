@@ -4098,24 +4098,50 @@
     {
       "productId": "tarot-year-fortune",
       "displayName": "십이지신 천운 타로",
-      "saleStatus": "진입 확인·구성 대조 중",
+      "saleStatus": "현행모달현재연도유료리딩",
       "entry": [
         "/index.html?action=openTarotYearFortuneModal"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 5000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
+      "inputRequirements": [
+        "현재연도기준",
+        "생년월일/띠/사연입력없음"
+      ],
+      "resultRenderer": [
+        "js/tarot-year-fortune-experience.js",
+        "lib/tarot/tarot-year-premium.mjs",
+        "worker/routes/tarot.js"
+      ],
+      "actualContents": [
+        "핵심카드명암/열두달·십이지신상징",
+        "총운/월별해설/분야/전환점/행동/마지막메시지",
+        "같은계정연간저장결과재열람·짧은공유"
+      ],
+      "conditionalItems": [
+        "규칙형해설;AI자유상담아님",
+        "월별추가3카드준비시원인과정결과;실패시기본해설",
+        "PDF/전체파일저장없음"
+      ],
       "separatePurchase": [],
       "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
+      "images": [
+        "/feature-details/crafted/year-fortune-tarot/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "js/tarot-year-fortune-experience.js",
+        "public/js/tarot-year-fortune-experience.js",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본10/native23독립SHIP",
+        "312/342/382/538 clipping/fallback/CTAtrial PASS",
+        "API POST0;유료생성없음",
+        "Jest11 PASS;ESLint0errors301기존warnings"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "main전달전로컬검수;실결제없음"
       ],
       "detailAliases": [
         "tarot-year-fortune"
