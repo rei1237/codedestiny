@@ -89,7 +89,9 @@
     "new-year-ai-consultation": "new-year-expert",
     "dream-psycho-analysis": "dream-psycho",
     "stonehenge-runes-single": "rune-single",
-    "stonehenge-runes-triad": "rune-triad"
+    "stonehenge-runes-triad": "rune-triad",
+    "stonehenge-runes-deep": "rune-deep",
+    "stonehenge-runes-yearly": "rune-yearly"
   },
   "introductions": {
     "fusion-fortune": [

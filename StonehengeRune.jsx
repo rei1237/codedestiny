@@ -2081,7 +2081,7 @@ export default function StonehengeRune() {
             ))}
           </div>
 
-          {[1, 3].includes(spread) && getCurrentLoadingLocale() === "ko" && <div style={{width:"100%",maxWidth:540,margin:"20px auto"}}><CraftedProductDisclosure featureKey={RUNE_FALLBACK_FEATURE_BY_SPREAD[spread]} /></div>}
+          {[1, 3, 5, 12].includes(spread) && getCurrentLoadingLocale() === "ko" && <div style={{width:"100%",maxWidth:540,margin:"20px auto"}}><CraftedProductDisclosure featureKey={RUNE_FALLBACK_FEATURE_BY_SPREAD[spread]} /></div>}
 
           {/* Draw button */}
           <button

@@ -3429,24 +3429,30 @@
     {
       "productId": "openJuyukModal",
       "displayName": "주역 거북점",
-      "saleStatus": "진입 확인·구성 대조 중",
+      "saleStatus": "현행유료진입확인;계산불일치확인필요",
       "entry": [
-        "/oracle/juyuk/"
+        "js/iching-engine.js _TC_FEATURE_KEY=openJuyukModal",
+        "js/core/service-registry.js juyuk-turtle"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 1000,
       "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
+      "resultRenderer": [
+        "js/iching-engine.js _doReveal/_renderResult"
+      ],
+      "actualContents": [
+        "질문메아리/대성괘/체용/비책/5분야/옛지혜/갈무리",
+        "로컬AI질문문복사;AI답변아님"
+      ],
       "conditionalItems": [],
       "separatePurchase": [],
       "reviewSource": [],
       "images": [],
-      "status": "조사",
+      "status": "자료 부족",
       "appliedAt": [],
       "verification": [],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "upIdx/dnIdx/hexIdx독립난수로상하괘와64괘이름불일치가능. 계산로직은작업범위밖으로무변경;정통해석마케팅전수정검증필요"
       ],
       "detailAliases": [
         "juyuk-turtle"
@@ -3533,23 +3539,26 @@
     {
       "productId": "stonehengeRunes",
       "displayName": "스톤헨지 룬 리딩",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "saleStatus": "기존서비스소개별칭;실제4배열로이동",
+      "entry": [
+        "app/_lib/serviceFeatureRegistry.ts stonehenge-rune",
+        "js/core/index-inline-runtime.js openRuneOracle→/oracle/rune/"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 1000,
       "inputRequirements": [],
       "resultRenderer": [],
-      "actualContents": [],
+      "actualContents": [
+        "별도제공물없음;single/triad/deep/yearly4상품으로조사통합"
+      ],
       "conditionalItems": [],
       "separatePurchase": [],
       "reviewSource": [],
       "images": [],
-      "status": "조사",
+      "status": "대상 제외",
       "appliedAt": [],
       "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
-      ],
+      "unconfirmed": [],
       "detailAliases": []
     },
     {
@@ -4596,25 +4605,52 @@
     },
     {
       "productId": "stonehenge-runes-deep",
-      "displayName": "스톤헨지 룬 5-룬 리딩",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "displayName": "스톤헨지 5-룬 심층 리딩",
+      "saleStatus": "현재4배열선택·ensurePaidAccess확인",
+      "entry": [
+        "/oracle/rune/ 5룬선택"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 1000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "inputRequirements": [
+        "5룬배열선택;질문·생년입력없음"
       ],
-      "detailAliases": []
+      "resultRenderer": [
+        "StonehengeRune.jsx getDetailedReading/getSpreadInsight"
+      ],
+      "actualContents": [
+        "과거/현재/미래/타고난성향/조심부분",
+        "각룬상세·전체이야기·정역개수",
+        "로컬복사용AI질문문"
+      ],
+      "conditionalItems": [
+        "대칭룬/공백룬역방향없음",
+        "준비해석;AI새답변아님",
+        "페이지상태만유지;공유는페이지링크"
+      ],
+      "separatePurchase": [
+        "1/3/12룬·새뽑기조건확인"
+      ],
+      "reviewSource": [
+        "가상편집예시;실제후기없음"
+      ],
+      "images": [
+        "/feature-details/crafted/rune-deep/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "StonehengeRune.jsx",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본8/native21독립SHIP;06대비/고아줄수정",
+        "328/358/398/540 clipping/fallbackPASS POST0"
+      ],
+      "unconfirmed": [
+        "main전달·CI미확인;실결제실LLM미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "stonehenge-runes-single",
@@ -4723,25 +4759,53 @@
     },
     {
       "productId": "stonehenge-runes-yearly",
-      "displayName": "스톤헨지 룬 12-룬 리딩",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "displayName": "스톤헨지 12-룬 연간 리딩",
+      "saleStatus": "현재4배열선택·ensurePaidAccess확인",
+      "entry": [
+        "/oracle/rune/ 12룬선택"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 1000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "inputRequirements": [
+        "12룬배열선택;생년·특정연도입력없음"
       ],
-      "detailAliases": []
+      "resultRenderer": [
+        "StonehengeRune.jsx getDetailedReading/getSpreadInsight"
+      ],
+      "actualContents": [
+        "12개월각룬상세/하이라이트",
+        "첫3룬핵심축연간키워드·정역개수",
+        "4분기분위기/중심룬·전체이야기",
+        "로컬복사용AI질문문"
+      ],
+      "conditionalItems": [
+        "대칭룬/공백룬역방향없음",
+        "준비해석;AI새답변아님",
+        "페이지상태만유지;공유는페이지링크"
+      ],
+      "separatePurchase": [
+        "1/3/5룬·새뽑기조건확인"
+      ],
+      "reviewSource": [
+        "가상편집예시;실제후기없음"
+      ],
+      "images": [
+        "/feature-details/crafted/rune-yearly/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "StonehengeRune.jsx",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본8/native21독립SHIP;02고아줄수정",
+        "328/358/398/540 clipping/fallbackPASS POST0"
+      ],
+      "unconfirmed": [
+        "main전달·CI미확인;실결제실LLM미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "sukuyo-monthly-fortune",
@@ -5215,23 +5279,29 @@
     {
       "productId": "turtleIChing",
       "displayName": "주역 거북점 리딩",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "saleStatus": "기존별칭;현행openJuyukModal로대조",
+      "entry": [
+        "js/iching-engine.js _TC_FEATURE_KEY=openJuyukModal",
+        "js/core/service-registry.js juyuk-turtle"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 1000,
       "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
+      "resultRenderer": [
+        "js/iching-engine.js _doReveal/_renderResult"
+      ],
+      "actualContents": [
+        "질문메아리/대성괘/체용/비책/5분야/옛지혜/갈무리",
+        "로컬AI질문문복사;AI답변아님"
+      ],
       "conditionalItems": [],
       "separatePurchase": [],
       "reviewSource": [],
       "images": [],
-      "status": "조사",
+      "status": "대상 제외",
       "appliedAt": [],
       "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
-      ],
+      "unconfirmed": [],
       "detailAliases": []
     },
     {
