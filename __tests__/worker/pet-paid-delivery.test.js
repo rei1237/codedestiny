@@ -6,7 +6,7 @@ const timeoutPolicy = jest.requireActual('../../worker/lib/sync-llm-timeout.js')
 jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...timeoutPolicy, PAID_LLM_PARTS_PER_REQUEST: 4 }));
 
 import { HttpError } from '../../worker/lib/http.js';
-let route,docs,provider,revoked,userId,fault,lost,external,kind,mode;
+let route,lab,seedPet,docs,provider,revoked,userId,fault,lost,external,kind,mode;
 const owner='64b7f2a1c3d4e5f601234567',clone=value=>structuredClone(value);
 const get=(doc,key)=>key.split('.').reduce((value,key)=>value?.[key],doc);
 function matches(doc,filter){return Object.entries(filter).every(([key,value])=>{
@@ -28,7 +28,7 @@ beforeAll(async()=>{
  jest.unstable_mockModule('../../worker/lib/access-control.js',()=>({requirePremiumReportAccess:async()=>{if(mode==='denied')throw new HttpError(403,'payment denied');return {ok:true,accessType:mode};}}));
  jest.unstable_mockModule('../../worker/lib/models.js',()=>({...models,ServiceExecutionTransaction:model,PaidExecutionRecord:{findOne:()=>query(revoked?{}:null)},Payment:{findOne:()=>query(null)},PointHistory:{findOne:()=>query(null)},MonthlyCreditLedger:{findOne:()=>query(null)}}));
  jest.unstable_mockModule('../../worker/lib/structured-consultation.js',()=>({...structured,callGeminiJsonWithRetry:(...args)=>provider(...args)}));
- ({handlePetSajuAiRoutes:route}=await import('../../worker/routes/pet-saju-ai.js'));
+ ({handlePetSajuAiRoutes:route,buildAdminLabPrompt:lab,seedPetNarrative:seedPet}=await import('../../worker/routes/pet-saju-ai.js'));
 });
 beforeEach(()=>{docs=[];revoked=false;userId=owner;fault=null;lost=false;kind='report';mode='pass';
  provider=jest.fn(async(_env,prompt,options)=>{expect(options.attempts).toBe(1);expect(options.timeoutMs).toBeLessThanOrEqual(45000);expect(options.fallbackToWorkersAI).toBe(false);
@@ -70,4 +70,21 @@ test('server pending lookup and simultaneous resumes use a single lease',async()
 });
 test('original locale persists across differently localized resumes',async()=>{
  const {runWithAiLocale,getAmbientAiLocale}=await import('../../worker/lib/ai-locale-context.js');const locales=[],base=provider.getMockImplementation();provider.mockImplementation((...args)=>{locales.push(getAmbientAiLocale());return base(...args);});await runWithAiLocale('ja',start);await runWithAiLocale('ko',finish);expect(locales.every(locale=>locale==='ja')).toBe(true);expect(docs[0].premiumStatus).toBe('completed');
+});
+const SCHEMA_KEYS={report:['personality','habitats','plays','coach','care','closing'],compat:['verdict','overview','dimensions','places','cautions','routine']};
+test.each(['report','compat'])('%s part prompts carry the facts without the whole-report JSON schema',async type=>{
+ kind=type;await start();const prompts=provider.mock.calls.map(call=>call[1]);expect(prompts.length).toBeGreaterThan(0);
+ for(const prompt of prompts){expect(prompt).toContain('[사실]');expect(prompt).not.toContain('JSON 스키마');for(const key of SCHEMA_KEYS[type])expect(prompt).not.toContain(`"${key}"`);}
+});
+test('admin prompt lab shows the production report seed',async()=>{
+ const body={...original(),pet};expect(lab(body).prompt).toBe((await seedPet('report',body)).prompt);
+});
+test('a JSON report body is not a part, and its text is delivered on the last attempt',async()=>{
+ const base=provider.getMockImplementation();provider.mockImplementation(async(...args)=>{const response=await base(...args),value=JSON.parse(response.text);value.body=JSON.stringify({personality:value.body.split('\n\n'),habitats:[{id:'sunny-window',reading:'창가 자리'}]});return {...response,text:JSON.stringify(value)};});
+ await start();expect(provider).toHaveBeenCalledTimes(4);expect(docs[0].metadata.paidNarrative.parts).toEqual({});
+ expect((await finish()).status).toBe(200);const {parts,tasks}=docs[0].metadata.paidNarrative;expect(provider).toHaveBeenCalledTimes(tasks.length*2);
+ for(const task of tasks){expect(parts[task.id]).not.toMatch(/^\s*[\[{]|"personality"|sunny-window/);expect(parts[task.id]).toContain('번째 사례는');}
+});
+test.each(['report','compat'])('%s part targets add up to about 9,000 chars for a 3,000-won product',async type=>{
+ kind=type;const total=(await seedPet(type,original())).tasks.reduce((sum,task)=>sum+task.minChars,0);expect(total).toBeGreaterThanOrEqual(8000);expect(total).toBeLessThanOrEqual(10000);
 });

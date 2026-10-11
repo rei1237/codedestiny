@@ -8,7 +8,7 @@ import { getAmbientAiLocale, runWithAiLocale } from "./ai-locale-context.js";
 import { callGeminiJsonWithRetry } from "./structured-consultation.js";
 import { isPaidResultRevoked } from "./paid-result-revocation.js";
 import { countPaidReportBodyChars, dropRepeatedReportSentences, hasRepeatedReportPassage } from "./paid-report-quality.js";
-import { selectNarrativeCandidate, narrativeRepairTask, narrativePriorDigest, normalizeNarrativeBody, NARRATIVE_RESPONSE_SCHEMA } from "./paid-narrative-candidate.js";
+import { selectNarrativeCandidate, narrativeRepairTask, narrativePriorDigest, normalizeNarrativeBody, narrativeTextFromJson, NARRATIVE_RESPONSE_SCHEMA } from "./paid-narrative-candidate.js";
 import { runWithPaidGenerationContext, getPaidGenerationRaw } from "./paid-generation-context.js";
 
 const hash = value => createHash("sha256").update(JSON.stringify(value)).digest("hex");
@@ -178,7 +178,11 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
         // discarding the whole part; JSON products keep their adapter's validation.
         const prior = Object.values(state.parts).join("\n");
         const dedupe = text => typeof text === "string" && !/^\s*[\[{]/.test(text) ? dropRepeatedReportSentences(text, prior) : text;
-        const edited = valid ? dedupe(/^\s*[\[{]/.test(value.body) ? value.body : normalizeNarrativeBody(value.body)) : value?.body;
+        // Without completeBody a part is prose: a JSON document (a whole-report schema
+        // filled in one part) is not a part result; the last attempt delivers its text.
+        const jsonDocument = valid && !completeBody && /^\s*[\[{]/.test(value.body);
+        const text = jsonDocument ? ((state.attempts[task.id] || 0) >= 2 ? narrativeTextFromJson(value.body) : "") : value?.body;
+        const edited = valid ? dedupe(/^\s*[\[{]/.test(text) ? text : normalizeNarrativeBody(text)) : value?.body;
         const body = valid && !hasRepeatedReportPassage(edited)
           && !hasRepeatedReportPassage(prior + "\n" + edited) ? edited : null;
         const kept = dedupe(draft);

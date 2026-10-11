@@ -82,6 +82,18 @@ export function parseNarrativeResponse(raw, evidenceHash) {
   return { ...value, evidenceHash, body: [...new Set(stripNarrativeMarkup(value.body).split(/\n\s*\n/u).map(p => p.trim()).filter(Boolean))].join('\n\n') };
 }
 
+// Last-attempt salvage for a narrative part that came back as a JSON document:
+// its multi-word string values become paragraphs; ids and keys are dropped.
+export function narrativeTextFromJson(body) {
+  let value;
+  try { value = JSON.parse(body); } catch { value = salvageTruncatedJsonObject(body); }
+  const texts = [];
+  const walk = node => typeof node === 'string' ? /\s/u.test(node.trim()) && texts.push(node.trim())
+    : node && typeof node === 'object' && Object.values(node).forEach(walk);
+  walk(value);
+  return normalizeNarrativeBody(texts.join('\n\n'));
+}
+
 // One opening sentence per earlier accepted part, so a later part continues the
 // reading and keeps its conclusion instead of restarting it from the chart.
 export function narrativePriorDigest(state, task, limit = 160) {
