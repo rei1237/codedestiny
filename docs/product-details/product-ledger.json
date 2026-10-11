@@ -2819,13 +2819,13 @@
     {
       "productId": "ifa-oracle",
       "displayName": "IFÀ 오라클",
-      "saleStatus": "판매중이나실제정적진입과정본가격불일치",
+      "saleStatus": "현재결제진입점기준연결",
       "entry": [
         "/ifa-oracle.html",
         "public/ifa-oracle.html"
       ],
-      "priceSource": "worker/lib/paid-feature-registry.js",
-      "priceSnapshotKRW": 1000,
+      "priceSource": "기존 결제 진입점 (사용자 2026-10-11 지시; 가격 자체 수정 없음)",
+      "priceSnapshotKRW": 3000,
       "inputRequirements": [
         "총운/연애관계/재물사업/건강내면선택;본문입력없음"
       ],
@@ -2844,20 +2844,25 @@
       "images": [
         "/feature-details/crafted/ifa-oracle/manifest.json"
       ],
-      "status": "자료 부족",
-      "appliedAt": [],
+      "status": "적용",
+      "appliedAt": [
+        "public/ifa-oracle.html 실제판매진입점",
+        "ifa_oracle_v2_full.html",
+        "content/product-details/catalog.json"
+      ],
       "verification": [
-        "원본6/native19시각SHIP",
-        "322/352/392/482 clipping/fallbackPASS POST0",
-        "표시3000원/게이트30 확인. 정본10/루트10과불일치"
+        "기존원본6 SHIP 유지; preview강제삽입제거 후 실제연결 native19 재캡처",
+        "322/352/392/482 clipping/fallback PASS POST0",
+        "Node 오두표2 PASS"
       ],
       "unconfirmed": [
-        "registry1000원/루트1000원 vs public실제3000원·게이트30. 가격정책선택필요;임의변경안함",
-        "안내적용철회;검수물은임시로연결했을때의증거이며현행적용증거아님"
+        "가격은 별도 세션에서 수정 중. 프런트/서버 가격 정책 자체는 이번 작업에서 변경하지 않음",
+        "실결제·실LLM미실행"
       ],
       "detailAliases": [
         "ifa-oracle"
-      ]
+      ],
+      "deliveryStage": "현재 결제 진입점에 연결·로컬 검수; 후속 커밋 전달 대기"
     },
     {
       "productId": "karma-destiny-ai-consultation",
@@ -6903,11 +6908,11 @@
     {
       "productId": "vedic_prashna_prompt",
       "displayName": "프라슈나 프롬프트",
-      "saleStatus": "판매진입확인;가격근거충돌",
+      "saleStatus": "현재결제진입점기준연결",
       "entry": [
         "vedic-astrology.html renderVedicPrashnaSection"
       ],
-      "priceSource": "worker/lib/paid-feature-registry.js",
+      "priceSource": "기존 결제 진입점 (사용자 2026-10-11 지시; 가격 자체 수정 없음)",
       "priceSnapshotKRW": 3000,
       "inputRequirements": [
         "12~600자 하나의 질문",
@@ -6928,14 +6933,24 @@
         "AI 해설본문은 현재렌더러가 제공하지 않음"
       ],
       "reviewSource": [],
-      "images": [],
-      "status": "자료 부족",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "화면/registry cost30=3000원 vs worker/lib/vedic-prashna-prompt.js VEDIC_PRASHNA_PROMPT_AMOUNT_KRW5000원(주문/생성사용). 정책정본불일치 해결전 새상세적용보류. 결제로직수정없음"
+      "images": [
+        "/feature-details/crafted/vedic-prashna-prompt/manifest.json"
       ],
-      "detailAliases": []
+      "status": "적용",
+      "appliedAt": [
+        "js/core/vedic/crafted-details.mjs: 프라슈나 질문폼 앞 안내",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본8 독립SHIP; native21 326/356/396/446 clipping/fallback/질문직접좌표입력/CTAtrial PASS POST0",
+        "worker계약 Jest7 PASS; JS문법/detector PASS"
+      ],
+      "unconfirmed": [
+        "가격은 별도 세션에서 수정 중. 프런트/서버 가격 정책 자체는 이번 작업에서 변경하지 않음",
+        "실결제·실LLM미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "현재 결제 진입점에 연결·로컬 검수; 후속 커밋 전달 대기"
     },
     {
       "productId": "yeongnyangi-astrology-flounder",

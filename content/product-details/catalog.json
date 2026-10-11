@@ -145,7 +145,9 @@
     "rpt_healthReportCard": "health-rhythm",
     "rpt_secretHouseEntryCard": "secret-house",
     "tarot-myeongri-three-card": "myeongri-tarot-three",
-    "olympus-fc": "olympus-oracle"
+    "olympus-fc": "olympus-oracle",
+    "ifa-oracle": "ifa-oracle",
+    "vedic_prashna_prompt": "vedic-prashna-prompt"
   },
   "introductions": {
     "fusion-fortune": [

@@ -167,5 +167,5 @@
   ],
   "fallback": true,
   "posts": 0,
-  "mode": "Unpublished IFÀ guide explicitly mounted for preview;price mismatch unresolved;all API mocked;no payment/LLM"
+  "mode": "Actual IFÀ payment-entry page; price unchanged per user direction; all API mocked; no payment/LLM"
 }

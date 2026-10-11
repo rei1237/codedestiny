@@ -558,3 +558,8 @@ status: active
 - Olympus 원본/native/소개 모두 독립SHIP; 마지막 단위 f9f123762 pre-push PASS. 원격 main의 후속 복구59a5622f1을 격리작업본에 병합. root 미커밋은무변경. 상담 UI Node22 + 서버Jest16 + typecheck PASS. 연이/네오 새엔진4폭 native 재검수 PASS, 유료POST0. 소개문구는 새엔진의 한질문/챕터계약을유지하고 main의무료1회제거변경을보존.
 - 합계153개 제작원본 중 IFA6패널은미적용보류. 유료151+공통1=152개·1338패널 적용. 키대장179행(적용150/자료부족3/판매진입또는연결미확인10/무료·별칭제외16).
 - 원격59a5622f1 CI38145642711은확인시진행중. push·운영승격의실제결과는완료보고를따름. 본문이력의미배포/대기표시는각시점의기록이다.
+
+## 결제 진입점 기준 후속 지시
+- 사용자: “일단 현재 가격 수정 중이지만 결제 진입점으로 설정해”. 가격수치·정책수정없이 IFA6장 재연결, 프라슈나8장 개별제작·폼앞연결. 원본SHIP; native19/21 clipping/fallback/CTA 접근 PASS,POST0. 프라슈나Jest7/IFA Node2/JS문법/detector PASS.
+- 유료153원본+공통1원본=154원본1352패널. 키대장152행적용,주역표시괘상불일치1행자료부족,판매미확인10,무료별칭16.
+- a4e8226a5 원격main push완료. verify:release가 verify-payment-choice-parity git ls-files 기본1MB버퍼에서ENOBUFS로중단. 동일호출의두검증기버퍼를32MB로명시(검사대상·단언불변);각검사PASS,3607a2acf. 나머지운영승격검증/CI/배포진행중.
