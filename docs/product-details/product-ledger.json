@@ -704,70 +704,146 @@
     {
       "productId": "astrology-ai-consultation",
       "displayName": "점성술 전문가 상담",
-      "saleStatus": "진입 확인·구성 대조 중",
+      "saleStatus": "별도전문가상담페이지입력/결제/결과진입확인",
       "entry": [
-        "/astrology-ai"
+        "/astrology-ai/",
+        "#astrology-ai-form",
+        "/astrology-ai/result/?id="
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 30000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
+      "inputRequirements": [
+        "성별·생년월일·시간또는미상",
+        "출생도시·좌표·시간대",
+        "상담주제와질문2~1200자"
+      ],
+      "resultRenderer": [
+        "worker/routes/astrology-ai.js ASTROLOGY_SECTIONS",
+        "app/astrology-ai/result/AstrologyAiResultClient.tsx"
+      ],
+      "actualContents": [
+        "질문과태양달상승궁",
+        "개인행성생활/목성토성성장",
+        "각도원소모드/분야별",
+        "하우스트랜짓시기/실천",
+        "관계반복/역할",
+        "앞으로1년분기별",
+        "부분별넘기기/전체읽기·계산근거·PDF"
+      ],
+      "conditionalItems": [
+        "출생시간미상상승궁하우스제한",
+        "AI해석이며실제사람상담아님",
+        "분기별현재트랜짓근거없으면출생차트리듬;미래트랜짓계산표아님"
+      ],
+      "separatePurchase": [
+        "질문상담/전문가상담/차트패키지/개별해금별도"
+      ],
       "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
+      "images": [
+        "/feature-details/crafted/astrology-expert/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "app/astrology-ai/AstrologyAiClient.tsx"
+      ],
+      "verification": [
+        "원본20독립SHIP;질문02/04재검수",
+        "모바일20패널·12CTA고지·2원고·2desktopCTA독립SHIP;expert원고/고지4재검수",
+        "4폭이미지경계/로드/오류원고PASS;expertPOST0",
+        "공통renderer7PASS;integrationESLintclean"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "main전달·CI·운영노출미확인;실결제실LLM미실행"
       ],
       "detailAliases": [
         "astrology-ai"
-      ]
+      ],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "astrology_ai_prompt_generator",
       "displayName": "점성술 AI 질문 프롬프트 생성",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "saleStatus": "기본점성술모달질문상담실제생성진입확인;내부키프롬프트명칭과실제AI본문구분",
+      "entry": [
+        "openAstroModal",
+        "#astroAiPromptSection",
+        "#astroAiPromptGenerateBtn"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 5000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "inputRequirements": [
+        "기본점성술결과",
+        "질문5~1000자",
+        "로그인및기존결제확인"
       ],
-      "detailAliases": []
+      "resultRenderer": [
+        "worker/routes/fortune.js handleAstrologyAIPrompt",
+        "worker/lib/feature-question-delivery.js HEADINGS",
+        "js/saju-engine.js _astroMountPromptSection"
+      ],
+      "actualContents": [
+        "질문의핵심과한줄답변",
+        "타고난기질과반복선택",
+        "현재흐름근거",
+        "강점과자원",
+        "관계패턴",
+        "일재물조건",
+        "약점반대가능성",
+        "가까운변화와시기한계",
+        "행동계획",
+        "종합판단메시지",
+        "사용된질문문펼치기/복사"
+      ],
+      "conditionalItems": [
+        "출생시간미상상승궁하우스제한",
+        "AI해석이며실제사람상담아님",
+        "궁합자료가있을때만두사람근거;없으면개인성향"
+      ],
+      "separatePurchase": [
+        "질문상담/전문가상담/차트패키지/개별해금별도"
+      ],
+      "reviewSource": [],
+      "images": [
+        "/feature-details/crafted/astro-question-consultation/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "js/core/astro/crafted-details.mjs"
+      ],
+      "verification": [
+        "원본20독립SHIP;질문02/04재검수",
+        "모바일20패널·12CTA고지·2원고·2desktopCTA독립SHIP;expert원고/고지4재검수",
+        "4폭이미지경계/로드/오류원고PASS;expertPOST0",
+        "공통renderer7PASS;integrationESLintclean"
+      ],
+      "unconfirmed": [
+        "main전달·CI·운영노출미확인;실결제실LLM미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "coin-gate-per-use",
       "displayName": "coin-gate-per-use",
-      "saleStatus": "제외: 개별 상품이 아닌 공통 결제 대체 키",
+      "saleStatus": "개별상품아님:공통결제게이트기본식별자",
       "entry": [],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": null,
       "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
+      "resultRenderer": [
+        "js/destiny-profile.js _dpIsGenericPaidGateFeatureKey"
+      ],
+      "actualContents": [
+        "구체서비스키로정규화하는공통게이트;판매콘텐츠없음"
+      ],
       "conditionalItems": [],
       "separatePurchase": [],
       "reviewSource": [],
       "images": [],
-      "status": "조사",
+      "status": "대상 제외",
       "appliedAt": [],
       "verification": [
-        "index.html:isGenericFeatureKey",
-        "js/destiny-profile.js:isGenericFeatureKey"
+        "공통키판별함수명시확인;별도상품결과진입없음"
       ],
       "unconfirmed": [],
       "detailAliases": []

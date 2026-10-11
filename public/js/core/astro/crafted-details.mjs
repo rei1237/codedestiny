@@ -1,8 +1,8 @@
 import {renderCraftedDetail,revealCraftedTranscript} from '../../feature-detail-panels.mjs';
 
 // Display-only guides. The original chart, authorization and purchase controls own access.
-const products={astro_basic_deep_pack:'astro-basic-deep',astro_career_talent_deep:'astro-career-talent',astro_growth_shadow_deep:'astro-growth-shadow',astro_stellar_career_room:'astro-stellar-career',astro_stellar_relationship_room:'astro-stellar-relationship',astro_stellar_growth_room:'astro-stellar-growth',astro_stellar_talent_room:'astro-stellar-talent',astro_talent_attraction_deep:'astro-talent-attraction',astro_relationship_deep:'astro-relationship',astro_yearly_transit:'astro-yearly-transit'};
-const titles={astro_basic_deep_pack:'기본 심층 패키지',astro_career_talent_deep:'커리어·재능',astro_growth_shadow_deep:'과제와 변화',astro_stellar_career_room:'일과 역할',astro_stellar_relationship_room:'관계와 사랑',astro_stellar_growth_room:'성장과 내면',astro_stellar_talent_room:'재능과 끌림',astro_talent_attraction_deep:'재능·매력',astro_relationship_deep:'관계·궁합',astro_yearly_transit:'앞으로 12개월'};
+const products={astro_basic_deep_pack:'astro-basic-deep',astro_career_talent_deep:'astro-career-talent',astro_growth_shadow_deep:'astro-growth-shadow',astro_stellar_career_room:'astro-stellar-career',astro_stellar_relationship_room:'astro-stellar-relationship',astro_stellar_growth_room:'astro-stellar-growth',astro_stellar_talent_room:'astro-stellar-talent',astro_talent_attraction_deep:'astro-talent-attraction',astro_relationship_deep:'astro-relationship',astro_yearly_transit:'astro-yearly-transit',astrology_ai_prompt_generator:'astro-question-consultation'};
+const titles={astro_basic_deep_pack:'기본 심층 패키지',astro_career_talent_deep:'커리어·재능',astro_growth_shadow_deep:'과제와 변화',astro_stellar_career_room:'일과 역할',astro_stellar_relationship_room:'관계와 사랑',astro_stellar_growth_room:'성장과 내면',astro_stellar_talent_room:'재능과 끌림',astro_talent_attraction_deep:'재능·매력',astro_relationship_deep:'관계·궁합',astro_yearly_transit:'앞으로 12개월',astrology_ai_prompt_generator:'점성술 질문 AI 상담'};
 export function mountAstroCraftedDetails(area){
  if(!/^ko\b/i.test(document.documentElement.lang||'ko'))return;
  if(!document.getElementById('astroCraftedDetailStyles')){
@@ -12,7 +12,7 @@ export function mountAstroCraftedDetails(area){
  }
  for(const [key,id] of Object.entries(products)){
   if(area.querySelector('[data-astro-crafted="'+key+'"]'))continue;
-  const target=key==='astro_basic_deep_pack'?area.querySelector('[data-astro-server-detail]'):area.querySelector('#astroPaidGate_'+key);
+  const target=key==='astrology_ai_prompt_generator'?area.querySelector('#astroAiPromptSection'):key==='astro_basic_deep_pack'?area.querySelector('[data-astro-server-detail]'):area.querySelector('#astroPaidGate_'+key);
   if(!target)continue;
   const disclosure=document.createElement('details');disclosure.className='astro-crafted';disclosure.dataset.astroCrafted=key;
   const summary=document.createElement('summary');summary.textContent=titles[key]+' 상세 안내';

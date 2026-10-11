@@ -203,3 +203,9 @@ status: active
 - 검수스크립트networkidle/font.ready대기로기존CSS비동기로딩완료확인후촬영. 최종313/343/383/540로드경계이미지오류원고PASS.
 - 월간트랜짓은가격목록외실제판매진입미발견으로보류기록. 1a8f259f8 clean pre-push PASS.
 - 유료구성57종(대체화면전용4포함)+공통소개1종529패널로컬검수완료. 전체/main전달미완료. 다음점성술질문상담/전문가상담각실제10부/6부계약조사.
+
+## 점성술 질문AI·전문가AI상담
+- 각각10장개별편집. 질문은실제10HEADINGS+사용질문문,전문가는6부+계산근거/PDF계약. 원본20독립SHIP;제목/내부용어2곳수정.
+- 실제20패널·12모바일CTA고지·2원고·2desktopCTA독립SHIP. 질문313/343/383/540,전문가328/358/398/540로드경계오류원고PASS;expertPOST0. API전부mock.
+- 공통React상세의고지/전체원고keep-all+overflow-wrap으로음절고아줄개선,expert4캡처재검수SHIP. 결제/권한/생성API무변경. 공통renderer7PASS,integrationESLintclean.
+- 공통coin-gate-per-use는명시적generic키판별함수로별도상품아님을확인,대상제외. 유료구성59종(대체전용4포함)+공통소개1종549패널로컬검수완료. 전체/main전달미완료. 다음실제궁합판매3종조사.

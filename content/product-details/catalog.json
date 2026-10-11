@@ -53,7 +53,9 @@
     "astro_stellar_talent_room": "astro-stellar-talent",
     "astro_talent_attraction_deep": "astro-talent-attraction",
     "astro_relationship_deep": "astro-relationship",
-    "astro_yearly_transit": "astro-yearly-transit"
+    "astro_yearly_transit": "astro-yearly-transit",
+    "astrology_ai_prompt_generator": "astro-question-consultation",
+    "astrology-ai-consultation": "astrology-expert"
   },
   "introductions": {
     "fusion-fortune": [

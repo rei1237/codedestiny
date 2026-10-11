@@ -1,5 +1,6 @@
 "use client";
 
+import CraftedProductDisclosure from '@/app/components/CraftedProductDisclosure';
 import CurrentLocationButton from '@/app/components/CurrentLocationButton';
 import { useLocaleRequestScope, type LocaleRequestScope } from "@/app/hooks/useLocaleRequestScope";
 import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
@@ -1991,6 +1992,7 @@ export default function AstrologyAiClient() {
               </div>
             </header>
 
+            {getCurrentLoadingLocale() === "ko" && <CraftedProductDisclosure featureKey="astrology-ai-consultation" />}
             <ExpertValueCards theme="astrology" points={[{ title: "차트의 중심", description: "태양·달·상승궁이 보여주는 기질과 감정의 리듬을 정리합니다." }, { title: "지금의 하늘", description: "행성과 하우스의 흐름을 현재의 질문과 맞물려 읽습니다." }, { title: "선택의 타이밍", description: "변화를 밀어붙일 때와 숨을 고를 때를 구체적으로 나눠 봅니다." }]} />
             <form id="astrology-ai-form" onSubmit={handleSubmit} className="space-y-5">
               <section className={PANEL_CLASS}>

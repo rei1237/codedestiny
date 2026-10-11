@@ -1,5 +1,5 @@
 const fs=require('fs'),assert=require('assert/strict'),{chromium}=require('playwright');
-const origin='http://127.0.0.1:14330',products={astro_basic_deep_pack:'astro-basic-deep',astro_career_talent_deep:'astro-career-talent',astro_growth_shadow_deep:'astro-growth-shadow',astro_stellar_career_room:'astro-stellar-career',astro_stellar_relationship_room:'astro-stellar-relationship',astro_stellar_growth_room:'astro-stellar-growth',astro_stellar_talent_room:'astro-stellar-talent',astro_talent_attraction_deep:'astro-talent-attraction',astro_relationship_deep:'astro-relationship',astro_yearly_transit:'astro-yearly-transit'};
+const origin='http://127.0.0.1:14330',products={astro_basic_deep_pack:'astro-basic-deep',astro_career_talent_deep:'astro-career-talent',astro_growth_shadow_deep:'astro-growth-shadow',astro_stellar_career_room:'astro-stellar-career',astro_stellar_relationship_room:'astro-stellar-relationship',astro_stellar_growth_room:'astro-stellar-growth',astro_stellar_talent_room:'astro-stellar-talent',astro_talent_attraction_deep:'astro-talent-attraction',astro_relationship_deep:'astro-relationship',astro_yearly_transit:'astro-yearly-transit',astrology_ai_prompt_generator:'astro-question-consultation'};
 (async()=>{const browser=await chromium.launch();try{
  for(const [key,id]of Object.entries(products)){
   if(process.argv[2]&&process.argv[2]!==id)continue;
@@ -11,7 +11,7 @@ const origin='http://127.0.0.1:14330',products={astro_basic_deep_pack:'astro-bas
   // These older SKUs exist only in the shipped renderer fallback. Exercise
   // that exact path explicitly; do not mistake the normal stellar-room SKUs for them.
   if(['astro_career_talent_deep','astro_growth_shadow_deep','astro_talent_attraction_deep','astro_relationship_deep'].includes(key)){await page.waitForFunction(()=>typeof window.renderAstroInsight==='function');await page.evaluate(()=>{window.renderAstroInsightLegacyNeon=()=>{throw Error('MOCK_LEGACY_RENDER_FAILURE')};window.renderAstroInsight();});}
-  const detail=page.locator('[data-astro-crafted="'+key+'"]');await detail.waitFor({timeout:60000});await page.waitForLoadState('networkidle');await page.evaluate(()=>document.fonts.ready);await detail.locator(':scope>summary').click();await detail.locator('img').first().waitFor();
+  const detail=page.locator('[data-astro-crafted="'+key+'"]');await detail.waitFor({timeout:60000});await page.waitForLoadState('networkidle',{timeout:60000});await page.evaluate(()=>document.fonts.ready);await detail.locator(':scope>summary').click();await detail.locator('img').first().waitFor();
   await page.addStyleTag({content:'button[aria-label="개발 결제 테스터"]{display:none!important}'});
   const dir='docs/product-details/verification/'+id;const rows=[];
   for(const width of [360,390,430,1280]){
@@ -22,7 +22,8 @@ const origin='http://127.0.0.1:14330',products={astro_basic_deep_pack:'astro-bas
     await page.screenshot({path:dir+'/native-360-panel-'+n+'.png'});
    }}
    const notice=detail.locator('.craftedDetailNotice');await notice.evaluate(e=>e.scrollIntoView({block:'center'}));await page.screenshot({path:dir+'/native-notice-'+width+'.png'});
-   const cta=key==='astro_basic_deep_pack'?page.locator('[data-astro-server-detail] [data-unlock-key="'+key+'"]'):page.locator('#astroPaidGate_'+key+' button[data-unlock-key]');await cta.evaluate(e=>e.scrollIntoView({block:'center'}));await page.screenshot({path:dir+'/native-cta-'+width+'.png'});
+   if(key==='astrology_ai_prompt_generator')await page.locator('#astroConsultationForm').evaluate(e=>e.open=true);
+   const cta=key==='astrology_ai_prompt_generator'?page.locator('#astroAiPromptGenerateBtn'):key==='astro_basic_deep_pack'?page.locator('[data-astro-server-detail] [data-unlock-key="'+key+'"]'):page.locator('#astroPaidGate_'+key+' button[data-unlock-key]');await cta.evaluate(e=>e.scrollIntoView({block:'center'}));await page.screenshot({path:dir+'/native-cta-'+width+'.png'});
    const row=await detail.evaluate(e=>({width:innerWidth,ancestors:(()=>{let a=[],n=e;while(n&&a.length<7){a.push({tag:n.tagName,cls:n.className,width:n.clientWidth});n=n.parentElement}return a})(),images:[...e.querySelectorAll('img')].map(i=>({loaded:i.naturalWidth===1080,left:i.getBoundingClientRect().left,right:i.getBoundingClientRect().right,width:i.clientWidth}))}));assert(row.images.every(i=>i.loaded&&i.left>=0&&i.right<=width));rows.push(row);
   }
   await page.setViewportSize({width:360,height:900});await detail.locator('.craftedDetailTranscript>summary').click();await detail.locator('.craftedDetailTranscript section').nth(4).evaluate(e=>e.scrollIntoView({block:'center'}));await page.screenshot({path:dir+'/native-transcript.png'});await detail.locator('.craftedDetailTranscript>summary').click();

@@ -1,7 +1,7 @@
 .detail { max-width: 540px; margin: 24px auto; }
 .detail :global(.craftedDetail img) { display: block; width: 100%; height: auto; }
 .detail :global(.craftedDetailNotice),
-.detail :global(.craftedDetailTranscript) { font-size: 16px; line-height: 1.75; padding: 0 16px; }
+.detail :global(.craftedDetailTranscript) { font-size: 16px; line-height: 1.75; padding: 0 16px; word-break: keep-all; overflow-wrap: anywhere; }
 .detail :global(.craftedDetailTranscript > summary) { min-height: 44px; cursor: pointer; padding-block: 12px; }
 .detail :global(.craftedDetailTranscript section) { margin-block: 24px; }
 .detail :global(.craftedDetailTranscript h3) { font-size: 20px; line-height: 1.5; }
