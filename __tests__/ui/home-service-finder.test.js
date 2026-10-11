@@ -206,9 +206,9 @@ test("범위 가격 항목은 걸치는 가격대 칩에 모두 나온다", asyn
   assert.ok(!inChip("low", "스톤헨지 룬"));
   assert.ok(inChip("mid", "스톤헨지 룬"));
   assert.ok(!inChip("high", "스톤헨지 룬"));
-  // 여전히 범위 가격인 상품은 시작가와 상한 가격대에 모두 나타난다.
-  assert.ok(inChip("premium", "마스터 인연의 서"), "10,000원~30,000원 항목이 1만원대에서 빠졌다");
-  assert.ok(inChip("vvip", "마스터 인연의 서"), "10,000원~30,000원 항목이 프리미엄에서 빠졌다");
+  // 범위 가격 상품은 걸치는 가격대에만 나타난다 — 30,000원~50,000원은 시작가부터 프리미엄이다.
+  assert.ok(inChip("vvip", "마스터 인연의 서"), "30,000원~50,000원 항목이 프리미엄에서 빠졌다");
+  assert.ok(!inChip("premium", "마스터 인연의 서"), "범위 밖의 1만원대에 섞였다");
   assert.ok(!inChip("mid", "마스터 인연의 서"), "범위 밖의 3천원대에 섞였다");
   // 찻집은 전 상품 10,000원 단일 가격이므로 1만원대에만 남는다.
   assert.ok(!inChip("high", "운명의 찻집"));
@@ -268,7 +268,7 @@ test("표시 가격은 레지스트리 값을 그대로 쓴다", async () => {
   const cards = Array.from(panel.querySelectorAll(".fortune-gateway__rec"));
   const codex = cards.find((c) => c.textContent.includes("마스터 인연의 서"));
   assert.ok(codex, "궁합 결과에 마스터 인연의 서가 없다");
-  assert.match(codex.querySelector(".fortune-gateway__rec-foot i").textContent, /10,000원/);
+  assert.match(codex.querySelector(".fortune-gateway__rec-foot i").textContent, /^30,000원~50,000원$/);
 });
 
 // 회귀 배경: 입력·칩 선택 전에는 `panel.hidden = true` 로 아무것도 렌더하지 않아, 홈에서 가장 강한

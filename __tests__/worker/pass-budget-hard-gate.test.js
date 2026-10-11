@@ -76,7 +76,7 @@ describe("레거시 이용권 카운터 복구 — 실제 문제 기능", () => 
   test.each([
     ["premium", "ziwei_ai_prompt_generator"],
     ["vvip", "saju_ai_prompt_generator"],
-    ["vvip", "master-love-codex"],
+    ["family", "master-love-codex"],
     ["family", "master-love-codex-compat"],
     ["family", "ziwei-ai-consultation"],
   ])("%s 이용권은 %s 가격을 커버하면 누락 카운터를 원자적으로 시작한다", async (tier, requestedFeatureKey) => {
@@ -111,6 +111,7 @@ describe("레거시 이용권 카운터 복구 — 실제 문제 기능", () => 
   test.each([
     ["standard", "saju_ai_prompt_generator"],
     ["premium", "master-love-codex-compat"],
+    ["vvip", "master-love-codex"],
     ["premium", "ziwei-ai-consultation"],
     ["vvip", "master-love-codex-compat"],
     ["vvip", "ziwei-ai-consultation"],

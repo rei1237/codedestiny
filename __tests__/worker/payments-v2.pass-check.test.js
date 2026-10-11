@@ -144,7 +144,7 @@ describe("라우트 — 왕복 예산·소비·봉투", () => {
   test.each([
     ["premium", "ziwei_ai_prompt_generator"],
     ["vvip", "saju_ai_prompt_generator"],
-    ["vvip", "master-love-codex"],
+    ["family", "master-love-codex"],
     ["family", "master-love-codex-compat"],
     ["family", "ziwei-ai-consultation"],
   ])("레거시 %s 이용권은 실제 pass-check에서 %s를 PG 없이 승인하고 재요청을 재개한다", async (tier, featureKey) => {
@@ -165,6 +165,18 @@ describe("라우트 — 왕복 예산·소비·봉투", () => {
     expect(replay.response.status).toBe(200);
     expect(replay.payload.data.consume.idempotent).toBe(true);
     expect(user.profileSubscription.monthlySpendCoin).toBe(Number(pricing.pricing.cost));
+  });
+
+  // 2026-10-12 인연의 서 개인판 300코인: vvip 건당 상한(200코인)을 넘어 단건 결제로 인계한다.
+  test("vvip 이용권은 30,000원 인연의 서를 건당 상한 초과 402로 넘긴다(쓰기 없음)", async () => {
+    const db = makeFakePaymentDb();
+    const user = seedUser(db, activePass("vvip"));
+    const { response, payload } = await postPassCheck(db, {
+      featureKey: "master-love-codex", paymentMode: "MEMBERSHIP_PASS", requestId: "vvip-codex-300",
+    });
+    expect(response.status).toBe(402);
+    expect(payload.code).toBe("PRICE_EXCEEDS_PASS_LIMIT");
+    expect(Number(user.profileSubscription.monthlySpendCoin || 0)).toBe(0);
   });
 
   test("🔴 커버 성공: 셸 판정기가 읽는 키 + User 1읽기 + CAS 1쓰기(왕복 2회)", async () => {

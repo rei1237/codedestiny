@@ -95,8 +95,8 @@
 | `cd_content_tier_02` | 5,000 | 5,000 | 58 | tarot-love-relationship, royal-tea-oracle, physiognomy-*, animal-totem-deep |
 | `cd_content_tier_14` | 7,000 | 7,000 | 1 | tarot-prompt-maker-deep (타로 오라클 상담 8~10카드) |
 | `cd_content_tier_06` | 10,000 | 10,000 | 50 | tarot-year-fortune, fortune-tea-house-saju-consultation, ziwei_love_deep |
-| `cd_content_tier_09` | 20,000 | 20,000 | 10 | cosmic-soul-meditation, life-book-ai-consultation, master-love-codex |
-| `cd_content_tier_10` | 30,000 | 30,000 | 18 | vedic-ai-consultation, karma-destiny-ai-consultation, fusion-fortune-consultation |
+| `cd_content_tier_09` | 20,000 | 20,000 | 10 | cosmic-soul-meditation, life-book-ai-consultation |
+| `cd_content_tier_10` | 30,000 | 30,000 | 18 | vedic-ai-consultation, karma-destiny-ai-consultation, master-love-codex (2026-10-12) |
 
 ### 2-2. 이용권 4개
 

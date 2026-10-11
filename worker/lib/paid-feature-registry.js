@@ -357,8 +357,9 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   // 마스터 인연의 서 (MASTER_LOVE_CODEX) — 사주×자미두수 융합 20챕터 5만자 전자책. 연애 비책과 달리
   // 사주 단독이 아니라 명식+명반을 함께 근거로 삼는다. 개인/궁합 두 SKU 로 나뉘며 궁합은 상대 명식·명반까지
   // 4개 차트를 프롬프트에 담아 입력 비용이 대략 2배다.
-  "master-love-codex": { cost: 100, amountKRW: 10000, reason: "마스터 인연의 서" },
-  "master-love-codex-compat": { cost: 300, amountKRW: 30000, reason: "마스터 인연의 서 · 궁합" },
+  // 2026-10-12 개인 10,000 → 30,000원, 궁합 30,000 → 50,000원(사용자 승인, docs/context/payment-gating.md 같은 날짜 절).
+  "master-love-codex": { cost: 300, amountKRW: 30000, reason: "마스터 인연의 서" },
+  "master-love-codex-compat": { cost: 500, amountKRW: 50000, reason: "마스터 인연의 서 · 궁합" },
   "ziwei-ai-consultation": { cost: 300, amountKRW: 30000, reason: "자미두수 전문가 상담" },
   // 2026-10-02 10,000 → 5,000원(사용자 승인, docs/context/payment-gating.md 같은 날짜 절).
   "ziwei-island-palace-consult": { cost: 100, amountKRW: 10000, reason: "운명의 섬 12궁 심층 상담" },

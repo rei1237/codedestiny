@@ -61,7 +61,7 @@ window.__cdServiceRegistry = [
     href: "/master-love-codex/",
     featureKey: "master-love-codex",
     featureKeyTo: "master-love-codex-compat",
-    price: "10,000원~30,000원",
+    price: "30,000원~50,000원",
     purposes: ["love", "compatibility"],
     methods: ["saju", "ai"],
     keys: "인연 연애 만남 시기 재회 짝사랑",

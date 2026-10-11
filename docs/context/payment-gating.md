@@ -1,5 +1,15 @@
 # 결제 시스템 & 잠금 콘텐츠 — 상세 규칙
 
+## 2026-10-12 승인: 마스터 인연의 서 개인 30,000원 · 궁합 50,000원
+
+사용자 결정("품질이 좋아 개인 3만원, 궁합 5만원으로 해도 문제없다"). 이 절이 아래 10-11 절과 이전 표기보다 우선한다.
+
+- `master-love-codex` 100 → 300코인(30,000원), `master-love-codex-compat` 300 → 500코인(50,000원). 정본 `paid-feature-registry.js`, 폴백 사본 `src/features/master-love-codex/constants.ts`.
+- 기존 주문의 가격 스냅샷과 지급된 `ContentEntitlement`는 그대로 둔다. 결제 진행 중 주문은 `hasPriceDrift` 경로로 새 가격을 다시 매긴다.
+- 이용권: 두 SKU 모두 건당 상한(standard 50·premium 100·vvip 200코인)을 넘으므로 standard·premium·vvip 이용권으로는 커버되지 않고 단건 결제로 넘어간다(이전에는 개인판 100코인을 premium·vvip가 커버했다). 상담 포함 횟수 표(`PREMIUM_QUOTA_INCLUDED_USES_BY_TIER`)는 2026-08-24부터 비어 있어 상한 우회가 없다. family는 건당 상한이 없어 월 이용 한도 안에서 두 SKU를 계속 커버한다. 최저 커버 가격 `MIN_PASS_COVERABLE_COIN`은 변하지 않는다.
+- Google Play: 개인판은 기존 `cd_content_tier_10`(30,000), 궁합판은 `cd_content_tier_17`(50,000)로 결제한다. 기존 SKU의 가격·상태는 바꾸지 않는다. `tier_17`이 Play Console에 활성화되기 전에는 앱의 궁합판 결제가 열리지 않는다.
+- 운영 승격은 별도 승인 대상이다.
+
 ## 2026-10-11 프리미엄 가격 개편
 
 이 절이 아래의 이전 가격 표기보다 우선한다. 정본은 `worker/lib/paid-feature-registry.js`이며 기존 주문의 가격 스냅샷과 이미 지급된 `ContentEntitlement`는 다시 가격을 매기거나 회수하지 않는다.

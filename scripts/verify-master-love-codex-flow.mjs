@@ -46,8 +46,8 @@ const { FEATURE_KEY_PRICE_TABLE, getPaidFeatureBillingType, PAID_FEATURE_BILLING
 
 // 개인판(solo) / 궁합판(compat) 두 SKU. 궁합은 상대 명식·명반까지 4장을 근거로 삼아 상위 가격이다.
 const SKUS = [
-  { key: FEATURE_KEY, cost: 100, amountKRW: 10000, label: "개인판" },
-  { key: COMPAT_FEATURE_KEY, cost: 300, amountKRW: 30000, label: "궁합판" },
+  { key: FEATURE_KEY, cost: 300, amountKRW: 30000, label: "개인판" },
+  { key: COMPAT_FEATURE_KEY, cost: 500, amountKRW: 50000, label: "궁합판" },
 ];
 
 for (const sku of SKUS) {
@@ -114,7 +114,7 @@ assert(
 );
 
 // 🔴 결제 증빙 조회는 이 요청의 모드 featureKey 로 해야 한다. 상수(개인판)로 박으면 궁합판
-//    (300코인) 결제가 `master-love-codex-compat` 로 기록되는데 개인판 키로 찾게 되어,
+//    (500코인) 결제가 `master-love-codex-compat` 로 기록되는데 개인판 키로 찾게 되어,
 //    결제를 마친 사용자가 /start 에서 402 를 받는다(돈만 나간다).
 assert(
   /findBillingEvidence\([\s\S]{0,260}?featureKey:\s*resolveMode\(normalized\.mode\)\.featureKey/.test(routeSource),
