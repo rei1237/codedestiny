@@ -268,5 +268,6 @@
     }
   ],
   "missingImageOpensTranscript": true,
-  "mode": "Local mock; no external traffic, payment, or LLM"
+  "mode": "Local mock; prices from local registry; no external traffic, payment, or LLM",
+  "entryEvidence": "Existing UI"
 }
