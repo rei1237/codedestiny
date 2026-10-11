@@ -814,10 +814,10 @@
       "aria": "मूनलाइट पास गाइड",
       "kicker": "मूनलाइट पास",
       "title": "चांदनी रात के साथ अपने भाग्य की दिनचर्या को और अधिक धीरे से प्रवाहित होने दें",
-      "desc": "मूनलाइट पास 30 दिनों तक, एक तय दायरे में, उन रीडिंग को पहले खोल देता है जिन पर आप बार-बार लौटते हैं। आज के संकेत बिना रुके शांति से आगे बढ़ते रहते हैं।",
+      "desc": "मूनलाइट पास, उपयोग सीमा खत्म होने तक, एक तय दायरे में, उन रीडिंग को पहले खोल देता है जिन पर आप बार-बार लौटते हैं। आज के संकेत बिना रुके शांति से आगे बढ़ते रहते हैं।",
       "guideLabel": "MOONLIGHT GUIDE",
-      "guideTitle": "For 30 days, readings you open often unfold first with ease",
-      "guideText": "From Standard to Family, tarot, oracle, and saju readings open first within your moonlight range. Deeper readings outside that range continue to one-time KRW payment only when needed.",
+      "guideTitle": "उपयोग सीमा खत्म होने तक, अक्सर खोली जाने वाली रीडिंग पहले सहजता से खुलती हैं",
+      "guideText": "छोटा शहद जार से फ़ैमिली शहद जार तक, आपकी चुनी हुई चाँदनी सीमा में टैरो, ओरेकल और साजू रीडिंग बिना भुगतान प्रक्रिया के पहले खुलती हैं। उस सीमा से बाहर की गहरी रीडिंग ज़रूरत पड़ने पर ही KRW में एकबारगी भुगतान से आगे बढ़ती हैं।",
       "toggle": "खुली चांदनी के लाभ",
       "heroAria": "चांदनी प्रवाह में निःशुल्क उपलब्ध सेवाओं की जाँच करें",
       "heroTitle": "मूनलाइट पास की सीमा देखें",
@@ -829,42 +829,43 @@
       "primaryAction": "वह पास ढूंढें जो मेरे लिए उपयुक्त हो",
       "chipsAria": "कोर पास लाभ",
       "chipIncluded": "पास सीमा के भीतर निःशुल्क",
-      "chipThirtyDays": "30 दिन का पास",
+      "chipThirtyDays": "पास",
       "chipShareReward": "दायरे के बाहर एकल भुगतान",
       "plansAria": "योजना सारांश कार्ड पास करें",
-      "standardName": "मानक शहद 30 दिन",
-      "standardPrice": "30 दिन · KRW 9,900",
+      "standardName": "छोटा शहद जार",
+      "standardPrice": "KRW 9,900",
       "standardLine": "KRW 5,000 तक की सामग्री",
-      "standardBenefit1": "हर महीने KRW 20,000 तक",
-      "standardCta": "मानक देखें",
+      "standardBenefit1": "KRW 20,000 तक",
+      "standardCta": "छोटा शहद जार देखें",
       "recommendedAria": "अनुशंसित योजना",
       "recommendedBadge": "अनुशंसित",
-      "premiumName": "प्रीमियम शहद 30 दिन",
-      "premiumPrice": "30 दिन · KRW 29,900",
+      "premiumName": "मध्यम शहद जार",
+      "premiumPrice": "KRW 29,900",
       "premiumLine": "KRW 10,000 तक की सामग्री",
-      "premiumBenefit1": "हर महीने KRW 60,000 तक",
+      "premiumBenefit1": "KRW 60,000 तक",
       "premiumCta": "अनुशंसित योजना देखें",
-      "vvipName": "वीवीआईपी हनी जार 30 दिन",
-      "vvipPrice": "30 दिन · KRW 59,900",
+      "vvipName": "बड़ा शहद जार",
+      "vvipPrice": "KRW 59,900",
       "vvipLine": "KRW 30,000 तक की सामग्री",
-      "vvipBenefit1": "हर महीने KRW 120,000 तक",
-      "vvipCta": "वीवीआईपी लाभ देखें",
-      "familyName": "कोड डेस्टिनी फ़ैमिली 30 दिन",
-      "familyPrice": "30 दिन · KRW 149,000",
+      "vvipBenefit1": "KRW 120,000 तक",
+      "vvipCta": "बड़ा शहद जार के लाभ देखें",
+      "familyName": "फ़ैमिली शहद जार",
+      "familyPrice": "KRW 149,000",
       "familyLine": "पास में शामिल सभी सामग्री",
-      "familyBenefit1": "हर महीने KRW 350,000 तक",
-      "familyCta": "परिवार देखें",
-      "premiumNote": "अगर आप अक्सर KRW 10,000 वाली सामग्री देखते हैं तो प्रीमियम हनी सबसे संतुलित विकल्प है।",
-      "footnote": "नए पास केवल 30-दिवसीय पास के रूप में बेचे जाते हैं। यह 30-दिवसीय पास स्वत: नवीनीकरण सदस्यता नहीं है। पास रेंज के बाहर की सेवाओं का उपयोग उत्पाद द्वारा एकमुश्त केआरडब्ल्यू भुगतान के साथ किया जा सकता है।",
+      "familyBenefit1": "KRW 350,000 तक",
+      "familyCta": "फ़ैमिली शहद जार देखें",
+      "premiumNote": "अगर आप अक्सर KRW 10,000 वाली सामग्री देखते हैं तो मध्यम शहद जार सबसे संतुलित विकल्प है।",
+      "footnote": "पास की कोई समय-सीमा नहीं है और उपयोग सीमा पूरी होने पर यह समाप्त हो जाता है। यह पास स्वत: नवीनीकरण सदस्यता नहीं है। पास रेंज के बाहर की सेवाओं का उपयोग उत्पाद द्वारा एकमुश्त केआरडब्ल्यू भुगतान के साथ किया जा सकता है।",
       "howtoAria": "मूनलाइट पास कैसे इस्तेमाल करें",
       "howtoTitle": "मूनलाइट पास, ऐसे आगे बढ़ता है",
-      "step1Label": "30 दिन की मूनलाइट सीमा चुनें",
-      "step1Text": "बिना अपने-आप नवीनीकरण वाले 30 दिन के पास के साथ, पहले उन रीडिंग की कीमत सीमा तय करें जिन्हें आप अक्सर देखते हैं।",
+      "step1Label": "मूनलाइट सीमा चुनें",
+      "step1Text": "बिना समय-सीमा और बिना अपने-आप नवीनीकरण वाले पास के साथ, पहले उन रीडिंग की कीमत सीमा तय करें जिन्हें आप अक्सर देखते हैं।",
       "step2Label": "सीमा के भीतर रीडिंग बिना भुगतान के खुलती हैं",
       "step2Text": "आपकी सीमा के भीतर टैरो, ऑरेकल और साजु रीडिंग बिना भुगतान विंडो के तुरंत खुल जाती हैं।",
       "step3Label": "केवल गहरी रीडिंग का प्रति उपयोग भुगतान",
       "step3Text": "आपकी सीमा से बाहर की गहरी रीडिंग ज़रूरत पड़ने पर ही एक बार KRW भुगतान से जारी रहती हैं।",
-      "terminationNote": "मासिक सीमा शून्य होने पर भी पास की समाप्ति तिथि, स्तर और प्रोफ़ाइल सीमा बनी रहती है। अतिरिक्त सशुल्क सामग्री एकमुश्त भुगतान या मासिक पास से उपलब्ध है।"
+      "terminationNote": "उपयोग सीमा पूरी तरह इस्तेमाल हो जाने पर पास समाप्त हो जाता है। दोबारा खरीदने पर नई उपयोग सीमा से शुरुआत होती है। अतिरिक्त सशुल्क सामग्री एकमुश्त भुगतान या मूनलाइट स्टोन से उपलब्ध है।",
+      "noExpiryNote": "कोई समय-सीमा नहीं · उपयोग सीमा खत्म होने पर समाप्त"
     },
     "promptHub": {
       "aria": "व्यापक भाग्य संकेत पर जाएँ",
@@ -905,11 +906,11 @@
       "eyebrow": "मूनलाइट पास",
       "savingsBadge": "पास के साथ कीमत अधिकतम एक-तिहाई",
       "title": "KRW 5,000 वाली दो रीडिंग पहले ही KRW 9,900 के पास से महंगी पड़ती हैं",
-      "desc": "आपके चुने हुए दायरे की रीडिंग 30 दिनों तक, आपकी मासिक उपयोग सीमा के भीतर खुलती हैं; उससे महंगी रीडिंग ज़रूरत पड़ने पर अलग से भुगतान करके देखी जाती हैं। चार दायरे हैं — KRW 5,000 · 10,000 · 20,000 और पास में शामिल सभी सामग्री — इसलिए वही चुनें जिसे आप सबसे ज़्यादा देखते हैं।",
+      "desc": "आपके चुने हुए दायरे की रीडिंग आपकी उपयोग सीमा खत्म होने तक खुलती हैं; उससे महंगी रीडिंग ज़रूरत पड़ने पर अलग से भुगतान करके देखी जाती हैं। चार दायरे हैं — KRW 5,000 · 10,000 · 20,000 और पास में शामिल सभी सामग्री — इसलिए वही चुनें जिसे आप सबसे ज़्यादा देखते हैं।",
       "pointsAria": "कोर पास गाइड",
       "point1": "बिना चेकआउट के तुरंत खुलता है",
-      "point2": "3 या अधिक प्रोफ़ाइल सहेजें",
-      "point3": "बिना ऑटो-नवीनीकरण वाला 30-दिन पास",
+      "point2": "कोई समय-सीमा नहीं · उपयोग सीमा खत्म होने पर समाप्त",
+      "point3": "बिना ऑटो-नवीनीकरण वाला पास",
       "mascotAria": "मूनलाइट पास के लाभ देखें · मूनलाइट पास स्टोर",
       "mascotAlt": "मूनलाइट पास लाभ की छवि",
       "mascotKicker": "Moonlight Pass Guide",
@@ -1652,12 +1653,12 @@
       "saysName": "Yeoni",
       "saysLine": "Which reading shall we start with? Just one is plenty.",
       "passMascotAlt": "Yeoni the flower pig smiling with a pass card",
-      "passEyebrow": "30-day pass, no auto-renewal",
-      "passTitle": "Reading often? Try a 30-day pass",
-      "passDesc": "Each reading's price is deducted from your allowance. It ends automatically after 30 days.",
-      "passPer": "/ 30 days",
+      "passEyebrow": "बिना समय-सीमा और ऑटो-नवीनीकरण वाला पास",
+      "passTitle": "Yeoni बताती है पास के बारे में",
+      "passDesc": "कभी-कभार के लिए एकल भुगतान, और अक्सर देखते हैं तो पास का उपयोग करें। उपलब्ध परामर्श और अपनी उपयोग सीमा जाँच लें।",
+      "passPer": "· कोई समय-सीमा नहीं",
       "passBadge": "Incl. Yeongnyangi",
-      "passNote": "Standard, Premium and VVIP apply to Flower Pig readings; Family applies to paid readings from both Flower Pig and Yeongnyangi. Passes you already bought keep the terms from the time of purchase.",
+      "passNote": "छोटा, मध्यम और बड़ा शहद जार Flower Pig रीडिंग पर लागू होते हैं; फ़ैमिली शहद जार Flower Pig और Yeongnyangi दोनों की सशुल्क रीडिंग पर लागू होता है। पहले से खरीदे गए पास खरीद के समय की शर्तें बनाए रखते हैं।",
       "passCta": "See all 4 passes",
       "moreTitle": "Yeoni के अटेलियर में और देखें",
       "moreItems": "Daily readings · consultations · records · stories",
@@ -1726,7 +1727,7 @@
     "chatEntry": {
       "title": "Ask Yeoni and Neo the one thing on your mind right now",
       "cta": "Talk through my concern",
-      "price": "1 free after signing up · ₩3,000 each after"
+      "price": "₩3,000 प्रति बार"
     },
     "svcQuestion": {
       "master-love-codex": "When will my next relationship begin?",
@@ -1832,9 +1833,9 @@
       "reviewReward": "Moonstones after publication approval",
       "reviewDetail": "Use them in Ggulggul. Awarded once per product.",
       "reviewAction": "Write a review",
-      "passStandard": "Yeoni Standard",
-      "passPremium": "Yeoni Premium",
-      "passVvip": "Yeoni VVIP",
+      "passStandard": "छोटा शहद जार",
+      "passPremium": "मध्यम शहद जार",
+      "passVvip": "बड़ा शहद जार",
       "passPerLimit": "Up to KRW {amount} per reading",
       "passTotal": "Total allowance: KRW {amount}",
       "passNoLimit": "No per-reading price limit",
@@ -1862,7 +1863,8 @@
       "neoClassSource": "Saju student · KakaoTalk excerpt (Korean)",
       "neoNote": "Excerpts from Neo’s personal consultations and classes, separate from the AI reading service. Individual experiences do not guarantee similar results.",
       "neoAbout": "About Neo and the service",
-      "neoMore": "More consultation reviews"
+      "neoMore": "More consultation reviews",
+      "passFamily": "फ़ैमिली शहद जार"
     },
     "simple": {
       "lead": "अपनी चिंता बताएं। शुरू करने से पहले विषय और कीमत जानें।",
@@ -2339,13 +2341,13 @@
         "passSaveUnverified": "आपका पास लागू करने का परिणाम सहेजा नहीं जा सका। नीचे दिए पास कार्ड से दोबारा जाँचें या कोई दूसरा भुगतान तरीका चुनें।",
         "passCheckFailed": "आपका पास जाँचा नहीं जा सका। नीचे दिए पास कार्ड से दोबारा जाँचें या कोई दूसरा भुगतान तरीका चुनें।",
         "passMiss": "आपका पास इस सामग्री को मुफ़्त नहीं खोलता, इसलिए भुगतान विकल्प दिए गए हैं।",
-        "passMonthlyExhausted": "Your pass allowance is fully used, so the pass has ended. Here are the payment options."
+        "passMonthlyExhausted": "Your pass usage limit is fully used, so the pass has ended. Here are the payment options."
       },
       "passBadge": "मूनलाइट पास",
       "passStoreTitle": "मूनलाइट पास की दुकान",
       "passRetryTitle": "पास को दोबारा जांचें",
       "passHint": {
-        "store": "एक बार भुगतान करें और 30 दिनों तक कई सामग्री खोलें। पहले से है? जाँचने के लिए टैप करें।",
+        "store": "एक बार भुगतान करें और उपयोग सीमा खत्म होने तक कई सामग्री खोलें। पहले से है? जाँचने के लिए टैप करें।",
         "retry": "हम यह देखने के लिए सर्वर की दोबारा जांच करेंगे कि क्या आपका पास बिना भुगतान के इसे खोल सकता है।",
         "upgrade": "आपका मौजूदा स्तर इसे नहीं खोलता। एक व्यापक स्तर देखें।"
       },
@@ -2418,7 +2420,7 @@
         "comingSoon": "जल्द आ रहा है",
         "back": "वापस"
       },
-      "passMonthlyExhausted": "Your pass allowance is fully used, so the pass has ended. Buying a new pass starts another 30 days; for now you can open this with a one-time payment or moonstones.",
+      "passMonthlyExhausted": "Your pass usage limit is fully used, so the pass has ended. Buying again starts a new usage limit; for now you can open this with a one-time payment or moonstones.",
       "passMonthlyRemaining": "Pass allowance left {remaining} / {limit}",
       "wait": {
         "card": "After you finish verifying in your card or payment app, come back to this browser and checkout will continue automatically.",
@@ -2450,7 +2452,7 @@
         "pass": {
           "eyebrow": "मूनलाइट पास चेक",
           "title": "आपके पास की जाँच की जा रही है",
-          "message": "जाँच की जा रही है कि क्या आपका 30-दिवसीय पास इसे तुरंत खोल सकता है।",
+          "message": "जाँच की जा रही है कि क्या आपका पास इसे तुरंत खोल सकता है।",
           "meta": "यदि उपलब्ध हो, तो आप चेकआउट विंडो के बिना जारी रखेंगे।"
         },
         "passApplied": {
@@ -2521,7 +2523,7 @@
         "pass": {
           "eyebrow": "मूनलाइट पास चेक",
           "title": "आपके पास की जाँच की जा रही है",
-          "message": "जाँच की जा रही है कि क्या आपका 30-दिवसीय पास इसे तुरंत खोल सकता है।",
+          "message": "जाँच की जा रही है कि क्या आपका पास इसे तुरंत खोल सकता है।",
           "meta": "यदि उपलब्ध हो, तो आप चेकआउट विंडो के बिना जारी रखेंगे।"
         },
         "passApplied": {
@@ -2605,7 +2607,7 @@
     "passShop": {
       "monthlyStatus": "आपका मूनस्टोन बैलेंस पुष्ट हो गया है।",
       "chargeButton": "{amount} के लिए भुगतान पृष्ठ पर जाएं",
-      "chargeNotice": "पास उत्पाद {price} · यह 30-दिन का पास है, ऑटो-नवीनीकरण भुगतान नहीं। पास केवल KRW में एकमुश्त भुगतान से खरीदा जा सकता है।",
+      "chargeNotice": "पास उत्पाद {price} · यह पास है, ऑटो-नवीनीकरण भुगतान नहीं। पास केवल KRW में एकमुश्त भुगतान से खरीदा जा सकता है।",
       "best": "BEST",
       "monthlyBasisWithPrice": "मासिक क्रेडिट आधार {credits} · {price}",
       "profileUnlimited": "असीमित प्रोफ़ाइल",
@@ -2616,24 +2618,24 @@
       "closeAria": "मूनलाइट पास शॉप गाइड बंद करें",
       "openAria": "मूनलाइट पास शॉप गाइड खोलें",
       "title": "मूनलाइट पास शॉप गाइड",
-      "subtitle": "चांदनी रात में रखे गए 30-दिवसीय पास और मासिक क्रेडिट प्रवाह की समीक्षा करें।",
-      "footerNotice": "यह 30-दिवसीय पास स्वतः नवीनीकरण उत्पाद नहीं है। इसकी समय सीमा समाप्त होने के बाद आपको इसे दोबारा खरीदना होगा।",
+      "subtitle": "पास KRW में एकमुश्त भुगतान से खरीदे जाते हैं, और मूनलाइट स्टोन अलग-अलग सशुल्क सुविधाओं के लिए उपयोग होते हैं।",
+      "footerNotice": "यह पास स्वतः नवीनीकरण उत्पाद नहीं है। उपयोग सीमा खत्म होने के बाद आपको इसे दोबारा खरीदना होगा।",
       "packages": {
         "standard": {
-          "name": "मानक शहद 30 दिन",
-          "desc": "30 दिन · KRW 5,000 तक की सामग्री · हर महीने KRW 20,000 तक"
+          "name": "छोटा शहद जार",
+          "desc": "KRW 5,000 तक की सामग्री · KRW 20,000 तक"
         },
         "premium": {
-          "name": "प्रीमियम शहद 30 दिन",
-          "desc": "30 दिन · KRW 10,000 तक की सामग्री · हर महीने KRW 60,000 तक"
+          "name": "मध्यम शहद जार",
+          "desc": "KRW 10,000 तक की सामग्री · KRW 60,000 तक"
         },
         "vvip": {
-          "name": "वीवीआईपी हनी जार 30 दिन",
-          "desc": "30 दिन · KRW 30,000 तक की सामग्री · हर महीने KRW 120,000 तक"
+          "name": "बड़ा शहद जार",
+          "desc": "KRW 30,000 तक की सामग्री · KRW 120,000 तक"
         },
         "family": {
-          "name": "कोड डेस्टिनी फ़ैमिली 30 दिन",
-          "desc": "30 दिन · पास में शामिल सभी सामग्री · हर महीने KRW 350,000 तक"
+          "name": "फ़ैमिली शहद जार",
+          "desc": "पास में शामिल सभी सामग्री · KRW 350,000 तक"
         }
       },
       "monthlyStatusChecking": "शेष राशि और पास की स्थिति की जाँच की जा रही है।",
@@ -2642,7 +2644,7 @@
       "monthlyButton": "{credits} मासिक क्रेडिट से भुगतान करें",
       "monthlyButtonBusy": "मासिक क्रेडिट से पास सक्रिय किया जा रहा है...",
       "monthlyButtonShort": "{credits} चाहिए · शेष कम है",
-      "terminationNotice": "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day."
+      "terminationNotice": "उपयोग सीमा पूरी तरह इस्तेमाल हो जाने पर पास समाप्त हो जाता है। दोबारा खरीदने पर नई उपयोग सीमा से शुरुआत होती है। अतिरिक्त सशुल्क सामग्री एकमुश्त भुगतान या मूनलाइट स्टोन से उपलब्ध है।"
     },
     "access": {
       "passAppliedContinue": "आपके पास के साथ खोला गया।"
@@ -2734,10 +2736,10 @@
       },
       "astro": {
         "elements": {
-          "Fire": "आग",
+          "Fire": "अग्नि",
           "Earth": "पृथ्वी",
           "Air": "वायु",
-          "Water": "पानी",
+          "Water": "जल",
           "Cosmic": "तारों का प्रकाश"
         },
         "unknownSun": "सूर्य राशि अज्ञात",
@@ -2752,25 +2754,25 @@
         "ritualTip": "आज रात, तीन मिनट के लिए अपनी सांसें स्थिर रखें और एक तारे के नीचे एक लक्ष्य निर्धारित करें।",
         "relationshipTheme": "जब रिश्ते आपके मुख्य संकेत की लय का पालन करते हैं, तो घर्षण नरम हो जाता है।",
         "careerTheme": "स्थिर गति के लिए अपनी कार्य दिनचर्या में अपनी सूर्य राशि की मुख्य प्रेरणा को शामिल करें।",
-        "growthCycle": "तारा कॉल \"कक्षा निर्माण\" निहारिका खिल रही है → चमक फैल रही है",
+        "growthCycle": "तारों का आह्वान → कक्षा का निर्माण → निहारिका का खिलना → आभा का प्रसार",
         "fallbackNote": "सन-साइन डेटा अनुपलब्ध था, इसलिए रीडिंग में डिफ़ॉल्ट वायु तत्व का उपयोग किया गया।",
         "ultimateTitle": "परम भाग्य पुष्प",
         "ultimateConcept": "एक संकर फूल जहां पूर्वी {dayMaster} ऊर्जा पश्चिमी {sunSign} तारों के प्रकाश के साथ विलीन हो जाती है",
         "verdict": "ज्योतिष के माध्यम से आपका भाग्य पुष्प है {flowerName} ({scientificName})। सूर्य, उदय और चंद्रमा के तीन अक्ष इस फूल को अब आपके साथ निकटता से प्रतिध्वनित करते हुए दर्शाते हैं।",
         "narrative": "सूर्य चिह्न {sun} से उठने वाली {sunElement} चिंगारी इस फूल की पसंद का केंद्र बन जाती है। बढ़ता हुआ चिह्न {rising} ({risingElement}) दृश्यमान स्वर को आकार देता है, जबकि चंद्रमा का चिह्न {moon} ({moonElement}) भावनात्मक ओस जोड़ता है, जिससे {flowerName},{flowerSymbolism}, का प्रतीक बनता है। स्पष्ट रूप से खोलें. कीवर्ड \"{keyword}\" तारे की रोशनी है जो इस फूल को आगे बुला रही है।",
         "signs": {
-          "aries": "Aries",
-          "taurus": "Taurus",
-          "gemini": "Gemini",
-          "cancer": "Cancer",
-          "leo": "Leo",
-          "virgo": "Virgo",
-          "libra": "Libra",
-          "scorpio": "Scorpio",
-          "sagittarius": "Sagittarius",
-          "capricorn": "Capricorn",
-          "aquarius": "Aquarius",
-          "pisces": "Pisces"
+          "aries": "मेष",
+          "taurus": "वृषभ",
+          "gemini": "मिथुन",
+          "cancer": "कर्क",
+          "leo": "सिंह",
+          "virgo": "कन्या",
+          "libra": "तुला",
+          "scorpio": "वृश्चिक",
+          "sagittarius": "धनु",
+          "capricorn": "मकर",
+          "aquarius": "कुंभ",
+          "pisces": "मीन"
         },
         "rationaleLabel": {
           "sun": "सूर्य राशि",
@@ -2784,8 +2786,8 @@
           "li": "Li (利)",
           "de": "De (得)",
           "ping": "Ping (平)",
-          "han": "Xian (閑)",
-          "xian": "Xian (陷)",
+          "han": "Xián (閑)",
+          "xian": "Xiàn (陷)",
           "bu": "Bu (不)"
         },
         "coreFlow": "मूल भाग्य प्रवाह",
@@ -2797,7 +2799,7 @@
         "ritualTip": "आज का मुख्य कीवर्ड: {keyword}",
         "relationshipTheme": "मजबूत सितारा स्वभाव को आपका संबंधपरक मानक बनने दें और सामंजस्य स्पष्ट हो जाए।",
         "careerTheme": "जब मुख्य तारे की ताकत सामने आती है, तो निष्पादन और स्थिति स्थिर हो जाती है।",
-        "growthCycle": "सितारा संरेखण \"ऊर्जा संग्रहण\" बीज प्रज्वलन → खिलना",
+        "growthCycle": "तारों का संरेखण → ऊर्जा का संचय → बीज का प्रज्वलन → खिलना",
         "secondaryFallbackNote": "समग्र मुख्य सितारा समायोजन: {primaryStar} केंद्रित + {secondaryStar} सुगंध मिश्रण",
         "palaceFallbackNote": "महल विशेषता समायोजन: {palace} · {trait}",
         "hybridHint": "सजु {dayMaster} ऊर्जा को ज़िवेई मुख्य सितारों {stars} के साथ मिश्रित करके हाइब्रिड रेंडरिंग उपलब्ध है",
@@ -2806,9 +2808,9 @@
         "narrativeSingle": "{palace} हैंडल{palaceEnergy}. आज का मजबूत सितारा {star} गुणवत्ता \"{keyword}\" और प्रकृति \"{personality}\" को फूल के केंद्र में रखता है। चमक {brightness} उस प्रकाश को स्थिर रखती है, और {flowerName} आपकी केंद्रीय ऊर्जा के साथ सबसे गहराई से प्रतिध्वनित होती है।",
         "rules": {
           "peonyZiwei": {
-            "title": "इंपीरियल पेनी",
+            "title": "शाही पियोनी",
             "keyword": "शाही संतुलन",
-            "personality": "एक नेता जो क्षेत्र को केंद्र में रखता है और व्यवस्था बहाल करता है"
+            "personality": "एक नेता जो केंद्र में खड़ा होकर आसपास की व्यवस्था संवारता है"
           },
           "thornyRoseGeneral": {
             "title": "जनरल का लाल गुलाब",
@@ -2817,8 +2819,8 @@
           },
           "thornyRosePioneer": {
             "title": "पायनियर का लाल गुलाब",
-            "keyword": "फ़ील्ड को नया आकार देने की ड्राइव",
-            "personality": "एक नवप्रवर्तक जो पुराने फ्रेम को तोड़ता है और एक नया ऑर्डर खोलता है"
+            "keyword": "खेल बदल देने वाली प्रेरक शक्ति",
+            "personality": "एक नवप्रवर्तक जो पुराने ढांचे को तोड़कर नई व्यवस्था खोलता है"
           },
           "delicateWillow": {
             "title": "रणनीतिकार का विलो फूल",
@@ -2826,9 +2828,9 @@
             "personality": "एक रणनीतिकार जो क्षण को पढ़ता है और सबसे साफ उत्तर ढूंढता है"
           },
           "sunflowerZiwei": {
-            "title": "सौर सूरजमुखी",
+            "title": "सूर्य का सूरजमुखी",
             "keyword": "प्रकाश का विस्तार",
-            "personality": "एक निष्पादक जो दृश्यमान परिणामों के लिए ऊर्जा एकत्रित करता है"
+            "personality": "एक कर्मठ व्यक्ति जो लक्ष्य पर ऊर्जा केंद्रित कर परिणाम लाता है"
           },
           "nightCereus": {
             "title": "चांदनी रात में खिलने वाला सेरियस",
@@ -2836,7 +2838,7 @@
             "personality": "एक चिंतनशील आत्मा जो अदृश्य धारा को पढ़ती है"
           },
           "orchidTanlang": {
-            "title": "पीच-ब्लॉसम आर्किड",
+            "title": "आड़ू-पुष्प आर्किड",
             "keyword": "कामुक चुंबकत्व",
             "personality": "एक चुंबकीय प्रकार जो सुंदरता, रिश्ते और अभिव्यक्ति के माध्यम से आगे बढ़ता है"
           }
@@ -2915,20 +2917,20 @@
       "sukuyo": {
         "moon": {
           "full": "पूर्णिमा",
-          "new": "अंधेरा चाँद",
+          "new": "अमावस्या",
           "crescent": "अर्धचंद्र",
-          "gibbous": "ढलता/घटता चंद्रमा"
+          "gibbous": "बढ़ता/घटता चंद्रमा"
         },
-        "stickerLabel": "सुकुयो द्वारा फूल",
+        "stickerLabel": "सुकुयो से देखा गया फूल",
         "moonPhaseLabel": "चंद्रमा चरण {moon}",
-        "guardianLabel": "संरक्षक {guardian}",
-        "scenarioTitle": "27 हवेली और चंद्रमा-चरण खिलने वाला परिदृश्य",
+        "guardianLabel": "संरक्षक पशु {guardian}",
+        "scenarioTitle": "27 नक्षत्र और चंद्र कला का संयुक्त खिलने वाला परिदृश्य",
         "ritualTip": "चांदनी वाली खिड़की से, 27 बार सांस लें और आज का इरादा एक शब्द में निर्धारित करें।",
         "relationshipTheme": "{group} की बनावट का पालन करने से तनाव कम होता है और कनेक्शन स्पष्ट होता है।",
         "careerTheme": "जब {guardian} की लय आपके कार्य दिनचर्या में प्रतिबिंबित होती है, तो परिणाम स्थिर हो जाते हैं।",
-        "growthCycle": "\"चांदनी सभा\" आत्मा प्रज्वलन → खिलने को जोड़ने वाला नक्षत्र",
+        "growthCycle": "नक्षत्रों का जुड़ना → चांदनी का संचय → आत्मिक प्रज्वलन → खिलना",
         "verdict": "सुकुयो की चांदनी बनावट के माध्यम से, आपका भाग्य फूल {flowerName} ({scientificName}) है। {mansion}, {moon}, और {guardian} का संयोजन अब रिश्ते, भावना और क्रिया की लय के साथ नाजुक ढंग से संरेखित होता है।",
-        "narrative": "{mansion} ({group}) की संबंधपरक बनावट, चंद्रमा चरण {moon} का ज्वार, और {guardian} का सुरक्षात्मक पैटर्न रात्रि उद्यान में मिलते हैं, जिससे{symbolism} की गुणवत्ता गहरी हो जाती है। एक साथ पढ़ें, ये तीन चांदनी संकेत अब आपके सबसे सटीक भाग्य फूल के रूप में {flowerName} की ओर इशारा करते हैं।",
+        "narrative": "{mansion} ({group}) की संबंधपरक बनावट, चंद्रमा चरण {moon} का ज्वार, और {guardianJosa} का सुरक्षात्मक पैटर्न रात्रि उद्यान में मिलते हैं, जिससे {symbolism} की गुणवत्ता गहरी हो जाती है। एक साथ पढ़ें, ये तीन चांदनी संकेत अब आपके सबसे सटीक भाग्य फूल के रूप में {flowerName} की ओर इशारा करते हैं।",
         "mansions": {
           "m1": "Kaku (角)",
           "m2": "Kou (亢)",
@@ -3154,20 +3156,20 @@
             }
           }
         },
-        "stickerLabel": "साजू द्वारा फूल",
+        "stickerLabel": "साजू से देखा गया फूल",
         "dayMasterWaiting": "डे मास्टर रीडिंग की प्रतीक्षा में",
         "signalPending": "कोर सिग्नल की प्रतीक्षा की जा रही है",
         "scenarioTitleFallback": "{dayMasterBadge} खिलता हुआ परिदृश्य",
         "scenarioFallbackReason": "दिन के स्वामी और पर्यावरण को एकीकृत करके खिलते हुए प्रवाह को पढ़ा गया।",
-        "growthCycle": "अंकुरण (ऊर्जा एकत्रित करना) \"विकास (क्रिया को बढ़ाना)\" खिलना (परिणाम सामने आना) → फलन (रिश्ते और संपत्ति का गहरा होना)",
-        "fallbackNote": "दिवस मास्टर संवर्धन तर्क लागू किया गया था।",
+        "growthCycle": "अंकुरण (ऊर्जा संचय) → विस्तार (कर्म का संवर्धन) → खिलना (परिणाम सामने आना) → फल (रिश्तों/संपत्ति का संचय)",
+        "fallbackNote": "केवल जन्म तिथि की जानकारी से आपके डे मास्टर की ऊर्जा को सावधानी से पढ़ा गया है।",
         "verdict": "आपके साजू पढ़ने में, आपका फूल {flowerName} ({scientificName}) है।",
         "rationale": {
           "verdict": "आपके साजू पढ़ने में, आपका भाग्य फूल {flowerName} ({scientificName}) है।",
           "elements": "फाइव एलिमेंट रीडिंग {dominant} को आपकी मुख्य ऊर्जा और {support} को सहायक प्रवाह के रूप में दिखाती है।",
           "context": "वर्तमान भाग्य का मौसम {season} है, ऊर्जा घनत्व {water} है, और जीवन चरण को {environment} के रूप में पढ़ा जाता है।",
           "dayMaster": "डे मास्टर की पुष्टि {dayMasterBadge} के रूप में की गई है, और इसके आसपास मौसम-पर्यावरण की बातचीत को प्राथमिकता दी गई थी।",
-          "scenario": "दिवस मास्टर-पर्यावरण परिदृश्य: {reason}",
+          "scenario": "{reason}",
           "levels": "तत्व स्तर {elementLevelLine} हैं, और भाग्य फूल की पुष्टि करने के लिए सभी पांच स्तरों को भारित किया गया था।",
           "symbolism": "यह फूल {symbolism} का प्रतीक है, जो इस मौसम की थीम को सबसे स्पष्ट रूप से दर्शाता है।",
           "description": "भाग्य पुष्प वाचन: {description}",
@@ -7800,10 +7802,9 @@
     },
     "fortuneGatewayDoor": {
       "fortuneGatewayDoorMeta": {
-        "k18ykrep": "साइन-इन के बाद 1 निःशुल्क",
-        "n115000": "साइन-अप के बाद 1 बार निःशुल्क · उसके बाद ₩3,000 प्रति बार",
         "n130000": "₩30,000 प्रति पाठ",
-        "k1lo4ibg": "अंतिम क्रॉस-जाँच"
+        "k1lo4ibg": "अंतिम क्रॉस-जाँच",
+        "n13000": "₩3,000 प्रति बार"
       },
       "fortuneGatewayDoorGo": {
         "kkmvgqi": "Start a reading",
@@ -8192,7 +8193,7 @@
       "007": "उदय राशि",
       "008": "चंद्र राशि",
       "009": "मजबूत/कमजोर",
-      "010": "उपयोगी देवता",
+      "010": "उपयोगी तत्व",
       "011": "जलवायु"
     },
     "message": {
@@ -20535,18 +20536,18 @@
       "pig": "Pig"
     },
     "sign": {
-      "aries": "Aries",
-      "taurus": "Taurus",
-      "gemini": "Gemini",
-      "cancer": "Cancer",
-      "leo": "Leo",
-      "virgo": "Virgo",
-      "libra": "Libra",
-      "scorpio": "Scorpio",
-      "sagittarius": "Sagittarius",
-      "capricorn": "Capricorn",
-      "aquarius": "Aquarius",
-      "pisces": "Pisces"
+      "aries": "मेष",
+      "taurus": "वृषभ",
+      "gemini": "मिथुन",
+      "cancer": "कर्क",
+      "leo": "सिंह",
+      "virgo": "कन्या",
+      "libra": "तुला",
+      "scorpio": "वृश्चिक",
+      "sagittarius": "धनु",
+      "capricorn": "मकर",
+      "aquarius": "कुंभ",
+      "pisces": "मीन"
     },
     "stem": {
       "wood": "Wood",

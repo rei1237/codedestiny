@@ -795,9 +795,11 @@
 #destinyFlowerStudioOverlay .df-quad-image { filter: none; }
 #destinyFlowerStudioOverlay .df-quad-name { color: var(--dfd-ink); }
 #destinyFlowerStudioOverlay .df-quad-latin { color: var(--dfd-gold-ink); }
-#destinyFlowerStudioOverlay .df-quad-badge { border-color: rgba(232, 201, 138, 0.7); background: rgba(255, 255, 255, 0.9); }
-#destinyFlowerStudioOverlay .df-quad-badge b { color: var(--dfd-gold-ink); }
-#destinyFlowerStudioOverlay .df-quad-badge em { color: var(--dfd-ink); }
+/* 홈은 fortune-ui.css 대신 fortune-ui-home.css(생성 서브셋)를 받는데 거기엔 .df-quad-badge 기본 레이아웃이 없어
+   라벨과 값이 간격 없이 붙고 em 이 기울었다. 기본 레이아웃(fortune-ui.css .df-quad-badge)을 여기서 보장한다. */
+#destinyFlowerStudioOverlay .df-quad-badge { display: inline-flex; align-items: baseline; gap: 4px; padding: 2px 7px; border-radius: 999px; border: 1px solid rgba(232, 201, 138, 0.7); background: rgba(255, 255, 255, 0.9); font-size: 0.62rem; line-height: 1.5; }
+#destinyFlowerStudioOverlay .df-quad-badge b { font-weight: 800; color: var(--dfd-gold-ink); }
+#destinyFlowerStudioOverlay .df-quad-badge em { font-style: normal; color: var(--dfd-ink); }
 #destinyFlowerStudioOverlay .df-quad-line { color: var(--dfd-text); }
 #destinyFlowerStudioOverlay { scrollbar-gutter: auto; }
 html:has(#destinyFlowerStudioOverlay.is-show) { scrollbar-gutter: auto !important; }

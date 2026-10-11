@@ -413,8 +413,7 @@ export default function FortuneChatClient() {
 
   const usageLabel = useMemo(() => {
     if (!usage) return "상담 가능 여부를 확인하는 중";
-    if (!usage.isLoggedIn) return usage.guestFreeRemaining > 0 ? "첫 상담을 무료로 시작할 수 있어요" : "로그인하면 1회 무료로 상담할 수 있어요";
-    return usage.dailyFreeRemaining > 0 ? `무료 상담 ${usage.dailyFreeRemaining}회 남음` : "무료 상담을 모두 사용했어요";
+    return usage.isLoggedIn ? "상담은 1회씩 결제해요" : "로그인한 뒤 상담할 수 있어요";
   }, [usage]);
 
   /** 결제 게이트. 이용권 보유자는 여기서 결제 없이 통과한다. */
@@ -769,7 +768,7 @@ export default function FortuneChatClient() {
     <section className={styles.composer} aria-label={copy.composerAria}>
       <div className={styles.policyRow}>
         <p className={styles.policy}>{usageLabel}</p>
-        {needsPayment && <PriceBadge featureKey={PAID_FEATURE_KEY} fallbackLabel="3,000원" prefix="1회 " className={styles.priceBadge} />}
+        {usage && <PriceBadge featureKey={PAID_FEATURE_KEY} fallbackLabel="3,000원" prefix="1회 " className={styles.priceBadge} />}
       </div>
 
       <details className={styles.birthPanel} open={birthOpen} onToggle={(event) => setBirthOpen((event.currentTarget as HTMLDetailsElement).open)}>

@@ -32,7 +32,7 @@
      defer 를 새로 붙이거나 떼기 전에 그 전역을 읽는 곳이 함수 안인지 최상위인지 반드시 확인할 것. -->
 <!-- 이용권 판정 정본(js/core/pass-verdict.js). 셸 인라인 블록이 파싱 시점에 window.__cdPassVerdict 를
      필요로 하므로 defer 를 붙이지 않는다. 순수 로직 파일이라 렌더 블로킹 비용은 무시 가능하다. -->
-      <script src="/js/core/pass-verdict.js?v=build-c38b98766802"></script>
+      <script src="/js/core/pass-verdict.js?v=build-6b687dcb0fc4"></script>
 <!-- 출생 정보 단위 해금 키 사본(js/core/birth-scope-unlocks.js, 정본은 서버 paid-feature-registry).
      셸 인라인 블록이 파싱 시점부터 window.cdIsBirthScopedUnlockKey 를 읽으므로 defer 를 붙이지 않는다. -->
       <script src="/js/core/birth-scope-unlocks.js?v=build-4bd7de640e13"></script>
@@ -43,7 +43,7 @@
      머리쪽 세션캐시가 /api/me/access-state 를 'accessState' 로 캐싱하므로(위 kind() 참고),
      부트 콜백이 스토어보다 먼저 응답을 받아 시드를 건너뛰어도 나중 ensureLoaded 가 캐시에서 받는다.
      즉 왕복이 늘지 않는다 — 이 캐시를 걷어내면 defer 전제가 깨지므로 함께 봐야 한다. -->
-      <script src="/js/core/access-store.js?v=build-889e0dfcd9e0" defer></script>
+      <script src="/js/core/access-store.js?v=build-c60069ed7dd2" defer></script>
 <!-- 🔴 payment-service 는 defer 금지. 셸 인라인이 파싱 시점에 registerPaymentWindow(...,'canonical-shell')
      로 결제창 단일비행 경계를 등록하는데(아래 _cdChooseServicePaymentMode 등록부), defer 로 내리면
      그 자리에서 else 가지로 떨어져 경계 없는 렌더러로 조용히 강등된다. 실패가 눈에 안 보이는 종류다. -->
@@ -967,7 +967,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 <meta property="og:description" content="从四柱八字、紫微斗数十二宫到宿曜关系与塔罗问题解读。用简体中文了解不同体系的输入与看盘顺序，选择适合自己的命盘或咨询入口。">
 <meta property="og:url" content="https://code-destiny.com/zh/">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-zh.png?v=build-2740d4affc08">
+<meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-zh.png?v=build-79bf1ff97fbe">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="蜜豚运势 HONEY FORTUNE — 印有花猪 Yeoni 客串形象与服务介绍的 CODE DESTINY 名片卡">
@@ -976,7 +976,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="八字排盘·紫微斗数·塔罗占卜｜Code Destiny">
 <meta name="twitter:description" content="从四柱八字、紫微斗数十二宫到宿曜关系与塔罗问题解读。用简体中文了解不同体系的输入与看盘顺序，选择适合自己的命盘或咨询入口。">
-<meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-zh.png?v=build-2740d4affc08">
+<meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-zh.png?v=build-79bf1ff97fbe">
 <meta name="twitter:image:alt" content="蜜豚运势 HONEY FORTUNE — 印有花猪 Yeoni 客串形象与服务介绍的 CODE DESTINY 名片卡">
 <script type="application/ld+json">
 {
@@ -1184,7 +1184,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
     {
       "@type": "ImageObject",
       "@id": "https://code-destiny.com/#primaryimage",
-      "url": "https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-2740d4affc08",
+      "url": "https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-79bf1ff97fbe",
       "width": 1200,
       "height": 630
     },
@@ -2242,8 +2242,8 @@ body.neo-mode .pf-showcase{--pf-title-color:#fff7dd;--pf-sub-color:rgba(233,224,
 
   <link rel="stylesheet" href="/styles/cosmic-main.css?v=build-85433ecedad9">
 
-  <link data-cd-noncritical-style-src="/styles/destiny-flower-cosmic.css?v=build-c17dca0f3e70" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/destiny-flower-cosmic.css?v=build-c17dca0f3e70"></noscript>
+  <link data-cd-noncritical-style-src="/styles/destiny-flower-cosmic.css?v=build-37e6b450532a" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/destiny-flower-cosmic.css?v=build-37e6b450532a"></noscript>
 
   <link data-cd-noncritical-style-src="/styles/animal-totem-mystic.css?v=build-7a27ec948f46" data-cd-mobile-delay="1" media="print">
   <noscript><link rel="stylesheet" href="/styles/animal-totem-mystic.css?v=build-7a27ec948f46"></noscript>
@@ -10152,38 +10152,38 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
   <div class="cdh-pass__intro">
     <img class="cdh-pass__mascot" src="/images/home/yeoni-pass-mascot-240.webp" srcset="/images/home/yeoni-pass-mascot-240.webp 240w, /images/home/yeoni-pass-mascot-480.webp 480w" sizes="(max-width: 640px) 104px, 168px" alt="이용권 카드를 들고 웃는 꽃돼지 연이" data-cd-trans-attr="alt:home.gardenCopy.passMascotAlt" width="240" height="240" loading="lazy" decoding="async">
     <div class="cdh-pass__copy">
-      <span class="cdh-pass__eyebrow" data-cd-trans="home.gardenCopy.passEyebrow">자동갱신 없는 30일 이용권</span>
-      <h2 class="cdh-pass__title" id="cdhPassTitle" data-cd-trans="home.gardenCopy.passTitle">연이가 알려드리는 30일 이용권</h2>
-      <p class="cdh-pass__desc" data-cd-trans="home.gardenCopy.passDesc">가끔은 단건 결제로, 자주 본다면 이용권으로 이용해요. 사용할 수 있는 상담과 30일 이용 한도를 확인해 주세요.</p>
+      <span class="cdh-pass__eyebrow" data-cd-trans="home.gardenCopy.passEyebrow">기간·자동갱신 없는 이용권</span>
+      <h2 class="cdh-pass__title" id="cdhPassTitle" data-cd-trans="home.gardenCopy.passTitle">연이가 알려드리는 이용권</h2>
+      <p class="cdh-pass__desc" data-cd-trans="home.gardenCopy.passDesc">가끔은 단건 결제로, 자주 본다면 이용권으로 이용해요. 사용할 수 있는 상담과 이용 한도를 확인해 주세요.</p>
     </div>
   </div>
   <ul class="cdh-pass__tiers" role="list">
     <li class="cdh-pass__tier"><a class="cdh-pass__tier-link" href="/points/?source=flower-membership&amp;plan=standard">
-      <span class="cdh-pass__tier-name" data-cd-trans="home.overseasCopy.passStandard">꽃돼지 스탠다드</span>
-      <strong class="cdh-pass__tier-price"><span data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"9,900"}'>9,900원</span> <small data-cd-trans="home.gardenCopy.passPer">/ 30일</small></strong>
+      <span class="cdh-pass__tier-name" data-cd-trans="home.overseasCopy.passStandard">작은 꿀단지</span>
+      <strong class="cdh-pass__tier-price"><span data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"9,900"}'>9,900원</span> <small data-cd-trans="home.gardenCopy.passPer">· 기간 제한 없음</small></strong>
       <span class="cdh-pass__tier-line" data-cd-trans="home.overseasCopy.passPerLimit" data-cd-vars='{"amount":"5,000"}'>건당 5,000원 이하</span>
       <span class="cdh-pass__tier-line" data-cd-trans="home.overseasCopy.passTotal" data-cd-vars='{"amount":"20,000"}'>누적 20,000원까지</span>
     </a></li>
     <li class="cdh-pass__tier"><a class="cdh-pass__tier-link" href="/points/?source=flower-membership&amp;plan=premium">
-      <span class="cdh-pass__tier-name" data-cd-trans="home.overseasCopy.passPremium">꽃돼지 프리미엄</span>
-      <strong class="cdh-pass__tier-price"><span data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"29,900"}'>29,900원</span> <small data-cd-trans="home.gardenCopy.passPer">/ 30일</small></strong>
+      <span class="cdh-pass__tier-name" data-cd-trans="home.overseasCopy.passPremium">중간 꿀단지</span>
+      <strong class="cdh-pass__tier-price"><span data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"29,900"}'>29,900원</span> <small data-cd-trans="home.gardenCopy.passPer">· 기간 제한 없음</small></strong>
       <span class="cdh-pass__tier-line" data-cd-trans="home.overseasCopy.passPerLimit" data-cd-vars='{"amount":"10,000"}'>건당 10,000원 이하</span>
       <span class="cdh-pass__tier-line" data-cd-trans="home.overseasCopy.passTotal" data-cd-vars='{"amount":"60,000"}'>누적 60,000원까지</span>
     </a></li>
     <li class="cdh-pass__tier"><a class="cdh-pass__tier-link" href="/points/?source=flower-membership&amp;plan=vvip">
-      <span class="cdh-pass__tier-name" data-cd-trans="home.overseasCopy.passVvip">꽃돼지 VVIP</span>
-      <strong class="cdh-pass__tier-price"><span data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"59,900"}'>59,900원</span> <small data-cd-trans="home.gardenCopy.passPer">/ 30일</small></strong>
+      <span class="cdh-pass__tier-name" data-cd-trans="home.overseasCopy.passVvip">큰 꿀단지</span>
+      <strong class="cdh-pass__tier-price"><span data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"59,900"}'>59,900원</span> <small data-cd-trans="home.gardenCopy.passPer">· 기간 제한 없음</small></strong>
       <span class="cdh-pass__tier-line" data-cd-trans="home.overseasCopy.passPerLimit" data-cd-vars='{"amount":"30,000"}'>건당 30,000원 이하</span>
       <span class="cdh-pass__tier-line" data-cd-trans="home.overseasCopy.passTotal" data-cd-vars='{"amount":"120,000"}'>누적 120,000원까지</span>
     </a></li>
     <li class="cdh-pass__tier cdh-pass__tier--family"><a class="cdh-pass__tier-link" href="/points/?source=flower-membership&amp;plan=family">
-      <span class="cdh-pass__badge" data-cd-trans="home.gardenCopy.passBadge">영냥이까지</span><span class="cdh-pass__tier-name">Code Destiny Family</span>
-      <strong class="cdh-pass__tier-price"><span data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"149,000"}'>149,000원</span> <small data-cd-trans="home.gardenCopy.passPer">/ 30일</small></strong>
+      <span class="cdh-pass__badge" data-cd-trans="home.gardenCopy.passBadge">영냥이까지</span><span class="cdh-pass__tier-name" data-cd-trans="home.overseasCopy.passFamily">패밀리 꿀단지</span>
+      <strong class="cdh-pass__tier-price"><span data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"149,000"}'>149,000원</span> <small data-cd-trans="home.gardenCopy.passPer">· 기간 제한 없음</small></strong>
       <span class="cdh-pass__tier-line" data-cd-trans="home.overseasCopy.passNoLimit" data-cd-vars='{"amount":"99,999,999,900"}'>유료 리딩 건당 한도 없음</span>
       <span class="cdh-pass__tier-line" data-cd-trans="home.overseasCopy.passTotal" data-cd-vars='{"amount":"350,000"}'>누적 350,000원까지</span>
     </a></li>
   </ul>
-  <p class="cdh-pass__note" data-cd-trans="home.gardenCopy.passNote">Standard·Premium·VVIP는 꽃돼지 운세에, Family는 꽃돼지와 영냥이 유료 리딩에 적용됩니다. 기존에 구매한 이용권은 구매 당시 조건을 유지합니다.</p>
+  <p class="cdh-pass__note" data-cd-trans="home.gardenCopy.passNote">작은·중간·큰 꿀단지는 꽃돼지 운세에, 패밀리 꿀단지는 꽃돼지와 영냥이 유료 리딩에 적용됩니다. 기존에 구매한 이용권은 구매 당시 조건을 유지합니다.</p>
   <a class="cdh-pass__btn" href="/points/?source=flower-membership" data-cd-trans="home.gardenCopy.passCta">나에게 맞는 이용권 확인하기</a>
 </section></div></div>
     <details class="cdh-more" id="cdhMore">
@@ -10621,7 +10621,7 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
               <span class="fortune-gateway__door-kicker">YEONI</span>
               <strong class="fortune-gateway__door-title" data-cd-trans="home.gardenCopy.chatYeoniTitle">연이 상담</strong>
               <span class="fortune-gateway__door-desc" data-cd-trans="home.gardenCopy.chatYeoniDesc">꽃돼지 연이가 작은 마음부터 천천히 들어요. 지금의 흐름과 다음 선택을 다정하게 함께 정리해요.</span>
-              <span class="fortune-gateway__door-meta"><b data-cd-trans="shell.fortuneGatewayDoor.fortuneGatewayDoorMeta.k18ykrep">회원가입 무료 1회</b><i data-cd-trans="shell.fortuneGatewayDoor.fortuneGatewayDoorMeta.n115000">이후 1회 3,000원</i></span>
+              <span class="fortune-gateway__door-meta"><b data-cd-trans="shell.fortuneGatewayDoor.fortuneGatewayDoorMeta.n13000">1회 3,000원</b></span>
               <span class="fortune-gateway__door-go"><span data-cd-trans="home.gardenCopy.chatYeoniGo">연이와 상담하기</span><em aria-hidden="true">→</em></span>
             </a>
             <a class="fortune-gateway__door fortune-gateway__door--chat fortune-gateway__door--neo" href="/fortune-chat/?character=neo" data-chat-character="neo">
@@ -10632,7 +10632,7 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
               <span class="fortune-gateway__door-kicker">NEO</span>
               <strong class="fortune-gateway__door-title" data-cd-trans="home.gardenCopy.chatNeoTitle">네오 상담</strong>
               <span class="fortune-gateway__door-desc" data-cd-trans="home.gardenCopy.chatNeoDesc">백사자 네오가 판세부터 정리해요. 핵심과 다음 수순을 직설적으로 짚어 드려요.</span>
-              <span class="fortune-gateway__door-meta"><b data-cd-trans="shell.fortuneGatewayDoor.fortuneGatewayDoorMeta.k18ykrep">회원가입 무료 1회</b><i data-cd-trans="shell.fortuneGatewayDoor.fortuneGatewayDoorMeta.n115000">이후 1회 3,000원</i></span>
+              <span class="fortune-gateway__door-meta"><b data-cd-trans="shell.fortuneGatewayDoor.fortuneGatewayDoorMeta.n13000">1회 3,000원</b></span>
               <span class="fortune-gateway__door-go"><span data-cd-trans="home.gardenCopy.chatNeoGo">네오와 상담하기</span><em aria-hidden="true">→</em></span>
             </a>
           </div>
@@ -13221,16 +13221,19 @@ html[data-cd-lang]:not([data-cd-lang="ko"]) #cdPickWhyJosa{display:none}
               if (!isActive || tier === 'free') return '';
 
               var tierLabels = {
-                family: 'Code Destiny Family \uC774\uC6A9 \uC911',
-                standard: '스탠다드 달빛 이용권 이용 중',
-                premium: '프리미엄 달빛 이용권 이용 중',
-                vvip: 'VVIP 달빛 이용권 이용 중',
+                family: '패밀리 꿀단지 이용 중',
+                standard: '작은 꿀단지 이용 중',
+                premium: '중간 꿀단지 이용 중',
+                vvip: '큰 꿀단지 이용 중',
               };
               var base = tierLabels[tier] || '달빛 이용권 혜택 활성화';
               if (!normalized.expiresAt) return base;
 
               var expiresAt = new Date(normalized.expiresAt);
               if (Number.isNaN(expiresAt.getTime())) return base;
+              // 기간 없는 이용권(서버 expiresAt = 활성화+100년 센티널)은 날짜를 숨긴다.
+              var _cdPassApi = window.__cdPassVerdict;
+              if (_cdPassApi && typeof _cdPassApi.isOpenEndedPassExpiry === 'function' && _cdPassApi.isOpenEndedPassExpiry(normalized.expiresAt)) return base;
               return base + ' (' + (expiresAt.getMonth() + 1) + '/' + expiresAt.getDate() + '까지)';
             } catch (_) {
               return '';
@@ -13254,10 +13257,10 @@ html[data-cd-lang]:not([data-cd-lang="ko"]) #cdPickWhyJosa{display:none}
               if (!isActive || tier === 'free') return 'STELLAR MEMBER';
 
               var chipMap = {
-                family: 'FAMILY PASS',
-                standard: 'STANDARD PASS',
-                premium: 'PREMIUM PASS',
-                vvip: 'VVIP PASS',
+                family: 'FAMILY HONEY JAR',
+                standard: 'SMALL HONEY JAR',
+                premium: 'MEDIUM HONEY JAR',
+                vvip: 'LARGE HONEY JAR',
               };
               return chipMap[tier] || 'SUBSCRIBER';
             } catch (_) {
@@ -15717,7 +15720,7 @@ html[data-cd-lang]:not([data-cd-lang="ko"]) #cdPickWhyJosa{display:none}
             statusEl.textContent = '문라이트 패스가 닿으면 선택한 달빛 범위 안의 리딩이 먼저 열립니다.';
             return;
           }
-          var labels = { standard:'스탠다드 꿀 30일', premium:'프리미엄 꿀 30일', vvip:'VVIP 꿀단지 30일', family:'Code Destiny Family 30일' };
+          var labels = { standard:'작은 꿀단지', premium:'중간 꿀단지', vvip:'큰 꿀단지', family:'패밀리 꿀단지' };
           // 서버 정본은 worker/lib/profile-limits.js 의 PASS_LIMITS(코인). 셸은 import 를 못 해 사본이다.
           // 대조 가드: scripts/verify-pass-tier-policy.mjs
           var freeLimits = { standard:50, premium:100, vvip:200, family:999999999 };
@@ -15727,7 +15730,10 @@ html[data-cd-lang]:not([data-cd-lang="ko"]) #cdPickWhyJosa{display:none}
           var exp = '';
           if (current.expiresAt) {
             var dt = new Date(current.expiresAt);
-            if (!Number.isNaN(dt.getTime())) exp = ' · 다음 갱신 전까지 이용 가능';
+            // 기간 없는 이용권(서버 expiresAt = 활성화+100년 센티널)은 갱신·만료 안내 대신 종료 조건을 보여 준다.
+            var _cdPassApi = window.__cdPassVerdict;
+            if (_cdPassApi && typeof _cdPassApi.isOpenEndedPassExpiry === 'function' && _cdPassApi.isOpenEndedPassExpiry(current.expiresAt)) exp = ' · 기간 제한 없음 · 한도 소진 시 종료';
+            else if (!Number.isNaN(dt.getTime())) exp = ' · 다음 갱신 전까지 이용 가능';
           }
           host.classList.add('honey-membership-mini--active');
           if (heroTitle) heroTitle.textContent = label + ' 적용 중';
@@ -15763,8 +15769,8 @@ html[data-cd-lang]:not([data-cd-lang="ko"]) #cdPickWhyJosa{display:none}
             if (!Number.isFinite(coin) || coin <= 0 || coin > 100) continue;
             var text = '';
             if (coin <= 30) text = '달빛 이용권 이용 시 무료 가능';
-            else if (coin <= 50) text = '프리미엄 이용권 이상 무료 가능';
-            else text = 'VVIP 이용권 무료 가능';
+            else if (coin <= 50) text = '중간 꿀단지 이상 무료 가능';
+            else text = '큰 꿀단지 무료 가능';
             var hint = document.createElement('span');
             hint.className = 'membership-free-hint';
             hint.textContent = text;
@@ -17551,7 +17557,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                 <!-- 핀란드 주석점 -->
                 <a class="tarot-tile tarot-tile--sikojen-fc" href="/oracle/sikojen-povailu/"
                    aria-label="핀란드 주석점 시작" data-cd-trans-attr="aria-label:home.tiles.sikojenAria">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-2740d4affc08" data-img-alt="핀란드 돼지 주석점 — 연이와 주석 그림자 의식" data-cd-trans-attr="data-img-alt:home.tiles.sikojenAlt">
+                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-79bf1ff97fbe" data-img-alt="핀란드 돼지 주석점 — 연이와 주석 그림자 의식" data-cd-trans-attr="data-img-alt:home.tiles.sikojenAlt">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🐷</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
                     <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.freeBadge">무료</span>
@@ -18326,7 +18332,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
           <p class="honey-membership-mini__kicker" data-cd-trans data-key="home.passMini.kicker">MOONLIGHT PASS</p>
           <h2 class="honey-membership-mini__title" data-cd-trans data-key="home.passMini.title">자주 찾는 운세는 문라이트 패스로 더 편안하게 이어가요</h2>
           <p class="honey-membership-mini__desc" data-cd-trans data-key="home.passMini.desc">
-            달빛 이용권은 30일 동안 반복해서 찾는 리딩을 정해진 범위 안에서 먼저 열어 주는 문라이트 패스예요.
+            달빛 이용권은 이용 한도를 다 쓸 때까지 반복해서 찾는 리딩을 정해진 범위 안에서 먼저 열어 주는 문라이트 패스예요.
             오늘의 징조를 멈추지 않고 차분히 이어볼 수 있습니다.
           </p>
         </div>
@@ -18347,8 +18353,8 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
           <span class="honey-membership-mini__guide-orb" aria-hidden="true"></span>
           <span class="honey-membership-mini__guide-copy">
             <span class="honey-membership-mini__guide-label" data-cd-trans data-key="home.passMini.guideLabel">MOONLIGHT GUIDE</span>
-            <strong class="honey-membership-mini__guide-title" data-cd-trans data-key="home.passMini.guideTitle">30일 동안, 자주 여는 운세를 먼저 부드럽게</strong>
-            <span class="honey-membership-mini__guide-text" data-cd-trans data-key="home.passMini.guideText">스탠다드부터 Family까지, 선택한 달빛 범위 안에서 타로·신탁·사주 리딩이 결제 흐름 없이 먼저 열립니다. 범위 밖의 깊은 리딩은 필요한 순간에만 원화 단건 결제로 이어집니다.</span>
+            <strong class="honey-membership-mini__guide-title" data-cd-trans data-key="home.passMini.guideTitle">이용 한도를 다 쓸 때까지, 자주 여는 운세를 먼저 부드럽게</strong>
+            <span class="honey-membership-mini__guide-text" data-cd-trans data-key="home.passMini.guideText">작은 꿀단지부터 패밀리 꿀단지까지, 선택한 달빛 범위 안에서 타로·신탁·사주 리딩이 결제 흐름 없이 먼저 열립니다. 범위 밖의 깊은 리딩은 필요한 순간에만 원화 단건 결제로 이어집니다.</span>
           </span>
         </div>
         <div class="honey-membership-mini__howto" aria-label="문라이트 패스 이용 방법" data-cd-trans-attr="aria-label:home.passMini.howtoAria">
@@ -18357,8 +18363,8 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
             <li class="honey-membership-mini__howto-step">
               <span class="honey-membership-mini__howto-num" aria-hidden="true">1</span>
               <span class="honey-membership-mini__howto-body">
-                <strong class="honey-membership-mini__howto-label" data-cd-trans data-key="home.passMini.step1Label">30일 달빛 범위를 골라요</strong>
-                <span class="honey-membership-mini__howto-text" data-cd-trans data-key="home.passMini.step1Text">자동갱신 없는 30일 이용권으로, 자주 보는 리딩 가격대를 먼저 정해요.</span>
+                <strong class="honey-membership-mini__howto-label" data-cd-trans data-key="home.passMini.step1Label">달빛 범위를 골라요</strong>
+                <span class="honey-membership-mini__howto-text" data-cd-trans data-key="home.passMini.step1Text">기간·자동갱신 없는 이용권으로, 자주 보는 리딩 가격대를 먼저 정해요.</span>
               </span>
             </li>
             <li class="honey-membership-mini__howto-step">
@@ -18382,7 +18388,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
         </div>
         <div class="honey-membership-mini__chips" aria-label="이용권 핵심 혜택" data-cd-trans-attr="aria-label:home.passMini.chipsAria">
           <span class="honey-membership-mini__chip" data-cd-trans data-key="home.passMini.chipIncluded">이용권 범위 안 무료</span>
-          <span class="honey-membership-mini__chip" data-cd-trans data-key="home.passMini.chipThirtyDays">30일 이용권</span>
+          <span class="honey-membership-mini__chip" data-cd-trans data-key="home.passMini.chipThirtyDays">이용권</span>
           <span class="honey-membership-mini__chip" data-cd-trans data-key="home.passMini.chipShareReward">범위 밖 단건결제</span>
         </div>
       </div>
@@ -18391,50 +18397,50 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
         <button type="button" class="honey-membership-mini__sheet-close" data-membership-toggle aria-expanded="true" aria-controls="honeyMembershipDetails" data-cd-trans="shell.honeyMembershipDetails.kr1a9l9">달빛 혜택 접기</button>
         <div class="honey-membership-mini__plans" role="list" aria-label="이용권 플랜 요약 카드" data-cd-trans-attr="aria-label:home.passMini.plansAria">
           <article class="honey-plan-card honey-plan-card--standard" role="listitem">
-            <p class="honey-plan-card__name" data-cd-trans data-key="home.passMini.standardName">스탠다드 꿀 30일</p>
-            <p class="honey-plan-card__price" data-cd-trans data-key="home.passMini.standardPrice">30일 · 9,900원</p>
+            <p class="honey-plan-card__name" data-cd-trans data-key="home.passMini.standardName">작은 꿀단지</p>
+            <p class="honey-plan-card__price" data-cd-trans data-key="home.passMini.standardPrice">9,900원</p>
             <p class="honey-plan-card__line" data-cd-trans data-key="home.passMini.standardLine">5천원급 콘텐츠까지</p>
             <ul class="honey-plan-card__benefits">
-              <li data-cd-trans data-key="home.passMini.standardBenefit1">월 최대 2만원 상당</li>
+              <li data-cd-trans data-key="home.passMini.standardBenefit1">최대 2만원 상당</li>
             </ul>
-            <button type="button" class="honey-plan-card__cta" data-membership-cta="plan" data-membership-plan="standard" data-cd-trans data-key="home.passMini.standardCta">스탠다드 보기</button>
+            <button type="button" class="honey-plan-card__cta" data-membership-cta="plan" data-membership-plan="standard" data-cd-trans data-key="home.passMini.standardCta">작은 꿀단지 보기</button>
           </article>
 
           <article class="honey-plan-card honey-plan-card--premium" role="listitem">
             <span class="honey-plan-card__badge" aria-label="추천 플랜" data-cd-trans data-key="home.passMini.recommendedBadge" data-cd-trans-attr="aria-label:home.passMini.recommendedAria">추천</span>
-            <p class="honey-plan-card__name" data-cd-trans data-key="home.passMini.premiumName">프리미엄 꿀 30일</p>
-            <p class="honey-plan-card__price" data-cd-trans data-key="home.passMini.premiumPrice">30일 · 29,900원</p>
+            <p class="honey-plan-card__name" data-cd-trans data-key="home.passMini.premiumName">중간 꿀단지</p>
+            <p class="honey-plan-card__price" data-cd-trans data-key="home.passMini.premiumPrice">29,900원</p>
             <p class="honey-plan-card__line" data-cd-trans data-key="home.passMini.premiumLine">1만원급 콘텐츠까지</p>
             <ul class="honey-plan-card__benefits">
-              <li data-cd-trans data-key="home.passMini.premiumBenefit1">월 최대 6만원 상당</li>
+              <li data-cd-trans data-key="home.passMini.premiumBenefit1">최대 6만원 상당</li>
             </ul>
             <button type="button" class="honey-plan-card__cta honey-plan-card__cta--premium" data-membership-cta="plan" data-membership-plan="premium" data-cd-trans data-key="home.passMini.premiumCta">추천 플랜 보기</button>
           </article>
 
           <article class="honey-plan-card honey-plan-card--vvip" role="listitem">
-            <p class="honey-plan-card__name" data-cd-trans data-key="home.passMini.vvipName">VVIP 꿀단지 30일</p>
-            <p class="honey-plan-card__price" data-cd-trans data-key="home.passMini.vvipPrice">30일 · 59,900원</p>
+            <p class="honey-plan-card__name" data-cd-trans data-key="home.passMini.vvipName">큰 꿀단지</p>
+            <p class="honey-plan-card__price" data-cd-trans data-key="home.passMini.vvipPrice">59,900원</p>
             <p class="honey-plan-card__line" data-cd-trans data-key="home.passMini.vvipLine">3만원급 콘텐츠까지</p>
             <ul class="honey-plan-card__benefits">
-              <li data-cd-trans data-key="home.passMini.vvipBenefit1">월 최대 12만원 상당</li>
+              <li data-cd-trans data-key="home.passMini.vvipBenefit1">최대 12만원 상당</li>
             </ul>
-            <button type="button" class="honey-plan-card__cta" data-membership-cta="plan" data-membership-plan="vvip" data-cd-trans data-key="home.passMini.vvipCta">VVIP 혜택 보기</button>
+            <button type="button" class="honey-plan-card__cta" data-membership-cta="plan" data-membership-plan="vvip" data-cd-trans data-key="home.passMini.vvipCta">큰 꿀단지 혜택 보기</button>
           </article>
 
           <article class="honey-plan-card honey-plan-card--vvip" role="listitem">
-            <p class="honey-plan-card__name" data-cd-trans data-key="home.passMini.familyName">Code Destiny Family 30일</p>
-            <p class="honey-plan-card__price" data-cd-trans data-key="home.passMini.familyPrice">30일 · 149,000원</p>
+            <p class="honey-plan-card__name" data-cd-trans data-key="home.passMini.familyName">패밀리 꿀단지</p>
+            <p class="honey-plan-card__price" data-cd-trans data-key="home.passMini.familyPrice">149,000원</p>
             <p class="honey-plan-card__line" data-cd-trans data-key="home.passMini.familyLine">이용권 대상 전체</p>
             <ul class="honey-plan-card__benefits">
-              <li data-cd-trans data-key="home.passMini.familyBenefit1">월 최대 35만원 상당</li>
+              <li data-cd-trans data-key="home.passMini.familyBenefit1">최대 35만원 상당</li>
             </ul>
-            <button type="button" class="honey-plan-card__cta" data-membership-cta="plan" data-membership-plan="family" data-cd-trans data-key="home.passMini.familyCta">Family 보기</button>
+            <button type="button" class="honey-plan-card__cta" data-membership-cta="plan" data-membership-plan="family" data-cd-trans data-key="home.passMini.familyCta">패밀리 꿀단지 보기</button>
           </article>
         </div>
 
-        <p class="honey-membership-mini__premium-note" data-cd-trans data-key="home.passMini.premiumNote">프리미엄 꿀은 1만원급 콘텐츠를 자주 보는 분께 가장 균형이 잘 맞습니다.</p>
-        <p class="honey-membership-mini__footnote" data-cd-trans data-key="home.passMini.footnote">신규 판매 이용권은 30일권만 제공됩니다. 이 30일 이용권은 자동결제 상품이 아닙니다. 이용권 범위 밖 서비스는 상품별 원화 단건 결제로 이용할 수 있습니다.</p>
-        <p class="honey-membership-mini__footnote" data-cd-trans data-key="home.passMini.terminationNote">월 최대 한도가 0이 되어도 이용권의 만료일·등급·프로필 상한은 유지됩니다. 추가 유료 콘텐츠는 단건 결제 또는 월정석으로 이용할 수 있습니다.</p>
+        <p class="honey-membership-mini__premium-note" data-cd-trans data-key="home.passMini.premiumNote">중간 꿀단지는 1만원급 콘텐츠를 자주 보는 분께 가장 균형이 잘 맞습니다.</p>
+        <p class="honey-membership-mini__footnote" data-cd-trans data-key="home.passMini.footnote">이용권은 기간 제한 없이 이용 한도를 모두 쓰면 종료됩니다. 이 이용권은 자동결제 상품이 아닙니다. 이용권 범위 밖 서비스는 상품별 원화 단건 결제로 이용할 수 있습니다.</p>
+        <p class="honey-membership-mini__footnote" data-cd-trans data-key="home.passMini.terminationNote">이용 한도를 모두 사용하면 이용권이 종료됩니다. 다시 구매하면 새 이용 한도로 시작합니다. 추가 유료 콘텐츠는 단건 결제 또는 월정석으로 이용할 수 있습니다.</p>
         <p class="honey-membership-mini__status" id="honeyMembershipStatus" aria-live="polite"></p>
       </div>
     </section>
@@ -21127,7 +21133,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
      DCL 이고, 하는 일은 첫 페인트가 아니라 프로필 카드 강화다. high 로 두면 그 다운로드가 LCP
      히어로 이미지 preload 와 같은 우선순위 슬롯을 놓고 경쟁해 LCP 를 늦춘다. low 도 쓰지 않는다 —
      DCL 이 defer 실행을 기다리므로 지나치게 내리면 DCL 자체가 밀린다. 기본값이 맞다. -->
-<script defer src="/js/destiny-profile.js?v=build-469ef8b928b9" data-marker="profile-card-date-input-v20260624"></script>
+<script defer src="/js/destiny-profile.js?v=build-404b23beba33" data-marker="profile-card-date-input-v20260624"></script>
 <!-- 오늘의 운세 허브 계산 코어. 히어로 직후 첫 화면이라 지연 로더(data-cd-noncritical-src)에 태우지 않는다.
      defer 라 DOMContentLoaded 전에 실행이 끝나고, destiny-profile.js 뒤에 두어 dpGetDataForVedic() 이 먼저 준비된다. -->
 <script defer src="/js/fortune-gateway.js?v=build-4bc5b80fb7f9" data-marker="fortune-gateway-v1"></script>
@@ -21145,7 +21151,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
 <script data-cd-lazy-src="/js/core/saju/basicFortunePresentation.js?v=build-058fc601fa33" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-ba2380db1771" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script defer src="/js/core/index-inline-runtime.js?v=build-7cdff2cbaff4" data-cd-saju-prompt-marker="saju-ai-consultation-flow-v20260706 saju-ai-calibration-v20260706 saju-ai-llm-result-v20260625 sukuyo-guardian-drawing-v20260625 sukuyo-pastlife-v2-20260621" data-cd-kemet-ai-prompt-marker="kemet-ai-prompt-generator-v20260619"></script>
+<script defer src="/js/core/index-inline-runtime.js?v=build-1ebb840393d3" data-cd-saju-prompt-marker="saju-ai-consultation-flow-v20260706 saju-ai-calibration-v20260706 saju-ai-llm-result-v20260625 sukuyo-guardian-drawing-v20260625 sukuyo-pastlife-v2-20260621" data-cd-kemet-ai-prompt-marker="kemet-ai-prompt-generator-v20260619"></script>
 <script defer src="/js/pwa-install-prompt.js?v=build-a2fe793e0b11"></script>
 <script data-cd-lazy-src="/js/admin-flower.js" data-cd-mobile-delay="2"></script>
 <div class="share-toast" id="shareToast"></div>
@@ -21265,7 +21271,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
     if (!shareUrl) return Promise.reject(new Error('share_url_missing'));
     // 지금 보고 있는 언어의 셸·미리보기 카드로 공유한다(js/share.js). 아직 안 실렸으면 서버 URL 그대로.
     if (typeof window.cdLocalizeShareUrl === 'function') shareUrl = window.cdLocalizeShareUrl(shareUrl);
-    var shareImageUrl = 'https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-2740d4affc08';
+    var shareImageUrl = 'https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-79bf1ff97fbe';
     if (typeof window.cdLocalizeShareImage === 'function') shareImageUrl = window.cdLocalizeShareImage(shareImageUrl);
     renderShareUrl(shareUrl, tr('kakaoReferral.rewardReady', '초대 링크가 준비됐어요. 친구 가입 완료 시 추천 보상이 지급됩니다.'));
     return loadKakaoSdk(payload.kakaoJavascriptKey).then(function(ok){
@@ -21559,11 +21565,21 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
     }
   }
 
+  // 출생 기반 전환 이전 USER 행으로 열린 키(서버 스냅샷 legacyAccountUnlockedFeatureIds)는 계정 키처럼 다룬다 —
+  // 저장 카드가 없거나 직접 입력 중이어도 열리고, 카드 전환으로 지우지 않는다.
+  function _cdIsLegacyAccountTileKey(key) {
+    try {
+      return typeof window.cdIsLegacyAccountUnlockKey === 'function' && window.cdIsLegacyAccountUnlockKey(key) === true;
+    } catch (_legacyAccountErr) {
+      return false;
+    }
+  }
+
   function _cdStripBirthScopedTileKeys(mapObj) {
     if (!mapObj || typeof mapObj !== 'object') return 0;
     var removed = 0;
     Object.keys(mapObj).forEach(function(key) {
-      if (!_cdIsBirthScopedTileKey(key)) return;
+      if (!_cdIsBirthScopedTileKey(key) || _cdIsLegacyAccountTileKey(key)) return;
       delete mapObj[key];
       removed += 1;
     });
@@ -21622,7 +21638,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
     var keys = resolveTileLockAliasKeys(rawKey);
     for (var i = 0; i < keys.length; i += 1) {
       // 저장 안 된 출생 정보(직접 입력)·프로필 미선택이면 출생 기반 키는 잠금이다.
-      if (!birthScopeProfileId && _cdIsBirthScopedTileKey(keys[i])) continue;
+      if (!birthScopeProfileId && _cdIsBirthScopedTileKey(keys[i]) && !_cdIsLegacyAccountTileKey(keys[i])) continue;
       if (unlockedFeatureMap[keys[i]] === true) {
         if (isSajuAccessFeatureKey(keys[i])) return isSajuSectionUnlockedForRender(keys[i]);
         return true;
@@ -21642,7 +21658,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
     // 먼저 병합해야 이미 렌더된 종합 사주 풀이가 다음 unlock 이벤트에서 다시 숨겨지지 않는다.
     mergeAccessStoreUnlocksIntoLegacyMap();
     // 출생 기반 섹션은 저장된 카드의 출생 정보를 보고 있을 때만 열린다(직접 입력은 잠금 유지).
-    if (_cdIsBirthScopedTileKey(key) && !_cdBirthUnlockScopeProfileId) return false;
+    if (_cdIsBirthScopedTileKey(key) && !_cdBirthUnlockScopeProfileId && !_cdIsLegacyAccountTileKey(key)) return false;
     if (!isSajuAccessFeatureKey(key)) return unlockedFeatureMap[key] === true;
     if (isAdminUser()) return unlockedFeatureMap[key] === true;
     return unlockedFeatureMap[key] === true;
@@ -21672,7 +21688,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
         Object.keys(unlockedFeatureMap).forEach(function(key) { delete unlockedFeatureMap[key]; });
       }
       Object.keys(storeUnlocks).forEach(function(key) {
-        if (!snapshotBirthScopeOk && _cdIsBirthScopedTileKey(key)) return;
+        if (!snapshotBirthScopeOk && _cdIsBirthScopedTileKey(key) && !_cdIsLegacyAccountTileKey(key)) return;
         if (storeUnlocks[key] === true) unlockedFeatureMap[key] = true;
       });
       Object.keys(storeOptimistic).forEach(function(key) {
@@ -21707,18 +21723,19 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
   });
   syncUnlockedFeatureMapGlobal();
 
-  // 🔴 문구 규칙(2026-08-24): 모든 등급에 월 이용 한도가 있으므로 한도가 없다는 뜻의 표현을
+  // 🔴 문구 규칙(2026-08-24): 모든 등급에 이용 한도가 있으므로 한도가 없다는 뜻의 표현을
   //    쓰지 않는다(금지 토큰 목록은 scripts/verify-pass-tier-policy.mjs 에 있다 — 이 주석에
   //    그 토큰을 그대로 적으면 가드가 주석까지 잡는다). 표기는 아래 desc 형식을 따른다:
-  //    "N원급 콘텐츠까지 · 월 최대 N원 상당". 프로필 카드는 2026-10-11 부터 개수 상한이 없어 표기하지 않는다.
+  //    "N원급 콘텐츠까지 · 최대 N원 상당". 2026-10-11 부터 이용권은 기간이 없고(한도 소진 시 종료) 프로필 카드
+  //    개수 상한도 없어 기간·프로필 토막은 표기하지 않는다.
   //    freeLimit/monthlyLimit 은 서버 정본(worker/lib/profile-limits.js 의 PASS_LIMITS /
   //    MONTHLY_PASS_LIMITS)의 사본이다 — 셸은 import 를 못 한다. 대조 가드:
   //    scripts/verify-pass-tier-policy.mjs · __tests__/worker/payments-v2.subscription.test.js
   var goldenPackages = [
-    { id: 'standard', name: '스탠다드 꿀 30일', nameKey: 'payment.passShop.packages.standard.name', price: 9900, desc: '30일 · 5천원급 콘텐츠까지 · 월 최대 3만원 상당', descKey: 'payment.passShop.packages.standard.desc', freeLimit: 50, monthlyLimit: 300, profileLimit: 3 },
-    { id: 'premium', name: '프리미엄 꿀 30일', nameKey: 'payment.passShop.packages.premium.name', price: 29900, desc: '30일 · 1만원급 콘텐츠까지 · 월 최대 10만원 상당', descKey: 'payment.passShop.packages.premium.desc', freeLimit: 100, monthlyLimit: 1000, profileLimit: 7 },
-    { id: 'vvip', name: 'VVIP 꿀단지 30일', nameKey: 'payment.passShop.packages.vvip.name', price: 59000, desc: '30일 · 2만원급 콘텐츠까지 · 월 최대 20만원 상당', descKey: 'payment.passShop.packages.vvip.desc', freeLimit: 200, monthlyLimit: 2000, profileLimit: 15 },
-    { id: 'family', name: 'Code Destiny Family 30일', nameKey: 'payment.passShop.packages.family.name', price: 149000, desc: '30일 · 이용권 대상 전체(초융합 심층 리딩 포함) · 월 최대 50만원 상당', descKey: 'payment.passShop.packages.family.desc', freeLimit: 999999999, monthlyLimit: 5000, profileLimit: null }
+    { id: 'standard', name: '작은 꿀단지', nameKey: 'payment.passShop.packages.standard.name', price: 9900, desc: '5천원급 콘텐츠까지 · 최대 3만원 상당', descKey: 'payment.passShop.packages.standard.desc', freeLimit: 50, monthlyLimit: 300, profileLimit: 3 },
+    { id: 'premium', name: '중간 꿀단지', nameKey: 'payment.passShop.packages.premium.name', price: 29900, desc: '1만원급 콘텐츠까지 · 최대 10만원 상당', descKey: 'payment.passShop.packages.premium.desc', freeLimit: 100, monthlyLimit: 1000, profileLimit: 7 },
+    { id: 'vvip', name: '큰 꿀단지', nameKey: 'payment.passShop.packages.vvip.name', price: 59000, desc: '2만원급 콘텐츠까지 · 최대 20만원 상당', descKey: 'payment.passShop.packages.vvip.desc', freeLimit: 200, monthlyLimit: 2000, profileLimit: 15 },
+    { id: 'family', name: '패밀리 꿀단지', nameKey: 'payment.passShop.packages.family.name', price: 149000, desc: '이용권 대상 전체(초융합 심층 리딩 포함) · 최대 50만원 상당', descKey: 'payment.passShop.packages.family.desc', freeLimit: 999999999, monthlyLimit: 5000, profileLimit: null }
   ];
 
   function _cdDisplayLocale() {
@@ -22357,7 +22374,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
       : _cdPaymentI18n('payment.directModal.passBuyTitle', '이용권으로 열기');
     var passHint = hasActivePassTier
       ? _cdPaymentI18n('payment.directModal.passHint.upgrade', '지금 등급으로는 이 콘텐츠가 열리지 않아요. 더 넓은 등급을 확인해 보세요.')
-      : _cdPaymentI18n('payment.directModal.passHint.store', '한 번 결제하고 30일 동안 여러 콘텐츠를 열 수 있어요. 이미 있다면 눌러서 바로 확인돼요.');
+      : _cdPaymentI18n('payment.directModal.passHint.store', '한 번 결제하고 이용 한도를 다 쓸 때까지 여러 콘텐츠를 열 수 있어요. 이미 있다면 눌러서 바로 확인돼요.');
     // 어느 카드를 '추천'으로 올릴지는 세 렌더러가 공유하는 순수 함수 하나가 정한다(js/core/checkout-entry.js).
     // 🔴 서버를 부르지 않는다 — 입력은 전부 이 시점에 이미 갖고 있는 값이라 결제창 왕복이 늘지 않는다.
     // 이용권 판정 자체는 여전히 카드를 눌렀을 때 서버가 한다(아래 refreshDirectEntitlementStatus).
@@ -22853,7 +22870,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
             if (_cdPassMonthlyApi && _cdPassMonthlyApi.isMonthlyLimitPayload(_cdPassMonthlyPayload)) {
               node.disabled = false;
               node.classList.remove('is-loading');
-              status(_cdPaymentI18n('payment.directModal.passMonthlyExhausted', '이용권 월 한도를 모두 사용했어요. 만료일까지 등급과 프로필 상한은 유지되며, 추가 콘텐츠는 단건 결제나 월정석으로 이용할 수 있어요.'), true);
+              status(_cdPaymentI18n('payment.directModal.passMonthlyExhausted', '이용 한도를 모두 사용해 이용권이 종료되었어요. 다시 구매하면 새 이용 한도로 시작하며, 지금은 단건 결제나 월정석으로 열 수 있어요.'), true);
               return;
             }
             status(_cdPaymentI18n('payment.directModal.passMissGoStore', '보유하신 이용권으로는 열리지 않아 이용권 상점으로 이동합니다.'), true);
@@ -24635,7 +24652,8 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
     var coinPrice = _cdResolvePaidGateCoinPrice(opts);
     var amountKrw = _cdResolvePaidGateAmountKrw(opts, coinPrice);
     var featureKey = _cdResolvePaidGateFeatureKey(opts, title);
-    if (_cdIsBirthScopedTileKey(featureKey)) {
+    // 레거시 계정 해금 키는 카드 없이도 서버가 already_unlocked 로 돌려준다(재과금 없음).
+    if (_cdIsBirthScopedTileKey(featureKey) && !_cdIsLegacyAccountTileKey(featureKey)) {
       var gateBirthScopeProfileId = _cdBirthScopeCurrentProfileId();
       if (!gateBirthScopeProfileId) {
         var gateBirthScopeMessage = _cdAlertBirthScopeProfileRequired();
@@ -24842,7 +24860,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
           _cdPassOutcomeNote = _cdPaymentI18n('payment.directModal.note.passUnknown', '이용권이 있으시면 아래 이용권 카드를 누르면 그 자리에서 확인됩니다.');
         } else if (_cdPassOutcomeStatus === 'payment_required' && _cdPassOutcomeReason === 'monthly_pass_limit_exceeded') {
           // 이용권은 있는데 이번 달 한도를 다 썼다 — '이용권으로는 안 열린다'가 아니라 '한도 소진'을 말한다.
-          _cdPassOutcomeNote = _cdPaymentI18n('payment.directModal.note.passMonthlyExhausted', '이용권 월 한도를 모두 사용했어요. 이용권은 만료일까지 등급과 프로필 상한이 유지되며, 추가 콘텐츠는 단건 결제나 월정석으로 이용할 수 있어요.');
+          _cdPassOutcomeNote = _cdPaymentI18n('payment.directModal.note.passMonthlyExhausted', '이용 한도를 모두 사용해 이용권이 종료되었어요. 결제 방법을 안내해 드릴게요.');
         } else if (_cdPassOutcomeStatus === 'payment_required') {
           _cdPassOutcomeNote = _cdPaymentI18n('payment.directModal.note.passMiss', '보유하신 이용권으로는 이 콘텐츠가 무료로 열리지 않아 결제 방법을 고르는 창을 열었어요.');
         }
@@ -26161,14 +26179,14 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
     var info = _cdReadLicensePassInfo(titleOrOptions, coverage);
     if (info.tier === 'family' || info.reason === 'family_all_access') {
       return [
-        'FAMILY 이용권이 적용되었습니다.',
-        '이 콘텐츠는 FAMILY 이용권으로 무료 이용됩니다.',
+        '패밀리 꿀단지 이용권이 적용되었습니다.',
+        '이 콘텐츠는 패밀리 꿀단지 이용권으로 무료 이용됩니다.',
         '이 기능은 추가 결제 없이 이용할 수 있어요.'
       ].join('\n');
     }
     if (info.tier === 'vvip') {
       return [
-        'VVIP 이용권이 적용되었습니다.',
+        '큰 꿀단지 이용권이 적용되었습니다.',
         '이번 콘텐츠는 보유한 이용권으로 무료 이용됩니다.',
         '추가 결제 없이 바로 열어드릴게요.'
       ].join('\n');
@@ -28644,7 +28662,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
             _cdRevokeOptimisticPassUnlock(item.featureKey, 'monthly-pass-limit');
             try { _cdClearPaidPrecheckCache('monthly-pass-limit'); } catch (_) {}
             try {
-              if (typeof toast === 'function') toast(_cdPaymentI18n('payment.directModal.passMonthlyExhausted', '이용권 월 한도를 모두 사용했어요. 만료일까지 등급과 프로필 상한은 유지되며, 추가 콘텐츠는 단건 결제나 월정석으로 이용할 수 있어요.'));
+              if (typeof toast === 'function') toast(_cdPaymentI18n('payment.directModal.passMonthlyExhausted', '이용 한도를 모두 사용해 이용권이 종료되었어요. 다시 구매하면 새 이용 한도로 시작하며, 지금은 단건 결제나 월정석으로 열 수 있어요.'));
             } catch (_) {}
             return;
           }
@@ -30006,7 +30024,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
         ? _cdPaymentI18n('payment.passShop.monthlyStatusError', '잔량 확인이 지연되고 있습니다. 결제와 이용권 선택은 계속 진행할 수 있습니다.')
         : _cdPaymentI18n('payment.passShop.monthlyStatusChecking', '잔량과 이용권 상태를 확인하고 있습니다.'));
     var chargeButtonLabel = _cdPaymentI18n('payment.passShop.chargeButton', '{amount} 결제 페이지로 이동', { amount: formatWon(selectedWonPrice) });
-    var chargeNotice = '<div class="golden-grain-modal__notice">' + escapeHtml(_cdPaymentI18n('payment.passShop.chargeNotice', '이용권 상품 {price} · 자동결제가 아닌 30일 이용권입니다. 이용권은 원화 단건 결제로만 구매할 수 있습니다.', { credits: '', price: formatWon(selectedPackage && selectedPackage.price) })) + '</div>';
+    var chargeNotice = '<div class="golden-grain-modal__notice">' + escapeHtml(_cdPaymentI18n('payment.passShop.chargeNotice', '이용권 상품 {price} · 자동결제가 아닌 이용권입니다. 이용권은 원화 단건 결제로만 구매할 수 있습니다.', { credits: '', price: formatWon(selectedPackage && selectedPackage.price) })) + '</div>';
     // 🔴 해외카드 고지. 문구·환산 규격은 결제창 3종과 같은 공용 코어 하나가 소유한다
     // (js/core/checkout-entry.js buildOverseasChargeNoticeHtml). 한국어 화면에서는 빈 문자열이다.
     // 기존 golden-grain-modal__footer-copy 스타일을 상속하므로 CSS 추가가 없다.
@@ -30055,15 +30073,15 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
       '    <div class="golden-grain-modal__head">',
       '      <div id="goldenPiggyBank" class="golden-grain-piggy" aria-hidden="true"><span class="golden-grain-piggy__img"></span></div>',
       '      <h3 id="goldenChargeTitle" class="golden-grain-modal__title"><button type="button" class="golden-grain-modal__title-btn" data-action="confirmGoldenCharge" aria-label="' + escapeHtml(_cdPaymentI18n('payment.passShop.openAria', '달빛이용권 상점 안내 열기')) + '">' + escapeHtml(_cdPaymentI18n('payment.passShop.title', '달빛이용권 상점 안내')) + '</button></h3>',
-      '      <p class="golden-grain-modal__subtitle">' + escapeHtml(_cdPaymentI18n('payment.passShop.subtitle', '30일 이용권은 원화 단건 결제로 구매하며, 월정석은 개별 유료 기능에 사용됩니다.')) + '</p>',
+      '      <p class="golden-grain-modal__subtitle">' + escapeHtml(_cdPaymentI18n('payment.passShop.subtitle', '이용권은 원화 단건 결제로 구매하며, 월정석은 개별 유료 기능에 사용됩니다.')) + '</p>',
       '    </div>',
       '    <div class="golden-grain-modal__scroll"><div class="golden-grain-packages' + (goldenPackageListExpanded ? ' is-expanded' : '') + '" role="list">' + packageItems + packageToggleHtml + '</div>' + monthlyHistoryHtml + '</div>',
       '    <div class="golden-grain-modal__cta">',
       '      <div class="golden-grain-modal__monthly-status" data-state="' + monthlyBalanceState + '">' + monthlyBalanceStatusText + '</div>',
       '      <button type="button" class="golden-grain-modal__charge-btn" data-action="confirmGoldenCharge">' + chargeButtonLabel + '</button>',
       chargeNotice,
-      '      <div class="golden-grain-modal__footer-copy">' + escapeHtml(_cdPaymentI18n('payment.passShop.footerNotice', '이 30일 이용권은 자동결제 상품이 아닙니다. 만료 후 다시 구매해야 합니다.')) + '</div>',
-      '      <div class="golden-grain-modal__footer-copy">' + escapeHtml(_cdPaymentI18n('payment.passShop.terminationNotice', '월 최대 한도가 0이 되어도 이용권의 만료일·등급·프로필 상한은 유지됩니다. 추가 유료 콘텐츠는 단건 결제 또는 월정석으로 이용할 수 있습니다.')) + '</div>',
+      '      <div class="golden-grain-modal__footer-copy">' + escapeHtml(_cdPaymentI18n('payment.passShop.footerNotice', '이 이용권은 자동결제 상품이 아닙니다. 한도를 모두 사용한 뒤 다시 구매해야 합니다.')) + '</div>',
+      '      <div class="golden-grain-modal__footer-copy">' + escapeHtml(_cdPaymentI18n('payment.passShop.terminationNotice', '이용 한도를 모두 사용하면 이용권이 종료됩니다. 다시 구매하면 새 이용 한도로 시작합니다. 추가 유료 콘텐츠는 단건 결제 또는 월정석으로 이용할 수 있습니다.')) + '</div>',
       '      <div class="golden-grain-modal__footer-copy">' + escapeHtml(_cdPaymentI18n('payment.passShop.provisionNotice', '이용권은 결제 완료 즉시 활성화되어 바로 이용할 수 있으며, 활성화 이후에는 관련 법령에 따라 청약철회가 제한될 수 있습니다.')) + '</div>',
       overseasStoreNoticeHtml,
       '    </div>',
@@ -30714,6 +30732,13 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
       try { profileId = _cdResolveCurrentProfileIdForAccess(); } catch (_profileErr) { profileId = ''; }
     }
     if (!profileId) {
+      // 저장 카드가 없어도 레거시 계정 해금(전환 이전 USER 행)은 열린다 — 계정 범위로 한 번 묻는다.
+      var accountScopeStore = window.CodeDestinyAccessStore;
+      if (accountScopeStore && typeof accountScopeStore.ensureLoaded === 'function') {
+        try {
+          await accountScopeStore.ensureLoaded({ accountScope: true, reason: 'saju-entitlements-account' });
+        } catch (_accountScopeErr) {}
+      }
       sajuAccessUnlockState = 'ready';
       sajuAccessUnlockLastProfileId = '';
       if (typeof applySectionGates === 'function') applySectionGates();
@@ -30941,7 +30966,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
 
     for (var i = 0; i < knownKeys.length; i += 1) {
       var key = knownKeys[i];
-      if (!birthPayloadMatches && _cdIsBirthScopedTileKey(key)) continue;
+      if (!birthPayloadMatches && _cdIsBirthScopedTileKey(key) && !_cdIsLegacyAccountTileKey(key)) continue;
       var shouldUnlock = next[key] === true;
       var isUnlocked = unlockedFeatureMap[key] === true;
 
@@ -31170,6 +31195,13 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
     var fetchOpts = options && typeof options === 'object' ? options : {};
     var profileId = _cdResolveCurrentProfileIdForAccess();
     if (!profileId) {
+      // 저장 카드가 없어도 레거시 계정 해금(전환 이전 USER 행)은 열린다 — 계정 범위로 한 번 묻는다.
+      var accountScopeStore = window.CodeDestinyAccessStore;
+      if (accountScopeStore && typeof accountScopeStore.ensureLoaded === 'function') {
+        try {
+          await accountScopeStore.ensureLoaded({ accountScope: true, reason: 'saju-entitlements-account' });
+        } catch (_accountScopeErr) {}
+      }
       sajuAccessUnlockState = 'ready';
       sajuAccessUnlockLastProfileId = '';
       if (typeof applySectionGates === 'function') applySectionGates();
@@ -34540,7 +34572,7 @@ function updateBadge() {
 <!-- jsPDF removed from initial bundle; load on demand only if a feature requires it -->
 <script data-cd-noncritical-src="/js/sibyl-system.js?v=build-17f27a22f2a0" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
 <script src="/js/cd-lazy-feature-loader.js" defer></script>
-<script type="module" src="/js/app.js?v=build-414cd2b3cb92"></script>
+<script type="module" src="/js/app.js?v=build-2d12f1949fb5"></script>
 <!-- Feature Preview Panel v2 -->
 <template id="tilePvwOverlayTemplate" data-component="MobileFeatureBottomSheetTemplate">
 <div id="tilePvwOverlay" class="tile-pvw-overlay cd-detail-overlay MobileFeatureBottomSheet" data-cd-detail-overlay="" data-component="MobileFeatureBottomSheet" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="tilePvwTitle" data-marker="main-overlay-dedupe-v20260625 mobile-feature-bottom-sheet-v20260701 feature-marketing-detail-v20260702">
@@ -34964,7 +34996,7 @@ function updateBadge() {
 (function(){
   'use strict';
   var D={
-    '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-2740d4affc08',fallbackCta:'운명 카드 만들기'},
+    '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-79bf1ff97fbe',fallbackCta:'운명 카드 만들기'},
     gotoZiweiPremium:{cat:'프리미엄 · 자미두수 전문가 상담',fallbackTitle:'자미두수 전문가 상담',tagline:'명궁·신궁·12궁·사화·대운·세운 흐름을 바탕으로 지금의 질문에 답합니다.',feats:['입력은 무료 — 상담 생성 버튼을 누를 때 30,000원 단건 결제 또는 이용권·월정석 확인','결제 확인이 끝나면 상담문이 바로 생성','명궁·재백·관록·부부·질액궁을 질문에 맞춰 연결 해석','상담 결과를 화면에서 바로 확인하고 추가 질문 이어가기'],cost:'30,000원 · 전문가 상담',ct:'paid',img:'/fuctionassets/jamipremiun.webp',fallbackCta:'자미두수 상담 받기'},
     '/neo-operation-room':{cat:'프리미엄 · 운명 작전실',fallbackTitle:'네오의 팩폭 운명 작전실',tagline:'사주·자미두수·베다점·점성술의 지도를 한 장의 전략처럼 펼쳐, 지금 밀리는 전선과 다시 잡아야 할 기준을 또렷하게 짚습니다.',feats:['20,000원 상담 이용권 확인','결제 완료 후 네오의 작전실로 바로 이동','사주와 별자리 흐름을 함께 비추는 종합 상담','현재 고민에 맞춘 선택 기준과 다음 행동 정리'],cost:'20,000원 · 전문가 상담',ct:'paid',img:'https://assets.code-destiny.com/DestinyWar/%EB%84%A4%EC%98%A4%EC%9D%98%20%ED%8C%A9%ED%8F%AD%20%EC%9A%B4%EB%AA%85%20%EC%9E%91%EC%A0%84%EC%8B%A4.webp',fallbackCta:'작전실 열기'},
     openNamingPromptModal:{cat:'작명 · 전문가 상담',fallbackTitle:'훈민정음 작명소',tagline:'생년월일시와 원하는 이름 조건을 바탕으로 용신·소리오행·한자 의미·수리 풀이를 종합해 전문가가 직접 이름을 짓고, 그 결과를 만든 프롬프트 원문까지 함께 드립니다.',feats:['입력과 무료 초안 추천은 무료로 열립니다','프리미엄 작명 시작 시 30,000원 단건 결제 또는 이용권·월정석 확인이 진행됩니다','사주 보완, 인명용 한자, 소리오행, 자원오행, 원형이정 수리를 종합한 완성형 결과 제공','결제 검증 후 전문가 작명 결과와 PDF 저장, 생성에 사용된 프롬프트 원문까지 다시 확인할 수 있습니다'],cost:'30,000원 · 이용권/월정석 가능',ct:'paid',img:'/fuctionassets/naming.webp',fallbackCta:'작명 시작하기'},
@@ -35009,7 +35041,7 @@ function updateBadge() {
     openRuneOracle:{cat:'스톤헨지 · 룬 오라클',fallbackTitle:'ᚠ 스톤헨지 룬 오라클',tagline:'바이킹 전사들이 전투 전날 뽑았던 그 룬 — 오늘 내린 결정이 맞는지 룬 문자가 답합니다',feats:['고대 퓨사크 24룬 완전 정통 해석','정방향·역방향 모든 상황 적용','지금 직면한 결정에 룬이 구체적으로 답함','켈트 전통 스톤헨지 의식 감성 비주얼'],cost:'5,000원',ct:'paid',img:'/fuctionassets/rune.webp'},
     openGeomancyOracle:{cat:'지오맨시 · 흙점',fallbackTitle:'⟁ 지오맨시 흙점',tagline:'아라비아 왕국의 재상들이 국가 대사를 결정할 때 쓴 대지의 신탁 — 16행 점이 오늘 방향을 알려줍니다',feats:['중동·아프리카 4000년 전통 흙점 완전 분석','16개 점 패턴으로 보는 오늘 내가 해야 할 것','돈·사랑·진로 중 지금 집중해야 할 방향 파악','감성적 사막 아트 비주얼 리딩'],cost:'5,000원',ct:'paid',img:'/fuctionassets/geomancy.webp'},
     openRoyalTeaOracle:{cat:'영국 홍차점 · 타세오그래피',fallbackTitle:'🫖 영국 홍차점',tagline:'빅토리아 여왕도 중요한 결정 전에 찻잎의 징조를 살폈습니다 — 왕실의 찻잎 문양이 오늘의 운명을 전합니다',feats:['영국 왕실 전통 타세오그래피 의식 완전 체험','찻잎 형태 20가지 상징 심층 해독 & 적용','오늘 내가 반드시 알아야 할 운명의 메시지','빅토리아 시대 감성 왕실 리포트'],cost:'3,000원',ct:'paid',img:'/fuctionassets/london.webp'},
-    '/oracle/sikojen-povailu':{cat:'핀란드 주석점 · 북유럽 새해 의식',fallbackTitle:'🐷 핀란드 돼지 주석점',tagline:'작은 돼지 연이가 반짝이는 주석 그림자를 따라 올해의 행운, 사랑, 돈의 징조를 부드럽게 전해줍니다.',feats:['녹은 주석이 물에 닿는 순간 피어나는 새해 징조 리딩','귀여운 돼지 연이와 함께 고르는 금전·연애·행운 주머니','주석 형상과 그림자 메시지로 보는 겉운과 속마음의 흐름','결과를 예쁜 의식 카드처럼 확인하고 바로 공유 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-2740d4affc08'},
+    '/oracle/sikojen-povailu':{cat:'핀란드 주석점 · 북유럽 새해 의식',fallbackTitle:'🐷 핀란드 돼지 주석점',tagline:'작은 돼지 연이가 반짝이는 주석 그림자를 따라 올해의 행운, 사랑, 돈의 징조를 부드럽게 전해줍니다.',feats:['녹은 주석이 물에 닿는 순간 피어나는 새해 징조 리딩','귀여운 돼지 연이와 함께 고르는 금전·연애·행운 주머니','주석 형상과 그림자 메시지로 보는 겉운과 속마음의 흐름','결과를 예쁜 의식 카드처럼 확인하고 바로 공유 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-79bf1ff97fbe'},
     '/destiny-poker.html':{cat:'데스티니 포커',fallbackTitle:'🃏 데스티니 포커',tagline:'신과의 카드 대결에서 이기면 행운이 찾아옵니다 — 올림푸스 신들과 운명을 건 포커 한 판',feats:['5장 포커로 신과 벌이는 운명 대결 게임','제우스·아테나·포세이돈·헤르메스 4신 배틀','오늘 내 승률이 바로 오늘의 운세 지수','완전 무료 엔터테인먼트 점술 게임'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/destiny%20pocker.webp'},
     openLoveSimulation:{cat:'사주 · 연애 시뮬레이션',fallbackTitle:'💕 LOVE CODE',tagline:'사주 오행으로 두 사람의 관계 결을 살피고 가상 데이트에서 선택의 흐름을 경험합니다.',feats:['사주 8글자 기반 연애 페르소나 자동 생성','오행 궁합으로 찾는 상성과 주의할 관계 패턴','일간별 실시간 채팅으로 연애 케미 직접 체험','8가지 데이트 코스에서 선택에 따라 달라지는 이야기'],cost:'회당 5,000원',ct:'paid',img:'/fuctionassets/love code.webp'},
     openAstroModal:{cat:'점성술 · 기본 출생차트',fallbackTitle:'✨ 서양 점성술 기본 출생차트',tagline:'태양 별자리·달 별자리·상승궁과 MC로 나를 이해하는 5분 기본 리딩입니다.',feats:['출생 정보 신뢰도와 계산 기준 표시','태양 별자리·달 별자리·상승궁 3축 통합 해석','MC·10하우스·6하우스 기반 역할 조건','상대 차트 교차 분석은 시너스트리 궁합으로 확장'],cost:'✨ 기본 무료 · 시너스트리 궁합 3,000원',ct:'free',img:'/fuctionassets/jumsung.webp'},
@@ -38884,7 +38916,7 @@ function updateBadge() {
     'life-book-ai-consultation':{inherit:'/life-book-ai'},
     '/love-secret-ai':{featureId:'love-secret-ai-consultation',category:'연애 명리',badge:'전문가 상담형',headline:'연애를 여섯 부, 스물여덟 개 섹션으로 나눠 사주 명식으로 읽습니다.',subheadline:'연애운과 성향부터 궁합·갈등·시기·실천까지, 항목을 나눠 각각 따로 씁니다. 상대 생년 정보를 넣으면 궁합 항목이 함께 계산됩니다.',painPoints:['상대의 진심이 도무지 잡히지 않을 때','밀당의 타이밍을 번번이 놓칠 때','이 인연을 붙잡아야 할지 놓아야 할지 확신이 없을 때'],feats:['내 명식으로 연애 성향·장점·약점·애착 방식을 항목별로 해석','상대 생년 정보를 입력하면 궁합·이상형·감정 거리감까지 함께 계산','올해 연애운과 계산된 일진으로 고른 좋은 날짜를 함께 제시','재회 조건·바람기·자기 보호처럼 민감한 주제도 별도 섹션으로 분리'],unlockBenefits:['핵심 연애운과 질문의 답','나의 연애 성향 — 장점·약점·심리','상대·궁합·이상형','갈등·바람기·재회·자기 보호','대운·올해·좋은 날짜·결혼운','썸 전략·대화·매력·실천'],previewText:'연애 비책은 한 편의 총평이 아니라, 위 여섯 부를 스물여덟 개 섹션으로 나눠 각각 따로 씁니다.',recommendedFor:['상대의 진심을 확인할 방법이 없어 지쳐가는 분','고백이나 재회의 타이밍을 이제는 정해야 하는 분','붙잡을지 놓을지 스스로 결론이 서지 않는 분'],trustNotes:['상대의 마음이나 결과를 보장하지 않습니다.','전문가 상담 결과는 참고용입니다.','이용권·월정석·단건결제 정책은 기존 기준을 따릅니다.'],ctaLabel:'사랑의 속마음 열람하기',reportScale:{sections:28,minWords:18000},answersQuestions:['그 사람은 지금 어떤 마음일까요?','내가 반복하는 연애 패턴은 뭘까요?','이 관계를 이어가도 될까요?'],valueCompare:{rows:[{axis:'구성',free:'성향 요약',premium:'6부 28개 섹션으로 나뉜 관계 분석'},{axis:'관점',free:'나만',premium:'나와 상대, 두 사람 사이의 거리까지'},{axis:'조언',free:'일반론',premium:'지금 건넬 말과 아낄 말'}]},faq:[{q:'상대 정보가 필요한가요?',a:'상대 정보가 있으면 관계 해석이 훨씬 구체적으로 나옵니다. 없어도 내 연애 패턴 분석은 가능합니다.'},{q:'상대 마음을 확정해 주나요?',a:'아니요. 지금 흐르는 분위기와 가까워지는 힘·멀어지는 힘을 함께 보여드립니다.'},{q:'결과가 아프면 어떡하죠?',a:'듣기 좋은 말로 덮지 않습니다. 대신 무엇을 바꾸면 달라지는지까지 함께 적습니다.'}],ctaNote:'결제 후 관계 분석 전체가 열립니다.',receives:[{icon:'💌',title:'6부 28개 섹션 상담',detail:'연애 성향부터 궁합·갈등·시기·실천까지 스물여덟 개 섹션으로 나눠 각각 따로 씁니다.'},{icon:'💑',title:'상대 궁합까지 계산',detail:'상대 생년 정보를 넣으면 궁합·이상형·감정 거리감까지 함께 봅니다.'},{icon:'📅',title:'올해 연애운과 좋은 날짜',detail:'계산된 일진에서 고른 좋은 날짜와 올해 연애운의 흐름을 짚습니다.'},{icon:'🗓️',title:'7일 실천 가이드',detail:'오늘부터 실행할 수 있는 연애 비책과 7일 치 하루 단위 가이드를 받습니다.'},{icon:'📄',title:'PDF 저장',detail:'완성된 상담 결과를 PDF로 저장할 수 있습니다.'}],outline:[{title:'핵심 연애운과 질문의 답',detail:'지금 관계의 자리와 자유 질문의 답부터 먼저 짚습니다.'},{title:'나의 연애 성향 — 장점·약점·심리',detail:'일간과 십성으로 애착과 표현 방식을 나눠 봅니다.'},{title:'상대·궁합·이상형',detail:'상대의 기운과 끌림의 조건, 이상형을 함께 읽습니다.'},{title:'갈등·바람기·재회·자기 보호',detail:'민감한 주제도 각각 별도 섹션으로 나눠 다룹니다.'},{title:'대운·올해·좋은 날짜·결혼운',detail:'시기별 흐름과 계산된 좋은 날짜, 결혼운을 짚습니다.'},{title:'썸 전략·대화·매력·실천',detail:'지금 바로 쓸 수 있는 대화 문장과 7일 실천 가이드로 마무리합니다.'}],outlineImage:'/feature-details/assets/love-secret-ai-960.webp'},
     'love-secret-ai-consultation':{inherit:'/love-secret-ai'},
-    '/fusion-fortune':{featureId:'fusion-fortune-consultation',category:'초융합',badge:'전문가 상담형',headline:'여섯 체계가 같은 곳을 가리키는 지점과, 서로 엇갈리는 지점을 함께 봅니다.',subheadline:'사주·자미두수·베다점·숙요점·점성술·타로를 각 전통의 언어로 따로 읽은 뒤, 겹치는 신호는 우선순위로 엇갈리는 신호는 상황별 선택지로 묶어 하나의 상담으로 잇습니다.',painPoints:['체계마다 말이 달라서 무엇을 믿어야 할지 모르겠을 때','여기저기서 본 해석이 조각조각 남아 정리가 안 될 때','큰 결정을 앞두고 한 번은 제대로 정리하고 싶을 때'],feats:['사주·자미두수·베다점·숙요점·점성술·타로를 각 전통의 언어로 따로 해석','여섯 체계를 교차 검증해 겹치는 신호와 엇갈리는 신호를 나눠 정리','서버가 뽑은 여섯 장의 카드를 타로 섹션에서 함께 읽음','앞으로 12개월 시기 라인과 현실 행동 지침을 마지막에 배치'],unlockBenefits:['여섯 체계를 각각 전문가 깊이로 읽은 본문 목표 20,000자','두 체계 이상이 함께 가리키는 신호를 정리한 교차 검증','체계별 신호 강도 레이더와 앞으로 12개월 시기 라인','시기별로 준비·시험·정리할 일을 나눈 행동 지침'],previewText:'초융합은 여섯 개의 운세를 나란히 늘어놓지 않습니다. 서로 무엇을 함께 말하고 어디서 갈라지는지를 먼저 정리한 뒤, 그 위에서 지금의 선택을 봅니다.',recommendedFor:['이직·이사·결혼처럼 되돌리기 어려운 결정을 앞둔 분','여러 곳에서 본 해석이 서로 달라 혼란스러운 분','한 해의 흐름을 한 번에 정리해 두고 싶은 분'],analysisSteps:[{label:'사주 — 기질과 계절의 흐름'},{label:'자미두수 — 삶의 무대와 역할'},{label:'베다점 — 무의식의 리듬'},{label:'숙요점 — 관계의 거리'},{label:'점성술 — 표현과 책임'},{label:'타로 — 지금의 선택'},{label:'융합 — 교차 검증과 시기·행동'}],trustNotes:['서버가 계산한 값에 없는 별·궁·카드·시기는 만들지 않습니다.','타인의 마음이나 결과를 확정하지 않습니다.','생성이 실패하면 같은 요청으로 다시 시도할 때 추가 결제가 없습니다.','Family 이용권 또는 단건 결제로 진행하며, 다른 이용권 등급과 월정석은 사용할 수 없습니다.'],ctaLabel:'초융합 리딩 열기',reportScale:{sections:9,minWords:20000},answersQuestions:['여러 운세가 서로 다른 말을 하는데 무엇을 따라야 할까요?','올해 남은 기간에 무엇을 준비해야 할까요?','지금 이 결정을 밀어붙여도 될까요?'],valueCompare:{rows:[{axis:'체계 수',free:'한 번에 하나',premium:'여섯 체계를 한 상담 안에서'},{axis:'교차 검증',free:'없음',premium:'겹치는 신호와 엇갈리는 신호를 나눠 정리'},{axis:'시기',free:'오늘 중심',premium:'앞으로 12개월 시기 라인'},{axis:'분량',free:'요약 수준',premium:'본문 목표 20,000자'}]},faq:[{q:'다른 운세를 이미 봤는데도 의미가 있나요?',a:'있습니다. 초융합의 값은 체계 하나하나가 아니라 그 사이의 관계에 있습니다. 어디가 겹치고 어디가 갈라지는지는 따로 본 해석에서는 나오지 않습니다.'},{q:'태어난 시간을 모르면 어떻게 되나요?',a:'생시가 없으면 시주·라그나·상승궁·하우스처럼 시간에 의존하는 값은 단정하지 않고, 확인 가능한 범위와 해석의 한계를 결과에 먼저 밝힙니다.'},{q:'이용권으로 볼 수 있나요?',a:'Family 이용권으로 볼 수 있습니다. Standard·Premium·VVIP 이용권과 월정석은 사용할 수 없으며, Family가 없으면 단건 결제로 진행합니다.'},{q:'결과가 나오는 데 얼마나 걸리나요?',a:'여섯 체계 계산과 본문 작성이 순서대로 진행되며, 진행 상황이 화면에 단계별로 표시됩니다. 분량이 길어 잠시 기다리셔야 합니다.'}],ctaNote:'결제 후 여섯 체계 본문과 지표가 함께 열립니다.',receives:[{icon:'🔮',title:'여섯 체계 심층 리딩',detail:'사주·자미두수·베다점·숙요점·점성술·타로를 각 전통의 언어로 따로 읽습니다.'},{icon:'🧩',title:'교차 검증 결과',detail:'여섯 체계 중 겹치는 신호와 엇갈리는 신호를 나눠 정리해 드립니다.'},{icon:'🃏',title:'그 자리에서 뽑는 타로 카드',detail:'서버가 그 자리에서 뽑은 여섯 장의 카드를 타로 섹션에서 함께 읽습니다.'},{icon:'🗓️',title:'12개월 시기 라인',detail:'앞으로 12개월의 흐름과 시기별 행동 지침을 마지막에 정리합니다.'},{icon:'📄',title:'PDF 저장과 다시 보기',detail:'완성된 상담은 계정에 저장돼 언제든 다시 열고 PDF로 내려받을 수 있습니다.'}],outline:[{title:'사주 — 기질과 계절의 흐름',detail:'타고난 기질과 계절의 균형을 먼저 짚습니다.'},{title:'자미두수 — 삶의 무대와 역할',detail:'삶에서 맡는 무대와 역할을 읽습니다.'},{title:'베다점·숙요점 — 무의식의 리듬과 관계의 거리',detail:'무의식의 흐름과 사람 사이 거리감을 짚습니다.'},{title:'점성술·타로 — 표현과 책임, 지금의 선택',detail:'지금 드러나는 감정과 눈앞의 선택지를 봅니다.'},{title:'융합 — 교차 검증과 12개월 시기·행동 지침',detail:'여섯 체계를 모아 겹치는 신호와 앞으로의 행동을 정리합니다.'}],outlineImage:'/images/feature-details/fusion-fortune-hero-v2.webp'},
+    '/fusion-fortune':{featureId:'fusion-fortune-consultation',category:'초융합',badge:'전문가 상담형',headline:'여섯 체계가 같은 곳을 가리키는 지점과, 서로 엇갈리는 지점을 함께 봅니다.',subheadline:'사주·자미두수·베다점·숙요점·점성술·타로를 각 전통의 언어로 따로 읽은 뒤, 겹치는 신호는 우선순위로 엇갈리는 신호는 상황별 선택지로 묶어 하나의 상담으로 잇습니다.',painPoints:['체계마다 말이 달라서 무엇을 믿어야 할지 모르겠을 때','여기저기서 본 해석이 조각조각 남아 정리가 안 될 때','큰 결정을 앞두고 한 번은 제대로 정리하고 싶을 때'],feats:['사주·자미두수·베다점·숙요점·점성술·타로를 각 전통의 언어로 따로 해석','여섯 체계를 교차 검증해 겹치는 신호와 엇갈리는 신호를 나눠 정리','서버가 뽑은 여섯 장의 카드를 타로 섹션에서 함께 읽음','앞으로 12개월 시기 라인과 현실 행동 지침을 마지막에 배치'],unlockBenefits:['여섯 체계를 각각 전문가 깊이로 읽은 본문 목표 20,000자','두 체계 이상이 함께 가리키는 신호를 정리한 교차 검증','체계별 신호 강도 레이더와 앞으로 12개월 시기 라인','시기별로 준비·시험·정리할 일을 나눈 행동 지침'],previewText:'초융합은 여섯 개의 운세를 나란히 늘어놓지 않습니다. 서로 무엇을 함께 말하고 어디서 갈라지는지를 먼저 정리한 뒤, 그 위에서 지금의 선택을 봅니다.',recommendedFor:['이직·이사·결혼처럼 되돌리기 어려운 결정을 앞둔 분','여러 곳에서 본 해석이 서로 달라 혼란스러운 분','한 해의 흐름을 한 번에 정리해 두고 싶은 분'],analysisSteps:[{label:'사주 — 기질과 계절의 흐름'},{label:'자미두수 — 삶의 무대와 역할'},{label:'베다점 — 무의식의 리듬'},{label:'숙요점 — 관계의 거리'},{label:'점성술 — 표현과 책임'},{label:'타로 — 지금의 선택'},{label:'융합 — 교차 검증과 시기·행동'}],trustNotes:['서버가 계산한 값에 없는 별·궁·카드·시기는 만들지 않습니다.','타인의 마음이나 결과를 확정하지 않습니다.','생성이 실패하면 같은 요청으로 다시 시도할 때 추가 결제가 없습니다.','패밀리 꿀단지 이용권 또는 단건 결제로 진행하며, 다른 이용권 등급과 월정석은 사용할 수 없습니다.'],ctaLabel:'초융합 리딩 열기',reportScale:{sections:9,minWords:20000},answersQuestions:['여러 운세가 서로 다른 말을 하는데 무엇을 따라야 할까요?','올해 남은 기간에 무엇을 준비해야 할까요?','지금 이 결정을 밀어붙여도 될까요?'],valueCompare:{rows:[{axis:'체계 수',free:'한 번에 하나',premium:'여섯 체계를 한 상담 안에서'},{axis:'교차 검증',free:'없음',premium:'겹치는 신호와 엇갈리는 신호를 나눠 정리'},{axis:'시기',free:'오늘 중심',premium:'앞으로 12개월 시기 라인'},{axis:'분량',free:'요약 수준',premium:'본문 목표 20,000자'}]},faq:[{q:'다른 운세를 이미 봤는데도 의미가 있나요?',a:'있습니다. 초융합의 값은 체계 하나하나가 아니라 그 사이의 관계에 있습니다. 어디가 겹치고 어디가 갈라지는지는 따로 본 해석에서는 나오지 않습니다.'},{q:'태어난 시간을 모르면 어떻게 되나요?',a:'생시가 없으면 시주·라그나·상승궁·하우스처럼 시간에 의존하는 값은 단정하지 않고, 확인 가능한 범위와 해석의 한계를 결과에 먼저 밝힙니다.'},{q:'이용권으로 볼 수 있나요?',a:'패밀리 꿀단지 이용권으로 볼 수 있습니다. 작은·중간·큰 꿀단지 이용권과 월정석은 사용할 수 없으며, 패밀리 꿀단지가 없으면 단건 결제로 진행합니다.'},{q:'결과가 나오는 데 얼마나 걸리나요?',a:'여섯 체계 계산과 본문 작성이 순서대로 진행되며, 진행 상황이 화면에 단계별로 표시됩니다. 분량이 길어 잠시 기다리셔야 합니다.'}],ctaNote:'결제 후 여섯 체계 본문과 지표가 함께 열립니다.',receives:[{icon:'🔮',title:'여섯 체계 심층 리딩',detail:'사주·자미두수·베다점·숙요점·점성술·타로를 각 전통의 언어로 따로 읽습니다.'},{icon:'🧩',title:'교차 검증 결과',detail:'여섯 체계 중 겹치는 신호와 엇갈리는 신호를 나눠 정리해 드립니다.'},{icon:'🃏',title:'그 자리에서 뽑는 타로 카드',detail:'서버가 그 자리에서 뽑은 여섯 장의 카드를 타로 섹션에서 함께 읽습니다.'},{icon:'🗓️',title:'12개월 시기 라인',detail:'앞으로 12개월의 흐름과 시기별 행동 지침을 마지막에 정리합니다.'},{icon:'📄',title:'PDF 저장과 다시 보기',detail:'완성된 상담은 계정에 저장돼 언제든 다시 열고 PDF로 내려받을 수 있습니다.'}],outline:[{title:'사주 — 기질과 계절의 흐름',detail:'타고난 기질과 계절의 균형을 먼저 짚습니다.'},{title:'자미두수 — 삶의 무대와 역할',detail:'삶에서 맡는 무대와 역할을 읽습니다.'},{title:'베다점·숙요점 — 무의식의 리듬과 관계의 거리',detail:'무의식의 흐름과 사람 사이 거리감을 짚습니다.'},{title:'점성술·타로 — 표현과 책임, 지금의 선택',detail:'지금 드러나는 감정과 눈앞의 선택지를 봅니다.'},{title:'융합 — 교차 검증과 12개월 시기·행동 지침',detail:'여섯 체계를 모아 겹치는 신호와 앞으로의 행동을 정리합니다.'}],outlineImage:'/images/feature-details/fusion-fortune-hero-v2.webp'},
     'fusion-fortune-consultation':{inherit:'/fusion-fortune'},
     '/saju/destiny-meeting-place':{featureId:'destiny_meeting_place',category:'사주',badge:'장소 리딩',headline:'인연이 열릴 만한 장소와 시기를 사주에서 뽑아 목록으로 줍니다.',subheadline:'추천 장소 5곳, 국가 5곳, 만남 유형 4가지에 계절·월·시간대와 인연 아이템까지 함께 정리합니다.',feats:['추천 장소 5곳과 추천 국가 5곳을 뽑습니다','만남 유형 4가지를 제시합니다','계절 3개 · 월 4개 · 시간대 3개로 행운 타이밍을 좁힙니다','인연 아이템 5가지와 스타일링 가이드를 함께 줍니다','피해야 할 자리와 실행 계획을 따로 정리합니다','다른 AI에게 바로 물어볼 수 있는 문장 카드 7장을 함께 담습니다'],painPoints:['어디서 사람을 만나야 할지 감이 안 잡힐 때','언제 움직여야 할지 시기를 정하고 싶을 때','만남 자리에서 무엇을 준비할지 막막할 때'],unlockBenefits:['추천 장소 5곳 · 국가 5곳','만남 유형 4가지와 행운 타이밍','인연 아이템과 스타일링 가이드','피할 자리와 실행 계획','다른 AI에게 물어볼 문장 카드 7장'],previewText:'막연한 조언 대신 장소·국가·유형·시기를 목록으로 좁혀 줍니다. 결과는 입력한 생년 정보로 계산합니다.',recommendedFor:['만남의 자리를 구체적으로 정하고 싶은 분','움직일 시기를 좁히고 싶은 분','준비물과 스타일까지 함께 받고 싶은 분'],answersQuestions:['나는 어떤 자리에서 인연이 열리나요?','언제 움직이는 게 좋을까요?','만남 자리에 무엇을 지니면 좋을까요?'],analysisSteps:[{label:'생년 정보 입력',detail:'생년월일시로 사주를 계산합니다.'},{label:'에너지 정리',detail:'오행 배치에서 인연이 열리는 방향과 결을 뽑습니다.'},{label:'장소·시기 선정',detail:'그 결에 맞는 장소 5곳, 국가 5곳, 유형 4가지와 계절·월·시간대를 고릅니다.'},{label:'실행안 작성',detail:'인연 아이템, 스타일링, 피할 자리, 실행 계획을 함께 정리합니다.'}],valueCompare:{rows:[{axis:'추천 범위',premium:'장소 5곳 · 국가 5곳 · 만남 유형 4가지'},{axis:'시기',premium:'계절 3 · 월 4 · 시간대 3'},{axis:'실행 준비',premium:'인연 아이템 5 · 스타일링 · 피할 자리 · 실행 계획'}]},faq:[{q:'결과가 나오기까지 오래 걸리나요?',a:'별도 생성 대기 없이 입력한 생년 정보로 바로 계산해 보여 줍니다.'},{q:'해외 장소도 나오나요?',a:'추천 국가 5곳이 함께 나옵니다.'},{q:'이 문장 카드는 무엇에 쓰나요?',a:'장소·대화·데이트 코스 등 추천받은 내용을 다른 AI에게 더 깊이 물어볼 때 그대로 붙여 쓰는 문장 카드 7장입니다.'}],trustNotes:['실제 만남이나 결과를 보장하지 않습니다.','결과는 입력한 생년 정보로 계산합니다.','운세 결과는 참고용입니다.'],ctaLabel:'인연의 장소 열람하기',receives:[{icon:'📍',title:'추천 장소 5곳',detail:'인연이 열릴 만한 장소를 지금 사주에 맞춰 5곳 뽑습니다.'},{icon:'🌍',title:'추천 국가 5곳',detail:'해외로 넓혀 도시까지 함께 짚어 드립니다.'},{icon:'💞',title:'만남 유형과 타이밍',detail:'만남 유형 4가지와 계절 3·월 4·시간대 3으로 움직일 때를 좁힙니다.'},{icon:'🎒',title:'인연 아이템과 실행 계획',detail:'아이템 5가지, 스타일링, 피할 자리와 준비를 정리합니다.'},{icon:'💬',title:'AI에게 물어볼 문장 카드 7장',detail:'장소·대화·데이트 코스 등을 다른 AI에게 더 깊이 물어볼 때 바로 쓰는 문장을 담았습니다.'}],outline:[{title:'생년월일과 질문 적기',detail:'생년월일시를 입력합니다.'},{title:'인연 에너지 정리',detail:'일간과 오행으로 인연이 열리는 방향과 결을 뽑습니다.'},{title:'장소·국가·유형 추천',detail:'장소 5곳, 국가 5곳, 만남 유형 4가지를 고릅니다.'},{title:'타이밍과 준비물',detail:'계절 3·월 4·시간대 3과 인연 아이템, 스타일링, 피할 자리를 정리합니다.'},{title:'AI 질문 문장 카드',detail:'추천 내용을 다른 AI에게 더 물어볼 때 쓸 문장 카드 7장을 받습니다.'}],outlineImage:'/feature-details/assets/destiny-meeting-place-960.webp'},
     destiny_meeting_place:{inherit:'/saju/destiny-meeting-place'},

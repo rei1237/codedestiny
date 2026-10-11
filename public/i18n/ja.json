@@ -814,10 +814,10 @@
       "aria": "ムーンライト パス ガイド",
       "kicker": "ムーンライトパス",
       "title": "月明かりのパスで、幸運のルーチンがより穏やかに流れるようにしましょう",
-      "desc": "月明かりの利用券は、30日のあいだ、繰り返し訪れるリーディングを決められた範囲の中で先に開いてくれるムーンライトパスです。今日の兆しを止めずに、静かに読み継ぐことができます。",
+      "desc": "月明かりの利用券は、利用上限を使い切るまで、繰り返し訪れるリーディングを決められた範囲の中で先に開いてくれるムーンライトパスです。今日の兆しを止めずに、静かに読み継ぐことができます。",
       "guideLabel": "MOONLIGHT GUIDE",
-      "guideTitle": "For 30 days, readings you open often unfold first with a softer flow",
-      "guideText": "From Standard to Family, tarot, oracle, and saju readings open first within your moonlight range. Deeper readings outside that range continue to one-time KRW payment only when needed.",
+      "guideTitle": "利用上限を使い切るまで、よく開く占いを先にやわらかく",
+      "guideText": "小さなはちみつ壺からファミリーはちみつ壺まで、選んだ月明かりの範囲内でタロット・神託・四柱推命のリーディングが決済の流れなしで先に開きます。範囲外の深いリーディングは、必要なときだけウォン建ての単発決済に進みます。",
       "toggle": "オープンムーンライト特典",
       "heroAria": "月光の流れで無料で利用できるサービスをチェックする",
       "heroTitle": "ムーンライトパスの範囲を見る",
@@ -829,42 +829,43 @@
       "primaryAction": "自分に合ったパスを見つける",
       "chipsAria": "コア パスの特典",
       "chipIncluded": "合格範囲内でフリー",
-      "chipThirtyDays": "30 日間パス",
+      "chipThirtyDays": "パス",
       "chipShareReward": "範囲外は都度払い",
       "plansAria": "パス計画の概要カード",
-      "standardName": "スタンダードはちみつ 30日分",
-      "standardPrice": "30日間 · 9,900ウォン",
+      "standardName": "小さなはちみつ壺",
+      "standardPrice": "9,900ウォン",
       "standardLine": "5,000ウォン級のコンテンツまで",
-      "standardBenefit1": "月あたり最大20,000ウォン相当",
-      "standardCta": "標準を表示",
+      "standardBenefit1": "最大20,000ウォン相当",
+      "standardCta": "小さなはちみつ壺を見る",
       "recommendedAria": "おすすめプラン",
       "recommendedBadge": "推奨",
-      "premiumName": "プレミアムハニー 30日",
-      "premiumPrice": "30日間 · 29,900ウォン",
+      "premiumName": "中くらいのはちみつ壺",
+      "premiumPrice": "29,900ウォン",
       "premiumLine": "10,000ウォン級のコンテンツまで",
-      "premiumBenefit1": "月あたり最大 60,000ウォン相当",
+      "premiumBenefit1": "最大60,000ウォン相当",
       "premiumCta": "推奨プランを見る",
-      "vvipName": "VVIP ハニージャー 30 日",
-      "vvipPrice": "30日間 · 59,900ウォン",
+      "vvipName": "大きなはちみつ壺",
+      "vvipPrice": "59,900ウォン",
       "vvipLine": "30,000ウォン級のコンテンツまで",
-      "vvipBenefit1": "月あたり最大 120,000ウォン相当",
-      "vvipCta": "VVIP の特典を見る",
-      "familyName": "コード デスティニー ファミリー 30 日",
-      "familyPrice": "30日 · 149,000ウォン",
+      "vvipBenefit1": "最大120,000ウォン相当",
+      "vvipCta": "大きなはちみつ壺の特典を見る",
+      "familyName": "ファミリーはちみつ壺",
+      "familyPrice": "149,000ウォン",
       "familyLine": "利用券対象すべて",
-      "familyBenefit1": "月あたり最大350,000ウォン相当",
-      "familyCta": "ファミリーを表示",
-      "premiumNote": "プレミアムハニーは10,000ウォン級のコンテンツをよく見る方に最もバランスよく合います。",
-      "footnote": "新しいパスは 30 日パスとしてのみ販売されます。この 30 日間パスは自動更新のサブスクリプションではありません。パス範囲外のサービスは、商品ごとに1回限りのウォン決済でご利用いただけます。",
+      "familyBenefit1": "最大350,000ウォン相当",
+      "familyCta": "ファミリーはちみつ壺を見る",
+      "premiumNote": "中くらいのはちみつ壺は10,000ウォン級のコンテンツをよく見る方に最もバランスよく合います。",
+      "footnote": "パスに期間制限はなく、利用上限を使い切ると終了します。このパスは自動更新のサブスクリプションではありません。パス範囲外のサービスは、商品ごとに1回限りのウォン決済でご利用いただけます。",
       "howtoAria": "ムーンライトパスの使い方",
       "howtoTitle": "ムーンライトパスは、こう続きます",
-      "step1Label": "30日間の月光レンジを選ぶ",
-      "step1Text": "自動更新のない30日パスで、よく見るリーディングの価格帯をまず決めます。",
+      "step1Label": "月光レンジを選ぶ",
+      "step1Text": "期間も自動更新もないパスで、よく見るリーディングの価格帯をまず決めます。",
       "step2Label": "レンジ内は決済なしですぐ開く",
       "step2Text": "選んだレンジ内のタロット・神託・四柱推命のリーディングは、決済画面なしでそのまま開きます。",
       "step3Label": "レンジ外の深いリーディングだけ都度決済",
       "step3Text": "レンジ外の深いリーディングは、必要なときだけウォンで一度だけ決済します。",
-      "terminationNote": "月の利用上限が0になっても、利用券の有効期限・ランク・プロフィール上限は維持されます。追加の有料コンテンツは都度払いまたは月額パスで利用できます。"
+      "terminationNote": "利用上限をすべて使い切ると利用券は終了します。再度購入すると新しい利用上限で始まります。追加の有料コンテンツは都度払いまたは月精石で利用できます。",
+      "noExpiryNote": "期間制限なし · 利用上限を使い切ると終了"
     },
     "promptHub": {
       "aria": "総合的なフォーチュン プロンプトに移動します",
@@ -905,11 +906,11 @@
       "eyebrow": "ムーンライトパス",
       "savingsBadge": "利用券なら最大3分の1ほどの価格に",
       "title": "5,000ウォンのリーディング2回で、9,900ウォンの利用券のほうがお得です",
-      "desc": "選んだ価格帯のリーディングは30日間、月間利用上限まで開きます。それより高いリーディングだけ必要なときに都度決済します。範囲は5,000ウォン級・10,000ウォン級・20,000ウォン級・利用券対象すべての4段階なので、よく見る価格帯を選べば大丈夫です。",
+      "desc": "選んだ価格帯のリーディングは利用上限を使い切るまで開きます。それより高いリーディングだけ必要なときに都度決済します。範囲は5,000ウォン級・10,000ウォン級・20,000ウォン級・利用券対象すべての4段階なので、よく見る価格帯を選べば大丈夫です。",
       "pointsAria": "コア パス ガイド",
       "point1": "決済画面なしですぐ開く",
-      "point2": "プロフィール保存3件以上",
-      "point3": "自動更新のない30日券",
+      "point2": "期間制限なし · 利用上限を使い切ると終了",
+      "point3": "自動更新のない利用券",
       "mascotAria": "ムーンライトパスの特典を見る · 月明かりの利用券ストア",
       "mascotAlt": "ムーンライトパス特典の画像",
       "mascotKicker": "Moonlight Pass Guide",
@@ -1652,12 +1653,12 @@
       "saysName": "ヨニ",
       "saysLine": "どの占いから見ましょうか？ひとつ選ぶだけで十分です。",
       "passMascotAlt": "利用券カードを持って笑う花飾りの子ぶたヨニ",
-      "passEyebrow": "自動更新なしの30日利用券",
-      "passTitle": "よく占うなら、30日利用券",
-      "passDesc": "鑑定の価格分だけ上限から差し引かれます。30日が過ぎると自動で終了します。",
-      "passPer": "/ 30日",
+      "passEyebrow": "期間・自動更新なしの利用券",
+      "passTitle": "ヨニが案内する利用券",
+      "passDesc": "ときどきなら単発決済で、よく見るなら利用券でどうぞ。利用できる相談と利用上限をご確認ください。",
+      "passPer": "· 期間制限なし",
       "passBadge": "ヨンニャンイも対象",
-      "passNote": "Standard・Premium・VVIPは花ぶた占いに、Familyは花ぶたとヨンニャンイの有料リーディングに適用されます。購入済みの利用券は購入時の条件を維持します。",
+      "passNote": "小さな・中くらいの・大きなはちみつ壺は花ぶた占いに、ファミリーはちみつ壺は花ぶたとヨンニャンイの有料リーディングに適用されます。購入済みの利用券は購入時の条件を維持します。",
       "passCta": "利用券4種を見る",
       "moreTitle": "ヨニのアトリエをもっと見る",
       "moreItems": "Daily readings · consultations · records · stories",
@@ -1726,7 +1727,7 @@
     "chatEntry": {
       "title": "ヨニとネオに、今いちばん気になるひとつを",
       "cta": "わたしの悩みを相談する",
-      "price": "会員登録で無料1回・以降1回3,000ウォン"
+      "price": "1回3,000ウォン"
     },
     "svcQuestion": {
       "master-love-codex": "次の恋はいつ始まる？",
@@ -1832,9 +1833,9 @@
       "reviewReward": "公開承認後に月光石を付与",
       "reviewDetail": "Ggulggulで利用できます。付与は商品ごとに1回です。",
       "reviewAction": "感想を書く",
-      "passStandard": "ヨニ Standard",
-      "passPremium": "ヨニ Premium",
-      "passVvip": "ヨニ VVIP",
+      "passStandard": "小さなはちみつ壺",
+      "passPremium": "中くらいのはちみつ壺",
+      "passVvip": "大きなはちみつ壺",
       "passPerLimit": "1回あたり{amount} KRWまで",
       "passTotal": "合計利用枠：{amount} KRW",
       "passNoLimit": "有料鑑定の1回あたり価格上限なし",
@@ -1862,7 +1863,8 @@
       "neoClassSource": "四柱推命講座の受講者 · KakaoTalkの感想抜粋（韓国語）",
       "neoNote": "ネオ本人による個別相談と講座の感想です。AI相談とは別のサービスであり、個人の体験が同じ結果を保証するものではありません。",
       "neoAbout": "ネオとサービスについて",
-      "neoMore": "相談の感想をもっと読む"
+      "neoMore": "相談の感想をもっと読む",
+      "passFamily": "ファミリーはちみつ壺"
     },
     "simple": {
       "lead": "お悩みに合わせて、相談内容と料金を先にご案内します。",
@@ -2345,7 +2347,7 @@
       "passStoreTitle": "月光利用券ショップ",
       "passRetryTitle": "利用券を再確認",
       "passHint": {
-        "store": "一度の決済で30日間いろいろなコンテンツを開けます。すでにお持ちならタップで確認できます。",
+        "store": "一度の決済で、利用上限を使い切るまでいろいろなコンテンツを開けます。すでにお持ちならタップで確認できます。",
         "retry": "保有利用券で決済なしに開けるかサーバーで再確認します。",
         "upgrade": "今の等級ではこのコンテンツは開きません。上位の等級をご確認ください。"
       },
@@ -2418,7 +2420,7 @@
         "comingSoon": "準備中",
         "back": "戻る"
       },
-      "passMonthlyExhausted": "パスの利用上限を使い切ったため、パスが終了しました。新しく購入すると30日が再び始まります。今は単品購入または月霊石で開けます。",
+      "passMonthlyExhausted": "パスの利用上限を使い切ったため、パスが終了しました。新しく購入すると新しい利用上限で始まります。今は単品購入または月霊石で開けます。",
       "passMonthlyRemaining": "パスの残り上限 {remaining} / {limit}",
       "wait": {
         "card": "カード会社・簡単決済アプリで認証を終えたら、このブラウザに戻ると自動で続きます。",
@@ -2450,7 +2452,7 @@
         "pass": {
           "eyebrow": "ムーンライトパスチェック",
           "title": "利用券を確認しています",
-          "message": "保有中の30日利用券ですぐ開けるか確認しています。",
+          "message": "保有中の利用券ですぐ開けるか確認しています。",
           "meta": "可能なら決済画面なしで続きます。"
         },
         "passApplied": {
@@ -2521,7 +2523,7 @@
         "pass": {
           "eyebrow": "ムーンライトパスチェック",
           "title": "利用券を確認しています",
-          "message": "保有中の30日利用券ですぐ開けるか確認しています。",
+          "message": "保有中の利用券ですぐ開けるか確認しています。",
           "meta": "可能なら決済画面なしで続きます。"
         },
         "passApplied": {
@@ -2605,7 +2607,7 @@
     "passShop": {
       "monthlyStatus": "月精石の残量を確認しました。",
       "chargeButton": "{amount} 決済ページへ移動",
-      "chargeNotice": "パス商品 {price} · 自動決済ではない30日間のパスです。パスはウォン建ての単発決済でのみ購入できます。",
+      "chargeNotice": "パス商品 {price} · 自動決済ではないパスです。パスはウォン建ての単発決済でのみ購入できます。",
       "best": "BEST",
       "monthlyBasisWithPrice": "月定石基準 {credits} · {price}",
       "profileUnlimited": "プロフィール無制限",
@@ -2616,24 +2618,24 @@
       "closeAria": "月光利用券ショップ案内を閉じる",
       "openAria": "月光利用券ショップ案内を開く",
       "title": "月光利用券ショップ案内",
-      "subtitle": "月光に宿る30日利用券と月定石の流れを確認してください。",
-      "footerNotice": "この30日利用券は自動決済商品ではありません。満了後は再購入が必要です。",
+      "subtitle": "利用券はウォン建ての単発決済で購入し、月精石は個別の有料機能に使われます。",
+      "footerNotice": "この利用券は自動決済商品ではありません。利用上限を使い切った後は再購入が必要です。",
       "packages": {
         "standard": {
-          "name": "スタンダードハニー30日",
-          "desc": "30日 · 5,000ウォン級のコンテンツまで · 月あたり最大20,000ウォン相当"
+          "name": "小さなはちみつ壺",
+          "desc": "5,000ウォン級のコンテンツまで · 最大20,000ウォン相当"
         },
         "premium": {
-          "name": "プレミアムハニー30日",
-          "desc": "30日 · 10,000ウォン級のコンテンツまで · 月あたり最大 60,000ウォン相当"
+          "name": "中くらいのはちみつ壺",
+          "desc": "10,000ウォン級のコンテンツまで · 最大60,000ウォン相当"
         },
         "vvip": {
-          "name": "VVIPハニージャー30日",
-          "desc": "30日 · 30,000ウォン級のコンテンツまで · 月あたり最大 120,000ウォン相当"
+          "name": "大きなはちみつ壺",
+          "desc": "30,000ウォン級のコンテンツまで · 最大120,000ウォン相当"
         },
         "family": {
-          "name": "Code Destiny Family 30日",
-          "desc": "30日 · 利用券対象すべて · 月あたり最大350,000ウォン相当"
+          "name": "ファミリーはちみつ壺",
+          "desc": "利用券対象すべて · 最大350,000ウォン相当"
         }
       },
       "monthlyStatusChecking": "残量とパスの状態を確認しています。",
@@ -2642,7 +2644,7 @@
       "monthlyButton": "月定石 {credits} で決済",
       "monthlyButtonBusy": "月定石で利用券を有効化しています...",
       "monthlyButtonShort": "月定石 {credits} 必要 · 残量不足",
-      "terminationNotice": "月の利用上限を使い切ると、残り日数に関係なくパスは終了します。新しく購入すると、その日から30日が改めて始まります。"
+      "terminationNotice": "利用上限をすべて使い切ると利用券は終了します。再度購入すると新しい利用上限で始まります。追加の有料コンテンツは都度払いまたは月精石で利用できます。"
     },
     "access": {
       "passAppliedContinue": "利用券で開きました。"
@@ -2734,11 +2736,11 @@
       },
       "astro": {
         "elements": {
-          "Fire": "火災",
-          "Earth": "地球",
-          "Air": "空気",
+          "Fire": "火",
+          "Earth": "地",
+          "Air": "風",
           "Water": "水",
-          "Cosmic": "スターライト"
+          "Cosmic": "星"
         },
         "unknownSun": "太陽星座不明",
         "unknownRising": "上昇サインが不明",
@@ -2752,7 +2754,7 @@
         "ritualTip": "今夜、3 分間呼吸を整えて、星の下に 1 つの意図を定めてください。",
         "relationshipTheme": "人間関係があなたの主星座のリズムに従うと、摩擦は和らぎます。",
         "careerTheme": "太陽星座のコアドライブを仕事のルーチンに取り入れて、より安定した勢いを取り戻しましょう。",
-        "growthCycle": "スターコール「軌道形成」星雲開花→輝き拡散",
+        "growthCycle": "星の呼び声 → 軌道形成 → 星雲開花 → 光輝拡散",
         "fallbackNote": "太陽星座データが利用できなかったため、測定値にはデフォルトの空気要素が使用されました。",
         "ultimateTitle": "究極の運命の花",
         "ultimateConcept": "東洋の{dayMaster}エネルギーが西洋の{sunSign}スターライトと融合するハイブリッドブルーム",
@@ -2797,7 +2799,7 @@
         "ritualTip": "今日の中心キーワード: {keyword}",
         "relationshipTheme": "強いスターの気質を人間関係の基準にすると、調和がより明確になります。",
         "careerTheme": "主星の力が前に出ると、実行とポジショニングが安定します。",
-        "growthCycle": "星配列「エネルギー集合」種子点火→開花",
+        "growthCycle": "星の整列 → 気の凝集 → 種の点火 → 開花",
         "secondaryFallbackNote": "複合メインスター調整: {primaryStar} 中心 + {secondaryStar} 香りブレンド",
         "palaceFallbackNote": "パレス特性調整: {palace} · {trait}",
         "hybridHint": "Saju {dayMaster} エネルギーと Ziwei の主星 {stars} をブレンドすることでハイブリッド レンダリングが利用可能",
@@ -2806,39 +2808,39 @@
         "narrativeSingle": "{palace} は{palaceEnergy} を処理します。今日の強い星 {star} は、品質「{keyword}」と性質「{personality}」を花の中心に配置します。明るさ {brightness} はその光を安定させ、{flowerName} は中心エネルギーと最も深く共鳴します。",
         "rules": {
           "peonyZiwei": {
-            "title": "インペリアルピオニー",
-            "keyword": "帝国の落ち着き",
-            "personality": "現場を中心にして秩序を回復するリーダー"
+            "title": "帝王の牡丹",
+            "keyword": "帝王の気品",
+            "personality": "中心に立ち、周囲の秩序を整えるリーダー型"
           },
           "thornyRoseGeneral": {
-            "title": "将軍の赤いバラ",
-            "keyword": "決定的な進歩",
-            "personality": "プレッシャーの下でも前進する決定的な力"
+            "title": "将軍の紅いバラ",
+            "keyword": "突破の決断",
+            "personality": "重圧の中でも前線を押し進める決断型"
           },
           "thornyRosePioneer": {
-            "title": "パイオニアの赤いバラ",
-            "keyword": "フィールドを再形成するドライブ",
-            "personality": "古い枠組みを打ち破り、新しい注文を開くイノベーター"
+            "title": "開拓者の紅いバラ",
+            "keyword": "局面を変える推進力",
+            "personality": "古い枠を破り、新しい秩序を開く革新型"
           },
           "delicateWillow": {
             "title": "軍師の柳の花",
-            "keyword": "優しい戦略",
-            "personality": "瞬間を読み、最も明確な答えを見つける戦略家"
+            "keyword": "しなやかな知略",
+            "personality": "状況を柔軟に読み、最適な解を見つける戦略型"
           },
           "sunflowerZiwei": {
-            "title": "ソーラーひまわり",
-            "keyword": "光を拡大する",
-            "personality": "目に見える結果に向けてエネルギーを集める実行者"
+            "title": "太陽のひまわり",
+            "keyword": "光の広がり",
+            "personality": "目標に向けてエネルギーを集中させ、成果を引き出す実行型"
           },
           "nightCereus": {
-            "title": "月夜に咲くセレウス",
-            "keyword": "夜に開くミステリー",
-            "personality": "目に見えない流れを読む瞑想的な魂"
+            "title": "月光の月下美人",
+            "keyword": "夜に咲く神秘",
+            "personality": "深い内省で見えない流れを読む省察型"
           },
           "orchidTanlang": {
-            "title": "桃の花の蘭",
-            "keyword": "官能的な磁力",
-            "personality": "美、人間関係、表現を通してリードする魅力的なタイプ"
+            "title": "桃花の蘭",
+            "keyword": "官能的な魅惑",
+            "personality": "人間関係と表現の美しさを生かして人を惹きつける魅力型"
           }
         },
         "stars": {
@@ -2915,20 +2917,20 @@
       "sukuyo": {
         "moon": {
           "full": "満月",
-          "new": "ダークムーン",
+          "new": "新月",
           "crescent": "三日月",
           "gibbous": "上弦/下弦の月"
         },
-        "stickerLabel": "花 by Sukuyo",
-        "moonPhaseLabel": "ムーンフェイズ {moon}",
-        "guardianLabel": "ガーディアン {guardian}",
-        "scenarioTitle": "27 の邸宅と月相開花シナリオ",
+        "stickerLabel": "宿曜占星術で見る花",
+        "moonPhaseLabel": "月相 {moon}",
+        "guardianLabel": "守護動物 {guardian}",
+        "scenarioTitle": "27宿と月相の統合開花シナリオ",
         "ritualTip": "月明かりの窓辺で、27回呼吸して、今日の意志を一言で決めましょう。",
-        "relationshipTheme": "{group}の質感を踏襲し、緊張感を和らげ、つながりを明確にします。",
-        "careerTheme": "{guardian} のリズムが仕事のルーチンに反映されると、結果が安定します。",
-        "growthCycle": "星座をつなぐ「月光採り」精霊点火→開花",
-        "verdict": "宿曜の月光テクスチャーを通して、あなたの運命の花は{flowerName}({scientificName})です。 {mansion}、{moon}、{guardian} の組み合わせは、現在の人間関係、感情、行動のリズムと微妙に調和しています。",
-        "narrative": "{mansion} ({group}) の関係性テクスチャ、ムーンフェイズの潮流 {moon}、および {guardian} の保護パターンが夜の庭で出会い、{symbolism} の品質が深まります。一緒に読んでください。これらの 3 つの月明かりの信号は、今あなたの最も正確な運命の花として {flowerName} を示しています。",
+        "relationshipTheme": "{group}の流れに沿うほど、関係の緊張がほどけ、心の通い合いが鮮やかになります。",
+        "careerTheme": "{guardian}のパターンが持つ実行のリズムを仕事のルーティンに取り入れると、成果が安定します。",
+        "growthCycle": "星宿の結びつき → 月光の凝集 → 霊性の点火 → 開花",
+        "verdict": "月光の流れで読み解いたあなたの花は{flowerName}（{scientificName}）です。{mansion}・{moon}・{guardian}が重なり合うこの位置が、今のあなたの縁と感情、行動のリズムに最も繊細に噛み合っています。",
+        "narrative": "{mansion}（{group}）が結ぶ縁の流れ、月相{moon}が押し上げる感情の潮、守護動物{guardianJosa}が刻んだ守りの紋様が、真夜中の庭でひとつに重なります。この三筋の月光を重ねて読むと「{symbolism}」の気質が濃くにじみ出て、今のあなたに最もふさわしい一輪は{flowerName}です。",
         "mansions": {
           "m1": "角宿",
           "m2": "亢宿",
@@ -3154,20 +3156,20 @@
             }
           }
         },
-        "stickerLabel": "花 by Saju",
+        "stickerLabel": "四柱推命で見る花",
         "dayMasterWaiting": "デイマスターの読み取りを待っています",
         "signalPending": "コア信号を待機しています",
         "scenarioTitleFallback": "{dayMasterBadge} 開花シナリオ",
         "scenarioFallbackReason": "デイマスターと環境を統合して開花の流れを読み取りました。",
-        "growthCycle": "Sprout（エネルギーの集合） 「Growth（作用の増幅）」 Bloom（成果の表面化）→結実（関係と資産の深化）",
-        "fallbackNote": "デイマスターエンリッチメントロジックが適用されました。",
+        "growthCycle": "発芽（気を集める） → 伸長（行動を増幅） → 開花（成果が表に出る） → 結実（関係・資産の蓄積）",
+        "fallbackNote": "生年月日の情報だけで、日干の気を慎重に読み取りました。",
         "verdict": "あなたのサジュリーディングでは、あなたの花は {flowerName} ({scientificName}) です。",
         "rationale": {
           "verdict": "あなたのサジュリーディングでは、あなたの運命の花は {flowerName} ({scientificName}) です。",
           "elements": "ファイブ エレメントのリーディングでは、主なエネルギーとして {dominant}、補助的な流れとして {support} が示されています。",
           "context": "現在の運勢の季節は{season}、エネルギー密度は{water}、ライフステージは{environment}と読みます。",
           "dayMaster": "デイマスターは {dayMasterBadge} として確認され、その周囲の季節と環境の相互作用が優先されました。",
-          "scenario": "デイマスター環境シナリオ: {reason}",
+          "scenario": "{reason}",
           "levels": "要素レベルは {elementLevelLine} であり、運命の花を確認するために 5 つのレベルすべてが重み付けされています。",
           "symbolism": "この花は{symbolism}を象徴しており、今シーズンのテーマを最も明確に反映しています。",
           "description": "運命の花の読み方: {description}",
@@ -3319,7 +3321,7 @@
           "flowerLanguage": "若者に負けぬ元気、老いても元気で"
         },
         "astro_lavender": {
-          "name": "ネビュラベンダー",
+          "name": "星雲ラベンダー",
           "symbolism": "開花、ハーモニー、内なるリズム",
           "title": "ネビュラベンダー、いまの運命に開く花",
           "description": "ネビュラベンダーは、いま集まりつつある気配が静かなタイミングと感情の明晰さをもって形になる様子を映します。",
@@ -3839,7 +3841,7 @@
           "flowerLanguage": "純潔、甘美、威厳"
         },
         "lotus": {
-          "name": "ロータス",
+          "name": "蓮",
           "symbolism": "開花、ハーモニー、内なるリズム",
           "title": "ロータス、いまの運命に開く花",
           "description": "ロータスは、いま集まりつつある気配が静かなタイミングと感情の明晰さをもって形になる様子を映します。",
@@ -4612,7 +4614,7 @@
             "vibe": "星のリズムに合わせて呼吸すると、直感が研ぎ澄まされます。"
           },
           "jamidusu": {
-            "name": "牡丹",
+            "name": "紫微牡丹",
             "symbolism": "帝王の気品と中心の力",
             "keyword1": "帝王",
             "keyword2": "気品",
@@ -4620,7 +4622,7 @@
             "vibe": "中心を守る姿勢こそが、最後にいちばん遠くまで届きます。"
           },
           "sukuyo": {
-            "name": "百合",
+            "name": "ムーンリリー",
             "symbolism": "月明かりの中で清らかに咲く守護の花",
             "keyword1": "月明かり",
             "keyword2": "守護",
@@ -7800,10 +7802,9 @@
     },
     "fortuneGatewayDoor": {
       "fortuneGatewayDoorMeta": {
-        "k18ykrep": "ログインで無料1回",
-        "n115000": "会員登録後1回無料・以降1回3,000ウォン",
         "n130000": "1回30,000ウォン",
-        "k1lo4ibg": "最終クロス判定"
+        "k1lo4ibg": "最終クロス判定",
+        "n13000": "1回3,000ウォン"
       },
       "fortuneGatewayDoorGo": {
         "kkmvgqi": "鑑定を始める",

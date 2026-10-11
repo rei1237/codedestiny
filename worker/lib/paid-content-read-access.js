@@ -81,7 +81,8 @@ export function profileCardSolarBirth(card) {
 /**
  * 출생 기반 유료 콘텐츠 라우트의 단일 읽기 입구.
  * - profileId 는 필수, 이 계정 소유의 저장 프로필이어야 한다(아니면 MISSING_PROFILE_ID / INVALID_PROFILE).
- * - 해금 여부는 그 프로필의 **현재 출생 정보(birthKey)** 로만 판정한다. USER 행·계정 배열은 근거가 아니다.
+ * - 해금 여부는 그 프로필의 **현재 출생 정보(birthKey)** 의 BIRTH 행과, 출생 전환 이전의 레거시 USER/PROFILE 행으로 판정한다.
+ *   계정 배열은 근거가 아니다.
  * - 라우트는 요청 본문의 생년월일 대신 반환된 birth 로 계산해야 한다(다른 사람 출생으로 열람 차단).
  * - DB 오류는 호출자에게 전달한다(미구매 402 로 바뀌지 않게).
  * @returns {Promise<{ok:boolean, reason?:string, unlocked:boolean, card?:object, birth?:object|null}>}

@@ -37,14 +37,14 @@ function userWithExpiry(daysFromNow) {
   return expiresAt;
 }
 
-test("🔴 V2 이용권 주문(metadata.durationMonths)도 기간을 읽어 되감는다 — UNKNOWN_DURATION 으로 빠지지 않는다", async () => {
+test("🔴 V2 이용권 주문(metadata.durationMonths)도 이용권 주문으로 읽어 회수한다 — UNKNOWN_DURATION 으로 빠지지 않는다", async () => {
   userWithExpiry(20);
   const result = await revokeMembershipPassGrant({ userId: "64b000000000000000000001", metadata: { durationMonths: 1 } });
   expect(result).toMatchObject({ reverted: true });
   expect(result.reason).not.toBe("UNKNOWN_DURATION");
   const set = userUpdateOne.mock.calls[0][1].$set;
   expect(set["profileSubscription.tier"]).toBe("free");
-  expect(set["profileSubscription.expiresAt"].getTime()).toBeLessThan(Date.now());
+  expect(set["profileSubscription.expiresAt"].getTime()).toBeLessThanOrEqual(Date.now());
 });
 
 test("기간 근거가 어디에도 없으면 종전대로 UNKNOWN_DURATION 검토로 넘긴다", async () => {

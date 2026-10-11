@@ -66,13 +66,14 @@ import { hasUserScopedPermanentUnlock } from "../lib/paid-content-read-access.js
 import { isBirthUnlockIdentityError, resolveBirthUnlockIdentity } from "../lib/birth-scoped-unlock-identity.js";
 import {
   buildPassTerminationFields,
+  computePassExpiry,
   isPassBudgetExhausted,
   normalizePassTier,
   PASS_LIMITS,
   resolvePassPolicy,
-  HONEY_PASS_POLICY,
   resolveMonthlySpendQuota,
   resolvePremiumQuota,
+  resolveProfileLimitForClient,
 } from "../lib/profile-limits.js";
 import { invalidateAccessStateCacheForUser } from "../lib/access-state-cache.js";
 import {
@@ -1322,7 +1323,10 @@ async function resolvePaidContentAccess(env, {
     });
   }
 
-  if ((resolveSajuProfileUnlockContentKey(featureKey) || isBirthScopedUnlockFeatureKey(featureKey)) && !profileId) {
+  const birthScopedKey = isBirthScopedUnlockFeatureKey(featureKey);
+  const profileRequired = Boolean(resolveSajuProfileUnlockContentKey(featureKey)) || birthScopedKey;
+  // 출생 기반 키는 프로필 없이도 레거시 USER 행(전환 이전 결제)으로 열릴 수 있어 아래 조회까지 간다.
+  if (profileRequired && !profileId && !birthScopedKey) {
     return buildPaidContentAccessDecision({
       reason: "invalid_profile",
       priceCoin,
@@ -1351,6 +1355,12 @@ async function resolvePaidContentAccess(env, {
         unlockId: String(existingUnlock?._id || `user:${featureKey}`),
         priceCoin,
       }), priceCoin);
+    }
+    if (profileRequired && !profileId) {
+      return buildPaidContentAccessDecision({
+        reason: "invalid_profile",
+        priceCoin,
+      });
     }
 
     const activePass = existingPass || {
@@ -3529,7 +3539,24 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     idempotencyKey: body?.idempotencyKey || body?.purchaseId || body?.orderId || requestId,
   });
   const scopedBody = profileId ? { ...body, profileId, selectedProfileId: profileId } : body;
-  if (persistProfileUnlockEntitlement && !profileId) {
+  // 레거시 유지: 출생 기반 전환 이전 USER/PROFILE 행으로 이미 산 고객은 프로필 확인 실패로 막지 않는다.
+  // 아래 resolvePaidContentAccess 가 그 행으로 already_unlocked 를 돌려준다(재잠금·재과금 방지).
+  // 조회 오류는 false — 종전처럼 프로필 오류로 끝난다.
+  const hasLegacyBirthScopedUnlock = async () => {
+    if (!birthScopedGate) return false;
+    try {
+      return Boolean(await withMongoRetry(env, () => findActiveSajuProfileUnlock(env, {
+        userId: authCheck.auth.userId,
+        profileId,
+        partnerProfileId: cleanProfileId(body?.partnerProfileId),
+        featureKey: pricing.featureKey,
+        contentKey: body?.contentKey,
+      })));
+    } catch {
+      return false;
+    }
+  };
+  if (persistProfileUnlockEntitlement && !profileId && !(await hasLegacyBirthScopedUnlock())) {
     return failure(
       birthScopedGate ? 400 : 403,
       "MISSING_PROFILE_ID",
@@ -3551,7 +3578,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
   // 🔴 소유 확인은 어떤 차감·지급보다 먼저다. 이 계정의 저장 프로필이 아니면(다른 계정·삭제·합성 id)
   // 403, 궁합 상대가 없으면 400. 여기서 만든 신원(birthKey)으로 판정하고 지급한다.
   let birthUnlockIdentity = null;
-  if (birthScopedGate) {
+  if (birthScopedGate && profileId) {
     try {
       birthUnlockIdentity = await withMongoRetry(env, async () => {
         await connectDb(env);
@@ -3578,18 +3605,20 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
           }),
         });
       }
-      const missing = error.code === "MISSING_PROFILE_ID";
-      return failure(missing ? 400 : 403, error.code, error.message, undefined, {
-        pricing,
-        reason: missing ? "missing_profile_id" : "invalid_profile",
-        accessGrant: null,
-        paymentOptions: buildPassPaymentDecision(
-          subscriptionPassForDecision?.entitlement,
+      if (!(await hasLegacyBirthScopedUnlock())) {
+        const missing = error.code === "MISSING_PROFILE_ID";
+        return failure(missing ? 400 : 403, error.code, error.message, undefined, {
           pricing,
-          subscriptionPassForDecision?.profileSubscription,
-        ),
-        requiresProfile: true,
-      });
+          reason: missing ? "missing_profile_id" : "invalid_profile",
+          accessGrant: null,
+          paymentOptions: buildPassPaymentDecision(
+            subscriptionPassForDecision?.entitlement,
+            pricing,
+            subscriptionPassForDecision?.profileSubscription,
+          ),
+          requiresProfile: true,
+        });
+      }
     }
   }
   let paymentDecision = buildPassPaymentDecision(null, pricing, null);
@@ -4703,8 +4732,9 @@ function requireDevPaymentTesterAccess(env) {
 function buildDevPassPatch(tier, now) {
   const normalizedTier = normalizePassTier(tier);
   const passLimit = Number(PASS_LIMITS[normalizedTier] || 0);
-  const profileLimit = Number(HONEY_PASS_POLICY[normalizedTier]?.maxProfiles ?? 1);
-  const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+  const profileLimit = resolveProfileLimitForClient();
+  // 실결제와 같은 표현(기간 없음 — 한도 소진 시 종료)으로 맞춘다.
+  const expiresAt = computePassExpiry({ transition: { code: "NEW" }, paidAt: now, now });
   return {
     tier: normalizedTier,
     source: "event",
@@ -5369,7 +5399,7 @@ async function readBillingSnapshot(request, env, options = {}) {
       freeLimit: entitlement.maxCoveredCoin,
       passLimit: entitlement.maxCoveredCoin,
       maxCoveredCoin: entitlement.maxCoveredCoin,
-      profileLimit: entitlement.maxProfiles,
+      profileLimit: resolveProfileLimitForClient(), // 2026-10-11 프로필 개수 상한 없음(0 = 무제한)
       source: entitlement.source,
       expiresAt: entitlement.expiresAt || sub?.expiresAt || null,
       monthlyStoneBalance: membershipCreditBalance,
@@ -5763,7 +5793,7 @@ async function handleUnlockStatus(request, env) {
   const unlockMap = data.unlockMap && typeof data.unlockMap === "object" ? { ...data.unlockMap } : {};
   let pricing = pricingResult.pricing;
   // 출생 기반 키는 스냅샷 맵(현재 카드 기준 + 계정 배열 합집합)을 근거로 쓰지 않는다. 요청한 profileId 의
-  // 출생으로 판정하는 아래 resolvePaidContentAccess(BIRTH 행)만 unlocked 를 켤 수 있다.
+  // 출생으로 판정하는 아래 resolvePaidContentAccess(BIRTH 행 + 레거시 USER/PROFILE 행)만 unlocked 를 켤 수 있다.
   const birthScopedStatus = isBirthScopedUnlockFeatureKey(pricing.featureKey);
   if (birthScopedStatus) delete unlockMap[pricing.featureKey];
   let unlocked = birthScopedStatus ? false : Boolean(unlockMap[pricing.featureKey]);

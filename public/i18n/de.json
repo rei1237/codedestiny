@@ -814,10 +814,10 @@
       "aria": "Moonlight-Passführer",
       "kicker": "MOONLIGHT PASS",
       "title": "Lassen Sie Ihre Glücksroutine mit einem Mondschein-Pass sanfter ablaufen",
-      "desc": "Der Moonlight Pass öffnet 30 Tage lang – innerhalb eines festgelegten Bereichs – die Readings, zu denen du oft zurückkehrst. Die Zeichen des Tages laufen ohne Unterbrechung weiter.",
+      "desc": "Der Moonlight Pass öffnet – innerhalb eines festgelegten Bereichs, bis sein Nutzungslimit aufgebraucht ist – die Readings, zu denen du oft zurückkehrst. Die Zeichen des Tages laufen ohne Unterbrechung weiter.",
       "guideLabel": "MONDLICHT-LEITFADEN",
-      "guideTitle": "30 Tage lang oeffnen sich oft besuchte Deutungen sanfter zuerst",
-      "guideText": "Von Standard bis Family oeffnen sich Tarot-, Orakel- und Saju-Deutungen innerhalb deines Mondlicht-Rahmens zuerst ohne Zahlungsfluss. Tiefere Deutungen ausserhalb dieses Rahmens fuehren nur bei Bedarf zur einmaligen KRW-Zahlung.",
+      "guideTitle": "Bis dein Nutzungslimit aufgebraucht ist, öffnen sich oft besuchte Deutungen sanfter zuerst",
+      "guideText": "Vom Kleinen Honigglas bis zum Familien-Honigglas öffnen sich Tarot-, Orakel- und Saju-Deutungen innerhalb deines Mondlicht-Rahmens zuerst ohne Zahlungsfluss. Tiefere Deutungen außerhalb dieses Rahmens führen nur bei Bedarf zur einmaligen KRW-Zahlung.",
       "toggle": "Offene Moonlight-Vorteile",
       "heroAria": "Überprüfen Sie die im Moonlight Flow kostenlos verfügbaren Dienste",
       "heroTitle": "Den Umfang des Moonlight Pass ansehen",
@@ -829,42 +829,43 @@
       "primaryAction": "Finden Sie den Pass, der zu mir passt",
       "chipsAria": "Vorteile des Hauptpasses",
       "chipIncluded": "Frei innerhalb der Passreichweite",
-      "chipThirtyDays": "30-Tage-Pass",
+      "chipThirtyDays": "Pass",
       "chipShareReward": "Einzelzahlung außerhalb des Bereichs",
       "plansAria": "Passplan-Zusammenfassungskarten",
-      "standardName": "Standardhonig 30 Tage",
-      "standardPrice": "30 Tage · 9.900 KRW",
+      "standardName": "Kleines Honigglas",
+      "standardPrice": "9.900 KRW",
       "standardLine": "Inhalte bis 5.000 KRW",
-      "standardBenefit1": "Bis zu 20.000 KRW pro Monat",
-      "standardCta": "Standard anzeigen",
+      "standardBenefit1": "Bis zu 20.000 KRW",
+      "standardCta": "Kleines Honigglas ansehen",
       "recommendedAria": "Empfohlener Plan",
       "recommendedBadge": "Empfohlen",
-      "premiumName": "Premium-Honig 30 Tage",
-      "premiumPrice": "30 Tage · 29.900 KRW",
+      "premiumName": "Mittleres Honigglas",
+      "premiumPrice": "29.900 KRW",
       "premiumLine": "Inhalte bis 10.000 KRW",
-      "premiumBenefit1": "Bis zu 60.000 KRW pro Monat",
+      "premiumBenefit1": "Bis zu 60.000 KRW",
       "premiumCta": "Empfohlenen Plan anzeigen",
-      "vvipName": "VVIP Honigglas 30 Tage",
-      "vvipPrice": "30 Tage · 59.900 KRW",
+      "vvipName": "Großes Honigglas",
+      "vvipPrice": "59.900 KRW",
       "vvipLine": "Inhalte bis 30.000 KRW",
-      "vvipBenefit1": "Bis zu 120.000 KRW pro Monat",
-      "vvipCta": "VVIP-Vorteile anzeigen",
-      "familyName": "Code Destiny Family 30 Tage",
-      "familyPrice": "30 Tage · 149.000 KRW",
+      "vvipBenefit1": "Bis zu 120.000 KRW",
+      "vvipCta": "Vorteile des Großen Honigglases ansehen",
+      "familyName": "Familien-Honigglas",
+      "familyPrice": "149.000 KRW",
       "familyLine": "Alle im Pass enthaltenen Inhalte",
-      "familyBenefit1": "Bis zu 350.000 KRW pro Monat",
-      "familyCta": "Familie anzeigen",
-      "premiumNote": "Premium Honey ist die ausgewogenste Wahl, wenn Sie oft Inhalte um 10.000 KRW nutzen.",
-      "footnote": "Neue Pässe werden nur als 30-Tage-Pässe verkauft. Bei diesem 30-Tage-Pass handelt es sich nicht um ein Abonnement mit automatischer Verlängerung. Dienste außerhalb des Passbereichs können mit einer einmaligen KRW-Zahlung pro Produkt genutzt werden.",
+      "familyBenefit1": "Bis zu 350.000 KRW",
+      "familyCta": "Familien-Honigglas ansehen",
+      "premiumNote": "Das Mittlere Honigglas ist die ausgewogenste Wahl, wenn Sie oft Inhalte um 10.000 KRW nutzen.",
+      "footnote": "Pässe haben keine Laufzeitbegrenzung und enden, wenn das Nutzungslimit aufgebraucht ist. Bei diesem Pass handelt es sich nicht um ein Abonnement mit automatischer Verlängerung. Dienste außerhalb des Passbereichs können mit einer einmaligen KRW-Zahlung pro Produkt genutzt werden.",
       "howtoAria": "So nutzt du den Moonlight Pass",
       "howtoTitle": "So läuft der Moonlight Pass",
-      "step1Label": "Wähle einen 30-Tage-Mondbereich",
-      "step1Text": "Mit einem 30-Tage-Pass ohne automatische Verlängerung legst du zuerst die Preisspanne der Readings fest, die du oft ansiehst.",
+      "step1Label": "Wähle einen Mondbereich",
+      "step1Text": "Mit einem Pass ohne Laufzeitbegrenzung und ohne automatische Verlängerung legst du zuerst die Preisspanne der Readings fest, die du oft ansiehst.",
       "step2Label": "Readings im Bereich öffnen ohne Bezahlung",
       "step2Text": "Tarot-, Orakel- und Saju-Readings innerhalb deines Bereichs öffnen sich sofort, ganz ohne Bezahlfenster.",
       "step3Label": "Nur tiefere Readings kosten pro Nutzung",
       "step3Text": "Readings außerhalb deines Bereichs führen nur bei Bedarf zu einer einmaligen KRW-Zahlung.",
-      "terminationNote": "Auch wenn das Monatslimit null erreicht, bleiben Ablaufdatum, Stufe und Profilgrenze des Passes erhalten. Zusätzliche kostenpflichtige Inhalte sind per Einzelzahlung oder Monatspass verfügbar."
+      "terminationNote": "Wenn das Nutzungslimit aufgebraucht ist, endet der Pass. Bei einem erneuten Kauf beginnst du mit einem neuen Nutzungslimit. Zusätzliche kostenpflichtige Inhalte sind per Einzelzahlung oder mit Mondlichtsteinen verfügbar.",
+      "noExpiryNote": "Ohne Laufzeitbegrenzung · Endet, wenn das Nutzungslimit aufgebraucht ist"
     },
     "promptHub": {
       "aria": "Gehen Sie zu umfassenden Glücksfragen",
@@ -905,11 +906,11 @@
       "eyebrow": "Mondscheinpass",
       "savingsBadge": "Mit Pass bis zu einem Drittel des Preises",
       "title": "Zwei Readings zu 5.000 KRW kosten bereits mehr als der Pass für 9.900 KRW",
-      "desc": "Readings innerhalb der gewählten Preisspanne öffnen sich 30 Tage lang im Rahmen Ihres monatlichen Nutzungslimits; nur teurere Readings zahlen Sie bei Bedarf einzeln. Die vier Stufen sind 5.000 KRW · 10.000 KRW · 20.000 KRW und alle im Pass enthaltenen Inhalte – wählen Sie die Preisklasse, die Sie am häufigsten nutzen.",
+      "desc": "Readings innerhalb der gewählten Preisspanne öffnen sich, bis Ihr Nutzungslimit aufgebraucht ist; nur teurere Readings zahlen Sie bei Bedarf einzeln. Die vier Stufen sind 5.000 KRW · 10.000 KRW · 20.000 KRW und alle im Pass enthaltenen Inhalte – wählen Sie die Preisklasse, die Sie am häufigsten nutzen.",
       "pointsAria": "Core-Pass-Anleitung",
       "point1": "Öffnet sofort, ohne Bezahlvorgang",
-      "point2": "3 oder mehr Profile speichern",
-      "point3": "Ein 30-Tage-Pass ohne automatische Verlängerung",
+      "point2": "Ohne Laufzeitbegrenzung · Endet, wenn das Nutzungslimit aufgebraucht ist",
+      "point3": "Ein Pass ohne automatische Verlängerung",
       "mascotAria": "Vorteile des Moonlight Pass ansehen · Moonlight-Pass-Shop",
       "mascotAlt": "Bild der Moonlight-Pass-Vorteile",
       "mascotKicker": "Moonlight Pass Guide",
@@ -1652,12 +1653,12 @@
       "saysName": "Yeoni",
       "saysLine": "Which reading shall we start with? Just one is plenty.",
       "passMascotAlt": "Yeoni the flower pig smiling with a pass card",
-      "passEyebrow": "30-day pass, no auto-renewal",
-      "passTitle": "Reading often? Try a 30-day pass",
-      "passDesc": "Each reading's price is deducted from your allowance. It ends automatically after 30 days.",
-      "passPer": "/ 30 days",
+      "passEyebrow": "Pass ohne Laufzeitbegrenzung und ohne automatische Verlängerung",
+      "passTitle": "Yeoni stellt dir den Pass vor",
+      "passDesc": "Ab und zu per Einzelzahlung, bei häufiger Nutzung mit einem Pass. Prüfe, welche Beratungen du nutzen kannst, und dein Nutzungslimit.",
+      "passPer": "· Ohne Laufzeitbegrenzung",
       "passBadge": "Incl. Yeongnyangi",
-      "passNote": "Standard, Premium and VVIP apply to Flower Pig readings; Family applies to paid readings from both Flower Pig and Yeongnyangi. Passes you already bought keep the terms from the time of purchase.",
+      "passNote": "Kleines, Mittleres und Großes Honigglas gelten für Flower-Pig-Deutungen; das Familien-Honigglas gilt für kostenpflichtige Deutungen von Flower Pig und Yeongnyangi. Bereits gekaufte Pässe behalten die Bedingungen zum Kaufzeitpunkt.",
       "passCta": "See all 4 passes",
       "moreTitle": "Yeonis Atelier entdecken",
       "moreItems": "Daily readings · consultations · records · stories",
@@ -1726,7 +1727,7 @@
     "chatEntry": {
       "title": "Ask Yeoni and Neo the one thing on your mind right now",
       "cta": "Talk through my concern",
-      "price": "1 free after signing up · ₩3,000 each after"
+      "price": "3.000 ₩ je Sitzung"
     },
     "svcQuestion": {
       "master-love-codex": "When will my next relationship begin?",
@@ -1832,9 +1833,9 @@
       "reviewReward": "Moonstones after publication approval",
       "reviewDetail": "Use them in Ggulggul. Awarded once per product.",
       "reviewAction": "Write a review",
-      "passStandard": "Yeoni Standard",
-      "passPremium": "Yeoni Premium",
-      "passVvip": "Yeoni VVIP",
+      "passStandard": "Kleines Honigglas",
+      "passPremium": "Mittleres Honigglas",
+      "passVvip": "Großes Honigglas",
       "passPerLimit": "Up to KRW {amount} per reading",
       "passTotal": "Total allowance: KRW {amount}",
       "passNoLimit": "No per-reading price limit",
@@ -1862,7 +1863,8 @@
       "neoClassSource": "Saju student · KakaoTalk excerpt (Korean)",
       "neoNote": "Excerpts from Neo’s personal consultations and classes, separate from the AI reading service. Individual experiences do not guarantee similar results.",
       "neoAbout": "About Neo and the service",
-      "neoMore": "More consultation reviews"
+      "neoMore": "More consultation reviews",
+      "passFamily": "Familien-Honigglas"
     },
     "simple": {
       "lead": "Erzähle, was dich beschäftigt. Sieh dir zuerst Inhalt und Preis an.",
@@ -2339,13 +2341,13 @@
         "passSaveUnverified": "Das Ergebnis der Pass-Anwendung konnte nicht gespeichert werden. Prüfe es unten mit der Pass-Karte erneut oder wähle eine andere Zahlungsart.",
         "passCheckFailed": "Wir konnten deinen Pass nicht prüfen. Versuche es unten mit der Pass-Karte erneut oder wähle eine andere Zahlungsart.",
         "passMiss": "Dein Pass öffnet diesen Inhalt nicht kostenlos – hier sind die Zahlungsoptionen.",
-        "passMonthlyExhausted": "Your pass allowance is fully used, so the pass has ended. Here are the payment options."
+        "passMonthlyExhausted": "Your pass usage limit is fully used, so the pass has ended. Here are the payment options."
       },
       "passBadge": "Mondscheinpass",
       "passStoreTitle": "Moonlight Pass Shop",
       "passRetryTitle": "Überprüfen Sie erneut, ob die Prüfung bestanden hat",
       "passHint": {
-        "store": "Einmal zahlen und 30 Tage lang viele Inhalte öffnen. Schon einen? Tippen zum Prüfen.",
+        "store": "Einmal zahlen und viele Inhalte öffnen, bis das Nutzungslimit aufgebraucht ist. Schon einen? Tippen zum Prüfen.",
         "retry": "Wir prüfen erneut auf dem Server, ob Ihr Pass dies ohne Bezahlung öffnen kann.",
         "upgrade": "Deine aktuelle Stufe öffnet diesen Inhalt nicht. Sieh dir eine höhere Stufe an."
       },
@@ -2418,7 +2420,7 @@
         "comingSoon": "Demnächst verfügbar",
         "back": "Zurück"
       },
-      "passMonthlyExhausted": "Your pass allowance is fully used, so the pass has ended. Buying a new pass starts another 30 days; for now you can open this with a one-time payment or moonstones.",
+      "passMonthlyExhausted": "Your pass usage limit is fully used, so the pass has ended. Buying again starts a new usage limit; for now you can open this with a one-time payment or moonstones.",
       "passMonthlyRemaining": "Pass allowance left {remaining} / {limit}",
       "wait": {
         "card": "After you finish verifying in your card or payment app, come back to this browser and checkout will continue automatically.",
@@ -2450,7 +2452,7 @@
         "pass": {
           "eyebrow": "MOONLIGHT PASS CHECK",
           "title": "Überprüfen Sie Ihren Pass",
-          "message": "Prüfen Sie, ob Ihr 30-Tage-Pass dies sofort öffnen kann.",
+          "message": "Wir prüfen, ob Ihr Pass dies sofort öffnen kann.",
           "meta": "Falls verfügbar, fahren Sie ohne Checkout-Fenster fort."
         },
         "passApplied": {
@@ -2521,7 +2523,7 @@
         "pass": {
           "eyebrow": "MOONLIGHT PASS CHECK",
           "title": "Überprüfen Sie Ihren Pass",
-          "message": "Prüfen Sie, ob Ihr 30-Tage-Pass dies sofort öffnen kann.",
+          "message": "Wir prüfen, ob Ihr Pass dies sofort öffnen kann.",
           "meta": "Falls verfügbar, fahren Sie ohne Checkout-Fenster fort."
         },
         "passApplied": {
@@ -2605,7 +2607,7 @@
     "passShop": {
       "monthlyStatus": "Dein Mondstein-Guthaben ist bestätigt.",
       "chargeButton": "Zur Zahlungsseite für {amount} gehen",
-      "chargeNotice": "Pass-Produkt {price} · Dies ist ein 30-Tage-Pass ohne automatische Verlängerung. Pässe sind nur per Einmalzahlung in KRW erhältlich.",
+      "chargeNotice": "Pass-Produkt {price} · Dies ist ein Pass ohne automatische Verlängerung. Pässe sind nur per Einmalzahlung in KRW erhältlich.",
       "best": "BEST",
       "monthlyBasisWithPrice": "Monatliche Kreditbasis {credits} · {price}",
       "profileUnlimited": "Unbegrenzte Profile",
@@ -2616,24 +2618,24 @@
       "closeAria": "Moonlight Pass Shop-Guide schließen",
       "openAria": "Öffnen Sie den Moonlight Pass Shop-Guide",
       "title": "Moonlight Pass Shop-Guide",
-      "subtitle": "Überprüfen Sie den 30-Tage-Pass und den monatlichen Kreditfluss im Mondlicht.",
-      "footerNotice": "Bei diesem 30-Tage-Pass handelt es sich nicht um ein Produkt mit automatischer Verlängerung. Sie müssen es nach Ablauf erneut kaufen.",
+      "subtitle": "Pässe werden per Einmalzahlung in KRW gekauft; Mondlichtsteine werden für einzelne kostenpflichtige Funktionen verwendet.",
+      "footerNotice": "Bei diesem Pass handelt es sich nicht um ein Produkt mit automatischer Verlängerung. Sie müssen ihn erneut kaufen, sobald das Nutzungslimit aufgebraucht ist.",
       "packages": {
         "standard": {
-          "name": "Standardhonig 30 Tage",
-          "desc": "30 Tage · Inhalte bis 5.000 KRW · Bis zu 20.000 KRW pro Monat"
+          "name": "Kleines Honigglas",
+          "desc": "Inhalte bis 5.000 KRW · Bis zu 20.000 KRW"
         },
         "premium": {
-          "name": "Premium-Honig 30 Tage",
-          "desc": "30 Tage · Inhalte bis 10.000 KRW · Bis zu 60.000 KRW pro Monat"
+          "name": "Mittleres Honigglas",
+          "desc": "Inhalte bis 10.000 KRW · Bis zu 60.000 KRW"
         },
         "vvip": {
-          "name": "VVIP Honigglas 30 Tage",
-          "desc": "30 Tage · Inhalte bis 30.000 KRW · Bis zu 120.000 KRW pro Monat"
+          "name": "Großes Honigglas",
+          "desc": "Inhalte bis 30.000 KRW · Bis zu 120.000 KRW"
         },
         "family": {
-          "name": "Code Destiny Family 30 Tage",
-          "desc": "30 Tage · Alle im Pass enthaltenen Inhalte · Bis zu 350.000 KRW pro Monat"
+          "name": "Familien-Honigglas",
+          "desc": "Alle im Pass enthaltenen Inhalte · Bis zu 350.000 KRW"
         }
       },
       "monthlyStatusChecking": "Guthaben und Pass-Status werden überprüft.",
@@ -2642,7 +2644,7 @@
       "monthlyButton": "Mit {credits} Monatsguthaben bezahlen",
       "monthlyButtonBusy": "Pass wird mit Monatsguthaben aktiviert...",
       "monthlyButtonShort": "{credits} nötig · Guthaben zu gering",
-      "terminationNotice": "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day."
+      "terminationNotice": "Wenn das Nutzungslimit aufgebraucht ist, endet der Pass. Bei einem erneuten Kauf beginnst du mit einem neuen Nutzungslimit. Zusätzliche kostenpflichtige Inhalte sind per Einzelzahlung oder mit Mondlichtsteinen verfügbar."
     },
     "access": {
       "passAppliedContinue": "Mit Ihrem Pass geöffnet."
@@ -2752,25 +2754,25 @@
         "ritualTip": "Beruhigen Sie heute Abend drei Minuten lang Ihren Atem und setzen Sie eine Absicht unter einen Stern.",
         "relationshipTheme": "Wenn Beziehungen dem Rhythmus Ihres Hauptzeichens folgen, wird die Reibung gemildert.",
         "careerTheme": "Bringen Sie den Kernantrieb Ihres Sonnenzeichens in Ihren Arbeitsalltag ein, um eine gleichmäßigere Dynamik zu erzielen.",
-        "growthCycle": "Sternruf „Orbit bildender“ Nebel blüht → Strahlung breitet sich aus",
+        "growthCycle": "Ruf der Sterne → Bahnbildung → Nebelblüte → Ausbreitung des Glanzes",
         "fallbackNote": "Sonnenzeichendaten waren nicht verfügbar, daher wurde für die Messung das Standardelement Luft verwendet.",
         "ultimateTitle": "Ultimative Schicksalsblume",
         "ultimateConcept": "Eine hybride Blüte, bei der östliche {dayMaster}-Energie mit westlichem {sunSign}-Sternenlicht verschmilzt",
         "verdict": "Laut Astrologie ist Ihre Schicksalsblume {flowerName} ({scientificName}). Die drei Achsen der Sonnen-, Aufgangs- und Mondzeichen zeigen, dass diese Blume jetzt eng mit Ihnen in Resonanz steht.",
         "narrative": "Der Funke {sunElement}, der aus dem Sonnenzeichen {sun} aufsteigt, wird zum Mittelpunkt dieser Blumenauswahl. Das aufsteigende Zeichen {rising} ({risingElement}) prägt den sichtbaren Ton, während das Mondzeichen {moon} ({moonElement}) emotionalen Tau hinzufügt und das Symbol von {flowerName}, {flowerSymbolism}, deutlich öffnen. Das Schlüsselwort „{keyword}“ ist das Sternenlicht, das diese Blume nach vorne ruft.",
         "signs": {
-          "aries": "Aries",
-          "taurus": "Taurus",
-          "gemini": "Gemini",
-          "cancer": "Cancer",
-          "leo": "Leo",
-          "virgo": "Virgo",
-          "libra": "Libra",
-          "scorpio": "Scorpio",
-          "sagittarius": "Sagittarius",
-          "capricorn": "Capricorn",
-          "aquarius": "Aquarius",
-          "pisces": "Pisces"
+          "aries": "Widder",
+          "taurus": "Stier",
+          "gemini": "Zwillinge",
+          "cancer": "Krebs",
+          "leo": "Löwe",
+          "virgo": "Jungfrau",
+          "libra": "Waage",
+          "scorpio": "Skorpion",
+          "sagittarius": "Schütze",
+          "capricorn": "Steinbock",
+          "aquarius": "Wassermann",
+          "pisces": "Fische"
         },
         "rationaleLabel": {
           "sun": "Sonnenzeichen",
@@ -2784,8 +2786,8 @@
           "li": "Li (利)",
           "de": "De (得)",
           "ping": "Ping (平)",
-          "han": "Xian (閑)",
-          "xian": "Xian (陷)",
+          "han": "Xián (閑)",
+          "xian": "Xiàn (陷)",
           "bu": "Bu (不)"
         },
         "coreFlow": "Kern-Glücksfluss",
@@ -2797,7 +2799,7 @@
         "ritualTip": "Kern-Keyword heute: {keyword}",
         "relationshipTheme": "Lassen Sie das Temperament eines starken Stars zu Ihrem Beziehungsstandard werden und die Harmonie wird klarer.",
         "careerTheme": "Wenn die Stärke des Hauptstars im Vordergrund steht, stabilisieren sich Ausführung und Positionierung.",
-        "growthCycle": "Sternausrichtung „Energie sammeln“ Samenzündung → Blüte",
+        "growthCycle": "Sternausrichtung → Bündelung der Energie → Zündung des Samens → Blüte",
         "secondaryFallbackNote": "Zusammengesetzte Hauptstern-Anpassung: {primaryStar} zentriert + {secondaryStar} Duftmischung",
         "palaceFallbackNote": "Anpassung der Palasteigenschaften: {palace} · {trait}",
         "hybridHint": "Hybrid-Rendering verfügbar durch Mischung der Energie von Saju {dayMaster} mit Ziwei-Hauptsternen {stars}",
@@ -2808,7 +2810,7 @@
           "peonyZiwei": {
             "title": "Kaiserliche Pfingstrose",
             "keyword": "kaiserliche Haltung",
-            "personality": "ein Anführer, der das Feld zentriert und die Ordnung wiederherstellt"
+            "personality": "ein Anführer, der in der Mitte steht und um sich herum Ordnung schafft"
           },
           "thornyRoseGeneral": {
             "title": "Rote Rose des Generals",
@@ -2817,7 +2819,7 @@
           },
           "thornyRosePioneer": {
             "title": "Rote Rose des Pioniers",
-            "keyword": "der Antrieb, das Feld umzugestalten",
+            "keyword": "die Kraft, die das Spiel verändert",
             "personality": "ein Innovator, der den alten Rahmen sprengt und eine neue Ordnung eröffnet"
           },
           "delicateWillow": {
@@ -2826,9 +2828,9 @@
             "personality": "ein Stratege, der den Moment erkennt und die sauberste Antwort findet"
           },
           "sunflowerZiwei": {
-            "title": "Sonnensonnenblume",
+            "title": "Sonnenblume der Sonne",
             "keyword": "expandierendes Licht",
-            "personality": "ein Testamentsvollstrecker, der seine Energie für sichtbare Ergebnisse sammelt"
+            "personality": "ein Macher, der seine Energie auf das Ziel bündelt und sichtbare Ergebnisse erzielt"
           },
           "nightCereus": {
             "title": "Mondheller, nachtblühender Cereus",
@@ -2915,20 +2917,20 @@
       "sukuyo": {
         "moon": {
           "full": "Vollmond",
-          "new": "dunkler Mond",
-          "crescent": "Halbmond",
+          "new": "Neumond",
+          "crescent": "Mondsichel",
           "gibbous": "zunehmender/abnehmender Mond"
         },
-        "stickerLabel": "Blume von Sukuyo",
+        "stickerLabel": "Blume nach Sukuyo",
         "moonPhaseLabel": "Mondphase {moon}",
-        "guardianLabel": "Wächter {guardian}",
-        "scenarioTitle": "27 Villen und ein Mondphasen-Blühszenario",
+        "guardianLabel": "Schutztier {guardian}",
+        "scenarioTitle": "Blühszenario aus 27 Mondstationen und Mondphase",
         "ritualTip": "Atmen Sie an einem mondbeschienenen Fenster 27 Mal ein und formulieren Sie die heutige Absicht in einem Wort.",
         "relationshipTheme": "Der Textur von {group} zu folgen, mildert Spannungen und klärt Verbindungen.",
         "careerTheme": "Wenn sich der Rhythmus von {guardian} in Ihrer Arbeitsroutine widerspiegelt, stabilisieren sich die Ergebnisse.",
-        "growthCycle": "Konstellation, die „Mondlicht sammeln“ Geisterzündung → Blüte verbindet",
+        "growthCycle": "Verbindung der Sternbilder → Bündelung des Mondlichts → spirituelle Zündung → Blüte",
         "verdict": "Durch Sukuyos Mondlichttextur ist Ihre Schicksalsblume {flowerName} ({scientificName}). Die Kombination aus {mansion}, {moon} und {guardian} passt sich genau dem Rhythmus von Beziehung, Emotionen und Handeln an.",
-        "narrative": "Die relationale Textur von {mansion} ({group}), die Flut der Mondphase {moon} und das Schutzmuster von {guardian} treffen im Nachtgarten aufeinander und vertiefen die Qualität von{symbolism}. Wenn man sie zusammen liest, deuten diese drei mondbeschienenen Signale darauf hin, dass {flowerName} jetzt Ihre genaueste Schicksalsblume ist.",
+        "narrative": "Die relationale Textur von {mansion} ({group}), die Flut der Mondphase {moon} und das Schutzmuster von {guardianJosa} treffen im Nachtgarten aufeinander und vertiefen die Qualität von {symbolism}. Wenn man sie zusammen liest, deuten diese drei mondbeschienenen Signale darauf hin, dass {flowerName} jetzt Ihre genaueste Schicksalsblume ist.",
         "mansions": {
           "m1": "Kaku (角)",
           "m2": "Kou (亢)",
@@ -3154,20 +3156,20 @@
             }
           }
         },
-        "stickerLabel": "Blume von Saju",
+        "stickerLabel": "Blume nach Saju",
         "dayMasterWaiting": "Warten auf Tagesmasterlesung",
         "signalPending": "Warten auf Kernsignale",
         "scenarioTitleFallback": "{dayMasterBadge} blühendes Szenario",
         "scenarioFallbackReason": "Der blühende Fluss wurde durch die Integration des Tagesmeisters und der Umgebung gelesen.",
-        "growthCycle": "Sprießen (Energie sammeln) „Wachstum (verstärkende Wirkung)“ Blühen (Ergebnisse sichtbar werden) → Früchte tragen (Beziehungen und Vermögenswerte werden vertieft)",
-        "fallbackNote": "Day-Master-Anreicherungslogik wurde angewendet.",
+        "growthCycle": "Keimen (Energie sammeln) → Wachsen (Handeln verstärken) → Blühen (Ergebnisse werden sichtbar) → Fruchten (Beziehungen und Vermögen aufbauen)",
+        "fallbackNote": "Wir haben die Energie deines Tagesmeisters behutsam allein aus deinem Geburtsdatum gelesen.",
         "verdict": "In Ihrer Saju-Lesung ist Ihre Blume {flowerName} ({scientificName}).",
         "rationale": {
           "verdict": "In Ihrer Saju-Lesung ist Ihre Schicksalsblume {flowerName} ({scientificName}).",
           "elements": "Die Fünf-Elemente-Lesung zeigt {dominant} als Ihre Hauptenergie und {support} als unterstützenden Fluss.",
           "context": "Die Jahreszeit des aktuellen Vermögens ist {season}, die Energiedichte ist {water} und die Lebensphase wird als {environment} gelesen.",
           "dayMaster": "Der Tagesmaster wurde als {dayMasterBadge} bestätigt und die ihn umgebende Saison-Umgebungs-Interaktion wurde priorisiert.",
-          "scenario": "Tages-Master-Umgebungsszenario: {reason}",
+          "scenario": "{reason}",
           "levels": "Die Elementebenen sind {elementLevelLine}, und alle fünf Ebenen wurden gewichtet, um die Schicksalsblume zu bestätigen.",
           "symbolism": "Diese Blume symbolisiert {symbolism} und spiegelt das Thema dieser Saison am deutlichsten wider.",
           "description": "Destiny-Blumenlesung: {description}",
@@ -7800,10 +7802,9 @@
     },
     "fortuneGatewayDoor": {
       "fortuneGatewayDoorMeta": {
-        "k18ykrep": "1× kostenlos nach Anmeldung",
-        "n115000": "1× kostenlos nach Registrierung · danach 3.000 ₩ je Deutung",
         "n130000": "30.000 ₩ je Deutung",
-        "k1lo4ibg": "abschließender Abgleich"
+        "k1lo4ibg": "abschließender Abgleich",
+        "n13000": "3.000 ₩ je Sitzung"
       },
       "fortuneGatewayDoorGo": {
         "kkmvgqi": "Start a reading",
@@ -20535,18 +20536,18 @@
       "pig": "Pig"
     },
     "sign": {
-      "aries": "Aries",
-      "taurus": "Taurus",
-      "gemini": "Gemini",
-      "cancer": "Cancer",
-      "leo": "Leo",
-      "virgo": "Virgo",
-      "libra": "Libra",
-      "scorpio": "Scorpio",
-      "sagittarius": "Sagittarius",
-      "capricorn": "Capricorn",
-      "aquarius": "Aquarius",
-      "pisces": "Pisces"
+      "aries": "Widder",
+      "taurus": "Stier",
+      "gemini": "Zwillinge",
+      "cancer": "Krebs",
+      "leo": "Löwe",
+      "virgo": "Jungfrau",
+      "libra": "Waage",
+      "scorpio": "Skorpion",
+      "sagittarius": "Schütze",
+      "capricorn": "Steinbock",
+      "aquarius": "Wassermann",
+      "pisces": "Fische"
     },
     "stem": {
       "wood": "Wood",

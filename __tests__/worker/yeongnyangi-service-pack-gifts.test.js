@@ -230,7 +230,8 @@ test('existing profile gift still extends same tier and preserves spend',async()
  f.user(RECIPIENT).profileSubscription={tier:'standard',passPolicyVersion:CURRENT_PASS_POLICY_VERSION,expiresAt:expiry,premiumUseCycleKey:expiry.toISOString(),
   monthlyLimitCoin:600,monthlySpendCoin:120,premiumUseCount:3};
  const g=await generalGift(f),result=await receive(f,g);
- expect(new Date(result.grant.after.expiresAt).getTime()).toBe(expiry.getTime()+30*86400000);
+ // 2026-10-11 기간 없음: 기간 있던 옛 이용권도 선물 수령 시 기간 없는 만료일로 바뀐다.
+ expect(new Date(result.grant.after.expiresAt).getTime()).toBeGreaterThan(NOW.getTime()+3650*86400000);
  expect(result.grant.after.monthlySpendCoin).toBe(120);
  expect(result.grant.after.monthlyLimitCoin).toBeGreaterThan(600);
  expect(result.grant.after.servicePack).toBeUndefined();expect(f.rows(PurchaseEntitlement)).toHaveLength(0);

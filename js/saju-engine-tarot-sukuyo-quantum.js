@@ -8703,7 +8703,15 @@ function syIsPaidSukuyoFeatureUnlocked(featureKey) {
   if (!key) return false;
   if (syIsBirthScopedSukuyoKey(key)) {
     var scopeToken = syBirthScopeToken();
-    if (!scopeToken) return false;
+    if (!scopeToken) {
+      // 레거시 계정 해금(출생 기반 전환 이전 USER 행)은 저장 카드 없이도 연다.
+      try {
+        if (typeof root.cdIsLegacyAccountUnlockKey === 'function' && root.cdIsLegacyAccountUnlockKey(key) === true) {
+          return typeof root.isTileKeyUnlocked === 'function' && root.isTileKeyUnlocked(key) === true;
+        }
+      } catch (_) {}
+      return false;
+    }
     try {
       var sessionMarks = root.__sySukuyoBirthScopedUnlocks;
       if (sessionMarks && sessionMarks[key] === scopeToken) return true;

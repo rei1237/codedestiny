@@ -71,9 +71,8 @@ function buildPremiumUnlockCandidateKeys({
 async function findPremiumContentEntitlement({ userId, profileId, candidateKeys = [], env = {} } = {}) {
   for (let i = 0; i < candidateKeys.length; i += 1) {
     const featureKey = candidateKeys[i];
-    // 출생 기반 키는 요청이 실은 저장 프로필(=그 출생 정보)로만 판정한다. 프로필이 없으면 계정(USER) 행으로
-    // 폴백하지 않고 잠금으로 둔다(content-unlocks 의 출생 분기도 같은 계약이지만 왕복 자체를 아낀다).
-    if (!profileId && isBirthScopedUnlockFeatureKey(featureKey)) continue;
+    // 출생 기반 키는 요청이 실은 저장 프로필(=그 출생 정보)로 판정한다. 프로필이 없으면 출생 전환 이전의
+    // 레거시 USER 행만 근거다(content-unlocks 의 출생 분기가 그렇게 조회한다).
     const unlock = await withMongoRetry(env, () => findActivePaidContentUnlock({ userId, profileId, featureKey }));
     if (unlock?._id) return { unlock, featureKey };
   }
@@ -961,7 +960,7 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
   }
 
   // 🔴 User.unlockedFeatures 는 계정 배열이라 출생 기반 키의 근거가 아니다(같은 계정의 다른 생년월일까지 열린다).
-  // 계정 기반 키만 이 배열로 판정하고, 출생 기반 키는 아래 findPremiumContentEntitlement(BIRTH 행)로만 연다.
+  // 계정 기반 키만 이 배열로 판정하고, 출생 기반 키는 아래 findPremiumContentEntitlement(BIRTH 행 + 레거시 USER/PROFILE 행)로만 연다.
   const accountUnlockPolicy = unlockPolicy.filter((key) => !isBirthScopedUnlockFeatureKey(key));
   const unlockSet = new Set(uniqueStrings(user.unlockedFeatures || []));
   const hasUnlock = accountUnlockPolicy.some((key) => unlockSet.has(key));

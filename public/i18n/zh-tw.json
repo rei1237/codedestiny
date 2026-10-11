@@ -814,10 +814,10 @@
       "aria": "月光通行證指南",
       "kicker": "月光通行證",
       "title": "让你的运程在月光下更加温柔地流动",
-      "desc": "月光通行證會在 30 天裡，把您常回來看的解讀，先在設定的範圍內為您打開。今日的徵兆不必中斷，可以安靜地一路讀下去。",
+      "desc": "月光通行證會在額度用完之前，把您常回來看的解讀，先在設定的範圍內為您打開。今日的徵兆不必中斷，可以安靜地一路讀下去。",
       "guideLabel": "MOONLIGHT GUIDE",
-      "guideTitle": "For 30 days, readings you open often unfold first with a softer flow",
-      "guideText": "From Standard to Family, tarot, oracle, and saju readings open first within your moonlight range. Deeper readings outside that range continue to one-time KRW payment only when needed.",
+      "guideTitle": "在額度用完之前，常打開的運勢先柔和展開",
+      "guideText": "從小蜜罐到家庭蜜罐，在所選的月光範圍內，塔羅、神諭與八字解讀無需經過付款流程即可優先開啟。範圍之外的深度解讀，僅在需要時才轉為韓元單次付款。",
       "toggle": "開放式月光福利",
       "heroAria": "检查月光流中免费提供的服务",
       "heroTitle": "查看月光通行證範圍",
@@ -829,42 +829,43 @@
       "primaryAction": "找到適合我的通行證",
       "chipsAria": "核心通行證優勢",
       "chipIncluded": "在通過範圍內自由",
-      "chipThirtyDays": "30 天通行證",
+      "chipThirtyDays": "通行證",
       "chipShareReward": "範圍外單次付費",
       "plansAria": "透過計畫摘要卡",
-      "standardName": "標準蜂蜜 30 天",
-      "standardPrice": "30 天 · 9,900 韓元",
+      "standardName": "小蜜罐",
+      "standardPrice": "9,900 韓元",
       "standardLine": "5,000韓元級內容",
-      "standardBenefit1": "每月最多20,000韓元",
-      "standardCta": "查看標準",
+      "standardBenefit1": "最多20,000韓元",
+      "standardCta": "查看小蜜罐",
       "recommendedAria": "推薦計劃",
       "recommendedBadge": "推薦",
-      "premiumName": "優質蜂蜜 30 天",
-      "premiumPrice": "30 天 · 29,900 韓元",
+      "premiumName": "中蜜罐",
+      "premiumPrice": "29,900 韓元",
       "premiumLine": "10,000韓元級內容",
-      "premiumBenefit1": "每月最多 60,000韓元",
+      "premiumBenefit1": "最多60,000韓元",
       "premiumCta": "查看推薦計劃",
-      "vvipName": "VVIP 蜂蜜罐 30 天",
-      "vvipPrice": "30 天 · 59,900 韓元",
+      "vvipName": "大蜜罐",
+      "vvipPrice": "59,900 韓元",
       "vvipLine": "30,000韓元級內容",
-      "vvipBenefit1": "每月最多 120,000韓元",
-      "vvipCta": "查看 VVIP 福利",
-      "familyName": "代碼命運家庭 30 天",
-      "familyPrice": "30 天 · 149,000 韓元",
+      "vvipBenefit1": "最多120,000韓元",
+      "vvipCta": "查看大蜜罐福利",
+      "familyName": "家庭蜜罐",
+      "familyPrice": "149,000 韓元",
       "familyLine": "使用權涵蓋的全部內容",
-      "familyBenefit1": "每月最多350,000韓元",
-      "familyCta": "查看系列",
-      "premiumNote": "如果您常看10,000韓元級內容,高級蜂蜜最為均衡。",
-      "footnote": "新通行證僅以 30 天通行證出售。此 30 天通行證不是自動續訂訂閱。通行證範圍外的服務可透過以產品一次支付韓元的方式使用。",
+      "familyBenefit1": "最多350,000韓元",
+      "familyCta": "查看家庭蜜罐",
+      "premiumNote": "如果您常看10,000韓元級內容，中蜜罐最為均衡。",
+      "footnote": "通行證沒有期限限制，額度用完即結束。此通行證不是自動續訂訂閱。通行證範圍外的服務可透過以產品一次支付韓元的方式使用。",
       "howtoAria": "月光通行證使用方法",
       "howtoTitle": "月光通行證，這樣延續",
-      "step1Label": "選擇 30 天月光範圍",
-      "step1Text": "用不自動續訂的 30 天通行證，先定下你常看的解讀價位。",
+      "step1Label": "選擇月光範圍",
+      "step1Text": "用沒有期限、不自動續訂的通行證，先定下你常看的解讀價位。",
       "step2Label": "範圍內解讀免付款即刻開啟",
       "step2Text": "所選範圍內的塔羅、神諭、四柱解讀，無需付款頁面即可直接開啟。",
       "step3Label": "僅範圍外的深度解讀按次付款",
       "step3Text": "範圍外的深度解讀，只在需要時以韓元付款一次。",
-      "terminationNote": "即使每月額度變為0，通行證的到期日、等級和個人資料上限仍會保留。額外付費內容可透過單次付費或月度通行證使用。"
+      "terminationNote": "用完使用額度後，通行證即結束。再次購買將以新的使用額度開始。額外付費內容可透過單次付費或月精石使用。",
+      "noExpiryNote": "無期限限制 · 額度用完即結束"
     },
     "promptHub": {
       "aria": "進入綜合運勢提示",
@@ -905,11 +906,11 @@
       "eyebrow": "月光通行證",
       "savingsBadge": "使用通行證，價格最高可降至三分之一",
       "title": "兩次5,000韓元的解讀,已經比9,900韓元的使用權更貴",
-      "desc": "所選價位內的解讀在30天內可在每月使用額度內打開,只有更貴的解讀才在需要時單次付款。範圍分為5,000韓元級、10,000韓元級、20,000韓元級與使用權涵蓋的全部內容四檔,選擇您常看的價位即可。",
+      "desc": "所選價位內的解讀可在使用額度用完之前打開,只有更貴的解讀才在需要時單次付款。範圍分為5,000韓元級、10,000韓元級、20,000韓元級與使用權涵蓋的全部內容四檔,選擇您常看的價位即可。",
       "pointsAria": "核心通行證指南",
       "point1": "無需結帳，立即開啟",
-      "point2": "可儲存 3 張以上資料卡",
-      "point3": "不自動續費的 30 天通行證",
+      "point2": "無期限限制 · 額度用完即結束",
+      "point3": "不自動續費的通行證",
       "mascotAria": "查看月光通行證權益 · 月光通行證商店",
       "mascotAlt": "月光通行證權益圖",
       "mascotKicker": "Moonlight Pass Guide",
@@ -1652,12 +1653,12 @@
       "saysName": "妍伊",
       "saysLine": "先看哪種運勢呢？選一個就夠了。",
       "passMascotAlt": "拿著使用券卡片微笑的花豬妍伊",
-      "passEyebrow": "不自動續訂的30天使用券",
-      "passTitle": "經常看運勢的話，就選30天使用券",
-      "passDesc": "每次諮詢按價格從額度中扣除。30天後自動結束。",
-      "passPer": "/ 30天",
+      "passEyebrow": "無期限、不自動續訂的使用券",
+      "passTitle": "Yeoni 為你介紹的使用券",
+      "passDesc": "偶爾看就單次付款，常看就用使用券。請確認可使用的諮詢與使用額度。",
+      "passPer": "· 無期限限制",
       "passBadge": "含靈喵",
-      "passNote": "Standard、Premium、VVIP 適用於花豬運勢，Family 適用於花豬和靈喵的付費解讀。已購買的使用券維持購買時的條件。",
+      "passNote": "小蜜罐、中蜜罐、大蜜罐適用於花豬運勢，家庭蜜罐適用於花豬和靈喵的付費解讀。已購買的使用券維持購買時的條件。",
       "passCta": "查看4種使用券",
       "moreTitle": "探索妍伊的工作室",
       "moreItems": "Daily readings · consultations · records · stories",
@@ -1726,7 +1727,7 @@
     "chatEntry": {
       "title": "向 Yeoni 和 Neo 問出此刻最想知道的一件事",
       "cta": "諮詢我的煩惱",
-      "price": "註冊後免費1次 · 之後每次3,000韓元"
+      "price": "每次3,000韓元"
     },
     "svcQuestion": {
       "master-love-codex": "我的下一段戀愛什麼時候開始？",
@@ -1832,9 +1833,9 @@
       "reviewReward": "公開審核通過後發放月光石",
       "reviewDetail": "可在Ggulggul使用，每個商品限發放一次。",
       "reviewAction": "寫評價",
-      "passStandard": "妍伊 Standard",
-      "passPremium": "妍伊 Premium",
-      "passVvip": "妍伊 VVIP",
+      "passStandard": "小蜜罐",
+      "passPremium": "中蜜罐",
+      "passVvip": "大蜜罐",
       "passPerLimit": "每次解讀上限{amount}韓元",
       "passTotal": "總額度：{amount}韓元",
       "passNoLimit": "付費解讀無單次價格上限",
@@ -1862,7 +1863,8 @@
       "neoClassSource": "八字課程學員 · KakaoTalk評價摘錄（韓文）",
       "neoNote": "以下摘錄來自Neo本人提供的諮詢和課程，與AI諮詢屬於不同服務。個人經歷不保證相同結果。",
       "neoAbout": "瞭解Neo與服務",
-      "neoMore": "更多諮詢評價"
+      "neoMore": "更多諮詢評價",
+      "passFamily": "家庭蜜罐"
     },
     "simple": {
       "lead": "說說你的煩惱，先了解解讀內容和價格。",
@@ -2345,7 +2347,7 @@
       "passStoreTitle": "月光通行券商店",
       "passRetryTitle": "重新检查通行券",
       "passHint": {
-        "store": "支付一次，30天內可打開多個內容。已經有了？點一下即可確認。",
+        "store": "支付一次，在額度用完之前可打開多個內容。已經有了？點一下即可確認。",
         "retry": "服务器将重新检查持有通行券是否可免支付开启。",
         "upgrade": "目前等級無法打開此內容。看看更高的等級吧。"
       },
@@ -2418,7 +2420,7 @@
         "comingSoon": "敬請期待",
         "back": "返回"
       },
-      "passMonthlyExhausted": "通行證額度已全部用完，通行證已結束。重新購買將重新開始 30 天，現在可以透過單次付款或月精石解鎖。",
+      "passMonthlyExhausted": "通行證額度已全部用完，通行證已結束。重新購買將以新的額度開始，現在可以透過單次付款或月精石解鎖。",
       "passMonthlyRemaining": "通行證剩餘額度 {remaining} / {limit}",
       "wait": {
         "card": "在信用卡或行動支付 App 中完成認證後，回到此瀏覽器即可自動繼續。",
@@ -2450,7 +2452,7 @@
         "pass": {
           "eyebrow": "月光通行證檢查",
           "title": "正在确认通行券",
-          "message": "正在确认持有的30天通行券是否可立即开启。",
+          "message": "正在確認持有的通行券是否可立即開啟。",
           "meta": "如可使用，将无需打开支付窗口继续。"
         },
         "passApplied": {
@@ -2521,7 +2523,7 @@
         "pass": {
           "eyebrow": "月光通行證檢查",
           "title": "正在确认通行券",
-          "message": "正在确认持有的30天通行券是否可立即开启。",
+          "message": "正在確認持有的通行券是否可立即開啟。",
           "meta": "如可使用，将无需打开支付窗口继续。"
         },
         "passApplied": {
@@ -2605,7 +2607,7 @@
     "passShop": {
       "monthlyStatus": "已確認月精石餘量。",
       "chargeButton": "前往 {amount} 支付页面",
-      "chargeNotice": "通行證商品 {price} · 這是 30 天通行證，並非自動續約。通行證僅能以韓元單次付款購買。",
+      "chargeNotice": "通行證商品 {price} · 這是通行證，並非自動續約。通行證僅能以韓元單次付款購買。",
       "best": "BEST",
       "monthlyBasisWithPrice": "月定石基准 {credits} · {price}",
       "profileUnlimited": "不限资料",
@@ -2616,24 +2618,24 @@
       "closeAria": "关闭月光通行券商店说明",
       "openAria": "打开月光通行券商店说明",
       "title": "月光通行券商店说明",
-      "subtitle": "查看月光停留的30天通行券与月定石流程。",
-      "footerNotice": "此30天通行券不是自动续费商品。到期后需要重新购买。",
+      "subtitle": "使用券以韓元單次付款購買，月精石用於單項付費功能。",
+      "footerNotice": "此通行券不是自動續費商品。額度用完後需要重新購買。",
       "packages": {
         "standard": {
-          "name": "标准蜂蜜30天",
-          "desc": "30天 · 5,000韓元級內容 · 每月最多20,000韓元"
+          "name": "小蜜罐",
+          "desc": "5,000韓元級內容 · 最多20,000韓元"
         },
         "premium": {
-          "name": "高级蜂蜜30天",
-          "desc": "30天 · 10,000韓元級內容 · 每月最多 60,000韓元"
+          "name": "中蜜罐",
+          "desc": "10,000韓元級內容 · 最多60,000韓元"
         },
         "vvip": {
-          "name": "VVIP蜂蜜罐30天",
-          "desc": "30天 · 30,000韓元級內容 · 每月最多 120,000韓元"
+          "name": "大蜜罐",
+          "desc": "30,000韓元級內容 · 最多120,000韓元"
         },
         "family": {
-          "name": "Code Destiny Family 30天",
-          "desc": "30天 · 使用權涵蓋的全部內容 · 每月最多350,000韓元"
+          "name": "家庭蜜罐",
+          "desc": "使用權涵蓋的全部內容 · 最多350,000韓元"
         }
       },
       "monthlyStatusChecking": "正在確認餘額和通行證狀態。",
@@ -2642,7 +2644,7 @@
       "monthlyButton": "使用月定石 {credits} 付款",
       "monthlyButtonBusy": "正在用月定石啟用通行證...",
       "monthlyButtonShort": "需要月定石 {credits} · 餘額不足",
-      "terminationNotice": "用完每月額度後，無論還剩多少天，通行證都會結束。重新購買將從當天起重新開始 30 天。"
+      "terminationNotice": "用完使用額度後，通行證即結束。再次購買將以新的使用額度開始。額外付費內容可透過單次付費或月精石使用。"
     },
     "access": {
       "passAppliedContinue": "已使用通行券開啟。"
@@ -2735,8 +2737,8 @@
       "astro": {
         "elements": {
           "Fire": "火",
-          "Earth": "地球",
-          "Air": "空氣",
+          "Earth": "土",
+          "Air": "風",
           "Water": "水",
           "Cosmic": "星光"
         },
@@ -2752,7 +2754,7 @@
         "ritualTip": "今晚，穩定呼吸三分鐘，在星星下方設定目標。",
         "relationshipTheme": "當人際關係遵循你的主要星座的節奏時，摩擦就會減弱。",
         "careerTheme": "將太陽星座的核心驅動力帶入您的日常工作中，以獲得更穩定的動力。",
-        "growthCycle": "恆星稱為「軌道形成」星雲綻放→輻射擴散",
+        "growthCycle": "星辰召喚 → 軌跡成形 → 星雲綻放 → 光輝擴散",
         "fallbackNote": "太陽星座資料不可用，因此讀數使用預設的風元素。",
         "ultimateTitle": "終極命運之花",
         "ultimateConcept": "東方 {dayMaster} 能量與西方 {sunSign} 星光融合的混合綻放",
@@ -2797,7 +2799,7 @@
         "ritualTip": "今日核心關鍵字：{keyword}",
         "relationshipTheme": "讓強勢明星氣質成為你的人際關係標準，和諧變得更加清晰。",
         "careerTheme": "當主星實力佔上風時，執行力和定位就穩定了。",
-        "growthCycle": "星星對準「能量聚集」種子點火→綻放",
+        "growthCycle": "星辰排列 → 氣的凝聚 → 種子點燃 → 綻放",
         "secondaryFallbackNote": "複合主星調整：{primaryStar} 置中 + {secondaryStar} 香味混合",
         "palaceFallbackNote": "宮殿特質調整：{palace} · {trait}",
         "hybridHint": "透過將 Saju {dayMaster} 能量與紫微主星 {stars} 混合來實現混合渲染",
@@ -2806,39 +2808,39 @@
         "narrativeSingle": "{palace} 句柄 {palaceEnergy}。 ？今天的強星{star}將品質「{keyword}」和性質「{personality}」置於花的中心。亮度 {brightness} 保持光線穩定，而 {flowerName} 與您的中心能量產生最深刻的共鳴。",
         "rules": {
           "peonyZiwei": {
-            "title": "牡丹",
-            "keyword": "帝國風度",
-            "personality": "一位集中戰場並恢復秩序的領導者"
+            "title": "帝王牡丹",
+            "keyword": "帝王氣度",
+            "personality": "立於中心、整頓周遭秩序的領袖型"
           },
           "thornyRoseGeneral": {
             "title": "將軍的紅玫瑰",
-            "keyword": "決定性突破",
-            "personality": "即使在壓力下也能前進的決定性力量"
+            "keyword": "突破的決斷",
+            "personality": "在重壓下仍推進戰線的決斷型"
           },
           "thornyRosePioneer": {
-            "title": "先鋒紅玫瑰",
-            "keyword": "重塑領域的動力",
-            "personality": "打破舊框架、開啟新秩序的創新者"
+            "title": "開拓者的紅玫瑰",
+            "keyword": "改變局面的推動力",
+            "personality": "打破舊框架、開創新秩序的革新型"
           },
           "delicateWillow": {
             "title": "軍師的柳花",
-            "keyword": "溫和策略",
-            "personality": "一位善於洞察當下並找出最簡潔答案的策略家"
+            "keyword": "柔和的謀略",
+            "personality": "靈活洞察局勢、尋找最佳解法的策略型"
           },
           "sunflowerZiwei": {
-            "title": "太陽能向日葵",
-            "keyword": "擴充光",
-            "personality": "為可見結果聚集能量的執行者"
+            "title": "太陽的向日葵",
+            "keyword": "光的擴展",
+            "personality": "朝目標集中能量、帶出成果的實幹型"
           },
           "nightCereus": {
-            "title": "月夜盛開的仙人掌",
-            "keyword": "夜間揭開的謎團",
-            "personality": "一個沉思的靈魂，讀取看不見的電流"
+            "title": "月光曇花",
+            "keyword": "夜間綻放的神秘",
+            "personality": "以深層內省洞察無形之流的省思型"
           },
           "orchidTanlang": {
             "title": "桃花蘭",
-            "keyword": "感性磁力",
-            "personality": "一種磁性類型，引領美麗、關係和表達"
+            "keyword": "魅惑風情",
+            "personality": "善用關係與表達之美來吸引他人的魅力型"
           }
         },
         "stars": {
@@ -2915,20 +2917,20 @@
       "sukuyo": {
         "moon": {
           "full": "滿月",
-          "new": "闇月",
-          "crescent": "新月",
-          "gibbous": "盈月/虧損月"
+          "new": "新月",
+          "crescent": "蛾眉月",
+          "gibbous": "盈月/虧月"
         },
-        "stickerLabel": "Sukuyo 的花",
+        "stickerLabel": "宿曜之花",
         "moonPhaseLabel": "月相 {moon}",
-        "guardianLabel": "監護人 {guardian}",
-        "scenarioTitle": "27宮與月相綻放場景",
+        "guardianLabel": "守護動物 {guardian}",
+        "scenarioTitle": "二十七宿與月相綜合開花場景",
         "ritualTip": "在月光照射下的窗前，呼吸 27 次，用一個字表達今天的意圖。",
-        "relationshipTheme": "遵循 {group} 的紋理可以緩解緊張並澄清聯繫。",
-        "careerTheme": "當 {guardian} 的節奏反映在您的日常工作中時，結果就會穩定。",
-        "growthCycle": "星座連動「月光聚」靈火→綻放",
-        "verdict": "透過 Sukuyo 的月光紋理，你的命運之花是 {flowerName} ({scientificName})。 {mansion}、{moon} 和 {guardian} 的組合與現在的關係、情緒和行動的節奏微妙地一致。",
-        "narrative": "{mansion} ({group}) 的關係紋理、月相潮汐{moon} 和{guardian} 的保護圖案在夜花園中相遇，加深了{symbolism} 的品質。一起閱讀，這三個月光訊號顯示 {flowerName} 是你現在最精確的命運之花。",
+        "relationshipTheme": "越順著{group}的脈絡，關係中的緊張越能緩和，彼此的交流也越清晰。",
+        "careerTheme": "把{guardian}模式的行動節奏融入日常工作，成果就會穩定。",
+        "growthCycle": "星宿相連 → 月光凝聚 → 靈性點燃 → 綻放",
+        "verdict": "以月光的脈絡解讀，你的花是{flowerName}（{scientificName}）。{mansion}、{moon}與{guardian}交織之處，正與你此刻的緣分、情感和行動節奏最細膩地契合。",
+        "narrative": "{mansion}（{group}）結下的緣分脈絡、月相{moon}推起的情感潮汐、守護動物{guardianJosa}刻下的守護紋樣，在午夜的花園裡重疊為一。將這三縷月光疊在一起解讀，「{symbolism}」的氣質便濃濃地滲出，此刻最適合你的那一朵，是{flowerName}。",
         "mansions": {
           "m1": "角宿",
           "m2": "亢宿",
@@ -3154,20 +3156,20 @@
             }
           }
         },
-        "stickerLabel": "Saju 的花",
+        "stickerLabel": "八字之花",
         "dayMasterWaiting": "等待日主閱讀",
         "signalPending": "等待核心訊號",
         "scenarioTitleFallback": "{dayMasterBadge} 開花場景",
         "scenarioFallbackReason": "透過整合日主和環境來讀取綻放的流程。",
-        "growthCycle": "萌芽（聚集能量）「成長（放大行動）」綻放（結果浮現）→成果（關係與資產深化）",
-        "fallbackNote": "應用了日主豐富邏輯。",
+        "growthCycle": "發芽（匯聚能量） → 伸展（放大行動） → 綻放（成果顯現） → 結果（累積關係與資產）",
+        "fallbackNote": "僅憑出生日期資訊，謹慎地解讀了日干的氣。",
         "verdict": "在您的 Saju 閱讀中，您的花是 {flowerName} ({scientificName})。",
         "rationale": {
           "verdict": "在您的 Saju 解讀中，您的命運之花是 {flowerName} ({scientificName})。",
           "elements": "五元素讀數顯示 {dominant} 作為您的主要能量，{support} 作為支援流程。",
           "context": "目前運勢季節為{season}，能量密度為{water}，生命階段讀作{environment}。",
           "dayMaster": "日主被確認為 {dayMasterBadge}，並優先考慮圍繞它的季節-環境互動。",
-          "scenario": "天主環境場景：{reason}",
+          "scenario": "{reason}",
           "levels": "元素等級為 {elementLevelLine}，所有五個等級均經過加權以確定命運之花。",
           "symbolism": "這朵花象徵著{symbolism}，最清楚地反映了這個季節的主題。",
           "description": "命運之花閱讀：{description}",
@@ -7800,10 +7802,9 @@
     },
     "fortuneGatewayDoor": {
       "fortuneGatewayDoorMeta": {
-        "k18ykrep": "登入後免費1次",
-        "n115000": "註冊後免費1次 · 之後每次3,000韓元",
         "n130000": "每次30,000韓元",
-        "k1lo4ibg": "最終交叉判定"
+        "k1lo4ibg": "最終交叉判定",
+        "n13000": "每次3,000韓元"
       },
       "fortuneGatewayDoorGo": {
         "kkmvgqi": "開始諮詢",

@@ -6630,7 +6630,9 @@ function _cdAIPromptGate(input) {
   if (gateBirthScoped) {
     var strictGateProfileId = '';
     try { strictGateProfileId = typeof window.cdBirthScopeCurrentProfileId === 'function' ? String(window.cdBirthScopeCurrentProfileId() || '').trim() : ''; } catch (_strictPidError) {}
-    if (!strictGateProfileId) {
+    var strictGateLegacyAccount = false;
+    try { strictGateLegacyAccount = typeof window.cdIsLegacyAccountUnlockKey === 'function' && window.cdIsLegacyAccountUnlockKey(featureKey) === true; } catch (_strictLegacyError) {}
+    if (!strictGateProfileId && !strictGateLegacyAccount) {
       var saveFirstMessage = '프로필을 저장한 뒤 구매해 주세요';
       try {
         if (typeof window.cdTranslate === 'function') {
@@ -6640,7 +6642,7 @@ function _cdAIPromptGate(input) {
       } catch (_saveFirstI18nError) {}
       return Promise.resolve(normalize({ ok: false, status: 400, payload: { code: 'MISSING_PROFILE_ID', requiresProfile: true, message: saveFirstMessage } }));
     }
-    gateProfileId = strictGateProfileId;
+    if (strictGateProfileId) gateProfileId = strictGateProfileId;
   }
   if (typeof window._cdOpenPaidServiceGate === 'function') {
     return Promise.resolve(window._cdOpenPaidServiceGate({
@@ -27077,7 +27079,10 @@ function _cdSajuGateUnlocked(featureKey){
   if(birthScoped){
     var scopePid='';
     try{ scopePid=typeof window.cdBirthScopeCurrentProfileId==='function'?String(window.cdBirthScopeCurrentProfileId()||'').trim():''; }catch(_){}
-    if(!scopePid)return false;
+    /* 레거시 계정 해금(출생 기반 전환 이전 USER 행)은 저장 카드 없이도 연다 — 판정은 셸 isTileKeyUnlocked. */
+    var legacyAccount=false;
+    try{ legacyAccount=typeof window.cdIsLegacyAccountUnlockKey==='function'&&window.cdIsLegacyAccountUnlockKey(key)===true; }catch(_){}
+    if(!scopePid&&!legacyAccount)return false;
     try{ return typeof window.isTileKeyUnlocked==='function'&&window.isTileKeyUnlocked(key)===true; }catch(_){ return false; }
   }
   try{ if(typeof window.isTileKeyUnlocked==='function'&&window.isTileKeyUnlocked(key))return true; }catch(_){}

@@ -1028,13 +1028,13 @@ export function getAstrologyFlower(chartData = {}) {
     flower_data: {
       sticker_label: destinyFlowerText('astro.stickerLabel'),
       day_master_badge: chart.sunSign
-        ? destinyFlowerText('astro.sunSignBadge', { sign: chart.sunSign })
+        ? destinyFlowerText('astro.sunSignBadge', { sign: astroSignKo(chart.sunSign) })
         : destinyFlowerText('astro.unknownSun'),
       season_label: chart.risingSign
-        ? destinyFlowerText('astro.risingSignBadge', { sign: chart.risingSign })
+        ? destinyFlowerText('astro.risingSignBadge', { sign: astroSignKo(chart.risingSign) })
         : destinyFlowerText('astro.unknownRising'),
       environment_label: chart.moonSign
-        ? destinyFlowerText('astro.moonSignBadge', { sign: chart.moonSign })
+        ? destinyFlowerText('astro.moonSignBadge', { sign: astroSignKo(chart.moonSign) })
         : destinyFlowerText('astro.unknownMoon'),
       scenario_title: destinyFlowerText('astro.scenarioTitle'),
       scenario_reason: narrative,
@@ -4088,7 +4088,7 @@ function buildFlowerDataSheet(profile, flower, scenario, matchedSignals) {
     growth_cycle: destinyFlowerText('saju.growthCycle', null, '발아(기운 수집) → 신장(행동 증폭) → 개화(성과 표면화) → 결실(관계/자산 축적)'),
     fallback_note:
       (profile.domains.saju && profile.domains.saju.day_master_fallback_note) ||
-      ((scenario && scenario.fallbackUsed) ? destinyFlowerText('saju.fallbackNote', null, '일간 데이터 보강 로직이 적용되었습니다.') : '')
+      ((scenario && scenario.fallbackUsed) ? destinyFlowerText('saju.fallbackNote') : '')
   };
 }
 

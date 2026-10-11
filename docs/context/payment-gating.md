@@ -10,11 +10,16 @@
 - **구매는 이 계정 소유의 저장 프로필로만 한다.** profileId가 없으면 `400 MISSING_PROFILE_ID`, 남의 프로필·삭제된 프로필·합성 id면 `403 INVALID_PROFILE`이며 둘 다 `requiresProfile:true`를 싣는다. 이 확인은 어떤 차감·결제창보다 먼저다(웹 coin-gate, 단건 결제, V2 결제, Google Play intent 공통). 클라이언트는 직접 입력(저장하지 않은) 생년월일에서 서버를 부르지 않고 "프로필을 저장한 뒤 구매해 주세요"를 보여 준다.
 - 저장: `ContentEntitlement` 행을 `scope:"BIRTH"`, `profileId:"birth:<birthKey>"`로 쓰고 `birthKey`·`purchaseProfileId`(감사용)·궁합이면 `partnerBirthKey`·`purchasePartnerProfileId`를 남긴다. 기존 유니크 인덱스가 출생 정보 단위로 걸리고, 보조 유니크 인덱스 `{userId, birthKey, serviceKey, contentKey}`(BIRTH 한정)를 선언한다. 합성 profileId는 응답으로 내보내지 않는다.
 - 🔴 **USER 스코프 행, `__user__`, `User.unlockedFeatures/paidFeatures` 배열은 출생 기반 키의 근거가 아니다.** 배열은 되돌리기용으로 계속 쓰지만 읽지 않고, 응답에서도 뺀다.
+- 🔴 **예외 — 전환 이전 해금 유지(2026-10-11, 사용자 결정 "결제한 사람이 다시 잠기는 문제가 없도록"):** 출생 기반 키의 ACTIVE **레거시 행**은 계속 연다. 새 코드는 출생 기반 키에 USER·PROFILE 행을 쓰지 않으므로(`upsertContentUnlock`/`grantPermanentUnlock`가 BIRTH로 강제) 날짜가 아니라 scope 로만 레거시를 가린다.
+  - `scope:"USER"` 또는 `profileId:"__user__"` 행: 운영과 같이 **계정의 모든 프로필**에서 열린다. 저장 카드가 없거나 직접 입력 중이어도 열린다. 프로필 없이 다시 열어도 `already_unlocked`로 재과금하지 않는다(`billing.js` `hasLegacyBirthScopedUnlock`; coin-gate 의 월정석·이용권 갈래는 결제 V2 `findLegacyBirthUnlock`이 차감 전에 같은 판정을 한다).
+  - `scope:"PROFILE"` + 실제 profileId 행: **그 profileId 에서** 열린다. 그 카드의 생년월일을 고쳐도 열린다. 다른 카드·같은 생일의 다른 카드에서는 열리지 않는다.
+  - 정본: `worker/lib/content-unlocks.js` 레거시 판정(`isLegacyAccountUnlockRow` 등). 스냅샷은 `legacyAccountUnlockedFeatureIds`·`legacyProfileUnlockedFeatureIds`를 함께 내보내고, 브라우저는 서버가 준 `legacyAccountUnlockedFeatureIds`만 `window.cdIsLegacyAccountUnlockKey`로 계정 키처럼 다룬다(로컬 원장은 여전히 근거 아님).
+  - 남는 위험(허용, 사용자 결정): 레거시 PROFILE 행이 있는 카드는 생년월일을 바꿔 다른 사람 결과를 열 수 있다. 막지 않고 `handleUpdateProfile`이 `legacy_profile_unlock_birth_edit` 경고 로그·보안 로그를 남긴다. 2026-06 무렵 행은 `featureKey` 없이 `contentKey`만 있으니 조회·집계 때 `contentKey`에서 유도한다.
 - 이용권: 새 birthKey면 차감하고, 같은 birthKey면 차감 없이 열린다(보유 확인이 한도 확인보다 먼저). 단건 결제 중복 판정도 `userId + birthKey + contentKey`이며, 주문 `pricingSnapshot.birthKey`로 지급해 결제 도중 생년월일을 고쳐도 지급 대상이 바뀌지 않는다.
 - 브라우저: 출생 기반 키는 계정 단위 저장소(`cd_tile_locks`, `unlockedFeatures` 등)에 쓰지도 읽지도 않는다. 남는 캐시는 프로필 꼬리표가 붙은 두 가지뿐이다. access-store `cd_access_store_v4::<userId>::<profileId>` 스냅샷은 60초 동안 신선하고 `birthScopePolicy` 버전이 다르면 버린다. `cd_verified_unlock_grants_v1` 지급 기록은 72시간이며 출생 기반 키는 같은 profileId 기록만 믿는다. 둘 다 같은 profileId 에만 쓰이고 서버 응답이 덮어쓰며, 생년월일 수정(`birthChanged`) 때 비운다. 근거는 서버가 **현재 profileId**에 대해 돌려준 응답이며, 프로필 전환 때 해금 상태와 렌더 래치를 비우고 다시 조회한다. 신선 캐시로 이전 프로필에 돌아오면 access-store 가 `cd:unlocks-changed {source:"access-store-context"}`를 보내 관문을 다시 그린다. 잠금 문구는 "이 생년월일은 별도 구매가 필요합니다".
-- 🔴 **유지 보장: 한 번 열린 출생 기반 해금은 새로고침·프로필 전환 뒤 복귀·새 기기·재로그인에서도 그대로 열린다.** 근거가 서버 BIRTH 행이라 기기 상태와 무관하다. 다시 잠기는 경우는 그 카드의 생년월일을 고쳤을 때(되돌리면 다시 열림)와 환불뿐이다.
+- 🔴 **유지 보장: 한 번 열린 출생 기반 해금은 새로고침·프로필 전환 뒤 복귀·새 기기·재로그인에서도 그대로 열린다.** 근거가 서버 BIRTH 행이라 기기 상태와 무관하다. 다시 잠기는 경우는 그 카드의 생년월일을 고쳤을 때(되돌리면 다시 열림)와 환불뿐이다. 단, 위 레거시 행으로 열린 키는 생년월일을 고쳐도 닫히지 않는다(카드 수정 안내 문구도 "잠길 수 있습니다"로 둔다).
 - 저장된 결과(`/records/`) 재열람은 이 정책과 무관하게 무료다.
-- 🔴 **기존 구매는 사라지지 않는다.** 이관: `scripts/migrations/20261010-birth-scope-unlocks.mjs`(기본 dry-run, `--apply`, `--create-index`, `--check`). 구매 프로필의 **현재** 출생 정보로 BIRTH 행을 복사 생성하고 원본은 고치지 않는다. 근거 조회는 정본 키·`_`/`-` 변형·`PAID_FEATURE_KEY_ALIASES` 별칭·`:접미사`(연도 키) 표기를 모두 찾는다. 환불은 짝지어진 차감만 근거에서 뺀다(차감 자체의 환불 표식 → 환불의 원 차감 id `refundForPointHistoryId`·`sourceTransactionId` 등 → 같은 `requestId` 순, 짝 없는 환불은 같은 키의 최근 차감 하나만 상쇄). 구매 프로필을 알 수 없는 USER 행·삭제된 프로필·출생 정보 불완전·상대를 모르는 궁합 행·계정 배열이나 이용 내역에만 남은 키는 `birthScopeExcludedAt` 표시와 함께 `BirthScopeLegacyClaim`(`birth_scope_legacy_claims`, 출처당 1건, 재실행 안전)으로 옮겨 **프로필 선택 지급**을 기다린다. 환불하지 않고, 처음 고른 생년월일 하나로만 연다. 이관 뒤 열림 표본 확인은 `npm run verify:birth-scope-migrated-user -- --db <이름>`(읽기 전용). 🔴 운영 승격 전에 운영 DB `--apply`가 먼저다.
+- 🔴 **기존 구매는 사라지지 않는다.** 이관: `scripts/migrations/20261010-birth-scope-unlocks.mjs`(기본 dry-run, `--apply`, `--create-index`, `--check`). 구매 프로필의 **현재** 출생 정보로 BIRTH 행을 복사 생성하고 원본은 고치지 않는다. 근거 조회는 정본 키·`_`/`-` 변형·`PAID_FEATURE_KEY_ALIASES` 별칭·`:접미사`(연도 키) 표기를 모두 찾는다. 환불은 짝지어진 차감만 근거에서 뺀다(차감 자체의 환불 표식 → 환불의 원 차감 id `refundForPointHistoryId`·`sourceTransactionId` 등 → 같은 `requestId` 순, 짝 없는 환불은 같은 키의 최근 차감 하나만 상쇄). 레거시 유지 대상(USER 행 전부, 카드가 살아 있는 PROFILE 행 중 출생 정보 불완전·궁합 행)은 claim 을 만들지 않고 `stats.grandfathered`로 세며 표시도 하지 않는다. 같은 주문·같은 계정 키가 레거시 행으로 이미 열려 있으면 이용 내역·배열 출처도 claim 하지 않는다(`claimsCoveredByLegacyRow`). 삭제된 프로필·카드가 지워진 궁합 행·계정 배열이나 이용 내역에만 남은 키는 `birthScopeExcludedAt` 표시와 함께 `BirthScopeLegacyClaim`(`birth_scope_legacy_claims`, 출처당 1건, 재실행 안전)으로 옮겨 **프로필 선택 지급**을 기다린다. 환불하지 않고, 처음 고른 생년월일 하나로만 연다. 이관 뒤 열림 표본 확인은 `npm run verify:birth-scope-migrated-user -- --db <이름>`(읽기 전용). 🔴 운영 승격 전에 운영 DB `--apply`가 먼저다.
 - 소급 주문(출생 기반 전환 전 결제, 스냅샷 생년월일 없음): 저장 프로필이 살아 있으면 그 프로필의 **현재** 생년월일로 지급한다. 프로필이 없거나 지워졌으면 **환불하지 않고** 지급을 보류한다(`failureCode:"delivery_failed_manual_review"`; V2 크론은 `MISSING_PROFILE_ID`·`INVALID_PROFILE` 에서 재시도를 멈추고 같은 표식을 단다). 확정 응답은 `GRANT_PENDING` 에 `profileSelectionRequired:true` 를 싣고 "권한 정상 처리" 류 문구를 내지 않는다.
 - 보류 해소는 사용자가 한다: 로그인 뒤 `GET /api/payments/birth-profile-pending` 이 있으면 "결제한 콘텐츠를 열 프로필을 골라 주세요" 카드가 뜨고, 고른 저장 프로필로 `POST /api/payments/birth-profile-pending/:id/claim` 이 BIRTH 행을 지급한다(정본 `worker/payments/birth-profile-claim.js`). 한 주문은 처음 고른 생년월일 하나로만 지급된다. 이관이 만든 `BirthScopeLegacyClaim`도 같은 목록·같은 카드에 `orderId:"legacy-<claimId>"`로 나오고, 같은 claim 경로가 `source:"BACKFILL"` 행으로 지급하며 원 주문·결제 id 를 `mergedOrderIds`에 남긴다(원 주문이 환불되면 함께 회수). 관리자 주문 목록의 "지급 보류 · 프로필 선택 대기" 필터(주문만), 집계는 `scripts/audit-birth-scope-pending-orders.mjs --db <이름>`(읽기 전용, `legacyClaims` 대기·지급·사유별 포함).
 
@@ -80,8 +85,8 @@
 - [docs/payment-policy-flow.md](../payment-policy-flow.md) — 게이팅 우선순위, 결제 플로우, 변경 이력
 
 **핵심 요약**:
-- **이용권**(30일, 구독형이나 자동갱신 없음) → **월정석**(이벤트 지급, 구매 불가, 구독 아님) → **코인**(레거시 내부 단위) 순으로 게이팅
-- 🔴 **이용권은 30일 만료와 월 한도 소진 중 먼저 오는 쪽에서 끝난다**(2026-09-04). 한도 사이클 키가 이용권 자신의 만료일이라 기간 안에서 리셋되는 일이 없어, 다 쓴 이용권의 남은 기간은 가치가 0이었다 — 그래서 소진 시점에 `expiresAt` 을 `now` 로 당기고 등급을 free 로 내려 **즉시 종료**시킨다(정본 `worker/payments/passes.js` `terminatePassOnBudgetExhaustion`, 임계 `worker/lib/profile-limits.js` `MIN_PASS_COVERABLE_COIN`). 판정은 "잔여로 열 수 있는 유료 항목이 하나도 없을 때"이고, 남은 기간은 소멸하며 재구매는 그날부터 30일을 새로 준다. 🔴 **새 "소진 플래그"를 만들어 곳곳에서 검사하지 말 것** — 활성 판정이 전부 `expiresAt` 을 보므로 만료일을 당기는 것만으로 하위 판정이 전부 뒤집힌다(원칙 6). 🔴 문구에 "다음 달에 다시 열림"·"기간 내 리셋"을 쓰지 않는다(`scripts/verify-pass-tier-policy.mjs` 가 12개 로케일 + 셸 + React 를 전수로 막는다).
+- **이용권**(기간 없음·자동갱신 없음, 한도 소진 시 종료 — 2026-10-11) → **월정석**(이벤트 지급, 구매 불가, 구독 아님) → **코인**(레거시 내부 단위) 순으로 게이팅
+- 🔴 **이용권은 한도 소진으로만 끝난다**(2026-10-11, 아래 승인 절. 2026-09-04~10-10 에는 30일 만료와 소진 중 먼저 오는 쪽). `expiresAt` 은 활성화 + 100년 센티널(`PASS_OPEN_ENDED_MS`)이라 시간으로는 끝나지 않는다. 한도 사이클 키가 이용권 자신의 만료일이라 리셋되는 일이 없다 — 그래서 소진 시점에 `expiresAt` 을 `now` 로 당기고 등급을 free 로 내려 **즉시 종료**시킨다(정본 `worker/payments/passes.js` `terminatePassOnBudgetExhaustion`, 임계 `worker/lib/profile-limits.js` `MIN_PASS_COVERABLE_COIN`). 판정은 "잔여로 열 수 있는 유료 항목이 하나도 없을 때"이고, 소진 후 재구매는 새 이용권(새 한도)이다. 🔴 **새 "소진 플래그"를 만들어 곳곳에서 검사하지 말 것** — 활성 판정이 전부 `expiresAt` 을 보므로 만료일을 당기는 것만으로 하위 판정이 전부 뒤집힌다(원칙 6). 🔴 문구에 "다음 달에 다시 열림"·"기간 내 리셋"을 쓰지 않는다(`scripts/verify-pass-tier-policy.mjs` 가 12개 로케일 + 셸 + React 를 전수로 막는다).
 - 🔒 **[필수·예외없음] 모든 유료 결제 게이팅 순서** (2026-08-01 개정 — 축이 "언제 검사하는가"에서 "이용권 보유자가 어떤 경로로도 돈을 내지 않는가"로 바뀌었다). 신규/수정 불문 모든 유료 기능은 아래를 그대로 따른다. 벗어나는 결제 구현은 금지이며, 발견 시 즉시 사용자에게 보고한다(작업 중 우연히 마주쳐도 그냥 지나치지 말 것):
   1. **진입 판정은 로컬 스냅샷만** — 구독 스냅샷(`cd_subscription_snapshot_v2`, 판정 정본 `js/core/pass-verdict.js`)이 커버를 확답하면 서버 왕복 없이 **즉시 무료 통과**(낙관 grant, 서버 기록은 백그라운드). 확답하지 못하면 **기다리지 말고 결제창**을 연다. 🔴 **진입 시 서버 이용권 선검사를 되살리지 말 것** — 그 왕복(구 셸 6초 예산+재시도 2회, React 15초 프로브)이 결제창 앞 지연의 본체였다.
   2. **결제창이 이용권 검사 지점** — 결제창 첫 카드는 **[이용권으로 구매]**(`data-mode="pass-store"`)이고, 누르면 그 자리에서 서버에 물어 커버되면 결제 없이 무료로 열고, 아니면 이용권 상점으로 인계한다(`/points?plan=…` → 상점 화면에서 해당 플랜 강조, 결제 확인 모달은 사용자가 연다 — cdco=1 자동 오픈은 2026-09-03 제거 → 결제 후 원래 화면 복귀). 결제창에는 **[이용권으로 구매] · 단건결제(KRW, PortOne) · 월정석 3옵션이 항상 함께** 보이고, 단건/월정석은 동등 우선순위다(`equalPriorityMethods: ["DIRECT_KRW","MOONLIGHT_STONE"]`).
@@ -172,6 +177,19 @@
 - 상담 소비·공유 결제 예약·증빙·PAID 연결과 결과 0건 실패 시 1회 복원은 각각 기존 트랜잭션 경계 안에서 처리한다. 조회·재개는 무차감이고, 복원은 현금 환급이나 만료 연장이 아니다.
 - PENDING 주문에서 결제창을 닫거나 확인 응답이 유실됐다고 새 주문을 자동 생성하지 않는다. 같은 멱등키와 주문을 서버에서 재확인한다. 미승인·취소가 확정되지 않은 상태를 클라이언트만으로 결제 실패로 단정하지 않는다.
 - 구현·검증·남은 판매 정책은 [전용 세트 인수인계](../handoff/yeongnyangi-service-packs-2026-09-30.md)를 따른다. 이 기술 구현 승인은 실제 PG·운영 DB·환불 실행·배포 승인이 아니다.
+
+## 2026-10-11 승인: 이용권 기간 제거, 한도 소진으로만 중지, 프로필 상한 제거
+
+프로필 카드 개수 상한이 없어져(e6e8b5d54) 이용권의 30일 기간도 둘 이유가 없어졌다. 사용자 결정(2026-10-11):
+
+- 이용권에는 기간이 없다. 끝나는 조건은 한도(`monthlyLimitCoin`, 필드명은 레거시) 소진 하나다. 소진 판정·문턱(`isPassBudgetExhausted`, 레지스트리 최저가)은 그대로다.
+- 구현은 별도 활성 플래그 대신 `expiresAt = 활성화 + 100년`(`worker/lib/profile-limits.js` `PASS_OPEN_ENDED_MS`·`computePassExpiry`)이다. 기존 `expiresAt > now` 활성 판정·사이클 키(=만료일 ISO)·소진 CAS 가 그대로 동작한다. 남은 기간 > 10년(`isOpenEndedPassExpiry`)이면 UI 는 날짜 대신 "기간 제한 없음 · 한도 소진 시 종료"를 보인다.
+- 같은 등급 재구매 = 만료일·사이클 키 유지, 한도 누적·사용액 승계. 상위 등급 = 새 이용권 + 사용액 승계. 하위 등급 차단·소진 후 새 이용권은 그대로.
+- 환불 회수는 기간 되감기 대신 그 주문의 한도를 뺀다(`buildPassRefundRevokeFields`). 남은 한도로 열 수 있는 게 없으면 종료 필드로 내린다.
+- 기존 활성 이용권은 `scripts/migrations/20261011-pass-open-ended-expiry.mjs` 로 만료일을 해제한다(dry-run 기본, 운영 `--apply` 는 사용자 승인 후). 새 코드는 옛 만료일 문서도 그대로 활성으로 읽으므로 배포 → 마이그레이션 순서다.
+- 프로필 개수 상한 없음: `profileLimit` 응답은 0(=무제한, `resolveProfileLimitForClient`).
+- 앱 상품 ID `cd_pass_*_30d_vN` 은 바꿀 수 없으므로 유지한다(표시명만). 결제 금액·건당 한도·총 한도·결제 순서는 바뀌지 않는다.
+- 표시 이름을 '꿀단지 크기'로 바꿨다(같은 날 승인): standard=작은 꿀단지 · premium=중간 꿀단지 · vvip=큰 꿀단지 · family=패밀리 꿀단지(12개 로케일 표는 `i18n/authored/passNames-01.json`·`lib/payment/pass-eligibility.ts` `PASS_TIER_LABELS`). 내부 등급 ID·앱 상품 ID·가격·한도는 그대로이고, 옛 이름(스탠다드·프리미엄·VVIP·Code Destiny Family)을 읽는 등급 인식 코드(`worker/` 전체, `js/core/pass-verdict.js` `normalizeTier`)는 하위 호환으로 남긴다.
 
 ## 2026-09-30 승인: 꽃돼지 v4 및 영냥이 전용 횟수권 판매
 

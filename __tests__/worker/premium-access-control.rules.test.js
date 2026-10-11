@@ -200,20 +200,28 @@ describe("출생 기반 키의 프리미엄 접근 판정 (userId + birthKey + c
     ["missing", {}],
     ["account marker", { profileId: "__user__" }],
     ["synthetic birth id", { profileId: "birth:forged" }],
-  ])("profileId %s → 잠금 + requiresProfile, 계정(USER) 행으로 폴백하지 않는다", async (_label, body) => {
-    sibylGrant({ scope: "USER", profileId: "__user__" });
+  ])("profileId %s → 잠금 + requiresProfile (BIRTH 행은 카드 없이 열지 않는다)", async (_label, body) => {
     sibylGrant();
     const access = await sibyl(body);
     expect(access).toMatchObject({ ok: false, status: 402, reason: "MISSING_PROFILE_ID", requiresProfile: true });
-    expect(entitlementFindOne).not.toHaveBeenCalled();
   });
 
+  // 출생 기반 전환 이전 USER·PROFILE 행(운영 구매자)은 계속 연다 — 재잠금 방지.
   test.each([
-    ["USER", { scope: "USER", profileId: "__user__" }],
-    ["PROFILE", { scope: "PROFILE", profileId: "p1" }],
-  ])("레거시 %s 행은 출생 기반 키의 근거가 아니다", async (_label, overrides) => {
-    sibylGrant(overrides);
-    expect((await sibyl({ profileId: "p1" })).ok).toBe(false);
+    ["missing", {}],
+    ["account marker", { profileId: "__user__" }],
+    ["synthetic birth id", { profileId: "birth:forged" }],
+    ["saved card", { profileId: "p1" }],
+  ])("레거시 USER 행은 profileId %s 에서도 계정 전체로 열린다", async (_label, body) => {
+    sibylGrant({ scope: "USER", profileId: "__user__" });
+    expect((await sibyl(body)).ok).toBe(true);
+  });
+
+  test("레거시 PROFILE 행은 그 카드에서만 열린다", async () => {
+    sibylGrant({ scope: "PROFILE", profileId: "p1" });
+    expect((await sibyl({ profileId: "p1" })).ok).toBe(true);
+    expect((await sibyl({ profileId: "p3" })).ok).toBe(false);
+    expect((await sibyl({})).ok).toBe(false);
   });
 
   test("User.unlockedFeatures 계정 배열은 출생 기반 키의 근거가 아니다", async () => {

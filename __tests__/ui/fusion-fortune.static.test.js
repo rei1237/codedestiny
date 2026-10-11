@@ -28,8 +28,8 @@ test("fusion fortune charges through the shared coin gate, not its own PortOne f
   assert.match(client, /ensurePaidAccess/);
   // 결제 게이트와 생성이 같은 requestId 를 써야 증빙이 잡힌다.
   assert.match(client, /paidRequestIdRef/);
-  assert.match(client, /Family 이용권 또는 단건 결제만 이용할 수 있어요/);
-  assert.match(client, /Standard·Premium·VVIP와 월정석은 적용되지 않습니다/);
+  assert.match(client, /패밀리 꿀단지 이용권 또는 단건 결제만 이용할 수 있어요/);
+  assert.match(client, /작은·중간·큰 꿀단지와 월정석은 적용되지 않습니다/);
   // 페이지 전용 결제창을 되살리지 말 것 — 공용 게이트만 이용권 카드를 띄운다.
   assert.doesNotMatch(client, /cdn\.portone\.io/);
   assert.doesNotMatch(client, /fusion_fortune_ticket_1/);
@@ -190,22 +190,21 @@ test("family shop copy states the real fusion coverage", () => {
   assert.doesNotMatch(points, /Fusion Fortune excluded/);
   assert.doesNotMatch(points, /별도 상담권/);
   assert.doesNotMatch(points, /모든 유료 서비스(?:를)? 이용/);
-  assert.match(html, /이용권 대상 전체\(초융합 심층 리딩 포함\) · 월 최대 50만원 상당/);
+  // 2026-10-11 기간 없는 이용권: "월 최대" → "최대". index.html(별도 작업) 갱신 전후 모두 허용.
+  assert.match(html, /이용권 대상 전체\(초융합 심층 리딩 포함\) · (?:월 )?최대 50만원 상당/);
   assert.doesNotMatch(html, /모든 유료 서비스(?:를)? 이용/);
   // 🔴 월 이용 한도가 있는 등급에 '무제한'·'월 누적'을 쓰지 않는다(2026-08-24 문구 정책).
   assert.doesNotMatch(points, /상담 10회|무제한\(월/);
   assert.doesNotMatch(html, /기능 무제한|월 누적/);
 });
 
-test("the destiny gate states the free quota before the paid price", () => {
+test("the destiny gate states the per-session price with no free quota", () => {
   const html = read("index.html");
-  // 🔴 계정 무료 3회는 총량이다(worker/lib/guardian-fortune-usage.js: "lifetime-scoped").
-  //    "매일" 로 쓰면 매일 지급을 약속하는 문구가 된다.
+  // 연이·네오 상담은 무료 횟수 없이 1회 3,000원이다. 무료 문구가 되살아나면 없는 혜택을 약속하게 된다.
   // 태그에 속성을 허용한다 — i18n 마커(data-cd-trans)가 붙어도 계약은 그대로다.
   // 텍스트만 어디 있어도 통과하는 형태로 풀지는 않는다: 굵게 표시되는지까지가 계약이다.
-  assert.match(html, /<b[^>]*>회원가입 무료 1회<\/b>/);
-  assert.match(html, /이후 1회 3,000원/);
-  assert.doesNotMatch(html, /매일 무료|하루 무료|매일 3회/);
+  assert.match(html, /<b[^>]*>1회 3,000원<\/b>/);
+  assert.doesNotMatch(html, /회원가입 무료 1회|이후 1회 3,000원|매일 무료|하루 무료|매일 3회/);
 });
 
 test("a finished reading is saved and can be reopened without paying again", () => {

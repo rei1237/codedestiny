@@ -814,10 +814,10 @@
       "aria": "Maanlichtpasgids",
       "kicker": "MAANLICHTPAS",
       "title": "Laat uw fortuinroutine zachter stromen met een maanlichtpas",
-      "desc": "De Moonlight Pass opent 30 dagen lang, binnen een vastgesteld bereik, de readings waar je vaak naar terugkeert. De tekenen van vandaag lopen ononderbroken door.",
+      "desc": "De Moonlight Pass opent, binnen een vastgesteld bereik en tot de gebruikslimiet op is, de readings waar je vaak naar terugkeert. De tekenen van vandaag lopen ononderbroken door.",
       "guideLabel": "MAANLICHTGIDS",
-      "guideTitle": "30 dagen lang openen de lezingen die je vaak gebruikt eerst zachter",
-      "guideText": "Van Standard tot Family openen tarot-, orakel- en saju-lezingen eerst binnen je maanlichtbereik zonder betaalstroom. Diepere lezingen buiten dat bereik gaan alleen wanneer nodig door naar een eenmalige KRW-betaling.",
+      "guideTitle": "Tot je gebruikslimiet op is, openen de lezingen die je vaak gebruikt eerst zachter",
+      "guideText": "Van de Kleine honingpot tot de Gezinshoningpot openen tarot-, orakel- en saju-lezingen eerst binnen je maanlichtbereik zonder betaalstroom. Diepere lezingen buiten dat bereik gaan alleen wanneer nodig door naar een eenmalige KRW-betaling.",
       "toggle": "Open maanlichtvoordelen",
       "heroAria": "Bekijk de gratis beschikbare diensten in de maanlichtstroom",
       "heroTitle": "Bekijk het bereik van de Moonlight Pass",
@@ -829,42 +829,43 @@
       "primaryAction": "Vind de pas die bij mij past",
       "chipsAria": "Kernpasvoordelen",
       "chipIncluded": "Vrij binnen pasbereik",
-      "chipThirtyDays": "Pas voor 30 dagen",
+      "chipThirtyDays": "Pas",
       "chipShareReward": "Losse betaling buiten het bereik",
       "plansAria": "Overzichtskaarten voor het passplan",
-      "standardName": "Standaardhoning 30 dagen",
-      "standardPrice": "30 dagen · KRW 9.900",
+      "standardName": "Kleine honingpot",
+      "standardPrice": "KRW 9.900",
       "standardLine": "Content tot KRW 5.000",
-      "standardBenefit1": "Tot KRW 20.000 per maand",
-      "standardCta": "Bekijk standaard",
+      "standardBenefit1": "Tot KRW 20.000",
+      "standardCta": "Bekijk Kleine honingpot",
       "recommendedAria": "Aanbevolen plan",
       "recommendedBadge": "Aanbevolen",
-      "premiumName": "Premium Honing 30 dagen",
-      "premiumPrice": "30 dagen · KRW 29.900",
+      "premiumName": "Middelgrote honingpot",
+      "premiumPrice": "KRW 29.900",
       "premiumLine": "Content tot KRW 10.000",
-      "premiumBenefit1": "Tot KRW 60.000 per maand",
+      "premiumBenefit1": "Tot KRW 60.000",
       "premiumCta": "Bekijk het aanbevolen abonnement",
-      "vvipName": "VVIP Honingpot 30 dagen",
-      "vvipPrice": "30 dagen · KRW 59.900",
+      "vvipName": "Grote honingpot",
+      "vvipPrice": "KRW 59.900",
       "vvipLine": "Content tot KRW 30.000",
-      "vvipBenefit1": "Tot KRW 120.000 per maand",
-      "vvipCta": "Bekijk VVIP-voordelen",
-      "familyName": "Code Destiny Familie 30 dagen",
-      "familyPrice": "30 dagen · KRW 149.000",
+      "vvipBenefit1": "Tot KRW 120.000",
+      "vvipCta": "Bekijk voordelen van de Grote honingpot",
+      "familyName": "Gezinshoningpot",
+      "familyPrice": "KRW 149.000",
       "familyLine": "Alle content die de pass dekt",
-      "familyBenefit1": "Tot KRW 350.000 per maand",
-      "familyCta": "Familie bekijken",
-      "premiumNote": "Premium Honey is de meest gebalanceerde keuze als je vaak content rond KRW 10.000 gebruikt.",
-      "footnote": "Nieuwe passen worden alleen verkocht als passen voor 30 dagen. Deze 30-dagenpas is geen abonnement dat automatisch wordt verlengd. Diensten buiten het pasbereik kunnen worden gebruikt met een eenmalige KRW-betaling per product.",
+      "familyBenefit1": "Tot KRW 350.000",
+      "familyCta": "Bekijk Gezinshoningpot",
+      "premiumNote": "De Middelgrote honingpot is de meest gebalanceerde keuze als je vaak content rond KRW 10.000 gebruikt.",
+      "footnote": "Passen hebben geen tijdslimiet en stoppen zodra de gebruikslimiet op is. Deze pas is geen abonnement dat automatisch wordt verlengd. Diensten buiten het pasbereik kunnen worden gebruikt met een eenmalige KRW-betaling per product.",
       "howtoAria": "Zo gebruik je de moonlight pass",
       "howtoTitle": "Zo loopt de moonlight pass door",
-      "step1Label": "Kies een moonlight-bereik van 30 dagen",
-      "step1Text": "Met een pass van 30 dagen zonder automatische verlenging stel je eerst het prijsbereik in van de readings die je vaak bekijkt.",
+      "step1Label": "Kies een moonlight-bereik",
+      "step1Text": "Met een pass zonder tijdslimiet en zonder automatische verlenging stel je eerst het prijsbereik in van de readings die je vaak bekijkt.",
       "step2Label": "Readings binnen bereik openen zonder betaling",
       "step2Text": "Tarot-, orakel- en saju-readings binnen je bereik openen meteen, zonder betaalvenster.",
       "step3Label": "Alleen diepere readings betaal je per keer",
       "step3Text": "Readings buiten je bereik gaan alleen bij behoefte door met een eenmalige KRW-betaling.",
-      "terminationNote": "Ook wanneer de maandelijkse limiet nul bereikt, blijven de vervaldatum, het niveau en de profiellimiet van de pas behouden. Extra betaalde content is beschikbaar via eenmalige betaling of maandpas."
+      "terminationNote": "Zodra de gebruikslimiet op is, stopt de pas. Koop je opnieuw, dan begin je met een nieuwe gebruikslimiet. Extra betaalde content is beschikbaar via eenmalige betaling of Maanlichtstenen.",
+      "noExpiryNote": "Geen tijdslimiet · Stopt zodra de gebruikslimiet op is"
     },
     "promptHub": {
       "aria": "Ga naar uitgebreide fortuinprompts",
@@ -905,11 +906,11 @@
       "eyebrow": "Maanlichtpas",
       "savingsBadge": "Met een pas tot een derde van de prijs",
       "title": "Twee readings van KRW 5.000 kosten al meer dan de pass van KRW 9.900",
-      "desc": "Readings binnen het bereik dat je kiest openen 30 dagen lang, tot je maandelijkse gebruikslimiet; alleen duurdere readings betaal je los wanneer je ze nodig hebt. De vier bereiken zijn KRW 5.000 · 10.000 · 20.000 en alle content die de pass dekt, dus kies de prijs die je het vaakst bekijkt.",
+      "desc": "Readings binnen het bereik dat je kiest openen tot je gebruikslimiet op is; alleen duurdere readings betaal je los wanneer je ze nodig hebt. De vier bereiken zijn KRW 5.000 · 10.000 · 20.000 en alle content die de pass dekt, dus kies de prijs die je het vaakst bekijkt.",
       "pointsAria": "Kernpasgids",
       "point1": "Gaat direct open, zonder afrekenen",
-      "point2": "Bewaar 3 of meer profielen",
-      "point3": "Een pass van 30 dagen zonder automatische verlenging",
+      "point2": "Geen tijdslimiet · Stopt zodra de gebruikslimiet op is",
+      "point3": "Een pass zonder automatische verlenging",
       "mascotAria": "Voordelen van de Moonlight Pass bekijken · Moonlight Pass-winkel",
       "mascotAlt": "Afbeelding met voordelen van de Moonlight Pass",
       "mascotKicker": "Moonlight Pass Guide",
@@ -1652,12 +1653,12 @@
       "saysName": "Yeoni",
       "saysLine": "Which reading shall we start with? Just one is plenty.",
       "passMascotAlt": "Yeoni the flower pig smiling with a pass card",
-      "passEyebrow": "30-day pass, no auto-renewal",
-      "passTitle": "Reading often? Try a 30-day pass",
-      "passDesc": "Each reading's price is deducted from your allowance. It ends automatically after 30 days.",
-      "passPer": "/ 30 days",
+      "passEyebrow": "Pas zonder tijdslimiet of automatische verlenging",
+      "passTitle": "Yeoni legt de pas uit",
+      "passDesc": "Af en toe per reading betalen, of een pas gebruiken als je vaak kijkt. Bekijk welke consulten je kunt gebruiken en je gebruikslimiet.",
+      "passPer": "· Geen tijdslimiet",
       "passBadge": "Incl. Yeongnyangi",
-      "passNote": "Standard, Premium and VVIP apply to Flower Pig readings; Family applies to paid readings from both Flower Pig and Yeongnyangi. Passes you already bought keep the terms from the time of purchase.",
+      "passNote": "De Kleine, Middelgrote en Grote honingpot gelden voor Flower Pig-lezingen; de Gezinshoningpot geldt voor betaalde lezingen van zowel Flower Pig als Yeongnyangi. Passen die je al hebt gekocht, behouden de voorwaarden van het moment van aankoop.",
       "passCta": "See all 4 passes",
       "moreTitle": "Ontdek Yeoni’s atelier",
       "moreItems": "Daily readings · consultations · records · stories",
@@ -1726,7 +1727,7 @@
     "chatEntry": {
       "title": "Ask Yeoni and Neo the one thing on your mind right now",
       "cta": "Talk through my concern",
-      "price": "1 free after signing up · ₩3,000 each after"
+      "price": "₩3.000 per sessie"
     },
     "svcQuestion": {
       "master-love-codex": "When will my next relationship begin?",
@@ -1832,9 +1833,9 @@
       "reviewReward": "Moonstones after publication approval",
       "reviewDetail": "Use them in Ggulggul. Awarded once per product.",
       "reviewAction": "Write a review",
-      "passStandard": "Yeoni Standard",
-      "passPremium": "Yeoni Premium",
-      "passVvip": "Yeoni VVIP",
+      "passStandard": "Kleine honingpot",
+      "passPremium": "Middelgrote honingpot",
+      "passVvip": "Grote honingpot",
       "passPerLimit": "Up to KRW {amount} per reading",
       "passTotal": "Total allowance: KRW {amount}",
       "passNoLimit": "No per-reading price limit",
@@ -1862,7 +1863,8 @@
       "neoClassSource": "Saju student · KakaoTalk excerpt (Korean)",
       "neoNote": "Excerpts from Neo’s personal consultations and classes, separate from the AI reading service. Individual experiences do not guarantee similar results.",
       "neoAbout": "About Neo and the service",
-      "neoMore": "More consultation reviews"
+      "neoMore": "More consultation reviews",
+      "passFamily": "Gezinshoningpot"
     },
     "simple": {
       "lead": "Vertel wat je bezighoudt. Bekijk vooraf de inhoud en de prijs.",
@@ -2339,13 +2341,13 @@
         "passSaveUnverified": "We konden het resultaat van het toepassen van je pas niet opslaan. Controleer het opnieuw met de paskaart hieronder of kies een andere betaalmethode.",
         "passCheckFailed": "We konden je pas niet controleren. Probeer het opnieuw met de paskaart hieronder of kies een andere betaalmethode.",
         "passMiss": "Je pas opent deze inhoud niet gratis; hier zijn de betaalopties.",
-        "passMonthlyExhausted": "Your pass allowance is fully used, so the pass has ended. Here are the payment options."
+        "passMonthlyExhausted": "Your pass usage limit is fully used, so the pass has ended. Here are the payment options."
       },
       "passBadge": "Maanlichtpas",
       "passStoreTitle": "Moonlight Pass-winkel",
       "passRetryTitle": "Controleer de pas opnieuw",
       "passHint": {
-        "store": "Betaal één keer en open 30 dagen lang veel content. Heb je er al een? Tik om te checken.",
+        "store": "Betaal één keer en open veel content tot de gebruikslimiet op is. Heb je er al een? Tik om te checken.",
         "retry": "Wij controleren de server nogmaals of uw pas deze zonder betaling kan openen.",
         "upgrade": "Je huidige niveau opent dit niet. Bekijk een ruimer niveau."
       },
@@ -2418,7 +2420,7 @@
         "comingSoon": "Binnenkort beschikbaar",
         "back": "Terug"
       },
-      "passMonthlyExhausted": "Your pass allowance is fully used, so the pass has ended. Buying a new pass starts another 30 days; for now you can open this with a one-time payment or moonstones.",
+      "passMonthlyExhausted": "Your pass usage limit is fully used, so the pass has ended. Buying again starts a new usage limit; for now you can open this with a one-time payment or moonstones.",
       "passMonthlyRemaining": "Pass allowance left {remaining} / {limit}",
       "wait": {
         "card": "After you finish verifying in your card or payment app, come back to this browser and checkout will continue automatically.",
@@ -2450,7 +2452,7 @@
         "pass": {
           "eyebrow": "MAANLICHT PASSCHECK",
           "title": "Controle van uw pas",
-          "message": "Controleren of je 30-dagenpas deze meteen kan openen.",
+          "message": "Controleren of je pas dit meteen kan openen.",
           "meta": "Indien beschikbaar, gaat u verder zonder afrekenvenster."
         },
         "passApplied": {
@@ -2521,7 +2523,7 @@
         "pass": {
           "eyebrow": "MAANLICHT PASSCHECK",
           "title": "Controle van uw pas",
-          "message": "Controleren of je 30-dagenpas deze meteen kan openen.",
+          "message": "Controleren of je pas dit meteen kan openen.",
           "meta": "Indien beschikbaar, gaat u verder zonder afrekenvenster."
         },
         "passApplied": {
@@ -2605,7 +2607,7 @@
     "passShop": {
       "monthlyStatus": "Je maansteensaldo is bevestigd.",
       "chargeButton": "Ga naar de betalingspagina voor {amount}",
-      "chargeNotice": "Pas-product {price} · Dit is een pas van 30 dagen, geen automatische verlenging. Passen koop je alleen met een eenmalige betaling in KRW.",
+      "chargeNotice": "Pas-product {price} · Dit is een pas, geen automatische verlenging. Passen koop je alleen met een eenmalige betaling in KRW.",
       "best": "BEST",
       "monthlyBasisWithPrice": "Maandelijkse kredietbasis {credits} · {price}",
       "profileUnlimited": "Onbeperkt aantal profielen",
@@ -2616,24 +2618,24 @@
       "closeAria": "Sluit de Moonlight Pass Shop-gids",
       "openAria": "Open de Moonlight Pass Shop-gids",
       "title": "Moonlight Pass-winkelgids",
-      "subtitle": "Bekijk de 30-dagenpas en de maandelijkse kredietstroom in maanlicht.",
-      "footerNotice": "Deze 30-dagenpas is geen product dat automatisch wordt verlengd. U moet het opnieuw kopen nadat het is verlopen.",
+      "subtitle": "Passen koop je met een eenmalige betaling in KRW; Maanlichtstenen gebruik je voor afzonderlijke betaalde functies.",
+      "footerNotice": "Deze pas is geen product dat automatisch wordt verlengd. U moet hem opnieuw kopen zodra de gebruikslimiet op is.",
       "packages": {
         "standard": {
-          "name": "Standaardhoning 30 dagen",
-          "desc": "30 dagen · Content tot KRW 5.000 · Tot KRW 20.000 per maand"
+          "name": "Kleine honingpot",
+          "desc": "Content tot KRW 5.000 · Tot KRW 20.000"
         },
         "premium": {
-          "name": "Premiumhoning 30 dagen",
-          "desc": "30 dagen · Content tot KRW 10.000 · Tot KRW 60.000 per maand"
+          "name": "Middelgrote honingpot",
+          "desc": "Content tot KRW 10.000 · Tot KRW 60.000"
         },
         "vvip": {
-          "name": "VVIP Honingpot 30 dagen",
-          "desc": "30 dagen · Content tot KRW 30.000 · Tot KRW 120.000 per maand"
+          "name": "Grote honingpot",
+          "desc": "Content tot KRW 30.000 · Tot KRW 120.000"
         },
         "family": {
-          "name": "Code Destiny Familie 30 dagen",
-          "desc": "30 dagen · Alle content die de pass dekt · Tot KRW 350.000 per maand"
+          "name": "Gezinshoningpot",
+          "desc": "Alle content die de pass dekt · Tot KRW 350.000"
         }
       },
       "monthlyStatusChecking": "We controleren het resterende saldo en de Pas-status.",
@@ -2642,7 +2644,7 @@
       "monthlyButton": "Betalen met {credits} maandtegoed",
       "monthlyButtonBusy": "Pas wordt geactiveerd met maandtegoed...",
       "monthlyButtonShort": "{credits} nodig · saldo te laag",
-      "terminationNotice": "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day."
+      "terminationNotice": "Zodra de gebruikslimiet op is, stopt de pas. Koop je opnieuw, dan begin je met een nieuwe gebruikslimiet. Extra betaalde content is beschikbaar via eenmalige betaling of Maanlichtstenen."
     },
     "access": {
       "passAppliedContinue": "Geopend met je pas."
@@ -2734,7 +2736,7 @@
       },
       "astro": {
         "elements": {
-          "Fire": "brand",
+          "Fire": "vuur",
           "Earth": "aarde",
           "Air": "lucht",
           "Water": "water",
@@ -2752,25 +2754,25 @@
         "ritualTip": "Houd vanavond je adem drie minuten lang vast en zet één intentie onder een ster.",
         "relationshipTheme": "Wanneer relaties het ritme van uw hoofdteken volgen, wordt de wrijving zachter.",
         "careerTheme": "Breng de kernaandrijving van uw zonneteken in uw werkroutine voor een stabieler momentum.",
-        "growthCycle": "Sterrenroep “baanvormende” nevel bloeit → straling verspreidt zich",
+        "growthCycle": "Roep van de sterren → baanvorming → nevelbloei → uitstraling die zich verspreidt",
         "fallbackNote": "Zonnetekengegevens waren niet beschikbaar, dus bij de meting werd het standaard luchtelement gebruikt.",
         "ultimateTitle": "Ultieme bestemmingsbloem",
         "ultimateConcept": "Een hybride bloei waarbij oosterse {dayMaster} energie samensmelt met westers {sunSign} sterrenlicht",
         "verdict": "Door astrologie is je bestemmingsbloem {flowerName} ({scientificName}). De drie assen van de zon-, rijzende- en maantekens laten zien dat deze bloem nu nauw met jou resoneert.",
         "narrative": "De {sunElement} vonk die opstijgt uit het zonneteken {sun} wordt het middelpunt van deze bloemkeuze. Het stijgende teken {rising} ({risingElement}) vormt de zichtbare toon, terwijl het maanteken {moon} ({moonElement}) emotionele dauw toevoegt, waardoor het symbool van {flowerName}, {flowerSymbolism}, duidelijk openen. Het trefwoord “{keyword}” is het sterrenlicht dat deze bloem naar voren roept.",
         "signs": {
-          "aries": "Aries",
-          "taurus": "Taurus",
-          "gemini": "Gemini",
-          "cancer": "Cancer",
-          "leo": "Leo",
-          "virgo": "Virgo",
-          "libra": "Libra",
-          "scorpio": "Scorpio",
-          "sagittarius": "Sagittarius",
-          "capricorn": "Capricorn",
-          "aquarius": "Aquarius",
-          "pisces": "Pisces"
+          "aries": "Ram",
+          "taurus": "Stier",
+          "gemini": "Tweelingen",
+          "cancer": "Kreeft",
+          "leo": "Leeuw",
+          "virgo": "Maagd",
+          "libra": "Weegschaal",
+          "scorpio": "Schorpioen",
+          "sagittarius": "Boogschutter",
+          "capricorn": "Steenbok",
+          "aquarius": "Waterman",
+          "pisces": "Vissen"
         },
         "rationaleLabel": {
           "sun": "Zonneteken",
@@ -2784,8 +2786,8 @@
           "li": "Li (利)",
           "de": "De (得)",
           "ping": "Ping (平)",
-          "han": "Xian (閑)",
-          "xian": "Xian (陷)",
+          "han": "Xián (閑)",
+          "xian": "Xiàn (陷)",
           "bu": "Bu (不)"
         },
         "coreFlow": "kernfortuinstroom",
@@ -2797,7 +2799,7 @@
         "ritualTip": "Kernzoekwoord vandaag: {keyword}",
         "relationshipTheme": "Laat het sterke-ster-temperament uw relationele standaard worden en harmonie wordt duidelijker.",
         "careerTheme": "Wanneer de kracht van de hoofdrolspeler het front overneemt, stabiliseren uitvoering en positionering.",
-        "growthCycle": "Steruitlijning “energie verzamelen” zaadontsteking → bloei",
+        "growthCycle": "Uitlijning van de sterren → bundeling van energie → ontbranding van het zaad → bloei",
         "secondaryFallbackNote": "Samengestelde hoofdsteraanpassing: {primaryStar} gecentreerd + {secondaryStar} geurmengsel",
         "palaceFallbackNote": "Aanpassing van paleiseigenschappen: {palace} · {trait}",
         "hybridHint": "Hybride weergave beschikbaar door Saju {dayMaster}-energie te combineren met Ziwei-hoofdsterren {stars}",
@@ -2808,7 +2810,7 @@
           "peonyZiwei": {
             "title": "Keizerlijke pioen",
             "keyword": "imperiale houding",
-            "personality": "een leider die het veld centreert en de orde herstelt"
+            "personality": "een leider die in het midden staat en orde om zich heen schept"
           },
           "thornyRoseGeneral": {
             "title": "Rode roos van de generaal",
@@ -2817,8 +2819,8 @@
           },
           "thornyRosePioneer": {
             "title": "Rode roos van de pionier",
-            "keyword": "de aandrijving om het veld opnieuw vorm te geven",
-            "personality": "een vernieuwer die het oude frame doorbreekt en een nieuwe order opent"
+            "keyword": "de drijvende kracht die het speelveld verandert",
+            "personality": "een vernieuwer die het oude kader doorbreekt en een nieuwe orde opent"
           },
           "delicateWillow": {
             "title": "Wilgenbloem van de strateeg",
@@ -2826,9 +2828,9 @@
             "personality": "een strateeg die het moment leest en het schoonste antwoord vindt"
           },
           "sunflowerZiwei": {
-            "title": "Zonnebloem",
+            "title": "Zonnebloem van de zon",
             "keyword": "uitdijend licht",
-            "personality": "een executeur die energie verzamelt voor zichtbare resultaten"
+            "personality": "een doener die energie op het doel bundelt en zichtbare resultaten haalt"
           },
           "nightCereus": {
             "title": "Maanverlichte nachtbloeiende Cereus",
@@ -2915,20 +2917,20 @@
       "sukuyo": {
         "moon": {
           "full": "volle maan",
-          "new": "donkere maan",
-          "crescent": "halve maan",
+          "new": "nieuwe maan",
+          "crescent": "maansikkel",
           "gibbous": "wassende/afnemende maan"
         },
-        "stickerLabel": "Bloem van Sukuyo",
+        "stickerLabel": "Bloem volgens Sukuyo",
         "moonPhaseLabel": "Maanfase {moon}",
-        "guardianLabel": "Bewaker {guardian}",
-        "scenarioTitle": "27 herenhuizen en maanfase-bloeiscenario",
+        "guardianLabel": "Beschermdier {guardian}",
+        "scenarioTitle": "Bloeiscenario van de 27 maanhuizen en de maanfase",
         "ritualTip": "Bij een maanverlicht raam, adem 27 keer en zet de intentie van vandaag in één woord.",
         "relationshipTheme": "Het volgen van de textuur van {group} verzacht de spanning en verduidelijkt de verbinding.",
         "careerTheme": "Wanneer het ritme van {guardian} wordt weerspiegeld in uw werkroutine, stabiliseren de resultaten.",
-        "growthCycle": "Constellatie die “maanlicht verzamelen” geestontsteking met elkaar verbindt → bloei",
+        "growthCycle": "Verbinding van sterrenbeelden → bundeling van maanlicht → spirituele ontbranding → bloei",
         "verdict": "Door de maanlichttextuur van Sukuyo is je bestemmingsbloem {flowerName} ({scientificName}). De combinatie van {mansion}, {moon} en {guardian} sluit subtiel aan bij het ritme van relatie, emotie en actie van nu.",
-        "narrative": "De relationele textuur van {mansion} ({group}), het getij van de maanfase {moon} en het beschermende patroon van {guardian} ontmoeten elkaar in de nachttuin en verdiepen de kwaliteit van{symbolism}. Lees samen: deze drie maanverlichte signalen wijzen naar {flowerName} als je meest precieze bestemmingsbloem op dit moment.",
+        "narrative": "De relationele textuur van {mansion} ({group}), het getij van de maanfase {moon} en het beschermende patroon van {guardianJosa} ontmoeten elkaar in de nachttuin en verdiepen de kwaliteit van {symbolism}. Lees samen: deze drie maanverlichte signalen wijzen naar {flowerName} als je meest precieze bestemmingsbloem op dit moment.",
         "mansions": {
           "m1": "Kaku (角)",
           "m2": "Kou (亢)",
@@ -3154,20 +3156,20 @@
             }
           }
         },
-        "stickerLabel": "Bloem van Saju",
+        "stickerLabel": "Bloem volgens Saju",
         "dayMasterWaiting": "Wachten op lezen van de dagmaster",
         "signalPending": "Wachten op kernsignalen",
         "scenarioTitleFallback": "{dayMasterBadge} bloeiscenario",
         "scenarioFallbackReason": "De bloeiende stroom werd gelezen door de dagmaster en de omgeving te integreren.",
-        "growthCycle": "Spruit (energie verzamelen) “ Groei (versterkende actie) ” Bloei (resultaten komen naar boven) → Vrucht (relaties en verdieping van activa)",
-        "fallbackNote": "Dagmasterverrijkingslogica is toegepast.",
+        "growthCycle": "Ontkiemen (energie verzamelen) → Groeien (actie versterken) → Bloeien (resultaten worden zichtbaar) → Vrucht dragen (relaties en bezit opbouwen)",
+        "fallbackNote": "We hebben de energie van je dagmeester voorzichtig gelezen op basis van alleen je geboortedatum.",
         "verdict": "In je Saju-lezing is je bloem {flowerName} ({scientificName}).",
         "rationale": {
           "verdict": "In je Saju-lezing is je bestemmingsbloem {flowerName} ({scientificName}).",
           "elements": "De Vijf Elementen-lezing toont {dominant} als je belangrijkste energie en {support} als de ondersteunende stroom.",
           "context": "Het seizoen van het huidige fortuin is {season}, de energiedichtheid is {water} en de levensfase wordt gelezen als {environment}.",
           "dayMaster": "De dagmaster wordt bevestigd als {dayMasterBadge} en de seizoen-omgevingsinteractie daaromheen heeft prioriteit gekregen.",
-          "scenario": "Dag master-omgevingsscenario: {reason}",
+          "scenario": "{reason}",
           "levels": "De elementniveaus zijn {elementLevelLine} en alle vijf niveaus zijn gewogen om de bestemmingsbloem te bevestigen.",
           "symbolism": "Deze bloem symboliseert {symbolism} en weerspiegelt het thema van dit seizoen het duidelijkst.",
           "description": "Bestemmingsbloemlezing: {description}",
@@ -7800,10 +7802,9 @@
     },
     "fortuneGatewayDoor": {
       "fortuneGatewayDoorMeta": {
-        "k18ykrep": "1 gratis na inloggen",
-        "n115000": "1 gratis na registreren · daarna ₩3.000 per stuk",
         "n130000": "₩30.000 per reading",
-        "k1lo4ibg": "finale kruiscontrole"
+        "k1lo4ibg": "finale kruiscontrole",
+        "n13000": "₩3.000 per sessie"
       },
       "fortuneGatewayDoorGo": {
         "kkmvgqi": "Start a reading",
@@ -8192,7 +8193,7 @@
       "007": "Ascendant",
       "008": "Maanteken",
       "009": "Sterk/Zwak Zelf",
-      "010": "Leidende God",
+      "010": "Nuttig Element",
       "011": "Klimaatregeling"
     },
     "message": {
@@ -20535,18 +20536,18 @@
       "pig": "Pig"
     },
     "sign": {
-      "aries": "Aries",
-      "taurus": "Taurus",
-      "gemini": "Gemini",
-      "cancer": "Cancer",
-      "leo": "Leo",
-      "virgo": "Virgo",
-      "libra": "Libra",
-      "scorpio": "Scorpio",
-      "sagittarius": "Sagittarius",
-      "capricorn": "Capricorn",
-      "aquarius": "Aquarius",
-      "pisces": "Pisces"
+      "aries": "Ram",
+      "taurus": "Stier",
+      "gemini": "Tweelingen",
+      "cancer": "Kreeft",
+      "leo": "Leeuw",
+      "virgo": "Maagd",
+      "libra": "Weegschaal",
+      "scorpio": "Schorpioen",
+      "sagittarius": "Boogschutter",
+      "capricorn": "Steenbok",
+      "aquarius": "Waterman",
+      "pisces": "Vissen"
     },
     "stem": {
       "wood": "Wood",

@@ -19,6 +19,9 @@
  *    birthScopeExcludedAt 으로 **표시만** 한다(삭제 X).
  *  - 표시한 원천과 배열에만 남은 키는 claims[](BirthScopeLegacyClaim)가 된다 — 사용자가 저장 프로필을 고르면
  *    그 생년월일 하나로 지급한다(기존 구매는 사라지지 않는다). P0-1 대기 주문(heldForProfileClaim)은 그 목록이 다룬다.
+ *  - 레거시 행은 리더가 계속 연다(content-unlocks.js isLegacyGrandfatheredRow) — claim·표시 대신 stats.grandfathered 로 센다.
+ *    USER 행은 계정 전체에서 열리므로 어떤 사유든, PROFILE 행은 카드가 살아 있을 때(출생 불완전·궁합) 그렇다.
+ *    claim 으로 보내면 두 번째 생년월일까지 열 수 있다. USER 행이 덮는 사용자·키와 레거시 행의 주문은 claim 을 만들지 않는다.
  */
 import { createHash } from "node:crypto";
 import { computeBirthKey,toBirthEntitlementProfileId, BIRTH_ENTITLEMENT_SCOPE } from "../../worker/lib/birth-key.js";
@@ -199,6 +202,12 @@ function isUserScopedRow(row) {
   return clean(row?.scope, 20) === "USER" || clean(row?.profileId, 100) === USER_SCOPE_PROFILE_ID || !clean(row?.profileId, 100);
 }
 
+// 리더(content-unlocks.js)가 레거시로 계속 여는 행의 종류 — 계정 전체("account") 또는 그 profileId("profile").
+function legacyRowScope(row) {
+  if (clean(row?.scope, 20) === "USER" || clean(row?.profileId, 100) === USER_SCOPE_PROFILE_ID) return "account";
+  return clean(row?.scope, 20) === "PROFILE" && clean(row?.profileId, 100) ? "profile" : "";
+}
+
 export function planBirthScopeMigration({
   entitlements = [],
   evidence = [],
@@ -222,6 +231,8 @@ export function planBirthScopeMigration({
     excludedRows: 0,
     excludedUsers: 0,
     excludedByReason: Object.fromEntries(Object.values(EXCLUDE_REASONS).map((reason) => [reason, 0])),
+    grandfathered: 0,
+    grandfatheredByReason: Object.fromEntries(Object.values(EXCLUDE_REASONS).map((reason) => [reason, 0])),
     deletedProfileSources: 0,
     arrayOnlyUnknownProfileKeys: 0,
     arrayOnlyUnknownProfileUsers: 0,
@@ -230,6 +241,7 @@ export function planBirthScopeMigration({
     claimUsers: 0,
     claimsByReason: {},
     claimsCoveredByBirthRow: 0,
+    claimsCoveredByLegacyRow: 0,
     claimsDeduplicated: 0,
     claimsSkippedHeldOrder: 0,
   };
@@ -243,6 +255,9 @@ export function planBirthScopeMigration({
   // 표시만 하고 옮기지 못한 원천 — 프로필 선택 지급(BirthScopeLegacyClaim) 후보다.
   const claimCandidates = [];
   const heldOrders = new Set();
+  // 레거시 행으로 계속 열리는 구매 — 같은 주문, (USER 행이면) 같은 사용자·키의 claim 을 만들지 않는다.
+  const legacyOrders = new Set();
+  const legacyAccountUserFeatures = new Set();
 
   function targetFor(source) {
     // V2 가 한동안 serviceKey=featureKey 로 쓴 행은 정본 serviceKey 로 접는다(리더가 그 값으로만 찾는다).
@@ -265,6 +280,20 @@ export function planBirthScopeMigration({
     excludedUserIds.add(clean(row.userId, 120));
   }
 
+  function grandfather(row, reason) {
+    const userId = clean(row.userId, 120);
+    stats.grandfathered += 1;
+    stats.grandfatheredByReason[reason] += 1;
+    if (clean(row.orderId)) legacyOrders.add(`${userId}\u0000${clean(row.orderId, 160)}`);
+    if (row.legacyScope === "account") legacyAccountUserFeatures.add(`${userId}\u0000${row.featureKey}`);
+  }
+
+  // 옮기지 못한 원천. 리더가 계속 여는 레거시 행이면 그대로 두고, 아니면 표시 + claim 후보로 보낸다.
+  function excludeOrGrandfather(row, reason, { cardAlive = false } = {}) {
+    if (row.legacyScope === "account" || (row.legacyScope === "profile" && cardAlive)) grandfather(row, reason);
+    else exclude(row, reason);
+  }
+
   function addSource(source) {
     const userId = clean(source.userId, 120);
     const featureKey = source.featureKey;
@@ -273,24 +302,25 @@ export function planBirthScopeMigration({
 
     if (featureKey === "section_compat") {
       // 기존 궁합 행에는 상대 프로필이 없다 — 상대 birthKey 를 만들 수 없다.
-      exclude(source, EXCLUDE_REASONS.COMPAT_PARTNER_UNKNOWN);
+      const compatCard = source.purchaseProfileId && profileByKey.get(profileMapKey(userId, source.purchaseProfileId));
+      excludeOrGrandfather(source, EXCLUDE_REASONS.COMPAT_PARTNER_UNKNOWN, { cardAlive: Boolean(compatCard) });
       return;
     }
     const purchaseProfileId = source.purchaseProfileId;
     if (!purchaseProfileId) {
-      exclude(source, EXCLUDE_REASONS.UNKNOWN_PURCHASE_PROFILE);
+      excludeOrGrandfather(source, EXCLUDE_REASONS.UNKNOWN_PURCHASE_PROFILE);
       return;
     }
     const card = profileByKey.get(profileMapKey(userId, purchaseProfileId));
     if (!card) {
       stats.deletedProfileSources += 1;
-      exclude(source, EXCLUDE_REASONS.PROFILE_DELETED);
+      excludeOrGrandfather(source, EXCLUDE_REASONS.PROFILE_DELETED);
       return;
     }
     const birthKey = computeBirthKey(card);
     const birthProfileId = toBirthEntitlementProfileId(birthKey);
     if (!birthProfileId) {
-      exclude(source, EXCLUDE_REASONS.INCOMPLETE_BIRTH);
+      excludeOrGrandfather(source, EXCLUDE_REASONS.INCOMPLETE_BIRTH, { cardAlive: true });
       return;
     }
 
@@ -365,6 +395,7 @@ export function planBirthScopeMigration({
       purchaseProfileId: isUserScopedRow(row) ? clean(row.evidenceProfileId, 80) : clean(row.profileId, 80),
       at: row.grantedAt || row.unlockedAt || row.createdAt,
       sourceKind: "entitlement",
+      legacyScope: legacyRowScope(row),
       sourceId: clean(row._id, 64),
       paymentId: clean(row.paymentId),
       priceKRW: row.amountKRW,
@@ -453,6 +484,11 @@ export function planBirthScopeMigration({
     if (!userId || !sourceId) continue;
     if (orderId && coveredOrders.has(`${userId}\u0000${orderId}`)) {
       stats.claimsCoveredByBirthRow += 1;
+      continue;
+    }
+    if ((orderId && legacyOrders.has(`${userId}\u0000${orderId}`))
+      || legacyAccountUserFeatures.has(`${userId}\u0000${clean(source.featureKey, 160)}`)) {
+      stats.claimsCoveredByLegacyRow += 1;
       continue;
     }
     if (orderId && heldOrders.has(`${userId}\u0000${orderId}`)) {

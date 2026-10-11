@@ -1,7 +1,7 @@
 ---
-status: open
+status: active
 updated: 2026-10-11
-next: 결정 2개(아래 "먼저 정할 것") 받은 뒤 트랙 A → B → C 순서로 진행. 운영 승격은 별도 승인
+next: 트랙 C(OG 폰트)만 남음. 아래 "남은 일" 참고. 운영 승격은 별도 승인
 ---
 
 # 운명의 꽃 — 다국어 후속 과제
@@ -18,6 +18,35 @@ next: 결정 2개(아래 "먼저 정할 것") 받은 뒤 트랙 A → B → C �
 | D2 | en 자미 밝기 `han`(閑)·`xian`(陷)이 둘 다 "Xian" | 성조 표기 `Xián (閑)` / `Xiàn (陷)` |
 
 결정 없이 시작하면 D1·D2 항목만 건너뛰고 나머지를 진행한다.
+
+## 진행 결과 (2026-10-11)
+
+결정: D1 = ko도 로케일 별자리 이름(`태양궁 게자리`), D2 = `Xián (閑)` / `Xiàn (陷)`. 트랙 A·B 완료, 트랙 C 미착수.
+
+- **A 콘텐츠**: 새 `i18n/authored/destinyFlower-05.json`(59키) — ja 4원소·자미 규칙 재작성, zh 달 위상, 숙요 서사 오역, `growthCycle` 화살표, `saju.fallbackNote` 재번역, en 용신 `Useful Element`, ko 누락 `askAi`·`close` 등.
+  - 예외: 이미 `destinyFlower-02..04`·`fortuneVars-01`·`shellCopy-01/02`에 있던 키(용어 통일 vi `Tứ Trụ`·ms `Empat Tiang`/`Tuan Hari`/`Istana Kehidupan`, ja 폴백 꽃 이름, D2 밝기, 별자리 이름 vi·hi·es·fr·de·nl)는 05로 덮지 않고 원래 파일에서 고쳤다. 같은 키를 두 파일이 들고 있으면 어느 쪽이 이기는지 병합 순서에 기대게 된다.
+  - `sukuyo.narrative`: ko 원문이 `{guardianJosa}`를 쓰므로 비-ko도 `{guardianJosa}`로 맞췄다(`ziwei.rationale.lifeStar`의 `{starsJosa}`와 같은 방식, 비-ko에서 `josa()`는 이름만 돌려준다). 안 맞추면 `i18n:check` 자리표시자 불일치.
+- **B 런타임·엔진**
+  - 엔진 `day_master_badge`·`season_label`·`environment_label`이 `astroSignKo()`로 별자리 이름을 넣는다(D1). `sun_sign` 등 원값은 그대로.
+  - 런타임: 저장 기록 복원 시 숙요·자미 배지가 저장된 `labels`를 유지, 레거시 별자리 배지·`_dfBadgeText`가 `astro.signs.*` 로케일 이름 사용, `_dfUiText` ko 폴백도 `{var}` 치환, 현재 탭에 결과가 있으면 "다음 단계" 안내 숨김, 죽은 `_af/_jf/_sf` EnsureCardOpen·ApplyCardVisual과 그것만 쓰던 렌더 헬퍼 삭제.
+  - `saju.fallbackNote` 엔진 인라인 폴백("일간 데이터 보강 로직…") 제거 — KO_TEXT의 ko 문구가 쓰인다.
+  - 배지 간격: 홈은 `fortune-ui.css` 대신 생성 서브셋 `fortune-ui-home.css`를 받아 `.df-quad-badge` 기본 레이아웃(inline-flex·gap)이 없었다. `styles/destiny-flower-cosmic.css`에 스튜디오 범위로 보강(라벨·값 간격 0 → 4px).
+
+### 검증 결과
+
+- ko 엔진 출력(`snap-ko.mjs`): 기준선 대비 차이 12건 — 4개 시나리오 × astro `day_master_badge`·`season_label`·`environment_label`의 별자리 이름(D1, 예: `태양궁 Cancer` → `태양궁 게자리`). 그 밖은 바이트 동일.
+- `shots.mjs` 11개 로케일 × 360·1280: 스튜디오 4탭·공유 시트·스토리 카드 한글 0줄, 콘솔 에러 0.
+  - 경로 주의: `/<lang>/` 경로가 있는 것은 en·ja·zh·zh-tw뿐이다. vi·hi·es·fr·de·nl·ms는 `/?lang=<lang>`으로 열어야 한다(도구는 `/<lang>/`만 써서 그대로는 404 → 60초 타임아웃). zh-CN·zh-TW도 경로는 `zh`·`zh-tw`.
+- 저장 기록 복원: 11개 로케일에서 4탭 각각 저장 → 새로고침 → 복원, 한글 0줄·콘솔 에러 0(임시 스크립트, 레포 밖).
+- 배지 간격: 계산값 `display:flex; gap:4px`, 라벨-값 간격 0 → 4px. `style-dump` 차이 0건 — 덤프 시점에 `.df-quad-badge` 요소가 없어 이 선택자는 덤프에 안 잡힌다(다른 선택자는 변화 없음 확인용).
+- `node --test __tests__/ui/destiny-flower-*.static.test.js` 55/55, `jest __tests__/worker/destiny-flower` 11/11, `i18n:check`·`verify:worker-no-undef`·`build:worker`+`verify:worker-size`·`sitemap:check` 통과, `check:fast` 통과(jest 377 스위트 5713개).
+
+### 남은 일
+
+- 트랙 C(OG 폰트) 미착수.
+- 품질 후속(이번 범위 밖에서 발견): ja `astro.narrative`·ja/zh `ziwei.verdict`의 `?` 잔재, ja `ziwei.stickerLabel` "花 by Ziwei", `badgeJohu` 오역, `featureMarketing` vi·ms 영어, zh 백합 이름 "莉莉", en `indexRuntime.label.011` "Temperature", ms `home.tiles.ziwei` "Istana Ming"(나머지는 Istana Kehidupan), ms 별자리 이름 라틴명 유지, `home.gardenCopy.sheetClose` 미번역, 엔진 `focus_signal`이 영어 별자리 원값 사용, en 숙요 달 위상 "waxing/waning moon" 표기.
+- `fortune-ui-home.css`(생성 서브셋)에 스튜디오 규칙이 더 빠져 있을 수 있다 — 생성 규칙 점검.
+- 불안정 훅 테스트(`.claude/hooks/sync-main-freshness.test.mjs`): 이번에 단독 실행 16/16 통과(61초). 부하 시 실패 원인은 미조사.
 
 ## 과제
 

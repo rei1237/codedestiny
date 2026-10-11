@@ -320,14 +320,14 @@ const BANNED = [
   { re: /기능\s*무제한/, why: "'기능 무제한' — 모든 등급에 월 이용 한도가 있다" },
   { re: /콘텐츠\s*무제한/, why: "'콘텐츠 무제한' — 모든 등급에 월 이용 한도가 있다" },
   { re: /횟수\s*제한\s*없/, why: "'횟수 제한 없음' — 월 이용 한도가 곧 횟수 제한이다" },
-  { re: /월\s*누적/, why: "'월 누적' — 표현은 '월 이용 한도' 또는 '월 최대 N원 상당'" },
+  { re: /월\s*누적/, why: "'월 누적' — 표현은 '이용 한도' 또는 '최대 N원 상당'" },
   { re: /마음껏/, why: "'마음껏' — 한도가 없다는 인상을 준다" },
   { re: /Unlimited use/i, why: "'Unlimited use' — 월 이용 한도와 모순" },
 ];
 
 // 셸 등급 카드 문구
 const goldenDescs = [...shell.matchAll(/desc:\s*'([^']*)'/g)].map((m) => m[1])
-  .filter((text) => /30일 ·/.test(text));
+  .filter((text) => / · 최대 [^']*원 상당$/.test(text));
 check("셸 goldenPackages desc 4개를 찾았다", goldenDescs.length === 4, `실제=${goldenDescs.length}`);
 
 // /points 등급 카드 문구 (planFeatures 값 + 요약 줄)
@@ -352,7 +352,8 @@ for (const [label, texts] of [["셸 이용권 카드", goldenDescs], ["/points �
    home.passMini.<tier>Line(가격대) · Benefit1(월 한도). 이 두 조각은
    ②③이 지키는 숫자에서 나온 문구이고 로케일마다 이미 번역돼 있다. desc 가 그 조합이
    아니게 되는 순간(무제한이 끼어들든, 밴드가 낡든) 실패한다.
-   2026-10-11 프로필 카드 개수 상한이 없어져 '프로필' 토막(Benefit2)을 뺐다. 되살아나면 4토막이 되어 실패한다.
+   2026-10-11 프로필 카드 개수 상한이 없어져 '프로필' 토막(Benefit2)을 뺐고, 같은 날 이용권 기간이 없어져
+   '기간' 토막(30일)도 뺐다. desc 는 정확히 Line · Benefit1 이다 — 기간·프로필 토막이 되살아나면 실패한다.
 
    fail-closed: 사전 파일을 손으로 열거하지 않고 디렉터리에서 전수 발견하며,
    조각이나 desc 가 없으면 통과가 아니라 실패다. */
@@ -378,14 +379,14 @@ for (const file of localeFiles) {
     }
     const segments = desc.split(" · ").map((part) => part.trim());
     check(
-      `[${locale}] ${tier} 카드는 '기간 · 가격대 · 월 한도' 3토막`,
-      segments.length === 3,
+      `[${locale}] ${tier} 카드는 '가격대 · 한도' 2토막(기간 없음)`,
+      segments.length === 2,
       `실제 ${segments.length}토막 문구="${desc}"`,
     );
     check(
       `[${locale}] ${tier} 카드 문구가 사전 조각과 일치`,
-      segments.slice(1).join(" · ") === fragments.join(" · "),
-      `문구="${desc}" 기대="… · ${fragments.join(" · ")}"`
+      segments.join(" · ") === fragments.join(" · "),
+      `문구="${desc}" 기대="${fragments.join(" · ")}"`
       + ` / desc 와 home.passMini.${tier}{Line,Benefit1} 은 같은 정책 한 줄이라 함께 고쳐야 한다`
       + " (문안을 바꿀 때는 i18n/authored/passShopPackages-01.json 을 고치고 i18n-merge-authored.mjs --core 로 다시 병합)",
     );
@@ -394,7 +395,7 @@ for (const file of localeFiles) {
 
 
 /* ── ⑥ 월 한도 소진 임계값이 레지스트리 최저가에서 파생됐는가 ────────────
-   2026-09-04 부터 이용권은 30일 만료와 월 한도 소진 중 **먼저 오는 쪽**에서 끝난다.
+   2026-09-04 부터 이용권은 한도 소진 시 끝난다(2026-10-11 부터는 기간이 없어 소진이 유일한 종료 조건).
    소진 판정은 "잔여로 열 수 있는 유료 항목이 하나도 없을 때"이므로 임계는 레지스트리의
    최저가여야 한다. 더 싼 상품이 생겼는데 상수가 그대로면 아직 열 수 있는 이용권을 끄고
    (환불 분쟁), 최저가가 올랐는데 그대로면 아무것도 못 여는 이용권이 남는다(원래 문제).

@@ -566,7 +566,9 @@
       "letterStartTitle": "새싹처럼 · 시작할 용기가 필요해요",
       "letterStartBody": "큰 결심보다 작은 싹 하나를 틔워봐요. 미뤄둔 일의 첫 단계만 적고, 5분 동안 손을 움직여 보세요.",
       "letterShareTitle": "꽃다발처럼 · 마음을 전하고 싶어요",
-      "letterShareBody": "상대에게 바라는 말보다 고마웠던 순간 하나를 떠올려봐요. 답을 재촉하지 않는 짧은 안부로 마음을 건네보세요."
+      "letterShareBody": "상대에게 바라는 말보다 고마웠던 순간 하나를 떠올려봐요. 답을 재촉하지 않는 짧은 안부로 마음을 건네보세요.",
+      "askAi": "AI에게 묻기",
+      "close": "닫기"
     },
     "tarotSelfEsteem": {
       "levelUp": "내 기준이 따뜻하게 되살아납니다",
@@ -700,10 +702,10 @@
       "aria": "달빛 이용권 안내",
       "kicker": "MOONLIGHT PASS",
       "title": "자주 찾는 운세는 문라이트 패스로 더 편안하게 이어가요",
-      "desc": "달빛 이용권은 30일 동안 반복해서 찾는 리딩을 정해진 범위 안에서 먼저 열어 주는 문라이트 패스예요. 오늘의 징조를 멈추지 않고 차분히 이어볼 수 있습니다.",
+      "desc": "달빛 이용권은 이용 한도를 다 쓸 때까지 반복해서 찾는 리딩을 정해진 범위 안에서 먼저 열어 주는 문라이트 패스예요. 오늘의 징조를 멈추지 않고 차분히 이어볼 수 있습니다.",
       "guideLabel": "MOONLIGHT GUIDE",
-      "guideTitle": "30일 동안, 자주 여는 운세를 먼저 부드럽게",
-      "guideText": "스탠다드부터 Family까지, 선택한 달빛 범위 안에서 타로·신탁·사주 리딩이 결제 흐름 없이 먼저 열립니다. 범위 밖의 깊은 리딩은 필요한 순간에만 원화 단건 결제로 이어집니다.",
+      "guideTitle": "이용 한도를 다 쓸 때까지, 자주 여는 운세를 먼저 부드럽게",
+      "guideText": "작은 꿀단지부터 패밀리 꿀단지까지, 선택한 달빛 범위 안에서 타로·신탁·사주 리딩이 결제 흐름 없이 먼저 열립니다. 범위 밖의 깊은 리딩은 필요한 순간에만 원화 단건 결제로 이어집니다.",
       "toggle": "달빛 혜택 펼치기",
       "heroAria": "달빛 흐름으로 무료 이용 가능 서비스 확인",
       "heroTitle": "문라이트 패스 범위 보기",
@@ -712,42 +714,43 @@
       "primaryAction": "문라이트 패스 살펴보기",
       "chipsAria": "이용권 핵심 혜택",
       "chipIncluded": "이용권 범위 안 무료",
-      "chipThirtyDays": "30일 이용권",
+      "chipThirtyDays": "이용권",
       "chipShareReward": "범위 밖 단건결제",
       "plansAria": "이용권 플랜 요약 카드",
-      "standardName": "스탠다드 꿀 30일",
-      "standardPrice": "30일 · 9,900원",
+      "standardName": "작은 꿀단지",
+      "standardPrice": "9,900원",
       "standardLine": "5천원급 콘텐츠까지",
-      "standardBenefit1": "월 최대 2만원 상당",
-      "standardCta": "스탠다드 보기",
+      "standardBenefit1": "최대 2만원 상당",
+      "standardCta": "작은 꿀단지 보기",
       "recommendedAria": "추천 플랜",
       "recommendedBadge": "추천",
-      "premiumName": "프리미엄 꿀 30일",
-      "premiumPrice": "30일 · 29,900원",
+      "premiumName": "중간 꿀단지",
+      "premiumPrice": "29,900원",
       "premiumLine": "1만원급 콘텐츠까지",
-      "premiumBenefit1": "월 최대 6만원 상당",
+      "premiumBenefit1": "최대 6만원 상당",
       "premiumCta": "추천 플랜 보기",
-      "vvipName": "VVIP 꿀단지 30일",
-      "vvipPrice": "30일 · 59,900원",
+      "vvipName": "큰 꿀단지",
+      "vvipPrice": "59,900원",
       "vvipLine": "3만원급 콘텐츠까지",
-      "vvipBenefit1": "월 최대 12만원 상당",
-      "vvipCta": "VVIP 혜택 보기",
-      "familyName": "Code Destiny Family 30일",
-      "familyPrice": "30일 · 149,000원",
+      "vvipBenefit1": "최대 12만원 상당",
+      "vvipCta": "큰 꿀단지 혜택 보기",
+      "familyName": "패밀리 꿀단지",
+      "familyPrice": "149,000원",
       "familyLine": "이용권 대상 전체",
-      "familyBenefit1": "월 최대 35만원 상당",
-      "familyCta": "Family 보기",
-      "premiumNote": "프리미엄 꿀은 1만원급 콘텐츠를 자주 보는 분께 가장 균형이 잘 맞습니다.",
-      "footnote": "신규 판매 이용권은 30일권만 제공됩니다. 이 30일 이용권은 자동결제 상품이 아닙니다. 이용권 범위 밖 서비스는 상품별 원화 단건 결제로 이용할 수 있습니다.",
+      "familyBenefit1": "최대 35만원 상당",
+      "familyCta": "패밀리 꿀단지 보기",
+      "premiumNote": "중간 꿀단지는 1만원급 콘텐츠를 자주 보는 분께 가장 균형이 잘 맞습니다.",
+      "footnote": "이용권은 기간 제한 없이 이용 한도를 모두 쓰면 종료됩니다. 이 이용권은 자동결제 상품이 아닙니다. 이용권 범위 밖 서비스는 상품별 원화 단건 결제로 이용할 수 있습니다.",
       "howtoAria": "문라이트 패스 이용 방법",
       "howtoTitle": "문라이트 패스, 이렇게 이어져요",
-      "step1Label": "30일 달빛 범위를 골라요",
-      "step1Text": "자동갱신 없는 30일 이용권으로, 자주 보는 리딩 가격대를 먼저 정해요.",
+      "step1Label": "달빛 범위를 골라요",
+      "step1Text": "기간·자동갱신 없는 이용권으로, 자주 보는 리딩 가격대를 먼저 정해요.",
       "step2Label": "범위 안 리딩은 결제 없이 바로",
       "step2Text": "고른 범위 안 타로·신탁·사주 리딩은 결제창 없이 그대로 열려요.",
       "step3Label": "범위 밖 깊은 리딩만 단건 결제",
       "step3Text": "범위 밖의 깊은 리딩은 필요한 순간에만 원화로 한 번 결제해요.",
-      "terminationNote": "월 최대 한도가 0이 되어도 이용권의 만료일·등급·프로필 상한은 유지됩니다. 추가 유료 콘텐츠는 단건 결제 또는 월정석으로 이용할 수 있습니다."
+      "terminationNote": "이용 한도를 모두 사용하면 이용권이 종료됩니다. 다시 구매하면 새 이용 한도로 시작합니다. 추가 유료 콘텐츠는 단건 결제 또는 월정석으로 이용할 수 있습니다.",
+      "noExpiryNote": "기간 제한 없음 · 한도 소진 시 종료"
     },
     "promptHub": {
       "aria": "종합 운세 프롬프트로 이동",
@@ -769,11 +772,11 @@
       "eyebrow": "Moonlight Pass",
       "savingsBadge": "이용권 사용 시 최대 3분의 1 수준",
       "title": "5,000원 리딩 두 번이면, 9,900원 이용권이 더 쌉니다",
-      "desc": "고른 가격대 안의 리딩은 30일 동안 월 이용 한도까지 열리고, 그보다 비싼 리딩만 필요할 때 단건으로 결제해요. 범위는 5천원급·1만원급·2만원급·이용권 대상 전체 네 단계라 자주 보는 가격대로 고르면 됩니다.",
+      "desc": "고른 가격대 안의 리딩은 이용 한도를 다 쓸 때까지 열리고, 그보다 비싼 리딩만 필요할 때 단건으로 결제해요. 범위는 5천원급·1만원급·2만원급·이용권 대상 전체 네 단계라 자주 보는 가격대로 고르면 됩니다.",
       "pointsAria": "이용권 핵심 안내",
       "point1": "결제창 없이 바로 열림",
-      "point2": "프로필 저장 3개 이상",
-      "point3": "자동결제 없는 30일권",
+      "point2": "기간 제한 없음 · 한도 소진 시 종료",
+      "point3": "자동결제 없는 이용권",
       "mascotAria": "문라이트 패스 혜택 보기 · 달빛 이용권 상점",
       "mascotAlt": "문라이트 패스 혜택 이미지",
       "mascotKicker": "Moonlight Pass Guide",
@@ -1499,12 +1502,12 @@
       "saysName": "연이",
       "saysLine": "어떤 운세부터 볼까요? 하나만 골라도 충분해요.",
       "passMascotAlt": "이용권 카드를 들고 웃는 꽃돼지 연이",
-      "passEyebrow": "자동갱신 없는 30일 이용권",
-      "passTitle": "연이가 알려드리는 30일 이용권",
-      "passDesc": "가끔은 단건 결제로, 자주 본다면 이용권으로 이용해요. 사용할 수 있는 상담과 30일 이용 한도를 확인해 주세요.",
-      "passPer": "/ 30일",
+      "passEyebrow": "기간·자동갱신 없는 이용권",
+      "passTitle": "연이가 알려드리는 이용권",
+      "passDesc": "가끔은 단건 결제로, 자주 본다면 이용권으로 이용해요. 사용할 수 있는 상담과 이용 한도를 확인해 주세요.",
+      "passPer": "· 기간 제한 없음",
       "passBadge": "영냥이까지",
-      "passNote": "Standard·Premium·VVIP는 꽃돼지 운세에, Family는 꽃돼지와 영냥이 유료 리딩에 적용됩니다. 기존에 구매한 이용권은 구매 당시 조건을 유지합니다.",
+      "passNote": "작은·중간·큰 꿀단지는 꽃돼지 운세에, 패밀리 꿀단지는 꽃돼지와 영냥이 유료 리딩에 적용됩니다. 기존에 구매한 이용권은 구매 당시 조건을 유지합니다.",
       "passCta": "나에게 맞는 이용권 확인하기",
       "moreTitle": "연이의 아틀리에 더 둘러보기",
       "moreItems": "오늘의 운세 · 상담 · 기록과 이야기",
@@ -1573,7 +1576,7 @@
     "chatEntry": {
       "title": "연이와 네오에게, 지금 가장 궁금한 한 가지",
       "cta": "내 고민 상담하기",
-      "price": "회원가입 무료 1회 · 이후 1회 3,000원"
+      "price": "1회 3,000원"
     },
     "svcQuestion": {
       "master-love-codex": "내 다음 연애는 언제 시작될까?",
@@ -1679,9 +1682,9 @@
       "reviewReward": "공개 승인 후 월정석 지급",
       "reviewDetail": "꿀꿀 사주에서 사용할 수 있어요. 상품별 1회 지급됩니다.",
       "reviewAction": "후기 남기기",
-      "passStandard": "꽃돼지 스탠다드",
-      "passPremium": "꽃돼지 프리미엄",
-      "passVvip": "꽃돼지 VVIP",
+      "passStandard": "작은 꿀단지",
+      "passPremium": "중간 꿀단지",
+      "passVvip": "큰 꿀단지",
       "passPerLimit": "건당 {amount}원 이하",
       "passTotal": "누적 {amount}원까지",
       "passNoLimit": "유료 리딩 건당 한도 없음",
@@ -1709,7 +1712,8 @@
       "neoClassSource": "사주 강의 수강생 · 카카오톡 후기 발췌",
       "neoNote": "네오가 직접 진행한 1:1 상담과 사주 강의의 후기 일부입니다. AI 상담과는 다른 서비스이며, 개인의 경험이 같은 결과를 보장하지는 않습니다.",
       "neoAbout": "네오와 서비스 소개",
-      "neoMore": "상담 후기 더 읽기"
+      "neoMore": "상담 후기 더 읽기",
+      "passFamily": "패밀리 꿀단지"
     },
     "simple": {
       "lead": "고민을 들려주면, 상담에서 다룰 내용과 가격을 먼저 알려드려요.",
@@ -1975,13 +1979,13 @@
         "passSaveUnverified": "이용권 적용 결과를 저장하지 못했어요. 아래 이용권 카드로 다시 확인하거나 다른 결제 수단을 고를 수 있어요.",
         "passCheckFailed": "이용권 확인에 실패했어요. 아래 이용권 카드로 다시 확인하거나 다른 결제 수단을 고를 수 있어요.",
         "passMiss": "보유하신 이용권으로는 이 콘텐츠가 무료로 열리지 않아 결제 방법을 고르는 창을 열었어요.",
-        "passMonthlyExhausted": "이용권 월 한도를 모두 사용했어요. 이용권은 만료일까지 등급과 프로필 상한이 유지되며, 추가 콘텐츠는 단건 결제나 월정석으로 이용할 수 있어요."
+        "passMonthlyExhausted": "이용 한도를 모두 사용해 이용권이 종료되었어요. 결제 방법을 안내해 드릴게요."
       },
       "passBadge": "달빛 이용권",
       "passStoreTitle": "달빛 이용권 상점",
       "passRetryTitle": "이용권 다시 확인",
       "passHint": {
-        "store": "한 번 결제하고 30일 동안 여러 콘텐츠를 열 수 있어요. 이미 있다면 눌러서 바로 확인돼요.",
+        "store": "한 번 결제하고 이용 한도를 다 쓸 때까지 여러 콘텐츠를 열 수 있어요. 이미 있다면 눌러서 바로 확인돼요.",
         "retry": "보유 이용권으로 결제 없이 열릴 수 있는지 서버에서 다시 확인합니다.",
         "upgrade": "지금 등급으로는 이 콘텐츠가 열리지 않아요. 더 넓은 등급을 확인해 보세요."
       },
@@ -2054,7 +2058,7 @@
         "comingSoon": "준비 중",
         "back": "뒤로"
       },
-      "passMonthlyExhausted": "이용권 월 한도를 모두 사용했어요. 만료일까지 등급과 프로필 상한은 유지되며, 추가 콘텐츠는 단건 결제나 월정석으로 이용할 수 있어요.",
+      "passMonthlyExhausted": "이용 한도를 모두 사용해 이용권이 종료되었어요. 다시 구매하면 새 이용 한도로 시작하며, 지금은 단건 결제나 월정석으로 열 수 있어요.",
       "passMonthlyRemaining": "이용권 남은 한도 {remaining} / {limit}",
       "wait": {
         "card": "카드사·간편결제 앱에서 인증을 마친 뒤 이 브라우저로 돌아오면 자동으로 이어집니다.",
@@ -2088,6 +2092,9 @@
         },
         "cardMethod": {
           "title": "{method} 결제창을 여는 중입니다."
+        },
+        "pass": {
+          "message": "보유한 이용권으로 바로 열 수 있는지 확인하고 있어요."
         }
       },
       "deliveryProcessing": {
@@ -2105,12 +2112,17 @@
       "refunded": {
         "message": "유료 콘텐츠가 정상적으로 제공되지 않아 결제 금액이 100% 환불되었습니다.\n같은 결제 건으로 다시 청구되지 않습니다.",
         "title": "환불 완료"
+      },
+      "default": {
+        "pass": {
+          "message": "보유한 이용권으로 바로 열 수 있는지 확인하고 있어요."
+        }
       }
     },
     "passShop": {
       "monthlyStatus": "월정석 잔량이 확인되었습니다.",
       "chargeButton": "{amount} 결제 페이지로 이동",
-      "chargeNotice": "이용권 상품 {price} · 자동결제가 아닌 30일 이용권입니다. 이용권은 원화 단건 결제로만 구매할 수 있습니다.",
+      "chargeNotice": "이용권 상품 {price} · 자동결제가 아닌 이용권입니다. 이용권은 원화 단건 결제로만 구매할 수 있습니다.",
       "monthlyBasisWithPrice": "월정석 기준 {credits} · {price}",
       "profileUnlimited": "프로필 무제한",
       "profileLimit": "프로필 {count}개",
@@ -2121,8 +2133,8 @@
       "closeAria": "달빛이용권 상점 안내 닫기",
       "openAria": "달빛이용권 상점 안내 열기",
       "title": "달빛이용권 상점 안내",
-      "subtitle": "30일 이용권은 원화 단건 결제로 구매하며, 월정석은 개별 유료 기능에 사용됩니다.",
-      "footerNotice": "이 30일 이용권은 자동결제 상품이 아닙니다. 만료 후 다시 구매해야 합니다.",
+      "subtitle": "이용권은 원화 단건 결제로 구매하며, 월정석은 개별 유료 기능에 사용됩니다.",
+      "footerNotice": "이 이용권은 자동결제 상품이 아닙니다. 한도를 모두 사용한 뒤 다시 구매해야 합니다.",
       "monthlyStatusChecking": "잔량과 이용권 상태를 확인하고 있습니다.",
       "monthlyStatusError": "잔량 확인이 지연되고 있습니다. 결제와 이용권 선택은 계속 진행할 수 있습니다.",
       "provisionNotice": "이용권은 결제 완료 즉시 활성화되어 바로 이용할 수 있으며, 활성화 이후에는 관련 법령에 따라 청약철회가 제한될 수 있습니다.",
@@ -2131,19 +2143,23 @@
       "monthlyButtonShort": "월정석 {credits} 필요 · 잔량 부족",
       "packages": {
         "standard": {
-          "desc": "30일 · 5천원급 콘텐츠까지 · 월 최대 2만원 상당"
+          "desc": "5천원급 콘텐츠까지 · 최대 2만원 상당",
+          "name": "작은 꿀단지"
         },
         "premium": {
-          "desc": "30일 · 1만원급 콘텐츠까지 · 월 최대 6만원 상당"
+          "desc": "1만원급 콘텐츠까지 · 최대 6만원 상당",
+          "name": "중간 꿀단지"
         },
         "vvip": {
-          "desc": "30일 · 3만원급 콘텐츠까지 · 월 최대 12만원 상당"
+          "desc": "3만원급 콘텐츠까지 · 최대 12만원 상당",
+          "name": "큰 꿀단지"
         },
         "family": {
-          "desc": "30일 · 이용권 대상 전체 · 월 최대 35만원 상당"
+          "desc": "이용권 대상 전체 · 최대 35만원 상당",
+          "name": "패밀리 꿀단지"
         }
       },
-      "terminationNotice": "월 최대 한도가 0이 되어도 이용권의 만료일·등급·프로필 상한은 유지됩니다. 추가 유료 콘텐츠는 단건 결제 또는 월정석으로 이용할 수 있습니다."
+      "terminationNotice": "이용 한도를 모두 사용하면 이용권이 종료됩니다. 다시 구매하면 새 이용 한도로 시작합니다. 추가 유료 콘텐츠는 단건 결제 또는 월정석으로 이용할 수 있습니다."
     },
     "access": {
       "passAppliedContinue": "이용권으로 열람되었습니다."
@@ -4686,10 +4702,9 @@
     },
     "fortuneGatewayDoor": {
       "fortuneGatewayDoorMeta": {
-        "k18ykrep": "회원가입 무료 1회",
-        "n115000": "이후 1회 3,000원",
         "n130000": "1회 30,000원",
-        "k1lo4ibg": "최종 교차 판정"
+        "k1lo4ibg": "최종 교차 판정",
+        "n13000": "1회 3,000원"
       },
       "fortuneGatewayDoorGo": {
         "kkmvgqi": "상담 시작하기",
@@ -10281,7 +10296,9 @@
           "strengthSupport": "사주가 신약해 일간을 북돋아 주는 {elements} 기운의 꽃에 무게를 두었어요.",
           "yongshin": "이 꽃에는 사주에 필요한 용신 기운이 담겨 있어요 — {elements}.",
           "johuWarm": "사주가 차고 습한 편이라 햇볕처럼 데워 줄 따뜻한 꽃에 무게를 두었어요.",
-          "johuCool": "사주가 덥고 메마른 편이라 열기를 식혀 줄 물기 많은 꽃에 무게를 두었어요."
+          "johuCool": "사주가 덥고 메마른 편이라 열기를 식혀 줄 물기 많은 꽃에 무게를 두었어요.",
+          "scenario": "{reason}",
+          "verdict": "그래서 지금 당신에게 건네는 꽃은 {flowerName}({scientificName})입니다."
         },
         "rationaleLabel": {
           "dayMaster": "일간 기질",
@@ -10290,7 +10307,11 @@
           "yongshin": "용신",
           "johuWarm": "조후 · 한습",
           "johuCool": "조후 · 온조"
-        }
+        },
+        "growthCycle": "발아(기운 수집) → 신장(행동 증폭) → 개화(성과 표면화) → 결실(관계/자산 축적)",
+        "fallbackNote": "생년월일 정보만으로 일간의 기운을 조심스럽게 짚어보았습니다.",
+        "stickerLabel": "사주로 보는 꽃",
+        "verdict": "사주로 볼 때 지금 당신에게 온 꽃은 {flowerName}({scientificName})입니다."
       },
       "ui": {
         "source": {
@@ -10721,7 +10742,8 @@
       },
       "flowers": {
         "lotus": {
-          "flowerLanguage": "청결, 깨끗한 마음"
+          "flowerLanguage": "청결, 깨끗한 마음",
+          "name": "연꽃"
         },
         "cactus_flower": {
           "flowerLanguage": "불타는 마음, 열정"
@@ -10934,7 +10956,8 @@
           "flowerLanguage": "고전적인 아름다움, 사랑"
         },
         "astro_lavender": {
-          "flowerLanguage": "기대, 맑은 생각"
+          "flowerLanguage": "기대, 맑은 생각",
+          "name": "성운 라벤더"
         },
         "bird_of_paradise": {
           "flowerLanguage": "영원히 사랑하는 멋쟁이"
@@ -11006,7 +11029,15 @@
         "rationaleLabel": {
           "sun": "태양궁",
           "risingMoon": "상승궁 · 달궁"
-        }
+        },
+        "elements": {
+          "Fire": "불",
+          "Earth": "흙",
+          "Air": "공기",
+          "Water": "물",
+          "Cosmic": "별"
+        },
+        "growthCycle": "별의 호출 → 궤적 형성 → 성운 개화 → 광휘 확산"
       },
       "ziwei": {
         "stars": {
@@ -11088,7 +11119,46 @@
         "rationaleLabel": {
           "lifeStar": "명궁 주성",
           "personality": "타고난 성격"
-        }
+        },
+        "rules": {
+          "peonyZiwei": {
+            "title": "제왕의 모란",
+            "keyword": "제왕의 기품",
+            "personality": "중심을 세우고 주변의 질서를 정돈하는 리더형"
+          },
+          "thornyRoseGeneral": {
+            "title": "장군의 붉은 장미",
+            "keyword": "돌파의 결단",
+            "personality": "압박 속에서도 전선을 밀어붙이는 결단형"
+          },
+          "thornyRosePioneer": {
+            "title": "개척자의 붉은 장미",
+            "keyword": "판을 바꾸는 추진력",
+            "personality": "기존 틀을 깨고 새 질서를 여는 혁신형"
+          },
+          "delicateWillow": {
+            "title": "책사의 버드나무꽃",
+            "keyword": "부드러운 지략",
+            "personality": "상황을 유연하게 읽고 최적 해법을 찾는 전략형"
+          },
+          "sunflowerZiwei": {
+            "title": "태양의 해바라기",
+            "keyword": "빛의 확장",
+            "personality": "목표를 향해 에너지를 집중해 성과를 끌어내는 실행형"
+          },
+          "nightCereus": {
+            "title": "달빛의 월하미인",
+            "keyword": "야간 개화의 신비",
+            "personality": "깊은 내면 통찰로 보이지 않는 흐름을 읽는 성찰형"
+          },
+          "orchidTanlang": {
+            "title": "도화의 난초",
+            "keyword": "관능적 매혹",
+            "personality": "관계와 표현의 미감을 살려 사람을 이끄는 매력형"
+          }
+        },
+        "growthCycle": "별 정렬 → 기운 응집 → 씨앗 점화 → 개화",
+        "hybridHint": "사주 {dayMaster} 기운과 자미두수 {stars} 주성을 결합한 하이브리드 렌더링 가능"
       },
       "sukuyo": {
         "mansions": {
@@ -11163,7 +11233,23 @@
         },
         "rationaleLabel": {
           "mansion": "숙 · 달 위상"
-        }
+        },
+        "moon": {
+          "full": "보름달",
+          "new": "그믐달",
+          "crescent": "초승달",
+          "gibbous": "상현/하현달"
+        },
+        "stickerLabel": "숙요점으로 보는 꽃",
+        "moonPhaseLabel": "달 위상 {moon}",
+        "guardianLabel": "수호동물 {guardian}",
+        "scenarioTitle": "27숙-달 위상 통합 개화 시나리오",
+        "ritualTip": "달빛이 보이는 창가에서 27번 호흡하며 오늘의 의도를 한 단어로 고정해보세요.",
+        "relationshipTheme": "{group}의 결을 따를수록 관계의 긴장이 누그러지고 교감이 선명해집니다.",
+        "careerTheme": "{guardian} 패턴의 실행 리듬을 업무 루틴에 반영하면 성과가 안정됩니다.",
+        "verdict": "달빛의 결로 읽은 당신의 꽃은 {flowerName}({scientificName})입니다. {mansion}·{moon}·{guardian}이 어우러지는 자리가 지금 당신의 인연과 감정, 행동의 리듬과 가장 섬세하게 맞물립니다.",
+        "narrative": "{mansion}({group})이 맺어 주는 인연의 결, 달 위상 {moon}이 밀어 올리는 감정의 조수, 수호동물 {guardianJosa} 새겨 준 보호의 문양이 한밤의 정원에서 하나로 겹칩니다. 이 세 갈래 달빛을 포개어 읽으면 \"{symbolism}\"의 성향이 짙게 배어나고, 지금 당신에게 가장 정확한 한 송이는 {flowerName}입니다.",
+        "growthCycle": "별자리 연결 → 달빛 응집 → 영성 점화 → 개화"
       }
     }
   }

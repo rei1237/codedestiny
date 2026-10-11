@@ -127,7 +127,7 @@
       "ms": "keserasian"
     },
     "이용권": {
-      "note": "30일 유효한 정액 이용권. 자동갱신 없음이라 subscription 이 아니라 pass 로 옮긴다.",
+      "note": "기간 없이 이용 한도를 모두 쓰면 종료되는 정액 이용권. 자동갱신 없음이라 subscription 이 아니라 pass 로 옮긴다.",
       "en": "Pass",
       "ja": "パス",
       "zh-CN": "通行证",

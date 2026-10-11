@@ -47,7 +47,7 @@ import { listProducts, resolveProduct } from "./catalog.js";
 import { createServicePackRoutes } from "./service-pack-routes.js";
 import { verifyPgPayment } from "./pg.js";
 import { isLegacySingleOrderId } from "./order-id.js";
-import { dropEntitlementByIdentity, findOwnedEntitlement, grantEntitlement, markUserFeatureUnlocked, revokeEntitlementForOrder } from "./entitlements.js";
+import { dropEntitlementByIdentity, findLegacyBirthUnlock, findOwnedEntitlement, grantEntitlement, markUserFeatureUnlocked, revokeEntitlementForOrder } from "./entitlements.js";
 import { birthIdentityFromSnapshot, birthSnapshotFields, isBirthScopedProduct, orderNeedsBirthProfileSelection, resolvePaymentBirthIdentity } from "./birth-identity.js";
 import {
   claimProductFromOrder,
@@ -1599,6 +1599,10 @@ const ROUTES = {
              grantEntitlement 는 upsert 라 순서만 바뀔 뿐 왕복이 늘지 않고, 재열람은 차감·원장
              기록을 통째로 건너뛰므로 **더 빨라진다**(왕복 6회 → 2회). */
           let grantedIdentity = null;
+          if (unlock && await findLegacyBirthUnlock(db, { userId, product, profileId, contentKey: body.contentKey })) {
+            alreadyUnlocked = true;
+            return { balance: null, replayed: true, ledgerId: "" };
+          }
           if (unlock) {
             const granted = await grantEntitlement(db, {
               userId, product, orderId: requestId, profileId, partnerProfileId: body.partnerProfileId,
@@ -1745,6 +1749,10 @@ const ROUTES = {
            ② **소유를 커버 판정보다 먼저** 본다 — 이미 산 생년월일은 한도를 다 썼어도 402 없이 열린다.
            ③ 같은 requestId 재생은 이 생년월일의 행이 있을 때만 인정한다(마커만으로 다른 사람을 열지 않는다). */
         const birthScoped = isBirthScopedProduct(product);
+        // 출생 기반 전환 이전에 산 레거시 행은 프로필 신원 해석보다 먼저 본다(저장 프로필이 없어도 재과금 없음).
+        if (birthScoped && await findLegacyBirthUnlock(db, { userId, product, profileId, contentKey: body.contentKey })) {
+          return { coverage: { ...coverage, covered: true, reason: "", coinCost: product.priceCoins }, entitlement, user, alreadyUnlocked: true };
+        }
         const birthIdentity = birthScoped
           ? await resolvePaymentBirthIdentity(db, { userId, profileId, partnerProfileId: body.partnerProfileId, featureKey: product.featureKey })
           : null;

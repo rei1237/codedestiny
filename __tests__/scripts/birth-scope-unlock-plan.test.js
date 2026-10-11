@@ -73,12 +73,25 @@ test("different births and different accounts stay separate", () => {
   expect(creates).toHaveLength(3);
 });
 
-test("USER rows without a known purchase profile are only marked, never copied", () => {
+test("legacy USER rows without a known purchase profile stay open account-wide: no copy, no mark, no claim", () => {
   const userRow = row({ scope: "USER", profileId: "__user__", featureKey: "rpt_villainCard", serviceKey: "saju", contentKey: "rpt_villainCard" });
-  const { creates, excludes, stats } = planBirthScopeMigration({ entitlements: [userRow], profiles: [card(U1, "p1")] });
+  const { creates, excludes, claims, stats } = planBirthScopeMigration({ entitlements: [userRow], profiles: [card(U1, "p1")] });
   expect(creates).toEqual([]);
-  expect(excludes).toEqual([{ _id: userRow._id, userId: U1, reason: EXCLUDE_REASONS.UNKNOWN_PURCHASE_PROFILE }]);
-  expect(stats.excludedUsers).toBe(1);
+  expect(excludes).toEqual([]);
+  expect(claims).toEqual([]);
+  expect(stats.grandfathered).toBe(1);
+  expect(stats.grandfatheredByReason[EXCLUDE_REASONS.UNKNOWN_PURCHASE_PROFILE]).toBe(1);
+});
+
+test("a legacy USER row also covers the evidence and account array of the same user and key", () => {
+  const { claims, stats } = planBirthScopeMigration({
+    entitlements: [row({ scope: "USER", profileId: "__user__", featureKey: "section_daewun", contentKey: "saju.daeunAnalysis", orderId: "o-user" })],
+    evidence: [{ userId: U1, featureKey: "section_daewun", orderId: "o-coin", sourceKind: "point_history", sourceId: "ph-1" }],
+    profiles: [card(U1, "p1")],
+    users: [{ _id: U1, unlockedFeatures: ["section_daewun"] }],
+  });
+  expect(claims).toEqual([]);
+  expect(stats).toMatchObject({ grandfathered: 1, claimsCoveredByLegacyRow: 1, arrayOnlyUnknownProfileKeys: 0 });
 });
 
 test("USER rows with payment evidence of the purchasing profile are copied", () => {
@@ -89,21 +102,27 @@ test("USER rows with payment evidence of the purchasing profile are copied", () 
   expect(creates[0].doc.purchaseProfileId).toBe("p1");
 });
 
-test("deleted profiles, incomplete births and legacy compat rows are marked with a reason", () => {
+test("rows on deleted profiles are marked; live-card PROFILE rows with an incomplete birth or compat stay open", () => {
   const deleted = row({ profileId: "gone" });
-  const incomplete = row({ profileId: "p3" });
-  const compat = row({ featureKey: "section_compat", contentKey: "saju.compatibility" });
-  const { creates, excludes, stats } = planBirthScopeMigration({
-    entitlements: [deleted, incomplete, compat],
+  const deletedCompat = row({ profileId: "gone2", featureKey: "section_compat", contentKey: "saju.compatibility", orderId: "o2" });
+  const incomplete = row({ profileId: "p3", orderId: "o3" });
+  const compat = row({ featureKey: "section_compat", contentKey: "saju.compatibility", orderId: "o4" });
+  const { creates, excludes, claims, stats } = planBirthScopeMigration({
+    entitlements: [deleted, deletedCompat, incomplete, compat],
     profiles: [card(U1, "p1"), { userId: U1, profileId: "p3", gender: "F", birth: { year: 1990 } }],
   });
   expect(creates).toEqual([]);
   expect(Object.fromEntries(excludes.map((item) => [item._id, item.reason]))).toEqual({
     [deleted._id]: EXCLUDE_REASONS.PROFILE_DELETED,
-    [incomplete._id]: EXCLUDE_REASONS.INCOMPLETE_BIRTH,
-    [compat._id]: EXCLUDE_REASONS.COMPAT_PARTNER_UNKNOWN,
+    [deletedCompat._id]: EXCLUDE_REASONS.COMPAT_PARTNER_UNKNOWN,
   });
-  expect(stats.deletedProfileSources).toBe(1);
+  // 살아 있는 카드의 레거시 PROFILE 행은 리더가 계속 연다 — claim 으로 두 번째 생년월일을 열지 않는다.
+  expect(claims.map((claim) => claim.sourceId).sort()).toEqual([deleted._id, deletedCompat._id].sort());
+  expect(stats).toMatchObject({ deletedProfileSources: 1, grandfathered: 2 });
+  expect(stats.grandfatheredByReason).toMatchObject({
+    [EXCLUDE_REASONS.INCOMPLETE_BIRTH]: 1,
+    [EXCLUDE_REASONS.COMPAT_PARTNER_UNKNOWN]: 1,
+  });
 });
 
 test("account-scoped keys, inactive rows and existing BIRTH rows are left alone", () => {
@@ -179,21 +198,22 @@ test("coin refunds cancel only the deduction they pair with", () => {
 });
 
 test("purchases with an unknown profile become profile-selection claims instead of disappearing", () => {
-  const userRow = row({ scope: "USER", profileId: "__user__", orderId: "o-user", amountKRW: 4900 });
   const deleted = row({ profileId: "gone", featureKey: "sukyo_yearly_fortune_unlock:2027", serviceKey: "", contentKey: "", orderId: "o-gone" });
+  const coin = { userId: U1, featureKey: "section_summary", orderId: "o-coin", sourceKind: "point_history", sourceId: "ph-1", priceCoins: 30 };
   const { claims, stats } = planBirthScopeMigration({
-    entitlements: [userRow, deleted],
+    entitlements: [deleted],
+    evidence: [coin],
     profiles: [card(U1, "p1")],
     users: [{ _id: U1, unlockedFeatures: ["section_summary", "openSajuGuardianPage"] }],
   });
   const byKind = Object.fromEntries(claims.map((claim) => [`${claim.sourceKind}:${claim.featureKey}`, claim]));
   expect(Object.keys(byKind).sort()).toEqual([
-    "entitlement:section_summary",
     "entitlement:sukyo_yearly_fortune_unlock:2027",
+    "point_history:section_summary",
     "user_array:saju-guardian-unlock",
   ]);
-  expect(byKind["entitlement:section_summary"]).toMatchObject({
-    userId: U1, sourceId: userRow._id, orderId: "o-user", priceKRW: 4900, serviceKey: "saju", contentKey: "saju.fullReading",
+  expect(byKind["point_history:section_summary"]).toMatchObject({
+    userId: U1, sourceId: "ph-1", orderId: "o-coin", priceCoins: 30, serviceKey: "saju", contentKey: "saju.fullReading",
     reason: EXCLUDE_REASONS.UNKNOWN_PURCHASE_PROFILE,
   });
   expect(byKind["entitlement:sukyo_yearly_fortune_unlock:2027"].contentKey).toBe("sukyo_yearly_fortune_unlock:2027");
@@ -205,10 +225,10 @@ test("claims skip orders already copied to a BIRTH row, held P0-1 orders and dup
   const { claims, stats } = planBirthScopeMigration({
     entitlements: [
       row({ profileId: "p1", orderId: "o-copied" }),
-      row({ scope: "USER", profileId: "__user__", featureKey: "section_daewun", contentKey: "saju.daeunAnalysis", orderId: "o-copied" }),
-      row({ scope: "USER", profileId: "__user__", featureKey: "rpt_villainCard", contentKey: "rpt_villainCard", orderId: "o-dup" }),
+      row({ profileId: "gone", featureKey: "rpt_villainCard", contentKey: "rpt_villainCard", orderId: "o-dup" }),
     ],
     evidence: [
+      { userId: U1, featureKey: "section_daewun", orderId: "o-copied", sourceKind: "payment", sourceId: "pay-copied" },
       { userId: U1, featureKey: "rpt_villainCard", orderId: "o-dup", sourceKind: "payment", sourceId: "pay-dup" },
       { userId: U1, featureKey: "travelDestiny", orderId: "o-held", heldForProfileClaim: true },
     ],

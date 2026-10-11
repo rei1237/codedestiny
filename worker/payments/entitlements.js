@@ -28,7 +28,7 @@ import {
   ContentEntitlement,
   User,
 } from "../lib/models.js";
-import { USER_SCOPE_PROFILE_ID, resolvePaidContentServiceKey } from "../lib/content-unlocks.js";
+import { USER_SCOPE_PROFILE_ID, buildLegacyBirthUnlockFilter, resolvePaidContentServiceKey } from "../lib/content-unlocks.js";
 import { paymentError } from "./errors.js";
 import { toObjectId, toUserIdString } from "./db.js";
 import { revokePurchaseEntitlement } from "./executions.js";
@@ -126,6 +126,15 @@ export async function findOwnedEntitlement(db, {
     status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE,
   });
   return { owned: Boolean(owned), identity, entitlement: owned || null };
+}
+
+/**
+ * 출생 기반 전환 이전의 USER·PROFILE 해금 행(레거시). 있으면 이미 산 것이다 — 차감·BIRTH 지급 없이 연다.
+ * USER 행은 저장 프로필이 없어도, PROFILE 행은 그 profileId 에서 연다(content-unlocks.js 레거시 규칙).
+ */
+export async function findLegacyBirthUnlock(db, { userId, product, profileId = "", contentKey = "" }) {
+  const filter = buildLegacyBirthUnlockFilter({ userId: toUserIdString(userId), featureKey: product?.featureKey, profileId, contentKey });
+  return filter ? db.findOne(ContentEntitlement, filter) : null;
 }
 
 export async function grantEntitlement(db, {

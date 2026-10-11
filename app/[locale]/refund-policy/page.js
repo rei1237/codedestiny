@@ -10,7 +10,7 @@ import { resolveLocale } from "../_lib";
 const PAGE_COPY = {
   en: {
     title: "Refund Policy | Code Destiny",
-    description: "Code Destiny's refund and withdrawal terms for the 30-day Pass and single-item payments, including the digital-content withdrawal exception.",
+    description: "Code Destiny's refund and withdrawal terms for the Pass and single-item payments, including the digital-content withdrawal exception.",
     heading: "Refund Policy",
     dateLabel: "Effective Date",
     related: "Related documents",
@@ -18,7 +18,7 @@ const PAGE_COPY = {
   },
   ja: {
     title: "返金ポリシー | Code Destiny",
-    description: "30日パスおよび都度決済に関するCode Destinyの返金・契約解除条件（デジタルコンテンツの解除制限を含む）です。",
+    description: "パスおよび都度決済に関するCode Destinyの返金・契約解除条件（デジタルコンテンツの解除制限を含む）です。",
     heading: "返金ポリシー",
     dateLabel: "施行日",
     related: "関連文書",
@@ -26,7 +26,7 @@ const PAGE_COPY = {
   },
   zh: {
     title: "退款政策 | Code Destiny",
-    description: "Code Destiny 关于30天通行证与单次付费商品的退款与撤回条款说明，包含数字内容提供后撤回限制的详细规则。",
+    description: "Code Destiny 关于通行证与单次付费商品的退款与撤回条款说明，包含数字内容提供后撤回限制的详细规则。",
     heading: "退款政策",
     dateLabel: "生效日期",
     related: "相关文档",
@@ -34,7 +34,7 @@ const PAGE_COPY = {
   },
   "zh-TW": {
     title: "退款與撤回政策 | Code Destiny",
-    description: "Code Destiny 關於30天通行證與單次付款商品之退款與撤回條款說明，包含數位內容提供後撤回限制之詳細規則。",
+    description: "Code Destiny 關於通行證與單次付款商品之退款與撤回條款說明，包含數位內容提供後撤回限制之詳細規則。",
     heading: "退款與撤回政策",
     dateLabel: "生效日期",
     related: "相關文件",

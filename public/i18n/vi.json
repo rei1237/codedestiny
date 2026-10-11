@@ -608,21 +608,21 @@
       "title": "Xưởng Hoa Định Mệnh",
       "sourceDesc": "Từ nhật chủ, nhánh mùa và cân bằng Ngũ Hành, dáng nở cộng hưởng với năng lượng của bạn đang mở ra.",
       "sourceTabsAria": "Thẻ đổi nguồn luận giải",
-      "tabSaju": "Hoa Saju",
+      "tabSaju": "Hoa Tứ Trụ",
       "tabAstrology": "Hoa chiêm tinh",
       "tabZiwei": "Hoa Tử Vi",
       "tabSukuyo": "Hoa Sukuyo",
-      "sajuBadgesAria": "Huy hiệu phân tích lõi Saju",
+      "sajuBadgesAria": "Huy hiệu phân tích cốt lõi Tứ Trụ",
       "badgeStrength": "Cân bằng sức mạnh",
       "waiting": "Đang chờ luận giải",
       "badgeYongshin": "Yếu tố hữu ích",
       "badgeJohu": "Số dư theo mùa",
-      "narrative": "Câu chuyện bông hoa của bạn đang được định hình từ bài đọc Ngũ Hành của Saju của bạn.",
+      "narrative": "Câu chuyện bông hoa của bạn đang được định hình từ bài đọc Ngũ Hành trong Tứ Trụ.",
       "imageAlt": "Xem trước Destiny Flower Atelier",
       "defaultFlowerName": "Hoa sen",
       "daymasterWaiting": "Chờ ngày đọc chủ",
       "whyTitle": "Vì sao là loài hoa này?",
-      "symbolism": "Trong bài đọc Saju này, bông hoa của bạn là hoa sen, biểu tượng của sự đổi mới nở rộ rõ ràng ngay cả trong làn nước đục ngầu.",
+      "symbolism": "Theo Tứ Trụ, bông hoa của bạn là hoa sen, biểu tượng của sự tái sinh nở trong trẻo ngay cả giữa dòng nước đục.",
       "panelsAria": "Bảng diễn giải Hoa Định Mệnh",
       "paletteTitle": "Bảng màu cá nhân",
       "particleTitle": "Tâm trạng hạt",
@@ -814,10 +814,10 @@
       "aria": "Hướng dẫn sử dụng thẻ Moonlight",
       "kicker": "THƯ VIỆN NGĂNG",
       "title": "Hãy để vận may của bạn trôi qua nhẹ nhàng hơn với ánh trăng trôi qua",
-      "desc": "Moonlight Pass mở trước những bài đọc bạn hay quay lại, trong một phạm vi đã định, suốt 30 ngày. Điềm báo hôm nay cứ thế tiếp diễn mà không bị ngắt quãng.",
+      "desc": "Moonlight Pass mở trước những bài đọc bạn hay quay lại, trong một phạm vi đã định, cho đến khi bạn dùng hết hạn mức sử dụng. Điềm báo hôm nay cứ thế tiếp diễn mà không bị ngắt quãng.",
       "guideLabel": "HUONG DAN ANH TRANG",
-      "guideTitle": "Trong 30 ngay, nhung lan xem ban thuong mo se duoc mo truoc that em diu",
-      "guideText": "Tu Standard den Family, cac bai tarot, oracle va saju trong pham vi anh trang ban chon se mo truoc ma khong can di qua luong thanh toan. Nhung bai xem sau hon ngoai pham vi do chi chuyen sang thanh toan mot lan bang KRW khi can.",
+      "guideTitle": "Cho đến khi dùng hết hạn mức, những lần xem bạn thường mở sẽ được mở trước thật êm dịu",
+      "guideText": "Từ Hũ mật ong nhỏ đến Hũ mật ong gia đình, các bài tarot, oracle và saju trong phạm vi ánh trăng bạn chọn sẽ mở trước mà không cần qua luồng thanh toán. Những bài xem sâu hơn ngoài phạm vi đó chỉ chuyển sang thanh toán một lần bằng KRW khi cần.",
       "toggle": "Mở lợi ích ánh trăng",
       "heroAria": "Kiểm tra các dịch vụ có sẵn miễn phí dưới ánh trăng",
       "heroTitle": "Xem phạm vi Moonlight Pass",
@@ -829,42 +829,43 @@
       "primaryAction": "Tìm pass phù hợp với tôi",
       "chipsAria": "Lợi ích của thẻ cốt lõi",
       "chipIncluded": "Miễn phí trong phạm vi vượt qua",
-      "chipThirtyDays": "Thẻ 30 ngày",
+      "chipThirtyDays": "Thẻ pass",
       "chipShareReward": "Ngoài phạm vi: thanh toán từng lần",
       "plansAria": "Vượt qua thẻ tóm tắt kế hoạch",
-      "standardName": "Mật ong chuẩn 30 ngày",
-      "standardPrice": "30 ngày · 9.900 KRW",
+      "standardName": "Hũ mật ong nhỏ",
+      "standardPrice": "9.900 KRW",
       "standardLine": "Nội dung đến khoảng 5.000 KRW",
-      "standardBenefit1": "Tối đa 20.000 KRW mỗi tháng",
-      "standardCta": "Xem tiêu chuẩn",
+      "standardBenefit1": "Tối đa 20.000 KRW",
+      "standardCta": "Xem Hũ mật ong nhỏ",
       "recommendedAria": "Gói đề xuất",
       "recommendedBadge": "Được đề xuất",
-      "premiumName": "Mật ong cao cấp 30 ngày",
-      "premiumPrice": "30 ngày · 29.900 KRW",
+      "premiumName": "Hũ mật ong vừa",
+      "premiumPrice": "29.900 KRW",
       "premiumLine": "Nội dung đến khoảng 10.000 KRW",
-      "premiumBenefit1": "Tối đa 60.000 KRW mỗi tháng",
+      "premiumBenefit1": "Tối đa 60.000 KRW",
       "premiumCta": "Xem gói đề xuất",
-      "vvipName": "Hũ mật ong VVIP 30 ngày",
-      "vvipPrice": "30 ngày · 59.900 KRW",
+      "vvipName": "Hũ mật ong lớn",
+      "vvipPrice": "59.900 KRW",
       "vvipLine": "Nội dung đến khoảng 30.000 KRW",
-      "vvipBenefit1": "Tối đa 120.000 KRW mỗi tháng",
-      "vvipCta": "Xem lợi ích VVIP",
-      "familyName": "Mã Định Mệnh Gia Đình 30 ngày",
-      "familyPrice": "30 ngày · 149.000 KRW",
+      "vvipBenefit1": "Tối đa 120.000 KRW",
+      "vvipCta": "Xem lợi ích Hũ mật ong lớn",
+      "familyName": "Hũ mật ong gia đình",
+      "familyPrice": "149.000 KRW",
       "familyLine": "Toàn bộ nội dung áp dụng gói",
-      "familyBenefit1": "Tối đa 350.000 KRW mỗi tháng",
-      "familyCta": "Xem gia đình",
-      "premiumNote": "Premium Honey cân bằng nhất nếu bạn thường dùng nội dung khoảng 10.000 KRW.",
-      "footnote": "Vé mới chỉ được bán dưới dạng vé 30 ngày. Thẻ 30 ngày này không phải là đăng ký tự động gia hạn. Các dịch vụ nằm ngoài phạm vi vượt qua có thể được sử dụng bằng cách thanh toán KRW một lần cho từng sản phẩm.",
+      "familyBenefit1": "Tối đa 350.000 KRW",
+      "familyCta": "Xem Hũ mật ong gia đình",
+      "premiumNote": "Hũ mật ong vừa cân bằng nhất nếu bạn thường dùng nội dung khoảng 10.000 KRW.",
+      "footnote": "Vé không giới hạn thời gian và kết thúc khi dùng hết hạn mức sử dụng. Vé này không phải là đăng ký tự động gia hạn. Các dịch vụ nằm ngoài phạm vi vé có thể được sử dụng bằng cách thanh toán KRW một lần cho từng sản phẩm.",
       "howtoAria": "Cách dùng moonlight pass",
       "howtoTitle": "Moonlight pass, tiếp nối như thế này",
-      "step1Label": "Chọn phạm vi moonlight 30 ngày",
-      "step1Text": "Với vé 30 ngày không tự động gia hạn, hãy đặt trước khoảng giá của những lượt đọc bạn hay xem.",
+      "step1Label": "Chọn phạm vi moonlight",
+      "step1Text": "Với vé không giới hạn thời gian và không tự động gia hạn, hãy đặt trước khoảng giá của những lượt đọc bạn hay xem.",
       "step2Label": "Lượt đọc trong phạm vi mở ngay không cần thanh toán",
       "step2Text": "Các lượt đọc tarot, thần dụ và tứ trụ trong phạm vi của bạn mở ra ngay, không cần cửa sổ thanh toán.",
       "step3Label": "Chỉ lượt đọc sâu ngoài phạm vi mới trả từng lần",
       "step3Text": "Lượt đọc sâu ngoài phạm vi chỉ tiếp tục bằng một lần thanh toán KRW khi bạn cần.",
-      "terminationNote": "Ngay cả khi hạn mức tháng về 0, ngày hết hạn, hạng và giới hạn hồ sơ của vé vẫn được giữ nguyên. Nội dung trả phí bổ sung có thể dùng bằng thanh toán một lần hoặc vé tháng."
+      "terminationNote": "Khi dùng hết hạn mức sử dụng, vé sẽ kết thúc. Mua lại sẽ bắt đầu với hạn mức sử dụng mới. Nội dung trả phí bổ sung có thể dùng bằng thanh toán một lần hoặc Nguyệt Tinh Thạch.",
+      "noExpiryNote": "Không giới hạn thời gian · Kết thúc khi dùng hết hạn mức"
     },
     "promptHub": {
       "aria": "Đến phần gợi ý bói toàn diện",
@@ -905,11 +906,11 @@
       "eyebrow": "Thẻ ánh trăng",
       "savingsBadge": "Dùng gói, giá chỉ còn tối đa một phần ba",
       "title": "Chỉ hai lần đọc 5.000 KRW đã đắt hơn gói 9.900 KRW",
-      "desc": "Các bài đọc trong khoảng giá bạn chọn sẽ mở suốt 30 ngày, trong hạn mức sử dụng hằng tháng; chỉ những bài đắt hơn mới thanh toán từng lần khi cần. Bốn mức là 5.000 KRW · 10.000 KRW · 20.000 KRW và toàn bộ nội dung áp dụng gói, nên hãy chọn mức giá bạn hay xem nhất.",
+      "desc": "Các bài đọc trong khoảng giá bạn chọn sẽ mở cho đến khi bạn dùng hết hạn mức sử dụng; chỉ những bài đắt hơn mới thanh toán từng lần khi cần. Bốn mức là 5.000 KRW · 10.000 KRW · 20.000 KRW và toàn bộ nội dung áp dụng gói, nên hãy chọn mức giá bạn hay xem nhất.",
       "pointsAria": "Hướng dẫn vượt qua lõi",
       "point1": "Mở ngay, không cần thanh toán",
-      "point2": "Lưu từ 3 hồ sơ trở lên",
-      "point3": "Thẻ 30 ngày, không tự động gia hạn",
+      "point2": "Không giới hạn thời gian · Kết thúc khi dùng hết hạn mức",
+      "point3": "Thẻ không tự động gia hạn",
       "mascotAria": "Xem quyền lợi Moonlight Pass · Cửa hàng Moonlight Pass",
       "mascotAlt": "Ảnh quyền lợi Moonlight Pass",
       "mascotKicker": "Moonlight Pass Guide",
@@ -1652,12 +1653,12 @@
       "saysName": "Yeoni",
       "saysLine": "Which reading shall we start with? Just one is plenty.",
       "passMascotAlt": "Yeoni the flower pig smiling with a pass card",
-      "passEyebrow": "30-day pass, no auto-renewal",
-      "passTitle": "Reading often? Try a 30-day pass",
-      "passDesc": "Each reading's price is deducted from your allowance. It ends automatically after 30 days.",
-      "passPer": "/ 30 days",
+      "passEyebrow": "Vé không giới hạn thời gian, không tự động gia hạn",
+      "passTitle": "Yeoni giới thiệu vé sử dụng",
+      "passDesc": "Thỉnh thoảng thì thanh toán từng lần, xem thường xuyên thì dùng vé. Hãy kiểm tra các buổi tư vấn bạn có thể dùng và hạn mức sử dụng.",
+      "passPer": "· Không giới hạn thời gian",
       "passBadge": "Incl. Yeongnyangi",
-      "passNote": "Standard, Premium and VVIP apply to Flower Pig readings; Family applies to paid readings from both Flower Pig and Yeongnyangi. Passes you already bought keep the terms from the time of purchase.",
+      "passNote": "Hũ mật ong nhỏ, vừa và lớn áp dụng cho các bài xem Flower Pig; Hũ mật ong gia đình áp dụng cho các bài xem trả phí của cả Flower Pig và Yeongnyangi. Thẻ pass bạn đã mua vẫn giữ điều kiện tại thời điểm mua.",
       "passCta": "See all 4 passes",
       "moreTitle": "Khám phá xưởng của Yeoni",
       "moreItems": "Daily readings · consultations · records · stories",
@@ -1726,7 +1727,7 @@
     "chatEntry": {
       "title": "Ask Yeoni and Neo the one thing on your mind right now",
       "cta": "Talk through my concern",
-      "price": "1 free after signing up · ₩3,000 each after"
+      "price": "3.000 KRW mỗi lượt"
     },
     "svcQuestion": {
       "master-love-codex": "When will my next relationship begin?",
@@ -1832,9 +1833,9 @@
       "reviewReward": "Moonstones after publication approval",
       "reviewDetail": "Use them in Ggulggul. Awarded once per product.",
       "reviewAction": "Write a review",
-      "passStandard": "Yeoni Standard",
-      "passPremium": "Yeoni Premium",
-      "passVvip": "Yeoni VVIP",
+      "passStandard": "Hũ mật ong nhỏ",
+      "passPremium": "Hũ mật ong vừa",
+      "passVvip": "Hũ mật ong lớn",
       "passPerLimit": "Up to KRW {amount} per reading",
       "passTotal": "Total allowance: KRW {amount}",
       "passNoLimit": "No per-reading price limit",
@@ -1862,7 +1863,8 @@
       "neoClassSource": "Saju student · KakaoTalk excerpt (Korean)",
       "neoNote": "Excerpts from Neo’s personal consultations and classes, separate from the AI reading service. Individual experiences do not guarantee similar results.",
       "neoAbout": "About Neo and the service",
-      "neoMore": "More consultation reviews"
+      "neoMore": "More consultation reviews",
+      "passFamily": "Hũ mật ong gia đình"
     },
     "simple": {
       "lead": "Chia sẻ băn khoăn để xem nội dung và giá trước khi bắt đầu.",
@@ -2339,13 +2341,13 @@
         "passSaveUnverified": "Chúng tôi không lưu được kết quả áp dụng Pass. Hãy kiểm tra lại bằng thẻ Pass bên dưới hoặc chọn phương thức thanh toán khác.",
         "passCheckFailed": "Chúng tôi không kiểm tra được Pass của bạn. Hãy thử lại bằng thẻ Pass bên dưới hoặc chọn phương thức thanh toán khác.",
         "passMiss": "Vé của bạn không mở nội dung này miễn phí, đây là các tuỳ chọn thanh toán.",
-        "passMonthlyExhausted": "Your pass allowance is fully used, so the pass has ended. Here are the payment options."
+        "passMonthlyExhausted": "Your pass usage limit is fully used, so the pass has ended. Here are the payment options."
       },
       "passBadge": "Thẻ ánh trăng",
       "passStoreTitle": "Cửa hàng vé ánh trăng",
       "passRetryTitle": "Kiểm tra lại thẻ",
       "passHint": {
-        "store": "Thanh toán một lần và mở nhiều nội dung trong 30 ngày. Đã có rồi? Chạm để kiểm tra.",
+        "store": "Thanh toán một lần và mở nhiều nội dung cho đến khi dùng hết hạn mức. Đã có rồi? Chạm để kiểm tra.",
         "retry": "Chúng tôi sẽ kiểm tra lại máy chủ để xem thẻ của bạn có thể mở cái này mà không cần thanh toán hay không.",
         "upgrade": "Hạng hiện tại không mở được nội dung này. Hãy xem hạng cao hơn."
       },
@@ -2418,7 +2420,7 @@
         "comingSoon": "Sắp ra mắt",
         "back": "Quay lại"
       },
-      "passMonthlyExhausted": "Your pass allowance is fully used, so the pass has ended. Buying a new pass starts another 30 days; for now you can open this with a one-time payment or moonstones.",
+      "passMonthlyExhausted": "Your pass usage limit is fully used, so the pass has ended. Buying again starts a new usage limit; for now you can open this with a one-time payment or moonstones.",
       "passMonthlyRemaining": "Pass allowance left {remaining} / {limit}",
       "wait": {
         "card": "After you finish verifying in your card or payment app, come back to this browser and checkout will continue automatically.",
@@ -2450,7 +2452,7 @@
         "pass": {
           "eyebrow": "KIỂM TRA VƯỢT QUA ÁNH SÁNG",
           "title": "Đang kiểm tra thẻ của bạn",
-          "message": "Đang kiểm tra xem thẻ 30 ngày của bạn có thể mở thẻ này ngay lập tức hay không.",
+          "message": "Đang kiểm tra xem thẻ pass của bạn có mở được nội dung này ngay hay không.",
           "meta": "Nếu có sẵn, bạn sẽ tiếp tục mà không cần cửa sổ thanh toán."
         },
         "passApplied": {
@@ -2521,7 +2523,7 @@
         "pass": {
           "eyebrow": "KIỂM TRA VƯỢT QUA ÁNH SÁNG",
           "title": "Đang kiểm tra thẻ của bạn",
-          "message": "Đang kiểm tra xem thẻ 30 ngày của bạn có thể mở thẻ này ngay lập tức hay không.",
+          "message": "Đang kiểm tra xem thẻ pass của bạn có mở được nội dung này ngay hay không.",
           "meta": "Nếu có sẵn, bạn sẽ tiếp tục mà không cần cửa sổ thanh toán."
         },
         "passApplied": {
@@ -2605,7 +2607,7 @@
     "passShop": {
       "monthlyStatus": "Đã xác nhận số dư nguyệt tinh thạch của bạn.",
       "chargeButton": "Chuyển đến trang thanh toán cho {amount}",
-      "chargeNotice": "Sản phẩm Pass {price} · Đây là Pass 30 ngày, không tự động gia hạn. Pass chỉ mua được bằng thanh toán một lần theo KRW.",
+      "chargeNotice": "Sản phẩm Pass {price} · Đây là Pass, không tự động gia hạn. Pass chỉ mua được bằng thanh toán một lần theo KRW.",
       "best": "BEST",
       "monthlyBasisWithPrice": "Cơ sở tín dụng hàng tháng {credits} · {price}",
       "profileUnlimited": "Hồ sơ không giới hạn",
@@ -2616,24 +2618,24 @@
       "closeAria": "Đóng Hướng dẫn về cửa hàng Moonlight Pass",
       "openAria": "Hướng dẫn mở cửa hàng Moonlight Pass",
       "title": "Hướng dẫn mua thẻ Moonlight Pass",
-      "subtitle": "Xem lại thẻ 30 ngày và dòng tín dụng hàng tháng được giữ dưới ánh trăng.",
-      "footerNotice": "Thẻ 30 ngày này không phải là sản phẩm tự động gia hạn. Bạn cần mua lại sau khi hết hạn.",
+      "subtitle": "Vé được mua bằng thanh toán một lần theo KRW, còn Nguyệt Tinh Thạch dùng cho từng tính năng trả phí.",
+      "footerNotice": "Thẻ này không phải là sản phẩm tự động gia hạn. Bạn cần mua lại sau khi dùng hết hạn mức.",
       "packages": {
         "standard": {
-          "name": "Mật Ong Tiêu Chuẩn 30 Ngày",
-          "desc": "30 ngày · Nội dung đến khoảng 5.000 KRW · Tối đa 20.000 KRW mỗi tháng"
+          "name": "Hũ mật ong nhỏ",
+          "desc": "Nội dung đến khoảng 5.000 KRW · Tối đa 20.000 KRW"
         },
         "premium": {
-          "name": "Mật Ong Cao Cấp 30 Ngày",
-          "desc": "30 ngày · Nội dung đến khoảng 10.000 KRW · Tối đa 60.000 KRW mỗi tháng"
+          "name": "Hũ mật ong vừa",
+          "desc": "Nội dung đến khoảng 10.000 KRW · Tối đa 60.000 KRW"
         },
         "vvip": {
-          "name": "Hũ Mật Ong VVIP 30 Ngày",
-          "desc": "30 ngày · Nội dung đến khoảng 30.000 KRW · Tối đa 120.000 KRW mỗi tháng"
+          "name": "Hũ mật ong lớn",
+          "desc": "Nội dung đến khoảng 30.000 KRW · Tối đa 120.000 KRW"
         },
         "family": {
-          "name": "Mã Định Mệnh Gia Đình 30 Ngày",
-          "desc": "30 ngày · Toàn bộ nội dung áp dụng gói · Tối đa 350.000 KRW mỗi tháng"
+          "name": "Hũ mật ong gia đình",
+          "desc": "Toàn bộ nội dung áp dụng gói · Tối đa 350.000 KRW"
         }
       },
       "monthlyStatusChecking": "Đang kiểm tra số dư và trạng thái Thẻ Pass.",
@@ -2642,7 +2644,7 @@
       "monthlyButton": "Thanh toán bằng {credits} nguyệt thạch",
       "monthlyButtonBusy": "Đang kích hoạt vé bằng nguyệt thạch...",
       "monthlyButtonShort": "Cần {credits} · số dư không đủ",
-      "terminationNotice": "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day."
+      "terminationNotice": "Khi dùng hết hạn mức sử dụng, vé sẽ kết thúc. Mua lại sẽ bắt đầu với hạn mức sử dụng mới. Nội dung trả phí bổ sung có thể dùng bằng thanh toán một lần hoặc Nguyệt Tinh Thạch."
     },
     "access": {
       "passAppliedContinue": "Đã mở bằng thẻ của bạn."
@@ -2734,9 +2736,9 @@
       },
       "astro": {
         "elements": {
-          "Fire": "cháy",
-          "Earth": "trái đất",
-          "Air": "không khí",
+          "Fire": "lửa",
+          "Earth": "đất",
+          "Air": "khí",
           "Water": "nước",
           "Cosmic": "ánh sao"
         },
@@ -2752,25 +2754,25 @@
         "ritualTip": "Tối nay, hãy ổn định hơi thở trong ba phút và đặt một ý định bên dưới một ngôi sao.",
         "relationshipTheme": "Khi các mối quan hệ đi theo nhịp điệu của cung chính của bạn, xích mích sẽ dịu đi.",
         "careerTheme": "Đưa động lực cốt lõi của cung mặt trời vào thói quen làm việc của bạn để có động lực ổn định hơn.",
-        "growthCycle": "Tinh vân gọi ngôi sao “hình thành quỹ đạo” nở rộ → tỏa sáng lan rộng",
+        "growthCycle": "Tiếng gọi của sao → hình thành quỹ đạo → tinh vân nở hoa → hào quang lan tỏa",
         "fallbackNote": "Dữ liệu cung mặt trời không có sẵn nên việc đọc sử dụng phần tử không khí mặc định.",
         "ultimateTitle": "Bông hoa định mệnh tối thượng",
         "ultimateConcept": "Sự nở hoa lai nơi năng lượng {dayMaster} phương Đông hòa quyện với ánh sáng sao phương Tây {sunSign}",
         "verdict": "Qua chiêm tinh học, bông hoa định mệnh của bạn là {flowerName} ({scientificName}). Ba trục cung mặt trời, mặt mọc và mặt trăng cho thấy loài hoa này hiện đang cộng hưởng chặt chẽ với bạn.",
         "narrative": "Tia sáng {sunElement} mọc lên từ cung mặt trời {sun} trở thành trung tâm của sự lựa chọn loài hoa này. Dấu hiệu thăng {rising} ({risingElement}) định hình tông màu hữu hình, trong khi dấu hiệu mặt trăng {moon} ({moonElement}) thêm sương cảm xúc, tạo thành biểu tượng {flowerName}, {flowerSymbolism}, mở rõ ràng. Từ khóa “{keyword}” chính là ánh sao đang gọi loài hoa này tiến về phía trước.",
         "signs": {
-          "aries": "Aries",
-          "taurus": "Taurus",
-          "gemini": "Gemini",
-          "cancer": "Cancer",
-          "leo": "Leo",
-          "virgo": "Virgo",
-          "libra": "Libra",
-          "scorpio": "Scorpio",
-          "sagittarius": "Sagittarius",
-          "capricorn": "Capricorn",
-          "aquarius": "Aquarius",
-          "pisces": "Pisces"
+          "aries": "Bạch Dương",
+          "taurus": "Kim Ngưu",
+          "gemini": "Song Tử",
+          "cancer": "Cự Giải",
+          "leo": "Sư Tử",
+          "virgo": "Xử Nữ",
+          "libra": "Thiên Bình",
+          "scorpio": "Bọ Cạp",
+          "sagittarius": "Nhân Mã",
+          "capricorn": "Ma Kết",
+          "aquarius": "Bảo Bình",
+          "pisces": "Song Ngư"
         },
         "rationaleLabel": {
           "sun": "Cung Mặt Trời",
@@ -2797,27 +2799,27 @@
         "ritualTip": "Từ khóa cốt lõi hôm nay: {keyword}",
         "relationshipTheme": "Hãy để khí chất ngôi sao mạnh mẽ trở thành chuẩn mực trong các mối quan hệ của bạn và sự hòa hợp trở nên rõ ràng hơn.",
         "careerTheme": "Khi sức mạnh của ngôi sao chính chiếm ưu thế, việc thực hiện và định vị sẽ ổn định.",
-        "growthCycle": "Căn chỉnh sao “thu thập năng lượng” đánh lửa hạt giống → nở hoa",
+        "growthCycle": "Sao xếp hàng → năng lượng hội tụ → hạt giống bừng cháy → nở hoa",
         "secondaryFallbackNote": "Điều chỉnh ngôi sao chính tổng hợp: {primaryStar} căn giữa + {secondaryStar} hỗn hợp mùi hương",
         "palaceFallbackNote": "Điều chỉnh đặc điểm cung điện: {palace} · {trait}",
-        "hybridHint": "Kết xuất kết hợp có sẵn bằng cách kết hợp năng lượng Saju {dayMaster} với các ngôi sao chính Ziwei {stars}",
+        "hybridHint": "Có thể kết hợp năng lượng {dayMaster} của Tứ Trụ với chính tinh Tử Vi {stars} để tạo bản hòa trộn",
         "verdict": "Ở Ziwei, bông hoa định mệnh được đọc qua ngôi sao mạnh nhất hiện nay là {flowerName} ({scientificName}). Về bản chất của {palace}, {palaceTrait}, chất lượng sao “{keyword}” từ {stars} trở nên rõ ràng nhất thông qua độ sáng {brightness}.",
         "narrativeWithSecondary": "{palace} chi phối{palaceEnergy}. Sự kết hợp {stars} xuất hiện ở đây, đặt {title} làm bông hoa trung tâm. Bản chất sao chính “{personality}” được nối với kết cấu “{secondaryKeyword}” của sao phụ. Vì độ sáng {brightness} hỗ trợ nó ổn định nên {flowerName} chuyển tải cấu trúc của vận may này một cách rõ ràng nhất.",
         "narrativeSingle": "{palace} xử lý{palaceEnergy}. Ngôi sao mạnh hôm nay {star} đặt phẩm chất “{keyword}” và tính chất “{personality}” ở trung tâm của bông hoa. Độ sáng {brightness} giữ ánh sáng đó ổn định và {flowerName} cộng hưởng sâu sắc nhất với năng lượng trung tâm của bạn.",
         "rules": {
           "peonyZiwei": {
-            "title": "Hoa mẫu đơn hoàng gia",
-            "keyword": "tư thế đĩnh đạc của đế quốc",
-            "personality": "người lãnh đạo tập trung vào lĩnh vực này và lập lại trật tự"
+            "title": "Mẫu đơn đế vương",
+            "keyword": "phong thái đế vương",
+            "personality": "người lãnh đạo đứng ở trung tâm và sắp xếp lại trật tự xung quanh"
           },
           "thornyRoseGeneral": {
             "title": "Hoa Hồng Đỏ của Tướng Quân",
             "keyword": "đột phá mang tính quyết định",
-            "personality": "lực lượng quyết định tiến lên ngay cả dưới áp lực"
+            "personality": "người quyết đoán vẫn đẩy mạnh tiến lên ngay cả dưới áp lực"
           },
           "thornyRosePioneer": {
-            "title": "Bông hồng đỏ của Pioneer",
-            "keyword": "ổ đĩa để định hình lại trường",
+            "title": "Hồng đỏ của người khai phá",
+            "keyword": "động lực thay đổi cục diện",
             "personality": "nhà đổi mới phá vỡ khuôn khổ cũ và mở ra trật tự mới"
           },
           "delicateWillow": {
@@ -2827,11 +2829,11 @@
           },
           "sunflowerZiwei": {
             "title": "Hoa hướng dương mặt trời",
-            "keyword": "đèn mở rộng",
+            "keyword": "ánh sáng lan tỏa",
             "personality": "người thực thi tập trung năng lượng vào những kết quả có thể nhìn thấy được"
           },
           "nightCereus": {
-            "title": "Cereus nở đêm trăng",
+            "title": "Quỳnh hoa dưới trăng",
             "keyword": "bí ẩn mở ra vào ban đêm",
             "personality": "một tâm hồn chiêm niệm đọc được dòng chảy vô hình"
           },
@@ -2915,20 +2917,20 @@
       "sukuyo": {
         "moon": {
           "full": "trăng tròn",
-          "new": "trăng tối",
+          "new": "trăng mới",
           "crescent": "trăng lưỡi liềm",
-          "gibbous": "trăng khuyết/trăng khuyết"
+          "gibbous": "trăng thượng huyền/hạ huyền"
         },
-        "stickerLabel": "Hoa của Sukuyo",
-        "moonPhaseLabel": "Pha mặt trăng {moon}",
-        "guardianLabel": "Người giám hộ {guardian}",
-        "scenarioTitle": "27 biệt thự và kịch bản nở hoa vào mùa trăng",
+        "stickerLabel": "Hoa theo Túc Diệu",
+        "moonPhaseLabel": "Pha trăng {moon}",
+        "guardianLabel": "Linh vật hộ mệnh {guardian}",
+        "scenarioTitle": "Kịch bản nở hoa kết hợp 27 Tú và pha trăng",
         "ritualTip": "Bên cửa sổ ngập ánh trăng, hít thở 27 lần và đặt mục tiêu hôm nay vào một từ.",
         "relationshipTheme": "Theo kết cấu của {group} làm dịu đi sự căng thẳng và làm rõ sự kết nối.",
         "careerTheme": "Khi nhịp điệu của {guardian} được phản ánh trong thói quen làm việc của bạn, kết quả sẽ ổn định.",
-        "growthCycle": "Chòm sao liên kết “ánh trăng tụ tập” đánh lửa tinh thần → nở hoa",
+        "growthCycle": "Các chòm sao kết nối → ánh trăng hội tụ → linh tính bừng cháy → nở hoa",
         "verdict": "Qua kết cấu ánh trăng của Sukuyo, bông hoa định mệnh của bạn là {flowerName} ({scientificName}). Sự kết hợp của {mansion}, {moon} và {guardian} phù hợp một cách tinh tế với nhịp điệu của mối quan hệ, cảm xúc và hành động hiện nay.",
-        "narrative": "Kết cấu quan hệ của {mansion} ({group}), giai đoạn thủy triều của mặt trăng {moon} và mô hình bảo vệ của {guardian} gặp nhau trong khu vườn đêm, làm sâu sắc thêm chất lượng của{symbolism}. Cùng đọc, ba tín hiệu dưới ánh trăng này chỉ ra {flowerName} là bông hoa định mệnh chính xác nhất của bạn lúc này.",
+        "narrative": "Kết cấu quan hệ của {mansion} ({group}), giai đoạn thủy triều của mặt trăng {moon} và mô hình bảo vệ của {guardianJosa} gặp nhau trong khu vườn đêm, làm sâu sắc thêm chất lượng của {symbolism}. Cùng đọc, ba tín hiệu dưới ánh trăng này chỉ ra {flowerName} là bông hoa định mệnh chính xác nhất của bạn lúc này.",
         "mansions": {
           "m1": "Giác Tú (角)",
           "m2": "Cang Tú (亢)",
@@ -3154,20 +3156,20 @@
             }
           }
         },
-        "stickerLabel": "Hoa của Saju",
+        "stickerLabel": "Hoa theo Tứ Trụ",
         "dayMasterWaiting": "Chờ ngày đọc chủ",
         "signalPending": "Đang chờ tín hiệu cốt lõi",
         "scenarioTitleFallback": "{dayMasterBadge} kịch bản nở hoa",
         "scenarioFallbackReason": "Dòng nở hoa được đọc bằng cách tích hợp chủ ngày và môi trường.",
-        "growthCycle": "Mầm (thu thập năng lượng) “ Tăng trưởng (khuếch đại hành động) ” Nở hoa (kết quả nổi lên) → Kết quả (mối quan hệ và làm sâu sắc thêm tài sản)",
-        "fallbackNote": "Logic làm giàu ngày chính đã được áp dụng.",
-        "verdict": "Trong bài đọc Saju, bông hoa của bạn là {flowerName} ({scientificName}).",
+        "growthCycle": "Nảy mầm (thu nạp năng lượng) → Vươn lên (khuếch đại hành động) → Nở hoa (thành quả hiện rõ) → Kết trái (tích lũy quan hệ/tài sản)",
+        "fallbackNote": "Chúng tôi đã thận trọng xem xét năng lượng Nhật chủ chỉ dựa trên ngày sinh của bạn.",
+        "verdict": "Theo Tứ Trụ, bông hoa đến với bạn lúc này là {flowerName} ({scientificName}).",
         "rationale": {
-          "verdict": "Trong bài đọc Saju, bông hoa định mệnh của bạn là {flowerName} ({scientificName}).",
+          "verdict": "Vì vậy, bông hoa dành cho bạn lúc này là {flowerName} ({scientificName}).",
           "elements": "Chỉ số Ngũ hành hiển thị {dominant} là năng lượng chính của bạn và {support} là dòng hỗ trợ.",
           "context": "Mùa vận may hiện tại là {season}, mật độ năng lượng là {water}, và giai đoạn cuộc đời được đọc là {environment}.",
           "dayMaster": "Ngày chính được xác nhận là {dayMasterBadge} và sự tương tác giữa mùa và môi trường xung quanh nó được ưu tiên.",
-          "scenario": "Kịch bản môi trường tổng thể trong ngày: {reason}",
+          "scenario": "{reason}",
           "levels": "Cấp độ nguyên tố là {elementLevelLine} và tất cả năm cấp độ đều có trọng số để xác nhận bông hoa định mệnh.",
           "symbolism": "Loài hoa này tượng trưng cho {symbolism}, phản ánh rõ ràng nhất chủ đề của mùa này.",
           "description": "Đọc hoa định mệnh: {description}",
@@ -4452,7 +4454,7 @@
       },
       "ui": {
         "source": {
-          "saju": "Saju",
+          "saju": "Tứ Trụ",
           "astrology": "Chiêm tinh",
           "jamidusu": "Tử Vi",
           "sukuyo": "Túc Diệu"
@@ -7800,10 +7802,9 @@
     },
     "fortuneGatewayDoor": {
       "fortuneGatewayDoorMeta": {
-        "k18ykrep": "1 lượt miễn phí sau khi đăng nhập",
-        "n115000": "1 lượt miễn phí sau khi đăng ký · sau đó 3.000 KRW mỗi lượt",
         "n130000": "30.000 KRW mỗi lượt",
-        "k1lo4ibg": "đối chiếu chung cuộc"
+        "k1lo4ibg": "đối chiếu chung cuộc",
+        "n13000": "3.000 KRW mỗi lượt"
       },
       "fortuneGatewayDoorGo": {
         "kkmvgqi": "Start a reading",
@@ -20535,18 +20536,18 @@
       "pig": "Pig"
     },
     "sign": {
-      "aries": "Aries",
-      "taurus": "Taurus",
-      "gemini": "Gemini",
-      "cancer": "Cancer",
-      "leo": "Leo",
-      "virgo": "Virgo",
-      "libra": "Libra",
-      "scorpio": "Scorpio",
-      "sagittarius": "Sagittarius",
-      "capricorn": "Capricorn",
-      "aquarius": "Aquarius",
-      "pisces": "Pisces"
+      "aries": "Bạch Dương",
+      "taurus": "Kim Ngưu",
+      "gemini": "Song Tử",
+      "cancer": "Cự Giải",
+      "leo": "Sư Tử",
+      "virgo": "Xử Nữ",
+      "libra": "Thiên Bình",
+      "scorpio": "Bọ Cạp",
+      "sagittarius": "Nhân Mã",
+      "capricorn": "Ma Kết",
+      "aquarius": "Bảo Bình",
+      "pisces": "Song Ngư"
     },
     "stem": {
       "wood": "Wood",

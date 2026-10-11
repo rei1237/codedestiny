@@ -156,7 +156,7 @@ export async function claimGift(db, { tokenHash, userId, now = new Date() }) {
     } else {
       const activation = await activatePassSubscription(tx, {
         userId, plan, orderId: gift.giftId, paidAt: now, now, existing: user,
-        paymentMethod: "gift", expiresAt: computePassExpiry({ transition, paidAt: now, now, durationDays: plan.durationDays }),
+        paymentMethod: "gift", expiresAt: computePassExpiry({ transition, paidAt: now, now }),
       });
       if (activation.conflict) throw paymentError("GIFT_CONFLICT", "이용권이 변경되었습니다. 다시 수령해 주세요.");
       after=activation.user.profileSubscription;

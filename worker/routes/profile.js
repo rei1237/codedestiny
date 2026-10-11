@@ -21,6 +21,7 @@ import {
 } from "../lib/profile-card-mutation-policy.js";
 import { enforceSensitiveEndpointSecurity } from "../lib/security/index.js";
 import { invalidateAccessStateCacheForUser } from "../lib/access-state.js";
+import { computeBirthKey } from "../lib/birth-key.js";
 
 const MAX_PROFILE_ID_LEN = 80;
 const MAX_NAME_LEN = 80;
@@ -273,7 +274,7 @@ function resolveSubscriptionPolicy(user) {
     label: entitlement.label,
     isActive: entitlement.isActive,
     freeLimit: entitlement.maxCoveredCoin,
-    profileLimit: entitlement.maxProfiles,
+    profileLimit: resolveProfileLimitForClient(), // 2026-10-11 프로필 개수 상한 없음(0 = 무제한)
     source: entitlement.source,
     startedAt: entitlement.startedAt || null,
     expiresAt: entitlement.expiresAt,
@@ -1214,6 +1215,31 @@ function invalidateBirthScopedAccessCachesForUser(userId) {
   try { globalThis.__codeDestinyAccessUnlocksCache?.invalidateForUser?.(uid); } catch {}
 }
 
+/* 레거시 PROFILE 해금(출생 기반 전환 이전 결제)은 그 카드의 생년월일을 고쳐도 열린다 — 결제 고객 재잠금 방지.
+   다른 사람의 생년월일로 바꿔 보는 우회는 막지 않고 기록만 남긴다. 기록 실패는 수정 응답에 영향을 주지 않는다.
+   두 모듈은 생년월일이 바뀐 수정에서만 필요하므로 그때 불러온다. */
+async function auditLegacyProfileUnlockBirthEdit(request, env, userId, profileId) {
+  try {
+    const [{ listLegacyProfileBirthUnlockKeys }, { writeSecurityLog }] = await Promise.all([
+      import("../lib/content-unlocks.js"),
+      import("../lib/security/index.js"),
+    ]);
+    const featureKeys = await withMongoRetry(env, () => listLegacyProfileBirthUnlockKeys({ userId, profileId }));
+    if (!featureKeys.length) return;
+    console.warn("[profile] legacy_profile_unlock_birth_edit", { profileId, featureKeys });
+    await writeSecurityLog({
+      env,
+      request,
+      reason: "legacy_profile_unlock_birth_edit",
+      userId,
+      endpoint: "profile_update",
+      metadata: { profileId, featureKeys },
+    });
+  } catch (error) {
+    console.warn("[profile] legacy_profile_unlock_birth_edit 기록 실패", String(error?.message || error).slice(0, 200));
+  }
+}
+
 async function handleUpdateProfile(request, auth, profileIdRaw, env) {
   const profileId = sanitizeProfileId(profileIdRaw);
   if (!profileId) return json({ ok: false, code: "PROFILE_ID_REQUIRED", message: "수정할 프로필 카드 ID가 필요합니다." }, { status: 400 });
@@ -1311,6 +1337,9 @@ async function handleUpdateProfile(request, auth, profileIdRaw, env) {
     return json({ ok: false, code: "PROFILE_NOT_FOUND", message: "프로필 카드를 찾을 수 없습니다." }, { status: 404 });
   }
   invalidateBirthScopedAccessCachesForUser(auth.userId);
+  if (computeBirthKey(existingProfile) !== computeBirthKey(updated)) {
+    await auditLegacyProfileUnlockBirthEdit(request, env, auth.userId, profileId);
+  }
 
   await recordProfileMutationCompleted(auth, {
     action: PROFILE_CARD_MUTATION_ACTIONS.UPDATE,

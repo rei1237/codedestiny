@@ -133,8 +133,13 @@ test.each([
   ["legacy-key USER", { scope: "USER", profileId: "__user__", contentKey: "ziwei.daehanTimeline" }],
   ["\"__user__\"", { scope: undefined, profileId: "__user__" }],
   ["PROFILE", { scope: "PROFILE", profileId: "p1" }],
-])("레거시 %s 행은 근거가 아니다", async (_label, overrides) => {
+])("레거시 %s 행은 계속 연다(출생 기반 전환 이전 구매 — 재잠금 방지)", async (_label, overrides) => {
   grant(overrides);
+  expect((await status("?profileId=p1")).body.isPurchased).toBe(true);
+});
+
+test("다른 카드의 레거시 PROFILE 행으로는 열리지 않는다", async () => {
+  grant({ scope: "PROFILE", profileId: "p3" });
   expect((await status("?profileId=p1")).body.isPurchased).toBe(false);
 });
 
