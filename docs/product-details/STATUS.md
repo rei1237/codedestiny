@@ -474,3 +474,8 @@ status: active
 ## 코스믹 소울 명상
 - 4의도/30분5단계/60분7단계/완료저널최근50브라우저저장/로컬통계를10장개별편집.원본10/native23독립SHIP.318/348/388/538 clipping/fallback/CTAtrial PASS,API POST0.판매문구과장완화,5000/10000가격유지. verify-paid-resume-wiring PASS React43/정적46.
 - 유료구성122종+공통소개1종1106패널로컬검수.직전b68eea314 pre-pushPASS.mainCI복구질문pending/운영배포없음.전체/main전달미완료.다음DivyaYoga9장원본편집.
+
+## Divya Yoga
+- 상태글/30·60분/AI단계동작·호흡·주의/저장코스를9장개별편집.원본9/native22최종독립SHIP.330/360/400/538 clipping/fallback/CTAtrial PASS,API POST0.Jest29/Node3 PASS.원래장식CTA가로채기pointer-events수정,버튼단축.
+- 기계검출:네빌·코스믹58패턴/34advisory,요가19패턴/19advisory는기존glow·gradient·타이포토큰등.원본패널은사용자지정큰글씨래스터규격을유지,실제모바일검수로읽기/클릭문제수정.
+- 유료구성123종+공통소개1종1115패널로컬검수.직전989fb2c2b pre-pushPASS.mainCI복구질문pending/운영배포없음.전체/main전달미완료.다음운명의업10장원본1곳고지단축필요.
