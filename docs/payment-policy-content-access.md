@@ -57,7 +57,7 @@
 - **정책**: 프로필 카드(운세 대상 인물)의 추가·수정·삭제는 **모두 무료이고 개수 상한이 없다**. 이용권 등급(none/standard/premium/vvip/family)과 무관하며 결제 게이트를 띄우지 않는다.
 - **서버 판정**: `worker/lib/profile-card-mutation-policy.js`의 `getProfileCardMutationPolicy`·`resolveProfileCardActionAccess`·`canAddProfile`이 항상 무료 허용(`PROFILE_CARD_MUTATION_FREE`)을 돌려준다. `worker/routes/profile.js`(`POST/PATCH/DELETE /api/profile`)와 레거시 일괄 동기화(`worker/routes/user.js`의 `/api/user/destiny-profiles`)는 402를 내지 않는다. 서버는 birth/ownership/duplicate 검증만 한다.
 - **클라이언트 기준값**: `profilePolicySnapshot.maxProfileCount`·`resolveProfileLimitForClient()`는 0(=무제한)을 보낸다. `HONEY_PASS_POLICY`·`PROFILE_LIMIT_BY_TIER`의 `maxProfiles` 숫자는 하위호환 데이터로만 남아 있고 판정에 쓰이지 않는다. `User.profileSubscription.profileLimit`도 같다.
-- **이용권 문구**: 이용권 카드·상품 설명에 "프로필 최대 N개"를 표기하지 않는다(`scripts/verify-pass-tier-policy.mjs` ⑤가 설명 문구를 '기간 · 가격대 · 월 한도' 3토막으로 고정).
+- **이용권 문구**: 이용권 카드·상품 설명에 "프로필 최대 N개"를 표기하지 않는다(`scripts/verify-pass-tier-policy.mjs` ⑤가 설명 문구를 '가격대 · 최대 한도' 2토막으로 고정 — 2026-10-11 기간 토막도 뺐다).
 - **결제 결과와의 관계**: 카드 수정이 무료가 되었어도 남의 출생정보로 고쳐 유료 결과를 공짜로 볼 수는 없다. 잠금 해제는 **계정 + 출생정보(birthKey)** 단위(`hasPaidUnlockForProfile`)라, 카드의 출생정보를 바꾸면 그 카드에서 다시 잠기고 되돌리면 다시 열린다(`__tests__/worker/birth-scope-unlock-policy.test.js` D). 카드를 삭제해도 그 카드로 결제한 보관함 기록은 계정 단위라 계속 열린다.
 - **과거 결제**: 2026-10-10까지 카드 관리 수수료(1,000원/월정석 100, 그 전 5,000원)를 받았다. 이미 낸 수수료의 소급 처리 여부는 이 변경의 범위가 아니며 운영 결정이 필요하다. 가격 상수(`PROFILE_CARD_DELETE_COST_KRW`, `LEGACY_PROFILE_CARD_COSTS`)와 `profile-card-manage` 레지스트리 항목은 과거 주문·환불 조회용으로 남아 있다. 신규 결제에 쓰지 말 것.
 - **결제 계층**: 레거시 Express(`server/routes/profile.routes.js`)의 프로필 추가/삭제 라우트는 계속 410 `USE_WORKER_PROFILE_ENDPOINT`로 차단된다. 관리 UI 정본은 정적 셸(`js/destiny-profile.js`, `public/js/`에 사본) 하나다.

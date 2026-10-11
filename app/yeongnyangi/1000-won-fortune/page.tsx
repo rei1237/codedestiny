@@ -65,7 +65,7 @@ const FAQS=[
  {question:'천원 운세로 무엇을 볼 수 있나요?',answer:`${FUN.map(item=>item.name).join(', ')} 다섯 가지 재미 사주 콘텐츠를 각각 ${FUN_PRICE}에 열 수 있어요. 무료 사주 결과 화면의 리포트 카드에서 고르면 돼요. 로또 번호는 무료이고, 번호별 해석과 금전 루틴을 담은 리포트는 회당 ${FUN_PRICE}이에요. 내 질문을 AI가 챕터로 길게 풀어 주는 영냥이 상담은 고등어 ${PRICE}부터예요.`},
  {question:'천원사주는 정말 1,000원인가요?',answer:`네. 이 페이지에 소개한 재미 사주 콘텐츠 다섯 가지는 각각 ${FUN_PRICE}이에요. 결제창에서 금액과 적용 수단을 한 번 더 확인해요. 앱(Google Play) 결제는 아직 준비 중이라 웹에서 이용해 주세요.`},
  {question:'영냥이 상담도 천원인가요?',answer:`아니요. 2026년 10월 5일부터 영냥이 고등어 상담은 사주, 자미두수, 숙요점, 베다점, 점성술, 타로 여섯 가지 모두 ${PRICE}이에요. 더 깊은 상담은 ${TIERS.slice(1).map(fish=>`${packages[fish].name} ${won(single('saju',fish).priceKRW)}`).join(', ')}으로 구성되며, 초융합 상담도 별도 가격이에요. 선택한 상품의 가격과 이용권 적용 여부는 결제창에서 확인해 주세요.`},
- {question:'이용권이나 월정석으로도 볼 수 있나요?',answer:'Family 이용권은 적용됩니다. 다른 이용권 등급과 월정석은 적용되지 않으며, Family가 없다면 카드·카카오페이 등의 단건 결제로 이용할 수 있어요.'},
+ {question:'이용권이나 월정석으로도 볼 수 있나요?',answer:'패밀리 꿀단지 이용권은 적용됩니다. 다른 이용권 등급과 월정석은 적용되지 않으며, 패밀리 꿀단지가 없다면 카드·카카오페이 등의 단건 결제로 이용할 수 있어요.'},
  {question:'출생시간을 모르면 상담할 수 없나요?',answer:'고등어 사주 상담은 출생시간 없이도 상담할 수 있어요. 자미두수, 숙요점, 베다점, 점성술은 출생시간으로 계산이 달라지므로 시간이 필요하고, 타로는 출생정보 없이 질문만으로 상담해요.'},
  {question:'영냥이 상담으로 궁합도 볼 수 있나요?',answer:`숙요점 고등어 상담에서 궁합 상대 프로필을 함께 고르면 두 사람의 관계를 ${sukuyoPair.length}개 챕터로 읽어요. 다른 운세의 궁합 지원 여부와 필요한 정보는 상담 종류에서 확인할 수 있어요. 꿀꿀 사주 궁합 페이지도 함께 둘러볼 수 있어요.`},
  {question:'결제한 상담은 다시 볼 수 있나요?',answer:'네. 같은 CODE DESTINY 계정으로 로그인하면 영냥이의 내 상담 기록에서 결제한 상담을 다시 열 수 있어요.'},
@@ -143,7 +143,7 @@ export default function Page(){
   <LaunchOfferBanner/>
   <section aria-labelledby="what">
    <h2 id="what">천원사주·천원운세와 영냥이 상담</h2>
-   <p>천원 운세, 천원운세, 1000원 운세로 찾는 상품은 위의 재미 사주 콘텐츠 다섯 가지예요. 2026년 10월 5일부터 영냥이 상담은 고등어 {PRICE}부터 시작하며, Family 이용권 한도 또는 단건 결제로 한 번의 상담 결과를 받아요. 자동 결제는 아니에요.</p>
+   <p>천원 운세, 천원운세, 1000원 운세로 찾는 상품은 위의 재미 사주 콘텐츠 다섯 가지예요. 2026년 10월 5일부터 영냥이 상담은 고등어 {PRICE}부터 시작하며, 패밀리 꿀단지 이용권 한도 또는 단건 결제로 한 번의 상담 결과를 받아요. 자동 결제는 아니에요.</p>
    <p>고등어 상담은 사주가 {mackerels[0].chapterCount}개, 다른 체계가 {chapterRange(mackerels.slice(1))} 챕터로 구성돼요. 상담 전체 분량은 {a4Label(consultationBudget('mackerel').initial)}({A4_PAGE_NOTE})이고, 챕터마다 {mackerelPolicy.depth.join(' → ')} 순서로 내용을 담아요. 짧은 운세 문장 한 줄이 아니라, 왜 그렇게 읽었는지와 오늘 해볼 수 있는 첫 행동까지 함께 받는 구성이에요.</p>
    <p>운세마다 해석·궁합 등 제공하는 상담 종류를 먼저 골라요. 무엇이든 물어보기에서는 {TOPICS} 등의 주제를 고르고 궁금한 질문을 1,000자까지 남겨요. 타로는 카드에 물어볼 질문을 따로 적어요.</p>
   </section>
@@ -171,7 +171,7 @@ export default function Page(){
     <caption>무료 운세 페이지와 영냥이 고등어 상담 비교</caption>
     <thead><tr><th scope="col">구분</th><th scope="col">꿀꿀 사주 무료 페이지</th><th scope="col">영냥이 고등어 상담</th></tr></thead>
     <tbody>
-     <tr><th scope="row">비용</th><td>무료</td><td>{PRICE} · Family 이용권 또는 단건 결제</td></tr>
+     <tr><th scope="row">비용</th><td>무료</td><td>{PRICE} · 패밀리 꿀단지 이용권 또는 단건 결제</td></tr>
      <tr><th scope="row">결과 형태</th><td>계산 결과와 기본 풀이</td><td>{chapterRange(mackerels)} 챕터로 나눈 상담 글</td></tr>
      <tr><th scope="row">주제·질문 반영</th><td>페이지마다 정해진 항목</td><td>운세별 전용 상담 또는 무엇이든 물어보기</td></tr>
      <tr><th scope="row">로그인</th><td>기능별로 다름 · 무료 사주는 로그인 후 결과 확인</td><td>CODE DESTINY 계정 필요</td></tr>
@@ -186,7 +186,7 @@ export default function Page(){
     <li><strong>운세 체계 고르기</strong> 사주, 자미두수, 숙요점, 베다점, 점성술, 타로 중 하나를 고르고 고등어를 선택해요.</li>
     <li><strong>프로필 고르기</strong> CODE DESTINY 계정으로 로그인한 뒤 생년월일이 담긴 프로필을 골라요. 타로는 이 단계가 없어요.</li>
     <li><strong>상담 종류 확인하기</strong> 선택한 상담의 목차를 확인해요. 무엇이든 물어보기와 타로에서는 궁금한 질문을 남겨요.</li>
-    <li><strong>이용 내용 확인</strong> 결제창에서 Family 적용 여부와 {PRICE} 금액을 확인한 뒤, Family 이용권 또는 카드·카카오페이 등의 단건 결제를 선택해요.</li>
+    <li><strong>이용 내용 확인</strong> 결제창에서 패밀리 꿀단지 적용 여부와 {PRICE} 금액을 확인한 뒤, 패밀리 꿀단지 이용권 또는 카드·카카오페이 등의 단건 결제를 선택해요.</li>
     <li><strong>상담 읽기</strong> 결제가 끝나면 상담 결과 화면으로 돌아와요. 이후에는 <a href="/yeongnyangi/library/">내 상담</a>에서 다시 열 수 있어요.</li>
    </ol>
   </section>

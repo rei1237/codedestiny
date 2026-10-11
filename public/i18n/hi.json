@@ -814,10 +814,10 @@
       "aria": "मूनलाइट पास गाइड",
       "kicker": "मूनलाइट पास",
       "title": "चांदनी रात के साथ अपने भाग्य की दिनचर्या को और अधिक धीरे से प्रवाहित होने दें",
-      "desc": "मूनलाइट पास 30 दिनों तक, एक तय दायरे में, उन रीडिंग को पहले खोल देता है जिन पर आप बार-बार लौटते हैं। आज के संकेत बिना रुके शांति से आगे बढ़ते रहते हैं।",
+      "desc": "मूनलाइट पास, उपयोग सीमा खत्म होने तक, एक तय दायरे में, उन रीडिंग को पहले खोल देता है जिन पर आप बार-बार लौटते हैं। आज के संकेत बिना रुके शांति से आगे बढ़ते रहते हैं।",
       "guideLabel": "MOONLIGHT GUIDE",
-      "guideTitle": "For 30 days, readings you open often unfold first with ease",
-      "guideText": "From Standard to Family, tarot, oracle, and saju readings open first within your moonlight range. Deeper readings outside that range continue to one-time KRW payment only when needed.",
+      "guideTitle": "उपयोग सीमा खत्म होने तक, अक्सर खोली जाने वाली रीडिंग पहले सहजता से खुलती हैं",
+      "guideText": "छोटा शहद जार से फ़ैमिली शहद जार तक, आपकी चुनी हुई चाँदनी सीमा में टैरो, ओरेकल और साजू रीडिंग बिना भुगतान प्रक्रिया के पहले खुलती हैं। उस सीमा से बाहर की गहरी रीडिंग ज़रूरत पड़ने पर ही KRW में एकबारगी भुगतान से आगे बढ़ती हैं।",
       "toggle": "खुली चांदनी के लाभ",
       "heroAria": "चांदनी प्रवाह में निःशुल्क उपलब्ध सेवाओं की जाँच करें",
       "heroTitle": "मूनलाइट पास की सीमा देखें",
@@ -829,42 +829,43 @@
       "primaryAction": "वह पास ढूंढें जो मेरे लिए उपयुक्त हो",
       "chipsAria": "कोर पास लाभ",
       "chipIncluded": "पास सीमा के भीतर निःशुल्क",
-      "chipThirtyDays": "30 दिन का पास",
+      "chipThirtyDays": "पास",
       "chipShareReward": "दायरे के बाहर एकल भुगतान",
       "plansAria": "योजना सारांश कार्ड पास करें",
-      "standardName": "मानक शहद 30 दिन",
-      "standardPrice": "30 दिन · KRW 9,900",
+      "standardName": "छोटा शहद जार",
+      "standardPrice": "KRW 9,900",
       "standardLine": "KRW 5,000 तक की सामग्री",
-      "standardBenefit1": "हर महीने KRW 20,000 तक",
-      "standardCta": "मानक देखें",
+      "standardBenefit1": "KRW 20,000 तक",
+      "standardCta": "छोटा शहद जार देखें",
       "recommendedAria": "अनुशंसित योजना",
       "recommendedBadge": "अनुशंसित",
-      "premiumName": "प्रीमियम शहद 30 दिन",
-      "premiumPrice": "30 दिन · KRW 29,900",
+      "premiumName": "मध्यम शहद जार",
+      "premiumPrice": "KRW 29,900",
       "premiumLine": "KRW 10,000 तक की सामग्री",
-      "premiumBenefit1": "हर महीने KRW 60,000 तक",
+      "premiumBenefit1": "KRW 60,000 तक",
       "premiumCta": "अनुशंसित योजना देखें",
-      "vvipName": "वीवीआईपी हनी जार 30 दिन",
-      "vvipPrice": "30 दिन · KRW 59,900",
+      "vvipName": "बड़ा शहद जार",
+      "vvipPrice": "KRW 59,900",
       "vvipLine": "KRW 30,000 तक की सामग्री",
-      "vvipBenefit1": "हर महीने KRW 120,000 तक",
-      "vvipCta": "वीवीआईपी लाभ देखें",
-      "familyName": "कोड डेस्टिनी फ़ैमिली 30 दिन",
-      "familyPrice": "30 दिन · KRW 149,000",
+      "vvipBenefit1": "KRW 120,000 तक",
+      "vvipCta": "बड़ा शहद जार के लाभ देखें",
+      "familyName": "फ़ैमिली शहद जार",
+      "familyPrice": "KRW 149,000",
       "familyLine": "पास में शामिल सभी सामग्री",
-      "familyBenefit1": "हर महीने KRW 350,000 तक",
-      "familyCta": "परिवार देखें",
-      "premiumNote": "अगर आप अक्सर KRW 10,000 वाली सामग्री देखते हैं तो प्रीमियम हनी सबसे संतुलित विकल्प है।",
-      "footnote": "नए पास केवल 30-दिवसीय पास के रूप में बेचे जाते हैं। यह 30-दिवसीय पास स्वत: नवीनीकरण सदस्यता नहीं है। पास रेंज के बाहर की सेवाओं का उपयोग उत्पाद द्वारा एकमुश्त केआरडब्ल्यू भुगतान के साथ किया जा सकता है।",
+      "familyBenefit1": "KRW 350,000 तक",
+      "familyCta": "फ़ैमिली शहद जार देखें",
+      "premiumNote": "अगर आप अक्सर KRW 10,000 वाली सामग्री देखते हैं तो मध्यम शहद जार सबसे संतुलित विकल्प है।",
+      "footnote": "पास की कोई समय-सीमा नहीं है और उपयोग सीमा पूरी होने पर यह समाप्त हो जाता है। यह पास स्वत: नवीनीकरण सदस्यता नहीं है। पास रेंज के बाहर की सेवाओं का उपयोग उत्पाद द्वारा एकमुश्त केआरडब्ल्यू भुगतान के साथ किया जा सकता है।",
       "howtoAria": "मूनलाइट पास कैसे इस्तेमाल करें",
       "howtoTitle": "मूनलाइट पास, ऐसे आगे बढ़ता है",
-      "step1Label": "30 दिन की मूनलाइट सीमा चुनें",
-      "step1Text": "बिना अपने-आप नवीनीकरण वाले 30 दिन के पास के साथ, पहले उन रीडिंग की कीमत सीमा तय करें जिन्हें आप अक्सर देखते हैं।",
+      "step1Label": "मूनलाइट सीमा चुनें",
+      "step1Text": "बिना समय-सीमा और बिना अपने-आप नवीनीकरण वाले पास के साथ, पहले उन रीडिंग की कीमत सीमा तय करें जिन्हें आप अक्सर देखते हैं।",
       "step2Label": "सीमा के भीतर रीडिंग बिना भुगतान के खुलती हैं",
       "step2Text": "आपकी सीमा के भीतर टैरो, ऑरेकल और साजु रीडिंग बिना भुगतान विंडो के तुरंत खुल जाती हैं।",
       "step3Label": "केवल गहरी रीडिंग का प्रति उपयोग भुगतान",
       "step3Text": "आपकी सीमा से बाहर की गहरी रीडिंग ज़रूरत पड़ने पर ही एक बार KRW भुगतान से जारी रहती हैं।",
-      "terminationNote": "मासिक सीमा शून्य होने पर भी पास की समाप्ति तिथि, स्तर और प्रोफ़ाइल सीमा बनी रहती है। अतिरिक्त सशुल्क सामग्री एकमुश्त भुगतान या मासिक पास से उपलब्ध है।"
+      "terminationNote": "उपयोग सीमा पूरी तरह इस्तेमाल हो जाने पर पास समाप्त हो जाता है। दोबारा खरीदने पर नई उपयोग सीमा से शुरुआत होती है। अतिरिक्त सशुल्क सामग्री एकमुश्त भुगतान या मूनलाइट स्टोन से उपलब्ध है।",
+      "noExpiryNote": "कोई समय-सीमा नहीं · उपयोग सीमा खत्म होने पर समाप्त"
     },
     "promptHub": {
       "aria": "व्यापक भाग्य संकेत पर जाएँ",
@@ -905,11 +906,11 @@
       "eyebrow": "मूनलाइट पास",
       "savingsBadge": "पास के साथ कीमत अधिकतम एक-तिहाई",
       "title": "KRW 5,000 वाली दो रीडिंग पहले ही KRW 9,900 के पास से महंगी पड़ती हैं",
-      "desc": "आपके चुने हुए दायरे की रीडिंग 30 दिनों तक, आपकी मासिक उपयोग सीमा के भीतर खुलती हैं; उससे महंगी रीडिंग ज़रूरत पड़ने पर अलग से भुगतान करके देखी जाती हैं। चार दायरे हैं — KRW 5,000 · 10,000 · 20,000 और पास में शामिल सभी सामग्री — इसलिए वही चुनें जिसे आप सबसे ज़्यादा देखते हैं।",
+      "desc": "आपके चुने हुए दायरे की रीडिंग आपकी उपयोग सीमा खत्म होने तक खुलती हैं; उससे महंगी रीडिंग ज़रूरत पड़ने पर अलग से भुगतान करके देखी जाती हैं। चार दायरे हैं — KRW 5,000 · 10,000 · 20,000 और पास में शामिल सभी सामग्री — इसलिए वही चुनें जिसे आप सबसे ज़्यादा देखते हैं।",
       "pointsAria": "कोर पास गाइड",
       "point1": "बिना चेकआउट के तुरंत खुलता है",
-      "point2": "3 या अधिक प्रोफ़ाइल सहेजें",
-      "point3": "बिना ऑटो-नवीनीकरण वाला 30-दिन पास",
+      "point2": "कोई समय-सीमा नहीं · उपयोग सीमा खत्म होने पर समाप्त",
+      "point3": "बिना ऑटो-नवीनीकरण वाला पास",
       "mascotAria": "मूनलाइट पास के लाभ देखें · मूनलाइट पास स्टोर",
       "mascotAlt": "मूनलाइट पास लाभ की छवि",
       "mascotKicker": "Moonlight Pass Guide",
@@ -1652,12 +1653,12 @@
       "saysName": "Yeoni",
       "saysLine": "Which reading shall we start with? Just one is plenty.",
       "passMascotAlt": "Yeoni the flower pig smiling with a pass card",
-      "passEyebrow": "30-day pass, no auto-renewal",
-      "passTitle": "Reading often? Try a 30-day pass",
-      "passDesc": "Each reading's price is deducted from your allowance. It ends automatically after 30 days.",
-      "passPer": "/ 30 days",
+      "passEyebrow": "बिना समय-सीमा और ऑटो-नवीनीकरण वाला पास",
+      "passTitle": "Yeoni बताती है पास के बारे में",
+      "passDesc": "कभी-कभार के लिए एकल भुगतान, और अक्सर देखते हैं तो पास का उपयोग करें। उपलब्ध परामर्श और अपनी उपयोग सीमा जाँच लें।",
+      "passPer": "· कोई समय-सीमा नहीं",
       "passBadge": "Incl. Yeongnyangi",
-      "passNote": "Standard, Premium and VVIP apply to Flower Pig readings; Family applies to paid readings from both Flower Pig and Yeongnyangi. Passes you already bought keep the terms from the time of purchase.",
+      "passNote": "छोटा, मध्यम और बड़ा शहद जार Flower Pig रीडिंग पर लागू होते हैं; फ़ैमिली शहद जार Flower Pig और Yeongnyangi दोनों की सशुल्क रीडिंग पर लागू होता है। पहले से खरीदे गए पास खरीद के समय की शर्तें बनाए रखते हैं।",
       "passCta": "See all 4 passes",
       "moreTitle": "Yeoni के अटेलियर में और देखें",
       "moreItems": "Daily readings · consultations · records · stories",
@@ -1832,9 +1833,9 @@
       "reviewReward": "Moonstones after publication approval",
       "reviewDetail": "Use them in Ggulggul. Awarded once per product.",
       "reviewAction": "Write a review",
-      "passStandard": "Yeoni Standard",
-      "passPremium": "Yeoni Premium",
-      "passVvip": "Yeoni VVIP",
+      "passStandard": "छोटा शहद जार",
+      "passPremium": "मध्यम शहद जार",
+      "passVvip": "बड़ा शहद जार",
       "passPerLimit": "Up to KRW {amount} per reading",
       "passTotal": "Total allowance: KRW {amount}",
       "passNoLimit": "No per-reading price limit",
@@ -1862,7 +1863,8 @@
       "neoClassSource": "Saju student · KakaoTalk excerpt (Korean)",
       "neoNote": "Excerpts from Neo’s personal consultations and classes, separate from the AI reading service. Individual experiences do not guarantee similar results.",
       "neoAbout": "About Neo and the service",
-      "neoMore": "More consultation reviews"
+      "neoMore": "More consultation reviews",
+      "passFamily": "फ़ैमिली शहद जार"
     },
     "simple": {
       "lead": "अपनी चिंता बताएं। शुरू करने से पहले विषय और कीमत जानें।",
@@ -2339,13 +2341,13 @@
         "passSaveUnverified": "आपका पास लागू करने का परिणाम सहेजा नहीं जा सका। नीचे दिए पास कार्ड से दोबारा जाँचें या कोई दूसरा भुगतान तरीका चुनें।",
         "passCheckFailed": "आपका पास जाँचा नहीं जा सका। नीचे दिए पास कार्ड से दोबारा जाँचें या कोई दूसरा भुगतान तरीका चुनें।",
         "passMiss": "आपका पास इस सामग्री को मुफ़्त नहीं खोलता, इसलिए भुगतान विकल्प दिए गए हैं।",
-        "passMonthlyExhausted": "Your pass allowance is fully used, so the pass has ended. Here are the payment options."
+        "passMonthlyExhausted": "Your pass usage limit is fully used, so the pass has ended. Here are the payment options."
       },
       "passBadge": "मूनलाइट पास",
       "passStoreTitle": "मूनलाइट पास की दुकान",
       "passRetryTitle": "पास को दोबारा जांचें",
       "passHint": {
-        "store": "एक बार भुगतान करें और 30 दिनों तक कई सामग्री खोलें। पहले से है? जाँचने के लिए टैप करें।",
+        "store": "एक बार भुगतान करें और उपयोग सीमा खत्म होने तक कई सामग्री खोलें। पहले से है? जाँचने के लिए टैप करें।",
         "retry": "हम यह देखने के लिए सर्वर की दोबारा जांच करेंगे कि क्या आपका पास बिना भुगतान के इसे खोल सकता है।",
         "upgrade": "आपका मौजूदा स्तर इसे नहीं खोलता। एक व्यापक स्तर देखें।"
       },
@@ -2418,7 +2420,7 @@
         "comingSoon": "जल्द आ रहा है",
         "back": "वापस"
       },
-      "passMonthlyExhausted": "Your pass allowance is fully used, so the pass has ended. Buying a new pass starts another 30 days; for now you can open this with a one-time payment or moonstones.",
+      "passMonthlyExhausted": "Your pass usage limit is fully used, so the pass has ended. Buying again starts a new usage limit; for now you can open this with a one-time payment or moonstones.",
       "passMonthlyRemaining": "Pass allowance left {remaining} / {limit}",
       "wait": {
         "card": "After you finish verifying in your card or payment app, come back to this browser and checkout will continue automatically.",
@@ -2450,7 +2452,7 @@
         "pass": {
           "eyebrow": "मूनलाइट पास चेक",
           "title": "आपके पास की जाँच की जा रही है",
-          "message": "जाँच की जा रही है कि क्या आपका 30-दिवसीय पास इसे तुरंत खोल सकता है।",
+          "message": "जाँच की जा रही है कि क्या आपका पास इसे तुरंत खोल सकता है।",
           "meta": "यदि उपलब्ध हो, तो आप चेकआउट विंडो के बिना जारी रखेंगे।"
         },
         "passApplied": {
@@ -2521,7 +2523,7 @@
         "pass": {
           "eyebrow": "मूनलाइट पास चेक",
           "title": "आपके पास की जाँच की जा रही है",
-          "message": "जाँच की जा रही है कि क्या आपका 30-दिवसीय पास इसे तुरंत खोल सकता है।",
+          "message": "जाँच की जा रही है कि क्या आपका पास इसे तुरंत खोल सकता है।",
           "meta": "यदि उपलब्ध हो, तो आप चेकआउट विंडो के बिना जारी रखेंगे।"
         },
         "passApplied": {
@@ -2605,7 +2607,7 @@
     "passShop": {
       "monthlyStatus": "आपका मूनस्टोन बैलेंस पुष्ट हो गया है।",
       "chargeButton": "{amount} के लिए भुगतान पृष्ठ पर जाएं",
-      "chargeNotice": "पास उत्पाद {price} · यह 30-दिन का पास है, ऑटो-नवीनीकरण भुगतान नहीं। पास केवल KRW में एकमुश्त भुगतान से खरीदा जा सकता है।",
+      "chargeNotice": "पास उत्पाद {price} · यह पास है, ऑटो-नवीनीकरण भुगतान नहीं। पास केवल KRW में एकमुश्त भुगतान से खरीदा जा सकता है।",
       "best": "BEST",
       "monthlyBasisWithPrice": "मासिक क्रेडिट आधार {credits} · {price}",
       "profileUnlimited": "असीमित प्रोफ़ाइल",
@@ -2616,24 +2618,24 @@
       "closeAria": "मूनलाइट पास शॉप गाइड बंद करें",
       "openAria": "मूनलाइट पास शॉप गाइड खोलें",
       "title": "मूनलाइट पास शॉप गाइड",
-      "subtitle": "चांदनी रात में रखे गए 30-दिवसीय पास और मासिक क्रेडिट प्रवाह की समीक्षा करें।",
-      "footerNotice": "यह 30-दिवसीय पास स्वतः नवीनीकरण उत्पाद नहीं है। इसकी समय सीमा समाप्त होने के बाद आपको इसे दोबारा खरीदना होगा।",
+      "subtitle": "पास KRW में एकमुश्त भुगतान से खरीदे जाते हैं, और मूनलाइट स्टोन अलग-अलग सशुल्क सुविधाओं के लिए उपयोग होते हैं।",
+      "footerNotice": "यह पास स्वतः नवीनीकरण उत्पाद नहीं है। उपयोग सीमा खत्म होने के बाद आपको इसे दोबारा खरीदना होगा।",
       "packages": {
         "standard": {
-          "name": "मानक शहद 30 दिन",
-          "desc": "30 दिन · KRW 5,000 तक की सामग्री · हर महीने KRW 20,000 तक"
+          "name": "छोटा शहद जार",
+          "desc": "KRW 5,000 तक की सामग्री · KRW 20,000 तक"
         },
         "premium": {
-          "name": "प्रीमियम शहद 30 दिन",
-          "desc": "30 दिन · KRW 10,000 तक की सामग्री · हर महीने KRW 60,000 तक"
+          "name": "मध्यम शहद जार",
+          "desc": "KRW 10,000 तक की सामग्री · KRW 60,000 तक"
         },
         "vvip": {
-          "name": "वीवीआईपी हनी जार 30 दिन",
-          "desc": "30 दिन · KRW 30,000 तक की सामग्री · हर महीने KRW 120,000 तक"
+          "name": "बड़ा शहद जार",
+          "desc": "KRW 30,000 तक की सामग्री · KRW 120,000 तक"
         },
         "family": {
-          "name": "कोड डेस्टिनी फ़ैमिली 30 दिन",
-          "desc": "30 दिन · पास में शामिल सभी सामग्री · हर महीने KRW 350,000 तक"
+          "name": "फ़ैमिली शहद जार",
+          "desc": "पास में शामिल सभी सामग्री · KRW 350,000 तक"
         }
       },
       "monthlyStatusChecking": "शेष राशि और पास की स्थिति की जाँच की जा रही है।",
@@ -2642,7 +2644,7 @@
       "monthlyButton": "{credits} मासिक क्रेडिट से भुगतान करें",
       "monthlyButtonBusy": "मासिक क्रेडिट से पास सक्रिय किया जा रहा है...",
       "monthlyButtonShort": "{credits} चाहिए · शेष कम है",
-      "terminationNotice": "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day."
+      "terminationNotice": "उपयोग सीमा पूरी तरह इस्तेमाल हो जाने पर पास समाप्त हो जाता है। दोबारा खरीदने पर नई उपयोग सीमा से शुरुआत होती है। अतिरिक्त सशुल्क सामग्री एकमुश्त भुगतान या मूनलाइट स्टोन से उपलब्ध है।"
     },
     "access": {
       "passAppliedContinue": "आपके पास के साथ खोला गया।"

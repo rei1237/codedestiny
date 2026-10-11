@@ -814,10 +814,10 @@
       "aria": "Panduan pas cahaya bulan",
       "kicker": "LULUS CAHAYA BULAN",
       "title": "Biarkan rutin rezeki anda mengalir dengan lebih lembut dengan cahaya bulan berlalu",
-      "desc": "Moonlight Pass membuka bacaan yang kerap anda kembali kepadanya, dalam julat yang ditetapkan, selama 30 hari. Petanda hari ini terus mengalir tanpa terputus.",
+      "desc": "Moonlight Pass membuka bacaan yang kerap anda kembali kepadanya, dalam julat yang ditetapkan, sehingga had penggunaannya habis. Petanda hari ini terus mengalir tanpa terputus.",
       "guideLabel": "PANDUAN CAHAYA BULAN",
-      "guideTitle": "Selama 30 hari, bacaan yang sering dibuka mengalir lebih lembut dahulu",
-      "guideText": "Daripada Standard hingga Family, bacaan tarot, oracle dan saju dalam julat cahaya bulan anda dibuka dahulu tanpa aliran bayaran. Bacaan yang lebih mendalam di luar julat itu hanya diteruskan kepada bayaran sekali dalam KRW apabila diperlukan.",
+      "guideTitle": "Sehingga had penggunaan habis, bacaan yang sering dibuka mengalir lebih lembut dahulu",
+      "guideText": "Daripada Balang Madu Kecil hingga Balang Madu Keluarga, bacaan tarot, oracle dan saju dalam julat cahaya bulan anda dibuka dahulu tanpa aliran bayaran. Bacaan yang lebih mendalam di luar julat itu hanya diteruskan kepada bayaran sekali dalam KRW apabila diperlukan.",
       "toggle": "Faedah cahaya bulan terbuka",
       "heroAria": "Semak perkhidmatan tersedia secara percuma dalam aliran cahaya bulan",
       "heroTitle": "Lihat julat Moonlight Pass",
@@ -829,42 +829,43 @@
       "primaryAction": "Cari pas yang sesuai dengan saya",
       "chipsAria": "Faedah pas teras",
       "chipIncluded": "Percuma dalam julat hantaran",
-      "chipThirtyDays": "Pas 30 hari",
+      "chipThirtyDays": "Pas",
       "chipShareReward": "Bayaran sekali di luar julat",
       "plansAria": "Lulus kad ringkasan pelan",
-      "standardName": "Madu Standard 30 hari",
-      "standardPrice": "30 hari · KRW 9,900",
+      "standardName": "Balang Madu Kecil",
+      "standardPrice": "KRW 9,900",
       "standardLine": "Kandungan sehingga KRW 5,000",
-      "standardBenefit1": "Sehingga KRW 20,000 sebulan",
-      "standardCta": "Lihat Standard",
+      "standardBenefit1": "Sehingga KRW 20,000",
+      "standardCta": "Lihat Balang Madu Kecil",
       "recommendedAria": "Pelan yang disyorkan",
       "recommendedBadge": "Disyorkan",
-      "premiumName": "Madu Premium 30 hari",
-      "premiumPrice": "30 hari · KRW 29,900",
+      "premiumName": "Balang Madu Sederhana",
+      "premiumPrice": "KRW 29,900",
       "premiumLine": "Kandungan sehingga KRW 10,000",
-      "premiumBenefit1": "Sehingga KRW 60,000 sebulan",
+      "premiumBenefit1": "Sehingga KRW 60,000",
       "premiumCta": "Lihat pelan yang disyorkan",
-      "vvipName": "Balang Madu VVIP 30 hari",
-      "vvipPrice": "30 hari · KRW 59,900",
+      "vvipName": "Balang Madu Besar",
+      "vvipPrice": "KRW 59,900",
       "vvipLine": "Kandungan sehingga KRW 30,000",
-      "vvipBenefit1": "Sehingga KRW 120,000 sebulan",
-      "vvipCta": "Lihat faedah VVIP",
-      "familyName": "Keluarga Kod Destiny 30 hari",
-      "familyPrice": "30 hari · KRW 149,000",
+      "vvipBenefit1": "Sehingga KRW 120,000",
+      "vvipCta": "Lihat faedah Balang Madu Besar",
+      "familyName": "Balang Madu Keluarga",
+      "familyPrice": "KRW 149,000",
       "familyLine": "Semua kandungan yang dilindungi pas",
-      "familyBenefit1": "Sehingga KRW 350,000 sebulan",
-      "familyCta": "Lihat Keluarga",
-      "premiumNote": "Premium Honey ialah pilihan paling seimbang jika anda kerap menggunakan kandungan sekitar KRW 10,000.",
-      "footnote": "Pas baharu dijual hanya sebagai pas 30 hari. Pas 30 hari ini bukan langganan memperbaharui secara automatik. Perkhidmatan di luar julat pas boleh digunakan dengan pembayaran KRW sekali mengikut produk.",
+      "familyBenefit1": "Sehingga KRW 350,000",
+      "familyCta": "Lihat Balang Madu Keluarga",
+      "premiumNote": "Balang Madu Sederhana ialah pilihan paling seimbang jika anda kerap menggunakan kandungan sekitar KRW 10,000.",
+      "footnote": "Pas tiada had tempoh dan tamat apabila had penggunaan habis. Pas ini bukan langganan memperbaharui secara automatik. Perkhidmatan di luar julat pas boleh digunakan dengan pembayaran KRW sekali mengikut produk.",
       "howtoAria": "Cara menggunakan pas moonlight",
       "howtoTitle": "Pas moonlight, begini ia diteruskan",
-      "step1Label": "Pilih julat moonlight 30 hari",
-      "step1Text": "Dengan pas 30 hari tanpa pembaharuan automatik, tetapkan dahulu julat harga bacaan yang kerap anda lihat.",
+      "step1Label": "Pilih julat moonlight",
+      "step1Text": "Dengan pas tanpa had tempoh dan tanpa pembaharuan automatik, tetapkan dahulu julat harga bacaan yang kerap anda lihat.",
       "step2Label": "Bacaan dalam julat dibuka tanpa pembayaran",
       "step2Text": "Bacaan tarot, orakel dan saju dalam julat anda terbuka terus, tanpa tetingkap pembayaran.",
       "step3Label": "Hanya bacaan lebih mendalam dibayar setiap guna",
       "step3Text": "Bacaan di luar julat anda diteruskan dengan pembayaran KRW sekali sahaja apabila diperlukan.",
-      "terminationNote": "Walaupun had bulanan mencapai sifar, tarikh luput, peringkat dan had profil pas kekal. Kandungan berbayar tambahan boleh digunakan dengan bayaran sekali atau pas bulanan."
+      "terminationNote": "Apabila had penggunaan habis digunakan, pas akan tamat. Membeli semula akan bermula dengan had penggunaan baharu. Kandungan berbayar tambahan boleh digunakan dengan bayaran sekali atau Batu Cahaya Bulan.",
+      "noExpiryNote": "Tiada had tempoh · Tamat apabila had penggunaan habis"
     },
     "promptHub": {
       "aria": "Pergi ke gesaan nasib yang komprehensif",
@@ -905,11 +906,11 @@
       "eyebrow": "Pas Cahaya Bulan",
       "savingsBadge": "Dengan pas, sehingga satu pertiga harga",
       "title": "Dua bacaan KRW 5,000 sudah lebih mahal daripada pas KRW 9,900",
-      "desc": "Bacaan dalam julat yang anda pilih terbuka selama 30 hari, dalam had penggunaan bulanan anda; hanya bacaan yang lebih mahal dibayar satu per satu apabila diperlukan. Empat julat itu ialah KRW 5,000 · 10,000 · 20,000 dan semua kandungan yang dilindungi pas, jadi pilih harga yang paling kerap anda lihat.",
+      "desc": "Bacaan dalam julat yang anda pilih terbuka sehingga had penggunaan anda habis; hanya bacaan yang lebih mahal dibayar satu per satu apabila diperlukan. Empat julat itu ialah KRW 5,000 · 10,000 · 20,000 dan semua kandungan yang dilindungi pas, jadi pilih harga yang paling kerap anda lihat.",
       "pointsAria": "Panduan lulus teras",
       "point1": "Terbuka terus, tanpa pembayaran",
-      "point2": "Simpan 3 profil atau lebih",
-      "point3": "Pas 30 hari tanpa pembaharuan automatik",
+      "point2": "Tiada had tempoh · Tamat apabila had penggunaan habis",
+      "point3": "Pas tanpa pembaharuan automatik",
       "mascotAria": "Lihat manfaat Moonlight Pass · Kedai Moonlight Pass",
       "mascotAlt": "Imej manfaat Moonlight Pass",
       "mascotKicker": "Moonlight Pass Guide",
@@ -1652,12 +1653,12 @@
       "saysName": "Yeoni",
       "saysLine": "Which reading shall we start with? Just one is plenty.",
       "passMascotAlt": "Yeoni the flower pig smiling with a pass card",
-      "passEyebrow": "30-day pass, no auto-renewal",
-      "passTitle": "Reading often? Try a 30-day pass",
-      "passDesc": "Each reading's price is deducted from your allowance. It ends automatically after 30 days.",
-      "passPer": "/ 30 days",
+      "passEyebrow": "Pas tanpa had tempoh atau pembaharuan automatik",
+      "passTitle": "Yeoni memperkenalkan pas",
+      "passDesc": "Bayar sekali-sekala bagi setiap bacaan, atau guna pas jika kerap membaca. Semak perundingan yang boleh digunakan dan had penggunaan anda.",
+      "passPer": "· Tiada had tempoh",
       "passBadge": "Incl. Yeongnyangi",
-      "passNote": "Standard, Premium and VVIP apply to Flower Pig readings; Family applies to paid readings from both Flower Pig and Yeongnyangi. Passes you already bought keep the terms from the time of purchase.",
+      "passNote": "Balang Madu Kecil, Sederhana dan Besar terpakai untuk bacaan Flower Pig; Balang Madu Keluarga terpakai untuk bacaan berbayar Flower Pig dan Yeongnyangi. Pas yang telah anda beli kekal dengan syarat semasa pembelian.",
       "passCta": "See all 4 passes",
       "moreTitle": "Terokai atelier Yeoni",
       "moreItems": "Daily readings · consultations · records · stories",
@@ -1832,9 +1833,9 @@
       "reviewReward": "Moonstones after publication approval",
       "reviewDetail": "Use them in Ggulggul. Awarded once per product.",
       "reviewAction": "Write a review",
-      "passStandard": "Yeoni Standard",
-      "passPremium": "Yeoni Premium",
-      "passVvip": "Yeoni VVIP",
+      "passStandard": "Balang Madu Kecil",
+      "passPremium": "Balang Madu Sederhana",
+      "passVvip": "Balang Madu Besar",
       "passPerLimit": "Up to KRW {amount} per reading",
       "passTotal": "Total allowance: KRW {amount}",
       "passNoLimit": "No per-reading price limit",
@@ -1862,7 +1863,8 @@
       "neoClassSource": "Saju student · KakaoTalk excerpt (Korean)",
       "neoNote": "Excerpts from Neo’s personal consultations and classes, separate from the AI reading service. Individual experiences do not guarantee similar results.",
       "neoAbout": "About Neo and the service",
-      "neoMore": "More consultation reviews"
+      "neoMore": "More consultation reviews",
+      "passFamily": "Balang Madu Keluarga"
     },
     "simple": {
       "lead": "Kongsi kebimbangan anda. Lihat kandungan dan harga sebelum bermula.",
@@ -2339,13 +2341,13 @@
         "passSaveUnverified": "Kami tidak dapat menyimpan hasil penggunaan Pas anda. Semak semula dengan kad Pas di bawah, atau pilih kaedah pembayaran lain.",
         "passCheckFailed": "Kami tidak dapat menyemak Pas anda. Cuba semula dengan kad Pas di bawah, atau pilih kaedah pembayaran lain.",
         "passMiss": "Pas anda tidak membuka kandungan ini secara percuma, jadi ini pilihan pembayaran.",
-        "passMonthlyExhausted": "Your pass allowance is fully used, so the pass has ended. Here are the payment options."
+        "passMonthlyExhausted": "Your pass usage limit is fully used, so the pass has ended. Here are the payment options."
       },
       "passBadge": "Pas Cahaya Bulan",
       "passStoreTitle": "Kedai Moonlight Pass",
       "passRetryTitle": "Semak pas sekali lagi",
       "passHint": {
-        "store": "Bayar sekali dan buka banyak kandungan selama 30 hari. Sudah ada? Ketik untuk semak.",
+        "store": "Bayar sekali dan buka banyak kandungan sehingga had penggunaan habis. Sudah ada? Ketik untuk semak.",
         "retry": "Kami akan menyemak pelayan sekali lagi untuk melihat sama ada pas anda boleh membukanya tanpa bayaran.",
         "upgrade": "Tahap semasa anda tidak membuka kandungan ini. Lihat tahap lebih luas."
       },
@@ -2418,7 +2420,7 @@
         "comingSoon": "Akan datang",
         "back": "Kembali"
       },
-      "passMonthlyExhausted": "Your pass allowance is fully used, so the pass has ended. Buying a new pass starts another 30 days; for now you can open this with a one-time payment or moonstones.",
+      "passMonthlyExhausted": "Your pass usage limit is fully used, so the pass has ended. Buying again starts a new usage limit; for now you can open this with a one-time payment or moonstones.",
       "passMonthlyRemaining": "Pass allowance left {remaining} / {limit}",
       "wait": {
         "card": "After you finish verifying in your card or payment app, come back to this browser and checkout will continue automatically.",
@@ -2450,7 +2452,7 @@
         "pass": {
           "eyebrow": "SEMAK LULUS CAHAYA BULAN",
           "title": "Menyemak pas anda",
-          "message": "Menyemak sama ada pas 30 hari anda boleh membukanya dengan segera.",
+          "message": "Menyemak sama ada pas anda boleh membukanya dengan segera.",
           "meta": "Jika tersedia, anda akan meneruskan tanpa tetingkap daftar keluar."
         },
         "passApplied": {
@@ -2521,7 +2523,7 @@
         "pass": {
           "eyebrow": "SEMAK LULUS CAHAYA BULAN",
           "title": "Menyemak pas anda",
-          "message": "Menyemak sama ada pas 30 hari anda boleh membukanya dengan segera.",
+          "message": "Menyemak sama ada pas anda boleh membukanya dengan segera.",
           "meta": "Jika tersedia, anda akan meneruskan tanpa tetingkap daftar keluar."
         },
         "passApplied": {
@@ -2605,7 +2607,7 @@
     "passShop": {
       "monthlyStatus": "Baki batu bulan anda telah disahkan.",
       "chargeButton": "Pergi ke halaman pembayaran untuk {amount}",
-      "chargeNotice": "Produk Pass {price} · Ini Pass 30 hari, bukan bayaran auto-perbaharui. Pass hanya boleh dibeli dengan bayaran sekali dalam KRW.",
+      "chargeNotice": "Produk Pass {price} · Ini Pass, bukan bayaran auto-perbaharui. Pass hanya boleh dibeli dengan bayaran sekali dalam KRW.",
       "best": "BEST",
       "monthlyBasisWithPrice": "Asas kredit bulanan {credits} · {price}",
       "profileUnlimited": "Profil tanpa had",
@@ -2616,24 +2618,24 @@
       "closeAria": "Tutup panduan Kedai Moonlight Pass",
       "openAria": "Panduan Kedai Buka Moonlight Pass",
       "title": "Panduan Kedai Moonlight Pass",
-      "subtitle": "Semak pas 30 hari dan aliran kredit bulanan yang dipegang dalam cahaya bulan.",
-      "footerNotice": "Pas 30 hari ini bukan produk yang diperbaharui secara automatik. Anda perlu membelinya semula selepas tamat tempoh.",
+      "subtitle": "Pas dibeli dengan bayaran sekali dalam KRW, dan Batu Cahaya Bulan digunakan untuk ciri berbayar individu.",
+      "footerNotice": "Pas ini bukan produk yang diperbaharui secara automatik. Anda perlu membelinya semula selepas had penggunaan habis.",
       "packages": {
         "standard": {
-          "name": "Madu Standard 30 Hari",
-          "desc": "30 hari · Kandungan sehingga KRW 5,000 · Sehingga KRW 20,000 sebulan"
+          "name": "Balang Madu Kecil",
+          "desc": "Kandungan sehingga KRW 5,000 · Sehingga KRW 20,000"
         },
         "premium": {
-          "name": "Madu Premium 30 Hari",
-          "desc": "30 hari · Kandungan sehingga KRW 10,000 · Sehingga KRW 60,000 sebulan"
+          "name": "Balang Madu Sederhana",
+          "desc": "Kandungan sehingga KRW 10,000 · Sehingga KRW 60,000"
         },
         "vvip": {
-          "name": "Balang Madu VVIP 30 Hari",
-          "desc": "30 hari · Kandungan sehingga KRW 30,000 · Sehingga KRW 120,000 sebulan"
+          "name": "Balang Madu Besar",
+          "desc": "Kandungan sehingga KRW 30,000 · Sehingga KRW 120,000"
         },
         "family": {
-          "name": "Kod Destiny Keluarga 30 Hari",
-          "desc": "30 hari · Semua kandungan yang dilindungi pas · Sehingga KRW 350,000 sebulan"
+          "name": "Balang Madu Keluarga",
+          "desc": "Semua kandungan yang dilindungi pas · Sehingga KRW 350,000"
         }
       },
       "monthlyStatusChecking": "Menyemak baki dan status Pas.",
@@ -2642,7 +2644,7 @@
       "monthlyButton": "Bayar dengan {credits} kredit bulanan",
       "monthlyButtonBusy": "Mengaktifkan pas dengan kredit bulanan...",
       "monthlyButtonShort": "Perlu {credits} · baki tidak cukup",
-      "terminationNotice": "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day."
+      "terminationNotice": "Apabila had penggunaan habis digunakan, pas akan tamat. Membeli semula akan bermula dengan had penggunaan baharu. Kandungan berbayar tambahan boleh digunakan dengan bayaran sekali atau Batu Cahaya Bulan."
     },
     "access": {
       "passAppliedContinue": "Dibuka dengan pas anda."

@@ -1177,7 +1177,7 @@ const MIN_REJECT_OVER_TARGET = 1.15;
       feature: "ziwei",
       codes: [
         ["worker/routes/ziwei-ai.js", "본문 목표 ${group.targetChars}자, 최소 ${group.minChars}자"],
-        ["worker/routes/ziwei-ai.js", "const accepted = group => valid(group, groups[group.id]);"],
+        ["worker/routes/ziwei-ai.js", "(countPaidReportBodyChars(ziweiSectionBody(groups[group.id])) >= group.minChars"],
         ["worker/routes/ziwei-ai.js", "trimPaidReportSections(source, Math.ceil(group.targetChars * SECTION_GROUP_MAX_OVER_TARGET))"],
         ["worker/routes/ziwei-ai.js", "capTokens: SECTION_GROUP_TARGET_TOKENS"],
       ],

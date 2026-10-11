@@ -88,7 +88,7 @@ const COPY={
     "goConsult": "영냥이 상담하러 가기",
     "viewOwned": "보유 목록 보기",
     "flowerFamilyApply": "결제 방식 선택에서 달빛 이용권으로 적용할 수 있어요.",
-    "flowerFamilyOnly": "이 상담은 Family 달빛 이용권부터 적용돼요.",
+    "flowerFamilyOnly": "이 상담은 패밀리 꿀단지 이용권부터 적용돼요.",
     "packUsable": "이 상담에 사용할 수 있어요.",
     "packApplied": "적용됨 · {remaining}회 남음"
   },
@@ -178,7 +178,7 @@ const COPY={
     "goConsult": "Start a Yeongnyangi consultation",
     "viewOwned": "View my packs",
     "flowerFamilyApply": "You can apply your Moonlight Pass in the payment options.",
-    "flowerFamilyOnly": "This consultation is covered from the Family Moonlight Pass.",
+    "flowerFamilyOnly": "This consultation is covered from the Family Honey Jar pass.",
     "packUsable": "Usable for this consultation.",
     "packApplied": "Applied · {remaining} left"
   },
@@ -268,7 +268,7 @@ const COPY={
     "goConsult": "ヨンニャンイに相談する",
     "viewOwned": "保有一覧を見る",
     "flowerFamilyApply": "決済方法の選択で月光利用券を適用できます。",
-    "flowerFamilyOnly": "この相談はFamily月光利用券から適用されます。",
+    "flowerFamilyOnly": "この相談はファミリーはちみつ壺の利用券から適用されます。",
     "packUsable": "この相談に使えます。",
     "packApplied": "適用済み · 残り{remaining}回"
   },
@@ -358,7 +358,7 @@ const COPY={
     "goConsult": "去找灵猫咨询",
     "viewOwned": "查看持有列表",
     "flowerFamilyApply": "可在选择支付方式时使用月光通行证。",
-    "flowerFamilyOnly": "此咨询需Family月光通行证才可使用。",
+    "flowerFamilyOnly": "此咨询需家庭蜜罐通行证才可使用。",
     "packUsable": "可用于本次咨询。",
     "packApplied": "已使用 · 剩余{remaining}次"
   },
@@ -448,7 +448,7 @@ const COPY={
     "goConsult": "去找靈貓諮詢",
     "viewOwned": "查看持有列表",
     "flowerFamilyApply": "可在選擇支付方式時使用月光通行證。",
-    "flowerFamilyOnly": "此諮詢需Family月光通行證才可使用。",
+    "flowerFamilyOnly": "此諮詢需家庭蜜罐通行證才可使用。",
     "packUsable": "可用於本次諮詢。",
     "packApplied": "已使用 · 剩餘{remaining}次"
   },
@@ -538,7 +538,7 @@ const COPY={
     "goConsult": "Tư vấn với Yeongnyangi",
     "viewOwned": "Xem vé đang có",
     "flowerFamilyApply": "Bạn có thể áp dụng Moonlight Pass khi chọn cách thanh toán.",
-    "flowerFamilyOnly": "Buổi tư vấn này áp dụng từ Moonlight Pass Family.",
+    "flowerFamilyOnly": "Buổi tư vấn này áp dụng từ Hũ mật ong gia đình.",
     "packUsable": "Dùng được cho buổi tư vấn này.",
     "packApplied": "Đã áp dụng · còn {remaining} lượt"
   },
@@ -628,7 +628,7 @@ const COPY={
     "goConsult": "योंगन्यांगी से परामर्श शुरू करें",
     "viewOwned": "मेरे पैक देखें",
     "flowerFamilyApply": "भुगतान विकल्पों में मूनलाइट पास लागू कर सकते हैं।",
-    "flowerFamilyOnly": "यह परामर्श Family मूनलाइट पास से लागू होता है।",
+    "flowerFamilyOnly": "यह परामर्श फ़ैमिली शहद जार से लागू होता है।",
     "packUsable": "इस परामर्श के लिए उपयोग योग्य।",
     "packApplied": "लागू · {remaining} बाकी"
   },
@@ -718,7 +718,7 @@ const COPY={
     "goConsult": "Consultar a Yeongnyangi",
     "viewOwned": "Ver mis packs",
     "flowerFamilyApply": "Puedes aplicar tu Moonlight Pass en las opciones de pago.",
-    "flowerFamilyOnly": "Esta consulta se cubre desde el Moonlight Pass Family.",
+    "flowerFamilyOnly": "Esta consulta se cubre desde el Tarro de miel familiar.",
     "packUsable": "Disponible para esta consulta.",
     "packApplied": "Aplicado · quedan {remaining}"
   },
@@ -808,7 +808,7 @@ const COPY={
     "goConsult": "Consulter Yeongnyangi",
     "viewOwned": "Voir mes packs",
     "flowerFamilyApply": "Vous pouvez appliquer votre Moonlight Pass dans les options de paiement.",
-    "flowerFamilyOnly": "Cette consultation est couverte à partir du Moonlight Pass Family.",
+    "flowerFamilyOnly": "Cette consultation est couverte à partir du Pot de miel familial.",
     "packUsable": "Utilisable pour cette consultation.",
     "packApplied": "Appliqué · {remaining} restantes"
   },
@@ -898,7 +898,7 @@ const COPY={
     "goConsult": "Beratung mit Yeongnyangi starten",
     "viewOwned": "Meine Pakete ansehen",
     "flowerFamilyApply": "Du kannst deinen Moonlight Pass bei den Zahlungsoptionen anwenden.",
-    "flowerFamilyOnly": "Diese Beratung ist ab dem Family Moonlight Pass abgedeckt.",
+    "flowerFamilyOnly": "Diese Beratung ist ab dem Familien-Honigglas abgedeckt.",
     "packUsable": "Für diese Beratung nutzbar.",
     "packApplied": "Angewendet · {remaining} übrig"
   },
@@ -988,7 +988,7 @@ const COPY={
     "goConsult": "Consult bij Yeongnyangi starten",
     "viewOwned": "Mijn pakketten bekijken",
     "flowerFamilyApply": "Je kunt je Moonlight Pass toepassen bij de betaalopties.",
-    "flowerFamilyOnly": "Dit consult valt onder de Family Moonlight Pass.",
+    "flowerFamilyOnly": "Dit consult valt onder de Gezinshoningpot.",
     "packUsable": "Bruikbaar voor dit consult.",
     "packApplied": "Toegepast · nog {remaining}"
   },
@@ -1078,7 +1078,7 @@ const COPY={
     "goConsult": "Mulakan konsultasi Yeongnyangi",
     "viewOwned": "Lihat pek saya",
     "flowerFamilyApply": "Anda boleh menggunakan Moonlight Pass dalam pilihan pembayaran.",
-    "flowerFamilyOnly": "Konsultasi ini dilindungi mulai Moonlight Pass Family.",
+    "flowerFamilyOnly": "Konsultasi ini dilindungi mulai Balang Madu Keluarga.",
     "packUsable": "Boleh digunakan untuk konsultasi ini.",
     "packApplied": "Digunakan · baki {remaining}"
   }

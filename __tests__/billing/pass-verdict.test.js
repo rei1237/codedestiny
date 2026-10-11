@@ -734,3 +734,19 @@ describe("markPassEndedFromPayload — 월 한도 소진으로 이용권이 끝�
     expect(storage.size()).toBe(0);
   });
 });
+
+describe("isOpenEndedPassExpiry — 기간 없는 이용권(활성화+100년 센티널) 표시 판정", () => {
+  const NOW = Date.parse("2026-10-11T00:00:00.000Z");
+
+  it("남은 기간이 10년을 넘으면 기간 없는 이용권으로 본다", () => {
+    expect(passVerdict.isOpenEndedPassExpiry(new Date(NOW + 100 * 365 * DAY).toISOString(), NOW)).toBe(true);
+    expect(passVerdict.isOpenEndedPassExpiry(new Date(NOW + 100 * 365 * DAY).toISOString(), new Date(NOW))).toBe(true);
+  });
+
+  it("실제 날짜(옛 30일 문서)·없음·깨진 값은 기간 없는 이용권이 아니다", () => {
+    expect(passVerdict.isOpenEndedPassExpiry(new Date(NOW + 30 * DAY).toISOString(), NOW)).toBe(false);
+    expect(passVerdict.isOpenEndedPassExpiry(new Date(NOW + 10 * 365 * DAY).toISOString(), NOW)).toBe(false);
+    expect(passVerdict.isOpenEndedPassExpiry(null, NOW)).toBe(false);
+    expect(passVerdict.isOpenEndedPassExpiry("not-a-date", NOW)).toBe(false);
+  });
+});

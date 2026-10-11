@@ -341,7 +341,7 @@ describe("verify — 영구 해금(UNLOCK)과 이용권", () => {
     expect(update.$addToSet.paidFeatures).toBe(unlock.key);
   });
 
-  test("이용권(standard) 구매는 profileSubscription을 30일 활성으로 세팅한다", async () => {
+  test("이용권(standard) 구매는 profileSubscription을 기간 없는 활성으로 세팅한다", async () => {
     const before = Date.now();
     const { status, payload } = await callRoute(postJson("/google/verify", {
       passTier: "standard",
@@ -363,18 +363,16 @@ describe("verify — 영구 해금(UNLOCK)과 이용권", () => {
     expect(update.$set["profileSubscription.productType"]).toBe("membership_pass");
     expect(update.$set["profileSubscription.paymentMethod"]).toBe("GOOGLE_PLAY");
     const expiresAt = update.$set["profileSubscription.expiresAt"];
-    const expectedMs = 30 * 24 * 60 * 60 * 1000;
-    expect(expiresAt.getTime() - before).toBeGreaterThan(expectedMs - 60 * 1000);
-    expect(expiresAt.getTime() - before).toBeLessThan(expectedMs + 60 * 1000);
+    // 2026-10-11 기간 없음 — 한도 소진으로만 끝난다(profile-limits.js PASS_OPEN_ENDED_MS).
+    expect(expiresAt.getTime() - before).toBeGreaterThan(3650 * 24 * 60 * 60 * 1000);
 
-    // 이용권도 inapp이므로 소비 대상이다(소비 안 하면 30일 뒤 재구매가 막힌다).
+    // 이용권도 inapp이므로 소비 대상이다(소비 안 하면 같은 상품 재구매가 막힌다).
     expect(payload.data.appPurchase.shouldConsume).toBe(true);
   });
 
-  /* 예전에는 expiresAt 을 now+30일로 **덮어썼다** — 남은 기간이 사라지고 한도도 30일치
-     그대로였다. 웹 카드 결제(profile-limits.js computePassExpiry · buildPassCycleFields)와 같은
-     규칙으로 맞춘다. */
-  test("🔴 활성 중 재구매: 남은 기간에 30일을 이어붙이고 월 한도도 함께 쌓는다", async () => {
+  /* 예전에는 expiresAt 을 now+30일로 **덮어썼다** — 한도도 1회분 그대로였다. 웹 카드 결제
+     (profile-limits.js computePassExpiry · buildPassCycleFields)와 같은 규칙으로 맞춘다. */
+  test("🔴 활성 중 재구매: 기간 없는 이용권으로 바뀌고 월 한도가 쌓인다", async () => {
     const { MONTHLY_PASS_LIMITS } = await import("../../worker/lib/profile-limits.js");
     const priorExpiresAt = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000);
     mockUserFindById.mockReturnValue({
@@ -400,8 +398,7 @@ describe("verify — 영구 해금(UNLOCK)과 이용권", () => {
     expect(status).toBe(200);
 
     const set = mockUserFindByIdAndUpdate.mock.calls[0][1].$set;
-    const expected = priorExpiresAt.getTime() + 30 * 24 * 60 * 60 * 1000;
-    expect(Math.abs(set["profileSubscription.expiresAt"].getTime() - expected)).toBeLessThan(60 * 1000);
+    expect(set["profileSubscription.expiresAt"].getTime() - Date.now()).toBeGreaterThan(3650 * 24 * 60 * 60 * 1000);
     expect(set["profileSubscription.monthlyLimitCoin"]).toBe(MONTHLY_PASS_LIMITS.standard * 2);
     // 이미 쓴 금액은 연장으로 지워지지 않는다(지우면 사용자가 한 달치를 공짜로 더 얻는다).
     expect(set["profileSubscription.monthlySpendCoin"]).toBe(100);

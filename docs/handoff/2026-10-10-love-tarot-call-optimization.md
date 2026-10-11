@@ -1,5 +1,6 @@
 ---
 status: active
+updated_note: "1~3 완료, 4 부분, 6 재실호출 승인 대기"
 updated: 2026-10-10
 next: "love-tarot-delivery.route.test.js 에 '정상 9회·상한 18회' 기대 테스트를 먼저 쓰고(실패 확인), worker/lib/love-tarot-delivery.js 조각 21개를 9개로 묶는다."
 ---
@@ -26,14 +27,14 @@ next: "love-tarot-delivery.route.test.js 에 '정상 9회·상한 18회' 기대 
 
 ## 남은 작업
 
-- [ ] **1. 조각을 21개에서 9개로 묶는다.**
+- [x] **1. 조각을 21개에서 9개로 묶는다.** (2026-10-11, 옛 21조각 기록도 같은 화면으로 렌더)
   - 카드당 1회로 받는다. 4문단을 받아 `normalizeNarrativeParagraphs(body,4)` 로 detail/relationshipInsight/advice/caution 에 나눠 넣는다. 화면 분할 로직(:34-36)도 함께 맞춘다.
   - 개요 3개를 1회로 받는다.
   - matrix 2개를 1회로 받는다(8문단).
   - FINAL 4개를 1회로 받는다.
-- [ ] **2. evidenceHash 를 서버가 채운다.** 공용 후보 검사에 영향이 있으면 love 전용 옵션으로 한다.
-- [ ] **3. 반복 문장을 거부하지 않고 결정적으로 지운 뒤 채택한다.** 범위는 본문 안과 조각 사이 둘 다다(원칙 17).
-- [ ] **4. 비용 근거를 실제 코드에 맞춘다.**
+- [x] **2. evidenceHash 를 서버가 채운다.** (2026-10-11, 공용 엔진·연애·오라클·마인드스캔 프롬프트에서 해시 제거, 다른 해시는 계속 거부) 공용 후보 검사에 영향이 있으면 love 전용 옵션으로 한다.
+- [x] **3. 반복 문장을 거부하지 않고 결정적으로 지운 뒤 채택한다.** (2026-10-11, dropRepeatedReportSentences) 범위는 본문 안과 조각 사이 둘 다다(원칙 17).
+- [ ] **4. 비용 근거를 실제 코드에 맞춘다.** (2026-10-11: config parts 를 love 9, mindscan 25 로 고침. 보고서 JSON 재생성은 보류: 현재 pass-policy 로 돌리면 수정 전 config 도 Play 행이 [6,20,40,116] 이라 커밋된 보고서가 이미 낡았고, --write 하면 무관한 Family 패스 변경까지 섞인다.)
   - `config/pass-cost-planning-20260921.json:64-75` 의 parts 를 고친다. 설정은 시도 3×3, 입력 50k 를 가정해 실제와 다르다.
   - mindscan parts 도 19 로 되어 있지만 실제는 25 다.
   - `__tests__/ui/pass-economics.test.mjs:25` 에서 속마음 타로가 가격을 정하는 서비스(pricingDriver)로 고정되어 있다.

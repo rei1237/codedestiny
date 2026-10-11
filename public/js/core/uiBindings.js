@@ -71,7 +71,7 @@ const __lazyActionLoaders = {
   openSajuAnimalPage: () => Promise.resolve(window.location.assign('/saju-guardian')),
   openDestinyEggPage: () => Promise.resolve(window.location.assign('/tadagochi')),
   openFortuneTellerFishPage: () => Promise.resolve(window.location.assign('/fortune-teller-fish.html')),
-  openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=build-650a9aee4faa'),
+  openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=build-f7efb4607d43'),
   openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=build-9b771f6b8215'),
   openTarotHealingPage: () => Promise.resolve(window.location.assign('/tarot/healing/')),
   openTarotHealingModal: () => Promise.resolve(window.location.assign('/tarot/healing/')),
@@ -113,7 +113,7 @@ const __lazyActionLoaders = {
 };
 
 function __ensureSajuCoreScripts() {
-  return __loadScriptOnce('/js/destiny-profile.js?v=build-469ef8b928b9')
+  return __loadScriptOnce('/js/destiny-profile.js?v=build-3dd3f559c8b1')
     .then(() => __loadScriptOnce('/js/services/sajuService.js'))
     .then(() => __loadScriptOnce('/js/core/saju/basicFortunePresentation.js?v=build-eb8d27ea0abf'))
     .then(() => __loadScriptOnce('/js/core/saju/modalProfileState.js'))

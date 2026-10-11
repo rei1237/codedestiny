@@ -464,9 +464,9 @@ export function natalOnlyTiming(evidence: unknown) {
   const facts=Array.isArray(evidence)?evidence:[];
   return facts.length>0&&facts.every((f:any)=>String(f?.id).startsWith('astrology.')&&!TIMING_LABELS.has(f?.label));
 }
-const PERIOD_WORD=/20\d{2}\s*년|올해|금년|내년|명년|다음\s*해|[상하]반기|[1-4]\s*분기|(?<![\d.])\d{1,2}\s*월(?!\s*\d)/u;
-const TIMING_CLAIM=/(?:유리한|불리한|긍정적인|부정적인|좋은|나쁜|적절한|적합한|알맞은|길한|흉한|위험한)\s*(?:시기|때|타이밍|시점)|적기|호기|(?:시기|때|타이밍|시점)(?:가|이|는|로|라)?\s*(?:좋|유리|무르익|열리)/u;
-const TIMING_DENIAL=/(?:특정|단정|판단|예측|가늠)(?:할|하기|하지|되지)?\s*(?:수\s*)?(?:없|않|어렵)|근거가\s*없|알\s*수\s*없/u;
+export const PERIOD_WORD=/20\d{2}\s*년|올해|금년|내년|명년|다음\s*해|[상하]반기|[1-4]\s*분기|(?<![\d.])\d{1,2}\s*월(?!\s*\d)/u;
+export const TIMING_CLAIM=/(?:유리한|불리한|긍정적인|부정적인|좋은|나쁜|적절한|적합한|알맞은|길한|흉한|위험한)\s*(?:시기|때|타이밍|시점)|적기|호기|(?:시기|때|타이밍|시점)(?:가|이|는|로|라)?\s*(?:좋|유리|무르익|열리)/u;
+export const TIMING_DENIAL=/(?:특정|단정|판단|예측|가늠)(?:할|하기|하지|되지)?\s*(?:수\s*)?(?:없|않|어렵)|근거가\s*없|알\s*수\s*없/u;
 /** A sentence that ranks a named period ('2027년 상반기가 유리한 시기') without denying it is unsupported here. */
 export function validateUngroundedTiming(text: string) {
   for(const sentence of text.split(/\n|(?<=[.!?。])\s+/))

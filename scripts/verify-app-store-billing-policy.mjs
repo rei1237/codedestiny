@@ -168,7 +168,7 @@ for (const [tier, expectedKRW] of [["standard", 5000], ["premium", 10000], ["vvi
 check("family(무제한): 커버 티어 없음 → null", resolveAppPassCoverageKRW(PASS_LIMITS.family) === null);
 
 console.log("\n[9] 이용권에 존재하지 않는 '횟수' 개념을 안내하지 않는가");
-// 이용권은 30일 기간만 있고 사용 횟수 제한이 없다(canUseByPass에 횟수 개념 자체가 없음).
+// 이용권은 기간이 없고(2026-10-11, 한도 소진 시 종료) 사용 횟수 제한이 없다(canUseByPass에 횟수 개념 자체가 없음).
 for (const relPath of ["app/page.js"]) {
   const source = await fs.readFile(path.join(ROOT, relPath), "utf8");
   const claimsPassCount = /이용권\s*횟수/.test(source.replace(/^\s*\/\/.*$/gm, ""));

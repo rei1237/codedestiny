@@ -165,7 +165,7 @@ it("refund after provider response prevents completion and consumption", async (
   expect((await start()).status).toBe(402); expect(docs[0].status).toBe("delivery_pending"); expect(usage).not.toHaveBeenCalled();
 });
 
-for (const repair of ["shorter", "repeated", "empty", "truncated"]) it(`preserves short foundation without a ${repair} repair`, async () => {
+for (const repair of ["shorter", "repeated", "empty", "truncated"]) it(`preserves short foundation after one ${repair} repair`, async () => {
   const normal = provider.getMockImplementation(); let foundationCalls = 0;
   provider.mockImplementation(async (...args) => {
     const result = await normal(...args);
@@ -180,7 +180,7 @@ for (const repair of ["shorter", "repeated", "empty", "truncated"]) it(`preserve
   expect((await start()).status).toBe(202); const draft = clone(docs[0].llmMeta.groups.foundation);
   for (let i = 0; i < 7 && docs[0].status !== "completed"; i++) await start();
   expect(docs[0].status).toBe("completed"); expect(docs[0].llmMeta.groups.foundation).toEqual(draft);
-  expect(docs[0].llmMeta.attempts.foundation).toBe(1); expect(provider).toHaveBeenCalledTimes(7); expect(refund).not.toHaveBeenCalled();
+  expect(docs[0].llmMeta.attempts.foundation).toBe(2); expect(provider).toHaveBeenCalledTimes(8); expect(refund).not.toHaveBeenCalled();
 });
 it("trims overlong groups using the same whitespace-free ceiling as the prompt", async () => {
   const normal = provider.getMockImplementation();
@@ -197,16 +197,17 @@ it("trims overlong groups using the same whitespace-free ceiling as the prompt",
   expect(docs[0].status).toBe("completed"); expect(provider).toHaveBeenCalledTimes(7);
   for (const group of utils.SECTION_GROUP_SPECS) expect(countPaidReportBodyChars(Object.values(docs[0].llmMeta.groups[group.id]).map(row => row.body).join("\n"))).toBeLessThanOrEqual(Math.ceil(group.targetChars * utils.SECTION_GROUP_MAX_OVER_TARGET));
 });
-it("delivers all usable short groups without length regeneration", async () => {
+it("delivers all usable short groups after one length repair each", async () => {
   const normal = provider.getMockImplementation();
   provider.mockImplementation(async (...args) => {
     const result = await normal(...args); const parsed = JSON.parse(result.text);
     for (const [key, row] of Object.entries(parsed.sections || {})) row.body = prose(key, 200);
     return { ...result, text: JSON.stringify(parsed) };
   });
-  for (let i = 0; i < 6; i++) expect((await start()).status).toBe(202);
+  for (let i = 0; i < 12; i++) expect((await start()).status).toBe(202);
   expect((await start()).status).toBe(200);
-  expect(provider).toHaveBeenCalledTimes(7); expect(docs[0].status).toBe("completed");
+  expect(provider).toHaveBeenCalledTimes(13); expect(docs[0].status).toBe("completed");
+  for (const group of utils.SECTION_GROUP_SPECS) expect(docs[0].llmMeta.attempts[group.id]).toBe(2);
   expect(refund).not.toHaveBeenCalled();
 });
 

@@ -814,10 +814,10 @@
       "aria": "Moonlight pass guide",
       "kicker": "MOONLIGHT PASS",
       "title": "Let your fortune routine flow more gently with a moonlight pass",
-      "desc": "The moonlight pass opens the readings you return to often, within a set range, for 30 days. Today's signs keep unfolding without interruption.",
+      "desc": "The moonlight pass opens the readings you return to often, within a set range, until you use up its usage limit. Today's signs keep unfolding without interruption.",
       "guideLabel": "MOONLIGHT GUIDE",
-      "guideTitle": "For 30 days, let the fortunes you open often unfold first",
-      "guideText": "From Standard to Family, tarot, oracle, and saju readings open first within your moonlight range. Deeper readings outside that range continue to one-time KRW payment only when needed.",
+      "guideTitle": "Until you use up your usage limit, let the fortunes you open often unfold first",
+      "guideText": "From the Small Honey Jar to the Family Honey Jar, tarot, oracle, and saju readings open first within your moonlight range. Deeper readings outside that range continue to one-time KRW payment only when needed.",
       "toggle": "Open moonlight benefits",
       "heroAria": "Check services available for free in the moonlight flow",
       "heroTitle": "See the Moonlight Pass range",
@@ -829,42 +829,43 @@
       "primaryAction": "Find the pass that fits me",
       "chipsAria": "Core pass benefits",
       "chipIncluded": "Free within pass range",
-      "chipThirtyDays": "30-day pass",
+      "chipThirtyDays": "Pass",
       "chipShareReward": "One-time payment outside the range",
       "plansAria": "Pass plan summary cards",
-      "standardName": "Standard Honey 30 days",
-      "standardPrice": "30 days · KRW 9,900",
+      "standardName": "Small Honey Jar",
+      "standardPrice": "KRW 9,900",
       "standardLine": "Content up to KRW 5,000",
-      "standardBenefit1": "Up to KRW 20,000 worth per month",
-      "standardCta": "View Standard",
+      "standardBenefit1": "Up to KRW 20,000 worth",
+      "standardCta": "View Small Honey Jar",
       "recommendedAria": "Recommended plan",
       "recommendedBadge": "Recommended",
-      "premiumName": "Premium Honey 30 days",
-      "premiumPrice": "30 days · KRW 29,900",
+      "premiumName": "Medium Honey Jar",
+      "premiumPrice": "KRW 29,900",
       "premiumLine": "Content up to KRW 10,000",
-      "premiumBenefit1": "Up to KRW 60,000 worth per month",
+      "premiumBenefit1": "Up to KRW 60,000 worth",
       "premiumCta": "View recommended plan",
-      "vvipName": "VVIP Honey Jar 30 days",
-      "vvipPrice": "30 days · KRW 59,900",
+      "vvipName": "Large Honey Jar",
+      "vvipPrice": "KRW 59,900",
       "vvipLine": "Content up to KRW 30,000",
-      "vvipBenefit1": "Up to KRW 120,000 worth per month",
-      "vvipCta": "View VVIP benefits",
-      "familyName": "Code Destiny Family 30 days",
-      "familyPrice": "30 days · KRW 149,000",
+      "vvipBenefit1": "Up to KRW 120,000 worth",
+      "vvipCta": "View Large Honey Jar benefits",
+      "familyName": "Family Honey Jar",
+      "familyPrice": "KRW 149,000",
       "familyLine": "All pass-eligible content",
-      "familyBenefit1": "Up to KRW 350,000 worth per month",
-      "familyCta": "View Family",
-      "premiumNote": "Premium Honey is the most balanced pick if you often use content around KRW 10,000.",
-      "footnote": "New passes are sold only as 30-day passes. This 30-day pass is not an auto-renewing subscription. Services outside the pass range can be used with one-time KRW payment by product.",
+      "familyBenefit1": "Up to KRW 350,000 worth",
+      "familyCta": "View Family Honey Jar",
+      "premiumNote": "The Medium Honey Jar is the most balanced pick if you often use content around KRW 10,000.",
+      "footnote": "Passes have no time limit and end when the usage limit is fully used. This pass is not an auto-renewing subscription. Services outside the pass range can be used with one-time KRW payment by product.",
       "howtoAria": "How to use the moonlight pass",
       "howtoTitle": "How the moonlight pass flows",
-      "step1Label": "Pick a 30-day moonlight range",
-      "step1Text": "With a 30-day pass that never auto-renews, first set the price range of the readings you check often.",
+      "step1Label": "Pick a moonlight range",
+      "step1Text": "With a pass that has no time limit and never auto-renews, first set the price range of the readings you check often.",
       "step2Label": "In-range readings open with no checkout",
       "step2Text": "Tarot, oracle, and saju readings inside your range open right away, with no payment window.",
       "step3Label": "Only deeper readings are paid per use",
       "step3Text": "Readings beyond your range continue to a one-time KRW payment only when you need them.",
-      "terminationNote": "Even when the monthly allowance reaches zero, the pass expiry date, tier, and profile limit remain. Additional paid content is available by one-time payment or monthly pass."
+      "terminationNote": "When the usage limit is fully used, the pass ends. Buying again starts you with a new usage limit. Additional paid content is available by one-time payment or moonstones.",
+      "noExpiryNote": "No time limit · Ends when the usage limit is used up"
     },
     "promptHub": {
       "aria": "Go to comprehensive fortune prompts",
@@ -905,11 +906,11 @@
       "eyebrow": "Moonlight Pass",
       "savingsBadge": "Up to one-third the price with a pass",
       "title": "Two KRW 5,000 readings already cost more than the KRW 9,900 pass",
-      "desc": "Readings inside the range you pick open for 30 days, up to your monthly usage limit; only pricier readings are paid one by one when you need them. The four ranges are KRW 5,000 · 10,000 · 20,000 · all pass-eligible content, so pick the price you look at most.",
+      "desc": "Readings inside the range you pick open until you use up your usage limit; only pricier readings are paid one by one when you need them. The four ranges are KRW 5,000 · 10,000 · 20,000 · all pass-eligible content, so pick the price you look at most.",
       "pointsAria": "Core pass guide",
       "point1": "Opens right away, no checkout",
-      "point2": "Save 3 or more profiles",
-      "point3": "A 30-day pass with no auto-renewal",
+      "point2": "No time limit · Ends when the usage limit is used up",
+      "point3": "A pass with no auto-renewal",
       "mascotAria": "See Moonlight Pass benefits · Moonlight pass store",
       "mascotAlt": "Moonlight Pass benefits image",
       "mascotKicker": "Moonlight Pass Guide",
@@ -1652,12 +1653,12 @@
       "saysName": "Yeoni",
       "saysLine": "Which reading shall we start with? Just one is plenty.",
       "passMascotAlt": "Yeoni the flower pig smiling with a pass card",
-      "passEyebrow": "30-day pass, no auto-renewal",
-      "passTitle": "Reading often? Try a 30-day pass",
-      "passDesc": "Each reading's price is deducted from your allowance. It ends automatically after 30 days.",
-      "passPer": "/ 30 days",
+      "passEyebrow": "Pass with no time limit or auto-renewal",
+      "passTitle": "Yeoni's guide to the pass",
+      "passDesc": "Pay per reading now and then, or use a pass if you read often. Check which consultations you can use and your usage limit.",
+      "passPer": "· No time limit",
       "passBadge": "Incl. Yeongnyangi",
-      "passNote": "Standard, Premium and VVIP apply to Flower Pig readings; Family applies to paid readings from both Flower Pig and Yeongnyangi. Passes you already bought keep the terms from the time of purchase.",
+      "passNote": "The Small, Medium and Large Honey Jars apply to Flower Pig readings; the Family Honey Jar applies to paid readings from both Flower Pig and Yeongnyangi. Passes you already bought keep the terms from the time of purchase.",
       "passCta": "See all 4 passes",
       "moreTitle": "Explore Yeoni’s atelier",
       "moreItems": "Daily readings · consultations · records · stories",
@@ -1832,9 +1833,9 @@
       "reviewReward": "Moonstones after publication approval",
       "reviewDetail": "Use them in Ggulggul. Awarded once per product.",
       "reviewAction": "Write a review",
-      "passStandard": "Yeoni Standard",
-      "passPremium": "Yeoni Premium",
-      "passVvip": "Yeoni VVIP",
+      "passStandard": "Small Honey Jar",
+      "passPremium": "Medium Honey Jar",
+      "passVvip": "Large Honey Jar",
       "passPerLimit": "Up to KRW {amount} per reading",
       "passTotal": "Total allowance: KRW {amount}",
       "passNoLimit": "No per-reading price limit",
@@ -1862,7 +1863,8 @@
       "neoClassSource": "Saju student · KakaoTalk excerpt (Korean)",
       "neoNote": "Excerpts from Neo’s personal consultations and classes, separate from the AI reading service. Individual experiences do not guarantee similar results.",
       "neoAbout": "About Neo and the service",
-      "neoMore": "More consultation reviews"
+      "neoMore": "More consultation reviews",
+      "passFamily": "Family Honey Jar"
     },
     "simple": {
       "lead": "Share your concern. See what your reading covers and its price before you begin.",
@@ -2339,13 +2341,13 @@
         "passSaveUnverified": "We couldn't save the result of applying your pass. Check again with the pass card below, or choose another payment method.",
         "passCheckFailed": "We couldn't check your pass. Check again with the pass card below, or choose another payment method.",
         "passMiss": "Your pass does not open this content for free, so here are the payment options.",
-        "passMonthlyExhausted": "Your pass allowance is fully used, so the pass has ended. Here are the payment options."
+        "passMonthlyExhausted": "Your pass usage limit is fully used, so the pass has ended. Here are the payment options."
       },
       "passBadge": "Moonlight Pass",
       "passStoreTitle": "Moonlight Pass Shop",
       "passRetryTitle": "Check pass again",
       "passHint": {
-        "store": "Pay once and open many contents for 30 days. Already have one? Tap to check.",
+        "store": "Pay once and open many contents until you use up the usage limit. Already have one? Tap to check.",
         "retry": "We will check the server again to see whether your pass can open this without payment.",
         "upgrade": "Your current tier doesn't open this one. Take a look at a wider tier."
       },
@@ -2418,7 +2420,7 @@
         "comingSoon": "Coming soon",
         "back": "Back"
       },
-      "passMonthlyExhausted": "Your pass allowance is fully used, so the pass has ended. Buying a new pass starts another 30 days; for now you can open this with a one-time payment or moonstones.",
+      "passMonthlyExhausted": "Your pass usage limit is fully used, so the pass has ended. Buying again starts a new usage limit; for now you can open this with a one-time payment or moonstones.",
       "passMonthlyRemaining": "Pass allowance left {remaining} / {limit}",
       "wait": {
         "card": "After you finish verifying in your card or payment app, come back to this browser and checkout will continue automatically.",
@@ -2450,7 +2452,7 @@
         "pass": {
           "eyebrow": "MOONLIGHT PASS CHECK",
           "title": "Checking your pass",
-          "message": "Checking whether your 30-day pass can open this right away.",
+          "message": "Checking whether your pass can open this right away.",
           "meta": "If available, you will continue without a checkout window."
         },
         "passApplied": {
@@ -2521,7 +2523,7 @@
         "pass": {
           "eyebrow": "MOONLIGHT PASS CHECK",
           "title": "Checking your pass",
-          "message": "Checking whether your 30-day pass can open this right away.",
+          "message": "Checking whether your pass can open this right away.",
           "meta": "If available, you will continue without a checkout window."
         },
         "passApplied": {
@@ -2605,7 +2607,7 @@
     "passShop": {
       "monthlyStatus": "Your moonstone balance is confirmed.",
       "chargeButton": "Go to payment page for {amount}",
-      "chargeNotice": "Pass product {price} · This is a 30-day pass, not an auto-renewing payment. Passes can only be bought with a one-time KRW payment.",
+      "chargeNotice": "Pass product {price} · This is a pass, not an auto-renewing payment. Passes can only be bought with a one-time KRW payment.",
       "best": "BEST",
       "monthlyBasisWithPrice": "Monthly credit basis {credits} · {price}",
       "profileUnlimited": "Unlimited profiles",
@@ -2616,24 +2618,24 @@
       "closeAria": "Close Moonlight Pass Shop guide",
       "openAria": "Open Moonlight Pass Shop guide",
       "title": "Moonlight Pass Shop Guide",
-      "subtitle": "Review the 30-day pass and monthly credit flow held in moonlight.",
-      "footerNotice": "This 30-day pass is not an auto-renewing product. You need to purchase it again after it expires.",
+      "subtitle": "Passes are bought with a one-time KRW payment, and moonstones are used for individual paid features.",
+      "footerNotice": "This pass is not an auto-renewing product. You need to purchase it again after its usage limit is used up.",
       "packages": {
         "standard": {
-          "name": "Standard Honey 30 Days",
-          "desc": "30 days · Content up to KRW 5,000 · Up to KRW 20,000 worth per month"
+          "name": "Small Honey Jar",
+          "desc": "Content up to KRW 5,000 · Up to KRW 20,000 worth"
         },
         "premium": {
-          "name": "Premium Honey 30 Days",
-          "desc": "30 days · Content up to KRW 10,000 · Up to KRW 60,000 worth per month"
+          "name": "Medium Honey Jar",
+          "desc": "Content up to KRW 10,000 · Up to KRW 60,000 worth"
         },
         "vvip": {
-          "name": "VVIP Honey Jar 30 Days",
-          "desc": "30 days · Content up to KRW 30,000 · Up to KRW 120,000 worth per month"
+          "name": "Large Honey Jar",
+          "desc": "Content up to KRW 30,000 · Up to KRW 120,000 worth"
         },
         "family": {
-          "name": "Code Destiny Family 30 Days",
-          "desc": "30 days · All pass-eligible content · Up to KRW 350,000 worth per month"
+          "name": "Family Honey Jar",
+          "desc": "All pass-eligible content · Up to KRW 350,000 worth"
         }
       },
       "monthlyStatusChecking": "Checking remaining balance and Pass status.",
@@ -2642,7 +2644,7 @@
       "monthlyButton": "Pay with {credits} monthly credits",
       "monthlyButtonBusy": "Activating your pass with monthly credits...",
       "monthlyButtonShort": "{credits} needed · balance short",
-      "terminationNotice": "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day."
+      "terminationNotice": "When the usage limit is fully used, the pass ends. Buying again starts you with a new usage limit. Additional paid content is available by one-time payment or moonstones."
     },
     "access": {
       "passAppliedContinue": "Opened with your pass."

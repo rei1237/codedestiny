@@ -35,11 +35,11 @@ const REASON_GLOSS = {
   MOIST_COMPLEMENT: "습함과 건조함이 서로를 채워 주는 습조 보완",
   MOIST_BOTH: "둘 다 같은 쪽(습함 또는 건조)으로 치우쳐 함께 늘어지거나 메마르기 쉬움",
   MOIST_NEUTRAL: "습조가 비슷해 일상 컨디션의 결이 닮음",
-  ELEMENT_SAME: "일간 오행이 같아 코드와 리듬을 공유함",
-  ELEMENT_SAME_EXCESS: "같은 오행이 둘 다 많아 양보가 어려운 구조",
-  ELEMENT_SHENG_SELF_TO_PARTNER: "당신의 오행이 상대의 오행을 생(生)해 주는 구조(당신이 북돋는 쪽)",
-  ELEMENT_SHENG_PARTNER_TO_SELF: "상대의 오행이 당신의 오행을 생(生)해 주는 구조(상대가 북돋는 쪽)",
-  ELEMENT_KE: "일간 오행이 서로 상극인 긴장 관계",
+  ELEMENT_SAME: "두 사람 사주에서 가장 많은 오행이 같아 코드와 리듬을 공유함",
+  ELEMENT_SAME_EXCESS: "가장 많은 오행이 같고 그 오행이 둘 다 4개 이상이라 양보가 어려운 구조",
+  ELEMENT_SHENG_SELF_TO_PARTNER: "당신 사주에서 가장 많은 오행이 상대 사주에서 가장 많은 오행을 생(生)해 주는 구조(당신이 북돋는 쪽)",
+  ELEMENT_SHENG_PARTNER_TO_SELF: "상대 사주에서 가장 많은 오행이 당신 사주에서 가장 많은 오행을 생(生)해 주는 구조(상대가 북돋는 쪽)",
+  ELEMENT_KE: "두 사람 사주에서 가장 많은 오행끼리 상극인 긴장 관계",
   DAY_STEM_HE: "일간(천간)이 합(合)을 이루어 끌림이 큼",
   DAY_BRANCH_HE: "일지(배우자 자리)가 육합을 이루어 생활 호흡이 맞음",
   DAY_STEM_CHONG: "일간이 충(沖)을 이루어 부딪히기 쉬움",
@@ -73,7 +73,7 @@ const FIELD_GUIDE = {
   "detailCards.realOps": "현실 운영: 돈·시간·역할 등 일상 운영에서 맞는 점과 조율할 점",
   "detailCards.longTerm": "장기 전망: 오래 갈 때의 강점과 가꿔야 할 조건(장기 전망 구간 확정값 기준)",
   "reality.strength": "신강·신약 조합이 만드는 주도권과 부담의 구조",
-  "reality.ke": "일간 오행 상극이 만드는 긴장과 완충 방법",
+  "reality.ke": "두 사람 사주에서 가장 많은 오행끼리의 상극이 만드는 긴장과 완충 방법(일간 관계와 섞지 않음)",
   "reality.kijiRelief": "한쪽이 상대의 기신을 충으로 눌러 주는 구조가 주는 해방감과 그 한계",
   "reality.heTrap": "합의 함정: 편안함 뒤에 쌓이는 부담을 알아차리는 방법",
   "reality.repeatScene": "반복되기 쉬운 장면: 두 사람이 자주 같은 자리로 돌아가는 상황 묘사",
@@ -98,9 +98,9 @@ const evidenceText = (code, evidence) => {
   const el = (value) => EL_KO[value] || value;
   switch (code) {
     case "MOIST_BOTH": return `둘 다 ${MOIST_KO[evidence.moist] || evidence.moist}`;
-    case "ELEMENT_SAME": case "ELEMENT_SAME_EXCESS": return `공통 오행 ${el(evidence.element)}`;
-    case "ELEMENT_SHENG_SELF_TO_PARTNER": case "ELEMENT_SHENG_PARTNER_TO_SELF": return `${el(evidence.from)} → ${el(evidence.to)}`;
-    case "ELEMENT_KE": return `당신 ${el(evidence.self)} / 상대 ${el(evidence.partner)}`;
+    case "ELEMENT_SAME": case "ELEMENT_SAME_EXCESS": return `두 사람의 가장 많은 오행 ${el(evidence.element)}`;
+    case "ELEMENT_SHENG_SELF_TO_PARTNER": case "ELEMENT_SHENG_PARTNER_TO_SELF": return `가장 많은 오행 ${el(evidence.from)} → ${el(evidence.to)}`;
+    case "ELEMENT_KE": return `가장 많은 오행: 당신 ${el(evidence.self)} / 상대 ${el(evidence.partner)}`;
     case "DAY_STEM_HE": case "DAY_STEM_CHONG": case "DAY_BRANCH_HE": case "DAY_BRANCH_CHONG": return `당신 일${code.includes("STEM") ? "간" : "지"} ${evidence.self} / 상대 ${evidence.partner}`;
     case "YONGSHIN_COMMON": case "YONGSHIN_CLASH": return (evidence.elements || []).map(el).join(", ");
     case "KIJI_CONTROL_FORWARD": return (evidence.events || []).map((event) => `상대의 ${event.by}이(가) 당신의 ${event.char}을(를) 충`).join("; ");

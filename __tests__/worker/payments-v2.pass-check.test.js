@@ -734,7 +734,7 @@ describe("revokePassGrantForOrder — users 조회는 profileSubscription 프로
     };
   }
 
-  test("프로젝션을 넘기고, profileSubscription 만 받은 문서로 되감는다", async () => {
+  test("프로젝션을 넘기고, profileSubscription 만 받은 문서로 회수한다", async () => {
     const now = new Date();
     const expiresAt = new Date(now.getTime() + 40 * DAY_MS);
     const db = projectingDb({

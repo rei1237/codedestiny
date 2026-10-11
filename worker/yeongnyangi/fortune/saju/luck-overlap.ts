@@ -1,34 +1,34 @@
-import {buildNatalInteractions} from '../../../lib/life-book-ai-saju.js';
+import {buildLuckNatalInteractions} from '../../../lib/life-book-ai-saju.js';
 
-// 1A: the engine relates one luck pillar to the natal chart only (buildLuckNatalInteractions), so 세운×대운 and
-// 월운×대운 relations, and a 형·삼합·방합 that needs the 대운, the 세운 (or 월운) and the natal branches together,
-// were never calculated and the model guessed them (戌未 형 without 丑). The engine is shared, so the overlap is added
-// at the chapter fact boundary (selectChapterFacts), like the ziwei palace facts. Stored contexts stay as they are.
-// The key carries 'majorLuck', so tiers that do not see 대운 lose it in the same tier filters as majorLuck.
-type O=Record<string,any>;
-const KINDS=['stemCombinations','stemClashes','branchCombinations','branchClashes','branchHarms','branchBreaks','branchPunishments','threeHarmony','directionalGroups'];
-const entry=(label:string,pillar:string)=>({label,pillar,heavenlyStem:pillar[0],earthlyBranch:pillar[1]});
+// 1A: the stored yearly/monthly rows only relate each luck pillar to the natal chart (life-book-ai-saju.js
+// buildLuckNatalInteractions), so a 세운×대운 relation was left for the model to guess. This joins the 대운 that
+// covers each row as one more pillar: pairs are luck×대운 only, and a group (형·삼합·방합) counts only when it needs
+// both the luck row and the 대운, judged on 대운 + 세운/월운 + 원국 branches together.
+type Row=Record<string,any>;
+type Hit={type:string;label:string;pillars:string[];pillarLabels?:string[];values?:string[];branches?:string[]};
+export const LUCK_OVERLAP_RULE='대운과 세운·월운이 만나는 관계만 계산했다. 세 지지가 모여야 하는 형·삼합·방합은 대운·세운(월운)·원국 지지를 합쳐 셋이 모두 있을 때만 성립한다. 관계가 비어 있으면 계산된 겹침 관계가 없다는 뜻이다. 운과 원국의 관계는 각 행의 natalInteractions에 따로 있다.';
 
-/** Relations that hold only with both the 대운 and this luck pillar: pairs between the two, and groups that need both. */
-function overlap(major:string,key:string,label:string,pillar:string,natal:O){
- const all=buildNatalInteractions({...natal,major:entry('대운',major),[key]:entry(label,pillar)}) as Record<string,O[]>;
- const relations=KINDS.flatMap(kind=>(all[kind]||[]).filter(x=>x.pillars.includes('major')&&x.pillars.includes(key))
-  .map(({type,label,element,pillarLabels,values,branches})=>({type,label,...(element?{element}:{}),pillarLabels,...(values?{values}:{branches})})));
- return {majorLuckPillar:major,relations};
+function cycleFor(cycles:Row[],year:number){return cycles.find(c=>Number(c.startYear)<=year&&year<=Number(c.endYear)&&c.pillar);}
+function relations(pillar:string,luckLabel:string,cycle:Row,pillarDetails:Row){
+ const details={...pillarDetails,major:{label:'대운',pillar:cycle.pillar,heavenlyStem:cycle.heavenlyStem,earthlyBranch:cycle.earthlyBranch}};
+ const all=buildLuckNatalInteractions(pillar,details,{includeGroups:true}) as Record<string,Hit[]>;
+ return Object.values(all).flat().filter(hit=>hit.pillars.includes('major')).map(hit=>({type:hit.type,label:hit.label,
+  between:[...new Set((hit.pillarLabels||[]).map(x=>x==='운'?luckLabel:x))],...(hit.values?{values:hit.values}:{}),...(hit.branches?{branches:hit.branches}:{})}));
 }
 
-export function enrichSajuLuckOverlap<T extends {domain:string;facts:{label:string;value:unknown}[]}>(context:T):T{
- if(context?.domain!=='saju'||!Array.isArray(context.facts))return context;
- const get=(label:string)=>context.facts.find(f=>f.label===label)?.value as O|undefined;
- const natal=get('pillarDetails'),cycles=get('majorLuck')?.cycles;
- if(!natal||typeof natal!=='object'||!Array.isArray(cycles))return context;
- const majorIn=(year:unknown)=>String(cycles.find((c:O)=>Number(year)>=c.startYear&&Number(year)<=c.endYear)?.pillar||'');
- const rows=(value:unknown,key:string,label:string,yearOf:(r:O)=>unknown)=>Array.isArray(value)?value.map(r=>{
-  if(!r||typeof r!=='object'||'majorLuckOverlap' in r||typeof r.pillar!=='string'||r.pillar.length!==2)return r;
-  const major=majorIn(yearOf(r));
-  return major.length===2?{...r,majorLuckOverlap:overlap(major,key,label,r.pillar,natal)}:r;
- }):value;
- return {...context,facts:context.facts.map(f=>
-  f.label==='yearlyLuck'?{...f,value:rows(f.value,'yearly','세운',r=>r.year)}:
-  f.label==='monthlyLuck'?{...f,value:rows(f.value,'monthly','월운',r=>r.start?.year)}:f)};
+/** Derived per request from stored facts; returns undefined when the chart has no 대운 or luck rows (birth time unknown). */
+export function buildLuckOverlap(facts:{label:string;value:unknown}[]){
+ const value=(label:string)=>facts.find(f=>f.label===label)?.value as any;
+ const cycles:Row[]=Array.isArray(value('majorLuck')?.cycles)?value('majorLuck').cycles:[];
+ const pillarDetails=value('pillarDetails');
+ if(!cycles.length||!pillarDetails||typeof pillarDetails!=='object')return undefined;
+ const years=(Array.isArray(value('yearlyLuck'))?value('yearlyLuck') as Row[]:[]).flatMap(r=>{
+  const cycle=Number.isInteger(r.year)&&r.pillar?cycleFor(cycles,r.year):undefined;
+  return cycle?[{year:r.year,pillar:r.pillar,majorLuckPillar:cycle.pillar,relations:relations(r.pillar,'세운',cycle,pillarDetails)}]:[];
+ });
+ const months=(Array.isArray(value('monthlyLuck'))?value('monthlyLuck') as Row[]:[]).flatMap(r=>{
+  const year=Number(r.start?.year),cycle=Number.isInteger(year)&&r.pillar?cycleFor(cycles,year):undefined;
+  return cycle?[{year,month:r.start.month,pillar:r.pillar,majorLuckPillar:cycle.pillar,relations:relations(r.pillar,'월운',cycle,pillarDetails)}]:[];
+ });
+ return years.length||months.length?{rule:LUCK_OVERLAP_RULE,years,months}:undefined;
 }
