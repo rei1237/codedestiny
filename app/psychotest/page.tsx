@@ -8,31 +8,32 @@ import {
 import DestinyBiasPromoSection from "./_components/DestinyBiasPromoSection";
 import RouteMetadataLocaleSync from "../components/RouteMetadataLocaleSync";
 import { introductionRoutes } from "../../lib/i18n/feature-introductions.mjs";
+import PaidPsychotestLink from "./_components/PaidPsychotestLink";
 
 const PSYCHOTEST_PAGE_METADATA_COPY = {
   ko: {
-    title: "무료 심리테스트 14종 | 성격·연애·직장 테스트 모음",
+    title: "심리테스트 14종 | 성격·연애·직장 테스트 모음",
     description:
-      "가입 없이 바로 하는 무료 심리테스트 14종을 한곳에 모았습니다. 성격, 연애, 직장, 공감, HSP, 정신연령 테스트를 주제별로 비교하고 원하는 것만 골라 시작하세요.",
+      "성격, 연애, 직장, 공감, HSP, 정신연령 심리테스트 14종을 주제별로 비교하고 원하는 테스트를 골라 시작하세요. 각 테스트는 1회 3,000원입니다.",
     featureList: ["심리테스트 14종 카탈로그", "성격/연애/직장 카테고리 필터형 탐색", "기능별 요약과 추천 키워드 안내"],
     itemListName: "심리테스트 모음",
   },
   en: {
-    title: "14 Free Psychological Tests | Personality, Love, and Work Test Hub",
+    title: "14 Psychological Tests | Personality, Love, and Work Test Hub",
     description:
       "An SEO hub organizing 14 Replit psychological tests by function, so you can compare personality, love, work, empathy, HSP, and mental-age tests at a glance.",
     featureList: ["Catalog of 14 psychological tests", "Category browsing for personality, love, and work", "Functional summaries and recommended keywords"],
     itemListName: "Psychological test collection",
   },
   ja: {
-    title: "心理テスト14種まとめ | 性格・恋愛・仕事の無料テストハブ",
+    title: "心理テスト14種まとめ | 性格・恋愛・仕事のテストハブ",
     description:
       "Replit心理テスト14種を機能別に整理したSEOハブです。性格、恋愛、仕事、共感、HSP、精神年齢テストを一度に比較してすぐ始められます。",
     featureList: ["心理テスト14種カタログ", "性格・恋愛・仕事カテゴリ別探索", "機能別要約とおすすめキーワード"],
     itemListName: "心理テストまとめ",
   },
   zh: {
-    title: "14 种心理测试合集 | 性格、恋爱、职场免费测试中心",
+    title: "14 种心理测试合集 | 性格、恋爱、职场测试中心",
     description:
       "按功能整理 14 种 Replit 心理测试，可一次比较性格、恋爱、职场、共情、HSP 与心理年龄测试并立即开始。",
     featureList: ["14 种心理测试目录", "性格、恋爱、职场分类探索", "功能摘要与推荐关键词"],
@@ -134,14 +135,12 @@ export default function PsychotestHubPage() {
               >
                 상세 가이드
               </Link>
-              <a
+              <PaidPsychotestLink
                 href={buildPsychotestExternalUrl(test.id)}
-                target="_blank"
-                rel="noopener noreferrer"
                 className="inline-flex flex-1 items-center justify-center rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:opacity-90"
               >
-                바로 시작
-              </a>
+                3,000원으로 시작
+              </PaidPsychotestLink>
             </div>
           </article>
         ))}

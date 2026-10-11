@@ -63,7 +63,7 @@ export default function FreeFortune(){
   const v=attendanceVersion.current,account=readDestinyProfileAccountId();
   try{
    const next=await fortuneApi<AttendanceState>(kind,{});if(v!==attendanceVersion.current||account!==readDestinyProfileAccountId())return;
-   currentDay.current=next.day;setState(next);setNotice(kind==='attendance'?(next.awarded?'출석했어. 멸치 한 마리가 쌓였어.':'오늘 출석은 이미 했어.'):'오늘의 16종을 모두 열었어.');
+   currentDay.current=next.day;setState(next);window.dispatchEvent(new CustomEvent('cd:yeongnyangi-daily-pass',{detail:next}));setNotice(kind==='attendance'?(next.awarded?'출석했어. 멸치 한 마리가 쌓였어.':'오늘 출석은 이미 했어.'):'오늘의 16종을 모두 열었어.');
    if(kind==='attendance'&&next.awarded)setReaction('award');
    else if(kind==='free/unlock'&&next.newlyUnlocked){
     const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;setReaction(reduced?'unimpressed':'receive');

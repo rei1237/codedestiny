@@ -62,3 +62,12 @@ next: 다른 작업의 main CI 복구 확인 후 검증된 SEO 커밋을 main에
 7. 다른 오행요리 worktree·월요일9시 기존예약을 보존한다. 배포 완료 뒤 이문서 status:done, 자기node_modules정션부터 해제하고 자기worktree만 배수한다.
 
 미완료: 전체 Naver 진단URL 재검증, 엔진별 시장검색량/경쟁도, 크롤러별CDN로그, 실험실성능, 고정질의AI응답감사, 배포후성과. 결제/인증/API/DB/개인정보/noindex정책은 유지했다.
+
+## 2026-10-12 재개 검증
+
+- 사용자 운영 승격 1회 승인 확인. 실제 결제/유료 LLM/운영 DB 쓰기는 승인 범위에 포함하지 않음.
+- origin/main `304b3667844b685a9754e4724bba08aa76c97b9b` CI 성공: https://github.com/rei1237/codedestiny/actions/runs/38164701136
+- 기존 SEO 워크트리에서 최신 main 통합. 충돌은 config/sitemap-lastmod.json 1개이며 최신 main 원장을 기준으로 sitemap:generate로 재생성. sync:public 후 추가 미러 변경 없음.
+- SEO targeted 13/13 통과. verify:release 종료0(타입·핵심 mock·결제/복구·AI 경로·Worker dry-run·인코딩 통과). check:fast 전체 검사 실행 중.
+- 운영 사전 관측 Pages/Worker 모두 `824b903b8cb74ce0a4ade0451ab89396ecfe807e`. D0=null 유지.
+- 기본 main 체크아웃은 다른 세션의 미커밋 변경으로 dirty이며 덮어쓰기/초기화/스태시하지 않음. 원격 main 통합 후 로컬 main 동기화와 워크트리 배수 가능 여부를 별도 확인.

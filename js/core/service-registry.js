@@ -34,7 +34,7 @@
  *   action     href 없이 홈 런타임 액션으로만 열리는 항목
  *   featureKey 결제 정본 키 (유료면 필수). 범위 가격이면 **시작가** 쪽 키다.
  *   featureKeyTo 범위 가격의 **상한** 쪽 정본 키 (범위면 필수 — 없으면 가드가 실패한다)
- *   price      표시 가격 문자열 — '무료' | '무료 시작' | '이용권' | 'N,NNN원' | 'N,NNN원~M,MMM원'
+ *   price      표시 가격 문자열 — 비운세 분류 라벨 | '무료 시작' | '이용권' | 'N,NNN원' | 'N,NNN원~M,MMM원'
  *              🔴 개방형 'N,NNN원~' 은 쓰지 않는다 — 상한을 모르면 버킷을 시작가 하나로만
  *                 파생하게 되고, 그래서 '5천원대' 칩이 실제보다 적게 나왔다.
  *   purposes   고민 축 (meta.purposes)
@@ -105,8 +105,7 @@ window.__cdServiceRegistry = [
     price: "5,000원",
     purposes: ["love", "self", "life", "etc"],
     methods: ["ai"],
-    keys: "상담 채팅 대화 연이 네오 고민 무료상담",
-    badge: "가입 후 1회 무료",
+    keys: "상담 채팅 대화 연이 네오 고민",
   },
 
   {
@@ -454,11 +453,12 @@ window.__cdServiceRegistry = [
     question: "나의 타고난 결은 어느 별에서 왔을까?",
     desc: "베다 별자리로 보는 나의 본질",
     href: "/nakshatra/",
-    price: "무료",
+    featureKey: "nakshatra-basic-reading",
+    price: "3,000원",
     purposes: ["life", "self"],
     methods: ["vedic"],
     keys: "나크샤트라 베다 달자리 27수",
-    badge: "무료",
+    badge: "티저",
     roles: ["recommended"],
   },
   {
@@ -481,11 +481,12 @@ window.__cdServiceRegistry = [
     desc: "지금 이 순간의 운세를 빠르게",
     href: "/today/",
     visualHref: "/daily-fortune/",
-    price: "무료",
+    featureKey: "daily-fortune-reading",
+    price: "3,000원",
     purposes: ["today"],
     methods: ["saju"],
     keys: "오늘 데일리 일일운세 하루",
-    badge: "무료",
+    badge: "티저",
   },
   {
     id: "today-hub",
@@ -493,11 +494,12 @@ window.__cdServiceRegistry = [
     question: "오늘, 무엇부터 하면 좋을까?",
     desc: "사주·숙요점·베다점으로 보는 오늘",
     href: "/today/",
-    price: "무료",
+    featureKey: "daily-fortune-reading",
+    price: "3,000원",
     purposes: ["today"],
     methods: ["saju", "sukuyo", "vedic"],
     keys: "오늘 허브 하루 일진 오늘운세",
-    badge: "무료",
+    badge: "티저",
   },
 
   /* ── 나를 아는 도구 ─────────────────────────────────────────── */
@@ -531,11 +533,12 @@ window.__cdServiceRegistry = [
     desc: "꿈이 전하는 메시지를 풀어보는 해몽",
     href: "/dream/",
     action: "openDreamModal",
-    price: "무료",
+    featureKey: "dream-prompt-generator",
+    price: "3,000원",
     purposes: ["self", "etc"],
     methods: ["ai"],
     keys: "꿈 해몽 악몽 태몽",
-    badge: "무료",
+    badge: "티저",
   },
   {
     id: "psychotest",
@@ -543,11 +546,12 @@ window.__cdServiceRegistry = [
     question: "나는 지금 어떤 상태일까?",
     desc: "나를 알아가는 가벼운 심리 탐구",
     href: "/psychotest/",
-    price: "무료",
+    featureKey: "psychotest-reading",
+    price: "3,000원",
     purposes: ["self", "etc"],
     methods: ["ai"],
     keys: "심리 테스트 성격 유형",
-    badge: "무료",
+    badge: "티저",
   },
   {
     id: "manse",
@@ -555,11 +559,11 @@ window.__cdServiceRegistry = [
     question: "내 사주 여덟 글자는 무엇일까?",
     desc: "사주를 직접 계산해 보는 만세력",
     href: "/manse/",
-    price: "무료",
+    price: "차트 공개",
     purposes: ["self", "etc"],
     methods: ["saju"],
     keys: "만세력 달력 절기 음력",
-    badge: "무료",
+    badge: "만세력",
   },
   {
     id: "famous-saju",
@@ -567,10 +571,11 @@ window.__cdServiceRegistry = [
     question: "같은 사주라도 삶은 왜 다를까?",
     desc: "유명인의 사주로 배우는 운명의 원리",
     href: "/insights/famous-saju/",
-    price: "무료",
+    price: "읽을거리",
     purposes: ["self", "etc"],
     methods: ["saju"],
     keys: "유명인 연예인 셀럽 명식",
+    badge: "아카이브",
   },
 
   {
@@ -690,7 +695,8 @@ window.__cdServiceRegistry = [
     question: "우리 MBTI 조합은 어떤 궁합일까?",
     desc: "16가지 토템 궁합",
     action: "openMbtiModal",
-    price: "무료",
+    featureKey: "mbti-animal-compat",
+    price: "3,000원",
     purposes: ["love", "compatibility"],
     methods: ["ai"],
     keys: "MBTI 동물 궁합 16유형 연애",
@@ -757,7 +763,7 @@ window.__cdServiceRegistry = [
        (scripts/verify-home-service-registry.mjs 의 문안 대조가 이 키로 찾는다). */
     href: "/diary/",
     action: "openLuckSyncDiary",
-    price: "무료",
+    price: "기록 도구",
     purposes: ["today", "etc"],
     methods: ["saju"],
     keys: "다이어리 플래너 일기 기록 일정 캘린더 운기",
@@ -767,7 +773,7 @@ window.__cdServiceRegistry = [
     name: "달빛 음악 플레이어",
     desc: "운세와 어울리는 음악으로 마음 달래기",
     href: "/music/",
-    price: "무료 재생 · 다운로드 1,000원",
+    price: "스트리밍 · 다운로드 1,000원",
     purposes: ["etc"],
     methods: ["ai"],
     keys: "음악 뮤직 bgm 플레이리스트",
@@ -777,7 +783,7 @@ window.__cdServiceRegistry = [
     name: "라이트 노벨",
     desc: "운명의 서재 — 연이와 네오의 이야기",
     href: "/codedestiny-novel.html",
-    price: "무료",
+    price: "연재 읽을거리",
     purposes: ["etc"],
     methods: ["ai"],
     keys: "스토리 소설 이야기 라이트노벨 비주얼노벨 노벨 연이 네오 세계관 캐릭터",

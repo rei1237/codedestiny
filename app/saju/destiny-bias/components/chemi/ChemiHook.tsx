@@ -29,7 +29,7 @@ export default function ChemiHook({ groupNames, totalMembers, onStart }: Props) 
       </div>
 
       <p className={styles.hookLead}>
-        생년월일 하나로 나와 최애의 사주 명식(연·월·일주)을 겹쳐서, 케미 점수와 등급이 찍힌 포토카드 한 장으로 뽑아 드려요. 무료, 로그인 없이 바로.
+        생년월일 하나로 나와 최애의 사주 명식(연·월·일주)을 겹쳐서, 케미 점수와 등급이 찍힌 포토카드 한 장으로 뽑아 드려요. 단건 결제 후 바로 확인할 수 있어요.
       </p>
 
       <button type="button" className={`${styles.ctaPrimary} ${styles.inlineCta}`} onClick={onStart}>

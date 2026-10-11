@@ -26,5 +26,7 @@ describe("Guardian Fortune credit retirement", () => {
   it("still sends a logged-out guest to login rather than to a payment gate", () => {
     const cta = buildGuardianFortuneLimitCta(GUARDIAN_FORTUNE_ERROR_CODES.GUEST_LIMIT_EXCEEDED, false);
     expect(cta).toMatchObject({ targetPath: "/auth/login" });
+    // 가입 무료 1회는 없어졌다. 로그인 안내가 없는 혜택을 약속하면 안 된다.
+    expect(`${cta.label} ${cta.reason}`).not.toContain("무료");
   });
 });

@@ -53,7 +53,7 @@ export default function ChemiShareBar({
           </button>
         </div>
       </details>
-      <p className={styles.helpText}>무료 결과는 서버에 보관하지 않아요. 필요한 카드는 이미지로 저장해 주세요.</p>
+      <p className={styles.helpText}>결과는 서버에 보관하지 않아요. 필요한 카드는 이미지로 저장해 주세요.</p>
       <p className={styles.shareStatus} role="status" aria-live="polite" data-tone={status?.tone || ""}>
         {status?.text || ""}
       </p>

@@ -1905,11 +1905,11 @@ function __cdEnsureSukuyoAIConsultationReady() {
 
 var __cdLazyActionLoaders = {
   openKemetModal: function() { return __cdLoadScriptOnce('/js/oracle-kcg.js?v=build-26089ea9223d'); },
-  openDreamModal: function() { return __cdLoadScriptOnce('/js/dream-ledger.js?v=build-6d2c2ef4778c'); },
+  openDreamModal: function() { return __cdLoadScriptOnce('/js/dream-ledger.js?v=build-cf48ab7e8047'); },
   openPsychoDreamModal: function() { return __cdLoadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-f7656ba31ff5'); },
   openOlympusOracleModal: function() { return __cdLoadScriptOnce('/js/olympus-oracle.js'); },
   openHwatuModal: function() { return __cdLoadScriptOnce('/HwatuFortune.js?v=h7c6f7751f293'); },
-  openJuyukModal: function() { return __cdLoadScriptOnce('/js/iching-engine.js?v=build-eb1f71fffc5c').then(function() { return __cdLoadScriptOnce('/js/iching-modal.js?v=build-ceb2b1b1a0eb'); }); },
+  openJuyukModal: function() { return __cdLoadScriptOnce('/js/iching-engine.js?v=build-d019cae95887').then(function() { return __cdLoadScriptOnce('/js/iching-modal.js?v=build-ceb2b1b1a0eb'); }); },
   openRuneOracle: function() { window.location.assign('/oracle/rune/'); return Promise.resolve(true); },
   openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-b7d07cb6850b').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-81c843ae9e30'); }); },
   openDestinyEggPage: function() { return Promise.resolve(window.location.assign('/tadagochi.html')); },
@@ -2290,7 +2290,7 @@ function __cdEnsureSajuCoreLoaded() {
       '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-d87a17c21410',
     '/js/core/saju/basicFortunePresentation.js?v=build-058fc601fa33',
     '/js/core/saju/modalProfileState.js?v=build-70bc2c91ff63',
-    '/js/core/saju/reportDashboard.js?v=build-3ef95881c2b3',
+    '/js/core/saju/reportDashboard.js?v=build-ac4794a955a5',
     '/js/saju-engine-continuation.js?v=build-b10118108171',
     '/js/entertain-engine.js?v=build-6efeaaf5d54d',
     /* 체인은 순차 reduce라 앞에 끼우면 이 파일의 실패가 뒤쪽 전체를 죽인다 — 신규 카드 스크립트는 맨 뒤에 둔다. */
@@ -5619,12 +5619,16 @@ var _DF_ATELIER_LOCK_KEY = 'flower-fc';
  * 있으면 타일을 정본으로 쓰고, 없으면(홈이 아닌 화면에서 스튜디오를 연 경우) 해금 키만 본다.
  */
 function _dfIsFlowerAtelierUnlocked() {
-  // 2026-10-08: all flower sources are free; server authentication and calculation remain.
-  return true;
+  var tile = document.querySelector('[data-tile-lock-key="' + _DF_ATELIER_LOCK_KEY + '"]');
+  if (tile) {
+    var lockCost = Number(tile.getAttribute('data-tile-lock-cost') || 0);
+    if (!(lockCost > 0)) return false;
+    if (tile.classList && tile.classList.contains('tarot-tile--tileUnlocked')) return true;
+  }
+  return _dfIsLockKeyUnlocked(_DF_ATELIER_LOCK_KEY);
 }
 
 function _dfIsSourcePaidUnlocked(source) {
-  if (_dfNormalizeSource(source) === 'saju') return true;
   return _dfIsFlowerAtelierUnlocked();
 }
 
@@ -5633,7 +5637,7 @@ function _dfIsSourcePaidUnlocked(source) {
  *
  * 2026-08-23 이전에는 `saju → astrology → jamidusu → sukuyo` 순차 잠금이었다. 그때는 홈에
  * 꽃 타일이 4개였고 각자 자기 타일에서 lockKey/cost 를 읽었기 때문이다. 지금은 타일도 상품도
- * 하나(1만원 전체 해금)라 "앞 체계를 끝내야 다음이 열린다"는 규칙이 성립하지 않는다 —
+ * 하나(5,000원 전체 해금)라 "앞 체계를 끝내야 다음이 열린다"는 규칙이 성립하지 않는다 —
  * 결제한 사람이 산 것은 네 갈래 전부다.
  *
  * `_dfStudioState.sourceProgress` 는 지우지 않는다. 개화 기록/다음 단계 안내가 그대로 쓴다.
@@ -5641,7 +5645,7 @@ function _dfIsSourcePaidUnlocked(source) {
 function _dfComputeSourceUnlockCache() {
   var unlocked = _dfIsFlowerAtelierUnlocked();
   return {
-    saju: true,
+    saju: unlocked,
     astrology: unlocked,
     jamidusu: unlocked,
     sukuyo: unlocked
@@ -7675,14 +7679,37 @@ function _dfIsSourceUnlocked(source) {
 }
 
 function _dfRequirePaidSourceUnlock(source) {
-  // 2026-10-08: all flower sources are free; server authentication and calculation remain.
-  return true;
+  var normalized = _dfNormalizeSource(source);
+  var lockTile = _dfResolveLockTileBySource(normalized);
+  if (!lockTile) return false;
+
+  var lockKey = lockTile.getAttribute('data-tile-lock-key') || '';
+  var lockCost = Number(lockTile.getAttribute('data-tile-lock-cost') || 0);
+  if (!lockKey || lockCost <= 0) return false;
+  if (_dfIsLockKeyUnlocked(lockKey)) return true;
+  if (lockTile.classList && lockTile.classList.contains('tarot-tile--tileUnlocked')) return true;
+
+  if (!lockTile.getAttribute('data-pvw-bypass') && typeof window._cdOpenTilePreview === 'function') {
+    try {
+      if (window._cdOpenTilePreview(lockTile)) return false;
+    } catch (_) {}
+  }
+
+  if (!__cdHasAuthToken()) {
+    if (window.confirm(_indexRuntimeText("indexRuntime.confirm.003"))) {
+      window.location.href = '/login?next=%2F';
+    }
+    return false;
+  }
+
+  window.alert('운명의 꽃 아틀리에는 해금 후 이용할 수 있습니다.');
+  return false;
 }
 
 /**
  * 체계 하나를 열어도 되는가.
  *
- * 해금 상품이 하나(1만원 전체 해금)뿐이라 판정도 하나다. 예전에는 여기서 "이전 단계를 먼저
+ * 해금 상품이 하나(5,000원 전체 해금)뿐이라 판정도 하나다. 예전에는 여기서 "이전 단계를 먼저
  * 완료하면 열립니다" 안내를 띄웠는데, 순차 잠금을 없앤 지금은 결제 게이트를 통과했으면
  * 네 갈래가 전부 열린다.
  */

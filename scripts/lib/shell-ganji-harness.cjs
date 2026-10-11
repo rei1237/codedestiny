@@ -54,6 +54,7 @@ function createDummyEl() {
     style: {},
     dataset: {},
     classList: { add() {}, remove() {}, contains() { return false; } },
+    before() {},
     appendChild() {},
     removeChild() {},
     setAttribute() {},

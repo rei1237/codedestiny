@@ -36,9 +36,12 @@ test('day pillar and 22-card mapping stay complete and use the canonical ganji f
  }
 });
 
-test('room component is local-only and keeps the existing free and paid destinations',async()=>{
+test('room component reuses the attendance pass before revealing the local cards',async()=>{
  const source=await (await import('node:fs/promises')).readFile('app/yeongnyangi/_components/DailyTarotCard.tsx','utf8');
- assert(!/fortuneApi|fetch\(|axios|caretaro|DestinyCafe/.test(source));
+ assert.match(source,/fortuneApi<AttendanceState>\('attendance'\)/);
+ assert.match(source,/cd:yeongnyangi-daily-pass/);
+ assert.match(source,/pass\?\.unlocked/);
+ assert(!/fetch\(|axios|caretaro|DestinyCafe/.test(source));
  assert.match(source,/href="#daily"/);
  assert.match(source,/href="\/yeongnyangi\/fortune\/"/);
  assert.match(source,/crypto\.getRandomValues/);
