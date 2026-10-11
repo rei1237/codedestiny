@@ -483,3 +483,7 @@ status: active
 ## 운명의 업 전문가 상담
 - 5체계/현행15장/근거/가상관계예시/PDF·저장·후속질문을10장개별편집.원본10/native23최종독립SHIP.328/358/398/540 clipping/fallback/CTAtrial PASS,API POST0.Jest27/Node9/typecheck/ESLint PASS.기존16장별도안내4키12언어정리,HTML대비수정.
 - 유료구성124종+공통소개1종1125패널로컬검수.직전272d92f2f pre-pushPASS.전달전재확인mainCI54b5476b/38114013113실패동일,main타세션미커밋보존.복구질문pending/운영배포없음.전체/main전달미완료.다음테토에겐상세잠금해제6장조사.
+
+## 테토·에겐 / 인연 장소
+- 각각6/9장개별편집;원본및native19/22최종독립SHIP.테토294/324/364/538,인연328/358/398/540;clipping/fallback/CTAtrial PASS.무료calendar mock4별도/유료POST0.테토기존화면5000하드코딩은기존KRW1000정본상수에연결(정책변경없음).
+- ESLint0errors(기존770warnings),resume wiring React43/정적46 PASS.유료구성126종+공통소개1종1140패널로컬검수.꽃은서버·UI무료전환확인으로판매대상제외.직전5a2d6d127 pre-pushPASS.전체/main전달미완료,mainCI복구질문pending/운영배포없음.

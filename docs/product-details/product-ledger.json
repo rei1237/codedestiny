@@ -1280,24 +1280,49 @@
     {
       "productId": "destiny_meeting_place",
       "displayName": "사주로 보는 인연의 장소",
-      "saleStatus": "진입 확인·구성 대조 중",
+      "saleStatus": "사주입력후규칙형인연장소분석",
       "entry": [
-        "/saju/destiny-meeting-place"
+        "/saju/destiny-meeting-place/"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 5000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
+      "inputRequirements": [
+        "생년월일/달력구분/윤달;시간선택",
+        "이름/성별선택"
+      ],
+      "resultRenderer": [
+        "app/saju/destiny-meeting-place/components/DestinyMeetingPlacePage.tsx",
+        "components/fortune/destiny-meeting-place/DestinyMeetingPlaceResult.tsx",
+        "components/fortune/destiny-meeting-place/destinyMeetingPlaceEngine.ts"
+      ],
+      "actualContents": [
+        "추천장소5/국가5와도시테마",
+        "기운/관계패턴/시기/스타일/실천",
+        "질문프롬프트7개/개별전체복사"
+      ],
+      "conditionalItems": [
+        "시간미상입력가능",
+        "점수는실측만남확률아님",
+        "AI답변추가생성/저장재열람/PDF없음"
+      ],
       "separatePurchase": [],
       "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
+      "images": [
+        "/feature-details/crafted/destiny-meeting-place/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "app/saju/destiny-meeting-place/components/DestinyMeetingPlacePage.tsx",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본9/native22최종독립SHIP",
+        "328/358/398/540 clipping/fallback/CTAtrial PASS",
+        "API POST0",
+        "ESLint0errors;resume wiring PASS"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "main전달전로컬검수;실결제없음"
       ],
       "detailAliases": [
         "destiny-meeting-place"
@@ -1467,28 +1492,33 @@
     {
       "productId": "flower-fc",
       "displayName": "운명의 꽃 아틀리에",
-      "saleStatus": "진입 확인·구성 대조 중",
+      "saleStatus": "무료전환확인",
       "entry": [
-        "/index.html?action=openDestinyFlowerStudio",
-        "/index.html?action=openAstrologyFlowerStudio",
-        "/index.html?action=openJamidusuFlowerStudio",
-        "/index.html?action=openSukuyoFlowerStudio"
+        "운명의꽃 아틀리에"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 1000,
       "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
+      "resultRenderer": [
+        "worker/routes/destiny-flower.js",
+        "js/core/index-inline-runtime.js"
+      ],
+      "actualContents": [
+        "사주/점성/자미두수/숙요 네갈래 로그인후무료계산"
+      ],
+      "conditionalItems": [
+        "과거가격키와구매이력은유지되지만현재판매대상아님"
+      ],
       "separatePurchase": [],
       "reviewSource": [],
       "images": [],
-      "status": "조사",
+      "status": "제외",
       "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "verification": [
+        "_dfIsFlowerAtelierUnlocked always true 2026-10-08",
+        "worker handleMatch requireAuth only;no purchase/resultstorage"
       ],
+      "unconfirmed": [],
       "detailAliases": [
         "destiny-flower",
         "astrology-flower",
@@ -4227,24 +4257,51 @@
     {
       "productId": "tetogen_deep_report",
       "displayName": "테토 에겐 상세 리포트 해금",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "saleStatus": "무료사주매력결과안의상세해금",
+      "entry": [
+        "무료사주 결과 > 테토·에겐 > 상세 리포트"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 1000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
+      "inputRequirements": [
+        "기존사주자료;새질문없음"
+      ],
+      "resultRenderer": [
+        "js/entertain-engine.js"
+      ],
+      "actualContents": [
+        "십성매력매트릭스",
+        "연애/관계/일전환모드",
+        "다섯밸런스제안/가이드/마무리"
+      ],
+      "conditionalItems": [
+        "십성자료부족시안내/합화자료있을때표시",
+        "호르몬검사아님"
+      ],
       "separatePurchase": [],
       "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "images": [
+        "/feature-details/crafted/teto-egen-deep/manifest.json"
       ],
-      "detailAliases": []
+      "status": "적용",
+      "appliedAt": [
+        "js/entertain-engine.js",
+        "js/core/oracle/crafted-details.mjs",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본6/native19최종독립SHIP",
+        "294/324/364/538 clipping/fallback/CTAtrial PASS",
+        "기존표시5000하드코딩을기존KRW1000상수에연결;가격정책동일",
+        "무료calendar mockPOST4/유료POST0",
+        "ESLint0errors/기존warnings;resume wiring PASS"
+      ],
+      "unconfirmed": [
+        "main전달전로컬검수;실결제없음"
+      ],
+      "detailAliases": [
+        "teto-egen-deep"
+      ]
     },
     {
       "productId": "yoga-guru-per-use",

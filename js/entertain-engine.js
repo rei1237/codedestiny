@@ -2839,7 +2839,7 @@
       + '</div>'
       + '<ul class="tetogen-premium-gate__list">' + teaserItems + '</ul>'
       + '<div class="tetogen-premium-gate__action">'
-      + '<strong>5,000원</strong>'
+      + '<strong>' + TETOGEN_DEEP_REPORT_KRW.toLocaleString('ko-KR') + '원</strong>'
       + '<button type="button" class="tetogen-premium-gate__cta" data-tetogen-unlock="1">' + (unlocked ? '상세 리포트 열림' : '상세 리포트 열기') + '</button>'
       + '<small data-tetogen-status>' + (unlocked ? '이미 열린 흐름입니다.' : '결제 후 남은 해석이 펼쳐집니다.') + '</small>'
       + '</div>'
@@ -2852,6 +2852,7 @@
     if (!root) return;
     var shell = root.querySelector('[data-tetogen-deep-shell]');
     if (!shell) return;
+    import('./core/oracle/crafted-details.mjs').then(function (m) { m.mountOracleCraftedDetails(root, { target: '[data-tetogen-deep-shell]', id: 'teto-egen-deep', title: '테토·에겐 상세 리포트' }); });
     var button = shell.querySelector('[data-tetogen-unlock]');
     var status = shell.querySelector('[data-tetogen-status]');
 
