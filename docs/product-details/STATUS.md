@@ -378,3 +378,8 @@ status: active
 ## 휴먼 디자인 프리미엄 리포트
 - 실제18장/차트근거/부분생성/완성후PDF언어조건을10장 개별 편집. 원본10/native23 독립SHIP.328/358/398/540 clipping/fallback PASS POST0. Node32/typecheck/ESLint PASS. 기존390px목차 한단어줄바꿈 비차단.
 - 유료구성100종+공통소개1종903패널 로컬검수. 직전563b0e054 pre-push PASS. 전체/main전달 미완료·연이네오 운영범위 답변대기. 다음 손금 통합상품9장 검수중;과거별도상담키는 현행통합 확인.
+
+## 손금 정밀 판독
+- 최소한손/주사용손/7선+구/6분야/통합심층을9장 개별편집. 원본9/native22 독립SHIP.328/358/398/540 clipping/fallback PASS POST0. Jest22/typecheck/ESLint오류0경고9 PASS. 사진미등록CTA비활성정상.
+- 초기native500 원인은기존palm-ui-state CJS에dev refresh import.meta주입;기존제외규칙에dev한정추가, Node1로prod미적용확인. 결제계산무수정. 구palm-reading-ai-consult 현재기본통합으로독립대상제외.
+- 유료구성101종+공통소개1종912패널 로컬검수. 직전d66c69fef pre-push PASS. 최신mainCI재확인도54b5476b 실패38114013113 동일,main다른세션미커밋보존/push안함. 전체전달미완료;연이네오 운영범위답변대기.

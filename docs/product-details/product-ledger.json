@@ -3894,50 +3894,82 @@
     {
       "productId": "palm-reading-ai-consult",
       "displayName": "손금 전문가 상담 생성",
-      "saleStatus": "판매 진입 확인 필요",
+      "saleStatus": "현재기본분석통합;과거결제키보존",
       "entry": [],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 5000,
       "inputRequirements": [],
       "resultRenderer": [],
-      "actualContents": [],
+      "actualContents": [
+        "기본분석 consultText 및 포함배지 확인;별도현행구매없음"
+      ],
       "conditionalItems": [],
       "separatePurchase": [],
       "reviewSource": [],
       "images": [],
-      "status": "조사",
+      "status": "대상 제외",
       "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "verification": [
+        "worker/lib/paid-feature-registry.js309-312",
+        "app/palm-reading/PalmDestinyMain.tsx190/3562-3578"
       ],
+      "unconfirmed": [],
       "detailAliases": []
     },
     {
       "productId": "palm-reading-general",
       "displayName": "손금",
-      "saleStatus": "진입 확인·구성 대조 중",
+      "saleStatus": "현재 사진업로드·주사용손·단일분석게이트 확인",
       "entry": [
         "/palm-reading/"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 5000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
+      "inputRequirements": [
+        "사진최소한손·주로쓰는손;양손선택",
+        "분석목적general고정"
+      ],
+      "resultRenderer": [
+        "app/palm-reading/PalmDestinyMain.tsx",
+        "app/palm-reading/PalmLineOverlay.tsx"
+      ],
+      "actualContents": [
+        "사진선오버레이·7주요선+구 해석카드",
+        "읽힌신호/해석/강점/주의/오늘조언/7일실천",
+        "전체/연애/재물/직업/성격/관계6분야·선후천비교조건부",
+        "통합심층상담본문"
+      ],
+      "conditionalItems": [
+        "사진·인식상태따라부분판독;품질/누락/주의확인",
+        "수명질병확정예측아님;PDF내보내기없음"
+      ],
+      "separatePurchase": [
+        "구전문가상담은현재기본분석에통합"
+      ],
+      "reviewSource": [
+        "가상편집예시;실제판독후기아님"
+      ],
+      "images": [
+        "/feature-details/crafted/palm-reading/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "app/palm-reading/PalmDestinyMain.tsx",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본9/native22 독립SHIP;328/358/398/540 clipping/fallback PASS POST0",
+        "사진미등록CTA비활성 정상;제출/결제없음",
+        "Jest22/typecheck/ESLint오류0기존경고9;개발모듈경계Node1 PASS"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "main전달·CI미확인;실결제실LLM없음",
+        "기존촬영가이드일부단어줄바꿈 비차단"
       ],
       "detailAliases": [
         "palm-reading"
-      ]
+      ],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "pet-compatibility-ai",
