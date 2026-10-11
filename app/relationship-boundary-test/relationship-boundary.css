@@ -53,5 +53,7 @@
 .rt-page button:disabled{cursor:wait}
 .rt-page--embedded{min-height:0;padding:0;background:var(--rt-surface)}
 .rt-page--embedded .rt-shell{border:0;border-radius:0}
+.rt-page--embedded [data-crafted-product-disclosure]{--crafted-mobile-width:100vw}
+.rt-page--embedded .rt-input-panel>button{gap:6px;padding-inline:12px;font-size:14px;white-space:nowrap}
 html.neo-mode .rt-page,body.neo-mode .rt-page,[data-cd-theme="neo"] .rt-page{--rt-ink:#f4eeff;--rt-muted:#d8c7f3;--rt-accent:#c4b5fd;--rt-soft:#211a3d;--rt-surface:#13102a;--rt-border:rgba(196,181,253,.28);--rt-scene-shade:rgba(9,6,24,.86);--rt-scene-frame:#0d0a1f}
 @media(max-width:620px){.rt-page:not(.rt-page--embedded){padding:12px 12px 72px}.rt-body{padding:22px 16px 26px}.rt-score-row{align-items:flex-start}.rt-summary{padding:16px}}

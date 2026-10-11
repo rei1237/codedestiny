@@ -407,3 +407,7 @@ status: active
 ## 사주 맞춤 작명
 - 실제한자조건별 계산형/8장해설·3후보비교·PDF/조건부PNG를10장개별편집. 원본10/native23 최종독립SHIP;328/358/398/540 clipping/fallbackPASS POST0. 기존소개 프롬프트생성표현충돌수정후CTA4폭 재검수,30000일치. ESLint/typecheckPASS.
 - 유료구성107종+공통소개1종965패널 로컬검수. 직전08bc34c91 pre-pushPASS. 전체/main 전달미완료. 다음관계성향 실제5장/점수/부분저장계약확인.
+
+## 관계 성향 리포트
+- 실제5장·성향점수·부분저장을9장 개별편집. 원본9/standalone22/iframe12 최종독립SHIP. iframe 작은본문/CTA줄바꿈/캡처흰공백 수정. 폭298이상·본문환산14.9px·5000원한줄. Node6/ESLintPASS.
+- 무료달력 mock POST4/그외POST0. 초기 iframe 대기실패는 초기화높이 변경 대기로 검증기수정,실결제없음. 유료구성108종+공통소개1종974패널 로컬검수. 직전59136d6eb pre-pushPASS. 전체/main전달미완료. 다음FPTI10장 작성.

@@ -104,7 +104,8 @@
     "rpt_villainCard": "relationship-boundaries",
     "rpt_quantumCard": "quantum-saju",
     "rpt_energyCoordCard": "energy-travel",
-    "premium-naming-prompt": "naming-ai"
+    "premium-naming-prompt": "naming-ai",
+    "relationship-boundary-test": "relationship-boundary-test"
   },
   "introductions": {
     "fusion-fortune": [
