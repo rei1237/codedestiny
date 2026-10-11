@@ -2352,29 +2352,57 @@
     },
     {
       "productId": "ziwei-ai-consultation",
-      "displayName": "자미두수 전문가 상담",
-      "saleStatus": "진입 확인·구성 대조 중",
+      "displayName": "자미두수 별궁 전문가 상담",
+      "saleStatus": "실제 입력/구매 진입과 결과 렌더러 대조 완료",
       "entry": [
-        "/ziwei-ai"
+        "/ziwei-ai/"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 30000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
+      "inputRequirements": [
+        "이름·성별·생년월일·양음력·윤달",
+        "출생시간 또는 미상·상담주제·최대1200자 질문"
+      ],
+      "resultRenderer": [
+        "app/ziwei-ai/ZiweiAiClient.tsx",
+        "worker/routes/ziwei-ai.js"
+      ],
+      "actualContents": [
+        "완성19주제·6생성묶음",
+        "명궁·신궁·12궁·계산근거·대한 타임라인",
+        "조건부4영역 참고지표·현재대운",
+        "완료PDF"
+      ],
+      "conditionalItems": [
+        "생성중 저장부분과 완성 구분",
+        "구조화 자료에 따라 지표 표시;시간미상 해석제한"
+      ],
+      "separatePurchase": [
+        "기본해금·질문AI·별도심층PDF"
+      ],
+      "reviewSource": [
+        "가상 편집 예시;실제 구매 후기 아님"
+      ],
+      "images": [
+        "/feature-details/crafted/ziwei-expert/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "app/ziwei-ai/ZiweiAiClient.tsx"
+      ],
+      "verification": [
+        "원본 10장 독립 SHIP",
+        "328/358/398/540 이미지/상위 clipping/fallback PASS",
+        "정적·상담복구8건 PASS",
+        "실제360/390/430/1280 패널·고지·CTA·원고 독립최종SHIP"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "main 전달·CI 대기;실결제·실LLM 미실행"
       ],
       "detailAliases": [
         "ziwei-ai"
-      ]
+      ],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "healthReport",
@@ -20641,25 +20669,57 @@
     },
     {
       "productId": "ziwei_ai_prompt_generator",
-      "displayName": "자미두수 AI 질문 프롬프트 생성",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "displayName": "자미두수 질문 AI 상담",
+      "saleStatus": "실제 입력/구매 진입과 결과 렌더러 대조 완료",
+      "entry": [
+        "js/saju-engine.js _zwBuildDeepAiPromptPanel/_zwInitDeepAiPromptPanel"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 5000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "inputRequirements": [
+        "기존명반·14상담주제",
+        "5~1000자 질문"
       ],
-      "detailAliases": []
+      "resultRenderer": [
+        "worker/lib/ziwei-ai-prompt.js",
+        "worker/routes/fortune.js deliverFeatureQuestion",
+        "js/saju-engine.js"
+      ],
+      "actualContents": [
+        "질문핵심·기질·현재근거·강점·관계·일재물·주의반대·가까운변화·행동·종합10부",
+        "질문문 펼침·복사",
+        "부분생성 표시"
+      ],
+      "conditionalItems": [
+        "명반에 제공된 시기자료만 사용",
+        "별강약은 사람의 가치 등급 아님"
+      ],
+      "separatePurchase": [
+        "새요청·외부AI이용료·전문가상담·심층PDF·궁별해금"
+      ],
+      "reviewSource": [
+        "가상 편집 예시;실제 구매 후기 아님"
+      ],
+      "images": [
+        "/feature-details/crafted/ziwei-question-ai/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "js/saju-engine.js",
+        "js/core/saju/basicFortunePresentation.js",
+        "js/core/saju/crafted-product-details.mjs"
+      ],
+      "verification": [
+        "원본 10장 독립 SHIP",
+        "304/334/374/540 이미지/상위 clipping/fallback PASS",
+        "정적·상담복구8건 PASS",
+        "실제360/390/430/1280 패널·고지·CTA·원고 독립최종SHIP"
+      ],
+      "unconfirmed": [
+        "main 전달·CI 대기;실결제·실LLM 미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "ziwei-deep-pdf",
@@ -20817,25 +20877,54 @@
     },
     {
       "productId": "ziwei_twelve_palaces",
-      "displayName": "자미두수 12궁 정밀 해설 해금",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "displayName": "자미두수 12궁 정밀 해설",
+      "saleStatus": "실제 입력/구매 진입과 결과 렌더러 대조 완료",
+      "entry": [
+        "기본명반 종합리포트 #zwBasicPaidGate_ziwei_twelve_palaces"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 1000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "inputRequirements": [
+        "기존 자미두수 명반"
       ],
-      "detailAliases": []
+      "resultRenderer": [
+        "js/saju-engine.js buildZwTwelvePalaceDeepHtml"
+      ],
+      "actualContents": [
+        "자료가 있는12궁 개별카드",
+        "궁의 질문·최대2주성·강약·차성",
+        "조건부 그림자·보조성·긴장요인·사화",
+        "삼방사정·실천조언"
+      ],
+      "conditionalItems": [
+        "궁과 별자료가 없으면 해당항목 생략",
+        "공궁은 능력부재 아님;건강 진단 아님"
+      ],
+      "separatePurchase": [
+        "새AI답변·전문가종합·PDF·별도궁합"
+      ],
+      "reviewSource": [
+        "가상 편집 예시;실제 구매 후기 아님"
+      ],
+      "images": [
+        "/feature-details/crafted/ziwei-twelve-palaces/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "js/saju-engine.js",
+        "js/core/saju/crafted-product-details.mjs"
+      ],
+      "verification": [
+        "원본 6장 독립 SHIP",
+        "304/334/374/540 이미지/상위 clipping/fallback PASS",
+        "정적·상담복구8건 PASS",
+        "실제360/390/430/1280 패널·고지·CTA·원고 독립최종SHIP"
+      ],
+      "unconfirmed": [
+        "main 전달·CI 대기;실결제·실LLM 미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "yeongnyangi-prashna",

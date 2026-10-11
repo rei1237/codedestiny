@@ -21576,6 +21576,15 @@ function renderZiwei(p, natal, targetId) {
     var panel = document.getElementById(panelId);
     if (!panel || !pd) return;
 
+    if (!panel.previousElementSibling || panel.previousElementSibling.getAttribute('data-crafted-static-offer') !== 'ziwei_ai_prompt_generator') {
+      var questionGuide = document.createElement('div');
+      questionGuide.setAttribute('data-crafted-static-offer', 'ziwei_ai_prompt_generator');
+      panel.before(questionGuide);
+      import('/js/core/saju/crafted-product-details.mjs').then(function(module) {
+        if (questionGuide.isConnected) module.mountCraftedStaticOffer(questionGuide);
+      }).catch(function() { /* Keep the existing question form available. */ });
+    }
+
     var chartResult = _zwBuildPromptChartResult(pd);
     var questionEl = panel.querySelector('#zwDeepAiPromptQuestion');
     var domainEl = panel.querySelector('#zwDeepAiPromptDomain');
@@ -26379,6 +26388,16 @@ function renderZiwei(p, natal, targetId) {
           }).sort(function(a, b) { return a.startAge - b.startAge; })
         };
         wrapper.innerHTML = panelHtml;
+        var zwTwelveGate = wrapper.querySelector('#zwBasicPaidGate_ziwei_twelve_palaces');
+        if (zwTwelveGate) {
+          var zwTwelveGuide = document.createElement('div');
+          zwTwelveGuide.setAttribute('data-crafted-static-offer', 'ziwei_twelve_palaces');
+          var zwTwelvePanel = zwTwelveGate.closest('.zw-reading-panel') || zwTwelveGate;
+          zwTwelvePanel.before(zwTwelveGuide);
+          import('/js/core/saju/crafted-product-details.mjs').then(function(module) {
+            if (zwTwelveGuide.isConnected) module.mountCraftedStaticOffer(zwTwelveGuide);
+          }).catch(function() { /* Keep the existing palace reading available. */ });
+        }
         var zwCraftedOffer = wrapper.querySelector('[data-saju-static-offer="compat-ziwei-compatibility"]');
         if (zwCraftedOffer) import('/js/core/saju/crafted-product-details.mjs').then(function(module) {
           if (zwCraftedOffer.isConnected) module.mountCraftedStaticOffer(zwCraftedOffer);

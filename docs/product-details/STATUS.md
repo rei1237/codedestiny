@@ -291,3 +291,9 @@ status: active
 - ESLint/정적2/구문PASS. check:fast npm test PASS 후나머지진행중.
 - 프라슈나는화면/registry3000 vs서버주문상수5000 충돌로자료부족·새상세보류. 실제산출물은차트/복사용프롬프트이며AI본문과다름. 정책/결제무수정.
 - 유료구성76종(대체전용4포함)+공통소개1종705패널 로컬검수완료. 전체/main전달미완료. 다음자미두수전문가실제구성조사.
+
+## 자미두수 전문가·질문AI·12궁
+- 19주제 전문가10장, 실제10부 질문AI10장, 12궁 정밀해설6장 개별편집. 원본26·실제3진입 패널/고지/CTA/원고 독립최종SHIP.
+- 전문가328/358/398/540, 나머지304/334/374/540 clipping/fallbackPASS. 고정폼·잠금박스 밖 배치 및 질문가이드의 대시보드 접힘/이미지숨김 제외. 기존 입력·결제·API·계산 유지.
+- 정적·상담복구8건/구문/ESLint PASS. check:fast npm test·paidgate88·typecheck·node PASS였으나 다음상품 sync와 겹쳐 mirror검사FAIL. 동기화 후 ai-consultation-flows PASS, 남은10검사(Worker dry-run 및 Jest382스위트5830건 포함) PASS. 단일 전체 check:fast PASS로 주장하지 않음.
+- 유료구성79종(대체전용4포함)+공통소개1종731패널 로컬검수완료. 전체/main전달미완료. 다음 부부궁·대한·생애연간 계약확인. main399a2ddab 기존 CI실패와 엔진활성화 범위답변 대기 유지.

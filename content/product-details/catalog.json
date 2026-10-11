@@ -72,7 +72,10 @@
     "vedic-ai-consultation": "vedic-expert",
     "vedic_ai_prompt_generator": "vedic-question-ai",
     "vedic_basic_reading": "vedic-basic-reading",
-    "vedic-compatibility-per-use": "vedic-compatibility"
+    "vedic-compatibility-per-use": "vedic-compatibility",
+    "ziwei-ai-consultation": "ziwei-expert",
+    "ziwei_ai_prompt_generator": "ziwei-question-ai",
+    "ziwei_twelve_palaces": "ziwei-twelve-palaces"
   },
   "introductions": {
     "fusion-fortune": [
