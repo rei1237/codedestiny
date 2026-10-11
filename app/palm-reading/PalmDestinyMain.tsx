@@ -2149,10 +2149,10 @@ export default function PalmDestinyMain() {
   // 모바일 PortOne 리다이렉트로 handleStartAnalysis 의 await 가 죽은 뒤, 복귀한 새 문서에서 판독을 이어받는다.
   // 🔴 게이트를 다시 타지 않는다 — 분석은 결제 전에 이미 끝났고, 여기서 /api/palm/analyze 를 다시 부르면
   //    사진이 없어 실패하거나(복귀 문서엔 File 이 없다) 같은 판독에 두 번 값을 치른다.
-  const recoverPalm = async (requestId: string, signal?: AbortSignal) => {
+  const recoverPalm = async (requestId: string, signal?: AbortSignal, accessMethod = '') => {
     const token = getClientAuthToken();
     const owner = palmAccountId();
-    const payloadRoot = await readPaidPalmResult(requestId, token, signal);
+    const payloadRoot = await readPaidPalmResult(requestId, token, signal, accessMethod);
     if (signal?.aborted || owner !== palmAccountId() || token !== getClientAuthToken() || !payloadRoot) return false;
     const prepared = preparePalmResult(payloadRoot);
     if (!shouldShowPalmResult(prepared.canonical)) return false;
@@ -2447,7 +2447,9 @@ export default function PalmDestinyMain() {
         // ignore client-side storage failures
       }
 
-      if (!await recoverPalm(billingRequestId, controller.signal)) throw new Error('PAID_RESULT_NOT_CONFIRMED');
+      // 이용권으로 통과했으면 서버가 사용 기록을 기다리지 않고 이용권을 확정하게 알린다.
+      const passUsed = coinGateResult.data?.freeBySubscription === true;
+      if (!await recoverPalm(billingRequestId, controller.signal, passUsed ? 'pass' : '')) throw new Error('PAID_RESULT_NOT_CONFIRMED');
     } catch (error) {
       if (requestIdRef.current !== requestId) {
         return;

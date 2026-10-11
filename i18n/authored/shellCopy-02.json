@@ -770,20 +770,6 @@
     "nl": "Tot KRW 20.000",
     "ms": "Sehingga KRW 20,000"
   },
-  "home.passMini.standardBenefit2": {
-    "ko": "기간 제한 없음 · 한도 소진 시 종료",
-    "en": "No time limit · Ends when the usage limit is used up",
-    "ja": "期間制限なし · 利用上限を使い切ると終了",
-    "zh-CN": "无期限限制 · 额度用完即结束",
-    "zh-TW": "無期限限制 · 額度用完即結束",
-    "vi": "Không giới hạn thời gian · Kết thúc khi dùng hết hạn mức",
-    "hi": "कोई समय-सीमा नहीं · उपयोग सीमा खत्म होने पर समाप्त",
-    "es": "Sin límite de tiempo · Termina al agotar el límite de uso",
-    "fr": "Sans limite de durée · Prend fin à l'épuisement de la limite d'utilisation",
-    "de": "Ohne Laufzeitbegrenzung · Endet, wenn das Nutzungslimit aufgebraucht ist",
-    "nl": "Geen tijdslimiet · Stopt zodra de gebruikslimiet op is",
-    "ms": "Tiada had tempoh · Tamat apabila had penggunaan habis"
-  },
   "home.passMini.premiumName": {
     "ko": "중간 꿀단지",
     "en": "Medium Honey Jar",
@@ -825,20 +811,6 @@
     "de": "Bis zu 60.000 KRW",
     "nl": "Tot KRW 60.000",
     "ms": "Sehingga KRW 60,000"
-  },
-  "home.passMini.premiumBenefit2": {
-    "ko": "기간 제한 없음 · 한도 소진 시 종료",
-    "en": "No time limit · Ends when the usage limit is used up",
-    "ja": "期間制限なし · 利用上限を使い切ると終了",
-    "zh-CN": "无期限限制 · 额度用完即结束",
-    "zh-TW": "無期限限制 · 額度用完即結束",
-    "vi": "Không giới hạn thời gian · Kết thúc khi dùng hết hạn mức",
-    "hi": "कोई समय-सीमा नहीं · उपयोग सीमा खत्म होने पर समाप्त",
-    "es": "Sin límite de tiempo · Termina al agotar el límite de uso",
-    "fr": "Sans limite de durée · Prend fin à l'épuisement de la limite d'utilisation",
-    "de": "Ohne Laufzeitbegrenzung · Endet, wenn das Nutzungslimit aufgebraucht ist",
-    "nl": "Geen tijdslimiet · Stopt zodra de gebruikslimiet op is",
-    "ms": "Tiada had tempoh · Tamat apabila had penggunaan habis"
   },
   "home.passMini.vvipName": {
     "ko": "큰 꿀단지",
@@ -882,20 +854,6 @@
     "nl": "Tot KRW 120.000",
     "ms": "Sehingga KRW 120,000"
   },
-  "home.passMini.vvipBenefit2": {
-    "ko": "기간 제한 없음 · 한도 소진 시 종료",
-    "en": "No time limit · Ends when the usage limit is used up",
-    "ja": "期間制限なし · 利用上限を使い切ると終了",
-    "zh-CN": "无期限限制 · 额度用完即结束",
-    "zh-TW": "無期限限制 · 額度用完即結束",
-    "vi": "Không giới hạn thời gian · Kết thúc khi dùng hết hạn mức",
-    "hi": "कोई समय-सीमा नहीं · उपयोग सीमा खत्म होने पर समाप्त",
-    "es": "Sin límite de tiempo · Termina al agotar el límite de uso",
-    "fr": "Sans limite de durée · Prend fin à l'épuisement de la limite d'utilisation",
-    "de": "Ohne Laufzeitbegrenzung · Endet, wenn das Nutzungslimit aufgebraucht ist",
-    "nl": "Geen tijdslimiet · Stopt zodra de gebruikslimiet op is",
-    "ms": "Tiada had tempoh · Tamat apabila had penggunaan habis"
-  },
   "home.passMini.familyName": {
     "ko": "패밀리 꿀단지",
     "en": "Family Honey Jar",
@@ -909,20 +867,6 @@
     "de": "Familien-Honigglas",
     "nl": "Gezinshoningpot",
     "ms": "Balang Madu Keluarga"
-  },
-  "home.passMini.familyBenefit2": {
-    "ko": "기간 제한 없음 · 한도 소진 시 종료",
-    "en": "No time limit · Ends when the usage limit is used up",
-    "ja": "期間制限なし · 利用上限を使い切ると終了",
-    "zh-CN": "无期限限制 · 额度用完即结束",
-    "zh-TW": "無期限限制 · 額度用完即結束",
-    "vi": "Không giới hạn thời gian · Kết thúc khi dùng hết hạn mức",
-    "hi": "कोई समय-सीमा नहीं · उपयोग सीमा खत्म होने पर समाप्त",
-    "es": "Sin límite de tiempo · Termina al agotar el límite de uso",
-    "fr": "Sans limite de durée · Prend fin à l'épuisement de la limite d'utilisation",
-    "de": "Ohne Laufzeitbegrenzung · Endet, wenn das Nutzungslimit aufgebraucht ist",
-    "nl": "Geen tijdslimiet · Stopt zodra de gebruikslimiet op is",
-    "ms": "Tiada had tempoh · Tamat apabila had penggunaan habis"
   },
   "home.passMini.premiumNote": {
     "ko": "중간 꿀단지는 1만원급 콘텐츠를 자주 보는 분께 가장 균형이 잘 맞습니다.",

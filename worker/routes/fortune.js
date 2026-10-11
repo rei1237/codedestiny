@@ -54,6 +54,7 @@ import {
   COIN_GATE_PER_USE_REASON_COSTS,
   FEATURE_KEY_PRICE_TABLE,
   PIG_COIN_UNLOCK_PRODUCTS,
+  UNLOCK_PAID_FEATURE_KEYS,
   UNLOCK_PRODUCT_BY_FEATURE_KEY,
   isBirthScopedUnlockFeatureKey,
   listServerPricedFeatureKeys,
@@ -2546,6 +2547,10 @@ const PERSISTENT_UNLOCK_KEY_SET = new Set([
   "premium_fpti_report",
   "generateFptiDeepReport",
   "openFptiDeepReport",
+  // 🔴 레지스트리의 해금 키는 전부 영구다(2026-10-11). 위 손 목록만 두면 새 해금 키가 빠진다 —
+  //    sukuyo-extreme-t-relationship 이 빠져 /balance 의 unlockMap 에서 극T 해금이 사라졌다.
+  //    위 목록은 레지스트리에 없는 별칭·과거 묶음 키(과거 결제 조회용)를 위해 남긴다.
+  ...UNLOCK_PAID_FEATURE_KEYS,
 ]);
 
 function isPersistentUnlockFeatureKey(rawKey) {

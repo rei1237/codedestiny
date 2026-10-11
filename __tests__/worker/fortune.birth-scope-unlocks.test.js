@@ -9,6 +9,7 @@
 let resolvePersistedUnlockFeatures;
 let PointHistory;
 let User;
+const snapshotKeys = jest.fn(async () => ({ featureKeys: [] }));
 
 beforeAll(async () => {
   const actualDb = await import("../../worker/lib/db.js");
@@ -16,6 +17,11 @@ beforeAll(async () => {
     ...actualDb,
     connectDb: jest.fn(async () => undefined),
     withMongoRetry: jest.fn(async (_env, run) => run()),
+  }));
+  const actualUnlocks = await import("../../worker/lib/content-unlocks.js");
+  jest.unstable_mockModule("../../worker/lib/content-unlocks.js", () => ({
+    ...actualUnlocks,
+    getUnlockedContentSnapshot: snapshotKeys,
   }));
   ({ PointHistory, User } = await import("../../worker/lib/models.js"));
   ({ resolvePersistedUnlockFeatures } = (await import("../../worker/routes/fortune.js")).__fortuneAccessTestUtils);
@@ -40,4 +46,15 @@ test("프로필 없이 계정 전체 PointHistory 로 출생 기반 키를 추�
 
   expect(keys).toEqual([]);
   expect(updateOne).not.toHaveBeenCalled();
+});
+
+test("프로필 분기는 레지스트리의 해금 키를 BIRTH 스냅샷에서 그대로 내보낸다 (극T 포함)", async () => {
+  jest.spyOn(PointHistory, "distinct").mockResolvedValue([]);
+  snapshotKeys.mockResolvedValueOnce({ featureKeys: ["sukuyo-extreme-t-relationship", "sukuyo-nature-deep-dive", "fortune-chat-consultation"] });
+
+  const keys = await resolvePersistedUnlockFeatures("64b000000000000000000a03", [], "profile-a", {});
+
+  expect(keys).toEqual(expect.arrayContaining(["sukuyo-extreme-t-relationship", "sukuyo-nature-deep-dive"]));
+  // 회당 결제 키는 영구 해금이 아니다.
+  expect(keys).not.toContain("fortune-chat-consultation");
 });

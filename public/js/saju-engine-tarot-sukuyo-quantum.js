@@ -5622,6 +5622,27 @@ function renderTTest(p, natal, johu, pw) {
 
   area.innerHTML = html;
   bindExtremeTRelationshipUnlock(area, [p, natal, johu, pw]);
+  // 빌더(extremeTResult.js)가 아직 안 실린 화면도 같은 결과를 그린다 — 빌더 경로와 같은 조건·형태로 보관함에 남긴다.
+  if (hasFallbackExtremeTRelationshipAccess && window.__syExtremeTArchiveNext === true) {
+    window.__syExtremeTArchiveNext = false;
+    try {
+      sySaveSukuyoResultArchive('extreme-t', {
+        facts: {
+          typeName: syArchiveFactText(scoreBand.typeName),
+          tTier: syArchiveFactText(tTier),
+          headline: syArchiveFactText(scoreBand.headline),
+          catchphrase: syArchiveFactText(catchphrase),
+          summaryMood: syArchiveFactText(scoreBand.summaryMood),
+          emotionSpeed: syArchiveFactText(emotionSpeed),
+          toneRisk: syArchiveFactText(toneRisk),
+          loveDifficulty: syArchiveFactText(loveDifficulty),
+          summaryTip: syArchiveFactText(scoreBand.summaryTip),
+          finalScore: Number(finalScore)
+        },
+        sections: syArchiveCardSections(area, '.t-hero-card, .t-panel, .t-mission-card, .t-summary-card', '.t-panel-title, .t-mission-title, .t-summary-title')
+      });
+    } catch (_syExtremeTFallbackArchiveError) {}
+  }
   card.style.display = 'block';
   if (typeof syncReportHeightFromNode === 'function') {
     syncReportHeightFromNode(card);

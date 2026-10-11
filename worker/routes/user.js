@@ -407,7 +407,12 @@ async function handleSyncDestinyProfiles(request, auth) {
     }
 
     const nextIds = normalizedProfiles.map((profile) => profile.profileId);
-    if (nextIds.length > 0) {
+    // 🔴 카드 수 상한은 없다(2026-10-11). MAX_SYNC_PROFILES 는 요청 크기 보호일 뿐이라, 보낸 목록이
+    //    그보다 길어 잘렸으면 목록 밖 카드를 지우지 않는다 — 잘린 카드가 서버에서 사라지면 안 된다.
+    const truncated = Array.isArray(body?.profiles) && body.profiles.length > MAX_SYNC_PROFILES;
+    if (truncated) {
+      // 받은 앞쪽 카드만 반영하고 삭제는 건너뛴다.
+    } else if (nextIds.length > 0) {
       await ProfileCard.deleteMany({ userId: auth.userId, profileId: { $nin: nextIds } });
     } else {
       await ProfileCard.deleteMany({ userId: auth.userId });
