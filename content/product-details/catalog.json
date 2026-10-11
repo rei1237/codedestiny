@@ -69,7 +69,8 @@
     "sukuyo-past-life-reading": "sukuyo-bond-radar",
     "sukuyo_ai_prompt_generator": "sukuyo-question-ai",
     "sukuyo-compatibility-ai": "sukuyo-compatibility-expert",
-    "vedic-ai-consultation": "vedic-expert"
+    "vedic-ai-consultation": "vedic-expert",
+    "vedic_ai_prompt_generator": "vedic-question-ai"
   },
   "introductions": {
     "fusion-fortune": [

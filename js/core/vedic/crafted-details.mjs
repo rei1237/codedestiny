@@ -1,0 +1,27 @@
+import {renderCraftedDetail,revealCraftedTranscript} from '../../feature-detail-panels.mjs';
+
+// Presentation only; the existing consultation form retains all access and payment handling.
+export function mountVedicCraftedDetails(area){
+ if(!area||!/^ko\b/i.test(document.documentElement.lang||'ko')||area.querySelector('.vedic-crafted'))return;
+ const target=area.querySelector('#vedicConsultation');if(!target)return;
+ if(!document.getElementById('vedicCraftedDetailStyles')){
+  const style=document.createElement('style');style.id='vedicCraftedDetailStyles';
+  style.textContent='.vedic-crafted{margin:20px 0;border:1px solid #a99780;border-radius:12px;color:#f8eddb;background:#292235;overflow:hidden}.vedic-crafted>summary{padding:16px;cursor:pointer;min-height:48px;line-height:1.6}.vedic-crafted .craftedDetail{max-width:540px;margin:auto;color:#463a31;background:#eee7dc}.vedic-crafted .craftedDetail img{display:block;width:100%;height:auto}.vedic-crafted .craftedDetailNotice,.vedic-crafted .craftedDetailTranscript{padding:16px;color:#463a31;font-size:16px;line-height:1.8;word-break:keep-all}.vedic-crafted .craftedDetailTranscript p{white-space:pre-line;color:#463a31}.vedic-crafted .craftedDetailTranscript h3{color:#463a31}.vedic-crafted [role=status]{padding:16px}';
+  document.head.append(style);
+ }
+ const disclosure=document.createElement('details');disclosure.className='vedic-crafted';
+ const summary=document.createElement('summary');summary.textContent='베다 질문 AI 상담 상세 안내';
+ const host=document.createElement('div');disclosure.append(summary,host);target.before(disclosure);
+ let loading=false,loaded=false;
+ disclosure.addEventListener('toggle',async()=>{
+  if(!disclosure.open||loading||loaded)return;
+  loading=true;host.innerHTML='<p role="status">상세 안내를 준비하고 있어요.</p>';
+  try{
+   const response=await fetch('/feature-details/crafted/vedic-question-ai/manifest.json');if(!response.ok)throw Error('DETAIL_UNAVAILABLE');
+   const detail=await response.json();if(!disclosure.isConnected)return;
+   host.innerHTML=renderCraftedDetail(detail);loaded=true;
+  }catch{host.innerHTML='<p role="status">상세 안내를 불러오지 못했어요. 접었다 다시 펼쳐 주세요.</p>';}
+  finally{loading=false;}
+ });
+ host.addEventListener('error',revealCraftedTranscript,true);
+}

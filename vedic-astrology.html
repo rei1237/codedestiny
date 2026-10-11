@@ -6676,6 +6676,9 @@ function renderResult(){
     initReveal();
     syncOpenAccordions(document.getElementById('result-content'));
     vedicAiRefreshUi();
+    import('/js/core/vedic/crafted-details.mjs').then(function(module){
+      module.mountVedicCraftedDetails(document.getElementById('result-content'));
+    }).catch(function(error){console.warn('[vedic] detail guide unavailable',error);});
     updateTabBarState();
   },100);
 }
