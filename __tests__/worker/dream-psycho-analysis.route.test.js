@@ -76,3 +76,13 @@ test.each(['short-readable','truncated','tone','json-tail','missing-hash'])('%s 
  const text=JSON.stringify(value);return {...ai,truncated:fail==='truncated',text:fail==='json-tail'?text.slice(0,-1):text};});
  await start();expect((await finish()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(10);
 });
+test('a markdown heading inside a part body is not saved, and later parts get the earlier gist',async()=>{
+ const base=provider.getMockImplementation();provider.mockImplementation(async(...args)=>{const response=await base(...args),value=JSON.parse(response.text),paragraphs=value.body.split('\n\n');paragraphs.splice(3,0,'### 3. 꿈이 보여 주는 관계의 거리');value.body=paragraphs.join('\n\n');return {...response,text:JSON.stringify(value)};});
+ await start();expect((await finish()).status).toBe(200);const {parts}=docs[0].metadata.paidNarrative;
+ for(const body of Object.values(parts))expect(body).not.toMatch(/^#{1,6}\s/m);
+ expect(provider.mock.calls.at(-1)[1]).toContain('[앞 부분 요지]');
+});
+test('part targets add up to about 9,000 chars for a 3,000-won product',async()=>{
+ const {seedDreamPsychoNarrative}=await import('../../worker/routes/dream.js');const {tasks}=seedDreamPsychoNarrative(original());
+ const total=tasks.reduce((sum,task)=>sum+task.minChars,0);expect(total).toBeGreaterThanOrEqual(8000);expect(total).toBeLessThanOrEqual(10000);
+});

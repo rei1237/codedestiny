@@ -82,6 +82,13 @@ export function parseNarrativeResponse(raw, evidenceHash) {
   return { ...value, evidenceHash, body: [...new Set(stripNarrativeMarkup(value.body).split(/\n\s*\n/u).map(p => p.trim()).filter(Boolean))].join('\n\n') };
 }
 
+// A part is one section of a report whose renderer adds the headings, so a provider's
+// own markdown heading line ("### 3. …") inside the body is removed, not rejected.
+export function stripNarrativeHeadings(body) {
+  if (typeof body !== 'string') return body;
+  return body.replace(/^[ \t]*#{1,6}\s.*$/gmu, '').replace(/\n\s*\n(?:\s*\n)+/gu, '\n\n').trim();
+}
+
 // Last-attempt salvage for a narrative part that came back as a JSON document:
 // its multi-word string values become paragraphs; ids and keys are dropped.
 export function narrativeTextFromJson(body) {

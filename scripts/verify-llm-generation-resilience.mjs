@@ -1091,7 +1091,7 @@ const MAX_FLOOR_TO_TARGET = 0.8;
 const PAID_PART_TARGETS = [
   // [파일, 판정 하한 코드, 하한, 프롬프트 목표 문구, 목표 하한, 한 호출 출력 상한(자), 토큰 코드, maxOutputTokens]
   ["worker/lib/feature-question-delivery.js", "minChars: 2200", 2200, "목표 2800~3200자", 2800, 3200, "maxOutputTokens: 9500", 9500],
-  ["worker/routes/dream.js", "minChars: 2000", 2000, "목표 2,600~3,100자", 2600, 3100, "maxOutputTokens: 9500", 9500],
+  ["worker/routes/dream.js", "minChars: 900", 900, "목표 1,200~1,500자", 1200, 1500, "maxOutputTokens: 9500", 9500],
   ["worker/routes/oracle.js", "minChars: 3000", 3000, "목표 3,900~4,600자", 3900, 4600, "maxOutputTokens: 11000", 11000],
   ["worker/lib/naming-report-delivery.js", "function chapterAccepted(state, id) { return Boolean(state.chapters?.[id]); }", 0, "목표 3,200~3,700자", 3200, 3700, "String(chapter.id), 9500)", 9500],
   // 작명 v2(결정론 엔진 + 서술). 장 하한은 "교정 뒤 사실상 비었는지"만 본다. 서술 한 호출은 6후보×3필드×140자 + 편지 3×300자 = 3,420자에
