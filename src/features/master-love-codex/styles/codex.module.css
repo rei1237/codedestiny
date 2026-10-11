@@ -915,6 +915,10 @@
   letter-spacing: .08em;
 }
 .heroChoose { display: inline-flex; align-items: center; gap: 12px; margin-top: 29px; }
+.landingPrice { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 4px; margin-top: 18px; color: var(--codex-ink-text); font-weight: 700; font-variant-numeric: tabular-nums; }
+.landingPrice small { flex-basis: 100%; margin-top: 4px; color: var(--codex-silver); font-size: var(--codex-caption); font-weight: 400; }
+.heroActions { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 4px 20px; }
+.heroSample { display: inline-flex; align-items: center; min-height: 44px; color: var(--codex-silver); font-size: var(--codex-caption); text-decoration: underline; text-underline-offset: 4px; }
 .loadingAction { pointer-events: none; opacity: .8; }
 
 .landingPortrait { min-width: 0; margin: 0; }
