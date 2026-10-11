@@ -1,8 +1,8 @@
 {
-  "status": "조사",
+  "status": "현재판매 대조 및 로컬 적용 완료; 계약 불일치·판매 미확인 보류; main 전달 대기",
   "basis": "가격 정본의 정규화 후보176개는 판매 확정 수가 아님. 실제진입별 별도모드가 같은결제키를 재사용할 수 있어 구성별 행도 추가한다.",
   "sourceKeyCount": 245,
-  "candidateCount": 176,
+  "candidateCount": 179,
   "products": [
     {
       "productId": "animal-destiny-unlock",
@@ -3897,28 +3897,60 @@
     {
       "productId": "olympus-fc",
       "displayName": "올림푸스 신탁",
-      "saleStatus": "진입 확인·구성 대조 중",
+      "saleStatus": "현재판매진입·결과대조",
       "entry": [
         "/index.html?action=openOlympusOracleModal"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 1000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
+      "inputRequirements": [
+        "생년월일 필수; 이름·출생시간 선택",
+        "파트너 궁합은 상대 생년월일 필요"
+      ],
+      "resultRenderer": [
+        "OlympusVIPLounge.jsx Intro/TabResult/PremiumOracle/CompatTab/OracleTab/DailyOracleResult"
+      ],
+      "actualContents": [
+        "상승궁 포함 여덟 배치(여덟 행성 아님)",
+        "원소·양상 균형 및 조건부 각도",
+        "태양·달·상승궁·종합 프로필",
+        "팩폭/관계취향/승부습관/오피스/세계여행상징/관계수레바퀴",
+        "상대 생년월일 간이 궁합",
+        "준비된 신탁 문장 날짜 규칙 선택"
+      ],
+      "conditionalItems": [
+        "직접 입력 정밀계산 서울·KST; 실패 시 간이 계산",
+        "시간 미상 등 상승궁 근사 표시",
+        "각도와 현재 달 위치는 계산 자료 있을 때만"
+      ],
       "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
+      "reviewSource": [
+        "실제 후기 없음; 가상 활용 예시 명시"
+      ],
+      "images": [
+        "기존 olympus-oracle-hero-v2.webp 직접시각확인 후 재사용; 개별 HTML/CSS 10패널"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "OlympusVIPLounge.jsx Intro",
+        "content/product-details/catalog.json",
+        "index.html FEATURE_MARKETING_COPY/FEATURE_VISUAL_DETAILS",
+        "/features/olympus-oracle/"
+      ],
+      "verification": [
+        "원본10 독립SHIP; native23 독립SHIP",
+        "360/390/430/1280 이미지328/358/398/540; clipping/fallback/CTAtrial PASS;POST0",
+        "소개페이지 이미지360/390/430/540; 전패널/fallback/가로범위 PASS",
+        "ESLint 0error/기존23warning; detector 기존결과화면5건·advisory18",
+        "typecheck PASS; 소개 CTA 신전 입장하기로 명확화"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "main전달/CI대기;실결제·실LLM미실행"
       ],
       "detailAliases": [
         "olympus-oracle"
-      ]
+      ],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "tarot-celestial-harmony",

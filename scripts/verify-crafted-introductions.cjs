@@ -35,7 +35,7 @@ async function capture(page,id,surface,detail,cta){
  console.log(id,surface,rows.map(r=>[r.width,r.images[0].width]));
 }
 (async()=>{const browser=await chromium.launch();try{
- for(const [slug,ids] of (process.argv.includes('--popups-only')?[]:[['nakshatra-muhurta',['nakshatra-muhurta']],['animal-destiny',['animal-destiny']],['animal-totem',['animal-totem-basic','animal-totem-deep']],['life-book-ai',['life-book']],['love-secret-ai',['love-secret']],['master-love-codex',['master-love-codex','master-love-codex-compat']],['fusion-fortune',['fusion-fortune']],['fortune-chat',['chat-yeoni','chat-neo']],['neo-operation-room',['neo-operation-room']],['fortune-tea-house',['tea-saju','tea-saju-compat','tea-sukuyo','tea-tarot-three','tea-tarot-five']]])){
+ for(const [slug,ids] of (process.argv.includes('--popups-only')?[]:[['olympus-oracle',['olympus-oracle']],['nakshatra-muhurta',['nakshatra-muhurta']],['animal-destiny',['animal-destiny']],['animal-totem',['animal-totem-basic','animal-totem-deep']],['life-book-ai',['life-book']],['love-secret-ai',['love-secret']],['master-love-codex',['master-love-codex','master-love-codex-compat']],['fusion-fortune',['fusion-fortune']],['fortune-chat',['chat-yeoni','chat-neo']],['neo-operation-room',['neo-operation-room']],['fortune-tea-house',['tea-saju','tea-saju-compat','tea-sukuyo','tea-tarot-three','tea-tarot-five']]])){
   for(const [index,id] of ids.entries()){
    if(requested&&requested!==id)continue;
    const p=await setup(browser);await p.goto(origin+'/features/'+slug+'/',{timeout:120000});

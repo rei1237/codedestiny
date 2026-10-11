@@ -144,7 +144,8 @@
     "physiognomy-pastlife-compatibility": "physiognomy-pastlife",
     "rpt_healthReportCard": "health-rhythm",
     "rpt_secretHouseEntryCard": "secret-house",
-    "tarot-myeongri-three-card": "myeongri-tarot-three"
+    "tarot-myeongri-three-card": "myeongri-tarot-three",
+    "olympus-fc": "olympus-oracle"
   },
   "introductions": {
     "fusion-fortune": [
@@ -183,6 +184,9 @@
     ],
     "nakshatra-muhurta": [
       "nakshatra-muhurta"
+    ],
+    "olympus-oracle": [
+      "olympus-oracle"
     ]
   },
   "variants": {

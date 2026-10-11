@@ -548,3 +548,8 @@ status: active
 ## 명리학 타로 세 장
 - 8주제/자동3장/카드십성규칙해석/AI질문문복사를9장 개별편집. 원본제목고아줄수정후SHIP. 실제3모드 안내상단이동으로clipping해소;기존고정높이CTA가림은sourceheight:auto수정,criticalsubset기존규칙CSSOM갱신. native22 304/334/374/380 clipping/fallback/CTAtrial PASS POST0. topic-lock352+1092/문법/detector PASS.
 - 유료구성150원본+공통1원본1328패널. 직전813ded8c6 pre-push PASS. sajuDiary/section_compat는현재판매진입미확인으로판매확인보류;올림푸스마지막조사. main전달/운영미완료.
+
+## 올림푸스 신탁 및 판매 대장 대조 종료
+- 독립10패널, 원본/native23 SHIP. 328/358/398/540 clipping/fallback/CTAtrial PASS,POST0. 소개페이지4폭360/390/430/540 PASS. 실제8배치/서울KST간이fallback/준비된신탁날짜규칙을반영하고여덟행성·매일신규본문표현교정. 가격정책불변. ESLint0error/기존23warning;detector기존결과화면5건/advisory18.
+- 유료구성151원본+공통1원본1338패널 로컬검수. 정규화179후보 중150행적용;원본수와상품키수는다름. 자료불일치3·진입미확인및기능미연결10·무료별칭제외16은판매확정수에포함하지않음.
+- 최신main 9e92ee78e42d4ab08f47982353ec335c733a6f6a CI38143444082 실패: 정적미러8개. 다른세션변경으로실패중이므로추가push금지규칙적용. root main미커밋다수보존. 엔진운영미배포.
