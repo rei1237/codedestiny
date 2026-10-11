@@ -56,11 +56,16 @@ export function inspectPage({ url, status, html, xRobots = '', indexable = true 
   const canonical = links.filter(l => /(?:^|\s)canonical(?:\s|$)/i.test(l.rel || ''));
   if (canonical.length !== 1) issues.push(`canonical count ${canonical.length}`);
   else if (canonical[0].href !== url) issues.push(`canonical mismatch: ${canonical[0].href}`);
-  if (!/<title\b[^>]*>\s*[^<\s]/i.test(head)) issues.push('missing title');
-  if (!metas.some(m => m.name?.toLowerCase() === 'description' && m.content?.trim())) issues.push('missing description');
+  const titles = [...head.matchAll(/<title\b[^>]*>([\s\S]*?)<\/title>/gi)];
+  if (!titles.some(m => m[1].trim())) issues.push('missing title');
+  if (titles.length > 1) issues.push(`title count ${titles.length}`);
+  const descriptions = metas.filter(m => m.name?.toLowerCase() === 'description');
+  if (!descriptions.some(m => m.content?.trim())) issues.push('missing description');
+  if (descriptions.length > 1) issues.push(`description count ${descriptions.length}`);
   return issues;
 }
 export function robotsAllows(text, pathname, agent = 'googlebot') {
+  agent = agent.toLowerCase();
   const groups = [];
   let group = { agents: [], rules: [], hasDirectives: false };
   for (const line of text.split(/\r?\n/)) {

@@ -52,3 +52,19 @@ test('crawler-specific group, longest path and allow tie', () => {
   assert.equal(robotsAllows('User-agent: *\nDisallow: /*?v=', '/about/?v=123'), false);
   assert.equal(robotsAllows('User-agent: Googlebot\nDisallow:\nUser-agent: *\nDisallow: /', '/saju/'), true);
 });
+
+test('Yeti exclusions are checked independently of Googlebot and wildcard access', () => {
+  const robots = 'User-agent: *\nAllow: /\nUser-agent: Googlebot\nAllow: /\nUser-agent: Yeti\nDisallow: /fortune/\nAllow: /fortune/tomorrow/rat/';
+  assert.equal(robotsAllows(robots, '/fortune/tomorrow/tiger/', 'googlebot'), true);
+  assert.equal(robotsAllows(robots, '/fortune/tomorrow/tiger/', 'Yeti'), false);
+  assert.equal(robotsAllows(robots, '/fortune/tomorrow/rat/', 'yeti'), true);
+});
+
+test('duplicate metadata is detected without counting scripts or comments', () => {
+  const duplicate = html.replace('</head>', '<TITLE>Other</TITLE><meta name="DESCRIPTION" content="Other"></head>');
+  const issues = inspectPage({ url, status: 200, html: duplicate });
+  assert.ok(issues.includes('title count 2'));
+  assert.ok(issues.includes('description count 2'));
+  const quoted = html.replace('</head>', '<!-- <title>comment</title> --><script>const example = "<title>example</title>";</script></head>');
+  assert.deepEqual(inspectPage({ url, status: 200, html: quoted }), []);
+});
