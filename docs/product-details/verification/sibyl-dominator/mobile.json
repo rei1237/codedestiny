@@ -1,0 +1,249 @@
+{
+  "rows": [
+    {
+      "width": 360,
+      "images": [
+        {
+          "loaded": true,
+          "width": 304,
+          "left": 28,
+          "right": 332
+        },
+        {
+          "loaded": true,
+          "width": 304,
+          "left": 28,
+          "right": 332
+        },
+        {
+          "loaded": true,
+          "width": 304,
+          "left": 28,
+          "right": 332
+        },
+        {
+          "loaded": true,
+          "width": 304,
+          "left": 28,
+          "right": 332
+        },
+        {
+          "loaded": true,
+          "width": 304,
+          "left": 28,
+          "right": 332
+        },
+        {
+          "loaded": true,
+          "width": 304,
+          "left": 28,
+          "right": 332
+        },
+        {
+          "loaded": true,
+          "width": 304,
+          "left": 28,
+          "right": 332
+        },
+        {
+          "loaded": true,
+          "width": 304,
+          "left": 28,
+          "right": 332
+        },
+        {
+          "loaded": true,
+          "width": 304,
+          "left": 28,
+          "right": 332
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "images": [
+        {
+          "loaded": true,
+          "width": 334,
+          "left": 28,
+          "right": 362
+        },
+        {
+          "loaded": true,
+          "width": 334,
+          "left": 28,
+          "right": 362
+        },
+        {
+          "loaded": true,
+          "width": 334,
+          "left": 28,
+          "right": 362
+        },
+        {
+          "loaded": true,
+          "width": 334,
+          "left": 28,
+          "right": 362
+        },
+        {
+          "loaded": true,
+          "width": 334,
+          "left": 28,
+          "right": 362
+        },
+        {
+          "loaded": true,
+          "width": 334,
+          "left": 28,
+          "right": 362
+        },
+        {
+          "loaded": true,
+          "width": 334,
+          "left": 28,
+          "right": 362
+        },
+        {
+          "loaded": true,
+          "width": 334,
+          "left": 28,
+          "right": 362
+        },
+        {
+          "loaded": true,
+          "width": 334,
+          "left": 28,
+          "right": 362
+        }
+      ]
+    },
+    {
+      "width": 430,
+      "images": [
+        {
+          "loaded": true,
+          "width": 374,
+          "left": 28,
+          "right": 402
+        },
+        {
+          "loaded": true,
+          "width": 374,
+          "left": 28,
+          "right": 402
+        },
+        {
+          "loaded": true,
+          "width": 374,
+          "left": 28,
+          "right": 402
+        },
+        {
+          "loaded": true,
+          "width": 374,
+          "left": 28,
+          "right": 402
+        },
+        {
+          "loaded": true,
+          "width": 374,
+          "left": 28,
+          "right": 402
+        },
+        {
+          "loaded": true,
+          "width": 374,
+          "left": 28,
+          "right": 402
+        },
+        {
+          "loaded": true,
+          "width": 374,
+          "left": 28,
+          "right": 402
+        },
+        {
+          "loaded": true,
+          "width": 374,
+          "left": 28,
+          "right": 402
+        },
+        {
+          "loaded": true,
+          "width": 374,
+          "left": 28,
+          "right": 402
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "images": [
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        }
+      ]
+    }
+  ],
+  "fallback": true,
+  "posts": 0,
+  "mockCalendarPosts": [
+    "/api/kasi/calendar",
+    "/api/kasi/calendar",
+    "/api/kasi/calendar",
+    "/api/kasi/calendar"
+  ],
+  "mode": "Actual Sibyl modal after free birth analysis;existing lazy action invoked for visual review; authored disclosure before unchanged unlock button;all APIs mocked;free birth-form calendar POSTs recorded separately;no purchase or paid generation"
+}

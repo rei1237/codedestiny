@@ -419,3 +419,7 @@ status: active
 ## 달빛 럭키 리추얼
 - 무료번호/유료해석·루틴·공유·회고·로컬저장범위를8장개별편집. 원본8/native21 독립SHIP;298/328/368/540 clipping/fallbackPASS. 초기중첩가로클립해당폭수정. 무료달력mockPOST4/그외POST0,Node9PASS.
 - 유료구성110종+공통소개1종992패널 로컬검수. 직전fd12fc175 pre-pushPASS. 전체/main전달미완료. 다음시빌라 실제규칙형10장/분량보장없음확인.
+
+## 시빌라 도미네이터
+- 실제규칙형10장/계수근거/연월흐름을9장개별편집. 원본9/native22 최종독립SHIP;304/334/374/540 clipping/fallbackPASS. summary대비와하단메뉴CTA겹침수정. 20000자확정보장→10장구성으로12언어교정. Node2/ESLint/i18n parityPASS.
+- 직접첫클릭스캔대기간헐실패별도미확인;최종시각검수는기존지연로더로모달준비조건. CTA trial클릭/닫은후visibility복원PASS. 무료달력mockPOST4/그외POST0. 유료구성111종+공통소개1종1001패널 로컬검수. 직전81ec74dc0 pre-pushPASS. 전체/main전달미완료. 다음수비학9장원본SHIP.

@@ -2168,28 +2168,53 @@
     {
       "productId": "premium-sibyl-dominator",
       "displayName": "사이빌 전문가 상담",
-      "saleStatus": "진입 확인·구성 대조 중",
+      "saleStatus": "현행 시빌라 기본스캔 후5000원 심층해금",
       "entry": [
         "/saju/sibyl/"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 5000,
-      "inputRequirements": [],
+      "inputRequirements": [
+        "저장한 내프로필 출생정보;서버출생해금확인"
+      ],
       "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
+      "actualContents": [
+        "규칙형10장해설",
+        "위험/적성근거·10년그래프·월별주의/대책",
+        "장별이동·브라우저캐시재열람"
+      ],
+      "conditionalItems": [
+        "계수는사고확률/능력/질환진단아님",
+        "실시간AI/PDF/고정글자수보장없음",
+        "출생정보별권한"
+      ],
       "separatePurchase": [],
       "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
+      "images": [
+        "/feature-details/crafted/sibyl-dominator/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "index.html 모달내정적안내",
+        "js/core/saju/crafted-product-details.mjs",
+        "styles/sibyl-system.css 상세대비/모달열림중하단메뉴숨김",
+        "i18n/authored/sibylDetails-01.json 20000자확정보장교정",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본9/native22 최종독립SHIP;01고아줄수정",
+        "304/334/374/540 clipping/fallbackPASS;CTA trial클릭PASS",
+        "모달열림중하단메뉴hidden/닫은후visibility visible",
+        "무료달력mockPOST4/그외POST0;Node2/ESLint/i18n parityPASS"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "초기직접클릭 간헐스캔대기;최종시각검수는기존지연로더호출로모달준비",
+        "main전달·CI미확인;실결제없음"
       ],
       "detailAliases": [
         "saju-sibyl"
-      ]
+      ],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "geomancy",

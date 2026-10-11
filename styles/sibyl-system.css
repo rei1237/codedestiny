@@ -295,6 +295,14 @@
   display: flex;
 }
 
+body:has(#sibylModal.sb-open) #cdMobileBottomNav {
+  visibility: hidden;
+}
+
+#sibylModal .saju-crafted-offer > summary {
+  color: #dcf8fb;
+}
+
 .sb-overlay {
   position: fixed;
   inset: 0;
