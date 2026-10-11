@@ -5325,25 +5325,54 @@
     },
     {
       "productId": "rpt_secretHouseEntryCard",
-      "displayName": "시크릿 하우스 영구 해금",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "displayName": "시크릿 하우스",
+      "saleStatus": "사주 결과 타일·서버1000원 확인",
+      "entry": [
+        "js/core/saju/reportDashboard.js secretHouseEntryCard → openSecretHouseRoute",
+        "/secret-house_real.html"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 1000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
+      "inputRequirements": [
+        "사주 일간 자동연동,없으면 직접선택",
+        "일지 추가정보조건부"
+      ],
+      "resultRenderer": [
+        "secret-house_real.html SCENE_DATA/CHARS/calculateEnding/buildResult/shareResult"
+      ],
+      "actualContents": [
+        "가상남성캐릭터5명",
+        "4박5일15기본장면·선택지",
+        "일간기본호감+누적선택+이벤트플래그→7엔딩유형",
+        "엔딩/관계해석/분기이유/설렘오해요약/데이트아이디어",
+        "문구+서비스링크 공유"
+      ],
+      "conditionalItems": [
+        "숨은엔딩 등 조건부;모든엔딩일괄제공아님",
+        "AI자유대화아님",
+        "localStorage/sessionStorage 쓰기0;진행저장이어하기없음",
+        "PDF/엔딩이미지저장없음"
+      ],
       "separatePurchase": [],
       "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "images": [
+        "public/images/feature-details/secret-house-960.webp 기존삽화 직접시각확인",
+        "/feature-details/crafted/secret-house/manifest.json"
       ],
-      "detailAliases": []
+      "status": "적용",
+      "appliedAt": [
+        "index.html secret-house craftedManifest → 기존결과타일상세팝업"
+      ],
+      "verification": [
+        "원본8 독립SHIP",
+        "native21 360/390/430/540 clipping/fallback/CTA PASS;무료달력mock4/유료POST0",
+        "reportDashboard문법/detector exit0"
+      ],
+      "unconfirmed": [
+        "main전달/CI대기;실결제미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "rpt_skillTreeCard",
@@ -5555,7 +5584,7 @@
     {
       "productId": "secretHouseEpisodes",
       "displayName": "Secret house episodes unlock",
-      "saleStatus": "별칭: 동일 해금으로 연결",
+      "saleStatus": "기존별칭:현재rpt_secretHouseEntryCard와동일해금;별도에피소드판매진입없음",
       "entry": [],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 3000,
@@ -5566,14 +5595,13 @@
       "separatePurchase": [],
       "reviewSource": [],
       "images": [],
-      "status": "조사",
+      "status": "대상 제외",
       "appliedAt": [],
       "verification": [
-        "index.html:resolveTileLockAliasKeys의 양방향 별칭"
+        "index.html TILE_LOCK_ALIAS_MAP 양방향",
+        "reportDashboard.js 현재타일및서버1000원"
       ],
-      "unconfirmed": [
-        "개별 판매 구성은 rpt_secretHouseEntryCard에서 대조"
-      ],
+      "unconfirmed": [],
       "detailAliases": [],
       "mergedInto": "rpt_secretHouseEntryCard"
     },

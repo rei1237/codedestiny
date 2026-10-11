@@ -142,7 +142,8 @@
     "physiognomy-ogwan-mole-deep": "physiognomy-ogwan",
     "physiognomy-compatibility": "physiognomy-compat",
     "physiognomy-pastlife-compatibility": "physiognomy-pastlife",
-    "rpt_healthReportCard": "health-rhythm"
+    "rpt_healthReportCard": "health-rhythm",
+    "rpt_secretHouseEntryCard": "secret-house"
   },
   "introductions": {
     "fusion-fortune": [
