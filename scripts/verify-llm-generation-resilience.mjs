@@ -1091,8 +1091,8 @@ const MAX_FLOOR_TO_TARGET = 0.8;
 const PAID_PART_TARGETS = [
   // [파일, 판정 하한 코드, 하한, 프롬프트 목표 문구, 목표 하한, 한 호출 출력 상한(자), 토큰 코드, maxOutputTokens]
   ["worker/lib/feature-question-delivery.js", "minChars: 2200", 2200, "목표 2800~3200자", 2800, 3200, "maxOutputTokens: 9500", 9500],
-  ["worker/routes/dream.js", "minChars: 900", 900, "목표 1,200~1,500자", 1200, 1500, "maxOutputTokens: 9500", 9500],
-  ["worker/routes/oracle.js", "minChars: 1300", 1300, "목표 1,700~2,000자", 1700, 2000, "maxOutputTokens: 11000", 11000],
+  ["worker/routes/dream.js", "minChars: 1250", 1250, "목표 ${Math.ceil(task.minChars * 1.3)}~${Math.ceil(task.minChars * 1.5)}자", 1625, 1875, "maxOutputTokens: 9500", 9500],
+  ["worker/routes/oracle.js", "minChars: 1800", 1800, "목표 ${Math.ceil(task.minChars * 1.3)}~${Math.ceil(task.minChars * 1.5)}자", 2340, 2700, "maxOutputTokens: 11000", 11000],
   ["worker/lib/naming-report-delivery.js", "function chapterAccepted(state, id) { return Boolean(state.chapters?.[id]); }", 0, "목표 3,200~3,700자", 3200, 3700, "String(chapter.id), 9500)", 9500],
   // 작명 v2(결정론 엔진 + 서술). 장 하한은 "교정 뒤 사실상 비었는지"만 본다. 서술 한 호출은 6후보×3필드×140자 + 편지 3×300자 = 3,420자에
   // JSON 키 여유 약 500자. 필드 상한(220·450자)은 거부가 아니라 문장 경계 자르기다.
@@ -1119,7 +1119,7 @@ for (const [path, floorCode, floor, targetPhrase, targetLow, outputMaxChars, tok
 }
 // 목표를 과제 하한의 배수로 만드는 호출부. 과제 하한 최댓값(2026-09-25 실측: 오라클 2500·펫 2200·마음 스캔 2000)
 // × 1.5 도 9500 토큰 안에 든다.
-for (const path of ["worker/lib/paid-narrative-delivery.js", "worker/lib/love-tarot-delivery.js", "worker/lib/mindscan-delivery.js", "worker/lib/tarot-oracle-delivery.js"]) {
+for (const path of ["worker/lib/paid-narrative-delivery.js", "worker/lib/love-tarot-delivery.js", "worker/lib/mindscan-delivery.js", "worker/lib/tarot-oracle-delivery.js", "worker/routes/dream.js", "worker/routes/oracle.js"]) {
   const match = read(path).match(/목표 \$\{Math\.ceil\(task\.minChars \* ([\d.]+)\)\}~\$\{Math\.ceil\(task\.minChars \* ([\d.]+)\)\}자/);
   assert(
     match && 1 / Number(match[1]) <= MAX_FLOOR_TO_TARGET && Number(match[2]) > Number(match[1]),
