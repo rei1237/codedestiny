@@ -503,3 +503,7 @@ status: active
 ## 나침반 규칙형 해금 3종
 - 갈림길/미래 시뮬레이션/삶의 항로 각6장 개별편집. 원본6/native19 각각 독립 SHIP. 328/358/398/540 clipping·HTML고지·원고·입력·CTAtrial PASS. 진입mock calendar3+기타5 별도, 유료POST0. 그리드 intrinsic 폭/입력 및 잠금안내 대비 수정.
 - 결정론검사/Node resume6/ESLint/impeccable검출 PASS. 유료구성133종+공통소개1종1194패널 로컬검수. 직전dc36c1d5e pre-push PASS. 전체/main전달 미완료, 연이·네오 운영 미배포. 다음 별도 AI 심층 리포트.
+
+## 운명의 지도 심층 리포트
+- AI10섹션/9UI칸·체계별 범위·저장/PDF·가상질문을10장개별편집. 원본10/native23 독립 SHIP.328/358/398/540 clipping/fallback/CTAtrial PASS;진입mock8/유료POST0.Jest36/ESLint/typecheck PASS(node runner 오선택을 Jest로 정정).
+- 유료구성134종+공통소개1종1204패널 로컬검수. 직전3799aca6b pre-push PASS. main CI54b5476b/38114013113실패 동일·다른 세션 변경보존·운영미배포. 새상담실 fish4키는서버만존재하고현재UI미연결로근거부족. 다음 새상담실 연이/네오 안내.

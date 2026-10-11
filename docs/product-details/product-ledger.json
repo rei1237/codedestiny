@@ -1237,24 +1237,53 @@
     {
       "productId": "destiny-compass-deep-report",
       "displayName": "운명의 지도 심층 리포트",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "saleStatus": "실제 지도 무료 결과 내 유료 잠금 확인",
+      "entry": [
+        "/destiny-compass/"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 5000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "inputRequirements": [
+        "생년 정보·시간 선택·80자 고민"
       ],
-      "detailAliases": []
+      "resultRenderer": [
+        "app/destiny-compass/_components/CompassReport.tsx",
+        "app/destiny-compass/_components/reportSections.ts",
+        "worker/lib/destiny-compass-report-contract.js"
+      ],
+      "actualContents": [
+        "10 AI섹션→무료자료 포함9UI칸",
+        "사주/자미/숙요/타로/베다요일지배성",
+        "종합/시기/기회/주의/행동",
+        "저장본 재열람·PDF"
+      ],
+      "conditionalItems": [
+        "전체 베다 차트·다샤 아님",
+        "입력·생성 상태에 따라 근거/문장 차이"
+      ],
+      "separatePurchase": [
+        "갈림길/미래 시뮬레이션/삶의 항로"
+      ],
+      "reviewSource": [],
+      "images": [
+        "/feature-details/crafted/compass-deep-report/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "app/destiny-compass/_components/CompassReport.tsx",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본10/native23 독립 SHIP",
+        "328/358/398/540 clipping/fallback/CTA trial PASS",
+        "진입mock8/유료POST0",
+        "Jest36 PASS; ESLint PASS"
+      ],
+      "unconfirmed": [
+        "main 전달·CI 대기; 실결제·실LLM 미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "destiny-compass-future-sim",
@@ -1666,8 +1695,11 @@
     {
       "productId": "fortune-chat-question-flounder",
       "displayName": "연이·네오 질문 상담 · 광어",
-      "saleStatus": "현재 신규판매 비활성",
-      "entry": [],
+      "saleStatus": "서버 계약 존재, 현재 상담실 판매 UI 미연결",
+      "entry": [
+        "worker/routes/fortune-chat-consultations.js status products",
+        "app/fortune-chat/ConsultationRoom.tsx create는fishId/questionDecision없이기존상품"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 15000,
       "inputRequirements": [],
@@ -1677,23 +1709,25 @@
       "separatePurchase": [],
       "reviewSource": [],
       "images": [],
-      "status": "조사",
+      "status": "근거 부족",
       "appliedAt": [],
       "verification": [
         "docs/product-details/fortune-chat-public-status.json",
         "docs/product-details/fortune-chat-public-catalog.json"
       ],
       "unconfirmed": [
-        "공개 status와catalog GET enabled=false (확인시각 evidence참조)",
-        "기존저장상담읽기는별도"
+        "실제 선택·구매 진입 없음; 다른 세션 fish UI 미커밋은 본 작업에 복사하지 않음"
       ],
       "detailAliases": []
     },
     {
       "productId": "fortune-chat-question-mackerel",
       "displayName": "연이·네오 질문 상담 · 고등어",
-      "saleStatus": "현재 신규판매 비활성",
-      "entry": [],
+      "saleStatus": "서버 계약 존재, 현재 상담실 판매 UI 미연결",
+      "entry": [
+        "worker/routes/fortune-chat-consultations.js status products",
+        "app/fortune-chat/ConsultationRoom.tsx create는fishId/questionDecision없이기존상품"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 3000,
       "inputRequirements": [],
@@ -1703,23 +1737,25 @@
       "separatePurchase": [],
       "reviewSource": [],
       "images": [],
-      "status": "조사",
+      "status": "근거 부족",
       "appliedAt": [],
       "verification": [
         "docs/product-details/fortune-chat-public-status.json",
         "docs/product-details/fortune-chat-public-catalog.json"
       ],
       "unconfirmed": [
-        "공개 status와catalog GET enabled=false (확인시각 evidence참조)",
-        "기존저장상담읽기는별도"
+        "실제 선택·구매 진입 없음; 다른 세션 fish UI 미커밋은 본 작업에 복사하지 않음"
       ],
       "detailAliases": []
     },
     {
       "productId": "fortune-chat-question-salmon",
       "displayName": "연이·네오 질문 상담 · 연어",
-      "saleStatus": "현재 신규판매 비활성",
-      "entry": [],
+      "saleStatus": "서버 계약 존재, 현재 상담실 판매 UI 미연결",
+      "entry": [
+        "worker/routes/fortune-chat-consultations.js status products",
+        "app/fortune-chat/ConsultationRoom.tsx create는fishId/questionDecision없이기존상품"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 9000,
       "inputRequirements": [],
@@ -1729,23 +1765,25 @@
       "separatePurchase": [],
       "reviewSource": [],
       "images": [],
-      "status": "조사",
+      "status": "근거 부족",
       "appliedAt": [],
       "verification": [
         "docs/product-details/fortune-chat-public-status.json",
         "docs/product-details/fortune-chat-public-catalog.json"
       ],
       "unconfirmed": [
-        "공개 status와catalog GET enabled=false (확인시각 evidence참조)",
-        "기존저장상담읽기는별도"
+        "실제 선택·구매 진입 없음; 다른 세션 fish UI 미커밋은 본 작업에 복사하지 않음"
       ],
       "detailAliases": []
     },
     {
       "productId": "fortune-chat-question-tuna",
       "displayName": "연이·네오 질문 상담 · 참치",
-      "saleStatus": "현재 신규판매 비활성",
-      "entry": [],
+      "saleStatus": "서버 계약 존재, 현재 상담실 판매 UI 미연결",
+      "entry": [
+        "worker/routes/fortune-chat-consultations.js status products",
+        "app/fortune-chat/ConsultationRoom.tsx create는fishId/questionDecision없이기존상품"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 30000,
       "inputRequirements": [],
@@ -1755,15 +1793,14 @@
       "separatePurchase": [],
       "reviewSource": [],
       "images": [],
-      "status": "조사",
+      "status": "근거 부족",
       "appliedAt": [],
       "verification": [
         "docs/product-details/fortune-chat-public-status.json",
         "docs/product-details/fortune-chat-public-catalog.json"
       ],
       "unconfirmed": [
-        "공개 status와catalog GET enabled=false (확인시각 evidence참조)",
-        "기존저장상담읽기는별도"
+        "실제 선택·구매 진입 없음; 다른 세션 fish UI 미커밋은 본 작업에 복사하지 않음"
       ],
       "detailAliases": []
     },

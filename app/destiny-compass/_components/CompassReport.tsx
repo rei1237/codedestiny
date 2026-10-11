@@ -1,4 +1,5 @@
 "use client";
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
 
 /**
@@ -195,6 +196,7 @@ export function CompassReport({
       <Starfield />
 
       <div className={styles.reportShell} ref={shellRef}>
+        {report.phase === "locked" && detectLocale() === "ko" && <div style={{width:"100%",maxWidth:540,minWidth:0,margin:"0 auto",color:"#463a31",background:"#eee7dc",borderRadius:12}}><CraftedProductDisclosure featureKey="destiny-compass-deep-report" summaryLabel="운명의 지도 심층 리포트 상세 안내" /></div>}
         {/* ① 오늘의 운명 좌표 — 거대한 나침반이 먼저, 그 아래 좌표 한 문장이 이 화면의 h1 이다. */}
         <ReportSection
           spec={getReportSection("coordinate", copy)}
