@@ -1017,31 +1017,64 @@
     },
     {
       "productId": "compat-sukuyo-compatibility",
-      "displayName": "숙요점",
-      "saleStatus": "진입 확인·구성 대조 중",
+      "displayName": "숙요 기본 궁합",
+      "saleStatus": "숙요 실제 입력/결과의 구매 진입 확인",
       "entry": [
-        "/?action=cdHomeSukuyoEntry",
-        "/index.html?action=openSukuyoModal"
+        "#sy3AnalyzeBtn"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 3000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
+      "inputRequirements": [
+        "본인 숙요 정보",
+        "상대 생년월일·양력/음력·시각·성별"
+      ],
+      "resultRenderer": [
+        "js/saju-engine-tarot-sukuyo-quantum.js _triggerSynergyCheckCore"
+      ],
+      "actualContents": [
+        "관계 방향 요약·관계 지도·내부 지표",
+        "종합 판단·대화 예시·회복 방법",
+        "주의 신호·강점과 조율",
+        "관계 해설 14장",
+        "전생의 상징적 이야기"
+      ],
+      "conditionalItems": [
+        "14장과 전생 서사는 관계 방향 데이터가 있을 때",
+        "시각 기본값 정오",
+        "숙간 거리는 거주지 거리 아님",
+        "유명인 데이터는 등록된 출생정보 범위"
+      ],
+      "separatePurchase": [
+        "정밀 궁합 확장",
+        "궁합 질문 AI",
+        "인연 레이더"
+      ],
+      "reviewSource": [
+        "가상 편집 예시; 구매 후기 사용 안함"
+      ],
+      "images": [
+        "/feature-details/crafted/sukuyo-compatibility/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "js/core/saju/crafted-product-details.mjs",
+        "js/saju-engine-tarot-sukuyo-quantum.js"
+      ],
+      "verification": [
+        "원본10 독립SHIP",
+        "실제모바일10패널/고지/원고/4폭CTA 최종 독립SHIP",
+        "304/334/374/540 로드·모든상위clipping경계·오류원고 PASS",
+        "정적가이드2tests PASS; 표시모듈ESLint/engine구문검사PASS"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "main 전달·CI·운영 미확인",
+        "실결제·실LLM 미실행"
       ],
       "detailAliases": [
         "sukuyo",
         "sukyo"
-      ]
+      ],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "compat-ziwei-compatibility",
@@ -3609,25 +3642,60 @@
     },
     {
       "productId": "premium-sukuyo-compat-extra",
-      "displayName": "숙요점 정밀 궁합 확장 분석",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "displayName": "숙요 정밀 궁합 확장",
+      "saleStatus": "숙요 실제 입력/결과의 구매 진입 확인",
+      "entry": [
+        "#syCompatPrecisionGate [data-sy-precision-unlock]"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 3000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "inputRequirements": [
+        "본인 숙요 정보",
+        "상대 생년월일·양력/음력·시각·성별",
+        "기본 궁합 결과"
       ],
-      "detailAliases": []
+      "resultRenderer": [
+        "js/saju-engine-tarot-sukuyo-quantum.js _triggerSynergyCheckCore"
+      ],
+      "actualContents": [
+        "연애/결혼/재회/썸/사업 5목적",
+        "숙간 거리/방향",
+        "강화 흐름·케미·감정 지표",
+        "관계 타이밍·처방·주의·분류",
+        "최종 해석·연간 참고·역할·가이드·상세카드"
+      ],
+      "conditionalItems": [
+        "기본 궁합 이후 별도 확장",
+        "30일/연간 안내는 내부 규칙 기반 참고값; 실제 천체 트랜짓/사건 예측 아님"
+      ],
+      "separatePurchase": [
+        "기본 궁합",
+        "궁합 질문 AI",
+        "인연 레이더"
+      ],
+      "reviewSource": [
+        "가상 편집 예시; 구매 후기 사용 안함"
+      ],
+      "images": [
+        "/feature-details/crafted/sukuyo-compatibility-precision/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "js/core/saju/crafted-product-details.mjs",
+        "js/saju-engine-tarot-sukuyo-quantum.js"
+      ],
+      "verification": [
+        "원본10 독립SHIP",
+        "실제모바일10패널/고지/원고/4폭CTA 최종 독립SHIP",
+        "304/334/374/540 로드·모든상위clipping경계·오류원고 PASS",
+        "정적가이드2tests PASS; 표시모듈ESLint/engine구문검사PASS"
+      ],
+      "unconfirmed": [
+        "main 전달·CI·운영 미확인",
+        "실결제·실LLM 미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "premiumDivinationPack",

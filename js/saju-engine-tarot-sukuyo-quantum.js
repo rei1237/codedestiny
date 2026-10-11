@@ -11494,20 +11494,21 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         <div class="sy-crest-band" aria-hidden="true">${syMoonlightArt('compat')}</div>
         <h4 class="sy-compat-title">인연의 끈 궁합</h4>
         <p class="sy-compat-lede">상대 생년월일을 입력하면 두 사람의 인연 리듬과 관계 유형을 확인할 수 있습니다.</p>
+        <div data-crafted-static-offer="compat-sukuyo-compatibility"></div>
                               
 
           <div style="display: flex; flex-direction: column; gap: 10px;">
               <!-- 연도-월-일 분리 select (모바일 브라우저에서도 정확히 연도-월-일 순서로 표시) -->
-              <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 6px;">
-                <select id="sy3BirthY" class="sy-moon-field" style="padding: 10px 4px; border-radius: 9px; background: rgba(13,18,36,0.92); color: #f8fbff; border: 1px solid rgba(216,180,254,0.72); font-size: 16px; text-align: center; min-height: 44px;">
+              <div style="display: grid; grid-template-columns: minmax(0,2fr) minmax(0,1fr) minmax(0,1fr); gap: 6px;">
+                <select id="sy3BirthY" class="sy-moon-field" style="min-width:0;padding: 10px 4px; border-radius: 9px; background: rgba(13,18,36,0.92); color: #f8fbff; border: 1px solid rgba(216,180,254,0.72); font-size: 16px; text-align: center; min-height: 44px;">
                   <option value="">연도</option>
                   ${(function(){ let o=''; for(let y=new Date().getFullYear(); y>=1920; y--) o+=`<option value="${y}">${y}년</option>`; return o; })()}
                 </select>
-                <select id="sy3BirthM" class="sy-moon-field" style="padding: 10px 4px; border-radius: 9px; background: rgba(13,18,36,0.92); color: #f8fbff; border: 1px solid rgba(216,180,254,0.72); font-size: 16px; text-align: center; min-height: 44px;">
+                <select id="sy3BirthM" class="sy-moon-field" style="min-width:0;padding: 10px 4px; border-radius: 9px; background: rgba(13,18,36,0.92); color: #f8fbff; border: 1px solid rgba(216,180,254,0.72); font-size: 16px; text-align: center; min-height: 44px;">
                   <option value="">월</option>
                   ${[1,2,3,4,5,6,7,8,9,10,11,12].map(m=>`<option value="${m}">${m}월</option>`).join('')}
                 </select>
-                <select id="sy3BirthD" class="sy-moon-field" style="padding: 10px 4px; border-radius: 9px; background: rgba(13,18,36,0.92); color: #f8fbff; border: 1px solid rgba(216,180,254,0.72); font-size: 16px; text-align: center; min-height: 44px;">
+                <select id="sy3BirthD" class="sy-moon-field" style="min-width:0;padding: 10px 4px; border-radius: 9px; background: rgba(13,18,36,0.92); color: #f8fbff; border: 1px solid rgba(216,180,254,0.72); font-size: 16px; text-align: center; min-height: 44px;">
                   <option value="">일</option>
                   ${Array.from({length:31},(_,i)=>`<option value="${i+1}">${i+1}일</option>`).join('')}
                 </select>
@@ -11717,6 +11718,10 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       window.__cdParkSukuyoCalendarPanel();
     }
     area.innerHTML = html;
+    var syCraftedOffer = area.querySelector('[data-crafted-static-offer="compat-sukuyo-compatibility"]');
+    import('/js/core/saju/crafted-product-details.mjs').then(function(module) {
+      if (syCraftedOffer && syCraftedOffer.isConnected) module.mountCraftedStaticOffer(syCraftedOffer);
+    }).catch(function() { /* The original purchase form remains available. */ });
     // 기본 숙요 프로필 단독 AI 상담 패널 바인딩 + 궁합 진입점 배선.
     try {
       var sySoloConsultCard = document.getElementById('sySoloAiConsultCard');
@@ -17935,6 +17940,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
                 <span style="font-size:0.72rem;color:#fef3c7;border:1px solid rgba(251,191,36,0.34);background:rgba(251,191,36,0.1);padding:4px 9px;border-radius:999px;">3,000원</span>
               </div>
               <p style="margin:0 0 10px;color:#fde68a;font-size:0.82rem;line-height:1.72;">기본 궁합 3,000원에서 드러난 관계 결 위로, 세부 시나리오와 회복 문장이 더 깊게 열립니다.</p>
+              <div data-crafted-static-offer="premium-sukuyo-compat-extra"></div>
               <button type="button" data-sy-precision-unlock style="width:100%;min-height:44px;border-radius:11px;border:1px solid rgba(251,191,36,0.46);background:rgba(251,191,36,0.16);color:#fef3c7;font-size:0.84rem;font-weight:900;cursor:pointer;">정밀 궁합 확장 열기 · 3,000원</button>
               <div data-sy-precision-content style="display:none;margin-top:12px;"></div>
               <div data-sy-precision-status style="margin-top:8px;color:#fde68a;font-size:0.76rem;line-height:1.6;"></div>
@@ -18416,6 +18422,12 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
           var precisionGate = rd.querySelector('#syCompatPrecisionGate');
           if (precisionGate) {
+            // Keep the existing extension controls together, outside the clipped report sheet.
+            rd.appendChild(precisionGate);
+            var precisionOffer = precisionGate.querySelector('[data-crafted-static-offer]');
+            import('/js/core/saju/crafted-product-details.mjs').then(function(module) {
+              if (precisionOffer && precisionOffer.isConnected) module.mountCraftedStaticOffer(precisionOffer);
+            }).catch(function() { /* The existing extension control remains available. */ });
             var precisionBtn = precisionGate.querySelector('[data-sy-precision-unlock]');
             var precisionContent = precisionGate.querySelector('[data-sy-precision-content]');
             var precisionStatus = precisionGate.querySelector('[data-sy-precision-status]');

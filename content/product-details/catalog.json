@@ -58,7 +58,9 @@
     "astrology-ai-consultation": "astrology-expert",
     "compat-astro-direct-synastry": "astro-direct-synastry",
     "compat-astro-synastry": "astro-celebrity-synastry",
-    "compat-saju-compatibility": "saju-compatibility"
+    "compat-saju-compatibility": "saju-compatibility",
+    "compat-sukuyo-compatibility": "sukuyo-compatibility",
+    "premium-sukuyo-compat-extra": "sukuyo-compatibility-precision"
   },
   "introductions": {
     "fusion-fortune": [
