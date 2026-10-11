@@ -399,3 +399,7 @@ status: active
 ## 퀀텀 명리 엔진
 - 실제18구역·합과합화구분·시각미상제한을10장개별편집. 원본10/native23 독립SHIP;07대비/제목수정.360/390/430/540 clipping/fallbackPASS;CTA10000 일치. 무료달력 mock POST4/그외POST0.
 - 유료구성105종+공통소개1종946패널 로컬검수. 직전b9528cfc6 pre-pushPASS,관련 Node14 PASS. 전체/main 전달미완료. 다음사주여행지9장 원본검수중.
+
+## 사주로 보는 여행지
+- 실제장소카드/룰렛4/여행타입6/미션3을9장 개별편집. 원본9/native22 독립SHIP;360/390/430/540 clipping/fallbackPASS;CTA5000 일치. 무료달력 mock POST4/그외POST0. 구travelDestiny별칭중복제외.
+- 유료구성106종+공통소개1종955패널 로컬검수. 직전2198f505a pre-pushPASS. 전체/main 전달미완료. 다음작명10장 원본검수중;한자조건별 결과구분.
