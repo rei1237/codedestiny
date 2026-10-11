@@ -2738,7 +2738,7 @@
           "Earth": "tierra",
           "Air": "aire",
           "Water": "agua",
-          "Cosmic": "luz de las estrellas"
+          "Cosmic": "luz estelar"
         },
         "unknownSun": "Signo solar desconocido",
         "unknownRising": "Signo ascendente desconocido",
@@ -2752,7 +2752,7 @@
         "ritualTip": "Esta noche, estabiliza tu respiración durante tres minutos y establece una intención debajo de una estrella.",
         "relationshipTheme": "Cuando las relaciones siguen el ritmo de tu signo principal, la fricción se suaviza.",
         "careerTheme": "Incorpora el impulso central de tu signo solar a tu rutina de trabajo para lograr un impulso más estable.",
-        "growthCycle": "Llamada estelar Nebulosa “formando órbita” floreciendo → difusión de resplandor",
+        "growthCycle": "Llamada estelar → formación de la órbita → floración de la nebulosa → expansión del resplandor",
         "fallbackNote": "Los datos de signos solares no estaban disponibles, por lo que la lectura utilizó el elemento aire predeterminado.",
         "ultimateTitle": "Flor del Destino Definitivo",
         "ultimateConcept": "Una floración híbrida donde la energía oriental {dayMaster} se fusiona con la luz estelar occidental {sunSign}",
@@ -2784,8 +2784,8 @@
           "li": "Li (利)",
           "de": "De (得)",
           "ping": "Ping (平)",
-          "han": "Xian (閑)",
-          "xian": "Xian (陷)",
+          "han": "Xián (閑)",
+          "xian": "Xiàn (陷)",
           "bu": "Bu (不)"
         },
         "coreFlow": "flujo de fortuna central",
@@ -2797,7 +2797,7 @@
         "ritualTip": "Palabra clave principal hoy: {keyword}",
         "relationshipTheme": "Deje que el temperamento de estrella fuerte se convierta en su estándar relacional y la armonía se vuelva más clara.",
         "careerTheme": "Cuando la fuerza de la estrella principal toma el frente, la ejecución y el posicionamiento se estabilizan.",
-        "growthCycle": "Alineación de estrellas “recolección de energía” ignición de semillas → floración",
+        "growthCycle": "Alineación estelar → concentración de energía → ignición de la semilla → floración",
         "secondaryFallbackNote": "Ajuste de estrella principal compuesto: {primaryStar} centrado + {secondaryStar} mezcla de aromas",
         "palaceFallbackNote": "Ajuste de rasgo de palacio: {palace} · {trait}",
         "hybridHint": "Representación híbrida disponible al combinar la energía de Saju {dayMaster} con las estrellas principales de Ziwei {stars}",
@@ -2808,7 +2808,7 @@
           "peonyZiwei": {
             "title": "Peonía imperial",
             "keyword": "aplomo imperial",
-            "personality": "un líder que centra el campo y restaura el orden"
+            "personality": "un líder que se sitúa en el centro y pone orden a su alrededor"
           },
           "thornyRoseGeneral": {
             "title": "Rosa Roja del General",
@@ -2817,7 +2817,7 @@
           },
           "thornyRosePioneer": {
             "title": "Rosa roja del pionero",
-            "keyword": "la unidad para remodelar el campo",
+            "keyword": "el impulso que cambia las reglas del juego",
             "personality": "un innovador que rompe el viejo marco y abre un nuevo orden"
           },
           "delicateWillow": {
@@ -2831,14 +2831,14 @@
             "personality": "un ejecutor que reúne energía para lograr resultados visibles"
           },
           "nightCereus": {
-            "title": "Cereus que florece en la noche iluminado por la luna",
+            "title": "Cereus nocturno a la luz de la luna",
             "keyword": "misterio que se abre por la noche",
             "personality": "un alma contemplativa que lee la corriente invisible"
           },
           "orchidTanlang": {
             "title": "Orquídea flor de durazno",
             "keyword": "magnetismo sensual",
-            "personality": "un tipo magnético que guía a través de la belleza, las relaciones y la expresión."
+            "personality": "un tipo magnético que guía a través de la belleza, las relaciones y la expresión"
           }
         },
         "stars": {
@@ -2915,20 +2915,20 @@
       "sukuyo": {
         "moon": {
           "full": "luna llena",
-          "new": "luna oscura",
+          "new": "luna nueva",
           "crescent": "luna creciente",
           "gibbous": "luna creciente/menguante"
         },
-        "stickerLabel": "Flor de Sukuyo",
+        "stickerLabel": "Flor según Sukuyo",
         "moonPhaseLabel": "Fase lunar {moon}",
-        "guardianLabel": "Tutor {guardian}",
-        "scenarioTitle": "27 mansiones y escenario floreciente en fase lunar",
+        "guardianLabel": "Animal guardián {guardian}",
+        "scenarioTitle": "Escenario de floración de las 27 mansiones lunares y la fase lunar",
         "ritualTip": "Junto a una ventana iluminada por la luna, respira 27 veces y establece la intención de hoy en una palabra.",
         "relationshipTheme": "Seguir la textura de {group} suaviza la tensión y aclara la conexión.",
         "careerTheme": "Cuando el ritmo de {guardian} se refleja en tu rutina de trabajo, los resultados se estabilizan.",
-        "growthCycle": "Constelación que une la ignición espiritual de “recolección de luz de luna” → floración",
+        "growthCycle": "Unión de constelaciones → concentración de la luz lunar → ignición espiritual → floración",
         "verdict": "A través de la textura de la luz de la luna de Sukuyo, la flor de tu destino es {flowerName} ({scientificName}). La combinación de {mansion}, {moon} y {guardian} se alinea delicadamente con el ritmo de la relación, la emoción y la acción ahora.",
-        "narrative": "La textura relacional de {mansion} ({group}), la marea de la fase lunar {moon} y el patrón protector de {guardian} se encuentran en el jardín nocturno, profundizando la cualidad de{symbolism}. Leídos juntos, estas tres señales iluminadas por la luna apuntan a {flowerName} como la flor de tu destino más precisa ahora.",
+        "narrative": "La textura relacional de {mansion} ({group}), la marea de la fase lunar {moon} y el patrón protector de {guardianJosa} se encuentran en el jardín nocturno, profundizando la cualidad de {symbolism}. Leídos juntos, estas tres señales iluminadas por la luna apuntan a {flowerName} como la flor de tu destino más precisa ahora.",
         "mansions": {
           "m1": "Kaku (角)",
           "m2": "Kou (亢)",
@@ -3154,20 +3154,20 @@
             }
           }
         },
-        "stickerLabel": "Flor de Saju",
+        "stickerLabel": "Flor según Saju",
         "dayMasterWaiting": "Esperando lectura maestra del día",
         "signalPending": "Esperando señales principales",
         "scenarioTitleFallback": "{dayMasterBadge} escenario floreciente",
         "scenarioFallbackReason": "El flujo floreciente se leyó integrando el maestro del día y el entorno.",
-        "growthCycle": "Brotar (reunir energía) “Crecimiento (acción amplificadora)” Florecer (resultados aflorando) → Fructificación (profundización de relaciones y activos)",
-        "fallbackNote": "Se aplicó la lógica de enriquecimiento del maestro de días.",
+        "growthCycle": "Brote (reunir energía) → Crecimiento (amplificar la acción) → Floración (los logros salen a la luz) → Fruto (acumular relaciones y bienes)",
+        "fallbackNote": "Leímos con cuidado la energía de tu maestro del día solo a partir de tu fecha de nacimiento.",
         "verdict": "En tu lectura de Saju, tu flor es {flowerName} ({scientificName}).",
         "rationale": {
           "verdict": "En tu lectura de Saju, la flor de tu destino es {flowerName} ({scientificName}).",
           "elements": "La lectura de los Cinco Elementos muestra {dominant} como tu energía principal y {support} como el flujo de apoyo.",
           "context": "La temporada de la fortuna actual es {season}, la densidad de energía es {water} y la etapa de vida se lee como {environment}.",
           "dayMaster": "El día maestro se confirma como {dayMasterBadge} y se priorizó la interacción estación-entorno a su alrededor.",
-          "scenario": "Escenario de entorno maestro del día: {reason}",
+          "scenario": "{reason}",
           "levels": "Los niveles de los elementos son {elementLevelLine} y los cinco niveles fueron ponderados para confirmar la flor del destino.",
           "symbolism": "Esta flor simboliza {symbolism} y refleja el tema de esta temporada con mayor claridad.",
           "description": "Lectura de la flor del destino: {description}",
@@ -8192,7 +8192,7 @@
       "007": "Signo Ascendente",
       "008": "Signo Lunar",
       "009": "Fuerte/Débil",
-      "010": "Dios Útil",
+      "010": "Elemento Útil",
       "011": "Ajuste Térmico"
     },
     "message": {
@@ -20536,17 +20536,17 @@
     },
     "sign": {
       "aries": "Aries",
-      "taurus": "Taurus",
-      "gemini": "Gemini",
-      "cancer": "Cancer",
+      "taurus": "Tauro",
+      "gemini": "Géminis",
+      "cancer": "Cáncer",
       "leo": "Leo",
       "virgo": "Virgo",
       "libra": "Libra",
-      "scorpio": "Scorpio",
-      "sagittarius": "Sagittarius",
-      "capricorn": "Capricorn",
-      "aquarius": "Aquarius",
-      "pisces": "Pisces"
+      "scorpio": "Escorpio",
+      "sagittarius": "Sagitario",
+      "capricorn": "Capricornio",
+      "aquarius": "Acuario",
+      "pisces": "Piscis"
     },
     "stem": {
       "wood": "Wood",

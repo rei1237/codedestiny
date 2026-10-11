@@ -608,21 +608,21 @@
       "title": "Xưởng Hoa Định Mệnh",
       "sourceDesc": "Từ nhật chủ, nhánh mùa và cân bằng Ngũ Hành, dáng nở cộng hưởng với năng lượng của bạn đang mở ra.",
       "sourceTabsAria": "Thẻ đổi nguồn luận giải",
-      "tabSaju": "Hoa Saju",
+      "tabSaju": "Hoa Tứ Trụ",
       "tabAstrology": "Hoa chiêm tinh",
       "tabZiwei": "Hoa Tử Vi",
       "tabSukuyo": "Hoa Sukuyo",
-      "sajuBadgesAria": "Huy hiệu phân tích lõi Saju",
+      "sajuBadgesAria": "Huy hiệu phân tích cốt lõi Tứ Trụ",
       "badgeStrength": "Cân bằng sức mạnh",
       "waiting": "Đang chờ luận giải",
       "badgeYongshin": "Yếu tố hữu ích",
       "badgeJohu": "Số dư theo mùa",
-      "narrative": "Câu chuyện bông hoa của bạn đang được định hình từ bài đọc Ngũ Hành của Saju của bạn.",
+      "narrative": "Câu chuyện bông hoa của bạn đang được định hình từ bài đọc Ngũ Hành trong Tứ Trụ.",
       "imageAlt": "Xem trước Destiny Flower Atelier",
       "defaultFlowerName": "Hoa sen",
       "daymasterWaiting": "Chờ ngày đọc chủ",
       "whyTitle": "Vì sao là loài hoa này?",
-      "symbolism": "Trong bài đọc Saju này, bông hoa của bạn là hoa sen, biểu tượng của sự đổi mới nở rộ rõ ràng ngay cả trong làn nước đục ngầu.",
+      "symbolism": "Theo Tứ Trụ, bông hoa của bạn là hoa sen, biểu tượng của sự tái sinh nở trong trẻo ngay cả giữa dòng nước đục.",
       "panelsAria": "Bảng diễn giải Hoa Định Mệnh",
       "paletteTitle": "Bảng màu cá nhân",
       "particleTitle": "Tâm trạng hạt",
@@ -2734,9 +2734,9 @@
       },
       "astro": {
         "elements": {
-          "Fire": "cháy",
-          "Earth": "trái đất",
-          "Air": "không khí",
+          "Fire": "lửa",
+          "Earth": "đất",
+          "Air": "khí",
           "Water": "nước",
           "Cosmic": "ánh sao"
         },
@@ -2752,25 +2752,25 @@
         "ritualTip": "Tối nay, hãy ổn định hơi thở trong ba phút và đặt một ý định bên dưới một ngôi sao.",
         "relationshipTheme": "Khi các mối quan hệ đi theo nhịp điệu của cung chính của bạn, xích mích sẽ dịu đi.",
         "careerTheme": "Đưa động lực cốt lõi của cung mặt trời vào thói quen làm việc của bạn để có động lực ổn định hơn.",
-        "growthCycle": "Tinh vân gọi ngôi sao “hình thành quỹ đạo” nở rộ → tỏa sáng lan rộng",
+        "growthCycle": "Tiếng gọi của sao → hình thành quỹ đạo → tinh vân nở hoa → hào quang lan tỏa",
         "fallbackNote": "Dữ liệu cung mặt trời không có sẵn nên việc đọc sử dụng phần tử không khí mặc định.",
         "ultimateTitle": "Bông hoa định mệnh tối thượng",
         "ultimateConcept": "Sự nở hoa lai nơi năng lượng {dayMaster} phương Đông hòa quyện với ánh sáng sao phương Tây {sunSign}",
         "verdict": "Qua chiêm tinh học, bông hoa định mệnh của bạn là {flowerName} ({scientificName}). Ba trục cung mặt trời, mặt mọc và mặt trăng cho thấy loài hoa này hiện đang cộng hưởng chặt chẽ với bạn.",
         "narrative": "Tia sáng {sunElement} mọc lên từ cung mặt trời {sun} trở thành trung tâm của sự lựa chọn loài hoa này. Dấu hiệu thăng {rising} ({risingElement}) định hình tông màu hữu hình, trong khi dấu hiệu mặt trăng {moon} ({moonElement}) thêm sương cảm xúc, tạo thành biểu tượng {flowerName}, {flowerSymbolism}, mở rõ ràng. Từ khóa “{keyword}” chính là ánh sao đang gọi loài hoa này tiến về phía trước.",
         "signs": {
-          "aries": "Aries",
-          "taurus": "Taurus",
-          "gemini": "Gemini",
-          "cancer": "Cancer",
-          "leo": "Leo",
-          "virgo": "Virgo",
-          "libra": "Libra",
-          "scorpio": "Scorpio",
-          "sagittarius": "Sagittarius",
-          "capricorn": "Capricorn",
-          "aquarius": "Aquarius",
-          "pisces": "Pisces"
+          "aries": "Bạch Dương",
+          "taurus": "Kim Ngưu",
+          "gemini": "Song Tử",
+          "cancer": "Cự Giải",
+          "leo": "Sư Tử",
+          "virgo": "Xử Nữ",
+          "libra": "Thiên Bình",
+          "scorpio": "Bọ Cạp",
+          "sagittarius": "Nhân Mã",
+          "capricorn": "Ma Kết",
+          "aquarius": "Bảo Bình",
+          "pisces": "Song Ngư"
         },
         "rationaleLabel": {
           "sun": "Cung Mặt Trời",
@@ -2797,27 +2797,27 @@
         "ritualTip": "Từ khóa cốt lõi hôm nay: {keyword}",
         "relationshipTheme": "Hãy để khí chất ngôi sao mạnh mẽ trở thành chuẩn mực trong các mối quan hệ của bạn và sự hòa hợp trở nên rõ ràng hơn.",
         "careerTheme": "Khi sức mạnh của ngôi sao chính chiếm ưu thế, việc thực hiện và định vị sẽ ổn định.",
-        "growthCycle": "Căn chỉnh sao “thu thập năng lượng” đánh lửa hạt giống → nở hoa",
+        "growthCycle": "Sao xếp hàng → năng lượng hội tụ → hạt giống bừng cháy → nở hoa",
         "secondaryFallbackNote": "Điều chỉnh ngôi sao chính tổng hợp: {primaryStar} căn giữa + {secondaryStar} hỗn hợp mùi hương",
         "palaceFallbackNote": "Điều chỉnh đặc điểm cung điện: {palace} · {trait}",
-        "hybridHint": "Kết xuất kết hợp có sẵn bằng cách kết hợp năng lượng Saju {dayMaster} với các ngôi sao chính Ziwei {stars}",
+        "hybridHint": "Có thể kết hợp năng lượng {dayMaster} của Tứ Trụ với chính tinh Tử Vi {stars} để tạo bản hòa trộn",
         "verdict": "Ở Ziwei, bông hoa định mệnh được đọc qua ngôi sao mạnh nhất hiện nay là {flowerName} ({scientificName}). Về bản chất của {palace}, {palaceTrait}, chất lượng sao “{keyword}” từ {stars} trở nên rõ ràng nhất thông qua độ sáng {brightness}.",
         "narrativeWithSecondary": "{palace} chi phối{palaceEnergy}. Sự kết hợp {stars} xuất hiện ở đây, đặt {title} làm bông hoa trung tâm. Bản chất sao chính “{personality}” được nối với kết cấu “{secondaryKeyword}” của sao phụ. Vì độ sáng {brightness} hỗ trợ nó ổn định nên {flowerName} chuyển tải cấu trúc của vận may này một cách rõ ràng nhất.",
         "narrativeSingle": "{palace} xử lý{palaceEnergy}. Ngôi sao mạnh hôm nay {star} đặt phẩm chất “{keyword}” và tính chất “{personality}” ở trung tâm của bông hoa. Độ sáng {brightness} giữ ánh sáng đó ổn định và {flowerName} cộng hưởng sâu sắc nhất với năng lượng trung tâm của bạn.",
         "rules": {
           "peonyZiwei": {
-            "title": "Hoa mẫu đơn hoàng gia",
-            "keyword": "tư thế đĩnh đạc của đế quốc",
-            "personality": "người lãnh đạo tập trung vào lĩnh vực này và lập lại trật tự"
+            "title": "Mẫu đơn đế vương",
+            "keyword": "phong thái đế vương",
+            "personality": "người lãnh đạo đứng ở trung tâm và sắp xếp lại trật tự xung quanh"
           },
           "thornyRoseGeneral": {
             "title": "Hoa Hồng Đỏ của Tướng Quân",
             "keyword": "đột phá mang tính quyết định",
-            "personality": "lực lượng quyết định tiến lên ngay cả dưới áp lực"
+            "personality": "người quyết đoán vẫn đẩy mạnh tiến lên ngay cả dưới áp lực"
           },
           "thornyRosePioneer": {
-            "title": "Bông hồng đỏ của Pioneer",
-            "keyword": "ổ đĩa để định hình lại trường",
+            "title": "Hồng đỏ của người khai phá",
+            "keyword": "động lực thay đổi cục diện",
             "personality": "nhà đổi mới phá vỡ khuôn khổ cũ và mở ra trật tự mới"
           },
           "delicateWillow": {
@@ -2827,11 +2827,11 @@
           },
           "sunflowerZiwei": {
             "title": "Hoa hướng dương mặt trời",
-            "keyword": "đèn mở rộng",
+            "keyword": "ánh sáng lan tỏa",
             "personality": "người thực thi tập trung năng lượng vào những kết quả có thể nhìn thấy được"
           },
           "nightCereus": {
-            "title": "Cereus nở đêm trăng",
+            "title": "Quỳnh hoa dưới trăng",
             "keyword": "bí ẩn mở ra vào ban đêm",
             "personality": "một tâm hồn chiêm niệm đọc được dòng chảy vô hình"
           },
@@ -2915,20 +2915,20 @@
       "sukuyo": {
         "moon": {
           "full": "trăng tròn",
-          "new": "trăng tối",
+          "new": "trăng mới",
           "crescent": "trăng lưỡi liềm",
-          "gibbous": "trăng khuyết/trăng khuyết"
+          "gibbous": "trăng thượng huyền/hạ huyền"
         },
-        "stickerLabel": "Hoa của Sukuyo",
-        "moonPhaseLabel": "Pha mặt trăng {moon}",
-        "guardianLabel": "Người giám hộ {guardian}",
-        "scenarioTitle": "27 biệt thự và kịch bản nở hoa vào mùa trăng",
+        "stickerLabel": "Hoa theo Túc Diệu",
+        "moonPhaseLabel": "Pha trăng {moon}",
+        "guardianLabel": "Linh vật hộ mệnh {guardian}",
+        "scenarioTitle": "Kịch bản nở hoa kết hợp 27 Tú và pha trăng",
         "ritualTip": "Bên cửa sổ ngập ánh trăng, hít thở 27 lần và đặt mục tiêu hôm nay vào một từ.",
         "relationshipTheme": "Theo kết cấu của {group} làm dịu đi sự căng thẳng và làm rõ sự kết nối.",
         "careerTheme": "Khi nhịp điệu của {guardian} được phản ánh trong thói quen làm việc của bạn, kết quả sẽ ổn định.",
-        "growthCycle": "Chòm sao liên kết “ánh trăng tụ tập” đánh lửa tinh thần → nở hoa",
+        "growthCycle": "Các chòm sao kết nối → ánh trăng hội tụ → linh tính bừng cháy → nở hoa",
         "verdict": "Qua kết cấu ánh trăng của Sukuyo, bông hoa định mệnh của bạn là {flowerName} ({scientificName}). Sự kết hợp của {mansion}, {moon} và {guardian} phù hợp một cách tinh tế với nhịp điệu của mối quan hệ, cảm xúc và hành động hiện nay.",
-        "narrative": "Kết cấu quan hệ của {mansion} ({group}), giai đoạn thủy triều của mặt trăng {moon} và mô hình bảo vệ của {guardian} gặp nhau trong khu vườn đêm, làm sâu sắc thêm chất lượng của{symbolism}. Cùng đọc, ba tín hiệu dưới ánh trăng này chỉ ra {flowerName} là bông hoa định mệnh chính xác nhất của bạn lúc này.",
+        "narrative": "Kết cấu quan hệ của {mansion} ({group}), giai đoạn thủy triều của mặt trăng {moon} và mô hình bảo vệ của {guardianJosa} gặp nhau trong khu vườn đêm, làm sâu sắc thêm chất lượng của {symbolism}. Cùng đọc, ba tín hiệu dưới ánh trăng này chỉ ra {flowerName} là bông hoa định mệnh chính xác nhất của bạn lúc này.",
         "mansions": {
           "m1": "Giác Tú (角)",
           "m2": "Cang Tú (亢)",
@@ -3154,20 +3154,20 @@
             }
           }
         },
-        "stickerLabel": "Hoa của Saju",
+        "stickerLabel": "Hoa theo Tứ Trụ",
         "dayMasterWaiting": "Chờ ngày đọc chủ",
         "signalPending": "Đang chờ tín hiệu cốt lõi",
         "scenarioTitleFallback": "{dayMasterBadge} kịch bản nở hoa",
         "scenarioFallbackReason": "Dòng nở hoa được đọc bằng cách tích hợp chủ ngày và môi trường.",
-        "growthCycle": "Mầm (thu thập năng lượng) “ Tăng trưởng (khuếch đại hành động) ” Nở hoa (kết quả nổi lên) → Kết quả (mối quan hệ và làm sâu sắc thêm tài sản)",
-        "fallbackNote": "Logic làm giàu ngày chính đã được áp dụng.",
-        "verdict": "Trong bài đọc Saju, bông hoa của bạn là {flowerName} ({scientificName}).",
+        "growthCycle": "Nảy mầm (thu nạp năng lượng) → Vươn lên (khuếch đại hành động) → Nở hoa (thành quả hiện rõ) → Kết trái (tích lũy quan hệ/tài sản)",
+        "fallbackNote": "Chúng tôi đã thận trọng xem xét năng lượng Nhật chủ chỉ dựa trên ngày sinh của bạn.",
+        "verdict": "Theo Tứ Trụ, bông hoa đến với bạn lúc này là {flowerName} ({scientificName}).",
         "rationale": {
-          "verdict": "Trong bài đọc Saju, bông hoa định mệnh của bạn là {flowerName} ({scientificName}).",
+          "verdict": "Vì vậy, bông hoa dành cho bạn lúc này là {flowerName} ({scientificName}).",
           "elements": "Chỉ số Ngũ hành hiển thị {dominant} là năng lượng chính của bạn và {support} là dòng hỗ trợ.",
           "context": "Mùa vận may hiện tại là {season}, mật độ năng lượng là {water}, và giai đoạn cuộc đời được đọc là {environment}.",
           "dayMaster": "Ngày chính được xác nhận là {dayMasterBadge} và sự tương tác giữa mùa và môi trường xung quanh nó được ưu tiên.",
-          "scenario": "Kịch bản môi trường tổng thể trong ngày: {reason}",
+          "scenario": "{reason}",
           "levels": "Cấp độ nguyên tố là {elementLevelLine} và tất cả năm cấp độ đều có trọng số để xác nhận bông hoa định mệnh.",
           "symbolism": "Loài hoa này tượng trưng cho {symbolism}, phản ánh rõ ràng nhất chủ đề của mùa này.",
           "description": "Đọc hoa định mệnh: {description}",
@@ -4452,7 +4452,7 @@
       },
       "ui": {
         "source": {
-          "saju": "Saju",
+          "saju": "Tứ Trụ",
           "astrology": "Chiêm tinh",
           "jamidusu": "Tử Vi",
           "sukuyo": "Túc Diệu"
@@ -20535,18 +20535,18 @@
       "pig": "Pig"
     },
     "sign": {
-      "aries": "Aries",
-      "taurus": "Taurus",
-      "gemini": "Gemini",
-      "cancer": "Cancer",
-      "leo": "Leo",
-      "virgo": "Virgo",
-      "libra": "Libra",
-      "scorpio": "Scorpio",
-      "sagittarius": "Sagittarius",
-      "capricorn": "Capricorn",
-      "aquarius": "Aquarius",
-      "pisces": "Pisces"
+      "aries": "Bạch Dương",
+      "taurus": "Kim Ngưu",
+      "gemini": "Song Tử",
+      "cancer": "Cự Giải",
+      "leo": "Sư Tử",
+      "virgo": "Xử Nữ",
+      "libra": "Thiên Bình",
+      "scorpio": "Bọ Cạp",
+      "sagittarius": "Nhân Mã",
+      "capricorn": "Ma Kết",
+      "aquarius": "Bảo Bình",
+      "pisces": "Song Ngư"
     },
     "stem": {
       "wood": "Wood",

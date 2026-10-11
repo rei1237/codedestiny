@@ -369,7 +369,7 @@
       "olympusOracleTitle": "⚡ Orakel Olympus",
       "olympusOracleDesc": "Bacaan takdir 12 dewa dan zodiak",
       "destinyFlowerTitle": "🌸 Bunga Takdir",
-      "destinyFlowerDesc": "Empat kuntum: Saju, astrologi, Zi Wei dan Sukuyo",
+      "destinyFlowerDesc": "Empat kuntum: Empat Tiang, astrologi, Zi Wei dan Sukuyo",
       "astrologyFlowerTitle": "✨ Bunga Astrologi",
       "astrologyFlowerDesc": "Matahari · Terbit · Bulan",
       "ziweiFlowerTitle": "🌺 Bunga Zi Wei",
@@ -526,7 +526,7 @@
       "olympusOracleAlt": "Olympus Oracle - 12 tuhan dan bacaan takdir zodiak",
       "olympusOracleImgAlt": "Olympus Oracle",
       "destinyFlowerAria": "Mulakan Bunga Destiny",
-      "destinyFlowerAlt": "Bunga Takdir - gabungan Saju, astrologi, Zi Wei dan Sukuyo",
+      "destinyFlowerAlt": "Bunga Takdir - gabungan Empat Tiang, astrologi, Zi Wei dan Sukuyo",
       "destinyFlowerImgAlt": "Bunga Takdir",
       "astrologyFlowerAria": "Mulakan Bunga Astrologi",
       "astrologyFlowerAlt": "Bunga Astrologi - Matahari · Terbit · Bulan",
@@ -606,23 +606,23 @@
       "closeAria": "Tutup Atelier Bunga Takdir",
       "kicker": "Destiny Flower Atelier",
       "title": "Atelier Bunga Takdir",
-      "sourceDesc": "Daripada day master, cabang musim dan imbangan Lima Unsur, tekstur mekar yang selari dengan tenaga anda sedang terbuka.",
+      "sourceDesc": "Kami membaca Tuan Hari, cabang bulan lahir dan imbangan Lima Unsur anda satu demi satu, lalu memilih sekuntum bunga yang paling dekat dengan tenaga anda pada musim ini.",
       "sourceTabsAria": "Tab sumber ramalan atelier",
-      "tabSaju": "Bunga Saju",
+      "tabSaju": "Bunga Empat Tiang",
       "tabAstrology": "Bunga astrologi",
       "tabZiwei": "Bunga Ziwei",
       "tabSukuyo": "Bunga Sukuyo",
-      "sajuBadgesAria": "Lencana analisis teras Saju",
+      "sajuBadgesAria": "Lencana analisis teras Empat Tiang",
       "badgeStrength": "Imbangan kekuatan",
       "waiting": "Menunggu bacaan",
       "badgeYongshin": "Elemen berguna",
       "badgeJohu": "Baki bermusim",
-      "narrative": "Cerita bunga anda sedang dibentuk daripada bacaan Lima Unsur Saju anda.",
+      "narrative": "Cerita bunga anda sedang dibentuk daripada bacaan Lima Unsur dalam Empat Tiang anda.",
       "imageAlt": "Pratonton Atelier Bunga Destiny",
       "defaultFlowerName": "Teratai",
       "daymasterWaiting": "Menunggu bacaan tuan hari",
       "whyTitle": "Mengapa bunga ini?",
-      "symbolism": "Dalam bacaan Saju ini, bunga anda adalah teratai, simbol pembaharuan yang mekar dengan jelas walaupun melalui air yang keruh.",
+      "symbolism": "Menurut Empat Tiang, bunga anda ialah teratai, simbol pembaharuan yang mekar jernih walaupun di dalam air yang keruh.",
       "panelsAria": "Panel tafsiran Destiny Flower",
       "paletteTitle": "Palet warna peribadi",
       "particleTitle": "Suasana zarah",
@@ -2713,7 +2713,7 @@
       "common": {
         "unknown": "Tidak diketahui",
         "bloomLabel": {
-          "seed": "Benih · Day master",
+          "seed": "Benih · Tuan Hari",
           "season": "Musim · Waktu lahir",
           "bloom": "Bunga yang mekar"
         },
@@ -2734,8 +2734,8 @@
       },
       "astro": {
         "elements": {
-          "Fire": "kebakaran",
-          "Earth": "bumi",
+          "Fire": "api",
+          "Earth": "tanah",
           "Air": "udara",
           "Water": "air",
           "Cosmic": "cahaya bintang"
@@ -2752,7 +2752,7 @@
         "ritualTip": "Malam ini, tenangkan nafas anda selama tiga minit dan tetapkan satu niat di bawah bintang.",
         "relationshipTheme": "Apabila perhubungan mengikut rentak tanda utama anda, geseran menjadi lembut.",
         "careerTheme": "Bawa pemacu teras tanda matahari anda ke dalam rutin kerja anda untuk momentum yang lebih mantap.",
-        "growthCycle": "Panggilan bintang \" membentuk orbit \" nebula mekar → penyebaran sinaran",
+        "growthCycle": "Panggilan bintang → pembentukan orbit → nebula mekar → sinaran tersebar",
         "fallbackNote": "Data tanda matahari tidak tersedia, jadi bacaan menggunakan elemen udara lalai.",
         "ultimateTitle": "Bunga Takdir Tertinggi",
         "ultimateConcept": "Bunga hibrid di mana tenaga {dayMaster} Timur bergabung dengan cahaya bintang {sunSign} Barat",
@@ -2784,8 +2784,8 @@
           "li": "Li (利)",
           "de": "De (得)",
           "ping": "Ping (平)",
-          "han": "Xian (閑)",
-          "xian": "Xian (陷)",
+          "han": "Xián (閑)",
+          "xian": "Xiàn (陷)",
           "bu": "Bu (不)"
         },
         "coreFlow": "aliran rezeki teras",
@@ -2797,47 +2797,47 @@
         "ritualTip": "Kata kunci teras hari ini: {keyword}",
         "relationshipTheme": "Biarkan perangai bintang yang kuat menjadi standard perhubungan anda dan keharmonian menjadi lebih jelas.",
         "careerTheme": "Apabila kekuatan bintang utama berada di hadapan, pelaksanaan dan kedudukan menjadi stabil.",
-        "growthCycle": "Penjajaran bintang \" pengumpulan tenaga \" penyalaan benih → mekar",
+        "growthCycle": "Penjajaran bintang → penghimpunan tenaga → penyalaan benih → mekar",
         "secondaryFallbackNote": "Pelarasan bintang utama komposit: {primaryStar} berpusat + {secondaryStar} campuran bau",
         "palaceFallbackNote": "Pelarasan sifat istana: {palace} · {trait}",
-        "hybridHint": "Paparan hibrid tersedia dengan menggabungkan tenaga {dayMaster} Saju dengan bintang utama Ziwei {stars}",
+        "hybridHint": "Paparan hibrid boleh menggabungkan tenaga {dayMaster} Empat Tiang dengan bintang utama Ziwei {stars}",
         "verdict": "Di Ziwei, bunga takdir yang dibaca melalui bintang terkuat hari ini ialah {flowerName} ({scientificName}). Atas sifat {palace}, {palaceTrait}, kualiti bintang “{keyword}” daripada {stars} menjadi paling jelas melalui kecerahan {brightness}.",
         "narrativeWithSecondary": "{palace} mentadbir{palaceEnergy}. Gabungan {stars} timbul di sini, menetapkan {title} sebagai bunga tengah. Sifat bintang utama “{personality}” bercantum dengan tekstur “{secondaryKeyword}” bintang sekunder. Kerana kecerahan {brightness} menyokongnya secara berterusan, {flowerName} menterjemahkan struktur kekayaan ini dengan paling jelas.",
         "narrativeSingle": "{palace} pemegang{palaceEnergy}. Bintang kuat hari ini {star} meletakkan kualiti “{keyword}” dan sifat “{personality}” di tengah-tengah bunga. Kecerahan {brightness} mengekalkan cahaya itu stabil, dan {flowerName} bergema paling mendalam dengan tenaga pusat anda.",
         "rules": {
           "peonyZiwei": {
-            "title": "Imperial Peony",
-            "keyword": "ketenangan empayar",
-            "personality": "seorang pemimpin yang memusatkan bidang dan memulihkan keadaan"
+            "title": "Peoni Maharaja",
+            "keyword": "keanggunan maharaja",
+            "personality": "seorang pemimpin yang berdiri di tengah dan menyusun ketertiban di sekelilingnya"
           },
           "thornyRoseGeneral": {
             "title": "Mawar Merah Jeneral",
-            "keyword": "kejayaan yang menentukan",
+            "keyword": "tekad menembusi halangan",
             "personality": "kuasa penentu yang maju walaupun di bawah tekanan"
           },
           "thornyRosePioneer": {
             "title": "Mawar Merah Perintis",
-            "keyword": "pemacu untuk membentuk semula medan",
-            "personality": "seorang inovator yang memecahkan bingkai lama dan membuka pesanan baharu"
+            "keyword": "daya penggerak yang mengubah keadaan",
+            "personality": "seorang inovator yang memecahkan kerangka lama dan membuka tatanan baharu"
           },
           "delicateWillow": {
-            "title": "Bunga Willow Pakar Strategi",
+            "title": "Bunga Dedalu Ahli Strategi",
             "keyword": "strategi lembut",
-            "personality": "ahli strategi yang membaca detik dan mencari jawapan yang paling bersih"
+            "personality": "ahli strategi yang membaca keadaan dengan fleksibel dan mencari penyelesaian terbaik"
           },
           "sunflowerZiwei": {
             "title": "Bunga Matahari Suria",
-            "keyword": "mengembang cahaya",
+            "keyword": "cahaya yang meluas",
             "personality": "seorang pelaksana yang mengumpulkan tenaga ke arah hasil yang boleh dilihat"
           },
           "nightCereus": {
             "title": "Cereus Mekar Malam Bercahaya Bulan",
-            "keyword": "misteri yang dibuka pada waktu malam",
-            "personality": "jiwa yang termenung yang membaca arus ghaib"
+            "keyword": "misteri yang mekar pada waktu malam",
+            "personality": "jiwa reflektif yang membaca arus tersembunyi melalui renungan mendalam"
           },
           "orchidTanlang": {
-            "title": "Orkid Peach-Blossom",
-            "keyword": "kemagnetan berahi",
+            "title": "Orkid Bunga Pic",
+            "keyword": "pesona yang memikat",
             "personality": "jenis magnet yang memimpin melalui kecantikan, perhubungan dan ekspresi"
           }
         },
@@ -2872,7 +2872,7 @@
           "lingxing": "Ling Xing (鈴星)"
         },
         "palaces": {
-          "life": "Istana Ming",
+          "life": "Istana Kehidupan",
           "siblings": "Istana Adik-beradik",
           "spouse": "Istana Pasangan",
           "children": "Istana Anak",
@@ -2899,36 +2899,36 @@
           "fortune": "mengecas semula tenaga emosi dan celik minda",
           "parents": "naluri melindungi dan kesedaran tradisi"
         },
-        "natalVerdict": "Ditafsir melalui sifat {stars} di Istana Ming anda, bunga anda ialah {flowerName} ({scientificName}).",
-        "natalScenarioTitle": "Senario mekar mengikut bintang utama Istana Ming",
+        "natalVerdict": "Ditafsir melalui sifat {stars} di Istana Kehidupan anda, bunga anda ialah {flowerName} ({scientificName}).",
+        "natalScenarioTitle": "Senario mekar mengikut bintang utama Istana Kehidupan",
         "rationale": {
-          "lifeStar": "Istana Ming anda menempatkan {starsJosa}.",
-          "borrowedStar": "Istana Ming anda tiada bintang utama, jadi kami mentafsir dengan meminjam {starsObject} daripada Istana Perjalanan yang bertentangan.",
+          "lifeStar": "Istana Kehidupan anda menempatkan {starsJosa}.",
+          "borrowedStar": "Istana Kehidupan anda tiada bintang utama, jadi kami mentafsir dengan meminjam {starsObject} daripada Istana Perjalanan yang bertentangan.",
           "personality": "{star}: \"{keyword}\" — sifat {personality}.",
           "verdict": "Oleh itu, bunga yang kami berikan kepada anda sekarang ialah {flowerName}."
         },
         "rationaleLabel": {
-          "lifeStar": "Bintang utama Istana Ming",
+          "lifeStar": "Bintang utama Istana Kehidupan",
           "personality": "Sifat semula jadi"
         }
       },
       "sukuyo": {
         "moon": {
           "full": "bulan penuh",
-          "new": "bulan gelap",
+          "new": "bulan baru",
           "crescent": "anak bulan",
-          "gibbous": "bulan waxing/pudar"
+          "gibbous": "bulan bertambah/berkurang"
         },
-        "stickerLabel": "Bunga oleh Sukuyo",
+        "stickerLabel": "Bunga mengikut Sukuyo",
         "moonPhaseLabel": "Fasa bulan {moon}",
-        "guardianLabel": "Penjaga {guardian}",
-        "scenarioTitle": "27 rumah agam dan senario mekar fasa bulan",
+        "guardianLabel": "Haiwan penjaga {guardian}",
+        "scenarioTitle": "Senario mekar gabungan 27 rumah bulan dan fasa bulan",
         "ritualTip": "Di tepi tingkap yang diterangi cahaya bulan, bernafas 27 kali dan tetapkan niat hari ini dalam satu perkataan.",
         "relationshipTheme": "Mengikut tekstur {group} melembutkan ketegangan dan menjelaskan sambungan.",
         "careerTheme": "Apabila irama {guardian} dicerminkan dalam rutin kerja anda, keputusan menjadi stabil.",
-        "growthCycle": "Buruj yang menghubungkan \" pengumpulan cahaya bulan \" penyalaan semangat → mekar",
+        "growthCycle": "Buruj bersambung → cahaya bulan terhimpun → kerohanian menyala → mekar",
         "verdict": "Melalui tekstur cahaya bulan Sukuyo, bunga takdir anda ialah {flowerName} ({scientificName}). Gabungan {mansion}, {moon} dan {guardian} selaras dengan rentak hubungan, emosi dan tindakan sekarang.",
-        "narrative": "Tekstur hubungan {mansion} ({group}), air pasang fasa bulan {moon}, dan corak perlindungan {guardian} bertemu di taman malam, memperdalam kualiti{symbolism}. Baca bersama-sama, tiga isyarat cahaya bulan ini menunjuk kepada {flowerName} sebagai bunga takdir anda yang paling tepat sekarang.",
+        "narrative": "Tekstur hubungan {mansion} ({group}), air pasang fasa bulan {moon}, dan corak perlindungan {guardianJosa} bertemu di taman malam, memperdalam kualiti {symbolism}. Baca bersama-sama, tiga isyarat cahaya bulan ini menunjuk kepada {flowerName} sebagai bunga takdir anda yang paling tepat sekarang.",
         "mansions": {
           "m1": "Kaku (角)",
           "m2": "Kou (亢)",
@@ -3007,7 +3007,7 @@
         "scenarios": {
           "default": {
             "title": "{dayMasterBadge} senario mekar persekitaran",
-            "reason": "Kami melihat bagaimana day master anda sepadan dengan persekitaran Lima Unsur semasa, lalu memilih bunga yang paling sesuai untuk tempoh ini."
+            "reason": "Kami melihat bagaimana Tuan Hari anda sepadan dengan persekitaran Lima Unsur semasa, lalu memilih bunga yang paling sesuai untuk tempoh ini."
           },
           "jia": {
             "springWood": {
@@ -3154,28 +3154,28 @@
             }
           }
         },
-        "stickerLabel": "Bunga oleh Saju",
+        "stickerLabel": "Bunga mengikut Empat Tiang",
         "dayMasterWaiting": "Menunggu bacaan tuan hari",
         "signalPending": "Menunggu isyarat teras",
         "scenarioTitleFallback": "{dayMasterBadge} senario berkembang",
         "scenarioFallbackReason": "Aliran mekar dibaca dengan menyepadukan tuan hari dan persekitaran.",
-        "growthCycle": "Pucuk (mengumpul tenaga) “ Pertumbuhan (tindakan menguatkan) ” Mekar (hasil timbul) → Buah (hubungan dan memperdalam aset)",
-        "fallbackNote": "Logik pengayaan induk hari telah digunakan.",
-        "verdict": "Dalam bacaan Saju anda, bunga anda ialah {flowerName} ({scientificName}).",
+        "growthCycle": "Bercambah (mengumpul tenaga) → Membesar (menguatkan tindakan) → Mekar (hasil terserlah) → Berbuah (menghimpun hubungan/aset)",
+        "fallbackNote": "Kami meneliti tenaga Tuan Hari anda dengan berhati-hati berdasarkan tarikh lahir sahaja.",
+        "verdict": "Menurut Empat Tiang, bunga yang datang kepada anda sekarang ialah {flowerName} ({scientificName}).",
         "rationale": {
-          "verdict": "Dalam bacaan Saju anda, bunga takdir anda ialah {flowerName} ({scientificName}).",
+          "verdict": "Maka, bunga yang kami hulurkan kepada anda sekarang ialah {flowerName} ({scientificName}).",
           "elements": "Bacaan Lima Elemen menunjukkan {dominant} sebagai tenaga utama anda dan {support} sebagai aliran sokongan.",
           "context": "Musim nasib semasa ialah {season}, ketumpatan tenaga ialah {water}, dan peringkat hayat dibaca sebagai {environment}.",
           "dayMaster": "Induk hari disahkan sebagai {dayMasterBadge} dan interaksi musim-persekitaran di sekelilingnya diutamakan.",
-          "scenario": "Senario persekitaran induk hari: {reason}",
+          "scenario": "{reason}",
           "levels": "Aras unsur ialah {elementLevelLine} dan kelima-lima aras telah ditimbang untuk mengesahkan bunga takdir.",
           "symbolism": "Bunga ini melambangkan {symbolism}, mencerminkan tema musim ini dengan paling jelas.",
           "description": "Bacaan bunga takdir: {description}",
           "vibe": "Panduan mekar: {vibeMessage}",
           "fallback": "Logik pelarasan: {note}",
-          "dayMasterSame": "Bunga yang membawa tenaga {element} yang sama dengan day master {dayMasterBadge} anda.",
+          "dayMasterSame": "Bunga yang membawa tenaga {element} yang sama dengan Tuan Hari {dayMasterBadge} anda.",
           "strengthRelease": "Carta anda kuat, jadi kami mengutamakan bunga bertenaga {elements} yang membantu menyalurkan tenaga yang melimpah ke luar.",
-          "strengthSupport": "Carta anda lemah, jadi kami mengutamakan bunga bertenaga {elements} yang menyokong day master anda.",
+          "strengthSupport": "Carta anda lemah, jadi kami mengutamakan bunga bertenaga {elements} yang menyokong Tuan Hari anda.",
           "yongshin": "Bunga ini membawa unsur berguna yang diperlukan oleh carta anda — {elements}.",
           "johuWarm": "Carta anda condong kepada sejuk dan lembap, jadi kami mengutamakan bunga hangat yang memanaskan seperti cahaya matahari.",
           "johuCool": "Carta anda condong kepada panas dan kering, jadi kami mengutamakan bunga yang kaya air untuk meredakan bahang."
@@ -3246,12 +3246,12 @@
         },
         "flowerLanguage": {
           "yongshin": "'{language}' — pesanan bunga yang membawa unsur berguna {elements} ini untuk anda.",
-          "dayMaster": "'{language}' — pesanan bunga ini untuk anda dengan day master {dayMasterBadge}."
+          "dayMaster": "'{language}' — pesanan bunga ini untuk anda dengan Tuan Hari {dayMasterBadge}."
         },
         "shareHook": {
-          "raritySeason": "Sekuntum daripada {total}, dipilih oleh Saju day master {dayMasterBadge} yang lahir pada {season}",
-          "rarityDayMaster": "Sekuntum daripada {total}, dipilih oleh Saju day master {dayMasterBadge}",
-          "rarityPlain": "Sekuntum yang dipilih Saju aku daripada {total}"
+          "raritySeason": "Sekuntum daripada {total}, dipilih oleh Tuan Hari {dayMasterBadge} yang lahir pada {season}",
+          "rarityDayMaster": "Sekuntum daripada {total}, dipilih oleh Tuan Hari {dayMasterBadge}",
+          "rarityPlain": "Sekuntum yang dipilih Empat Tiang aku daripada {total}"
         },
         "dayMasters": {
           "jia": "Jia Kayu (甲木)",
@@ -3278,12 +3278,12 @@
           "gui": "Gui (癸)"
         },
         "dayMasterFallback": {
-          "ziwei": "Oleh sebab data day master Saju terhad, sifat day master telah dilaraskan berdasarkan bintang utama Ziwei.",
-          "astrology": "Oleh sebab data day master Saju terhad, kecenderungan tanda matahari digunakan sebagai ganti sifat day master.",
-          "dominant": "Oleh sebab penunjuk utama Saju, Ziwei dan astrologi terhad, sifat day master dianggarkan berdasarkan unsur yang dominan."
+          "ziwei": "Oleh sebab data Tuan Hari Empat Tiang terhad, sifat Tuan Hari telah dilaraskan berdasarkan bintang utama Ziwei.",
+          "astrology": "Oleh sebab data Tuan Hari Empat Tiang terhad, kecenderungan tanda matahari digunakan sebagai ganti sifat Tuan Hari.",
+          "dominant": "Oleh sebab penunjuk utama Empat Tiang, Ziwei dan astrologi terhad, sifat Tuan Hari dianggarkan berdasarkan unsur yang dominan."
         },
         "rationaleLabel": {
-          "dayMaster": "Sifat day master",
+          "dayMaster": "Sifat Tuan Hari",
           "strengthRelease": "Carta kuat",
           "strengthSupport": "Carta lemah",
           "yongshin": "Unsur berguna",
@@ -4452,7 +4452,7 @@
       },
       "ui": {
         "source": {
-          "saju": "Saju",
+          "saju": "Empat Tiang",
           "astrology": "Astrologi",
           "jamidusu": "Ziwei",
           "sukuyo": "Sukuyo"
@@ -4462,7 +4462,7 @@
           "system": "Sistem",
           "mark": {
             "saju": {
-              "primary": "Day master",
+              "primary": "Tuan Hari",
               "secondary": "Musim"
             },
             "astrology": {
@@ -4658,7 +4658,7 @@
         "value": {
           "unknown": "Tidak diketahui",
           "pending": "Menunggu tafsiran",
-          "lifePalace": "Istana Ming"
+          "lifePalace": "Istana Kehidupan"
         },
         "wait": {
           "chartSignal": "Menunggu isyarat carta",
@@ -4667,7 +4667,7 @@
           "moonRhythm": "Menyelaraskan dengan rentak bulan.",
           "nebulaRhythm": "Menyelaraskan rentak nebula.",
           "imperialRhythm": "Menala tenaga diraja.",
-          "dayMaster": "Menunggu tafsiran day master",
+          "dayMaster": "Menunggu tafsiran Tuan Hari",
           "sourceVerdict": "Menunggu tafsiran {source}",
           "mainStar": "Menunggu tafsiran bintang utama",
           "sukuyoReading": "Menunggu tafsiran Sukuyo",
@@ -4683,7 +4683,7 @@
           "seasonDefault": "Musim",
           "environmentMood": "Suasana {environment}",
           "environmentDefault": "Persekitaran",
-          "sajuScenario": "Mengira senario mekar mengikut day master dan persekitaran anda.",
+          "sajuScenario": "Mengira senario mekar mengikut Tuan Hari dan persekitaran anda.",
           "dataSheetPreparing": "Menyediakan helaian data bunga anda.",
           "symbolizes": "Bunga ini melambangkan {symbolism}.",
           "resonates": "Bunga ini bergema kuat dengan aliran tuah anda sekarang.",
@@ -4691,7 +4691,7 @@
         },
         "guide": {
           "allBloomed": "Semua bunga telah mekar. Buka semula mana-mana tab yang anda mahu.",
-          "startSaju": "Langkah seterusnya: buka bunga Saju anda dahulu untuk mula mekar.",
+          "startSaju": "Langkah seterusnya: buka bunga Empat Tiang anda dahulu untuk mula mekar.",
           "next": "Langkah seterusnya: beralih ke bunga {source} untuk terus mekar."
         },
         "tab": {
@@ -4703,7 +4703,7 @@
           "sukuyo": "Menurut Sukuyo, bunga anda ialah {name}.",
           "jamidusu": "Menurut Ziwei, bunga anda ialah {name}.",
           "astrology": "Menurut astrologi, bunga anda ialah {name}.",
-          "saju": "Menurut Saju, bunga anda ialah {name}."
+          "saju": "Menurut Empat Tiang, bunga anda ialah {name}."
         },
         "snapshot": {
           "guidance": "Hari ini, selaraskan rentak dahulu sebelum mengejar hasil, dan bunga anda akan mekar lebih cepat."
@@ -4828,7 +4828,7 @@
           "badgesSukuyo": "Lencana Sukuyo: {mansion} / fasa bulan {phase} / haiwan pelindung {guardian}",
           "badgesJamidusu": "Lencana Ziwei: bintang kuat hari ini {star} / kecerahan bintang {brightness} / istana {palace}",
           "badgesAstrology": "Lencana astrologi: tanda matahari {sun} / ascendant {rising} / tanda bulan {moon}",
-          "badgesSaju": "Lencana Saju: kekuatan {strength} / unsur berguna {yongshin} / imbangan musim {johu}",
+          "badgesSaju": "Lencana Empat Tiang: kekuatan {strength} / unsur berguna {yongshin} / imbangan musim {johu}",
           "symbolismFallback": "Bunga yang melambangkan aliran takdir",
           "narrativeFallback": "Kisah bunga takdir",
           "scenarioFallback": "Penataan berdasarkan senario mekar",
@@ -4856,13 +4856,13 @@
         },
         "studioTitle": "🌸 Atelier Bunga Takdir",
         "sourceDesc": {
-          "saju": "Kami membaca day master, bulan lahir dan imbangan Lima Unsur anda satu demi satu, kemudian memilih bunga yang paling menyentuh tenaga anda pada musim ini.",
+          "saju": "Kami membaca Tuan Hari, bulan lahir dan imbangan Lima Unsur anda satu demi satu, kemudian memilih bunga yang paling menyentuh tenaga anda pada musim ini.",
           "astrology": "Kami menindih tiga jalur cahaya bintang yang dilukis oleh tanda matahari, ascendant dan tanda bulan anda, kemudian memekarkan bunga yang paling jernih selaras dengan carta anda sekarang.",
-          "jamidusu": "Kami menjejaki bintang utama di Istana Ming anda, kecerahannya dan aliran Empat Transformasi, kemudian mencari bunga yang paling jelas dimekarkan oleh carta anda sekarang.",
+          "jamidusu": "Kami menjejaki bintang utama di Istana Kehidupan anda, kecerahannya dan aliran Empat Transformasi, kemudian mencari bunga yang paling jelas dimekarkan oleh carta anda sekarang.",
           "sukuyo": "Kami meletakkan rumah bulan kelahiran anda daripada 27 rumah bulan di samping fasa bulan malam ini, kemudian memberikan bunga yang paling lembut sepadan dengan urat hati anda sekarang."
         },
         "sourceShort": {
-          "saju": "Saju",
+          "saju": "Empat Tiang",
           "astrology": "carta",
           "jamidusu": "Ziwei",
           "sukuyo": "Sukuyo"
@@ -8192,7 +8192,7 @@
       "007": "Zodiak Menaik",
       "008": "Zodiak Bulan",
       "009": "Kuat/Lemah",
-      "010": "Dewa Berguna",
+      "010": "Unsur Berguna",
       "011": "Suhu"
     },
     "message": {

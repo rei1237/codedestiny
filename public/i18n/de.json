@@ -2752,25 +2752,25 @@
         "ritualTip": "Beruhigen Sie heute Abend drei Minuten lang Ihren Atem und setzen Sie eine Absicht unter einen Stern.",
         "relationshipTheme": "Wenn Beziehungen dem Rhythmus Ihres Hauptzeichens folgen, wird die Reibung gemildert.",
         "careerTheme": "Bringen Sie den Kernantrieb Ihres Sonnenzeichens in Ihren Arbeitsalltag ein, um eine gleichmäßigere Dynamik zu erzielen.",
-        "growthCycle": "Sternruf „Orbit bildender“ Nebel blüht → Strahlung breitet sich aus",
+        "growthCycle": "Ruf der Sterne → Bahnbildung → Nebelblüte → Ausbreitung des Glanzes",
         "fallbackNote": "Sonnenzeichendaten waren nicht verfügbar, daher wurde für die Messung das Standardelement Luft verwendet.",
         "ultimateTitle": "Ultimative Schicksalsblume",
         "ultimateConcept": "Eine hybride Blüte, bei der östliche {dayMaster}-Energie mit westlichem {sunSign}-Sternenlicht verschmilzt",
         "verdict": "Laut Astrologie ist Ihre Schicksalsblume {flowerName} ({scientificName}). Die drei Achsen der Sonnen-, Aufgangs- und Mondzeichen zeigen, dass diese Blume jetzt eng mit Ihnen in Resonanz steht.",
         "narrative": "Der Funke {sunElement}, der aus dem Sonnenzeichen {sun} aufsteigt, wird zum Mittelpunkt dieser Blumenauswahl. Das aufsteigende Zeichen {rising} ({risingElement}) prägt den sichtbaren Ton, während das Mondzeichen {moon} ({moonElement}) emotionalen Tau hinzufügt und das Symbol von {flowerName}, {flowerSymbolism}, deutlich öffnen. Das Schlüsselwort „{keyword}“ ist das Sternenlicht, das diese Blume nach vorne ruft.",
         "signs": {
-          "aries": "Aries",
-          "taurus": "Taurus",
-          "gemini": "Gemini",
-          "cancer": "Cancer",
-          "leo": "Leo",
-          "virgo": "Virgo",
-          "libra": "Libra",
-          "scorpio": "Scorpio",
-          "sagittarius": "Sagittarius",
-          "capricorn": "Capricorn",
-          "aquarius": "Aquarius",
-          "pisces": "Pisces"
+          "aries": "Widder",
+          "taurus": "Stier",
+          "gemini": "Zwillinge",
+          "cancer": "Krebs",
+          "leo": "Löwe",
+          "virgo": "Jungfrau",
+          "libra": "Waage",
+          "scorpio": "Skorpion",
+          "sagittarius": "Schütze",
+          "capricorn": "Steinbock",
+          "aquarius": "Wassermann",
+          "pisces": "Fische"
         },
         "rationaleLabel": {
           "sun": "Sonnenzeichen",
@@ -2784,8 +2784,8 @@
           "li": "Li (利)",
           "de": "De (得)",
           "ping": "Ping (平)",
-          "han": "Xian (閑)",
-          "xian": "Xian (陷)",
+          "han": "Xián (閑)",
+          "xian": "Xiàn (陷)",
           "bu": "Bu (不)"
         },
         "coreFlow": "Kern-Glücksfluss",
@@ -2797,7 +2797,7 @@
         "ritualTip": "Kern-Keyword heute: {keyword}",
         "relationshipTheme": "Lassen Sie das Temperament eines starken Stars zu Ihrem Beziehungsstandard werden und die Harmonie wird klarer.",
         "careerTheme": "Wenn die Stärke des Hauptstars im Vordergrund steht, stabilisieren sich Ausführung und Positionierung.",
-        "growthCycle": "Sternausrichtung „Energie sammeln“ Samenzündung → Blüte",
+        "growthCycle": "Sternausrichtung → Bündelung der Energie → Zündung des Samens → Blüte",
         "secondaryFallbackNote": "Zusammengesetzte Hauptstern-Anpassung: {primaryStar} zentriert + {secondaryStar} Duftmischung",
         "palaceFallbackNote": "Anpassung der Palasteigenschaften: {palace} · {trait}",
         "hybridHint": "Hybrid-Rendering verfügbar durch Mischung der Energie von Saju {dayMaster} mit Ziwei-Hauptsternen {stars}",
@@ -2808,7 +2808,7 @@
           "peonyZiwei": {
             "title": "Kaiserliche Pfingstrose",
             "keyword": "kaiserliche Haltung",
-            "personality": "ein Anführer, der das Feld zentriert und die Ordnung wiederherstellt"
+            "personality": "ein Anführer, der in der Mitte steht und um sich herum Ordnung schafft"
           },
           "thornyRoseGeneral": {
             "title": "Rote Rose des Generals",
@@ -2817,7 +2817,7 @@
           },
           "thornyRosePioneer": {
             "title": "Rote Rose des Pioniers",
-            "keyword": "der Antrieb, das Feld umzugestalten",
+            "keyword": "die Kraft, die das Spiel verändert",
             "personality": "ein Innovator, der den alten Rahmen sprengt und eine neue Ordnung eröffnet"
           },
           "delicateWillow": {
@@ -2826,9 +2826,9 @@
             "personality": "ein Stratege, der den Moment erkennt und die sauberste Antwort findet"
           },
           "sunflowerZiwei": {
-            "title": "Sonnensonnenblume",
+            "title": "Sonnenblume der Sonne",
             "keyword": "expandierendes Licht",
-            "personality": "ein Testamentsvollstrecker, der seine Energie für sichtbare Ergebnisse sammelt"
+            "personality": "ein Macher, der seine Energie auf das Ziel bündelt und sichtbare Ergebnisse erzielt"
           },
           "nightCereus": {
             "title": "Mondheller, nachtblühender Cereus",
@@ -2915,20 +2915,20 @@
       "sukuyo": {
         "moon": {
           "full": "Vollmond",
-          "new": "dunkler Mond",
-          "crescent": "Halbmond",
+          "new": "Neumond",
+          "crescent": "Mondsichel",
           "gibbous": "zunehmender/abnehmender Mond"
         },
-        "stickerLabel": "Blume von Sukuyo",
+        "stickerLabel": "Blume nach Sukuyo",
         "moonPhaseLabel": "Mondphase {moon}",
-        "guardianLabel": "Wächter {guardian}",
-        "scenarioTitle": "27 Villen und ein Mondphasen-Blühszenario",
+        "guardianLabel": "Schutztier {guardian}",
+        "scenarioTitle": "Blühszenario aus 27 Mondstationen und Mondphase",
         "ritualTip": "Atmen Sie an einem mondbeschienenen Fenster 27 Mal ein und formulieren Sie die heutige Absicht in einem Wort.",
         "relationshipTheme": "Der Textur von {group} zu folgen, mildert Spannungen und klärt Verbindungen.",
         "careerTheme": "Wenn sich der Rhythmus von {guardian} in Ihrer Arbeitsroutine widerspiegelt, stabilisieren sich die Ergebnisse.",
-        "growthCycle": "Konstellation, die „Mondlicht sammeln“ Geisterzündung → Blüte verbindet",
+        "growthCycle": "Verbindung der Sternbilder → Bündelung des Mondlichts → spirituelle Zündung → Blüte",
         "verdict": "Durch Sukuyos Mondlichttextur ist Ihre Schicksalsblume {flowerName} ({scientificName}). Die Kombination aus {mansion}, {moon} und {guardian} passt sich genau dem Rhythmus von Beziehung, Emotionen und Handeln an.",
-        "narrative": "Die relationale Textur von {mansion} ({group}), die Flut der Mondphase {moon} und das Schutzmuster von {guardian} treffen im Nachtgarten aufeinander und vertiefen die Qualität von{symbolism}. Wenn man sie zusammen liest, deuten diese drei mondbeschienenen Signale darauf hin, dass {flowerName} jetzt Ihre genaueste Schicksalsblume ist.",
+        "narrative": "Die relationale Textur von {mansion} ({group}), die Flut der Mondphase {moon} und das Schutzmuster von {guardianJosa} treffen im Nachtgarten aufeinander und vertiefen die Qualität von {symbolism}. Wenn man sie zusammen liest, deuten diese drei mondbeschienenen Signale darauf hin, dass {flowerName} jetzt Ihre genaueste Schicksalsblume ist.",
         "mansions": {
           "m1": "Kaku (角)",
           "m2": "Kou (亢)",
@@ -3154,20 +3154,20 @@
             }
           }
         },
-        "stickerLabel": "Blume von Saju",
+        "stickerLabel": "Blume nach Saju",
         "dayMasterWaiting": "Warten auf Tagesmasterlesung",
         "signalPending": "Warten auf Kernsignale",
         "scenarioTitleFallback": "{dayMasterBadge} blühendes Szenario",
         "scenarioFallbackReason": "Der blühende Fluss wurde durch die Integration des Tagesmeisters und der Umgebung gelesen.",
-        "growthCycle": "Sprießen (Energie sammeln) „Wachstum (verstärkende Wirkung)“ Blühen (Ergebnisse sichtbar werden) → Früchte tragen (Beziehungen und Vermögenswerte werden vertieft)",
-        "fallbackNote": "Day-Master-Anreicherungslogik wurde angewendet.",
+        "growthCycle": "Keimen (Energie sammeln) → Wachsen (Handeln verstärken) → Blühen (Ergebnisse werden sichtbar) → Fruchten (Beziehungen und Vermögen aufbauen)",
+        "fallbackNote": "Wir haben die Energie deines Tagesmeisters behutsam allein aus deinem Geburtsdatum gelesen.",
         "verdict": "In Ihrer Saju-Lesung ist Ihre Blume {flowerName} ({scientificName}).",
         "rationale": {
           "verdict": "In Ihrer Saju-Lesung ist Ihre Schicksalsblume {flowerName} ({scientificName}).",
           "elements": "Die Fünf-Elemente-Lesung zeigt {dominant} als Ihre Hauptenergie und {support} als unterstützenden Fluss.",
           "context": "Die Jahreszeit des aktuellen Vermögens ist {season}, die Energiedichte ist {water} und die Lebensphase wird als {environment} gelesen.",
           "dayMaster": "Der Tagesmaster wurde als {dayMasterBadge} bestätigt und die ihn umgebende Saison-Umgebungs-Interaktion wurde priorisiert.",
-          "scenario": "Tages-Master-Umgebungsszenario: {reason}",
+          "scenario": "{reason}",
           "levels": "Die Elementebenen sind {elementLevelLine}, und alle fünf Ebenen wurden gewichtet, um die Schicksalsblume zu bestätigen.",
           "symbolism": "Diese Blume symbolisiert {symbolism} und spiegelt das Thema dieser Saison am deutlichsten wider.",
           "description": "Destiny-Blumenlesung: {description}",
@@ -20535,18 +20535,18 @@
       "pig": "Pig"
     },
     "sign": {
-      "aries": "Aries",
-      "taurus": "Taurus",
-      "gemini": "Gemini",
-      "cancer": "Cancer",
-      "leo": "Leo",
-      "virgo": "Virgo",
-      "libra": "Libra",
-      "scorpio": "Scorpio",
-      "sagittarius": "Sagittarius",
-      "capricorn": "Capricorn",
-      "aquarius": "Aquarius",
-      "pisces": "Pisces"
+      "aries": "Widder",
+      "taurus": "Stier",
+      "gemini": "Zwillinge",
+      "cancer": "Krebs",
+      "leo": "Löwe",
+      "virgo": "Jungfrau",
+      "libra": "Waage",
+      "scorpio": "Skorpion",
+      "sagittarius": "Schütze",
+      "capricorn": "Steinbock",
+      "aquarius": "Wassermann",
+      "pisces": "Fische"
     },
     "stem": {
       "wood": "Wood",

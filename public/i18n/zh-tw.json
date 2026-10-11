@@ -2735,8 +2735,8 @@
       "astro": {
         "elements": {
           "Fire": "火",
-          "Earth": "地球",
-          "Air": "空氣",
+          "Earth": "土",
+          "Air": "風",
           "Water": "水",
           "Cosmic": "星光"
         },
@@ -2752,7 +2752,7 @@
         "ritualTip": "今晚，穩定呼吸三分鐘，在星星下方設定目標。",
         "relationshipTheme": "當人際關係遵循你的主要星座的節奏時，摩擦就會減弱。",
         "careerTheme": "將太陽星座的核心驅動力帶入您的日常工作中，以獲得更穩定的動力。",
-        "growthCycle": "恆星稱為「軌道形成」星雲綻放→輻射擴散",
+        "growthCycle": "星辰召喚 → 軌跡成形 → 星雲綻放 → 光輝擴散",
         "fallbackNote": "太陽星座資料不可用，因此讀數使用預設的風元素。",
         "ultimateTitle": "終極命運之花",
         "ultimateConcept": "東方 {dayMaster} 能量與西方 {sunSign} 星光融合的混合綻放",
@@ -2797,7 +2797,7 @@
         "ritualTip": "今日核心關鍵字：{keyword}",
         "relationshipTheme": "讓強勢明星氣質成為你的人際關係標準，和諧變得更加清晰。",
         "careerTheme": "當主星實力佔上風時，執行力和定位就穩定了。",
-        "growthCycle": "星星對準「能量聚集」種子點火→綻放",
+        "growthCycle": "星辰排列 → 氣的凝聚 → 種子點燃 → 綻放",
         "secondaryFallbackNote": "複合主星調整：{primaryStar} 置中 + {secondaryStar} 香味混合",
         "palaceFallbackNote": "宮殿特質調整：{palace} · {trait}",
         "hybridHint": "透過將 Saju {dayMaster} 能量與紫微主星 {stars} 混合來實現混合渲染",
@@ -2806,39 +2806,39 @@
         "narrativeSingle": "{palace} 句柄 {palaceEnergy}。 ？今天的強星{star}將品質「{keyword}」和性質「{personality}」置於花的中心。亮度 {brightness} 保持光線穩定，而 {flowerName} 與您的中心能量產生最深刻的共鳴。",
         "rules": {
           "peonyZiwei": {
-            "title": "牡丹",
-            "keyword": "帝國風度",
-            "personality": "一位集中戰場並恢復秩序的領導者"
+            "title": "帝王牡丹",
+            "keyword": "帝王氣度",
+            "personality": "立於中心、整頓周遭秩序的領袖型"
           },
           "thornyRoseGeneral": {
             "title": "將軍的紅玫瑰",
-            "keyword": "決定性突破",
-            "personality": "即使在壓力下也能前進的決定性力量"
+            "keyword": "突破的決斷",
+            "personality": "在重壓下仍推進戰線的決斷型"
           },
           "thornyRosePioneer": {
-            "title": "先鋒紅玫瑰",
-            "keyword": "重塑領域的動力",
-            "personality": "打破舊框架、開啟新秩序的創新者"
+            "title": "開拓者的紅玫瑰",
+            "keyword": "改變局面的推動力",
+            "personality": "打破舊框架、開創新秩序的革新型"
           },
           "delicateWillow": {
             "title": "軍師的柳花",
-            "keyword": "溫和策略",
-            "personality": "一位善於洞察當下並找出最簡潔答案的策略家"
+            "keyword": "柔和的謀略",
+            "personality": "靈活洞察局勢、尋找最佳解法的策略型"
           },
           "sunflowerZiwei": {
-            "title": "太陽能向日葵",
-            "keyword": "擴充光",
-            "personality": "為可見結果聚集能量的執行者"
+            "title": "太陽的向日葵",
+            "keyword": "光的擴展",
+            "personality": "朝目標集中能量、帶出成果的實幹型"
           },
           "nightCereus": {
-            "title": "月夜盛開的仙人掌",
-            "keyword": "夜間揭開的謎團",
-            "personality": "一個沉思的靈魂，讀取看不見的電流"
+            "title": "月光曇花",
+            "keyword": "夜間綻放的神秘",
+            "personality": "以深層內省洞察無形之流的省思型"
           },
           "orchidTanlang": {
             "title": "桃花蘭",
-            "keyword": "感性磁力",
-            "personality": "一種磁性類型，引領美麗、關係和表達"
+            "keyword": "魅惑風情",
+            "personality": "善用關係與表達之美來吸引他人的魅力型"
           }
         },
         "stars": {
@@ -2915,20 +2915,20 @@
       "sukuyo": {
         "moon": {
           "full": "滿月",
-          "new": "闇月",
-          "crescent": "新月",
-          "gibbous": "盈月/虧損月"
+          "new": "新月",
+          "crescent": "蛾眉月",
+          "gibbous": "盈月/虧月"
         },
-        "stickerLabel": "Sukuyo 的花",
+        "stickerLabel": "宿曜之花",
         "moonPhaseLabel": "月相 {moon}",
-        "guardianLabel": "監護人 {guardian}",
-        "scenarioTitle": "27宮與月相綻放場景",
+        "guardianLabel": "守護動物 {guardian}",
+        "scenarioTitle": "二十七宿與月相綜合開花場景",
         "ritualTip": "在月光照射下的窗前，呼吸 27 次，用一個字表達今天的意圖。",
-        "relationshipTheme": "遵循 {group} 的紋理可以緩解緊張並澄清聯繫。",
-        "careerTheme": "當 {guardian} 的節奏反映在您的日常工作中時，結果就會穩定。",
-        "growthCycle": "星座連動「月光聚」靈火→綻放",
-        "verdict": "透過 Sukuyo 的月光紋理，你的命運之花是 {flowerName} ({scientificName})。 {mansion}、{moon} 和 {guardian} 的組合與現在的關係、情緒和行動的節奏微妙地一致。",
-        "narrative": "{mansion} ({group}) 的關係紋理、月相潮汐{moon} 和{guardian} 的保護圖案在夜花園中相遇，加深了{symbolism} 的品質。一起閱讀，這三個月光訊號顯示 {flowerName} 是你現在最精確的命運之花。",
+        "relationshipTheme": "越順著{group}的脈絡，關係中的緊張越能緩和，彼此的交流也越清晰。",
+        "careerTheme": "把{guardian}模式的行動節奏融入日常工作，成果就會穩定。",
+        "growthCycle": "星宿相連 → 月光凝聚 → 靈性點燃 → 綻放",
+        "verdict": "以月光的脈絡解讀，你的花是{flowerName}（{scientificName}）。{mansion}、{moon}與{guardian}交織之處，正與你此刻的緣分、情感和行動節奏最細膩地契合。",
+        "narrative": "{mansion}（{group}）結下的緣分脈絡、月相{moon}推起的情感潮汐、守護動物{guardianJosa}刻下的守護紋樣，在午夜的花園裡重疊為一。將這三縷月光疊在一起解讀，「{symbolism}」的氣質便濃濃地滲出，此刻最適合你的那一朵，是{flowerName}。",
         "mansions": {
           "m1": "角宿",
           "m2": "亢宿",
@@ -3154,20 +3154,20 @@
             }
           }
         },
-        "stickerLabel": "Saju 的花",
+        "stickerLabel": "八字之花",
         "dayMasterWaiting": "等待日主閱讀",
         "signalPending": "等待核心訊號",
         "scenarioTitleFallback": "{dayMasterBadge} 開花場景",
         "scenarioFallbackReason": "透過整合日主和環境來讀取綻放的流程。",
-        "growthCycle": "萌芽（聚集能量）「成長（放大行動）」綻放（結果浮現）→成果（關係與資產深化）",
-        "fallbackNote": "應用了日主豐富邏輯。",
+        "growthCycle": "發芽（匯聚能量） → 伸展（放大行動） → 綻放（成果顯現） → 結果（累積關係與資產）",
+        "fallbackNote": "僅憑出生日期資訊，謹慎地解讀了日干的氣。",
         "verdict": "在您的 Saju 閱讀中，您的花是 {flowerName} ({scientificName})。",
         "rationale": {
           "verdict": "在您的 Saju 解讀中，您的命運之花是 {flowerName} ({scientificName})。",
           "elements": "五元素讀數顯示 {dominant} 作為您的主要能量，{support} 作為支援流程。",
           "context": "目前運勢季節為{season}，能量密度為{water}，生命階段讀作{environment}。",
           "dayMaster": "日主被確認為 {dayMasterBadge}，並優先考慮圍繞它的季節-環境互動。",
-          "scenario": "天主環境場景：{reason}",
+          "scenario": "{reason}",
           "levels": "元素等級為 {elementLevelLine}，所有五個等級均經過加權以確定命運之花。",
           "symbolism": "這朵花象徵著{symbolism}，最清楚地反映了這個季節的主題。",
           "description": "命運之花閱讀：{description}",

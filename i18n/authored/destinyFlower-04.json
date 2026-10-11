@@ -6,12 +6,12 @@
     "ja": "牡羊座",
     "zh-CN": "白羊座",
     "zh-TW": "牡羊座",
-    "vi": "Aries",
-    "hi": "Aries",
+    "vi": "Bạch Dương",
+    "hi": "मेष",
     "es": "Aries",
     "fr": "Bélier",
-    "de": "Aries",
-    "nl": "Aries",
+    "de": "Widder",
+    "nl": "Ram",
     "ms": "Aries"
   },
   "fortune.destinyFlower.astro.signs.taurus": {
@@ -20,12 +20,12 @@
     "ja": "牡牛座",
     "zh-CN": "金牛座",
     "zh-TW": "金牛座",
-    "vi": "Taurus",
-    "hi": "Taurus",
+    "vi": "Kim Ngưu",
+    "hi": "वृषभ",
     "es": "Tauro",
     "fr": "Taureau",
-    "de": "Taurus",
-    "nl": "Taurus",
+    "de": "Stier",
+    "nl": "Stier",
     "ms": "Taurus"
   },
   "fortune.destinyFlower.astro.signs.gemini": {
@@ -34,12 +34,12 @@
     "ja": "双子座",
     "zh-CN": "双子座",
     "zh-TW": "雙子座",
-    "vi": "Gemini",
-    "hi": "Gemini",
+    "vi": "Song Tử",
+    "hi": "मिथुन",
     "es": "Géminis",
     "fr": "Gémeaux",
-    "de": "Gemini",
-    "nl": "Gemini",
+    "de": "Zwillinge",
+    "nl": "Tweelingen",
     "ms": "Gemini"
   },
   "fortune.destinyFlower.astro.signs.cancer": {
@@ -48,12 +48,12 @@
     "ja": "蟹座",
     "zh-CN": "巨蟹座",
     "zh-TW": "巨蟹座",
-    "vi": "Cancer",
-    "hi": "Cancer",
+    "vi": "Cự Giải",
+    "hi": "कर्क",
     "es": "Cáncer",
     "fr": "Cancer",
-    "de": "Cancer",
-    "nl": "Cancer",
+    "de": "Krebs",
+    "nl": "Kreeft",
     "ms": "Cancer"
   },
   "fortune.destinyFlower.astro.signs.leo": {
@@ -62,12 +62,12 @@
     "ja": "獅子座",
     "zh-CN": "狮子座",
     "zh-TW": "獅子座",
-    "vi": "Leo",
-    "hi": "Leo",
+    "vi": "Sư Tử",
+    "hi": "सिंह",
     "es": "Leo",
     "fr": "Lion",
-    "de": "Leo",
-    "nl": "Leo",
+    "de": "Löwe",
+    "nl": "Leeuw",
     "ms": "Leo"
   },
   "fortune.destinyFlower.astro.signs.virgo": {
@@ -76,12 +76,12 @@
     "ja": "乙女座",
     "zh-CN": "处女座",
     "zh-TW": "處女座",
-    "vi": "Virgo",
-    "hi": "Virgo",
+    "vi": "Xử Nữ",
+    "hi": "कन्या",
     "es": "Virgo",
     "fr": "Vierge",
-    "de": "Virgo",
-    "nl": "Virgo",
+    "de": "Jungfrau",
+    "nl": "Maagd",
     "ms": "Virgo"
   },
   "fortune.destinyFlower.astro.signs.libra": {
@@ -90,12 +90,12 @@
     "ja": "天秤座",
     "zh-CN": "天秤座",
     "zh-TW": "天秤座",
-    "vi": "Libra",
-    "hi": "Libra",
+    "vi": "Thiên Bình",
+    "hi": "तुला",
     "es": "Libra",
     "fr": "Balance",
-    "de": "Libra",
-    "nl": "Libra",
+    "de": "Waage",
+    "nl": "Weegschaal",
     "ms": "Libra"
   },
   "fortune.destinyFlower.astro.signs.scorpio": {
@@ -104,12 +104,12 @@
     "ja": "蠍座",
     "zh-CN": "天蝎座",
     "zh-TW": "天蠍座",
-    "vi": "Scorpio",
-    "hi": "Scorpio",
+    "vi": "Bọ Cạp",
+    "hi": "वृश्चिक",
     "es": "Escorpio",
     "fr": "Scorpion",
-    "de": "Scorpio",
-    "nl": "Scorpio",
+    "de": "Skorpion",
+    "nl": "Schorpioen",
     "ms": "Scorpio"
   },
   "fortune.destinyFlower.astro.signs.sagittarius": {
@@ -118,12 +118,12 @@
     "ja": "射手座",
     "zh-CN": "射手座",
     "zh-TW": "射手座",
-    "vi": "Sagittarius",
-    "hi": "Sagittarius",
+    "vi": "Nhân Mã",
+    "hi": "धनु",
     "es": "Sagitario",
     "fr": "Sagittaire",
-    "de": "Sagittarius",
-    "nl": "Sagittarius",
+    "de": "Schütze",
+    "nl": "Boogschutter",
     "ms": "Sagittarius"
   },
   "fortune.destinyFlower.astro.signs.capricorn": {
@@ -132,12 +132,12 @@
     "ja": "山羊座",
     "zh-CN": "摩羯座",
     "zh-TW": "摩羯座",
-    "vi": "Capricorn",
-    "hi": "Capricorn",
+    "vi": "Ma Kết",
+    "hi": "मकर",
     "es": "Capricornio",
     "fr": "Capricorne",
-    "de": "Capricorn",
-    "nl": "Capricorn",
+    "de": "Steinbock",
+    "nl": "Steenbok",
     "ms": "Capricorn"
   },
   "fortune.destinyFlower.astro.signs.aquarius": {
@@ -146,12 +146,12 @@
     "ja": "水瓶座",
     "zh-CN": "水瓶座",
     "zh-TW": "水瓶座",
-    "vi": "Aquarius",
-    "hi": "Aquarius",
+    "vi": "Bảo Bình",
+    "hi": "कुंभ",
     "es": "Acuario",
     "fr": "Verseau",
-    "de": "Aquarius",
-    "nl": "Aquarius",
+    "de": "Wassermann",
+    "nl": "Waterman",
     "ms": "Aquarius"
   },
   "fortune.destinyFlower.astro.signs.pisces": {
@@ -160,12 +160,12 @@
     "ja": "魚座",
     "zh-CN": "双鱼座",
     "zh-TW": "雙魚座",
-    "vi": "Pisces",
-    "hi": "Pisces",
+    "vi": "Song Ngư",
+    "hi": "मीन",
     "es": "Piscis",
     "fr": "Poissons",
-    "de": "Pisces",
-    "nl": "Pisces",
+    "de": "Fische",
+    "nl": "Vissen",
     "ms": "Pisces"
   },
   "fortune.destinyFlower.saju.dayMasters.jia": {
@@ -852,7 +852,7 @@
     "fr": "Palais de la Vie",
     "de": "Lebenspalast",
     "nl": "Levenspaleis",
-    "ms": "Istana Ming"
+    "ms": "Istana Kehidupan"
   },
   "fortune.destinyFlower.ziwei.palaceTraits.life": {
     "ko": "자아의 중심성과 존재감",
@@ -2070,7 +2070,7 @@
     "fr": "Les données du maître du jour Saju étant limitées, la nature du maître du jour a été ajustée d’après l’étoile principale de Zi Wei.",
     "de": "Da die Saju-Daten zum Tagesmeister unvollständig waren, wurde das Wesen des Tagesmeisters anhand des Zi-Wei-Hauptsterns angepasst.",
     "nl": "Omdat de Saju-gegevens over de dagmeester onvolledig waren, is het karakter van de dagmeester bijgesteld op basis van de Zi Wei-hoofdster.",
-    "ms": "Oleh sebab data day master Saju terhad, sifat day master telah dilaraskan berdasarkan bintang utama Ziwei."
+    "ms": "Oleh sebab data Tuan Hari Empat Tiang terhad, sifat Tuan Hari telah dilaraskan berdasarkan bintang utama Ziwei."
   },
   "fortune.destinyFlower.saju.dayMasterFallback.astrology": {
     "ko": "사주 일간 데이터가 부족해 태양궁 성향으로 일간 성질을 대체했습니다.",
@@ -2084,7 +2084,7 @@
     "fr": "Les données du maître du jour Saju étant limitées, les tendances du signe solaire ont remplacé la nature du maître du jour.",
     "de": "Da die Saju-Daten zum Tagesmeister unvollständig waren, wurden die Neigungen des Sonnenzeichens stellvertretend für das Wesen des Tagesmeisters verwendet.",
     "nl": "Omdat de Saju-gegevens over de dagmeester onvolledig waren, zijn de neigingen van het zonneteken gebruikt in plaats van het karakter van de dagmeester.",
-    "ms": "Oleh sebab data day master Saju terhad, kecenderungan tanda matahari digunakan sebagai ganti sifat day master."
+    "ms": "Oleh sebab data Tuan Hari Empat Tiang terhad, kecenderungan tanda matahari digunakan sebagai ganti sifat Tuan Hari."
   },
   "fortune.destinyFlower.saju.dayMasterFallback.dominant": {
     "ko": "사주/자미/점성 핵심 지표가 부족해 우세 오행을 기준으로 일간 성질을 추정했습니다.",
@@ -2098,7 +2098,7 @@
     "fr": "Les indicateurs clés du Saju, du Zi Wei et de l’astrologie étant limités, la nature du maître du jour a été estimée à partir de l’élément dominant.",
     "de": "Da die Kernwerte aus Saju, Zi Wei und Astrologie unvollständig waren, wurde das Wesen des Tagesmeisters aus dem vorherrschenden Element abgeleitet.",
     "nl": "Omdat de kernwaarden uit Saju, Zi Wei en astrologie onvolledig waren, is het karakter van de dagmeester afgeleid uit het overheersende element.",
-    "ms": "Oleh sebab penunjuk utama Saju, Ziwei dan astrologi terhad, sifat day master dianggarkan berdasarkan unsur yang dominan."
+    "ms": "Oleh sebab penunjuk utama Empat Tiang, Ziwei dan astrologi terhad, sifat Tuan Hari dianggarkan berdasarkan unsur yang dominan."
   },
   "fortune.destinyFlower.common.anonymousName": {
     "ko": "익명의 여행자",
@@ -2126,7 +2126,7 @@
     "fr": "Nous avons observé comment votre maître du jour s’accorde avec l’environnement actuel des Cinq Éléments, et choisi la fleur la mieux adaptée à cette période.",
     "de": "Wir haben uns angesehen, wie dein Tagesmeister mit dem aktuellen Umfeld der Fünf Elemente zusammenspielt, und die eine Blume gewählt, die in dieser Zeit am besten zu dir passt.",
     "nl": "We hebben bekeken hoe je dagmeester samenspeelt met de huidige omgeving van de Vijf Elementen, en de ene bloem gekozen die in deze periode het best bij je past.",
-    "ms": "Kami melihat bagaimana day master anda sepadan dengan persekitaran Lima Unsur semasa, lalu memilih bunga yang paling sesuai untuk tempoh ini."
+    "ms": "Kami melihat bagaimana Tuan Hari anda sepadan dengan persekitaran Lima Unsur semasa, lalu memilih bunga yang paling sesuai untuk tempoh ini."
   },
   "fortune.destinyFlower.saju.scenarios.jia.springWood.reason": {
     "ko": "갑목(甲木)은 큰 나무처럼 곧게 위로 뻗는 기질이에요. 봄의 목기운이 그 성정과 맞아떨어지는 지금, 앞장서서 새 판을 여는 힘이 활짝 피어납니다.",
@@ -2574,7 +2574,7 @@
     "fr": "Une fleur qui porte la même énergie {element} que votre maître du jour {dayMasterBadge}.",
     "de": "Eine Blume, die dieselbe {element}-Energie in sich trägt wie dein Tagesmeister {dayMasterBadge}.",
     "nl": "Een bloem die dezelfde {element}-energie in zich draagt als je dagmeester {dayMasterBadge}.",
-    "ms": "Bunga yang membawa tenaga {element} yang sama dengan day master {dayMasterBadge} anda."
+    "ms": "Bunga yang membawa tenaga {element} yang sama dengan Tuan Hari {dayMasterBadge} anda."
   },
   "fortune.destinyFlower.saju.rationale.strengthRelease": {
     "ko": "사주가 신강해 차오른 기운을 밖으로 풀어 주는 {elements} 기운의 꽃에 무게를 두었어요.",
@@ -2602,7 +2602,7 @@
     "fr": "Votre thème est faible ; nous avons donc privilégié les fleurs à l’énergie {elements}, qui renforce votre maître du jour.",
     "de": "Dein Saju ist schwach, daher haben wir Blumen mit {elements}-Energie stärker gewichtet, die deinen Tagesmeister stützen.",
     "nl": "Je Saju is zwak, dus hebben we bloemen met {elements}-energie zwaarder laten wegen, die je dagmeester ondersteunen.",
-    "ms": "Carta anda lemah, jadi kami mengutamakan bunga bertenaga {elements} yang menyokong day master anda."
+    "ms": "Carta anda lemah, jadi kami mengutamakan bunga bertenaga {elements} yang menyokong Tuan Hari anda."
   },
   "fortune.destinyFlower.saju.rationale.yongshin": {
     "ko": "이 꽃에는 사주에 필요한 용신 기운이 담겨 있어요 — {elements}.",
@@ -2658,7 +2658,7 @@
     "fr": "Nature du maître du jour",
     "de": "Wesen des Tagesmeisters",
     "nl": "Karakter van de dagmeester",
-    "ms": "Sifat day master"
+    "ms": "Sifat Tuan Hari"
   },
   "fortune.destinyFlower.saju.rationaleLabel.strengthRelease": {
     "ko": "신강",
@@ -2798,7 +2798,7 @@
     "fr": "Lue à travers la nature de {stars} dans votre Palais de la Vie, votre fleur est {flowerName} ({scientificName}).",
     "de": "Gelesen aus dem Wesen von {stars} in deinem Lebenspalast ist deine Blume {flowerName} ({scientificName}).",
     "nl": "Gelezen uit het karakter van {stars} in je levenspaleis is jouw bloem {flowerName} ({scientificName}).",
-    "ms": "Ditafsir melalui sifat {stars} di Istana Ming anda, bunga anda ialah {flowerName} ({scientificName})."
+    "ms": "Ditafsir melalui sifat {stars} di Istana Kehidupan anda, bunga anda ialah {flowerName} ({scientificName})."
   },
   "fortune.destinyFlower.ziwei.natalScenarioTitle": {
     "ko": "명궁 주성 개화 시나리오",
@@ -2812,7 +2812,7 @@
     "fr": "Scénario de floraison de l’étoile principale du Palais de la Vie",
     "de": "Blühszenario des Hauptsterns im Lebenspalast",
     "nl": "Bloeiscenario van de hoofdster in het levenspaleis",
-    "ms": "Senario mekar mengikut bintang utama Istana Ming"
+    "ms": "Senario mekar mengikut bintang utama Istana Kehidupan"
   },
   "fortune.destinyFlower.ziwei.rationale.lifeStar": {
     "ko": "명궁에 {starsJosa} 자리하고 있어요.",
@@ -2826,7 +2826,7 @@
     "fr": "Votre Palais de la Vie abrite {starsJosa}.",
     "de": "In deinem Lebenspalast steht {starsJosa}.",
     "nl": "In je levenspaleis staat {starsJosa}.",
-    "ms": "Istana Ming anda menempatkan {starsJosa}."
+    "ms": "Istana Kehidupan anda menempatkan {starsJosa}."
   },
   "fortune.destinyFlower.ziwei.rationale.borrowedStar": {
     "ko": "명궁에 주성이 없어 마주 보는 천이궁의 {starsObject} 빌려 읽었어요.",
@@ -2840,7 +2840,7 @@
     "fr": "Votre Palais de la Vie n’a pas d’étoile principale ; nous avons donc lu en empruntant {starsObject} au Palais des Voyages opposé.",
     "de": "Dein Lebenspalast hat keinen Hauptstern, daher haben wir {starsObject} aus dem gegenüberliegenden Reisepalast entliehen und gelesen.",
     "nl": "Je levenspaleis heeft geen hoofdster, dus hebben we {starsObject} geleend uit het tegenoverliggende reispaleis en die gelezen.",
-    "ms": "Istana Ming anda tiada bintang utama, jadi kami mentafsir dengan meminjam {starsObject} daripada Istana Perjalanan yang bertentangan."
+    "ms": "Istana Kehidupan anda tiada bintang utama, jadi kami mentafsir dengan meminjam {starsObject} daripada Istana Perjalanan yang bertentangan."
   },
   "fortune.destinyFlower.ziwei.rationale.personality": {
     "ko": "{star}의 \"{keyword}\" — {personality}의 기질이에요.",
@@ -2882,7 +2882,7 @@
     "fr": "Étoile principale du Palais de la Vie",
     "de": "Hauptstern im Lebenspalast",
     "nl": "Hoofdster in het levenspaleis",
-    "ms": "Bintang utama Istana Ming"
+    "ms": "Bintang utama Istana Kehidupan"
   },
   "fortune.destinyFlower.ziwei.rationaleLabel.personality": {
     "ko": "타고난 성격",
@@ -2970,30 +2970,30 @@
   },
   "fortune.destinyFlower.ziwei.brightness.han": {
     "ko": "한(閑)",
-    "en": "Xian (閑)",
+    "en": "Xián (閑)",
     "ja": "閑",
     "zh-CN": "闲",
     "zh-TW": "閑",
     "vi": "Nhàn (閑)",
-    "hi": "Xian (閑)",
-    "es": "Xian (閑)",
-    "fr": "Xian (閑)",
-    "de": "Xian (閑)",
-    "nl": "Xian (閑)",
-    "ms": "Xian (閑)"
+    "hi": "Xián (閑)",
+    "es": "Xián (閑)",
+    "fr": "Xián (閑)",
+    "de": "Xián (閑)",
+    "nl": "Xián (閑)",
+    "ms": "Xián (閑)"
   },
   "fortune.destinyFlower.ziwei.brightness.xian": {
     "ko": "함(陷)",
-    "en": "Xian (陷)",
+    "en": "Xiàn (陷)",
     "ja": "陷",
     "zh-CN": "陷",
     "zh-TW": "陷",
     "vi": "Hãm (陷)",
-    "hi": "Xian (陷)",
-    "es": "Xian (陷)",
-    "fr": "Xian (陷)",
-    "de": "Xian (陷)",
-    "nl": "Xian (陷)",
-    "ms": "Xian (陷)"
+    "hi": "Xiàn (陷)",
+    "es": "Xiàn (陷)",
+    "fr": "Xiàn (陷)",
+    "de": "Xiàn (陷)",
+    "nl": "Xiàn (陷)",
+    "ms": "Xiàn (陷)"
   }
 }

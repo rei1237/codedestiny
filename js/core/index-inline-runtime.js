@@ -5180,106 +5180,6 @@ function _afResolveSelection() {
   };
 }
 
-function _afRenderStardust(container, primary, secondary) {
-  if (!container) return;
-  container.innerHTML = '';
-  for (var i = 0; i < 22; i++) {
-    var star = document.createElement('span');
-    star.className = 'astrology-stardust';
-    star.style.setProperty('--x', (4 + Math.random() * 92).toFixed(2) + '%');
-    star.style.setProperty('--y', (6 + Math.random() * 80).toFixed(2) + '%');
-    star.style.setProperty('--size', (2 + Math.random() * 3.4).toFixed(2) + 'px');
-    star.style.setProperty('--dur', (2.6 + Math.random() * 2.6).toFixed(2) + 's');
-    star.style.setProperty('--delay', (Math.random() * 2.2).toFixed(2) + 's');
-    star.style.setProperty('--star-a', _dfHexToRgba(primary, 0.84));
-    star.style.setProperty('--star-b', _dfHexToRgba(secondary, 0.94));
-    container.appendChild(star);
-  }
-}
-
-function _afEnsureCardOpen(card) {
-  if (!card) return;
-  card.classList.add('feature-card--open');
-  var detail = card.querySelector('.feature-card__detail');
-  if (detail) detail.setAttribute('aria-hidden', 'false');
-  var cta = card.querySelector('.feature-card__cta');
-  if (cta) {
-    cta.setAttribute('aria-expanded', 'true');
-    var labelEl = cta.querySelector('.feature-card__cta-label');
-    if (labelEl) labelEl.textContent = _dfUiText('cta.astrologyAgain', '✨ 점성술 꽃 다시 소환하기');
-    var arrowEl = cta.querySelector('.feature-card__cta-arrow');
-    if (arrowEl) arrowEl.textContent = '✦';
-  }
-  syncFeatureCardHeight(card);
-}
-
-function _afApplyCardVisual(card, selection) {
-  if (!card || !selection) return;
-  var matched = selection.matched || {};
-  var flowerData = selection.flowerData || matched.flower_data || {};
-  var chart = matched.chart || {};
-  var stage = card.querySelector('.astrology-flower-stage');
-  var nameEl = document.getElementById('afCardName');
-  var symbolismEl = document.getElementById('afCardSymbolism');
-  var keywordsEl = document.getElementById('afCardKeywords');
-  var sunBadgeEl = document.getElementById('afCardSunBadge');
-  var risingBadgeEl = document.getElementById('afCardRisingBadge');
-  var moonBadgeEl = document.getElementById('afCardMoonBadge');
-  var dataLineEl = document.getElementById('afCardDataLine');
-  var stardust = card.querySelector('.astrology-stardust-field');
-  var nebula = card.querySelector('.astrology-flower-nebula');
-  var image = card.querySelector('.astrology-flower-stage__image');
-  var heroImage = card.querySelector('.astrology-flower-hero-image');
-  if (!stage || !nameEl || !symbolismEl || !keywordsEl) return;
-
-  card.style.setProperty('--af-primary', selection.primary);
-  card.style.setProperty('--af-secondary', selection.secondary);
-  if (matched.theme && matched.theme.palette) {
-    if (matched.theme.palette.moonGlowInner) card.style.setProperty('--af-glow-inner', matched.theme.palette.moonGlowInner);
-    if (matched.theme.palette.moonGlowOuter) card.style.setProperty('--af-glow-outer', matched.theme.palette.moonGlowOuter);
-  }
-
-  nameEl.textContent = selection.flower.name + ' · ' + (selection.flower.scientific_name || 'Unknown species');
-  symbolismEl.textContent = matched.astro_verdict || matched.narrative || _dfUiText('legacy.astrologyReading', '점성술 차트 기반 운명꽃을 판독 중입니다.');
-  keywordsEl.textContent = 'zodiac flower keywords · ' + selection.keywords.join(' • ');
-  if (sunBadgeEl) sunBadgeEl.textContent = _dfUiText('badge.sun', '태양궁 {value}', { value: chart.sun_sign || _dfUiText('value.unknown', '미확인') });
-  if (risingBadgeEl) risingBadgeEl.textContent = _dfUiText('badge.rising', '상승궁 {value}', { value: chart.rising_sign || _dfUiText('value.unknown', '미확인') });
-  if (moonBadgeEl) moonBadgeEl.textContent = _dfUiText('badge.moon', '달궁 {value}', { value: chart.moon_sign || _dfUiText('value.unknown', '미확인') });
-  if (dataLineEl) {
-    dataLineEl.textContent = (flowerData.focus_signal || _dfUiText('wait.chartSignal', '차트 시그널 대기')) + ' · ' + (flowerData.ritual_tip || _dfUiText('legacy.astrologyRhythm', '별의 리듬을 고정 중입니다.'));
-  }
-
-  if (nebula) {
-    nebula.style.background =
-      'radial-gradient(circle at 24% 40%, ' + _dfHexToRgba(selection.primary, 0.38) + ', transparent 58%),'
-      + 'radial-gradient(circle at 72% 24%, ' + _dfHexToRgba(selection.secondary, 0.34) + ', transparent 56%),'
-      + 'radial-gradient(circle at 50% 86%, var(--af-glow-inner, rgba(141,153,255,0.22)), transparent 60%)';
-  }
-
-  _afRenderStardust(stardust, selection.primary, selection.secondary);
-  _dfApplyGeneratedFlowerImage(image, selection, 'astrology');
-  _dfApplyGeneratedFlowerImage(heroImage, selection, 'astrology');
-
-  if (!card.__afPointerBound) {
-    card.__afPointerBound = true;
-    card.addEventListener('mousemove', function(e) {
-      var rect = card.getBoundingClientRect();
-      var x = ((e.clientX - rect.left) / rect.width) * 100;
-      var y = ((e.clientY - rect.top) / rect.height) * 100;
-      card.style.setProperty('--af-pointer-x', x.toFixed(2) + '%');
-      card.style.setProperty('--af-pointer-y', y.toFixed(2) + '%');
-    });
-    card.addEventListener('mouseleave', function() {
-      card.style.setProperty('--af-pointer-x', '50%');
-      card.style.setProperty('--af-pointer-y', '42%');
-    });
-  }
-
-  stage.classList.remove('is-bloomed');
-  void stage.offsetWidth;
-  stage.classList.add('is-bloomed');
-}
-
 function _jfResolveSelection() {
   var payload = _dfGetServerMatchPayload();
   var birthCtx = _dfResolveBirthContext(payload || {});
@@ -5330,114 +5230,6 @@ function _jfResolveSelection() {
   };
 }
 
-function _jfRenderPetals(container, primary, secondary, shouldFall) {
-  if (!container) return;
-  container.innerHTML = '';
-  for (var i = 0; i < 18; i++) {
-    var petal = document.createElement('span');
-    petal.className = 'jamidusu-petal';
-    if (shouldFall) petal.classList.add('is-fall');
-    petal.style.setProperty('--x', (4 + Math.random() * 92).toFixed(2) + '%');
-    petal.style.setProperty('--y', (6 + Math.random() * 72).toFixed(2) + '%');
-    petal.style.setProperty('--size', (8 + Math.random() * 8).toFixed(2) + 'px');
-    petal.style.setProperty('--dur', (2.6 + Math.random() * 2.2).toFixed(2) + 's');
-    petal.style.setProperty('--delay', (Math.random() * 2.2).toFixed(2) + 's');
-    petal.style.setProperty('--petal-a', _dfHexToRgba(primary, 0.76));
-    petal.style.setProperty('--petal-b', _dfHexToRgba(secondary, 0.88));
-    container.appendChild(petal);
-  }
-}
-
-function _jfEnsureCardOpen(card) {
-  if (!card) return;
-  card.classList.add('feature-card--open');
-  var detail = card.querySelector('.feature-card__detail');
-  if (detail) detail.setAttribute('aria-hidden', 'false');
-  var cta = card.querySelector('.feature-card__cta');
-  if (cta) {
-    cta.setAttribute('aria-expanded', 'true');
-    var labelEl = cta.querySelector('.feature-card__cta-label');
-    if (labelEl) labelEl.textContent = _dfUiText('cta.jamidusuAgain', '🌺 자미두수 꽃 다시 소환하기');
-    var arrowEl = cta.querySelector('.feature-card__cta-arrow');
-    if (arrowEl) arrowEl.textContent = '✦';
-  }
-  syncFeatureCardHeight(card);
-}
-
-function _jfApplyCardVisual(card, selection) {
-  if (!card || !selection) return;
-  var matched = selection.matched || {};
-  var flowerData = selection.flowerData || matched.flower_data || {};
-  var ziwei = matched.ziwei || {};
-  var intensity = matched.visual_intensity || { glow: 0.7, saturation: 0.8, mist: 0.2, brightness_label: _dfUiText('legacy.brightnessEven', '평(平)') };
-  var stage = card.querySelector('.jamidusu-flower-stage');
-  var nameEl = document.getElementById('jfCardName');
-  var symbolismEl = document.getElementById('jfCardSymbolism');
-  var keywordsEl = document.getElementById('jfCardKeywords');
-  var starBadgeEl = document.getElementById('jfCardStarBadge');
-  var brightBadgeEl = document.getElementById('jfCardBrightnessBadge');
-  var palaceBadgeEl = document.getElementById('jfCardPalaceBadge');
-  var dataLineEl = document.getElementById('jfCardDataLine');
-  var petals = card.querySelector('.jamidusu-petal-field');
-  var mist = card.querySelector('.jamidusu-mist');
-  var image = card.querySelector('.jamidusu-flower-stage__image');
-  var heroImage = card.querySelector('.jamidusu-flower-hero-image');
-  if (!stage || !nameEl || !symbolismEl || !keywordsEl) return;
-
-  card.style.setProperty('--jf-primary', selection.primary);
-  card.style.setProperty('--jf-secondary', selection.secondary);
-  card.style.setProperty('--jf-glow-strength', String(intensity.glow || 0.7));
-  card.style.setProperty('--jf-mist-opacity', String(intensity.mist || 0.2));
-  stage.style.setProperty('--jf-saturation', String(intensity.saturation || 0.8));
-
-  nameEl.textContent = selection.flower.name + ' · ' + (selection.flower.scientific_name || 'Unknown species');
-  symbolismEl.textContent = matched.jamidusu_verdict || matched.narrative || _dfUiText('legacy.jamidusuReading', '오늘의 강한 별 기반 운명꽃을 판독 중입니다.');
-  keywordsEl.textContent = 'ziwei flower keywords · ' + selection.keywords.join(' • ');
-  if (starBadgeEl) {
-    var starLine = (matched.strong_star && matched.strong_star.star)
-      || (Array.isArray(ziwei.primary_stars) ? ziwei.primary_stars.join('·') : _dfUiText('legacy.mainStarUnknown', '주성 미확인'));
-    starBadgeEl.textContent = _dfUiText('badge.strongStar', '오늘의 강한 별 {value}', { value: starLine });
-  }
-  var strongStar = matched.strong_star || {};
-  if (brightBadgeEl) brightBadgeEl.textContent = _dfUiText('badge.brightness', '별 밝기 {value}', { value: strongStar.brightness || ziwei.brightness || intensity.brightness_label || _dfUiText('legacy.brightnessEven', '평(平)') });
-  if (palaceBadgeEl) palaceBadgeEl.textContent = strongStar.palace || ziwei.palace || _dfUiText('value.unknown', '미확인');
-  if (dataLineEl) {
-    dataLineEl.textContent = (flowerData.focus_signal || _dfUiText('wait.starSignal', '주성 시그널 대기')) + ' · ' + (flowerData.ritual_tip || _dfUiText('legacy.jamidusuRhythm', '별의 기운을 정렬 중입니다.'));
-  }
-
-  if (mist) {
-    mist.style.background =
-      'radial-gradient(circle at 22% 38%, ' + _dfHexToRgba(selection.primary, 0.24) + ', transparent 56%),'
-      + 'radial-gradient(circle at 72% 64%, ' + _dfHexToRgba(selection.secondary, 0.22) + ', transparent 60%)';
-  }
-
-  var shouldFall = Array.isArray(ziwei.primary_stars) && ziwei.primary_stars.some(function(s) {
-    return /천기|태음/.test(String(s || ''));
-  });
-  _jfRenderPetals(petals, selection.primary, selection.secondary, shouldFall);
-  _dfApplyGeneratedFlowerImage(image, selection, 'jamidusu');
-  _dfApplyGeneratedFlowerImage(heroImage, selection, 'jamidusu');
-
-  card.__jfKeywords = selection.keywords || [];
-
-  if (!card.__jfPopupBound) {
-    card.__jfPopupBound = true;
-    var popupEl = document.getElementById('jfCardKeywordPopup');
-    stage.addEventListener('click', function() {
-      if (!popupEl) return;
-      popupEl.textContent = (card.__jfKeywords || []).join(' · ') || _dfUiText('legacy.imperialGrace', '제왕의 기품');
-      popupEl.classList.add('is-show');
-      setTimeout(function() {
-        popupEl.classList.remove('is-show');
-      }, 1800);
-    });
-  }
-
-  stage.classList.remove('is-bloomed');
-  void stage.offsetWidth;
-  stage.classList.add('is-bloomed');
-}
-
 function _sfResolveSelection() {
   var payload = _dfGetServerMatchPayload();
   var birthCtx = _dfResolveBirthContext(payload || {});
@@ -5485,141 +5277,6 @@ function _sfResolveSelection() {
     secondary: secondary,
     keywords: keywords
   };
-}
-
-function _sfRenderStarfall(container, primary, secondary) {
-  if (!container) return;
-  container.innerHTML = '';
-  for (var i = 0; i < 20; i++) {
-    var star = document.createElement('span');
-    star.className = 'sukuyo-starfall';
-    star.style.setProperty('--x', (3 + Math.random() * 94).toFixed(2) + '%');
-    star.style.setProperty('--y', (4 + Math.random() * 54).toFixed(2) + '%');
-    star.style.setProperty('--len', (10 + Math.random() * 16).toFixed(2) + 'px');
-    star.style.setProperty('--dur', (1.6 + Math.random() * 2.6).toFixed(2) + 's');
-    star.style.setProperty('--delay', (Math.random() * 1.8).toFixed(2) + 's');
-    star.style.setProperty('--star-a', _dfHexToRgba(primary, 0.72));
-    star.style.setProperty('--star-b', _dfHexToRgba(secondary, 0.94));
-    container.appendChild(star);
-  }
-}
-
-function _sfRenderOrbit(container, primary, secondary) {
-  if (!container) return;
-  container.innerHTML = '';
-  for (var i = 0; i < 27; i++) {
-    var dot = document.createElement('span');
-    dot.className = 'sukuyo-orbit-dot';
-    dot.style.setProperty('--i', String(i));
-    dot.style.setProperty('--orbit-color-a', _dfHexToRgba(primary, 0.76));
-    dot.style.setProperty('--orbit-color-b', _dfHexToRgba(secondary, 0.84));
-    container.appendChild(dot);
-  }
-}
-
-function _sfEnsureCardOpen(card) {
-  if (!card) return;
-  card.classList.add('feature-card--open');
-  var detail = card.querySelector('.feature-card__detail');
-  if (detail) detail.setAttribute('aria-hidden', 'false');
-  var cta = card.querySelector('.feature-card__cta');
-  if (cta) {
-    cta.setAttribute('aria-expanded', 'true');
-    var labelEl = cta.querySelector('.feature-card__cta-label');
-    if (labelEl) labelEl.textContent = _dfUiText('cta.sukuyoAgain', '🌙 숙요 꽃 다시 소환하기');
-    var arrowEl = cta.querySelector('.feature-card__cta-arrow');
-    if (arrowEl) arrowEl.textContent = '✦';
-  }
-  syncFeatureCardHeight(card);
-}
-
-function _sfApplyCardVisual(card, selection) {
-  if (!card || !selection) return;
-  var matched = selection.matched || {};
-  var flowerData = selection.flowerData || matched.flower_data || {};
-  var sukuyo = matched.sukuyo || {};
-  var intensity = matched.visual_intensity || { glow: 0.72, halo: 0.56, moon_style: 'lunar_flow', moon_label: _dfUiText('legacy.moonQuarter', '상현/하현달') };
-  var theme = matched.theme || {};
-
-  var stage = card.querySelector('.sukuyo-flower-stage');
-  var nameEl = document.getElementById('sfCardName');
-  var symbolismEl = document.getElementById('sfCardSymbolism');
-  var keywordsEl = document.getElementById('sfCardKeywords');
-  var mansionBadgeEl = document.getElementById('sfCardMansionBadge');
-  var phaseBadgeEl = document.getElementById('sfCardPhaseBadge');
-  var guardianBadgeEl = document.getElementById('sfCardGuardianBadge');
-  var dataLineEl = document.getElementById('sfCardDataLine');
-  var starfall = card.querySelector('.sukuyo-starfall-field');
-  var orbit = card.querySelector('.sukuyo-orbit-field');
-  var constellationPath = document.getElementById('sfCardConstellationPath');
-  var image = card.querySelector('.sukuyo-flower-stage__image');
-  var heroImage = card.querySelector('.sukuyo-flower-hero-image');
-  if (!stage || !nameEl || !symbolismEl || !keywordsEl) return;
-
-  card.style.setProperty('--sf-primary', selection.primary);
-  card.style.setProperty('--sf-secondary', selection.secondary);
-  card.style.setProperty('--sf-glow', String(intensity.glow || 0.72));
-  card.style.setProperty('--sf-halo', String(intensity.halo || 0.56));
-  if (theme.palette && theme.palette.bgGradient) {
-    stage.style.setProperty('--sf-lunar-bg', theme.palette.bgGradient);
-  }
-
-  nameEl.textContent = selection.flower.name + ' · ' + (selection.flower.scientific_name || 'Unknown species');
-  symbolismEl.textContent = matched.sukuyo_verdict || matched.narrative || _dfUiText('legacy.sukuyoReading', '숙요 27숙 기반 운명꽃을 판독 중입니다.');
-  keywordsEl.textContent = 'sukuyo flower keywords · ' + selection.keywords.join(' • ');
-  if (mansionBadgeEl) {
-    var mansionLabel = _dfNormalizeSukuyoMansionLabel(sukuyo.mansion_name);
-    var groupLabel = _dfNormalizeSukuyoGroupLabel(sukuyo.group);
-    mansionBadgeEl.textContent = (mansionLabel || _dfUiText('legacy.mansionUnknown', '숙 미확인')) + (groupLabel ? (' · ' + groupLabel) : '');
-  }
-  if (phaseBadgeEl) phaseBadgeEl.textContent = _dfUiText('badge.moonPhase', '달 위상 {value}', { value: sukuyo.moon_phase || intensity.moon_label || _dfUiText('value.pending', '판정 대기') });
-  if (guardianBadgeEl) guardianBadgeEl.textContent = _dfUiText('badge.guardian', '수호동물 {value}', { value: sukuyo.guardian_animal || _dfUiText('value.unknown', '미확인') });
-  if (dataLineEl) {
-    dataLineEl.textContent = (flowerData.focus_signal || _dfUiText('wait.sukuyoSignal', '숙요 시그널 대기')) + ' · ' + (flowerData.ritual_tip || _dfUiText('wait.moonRhythm', '달의 리듬을 동기화 중입니다.'));
-  }
-
-  if (constellationPath) {
-    var points = (sukuyo.constellation_points || (theme && theme.constellation_points) || []).slice(0, 10);
-    if (points.length >= 2) {
-      var d = 'M ' + points[0][0] + ' ' + points[0][1];
-      for (var i = 1; i < points.length; i++) d += ' L ' + points[i][0] + ' ' + points[i][1];
-      constellationPath.setAttribute('d', d);
-    }
-  }
-
-  _sfRenderStarfall(starfall, selection.primary, selection.secondary);
-  _sfRenderOrbit(orbit, selection.primary, selection.secondary);
-  _dfApplyGeneratedFlowerImage(image, selection, 'sukuyo');
-  _dfApplyGeneratedFlowerImage(heroImage, selection, 'sukuyo');
-
-  stage.classList.remove('is-eclipse', 'is-full-glow', 'is-lunar-flow', 'is-bloomed');
-  if (intensity.moon_style === 'eclipse') stage.classList.add('is-eclipse');
-  else if (intensity.moon_style === 'full_glow') stage.classList.add('is-full-glow');
-  else stage.classList.add('is-lunar-flow');
-
-  if (!card.__sfTiltBound) {
-    card.__sfTiltBound = true;
-    var image = card.querySelector('.sukuyo-flower-stage__image');
-    card.addEventListener('mousemove', function(e) {
-      if (!image) return;
-      var rect = card.getBoundingClientRect();
-      var rx = ((e.clientY - rect.top) / rect.height - 0.5) * -6;
-      var ry = ((e.clientX - rect.left) / rect.width - 0.5) * 7;
-      image.style.transform = 'rotateX(' + rx.toFixed(2) + 'deg) rotateY(' + ry.toFixed(2) + 'deg) scale(1.02)';
-    });
-    card.addEventListener('mouseleave', function() {
-      if (image) image.style.transform = '';
-    });
-    card.addEventListener('touchmove', function() {
-      if (image) image.style.transform = 'scale(1.015)';
-    }, { passive: true });
-    card.addEventListener('touchend', function() {
-      if (image) image.style.transform = '';
-    }, { passive: true });
-  }
-
-  void stage.offsetWidth;
-  stage.classList.add('is-bloomed');
 }
 
 function _dfApplyCardVisual(card, selection) {
@@ -5944,6 +5601,9 @@ function _dfGetNextRecommendedSource() {
 function _dfBuildSourceFlowGuide() {
   var nextSource = _dfGetNextRecommendedSource();
   if (!nextSource) return _dfUiText('guide.allBloomed', '모든 꽃이 개화되었습니다. 원하는 탭에서 다시 감상해 보세요.');
+  // 지금 탭에 결과가 떠 있으면 "다음 단계" 안내는 결과 문구와 어긋나므로 내지 않는다.
+  var shown = _dfStudioState.selection;
+  if (shown && shown.flower && _dfNormalizeSource(shown.source || 'saju') === _dfNormalizeSource(_dfStudioState.activeSource || 'saju')) return '';
   if (nextSource === 'saju') return _dfUiText('guide.startSaju', '다음 단계: 사주 꽃을 먼저 열어 개화를 시작해 보세요.');
   return _dfUiText('guide.next', '다음 단계: {source} 꽃으로 이동해 개화를 이어가세요.', { source: _dfSourceLabelText(nextSource) });
 }
@@ -6289,7 +5949,9 @@ function _dfGetSajuBadges(selection) {
       mansion: _dfNormalizeSukuyoMansionLabel(saved.mansion) || '미확인',
       group: _dfNormalizeSukuyoGroupLabel(saved.group || ''),
       phase: saved.phase || '미확인',
-      guardian: saved.guardian || '미확인'
+      guardian: saved.guardian || '미확인',
+      // 저장 당시 엔진이 준 표시용 이름. 빠뜨리면 복원 화면에 한국어 원값이 나온다.
+      labels: saved.labels || null
     };
   }
   if (saved && typeof saved === 'object' && saved.mode === 'jamidusu') {
@@ -6297,7 +5959,8 @@ function _dfGetSajuBadges(selection) {
       mode: 'jamidusu',
       star: saved.star || '미확인',
       brightness: saved.brightness || '미확인',
-      palace: saved.palace || '미확인'
+      palace: saved.palace || '미확인',
+      labels: saved.labels || null
     };
   }
   if (saved && typeof saved === 'object' && saved.mode === 'astrology') {
@@ -6724,7 +6387,9 @@ function _dfUiText(key, ko, vars) {
   try {
     if (typeof window.cdTranslate === 'function') return window.cdTranslate('fortune.destinyFlower.ui.' + key, vars || {}, ko);
   } catch (_) {}
-  return ko;
+  return String(ko == null ? '' : ko).replace(/\{(\w+)\}/g, function(match, name) {
+    return vars && vars[name] != null ? String(vars[name]) : match;
+  });
 }
 
 function _dfSourceLabelText(source) {
@@ -6766,6 +6431,12 @@ var _DF_BADGE_VALUE_KEYS = {
   '수(水)': '@water',
   '명궁': 'value.lifePalace'
 };
+/** 점성술 배지 원값은 영문 별자리(엔진 sun_sign 등). 화면에는 로케일 별자리 이름(ko 포함)을 낸다. */
+var _DF_ASTRO_SIGN_KO = {
+  Aries: '양자리', Taurus: '황소자리', Gemini: '쌍둥이자리', Cancer: '게자리',
+  Leo: '사자자리', Virgo: '처녀자리', Libra: '천칭자리', Scorpio: '전갈자리',
+  Sagittarius: '사수자리', Capricorn: '염소자리', Aquarius: '물병자리', Pisces: '물고기자리'
+};
 /** 배지 값 표시: 엔진 표시용 이름(labels.x)이 있으면 그것을, 없으면 원값을 로케일 문구로. */
 function _dfBadgeShow(badges, field, fallback) {
   var label = badges && badges.labels && badges.labels[field];
@@ -6779,6 +6450,9 @@ function _dfBadgeText(value) {
   if (!raw) return '';
   return raw.split(' · ').map(function(part) {
     var key = _DF_BADGE_VALUE_KEYS[part];
+    if (!key && Object.prototype.hasOwnProperty.call(_DF_ASTRO_SIGN_KO, part)) {
+      return _dfDictText('fortune.destinyFlower.astro.signs.' + part.toLowerCase(), _DF_ASTRO_SIGN_KO[part]);
+    }
     if (!key) {
       var group = /^(.+) 그룹$/.exec(part);
       return group ? _dfUiText('badge.group', '{group} 그룹', { group: group[1] }) : part;

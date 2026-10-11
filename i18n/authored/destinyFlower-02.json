@@ -12,7 +12,7 @@
     "fr": "Graine · Maître du jour",
     "de": "Samen · Tagesmeister",
     "nl": "Zaad · Dagmeester",
-    "ms": "Benih · Day master"
+    "ms": "Benih · Tuan Hari"
   },
   "fortune.destinyFlower.common.bloomLabel.season": {
     "ko": "계절 · 태어난 때",
@@ -96,7 +96,7 @@
     "fr": "« {language} » — le message de cette fleur pour vous, dont le maître du jour est {dayMasterBadge}.",
     "de": "„{language}“ — das sagt diese Blume dir, mit Tagesmeister {dayMasterBadge}.",
     "nl": "'{language}' — dit zegt deze bloem tegen jou, met dagmeester {dayMasterBadge}.",
-    "ms": "'{language}' — pesanan bunga ini untuk anda dengan day master {dayMasterBadge}."
+    "ms": "'{language}' — pesanan bunga ini untuk anda dengan Tuan Hari {dayMasterBadge}."
   },
   "fortune.destinyFlower.common.flowerLanguage.anchor": {
     "ko": "'{language}' — {anchor}의 당신에게 이 꽃이 건네는 말이에요.",
@@ -138,7 +138,7 @@
     "fr": "Une fleur parmi {total}, choisie par un Saju au maître du jour {dayMasterBadge}, né en saison {season}",
     "de": "Eine Blume aus {total}, gewählt von einem Saju mit Tagesmeister {dayMasterBadge}, geboren im {season}",
     "nl": "Eén bloem uit {total}, gekozen door een Saju met dagmeester {dayMasterBadge}, geboren in de {season}",
-    "ms": "Sekuntum daripada {total}, dipilih oleh Saju day master {dayMasterBadge} yang lahir pada {season}"
+    "ms": "Sekuntum daripada {total}, dipilih oleh Tuan Hari {dayMasterBadge} yang lahir pada {season}"
   },
   "fortune.destinyFlower.saju.shareHook.rarityDayMaster": {
     "ko": "{dayMasterBadge} 일간의 사주가 {total}송이 가운데 고른 한 송이",
@@ -152,7 +152,7 @@
     "fr": "Une fleur parmi {total}, choisie par un Saju au maître du jour {dayMasterBadge}",
     "de": "Eine Blume aus {total}, gewählt von einem Saju mit Tagesmeister {dayMasterBadge}",
     "nl": "Eén bloem uit {total}, gekozen door een Saju met dagmeester {dayMasterBadge}",
-    "ms": "Sekuntum daripada {total}, dipilih oleh Saju day master {dayMasterBadge}"
+    "ms": "Sekuntum daripada {total}, dipilih oleh Tuan Hari {dayMasterBadge}"
   },
   "fortune.destinyFlower.saju.shareHook.rarityPlain": {
     "ko": "내 사주가 {total}송이 가운데 고른 한 송이",
@@ -166,7 +166,7 @@
     "fr": "La fleur que mon Saju a choisie parmi {total}",
     "de": "Die eine Blume, die mein Saju aus {total} gewählt hat",
     "nl": "De ene bloem die mijn Saju uit {total} koos",
-    "ms": "Sekuntum yang dipilih Saju aku daripada {total}"
+    "ms": "Sekuntum yang dipilih Empat Tiang aku daripada {total}"
   },
   "fortune.destinyFlower.common.shareHook.rarityAnchor": {
     "ko": "{anchor}(으)로 읽어 낸 단 한 송이",
@@ -258,13 +258,13 @@
     "ja": "四柱推命",
     "zh-CN": "八字",
     "zh-TW": "八字",
-    "vi": "Saju",
+    "vi": "Tứ Trụ",
     "hi": "साजू",
     "es": "Saju",
     "fr": "Saju",
     "de": "Saju",
     "nl": "Saju",
-    "ms": "Saju"
+    "ms": "Empat Tiang"
   },
   "fortune.destinyFlower.ui.source.astrology": {
     "ko": "점성술",
@@ -348,7 +348,7 @@
     "fr": "Maître du jour",
     "de": "Tagesmeister",
     "nl": "Dagmeester",
-    "ms": "Day master"
+    "ms": "Tuan Hari"
   },
   "fortune.destinyFlower.ui.specimen.mark.saju.secondary": {
     "ko": "계절",

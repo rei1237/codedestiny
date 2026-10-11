@@ -566,7 +566,9 @@
       "letterStartTitle": "새싹처럼 · 시작할 용기가 필요해요",
       "letterStartBody": "큰 결심보다 작은 싹 하나를 틔워봐요. 미뤄둔 일의 첫 단계만 적고, 5분 동안 손을 움직여 보세요.",
       "letterShareTitle": "꽃다발처럼 · 마음을 전하고 싶어요",
-      "letterShareBody": "상대에게 바라는 말보다 고마웠던 순간 하나를 떠올려봐요. 답을 재촉하지 않는 짧은 안부로 마음을 건네보세요."
+      "letterShareBody": "상대에게 바라는 말보다 고마웠던 순간 하나를 떠올려봐요. 답을 재촉하지 않는 짧은 안부로 마음을 건네보세요.",
+      "askAi": "AI에게 묻기",
+      "close": "닫기"
     },
     "tarotSelfEsteem": {
       "levelUp": "내 기준이 따뜻하게 되살아납니다",
@@ -10281,7 +10283,9 @@
           "strengthSupport": "사주가 신약해 일간을 북돋아 주는 {elements} 기운의 꽃에 무게를 두었어요.",
           "yongshin": "이 꽃에는 사주에 필요한 용신 기운이 담겨 있어요 — {elements}.",
           "johuWarm": "사주가 차고 습한 편이라 햇볕처럼 데워 줄 따뜻한 꽃에 무게를 두었어요.",
-          "johuCool": "사주가 덥고 메마른 편이라 열기를 식혀 줄 물기 많은 꽃에 무게를 두었어요."
+          "johuCool": "사주가 덥고 메마른 편이라 열기를 식혀 줄 물기 많은 꽃에 무게를 두었어요.",
+          "scenario": "{reason}",
+          "verdict": "그래서 지금 당신에게 건네는 꽃은 {flowerName}({scientificName})입니다."
         },
         "rationaleLabel": {
           "dayMaster": "일간 기질",
@@ -10290,7 +10294,11 @@
           "yongshin": "용신",
           "johuWarm": "조후 · 한습",
           "johuCool": "조후 · 온조"
-        }
+        },
+        "growthCycle": "발아(기운 수집) → 신장(행동 증폭) → 개화(성과 표면화) → 결실(관계/자산 축적)",
+        "fallbackNote": "생년월일 정보만으로 일간의 기운을 조심스럽게 짚어보았습니다.",
+        "stickerLabel": "사주로 보는 꽃",
+        "verdict": "사주로 볼 때 지금 당신에게 온 꽃은 {flowerName}({scientificName})입니다."
       },
       "ui": {
         "source": {
@@ -10721,7 +10729,8 @@
       },
       "flowers": {
         "lotus": {
-          "flowerLanguage": "청결, 깨끗한 마음"
+          "flowerLanguage": "청결, 깨끗한 마음",
+          "name": "연꽃"
         },
         "cactus_flower": {
           "flowerLanguage": "불타는 마음, 열정"
@@ -10934,7 +10943,8 @@
           "flowerLanguage": "고전적인 아름다움, 사랑"
         },
         "astro_lavender": {
-          "flowerLanguage": "기대, 맑은 생각"
+          "flowerLanguage": "기대, 맑은 생각",
+          "name": "성운 라벤더"
         },
         "bird_of_paradise": {
           "flowerLanguage": "영원히 사랑하는 멋쟁이"
@@ -11006,7 +11016,15 @@
         "rationaleLabel": {
           "sun": "태양궁",
           "risingMoon": "상승궁 · 달궁"
-        }
+        },
+        "elements": {
+          "Fire": "불",
+          "Earth": "흙",
+          "Air": "공기",
+          "Water": "물",
+          "Cosmic": "별"
+        },
+        "growthCycle": "별의 호출 → 궤적 형성 → 성운 개화 → 광휘 확산"
       },
       "ziwei": {
         "stars": {
@@ -11088,7 +11106,46 @@
         "rationaleLabel": {
           "lifeStar": "명궁 주성",
           "personality": "타고난 성격"
-        }
+        },
+        "rules": {
+          "peonyZiwei": {
+            "title": "제왕의 모란",
+            "keyword": "제왕의 기품",
+            "personality": "중심을 세우고 주변의 질서를 정돈하는 리더형"
+          },
+          "thornyRoseGeneral": {
+            "title": "장군의 붉은 장미",
+            "keyword": "돌파의 결단",
+            "personality": "압박 속에서도 전선을 밀어붙이는 결단형"
+          },
+          "thornyRosePioneer": {
+            "title": "개척자의 붉은 장미",
+            "keyword": "판을 바꾸는 추진력",
+            "personality": "기존 틀을 깨고 새 질서를 여는 혁신형"
+          },
+          "delicateWillow": {
+            "title": "책사의 버드나무꽃",
+            "keyword": "부드러운 지략",
+            "personality": "상황을 유연하게 읽고 최적 해법을 찾는 전략형"
+          },
+          "sunflowerZiwei": {
+            "title": "태양의 해바라기",
+            "keyword": "빛의 확장",
+            "personality": "목표를 향해 에너지를 집중해 성과를 끌어내는 실행형"
+          },
+          "nightCereus": {
+            "title": "달빛의 월하미인",
+            "keyword": "야간 개화의 신비",
+            "personality": "깊은 내면 통찰로 보이지 않는 흐름을 읽는 성찰형"
+          },
+          "orchidTanlang": {
+            "title": "도화의 난초",
+            "keyword": "관능적 매혹",
+            "personality": "관계와 표현의 미감을 살려 사람을 이끄는 매력형"
+          }
+        },
+        "growthCycle": "별 정렬 → 기운 응집 → 씨앗 점화 → 개화",
+        "hybridHint": "사주 {dayMaster} 기운과 자미두수 {stars} 주성을 결합한 하이브리드 렌더링 가능"
       },
       "sukuyo": {
         "mansions": {
@@ -11163,7 +11220,23 @@
         },
         "rationaleLabel": {
           "mansion": "숙 · 달 위상"
-        }
+        },
+        "moon": {
+          "full": "보름달",
+          "new": "그믐달",
+          "crescent": "초승달",
+          "gibbous": "상현/하현달"
+        },
+        "stickerLabel": "숙요점으로 보는 꽃",
+        "moonPhaseLabel": "달 위상 {moon}",
+        "guardianLabel": "수호동물 {guardian}",
+        "scenarioTitle": "27숙-달 위상 통합 개화 시나리오",
+        "ritualTip": "달빛이 보이는 창가에서 27번 호흡하며 오늘의 의도를 한 단어로 고정해보세요.",
+        "relationshipTheme": "{group}의 결을 따를수록 관계의 긴장이 누그러지고 교감이 선명해집니다.",
+        "careerTheme": "{guardian} 패턴의 실행 리듬을 업무 루틴에 반영하면 성과가 안정됩니다.",
+        "verdict": "달빛의 결로 읽은 당신의 꽃은 {flowerName}({scientificName})입니다. {mansion}·{moon}·{guardian}이 어우러지는 자리가 지금 당신의 인연과 감정, 행동의 리듬과 가장 섬세하게 맞물립니다.",
+        "narrative": "{mansion}({group})이 맺어 주는 인연의 결, 달 위상 {moon}이 밀어 올리는 감정의 조수, 수호동물 {guardianJosa} 새겨 준 보호의 문양이 한밤의 정원에서 하나로 겹칩니다. 이 세 갈래 달빛을 포개어 읽으면 \"{symbolism}\"의 성향이 짙게 배어나고, 지금 당신에게 가장 정확한 한 송이는 {flowerName}입니다.",
+        "growthCycle": "별자리 연결 → 달빛 응집 → 영성 점화 → 개화"
       }
     }
   }

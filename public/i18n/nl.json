@@ -2734,7 +2734,7 @@
       },
       "astro": {
         "elements": {
-          "Fire": "brand",
+          "Fire": "vuur",
           "Earth": "aarde",
           "Air": "lucht",
           "Water": "water",
@@ -2752,25 +2752,25 @@
         "ritualTip": "Houd vanavond je adem drie minuten lang vast en zet één intentie onder een ster.",
         "relationshipTheme": "Wanneer relaties het ritme van uw hoofdteken volgen, wordt de wrijving zachter.",
         "careerTheme": "Breng de kernaandrijving van uw zonneteken in uw werkroutine voor een stabieler momentum.",
-        "growthCycle": "Sterrenroep “baanvormende” nevel bloeit → straling verspreidt zich",
+        "growthCycle": "Roep van de sterren → baanvorming → nevelbloei → uitstraling die zich verspreidt",
         "fallbackNote": "Zonnetekengegevens waren niet beschikbaar, dus bij de meting werd het standaard luchtelement gebruikt.",
         "ultimateTitle": "Ultieme bestemmingsbloem",
         "ultimateConcept": "Een hybride bloei waarbij oosterse {dayMaster} energie samensmelt met westers {sunSign} sterrenlicht",
         "verdict": "Door astrologie is je bestemmingsbloem {flowerName} ({scientificName}). De drie assen van de zon-, rijzende- en maantekens laten zien dat deze bloem nu nauw met jou resoneert.",
         "narrative": "De {sunElement} vonk die opstijgt uit het zonneteken {sun} wordt het middelpunt van deze bloemkeuze. Het stijgende teken {rising} ({risingElement}) vormt de zichtbare toon, terwijl het maanteken {moon} ({moonElement}) emotionele dauw toevoegt, waardoor het symbool van {flowerName}, {flowerSymbolism}, duidelijk openen. Het trefwoord “{keyword}” is het sterrenlicht dat deze bloem naar voren roept.",
         "signs": {
-          "aries": "Aries",
-          "taurus": "Taurus",
-          "gemini": "Gemini",
-          "cancer": "Cancer",
-          "leo": "Leo",
-          "virgo": "Virgo",
-          "libra": "Libra",
-          "scorpio": "Scorpio",
-          "sagittarius": "Sagittarius",
-          "capricorn": "Capricorn",
-          "aquarius": "Aquarius",
-          "pisces": "Pisces"
+          "aries": "Ram",
+          "taurus": "Stier",
+          "gemini": "Tweelingen",
+          "cancer": "Kreeft",
+          "leo": "Leeuw",
+          "virgo": "Maagd",
+          "libra": "Weegschaal",
+          "scorpio": "Schorpioen",
+          "sagittarius": "Boogschutter",
+          "capricorn": "Steenbok",
+          "aquarius": "Waterman",
+          "pisces": "Vissen"
         },
         "rationaleLabel": {
           "sun": "Zonneteken",
@@ -2784,8 +2784,8 @@
           "li": "Li (利)",
           "de": "De (得)",
           "ping": "Ping (平)",
-          "han": "Xian (閑)",
-          "xian": "Xian (陷)",
+          "han": "Xián (閑)",
+          "xian": "Xiàn (陷)",
           "bu": "Bu (不)"
         },
         "coreFlow": "kernfortuinstroom",
@@ -2797,7 +2797,7 @@
         "ritualTip": "Kernzoekwoord vandaag: {keyword}",
         "relationshipTheme": "Laat het sterke-ster-temperament uw relationele standaard worden en harmonie wordt duidelijker.",
         "careerTheme": "Wanneer de kracht van de hoofdrolspeler het front overneemt, stabiliseren uitvoering en positionering.",
-        "growthCycle": "Steruitlijning “energie verzamelen” zaadontsteking → bloei",
+        "growthCycle": "Uitlijning van de sterren → bundeling van energie → ontbranding van het zaad → bloei",
         "secondaryFallbackNote": "Samengestelde hoofdsteraanpassing: {primaryStar} gecentreerd + {secondaryStar} geurmengsel",
         "palaceFallbackNote": "Aanpassing van paleiseigenschappen: {palace} · {trait}",
         "hybridHint": "Hybride weergave beschikbaar door Saju {dayMaster}-energie te combineren met Ziwei-hoofdsterren {stars}",
@@ -2808,7 +2808,7 @@
           "peonyZiwei": {
             "title": "Keizerlijke pioen",
             "keyword": "imperiale houding",
-            "personality": "een leider die het veld centreert en de orde herstelt"
+            "personality": "een leider die in het midden staat en orde om zich heen schept"
           },
           "thornyRoseGeneral": {
             "title": "Rode roos van de generaal",
@@ -2817,8 +2817,8 @@
           },
           "thornyRosePioneer": {
             "title": "Rode roos van de pionier",
-            "keyword": "de aandrijving om het veld opnieuw vorm te geven",
-            "personality": "een vernieuwer die het oude frame doorbreekt en een nieuwe order opent"
+            "keyword": "de drijvende kracht die het speelveld verandert",
+            "personality": "een vernieuwer die het oude kader doorbreekt en een nieuwe orde opent"
           },
           "delicateWillow": {
             "title": "Wilgenbloem van de strateeg",
@@ -2826,9 +2826,9 @@
             "personality": "een strateeg die het moment leest en het schoonste antwoord vindt"
           },
           "sunflowerZiwei": {
-            "title": "Zonnebloem",
+            "title": "Zonnebloem van de zon",
             "keyword": "uitdijend licht",
-            "personality": "een executeur die energie verzamelt voor zichtbare resultaten"
+            "personality": "een doener die energie op het doel bundelt en zichtbare resultaten haalt"
           },
           "nightCereus": {
             "title": "Maanverlichte nachtbloeiende Cereus",
@@ -2915,20 +2915,20 @@
       "sukuyo": {
         "moon": {
           "full": "volle maan",
-          "new": "donkere maan",
-          "crescent": "halve maan",
+          "new": "nieuwe maan",
+          "crescent": "maansikkel",
           "gibbous": "wassende/afnemende maan"
         },
-        "stickerLabel": "Bloem van Sukuyo",
+        "stickerLabel": "Bloem volgens Sukuyo",
         "moonPhaseLabel": "Maanfase {moon}",
-        "guardianLabel": "Bewaker {guardian}",
-        "scenarioTitle": "27 herenhuizen en maanfase-bloeiscenario",
+        "guardianLabel": "Beschermdier {guardian}",
+        "scenarioTitle": "Bloeiscenario van de 27 maanhuizen en de maanfase",
         "ritualTip": "Bij een maanverlicht raam, adem 27 keer en zet de intentie van vandaag in één woord.",
         "relationshipTheme": "Het volgen van de textuur van {group} verzacht de spanning en verduidelijkt de verbinding.",
         "careerTheme": "Wanneer het ritme van {guardian} wordt weerspiegeld in uw werkroutine, stabiliseren de resultaten.",
-        "growthCycle": "Constellatie die “maanlicht verzamelen” geestontsteking met elkaar verbindt → bloei",
+        "growthCycle": "Verbinding van sterrenbeelden → bundeling van maanlicht → spirituele ontbranding → bloei",
         "verdict": "Door de maanlichttextuur van Sukuyo is je bestemmingsbloem {flowerName} ({scientificName}). De combinatie van {mansion}, {moon} en {guardian} sluit subtiel aan bij het ritme van relatie, emotie en actie van nu.",
-        "narrative": "De relationele textuur van {mansion} ({group}), het getij van de maanfase {moon} en het beschermende patroon van {guardian} ontmoeten elkaar in de nachttuin en verdiepen de kwaliteit van{symbolism}. Lees samen: deze drie maanverlichte signalen wijzen naar {flowerName} als je meest precieze bestemmingsbloem op dit moment.",
+        "narrative": "De relationele textuur van {mansion} ({group}), het getij van de maanfase {moon} en het beschermende patroon van {guardianJosa} ontmoeten elkaar in de nachttuin en verdiepen de kwaliteit van {symbolism}. Lees samen: deze drie maanverlichte signalen wijzen naar {flowerName} als je meest precieze bestemmingsbloem op dit moment.",
         "mansions": {
           "m1": "Kaku (角)",
           "m2": "Kou (亢)",
@@ -3154,20 +3154,20 @@
             }
           }
         },
-        "stickerLabel": "Bloem van Saju",
+        "stickerLabel": "Bloem volgens Saju",
         "dayMasterWaiting": "Wachten op lezen van de dagmaster",
         "signalPending": "Wachten op kernsignalen",
         "scenarioTitleFallback": "{dayMasterBadge} bloeiscenario",
         "scenarioFallbackReason": "De bloeiende stroom werd gelezen door de dagmaster en de omgeving te integreren.",
-        "growthCycle": "Spruit (energie verzamelen) “ Groei (versterkende actie) ” Bloei (resultaten komen naar boven) → Vrucht (relaties en verdieping van activa)",
-        "fallbackNote": "Dagmasterverrijkingslogica is toegepast.",
+        "growthCycle": "Ontkiemen (energie verzamelen) → Groeien (actie versterken) → Bloeien (resultaten worden zichtbaar) → Vrucht dragen (relaties en bezit opbouwen)",
+        "fallbackNote": "We hebben de energie van je dagmeester voorzichtig gelezen op basis van alleen je geboortedatum.",
         "verdict": "In je Saju-lezing is je bloem {flowerName} ({scientificName}).",
         "rationale": {
           "verdict": "In je Saju-lezing is je bestemmingsbloem {flowerName} ({scientificName}).",
           "elements": "De Vijf Elementen-lezing toont {dominant} als je belangrijkste energie en {support} als de ondersteunende stroom.",
           "context": "Het seizoen van het huidige fortuin is {season}, de energiedichtheid is {water} en de levensfase wordt gelezen als {environment}.",
           "dayMaster": "De dagmaster wordt bevestigd als {dayMasterBadge} en de seizoen-omgevingsinteractie daaromheen heeft prioriteit gekregen.",
-          "scenario": "Dag master-omgevingsscenario: {reason}",
+          "scenario": "{reason}",
           "levels": "De elementniveaus zijn {elementLevelLine} en alle vijf niveaus zijn gewogen om de bestemmingsbloem te bevestigen.",
           "symbolism": "Deze bloem symboliseert {symbolism} en weerspiegelt het thema van dit seizoen het duidelijkst.",
           "description": "Bestemmingsbloemlezing: {description}",
@@ -8192,7 +8192,7 @@
       "007": "Ascendant",
       "008": "Maanteken",
       "009": "Sterk/Zwak Zelf",
-      "010": "Leidende God",
+      "010": "Nuttig Element",
       "011": "Klimaatregeling"
     },
     "message": {
@@ -20535,18 +20535,18 @@
       "pig": "Pig"
     },
     "sign": {
-      "aries": "Aries",
-      "taurus": "Taurus",
-      "gemini": "Gemini",
-      "cancer": "Cancer",
-      "leo": "Leo",
-      "virgo": "Virgo",
-      "libra": "Libra",
-      "scorpio": "Scorpio",
-      "sagittarius": "Sagittarius",
-      "capricorn": "Capricorn",
-      "aquarius": "Aquarius",
-      "pisces": "Pisces"
+      "aries": "Ram",
+      "taurus": "Stier",
+      "gemini": "Tweelingen",
+      "cancer": "Kreeft",
+      "leo": "Leeuw",
+      "virgo": "Maagd",
+      "libra": "Weegschaal",
+      "scorpio": "Schorpioen",
+      "sagittarius": "Boogschutter",
+      "capricorn": "Steenbok",
+      "aquarius": "Waterman",
+      "pisces": "Vissen"
     },
     "stem": {
       "wood": "Wood",
