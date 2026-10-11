@@ -1,3 +1,5 @@
+import { normalizeNarrativeParagraphs } from './narrative-format.js';
+
 function task(id, title, minChars) { return { id, minChars, prompt: `${title} 부분만 해설하세요. 다른 부분의 내용을 요약하거나 반복하지 마세요.` }; }
 // 3,000원 상품: 부분 minChars 합계 약 9,000자. 분량은 목표일 뿐이고 짧아도 완결된 본문은 전달한다.
 export function seedPetReport(blueprint, prompt, systemPrompt) {
@@ -15,8 +17,14 @@ export function seedPetCompat(compat, pets, prompt, systemPrompt) {
     task('routine', '두 아이에게 맞추는 일과 예시와 상태별 조정', 800), task('verdict', '관계의 핵심 조건을 짧게 요약 (결과를 단정하지 않기)', 60)];
   return { compat, pets, prompt, systemPrompt, tasks, kind: 'compat' };
 }
+// The page shows each part as one pre-line block, and a model sometimes returns a whole part as one
+// paragraph; a long block is split at sentence ends (about 400 chars each) without changing its text.
+function readable(body) {
+  const want = Math.ceil(body.length / 400), paragraphs = body.split(/\n\s*\n/).filter(part => part.trim());
+  return paragraphs.length < want && paragraphs.some(part => part.length > 600) ? normalizeNarrativeParagraphs(body, want) : body;
+}
 export function renderPetNarrative(state) {
-  const parts = state.parts, text = id => parts[id] || '';
+  const parts = state.parts, text = id => readable(parts[id] || '');
   if (state.kind === 'report') return { title: '반려동물 사주 AI 심층 리포트', blueprint: state.blueprint, report: {
     personality: [text('personality:0'), text('personality:1')].filter(Boolean), habitats: state.blueprint.deep.habitats.map(item => ({ id: item.id, reading: text(`habitat:${item.id}`) })),
     plays: state.blueprint.deep.plays.slice(0, 3).map((_, i) => text(`play:${i}`)).filter(Boolean), coach: text('coach'), care: text('care'), closing: text('closing'), degraded: false,

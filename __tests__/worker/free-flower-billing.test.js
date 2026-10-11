@@ -6,9 +6,9 @@ import {createOrder} from '../../worker/payments/orders.js';
 import {spendMoonstone} from '../../worker/payments/moonstone.js';
 
 const userId='507f1f77bcf86cd799439011';
-const product={featureKey:'flower-fc',priceKRW:1000,priceCoins:10,monthlyCost:10};
+const product={featureKey:'flower-fc',priceKRW:5000,priceCoins:50,monthlyCost:500};
 test('historical flower pricing still resolves, while new purchases are disabled',()=>{
- expect(getBillingFeaturePricing({featureKey:'flower-fc'}).pricing.amountKRW).toBe(1000);
+ expect(getBillingFeaturePricing({featureKey:'flower-fc'}).pricing.amountKRW).toBe(5000);
  expect(assertFeatureEnabled(product)).toMatchObject({ok:false,code:'FEATURE_NOW_FREE'});
  expect(()=>resolveLegacyProduct({featureKey:'openDestinyFlowerStudio'})).toThrow();
  expect(assertFeatureEnabled({featureKey:'olympus-fc'}).ok).toBe(true);

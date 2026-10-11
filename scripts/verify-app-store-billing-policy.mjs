@@ -111,7 +111,8 @@ for (const featureKey of ["tarot-love-relationship", "vedic-ai-consultation"]) {
 console.log("\n[5] 등록되지 않은 가격대는 fail-closed인가");
 check("999코인(미등록 가격대) → 티어 해석 거부", resolveAppContentTier(999) === null);
 check("0코인 → 티어 해석 거부", resolveAppContentTier(0) === null);
-check("인하된 꽃 상품은 검증된 천원 SKU 등록 전 결제를 닫음", resolveProductForFeature("flower-fc") === null);
+check("꽃 상품은 기존 5,000원 SKU로 웹가와 같은 앱가를 사용함", resolveProductForFeature("flower-fc")?.amountKRW === 5000);
+check("천원 운세는 신규 tier_15로 웹가와 같은 앱가를 사용함", resolveProductForFeature("rpt_specialCharmCard")?.amountKRW === 1000);
 
 console.log("\n[6] RTDN 환불 알림이 해석되는가");
 function extractVoided(decoded) {

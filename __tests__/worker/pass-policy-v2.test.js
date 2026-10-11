@@ -54,13 +54,13 @@ describe("versioned flower passes", () => {
     expect(isPassBudgetExhausted("family", 4991, 5000, family)).toBe(true);
     expect(isPassBudgetExhausted("family", 5000, 5000, family)).toBe(true);
   });
-  test("three-card, five-card, saju and compatibility teas cost 5,000", () => {
+  test("three-card, five-card, saju and compatibility teas cost 10,000", () => {
     const tea = Object.entries(FEATURE_KEY_PRICE_TABLE).filter(([key]) => key.startsWith("fortune-tea-house-"));
     expect(tea).toHaveLength(5);
-    expect(tea.every(([, value]) => value.amountKRW === 5000 && value.cost === 50)).toBe(true);
+    expect(tea.every(([, value]) => value.amountKRW === 10000 && value.cost === 100)).toBe(true);
     expect(FEATURE_KEY_PRICE_TABLE["fusion-fortune-consultation"]).toMatchObject({ cost: 500, amountKRW: 50000 });
-    expect(FEATURE_KEY_PRICE_TABLE["yeongnyangi-saju-mackerel"].amountKRW).toBe(3000);
-    expect(FEATURE_KEY_PRICE_TABLE["yeongnyangi-fusion-all"]).toMatchObject({ cost: 800, amountKRW: 80000, paymentScope: "direct_or_family" });
+    expect(FEATURE_KEY_PRICE_TABLE["yeongnyangi-saju-mackerel"].amountKRW).toBe(5000);
+    expect(FEATURE_KEY_PRICE_TABLE["yeongnyangi-fusion-all"]).toMatchObject({ cost: 700, amountKRW: 70000, paymentScope: "direct_or_family" });
     for (const key of ["yeongnyangi-fusion-saju-ziwei", "yeongnyangi-fusion-sukuyo-vedic", "yeongnyangi-fusion-astrology-tarot"]) {
       expect(FEATURE_KEY_PRICE_TABLE[key].amountKRW).toBe(50000);
     }

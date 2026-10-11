@@ -143,7 +143,7 @@ describe("verifyPsychoDreamAccess (real implementation)", () => {
     mockVerifyPerUsePayment.mockResolvedValue({ proven, source: "moonstone" });
     const response = await handleDreamRoutes(buildRequest({ dreamText: "햇살 아래 산책하는 꿈을 꾸었습니다.", premiumAccessToken: "expired", requestId: "original-paid-request" }), {});
     expect(response.status).toBe(proven === true ? 200 : proven === null ? 503 : 402);
-    expect(mockVerifyPerUsePayment).toHaveBeenCalledWith({}, expect.objectContaining({ userId: "user-1", featureKey: "dream-psycho-analysis", requestId: "original-paid-request", coinPrice: 30 }));
+    expect(mockVerifyPerUsePayment).toHaveBeenCalledWith({}, expect.objectContaining({ userId: "user-1", featureKey: "dream-psycho-analysis", requestId: "original-paid-request", coinPrice: 50 }));
   });
 
   test("이용권도 결제 토큰도 없으면 402 결제 요구를 반환한다", async () => {

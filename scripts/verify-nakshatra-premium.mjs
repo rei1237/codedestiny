@@ -412,7 +412,7 @@ console.log("\n[7] 라우트 계약 — 결제 게이팅 원칙 준수");
 console.log("\n[8] 레지스트리 정합 — 가격·과금유형");
 {
   const routeSource = readFileSync(path.join(repoRoot, "worker/routes/nakshatra-premium.js"), "utf8");
-  for (const [key, coin, krw] of [["nakshatra-lord-report", 10, 1000], ["nakshatra-dasha-map", 10, 1000]]) {
+  for (const [key, coin, krw] of [["nakshatra-lord-report", 50, 5000], ["nakshatra-dasha-map", 50, 5000]]) {
     check(`${key} 가 UNLOCK(영구해금) 유형으로 등록돼 있다`, isUnlockPaidFeatureKey(key));
     const product = UNLOCK_PRODUCT_BY_FEATURE_KEY[key];
     check(`${key} 레지스트리 코인가 ${coin} (unlock accessModel, no forceDeduct)`,
@@ -463,8 +463,8 @@ console.log("\n[9] 프론트 계약 — 결제·잠금 판정의 단일 정본")
     /GenderPrompt/.test(stripComments(dashaClient)));
 
   for (const [relative, featureKey, coin, krw] of [
-    ["app/nakshatra/lord-report/LordReportClient.tsx", "nakshatra-lord-report", 10, 1000],
-    ["app/nakshatra/dasha-map/DashaMapClient.tsx", "nakshatra-dasha-map", 10, 1000],
+    ["app/nakshatra/lord-report/LordReportClient.tsx", "nakshatra-lord-report", 50, 5000],
+    ["app/nakshatra/dasha-map/DashaMapClient.tsx", "nakshatra-dasha-map", 50, 5000],
   ]) {
     let source = "";
     try { source = readFileSync(path.join(repoRoot, relative), "utf8"); } catch { /* 아래에서 실패 처리 */ }

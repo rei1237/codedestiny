@@ -577,8 +577,8 @@
       "sajuFptiAlt": "Prueba Saju FPTI - Personalidad de cuatro ejes a través de elementos y Diez Dioses",
       "sajuFptiImgAlt": "Prueba FPTI de Saju",
       "basicFreeBadge": "Básico gratis",
-      "price3000": "Una vez KRW 3000",
-      "price5000": "Una vez 3000 KRW",
+      "price3000": "Una vez KRW 3,000",
+      "price5000": "Una vez 5,000 KRW",
       "price10000": "Una vez 10.000 KRW",
       "cosmicSoulPrice": "30 min 5 000 KRW · 60 min 10 000 KRW",
       "compatibilityPrice": "Compatibilidad KRW 3000",
@@ -600,7 +600,9 @@
       "price5000Price3000": "Una vez 3,000 KRW",
       "price10000Price5000": "Una vez 5.000 KRW",
       "unlock1000": "Desbloquear KRW 1,000",
-      "price1000": "Una vez KRW 1,000"
+      "price1000": "Una vez KRW 1,000",
+      "sajuGuardianPricePrice5000Price7000": "Desbloqueo permanente KRW 7 000",
+      "unlock1000Price5000": "Desbloquear KRW 5,000"
     },
     "destinyFlowerStudio": {
       "closeAria": "Cerrar Atelier de la Flor del Destino",
@@ -1353,7 +1355,8 @@
         "w20000": "₩20,000",
         "from3000": "From ₩3,000",
         "w1000": "₩1,000",
-        "from9000": "From ₩9,000"
+        "from5000": "From ₩5,000",
+        "w7000": "₩7,000"
       },
       "chip": {
         "love": "Their feelings · My next love",
@@ -1614,14 +1617,14 @@
       "pass": "Pases",
       "login": "Iniciar sesión",
       "account": "Mi cuenta",
-      "offerTitle": "El Saju que se leía en consultas 1:1 de ₩300.000, ahora desde ₩3.000",
+      "offerTitle": "El Saju que se leía en consultas 1:1 de ₩300.000, ahora desde ₩5.000",
       "reviewsLead": "Mensajes reales de KakaoTalk de clientes de las consultas 1:1 de Neo, citados en el coreano original. Las omisiones se marcan con ….",
       "reviewsBar": "Consulta 1:1 con Neo · KakaoTalk",
       "reviewsMeta": "Opinión real · publicada con consentimiento",
       "reviewsPosted": "publicado en el blog",
       "reviewsFine": "Las opiniones reflejan experiencias personales y no garantizan resultados. La lectura Saju es solo orientativa.",
-      "offerNote": "Las consultas 1:1 las hacía Neo en persona; la lectura de ₩3.000 se ofrece con un motor de cálculo y comentarios de IA.",
-      "offerCta": "Ver la lectura Saju de ₩3.000 →",
+      "offerNote": "Las consultas 1:1 las hacía Neo en persona; la lectura de ₩5.000 se ofrece con un motor de cálculo y comentarios de IA.",
+      "offerCta": "Ver la lectura Saju de ₩5.000 →",
       "expertiseTitle": "Cálculo con reglas fijas, comentario con IA",
       "expertise": {
         "engine": "La carta natal se construye con reglas de cálculo fijas y la IA redacta el comentario a partir de ese resultado. Si el comentario cita un pilar del día o de la hora distinto del calculado, el servidor lo descarta.",
@@ -7740,7 +7743,9 @@
         "n30000": "₩30.000",
         "n20000Price10000": "Desde ₩10.000",
         "n50000": "₩50.000",
-        "n30000Price20000": "₩20.000"
+        "n30000Price20000": "₩20.000",
+        "n5000Price10000": "Desde ₩10.000",
+        "n30000Price20000Price30000": "₩30.000"
       }
     },
     "cdSigCardBody": {
@@ -7804,7 +7809,7 @@
       "fortuneGatewayDoorMeta": {
         "n130000": "₩30.000 por lectura",
         "k1lo4ibg": "verificación cruzada final",
-        "n13000": "₩3.000 por sesión"
+        "n13000": "₩5.000 por sesión"
       },
       "fortuneGatewayDoorGo": {
         "kkmvgqi": "Start a reading",

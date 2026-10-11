@@ -248,7 +248,6 @@
 /public/js/vendor/sweph-wasm/index.js
 /public/js/vendor/sweph-wasm/wasm/swisseph.js
 /public/js/vendor/sweph-wasm/wasm/swisseph.wasm
-/public/llms.txt
 /public/manifest-neo.json
 /public/manifest.en.json
 /public/manifest.ja.json
@@ -298,6 +297,7 @@
 /public/styles/recommendations.css
 /public/styles/review-reward.css
 /public/styles/saju-entry-flow.css
+/public/styles/saju-reading.css
 /public/styles/sibyl-system.css
 /public/styles/tarot-healing-dawn.css
 /public/styles/tarot-love-mystic.css

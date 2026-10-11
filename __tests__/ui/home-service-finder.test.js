@@ -125,9 +125,8 @@ test("가격만으로도 찾을 수 있다", async () => {
   assert.ok(!hits.includes("운명의 업"), "무료로 좁혔는데 30,000원 상담이 남아 있다");
 });
 
-// 회귀 배경: service-registry.js에 3,000원대 항목이 하나도 없어 "3천원대" 칩이 항상 0건이었다
-// (2026-08-21 실측). 실제 3,000원 서비스 8개를 등록하며 이 케이스를 추가한다.
-test("가격 인하된 정적 상품과 3천원대 상담을 구분해 찾을 수 있다", async () => {
+// 2026-10-12 프리미엄 개편: 단발 오라클은 3,000원, 타로 리딩은 5,000원으로 분리한다.
+test("3천원 오라클과 5천원 타로를 가격대로 구분해 찾을 수 있다", async () => {
   const { doc } = await boot();
   const panel = doc.getElementById("fortuneGatewayRecs");
 
@@ -135,13 +134,13 @@ test("가격 인하된 정적 상품과 3천원대 상담을 구분해 찾을 �
 
   const hits = names(panel);
   assert.ok(hits.length > 0, "3천원대만 골랐을 때 결과가 없다");
-  assert.ok(hits.includes("재회운 타로"), `3천원대 결과에 재회운 타로가 없다: ${hits.join(", ")}`);
-  assert.ok(!hits.includes("이집트 신탁"), "1,000원 이집트 신탁이 이전 가격대에 남아 있다");
+  assert.ok(hits.includes("이집트 신탁"), `3천원대 결과에 이집트 신탁이 없다: ${hits.join(", ")}`);
+  assert.ok(!hits.includes("재회운 타로"), "5,000원 재회운 타로가 3천원대에 섞였다");
   doc.querySelector('#fortuneGatewayDiscover [data-price="mid"]').click();
-  doc.querySelector('#fortuneGatewayDiscover [data-price="low"]').click();
-  const lowHits = names(panel);
-  assert.ok(lowHits.includes("이집트 신탁"), "1,000원 가격대에 이집트 신탁이 없다");
-  assert.ok(!lowHits.includes("재회운 타로"), "3,000원 상담이 1,000원 가격대에 섞였다");
+  doc.querySelector('#fortuneGatewayDiscover [data-price="high"]').click();
+  const highHits = names(panel);
+  assert.ok(highHits.includes("재회운 타로"), "5천원대에 재회운 타로가 없다");
+  assert.ok(!highHits.includes("이집트 신탁"), "3,000원 이집트 신탁이 5천원대에 섞였다");
 });
 
 test("방식은 이름 정규식이 아니라 선언된 값으로 판정한다", async () => {
@@ -203,20 +202,20 @@ test("범위 가격 항목은 걸치는 가격대 칩에 모두 나온다", asyn
     return hit;
   };
 
-  // 룬은 1,000원 단일가가 됐으므로 예전 범위 가격대에 남지 않는다.
-  assert.ok(inChip("low", "스톤헨지 룬"));
-  assert.ok(!inChip("mid", "스톤헨지 룬"));
+  // 룬은 3,000원 단일가이므로 3천원대에만 남는다.
+  assert.ok(!inChip("low", "스톤헨지 룬"));
+  assert.ok(inChip("mid", "스톤헨지 룬"));
   assert.ok(!inChip("high", "스톤헨지 룬"));
   // 여전히 범위 가격인 상품은 시작가와 상한 가격대에 모두 나타난다.
   assert.ok(inChip("premium", "마스터 인연의 서"), "10,000원~30,000원 항목이 1만원대에서 빠졌다");
   assert.ok(inChip("vvip", "마스터 인연의 서"), "10,000원~30,000원 항목이 프리미엄에서 빠졌다");
   assert.ok(!inChip("mid", "마스터 인연의 서"), "범위 밖의 3천원대에 섞였다");
-  // 찻집은 전 상품 5,000원 단일 가격이므로 예전 상한 버킷에 남으면 안 된다.
-  assert.ok(inChip("high", "운명의 찻집"));
-  assert.ok(!inChip("premium", "운명의 찻집"));
+  // 찻집은 전 상품 10,000원 단일 가격이므로 1만원대에만 남는다.
+  assert.ok(!inChip("high", "운명의 찻집"));
+  assert.ok(inChip("premium", "운명의 찻집"));
   assert.ok(!inChip("vvip", "운명의 찻집"));
-  assert.ok(inChip("mid", "애니멀 토템"));
-  assert.ok(!inChip("high", "애니멀 토템"));
+  assert.ok(!inChip("mid", "애니멀 토템"));
+  assert.ok(inChip("high", "애니멀 토템"));
 });
 
 // 회귀 배경(2026-09-03 실측): 결과 카드의 가격·CTA 노드가 className 없이 생성돼

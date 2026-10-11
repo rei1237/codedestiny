@@ -578,7 +578,7 @@
       "sajuFptiImgAlt": "Saju FPTI-Test",
       "basicFreeBadge": "Basic kostenlos",
       "price3000": "Einmalig 3.000 KRW",
-      "price5000": "Einmalig 3.000 KRW",
+      "price5000": "Einmalig 5.000 KRW",
       "price10000": "Einmalig 10.000 KRW",
       "cosmicSoulPrice": "30 Min. 5.000 KRW · 60 Min. 10.000 KRW",
       "compatibilityPrice": "Kompatibilität 3.000 KRW",
@@ -600,7 +600,9 @@
       "price5000Price3000": "Einmalig 3.000 KRW",
       "price10000Price5000": "Einmalig 5.000 KRW",
       "unlock1000": "Schalte 1.000 KRW frei",
-      "price1000": "Einmalig 1.000 KRW"
+      "price1000": "Einmalig 1.000 KRW",
+      "sajuGuardianPricePrice5000Price7000": "Dauerhafte Freischaltung: 7.000 KRW",
+      "unlock1000Price5000": "Schalte 5.000 KRW frei"
     },
     "destinyFlowerStudio": {
       "closeAria": "Atelier der Schicksalsblume schließen",
@@ -1353,7 +1355,8 @@
         "w20000": "₩20,000",
         "from3000": "From ₩3,000",
         "w1000": "₩1,000",
-        "from9000": "From ₩9,000"
+        "from5000": "From ₩5,000",
+        "w7000": "₩7,000"
       },
       "chip": {
         "love": "Their feelings · My next love",
@@ -1614,14 +1617,14 @@
       "pass": "Pässe",
       "login": "Anmelden",
       "account": "Mein Konto",
-      "offerTitle": "Saju aus 1:1-Beratungen für ₩300.000 – jetzt ab ₩3.000",
+      "offerTitle": "Saju aus 1:1-Beratungen für ₩300.000 – jetzt ab ₩5.000",
       "reviewsLead": "Echte KakaoTalk-Nachrichten von Neos 1:1-Klienten, im koreanischen Original zitiert. Auslassungen sind mit … markiert.",
       "reviewsBar": "1:1-Beratung mit Neo · KakaoTalk",
       "reviewsMeta": "Echte Stimme · mit Zustimmung veröffentlicht",
       "reviewsPosted": "im Blog veröffentlicht",
       "reviewsFine": "Die Stimmen geben persönliche Erfahrungen wieder und garantieren keine Ergebnisse. Saju-Deutungen dienen nur der Orientierung.",
-      "offerNote": "Die 1:1-Beratungen führte Neo persönlich; die Deutung für ₩3.000 entsteht aus einer Berechnungs-Engine mit KI-Kommentar.",
-      "offerCta": "Saju-Deutung für ₩3.000 ansehen →",
+      "offerNote": "Die 1:1-Beratungen führte Neo persönlich; die Deutung für ₩5.000 entsteht aus einer Berechnungs-Engine mit KI-Kommentar.",
+      "offerCta": "Saju-Deutung für ₩5.000 ansehen →",
       "expertiseTitle": "Berechnung nach Regeln, Kommentar von der KI",
       "expertise": {
         "engine": "Das Geburtsdiagramm entsteht nach festen Rechenregeln, die KI schreibt den Kommentar auf Basis dieses Ergebnisses. Nennt der Kommentar eine Tages- oder Stundensäule, die vom Ergebnis abweicht, verwirft der Server ihn.",
@@ -7740,7 +7743,9 @@
         "n30000": "30.000 ₩",
         "n20000Price10000": "Ab 10.000 ₩",
         "n50000": "50.000 ₩",
-        "n30000Price20000": "20.000 ₩"
+        "n30000Price20000": "20.000 ₩",
+        "n5000Price10000": "Ab 10.000 ₩",
+        "n30000Price20000Price30000": "30.000 ₩"
       }
     },
     "cdSigCardBody": {
@@ -7804,7 +7809,7 @@
       "fortuneGatewayDoorMeta": {
         "n130000": "30.000 ₩ je Deutung",
         "k1lo4ibg": "abschließender Abgleich",
-        "n13000": "3.000 ₩ je Sitzung"
+        "n13000": "5.000 ₩ je Sitzung"
       },
       "fortuneGatewayDoorGo": {
         "kkmvgqi": "Start a reading",

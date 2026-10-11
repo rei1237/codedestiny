@@ -250,13 +250,13 @@ describe("계정 해금 목록", () => {
 });
 
 describe("러브 코드 회당 결제와 과거 해금 호환", () => {
-  test("canonical 상품은 회당 5,000원이고 레거시 키는 읽기 별칭이다", () => {
+  test("canonical 상품은 회당 7,000원이고 레거시 키는 읽기 별칭이다", () => {
     const product = resolveProduct({ featureKey: "loveSimulation" });
     expect(product).toMatchObject({
       productId: LOVE_CODE_PRODUCT_ID,
       featureKey: LOVE_CODE_FEATURE_KEY,
-      priceKRW: 5000,
-      priceCoins: 50,
+      priceKRW: 7000,
+      priceCoins: 70,
       billingType: "per_use",
     });
     expect(LEGACY_LOVE_CODE_FEATURE_KEYS).toContain("openLoveSimulation");

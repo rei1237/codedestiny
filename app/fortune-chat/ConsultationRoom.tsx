@@ -22,8 +22,8 @@ import styles from "./consultation.module.css";
 
 // 가격 정본은 서버 레지스트리(fortune-chat-consultation)다. 아래 두 값은 결제창의 표시·스냅샷 선검사용으로,
 // 기존 대화형 상담(FortuneChatClient)과 같은 값을 쓴다.
-const COIN_PRICE = 30;
-const AMOUNT_KRW = 3000;
+const COIN_PRICE = 50;
+const AMOUNT_KRW = 5000;
 const RESUME_KIND = "fortune-chat-consultation:engine";
 const QUESTION_MAX = 300;
 const POLL_MS = 1500;
@@ -472,7 +472,7 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
                   </button>
                 </div>
                 {/* 가격표 키는 서비스 등록 키다 — 상담별 결제 키(fc-<id>)는 가격표에 없어 "가격 확인 필요"가 뜬다. */}
-                <PriceBadge featureKey="fortune-chat-consultation" fallbackLabel="3,000원" prefix="1회 " className={base.priceBadge} />
+                <PriceBadge featureKey="fortune-chat-consultation" fallbackLabel="5,000원" prefix="1회 " className={base.priceBadge} />
               </div>
             )}
 

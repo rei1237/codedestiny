@@ -193,3 +193,12 @@ test('a redraw under the same request id completes on the original payment',asyn
  expect((await post(original())).status).toBe(202);expect((await finish()).status).toBe(200);
  expect(proofs.length).toBeGreaterThan(0);expect(proofs.every(p=>p.requestId===original().requestId)).toBe(true);
 });
+// 3,000원 상품: 부분 목표 합계 약 9,000자. 분량은 목표이며 짧아도 완결된 부분은 재구매 없이 전달한다.
+test('part targets total ~9,000 chars and a short complete part is delivered without a repair call',async()=>{
+ const base=provider.getMockImplementation(),short='관계의 온도는 조심스럽게 따뜻합니다.\n\n겉모습보다 속마음이 더 가까이 다가가 있습니다.\n\n현실 조건을 먼저 확인하는 흐름입니다.';
+ provider.mockImplementation(async(...args)=>{const ai=await base(...args);if(!args[1].includes('[이번 부분 overview]'))return ai;return {...ai,text:JSON.stringify({body:short})};});
+ await start();expect((await finish()).status).toBe(200);
+ const state=docs[0].metadata.paidNarrative,total=state.tasks.reduce((sum,task)=>sum+task.minChars,0);
+ expect(total).toBeGreaterThanOrEqual(8000);expect(total).toBeLessThanOrEqual(10000);
+ expect(state.parts.overview).toBe(short);expect(callsFor('overview')).toBe(1);expect(provider).toHaveBeenCalledTimes(9);
+});
