@@ -126,22 +126,12 @@ export function buildAdminLabPrompt(body = {}) {
   };
 }
 
+// 부분 호출용 seed. 리포트 전체 JSON 스키마를 넣으면 모델이 한 부분 본문에 리포트 전체 JSON 을 담아 보낸다
+// (2026-10-11 실호출 0/13). 부분 범위와 출력 형식은 전달 엔진이 붙인다.
+const NARRATION_RULE = "위 사실만 근거로 이번 호출 범위를 서술하세요. 수치·점수·등급·장소는 사실 그대로 인용하고 새로 만들지 마세요.";
+
 function buildReportPrompt(blueprint) {
-  return [
-    buildReportFacts(blueprint),
-    "",
-    "위 사실만 근거로 아래 JSON 스키마를 채우세요. 수치는 사실 그대로 인용하고 새로 만들지 마세요.",
-    JSON.stringify({
-      personality: ["문단1", "문단2", "문단3"],
-      habitats: [{ id: "사실의 장소 id 그대로", reading: "왜 이 장소가 이 아이에게 맞는지 2~3문장" }],
-      plays: ["놀이 제안 1", "놀이 제안 2", "놀이 제안 3"],
-      coach: "오늘 보호자가 할 행동 1가지를 2문장으로",
-      care: "생활 관리 관점의 컨디션 조언 3~4문장 (진단·질병명 금지)",
-      closing: "보호자에게 건네는 마무리 2문장",
-    }),
-    "",
-    "personality는 각 문단 3~5문장. habitats는 사실에 나온 5곳 전부를 같은 순서로 채우세요.",
-  ].join("\n");
+  return [buildReportFacts(blueprint), "", NARRATION_RULE].join("\n");
 }
 
 // ── 궁합 ──────────────────────────────────────────────────────
@@ -168,21 +158,7 @@ function buildCompatFacts(compat, blueprintA, blueprintB) {
 }
 
 function buildCompatPrompt(compat, blueprintA, blueprintB) {
-  return [
-    buildCompatFacts(compat, blueprintA, blueprintB),
-    "",
-    "위 사실만 근거로 아래 JSON 스키마를 채우세요. 점수·등급·장소는 사실 그대로 쓰고 새로 만들지 마세요.",
-    JSON.stringify({
-      verdict: "두 아이 관계를 한 문장으로",
-      overview: ["문단1", "문단2"],
-      dimensions: [{ key: "사실의 5축 key 그대로", reading: "이 축이 왜 이 점수인지 2문장" }],
-      places: [{ id: "사실의 장소 id 그대로", reading: "두 아이가 함께 있을 때 이 장소가 좋은 이유 2문장" }],
-      cautions: ["주의할 상황 1", "주의할 상황 2"],
-      routine: "두 아이가 함께 지내는 하루 루틴 제안 3~4문장",
-    }),
-    "",
-    "dimensions는 5축 전부를 같은 순서로 채우세요. places는 사실에 나온 장소 전부를 채우세요.",
-  ].join("\n");
+  return [buildCompatFacts(compat, blueprintA, blueprintB), "", NARRATION_RULE].join("\n");
 }
 
 // The route and the server resume task share render and the provider timeout.
