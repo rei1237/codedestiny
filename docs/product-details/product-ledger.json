@@ -5565,28 +5565,49 @@
     {
       "productId": "tarot-numerology-reading",
       "displayName": "수비학 타로",
-      "saleStatus": "진입 확인·구성 대조 중",
+      "saleStatus": "무료 5장 선택 후 심층 리딩 3000원",
       "entry": [
         "/tarot/numerology/"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 3000,
-      "inputRequirements": [],
+      "inputRequirements": [
+        "생년월일·주제·질문·분석 날짜; 이름 선택"
+      ],
       "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
+      "actualContents": [
+        "세 숫자·총합수·숫자 패턴",
+        "다섯 카드의 이야기와 카드별 의미/현실/행동/주의",
+        "종합·다음 행동·조건부 7일 계획·마무리"
+      ],
+      "conditionalItems": [
+        "규칙형 해설; 실시간 AI 아님",
+        "질문수는 주제로 계산",
+        "로컬 저장·요약 공유; PDF 없음"
+      ],
       "separatePurchase": [],
       "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
+      "images": [
+        "/feature-details/crafted/numerology-tarot/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "app/tarot/numerology/NumerologyTarotClient.tsx",
+        "app/tarot/numerology/page.tsx",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본9/native22 독립 SHIP",
+        "328/358/398/540 clipping/fallback PASS; POST0",
+        "ESLint PASS; Jest 2 suites 17 tests PASS"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "main 전달·CI 미확인; 실결제 없음"
       ],
       "detailAliases": [
         "tarot-numerology"
-      ]
+      ],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "tarot-prompt-maker",

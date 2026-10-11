@@ -423,3 +423,8 @@ status: active
 ## 시빌라 도미네이터
 - 실제규칙형10장/계수근거/연월흐름을9장개별편집. 원본9/native22 최종독립SHIP;304/334/374/540 clipping/fallbackPASS. summary대비와하단메뉴CTA겹침수정. 20000자확정보장→10장구성으로12언어교정. Node2/ESLint/i18n parityPASS.
 - 직접첫클릭스캔대기간헐실패별도미확인;최종시각검수는기존지연로더로모달준비조건. CTA trial클릭/닫은후visibility복원PASS. 무료달력mockPOST4/그외POST0. 유료구성111종+공통소개1종1001패널 로컬검수. 직전81ec74dc0 pre-pushPASS. 전체/main전달미완료. 다음수비학9장원본SHIP.
+
+## 수비학 타로
+- 9장 개별 편집과 실제 무료 5장 선택 후 native22 독립 SHIP. 328/358/398/540 clipping/fallback PASS, POST0. ESLint/Jest17 PASS.
+- 유료 구성112종+공통소개1종1010패널 로컬 검수. 시빌라 pre-push는 이 수비학 미커밋 변경으로 중단됐으며 커밋 후 재검증한다. main 전달 미완료.
+- 연이·네오 공유 엔진 운영 활성화 요청 확인. 원격 main 54b5476b 공식 PR CI 38114013113 실패가 지속되어 push/운영 승격 차단. 활성화 범위는 기존 공유 상담 엔진이며 다른 세션 선택형 UI 미완료분은 포함하지 않는다.
