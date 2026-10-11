@@ -3117,7 +3117,31 @@
       "sitemap": {
         "url": "https://code-destiny.com/sitemap-index.xml",
         "acceptedAt": "2026-10-12T01:59:45+09:00",
-        "processing": "unverified"
+        "processing": "registration confirmed; UI does not report processing/indexing success"
+      },
+      "last7Display": {
+        "impressions": "25.2만",
+        "impressionsChangeVsPreviousWeek": "-16.4%",
+        "clicks": "1.2천",
+        "clicksChangeVsPreviousWeek": "+13.8%",
+        "averagePageCtr": "0.5%"
+      },
+      "last1Display": {
+        "impressions": "1.9만",
+        "impressionsChangeVsPreviousDay": "-12%",
+        "clicks": "1.3백",
+        "clicksChangeVsPreviousDay": "-20.4%",
+        "averagePageCtr": "0.6%"
+      },
+      "shortWindowEvidence": "docs/seo/evidence/2026-10-12/naver-short-window-observations.json",
+      "shortWindowConclusion": "Recent week and day impressions fell despite the increasing 30-day aggregate. Cause and recovery remain unproven.",
+      "healthEvidence": "docs/seo/evidence/2026-10-12/naver-health.json",
+      "indexedSample": {
+        "path": "/fortune/tomorrow/rat/",
+        "status": "indexed",
+        "storedMetadataDate": "2026-10-12",
+        "liveMetadataDate": "2026-10-13",
+        "source": "Naver index inspection and live URL inspection; one URL only"
       }
     },
     "priorityQueries": [
@@ -3135,11 +3159,15 @@
       "status": "blocked",
       "implementationCommit": "1b71a426d3844888239e4e4131b969b1815dea1c",
       "prePush": "passed",
-      "mainCiSha": "7768578e9456f1ce0fe61f86215e97873e72f22f",
-      "mainCiUrl": "https://github.com/rei1237/codedestiny/actions/runs/38159011395",
-      "reason": "other task handoff has invalid status: in_progress",
+      "mainCiSha": "d733a80a818235c479524433d1dc9f3560346c8a",
+      "mainCiUrl": "https://github.com/rei1237/codedestiny/actions/runs/38162141155",
+      "reason": "latest main CI is in progress; recovery from the previous Static guards failure is not confirmed",
       "pushed": false,
-      "handoff": "docs/handoff/seo-search-intent-20261012.md"
+      "handoff": "docs/handoff/seo-search-intent-20261012.md",
+      "naverHealthCommit": "ebf75bb31cf6ef05b0623887d31f0670444da2d4",
+      "lastFailedMainCiSha": "e419b55bdec7b0aa667b0373323cbd4ee5fbabed",
+      "lastFailedMainCiUrl": "https://github.com/rei1237/codedestiny/actions/runs/38159918088",
+      "mainCiStatus": "in_progress"
     },
     "existingExperimentsPreserved": true,
     "bing": {

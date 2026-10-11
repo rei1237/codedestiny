@@ -9,9 +9,10 @@ next: 다른 작업의 main CI 복구 확인 후 검증된 SEO 커밋을 main에
 - 작업 디렉터리: `D:\Development\codedestiny-worktrees\seo-evidence-20261012-20261012-015123`
 - 브랜치: `wt/seo-evidence-20261012-20261012-015123` (동시 세션 때문에 공식 safe-worktree 스크립트로 생성).
 - 검증된 구현 커밋: `1b71a426d3844888239e4e4131b969b1815dea1c`.
+- 네이버 검사 보완 커밋: `ebf75bb31cf6ef05b0623887d31f0670444da2d4`.
 - main 통합·push·PR·운영 승격: 미실행. PR은 현재 규칙상 만들지 않는다.
-- 최신 확인 main CI: `7768578e9456f1ce0fe61f86215e97873e72f22f`, https://github.com/rei1237/codedestiny/actions/runs/38159011395 — completed/failure.
-- 실패 근거: `docs/handoff/premium-repricing-20261011.md`의 `status: in_progress`가 허용값(active/blocked/done)이 아니어서 `verify:handoff-contract` 실패. 다른 세션 소유 문서/미커밋 변경은 건드리지 않았다. 초기에는96c567e의자미두수검사 실패였으나 최신 실패는 위 문서다. 기존 실패 위 push 금지 규칙으로 전달 보류.
+- 마지막 전달 확인 main CI: `d733a80a818235c479524433d1dc9f3560346c8a`, https://github.com/rei1237/codedestiny/actions/runs/38162141155 — **in_progress**. 복구 성공은 아직 미확인이고, 완료 대기·반복 폴링하지 않는다.
+- 직전 확인 실패: `e419b55bdec7b0aa667b0373323cbd4ee5fbabed`, https://github.com/rei1237/codedestiny/actions/runs/38159918088. Static guards의 꽃무료소개·nakshatra샘플·psychotest이미지·무료추천표식·영냥이타로로컬전용 검사5건. 과거의 premium-repricing 문서 상태 오류와 구분한다. main의 다른 세션 미커밋 변경은 보존했고, 복구 성공 확인 전 통합·push는 보류한다.
 
 ## 완료한 변경
 
@@ -21,7 +22,7 @@ next: 다른 작업의 main CI 복구 확인 후 검증된 SEO 커밋을 main에
 4. Article JSON-LD 이미지에 페이지용 trailing slash를 붙여404가 되던 결함 수정. 파일명·외부호스트·쿼리 보존, 페이지 canonical은 유지.
 5. 검색 원자료·검색의도지도·원인 가설·제출 증거를 `docs/seo/2026-10-12-search-intent-evidence.md`, `docs/seo/evidence/2026-10-12/`, `SEO_STATE.json.searchIntent20261012`에 저장.
 
-## 검증
+## 이전 구현 검증
 
 - check:fast 계획 critical, 실행 종료0. paid mock88/88, Node3172/3172, Jest385 suites·5898/5898, lint/typecheck/Worker dry-run 등 통과.
 - 추가 Article 수정 후 targeted11/11·typecheck 재통과. 개발 mock에서4경로 HTML과 추가기사 image 확인,390/1280 화면 점검.
@@ -40,6 +41,17 @@ next: 다른 작업의 main CI 복구 확인 후 검증된 SEO 커밋을 main에
 - Bing AI203인용은 Microsoft Copilots/Partners 3개월 표본 기준선. 이번 변경 성과가 아니다.
 
 ## 다음 행동
+
+### 재개 조사에서 추가한 네이버 우선순위
+
+- 최근7일노출25.2만(-16.4%), 클릭1.2천(+13.8%); 최근1일노출1.9만(-12%), 클릭1.3백(-20.4%). 갱신10/10, PC+Mobile, 반올림표시. **30일증가를 근거로 단기하락을 배제하지 않는다.**
+- 유입핵심은 내일띠별/별자리 운세다. 기간허브4개·내일상세4개를 seo:check에 추가하고955사이트맵URL의 Yeti/Googlebot 규칙을 각각검사한다. title/description복수태그를 감지한다. 회귀13/13, 공개검사27페이지/955URL/0문제. 실제크롤러IP·색인성과는별도다.
+- 중복제목표본은 `/insights/` 버전쿼리20주소, 현재canonical정상·버전내부링크0. 누락설명표본5개는 의도적noindex도구. 무조건noindex해제·쿼리삭제·제목교체를 하지않았다.
+- 상세기록: `docs/seo/evidence/2026-10-12/naver-short-window-observations.json`, `naver-health.json`, 검색의도근거문서 마지막 추가절. 기존사이트맵·브랜드수집요청 재제출0, 처리성공은UI에서미제공.
+- 사용자가 직접 확인할 제출 화면과 입력할 `https://code-destiny.com/sitemap-index.xml` 주소를 근거 문서에 기록했다. 기존 Chrome 제출 탭을 열어 두었다. 이미 등록된 주소는 삭제·재등록할 필요가 없으며, 생성 XML은 승인된 배포에서 같은 공개 주소로 갱신한다.
+- 이번 보완 후 `npm run check:fast -- --plan`은 critical로 분류했고 `npm run check:fast` 종료0: paid mock88/88, Node3174/3174, Jest385 suites·5898/5898, lint/typecheck/Worker dry-run 등 통과. 통합 전 worktree 검사이며 최신 main 통합 검증을 대체하지 않는다. 별도 handoff-contract는 기존 가격작업 문서 상태로 실패한 사실을 유지한다.
+
+### 전달 순서
 
 1. 현재 main git 상태와 최신 CI를 **한 번** 확인한다. 실패가 남으면 해당 소유 작업에서 먼저 복구한다. 무관한 가격/서비스 변경을 섞지 않는다.
 2. CI가 정상일 때 이 worktree의 커밋들을 현재 main에 직접 통합한다. sitemap 원장 충돌은 source 통합 후 generator로 재생성한다. 다른 세션의 미커밋 파일을 덮어쓰거나 reset/stash하지 않는다.
