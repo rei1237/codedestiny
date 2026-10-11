@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-10-11
-next: "docs/handoff/2026-10-10-birth-scope-unlock-followups.md 를 읽고 P0-2(이관 마이그레이션 staging 리허설)를 진행해줘"
+updated: 2026-10-12
+next: "docs/handoff/2026-10-10-birth-scope-unlock-followups.md 를 읽고 P1-1 을 진행해줘"
 ---
 
 # 출생 기반 해금 전환 — 남은 위험·후속 과제
@@ -14,6 +14,7 @@ next: "docs/handoff/2026-10-10-birth-scope-unlock-followups.md 를 읽고 P0-2(�
 
 - 출생 기반 해금(`userId + birthKey + contentKey`)과 프로필 카드 1,000원 인하가 main 41be9ef2c 에 들어가 있다. staging 은 push 로 배포됐고 **운영 승격은 아직이다.**
 - 운영 DB·staging DB 모두 이관 마이그레이션을 **아직 돌리지 않았다.** 그래서 staging 의 기존 구매는 지금 잠겨 보인다.
+- 2026-10-12: 🔴 순서 위반 정정. 출생 기반 해금과 B(0d33795d9)는 155bff95f 로 2026-10-11 20:18Z 운영에 먼저 승격됐고(run 38171622530), P0-2 는 그 뒤 2026-10-12 에 staging·운영 모두 적용했다. 결과는 P0-2 항목에 있다. 이후 main 운영 승격은 이관 완료 상태에서 나간다.
 - 2026-10-11: 기존 해금 유지 보강(마이그레이션 조회·환불 짝짓기, 프로필 모르는 기존 해금의 프로필 선택 지급, 프로필 전환 복귀 재해금)이 들어갔다. 자세한 내용은 P0-2 의 "2026-10-11 보강" 이다.
 - 2026-10-11 (브랜치 `fix/legacy-saju-unlock-20261011`): 🔴 **전환 이전 해금 유지(grandfathering)가 승격 전 필수로 추가됐다.** 출생 기반 키의 ACTIVE USER 행은 계정 전체에서, PROFILE 행은 그 profileId 에서(생년월일을 고쳐도) 계속 열린다. 이것 없이 승격하면 운영의 최근 대운·종합 구매자 16명 중 USER 행 8명이 모든 프로필에서 잠기고(저장 카드 0개 2명 포함), PROFILE 행 8명은 생년월일 수정 때 다시 잠긴다. 이관 계획기도 USER 행을 claim 대신 `grandfathered`로 센다. 규칙은 `docs/context/payment-gating.md`의 "예외 — 전환 이전 해금 유지"다.
   - 같은 날 운영 데이터 핫픽스(A): 6월 프로필 단위 전환 전 코인 구매로 해금 행이 없던 고객에게 `scripts/migrations/20261011-backfill-legacy-saju-profile-unlocks.mjs`(`npm run repair:legacy-saju-profile-unlocks`)로 PROFILE BACKFILL 행 5개를 넣었다. 카드가 여러 개라 대상을 정할 수 없는 2건은 REPORT_ONLY 로 남겼고, 승격 뒤 이관의 claim(프로필 선택)으로 처리된다. 이 행들도 레거시 PROFILE 행이라 위 규칙으로 계속 열린다.
@@ -82,7 +83,16 @@ docs/handoff/2026-10-10-birth-scope-unlock-followups.md 를 읽고 P0-2 를 진�
   - 테스트: `__tests__/worker/birth-scope-unlock-policy.test.js` 에 "소급 주문 + 스냅샷 없음" 정산·재조정 사례를 각 1건씩 추가한다.
 - 검증: `npm run verify:portone-single-payment`, `npm run verify:saju-unlock-entitlement-regression`, `npm run test:jest -- birth-scope payments-v2`
 
-**P0-2. 이관 마이그레이션: staging 리허설 → 운영** — 🔴 RED, DB 쓰기라 **사용자 승인 필수**
+**P0-2. 이관 마이그레이션: staging 리허설 → 운영** — 🔴 RED, DB 쓰기라 **사용자 승인 필수** — ✅ 완료 2026-10-12 (이 커밋)
+- 결과(2026-10-12, 사용자 승인 "dry-run 이상 없으면 연속 진행"):
+  - 백업(레포 밖, 개인정보 포함): `D:\Development\codedestiny-backups\20261012-p0-2\{staging,production}`. 대상은 `content_entitlements`·`birth_scope_legacy_claims` 두 컬렉션이다(staging 5건, 운영 1,422건).
+  - staging dry-run STAT: 스캔 5행, BIRTH 생성 4, 병합 4그룹, 제외 0, grandfathered 0, 영향 사용자 1, claim 0, 환불 짝짓기 차감 4·환불 0.
+  - staging 결과: apply(BIRTH 4) → create-index → `--check` RESULT OK. audit 대기 0·위험 0. verify RESULT OK(4건 같은 생년월일 열림, 다른 생년월일 4건 잠김).
+  - 운영 dry-run STAT: 스캔 1,422행·증빙 2,960, 계정 범위 행 594, BIRTH 생성 58, 병합 22그룹(원천 45), 제외 768행(사용자 3), 삭제 프로필 원천 3,189, USER 행 등 grandfathered 20(구매 프로필 미상 17, 상대 미상 3), 영향 사용자 23, claim 2,911(사용자 7: 삭제 프로필 2,494·상대 미상 92·구매 프로필 미상 325), 중복 제거 762, 환불 짝짓기 차감 2,952·환불 0·미매칭 0, 별칭 키 0.
+  - 집중도: 운영 해금 1,422행 중 1,348행이 한 계정(…52fa1b, 키 38종 반복 해금)에 있다. claim·제외 수치 대부분이 이 계정에서 나온다. claim 목록은 `LIST_LIMIT` 상한이 있어 화면은 버틴다. `birthScopeExcludedAt` 은 읽기 경로에서 쓰지 않는 감사 표시다.
+  - 운영 결과: apply(BIRTH 58, 제외 표시 768, claim 2,911) → create-index(중복 0) → `--check` RESULT OK. audit 대기 0·위험 0, legacy claim 대기 2,911. verify RESULT OK(20건 같은 생년월일 열림, 다른 생년월일 8건 잠김).
+  - 레거시 핫픽스 백업 `backups/mongodb/20261011-legacy-saju-unlocks`(운영 1,417건)는 검증 뒤 삭제했다.
+  - 남은 사람 확인: staging 에서 기존 구매 계정 하나로 종합풀이가 열리는지(실결제 없이) 눈으로 본다.
 - 스크립트는 `scripts/migrations/20261010-birth-scope-unlocks.mjs` 다.
   - 플래그 없이 돌리면 dry-run 이다. `--apply`, `--create-index`, `--check` 가 있다.
   - 출력 마지막 줄은 `RESULT DRY_RUN|APPLIED|OK|MISSING_INDEX|DUPLICATES` 중 하나다.
