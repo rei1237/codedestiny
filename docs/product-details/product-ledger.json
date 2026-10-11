@@ -5064,24 +5064,59 @@
     {
       "productId": "vedic_basic_reading",
       "displayName": "베다 점성술 기본 해석 해금",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "saleStatus": "출생차트 결과 7탭 잠금·8상세 해금카드 확인",
+      "entry": [
+        "vedic-astrology.html 결과·상세"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 1000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "inputRequirements": [
+        "이름·성별·생년월일·출생시각",
+        "출생지 위경도·시간대"
       ],
-      "detailAliases": []
+      "resultRenderer": [
+        "vedic-astrology.html renderResult/showDetail/buildVedicSections/buildVedicDeepDetails"
+      ],
+      "actualContents": [
+        "종합해석카드",
+        "성향/관계/재물직업/다샤/에너지/심화6탭",
+        "성향/재물/직업/연애/차크라/요가/처방/빔쇼타리8상세",
+        "12바바·다샤전체표·요가카라카 자료"
+      ],
+      "conditionalItems": [
+        "출생정보에 따른 계산",
+        "차크라/처방은 상징·생활참고, 의료진단 아님"
+      ],
+      "separatePurchase": [
+        "상대궁합",
+        "질문AI",
+        "전문가종합",
+        "프라슈나"
+      ],
+      "reviewSource": [
+        "가상편집 예시;실제결과·후기 아님"
+      ],
+      "images": [
+        "/feature-details/crafted/vedic-basic-reading/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "js/core/vedic/crafted-details.mjs 7탭 및상세 잠금앞",
+        "vedic-astrology.html showDetail"
+      ],
+      "verification": [
+        "원본8·실제22 독립SHIP",
+        "326/356/396/446 clipping/fallback PASS",
+        "7탭 안내·별도상세진입 확인",
+        "기본해석 품질24샘플·7토픽 PASS",
+        "ESLint/구문 PASS;기존질문 가이드회귀4폭PASS"
+      ],
+      "unconfirmed": [
+        "기존해금카드360 제목 고아줄 비차단",
+        "실결제/실LLM/운영 미검증"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "vedic_prashna_prompt",

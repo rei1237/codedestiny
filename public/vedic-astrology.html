@@ -6734,6 +6734,9 @@ function showDetail(id){
   else if(id==='vimshottari')html=renderVimshottari(c,ins);
   document.getElementById('detail-content').innerHTML=decorateBhavaTerms(html);
   syncOpenAccordions(document.getElementById('detail-content'));
+  import('/js/core/vedic/crafted-details.mjs').then(function(module){
+    module.mountVedicCraftedDetails(document.getElementById('detail-content'));
+  }).catch(function(error){console.warn('[vedic] detail guide unavailable',error);});
   showPage('detail');
 }
 
