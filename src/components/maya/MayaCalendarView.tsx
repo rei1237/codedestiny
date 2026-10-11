@@ -1,7 +1,9 @@
 "use client";
 
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
+import { getCurrentLoadingLocale } from "@/constants/loadingMessages";
 import { useMemo, useState } from "react";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { CalendarClock, ChevronDown, Sun } from "lucide-react";
 import {
   buildMayaMonthGrid,
@@ -363,6 +365,7 @@ export default function MayaCalendarView() {
         </div>
 
         <aside className="min-w-0 space-y-6">
+          {getCurrentLoadingLocale() === "ko" && <div style={{"--crafted-mobile-width":"calc(100vw - 48px)"} as CSSProperties}><CraftedProductDisclosure featureKey="maya-prompt-generator" /></div>}
           <MayaPromptGeneratorCard result={selectedResult} />
           <section className="relative overflow-hidden rounded-lg border border-[#d8b56d]/18 bg-[#04100d]/82 p-5 text-sm leading-7 text-[#e6dcc1] shadow-[0_18px_60px_rgba(0,0,0,0.26)] backdrop-blur">
             <div className="pointer-events-none absolute inset-0 opacity-28 [background-image:linear-gradient(135deg,rgba(216,181,109,0.07)_1px,transparent_1px)] [background-size:26px_26px]" />

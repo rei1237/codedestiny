@@ -3071,24 +3071,57 @@
     {
       "productId": "maya-prompt-generator",
       "displayName": "마야점 상담 프롬프트 생성",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "saleStatus": "날짜계산후프롬프트카드현재구매진입확인",
+      "entry": [
+        "/maya/"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 3000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "inputRequirements": [
+        "달력날짜·9상담주제",
+        "이름/생년/질문선택입력;생년은선택날짜자동변경안함"
       ],
-      "detailAliases": []
+      "resultRenderer": [
+        "src/lib/maya-prompt-generator.ts",
+        "src/components/maya/MayaPromptGeneratorCard.tsx"
+      ],
+      "actualContents": [
+        "선택날짜LongCount/Tzolkin/Haab와키워드",
+        "사용자질문우선·3주제참고질문",
+        "외부AI답변11항목요청문·복사"
+      ],
+      "conditionalItems": [
+        "AI답변/11장리포트아님",
+        "외부AI답변/비용/PDF/계정기록함포함아님"
+      ],
+      "separatePurchase": [
+        "외부AI이용조건별도",
+        "재이용은현행화면조건확인"
+      ],
+      "reviewSource": [
+        "가상입력예시;실제후기없음"
+      ],
+      "images": [
+        "/feature-details/crafted/maya-prompt/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "src/components/maya/MayaCalendarView.tsx",
+        "app/components/crafted-product-disclosure.module.css",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본8/native21독립SHIP;03/04/06고아줄수정",
+        "312/342/382/420 clipping/fallbackPASS POST0",
+        "기존중첩main잘림해결:마야모바일폭옵션;기본룬328/358/398/540회귀PASS",
+        "달력5/typecheck/ESLintPASS;데스크톱3000표시정본일치"
+      ],
+      "unconfirmed": [
+        "main전달·CI미확인;실결제실LLM없음",
+        "기존데스크톱복사버튼줄바꿈;모바일CTA캡처는가격배지포함안함"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "nakshatra-ai-consultation",

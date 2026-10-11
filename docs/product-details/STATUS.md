@@ -362,3 +362,7 @@ status: active
 ## IFÀ 가격 불일치로 적용 보류
 - 원본6/native19시각SHIP,322/352/392/482 clipping/fallbackPASS POST0였으나실제CTA3000원확인. public/ifa-oracle.html IFA_COIN_COST30/3000원 vs registry와루트파일10/1000원불일치. 가격임의수정안함.
 - IFÀ안내연결과catalog철회,원본·검수물보존/자료부족. 따라서유료완료구성수96종유지(이파추가안함). 처음실제주소module대기실패는루트/public독립파일때문으로양쪽임시연결후시각검수했으며이후철회.
+
+## 마야점 프롬프트
+- 실제제공물인계산3종+질문+11항목요청문을8장개별편집. AI답변/11장리포트로소개안함. 생년입력과선택날짜별개명시. 원본8/native21독립SHIP;312/342/382/420 clipping/fallbackPASS POST0.
+- 마야중첩main잘림을전용모바일폭변수로해결,기본룬폭회귀PASS. 달력5/typecheck/ESLintPASS. 데스크톱가격3000정본일치. 직전7d39ca74a pre-pushPASS. 유료구성97종+공통소개1종876패널로컬검수(IFÀ보류6제외). 전체/main전달미완료;연이네오운영범위답변대기. 다음이집트실제12신/직접3장/5부분/로컬질문문확인.

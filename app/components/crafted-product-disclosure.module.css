@@ -1,5 +1,5 @@
 .disclosure { margin-block: 24px; }
 .disclosure > summary { min-height: 44px; padding-block: 12px; cursor: pointer; font-size: 18px; line-height: 1.6; }
 @media(max-width:600px){
- .disclosure :global(.craftedDetail) > div { width:calc(100vw - 32px); margin-inline:calc((100% - (100vw - 32px)) / 2); }
+ .disclosure :global(.craftedDetail) > div { width:var(--crafted-mobile-width,calc(100vw - 32px)); margin-inline:calc((100% - var(--crafted-mobile-width,calc(100vw - 32px))) / 2); }
 }

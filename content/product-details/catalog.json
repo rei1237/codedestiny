@@ -93,7 +93,8 @@
     "stonehenge-runes-deep": "rune-deep",
     "stonehenge-runes-yearly": "rune-yearly",
     "openGeomancyOracle": "geomancy-oracle",
-    "geomancy": "geomancy-oracle"
+    "geomancy": "geomancy-oracle",
+    "maya-prompt-generator": "maya-prompt"
   },
   "introductions": {
     "fusion-fortune": [
