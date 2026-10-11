@@ -224,6 +224,13 @@ test('shared Codex and life-book stores retain the actual billing variant and di
   expect(legacy.serviceName).toBe('인생 총운');expect(legacy.serviceId).toBe('life-book-ai-consultation');
 });
 
+test('compass AI reports carry the deep-report billing key so refund revocation checks the right product',async()=>{
+  const {recordService}=await import('../../lib/records/service-registry.js');
+  const {FEATURE_KEY_PRICE_TABLE}=await import('../../worker/lib/paid-feature-registry.js');
+  const compass=library.recordMetadata(recordService('compass'),{id:'r1',status:'completed'});
+  expect(compass.serviceId).toBe('destiny-compass-deep-report');expect(FEATURE_KEY_PRICE_TABLE[compass.serviceId]).toBeTruthy();
+});
+
 test('every shared product retains its display identity and complete saved body',async()=>{
   const { SAVED_FEATURES }=await import('../../lib/records/service-registry.js');
   for(const [featureId,feature] of Object.entries(SAVED_FEATURES)) {

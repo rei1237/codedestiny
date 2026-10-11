@@ -155,6 +155,8 @@ for (const rel of SHELL_MIRRORS) {
   // D(낙관 잠금): 전역 60초 잠금은 '한도 초과'만으로 켜지면 안 된다.
   const record = stripComments(sliceFunction(source, "async function recordMembershipPassInBackground(", `${label}/record`));
   must(record.includes("passLimitForTier"), `${label}: 낙관 잠금이 한도초과 402 와 보유상태 불일치를 구분하지 않습니다(전역 60초 잠금이 한도 이내 기능까지 죽입니다)`);
+  // 일시장애(5xx·네트워크)로 기록이 빠지면 결과는 열렸는데 서버 이용 증빙이 없다 — 같은 attemptId 로 다시 보낸다.
+  must(record.includes("schedulePassRecordRetry(input, attemptId, retryAttempt)"), `${label}: 백그라운드 이용권 기록이 일시장애에 다시 보내지 않습니다`);
 
 }
 
@@ -178,6 +180,7 @@ for (const rel of STANDALONE_FALLBACKS) {
   // D(낙관 잠금): 한도초과 402 로 전역 잠금을 켜지 않는다.
   const record = stripComments(sliceFunction(source, "  function _dpRecordMembershipPassInBackground(", `${label}/record`));
   must(record.includes("_dpMembershipPassLimitForTier"), `${label}: 낙관 잠금이 한도초과 402 와 보유상태 불일치를 구분하지 않습니다`);
+  must(record.includes("scheduleRetry()"), `${label}: 백그라운드 이용권 기록이 일시장애에 다시 보내지 않습니다`);
 
   const finalApply = stripComments(sliceFunction(source, "  async function _dpApplyMembershipPassBeforePayment(", `${label}/final-pass-apply`));
   must(!finalApply.includes("cached && cached.status === 'payment_required'"), `${label}: 직전 미커버 캐시가 다음 명시적 이용권 확인을 막습니다`);
@@ -208,6 +211,7 @@ for (const rel of SHELL_MIRRORS) {
 
   const record = stripComments(sliceFunction(source, "  function _cdRecordMembershipPassInBackground(", `${label}/record`));
   must(record.includes("passLimitForTier"), `${label}: 낙관 잠금이 한도초과 402 와 보유상태 불일치를 구분하지 않습니다`);
+  must(record.includes("_cdIsTransientPassRecordError(result)") && record.includes("requestId, attempt + 1"), `${label}: 백그라운드 이용권 기록이 일시장애에 같은 requestId 로 다시 보내지 않습니다`);
 }
 
 if (failures.length) {
