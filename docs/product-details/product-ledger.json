@@ -1078,25 +1078,60 @@
     },
     {
       "productId": "compat-ziwei-compatibility",
-      "displayName": "자미두수 궁합 분석",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "displayName": "자미두수 궁합",
+      "saleStatus": "기본명반리포트의실제궁합입력/구매버튼확인",
+      "entry": [
+        "js/saju-engine.js #zwCompatibility/_runZwCompatibility"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 3000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "inputRequirements": [
+        "본인명반",
+        "상대양력생년월일·시각·성별·도시"
       ],
-      "detailAliases": []
+      "resultRenderer": [
+        "js/saju-engine.js _runZwCompatibilityCore"
+      ],
+      "actualContents": [
+        "관계의큰흐름",
+        "두명반의성향과근거",
+        "사랑·생활·친구로서의호흡",
+        "일과협력의방식",
+        "갈등을줄이는대화",
+        "시기의흐름을읽는기준",
+        "두사람의실천계획",
+        "참고기록과상징이야기"
+      ],
+      "conditionalItems": [
+        "주성/차성·화기자료에따라근거조건부",
+        "대한은나이구간비교;특정달력연도예측아님",
+        "시각기본12:00 실제정보확인필요"
+      ],
+      "separatePurchase": [
+        "기본명반해금/다른궁합/전문가상담",
+        "외부AI답변·이용료별도;계산자료프롬프트복사는포함"
+      ],
+      "reviewSource": [
+        "가상편집예시;구매후기없음"
+      ],
+      "images": [
+        "/feature-details/crafted/ziwei-compatibility/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "js/core/saju/crafted-product-details.mjs",
+        "js/saju-engine.js"
+      ],
+      "verification": [
+        "원본10·실제모바일10패널/고지/원고/CTA4폭독립SHIP",
+        "304/334/374/540 이미지로드·모든clipping상위경계·오류원고PASS",
+        "정적가이드2PASS;표시ESLint/engine구문PASS"
+      ],
+      "unconfirmed": [
+        "main전달/CI미확인;실결제실LLM미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "cosmic-soul-meditation",
@@ -4358,7 +4393,7 @@
     {
       "productId": "sukuyo-monthly-fortune",
       "displayName": "월별 숙요 운세 확장",
-      "saleStatus": "판매 진입 확인 필요",
+      "saleStatus": "가격/기존해금상태용 정의만 확인;현재월별카드의판매키는별도",
       "entry": [],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 3000,
@@ -4369,11 +4404,14 @@
       "separatePurchase": [],
       "reviewSource": [],
       "images": [],
-      "status": "조사",
+      "status": "판매 확인 보류",
       "appliedAt": [],
-      "verification": [],
+      "verification": [
+        "js/app/components/src/index 검색에서 실제판매참조없음",
+        "syBindSukuyoMonthlyUnlock → syBindSukuyoYearlyUnlockButton → sukyo_yearly_fortune_unlock 확인"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "레거시월별키의별도판매진입미발견;현재연간상품은별도행에서제작"
       ],
       "detailAliases": []
     },
@@ -4446,23 +4484,25 @@
     {
       "productId": "sukuyo-symbolic-comparison",
       "displayName": "숙요 인연 레이더",
-      "saleStatus": "판매 진입 확인 필요",
+      "saleStatus": "과거결제이력호환키;UI미사용명시",
       "entry": [],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 3000,
       "inputRequirements": [],
       "resultRenderer": [],
-      "actualContents": [],
+      "actualContents": [
+        "인연 레이더는 sukuyo-past-life-reading으로 통합"
+      ],
       "conditionalItems": [],
       "separatePurchase": [],
       "reviewSource": [],
       "images": [],
-      "status": "조사",
+      "status": "대상 제외",
       "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "verification": [
+        "js/saju-engine-tarot-sukuyo-quantum.js SY_PAID_FEATURES 주석 및 해당키실제UI참조없음 확인"
       ],
+      "unconfirmed": [],
       "detailAliases": []
     },
     {

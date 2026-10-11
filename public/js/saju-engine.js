@@ -24636,6 +24636,7 @@ function renderZiwei(p, natal, targetId) {
         }
 
         var sec_compat = '<div id="zwCompatibility" class="zw-compat-card fr-compat-form">'
+          +'<div data-saju-static-offer="compat-ziwei-compatibility"></div>'
           +'<div class="zw-cosmic-heading">'
             +'<h2>자미두수 궁합 리포트</h2>'
             +'<span class="zw-cosmic-chip">' + (ZW_COMPAT_COST * 100).toLocaleString('ko-KR') + '원</span>'
@@ -26145,6 +26146,10 @@ function renderZiwei(p, natal, targetId) {
           }).sort(function(a, b) { return a.startAge - b.startAge; })
         };
         wrapper.innerHTML = panelHtml;
+        var zwCraftedOffer = wrapper.querySelector('[data-saju-static-offer="compat-ziwei-compatibility"]');
+        if (zwCraftedOffer) import('/js/core/saju/crafted-product-details.mjs').then(function(module) {
+          if (zwCraftedOffer.isConnected) module.mountCraftedStaticOffer(zwCraftedOffer);
+        }).catch(function() { /* The existing compatibility form remains available. */ });
         wrapper.querySelectorAll('.zw-reading-panel').forEach(function(panel) {
           var stateLabel = panel.querySelector('[data-zw-panel-state]');
           if (!stateLabel) return;

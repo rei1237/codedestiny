@@ -60,7 +60,8 @@
     "compat-astro-synastry": "astro-celebrity-synastry",
     "compat-saju-compatibility": "saju-compatibility",
     "compat-sukuyo-compatibility": "sukuyo-compatibility",
-    "premium-sukuyo-compat-extra": "sukuyo-compatibility-precision"
+    "premium-sukuyo-compat-extra": "sukuyo-compatibility-precision",
+    "compat-ziwei-compatibility": "ziwei-compatibility"
   },
   "introductions": {
     "fusion-fortune": [
