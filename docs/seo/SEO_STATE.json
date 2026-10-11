@@ -3183,10 +3183,11 @@
       "prePush": "passed: home-service-registry, public-mirror-fresh, sitemap-drift (962 URLs); initial baseline .ignore mirror omission repaired via sync:public"
     },
     "delivery": {
-      "status": "awaiting recovery confirmation: prior main CI failed, latest main CI still in progress at final check",
+      "status": "blocked by pre-existing latest main CI failure; recipe changes committed locally and not pushed",
       "latestMainSha": "4559a04690b97cbf95127938e7a4f41e8f09aec2",
       "latestMainCiUrl": "https://github.com/rei1237/codedestiny/actions/runs/38154064944",
-      "latestMainCiStatus": "in_progress",
+      "latestMainCiStatus": "completed/failure",
+      "latestMainCiErrors": ["verify:ziwei-chart-detail-view: panel.before is not a function", "oracle-consultation.route.test.js: seeded minimum lengths exceed 10000 for 1/4/7 cards"],
       "baseSha": "aa70afbcd951ab84daab1874b187756c65c05250",
       "ciUrl": "https://github.com/rei1237/codedestiny/actions/runs/38148771754",
       "error": "verify:ziwei-chart-detail-view: TypeError panel.before is not a function",
@@ -3203,8 +3204,8 @@
       "visual": "16 screens passed; 10 detail SSR routes HTTP200 and Recipe steps match",
       "mechanicalDesignDetector": "no findings",
       "sitemap": "967 URLs, drift passed",
-      "checkFast": "final Jest step running",
-      "prePush": "first attempt blocked by uncommitted evidence docs, rerun after committing them",
+      "checkFast": "passed, exit 0; final Jest 385 suites, 5883/5883 passed",
+      "prePush": "passed on committed clean tree; first attempt refused uncommitted evidence docs, resolved by committing them",
       "sourceOrPolicyBoundaries": "no payment/auth/API/DB changes"
     }
   }

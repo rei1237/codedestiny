@@ -19,11 +19,12 @@ next: 기존 main CI 복구 확인 후 이 워크트리 변경을 main에 통합
 ## 후속 검증 현황
 
 - 구현 커밋 `992fb7021396ae8029a9cf1fa9334caa1fd3a0b6`: 10개 레시피·43개 단계별 메모·2D 이미지 14개.
-- 콘텐츠 계약 3/3, `npm test`, paid mock 88/88, lint, typecheck, Node 3174/3174 통과. `check:fast` 마지막 Jest 단계 진행 중.
+- `npm run check:fast` 전체 종료 코드 0. 콘텐츠 계약 3/3, `npm test`, paid mock 88/88, lint, typecheck, Node 3174/3174, Jest 385 suites·5883/5883, Worker dry-run과 나머지 계획 검사 통과.
 - 시각 검증: 4페이지×4폭(360/390/430/1280) 16개 통과. 상세 10개 SSR HTTP200, canonical·Recipe 단계·메모 일치. 개발 서버 재생성 중 발생한 500은 서버 재시작 뒤 해소됐고 정상 결과를 다시 확인했다. 기록: `docs/seo/recipe-2d-visual-20261012.json`.
-- 사이트맵 967 URL, drift 통과. `check:pre-push` 첫 시도는 미커밋 검증 문서 때문에 거부돼 문서를 커밋한 뒤 재실행한다.
+- 사이트맵 967 URL, drift 통과. `check:pre-push` 첫 시도는 미커밋 검증 문서 때문에 거부됐고, 문서를 커밋한 뒤 clean tree에서 통과했다.
 - 원격 통합 사전 확인(`git merge-tree`)은 `config/sitemap-lastmod.json`의 자동 생성 원장 충돌만 보고했다. 실제 merge는 하지 않았다. main 통합 시 생성기를 실행해 해결하며 다른 세션 변경을 보존한다.
-- 최신 main 조회: `4559a04690b97cbf95127938e7a4f41e8f09aec2`, https://github.com/rei1237/codedestiny/actions/runs/38154064944, 조회 당시 `in_progress`.
+- 최종 main 확인: `4559a04690b97cbf95127938e7a4f41e8f09aec2`, https://github.com/rei1237/codedestiny/actions/runs/38154064944, `completed/failure`. 자미두수 `panel.before is not a function`과 `oracle-consultation.route.test.js`의 1/4/7장 카드 최소 분량 상한(10000자) 초과가 실패 원인이다. 이번 작업은 해당 파일을 수정하지 않았다. 기존 실패 위에 push하지 않는 지침에 따라 main 통합·push를 보류했다.
+- 사용자 미리보기는 Codex visualizations의 `seo-lifestyle/recipe-2d-preview.png`, `recipe-2d-steps-preview.png`에 보존했다. 개발 서버는 종료했고 본인 임시 캡처·이전 로그를 정리했다. 미통합 커밋 보존을 위해 워크트리는 유지한다.
 
 ## 초회 전달 차단 이력
 
