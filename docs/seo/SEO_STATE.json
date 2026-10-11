@@ -3131,7 +3131,16 @@
     "titlesChanged": false,
     "d0": null,
     "productionVerified": false,
-    "repositoryDelivery": "pending validation and existing main CI recovery",
+    "repositoryDelivery": {
+      "status": "blocked",
+      "implementationCommit": "1b71a426d3844888239e4e4131b969b1815dea1c",
+      "prePush": "passed",
+      "mainCiSha": "7768578e9456f1ce0fe61f86215e97873e72f22f",
+      "mainCiUrl": "https://github.com/rei1237/codedestiny/actions/runs/38159011395",
+      "reason": "other task handoff has invalid status: in_progress",
+      "pushed": false,
+      "handoff": "docs/handoff/seo-search-intent-20261012.md"
+    },
     "existingExperimentsPreserved": true,
     "bing": {
       "property": "https://code-destiny.com/",

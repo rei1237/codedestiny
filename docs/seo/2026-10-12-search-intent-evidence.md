@@ -151,3 +151,23 @@ GSC `/vedic/`도 색인됨, 최근수집10/5 23:20:36·스마트폰·가져오�
 - mock dev HTML 검증4경로, Article 이미지 응답 추가 확인, 모바일390/데스크톱1280 실제 렌더링 확인. JSON-LD 문법과 가시 FAQ 일치 확인. Rich Results Test·현장성능·신규 운영 HTML은 미검증.
 - `impeccable detect app/compare/sukuyo-vs-vedic/page.tsx lib/seo-landing-pages.js`: 종료0,출력 없음.
 - 경고: env-parity8경고, Browserslist 데이터7개월 경과, Node VM Modules experimental. 이번 수정 원인인 오류는 없었으며 환경값이나 결제 설정은 변경하지 않았다.
+
+## 최종 전달 단계 구분
+
+구현 커밋 `1b71a426d3844888239e4e4131b969b1815dea1c`에서 `check:pre-push`가 통과했다. 마지막에 확인한 최신 main CI는 `7768578e9456f1ce0fe61f86215e97873e72f22f`의 [38159011395](https://github.com/rei1237/codedestiny/actions/runs/38159011395)이며 실패다. 원인은 다른 작업의 `docs/handoff/premium-repricing-20261011.md`에 허용되지 않은 `status: in_progress`가 있는 것이다. 초기 자미두수 실패와 구분한다. 기존 실패 위 push 금지 규칙으로 main 통합/push를 보류하고 검증된 worktree를 보존한다.
+
+| 단계 | 결과 |
+|---|---|
+| 조사 | 로그인3엔진·주요기술·검색의도 조사 완료; 전체 시장수요·경쟁도·모든진단URL·CDN로그는 미확보 |
+| 코드 수정 | 완료, 위 구현 커밋 |
+| 로컬 검증 | 완료, 상세 명령/한계는 위 기록 |
+| 저장소 전달 | 로컬 커밋·pre-push 완료, main 통합/push는 타작업 CI 실패로 차단 |
+| 운영 반영 확인 | 이번 수정 미반영, 기존 공개본만 확인; D0없음 |
+| 사이트맵 접수 | Naver 신규접수 확인, Google/Bing 정상기존등록 확인 |
+| 사이트맵 처리 | Google/Bing 기존파일 성공; Naver 신규파일 처리 미확인 |
+| 실제 색인 | Google3개 기존URL 확인; 새본문/이미지 수정의 재수집은 미확인 |
+| 성과 변화 | 수정 전 기준선만 확보; 개선 판정 불가 |
+
+로그인 권한으로 막힌 작업은 없다. 남은 전달 차단은 CI와 운영 승격 경계이며, 시장검색량·CDN로그·현장성능 등 미확보 자료는 제출 접수와 구분한다. 재개 절차는 `docs/handoff/seo-search-intent-20261012.md`에 기록했다.
+
+별도 실행한 로컬 `verify:handoff-contract`도 같은 기존 가격작업 문서의 `status: in_progress` 때문에 종료1이었다. 위 `check:fast`와 `check:pre-push`의 성공을 이 문서 게이트 성공으로 확대하지 않는다. 새 SEO 문서는 허용된 `blocked` 상태다.
