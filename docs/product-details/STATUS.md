@@ -466,3 +466,7 @@ status: active
 ## 십이지신 천운 타로
 - 현재연도12카드/십이지신/핵심명암/월별6관점/조건부3카드/저장재열람을10장개별편집. 원본10/native23 독립SHIP.312/342/382/538 clipping/fallback/CTAtrial PASS,API POST0. Jest11 PASS(공식ESMscript),ESLint0errors301기존warnings.
 - 유료구성120종+공통소개1종1087패널 로컬검수. 직전67ab949e9 pre-pushPASS. mainCI복구질문pending/운영배포없음. 전체/main전달미완료. 다음네빌명상9장원본편집.
+
+## 네빌 명상 실습
+- 30분4단계/60분5단계/화면문장/배경음/저장없음을9장개별편집. 원본9/native22독립SHIP.326/356/396/538 clipping/fallback/CTAtrial PASS,API POST0.판매문구효과보장완화,가격동일. verify-paid-resume-wiring PASS React43/정적46.
+- 유료구성121종+공통소개1종1096패널로컬검수.직전490bd902d pre-pushPASS(캐시참조미러재동기화후).mainCI복구질문pending/운영배포없음.전체/main전달미완료.다음코스믹소울10장원본편집.
