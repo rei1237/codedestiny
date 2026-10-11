@@ -354,3 +354,11 @@ status: active
 ## 룬 12개 연간
 - 연간키워드/네분기/열두달/각상세를8장개별편집. 원본8/native21독립SHIP;02고아줄수정.328/358/398/540 clipping/fallbackPASS POST0.
 - 유료구성95종+공통소개1종859패널로컬검수. stonehengeRunes는4상품진입별칭으로중복대상제외. 주역거북점은상하괘/64괘독립선택불일치가능발견하여자료부족(계산변경없음);turtleIChing별칭중복제외. 다음지오맨시7부분계약확인/9장원본검수중.
+
+## 지오맨시 흙점
+- 실제3형상/AI7부분/질문2~500/목차/부분복구를9장개별편집. 원본9/native22독립SHIP;326/356/396/538 clipping/fallbackPASS POST0. UI3/Jest43PASS;공용화후UI5/ESLintPASS. 기존질문폼보조문대비낮음은별도확인사항.
+- geomancy서버키는openGeomancyOracle동일상품으로통합. premiumTarot/premiumDivinationPack은현재화면진입검색미발견판매보류. 직전ba717c166 pre-pushPASS. 유료구성96종+공통소개1종868패널로컬검수. IFÀ6장/native19최종검수중.
+
+## IFÀ 가격 불일치로 적용 보류
+- 원본6/native19시각SHIP,322/352/392/482 clipping/fallbackPASS POST0였으나실제CTA3000원확인. public/ifa-oracle.html IFA_COIN_COST30/3000원 vs registry와루트파일10/1000원불일치. 가격임의수정안함.
+- IFÀ안내연결과catalog철회,원본·검수물보존/자료부족. 따라서유료완료구성수96종유지(이파추가안함). 처음실제주소module대기실패는루트/public독립파일때문으로양쪽임시연결후시각검수했으며이후철회.

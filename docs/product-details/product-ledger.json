@@ -2144,23 +2144,30 @@
     {
       "productId": "geomancy",
       "displayName": "지오맨시 오라클 리딩",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "saleStatus": "현행서버결제키;openGeomancyOracle동일제공물",
+      "entry": [
+        "/geomancy-oracle-v4.html"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 3000,
       "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
+      "resultRenderer": [
+        "geomancy-oracle-v4.html showGeomancyDelivery",
+        "worker/routes/oracle.js ORACLE_SECTIONS"
+      ],
+      "actualContents": [
+        "openGeomancyOracle와동일상품;서버키를같은상세에연결"
+      ],
       "conditionalItems": [],
       "separatePurchase": [],
       "reviewSource": [],
       "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "status": "대상 제외",
+      "appliedAt": [
+        "content/product-details/catalog.json"
       ],
+      "verification": [],
+      "unconfirmed": [],
       "detailAliases": []
     },
     {
@@ -2510,24 +2517,41 @@
     {
       "productId": "ifa-oracle",
       "displayName": "IFÀ 오라클",
-      "saleStatus": "진입 확인·구성 대조 중",
+      "saleStatus": "판매중이나실제정적진입과정본가격불일치",
       "entry": [
-        "/ifa-oracle.html"
+        "/ifa-oracle.html",
+        "public/ifa-oracle.html"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 1000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
+      "inputRequirements": [
+        "총운/연애관계/재물사업/건강내면선택;본문입력없음"
+      ],
+      "resultRenderer": [
+        "public/ifa-oracle.html getInterp/castCore/saveResult",
+        "ifa_oracle_v2_full.html"
+      ],
+      "actualContents": [
+        "16x16오두·8표시·256번호",
+        "메지또는교차해석·행동·의식주의·속담",
+        "공유창또는TXT저장;AI답변아님"
+      ],
       "conditionalItems": [],
       "separatePurchase": [],
       "reviewSource": [],
-      "images": [],
-      "status": "조사",
+      "images": [
+        "/feature-details/crafted/ifa-oracle/manifest.json"
+      ],
+      "status": "자료 부족",
       "appliedAt": [],
-      "verification": [],
+      "verification": [
+        "원본6/native19시각SHIP",
+        "322/352/392/482 clipping/fallbackPASS POST0",
+        "표시3000원/게이트30 확인. 정본10/루트10과불일치"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "registry1000원/루트1000원 vs public실제3000원·게이트30. 가격정책선택필요;임의변경안함",
+        "안내적용철회;검수물은임시로연결했을때의증거이며현행적용증거아님"
       ],
       "detailAliases": [
         "ifa-oracle"
@@ -3376,29 +3400,58 @@
     },
     {
       "productId": "openGeomancyOracle",
-      "displayName": "지오맨시 흙점",
-      "saleStatus": "진입 확인·구성 대조 중",
+      "displayName": "지오맨시 흙점 AI 해석",
+      "saleStatus": "질문입력/현행게이트와서버전달확인",
       "entry": [
-        "/index.html?action=openGeomancyOracle"
+        "/geomancy-oracle-v4.html"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 3000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
+      "inputRequirements": [
+        "로그인·질문2자이상;서버앞500자사용"
+      ],
+      "resultRenderer": [
+        "geomancy-oracle-v4.html showGeomancyDelivery",
+        "worker/routes/oracle.js ORACLE_SECTIONS"
+      ],
+      "actualContents": [
+        "16행홀짝방패차트·원인흐름신탁3형상",
+        "종합/핵심판단/에너지흐름/주의/시기점검/행동/마무리7부분",
+        "목차·같은계정브라우저읽던부분·기존요청복구"
+      ],
+      "conditionalItems": [
+        "부분결과와완성구분",
+        "7/21/40일은실천점검;사건예언아님",
+        "PDF/무제한후속없음"
+      ],
+      "separatePurchase": [
+        "새질문·새연성조건확인"
+      ],
+      "reviewSource": [
+        "가상예시;실제후기없음"
+      ],
+      "images": [
+        "/feature-details/crafted/geomancy-oracle/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "geomancy-oracle-v4.html",
+        "js/core/oracle/crafted-details.mjs",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본9/native22독립SHIP;08고아줄수정",
+        "326/356/396/538 clipping/fallbackPASS POST0",
+        "UI3/Jest43PASS;공용화후UI전체5PASS ESLintPASS"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "main전달·CI미확인;실결제실LLM미실행",
+        "기존질문폼placeholder/보조문대비낮음(이번상세영역외)"
       ],
       "detailAliases": [
         "geomancy-oracle"
-      ]
+      ],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "tarot-ijik",
@@ -3994,7 +4047,7 @@
     {
       "productId": "premiumDivinationPack",
       "displayName": "Premium divination pack unlock",
-      "saleStatus": "판매 진입 확인 필요",
+      "saleStatus": "가격/서버유산키만존재;현재화면진입검색미발견",
       "entry": [],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 30000,
@@ -4005,18 +4058,18 @@
       "separatePurchase": [],
       "reviewSource": [],
       "images": [],
-      "status": "조사",
+      "status": "판매 보류",
       "appliedAt": [],
       "verification": [],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "app/js/lib/index및독립HTML/JSX내현재진입없음;실제판매근거확인전제작보류"
       ],
       "detailAliases": []
     },
     {
       "productId": "premiumTarot",
       "displayName": "프리미엄 타로 리딩",
-      "saleStatus": "판매 진입 확인 필요",
+      "saleStatus": "가격/서버유산키만존재;현재화면진입검색미발견",
       "entry": [],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 5000,
@@ -4027,11 +4080,11 @@
       "separatePurchase": [],
       "reviewSource": [],
       "images": [],
-      "status": "조사",
+      "status": "판매 보류",
       "appliedAt": [],
       "verification": [],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "app/js/lib/index및독립HTML/JSX내현재진입없음;실제판매근거확인전제작보류"
       ],
       "detailAliases": []
     },

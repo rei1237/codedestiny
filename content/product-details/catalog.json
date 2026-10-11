@@ -91,7 +91,9 @@
     "stonehenge-runes-single": "rune-single",
     "stonehenge-runes-triad": "rune-triad",
     "stonehenge-runes-deep": "rune-deep",
-    "stonehenge-runes-yearly": "rune-yearly"
+    "stonehenge-runes-yearly": "rune-yearly",
+    "openGeomancyOracle": "geomancy-oracle",
+    "geomancy": "geomancy-oracle"
   },
   "introductions": {
     "fusion-fortune": [
