@@ -4464,24 +4464,41 @@
     {
       "productId": "rpt_specialCharmCard",
       "displayName": "나의 매력 클래스 영구 해금",
-      "saleStatus": "판매 진입 확인 필요",
+      "saleStatus": "실제 사주 결과 타일 가격10/1000 확인",
       "entry": [],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 1000,
       "inputRequirements": [],
       "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
+      "actualContents": [
+        "매력 클래스/중심축/상황별 표현",
+        "도화·역마·화개 자체 지지 규칙/오행 자력",
+        "생활 영역/현실 조언/전략/실천 미션"
+      ],
+      "conditionalItems": [
+        "자체 분류와 스탯은 외모·인기 평가가 아님",
+        "준비된 해설;별도 이미지 프롬프트는 포함하지 않음"
+      ],
       "separatePurchase": [],
       "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "images": [
+        "/feature-details/crafted/personal-charm/manifest.json"
       ],
-      "detailAliases": []
+      "status": "적용",
+      "appliedAt": [
+        "index.html 인라인 상세 craftedManifest",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본8/native21 독립 SHIP;01/04/05/06/07 고아줄 수정",
+        "360/390/430/540 clipping/fallback PASS;CTA1000 일치",
+        "전API mock;무료달력 POST4/그외 POST0"
+      ],
+      "unconfirmed": [
+        "main 전달·CI 미확인;실결제·실LLM 없음"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "rpt_villainCard",

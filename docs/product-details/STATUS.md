@@ -387,3 +387,7 @@ status: active
 ## 인생 스킬 트리
 - 실제클래스/5스탯/조건부스킬/현재세운/나이CH를8장개별편집. 원본8/native21독립SHIP;01표지고아줄수정.360/390/430/540 clipping/fallbackPASS. 실제타일클릭·CTA1000일치. 전API mock무료달력POST4/그외POST0;초기전체POST0단언실패후분리기록. Node7PASS.
 - 유료구성102종+공통소개1종920패널 로컬검수. rpgCharacter는현행타일권한별칭중복제외. 직전6f35feae5 pre-pushPASS. 전체/main전달미완료·연이네오 운영범위답변대기. 다음매력클래스8장원본검수중.
+
+## 매력 클래스
+- 자체 지지 규칙/매력 중심축/상황별 표현/전략과 미션을8장 개별 편집. 원본8/native21 독립 SHIP;5개 제목 고아줄 수정.360/390/430/540 clipping/fallback PASS;CTA1000 일치. 무료달력 mock POST4/그외 POST0.
+- 유료구성103종+공통소개1종928패널 로컬 검수. 직전fb3094168 pre-push PASS. 전체/main 전달 미완료. 다음 관계 경계8장 원본 SHIP,실제 모바일 검수 예정.
