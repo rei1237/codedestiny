@@ -10719,6 +10719,7 @@ function syRenderSukuyoNatureDeepDiveLockCard(feature) {
     +   '</div>'
     +   '<span class="sy-paid-status" data-sy-nature-deep-dive-status-pill>6종 카드 잠금</span>'
     + '</div>'
+    + '<div data-crafted-static-offer="sukuyo-nature-deep-dive"></div>'
     + '<p class="sy-nature-lock-copy">본명숙의 천성·이면·인연·수호 문장까지 6개 탭으로 풀어내는 심화 해설과, 달빛 성향·관계 해석·연애 성향·돈 습관 및 일 성향·감정 리듬 카드를 한 번에 엽니다.</p>'
     + '<div class="sy-nature-lock-chip-wrap">'
     +   teaserLabels.map(function(label) {
@@ -11587,6 +11588,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         <p class="sy-dogam-copy">
           나의 본명숙을 기준으로 27숙과의 관계 지도를 살펴봅니다. 편안하게 통하는 지점과 조율이 필요한 차이를 함께 읽으며, 각 인연을 대하는 방식을 정리해 보세요.
         </p>
+        <div data-crafted-static-offer="sukuyo-relationship-encyclopedia"></div>
         <button type="button" class="sy-dogam-submit" data-sy-dogam-open data-my-idx="${sData ? sData.mansionIdx : ''}" data-my-mansion="${sData ? syCanonicalEsc(sData.mansion) : ''}" data-user-name="${_radarProfileName}">내 인연 도감 열기</button>
         <div class="sy-dogam-status" data-sy-dogam-status aria-live="polite"></div>
         <div class="sy-dogam-result" data-sy-dogam-result></div>
@@ -11718,9 +11720,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       window.__cdParkSukuyoCalendarPanel();
     }
     area.innerHTML = html;
-    var syCraftedOffer = area.querySelector('[data-crafted-static-offer="compat-sukuyo-compatibility"]');
+    var syCraftedOffers = area.querySelectorAll('[data-crafted-static-offer]');
     import('/js/core/saju/crafted-product-details.mjs').then(function(module) {
-      if (syCraftedOffer && syCraftedOffer.isConnected) module.mountCraftedStaticOffer(syCraftedOffer);
+      syCraftedOffers.forEach(function(offer) { if (offer.isConnected) module.mountCraftedStaticOffer(offer); });
     }).catch(function() { /* The original purchase form remains available. */ });
     // 기본 숙요 프로필 단독 AI 상담 패널 바인딩 + 궁합 진입점 배선.
     try {

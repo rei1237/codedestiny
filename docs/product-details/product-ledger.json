@@ -4417,25 +4417,54 @@
     },
     {
       "productId": "sukuyo-nature-deep-dive",
-      "displayName": "본성 심화 해석",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "displayName": "숙요 본성 심화",
+      "saleStatus": "숙요 결과의 실제 유료 해금 카드·버튼 확인",
+      "entry": [
+        "#syNatureDeepDiveHost [data-sy-nature-deep-dive-unlock]"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 3000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "inputRequirements": [
+        "기본 숙요의 본명숙·해석 자료"
       ],
-      "detailAliases": []
+      "resultRenderer": [
+        "js/saju-engine-tarot-sukuyo-quantum.js syBuildSukuyoNatureDeepDiveHtml"
+      ],
+      "actualContents": [
+        "천성/이면/인연/수호문장/일상/기운성장 6탭",
+        "달빛 성향 5항목",
+        "관계 탭",
+        "연애 성향 6항목",
+        "돈·일 6항목과재능참고",
+        "감정리듬 5항목"
+      ],
+      "conditionalItems": [
+        "본명숙/리듬자료조합;없는항목보충문장",
+        "생활자기돌봄참고;의학진단아님"
+      ],
+      "separatePurchase": [
+        "궁합/인연도감/연간운세/AI상담"
+      ],
+      "reviewSource": [
+        "가상 편집 예시; 디지털구매후기 사용안함"
+      ],
+      "images": [
+        "/feature-details/crafted/sukuyo-nature/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "js/core/saju/crafted-product-details.mjs",
+        "js/saju-engine-tarot-sukuyo-quantum.js"
+      ],
+      "verification": [
+        "원본8장·모바일8장·고지·원고·CTA 독립최종SHIP",
+        "4폭304/334/374/540 이미지·모든clipping경계·오류원고PASS;정적가이드2·ESLint·구문PASS"
+      ],
+      "unconfirmed": [
+        "main/CI미확인;실결제실LLM미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "sukuyo-past-life-reading",
@@ -4462,24 +4491,52 @@
     {
       "productId": "sukuyo-relationship-encyclopedia",
       "displayName": "숙요 인연 도감",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "saleStatus": "숙요 결과의 실제 유료 해금 카드·버튼 확인",
+      "entry": [
+        "[data-sy-dogam-open]"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 3000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "inputRequirements": [
+        "기본 숙요의 본명숙·해석 자료"
       ],
-      "detailAliases": []
+      "resultRenderer": [
+        "js/saju-engine-tarot-sukuyo-quantum.js SukuyoEncyclopediaEngine.build/render"
+      ],
+      "actualContents": [
+        "27숙 각 관계유형·거리·방향·태그·내부지표",
+        "각숙 요약·연애·결혼·친구동료·사업·주의·전략·한문장",
+        "6관계 분포",
+        "7주제 하이라이트·분류필터"
+      ],
+      "conditionalItems": [
+        "잠금상태5숙미리보기;해금후27숙전체",
+        "상대숙별자료있을때상세보강",
+        "순위와지표는내부참고분류"
+      ],
+      "separatePurchase": [
+        "기본·정밀궁합/인연레이더/AI상담"
+      ],
+      "reviewSource": [
+        "가상 편집 예시; 디지털구매후기 사용안함"
+      ],
+      "images": [
+        "/feature-details/crafted/sukuyo-encyclopedia/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "js/core/saju/crafted-product-details.mjs",
+        "js/saju-engine-tarot-sukuyo-quantum.js"
+      ],
+      "verification": [
+        "원본8장·모바일8장·고지·원고·CTA 독립최종SHIP",
+        "4폭304/334/374/540 이미지·모든clipping경계·오류원고PASS;정적가이드2·ESLint·구문PASS"
+      ],
+      "unconfirmed": [
+        "main/CI미확인;실결제실LLM미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "sukuyo-symbolic-comparison",

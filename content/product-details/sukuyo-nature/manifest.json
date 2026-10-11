@@ -1,0 +1,80 @@
+{
+  "id": "sukuyo-nature",
+  "featureKey": "sukuyo-nature-deep-dive",
+  "title": "숙요 본성 심화",
+  "notice": "기본 숙요의 본명숙·기질과 해석 데이터를 바탕으로 여는 본성 심화입니다. 천성의 빛·달의 이면·인연의 궤도·수호의 문장·일상 적용·기운과 성장의 6개 탭, 달빛 성향 카드, 관계 해석, 연애 성향, 돈 습관과 일 성향, 감정 리듬을 제공합니다. 본명숙별 문구와 달의 리듬 자료를 조합하는 로컬 해석이며 AI 질문 상담이나 상대의 출생정보를 넣는 궁합은 포함하지 않습니다. 자료에 따라 보충 설명과 기본 문장이 사용될 수 있습니다. 기운·회복 안내는 자기 돌봄을 위한 참고이며 의학적 진단이나 치료가 아닙니다. 금전·관계의 결과를 보장하지 않으며 예시는 가상 편집입니다. 인연 도감·궁합·연간 운세·AI 상담은 별도 상품이고, 가격과 결제 조건은 현재 화면을 따릅니다.",
+  "panels": [
+    {
+      "id": "01-a-self-beyond-first-impressions",
+      "title": "밖에서는 웃는데, 혼자서는 왜 지칠까요?",
+      "alt": "밖에서는 웃는데, 혼자서는 왜 지칠까요?",
+      "src": "/feature-details/crafted/sukuyo-nature/01-a-self-beyond-first-impressions.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "밖에서는 웃는데,\n혼자서는 왜 지칠까요?\n\n겉으로 드러나는 기질 다음에는\n감정이 쌓이고 풀리는 방식이 있어요.\n\n본명숙에서 일상의 습관까지,\n숙요 본성 심화 해석."
+    },
+    {
+      "id": "02-six-windows-of-nature",
+      "title": "나를 읽는 여섯 창, 밝은 면과 숨은 면을 함께.",
+      "alt": "나를 읽는 여섯 창, 밝은 면과 숨은 면을 함께.",
+      "src": "/feature-details/crafted/sukuyo-nature/02-six-windows-of-nature.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "나를 읽는 여섯 창,\n밝은 면과 숨은 면을 함께.\n천성의 빛 · 달의 이면\n\n핵심 기질과 현실의 모습,\n감정의 저수지와 회복 단서\n\n인연의 궤도 · 수호의 문장\n\n끌리는 방식과 관계의 경계,\n마음을 정돈하는 문장과 실천\n\n일상 적용 · 기운·성장\n\n의사결정과 생활 리듬,\n사회적 역할과 성장의 한 걸음"
+    },
+    {
+      "id": "03-how-emotion-moves",
+      "title": "처음 보이는 모습부터, 지친 뒤의 회복까지.",
+      "alt": "처음 보이는 모습부터, 지친 뒤의 회복까지.",
+      "src": "/feature-details/crafted/sukuyo-nature/03-how-emotion-moves.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "처음 보이는 모습부터,\n지친 뒤의 회복까지.\n달빛 성향 카드\n\n첫인상 · 내면 리듬 · 감정 패턴\n스트레스 패턴 · 회복 패턴\n\n나의 감정 리듬\n\n아침 · 낮 · 밤의 흐름을 읽고\n감정의 방아쇠와 균형점을 살펴요.\n\n불편함을 알아차리는 언어\n\n성격을 고정하는 이름보다,\n지금 내 상태를 설명할 말을 찾아요.\n\n감정이나 건강 상태를 측정한 검사는 아니에요."
+    },
+    {
+      "id": "04-love-with-a-clear-boundary",
+      "title": "마음이 커질 때, 나의 경계도 함께 돌봐요.",
+      "alt": "마음이 커질 때, 나의 경계도 함께 돌봐요.",
+      "src": "/feature-details/crafted/sukuyo-nature/04-love-with-a-clear-boundary.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "마음이 커질 때,\n나의 경계도 함께 돌봐요.\n관계 해석\n\n관계를 대하는 결을\n주제별 탭으로 살펴요.\n\n연애 성향 프로필\n\n끌림과 사랑 방식 · 깊어지는 순간\n불안 포인트 · 장기 조언 · 피할 패턴\n\n상대의 속마음을 판정하는 궁합이 아니라,\n나의 관계 습관을 읽는 해석이에요."
+    },
+    {
+      "id": "05-money-work-and-rest",
+      "title": "돈과 일을 대하는 나, 잘하는 일과 지치는 일을.",
+      "alt": "돈과 일을 대하는 나, 잘하는 일과 지치는 일을.",
+      "src": "/feature-details/crafted/sukuyo-nature/05-money-work-and-rest.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "돈과 일을 대하는 나,\n잘하는 일과 지치는 일을.\n돈 습관\n\n돈을 다루는 방식\n소비 습관\n저축 포인트\n\n일 성향\n\n일에서의 강점\n주의할 지점\n협업 키워드\n\n더 많이 해내라는 말보다,\n어떤 기준으로 선택하고 쉬어야\n나의 리듬을 지킬 수 있을지 읽어요.\n\n재능의 참고 지표는 능력 검사가 아니며,\n수익이나 직업적 성공을 보장하지 않아요."
+    },
+    {
+      "id": "06-one-sentence-before-a-decision",
+      "title": "괜찮다는 말 뒤에, 내 마음을 한 줄 더해요.",
+      "alt": "괜찮다는 말 뒤에, 내 마음을 한 줄 더해요.",
+      "src": "/feature-details/crafted/sukuyo-nature/06-one-sentence-before-a-decision.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "괜찮다는 말 뒤에,\n내 마음을 한 줄 더해요.\n\n이해를 돕기 위한 가상 편집 예시\n\n“도와주고 싶은 마음은 있어.\n다만 오늘은 쉬어야 해서,\n내일 어느 정도 할 수 있을지\n다시 이야기하고 싶어.”\n해석을 생활로 옮기는 방법\n\n나에게 익숙한 반응을 발견했다면,\n의도와 한계를 함께 말해보세요.\n\n실제 고객 결과나 AI 생성 원문이 아니에요."
+    },
+    {
+      "id": "07-what-opens-with-this-reading",
+      "title": "한 번의 심화 선택, 무엇이 열리는지 확인해요.",
+      "alt": "한 번의 심화 선택, 무엇이 열리는지 확인해요.",
+      "src": "/feature-details/crafted/sukuyo-nature/07-what-opens-with-this-reading.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "한 번의 심화 선택,\n무엇이 열리는지 확인해요.\n본성 심화에 포함\n\n여섯 탭의 해설과 달빛 성향,\n관계·연애·일과 돈·감정 리듬 카드\n\n본명숙과 리듬을 읽는 방식\n\n저장된 해석 자료를 조합해요.\n일부 항목에는 보충 문장이 쓰여요.\n\n별도 선택\n\n상대와의 궁합 · 인연 도감\n연간 운세 · 질문 AI 상담"
+    },
+    {
+      "id": "08-a-rhythm-you-can-use",
+      "title": "나를 설명하는 말에서, 나를 돌보는 행동으로.",
+      "alt": "나를 설명하는 말에서, 나를 돌보는 행동으로.",
+      "src": "/feature-details/crafted/sukuyo-nature/08-a-rhythm-you-can-use.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "나를 설명하는 말에서,\n나를 돌보는 행동으로.\n\n오늘의 나와 닮은 문장 하나를 골라\n작게 실천할 방법을 정해보세요.\n\n본성 심화 해석 열기에서 이어가세요.\n현재 화면의 결제 조건을 확인해 주세요."
+    }
+  ]
+}
