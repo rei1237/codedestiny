@@ -329,7 +329,7 @@
     {
       "productId": "astro_monthly_transit",
       "displayName": "점성술 월간 트랜짓 운세",
-      "saleStatus": "판매 진입 확인 필요",
+      "saleStatus": "가격키존재;현재판매진입미발견",
       "entry": [],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 3000,
@@ -340,11 +340,14 @@
       "separatePurchase": [],
       "reviewSource": [],
       "images": [],
-      "status": "조사",
+      "status": "판매 확인 보류",
       "appliedAt": [],
-      "verification": [],
+      "verification": [
+        "js/app/components/lib/config/scripts 및 worker 참조 검색:가격정본/리뷰카탈로그/fixture에만등장",
+        "현재모달의실제기간상품은astro_yearly_transit"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "명시적월간판매진입미발견;현재판매상품으로집계하지않음"
       ],
       "detailAliases": []
     },
@@ -646,24 +649,57 @@
     {
       "productId": "astro_yearly_transit",
       "displayName": "점성술 앞으로 12개월 흐름",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "saleStatus": "일반점성술모달asYear유료본문진입확인",
+      "entry": [
+        "openAstroModal",
+        "#asYear",
+        "#astroPaidGate_astro_yearly_transit"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 3000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "inputRequirements": [
+        "본인생년월일·출생시간·지역",
+        "조회시점의현재날짜와기기시간대"
       ],
-      "detailAliases": []
+      "resultRenderer": [
+        "js/core/astro/transits.js period",
+        "js/core/astro/transit-reading.js year/renderYear",
+        "js/saju-engine.js _astroCounselYearlyHtml"
+      ],
+      "actualContents": [
+        "조건부올해의주제",
+        "주요흐름최대4:기간/가까워지는날/행동",
+        "12월별카드:우선순위최대3요점",
+        "일/연애/돈/관계/건강5분야좋은때/주의",
+        "왜이렇게봤나요근거목록"
+      ],
+      "conditionalItems": [
+        "출생시간미상ASC/MC·하우스·올해주제제한",
+        "계산실패시섹션미표시",
+        "사건날짜확정아님;계산시점은기기시간대기준"
+      ],
+      "separatePurchase": [
+        "기본차트심층·별의방·AI상담별도"
+      ],
+      "reviewSource": [],
+      "images": [
+        "/feature-details/crafted/astro-yearly-transit/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "js/core/astro/crafted-details.mjs"
+      ],
+      "verification": [
+        "원본10독립SHIP",
+        "모바일10패널·6CTA고지·1원고·desktopCTA독립SHIP;단정표현수정후CTA4재검수SHIP",
+        "4폭313/343/383/540load/bounds/이미지오류원고PASS",
+        "계산표시21테스트재PASS;ESLint0errors/기존source5597warnings"
+      ],
+      "unconfirmed": [
+        "main전달·CI·운영노출미확인;실결제실LLM미실행"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "astrology-ai-consultation",

@@ -52,7 +52,8 @@
     "astro_stellar_growth_room": "astro-stellar-growth",
     "astro_stellar_talent_room": "astro-stellar-talent",
     "astro_talent_attraction_deep": "astro-talent-attraction",
-    "astro_relationship_deep": "astro-relationship"
+    "astro_relationship_deep": "astro-relationship",
+    "astro_yearly_transit": "astro-yearly-transit"
   },
   "introductions": {
     "fusion-fortune": [

@@ -33884,7 +33884,7 @@ function showQuantumResult() {
       var lonsAt = _astroTransitLonsAt(birth.lat || 37.6, birth.lon || 127.0, pack.houseSystem);
       var p = window.AstroTransits.period(window.AstroTransits.natalOf(pack.chart, timeKnown), { today: today, tz: -now.getTimezoneOffset() / 60, lonsAt: lonsAt });
       var R = window.AstroTransitReading, y = R.year(p, { periods: periods, birth: birthParts });
-      return R.renderYearSection(y, _astroCounselPaidGate('astro_yearly_transit', 30, '앞으로 12개월, 언제 무엇이 오는지', '큰 사건의 정확한 날짜, 달마다 볼 날, 일·연애·돈·관계·건강별로 좋은 때와 조심할 때를 열어 드려요.', R.renderYear(y)));
+      return R.renderYearSection(y, _astroCounselPaidGate('astro_yearly_transit', 30, '앞으로 12개월의 흐름 살펴보기', '주요 흐름의 기간과 날짜, 달마다 볼 날, 일·연애·돈·관계·건강별로 참고할 시기를 열어 드려요.', R.renderYear(y)));
     } catch (yearErr) {
       if (window.console && console.warn) console.warn('[astro-year] skipped:', yearErr && yearErr.message);
       return '';

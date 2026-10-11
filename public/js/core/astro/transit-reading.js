@@ -398,8 +398,8 @@
       rangeLabel: span(p.from, p.to),
       preview: {
         month: topMonth,
-        line: topMonth ? '앞으로 12개월 중 가장 큰 변화는 ' + topMonth + '에 와요.' : '앞으로 12개월은 큰 사건 없이 잔잔하게 흘러가요.',
-        sub: '그때 무엇이 오는지, 일·연애·돈·관계·건강별로 언제 움직이고 언제 쉬면 좋은지 날짜로 짚어 드려요.'
+        line: topMonth ? '앞으로 12개월 중 흐름이 가장 두드러지는 달은 ' + topMonth + '이에요.' : '앞으로 12개월에는 두드러진 주요 흐름이 계산되지 않았어요.',
+        sub: '일·연애·돈·관계·건강에서 계획을 돌아볼 기간과 날짜를 살펴보세요.'
       },
       theme: themeLines(p, opts.periods, opts.birth),
       big: big,

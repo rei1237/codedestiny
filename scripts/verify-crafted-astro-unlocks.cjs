@@ -1,5 +1,5 @@
 const fs=require('fs'),assert=require('assert/strict'),{chromium}=require('playwright');
-const origin='http://127.0.0.1:14330',products={astro_basic_deep_pack:'astro-basic-deep',astro_career_talent_deep:'astro-career-talent',astro_growth_shadow_deep:'astro-growth-shadow',astro_stellar_career_room:'astro-stellar-career',astro_stellar_relationship_room:'astro-stellar-relationship',astro_stellar_growth_room:'astro-stellar-growth',astro_stellar_talent_room:'astro-stellar-talent',astro_talent_attraction_deep:'astro-talent-attraction',astro_relationship_deep:'astro-relationship'};
+const origin='http://127.0.0.1:14330',products={astro_basic_deep_pack:'astro-basic-deep',astro_career_talent_deep:'astro-career-talent',astro_growth_shadow_deep:'astro-growth-shadow',astro_stellar_career_room:'astro-stellar-career',astro_stellar_relationship_room:'astro-stellar-relationship',astro_stellar_growth_room:'astro-stellar-growth',astro_stellar_talent_room:'astro-stellar-talent',astro_talent_attraction_deep:'astro-talent-attraction',astro_relationship_deep:'astro-relationship',astro_yearly_transit:'astro-yearly-transit'};
 (async()=>{const browser=await chromium.launch();try{
  for(const [key,id]of Object.entries(products)){
   if(process.argv[2]&&process.argv[2]!==id)continue;
@@ -11,7 +11,7 @@ const origin='http://127.0.0.1:14330',products={astro_basic_deep_pack:'astro-bas
   // These older SKUs exist only in the shipped renderer fallback. Exercise
   // that exact path explicitly; do not mistake the normal stellar-room SKUs for them.
   if(['astro_career_talent_deep','astro_growth_shadow_deep','astro_talent_attraction_deep','astro_relationship_deep'].includes(key)){await page.waitForFunction(()=>typeof window.renderAstroInsight==='function');await page.evaluate(()=>{window.renderAstroInsightLegacyNeon=()=>{throw Error('MOCK_LEGACY_RENDER_FAILURE')};window.renderAstroInsight();});}
-  const detail=page.locator('[data-astro-crafted="'+key+'"]');await detail.waitFor({timeout:60000});await detail.locator(':scope>summary').click();await detail.locator('img').first().waitFor();
+  const detail=page.locator('[data-astro-crafted="'+key+'"]');await detail.waitFor({timeout:60000});await page.waitForLoadState('networkidle');await page.evaluate(()=>document.fonts.ready);await detail.locator(':scope>summary').click();await detail.locator('img').first().waitFor();
   await page.addStyleTag({content:'button[aria-label="개발 결제 테스터"]{display:none!important}'});
   const dir='docs/product-details/verification/'+id;const rows=[];
   for(const width of [360,390,430,1280]){
