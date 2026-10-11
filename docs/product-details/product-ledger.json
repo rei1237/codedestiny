@@ -4982,25 +4982,55 @@
     },
     {
       "productId": "vedic-compatibility-per-use",
-      "displayName": "베다점 궁합 분석",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "displayName": "베다 아쉬타쿠타 궁합",
+      "saleStatus": "별도 상대입력·회당 계산 결제진입 확인",
+      "entry": [
+        "vedic-astrology.html showDetail compat"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 3000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "inputRequirements": [
+        "나의 베다 출생차트",
+        "상대 이름·성별·생년월일·시각·좌표·시간대"
       ],
-      "detailAliases": []
+      "resultRenderer": [
+        "vedic-astrology.html calcCompatibility/doCompatCalcCore"
+      ],
+      "actualContents": [
+        "36점총점/환산비율/종합판단",
+        "바르나·바시야·타라·요니·그라하마이트리·가나·바쿠트·나디8항목/점수/이유",
+        "조건부강점·주의점·종합조언"
+      ],
+      "conditionalItems": [
+        "서비스 단순화 계산규칙",
+        "강점주의항목은해당경우",
+        "비율은성공률아님;전통체질항목은의료/임신판단아님"
+      ],
+      "separatePurchase": [
+        "추가AI해설",
+        "질문AI",
+        "전문가종합"
+      ],
+      "reviewSource": [
+        "생활대화 가상예시;실제결과후기 아님"
+      ],
+      "images": [
+        "/feature-details/crafted/vedic-compatibility/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "js/core/vedic/crafted-details.mjs 상대입력폼앞"
+      ],
+      "verification": [
+        "원본8·실제21 독립SHIP",
+        "326/356/396/446 clipping/fallback PASS",
+        "ESLint/정적2/구문PASS"
+      ],
+      "unconfirmed": [
+        "실결제·실LLM·운영 미검증"
+      ],
+      "detailAliases": [],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "vedic_ai_prompt_generator",
@@ -5121,22 +5151,37 @@
     {
       "productId": "vedic_prashna_prompt",
       "displayName": "프라슈나 프롬프트",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "saleStatus": "판매진입확인;가격근거충돌",
+      "entry": [
+        "vedic-astrology.html renderVedicPrashnaSection"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 3000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
+      "inputRequirements": [
+        "12~600자 하나의 질문",
+        "현재위치/직접좌표",
+        "생성버튼 서버시각자동기록"
+      ],
+      "resultRenderer": [
+        "vedic-astrology.html vedicPrashnaRefreshUi",
+        "worker/lib/vedic-prashna-prompt.js generatePrashnaPromptResult"
+      ],
+      "actualContents": [
+        "실계산차트산출값",
+        "복사용분석프롬프트",
+        "차트JSON펼치기·프롬프트복사"
+      ],
       "conditionalItems": [],
-      "separatePurchase": [],
+      "separatePurchase": [
+        "AI 해설본문은 현재렌더러가 제공하지 않음"
+      ],
       "reviewSource": [],
       "images": [],
-      "status": "조사",
+      "status": "자료 부족",
       "appliedAt": [],
       "verification": [],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "화면/registry cost30=3000원 vs worker/lib/vedic-prashna-prompt.js VEDIC_PRASHNA_PROMPT_AMOUNT_KRW5000원(주문/생성사용). 정책정본불일치 해결전 새상세적용보류. 결제로직수정없음"
       ],
       "detailAliases": []
     },

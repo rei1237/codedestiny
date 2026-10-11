@@ -71,7 +71,8 @@
     "sukuyo-compatibility-ai": "sukuyo-compatibility-expert",
     "vedic-ai-consultation": "vedic-expert",
     "vedic_ai_prompt_generator": "vedic-question-ai",
-    "vedic_basic_reading": "vedic-basic-reading"
+    "vedic_basic_reading": "vedic-basic-reading",
+    "vedic-compatibility-per-use": "vedic-compatibility"
   },
   "introductions": {
     "fusion-fortune": [

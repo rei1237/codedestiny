@@ -9,6 +9,7 @@ export function mountVedicCraftedDetails(area){
   document.head.append(style);
  }
  const targets=[{target:area.querySelector('#vedicConsultation'),id:'vedic-question-ai',title:'베다 질문 AI 상담'}];
+ targets.push({target:area.querySelector('#c-name')?.closest('.glass'),id:'vedic-compatibility',title:'베다 아쉬타쿠타 궁합'});
  const sections=area.querySelectorAll('.tab-panel');
  for(const section of sections.length?sections:[area]){
   targets.push({target:section.querySelector('[data-vedic-lock]'),id:'vedic-basic-reading',title:'베다 기본 해석'});
