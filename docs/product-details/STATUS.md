@@ -454,3 +454,7 @@ status: active
 ## 사주 가디언 소환진
 - 출생좌표/오행/5탭/7일미션/저장프로필별이미지조건을10장개별편집. 원본10/native23 최종독립SHIP.05도해/07·10본문넘침과밝은배경고지·원고대비수정.328/358/398/540 clipping/fallback/CTAtrial PASS5000원. mock권한확인POST4/그외0,이미지생성없음. Node3/Jest16/typecheck PASS,ESLint0errors37기존warnings.
 - 유료구성117종+공통소개1종1058패널 로컬검수. 직전10abf2856 pre-pushPASS. mainCI복구질문pending/운영배포없음. 전체/main전달미완료. 다음우리는무슨사이6카드·9부분저장실제모달구성조사.
+
+## 우리는 무슨 사이?
+- 6자리/시선차이/행동과경계/9부분저장을10장개별편집. 원본10/native23 최종독립SHIP.04·10넘침/07인용고아줄/모바일제목과닫기겹침수정.312/342/378/538 clipping/fallback/CTAtrial PASS. 실제6장순차공개,mockdrawPOST1/그외0. Jest52/Node3 PASS,ESLint0errors322기존warnings.
+- 유료구성118종+공통소개1종1068패널 로컬검수. 직전815a0034e pre-pushPASS. 전달전확인mainCI54b5476b/38114013113여전히실패,복구질문pending/운영배포없음. 전체/main전달미완료. 다음재회운9장원본SHIP·native연결예정.

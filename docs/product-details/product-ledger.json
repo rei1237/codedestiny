@@ -3991,24 +3991,51 @@
     {
       "productId": "tarot-love-relationship",
       "displayName": "우리는 무슨 사이?",
-      "saleStatus": "진입 확인·구성 대조 중",
+      "saleStatus": "현행홈모달6카드공개후유료리딩",
       "entry": [
         "/index.html?action=openTarotLoveModal"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 3000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
+      "inputRequirements": [
+        "서버6카드순차공개",
+        "생년/사연입력없음"
+      ],
+      "resultRenderer": [
+        "js/tarot-love-experience.js",
+        "worker/lib/love-tarot-delivery.js"
+      ],
+      "actualContents": [
+        "6자리개별카드·감정·조언·주의조건",
+        "관계온도·시선차이·카드연결·7일계획",
+        "9부분저장/이어생성·질문문복사·공유"
+      ],
+      "conditionalItems": [
+        "상대마음확정·측정확률아님",
+        "같은계정저장확인",
+        "PDF·시간·글자수보장없음"
+      ],
       "separatePurchase": [],
       "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
+      "images": [
+        "/feature-details/crafted/love-relationship-tarot/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "js/tarot-love-experience.js",
+        "public/js/tarot-love-experience.js",
+        "content/product-details/catalog.json"
+      ],
+      "verification": [
+        "원본10/native23최종독립SHIP",
+        "312/342/378/538 clipping/fallback/CTAtrial PASS",
+        "mockdrawPOST1/그외0;실제6장순차공개",
+        "Jest52/Node3 PASS;ESLint0errors322기존warnings",
+        "07인용고아줄·모바일닫기/제목겹침수정"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "레지스트리3000원;진입CTA금액미표시",
+        "main전달전로컬검수;실결제·LLM없음"
       ],
       "detailAliases": [
         "tarot-love-relationship"

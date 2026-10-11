@@ -1090,6 +1090,7 @@
     if (window._perf && window._perf.lockBody) window._perf.lockBody();
     else document.body.style.overflow = "hidden";
     resetTarotLoveFlow();
+    import('/js/core/oracle/crafted-details.mjs').then(function(module){module.mountOracleCraftedDetails(overlay.querySelector('.tarot-love-shell'),{target:'.tarot-love-panel',id:'love-relationship-tarot',title:'우리는 무슨 사이?'});}).catch(function(){});
     triggerSubtitleTypewriter();
     void recoverLoveDelivery();
   }
