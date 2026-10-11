@@ -1727,7 +1727,7 @@
     "chatEntry": {
       "title": "向 Yeoni 和 Neo 問出此刻最想知道的一件事",
       "cta": "諮詢我的煩惱",
-      "price": "註冊後免費1次 · 之後每次3,000韓元"
+      "price": "每次3,000韓元"
     },
     "svcQuestion": {
       "master-love-codex": "我的下一段戀愛什麼時候開始？",
@@ -7802,10 +7802,9 @@
     },
     "fortuneGatewayDoor": {
       "fortuneGatewayDoorMeta": {
-        "k18ykrep": "登入後免費1次",
-        "n115000": "註冊後免費1次 · 之後每次3,000韓元",
         "n130000": "每次30,000韓元",
-        "k1lo4ibg": "最終交叉判定"
+        "k1lo4ibg": "最終交叉判定",
+        "n13000": "每次3,000韓元"
       },
       "fortuneGatewayDoorGo": {
         "kkmvgqi": "開始諮詢",

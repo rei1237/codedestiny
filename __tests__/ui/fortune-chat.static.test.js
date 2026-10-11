@@ -13,8 +13,7 @@ test("Yeoni chat keeps a unified character choice and neutral usage label", () =
   assert.doesNotMatch(client, /계정당 총 3회/);
   assert.match(client, /type Character = "yeoni" \| "neo"/);
   assert.doesNotMatch(client, /\["flower_pig", "yeoni", "neo"\]/);
-  assert.match(client, /usage\.dailyFreeRemaining/);
-  assert.match(client, /무료 상담/);
+  assert.doesNotMatch(client, /무료 상담|1회 무료|무료로 시작/);
 });
 
 test("a ?character= link opens that consultant and the saved session does not override it", () => {

@@ -198,15 +198,13 @@ test("family shop copy states the real fusion coverage", () => {
   assert.doesNotMatch(html, /기능 무제한|월 누적/);
 });
 
-test("the destiny gate states the free quota before the paid price", () => {
+test("the destiny gate states the per-session price with no free quota", () => {
   const html = read("index.html");
-  // 🔴 계정 무료 3회는 총량이다(worker/lib/guardian-fortune-usage.js: "lifetime-scoped").
-  //    "매일" 로 쓰면 매일 지급을 약속하는 문구가 된다.
+  // 연이·네오 상담은 무료 횟수 없이 1회 3,000원이다. 무료 문구가 되살아나면 없는 혜택을 약속하게 된다.
   // 태그에 속성을 허용한다 — i18n 마커(data-cd-trans)가 붙어도 계약은 그대로다.
   // 텍스트만 어디 있어도 통과하는 형태로 풀지는 않는다: 굵게 표시되는지까지가 계약이다.
-  assert.match(html, /<b[^>]*>회원가입 무료 1회<\/b>/);
-  assert.match(html, /이후 1회 3,000원/);
-  assert.doesNotMatch(html, /매일 무료|하루 무료|매일 3회/);
+  assert.match(html, /<b[^>]*>1회 3,000원<\/b>/);
+  assert.doesNotMatch(html, /회원가입 무료 1회|이후 1회 3,000원|매일 무료|하루 무료|매일 3회/);
 });
 
 test("a finished reading is saved and can be reopened without paying again", () => {

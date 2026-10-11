@@ -1576,7 +1576,7 @@
     "chatEntry": {
       "title": "연이와 네오에게, 지금 가장 궁금한 한 가지",
       "cta": "내 고민 상담하기",
-      "price": "회원가입 무료 1회 · 이후 1회 3,000원"
+      "price": "1회 3,000원"
     },
     "svcQuestion": {
       "master-love-codex": "내 다음 연애는 언제 시작될까?",
@@ -4702,10 +4702,9 @@
     },
     "fortuneGatewayDoor": {
       "fortuneGatewayDoorMeta": {
-        "k18ykrep": "회원가입 무료 1회",
-        "n115000": "이후 1회 3,000원",
         "n130000": "1회 30,000원",
-        "k1lo4ibg": "최종 교차 판정"
+        "k1lo4ibg": "최종 교차 판정",
+        "n13000": "1회 3,000원"
       },
       "fortuneGatewayDoorGo": {
         "kkmvgqi": "상담 시작하기",

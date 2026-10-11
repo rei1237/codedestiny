@@ -1727,7 +1727,7 @@
     "chatEntry": {
       "title": "Ask Yeoni and Neo the one thing on your mind right now",
       "cta": "Talk through my concern",
-      "price": "1 free after signing up · ₩3,000 each after"
+      "price": "₩3.000 por sesión"
     },
     "svcQuestion": {
       "master-love-codex": "When will my next relationship begin?",
@@ -7802,10 +7802,9 @@
     },
     "fortuneGatewayDoor": {
       "fortuneGatewayDoorMeta": {
-        "k18ykrep": "1 gratis al iniciar sesión",
-        "n115000": "1 gratis tras registrarte · ₩3.000 cada una después",
         "n130000": "₩30.000 por lectura",
-        "k1lo4ibg": "verificación cruzada final"
+        "k1lo4ibg": "verificación cruzada final",
+        "n13000": "₩3.000 por sesión"
       },
       "fortuneGatewayDoorGo": {
         "kkmvgqi": "Start a reading",

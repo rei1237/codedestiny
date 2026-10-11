@@ -1727,7 +1727,7 @@
     "chatEntry": {
       "title": "ヨニとネオに、今いちばん気になるひとつを",
       "cta": "わたしの悩みを相談する",
-      "price": "会員登録で無料1回・以降1回3,000ウォン"
+      "price": "1回3,000ウォン"
     },
     "svcQuestion": {
       "master-love-codex": "次の恋はいつ始まる？",
@@ -7802,10 +7802,9 @@
     },
     "fortuneGatewayDoor": {
       "fortuneGatewayDoorMeta": {
-        "k18ykrep": "ログインで無料1回",
-        "n115000": "会員登録後1回無料・以降1回3,000ウォン",
         "n130000": "1回30,000ウォン",
-        "k1lo4ibg": "最終クロス判定"
+        "k1lo4ibg": "最終クロス判定",
+        "n13000": "1回3,000ウォン"
       },
       "fortuneGatewayDoorGo": {
         "kkmvgqi": "鑑定を始める",
