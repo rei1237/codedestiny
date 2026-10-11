@@ -1,7 +1,7 @@
 import {renderCraftedDetail} from '../../feature-detail-panels.mjs';
 
 // Optional authored content has no access to chart calculations or purchase state.
-const products={section_summary:'saju-summary',section_daewun:'saju-daewun','compat-saju-compatibility':'saju-compatibility','compat-sukuyo-compatibility':'sukuyo-compatibility','premium-sukuyo-compat-extra':'sukuyo-compatibility-precision','compat-ziwei-compatibility':'ziwei-compatibility','sukuyo-nature-deep-dive':'sukuyo-nature','sukuyo-relationship-encyclopedia':'sukuyo-encyclopedia','sukyo_yearly_fortune_unlock':'sukuyo-yearly'};
+const products={section_summary:'saju-summary',section_daewun:'saju-daewun','compat-saju-compatibility':'saju-compatibility','compat-sukuyo-compatibility':'sukuyo-compatibility','premium-sukuyo-compat-extra':'sukuyo-compatibility-precision','compat-ziwei-compatibility':'ziwei-compatibility','sukuyo-nature-deep-dive':'sukuyo-nature','sukuyo-relationship-encyclopedia':'sukuyo-encyclopedia','sukyo_yearly_fortune_unlock':'sukuyo-yearly','sukuyo-extreme-t-relationship':'extreme-t-relationship'};
 function mount(el){
  const staticKey=el.getAttribute('data-crafted-static-offer')||el.getAttribute('data-saju-static-offer');
  const id=products[staticKey||el.getAttribute('data-saju-offer')];
@@ -9,7 +9,7 @@ function mount(el){
  const modalOffer=el.hasAttribute('data-crafted-static-offer')||staticKey==='compat-ziwei-compatibility';
  if(modalOffer)window.BasicFortunePresentation?.init?.();
  const disclosure=document.createElement('details');
- disclosure.className=modalOffer?'saju-crafted-offer saju-crafted-offer--modal':'saju-crafted-offer';
+ disclosure.className=modalOffer?'saju-crafted-offer saju-crafted-offer--modal':staticKey==='sukuyo-extreme-t-relationship'?'saju-crafted-offer saju-crafted-offer--contained':'saju-crafted-offer';
  disclosure.innerHTML='<summary>상세 안내 자세히 보기</summary><div data-crafted-host></div>';
  const oldPreview=staticKey?el.querySelector('.compat-preview__grid'):null;
  if(oldPreview)oldPreview.before(disclosure);else el.append(disclosure);

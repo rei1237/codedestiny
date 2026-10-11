@@ -1349,25 +1349,60 @@
     },
     {
       "productId": "sukuyo-extreme-t-relationship",
-      "displayName": "극T 관계 회로 확장",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
-      "priceSource": "worker/lib/paid-feature-registry.js",
-      "priceSnapshotKRW": 3000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "displayName": "극T 관계 확장",
+      "saleStatus": "사주 기본결과 극T 카드의 실제 추가 해금 버튼 확인",
+      "entry": [
+        "#tTestCard [data-extreme-t-lock-button]"
       ],
-      "detailAliases": []
+      "priceSource": "worker/lib/paid-feature-registry.js cost30",
+      "priceSnapshotKRW": 3000,
+      "inputRequirements": [
+        "기존 사주명식·오행·십성·조후"
+      ],
+      "resultRenderer": [
+        "js/core/saju/extremeTResult.js buildExtremeTResult",
+        "js/saju-engine-tarot-sukuyo-quantum.js renderTTest builder/fallback"
+      ],
+      "actualContents": [
+        "관계회로6항목",
+        "연애알고리즘7항목",
+        "현실처리능력5항목",
+        "사주기반해석4항목",
+        "디버깅처방전5항목"
+      ],
+      "conditionalItems": [
+        "내부점수구간별로컬문구조합",
+        "기본점수/유형/장점/버그/미션/요약은이미제공;유료5그룹과구분",
+        "숙요명칭키를사용하지만실제사주기반;심리측정/MBTI아님",
+        "로컬빌더없을때fallback도동일5그룹해금"
+      ],
+      "separatePurchase": [
+        "궁합",
+        "AI상담"
+      ],
+      "reviewSource": [
+        "가상대화예시;디지털구매후기사용안함"
+      ],
+      "images": [
+        "/feature-details/crafted/extreme-t-relationship/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "js/core/saju/crafted-product-details.mjs",
+        "js/saju-engine-tarot-sukuyo-quantum.js renderTTestPanelLock/bindExtremeTRelationshipUnlock"
+      ],
+      "verification": [
+        "원본8장·실제16캡처 독립최종SHIP",
+        "4폭294/324/364/540 모든clippingancestor·이미지오류원고PASS",
+        "정적가이드2·ESLint·구문PASS"
+      ],
+      "unconfirmed": [
+        "main/CI미확인;실결제미실행"
+      ],
+      "detailAliases": [
+        "extreme-t-relationship-circuit"
+      ],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "flower-fc",

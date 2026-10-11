@@ -307,7 +307,7 @@ body.neo-mode #modalBody .saju-reading > h3 {padding-right:44px;}
 .saju-crafted-offer .craftedDetailTranscript section {margin:24px 0;}
 .saju-crafted-offer summary {min-height:44px;}
 @media (max-width:600px) {
-  .saju-crafted-offer:not(.saju-crafted-offer--modal) .craftedDetail > div {
+  .saju-crafted-offer:not(.saju-crafted-offer--modal):not(.saju-crafted-offer--contained) .craftedDetail > div {
     width:calc(100vw - 30px);
     margin-inline:calc((100% - (100vw - 30px)) / 2);
   }
@@ -316,5 +316,6 @@ body.neo-mode #modalBody .saju-reading > h3 {padding-right:44px;}
     margin-inline:calc((100% - (100vw - 56px)) / 2);
   }
 }
+.t-test-card [data-saju-static-offer="sukuyo-extreme-t-relationship"] {margin-inline:-15px;}
 
 .saju-crafted-offer :is(.craftedDetailNotice,.craftedDetailTranscript){word-break:keep-all;overflow-wrap:anywhere;}

@@ -4940,6 +4940,7 @@ function renderTTest(p, natal, johu, pw) {
       + '<div class="t-panel-title">' + title + '</div>'
       + '<p style="margin:0 0 10px;color:#cbd5e1;font-size:0.82rem;line-height:1.6;word-break:keep-all;">'
       + desc + '</p>'
+      + '<div data-saju-static-offer="sukuyo-extreme-t-relationship"></div>'
       + '<button type="button" data-extreme-t-lock-button data-extreme-t-feature-key="' + feature.key + '" style="display:inline-flex;align-items:center;justify-content:center;min-height:40px;width:100%;border-radius:10px;border:1px solid rgba(248,231,183,.56);background:linear-gradient(135deg, rgba(30,41,59,.68), rgba(59,7,100,.4));color:#fef3c7;font-size:0.82rem;font-weight:900;padding:8px 14px;cursor:pointer;">극T 관계 확장 열기 · ' + priceLabel + '</button>'
       + '</section>';
   }
@@ -4949,6 +4950,11 @@ function renderTTest(p, natal, johu, pw) {
   }
 
   function bindExtremeTRelationshipUnlock(area, renderArgs) {
+    var craftedOffer = area.querySelector('[data-saju-static-offer="sukuyo-extreme-t-relationship"]');
+    if (craftedOffer) area.prepend(craftedOffer);
+    if (craftedOffer) import('/js/core/saju/crafted-product-details.mjs').then(function(module) {
+      if (craftedOffer.isConnected) module.mountCraftedStaticOffer(craftedOffer);
+    }).catch(function() { /* Optional guide; retain the existing unlock form. */ });
     // 결제 후 리다이렉트 복귀는 이 클로저를 잃으므로, 렌더할 때마다 최신 것을 전역에 걸어 둔다.
     // 🔴 버튼 유무와 무관하게 먼저 건다 — 아래 early return 뒤에 두면 재개가 코어를 못 찾는다.
     window._syRenderTTestCore = function() { renderTTest.apply(null, renderArgs); };
