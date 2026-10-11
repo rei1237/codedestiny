@@ -2294,28 +2294,61 @@
     {
       "productId": "vedic-ai-consultation",
       "displayName": "베다점 전문가 상담",
-      "saleStatus": "진입 확인·구성 대조 중",
+      "saleStatus": "전용React페이지 입력·결제진입 확인",
       "entry": [
         "/vedic-ai"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 30000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
+      "inputRequirements": [
+        "생년월일·성별·달력",
+        "출생시간 또는미상",
+        "출생장소좌표·시간대",
+        "상담주제·자유질문(최대1500자)"
+      ],
+      "resultRenderer": [
+        "worker/routes/vedic-ai.js READING_SECTION_KEYS4",
+        "app/vedic-ai/VedicAiClient.tsx StructuredReadingResult",
+        "app/vedic-ai/result/VedicAiResultClient.tsx"
+      ],
+      "actualContents": [
+        "카르마기원/물질성취다르마/인연파트너/다샤우파야4부",
+        "북인도식차트·기본자료·다샤진행/타임라인·근거패널",
+        "다르마아르타카마목샤4참고지표",
+        "PDF저장"
+      ],
+      "conditionalItems": [
+        "시간미상라그나바바제한",
+        "D9/D10제공자료범위",
+        "다음안타르다샤·토성목성고차라실계산자료있는경우"
+      ],
+      "separatePurchase": [
+        "기본해석",
+        "특정상대궁합",
+        "질문AI"
+      ],
+      "reviewSource": [
+        "가상편집예시;구매후기아님"
+      ],
+      "images": [
+        "/feature-details/crafted/vedic-expert/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "app/vedic-ai/VedicAiClient.tsx 기존입력폼"
+      ],
+      "verification": [
+        "원본10/실제19+고지끝2 독립최종SHIP",
+        "328/358/398/419 clipping/fallback/POST0 PASS",
+        "ESLint PASS"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "실결제실LLM미실행;main/CI미확인"
       ],
       "detailAliases": [
         "vedic-ai"
-      ]
+      ],
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "ziwei-ai-consultation",
