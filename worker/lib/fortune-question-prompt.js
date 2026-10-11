@@ -128,9 +128,16 @@ function isSajuPrompt(fortuneType, fortuneLabel) {
   return String(fortuneType || "").toLowerCase() === "saju" || String(fortuneLabel || "").includes("사주");
 }
 
+function isVedicPrompt(fortuneType, fortuneLabel) {
+  return String(fortuneType || "").toLowerCase() === "vedic" || String(fortuneLabel || "").includes("베다");
+}
+
+// "베다 점성술" also contains "점성술"; vedic charts have no MC, aspects, element or modality
+// distribution, so the Western requests made the model invent them (B7 2026-10-11).
 function isAstrologyPrompt(fortuneType, fortuneLabel) {
   const type = String(fortuneType || "").toLowerCase();
   const label = String(fortuneLabel || "");
+  if (isVedicPrompt(type, label)) return false;
   return type === "astrology" || label.includes("점성술") || label.includes("Astrology");
 }
 
@@ -208,6 +215,17 @@ function buildCoreRequestLines(fortuneType, fortuneLabel) {
       "4. 트랜싯·프로펙션·피르다리아 등 시기 정보는 제공된 데이터 안에서만 사용하고, 확정 예언이 아니라 선택 리듬으로 설명해주세요.",
       "5. 궁합/시너스트리 데이터가 있으면 개인 차트의 욕구, 두 차트의 접점, 하우스 오버레이, 조율법을 분리해서 해석해주세요.",
       "6. 출생시간·좌표·하우스 신뢰도가 불완전하면 상승궁·달·하우스 판단을 보수적으로 표현하고 추가 확인 정보를 안내해주세요.",
+    ];
+  }
+
+  if (isVedicPrompt(fortuneType, fortuneLabel)) {
+    return [
+      "1. 사용자의 질문을 먼저 한 문장으로 정리하고, 차트에서 실제로 확인할 축을 분리해주세요.",
+      "2. 라그나·라그나 로드·달의 낙샤트라·카라카를 우선 읽고, 질문과 관련된 하우스와 그 하우스에 놓인 행성을 연결해주세요.",
+      "3. 하우스 지배 관계는 분석 데이터의 '행성별 지배 하우스' 값만 인용하고, 행성이 놓인 하우스를 그 행성이 지배하는 하우스로 바꿔 말하지 마세요.",
+      "4. 시기 정보는 제공된 다샤 구간 안에서만 사용하고, 확정 예언이 아니라 선택 리듬으로 설명해주세요.",
+      "5. 궁합 데이터가 있으면 아쉬타쿠타 총점과 항목별 점수를 근거로 강점과 조율점을 분리해서 해석해주세요.",
+      "6. 출생시간이 불확실하면 라그나·하우스 판단을 보수적으로 표현해주세요.",
     ];
   }
 

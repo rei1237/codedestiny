@@ -4,7 +4,8 @@ import {isStructuredReading,READING_V6_VERSION,READING_V7_VERSION} from './readi
 import {selectV7Facts} from './reading-v7-ledger';
 import {preventionFacts,hasPrevention} from './prevention';
 import type {ChapterSpecV7} from './reading-v7';
-import {enrichZiweiContext} from './ziwei/reading-facts';
+import {enrichZiweiContext,ziweiPalaceRelationTable} from './ziwei/reading-facts';
+import {buildLuckOverlap} from './saju/luck-overlap';
 
 export function relationshipSignals(value:unknown) {
  const data=value as {byName?:Record<string,{present?:boolean;hits?:unknown[];state?:string}>};
@@ -20,6 +21,44 @@ function cleanEvidence(value:unknown,premium:boolean):unknown {
  if(!value||typeof value!=='object')return value;
  return Object.fromEntries(Object.entries(value).filter(([key])=>! /prompt|summaryForPrompt/i.test(key) && (premium||! /useful|unfavorable|yongshin|heeShin|jong|majorLuck|dasha|divisional|yogas|fourTransformations|sanFangSiZheng/i.test(key))).map(([key,v])=>[key,cleanEvidence(v,premium)]));
 }
+// 9A: a card position is a symbol of the moment the question was asked, never a calendar period. Image fields are
+// presentation-only, so the prompt copy drops them.
+const TAROT_NOW='질문한 지금의 상태다. 요청 기간이나 특정 달의 사건으로 옮기지 않는다.';
+const TAROT_BACKGROUND='지금 마음에 남아 있는 배경이다. 날짜나 지나간 시기가 아니다.';
+const TAROT_DIRECTION='지금 흐름이 이어질 때의 방향이다. 특정 달·연도의 결과가 아니다.';
+const TAROT_TIME_FRAMES:Record<string,string>={current:TAROT_NOW,present:TAROT_NOW,past:TAROT_BACKGROUND,cause:TAROT_BACKGROUND,outcome:TAROT_DIRECTION,future:TAROT_DIRECTION,short_term_outcome:TAROT_DIRECTION,result:TAROT_DIRECTION};
+const TAROT_TIME_FRAME='질문 순간의 상징이다. 시기 근거가 아니며 기간으로 옮기지 않는다.';
+const TAROT_IMAGE_FIELDS=['imageKey','imageUrl','imageCandidates','proxyImageUrl','localImageUrl'];
+function tarotPromptCards(value:unknown){
+ if(!Array.isArray(value))return value;
+ return value.map(card=>card&&typeof card==='object'?{...Object.fromEntries(Object.entries(card).filter(([key])=>!TAROT_IMAGE_FIELDS.includes(key))),
+  timeFrame:TAROT_TIME_FRAMES[String((card as Record<string,unknown>).positionKey)]||TAROT_TIME_FRAME}:card);
+}
+// 3A: the base selector carries each pillar's ten gods so a chapter never names a pillar's ten god from memory.
+function tenGodsSummary(value:unknown){
+ if(!value||typeof value!=='object')return value;
+ return Object.fromEntries(Object.entries(value as Record<string,any>).filter(([,p])=>p&&typeof p==='object').map(([key,p])=>[key,
+  {label:p.label,pillar:p.pillar,stemTenGod:p.stemTenGod,branchMainTenGod:p.primaryHiddenTenGod,branchTenGods:p.branchTenGods}]));
+}
+// 4: the years a chapter reads. Question chapters carry the requested period (timeScope); 올해 장은 저장된 첫 연도,
+// 내년 예고 장은 그다음 연도를 읽는다. Other chapters keep the old default (the first stored yearly row).
+function scopeYears(chapter:ChapterSpec,first:unknown):number[]|undefined{
+ if(chapter.timeScope?.years?.length)return chapter.timeScope.years;
+ if(typeof first!=='number'||!Number.isInteger(first))return undefined;
+ if(chapter.key==='life-next-year')return [first+1];
+ return ['life-year','question-year'].includes(chapter.key||'')?[first]:undefined;
+}
+const dayOf=(start:any)=>[start?.year,start?.month,start?.day].every(Number.isInteger)?`${start.year}-${String(start.month).padStart(2,'0')}-${String(start.day).padStart(2,'0')}`:'';
+// A solar-term month runs from its 절입 to the next row's 절입; the last stored row is taken to run about a month.
+function monthsInScope<T extends {start?:any}>(rows:T[],chapter:ChapterSpec,first:unknown):T[]{
+ const scope=chapter.timeScope;
+ if(scope?.start&&scope.end)return rows.filter((r,i)=>{
+  const from=dayOf(r.start);if(!from)return false;
+  const until=dayOf(rows[i+1]?.start)||new Date(Date.parse(from)+32*864e5).toISOString().slice(0,10);
+  return from<=scope.end&&until>scope.start;
+ });
+ return chapter.key==='life-next-year'&&typeof first==='number'?rows.filter(r=>r.start?.year===first+1):rows;
+}
 function selectedFacts(context:DomainContext,chapter:ChapterSpec) {
  const premium=Boolean(chapter.questionPolicy)||['tuna','assorted','omakase'].includes(chapter.tier||'');
  const selectors=chapter.factSelectors?.[context.domain]||[];
@@ -29,8 +68,17 @@ function selectedFacts(context:DomainContext,chapter:ChapterSpec) {
   const selection=allowed.get(f.label);if(!selection||chapter.factIds&&!chapter.factIds.includes(f.id))return [];
   if(!premium&&/usefulGod|jong|majorLuck|vimshottariDasha|dasha|yogas|divisionalCharts|fourTransformations|sanFangSiZheng/.test(f.label))return [];
   let value=f.value;
+  // 4·13A: a chapter scoped to a requested period drops rows that describe another time — the 기준일 하루 근거
+  // (today*) when 기준일 is outside the period, and a stored 유년 of a year the period does not cover.
+  if(chapter.timeScope){
+   const day=context.calculatedAt?.slice(0,10);
+   if(/^today/.test(f.label)&&day&&(day<chapter.timeScope.start||day>chapter.timeScope.end))return [];
+   if(context.domain==='ziwei'&&f.label==='yearlyLuck'&&typeof (value as {year?:unknown})?.year==='number'&&!chapter.timeScope.years.includes((value as {year:number}).year))return [];
+  }
   if(!selection.whole){
-   if(selection.palaces.length&&Array.isArray(value))value=value.filter(p=>selection.palaces.includes(p.name)||p.name===context.facts.find(x=>x.label==='bodyPalace')?.value);
+   // 14A: 신궁 is forced in only where the reader's own nature or money is the subject.
+   if(selection.palaces.length&&Array.isArray(value))value=value.filter(p=>selection.palaces.includes(p.name)||['self','wealth'].includes(chapter.theme)&&p.name===context.facts.find(x=>x.label==='bodyPalace')?.value);
+   else if(f.label==='tenGodsByPillar'&&selection.paths.includes('summary'))value=tenGodsSummary(value);
    else if(selection.paths.length&&value&&typeof value==='object')value=Object.fromEntries(selection.paths.filter(path=>Object.hasOwn(value as object,path)).map(path=>[path,(value as Record<string,unknown>)[path]]));
   }
   if(f.label==='vimshottariDasha'&&value&&typeof value==='object'&&'periods' in value){
@@ -42,12 +90,31 @@ function selectedFacts(context:DomainContext,chapter:ChapterSpec) {
   if(!chapter.questionPolicy&&f.label==='majorLuck'&&context.domain==='saju'&&value&&typeof value==='object'){
    const data=value as {currentCycle?:{index:number};cycles?:{index:number}[];direction?:string};
    const next=chapter.key==='next'||chapter.version===READING_V6_VERSION&&chapter.key==='preparation';
-   const compare=chapter.version===READING_V6_VERSION&&['alternatives','limits'].includes(chapter.key||'');
+   // 4: 10년 주기 장은 지금의 10년과 다음 10년을 함께 읽는다.
+   const compare=chapter.version===READING_V6_VERSION&&['alternatives','limits'].includes(chapter.key||'')||chapter.key==='life-decade';
    value=chapter.counsel?.cycleIndexes?{direction:data.direction,cycles:data.cycles?.filter(c=>chapter.counsel!.cycleIndexes!.includes(c.index))}:next||compare?{direction:data.direction,...(compare?{currentCycle:data.currentCycle}:{}),cycles:data.currentCycle?data.cycles?.filter(c=>c.index>data.currentCycle!.index).slice(0,1):[],limitation:data.currentCycle?undefined:'현재 주기를 확인할 수 없어 다음 전환을 특정하지 않는다.'}:{direction:data.direction,currentCycle:data.currentCycle};
   }
-  if(!chapter.questionPolicy&&f.label==='yearlyLuck'&&context.domain==='saju'&&Array.isArray(value))value=value.slice(0,1);
+  if(!chapter.questionPolicy&&context.domain==='saju'&&['yearlyLuck','monthlyLuck','luckOverlap'].includes(f.label)){
+   const yearly=context.facts.find(x=>x.label==='yearlyLuck')?.value,first=Array.isArray(yearly)?yearly[0]?.year:undefined;
+   const years=scopeYears(chapter,first);
+   const pickYears=(rows:any[])=>years?rows.filter(r=>years.includes(r.year)):rows.slice(0,1);
+   if(f.label==='yearlyLuck'&&Array.isArray(value))value=pickYears(value);
+   if(f.label==='monthlyLuck'&&Array.isArray(value))value=monthsInScope(value,chapter,first);
+   if(f.label==='luckOverlap'&&value&&typeof value==='object'){
+    const v=value as {rule:string;years:any[];months:any[]};
+    const months=monthsInScope(v.months.map(m=>({...m,start:{year:m.year,month:m.month,day:1}})),chapter,first).map(({start:_start,...m})=>m);
+    value={rule:v.rule,years:pickYears(v.years),months};
+   }
+  }
+  if(!chapter.questionPolicy&&context.domain==='ziwei'&&f.label==='yearlyTimeline'&&Array.isArray(value)){
+   const years=scopeYears(chapter,(context.facts.find(x=>x.label==='yearlyLuck')?.value as {year?:number}|undefined)?.year);
+   if(years)value=value.filter(r=>years.includes(r.year));
+  }
+  if(context.domain==='tarot'&&f.label==='cards')value=tarotPromptCards(value);
   if(f.label==='shinsal')value={signals:relationshipSignals(value),limitation:'매력·교류의 단서이며 실제 외도 여부나 확률이 아니다. 자료 없음은 낮은 위험을 뜻하지 않는다.'};
-  if(f.label==='palaces'&&Array.isArray(value))value={palaces:value,distinctPlacements:ziweiTraitEvidence(value,context.facts.find(x=>x.label==='bodyPalace')?.value),rule:'명궁·신궁 역할이 같아도 동일 궁·별 배치는 독립 증거로 중복 계산하지 않는다.'};
+  // 2A: a palace subset still carries the full 12-palace 대궁·삼합 table so a relation is never guessed.
+  if(f.label==='palaces'&&Array.isArray(value))value={palaces:value,distinctPlacements:ziweiTraitEvidence(value,context.facts.find(x=>x.label==='bodyPalace')?.value),
+   ...(Array.isArray(f.value)&&value.length<f.value.length?{relationTable:ziweiPalaceRelationTable(f.value),relationRule:'relationTable은 12궁 전체의 대궁(facing)·삼합(trines) 이름표다. 여기 없는 궁과의 관계도 이 표로만 말한다.'}:{}),rule:'명궁·신궁 역할이 같아도 동일 궁·별 배치는 독립 증거로 중복 계산하지 않는다.'};
   value=cleanEvidence(value,premium);
   if(value==null||Array.isArray(value)&&!value.length||typeof value==='object'&&!Object.keys(value as object).length)return [];
   return [{...f,value}];
@@ -60,6 +127,12 @@ const filters:Record<string,RegExp>={
  work:/tenGod|palaces|planet|yoga|strength|career|cards|reading/i,
  luck:/Luck|Timeline|dasha|transit|timing|year|decade|cards|reading/i,
 };
+// 1A: 세운·월운×대운 relations are derived from the stored rows on each call, so stored snapshots need no migration.
+function withLuckOverlap(context:DomainContext):DomainContext{
+ if(context.domain!=='saju'||context.facts.some(f=>f.label==='luckOverlap'))return context;
+ const value=buildLuckOverlap(context.facts);
+ return value?{...context,facts:[...context.facts,{id:'saju.luckOverlap',label:'luckOverlap',value} as DomainContext['facts'][number]]}:context;
+}
 export function selectChapterFacts(context:DomainContext,chapter:ChapterSpec,topic='general'){
  // 자미 궁 강약·관계·판단 문장은 저장 context 가 아니라 여기서 붙인다 — v6·v7·주의점·옛 주제 경로가 모두 이 입구를 지난다.
  context=enrichZiweiContext(context);
@@ -68,7 +141,7 @@ export function selectChapterFacts(context:DomainContext,chapter:ChapterSpec,top
  // v7 replaces selectors with the fact ledger: a chapter sees exactly the IDs it owns plus the ones it may reference.
  // The ledger is rebuilt from the same stored context every time, so prepare and generation resolve identical IDs.
  if(chapter.version===READING_V7_VERSION)return [...selectV7Facts(context,chapter as ChapterSpecV7),...prevention];
- if(isStructuredReading(chapter.version))return [...selectedFacts(context,chapter),...prevention];
+ if(isStructuredReading(chapter.version))return [...selectedFacts(withLuckOverlap(context),chapter),...prevention];
  const pattern=filters[topic];
  let facts=pattern?context.facts.filter(f=>pattern.test(f.label)||/pillars|dayMaster|lagna|ascendant|spread/i.test(f.label)):context.facts;
  if(!facts.length)facts=context.facts;

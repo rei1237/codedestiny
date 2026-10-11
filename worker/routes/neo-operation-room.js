@@ -56,6 +56,7 @@ import {
   parseNeoSectionResponse,
   mergeNeoInitialSections,
   mergeNeoRefinedSections,
+  neoRegisterDrift,
 } from "../lib/neo-operation-room-prompt.js";
 
 const SERVICE_KEY = "neo-operation-room";
@@ -1670,16 +1671,26 @@ async function handleStart(request, env, ctx = null, recoveryAuth = null) {
       doc = await saveNeoDelivery(filter, { methodSummary, llmMeta: { ...doc.llmMeta, resumeBody } }, sessionId);
     }
     const sections = doc.methodSummary?.compat ? neoCompatInitialSections(normalized.input.selectedMethod) : NEO_INITIAL_SECTIONS;
-    const accepted = section => neoSectionReady(section, doc.llmMeta.sections?.[section.id], normalized.input, doc.methodSummary,
-      true);
-    const sectionChars = row => countPaidReportBodyChars(neoBody(mergeNeoInitialSections(row ? [row] : [], normalized.input, { ...doc.methodSummary, evidenceSummary: "", summary: "" })));
+    const sectionText = row => neoBody(mergeNeoInitialSections(row ? [row] : [], normalized.input, { ...doc.methodSummary, evidenceSummary: "", summary: "" }));
+    const sectionChars = row => countPaidReportBodyChars(sectionText(row));
+    const usable = (section, row) => neoSectionReady(section, row, normalized.input, doc.methodSummary, true);
+    const drifted = row => neoRegisterDrift(sectionText(row));
+    // 완결 = 분량 기준 충족 + 반말 한 어조. 미달이지만 쓸 수 있는 초안은 2회 상한 안에서 한 번만 보강하고
+    // (ai-and-db.md: 분량 미달 시 1회 보강 후 확정), 보강 뒤에는 더 나은 쪽을 그대로 전달한다.
+    const complete = (section, row) => neoSectionReady(section, row, normalized.input, doc.methodSummary, false) && !drifted(row);
+    const accepted = section => {
+      const row = doc.llmMeta.sections?.[section.id];
+      if (complete(section, row)) return true;
+      const tries = doc.llmMeta.attempts || {};
+      return usable(section, row) && Boolean(tries[`${section.id}:lengthRepair`] || Number(tries[section.id] || 0) >= 2);
+    };
     const missing = sections.filter(section => !accepted(section));
     if (missing.some(section => Number(doc.llmMeta.attempts?.[section.id] || 0) >= 2)) throw Object.assign(new Error(LLM_ERROR_MESSAGE), { code: "LLM_FAILED" });
     if (missing.length) {
       const selected = missing.slice(0, PAID_LLM_PARTS_PER_REQUEST);
       const attempts = { ...doc.llmMeta.attempts };
       selected.forEach(section => {
-        if (neoSectionReady(section, doc.llmMeta.sections?.[section.id], normalized.input, doc.methodSummary, true)) attempts[`${section.id}:lengthRepair`] = 1;
+        if (usable(section, doc.llmMeta.sections?.[section.id])) attempts[`${section.id}:lengthRepair`] = 1;
         attempts[section.id] = Number(attempts[section.id] || 0) + 1;
       });
       doc = await saveNeoDelivery(filter, { llmMeta: { ...doc.llmMeta, resumeBody, attempts } }, sessionId);
@@ -1687,12 +1698,21 @@ async function handleStart(request, env, ctx = null, recoveryAuth = null) {
       const context = { ...normalized.input, birthTimeUnknown: normalized.input.birthInfo?.birthTimeUnknown === true, methodSummary: doc.methodSummary };
       let queue = Promise.resolve();
       const outcomes = await Promise.allSettled(selected.map(async section => {
-        const prompt = buildNeoInitialSectionPrompt(section, context) + (attempts[`${section.id}:lengthRepair`] ? "\n[분량 보강] 기존 계산 근거를 유지하고 새로운 장면과 행동 조언을 더해 완결된 JSON으로 다시 작성한다. 반복으로 채우지 않는다." : "") + `\n[완료 기준] 제목·목차·공백을 제외한 본문 최소 ${section.minChars}자, 목표 ${Math.ceil(section.minChars / 0.8)}자. 계산값 → 생활 패턴 → 반대 조건 → 행동 조언으로 전개한다. 반복으로 채우지 않는다.`;
+        const previousDraft = attempts[`${section.id}:lengthRepair`] ? doc.llmMeta.sections?.[section.id] : null;
+        const repairNotes = previousDraft ? [
+          neoSectionReady(section, previousDraft, normalized.input, doc.methodSummary, false) ? "" : "\n[분량 보강] 기존 계산 근거를 유지하고 새로운 장면과 행동 조언을 더해 완결된 JSON으로 다시 작성한다. 반복으로 채우지 않는다.",
+          drifted(previousDraft) ? "\n[어조 보강] 이전 초안이 존댓말(습니다·세요·당신)로 쓰였다. 처음부터 끝까지 해라체 반말로 쓰고, 사용자는 너로 부른다." : "",
+        ].join("") : "";
+        const prompt = buildNeoInitialSectionPrompt(section, context) + repairNotes + `\n[완료 기준] 제목·목차·공백을 제외한 본문 최소 ${section.minChars}자, 목표 ${Math.ceil(section.minChars / 0.8)}자. 계산값 → 생활 패턴 → 반대 조건 → 행동 조언으로 전개한다. 반복으로 채우지 않는다.`;
         const row = await generateNeoSectionOnce(env, section, prompt, null, Date.now() + 45000, true);
-        if (!neoSectionReady(section, row, normalized.input, doc.methodSummary, true)) return;
+        if (!usable(section, row)) return;
         const write = queue.catch(() => {}).then(async () => {
           const previous = doc.llmMeta.sections?.[section.id];
-          if (neoSectionReady(section, previous, normalized.input, doc.methodSummary, true) && sectionChars(previous) >= sectionChars(row)) return;
+          if (usable(section, previous)) {
+            const rowComplete = complete(section, row), previousComplete = complete(section, previous);
+            if (previousComplete && !rowComplete) return;
+            if (previousComplete === rowComplete && sectionChars(previous) >= sectionChars(row)) return;
+          }
           const candidate = { ...doc.llmMeta.sections, [section.id]: row };
           const briefing = mergeNeoInitialSections(Object.values(candidate), normalized.input, doc.methodSummary);
           if (hasRepeatedReportPassage(neoBody(briefing))) return;

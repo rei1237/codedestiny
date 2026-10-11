@@ -29,9 +29,20 @@ let mindscanBuilt = 0;
 let crystalBuilt = 0;
 
 let handleTarotRoutes;
+// A paid mindscan body names a server-held draw, checked before the payment gate (worker/lib/paid-tarot-draw.js).
+// The store is in memory; the binding itself is the real one.
+let draws = [];
+const same = (doc, filter) => Object.entries(filter).every(([key, value]) => doc[key] === value);
+const drawStore = {
+  findOne: async (filter) => { const doc = draws.find((d) => same(d, filter)); return doc ? { ...doc } : null; },
+  updateOne: async (filter, update) => { const doc = draws.find((d) => same(d, filter)); if (doc) Object.assign(doc, update.$set || {}); return { matchedCount: doc ? 1 : 0 }; },
+};
+let paidTarotDrawKey;
 
 beforeAll(async () => {
+  const db = await import("../../worker/lib/db.js");
   await Promise.all([
+    jest.unstable_mockModule("../../worker/lib/db.js", () => ({ ...db, connectDb: async () => {}, withMongoRetry: async (_env, fn) => fn() })),
     jest.unstable_mockModule("../../worker/lib/auth.js", () => ({
       requireAuth: async () => {
         if (!authResult) {
@@ -61,6 +72,9 @@ beforeAll(async () => {
         return new Response(JSON.stringify({ ok: true, sections: [{ title: "t", body: "b" }] }), { headers: { "Content-Type": "application/json" } });
       },
     })),
+    jest.unstable_mockModule("../../worker/lib/paid-tarot-draw-store.js", () => ({
+      paidTarotDrawCollection: async () => drawStore,
+    })),
     jest.unstable_mockModule("../../lib/tarot/crystal-soul-reading.mjs", () => ({
       buildCrystalSoulV3Reading: () => {
         crystalBuilt += 1;
@@ -71,6 +85,7 @@ beforeAll(async () => {
 
   const mod = await import("../../worker/routes/tarot.js");
   handleTarotRoutes = mod.handleTarotRoutes;
+  ({ paidTarotDrawKey } = await import("../../worker/lib/paid-tarot-draw.js"));
 });
 
 beforeEach(() => {
@@ -80,6 +95,10 @@ beforeEach(() => {
   verifyCalls = [];
   mindscanBuilt = 0;
   crystalBuilt = 0;
+  draws = [{
+    _id: paidTarotDrawKey("tarot-mindscan", MINDSCAN_BODY.drawId), featureKey: "tarot-mindscan", drawId: MINDSCAN_BODY.drawId, owner: "",
+    cards: Array.from({ length: 10 }, (_, i) => ({ cardId: `M${String(i).padStart(2, "0")}`, orientation: "upright" })),
+  }];
 });
 
 function post(path, body) {
@@ -97,7 +116,8 @@ const CRYSTAL_BODY = {
   requestId: "tarot-crystal-soul-reading:req:1755300000000-abc1234",
 };
 const MINDSCAN_BODY = {
-  pairs: [{ a: "M00", b: "M01" }],
+  pairs: Array.from({ length: 5 }, (_, i) => ({ slot: i + 1, mainCardId: i, subCardId: i + 5 })),
+  drawId: "unauth-gate-mindscan-draw",
   question: "요즘 마음이 어지럽습니다",
   requestId: "tarot-mindscan:req:1755300000000-abc1234",
 };

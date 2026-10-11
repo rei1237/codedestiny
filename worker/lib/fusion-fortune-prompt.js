@@ -545,6 +545,15 @@ export function toGeminiSchema(node) {
   return descriptor && descriptor !== "string" ? { type, description: descriptor } : { type };
 }
 
+// 🔴 R5(2026-10-09): 서술자만 있던 finalVerdict stance에 1단계 signals 어휘(advance·pause·adapt)가
+//    섞여 들어와 화면 배지가 비었다. signals처럼 전송 스키마에 enum으로 고정한다.
+const FUSION_VERDICT_STANCES = Object.freeze(["agree", "conditional", "caution"]);
+function pinFusionVerdictStance(geminiSchema) {
+  const stance = geminiSchema?.properties?.finalVerdict?.properties?.systemVerdicts?.items?.properties?.stance;
+  if (stance) stance.enum = [...FUSION_VERDICT_STANCES];
+  return geminiSchema;
+}
+
 const STAGE_ONE_DIGEST_KEYS = Object.freeze(["sajuSection", "ziweiSection", "vedicSection", "sukuyoSection", "astrologySection", "tarotSection"]);
 const STAGE_ONE_DIGEST_EXCERPT_CHARS = 700;
 
@@ -654,7 +663,7 @@ export function buildFusionSectionGroupPrompt({ context = {}, group, priorSectio
 
   // 🔴 `responseSchema` 는 프롬프트 본문용(사람이 읽는 형태)이고 `geminiSchema` 는 전송용이다.
   //    전자의 키 순서를 verify:fusion-fortune-quality 가 문자열로 단언하므로 형태를 바꾸지 않는다.
-  return { systemPrompt, userPrompt, promptPrefix, responseSchema, geminiSchema: toGeminiSchema(responseSchema) };
+  return { systemPrompt, userPrompt, promptPrefix, responseSchema, geminiSchema: pinFusionVerdictStance(toGeminiSchema(responseSchema)) };
 }
 
 /**
@@ -816,11 +825,12 @@ function buildExpertGroupPrompt(context, group, prior, extraInstruction, schemaI
     group.keys.includes("openingMessage") ? "openingMessage는 사용자가 결정하려는 일과 중요하게 여기는 기준을 짧게 짚고, 이번 해석이 살필 질문으로 이어간다. 누구에게나 붙일 수 있는 위로나 결론 예고로 시작하지 않는다. 질문이 없으면 선택한 주제만 사용한다." : "",
     group.keys.includes("closingMessage") ? "closingMessage는 종합에서 도출한 선택 기준 하나를 되짚고 사용자가 자기 속도로 실행할 여지를 남긴다. 새 예언·사건·근거를 추가하지 않고, 요약과 행동 목록을 다시 나열하지 않는다. 감정을 대신 확정하거나 성공을 약속하지 않는다." : "",
     group.stage === 1 ? `독립 전문가: ${group.systems.join(", ")}. 다른 체계의 결론을 추측하지 않는다. signals에는 동일 질문에 대한 영역별 결론과 실제 존재하는 근거 경로를 기록한다.\n${JSON.stringify({ systems: own, topic: safeContext.topic, questionFocus: safeContext.questionFocus })}` : "최종 종합과 행동은 제공된 crossCheck와 독립 결론을 근거로 작성한다.",
+    group.keys.includes("finalVerdict") ? "finalVerdict.systemVerdicts[].stance는 agree·conditional·caution 중 하나다 — 이 결론과 같은 방향이면 agree, 조건이 맞을 때만 같은 방향이면 conditional, 다른 방향이거나 속도를 늦추라고 하면 caution. 1단계 signals의 advance·pause·adapt는 다른 필드의 값이므로 옮겨 쓰지 않는다. 근거 없이 전부 agree로 몰지 않는다. confidence는 0으로 둔다." : "",
     group.systems.includes("tarot") ? "여섯 카드의 카드명·정역방향·포지션을 모두 인용한다. 카드 이름 자체는 서버의 표기를 유지한다." : "",
     group.systems.includes("saju") ? "격국·용신·대운·세운의 제공 근거를 설명한다. 사주 엔진은 실제 경력 10년차 명리학자 설계·자문이라는 신뢰 요소를 존중한다. 추가 계산이 별도 전문가 검수를 받았다고 표현하지 않는다." : "",
     schemaInPrompt ? `응답 JSON 스키마: ${JSON.stringify(responseSchema)}` : "", extraInstruction,
   ].filter(Boolean).join("\n\n");
-  const geminiSchema = toGeminiSchema(responseSchema);
+  const geminiSchema = pinFusionVerdictStance(toGeminiSchema(responseSchema));
   if (group.stage === 1) {
     for (const system of group.systems) {
       const signal = geminiSchema.properties[`${system}Section`].properties.signals;

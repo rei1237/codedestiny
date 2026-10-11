@@ -100,7 +100,8 @@ test('fusion books give every system its own foundation and expert chapter, then
   assert.equal(full.length,chapters);assert.equal(full.at(-3).key,'prevention');assert.equal(full.at(-3).layoutRole,'life');
   assert.deepEqual(full.map(row=>row.ordinal),full.map((_,i)=>i));
   assert.ok(sum(full,0)>=INITIAL[product.fishId][0]&&sum(full,1)<=INITIAL[product.fishId][1],`${product.id} ${sum(full,0)}~${sum(full,1)}`);
-  for(const row of full){assert.ok(row.outputTokens<=24576);assert.equal(row.minimumChars,Math.ceil(row.targetChars[0]*.55));}
+  // Fusion stage C item 11 (2026-10-11): fusion layouts ask for 80% of the target low; the question layout keeps 55%.
+  for(const row of full){assert.ok(row.outputTokens<=24576);assert.equal(m.FUSION_LAYOUT_MINIMUM_RATIO,.8);assert.equal(row.minimumChars,Math.ceil(row.targetChars[0]*.8));}
  }
 });
 test('legacy fusion and question manifests keep their chapter count and budget',()=>{

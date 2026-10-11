@@ -82,6 +82,7 @@ beforeAll(async () => {
     parseNeoSectionResponse: jest.fn(() => ({})),
     mergeNeoInitialSections: jest.fn(() => ({})),
     mergeNeoRefinedSections: jest.fn(() => ({})),
+    neoRegisterDrift: jest.fn(() => false),
   }));
   jest.unstable_mockModule("../../worker/lib/db.js", () => ({
     connectDb: jest.fn(async () => undefined),
