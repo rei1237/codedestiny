@@ -199,6 +199,6 @@ test('part targets total ~9,000 chars and a short complete part is delivered wit
  provider.mockImplementation(async(...args)=>{const ai=await base(...args);if(!args[1].includes('[이번 부분 overview]'))return ai;return {...ai,text:JSON.stringify({body:short})};});
  await start();expect((await finish()).status).toBe(200);
  const state=docs[0].metadata.paidNarrative,total=state.tasks.reduce((sum,task)=>sum+task.minChars,0);
- expect(total).toBeGreaterThanOrEqual(8000);expect(total).toBeLessThanOrEqual(10000);
+ expect(total).toBeGreaterThanOrEqual(12000);expect(total).toBeLessThanOrEqual(14000);
  expect(state.parts.overview).toBe(short);expect(callsFor('overview')).toBe(1);expect(provider).toHaveBeenCalledTimes(9);
 });

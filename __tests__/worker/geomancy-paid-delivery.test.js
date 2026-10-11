@@ -155,5 +155,5 @@ test('part prompts carry no whole-oracle schema, later parts get the earlier gis
  for(const prompt of prompts)expect(prompt).not.toMatch(/JSON 스키마|"keyJudgement"|"answer":""|최소 5~7문장/);
  expect(prompts.at(-1)).toContain('[앞 부분 요지]');
  const total=docs[0].metadata.paidNarrative.tasks.reduce((sum,task)=>sum+task.minChars,0);
- expect(total).toBeGreaterThanOrEqual(8000);expect(total).toBeLessThanOrEqual(10000);
+ expect(total).toBeGreaterThanOrEqual(12000);expect(total).toBeLessThanOrEqual(14000);
 });

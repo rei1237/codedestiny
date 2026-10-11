@@ -82,7 +82,7 @@ test('a markdown heading inside a part body is not saved, and later parts get th
  for(const body of Object.values(parts))expect(body).not.toMatch(/^#{1,6}\s/m);
  expect(provider.mock.calls.at(-1)[1]).toContain('[앞 부분 요지]');
 });
-test('part targets add up to about 9,000 chars for a 3,000-won product',async()=>{
+test('part targets add up to about 12,000–14,000 chars for a 5,000-won product',async()=>{
  const {seedDreamPsychoNarrative}=await import('../../worker/routes/dream.js');const {tasks}=seedDreamPsychoNarrative(original());
- const total=tasks.reduce((sum,task)=>sum+task.minChars,0);expect(total).toBeGreaterThanOrEqual(8000);expect(total).toBeLessThanOrEqual(10000);
+ const total=tasks.reduce((sum,task)=>sum+task.minChars,0);expect(total).toBeGreaterThanOrEqual(12000);expect(total).toBeLessThanOrEqual(14000);
 });

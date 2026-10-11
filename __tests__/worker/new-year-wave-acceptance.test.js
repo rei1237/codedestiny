@@ -68,3 +68,16 @@ it('a reply repeating one stock sentence is adopted with the repeat removed inst
   expect(result.complete).toBe(true);
   expect(result.savedSections[monthlyIndex].text.split(stock)).toHaveLength(2);
 });
+
+it('later sections receive the accepted opening decision without another provider call',async()=>{
+ const saved=filled(); const decision='확정 제안을 확인한 뒤 이직을 우선 검토하고, 부업은 준비 단계로만 두세요.';
+ saved[0].text='**질문에 대한 답변**\n\n'+decision+'\n\n**타고난 성향과 지금의 마음**\n'+text('opening',3000);
+ const target=saved.find(row=>row.key!=='opening'); target.text='';target.ok=false;
+ provider.mockResolvedValue({ok:true,provider:'gemini',text:text(target.key,5000,anchors)});
+ await utils.generateConsultationText({},input,facts,options(saved));
+ expect(provider).toHaveBeenCalledTimes(1);
+ const prompt=provider.mock.calls[0][1];
+ expect(prompt).toContain('[앞 장의 질문 답변 — 판단의 연속성]');
+ expect(prompt).toContain(decision);
+ expect(prompt).toContain('병행·준비 단계와 최종 선택을 구분');
+});

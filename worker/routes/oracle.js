@@ -107,7 +107,7 @@ export function geomancyNarrativeAdapter(env) {
     reportType: "geomancyOracle",
     produce: async (task, state) => {
       const scope = task.id === "answer" ? "" : " 세 형상의 기본 상징 설명은 앞 부분에서 했으니 반복하지 말고 이번 범위로 바로 들어가세요.";
-      const prompt = `${state.prompt}\n[이번 호출 범위] ${task.id}: ${task.prompt}${narrativePriorDigest(state, task)}\n이번 부분만 JSON {"body":"본문"}로 출력하세요. 제목·목차·마크다운·공백 제외 최소 1,300자, 목표 1,700~2,000자입니다.${scope} 세 형상의 실제 근거와 적용 조건을 연결하세요. 시간은 실천 점검 시점이며 확정 예언이 아닙니다.`;
+      const prompt = `${state.prompt}\n[이번 호출 범위] ${task.id}: ${task.prompt}${narrativePriorDigest(state, task)}\n이번 부분만 JSON {"body":"본문"}로 출력하세요. 제목·목차·마크다운·공백 제외 최소 ${task.minChars}자, 목표 ${Math.ceil(task.minChars * 1.3)}~${Math.ceil(task.minChars * 1.5)}자입니다.${scope} 세 형상의 실제 근거와 적용 조건을 연결하세요. 시간은 실천 점검 시점이며 확정 예언이 아닙니다.`;
       const ai = await callGeminiText(env, prompt, { model: clean(env.GEOMANCY_GEMINI_MODEL), temperature: 0.65,
         timeoutMs: Math.min(45000, Math.max(15000, Number(env.GEOMANCY_PROVIDER_TIMEOUT_MS) || 45000)),
         maxOutputTokens: 11000, thinkingBudget: 0, fallbackToWorkersAI: false, responseMimeType: "application/json", responseSchema: NARRATIVE_RESPONSE_SCHEMA });
@@ -153,9 +153,9 @@ export async function handleOracleRoutes(request, env = {}) {
       },
       seed: original => {
         const input = oracleInput(original);
-        // 3,000원 상품: 7부분 × 1,300자 ≈ 9,100자. 분량은 목표이고 짧아도 완결된 본문은 전달한다.
+        // 5,000원 상품: 7부분 × 1,800자 = 12,600자. 짧아도 완결된 본문은 전달한다.
         return { input, prompt: buildGeomancyPrompt(input),
-          tasks: ORACLE_SECTIONS.map(([id, title]) => ({ id, prompt: title, minChars: 1300 })) };
+          tasks: ORACLE_SECTIONS.map(([id, title]) => ({ id, prompt: title, minChars: 1800 })) };
       },
     });
   } catch (error) {

@@ -85,8 +85,8 @@ test('a JSON report body is not a part, and its text is delivered on the last at
  expect((await finish()).status).toBe(200);const {parts,tasks}=docs[0].metadata.paidNarrative;expect(provider).toHaveBeenCalledTimes(tasks.length*2);
  for(const task of tasks){expect(parts[task.id]).not.toMatch(/^\s*[\[{]|"personality"|sunny-window/);expect(parts[task.id]).toContain('번째 사례는');}
 });
-test.each(['report','compat'])('%s part targets add up to about 9,000 chars for a 3,000-won product',async type=>{
- kind=type;const total=(await seedPet(type,original())).tasks.reduce((sum,task)=>sum+task.minChars,0);expect(total).toBeGreaterThanOrEqual(8000);expect(total).toBeLessThanOrEqual(10000);
+test.each(['report','compat'])('%s part targets add up to about 12,000–14,000 chars for a 5,000-won product',async type=>{
+ kind=type;const total=(await seedPet(type,original())).tasks.reduce((sum,task)=>sum+task.minChars,0);expect(total).toBeGreaterThanOrEqual(12000);expect(total).toBeLessThanOrEqual(14000);
 });
 // 실호출(2026-10-12)에서 13부분 중 9부분이 문단 없는 한 덩어리였다. 화면은 부분마다 한 블록(pre-line)이라 렌더가 문장 끝에서 나눈다.
 test('a long one-paragraph part renders as sentence-bounded paragraphs without changing the text',async()=>{
@@ -96,4 +96,12 @@ test('a long one-paragraph part renders as sentence-bounded paragraphs without c
  const paras=report.personality[0].split('\n\n');
  expect(paras.length).toBeGreaterThanOrEqual(3);expect(paras.every(p=>p.length<=600&&/[.!?]$/.test(p))).toBe(true);
  expect(paras.join(' ')).toBe(wall);expect(report.personality[1]).toBe(split);expect(report.coach).toBe('짧은 조언입니다. 오늘은 쉬세요.');
+});
+
+test('pet prompts translate the controlling relation into care instead of human wealth',()=>{
+ const seeded=seedPet('report',{date:'2026-10-11',pet:{species:'dog',name:'보리',gender:'male',neutered:true,birthDate:'2021-05-14',birthTimeUnknown:true,activityLevel:'high',environment:'balanced',companion:'alone'}});
+ expect(seeded.systemPrompt).toContain('재물운');
+ expect(seeded.systemPrompt).toContain('적용하거나');
+ expect(seeded.prompt).not.toMatch(/부족 기운과의 관계: 재(?:\n|$)/);
+ expect(seeded.prompt).toContain('금전 해석 아님');
 });

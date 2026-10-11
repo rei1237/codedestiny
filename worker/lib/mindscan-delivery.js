@@ -23,16 +23,16 @@ async function seed(env, userId, body) {
   const facts = buildMindscanDeliveryFacts(body.pairs, body.question, getAmbientAiLocale() || body.locale || 'ko');
   if (!facts.ok) throw createHttpError(400, '질문과 카드 5쌍을 확인해 주세요.', { reason: facts.reason });
   // One call per position; render splits its paragraphs into the three FIELDS in order.
-  // 3,000원 상품: 1200 ×5 + 700 + 1200 + 700 + 500 ≈ 9,100자. 분량은 목표이고 짧아도 완결된 부분은 전달한다.
+  // 5,000원 상품: 1700 ×5 + 900 + 1600 + 1000 + 700 = 12,700자. 분량은 목표이고 짧아도 완결된 부분은 전달한다.
   const tasks = facts.sectionInputs.map((section, index) => ({
-    id: `section-${index}`, title: section.positionLabel, sectionIndex: index, minChars: 1200,
+    id: `section-${index}`, title: section.positionLabel, sectionIndex: index, minChars: 1700,
     prompt: `${index + 1}번 ${section.positionLabel}을 해설한다. 메인/보조 카드와 정역방향은 확정 입력을 따른다. 소제목 없이 여섯 문단으로 쓴다. 첫 두 문단은 ${FIELDS[0][1]}이고 위치의 질문과 연결하며 끝난다. 다음 두 문단은 ${FIELDS[1][1]}이고 숨은 조건과 단정할 수 없는 이유로 끝난다. 마지막 두 문단은 ${FIELDS[2][1]}이고 실행할 행동과 확인 기준으로 끝난다.\n${buildTarotPositionPin({ label: section.positionLabel, question: section.positionQuestion,
       cards: [{ role: '메인', name: section.mainCard.nameKo, orientation: section.orientation }, { role: '보조', name: section.subCard.nameKo }] })}`,
   }));
-  tasks.push({ id: 'intro', title: '질문의 핵심과 해석 기준', prompt: '질문의 핵심과 다섯 위치를 함께 읽는 기준을 설명한다.', minChars: 700 },
-    { id: 'summary', title: '관계 흐름 종합', prompt: `정확히 열 문단으로 ${SUMMARY.join(', ')}를 순서대로 해설한다. 한 문단은 한 항목이며 항목명/번호 없이 본문만 쓴다. 감정과 연락 가능성을 확정하거나 확률로 만들지 않는다.`, minChars: 1200 },
-    { id: 'masterAdvice', title: '현실적인 실천 계획', prompt: '지금의 관계에서 실행할 계획과 중단/재검토 기준을 설명한다.', minChars: 700 },
-    { id: 'closing', title: '마지막 상담 편지', prompt: '전체 조건을 종합해 질문에 답하고 선택의 여지를 남기는 상담 편지를 쓴다.', minChars: 500 });
+  tasks.push({ id: 'intro', title: '질문의 핵심과 해석 기준', prompt: '질문의 핵심과 다섯 위치를 함께 읽는 기준을 설명한다.', minChars: 900 },
+    { id: 'summary', title: '관계 흐름 종합', prompt: `정확히 열 문단으로 ${SUMMARY.join(', ')}를 순서대로 해설한다. 한 문단은 한 항목이며 항목명/번호 없이 본문만 쓴다. 감정과 연락 가능성을 확정하거나 확률로 만들지 않는다.`, minChars: 1600 },
+    { id: 'masterAdvice', title: '현실적인 실천 계획', prompt: '지금의 관계에서 실행할 계획과 중단/재검토 기준을 설명한다.', minChars: 1000 },
+    { id: 'closing', title: '마지막 상담 편지', prompt: '전체 조건을 종합해 질문에 답하고 선택의 여지를 남기는 상담 편지를 쓴다.', minChars: 700 });
   return { ...facts, prompt: `${facts.prompt}\n${TAROT_SHARED_RULE_BLOCK}`, tasks };
 }
 // The stored cards a part may name. Each position reads its own pair; a state seeded under the former
