@@ -177,52 +177,52 @@
   {
    "id": "solar-m-1990",
    "mode": "neo",
-   "summary": "df100295d1798d9e87084358079b9a5d33357fc4131dcfe85b75837c875bad2e",
+   "summary": "e2f4295868cc3388b695e46adab62a024535beb9d728843e30b1b81469d8e493",
    "daewun": [
     [
      8,
      "壬午",
-     "4bd98e95e2342ae5535feee6eb7be4fc292448b8652318a7da139060b6a69024"
+     "7b817055021b71d6b9dd970aa8a508547e11351bea17d438b1dde52625d22609"
     ],
     [
      18,
      "癸未",
-     "20a496f62fdad1eefb6b415298f18a8b5848809a70b5095d1ac463b41d670db2"
+     "00d4376d07db2b1aff7fdb9d16de8fe3bba022122478b41654b2cd8aaf883887"
     ],
     [
      28,
      "甲申",
-     "43421ce40336bd127eca97f36a96285c6480eae8d8caf509ec8413175ef49f10"
+     "cb2c6dd07af0c30b7e96661abde9003bc80e2432902b374b1eba8bac630de8a3"
     ],
     [
      38,
      "乙酉",
-     "000b7e42365fcad62ab3a007566b7a876ee216fe2664ac57b44ce9f5462c9d84"
+     "f5d3971e3dd12a4b7528d624c6f1d8e03d036eef14d0a4684cd4343ccba94f5f"
     ],
     [
      48,
      "丙戌",
-     "09815191f3e6b45748eb277e5f14ca9218df089f7fcf285d6eb4be7e44674c61"
+     "05e6f23be744376f854fa4df367c1f4621d3f77bf5349d90fe3b3ea7c6c9fa63"
     ],
     [
      58,
      "丁亥",
-     "87b6c548d082bfccb6601fbcf4b735ff540ba0c6366277d3fa2b21ff1962a61e"
+     "5526ea856ca2b109415804e27bb04ac643e4ed84243352c09867287f84d704bc"
     ],
     [
      68,
      "戊子",
-     "344111fb0d4c6cd3aa949e275a005dbb65f321fb54b0cbfecf06a01eb06d3710"
+     "171c3f6ad7fb76fd039ecbb58d19b3f275bc74deb8dbbd25feeda5e8e1482ef7"
     ],
     [
      78,
      "己丑",
-     "8557324499d325f1f9421991fbd6c25d93b667f04bc47ce44a080a58870fa2b8"
+     "6f555ce0ef7844460d919d26c43750c05a6e924a9512fda0b533bf35fdcd91c5"
     ],
     [
      88,
      "庚寅",
-     "5ff92b29def316df2437836d4ef88e0777ee75d9db3c471d14970954aef787a6"
+     "e7e579ad4089fa5f01884798e02dd4831e8d627e8a98dab499316374b3ce7175"
     ]
    ]
   },
@@ -281,52 +281,52 @@
   {
    "id": "solar-f-1985",
    "mode": "neo",
-   "summary": "080793ad19f574bcb563e3a45b3608c3678749774d6cc87a5c2061ebae651b37",
+   "summary": "143004fcfd1ac0e6a2e7d1948e9ae917419ae734f06612a97a48f5c5cf6bfc40",
    "daewun": [
     [
      3,
      "丁亥",
-     "101eeff9dd9b0d9c1fcfd88c2d34b7de79707ee534092b99eccea8abad32b465"
+     "64f7c850c213e37bb191a5912b4c6225c007dab056e082f71abc93eb54dfa104"
     ],
     [
      13,
      "戊子",
-     "035fc1d10bc53a1c31c9d5f2817df9f5d5406768ee4a86c222995d5cf2730242"
+     "7995c5ebc095dcba8892b2b9d8957046c908efb16528be8c31b38cf543bb6dca"
     ],
     [
      23,
      "己丑",
-     "b18cdaca18817c9b59e979d8e024acf95c7bfff30d8bd890a5e835204b35fb86"
+     "58db7c198e0377391683d33778243f129d815428af6b36bcc1f7a78396b8b3bb"
     ],
     [
      33,
      "庚寅",
-     "cb932cdf6b6c125d3517f73bb365f4e7fac7a274b17105799940290b4a4d2a02"
+     "42a7a2e4a1d4d18034eff1c8cd08204185f5c4e23253655496acf1ee5f6d6d2f"
     ],
     [
      43,
      "辛卯",
-     "6bfd4a7bedc6bf25fd67ce9d8f0c226f7c8c27863e900652175e2a4b38dc1293"
+     "76300ed13da38511bf8cd46e7ab28d9dc96ab2bee8796612fd664670b9a6a480"
     ],
     [
      53,
      "壬辰",
-     "f22643bafbe3644428d1c4c13e039565b69c18128648afd75ffc5942f751f36f"
+     "de53677145a7cda68b8e57aa5378c4f060189dfca8f0203e7165348cb211abe3"
     ],
     [
      63,
      "癸巳",
-     "e3e5c21a468ba7ebcd1aa3947de3d397e27a60c83ce3b735ca73876c37038381"
+     "a97ee5c29cff81513b5970960c8b9effaa94ef5596814a712a827f7f60163a04"
     ],
     [
      73,
      "甲午",
-     "67d3397ed05525b9efd5844109f5433377889171ad9dc5585f93482c0fa0ae5e"
+     "0d7268877f8d76bf66512e96410a484abd3b82635615bdc10832b0e0b7381023"
     ],
     [
      83,
      "乙未",
-     "1bb1f4c3b40b773acd32293ce7e168077176998dedd07787d2aeb078176bf7bb"
+     "896f0ba09558fe56f406d981b17adb079488ba8c3133e5e133304511da59b2ff"
     ]
    ]
   },
@@ -339,7 +339,7 @@
   {
    "id": "unknown-f-1978",
    "mode": "neo",
-   "summary": "baca56ca12d04674efcca8d2e22881e3190063103777d542dc0a2555df3ae502",
+   "summary": "e2802d4e8d6f0a05637506ac3ea9b4871456461067e3fe9213f689b3ba42bbf7",
    "daewun": []
   },
   {
@@ -397,52 +397,52 @@
   {
    "id": "lunar-m-1962",
    "mode": "neo",
-   "summary": "fa68d73cfe2fb00d2a4104a0da320a1e131f6e8ecd62f2fb511c7056bd9842fc",
+   "summary": "695e8712726ff2fdeaf9b53de883dcc5d5733057bb589607454c6cf58fb0883a",
    "daewun": [
     [
      10,
      "庚戌",
-     "09ced73b5a62d895db2bd09c731e242745cc5d40676061070974f6f9d8b940cf"
+     "2f1359a2c191f32ed52119a02328ab509d1360e5851567a2a5d164c8a2859c64"
     ],
     [
      20,
      "辛亥",
-     "0434e475c17ef60f3c66f89231388a6f2598fe416f8ea19e17cb1b339b4386d8"
+     "08fc27a1214f0ba849d5594bf8dae31745e992c380e73afdd072e1af8b81ceaa"
     ],
     [
      30,
      "壬子",
-     "29dee95ca910185996e43438054f0f4fc0282afa9cb9affacec2fa3d136fa631"
+     "d7662f77e54dad9596ff7e7558b9a82f7c7f55364100023e234b217974b766f2"
     ],
     [
      40,
      "癸丑",
-     "f40f507391792896188a44140c0fbd165da10baa8fe0b1a608a77e1759fae36b"
+     "838a1446a693985ead4a4c08c3a05dad8c6b654e8fe59354dda6896ffb6b36c0"
     ],
     [
      50,
      "甲寅",
-     "6464dc18db271db5b249e1c9afc49d94f273b62d7e9f5fae756b6b3bd6fb0fe7"
+     "5cce31246c7bccc7af64b72a2ce843f7c0f77cc9c1c46ae203d1feb5cf8ca853"
     ],
     [
      60,
      "乙卯",
-     "4bfb97ebfe4480884384c85f0f0a01138dd726763cb81d538c39e042574d9d46"
+     "5c7362ec47cf12f05ec191613b2e5c1652898994ddbabb320c9cd505437d636d"
     ],
     [
      70,
      "丙辰",
-     "7fbc3cdfd42b6eea7d290218619c95e8c692bd71a52d2fe4251605bb2334a630"
+     "912cc571878a9f45815f450256a5316bee9413f9c4b1771f2845de50639b9228"
     ],
     [
      80,
      "丁巳",
-     "a3c5899e57b4cdd04bc402ee3b14677dc95513fc48c14b19beba8ddc577aba98"
+     "54f02e0b9936bec99bd2e34f0ca2ec87efb1927536727ded0c20c20531bc60f5"
     ],
     [
      90,
      "戊午",
-     "63842d79b38f9fe50cfb8829c9deeb55de542ab7434be60f9f992bb9db166695"
+     "26eb44d2cf87ab072513f3e5097c948176ab96fa5cccbd5d3aec17c469089ce8"
     ]
    ]
   },
@@ -501,52 +501,52 @@
   {
    "id": "leap-f-2020",
    "mode": "neo",
-   "summary": "7a16590a0181b1dd283881b44d9af357659b9f9077a011c1d96ad258402caf20",
+   "summary": "2843a0b538fd5fc5791aaeb1d2c4375b97f0a9e1919e69a6abc4017871a2f49d",
    "daewun": [
     [
      10,
      "庚辰",
-     "b1074ae897cb5dd9ec32308dbd84d0409e822e8f43b013f2b5b27fc288a9946c"
+     "4bdee8ab886fe18d75c065bee2f9d1a2a21f95e072605281bad164438ad9e02c"
     ],
     [
      20,
      "己卯",
-     "ed146536a5456c5d1558b2666c64e55711aa89caad96ce44400fda6dfed852a3"
+     "8878386d0c3410d099ee816686ff8a0866d04cb9c0ee7c19d873a8a690f0c015"
     ],
     [
      30,
      "戊寅",
-     "a30767320be7c074cf78d3a1413c1d3e5fc235fb2f20aa13698204c73f179128"
+     "d235010141e5dce28152a32975d7a635557a28fbf46f6c8202f5905e2279f45e"
     ],
     [
      40,
      "丁丑",
-     "316d486e14aabee213ebc4fc9dc441f14034f07797e4b1456978d49af1e108ae"
+     "f5b567bb2ab979dfa9e3b99ba7c66c7372e76367882709cbdab9115058b70136"
     ],
     [
      50,
      "丙子",
-     "e5a1b6f92a8bb6606e8545e8a7cf5bc5630cea508dc05348b478fe6d4c43bec0"
+     "4b2255acd610ae6318add28d59db4388d72acf2d7cca8a3faa2e236ac7098972"
     ],
     [
      60,
      "乙亥",
-     "aa5840acfadf852ee1ab61183828930756679344ce775b8530c686c4797dbf8a"
+     "e327cc0ccbfdcb33e6c429f7a94aa534394c743b9a2272521fedb0dfa0f3f66b"
     ],
     [
      70,
      "甲戌",
-     "a5c71405b6224dc382947b8e3e60ef6b81d2ac937d4327d94e6393f2bf4d436d"
+     "311c3a05b1070128b87c828ac808ea95c3a9b98cb6decd6511f5eb2439e21e72"
     ],
     [
      80,
      "癸酉",
-     "6a6db749182679c0bf40b1916288bbfe0976491dfd8f0c268d3197d287496fd2"
+     "f2b38fa64b2cf1f1a2d404a747e964fbec7a576c780b736497cac6da6b61b770"
     ],
     [
      90,
      "壬申",
-     "2a014b130e265b89c2773e37c552d91553d4b748691ed243ec8fa73d85d8f82b"
+     "43abaa73cbb9e13b1f962e9c14d0e96dd2edb3ceee81d3907702d683e5a54471"
     ]
    ]
   },
@@ -605,52 +605,52 @@
   {
    "id": "newyear-m-2001",
    "mode": "neo",
-   "summary": "c1f4ef6168ac91901b46e49ae1f6929040cbdc86400f1b9b6b8a8770335ae6eb",
+   "summary": "17e5dd1ffe468d47a36e65022c57679711219e21370803a6ec73ca58a7574c57",
    "daewun": [
     [
      2,
      "己丑",
-     "1c969c2f146985ab37b666c91e99b2aa335a6314ad48d9eac02bf1b02e4fc621"
+     "122084be74425fc74e5b2282d0087547882ba0681fe3091b943617642148ed5c"
     ],
     [
      12,
      "庚寅",
-     "f4c0fbefd8f047ff4751f19e9801c1bf9840f219da1bb073c54bd6e8670feafa"
+     "1a220fb57dbc63a560ace05f09d7bdbed63ec890e21e8f7cc8f3fad45f5cf5e7"
     ],
     [
      22,
      "辛卯",
-     "65547bc52f24a6a00a39daf10b12c24bd02759797873151c41b324c21aff28e9"
+     "fcf703a3526ae1227d95fc34ef99c3239265ac9b02181869ad1aedbc4ba560b2"
     ],
     [
      32,
      "壬辰",
-     "cf31779957a506ef77a897463ec1338854e237b9e27df51a848728e9a13a7da7"
+     "5a9086d2bcb961cec3e3dc3aa7a4164dcb7f0a1bc928dc11a21fbda460c2110d"
     ],
     [
      42,
      "癸巳",
-     "bb46e59617083cfc9baa82c5dcbec2da77796652ab524969424177f3b688128b"
+     "c7b4e444d3939dd0b8e38f5ac2fa226a877e9897de3e6ea49e612cd393f43ed4"
     ],
     [
      52,
      "甲午",
-     "eeacf93360598abc49b8b90c78626c61cfaeaa0a3dce1ee52be5529fc9022531"
+     "b345c4af7cbd0f1a71a021921a24565ca8b28d8d55a2a6d7886c37ea17a03514"
     ],
     [
      62,
      "乙未",
-     "801c7148fc7f5d625856df0fb8b56b004d403dcdffd7e42b8d5bb8ac14e553a4"
+     "a42f7cec31346bf26f5d67902ae9cf2b8959a92e76c73b1df35a2193d66eabba"
     ],
     [
      72,
      "丙申",
-     "a581d470d199aa66dd7d6cc29744dc45060bb57d3cb9ade0f3564279cf1273f0"
+     "ab8fb451a0a486d53dfee7eb803da923433c5fce1896e6f17c78fe77733d8706"
     ],
     [
      82,
      "丁酉",
-     "b4a05b7240a3bfa7e948302df1ba749ff2b018dea019c55147df91216a2522ec"
+     "2a8c735d73213c6bfb3ef468a434576fec0c4383963c2177e71a45373e30670b"
     ]
    ]
   },
@@ -709,52 +709,52 @@
   {
    "id": "ny-f-1995",
    "mode": "neo",
-   "summary": "e0f373b6e8c2bc6a954a7ed26c7d457767fa671792a0f0826aa1659d1d935a33",
+   "summary": "f9e82b0f7f1251f623eccac43eb920fe5c73bea3b142ef09d901680704864204",
    "daewun": [
     [
      7,
      "甲申",
-     "57400070237366d348cda62a6ce5b182fb6eb88e564cd731ba1b87474b3085a7"
+     "1e3045410fe14f04df824f15ccb4ffe5e9cfa6069a33c56ee9428b91cca4ab75"
     ],
     [
      17,
      "乙酉",
-     "386d669d56dae05c9380b605c87f612c85a7c07db346c8ae17984c041d001617"
+     "0a3c8f0d0954cc0ab55d72b37376cd2742dbac76f7e586a17bd72d1a504e5314"
     ],
     [
      27,
      "丙戌",
-     "e574734d4203a0becfe1d47ace007f0f02eb7dd4282dd2ef7bee56d67dab20a4"
+     "458ab23c73fac7952de5e13042d0c5c60f802853e49a19668f6236e8d9bafd71"
     ],
     [
      37,
      "丁亥",
-     "f51e7ba947cde9c2edbeda1fc6d660e6746691da188936559bb1923ed1ab6733"
+     "c6c1ebda1653fcc1ddbb02d56bcb80ad8059093b051d5d825fcf35f6d47fe096"
     ],
     [
      47,
      "戊子",
-     "984f229b81a041cb6cd80842baeccf91e4c350761c25d235f2b52f8a30b45bfa"
+     "c89c4f6a5d02244562ac81e8da03225f654a4558c52a23b37d556922e140a271"
     ],
     [
      57,
      "己丑",
-     "69dea4f85a574ce062a648c2fcf538fa569e5164953a249648f327b44e895aad"
+     "367eadd1356204c949a6348a4d8404ad3a76eaf3c0ec7395f1071ed625882eab"
     ],
     [
      67,
      "庚寅",
-     "ce454241da3b9b2064b01710d87d5772a0d472503ddf1393619bea8c7d9efea6"
+     "67b63f3f3833b8d287bd3de9e0652ad2e1643f04feadf7b8da753c0808502288"
     ],
     [
      77,
      "辛卯",
-     "704a2c153f386c4e78c76882e8d225c1b95388a9949b7270efb66e8e69a8bc39"
+     "15de542a77eb5379a7264207ac5e73a835129f68a6c0954ec3de432b5ebfac8c"
     ],
     [
      87,
      "壬辰",
-     "9f696a552891bd8cc23e6ea3a91c0f342f349274ee0e75c1ffb57f554ae1e003"
+     "45f450267469f261eddba30a2d19eaf5d65802567783b7f3ef406924d5105bf1"
     ]
    ]
   },
@@ -813,52 +813,52 @@
   {
    "id": "old-m-1941",
    "mode": "neo",
-   "summary": "e3767530a07f5ab29b07a48148c914b89cefd354ebb26af2358d3954f3bd1e63",
+   "summary": "23aa95682482f9d952c53f90ecbb7506f10ec503f5f158f25d72585ee50baa4c",
    "daewun": [
     [
      6,
      "庚寅",
-     "d2dce99b6c9448c22b29d65b0c32dd401d40693b1827fa6ca0601e04d228a370"
+     "a155c64a11a8d9a01f5806e2a7040ad44ec720292b25e09c6bbabdbb0dbe4fff"
     ],
     [
      16,
      "己丑",
-     "59e1bf8a42562c6d72a4b23aa944bb94710717308e8ae18f6f893ac7a9c2487d"
+     "4210311e192e899e76900e7819e412772c91851621db34fbb668737f0558c35e"
     ],
     [
      26,
      "戊子",
-     "77cd9cdbe753a8932d586222edeca5c91bb706579e176820a3ff4089dd9f8446"
+     "8d09a62d2a1ca66367b6611cc5779042e7b8676cb089c352d6acd90f04cc5d4a"
     ],
     [
      36,
      "丁亥",
-     "c58a504768e28f227a366a92c228e86ffe22086a4fb191a9e76212b0c435250a"
+     "419ae85f9c2cbb48609fd7219b9f9abfce14b8567c67b11db0c9006425f1d13f"
     ],
     [
      46,
      "丙戌",
-     "376a174972627e18bb19690c54b4bbeb58136a53e18c5bcb92b9d6ba047805ef"
+     "8c1da59bb3e1015e1e2361cac15a793a8adb307f21ebaeb10ebc3e7f7855c0bd"
     ],
     [
      56,
      "乙酉",
-     "be882e10ca65087122ee356a64a384a34d4dd9d76a7ca5cd33d59f9723423dde"
+     "799361a94ea77e2531b7312715388291594d1c2f50fc31c8fd2a17fef9baf369"
     ],
     [
      66,
      "甲申",
-     "ea6adb44b3b283252d86f94ee940522d446101e1101e0ca4d3bbf219bed69267"
+     "30df5e21150a355c204d0fb1b4a389be1642445bff8530709c7d645bdac1a760"
     ],
     [
      76,
      "癸未",
-     "42bd89fb48fd3824a42e2a287734286b0c05c7010a672fd20e279b1c0491deb5"
+     "94f8062c2a84b49cdafa4214d53b0d80b9ea9e609ef184989e223136201a7bc3"
     ],
     [
      86,
      "壬午",
-     "7066dd017e4a15b74af621c5f5d9dd48ed2e0b339195aa50d0b701840d889589"
+     "55a16d3ee88f8cbe6456b8fcc375dbca302e9fddf0e853ee97a169ddc10743b8"
     ]
    ]
   },
@@ -917,52 +917,52 @@
   {
    "id": "young-f-2015",
    "mode": "neo",
-   "summary": "9938719835211b73d4e03463a1ce9dda8c73e04e1a29bd5316c2bdb0e227754a",
+   "summary": "b68794d586bd35237a32cc53ef2762cb63e1446477ad2f33961b6d0328e8f5b5",
    "daewun": [
     [
      3,
      "己丑",
-     "f73e2038db3b9044fd5ce32666d60d8e534f3da48ccd03929271236a5d4cb238"
+     "074ef1526c9144fa72bb74f3008936b458fb3a630712ed5b7765db5aa4ccbe95"
     ],
     [
      13,
      "庚寅",
-     "4d71f483657b68a73d33fdbc85bc264bb97685504e089377627469aa4fdbede9"
+     "1c1c8e3b028751a441366df03d899fdbdd085dedf83e9d3f25b0abd99165ab11"
     ],
     [
      23,
      "辛卯",
-     "88f5eb98fb24878288e68639b7cdf8666e50f07a7a71d23bddb7f3568ad0f1f8"
+     "ba17bd4249a69d87a7f0beaf4bab6bc15e1e76b61a593302c317cc8154360993"
     ],
     [
      33,
      "壬辰",
-     "b11e54f03d04e1a343f5a375215e7726f645e2e325cab41dcb4f1bb2690c545b"
+     "560d1e27fe428e7e5d4365c9fa45e4fdf6e3e26a54bbcc3a46d359ebb1e2a03f"
     ],
     [
      43,
      "癸巳",
-     "96348b7da6881c7159ac85210228f56754418fdcd563f2eda57970e9bb610091"
+     "2da73a01659509fd85abcb7b0c085566b44123df1bb86c328f532186cd52581a"
     ],
     [
      53,
      "甲午",
-     "8ec822b050ef23632fd7ab3bb025329ddf520cccc2af2ae10ae17cabf575aaa3"
+     "2c5c2f91cebbf9aed16a3adac6f19d56527f0e6fc49ca807d85cbf0b633e6f67"
     ],
     [
      63,
      "乙未",
-     "6e4d6ad3711aa8fba49e25f26ed0e9a4eeea307605e2158825bfd24a6b89e828"
+     "bcce7f2c41f1265f2d8a893edd67d159cabcde1cb570f7d566239ce77bcc3c94"
     ],
     [
      73,
      "丙申",
-     "7feb2b60b6e7b03da2ed5ead6ea78652773bff417062e9becd30d96ae205e1c7"
+     "20bb52bc4d8944f41749e5b333014013f13f8664499ccbfbc80b7b37b944f136"
     ],
     [
      83,
      "丁酉",
-     "3c5f2b1af1e99e3dfee5f30665129536797e6de11f7e32d88b07979f00631181"
+     "8c5de613580b20001e0d2f8081cad24f8de24da19fb3af3981115a3768635d37"
     ]
    ]
   },
@@ -1021,52 +1021,52 @@
   {
    "id": "jong-confirmed",
    "mode": "neo",
-   "summary": "cd09a6bacf2786dacf6710af04c40565fb5fb2eaf33dfa51a213ba7b06ea5965",
+   "summary": "1ff6bd7422baa335c178f37a546be1d7937fdfaa736f0084776d2956db732699",
    "daewun": [
     [
      1,
      "丙辰",
-     "073091c9756490eff7adc498902138550c07761e4084853f8353e491989ced86"
+     "d4e88f1feee0fd18dbfe5c03d3cabf9de0a1504be7a3d594a4f7ad1ecee785eb"
     ],
     [
      11,
      "乙卯",
-     "c5188280954c7d78b8abff0db65fd2b2a1a3cd69961ad30c429626145eed5bb8"
+     "1369550933b5ddf6b6fe22dd2363cf3e962d54b71f5e4c8e4be00e6d9d7ff1ed"
     ],
     [
      21,
      "甲寅",
-     "c576c737de3da34a9f979237529e25c35652c8c49028cea736ac5bb87fe6d1ca"
+     "412d8bfff6241e9fb740e172ca26a2bf4d5bbdbd04e900bdcfc0de4d2dbb5d33"
     ],
     [
      31,
      "癸丑",
-     "072e0719a23a158977955f0805e6ba7f55ef2813a1f61b2b98c78556d38a2e2b"
+     "c4a0fc3a94979590e8f680bc8203556bfe022cc2c86ed7c89cc7d305c014b8c1"
     ],
     [
      41,
      "壬子",
-     "74a61d03b9c46524d9ad995c6f6227877d25339856193212160bdb27257b1c2b"
+     "d67c2572bc3532028c6d948eb42a64d4dec1b24bddc3c755b8b53a5f1884fe9d"
     ],
     [
      51,
      "辛亥",
-     "cfbb7b639090a404134dd55c7032bece4a697648618fda3abe27d15cd838a5d9"
+     "46590f0e6c238e5277f7d397788d9d31ebfc1e839ee7609552056499dfe52a6e"
     ],
     [
      61,
      "庚戌",
-     "926a2748a34b9f531677c216d100ad69d85f84c2c293f6ba2edbe6a071421fe7"
+     "cd4027784302689a83583bfe129fd1914f710959749be0d75aa60aea2b1f20f3"
     ],
     [
      71,
      "己酉",
-     "f0370475a49bbae873fba24edb192b84a56b33b343335399622f954922c264bd"
+     "e1e32fe667c2d895a85583a76f6f8afd610265a6f0b4c7b457c90bfb8bafc635"
     ],
     [
      81,
      "戊申",
-     "20c930cb6c8a00746e4f2597cb3204d89d91a33c0943b8f1edb9459a70268f93"
+     "0ed0956f30639a0c7ecfa44f84f9d73068fa5d7a62c42ce02ec8868458645831"
     ]
    ]
   },
@@ -1125,52 +1125,52 @@
   {
    "id": "jong-rejected",
    "mode": "neo",
-   "summary": "0e0d8ab4a5952123d6b11ae2062ef8ba6079f8ed9f0c274a26d70911dc315efb",
+   "summary": "f1b3f61139fd29a66e4198d75855b41bd1968f87270a4ca3ebe0cae8fb52e322",
    "daewun": [
     [
      1,
      "丙辰",
-     "8293803c2797bd57ffdbe015a66a96b140c0b72b59d314741e4eeebcc9a9f3ee"
+     "029f9922e5946a717b737878c9baf9a401e300bf83952e88d39037f6a4babd06"
     ],
     [
      11,
      "乙卯",
-     "ada8dde5ed39b3c5b9c6d6b92e4de933512702ed52b20fcaaab171f3a774bbac"
+     "a025e5c1bdb56ee3266bb9a498088d6159ba3ba829c6ed42d26c1430ab1addbe"
     ],
     [
      21,
      "甲寅",
-     "5c761af3f7d732e71442e50ae107d6233b48495efaa5e4e7529783e29c0470ee"
+     "1c023714d1bbf878755464533645e66c727c3468097370213d90fb0d01f1c72d"
     ],
     [
      31,
      "癸丑",
-     "c8cbb3f512e4d8d350c935fb905f1b56fb38139e3758ff144f084ba7ea899f78"
+     "e08e1acd79ad534aaf08333117e4c2d4cc329ed17868167b46da6812e9d9185a"
     ],
     [
      41,
      "壬子",
-     "0bca1d8a55750bbf3e2e83fddd981ee0e4b49df66f5d893163a2ffdff61b75df"
+     "c86517f90d7d91c2e33246c5badbee863925bcb2a7160e891f83a7e7ff1e3a96"
     ],
     [
      51,
      "辛亥",
-     "f3d3d8be920be9458046ae8d324007ed1a7db900678bd17c7e850c19520db672"
+     "3183d4c6c3bd6ae4d6b6290e2373e18c1b55233b6cd8c2905527186e4bbd2936"
     ],
     [
      61,
      "庚戌",
-     "3ef24e7ee713c226e9b2be4e4c4ee2525b5e1ecca11887c97c245f9233b253b4"
+     "e672b55a6042041d7acc6292480fc567223c66c1f79ccd14671436d346a2e343"
     ],
     [
      71,
      "己酉",
-     "040263d614bb8d77647a07aea2e829c47dcab424ebe18464de5dc7d75b0d1558"
+     "231e2be8ce41c0cdb07d660fa17f063895ce400704c99cc08419da8cdf762cbe"
     ],
     [
      81,
      "戊申",
-     "1daf67925ad3c670bf10287ce29e8c57f5f2cd121f2d84e6b44b34192bd856a8"
+     "8adccc748dd745d981e109660c07e3c167cb6851b3afdcdb1d3f9758c85e5f84"
     ]
    ]
   },
@@ -1229,52 +1229,52 @@
   {
    "id": "jong-unverified",
    "mode": "neo",
-   "summary": "cd09a6bacf2786dacf6710af04c40565fb5fb2eaf33dfa51a213ba7b06ea5965",
+   "summary": "1ff6bd7422baa335c178f37a546be1d7937fdfaa736f0084776d2956db732699",
    "daewun": [
     [
      1,
      "丙辰",
-     "073091c9756490eff7adc498902138550c07761e4084853f8353e491989ced86"
+     "d4e88f1feee0fd18dbfe5c03d3cabf9de0a1504be7a3d594a4f7ad1ecee785eb"
     ],
     [
      11,
      "乙卯",
-     "c5188280954c7d78b8abff0db65fd2b2a1a3cd69961ad30c429626145eed5bb8"
+     "1369550933b5ddf6b6fe22dd2363cf3e962d54b71f5e4c8e4be00e6d9d7ff1ed"
     ],
     [
      21,
      "甲寅",
-     "c576c737de3da34a9f979237529e25c35652c8c49028cea736ac5bb87fe6d1ca"
+     "412d8bfff6241e9fb740e172ca26a2bf4d5bbdbd04e900bdcfc0de4d2dbb5d33"
     ],
     [
      31,
      "癸丑",
-     "072e0719a23a158977955f0805e6ba7f55ef2813a1f61b2b98c78556d38a2e2b"
+     "c4a0fc3a94979590e8f680bc8203556bfe022cc2c86ed7c89cc7d305c014b8c1"
     ],
     [
      41,
      "壬子",
-     "74a61d03b9c46524d9ad995c6f6227877d25339856193212160bdb27257b1c2b"
+     "d67c2572bc3532028c6d948eb42a64d4dec1b24bddc3c755b8b53a5f1884fe9d"
     ],
     [
      51,
      "辛亥",
-     "cfbb7b639090a404134dd55c7032bece4a697648618fda3abe27d15cd838a5d9"
+     "46590f0e6c238e5277f7d397788d9d31ebfc1e839ee7609552056499dfe52a6e"
     ],
     [
      61,
      "庚戌",
-     "926a2748a34b9f531677c216d100ad69d85f84c2c293f6ba2edbe6a071421fe7"
+     "cd4027784302689a83583bfe129fd1914f710959749be0d75aa60aea2b1f20f3"
     ],
     [
      71,
      "己酉",
-     "f0370475a49bbae873fba24edb192b84a56b33b343335399622f954922c264bd"
+     "e1e32fe667c2d895a85583a76f6f8afd610265a6f0b4c7b457c90bfb8bafc635"
     ],
     [
      81,
      "戊申",
-     "20c930cb6c8a00746e4f2597cb3204d89d91a33c0943b8f1edb9459a70268f93"
+     "0ed0956f30639a0c7ecfa44f84f9d73068fa5d7a62c42ce02ec8868458645831"
     ]
    ]
   },
@@ -1333,52 +1333,52 @@
   {
    "id": "hwa-confirmed",
    "mode": "neo",
-   "summary": "6e0aa1b3f2ab4ddb026dd8719a0995d7e5afeeb276b8ef583d163b7c53a38683",
+   "summary": "89c46ca6c272698559a2f5e38d196dafe80ac8340356b6fa787dc28a5ba5e0b6",
    "daewun": [
     [
      6,
      "壬子",
-     "475bbbf0824ce5d1d9947332ec56ea0b13246ed7c14790d366d0668b26f581df"
+     "b46b91d4d2c136b6a8c27d74b4562c703899ca9d1168d0269f7cb4dbdd2b19d1"
     ],
     [
      16,
      "辛亥",
-     "c04c116a4487ce162ac93b63c822d3dcbc9cc7bfb70a4c88581abd452ddbb2bd"
+     "1ce0c4f110ad318680707168435c0158149acc2d6bc22ba82e08f887288173b4"
     ],
     [
      26,
      "庚戌",
-     "021b113300283202f9bd9bc5af6ed0c5cf0338c0fdf8d42497a8eed74be77f38"
+     "2f23f5e260a9c82c58458295ddae9748a1b6867fd201bb89d9e27b6cbe58f103"
     ],
     [
      36,
      "己酉",
-     "74edeaa86184311bc17d77c112e08491f18ce4d16b45e7d290d5a15266e49bf6"
+     "c1ef64cf6f83ce8b22875d28c40803ec5c8d99e7e1339fea3f3fbe61ae663bb7"
     ],
     [
      46,
      "戊申",
-     "ff287e7382d422ca05194958155e080dba7abef1d653b285da1ec35b8694b717"
+     "1322dfecb2390c2efbdee9786ae9f6a6202950f48375e2739807fa74ca804d49"
     ],
     [
      56,
      "丁未",
-     "c2125cd2720813c6f576ed1ba13d5ee450f4c8715f8fa1e86b49b4a18fd9d76e"
+     "1b5d0cfe4ae6683a587dbcb5267939fd2e3992fc0e0a18802cac4f50c9a537c2"
     ],
     [
      66,
      "丙午",
-     "a4abe3f1304d0353fa61b84e1adff039eae738739707fc6c12851e945ddb187f"
+     "3e534b7e7ec6596aa85ebefdae5c353abd7967085434fcaae7c1aee10bb98840"
     ],
     [
      76,
      "乙巳",
-     "a1063ac0b736131850770c25b60f546deb5a29e7d0d0aa8a9d9f43b6f2350a84"
+     "83d28634cee28a45507163f17e329ce1d1e77773aaba73e3f23ab58ed1ea13b9"
     ],
     [
      86,
      "甲辰",
-     "447901bb21122cce10b2f61627fdb125565caa8cb5f17961a6ebbf7a58068ae4"
+     "6ee5546ea79c2c61e18c3e14b95da3f634d6d53ca37b299eef5a943ba3a319a7"
     ]
    ]
   }

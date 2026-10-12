@@ -16,7 +16,8 @@ test('persona changes the reading, never mutates the chart or access input',()=>
   const yeon=api.build(fixture,'pig','ko'),neo=api.build(fixture,'neo','ko');
   assert.equal(JSON.stringify(fixture),original);
   assert.deepEqual(yeon.ratios,neo.ratios);
-  assert.equal(yeon.elements.evidence,neo.elements.evidence);
+  // 숫자 근거는 같고 꼬리 설명만 화자 말투로 달라진다.
+  assert.equal(yeon.elements.evidence.split('. ')[0],neo.elements.evidence.split('. ')[0]);
   assert.notDeepEqual(yeon.elements.blocks,neo.elements.blocks);
   assert.notDeepEqual(yeon.day.blocks,neo.day.blocks);
   assert.notDeepEqual(yeon.ten[0].reading.blocks,neo.ten[0].reading.blocks);
@@ -35,7 +36,9 @@ test('different facts change the reading; ties and unknown birth time are explic
 test('the display layer cannot call an LLM, payment, or recalculate a chart',()=>{
   const source=readFileSync('js/core/saju/reading-personas.js','utf8');
   assert.doesNotMatch(source,/\b(fetch|XMLHttpRequest|calculate|evalDaewun|renderDailyMonthlyFortune)\s*\(/);
-  assert.doesNotMatch(source,/localStorage\.setItem|sessionStorage\.setItem/);
+  // 저장하는 것은 연이/영냥이 화자 선택 하나뿐이다(풀이 결과는 저장하지 않는다).
+  assert.deepEqual(source.match(/(local|session)Storage\.setItem\([^,]*/g),['localStorage.setItem(PERSONA_KEY']);
+  assert.match(source,/PERSONA_KEY = 'cdSajuPersonaV1'/);
 });
 test('static prices are generated from billing, and samples remain outside locked bodies',()=>{
   const html=readFileSync('index.html','utf8');
@@ -58,7 +61,7 @@ test('new non-Korean copy does not fall back to Korean',()=>{
 
 test('seasonal assessment follows engine type, including the neutral band',()=>{
   const data=structuredClone(fixture);data.johu.score=1;data.johu.type='neutral';
-  assert.equal(api.build(data,'neo','ko').climate.blocks[0].text,api.copy('ko').neutral);
+  assert.equal(api.build(data,'neo','ko').climate.blocks[0].text,api.copy('ko').neutralNeo);
 });
 
 // Protect the requested long-form closing from a return to three analytical blocks.
@@ -70,7 +73,10 @@ test('closing is a personal letter with distinct, respectful persona voices',()=
   assert.ok(yeon.paragraphs.length>=6);
   assert.match(yeon.paragraphs.join(''),/辛|보석/);
   assert.match(yeon.signature,/연이/);
-  assert.match(neo.paragraphs.join(''),/작전|정리하자|확인해라/);
+  // 영냥이는 반말로 판단 → 이해 → 작은 행동을 권한다. 사자 시절 말투는 남기지 않는다.
+  assert.match(neo.paragraphs.join(''),/해 봐|돌아봐|떠올려 봐/);
+  assert.match(neo.signature,/영냥이/);
+  assert.doesNotMatch(neo.paragraphs.join(''),/작전|팩폭|사자|갈기|확인해라/);
   assert.doesNotMatch(neo.paragraphs.join(''),/징징|똥고집|처듣|무적/);
   assert.notEqual(yeon.title,neo.title);
   assert.doesNotMatch(neo.paragraphs.join(''),/예요|있어요|보세요|하세요/);
@@ -99,7 +105,9 @@ test('cycle consultation changes with natal facts and selected cycle without mut
 test('cycle voices share evidence, honor uncertainty and escape rendered facts',()=>{
   const yeon=cycleApi.buildCycle(cycleFixture,'pig'),neo=cycleApi.buildCycle(cycleFixture,'neo');
   assert.notEqual(yeon.intro,neo.intro);
-  assert.deepEqual(yeon.sections[4],neo.sections[4]);
+  // 같은 관계 근거를 각자 말투로 읽는다.
+  for(const fact of ['午','일주','子','지충(地支)'])assert.ok(yeon.sections[4].text.includes(fact)&&neo.sections[4].text.includes(fact),fact);
+  assert.doesNotMatch(neo.sections[4].text,/(요|니다)\./);
   const unknown=structuredClone(cycleFixture);unknown.unknown=true;unknown.jong={isJong:true,isGaJong:true};unknown.day='<script>alert(1)</script>';
   const report=cycleApi.buildCycle(unknown,'neo');assert.match(report.warning,/출생시간 미상/);assert.match(report.sections[0].text,/가종격/);
   assert.doesNotMatch(cycleApi.cycleMarkup(unknown,'pig'),/<script>/);

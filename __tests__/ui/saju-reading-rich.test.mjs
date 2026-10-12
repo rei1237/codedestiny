@@ -49,7 +49,7 @@ test('both personas draw the same numbers in different words, with the old key i
     assert.deepEqual(pos(yeon),pos(neo));
     assert.notEqual(yeon.replace(/<[^>]+>/g,''),neo.replace(/<[^>]+>/g,''));
     assert.match(yeon,/data-reading-mode="pig"/);assert.match(neo,/data-reading-mode="neo"/);
-    assert.doesNotMatch(yeon+neo,/냥|돼지/);
+    assert.doesNotMatch(yeon,/냥|돼지/);assert.doesNotMatch(neo,/돼지|사자|갈기/);
   }
   const climate=rich.climate(facts,'pig');
   for(const item of ['한난조습이란 무엇인가요?','조후 밸런스 처방','개선법','조후 용신과 억부 용신'])assert.ok(climate.includes(item),item);
@@ -99,9 +99,9 @@ test('ten gods: the distribution agrees with the card counts, and the modal read
     for(const g of Object.keys(ten)){
       const yeon=rich.godDetail(g,facts,'pig'),neo=rich.godDetail(g,facts,'neo');
       assert.match(yeon,/연이의 조언/);assert.match(yeon,/일과 적성/);assert.match(yeon,/당신 원국에서의 자리/);
-      assert.match(neo,/네오의 진단/);assert.match(neo,/행동 기준/);
+      assert.match(neo,/영냥이의 진단/);assert.match(neo,/영냥이의 조언/);
       assert.equal((yeon.match(/<section/g)||[]).length,(neo.match(/<section/g)||[]).length);
-      assert.doesNotMatch(yeon+neo,/냥|돼지/);
+      assert.doesNotMatch(yeon,/냥|돼지/);assert.doesNotMatch(neo,/돼지|사자|갈기/);
     }
   }
   assert.equal(rich.godDetail('없는십성',factsOf(charts[0]),'pig'),'');
@@ -125,10 +125,10 @@ test('ilju: the four-pillar table reads hidden stems and twelve stages from the 
       assert.ok(yeon.includes('<td data-label="12운성" role="cell">'+context.cdTwelveStage(p.d.g,j)+'</td>'),key+j);
     }
     for(const b of context.cdGongMangBranches(p.d.g,p.d.j))assert.ok(yeon.includes(b));
-    assert.match(yeon,/연이의 한마디/);assert.match(neo,/네오의 한 줄 정리/);
+    assert.match(yeon,/연이의 한마디/);assert.match(neo,/영냥이의 한 줄 정리/);
     assert.equal((yeon.match(/<section/g)||[]).length,(neo.match(/<section/g)||[]).length);
     assert.notEqual(yeon.replace(/<[^>]+>/g,''),neo.replace(/<[^>]+>/g,''));
-    assert.doesNotMatch(yeon+neo,/냥|돼지/);
+    assert.doesNotMatch(yeon,/냥|돼지/);assert.doesNotMatch(neo,/돼지|사자|갈기/);
   }
 });
 
@@ -160,7 +160,7 @@ test('flow: the current cycle and year cards show the engine score, ten gods and
   delete context.GAEUN_DB;
 });
 
-test('flow: the neo voice reads NEO_GAEUN_DB, and every neo sentence there ends politely',()=>{
+test('flow: the neo voice reads NEO_GAEUN_DB, and every neo sentence there is 영냥이 반말',()=>{
   const p=charts[2],row={kind:'year',g:'乙',j:'巳',score:70,summary:'',year:2026,relations:[]};
   const tile=(db,mode)=>{
     Object.assign(context,db);
@@ -174,7 +174,7 @@ test('flow: the neo voice reads NEO_GAEUN_DB, and every neo sentence there ends 
   const neoDb=vm.runInNewContext('('+engine.slice(start+'var NEO_GAEUN_DB='.length,end+2)+')');
   const sentences=Object.values(neoDb).flatMap(e=>Object.values(e).flatMap(g=>Object.values(g))).flatMap(t=>t.match(/[^.]+\./g));
   assert.equal(sentences.length,120);
-  for(const s of sentences)assert.match(s,/(니다|세요|마세요)\.$/,s);
+  for(const s of sentences)assert.doesNotMatch(s,/(요|니다|세요)\.$/,s);
 });
 
 test('flow: the tone paragraph follows the score band and appears once when both rows share it',()=>{
@@ -186,7 +186,7 @@ test('flow: the tone paragraph follows the score band and appears once when both
   assert.match(rich.flow(factsOf(p,{flow:[row('period',50)]}),'pig'),/보통의 흐름으로 읽혀요/);
   for(const mode of ['pig','neo']){
     const both=rich.flow(factsOf(p,{flow:[row('period',10),row('year',30)]}),mode);
-    assert.equal(both.split(mode==='neo'?'평가상 조율 구간입니다':'조율이 필요한 쪽으로 읽혀요').length-1,1,mode);
+    assert.equal(both.split(mode==='neo'?'평가상 조율 구간이야':'조율이 필요한 쪽으로 읽혀요').length-1,1,mode);
   }
 });
 
@@ -201,7 +201,7 @@ test('daily: the energy gauge, ten-god advice and lucky booster come from the en
   assert.match(yeon,/<b>식신<\/b>/);assert.match(yeon,/<b>정관<\/b>/);
   assert.match(yeon,/그린 스카프/);assert.match(yeon,/리넨·코튼/);assert.match(neo,/이달의 월운/);
   assert.match(yeon,/&lt;b&gt;속도 조절/);
-  assert.doesNotMatch(yeon+neo,/🛡️|💢|냥|돼지|금지|해라/);
+  assert.doesNotMatch(yeon,/🛡️|💢|냥|돼지|금지|해라/);assert.doesNotMatch(neo,/🛡️|💢|돼지|사자|금지|해라/);
   assert.equal((yeon.match(/<section/g)||[]).length,(neo.match(/<section/g)||[]).length);
   assert.equal(rich.daily({gz:{g:'丙',j:'子'}},0,factsOf(p),'pig'),'');
 });
@@ -231,6 +231,6 @@ test('ilju and climate interleave decorative persona art between text blocks, ma
   const ilju={pig:rich.ilju(facts,'pig'),neo:rich.ilju(facts,'neo')},climate={pig:rich.climate(facts,'pig'),neo:rich.climate(facts,'neo')};
   assert.equal(count(ilju.pig,art),4);assert.equal(count(climate.pig,art),3);
   assert.match(ilju.pig,/persona\/yeoni-read\.webp/);assert.doesNotMatch(ilju.pig,/persona\/neo-/);
-  assert.match(ilju.neo,/persona\/neo-read\.webp/);assert.doesNotMatch(ilju.neo,/persona\/yeoni-/);
+  assert.match(ilju.neo,/saju\/yeongnyangi-read\.webp/);assert.doesNotMatch(ilju.neo,/persona\/yeoni-/);
   assert.doesNotMatch(rich.strength(facts,'pig'),/saju-rich__art/);
 });
