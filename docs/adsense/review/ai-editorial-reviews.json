@@ -2,11 +2,11 @@
   {
     "slug": "how-we-calculate-saju",
     "title": "Code Destiny 사주 계산 기준: 절기·날짜 경계·태양시",
-    "manuscriptSha256": "cc6306c7a997f03fa9fd8691f249355cc5489dc814d446effd1b710c45ff696e",
+    "manuscriptSha256": "d43106c816d36117d817905888b2f734f6332ef452db4e9a95db11ed114940f8",
     "status": "ai-edited",
     "reviewer": "OpenAI Codex (AI)",
     "reviewedAt": "2026-10-05",
-    "finding": "현재 공통 원국 어댑터의 지역 평균시·역사 서머타임·23시 날짜 경계를 코드와 가상 입력 4건으로 대조. 글별 FAQ를 본문과 구조화 데이터에서 공유.",
+    "finding": "현재 공통 원국 어댑터의 지역 평균시·역사 서머타임·23시 날짜 경계를 코드와 가상 입력 4건으로 대조. 글별 FAQ를 본문과 구조화 데이터에서 공유. 2026-10-13 FAQ 질문의 브랜드 표기만 꿀꿀 사주로 바꿨고 계산 기준 서술은 그대로.",
     "limits": "AI 편집과 로컬 어댑터 검증. 인간 검수·해외 역사 시간대 전수 검증·미래 예측 검증 아님",
     "humanReview": "unconfirmed",
     "adsAllowed": false
