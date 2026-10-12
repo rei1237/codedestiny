@@ -1,7 +1,7 @@
 ---
-status: active
+status: done
 updated: 2026-10-12
-next: "P0-2·B·③·④(a)(7b99462da, release 38190840338)·④(b) 참치 품질 운영 완료. 남은 것은 ④(c) 대운·종합 서버 이전(P2-1, RED·L) — 공유 표 처리·계정 단위 레거시 해금·이용권 해금 기록 결정 후 착수."
+next: "후속 과제는 docs/handoff/premium-repricing-followups-20261012.md 로 옮겼다 (④(c) 대운·종합 서버 이전 포함)."
 ---
 
 # [마케팅 지시서] 프리미엄 라인 전면 개편 — 가격 인상 + 무료 범위 축소
