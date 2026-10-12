@@ -46,6 +46,8 @@ test("종합·대운 유료 렌더러와 문장이 브라우저 경로에 없다
     "generateDetailedAdvice", "generateNeoFactPunch", "getDaewunBranchEvidence", "buildDaewunReadingGuide",
     "buildDaewunDetailHtml", "_buildMonthCommandFromEngine", "HEALTH_DATA", "GAEUN_TIPS", "cycleRoleConditions",
     "보유 십성 랭킹", "내면과 겉모습의 간격", "관계에서 반드시 기억할 것", "대운과 세운, 다음 시기를 함께 읽기",
+    // 서버 이전 뒤 덧붙인 장(올해·내년 처방, 전체 대운 지도, 전환기 체크리스트).
+    "_sajuSeunYearReading", "_sajuDaewunMapHtml", "_sajuDaewunTransitionHtml", "올해·내년 처방", "전체 대운 지도", "전환기 체크리스트",
   ];
   const offenders = [];
   for (const rel of browserServedFiles()) {

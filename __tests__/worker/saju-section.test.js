@@ -48,6 +48,12 @@ const INPUT = { profileId: "p1", featureKey: "section_summary", name: "테스트
 const CARD_BIRTH = { calendarDate: "1990-05-15", calType: "solar", hour: 14, minute: 30, timeKnown: true };
 const birthProfileId = (profileId) => toBirthEntitlementProfileId(computeBirthKey(cards.find((card) => card.profileId === profileId)));
 const sha256 = (text) => createHash("sha256").update(text).digest("hex");
+// 전체 대운 지도의 각 줄(나이·기간·간지)을 읽는다.
+const mapRows = (html) => [...html.matchAll(/<b>(\d+)세 · (\d+)–(\d+)년 · (\S)(\S) 대운<\/b>/g)]
+  .map((m) => ({ age: Number(m[1]), startYear: Number(m[2]), endYear: Number(m[3]), g: m[4], j: m[5] }));
+// 서버 이전 뒤 30,000원 구성으로 덧붙인 장(올해·내년 처방, 전체 대운 지도, 전환기 체크리스트)은 <!--saju-ext--> 로 감싼다.
+// 그 밖의 문구·계산은 HEAD 클라이언트와 한 글자도 달라지면 안 되므로 패리티는 덧붙인 장을 걷어 낸 HTML 로 본다.
+const withoutExtensions = (html) => html.replace(/<!--saju-ext-->[\s\S]*?<!--\/saju-ext-->/g, "");
 let grants;
 let users;
 
@@ -237,8 +243,40 @@ test.each(PARITY.renders.map((render) => [render.id, render.mode, render]))("ser
     birth: { calendarDate: c.date, calType: c.calType, hour: c.hour, minute: c.minute, timeKnown: c.timeKnown !== false },
     gender: c.gender, name: c.name, mode, place: c.place, jongDecision: c.jong, now: new Date(PARITY.now),
   };
-  expect(sha256(buildSajuSectionHtml({ ...base, featureKey: "section_summary" }).html)).toBe(render.summary);
+  expect(sha256(withoutExtensions(buildSajuSectionHtml({ ...base, featureKey: "section_summary" }).html))).toBe(render.summary);
   const daewun = render.daewun.map(([age, ganzhi]) => [age, ganzhi,
-    sha256(buildSajuSectionHtml({ ...base, featureKey: "section_daewun", daewun: { age, gan: ganzhi[0], zhi: ganzhi[1] } }).html)]);
+    sha256(withoutExtensions(buildSajuSectionHtml({ ...base, featureKey: "section_daewun", daewun: { age, gan: ganzhi[0], zhi: ganzhi[1] } }).html))]);
   expect(daewun).toEqual(render.daewun);
+});
+
+test("the summary adds this and next year's prescription from the same seun reading as the daewun years", () => {
+  const base = { birth: CARD_BIRTH, gender: "M", name: "테스트", mode: "pig", now: new Date(PARITY.now) };
+  const DAEWUN_ROWS = mapRows(buildSajuSectionHtml({ ...base, featureKey: "section_daewun", daewun: DAEWUN }).html);
+  const summary = buildSajuSectionHtml({ ...base, featureKey: "section_summary" }).html;
+  const chapter = summary.match(/<article id="sajuSummaryChapter-olhae"[\s\S]*?<\/article>/)?.[0] || "";
+  expect(summary).toContain('href="#sajuSummaryChapter-olhae"');
+  for (const label of ["올해 2026년", "내년 2027년", "연애", "돈", "일", "관계", "건강 습관", "처방"]) expect(chapter).toContain(label);
+  // 같은 해의 세운 간지·판정은 그 해를 담은 대운 풀이의 연도별 세운과 같다.
+  const daewunRow = DAEWUN_ROWS.find((row) => row.startYear <= 2026 && 2026 <= row.endYear);
+  const detail = buildSajuSectionHtml({ ...base, featureKey: "section_daewun", daewun: { age: daewunRow.age, gan: daewunRow.g, zhi: daewunRow.j } }).html;
+  const seun = detail.match(/<div class="year-title">2026년 · (\S\S)/)[1];
+  expect(chapter).toContain("올해 2026년 · " + seun + " 세운");
+  expect(chapter).toContain(daewunRow.g + daewunRow.j + " 대운(" + daewunRow.startYear + "–" + daewunRow.endYear + "년)");
+});
+
+test("the daewun reading adds the full ten-year map and a transition checklist", () => {
+  const base = { birth: CARD_BIRTH, gender: "M", name: "테스트", mode: "pig", now: new Date(PARITY.now) };
+  const DAEWUN_ROWS = mapRows(buildSajuSectionHtml({ ...base, featureKey: "section_daewun", daewun: DAEWUN }).html);
+  // 지도는 이 출생의 대운표 전체를 그대로 싣는다.
+  expect(DAEWUN_ROWS.map((row) => [row.age, row.g + row.j])).toEqual(PARITY.renders[0].daewun.map(([age, ganzhi]) => [age, ganzhi]));
+  const [first, second] = DAEWUN_ROWS;
+  const html = buildSajuSectionHtml({ ...base, featureKey: "section_daewun", daewun: { age: first.age, gan: first.g, zhi: first.j } }).html;
+  const map = html.match(/<section class="saju-daewun-map"[\s\S]*?<\/section>/)[0];
+  expect(map).toContain('aria-current="true"');
+  const checklist = html.match(/<section class="saju-daewun-transition"[\s\S]*?<\/section>/)[0];
+  expect(checklist).toContain(first.endYear + "→" + second.startYear + "년 무렵 대운이 바뀝니다(" + first.g + first.j + " → " + second.g + second.j);
+  expect(checklist).not.toMatch(/undefined|NaN/);
+  const last = DAEWUN_ROWS[DAEWUN_ROWS.length - 1];
+  const lastHtml = buildSajuSectionHtml({ ...base, featureKey: "section_daewun", daewun: { age: last.age, gan: last.g, zhi: last.j } }).html;
+  expect(lastHtml).toContain("마지막 구간");
 });

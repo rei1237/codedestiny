@@ -2884,6 +2884,7 @@ function renderSummary(p,johu,natal){
     '<a href="#sajuSummaryChapter-ohaeng">오행과 십성</a>'+
     '<a href="#sajuSummaryChapter-seonggyeok">성격과 관계</a>'+
     '<a href="#sajuSummaryChapter-jeollyak">현실 전략</a>'+
+    '<!--saju-ext--><a href="#sajuSummaryChapter-olhae">올해·내년 처방</a><!--/saju-ext-->'+
     '</nav>';
 
   /* ───────────────────────────────
@@ -3381,6 +3382,39 @@ function renderSummary(p,johu,natal){
     '#9C27B0','rgba(243,229,245,.7)');
 
   /* ───────────────────────────────
+     12-1. 올해·내년 처방 — 세운은 대운 풀이의 연도별 세운과 같은 경로(_sajuSeunYearReading)로 읽는다
+  ─────────────────────────────── */
+  (function(){
+    if(!BIRTH_YEAR||!CURRENT_AGE)return;
+    var thisYear=Number(BIRTH_YEAR)+Number(CURRENT_AGE)-1;
+    var body='';
+    var prevGaeun=null;
+    function godMeaning(god){return god+(TS_DB[god]?'('+TS_DB[god].meaning+')':'');}
+    [thisYear,thisYear+1].forEach(function(yr,i){
+      var sy;
+      try{sy=_sajuSeunYearReading(yr);}catch(e){return;}
+      // 영역 문구는 세운 천간 오행과 길흉으로 고른다. 두 해가 같으면 되풀이하지 않는다.
+      var sameAreas=sy.gaeun===prevGaeun;
+      prevGaeun=sy.gaeun;
+      var dwRow=(window.G_DAEWUN||[]).find(function(row){return yr>=row.startYear&&yr<=row.endYear;});
+      body+=(body?'<br>':'')+subHead((i?'내년 ':'올해 ')+yr+'년 · '+sy.yg+sy.yz+' 세운 — '+sy.ev.label,i?'#00838f':'#c62828')+
+        kv('세운의 십성','천간 '+godMeaning(getTenGod(dg,sy.yg))+' · 지지 '+godMeaning(getTenGod(dg,sy.yz)))+
+        (dwRow?kv('함께 흐르는 대운',dwRow.g+dwRow.j+' 대운('+dwRow.startYear+'–'+dwRow.endYear+'년)'):'')+
+        (sy.ukbu?kv('억부 판단',sy.ukbu):'')+(sy.johu?kv('조후',sy.johu):'')+
+        (sameAreas
+          ?kv('영역별 처방','올해와 같은 '+EL_K[sy.ygd.e]+' 기운의 흐름이 이어져 연애·돈·일·관계·건강 습관 처방은 올해와 같습니다. 올해 정한 습관을 그대로 이어 가세요.')
+          :kv('연애',sy.gaeun.love)+kv('돈',sy.gaeun.wealth)+kv('일',sy.gaeun.career)+kv('관계',sy.gaeun.relationship)+
+            kv('건강 습관',sy.gaeun.health)+kv('처방',sy.gaeun.lifestyle));
+    });
+    if(!body)return;
+    html+='<!--saju-ext-->'+box('olhae','🗓️ ⑭ 올해·내년 처방 — '+thisYear+'·'+(thisYear+1)+'년 세운',
+      '<div style="font-size:.84rem;line-height:1.78;margin-bottom:8px">'+(_isNeoSaju
+        ?'올해랑 내년, 영역별로 뭘 하면 되는지만 추렸습니다. 판정은 대운 풀이의 연도별 세운과 같은 기준입니다.'
+        :'해마다 바뀌는 세운으로 올해와 내년을 미리 읽어 볼게요. 판정은 대운 풀이의 연도별 세운과 같은 기준이고, 연애·돈·일·관계·건강 습관마다 할 일을 정리했습니다.')+'</div>'+body,
+      '#c62828','rgba(255,235,238,.7)')+'<!--/saju-ext-->';
+  })();
+
+  /* ───────────────────────────────
      13. 연이의 현실 조언 / 네오의 현실적 팩폭 (NEO_MODE 분기)
   ─────────────────────────────── */
   if (_isNeoSaju) {
@@ -3609,63 +3643,70 @@ function buildDaewunReadingGuide(age, gan, zhi, ev) {
     next:(window.G_DAEWUN||[]).find(function(row){return Number(row.age)>Number(age);})
   },document.body.classList.contains('neo-mode')?'neo':'pig');
 }
+// 세운 한 해의 간지·판정·영역 문구. 대운 풀이의 10년 세운과 종합의 올해·내년 처방이 이 한 경로로 읽는다.
+function _sajuSeunYearReading(yr){
+  var jg=G_JONG,pw=G_POWER,jh=G_JOHU;
+  var yBazi=_coreEightChar(yr,6,15,12,0);
+
+  try {
+    var _sj = KasiEngine.getGanjiFromParts(_kasiPartsOf(yr, 6, 15, 12, 0, 0));
+    if(_sj && _sj.secha) {
+        yBazi.getYearGan = function() { return _sj.secha[0]; };
+        yBazi.getYearZhi = function() { return _sj.secha[1]; };
+    }
+  } catch(e) {}
+
+  var yg2=yBazi.getYearGan(),yz2=yBazi.getYearZhi();
+  var ygd=GAN[yg2]||{e:'earth',n:'?'},yzd=JI[yz2]||{e:'water',a:'?'};
+  var yEv=evalDaewun(yg2,yz2);
+  var yGaeun=getDetailedGaeun(ygd.e,yEv.score>=60);
+
+  var johuYText='';
+  if(jh){
+    if((jh.type==='hot'||jh.type==='warm')&&(ygd.e==='water'||yzd.e==='water'))
+      johuYText='💧 시원한 水 기운이 뜨거운 사주를 식혀줍니다. ✅';
+    else if((jh.type==='hot'||jh.type==='warm')&&(ygd.e==='fire'||yzd.e==='fire'))
+      johuYText='🔥 火 기운이 더해져 과열 주의. ⚠️';
+    else if((jh.type==='cold'||jh.type==='cool')&&(ygd.e==='fire'||yzd.e==='fire'))
+      johuYText='🔥 따뜻한 火 기운이 차가운 사주를 덥혀줍니다. ✅';
+    else if((jh.type==='cold'||jh.type==='cool')&&(ygd.e==='water'||yzd.e==='water'))
+      johuYText='💧 水 기운이 더해져 냉각 주의. ⚠️';
+    else johuYText='🙂 보통 수준의 조후입니다.';
+  }
+  var ukbuYText='';
+  if(jg&&jg.isJong){
+    ukbuYText=ygd.e===jg.dominant||yzd.e===jg.dominant?'🌀 종격의 흐름을 돕는 해 — 강점과 과도한 쏠림을 함께 살피세요.':'🙂 종격 중립의 해';
+  }else if(pw){
+    var hasY=pw.yongshin.indexOf(ygd.e)>=0||pw.yongshin.indexOf(yzd.e)>=0;
+    var hasK=pw.kijishin.indexOf(ygd.e)>=0||pw.kijishin.indexOf(yzd.e)>=0;
+    ukbuYText=hasY?'✅ <span class="notranslate">용신운</span> — '+(pw.isStrong?'에너지 활용과 사회적 역할을 살필 때':'도움을 받는 방식과 회복 여건을 살필 때'):
+      hasK?'⚠️ <span class="notranslate">기신운</span> — '+(pw.isStrong?'내실 다지는 시기':'소모 주의, 회복 우선'):'🙂 중립운';
+  }
+  if(yEv.hasChungBonus){
+    var ybText = yEv.chungBonusText ? yEv.chungBonusText : '충과 기신의 작용을 함께 살펴보세요.';
+    ukbuYText += '<br><span style="color:#E65100;font-size:0.85rem;font-weight:bold;margin-top:4px;display:inline-block;">' + ybText + '</span>';
+  }
+  if(yEv.hasChungPenalty){
+    var ypText = yEv.chungPenaltyText ? yEv.chungPenaltyText : '충이 용신의 작용에 주는 부담을 살펴보세요.';
+    ukbuYText += '<br><span style="color:#D32F2F;font-size:0.85rem;font-weight:bold;margin-top:4px;display:inline-block;">' + ypText + '</span>';
+  }
+
+  return {yg:yg2,yz:yz2,ygd:ygd,yzd:yzd,ev:yEv,gaeun:yGaeun,johu:johuYText,ukbu:ukbuYText};
+}
 // #dwDetail 본문(대운 풀이 + 10년 세운). 서버 대운 풀이(worker/lib/saju-section)와 같은 HTML 이다.
 function buildDaewunDetailHtml(age,gan,zhi){
   var cycle=(window.G_DAEWUN||[]).find(function(row){return Number(row.age)===Number(age)&&row.g===gan&&row.j===zhi;});
   var startYear=cycle&&cycle.startYear||BIRTH_YEAR+age-1;
-  var jg=G_JONG,pw=G_POWER,jh=G_JOHU;
   var ev=evalDaewun(gan,zhi);
   var guideHtml=buildDaewunReadingGuide(age,gan,zhi,ev);
 
   var yearHTML='';
   for(var yr=startYear;yr<=startYear+9;yr++){
     try{
-      var yBazi=_coreEightChar(yr,6,15,12,0);
-
-      try {
-        var _sj = KasiEngine.getGanjiFromParts(_kasiPartsOf(yr, 6, 15, 12, 0, 0));
-        if(_sj && _sj.secha) {
-            yBazi.getYearGan = function() { return _sj.secha[0]; };
-            yBazi.getYearZhi = function() { return _sj.secha[1]; };
-        }
-      } catch(e) {}
-
-      var yg2=yBazi.getYearGan(),yz2=yBazi.getYearZhi();
-      var ygd=GAN[yg2]||{e:'earth',n:'?'},yzd=JI[yz2]||{e:'water',a:'?'};
-      var yEv=evalDaewun(yg2,yz2);
-      var yGaeun=getDetailedGaeun(ygd.e,yEv.score>=60);
+      var sy=_sajuSeunYearReading(yr);
+      var yg2=sy.yg,yz2=sy.yz,ygd=sy.ygd,yzd=sy.yzd,yEv=sy.ev,yGaeun=sy.gaeun,johuYText=sy.johu,ukbuYText=sy.ukbu;
       var cycleRelations=_getDwHapResults(yg2,yz2,{d:{g:gan,j:zhi}});
       var cycleContext=gan+zhi+' 대운 속 '+yg2+yz2+' 세운입니다. '+(cycleRelations.length?cycleRelations.map(function(row){return row.src+'·'+row.partner+' '+(row.type.indexOf('간')===0?'천간':'지지')+(row.isChung?'충':'합');}).join(', ')+' 관계를 원국의 작용과 함께 살핍니다.':'대운과 직접적인 천간합·충 또는 육합·지지충이 없어 각 운의 십성과 원국 관계를 중심으로 읽습니다.');
-
-      var johuYText='';
-      if(jh){
-        if((jh.type==='hot'||jh.type==='warm')&&(ygd.e==='water'||yzd.e==='water'))
-          johuYText='💧 시원한 水 기운이 뜨거운 사주를 식혀줍니다. ✅';
-        else if((jh.type==='hot'||jh.type==='warm')&&(ygd.e==='fire'||yzd.e==='fire'))
-          johuYText='🔥 火 기운이 더해져 과열 주의. ⚠️';
-        else if((jh.type==='cold'||jh.type==='cool')&&(ygd.e==='fire'||yzd.e==='fire'))
-          johuYText='🔥 따뜻한 火 기운이 차가운 사주를 덥혀줍니다. ✅';
-        else if((jh.type==='cold'||jh.type==='cool')&&(ygd.e==='water'||yzd.e==='water'))
-          johuYText='💧 水 기운이 더해져 냉각 주의. ⚠️';
-        else johuYText='🙂 보통 수준의 조후입니다.';
-      }
-      var ukbuYText='';
-      if(jg&&jg.isJong){
-        ukbuYText=ygd.e===jg.dominant||yzd.e===jg.dominant?'🌀 종격의 흐름을 돕는 해 — 강점과 과도한 쏠림을 함께 살피세요.':'🙂 종격 중립의 해';
-      }else if(pw){
-        var hasY=pw.yongshin.indexOf(ygd.e)>=0||pw.yongshin.indexOf(yzd.e)>=0;
-        var hasK=pw.kijishin.indexOf(ygd.e)>=0||pw.kijishin.indexOf(yzd.e)>=0;
-        ukbuYText=hasY?'✅ <span class="notranslate">용신운</span> — '+(pw.isStrong?'에너지 활용과 사회적 역할을 살필 때':'도움을 받는 방식과 회복 여건을 살필 때'):
-          hasK?'⚠️ <span class="notranslate">기신운</span> — '+(pw.isStrong?'내실 다지는 시기':'소모 주의, 회복 우선'):'🙂 중립운';
-      }
-      if(yEv.hasChungBonus){
-        var ybText = yEv.chungBonusText ? yEv.chungBonusText : '충과 기신의 작용을 함께 살펴보세요.';
-        ukbuYText += '<br><span style="color:#E65100;font-size:0.85rem;font-weight:bold;margin-top:4px;display:inline-block;">' + ybText + '</span>';
-      }
-      if(yEv.hasChungPenalty){
-        var ypText = yEv.chungPenaltyText ? yEv.chungPenaltyText : '충이 용신의 작용에 주는 부담을 살펴보세요.';
-        ukbuYText += '<br><span style="color:#D32F2F;font-size:0.85rem;font-weight:bold;margin-top:4px;display:inline-block;">' + ypText + '</span>';
-      }
 
       yearHTML+='<div class="year-row" onclick="toggleYear(this, event)">'+
         '<div class="year-top">'+
@@ -3689,7 +3730,70 @@ function buildDaewunDetailHtml(age,gan,zhi){
   return guideHtml+
     '<div style="border-top:1px solid #e5c3d2;padding-top:16px;margin-top:4px">'+
     '<h3 style="font-size:1.1rem;margin-bottom:12px">세운 · 해마다 달라지는 흐름</h3>'+
-    '<div class="year-list" id="yearList">'+yearHTML+'</div></div>';
+    '<div class="year-list" id="yearList">'+yearHTML+'</div></div>'+
+    '<!--saju-ext-->'+_sajuDaewunMapHtml(age,gan,zhi)+_sajuDaewunTransitionHtml(age,gan,zhi)+'<!--/saju-ext-->';
+}
+// 10년 단위 전체 대운 지도. 대운표(G_DAEWUN)와 대운 판정(evalDaewun)을 다시 읽기만 한다.
+function _sajuDaewunMapHtml(age,gan,zhi){
+  var rows=window.G_DAEWUN||[], dg=G_PILLARS.d.g;
+  if(!rows.length)return '';
+  var neo=document.body.classList.contains('neo-mode'), nowYear=Number(BIRTH_YEAR)+Number(CURRENT_AGE)-1;
+  var items=rows.map(function(row){
+    var rowEv=evalDaewun(row.g,row.j);
+    var selected=Number(row.age)===Number(age)&&row.g===gan&&row.j===zhi;
+    var current=nowYear>=row.startYear&&nowYear<=row.endYear;
+    return '<li style="padding:8px 10px;border-radius:8px;border:1px solid '+(selected?'#c2185b':'#e5c3d2')+';background:'+(selected?'rgba(252,228,236,.75)':'rgba(255,255,255,.6)')+'"'+(selected?' aria-current="true"':'')+'>'+
+      '<b>'+row.age+'세 · '+row.startYear+'–'+row.endYear+'년 · '+row.g+row.j+' 대운</b>'+(current?' <span style="font-size:.78rem;color:#c2185b;font-weight:700">지금</span>':'')+
+      '<br><span style="font-size:.84rem">천간 '+getTenGod(dg,row.g)+' · 지지 '+getTenGod(dg,row.j)+' · '+rowEv.label+'</span></li>';
+  }).join('');
+  return '<section class="saju-daewun-map" style="border-top:1px solid #e5c3d2;padding-top:16px;margin-top:16px">'+
+    '<h3 style="font-size:1.1rem;margin-bottom:8px">전체 대운 지도 · 10년 단위로 보는 큰 흐름</h3>'+
+    '<p style="font-size:.86rem;line-height:1.75;margin-bottom:10px">'+(neo
+      ?'지금 펼친 대운이 인생 전체에서 어디쯤인지부터 보세요. 판정은 위 대운표와 같은 기준이고, 십성은 그 10년에 겉으로 맡는 역할(천간)과 생활 바탕(지지)입니다.'
+      :'지금 펼친 대운이 인생의 긴 흐름에서 어디쯤인지 함께 살펴볼게요. 판정은 위 대운표와 같은 기준이고, 십성은 그 10년 동안 겉으로 맡는 역할(천간)과 생활의 바탕(지지)을 뜻합니다.')+'</p>'+
+    '<ol style="list-style:none;padding:0;margin:0;display:grid;gap:6px">'+items+'</ol></section>';
+}
+// 대운이 바뀌는 앞뒤에서 점검할 것. 십성·균형·합충은 대운 풀이가 쓰는 판정(getTenGod·getQuantumElType·_getDwHapResults)을 그대로 읽는다.
+function _sajuDaewunTransitionHtml(age,gan,zhi){
+  var rows=window.G_DAEWUN||[], p=G_PILLARS, dg=p.d.g;
+  var idx=rows.findIndex(function(row){return Number(row.age)===Number(age)&&row.g===gan&&row.j===zhi;});
+  if(idx<0)return '';
+  var cur=rows[idx], prev=rows[idx-1], next=rows[idx+1];
+  var neo=document.body.classList.contains('neo-mode');
+  function balance(part,char,el){
+    var type=getQuantumElType(el,p,G_JONG,G_POWER,G_JOHU);
+    return part+' '+char+'('+EL_K[el]+')의 기운은 '+(type==='good'?'현재 명식의 균형을 돕는 후보':type==='bad'?'현재 명식에서 부담을 늘릴 수 있는 기운':'균형의 유불리가 뚜렷하지 않은 기운');
+  }
+  function shift(label,from,to,todo){
+    return from===to
+      ?label+'의 주제('+from+')는 다음 대운에도 이어집니다. 지금 쌓은 방식을 기록으로 정리해 다음 10년의 기반으로 남기세요.'
+      :label+'의 주제가 바뀝니다('+from+' → '+to+'). '+todo;
+  }
+  var items=[];
+  if(prev)items.push(prev.endYear+'→'+cur.startYear+'년, 앞선 '+prev.g+prev.j+' 대운('+getTenGod(dg,prev.g)+'·'+getTenGod(dg,prev.j)+')에서 이번 '+gan+zhi+' 대운('+getTenGod(dg,gan)+'·'+getTenGod(dg,zhi)+')으로 넘어왔습니다. 지난 10년의 방식 가운데 이번 대운에도 맞는 것과 내려놓을 것을 나눠 적어 보세요.');
+  if(next){
+    var curEv=evalDaewun(gan,zhi), nextEv=evalDaewun(next.g,next.j);
+    var links=_getDwHapResults(next.g,next.j,{d:{g:gan,j:zhi}});
+    items.push(cur.endYear+'→'+next.startYear+'년 무렵 대운이 바뀝니다('+gan+zhi+' → '+next.g+next.j+', 판정 '+curEv.label+' → '+nextEv.label+'). 전환 직전 해('+cur.endYear+'년)와 첫해('+next.startYear+'년)에 아래 항목을 차례로 점검해 두세요.');
+    items.push(shift('겉으로 맡는 역할',getTenGod(dg,gan),getTenGod(dg,next.g),'지금 맡은 일 가운데 '+getTenGod(dg,next.g)+'의 방향과 맞지 않는 것을 하나씩 정리할 목록을 만드세요.'));
+    items.push(shift('생활 바탕',getTenGod(dg,zhi),getTenGod(dg,next.j),'돈·관계·생활 습관에서 '+getTenGod(dg,next.j)+'의 주제를 받아들일 자리를 미리 비워 두세요.'));
+    items.push('다음 대운에서 '+balance('천간',next.g,GAN[next.g].e)+'이고, '+balance('지지',next.j,JI[next.j].e)+'입니다. 돕는 기운은 일찍 생활에 들이고, 부담이 되는 기운은 일정과 지출에 여유를 두는 쪽으로 대비하세요.');
+    items.push(links.length
+      ?'지금 대운과 다음 대운 사이에 '+links.map(function(row){return row.src+'·'+row.partner+' '+(row.type.indexOf('간')===0?'천간':'지지')+(row.isChung?'충':'합');}).join(', ')+' 관계가 있습니다. '+(links.some(function(row){return row.isChung;})?'충은 기존 역할과 생활 기반이 바뀔 가능성을 살피는 관계이니 큰 결정을 한꺼번에 몰지 마세요.':'합은 두 시기가 이어지는 고리이니 지금 하던 일을 다음 대운으로 넘길 다리로 쓰세요.')
+      :'지금 대운과 다음 대운 사이에 직접적인 천간합·충 또는 육합·지지충은 없습니다. 위의 십성과 균형 변화를 중심으로 준비하세요.');
+  } else {
+    items.push('이번 대운이 계산된 대운표의 마지막 구간입니다. 다음 대운을 미리 대비하기보다 이번 10년의 마무리와 정리에 힘을 두세요.');
+  }
+  items.push('전환 앞뒤로 이직·이사·큰 계약이 겹치면 한 번에 몰지 말고 순서를 정해 하나씩 처리하세요.');
+  items.push('지난 대운에서 반복된 장면(일·돈·관계)을 한 줄씩 적어 두고, 새 대운에서 같은 장면이 오면 다르게 할 행동을 미리 정하세요.');
+  items.push('건강 검진과 재무 점검처럼 해마다 하는 정비를 전환 첫해에 한 번 더 꼼꼼히 하세요.');
+  return '<section class="saju-daewun-transition" style="border-top:1px solid #e5c3d2;padding-top:16px;margin-top:16px">'+
+    '<h3 style="font-size:1.1rem;margin-bottom:8px">전환기 체크리스트 · 대운이 바뀌는 앞뒤에서 챙길 것</h3>'+
+    '<p style="font-size:.86rem;line-height:1.75;margin-bottom:10px">'+(neo
+      ?'대운이 바뀌는 해는 배경이 통째로 바뀌는 때입니다. 미리 체크하면 덜 흔들립니다.'
+      :'대운이 바뀌는 무렵에는 삶의 배경이 서서히 달라져요. 아래 항목을 하나씩 확인하며 준비해 보세요.')+'</p>'+
+    '<ul style="list-style:none;padding:0;margin:0;display:grid;gap:8px;font-size:.86rem;line-height:1.75">'+
+    items.map(function(text){return '<li>☐ '+text+'</li>';}).join('')+'</ul></section>';
 }
 
   return {
