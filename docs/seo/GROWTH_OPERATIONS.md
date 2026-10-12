@@ -230,3 +230,9 @@ node scripts/seo-public-smoke.mjs
 - 월간 감사는 부분 진행. 광고 경로·ads.txt 검증 통과. 번체 숙요에서 이미지와 이용권 안내 한국어 잔존 확인. CMP 실동작·다국어 전수·모바일·AdSense 계정 재관측 미완료, 점수 갱신 안 함.
 - 당일 이미 진행된 베다 비교 개선과 기존 제목 실험을 보존하여 새 본문 개선 0개.
 - main aedf583e3e84a135ec20c124926103c6e43e73ab의 Gift transaction integrity 실패로 push 보류. 다른 세션 변경 및 운영 배포 경계 유지.
+
+추가 28일 교차 검증: GSC에서 sukuyo 星 mansion 검색어를 직접 필터한 뒤 페이지 탭을 확인했다. /en/ 단일 행 0클릭·27노출·5.3위로, 숙요 전문 페이지의 실적이라고 추정하지 않는다. 28일 query/page/country 상위10행도 별도 기록했다.
+
+AdSense 계정 재관측(10/12): 계정 갱신 10/6 11:50 KST, 주의 필요/가치가 별로 없는 콘텐츠 지속. ads.txt는 승인됨으로 변경. 유럽 규정 카드에 새 메시지 만들기 표시, 게시된 메시지 증거는 확인하지 못함. 외부 CMP 부재를 단정하지 않으며 재신청/설정 변경 없음.
+
+월간 HTTP 완료: 966경로·955사이트맵 URL. 경고 2건은 legacy / seed 및 sitemap.xml 전용 robots 정규식의 오탐이었다. 기존 sitemapDirectives 파서를 재사용하고 seed를 /ggulggul로 교체했으며 / 접근 검사는 유지했다. 원본 전수 보고서는 seo-qa/operations/monthly-full-before-fix.json에 보존. 변경 후 전체 check:fast 자동 승격은 다른 세션의 tsc/paid gates 실행·가용 RAM 약700MB로 미실행이다. 앞서 문서 전용 check:fast와 첫 커밋 pre-push는 통과했다.
