@@ -15,8 +15,9 @@
   function profileId() {
     try { return String((root.cdBirthScopeCurrentProfileId && root.cdBirthScopeCurrentProfileId()) || '').trim(); } catch (_) { return ''; }
   }
-  // 2026-10-13: neo-mode 는 이제 다크 테마일 뿐이고 풀이 화자는 늘 연이다.
-  function mode() { return 'pig'; }
+  // 2026-10-13: 풀이 화자(연이/영냥이)는 라이트·다크 테마와 따로 cdSajuPersonaV1 에 둔다.
+  // 'neo' 는 영냥이의 내부 값이다 — 서버 API·패리티 픽스처가 이 이름을 쓴다.
+  function mode() { try { return root.localStorage.getItem('cdSajuPersonaV1') === 'neo' ? 'neo' : 'pig'; } catch (_) { return 'pig'; } }
   function lang() {
     try { return String((root.cdGetCurrentLanguage && root.cdGetCurrentLanguage()) || 'ko').slice(0, 8); } catch (_) { return 'ko'; }
   }

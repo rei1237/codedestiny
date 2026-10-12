@@ -5,18 +5,18 @@
   var gods = ['비견', '겁재', '식신', '상관', '편재', '정재', '편관', '정관', '편인', '정인'];
   var copy = {
     ko: {
-      yeon: '연이', neo: '네오', garden: '연이의 달빛 사주', room: '네오의 달빛 전략실',
+      yeon: '연이', neo: '영냥이', garden: '연이의 달빛 사주', room: '영냥이의 별빛 다락방',
       same: '당신의 기질과 삶의 흐름을 차분히 읽습니다. 원하는 상담자를 선택해 주세요.',
-      compareNeo: '네오 상담으로 전환하기', compareYeon: '연이 상담으로 전환하기',
-      observe: '연이가 발견한 단서', life: '생활에서 만나는 모습', practice: '오늘의 작은 실천', diagnosis: '네오의 진단', basis: '계산 근거', action: '행동 기준',
+      compareNeo: '영냥이 상담으로 전환하기', compareYeon: '연이 상담으로 전환하기',
+      observe: '연이가 발견한 단서', life: '생활에서 만나는 모습', practice: '오늘의 작은 실천', diagnosis: '영냥이가 짚은 핵심', basis: '계산 근거', action: '행동 기준',
       element: '오행의 분포', temperament: '타고난 기질', ten: '십성으로 읽는 역할', climate: '조후 · 계절의 감각', strength: '억부 · 힘을 쓰는 방식', flow: '현재 흐름', letter: '편지',
       names: ['목(木)', '화(火)', '토(土)', '금(金)', '수(水)'],
       traits: ['새 일을 시작하고 방향을 넓혀 가는 힘', '생각과 감정을 밖으로 표현하는 힘', '관계와 일을 안정적으로 이어 가는 힘', '기준을 세우고 불필요한 것을 정리하는 힘', '정보를 살피고 상황에 맞춰 움직이는 힘'],
       scenes: ['관심사가 많아 여러 일을 시작할 수 있어요. 끝맺을 자리를 남겨두면 성장의 힘이 더 잘 쓰입니다.', '대화에 생기를 더할 수 있어요. 마음이 앞설 때는 상대가 답할 틈도 함께 남겨보세요.', '익숙한 역할을 지키는 데 마음이 놓일 수 있어요. 다른 사람의 몫까지 떠안고 있는지도 살펴보세요.', '모호한 상황에서 기준을 찾을 수 있어요. 기준이 너무 촘촘해지면 나와 타인의 여유가 줄기도 합니다.', '쉽게 지나치는 변화를 알아차릴 수 있어요. 생각이 길어질 때는 작은 실행으로 확인해 보세요.'],
       actions: ['새 일을 더하기 전에 진행 중인 일 하나를 마무리해 보세요.', '중요한 말을 전한 뒤에는 상대의 반응을 기다려 보세요.', '이번 주 맡은 일에서 내가 책임질 범위를 한 줄로 적어 보세요.', '꼭 지킬 기준 하나와 유연하게 바꿀 기준 하나를 나눠 보세요.', '더 알아볼 것과 지금 시험해 볼 것을 하나씩 정해 보세요.'],
-      rules: ['목표와 마감이 정해졌을 때 추진하세요. 시작만 늘어난다면 새 과제부터 줄이세요.', '전달할 내용과 상대의 여유가 맞을 때 표현하세요. 감정이 앞서면 답을 재촉하지 마세요.', '책임과 자원이 맞을 때 맡으세요. 내 몫이 계속 늘어난다면 범위를 다시 합의하세요.', '기준이 목적에 도움이 될 때 적용하세요. 완벽함 때문에 멈춘다면 최소 조건부터 정하세요.', '확인할 질문이 분명할 때 조사하세요. 정보만 쌓인다면 작은 시험의 기한을 정하세요.'],
+      rules: ['목표와 마감이 정해졌을 때 밀고 나가 봐. 시작만 자꾸 늘어난다면 새 과제부터 줄여 보자.', '전할 내용과 상대의 여유가 맞을 때 꺼내 봐. 감정이 앞설 때는 답을 재촉하지 않는 편이 좋아.', '책임과 쓸 수 있는 자원이 맞을 때 맡는 게 좋아. 네 몫이 계속 늘어난다면 범위를 다시 맞춰 보자.', '기준이 목적에 도움이 될 때 꺼내 써. 완벽하려다 멈춰 버린다면 최소 조건부터 정해 봐.', '확인할 질문이 분명할 때 알아봐. 정보만 쌓인다면 작게 시험해 볼 날짜부터 정해 봐.'],
       godNames: ['비견 · 자기 기준', '겁재 · 경쟁과 협력', '식신 · 꾸준한 표현', '상관 · 질문과 개선', '편재 · 기회와 자원', '정재 · 관리와 축적', '편관 · 압박과 대응', '정관 · 책임과 질서', '편인 · 다른 관점', '정인 · 학습과 지지'],
-      godTraits: ["자율적으로 방향을 정하려는 경향", "협력과 경쟁에서 힘을 얻는 경향", "반복하며 표현을 다듬는 경향", "익숙한 규칙을 검토하는 경향", "여러 기회를 연결하려는 경향", "약속과 자원을 꾸준히 관리하는 경향", "부담이 있는 과제에 집중하는 경향", "역할과 기준을 중시하는 경향", "낯선 관점을 깊이 살피는 경향", "배움과 지원을 통해 준비하는 경향"],
+      godTraits: ["스스로 방향을 정하고 싶어 하는 편이야.", "함께 뛰거나 겨룰 때 오히려 힘이 나는 편이야.", "같은 걸 되풀이하면서 표현을 다듬어 가는 쪽이지.", "익숙한 규칙도 그냥 넘기지 않고 한 번 따져 보는 편이야.", "여러 기회를 서로 이어 보고 싶어질 수 있어.", "약속과 자원을 꾸준히 챙기는 쪽이야.", "부담이 큰 일 앞에서 오히려 집중이 살아날 수도 있어.", "역할과 기준이 분명할 때 마음이 놓이는 편이야.", "낯선 관점을 만나면 깊이 파고들고 싶어지지.", "배우고 도움을 주고받으면서 준비하는 편이야."],
       godLife: ['스스로 결정할 때 편안할 수 있어요. 다른 의견도 한 번 들어보세요.', '다른 사람과 나란히 달릴 때 힘이 날 수 있어요. 비교가 소모로 이어지는지도 살펴보세요.', '익숙한 일을 꾸준히 표현하고 다듬는 데 강점이 있을 수 있어요.', '당연한 규칙에도 질문을 던질 수 있어요. 바꾸려는 이유를 먼저 설명해 보세요.', '여러 기회를 연결하는 데 관심이 갈 수 있어요. 감당할 수 있는 범위를 함께 살펴보세요.', '작은 수입과 약속을 지키며 안정감을 얻을 수 있어요.', '어려운 과제에서 집중력이 살아날 수 있어요. 회복할 시간도 일정에 넣어보세요.', '역할과 기준이 분명할 때 편안할 수 있어요. 기준이 바뀌는 상황도 연습해 보세요.', '익숙하지 않은 관점을 깊이 살필 수 있어요. 생각을 현실에서 확인할 기회를 만들어 보세요.', '배우거나 도움을 주고받으며 힘을 얻을 수 있어요. 배운 것을 작게 써보세요.'],
       godRules: ['내 결정과 공동 결정을 구분하고, 협의가 필요한 일에는 의견을 확인하세요.', '경쟁 전에 비용과 역할을 합의하세요. 비교가 목표를 바꾸면 잠시 멈추세요.', '반복할 수 있는 분량으로 시작하세요. 완성된 결과를 기준으로 다음 단계를 정하세요.', '문제를 지적할 때 대안을 함께 제시하세요. 상대를 평가하는 말은 빼세요.', '기회마다 필요한 시간과 손실 한도를 적으세요. 범위를 넘으면 보류하세요.', '수입·지출과 약속을 기록하세요. 안정 때문에 필요한 변화까지 미루지는 마세요.', '압박을 감당할 자원부터 확인하세요. 수면과 회복이 무너지면 일을 나누세요.', '책임 범위를 먼저 확인하세요. 규칙이 목적과 어긋나면 근거를 들고 조정하세요.', '직관은 가설로 두고 실제 사례로 확인하세요. 근거 없이 큰 결정을 내리지 마세요.', '배운 내용 하나를 직접 적용하세요. 도움을 받더라도 최종 선택은 점검하세요.'],
       distribution: '월지 가중치를 포함한 기존 계산 비율입니다. 많고 적음은 우열이나 성공 확률이 아닙니다.',
@@ -47,7 +47,7 @@
       paidSummary: '일간·월령·오행·십성을 성격·일·관계 등 여러 주제로 이어 읽고 싶은 분께 맞습니다.',
       recovery: '기존 계정과 프로필로 사주 결과를 다시 열고 해당 풀이의 해금 상태를 확인하세요. 결제 후 열리지 않으면 새로 결제하지 말고 결제 내역과 함께 고객센터에 문의하세요.',
       inputs: '현재 사주에 입력한 생년 정보와 계산값을 사용합니다. 출생시간을 모르면 시간에 의존하는 해석은 참고 범위가 제한됩니다.',
-      pricePending: '가격 확인 중', priceUnavailable: '가격은 결제 안내에서 확인해 주세요', summaryTitle: '종합 사주 풀이', daeunTitle: '대운 · 삶의 계절을 읽다', graphTitle: '대운 흐름 비교', yeonIntro: '달빛 아래 한 장씩, 타고난 마음과 지금의 계절을 함께 읽어볼게요.', neoIntro: '흐름의 근거를 짚고, 지금 준비할 선택과 행동을 정리합니다.', paidRead: '풀이 확인하기',
+      pricePending: '가격 확인 중', priceUnavailable: '가격은 결제 안내에서 확인해 주세요', summaryTitle: '종합 사주 풀이', daeunTitle: '대운 · 삶의 계절을 읽다', graphTitle: '대운 흐름 비교', yeonIntro: '달빛 아래 한 장씩, 타고난 마음과 지금의 계절을 함께 읽어볼게요.', neoIntro: '흐름의 근거부터 짚어 줄게. 그다음 지금 해 볼 작은 걸음 하나를 같이 고르자.', paidRead: '풀이 확인하기',
       catTitle: '영냥이 상담', catPurpose: '명식의 흐름을 고양이 상담사와', catGo: '살펴보기', catPrice: '{price}부터',
       letterGreeting: '{name}님께,', letterGuest: '이 편지를 읽는 당신', letterSignature: '연이가 온 마음을 담아',
       letterOpening: '긴 풀이를 읽으며 어떤 문장에서는 고개를 끄덕이고, 어떤 대목에서는 잠시 마음이 멈췄을지도 모르겠어요. 오늘은 답을 서둘러 정하기보다 따뜻한 차 한 잔을 사이에 두고, 당신의 이야기를 조금 더 듣는 마음으로 이 편지를 남겨요.',
@@ -62,24 +62,47 @@
       letterPractice: '오늘 이 편지에서 한 가지만 가져간다면, 이렇게 시작해보면 어떨까요. {action} 누군가에게 잘 보이기 위한 숙제가 아니라, 내 하루가 조금 더 편안해지는지 알아보는 작은 시도예요. 잘 맞지 않는다면 다른 방법을 골라도 괜찮아요.',
       letterSynthesis: '이 편지를 여는 순간의 당신과 마지막 문장 앞에 선 지금의 당신은, 어쩌면 조금 다른 마음일지도 몰라요. {image} {observation} 그리고 지금 이 시기의 당신은 {verdict}로 흘러가고 있어요. 서로 다른 이야기처럼 보이지만, 결국 이 모든 결은 한 사람 — 바로 당신을 가리키고 있어요. 타고난 결과 지금의 흐름이 이렇게 겹쳐 보이는 건 흔한 일이 아니에요. 그러니 오늘 이 풀이에서 다른 건 다 잊더라도, 지금의 당신이 이미 당신답게 흘러가고 있다는 사실 하나만은 마음에 남겨두셨으면 해요.',
       letterClosing: '찻잔을 내려놓을 때처럼, 오늘 읽은 말도 잠시 곁에 놓아두세요. 마음에 남은 문장은 간직하고, 나와 맞지 않는 말은 흘려보내도 좋아요. 당신의 삶을 가장 가까이에서 살아온 사람은 당신이니까요. 다음 걸음이 아직 선명하지 않더라도, 자신을 다그치지 않고 선택할 여유가 곁에 남기를 연이가 바라요.',
-      neoLetterTitle: '마지막 작전 메모', neoGreeting: '{name}님, 이제 선택의 기준을 정리하자.', neoSignature: '네오 · 다음 한 수는 당신의 선택',
-      neoDominant: '{element} {value}%가 상대적으로 두드러진다. {trait}을 살펴볼 단서다.',
-      neoTied: '여러 오행이 가장 큰 비중을 함께 차지한다. 한 가지 성향으로 묶지 말고 상황별 반응을 살펴라.',
-      neoScenes: ['새로운 일을 여러 개 시작하는 편이라면 끝맺는 데 쓸 시간을 함께 잡아라.', '표현에 힘이 실리는 편이라면 상대가 답할 간격도 확보해라.', '맡은 역할을 지키려다가 다른 사람의 책임까지 떠안고 있지 않은지 점검해라.', '기준이 분명한 것은 강점이다. 다만 기준을 지키느라 목적을 놓치고 있지는 않은지 확인해라.', '작은 변화를 잘 알아차리는 편이라면 관찰을 실행으로 옮길 시점도 정해라.'],
-      neoActions: ['새 과제를 늘리기 전에 진행 중인 일 하나의 마감을 정해라.', '전달할 내용과 상대가 들을 여유를 확인하고, 말한 뒤에는 답을 기다려라.', '맡을 일의 범위와 쓸 수 있는 시간을 먼저 적어라.', '꼭 지킬 기준 하나와 조정할 수 있는 기준 하나를 나눠라.', '확인할 질문 하나와 작게 시험해 볼 일을 정해라.'],
-      letterGuestGreeting: '이 편지를 읽는 당신께,', neoGuestGreeting: '이제 선택의 기준을 정리하자.',
-      neoOpening: '명식은 판세를 살피는 참고 자료다. 결정을 대신 내려주는 지시서는 아니다. 맞는 대목은 써먹고, 실제 경험과 어긋나는 해석은 보류해라. 지금 필요한 건 좋은 말의 개수가 아니라, 실행할 기준 하나다.',
-      neoClue: '{observation} 여기서 볼 것은 우열이 아니라 힘을 쓰는 방식이다. {scene} 이런 패턴이 실제로 반복되는지 최근의 선택부터 점검해라.',
-      neoStrong: '일간을 돕는 힘이 비교적 크다. 혼자 추진하기 전에 다른 의견을 들을 자리를 확보해라. 자신감이 있어도 시간과 자원이 늘어나는 것은 아니다. 맡을 일과 나눌 일을 먼저 정리하자.',
-      neoWeak: '일간에 비해 주변의 요구가 큰 구조다. 능력 부족이라는 판정이 아니다. 준비 시간과 지원 없이 역할부터 늘리지 마라. 혼자 감당하기 어렵다면 범위를 줄이거나 도움을 요청하는 것도 전략이다.',
-      neoJong: '한 방향의 기세를 따르는 종격 가능성이 검토됐다. 보통의 강약 공식으로 결론 내리지 마라. 환경에 맞춰 움직였을 때 실제로 효과가 있었는지부터 확인해라.',
-      neoAction: '오늘의 작전은 간단하다. {action} 실행할 시점과 확인할 결과를 적어라. 해본 뒤 도움이 됐는지 평가하고, 맞지 않으면 방법을 바꿔라. 계획을 고치는 것은 패배가 아니라 판단의 일부다.',
-      neoClosing: '관계든 일이든 명식만 보고 큰 결론을 내리지 마라. 상대의 실제 행동, 약속한 조건, 감당할 비용을 함께 확인해라. 당신을 몰아붙이는 대신 선택을 선명하게 만드는 것, 그게 이 작전의 목적이다. 오늘 움직일 수 있는 범위부터 시작하자.',
+      neoLetterTitle: '별빛 아래 남기는 쪽지', neoGreeting: '{name}, 마지막으로 하나만 같이 짚어 보자.', neoSignature: '영냥이 · 다음 걸음은 네가 고르는 거야',
+      neoDominant: '{element} {value}%가 상대적으로 눈에 띄어. {trait}을 살펴볼 단서야.',
+      neoTied: '여러 오행이 가장 큰 비중을 나눠 갖고 있어. 한 가지 성향으로 묶기보다 상황마다 네가 어떻게 반응하는지 살펴봐.',
+      neoScenes: ['새 일을 여러 개 벌이는 편이라면, 끝맺는 데 쓸 시간도 같이 잡아 봐.', '표현에 힘이 실리는 편이라면, 상대가 답할 틈도 남겨 둬.', '맡은 역할을 지키다가 다른 사람 몫까지 떠안고 있는 건 아닌지 살펴봐.', '기준이 분명한 건 네 강점이야. 다만 기준을 지키느라 목적을 놓치고 있진 않은지 한번 돌아봐.', '작은 변화를 잘 알아차리는 편이라면, 관찰을 실행으로 옮길 시점도 정해 봐.'],
+      neoActions: ['새 과제를 늘리기 전에 하던 일 하나의 마감부터 정해 봐.', '전할 말과 상대가 들을 여유를 먼저 살피고, 말한 뒤에는 답을 기다려 봐.', '맡을 일의 범위와 쓸 수 있는 시간을 먼저 적어 봐.', '꼭 지킬 기준 하나와 바꿔도 되는 기준 하나를 나눠 봐.', '확인할 질문 하나와 작게 시험해 볼 일 하나를 정해 봐.'],
+      letterGuestGreeting: '이 편지를 읽는 당신께,', neoGuestGreeting: '마지막으로 하나만 같이 짚어 보자.',
+      neoOpening: '흥, 긴 풀이 읽느라 고생했어. 명식은 흐름을 살피는 참고 자료지, 결정을 대신 내려 주는 지시서가 아니야. 맞는 대목은 써먹고, 실제 경험과 어긋나는 해석은 잠깐 내려놔도 돼. 지금 너한테 필요한 건 좋은 말 여러 개보다 직접 해 볼 기준 하나거든.',
+      neoClue: '{observation} 여기서 볼 건 잘나고 못남이 아니라 힘을 쓰는 방식이야. {scene} 이런 패턴이 정말 반복되는지 최근에 한 선택부터 떠올려 봐.',
+      neoStrong: '일간을 돕는 힘이 비교적 큰 편이야. 혼자서도 밀고 나갈 수 있으니까 이것저것 다 끌어안기 쉬울 수도 있어. 자신감이 있어도 시간과 자원이 같이 늘어나는 건 아니거든. 맡을 일과 나눌 일을 먼저 갈라 보고, 다른 의견을 들을 자리도 하나 만들어 봐.',
+      neoWeak: '일간에 비해 주변에서 바라는 게 큰 구조야. 능력이 부족하다는 뜻은 아니야. 준비할 시간과 기댈 곳 없이 역할부터 늘리면 금방 지칠 수도 있어. 혼자 버겁다면 범위를 줄이거나 도움을 청하는 것도 충분히 좋은 선택이야.',
+      neoJong: '한 방향의 기세를 따르는 종격 가능성이 검토됐어. 그러니까 보통의 강약 공식으로 바로 결론 내리진 말자. 환경에 맞춰 움직였을 때 실제로 잘 풀렸는지부터 떠올려 봐.',
+      neoAction: '오늘 해 볼 건 간단해. {action} 언제 해 볼지, 무엇을 보고 잘됐는지 판단할지도 같이 적어 둬. 해 보고 안 맞으면 방법을 바꾸면 돼. 계획을 고치는 건 지는 게 아니라 너한테 맞는 길을 찾아가는 과정이니까.',
+      neoClosing: '관계든 일이든 명식만 보고 큰 결론을 내리진 마. 상대의 실제 행동, 약속한 조건, 감당할 비용을 같이 봐 줘. 나는 너를 몰아붙이려는 게 아니야. 네 선택이 조금 더 선명해지길 바랄 뿐이지. 오늘 움직일 수 있는 만큼만 시작해 보자냥.',
       endYeon: '오늘 읽은 모든 문장을 나에게 맞추려 애쓰지 않아도 괜찮아요. 실제 내 모습과 맞닿은 단서 하나부터 천천히 살펴보세요.',
-      endNeo: '명식은 선택을 대신하지 않습니다. 맞는 근거와 맞지 않는 해석을 구분하고, 오늘 확인할 행동 하나만 정하세요.'
+      endNeo: '명식은 선택을 대신해 주지 않아. 맞는 근거와 안 맞는 해석을 가려 보고, 오늘 확인해 볼 행동 하나만 정해 봐.',
+      // 영냥이(neo) 전용 반말 판. 같은 이름의 공유 키(존댓말)를 neo 경로에서만 대신한다 — pick() 참고. 한국어에만 있고 다른 로케일은 공유 키로 돌아간다.
+      dominantNeo: '{element} {value}%가 상대적으로 두드러져. {trait}을 살펴볼 단서야.',
+      balancedNeo: '가장 큰 비율이 여러 오행에 걸쳐 있어. 하나의 성향으로 묶기보다 상황마다 달라지는 힘을 살펴 봐.',
+      distributionNeo: '월지 가중치를 넣은 기존 계산 비율이야. 많고 적음이 우열이나 성공 확률을 뜻하진 않아.',
+      dayBasisNeo: '일간 {stem} · 일지 {branch}. 일간은 너를 읽는 기준 글자야. 여기서는 {element}의 상징을 생활 말로 풀어 볼게.',
+      godBasisNeo: '지금 명식에서 {name}이 {count}곳에 나타나. 일간과 다른 글자의 관계를 센 값이라서 성격을 확정하는 진단은 아니야.',
+      unknownNeo: '출생시간 미상: 정오를 대입한 참고 계산이야. 시주와 시간에 영향을 받는 오행 비율·강약·시기 해석은 확정할 수 없어.',
+      coldNeo: '차가운 쪽의 조후 신호야. 뭔가 시작하기 전에 몸과 마음이 준비될 시간을 챙겨 봐.',
+      hotNeo: '따뜻한 쪽의 조후 신호야. 속도를 올릴 땐 회복할 간격도 같이 잡아 봐.',
+      neutralNeo: '온도 점수가 가운데에 있어. 한쪽으로 보완하기보다 실제 생활 리듬부터 관찰해 봐.',
+      climateBasisNeo: '조후 온도 점수 {score} · 습한 신호 {wet} / 건조한 신호 {dry}. 계절과 글자의 상징으로 계산한 값이고, 건강 진단은 아니야.',
+      climateActionNeo: '잘 지낸 날의 활동과 휴식 간격을 적어 봐. 상징 점수보다 실제 컨디션을 기준으로 조절하면 돼.',
+      strongNeo: '일간을 받쳐 주는 힘이 비교적 큰 구조야. 혼자 끌고 가는 힘이랑 나눠 맡기는 여유를 같이 살펴 봐.',
+      weakNeo: '일간의 힘에 비해 주변 역할이 바라는 게 큰 구조야. 도움과 준비 시간을 확보하는 방식이 단서가 될 수 있어.',
+      jongNeo: '한 방향의 기세를 따르는 종격 가능성이 검토된 구조야. 보통의 신강·신약 조언을 그대로 대지는 않아.',
+      strengthBasisNeo: '기존 억부 점수 {score} · 보완 후보 {support}. 점수는 네 능력이나 가치를 매기는 등급이 아니야.',
+      strengthActionNeo: '역할을 늘리기 전에 시간과 지원부터 확인해 봐. 고른 뒤의 집중력·소모·회복을 적어 두고 기준을 조정하면 돼.',
+      flowBasisNeo: '{label} {stem}{branch} · 기존 평가 점수 {score}. 길흉을 확정하는 예측이 아니라 흐름을 비교하는 참고값이야.',
+      flowOpenNeo: '기존 평가에서 비교적 수월한 쪽으로 읽히는 흐름이야. 준비해 온 일을 작은 범위에서 시험해 봐.',
+      flowCareNeo: '기존 평가에서 조율이 필요한 쪽으로 읽히는 흐름이야. 속도를 낮추고 역할과 일정을 정돈해 봐.',
+      flowRuleOpenNeo: '자원과 계획이 준비됐을 때 작은 실행부터 시작해 봐. 점수가 결과를 보장하진 않아.',
+      flowRuleCareNeo: '일정을 조정하고 선택지를 남겨 둬. 점수만 보고 관계·직업·투자의 결론을 내리진 마.',
+      godRulesNeo: ['혼자 정할 일과 같이 정할 일을 나누고, 협의가 필요한 일엔 의견부터 확인해 봐.', '경쟁 전에 비용과 역할부터 맞춰 둬. 비교가 목표를 바꾸기 시작하면 잠깐 멈춰도 돼.', '반복할 수 있는 분량으로 시작해 봐. 완성한 결과를 기준으로 다음 단계를 정하면 돼.', '문제를 짚을 땐 대안도 같이 내 봐. 상대를 평가하는 말은 빼는 게 좋아.', '기회마다 필요한 시간과 손실 한도를 적어 봐. 범위를 넘으면 보류해도 돼.', '수입·지출과 약속을 기록해 둬. 안정이 좋다고 필요한 변화까지 미루진 마.', '압박을 감당할 자원부터 확인해 봐. 수면과 회복이 무너지면 일을 나누는 게 좋아.', '책임 범위부터 확인해 봐. 규칙이 목적과 어긋나면 근거를 들고 조정하면 돼.', '직관은 가설로 두고 실제 사례로 확인해 봐. 근거 없이 큰 결정은 내리지 마.', '배운 것 하나를 직접 써 봐. 도움을 받더라도 마지막 선택은 네가 한 번 더 점검해 봐.']
     },
     en: {
-      yeon: 'Yeoni', neo: 'Neo', garden: 'A garden for understanding yourself', room: 'A strategy room for reviewing choices', same: 'One chart, two reading styles. Calculations and free/paid access stay the same.', compareNeo: 'Review Yeoni’s clues with Neo', compareYeon: 'Read Neo’s criteria with Yeoni', observe: 'What Yeoni notices', life: 'In everyday life', practice: 'One small practice', diagnosis: 'Neo’s assessment', basis: 'Chart evidence', action: 'Decision criteria', element: 'Five-element balance', temperament: 'Natural temperament', ten: 'Roles in the Ten Gods', climate: 'Seasonal balance', strength: 'How support is distributed', flow: 'Current cycles', letter: 'A final note',
+      yeon: 'Yeoni', neo: 'Yeongnyangi', garden: 'A garden for understanding yourself', room: 'Yeongnyangi’s starlit attic', same: 'One chart, two reading styles. Calculations and free/paid access stay the same.', compareNeo: 'Review Yeoni’s clues with Yeongnyangi', compareYeon: 'Read Yeongnyangi’s criteria with Yeoni', observe: 'What Yeoni notices', life: 'In everyday life', practice: 'One small practice', diagnosis: 'Yeongnyangi’s assessment', basis: 'Chart evidence', action: 'Decision criteria', element: 'Five-element balance', temperament: 'Natural temperament', ten: 'Roles in the Ten Gods', climate: 'Seasonal balance', strength: 'How support is distributed', flow: 'Current cycles', letter: 'A final note',
       names: ['Wood', 'Fire', 'Earth', 'Metal', 'Water'], traits: ['starting and developing ideas', 'expressing thoughts and feelings', 'sustaining commitments', 'setting standards and simplifying', 'observing and adapting'],
       scenes: ['You may start several things at once. Leave room to finish them.', 'You may bring energy to conversations. Give others time to respond.', 'Familiar responsibilities may feel reassuring. Check whether you are carrying someone else’s share.', 'Clear standards may help with uncertainty. Too many rules can leave little room to breathe.', 'You may notice subtle changes. When reflection stretches on, try a small experiment.'],
       actions: ['Finish one existing task before adding another.', 'Pause after an important message and listen to the response.', 'Write down the boundary of one responsibility this week.', 'Separate one essential standard from one flexible preference.', 'Choose one thing to research and one thing to test now.'],
@@ -111,8 +134,12 @@
   }
   function esc(value) { return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
   function fmt(text, values) { return String(text).replace(/\{(\w+)\}/g, function (_, key) { return values[key] == null ? '' : String(values[key]); }); }
-  // 저장값 'neo'는 이제 다크 테마일 뿐이다. 풀이 페르소나는 라이트·다크 모두 연이다.
-  function mode() { return 'pig'; }
+  // 영냥이 경로는 <key>Neo(한국어 반말 판)가 있으면 그것을, 없으면(다른 로케일) 공유 키를 쓴다. 연이 경로는 늘 공유 키.
+  function pick(c, key, neo) { return neo && c[key + 'Neo'] != null ? c[key + 'Neo'] : c[key]; }
+  // 풀이 화자(연이/영냥이)는 라이트·다크 테마(fortuneThemeModeStateV1)와 따로 cdSajuPersonaV1 에 둔다.
+  // 'neo' 는 영냥이의 내부 값이다 — 서버 API·section-client 가 같은 이름을 쓴다.
+  var PERSONA_KEY = 'cdSajuPersonaV1';
+  function mode() { try { return root.localStorage.getItem(PERSONA_KEY) === 'neo' ? 'neo' : 'pig'; } catch (_) { return 'pig'; } }
   function build(input, selected, lang) {
     if (!input) return null;
     var c = langCopy(lang), neo = selected === 'neo', p = input.p, n = input.natal;
@@ -124,19 +151,19 @@
     }
     var ratios = elements.map(function (e) { return Number(n.ratios[e]) || 0; });
     var top = Math.max.apply(Math, ratios), tied = ratios.filter(function (v) { return Math.abs(v-top)<0.001; }).length > 1;
-    var evidence = elements.map(function (e,i) { return c.names[i]+' '+ratios[i].toFixed(0)+'%'; }).join(' · ') + '. ' + c.distribution;
-    var elementText = tied ? c.balanced : fmt(c.dominant,{element:c.names[dominant],value:ratios[dominant].toFixed(0),trait:c.traits[dominant]});
-    var model = { mode:selected, unknown:input.unknown===true, warning:c.unknown, ratios:ratios, elements:section(c.element,elementText,evidence,c.scenes[dominant],neo?c.rules[dominant]:c.actions[dominant]) };
-    model.day = section(c.temperament,c.names[day]+' · '+c.traits[day],fmt(c.dayBasis,{stem:p.d.g,branch:p.d.j,element:c.names[day]}),c.scenes[day],neo?c.rules[day]:c.actions[day]);
+    var evidence = elements.map(function (e,i) { return c.names[i]+' '+ratios[i].toFixed(0)+'%'; }).join(' · ') + '. ' + pick(c,'distribution',neo);
+    var elementText = tied ? pick(c,'balanced',neo) : fmt(pick(c,'dominant',neo),{element:c.names[dominant],value:ratios[dominant].toFixed(0),trait:c.traits[dominant]});
+    var model = { mode:selected, unknown:input.unknown===true, warning:pick(c,'unknown',neo), ratios:ratios, elements:section(c.element,elementText,evidence,c.scenes[dominant],neo?c.rules[dominant]:c.actions[dominant]) };
+    model.day = section(c.temperament,c.names[day]+' · '+c.traits[day],fmt(pick(c,'dayBasis',neo),{stem:p.d.g,branch:p.d.j,element:c.names[day]}),c.scenes[day],neo?c.rules[day]:c.actions[day]);
     model.ten = gods.filter(function (g) { return input.ten[g]>0; }).map(function (g) {
-      var i=gods.indexOf(g), basis=fmt(c.godBasis,{name:c.godNames[i],count:input.ten[g]});
-      return { key:g, count:input.ten[g], reading:section(c.godNames[i],neo?c.godTraits[i]:c.godLife[i],basis,c.godLife[i],c.godRules[i]) };
+      var i=gods.indexOf(g), basis=fmt(pick(c,'godBasis',neo),{name:c.godNames[i],count:input.ten[g]});
+      return { key:g, count:input.ten[g], reading:section(c.godNames[i],neo?c.godTraits[i]:c.godLife[i],basis,c.godLife[i],pick(c,'godRules',neo)[i]) };
     });
     var j=input.johu||{}, pw=input.power||{}, jong=input.jong||{};
     var cool=j.type==='cool'||j.type==='cold', warm=j.type==='warm'||j.type==='hot';
-    model.climate=section(c.climate,cool?c.cold:warm?c.hot:c.neutral,fmt(c.climateBasis,{score:j.score,wet:j.moistCnt,dry:j.dryCnt}),cool?c.scenes[4]:warm?c.scenes[1]:c.scenes[2],c.climateAction);
-    model.strength=section(c.strength,jong.isJong?c.jong:pw.isStrong?c.strong:c.weak,fmt(c.strengthBasis,{score:pw.score,support:(pw.yongshin||[]).map(function(e){return c.names[elements.indexOf(e)]||e;}).join(' · ')}),pw.isStrong?c.scenes[0]:c.scenes[2],c.strengthAction);
-    model.flow=(input.flow||[]).map(function(row) { var good=row.score>=60; return section(row.kind==='year'?c.year:c.period,good?c.flowOpen:c.flowCare,fmt(c.flowBasis,{label:row.kind==='year'?c.year:c.period,stem:row.g,branch:row.j,score:row.score}),good?c.flowOpen:c.flowCare,good?c.flowRuleOpen:c.flowRuleCare); });
+    model.climate=section(c.climate,pick(c,cool?'cold':warm?'hot':'neutral',neo),fmt(pick(c,'climateBasis',neo),{score:j.score,wet:j.moistCnt,dry:j.dryCnt}),cool?c.scenes[4]:warm?c.scenes[1]:c.scenes[2],pick(c,'climateAction',neo));
+    model.strength=section(c.strength,pick(c,jong.isJong?'jong':pw.isStrong?'strong':'weak',neo),fmt(pick(c,'strengthBasis',neo),{score:pw.score,support:(pw.yongshin||[]).map(function(e){return c.names[elements.indexOf(e)]||e;}).join(' · ')}),pw.isStrong?c.scenes[0]:c.scenes[2],pick(c,'strengthAction',neo));
+    model.flow=(input.flow||[]).map(function(row) { var good=row.score>=60, tone=pick(c,good?'flowOpen':'flowCare',neo); return section(row.kind==='year'?c.year:c.period,tone,fmt(pick(c,'flowBasis',neo),{label:row.kind==='year'?c.year:c.period,stem:row.g,branch:row.j,score:row.score}),tone,pick(c,good?'flowRuleOpen':'flowRuleCare',neo)); });
     var name=String(input.name||'').trim();
     if(lang==='ko') {
       var stemIndex=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'].indexOf(p.d.g);
@@ -179,13 +206,14 @@
     var result=document.getElementById('resultPage');if(!result)return;
     if(!document.getElementById('sajuReadingHeader')) {var header=document.createElement('section');header.id='sajuReadingHeader';header.className='saju-reading-header';result.prepend(header);}
   }
-  // 연이/네오 전환 버튼은 없앴다(페르소나는 늘 연이, 라이트·다크는 상단 토글이 맡는다).
+  // 연이/영냥이 풀이 전환. 라이트·다크는 상단 토글이 따로 맡는다.
   function controls() {
-    return '';
+    var c=langCopy(locale()), selected=mode();
+    return '<div class="saju-reading-switch" role="group" aria-label="'+esc(c.same)+'">'+['pig','neo'].map(function(m){return '<button type="button" data-saju-mode="'+m+'" aria-pressed="'+(selected===m)+'">'+esc(m==='neo'?c.neo:c.yeon)+'</button>';}).join('')+'</div>';
   }
   function renderHeader() {
     var c=langCopy(locale()), selected=mode(), neo=selected==='neo';ensureHeader();
-    write('sajuReadingHeader','<img src="/images/saju/'+(neo?'neo-plan':'yeoni-clue')+'-160.webp" width="80" height="80" alt="" decoding="async"><div><h2>'+esc(neo?c.room:c.garden)+'</h2><p>'+esc(neo?c.neoIntro:c.yeonIntro)+'</p>'+controls()+'</div>');
+    write('sajuReadingHeader','<img src="/images/saju/'+(neo?'yeongnyangi':'yeoni-clue')+'-160.webp" width="80" height="80" alt="" decoding="async"><div><h2>'+esc(neo?c.room:c.garden)+'</h2><p>'+esc(neo?c.neoIntro:c.yeonIntro)+'</p>'+controls()+'</div>');
     var form=document.getElementById('destinyCardForm');
     if(form&&!document.getElementById('sajuInputModes')){var host=document.createElement('div');host.id='sajuInputModes';host.className='saju-input-modes';form.prepend(host);}
     write('sajuInputModes',controls()+'<p>'+esc(neo?c.room:c.garden)+'</p>');
@@ -196,7 +224,7 @@
     state=supplied||snapshot();var model=build(state,mode(),locale());if(!model)return;
     var c=langCopy(locale());
     // 한국어는 그래프·표가 있는 풍부한 판(reading-rich.js). 그 밖의 로케일과 자료 부족 시에는 기존 짧은 블록.
-    var rich=richFor(locale()), facts=Object.assign({},state,{warning:c.unknown});
+    var rich=richFor(locale()), facts=Object.assign({},state,{warning:pick(c,'unknown',model.mode==='neo')});
     if(section==='ilju'||section==='all') {
       var host=document.getElementById('iljuCard');
       if(host&&!document.getElementById('sajuElementReading')){var el=document.createElement('section');el.id='sajuElementReading';host.insertBefore(el,host.querySelector('.ilju-v2-grid')||host.firstChild);}
@@ -229,8 +257,8 @@
     if(section==='daily'||section==='all') daily.forEach(function(row,i){
       var gi=gods.indexOf(row.gGod), good=row.batteryPercent>=60;
       var title=i===0?c.today:c.month;
-      var reading={title:title,evidence:fmt(c.flowBasis,{label:title,stem:row.gz.g,branch:row.gz.j,score:row.batteryPercent}),blocks:[]};
-      reading.blocks=model.mode==='neo'?[{label:c.diagnosis,text:good?c.flowOpen:c.flowCare},{label:c.basis,text:reading.evidence},{label:c.action,text:gi>=0?c.godRules[gi]:c.strengthAction}]:[{label:c.observe,text:good?c.flowOpen:c.flowCare},{label:c.life,text:gi>=0?c.godLife[gi]:c.scenes[0]},{label:c.practice,text:gi>=0?c.godRules[gi]:c.strengthAction}];
+      var dn=model.mode==='neo', reading={title:title,evidence:fmt(pick(c,'flowBasis',dn),{label:title,stem:row.gz.g,branch:row.gz.j,score:row.batteryPercent}),blocks:[]};
+      reading.blocks=dn?[{label:c.diagnosis,text:pick(c,good?'flowOpen':'flowCare',dn)},{label:c.basis,text:reading.evidence},{label:c.action,text:gi>=0?pick(c,'godRules',dn)[gi]:pick(c,'strengthAction',dn)}]:[{label:c.observe,text:good?c.flowOpen:c.flowCare},{label:c.life,text:gi>=0?c.godLife[gi]:c.scenes[0]},{label:c.practice,text:gi>=0?c.godRules[gi]:c.strengthAction}];
       write(i===0?'dailyPanel':'monthlyPanel',(rich&&rich.daily(row,i,facts,model.mode))||markup(reading,model,true));
     });
     if(section==='letter'||section==='all') {write('letterTitle',mode()==='neo'?esc(c.neo)+' · '+esc(model.letter.title):esc(c.yeon)+'의 '+esc(model.letter.title));write('letterContent',letterMarkup(model));}
@@ -247,13 +275,13 @@
       el.dataset.readingLocale=locale()+':'+mode();
       var sample=build({p:{d:{g:'辛',j:'酉',gE:'metal'}},natal:{dominant:'metal',ratios:{wood:100/3,fire:100/9,earth:100/9,metal:400/9,water:0}},ten:{'비견':2},flow:[{kind:'period',g:'甲',j:'午',score:60}]},mode(),locale());
       var price=document.querySelector('[data-saju-price-key="'+key+'"]');
-      el.innerHTML='<img class="saju-static-offer__guide" src="/images/saju/'+(mode()==='neo'?'neo-plan-160.webp':'yeoni-moonlight-reading.webp')+'" width="384" height="256" alt="" loading="lazy" decoding="async"><h3>'+esc(key==='section_daewun'?c.daeunTitle:c.summaryTitle)+'</h3><strong class="saju-static-offer__price">'+esc(price?price.textContent:c.pricePending)+'</strong><p>'+esc(key==='section_daewun'?c.paidDaeun:c.paidSummary)+'</p><p>'+esc(c.paidDifference)+'</p><details data-saju-sample="'+key+'"><summary>'+esc(c.sample)+'</summary>'+markup(key==='section_daewun'?sample.flow[0]:sample.elements,sample,false)+'<p>'+esc(c.sampleNote)+'</p></details><p>'+esc(c.inputs)+'</p><p>'+esc(c.recovery)+'</p>';
+      el.innerHTML='<img class="saju-static-offer__guide" src="/images/saju/'+(mode()==='neo'?'yeongnyangi-320.webp':'yeoni-moonlight-reading.webp')+'" width="384" height="256" alt="" loading="lazy" decoding="async"><h3>'+esc(key==='section_daewun'?c.daeunTitle:c.summaryTitle)+'</h3><strong class="saju-static-offer__price">'+esc(price?price.textContent:c.pricePending)+'</strong><p>'+esc(key==='section_daewun'?c.paidDaeun:c.paidSummary)+'</p><p>'+esc(c.paidDifference)+'</p><details data-saju-sample="'+key+'"><summary>'+esc(c.sample)+'</summary>'+markup(key==='section_daewun'?sample.flow[0]:sample.elements,sample,false)+'<p>'+esc(c.sampleNote)+'</p></details><p>'+esc(c.inputs)+'</p><p>'+esc(c.recovery)+'</p>';
     });
   }
   function showGod(key, open) {
     var data=snapshot(), model=build(data,mode(),locale());if(!model)return false;
     var item=model.ten.find(function(g){return g.key===key;});if(!item)return false;
-    var richApi=richFor(locale()),rich=richApi?richApi.godDetail(key,Object.assign({},data,{warning:langCopy(locale()).unknown}),model.mode):'';
+    var richApi=richFor(locale()),rich=richApi?richApi.godDetail(key,Object.assign({},data,{warning:pick(langCopy(locale()),'unknown',model.mode==='neo')}),model.mode):'';
     root.ensureSajuDetailModal();openGod=key;write('modalBody',rich||markup(item.reading,model,true));if(open!==false)root.openSajuDetailModal();return true;
   }
   var preserving = false;
@@ -268,15 +296,17 @@
     requestAnimationFrame(function(){requestAnimationFrame(function(){if(visible&&visible.isConnected)window.scrollBy({top:visible.getBoundingClientRect().top-offset,behavior:'instant'});var f=focusId?document.getElementById(focusId):focusMode?document.querySelector(focusHost+' [data-saju-mode="'+focusMode+'"]'):null;if(f)f.focus({preventScroll:true});preserving=false;});});
   }
   function changed() {preserve(function(){render('all');refreshCopy();if(typeof root.refreshDaewunReadingGuide==='function')root.refreshDaewunReadingGuide();if(!root.G_PILLARS)renderHeader();});}
+  // 화자 전환: 머리글(그림·버튼)을 다시 그리고, 해금된 종합 풀이는 새 화자로 서버에서 다시 받는다(펼친 대운은 changed 가 맡는다).
+  function personaChanged() {preserve(function(){renderHeader();try{if(root.G_PILLARS&&typeof root.renderSummary==='function'&&(typeof root._cdSajuGateUnlocked!=='function'||root._cdSajuGateUnlocked('section_summary')))root.renderSummary();}catch(_){}changed();});}
   root.SajuReadingPresentation={build:build,render:render,changed:changed,showGod:showGod,setFlow:function(rows){flow=rows.map(function(r){return Object.assign({},r);});render('flow');},setDaily:function(day,month){daily=[day,month];render('daily');},copy:langCopy,sourceCopy:copy,escape:esc,locale:locale,refreshCopy:refreshCopy};
   if(typeof document==='undefined')return;
   document.addEventListener('click',function(event){
-    var button=event.target.closest('[data-saju-mode]');
-    if(button){var selected=button.getAttribute('data-saju-mode');if(selected===mode())return;preserve(function(){var checkbox=document.getElementById('themeCheckbox');if(checkbox){checkbox.checked=selected==='neo';checkbox.dispatchEvent(new Event('change',{bubbles:true}));}});if(typeof root.cdTrack==='function')root.cdTrack('saju_reading_mode_change',{mode:selected,surface:root.G_PILLARS?'result':'input'});}
+    var button=event.target.closest('#sajuReadingHeader [data-saju-mode], #sajuInputModes [data-saju-mode]');
+    if(button){var selected=button.getAttribute('data-saju-mode');if(selected===mode())return;try{root.localStorage.setItem(PERSONA_KEY,selected);}catch(_){}personaChanged();if(typeof root.cdTrack==='function')root.cdTrack('saju_reading_mode_change',{mode:selected,surface:root.G_PILLARS?'result':'input'});}
     var god=event.target.closest('[data-saju-god]');if(god)showGod(god.getAttribute('data-saju-god'),true);
   });
   root.addEventListener('cd:locale-ready',changed);
   document.addEventListener('toggle',function(event){var el=event.target;if(el.open&&el.matches('[data-saju-sample]')&&typeof root.cdTrack==='function')root.cdTrack('saju_static_detail_view',{item_id:el.getAttribute('data-saju-sample'),mode:mode()});},true);
-  function init(){renderHeader();refreshCopy();['yeoni-clue','neo-plan'].forEach(function(name){var asset=new Image();asset.decoding='async';asset.src='/images/saju/'+name+'-160.webp';});}
+  function init(){renderHeader();refreshCopy();['yeoni-clue','yeongnyangi'].forEach(function(name){var asset=new Image();asset.decoding='async';asset.src='/images/saju/'+name+'-160.webp';});}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })(typeof window==='undefined'?globalThis:window);
