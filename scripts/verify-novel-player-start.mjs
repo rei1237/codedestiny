@@ -655,7 +655,7 @@ async function verifyMobileAssetsAndCache() {
   try {
     const win = dom.window;
     await waitFor(() => win.__NOVEL_READY, "mobile assets manifest");
-    assert.equal(win.spriteFor("neo", "neutral", "pig").url, "/images/novel/neo-lion/neutral.webp");
+    assert.equal(win.spriteFor("neo", "neutral", "pig").url, "/images/novel/yeongnyangi/neutral.webp");
     assert.match(win.spriteFor("yeon", "base", "pig").url, /\/mobile\/yeon-/);
     assert.equal(win.spriteFor("tiger", "angry", "pig").url, "/images/novel/hanbi/angry.webp");
     assert.equal(win.bgUrl("rainStop"), "/images/novel/mobile/rainStop.webp");
@@ -700,8 +700,8 @@ async function verifyNeoReturnAndCover() {
       assert.equal(win.S.neoForm, "human", `direct chapter entry reverted Neo in ${id}`);
     }
     await win.hydrateTo(ep, mark - 1);
-    assert.equal(win.S.neoForm, "lion", "rewind did not restore the lion");
-    assert.match(win.spriteFor("neo", "neutral", "human", win.S.neoForm).url, /neo-lion\/neutral\.webp$/);
+    assert.equal(win.S.neoForm, "lion", "rewind did not restore the cat form");
+    assert.match(win.spriteFor("neo", "neutral", "human", win.S.neoForm).url, /yeongnyangi\/neutral\.webp$/);
     win.S.bi = mark;win.runBeat();
     assert.equal(win.S.neoForm, "human", "sequential playback did not apply the marker");
     assert.deepEqual(errors, []);
