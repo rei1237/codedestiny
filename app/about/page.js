@@ -128,7 +128,7 @@ export default function AboutPage() {
         <p>
           {aboutPageText("editorial.author")}
         </p>
-        <p>박병하는 ‘네오’라는 이름으로 사주 분석 글을 공개해 왔습니다. <a href="https://blog.naver.com/neosaju" rel="noopener noreferrer">네오의 기존 사주 블로그</a>는 운영자의 분석 활동 기록이고, <a href="https://blog.naver.com/goodbyejieun" rel="noopener noreferrer">꿀꿀 운세 공식 블로그</a>는 서비스 소식과 이용 안내 채널입니다.</p>
+        <p>박병하는 ‘네오’라는 이름으로 사주 분석 글을 공개해 왔습니다. <a href="https://blog.naver.com/neosaju" rel="noopener noreferrer">네오의 기존 사주 블로그</a>는 운영자의 분석 활동 기록이고, <a href="https://blog.naver.com/goodbyejieun" rel="noopener noreferrer">꿀꿀 사주 공식 블로그</a>는 서비스 소식과 이용 안내 채널입니다.</p>
         <h3>날짜와 원문으로 확인하는 공개 분석 기록</h3>
         <p>공개 시점이 남아 있는 유명인 분석과 작성자가 정리한 원문 색인도 함께 제공합니다. 요약만 믿기보다 게시일과 당시 표현을 원문에서 직접 확인해 주세요.</p>
         <ul>
