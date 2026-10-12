@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-12
-next: "docs/handoff/premium-repricing-followups-20261012.md 를 읽고 F1 부터 진행해줘. F7 은 결정 3개를 사용자에게 먼저 묻는다."
+next: "F1~F6 완료(2026-10-12). F7 진행 중 — 결정 3개는 받음(유료 전용 렌더러만 이전, 계정 레거시 해금 인정, ContentEntitlement 행만). 이 문서 F7부터 이어서."
 ---
 
 # 프리미엄 개편 후속 과제
@@ -69,6 +69,10 @@ F1~F6은 서로 관계가 없어서 순서를 바꿔도 됩니다. F7은 아래 
   - 해금된 프로필에서 본문이 열리는 흐름을 mock 브라우저로 확인합니다.
 - 재현되지 않으면 근거만 이 문서에 적고 닫습니다.
 
+- ✅ 완료 2026-10-12 — 커밋 `f235630e2`, pr-ci 38207157290, 운영 release 38211010905(`d6631a6f5`까지, `[verify-deployed-sha] PASS`, version.json gitSha 일치).
+  - **재현됨:** 실제 서버 라우트(DB만 mock)와 실제 클라이언트(JSDOM)를 잇는 임시 테스트(커밋 안 함)에서 생년월일 구매와 프로필 p1 선택 상태로도 본문에 `profileId`가 없어 400 `MISSING_PROFILE_ID`가 났습니다. 400 검사가 402보다 먼저라 본문도 구매 버튼도 뜨지 않았습니다. 원인은 서버만 전환한 `f1c8ae8d0`입니다.
+  - **수정:** 요청 본문에 `profileId`(`cdBirthScopeCurrentProfileId` → `_sajuPromptResolveProfileId`)를 넣고, 400 `MISSING_PROFILE_ID`/`INVALID_PROFILE`이면 프로필 저장·선택 안내를 보여 줍니다. 정적 테스트와 mock 브라우저(`verify-astro-basic-delivery`)로 해금 프로필 열람을 확인했습니다.
+
 ## F2. Play 문서 티어 표가 현재 가격과 다름
 
 - **파일:** `docs/play-console-submission-values.md`의 "각 티어가 실제로 커버하는 기능" 표(92-99행 근처)
@@ -80,6 +84,10 @@ F1~F6은 서로 관계가 없어서 순서를 바꿔도 됩니다. F7은 아래 
   - `worker/lib/paid-feature-registry.js`와 `app-store-pricing.js`를 기준으로 티어별 기능 수와 대표 기능을 다시 셉니다. 일회성 스크립트로 세고, 그 스크립트는 커밋하지 않습니다.
   - 표를 고칩니다. `docs/pricing/PLAY_CONSOLE_TASKS.md`의 tier_15~18 체크리스트와 맞는지도 확인합니다.
 - **완료 기준:** 표의 각 행이 레지스트리에서 다시 센 값과 같습니다.
+
+- ✅ 완료 2026-10-12 — 커밋 `5a8e05e1d`, pr-ci 38209571020(F3·F6·F5와 함께 push). 문서 전용이라 승격하지 않았습니다.
+  - 집계 기준: `FEATURE_KEY_PRICE_TABLE` ∪ `UNLOCK_PRODUCT_BY_FEATURE_KEY`의 각 키를 `isAppFreeFeature` → `resolveAppContentTier` 순서로 거친 값입니다(표에 한 줄로 적음).
+  - `master-love-codex-compat`를 tier_17 행으로 옮겼습니다. `PLAY_CONSOLE_TASKS.md`의 tier_17에 `fusion-fortune-consultation`이 빠져 있어 함께 넣었습니다.
 
 ## F3. 찻집 상품 상세 manifest가 새 필수 섹션을 반영하지 않음
 
@@ -94,6 +102,10 @@ F1~F6은 서로 관계가 없어서 순서를 바꿔도 됩니다. F7은 아래 
   - `npm run check:pre-push`가 통과합니다.
   - 운영 승격 뒤 라이브 상세 페이지에 새 섹션명이 보입니다.
 
+- ✅ 완료 2026-10-12 — 커밋 `917fb8a34`, pr-ci 38209571020, 운영 release 38211010905. 라이브 `/feature-details/crafted/tea-saju/manifest.json`에서 "월별 흐름 · 관계 처방 · 실행 체크리스트" 섹션명을 확인했습니다.
+  - **전제 정정:** 12개 로케일 사본은 없습니다(ko 전용). `verify:home-service-registry`는 tea 상세를 대조하지 않습니다. 원본은 `content/product-details/<id>/panels.cjs`이고 `node scripts/render-crafted-detail.cjs <id>`로 생성합니다.
+  - 분량 표기는 서버 최소값에 맞춰 "이상"으로 적었습니다(사주 18,000자, 타로 10,000자·5카드 11,200자, 숙요 14,000자).
+
 ## F4. 찻집 사주 general 카테고리의 폴백 제목이 필수 제목과 다를 수 있음
 
 - **위치:** `worker/routes/fortune-tea-house.js`
@@ -106,6 +118,10 @@ F1~F6은 서로 관계가 없어서 순서를 바꿔도 됩니다. F7은 아래 
   2. 다르면 폴백 제목을 필수 제목에 맞춥니다.
 - **완료 기준:** general과 다른 카테고리 모두에서 폴백 제목이 필수 제목을 빠짐없이 덮는다는 테스트가 통과합니다. 이미 같으면 테스트만 남기고 닫습니다.
 
+- ✅ 완료 2026-10-12 — 커밋 `95b57da2f`, pr-ci 38208429841, 운영 release 38211010905.
+  - 문제가 맞았습니다. general 폴백 제목 11개가 필수 제목과 0/11 일치했습니다. 폴백 제목을 필수 제목에 맞췄습니다.
+  - 검증기가 `questionCategory`/`question` 없는 폴백 객체로 카테고리를 골라 생성기와 다르게 검사할 수 있어, 폴백 객체에 두 값을 실었습니다. general·각 카테고리·궁합 테스트가 통과합니다.
+
 ## F5. `scripts/verify-detail-first-entry.mjs`가 CI에 없음
 
 - **현재:**
@@ -117,6 +133,9 @@ F1~F6은 서로 관계가 없어서 순서를 바꿔도 됩니다. F7은 아래 
   - 로컬에서 한 번 통과시킵니다.
 - **완료 기준:** main CI에서 이 단계가 돌고 성공합니다.
 
+- ✅ 완료 2026-10-12 — 커밋 `d6631a6f5`, pr-ci 38209571020의 Static guards job에서 `npm run verify:detail-first-entry`가 돌고 PASS했습니다.
+  - 형제 스크립트도 CI에 연결되어 있지 않아, `CONSULTATION_TEST_BASE`가 없으면 `public/` 정적 서버를 직접 띄우는 방식(`verify-saju-summary-browser.mjs` 패턴)으로 바꿨습니다.
+
 ## F6. 이용권 경제성 보고서가 참치를 flash 요율로 계산함
 
 - **파일:** `scripts/report-yeongnyangi-pass-economics.mjs:29`, `:155` (`gemini/gemini-2.5-flash` 고정)
@@ -126,6 +145,9 @@ F1~F6은 서로 관계가 없어서 순서를 바꿔도 됩니다. F7은 아래 
   - 근거는 `worker/yeongnyangi/fortune/reading-v7-cost.ts`의 `tunaBookCostRatio`입니다. 숫자를 다시 쓰지 말고 이 함수를 불러 씁니다.
   - 다른 등급은 flash를 유지합니다.
 - **완료 기준:** 보고서의 참치 원가율이 단위 테스트의 추정(약 17%)과 같은 규칙으로 나옵니다. 보고용이라 게이트는 아닙니다.
+
+- ✅ 완료 2026-10-12 — 커밋 `9359ccda9`, pr-ci 38209571020. 보고용이라 승격하지 않았습니다.
+  - 참치 행만 `tunaBookCostRatio`와 `gemini/${TUNA_DEFAULT_MODEL}` 요율로 계산합니다. 원가율은 6개 참치 상품 모두 0.1723(운영비 포함 17.4%)이고, 출력의 `basis` 필드에 계산 기준을 적었습니다.
 
 ## F7. 사주 대운·종합(₩30,000) 서버 이전 (④(c))
 
