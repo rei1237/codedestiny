@@ -111,7 +111,8 @@
   }
   function esc(value) { return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
   function fmt(text, values) { return String(text).replace(/\{(\w+)\}/g, function (_, key) { return values[key] == null ? '' : String(values[key]); }); }
-  function mode() { try { return root.localStorage.getItem('fortuneThemeModeStateV1') === 'neo' ? 'neo' : 'pig'; } catch (_) { return document.body.classList.contains('neo-mode') ? 'neo' : 'pig'; } }
+  // 저장값 'neo'는 이제 다크 테마일 뿐이다. 풀이 페르소나는 라이트·다크 모두 연이다.
+  function mode() { return 'pig'; }
   function build(input, selected, lang) {
     if (!input) return null;
     var c = langCopy(lang), neo = selected === 'neo', p = input.p, n = input.natal;
@@ -258,9 +259,9 @@
     var result=document.getElementById('resultPage');if(!result)return;
     if(!document.getElementById('sajuReadingHeader')) {var header=document.createElement('section');header.id='sajuReadingHeader';header.className='saju-reading-header';result.prepend(header);}
   }
+  // 연이/네오 전환 버튼은 없앴다(페르소나는 늘 연이, 라이트·다크는 상단 토글이 맡는다).
   function controls() {
-    var c=langCopy(locale()), selected=mode();
-    return '<div class="saju-reading-switch" role="group" aria-label="'+esc(c.same)+'">'+['pig','neo'].map(function(m){return '<button type="button" data-saju-mode="'+m+'" aria-pressed="'+(selected===m)+'">'+esc(m==='neo'?c.neo:c.yeon)+'</button>';}).join('')+'</div>';
+    return '';
   }
   function renderHeader() {
     var c=langCopy(locale()), selected=mode(), neo=selected==='neo';ensureHeader();

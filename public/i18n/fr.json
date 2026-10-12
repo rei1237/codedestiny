@@ -1235,13 +1235,13 @@
       "advanced": "Avancé"
     },
     "themeToggle": {
-      "pigMode": "🐷 Mode Yeoni fleur-cochon",
-      "neoMode": "🦁 Mode néo lion blanc",
-      "aria": "Basculer entre les modes Yeoni fleur-cochon et Neo blanc-lion",
-      "yeoni": "Yeoni",
-      "neo": "Neo",
+      "pigMode": "Mode clair",
+      "neoMode": "Mode sombre",
+      "aria": "Basculer entre mode clair et sombre",
+      "yeoni": "Clair",
+      "neo": "Sombre",
       "pigLogoAlt": "Logo Honey Yeoni",
-      "neoLogoAlt": "Logo du mode Néo"
+      "neoLogoAlt": "Logo Honey Yeoni"
     },
     "hero2": {
       "title": "Des Quatre Piliers gratuits au Zi Wei Dou Shu et à l’astrologie : qui vous êtes, à cet instant",
@@ -1673,7 +1673,7 @@
       "sheetSupport": "Help center",
       "sheetLibrary": "Library",
       "libraryLead": "Your readings are kept in each consultation. Jump straight there from here.",
-      "libraryChat": "Yeoni & Neo chats",
+      "libraryChat": "Discussions avec Yeoni",
       "libraryYeongnyangi": "My Yeongnyangi readings",
       "libraryNote": "Records are kept in your signed-in account.",
       "searchTitle": "What would you like to read today?",
@@ -1684,7 +1684,7 @@
       "heroPrimary": "Choose a reading",
       "allFortunes": "See all readings",
       "todayTerms": "Free · no sign-in · calculated from your birth-date profile card",
-      "chatLead": "Two counselors, two styles. Talk it through with whichever suits you now.",
+      "chatLead": "Talk through what's on your mind with Yeoni.",
       "chatYeoniTitle": "Talk with Yeoni",
       "chatYeoniDesc": "Flower pig Yeoni listens slowly, starting from small feelings, and gently sorts out your current flow and next choice with you.",
       "chatNeoTitle": "Talk with Neo",

@@ -1235,13 +1235,13 @@
       "advanced": "Nâng cao"
     },
     "themeToggle": {
-      "pigMode": "🐷 Chế độ lợn hoa Yeoni",
-      "neoMode": "🦁 Chế độ sư tử trắng Neo",
-      "aria": "Chuyển đổi giữa chế độ lợn hoa Yeoni và sư tử trắng Neo",
-      "yeoni": "Yeoni",
-      "neo": "Neo",
+      "pigMode": "Chế độ sáng",
+      "neoMode": "Chế độ tối",
+      "aria": "Chuyển chế độ sáng / tối",
+      "yeoni": "Sáng",
+      "neo": "Tối",
       "pigLogoAlt": "Logo Honey Yeoni",
-      "neoLogoAlt": "Logo chế độ Neo"
+      "neoLogoAlt": "Logo Honey Yeoni"
     },
     "hero2": {
       "title": "Từ Tứ Trụ miễn phí đến Tử Vi Đẩu Số và chiêm tinh — con người bạn ngay lúc này",
@@ -1673,7 +1673,7 @@
       "sheetSupport": "Help center",
       "sheetLibrary": "Library",
       "libraryLead": "Your readings are kept in each consultation. Jump straight there from here.",
-      "libraryChat": "Yeoni & Neo chats",
+      "libraryChat": "Trò chuyện với Yeoni",
       "libraryYeongnyangi": "My Yeongnyangi readings",
       "libraryNote": "Records are kept in your signed-in account.",
       "searchTitle": "What would you like to read today?",
@@ -1684,7 +1684,7 @@
       "heroPrimary": "Choose a reading",
       "allFortunes": "See all readings",
       "todayTerms": "Free · no sign-in · calculated from your birth-date profile card",
-      "chatLead": "Two counselors, two styles. Talk it through with whichever suits you now.",
+      "chatLead": "Talk through what's on your mind with Yeoni.",
       "chatYeoniTitle": "Talk with Yeoni",
       "chatYeoniDesc": "Flower pig Yeoni listens slowly, starting from small feelings, and gently sorts out your current flow and next choice with you.",
       "chatNeoTitle": "Talk with Neo",

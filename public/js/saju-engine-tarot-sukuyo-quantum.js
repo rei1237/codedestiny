@@ -3620,15 +3620,8 @@ function analyzeFortuneGZ(gz, p, label){
   return{grade:grade,icon:icon,gz:gz,gGod:gGod,jGod:jGod,gEl:gEl,jEl:jEl,
     adviceItems:adviceItems,lt:lt,lb:lb,luckyEl:luckyEl,label:label,batteryPercent:batteryPercent};
 }
+// 2026-10-13: 네오 모드(neo-mode)는 이제 다크 테마일 뿐이고 풀이 페르소나는 늘 연이다.
 function isNeoSajuModeActive() {
-  try {
-    if (typeof NEO_MODE !== 'undefined' && !!NEO_MODE) return true;
-    if (typeof window !== 'undefined' && window.__INITIAL_THEME_NEO__ === true) return true;
-    if (document && document.body && document.body.classList.contains('neo-mode')) return true;
-    if (typeof localStorage !== 'undefined') {
-      return localStorage.getItem('fortuneThemeModeStateV1') === 'neo';
-    }
-  } catch (_e) {}
   return false;
 }
 

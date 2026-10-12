@@ -7521,12 +7521,8 @@ body.neo-mode .monthly-label { color: #64748b; }
   /* 네오/꽃돼지 모드 분기 (기본값 설정) */
   .pig-only { display: block; }
   span.pig-only { display: inline; }
-  .neo-only { display: none; }
+  .neo-only { display: none; } /* 다크 모드도 연이 문구를 쓴다 — neo-only(옛 네오 문구)는 어디서도 보이지 않는다 */
   
-  /* 강제 오버라이딩 */
-  body.neo-mode .pig-only { display: none !important; }
-  body.neo-mode .neo-only { display: block !important; }
-  body.neo-mode span.neo-only { display: inline !important; }
 
   /* ══════════════════════════════════════════
      fate-scroll-section │ 스크롤 등장 시스템

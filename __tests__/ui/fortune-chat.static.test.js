@@ -17,22 +17,21 @@ test("Yeoni chat keeps a unified character choice and neutral usage label", () =
   assert.match(client, /무료 상담/);
 });
 
-test("a ?character= link opens that consultant and the saved session does not override it", () => {
-  // 홈의 대화형 상담 문은 지금 테마(연이·네오)를 ?character= 로 넘긴다(js/core/home-funnel.js).
+test("new chats always open with Yeoni, even from an old ?character=neo link", () => {
+  // 2026-10-13: 네오 상담을 걷어 냈다. 라이트·다크 모드와 상관없이 새 상담은 연이와 한다.
   const client = read("app/fortune-chat/FortuneChatClient.tsx");
-  for (const snippet of [
-    'value === "neo" || value === "yeoni" ? value : ""',
-    'useState<Character>(() => requestedCharacter(params) || "yeoni")',
-    'useState<Message[]>(() => welcome(requestedCharacter(params) || "yeoni"))',
-    "if (payload.session?.characterId && !requested) setCharacter(storedCharacter)",
-  ]) assert.ok(client.includes(snippet), snippet);
-  // 플래그가 켜진 로그인 사용자의 새 상담실도 같은 값으로 시작한다.
+  assert.ok(client.includes('useState<Character>("yeoni")'));
+  assert.ok(client.includes('useState<Message[]>(() => welcome("yeoni"))'));
+  assert.doesNotMatch(client, /switchCharacter|characterPicker/);
   const entry = read("app/fortune-chat/FortuneChatEntry.tsx");
-  assert.ok(entry.includes('character === "neo" || character === "yeoni" ? character : undefined'));
+  assert.ok(entry.includes('const requested: ChatPersona = "yeoni"'));
   assert.ok(entry.includes("initialPersona={requested}"));
-  assert.ok(read("app/fortune-chat/ConsultationRoom.tsx").includes("useState<ChatPersona>(initialPersona)"));
+  const room = read("app/fortune-chat/ConsultationRoom.tsx");
+  assert.ok(room.includes("useState<ChatPersona>(initialPersona)"));
+  assert.doesNotMatch(room, /data-consultation-mode|switchPersona/);
   const funnel = read("js/core/home-funnel.js");
-  assert.ok(funnel.includes("'/fortune-chat/?character=' + (doc.classList.contains('neo-mode') ? 'neo' : 'yeoni')"));
+  assert.ok(funnel.includes("'/fortune-chat/?character=yeoni'"));
+  assert.ok(!funnel.includes("? 'neo' : 'yeoni'"));
 });
 
 test("suggested questions are offered, never typed into the box for the user", () => {

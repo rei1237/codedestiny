@@ -1235,13 +1235,13 @@
       "advanced": "Geavanceerd"
     },
     "themeToggle": {
-      "pigMode": "🐷 Yeoni bloem-varkensmodus",
-      "neoMode": "🦁 Neo witte leeuw-modus",
-      "aria": "Schakel tussen de Yeoni-bloemvarkens- en Neo-witte leeuw-modus",
-      "yeoni": "Yeoni",
-      "neo": "Neo",
+      "pigMode": "Lichte modus",
+      "neoMode": "Donkere modus",
+      "aria": "Wisselen tussen lichte en donkere modus",
+      "yeoni": "Licht",
+      "neo": "Donker",
       "pigLogoAlt": "Honey Yeoni-logo",
-      "neoLogoAlt": "Neo-moduslogo"
+      "neoLogoAlt": "Honey Yeoni-logo"
     },
     "hero2": {
       "title": "Van gratis Vier Pijlers tot Zi Wei Dou Shu en astrologie – wie jij nu bent",
@@ -1673,7 +1673,7 @@
       "sheetSupport": "Help center",
       "sheetLibrary": "Library",
       "libraryLead": "Your readings are kept in each consultation. Jump straight there from here.",
-      "libraryChat": "Yeoni & Neo chats",
+      "libraryChat": "Yeoni-chats",
       "libraryYeongnyangi": "My Yeongnyangi readings",
       "libraryNote": "Records are kept in your signed-in account.",
       "searchTitle": "What would you like to read today?",
@@ -1684,7 +1684,7 @@
       "heroPrimary": "Choose a reading",
       "allFortunes": "See all readings",
       "todayTerms": "Free · no sign-in · calculated from your birth-date profile card",
-      "chatLead": "Two counselors, two styles. Talk it through with whichever suits you now.",
+      "chatLead": "Talk through what's on your mind with Yeoni.",
       "chatYeoniTitle": "Talk with Yeoni",
       "chatYeoniDesc": "Flower pig Yeoni listens slowly, starting from small feelings, and gently sorts out your current flow and next choice with you.",
       "chatNeoTitle": "Talk with Neo",

@@ -1448,7 +1448,7 @@ function fallbackCopy(text,msg){
 }
 
 /* ═══════════════════════════════════════
-   NEO MODE — 팩폭 사자 네오 퍼소나 시스템
+   NEO MODE — 다크 모드 토글(키 이름만 neo, 페르소나는 늘 연이)
 ═══════════════════════════════════════ */
 var NEO_MODE=false;
 var THEME_PERF_PROBE_MS = 1200;
@@ -1708,11 +1708,11 @@ function toggleNeoMode(nextMode){
     body.classList.add('neo-mode');
     body.classList.remove('theme-pig');
     body.classList.add('theme-neo');
-    if(neoIcon) neoIcon.textContent = '🦁';
-    if(neoLabel) neoLabel.textContent = '🌸 연이 모드';
+    if(neoIcon) neoIcon.textContent = '🌙';
+    if(neoLabel) neoLabel.textContent = '☀️ 라이트 모드';
     var tLabel = document.getElementById('themeToggleLabel');
     if(tLabel) {
-      tLabel.innerText = '🦁 팩폭 사자 네오 모드';
+      tLabel.innerText = '🌙 다크 모드';
       tLabel.style.color = '#FFD700';
     }
     applyPwaThemeAssets(true);
@@ -1720,11 +1720,11 @@ function toggleNeoMode(nextMode){
     body.classList.remove('neo-mode');
     body.classList.remove('theme-neo');
     body.classList.add('theme-pig');
-    if(neoIcon) neoIcon.textContent = '🐷';
-    if(neoLabel) neoLabel.textContent = 'NEO MODE';
+    if(neoIcon) neoIcon.textContent = '☀️';
+    if(neoLabel) neoLabel.textContent = '🌙 다크 모드';
     var tLabel = document.getElementById('themeToggleLabel');
     if(tLabel) {
-      tLabel.innerText = '🌸 꽃돼지 연이 모드';
+      tLabel.innerText = '☀️ 라이트 모드';
       tLabel.style.color = '#FF8BA7';
     }
     applyPwaThemeAssets(false);
@@ -1742,6 +1742,8 @@ function toggleNeoMode(nextMode){
 }
 
 function applyNeoTexts(){
+  // 2026-10-13: 네오 모드는 다크 테마일 뿐 페르소나는 늘 연이다. 다크에서도 연이 문구로 되돌린다.
+  var NEO_MODE = false;
   var titles=document.querySelectorAll('.sec-title');
   titles.forEach(function(el){
     if(!el.getAttribute('data-warm')){
@@ -1871,7 +1873,7 @@ window.addEventListener('load',function(){
   var tLabel = document.getElementById('themeToggleLabel');
   if(NEO_MODE){
     if(tLabel) {
-      tLabel.innerText = '🦁 팩폭 사자 네오 모드';
+      tLabel.innerText = '🌙 다크 모드';
       tLabel.style.color = '#FFD700';
     }
   }

@@ -112,18 +112,18 @@
     "ms": "Free · no sign-in · calculated from your birth-date profile card"
   },
   "home.gardenCopy.chatLead": {
-    "ko": "두 상담사는 성격이 달라요. 지금 마음에 맞는 쪽과 대화로 풀어 보세요.",
-    "en": "Two counselors, two styles. Talk it through with whichever suits you now.",
-    "ja": "ふたりの相談役は性格が違います。今の気持ちに合う方と話してみてください。",
-    "zh-CN": "两位咨询师风格不同，选一位合你心意的聊聊吧。",
-    "zh-TW": "兩位諮詢師風格不同，選一位合你心意的聊聊吧。",
-    "vi": "Two counselors, two styles. Talk it through with whichever suits you now.",
-    "hi": "Two counselors, two styles. Talk it through with whichever suits you now.",
-    "es": "Two counselors, two styles. Talk it through with whichever suits you now.",
-    "fr": "Two counselors, two styles. Talk it through with whichever suits you now.",
-    "de": "Two counselors, two styles. Talk it through with whichever suits you now.",
-    "nl": "Two counselors, two styles. Talk it through with whichever suits you now.",
-    "ms": "Two counselors, two styles. Talk it through with whichever suits you now."
+    "ko": "연이가 지금 마음에 걸린 일을 대화로 함께 풀어 드려요.",
+    "en": "Talk through what's on your mind with Yeoni.",
+    "ja": "ヨニと、いま気になっていることを話しながらほどいてみましょう。",
+    "zh-CN": "和 Yeoni 聊聊，一起理清你现在挂心的事。",
+    "zh-TW": "和 Yeoni 聊聊，一起理清你現在掛心的事。",
+    "vi": "Talk through what's on your mind with Yeoni.",
+    "hi": "Talk through what's on your mind with Yeoni.",
+    "es": "Talk through what's on your mind with Yeoni.",
+    "fr": "Talk through what's on your mind with Yeoni.",
+    "de": "Talk through what's on your mind with Yeoni.",
+    "nl": "Talk through what's on your mind with Yeoni.",
+    "ms": "Talk through what's on your mind with Yeoni."
   },
   "home.gardenCopy.chatYeoniTitle": {
     "ko": "연이 상담",

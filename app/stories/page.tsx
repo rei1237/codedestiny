@@ -26,7 +26,7 @@ const TOTAL_MINUTES = STORY_EPISODES.reduce((sum, episode) => sum + readingMinut
 
 const CHARACTERS = [
   { key: "yeon", role: "주인공. 꽃돼지의 몸으로 운세 세계에 떨어진 평범한 대학생." },
-  { key: "neo", role: "갈기 달린 고양이를 자처하는 안내자. 에두르지 않고 짚어야 할 것을 짚는다." },
+  { key: "neo", role: "모자 쓴 흰 고양이 영냥이의 모습으로 곁을 지키는 안내자. 에두르지 않고 짚어야 할 것을 짚는다." },
   { key: "geo", role: "거울 너머의 또 다른 연이. 스스로에게 묻는 질문을 대신 던진다." },
   { key: "moka", role: "식상의 섬의 마지막 불씨. 몰래 랩을 하는 독설가 수달 요리사." },
   { key: "yun", role: "사람 점술가 윤달. 태어난 시를 잃어 집에 못 가는 선배 사용자." },

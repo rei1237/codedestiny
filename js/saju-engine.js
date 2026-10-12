@@ -4630,10 +4630,8 @@ var NEO_GAEUN_DB={
 
 
 function getDetailedGaeun(element,isGood){
-  /* NEO_MODE는 지연 로드되는 share.js가 선언하므로, 먼저 로드되는 이 엔진에서는 부트 시 동기 적용되는 html.neo-mode도 함께 본다 */
-  var _neo=(typeof NEO_MODE!=='undefined'&&NEO_MODE)
-    ||(document.documentElement&&document.documentElement.classList.contains('neo-mode'))
-    ||(document.body&&document.body.classList.contains('neo-mode'));
+  /* 2026-10-13: 네오 모드(neo-mode)는 이제 다크 테마일 뿐이고 풀이 페르소나는 늘 연이다. */
+  var _neo=false;
   if(_neo && NEO_GAEUN_DB[element]){
     return NEO_GAEUN_DB[element][isGood?'good':'bad'];
   }
@@ -7688,14 +7686,9 @@ try {
   }
 } catch (_) {}
 
+// 2026-10-13: 네오 모드(neo-mode)는 이제 다크 테마일 뿐이고 풀이 페르소나는 늘 연이다. 다크 색은 CSS 의 neo-mode 클래스가 맡는다.
 function _sajuPromptReadPersonaMode() {
-  try {
-    var stored = localStorage.getItem('fortuneThemeModeStateV1');
-    if (stored === 'neo' || stored === 'pig') return stored;
-  } catch (_) {}
-  if (typeof document === 'undefined') return 'pig';
-  return (document.documentElement && document.documentElement.classList.contains('neo-mode'))
-    || (document.body && document.body.classList.contains('neo-mode')) ? 'neo' : 'pig';
+  return 'pig';
 }
 
 function _sajuPromptReadPersonaSummary(payload, mode) {
@@ -8112,7 +8105,8 @@ function _buildSajuQuestionPromptHtml() {
     + '<section id="sajuConsultationEntry" class="consultation-entry" aria-label="명식이 답하는 사주 AI 상담">'
     + '<picture class="consultation-entry__visual" data-saju-ai-mode-content="pig"><source media="(max-width: 759px)" srcset="/images/consultation/saju-yeoni-entry-v2-640.webp"><img class="consultation-entry__art" src="/images/consultation/saju-yeoni-entry-v2-1280.webp" srcset="/images/consultation/saju-yeoni-entry-v2-640.webp 640w, /images/consultation/saju-yeoni-entry-v2-1280.webp 1280w" sizes="(min-width: 760px) min(100vw, 1280px), 100vw" width="1280" height="853" loading="lazy" decoding="async" alt="달빛 서재에서 여덟 글자의 명식 두루마리를 읽는 꽃돼지 연이"></picture>'
     + '<div class="consultation-entry__visual consultation-entry__visual--neo" data-saju-ai-mode-content="neo"><img class="consultation-entry__art consultation-entry__art--neo" src="/images/home/illustrated/neo-human-480.webp" srcset="/images/home/illustrated/neo-human-240.webp 240w, /images/home/illustrated/neo-human-480.webp 480w" sizes="(max-width: 679px) 72vw, min(34vw, 480px)" width="480" height="720" loading="lazy" decoding="async" alt="명식 전략을 정리하는 네오"></div>'
-    + '<div class="consultation-entry__copy"><div class="consultation-mode" role="group" aria-label="상담 읽기 화자"><button type="button" data-saju-ai-mode-button data-saju-mode="pig" aria-pressed="false">연이</button><button type="button" data-saju-ai-mode-button data-saju-mode="neo" aria-pressed="false">네오</button></div><p class="consultation-mode__status" data-saju-ai-mode-status aria-live="polite"></p>'
+    // 2026-10-13: 연이/네오 화자 전환 버튼은 걷어 냈다 — 상담 화자는 라이트·다크 모두 연이다.
+    + '<div class="consultation-entry__copy"><p class="consultation-mode__status" data-saju-ai-mode-status aria-live="polite"></p>'
     + '<div data-saju-ai-mode-content="pig"><h3>여덟 글자에서,<br>마음의 결을 찾다</h3><p class="consultation-entry__lead">' + (dayStem ? '내 명식의 중심, 일간 ' + dayStem + '. ' : '') + '질문에 담긴 마음을 살핀 뒤, 계산된 명식의 흐름과 부담 없는 한 가지 실천으로 이어갑니다.</p><ul class="consultation-entry__features"><li>마음의 흐름을 따라 읽는 12개 챕터</li><li>연이의 편지 · 작은 실천 한 가지</li></ul></div>'
     + '<div data-saju-ai-mode-content="neo"><h3>판세를 먼저 보고,<br>근거를 확인하다</h3><p class="consultation-entry__lead">' + (dayStem ? '판단의 기준 일간 ' + dayStem + '. ' : '') + '결론을 먼저 잡고 명식 근거, 주의점, 다음 확인 순서로 빠르게 훑습니다.</p><ul class="consultation-entry__features"><li>결론부터 훑는 동일한 12개 챕터</li><li>판단 기록 · 근거 · 주의 · 다음 확인</li></ul></div>'
     + '<div class="consultation-entry__commerce"><p class="consultation-entry__price">단건 결제 <strong data-consultation-price>가격 확인 중</strong><span>이용권·월정석은 결제창에서 확인</span></p>'
@@ -9021,17 +9015,13 @@ function _bindSajuQuestionPromptCard(rootEl) {
     inputEl.focus();
     _sajuPromptSetStatus(statusEl, '새 질문을 입력해 주세요.', 'info');
   });
-  rootEl.addEventListener('click', function(event) {
-    var modeButton = event.target && event.target.closest ? event.target.closest('[data-saju-ai-mode-button]') : null;
-    if (!modeButton) return;
-    setTimeout(function() { applyPersonaMode(_sajuPromptReadPersonaMode(), true); }, 0);
-  });
+  // 라이트·다크 전환은 화자를 바꾸지 않는다(늘 연이) — 다시 그리기만 하고 화자 안내는 띄우지 않는다.
   var themeCheckbox = document.getElementById('themeCheckbox');
   if (themeCheckbox) themeCheckbox.addEventListener('change', function() {
-    setTimeout(function() { if (rootEl.isConnected !== false) applyPersonaMode(_sajuPromptReadPersonaMode(), true); }, 0);
+    setTimeout(function() { if (rootEl.isConnected !== false) applyPersonaMode(_sajuPromptReadPersonaMode(), false); }, 0);
   });
   window.addEventListener('storage', function(event) {
-    if (event && event.key === 'fortuneThemeModeStateV1' && rootEl.isConnected !== false) applyPersonaMode(_sajuPromptReadPersonaMode(), true);
+    if (event && event.key === 'fortuneThemeModeStateV1' && rootEl.isConnected !== false) applyPersonaMode(_sajuPromptReadPersonaMode(), false);
   });
   applyPersonaMode(currentPersonaMode, false);
   updateCount();
@@ -26861,10 +26851,8 @@ function renderSummary(p,johu,natal){
   var monthCommandBundle=_buildMonthCommandFromEngine(p,natal,pw);
   var monthCommand=monthCommandBundle&&monthCommandBundle.monthCommand?monthCommandBundle.monthCommand:null;
   var monthReading=monthCommandBundle&&monthCommandBundle.reading?monthCommandBundle.reading:null;
-  /* body.neo-mode는 지연 로드되는 share.js가 붙이므로, 부트 시 동기 적용되는 html.neo-mode도 함께 본다 */
-  var _isNeoSaju=(typeof NEO_MODE!=='undefined'&&NEO_MODE)
-    ||(document.documentElement&&document.documentElement.classList.contains('neo-mode'))
-    ||document.body.classList.contains('neo-mode');
+  /* 2026-10-13: 네오 모드(neo-mode)는 이제 다크 테마일 뿐이고 풀이 페르소나는 늘 연이다. */
+  var _isNeoSaju=false;
 
   /* ─── 섹션 빌더 헬퍼 ─── */
   var _bxCtr=0;
@@ -30229,7 +30217,7 @@ function buildDaewunReadingGuide(age, gan, zhi, ev) {
     branch:{char:zhi,element:JI[zhi].e,god:getTenGod(p.d.g,zhi),hiddenStems:(CD_JANGGAN[zhi]||[]).map(function(hidden,index){return {stem:hidden,god:getTenGod(p.d.g,hidden),layer:index===(CD_JANGGAN[zhi]||[]).length-1?'정기':index===0?'여기':'중기'};}),balance:getQuantumElType(JI[zhi].e,p,G_JONG,G_POWER,G_JOHU)},
     godCounts:counts,relations:relations,unknown:!!window.__cdSajuTimeUnknown,
     next:(window.G_DAEWUN||[]).find(function(row){return Number(row.age)>Number(age);})
-  },document.body.classList.contains('neo-mode')?'neo':'pig');
+  },'pig');
 }
 function refreshDaewunReadingGuide(){
   var guide=document.querySelector('#dwDetail .saju-cycle-guide');

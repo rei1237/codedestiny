@@ -197,7 +197,7 @@ const yunExprMatch = html.match(/var YUN_EXPR=\[([^\]]*)\];/);
 const yunExprs = yunExprMatch ? [...yunExprMatch[1].matchAll(/"([a-z]+)"/g)].map(m => m[1]) : [];
 if (yunExprs.length < 8 || !yunExprs.includes("base")) fail("player YUN_EXPR list is missing or incomplete");
 // nm(이름 모르는 인물의 표시명)은 대사창·로그·텍스트 리더가 모두 화자 이름보다 먼저 읽어야 한다 — 하나라도 빠지면 정체가 미리 드러난다.
-if (!html.includes("spkName.textContent=b.nm||NAME[spk]") || !html.includes("escapeHtml(r.nm||NAME[r.s]") || !readFileSync(resolve(ROOT, "app/stories/[episode]/page.tsx"), "utf8").includes("beat.nm ?? STORY_SPEAKERS")) fail("beat display-name override (nm) is not honoured by the player, log, or text reader");
+if (!html.includes("spkName.textContent=b.nm||speakerName(spk") || !html.includes("escapeHtml(r.nm||NAME[r.s]") || !readFileSync(resolve(ROOT, "app/stories/[episode]/page.tsx"), "utf8").includes("beat.nm ?? STORY_SPEAKERS")) fail("beat display-name override (nm) is not honoured by the player, log, or text reader");
 if (!html.includes('if(who==="yun")return {url:"/images/novel/remaster/yun/"+(YUN_EXPR.indexOf(expr)>=0?expr:"base")+".webp",cls:"yun"};')) fail("player does not route yun to the local sprites");
 for (const expr of yunExprs) {
   const file = resolve(ROOT, `public/images/novel/remaster/yun/${expr}.webp`);
@@ -231,11 +231,11 @@ const neoMarks = runtime.episodes.flatMap((episode, ep) => episode.beats.flatMap
 const neoSource = html.match(/var NEO_FORM_MARKS=(\[[^\]]*\]);/);
 if (!neoSource || JSON.stringify(JSON.parse(neoSource[1])) !== JSON.stringify(neoMarks)) fail("Neo appearance registry is not synchronized");
 if (neoMarks.length !== 1 || runtime.episodes[neoMarks[0].ep].id !== "ep-27" || neoMarks[0].form !== "human") fail("Neo must return after Yeoni in EP.27 and remain human");
-const neoAssets = JSON.parse(readFileSync(resolve(ROOT, "public/images/novel/neo-lion/assets.json"), "utf8"));
-if (neoAssets.frames.length !== 8) fail("Neo needs eight expression frames");
+const neoAssets = JSON.parse(readFileSync(resolve(ROOT, "public/images/novel/yeongnyangi/assets.json"), "utf8"));
+if (neoAssets.frames.length !== 8) fail("Yeongnyangi needs eight expression frames");
 for (const asset of neoAssets.frames) {
-  const path = resolve(ROOT, "public/images/novel/neo-lion", asset.expression + ".webp");
-  if (!existsSync(path) || statSync(path).size !== asset.bytes || asset.bytes > 80_000 || asset.width * asset.height > 240_000) fail(`Neo mobile frame budget or file drift: ${asset.expression}`);
+  const path = resolve(ROOT, "public/images/novel/yeongnyangi", asset.expression + ".webp");
+  if (!existsSync(path) || statSync(path).size !== asset.bytes || asset.bytes > 80_000 || asset.width * asset.height > 240_000) fail(`Yeongnyangi mobile frame budget or file drift: ${asset.expression}`);
 }
 runtime.episodes.forEach((episode, episodeIndex) => {
   episode.beats.forEach((beat, beatIndex) => {

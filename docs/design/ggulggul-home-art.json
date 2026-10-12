@@ -73,6 +73,22 @@
           "bytes": 90842
         }
       ]
+    },
+    {
+      "key": "yeoni-room-night",
+      "prompt": "Codex image_gen (gpt-image-2) edit of yeoni-room-1280.webp for the dark theme: the exact same room, same composition, camera angle and objects (lattice frames, sheer pink curtains, round moon-gate window with lotus pond, pavilion and stone bridge, hanging paper lantern with cherry blossom branch, low tea table with teapot, cup, vase, lavender runner, woven cushion, foreground pink lotus) at deep night. Moonlit indigo and deep violet palette, full moon and stars through the round window, cool blue moonlight on the floor, the paper lantern glows warm amber as the only warm light, soft fireflies over the pond. Large empty wall on the left calm and dark for text. No characters, no text.",
+      "reference": "public/images/home/illustrated/yeoni-room-1280.webp",
+      "original": "codex-image yeoni-room-night.png (1536x1024, 2026-10-13)",
+      "outputs": [
+        {
+          "path": "public/images/home/illustrated/yeoni-room-night-640.webp",
+          "bytes": 19968
+        },
+        {
+          "path": "public/images/home/illustrated/yeoni-room-night-1280.webp",
+          "bytes": 62206
+        }
+      ]
     }
   ],
   "optimization": "sharp WebP, transparent characters 320/480/800px, backgrounds 640/1280px; originals retained outside repository"

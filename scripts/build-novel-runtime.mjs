@@ -170,6 +170,8 @@ export function buildNovelPayload() {
 }
 
 export function readerPayload(runtime) {
+  // 네오는 인간 형태 마커(neoForm: "human") 전까지 고양이 영냥이로 표시한다 — 플레이어 speakerName과 같은 규칙.
+  let neoForm = "lion";
   return {
     version: runtime.version,
     sourceHash: runtime.sourceHash,
@@ -181,13 +183,15 @@ export function readerPayload(runtime) {
         tag: episode.tag,
         title: episode.title,
         beats: episode.beats.map((beat) => {
+          if (beat.neoForm) neoForm = beat.neoForm;
+          const nm = beat.nm || (beat.s === "neo" && neoForm !== "human" ? "영냥이" : null);
           const background = beat.bg ?? null;
           const sceneBreak = Boolean(background && previousBackground && background !== previousBackground);
           if (background) previousBackground = background;
           return {
             s: beat.s,
             t: beat.t,
-            ...(beat.nm ? { nm: beat.nm } : {}),
+            ...(nm ? { nm } : {}),
             ...(sceneBreak ? { sceneBreak: true } : {}),
             ...(beat.im ? { im: String(beat.im) } : {}),
             ...(beat.skill ? { skill: beat.skill } : {}),

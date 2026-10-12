@@ -540,7 +540,8 @@ html.neo-mode .cd-af,body.neo-mode .cd-af{--cd-af-ink:#f4eeff;--cd-af-muted:#d8c
   border-radius: var(--cd-r-section, 26px);
   background: var(--cdh-bg) var(--cdh-scene-image) center / cover no-repeat;
 }
-html.neo-mode .cdh-hero { --cdh-scene-image: url('/images/home/illustrated/neo-room-1280.webp'); }
+/* 다크 모드도 연이 방이다 — 같은 구도의 밤 버전. */
+html.neo-mode .cdh-hero { --cdh-scene-image: url('/images/home/illustrated/yeoni-room-night-1280.webp'); }
 #cdHomeFunnel .cdh-scene-copy { position: relative; z-index: 2; }
 #cdHomeFunnel .cdh-scene-copy h1 { font-family: "CodeDestinySerifKR", var(--font-premium, serif); font-size: clamp(28px, 3.2vw, 44px); line-height: 1.42; color: var(--cdh-ink); }
 #cdHomeFunnel .cdh-scene-lead { margin: 14px 0 24px; font-size: 16px; color: var(--cdh-ink); }
@@ -548,10 +549,8 @@ html.neo-mode .cdh-hero { --cdh-scene-image: url('/images/home/illustrated/neo-r
 html.neo-mode #cdHomeFunnel .cdh-scene-copy .cdh-primary { background: var(--cd-cta-primary-bg); color: var(--cd-cta-primary-ink); }
 .cdh-scene-art { position: relative; align-self: end; justify-self: end; width: 100%; max-width: 340px; aspect-ratio: 1; }
 #cdHomeFunnel .cdh-scene-art img { width: 100%; height: auto; aspect-ratio: 1; object-fit: contain; border: 0; box-shadow: none; background: none; }
+/* 라이트·다크 모두 연이만 보인다(네오 페르소나 제거). */
 #cdHomeFunnel .cdh-persona--neo { display: none; }
-html.neo-mode #cdHomeFunnel .cdh-persona--yeoni { display: none; }
-html.neo-mode #cdHomeFunnel .cdh-persona--neo { display: inline; }
-html.neo-mode #cdHomeFunnel .cdh-scene-art .cdh-persona--neo { display: block; }
 .cdh-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 #cdHomeFunnel #cdhQuickSlot { width: auto; margin: 24px 40px 0; }
 #cdHomeFunnel .cdh-methods { content-visibility: visible; scroll-margin-top: 20px; }
@@ -568,7 +567,7 @@ html.neo-mode #cdHomeFunnel .cdh-scene-art .cdh-persona--neo { display: block; }
 #cdHomeFunnel .cdh-search .fortune-gateway__search { width: 100%; min-width: 0; }
 @media (max-width: 640px) {
   .cdh-hero { --cdh-scene-image: url('/images/home/illustrated/yeoni-room-640.webp'); grid-template-columns: 60% 40%; min-height: 246px; margin: 8px 12px 0; padding: 22px 16px; border-radius: var(--cd-r-card, 20px); }
-  html.neo-mode .cdh-hero { --cdh-scene-image: url('/images/home/illustrated/neo-room-640.webp'); }
+  html.neo-mode .cdh-hero { --cdh-scene-image: url('/images/home/illustrated/yeoni-room-night-640.webp'); }
   #cdHomeFunnel .cdh-scene-copy h1 { font-size: clamp(19px, 5.2vw, 22px); line-height: 1.45; letter-spacing: -.035em; }
   #cdHomeFunnel .cdh-scene-lead { margin: 10px 0 18px; font-size: 13px; line-height: 1.5; }
   #cdHomeFunnel .cdh-scene-copy .cdh-primary { padding: 12px 44px 12px 20px; min-height: var(--cd-btn-h); font-size: 14px; }
@@ -630,9 +629,6 @@ html.neo-mode #cdHomeFunnel { --cdh-page-art: url('/images/home/illustrated/moon
 .cdh-author svg{flex:none;width:16px;height:16px;color:var(--cdh-gold)}
 @media(max-width:520px){#cdHomeFunnel .cdh-author{padding:var(--cd-sp-md)}.cdh-author__portrait{width:64px}.cdh-author__experience{gap:4px var(--cd-sp-md)}.cdh-author__reviews>div{grid-template-columns:minmax(0,1fr);gap:var(--cd-sp-md)}}
 #cdHomeFunnel .cdh-portal { position: relative; display: grid; grid-template-columns: minmax(0,1fr) 43%; min-height: 212px; overflow: hidden; border: 1px solid var(--cdh-line); border-radius: 18px; background: var(--cdh-card); box-shadow: 0 12px 32px -24px var(--cdh-ink); }
-#cdHomeFunnel .cdh-portal.cdh-persona--neo { display: none; }
-html.neo-mode #cdHomeFunnel .cdh-portal.cdh-persona--neo { display: grid; }
-html.neo-mode #cdHomeFunnel .cdh-portal.cdh-persona--yeoni { display: none; }
 .cdh-portal__copy { min-width: 0; position: relative; z-index: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; padding: 28px; }
 .cdh-portal__copy strong { color: var(--cdh-ink); font-family: 'CodeDestinySerifKR',serif; font-size: 24px; line-height: 1.4; word-break: normal; overflow-wrap: anywhere; }
 .cdh-portal__copy small { color: var(--cdh-muted); font-size: 13px; line-height: 1.7; word-break: keep-all; }

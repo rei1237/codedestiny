@@ -46,17 +46,10 @@
     });
   }
 
-  // 캐릭터를 정하지 않은 상담 입구(하단 상담 탭)는 지금 홈 테마(연이·네오)의 상담 캐릭터로 연다. 정적 href(/fortune-chat/)는 그대로 둔다.
-  // 홈의 두 상담 카드(#fortuneGatewayEntry)는 data-chat-character 로 캐릭터가 고정돼 있어 여기서 바꾸지 않는다.
+  // 캐릭터를 정하지 않은 상담 입구(하단 상담 탭)는 연이 상담으로 연다. 라이트·다크 모드와 상관없이 상담 캐릭터는 연이 하나다.
+  // 정적 href(/fortune-chat/)는 그대로 두고, 홈 상담 카드(#fortuneGatewayEntry)는 data-chat-character 로 고정돼 있어 여기서 바꾸지 않는다.
   var chatDoors = document.querySelectorAll('[data-cdh-chat-entry]:not([data-chat-character])');
-  function syncChatDoor() {
-    var href = '/fortune-chat/?character=' + (doc.classList.contains('neo-mode') ? 'neo' : 'yeoni');
-    for (var i = 0; i < chatDoors.length; i += 1) chatDoors[i].setAttribute('href', href);
-  }
-  if (chatDoors.length) {
-    syncChatDoor();
-    if (window.MutationObserver) new MutationObserver(syncChatDoor).observe(doc, { attributes: true, attributeFilter: ['class'] });
-  }
+  for (var i = 0; i < chatDoors.length; i += 1) chatDoors[i].setAttribute('href', '/fortune-chat/?character=yeoni');
 
   function move(selector, slotId) {
     var node = document.querySelector(selector);

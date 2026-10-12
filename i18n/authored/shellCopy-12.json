@@ -98,18 +98,18 @@
     "ms": "Your readings are kept in each consultation. Jump straight there from here."
   },
   "home.gardenCopy.libraryChat": {
-    "ko": "연이·네오 상담 기록",
-    "en": "Yeoni & Neo chats",
-    "ja": "ヨニ・ネオの相談記録",
-    "zh-CN": "Yeoni·Neo 咨询记录",
-    "zh-TW": "Yeoni·Neo 諮詢紀錄",
-    "vi": "Yeoni & Neo chats",
-    "hi": "Yeoni & Neo chats",
-    "es": "Yeoni & Neo chats",
-    "fr": "Yeoni & Neo chats",
-    "de": "Yeoni & Neo chats",
-    "nl": "Yeoni & Neo chats",
-    "ms": "Yeoni & Neo chats"
+    "ko": "연이 상담 기록",
+    "en": "Yeoni chats",
+    "ja": "ヨニの相談記録",
+    "zh-CN": "Yeoni 咨询记录",
+    "zh-TW": "Yeoni 諮詢紀錄",
+    "vi": "Trò chuyện với Yeoni",
+    "hi": "Yeoni chats",
+    "es": "Chats con Yeoni",
+    "fr": "Discussions avec Yeoni",
+    "de": "Yeoni-Chats",
+    "nl": "Yeoni-chats",
+    "ms": "Sembang Yeoni"
   },
   "home.gardenCopy.libraryYeongnyangi": {
     "ko": "영냥이 나의 상담",

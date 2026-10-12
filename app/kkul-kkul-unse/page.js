@@ -90,7 +90,7 @@ const FAQS = [
   {
     question: "영냥이와 연이 상담은 어디에서 이용하나요?",
     answer:
-      "꽃돼지 연이와 사자 네오의 상담은 꿀꿀 사주 홈(code-destiny.com/ggulggul/)에서, 사주보는 고양이 영냥이의 사주·타로 상담은 영냥이 페이지(code-destiny.com/yeongnyangi/)에서 시작합니다. 연이가 차를 내려 주며 이야기를 듣는 연이의 운명 찻집도 같은 사이트에 있습니다.",
+      "꽃돼지 연이의 상담은 꿀꿀 사주 홈(code-destiny.com/ggulggul/)에서, 사주보는 고양이 영냥이의 사주·타로 상담은 영냥이 페이지(code-destiny.com/yeongnyangi/)에서 시작합니다. 연이가 차를 내려 주며 이야기를 듣는 연이의 운명 찻집도 같은 사이트에 있습니다.",
   },
   {
     question: brandCopy('officialSiteQuestion'),

@@ -638,6 +638,8 @@ html.neo-mode body .fortune-gateway__doors--duo .fortune-gateway__door--chat:not
   .fortune-gateway__doors--duo { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .fortune-gateway__doors--duo .fortune-gateway__door { grid-template-columns: minmax(0, 1fr) 168px; }
   .fortune-gateway__doors--duo .fortune-gateway__door-art { width: 168px; height: 168px; }
+  /* 네오 상담 문을 걷어 낸 뒤 연이 문 하나만 남는다 — 반쪽 칸이 비지 않게 한 줄로 펼친다. */
+  .fortune-gateway__doors--duo.fortune-gateway__doors--solo { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* 접두 이유는 .fortune-gateway__entry-shell .fortune-gateway__eyebrow 주석 참고(.logo-area p 가 덮는다). */

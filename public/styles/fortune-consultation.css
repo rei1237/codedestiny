@@ -123,11 +123,12 @@ body.neo-mode .consultation-saju {
 .consultation-persona--legacy { padding: 18px; }
 .consultation-persona--legacy > p { margin: 8px 0 0; }
 .consultation-persona__legacy-preview { padding-top: 10px; border-top: 1px solid #ddc7d3; color: #715267; }
-.consultation-saju[data-reading-mode="neo"] .consultation-report { background: #17121d; color: #f4eafa; }
-.consultation-saju[data-reading-mode="neo"] .consultation-report > header,
-.consultation-saju[data-reading-mode="neo"] .consultation-report .consultation-chapter { border-color: #65506f; }
-.consultation-saju[data-reading-mode="neo"] .consultation-report__actions button { border-color: #766586; background: #21182b; color: #f4eafa; }
-.consultation-saju[data-reading-mode="neo"] .consultation-report .consultation-contents a { color: #ead69c; }
+/* 상담 리포트의 어두운 판은 페르소나가 아니라 다크 모드를 따른다(페르소나는 늘 연이). */
+body.neo-mode .consultation-saju .consultation-report { background: #17121d; color: #f4eafa; }
+body.neo-mode .consultation-saju .consultation-report > header,
+body.neo-mode .consultation-saju .consultation-report .consultation-chapter { border-color: #65506f; }
+body.neo-mode .consultation-saju .consultation-report__actions button { border-color: #766586; background: #21182b; color: #f4eafa; }
+body.neo-mode .consultation-saju .consultation-report .consultation-contents a { color: #ead69c; }
 @media (max-width: 759px) {
   .consultation-form__body { padding-inline: 20px; }
   .consultation-persona { margin-inline: 12px; }

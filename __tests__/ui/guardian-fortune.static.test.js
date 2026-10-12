@@ -72,18 +72,18 @@ test('the destiny gate leads to the conversational reading in every shell', () =
     const html = read(shell);
     const gate = sliceDestinyGate(html, shell);
     // 카드 전체가 링크라 탭 타깃이 넉넉하다.
-    // 🔴 2026-10-02 운세 정원 개편: 연이 상담과 네오 상담을 두 카드로 펼친다(접어 두지 않는다).
-    //    캐릭터는 카드마다 고정이라 홈 테마 동기화(js/core/home-funnel.js)가 href 를 바꾸지 않는다.
+    // 🔴 2026-10-13: 상담 캐릭터는 연이 하나다 — 네오 상담 카드를 걷어 냈다(다크 모드도 연이).
+    //    캐릭터는 카드에 고정이라 홈 테마 동기화(js/core/home-funnel.js)가 href 를 바꾸지 않는다.
     assert.match(gate, /class="fortune-gateway__door fortune-gateway__door--chat" href="\/fortune-chat\/\?character=yeoni" data-chat-character="yeoni"/, shell);
-    assert.match(gate, /class="fortune-gateway__door fortune-gateway__door--chat fortune-gateway__door--neo" href="\/fortune-chat\/\?character=neo" data-chat-character="neo"/, shell);
+    assert.doesNotMatch(gate, /fortune-gateway__door--neo|character=neo|data-chat-character="neo"/, shell);
     // 🔴 2026-09-02: 홈에 초융합 진입이 이미 세 곳(히어로 CTA · #cdConcernPick · #cdSignatureConsult)
     //    있어서 이 자리의 네 번째 중복을 뺐다. 되살리려면 그 중복부터 정리할 것.
     assert.doesNotMatch(gate, /fortune-gateway__door--fusion|href="\/fusion-fortune\/"/, shell);
-    // --duo 가 가로형 카드 레이아웃을 켜는 유일한 스위치다(styles/fortune-gateway.css).
-    assert.match(gate, /class="fortune-gateway__doors fortune-gateway__doors--duo"/, shell);
-    // 각 카드는 자기 캐릭터 한 명만 그린다(2026-09-02 네오 아이콘·왕관 배지 제거는 그대로 — 네오 카드는 상담 페르소나 그림).
+    // --duo 가 가로형 카드 레이아웃을 켜는 유일한 스위치다(styles/fortune-gateway.css). 카드가 하나라 --solo 로 한 줄을 다 쓴다.
+    assert.match(gate, /class="fortune-gateway__doors fortune-gateway__doors--duo fortune-gateway__doors--solo"/, shell);
+    // 카드는 연이 한 명만 그린다.
     assert.match(gate, /fortune-gateway__door-art-yeon/, shell);
-    assert.match(gate, /class="fortune-gateway__door-art-neo" src="\/images\/fortune-chat\/persona\/neo-greet\.webp/, shell);
+    assert.doesNotMatch(gate, /fortune-gateway__door-art-neo|neo-greet\.webp/, shell);
     // 🔴 2026-09-15 사용자 결정: "오늘의 한마디"는 연이·네오의 말이므로 작약 화관 꽃돼지 연이를 노출한다.
     //    컬렉션·상세 서비스 일러스트 동기화가 이 마스코트 슬롯까지 확장되면 안 된다.
     assert.match(gate, /src="\/images\/fortune-tea-house\/yeon-peony-crown\.webp(?:\?v=[^"]+)?"/, shell);

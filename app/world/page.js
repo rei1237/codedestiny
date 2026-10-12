@@ -36,12 +36,12 @@ const CHARACTERS = [
   },
   {
     id: "neo",
-    symbol: "🦁",
+    symbol: "🐱",
     role: "동행 · 가디언 · 金",
     name: "네오",
-    portrait: "/images/fortune-chat/persona/neo-world-greet.webp",
+    portrait: "/images/novel/yeongnyangi/smile.webp",
     body:
-      "사주의 강을 지키는 가디언이자 연이의 동행입니다. 운명 세계에서는 금빛 사자, 현실에서는 흰 고양이의 모습으로 잠깐 나타납니다. 타고난 기운은 금(金)이라 베고 끊고 가르는 쪽인데, 금은 본디 나무를 베는 기운이어서 연이 곁에 서는 것 자체가 위험을 안는 일입니다. 그럼에도 네오는 그 칼을 연이를 위협하는 것에만 씁니다. 상담 화면의 네오는 결론을 첫 문장에 놓고, 근거를 대고, 다음에 확인할 순서를 정리해 줍니다.",
+      "사주의 강을 지키는 가디언이자 연이의 동행입니다. 운명 세계에서는 모자 쓴 흰 고양이 영냥이로 연이 곁을 지키고, 봉인이 풀린 뒤에는 은빛 머리의 사람 모습으로 돌아옵니다. 타고난 기운은 금(金)이라 베고 끊고 가르는 쪽인데, 금은 본디 나무를 베는 기운이어서 연이 곁에 서는 것 자체가 위험을 안는 일입니다. 그럼에도 네오는 그 칼을 연이를 위협하는 것에만 씁니다.",
   },
   {
     id: "seohanbi",
@@ -67,7 +67,7 @@ const PLACES = [
 
 const RELATED_LINKS = [
   { href: "/fortune-tea-house/", text: "운명의 찻집" },
-  { href: "/fortune-chat/", text: "연이·네오와 대화" },
+  { href: "/fortune-chat/", text: "연이와 대화" },
   { href: "/stories/", text: "라이트 노벨 읽기" },
   { href: "/music/", text: "달빛 음악" },
 ];
@@ -96,7 +96,7 @@ export default function WorldPage() {
             꿀꿀 사주의 사주·타로·자미두수 화면 뒤에는 하나의 이야기가 깔려 있습니다.
             대학생 연이가 이상한 앱을 열었다가 운명 세계로 떨어지고,
             흩어진 제 사주 여덟 글자를 되찾아 가는 여정입니다.
-            상담 화면의 연이와 네오, 찻집과 달빛 음악은 전부 이 세계에서 왔습니다.
+            상담 화면의 연이, 찻집과 달빛 음악은 전부 이 세계에서 왔습니다.
           </p>
           <p className="cd-world-hero-trail">타로의 문 <span aria-hidden="true">→</span> 사주의 강 <span aria-hidden="true">→</span> 별들의 궁</p>
         </div>
@@ -121,7 +121,7 @@ export default function WorldPage() {
         </p>
         <p>
           이 세계관은 운세 결과를 대신 해석하지 않습니다.
-          계산 엔진이 만든 값을 연이와 네오가 서로 다른 목소리로 전하고, 사용자는 그 문장을 자기 오늘에 비춰 봅니다.
+          계산 엔진이 만든 값을 연이의 목소리로 전하고, 사용자는 그 문장을 자기 오늘에 비춰 봅니다.
         </p>
       </section>
 
@@ -136,11 +136,11 @@ export default function WorldPage() {
                 <figure className={`cd-world-character-portrait cd-world-character-portrait--${character.id}`}>
                   <img
                     src={character.portrait}
-                    alt={character.id === "yeoni" ? "꽃돼지 모습의 연이" : character.id === "neo" ? "운명 세계의 네오" : "대적자 서한비"}
+                    alt={character.id === "yeoni" ? "꽃돼지 모습의 연이" : character.id === "neo" ? "모자 쓴 흰 고양이 영냥이 모습의 네오" : "대적자 서한비"}
                     width="384"
                     height="384"
                   />
-                  <figcaption>{character.id === "yeoni" ? "연이의 다른 모습" : character.id === "neo" ? "사주의 강을 지키는 네오" : "찬 비의 기운을 쓰는 서한비"}</figcaption>
+                  <figcaption>{character.id === "yeoni" ? "연이의 다른 모습" : character.id === "neo" ? "영냥이 모습으로 사주의 강을 지키는 네오" : "찬 비의 기운을 쓰는 서한비"}</figcaption>
                 </figure>
               ) : null}
               <div className="cd-world-character-header">
@@ -174,9 +174,9 @@ export default function WorldPage() {
         <h2 id="cd-world-usage" className="cd-world-h2">세계관이 닿는 곳</h2>
         <div className="cd-card">
           <p>
-            화면의 🌸 · 🦁 버튼이 상담자를 바꿉니다.
-            같은 계산 결과라도 연이는 마음부터, 네오는 결론부터 이야기하므로 읽는 느낌이 달라집니다.
-            계산 자체는 두 상담자가 완전히 같은 엔진을 씁니다 — 명식과 별자리 값은 사람이 아니라 계산기가 냅니다.
+            화면의 ☀️ · 🌙 버튼은 라이트·다크 화면만 바꾸고, 상담자는 언제나 연이입니다.
+            연이는 마음부터 짚고 결론과 다음 할 일을 정리해 줍니다.
+            계산 자체는 화면 모드와 상관없이 같은 엔진을 씁니다 — 명식과 별자리 값은 사람이 아니라 계산기가 냅니다.
           </p>
           <nav className="cd-chip-wrap cd-world-chips" aria-label="이야기 관련 링크">
             {RELATED_LINKS.map((link) => (

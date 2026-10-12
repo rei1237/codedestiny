@@ -35,6 +35,7 @@ const DRAFT_KEY = "fortune-chat:consultation-draft";
 const DRAFT_TTL_MS = 30 * 60 * 1000;
 
 // 상담자마다 세계가 다르다 — 연이는 마음부터, 네오(별빛 전략실)는 판단부터. 결과 순서는 consultation-world.ts.
+// 2026-10-13: 새 상담은 연이 하나로만 시작한다. 네오 항목은 지난 네오 상담(?consultation=)을 그대로 보여 주려고 남긴다.
 const PERSONAS: { id: ChatPersona; name: string; line: string; title: string; sub: string; placeholder: string }[] = [
   { id: "yeoni", name: "연이", line: "다정하게, 마음부터 살펴요", title: "연이의 운명 상담", sub: "명식을 바탕으로 질문 하나에 깊게 답해요", placeholder: "지금 가장 마음에 걸리는 질문 하나를 적어 주세요." },
   { id: "neo", name: "네오", line: "판단부터, 근거와 순서로 짚어요", title: "네오의 별빛 전략실", sub: "판단부터 짚고 근거와 할 일을 정리해요", placeholder: "정해야 할 것 하나를 적어 주세요. 판단부터 짚어 드릴게요." },
@@ -139,7 +140,6 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
     let saved: { persona?: unknown; domain?: unknown; tarotKind?: unknown; question?: unknown; at?: unknown } | null = null;
     try { saved = JSON.parse(sessionStorage.getItem(DRAFT_KEY) || "null"); } catch { /* 초안은 보조 수단이다. */ }
     if (!saved || typeof saved.question !== "string" || !saved.question.trim() || !(Date.now() - Number(saved.at) < DRAFT_TTL_MS)) return;
-    if (saved.persona === "yeoni" || saved.persona === "neo") setPersona(saved.persona);
     const savedDomain = DOMAINS.find((d) => d.id === saved?.domain);
     if (savedDomain) setDomain(savedDomain.id);
     const savedKind = TAROT_KINDS.find((k) => k.id === saved?.tarotKind);
@@ -370,16 +370,11 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
   };
 
   const startNew = () => {
-    setRows((current) => ({ ...current, [persona]: null })); setError(""); setNotice(""); setConsultationParam("");
-    void loadHistory(persona);
+    // 지난 네오 상담을 보다가 새로 시작해도 새 상담은 연이와 한다.
+    setRows((current) => ({ ...current, [persona]: null })); setPersona("yeoni"); setError(""); setNotice(""); setConsultationParam("");
+    void loadHistory("yeoni");
   };
 
-  /** 모드 전환: 지금 보던 상담은 그 상담자 칸에 남고, 다른 상담자가 보던 상담(있으면)이 다시 열린다. */
-  const switchPersona = (next: ChatPersona) => {
-    if (next === persona || busy || isPaying) return;
-    setPersona(next); setError(""); setNotice("");
-    setConsultationParam(rows[next]?.id || "");
-  };
 
   const world = PERSONAS.find((p) => p.id === persona) || PERSONAS[0];
   const personaName = world.name;
@@ -396,34 +391,11 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
           <PersonaAvatar persona={persona} mood={poseFor(row, { failed: !!error, drafting: !!question.trim() })} size="sm" decorative />
           <div><strong>{world.title}</strong><span>{world.sub}</span></div>
         </div>
-        <div className={styles.modeSwitch} role="group" aria-label="상담자 바꾸기" data-consultation-mode>
-          {PERSONAS.map((p) => {
-            const kept = p.id !== persona && !!rows[p.id];
-            return (
-              <button key={p.id} type="button" aria-pressed={persona === p.id} disabled={busy || isPaying} onClick={() => switchPersona(p.id)}
-                aria-label={kept ? `${p.name} — 보던 상담이 있어요` : p.name} title={kept ? "보던 상담이 그대로 있어요" : undefined}>
-                {p.name}{kept && <i className={styles.keptDot} aria-hidden="true" />}
-              </button>
-            );
-          })}
-        </div>
       </header>
 
       <div className={base.timeline}>
         {!row && (
           <>
-            <section className={styles.panel} aria-labelledby="consultation-persona">
-              <h2 id="consultation-persona" className={styles.sectionTitle}>누구와 이야기할까요?</h2>
-              <div className={styles.personaPicker}>
-                {PERSONAS.map((p) => (
-                  <button key={p.id} type="button" aria-pressed={persona === p.id} disabled={busy || isPaying} onClick={() => switchPersona(p.id)}>
-                    <PersonaAvatar persona={p.id} mood="greet" size="sm" decorative />
-                    <span><strong>{p.name}</strong><small>{p.line}</small></span>
-                  </button>
-                ))}
-              </div>
-            </section>
-
             <section className={styles.panel} aria-labelledby="consultation-domain">
               <h2 id="consultation-domain" className={styles.sectionTitle}>어떤 운세로 볼까요?</h2>
               <div className={`${base.chips} ${styles.chipWrap}`}>

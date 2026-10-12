@@ -21,7 +21,6 @@ import { detectLocale } from "@/lib/i18n/dictionary";
 type FortuneChatCopy = {
   backAria: string;
   newChatAria: string;
-  characterPickerAria: string;
   composerAria: string;
   followUpsAria: string;
   topicChipsAria: string;
@@ -33,7 +32,6 @@ type FortuneChatCopy = {
 const FORTUNE_CHAT_EN: FortuneChatCopy = {
   backAria: "Go to previous page",
   newChatAria: "Start a new consultation",
-  characterPickerAria: "Choose a consultant",
   composerAria: "Consultation input",
   followUpsAria: "Suggested questions",
   topicChipsAria: "Suggested question topics",
@@ -46,7 +44,6 @@ const FORTUNE_CHAT_COPY: Partial<Record<LoadingLocale, FortuneChatCopy>> = {
   ko: {
     backAria: "이전 페이지로 이동",
     newChatAria: "새 상담 시작",
-    characterPickerAria: "상담자 선택",
     composerAria: "상담 입력",
     followUpsAria: "추천 질문",
     topicChipsAria: "추천 질문 분야",
@@ -58,7 +55,6 @@ const FORTUNE_CHAT_COPY: Partial<Record<LoadingLocale, FortuneChatCopy>> = {
   ja: {
     backAria: "前のページに戻る",
     newChatAria: "新しい相談を始める",
-    characterPickerAria: "相談相手を選択",
     composerAria: "相談入力",
     followUpsAria: "おすすめの質問",
     topicChipsAria: "おすすめの質問分野",
@@ -69,7 +65,6 @@ const FORTUNE_CHAT_COPY: Partial<Record<LoadingLocale, FortuneChatCopy>> = {
   "zh-CN": {
     backAria: "返回上一页",
     newChatAria: "开始新咨询",
-    characterPickerAria: "选择咨询对象",
     composerAria: "咨询输入",
     followUpsAria: "推荐问题",
     topicChipsAria: "推荐问题领域",
@@ -80,7 +75,6 @@ const FORTUNE_CHAT_COPY: Partial<Record<LoadingLocale, FortuneChatCopy>> = {
   "zh-TW": {
     backAria: "返回上一頁",
     newChatAria: "開始新諮詢",
-    characterPickerAria: "選擇諮詢對象",
     composerAria: "諮詢輸入",
     followUpsAria: "推薦問題",
     topicChipsAria: "推薦問題領域",
@@ -91,7 +85,6 @@ const FORTUNE_CHAT_COPY: Partial<Record<LoadingLocale, FortuneChatCopy>> = {
   vi: {
     backAria: "Về trang trước",
     newChatAria: "Bắt đầu tư vấn mới",
-    characterPickerAria: "Chọn người tư vấn",
     composerAria: "Ô nhập tư vấn",
     followUpsAria: "Câu hỏi gợi ý",
     topicChipsAria: "Lĩnh vực câu hỏi gợi ý",
@@ -102,7 +95,6 @@ const FORTUNE_CHAT_COPY: Partial<Record<LoadingLocale, FortuneChatCopy>> = {
   hi: {
     backAria: "पिछले पृष्ठ पर जाएं",
     newChatAria: "नया परामर्श शुरू करें",
-    characterPickerAria: "परामर्शदाता चुनें",
     composerAria: "परामर्श इनपुट",
     followUpsAria: "सुझाए गए प्रश्न",
     topicChipsAria: "सुझाए गए प्रश्न क्षेत्र",
@@ -113,7 +105,6 @@ const FORTUNE_CHAT_COPY: Partial<Record<LoadingLocale, FortuneChatCopy>> = {
   es: {
     backAria: "Ir a la página anterior",
     newChatAria: "Iniciar una nueva consulta",
-    characterPickerAria: "Elegir un consultor",
     composerAria: "Entrada de consulta",
     followUpsAria: "Preguntas sugeridas",
     topicChipsAria: "Temas de preguntas sugeridas",
@@ -124,7 +115,6 @@ const FORTUNE_CHAT_COPY: Partial<Record<LoadingLocale, FortuneChatCopy>> = {
   fr: {
     backAria: "Retour à la page précédente",
     newChatAria: "Démarrer une nouvelle consultation",
-    characterPickerAria: "Choisir un consultant",
     composerAria: "Saisie de la consultation",
     followUpsAria: "Questions suggérées",
     topicChipsAria: "Domaines de questions suggérées",
@@ -135,7 +125,6 @@ const FORTUNE_CHAT_COPY: Partial<Record<LoadingLocale, FortuneChatCopy>> = {
   de: {
     backAria: "Zur vorherigen Seite",
     newChatAria: "Neue Beratung starten",
-    characterPickerAria: "Berater auswählen",
     composerAria: "Beratungseingabe",
     followUpsAria: "Empfohlene Fragen",
     topicChipsAria: "Empfohlene Fragebereiche",
@@ -146,7 +135,6 @@ const FORTUNE_CHAT_COPY: Partial<Record<LoadingLocale, FortuneChatCopy>> = {
   nl: {
     backAria: "Naar vorige pagina",
     newChatAria: "Nieuw consult starten",
-    characterPickerAria: "Kies een adviseur",
     composerAria: "Consultinvoer",
     followUpsAria: "Voorgestelde vragen",
     topicChipsAria: "Voorgestelde vraaggebieden",
@@ -157,7 +145,6 @@ const FORTUNE_CHAT_COPY: Partial<Record<LoadingLocale, FortuneChatCopy>> = {
   ms: {
     backAria: "Kembali ke halaman sebelumnya",
     newChatAria: "Mulakan perundingan baharu",
-    characterPickerAria: "Pilih perunding",
     composerAria: "Input perundingan",
     followUpsAria: "Soalan dicadangkan",
     topicChipsAria: "Bidang soalan dicadangkan",
@@ -254,7 +241,6 @@ const CATEGORY_BY_TOPIC: Record<string, Category> = {
 };
 
 const CHARACTER_LABEL: Record<Character, string> = { yeoni: "연이", neo: "네오" };
-const CHARACTER_BLURB: Record<Character, string> = { yeoni: "꽃돼지 모습의 연이", neo: "핵심을 짚는 백사자 네오" };
 const CHARACTER_GREETING: Record<Character, string> = {
   yeoni: "안녕하세요, 연이예요. 마음에 걸리는 한 가지부터 들려주세요. 지금의 흐름과 다음 선택을 다정하게 함께 살펴볼게요.",
   neo: "네오다. 돌려 말하지 않는다. 무엇을 정하지 못하고 있는지부터 말해라. 판세와 다음 수순을 정리해 주지.",
@@ -265,11 +251,6 @@ function id() { return globalThis.crypto?.randomUUID?.() || `fortune-chat-${Date
 /** 결제 게이트와 생성 요청이 **같은 requestId** 를 써야 서버가 증빙을 찾는다. */
 function makeRequestId() { return `${PAID_FEATURE_KEY}:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`; }
 
-/** 홈 등에서 `?character=neo|yeoni` 로 들어오면 그 상담자로 시작한다. 그 밖의 값은 무시한다. */
-function requestedCharacter(params: { get(name: string): string | null } | null): Character | "" {
-  const value = params?.get("character");
-  return value === "neo" || value === "yeoni" ? value : "";
-}
 
 function welcome(character: Character = "yeoni"): Message[] {
   return [{ id: id(), speaker: "assistant", text: CHARACTER_GREETING[character] }];
@@ -301,12 +282,13 @@ export default function FortuneChatClient() {
   const params = useSearchParams();
   const { ensurePaidAccess, isPaying } = useCoinGate();
   const { seed: profileSeed, seedVersion, reload: reloadProfileSeed } = useAiProfileSeed();
-  const [messages, setMessages] = useState<Message[]>(() => welcome(requestedCharacter(params) || "yeoni"));
+  // 상담자는 연이 하나다. 예전 링크의 `?character=neo` 나 네오로 저장된 세션도 연이로 연다(대화 기록은 그대로).
+  const [messages, setMessages] = useState<Message[]>(() => welcome("yeoni"));
   const [usage, setUsage] = useState<Usage | null>(null);
   const [topic, setTopic] = useState(params?.get("topic") || "");
   const [category, setCategory] = useState<Category | "">("");
   const [question, setQuestion] = useState("");
-  const [character, setCharacter] = useState<Character>(() => requestedCharacter(params) || "yeoni");
+  const [character] = useState<Character>("yeoni");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -338,15 +320,11 @@ export default function FortuneChatClient() {
     if (!response.ok || !payload) throw new Error("상담방 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.");
     if (payload.session?.sessionId) setSessionId(payload.session.sessionId);
     if (payload.usage) setUsage(payload.usage);
-    // 링크로 고른 상담자가 있으면 저장된 세션의 상담자로 덮어쓰지 않는다(대화 기록은 그대로 이어 간다).
-    const requested = requestedCharacter(params);
-    const storedCharacter: Character = requested || (payload.session?.characterId === "neo" ? "neo" : "yeoni");
-    if (payload.session?.characterId && !requested) setCharacter(storedCharacter);
     if (payload.session?.selectedTopic) setTopic(payload.session.selectedTopic);
     const stored = payload.session?.messages;
     // 은퇴 포맷 기록은 복원하지 않고 지금 인사말로 새로 연다. 다음 전송의 persist 가 서버
     // 목록을 통째로 교체하므로 여기서 따로 쓰지 않는다(판정은 멱등이라 새로고침해도 같다).
-    if (stored?.length) setMessages(isRetiredSessionFormat(stored) ? welcome(storedCharacter) : stored);
+    if (stored?.length) setMessages(isRetiredSessionFormat(stored) ? welcome("yeoni") : stored);
   }, [apiBase, params]);
 
   useEffect(() => { void bootstrap().catch((reason) => setError(reason instanceof Error ? reason.message : "상담방을 열지 못했어요.")); }, [bootstrap]);
@@ -697,14 +675,6 @@ export default function FortuneChatClient() {
     setBirth((current) => ({ ...current, ...patch }));
   };
 
-  /**
-   * 상담자를 바꾼다. 아직 대화가 시작되지 않았으면 인사말도 그 상담자의 것으로 갈아준다 —
-   * 네오를 골랐는데 연이의 인사가 남아 있으면 누가 답하는지 알 수 없다.
-   */
-  const switchCharacter = (next: Character) => {
-    setCharacter(next);
-    setMessages((current) => (current.length === 1 && current[0].speaker === "assistant" ? welcome(next) : current));
-  };
 
   const startNewChat = () => {
     const next = welcome(character);
@@ -744,12 +714,6 @@ export default function FortuneChatClient() {
           <span>한 가지 질문으로 시작해 현재의 흐름과 다음 선택을 함께 정리해요.</span>
         </div>
         <PersonaAvatar persona={character} mood="greet" size="lg" decorative />
-      </section>
-      <section className={styles.characterPicker} aria-label={copy.characterPickerAria}>
-        {(["yeoni", "neo"] as Character[]).map((item) => <button key={item} type="button" aria-pressed={character === item} onClick={() => switchCharacter(item)}>
-          <PersonaAvatar persona={item} mood={character === item ? "cheer" : "listen"} size="md" decorative />
-          <strong>{CHARACTER_LABEL[item]}</strong><small>{CHARACTER_BLURB[item]}</small>
-        </button>)}
       </section>
       {messages.map((message) => <article key={message.id} className={`${styles.message} ${styles[message.speaker]} ${message.kind ? styles[message.kind] : ""}`}>
         {message.speaker === "assistant" ? <PersonaAvatar persona={character} mood={message.kind === "reading" ? "read" : "listen"} size="sm" decorative /> : null}

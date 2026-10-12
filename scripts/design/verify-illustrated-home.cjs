@@ -35,12 +35,13 @@ const profile = { id:'home-art-fixture', name:'검증용 프로필', gender:'F',
         const geometry=await page.locator('#cdQuickServices a').evaluateAll(nodes=>nodes.map(n=>{const b=n.getBoundingClientRect();return {x:b.x,y:b.y,right:b.right,width:b.width,height:b.height};}));
         assert.ok(geometry.every(b=>b.x>=0&&b.right<=width&&b.height>=44&&b.width>=44),'touch targets fully inside viewport');
         if(width<640){assert.equal(geometry[0].y,geometry[2].y);assert.equal(geometry[3].y,geometry[5].y);assert.ok(geometry[3].y>geometry[0].y);}
-        assert.equal(await page.locator(`.cdh-scene-art [data-character="${mode==='pig'?'yeoni':'neo'}"]`).isVisible(),true);
-        assert.equal(await page.locator(`.cdh-scene-art [data-character="${mode==='pig'?'neo':'yeoni'}"]`).isVisible(),false);
+        // 2026-10-13: 라이트·다크 모두 연이 하나다(네오 히어로 그림 제거).
+        assert.equal(await page.locator('.cdh-scene-art [data-character="yeoni"]').isVisible(),true);
+        assert.equal(await page.locator('.cdh-scene-art [data-character="neo"]').count(),0);
       }
       await page.reload({waitUntil:'domcontentloaded'});
       await page.waitForFunction(()=>document.documentElement.classList.contains('neo-mode'));
-      assert.equal(await page.locator('.cdh-scene-art [data-character="yeoni"]').isVisible(),false,'saved Neo mode has no Yeoni flash');
+      assert.equal(await page.locator('.cdh-scene-art [data-character="yeoni"]').isVisible(),true,'saved dark mode keeps Yeoni');
       const tarot=page.locator('#cdQuickServices [data-cd-service-id="tarot"]');
       await tarot.focus();await page.keyboard.press('Enter');
       if(width<640){

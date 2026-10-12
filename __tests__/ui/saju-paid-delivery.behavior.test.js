@@ -192,7 +192,7 @@ test('legacy result opens as the previous format without regeneration', () => {
   h.close();
 });
 
-test('persona mode changes only presentation and copy while preserving the paid result and input state', async () => {
+test('dark mode keeps Yeoni and preserves the paid result and input state', async () => {
   const h=setup();
   h.ctx._sajuPromptClearPendingJob('p');
   const payload={
@@ -217,10 +217,10 @@ test('persona mode changes only presentation and copy while preserving the paid 
   h.w.document.getElementById('themeCheckbox').dispatchEvent(new h.w.Event('change',{bubbles:true}));
   await tick();
 
-  assert.equal(h.root.getAttribute('data-reading-mode'),'neo');
-  assert.equal(h.root.querySelector('[data-saju-mode="neo"]').getAttribute('aria-pressed'),'true');
-  assert.match(h.root.querySelector('[data-saju-ai-result-summary]').textContent,/네오의 판단 기록/);
-  assert.doesNotMatch(h.root.querySelector('[data-saju-ai-result-summary]').textContent,/연이의 마무리 편지/);
+  // 2026-10-13: 저장값 'neo'는 이제 다크 테마일 뿐이다 — 풀이 페르소나는 다크에서도 연이로 남는다.
+  assert.equal(h.root.getAttribute('data-reading-mode'),'pig');
+  assert.match(h.root.querySelector('[data-saju-ai-result-summary]').textContent,/연이의 마무리 편지/);
+  assert.doesNotMatch(h.root.querySelector('[data-saju-ai-result-summary]').textContent,/네오의 판단 기록/);
   assert.match(h.root.querySelector('[data-saju-ai-output-text]').textContent,/공통 12챕터 상담문/);
   assert.equal(h.root.querySelector('[data-saju-ai-question]').value,'작성 중인 새 질문');
   assert.equal(h.posts.length,0,'화자 전환은 결제·생성·상태 조회 POST를 만들면 안 된다');
@@ -228,9 +228,9 @@ test('persona mode changes only presentation and copy while preserving the paid 
 
   h.root.querySelector('[data-saju-ai-copy-result]').click();
   await tick();
-  assert.match(h.copies.at(-1),/네오의 판단 기록/);
+  assert.match(h.copies.at(-1),/연이의 마무리 편지/);
   assert.match(h.copies.at(-1),/공통 12챕터 상담문/);
-  assert.doesNotMatch(h.copies.at(-1),/연이의 마무리 편지/);
+  assert.doesNotMatch(h.copies.at(-1),/네오의 판단 기록/);
   const neoShare=h.ctx._sajuPromptBuildShareText(payload,'neo');
   assert.match(neoShare,/네오의 판단 기록/);
   assert.doesNotMatch(neoShare,/연이의 마무리 편지|이직 기준을 알려주세요/);

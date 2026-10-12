@@ -39,7 +39,8 @@ test('illustrated hero replaces decorative motifs with separate persona art', ()
   const html = read('index.html');
   const garden = html.match(/<div class="cdh-scene-art" aria-hidden="true">([\s\S]*?)<\/div>/)?.[1] || '';
   assert.match(garden, /data-character="yeoni"/);
-  assert.match(garden, /data-character="neo"/);
+  // 2026-10-13: 라이트·다크 모두 연이 하나 — 네오 히어로 그림은 걷어 냈다.
+  assert.doesNotMatch(garden, /data-character="neo"/);
   assert.doesNotMatch(garden, /cd-yehwa-spray|cdh-moon|cdh-peony/);
   assert.doesNotMatch(html, /class="moon-hero__(?:visual|zzz|ambient|picture--mascot)/);
   assert.doesNotMatch(read('styles/cosmic-main.css'), /\.moon-hero__(?:visual|zzz|picture--mascot)/);

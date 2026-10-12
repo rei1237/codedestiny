@@ -1235,13 +1235,13 @@
       "advanced": "进阶"
     },
     "themeToggle": {
-      "pigMode": "🌸 花猪延伊模式",
-      "neoMode": "🦁 白狮子尼奥模式",
-      "aria": "切换花猪延伊与白狮子尼奥模式",
-      "yeoni": "延伊",
-      "neo": "尼奥",
+      "pigMode": "浅色模式",
+      "neoMode": "深色模式",
+      "aria": "切换浅色/深色模式",
+      "yeoni": "浅色",
+      "neo": "深色",
       "pigLogoAlt": "蜜糖延伊标志",
-      "neoLogoAlt": "尼奥模式标志"
+      "neoLogoAlt": "蜜糖延伊标志"
     },
     "hero2": {
       "title": "今日运势免费，深度答案由六大体系交叉验证",
@@ -1673,7 +1673,7 @@
       "sheetSupport": "客服中心",
       "sheetLibrary": "收藏夹",
       "libraryLead": "咨询结果保存在各自的咨询页面中，可从这里直接前往。",
-      "libraryChat": "Yeoni·Neo 咨询记录",
+      "libraryChat": "Yeoni 咨询记录",
       "libraryYeongnyangi": "灵喵我的咨询",
       "libraryNote": "记录保存在已登录的账户中。",
       "searchTitle": "你想看什么运势？",
@@ -1684,7 +1684,7 @@
       "heroPrimary": "选择运势",
       "allFortunes": "查看全部运势",
       "todayTerms": "免费 · 无需登录 · 按出生日期资料卡计算",
-      "chatLead": "两位咨询师风格不同，选一位合你心意的聊聊吧。",
+      "chatLead": "和 Yeoni 聊聊，一起理清你现在挂心的事。",
       "chatYeoniTitle": "找妍伊咨询",
       "chatYeoniDesc": "花猪妍伊从细小的心事开始慢慢倾听，温柔地和你一起理清现在的走向与下一步选择。",
       "chatNeoTitle": "找 Neo 咨询",

@@ -1235,13 +1235,13 @@
       "advanced": "उन्नत"
     },
     "themeToggle": {
-      "pigMode": "🐷 येओनी फूल-सुअर मोड",
-      "neoMode": "🦁 नियो व्हाइट-लायन मोड",
-      "aria": "येओनी फूल-सुअर और नियो व्हाइट-लायन मोड के बीच स्विच करें",
-      "yeoni": "Yeoni",
-      "neo": "Neo",
+      "pigMode": "लाइट मोड",
+      "neoMode": "डार्क मोड",
+      "aria": "लाइट / डार्क मोड बदलें",
+      "yeoni": "लाइट",
+      "neo": "डार्क",
       "pigLogoAlt": "हनी येओनी लोगो",
-      "neoLogoAlt": "नियो मोड लोगो"
+      "neoLogoAlt": "हनी येओनी लोगो"
     },
     "hero2": {
       "title": "मुफ़्त चार स्तंभ से ज़ी वेई दोउ शू और ज्योतिष तक — अभी इस पल के आप",
@@ -1673,7 +1673,7 @@
       "sheetSupport": "Help center",
       "sheetLibrary": "Library",
       "libraryLead": "Your readings are kept in each consultation. Jump straight there from here.",
-      "libraryChat": "Yeoni & Neo chats",
+      "libraryChat": "Yeoni chats",
       "libraryYeongnyangi": "My Yeongnyangi readings",
       "libraryNote": "Records are kept in your signed-in account.",
       "searchTitle": "What would you like to read today?",
@@ -1684,7 +1684,7 @@
       "heroPrimary": "Choose a reading",
       "allFortunes": "See all readings",
       "todayTerms": "Free · no sign-in · calculated from your birth-date profile card",
-      "chatLead": "Two counselors, two styles. Talk it through with whichever suits you now.",
+      "chatLead": "Talk through what's on your mind with Yeoni.",
       "chatYeoniTitle": "Talk with Yeoni",
       "chatYeoniDesc": "Flower pig Yeoni listens slowly, starting from small feelings, and gently sorts out your current flow and next choice with you.",
       "chatNeoTitle": "Talk with Neo",

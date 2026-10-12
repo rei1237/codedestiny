@@ -21,9 +21,8 @@ const HINT_KEY = "fortune-chat:consultation-room";
 export default function FortuneChatEntry() {
   const params = useSearchParams();
   const linked = params?.get("consultation") || "";
-  // 홈의 상담 입구는 지금 테마의 상담자를 ?character= 로 넘긴다. 기존 상담방(FortuneChatClient)도 같은 값을 읽는다.
-  const character = params?.get("character");
-  const requested: ChatPersona | undefined = character === "neo" || character === "yeoni" ? character : undefined;
+  // 새 상담의 상담자는 연이 하나다. 예전 홈 링크의 ?character=neo 도 연이로 연다(지난 네오 상담은 ?consultation= 으로 그대로 열린다).
+  const requested: ChatPersona = "yeoni";
   const auth = useAuthStore();
   const userKey = String(auth.user?.id || auth.user?.userId || "");
   const [room, setRoom] = useState(() => isConsultationId(linked));

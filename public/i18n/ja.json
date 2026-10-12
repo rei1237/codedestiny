@@ -1235,13 +1235,13 @@
       "advanced": "深掘り"
     },
     "themeToggle": {
-      "pigMode": "🌸 ヨニの花ぶたモード",
-      "neoMode": "🦁 ネオの白獅子モード",
-      "aria": "ヨニの花ぶたモードとネオの白獅子モードを切り替え",
-      "yeoni": "ヨニ",
-      "neo": "ネオ",
+      "pigMode": "ライトモード",
+      "neoMode": "ダークモード",
+      "aria": "ライト・ダークモード切り替え",
+      "yeoni": "ライト",
+      "neo": "ダーク",
       "pigLogoAlt": "ハニーヨニのロゴ",
-      "neoLogoAlt": "ネオモードのロゴ"
+      "neoLogoAlt": "ハニーヨニのロゴ"
     },
     "hero2": {
       "title": "今日の運勢は無料で、深い答えは六体系のクロス検証で",
@@ -1673,7 +1673,7 @@
       "sheetSupport": "カスタマーセンター",
       "sheetLibrary": "保管箱",
       "libraryLead": "鑑定結果はそれぞれの相談画面に保管されます。ここからすぐに移動できます。",
-      "libraryChat": "ヨニ・ネオの相談記録",
+      "libraryChat": "ヨニの相談記録",
       "libraryYeongnyangi": "ヨンニャンイのマイ相談",
       "libraryNote": "記録はログイン中のアカウントに保管されます。",
       "searchTitle": "どんな占いが気になりますか？",
@@ -1684,7 +1684,7 @@
       "heroPrimary": "占いを選ぶ",
       "allFortunes": "すべての占いを見る",
       "todayTerms": "無料・ログイン不要・生年月日のプロフィールカードで計算します",
-      "chatLead": "ふたりの相談役は性格が違います。今の気持ちに合う方と話してみてください。",
+      "chatLead": "ヨニと、いま気になっていることを話しながらほどいてみましょう。",
       "chatYeoniTitle": "ヨニに相談",
       "chatYeoniDesc": "花ぶたのヨニが小さな気持ちからゆっくり聞きます。今の流れと次の選択をやさしく一緒に整理します。",
       "chatNeoTitle": "ネオに相談",

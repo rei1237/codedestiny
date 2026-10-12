@@ -203,7 +203,7 @@ export default function RootLayout({ children }) {
             로케일 대체 URL 은 metadata.alternates.languages 가, og 는 metadata.openGraph 가
             페이지별로 생성한다. */}
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdGraph) }} />
-        {/* 정적 셸과 동일한 연이/네오 테마 키 공유 — hydration 전에 html 속성으로 반영 (FOUC 방지).
+        {/* 정적 셸과 동일한 라이트/다크 테마 키 공유(저장값 neo = 다크, 페르소나는 늘 연이) — hydration 전에 html 속성으로 반영 (FOUC 방지).
 
             예전에는 Capacitor 앱이면 저장값이 없을 때 네오(다크)를 기본으로 강제했다. 그때는 앱이
             /app 허브(다크)를 띄웠기 때문이다. 지금 앱은 셸(연이 라이트)을 띄우므로 그 강제가
