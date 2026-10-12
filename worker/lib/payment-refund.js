@@ -211,7 +211,7 @@ async function revokePointChargeGrant(payment) {
     merchantUid: payment?.merchantUid,
     paymentId: payment?._id,
     metadata: { source: "operator_refund" },
-  }).catch(() => {});
+  }).catch(logSwallowedPaymentError("operator_refund_point_history", { paymentId: String(payment?._id || "") }));
   invalidatePaidAccessDecisionCacheForUser(userId);
   return { reverted: true, pointsRolledBack: chargedPoints, adminReviewRequired: false };
 }
@@ -287,7 +287,7 @@ export async function refundPaymentAsOperator({
         lastErrorAt: new Date(),
       },
       $inc: { confirmAttempts: 1 },
-    }).catch(() => {});
+    }).catch(logSwallowedPaymentError("operator_refund_cancel_request_failed", { paymentId: String(payment._id) }));
     return {
       ok: false,
       status: 502,
@@ -307,7 +307,7 @@ export async function refundPaymentAsOperator({
         lastErrorAt: new Date(),
       },
       $inc: { confirmAttempts: 1 },
-    }).catch(() => {});
+    }).catch(logSwallowedPaymentError("operator_refund_cancel_not_succeeded", { paymentId: String(payment._id) }));
     return { ok: false, status: 502, code: "PORTONE_CANCEL_NOT_SUCCEEDED", message: "PortOne cancellation was not successful." };
   }
 
@@ -398,6 +398,16 @@ export function isValidObjectId(value) {
 // 같은 취소·회수를 해야 한다. fortune.js 가 payments.js 를 통째로 import 하면 Worker 번들(1MB 제한)이
 // 커지므로, 이 파일 첫머리 주석의 원칙대로 "실제 취소/회수는 공용 코어에 위임"을 따라 여기로 옮겼다.
 // payments.js 는 이 모듈에서 다시 import 해 쓴다 — 동작은 그대로다.
+
+// 결제 본 흐름을 막지 않는 부수 쓰기(실패 기록·포인트 이력)의 거절을 `.catch(() => {})` 로 지우면 사후에
+// 무슨 일이 있었는지 알 수 없다. 흐름·응답은 그대로 두고 한 줄만 남긴다 — 로깅 자체가 던지지 않게 감싼다.
+export function logSwallowedPaymentError(stage, ids = {}) {
+  return (error) => {
+    try {
+      console.warn("[payment-swallowed]", JSON.stringify({ stage, ...ids, error: String(error?.message || error).slice(0, 200) }));
+    } catch (_) { /* 로깅 실패는 결제 흐름에 영향을 주지 않는다 */ }
+  };
+}
 
 export function buildSinglePaymentRefundIdempotencyKey(payment, jobId = "no-job") {
   const paymentId = String(payment?.impUid || payment?.merchantUid || payment?._id || "no-payment").trim();

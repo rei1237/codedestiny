@@ -3,6 +3,7 @@ import { connectDb, mongoose, requestPoolRecovery, resolveMongoDbName, withMongo
 import { IdempotencyKey, MonthlyCreditLedger, PointHistory, RESTORE_CREDENTIAL_CAP, RefreshTokenSession, User } from "../lib/models.js";
 import { MONTHLY_CREDIT_TTL_MS } from "../lib/monthly-credit-lots.js";
 import { getEnv } from "../lib/env.js";
+import { isExplicitLocalDevEnv, resolveRequiredAuthSecret } from "../lib/auth-secret.js";
 import { readThroughCredentialCache } from "../lib/credential-scoped-cache.js";
 // 🔴 access-state.js 가 아니라 의존 없는 저장소 모듈에서 가져온다 — 그쪽을 가져오면
 // models.js·content-unlocks.js 까지 이 라우트의 모듈 그래프에 딸려 들어온다(그 파일 머리말 참고).
@@ -555,7 +556,14 @@ function getRequestHostname(request) {
 
 function isLocalDevAuthEnabled(request, env) {
   if (!isTrueLike(getEnv(env, "LOCAL_DEV_AUTH_ENABLED", ""))) return false;
-  return isLocalHostname(getRequestHostname(request));
+  // 기본 계정 세션을 발급하는 우회이므로 운영 런타임에서는 플래그가 켜져 있어도 무시한다.
+  if (!isExplicitLocalDevEnv(env)) return false;
+  // 클라이언트가 바꿀 수 있는 Host/x-forwarded-host 헤더가 아니라 요청 URL의 호스트만 신뢰한다.
+  try {
+    return isLocalHostname(new URL(request.url).hostname);
+  } catch (e) {
+    return false;
+  }
 }
 
 function getLocalDevAuthConfig(env) {
@@ -2003,7 +2011,11 @@ function isWithdrawnAuthUser(user) {
 }
 
 function getCsrfSecret(env) {
-  return getEnv(env, "CSRF_SECRET") || getAccessTokenSecret(env) || "dev-csrf-secret";
+  return resolveRequiredAuthSecret(
+    env,
+    ["CSRF_SECRET", "JWT_ACCESS_SECRET", "JWT_SECRET", "AUTH_SECRET"],
+    "CSRF secret is required in production.",
+  );
 }
 
 function generateCsrfToken(env) {
@@ -3759,6 +3771,7 @@ async function handleRefresh(request, env) {
     payload = await verifyJwt(refreshToken, getRefreshTokenSecret(env), {
       issuer: getJwtIssuer(env),
       audience: getJwtAudience(env),
+      requireExp: true,
     });
   } catch (e) {
     const response = json({ ok: false, message: "Refresh token is invalid or expired." }, { status: 401 });
@@ -5572,6 +5585,8 @@ export const __authTestUtils = {
   resolveSocialAutoSignup,
   findOrCreateSocialUser,
   buildProviderConfig,
+  isLocalDevAuthEnabled,
+  getCsrfSecret,
   clearLoginRateLimitState: () => loginRateLimitMap.clear(),
   clearWithdrawRateLimitState: () => withdrawRateLimitMap.clear(),
   clearPhoneChangeRateLimitState: () => phoneChangeRateLimitMap.clear(),

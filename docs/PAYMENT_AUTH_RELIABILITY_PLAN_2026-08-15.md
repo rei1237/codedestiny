@@ -3,6 +3,8 @@
 작성 2026-08-15 · 대상 `worker/payments/**`, `worker/routes/{payments,auth,billing}.js`, `app/_lib/{billing-client,auth-client,auth-store}.ts`
 승인 사항: **wrangler.toml 은 `[vars]` 추가만** · 실측은 **HAR 캡처 + `wrangler tail` 병행** · 이번 산출물은 **본 문서까지**
 
+> **정정 (2026-10-13)** — 이 문서는 2026-08-15 시점의 스냅샷이다. 이후 달라진 것: ① 결제 컷오버가 끝나 구 `/single/start`·`/single/complete` 는 410 이다(§1-3 정정 참조). ② `worker/wrangler.toml`·`worker/wrangler.staging.toml` 에 `[observability]` 블록이 생겼다. ③ P0-1 의 E11000 복구는 반영됐다(`handleSinglePaymentStart`, `worker/routes/payments.js` ~2157-2180 — 다만 2026-10 부터 이 핸들러는 라우터에서 410 으로 닫혀 도달하지 않는다). 본문의 줄 번호와 "구 로직" 서술은 이 시점 이후의 코드와 맞지 않을 수 있다.
+
 ---
 
 ## 0. 세 줄 요약
@@ -62,6 +64,8 @@ refreshTokenSessionSchema.index({ userId: 1, revokedAt: 1, expiresAt: -1 });
 `userId` 단일 unique 인덱스가 **없다** → "재로그인 시 세션 문서 E11000" 가설은 **기각**. `timestamps: true` 도 있으므로 로그아웃의 `createdBefore` 필터(`auth.js:2179`)도 정상 동작한다. 이 두 가설은 더 파지 않는다.
 
 ### 1-3. 신/구 로직 분기 — 결제창 발급 경로가 아직 구 코드다
+
+> **정정 (2026-10-13)** — 이 절의 "아직 구 코드다"는 2026-08-15 시점의 서술이다. `/api/payments` 는 2026-08-13(prepare·orders·webhook·config·subscription)과 2026-09-06(`/confirm`)에 V2 로 넘어갔고 구 핸들러 4개는 삭제됐다. 구 라우터(`worker/routes/payments.js`)에는 `/me`·`/cancel`·`/report-failure`·`/single/cancel` 만 남았고 `/single/start`·`/single/complete` 는 410 `LEGACY_ENDPOINT_RETIRED` 다. 아래 `worker/index.js:1271-1378`·`:1362` 등 줄 번호도 낡았다 — 현재 라우팅은 `worker/index.js` 의 `/api/payments` 블록과 `docs/PAYMENT_AND_ACCESS.md` 를 본다.
 
 `worker/index.js:1271-1378` 기준, V2(`worker/payments/`)로 가는 것은 **5개 경로뿐**이다: `GET /orders/:id`(1279) · `POST /webhook`(1289) · `POST /prepare`(1295) · `GET /config`(1304) · `POST /subscription/*`(1311). 나머지는 `:1316` 에서 구 `handlePaymentRoutes` 로 폴스루한다.
 

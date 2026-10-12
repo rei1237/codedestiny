@@ -420,7 +420,7 @@ describe("webhook·크론 주체 — grantOrderEntitlement 이용권 분기", ()
     const runConfirm = (handle, ctx, input, deps) =>
       confirmOrder(ENV, ctx, input, { withDb: (_env, _ctx, fn) => fn(handle), deps });
     const ctx = { mongoOps: 0 };
-    const result = await runConfirm(db, ctx, { orderId: order.merchantUid }, {
+    const result = await runConfirm(db, ctx, { orderId: order.merchantUid, systemActor: true }, {
       fetchPayment: async () => ({
         paymentId: order.merchantUid, status: "paid", amount: 59000, currency: "KRW",
         pay_method: "card", paid_at: Math.floor(Date.now() / 1000),

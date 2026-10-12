@@ -1,16 +1,16 @@
 import { getEnv } from "./env.js";
 import { signJwt, verifyJwt } from "./jwt.js";
+import { resolveRequiredAuthSecret } from "./auth-secret.js";
 import { normalizePaidFeatureKey } from "./paid-feature-registry.js";
 
 const PREMIUM_ACCESS_TOKEN_TTL_SEC = 30 * 60;
 
 function getTokenSecret(env) {
-  return (
-    getEnv(env, "PREMIUM_ACCESS_TOKEN_SECRET")
-    || getEnv(env, "JWT_ACCESS_SECRET")
-    || getEnv(env, "JWT_SECRET")
-    || getEnv(env, "AUTH_SECRET")
-    || "dev-secret"
+  // 운영(명시적 로컬 개발이 아닌 환경)에서는 시크릿이 없거나 placeholder면 서명·검증을 거부한다.
+  return resolveRequiredAuthSecret(
+    env,
+    ["PREMIUM_ACCESS_TOKEN_SECRET", "JWT_ACCESS_SECRET", "JWT_SECRET", "AUTH_SECRET"],
+    "Premium access token secret is required in production.",
   );
 }
 

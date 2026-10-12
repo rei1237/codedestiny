@@ -11,7 +11,8 @@
 
 - 클라이언트 SDK 로드: `lib/payment/portone.ts`
 - Worker PortOne REST: `worker/lib/portone.js`
-- 결제 route: `worker/routes/payments.js`
+- 결제 route(V2 정본, 2026-08-13 이관): `worker/payments/index.js`(주문 발급·확정·웹훅), `worker/payments/pg.js`(PortOne 재조회·대조), `worker/payments/webhook.js`(서명 검증·이벤트 원장), `worker/payments/reconcile.js`(10분 재조정). `worker/index.js` 가 prepare·confirm·subscription·webhook·config·orders 를 V2 로 넘긴다.
+- 구 route: `worker/routes/payments.js` — `/me`·`/cancel`·`/report-failure`·`/single/cancel` 과 재조정 크론용 `settleSinglePaymentForReconcile` 만 남았다. `/single/start`·`/single/complete` 는 410 `LEGACY_ENDPOINT_RETIRED`, `POST /webhook` 은 등록하지 않는다(2026-10). 새 결제 정책은 V2 에 둔다.
 - 결제/권한 gate: `worker/routes/billing.js`
 - 결제 정책/가격 registry: `worker/lib/paid-feature-registry.js`, `worker/lib/billing-feature-registry.js`, `worker/lib/billing-policy.js`
 - 환불/취소 core: `worker/lib/payment-refund.js`
@@ -34,7 +35,7 @@
 1. 프론트가 결제 가능한 featureKey와 사용 의도를 Worker에 보낸다.
 2. `worker/lib/payment-service.js`가 명시적 결제 방식별 정책을 판단하고, `worker/routes/billing.js`는 HTTP 어댑터로 요청을 전달한다.
 3. 결제창은 `이용권으로 구매`, `단건 결제`, `월정석`을 함께 보여야 한다.
-4. 사용자가 `단건 결제`를 선택하면 `worker/routes/payments.js`가 PortOne 주문을 준비한다.
+4. 사용자가 `단건 결제`를 선택하면 V2 `worker/payments/index.js`(`POST /api/payments/prepare`, `/api/billing/checkout` 도 같은 어댑터)가 PortOne 주문을 준비한다. 구 `/single/start` 는 닫혔다(410).
 5. `단건 결제`와 `월정석` 경로는 이용권 DB를 조회하거나 이용권 방식으로 자동 전환하지 않는다.
 
 ### 달빛 이용권 상품 구매 정책
@@ -46,11 +47,12 @@
 ## 결제 검증 흐름
 
 1. PortOne 결제 완료 후 클라이언트 confirm 또는 webhook이 Worker로 들어온다.
-2. `worker/routes/payments.js`가 PortOne REST로 결제 상태와 금액/통화/merchantUid를 검증한다.
-3. webhook signature는 `worker/routes/payments.js`의 표준 webhook signature 검증 로직을 탄다.
+2. V2 `confirmOrder`(`worker/payments/index.js`)가 `verifyPgPayment`(`worker/payments/pg.js`)로 PortOne REST 를 **재조회**해 결제 상태·금액(`amount.total`)·통화·paymentId(=주문 ID)·storeId·channel 을 대조한다. 클라이언트가 준 금액·상태는 쓰지 않는다. 사용자 확정·웹훅·재조정 크론·웹훅 재생이 모두 이 경로로 합류하며 `__tests__/worker/payments-v2.db-pg.test.js` 가 고정한다.
+3. webhook signature 는 `worker/payments/webhook.js` `verifyWebhookSignature`(Standard Webhooks `webhook-signature`)로 검증한다. `worker/index.js` 가 `POST /api/payments/webhook`(별칭 `/api/webhooks/portone`)을 V2 로 넘기며, 구 라우터에는 `POST /webhook` 등록이 없다.
 4. 금액은 클라이언트 값을 신뢰하지 않고 server registry 또는 policy 상수와 대조한다.
 5. 멱등성은 `idempotencyKey`, `merchantUid`, `impUid`, request id 계열 필드로 방어한다.
-6. V2 확정(`worker/payments/pg.js` `verifyPgPayment`)은 PortOne 재조회 응답에 `storeId` 가 **있을 때만** `PORTONE_STORE_ID` 와 대조해 다르면 422 `STORE_ID_MISMATCH`(주문 FAILED, `failureStage:"pg-verify"`)로 막고, 없으면 통과시켜 `rawPortOne.storeIdCheck` 에 `"matched"`/`"absent"` 만 남긴다. storeId 값은 시크릿 분류라 오류·요약·로그에 싣지 않는다. 구 경로(`worker/routes/payments.js` `extractPortOneStoreId`)는 응답에 없어도 불일치로 본다.
+6. V2 확정(`worker/payments/pg.js` `verifyPgPayment`)은 PortOne 재조회 응답에 `storeId` 가 **있을 때만** `PORTONE_STORE_ID` 와 대조해 다르면 422 `STORE_ID_MISMATCH`(주문 FAILED, `failureStage:"pg-verify"`)로 막고, 없으면 통과시켜 `rawPortOne.storeIdCheck` 에 `"matched"`/`"absent"` 만 남긴다. storeId 값은 시크릿 분류라 오류·요약·로그에 싣지 않는다. 구 경로(`worker/routes/payments.js` `extractPortOneStoreId`)는 HTTP 로는 닫혔고(`/single/complete` 410) 재조정 크론의 `settleSinglePaymentForReconcile` 만 쓴다. 거기서는 응답에 없어도 불일치로 본다.
+7. 같은 확정에서 `channel.key` 도 **있을 때만** 허용 목록(`portoneChannelKey`·`portoneKakaopayChannelKey`)과 대조해 다르면 422 `CHANNEL_MISMATCH`, 없으면 통과시켜 `rawPortOne.channelCheck` 에 `"matched"`/`"absent"` 만 남긴다. PayPal 은 storeId·channel 이 모두 **필수**다(`portonePaypalChannelKey`). 있을 때만 대조하는 현행은 의도된 선택이며(`payments-v2.db-pg.test.js` 가 고정), 엄격 모드는 `absent` 비율을 실측한 뒤 결정한다(미착수).
 
 ## 결제 성공 후 권한 반영 흐름
 
@@ -78,7 +80,8 @@
 
 - 결제 취소/환불 공유 core: `worker/lib/payment-refund.js`
 - 관리자 주문/환불 API: `worker/routes/admin-orders.js`, `worker/routes/admin.js` 확인 필요
-- 결제 route cancel/webhook: `worker/routes/payments.js`
+- 결제 취소·환불 route: 구 `worker/routes/payments.js` — `/cancel`(사용자 본인), `/single/cancel`(관리자 전용). 웹훅·확정·재조정은 V2(`worker/payments/`)다.
+- 🔴 환불 정책 기록(2026-10-13, 사용자 결정 "현행 허용 유지"): 구 `POST /api/payments/cancel` 은 소유자 본인이 취소 가능 상태(단건 구매 `digital_content`/`single_purchase` 는 `success`·`fulfilled`·`processing`·`pending`, 그 밖은 `success` 만)의 결제를 **결과를 열람·생성한 뒤에도** 취소·환불할 수 있게 둔다(부분 취소는 `cancelAmount` ≤ 결제액). `processing`·`pending` 은 PortOne 조회로 승인 여부를 확인한 뒤에만 쏜다. 권한은 `revokeSinglePaymentContentAccess` 로 회수되지만 이미 생성·저장된 결과는 남는다. 전달 여부 차단(`resolvePaidResultDelivery`)은 `/report-failure` 의 자동 환불에만 걸려 있다. "소비 후 환불 불가"로 바꾸려면 `/cancel` 에 같은 전달 확인과 상태 CAS 가 필요한 환불 정책 변경이라 별도 승인 사항이다(`worker/routes/payments.js` 는 동결 상한 3801줄이라 줄 수에 주의).
 - 월정석 lot 복구: `worker/lib/monthly-credit-store.js`
 - 관리자 마케팅 지급: `POST /api/admin/monthly-credits/grant` — 관리자 인증과 `ADMIN_MONTHLY_CREDIT_GRANT_ENABLED` 플래그가 모두 필요하며, 기존 잔액에 신규 30일 lot을 누적하고 `MonthlyCreditLedger`에 `MONTHLY_CREDIT_GRANT` 원장을 남긴다.
 - 권한 revoke: `revokeSinglePaymentContentAccess` in `worker/lib/payment-refund.js`
@@ -92,7 +95,7 @@
 - 관리자 마케팅 지급은 결제가 아니며 이용권·단건 결제 정책을 우회하지 않는다. 동일 `idempotencyKey`는 계정별로 한 번만 지급되고, 지급분은 지급일 기준 30일 후 만료된다.
 - PortOne webhook 실패: signature, event id unique index, webhook event 저장 여부 확인.
 - pending 주문: reconcile cron 또는 `payment-reconcile-task` 경로 확인.
-- 결제 후 미이행·PG 대조 실패 운영자 알림(10분 크론 `runPaymentsV2Reconcile` → `worker/payments/reconcile.js` `alertPaymentAnomalies`, 본문·발송 `worker/payments/fulfillment-alert.js`): A 미지급 = `status:"paid"`·결제 30분+·권한 없음(재지급과 같은 `unfulfilledClause`), 24시간 간격 최대 7회 / B 대조 실패 = `failed`·`failureStage:"pg-verify"`·30일 내·`AMOUNT_MISMATCH`·`CURRENCY_MISMATCH`·`PAYMENT_ID_MISMATCH`·`STORE_ID_MISMATCH`, 주문당 1회. 채널은 운영자 전용 `worker/lib/feedback-notify.js` `notifyOperators`(관리자 메일·Discord·Slack 웹훅)뿐이며 공개 텔레그램 경로는 쓰지 않는다. 표식(`metadata.fulfillmentAlert`·`metadata.verifyAlert`)은 전달 성공 후에만 찍고, 채널 미설정이면 `[pay-alert] unconfigured` 로그만 남는다. 재지급 실패마다 `metadata.fulfillmentAttempts` +1(재시도는 무제한 유지). 알림일 뿐 지급·환불을 하지 않는다.
+- 결제 후 미이행·PG 대조 실패 운영자 알림(10분 크론 `runPaymentsV2Reconcile` → `worker/payments/reconcile.js` `alertPaymentAnomalies`, 본문·발송 `worker/payments/fulfillment-alert.js`): A 미지급 = `status:"paid"`·결제 30분+·권한 없음(재지급과 같은 `unfulfilledClause`), 24시간 간격 최대 7회 / B 대조 실패 = `failed`·`failureStage:"pg-verify"`·30일 내·`AMOUNT_MISMATCH`·`CURRENCY_MISMATCH`·`PAYMENT_ID_MISMATCH`·`STORE_ID_MISMATCH`·`CHANNEL_MISMATCH`(`reconcile.js` `VERIFY_ALERT_CODES` 5종), 주문당 1회. 채널은 운영자 전용 `worker/lib/feedback-notify.js` `notifyOperators`(관리자 메일·Discord·Slack 웹훅)뿐이며 공개 텔레그램 경로는 쓰지 않는다. 표식(`metadata.fulfillmentAlert`·`metadata.verifyAlert`)은 전달 성공 후에만 찍고, 채널 미설정이면 `[pay-alert] unconfigured` 로그만 남는다. 재지급 실패마다 `metadata.fulfillmentAttempts` +1(재시도는 무제한 유지). 알림일 뿐 지급·환불을 하지 않는다.
 
 ## 십이지신 천운 타로 결과 저장
 
@@ -103,7 +106,7 @@
 
 ## “결제는 되었는데 이용권이 반영되지 않는 문제” 추적 파일
 
-1. `worker/routes/payments.js`
+1. `worker/payments/index.js`·`pg.js`·`webhook.js`·`reconcile.js`(V2 정본), 구 라우터 `worker/routes/payments.js`(`/me`·`/cancel`·`/report-failure`)
 2. `worker/routes/billing.js`
 3. `worker/lib/portone.js`
 4. `worker/lib/payment-reconcile-task.js`
@@ -233,7 +236,7 @@
 - AI and profile feature routes consume the access grant produced by the billing Payment Service. They do not import `consumeMonthlyCreditLots` or create a `MONTHLY_CREDIT_SPEND` ledger.
 - A legacy monthly request without a billing grant fails closed with `PAYMENT_ACCESS_GRANT_REQUIRED` or the existing payment-required response. It must not inspect a balance and deduct locally.
 - Refund and recovery paths may read spend evidence and create an idempotent restore/grant ledger, but those operations are not new payment execution and remain evidence-bound.
-- `npm run verify:payment-service-boundary` fails when a UI screen calls coin-gate outside the compatibility adapters, or when a feature route reintroduces a direct monthly lot deduction/spend-ledger write. It is **not wired into CI** — run it by hand (see the unwired declaration in `scripts/verify-guard-wiring.mjs`).
+- `npm run verify:payment-service-boundary` fails when a UI screen calls coin-gate outside the compatibility adapters, or when a feature route reintroduces a direct monthly lot deduction/spend-ledger write. It runs in CI: the `Verify payment and auth boundaries` step of `.github/workflows/pr-ci.yml` (promoted from the shadow lane on 2026-09-13).
 
 ## International payment market gate
 
@@ -243,6 +246,7 @@
 - Legal packs in `LEGAL_REVIEW_REQUIRED`, `DRAFT`, `MACHINE_TRANSLATED`, or other non-approved states must not be used for live overseas payment.
 - The current service product wording remains `이용권`, `월정석`, and `단건 결제`. Do not add user-facing claims for auto-renewal, free trials, subscription-cancellation rights, unlimited access, lifetime access, or guaranteed fortune/AI outcomes unless the product and legal review are separately approved.
 - IP country, Cloudflare country, and PG billing country can be used only as risk or reconciliation signals according to the registry priority; they must not silently override the user's explicit payment-country selection.
+- Region gating (`worker/payments/region-policy.js`: a non-KR `request.cf.country` allows PayPal only) is an exposure policy, not an amount-integrity boundary (recorded 2026-10-13). It is applied only while an order is prepared, it lifts when `cf.country` is absent, and a Korean VPN passes it. The `verifyPgPayment` checks (paymentId, status, `amount.total`, currency, storeId, channel) never depend on it.
 - Overseas-issued card checkout (KG이니시스 해외카드 파라미터) is a server decision, closed by default: `worker/payments/foreign-card-policy.js` `canUseForeignCard` (flag `FOREIGN_CARD_ENABLED` exactly `"1"` → logged-in user → product table → `card_general` only; `billingCountry` is accepted but never used). `/prepare` and `/subscription/prepare` store the decision on the order once (`Payment.foreignCard`, `$setOnInsert`) and respond `order.foreignCard` narrowed by `narrowToOrderSnapshot`: an order created while closed stays `ORDER_SNAPSHOT_CLOSED`, and turning the flag off closes open orders immediately. `POST /orders` keeps `foreignCard: null` (closed).
 - The client attaches the Inicis overseas-card window parameter (`P_RESERVED: ["global_visa3d=Y"]`) only when that server decision is open: `js/core/checkout-entry.js` `portoneBypass(decision)` returns `undefined` unless `decision.offered === true` (no argument, `null`, `{}`, `"true"`, `1` → nothing sent). The static shell `_cdRunDirectKrwCheckout` and `/points` pass `order.foreignCard`; `js/destiny-profile.js` still calls it without an argument (always closed) until the flag-ON preparation rotates its cache pin through the payment-freeze procedure (`docs/payment/inicis-overseas-card/02-overseas-card-implementation.md`).
 - Application facts for the KG이니시스 overseas-card add-on (phase 1: architecture, policy, product scope, authentication, fulfillment evidence, support, personal data, test results, application answers) live in `docs/payment/inicis-overseas-card/` 01–09. They record verdicts (`OWNER INPUT REQUIRED`, `PG APPROVAL REQUIRED`, `LEGAL REVIEW REQUIRED`) and do not authorize turning on `FOREIGN_CARD_ENABLED`.
@@ -261,6 +265,7 @@
 - 차단 응답에는 `legacyCoinDisabled: true`, `blockedPaymentMode: "COIN"`, 현재 결제 선택 정보가 포함되며, 차단 경로에서 포인트 조회·차감·신규 `PointHistory` 생성은 하지 않는다.
 - 기존 `ContentEntitlement`, `User.unlockedFeatures`, `PointHistory`, `daehan_purchases` 및 과거 결제 기록은 삭제하지 않는다. backfill·환불·보상 복구는 과거 거래 증거가 있을 때만 읽기 호환으로 유지한다.
 - 신규 영구 해금 인덱스는 `scripts/migrations/20260804-add-permanent-unlock-index.mjs`로 별도 적용한다. 기존 문서를 backfill하거나 삭제하지 않으며 운영 실행은 별도 승인이 필요하다.
+- `worker/lib/db.js` 가 `autoIndex:false` 라 모델의 `index(...)` 선언은 인덱스를 만들지 않는다. `content_entitlements` 유니크 인덱스 3종의 확인·생성 절차는 `docs/content-entitlements-unique-indexes-2026-10.md` 에 있다(2026-08-16 실측: 앞 둘은 존재, 셋째는 미확인).
 - 메인 셸과 일반 잠금 상태 조회는 `/api/access/unlocks` 또는 entitlement 전용 조회를 사용한다. 월정석/레거시 잔액 조회는 결제 선택창과 명시적 결제 갱신에서만 수행한다.
 
 ## 운세 플래너 예외

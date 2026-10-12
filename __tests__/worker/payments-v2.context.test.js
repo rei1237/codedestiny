@@ -183,7 +183,7 @@ describe("확정 오케스트레이션", () => {
     db.rows[0].status = "cancelled";
     let caught = null;
     try {
-      await runConfirm(db, ctxOf(), { orderId: order.merchantUid }, { fetchPayment: async () => pgReply() });
+      await runConfirm(db, ctxOf(), { orderId: order.merchantUid, systemActor: true }, { fetchPayment: async () => pgReply() });
     } catch (error) { caught = error; }
     expect(classify(caught).status).toBe(409);
   });
@@ -217,7 +217,7 @@ describe("확정 오케스트레이션", () => {
     const order = await seedPending(db);
     let caught = null;
     try {
-      await runConfirm(db, ctxOf(), { orderId: order.merchantUid }, {
+      await runConfirm(db, ctxOf(), { orderId: order.merchantUid, systemActor: true }, {
         fetchPayment: async () => pgReply({ paymentId: order.merchantUid, amount: 100 }),
       });
     } catch (error) { caught = error; }
@@ -231,7 +231,7 @@ describe("확정 오케스트레이션", () => {
     const order = await seedPending(db);
     let caught = null;
     try {
-      await runConfirm(db, ctxOf(), { orderId: order.merchantUid }, {
+      await runConfirm(db, ctxOf(), { orderId: order.merchantUid, systemActor: true }, {
         fetchPayment: async () => { throw new Error("PortOne payment lookup failed: request timed out after 8000ms"); },
       });
     } catch (error) { caught = error; }
@@ -244,7 +244,7 @@ describe("확정 오케스트레이션", () => {
     const db = makeFakePaymentDb();
     const order = await seedPending(db);
     db.rows[0].featureKey = "totally-made-up"; // resolveProduct 가 던지게 만든다
-    const result = await runConfirm(db, ctxOf(), { orderId: order.merchantUid }, {
+    const result = await runConfirm(db, ctxOf(), { orderId: order.merchantUid, systemActor: true }, {
       fetchPayment: async () => pgReply({ paymentId: order.merchantUid }),
     });
     expect(result.granted).toBe(false);
@@ -256,7 +256,7 @@ describe("확정 오케스트레이션", () => {
     const db = makeFakePaymentDb();
     const order = await seedPending(db);
     const ctx = ctxOf();
-    const result = await runConfirm(db, ctx, { orderId: order.merchantUid }, {
+    const result = await runConfirm(db, ctx, { orderId: order.merchantUid, systemActor: true }, {
       fetchPayment: async () => {
         // PG 검증 도중 형제가 먼저 확정한 상황을 만든다.
         db.rows[0].status = "paid";

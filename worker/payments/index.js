@@ -40,7 +40,7 @@ import { preparePaypalCharge, paypalChargeForOrder } from './paypal.js';
 import { assertRegionalPaymentMethod, paymentRegion } from './region-policy.js';
 import { fetchPortOnePayment, getPortOnePublicConfig, resolveChargeAmountKRW } from "../lib/portone.js";
 import { decryptPhoneNumber } from "../lib/pii-crypto.js";
-import { classify, contractFor, paymentError, responseHeadersFor } from "./errors.js";
+import { PaymentError, classify, contractFor, paymentError, responseHeadersFor } from "./errors.js";
 import { createPaymentContext, toObjectId, withPaymentDb } from "./db.js";
 import { logPayment } from "./log.js";
 import { listProducts, resolveProduct } from "./catalog.js";
@@ -756,9 +756,15 @@ function presentOrder(order) {
  * 주문을 그대로 넘길 수 있다(이용권 확정처럼 자기 검증 때문에 어차피 한 번 읽는 경로의 중복 방지).
  * `settled: true` 는 "PG 를 부를 필요가 없다"는 뜻이다.
  */
-function evaluateConfirmable(ctx, order, { orderId, actorUserId = "" }) {
+function evaluateConfirmable(ctx, order, { orderId, actorUserId = "", systemActor = false }) {
   if (!order) throw paymentError("ORDER_NOT_FOUND", "주문을 찾을 수 없습니다.", { orderId });
+  // 🔴 소유자 검사는 기본이 닫힘이다(C1). 행위자(actorUserId)도 명시적 systemActor 도 없으면 호출부 결함이므로
+  //    검사를 건너뛰지 않고 막는다 — 인자를 빠뜨린 새 호출부가 남의 주문을 확정하는 길이 조용히 열리면 안 된다.
+  //    systemActor 는 사용자 세션이 없는 경로(webhook · 재조정 크론 · 웹훅 재생)가 PG 재조회를 근거로 확정할 때만 true.
   if (actorUserId) assertOrderOwner(order, actorUserId);
+  else if (systemActor !== true) {
+    throw paymentError("INTERNAL_ERROR", "확정 행위자가 지정되지 않았습니다.", { orderId, reason: "ACTOR_NOT_SPECIFIED" });
+  }
   ctx.productId = String(order.productId || "");
 
   const status = toOrderStatus(order);
@@ -818,7 +824,7 @@ async function settleVerifiedOrder(db, ctx, { order, pg }) {
  *   begun — 호출부가 자기 슬롯에서 이미 evaluateConfirmable 을 돌렸을 때. 판정 슬롯을 건너뛴다.
  *   afterSettle — 정산과 **같은 슬롯**에서 이어 돌 마무리(웹훅의 이벤트 처리 표시 등). 재생 경로에도 돈다.
  */
-async function confirmOrder(env, ctx, { orderId, actorUserId = "" }, options = {}) {
+async function confirmOrder(env, ctx, { orderId, actorUserId = "", systemActor = false }, options = {}) {
   const { withDb, deps = {}, afterSettle } = options;
   const begun = options.begun || await withDb(env,ctx,async db=>{
     const order=await findOrder(db,{orderId});
@@ -826,7 +832,7 @@ async function confirmOrder(env, ctx, { orderId, actorUserId = "" }, options = {
       const {assertGiftOrigin}=await import('./gift-routes.js');
       assertGiftOrigin(options.request,env);
     }
-    return evaluateConfirmable(ctx,order,{orderId,actorUserId});
+    return evaluateConfirmable(ctx,order,{orderId,actorUserId,systemActor});
   });
 
   if (begun.settled) {
@@ -1805,13 +1811,13 @@ const ROUTES = {
           await markEventProcessed(db, { eventId: event.eventId });
           return { ...event, outcome: { ignored: true, reason: "LEGACY_SINGLE_ORDER" } };
         }
-        return { ...event, begun: evaluateConfirmable(ctx, order, { orderId: event.paymentId }) };
+        return { ...event, begun: evaluateConfirmable(ctx, order, { orderId: event.paymentId, systemActor: true }) };
       });
       if (accepted.outcome) return json({ ok: true, ...accepted.outcome });
       if (accepted.requery) return applyNonPaidEventAfterRequery(env, ctx, accepted, { withDb, fetchPayment: pgDeps?.fetchPayment });
 
       try {
-        await confirmOrder(env, ctx, { orderId: accepted.paymentId }, {
+        await confirmOrder(env, ctx, { orderId: accepted.paymentId, systemActor: true }, {
           withDb,
           begun: accepted.begun,
           afterSettle: async (db, settled) => {
@@ -1867,6 +1873,16 @@ function matchRoute(method, path) {
  *            진입은 본문을 읽어야 라우트를 고를 수 있는데, 그대로 두면 같은 본문을 라우터에서 한 번
  *            (clone) 컨텍스트에서 또 한 번 읽는다. 넘어오면 재사용한다(rawBody 라우트는 해당 없음).
  */
+/* 🔴 오류 응답의 message 는 사람이 쓴 PaymentError 문구만 내보낸다(500 계열 제외). 그 밖의 예외
+   (Mongo 드라이버·JS 런타임)의 error.message 는 호스트·쿼리·내부 사유를 담을 수 있어 무인증으로도
+   유발 가능한 정보 노출이 된다(gift-routes.js 의 5xx 마스킹과 같은 원칙). 원문은 errorReason /
+   errorMeta 로 로그에만 남는다. */
+function publicErrorMessage(error, contract) {
+  if (error instanceof PaymentError && contract.status !== 500 && error.message) return error.message;
+  if (contract.status === 503) return "일시적으로 요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.";
+  return "요청을 처리하지 못했습니다.";
+}
+
 export async function handlePaymentsContext(request, env, options = {}) {
   const withDb = options.withDb || withPaymentDb;
   // 구 경로로 마운트되면 구 응답 형태로 답한다(compat.js). 섀도 경로는 신규 형태 그대로.
@@ -1891,6 +1907,7 @@ export async function handlePaymentsContext(request, env, options = {}) {
   let errorCode = "";
   let stage = "";
   let errorReason = "";
+  let errorMeta = null;
   try {
     const userId = matched.route.auth === "required"
       ? requireUser(await peekAccessTokenUserId(request, env)) // JWT 만 본다 — Mongo 읽기 0회
@@ -1926,13 +1943,14 @@ export async function handlePaymentsContext(request, env, options = {}) {
     // PG_UNAVAILABLE 의 실제 사유(PortOne 응답·타임아웃)를 tail 에서 볼 수 있게 한다 — 사용자 문구만
     // 남기면 시크릿 불일치(UNAUTHORIZED)와 진짜 지연이 같은 줄로 보인다(2026-09-05).
     errorReason = String(contract.meta?.reason || "").slice(0, 160);
+    // meta(PG 응답 사유·기대/실제 금액·pgPaymentId)는 응답에 싣지 않는다 — 로그 한 줄에만 남긴다.
+    errorMeta = Object.keys(contract.meta).length ? contract.meta : null;
     return json({
       ok: false,
       code: contract.code,
-      message: error?.message || "요청을 처리하지 못했습니다.",
+      message: publicErrorMessage(error, contract),
       retryable: contract.retryable,
       requestId: meta.requestId,
-      ...(Object.keys(contract.meta).length ? { details: contract.meta } : {}),
     }, { status: contract.status, headers: responseHeadersFor(contract) });
   } finally {
     logPayment({
@@ -1949,7 +1967,7 @@ export async function handlePaymentsContext(request, env, options = {}) {
       durationMs: Date.now() - ctx.startedAt,
       mongoOps: ctx.mongoOps,
       // durationMs 를 admission 대기 / 커넥션 수립 / 실제 쿼리로 가른다(withPaymentDb 가 채운다).
-      extra: { ...(ctx.dbTimings || {}), reason: errorReason, ...(ctx.resumeEvent ? { resumeEvent: ctx.resumeEvent } : {}) },
+      extra: { ...(ctx.dbTimings || {}), reason: errorReason, ...(errorMeta ? { errorMeta } : {}), ...(ctx.resumeEvent ? { resumeEvent: ctx.resumeEvent } : {}) },
     });
   }
 }
@@ -1984,7 +2002,7 @@ export async function settleOrderFromReconcile(env, { orderId, pgPayment = null 
   const ctx = createPaymentContext({ requestId: `reconcile-${Date.now().toString(36)}`, route: "CRON payment-reconcile settle" });
   ctx.orderId = orderId;
   let granted = false;
-  const result = await confirmOrder(env, ctx, { orderId }, {
+  const result = await confirmOrder(env, ctx, { orderId, systemActor: true }, {
     withDb,
     deps: pgPayment ? { fetchPayment: async () => pgPayment } : {},
     afterSettle: async (db, settled) => {
@@ -2010,7 +2028,7 @@ export async function replayWebhookEvents(env, { limit = 10, maxAttempts = 10, w
     ctx.orderId = event.paymentId;
     try {
       if (!event.paymentId) throw paymentError("INVALID_REQUEST", "webhook event has no paymentId");
-      await confirmOrder(env, ctx, { orderId: event.paymentId }, {
+      await confirmOrder(env, ctx, { orderId: event.paymentId, systemActor: true }, {
         withDb,
         deps,
         afterSettle: async (db, settled) => {
@@ -2113,7 +2131,7 @@ export async function runPaymentsV2Reconcile(env) {
           {$set:{'metadata.moonstoneDiscountCheckedAt':new Date()}}));
         const pg=await fetchPortOnePayment(env,candidate.merchantUid);
         if(pg?.paymentId!==candidate.merchantUid)continue;
-        if(pg.status==='paid')await confirmOrder(env,ctx,{orderId:candidate.merchantUid},{withDb:withPaymentDb,deps:{fetchPayment:async()=>pg}});
+        if(pg.status==='paid')await confirmOrder(env,ctx,{orderId:candidate.merchantUid,systemActor:true},{withDb:withPaymentDb,deps:{fetchPayment:async()=>pg}});
         else if(['failed','cancelled'].includes(pg.status))await withPaymentDb(env,ctx,db=>applyNonPaidPgEvent(db,{
           orderId:candidate.merchantUid,eventType:pg.status==='failed'?'transaction.failed':'transaction.cancelled',
         }));

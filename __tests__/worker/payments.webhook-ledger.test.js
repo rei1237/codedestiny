@@ -743,6 +743,23 @@ describe("single payment entitlement consistency", () => {
     );
   });
 
+  test("B2c: 실패 보고의 대기→실패 쓰기가 거절돼도 응답은 그대로 200 이고 삼키지 않고 로그에 남긴다", async () => {
+    Payment.findOne = jest.fn(() => queryResult({ ...order, status: "pending" }));
+    Payment.findOneAndUpdate = jest.fn().mockRejectedValue(new Error("mongo write timeout"));
+    PaymentFailureLog.create = jest.fn().mockResolvedValue({});
+    const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+
+    const parsed = await readResponse(await testUtils.handleReportFailure(
+      buildReportFailureRequest({ merchantUid: order.merchantUid, reasonCode: "cancelled" }), env, auth,
+    ));
+
+    expect(parsed.status).toBe(200);
+    const line = warn.mock.calls.map((call) => call.join(" ")).find((text) => text.startsWith("[payment-swallowed]"));
+    expect(line).toContain("report_failure_cas");
+    expect(line).toContain(order._id);
+    expect(line).toContain("mongo write timeout");
+  });
+
   test("full cancellation webhook revokes entitlement and paid feature access", async () => {
     Payment.findOne = jest.fn().mockReturnValue(queryResult({
       ...order,

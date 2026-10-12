@@ -4,6 +4,7 @@ import { trimPaidReportText } from "../lib/paid-report-length.js";
 // UTC/JD로 정규화한 뒤 공통 Swiss 항성 달 황경에서 직접 계산한다.
 import { lunarToSolar, solarToLunar } from "../../lib/korean-calendar/index.js";
 import { requireAuth, isAuthDbInfraError, peekAccessTokenUserId } from "../lib/auth.js";
+import { resolveRequiredAuthSecret } from "../lib/auth-secret.js";
 import { connectDb, isTransientMongoError, withMongoRetry } from "../lib/db.js";
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
@@ -912,7 +913,12 @@ async function sha256Text(text) {
 }
 
 function tokenSecret(env = {}) {
-  return clean(env.SUKUYO_COMPAT_AI_ACCESS_SECRET || env.JWT_ACCESS_SECRET || env.AUTH_SECRET || "dev-sukuyo-compat-ai-secret");
+  // 운영(명시적 로컬 개발이 아닌 환경)에서는 공개 문자열 폴백 없이 시크릿 누락 시 서명·검증을 거부한다.
+  return resolveRequiredAuthSecret(
+    env,
+    ["SUKUYO_COMPAT_AI_ACCESS_SECRET", "JWT_ACCESS_SECRET", "AUTH_SECRET"],
+    "Sukuyo compatibility AI access secret is required in production.",
+  );
 }
 
 async function signTokenPayload(env, payload) {

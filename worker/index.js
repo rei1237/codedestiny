@@ -95,7 +95,6 @@ function getPexelsSection(value) {
 function getPexelsApiKey(env) {
   return String(
     env?.PEXELS_API_KEY
-    || env?.NEXT_PUBLIC_PEXELS_API_KEY
     || env?.REACT_APP_PEXELS_API_KEY
     || env?.VITE_PEXELS_API_KEY
     || env?.PEXELS_APIKEY
@@ -1077,8 +1076,10 @@ async function proxyApiRequest(request, env) {
   });
 }
 
-// wrangler.toml 의 crons 배열과 반드시 같은 문자열이어야 한다. 다르면 재조정이 영영 안 돌거나,
+// worker/wrangler.toml 의 crons 배열과 반드시 같은 문자열이어야 한다. 다르면 재조정이 영영 안 돌거나,
 // 반대로 일일 태스크가 10분마다 도는 사고가 난다.
+// 🔴 worker/wrangler.staging.toml 은 crons = [] 라 스테이징에서는 재조정이 돌지 않는다. 거기서 pending 주문은
+// 사용자 확정·웹훅으로만 마무리되므로, 스테이징 결제 검증에서 "크론이 정리해 준다"를 기대하지 말 것.
 const PAYMENT_RECONCILE_CRON = "*/10 * * * *";
 
 // 진입 핸들러 본문. 워커에 내보내는 것은 맨 아래 withDbScopes(app) 다.
@@ -1340,8 +1341,8 @@ const app = {
           const { handlePaymentsContext } = await import("./payments/index.js");
           return withCorsHeaders(request, env, await handlePaymentsContext(rewrittenV2Request, env, { prefix: "/api/payments" }));
         }
-        // ctx: 단건 결제(Transaction.Paid) 웹훅을 즉시-2xx ack + waitUntil 백그라운드 처리로 돌려
-        // 포트원 웹훅 타임아웃(재전송 실패)을 없애기 위해 전달한다.
+        // POST 는 위에서 전부 V2 가 받는다. 여기 오는 것은 비-POST 뿐이고, 구 라우터는 /webhook 을 등록하지
+        // 않아(2026-10) 인증이 없으면 401, 있어도 404/405 로 끝난다. ctx 는 구 라우터의 공통 시그니처다.
         const rewrittenRequest = rewriteRequestPath(request, "/api/payments/webhook");
         return withCorsHeaders(request, env, await handlePaymentRoutes(rewrittenRequest, env, ctx));
       }
@@ -1363,12 +1364,14 @@ const app = {
           }));
         }
         // 웹훅은 서버-서버 경로라 legacyShape 이 필요 없다(PortOne 은 HTTP 상태만 본다).
-        // 콘솔 Endpoint 얼라이어스(/api/webhooks/portone)는 위 :1267 블록이 같은 판정으로 처리한다.
+        // 콘솔 Endpoint 얼라이어스(/api/webhooks/portone)는 위쪽 얼라이어스 블록이 같은 판정으로 처리한다.
         // 🔴 완전일치가 아니라 끝 슬래시 허용 정규식이어야 한다. "===" 였을 때 POST
-        // /api/payments/webhook/ 가 이 훅을 비껴가 아래 :1388 폴스루(구 handlePaymentRoutes)로
+        // /api/payments/webhook/ 가 이 훅을 비껴가 이 블록 맨 아래의 구 handlePaymentRoutes 폴스루로
         // 떨어졌다 — 그 안의 getRoutePath(worker/lib/http.js)가 끝 슬래시를 지워 "/webhook"으로
         // 인식해, routes/payments.js 의 구 handleWebhook(별도 verifyPortOneWebhookSignature 보유,
         // 2026-09-06 컷오버 때 다른 4개 구 핸들러와 달리 안 지워짐)이 대신 실행됐다(실측).
+        // 2026-10 부터 구 라우터는 /webhook 을 등록하지 않아 그런 폴스루는 401/404 로 끝나지만, 서명 검증과
+        // 이벤트 원장은 V2 에만 있으므로 이 정규식과 훅 순서는 그대로 지킨다.
         if (request.method === "POST"
           && /^\/api\/payments\/webhook\/*$/.test(url.pathname)) {
           const { handlePaymentsContext } = await import("./payments/index.js");

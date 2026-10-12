@@ -61,7 +61,9 @@ assertContains(payments, "enforcePaymentRouteSecurity(request, env, auth, path)"
 // 과거 이 마커가 `requireAuth(request, env);` 로 리터럴 고정돼 있었는데, 결제 라우트가 인증 왕복을 줄이려
 // `requireUserFromRequest(request, env, { userProjection: ... })` 로 바뀌자 지키려던 불변식(웹훅이 인증 앞에
 // 처리된다)은 멀쩡한데 가드만 깨졌다. 여기서 검증할 것은 호출 형태가 아니라 순서다.
-assertBefore(payments, "if (method === \"POST\" && path === \"/webhook\")", "const delegatedAuth =", "payments webhook stays before delegated auth/security guard");
+// 구 POST /webhook 라우트는 닫았다(B2d) — 웹훅은 worker/index.js 가 V2 로 가로채며, 다시 등록하면 별도 서명 검증을 가진
+// 구 핸들러가 인증 앞에서 도달 가능해진다.
+assertNotContains(payments, "if (method === \"POST\" && path === \"/webhook\")", "legacy payments webhook route stays unregistered");
 assertBefore(payments, "const auth = delegatedAuth?.userId", "const security = await enforcePaymentRouteSecurity(request, env, auth, path);", "payments auth stays before security guard");
 assertBefore(payments, "const security = await enforcePaymentRouteSecurity(request, env, auth, path);", "if (method === \"POST\" && path === \"/single/start\")", "payments guard before payment mutation dispatch");
 

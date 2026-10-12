@@ -263,7 +263,7 @@ test.each(['missing','foreign','allowed'])('pack HTTP confirm checks %s Origin t
 });
 test('internal gift confirm recovery needs no browser Origin and grants no buyer rights',async()=>{
  const f=fixture(),g=await purchase(f);
- const result=await payments.confirmOrder({}, {},{orderId:g.order.merchantUid},
+ const result=await payments.confirmOrder({}, {},{orderId:g.order.merchantUid,systemActor:true},
   {withDb:(_e,_c,fn)=>fn(f.db),deps:{fetchPayment:()=>{throw Error('paid replay must not call provider')}}});
  expect(result.granted).toBe(true);expect(f.rows(PurchaseEntitlement)).toHaveLength(0);
 });

@@ -71,7 +71,7 @@ test("cancellation before approval cannot be reversed by a later callback", asyn
   await ensureGiftForOrder(db, order);
   await __paymentsContextTestUtils.applyNonPaidPgEvent(db, { eventType: "Transaction.Cancelled", orderId: order.merchantUid });
   expect((await Gift.findOne({ orderId: order.merchantUid }).lean()).status).toBe("CANCELLED");
-  await expect(__paymentsContextTestUtils.confirmOrder(env, {}, { orderId: order.merchantUid }, { withDb: (_e, _c, fn) => fn(db), deps: { fetchPayment: async () => ({ paymentId: order.merchantUid, status: "paid", amount: plan.wonPrice, currency: "KRW" }) } })).rejects.toBeDefined();
+  await expect(__paymentsContextTestUtils.confirmOrder(env, {}, { orderId: order.merchantUid, systemActor: true }, { withDb: (_e, _c, fn) => fn(db), deps: { fetchPayment: async () => ({ paymentId: order.merchantUid, status: "paid", amount: plan.wonPrice, currency: "KRW" }) } })).rejects.toBeDefined();
   expect((await Gift.findOne({ orderId: order.merchantUid }).lean()).status).toBe("CANCELLED");
   expect(await GiftGrant.countDocuments()).toBe(0);
 });
@@ -100,7 +100,7 @@ test.each([[9800, "KRW", "paid"], [9900, "USD", "paid"], [9900, "KRW", "failed"]
   const plan = resolvePassPlan("standard", 1);
   const order = await createPassOrder(db, { userId: purchaser, plan, idempotencyKey: "invalid", purchaseType: "GIFT", giftDraft: giftDraftFor({}, plan) });
   await ensureGiftForOrder(db, order);
-  await expect(__paymentsContextTestUtils.confirmOrder(env, {}, { orderId: order.merchantUid }, { withDb: (_e, _c, fn) => fn(db), deps: { fetchPayment: async () => ({ paymentId: order.merchantUid, status, amount, currency }) } })).rejects.toBeDefined();
+  await expect(__paymentsContextTestUtils.confirmOrder(env, {}, { orderId: order.merchantUid, systemActor: true }, { withDb: (_e, _c, fn) => fn(db), deps: { fetchPayment: async () => ({ paymentId: order.merchantUid, status, amount, currency }) } })).rejects.toBeDefined();
   expect((await Gift.findOne({ orderId: order.merchantUid }).lean()).status).toBe("PENDING_PAYMENT");
 });
 test("concurrent recipients get exactly one grant; winner retries idempotently", async () => {

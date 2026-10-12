@@ -7,13 +7,17 @@
  *
  * ## 🔴 인덱스가 있다고 가정하지 않는다
  *
- * 프로덕션 실측 결과(2026-08-11) `permanent_unlock_identity`({userId,profileId,featureKey,contentKey,scope})는
- * **선언만 되어 있고 만들어진 적이 없다.** db.js 가 autoIndex:false 라 선언은 인덱스를 만들지 않고,
- * 마이그레이션이 아직 안 돌았다. 즉 그 인덱스에 기대는 중복 방지는 지금 **작동하지 않는다.**
+ * db.js 가 autoIndex:false 라 models.js 의 index 선언은 인덱스를 **만들지 않는다.** 존재는 환경마다 따로
+ * 확인하고, 생성은 마이그레이션(승인 후)으로만 한다 — 절차: docs/content-entitlements-unique-indexes-2026-10.md.
+ * 이 파일이 기대는 유니크 인덱스는 셋이다.
+ *   ① {userId,profileId,serviceKey,contentKey,scope} — 아래 identityFilter 와 같다. 2026-08-16 운영 실측 존재.
+ *   ② permanent_unlock_identity {userId,profileId,featureKey,contentKey,scope}(partial) — 2026-08-16 운영 실측 존재.
+ *      2026-08-11 에 여기 적었던 "만들어진 적 없다"는 그 실측으로 정정됐다(docs/db-cost-audit-2026-08-16).
+ *   ③ birth_unlock_identity {userId,birthKey,serviceKey,contentKey}(partial, scope BIRTH) — 2026-10-10 도입.
+ *      20261010-birth-scope-unlocks.mjs --create-index 로만 생기고, 운영 존재 여부는 **미확인**이다.
  *
- * 그래서 신원 키를 **실제로 존재하는** 인덱스({userId,profileId,serviceKey,contentKey,scope}, unique)에
- * 맞춘다. 그리고 그것마저 없는 환경을 위해 upsert 가 E11000 을 만나면 재조회로 접어, 인덱스가
- * 있으면 DB 가 막고 없으면 최소한 조용히 두 벌이 되지는 않게 한다.
+ * 신원 키는 ① 에 맞춘다. upsert 가 E11000 을 만나면 재조회로 접어 동시 지급을 한 벌로 모은다 — 단 이 폴백은
+ * **인덱스가 있을 때만** 동작한다. 인덱스가 없으면 E11000 도 나지 않아 동시 upsert 가 두 행을 만들 수 있다.
  *
  * ## 타입 함정
  *

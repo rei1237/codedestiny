@@ -31,7 +31,9 @@ describe("Fortune coin access guard", () => {
       JWT_ACCESS_SECRET: "test-access-secret",
       JWT_ISSUER: "code-destiny-api",
       JWT_AUDIENCE: "code-destiny-web",
-      NODE_ENV: "production",
+      // Mongo URI 없이 JWT claim 만으로 통과하는 폴백은 명시적 로컬 개발/테스트 환경에서만 열린다(A7).
+      // production 에서 URI 가 빠지면 거부되는 쪽은 auth.login-security.test.js 가 고정한다.
+      NODE_ENV: "test",
     };
 
     const accessToken = await signJwt(

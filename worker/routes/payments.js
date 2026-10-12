@@ -51,6 +51,7 @@ import {
   buildSinglePaymentRefundIdempotencyKey,
   invalidatePaidAccessDecisionCacheForUser,
   isPartialCancel,
+  logSwallowedPaymentError,
   refundPaymentAsOperator,
   revokeSinglePaymentContentAccess,
 } from "../lib/payment-refund.js";
@@ -212,7 +213,7 @@ function paymentRateLimitForPath(path = "") {
 
 async function enforcePaymentRouteSecurity(request, env, auth, path) {
   const method = request.method.toUpperCase();
-  if (method !== "POST" || path === "/webhook") return { ok: true };
+  if (method !== "POST") return { ok: true };
   const meta = getRequestMeta(request);
   return enforceSensitiveEndpointSecurity({
     env,
@@ -2230,7 +2231,7 @@ async function markPaymentFailure(paymentRecord, patch = {}) {
       lastErrorAt: new Date(),
     },
     ...(patch.incrementAttempt ? { $inc: { confirmAttempts: 1 } } : {}),
-  }).catch(() => {});
+  }).catch(logSwallowedPaymentError("mark_payment_failure", { paymentId: String(paymentRecord._id) }));
 }
 
 async function findPaymentRecord(impUid, merchantUid) {
@@ -2257,7 +2258,7 @@ async function handleWebhook(request, env, ctx) {
    * PortOne 관리자 콘솔 설정:
    * 결제 연동 → 연동 관리 → 결제알림(Webhook) 관리
    * 웹훅 버전: 결제모듈 V2, 최신 웹훅 버전 사용, Content-Type: application/json
-   * Endpoint URL: https://<배포도메인>/api/webhooks/portone
+   * Endpoint URL: https://<배포도메인>/api/webhooks/portone (실제 수신은 V2 — 이 핸들러는 2026-10 부터 라우터에 등록되지 않는다)
    * 웹훅 시크릿은 환경별로 분리해 PORTONE_webhook에 저장한다.
    */
   const rawBody = await request.text();
@@ -2339,7 +2340,7 @@ async function handleWebhook(request, env, ctx) {
   if (eventType === PORTONE_WEBHOOK_EVENTS.PAID && ctx && typeof ctx.waitUntil === "function") {
     ctx.waitUntil(
       settleReservedWebhookEvent({ request, env, eventType, paymentId, body, event: reservation.event })
-        .catch(() => {}),
+        .catch(logSwallowedPaymentError("webhook_background_settle", { paymentId })),
     );
     return json({ ok: true, accepted: true, type: eventType, paymentId });
   }
@@ -2348,7 +2349,7 @@ async function handleWebhook(request, env, ctx) {
 }
 
 // 예약된 포트원 웹훅 이벤트를 실제 처리하고 결과(2xx/비-2xx)에 따라 processed/failed로 확정한다.
-// handleWebhook의 인라인 폴백 경로, waitUntil 백그라운드 경로, 재조정 크론이 공유한다.
+// handleWebhook 의 인라인 폴백·waitUntil 경로만 쓴다(POST /webhook 미등록 — 구 재조정 크론은 settleSinglePaymentForReconcile).
 async function settleReservedWebhookEvent({ request, env, eventType, paymentId, body, event }) {
   try {
     let response;
@@ -2457,7 +2458,7 @@ async function runCancelUpdate({ paymentRecord, canceledPortOne, pointsToRollbac
           source: "cancel",
           cancelAmount: Number(canceledPortOne?.cancel_amount || requestedCancelAmount || paidAmount || 0),
         },
-      }).catch(() => {});
+      }).catch(logSwallowedPaymentError("cancel_point_history", { paymentId: String(paymentRecord._id) }));
     }
 
     return { canceledPayment, updatedPoints };
@@ -2926,7 +2927,7 @@ async function handleReportFailure(request, env, auth) {
         failureStage: "client_report",
         lastErrorAt: new Date(),
       },
-    }).catch(() => {});
+    }).catch(logSwallowedPaymentError("report_failure_cas", { paymentId: String(payment._id) }));
   }
 
   await writeFailureLog({
@@ -3722,11 +3723,7 @@ export async function handlePaymentRoutes(request, env, ctx) {
       return json(buildConfigErrorBody(keyFeature, keyHealth), { status: 503 });
     }
 
-    if (method === "POST" && path === "/webhook") {
-      await connectDb(env);
-      trace.dbConnected = true;
-      return await handleWebhook(request, env, ctx);
-    }
+    // 🔴 POST /webhook 은 등록하지 않는다 — 웹훅은 worker/index.js 가 V2 로 가로챈다(구 handleWebhook 은 라우터와 분리).
 
     // 인증 확인과 동시에 결제 핸들러가 곧바로 쓰는 User 필드를 함께 읽어(authUserDoc) 인증-후 재조회
     // 왕복을 없앤다. 결제창이 뜨기까지의 Mongo 왕복이 곧 체감 지연이자 일시적 503의 표면적이라,
@@ -3751,11 +3748,14 @@ export async function handlePaymentRoutes(request, env, ctx) {
 
     if (method === "GET" && path === "/me") return await handleMe(auth, env, request);
 
+    // 🔴 구 단건결제 시작·완료는 닫았다(V2 prepare 의 지역·해외카드·환불동의 게이트 우회). 핸들러는 재조정 크론이 쓰므로 남긴다.
+    const retiredSingleEndpoint = () => json({ ok: false, code: "LEGACY_ENDPOINT_RETIRED", message: "종료된 결제 경로입니다. 최신 결제 화면에서 다시 시도해 주세요." }, { status: 410 });
+    if (method === "POST" && path === "/single/start") return retiredSingleEndpoint();
+    if (method === "POST" && path === "/single/complete") return retiredSingleEndpoint();
+
     await connectDb(env);
     trace.dbConnected = true;
 
-    if (method === "POST" && path === "/single/start") return await handleSinglePaymentStart(request, env, auth);
-    if (method === "POST" && path === "/single/complete") return await handleSinglePaymentComplete(request, env, auth);
     if (method === "POST" && path === "/single/cancel") return await handleSinglePaymentCancel(request, env, auth);
     /* /prepare · /subscription/prepare · /subscription/confirm · /confirm 은 worker/index.js 가 V2
        (worker/payments/index.js)로 가로채므로 여기까지 오지 않는다 — 네 경로의 구 핸들러는 2026-09-06 에

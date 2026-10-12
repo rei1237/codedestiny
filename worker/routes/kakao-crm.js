@@ -10,9 +10,18 @@ export function checkOrigin(request) {
   const own = new URL(request.url).origin;
   if (!origin || ![own, 'https://code-destiny.com', 'https://staging.code-destiny.com'].includes(origin)) throw createHttpError(403, 'Invalid origin');
 }
+// 길이가 다르면 즉시 거부하고, 같은 길이는 XOR 누적으로 상수 시간 비교한다.
+function timingSafeTextEqual(left, right) {
+  const a = new TextEncoder().encode(String(left || ''));
+  const b = new TextEncoder().encode(String(right || ''));
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i += 1) diff |= a[i] ^ b[i];
+  return diff === 0;
+}
 async function webhook(request, env) {
   const key = String(env.KAKAO_CHANNEL_ADMIN_KEY || '');
-  if (!key || request.headers.get('Authorization') !== `KakaoAK ${key}`) return json({ error: 'unauthorized' }, { status: 401 });
+  if (!key || !timingSafeTextEqual(request.headers.get('Authorization'), `KakaoAK ${key}`)) return json({ error: 'unauthorized' }, { status: 401 });
   const body = await readJson(request);
   const at = new Date(body.updated_at);
   const resourceId = request.headers.get('X-Kakao-Resource-ID');
