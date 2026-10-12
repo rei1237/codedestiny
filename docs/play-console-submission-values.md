@@ -89,14 +89,20 @@
 
 **각 티어가 실제로 커버하는 기능** (레지스트리 실측 — 참고용, Play Console 입력 불필요)
 
+집계 기준(2026-10-12): `worker/lib/paid-feature-registry.js`의 `FEATURE_KEY_PRICE_TABLE`과 `UNLOCK_PRODUCT_BY_FEATURE_KEY` 합집합 182개 키를 `worker/lib/app-store-pricing.js`의 `isAppFreeFeature` → `resolveAppContentTier` 순서로 분류했다. 앱 무료 0개, 티어 미배정 0개.
+
 | 상품 ID | 웹가 | 앱가 | 대상 기능 수 | 대표 기능 |
 |---|---|---|---|---|
-| `cd_content_tier_01` | 3,000 | 3,000 | 18 | tarot-numerology-reading, animal-totem-basic |
-| `cd_content_tier_02` | 5,000 | 5,000 | 58 | tarot-love-relationship, royal-tea-oracle, physiognomy-*, animal-totem-deep |
-| `cd_content_tier_14` | 7,000 | 7,000 | 1 | tarot-prompt-maker-deep (타로 오라클 상담 8~10카드) |
-| `cd_content_tier_06` | 10,000 | 10,000 | 50 | tarot-year-fortune, fortune-tea-house-saju-consultation, ziwei_love_deep |
-| `cd_content_tier_09` | 20,000 | 20,000 | 10 | cosmic-soul-meditation, life-book-ai-consultation |
-| `cd_content_tier_10` | 30,000 | 30,000 | 18 | vedic-ai-consultation, karma-destiny-ai-consultation, master-love-codex (2026-10-12) |
+| `cd_content_tier_01` | 3,000 | 3,000 | 17 | daily-fortune-reading, royal-tea-oracle, ifa-oracle, stonehenge-runes-* |
+| `cd_content_tier_02` | 5,000 | 5,000 | 74 | astro_basic_deep_pack, animal-totem-basic·deep, compat-ziwei-compatibility, physiognomy-* |
+| `cd_content_tier_14` | 7,000 | 7,000 | 14 | destiny-compass-*, human-design-report, love-code, saju-guardian-unlock |
+| `cd_content_tier_06` | 10,000 | 10,000 | 35 | fortune-tea-house-*-consultation 5종, tarot-year-fortune, cosmic-soul-meditation, life-book-ai-consultation, 영냥이 연어 |
+| `cd_content_tier_09` | 20,000 | 20,000 | 1 | nakshatra-compat |
+| `cd_content_tier_10` | 30,000 | 30,000 | 24 | section_daewun·section_summary(사주 대운·종합), master-love-codex(개인판), vedic-ai-consultation, 영냥이 참치 |
+| `cd_content_tier_15` | 1,000 | 1,000 | 4 | profile-card-manage, fun.quantumLotto.ritualReport, rpt_skillTreeCard, rpt_specialCharmCard |
+| `cd_content_tier_16` | 15,000 | 15,000 | 7 | 영냥이 광어 6종, fortune-chat-question-flounder |
+| `cd_content_tier_17` | 50,000 | 50,000 | 5 | master-love-codex-compat(궁합판), fusion-fortune-consultation, 영냥이 생선 모둠 3종 |
+| `cd_content_tier_18` | 70,000 | 70,000 | 1 | yeongnyangi-fusion-all(생선 오마카세) |
 
 ### 2-2. 이용권 4개
 

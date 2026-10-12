@@ -1,10 +1,28 @@
 import './lib/mock-network-guard.cjs';
 import assert from 'node:assert/strict';
 import { mkdir, readFile } from 'node:fs/promises';
+import { createServer } from 'node:http';
+import { extname, resolve, sep } from 'node:path';
 import { chromium, expect } from '@playwright/test';
 import { FEATURE_KEY_PRICE_TABLE } from '../worker/lib/paid-feature-registry.js';
 
-const base = process.env.CONSULTATION_TEST_BASE || 'http://127.0.0.1:25592';
+// Without an explicit base, serve the tracked public/ build on a free port (CI guards job).
+let server;
+if (!process.env.CONSULTATION_TEST_BASE) {
+  const root = resolve('public');
+  server = createServer(async (req, res) => {
+    const pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
+    const file = resolve(root, '.' + (pathname.endsWith('/') ? pathname + 'index.html' : pathname));
+    if (!file.startsWith(root + sep)) { res.writeHead(403); res.end(); return; }
+    try {
+      const data = await readFile(file);
+      res.setHeader('Content-Type', ({ '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.webp': 'image/webp', '.png': 'image/png' })[extname(file)] || 'application/octet-stream');
+      res.end(data);
+    } catch { res.writeHead(404); res.end(); }
+  });
+  await new Promise(done => server.listen(0, '127.0.0.1', done));
+}
+const base = process.env.CONSULTATION_TEST_BASE || `http://127.0.0.1:${server.address().port}`;
 assert.ok(['localhost', '127.0.0.1'].includes(new URL(base).hostname), 'mock localhost only');
 const output = 'build-cache/detail-first-entry';
 await mkdir(output, { recursive: true });
@@ -78,4 +96,4 @@ try {
     assert.deepEqual(errors, []);
     await context.close();
   }
-} finally { await browser.close(); }
+} finally { await browser.close(); server?.close(); }

@@ -76,6 +76,8 @@ try {
  await page.evaluate(()=>{window.renderAstroInsightLegacyNeon=()=>{throw new Error('mock fallback');};window.renderAstroInsight();});
  await page.waitForFunction(()=>document.querySelector('[data-astro-server-detail] [role="status"]').textContent.includes('불러오지'));
  assert.equal(await page.locator('.as-authorized-detail').textContent(),'');assert.ok(await page.locator('[data-astro-public-summary]').count());
+ // 서버는 profileId 없는 요청을 400 MISSING_PROFILE_ID 로 거절한다. 저장·선택한 카드 id 가 매 요청에 실려야 한다.
+ assert.ok(calls.length&&calls.every(c=>c.profileId==='mock-reader'),JSON.stringify(calls));
  const result={calls:calls.length,errors,warnings:warnings.filter(s=>/astro/i.test(s)),widths:[360,390,430,1280],checks:['free chart','locked detail','purchased detail','free-only share','successful PDF print invocation','failed PDF recheck','legacy renderer failure fallback']};
  await fs.writeFile(path.join(dir,'browser-result.json'),JSON.stringify(result,null,2));console.log(JSON.stringify(result,null,2));
  assert.deepEqual(errors,[]);

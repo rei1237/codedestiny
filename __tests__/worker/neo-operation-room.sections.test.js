@@ -24,9 +24,9 @@ const input = {
 const methodSummary = { method: "ziwei", evidenceSummary: "명궁: 자미◎(최상)", evidenceTokens: ["자미", "재백궁"] };
 
 describe("neo section registries", () => {
-  test("1차 챕터 합계 minChars가 2만 자 이상을 목표로 한다", () => {
+  test("1차 챕터 합계 minChars가 2만6천 자 이상을 목표로 한다", () => {
     const total = NEO_INITIAL_SECTIONS.reduce((sum, s) => sum + s.minChars, 0);
-    expect(total).toBeGreaterThanOrEqual(20000);
+    expect(total).toBeGreaterThanOrEqual(26000);
   });
   test("타고난 성향은 1차에만, 30일 전략은 2차에만 존재한다", () => {
     const initIds = NEO_INITIAL_SECTIONS.map((s) => s.id);

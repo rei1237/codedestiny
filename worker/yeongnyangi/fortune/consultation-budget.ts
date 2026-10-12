@@ -7,7 +7,7 @@ import {CONCISE_READING_VERSION,conciseOutputTokens} from './concise-reading';
 
 export const CONSULTATION_BUDGET_VERSION='consultation-split-20261010';
 export const LEGACY_CONSULTATION_BUDGET_VERSION='consultation-total-20261008';
-export const CONSULTATION_FOLLOWUPS={mackerel:0,salmon:1,flounder:2,tuna:4,assorted:5,omakase:7} as const;
+export const CONSULTATION_FOLLOWUPS={mackerel:0,salmon:1,flounder:2,tuna:6,assorted:5,omakase:7} as const;
 // D7: length comes from the chapter count. One call writes about 1,600~2,400 chars, so per-chapter targets stay there.
 export const CONSULTATION_CHAPTERS={mackerel:6,salmon:11,flounder:15,tuna:24,assorted:28,omakase:36} as const;
 export const CONSULTATION_CHAPTER_TARGETS:Record<PackageId,readonly [number,number]>={

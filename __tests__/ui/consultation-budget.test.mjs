@@ -16,7 +16,7 @@ const asked=category=>({...decision,category,...(category==='compatibility'?{tar
 const INITIAL={mackerel:[9000,10500],salmon:[22000,28600],flounder:[31500,39000],tuna:[50400,64800],assorted:[58800,75600],omakase:[75600,97200]};
 
 test('D7 budget: initial is chapters × per-chapter target and every followup has its own fixed target',()=>{
- assert.deepEqual(m.CONSULTATION_FOLLOWUPS,{mackerel:0,salmon:1,flounder:2,tuna:4,assorted:5,omakase:7});
+ assert.deepEqual(m.CONSULTATION_FOLLOWUPS,{mackerel:0,salmon:1,flounder:2,tuna:6,assorted:5,omakase:7});
  assert.deepEqual(m.CONSULTATION_CHAPTERS,{mackerel:6,salmon:11,flounder:15,tuna:24,assorted:28,omakase:36});
  for(const tier of Object.keys(m.CONSULTATION_FOLLOWUPS)){
   const budget=m.consultationBudget(tier);

@@ -79,6 +79,22 @@ export function profileCardSolarBirth(card) {
 }
 
 /**
+ * 저장 프로필 없이 계정에만 남은 출생 기반 전환 이전 해금(USER·__user__ 행)만 본다.
+ * 출생 정보가 없으므로 호출자는 요청 본문의 생년월일로 계산한다(그 계정의 옛 구매 범위가 계정 단위였다).
+ * @returns {Promise<{ok:boolean, reason?:string, unlocked:boolean}>}
+ */
+export async function readAccountLegacyUnlock(env, { userId, featureKey }) {
+  const uid = String(userId || "").trim();
+  if (!uid) return { ok: false, reason: "LOGIN_REQUIRED", unlocked: false };
+  return withMongoRetry(env, async () => {
+    await connectDb(env);
+    if (!mongoose.isValidObjectId(uid)) return { ok: false, reason: "INVALID_PROFILE", unlocked: false };
+    const doc = await findActivePaidContentUnlock({ userId: uid, featureKey: normalizePaidFeatureKey(featureKey) });
+    return { ok: true, unlocked: Boolean(doc) };
+  });
+}
+
+/**
  * 출생 기반 유료 콘텐츠 라우트의 단일 읽기 입구.
  * - profileId 는 필수, 이 계정 소유의 저장 프로필이어야 한다(아니면 MISSING_PROFILE_ID / INVALID_PROFILE).
  * - 해금 여부는 그 프로필의 **현재 출생 정보(birthKey)** 의 BIRTH 행과, 출생 전환 이전의 레거시 USER/PROFILE 행으로 판정한다.

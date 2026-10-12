@@ -1,6 +1,6 @@
 import {questionEditorial,foundationGuide} from './question-editorial';
 import {layoutTargets,layoutMinimum,CONSULTATION_CHAPTERS} from '../consultation-budget';
-import {questionOutlines,bonusAreas,lifeRows,timingUnits,currentFlowGuide,timingSelectors,BONUS_TITLE,type LayoutStep,type LayoutTopic} from '../consultation-layout';
+import {questionOutlines,bonusAreas,lifeRows,tunaRoadmapRow,timingUnits,currentFlowGuide,timingSelectors,BONUS_TITLE,type LayoutStep,type LayoutTopic} from '../consultation-layout';
 import {questionFoundationEvidence} from '../reading-v6';
 import {FortuneError,type DomainId} from '../shared/contracts';
 import {canonicalAskCategory} from './categories';
@@ -11,7 +11,7 @@ import {conciseOutputTokens,CONCISE_READING_VERSION} from '../concise-reading';
 
 /** Only new question consultations use this immutable contract. Historical menus retain their snapshots. */
 export const QUESTION_POLICY_VERSION='question-consultation-20261007';
-export const FOLLOWUP_LIMITS={mackerel:0,salmon:1,flounder:2,tuna:4} as const;
+export const FOLLOWUP_LIMITS={mackerel:0,salmon:1,flounder:2,tuna:6} as const;
 export type QuestionFish=keyof typeof FOLLOWUP_LIMITS;
 export type QuestionDecision={
  version:typeof QUESTION_POLICY_VERSION; category:AskCategory; target:'self'|'pair';
@@ -162,7 +162,7 @@ export function questionManifest(domain:DomainId,fish:QuestionFish,d:QuestionDec
   {id:'bonus-pick-signal',title:'질문 밖에서 두드러지는 영역',instruction:`${(lastBonus.length?areas:areas.slice(1)).map(x=>x.title).join('·')} 가운데 실제 근거가 가장 뚜렷한 영역 하나를 골라 그 이유를 설명한다. 질문과 같은 영역은 고르지 않는다.`},
   {id:'bonus-pick-use',title:'그 영역에서 해 볼 일',instruction:'고른 영역에서 지금 해 볼 수 있는 구체적인 행동을 제시한다.'}]}),...(lastBonus.length?lastBonus:[bonus(area(areas[0]))]));
  if(fish==='flounder')groups.push(...areas.slice(0,4-lastBonus.length).map(item=>bonus(area(item))),...lastBonus);
- if(fish==='tuna')groups.push(...lifeRows.map(step=>fromStep(step,'인생 전반 · '+step.title,'life')));
+ if(fish==='tuna')groups.push(...lifeRows.map(step=>step.key==='life-year'?tunaRoadmapRow:step).map(step=>fromStep(step,'인생 전반 · '+step.title,'life')));
  groups.push({title:subject+' · 종합 해석과 실행 계획',role:'synthesis',theme:'action',weight:.9,sections:actions});
  const targets=layoutTargets(groups.map(group=>group.weight),fish);
  const foundation=questionFoundationEvidence(domain);

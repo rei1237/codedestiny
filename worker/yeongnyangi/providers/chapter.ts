@@ -51,6 +51,7 @@ import {TAROT_POSITION_RULE,TAROT_TIMING_RULE,TAROT_VERDICT_RULE,correctTarotCha
 import {correctNatalClaims} from '../fortune/saju/natal-claims';
 import {correctZiweiClaims} from '../fortune/ziwei/claims';
 import {sexagenaryYearOfDate} from '../fortune/saju/sexagenary-year';
+import {TUNA_PROMPT_CONTRACT,tunaReviewInstruction} from '../fortune/tuna-quality';
 export interface ChapterRequest {
   deliveryContract?: string;
   locale?: ReadingLocale;
@@ -58,7 +59,9 @@ export interface ChapterRequest {
   chapter: ChapterSpec;
   analysis: MasterAnalysis;
   previous: (Pick<ChapterBody, "summary" | "example" | "topics"> & Partial<ChapterBody>)[];
-  repair?: { code: string };
+  repair?: { code: string; issues?: string[] };
+  /** The order carries TUNA_QUALITY_POLICY: citations and question links are required, and one self-review rewrite may follow. */
+  tunaQuality?: boolean;
   ask?: {analysis: AskAnalysis; evidence: EvidencePacket};
   followupQuestion?: string;
   persona?: ChatPersona;
@@ -571,7 +574,8 @@ export class StructuredChapterProvider implements FortuneChapterProvider {
         sectionContract: input.chapter.sections,
         depth,
         lengthContract: isStructuredReading(input.chapter.version)?{minimum:input.chapter.minimumChars,target:input.chapter.targetChars,unit:'공백 포함 실제 해설 본문. 제목·목차·요약·배지·출처·반복 안내 제외. 분량을 반복으로 채우지 않는다.'}:undefined,
-        correction: input.repair?{...input.repair,instruction:input.repair.code==='TIER_SCOPE_VIOLATION'&&allowsPreventionBalance(input.chapter)?preventionTierRule:input.repair.code==='INTERNAL_EVIDENCE_EXPOSED'&&(spirit||sky)?(sky?.evidenceVersion?SYMBOLIC_REPAIR:PLAIN_SYMBOLIC_REPAIR):REPAIR_INSTRUCTIONS[input.repair.code]}:undefined,
+        ...(input.tunaQuality?{tunaQualityContract:TUNA_PROMPT_CONTRACT}:{}),
+        correction: input.repair?{...input.repair,instruction:input.repair.code==='TUNA_SELF_REVIEW'?tunaReviewInstruction(input.repair.issues||[]):input.repair.code==='TIER_SCOPE_VIOLATION'&&allowsPreventionBalance(input.chapter)?preventionTierRule:input.repair.code==='INTERNAL_EVIDENCE_EXPOSED'&&(spirit||sky)?(sky?.evidenceVersion?SYMBOLIC_REPAIR:PLAIN_SYMBOLIC_REPAIR):REPAIR_INSTRUCTIONS[input.repair.code]}:undefined,
         excludedSubjects: input.chapter.excludes,
         paidScope: paidScoped?(allowsPreventionBalance(input.chapter)?preventionTierRule:REPAIR_INSTRUCTIONS.TIER_SCOPE_VIOLATION):undefined,
         evidenceLimit: '자료 부족은 낮은 위험이나 좋은 운이 아니다. 없는 시기와 사실은 만들지 않는다. 질병·장기 이상·음식의 치료 효능을 명식으로 판단하지 않는다.',

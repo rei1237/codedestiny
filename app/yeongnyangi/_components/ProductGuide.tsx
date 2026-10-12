@@ -7,7 +7,8 @@ import {trackEvent} from '@/lib/analytics';
 import styles from './product-guide.module.css';
 import {useReadingLanguage} from '../_lib/use-reading-language';
 import LocalizedProductGuide from './LocalizedProductGuide';
-import {readingDepthCopy,readingTierDepth} from '../_lib/reading-depth-copy';
+import {readingDepthCopy,readingTierDepth,tierComparison} from '../_lib/reading-depth-copy';
+import {FOLLOWUP_LIMITS} from '@/worker/yeongnyangi/fortune/ask/question-policy';
 import LaunchPlannedPrice from '@/app/components/LaunchPlannedPrice';
 import {plannedPriceFor} from '@/lib/brand/launch-offer';
 import {YEONGNYANGI_TESTIMONIAL as testimonial} from '@/lib/brand/trust-stories.mjs';
@@ -61,6 +62,7 @@ export default function ProductGuide({domain,offers,surface='home_catalog'}:{dom
   <Heading>결제 후 펼쳐질 이야기</Heading>
   <p>목차와 분량을 비교해 필요한 리포트를 골라주세요.</p>
   <div id={optionsId} className={styles.tiers} role="group" aria-label="성향 리포트 구성">{offers.map(p=><button key={p.id} type="button" aria-pressed={offer.id===p.id} onClick={()=>{setFish(p.fish);trackProductStep('product_tier_select',domain,p.itemId,surface);}}>{p.fishName}<span>{p.price.toLocaleString('ko-KR')}원</span><span className={styles.tierDepth}>{p.chapters.length}개 챕터 · {p.chapters[0]}</span></button>)}</div>
+  {offers.some(p=>p.fish==='flounder')&&offers.some(p=>p.fish==='tuna')&&(()=>{const c=tierComparison('ko',FOLLOWUP_LIMITS);return <table className={styles.comparison} data-tier-comparison><caption>{c.title}</caption><thead><tr><th scope="col"></th><th scope="col">광어</th><th scope="col">참치</th></tr></thead><tbody>{c.rows.map(row=><tr key={row.label}><th scope="row">{row.label}</th><td>{row.flounder}</td><td>{row.tuna}</td></tr>)}</tbody></table>;})()}
   <p aria-live="polite"><strong>{offer.fishName} · {offer.chapters.length}개 챕터</strong><br/><span data-reading-tier-depth={offer.fish}>{offer.chapters.slice(0,2).join(' · ')}</span></p>
   <CraftedProductDisclosure featureKey={offer.itemId}/>
   <a className={styles.cta} href={`/yeongnyangi/fortune/?flow=legacy&domain=${domain}&fish=${offer.fish}`} onClick={()=>trackProductStep('product_start_click',domain,offer.itemId,surface)}>이 구성으로 상담 준비하기 →</a>

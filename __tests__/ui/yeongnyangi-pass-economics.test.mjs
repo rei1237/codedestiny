@@ -40,7 +40,12 @@ test('monthly fifty-pack review exposes mackerel margin limits independently of 
  const mackerel=review.packs.find(pack=>pack.fishId==='mackerel');
  // The eight-call stress ceiling is not measured cost; the repriced direct sale now leaves a viable margin range.
  assert.equal(mackerel.thirtyPercentMarginPossibleBelowDirectPriceEvenAtInfiniteVolume,true);
- assert.ok(review.costs.every(row=>row.firstAttemptSuccessKRW<row.hypotheticalOneBookRetryKRW&&row.hypotheticalOneBookRetryKRW<row.fullRecoveryPerChapterKRW));
+ assert.ok(review.costs.filter(row=>row.fishId!=='tuna').every(row=>row.firstAttemptSuccessKRW<row.hypotheticalOneBookRetryKRW&&row.hypotheticalOneBookRetryKRW<row.fullRecoveryPerChapterKRW));
+ // Tuna uses the pro-model book ratio, which already includes retries, rewrites and followups.
+ const tuna=review.costs.find(row=>row.fishId==='tuna');
+ assert.match(tuna.basis,/^tunaBookCostRatio on gemini\/gemini-2\.5-pro/);
+ assert.ok(tuna.costRatioByProduct.every(row=>row.costRatio<=.2));
+ assert.ok(tuna.legacyFlashScenario.fullRecoveryPerChapterKRW>0);
  const allMackerel=review.monthlyFiftyPackMixes.find(mix=>mix.name==='all_mackerel');
  assert.ok(allMackerel.scenarios.find(row=>row.signupRedemptions===100).operatingProfitScenarioKRW<0);
  const introductory=result.dedicatedPackEvaluation.packs.find(pack=>pack.priceKRW===5000&&pack.consultations===7);

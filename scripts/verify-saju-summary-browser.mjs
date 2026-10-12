@@ -6,12 +6,31 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { mkdir } from 'node:fs/promises';
 import { tmpdir, freemem } from 'node:os';
+import { buildSajuSectionHtml } from '../worker/lib/saju-section/report.js';
 
 const root = process.cwd();
 const server = createServer(async (req, res) => {
   const pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
   // This suite tests a member's paid summary; guest/result access is covered by verify-saju-result-login.mjs.
   if (pathname === '/api/auth/me') { res.writeHead(200, {'content-type':'application/json'}); res.end(JSON.stringify({ok:true,authenticated:true,user:{id:'summary-race-user',name:'회귀검증'}})); return; }
+  if (pathname === '/api/saju/section') {
+    // 종합·대운 본문은 서버가 만든다. 해금 판정은 워커 테스트가 맡고, 여기서는 같은 렌더러로 배달 흐름만 본다.
+    let raw = '';
+    for await (const chunk of req) raw += chunk;
+    let status = 200, payload;
+    try {
+      const body = JSON.parse(raw || '{}');
+      const birth = body.birth || {};
+      const result = buildSajuSectionHtml({
+        featureKey: body.featureKey,
+        birth: {calendarDate: birth.date, calType: birth.calType, timeKnown: birth.timeKnown !== false, hour: birth.hour, minute: birth.minute},
+        gender: body.gender, name: body.name, mode: body.mode, lang: body.lang, place: body.place, jongDecision: body.jongDecision, daewun: body.daewun,
+      });
+      payload = {ok:true, unlocked:true, featureKey:body.featureKey, ...result};
+    } catch (error) { status = 400; payload = {ok:false, message:error.message}; }
+    sectionRequests.push({ case: activeCase, featureKey: payload.featureKey, status, message: payload.message });
+    res.writeHead(status, {'content-type':'application/json'}); res.end(JSON.stringify(payload)); return;
+  }
   if (pathname.startsWith('/api/')) { res.writeHead(200, {'content-type':'application/json'}); res.end('{"ok":true,"unlocks":[],"profiles":[]}'); return; }
   const file = resolve(root, '.' + (pathname === '/' ? '/index.html' : pathname));
   if (!file.startsWith(root + '/') && !file.startsWith(root + '\\')) { res.writeHead(403); res.end(); return; }
@@ -29,6 +48,8 @@ const fingerprints = async () => Object.fromEntries(await Promise.all(inputs.map
 const before = await fingerprints();
 let activePage;
 let activeCase = '';
+// 실패 진단용: 검증 서버가 받은 본문 요청.
+const sectionRequests = [];
 const browserErrors = [];
 
 async function settleScroll(page) {
@@ -183,8 +204,18 @@ try {
   // Restored birth-scoped access arrives as a verified grant for the current profileId, not
   // through the shared legacy map. Emit the access-restoration notification, then require a readable report.
   await page.evaluate(() => window.dispatchEvent(new CustomEvent('cd:unlocks-changed',{detail:{source:'mock-restored-entitlement'}})));
+  // 본문은 서버 응답으로 늦게 온다 — 배달된 본문이나 보이는 해금 버튼 중 하나가 나올 때까지 기다린다.
+  await page.waitForFunction(() => {
+    if (document.querySelector('#summaryArea .saju-summary-report')) return true;
+    const button = document.querySelector('#summaryGate button[data-unlock-key]');
+    return !!button && !!(button.offsetWidth || button.offsetHeight || button.getClientRects().length);
+  }, undefined, {timeout:15000});
   if (!await page.locator('#summaryArea .saju-summary-report').count()) {
-    await page.locator('#summaryGate button[data-unlock-key]').click();
+    // 해금 알림이 버튼을 숨긴 뒤에 본문이 오면 누를 버튼이 없다 — 그때는 아래에서 본문을 기다린다.
+    const gateButton = page.locator('#summaryGate button[data-unlock-key]');
+    await gateButton.click({timeout:5000}).catch(async (error) => {
+      if (await gateButton.isVisible()) throw error;
+    });
   }
   }
   await page.locator('#summaryArea .saju-summary-report').waitFor({state:'visible'});
@@ -321,7 +352,8 @@ try {
         await page.screenshot({path:resolve(shots,'offer-'+mode+'-'+width+'.png')});
       }
       assert.equal(await page.locator('#sajuReadingHeader .saju-reading-compare').count(),0);
-      assert.match(await page.locator('.saju-cycle-guide > p').first().textContent(), mode === 'neo' ? /핵심은/ : /살펴볼게요/);
+      // 모드를 바꾸면 펼친 대운을 서버에서 새 말투로 다시 받는다 — 도착할 때까지 기다린다.
+      await page.waitForFunction(word => (document.querySelector('.saju-cycle-guide > p')?.textContent || '').includes(word), mode === 'neo' ? '핵심은' : '살펴볼게요');
       assert.equal(await page.locator('#dwGrid .dw-item').count() > 0,true,'persona switch preserves paid access');
     }
     const firstDwItem = page.locator('#dwGrid .dw-item').first();
@@ -341,6 +373,22 @@ try {
     console.error('SUMMARY DOM:', await activePage.locator('#summaryCard').evaluate(el => ({ classes: el.className, rect: el.getBoundingClientRect().toJSON(), viewport: innerHeight, scrollY, opacity: getComputedStyle(el).opacity })).catch(() => null));
     await activePage.screenshot({ path: resolve(directory, 'failure.png') }).catch(() => {});
   }
-  console.error('SUMMARY DIAGNOSTICS:', JSON.stringify({ case: activeCase, directory, freeMemory: freemem(), before, after: await fingerprints(), browserErrors }));
+  // 게이트·해금·본문 칸 상태 — CI 에서만 나는 실패를 로그만으로 읽을 수 있게 남긴다.
+  const state = activePage && !activePage.isClosed() ? await activePage.evaluate(() => {
+    const gate = document.querySelector('#summaryGate');
+    const button = gate && gate.querySelector('button[data-unlock-key]');
+    const area = document.querySelector('#summaryArea');
+    const style = button && getComputedStyle(button);
+    return {
+      gateClass: gate && gate.className,
+      button: button && { rect: button.getBoundingClientRect().toJSON(), visibility: style.visibility, display: style.display },
+      area: area && area.innerHTML.slice(0, 300),
+      unlocked: typeof window.isTileKeyUnlocked === 'function' ? window.isTileKeyUnlocked('section_summary') : null,
+      gateUnlocked: typeof window._cdSajuGateUnlocked === 'function' ? window._cdSajuGateUnlocked('section_summary') : null,
+      profileId: typeof window.cdBirthScopeCurrentProfileId === 'function' ? window.cdBirthScopeCurrentProfileId() : null,
+      hasInput: !!window.__cdSajuSectionInput,
+    };
+  }).catch((error) => String(error)) : null;
+  console.error('SUMMARY DIAGNOSTICS:', JSON.stringify({ case: activeCase, directory, freeMemory: freemem(), state, sectionRequests, before, after: await fingerprints(), browserErrors }));
   throw error;
 } finally { await browser.close(); server.close(); }
