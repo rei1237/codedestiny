@@ -53,9 +53,11 @@ const startDate=(r:any)=>`${r?.start?.year}-${String(r?.start?.month).padStart(2
  * run once per later civil year (at most three); ziwei years are cut from the stored timeline to the asked years.
  */
 export async function questionPeriodTiming(ctx:DomainContext,d:QuestionDecision,period:{end?:string}|undefined,asOf:string,
- monthsOf:(year:number)=>Promise<unknown>):Promise<DomainContext>{
- if(d.horizon==='transition')return ctx;
- const end=period?.end&&period.end>asOf?period.end:asOf,first=Number(asOf.slice(0,4)),last=Number(end.slice(0,4));
+ monthsOf:(year:number)=>Promise<unknown>,roadmapEnd?:string):Promise<DomainContext>{
+ // The tuna 12-month roadmap (tunaRoadmapEnd) needs saju month rows even for a transition question.
+ if(d.horizon==='transition'&&!(roadmapEnd&&ctx.domain==='saju'))return ctx;
+ const asked=d.horizon!=='transition'&&period?.end&&period.end>asOf?period.end:asOf;
+ const end=roadmapEnd&&roadmapEnd>asked?roadmapEnd:asked,first=Number(asOf.slice(0,4)),last=Number(end.slice(0,4));
  const replace=(label:string,value:unknown)=>({...ctx,facts:ctx.facts.map(f=>f.label===label?{...f,value}:f)});
  if(ctx.domain==='saju'){
   const rows=ctx.facts.find(f=>f.label==='monthlyLuck')?.value;

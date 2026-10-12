@@ -36,7 +36,10 @@ export class CodeDestinyProvider implements LLMProvider {
   constructor(private env: Record<string, unknown>, private logContext: Record<string, unknown> = {},
     private cacheContext: {owner?:string;skipRead?:boolean}={},
     // The order's tier timeout (chapterTimeoutMs); orders without the policy marker keep CHAPTER_TIMEOUT_MS.
-    private timeoutMs = CHAPTER_TIMEOUT_MS) {}
+    private timeoutMs = CHAPTER_TIMEOUT_MS,
+    // Tuna orders under TUNA_QUALITY_POLICY write chapters on the top model (tunaChapterModel); others keep the env default.
+    // The question analysis stays on the default model because it runs with a zero thinking budget.
+    private model?: string) {}
   async analyzeQuestion(system: string, data: string): Promise<string> {
     if(getEnv(this.env,'LLM_DRY_RUN')==='true'||!getEnv(this.env,'GEMINIF_API_KEY'))throw new FortuneError('LLM_NOT_CONFIGURED',503);
     const response=await callGeminiText(this.env,data,{
@@ -70,6 +73,7 @@ export class CodeDestinyProvider implements LLMProvider {
       outputRegister:'persona',
       // The chapter lease reserves another 90 seconds for analysis, validation and persisted reread.
       maxOutputTokens:cap,thinkingBudget:CHAPTER_THINKING_BUDGET,timeoutMs:this.timeoutMs,
+      ...(this.model?{model:this.model}:{}),
       preserveTermination:true,
       // The durable chapter counter owns retries. Hidden provider retries would
       // multiply calls behind one recorded attempt and delay queue recovery.
@@ -79,7 +83,7 @@ export class CodeDestinyProvider implements LLMProvider {
       cache:chapterResponseCache(this.env,this.cacheContext.owner,this.logContext.requestId,String(this.logContext.sectionGroup),this.cacheContext.skipRead),
       logContext:this.logContext,
     });
-    this.receipt={provider:response.provider || 'gemini',model:response.model || 'gemini-2.5-flash',
+    this.receipt={provider:response.provider || 'gemini',model:response.model || this.model || 'gemini-2.5-flash',
       finishReason:response.finishReason || '',inputTokens:response.usage?.inputTokens ?? null,outputTokens:response.usage?.outputTokens ?? null,
       estimated:response.usage?Boolean(response.usage.estimated):null,thinkingTokens:response.usage?.thinkingTokens ?? null,
       durationMs:Date.now()-startedAt,maxOutputTokens:cap,status:'status' in response?response.status:null};
@@ -89,6 +93,6 @@ export class CodeDestinyProvider implements LLMProvider {
       throw new FortuneError(/timeout|deadline/i.test(code)?'FORTUNE_PROVIDER_TIMEOUT':'FORTUNE_PROVIDER_FAILED',502);
     }
     if(response.truncated || /^(MAX_TOKENS|LENGTH)$/i.test(response.finishReason || ''))throw new FortuneError('CHAPTER_TRUNCATED',502);
-    return {result:response.text,provider:response.provider || 'gemini',model:response.model || 'gemini-2.5-flash'};
+    return {result:response.text,provider:response.provider || 'gemini',model:response.model || this.model || 'gemini-2.5-flash'};
   }
 }

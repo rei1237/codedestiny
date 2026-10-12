@@ -39,7 +39,7 @@ export function deliverChapter(raw:unknown,input:ChapterRequest):ChapterBody {
     const code=chapterDeliveryFailure(candidate,input.chapter,false);
     if(code&&!shortOnlyChapter(candidate,input.chapter,false))throw new FortuneError(code);
   }
-  const {shortDelivery:_serverOnly,...body}=deliverChapterBody(candidate,input);
+  const {shortDelivery:_serverOnly,selfReview:_serverReview,...body}=deliverChapterBody(candidate,input);
   if(!contracted)return body;
   const delivered={...body,chapterId:input.chapter.id,complete:true,deliveryVersion:CHAPTER_DELIVERY_VERSION};
   const code=chapterDeliveryFailure(delivered,input.chapter);

@@ -6,7 +6,7 @@ import {QUESTION_POLICY_VERSION,questionDecision,questionTopic,assertQuestionOrd
 import {COUNSEL_VERSION,counselManifest} from './fortune/counsel-purpose';
 import {withSajuCycleEvidence} from './fortune/saju/cycle-evidence';
 import {nativeContactBoundary} from './fortune/symbolic-locale';
-import {CHAPTER_DELIVERY_VERSION,CHAPTER_TIMEOUT_POLICY,chapterQualityFailure,chapterTimeoutMs,deliveredCharacterCount,hasChapterDeliveryContract} from './chapter-delivery-contract.js';
+import {CHAPTER_DELIVERY_VERSION,CHAPTER_TIMEOUT_POLICY,chapterLeaseMs,chapterQualityFailure,chapterTimeoutMs,deliveredCharacterCount,hasChapterDeliveryContract} from './chapter-delivery-contract.js';
 import {deliveryRefundPending} from './terminal-refund-policy.js';
 import { correctedFortune } from "./reading-correction.js";
 import { storedChapterDraft, canResumeStoredChapter } from './stored-chapter.js';
@@ -57,6 +57,7 @@ import { jongCheckApplies } from './fortune/saju/jong-check-policy';
 import { enqueueConsultation } from './queue.js';
 import { FortuneError, type DomainContext, type DomainId } from './fortune/shared/contracts';
 import { CodeDestinyProvider } from './providers/code-destiny';
+import {TUNA_QUALITY_POLICY,TUNA_REVIEW_MAX_REWRITES,auditTunaChapter,tunaChapterModel,tunaRoadmapEnd,tunaQualityApplies,tunaRewritesUsed} from './fortune/tuna-quality';
 import { StructuredChapterProvider, type ChatPersona } from './providers/chapter';
 import { deliverChapter } from './providers/delivery';
 import { createRequest, commitTarotDraw, readRequest, attachPayment, claimChapter, finishChapter, failChapter, ownerId, saveAskAnalysis, saveChapterDraft, allowedChapterAttempts, holdAutoResumes, userCanRetry, reserveQuestionSkyFollowup } from './repository.js';
@@ -228,7 +229,8 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   if(decision){
     const input=normalized[product.domain];
     contexts[product.domain]=await questionPeriodTiming(contexts[product.domain]!,decision,questionPeriod,date,async year=>
-      (await domains[product.domain].calculate({...input,personB:undefined,readingMode:'personal'},{runtimeEnv:env,asOf:`${year}-07-01`})).facts.find(f=>f.label==='monthlyLuck')?.value);
+      (await domains[product.domain].calculate({...input,personB:undefined,readingMode:'personal'},{runtimeEnv:env,asOf:`${year}-07-01`})).facts.find(f=>f.label==='monthlyLuck')?.value,
+      product.fishId==='tuna'?tunaRoadmapEnd(date):undefined);
   }
   if(persona&&tarotV2)contexts.tarot=withChatTarotVoice(contexts.tarot!);
   const analysis={...analyze(contexts),question:normalized[product.domain].question,topicId:normalized[product.domain].topicId,readingMode:raw.readingMode,asOf:date};
@@ -317,7 +319,34 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   return createRequest(env,userId,id,{profileId:body.profileId,productId:product.id,featureKey:product.cdFeatureKey,
     amountKRW:product.priceKRW,fingerprint,...(persona?{persona}:{}),
     ...(askEvidence?{generationCheckpoint:{version:'ask-generation-v1',evidence:askEvidence}}:{}),
-    growthAttribution:normalizeGrowthAttribution(body.growthAttribution),snapshot:{...((decision||locale==='ko'&&!persona&&!body.mode&&product.readingKind!=='single')?{questionContract:{version:QUESTION_POLICY_VERSION,followups:consultationBudget(product.fishId).followups,...(!persona&&!body.mode?{readingBudget:consultationBudget(product.fishId)}:{})}}:{}),deliveryContract:CHAPTER_DELIVERY_VERSION,chapterTimeoutPolicy:CHAPTER_TIMEOUT_POLICY,...(product.systems.includes("saju")?{natalInput:normalized.saju}:{}),locale,...(persona?{persona}:{}),...(voiceStyle?{voiceStyle}:{}),...(!body.mode?{outputContext:readingOutputContext(locale,body)}:{}),product,analysis,manifest,profileUpdatedAt:profile.updatedAt,...(tarotV2?{tarotConsultation:{version:TAROT_CONSULTATION_VERSION,kind:kind!.id}}:{}),...(tarotV3?{tarotConsultation:{version:TAROT_SPREAD_VERSION,kind:kind!.id},tarotSpread:spreadSnapshot(tarotOrder!.spread),tarotInputs:tarotOrder!.inputs,tarotDeck:commitTarotDeck()}:{}),...(spiritInput?{normalized}: {}),...(v7Timing?{v7Timing}:{})}},tarotV3?{initialState:'AWAITING_DRAW'}:{});
+    growthAttribution:normalizeGrowthAttribution(body.growthAttribution),snapshot:{...((decision||locale==='ko'&&!persona&&!body.mode&&product.readingKind!=='single')?{questionContract:{version:QUESTION_POLICY_VERSION,followups:consultationBudget(product.fishId).followups,...(!persona&&!body.mode?{readingBudget:consultationBudget(product.fishId)}:{})}}:{}),deliveryContract:CHAPTER_DELIVERY_VERSION,chapterTimeoutPolicy:CHAPTER_TIMEOUT_POLICY,...(product.fishId==='tuna'?{tunaQualityPolicy:TUNA_QUALITY_POLICY}:{}),...(product.systems.includes("saju")?{natalInput:normalized.saju}:{}),locale,...(persona?{persona}:{}),...(voiceStyle?{voiceStyle}:{}),...(!body.mode?{outputContext:readingOutputContext(locale,body)}:{}),product,analysis,manifest,profileUpdatedAt:profile.updatedAt,...(tarotV2?{tarotConsultation:{version:TAROT_CONSULTATION_VERSION,kind:kind!.id}}:{}),...(tarotV3?{tarotConsultation:{version:TAROT_SPREAD_VERSION,kind:kind!.id},tarotSpread:spreadSnapshot(tarotOrder!.spread),tarotInputs:tarotOrder!.inputs,tarotDeck:commitTarotDeck()}:{}),...(spiritInput?{normalized}: {}),...(v7Timing?{v7Timing}:{})}},tarotV3?{initialState:'AWAITING_DRAW'}:{});
+}
+
+/** Tuna self-review: one rewrite of a chapter whose local audit finds a problem, inside the remaining lease.
+ * It never blocks delivery; any failure, timeout or worse rewrite keeps the first draft. */
+async function reviewTunaChapter(env:Record<string,unknown>,row:any,requestId:string,source:string,input:any,draft:any,natalFacts:unknown,startedAt:number){
+  const issues=auditTunaChapter(draft,input);
+  const ordinal=row.chapters.length;
+  const log=(outcome:string,extra:Record<string,unknown>={})=>console.info('[yeongnyangi-generation]',JSON.stringify({requestId,chapter:ordinal,code:'TUNA_SELF_REVIEW',outcome,issues,...extra}));
+  if(!issues.length){log('clean');return undefined;}
+  // Keep 60 seconds of the lease for validation and the persisted commit.
+  const remaining=chapterLeaseMs(row)-(Date.now()-startedAt)-60000;
+  if(remaining<60000){log('skipped-time');return undefined;}
+  try {
+    const reviewer=new CodeDestinyProvider(env,{serviceId:row.featureKey,requestId,access:row.accessMethod || (row.paymentId?'DIRECT_KRW':''),
+      sectionGroup:`${ordinal+1}-review`,attempt:Number(row.chapterAttempts?.[ordinal] || 1),generationSource:source},
+      {owner:String(row.userId),skipRead:true},Math.min(chapterTimeoutMs(row),remaining),tunaChapterModel(env,row.snapshot));
+    const raw=await new StructuredChapterProvider(reviewer).generateChapter({...input,repair:{code:'TUNA_SELF_REVIEW',issues}});
+    const body:any=deliverChapter(raw,input);
+    if(natalFacts)assertSajuPillarClaims(body,natalFacts);
+    const after=auditTunaChapter(body,input);
+    if(after.length>=issues.length||deliveredCharacterCount(body)<deliveredCharacterCount(draft)*0.9){log('kept-draft',{after});return undefined;}
+    log('rewritten',{after});
+    return {raw,body:{...body,selfReview:'rewritten'}};
+  } catch(error:any) {
+    log('failed',{error:String(error?.code||error?.message||'unknown').slice(0,80)});
+    return undefined;
+  }
 }
 
 /** The buyer's pick over the committed deck. A repeat call returns the stored draw unchanged (refresh, retry, return). */
@@ -423,7 +452,7 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
         // Storage retries can reuse the response; other retries bypass any
         // rejected cached output, including failures with legacy quality codes.
         {owner:String(row.userId),skipRead:Number(row.chapterAttempts?.[ordinal] || 1)>1 && row.lastFailure?.stage!=='storage'},
-        chapterTimeoutMs(row));
+        chapterTimeoutMs(row),tunaChapterModel(env,row.snapshot));
       let ask: {analysis:AskAnalysis;evidence:EvidencePacket}|undefined;
       if(row.generationCheckpoint?.version==='ask-generation-v1') {
         const consultation=row.snapshot.analysis.consultation;
@@ -458,7 +487,7 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
         ? row.generationCheckpoint?.followup?.question : undefined;
       if(ordinal===1&&row.snapshot?.questionSkyStage?.version===QUESTION_SKY_TWO_STAGE_VERSION&&!followupQuestion)
         throw new FortuneError('FOLLOWUP_NOT_SUBMITTED',409);
-      const input={deliveryContract:CHAPTER_DELIVERY_VERSION,locale:readingLocale(row.snapshot.locale),outputContext:row.snapshot.outputContext,chapter:row.snapshot.manifest[ordinal],analysis:snapshotAnalysis(row.snapshot),previous:row.chapters,repair,ask,followupQuestion,persona:row.snapshot.persona,voiceStyle:row.snapshot.voiceStyle};
+      const input={deliveryContract:CHAPTER_DELIVERY_VERSION,locale:readingLocale(row.snapshot.locale),outputContext:row.snapshot.outputContext,chapter:row.snapshot.manifest[ordinal],analysis:snapshotAnalysis(row.snapshot),previous:row.chapters,repair,ask,followupQuestion,persona:row.snapshot.persona,voiceStyle:row.snapshot.voiceStyle,tunaQuality:tunaQualityApplies(row.snapshot)};
       if(!input.chapter) throw new FortuneError('INVALID_MANIFEST',500);
       const provider=new StructuredChapterProvider(sharedProvider);
       const natalFacts=input.analysis.contexts?.saju?.facts.find(f=>f.label==='pillars')?.value;
@@ -488,6 +517,10 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
         generated=best.raw;result={...best.body,shortDelivery:true};
         console.info('[yeongnyangi-generation]',JSON.stringify({requestId,chapter:ordinal,code:'CHAPTER_SHORT_DELIVERED',
           chars:deliveredCharacterCount(result),target:input.chapter.minimumChars,kept:best===kept}));
+      }
+      if(input.tunaQuality&&input.locale==='ko'&&!repair&&!result.shortDelivery&&tunaRewritesUsed(row.chapters)<TUNA_REVIEW_MAX_REWRITES){
+        const reviewed=await reviewTunaChapter(env,row,requestId,source,input,result,natalFacts,startedAt);
+        if(reviewed){generated=reviewed.raw;result=reviewed.body;}
       }
       stage='storage';
       await saveChapterDraft(env,userId,requestId,token,ordinal,{raw:generated,body:result,receipt:sharedProvider.receipt});
@@ -542,7 +575,7 @@ export function presentFortune(row: any) {
     ...(correctionApplied?{correction:{reason:row.correction.reason,appliedAt:row.correction.appliedAt}}:{}),
     paid:hasRequestAccess(row),accessMethod:row.accessMethod || (row.paymentId?'DIRECT_KRW':undefined),product:row.snapshot.product,manifest:symbolic ? row.snapshot.manifest.map(({id,title,ordinal,part}:any)=>({id,title,ordinal,part})) : row.snapshot.manifest.map(({counsel:_counsel,...chapter}:any)=>chapter),
     consultation:(row.snapshot.analysis.consultation?Object.fromEntries(Object.entries(row.snapshot.analysis.consultation).filter(([key])=>key!=='counselVersion')):undefined) || {topicId:row.snapshot.analysis.topicId || 'general',question:row.snapshot.analysis.question || '',asOf:row.snapshot.analysis.asOf},
-    chapters:row.state==='REFUNDED'?[]:symbolic ? row.chapters.map(({title,summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers,followUpSuggestions,visualSlots}:any)=>({...((title)?{title}:{}),summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers,followUpSuggestions,visualSlots,sources:[]})) : row.chapters.map(({internalBasis:_serverOnly,shortDelivery:_operatorOnly,...chapter}:any)=>chapter),
+    chapters:row.state==='REFUNDED'?[]:symbolic ? row.chapters.map(({title,summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers,followUpSuggestions,visualSlots}:any)=>({...((title)?{title}:{}),summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers,followUpSuggestions,visualSlots,sources:[]})) : row.chapters.map(({internalBasis:_serverOnly,shortDelivery:_operatorOnly,selfReview:_operatorReview,...chapter}:any)=>chapter),
     ...(row.snapshot.tarotSpread?{tarotSpread:publicTarotSpread(row.snapshot)}:{}),
     followup:row.snapshot?.questionSkyStage?.version===QUESTION_SKY_TWO_STAGE_VERSION?{status:row.generationCheckpoint?.followup?.status || (awaitingFollowup?'available':'unavailable'),used:Boolean(row.generationCheckpoint?.followup?.used),suggestions:row.generationCheckpoint?.followup?.suggestions || row.chapters?.[0]?.followUpSuggestions || []}:undefined,
     conversation:conversationView(row),recovery,errorCode,createdAt:row.createdAt,completedAt:row.completedAt};

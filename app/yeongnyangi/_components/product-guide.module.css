@@ -27,3 +27,8 @@
 .guide :is(a,button,summary):focus-visible {outline:3px solid var(--yn-gold);outline-offset:4px}
 .guide ::selection {background:var(--yn-gold);color:var(--yn-deep)}
 @media(max-width:380px){.tiers {grid-template-columns:minmax(0,1fr)}}
+.comparison {width:100%;border-collapse:collapse;margin:20px 0;font-size:14px;line-height:1.6;table-layout:fixed}
+.comparison caption {text-align:left;color:var(--yn-gold);font-weight:700;padding-bottom:8px}
+.comparison :is(th,td) {border-top:1px solid var(--yn-line);padding:10px 8px;text-align:left;vertical-align:top}
+.comparison thead th {color:var(--yn-gold)}
+.comparison tbody th {width:28%;color:var(--yn-muted);font-weight:600}
