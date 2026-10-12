@@ -4766,19 +4766,23 @@ function showJongVerificationModal(jongResult, p, run) {
           if (run) run.signal.removeEventListener('abort', dismissCancelled);
           document.body.removeChild(overlay);
 
-          if (bestAns === 'yes' && worstAns === 'yes') {
-              jongResult.isJong = true;
-              var confirmLabel = jongResult.isGaJong ? '가종격 확정' : '종격 확정';
-              jongResult.verifiedText = "<span style='color:#a855f7'>[" + confirmLabel + "]</span> 과거의 길흉 화복을 대조한 결과, 해당 오행에 종(從)하는 "+jongResult.name+"의 운세 흐름이 일치함이 검증되었습니다.";
-              resolve(jongResult);
-          } else {
-              // 합화 여부는 판정이 아니라 원국 사실이므로 내격 전환 시에도 유지한다 (대운 충 무효화 판단에 쓰인다)
-              resolve({isJong: false,
-                ganHeMerged: jongResult.ganHeMerged, jiHeMerged: jongResult.jiHeMerged,
-                verifiedText: "<span style='color:#3b82f6'>[일반 내격 전환]</span> 과거 운세 흐름이 종격의 길흉과 일치하지 않아 일반격(내격)으로 회귀하여 재분석하였습니다."});
-          }
+          resolve(_sajuApplyJongDecision(jongResult, bestAns === 'yes' && worstAns === 'yes'));
       };
   });
+}
+
+// 종격 검증 모달의 답을 판정에 반영한다. 서버 종합·대운 풀이(worker/lib/saju-section)도 이 함수를 그대로 쓴다.
+function _sajuApplyJongDecision(jongResult, confirmed) {
+  if (confirmed) {
+    jongResult.isJong = true;
+    var confirmLabel = jongResult.isGaJong ? '가종격 확정' : '종격 확정';
+    jongResult.verifiedText = "<span style='color:#a855f7'>[" + confirmLabel + "]</span> 과거의 길흉 화복을 대조한 결과, 해당 오행에 종(從)하는 "+jongResult.name+"의 운세 흐름이 일치함이 검증되었습니다.";
+    return jongResult;
+  }
+  // 합화 여부는 판정이 아니라 원국 사실이므로 내격 전환 시에도 유지한다 (대운 충 무효화 판단에 쓰인다)
+  return {isJong: false,
+    ganHeMerged: jongResult.ganHeMerged, jiHeMerged: jongResult.jiHeMerged,
+    verifiedText: "<span style='color:#3b82f6'>[일반 내격 전환]</span> 과거 운세 흐름이 종격의 길흉과 일치하지 않아 일반격(내격)으로 회귀하여 재분석하였습니다."};
 }
 
 /* ═══════════════════════════════════════
@@ -30293,6 +30297,21 @@ function buildDwQmSection(g,j){
   return '<div style="border:1px solid #E0E0E0;border-radius:14px;padding:14px 15px;margin-bottom:14px"><div style="font-weight:800;margin-bottom:10px">합·충의 실제 관계</div><div style="display:flex;flex-direction:column;gap:7px">'+rows+'</div></div>';
 }
 
+// window.G_DAEWUN 의 행. 서버 대운 풀이(worker/lib/saju-section)도 이 함수를 그대로 쓴다.
+function _sajuDaewunRowsFromList(list){
+  var rows=[];
+  (list||[]).forEach(function(dw,idx){
+    if(idx===0)return;
+    var gz=dw.getGanZhi();if(!gz||gz.length<2)return;
+    var g=gz[0],j=gz[1];
+    var age=dw.getStartAge();
+    if(!age||age<=0)return;
+    var gd=GAN[g]||{e:'metal',n:'?'},jd=JI[j]||{e:'water',a:'?'};
+    rows.push({age:age,g:g,j:j,gE:gd.e,jE:jd.e,startYear:dw.getStartYear(),endYear:dw.getEndYear()});
+  });
+  return rows;
+}
+
 function renderDaewun(bazi){
   if(window.__cdSajuTimeUnknown){
     window.G_DAEWUN=[];
@@ -30319,15 +30338,10 @@ function renderDaewun(bazi){
     var yun=bazi.getYun(GENDER==='M'?1:0);
     var list=yun.getDaYun();
     var h='';
-    var _dwGlobalArr=[];
-    list.forEach(function(dw,idx){
-      if(idx===0)return;
-      var gz=dw.getGanZhi();if(!gz||gz.length<2)return;
-      var g=gz[0],j=gz[1];
-      var age=dw.getStartAge();
-      if(!age||age<=0)return;
+    var _dwGlobalArr=_sajuDaewunRowsFromList(list);
+    _dwGlobalArr.forEach(function(row){
+      var g=row.g,j=row.j,age=row.age;
       var gd=GAN[g]||{e:'metal',n:'?'},jd=JI[j]||{e:'water',a:'?'};
-      _dwGlobalArr.push({age:age,g:g,j:j,gE:gd.e,jE:jd.e,startYear:dw.getStartYear(),endYear:dw.getEndYear()});
       var ev=evalDaewun(g,j);
       var qBadge=getDwQmBadge(g,j);
 
@@ -30510,21 +30524,19 @@ function refreshDaewunReadingGuide(){
 }
 
 function showDwDetail(age,gan,zhi,evaluation,score){
-  var gd=GAN[gan]||{e:'earth',n:'?'},jd=JI[zhi]||{e:'water',a:'?'};
+  var detail=document.getElementById('dwDetail');
+  detail.innerHTML=buildDaewunDetailHtml(age,gan,zhi);detail.classList.add('show');
+  setTimeout(function(){detail.scrollIntoView({behavior:'smooth',block:'nearest'});},100);
+  _bindDaewunDetailTapGuards();
+}
+
+// #dwDetail 본문(대운 풀이 + 10년 세운). 서버 대운 풀이(worker/lib/saju-section)와 같은 HTML 이다.
+function buildDaewunDetailHtml(age,gan,zhi){
   var cycle=(window.G_DAEWUN||[]).find(function(row){return Number(row.age)===Number(age)&&row.g===gan&&row.j===zhi;});
   var startYear=cycle&&cycle.startYear||BIRTH_YEAR+age-1;
-  var isGood=score>=60;
   var jg=G_JONG,pw=G_POWER,jh=G_JOHU;
   var ev=evalDaewun(gan,zhi);
-
-  var html=buildDaewunReadingGuide(age,gan,zhi,ev)+
-    '<div style="border-top:1px solid #e5c3d2;padding-top:16px;margin-top:4px">'+
-    '<h3 style="font-size:1.1rem;margin-bottom:12px">세운 · 해마다 달라지는 흐름</h3>'+
-    '<div class="year-list" id="yearList"></div></div>';
-
-  var detail=document.getElementById('dwDetail');
-  detail.innerHTML=html;detail.classList.add('show');
-  setTimeout(function(){detail.scrollIntoView({behavior:'smooth',block:'nearest'});},100);
+  var guideHtml=buildDaewunReadingGuide(age,gan,zhi,ev);
 
   var yearHTML='';
   for(var yr=startYear;yr<=startYear+9;yr++){
@@ -30595,8 +30607,13 @@ function showDwDetail(age,gan,zhi,evaluation,score){
         '</div></div>';
     }catch(e){console.error(yr+'년 오류',e);}
   }
-  document.getElementById('yearList').innerHTML=yearHTML;
+  return guideHtml+
+    '<div style="border-top:1px solid #e5c3d2;padding-top:16px;margin-top:4px">'+
+    '<h3 style="font-size:1.1rem;margin-bottom:12px">세운 · 해마다 달라지는 흐름</h3>'+
+    '<div class="year-list" id="yearList">'+yearHTML+'</div></div>';
+}
 
+function _bindDaewunDetailTapGuards(){
   // 사주 결과 화면 공통 direct tap only 가드
   (function(){
     if (window.__cdSajuDirectTapGuardBound) return;

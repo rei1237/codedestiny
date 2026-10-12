@@ -6,7 +6,7 @@ const ts = require('typescript');
 const { JSDOM } = require('jsdom');
 const source = fs.readFileSync('js/saju-engine.js', 'utf8');
 const ast = ts.createSourceFile('saju.js', source, ts.ScriptTarget.Latest, true);
-const names = new Set(['startSajuCalculationFlow', '_sajuCalculationWait', '_sajuWaitForPaint', '_sajuSetCalculationLoading', 'showJongVerificationModal']);
+const names = new Set(['startSajuCalculationFlow', '_sajuCalculationWait', '_sajuWaitForPaint', '_sajuSetCalculationLoading', 'showJongVerificationModal', '_sajuApplyJongDecision']);
 const code = ast.statements.filter(n => ts.isFunctionDeclaration(n) && names.has(n.name?.text)).map(n => n.getText(ast)).join('\n');
 function setup() {
   const dom = new JSDOM('<div id="inputPage"><input id="birthDate" value="19900515"><div id="sajuCalcLoadingOverlay"></div></div><div id="resultPage" style="display:none"></div>');

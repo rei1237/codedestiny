@@ -1745,6 +1745,11 @@ const app = {
         return withCorsHeaders(request, env, await handleYogaGuruRoutes(request, env));
       }
 
+      if (url.pathname === "/api/saju/section") {
+        const { handleSajuSection } = await import("./routes/saju-section.js");
+        return withCorsHeaders(request, env, await handleSajuSection(request, env));
+      }
+
       if (url.pathname === "/api/saju-compat-basic" || url.pathname.startsWith("/api/saju-compat-basic/")) {
         return withCorsHeaders(request, env, await handleSajuCompatBasicRoutes(request, env));
       }
