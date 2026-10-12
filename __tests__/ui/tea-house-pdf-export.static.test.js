@@ -61,7 +61,7 @@ test("본문 마커가 파일별로 남아 있다 — 새 본문에 마커가 �
     ["결과 시트", sheet, 11],
     ["사주 패널", sajuPanel, 10],
     ["사주궁합 패널", compatPanel, 7],
-    ["수쿠요 패널", sukuyoPanel, 9],
+    ["수쿠요 패널", sukuyoPanel, 10],
     ["사주 기둥판", pillarBoard, 1],
     ["오행 균형", elementBalance, 2],
   ]) {

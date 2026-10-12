@@ -54,19 +54,21 @@ const MECHANICAL_COPY_PATTERN = /이 기능은|이 결과는|분석 결과는|�
 const SYSTEM_COPY_PATTERN = /AI cannot|I cannot|language model|system prompt|prompt 원문|\bmock\b|dry[_-]?run|providerReason|\bGemini\b|\bOpenAI\b|Workers AI|\bschema\b|\bpayload\b|\bJSON\b/i;
 const TAROT_GENERIC_COPY_PATTERN = /긍정적으로 생각|대화가 중요|마음을 차분히|작은 행동 하나|기다려 보세요|당신의 선택입니다|인간 상담사 연이로서|결과를 맞히는 것보다/i;
 const TAROT_DETERMINISTIC_CLAIM_PATTERN = /반드시.*사랑|상대는 반드시|재회됩니다|절대 안 됩니다|계속 연락|포기하지 말고 계속/i;
-const SAJU_MIN_RESULT_CHARS = 10000;
-const SAJU_TARGET_RESULT_CHARS = 12000;
+const SAJU_MIN_RESULT_CHARS = 18000;
+const SAJU_TARGET_RESULT_CHARS = 21000;
 // 🔴 이 세 하한은 이제 **섹션 병렬** 결과 전체에 걸린다(FORTUNE_TEA_SECTION_GROUPS 가 한 요청 안에서
 //    동시에 돈다). 한 호출은 6천자 근처에서 스스로 멈추므로, 하한을 올릴 때는 그룹 하나가 받는
 //    몫(share × 이 값)이 그 한계 아래인지 함께 봐야 한다 — 그룹 몫이 6천을 넘으면 분량이 느는 게
 //    아니라 재시도만 늘고 끝내 결정론 degrade 로 빠진다. 가드: verify:llm-generation-resilience.
 //    카테고리 규칙(아래 teaCategory*PromptMap)의 minChars 는 이 상수를 그대로 참조한다 —
 //    숫자를 다시 적지 말 것. 예전에 리터럴로 12벌 흩어져 있어 여기만 고치면 아무 일도 없었다.
-const TAROT_MIN_RESULT_CHARS = 6000;
+const TAROT_MIN_RESULT_CHARS = 10000;
 const TAROT_FIVE_CARD_EXTRA_CHARS = 1200;
 // 카드 한 장당 detail(핵심의미·현재상황·질문연결·조언·주의) 합계 하한(공백 제외).
 const TAROT_CARD_DETAIL_MIN_CHARS = 500;
-const SUKUYO_MIN_RESULT_CHARS = 8000;
+const SUKUYO_MIN_RESULT_CHARS = 14000;
+// 숙요 궁합의 필수 장 — strengths/cautions 목록만으로는 14,000자를 담지 못해 장 단위로 나눠 쓴다.
+const SUKUYO_CHAPTER_TITLES = Object.freeze(["월별 흐름 — 두 별의 석 달", "관계 처방 — 서로에게 맞는 거리와 말", "실행 체크리스트 — 함께 확인할 것"]);
 const FORTUNE_TEA_HOUSE_SCOPE = "FORTUNE_TEA_HOUSE";
 const HONEY_LETTER_COST = 10;
 const TAROT_ALBUM_UNLOCK_COST = 10;
@@ -91,6 +93,9 @@ const SAJU_REQUIRED_SECTION_TITLES = [
   "삐걱대는 결 — 미리 알아두면 좋은 것",
   "지금 이 시기 — 대운과 세운의 바람",
   "찻집의 처방 — 오늘부터의 실천",
+  "월별 흐름 — 앞으로 석 달의 결",
+  "관계 처방 — 곁의 사람과 맞추는 법",
+  "실행 체크리스트 — 오늘부터 확인할 것",
   "연이의 한마디",
 ];
 const TAROT_LOVE_REQUIRED_TERMS = ["지금 연락", "금지 행동", "7일"];
@@ -204,7 +209,7 @@ const teaCategorySajuPromptMap = {
     concept: "미련과 가능성 사이에서 내 사주의 관계 패턴과 현재 운의 흐름을 통해 가장 덜 다치는 다음 걸음을 찾는 상담",
     minChars: SAJU_MIN_RESULT_CHARS,
     focus: ["일간의 관계 방식", "배우자성/관성/재성의 작동", "식상 표현 방식", "인성의 미련과 회상", "비겁의 자존심", "현재 대운·세운의 관계 흐름", "합충형해파가 만드는 거리감"],
-    requiredSections: ["타고난 결 — 내 일간이 사랑을 붙잡는 방식", "첫 잔 — 이 질문이 찻집까지 온 이유", "마음의 물길 — 미련과 가능성을 가르는 십성", "잘 풀리는 결 — 이 관계에서 살아 있는 힘", "삐걱대는 결 — 재회를 닫아버리는 반복 패턴", "지금 이 시기 — 운이 관계를 다시 여는 조건", "지금 연락해도 되는가", "찻집의 처방 — 7일 관계 정리 플랜", "연이의 한마디"],
+    requiredSections: ["타고난 결 — 내 일간이 사랑을 붙잡는 방식", "첫 잔 — 이 질문이 찻집까지 온 이유", "마음의 물길 — 미련과 가능성을 가르는 십성", "잘 풀리는 결 — 이 관계에서 살아 있는 힘", "삐걱대는 결 — 재회를 닫아버리는 반복 패턴", "지금 이 시기 — 운이 관계를 다시 여는 조건", "지금 연락해도 되는가", "찻집의 처방 — 7일 관계 정리 플랜", "월별 흐름 — 석 달 동안 관계의 바람", "관계 처방 — 다시 마주할 때의 말과 거리", "실행 체크리스트 — 연락 전에 확인할 것", "연이의 한마디"],
     gauges: [
       ["미련", "pink", 64, "인성과 관계 질문의 반복성이 오래 남은 장면을 되짚게 합니다."],
       ["관계 압박", "purple", 58, "관성 흐름이 강하면 관계에서 책임과 부담을 크게 느낄 수 있습니다."],
@@ -222,7 +227,7 @@ const teaCategorySajuPromptMap = {
     concept: "아직 이름 붙지 않은 설렘이 내 사주에서 어떻게 피어나는지, 인연의 속도와 접근 방식을 읽는 상담",
     minChars: SAJU_MIN_RESULT_CHARS,
     focus: ["일간의 호감 표현", "식상으로 드러나는 매력", "재성/관성의 관계 욕구", "도화·홍염·천희 신살이 있으면 참고", "비겁의 경쟁심", "인성의 신중함", "새 인연이 들어오기 쉬운 운"],
-    requiredSections: ["타고난 결 — 내 일간이 호감을 표현하는 방식", "첫 잔 — 설렘이 피어난 자리", "마음의 물길 — 설렘을 키우거나 망설이게 하는 십성", "잘 풀리는 결 — 이 인연에서 살아 있는 힘", "삐걱대는 결 — 속도가 어긋나기 쉬운 지점", "지금 이 시기 — 인연이 커지는 타이밍", "좋은 연락 리듬과 만남 전략", "찻집의 처방 — 7일 썸 리듬 플랜", "연이의 한마디"],
+    requiredSections: ["타고난 결 — 내 일간이 호감을 표현하는 방식", "첫 잔 — 설렘이 피어난 자리", "마음의 물길 — 설렘을 키우거나 망설이게 하는 십성", "잘 풀리는 결 — 이 인연에서 살아 있는 힘", "삐걱대는 결 — 속도가 어긋나기 쉬운 지점", "지금 이 시기 — 인연이 커지는 타이밍", "좋은 연락 리듬과 만남 전략", "찻집의 처방 — 7일 썸 리듬 플랜", "월별 흐름 — 석 달 동안 인연의 온도", "관계 처방 — 호감을 지키는 속도", "실행 체크리스트 — 만나기 전에 확인할 것", "연이의 한마디"],
     gauges: [
       ["설렘", "pink", 66, "식상과 화 기운은 마음이 밖으로 피어나는 속도를 보여줍니다."],
       ["호감 표현력", "gold", 57, "식상이 살아 있으면 호감을 말과 행동으로 옮기기 쉽습니다."],
@@ -240,7 +245,7 @@ const teaCategorySajuPromptMap = {
     concept: "막막한 길 위에서 내 명식이 가진 일의 방향, 재능, 실행력, 확장 타이밍을 읽는 상담",
     minChars: SAJU_MIN_RESULT_CHARS,
     focus: ["일간의 일하는 방식", "월령과 격국의 사회적 방향", "식상·재성·관성 연결", "인성의 공부와 보호막", "비겁의 독립성/협업", "현재 대운·세운의 확장/전환/정체 신호"],
-    requiredSections: ["타고난 결 — 내 명식이 일하는 방식", "첫 잔 — 막막함이 찾아온 이유", "마음의 물길 — 식상·재성·관성이 만드는 일의 구조", "잘 풀리는 결 — 강하게 써야 할 재능", "삐걱대는 결 — 확장을 막는 패턴과 피해야 할 선택", "지금 이 시기 — 움직여도 되는 운의 신호", "리스크 체크리스트", "찻집의 처방 — 14일 실행 플랜", "연이의 한마디"],
+    requiredSections: ["타고난 결 — 내 명식이 일하는 방식", "첫 잔 — 막막함이 찾아온 이유", "마음의 물길 — 식상·재성·관성이 만드는 일의 구조", "잘 풀리는 결 — 강하게 써야 할 재능", "삐걱대는 결 — 확장을 막는 패턴과 피해야 할 선택", "지금 이 시기 — 움직여도 되는 운의 신호", "리스크 체크리스트", "찻집의 처방 — 14일 실행 플랜", "월별 흐름 — 석 달 동안 일의 바람", "관계 처방 — 함께 일하는 사람과의 거리", "실행 체크리스트 — 결정 전에 확인할 것", "연이의 한마디"],
     gauges: [
       ["방향감", "gold", 54, "월령과 일간의 결은 사회적으로 힘을 쓰는 방향을 비춥니다."],
       ["실행력", "green", 56, "식상과 비겁 흐름은 실제로 밀고 나가는 힘을 보여줍니다."],
@@ -258,7 +263,7 @@ const teaCategorySajuPromptMap = {
     concept: "내 명식의 돈 흐름, 수익화 방식, 소비 패턴, 회복 전략을 읽는 상담",
     minChars: SAJU_MIN_RESULT_CHARS,
     focus: ["재성의 강약과 위치", "식상이 재성을 생하는지", "비겁이 재성을 나누는지", "관성이 재성을 지키는지", "인성이 재성 흐름을 막거나 안정시키는지", "현재 대운·세운의 재물 흐름"],
-    requiredSections: ["타고난 결 — 내 명식의 돈 그릇", "첫 잔 — 돈 걱정이 놓인 자리", "마음의 물길 — 재성을 살리고 새게 하는 십성", "잘 풀리는 결 — 돈이 들어오는 방식", "삐걱대는 결 — 소비가 새는 패턴", "지금 이 시기 — 금전 흐름이 움직이는 지점", "돈을 지키는 현실 기준", "찻집의 처방 — 30일 금전 회복 플랜", "연이의 한마디"],
+    requiredSections: ["타고난 결 — 내 명식의 돈 그릇", "첫 잔 — 돈 걱정이 놓인 자리", "마음의 물길 — 재성을 살리고 새게 하는 십성", "잘 풀리는 결 — 돈이 들어오는 방식", "삐걱대는 결 — 소비가 새는 패턴", "지금 이 시기 — 금전 흐름이 움직이는 지점", "돈을 지키는 현실 기준", "찻집의 처방 — 30일 금전 회복 플랜", "월별 흐름 — 석 달 동안 돈의 물길", "관계 처방 — 돈 앞에서 지킬 관계의 선", "실행 체크리스트 — 지출 전에 확인할 것", "연이의 한마디"],
     gauges: [
       ["재물 감각", "gold", 58, "재성의 흐름은 돈을 알아보고 다루는 감각을 비춥니다."],
       ["수익화 가능성", "green", 52, "식상이 재성을 돕는 구조일수록 재능이 수익으로 이어지기 쉽습니다."],
@@ -276,7 +281,7 @@ const teaCategorySajuPromptMap = {
     concept: "내 명식 안에서 반복되는 소모 패턴을 보고 스스로에게 돌아오는 회복의 숨을 찾는 상담",
     minChars: SAJU_MIN_RESULT_CHARS,
     focus: ["일간의 피로 방식", "오행 과다/부족의 정서적 긴장", "인성의 생각 과부하", "식상의 표현/해소", "관성의 압박", "비겁의 비교와 버티기", "재성의 현실 부담", "회복에 필요한 오행 균형"],
-    requiredSections: ["타고난 결 — 내 명식이 지치는 방식", "첫 잔 — 무거워진 마음이 앉는 자리", "마음의 물길 — 생각을 붙드는 십성", "잘 풀리는 결 — 회복에 쓸 수 있는 기운", "삐걱대는 결 — 반복되는 자기 소모 패턴", "지금 이 시기 — 숨을 고를 수 있는 운", "나에게 해도 되는 말", "찻집의 처방 — 7일 회복 루틴", "연이의 한마디"],
+    requiredSections: ["타고난 결 — 내 명식이 지치는 방식", "첫 잔 — 무거워진 마음이 앉는 자리", "마음의 물길 — 생각을 붙드는 십성", "잘 풀리는 결 — 회복에 쓸 수 있는 기운", "삐걱대는 결 — 반복되는 자기 소모 패턴", "지금 이 시기 — 숨을 고를 수 있는 운", "나에게 해도 되는 말", "찻집의 처방 — 7일 회복 루틴", "월별 흐름 — 석 달 동안 마음의 날씨", "관계 처방 — 곁에 둘 사람과 거리 둘 사람", "실행 체크리스트 — 하루를 마치며 확인할 것", "연이의 한마디"],
     gauges: [
       ["피로도", "purple", 64, "관성과 재성의 부담은 몸과 마음의 피로를 함께 올립니다."],
       ["생각 과부하", "blue", 60, "인성이 강하면 지나간 장면을 오래 복기할 수 있습니다."],
@@ -294,7 +299,7 @@ const teaCategorySajuPromptMap = {
     concept: "끝내야 할 것과 지켜야 할 것 사이에서 내 사주의 관계 위기 패턴과 안전한 판단 기준을 찾는 상담",
     minChars: SAJU_MIN_RESULT_CHARS,
     focus: ["일간이 위기에서 반응하는 방식", "관성/재성의 관계 압박", "식상의 말의 날카로움 또는 표현 부족", "인성의 집착/회상", "비겁의 자존심 싸움", "합충형해파가 만드는 단절과 충돌", "현재 운에서 위기가 커지는 이유"],
-    requiredSections: ["타고난 결 — 내 일간이 위기에서 반응하는 방식", "첫 잔 — 위기가 커진 장면", "마음의 물길 — 긴장을 키우는 십성", "잘 풀리는 결 — 나를 지키는 힘", "삐걱대는 결 — 더 다치게 하는 반복 패턴", "지금 이 시기 — 흔들림이 지나가는 운", "지금 대화해도 되는가, 지켜야 할 경계선", "찻집의 처방 — 72시간 안전 플랜", "연이의 한마디"],
+    requiredSections: ["타고난 결 — 내 일간이 위기에서 반응하는 방식", "첫 잔 — 위기가 커진 장면", "마음의 물길 — 긴장을 키우는 십성", "잘 풀리는 결 — 나를 지키는 힘", "삐걱대는 결 — 더 다치게 하는 반복 패턴", "지금 이 시기 — 흔들림이 지나가는 운", "지금 대화해도 되는가, 지켜야 할 경계선", "찻집의 처방 — 72시간 안전 플랜", "월별 흐름 — 석 달 동안 흔들림의 결", "관계 처방 — 부딪힌 사람과 다시 서는 법", "실행 체크리스트 — 결정을 내리기 전에 확인할 것", "연이의 한마디"],
     gauges: [
       ["긴장도", "purple", 66, "충돌 신호와 관성 압박은 관계의 긴장을 높입니다."],
       ["충돌 가능성", "pink", 58, "식상이 날카롭게 쓰이면 말의 온도가 쉽게 올라갈 수 있습니다."],
@@ -314,7 +319,7 @@ const teaCategoryTarotPromptMap = {
     concept: "미련과 가능성 사이에서 지금 연락, 기다림, 정리, 재회 조건을 구분하는 타로 상담",
     minChars: TAROT_MIN_RESULT_CHARS,
     focus: ["미련과 실제 가능성 분리", "상대의 침묵·거리두기 존중", "과거 방식 그대로의 재회 경계", "연락 가능 조건", "재회를 닫는 행동", "7일 관계 정리/접근 플랜"],
-    requiredSections: ["카드가 비춘 관계의 현재 장면", "아직 남아 있는 마음과 현실 가능성의 차이", "두 사람 사이에서 반복된 패턴", "재회 가능성이 열리는 조건", "재회 가능성을 닫는 행동", "지금 연락해도 되는가", "보낸다면 어떤 톤이어야 하는가", "오늘 하지 말아야 할 행동 3가지", "7일 행동 플랜", "연이의 마지막 한마디"],
+    requiredSections: ["카드가 비춘 관계의 현재 장면", "아직 남아 있는 마음과 현실 가능성의 차이", "두 사람 사이에서 반복된 패턴", "재회 가능성이 열리는 조건", "재회 가능성을 닫는 행동", "지금 연락해도 되는가", "보낸다면 어떤 톤이어야 하는가", "오늘 하지 말아야 할 행동 3가지", "7일 행동 플랜", "앞으로 한 달, 관계의 흐름", "관계 처방 — 다시 마주할 때의 거리", "연락 전 실행 체크리스트", "연이의 마지막 한마디"],
     gauges: ["기대", "불안", "미련", "망설임", "회복"],
     requiredTerms: ["재회 가능성", "지금 연락", "금지 행동", "7일"],
   },
@@ -326,7 +331,7 @@ const teaCategoryTarotPromptMap = {
     concept: "아직 이름 붙지 않은 설렘의 온도, 호감 신호, 다가가도 좋은 속도를 읽는 타로 상담",
     minChars: TAROT_MIN_RESULT_CHARS,
     focus: ["호감 단정 금지", "관찰 가능한 신호", "다가가는 속도", "어색해지기 쉬운 행동", "연락과 대화의 리듬", "7일 썸 리듬 플랜"],
-    requiredSections: ["카드가 비춘 설렘의 첫 장면", "이 인연의 현재 온도", "상대와 나 사이의 신호 읽기", "가까워질 가능성을 키우는 행동", "어색해지기 쉬운 행동", "연락/대화의 좋은 리듬", "다음 만남 또는 대화에서 쓸 사인", "오늘 보내기 좋은 가벼운 문장 예시", "7일 썸 리듬 플랜", "연이의 마지막 한마디"],
+    requiredSections: ["카드가 비춘 설렘의 첫 장면", "이 인연의 현재 온도", "상대와 나 사이의 신호 읽기", "가까워질 가능성을 키우는 행동", "어색해지기 쉬운 행동", "연락/대화의 좋은 리듬", "다음 만남 또는 대화에서 쓸 사인", "오늘 보내기 좋은 가벼운 문장 예시", "7일 썸 리듬 플랜", "앞으로 한 달, 인연의 흐름", "관계 처방 — 호감을 지키는 속도", "만남 전 실행 체크리스트", "연이의 마지막 한마디"],
     gauges: ["설렘", "호기심", "조심스러움", "기대", "타이밍"],
     requiredTerms: ["호감", "설렘", "인연", "7일"],
   },
@@ -338,7 +343,7 @@ const teaCategoryTarotPromptMap = {
     concept: "막막한 길 위에서 방향, 준비도, 실행 순서, 리스크를 나누어 읽는 타로 상담",
     minChars: TAROT_MIN_RESULT_CHARS,
     focus: ["막연한 성공 예언 금지", "현재 길의 정체", "확장 가능성", "아직 부족한 준비", "이번 주 실행 우선순위", "리스크 체크", "14일 실행 플랜"],
-    requiredSections: ["카드가 비춘 현재 진로의 장면", "지금 막막함의 정체", "가능성이 있는 방향", "아직 준비가 부족한 부분", "올해/이번 달 선택 기준", "이번 주 실행 우선순위", "리스크 체크리스트", "작은 실험으로 검증할 방법", "14일 실행 플랜", "연이의 마지막 한마디"],
+    requiredSections: ["카드가 비춘 현재 진로의 장면", "지금 막막함의 정체", "가능성이 있는 방향", "아직 준비가 부족한 부분", "올해/이번 달 선택 기준", "이번 주 실행 우선순위", "리스크 체크리스트", "작은 실험으로 검증할 방법", "14일 실행 플랜", "앞으로 한 달, 일의 흐름", "관계 처방 — 함께 일하는 사람과의 거리", "결정 전 실행 체크리스트", "연이의 마지막 한마디"],
     gauges: ["방향감", "막막함", "실행력", "리스크", "가능성"],
     requiredTerms: ["진로", "사업", "리스크", "14일"],
   },
@@ -350,7 +355,7 @@ const teaCategoryTarotPromptMap = {
     concept: "수입, 지출, 누수, 현실 기준, 금전 회복 루틴을 나누어 읽는 타로 상담",
     minChars: TAROT_MIN_RESULT_CHARS,
     focus: ["금전 확정 예언 금지", "현재 돈의 온도", "수입 기회", "충동 소비와 손실 위험", "이번 달 관리 기준", "투자 판단 단정 금지", "30일 금전 회복 플랜"],
-    requiredSections: ["카드가 비춘 돈의 현재 온도", "지금 돈이 새는 지점", "수입 기회가 열리는 방향", "충동 소비 또는 손실 위험", "이번 달 돈 관리 기준", "지금 하면 좋은 정리", "하지 말아야 할 금전 행동", "30일 금전 회복 플랜", "현실 체크리스트", "연이의 마지막 한마디"],
+    requiredSections: ["카드가 비춘 돈의 현재 온도", "지금 돈이 새는 지점", "수입 기회가 열리는 방향", "충동 소비 또는 손실 위험", "이번 달 돈 관리 기준", "지금 하면 좋은 정리", "하지 말아야 할 금전 행동", "30일 금전 회복 플랜", "현실 체크리스트", "앞으로 한 달, 돈의 흐름", "관계 처방 — 돈 앞에서 지킬 관계의 선", "지출 전 실행 체크리스트", "연이의 마지막 한마디"],
     gauges: ["안정감", "소비 충동", "회복력", "기회감", "현실감"],
     requiredTerms: ["금전", "소비", "30일", "투자"],
   },
@@ -362,7 +367,7 @@ const teaCategoryTarotPromptMap = {
     concept: "예언보다 회복, 정리, 자기 돌봄, 안전한 감정 루틴을 먼저 찾는 타로 상담",
     minChars: TAROT_MIN_RESULT_CHARS,
     focus: ["회복 중심", "자기 비난 완화", "지친 마음의 반복 패턴", "오늘 멈춰야 할 마음 습관", "작은 회복 행동", "도움을 요청해야 할 신호", "7일 회복 루틴"],
-    requiredSections: ["카드가 비춘 마음의 현재 상태", "가장 지친 부분", "반복되는 자기 소모 패턴", "지금 멈춰야 할 마음 습관", "회복을 여는 작은 행동", "나에게 해도 되는 말", "오늘 피해야 할 감정 소비", "7일 회복 루틴", "연이가 건네는 짧은 위로", "마지막 한마디"],
+    requiredSections: ["카드가 비춘 마음의 현재 상태", "가장 지친 부분", "반복되는 자기 소모 패턴", "지금 멈춰야 할 마음 습관", "회복을 여는 작은 행동", "나에게 해도 되는 말", "오늘 피해야 할 감정 소비", "7일 회복 루틴", "연이가 건네는 짧은 위로", "앞으로 한 달, 마음의 흐름", "관계 처방 — 곁에 둘 사람과 거리 둘 사람", "하루를 마치며 확인할 실행 체크리스트", "마지막 한마디"],
     gauges: ["피로", "자책", "안정", "회복", "자기돌봄"],
     requiredTerms: ["회복", "자기돌봄", "7일"],
   },
@@ -374,7 +379,7 @@ const teaCategoryTarotPromptMap = {
     concept: "끝내야 할 것과 지켜야 할 것 사이에서 안전, 경계, 정리 기준을 먼저 확인하는 타로 상담",
     minChars: TAROT_MIN_RESULT_CHARS,
     focus: ["안전과 경계 우선", "무조건 붙잡으라는 조언 금지", "위험 신호 확인", "관계 회복 조건", "악화시키는 행동", "지금 대화 가능 여부", "72시간 안정 플랜"],
-    requiredSections: ["카드가 비춘 위기의 장면", "지금 가장 위험한 반복 패턴", "지켜야 할 것과 내려놓아야 할 것", "관계 회복 가능성을 여는 조건", "더 악화시키는 행동", "지금 대화해도 되는가", "대화한다면 지켜야 할 경계선", "오늘 하면 안 되는 행동", "72시간 안정 플랜", "연이의 마지막 한마디"],
+    requiredSections: ["카드가 비춘 위기의 장면", "지금 가장 위험한 반복 패턴", "지켜야 할 것과 내려놓아야 할 것", "관계 회복 가능성을 여는 조건", "더 악화시키는 행동", "지금 대화해도 되는가", "대화한다면 지켜야 할 경계선", "오늘 하면 안 되는 행동", "72시간 안정 플랜", "앞으로 한 달, 흔들림의 흐름", "관계 처방 — 부딪힌 사람과 다시 서는 법", "결정 전 실행 체크리스트", "연이의 마지막 한마디"],
     gauges: ["긴장", "상처", "경계", "정리 필요", "안전감"],
     requiredTerms: ["위기", "경계", "72시간", "금지 행동"],
   },
@@ -1024,6 +1029,11 @@ function buildFortuneTeaSukuyoCompatibility(request) {
         categoryGuide,
       ].slice(0, 3),
       adviceKeywords: [relationType, distanceLabel, directional.aRoleLabel, directional.bRoleLabel, ...guide.keywords].slice(0, 5),
+      chapters: [
+        `${user.sukuyoName || "나의 숙"}과 ${partner.sukuyoName || "상대의 숙"}이 ${relationType} 관계로 맞닿는 석 달은 한 번에 가까워지기보다 달의 차오름과 기욺처럼 오가는 흐름으로 읽습니다. 첫 달은 서로의 속도를 확인하는 때, 둘째 달은 ${directional.aRoleLabel}의 자리에서 먼저 건네는 말이 관계의 온도를 정하는 때, 셋째 달은 ${distancePhrase}가 만드는 간격을 두 사람이 받아들이는 때입니다. ${distanceGuide}`,
+        `${relationType} 관계에서 가장 덜 다치는 처방은 ${guide.keywords.slice(0, 2).join("과 ") || "속도 확인"}을 함께 지키는 일입니다. ${user.name}은 ${directional.aRoleLabel}의 자리에서, ${partner.name}은 ${directional.bRoleLabel}의 자리에서 서로에게 필요한 말을 다르게 듣습니다. ${categoryGuide}`,
+        `함께 확인할 것은 세 가지입니다. 첫째, 이번 주에 서로 기대한 연락의 간격을 말로 맞추었는가. 둘째, ${guide.cautions[0] || "서운함이 쌓이는 지점"}을 상대 탓이 아니라 거리의 문제로 다시 보았는가. 셋째, ${relationType} 관계의 장점인 ${guide.strengths[0] || "서로를 비추는 힘"}을 하루 한 번 의식해서 썼는가.`,
+      ].map((body, index) => ({ title: SUKUYO_CHAPTER_TITLES[index], body })),
       roleGuide: {
         userAction: cleanTextOr(compatibility.roleActionGuide?.meAction, guide.keywords[0], 180),
         partnerAction: cleanTextOr(compatibility.roleActionGuide?.otherAction, guide.keywords[1] || "상대의 속도 존중", 180),
@@ -1668,7 +1678,7 @@ const teaCompatSajuRule = {
   concept: "두 사람의 사주를 각각 독립적으로 읽은 뒤 두 명식을 대조해 궁합과 질문에 답하는 상담",
   minChars: SAJU_MIN_RESULT_CHARS,
   focus: ["두 일간의 상생·상극·동류·보완", "오행의 보완과 충돌", "십성 대조가 만드는 마음·행동 방식", "배우자궁·일지 관계", "두 사람의 현재 대운·세운이 관계에 부는 순풍·역풍", "질문에 대한 두 사람 관점의 답"],
-  requiredSections: ["당신의 사주", "상대방의 사주", "두 사람의 궁합", "질문에 대한 답", "함께일 때의 강점", "미리 알아둘 주의점", "지금 이 시기 관계의 운", "찻집의 처방", "연이의 한마디"],
+  requiredSections: ["당신의 사주", "상대방의 사주", "두 사람의 궁합", "질문에 대한 답", "함께일 때의 강점", "미리 알아둘 주의점", "지금 이 시기 관계의 운", "찻집의 처방", "월별 흐름 — 두 사람의 석 달", "관계 처방 — 서로에게 건네는 말", "실행 체크리스트 — 함께 확인할 것", "연이의 한마디"],
   gauges: [
     ["관계 온도", "pink", 58, "두 일간의 상생·상극이 관계의 기본 온도를 만듭니다."],
     ["표현의 합", "gold", 54, "식상 흐름은 두 사람이 마음을 꺼내 서로 맞추는 방식을 보여줍니다."],
@@ -2709,6 +2719,14 @@ function buildMinimalDraft(request) {
   };
 }
 
+function mergeSukuyoChapters(baseChapters, candidateChapters) {
+  const base = Array.isArray(baseChapters) ? baseChapters : [];
+  const byTitle = new Map((Array.isArray(candidateChapters) ? candidateChapters : [])
+    .map((chapter) => [cleanText(chapter?.title, 80), cleanMultiline(chapter?.body, 6000)])
+    .filter(([title, body]) => title && body.length >= 60));
+  return base.map((chapter) => (byTitle.has(chapter.title) ? { ...chapter, body: byTitle.get(chapter.title) } : chapter));
+}
+
 function mergeFortuneTeaSukuyoCompatibility(fallbackCompatibility, candidateCompatibility) {
   if (!fallbackCompatibility) return candidateCompatibility;
   const candidate = candidateCompatibility && typeof candidateCompatibility === "object" ? candidateCompatibility : {};
@@ -2742,6 +2760,7 @@ function mergeFortuneTeaSukuyoCompatibility(fallbackCompatibility, candidateComp
     strengths: Array.isArray(candidate.strengths) && candidate.strengths.length ? candidate.strengths : fallbackCompatibility.strengths,
     cautions: Array.isArray(candidate.cautions) && candidate.cautions.length ? candidate.cautions : fallbackCompatibility.cautions,
     adviceKeywords: Array.isArray(candidate.adviceKeywords) && candidate.adviceKeywords.length ? candidate.adviceKeywords : fallbackCompatibility.adviceKeywords,
+    chapters: mergeSukuyoChapters(fallbackCompatibility.chapters, candidate.chapters),
   };
 }
 
@@ -3082,6 +3101,7 @@ function assertNoMechanicalCopy(result) {
     ...(result.sukuyoCompatibility?.strengths || []),
     ...(result.sukuyoCompatibility?.cautions || []),
     ...(result.sukuyoCompatibility?.adviceKeywords || []),
+    ...(result.sukuyoCompatibility?.chapters || []).flatMap((chapter) => [chapter.title, chapter.body]),
     ...(result.luckyKeywords || []),
     ...(result.emotionAnalysis || []).flatMap((item) => [item.label, item.description]),
     ...(result.choiceSimulation || []).flatMap((item) => [item.title, item.subtitle, item.result, item.caution]),
@@ -3435,6 +3455,7 @@ function assertConsultQuality(result, fallback, options = {}) {
         result.sukuyoCompatibility?.summary,
         ...(result.sukuyoCompatibility?.strengths || []),
         ...(result.sukuyoCompatibility?.cautions || []),
+        ...(result.sukuyoCompatibility?.chapters || []).map((chapter) => chapter.body),
         result.synthesis?.summary,
         result.synthesis?.sajuTarotBridge,
         result.yeoniReading?.intro,
@@ -3632,6 +3653,7 @@ function describeQualityIssue(message) {
 // 즉시 degrade 로 배출한다. 필드 이름이 그대로 오류 메시지에 실리므로 소유 그룹을 역산할 수 있다.
 const FORTUNE_TEA_QUALITY_ERROR_GROUPS = Object.freeze([
   Object.freeze({ pattern: /saju|deepSections|sessionTitle|questionSummary|tarot\.reading|sukuyo/i, key: "core" }),
+  Object.freeze({ pattern: /saju|deepSections/i, key: "coreTail" }),
   Object.freeze({ pattern: /yeoniReading|emotionAnalysis/i, key: "reading" }),
   Object.freeze({ pattern: /synthesis|choiceSimulation|actionPrescription|luckyKeywords|closingLine/i, key: "prescription" }),
 ]);
@@ -3673,9 +3695,11 @@ const FORTUNE_TEA_PRESCRIPTION_FIELDS = Object.freeze([
   "synthesis", "choiceSimulation", "actionPrescription", "luckyKeywords", "closingLine",
 ]);
 const FORTUNE_TEA_SAJU_GROUPS = Object.freeze([
-  Object.freeze({ key: "core", label: "명식 심층 판독", share: 0.56, fields: Object.freeze(["sessionTitle", "questionSummary", "saju"]) }),
-  Object.freeze({ key: "reading", label: "연이의 리딩", share: 0.22, fields: FORTUNE_TEA_READING_FIELDS }),
-  Object.freeze({ key: "prescription", label: "종합과 처방", share: 0.22, fields: FORTUNE_TEA_PRESCRIPTION_FIELDS }),
+  // 18,000자 하한에서 명식 판독 한 그룹은 단일 호출 한계를 넘는다 — deepSections 를 제목 순서로 반씩 나눠 쓴다.
+  Object.freeze({ key: "core", label: "명식 심층 판독", share: 0.3, sectionHalf: 0, fields: Object.freeze(["sessionTitle", "questionSummary", "saju"]) }),
+  Object.freeze({ key: "coreTail", label: "명식 심층 판독 — 뒷장", share: 0.3, sectionHalf: 1, fields: Object.freeze(["saju"]) }),
+  Object.freeze({ key: "reading", label: "연이의 리딩", share: 0.2, fields: FORTUNE_TEA_READING_FIELDS }),
+  Object.freeze({ key: "prescription", label: "종합과 처방", share: 0.2, fields: FORTUNE_TEA_PRESCRIPTION_FIELDS }),
 ]);
 const FORTUNE_TEA_SECTION_GROUPS = Object.freeze({
   saju: FORTUNE_TEA_SAJU_GROUPS,
@@ -3691,9 +3715,9 @@ const FORTUNE_TEA_SECTION_GROUPS = Object.freeze({
     Object.freeze({ key: "prescription", label: "종합과 처방", share: 0.25, fields: FORTUNE_TEA_PRESCRIPTION_FIELDS }),
   ]),
   sukuyo: Object.freeze([
-    Object.freeze({ key: "compatibility", label: "본명숙 궁합 판독", share: 0.45, fields: Object.freeze(["sessionTitle", "questionSummary", "sukuyoCompatibility"]) }),
-    Object.freeze({ key: "reading", label: "연이의 리딩", share: 0.275, fields: FORTUNE_TEA_READING_FIELDS }),
-    Object.freeze({ key: "prescription", label: "종합과 처방", share: 0.275, fields: FORTUNE_TEA_PRESCRIPTION_FIELDS }),
+    Object.freeze({ key: "compatibility", label: "본명숙 궁합 판독", share: 0.4, fields: Object.freeze(["sessionTitle", "questionSummary", "sukuyoCompatibility"]) }),
+    Object.freeze({ key: "reading", label: "연이의 리딩", share: 0.3, fields: FORTUNE_TEA_READING_FIELDS }),
+    Object.freeze({ key: "prescription", label: "종합과 처방", share: 0.3, fields: FORTUNE_TEA_PRESCRIPTION_FIELDS }),
   ]),
 });
 
@@ -3711,8 +3735,12 @@ function resolveFortuneTeaGroups(request, fallback, consultationMode) {
         teaCup: fallback?.teaCup,
         tarotSpread: request?.tarotSpread || fallback?.tarotSpread,
       });
+  const titles = isSajuFamilyMode(consultationMode) ? getSajuRequiredSectionTitles(request) : [];
+  const half = Math.ceil(titles.length / 2);
+  const halves = [titles.slice(0, half), titles.slice(half)];
   return groups.map((group) => ({
     ...group,
+    ...(group.sectionHalf === undefined ? {} : { sectionTitles: halves[group.sectionHalf], otherSectionTitles: halves[1 - group.sectionHalf] }),
     modeMinChars,
     minChars: Math.round(modeMinChars * group.share),
     handledElsewhere: groups.filter((other) => other.key !== group.key).map((other) => other.label),
@@ -3742,7 +3770,9 @@ function applyFortuneTeaGroupScope(prompt, group) {
       group: group.label,
       writeOnly: group.paths || group.fields,
       ...(group.sectionTitle ? { exactSectionTitle: group.sectionTitle, sajuDeepSections: "오직 이 제목의 장 하나만 반환한다." } : {}),
+      ...(group.sectionTitles ? { exactSectionTitles: group.sectionTitles, sajuDeepSections: "saju.deepSections 에는 오직 이 제목들의 장만 이 순서대로 반환한다. 나머지 장은 다른 그룹이 쓴다." } : {}),
       ...(group.positionId ? { exactPositionId: group.positionId, tarotCardReadings: "오직 이 위치의 카드 해설 하나만 반환한다." } : {}),
+      ...(group.chapterTitle ? { exactChapterTitle: group.chapterTitle, sukuyoChapters: "sukuyoCompatibility.chapters 에는 오직 이 제목의 장 하나만 반환한다." } : {}),
       minimumKoreanChars: group.minChars,
       ...(group.paths ? {
         targetBodyChars: Math.ceil(group.minChars / 0.8),
@@ -3774,7 +3804,7 @@ export function fortuneTeaGroupResponseSchema(group) {
     tarot: { reading: '' },
     tarotCardReadings: [{ positionId: '', coreMeaning: '', currentSituation: '', questionLink: '', advice: '', caution: '' }],
     cardInteractions: [{ pair: '', insight: '' }], heartScent: { name: '', category: '', reason: '' },
-    sukuyoCompatibility: { title: '', summary: '', strengths: [''], cautions: [''], adviceKeywords: [''] },
+    sukuyoCompatibility: { title: '', summary: '', strengths: [''], cautions: [''], adviceKeywords: [''], chapters: [{ title: '', body: '' }] },
     emotionAnalysis: [{ label: '', value: 0, description: '', tone: '' }],
     yeoniReading: { intro: '', main: '', advice: '', caution: '' },
     synthesis: { title: '', summary: '', sajuTarotBridge: '' },
@@ -3795,6 +3825,11 @@ function pickFortuneTeaGroupFields(parsed, group) {
   const picked = {};
   for (const field of group.fields) {
     if (parsed[field] !== undefined) picked[field] = parsed[field];
+  }
+  // 반쪽 그룹은 다른 반쪽 제목의 장을 버린다 — 같은 장을 두 그룹이 써서 서로 덮어쓰지 않게 한다.
+  if (group.otherSectionTitles && Array.isArray(picked.saju?.deepSections)) {
+    const other = new Set(group.otherSectionTitles);
+    picked.saju = { ...picked.saju, deepSections: picked.saju.deepSections.filter((section) => !other.has(cleanText(section?.title, 80))) };
   }
   return picked;
 }
@@ -3948,7 +3983,7 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "", 
             minimumKoreanChars: getTarotMinResultChars(request),
             requiredDeepSections: tarotRule.requiredSections,
             categorySchema: tarotResultSchemaByCategory[tarotRule.id],
-            lengthRule: `공백 제외 ${getTarotMinResultChars(request)}자 이상, 전체 4000~5000자 안팎으로 쓴다. 카드 나열이 아니라 하나의 서사로 이어지게 한다.`,
+            lengthRule: `공백 제외 ${getTarotMinResultChars(request)}자 이상, requiredDeepSections 의 장을 빠짐없이 담아 쓴다. 카드 나열이 아니라 하나의 서사로 이어지게 한다.`,
             resultFlow: [
               "카드를 펼치며: 분위기와 전체 그림을 한눈에 담아 짧게 연다. 메이저/마이너 비율, 수트 편중, 코트 카드 등장이 만드는 전체 흐름을 먼저 느끼게 한다.",
               "카드별 리딩(tarotCardReadings): 뽑힌 카드를 한 장도 빠짐없이 개별적으로 푼다. 카드마다 핵심 의미 → 현재 상황에서의 의미 → 질문과의 연결 → 조언 → 주의할 점 순서로 쓴다.",
@@ -4019,7 +4054,8 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "", 
         : undefined,
       sukuyoQualityRule: consultationMode === "sukuyo"
         ? {
-            lengthRule: "전체 10000~15000자 분량으로, 챕터마다 호흡이 있는 문단으로 깊게 쓴다. 지식을 뽐내지 않고 손님 눈높이로 푼다.",
+            lengthRule: `공백 제외 ${SUKUYO_MIN_RESULT_CHARS}자 이상, 챕터마다 호흡이 있는 문단으로 깊게 쓴다. 지식을 뽐내지 않고 손님 눈높이로 푼다.`,
+            requiredChapters: SUKUYO_CHAPTER_TITLES,
             resultFlow: [
               "두 별의 타고난 결: 관계를 논하기 전에, 사용자의 본명숙과 상대의 본명숙이 각각 어떤 타고난 성향·기질인지 성수(星宿)의 상징과 함께 먼저 짚어준다. 사용자와 상대에게 비슷한 분량의 문단을 각각 배분해, 어느 한쪽만 자세히 풀고 다른 쪽을 한두 줄로 요약하지 않는다. 각 숙의 성격이 실제 성향으로 어떻게 드러나는지 풀어, 신뢰가 서도록 성향부터 전반적으로 소개한다.",
               "두 사람의 인연 관계: 앞서 읽은 두 사람의 타고난 결을 바탕으로, 전달받은 숙 거리와 관계 유형 판정을 근거로 이 관계가 어떤 결인지 푼다. '사용자의 ○숙에서 상대의 △숙은 ○ 자리에 있어요, 그래서...'처럼 근거를 밝힌다.",
@@ -4124,7 +4160,7 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "", 
           ? "required — { name(heartScentCatalog에 있는 향 이름), category(그 향의 카테고리), reason }"
           : "omit",
         sukuyoCompatibility: consultationMode === "sukuyo"
-          ? "preserve user/partner/calculationBasis/relationDetail/relation/distance/scores/elementHarmony/index fields, improve only title/summary/strengths/cautions/adviceKeywords"
+          ? "preserve user/partner/calculationBasis/relationDetail/relation/distance/scores/elementHarmony/index fields, improve only title/summary/strengths/cautions/adviceKeywords/chapters. chapters 는 sukuyoQualityRule.requiredChapters 제목 그대로 [{ title, body }] 를 순서대로 쓴다"
           : "omit — 초안 값이 그대로 유지된다",
         emotionAnalysis: "4-5 items with label/value/description/tone",
         yeoniReading: "intro/main/advice/caution",
@@ -4211,6 +4247,10 @@ function teaNarrativeText(value) {
     return '';
 }
 function pickTeaCheckpointFields(parsed, group) {
+    if (group.chapterTitle) {
+        const chapter = parsed.sukuyoCompatibility?.chapters?.find(item => item?.title === group.chapterTitle);
+        return typeof chapter?.body === 'string' && chapter.body.trim() ? { sukuyoCompatibility: { chapters: [chapter] } } : null;
+    }
     if (group.sectionTitle) {
         const section = parsed.saju?.deepSections?.find(item => item?.title === group.sectionTitle);
         return typeof section?.body === 'string' && section.body.trim() ? { saju: { deepSections: [section] } } : null;
@@ -4245,7 +4285,8 @@ function pickTeaCheckpointFields(parsed, group) {
 }
 function buildTeaCheckpointGroups(request, fallback) {
     const groups = [];
-    const add = (key, label, paths, minChars, extra = {}) => groups.push({ key, label, paths, minChars, fields: [...new Set(paths.map(path => path.split('.')[0]))], modeMinChars: 20000, handledElsewhere: [], ...extra });
+    const modeMinChars = resolveFortuneTeaGroups(request, fallback, normalizeConsultationMode(request.consultationMode))[0].modeMinChars;
+    const add = (key, label, paths, minChars, extra = {}) => groups.push({ key, label, paths, minChars, fields: [...new Set(paths.map(path => path.split('.')[0]))], modeMinChars, handledElsewhere: [], ...extra });
     if (isSajuFamilyMode(request.consultationMode)) {
         add('saju-summary', '명식의 핵심 근거', ['sessionTitle', 'questionSummary', 'saju.title', 'saju.summary', 'saju.oneLineAdvice'], 1000);
         const titles = getSajuRequiredSectionTitles(request), min = Math.max(1000, Math.ceil(6000 / titles.length));
@@ -4255,9 +4296,10 @@ function buildTeaCheckpointGroups(request, fallback) {
         add('sukuyo-summary', '두 본명숙 관계의 근거', ['sessionTitle', 'questionSummary', 'sukuyoCompatibility.title', 'sukuyoCompatibility.summary'], 3000);
         add('sukuyo-strengths', '관계의 강점과 반대 조건', ['sukuyoCompatibility.strengths'], 2000);
         add('sukuyo-cautions', '관계의 주의점과 실천', ['sukuyoCompatibility.cautions', 'sukuyoCompatibility.adviceKeywords'], 2000);
+        (fallback.sukuyoCompatibility?.chapters || []).forEach((chapter, i) => add('sukuyo-chapter-' + i, chapter.title, ['sukuyoCompatibility.chapters'], 2000, { chapterTitle: chapter.title }));
     }
     else {
-        add('tarot-overview', '카드의 연결과 마음의 향', ['sessionTitle', 'questionSummary', 'tarot.reading', 'cardInteractions', 'heartScent'], 1000);
+        add('tarot-overview', '카드의 연결과 마음의 향', ['sessionTitle', 'questionSummary', 'tarot.reading', 'cardInteractions', 'heartScent'], 3000);
         const cards = fallback.tarotSpreadCards || [];
         cards.forEach((card, i) => add('tarot-card-' + i, card.positionLabel + ' 카드 해석', ['tarotCardReadings'], Math.max(1500, Math.ceil(6000 / cards.length)), { positionId: card.positionId, cardIndex: i, cardCount: cards.length }));
     }

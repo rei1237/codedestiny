@@ -1037,7 +1037,8 @@ test('sukuyo completes saved groups while preserving calculated relationship fac
     facts = prompt.preserveExactly.sukuyoCompatibility;
     const output = teaFixtures.buildLlmPayload('three');
     const long = (label, count) => Array.from({length: count}, (_, i) => `${label} 사례 ${i}는 ${facts.user.sukuyoName}와 ${facts.partner.sukuyoName}의 ${facts.relationType} 관계를 주어진 계산값 안에서 설명합니다. ${label} 조건 ${i}에서는 두 사람의 대화 속도와 현실의 약속을 비교하고 상대의 마음을 단정하지 않으며 구체적인 확인 행동을 선택합니다.`).join('\n');
-    output.sukuyoCompatibility = { title: '두 사람의 본명숙 관계', summary: long('요약', 36), strengths: [long('강점', 24)], cautions: [long('주의', 24)], adviceKeywords: ['거리 확인', '약속 정리'], relationType: '계산값 변조', scores: {total: 100} };
+    output.sukuyoCompatibility = { title: '두 사람의 본명숙 관계', summary: long('요약', 36), strengths: [long('강점', 24)], cautions: [long('주의', 24)], adviceKeywords: ['거리 확인', '약속 정리'], relationType: '계산값 변조', scores: {total: 100},
+      chapters: ['월별 흐름 — 두 별의 석 달', '관계 처방 — 서로에게 맞는 거리와 말', '실행 체크리스트 — 함께 확인할 것'].map(title => ({title, body: long(title, 20)})) };
     return {ok: true, provider: 'gemini', text: JSON.stringify(output)};
   });
   let response;
@@ -1049,7 +1050,7 @@ test('sukuyo completes saved groups while preserving calculated relationship fac
   expect({status: response.status, quality: saved?.generationCheckpoint?.qualityError}).toEqual({status: 200, quality: undefined});
   expect(response.payload.result.sukuyoCompatibility.relationType).toBe(facts.relationType);
   expect(response.payload.result.sukuyoCompatibility.scores).toEqual(facts.scores);
-  expect(callGeminiTextMock).toHaveBeenCalledTimes(8);
+  expect(callGeminiTextMock).toHaveBeenCalledTimes(11);
 });
 
 async function sukuyoConsultResponse(attemptId, mutate) {
