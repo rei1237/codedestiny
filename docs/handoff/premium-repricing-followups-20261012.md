@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-12
-next: "F1~F6 완료(2026-10-12). F7 진행 중 — 결정 3개는 받음(유료 전용 렌더러만 이전, 계정 레거시 해금 인정, ContentEntitlement 행만). 이 문서 F7부터 이어서."
+next: "F1~F7 완료(2026-10-12). 남은 일은 아래 '사람이 할 체크리스트'뿐입니다(Play Console 티어 등록, staging 실계정 확인)."
 ---
 
 # 프리미엄 개편 후속 과제
@@ -214,6 +214,13 @@ F1~F6은 서로 관계가 없어서 순서를 바꿔도 됩니다. F7은 아래 
   - 기존 5,000원 해금자, 계정 레거시 해금자, 이용권 사용자가 모두 계속 열람합니다(mock).
   - `npm run verify:saju-unlock-entitlement-regression`과 `npm run verify:saju-summary-browser`가 통과합니다.
   - 운영 승격 뒤 라이브 번들 grep 결과가 0건입니다.
+- ✅ 완료 2026-10-12 — 커밋 다섯 개, 운영 release 38224537073(`60630b42b`, `[verify-deployed-sha] PASS`, version.json gitSha 일치).
+  - `4e7ca939d` 서버 렌더러·`POST /api/saju/section`(pr-ci 38215080665 실패: `verify:myeongri-tables`가 생성 사본의 CD_JANGGAN을 잡음) → `a40da9269` 분류 수정(pr-ci 38216720532 성공).
+  - `ce0310156` 클라이언트 로더 전환·브라우저 사본 삭제(pr-ci 38218703726 실패: `verify:saju-summary-browser` mobile-restored 게이트 클릭 시간 초과, 재실행도 실패).
+  - `c14ea828b` 분량 확장(종합 ⑭ 올해·내년 처방, 대운 전체 지도·전환기 체크리스트) + `60630b42b` 검증기 클릭 내성·실패 진단 → pr-ci 38222908900 성공.
+  - 라이브: `js/saju-engine.js`, `js/core/saju/section-client.js`, `js/core/saju/reading-personas.js`, `/`에서 유료 함수명·장 제목 19개 grep 0건. 비로그인 `POST /api/saju/section` → 401.
+  - 계산식은 바꾸지 않았습니다. 서버는 클라이언트 함수를 글자 그대로 추출해 쓰고, 패리티 테스트가 확장 장(`<!--saju-ext-->`)을 뺀 HTML을 HEAD 클라이언트 해시와 대조합니다.
+  - 범위: 공유 표(TS_DB·TS_DEEP 등)는 결정대로 클라이언트에 남았습니다. 대운 표·인생 그래프도 아직 브라우저가 그립니다.
 
 ---
 

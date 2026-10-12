@@ -184,6 +184,7 @@ docs/handoff/2026-10-10-birth-scope-unlock-followups.md 를 읽고 P0-2 를 진�
   - 콘솔 우회(`isTileKeyUnlocked` 덮어쓰기)로 본문이 나오지 않는다.
   - 공개 JS 에 본문 문구 표가 없다.
 - 검증: `npm run verify:saju-unlock-entitlement-regression`, `npm run verify:saju-summary-browser`
+- ✅ 완료 2026-10-12 — `docs/handoff/premium-repricing-followups-20261012.md` F7로 처리(커밋 `4e7ca939d`·`a40da9269`·`ce0310156`·`c14ea828b`·`60630b42b`, 운영 release 38224537073). 본문은 `POST /api/saju/section`이 ContentEntitlement로 해금을 확인한 뒤 서버에서 만듭니다. 유료 전용 표(HEALTH_DATA·GAEUN_TIPS 등)와 생성기는 공개 JS에서 빠졌습니다. 공유 표 TS_DB·TS_DEEP은 무료 화면도 쓰므로 사용자 결정에 따라 클라이언트에 남겼습니다.
 
 **P2-2. FPTI 프리미엄 리포트가 클라이언트가 보낸 결과로 생성됨** — 🔴 RED, 규모 M
 - `worker/routes/fpti.js:881-934` `normalizeInput` 가 `body.result` 를 그대로 받는다.
