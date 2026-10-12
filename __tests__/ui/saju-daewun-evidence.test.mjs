@@ -2,12 +2,14 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import ts from 'typescript';
-const source=fs.readFileSync('js/saju-engine.js','utf8');
-const ast=ts.createSourceFile('saju-engine.js',source,ts.ScriptTarget.Latest,true,ts.ScriptKind.JS);
 const declarations=new Map();
-for(const node of ast.statements){
-  if(ts.isFunctionDeclaration(node)&&node.name)declarations.set(node.name.text,node.getText(ast));
-  if(ts.isVariableStatement(node))for(const d of node.declarationList.declarations)if(ts.isIdentifier(d.name))declarations.set(d.name.text,`var ${d.getText(ast)};`);
+// 대운 근거(getDaewunBranchEvidence)는 서버 유료 렌더러로 옮겼고, 공유 헬퍼는 클라이언트에 남아 있다.
+for(const file of ['js/saju-engine.js','worker/lib/saju-section/paid-renderers.src.js']){
+  const ast=ts.createSourceFile(file,fs.readFileSync(file,'utf8'),ts.ScriptTarget.Latest,true,ts.ScriptKind.JS);
+  for(const node of ast.statements){
+    if(ts.isFunctionDeclaration(node)&&node.name)declarations.set(node.name.text,node.getText(ast));
+    if(ts.isVariableStatement(node))for(const d of node.declarationList.declarations)if(ts.isIdentifier(d.name))declarations.set(d.name.text,`var ${d.getText(ast)};`);
+  }
 }
 const names=['CD_SAMHAP','sajuSamhapState','_sajuVillainBuildBranchRelations','getDaewunBranchEvidence'];
 for(const name of names)assert.ok(declarations.has(name),name);

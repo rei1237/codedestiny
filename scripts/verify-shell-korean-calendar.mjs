@@ -688,6 +688,9 @@ function extractFunctionSource(source, name) {
     "js/inline/saju-core-bootstrap.js",
     "js/luck-sync-diary.js",
   ]);
+  // 대운 세운 연주 고정 프로브는 사주 대운 풀이와 함께 서버 유료 렌더러로 옮겼다(js/saju-engine.js 에서 추출).
+  // 브라우저가 싣는 파일이 아니라 ⑬·⑭ 대상은 아니고, ⑯ 고정 프로브 스캔에만 넣는다.
+  const SERVER_GANJI_PROBE_FILES = Object.freeze(["worker/lib/saju-section/paid-renderers.src.js"]);
 
   // 🔴 남겨 둔 다인자 `new Date(` — 전부 **표시 축**이고 간지를 만들지 않는다.
   // args 는 인자 문자열을 공백 제거해 그대로 적는다. 옮기거나 지웠으면 이 표도 같이 고쳐라.
@@ -1142,7 +1145,7 @@ function extractFunctionSource(source, name) {
   const carrierCalls = [];
   const unclassifiedCalls = [];
   let ganjiCalls = 0;
-  for (const rel of GANJI_PATH_FILES) {
+  for (const rel of [...GANJI_PATH_FILES, ...SERVER_GANJI_PROBE_FILES]) {
     const code = stripCommentsAndStrings(fs.readFileSync(path.join(root, rel), "utf8"));
     for (const hit of findGanjiFromPartsCalls(code)) {
       ganjiCalls += 1;

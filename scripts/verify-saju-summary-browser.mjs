@@ -6,12 +6,30 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { mkdir } from 'node:fs/promises';
 import { tmpdir, freemem } from 'node:os';
+import { buildSajuSectionHtml } from '../worker/lib/saju-section/report.js';
 
 const root = process.cwd();
 const server = createServer(async (req, res) => {
   const pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
   // This suite tests a member's paid summary; guest/result access is covered by verify-saju-result-login.mjs.
   if (pathname === '/api/auth/me') { res.writeHead(200, {'content-type':'application/json'}); res.end(JSON.stringify({ok:true,authenticated:true,user:{id:'summary-race-user',name:'회귀검증'}})); return; }
+  if (pathname === '/api/saju/section') {
+    // 종합·대운 본문은 서버가 만든다. 해금 판정은 워커 테스트가 맡고, 여기서는 같은 렌더러로 배달 흐름만 본다.
+    let raw = '';
+    for await (const chunk of req) raw += chunk;
+    let status = 200, payload;
+    try {
+      const body = JSON.parse(raw || '{}');
+      const birth = body.birth || {};
+      const result = buildSajuSectionHtml({
+        featureKey: body.featureKey,
+        birth: {calendarDate: birth.date, calType: birth.calType, timeKnown: birth.timeKnown !== false, hour: birth.hour, minute: birth.minute},
+        gender: body.gender, name: body.name, mode: body.mode, lang: body.lang, place: body.place, jongDecision: body.jongDecision, daewun: body.daewun,
+      });
+      payload = {ok:true, unlocked:true, featureKey:body.featureKey, ...result};
+    } catch (error) { status = 400; payload = {ok:false, message:error.message}; }
+    res.writeHead(status, {'content-type':'application/json'}); res.end(JSON.stringify(payload)); return;
+  }
   if (pathname.startsWith('/api/')) { res.writeHead(200, {'content-type':'application/json'}); res.end('{"ok":true,"unlocks":[],"profiles":[]}'); return; }
   const file = resolve(root, '.' + (pathname === '/' ? '/index.html' : pathname));
   if (!file.startsWith(root + '/') && !file.startsWith(root + '\\')) { res.writeHead(403); res.end(); return; }
@@ -183,6 +201,12 @@ try {
   // Restored birth-scoped access arrives as a verified grant for the current profileId, not
   // through the shared legacy map. Emit the access-restoration notification, then require a readable report.
   await page.evaluate(() => window.dispatchEvent(new CustomEvent('cd:unlocks-changed',{detail:{source:'mock-restored-entitlement'}})));
+  // 본문은 서버 응답으로 늦게 온다 — 배달된 본문이나 보이는 해금 버튼 중 하나가 나올 때까지 기다린다.
+  await page.waitForFunction(() => {
+    if (document.querySelector('#summaryArea .saju-summary-report')) return true;
+    const button = document.querySelector('#summaryGate button[data-unlock-key]');
+    return !!button && !!(button.offsetWidth || button.offsetHeight || button.getClientRects().length);
+  }, undefined, {timeout:15000});
   if (!await page.locator('#summaryArea .saju-summary-report').count()) {
     await page.locator('#summaryGate button[data-unlock-key]').click();
   }
@@ -321,7 +345,8 @@ try {
         await page.screenshot({path:resolve(shots,'offer-'+mode+'-'+width+'.png')});
       }
       assert.equal(await page.locator('#sajuReadingHeader .saju-reading-compare').count(),0);
-      assert.match(await page.locator('.saju-cycle-guide > p').first().textContent(), mode === 'neo' ? /핵심은/ : /살펴볼게요/);
+      // 모드를 바꾸면 펼친 대운을 서버에서 새 말투로 다시 받는다 — 도착할 때까지 기다린다.
+      await page.waitForFunction(word => (document.querySelector('.saju-cycle-guide > p')?.textContent || '').includes(word), mode === 'neo' ? '핵심은' : '살펴볼게요');
       assert.equal(await page.locator('#dwGrid .dw-item').count() > 0,true,'persona switch preserves paid access');
     }
     const firstDwItem = page.locator('#dwGrid .dw-item').first();
