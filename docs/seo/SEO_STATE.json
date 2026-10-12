@@ -1,19 +1,16 @@
 {
-  "observedAt": "2026-09-28",
-  "observationNote": "로그인 GSC UI 관측. 실적 기간·색인 보고서 갱신일 분리. Naver 재로그인 필요. 이전 관측 history에 보존.",
+  "observedAt": "2026-10-12",
+  "observationNote": "로그인된 GSC와 Naver UI 직접 관측. 실적 기간과 색인 보고서 갱신일을 분리. Query와 Page는 별도 집계.",
   "period": {
-    "start": "2026-06-26",
-    "end": "2026-09-25",
-    "searchType": "web",
-    "country": "all",
-    "device": "all"
+    "start": "2026-07-10",
+    "end": "2026-10-09"
   },
   "metrics": {
-    "organicClicks": 29,
-    "impressions": 357,
-    "ctr": 8.1,
-    "averagePosition": 24.4,
-    "indexedPages": 301,
+    "organicClicks": 30,
+    "impressions": 486,
+    "ctr": 6.2,
+    "averagePosition": 20.5,
+    "indexedPages": 370,
     "newReferringDomains": null,
     "relevantReferringDomains": null
   },
@@ -21,20 +18,50 @@
     {
       "query": "사주",
       "clicks": 3,
-      "impressions": 5,
-      "position": 22.8
+      "impressions": 7,
+      "position": 21.6
     },
     {
       "query": "숙요점",
-      "clicks": 1,
+      "clicks": 2,
       "impressions": 7,
-      "position": 22
+      "position": 17.9
     },
     {
       "query": "만세력 사주",
       "clicks": 1,
-      "impressions": 1,
-      "position": 51
+      "impressions": 2,
+      "position": 33.5
+    },
+    {
+      "query": "sukuyo 星 mansion",
+      "clicks": 0,
+      "impressions": 27,
+      "position": 5.3
+    },
+    {
+      "query": "宿曜資料",
+      "clicks": 0,
+      "impressions": 14,
+      "position": 4.2
+    },
+    {
+      "query": "宿曜占星",
+      "clicks": 0,
+      "impressions": 13,
+      "position": 3.4
+    },
+    {
+      "query": "宿曜 資料",
+      "clicks": 0,
+      "impressions": 11,
+      "position": 3
+    },
+    {
+      "query": "宿曜親子",
+      "clicks": 0,
+      "impressions": 5,
+      "position": 10
     },
     {
       "query": "만세력",
@@ -43,64 +70,40 @@
       "position": 19.6
     },
     {
-      "query": "算命学 忌神 無料",
-      "clicks": 0,
-      "impressions": 4,
-      "position": 88.8
-    },
-    {
-      "query": "숙요점 업태",
-      "clicks": 0,
-      "impressions": 3,
-      "position": 8
-    },
-    {
-      "query": "숙요점 영친",
-      "clicks": 0,
-      "impressions": 3,
-      "position": 8.7
-    },
-    {
       "query": "숙요",
       "clicks": 0,
-      "impressions": 3,
-      "position": 13
-    },
-    {
-      "query": "숙요점 사이트",
-      "clicks": 0,
-      "impressions": 3,
-      "position": 22.7
-    },
-    {
-      "query": "점성술",
-      "clicks": 0,
-      "impressions": 3,
-      "position": 94.7
+      "impressions": 4,
+      "position": 12.8
     },
     {
       "page": "https://code-destiny.com/",
-      "clicks": 20,
-      "impressions": 154,
-      "position": 31.2
+      "clicks": 15,
+      "impressions": 148,
+      "position": 30.7
     },
     {
       "page": "https://code-destiny.com/manse/",
-      "clicks": 4,
-      "impressions": 35,
-      "position": 24.3
+      "clicks": 5,
+      "impressions": 44,
+      "position": 21.3
     },
     {
       "page": "https://code-destiny.com/sukuyo/",
+      "clicks": 3,
+      "impressions": 22,
+      "position": 9.3
+    },
+    {
+      "page": "https://code-destiny.com/ggulggul/",
       "clicks": 2,
-      "impressions": 16,
-      "position": 10.1
+      "impressions": 7,
+      "position": 3.1
     },
     {
       "page": "https://code-destiny.com/insights/sukuyo/",
       "clicks": 1,
-      "impressions": 11,
-      "position": 17.4
+      "impressions": 10,
+      "position": 14.9
     },
     {
       "page": "https://code-destiny.com/insights/sukuyo-love/",
@@ -109,172 +112,241 @@
       "position": 9.1
     },
     {
+      "page": "https://code-destiny.com/ja/fortune/today/virgo/",
+      "clicks": 1,
+      "impressions": 3,
+      "position": 74
+    },
+    {
+      "page": "https://code-destiny.com/yeongnyangi/1000-won-fortune/",
+      "clicks": 1,
+      "impressions": 2,
+      "position": 3
+    },
+    {
       "page": "https://code-destiny.com/insights/sukuyo-27-mansions/",
       "clicks": 1,
       "impressions": 2,
       "position": 5.5
     },
     {
-      "page": "https://code-destiny.com/insights/astrology-synastry-compatibility-fun-guide/",
+      "page": "https://code-destiny.com/zh-tw/sukuyo/",
       "clicks": 0,
-      "impressions": 14,
-      "position": 13.6
-    },
-    {
-      "page": "https://code-destiny.com/ja/",
-      "clicks": 0,
-      "impressions": 14,
-      "position": 42.4
-    },
-    {
-      "page": "https://code-destiny.com/insights/vedic-astrology-navamsa-basics/",
-      "clicks": 0,
-      "impressions": 12,
-      "position": 9.3
-    },
-    {
-      "page": "https://code-destiny.com/en/",
-      "clicks": 0,
-      "impressions": 12,
-      "position": 22.9
+      "impressions": 54,
+      "position": 6.2
     }
   ],
   "gscCoverage": {
     "queries": {
       "observedRows": 10,
-      "totalRows": 71
+      "totalRows": 90
     },
     "pages": {
       "observedRows": 10,
-      "totalRows": 116
+      "totalRows": null
     },
     "countries": {
       "observedRows": 10,
-      "totalRows": 17
+      "totalRows": null
     },
     "devices": {
       "observedRows": 3,
       "totalRows": 3
     },
-    "updatedDisplay": "6시간 전",
+    "updatedDisplay": "53.5시간 전",
     "updatedAt": null,
-    "note": "개별 집계이며 검색어-페이지 결합 아님. 전체 export 없음."
+    "note": "상위 표본이며 query-page 교차표 아님"
   },
   "countries": [
     {
-      "country": "KR",
-      "clicks": 28,
-      "impressions": 292,
-      "position": 24.4
+      "country": "한국",
+      "clicks": 27,
+      "impressions": 320,
+      "position": 22.4
     },
     {
-      "country": "GB",
+      "country": "일본",
       "clicks": 1,
-      "impressions": 2,
-      "position": 4
+      "impressions": 29,
+      "position": 45.1
     },
     {
-      "country": "US",
-      "clicks": 0,
-      "impressions": 26,
-      "position": 5.1
-    },
-    {
-      "country": "JP",
-      "clicks": 0,
-      "impressions": 13,
-      "position": 43.8
-    },
-    {
-      "country": "TW",
-      "clicks": 0,
+      "country": "베트남",
+      "clicks": 1,
       "impressions": 4,
-      "position": 18.3
+      "position": 50.3
     },
     {
-      "country": "IN",
+      "country": "영국",
+      "clicks": 1,
+      "impressions": 3,
+      "position": 3
+    },
+    {
+      "country": "대만",
+      "clicks": 0,
+      "impressions": 57,
+      "position": 6.6
+    },
+    {
+      "country": "미국",
+      "clicks": 0,
+      "impressions": 48,
+      "position": 5
+    },
+    {
+      "country": "캐나다",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 6.7
+    },
+    {
+      "country": "인도",
       "clicks": 0,
       "impressions": 3,
       "position": 45.3
     },
     {
-      "country": "DE",
+      "country": "말레이시아",
       "clicks": 0,
       "impressions": 2,
-      "position": 3.5
+      "position": 4
     },
     {
-      "country": "CA",
+      "country": "브라질",
       "clicks": 0,
       "impressions": 2,
-      "position": 9.5
-    },
-    {
-      "country": "HK",
-      "clicks": 0,
-      "impressions": 2,
-      "position": 27
-    },
-    {
-      "country": "RU",
-      "clicks": 0,
-      "impressions": 2,
-      "position": 34.5
+      "position": 6
     }
   ],
   "devices": [
     {
       "device": "mobile",
-      "clicks": 23,
-      "impressions": 201,
-      "position": 20.6
+      "clicks": 24,
+      "impressions": 268,
+      "position": 18.5
     },
     {
       "device": "desktop",
       "clicks": 6,
-      "impressions": 155,
-      "position": 29
+      "impressions": 215,
+      "position": 22.9
     },
     {
       "device": "tablet",
       "clicks": 0,
-      "impressions": 1,
-      "position": 99
+      "impressions": 3,
+      "position": 36.7
     }
   ],
   "indexing": {
-    "observedAt": "2026-09-28",
-    "updatedAt": "2026-09-21",
-    "excluded": 2617,
-    "crawledNotIndexed": 382,
-    "discoveredNotIndexed": 1014,
-    "differentGoogleCanonical": 4,
-    "notFound": 764,
-    "redirect": 291,
-    "noindex": 105,
-    "alternateCanonical": 25,
+    "observedAt": "2026-10-12",
+    "updatedAt": "2026-10-04",
+    "excluded": 2402,
+    "crawledNotIndexed": 249,
+    "discoveredNotIndexed": 931,
+    "differentGoogleCanonical": 3,
+    "notFound": 765,
+    "redirect": 296,
+    "noindex": 107,
+    "alternateCanonical": 19,
     "robots": 18,
     "forbidden": 5,
     "duplicateWithoutCanonical": 4,
     "other4xx": 2,
     "serverError": 2,
     "unauthorized": 1,
-    "note": "이전 관측 9/18 보고서보다 색인 +9. 원인이나 배포 효과 단정 불가. 과거 URL 표본은 history에 보존."
+    "note": "과거·대체·의도된 제외 URL 포함. 현재 사이트맵 오류 수와 동일하지 않음."
   },
   "naver": {
-    "observedAt": null,
-    "attemptedAt": "2026-09-28",
-    "status": "login-required",
-    "updatedAt": null,
-    "period": null,
+    "observedAt": "2026-10-12",
+    "status": "observed",
+    "updatedAt": "2026-10-11",
+    "period": {
+      "label": "최근 30일",
+      "start": null,
+      "end": null
+    },
     "clicks": null,
     "impressions": null,
-    "ctr": null,
+    "ctr": 0.4,
+    "display": {
+      "clicks": "3.7천",
+      "impressions": "83.9만",
+      "indexedPages": "8.3백"
+    },
     "indexedPages": null,
-    "queries": null,
-    "pages": null,
-    "links": null,
-    "note": "Search Advisor 접근 시 NAVER 로그인 화면. 이전 값을 현재 수치로 사용하지 않음."
+    "diagnosis": {
+      "updatedAt": "2026-10-10",
+      "redirect": 29,
+      "inaccessible": 14,
+      "missingDescription": 6,
+      "multipleTitle": 1,
+      "duplicateTitleDisplay": "3.5백",
+      "duplicateDescriptionDisplay": "3.5백",
+      "multipleH1": 4,
+      "missingAlt": 32
+    },
+    "queries": [
+      {
+        "query": "쥐띠운세",
+        "clicks": 57,
+        "impressions": 15227,
+        "ctr": 0.4
+      },
+      {
+        "query": "범띠운세",
+        "clicks": 53,
+        "impressions": 22634,
+        "ctr": 0.2
+      },
+      {
+        "query": "내일 운세",
+        "clicks": 24,
+        "impressions": 15515,
+        "ctr": 0.2
+      }
+    ],
+    "pages": [
+      {
+        "page": "/fortune/tomorrow/tiger/",
+        "clicks": 280,
+        "impressions": 49766,
+        "ctr": 0.6
+      },
+      {
+        "page": "/fortune/tomorrow/rat/",
+        "clicks": 266,
+        "impressions": 42829,
+        "ctr": 0.6
+      },
+      {
+        "page": "/fortune/tomorrow/snake/",
+        "clicks": 256,
+        "impressions": 39299,
+        "ctr": 0.7
+      },
+      {
+        "page": "/fortune/tomorrow/scorpio/",
+        "clicks": 110,
+        "impressions": 41562,
+        "ctr": 0.3
+      }
+    ],
+    "links": {
+      "updatedAt": "2026-10-12",
+      "domains": [
+        {
+          "domain": "dcinside.com",
+          "pages": 232
+        },
+        {
+          "domain": "naver.com",
+          "pages": 143
+        }
+      ]
+    },
+    "note": "반올림 총계는 정수로 추정하지 않음. 상위 표본을 임의로 교차 집계하지 않음. 28일/3개월 및 국가별 집계 미확인."
   },
   "acquiredLinks": [],
   "existingGscLinkDomains": [
@@ -310,10 +382,9 @@
     "재물운"
   ],
   "improvements": [
-    "최신 GSC 3개월·28일 실적, 국가·기기·색인 사유·링크 관측 갱신. 이전 관측 보존.",
-    "일본 3곳·한국 2곳 후보 본문 및 제한된 연결 페이지 재검토. 점수 상향·발송 없음.",
-    "주요 랜딩 19개·사이트맵 1300개 검사 오류 0.",
-    "2026-10-10 한국어 서비스명 꿀꿀 운세 → 꿀꿀 사주: 사이트명 신호·대표 페이지 title·/kkul-kkul-unse/ 전환 안내·OG 카드 재렌더(rename20261010)."
+    "현재 로그인 계정 실적·색인·링크 및 이전 관측 보존 갱신.",
+    "이미 main에 있는 sitemap index 검사기 수정과 베다 비교 콘텐츠 개선을 재사용; 중복 구현 없음.",
+    "한국 2개·일본 3개 기존 후보 본문 재검수, 미확인 항목·발송 보류 유지."
   ],
   "adsense": {
     "status": "needs-attention",
@@ -342,12 +413,12 @@
     "observedAt": "2026-09-21"
   },
   "nextActions": [
-    "Naver 재로그인 후 최신 실적·색인·링크 확보.",
-    "시나스트리(14노출/13.6위)·나밤샤(12노출/9.3위)를 실제 검색어 필터 및 현행 공개 본문과 대조. 표본 확대 전 효과 단정 금지.",
-    "10월 월간 감사에서 홈 전환(/ React 영냥이, /ggulggul/ 정적 셸)·로케일·AdSense/CMP·동일 URL 성과를 재점검."
+    "GSC 숙요·번체 숙요 URL의 실제 query-page 필터로 낮은 CTR 검색 의도 검증.",
+    "10/03·10/08·10/10 변경 혼재를 고려하여 제목 실험 관측 유지; 네이버 내일 운세 저CTR 추적.",
+    "월간 미완료 항목: 다국어·모바일·CMP 실동작과 독립 콘텐츠 가치 검수. main 실패 해소 후 이 기록 통합."
   ],
   "lastMonthlyAudit": "2026-09-08",
-  "lastWeeklyCycle": "2026-09-28",
+  "lastWeeklyCycle": "2026-10-12",
   "outreachRegistry": "docs/seo/outreach/candidates.json",
   "productionObservedSha": "06b0ad911b575abad74e049e4fdef36041fb376b",
   "automation": {
@@ -1553,54 +1624,426 @@
           "한국어 계산 설명의 정합성을 먼저 수정. 해외 모든 안내와 전체 실행 경로 전수 검증은 미완료."
         ]
       }
+    },
+    {
+      "observedAt": "2026-09-28",
+      "period": {
+        "start": "2026-06-26",
+        "end": "2026-09-25",
+        "searchType": "web",
+        "country": "all",
+        "device": "all"
+      },
+      "metrics": {
+        "organicClicks": 29,
+        "impressions": 357,
+        "ctr": 8.1,
+        "averagePosition": 24.4,
+        "indexedPages": 301,
+        "newReferringDomains": null,
+        "relevantReferringDomains": null
+      },
+      "gscRows": [
+        {
+          "query": "사주",
+          "clicks": 3,
+          "impressions": 5,
+          "position": 22.8
+        },
+        {
+          "query": "숙요점",
+          "clicks": 1,
+          "impressions": 7,
+          "position": 22
+        },
+        {
+          "query": "만세력 사주",
+          "clicks": 1,
+          "impressions": 1,
+          "position": 51
+        },
+        {
+          "query": "만세력",
+          "clicks": 0,
+          "impressions": 5,
+          "position": 19.6
+        },
+        {
+          "query": "算命学 忌神 無料",
+          "clicks": 0,
+          "impressions": 4,
+          "position": 88.8
+        },
+        {
+          "query": "숙요점 업태",
+          "clicks": 0,
+          "impressions": 3,
+          "position": 8
+        },
+        {
+          "query": "숙요점 영친",
+          "clicks": 0,
+          "impressions": 3,
+          "position": 8.7
+        },
+        {
+          "query": "숙요",
+          "clicks": 0,
+          "impressions": 3,
+          "position": 13
+        },
+        {
+          "query": "숙요점 사이트",
+          "clicks": 0,
+          "impressions": 3,
+          "position": 22.7
+        },
+        {
+          "query": "점성술",
+          "clicks": 0,
+          "impressions": 3,
+          "position": 94.7
+        },
+        {
+          "page": "https://code-destiny.com/",
+          "clicks": 20,
+          "impressions": 154,
+          "position": 31.2
+        },
+        {
+          "page": "https://code-destiny.com/manse/",
+          "clicks": 4,
+          "impressions": 35,
+          "position": 24.3
+        },
+        {
+          "page": "https://code-destiny.com/sukuyo/",
+          "clicks": 2,
+          "impressions": 16,
+          "position": 10.1
+        },
+        {
+          "page": "https://code-destiny.com/insights/sukuyo/",
+          "clicks": 1,
+          "impressions": 11,
+          "position": 17.4
+        },
+        {
+          "page": "https://code-destiny.com/insights/sukuyo-love/",
+          "clicks": 1,
+          "impressions": 7,
+          "position": 9.1
+        },
+        {
+          "page": "https://code-destiny.com/insights/sukuyo-27-mansions/",
+          "clicks": 1,
+          "impressions": 2,
+          "position": 5.5
+        },
+        {
+          "page": "https://code-destiny.com/insights/astrology-synastry-compatibility-fun-guide/",
+          "clicks": 0,
+          "impressions": 14,
+          "position": 13.6
+        },
+        {
+          "page": "https://code-destiny.com/ja/",
+          "clicks": 0,
+          "impressions": 14,
+          "position": 42.4
+        },
+        {
+          "page": "https://code-destiny.com/insights/vedic-astrology-navamsa-basics/",
+          "clicks": 0,
+          "impressions": 12,
+          "position": 9.3
+        },
+        {
+          "page": "https://code-destiny.com/en/",
+          "clicks": 0,
+          "impressions": 12,
+          "position": 22.9
+        }
+      ],
+      "gscCoverage": {
+        "queries": {
+          "observedRows": 10,
+          "totalRows": 71
+        },
+        "pages": {
+          "observedRows": 10,
+          "totalRows": 116
+        },
+        "countries": {
+          "observedRows": 10,
+          "totalRows": 17
+        },
+        "devices": {
+          "observedRows": 3,
+          "totalRows": 3
+        },
+        "updatedDisplay": "6시간 전",
+        "updatedAt": null,
+        "note": "개별 집계이며 검색어-페이지 결합 아님. 전체 export 없음."
+      },
+      "countries": [
+        {
+          "country": "KR",
+          "clicks": 28,
+          "impressions": 292,
+          "position": 24.4
+        },
+        {
+          "country": "GB",
+          "clicks": 1,
+          "impressions": 2,
+          "position": 4
+        },
+        {
+          "country": "US",
+          "clicks": 0,
+          "impressions": 26,
+          "position": 5.1
+        },
+        {
+          "country": "JP",
+          "clicks": 0,
+          "impressions": 13,
+          "position": 43.8
+        },
+        {
+          "country": "TW",
+          "clicks": 0,
+          "impressions": 4,
+          "position": 18.3
+        },
+        {
+          "country": "IN",
+          "clicks": 0,
+          "impressions": 3,
+          "position": 45.3
+        },
+        {
+          "country": "DE",
+          "clicks": 0,
+          "impressions": 2,
+          "position": 3.5
+        },
+        {
+          "country": "CA",
+          "clicks": 0,
+          "impressions": 2,
+          "position": 9.5
+        },
+        {
+          "country": "HK",
+          "clicks": 0,
+          "impressions": 2,
+          "position": 27
+        },
+        {
+          "country": "RU",
+          "clicks": 0,
+          "impressions": 2,
+          "position": 34.5
+        }
+      ],
+      "devices": [
+        {
+          "device": "mobile",
+          "clicks": 23,
+          "impressions": 201,
+          "position": 20.6
+        },
+        {
+          "device": "desktop",
+          "clicks": 6,
+          "impressions": 155,
+          "position": 29
+        },
+        {
+          "device": "tablet",
+          "clicks": 0,
+          "impressions": 1,
+          "position": 99
+        }
+      ],
+      "indexing": {
+        "observedAt": "2026-09-28",
+        "updatedAt": "2026-09-21",
+        "excluded": 2617,
+        "crawledNotIndexed": 382,
+        "discoveredNotIndexed": 1014,
+        "differentGoogleCanonical": 4,
+        "notFound": 764,
+        "redirect": 291,
+        "noindex": 105,
+        "alternateCanonical": 25,
+        "robots": 18,
+        "forbidden": 5,
+        "duplicateWithoutCanonical": 4,
+        "other4xx": 2,
+        "serverError": 2,
+        "unauthorized": 1,
+        "note": "이전 관측 9/18 보고서보다 색인 +9. 원인이나 배포 효과 단정 불가. 과거 URL 표본은 history에 보존."
+      },
+      "naver": {
+        "observedAt": null,
+        "attemptedAt": "2026-09-28",
+        "status": "login-required",
+        "updatedAt": null,
+        "period": null,
+        "clicks": null,
+        "impressions": null,
+        "ctr": null,
+        "indexedPages": null,
+        "queries": null,
+        "pages": null,
+        "links": null,
+        "note": "Search Advisor 접근 시 NAVER 로그인 화면. 이전 값을 현재 수치로 사용하지 않음."
+      },
+      "recent28Days": {
+        "observedAt": "2026-09-28",
+        "period": {
+          "start": "2026-08-29",
+          "end": "2026-09-25"
+        },
+        "clicks": 9,
+        "impressions": 99,
+        "ctr": 9.1,
+        "position": 23.5,
+        "devices": [
+          {
+            "device": "mobile",
+            "clicks": 8,
+            "impressions": 67,
+            "position": 21.6
+          },
+          {
+            "device": "desktop",
+            "clicks": 1,
+            "impressions": 31,
+            "position": 24.9
+          },
+          {
+            "device": "tablet",
+            "clicks": 0,
+            "impressions": 1,
+            "position": 99
+          }
+        ],
+        "queryPages": null,
+        "note": "이번 28일 실적 총계와 기기만 관측. 이전 28일과 기간이 겹치므로 독립 전후 실험 아님."
+      },
+      "improvements": [
+        "최신 GSC 3개월·28일 실적, 국가·기기·색인 사유·링크 관측 갱신. 이전 관측 보존.",
+        "일본 3곳·한국 2곳 후보 본문 및 제한된 연결 페이지 재검토. 점수 상향·발송 없음.",
+        "주요 랜딩 19개·사이트맵 1300개 검사 오류 0.",
+        "2026-10-10 한국어 서비스명 꿀꿀 운세 → 꿀꿀 사주: 사이트명 신호·대표 페이지 title·/kkul-kkul-unse/ 전환 안내·OG 카드 재렌더(rename20261010)."
+      ],
+      "weeklyLimitations": [
+        "Naver 로그인 필요: 최신 실적·진단·링크 null.",
+        "검색어와 페이지 상위 10행만 관측; 이번 실행에서 query-page 필터 대조는 미실행.",
+        "숙요 연애·나밤샤 등 기존 품질 수정이 main에 있어 중복 수정하지 않음. 새 본문 개선 0개; 적은 표본으로 수량 채우기 금지.",
+        "이번 달 9/8 월간 감사 기록이 있어 월간 전수 재감사 미실행. AdSense 재관측·CMP/모바일 검수 미실행; 과거 점수 유지.",
+        "제한된 후보 연결 3개에서 대체 자료를 제안할 깨진 링크를 확인하지 못함. 전체 링크 검사 아님."
+      ],
+      "lastWeeklyCycle": "2026-09-28",
+      "lastHealthCheck": {
+        "observedAt": "2026-09-28",
+        "landings": 19,
+        "sitemapUrls": 1300,
+        "issues": 0,
+        "coverage": "주요 랜딩 표본과 robots/사이트맵 범위; 전체 콘텐츠·모바일 감사 아님"
+      },
+      "linkObservation": {
+        "observedAt": "2026-09-28",
+        "updatedAt": null,
+        "totalExternalLinks": 9,
+        "domains": [
+          {
+            "domain": "naver.com",
+            "links": 5
+          },
+          {
+            "domain": "dcinside.com",
+            "links": 1
+          },
+          {
+            "domain": "innoforest.co.kr",
+            "links": 1
+          },
+          {
+            "domain": "x.com",
+            "links": 1
+          },
+          {
+            "domain": "xploredomains.com",
+            "links": 1
+          }
+        ],
+        "newlyObservedDomains": [
+          "naver.com",
+          "dcinside.com",
+          "innoforest.co.kr"
+        ],
+        "sourceSample": {
+          "url": "https://www.innoforest.co.kr/company/CP00040531/코드데스티니",
+          "target": "https://code-destiny.com/",
+          "evidence": "GSC drilldown",
+          "publicVerification": "web access unavailable",
+          "quality": null,
+          "acquiredAt": null
+        }
+      }
     }
   ],
   "recent28Days": {
-    "observedAt": "2026-09-28",
+    "observedAt": "2026-10-12",
     "period": {
-      "start": "2026-08-29",
-      "end": "2026-09-25"
+      "start": "2026-09-12",
+      "end": "2026-10-09"
     },
-    "clicks": 9,
-    "impressions": 99,
-    "ctr": 9.1,
-    "position": 23.5,
+    "clicks": 11,
+    "impressions": 214,
+    "ctr": 5.1,
+    "position": 13.8,
     "devices": [
       {
         "device": "mobile",
-        "clicks": 8,
-        "impressions": 67,
-        "position": 21.6
+        "clicks": 9,
+        "impressions": 115,
+        "position": 15.6
       },
       {
         "device": "desktop",
-        "clicks": 1,
-        "impressions": 31,
-        "position": 24.9
+        "clicks": 2,
+        "impressions": 97,
+        "position": 11.7
       },
       {
         "device": "tablet",
         "clicks": 0,
-        "impressions": 1,
-        "position": 99
+        "impressions": 2,
+        "position": 5.5
       }
     ],
-    "queryPages": null,
-    "note": "이번 28일 실적 총계와 기기만 관측. 이전 28일과 기간이 겹치므로 독립 전후 실험 아님."
+    "queryPages": null
   },
   "lastHealthCheck": {
-    "observedAt": "2026-09-28",
-    "landings": 19,
-    "sitemapUrls": 1300,
+    "observedAt": "2026-10-12",
+    "landings": 27,
+    "sitemapUrls": 955,
     "issues": 0,
-    "coverage": "주요 랜딩 표본과 robots/사이트맵 범위; 전체 콘텐츠·모바일 감사 아님"
+    "coverage": "최신 origin/main 검사기 사용. 오래된 primary 검사기 958건은 sitemap index 미지원 오탐. 전체 본문 품질 또는 verified crawler IP 검증 아님."
   },
   "weeklyLimitations": [
-    "Naver 로그인 필요: 최신 실적·진단·링크 null.",
-    "검색어와 페이지 상위 10행만 관측; 이번 실행에서 query-page 필터 대조는 미실행.",
-    "숙요 연애·나밤샤 등 기존 품질 수정이 main에 있어 중복 수정하지 않음. 새 본문 개선 0개; 적은 표본으로 수량 채우기 금지.",
-    "이번 달 9/8 월간 감사 기록이 있어 월간 전수 재감사 미실행. AdSense 재관측·CMP/모바일 검수 미실행; 과거 점수 유지.",
-    "제한된 후보 연결 3개에서 대체 자료를 제안할 깨진 링크를 확인하지 못함. 전체 링크 검사 아님."
+    "기존 제목 실험과 당일 다른 세션의 콘텐츠 개선을 보존. 이번 사이클 새 본문 수정 0개; 수량 채우지 않음.",
+    "28일 query/page/country 및 Naver 28일/3개월 미추출; 3개월 GSC 상위 표본을 28일로 재사용하지 않음.",
+    "월간 감사 진행 중: 모바일 시각 검수·다국어 전수·CMP 게시/지역 동의·광고 실게재 미검증. lastMonthlyAudit는 완료로 올리지 않음.",
+    "main aedf583e3e84a135ec20c124926103c6e43e73ab Gift transaction integrity 실패로 전달 보류.",
+    "AdSense 계정 거절 사유·기존 점수는 과거 관측이며 이번 주 재평가 아님.",
+    "번체 숙요 본문은 현지화됐지만 대표 이미지·로그인 이용권 안내에 한국어 잔존. 언어별 전수 검수와 모바일 재검증 필요."
   ],
   "naverObservationHistory": [
     {
@@ -1876,44 +2319,31 @@
     ]
   },
   "linkObservation": {
-    "observedAt": "2026-09-28",
-    "updatedAt": null,
-    "totalExternalLinks": 9,
+    "observedAt": "2026-10-12",
+    "totalExternalLinks": 20,
     "domains": [
       {
         "domain": "naver.com",
-        "links": 5
-      },
-      {
-        "domain": "dcinside.com",
-        "links": 1
-      },
-      {
-        "domain": "innoforest.co.kr",
-        "links": 1
+        "links": 8
       },
       {
         "domain": "x.com",
-        "links": 1
+        "links": 4
+      },
+      {
+        "domain": "dcinside.com",
+        "links": 2
+      },
+      {
+        "domain": "innoforest.co.kr",
+        "links": 2
       },
       {
         "domain": "xploredomains.com",
-        "links": 1
+        "links": 2
       }
     ],
-    "newlyObservedDomains": [
-      "naver.com",
-      "dcinside.com",
-      "innoforest.co.kr"
-    ],
-    "sourceSample": {
-      "url": "https://www.innoforest.co.kr/company/CP00040531/코드데스티니",
-      "target": "https://code-destiny.com/",
-      "evidence": "GSC drilldown",
-      "publicVerification": "web access unavailable",
-      "quality": null,
-      "acquiredAt": null
-    }
+    "note": "상위 5개 표본. 신규 획득 시점과 관련성 미확인; 신규 referring domains null."
   },
   "titleExperiment": {
     "startedAt": "2026-10-03",
@@ -3232,5 +3662,42 @@
       "/kkul-kkul-unse/",
       "/vedic/"
     ]
+  },
+  "monthlyAuditAttempt": {
+    "observedAt": "2026-10-12",
+    "status": "partial",
+    "httpAudit": "running",
+    "adsenseRoutePolicy": "passed",
+    "adsTxt": "passed",
+    "fieldCwv": {
+      "mobile": null,
+      "desktop": null,
+      "note": "GSC 데이터 없음"
+    },
+    "localeSample": {
+      "path": "/zh-tw/sukuyo/",
+      "body": "번체 본문 확인",
+      "issues": [
+        "대표 이미지에 한국어 문구 포함",
+        "로그인된 이용권 안내 일부 한국어 잔존",
+        "일부 정책·도구 링크 한국어 페이지로 이동"
+      ],
+      "mobile": "390px override 요청했으나 결과 스크린샷은 데스크톱 폭; 모바일 검증으로 집계하지 않음",
+      "additional": [
+        "/ja/sukuyo/ 일본어 본문 확인, 입력 표와 요점 문장 중복",
+        "/en/sukuyo/ 영어 본문 확인, 동일 표-요점 중복"
+      ]
+    },
+    "cmp": "미검증: 지역별 인증 CMP 게시·동의 전후 실제 광고 검수 필요",
+    "score": null,
+    "note": "과거 63/100을 현재 점수로 재사용하지 않음. 전체 월간 완료 아님.",
+    "brokenLinkSample": {
+      "checked": [
+        "https://yakumoin.net/support/inquiry_input",
+        "https://www.senjutsu.jp/inquiry"
+      ],
+      "replacementOpportunity": null,
+      "note": "두 문의 경로 접근 가능. 전수 broken-link 감사 아님."
+    }
   }
 }
