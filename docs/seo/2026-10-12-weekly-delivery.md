@@ -1,6 +1,6 @@
 # 2026-10-12 SEO weekly delivery
 
-status: blocked
+status: done
 
 ## Scope
 - Worktree: D:\wt\seo-health-20261012-20261012-092305
@@ -17,17 +17,15 @@ status: blocked
 - Monthly qualitative audit partial. Full HTTP audit completed: 966 routes / 955 sitemap URLs / two known detector false positives. zh-tw Sukuyo contains Korean image lettering and entitlement copy; JA table/key-points repeat text. Mobile viewport request did not yield a mobile screenshot. No full locale-quality approval.
 
 ## Validation and delivery
-- check:fast plan/check passed; 11 SEO mock tests passed; adsense route / ads.txt passed.
-- Blocking existing main run: https://github.com/rei1237/codedestiny/actions/runs/38186277801
-- Failed job: replica-transactions; step: Run npm run test:gifts:replica.
-- Do not push on red main. No production deploy, real LLM, payment, DB writes, ad activation or AdSense resubmission.
+- Existing main failure https://github.com/rei1237/codedestiny/actions/runs/38186277801 was cleared by later owner work. `CI required` passed for main SHA `615aad5370b37a2fcab54598a6b3ee928372d6db` before integration.
+- Latest `origin/main` touched none of this task's five scoped files. It merged without conflicts as `92d39fe608c05cac5d41bfbbdf4122b6f92fc635`.
+- Full fail-closed `npm run check:fast` passed after integration: paid gate suite 88/88, node tests 3189/3189, Jest 388 suites and 5983 tests, lint, typecheck, sitemap drift (955 URLs), worker dry-run build and strict-core encoding.
+- Earlier focused checks remain valid: 11 SEO mock tests passed; adsense route / ads.txt passed.
+- No production deploy, real LLM, payment, DB writes, ad activation or AdSense resubmission.
 
-## Resume
-1. Resolve/confirm existing main CI failure using its owner's work; do not broaden this SEO commit into payment repairs.
-2. Inspect current git status and remote changes. Integrate only this worktree's SEO records into main, preserving newer SEO observations if present.
-3. Run check:fast and check:pre-push for the resulting tree; push origin main only when permitted. Check main CI once before final report.
-4. Finish monthly multilingual/mobile/CMP review. Do not raise lastMonthlyAudit or the old AdSense score until complete.
-5. Mark this record done and drain only this task's worktree after safe integration.
+## Follow-up
+1. Finish monthly multilingual/mobile/CMP review in a separate task. Do not raise lastMonthlyAudit or the old AdSense score until complete.
+2. Inspect English home-to-specialist discovery before changing titles for the observed `sukuyo 星 mansion` query.
 
 ## Additional evidence
 - First record commit: 6600873e3d4e376893ecdb197f46dbace6aaf93e; check:pre-push passed.
@@ -35,7 +33,7 @@ status: blocked
 - Recent 28-day top query, page, country samples added independently; no inferred join.
 
 ## Remaining validation
-- Script change escalates check:fast to full. Not executed while another session runs typecheck/paid gates with ~700MB free RAM. Do not label full check passed.
+- Monthly multilingual/mobile/CMP review remains incomplete; this delivery does not claim full locale-quality or published CMP proof.
 - Syntax and existing SEO detector tests passed; seed-only public recheck result belongs in SEO_STATE.monthlyAuditAttempt.
 - AdSense directly observed 2026-10-12: account updated 2026-10-06 11:50 KST, low-value-content persists, ads.txt approved. Europe card offers create new message; no published CMP evidence obtained.
 
