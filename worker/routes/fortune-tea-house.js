@@ -2436,67 +2436,67 @@ function buildFallbackSajuDeepSections(request, saju = {}) {
   const sections = [
     {
       id: "summary",
-      title: "핵심 요약",
+      title: SAJU_REQUIRED_SECTION_TITLES[1],
       tone: "summary",
       body: `${nickname}의 질문은 "${question}"이라는 결로 찻잔 위에 올라왔습니다. ${birthDate}의 흐름을 기준으로 보면, 지금은 결론을 서두르기보다 반복되어 온 마음의 반응을 먼저 살피는 때입니다. ${timeGuide} 오늘 상담의 핵심은 상대나 상황의 답을 억지로 끌어내는 것이 아니라, 내가 오래 붙잡은 기대와 실제로 확인된 신호를 나누어 보는 데 있습니다. 그 구분이 생기면 마음은 덜 흔들리고 다음 행동은 더 조용히 선명해집니다.`,
     },
     {
       id: "temperament",
-      title: "타고난 기질",
+      title: SAJU_REQUIRED_SECTION_TITLES[0],
       tone: "summary",
       body: `${dayMaster}을 중심에 두면, ${nickname}은 겉으로는 차분해 보여도 마음 안쪽에서는 오래 관찰하고 의미를 찾는 결이 강하게 떠오릅니다. 애매한 말, 늦어지는 답, 미완성된 약속이 있으면 그냥 넘기기보다 왜 그런지 마음속에서 다시 펼쳐 보는 편입니다. 이 성향은 피곤함이 되기도 하지만, 사람과 일의 미묘한 온도를 빨리 알아차리는 감각이기도 합니다. 다만 감각이 빠른 만큼 확인되지 않은 장면까지 마음이 먼저 완성하지 않도록 속도를 낮추는 연습이 필요합니다.`,
     },
     {
       id: "elements",
-      title: "오행 균형",
+      title: SAJU_REQUIRED_SECTION_TITLES[6],
       tone: "element",
       body: `${elements}의 흐름은 오늘 상담에서 마음이 어디로 몰리고 어디가 비어 있는지를 보여줍니다. 강한 기운은 추진력과 확신을 주지만, 지나치면 내가 정한 답만 보고 상대의 속도나 현실의 제약을 놓칠 수 있습니다. 약한 기운은 실패의 예고가 아니라 의식적으로 돌보아야 할 자리입니다. 말이 급해질 때는 수 기운처럼 한 박자 식히고, 마음이 굳을 때는 목 기운처럼 작은 대안을 열어 두세요. 그렇게 해야 사주의 균형이 실제 하루의 선택으로 내려옵니다.`,
     },
     {
       id: "ten-gods",
-      title: "십성 구조",
+      title: SAJU_REQUIRED_SECTION_TITLES[2],
       tone: "tenGod",
       body: `${tenGod}은 ${nickname}이 관계와 선택 앞에서 어떤 얼굴로 자신을 지키는지 보여줍니다. 책임을 크게 느끼는 흐름에서는 마음이 진중해지고 약속을 쉽게 흘리지 않지만, 동시에 내가 감당해야 한다는 압박도 커질 수 있습니다. 표현이 앞서는 흐름에서는 솔직함이 장점으로 드러나지만, 마음이 뜨거운 순간에는 상대가 받아들일 시간을 놓칠 수 있습니다. 십성은 결론을 대신 정하지 않습니다. 다만 지금 어떤 태도가 과해지고 어떤 태도가 부족한지 조용히 가리킵니다.`,
     },
     {
       id: "strength",
-      title: "강점",
+      title: SAJU_REQUIRED_SECTION_TITLES[3],
       tone: "advice",
       body: `${nickname}의 강점은 쉽게 체념하지 않고 마음의 이유를 끝까지 찾으려는 힘입니다. 단순히 좋다, 싫다로 닫지 않고 그 안에 어떤 기대와 두려움이 섞였는지 보려는 시선이 있습니다. 이 힘은 관계에서도 일에서도 중요한 기준이 됩니다. 사람의 말 뒤에 숨은 온도를 읽고, 상황이 흐릴 때도 작은 단서를 모아 방향을 세울 수 있기 때문입니다. 오늘은 이 강점을 불안한 추측이 아니라 차분한 관찰로 쓰는 편이 좋습니다.`,
     },
     {
       id: "weakness",
-      title: "반복되는 약점",
+      title: SAJU_REQUIRED_SECTION_TITLES[4],
       tone: "caution",
       body: `반복해서 조심할 약점은 마음이 흔들릴수록 확인되지 않은 이야기까지 먼저 완성해 버리는 흐름입니다. 답이 늦거나 분위기가 달라지면, 실제로 들은 말보다 마음속 해석이 더 커질 수 있어요. 이때 바로 묻거나 몰아붙이면 원하는 답을 듣기보다 방어적인 반응을 부를 수 있습니다. 사주는 이 약점을 탓하지 않고, 멈춰야 할 순간을 알려줍니다. 감정이 올라온 날에는 메시지 하나도 바로 보내지 말고 한 번 적어 둔 뒤 다음 날 다시 읽어 보세요.`,
     },
     {
       id: "current-flow",
-      title: "현재 운의 흐름",
+      title: SAJU_REQUIRED_SECTION_TITLES[5],
       tone: "flow",
       body: `현재 운은 오래 묻어 둔 감정이 표면으로 올라오는 흐름에 가깝습니다. 그래서 평소라면 넘겼을 말이 마음에 남고, 작은 신호에도 의미를 붙이고 싶어질 수 있습니다. 이 흐름은 무조건 나쁜 것이 아닙니다. 그동안 흐릿했던 기준을 다시 세울 기회가 되기도 합니다. 다만 운이 감정을 밀어 올릴 때는 선택도 빨라지기 쉬우니, 지금 필요한 것은 한 번의 큰 결단보다 질문을 선명하게 줄이는 일입니다. 무엇을 확인해야 마음이 안전한지 먼저 보세요.`,
     },
     {
       id: "life-rhythm",
-      title: "일 · 돈 · 관계 · 건강 리듬",
+      title: SAJU_REQUIRED_SECTION_TITLES[8],
       tone: "flow",
       body: `일의 자리에서는 감정의 기세보다 순서가 중요합니다. 해야 할 일을 작게 나누면 압박이 줄고, 결과도 더 안정적으로 쌓입니다. 돈의 자리에서는 기분을 달래기 위한 소비나 성급한 약속을 조심하세요. 관계에서는 서운함을 오래 참다가 한 번에 쏟기보다, 덜 뜨거운 말로 자주 확인하는 편이 좋습니다. 건강 리듬은 수면, 소화, 어깨와 목의 긴장처럼 기본 회복력이 중요하게 떠오릅니다. 몸이 지치면 마음은 더 쉽게 단정으로 기울어집니다.`,
     },
     {
       id: "caution-period",
-      title: "앞으로 조심할 시기",
+      title: SAJU_REQUIRED_SECTION_TITLES[7],
       tone: "caution",
       body: `${caution} 특히 마음이 급해지는 날에는 되돌리기 어려운 말, 계약, 결제, 이별이나 재회에 관한 최종 통보를 바로 꺼내지 않는 편이 좋습니다. 사주에서 조심할 시기는 무언가가 반드시 나빠지는 시간이 아니라, 내가 내 마음을 과하게 믿고 한쪽으로 치우치기 쉬운 시간입니다. 하루를 넘긴 뒤에도 같은 마음이라면 그때 움직여도 늦지 않습니다. 기다림은 포기가 아니라 판단을 맑게 하는 작은 의식입니다.`,
     },
     {
       id: "strategy",
-      title: "실천 전략",
+      title: SAJU_REQUIRED_SECTION_TITLES[9],
       tone: "advice",
       body: `${action} 여기에 한 가지를 더 보태면, 오늘의 질문을 '상대가 어떻게 생각할까' 또는 '결과가 어떻게 될까'에서 '나는 무엇을 확인해야 마음이 안전할까'로 바꾸어 보세요. 그렇게 질문이 바뀌면 행동도 달라집니다. 연락을 하더라도 답을 강요하는 말보다 확인하고 싶은 한 가지를 부드럽게 묻는 말이 좋습니다. 일이나 돈의 문제라면 감정으로 판단하지 말고 숫자, 날짜, 약속처럼 눈에 보이는 기준을 먼저 놓으세요.`,
     },
     {
       id: "one-line",
-      title: "오늘의 한 문장 조언",
+      title: SAJU_REQUIRED_SECTION_TITLES[10],
       tone: "advice",
       body: `오늘은 답을 서두르기보다, 내 마음이 오래 머문 이유와 지금 지켜야 할 기준을 한 잔의 차처럼 천천히 나누어 보세요. 마음은 빠르게 달려가도 운은 조용히 자리를 잡습니다. 그 조용한 자리에서 손님이 고른 한 걸음이 가장 오래 남습니다.`,
     },
@@ -2540,7 +2540,9 @@ function buildFallbackSajuDeepSections(request, saju = {}) {
     strategy: "작은 기준은 작아 보여도 반복되면 삶의 방향이 됩니다. 오늘 고른 기준 하나가 내일의 말투와 선택을 조금 더 단단하게 만들 것입니다.",
     "one-line": "그 기준을 잊지 않으면, 답이 늦어지는 시간도 손님을 무너뜨리는 시간이 아니라 마음을 정돈하는 시간이 됩니다.",
   };
-  return sections.map((section) => ({
+  // 검증기·병합은 필수 제목을 글자 그대로 찾는다. 제목은 필수 목록에서 가져오고 그 순서로 내보낸다(id·본문 확장은 그대로).
+  const order = (section) => SAJU_REQUIRED_SECTION_TITLES.indexOf(section.title);
+  return sections.sort((left, right) => order(left) - order(right)).map((section) => ({
     ...section,
     body: `${section.body} ${expansions[section.id] || ""} ${detailExpansions[section.id] || ""} ${finalExpansions[section.id] || ""}`,
   }));
@@ -2798,6 +2800,9 @@ function normalizeDraftResult(candidate, request) {
     ...fallback,
     ...draft,
     consultationMode: request.consultationMode,
+    // 검증기(assertSajuDeepQuality)는 이 객체로 카테고리 규칙을 고른다. 생성기와 같은 질문 정보를 실어 둔다.
+    questionCategory: request.questionCategory,
+    question: request.question,
     teaCup: draft.teaCup && typeof draft.teaCup === "object" ? { ...fallback.teaCup, ...draft.teaCup } : fallback.teaCup,
     saju: mergedSaju,
     tarot: draft.tarot && typeof draft.tarot === "object" ? { ...fallback.tarot, ...draft.tarot } : fallback.tarot,
@@ -5932,3 +5937,10 @@ export async function deferUnchangedConsultation(env, doc, now) {
     { _id: doc._id, userId: doc.userId, updatedAt: doc.updatedAt },
     { $set: { updatedAt: new Date(now) } }), { retries: 0 });
 }
+
+export const __fortuneTeaHouseTestUtils = {
+  buildFallbackSajuDeepSections,
+  getSajuRequiredSectionTitles,
+  normalizeDraftResult,
+  resolveSajuCategoryRule,
+};
