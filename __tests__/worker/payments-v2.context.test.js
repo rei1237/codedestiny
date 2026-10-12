@@ -49,6 +49,8 @@ describe("라우트 표", () => {
   test("표를 읽으면 전체 표면이 보인다", () => {
     expect(Object.keys(ROUTES).sort()).toEqual([
       // 결제 공개 설정 컷오버 어댑터 — 구 GET /api/payments/config 가 여기로 온다.
+      // 프로필 선택 지급 — 출생 기반 전환 전 주문의 지급 보류 해소(birth-profile-claim.js).
+      "GET /birth-profile-pending",
       "GET /config",
       "GET /features",
       "GET /orders/:id",
@@ -60,6 +62,7 @@ describe("라우트 표", () => {
       "GET /service-packs/orders/:id/status",
       "GET /service-packs/wallet",
       // 월정석 컷오버 어댑터 — 구 coin-gate 의 MOONLIGHT_STONE 분기(재작성)가 여기로 온다.
+      "POST /birth-profile-pending/:id/claim",
       "POST /coin-gate/moonstone",
       // 이용권 검사 컷오버 — 구 coin-gate 의 MEMBERSHIP_PASS 분기(재작성)가 여기로 온다.
       "POST /coin-gate/pass-check",
@@ -467,7 +470,7 @@ describe("전 경로 — 실행기를 주입해 Mongo 없이 돌린다", () => {
     expect(db.ctx.ops).toBe(1);
     const payload = await response.json();
     // 위 PRODUCT 스텁이 아니라 paid-feature-registry 의 실제 가격이 나온다.
-    expect(payload.amountKRW).toBe(10000);
+    expect(payload.amountKRW).toBe(30000);
     expect(payload.order.status).toBe("PENDING");
   });
 

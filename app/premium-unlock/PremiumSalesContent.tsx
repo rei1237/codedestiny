@@ -21,6 +21,7 @@ import {
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { DeliverableSpec } from "@/app/components/DeliverableSpec";
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { detectLocale } from "@/lib/i18n/dictionary";
 import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLocale } from "@/constants/loadingMessages";
 
@@ -1865,6 +1866,7 @@ export default function PremiumSalesContent() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_22%_18%,rgba(242,207,130,0.18),transparent_32%),linear-gradient(115deg,rgba(5,6,7,0.94)_0%,rgba(16,13,10,0.86)_48%,rgba(6,37,27,0.82)_100%)]" />
       </div>
       <section className="mx-auto grid min-h-screen w-full max-w-7xl gap-6 px-4 py-6 md:grid-cols-[minmax(320px,430px)_1fr] md:px-6 lg:px-8">
+        {copy === PREMIUM_SALES_COPY.ko && <div className="md:col-span-2"><CraftedProductDisclosure featureKey={FEATURE_KEY} /></div>}
         <form onSubmit={handleGenerateClick} className="self-start rounded-lg border border-[#d8b56d]/25 bg-[#12172b]/90 p-5 shadow-2xl shadow-black/30 backdrop-blur md:sticky md:top-6">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 text-[#f2cf82]">

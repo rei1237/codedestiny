@@ -1,0 +1,246 @@
+{
+  "rows": [
+    {
+      "width": 360,
+      "images": [
+        {
+          "loaded": true,
+          "width": 312,
+          "left": 24,
+          "right": 336
+        },
+        {
+          "loaded": true,
+          "width": 312,
+          "left": 24,
+          "right": 336
+        },
+        {
+          "loaded": true,
+          "width": 312,
+          "left": 24,
+          "right": 336
+        },
+        {
+          "loaded": true,
+          "width": 312,
+          "left": 24,
+          "right": 336
+        },
+        {
+          "loaded": true,
+          "width": 312,
+          "left": 24,
+          "right": 336
+        },
+        {
+          "loaded": true,
+          "width": 312,
+          "left": 24,
+          "right": 336
+        },
+        {
+          "loaded": true,
+          "width": 312,
+          "left": 24,
+          "right": 336
+        },
+        {
+          "loaded": true,
+          "width": 312,
+          "left": 24,
+          "right": 336
+        },
+        {
+          "loaded": true,
+          "width": 312,
+          "left": 24,
+          "right": 336
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "images": [
+        {
+          "loaded": true,
+          "width": 342,
+          "left": 24,
+          "right": 366
+        },
+        {
+          "loaded": true,
+          "width": 342,
+          "left": 24,
+          "right": 366
+        },
+        {
+          "loaded": true,
+          "width": 342,
+          "left": 24,
+          "right": 366
+        },
+        {
+          "loaded": true,
+          "width": 342,
+          "left": 24,
+          "right": 366
+        },
+        {
+          "loaded": true,
+          "width": 342,
+          "left": 24,
+          "right": 366
+        },
+        {
+          "loaded": true,
+          "width": 342,
+          "left": 24,
+          "right": 366
+        },
+        {
+          "loaded": true,
+          "width": 342,
+          "left": 24,
+          "right": 366
+        },
+        {
+          "loaded": true,
+          "width": 342,
+          "left": 24,
+          "right": 366
+        },
+        {
+          "loaded": true,
+          "width": 342,
+          "left": 24,
+          "right": 366
+        }
+      ]
+    },
+    {
+      "width": 430,
+      "images": [
+        {
+          "loaded": true,
+          "width": 378,
+          "left": 26,
+          "right": 404
+        },
+        {
+          "loaded": true,
+          "width": 378,
+          "left": 26,
+          "right": 404
+        },
+        {
+          "loaded": true,
+          "width": 378,
+          "left": 26,
+          "right": 404
+        },
+        {
+          "loaded": true,
+          "width": 378,
+          "left": 26,
+          "right": 404
+        },
+        {
+          "loaded": true,
+          "width": 378,
+          "left": 26,
+          "right": 404
+        },
+        {
+          "loaded": true,
+          "width": 378,
+          "left": 26,
+          "right": 404
+        },
+        {
+          "loaded": true,
+          "width": 378,
+          "left": 26,
+          "right": 404
+        },
+        {
+          "loaded": true,
+          "width": 378,
+          "left": 26,
+          "right": 404
+        },
+        {
+          "loaded": true,
+          "width": 378,
+          "left": 26,
+          "right": 404
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "images": [
+        {
+          "loaded": true,
+          "width": 538,
+          "left": 371,
+          "right": 909
+        },
+        {
+          "loaded": true,
+          "width": 538,
+          "left": 371,
+          "right": 909
+        },
+        {
+          "loaded": true,
+          "width": 538,
+          "left": 371,
+          "right": 909
+        },
+        {
+          "loaded": true,
+          "width": 538,
+          "left": 371,
+          "right": 909
+        },
+        {
+          "loaded": true,
+          "width": 538,
+          "left": 371,
+          "right": 909
+        },
+        {
+          "loaded": true,
+          "width": 538,
+          "left": 371,
+          "right": 909
+        },
+        {
+          "loaded": true,
+          "width": 538,
+          "left": 371,
+          "right": 909
+        },
+        {
+          "loaded": true,
+          "width": 538,
+          "left": 371,
+          "right": 909
+        },
+        {
+          "loaded": true,
+          "width": 538,
+          "left": 371,
+          "right": 909
+        }
+      ]
+    }
+  ],
+  "drawPosts": 1,
+  "authPosts": 0,
+  "otherPosts": 0,
+  "devPosts": 0,
+  "fallback": true,
+  "mode": "Mock server draw; five actual sequential flips; legacy modal through existing lazy action; CTA trial only; no payment/reading"
+}

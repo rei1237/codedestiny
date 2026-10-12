@@ -16,7 +16,7 @@ const asked=category=>({...decision,category,...(category==='compatibility'?{tar
 const INITIAL={mackerel:[9000,10500],salmon:[22000,28600],flounder:[31500,39000],tuna:[50400,64800],assorted:[58800,75600],omakase:[75600,97200]};
 
 test('D7 budget: initial is chapters × per-chapter target and every followup has its own fixed target',()=>{
- assert.deepEqual(m.CONSULTATION_FOLLOWUPS,{mackerel:0,salmon:1,flounder:2,tuna:4,assorted:5,omakase:7});
+ assert.deepEqual(m.CONSULTATION_FOLLOWUPS,{mackerel:0,salmon:1,flounder:2,tuna:6,assorted:5,omakase:7});
  assert.deepEqual(m.CONSULTATION_CHAPTERS,{mackerel:6,salmon:11,flounder:15,tuna:24,assorted:28,omakase:36});
  for(const tier of Object.keys(m.CONSULTATION_FOLLOWUPS)){
   const budget=m.consultationBudget(tier);
@@ -100,7 +100,8 @@ test('fusion books give every system its own foundation and expert chapter, then
   assert.equal(full.length,chapters);assert.equal(full.at(-3).key,'prevention');assert.equal(full.at(-3).layoutRole,'life');
   assert.deepEqual(full.map(row=>row.ordinal),full.map((_,i)=>i));
   assert.ok(sum(full,0)>=INITIAL[product.fishId][0]&&sum(full,1)<=INITIAL[product.fishId][1],`${product.id} ${sum(full,0)}~${sum(full,1)}`);
-  for(const row of full){assert.ok(row.outputTokens<=24576);assert.equal(row.minimumChars,Math.ceil(row.targetChars[0]*.55));}
+  // Fusion stage C item 11 (2026-10-11): fusion layouts ask for 80% of the target low; the question layout keeps 55%.
+  for(const row of full){assert.ok(row.outputTokens<=24576);assert.equal(m.FUSION_LAYOUT_MINIMUM_RATIO,.8);assert.equal(row.minimumChars,Math.ceil(row.targetChars[0]*.8));}
  }
 });
 test('legacy fusion and question manifests keep their chapter count and budget',()=>{

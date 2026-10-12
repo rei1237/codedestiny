@@ -226,10 +226,14 @@ console.log("\n[6] 숙요 유료 5종 게이트가 중복 호출을 막는가");
     assert.match(source, /_sySukuyoPaidGateInFlight/);
     assert.match(source, /SY_SUKUYO_PAID_GATE_TTL_MS/);
   });
-  check("requestId 가 결정론적이다(랜덤 금지)", () => {
-    assert.match(source, /requestId: 'sukuyo-paid:' \+ inFlightKey/);
+  // 출생 기반 해금은 카드당 한 번이라 고정 requestId, 회당 결제(궁합 2종)는 결제마다 새 requestId 다
+  // (고정하면 두 번째 상대가 월정석·이용권 멱등 재생으로 무과금). 연타는 인플라이트 가드가 막는다.
+  check("requestId — 해금은 고정, 회당 결제(궁합 2종)만 결제마다 새 값", () => {
     const gateBody = source.slice(source.indexOf("function syOpenPaidSukuyoFeature"), source.indexOf("function syRequirePaidSukuyoFeature"));
-    assert.ok(!/Math\.random\(\)/.test(gateBody), "게이트 requestId 에 Math.random 이 남아 있다");
+    assert.match(gateBody, /config\.perPayment === true \? syNewSukuyoPaymentRequestId\(inFlightKey\) : 'sukuyo-paid:' \+ inFlightKey/);
+    assert.ok(!/Math\.random\(\)/.test(gateBody), "게이트 본문에 Math.random 이 직접 들어왔다 — syNewSukuyoPaymentRequestId 로만");
+    const features = source.slice(source.indexOf("SY_PAID_FEATURES"), source.indexOf("function syOpenPaidSukuyoFeature"));
+    assert.equal((features.match(/perPayment: true/g) || []).length, 2, "perPayment 는 기본·정밀 궁합 두 개뿐이어야 한다");
   });
   check("진행 중이면 게이트를 다시 열지 않는다", () => {
     assert.match(source, /if \(startedAt && \(Date\.now\(\) - startedAt\) < SY_SUKUYO_PAID_GATE_TTL_MS\) return true;/);

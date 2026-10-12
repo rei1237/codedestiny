@@ -4,7 +4,7 @@
  * 영냥이(SoulCat) Family·월정석·단건 결제 호스트 — 겸 CD 내부 영냥이 상품(app/yeongnyangi/) 결제창.
  *
  * 흐름: 상담 요청이 402 `PAYMENT_REQUIRED` 로 `/checkout/?featureKey=yeongnyangi-…&returnTo=/yeongnyangi/…` 를
- * 가리킨다 → 여기서 CD 결제창을 **Family 이용권·월정석·단건 결제**으로 연다 → 권한이 확인되면 returnTo 로 돌아간다.
+ * 가리킨다 → 여기서 CD 결제창을 **패밀리 꿀단지 이용권·월정석·단건 결제**으로 연다 → 권한이 확인되면 returnTo 로 돌아간다.
  * 결과 화면은 CODE DESTINY 서버에서 동일 요청의 PG 증명을 확인하고 저장된 상담을 이어간다.
  *
  * 이 페이지는 두 진입점을 공유한다 — `isSoulCatMode = !params.requestId`로 분기한다.
@@ -14,7 +14,7 @@
  *   레코드의 id로 이 페이지를 연다 — `available`/웹훅 선확인이 그 레코드를 직접 조회한다.
  *
  * 🔴 일반 이용권은 적용되지 않는다. 월정석 허용과 환산은 서버 payment policy 정본을 따른다.
- *    Family 이용권은 기존 한도로 적용하고, 실제 결제수단은 공용 게이트에서 선택한다.
+ *    패밀리 꿀단지 이용권은 기존 한도로 적용하고, 실제 결제수단은 공용 게이트에서 선택한다.
  * 🔴 featureKey 는 `yeongnyangi-` 접두만 받는다 — 이 페이지가 다른 상품의 우회 결제창이 되면 안 된다.
  * 🔴 가격은 레지스트리(resolveServerFeaturePricing)에서만 온다. URL 의 금액을 믿지 않는다.
  * 🔴 화면 문구는 `checkout-copy.ts` 의 동기 표에서 온다. 사전(useT)으로 옮기면 첫 렌더가 비고, 그건
@@ -354,7 +354,7 @@ export default function CheckoutClient() {
                 onBusyChange={busy=>{packLock.current=busy;setPackBusy(busy);}}
                 onPaid={()=>{setGate({phase:"paid"});window.location.assign(params.returnTo);}} />}
 
-                <button type="button" disabled={!authSettled||!signedIn||!checked||!available||packBusy||gate.phase==='paying'||gate.phase==='paid'} onClick={()=>void startPayment('MEMBERSHIP_PASS')}>{lang==='ko'?'보유 Family 적용하기':'Use existing Family pass'}</button>
+                <button type="button" disabled={!authSettled||!signedIn||!checked||!available||packBusy||gate.phase==='paying'||gate.phase==='paid'} onClick={()=>void startPayment('MEMBERSHIP_PASS')}>{lang==='ko'?'보유 패밀리 꿀단지 적용하기':'Use existing Family Honey Jar'}</button>
                 {!pricing.monthlyExcluded&&<button type="button" disabled={!authSettled||!signedIn||!checked||!available||packBusy||gate.phase==='paying'||gate.phase==='paid'} onClick={()=>void startPayment('MOONLIGHT_STONE')}>{lang==='ko'?`보유 월정석 ${pricing.membershipCreditCost.toLocaleString('ko-KR')}개 사용`:alliance.moonstones(pricing.membershipCreditCost.toLocaleString(intlLocale))}</button>}
               {!isSoulCatMode && nativePrice===null && lang==='ko' && !pricing.monthlyExcluded && pricing.monthlyCreditMultiplier===1 && <fieldset className={styles.discount} disabled={gate.phase==='paying'||gate.phase==='paid'||packBusy}>
                 <legend>월정석으로 단건 결제 할인받기</legend>

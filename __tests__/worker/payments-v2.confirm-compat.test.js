@@ -119,6 +119,35 @@ test("PAID 인데 지급 마무리 대기: GRANT_PENDING + '다시 결제하지 
   expect(payload.accessGrant).toBeUndefined(); // 지급 전에 성공 증빙을 내보내면 안 된다
 });
 
+test("소급 출생 기반 주문(스냅샷 생년월일 없음)의 지급 대기: code 는 GRANT_PENDING 그대로, 프로필 선택을 안내한다", async () => {
+  const db = makeFakePaymentDb();
+  const order = seedPaidOrder(db, {
+    productId: "section_summary", featureKey: "section_summary", entitlementGrantedAt: null,
+    pricingSnapshot: { profileId: "deleted-profile" },
+  });
+  db.findOneAndUpdate = async () => { throw new Error("grant DB timeout"); };
+  const { response, payload } = await postConfirm(db, { merchantUid: order.merchantUid, impUid: "portone-tx-1" });
+  expect(response.status).toBe(200);
+  expect(payload.code).toBe("GRANT_PENDING");
+  expect(payload.profileSelectionRequired).toBe(true);
+  expect(payload.message).toContain("프로필");
+  expect(payload.message).not.toContain("마무리하는 중");
+  expect(payload.accessGrant).toBeUndefined();
+});
+
+test("스냅샷에 생년월일이 있는 출생 기반 주문의 지급 대기는 프로필 선택이 아니다 — 크론 재지급이 푼다", async () => {
+  const db = makeFakePaymentDb();
+  const order = seedPaidOrder(db, {
+    productId: "section_summary", featureKey: "section_summary", entitlementGrantedAt: null,
+    pricingSnapshot: { profileId: "profile-9", birthKey: "a".repeat(64), scope: "BIRTH" },
+  });
+  db.findOneAndUpdate = async () => { throw new Error("grant DB timeout"); };
+  const { payload } = await postConfirm(db, { merchantUid: order.merchantUid, impUid: "portone-tx-1" });
+  expect(payload.code).toBe("GRANT_PENDING");
+  expect(payload.profileSelectionRequired).toBeUndefined();
+  expect(payload.message).toContain("다시 결제하지");
+});
+
 test("남의 주문 확정 시도: 403 (주문 문서 소유권 판정)", async () => {
   const db = makeFakePaymentDb();
   const order = seedPaidOrder(db);

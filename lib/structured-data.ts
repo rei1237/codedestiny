@@ -281,7 +281,7 @@ export function buildArticleJsonLd(input: {
     "@id": `${url}#article`,
     headline: input.title,
     description: input.description,
-    image: toAbsoluteUrl(input.image || siteSeo.defaultOgImage),
+    image: new URL(input.image || siteSeo.defaultOgImage, siteSeo.siteUrl).toString(),
     // Missing authorship never implies the operator personally wrote/reviewed it.
     // Editorial organizations are not typed as a Person.
     author:

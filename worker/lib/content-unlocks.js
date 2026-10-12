@@ -103,8 +103,8 @@ function activeExpiryClause(now = new Date()) {
   };
 }
 
-// 🔴 계정 기반 키 전용이다. 출생 기반 키는 USER·"__user__"·PROFILE 행을 근거로 보지 않고
-// birthScopeClause 만 쓴다(아래 출생 기반 해금 절 참고).
+// 🔴 계정 기반 키 전용이다. 출생 기반 키는 birthScopeClause + 레거시 행(legacyGrandfatheredScopeClauses)을 쓴다
+// (아래 출생 기반 해금 절 참고).
 function buildProfileScopeClause(profileId) {
   return {
     $or: [
@@ -214,11 +214,81 @@ async function resolveBirthWriteIdentity({
   );
 }
 
-// 이 행이 해금 근거가 될 수 있는가. 출생 기반 콘텐츠의 USER/PROFILE 행(전환 이전 기록)은 근거가 아니다.
-function isBirthScopeEvidence(doc) {
-  const featureKey = cleanKey(doc?.featureKey, 160) || resolveUnlockedFeatureKeyFromContentKey(doc?.contentKey || doc?.contentId);
+// ── 레거시 해금 유지(grandfathering) ──
+// 출생 기반 전환 이전에 쓰인 USER/PROFILE 행도 결제 근거다. 이미 결제한 고객이 다시 잠기면 안 된다.
+//  - USER 행(또는 profileId "__user__"): 계정의 모든 프로필에서, 저장 프로필이 없어도 열린다(종전 동작).
+//  - PROFILE 행: 그 profileId 에서 열린다. 그 프로필의 생년월일을 고쳐도 열린다.
+// 출생 기반 키의 새 해금은 upsertContentUnlock 이 항상 BIRTH 로 쓰므로, 날짜 컷오프 없이 scope 만으로 레거시를 정한다.
+function isLegacyAccountUnlockRow(doc) {
+  return doc?.scope === CONTENT_ENTITLEMENT_SCOPES.USER || cleanKey(doc?.profileId, 100) === USER_SCOPE_PROFILE_ID;
+}
+
+function legacyGrandfatheredScopeClauses(profileId = "") {
+  const pid = cleanKey(profileId, 100);
+  const clauses = [
+    { scope: CONTENT_ENTITLEMENT_SCOPES.USER },
+    { profileId: USER_SCOPE_PROFILE_ID },
+  ];
+  if (pid && pid !== USER_SCOPE_PROFILE_ID && !isBirthEntitlementProfileId(pid)) {
+    clauses.push({ scope: CONTENT_ENTITLEMENT_SCOPES.PROFILE, profileId: pid });
+  }
+  return clauses;
+}
+
+function isLegacyGrandfatheredRow(doc, profileId = "") {
+  if (!doc || doc.scope === BIRTH_ENTITLEMENT_SCOPE) return false;
+  if (isLegacyAccountUnlockRow(doc)) return true;
+  const pid = cleanKey(profileId, 100);
+  return Boolean(pid)
+    && !isBirthEntitlementProfileId(pid)
+    && doc.scope === CONTENT_ENTITLEMENT_SCOPES.PROFILE
+    && cleanKey(doc.profileId, 100) === pid;
+}
+
+function entitlementDocFeatureKey(doc) {
+  return cleanKey(doc?.featureKey, 160) || resolveUnlockedFeatureKeyFromContentKey(doc?.contentKey || doc?.contentId);
+}
+
+// 이 행이 이 프로필의 해금 근거가 될 수 있는가. 출생 기반 콘텐츠는 이 출생 신원의 BIRTH 행이나 레거시 행만 근거다.
+// 옛 행은 featureKey 없이 contentKey 만 있으므로 contentKey 로 키를 정한다.
+function isBirthScopeEvidence(doc, profileId = "") {
+  const featureKey = entitlementDocFeatureKey(doc);
   if (!isBirthScopedContentTarget({ featureKey, contentKey: doc?.contentKey || doc?.contentId })) return true;
-  return doc?.scope === BIRTH_ENTITLEMENT_SCOPE;
+  return doc?.scope === BIRTH_ENTITLEMENT_SCOPE || isLegacyGrandfatheredRow(doc, profileId);
+}
+
+function isBirthScopedLegacyDoc(doc, profileId = "") {
+  const featureKey = entitlementDocFeatureKey(doc);
+  return isBirthScopedContentTarget({ featureKey, contentKey: doc?.contentKey || doc?.contentId })
+    && isLegacyGrandfatheredRow(doc, profileId);
+}
+
+/** 이 카드에 남은 레거시 PROFILE 해금의 출생 기반 키. 생년월일을 고쳐도 열리므로 카드 수정 감사 로그에 쓴다. */
+export async function listLegacyProfileBirthUnlockKeys({ userId, profileId } = {}) {
+  const uid = cleanKey(userId, 120);
+  const pid = cleanKey(profileId, 100);
+  if (!uid || !pid || pid === USER_SCOPE_PROFILE_ID || isBirthEntitlementProfileId(pid)) return [];
+  const docs = await ContentEntitlement.find({
+    userId: uid,
+    profileId: pid,
+    scope: CONTENT_ENTITLEMENT_SCOPES.PROFILE,
+    status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE,
+    $and: [activeExpiryClause()],
+  }).select(["featureKey", "contentKey", "contentId", "scope", "profileId"]).lean();
+  return Array.from(new Set(docs.filter((doc) => isBirthScopedLegacyDoc(doc, pid)).map(entitlementDocFeatureKey)));
+}
+
+/** 출생 기반 키의 레거시 USER·PROFILE 해금 행 조회 필터. 결제 V2(월정석·이용권)가 차감 전에 재과금을 막는 데 쓴다. 출생 기반이 아니면 null. */
+export function buildLegacyBirthUnlockFilter(input = {}) {
+  const target = resolvePaidContentUnlockTarget(input);
+  if (!target.userId || !target.serviceKey || !target.contentKey || !target.birthScoped) return null;
+  return {
+    userId: target.userId,
+    serviceKey: target.serviceKey,
+    ...buildContentKeyClause(target.contentKey),
+    status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE,
+    $and: [activeExpiryClause(), { $or: legacyGrandfatheredScopeClauses(target.profileId) }],
+  };
 }
 
 function presentBirthDoc(doc, profileId = "") {
@@ -232,7 +302,7 @@ function presentBirthDoc(doc, profileId = "") {
 
 /**
  * 라우트 리더의 단일 진입점: 이 계정이 이 프로필(=그 출생 정보)로 이 콘텐츠를 영구 해금했는가.
- * 출생 기반 키는 BIRTH 행만, 계정 기반 키는 종전 판정(findActivePaidContentUnlock)을 쓴다.
+ * 출생 기반 키는 BIRTH 행과 레거시 USER/PROFILE 행, 계정 기반 키는 종전 판정(findActivePaidContentUnlock)을 쓴다.
  */
 export async function hasPaidUnlockForProfile({ userId, profileId, partnerProfileId = "", featureKey, serviceKey = "", contentKey = "" } = {}) {
   const doc = await findActivePaidContentUnlock({ userId, profileId, partnerProfileId, featureKey, serviceKey, contentKey });
@@ -344,10 +414,27 @@ export function formatPermanentUnlockGrant(document = {}, fallback = {}) {
   };
 }
 
+// 출생 기반 키 조회의 scope 조건: 이 출생 신원의 BIRTH 행 + 레거시 USER/PROFILE 행.
+// 프로필이 없으면(직접 입력 등) 레거시 USER 행만 본다.
+async function birthScopedReadScopeClause(target, input) {
+  const identity = await resolveBirthReadIdentity(target, input);
+  return {
+    $or: [
+      ...(identity ? [birthScopeClause(identity.entitlementProfileId)] : []),
+      ...legacyGrandfatheredScopeClauses(target.profileId),
+    ],
+  };
+}
+
+function presentBirthScopedDoc(doc, profileId = "") {
+  return doc?.scope === BIRTH_ENTITLEMENT_SCOPE ? presentBirthDoc(doc, profileId) : doc;
+}
+
 export async function findActivePaidContentUnlock(input = {}) {
   const target = resolvePaidContentUnlockTarget(input);
   if (!target.userId || !target.serviceKey || !target.contentKey) return null;
-  if (target.requiresProfile && !target.profileId) return null;
+  // 출생 기반 키는 프로필이 없어도 레거시 USER 행으로 열릴 수 있다(아래 분기).
+  if (target.requiresProfile && !target.profileId && !target.birthScoped) return null;
   /* 🔴 회당 결제 키는 영구 해금 행을 가질 수 없다. 가지고 있다면 그건 단건 KRW 확정 경로가
      billingType 검사 없이 썼던 잔존분이다(PR #1137 이전). 그 행 하나로 coin-gate 가
      already_unlocked 를 돌려 **결제창이 아예 안 열린다**(billing.js resolvePaidContentAccess).
@@ -356,17 +443,15 @@ export async function findActivePaidContentUnlock(input = {}) {
   if (isPerUsePaidFeatureKey(target.featureKey)) return null;
 
   if (target.birthScoped) {
-    const identity = await resolveBirthReadIdentity(target, input);
-    if (!identity) return null;
+    const scopeClause = await birthScopedReadScopeClause(target, input);
     const doc = await ContentEntitlement.findOne({
       userId: target.userId,
       serviceKey: target.serviceKey,
       ...buildContentKeyClause(target.contentKey),
       status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE,
-      ...birthScopeClause(identity.entitlementProfileId),
-      $and: [activeExpiryClause()],
+      $and: [activeExpiryClause(), scopeClause],
     }).lean();
-    return presentBirthDoc(doc, target.profileId);
+    return presentBirthScopedDoc(doc, target.profileId);
   }
 
   const profileScopeClause = target.profileId
@@ -388,20 +473,18 @@ export async function findActivePaidContentUnlockByServiceKeys(input = {}) {
   const serviceKeys = uniqueKeys(input.serviceKeys || []);
   const target = resolvePaidContentUnlockTarget({ ...input, serviceKey: serviceKeys[0] || input.serviceKey });
   if (!target.userId || !serviceKeys.length || !target.contentKey) return null;
-  if (target.requiresProfile && !target.profileId) return null;
+  if (target.requiresProfile && !target.profileId && !target.birthScoped) return null;
 
   if (target.birthScoped) {
-    const identity = await resolveBirthReadIdentity(target, input);
-    if (!identity) return null;
+    const scopeClause = await birthScopedReadScopeClause(target, input);
     const doc = await ContentEntitlement.findOne({
       userId: target.userId,
       serviceKey: { $in: serviceKeys },
       ...buildContentKeyClause(target.contentKey),
       status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE,
-      ...birthScopeClause(identity.entitlementProfileId),
-      $and: [activeExpiryClause()],
+      $and: [activeExpiryClause(), scopeClause],
     }).lean();
-    return presentBirthDoc(doc, target.profileId);
+    return presentBirthScopedDoc(doc, target.profileId);
   }
 
   const profileScopeClause = target.profileId
@@ -818,7 +901,7 @@ export async function getUnlockedContentKeys({ userId, profileId, serviceKey }) 
       scopeClause,
     ],
   }).select("contentKey featureKey scope source grantType passId grantedAt unlockedAt expiresAt").lean())
-    .filter((doc) => isBirthScopeEvidence(doc));
+    .filter((doc) => isBirthScopeEvidence(doc, normalized.profileId));
 
   return docs.map((doc) => ({
     ...doc,
@@ -883,8 +966,9 @@ export async function getUnlockedContentSnapshot({
     // passId 는 access-state 가 해금마다 근거를 싣는 데 쓴다(Phase 4 D6, worker/lib/access-state.js).
     .select("featureKey contentKey contentId serviceKey scope profileId source grantType passId grantedAt unlockedAt expiresAt updatedAt")
     .lean())
-    // 출생 기반 콘텐츠는 이 프로필 출생 신원의 BIRTH 행만 남긴다. 합성 profileId 는 실제 프로필 id 로 바꿔 내보낸다.
-    .filter((doc) => isBirthScopeEvidence(doc)
+    // 출생 기반 콘텐츠는 이 프로필 출생 신원의 BIRTH 행과 레거시 USER/PROFILE 행만 남긴다.
+    // 합성 profileId 는 실제 프로필 id 로 바꿔 내보낸다.
+    .filter((doc) => isBirthScopeEvidence(doc, normalizedProfileId)
       && (doc?.scope !== BIRTH_ENTITLEMENT_SCOPE || birthPidSet.has(cleanKey(doc?.profileId, 100))))
     .map((doc) => (doc?.scope === BIRTH_ENTITLEMENT_SCOPE ? { ...doc, profileId: normalizedProfileId } : doc));
   const applicableDocs = includeAllProfiles
@@ -894,6 +978,8 @@ export async function getUnlockedContentSnapshot({
     : docs;
   const contentKeys = [];
   const featureKeys = [];
+  const legacyAccountFeatureKeys = [];
+  const legacyProfileFeatureKeys = [];
   const unlockMap = Object.create(null);
 
   for (const doc of applicableDocs) {
@@ -904,6 +990,10 @@ export async function getUnlockedContentSnapshot({
     if (featureKey) {
       featureKeys.push(featureKey);
       unlockMap[featureKey] = true;
+      // 출생 기반 키가 레거시 행으로 열렸는지 따로 싣는다. 클라이언트는 계정 레거시 키만 프로필 없이 연다.
+      if (isBirthScopedLegacyDoc(doc, normalizedProfileId)) {
+        (isLegacyAccountUnlockRow(doc) ? legacyAccountFeatureKeys : legacyProfileFeatureKeys).push(featureKey);
+      }
     }
   }
 
@@ -914,6 +1004,8 @@ export async function getUnlockedContentSnapshot({
     })),
     contentKeys: Array.from(new Set(contentKeys)),
     featureKeys: Array.from(new Set(featureKeys)),
+    legacyAccountFeatureKeys: Array.from(new Set(legacyAccountFeatureKeys)),
+    legacyProfileFeatureKeys: Array.from(new Set(legacyProfileFeatureKeys)),
     unlockMap,
     entitlementsByProfile: docs.reduce((result, doc) => {
       const key = doc?.scope === CONTENT_ENTITLEMENT_SCOPES.USER || cleanKey(doc?.profileId, 100) === USER_SCOPE_PROFILE_ID

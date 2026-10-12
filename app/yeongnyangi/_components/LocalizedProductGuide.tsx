@@ -5,7 +5,8 @@ import type {ReadingLocale} from '@/worker/yeongnyangi/fortune/reading-locale';
 import type {ProductOffer} from './ProductGuide';
 import {consultationLocaleCopy,localizedSystem,localizedTier} from '../_lib/consultation-locale-copy';
 import {readingPrice} from '../_lib/use-reading-language';
-import {readingDepthCopy,readingTierDepth} from '../_lib/reading-depth-copy';
+import {readingDepthCopy,readingTierDepth,tierComparison} from '../_lib/reading-depth-copy';
+import {FOLLOWUP_LIMITS} from '@/worker/yeongnyangi/fortune/ask/question-policy';
 import {trackProductStep} from './ProductGuide';
 import styles from './product-guide.module.css';
 
@@ -21,6 +22,7 @@ export default function LocalizedProductGuide({domain,offers,locale,surface}:{do
   <Heading>{localizedSystem(domain,locale)}</Heading><p>{copy.method}</p><p>{copy.limits}</p>
   <Heading>{copy.depth}</Heading><p data-reading-depth-note>{readingDepthCopy(locale).sharedTopics}</p><div className={styles.tiers} role="group" aria-label={copy.depth}>{offers.map(item=><button key={item.id} type="button" aria-pressed={item.id===offer.id} onClick={()=>setFish(item.fish)}>{localizedTier(item.fish,locale)}<span>{readingPrice(item.price,locale)}</span></button>)}</div>
   <p aria-live="polite">{localizedTier(offer.fish,locale)} · {offer.chapters.length} {copy.chapters}<br/><span data-reading-tier-depth={offer.fish}>{readingTierDepth(offer.fish,locale)}</span></p>
+  {offers.some(p=>p.fish==='flounder')&&offers.some(p=>p.fish==='tuna')&&(()=>{const c=tierComparison(locale,FOLLOWUP_LIMITS);return <table className={styles.comparison} data-tier-comparison><caption>{c.title}</caption><thead><tr><th scope="col"></th><th scope="col">{localizedTier('flounder',locale)}</th><th scope="col">{localizedTier('tuna',locale)}</th></tr></thead><tbody>{c.rows.map(row=><tr key={row.label}><th scope="row">{row.label}</th><td>{row.flounder}</td><td>{row.tuna}</td></tr>)}</tbody></table>;})()}
   <p>{copy.afterPayment}</p>
   <details className={styles.sample}><summary>{copy.sample}</summary><p>{copy.sampleHint}</p><blockquote>{copy.example}</blockquote></details>
   <p>{copy.payment}. {copy.priceHint}</p><p>{copy.languageHint}</p>

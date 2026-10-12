@@ -343,10 +343,10 @@ test('new v7 purchases leave a paid v6 result and its original price untouched',
 test('new question contracts preserve prices, scope, original purchase and punctuation-independent intent',async()=>{
  const base={version:'question-consultation-20261007',category:'self',target:'self',horizon:'current',situation:'현재 상황',options:'선택지',period:'현재와 다음 대운',constraints:'없음',confirmed:true};
  for(const [fish,limit,price,decision,question] of [
-  ['mackerel',0,3000,base,'거절할 때 어떻게 말할까? 같은 고민의 설명이에요.'],
-  ['salmon',1,9000,{...base,category:'job_change',period:'2026년'},'이직을 준비해도 될까?'],
+  ['mackerel',0,5000,base,'거절할 때 어떻게 말할까? 같은 고민의 설명이에요.'],
+  ['salmon',1,10000,{...base,category:'job_change',period:'2026년'},'이직을 준비해도 될까?'],
   ['flounder',2,15000,{...base,category:'compatibility',target:'pair',relationshipType:'romantic_adults'},'두 사람의 생활 방식과 돈 관리에서 무엇을 조율할까?'],
-  ['tuna',4,30000,{...base,category:'timing',horizon:'transition'},'현재와 다음 대운의 일 방향은 어떻게 달라질까?'],
+  ['tuna',6,30000,{...base,category:'timing',horizon:'transition'},'현재와 다음 대운의 일 방향은 어떻게 달라질까?'],
  ]){
   const row=await prepareFortune(env,'new-question-'+fish,{...body,productId:'saju_'+fish,questionDecision:decision,question,...(fish==='flounder'?{partnerProfileId:'partner'}:{})});
   assert.equal(row.snapshot.questionContract.version,base.version);assert.equal(row.snapshot.questionContract.followups,limit);assert.equal(row.snapshot.questionContract.readingBudget.followups,limit);

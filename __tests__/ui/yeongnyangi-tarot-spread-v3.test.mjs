@@ -227,7 +227,7 @@ test('v3 adds position questions, link groups and inputs that v2 never had',asyn
 test('question purpose allows a seven-card reunion at mackerel price and persists the same draw',async()=>{
  const request=order({tarotSpreadId:'yn_reunion_seven',question:'다시 대화하려면 내 마음을 어떻게 정리할까?',questionDecision:{version:'question-consultation-20261007',category:'reunion',target:'self',horizon:'current',situation:'헤어진 뒤 생각을 정리 중이에요',options:'',period:'',constraints:'',confirmed:true}});
  const row=await prepareFortune(env,'purpose-tarot',request);
- assert.equal(row.amountKRW,3000);assert.equal(row.snapshot.questionContract.followups,0);
+ assert.equal(row.amountKRW,5000);assert.equal(row.snapshot.questionContract.followups,0);
  assert.equal(row.snapshot.tarotSpread.cardCount,7);
  for(const pos of row.snapshot.tarotSpread.positions)assert.ok(row.snapshot.manifest.flatMap(chapter=>chapter.sections).some(s=>s.title===pos.label));
  const drawn=await drawTarotSpread(env,'purpose-tarot',row._id,{auto:true});
@@ -245,5 +245,17 @@ test('D6: a v3 spread whose cards were never drawn fails before any provider cal
  globalThis.__spreadTest.claim={row:{...drawn,state:'GENERATING'},token:'lease'};
  await assert.rejects(()=>generateNextChapter(env,'nodraw-owner',row._id),e=>e.code!=='TAROT_DRAW_REQUIRED');
  assert.equal(globalThis.__spreadTest.calls,1,'a drawn spread reaches the provider');
+ globalThis.__spreadTest.claim=undefined;
+});
+test('a tarot context that is still only the drawPending placeholder never reaches the provider, whatever the snapshot claims',async()=>{
+ const row=await prepareFortune(env,'placeholder-owner',order());
+ assert.deepEqual(row.snapshot.analysis.contexts.tarot.facts.map(f=>f.label).sort(),['drawPending','spreadId']);
+ // A draw marker without the drawn context, or a row whose consultation version was lost.
+ for(const snapshot of [{...row.snapshot,tarotDraw:{version:'x',method:'auto',picks:[0]}},{...row.snapshot,tarotConsultation:undefined}]){
+  globalThis.__spreadTest.calls=0;globalThis.__spreadTest.failed=undefined;
+  globalThis.__spreadTest.claim={row:{...row,snapshot,state:'GENERATING'},token:'lease'};
+  await assert.rejects(()=>generateNextChapter(env,'placeholder-owner',row._id),e=>e.code==='TAROT_DRAW_REQUIRED');
+  assert.equal(globalThis.__spreadTest.calls,0);
+ }
  globalThis.__spreadTest.claim=undefined;
 });

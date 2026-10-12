@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import type {ReactNode} from 'react';
 import HoneyPassArtwork from '@/components/yeon/HoneyPassArtwork';
+import {isOpenEndedPassExpiry,openEndedPassLabel} from '@/lib/payment/pass-expiry';
 import type {LoadingLocale} from '@/constants/loadingMessages';
 import type {OwnedServicePack} from './service-pack-client';
 import {packName,packText,servicePackCopy} from './service-pack-copy';
@@ -36,7 +37,7 @@ export function OwnedPassesSummary({locale,flower,packs}:{locale:LoadingLocale;f
      <p className="text-xs font-black text-[color:var(--moon-silver)]">{copy.flowerPass}</p>
      {flower.active?<>
       <h3 className="mt-0.5 text-base font-black leading-snug text-white">{flower.tierLabel}</h3>
-      <p className={appliedLine}>{dot}<span>{copy.applied}</span>{flower.expiresAt&&Number.isFinite(Date.parse(flower.expiresAt))&&<span className="text-[color:var(--moon-silver)]">{packText(copy.expires,{date:date(flower.expiresAt,locale)})}</span>}</p>
+      <p className={appliedLine}>{dot}<span>{copy.applied}</span>{flower.expiresAt&&Number.isFinite(Date.parse(flower.expiresAt))&&<span className="text-[color:var(--moon-silver)]">{isOpenEndedPassExpiry(flower.expiresAt)?openEndedPassLabel(locale):packText(copy.expires,{date:date(flower.expiresAt,locale)})}</span>}</p>
      </>:<>
       <p className="mt-0.5 text-sm font-bold text-[color:var(--moon-silver)]">{copy.flowerNone}</p>
       <a href="#moonlight-plans" className="mt-1 inline-flex min-h-11 items-center text-sm font-black text-[color:var(--moon-glow)]">{copy.flowerBrowse} →</a>

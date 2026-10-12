@@ -1,4 +1,6 @@
 "use client";
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
+import { detectLocale } from "@/lib/i18n/dictionary";
 
 import Link from "next/link";
 import styles from "../_premium/premium.module.css";
@@ -126,8 +128,8 @@ export default function DashaMapClient() {
   const copy = useNakshatraCopy();
   const product = {
     featureKey: "nakshatra-dasha-map",
-    coinPrice: 10,
-    amountKRW: 1000,
+    coinPrice: 50,
+    amountKRW: 5000,
     reason: copy.dashaReason,
     endpoint: "/api/nakshatra-premium/dasha-map",
   } as const;
@@ -150,6 +152,7 @@ export default function DashaMapClient() {
           <p className={styles.lede}>{copy.dashaLede}</p>
         </header>
 
+        {!report && detectLocale() === "ko" && <div style={{width:"100%",maxWidth:540,minWidth:0,margin:"0 auto 24px",background:"#eee7dc",color:"#463a31",borderRadius:12}}><CraftedProductDisclosure featureKey="nakshatra-dasha-map" summaryLabel="다샤 인생지도 상세 안내" /></div>}
         <NakshatraProfilePicker context={profilePicker} copy={copy} disabled={paying || loading} />
         <NatalBar natal={natalLabel} meta={meta} />
 

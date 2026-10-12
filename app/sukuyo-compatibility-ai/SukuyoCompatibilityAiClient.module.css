@@ -2881,3 +2881,5 @@
 .screen[data-duo-linked="true"] .visualVeil {
   transform: scale(1.03);
 }
+
+.productGuide { position: relative; z-index: 1; max-width: 540px; margin-inline: auto; }

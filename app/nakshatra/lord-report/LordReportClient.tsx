@@ -1,4 +1,6 @@
 "use client";
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
+import { detectLocale } from "@/lib/i18n/dictionary";
 
 import Link from "next/link";
 import styles from "../_premium/premium.module.css";
@@ -28,8 +30,8 @@ export default function LordReportClient() {
   const copy = useNakshatraCopy();
   const product = {
     featureKey: "nakshatra-lord-report",
-    coinPrice: 10,
-    amountKRW: 1000,
+    coinPrice: 50,
+    amountKRW: 5000,
     reason: copy.lordReason,
     endpoint: "/api/nakshatra-premium/lord-report",
   } as const;
@@ -52,6 +54,7 @@ export default function LordReportClient() {
           <p className={styles.lede}>{copy.lordLede}</p>
         </header>
 
+        {!report && detectLocale() === "ko" && <div style={{width:"100%",maxWidth:540,minWidth:0,margin:"0 auto 24px",background:"#eee7dc",color:"#463a31",borderRadius:12}}><CraftedProductDisclosure featureKey="nakshatra-lord-report" summaryLabel="지배성 심화 리포트 상세 안내" /></div>}
         <NakshatraProfilePicker context={profilePicker} copy={copy} disabled={paying || loading} />
         <NatalBar natal={natalLabel} meta={meta} />
 

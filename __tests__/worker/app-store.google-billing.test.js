@@ -341,7 +341,7 @@ describe("verify — 영구 해금(UNLOCK)과 이용권", () => {
     expect(update.$addToSet.paidFeatures).toBe(unlock.key);
   });
 
-  test("이용권(standard) 구매는 profileSubscription을 30일 활성으로 세팅한다", async () => {
+  test("이용권(standard) 구매는 profileSubscription을 기간 없는 활성으로 세팅한다", async () => {
     const before = Date.now();
     const { status, payload } = await callRoute(postJson("/google/verify", {
       passTier: "standard",
@@ -363,18 +363,16 @@ describe("verify — 영구 해금(UNLOCK)과 이용권", () => {
     expect(update.$set["profileSubscription.productType"]).toBe("membership_pass");
     expect(update.$set["profileSubscription.paymentMethod"]).toBe("GOOGLE_PLAY");
     const expiresAt = update.$set["profileSubscription.expiresAt"];
-    const expectedMs = 30 * 24 * 60 * 60 * 1000;
-    expect(expiresAt.getTime() - before).toBeGreaterThan(expectedMs - 60 * 1000);
-    expect(expiresAt.getTime() - before).toBeLessThan(expectedMs + 60 * 1000);
+    // 2026-10-11 기간 없음 — 한도 소진으로만 끝난다(profile-limits.js PASS_OPEN_ENDED_MS).
+    expect(expiresAt.getTime() - before).toBeGreaterThan(3650 * 24 * 60 * 60 * 1000);
 
-    // 이용권도 inapp이므로 소비 대상이다(소비 안 하면 30일 뒤 재구매가 막힌다).
+    // 이용권도 inapp이므로 소비 대상이다(소비 안 하면 같은 상품 재구매가 막힌다).
     expect(payload.data.appPurchase.shouldConsume).toBe(true);
   });
 
-  /* 예전에는 expiresAt 을 now+30일로 **덮어썼다** — 남은 기간이 사라지고 한도도 30일치
-     그대로였다. 웹 카드 결제(profile-limits.js computePassExpiry · buildPassCycleFields)와 같은
-     규칙으로 맞춘다. */
-  test("🔴 활성 중 재구매: 남은 기간에 30일을 이어붙이고 월 한도도 함께 쌓는다", async () => {
+  /* 예전에는 expiresAt 을 now+30일로 **덮어썼다** — 한도도 1회분 그대로였다. 웹 카드 결제
+     (profile-limits.js computePassExpiry · buildPassCycleFields)와 같은 규칙으로 맞춘다. */
+  test("🔴 활성 중 재구매: 기간 없는 이용권으로 바뀌고 월 한도가 쌓인다", async () => {
     const { MONTHLY_PASS_LIMITS } = await import("../../worker/lib/profile-limits.js");
     const priorExpiresAt = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000);
     mockUserFindById.mockReturnValue({
@@ -400,8 +398,7 @@ describe("verify — 영구 해금(UNLOCK)과 이용권", () => {
     expect(status).toBe(200);
 
     const set = mockUserFindByIdAndUpdate.mock.calls[0][1].$set;
-    const expected = priorExpiresAt.getTime() + 30 * 24 * 60 * 60 * 1000;
-    expect(Math.abs(set["profileSubscription.expiresAt"].getTime() - expected)).toBeLessThan(60 * 1000);
+    expect(set["profileSubscription.expiresAt"].getTime() - Date.now()).toBeGreaterThan(3650 * 24 * 60 * 60 * 1000);
     expect(set["profileSubscription.monthlyLimitCoin"]).toBe(MONTHLY_PASS_LIMITS.standard * 2);
     // 이미 쓴 금액은 연장으로 지워지지 않는다(지우면 사용자가 한 달치를 공짜로 더 얻는다).
     expect(set["profileSubscription.monthlySpendCoin"]).toBe(100);
@@ -661,7 +658,7 @@ describe("free-grant — 앱 무료 구간", () => {
 });
 
 describe("intent — 결제 의도 기록", () => {
-  test("고등어 상담(30코인, ₩3,000 SKU)은 무료 지급으로 우회할 수 없다", async () => {
+  test("고등어 상담(50코인, ₩5,000 SKU)은 무료 지급으로 우회할 수 없다", async () => {
     const { status, payload } = await callRoute(postJson("/free-grant", {
       featureKey: "yeongnyangi-saju-mackerel", requestId: "yn-" + "a".repeat(64),
     }));
@@ -670,14 +667,14 @@ describe("intent — 결제 의도 기록", () => {
     expect(mockPaymentCreate).not.toHaveBeenCalled();
   });
 
-  // 2026-10-05: 영냥이는 앱 SKU 가 없어 판매가 닫혔다. 같은 복구 계약을 3,000원 등급 상품으로 확인한다.
+  // 복구는 현재 서버 가격과 일치하는 SKU로만 원래 상담 ID를 이어 간다.
   test("앱 종료 뒤 영수증 복구가 서버 의도의 상담 ID를 보존한다", async () => {
     const requestId = "dream-" + "a".repeat(32);
     mockIntentFindOne.mockReturnValue({ sort: () => ({ lean: async () => ({
       featureKey: "dream-psycho-analysis", requestId, profileId: "saved-profile",
     }) }) });
     const { status, payload } = await callRoute(postJson("/google/restore", {
-      purchases: [{ productId: "cd_content_tier_01", purchaseToken: "orphan-yn", orderId: "GPA.test" }],
+      purchases: [{ productId: "cd_content_tier_02", purchaseToken: "orphan-yn", orderId: "GPA.test" }],
     }));
     expect(status).toBe(200);
     expect(payload.data.failedPurchases).toEqual([]);
@@ -686,47 +683,43 @@ describe("intent — 결제 의도 기록", () => {
     expect(payload.data.purchases[0].shouldConsume).toBe(true);
   });
 
-  test("앱 SKU 가 없는 영냥이 가격의 복구는 지급하지 않고 실패로 남긴다", async () => {
+  test("신규 SKU가 생긴 영냥이 연어 복구는 현재 10,000원 티어로 지급한다", async () => {
     mockIntentFindOne.mockReturnValue({ sort: () => ({ lean: async () => ({
       featureKey: "yeongnyangi-saju-salmon", requestId: "yn-" + "a".repeat(64), profileId: "saved-profile",
     }) }) });
     const { status, payload } = await callRoute(postJson("/google/restore", {
-      purchases: [{ productId: "cd_content_tier_01", purchaseToken: "orphan-yn", orderId: "GPA.test" }],
+      purchases: [{ productId: "cd_content_tier_06", purchaseToken: "orphan-yn", orderId: "GPA.test" }],
     }));
     expect(status).toBe(200);
-    expect(payload.data.failedPurchases).toEqual([expect.objectContaining({ code: "APP_SKU_NOT_VERIFIED" })]);
-    expect(mockPaymentCreate).not.toHaveBeenCalled();
+    expect(payload.data.failedPurchases).toEqual([]);
+    expect(payload.data.purchases[0]).toMatchObject({ productId: "cd_content_tier_06", shouldConsume: true });
+    expect(mockPaymentCreate).toHaveBeenCalledTimes(1);
   });
 
-  // 2026-10-09 앱에서 무료 구간으로 우회되면 안 되는 저가 사주 콘텐츠와 미검증 SKU는 닫힌다.
-  const APP_UNVERIFIED_KEYS = [...STATIC_READING_PRICE_KEYS,"rpt_specialCharmCard", "rpt_skillTreeCard", "rpt_energyCoordCard", "rpt_villainCard", "rpt_secretHouseEntryCard", "fun.quantumLotto.ritualReport", "profile-card-manage"];
-  test.each(APP_UNVERIFIED_KEYS)("유료 콘텐츠 %s 는 앱 무료 통과 없이 등록된 가격 티어를 사용한다", async (featureKey) => {
-    expect([...appPricing.APP_PAID_LOW_PRICE_FEATURE_KEYS].sort()).toEqual([...APP_UNVERIFIED_KEYS].sort());
-    const expected = {
-      "nakshatra-compat": { cost: 200, amountKRW: 20000 },
-      "animal-destiny-unlock": { cost: 50, amountKRW: 5000 },
-      "rpt_quantumCard": { cost: 100, amountKRW: 10000 },
-      "rpt_energyCoordCard": { cost: 50, amountKRW: 5000 },
-      "nakshatra-muhurta": { cost: 50, amountKRW: 5000 },
-    }[featureKey] || { cost: 10, amountKRW: 1000 };
-    expect(registry.FEATURE_KEY_PRICE_TABLE[featureKey] || registry.UNLOCK_PRODUCT_BY_FEATURE_KEY[featureKey]).toMatchObject(expected);
+  // 2026-10-11 앱의 모든 현행 가격대는 검증된 SKU를 쓰고, 1,000원 유료 기능만 무료 판정에서 제외한다.
+  const APP_LOW_PRICE_KEYS = ["rpt_specialCharmCard", "rpt_skillTreeCard", "fun.quantumLotto.ritualReport", "profile-card-manage"];
+  const APP_REGISTERED_KEYS = [...STATIC_READING_PRICE_KEYS, ...APP_LOW_PRICE_KEYS];
+  test("음악은 10코인 무료, 천원 운세와 프로필 관리는 tier_15 유료", () => {
+    expect(appPricing.isAppFreeFeature("music-track-fixture", 10)).toBe(true);
+    expect([...appPricing.APP_PAID_LOW_PRICE_FEATURE_KEYS].sort()).toEqual([...APP_LOW_PRICE_KEYS].sort());
+    for (const featureKey of APP_LOW_PRICE_KEYS) {
+      expect(appPricing.isAppFreeFeature(featureKey, 10)).toBe(false);
+      expect(appPricing.resolveAppContentTier(10)?.productId).toBe("cd_content_tier_15");
+    }
+  });
+  test.each(APP_REGISTERED_KEYS)("유료 콘텐츠 %s 는 앱 무료 통과 없이 등록된 가격 티어를 사용한다", async (featureKey) => {
+    const expected = registry.FEATURE_KEY_PRICE_TABLE[featureKey] || registry.UNLOCK_PRODUCT_BY_FEATURE_KEY[featureKey];
+    expect(expected).toBeTruthy();
+    expect(appPricing.isAppFreeFeature(featureKey, expected.cost)).toBe(false);
     for (const path of ["/free-grant", "/google/intent"]) {
       // 출생 기반 키의 의도는 이 계정 저장 프로필이 있어야 열린다(MISSING_PROFILE_ID 가드) — 소유 프로필을 싣는다.
       const { status, payload } = await callRoute(postJson(path, { featureKey, profileId: "me", requestId: "fun-" + "b".repeat(32) }));
-      if (["nakshatra-compat", "animal-destiny-unlock", "rpt_quantumCard", "rpt_energyCoordCard", "nakshatra-muhurta"].includes(featureKey)) {
-        expect(status).toBe(path === "/free-grant" ? 400 : 200);
-        if (path === "/free-grant") expect(payload.code).toBe("APP_STORE_PRODUCT_NOT_FREE");
-        else {
-          const expectedProduct = {
-            "nakshatra-compat": { productId: "cd_content_tier_09", amountKRW: 20000 },
-            "animal-destiny-unlock": { productId: "cd_content_tier_02", amountKRW: 5000 },
-            "rpt_energyCoordCard": { productId: "cd_content_tier_02", amountKRW: 5000 },
-            "rpt_quantumCard": { productId: "cd_content_tier_06", amountKRW: 10000 },
-            "nakshatra-muhurta": { productId: "cd_content_tier_02", amountKRW: 5000 },
-          }[featureKey];
-          expect(payload.data.product).toMatchObject(expectedProduct);
-        }
-      } else { expect(status).toBe(503); expect(payload.code).toBe("APP_SKU_NOT_VERIFIED"); }
+      expect(status).toBe(path === "/free-grant" ? 400 : 200);
+      if (path === "/free-grant") expect(payload.code).toBe("APP_STORE_PRODUCT_NOT_FREE");
+      else expect(payload.data.product).toMatchObject({
+        productId: appPricing.resolveAppContentTier(expected.cost).productId,
+        amountKRW: expected.amountKRW,
+      });
     }
     expect(mockPaymentCreate).not.toHaveBeenCalled();
   });
@@ -840,6 +833,8 @@ describe("출생 기반 영구 해금 — userId + birthKey + contentKey", () =>
     expect(status).toBe(200);
     expect(mockGrantPermanentUnlock).not.toHaveBeenCalled();
     expect(payload.data.adminReviewRequired).toBe(true);
+    expect(payload.data.profileSelectionRequired).toBe(true);
+    expect(payload.message).not.toContain("담당자");
     expect(payload.data.unlockMap[unlock.key]).toBe(false);
     const created = mockPaymentCreate.mock.calls[0][0];
     expect(created.failureCode).toBe("delivery_failed_manual_review");

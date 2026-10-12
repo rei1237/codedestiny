@@ -1,4 +1,5 @@
 "use client";
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import PaidResultImageGuide from "@/components/fortune/PaidResultImageGuide";
 
 import CurrentLocationButton from '@/app/components/CurrentLocationButton';
@@ -3344,6 +3345,7 @@ export default function VedicAiClient() {
 
       <section className={styles.workspace}>
         <form id="vedic-consultation-form" className={styles.formPanel} onSubmit={(event) => { event.preventDefault(); void handleSubmit(); }}>
+          {!consultation && detectLocale() === "ko" && <CraftedProductDisclosure featureKey="vedic-ai-consultation" />}
           <div className={`${styles.panelHeader} flex-wrap`}>
             <span className="min-w-0 flex-1"><Star size={18} /> {copy.formPanelHeading}</span>
             <strong>Vedic AI</strong>

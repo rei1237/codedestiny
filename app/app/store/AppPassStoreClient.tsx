@@ -23,7 +23,6 @@ type PassPlan = {
   productId: string;
   title: string;
   blurb: string;
-  profileLabel: string;
   recommended?: boolean;
 };
 
@@ -47,8 +46,7 @@ function buildBenefits(copy: AppShellCopy, plan: PassPlan, _coverageKRW: number 
     "꽃돼지 서비스 전용 · 영냥이 제외",
     copy.benefitCoverageFree(`${((currentPassPlan(plan.passTier)?.maxCoveredCoin || 0) * 100).toLocaleString("ko-KR")}원`),
     copy.benefitMonthlyCap(`${monthlyCapKRW.toLocaleString("ko-KR")}원`),
-    plan.profileLabel,
-    copy.benefit30Days,
+    copy.benefitNoTimeLimit,
   ];
 }
 

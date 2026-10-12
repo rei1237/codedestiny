@@ -104,7 +104,7 @@ async function findMonthlyLedger(env, userId, featureKey, requestId) {
  *   proven === false : 증빙 못 찾음
  *   proven === null  : 🔴 판단 보류(DB 일시 장애). 절대 402 로 바꾸지 말 것 — 503 이다.
  */
-export async function verifyPerUsePayment(env, { userId, featureKey, coinPrice = 0, requestId = "", requireExisting = false } = {}) {
+export async function verifyPerUsePayment(env, { userId, featureKey, coinPrice = 0, requestId = "", requireExisting = false, profileId = "" } = {}) {
   const uid = clean(userId, 64);
   const key = clean(featureKey, 120);
   const rid = clean(requestId);
@@ -127,9 +127,14 @@ export async function verifyPerUsePayment(env, { userId, featureKey, coinPrice =
     const deduction = await withMongoRetry(env, () => findDeduction(uid, key, rid));
     if (deduction) {
       const accessType = String(deduction?.metadata?.accessType || "").toLowerCase();
+      // 이용권 사용 증빙(recordPassUsageEvidence, delta 0)도 같은 컬렉션의 deduct 행이다.
+      // 예전에는 이 행을 "coin" 으로 보고해 결제 기록이 코인 차감으로 남고, 영냥이 재시도의
+      // 이용권 한도 복원(source==="pass")도 빠졌다.
+      const source = accessType === "membership_credit" ? "monthly"
+        : (accessType === "membership_pass" || accessType === "family" ? "pass" : "coin");
       return {
         proven: true,
-        source: accessType === "membership_credit" ? "monthly" : "coin",
+        source,
         reason: "",
         transactionId: clean(deduction?._id, 120),
       };
@@ -199,6 +204,7 @@ export async function verifyPerUsePayment(env, { userId, featureKey, coinPrice =
           featureKey: key,
           requestId: rid,
           coinCost: cost,
+          profileId: clean(profileId, 120),
         });
         // 🔴 코드가 빈 문자열이면 막지 않는다(passDenialCode 주석) — 예전 통과 판정을 존중한다.
         const denial = consumed.covered ? "" : passDenialCode(consumed.reason);

@@ -10,7 +10,9 @@ import {
   parseNeoSectionResponse,
   mergeNeoInitialSections,
   mergeNeoRefinedSections,
+  neoRegisterDrift,
 } from "../../worker/lib/neo-operation-room-prompt.js";
+import { buildNeoBasisPayload } from "../../worker/lib/neo-operation-room-basis.js";
 
 const input = {
   selectedMethod: "ziwei",
@@ -22,9 +24,9 @@ const input = {
 const methodSummary = { method: "ziwei", evidenceSummary: "명궁: 자미◎(최상)", evidenceTokens: ["자미", "재백궁"] };
 
 describe("neo section registries", () => {
-  test("1차 챕터 합계 minChars가 2만 자 이상을 목표로 한다", () => {
+  test("1차 챕터 합계 minChars가 2만6천 자 이상을 목표로 한다", () => {
     const total = NEO_INITIAL_SECTIONS.reduce((sum, s) => sum + s.minChars, 0);
-    expect(total).toBeGreaterThanOrEqual(20000);
+    expect(total).toBeGreaterThanOrEqual(26000);
   });
   test("타고난 성향은 1차에만, 30일 전략은 2차에만 존재한다", () => {
     const initIds = NEO_INITIAL_SECTIONS.map((s) => s.id);
@@ -218,3 +220,78 @@ describe("buildNeoRefinedSectionPrompt", () => {
 });
 
 test('second reality check reuses saved advice and grounded timing guidance',()=>{const prompt=buildNeoRefinedSectionPrompt(NEO_REFINED_SECTIONS.find(section=>section.id==='actionAlternatives'),{selectedMethod:'saju',question:'이직 준비',initialBriefing:{},realityCheck:{freeform:'면접을 마쳤어요'},previousRefinements:[{realityCheck:{freeform:'이력서를 준비했어요'},order:{thisWeekFirstStep:'지원할 회사를 세 곳으로 좁히기'}}]});expect(prompt).toContain('지원할 회사를 세 곳으로 좁히기');expect(prompt).toContain('면접을 마쳤어요');expect(prompt).toContain('계산된 구간');});
+
+// R2 샘플(사주·직업/이직)의 계산 요약 모양을 그대로 옮긴 고정 프로필.
+const sajuSummary = {
+  method: "saju",
+  pillars: { day: "辛酉", dayMaster: "辛" },
+  fiveElements: { 목: 1, 화: 0, 토: 2, 금: 4, 수: 1 },
+  tenGods: { 비견: 2.35, 편인: 0.35, 편관: 0.35, 편재: 0.7, 겁재: 1, 정재: 0.35, 정관: 0.35, 정인: 0.7, 상관: 1, 식신: 0.35 },
+  seasonalBalance: { monthBranch: "寅", season: "봄", seasonElement: "목", climate: "생기가 열리는 초봄", adjustment: "화·목·수 기운을 희용신 후보로 봅니다.", dayElement: "금" },
+  natalInteractions: { stemCombinations: [], stemClashes: [], branchCombinations: [{ type: "지지육합", label: "진유합", element: "금", pillars: ["day", "hour"], pillarLabels: ["일주", "시주"], values: ["酉", "辰"] }], branchClashes: [], branchHarms: [], branchBreaks: [] },
+  majorLuck: { direction: "역행", currentCycle: { pillar: "丙戌", startAge: 36, endAge: 45, stemTenGod: "정관" }, cycles: [{ pillar: "丁亥", startAge: 26, stemTenGod: "편관" }, { pillar: "丙戌", startAge: 36, stemTenGod: "정관" }] },
+  yearlyLuck: [{ year: 2026, pillar: "丙午", stemTenGod: "정관" }, { year: 2027, pillar: "丁未", stemTenGod: "편관" }, { year: 2028, pillar: "戊申", stemTenGod: "정인" }],
+};
+const sajuCtx = { ...input, selectedMethod: "saju", topic: "직업/이직", intensity: "standard", methodSummary: sajuSummary };
+const basisValue = (key, label) => buildNeoBasisPayload(sajuSummary).groups.find((g) => g.key === key)?.items.find((i) => i.label === label)?.value || "";
+
+describe("R2 사주 계산 확정값 표", () => {
+  test("오행·십성은 이름과 수치를 짝지어 싣는다", () => {
+    expect(basisValue("strength", "오행 분포")).toBe("목1 화0 토2 금4 수1");
+    expect(basisValue("strength", "십성 분포")).toBe("비견2.35 편인0.35 편관0.35 편재0.7 겁재1 정재0.35 정관0.35 정인0.7 상관1 식신0.35");
+  });
+  test("원국 합충의 2단 객체와 조후 항목명을 버리지 않는다", () => {
+    expect(basisValue("strength", "원국 합충")).toContain("진유합(일주·시주, 금)");
+    expect(basisValue("strength", "조후")).toContain("월지 寅");
+    expect(basisValue("strength", "조후")).toContain("생기가 열리는 초봄");
+  });
+  test("대운과 다가오는 세운에 십성을 붙인다", () => {
+    expect(basisValue("timing", "현재 대운")).toContain("정관");
+    expect(basisValue("timing", "다가오는 세운")).toBe("2027년 丁未(편관) · 2028년 戊申(정인)");
+  });
+});
+
+describe("R2 챕터별 시기 근거", () => {
+  test("시기 판단을 요구받는 챕터는 시기 흐름 표를 받는다", () => {
+    for (const id of ["misalignedFlow", "bluntTruth", "todayOrders", "sevenDayMission"]) {
+      expect(NEO_INITIAL_SECTIONS.find((s) => s.id === id).basisGroups).toContain("timing");
+    }
+  });
+  test("시기 표가 없는 챕터는 대운·세운을 지어내지 말라는 지시를 받는다", () => {
+    const innate = buildNeoInitialSectionPrompt(NEO_INITIAL_SECTIONS.find((s) => s.id === "innateCore"), sajuCtx);
+    const timing = buildNeoInitialSectionPrompt(NEO_INITIAL_SECTIONS.find((s) => s.id === "topicTiming"), sajuCtx);
+    expect(innate).not.toContain("丙戌");
+    expect(innate).toContain("이 챕터에는 시기 흐름 표가 없다");
+    expect(timing).not.toContain("이 챕터에는 시기 흐름 표가 없다");
+  });
+});
+
+describe("R2 스키마 예시 복사 방지", () => {
+  test("프롬프트의 스키마 예시는 그대로 붙여 넣을 수 있는 문장이 아니다", () => {
+    const prompt = buildNeoInitialSectionPrompt(NEO_INITIAL_SECTIONS.find((s) => s.id === "innateCore"), sajuCtx);
+    expect(prompt).not.toContain('"description":"중심 구조·자아·기본 동기 심층 해석"');
+    expect(prompt).toContain('"description":"<중심 구조·자아·기본 동기 심층 해석>"');
+  });
+  test("모델이 스키마 예시를 그대로 돌려주면 병합에서 지운다", () => {
+    const merged = mergeNeoInitialSections([
+      { id: "innateCore", parsed: { innateNature: { title: "타고난 성향의 핵", description: "중심 구조·자아·기본 동기 심층 해석", keyTraits: ["<핵심 기질1>", "일간 辛은 마감 전 점검을 오래 붙잡게 만든다."] } } },
+      { id: "originalStrategy", parsed: { originalStrategy: { description: "타고난 구조상 힘이 나는 방식", keyRules: ["규칙1"] } } },
+    ], { selectedMethod: "saju" }, sajuSummary);
+    expect(merged.innateNature.description).toBe("");
+    expect(merged.innateNature.keyTraits).toEqual(["일간 辛은 마감 전 점검을 오래 붙잡게 만든다."]);
+    expect(merged.originalStrategy.description).toBe("");
+    expect(merged.originalStrategy.keyRules).toEqual([]);
+  });
+});
+
+describe("R2 어조 단일화", () => {
+  test("존댓말로 미끄러진 챕터를 결정적으로 찾아낸다", () => {
+    expect(neoRegisterDrift("6년째 연봉 정체를 겪고 있군요. 요청을 받았습니다. 당신의 무기를 진단하겠습니다. 기록하십시오.")).toBe(true);
+    expect(neoRegisterDrift("일간 辛은 예리하다. 마감 전 점검을 오래 붙잡는다. 이번 주에는 지원서를 두 곳만 낸다. 필요한 건 순서다. 중요한 건 기준이다.")).toBe(false);
+  });
+  test.each(["soft", "standard", "roar"])("%s 강도에서도 해라체 반말 한 가지로 쓰라고 지시한다", (intensity) => {
+    const prompt = buildNeoInitialSectionPrompt(NEO_INITIAL_SECTIONS.find((s) => s.id === "opening"), { ...sajuCtx, intensity });
+    expect(prompt).toContain("해라체 반말");
+    expect(prompt).toContain("습니다");
+  });
+});

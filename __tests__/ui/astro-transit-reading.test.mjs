@@ -110,7 +110,7 @@ test('the year runs 12 calendar months from today, each with one to three dated 
 test('the free preview names only the month, never the planet or the life area', () => {
   for (const { y } of YEARS) {
     const head = R.renderYearSection(y, '');
-    assert.match(y.preview.line, /^앞으로 12개월 중 가장 큰 변화는 \d{4}년 \d{1,2}월에 와요\.$|잔잔하게/);
+    assert.match(y.preview.line, /^앞으로 12개월 중 흐름이 가장 두드러지는 달은 \d{4}년 \d{1,2}월이에요\.$|주요 흐름이 계산되지/);
     assert.ok(!/태양|달의|수성|금성|화성|목성|토성|천왕성|해왕성|명왕성|첫인상|평판|역행|일식|월식/.test(bodyText(head)), bodyText(head));
     assert.match(head, /^<section class="as-reading as-year" id="asYear"/);
   }

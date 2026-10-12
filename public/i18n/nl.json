@@ -578,7 +578,7 @@
       "sajuFptiImgAlt": "Saju FPTI-test",
       "basicFreeBadge": "Basis gratis",
       "price3000": "Eenmalig KRW 3.000",
-      "price5000": "Eenmalig KRW 3.000",
+      "price5000": "Eenmalig KRW 5.000",
       "price10000": "Eenmalig KRW 10.000",
       "cosmicSoulPrice": "30 min KRW 5.000 · 60 min KRW 10.000",
       "compatibilityPrice": "Compatibiliteit KRW 3.000",
@@ -600,7 +600,9 @@
       "price5000Price3000": "Eenmalig KRW 3.000",
       "price10000Price5000": "Eenmalig KRW 5.000",
       "unlock1000": "Ontgrendel 1.000 KRW",
-      "price1000": "Eenmalig KRW 1.000"
+      "price1000": "Eenmalig KRW 1.000",
+      "sajuGuardianPricePrice5000Price7000": "Permanente ontgrendeling KRW 7.000",
+      "unlock1000Price5000": "Ontgrendel 5.000 KRW"
     },
     "destinyFlowerStudio": {
       "closeAria": "Atelier van de Lotsbloem sluiten",
@@ -667,7 +669,15 @@
       "close": "Sluiten",
       "home": "Naar startscherm",
       "keywords": "saju oordeel • wedergeboorte • zuiverheid • stroom",
-      "quadAria": "Lotsbloemen uit alle vier de systemen"
+      "quadAria": "Lotsbloemen uit alle vier de systemen",
+      "letterTitle": "De bloemenbrief van vandaag · Eén ding dat je hart nodig heeft",
+      "letterIntro": "Bloemenverhalen voor kleine stapjes in plaats van voorspellingen. Kies de brief die nu bij je gevoel past.",
+      "letterRestTitle": "Als een magnolia · Ik wil even op adem komen",
+      "letterRestBody": "Voordat een bloem opengaat, verzamelen ook de takken stil hun kracht. Streep vandaag één ding van je takenlijst en kijk even naar de planten of de lucht buiten je raam.",
+      "letterStartTitle": "Als een scheut · Ik heb moed nodig om te beginnen",
+      "letterStartBody": "Laat in plaats van een groot voornemen een kleine scheut opkomen. Schrijf alleen de eerste stap op van iets wat je hebt uitgesteld, en ga er vijf minuten mee aan de slag.",
+      "letterShareTitle": "Als een boeket · Ik wil laten zien wat ik voel",
+      "letterShareBody": "Denk niet aan wat je wilt horen, maar aan een moment waarvoor je dankbaar was. Laat je gevoel zien met een korte groet die geen antwoord vraagt."
     },
     "tarotSelfEsteem": {
       "levelUp": "Je eigen maatstaf wordt duidelijker",
@@ -806,10 +816,10 @@
       "aria": "Maanlichtpasgids",
       "kicker": "MAANLICHTPAS",
       "title": "Laat uw fortuinroutine zachter stromen met een maanlichtpas",
-      "desc": "De Moonlight Pass opent 30 dagen lang, binnen een vastgesteld bereik, de readings waar je vaak naar terugkeert. De tekenen van vandaag lopen ononderbroken door.",
+      "desc": "De Moonlight Pass opent, binnen een vastgesteld bereik en tot de gebruikslimiet op is, de readings waar je vaak naar terugkeert. De tekenen van vandaag lopen ononderbroken door.",
       "guideLabel": "MAANLICHTGIDS",
-      "guideTitle": "30 dagen lang openen de lezingen die je vaak gebruikt eerst zachter",
-      "guideText": "Van Standard tot Family openen tarot-, orakel- en saju-lezingen eerst binnen je maanlichtbereik zonder betaalstroom. Diepere lezingen buiten dat bereik gaan alleen wanneer nodig door naar een eenmalige KRW-betaling.",
+      "guideTitle": "Tot je gebruikslimiet op is, openen de lezingen die je vaak gebruikt eerst zachter",
+      "guideText": "Van de Kleine honingpot tot de Gezinshoningpot openen tarot-, orakel- en saju-lezingen eerst binnen je maanlichtbereik zonder betaalstroom. Diepere lezingen buiten dat bereik gaan alleen wanneer nodig door naar een eenmalige KRW-betaling.",
       "toggle": "Open maanlichtvoordelen",
       "heroAria": "Bekijk de gratis beschikbare diensten in de maanlichtstroom",
       "heroTitle": "Bekijk het bereik van de Moonlight Pass",
@@ -821,51 +831,51 @@
       "primaryAction": "Vind de pas die bij mij past",
       "chipsAria": "Kernpasvoordelen",
       "chipIncluded": "Vrij binnen pasbereik",
-      "chipThirtyDays": "Pas voor 30 dagen",
+      "chipThirtyDays": "Pas",
       "chipShareReward": "Losse betaling buiten het bereik",
       "plansAria": "Overzichtskaarten voor het passplan",
-      "standardName": "Standaardhoning 30 dagen",
-      "standardPrice": "30 dagen · KRW 9.900",
+      "standardName": "Kleine honingpot",
+      "standardPrice": "KRW 9.900",
       "standardLine": "Content tot KRW 5.000",
-      "standardBenefit1": "Tot KRW 20.000 per maand",
-      "standardBenefit2": "Maximaal 3 profielen",
-      "standardCta": "Bekijk standaard",
+      "standardBenefit1": "Tot KRW 20.000",
+      "standardCta": "Bekijk Kleine honingpot",
       "recommendedAria": "Aanbevolen plan",
       "recommendedBadge": "Aanbevolen",
-      "premiumName": "Premium Honing 30 dagen",
-      "premiumPrice": "30 dagen · KRW 29.900",
+      "premiumName": "Middelgrote honingpot",
+      "premiumPrice": "KRW 29.900",
       "premiumLine": "Content tot KRW 10.000",
-      "premiumBenefit1": "Tot KRW 60.000 per maand",
-      "premiumBenefit2": "Maximaal 7 profielen",
+      "premiumBenefit1": "Tot KRW 60.000",
       "premiumCta": "Bekijk het aanbevolen abonnement",
-      "vvipName": "VVIP Honingpot 30 dagen",
-      "vvipPrice": "30 dagen · KRW 59.900",
+      "vvipName": "Grote honingpot",
+      "vvipPrice": "KRW 59.900",
       "vvipLine": "Content tot KRW 30.000",
-      "vvipBenefit1": "Tot KRW 120.000 per maand",
-      "vvipBenefit2": "Maximaal 15 profielen",
-      "vvipCta": "Bekijk VVIP-voordelen",
-      "familyName": "Code Destiny Familie 30 dagen",
-      "familyPrice": "30 dagen · KRW 149.000",
+      "vvipBenefit1": "Tot KRW 120.000",
+      "vvipCta": "Bekijk voordelen van de Grote honingpot",
+      "familyName": "Gezinshoningpot",
+      "familyPrice": "KRW 149.000",
       "familyLine": "Alle content die de pass dekt",
-      "familyBenefit1": "Tot KRW 350.000 per maand",
-      "familyBenefit2": "Onbeperkt profielen",
-      "familyCta": "Familie bekijken",
-      "premiumNote": "Premium Honey is de meest gebalanceerde keuze als je vaak content rond KRW 10.000 gebruikt.",
-      "footnote": "Nieuwe passen worden alleen verkocht als passen voor 30 dagen. Deze 30-dagenpas is geen abonnement dat automatisch wordt verlengd. Diensten buiten het pasbereik kunnen worden gebruikt met een eenmalige KRW-betaling per product.",
+      "familyBenefit1": "Tot KRW 350.000",
+      "familyCta": "Bekijk Gezinshoningpot",
+      "premiumNote": "De Middelgrote honingpot is de meest gebalanceerde keuze als je vaak content rond KRW 10.000 gebruikt.",
+      "footnote": "Passen hebben geen tijdslimiet en stoppen zodra de gebruikslimiet op is. Deze pas is geen abonnement dat automatisch wordt verlengd. Diensten buiten het pasbereik kunnen worden gebruikt met een eenmalige KRW-betaling per product.",
       "howtoAria": "Zo gebruik je de moonlight pass",
       "howtoTitle": "Zo loopt de moonlight pass door",
-      "step1Label": "Kies een moonlight-bereik van 30 dagen",
-      "step1Text": "Met een pass van 30 dagen zonder automatische verlenging stel je eerst het prijsbereik in van de readings die je vaak bekijkt.",
+      "step1Label": "Kies een moonlight-bereik",
+      "step1Text": "Met een pass zonder tijdslimiet en zonder automatische verlenging stel je eerst het prijsbereik in van de readings die je vaak bekijkt.",
       "step2Label": "Readings binnen bereik openen zonder betaling",
       "step2Text": "Tarot-, orakel- en saju-readings binnen je bereik openen meteen, zonder betaalvenster.",
       "step3Label": "Alleen diepere readings betaal je per keer",
       "step3Text": "Readings buiten je bereik gaan alleen bij behoefte door met een eenmalige KRW-betaling.",
-      "terminationNote": "Ook wanneer de maandelijkse limiet nul bereikt, blijven de vervaldatum, het niveau en de profiellimiet van de pas behouden. Extra betaalde content is beschikbaar via eenmalige betaling of maandpas."
+      "terminationNote": "Zodra de gebruikslimiet op is, stopt de pas. Koop je opnieuw, dan begin je met een nieuwe gebruikslimiet. Extra betaalde content is beschikbaar via eenmalige betaling of Maanlichtstenen.",
+      "noExpiryNote": "Geen tijdslimiet · Stopt zodra de gebruikslimiet op is"
     },
     "promptHub": {
       "aria": "Ga naar uitgebreide fortuinprompts",
       "alt": "Uitgebreide fortuinaanwijzingen",
-      "sr": "Uitgebreide fortuinaanwijzingen"
+      "sr": "Uitgebreide fortuinaanwijzingen",
+      "honeyLabel": "Mijn honingdruppels",
+      "honeyAttend": "Check vandaag in voor honingdruppels",
+      "honeyAttended": "Vandaag ingecheckt"
     },
     "premiumArchive": {
       "kicker": "VVIP BESTEMMINGSARCHIEF",
@@ -901,11 +911,11 @@
       "eyebrow": "Maanlichtpas",
       "savingsBadge": "Met een pas tot een derde van de prijs",
       "title": "Twee readings van KRW 5.000 kosten al meer dan de pass van KRW 9.900",
-      "desc": "Readings binnen het bereik dat je kiest openen 30 dagen lang, tot je maandelijkse gebruikslimiet; alleen duurdere readings betaal je los wanneer je ze nodig hebt. De vier bereiken zijn KRW 5.000 · 10.000 · 20.000 en alle content die de pass dekt, dus kies de prijs die je het vaakst bekijkt.",
+      "desc": "Readings binnen het bereik dat je kiest openen tot je gebruikslimiet op is; alleen duurdere readings betaal je los wanneer je ze nodig hebt. De vier bereiken zijn KRW 5.000 · 10.000 · 20.000 en alle content die de pass dekt, dus kies de prijs die je het vaakst bekijkt.",
       "pointsAria": "Kernpasgids",
       "point1": "Gaat direct open, zonder afrekenen",
-      "point2": "Bewaar 3 of meer profielen",
-      "point3": "Een pass van 30 dagen zonder automatische verlenging",
+      "point2": "Geen tijdslimiet · Stopt zodra de gebruikslimiet op is",
+      "point3": "Een pass zonder automatische verlenging",
       "mascotAria": "Voordelen van de Moonlight Pass bekijken · Moonlight Pass-winkel",
       "mascotAlt": "Afbeelding met voordelen van de Moonlight Pass",
       "mascotKicker": "Moonlight Pass Guide",
@@ -1348,8 +1358,9 @@
         "w20000": "₩20,000",
         "from3000": "From ₩3,000",
         "w1000": "₩1,000",
-        "from9000": "From ₩9,000",
-        "from20000": "From ₩20,000"
+        "from5000": "From ₩5,000",
+        "w7000": "₩7,000",
+        "from30000": "From ₩30,000"
       },
       "chip": {
         "love": "Their feelings · My next love",
@@ -1610,14 +1621,14 @@
       "pass": "Passen",
       "login": "Inloggen",
       "account": "Mijn account",
-      "offerTitle": "Saju uit 1-op-1-consulten van ₩300.000, nu vanaf ₩3.000",
+      "offerTitle": "Saju uit 1-op-1-consulten van ₩300.000, nu vanaf ₩5.000",
       "reviewsLead": "Echte KakaoTalk-berichten van Neo’s 1-op-1-cliënten, geciteerd in het oorspronkelijke Koreaans. Weglatingen zijn gemarkeerd met ….",
       "reviewsBar": "1-op-1-consult met Neo · KakaoTalk",
       "reviewsMeta": "Echte review · gepubliceerd met toestemming",
       "reviewsPosted": "op de blog geplaatst",
       "reviewsFine": "Reviews weerspiegelen persoonlijke ervaringen en garanderen geen resultaat. Saju-lezingen zijn alleen ter referentie.",
-      "offerNote": "De 1-op-1-consulten deed Neo zelf; de lezing van ₩3.000 komt van een rekenengine met AI-toelichting.",
-      "offerCta": "Bekijk de Saju-lezing van ₩3.000 →",
+      "offerNote": "De 1-op-1-consulten deed Neo zelf; de lezing van ₩5.000 komt van een rekenengine met AI-toelichting.",
+      "offerCta": "Bekijk de Saju-lezing van ₩5.000 →",
       "expertiseTitle": "Berekening volgens vaste regels, toelichting door AI",
       "expertise": {
         "engine": "De geboortekaart wordt met vaste rekenregels opgesteld en de AI schrijft de toelichting op basis van dat resultaat. Noemt de toelichting een dag- of uurpilaar die afwijkt van de berekening, dan wijst de server die af.",
@@ -1649,12 +1660,12 @@
       "saysName": "Yeoni",
       "saysLine": "Which reading shall we start with? Just one is plenty.",
       "passMascotAlt": "Yeoni the flower pig smiling with a pass card",
-      "passEyebrow": "30-day pass, no auto-renewal",
-      "passTitle": "Reading often? Try a 30-day pass",
-      "passDesc": "Each reading's price is deducted from your allowance. It ends automatically after 30 days.",
-      "passPer": "/ 30 days",
+      "passEyebrow": "Pas zonder tijdslimiet of automatische verlenging",
+      "passTitle": "Yeoni legt de pas uit",
+      "passDesc": "Af en toe per reading betalen, of een pas gebruiken als je vaak kijkt. Bekijk welke consulten je kunt gebruiken en je gebruikslimiet.",
+      "passPer": "· Geen tijdslimiet",
       "passBadge": "Incl. Yeongnyangi",
-      "passNote": "Standard, Premium and VVIP apply to Flower Pig readings; Family applies to paid readings from both Flower Pig and Yeongnyangi. Passes you already bought keep the terms from the time of purchase.",
+      "passNote": "De Kleine, Middelgrote en Grote honingpot gelden voor Flower Pig-lezingen; de Gezinshoningpot geldt voor betaalde lezingen van zowel Flower Pig als Yeongnyangi. Passen die je al hebt gekocht, behouden de voorwaarden van het moment van aankoop.",
       "passCta": "See all 4 passes",
       "moreTitle": "Ontdek Yeoni’s atelier",
       "moreItems": "Daily readings · consultations · records · stories",
@@ -1723,7 +1734,7 @@
     "chatEntry": {
       "title": "Ask Yeoni and Neo the one thing on your mind right now",
       "cta": "Talk through my concern",
-      "price": "1 free after signing up · ₩3,000 each after"
+      "price": "₩3.000 per sessie"
     },
     "svcQuestion": {
       "master-love-codex": "When will my next relationship begin?",
@@ -1829,9 +1840,9 @@
       "reviewReward": "Moonstones after publication approval",
       "reviewDetail": "Use them in Ggulggul. Awarded once per product.",
       "reviewAction": "Write a review",
-      "passStandard": "Yeoni Standard",
-      "passPremium": "Yeoni Premium",
-      "passVvip": "Yeoni VVIP",
+      "passStandard": "Kleine honingpot",
+      "passPremium": "Middelgrote honingpot",
+      "passVvip": "Grote honingpot",
       "passPerLimit": "Up to KRW {amount} per reading",
       "passTotal": "Total allowance: KRW {amount}",
       "passNoLimit": "No per-reading price limit",
@@ -1859,17 +1870,18 @@
       "neoClassSource": "Saju student · KakaoTalk excerpt (Korean)",
       "neoNote": "Excerpts from Neo’s personal consultations and classes, separate from the AI reading service. Individual experiences do not guarantee similar results.",
       "neoAbout": "About Neo and the service",
-      "neoMore": "More consultation reviews"
+      "neoMore": "More consultation reviews",
+      "passFamily": "Gezinshoningpot"
     },
     "simple": {
-      "lead": "Vertel wat je bezighoudt. Bekijk vooraf de inhoud en de prijs.",
+      "lead": "Consulten zijn betaald. Je kunt vooraf de prijs en een voorbeeldresultaat bekijken.",
       "start": "Mijn vraag stellen",
       "free": "Gratis daglezing bekijken",
       "startLabel": "Andere manieren om te beginnen",
-      "love": "Liefde en relaties",
+      "love": "Liefde en compatibiliteit",
       "work": "Werk en geld",
       "self": "Mezelf begrijpen",
-      "future": "Vooruitkijken",
+      "future": "Timing en keuzes",
       "title": "Een lezing die begint bij jouw vraag",
       "brand": "Ontmoet Yeongnyangi, Yeoni en Neo bij Ggulggul Fortune. Verken je vraag met Yeongnyangi of bezoek Yeoni’s theehuis en Neo’s strategiekamer.",
       "stepQuestion": "Vertel wat je bezighoudt",
@@ -1877,11 +1889,20 @@
       "stepResult": "Lees het antwoord, de uitleg en de volgende stappen",
       "example": "Lees een voorbeeld vóór betaling",
       "explore": "Alle lezingen en consulten bekijken",
-      "exploreNote": "Saju, tarot, personageconsulten, rapporten en verhalen",
+      "exploreNote": "Waarzegsystemen, Yeongnyangi-consulten, passen en extra’s",
       "passTitle": "Voor regelmatige bezoeken: bekijk passen",
       "passNote": "Controleer het bereik en de geldigheid voordat je kiest.",
       "passLink": "Passen bekijken",
-      "passHistory": "Eerder gekochte passen behouden hun oorspronkelijke voorwaarden."
+      "passHistory": "Eerder gekochte passen behouden hun oorspronkelijke voorwaarden.",
+      "topicsLabel": "Kies een consult per vraag",
+      "loveNote": "Master Love Codex · 20 hoofdstukken · pdf om te bewaren",
+      "lovePrice": "Solo KRW {solo} · Duo KRW {pair}",
+      "workNote": "Van baan wisselen, carrière, ondernemen en geld",
+      "futureNote": "Of je nu moet bewegen en wanneer het tij keert",
+      "priceFrom": "Vanaf KRW {amount}",
+      "samplesTitle": "Lees een voorbeeldresultaat voordat je betaalt",
+      "sampleCodex": "Voorbeeld uit de Love Codex",
+      "sampleConsult": "Voorbeeld van een Yeongnyangi-consult"
     },
     "yeongnyangiEntry": {
       "badge": "Vraagconsult met Yeongnyangi",
@@ -2336,13 +2357,13 @@
         "passSaveUnverified": "We konden het resultaat van het toepassen van je pas niet opslaan. Controleer het opnieuw met de paskaart hieronder of kies een andere betaalmethode.",
         "passCheckFailed": "We konden je pas niet controleren. Probeer het opnieuw met de paskaart hieronder of kies een andere betaalmethode.",
         "passMiss": "Je pas opent deze inhoud niet gratis; hier zijn de betaalopties.",
-        "passMonthlyExhausted": "Your pass allowance is fully used, so the pass has ended. Here are the payment options."
+        "passMonthlyExhausted": "Your pass usage limit is fully used, so the pass has ended. Here are the payment options."
       },
       "passBadge": "Maanlichtpas",
       "passStoreTitle": "Moonlight Pass-winkel",
       "passRetryTitle": "Controleer de pas opnieuw",
       "passHint": {
-        "store": "Betaal één keer en open 30 dagen lang veel content. Heb je er al een? Tik om te checken.",
+        "store": "Betaal één keer en open veel content tot de gebruikslimiet op is. Heb je er al een? Tik om te checken.",
         "retry": "Wij controleren de server nogmaals of uw pas deze zonder betaling kan openen.",
         "upgrade": "Je huidige niveau opent dit niet. Bekijk een ruimer niveau."
       },
@@ -2415,7 +2436,7 @@
         "comingSoon": "Binnenkort beschikbaar",
         "back": "Terug"
       },
-      "passMonthlyExhausted": "Your pass allowance is fully used, so the pass has ended. Buying a new pass starts another 30 days; for now you can open this with a one-time payment or moonstones.",
+      "passMonthlyExhausted": "Your pass usage limit is fully used, so the pass has ended. Buying again starts a new usage limit; for now you can open this with a one-time payment or moonstones.",
       "passMonthlyRemaining": "Pass allowance left {remaining} / {limit}",
       "wait": {
         "card": "After you finish verifying in your card or payment app, come back to this browser and checkout will continue automatically.",
@@ -2447,7 +2468,7 @@
         "pass": {
           "eyebrow": "MAANLICHT PASSCHECK",
           "title": "Controle van uw pas",
-          "message": "Controleren of je 30-dagenpas deze meteen kan openen.",
+          "message": "Controleren of je pas dit meteen kan openen.",
           "meta": "Indien beschikbaar, gaat u verder zonder afrekenvenster."
         },
         "passApplied": {
@@ -2518,7 +2539,7 @@
         "pass": {
           "eyebrow": "MAANLICHT PASSCHECK",
           "title": "Controle van uw pas",
-          "message": "Controleren of je 30-dagenpas deze meteen kan openen.",
+          "message": "Controleren of je pas dit meteen kan openen.",
           "meta": "Indien beschikbaar, gaat u verder zonder afrekenvenster."
         },
         "passApplied": {
@@ -2602,7 +2623,7 @@
     "passShop": {
       "monthlyStatus": "Je maansteensaldo is bevestigd.",
       "chargeButton": "Ga naar de betalingspagina voor {amount}",
-      "chargeNotice": "Pas-product {price} · Dit is een pas van 30 dagen, geen automatische verlenging. Passen koop je alleen met een eenmalige betaling in KRW.",
+      "chargeNotice": "Pas-product {price} · Dit is een pas, geen automatische verlenging. Passen koop je alleen met een eenmalige betaling in KRW.",
       "best": "BEST",
       "monthlyBasisWithPrice": "Maandelijkse kredietbasis {credits} · {price}",
       "profileUnlimited": "Onbeperkt aantal profielen",
@@ -2613,24 +2634,24 @@
       "closeAria": "Sluit de Moonlight Pass Shop-gids",
       "openAria": "Open de Moonlight Pass Shop-gids",
       "title": "Moonlight Pass-winkelgids",
-      "subtitle": "Bekijk de 30-dagenpas en de maandelijkse kredietstroom in maanlicht.",
-      "footerNotice": "Deze 30-dagenpas is geen product dat automatisch wordt verlengd. U moet het opnieuw kopen nadat het is verlopen.",
+      "subtitle": "Passen koop je met een eenmalige betaling in KRW; Maanlichtstenen gebruik je voor afzonderlijke betaalde functies.",
+      "footerNotice": "Deze pas is geen product dat automatisch wordt verlengd. U moet hem opnieuw kopen zodra de gebruikslimiet op is.",
       "packages": {
         "standard": {
-          "name": "Standaardhoning 30 dagen",
-          "desc": "30 dagen · Content tot KRW 5.000 · Tot KRW 20.000 per maand · Maximaal 3 profielen"
+          "name": "Kleine honingpot",
+          "desc": "Content tot KRW 5.000 · Tot KRW 20.000"
         },
         "premium": {
-          "name": "Premiumhoning 30 dagen",
-          "desc": "30 dagen · Content tot KRW 10.000 · Tot KRW 60.000 per maand · Maximaal 7 profielen"
+          "name": "Middelgrote honingpot",
+          "desc": "Content tot KRW 10.000 · Tot KRW 60.000"
         },
         "vvip": {
-          "name": "VVIP Honingpot 30 dagen",
-          "desc": "30 dagen · Content tot KRW 30.000 · Tot KRW 120.000 per maand · Maximaal 15 profielen"
+          "name": "Grote honingpot",
+          "desc": "Content tot KRW 30.000 · Tot KRW 120.000"
         },
         "family": {
-          "name": "Code Destiny Familie 30 dagen",
-          "desc": "30 dagen · Alle content die de pass dekt · Tot KRW 350.000 per maand · Onbeperkt profielen"
+          "name": "Gezinshoningpot",
+          "desc": "Alle content die de pass dekt · Tot KRW 350.000"
         }
       },
       "monthlyStatusChecking": "We controleren het resterende saldo en de Pas-status.",
@@ -2639,7 +2660,7 @@
       "monthlyButton": "Betalen met {credits} maandtegoed",
       "monthlyButtonBusy": "Pas wordt geactiveerd met maandtegoed...",
       "monthlyButtonShort": "{credits} nodig · saldo te laag",
-      "terminationNotice": "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day."
+      "terminationNotice": "Zodra de gebruikslimiet op is, stopt de pas. Koop je opnieuw, dan begin je met een nieuwe gebruikslimiet. Extra betaalde content is beschikbaar via eenmalige betaling of Maanlichtstenen."
     },
     "access": {
       "passAppliedContinue": "Geopend met je pas."
@@ -2708,11 +2729,30 @@
   "fortune": {
     "destinyFlower": {
       "common": {
-        "unknown": "Onbekend"
+        "unknown": "Onbekend",
+        "bloomLabel": {
+          "seed": "Zaad · Dagmeester",
+          "season": "Seizoen · Geboorte",
+          "bloom": "De bloem die opbloeide"
+        },
+        "bloom": {
+          "verdict": "En zo bloeide — {title}."
+        },
+        "flowerLanguage": {
+          "anchor": "'{language}' — dit zegt deze bloem tegen je, gelezen vanuit {anchor}.",
+          "plain": "'{language}' — dit zegt deze bloem nu tegen je."
+        },
+        "shareHook": {
+          "rarityAnchor": "De enige bloem, gelezen vanuit {anchor}"
+        },
+        "anonymousName": "Anonieme reiziger",
+        "rationaleLabel": {
+          "verdict": "Daarom deze bloem"
+        }
       },
       "astro": {
         "elements": {
-          "Fire": "brand",
+          "Fire": "vuur",
           "Earth": "aarde",
           "Air": "lucht",
           "Water": "water",
@@ -2730,22 +2770,41 @@
         "ritualTip": "Houd vanavond je adem drie minuten lang vast en zet één intentie onder een ster.",
         "relationshipTheme": "Wanneer relaties het ritme van uw hoofdteken volgen, wordt de wrijving zachter.",
         "careerTheme": "Breng de kernaandrijving van uw zonneteken in uw werkroutine voor een stabieler momentum.",
-        "growthCycle": "Sterrenroep “baanvormende” nevel bloeit → straling verspreidt zich",
+        "growthCycle": "Roep van de sterren → baanvorming → nevelbloei → uitstraling die zich verspreidt",
         "fallbackNote": "Zonnetekengegevens waren niet beschikbaar, dus bij de meting werd het standaard luchtelement gebruikt.",
         "ultimateTitle": "Ultieme bestemmingsbloem",
         "ultimateConcept": "Een hybride bloei waarbij oosterse {dayMaster} energie samensmelt met westers {sunSign} sterrenlicht",
         "verdict": "Door astrologie is je bestemmingsbloem {flowerName} ({scientificName}). De drie assen van de zon-, rijzende- en maantekens laten zien dat deze bloem nu nauw met jou resoneert.",
-        "narrative": "De {sunElement} vonk die opstijgt uit het zonneteken {sun} wordt het middelpunt van deze bloemkeuze. Het stijgende teken {rising} ({risingElement}) vormt de zichtbare toon, terwijl het maanteken {moon} ({moonElement}) emotionele dauw toevoegt, waardoor het symbool van {flowerName}, {flowerSymbolism}, duidelijk openen. Het trefwoord “{keyword}” is het sterrenlicht dat deze bloem naar voren roept."
+        "narrative": "De {sunElement} vonk die opstijgt uit het zonneteken {sun} wordt het middelpunt van deze bloemkeuze. Het stijgende teken {rising} ({risingElement}) vormt de zichtbare toon, terwijl het maanteken {moon} ({moonElement}) emotionele dauw toevoegt, waardoor het symbool van {flowerName}, {flowerSymbolism}, duidelijk openen. Het trefwoord “{keyword}” is het sterrenlicht dat deze bloem naar voren roept.",
+        "signs": {
+          "aries": "Ram",
+          "taurus": "Stier",
+          "gemini": "Tweelingen",
+          "cancer": "Kreeft",
+          "leo": "Leeuw",
+          "virgo": "Maagd",
+          "libra": "Weegschaal",
+          "scorpio": "Schorpioen",
+          "sagittarius": "Boogschutter",
+          "capricorn": "Steenbok",
+          "aquarius": "Waterman",
+          "pisces": "Vissen"
+        },
+        "rationaleLabel": {
+          "sun": "Zonneteken",
+          "risingMoon": "Ascendant · maanteken"
+        }
       },
       "ziwei": {
         "brightness": {
-          "miao": "Miao",
-          "wang": "Wang",
-          "li": "Li",
-          "de": "De",
-          "ping": "Pingen",
-          "han": "Han",
-          "xian": "Xian"
+          "miao": "Miao (廟)",
+          "wang": "Wang (旺)",
+          "li": "Li (利)",
+          "de": "De (得)",
+          "ping": "Ping (平)",
+          "han": "Xián (閑)",
+          "xian": "Xiàn (陷)",
+          "bu": "Bu (不)"
         },
         "coreFlow": "kernfortuinstroom",
         "coreEnergy": "expressie van kernenergie",
@@ -2756,7 +2815,7 @@
         "ritualTip": "Kernzoekwoord vandaag: {keyword}",
         "relationshipTheme": "Laat het sterke-ster-temperament uw relationele standaard worden en harmonie wordt duidelijker.",
         "careerTheme": "Wanneer de kracht van de hoofdrolspeler het front overneemt, stabiliseren uitvoering en positionering.",
-        "growthCycle": "Steruitlijning “energie verzamelen” zaadontsteking → bloei",
+        "growthCycle": "Uitlijning van de sterren → bundeling van energie → ontbranding van het zaad → bloei",
         "secondaryFallbackNote": "Samengestelde hoofdsteraanpassing: {primaryStar} gecentreerd + {secondaryStar} geurmengsel",
         "palaceFallbackNote": "Aanpassing van paleiseigenschappen: {palace} · {trait}",
         "hybridHint": "Hybride weergave beschikbaar door Saju {dayMaster}-energie te combineren met Ziwei-hoofdsterren {stars}",
@@ -2767,7 +2826,7 @@
           "peonyZiwei": {
             "title": "Keizerlijke pioen",
             "keyword": "imperiale houding",
-            "personality": "een leider die het veld centreert en de orde herstelt"
+            "personality": "een leider die in het midden staat en orde om zich heen schept"
           },
           "thornyRoseGeneral": {
             "title": "Rode roos van de generaal",
@@ -2776,8 +2835,8 @@
           },
           "thornyRosePioneer": {
             "title": "Rode roos van de pionier",
-            "keyword": "de aandrijving om het veld opnieuw vorm te geven",
-            "personality": "een vernieuwer die het oude frame doorbreekt en een nieuwe order opent"
+            "keyword": "de drijvende kracht die het speelveld verandert",
+            "personality": "een vernieuwer die het oude kader doorbreekt en een nieuwe orde opent"
           },
           "delicateWillow": {
             "title": "Wilgenbloem van de strateeg",
@@ -2785,9 +2844,9 @@
             "personality": "een strateeg die het moment leest en het schoonste antwoord vindt"
           },
           "sunflowerZiwei": {
-            "title": "Zonnebloem",
+            "title": "Zonnebloem van de zon",
             "keyword": "uitdijend licht",
-            "personality": "een executeur die energie verzamelt voor zichtbare resultaten"
+            "personality": "een doener die energie op het doel bundelt en zichtbare resultaten haalt"
           },
           "nightCereus": {
             "title": "Maanverlichte nachtbloeiende Cereus",
@@ -2799,168 +2858,349 @@
             "keyword": "sensueel magnetisme",
             "personality": "een magnetisch type dat leidt door schoonheid, relatie en expressie"
           }
+        },
+        "stars": {
+          "ziwei": "Zi Wei (紫微)",
+          "tianji": "Tian Ji (天機)",
+          "taiyang": "Tai Yang (太陽)",
+          "wuqu": "Wu Qu (武曲)",
+          "tiantong": "Tian Tong (天同)",
+          "lianzhen": "Lian Zhen (廉貞)",
+          "tianfu": "Tian Fu (天府)",
+          "taiyin": "Tai Yin (太陰)",
+          "tanlang": "Tan Lang (貪狼)",
+          "jumen": "Ju Men (巨門)",
+          "tianxiang": "Tian Xiang (天相)",
+          "tianliang": "Tian Liang (天梁)",
+          "qisha": "Qi Sha (七殺)",
+          "pojun": "Po Jun (破軍)",
+          "wenchang": "Wen Chang (文昌)",
+          "wenqu": "Wen Qu (文曲)",
+          "zuofu": "Zuo Fu (左輔)",
+          "youbi": "You Bi (右弼)",
+          "tianma": "Tian Ma (天馬)",
+          "lucun": "Lu Cun (祿存)",
+          "tiankui": "Tian Kui (天魁)",
+          "tianyue": "Tian Yue (天鉞)",
+          "qingyang": "Qing Yang (擎羊)",
+          "tuoluo": "Tuo Luo (陀羅)",
+          "dikong": "Di Kong (地空)",
+          "dijie": "Di Jie (地劫)",
+          "huoxing": "Huo Xing (火星)",
+          "lingxing": "Ling Xing (鈴星)"
+        },
+        "palaces": {
+          "life": "Levenspaleis",
+          "siblings": "Broers-en-zussenpaleis",
+          "spouse": "Partnerpaleis",
+          "children": "Kinderpaleis",
+          "wealth": "Rijkdompaleis",
+          "health": "Gezondheidspaleis",
+          "travel": "Reispaleis",
+          "friends": "Vriendenpaleis",
+          "career": "Carrièrepaleis",
+          "property": "Bezitpaleis",
+          "fortune": "Gelukspaleis",
+          "parents": "Ouderpaleis"
+        },
+        "palaceTraits": {
+          "life": "een sterk zelfgevoel en uitstraling",
+          "siblings": "samenwerking en gevoel voor afstemming",
+          "spouse": "gevoel voor schoonheid in relaties en intieme communicatie",
+          "children": "creativiteit en de drang om je te uiten",
+          "wealth": "het beheren van middelen en het vergroten van overvloed",
+          "health": "veerkracht en gevoel voor innerlijk evenwicht",
+          "travel": "aanpassingsvermogen en oordeelsvermogen ter plekke",
+          "friends": "het onderhouden van netwerken en zorg voor een team",
+          "career": "maatschappelijke drive en streven naar succes",
+          "property": "het leggen van fundamenten en gestaag opbouwen",
+          "fortune": "emotioneel opladen en spiritueel inzicht",
+          "parents": "beschermingsinstinct en gevoel voor traditie"
+        },
+        "natalVerdict": "Gelezen uit het karakter van {stars} in je levenspaleis is jouw bloem {flowerName} ({scientificName}).",
+        "natalScenarioTitle": "Bloeiscenario van de hoofdster in het levenspaleis",
+        "rationale": {
+          "lifeStar": "In je levenspaleis staat {starsJosa}.",
+          "borrowedStar": "Je levenspaleis heeft geen hoofdster, dus hebben we {starsObject} geleend uit het tegenoverliggende reispaleis en die gelezen.",
+          "personality": "{star}: ‘{keyword}’ — {personality}.",
+          "verdict": "Daarom is de bloem die we je nu aanreiken {flowerName}."
+        },
+        "rationaleLabel": {
+          "lifeStar": "Hoofdster in het levenspaleis",
+          "personality": "Aangeboren persoonlijkheid"
         }
       },
       "sukuyo": {
         "moon": {
           "full": "volle maan",
-          "new": "donkere maan",
-          "crescent": "halve maan",
+          "new": "nieuwe maan",
+          "crescent": "maansikkel",
           "gibbous": "wassende/afnemende maan"
         },
-        "stickerLabel": "Bloem van Sukuyo",
+        "stickerLabel": "Bloem volgens Sukuyo",
         "moonPhaseLabel": "Maanfase {moon}",
-        "guardianLabel": "Bewaker {guardian}",
-        "scenarioTitle": "27 herenhuizen en maanfase-bloeiscenario",
+        "guardianLabel": "Beschermdier {guardian}",
+        "scenarioTitle": "Bloeiscenario van de 27 maanhuizen en de maanfase",
         "ritualTip": "Bij een maanverlicht raam, adem 27 keer en zet de intentie van vandaag in één woord.",
         "relationshipTheme": "Het volgen van de textuur van {group} verzacht de spanning en verduidelijkt de verbinding.",
         "careerTheme": "Wanneer het ritme van {guardian} wordt weerspiegeld in uw werkroutine, stabiliseren de resultaten.",
-        "growthCycle": "Constellatie die “maanlicht verzamelen” geestontsteking met elkaar verbindt → bloei",
+        "growthCycle": "Verbinding van sterrenbeelden → bundeling van maanlicht → spirituele ontbranding → bloei",
         "verdict": "Door de maanlichttextuur van Sukuyo is je bestemmingsbloem {flowerName} ({scientificName}). De combinatie van {mansion}, {moon} en {guardian} sluit subtiel aan bij het ritme van relatie, emotie en actie van nu.",
-        "narrative": "De relationele textuur van {mansion} ({group}), het getij van de maanfase {moon} en het beschermende patroon van {guardian} ontmoeten elkaar in de nachttuin en verdiepen de kwaliteit van{symbolism}. Lees samen: deze drie maanverlichte signalen wijzen naar {flowerName} als je meest precieze bestemmingsbloem op dit moment."
+        "narrative": "De relationele textuur van {mansion} ({group}), het getij van de maanfase {moon} en het beschermende patroon van {guardianJosa} ontmoeten elkaar in de nachttuin en verdiepen de kwaliteit van {symbolism}. Lees samen: deze drie maanverlichte signalen wijzen naar {flowerName} als je meest precieze bestemmingsbloem op dit moment.",
+        "mansions": {
+          "m1": "Kaku (角)",
+          "m2": "Kou (亢)",
+          "m3": "Tei (氐)",
+          "m4": "Bou (房)",
+          "m5": "Shin (心)",
+          "m6": "Bi (尾)",
+          "m7": "Ki (箕)",
+          "m8": "To (斗)",
+          "m9": "Jo (女)",
+          "m10": "Kyo (虛)",
+          "m11": "Ki (危)",
+          "m12": "Shitsu (室)",
+          "m13": "Heki (壁)",
+          "m14": "Kei (奎)",
+          "m15": "Ro (婁)",
+          "m16": "I (胃)",
+          "m17": "Bo (昴)",
+          "m18": "Hitsu (畢)",
+          "m19": "Shi (觜)",
+          "m20": "Shin (參)",
+          "m21": "Sei (井)",
+          "m22": "Ki (鬼)",
+          "m23": "Ryu (柳)",
+          "m24": "Sei (星)",
+          "m25": "Cho (張)",
+          "m26": "Yoku (翼)",
+          "m27": "Shin (軫)"
+        },
+        "groups": {
+          "anjung": "Standvastige maanhuizen",
+          "gangseong": "Sterke maanhuizen",
+          "gyeongkwae": "Wendbare maanhuizen",
+          "jihye": "Wijze maanhuizen"
+        },
+        "groupLabels": {
+          "anjung": "Standvastige groep",
+          "gangseong": "Sterke groep",
+          "gyeongkwae": "Wendbare groep",
+          "jihye": "Wijze groep"
+        },
+        "guardians": {
+          "crane": "Kraanvogel",
+          "dragon": "Draak",
+          "marten": "Marter",
+          "rabbit": "Konijn",
+          "fox": "Vos",
+          "tiger": "Tijger",
+          "leopard": "Luipaard",
+          "haetae": "Haetae",
+          "bat": "Vleermuis",
+          "rat": "Rat",
+          "swallow": "Zwaluw",
+          "pig": "Varken",
+          "hedgehog": "Egel",
+          "wolf": "Wolf",
+          "dog": "Hond",
+          "pheasant": "Fazant",
+          "rooster": "Haan",
+          "crow": "Kraai",
+          "monkey": "Aap",
+          "ape": "Mensaap",
+          "wildDog": "Wilde hond",
+          "sheep": "Schaap",
+          "roeDeer": "Ree",
+          "horse": "Paard",
+          "deer": "Hert",
+          "snake": "Slang",
+          "earthworm": "Regenworm"
+        },
+        "rationaleLabel": {
+          "mansion": "Maanhuis · maanfase"
+        }
       },
       "saju": {
         "scenarios": {
           "default": {
-            "title": "{dayMasterBadge} scenario voor bloei van de omgeving"
+            "title": "{dayMasterBadge} scenario voor bloei van de omgeving",
+            "reason": "We hebben bekeken hoe je dagmeester samenspeelt met de huidige omgeving van de Vijf Elementen, en de ene bloem gekozen die in deze periode het best bij je past."
           },
           "jia": {
             "springWood": {
-              "title": "Jia Wood rechtopstaand bloeiscenario"
+              "title": "Jia Wood rechtopstaand bloeiscenario",
+              "reason": "Jia-hout (甲木) heeft het karakter van een grote boom die recht omhoog groeit. Nu de houtenergie van de lente bij dat temperament past, komt je kracht om voorop te gaan en nieuwe wegen te openen in volle bloei."
             },
             "autumnMetal": {
-              "title": "Jia Wood metaal-tempereringsscenario"
+              "title": "Jia Wood metaal-tempereringsscenario",
+              "reason": "Terwijl de metaalenergie van de herfst op Jia-hout (甲木) drukt, is het tijd om de zijtakken te snoeien en alleen de stam te houden die er echt toe doet. Hoe meer je loslaat, hoe steviger je komt te staan."
             },
             "dryFire": {
-              "title": "Jia Wood-scenario voor uithoudingsvermogen bij droge hitte"
+              "title": "Jia Wood-scenario voor uithoudingsvermogen bij droge hitte",
+              "reason": "Voor Jia-hout (甲木) te midden van droge, hete energie telt nu het uithoudingsvermogen van de wortels. Haast je niet, houd lang vol en bouw veerkracht op, dan bloei je net zo volhardend opnieuw als de altheastruik."
             }
           },
           "yi": {
             "metalWater": {
-              "title": "Yi Harmoniescenario voor hout, metaal en water"
+              "title": "Yi Harmoniescenario voor hout, metaal en water",
+              "reason": "Yi-hout (乙木) heeft een zacht, doordringend karakter, zoals ranken en bloeiende planten. Nu metaal- en waterenergie sterk zijn, komen je gratie en je zuiverende, reinigende kracht het sterkst tot uiting."
             },
             "dryEarth": {
-              "title": "Yi Wood-overlevingsscenario op droge grond"
+              "title": "Yi Wood-overlevingsscenario op droge grond",
+              "reason": "Voor Yi-hout (乙木) op droge aarde-energie draait het nu om de kracht om vol te houden. Zoals een cactusbloem die door schrale grond breekt en uiteindelijk bloeit, straal je juist daar waar je standhoudt."
             },
             "autumn": {
-              "title": "Scenario voor herfstverfijning van Yi Wood"
+              "title": "Scenario voor herfstverfijning van Yi Wood",
+              "reason": "Yi-hout (乙木) dat door de metaalenergie van de herfst trekt, zit in een tijd waarin fijngevoeligheid rustige orde wordt. Hoe gelijkmatiger je ordent wat verspreid ligt, hoe opgeruimder ook je binnenste wordt."
             },
             "wetSpring": {
-              "title": "Yi Wood-uitbreidingsscenario in vochtige lente"
+              "title": "Yi Wood-uitbreidingsscenario in vochtige lente",
+              "reason": "Als Yi-hout (乙木) de vochtige energie van de lente ontmoet, groeit zijn kracht om mensen te verbinden merkbaar. Nu is het tijd om via relaties te groeien in plaats van alleen."
             }
           },
           "bing": {
             "springWood": {
-              "title": "Bing Fire-veerontstekingsscenario"
+              "title": "Bing Fire-veerontstekingsscenario",
+              "reason": "Bing-vuur (丙火) is een energie die snel ontvlamt en zich wijd verspreidt, zoals de zon. Met de houtenergie van de lente als brandstof laait nu je kracht op om iets nieuws te beginnen en bekend te maken."
             },
             "summerFire": {
-              "title": "Bing Fire zomeruitbreidingsscenario"
+              "title": "Bing Fire zomeruitbreidingsscenario",
+              "reason": "Komt de vuurenergie van de zomer erbij, dan brandt Bing-vuur (丙火) feller dan ooit. In deze tijd bereikt je kracht om voorop te gaan en mensen te leiden haar hoogtepunt."
             },
             "waterControl": {
-              "title": "Bing Scenario voor brandwaterbeheersing"
+              "title": "Bing Scenario voor brandwaterbeheersing",
+              "reason": "Voor Bing-vuur (丙火) dat op sterke waterenergie stuit, gaat het nu niet om heter branden, maar om de richting goed te bepalen. Bewaar je realiteitszin en hoed de vlam, dan blijft haar licht lang branden."
             }
           },
           "ding": {
             "coldWet": {
-              "title": "Ding Fire koud-vochtig warmtescenario"
+              "title": "Ding Fire koud-vochtig warmtescenario",
+              "reason": "Ding-vuur (丁火) is een energie die als een kaars stil van binnenuit schijnt. In deze koude, vochtige tijd is het een grotere kracht om die warmte lang levend te houden dan om te schitteren."
             },
             "autumnMetal": {
-              "title": "Ding Fire-scenario voor metaalraffinage"
+              "title": "Ding Fire-scenario voor metaalraffinage",
+              "reason": "Als Ding-vuur (丁火) metaalenergie ontmoet, worden de precisie van zijn handen en zijn oog voor schoonheid scherper. Nu straal je het meest als je bij één ding blijft en het mooi afrondt."
             },
             "resonance": {
-              "title": "Ding Fire resonantie bloeiend scenario"
+              "title": "Ding Fire resonantie bloeiend scenario",
+              "reason": "Ding-vuur (丁火) is een energie die de textuur van gevoelens behoedzaam aanraakt en relaties verdiept. Hoe vrijer je je hart laat zien, hoe verder ook je weg naar geluk opengaat."
             }
           },
           "wu": {
             "fireEarth": {
-              "title": "Wu Earth vuur-aarde prestatiescenario"
+              "title": "Wu Earth vuur-aarde prestatiescenario",
+              "reason": "Wu-aarde (戊土) is een weidse, betrouwbare energie, zoals een grote berg. Nu vuur en aarde je steunen, krijgen grote plannen en grote successen bijzondere kracht."
             },
             "winterWater": {
-              "title": "Wu Earth winterstichtingsscenario"
+              "title": "Wu Earth winterstichtingsscenario",
+              "reason": "Voor Wu-aarde (戊土) die de waterenergie van de winter ontmoet, is het nu tijd om het tempo te verlagen en de grond te verstevigen. Hoe meer je stilstaat en de basis versterkt, hoe zekerder je volgende stap wordt."
             },
             "center": {
-              "title": "Scenario voor het bouwen van Wu-aardcentra"
+              "title": "Scenario voor het bouwen van Wu-aardcentra",
+              "reason": "De echte kracht van Wu-aarde (戊土) is het centrerende vermogen dat een wankele situatie vanuit het midden bijeenhoudt. Hoe trouwer je je dagelijkse routine volhoudt, hoe meer je successen zich opstapelen."
             }
           },
           "ji": {
             "wetEarth": {
-              "title": "Scenario voor uitbreiding van de cultivatie van de aarde"
+              "title": "Scenario voor uitbreiding van de cultivatie van de aarde",
+              "reason": "Ji-aarde (己土) is een energie die dingen zorgvuldig laat opgroeien, zoals een goed bewerkte akker. In deze vochtige tijd groeien de vruchten in relaties waarin jullie samenwerken en voor elkaar zorgen."
             },
             "metalDesign": {
-              "title": "Ji Earth-scenario met precisieontwerp"
+              "title": "Ji Earth-scenario met precisieontwerp",
+              "reason": "Als Ji-aarde (己土) metaalenergie ontmoet, ontwaakt een gevoel om zelfs de kleinste details te plannen en te ordenen. Je sterke punten komen naar voren bij taken die veel zorgvuldigheid vragen."
             },
             "balance": {
-              "title": "Ji Scenario voor het afstemmen van het evenwicht op de aarde"
+              "title": "Ji Scenario voor het afstemmen van het evenwicht op de aarde",
+              "reason": "Ji-aarde (己土) is een energie die bijzonder goed zacht tussen mensen bemiddelt en de sfeer aanvoelt. Als je het tempo van geven en nemen goed stuurt, wordt juist dat je geluk."
             }
           },
           "geng": {
             "metalEarth": {
-              "title": "Geng Metal-principe-door-scenario"
+              "title": "Geng Metal-principe-door-scenario",
+              "reason": "Geng-metaal (庚金) is een energie die stoutmoedig en vastberaden doorsnijdt, zoals een ongeslepen edelsteen. Nu aarde en metaal je steunen, bereikt je kracht om je principes door te zetten haar hoogtepunt."
             },
             "fireTraining": {
-              "title": "Geng Metal-brandtemperingsscenario"
+              "title": "Geng Metal-brandtemperingsscenario",
+              "reason": "Gehard in heet vuur verstevigt Geng-metaal (庚金) uitstraling en vakmanschap tegelijk. In deze tijd wordt je concentratie op beslissende momenten bijzonder scherp."
             },
             "clearJudgment": {
-              "title": "Geng Metal scenario met beslissend oordeel"
+              "title": "Geng Metal scenario met beslissend oordeel",
+              "reason": "De kracht van Geng-metaal (庚金) is een oordeelsvermogen dat precies tot de kern doordringt. Stel duidelijke maatstaven, en die helderheid leidt direct tot resultaten."
             }
           },
           "xin": {
             "metalWater": {
-              "title": "Xin Metal metaal-waterverfijningsscenario"
+              "title": "Xin Metal metaal-waterverfijningsscenario",
+              "reason": "Xin-metaal (辛金) is een energie met verfijnde zintuigen en fijne taal, zoals een fijn geslepen juweel. Nu metaal en water harmoniëren, wordt je kracht om te analyseren en je uit te drukken nog helderder."
             },
             "springWood": {
-              "title": "Xin Metal houtafstemmingsscenario"
+              "title": "Xin Metal houtafstemmingsscenario",
+              "reason": "Als Xin-metaal (辛金) de houtenergie van de lente ontmoet, komt het verder door zacht af te stemmen dan door zijn kling te slijpen. In deze tijd levert werk dat je met gevoel verfijnt resultaten op."
             },
             "completion": {
-              "title": "Xin Metal voltooiingsscenario"
+              "title": "Xin Metal voltooiingsscenario",
+              "reason": "Xin-metaal (辛金) is sterk wanneer het één ding mooi afrondt in plaats van zich breed te verspreiden. Hoe zorgvuldiger je de details afwerkt, hoe meer het vertrouwen van mensen groeit."
             }
           },
           "ren": {
             "summerCooling": {
-              "title": "Ren Water zomerkoelingscenario"
+              "title": "Ren Water zomerkoelingscenario",
+              "reason": "Ren-water (壬水) is een energie die grote stromen stuurt, zoals een wijde zee. Nu het de zomerhitte afkoelt, groeit je kracht om je rustig te concentreren merkbaar."
             },
             "winterCondensing": {
-              "title": "Ren Water-wintercondensatiescenario"
+              "title": "Ren Water-wintercondensatiescenario",
+              "reason": "In harmonie met de waterenergie van de winter verzamelt Ren-water (壬水) nu kracht onder het ijs. Ook al lijkt het aan de oppervlakte rustig, vanbinnen rijpt een stevig potentieel, zoals een gletsjerbloem."
             },
             "nightIntuition": {
-              "title": "Ren Water nacht-intuïtiescenario"
+              "title": "Ren Water nacht-intuïtiescenario",
+              "reason": "Ren-water (壬水) is een energie die haar weg eerder vindt via de intuïtie van een stille nacht dan in het heldere daglicht. Als je op je eigen ritme beslist in plaats van haastig een antwoord te zoeken, klopt de richting."
             }
           },
           "gui": {
             "coldWetPurifying": {
-              "title": "Gui Water koud-vochtig zuiveringsscenario"
+              "title": "Gui Water koud-vochtig zuiveringsscenario",
+              "reason": "Gui-water (癸水) is een energie die als ochtenddauw het fijne waarneemt en zuiver wast. In deze koude, vochtige tijd wordt die stille, verzonken rust je kracht."
             },
             "summerEmpathy": {
-              "title": "Gui Water zomer-empathiescenario"
+              "title": "Gui Water zomer-empathiescenario",
+              "reason": "Voor Gui-water (癸水) dat de zomerhitte ontmoet, is mededogen dat harten troost en mensen verbindt de grootste kracht. Net als bij een hortensia opent de weg zich als je de warmte van velen verzamelt."
             },
             "subtleSignal": {
-              "title": "Gui Water subtiel signaalscenario"
+              "title": "Gui Water subtiel signaalscenario",
+              "reason": "Gui-water (癸水) is een energie die kleine signalen die anderen missen als eerste leest. Kies met dat fijne gevoel alleen het juiste moment, en juist die ene zet beslist over succes of mislukking."
             }
           }
         },
-        "stickerLabel": "Bloem van Saju",
+        "stickerLabel": "Bloem volgens Saju",
         "dayMasterWaiting": "Wachten op lezen van de dagmaster",
         "signalPending": "Wachten op kernsignalen",
         "scenarioTitleFallback": "{dayMasterBadge} bloeiscenario",
         "scenarioFallbackReason": "De bloeiende stroom werd gelezen door de dagmaster en de omgeving te integreren.",
-        "growthCycle": "Spruit (energie verzamelen) “ Groei (versterkende actie) ” Bloei (resultaten komen naar boven) → Vrucht (relaties en verdieping van activa)",
-        "fallbackNote": "Dagmasterverrijkingslogica is toegepast.",
+        "growthCycle": "Ontkiemen (energie verzamelen) → Groeien (actie versterken) → Bloeien (resultaten worden zichtbaar) → Vrucht dragen (relaties en bezit opbouwen)",
+        "fallbackNote": "We hebben de energie van je dagmeester voorzichtig gelezen op basis van alleen je geboortedatum.",
         "verdict": "In je Saju-lezing is je bloem {flowerName} ({scientificName}).",
         "rationale": {
           "verdict": "In je Saju-lezing is je bestemmingsbloem {flowerName} ({scientificName}).",
           "elements": "De Vijf Elementen-lezing toont {dominant} als je belangrijkste energie en {support} als de ondersteunende stroom.",
           "context": "Het seizoen van het huidige fortuin is {season}, de energiedichtheid is {water} en de levensfase wordt gelezen als {environment}.",
           "dayMaster": "De dagmaster wordt bevestigd als {dayMasterBadge} en de seizoen-omgevingsinteractie daaromheen heeft prioriteit gekregen.",
-          "scenario": "Dag master-omgevingsscenario: {reason}",
+          "scenario": "{reason}",
           "levels": "De elementniveaus zijn {elementLevelLine} en alle vijf niveaus zijn gewogen om de bestemmingsbloem te bevestigen.",
           "symbolism": "Deze bloem symboliseert {symbolism} en weerspiegelt het thema van dit seizoen het duidelijkst.",
           "description": "Bestemmingsbloemlezing: {description}",
           "vibe": "Bloeigids: {vibeMessage}",
-          "fallback": "Aanpassingslogica: {note}"
+          "fallback": "Aanpassingslogica: {note}",
+          "dayMasterSame": "Een bloem die dezelfde {element}-energie in zich draagt als je dagmeester {dayMasterBadge}.",
+          "strengthRelease": "Je Saju is sterk, dus hebben we bloemen met {elements}-energie zwaarder laten wegen, die de opgehoopte energie naar buiten laten stromen.",
+          "strengthSupport": "Je Saju is zwak, dus hebben we bloemen met {elements}-energie zwaarder laten wegen, die je dagmeester ondersteunen.",
+          "yongshin": "Deze bloem draagt het nuttig element (Yongshin) dat je Saju nodig heeft — {elements}.",
+          "johuWarm": "Je Saju neigt naar kou en vocht, dus hebben we warme bloemen zwaarder laten wegen, die het als zonlicht verwarmen.",
+          "johuCool": "Je Saju neigt naar hitte en droogte, dus hebben we waterrijke bloemen zwaarder laten wegen, die de hitte afkoelen."
         },
         "elements": {
           "wood": "Hout",
-          "fire": "Brand",
+          "fire": "Vuur",
           "earth": "Aarde",
           "metal": "Metaal",
           "water": "Water"
@@ -3018,6 +3258,55 @@
           "Earth": "Operations, management en systeemopbouw brengen uw sterke punten naar voren.",
           "Metal": "Analyse, planning en kwaliteitscontrole zetten precisie om in resultaten.",
           "Water": "Onderzoek, onderzoek en inhoudontwerp laten uw diepgang stralen."
+        },
+        "bloom": {
+          "season": "Net als jij, geboren in de {season}, bloeit deze bloem het mooist in de {season}."
+        },
+        "flowerLanguage": {
+          "yongshin": "'{language}' — dit zegt deze bloem, die je nuttige element {elements} in zich draagt, tegen je.",
+          "dayMaster": "'{language}' — dit zegt deze bloem tegen jou, met dagmeester {dayMasterBadge}."
+        },
+        "shareHook": {
+          "raritySeason": "Eén bloem uit {total}, gekozen door een Saju met dagmeester {dayMasterBadge}, geboren in de {season}",
+          "rarityDayMaster": "Eén bloem uit {total}, gekozen door een Saju met dagmeester {dayMasterBadge}",
+          "rarityPlain": "De ene bloem die mijn Saju uit {total} koos"
+        },
+        "dayMasters": {
+          "jia": "Jia-hout (甲木)",
+          "yi": "Yi-hout (乙木)",
+          "bing": "Bing-vuur (丙火)",
+          "ding": "Ding-vuur (丁火)",
+          "wu": "Wu-aarde (戊土)",
+          "ji": "Ji-aarde (己土)",
+          "geng": "Geng-metaal (庚金)",
+          "xin": "Xin-metaal (辛金)",
+          "ren": "Ren-water (壬水)",
+          "gui": "Gui-water (癸水)"
+        },
+        "dayMasterStems": {
+          "jia": "Jia (甲)",
+          "yi": "Yi (乙)",
+          "bing": "Bing (丙)",
+          "ding": "Ding (丁)",
+          "wu": "Wu (戊)",
+          "ji": "Ji (己)",
+          "geng": "Geng (庚)",
+          "xin": "Xin (辛)",
+          "ren": "Ren (壬)",
+          "gui": "Gui (癸)"
+        },
+        "dayMasterFallback": {
+          "ziwei": "Omdat de Saju-gegevens over de dagmeester onvolledig waren, is het karakter van de dagmeester bijgesteld op basis van de Zi Wei-hoofdster.",
+          "astrology": "Omdat de Saju-gegevens over de dagmeester onvolledig waren, zijn de neigingen van het zonneteken gebruikt in plaats van het karakter van de dagmeester.",
+          "dominant": "Omdat de kernwaarden uit Saju, Zi Wei en astrologie onvolledig waren, is het karakter van de dagmeester afgeleid uit het overheersende element."
+        },
+        "rationaleLabel": {
+          "dayMaster": "Karakter van de dagmeester",
+          "strengthRelease": "Sterke Saju",
+          "strengthSupport": "Zwakke Saju",
+          "yongshin": "Nuttig element",
+          "johuWarm": "Seizoensbalans · koud en vochtig",
+          "johuCool": "Seizoensbalans · heet en droog"
         }
       },
       "flowers": {
@@ -3031,7 +3320,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Anticipatie, bescherming"
         },
         "aster": {
           "name": "Aster",
@@ -3043,7 +3333,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Liefde, herinnering, geduld"
         },
         "astro_lavender": {
           "name": "Nevel Lavendel",
@@ -3055,7 +3346,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Sereniteit, kalmte"
         },
         "azalea": {
           "name": "Azalea",
@@ -3067,7 +3359,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Liefde, zachtheid, vrouwelijkheid"
         },
         "begonia": {
           "name": "Begonia",
@@ -3079,7 +3372,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Vriendelijkheid, beleefdheid"
         },
         "bellflower": {
           "name": "Klokjebloem",
@@ -3091,7 +3385,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Eeuwige liefde"
         },
         "bird_of_paradise": {
           "name": "Paradijsvogel",
@@ -3103,7 +3398,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Vrijheid, succes, pracht"
         },
         "black_rose": {
           "name": "Zwarte roos",
@@ -3115,7 +3411,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Jij bent voor altijd van mij"
         },
         "blue_iris": {
           "name": "Blauwe iris",
@@ -3127,7 +3424,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Wijsheid, communicatie, optimisme"
         },
         "blue_lotus": {
           "name": "Blauwe Lotus",
@@ -3139,7 +3437,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Wedergeboorte, spiritueel ontwaken"
         },
         "bluebell": {
           "name": "Klokje",
@@ -3151,7 +3450,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Nederigheid, standvastigheid"
         },
         "cactus_flower": {
           "name": "Cactusbloem",
@@ -3163,7 +3463,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Brandend hart, passie"
         },
         "camellia": {
           "name": "Camellia",
@@ -3175,7 +3476,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Bewondering, perfectie"
         },
         "carnation": {
           "name": "Anjer",
@@ -3187,7 +3489,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Liefde, fascinatie, bewondering"
         },
         "cherry_blossom": {
           "name": "Kersenbloesem",
@@ -3199,7 +3502,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Schoonheid, verjonging"
         },
         "chrysanthemum_gold": {
           "name": "Gouden Chrysant",
@@ -3211,7 +3515,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Lang leven, vreugde, eer"
         },
         "cornflower": {
           "name": "Korenbloem",
@@ -3223,7 +3528,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Gelukzaligheid, verfijning"
         },
         "cosmos": {
           "name": "Kosmos",
@@ -3235,7 +3541,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Zuivere liefde, harmonie"
         },
         "crocus": {
           "name": "Krokus",
@@ -3247,7 +3554,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Jeugdige vreugde"
         },
         "dahlia": {
           "name": "Dahlia",
@@ -3259,7 +3567,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Kracht, creativiteit, elegantie"
         },
         "daisy": {
           "name": "Madeliefje",
@@ -3271,7 +3580,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Onschuld, zuiverheid, nieuw begin"
         },
         "delicate_willow": {
           "name": "Wilgenbloem",
@@ -3283,7 +3593,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Openhartigheid, vrijheid"
         },
         "delphinium": {
           "name": "Delphinium",
@@ -3295,7 +3606,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Waardigheid, elegantie"
         },
         "edelweiss": {
           "name": "Edelweiss",
@@ -3307,7 +3619,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Moed, zuiverheid, liefde"
         },
         "flame_tulip": {
           "name": "Vlamtulp",
@@ -3319,7 +3632,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Schoonheid"
         },
         "forsythia": {
           "name": "Forsythia",
@@ -3331,7 +3645,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Hoop, diepe genegenheid"
         },
         "foxglove": {
           "name": "Vingerhoedskruid",
@@ -3343,7 +3658,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Vurige liefde, een open hart"
         },
         "freesia": {
           "name": "Freesia",
@@ -3355,7 +3671,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Vriendschap, vertrouwen, onschuld"
         },
         "gardenia": {
           "name": "Gardenia",
@@ -3367,7 +3684,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Grenzeloze vreugde, geluk"
         },
         "gentian": {
           "name": "Gentiaan",
@@ -3379,7 +3697,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Rechtvaardigheid, ik hou van je als je verdrietig bent"
         },
         "geranium": {
           "name": "Geranium",
@@ -3391,7 +3710,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Ik ben gelukkig omdat jij er bent"
         },
         "glacier_bloom": {
           "name": "Gletsjerbloei",
@@ -3403,7 +3723,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Een belofte bewaard onder het ijs"
         },
         "heliotrope": {
           "name": "Heliotroop",
@@ -3415,7 +3736,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Toewijding, eeuwige liefde"
         },
         "hibiscus": {
           "name": "Hibiscus",
@@ -3427,7 +3749,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Delicate schoonheid, frisse liefde"
         },
         "honeysuckle": {
           "name": "Kamperfoelie",
@@ -3439,7 +3762,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Liefdesband, toegewijde liefde"
         },
         "hydrangea": {
           "name": "Hortensia",
@@ -3451,7 +3775,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Dankbaarheid, gratie, oprechte emoties"
         },
         "iris": {
           "name": "Iris",
@@ -3463,7 +3788,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Geloof, wijsheid, hoop"
         },
         "ivy_bloom": {
           "name": "Klimop bloei",
@@ -3475,7 +3801,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Onveranderlijke vriendschap"
         },
         "jasmine": {
           "name": "Jasmijn",
@@ -3487,7 +3814,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Gratie, elegantie"
         },
         "larkspur": {
           "name": "Ridderspoor",
@@ -3499,7 +3827,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Waardigheid, openheid, positiviteit"
         },
         "lavender": {
           "name": "Lavendel",
@@ -3511,7 +3840,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Sereniteit, kalmte"
         },
         "lily": {
           "name": "Lelie",
@@ -3523,7 +3853,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Zuiverheid, deugd, toewijding"
         },
         "lotus": {
           "name": "Lotus",
@@ -3535,7 +3866,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Verlichting, zuiverheid, wedergeboorte"
         },
         "lotus_golden": {
           "name": "Gouden Lotus",
@@ -3547,7 +3879,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Wedergeboorte, spiritueel ontwaken"
         },
         "lotus_pink": {
           "name": "Roze Lotus",
@@ -3559,7 +3892,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Verlichting, wedergeboorte"
         },
         "lotus_white": {
           "name": "Witte lotus",
@@ -3571,7 +3905,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Zuiverheid, verlichting"
         },
         "magnolia": {
           "name": "Magnolia",
@@ -3583,7 +3918,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Edelheid, verheven geest"
         },
         "marigold": {
           "name": "Goudsbloem",
@@ -3595,7 +3931,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Vreugde, warmte, creativiteit"
         },
         "moon_lily": {
           "name": "Maanlelie",
@@ -3607,7 +3944,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Zuiverheid, vernieuwing, toewijding"
         },
         "moon_narcissus": {
           "name": "Maannarcis",
@@ -3619,7 +3957,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Hoop, wedergeboorte"
         },
         "moonflower": {
           "name": "Maanbloem",
@@ -3631,7 +3970,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Wachten, magie"
         },
         "morning_glory": {
           "name": "Ochtendglorie",
@@ -3643,7 +3983,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Blij nieuws"
         },
         "mugunghwa": {
           "name": "Mugunghwa",
@@ -3655,7 +3996,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Onwankelbare trouw, eeuwigheid"
         },
         "narcissus": {
           "name": "Narcis",
@@ -3667,7 +4009,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Wedergeboorte, nieuw begin"
         },
         "nemophila": {
           "name": "Nemophila",
@@ -3679,7 +4022,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Overal succes"
         },
         "night_cereus": {
           "name": "Nachtbloeiende Cereus",
@@ -3691,7 +4035,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Eén enkele ontmoeting, vergankelijke schoonheid"
         },
         "orange_trumpet": {
           "name": "Oranje trompetbloem",
@@ -3703,7 +4048,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Eer, verlangen"
         },
         "orchid": {
           "name": "Orchidee",
@@ -3715,7 +4061,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Luxe, zeldzame schoonheid"
         },
         "orchid_tanlang": {
           "name": "Tanlang-orchidee",
@@ -3727,7 +4074,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Exotische schoonheid, kracht"
         },
         "passionflower": {
           "name": "Passiebloem",
@@ -3739,7 +4087,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Heilige liefde"
         },
         "peony": {
           "name": "Pioenroos",
@@ -3751,7 +4100,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Romantiek, voorspoed, geluk"
         },
         "peony_ziwei": {
           "name": "Ziwei-pioen",
@@ -3763,7 +4113,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Rijkdom, eer"
         },
         "persian_buttercup": {
           "name": "Perzische Boterbloem",
@@ -3775,7 +4126,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Charme, betovering"
         },
         "plum_blossom": {
           "name": "Pruimenbloesem",
@@ -3787,7 +4139,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Edel hart, gratie"
         },
         "poppy": {
           "name": "Papaver",
@@ -3799,7 +4152,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Rustige slaap, troost"
         },
         "primrose": {
           "name": "Sleutelbloem",
@@ -3811,7 +4165,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Jonge liefde, eeuwige liefde"
         },
         "queen_anne_lace": {
           "name": "Koningin Anne's kant",
@@ -3823,7 +4178,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Diepe genegenheid, dankbaarheid"
         },
         "ranunculus": {
           "name": "Ranonkel",
@@ -3835,7 +4191,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Charme, aantrekkingskracht, bewondering"
         },
         "red_lycoris": {
           "name": "Rode Lycoris",
@@ -3847,7 +4204,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Passie, de belofte van een weerzien"
         },
         "red_spider_lily": {
           "name": "Rode spinlelie",
@@ -3859,7 +4217,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Wachten op het weerzien"
         },
         "resilient_rose": {
           "name": "Klassieke roos",
@@ -3871,7 +4230,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Romantiek"
         },
         "rose": {
           "name": "Roos",
@@ -3883,7 +4243,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Liefde, passie, schoonheid"
         },
         "snapdragon": {
           "name": "Leeuwebek",
@@ -3895,7 +4256,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Gracieusheid, kracht"
         },
         "sunflower": {
           "name": "Zonnebloem",
@@ -3907,7 +4269,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Aanbidding, trouw"
         },
         "sunflower_ziwei": {
           "name": "Ziwei Zonnebloem",
@@ -3919,7 +4282,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Vreugde, kracht, optimisme"
         },
         "sweet_pea": {
           "name": "Zoete erwt",
@@ -3931,7 +4295,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Plezier, dankbaarheid"
         },
         "thorny_rose": {
           "name": "Doornroos",
@@ -3943,7 +4308,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Liefde, passie"
         },
         "tiger_lily": {
           "name": "Tijgerlelie",
@@ -3955,7 +4321,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Zelfvertrouwen, voorspoed"
         },
         "tulip": {
           "name": "Tulp",
@@ -3967,7 +4334,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Volmaakte liefde, elegantie"
         },
         "violet": {
           "name": "Paars",
@@ -3979,7 +4347,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Bescheidenheid, nederigheid"
         },
         "violet_wisteria": {
           "name": "Violette blauweregen",
@@ -3991,7 +4360,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Welkom, dronken van liefde"
         },
         "water_anemone": {
           "name": "Wateranemoon",
@@ -4003,7 +4373,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Anticipatie, bescherming"
         },
         "water_lily": {
           "name": "Waterlelie",
@@ -4015,7 +4386,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Zuiver hart"
         },
         "water_narcissus": {
           "name": "Waternarcis",
@@ -4027,7 +4399,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Vernieuwing, hoop, voorspoed"
         },
         "white_baby_breath": {
           "name": "Witte gipskruid",
@@ -4039,7 +4412,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Zuiverheid, onschuld, eeuwige liefde"
         },
         "wild_chrysanthemum": {
           "name": "Wilde chrysant",
@@ -4051,7 +4425,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Vriendschap, vreugde, eerlijkheid"
         },
         "winter_plum": {
           "name": "Winterpruim",
@@ -4063,7 +4438,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Edel hart, volharding"
         },
         "wisteria": {
           "name": "Blauweregen",
@@ -4075,7 +4451,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Welkom, dronken van liefde"
         },
         "yarrow": {
           "name": "Duizendblad",
@@ -4087,7 +4464,435 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
+          },
+          "flowerLanguage": "Genezing, leiderschap"
+        }
+      },
+      "ui": {
+        "source": {
+          "saju": "Saju",
+          "astrology": "Astrologie",
+          "jamidusu": "Ziwei",
+          "sukuyo": "Sukuyo"
+        },
+        "specimen": {
+          "language": "Bloementaal",
+          "system": "Systeem",
+          "mark": {
+            "saju": {
+              "primary": "Dagmeester",
+              "secondary": "Seizoen"
+            },
+            "astrology": {
+              "primary": "Teken",
+              "secondary": "Ascendant"
+            },
+            "jamidusu": {
+              "primary": "Hoofdster",
+              "secondary": "Helderheid"
+            },
+            "sukuyo": {
+              "primary": "Maanhuis",
+              "secondary": "Maan"
+            }
+          },
+          "yongshin": "Nuttig element"
+        },
+        "bouquet": {
+          "sourcesAll": "Alle vier systemen",
+          "sourcesPair": "{a} en {b}",
+          "sourcesTrio": "{a}, {b} en {c}",
+          "sameFlower": "{sources} kozen dezelfde bloem: {name}. Zo helder is jouw aard.",
+          "sameElement": "{sources} wijzen naar dezelfde energie: {element}.",
+          "diverse": "Bloemen van verschillende aard bundelen je vele kanten in één boeket.",
+          "title": "Lotsboeket",
+          "sub": "De bloemen van {count} systemen, samen in één boeket."
+        },
+        "share": {
+          "preparing": "Je resultaat voor de lotsbloem wordt voorbereid.",
+          "hookTitle": "🌸 Mijn lotsbloem is blijkbaar '{name}'",
+          "hookLanguage": "Bloementaal: {language}",
+          "hookAsk": "En welke bloem ben jij? → {url}",
+          "hashtagsNamed": "#Lotsbloem #MijnBloemIs{tag}",
+          "hashtag": "#Lotsbloem",
+          "languageDot": "Bloementaal · {language}",
+          "ogTitle": "{name}, mijn lotsbloem",
+          "ogAsk": "Welke bloem ben jij?",
+          "title": "Lotsbloem",
+          "copiedText": "Tekst gekopieerd. Plak hem in een bericht om te versturen.",
+          "preparedText": "De tekst is klaar. Opent je berichtenapp niet, plak hem dan om te versturen.",
+          "kakaoTitle": "Mijn lotsbloem is '{name}'",
+          "bloomMine": "Mijn bloem laten bloeien",
+          "kakaoOpened": "Het KakaoTalk-deelvenster is geopend.",
+          "kakaoPrepared": "Je KakaoTalk-bericht is klaar. Opent het niet, plak het dan om te versturen."
+        },
+        "card": {
+          "kicker": "Mijn lotsbloem",
+          "ask": "En de jouwe?",
+          "failed": "De kaartafbeelding kon niet worden gemaakt, dus we sturen de tekst.",
+          "saved": "Storykaart opgeslagen. De tekst is ook gekopieerd.",
+          "ready": "Je storykaart is klaar. Deel hem in je Instagram-story.",
+          "drawing": "Je kaart wordt getekend. Een ogenblik geduld."
+        },
+        "sheet": {
+          "story": "Storykaart",
+          "storyHint": "Opslaan of delen als 9:16-afbeelding",
+          "kakao": "KakaoTalk",
+          "kakaoHint": "Stuur mijn bloem naar een vriend",
+          "link": "Link kopiëren",
+          "linkHint": "Kopiëren met bloementaal",
+          "compat": "Bloemenmatch met een vriend",
+          "compatHint": "Stuur een matchlink naar een vriend",
+          "compatHintFriend": "Bekijk de match met de bloem van je vriend",
+          "title": "Bloem delen",
+          "close": "Sluiten",
+          "linkCopied": "Bloementaal en link gekopieerd. Plak ze om naar een vriend te sturen.",
+          "notReady": "Je kunt delen zodra je bloem bloeit.",
+          "sub": "{name} · Bloementaal '{language}'"
+        },
+        "compatShare": {
+          "inviteTitle": "🌸 Mijn lotsbloem is '{name}'",
+          "inviteAsk": "Laat die van jou ook bloeien en kijk hoe goed onze bloemen matchen",
+          "hashtags": "#Lotsbloem #Bloemenmatch",
+          "title": "Lotsbloemmatch",
+          "pair": "🌸 Ik ben '{mine}', mijn vriend is '{friend}'",
+          "result": "Onze bloemenmatch: '{title}'",
+          "ask": "Bekijk ook de match van jouw bloem → {url}"
+        },
+        "friend": {
+          "kicker": "Een lotsbloem van je vriend",
+          "shareCompat": "Bloemenmatch delen",
+          "note": "Zodra je bloem bloeit, laten we meteen jullie bloemenmatch zien.",
+          "birthToast": "Vul je geboortedatum in en je bloem gaat bloeien. Daarna zie je de match met de bloem van je vriend."
+        },
+        "compat": {
+          "twin": {
+            "title": "Een paar van dezelfde bloem",
+            "line": "Jullie zijn allebei {name}. Zonder woorden leven jullie in hetzelfde seizoen."
+          },
+          "blend": {
+            "title": "Bloemen van verschillende aard",
+            "line": "Twee bloemen in verschillende kleuren maken samen het boeket rijker."
+          },
+          "same": {
+            "title": "Verwante bloemen",
+            "line": "Beide bloemen dragen {mine}-energie. Jullie begrijpen elkaars tempo het best."
+          },
+          "give": {
+            "title": "De bloem die ik laat bloeien",
+            "line": "De {mine}-energie van mijn bloem voedt de {friend}-energie van de bloem van mijn vriend. Naast mij bloeit die stralender."
+          },
+          "receive": {
+            "title": "De bloem die mij laat bloeien",
+            "line": "De {friend}-energie van de bloem van mijn vriend versterkt de {mine}-energie van mijn bloem. Samen bloeit mijn bloem voller."
+          },
+          "shape": {
+            "title": "Bloemen die elkaar vormen",
+            "line": "De {mine}-energie van mijn bloem vormt de {friend}-energie van de bloem van mijn vriend. Hoe beter jullie je tempo afstemmen, hoe sterker jullie worden."
+          },
+          "spark": {
+            "title": "Bloemen die elkaar prikkelen",
+            "line": "De {friend}-energie van de bloem van mijn vriend houdt de {mine}-energie van mijn bloem in balans. Jullie zijn een goede prikkel voor elkaar."
           }
+        },
+        "cta": {
+          "rebloom": "🌸 Mijn lotsbloem opnieuw laten bloeien",
+          "astrologyAgain": "✨ Mijn astrologiebloem opnieuw oproepen",
+          "jamidusuAgain": "🌺 Mijn Ziwei-bloem opnieuw oproepen",
+          "sukuyoAgain": "🌙 Mijn Sukuyo-bloem opnieuw oproepen"
+        },
+        "status": {
+          "atelierLocked": "Het Atelier van de Lotsbloem moet eerst worden ontgrendeld.",
+          "loginRequired": "Log in om je lotsbloem te bekijken.",
+          "newlyUnlocked": "✨ Je {source}-bloem is nu nieuw geopend.",
+          "resultReady": "{verdict} Je kunt het resultaat opslaan of delen via KakaoTalk.",
+          "reloading": "Je gegevens worden opnieuw geladen. Een ogenblik geduld.",
+          "linking": "Je {source}-gegevens worden gekoppeld. Een ogenblik geduld.",
+          "loaded": "Je {source}-gegevens zijn geladen.",
+          "copied": "Gekopieerd naar het klembord.",
+          "copyPermission": "Geen toegang tot het klembord. Kopieer handmatig.",
+          "copyFailed": "Kopiëren mislukt.",
+          "kakaoPcCopied": "Op de pc is de KakaoTalk-link naar het klembord gekopieerd. Plak hem in KakaoTalk om te delen.",
+          "kakaoNotOpenedCopied": "We konden niet bevestigen dat KakaoTalk is geopend, dus de samenvatting is naar het klembord gekopieerd. Plak hem in KakaoTalk om te delen.",
+          "kakaoOpening": "Delen via KakaoTalk wordt geopend...",
+          "kakaoFailedCopied": "Delen via KakaoTalk kon niet worden geopend, dus de samenvatting is naar het klembord gekopieerd.",
+          "refreshed": "Tabbladen en prompts zijn bijgewerkt op basis van: {verdict}",
+          "aiOpening": "De AI wordt geopend in een nieuw tabblad. Gebeurt er niets, sta dan pop-ups toe en probeer het opnieuw.",
+          "aiBlocked": "Het nieuwe tabblad lijkt geblokkeerd te zijn. Sta pop-ups toe in je browser of open de gewenste AI-site rechtstreeks.",
+          "summaryCopied": "Samenvatting naar het klembord gekopieerd.",
+          "promptCopied": "De hoofdprompt voor de AI-bloem is naar het klembord gekopieerd.",
+          "promptPackCopied": "De set van hoofd- en negatieve prompt is naar het klembord gekopieerd."
+        },
+        "fallback": {
+          "astrology": {
+            "name": "Nevellavendel",
+            "symbolism": "Heldere intuïtie die de nerf van het sterrenlicht volgt",
+            "vibe": "Adem mee op het ritme van de sterren en je intuïtie wordt helderder."
+          },
+          "jamidusu": {
+            "name": "Boompioen",
+            "symbolism": "Keizerlijke gratie en de kracht van het midden",
+            "keyword1": "Keizer",
+            "keyword2": "Gratie",
+            "keyword3": "Midden",
+            "vibe": "Wie zijn midden bewaart, komt uiteindelijk het verst."
+          },
+          "sukuyo": {
+            "name": "Lelie",
+            "symbolism": "Een beschermende bloem die helder bloeit in het maanlicht",
+            "keyword1": "Maanlicht",
+            "keyword2": "Bescherming",
+            "keyword3": "Zuivering",
+            "vibe": "Stem je vannacht af op de adem en het ritme van de maan, en je keuzes worden helderder.",
+            "keywordMansion": "Sukuyo",
+            "keywordGuardian": "Beschermdier",
+            "keywordPhase": "Maanfase"
+          }
+        },
+        "legacy": {
+          "astrologyReading": "Je lotsbloem wordt gelezen uit je horoscoop.",
+          "astrologyRhythm": "Het ritme van de sterren wordt bepaald.",
+          "brightnessEven": "Gemiddeld (平)",
+          "jamidusuReading": "Je lotsbloem wordt gelezen uit de sterke ster van vandaag.",
+          "mainStarUnknown": "Hoofdster onbekend",
+          "jamidusuRhythm": "De energie van de sterren wordt uitgelijnd.",
+          "imperialGrace": "Keizerlijke gratie",
+          "moonQuarter": "Halve maan",
+          "sukuyoReading": "Je lotsbloem wordt gelezen uit de 27 Sukuyo-maanhuizen.",
+          "mansionUnknown": "Maanhuis onbekend"
+        },
+        "badge": {
+          "sun": "Zonneteken {value}",
+          "rising": "Ascendant {value}",
+          "moon": "Maanteken {value}",
+          "strongStar": "Sterke ster vandaag {value}",
+          "brightness": "Sterhelderheid {value}",
+          "moonPhase": "Maanfase {value}",
+          "guardian": "Beschermdier {value}",
+          "palace": "Paleis {value}",
+          "mansionLabel": "Maanhuis",
+          "group": "Groep {group}"
+        },
+        "value": {
+          "unknown": "Onbekend",
+          "pending": "Wachten op lezing",
+          "lifePalace": "Levenspaleis"
+        },
+        "wait": {
+          "chartSignal": "Wachten op horoscoopsignaal",
+          "starSignal": "Wachten op hoofdstersignaal",
+          "sukuyoSignal": "Wachten op Sukuyo-signaal",
+          "moonRhythm": "Afstemmen op het ritme van de maan.",
+          "nebulaRhythm": "Het ritme van de nevel wordt uitgelijnd.",
+          "imperialRhythm": "De keizerlijke energie wordt afgestemd.",
+          "dayMaster": "Wachten op lezing van de dagmeester",
+          "sourceVerdict": "Wachten op {source}-lezing",
+          "mainStar": "Wachten op lezing van de hoofdster",
+          "sukuyoReading": "Wachten op Sukuyo-lezing",
+          "dataLoad": "Wachten op het laden van gegevens",
+          "birth": "Wachten op je geboortedatum"
+        },
+        "stage": {
+          "keywords": "{source}-trefwoorden · {list}",
+          "astrologyScenario": "Het bloeiscenario van je sterrenbeeld wordt berekend.",
+          "jamidusuScenario": "Het bloeiscenario van de Ziwei-hoofdster wordt berekend.",
+          "sukuyoScenario": "Het bloeiscenario van het Sukuyo-maanlicht wordt berekend.",
+          "seasonTexture": "Textuur: {season}",
+          "seasonDefault": "Seizoen",
+          "environmentMood": "Sfeer: {environment}",
+          "environmentDefault": "Omgeving",
+          "sajuScenario": "Het bloeiscenario uit dagmeester en omgeving wordt berekend.",
+          "dataSheetPreparing": "Je bloemengegevensblad wordt voorbereid.",
+          "symbolizes": "Deze bloem symboliseert {symbolism}.",
+          "resonates": "Deze bloem resoneert sterk met de huidige stroom van je geluk.",
+          "narrativeFallback": "{verdict} Je huidige bloeipunt is afgestemd op je {source}-balans."
+        },
+        "guide": {
+          "allBloomed": "Alle bloemen zijn opengebloeid. Bekijk ze nog eens in elk tabblad.",
+          "startSaju": "Volgende stap: open eerst je Saju-bloem om het bloeien te beginnen.",
+          "next": "Volgende stap: ga verder met je {source}-bloem, zodat het bloeien doorgaat."
+        },
+        "tab": {
+          "lockLabel": "Gaat open zodra het atelier is ontgrendeld"
+        },
+        "verdict": {
+          "preparing": "De lezing van je lotsbloem wordt voorbereid.",
+          "defaultFlower": "Lotsbloem",
+          "sukuyo": "Volgens Sukuyo is jouw bloem {name}.",
+          "jamidusu": "Volgens Ziwei is jouw bloem {name}.",
+          "astrology": "Volgens de astrologie is jouw bloem {name}.",
+          "saju": "Volgens Saju is jouw bloem {name}."
+        },
+        "snapshot": {
+          "guidance": "Als je vandaag eerst je ritme vindt in plaats van resultaten na te jagen, bloei je sneller."
+        },
+        "empty": {
+          "noDomainData": "Er zijn nog geen {source}-gegevens gekoppeld. Tik op de knop hieronder en je eigen lotsbloem bloeit nu open.",
+          "astroCalculating": "We hebben je horoscoop gelezen. Je astrologiebloem wordt nu gekozen.",
+          "notLinked": "Je {source}-bloem bloeit open op het moment dat je op ‘Koppelen’ tikt. Tik op de knop hieronder en ontmoet de bloem die nu naar je toe is gekomen.",
+          "linkButton": "Lotsbloem koppelen",
+          "linking": "Bezig met koppelen...",
+          "dataWaiting": "Wachten op koppeling van {source}-gegevens",
+          "readingWaiting": "Wachten op {source}-lezing",
+          "keywordsLoading": "{source}-trefwoorden · laden"
+        },
+        "artMood": {
+          "astrology": "Dromerige bloemenkunst in sterrennevels en neonglans",
+          "jamidusu": "Bloemenkunst waarin keizerlijke waardigheid en hoofse elegantie samenkomen",
+          "sukuyo": "Heldere bloemenkunst als meditatie in maanlicht en stil water",
+          "saju": "Lyrische Oost-Aziatische bloemenkunst die de nerf van de Vijf Elementen volgt"
+        },
+        "care": {
+          "wood": "'s Ochtends 8 minuten rekken in de zon bij een oostraam om het groeipunt te wekken",
+          "fire": "5 minuten licht uit het zuiden opdoen en het doel van vandaag hardop uitspreken",
+          "earth": "Eén hoek van je werkplek opruimen om je eigen midden stevig te verankeren",
+          "metal": "3 prioriteiten opschrijven en onnodige verplichtingen moedig snoeien",
+          "water": "Met 10 minuten avondwandelen en wat water de stroom van je gevoelens openen",
+          "default": "Leg vaste routines vast voor licht ('s ochtends) en water ('s avonds) om eerst je basale groeiritme te stabiliseren."
+        },
+        "synergy": {
+          "astrology": "Glazen vazen, zilveren lijsten, zacht microlicht",
+          "jamidusu": "Satijnen stof, bronzen objecten, symmetrisch keramiek",
+          "sukuyo": "Matglas, linnen in maanlichttinten, dienbladen met golfpatroon",
+          "saju": "mat keramiek, natuurlijk hout, subtiel bedrukte stoffen",
+          "line": "Aanbevolen kleuren: primair {primary}, secundair {secondary}, accent {accent} / Aanbevolen materialen: {materials}."
+        },
+        "atelier": {
+          "scenarioTitle": "{source}-bloeiscenario",
+          "growthCycleWaiting": "Wachten op berekening van de bloeicyclus",
+          "ritualWaiting": "Je praktijkroutine voor vandaag wordt berekend.",
+          "astrology": {
+            "lightingFire": "Fel zonlicht onder een steile hoek, zoals op het middaguur midden in de zomer",
+            "lightingEarth": "Bestendig licht waarin het goud van de late middag lang blijft hangen",
+            "lightingWater": "Een koele, blauwe dageraad die zich langzaam verspreidt",
+            "lightingAir": "Schuin licht, gekanteld als de wind, dat de ruimte licht opent",
+            "humidityWater": "Zilveren nevel met een hoge emotionele vochtigheid",
+            "humidityFire": "Droge, warme lucht; gevoelens reageren snel",
+            "humidityEarth": "Bestendig vocht als in een aarden pot; gevoelens rijpen langzaam",
+            "humidityAir": "Een lichte, wisselende bries; ideeën worden snel ververst",
+            "seasonFire": "Bloeiversneller: een fase waarin daadkracht en uitstraling de knoppen omhoog stuwen",
+            "seasonWater": "Innerlijke voedingsfase: een fase waarin rust en intuïtie de wortellaag vullen",
+            "seasonBalance": "Evenwichtsfase: een fase waarin structuur en gevoel elkaar kruisen en de volgende knop voorbereiden",
+            "section": "Hemels licht en energie",
+            "matrixLighting": "☀️ Hemels licht: {value}",
+            "matrixHumidity": "💧 Luchtvochtigheid: {value}",
+            "matrixSeason": "🪐 Kosmisch seizoen: {value}",
+            "log": "Observatielogboek van de tuinier: de richting van je zonneteken {sun} en het licht van je ascendant {rising} bepalen de hoek van de bloemsteel. De vochtregeling van je maanteken {moon} opent zacht de aderen van je gevoelens, en deze week is een voorbloeifase waarin kansen zich als eerste tonen.",
+            "recipe": "Geheim recept: dim na 21.00 uur het licht bij het raam een stand en schrijf het ene dat je morgen gaat doen op de eerste regel van je notitieboek. Richt je in de eerste 12 minuten van de ochtend alleen daarop, dan stemt het ritme van het sterrenlicht zich het snelst af.",
+            "flowerLanguage": "Bloementaal van het lot: de moed om op de hoek van de sterren te vertrouwen en de eerste stap te zetten.",
+            "gardenerWord": "Een woord van de tuinier voor deze bloem: je intuïtie van vandaag is geen overdrijving maar een voorspelling. Kleine daden veranderen de nevel in een echt bloembed.",
+            "particle": "Vertaald naar deeltjes schijnt het licht van {source} het bestendigst met een ‘{particle}’-textuur."
+          },
+          "jamidusu": {
+            "structureZiwei": "Een stevige steel met de keizerlijke gratie van de Ziwei-sterrenfamilie",
+            "structureBreaker": "Een dikke, rechte stengel, gevormd door het temperament van een doorbraakgeneraal",
+            "structureFlexible": "Fijne, meerlagige bloemblaadjes, buigzaam en toch moeilijk te breken",
+            "structureBalanced": "Een edel, symmetrisch bloemgeraamte, gevormd door een evenwichtige hoofdster",
+            "social": "Zoals vlinders en bijen die rond {palace} cirkelen, verdelen hechte verbindingen de rollen en helpen ze je groeien.",
+            "thornsDim": "Een tijd waarin korte, dichte doornen met een sterke afweer je helpen grenzen te stellen",
+            "thornsBright": "Een tijd waarin lichtweerkaatsende nerven de doornen vervangen en je met waardigheid beschermen",
+            "section": "Waardigheid en vorm van de bloem",
+            "matrixStructure": "🏛️ Bloemgeraamte: {value}",
+            "matrixSocial": "🦋 Vlinders en bijen: {value}",
+            "matrixThorns": "🌵 Beschermende doornen: {value}",
+            "log": "Observatielogboek van de tuinier: de sterke ster van vandaag {star} richt het midden van de steel op, en de sterhelderheid {brightness} bepaalt de glans van de bloemblaadjes. Nu brengt structurele voltooiing je verder dan uiterlijke glans.",
+            "recipe": "Geheim recept: zet een metalen voorwerp aan de linkerkant van je bureau en noteer tegelijk één principe voor vandaag en één punt waarop je toegeeft. Hoe duidelijker je grenzen, hoe sierlijker de bloem bloeit.",
+            "flowerLanguage": "Bloementaal van het lot: waardigheid is de stilste glans die uit een stevige structuur opbloeit.",
+            "gardenerWord": "Een woord van de tuinier voor deze bloem: heb geen haast om te schitteren. Een dag waarop je trouw blijft aan je principes, laat de stevigste steel groeien.",
+            "particle": "Vertaald naar deeltjes toont de rangorde van {source} haar orde het mooist met een ‘{particle}’-sfeer."
+          },
+          "sukuyo": {
+            "scentFriend": "Een zachte witte muskusgeur die zich in het maanlicht verspreidt",
+            "scentDanger": "Een diepe, dichte agarhoutgeur die de concentratie aanscherpt",
+            "scentDefault": "Een heldere, kruidig-bloemige geur die de warmte in relaties zacht in balans brengt",
+            "dewFull": "De nachtdauw is het overvloedigst; inspiratie en emotionele expressie zijn allebei rijk",
+            "dewNew": "Nieuwemaanfase met dunne dauw; observeren en voorbereiden komen eerst",
+            "dewDefault": "Een gematigde hoeveelheid dauw; emotioneel evenwicht en daadkracht groeien samen",
+            "companionDragon": "Blauweregen en blauwe salie die een grote stroom van ontplooiing ondersteunen",
+            "companionDog": "Rozemarijn en kamille die stabiele relaties en veerkracht versterken",
+            "companionTiger": "Eucalyptus en rudbeckia die vastberadenheid en beschermingsinstinct versterken",
+            "companionDefault": "Lavendel en klimop die emotionele stabiliteit en groei op lange termijn tegelijk bevorderen",
+            "section": "Geur van verbondenheid en dauw",
+            "matrixScent": "🌙 Geur van het lot: {value}",
+            "matrixDew": "💦 Nachtdauw: {value}",
+            "matrixCompanion": "🌿 Begeleidende planten: {value}",
+            "log": "Observatielogboek van de tuinier: de relationele aard van {mansion} toont zich eerst als geur, en de maanfase {phase} regelt je gevoelsritme via de dichtheid van de dauw. Nu houdt fijngevoeligheid bij het op elkaar afstemmen de bloem langer in leven dan het tempo van een verbinding opdrijven.",
+            "recipe": "Geheim recept: drink voor het slapengaan langzaam een glas water en schrijf dan stil één naam op waarvoor je vandaag dankbaar was. Het waterritme van de maan komt tot rust en je relatiegeluk opent zich zacht.",
+            "flowerLanguage": "Bloementaal van het lot: stil mededogen wordt de geur die het verst reikt.",
+            "gardenerWord": "Een woord van de tuinier voor deze bloem: je hoeft je niet te haasten. Zoals nachtdauw zich verzamelt, worden ook je verbindingen precies op het juiste moment helder.",
+            "particle": "Vertaald naar deeltjes omhult het maanlichtritme van {source} je het warmst met een ‘{particle}’-sfeer."
+          },
+          "saju": {
+            "soilCold": "Vruchtbare, moerassige grond die vocht vasthoudt",
+            "soilHot": "Een warm, goed doorlatend grindmengsel",
+            "soilBalanced": "Vruchtbare grond met een gelijkmatige korrel en stabiele mineralen",
+            "rootStrong": "Een fase waarin diepe wortels ook bij veranderingen van buitenaf het midden houden",
+            "rootWeak": "Een fase waarin eerst fijne wortelhaartjes uitgroeien en steun nodig hebben",
+            "rootBalanced": "Een evenwichtige fase waarin middeldiepe wortels zich gelijkmatig verspreiden",
+            "section": "Bodem en wortels van de groei",
+            "matrixSoil": "🪨 Bodemsamenstelling: {value}",
+            "matrixRoot": "🌱 Worteldiepte: {value}",
+            "matrixNutrient": "🧪 Voeding van de tuinier: {value}",
+            "log": "Observatielogboek van de tuinier: vandaag heeft de tuin de textuur van {soil}, en de groei-energie beweegt in de stroom ‘{root}’. Aan de oppervlakte lijkt het misschien stil, maar in de wortellaag wordt de kracht voor de volgende bloei stevig opgeslagen.",
+            "recipe": "Geheim recept: zet een groene bladplant bij een noord- of oostraam, maak 's ochtends 10 minuten je lichaam los en kalmeer 's avonds 10 minuten je adem. Dit vaste ritme van twee keer per dag versterkt de energie van je nuttig element het snelst.",
+            "flowerLanguage": "Bloementaal van het lot: sterke wortels lijken traag, maar uiteindelijk bloeien ze het hoogst.",
+            "gardenerWord": "Een woord van de tuinier voor deze bloem: vertrouw op opbouwen in plaats van haast. De kleine zorg van vandaag brengt de grote oogst van het volgende seizoen.",
+            "particle": "Vertaald naar deeltjes is de fijne beweging van de {source}-energie het harmonieust met een ‘{particle}’-sfeer."
+          },
+          "themesWaiting": "Je relatie- en werkthema's worden geanalyseerd.",
+          "guidance": "{source}-praktijkgids voor de lotsbloem: {text}"
+        },
+        "prompt": {
+          "badgesSukuyo": "Sukuyo-badges: {mansion} / maanfase {phase} / beschermdier {guardian}",
+          "badgesJamidusu": "Ziwei-badges: sterke ster vandaag {star} / sterhelderheid {brightness} / paleis {palace}",
+          "badgesAstrology": "Astrologiebadges: zonneteken {sun} / ascendant {rising} / maanteken {moon}",
+          "badgesSaju": "Saju-badges: sterkte {strength} / nuttig element {yongshin} / seizoensbalans {johu}",
+          "symbolismFallback": "Een bloem die de stroom van het lot symboliseert",
+          "narrativeFallback": "Verhaal van de lotsbloem",
+          "scenarioFallback": "Enscenering op basis van het bloeiscenario",
+          "toneDirection": "{source}-toonrichting: {mood} / {background}"
+        },
+        "history": {
+          "emptyStatus": "Nog geen bloeiverslagen opgeslagen. Sla je huidige resultaat op.",
+          "restore": "Laden",
+          "kakao": "Delen via Kakao",
+          "delete": "Verwijderen",
+          "saved": "Bloeiverslag opgeslagen: {name} ({time})",
+          "notFound": "Dit verslag is niet gevonden.",
+          "restored": "Opgeslagen bloeiverslag geladen: {name}",
+          "deleteNotFound": "Het te verwijderen verslag is niet gevonden.",
+          "deleted": "Het geselecteerde bloeiverslag is verwijderd.",
+          "nothingToClear": "Er zijn geen bloeiverslagen om te wissen.",
+          "cleared": "Alle opgeslagen bloeiverslagen zijn gewist.",
+          "shareNotFound": "Het te delen verslag is niet gevonden."
+        },
+        "noBirth": {
+          "jamidusu": "Voer je geboortedatum in om je Ziwei-bloem te zien.",
+          "sukuyo": "Voer je geboortedatum in om je Sukuyo-bloem te zien.",
+          "astrology": "Voer je geboortedatum en -tijd in om je astrologiebloem te zien.",
+          "saju": "Voer eerst je naam en geboortedatum in, dan bloeit hier je eigen lotsbloem open."
+        },
+        "studioTitle": "🌸 Atelier van de Lotsbloem",
+        "sourceDesc": {
+          "saju": "We lezen je dagmeester, je geboortemaand en de balans van de Vijf Elementen stap voor stap en kiezen de ene bloem die jouw energie in dit seizoen het diepst raakt.",
+          "astrology": "We leggen de drie lichtstrengen van zonneteken, ascendant en maanteken over elkaar en laten de bloem opbloeien die nu het helderst met je horoscoop harmonieert.",
+          "jamidusu": "We volgen de hoofdster in je levenspaleis, haar helderheid en de stroom van de Vier Transformaties, en vinden de bloem die je geboortekaart nu het duidelijkst voortbrengt.",
+          "sukuyo": "We leggen het maanhuis van je geboortedag naast de maanfase van vannacht en reiken je de bloem aan die nu het zachtst bij je hart past."
+        },
+        "sourceShort": {
+          "saju": "Saju",
+          "astrology": "Horoscoop",
+          "jamidusu": "Ziwei",
+          "sukuyo": "Sukuyo"
+        },
+        "strength": {
+          "strong": "Sterk",
+          "weak": "Zwak"
+        },
+        "johu": {
+          "hot": "Warm & droog",
+          "cold": "Koud & vochtig",
+          "balanced": "In balans"
         }
       }
     }
@@ -4418,7 +5223,7 @@
     },
     "premium": {
       "lockedTitle": "DOMINATORRAPPORT VERGRENDELD",
-      "lockedDesc": "Dominator-modus lezen · 10-jarige risicografiek · volledig professioneel rapport (meer dan 20.000 tekens) · recept voor lotremedie",
+      "lockedDesc": "Dominator-modus · Grafiek over 10 jaar · 10 hoofdstukken · Maandelijkse actieplannen",
       "lockedCost": "Ontgrendel permanent voor ₩ 5.000",
       "unlockCta": "⚡ DOMINATOR UITVOEREN — ₩ 5.000",
       "generatingTitle": "DOMINATOR UITVOEREN…",
@@ -6341,7 +7146,7 @@
         "k53h7ds": "Psychologische test",
         "k79pfmc": "Nakshatra",
         "k871xeu": "Gratis · Selfie gezichtsanalyse",
-        "ka0v1mf": "Gratis · 11 tools",
+        "ka0v1mf": "Honingdruppels · 16 tools",
         "kry6axn": "27 Sukuyo Maanposities",
         "kslqazg": "Algemene reading-prompt",
         "kxgi8q8": "Fortune Teller Vis",
@@ -6666,7 +7471,7 @@
         "k1ygnp9f2": {
           "ariaLabel": "Kernpunten"
         },
-        "k231dx8": "Maak direct gratis consultprompts met 16 tools zoals Vier Pijlers (BaZi), tarot, astrologie en Zi Wei Dou Shu.",
+        "k231dx8": "Maak meteen consultprompts met 16 tools: Saju, tarot, astrologie, Zi Wei Dou Shu en meer.",
         "k3baulf": "Hunminjeongeum Naamgevingsbureau",
         "k6uqkuq": {
           "ariaLabel": "Kernsamenvatting"
@@ -6718,7 +7523,7 @@
         "k1scb7d8": {
           "alt": "Representatieve afbeelding van de Lot-app"
         },
-        "koe32kc": "Gratis proefversie",
+        "koe32kc": "Honingdruppels",
         "ktgbfsy": "NIEUW · Definitieve Editie",
         "n50001000020000": "Tarot 5.000 KRW · Vier Pijlers (BaZi) 10.000 KRW · Compatibiliteit 20.000 KRW",
         "k1dw3t0h": "Kaart gratis · expertconsult betaald",
@@ -6739,7 +7544,7 @@
     "tarotTileBody": {
       "featuredContentCardCta": {
         "k1f1oofn": "Betreed het Lotstheehuys",
-        "kdyjsns": "Gratis proberen",
+        "kdyjsns": "Prompt maken",
         "kwux29x": "Betreed de Strategiekamer"
       },
       "pvcPremMeta": {
@@ -6809,7 +7614,7 @@
         "ko4w810": "16 instrumenten, waaronder Vier Pijlers (BaZi), Tarot en astrologie",
         "kozjlt4": "Praktisch advies voor relaties, financiën, werk en keuzes",
         "kqwk9o": "Consult over huizen en sterrenstromen per onderwerp",
-        "krx9ppb": "1 gratis proef · onbeperkt na registratie",
+        "krx9ppb": "1 honingdruppel per 3 check-ins · 1 druppel per prompt",
         "ktv5xm9": "Analyse van geboortekaart en Vijf Elementen balans",
         "ktx0v26": "Kies een lotskaart onder het leeuwenembleem",
         "kvigm32": "Praktisch advies afgestemd op de huidige relatie",
@@ -6952,7 +7757,9 @@
         "n20000Price10000": "Vanaf ₩10.000",
         "n50000": "₩50.000",
         "n30000Price20000": "₩20.000",
-        "n20000Price10000Price20000": "Vanaf ₩20.000"
+        "n5000Price10000": "Vanaf ₩10.000",
+        "n30000Price20000Price30000": "₩30.000",
+        "n20000Price10000Price30000": "Vanaf ₩30.000"
       }
     },
     "cdSigCardBody": {
@@ -7014,10 +7821,9 @@
     },
     "fortuneGatewayDoor": {
       "fortuneGatewayDoorMeta": {
-        "k18ykrep": "1 gratis na inloggen",
-        "n115000": "1 gratis na registreren · daarna ₩3.000 per stuk",
         "n130000": "₩30.000 per reading",
-        "k1lo4ibg": "finale kruiscontrole"
+        "k1lo4ibg": "finale kruiscontrole",
+        "n13000": "₩5.000 per sessie"
       },
       "fortuneGatewayDoorGo": {
         "kkmvgqi": "Start a reading",
@@ -7406,7 +8212,7 @@
       "007": "Ascendant",
       "008": "Maanteken",
       "009": "Sterk/Zwak Zelf",
-      "010": "Leidende God",
+      "010": "Nuttig Element",
       "011": "Klimaatregeling"
     },
     "message": {
@@ -7899,12 +8705,12 @@
     "deliverable": {
       "title": "Dit krijgt u voor uw betaling",
       "volumeLabel": "Omvang",
-      "volumeValue": "Minimaal 30.000 tekens",
+      "volumeValue": "Uitgebreid advies",
       "chaptersLabel": "Opbouw",
-      "chaptersValue": "16 hoofdstukken · elk 1.900–2.400 tekens",
+      "chaptersValue": "15 hoofdstukken · thematische duiding en slotbrief",
       "keepLabel": "Bewaren",
-      "keepValue": "Sla op als PDF en houd het voorgoed",
-      "guarantee": "Elk hoofdstuk dat te kort is wordt automatisch herschreven, tot twee keer toe. Lukt dat alsnog niet, dan mislukt de aanvraag in plaats van te worden geleverd — opnieuw proberen en terugbetaling blijven dus mogelijk."
+      "keepValue": "PDF opslaan · hoofdstukken kopiëren",
+      "guarantee": "De reikwijdte hangt af van de geboortegegevens en beschikbare berekeningen. Voltooide inhoud is opnieuw te lezen in het opgeslagen advies."
     }
   },
   "errorBoundary": {
@@ -19749,18 +20555,18 @@
       "pig": "Pig"
     },
     "sign": {
-      "aries": "Aries",
-      "taurus": "Taurus",
-      "gemini": "Gemini",
-      "cancer": "Cancer",
-      "leo": "Leo",
-      "virgo": "Virgo",
-      "libra": "Libra",
-      "scorpio": "Scorpio",
-      "sagittarius": "Sagittarius",
-      "capricorn": "Capricorn",
-      "aquarius": "Aquarius",
-      "pisces": "Pisces"
+      "aries": "Ram",
+      "taurus": "Stier",
+      "gemini": "Tweelingen",
+      "cancer": "Kreeft",
+      "leo": "Leeuw",
+      "virgo": "Maagd",
+      "libra": "Weegschaal",
+      "scorpio": "Schorpioen",
+      "sagittarius": "Boogschutter",
+      "capricorn": "Steenbok",
+      "aquarius": "Waterman",
+      "pisces": "Vissen"
     },
     "stem": {
       "wood": "Wood",

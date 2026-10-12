@@ -160,6 +160,9 @@ export function legacyBillingCheckoutEnvelope(prepareEnvelope) {
   };
 }
 
+/** 소급 출생 기반 주문(스냅샷 생년월일 없음)의 지급 대기 안내. 환불하지 않는다(2026-10-10 사용자 결정). */
+export const BIRTH_PROFILE_SELECTION_MESSAGE = "결제는 확인됐어요. 열람할 프로필을 골라 주세요. 다시 결제하지 않아도 돼요.";
+
 /**
  * 구 /api/billing/confirm 성공 봉투. 셸 판정기 `_cdHasVerifiedServerAccess` 가 읽는 것:
  * top-level `accessGrant` 에서 ok !== false · (evidenceId|purchaseId|paymentId|merchantUid 중 하나) ·
@@ -172,7 +175,7 @@ export function legacyBillingCheckoutEnvelope(prepareEnvelope) {
  * 접근 증빙은 위의 accessGrant 하나로 충분하다 — _cdHasVerifiedServerAccess 는 unlockMap 없이도
  * evidenceId + featureKey 만으로 통과한다.
  */
-export function legacyConfirmEnvelope(order, { granted = false, replayed = false, unlock = false } = {}) {
+export function legacyConfirmEnvelope(order, { granted = false, replayed = false, unlock = false, profileSelectionRequired = false } = {}) {
   const merchantUid = String(order?.merchantUid || "");
   const featureKey = String(order?.featureKey || "");
   const impUid = String(order?.impUid || "");
@@ -186,7 +189,11 @@ export function legacyConfirmEnvelope(order, { granted = false, replayed = false
       payment: { merchantUid, status: "paid", paymentAmount: Number(order?.paymentAmount || 0) },
       merchantUid,
       featureKey,
-      message: "결제는 완료됐어요. 콘텐츠 준비를 마무리하는 중이니 다시 결제하지 말아 주세요.",
+      // 소급 출생 기반 주문은 자동으로 열리지 않는다 — "준비 중" 대신 프로필 선택을 안내한다(code 는 유지).
+      ...(profileSelectionRequired ? { profileSelectionRequired: true } : {}),
+      message: profileSelectionRequired
+        ? BIRTH_PROFILE_SELECTION_MESSAGE
+        : "결제는 완료됐어요. 콘텐츠 준비를 마무리하는 중이니 다시 결제하지 말아 주세요.",
     };
   }
   return {

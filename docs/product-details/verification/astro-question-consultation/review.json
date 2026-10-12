@@ -1,0 +1,6 @@
+{
+  "original": "Independent SHIP20;question02/04 revised",
+  "mobile": "Independent SHIP20 panels,12mobileCTA/notices,2transcripts,2desktopCTA;expert text wrapping and notice rechecked",
+  "checks": "4 widths image load/bounds/fallback PASS;expertPOST0;renderer7PASS;ESLintclean",
+  "limits": "API mocked;no realpayment/LLM;main pending"
+}

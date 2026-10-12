@@ -39,94 +39,62 @@ beforeEach(()=>{
 function request(action,id=PID,requestId=`profile-card:${action}:${id}:one`){return new Request('https://example.com/api/profile'+(action==='create'?'':'/'+id),{method:action==='delete'?'DELETE':action==='update'?'PATCH':'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({requestId,paymentMode:'MOONLIGHT_STONE',profile:{...collections.ProfileCard.rows[0],profileId:id}})});}
 async function pay(action,id=PID,requestId=`profile-card:${action}:${id}:one`,price={monthlyCost:100,priceCoins:10}){return spendMoonstone(collections.MonthlyCreditLedger,{userId:UID,product:{productId:'profile-card-manage',featureKey:'profile-card-manage',...price},purchaseId:requestId,profileId:id,profileAction:action},{consumeLots});}
 
-test('V2 ledger-only payment deletes the card and replay never charges again',async()=>{
- await pay('delete');expect(collections.PointHistory.rows).toHaveLength(0);
- const res=await handleProfileRoutes(request('delete'),{});expect(res.status).toBe(200);
- expect(collections.ProfileCard.rows).toHaveLength(0);expect(collections.MonthlyCreditLedger.rows[0].metadata.profileMutationCompleted).toBe(true);
+// 2026-10-11: 프로필 카드 추가·수정·삭제는 무료다. 라우트는 결제 증빙을 요구하지도, 월정석을 차감하지도 않는다.
+function freeRequest(action,id=PID,extra={}){return new Request('https://example.com/api/profile'+(action==='create'?'':'/'+id),{method:action==='delete'?'DELETE':action==='update'?'PATCH':'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({profile:{...collections.ProfileCard.rows[0],profileId:id},...extra})});}
+test('delete needs no payment proof and charges nothing',async()=>{
+ const res=await handleProfileRoutes(freeRequest('delete'),{});expect(res.status).toBe(200);
+ expect(collections.ProfileCard.rows).toHaveLength(0);expect(collections.MonthlyCreditLedger.rows).toHaveLength(0);expect(consumeLots).not.toHaveBeenCalled();
+});
+test('update needs no payment proof and charges nothing',async()=>{
+ const res=await handleProfileRoutes(freeRequest('update',PID,{profile:{...collections.ProfileCard.rows[0],name:'바뀐 이름'}}),{});expect(res.status).toBe(200);
+ expect(collections.ProfileCard.rows[0].name).toBe('바뀐 이름');expect(collections.MonthlyCreditLedger.rows).toHaveLength(0);expect(consumeLots).not.toHaveBeenCalled();
+});
+test('free users add further cards without payment, and a replay returns the same card',async()=>{
+ let response=await handleProfileRoutes(freeRequest('create','new'),{});expect(response.status).toBe(201);
+ response=await handleProfileRoutes(freeRequest('create','third'),{});expect(response.status).toBe(201);
+ expect(collections.ProfileCard.rows).toHaveLength(3);
+ response=await handleProfileRoutes(freeRequest('create','new'),{});expect(response.status).toBe(200);
+ expect(collections.ProfileCard.rows).toHaveLength(3);expect(consumeLots).not.toHaveBeenCalled();
+});
+test('a moonstone mode request is still free and never charges at the route',async()=>{
  expect((await handleProfileRoutes(request('delete'),{})).status).toBe(200);
- expect(consumeLots).toHaveBeenCalledTimes(1);
+ expect(collections.ProfileCard.rows).toHaveLength(0);expect(consumeLots).not.toHaveBeenCalled();
 });
-test('paid addition works for free users past their included slot and replays',async()=>{
- await pay('create','new');let response=await handleProfileRoutes(request('create','new'),{});
- expect(response.status).toBe(201);expect(collections.ProfileCard.rows).toHaveLength(2);
- response=await handleProfileRoutes(request('create','new'),{});expect(response.status).toBe(200);
- expect(collections.ProfileCard.rows).toHaveLength(2);expect(consumeLots).toHaveBeenCalledTimes(1);
-});
-test('legacy V2 rows require exact action, profile and request identity',async()=>{
- await pay('delete');delete collections.MonthlyCreditLedger.rows[0].metadata.profileAction;
- expect((await handleProfileRoutes(request('update'),{})).status).toBe(402);
- expect((await handleProfileRoutes(request('delete',PID,'different'),{})).status).toBe(402);
+// 정책 변경 전에 차감된 월정석 증빙이 남아 있어도 조작은 막히지 않고 다시 차감되지도 않는다.
+test('a spend made before the policy change does not block the mutation or charge again',async()=>{
+ await pay('delete');expect(consumeLots).toHaveBeenCalledTimes(1);
  expect((await handleProfileRoutes(request('delete'),{})).status).toBe(200);
+ expect(collections.ProfileCard.rows).toHaveLength(0);expect(consumeLots).toHaveBeenCalledTimes(1);
 });
-test.each(['owner','profile','amount','refund'])('rejects invalid %s proof without deleting',async fault=>{
- await pay('delete');const row=collections.MonthlyCreditLedger.rows[0];
- if(fault==='owner')row.userId='507f1f77bcf86cd799439012';if(fault==='profile')row.profileId='another';if(fault==='amount')row.amount=1;if(fault==='refund')row.metadata.refundedForServiceExecution=true;
- expect((await handleProfileRoutes(request('delete'),{})).status).toBe(402);expect(collections.ProfileCard.rows).toHaveLength(1);
-});
-// 2026-10-10 수수료 인하(월정석 500 → 100) 전에 차감된 증빙은 배포 뒤에도 그 조작을 끝까지 완료해야 한다.
-test('legacy 500-moonstone proof spent before the price drop still completes the mutation',async()=>{
+test('legacy price constants stay available for matching pre-change evidence',async()=>{
  const {LEGACY_PROFILE_CARD_COSTS,PROFILE_CARD_DELETE_COST_MONTHLY_STONES}=await import('../../worker/lib/profile-card-mutation-policy.js');
  expect(PROFILE_CARD_DELETE_COST_MONTHLY_STONES).toBe(100);expect(LEGACY_PROFILE_CARD_COSTS).toEqual({coins:50,krw:5000,monthlyStones:500});
- await pay('delete',PID,undefined,{monthlyCost:500,priceCoins:50});expect(collections.MonthlyCreditLedger.rows[0].amount).toBe(500);
- expect((await handleProfileRoutes(request('delete'),{})).status).toBe(200);expect(collections.ProfileCard.rows).toHaveLength(0);
- expect(collections.MonthlyCreditLedger.rows[0].metadata.profileMutationCompleted).toBe(true);expect(consumeLots).toHaveBeenCalledTimes(1);
 });
-test('a spend that is neither the current nor the legacy price is not proof',async()=>{
- await pay('delete',PID,undefined,{monthlyCost:300,priceCoins:30});
- expect((await handleProfileRoutes(request('delete'),{})).status).toBe(402);expect(collections.ProfileCard.rows).toHaveLength(1);
-});
-test('insufficient balance creates no spend and no usable proof',async()=>{
+test('insufficient balance creates no spend',async()=>{
  consumeLots.mockResolvedValueOnce({ok:false,reason:'INSUFFICIENT',balance:0});await expect(pay('delete')).rejects.toThrow();
- expect((await handleProfileRoutes(request('delete'),{})).status).toBe(402);expect(collections.ProfileCard.rows).toHaveLength(1);
-});
-test('uncertain delete finalization completes from the original claim without another charge',async()=>{
- await pay('delete');const row=collections.MonthlyCreditLedger.rows[0];Object.assign(row.metadata,{profileMutationInProgress:true,profilePaymentKey:row.sourceId});collections.ProfileCard.rows.length=0;
- expect((await handleProfileRoutes(request('delete'),{})).status).toBe(200);expect(row.metadata.profileMutationCompleted).toBe(true);expect(consumeLots).toHaveBeenCalledTimes(1);
-});
-test('concurrent operation cannot take a live claim',async()=>{
- await pay('delete');const row=collections.MonthlyCreditLedger.rows[0];Object.assign(row.metadata,{profileMutationInProgress:true,profileMutationInProgressAt:new Date(),profilePaymentKey:row.sourceId});
- expect((await handleProfileRoutes(request('delete'),{})).status).toBe(409);expect(collections.ProfileCard.rows).toHaveLength(1);
+ expect(collections.MonthlyCreditLedger.rows.filter(r=>r.type==='spend')).toHaveLength(0);
 });
 test('refund uses one lot, revokes the spend and cannot restore twice',async()=>{
  await pay('delete');const row=collections.MonthlyCreditLedger.rows[0];
  expect(await refundProfileMoonstone(row,UID,'failed delete')).toBe(true);expect(await refundProfileMoonstone(row,UID,'failed delete')).toBe(false);
  expect(restoreLots).toHaveBeenCalledTimes(1);expect(restoreLots).toHaveBeenCalledWith(expect.objectContaining({lotId:`profile-mutation-refund:${row._id}`,amount:100}));
- expect((await handleProfileRoutes(request('delete'),{})).status).toBe(402);
 });
 
 
-test('unknown to explicit midnight and noon persists through paid update and reread',async()=>{
+test('unknown to explicit midnight and noon persists through update and reread',async()=>{
  for(const hour of [0,12,23]) {
   collections.ProfileCard.rows[0].birth={year:1988,month:1,day:7,hour:null,minute:null,timeUnknown:true};
-  const requestId=`profile-card:update:${PID}:hour${hour}`;await pay('update',PID,requestId);
+  const requestId=`profile-card:update:${PID}:hour${hour}`;
   const req=new Request('https://example.com/api/profile/'+PID,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({requestId,profile:{timeUnknown:true,birthTimeUnknown:true,birth:{hour,minute:26,timeUnknown:false}}})});
   expect((await handleProfileRoutes(req,{})).status).toBe(200);
   expect(collections.ProfileCard.rows[0].birth).toMatchObject({hour,minute:26,timeUnknown:false});
  }
 });
 
-test('uncertain create receipt recovers existing card and completes its original spend',async()=>{
- await pay('create','new');const row=collections.MonthlyCreditLedger.rows[0];Object.assign(row.metadata,{profileMutationInProgress:true,profilePaymentKey:row.sourceId});
- collections.ProfileCard.rows.push({...collections.ProfileCard.rows[0],profileId:'new'});
- expect((await handleProfileRoutes(request('create','new'),{})).status).toBe(200);
- expect(collections.ProfileCard.rows).toHaveLength(2);expect(row.metadata.profileMutationCompleted).toBe(true);expect(consumeLots).toHaveBeenCalledTimes(1);
-});
-
 test('invalid action is rejected before charging',async()=>{
  await expect(pay('constructor')).rejects.toMatchObject({code:'INVALID_REQUEST'});expect(consumeLots).not.toHaveBeenCalled();
 });
 
-test('completed creation proof cannot recreate a subsequently deleted card',async()=>{
- await pay('create','new');expect((await handleProfileRoutes(request('create','new'),{})).status).toBe(201);
- collections.ProfileCard.rows.splice(1,1);
- expect((await handleProfileRoutes(request('create','new'),{})).status).toBe(409);expect(collections.ProfileCard.rows).toHaveLength(1);expect(consumeLots).toHaveBeenCalledTimes(1);
-});
-
-test('request ID alone cannot authorize an unpaid profile mutation',async()=>{
- const req=new Request('https://example.com/api/profile/'+PID,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({requestId:`profile-card:delete:${PID}:unpaid`})});
- expect((await handleProfileRoutes(req,{})).status).toBe(402);
- expect(collections.ProfileCard.rows).toHaveLength(1);expect(consumeLots).not.toHaveBeenCalled();
-});
 // 출생 기반 해금은 카드의 생년월일로 찾는다 — 카드가 바뀌거나 지워지면 프로필별 접근결정 캐시가 낡는다.
 async function withCacheSpies(run){
  const paid={invalidateForUser:jest.fn()},state={invalidateForUser:jest.fn()};
@@ -135,10 +103,10 @@ async function withCacheSpies(run){
  try{await run(paid,state);}finally{globalThis.__paidAccessDecisionCache=saved.paid;globalThis.__accessStateCache=saved.state;}
 }
 test('card update invalidates the birth-scoped access caches for this user',async()=>withCacheSpies(async(paid,state)=>{
- await pay('update');expect((await handleProfileRoutes(request('update'),{})).status).toBe(200);
+ expect((await handleProfileRoutes(freeRequest('update'),{})).status).toBe(200);
  expect(paid.invalidateForUser).toHaveBeenCalledWith(UID);expect(state.invalidateForUser).toHaveBeenCalledWith(UID);
 }));
 test('card delete invalidates the birth-scoped access caches for this user',async()=>withCacheSpies(async(paid,state)=>{
- await pay('delete');expect((await handleProfileRoutes(request('delete'),{})).status).toBe(200);
+ expect((await handleProfileRoutes(freeRequest('delete'),{})).status).toBe(200);
  expect(paid.invalidateForUser).toHaveBeenCalledWith(UID);expect(state.invalidateForUser).toHaveBeenCalledWith(UID);
 }));

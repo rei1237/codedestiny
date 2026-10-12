@@ -1,0 +1,255 @@
+{
+  "mode": "Local import of current definitions; no customer, payment, or LLM",
+  "solo": {
+    "chapters": [
+      {
+        "id": "gate",
+        "title": "제1장 · 운명의 문 — 당신이라는 사람"
+      },
+      {
+        "id": "temperament",
+        "title": "제2장 · 타고난 연애 기질 — 일간과 십성이 말하는 것"
+      },
+      {
+        "id": "spouse-image",
+        "title": "제3장 · 부부궁이 말하는 배우자상"
+      },
+      {
+        "id": "attraction",
+        "title": "제4장 · 끌림의 원리 — 오행과 조후"
+      },
+      {
+        "id": "attachment",
+        "title": "제5장 · 애착과 표현 방식"
+      },
+      {
+        "id": "defense",
+        "title": "제6장 · 마음의 방어기제"
+      },
+      {
+        "id": "meeting-place",
+        "title": "제7장 · 인연이 열리는 자리 — 천이궁의 지도"
+      },
+      {
+        "id": "spark-to-bond",
+        "title": "제8장 · 썸에서 연애로 넘어가는 조건"
+      },
+      {
+        "id": "timing",
+        "title": "제9장 · 고백과 타이밍"
+      },
+      {
+        "id": "temperature",
+        "title": "제10장 · 관계의 온도 곡선"
+      },
+      {
+        "id": "conflict-root",
+        "title": "제11장 · 갈등의 뿌리 — 형충파해가 건드리는 자리"
+      },
+      {
+        "id": "repair",
+        "title": "제12장 · 화해와 회복의 언어"
+      },
+      {
+        "id": "jealousy",
+        "title": "제13장 · 질투·집착·거리두기"
+      },
+      {
+        "id": "intimacy",
+        "title": "제14장 · 친밀감과 두 사람의 리듬"
+      },
+      {
+        "id": "parting-reunion",
+        "title": "제15장 · 이별의 패턴과 재회의 문"
+      },
+      {
+        "id": "marriage",
+        "title": "제16장 · 결혼운과 장기 동행"
+      },
+      {
+        "id": "cross-check",
+        "title": "제17장 · 사주 × 자미두수 교차검증"
+      },
+      {
+        "id": "love-dna",
+        "title": "제18장 · 연애 DNA 프로필"
+      },
+      {
+        "id": "three-years",
+        "title": "제19장 · 앞으로 3년, 인연의 흐름"
+      },
+      {
+        "id": "letter",
+        "title": "제20장 · 연애 고수의 마지막 편지"
+      }
+    ],
+    "dna": [
+      {
+        "key": "trust",
+        "label": "신뢰"
+      },
+      {
+        "key": "care",
+        "label": "배려"
+      },
+      {
+        "key": "initiative",
+        "label": "주도성"
+      },
+      {
+        "key": "expression",
+        "label": "표현력"
+      },
+      {
+        "key": "jealousy",
+        "label": "질투"
+      },
+      {
+        "key": "attachment",
+        "label": "집착"
+      },
+      {
+        "key": "emotion",
+        "label": "감성"
+      },
+      {
+        "key": "reason",
+        "label": "이성"
+      },
+      {
+        "key": "excitement",
+        "label": "설렘"
+      },
+      {
+        "key": "devotion",
+        "label": "헌신"
+      }
+    ]
+  },
+  "compat": {
+    "chapters": [
+      {
+        "id": "facing",
+        "title": "제1장 · 마주 선 두 사람 — 첫인상의 궁합"
+      },
+      {
+        "id": "self",
+        "title": "제2장 · 당신이라는 사람 — 관계 속의 나"
+      },
+      {
+        "id": "other",
+        "title": "제3장 · 상대라는 사람 — 그 사람의 결"
+      },
+      {
+        "id": "pull",
+        "title": "제4장 · 무엇이 서로를 끌었나"
+      },
+      {
+        "id": "daystem",
+        "title": "제5장 · 일간의 관계 — 두 기둥이 만나는 방식"
+      },
+      {
+        "id": "tengod",
+        "title": "제6장 · 십성 상호작용 — 서로가 맡는 역할"
+      },
+      {
+        "id": "yongshin",
+        "title": "제7장 · 서로를 채우는 자리 — 용신과 보완"
+      },
+      {
+        "id": "branch",
+        "title": "제8장 · 지지의 합충형파해 — 리듬이 부딪치는 지점"
+      },
+      {
+        "id": "overlay",
+        "title": "제9장 · 두 명반의 상호 배치"
+      },
+      {
+        "id": "spouse",
+        "title": "제10장 · 부처궁 교차 비교 — 서로가 그리는 배우자상"
+      },
+      {
+        "id": "malefic",
+        "title": "제11장 · 살성이 앉는 자리 — 어디서 서로를 긁는가"
+      },
+      {
+        "id": "sihua",
+        "title": "제12장 · 사화의 교환 — 어디서 서로를 키우는가"
+      },
+      {
+        "id": "temperature",
+        "title": "제13장 · 관계의 온도 곡선 — 두 사람의 시간축"
+      },
+      {
+        "id": "conflict",
+        "title": "제14장 · 갈등의 뿌리 — 같은 다툼이 반복되는 이유"
+      },
+      {
+        "id": "repair",
+        "title": "제15장 · 상대에게 닿는 말 — 화해의 언어"
+      },
+      {
+        "id": "future",
+        "title": "제16장 · 지속 가능성과 결혼운"
+      },
+      {
+        "id": "cross-check",
+        "title": "제17장 · 사주와 자미두수 — 합치점과 차이점"
+      },
+      {
+        "id": "relation-dna",
+        "title": "제18장 · 관계 DNA 프로필"
+      },
+      {
+        "id": "three-years",
+        "title": "제19장 · 앞으로 3년의 관계 흐름"
+      },
+      {
+        "id": "letter",
+        "title": "제20장 · 두 사람에게 보내는 마지막 편지"
+      }
+    ],
+    "dna": [
+      {
+        "key": "affinity",
+        "label": "친화"
+      },
+      {
+        "key": "communication",
+        "label": "소통"
+      },
+      {
+        "key": "trust",
+        "label": "신뢰"
+      },
+      {
+        "key": "passion",
+        "label": "열정"
+      },
+      {
+        "key": "tempo",
+        "label": "속도합"
+      },
+      {
+        "key": "endurance",
+        "label": "갈등내구"
+      },
+      {
+        "key": "realism",
+        "label": "현실합"
+      },
+      {
+        "key": "growth",
+        "label": "성장"
+      },
+      {
+        "key": "autonomy",
+        "label": "자립"
+      },
+      {
+        "key": "longevity",
+        "label": "지속"
+      }
+    ]
+  }
+}

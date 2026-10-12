@@ -93,6 +93,8 @@
   function bucketsOf(price) {
     var text = String(price || "").replace(/,/g, "").replace(/\s/g, "");
     var isFree = /무료/.test(text);
+    if (["차트공개", "읽을거리", "기록도구", "연재읽을거리"].indexOf(text) >= 0) return ["free"];
+    if (/^스트리밍·다운로드\d{3,7}원$/.test(text)) return ["free", "low"];
     if (text === "이용권") return ["vvip"];
     var found = text.match(/\d{3,7}(?=원)/g);
     if (!found) return isFree ? ["free"] : ["vvip"];

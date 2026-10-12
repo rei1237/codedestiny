@@ -486,6 +486,7 @@ const handleAppStoreRoutes = createLazyRouteHandler("./routes/app-store.js", () 
 const handleAdminRoutes = createLazyRouteHandler("./routes/admin.js", () => import("./routes/admin.js"), "handleAdminRoutes");
 const handleFortuneRoutes = createLazyRouteHandler("./routes/fortune.js", () => import("./routes/fortune.js"), "handleFortuneRoutes");
 const handleFortuneTodayRoutes = createLazyRouteHandler("./routes/fortune-today.js", () => import("./routes/fortune-today.js"), "handleFortuneTodayRoutes");
+const handlePromptHubRoutes = createLazyRouteHandler("./routes/prompt-hub.js", () => import("./routes/prompt-hub.js"), "handlePromptHubRoutes", "api/prompt-hub");
 const handleFusionFortuneRoutes = createLazyRouteHandler("./routes/fusion-fortune.js", () => import("./routes/fusion-fortune.js"), "handleFusionFortuneRoutes", "api/fusion-fortune");
 const handleFortuneChatRoutes = createLazyRouteHandler("./routes/fortune-chat.js", () => import("./routes/fortune-chat.js"), "handleFortuneChatRoutes", "api/fortune-chat");
 const handleTarotRoutes = createLazyRouteHandler("./routes/tarot.js", () => import("./routes/tarot.js"), "handleTarotRoutes");
@@ -1417,6 +1418,11 @@ const app = {
           const { handlePaymentsContext } = await import("./payments/index.js");
           return withCorsHeaders(request, env, await handlePaymentsContext(request, env, { prefix: "/api/payments" }));
         }
+        // 프로필 선택 지급(출생 기반 전환 전 주문의 지급 보류 해소) — worker/payments/birth-profile-claim.js
+        if (url.pathname === "/api/payments/birth-profile-pending" || url.pathname.startsWith("/api/payments/birth-profile-pending/")) {
+          const { handlePaymentsContext } = await import("./payments/index.js");
+          return withCorsHeaders(request, env, await handlePaymentsContext(request, env, { prefix: "/api/payments" }));
+        }
         return withCorsHeaders(request, env, await handlePaymentRoutes(request, env, ctx));
       }
 
@@ -1509,6 +1515,10 @@ const app = {
       if (url.pathname === '/api/fortune/cards' || url.pathname.startsWith('/api/fortune/cards/')) {
         const { handleInsightCardRoutes } = await import('./routes/insight-cards.js');
         return withCorsHeaders(request, env, await handleInsightCardRoutes(request, env, {allowOrigin: origin => isAllowedOrigin(origin, env)}));
+      }
+      // 프롬프트 허브 조립·꿀방울 출석 — 템플릿은 서버에만 있고 꿀방울(또는 회당 결제)로 연다.
+      if (url.pathname === "/api/fortune/prompt-hub/generate" || url.pathname === "/api/honey/attendance") {
+        return withCorsHeaders(request, env, await handlePromptHubRoutes(request, env));
       }
       if (url.pathname === "/api/fortune/today-hub") {
         return withCorsHeaders(request, env, await handleFortuneTodayRoutes(request, env));
@@ -1621,6 +1631,17 @@ const app = {
         return withCorsHeaders(request, env, await handleZiweiDaehanRoutes(request, env));
       }
 
+      // 점성술·자미두수 궁합(브라우저 계산 회당 결제 결과)의 보관함 저장 — 결제 확인 뒤에만 남긴다.
+      if (url.pathname.startsWith("/api/compat-archive/")) {
+        const { handleCompatResultArchiveRoutes } = await import("./routes/compat-result-archive.js");
+        return withCorsHeaders(request, env, await handleCompatResultArchiveRoutes(request, env));
+      }
+      // 그 밖의 브라우저 계산 회당 결과(운명의 나침반 심화 등) — 같은 검증·저장.
+      if (url.pathname.startsWith("/api/result-archive/")) {
+        const { handleResultArchiveRoutes } = await import("./routes/compat-result-archive.js");
+        return withCorsHeaders(request, env, await handleResultArchiveRoutes(request, env));
+      }
+
       // 운명의 섬 청사진 (무인증·무DB 순수 계산 — /api/ziwei 툼스톤보다 먼저 매칭될 필요는 없으나 ziwei 계열과 함께 둔다)
       if (url.pathname === "/api/ziwei-island-ai" || url.pathname.startsWith("/api/ziwei-island-ai/")) {
         return runAiRouteWithSecurity(request, env, "ziwei-island-ai", handleZiweiIslandAiRoutes, ctx);
@@ -1725,6 +1746,11 @@ const app = {
 
       if (url.pathname === "/api/yoga-guru" || url.pathname.startsWith("/api/yoga-guru/")) {
         return withCorsHeaders(request, env, await handleYogaGuruRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/saju/section") {
+        const { handleSajuSection } = await import("./routes/saju-section.js");
+        return withCorsHeaders(request, env, await handleSajuSection(request, env));
       }
 
       if (url.pathname === "/api/saju-compat-basic" || url.pathname.startsWith("/api/saju-compat-basic/")) {

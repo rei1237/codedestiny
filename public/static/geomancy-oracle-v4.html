@@ -7,10 +7,10 @@
 <title>Geomancy Oracle — Codex Alchemicus</title>
 <script src="/js/core/paid-narrative-reader.js"></script>
 <script src="/js/core/standalone-ai-locale.js?v=20260909-1"></script>
-<script src="/js/core/pass-verdict.js?v=build-6c9b9d6bbb38"></script>
-<script src="/js/core/checkout-entry.js?v=build-6c9b9d6bbb38"></script>
+<script src="/js/core/pass-verdict.js?v=build-f0d657bab4e4"></script>
+<script src="/js/core/checkout-entry.js?v=build-f0d657bab4e4"></script>
 <script src="/js/core/payment-service.js?v=build-payment-service-v1"></script>
-<script src="/js/destiny-profile.js?v=build-3125485d5e95"></script>
+<script src="/js/destiny-profile.js?v=build-d93b57bed522"></script>
 <style>
 /* ═══════════════════════════════════════════════
    ROOT & RESET
@@ -1619,6 +1619,10 @@ window.addEventListener('DOMContentLoaded',()=>initRows());
   writeGoogTransCookie(target);
   applyGoogleLang(target);
 })();
+</script>
+<script type="module">
+import {mountOracleCraftedDetails} from "/js/core/oracle/crafted-details.mjs";
+mountOracleCraftedDetails(document.getElementById("q-screen"));
 </script>
 </body>
 </html>

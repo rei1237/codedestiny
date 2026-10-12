@@ -1,0 +1,182 @@
+{
+  "rows": [
+    {
+      "width": 360,
+      "images": [
+        {
+          "loaded": true,
+          "width": 328,
+          "left": 16,
+          "right": 344
+        },
+        {
+          "loaded": true,
+          "width": 328,
+          "left": 16,
+          "right": 344
+        },
+        {
+          "loaded": true,
+          "width": 328,
+          "left": 16,
+          "right": 344
+        },
+        {
+          "loaded": true,
+          "width": 328,
+          "left": 16,
+          "right": 344
+        },
+        {
+          "loaded": true,
+          "width": 328,
+          "left": 16,
+          "right": 344
+        },
+        {
+          "loaded": true,
+          "width": 328,
+          "left": 16,
+          "right": 344
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "images": [
+        {
+          "loaded": true,
+          "width": 358,
+          "left": 16,
+          "right": 374
+        },
+        {
+          "loaded": true,
+          "width": 358,
+          "left": 16,
+          "right": 374
+        },
+        {
+          "loaded": true,
+          "width": 358,
+          "left": 16,
+          "right": 374
+        },
+        {
+          "loaded": true,
+          "width": 358,
+          "left": 16,
+          "right": 374
+        },
+        {
+          "loaded": true,
+          "width": 358,
+          "left": 16,
+          "right": 374
+        },
+        {
+          "loaded": true,
+          "width": 358,
+          "left": 16,
+          "right": 374
+        }
+      ]
+    },
+    {
+      "width": 430,
+      "images": [
+        {
+          "loaded": true,
+          "width": 398,
+          "left": 16,
+          "right": 414
+        },
+        {
+          "loaded": true,
+          "width": 398,
+          "left": 16,
+          "right": 414
+        },
+        {
+          "loaded": true,
+          "width": 398,
+          "left": 16,
+          "right": 414
+        },
+        {
+          "loaded": true,
+          "width": 398,
+          "left": 16,
+          "right": 414
+        },
+        {
+          "loaded": true,
+          "width": 398,
+          "left": 16,
+          "right": 414
+        },
+        {
+          "loaded": true,
+          "width": 398,
+          "left": 16,
+          "right": 414
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "images": [
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        }
+      ]
+    }
+  ],
+  "drawPosts": 0,
+  "authPosts": 0,
+  "otherPosts": 0,
+  "devPosts": 0,
+  "calendarPosts": 3,
+  "mockedEntryPosts": [
+    "/api/rpg/award",
+    "/api/rpg/collect",
+    "/api/destiny-compass/narrate",
+    "/api/rpg/collect",
+    "/api/destiny-compass/narrate"
+  ],
+  "fallback": true,
+  "mode": "Mock APIs; existing compass birth/concern/free calculation and future simulation entry; CTA trial only; no paid calculation or AI reading"
+}

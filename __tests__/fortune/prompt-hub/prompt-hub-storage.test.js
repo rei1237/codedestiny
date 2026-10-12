@@ -48,29 +48,6 @@ beforeEach(() => {
   window.sessionStorage.clear();
 });
 
-describe("무료 체험 카운터", () => {
-  test("첫 생성은 허용하고 한 번 쓰면 잠긴다", () => {
-    expect(storage.hasFreeGenerationLeft()).toBe(true);
-    storage.recordFreeGeneration();
-    expect(storage.hasFreeGenerationLeft()).toBe(false);
-    expect(storage.readFreeUsage().count).toBe(1);
-  });
-
-  test("값이 깨져 있으면 소진이 아니라 미사용으로 읽는다", () => {
-    window.localStorage.setItem("cd:promptHub:freeUses:v1", "{not json");
-    expect(storage.readFreeUsage().count).toBe(0);
-    expect(storage.hasFreeGenerationLeft()).toBe(true);
-  });
-
-  test("firstUsedAt 은 최초 1회만 찍힌다", () => {
-    storage.recordFreeGeneration();
-    const first = storage.readFreeUsage().firstUsedAt;
-    expect(first).toBeGreaterThan(0);
-    storage.recordFreeGeneration();
-    expect(storage.readFreeUsage().firstUsedAt).toBe(first);
-  });
-});
-
 describe("로그인 재개 스냅샷", () => {
   test("저장한 입력을 그대로 돌려주고 읽는 즉시 사라진다", () => {
     storage.saveResumeSnapshot("comprehensive", { birthDate: "1994-08-17", question: "올해 흐름" });

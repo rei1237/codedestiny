@@ -1,5 +1,7 @@
 "use client";
 
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
+import { getCurrentLoadingLocale } from "@/constants/loadingMessages";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Toaster, toast } from "sonner";
@@ -399,6 +401,8 @@ export default function DestinyMeetingPlacePage() {
             </div>
           </div>
         </section>
+
+        {getCurrentLoadingLocale() === "ko" && <div style={{width:"100%",maxWidth:540,margin:"24px auto",color:"#463a31",background:"#eee7dc",borderRadius:12}}><CraftedProductDisclosure featureKey="destiny_meeting_place" summaryLabel="인연 장소 리포트 상세 안내" /></div>}
 
         <section className="rounded-[2rem] border border-[#ffd4a5]/45 bg-[linear-gradient(160deg,rgba(20,15,56,0.92),rgba(26,16,64,0.9))] p-5 shadow-[0_20px_48px_rgba(8,9,32,0.5)] sm:p-8">
           <div className="mb-5 flex flex-wrap items-center gap-2 text-xs font-bold">

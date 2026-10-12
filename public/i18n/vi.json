@@ -578,7 +578,7 @@
       "sajuFptiImgAlt": "Saju FPTI Test",
       "basicFreeBadge": "Cơ bản miễn phí",
       "price3000": "Một lần 3.000 KRW",
-      "price5000": "Một lần 3.000 KRW",
+      "price5000": "Một lần 5.000 KRW",
       "price10000": "Một lần 10.000 KRW",
       "cosmicSoulPrice": "30 phút 5.000 KRW · 60 phút 10.000 KRW",
       "compatibilityPrice": "Khả năng tương thích 3.000 KRW",
@@ -600,7 +600,9 @@
       "price5000Price3000": "Một lần 3.000 KRW",
       "price10000Price5000": "Một lần 5.000 KRW",
       "unlock1000": "Mở khóa 1.000 KRW",
-      "price1000": "Một lần 1.000 KRW"
+      "price1000": "Một lần 1.000 KRW",
+      "sajuGuardianPricePrice5000Price7000": "Mở khóa vĩnh viễn 7.000 KRW",
+      "unlock1000Price5000": "Mở khóa 5.000 KRW"
     },
     "destinyFlowerStudio": {
       "closeAria": "Đóng Xưởng Hoa Định Mệnh",
@@ -608,21 +610,21 @@
       "title": "Xưởng Hoa Định Mệnh",
       "sourceDesc": "Từ nhật chủ, nhánh mùa và cân bằng Ngũ Hành, dáng nở cộng hưởng với năng lượng của bạn đang mở ra.",
       "sourceTabsAria": "Thẻ đổi nguồn luận giải",
-      "tabSaju": "Hoa Saju",
+      "tabSaju": "Hoa Tứ Trụ",
       "tabAstrology": "Hoa chiêm tinh",
       "tabZiwei": "Hoa Tử Vi",
       "tabSukuyo": "Hoa Sukuyo",
-      "sajuBadgesAria": "Huy hiệu phân tích lõi Saju",
+      "sajuBadgesAria": "Huy hiệu phân tích cốt lõi Tứ Trụ",
       "badgeStrength": "Cân bằng sức mạnh",
       "waiting": "Đang chờ luận giải",
       "badgeYongshin": "Yếu tố hữu ích",
       "badgeJohu": "Số dư theo mùa",
-      "narrative": "Câu chuyện bông hoa của bạn đang được định hình từ bài đọc Ngũ Hành của Saju của bạn.",
+      "narrative": "Câu chuyện bông hoa của bạn đang được định hình từ bài đọc Ngũ Hành trong Tứ Trụ.",
       "imageAlt": "Xem trước Destiny Flower Atelier",
       "defaultFlowerName": "Hoa sen",
       "daymasterWaiting": "Chờ ngày đọc chủ",
       "whyTitle": "Vì sao là loài hoa này?",
-      "symbolism": "Trong bài đọc Saju này, bông hoa của bạn là hoa sen, biểu tượng của sự đổi mới nở rộ rõ ràng ngay cả trong làn nước đục ngầu.",
+      "symbolism": "Theo Tứ Trụ, bông hoa của bạn là hoa sen, biểu tượng của sự tái sinh nở trong trẻo ngay cả giữa dòng nước đục.",
       "panelsAria": "Bảng diễn giải Hoa Định Mệnh",
       "paletteTitle": "Bảng màu cá nhân",
       "particleTitle": "Tâm trạng hạt",
@@ -667,7 +669,15 @@
       "close": "Đóng",
       "home": "Về màn hình chính",
       "keywords": "phán quyết saju • tái sinh • thuần khiết • dòng chảy",
-      "quadAria": "Hoa định mệnh của cả bốn hệ thống"
+      "quadAria": "Hoa định mệnh của cả bốn hệ thống",
+      "letterTitle": "Lá thư hoa hôm nay · Một điều lòng bạn cần",
+      "letterIntro": "Đây là những câu chuyện về hoa dành cho những hành động nhỏ, thay vì lời tiên đoán. Hãy chọn lá thư hợp với lòng bạn lúc này.",
+      "letterRestTitle": "Như hoa mộc lan · Mình muốn nghỉ ngơi một chút",
+      "letterRestBody": "Trước khi hoa nở, cành cây cũng lặng lẽ tích tụ sức lực. Hôm nay, hãy bớt đi một việc phải làm và dành chút thời gian ngắm cây cỏ hay bầu trời ngoài cửa sổ.",
+      "letterStartTitle": "Như mầm non · Mình cần dũng khí để bắt đầu",
+      "letterStartBody": "Thay vì một quyết tâm lớn, hãy thử để một mầm nhỏ nhú lên. Chỉ ghi ra bước đầu tiên của việc bạn đã trì hoãn, rồi bắt tay làm trong 5 phút.",
+      "letterShareTitle": "Như bó hoa · Mình muốn gửi gắm tấm lòng",
+      "letterShareBody": "Thay vì những lời bạn mong được nghe, hãy nhớ lại một khoảnh khắc bạn thấy biết ơn. Gửi gắm tấm lòng bằng một lời hỏi thăm ngắn, không hối thúc hồi âm."
     },
     "tarotSelfEsteem": {
       "levelUp": "Tiêu chuẩn của bạn rõ thêm một nấc",
@@ -806,10 +816,10 @@
       "aria": "Hướng dẫn sử dụng thẻ Moonlight",
       "kicker": "THƯ VIỆN NGĂNG",
       "title": "Hãy để vận may của bạn trôi qua nhẹ nhàng hơn với ánh trăng trôi qua",
-      "desc": "Moonlight Pass mở trước những bài đọc bạn hay quay lại, trong một phạm vi đã định, suốt 30 ngày. Điềm báo hôm nay cứ thế tiếp diễn mà không bị ngắt quãng.",
+      "desc": "Moonlight Pass mở trước những bài đọc bạn hay quay lại, trong một phạm vi đã định, cho đến khi bạn dùng hết hạn mức sử dụng. Điềm báo hôm nay cứ thế tiếp diễn mà không bị ngắt quãng.",
       "guideLabel": "HUONG DAN ANH TRANG",
-      "guideTitle": "Trong 30 ngay, nhung lan xem ban thuong mo se duoc mo truoc that em diu",
-      "guideText": "Tu Standard den Family, cac bai tarot, oracle va saju trong pham vi anh trang ban chon se mo truoc ma khong can di qua luong thanh toan. Nhung bai xem sau hon ngoai pham vi do chi chuyen sang thanh toan mot lan bang KRW khi can.",
+      "guideTitle": "Cho đến khi dùng hết hạn mức, những lần xem bạn thường mở sẽ được mở trước thật êm dịu",
+      "guideText": "Từ Hũ mật ong nhỏ đến Hũ mật ong gia đình, các bài tarot, oracle và saju trong phạm vi ánh trăng bạn chọn sẽ mở trước mà không cần qua luồng thanh toán. Những bài xem sâu hơn ngoài phạm vi đó chỉ chuyển sang thanh toán một lần bằng KRW khi cần.",
       "toggle": "Mở lợi ích ánh trăng",
       "heroAria": "Kiểm tra các dịch vụ có sẵn miễn phí dưới ánh trăng",
       "heroTitle": "Xem phạm vi Moonlight Pass",
@@ -821,51 +831,51 @@
       "primaryAction": "Tìm pass phù hợp với tôi",
       "chipsAria": "Lợi ích của thẻ cốt lõi",
       "chipIncluded": "Miễn phí trong phạm vi vượt qua",
-      "chipThirtyDays": "Thẻ 30 ngày",
+      "chipThirtyDays": "Thẻ pass",
       "chipShareReward": "Ngoài phạm vi: thanh toán từng lần",
       "plansAria": "Vượt qua thẻ tóm tắt kế hoạch",
-      "standardName": "Mật ong chuẩn 30 ngày",
-      "standardPrice": "30 ngày · 9.900 KRW",
+      "standardName": "Hũ mật ong nhỏ",
+      "standardPrice": "9.900 KRW",
       "standardLine": "Nội dung đến khoảng 5.000 KRW",
-      "standardBenefit1": "Tối đa 20.000 KRW mỗi tháng",
-      "standardBenefit2": "Tối đa 3 hồ sơ",
-      "standardCta": "Xem tiêu chuẩn",
+      "standardBenefit1": "Tối đa 20.000 KRW",
+      "standardCta": "Xem Hũ mật ong nhỏ",
       "recommendedAria": "Gói đề xuất",
       "recommendedBadge": "Được đề xuất",
-      "premiumName": "Mật ong cao cấp 30 ngày",
-      "premiumPrice": "30 ngày · 29.900 KRW",
+      "premiumName": "Hũ mật ong vừa",
+      "premiumPrice": "29.900 KRW",
       "premiumLine": "Nội dung đến khoảng 10.000 KRW",
-      "premiumBenefit1": "Tối đa 60.000 KRW mỗi tháng",
-      "premiumBenefit2": "Tối đa 7 hồ sơ",
+      "premiumBenefit1": "Tối đa 60.000 KRW",
       "premiumCta": "Xem gói đề xuất",
-      "vvipName": "Hũ mật ong VVIP 30 ngày",
-      "vvipPrice": "30 ngày · 59.900 KRW",
+      "vvipName": "Hũ mật ong lớn",
+      "vvipPrice": "59.900 KRW",
       "vvipLine": "Nội dung đến khoảng 30.000 KRW",
-      "vvipBenefit1": "Tối đa 120.000 KRW mỗi tháng",
-      "vvipBenefit2": "Tối đa 15 hồ sơ",
-      "vvipCta": "Xem lợi ích VVIP",
-      "familyName": "Mã Định Mệnh Gia Đình 30 ngày",
-      "familyPrice": "30 ngày · 149.000 KRW",
+      "vvipBenefit1": "Tối đa 120.000 KRW",
+      "vvipCta": "Xem lợi ích Hũ mật ong lớn",
+      "familyName": "Hũ mật ong gia đình",
+      "familyPrice": "149.000 KRW",
       "familyLine": "Toàn bộ nội dung áp dụng gói",
-      "familyBenefit1": "Tối đa 350.000 KRW mỗi tháng",
-      "familyBenefit2": "Hồ sơ không giới hạn",
-      "familyCta": "Xem gia đình",
-      "premiumNote": "Premium Honey cân bằng nhất nếu bạn thường dùng nội dung khoảng 10.000 KRW.",
-      "footnote": "Vé mới chỉ được bán dưới dạng vé 30 ngày. Thẻ 30 ngày này không phải là đăng ký tự động gia hạn. Các dịch vụ nằm ngoài phạm vi vượt qua có thể được sử dụng bằng cách thanh toán KRW một lần cho từng sản phẩm.",
+      "familyBenefit1": "Tối đa 350.000 KRW",
+      "familyCta": "Xem Hũ mật ong gia đình",
+      "premiumNote": "Hũ mật ong vừa cân bằng nhất nếu bạn thường dùng nội dung khoảng 10.000 KRW.",
+      "footnote": "Vé không giới hạn thời gian và kết thúc khi dùng hết hạn mức sử dụng. Vé này không phải là đăng ký tự động gia hạn. Các dịch vụ nằm ngoài phạm vi vé có thể được sử dụng bằng cách thanh toán KRW một lần cho từng sản phẩm.",
       "howtoAria": "Cách dùng moonlight pass",
       "howtoTitle": "Moonlight pass, tiếp nối như thế này",
-      "step1Label": "Chọn phạm vi moonlight 30 ngày",
-      "step1Text": "Với vé 30 ngày không tự động gia hạn, hãy đặt trước khoảng giá của những lượt đọc bạn hay xem.",
+      "step1Label": "Chọn phạm vi moonlight",
+      "step1Text": "Với vé không giới hạn thời gian và không tự động gia hạn, hãy đặt trước khoảng giá của những lượt đọc bạn hay xem.",
       "step2Label": "Lượt đọc trong phạm vi mở ngay không cần thanh toán",
       "step2Text": "Các lượt đọc tarot, thần dụ và tứ trụ trong phạm vi của bạn mở ra ngay, không cần cửa sổ thanh toán.",
       "step3Label": "Chỉ lượt đọc sâu ngoài phạm vi mới trả từng lần",
       "step3Text": "Lượt đọc sâu ngoài phạm vi chỉ tiếp tục bằng một lần thanh toán KRW khi bạn cần.",
-      "terminationNote": "Ngay cả khi hạn mức tháng về 0, ngày hết hạn, hạng và giới hạn hồ sơ của vé vẫn được giữ nguyên. Nội dung trả phí bổ sung có thể dùng bằng thanh toán một lần hoặc vé tháng."
+      "terminationNote": "Khi dùng hết hạn mức sử dụng, vé sẽ kết thúc. Mua lại sẽ bắt đầu với hạn mức sử dụng mới. Nội dung trả phí bổ sung có thể dùng bằng thanh toán một lần hoặc Nguyệt Tinh Thạch.",
+      "noExpiryNote": "Không giới hạn thời gian · Kết thúc khi dùng hết hạn mức"
     },
     "promptHub": {
       "aria": "Đến phần gợi ý bói toàn diện",
       "alt": "Lời nhắc bói toàn diện",
-      "sr": "Lời nhắc bói toàn diện"
+      "sr": "Lời nhắc bói toàn diện",
+      "honeyLabel": "Giọt mật của tôi",
+      "honeyAttend": "Điểm danh hôm nay để nhận giọt mật",
+      "honeyAttended": "Đã điểm danh hôm nay"
     },
     "premiumArchive": {
       "kicker": "LƯU TRỮ VVIP SỐ mệnh",
@@ -901,11 +911,11 @@
       "eyebrow": "Thẻ ánh trăng",
       "savingsBadge": "Dùng gói, giá chỉ còn tối đa một phần ba",
       "title": "Chỉ hai lần đọc 5.000 KRW đã đắt hơn gói 9.900 KRW",
-      "desc": "Các bài đọc trong khoảng giá bạn chọn sẽ mở suốt 30 ngày, trong hạn mức sử dụng hằng tháng; chỉ những bài đắt hơn mới thanh toán từng lần khi cần. Bốn mức là 5.000 KRW · 10.000 KRW · 20.000 KRW và toàn bộ nội dung áp dụng gói, nên hãy chọn mức giá bạn hay xem nhất.",
+      "desc": "Các bài đọc trong khoảng giá bạn chọn sẽ mở cho đến khi bạn dùng hết hạn mức sử dụng; chỉ những bài đắt hơn mới thanh toán từng lần khi cần. Bốn mức là 5.000 KRW · 10.000 KRW · 20.000 KRW và toàn bộ nội dung áp dụng gói, nên hãy chọn mức giá bạn hay xem nhất.",
       "pointsAria": "Hướng dẫn vượt qua lõi",
       "point1": "Mở ngay, không cần thanh toán",
-      "point2": "Lưu từ 3 hồ sơ trở lên",
-      "point3": "Thẻ 30 ngày, không tự động gia hạn",
+      "point2": "Không giới hạn thời gian · Kết thúc khi dùng hết hạn mức",
+      "point3": "Thẻ không tự động gia hạn",
       "mascotAria": "Xem quyền lợi Moonlight Pass · Cửa hàng Moonlight Pass",
       "mascotAlt": "Ảnh quyền lợi Moonlight Pass",
       "mascotKicker": "Moonlight Pass Guide",
@@ -1348,8 +1358,9 @@
         "w20000": "₩20,000",
         "from3000": "From ₩3,000",
         "w1000": "₩1,000",
-        "from9000": "From ₩9,000",
-        "from20000": "From ₩20,000"
+        "from5000": "From ₩5,000",
+        "w7000": "₩7,000",
+        "from30000": "From ₩30,000"
       },
       "chip": {
         "love": "Their feelings · My next love",
@@ -1610,14 +1621,14 @@
       "pass": "Gói sử dụng",
       "login": "Đăng nhập",
       "account": "Tài khoản của tôi",
-      "offerTitle": "Lá số Tứ trụ từng được luận trong buổi tư vấn 1:1 giá 300.000 won, nay chỉ từ 3.000 won",
+      "offerTitle": "Lá số Tứ trụ từng được luận trong buổi tư vấn 1:1 giá 300.000 won, nay chỉ từ 5.000 won",
       "reviewsLead": "Tin nhắn KakaoTalk thật từ khách tư vấn 1:1 của Neo, giữ nguyên tiếng Hàn. Phần lược bỏ được đánh dấu bằng ….",
       "reviewsBar": "Tư vấn 1:1 với Neo · KakaoTalk",
       "reviewsMeta": "Đánh giá thật · đã đồng ý đăng",
       "reviewsPosted": "đăng trên blog",
       "reviewsFine": "Đánh giá dựa trên trải nghiệm cá nhân và không đảm bảo kết quả. Luận giải Tứ trụ chỉ mang tính tham khảo.",
-      "offerNote": "Buổi tư vấn 1:1 do Neo trực tiếp thực hiện; gói 3.000 won được cung cấp bằng công cụ tính toán và lời giải của AI.",
-      "offerCta": "Xem gói Tứ trụ 3.000 won →",
+      "offerNote": "Buổi tư vấn 1:1 do Neo trực tiếp thực hiện; gói 5.000 won được cung cấp bằng công cụ tính toán và lời giải của AI.",
+      "offerCta": "Xem gói Tứ trụ 5.000 won →",
       "expertiseTitle": "Tính toán theo quy tắc, AI viết lời giải",
       "expertise": {
         "engine": "Lá số được lập theo quy tắc tính cố định, AI viết lời giải dựa trên kết quả đó. Nếu lời giải ghi trụ ngày hoặc trụ giờ khác với kết quả tính, máy chủ sẽ loại bỏ.",
@@ -1649,12 +1660,12 @@
       "saysName": "Yeoni",
       "saysLine": "Which reading shall we start with? Just one is plenty.",
       "passMascotAlt": "Yeoni the flower pig smiling with a pass card",
-      "passEyebrow": "30-day pass, no auto-renewal",
-      "passTitle": "Reading often? Try a 30-day pass",
-      "passDesc": "Each reading's price is deducted from your allowance. It ends automatically after 30 days.",
-      "passPer": "/ 30 days",
+      "passEyebrow": "Vé không giới hạn thời gian, không tự động gia hạn",
+      "passTitle": "Yeoni giới thiệu vé sử dụng",
+      "passDesc": "Thỉnh thoảng thì thanh toán từng lần, xem thường xuyên thì dùng vé. Hãy kiểm tra các buổi tư vấn bạn có thể dùng và hạn mức sử dụng.",
+      "passPer": "· Không giới hạn thời gian",
       "passBadge": "Incl. Yeongnyangi",
-      "passNote": "Standard, Premium and VVIP apply to Flower Pig readings; Family applies to paid readings from both Flower Pig and Yeongnyangi. Passes you already bought keep the terms from the time of purchase.",
+      "passNote": "Hũ mật ong nhỏ, vừa và lớn áp dụng cho các bài xem Flower Pig; Hũ mật ong gia đình áp dụng cho các bài xem trả phí của cả Flower Pig và Yeongnyangi. Thẻ pass bạn đã mua vẫn giữ điều kiện tại thời điểm mua.",
       "passCta": "See all 4 passes",
       "moreTitle": "Khám phá xưởng của Yeoni",
       "moreItems": "Daily readings · consultations · records · stories",
@@ -1723,7 +1734,7 @@
     "chatEntry": {
       "title": "Ask Yeoni and Neo the one thing on your mind right now",
       "cta": "Talk through my concern",
-      "price": "1 free after signing up · ₩3,000 each after"
+      "price": "3.000 KRW mỗi lượt"
     },
     "svcQuestion": {
       "master-love-codex": "When will my next relationship begin?",
@@ -1829,9 +1840,9 @@
       "reviewReward": "Moonstones after publication approval",
       "reviewDetail": "Use them in Ggulggul. Awarded once per product.",
       "reviewAction": "Write a review",
-      "passStandard": "Yeoni Standard",
-      "passPremium": "Yeoni Premium",
-      "passVvip": "Yeoni VVIP",
+      "passStandard": "Hũ mật ong nhỏ",
+      "passPremium": "Hũ mật ong vừa",
+      "passVvip": "Hũ mật ong lớn",
       "passPerLimit": "Up to KRW {amount} per reading",
       "passTotal": "Total allowance: KRW {amount}",
       "passNoLimit": "No per-reading price limit",
@@ -1859,17 +1870,18 @@
       "neoClassSource": "Saju student · KakaoTalk excerpt (Korean)",
       "neoNote": "Excerpts from Neo’s personal consultations and classes, separate from the AI reading service. Individual experiences do not guarantee similar results.",
       "neoAbout": "About Neo and the service",
-      "neoMore": "More consultation reviews"
+      "neoMore": "More consultation reviews",
+      "passFamily": "Hũ mật ong gia đình"
     },
     "simple": {
-      "lead": "Chia sẻ băn khoăn để xem nội dung và giá trước khi bắt đầu.",
+      "lead": "Tư vấn có tính phí. Bạn có thể xem giá và kết quả mẫu trước.",
       "start": "Tư vấn điều tôi băn khoăn",
       "free": "Xem vận trình miễn phí hôm nay",
       "startLabel": "Cách bắt đầu khác",
-      "love": "Tình yêu và quan hệ",
+      "love": "Tình yêu và hợp đôi",
       "work": "Công việc và tiền bạc",
       "self": "Hiểu bản thân",
-      "future": "Hướng đi sắp tới",
+      "future": "Thời điểm và lựa chọn",
       "title": "Bắt đầu tư vấn từ câu hỏi của bạn",
       "brand": "Gặp Yeongnyangi, Yeoni và Neo tại Ggulggul Fortune. Khám phá câu hỏi với Yeongnyangi, hoặc ghé quán trà Yeoni và phòng chiến lược Neo.",
       "stepQuestion": "Chia sẻ băn khoăn hiện tại",
@@ -1877,11 +1889,20 @@
       "stepResult": "Đọc giải đáp, cơ sở và bước tiếp theo",
       "example": "Đọc ví dụ trước khi thanh toán",
       "explore": "Khám phá tất cả vận trình và tư vấn",
-      "exploreNote": "Saju, tarot, tư vấn nhân vật, báo cáo và câu chuyện",
+      "exploreNote": "Các hệ vận mệnh, tư vấn Yeongnyangi, vé dùng và nội dung vui",
       "passTitle": "Thường xuyên sử dụng? Xem gói lượt",
       "passNote": "Kiểm tra phạm vi và thời hạn trước khi chọn.",
       "passLink": "Xem gói lượt",
-      "passHistory": "Gói đã mua vẫn giữ điều kiện tại thời điểm mua."
+      "passHistory": "Gói đã mua vẫn giữ điều kiện tại thời điểm mua.",
+      "topicsLabel": "Chọn tư vấn theo băn khoăn",
+      "loveNote": "Master Love Codex · 20 chương · lưu PDF",
+      "lovePrice": "Cá nhân KRW {solo} · Hợp đôi KRW {pair}",
+      "workNote": "Đổi việc, tìm việc, kinh doanh và quản lý tiền",
+      "futureNote": "Có nên hành động lúc này và khi nào vận thế đổi",
+      "priceFrom": "Từ KRW {amount}",
+      "samplesTitle": "Đọc kết quả mẫu trước khi thanh toán",
+      "sampleCodex": "Mẫu kết quả Love Codex",
+      "sampleConsult": "Mẫu kết quả tư vấn Yeongnyangi"
     },
     "yeongnyangiEntry": {
       "badge": "Tu van cau hoi cung Yeongnyangi",
@@ -2336,13 +2357,13 @@
         "passSaveUnverified": "Chúng tôi không lưu được kết quả áp dụng Pass. Hãy kiểm tra lại bằng thẻ Pass bên dưới hoặc chọn phương thức thanh toán khác.",
         "passCheckFailed": "Chúng tôi không kiểm tra được Pass của bạn. Hãy thử lại bằng thẻ Pass bên dưới hoặc chọn phương thức thanh toán khác.",
         "passMiss": "Vé của bạn không mở nội dung này miễn phí, đây là các tuỳ chọn thanh toán.",
-        "passMonthlyExhausted": "Your pass allowance is fully used, so the pass has ended. Here are the payment options."
+        "passMonthlyExhausted": "Your pass usage limit is fully used, so the pass has ended. Here are the payment options."
       },
       "passBadge": "Thẻ ánh trăng",
       "passStoreTitle": "Cửa hàng vé ánh trăng",
       "passRetryTitle": "Kiểm tra lại thẻ",
       "passHint": {
-        "store": "Thanh toán một lần và mở nhiều nội dung trong 30 ngày. Đã có rồi? Chạm để kiểm tra.",
+        "store": "Thanh toán một lần và mở nhiều nội dung cho đến khi dùng hết hạn mức. Đã có rồi? Chạm để kiểm tra.",
         "retry": "Chúng tôi sẽ kiểm tra lại máy chủ để xem thẻ của bạn có thể mở cái này mà không cần thanh toán hay không.",
         "upgrade": "Hạng hiện tại không mở được nội dung này. Hãy xem hạng cao hơn."
       },
@@ -2415,7 +2436,7 @@
         "comingSoon": "Sắp ra mắt",
         "back": "Quay lại"
       },
-      "passMonthlyExhausted": "Your pass allowance is fully used, so the pass has ended. Buying a new pass starts another 30 days; for now you can open this with a one-time payment or moonstones.",
+      "passMonthlyExhausted": "Your pass usage limit is fully used, so the pass has ended. Buying again starts a new usage limit; for now you can open this with a one-time payment or moonstones.",
       "passMonthlyRemaining": "Pass allowance left {remaining} / {limit}",
       "wait": {
         "card": "After you finish verifying in your card or payment app, come back to this browser and checkout will continue automatically.",
@@ -2447,7 +2468,7 @@
         "pass": {
           "eyebrow": "KIỂM TRA VƯỢT QUA ÁNH SÁNG",
           "title": "Đang kiểm tra thẻ của bạn",
-          "message": "Đang kiểm tra xem thẻ 30 ngày của bạn có thể mở thẻ này ngay lập tức hay không.",
+          "message": "Đang kiểm tra xem thẻ pass của bạn có mở được nội dung này ngay hay không.",
           "meta": "Nếu có sẵn, bạn sẽ tiếp tục mà không cần cửa sổ thanh toán."
         },
         "passApplied": {
@@ -2518,7 +2539,7 @@
         "pass": {
           "eyebrow": "KIỂM TRA VƯỢT QUA ÁNH SÁNG",
           "title": "Đang kiểm tra thẻ của bạn",
-          "message": "Đang kiểm tra xem thẻ 30 ngày của bạn có thể mở thẻ này ngay lập tức hay không.",
+          "message": "Đang kiểm tra xem thẻ pass của bạn có mở được nội dung này ngay hay không.",
           "meta": "Nếu có sẵn, bạn sẽ tiếp tục mà không cần cửa sổ thanh toán."
         },
         "passApplied": {
@@ -2602,7 +2623,7 @@
     "passShop": {
       "monthlyStatus": "Đã xác nhận số dư nguyệt tinh thạch của bạn.",
       "chargeButton": "Chuyển đến trang thanh toán cho {amount}",
-      "chargeNotice": "Sản phẩm Pass {price} · Đây là Pass 30 ngày, không tự động gia hạn. Pass chỉ mua được bằng thanh toán một lần theo KRW.",
+      "chargeNotice": "Sản phẩm Pass {price} · Đây là Pass, không tự động gia hạn. Pass chỉ mua được bằng thanh toán một lần theo KRW.",
       "best": "BEST",
       "monthlyBasisWithPrice": "Cơ sở tín dụng hàng tháng {credits} · {price}",
       "profileUnlimited": "Hồ sơ không giới hạn",
@@ -2613,24 +2634,24 @@
       "closeAria": "Đóng Hướng dẫn về cửa hàng Moonlight Pass",
       "openAria": "Hướng dẫn mở cửa hàng Moonlight Pass",
       "title": "Hướng dẫn mua thẻ Moonlight Pass",
-      "subtitle": "Xem lại thẻ 30 ngày và dòng tín dụng hàng tháng được giữ dưới ánh trăng.",
-      "footerNotice": "Thẻ 30 ngày này không phải là sản phẩm tự động gia hạn. Bạn cần mua lại sau khi hết hạn.",
+      "subtitle": "Vé được mua bằng thanh toán một lần theo KRW, còn Nguyệt Tinh Thạch dùng cho từng tính năng trả phí.",
+      "footerNotice": "Thẻ này không phải là sản phẩm tự động gia hạn. Bạn cần mua lại sau khi dùng hết hạn mức.",
       "packages": {
         "standard": {
-          "name": "Mật Ong Tiêu Chuẩn 30 Ngày",
-          "desc": "30 ngày · Nội dung đến khoảng 5.000 KRW · Tối đa 20.000 KRW mỗi tháng · Tối đa 3 hồ sơ"
+          "name": "Hũ mật ong nhỏ",
+          "desc": "Nội dung đến khoảng 5.000 KRW · Tối đa 20.000 KRW"
         },
         "premium": {
-          "name": "Mật Ong Cao Cấp 30 Ngày",
-          "desc": "30 ngày · Nội dung đến khoảng 10.000 KRW · Tối đa 60.000 KRW mỗi tháng · Tối đa 7 hồ sơ"
+          "name": "Hũ mật ong vừa",
+          "desc": "Nội dung đến khoảng 10.000 KRW · Tối đa 60.000 KRW"
         },
         "vvip": {
-          "name": "Hũ Mật Ong VVIP 30 Ngày",
-          "desc": "30 ngày · Nội dung đến khoảng 30.000 KRW · Tối đa 120.000 KRW mỗi tháng · Tối đa 15 hồ sơ"
+          "name": "Hũ mật ong lớn",
+          "desc": "Nội dung đến khoảng 30.000 KRW · Tối đa 120.000 KRW"
         },
         "family": {
-          "name": "Mã Định Mệnh Gia Đình 30 Ngày",
-          "desc": "30 ngày · Toàn bộ nội dung áp dụng gói · Tối đa 350.000 KRW mỗi tháng · Hồ sơ không giới hạn"
+          "name": "Hũ mật ong gia đình",
+          "desc": "Toàn bộ nội dung áp dụng gói · Tối đa 350.000 KRW"
         }
       },
       "monthlyStatusChecking": "Đang kiểm tra số dư và trạng thái Thẻ Pass.",
@@ -2639,7 +2660,7 @@
       "monthlyButton": "Thanh toán bằng {credits} nguyệt thạch",
       "monthlyButtonBusy": "Đang kích hoạt vé bằng nguyệt thạch...",
       "monthlyButtonShort": "Cần {credits} · số dư không đủ",
-      "terminationNotice": "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day."
+      "terminationNotice": "Khi dùng hết hạn mức sử dụng, vé sẽ kết thúc. Mua lại sẽ bắt đầu với hạn mức sử dụng mới. Nội dung trả phí bổ sung có thể dùng bằng thanh toán một lần hoặc Nguyệt Tinh Thạch."
     },
     "access": {
       "passAppliedContinue": "Đã mở bằng thẻ của bạn."
@@ -2708,13 +2729,32 @@
   "fortune": {
     "destinyFlower": {
       "common": {
-        "unknown": "Không xác định"
+        "unknown": "Không xác định",
+        "bloomLabel": {
+          "seed": "Hạt giống · Nhật chủ",
+          "season": "Mùa · Thời điểm sinh",
+          "bloom": "Bông hoa đã nở"
+        },
+        "bloom": {
+          "verdict": "Và thế là nở thành — {title}."
+        },
+        "flowerLanguage": {
+          "anchor": "'{language}' — lời bông hoa này gửi đến bạn qua {anchor}.",
+          "plain": "'{language}' — lời bông hoa này gửi đến bạn lúc này."
+        },
+        "shareHook": {
+          "rarityAnchor": "Bông hoa duy nhất được đọc qua {anchor}"
+        },
+        "anonymousName": "Lữ khách vô danh",
+        "rationaleLabel": {
+          "verdict": "Vì vậy, đóa hoa này"
+        }
       },
       "astro": {
         "elements": {
-          "Fire": "cháy",
-          "Earth": "trái đất",
-          "Air": "không khí",
+          "Fire": "lửa",
+          "Earth": "đất",
+          "Air": "khí",
           "Water": "nước",
           "Cosmic": "ánh sao"
         },
@@ -2730,22 +2770,41 @@
         "ritualTip": "Tối nay, hãy ổn định hơi thở trong ba phút và đặt một ý định bên dưới một ngôi sao.",
         "relationshipTheme": "Khi các mối quan hệ đi theo nhịp điệu của cung chính của bạn, xích mích sẽ dịu đi.",
         "careerTheme": "Đưa động lực cốt lõi của cung mặt trời vào thói quen làm việc của bạn để có động lực ổn định hơn.",
-        "growthCycle": "Tinh vân gọi ngôi sao “hình thành quỹ đạo” nở rộ → tỏa sáng lan rộng",
+        "growthCycle": "Tiếng gọi của sao → hình thành quỹ đạo → tinh vân nở hoa → hào quang lan tỏa",
         "fallbackNote": "Dữ liệu cung mặt trời không có sẵn nên việc đọc sử dụng phần tử không khí mặc định.",
         "ultimateTitle": "Bông hoa định mệnh tối thượng",
         "ultimateConcept": "Sự nở hoa lai nơi năng lượng {dayMaster} phương Đông hòa quyện với ánh sáng sao phương Tây {sunSign}",
         "verdict": "Qua chiêm tinh học, bông hoa định mệnh của bạn là {flowerName} ({scientificName}). Ba trục cung mặt trời, mặt mọc và mặt trăng cho thấy loài hoa này hiện đang cộng hưởng chặt chẽ với bạn.",
-        "narrative": "Tia sáng {sunElement} mọc lên từ cung mặt trời {sun} trở thành trung tâm của sự lựa chọn loài hoa này. Dấu hiệu thăng {rising} ({risingElement}) định hình tông màu hữu hình, trong khi dấu hiệu mặt trăng {moon} ({moonElement}) thêm sương cảm xúc, tạo thành biểu tượng {flowerName}, {flowerSymbolism}, mở rõ ràng. Từ khóa “{keyword}” chính là ánh sao đang gọi loài hoa này tiến về phía trước."
+        "narrative": "Tia sáng {sunElement} mọc lên từ cung mặt trời {sun} trở thành trung tâm của sự lựa chọn loài hoa này. Dấu hiệu thăng {rising} ({risingElement}) định hình tông màu hữu hình, trong khi dấu hiệu mặt trăng {moon} ({moonElement}) thêm sương cảm xúc, tạo thành biểu tượng {flowerName}, {flowerSymbolism}, mở rõ ràng. Từ khóa “{keyword}” chính là ánh sao đang gọi loài hoa này tiến về phía trước.",
+        "signs": {
+          "aries": "Bạch Dương",
+          "taurus": "Kim Ngưu",
+          "gemini": "Song Tử",
+          "cancer": "Cự Giải",
+          "leo": "Sư Tử",
+          "virgo": "Xử Nữ",
+          "libra": "Thiên Bình",
+          "scorpio": "Bọ Cạp",
+          "sagittarius": "Nhân Mã",
+          "capricorn": "Ma Kết",
+          "aquarius": "Bảo Bình",
+          "pisces": "Song Ngư"
+        },
+        "rationaleLabel": {
+          "sun": "Cung Mặt Trời",
+          "risingMoon": "Cung Mọc · Cung Mặt Trăng"
+        }
       },
       "ziwei": {
         "brightness": {
-          "miao": "Miêu",
-          "wang": "Vương",
-          "li": "Lí",
-          "de": "Bởi",
-          "ping": "Ping",
-          "han": "Hàn",
-          "xian": "Tây An"
+          "miao": "Miếu (廟)",
+          "wang": "Vượng (旺)",
+          "li": "Lợi (利)",
+          "de": "Đắc (得)",
+          "ping": "Bình (平)",
+          "han": "Nhàn (閑)",
+          "xian": "Hãm (陷)",
+          "bu": "Bất (不)"
         },
         "coreFlow": "dòng vận may cốt lõi",
         "coreEnergy": "biểu hiện năng lượng cốt lõi",
@@ -2756,27 +2815,27 @@
         "ritualTip": "Từ khóa cốt lõi hôm nay: {keyword}",
         "relationshipTheme": "Hãy để khí chất ngôi sao mạnh mẽ trở thành chuẩn mực trong các mối quan hệ của bạn và sự hòa hợp trở nên rõ ràng hơn.",
         "careerTheme": "Khi sức mạnh của ngôi sao chính chiếm ưu thế, việc thực hiện và định vị sẽ ổn định.",
-        "growthCycle": "Căn chỉnh sao “thu thập năng lượng” đánh lửa hạt giống → nở hoa",
+        "growthCycle": "Sao xếp hàng → năng lượng hội tụ → hạt giống bừng cháy → nở hoa",
         "secondaryFallbackNote": "Điều chỉnh ngôi sao chính tổng hợp: {primaryStar} căn giữa + {secondaryStar} hỗn hợp mùi hương",
         "palaceFallbackNote": "Điều chỉnh đặc điểm cung điện: {palace} · {trait}",
-        "hybridHint": "Kết xuất kết hợp có sẵn bằng cách kết hợp năng lượng Saju {dayMaster} với các ngôi sao chính Ziwei {stars}",
+        "hybridHint": "Có thể kết hợp năng lượng {dayMaster} của Tứ Trụ với chính tinh Tử Vi {stars} để tạo bản hòa trộn",
         "verdict": "Ở Ziwei, bông hoa định mệnh được đọc qua ngôi sao mạnh nhất hiện nay là {flowerName} ({scientificName}). Về bản chất của {palace}, {palaceTrait}, chất lượng sao “{keyword}” từ {stars} trở nên rõ ràng nhất thông qua độ sáng {brightness}.",
         "narrativeWithSecondary": "{palace} chi phối{palaceEnergy}. Sự kết hợp {stars} xuất hiện ở đây, đặt {title} làm bông hoa trung tâm. Bản chất sao chính “{personality}” được nối với kết cấu “{secondaryKeyword}” của sao phụ. Vì độ sáng {brightness} hỗ trợ nó ổn định nên {flowerName} chuyển tải cấu trúc của vận may này một cách rõ ràng nhất.",
         "narrativeSingle": "{palace} xử lý{palaceEnergy}. Ngôi sao mạnh hôm nay {star} đặt phẩm chất “{keyword}” và tính chất “{personality}” ở trung tâm của bông hoa. Độ sáng {brightness} giữ ánh sáng đó ổn định và {flowerName} cộng hưởng sâu sắc nhất với năng lượng trung tâm của bạn.",
         "rules": {
           "peonyZiwei": {
-            "title": "Hoa mẫu đơn hoàng gia",
-            "keyword": "tư thế đĩnh đạc của đế quốc",
-            "personality": "người lãnh đạo tập trung vào lĩnh vực này và lập lại trật tự"
+            "title": "Mẫu đơn đế vương",
+            "keyword": "phong thái đế vương",
+            "personality": "người lãnh đạo đứng ở trung tâm và sắp xếp lại trật tự xung quanh"
           },
           "thornyRoseGeneral": {
             "title": "Hoa Hồng Đỏ của Tướng Quân",
             "keyword": "đột phá mang tính quyết định",
-            "personality": "lực lượng quyết định tiến lên ngay cả dưới áp lực"
+            "personality": "người quyết đoán vẫn đẩy mạnh tiến lên ngay cả dưới áp lực"
           },
           "thornyRosePioneer": {
-            "title": "Bông hồng đỏ của Pioneer",
-            "keyword": "ổ đĩa để định hình lại trường",
+            "title": "Hồng đỏ của người khai phá",
+            "keyword": "động lực thay đổi cục diện",
             "personality": "nhà đổi mới phá vỡ khuôn khổ cũ và mở ra trật tự mới"
           },
           "delicateWillow": {
@@ -2786,11 +2845,11 @@
           },
           "sunflowerZiwei": {
             "title": "Hoa hướng dương mặt trời",
-            "keyword": "đèn mở rộng",
+            "keyword": "ánh sáng lan tỏa",
             "personality": "người thực thi tập trung năng lượng vào những kết quả có thể nhìn thấy được"
           },
           "nightCereus": {
-            "title": "Cereus nở đêm trăng",
+            "title": "Quỳnh hoa dưới trăng",
             "keyword": "bí ẩn mở ra vào ban đêm",
             "personality": "một tâm hồn chiêm niệm đọc được dòng chảy vô hình"
           },
@@ -2799,171 +2858,352 @@
             "keyword": "lôi cuốn gợi cảm",
             "personality": "kiểu người có sức thu hút dẫn dắt bằng vẻ đẹp, mối quan hệ và sự biểu đạt"
           }
+        },
+        "stars": {
+          "ziwei": "Tử Vi (紫微)",
+          "tianji": "Thiên Cơ (天機)",
+          "taiyang": "Thái Dương (太陽)",
+          "wuqu": "Vũ Khúc (武曲)",
+          "tiantong": "Thiên Đồng (天同)",
+          "lianzhen": "Liêm Trinh (廉貞)",
+          "tianfu": "Thiên Phủ (天府)",
+          "taiyin": "Thái Âm (太陰)",
+          "tanlang": "Tham Lang (貪狼)",
+          "jumen": "Cự Môn (巨門)",
+          "tianxiang": "Thiên Tướng (天相)",
+          "tianliang": "Thiên Lương (天梁)",
+          "qisha": "Thất Sát (七殺)",
+          "pojun": "Phá Quân (破軍)",
+          "wenchang": "Văn Xương (文昌)",
+          "wenqu": "Văn Khúc (文曲)",
+          "zuofu": "Tả Phù (左輔)",
+          "youbi": "Hữu Bật (右弼)",
+          "tianma": "Thiên Mã (天馬)",
+          "lucun": "Lộc Tồn (祿存)",
+          "tiankui": "Thiên Khôi (天魁)",
+          "tianyue": "Thiên Việt (天鉞)",
+          "qingyang": "Kình Dương (擎羊)",
+          "tuoluo": "Đà La (陀羅)",
+          "dikong": "Địa Không (地空)",
+          "dijie": "Địa Kiếp (地劫)",
+          "huoxing": "Hỏa Tinh (火星)",
+          "lingxing": "Linh Tinh (鈴星)"
+        },
+        "palaces": {
+          "life": "Cung Mệnh",
+          "siblings": "Cung Huynh Đệ",
+          "spouse": "Cung Phu Thê",
+          "children": "Cung Tử Tức",
+          "wealth": "Cung Tài Bạch",
+          "health": "Cung Tật Ách",
+          "travel": "Cung Thiên Di",
+          "friends": "Cung Nô Bộc",
+          "career": "Cung Quan Lộc",
+          "property": "Cung Điền Trạch",
+          "fortune": "Cung Phúc Đức",
+          "parents": "Cung Phụ Mẫu"
+        },
+        "palaceTraits": {
+          "life": "sự vững vàng của bản ngã và khí chất hiện diện",
+          "siblings": "tinh thần hợp tác và khả năng điều phối",
+          "spouse": "nét đẹp trong quan hệ và sự giao tiếp thân mật",
+          "children": "sức sáng tạo và khát khao biểu đạt",
+          "wealth": "khả năng quản lý nguồn lực và mở rộng sự sung túc",
+          "health": "sức phục hồi và cảm nhận cân bằng nội tâm",
+          "travel": "khả năng thích nghi và phán đoán tại chỗ",
+          "friends": "vận hành mạng lưới và chăm lo cho tập thể",
+          "career": "động lực xã hội và khát vọng thành tựu",
+          "property": "xây dựng nền tảng và tích lũy bền vững",
+          "fortune": "nạp lại năng lượng cảm xúc và thấu suốt tinh thần",
+          "parents": "bản năng che chở và ý thức truyền thống"
+        },
+        "natalVerdict": "Đọc qua khí chất của {stars} trong cung Mệnh, đóa hoa của bạn là {flowerName} ({scientificName}).",
+        "natalScenarioTitle": "Kịch bản nở hoa theo chính tinh cung Mệnh",
+        "rationale": {
+          "lifeStar": "Cung Mệnh của bạn có {starsJosa} tọa thủ.",
+          "borrowedStar": "Cung Mệnh của bạn không có chính tinh, nên chúng tôi mượn {starsObject} từ cung Thiên Di đối diện để luận giải.",
+          "personality": "{star}: \"{keyword}\" — khí chất của {personality}.",
+          "verdict": "Vì vậy, đóa hoa chúng tôi trao bạn lúc này là {flowerName}."
+        },
+        "rationaleLabel": {
+          "lifeStar": "Chính tinh cung Mệnh",
+          "personality": "Tính cách bẩm sinh"
         }
       },
       "sukuyo": {
         "moon": {
           "full": "trăng tròn",
-          "new": "trăng tối",
+          "new": "trăng mới",
           "crescent": "trăng lưỡi liềm",
-          "gibbous": "trăng khuyết/trăng khuyết"
+          "gibbous": "trăng thượng huyền/hạ huyền"
         },
-        "stickerLabel": "Hoa của Sukuyo",
-        "moonPhaseLabel": "Pha mặt trăng {moon}",
-        "guardianLabel": "Người giám hộ {guardian}",
-        "scenarioTitle": "27 biệt thự và kịch bản nở hoa vào mùa trăng",
+        "stickerLabel": "Hoa theo Túc Diệu",
+        "moonPhaseLabel": "Pha trăng {moon}",
+        "guardianLabel": "Linh vật hộ mệnh {guardian}",
+        "scenarioTitle": "Kịch bản nở hoa kết hợp 27 Tú và pha trăng",
         "ritualTip": "Bên cửa sổ ngập ánh trăng, hít thở 27 lần và đặt mục tiêu hôm nay vào một từ.",
         "relationshipTheme": "Theo kết cấu của {group} làm dịu đi sự căng thẳng và làm rõ sự kết nối.",
         "careerTheme": "Khi nhịp điệu của {guardian} được phản ánh trong thói quen làm việc của bạn, kết quả sẽ ổn định.",
-        "growthCycle": "Chòm sao liên kết “ánh trăng tụ tập” đánh lửa tinh thần → nở hoa",
+        "growthCycle": "Các chòm sao kết nối → ánh trăng hội tụ → linh tính bừng cháy → nở hoa",
         "verdict": "Qua kết cấu ánh trăng của Sukuyo, bông hoa định mệnh của bạn là {flowerName} ({scientificName}). Sự kết hợp của {mansion}, {moon} và {guardian} phù hợp một cách tinh tế với nhịp điệu của mối quan hệ, cảm xúc và hành động hiện nay.",
-        "narrative": "Kết cấu quan hệ của {mansion} ({group}), giai đoạn thủy triều của mặt trăng {moon} và mô hình bảo vệ của {guardian} gặp nhau trong khu vườn đêm, làm sâu sắc thêm chất lượng của{symbolism}. Cùng đọc, ba tín hiệu dưới ánh trăng này chỉ ra {flowerName} là bông hoa định mệnh chính xác nhất của bạn lúc này."
+        "narrative": "Kết cấu quan hệ của {mansion} ({group}), giai đoạn thủy triều của mặt trăng {moon} và mô hình bảo vệ của {guardianJosa} gặp nhau trong khu vườn đêm, làm sâu sắc thêm chất lượng của {symbolism}. Cùng đọc, ba tín hiệu dưới ánh trăng này chỉ ra {flowerName} là bông hoa định mệnh chính xác nhất của bạn lúc này.",
+        "mansions": {
+          "m1": "Giác Tú (角)",
+          "m2": "Cang Tú (亢)",
+          "m3": "Đê Tú (氐)",
+          "m4": "Phòng Tú (房)",
+          "m5": "Tâm Tú (心)",
+          "m6": "Vĩ Tú (尾)",
+          "m7": "Cơ Tú (箕)",
+          "m8": "Đẩu Tú (斗)",
+          "m9": "Nữ Tú (女)",
+          "m10": "Hư Tú (虛)",
+          "m11": "Nguy Tú (危)",
+          "m12": "Thất Tú (室)",
+          "m13": "Bích Tú (壁)",
+          "m14": "Khuê Tú (奎)",
+          "m15": "Lâu Tú (婁)",
+          "m16": "Vị Tú (胃)",
+          "m17": "Mão Tú (昴)",
+          "m18": "Tất Tú (畢)",
+          "m19": "Chủy Tú (觜)",
+          "m20": "Sâm Tú (參)",
+          "m21": "Tỉnh Tú (井)",
+          "m22": "Quỷ Tú (鬼)",
+          "m23": "Liễu Tú (柳)",
+          "m24": "Tinh Tú (星)",
+          "m25": "Trương Tú (張)",
+          "m26": "Dực Tú (翼)",
+          "m27": "Chẩn Tú (軫)"
+        },
+        "groups": {
+          "anjung": "Tú vững vàng",
+          "gangseong": "Tú mạnh mẽ",
+          "gyeongkwae": "Tú nhanh nhẹn",
+          "jihye": "Tú trí tuệ"
+        },
+        "groupLabels": {
+          "anjung": "Nhóm vững vàng",
+          "gangseong": "Nhóm mạnh mẽ",
+          "gyeongkwae": "Nhóm nhanh nhẹn",
+          "jihye": "Nhóm trí tuệ"
+        },
+        "guardians": {
+          "crane": "Hạc",
+          "dragon": "Rồng",
+          "marten": "Chồn",
+          "rabbit": "Thỏ",
+          "fox": "Cáo",
+          "tiger": "Hổ",
+          "leopard": "Báo",
+          "haetae": "Giải Trãi",
+          "bat": "Dơi",
+          "rat": "Chuột",
+          "swallow": "Chim én",
+          "pig": "Lợn",
+          "hedgehog": "Nhím",
+          "wolf": "Sói",
+          "dog": "Chó",
+          "pheasant": "Gà lôi",
+          "rooster": "Gà trống",
+          "crow": "Quạ",
+          "monkey": "Khỉ",
+          "ape": "Vượn",
+          "wildDog": "Chó hoang",
+          "sheep": "Cừu",
+          "roeDeer": "Hoẵng",
+          "horse": "Ngựa",
+          "deer": "Hươu",
+          "snake": "Rắn",
+          "earthworm": "Giun đất"
+        },
+        "rationaleLabel": {
+          "mansion": "Tú · Pha trăng"
+        }
       },
       "saju": {
         "scenarios": {
           "default": {
-            "title": "{dayMasterBadge} kịch bản nở rộ môi trường"
+            "title": "{dayMasterBadge} kịch bản nở rộ môi trường",
+            "reason": "Chúng tôi xem cách Nhật chủ của bạn ăn khớp với môi trường Ngũ Hành hiện tại, rồi chọn đóa hoa hợp nhất với giai đoạn này."
           },
           "jia": {
             "springWood": {
-              "title": "Kịch bản nở hoa thẳng đứng của Jia Wood"
+              "title": "Kịch bản nở hoa thẳng đứng của Jia Wood",
+              "reason": "Giáp Mộc (甲木) mang khí chất vươn thẳng lên cao như một cây đại thụ. Lúc này, khi khí Mộc của mùa xuân hợp với bản tính ấy, sức mạnh tiên phong mở ra cục diện mới của bạn sẽ nở rộ."
             },
             "autumnMetal": {
-              "title": "Kịch bản tôi luyện kim loại Jia Wood"
+              "title": "Kịch bản tôi luyện kim loại Jia Wood",
+              "reason": "Khi khí Kim mùa thu đè lên Giáp Mộc (甲木), đây là lúc tỉa bớt cành nhánh và chỉ giữ lại thân chính thực sự quan trọng. Càng buông bớt, bạn lại càng vững chắc hơn."
             },
             "dryFire": {
-              "title": "Kịch bản chịu nóng khô của Jia Wood"
+              "title": "Kịch bản chịu nóng khô của Jia Wood",
+              "reason": "Với Giáp Mộc (甲木) giữa khí khô nóng, điều cần lúc này là sức bền của bộ rễ. Thay vì vội vàng, hãy bền bỉ trụ vững và nuôi dưỡng sức phục hồi, bạn sẽ lại nở hoa kiên cường như hoa mugunghwa."
             }
           },
           "yi": {
             "metalWater": {
-              "title": "Kịch bản hòa hợp kim-thủy Yi Wood"
+              "title": "Kịch bản hòa hợp kim-thủy Yi Wood",
+              "reason": "Ất Mộc (乙木) mang khí chất mềm mại, thấm dần như dây leo và cây hoa. Lúc này, khi khí Kim và Thủy mạnh, phẩm cách và sức thanh lọc trong trẻo của bạn được phát huy mạnh mẽ nhất."
             },
             "dryEarth": {
-              "title": "Kịch bản sinh tồn trên đất khô Yi Wood"
+              "title": "Kịch bản sinh tồn trên đất khô Yi Wood",
+              "reason": "Với Ất Mộc (乙木) đứng trên khí Thổ khô cằn, chủ đề lúc này là sức sống bền bỉ. Như hoa xương rồng xuyên qua đất cằn và cuối cùng vẫn nở, bạn tỏa sáng chính ở nơi mình kiên trì trụ lại."
             },
             "autumn": {
-              "title": "Kịch bản sàng lọc mùa thu Yi Wood"
+              "title": "Kịch bản sàng lọc mùa thu Yi Wood",
+              "reason": "Đi qua khí Kim mùa thu, Ất Mộc (乙木) đang ở thời kỳ biến sự tinh tế thành trật tự điềm tĩnh. Càng sắp xếp gọn gàng những gì tản mát, lòng bạn cũng càng thêm ngăn nắp."
             },
             "wetSpring": {
-              "title": "Kịch bản mở rộng suối ẩm Yi Wood"
+              "title": "Kịch bản mở rộng suối ẩm Yi Wood",
+              "reason": "Gặp khí ẩm của mùa xuân, sức kết nối con người của Ất Mộc (乙木) lớn lên rõ rệt. Lúc này là thời điểm vươn ra qua các mối quan hệ thay vì một mình."
             }
           },
           "bing": {
             "springWood": {
-              "title": "Kịch bản đánh lửa lò xo Bing Fire"
+              "title": "Kịch bản đánh lửa lò xo Bing Fire",
+              "reason": "Bính Hỏa (丙火) là khí bắt lửa nhanh và lan rộng như mặt trời. Lúc này, lấy khí Mộc mùa xuân làm củi, sức mạnh khởi đầu điều mới và lan tỏa nó của bạn bùng cháy mạnh mẽ."
             },
             "summerFire": {
-              "title": "Kịch bản mở rộng mùa hè của Bing Fire"
+              "title": "Kịch bản mở rộng mùa hè của Bing Fire",
+              "reason": "Thêm cả khí Hỏa của mùa hè, Bính Hỏa (丙火) cháy rực hơn bao giờ hết. Đây là thời kỳ sức mạnh đứng ra dẫn dắt mọi người của bạn lên đến đỉnh điểm."
             },
             "waterControl": {
-              "title": "Kịch bản kiểm soát nước của Bing Fire"
+              "title": "Kịch bản kiểm soát nước của Bing Fire",
+              "reason": "Với Bính Hỏa (丙火) gặp khí Thủy mạnh, điều quan trọng lúc này không phải là cháy nóng hơn mà là định đúng hướng. Giữ vững cảm quan thực tế và bảo vệ ngọn lửa, ánh sáng ấy sẽ bền lâu."
             }
           },
           "ding": {
             "coldWet": {
-              "title": "Ding Fire kịch bản ấm ẩm"
+              "title": "Ding Fire kịch bản ấm ẩm",
+              "reason": "Đinh Hỏa (丁火) là khí lặng lẽ tỏa sáng từ bên trong như ngọn nến. Trong lúc lạnh và ẩm này, giữ cho hơi ấm ấy không tắt thật lâu mới là sức mạnh lớn nhất, hơn cả sự rực rỡ."
             },
             "autumnMetal": {
-              "title": "Kịch bản luyện kim Ding Fire"
+              "title": "Kịch bản luyện kim Ding Fire",
+              "reason": "Gặp khí Kim, Đinh Hỏa (丁火) càng sắc bén ở sự tỉ mỉ nơi đầu ngón tay và con mắt thẩm mỹ. Đây là lúc bạn tỏa sáng nhất khi nắm giữ một việc và hoàn thiện nó thật đẹp."
             },
             "resonance": {
-              "title": "Ding Kịch bản nở rộ cộng hưởng lửa"
+              "title": "Ding Kịch bản nở rộ cộng hưởng lửa",
+              "reason": "Đinh Hỏa (丁火) là khí tinh tế vỗ về từng thớ cảm xúc, làm sâu sắc các mối quan hệ. Càng không ngại bày tỏ tấm lòng, con đường vận may càng mở ra theo."
             }
           },
           "wu": {
             "fireEarth": {
-              "title": "Kịch bản thành tựu đất lửa của Wu Earth"
+              "title": "Kịch bản thành tựu đất lửa của Wu Earth",
+              "reason": "Mậu Thổ (戊土) là khí rộng lớn và vững chãi như ngọn núi lớn. Lúc này, khi Hỏa và Thổ nâng đỡ, những việc làm lớn và thành tựu lớn được tiếp thêm sức mạnh khác thường."
             },
             "winterWater": {
-              "title": "Kịch bản nền tảng mùa đông Trái đất Wu"
+              "title": "Kịch bản nền tảng mùa đông Trái đất Wu",
+              "reason": "Với Mậu Thổ (戊土) gặp khí Thủy mùa đông, lúc này là lúc chậm lại và gia cố nền móng. Càng tạm nghỉ và củng cố nền tảng, bước tiếp theo càng vững vàng."
             },
             "center": {
-              "title": "Kịch bản xây dựng trung tâm Wu Earth"
+              "title": "Kịch bản xây dựng trung tâm Wu Earth",
+              "reason": "Sức mạnh thật sự của Mậu Thổ (戊土) là lực trung tâm giữ vững cục diện chao đảo từ chính giữa. Càng kiên trì giữ thói quen mỗi ngày, thành quả càng tích lũy dần dần."
             }
           },
           "ji": {
             "wetEarth": {
-              "title": "Kịch bản mở rộng canh tác Ji Earth"
+              "title": "Kịch bản mở rộng canh tác Ji Earth",
+              "reason": "Kỷ Thổ (己土) là khí chăm chút nuôi dưỡng mọi thứ như thửa ruộng được vun xới kỹ. Trong lúc ẩm ướt này, thành quả lớn lên trong những mối quan hệ cùng làm việc và chăm sóc lẫn nhau."
             },
             "metalDesign": {
-              "title": "Kịch bản thiết kế chính xác Ji Earth"
+              "title": "Kịch bản thiết kế chính xác Ji Earth",
+              "reason": "Gặp khí Kim, Kỷ Thổ (己土) đánh thức khả năng thiết kế và sắp xếp đến cả những chi tiết nhỏ. Thế mạnh của bạn nổi bật trong những việc đòi hỏi độ hoàn thiện cao."
             },
             "balance": {
-              "title": "Kịch bản điều chỉnh cân bằng Ji Earth"
+              "title": "Kịch bản điều chỉnh cân bằng Ji Earth",
+              "reason": "Kỷ Thổ (己土) là khí giỏi nhẹ nhàng điều hòa giữa mọi người và tạo bầu không khí. Chỉ cần điều chỉnh tốt nhịp nhanh chậm của sự tiến lùi, chính điều đó sẽ trở thành may mắn."
             }
           },
           "geng": {
             "metalEarth": {
-              "title": "Kịch bản xuyên suốt nguyên tắc của Geng Metal"
+              "title": "Kịch bản xuyên suốt nguyên tắc của Geng Metal",
+              "reason": "Canh Kim (庚金) là khí cắt đứt dứt khoát, mạnh mẽ như khối đá thô chưa mài giũa. Lúc này, khi Thổ và Kim nâng đỡ, sức mạnh theo đuổi nguyên tắc đã định của bạn lên đến đỉnh điểm."
             },
             "fireTraining": {
-              "title": "Kịch bản luyện lửa kim loại Geng"
+              "title": "Kịch bản luyện lửa kim loại Geng",
+              "reason": "Được tôi luyện trong lửa nóng, Canh Kim (庚金) càng vững vàng cả về sức hút lẫn thực lực. Đây là thời kỳ sự tập trung của bạn trở nên đặc biệt sắc bén ở những thời khắc quyết định."
             },
             "clearJudgment": {
-              "title": "Kịch bản phán quyết quyết định của Geng Metal"
+              "title": "Kịch bản phán quyết quyết định của Geng Metal",
+              "reason": "Thế mạnh của Canh Kim (庚金) là khả năng phán đoán cắt chính xác vào cốt lõi. Hãy đặt ra tiêu chuẩn rõ ràng, sự rõ ràng ấy sẽ chuyển thẳng thành thành quả."
             }
           },
           "xin": {
             "metalWater": {
-              "title": "Xin Kịch bản tinh chế kim loại-nước"
+              "title": "Xin Kịch bản tinh chế kim loại-nước",
+              "reason": "Tân Kim (辛金) là khí có giác quan và ngôn từ tinh luyện như viên ngọc được chế tác kỹ. Lúc này, khi Kim và Thủy hòa quyện, khả năng phân tích và biểu đạt của bạn càng thêm sắc nét."
             },
             "springWood": {
-              "title": "Xin Kịch bản chỉnh gỗ bằng kim loại"
+              "title": "Xin Kịch bản chỉnh gỗ bằng kim loại",
+              "reason": "Gặp khí Mộc mùa xuân, Tân Kim (辛金) đi xa hơn khi nhẹ nhàng điều chỉnh thay vì mài sắc lưỡi dao. Đây là thời kỳ thành quả đến từ những việc bạn tinh chỉnh bằng cảm quan."
             },
             "completion": {
-              "title": "Kịch bản hoàn thiện Xin Metal"
+              "title": "Kịch bản hoàn thiện Xin Metal",
+              "reason": "Tân Kim (辛金) là khí mạnh nhất khi hoàn thiện một việc thật đẹp thay vì dàn trải rộng. Càng hoàn tất chỉn chu từng chi tiết, niềm tin của mọi người càng được vun đắp."
             }
           },
           "ren": {
             "summerCooling": {
-              "title": "Kịch bản giải nhiệt mùa hè Ren Water"
+              "title": "Kịch bản giải nhiệt mùa hè Ren Water",
+              "reason": "Nhâm Thủy (壬水) là khí điều khiển những dòng chảy lớn như biển rộng. Lúc này, khi làm dịu mát cái nóng mùa hè, khả năng tập trung điềm tĩnh của bạn tăng lên rõ rệt."
             },
             "winterCondensing": {
-              "title": "Kịch bản ngưng tụ mùa đông nước Ren"
+              "title": "Kịch bản ngưng tụ mùa đông nước Ren",
+              "reason": "Cộng hưởng với khí Thủy mùa đông, Nhâm Thủy (壬水) đang ở thời kỳ tích tụ sức mạnh dưới lớp băng. Bề ngoài có vẻ tĩnh lặng, nhưng như đóa hoa băng hà, tiềm năng vững chắc đang chín dần bên trong."
             },
             "nightIntuition": {
-              "title": "Kịch bản trực giác về đêm của Nước Ren"
+              "title": "Kịch bản trực giác về đêm của Nước Ren",
+              "reason": "Nhâm Thủy (壬水) là khí tìm đường giỏi hơn nhờ trực giác của đêm tĩnh lặng thay vì ban ngày sáng rõ. Khi quyết định theo nhịp của riêng mình thay vì vội vàng tìm câu trả lời, phương hướng sẽ khớp đúng."
             }
           },
           "gui": {
             "coldWetPurifying": {
-              "title": "Kịch bản lọc ẩm lạnh của Gui Water"
+              "title": "Kịch bản lọc ẩm lạnh của Gui Water",
+              "reason": "Quý Thủy (癸水) là khí cảm nhận những điều vi tế và gột rửa chúng trong trẻo như sương sớm. Trong lúc lạnh và ẩm này, sự tĩnh lặng khi lặng lẽ đắm mình chính là sức mạnh của bạn."
             },
             "summerEmpathy": {
-              "title": "Kịch bản đồng cảm mùa hè của Nước Gui"
+              "title": "Kịch bản đồng cảm mùa hè của Nước Gui",
+              "reason": "Với Quý Thủy (癸水) gặp cái nóng Hỏa của mùa hè, sự đồng cảm vỗ về lòng người và kết nối mọi người là vũ khí lớn nhất. Như hoa cẩm tú cầu, con đường sẽ mở ra khi bạn gom góp hơi ấm của nhiều người."
             },
             "subtleSignal": {
-              "title": "Kịch bản tín hiệu vi tế của Nước Gui"
+              "title": "Kịch bản tín hiệu vi tế của Nước Gui",
+              "reason": "Quý Thủy (癸水) là khí đọc ra trước tiên những tín hiệu nhỏ mà người khác bỏ lỡ. Chỉ cần nắm đúng thời điểm bằng giác quan nhạy bén ấy, một nước đi đó sẽ quyết định thành bại."
             }
           }
         },
-        "stickerLabel": "Hoa của Saju",
+        "stickerLabel": "Hoa theo Tứ Trụ",
         "dayMasterWaiting": "Chờ ngày đọc chủ",
         "signalPending": "Đang chờ tín hiệu cốt lõi",
         "scenarioTitleFallback": "{dayMasterBadge} kịch bản nở hoa",
         "scenarioFallbackReason": "Dòng nở hoa được đọc bằng cách tích hợp chủ ngày và môi trường.",
-        "growthCycle": "Mầm (thu thập năng lượng) “ Tăng trưởng (khuếch đại hành động) ” Nở hoa (kết quả nổi lên) → Kết quả (mối quan hệ và làm sâu sắc thêm tài sản)",
-        "fallbackNote": "Logic làm giàu ngày chính đã được áp dụng.",
-        "verdict": "Trong bài đọc Saju, bông hoa của bạn là {flowerName} ({scientificName}).",
+        "growthCycle": "Nảy mầm (thu nạp năng lượng) → Vươn lên (khuếch đại hành động) → Nở hoa (thành quả hiện rõ) → Kết trái (tích lũy quan hệ/tài sản)",
+        "fallbackNote": "Chúng tôi đã thận trọng xem xét năng lượng Nhật chủ chỉ dựa trên ngày sinh của bạn.",
+        "verdict": "Theo Tứ Trụ, bông hoa đến với bạn lúc này là {flowerName} ({scientificName}).",
         "rationale": {
-          "verdict": "Trong bài đọc Saju, bông hoa định mệnh của bạn là {flowerName} ({scientificName}).",
+          "verdict": "Vì vậy, bông hoa dành cho bạn lúc này là {flowerName} ({scientificName}).",
           "elements": "Chỉ số Ngũ hành hiển thị {dominant} là năng lượng chính của bạn và {support} là dòng hỗ trợ.",
           "context": "Mùa vận may hiện tại là {season}, mật độ năng lượng là {water}, và giai đoạn cuộc đời được đọc là {environment}.",
           "dayMaster": "Ngày chính được xác nhận là {dayMasterBadge} và sự tương tác giữa mùa và môi trường xung quanh nó được ưu tiên.",
-          "scenario": "Kịch bản môi trường tổng thể trong ngày: {reason}",
+          "scenario": "{reason}",
           "levels": "Cấp độ nguyên tố là {elementLevelLine} và tất cả năm cấp độ đều có trọng số để xác nhận bông hoa định mệnh.",
           "symbolism": "Loài hoa này tượng trưng cho {symbolism}, phản ánh rõ ràng nhất chủ đề của mùa này.",
           "description": "Đọc hoa định mệnh: {description}",
           "vibe": "Hướng dẫn nở hoa: {vibeMessage}",
-          "fallback": "Logic điều chỉnh: {note}"
+          "fallback": "Logic điều chỉnh: {note}",
+          "dayMasterSame": "Đóa hoa mang cùng khí {element} với Nhật chủ {dayMasterBadge} của bạn.",
+          "strengthRelease": "Lá số của bạn Thân Cường, nên chúng tôi ưu tiên những đóa hoa mang khí {elements} giúp giải tỏa năng lượng dồn đầy ra bên ngoài.",
+          "strengthSupport": "Lá số của bạn Thân Nhược, nên chúng tôi ưu tiên những đóa hoa mang khí {elements} giúp nâng đỡ Nhật chủ.",
+          "yongshin": "Đóa hoa này chứa khí Dụng Thần mà lá số của bạn cần — {elements}.",
+          "johuWarm": "Lá số của bạn thiên về lạnh và ẩm, nên chúng tôi ưu tiên những đóa hoa ấm áp, sưởi ấm như ánh nắng.",
+          "johuCool": "Lá số của bạn thiên về nóng và khô, nên chúng tôi ưu tiên những đóa hoa giàu hơi nước giúp làm dịu cái nóng."
         },
         "elements": {
-          "wood": "Gỗ",
-          "fire": "Lửa",
-          "earth": "Trái Đất",
-          "metal": "Kim loại",
-          "water": "Nước"
+          "wood": "Mộc",
+          "fire": "Hỏa",
+          "earth": "Thổ",
+          "metal": "Kim",
+          "water": "Thủy"
         },
         "seasons": {
           "Spring": "mùa xuân",
@@ -3018,6 +3258,55 @@
           "Earth": "Hoạt động, quản lý và xây dựng hệ thống phát huy thế mạnh của bạn.",
           "Metal": "Phân tích, lập kế hoạch và kiểm soát chất lượng biến độ chính xác thành kết quả.",
           "Water": "Nghiên cứu, điều tra và thiết kế nội dung giúp bạn tỏa sáng về chiều sâu."
+        },
+        "bloom": {
+          "season": "Như bạn sinh vào {season}, loài hoa này cũng nở rực rỡ nhất vào {season}."
+        },
+        "flowerLanguage": {
+          "yongshin": "'{language}' — lời nhắn bông hoa mang khí {elements} của dụng thần gửi đến bạn.",
+          "dayMaster": "'{language}' — lời bông hoa này gửi đến bạn, người có nhật chủ {dayMasterBadge}."
+        },
+        "shareHook": {
+          "raritySeason": "Một bông trong {total} bông, do lá số nhật chủ {dayMasterBadge}, sinh vào {season} chọn",
+          "rarityDayMaster": "Một bông trong {total} bông, do lá số nhật chủ {dayMasterBadge} chọn",
+          "rarityPlain": "Bông hoa lá số của mình chọn trong {total} bông"
+        },
+        "dayMasters": {
+          "jia": "Giáp Mộc (甲木)",
+          "yi": "Ất Mộc (乙木)",
+          "bing": "Bính Hỏa (丙火)",
+          "ding": "Đinh Hỏa (丁火)",
+          "wu": "Mậu Thổ (戊土)",
+          "ji": "Kỷ Thổ (己土)",
+          "geng": "Canh Kim (庚金)",
+          "xin": "Tân Kim (辛金)",
+          "ren": "Nhâm Thủy (壬水)",
+          "gui": "Quý Thủy (癸水)"
+        },
+        "dayMasterStems": {
+          "jia": "Giáp (甲)",
+          "yi": "Ất (乙)",
+          "bing": "Bính (丙)",
+          "ding": "Đinh (丁)",
+          "wu": "Mậu (戊)",
+          "ji": "Kỷ (己)",
+          "geng": "Canh (庚)",
+          "xin": "Tân (辛)",
+          "ren": "Nhâm (壬)",
+          "gui": "Quý (癸)"
+        },
+        "dayMasterFallback": {
+          "ziwei": "Do thiếu dữ liệu Nhật chủ Tứ Trụ, tính chất Nhật chủ đã được hiệu chỉnh dựa trên chính tinh Tử Vi.",
+          "astrology": "Do thiếu dữ liệu Nhật chủ Tứ Trụ, khuynh hướng của Cung Mặt Trời đã được dùng thay cho tính chất Nhật chủ.",
+          "dominant": "Do thiếu các chỉ số cốt lõi của Tứ Trụ, Tử Vi và chiêm tinh, tính chất Nhật chủ đã được ước tính dựa trên hành chiếm ưu thế."
+        },
+        "rationaleLabel": {
+          "dayMaster": "Khí chất Nhật chủ",
+          "strengthRelease": "Thân Cường",
+          "strengthSupport": "Thân Nhược",
+          "yongshin": "Dụng Thần",
+          "johuWarm": "Điều Hậu · Hàn Thấp",
+          "johuCool": "Điều Hậu · Ôn Táo"
         }
       },
       "flowers": {
@@ -3031,7 +3320,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Sự mong đợi, sự chân thật"
         },
         "aster": {
           "name": "Aster",
@@ -3043,7 +3333,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Sự kiên nhẫn, lòng biết ơn"
         },
         "astro_lavender": {
           "name": "Tinh vân Hoa oải hương",
@@ -3055,7 +3346,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Lời chúc phúc, tình yêu chung thủy"
         },
         "azalea": {
           "name": "Đỗ quyên",
@@ -3067,7 +3359,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Kỷ niệm ngọt ngào, sự ôn hòa, nhã nhặn"
         },
         "begonia": {
           "name": "Thu hải đường",
@@ -3079,7 +3372,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Sự quan tâm thầm lặng"
         },
         "bellflower": {
           "name": "Hoa chuông",
@@ -3091,7 +3385,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Tình yêu vĩnh cửu"
         },
         "bird_of_paradise": {
           "name": "Chim thiên đường",
@@ -3103,7 +3398,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Sự tự do, sự thành công"
         },
         "black_rose": {
           "name": "Hoa hồng đen",
@@ -3115,7 +3411,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Sự tái sinh, sự bí ẩn"
         },
         "blue_iris": {
           "name": "Hoa diên vĩ xanh",
@@ -3127,7 +3424,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Tin vui, người bí ẩn"
         },
         "blue_lotus": {
           "name": "Hoa sen xanh",
@@ -3139,7 +3437,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Sự hồi sinh, cảm hứng thiêng liêng"
         },
         "bluebell": {
           "name": "Chuông xanh",
@@ -3151,7 +3450,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Khiêm nhường, tấm lòng không đổi thay"
         },
         "cactus_flower": {
           "name": "Hoa xương rồng",
@@ -3163,7 +3463,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Sự bền bỉ, sức sống mãnh liệt"
         },
         "camellia": {
           "name": "Hoa trà",
@@ -3175,7 +3476,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Duyên dáng, cao thượng, lòng can đảm"
         },
         "carnation": {
           "name": "Hoa cẩm chướng",
@@ -3187,7 +3489,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Lòng biết ơn, sự ngưỡng mộ"
         },
         "cherry_blossom": {
           "name": "Hoa anh đào",
@@ -3199,7 +3502,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Thanh xuân tươi đẹp, sự khởi đầu mới"
         },
         "chrysanthemum_gold": {
           "name": "Cúc Vàng",
@@ -3211,7 +3515,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Sung túc, sức khỏe, trường thọ"
         },
         "cornflower": {
           "name": "Hoa ngô",
@@ -3223,7 +3528,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Sự dịu dàng, tế nhị"
         },
         "cosmos": {
           "name": "Vũ trụ",
@@ -3235,7 +3541,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Tấm lòng thuần khiết, sự hài hòa"
         },
         "crocus": {
           "name": "Cây nghệ",
@@ -3247,7 +3554,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Sự vui mừng, tươi tắn"
         },
         "dahlia": {
           "name": "Thược dược",
@@ -3259,7 +3567,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Sung túc, tài lộc"
         },
         "daisy": {
           "name": "Cúc",
@@ -3271,7 +3580,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Tình bạn chân thành, tình yêu ngây thơ"
         },
         "delicate_willow": {
           "name": "Hoa Liễu",
@@ -3283,7 +3593,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Sức sống bền bỉ, tình yêu chân thành"
         },
         "delphinium": {
           "name": "Phi yến",
@@ -3295,7 +3606,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Nhẹ nhàng, thanh thoát"
         },
         "edelweiss": {
           "name": "Edelweiss",
@@ -3307,7 +3619,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Kỷ niệm quý giá, lòng dũng cảm cao quý"
         },
         "flame_tulip": {
           "name": "Hoa Tulip Ngọn Lửa",
@@ -3319,7 +3632,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Đam mê, tình yêu hoàn hảo"
         },
         "forsythia": {
           "name": "Forsythia",
@@ -3331,7 +3645,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Hy vọng, tình cảm sâu đậm"
         },
         "foxglove": {
           "name": "Găng Tay Cáo",
@@ -3343,7 +3658,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Tình yêu nồng nhiệt, tấm lòng không che giấu"
         },
         "freesia": {
           "name": "Lan Nam Phi",
@@ -3355,7 +3671,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Khởi đầu mới, sự ngây thơ trong sáng"
         },
         "gardenia": {
           "name": "Cây dành dành",
@@ -3367,7 +3684,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Niềm vui vô hạn, hạnh phúc"
         },
         "gentian": {
           "name": "cây khổ sâm",
@@ -3379,7 +3697,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Lẽ phải, yêu thương khi bạn buồn"
         },
         "geranium": {
           "name": "Phong lữ",
@@ -3391,7 +3710,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Sự ưu ái"
         },
         "glacier_bloom": {
           "name": "Sông băng nở hoa",
@@ -3403,7 +3723,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Lời hứa được giữ gìn dưới lớp băng"
         },
         "heliotrope": {
           "name": "Hoa vòi voi",
@@ -3415,7 +3736,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Sự tận tụy, tình yêu vĩnh cửu"
         },
         "hibiscus": {
           "name": "Dâm bụt",
@@ -3427,7 +3749,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Sắc đẹp rực rỡ của người phụ nữ, tình yêu nồng cháy"
         },
         "honeysuckle": {
           "name": "Kim ngân hoa",
@@ -3439,7 +3762,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Lòng trung thành, tình yêu gắn bó"
         },
         "hydrangea": {
           "name": "Hoa cẩm tú cầu",
@@ -3451,7 +3775,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Lòng biết ơn, tình yêu chân thành"
         },
         "iris": {
           "name": "Iris",
@@ -3463,7 +3788,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Tin vui, hy vọng"
         },
         "ivy_bloom": {
           "name": "Hoa thường xuân",
@@ -3475,7 +3801,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Tình bạn không đổi thay"
         },
         "jasmine": {
           "name": "Hoa Nhài",
@@ -3487,7 +3814,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Vẻ đẹp của người con gái, may mắn"
         },
         "larkspur": {
           "name": "Larkspur",
@@ -3499,7 +3827,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Nhẹ nhàng, thanh thoát"
         },
         "lavender": {
           "name": "Hoa oải hương",
@@ -3511,7 +3840,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Sự bình yên, sự may mắn"
         },
         "lily": {
           "name": "hoa huệ",
@@ -3523,7 +3853,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Thuần khiết, hy vọng, hòa bình"
         },
         "lotus": {
           "name": "Hoa sen",
@@ -3535,7 +3866,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Cốt cách thanh cao, vẻ đẹp thuần khiết"
         },
         "lotus_golden": {
           "name": "Sen Vàng",
@@ -3547,7 +3879,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Ý chí kiên trì vượt khó"
         },
         "lotus_pink": {
           "name": "Sen hồng",
@@ -3559,7 +3892,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Hân hoan, tươi vui"
         },
         "lotus_white": {
           "name": "Sen trắng",
@@ -3571,7 +3905,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Thanh cao, thuần khiết, tôn nghiêm"
         },
         "magnolia": {
           "name": "Hoa mộc lan",
@@ -3583,7 +3918,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "May mắn, sắc đẹp, đức hạnh"
         },
         "marigold": {
           "name": "Cúc vạn thọ",
@@ -3595,7 +3931,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Sức khỏe, sự trường tồn, thịnh vượng"
         },
         "moon_lily": {
           "name": "Hoa huệ trăng",
@@ -3607,7 +3944,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Trong trắng, đức hạnh"
         },
         "moon_narcissus": {
           "name": "Hoa thủy tiên mặt trăng",
@@ -3619,7 +3957,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Thuần khiết, khởi đầu mới"
         },
         "moonflower": {
           "name": "Hoa trăng",
@@ -3631,7 +3970,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Tình yêu thầm lặng"
         },
         "morning_glory": {
           "name": "Hoa Vinh Quang",
@@ -3643,7 +3983,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Tin vui"
         },
         "mugunghwa": {
           "name": "Mugunghwa",
@@ -3655,7 +3996,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Lòng son sắt, sự vĩnh cửu"
         },
         "narcissus": {
           "name": "Hoa thủy tiên",
@@ -3667,7 +4009,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "May mắn, tài lộc, phồn thịnh"
         },
         "nemophila": {
           "name": "Nemophila",
@@ -3679,7 +4022,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Thành công ở mọi nơi"
         },
         "night_cereus": {
           "name": "Cereus nở đêm",
@@ -3691,7 +4035,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Sắc đẹp hoàn hảo, sự kiên nhẫn"
         },
         "orange_trumpet": {
           "name": "Hoa Kèn Cam",
@@ -3703,7 +4048,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Danh dự, nỗi nhớ mong"
         },
         "orchid": {
           "name": "Hoa Lan",
@@ -3715,7 +4061,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Thanh cao, phú quý, tài lộc"
         },
         "orchid_tanlang": {
           "name": "Lan Tan Lang",
@@ -3727,7 +4074,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "May mắn, khởi đầu mới thuận lợi"
         },
         "passionflower": {
           "name": "Hoa lạc tiên",
@@ -3739,7 +4087,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Tình yêu thiêng liêng"
         },
         "peony": {
           "name": "Hoa mẫu đơn",
@@ -3751,7 +4100,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Vương giả, phú quý, giàu sang"
         },
         "peony_ziwei": {
           "name": "Hoa mẫu đơn Tử Vi",
@@ -3763,7 +4113,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Hạnh phúc, hoàn mỹ, thịnh vượng"
         },
         "persian_buttercup": {
           "name": "Bơ Ba Tư",
@@ -3775,7 +4126,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Quyến rũ, hấp dẫn"
         },
         "plum_blossom": {
           "name": "Hoa mận",
@@ -3787,7 +4139,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Cốt cách thanh cao, tâm hồn cao thượng"
         },
         "poppy": {
           "name": "Cây anh túc",
@@ -3799,7 +4152,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Vẻ đẹp hoàn hảo, thành công và sang trọng"
         },
         "primrose": {
           "name": "Hoa anh thảo",
@@ -3811,7 +4165,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Mối tình đầu, chìa khóa hạnh phúc"
         },
         "queen_anne_lace": {
           "name": "Ren Nữ hoàng Anne",
@@ -3823,7 +4178,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Tấm lòng sâu lắng, lòng biết ơn"
         },
         "ranunculus": {
           "name": "Cây mao lương",
@@ -3835,7 +4191,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Sự quyến rũ, sự thành công"
         },
         "red_lycoris": {
           "name": "Lycoris đỏ",
@@ -3847,7 +4204,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Nhung nhớ"
         },
         "red_spider_lily": {
           "name": "Hoa huệ nhện đỏ",
@@ -3859,7 +4217,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Ưu mỹ, thuần khiết"
         },
         "resilient_rose": {
           "name": "Hoa hồng cổ điển",
@@ -3871,7 +4230,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Lòng ái mộ, hạnh phúc vinh dự"
         },
         "rose": {
           "name": "Hoa hồng",
@@ -3883,7 +4243,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Tình yêu lãng mạn, vẻ đẹp hoàn hảo"
         },
         "snapdragon": {
           "name": "Snapdragon",
@@ -3895,7 +4256,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Vẻ đẹp đầy đặn, người hay chuyện"
         },
         "sunflower": {
           "name": "Hướng dương",
@@ -3907,7 +4269,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "May mắn và hạnh phúc, tình bạn chân thành"
         },
         "sunflower_ziwei": {
           "name": "Hoa hướng dương Ziwei",
@@ -3919,7 +4282,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Niềm tin và hy vọng"
         },
         "sweet_pea": {
           "name": "Đậu Ngọt",
@@ -3931,7 +4295,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Kỷ niệm vui, tình bạn"
         },
         "thorny_rose": {
           "name": "Hoa Hồng Có Gai",
@@ -3943,7 +4308,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Tình yêu mãnh liệt và đậm đà"
         },
         "tiger_lily": {
           "name": "Hoa Huệ Hổ",
@@ -3955,7 +4321,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Thịnh vượng, vương giả"
         },
         "tulip": {
           "name": "Hoa Tulip",
@@ -3967,7 +4334,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Thịnh vượng, sự yêu thương"
         },
         "violet": {
           "name": "Tím",
@@ -3979,7 +4347,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Hãy giữ kín tình yêu của chúng ta"
         },
         "violet_wisteria": {
           "name": "Hoa Tử Đằng Tím",
@@ -3991,7 +4360,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Tình yêu vĩnh cửu"
         },
         "water_anemone": {
           "name": "Hải quỳ nước",
@@ -4003,7 +4373,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Sự mong đợi, sự chân thật dịu dàng"
         },
         "water_lily": {
           "name": "Hoa súng",
@@ -4015,7 +4386,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Tâm hồn trong trắng"
         },
         "water_narcissus": {
           "name": "Hoa thủy tiên nước",
@@ -4027,7 +4399,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Vương giả, thanh cao"
         },
         "white_baby_breath": {
           "name": "Hơi thở trắng trẻo",
@@ -4039,7 +4412,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Trong sáng, tinh khôi, tình yêu vĩnh cửu"
         },
         "wild_chrysanthemum": {
           "name": "Cúc Dại",
@@ -4051,7 +4425,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Thanh cao, khí tiết người quân tử"
         },
         "winter_plum": {
           "name": "Mận mùa đông",
@@ -4063,7 +4438,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Khí phách kiên cường, niềm hy vọng"
         },
         "wisteria": {
           "name": "Hoa Tử Đằng",
@@ -4075,7 +4451,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Sự chào đón, hạnh phúc"
         },
         "yarrow": {
           "name": "cỏ thi",
@@ -4087,7 +4464,435 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
+          },
+          "flowerLanguage": "Sự chữa lành, khả năng lãnh đạo"
+        }
+      },
+      "ui": {
+        "source": {
+          "saju": "Tứ Trụ",
+          "astrology": "Chiêm tinh",
+          "jamidusu": "Tử Vi",
+          "sukuyo": "Túc Diệu"
+        },
+        "specimen": {
+          "language": "Ý nghĩa hoa",
+          "system": "Hệ thống",
+          "mark": {
+            "saju": {
+              "primary": "Nhật chủ",
+              "secondary": "Mùa"
+            },
+            "astrology": {
+              "primary": "Cung",
+              "secondary": "Cung mọc"
+            },
+            "jamidusu": {
+              "primary": "Chính tinh",
+              "secondary": "Độ sáng"
+            },
+            "sukuyo": {
+              "primary": "Bản mệnh tú",
+              "secondary": "Trăng"
+            }
+          },
+          "yongshin": "Dụng thần"
+        },
+        "bouquet": {
+          "sourcesAll": "Cả bốn hệ",
+          "sourcesPair": "{a} và {b}",
+          "sourcesTrio": "{a}, {b} và {c}",
+          "sameFlower": "{sources} cùng chọn một loài hoa: {name}. Nét riêng của bạn rõ ràng đến thế.",
+          "sameElement": "{sources} đều chỉ về khí {element}.",
+          "diverse": "Những bông hoa khác nét hội tụ, gói trọn nhiều gương mặt của bạn trong một bó.",
+          "title": "Bó hoa định mệnh",
+          "sub": "Những bông hoa do {count} hệ luận giải chọn, gói thành một bó."
+        },
+        "share": {
+          "preparing": "Đang chuẩn bị kết quả hoa định mệnh của bạn.",
+          "hookTitle": "🌸 Hoa định mệnh của mình là '{name}' đó",
+          "hookLanguage": "Ý nghĩa hoa: {language}",
+          "hookAsk": "Còn bạn là hoa gì? → {url}",
+          "hashtagsNamed": "#HoaĐịnhMệnh #HoaCủaMìnhLà{tag}",
+          "hashtag": "#HoaĐịnhMệnh",
+          "languageDot": "Ý nghĩa hoa · {language}",
+          "ogTitle": "{name}, hoa định mệnh của mình",
+          "ogAsk": "Hoa của bạn là gì nhỉ?",
+          "title": "Hoa định mệnh",
+          "copiedText": "Đã sao chép nội dung chia sẻ. Hãy dán vào tin nhắn để gửi.",
+          "preparedText": "Nội dung chia sẻ đã sẵn sàng. Nếu ứng dụng nhắn tin không mở, hãy dán để gửi.",
+          "kakaoTitle": "Hoa định mệnh của mình là '{name}'",
+          "bloomMine": "Cho hoa của tôi nở",
+          "kakaoOpened": "Đã mở cửa sổ chia sẻ KakaoTalk.",
+          "kakaoPrepared": "Đã chuẩn bị nội dung gửi qua KakaoTalk. Nếu không mở được, hãy dán để gửi."
+        },
+        "card": {
+          "kicker": "Hoa định mệnh của tôi",
+          "ask": "Còn hoa của bạn?",
+          "failed": "Không tạo được ảnh thẻ nên sẽ gửi nội dung chia sẻ thay thế.",
+          "saved": "Đã lưu thẻ story. Nội dung chia sẻ cũng đã được sao chép.",
+          "ready": "Thẻ story đã sẵn sàng. Hãy đăng lên story Instagram nhé.",
+          "drawing": "Đang vẽ thẻ. Vui lòng đợi một chút."
+        },
+        "sheet": {
+          "story": "Thẻ story",
+          "storyHint": "Lưu hoặc chia sẻ ảnh 9:16",
+          "kakao": "KakaoTalk",
+          "kakaoHint": "Gửi hoa của tôi cho bạn bè",
+          "link": "Sao chép liên kết",
+          "linkHint": "Sao chép kèm ý nghĩa hoa",
+          "compat": "Độ hợp hoa với bạn bè",
+          "compatHint": "Gửi liên kết xem độ hợp cho bạn bè",
+          "compatHintFriend": "Xem độ hợp với hoa của bạn bè",
+          "title": "Chia sẻ hoa",
+          "close": "Đóng",
+          "linkCopied": "Đã sao chép ý nghĩa hoa và liên kết. Hãy dán để gửi cho bạn bè.",
+          "notReady": "Khi hoa của bạn nở, bạn có thể chia sẻ.",
+          "sub": "{name} · Ý nghĩa hoa '{language}'"
+        },
+        "compatShare": {
+          "inviteTitle": "🌸 Hoa định mệnh của mình là '{name}' nè",
+          "inviteAsk": "Bạn cũng cho hoa của mình nở rồi xem tụi mình có hợp hoa không nhé",
+          "hashtags": "#HoaĐịnhMệnh #HợpHoa",
+          "title": "Độ hợp hoa định mệnh",
+          "pair": "🌸 Mình là '{mine}', bạn mình là '{friend}'",
+          "result": "Độ hợp hoa của tụi mình là '{title}' đó",
+          "ask": "Bạn cũng thử xem độ hợp với hoa của mình nhé → {url}"
+        },
+        "friend": {
+          "kicker": "Hoa định mệnh bạn bè gửi đến",
+          "shareCompat": "Chia sẻ độ hợp hoa",
+          "note": "Khi hoa của bạn nở, chúng tôi sẽ cho xem ngay độ hợp hoa của hai người.",
+          "birthToast": "Nhập ngày sinh để hoa của bạn nở. Sau đó chúng tôi sẽ cho xem độ hợp với hoa của bạn bè."
+        },
+        "compat": {
+          "twin": {
+            "title": "Một cặp hoa giống nhau",
+            "line": "Cả hai đều là {name}. Không cần nói ra, hai người vẫn sống cùng một mùa."
+          },
+          "blend": {
+            "title": "Hoa khác nét",
+            "line": "Hai bông hoa khác màu gặp nhau, khiến bó hoa thêm đầy đặn."
+          },
+          "same": {
+            "title": "Hoa cùng nét",
+            "line": "Cả hai đều là hoa mang khí {mine}. Hai người hiểu nhịp của nhau hơn ai hết."
+          },
+          "give": {
+            "title": "Bông hoa mình giúp nở",
+            "line": "Khí {mine} trong hoa của mình nuôi dưỡng khí {friend} trong hoa của bạn ấy. Ở bên mình, bạn ấy nở rực rỡ hơn."
+          },
+          "receive": {
+            "title": "Bông hoa giúp mình nở",
+            "line": "Khí {friend} trong hoa của bạn ấy tiếp sức cho khí {mine} trong hoa của mình. Ở bên nhau, hoa của mình nở rộ hơn."
+          },
+          "shape": {
+            "title": "Hoa mài giũa nhau",
+            "line": "Khí {mine} trong hoa của mình mài giũa khí {friend} trong hoa của bạn ấy. Càng đồng điệu, hai người càng vững vàng."
+          },
+          "spark": {
+            "title": "Hoa tiếp lửa cho nhau",
+            "line": "Khí {friend} trong hoa của bạn ấy giúp khí {mine} trong hoa của mình vững vàng hơn. Hai người là động lực tốt cho nhau."
           }
+        },
+        "cta": {
+          "rebloom": "🌸 Cho hoa định mệnh nở lại",
+          "astrologyAgain": "✨ Triệu hồi lại hoa chiêm tinh",
+          "jamidusuAgain": "🌺 Triệu hồi lại hoa Tử Vi",
+          "sukuyoAgain": "🌙 Triệu hồi lại hoa Túc Diệu"
+        },
+        "status": {
+          "atelierLocked": "Cần mở khóa Xưởng hoa định mệnh.",
+          "loginRequired": "Hãy đăng nhập để xem hoa định mệnh của bạn.",
+          "newlyUnlocked": "✨ Hoa {source} vừa được mở.",
+          "resultReady": "{verdict} Bạn có thể lưu kết quả này hoặc chia sẻ qua KakaoTalk.",
+          "reloading": "Đang tải lại dữ liệu. Vui lòng đợi một chút.",
+          "linking": "Đang liên kết dữ liệu {source}. Vui lòng đợi một chút.",
+          "loaded": "Đã tải dữ liệu {source}.",
+          "copied": "Đã sao chép vào bộ nhớ tạm.",
+          "copyPermission": "Không có quyền sao chép, vui lòng sao chép thủ công.",
+          "copyFailed": "Sao chép thất bại.",
+          "kakaoPcCopied": "Trên máy tính, liên kết KakaoTalk đã được sao chép vào bộ nhớ tạm. Hãy dán vào KakaoTalk để chia sẻ.",
+          "kakaoNotOpenedCopied": "Không xác nhận được KakaoTalk đã mở nên bản tóm tắt đã được sao chép vào bộ nhớ tạm. Hãy dán vào KakaoTalk để chia sẻ.",
+          "kakaoOpening": "Đang mở chia sẻ KakaoTalk...",
+          "kakaoFailedCopied": "Không mở được chia sẻ KakaoTalk nên bản tóm tắt đã được sao chép vào bộ nhớ tạm.",
+          "refreshed": "Đã cập nhật tab và prompt dựa trên: {verdict}",
+          "aiOpening": "Đang mở AI trong tab mới. Nếu không mở được, hãy cho phép cửa sổ bật lên rồi thử lại.",
+          "aiBlocked": "Có vẻ tab mới đã bị chặn. Hãy cho phép cửa sổ bật lên trong trình duyệt hoặc tự mở trang AI bạn muốn.",
+          "summaryCopied": "Đã sao chép bản tóm tắt vào bộ nhớ tạm.",
+          "promptCopied": "Đã sao chép prompt chính của hoa AI vào bộ nhớ tạm.",
+          "promptPackCopied": "Đã sao chép bộ prompt chính/phủ định vào bộ nhớ tạm."
+        },
+        "fallback": {
+          "astrology": {
+            "name": "Oải hương tinh vân",
+            "symbolism": "Trực giác trong trẻo trôi theo thớ ánh sao",
+            "vibe": "Hít thở theo nhịp của các vì sao, trực giác của bạn sẽ trở nên rõ nét."
+          },
+          "jamidusu": {
+            "name": "Mẫu đơn",
+            "symbolism": "Phong thái đế vương và sức mạnh của trung tâm",
+            "keyword1": "Đế vương",
+            "keyword2": "Phong thái",
+            "keyword3": "Trung tâm",
+            "vibe": "Giữ vững trung tâm của mình mới là điều đưa bạn đi xa nhất."
+          },
+          "sukuyo": {
+            "name": "Hoa ly",
+            "symbolism": "Đóa hoa hộ mệnh nở trong trẻo dưới ánh trăng",
+            "keyword1": "Ánh trăng",
+            "keyword2": "Hộ mệnh",
+            "keyword3": "Thanh lọc",
+            "vibe": "Hòa theo hơi thở và nhịp điệu của mặt trăng đêm nay, lựa chọn của bạn sẽ rõ ràng hơn.",
+            "keywordMansion": "Túc Diệu",
+            "keywordGuardian": "Linh vật hộ mệnh",
+            "keywordPhase": "Pha trăng"
+          }
+        },
+        "legacy": {
+          "astrologyReading": "Đang giải đọc hoa định mệnh dựa trên lá số chiêm tinh.",
+          "astrologyRhythm": "Đang cố định nhịp điệu của các vì sao.",
+          "brightnessEven": "Bình (平)",
+          "jamidusuReading": "Đang giải đọc hoa định mệnh dựa trên sao mạnh hôm nay.",
+          "mainStarUnknown": "Chưa xác định chính tinh",
+          "jamidusuRhythm": "Đang sắp xếp khí của các vì sao.",
+          "imperialGrace": "Phong thái đế vương",
+          "moonQuarter": "Trăng thượng/hạ huyền",
+          "sukuyoReading": "Đang giải đọc hoa định mệnh dựa trên 27 tú Túc Diệu.",
+          "mansionUnknown": "Chưa xác định tú"
+        },
+        "badge": {
+          "sun": "Cung Mặt Trời {value}",
+          "rising": "Cung Mọc {value}",
+          "moon": "Cung Mặt Trăng {value}",
+          "strongStar": "Sao mạnh hôm nay {value}",
+          "brightness": "Độ sáng sao {value}",
+          "moonPhase": "Pha trăng {value}",
+          "guardian": "Linh vật hộ mệnh {value}",
+          "palace": "Cung vị {value}",
+          "mansionLabel": "Tú",
+          "group": "Nhóm {group}"
+        },
+        "value": {
+          "unknown": "Chưa xác định",
+          "pending": "Đang chờ luận giải",
+          "lifePalace": "Cung Mệnh"
+        },
+        "wait": {
+          "chartSignal": "Đang chờ tín hiệu lá số",
+          "starSignal": "Đang chờ tín hiệu chính tinh",
+          "sukuyoSignal": "Đang chờ tín hiệu Túc Diệu",
+          "moonRhythm": "Đang đồng bộ với nhịp điệu của mặt trăng.",
+          "nebulaRhythm": "Đang sắp xếp nhịp điệu tinh vân.",
+          "imperialRhythm": "Đang điều hòa khí chất đế vương.",
+          "dayMaster": "Đang chờ luận giải Nhật chủ",
+          "sourceVerdict": "Đang chờ luận giải {source}",
+          "mainStar": "Đang chờ luận giải chính tinh",
+          "sukuyoReading": "Đang chờ luận giải Túc Diệu",
+          "dataLoad": "Đang chờ tải dữ liệu",
+          "birth": "Đang chờ nhập ngày sinh"
+        },
+        "stage": {
+          "keywords": "Từ khóa {source} · {list}",
+          "astrologyScenario": "Đang tính kịch bản nở hoa theo cung hoàng đạo.",
+          "jamidusuScenario": "Đang tính kịch bản nở hoa theo chính tinh Tử Vi.",
+          "sukuyoScenario": "Đang tính kịch bản nở hoa dưới ánh trăng Túc Diệu.",
+          "seasonTexture": "Sắc thái {season}",
+          "seasonDefault": "Mùa",
+          "environmentMood": "Không khí {environment}",
+          "environmentDefault": "Môi trường",
+          "sajuScenario": "Đang tính kịch bản nở hoa theo Nhật chủ và môi trường.",
+          "dataSheetPreparing": "Đang chuẩn bị bảng dữ liệu hoa.",
+          "symbolizes": "Đóa hoa này tượng trưng cho {symbolism}.",
+          "resonates": "Đóa hoa này cộng hưởng mạnh mẽ với dòng vận hiện tại của bạn.",
+          "narrativeFallback": "{verdict} Điểm nở hoa hiện tại đã được căn chỉnh theo sự cân bằng {source} của bạn."
+        },
+        "guide": {
+          "allBloomed": "Tất cả các hoa đã nở. Hãy mở lại tab bạn muốn để ngắm nhé.",
+          "startSaju": "Bước tiếp theo: hãy mở hoa Tứ Trụ trước để bắt đầu nở hoa.",
+          "next": "Bước tiếp theo: chuyển sang hoa {source} để tiếp tục nở hoa."
+        },
+        "tab": {
+          "lockLabel": "Mở khi mở khóa xưởng hoa"
+        },
+        "verdict": {
+          "preparing": "Đang chuẩn bị luận giải hoa định mệnh.",
+          "defaultFlower": "Hoa định mệnh",
+          "sukuyo": "Theo Túc Diệu, hoa của bạn là {name}.",
+          "jamidusu": "Theo Tử Vi, hoa của bạn là {name}.",
+          "astrology": "Theo chiêm tinh, hoa của bạn là {name}.",
+          "saju": "Theo Tứ Trụ, hoa của bạn là {name}."
+        },
+        "snapshot": {
+          "guidance": "Hôm nay, hãy hòa nhịp trước khi chạy theo kết quả để hoa nở nhanh hơn."
+        },
+        "empty": {
+          "noDomainData": "Chưa có dữ liệu {source} nào được liên kết. Nhấn nút bên dưới, hoa định mệnh của riêng bạn sẽ nở ngay bây giờ.",
+          "astroCalculating": "Đã đọc xong lá số chiêm tinh của bạn. Đang chọn hoa chiêm tinh cho bạn.",
+          "notLinked": "Hoa {source} sẽ nở ngay khi bạn nhấn nút liên kết. Nhấn nút bên dưới để gặp đóa hoa đã đến với bạn lúc này.",
+          "linkButton": "Liên kết hoa định mệnh",
+          "linking": "Đang liên kết...",
+          "dataWaiting": "Đang chờ liên kết dữ liệu {source}",
+          "readingWaiting": "Đang chờ luận giải {source}",
+          "keywordsLoading": "Từ khóa {source} · đang tải"
+        },
+        "artMood": {
+          "astrology": "Phong cách hoa mộng ảo phủ tinh vân ánh sao và ánh neon",
+          "jamidusu": "Phong cách hoa nơi khí chất đế vương hòa cùng nét tinh tế cung đình",
+          "sukuyo": "Phong cách hoa trong trẻo như thiền định dưới trăng và mặt nước tĩnh lặng",
+          "saju": "Phong cách hoa phương Đông trữ tình, nở theo thớ Ngũ Hành"
+        },
+        "care": {
+          "wood": "Đánh thức điểm sinh trưởng bằng 8 phút giãn cơ bên cửa sổ hướng đông đón nắng sớm",
+          "fire": "Đón ánh sáng hướng nam 5 phút và nói to mục tiêu hôm nay",
+          "earth": "Dọn gọn một góc không gian làm việc để dựng vững trục trung tâm",
+          "metal": "Viết ra 3 ưu tiên và mạnh dạn cắt tỉa những hẹn ước không cần thiết",
+          "water": "Khơi thông dòng cảm xúc bằng 10 phút đi dạo buổi tối và bổ sung nước",
+          "default": "Hãy cố định thói quen đón ánh sáng (buổi sáng) và bổ sung nước (buổi tối) để ổn định nhịp sinh trưởng cơ bản trước."
+        },
+        "synergy": {
+          "astrology": "bình thủy tinh, khung bạc, đèn chiếu nhỏ dịu nhẹ",
+          "jamidusu": "vải satin, vật trang trí bằng đồng, gốm đối xứng",
+          "sukuyo": "kính mờ, vải lanh tông ánh trăng, khay hoa văn sóng nước",
+          "saju": "gốm mờ, gỗ tự nhiên, vải hoa văn nhẹ nhàng",
+          "line": "Màu gợi ý: Chính {primary}, Phụ {secondary}, Điểm nhấn {accent} / Chất liệu gợi ý: {materials}."
+        },
+        "atelier": {
+          "scenarioTitle": "Kịch bản nở hoa {source}",
+          "growthCycleWaiting": "Đang chờ tính chu kỳ nở hoa",
+          "ritualWaiting": "Đang tính thói quen thực hành hôm nay.",
+          "astrology": {
+            "lightingFire": "Ánh nắng gay gắt chiếu từ góc cao như giữa trưa hè",
+            "lightingEarth": "Lượng sáng ổn định, nơi sắc vàng cuối chiều lưu lại lâu",
+            "lightingWater": "Ánh sáng xanh lạnh lúc rạng đông lan tỏa chậm rãi",
+            "lightingAir": "Ánh sáng xiên nghiêng như làn gió, nhẹ nhàng mở rộng không gian",
+            "humidityWater": "Trạng thái sương bạc với độ ẩm cảm xúc cao",
+            "humidityFire": "Không khí khô chứa hơi nóng, trạng thái cảm xúc phản ứng nhanh",
+            "humidityEarth": "Độ ẩm ổn định như chậu đất nung, trạng thái cảm xúc chín dần",
+            "humidityAir": "Độ ẩm làn gió nhẹ và linh hoạt, trạng thái ý tưởng được làm mới nhanh chóng",
+            "seasonFire": "Giai đoạn tăng tốc nở hoa: hành động và thể hiện đẩy nụ hoa vươn lên",
+            "seasonWater": "Giai đoạn nuôi dưỡng bên trong: nghỉ ngơi và trực giác bồi đắp tầng rễ",
+            "seasonBalance": "Giai đoạn điều hòa cân bằng: cấu trúc và cảm xúc giao thoa để chuẩn bị nụ hoa kế tiếp",
+            "section": "Ánh sáng và năng lượng thiên thể",
+            "matrixLighting": "☀️ Ánh sáng thiên thể: {value}",
+            "matrixHumidity": "💧 Độ ẩm khí quyển: {value}",
+            "matrixSeason": "🪐 Mùa của vũ trụ: {value}",
+            "log": "Nhật ký quan sát của người làm vườn: hướng đi của Cung Mặt Trời {sun} và ánh sáng của Cung Mọc {rising} định góc cho cành hoa. Độ ẩm do Cung Mặt Trăng {moon} điều tiết nhẹ nhàng mở các gân lá cảm xúc, và tuần này là giai đoạn báo hiệu nở hoa, khi cơ hội xuất hiện trước tiên.",
+            "recipe": "Công thức bí mật: sau 9 giờ tối, hạ đèn bên cửa sổ xuống một nấc và ghi điều duy nhất bạn sẽ làm ngày mai vào dòng đầu tiên của sổ tay. Chỉ tập trung vào điều đó trong 12 phút đầu tiên của buổi sáng, nhịp ánh sao sẽ hòa hợp nhanh nhất.",
+            "flowerLanguage": "Ý nghĩa hoa định mệnh: dũng khí tin vào góc chiếu của các vì sao và bước đi bước đầu tiên.",
+            "gardenerWord": "Lời người làm vườn dành cho bông hoa này: trực giác hôm nay không phải là phóng đại mà là dự báo. Những hành động nhỏ sẽ biến tinh vân thành vườn hoa có thật.",
+            "particle": "Khi chuyển ánh sáng của {source} thành hạt, sắc thái \"{particle}\" tỏa sáng ổn định nhất."
+          },
+          "jamidusu": {
+            "structureZiwei": "Cành hoa vững chãi mang phong thái hoàng gia của hệ sao Tử Vi",
+            "structureBreaker": "Thân cây to khỏe, cứng cỏi do khí chất tướng quân đột phá tạo nên",
+            "structureFlexible": "Cánh hoa nhiều lớp tinh tế, mềm mại nhưng khó gãy",
+            "structureBalanced": "Bộ khung hoa đối xứng tinh tế do chính tinh cân bằng tạo nên",
+            "social": "Như bướm và ong bay quanh {palace}, những mối duyên gần gũi chia sẻ vai trò và giúp bạn phát triển.",
+            "thornsDim": "Thời kỳ gai ngắn dày đặc với sức phòng vệ cao giúp bạn dựng ranh giới",
+            "thornsBright": "Thời kỳ vân phản chiếu ánh sáng thay cho gai, bảo vệ bạn một cách đầy phẩm cách",
+            "section": "Phẩm cách và hình dáng của hoa",
+            "matrixStructure": "🏛️ Bộ khung hoa: {value}",
+            "matrixSocial": "🦋 Bướm và ong: {value}",
+            "matrixThorns": "🌵 Gai hộ mệnh: {value}",
+            "log": "Nhật ký quan sát của người làm vườn: sao mạnh hôm nay {star} giữ thẳng trục thân cây, và độ sáng sao {brightness} điều chỉnh độ bóng của cánh hoa. Lúc này, sự hoàn thiện về cấu trúc, hơn là vẻ hào nhoáng, mới là điều giúp thành quả lớn lên.",
+            "recipe": "Công thức bí mật: đặt một vật bằng kim loại ở phía bên trái bàn làm việc, rồi ghi cùng lúc một nguyên tắc của hôm nay và một điểm bạn sẵn sàng nhường. Ranh giới càng rõ, hoa càng nở thanh lịch.",
+            "flowerLanguage": "Ý nghĩa hoa định mệnh: phẩm cách là ánh sáng lặng lẽ nhất, nở ra từ một cấu trúc vững chắc.",
+            "gardenerWord": "Lời người làm vườn dành cho bông hoa này: đừng vội tỏa sáng rực rỡ. Một ngày giữ vững nguyên tắc sẽ tạo nên cành hoa bền lâu nhất.",
+            "particle": "Khi chuyển trật tự thứ bậc của {source} thành hạt, không khí \"{particle}\" thể hiện trật tự đẹp nhất."
+          },
+          "sukuyo": {
+            "scentFriend": "Hương xạ hương trắng dịu nhẹ lan tỏa dưới ánh trăng",
+            "scentDanger": "Hương trầm đậm và sâu, giúp nâng cao sự tập trung",
+            "scentDefault": "Hương hoa cỏ thảo mộc trong trẻo, nhẹ nhàng điều hòa nhiệt độ của các mối quan hệ",
+            "dewFull": "Sương đêm đầy đặn nhất, cảm hứng và biểu đạt cảm xúc cùng dồi dào",
+            "dewNew": "Giai đoạn trăng non với lớp sương mỏng, ưu tiên quan sát và chuẩn bị",
+            "dewDefault": "Lượng sương vừa phải, cân bằng cảm xúc và sức hành động cùng lớn lên",
+            "companionDragon": "Kết hợp tử đằng và xô thơm xanh, nâng đỡ dòng chảy mở rộng lớn",
+            "companionDog": "Kết hợp hương thảo và cúc La Mã, tăng cường sự ổn định trong quan hệ và khả năng phục hồi",
+            "companionTiger": "Kết hợp bạch đàn và cúc Rudbeckia, tăng cường sự quyết đoán và bản năng bảo vệ",
+            "companionDefault": "Kết hợp oải hương và thường xuân, hỗ trợ cả ổn định cảm xúc lẫn phát triển lâu dài",
+            "section": "Hương thơm nhân duyên và sương đêm",
+            "matrixScent": "🌙 Hương thơm định mệnh: {value}",
+            "matrixDew": "💦 Lượng sương đêm: {value}",
+            "matrixCompanion": "🌿 Cây đồng hành: {value}",
+            "log": "Nhật ký quan sát của người làm vườn: tính quan hệ của {mansion} bộc lộ trước tiên qua hương thơm, còn pha trăng {phase} điều chỉnh nhịp cảm xúc qua mật độ sương. Lúc này, sự tinh tế trong việc hòa nhịp với nhau, thay vì hối thúc nhịp độ của nhân duyên, sẽ giữ hoa tươi lâu hơn.",
+            "recipe": "Công thức bí mật: trước khi ngủ, hãy chậm rãi uống một cốc nước rồi lặng lẽ ghi lại một cái tên mà hôm nay bạn thấy biết ơn. Nhịp nước của mặt trăng sẽ ổn định và vận nhân duyên sẽ nhẹ nhàng mở ra.",
+            "flowerLanguage": "Ý nghĩa hoa định mệnh: sự đồng cảm lặng lẽ trở thành hương thơm lan xa nhất.",
+            "gardenerWord": "Lời người làm vườn dành cho bông hoa này: không vội cũng không sao. Như sương đêm dần tụ lại, nhân duyên của bạn cũng sẽ rõ nét vào đúng thời điểm.",
+            "particle": "Khi chuyển nhịp ánh trăng của {source} thành hạt, không khí \"{particle}\" ôm ấp bạn ấm áp nhất."
+          },
+          "saju": {
+            "soilCold": "Đất màu mỡ dạng đầm lầy, giữ nhiều hơi ẩm",
+            "soilHot": "Đất trộn sỏi ấm áp, thoát nước tốt",
+            "soilBalanced": "Đất màu mỡ với hạt đồng đều và khoáng chất ổn định",
+            "rootStrong": "Giai đoạn rễ cắm sâu, giữ vững trung tâm dù bên ngoài thay đổi",
+            "rootWeak": "Giai đoạn rễ con mảnh lan ra trước và cần điểm tựa",
+            "rootBalanced": "Giai đoạn cân bằng, rễ ở độ sâu vừa phải lan rộng đều",
+            "section": "Đất và rễ cho sự sinh trưởng",
+            "matrixSoil": "🪨 Thành phần đất: {value}",
+            "matrixRoot": "🌱 Độ sâu của rễ: {value}",
+            "matrixNutrient": "🧪 Dưỡng chất của người làm vườn: {value}",
+            "log": "Nhật ký quan sát của người làm vườn: hôm nay khu vườn mang sắc thái của {soil}, và năng lượng sinh trưởng chuyển động theo dòng \"{root}\". Bề ngoài có vẻ tĩnh lặng, nhưng ở tầng rễ, sức mạnh cho lần nở hoa kế tiếp đang được tích trữ vững chắc.",
+            "recipe": "Công thức bí mật: đặt một chậu cây lá xanh bên cửa sổ hướng bắc hoặc hướng đông, buổi sáng dành 10 phút thả lỏng cơ thể và buổi tối dành 10 phút điều hòa hơi thở. Giữ cố định nhịp này hai lần mỗi ngày sẽ nâng khí Dụng Thần lên nhanh nhất.",
+            "flowerLanguage": "Ý nghĩa hoa định mệnh: rễ vững dù có vẻ chậm, nhưng cuối cùng sẽ nở cao nhất.",
+            "gardenerWord": "Lời người làm vườn dành cho bông hoa này: hãy tin vào sự tích lũy hơn là vội vàng. Sự chăm sóc nhỏ hôm nay sẽ làm nên mùa gặt lớn của mùa sau.",
+            "particle": "Khi chuyển những chuyển động tinh tế của khí {source} thành hạt, không khí \"{particle}\" hài hòa nhất."
+          },
+          "themesWaiting": "Đang phân tích chủ đề quan hệ và công việc.",
+          "guidance": "Hướng dẫn thực hành hoa định mệnh {source}: {text}"
+        },
+        "prompt": {
+          "badgesSukuyo": "Huy hiệu Túc Diệu: {mansion} / pha trăng {phase} / linh vật hộ mệnh {guardian}",
+          "badgesJamidusu": "Huy hiệu Tử Vi: sao mạnh hôm nay {star} / độ sáng sao {brightness} / cung vị {palace}",
+          "badgesAstrology": "Huy hiệu chiêm tinh: Cung Mặt Trời {sun} / Cung Mọc {rising} / Cung Mặt Trăng {moon}",
+          "badgesSaju": "Huy hiệu Tứ Trụ: Thân Cường/Thân Nhược {strength} / Dụng Thần {yongshin} / Điều Hậu {johu}",
+          "symbolismFallback": "Đóa hoa tượng trưng cho dòng chảy định mệnh",
+          "narrativeFallback": "Câu chuyện hoa định mệnh",
+          "scenarioFallback": "Dàn dựng dựa trên kịch bản nở hoa",
+          "toneDirection": "Định hướng tông màu {source}: {mood} / {background}"
+        },
+        "history": {
+          "emptyStatus": "Chưa có bản ghi nở hoa nào được lưu. Hãy thử lưu kết quả hiện tại.",
+          "restore": "Mở lại",
+          "kakao": "Chia sẻ Kakao",
+          "delete": "Xóa",
+          "saved": "Đã lưu bản ghi nở hoa: {name} ({time})",
+          "notFound": "Không tìm thấy bản ghi này.",
+          "restored": "Đã mở lại bản ghi nở hoa đã lưu: {name}",
+          "deleteNotFound": "Không tìm thấy bản ghi cần xóa.",
+          "deleted": "Đã xóa bản ghi nở hoa đã chọn.",
+          "nothingToClear": "Không có bản ghi nở hoa nào để xóa.",
+          "cleared": "Đã xóa tất cả bản ghi nở hoa đã lưu.",
+          "shareNotFound": "Không tìm thấy bản ghi để chia sẻ."
+        },
+        "noBirth": {
+          "jamidusu": "Hãy nhập ngày sinh để xem hoa Tử Vi của bạn.",
+          "sukuyo": "Hãy nhập ngày sinh để xem hoa Túc Diệu của bạn.",
+          "astrology": "Hãy nhập ngày và giờ sinh để xem hoa chiêm tinh của bạn.",
+          "saju": "Khi bạn nhập tên và ngày sinh trước, hoa định mệnh của riêng bạn sẽ nở tại đây."
+        },
+        "studioTitle": "🌸 Xưởng hoa định mệnh",
+        "sourceDesc": {
+          "saju": "Chúng tôi đọc từng yếu tố: Nhật chủ, tháng sinh và sự cân bằng Ngũ Hành của bạn, rồi chọn đóa hoa chạm sâu nhất đến năng lượng của bạn trong mùa này.",
+          "astrology": "Chúng tôi đọc chồng ba dải ánh sao do Cung Mặt Trời, Cung Mọc và Cung Mặt Trăng vẽ nên, rồi làm nở đóa hoa hòa hợp trong trẻo nhất với lá số chiêm tinh của bạn lúc này.",
+          "jamidusu": "Chúng tôi lần theo chính tinh trong cung Mệnh, độ sáng của sao và dòng chảy Tứ Hóa, rồi tìm ra đóa hoa mà lá số Tử Vi của bạn làm nở rõ nét nhất lúc này.",
+          "sukuyo": "Chúng tôi đặt tú ngày sinh trong 27 tú cạnh pha trăng đêm nay, rồi trao bạn đóa hoa khớp dịu dàng nhất với thớ lòng bạn lúc này."
+        },
+        "sourceShort": {
+          "saju": "Tứ Trụ",
+          "astrology": "lá số",
+          "jamidusu": "Tử Vi",
+          "sukuyo": "Túc Diệu"
+        },
+        "strength": {
+          "strong": "Thân Cường",
+          "weak": "Thân Nhược"
+        },
+        "johu": {
+          "hot": "Ôn Táo",
+          "cold": "Hàn Thấp",
+          "balanced": "Trung Hòa"
         }
       }
     }
@@ -4418,7 +5223,7 @@
     },
     "premium": {
       "lockedTitle": "BÁO CÁO DOANH NGHIỆP ĐÃ KHÓA",
-      "lockedDesc": "Đọc ở chế độ Dominator · Biểu đồ rủi ro 10 năm · báo cáo chuyên môn đầy đủ (20.000+ ký tự) · Đơn thuốc chữa bệnh định mệnh",
+      "lockedDesc": "Chế độ Dominator · Biểu đồ 10 năm · 10 chương phân tích · Kế hoạch hành động hằng tháng",
       "lockedCost": "Mở khóa vĩnh viễn với giá ₩5.000",
       "unlockCta": "⚡ THI HÀNH NGƯỜI CHIẾN LƯỢC — ₩5.000",
       "generatingTitle": "DOMINATOR THỰC HIỆN…",
@@ -6341,7 +7146,7 @@
         "k53h7ds": "Trắc nghiệm tâm lý",
         "k79pfmc": "Nakshatra",
         "k871xeu": "Miễn phí · Phân tích khuôn mặt selfie",
-        "ka0v1mf": "Miễn phí · 11 công cụ",
+        "ka0v1mf": "Giọt mật điểm danh · 16 công cụ",
         "kry6axn": "27 Túc Diệu",
         "kslqazg": "Lời nhắc vận mệnh tổng hợp",
         "kxgi8q8": "Cá Thầy bói",
@@ -6666,7 +7471,7 @@
         "k1ygnp9f2": {
           "ariaLabel": "Điểm chính"
         },
-        "k231dx8": "Tạo ngay prompt tư vấn miễn phí với 16 công cụ như Tứ Trụ, Tarot, Chiêm tinh học, Tử Vi Đẩu Số.",
+        "k231dx8": "Tạo ngay prompt tư vấn với 16 công cụ: Tứ trụ, tarot, chiêm tinh, Tử vi đẩu số và hơn thế.",
         "k3baulf": "Phòng Đặt Tên Huấn Dân Chính Âm",
         "k6uqkuq": {
           "ariaLabel": "Tóm tắt chính"
@@ -6718,7 +7523,7 @@
         "k1scb7d8": {
           "alt": "Hình ảnh đại diện của nghiệp vận mệnh"
         },
-        "koe32kc": "Trải nghiệm miễn phí",
+        "koe32kc": "Giọt mật điểm danh",
         "ktgbfsy": "MỚI · Phiên bản quyết định",
         "n50001000020000": "Tarot 5.000 KRW · Tứ Trụ 10.000 KRW · Hợp duyên 20.000 KRW",
         "k1dw3t0h": "Lá số miễn phí · tư vấn chuyên sâu có phí",
@@ -6739,7 +7544,7 @@
     "tarotTileBody": {
       "featuredContentCardCta": {
         "k1f1oofn": "Vào quán trà vận mệnh",
-        "kdyjsns": "Trải nghiệm miễn phí",
+        "kdyjsns": "Tạo prompt",
         "kwux29x": "Vào phòng tác chiến"
       },
       "pvcPremMeta": {
@@ -6809,7 +7614,7 @@
         "ko4w810": "16 công cụ như Tứ Trụ · Tarot · Chiêm tinh",
         "kozjlt4": "Lời khuyên thực tế cho quan hệ · tài lộc · công việc · lựa chọn",
         "kqwk9o": "Tư vấn dòng chảy cung và sao theo chủ đề",
-        "krx9ppb": "1 lần miễn phí · không giới hạn sau khi đăng ký",
+        "krx9ppb": "Cứ 3 lần điểm danh được 1 giọt mật · mỗi lượt dùng 1 giọt",
         "ktv5xm9": "Phân tích lá số Tứ Trụ và cân bằng Ngũ Hành",
         "ktx0v26": "Bản đồ vận mệnh được chọn dưới huy hiệu Sư Tử",
         "kvigm32": "Lời khuyên thực tế phù hợp với mối quan hệ hiện tại",
@@ -6952,7 +7757,9 @@
         "n20000Price10000": "Từ 10.000 KRW",
         "n50000": "50.000 KRW",
         "n30000Price20000": "20.000 KRW",
-        "n20000Price10000Price20000": "Từ 20.000 KRW"
+        "n5000Price10000": "Từ 10.000 KRW",
+        "n30000Price20000Price30000": "30.000 KRW",
+        "n20000Price10000Price30000": "Từ 30.000 KRW"
       }
     },
     "cdSigCardBody": {
@@ -7014,10 +7821,9 @@
     },
     "fortuneGatewayDoor": {
       "fortuneGatewayDoorMeta": {
-        "k18ykrep": "1 lượt miễn phí sau khi đăng nhập",
-        "n115000": "1 lượt miễn phí sau khi đăng ký · sau đó 3.000 KRW mỗi lượt",
         "n130000": "30.000 KRW mỗi lượt",
-        "k1lo4ibg": "đối chiếu chung cuộc"
+        "k1lo4ibg": "đối chiếu chung cuộc",
+        "n13000": "5.000 KRW mỗi lượt"
       },
       "fortuneGatewayDoorGo": {
         "kkmvgqi": "Start a reading",
@@ -7899,12 +8705,12 @@
     "deliverable": {
       "title": "Bạn nhận được gì khi thanh toán",
       "volumeLabel": "Độ dài",
-      "volumeValue": "Tối thiểu 30.000 ký tự",
+      "volumeValue": "Nội dung tư vấn dài",
       "chaptersLabel": "Cấu trúc",
-      "chaptersValue": "16 chương · mỗi chương 1.900–2.400 ký tự",
+      "chaptersValue": "15 chương · diễn giải theo chủ đề và thư cuối",
       "keepLabel": "Lưu giữ",
-      "keepValue": "Xuất PDF và giữ vĩnh viễn",
-      "guarantee": "Chương nào chưa đạt độ dài sẽ được viết lại tự động, tối đa hai lần. Nếu vẫn không đạt, yêu cầu bị đánh dấu thất bại thay vì giao kết quả — nên đường dẫn thử lại và hoàn tiền vẫn còn."
+      "keepValue": "Lưu PDF · sao chép từng chương",
+      "guarantee": "Phạm vi diễn giải phụ thuộc vào thông tin sinh và dữ liệu tính toán hiện có. Bạn có thể xem lại nội dung đã hoàn thành trong buổi tư vấn đã lưu."
     }
   },
   "errorBoundary": {
@@ -19749,18 +20555,18 @@
       "pig": "Pig"
     },
     "sign": {
-      "aries": "Aries",
-      "taurus": "Taurus",
-      "gemini": "Gemini",
-      "cancer": "Cancer",
-      "leo": "Leo",
-      "virgo": "Virgo",
-      "libra": "Libra",
-      "scorpio": "Scorpio",
-      "sagittarius": "Sagittarius",
-      "capricorn": "Capricorn",
-      "aquarius": "Aquarius",
-      "pisces": "Pisces"
+      "aries": "Bạch Dương",
+      "taurus": "Kim Ngưu",
+      "gemini": "Song Tử",
+      "cancer": "Cự Giải",
+      "leo": "Sư Tử",
+      "virgo": "Xử Nữ",
+      "libra": "Thiên Bình",
+      "scorpio": "Bọ Cạp",
+      "sagittarius": "Nhân Mã",
+      "capricorn": "Ma Kết",
+      "aquarius": "Bảo Bình",
+      "pisces": "Song Ngư"
     },
     "stem": {
       "wood": "Wood",

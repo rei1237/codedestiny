@@ -28,7 +28,7 @@ import {
   PASS_LIMITS,
   PASS_TIER_RANK,
   buildPassCycleFields,
-  buildPassRewindCycleFields,
+  buildPassRefundRevokeFields,
   buildPassTerminationFields,
   isPassBudgetExhausted,
   normalizePassTier,
@@ -315,10 +315,11 @@ export async function activatePassSubscription(db, {
 }
 
 /**
- * 환불 회수 — 이 주문이 늘린 durationMonths 만큼 expiresAt 을 되감고, 과거가 되면 free 로 내린다.
+ * 환불 회수 — 이 주문이 더한 한도를 빼고, 남은 한도로 열 수 있는 게 없으면 free 로 내린다
+ * (2026-10-11 이용권 기간 없음 — profile-limits.js buildPassRefundRevokeFields).
  * worker/lib/payment-refund.js revokeMembershipPassGrant(관리자 환불)와 같은 의미론을 V2 db 래퍼 위에서
  * 재현한 것이다(웹훅 컨텍스트는 mongoose 모델을 직접 쓰지 않는다).
- * 🔴 lastPassOrderId 가 이 주문일 때만 손댄다 — 그 뒤 다른 주문이 활성화됐다면 되감기가 그 주문의 기간을
+ * 🔴 lastPassOrderId 가 이 주문일 때만 손댄다 — 그 뒤 다른 주문이 활성화됐다면 회수가 그 주문의 한도를
  * 깎으므로 건드리지 않고 false 를 돌려준다(호출부가 검토 마커를 남겨 사람이 본다).
  */
 export async function revokePassGrantForOrder(db, { userId, orderId, durationMonths, now = new Date() }) {
@@ -331,25 +332,9 @@ export async function revokePassGrantForOrder(db, { userId, orderId, durationMon
   if (!sub || String(sub.lastPassOrderId || "") !== String(orderId)) return false;
   const currentExpiresAt = sub.expiresAt ? new Date(sub.expiresAt) : null;
   if (!currentExpiresAt || Number.isNaN(currentExpiresAt.getTime())) return false;
-  const rewound = new Date(currentExpiresAt);
-  rewound.setMonth(rewound.getMonth() - months);
-  const rewindCycle = buildPassRewindCycleFields({ subscription: sub, rewoundExpiresAt: rewound });
-  const set = {
-    "profileSubscription.expiresAt": rewound,
-    // 되감은 만료일을 사이클 키로 다시 적는다 — 안 적으면 키가 어긋나 누적 사용액이 0 으로
-    // 읽혀, 연장분 환불이 이미 쓴 한도까지 되돌려준다.
-    "profileSubscription.premiumUseCycleKey": rewindCycle.premiumUseCycleKey,
-    "profileSubscription.monthlyLimitCoin": rewindCycle.monthlyLimitCoin,
-    "profileSubscription.updatedAt": now,
-  };
-  if (rewound <= now) {
-    set["profileSubscription.tier"] = "free";
-    set["profileSubscription.passTier"] = "";
-    set["profileSubscription.passLimit"] = 0;
-    set["profileSubscription.maxCoveredCoin"] = 0;
-    set["profileSubscription.freeLimit"] = 0;
-    set["profileSubscription.monthlyLimitCoin"] = 0;
-  }
+  // 만료일·사이클 키는 강등할 때만 바뀐다 — 한도만 줄이는 경우 키가 그대로라 이미 쓴 금액이 유지된다.
+  const { fields } = buildPassRefundRevokeFields({ subscription: sub, now });
+  const set = Object.fromEntries(Object.entries(fields).map(([key, value]) => [`profileSubscription.${key}`, value]));
   const result = await db.updateOne(User, { _id: uid }, { $set: set });
   return Number(result?.matchedCount ?? 0) > 0;
 }

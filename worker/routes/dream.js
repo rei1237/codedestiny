@@ -1,4 +1,4 @@
-import { parseNarrativeResponse, NARRATIVE_RESPONSE_SCHEMA } from "../lib/paid-narrative-candidate.js";
+import { parseNarrativeResponse, stripNarrativeHeadings, narrativePriorDigest, NARRATIVE_RESPONSE_SCHEMA } from "../lib/paid-narrative-candidate.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson, HttpError } from "../lib/http.js";
 import { getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
 import { runPaidNarrativeDelivery } from "../lib/paid-narrative-delivery.js";
@@ -1177,11 +1177,12 @@ export function dreamPsychoNarrativeAdapter(env) {
   return {
     reportType: DREAM_PSYCHO_REPORT_TYPE, render: renderPsychoDelivery,
     produce: async (task, state) => {
-      const prompt = `${state.prompt}\n[이번 호출]\n${task.prompt}\n꿈에 없는 사실을 추가하지 마세요. 제목·다른 장·일반적 설명의 반복 없이 본문 2,000자 이상, 목표 2,600~3,100자(공백·마크다운 제외)를 짧은 문단으로 쓰세요.\nJSON {"evidenceHash":"${state.evidenceHash}","body":"본문"}만 출력하세요.`;
+      const prompt = `${state.prompt}\n[이번 호출]\n${task.prompt}${narrativePriorDigest(state, task)}\n꿈에 없는 사실을 추가하지 마세요. 꿈 장면 요약은 1장에서만 하고, 다른 장은 요약 없이 이번 범위로 바로 들어가세요. 제목·소제목·다른 장·일반적 설명의 반복 없이 본문 ${task.minChars}자 이상, 목표 ${Math.ceil(task.minChars * 1.3)}~${Math.ceil(task.minChars * 1.5)}자(공백·마크다운 제외)를 짧은 문단으로 쓰세요.\nJSON {"evidenceHash":"${state.evidenceHash}","body":"본문"}만 출력하세요.`;
       const ai = await dreamGeminiCaller(env, prompt, { systemPrompt: state.systemPrompt, model: firstDreamPsychoModel(env), temperature: 0.62,
         maxOutputTokens: 9500, thinkingBudget: 0, timeoutMs: Math.min(45000, Math.max(15000, Number(env.DREAM_PSYCHO_PROVIDER_TIMEOUT_MS || env.DREAM_PROVIDER_TIMEOUT_MS) || 45000)), fallbackToWorkersAI: false, responseMimeType: "application/json", responseSchema: NARRATIVE_RESPONSE_SCHEMA });
       if (!ai?.ok || ai.isMock || /mock/i.test(`${ai.provider || ""} ${ai.model || ""}`)) return null;
-      const value = parseNarrativeResponse(ai.text, state.evidenceHash);
+      const parsed = parseNarrativeResponse(ai.text, state.evidenceHash);
+      const value = parsed && { ...parsed, body: stripNarrativeHeadings(parsed.body) };
       if (value?.evidenceHash !== state.evidenceHash || typeof value.body !== "string" || /Chapter\s+\d+\./i.test(value.body) || evaluatePsychoMarkdownQuality(value.body, state.tone, true).warnings.includes("system_leak")) return null;
       return value;
     },
@@ -1215,7 +1216,7 @@ export function seedDreamPsychoNarrative(original) {
   if (!normalized.ok) throw new HttpError(400, normalized.message);
   return { dreamText: normalized.text, tone, createdAt: new Date().toISOString(), minBodyChars: 20000,
     prompt: buildPsychoPrompt(original, normalized.text, tone).split("[출력 규칙]")[0], systemPrompt: DREAM_PSYCHO_SYSTEM_PROMPT,
-    tasks: PSYCHO_DREAM_REQUIRED_HEADERS.flatMap((title, i) => ["a", "b"].map(part => ({ id: `chapter-${i + 1}-${part}`, minChars: 2000,
+    tasks: PSYCHO_DREAM_REQUIRED_HEADERS.flatMap((title, i) => ["a", "b"].map(part => ({ id: `chapter-${i + 1}-${part}`, minChars: 1250,
       prompt: `${title} 중 ${part === "a" ? `꿈에 실제 등장한 장면을 근거로 ${PSYCHO_DREAM_REQUIRED_PHRASES[i]}의 관점과 감정 패턴을 해설` : "다른 가능한 해석과 적용되지 않는 조건, 생활 속 사례·성찰 질문·현실적인 작은 행동을 제안"}` }))) };
 }
 

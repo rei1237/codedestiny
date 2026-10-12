@@ -828,12 +828,14 @@ const appHtml = `
         <div class="phy-top3" id="phyTop3"></div>
 
         <!-- 고도화된 Expert Report 컨테이너 -->
-        <div id="expertReportContainer"></div>
+        <div data-crafted-static-offer="physiognomy-ogwan-mole-deep" style="width:100%;max-width:540px;margin:16px auto;background:#e7eeea;color:#394e51;border-radius:12px"></div>
+      <div id="expertReportContainer"></div>
 
 
 
         <button class="action-btn" style="width: 100%; margin-top: 15px; background: #FEE500; color: #3B1E08; border: none; font-weight: bold; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);" onclick="sharePhysiognomyKakao()">💬 카카오톡으로 관상 결과 공유하기</button>
         <button class="action-btn" id="pastLifeBridgeBtn" style="width: 100%; margin-top: 10px; display:none; background: linear-gradient(135deg, #13102a 0%, #2e2560 100%); color:#f4eeff; border:1px solid rgba(196,181,253,0.46); box-shadow:0 0 30px -8px rgba(156,135,212,0.45); padding:14px 14px 11px; font-size:1.02rem; flex-direction:column; align-items:center; gap:5px;" onclick="openPastLifeFaceFromPhysiognomy()"><span>🌘 이 얼굴의 전생 관상 보기</span><span style="font-size:0.78rem; font-weight:700; background:rgba(232,213,163,0.92); color:#0a0818; border-radius:20px; padding:3px 12px;">무료 · 사진 다시 안 올려도 됩니다</span></button>
+        <div data-crafted-static-offer="physiognomy-compatibility" style="width:100%;max-width:540px;margin:16px auto;background:#f1eadd;color:#514339;border-radius:12px"></div>
         <button class="action-btn" id="compatStartBtn" style="width: 100%; margin-top: 10px; display:none; background: linear-gradient(135deg, #f472b6 0%, #e11d48 100%); color: #fff; box-shadow: 0 4px 15px rgba(225, 29, 72, 0.4); padding:14px 14px 10px; font-size:1.05rem; flex-direction:column; align-items:center; gap:5px;" onclick="startCompatMode()"><span>💕 상대방과 관상 궁합 보기</span><span style="font-size:0.78rem; font-weight:700; background:rgba(255,255,255,0.22); border-radius:20px; padding:3px 12px; letter-spacing:0.02em;">🐷 3,000원 결제</span></button>
         <button class="action-btn" style="width: 100%; margin-top: 10px; background: #e2e8f0; color: #475569; box-shadow: none; padding:12px;" onclick="resetPhysiognomyApp()"> 다른 사진으로 분석하기</button>
         <button class="action-btn" style="width: 100%; margin-top: 10px; background: #fff; color: #475569; border: 1px solid #cbd5e1; box-shadow: none; padding:12px;" onclick="closePhysiognomyApp()"> 메인 화면으로 돌아가기</button>
@@ -2421,6 +2423,9 @@ window.startCapture = async function() {
 }
 
 function renderResult(result) {
+  import('/js/core/saju/crafted-product-details.mjs').then(function(module) {
+    document.querySelectorAll('#phyResult [data-crafted-static-offer]').forEach(function(el) { if (el.isConnected) module.mountCraftedStaticOffer(el); });
+  });
   let emojiNode = document.getElementById('resEmoji');
   emojiNode.innerText = result.emoji || '';
 
@@ -2442,7 +2447,7 @@ function renderResult(result) {
   if (!compatMode) {
     const bridgeBtn = document.getElementById('pastLifeBridgeBtn');
     if (bridgeBtn) bridgeBtn.style.display = 'flex';
-    document.getElementById('compatStartBtn').style.display = 'block';
+    document.getElementById('compatStartBtn').style.display = 'flex';
   }
 
   // 해금 재렌더는 사용자가 방금 결제한 오관·점 섹션을 보고 있으므로 맨 위로 튕기지 않는다.
@@ -2464,7 +2469,7 @@ window.openPastLifeFaceFromPhysiognomy = async function openPastLifeFaceFromPhys
     if (typeof window.openPastLifeFaceApp !== 'function') {
       await new Promise((resolve, reject) => {
         const script = document.createElement('script');
-        script.src = 'PastLifeFaceUI.js?v=h18a3c245e2db';
+        script.src = 'PastLifeFaceUI.js?v=hc232cb1eeb5b';
         script.onload = resolve;
         script.onerror = () => reject(new Error('PAST_LIFE_SCRIPT_LOAD_FAILED'));
         document.head.appendChild(script);

@@ -10,6 +10,7 @@ const birthScopeSource = fs.readFileSync(path.join(root, "js/core/birth-scope-un
 
 function loadStore(fetchImpl, { setTimeoutImpl = () => 1, authUser = null, BroadcastChannelImpl, storageMap, birthScope = false } = {}) {
   const listeners = new Map();
+  const dispatched = [];
   const storage = storageMap || new Map();
   const sandbox = {
     console,
@@ -40,7 +41,7 @@ function loadStore(fetchImpl, { setTimeoutImpl = () => 1, authUser = null, Broad
     },
     addEventListener: (name, listener) => listeners.set(name, listener),
     removeEventListener: (name) => listeners.delete(name),
-    dispatchEvent: () => true,
+    dispatchEvent: (event) => { dispatched.push(event); return true; },
     CustomEvent: function CustomEvent(name, init) {
       this.type = name;
       this.detail = init && init.detail;
@@ -53,6 +54,7 @@ function loadStore(fetchImpl, { setTimeoutImpl = () => 1, authUser = null, Broad
   if (birthScope) vm.runInNewContext(birthScopeSource, sandbox, { filename: "birth-scope-unlocks.js" });
   vm.runInNewContext(storeSource, sandbox, { filename: "access-store.js" });
   sandbox.CodeDestinyAccessStore.__testListeners = listeners;
+  sandbox.CodeDestinyAccessStore.__testDispatched = dispatched;
   return sandbox.CodeDestinyAccessStore;
 }
 
@@ -387,6 +389,39 @@ test("a real destinyProfileChanged event switches context and loads one complete
   assert.equal(store.isUnlocked("section_compat"), true);
 });
 
+test("출생 기반: P→Q→P 복귀는 신선 캐시로 P 의 해금을 다시 그리게 알린다(재조회 없음)", async () => {
+  const urls = [];
+  const store = loadStore(async (url) => {
+    urls.push(String(url));
+    const profileId = new URL(String(url), "https://x.test").searchParams.get("profileId");
+    return {
+      ok: true,
+      status: 200,
+      json: async () => ({
+        ok: true,
+        data: {
+          userId: "user-1",
+          currentProfileId: profileId,
+          unlockedFeatureIds: profileId === "profile-1" ? ["section_summary"] : [],
+          completeness: "full",
+          authority: "server",
+        },
+      }),
+    };
+  }, { authUser: { id: "user-1" }, birthScope: true });
+
+  await store.ensureLoaded({ userId: "user-1", profileId: "profile-1", authenticated: true });
+  await store.ensureLoaded({ userId: "user-1", profileId: "profile-2", authenticated: true });
+  assert.equal(store.isUnlocked("section_summary"), false);
+  store.__testDispatched.length = 0;
+
+  await store.ensureLoaded({ userId: "user-1", profileId: "profile-1", authenticated: true });
+  assert.equal(urls.length, 2);
+  assert.equal(store.isUnlocked("section_summary"), true);
+  const changed = store.__testDispatched.filter((event) => event.type === "cd:unlocks-changed");
+  assert.deepEqual(changed.map((event) => ({ ...event.detail })), [{ source: "access-store-context", profileId: "profile-1" }]);
+});
+
 test("BroadcastChannel propagates an optimistic payment unlock to another tab", async () => {
   const channels = [];
   class FakeBroadcastChannel {
@@ -698,4 +733,80 @@ test("출생 기반: 저장 카드의 출생 정보 수정(birthChanged)은 출�
   await new Promise((resolve) => setImmediate(resolve));
   assert.equal(urls.length, 1, "새 출생 정보의 해금을 서버에 한 번 다시 물어야 합니다");
   assert.match(urls[0], /profileId=profile-1/);
+});
+
+/* 출생 기반 전환 이전 USER·PROFILE 행(레거시)은 계속 열린다 — 서버 스냅샷의
+   legacyAccountUnlockedFeatureIds · legacyProfileUnlockedFeatureIds 만 근거다(worker/lib/access-state.js). */
+function legacyPayload(profileId, { account = [], profile = [], unlocked = [] } = {}) {
+  const ids = Array.from(new Set([...account, ...profile, ...unlocked]));
+  return {
+    userId: "user-1",
+    currentProfileId: profileId,
+    unlockedFeatureIds: ids,
+    entitlementSnapshot: {
+      unlockedFeatureIds: ids,
+      legacyAccountUnlockedFeatureIds: account,
+      legacyProfileUnlockedFeatureIds: profile,
+      completeness: "full",
+      authority: "server",
+    },
+    completeness: "full",
+    authority: "server",
+  };
+}
+
+test("레거시 계정 키: 저장 카드가 없어도 accountScope 조회로 열린다", async () => {
+  const urls = [];
+  const store = loadStore(async (url) => {
+    urls.push(String(url));
+    return { ok: true, status: 200, json: async () => ({ ok: true, data: legacyPayload("", { account: ["section_daewun"] }) }) };
+  }, { authUser: { id: "user-1" }, birthScope: true });
+
+  await store.ensureLoaded({ userId: "user-1", authenticated: true });
+  assert.equal(urls.length, 0, "accountScope 없이 카드 없는 조회는 하지 않는다");
+
+  await store.ensureLoaded({ userId: "user-1", authenticated: true, accountScope: true });
+  assert.equal(urls.length, 1);
+  assert.match(urls[0], /profileId=$/);
+  assert.equal(store.isUnlocked("section_daewun"), true);
+  assert.equal(store.isLegacyAccountUnlockKey("section_daewun"), true);
+  assert.equal(store.isLegacyAccountUnlockKey("section_summary"), false);
+});
+
+test("레거시 키는 출생 정보 수정(birthChanged)에도 남고, 레거시 아닌 출생 키만 비운다", async () => {
+  const store = loadStore(async () => ({
+    ok: true,
+    status: 200,
+    json: async () => ({ ok: true, data: legacyPayload("profile-1", { account: ["section_daewun"], profile: ["section_summary"], unlocked: ["section_compat"] }) }),
+  }), { authUser: { id: "user-1" }, birthScope: true });
+  store.applyAccessStateSnapshot(
+    legacyPayload("profile-1", { account: ["section_daewun"], profile: ["section_summary"], unlocked: ["section_compat"] }),
+    { userId: "user-1", profileId: "profile-1" },
+  );
+  store.__testListeners.get("cd:profile-changed")({
+    detail: {
+      profileId: "profile-1",
+      profile: { id: "profile-1", gender: "F", birth: { year: 1991, month: 3, day: 4, hour: 5, minute: 6, calType: "solar" } },
+      birthChanged: true,
+      source: "profile-birth-edit",
+    },
+  });
+  assert.equal(store.isUnlocked("section_daewun"), true, "레거시 계정 키");
+  assert.equal(store.isUnlocked("section_summary"), true, "레거시 PROFILE 키");
+  assert.equal(store.isUnlocked("section_compat"), false, "BIRTH 근거만 있는 키는 이전 출생 정보의 것이다");
+});
+
+test("레거시 계정 키는 로컬 원장만으로는 생기지 않는다", async () => {
+  const storage = new Map();
+  storage.set("cd_verified_unlock_grants_v1", JSON.stringify({
+    "section_daewun::": { featureKey: "section_daewun", profileId: "", mode: "confirmed", ts: Date.now() },
+  }));
+  const store = loadStore(async () => ({ ok: false, status: 503, json: async () => ({ ok: false }) }), {
+    authUser: { id: "user-1" },
+    birthScope: true,
+    storageMap: storage,
+  });
+  await store.ensureLoaded({ userId: "user-1", profileId: "profile-1", authenticated: true });
+  assert.equal(store.isUnlocked("section_daewun"), false);
+  assert.equal(store.isLegacyAccountUnlockKey("section_daewun"), false);
 });

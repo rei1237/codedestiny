@@ -2,22 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import vm from 'node:vm';
 const root = process.cwd();
 const source = fs.readFileSync(path.join(root, 'public/_worker.js'), 'utf8');
 const map = JSON.parse(source.match(/const CONSOLIDATED_PAGE_REDIRECTS = (\{[\s\S]*?\});/)[1]);
 const worker = (await import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'))).default;
-test('home standalone entries skip only the marketing sheet, never tile payment gates', () => {
-  const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-  const body = html.match(/function _isDirectConsultationEntry\(tile\)\{[\s\S]*?\n  \}/)[0];
-  const direct = vm.runInNewContext('(' + body + ')');
-  const tile = attributes => ({ matches: () => true, getAttribute: key => attributes[key] || null });
-  assert.equal(direct(tile({ href: '/fortune-tea-house/' })), true);
-  assert.equal(direct(tile({ href: '/neo-operation-room/', 'data-coin-cost': '100' })), false);
-  assert.equal(direct(tile({ href: '/fortune-tea-house/', 'data-tile-lock-key': 'paid' })), false);
-  assert.equal(direct(tile({ href: '/fortune-tea-house/', 'data-action': 'openLegacy' })), false);
-  assert.equal(direct(tile({ href: '//example.com/' })), false);
-});
 test('every retired page redirects once to an existing destination and retains input', async () => {
   for (const [from, to] of Object.entries(map)) {
     for (const suffix of ['', '/']) {

@@ -1,16 +1,14 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),ts=require('typescript');
 const source=ts.transpileModule(fs.readFileSync('app/fortune-chat/consultation-access.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
 const context={exports:{}};vm.runInNewContext(source,context);
-const {canOfferCheckout,canOfferFreeTrial,guardCheckout}=context.exports;
-const fresh={id:'c1',paid:false,state:'CREATED',freeTrialAvailable:true};
+const {canOfferCheckout,guardCheckout}=context.exports;
+const fresh={id:'c1',paid:false,state:'CREATED'};
 
 test('pay button renders only for an unopened consultation',()=>{
   assert.equal(canOfferCheckout(fresh),true);
   for(const opened of [{...fresh,paid:true},{...fresh,state:'GENERATING'},{...fresh,state:'COMPLETED'},{...fresh,accessMethod:'ACCOUNT_FREE_TRIAL'},{...fresh,accessMethod:'PER_USE'},null,undefined])
     assert.equal(canOfferCheckout(opened),false);
-  assert.equal(canOfferFreeTrial(fresh),true);
-  assert.equal(canOfferFreeTrial({...fresh,freeTrialAvailable:false}),false);
-  assert.equal(canOfferFreeTrial({...fresh,paid:true}),false);
+  assert.equal('canOfferFreeTrial' in context.exports,false);
 });
 
 test('a consultation opened in another tab never reaches the payment window',async()=>{

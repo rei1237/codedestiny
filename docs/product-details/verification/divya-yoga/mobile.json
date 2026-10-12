@@ -1,0 +1,246 @@
+{
+  "rows": [
+    {
+      "width": 360,
+      "images": [
+        {
+          "loaded": true,
+          "width": 330,
+          "left": 15,
+          "right": 345
+        },
+        {
+          "loaded": true,
+          "width": 330,
+          "left": 15,
+          "right": 345
+        },
+        {
+          "loaded": true,
+          "width": 330,
+          "left": 15,
+          "right": 345
+        },
+        {
+          "loaded": true,
+          "width": 330,
+          "left": 15,
+          "right": 345
+        },
+        {
+          "loaded": true,
+          "width": 330,
+          "left": 15,
+          "right": 345
+        },
+        {
+          "loaded": true,
+          "width": 330,
+          "left": 15,
+          "right": 345
+        },
+        {
+          "loaded": true,
+          "width": 330,
+          "left": 15,
+          "right": 345
+        },
+        {
+          "loaded": true,
+          "width": 330,
+          "left": 15,
+          "right": 345
+        },
+        {
+          "loaded": true,
+          "width": 330,
+          "left": 15,
+          "right": 345
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "images": [
+        {
+          "loaded": true,
+          "width": 360,
+          "left": 15,
+          "right": 375
+        },
+        {
+          "loaded": true,
+          "width": 360,
+          "left": 15,
+          "right": 375
+        },
+        {
+          "loaded": true,
+          "width": 360,
+          "left": 15,
+          "right": 375
+        },
+        {
+          "loaded": true,
+          "width": 360,
+          "left": 15,
+          "right": 375
+        },
+        {
+          "loaded": true,
+          "width": 360,
+          "left": 15,
+          "right": 375
+        },
+        {
+          "loaded": true,
+          "width": 360,
+          "left": 15,
+          "right": 375
+        },
+        {
+          "loaded": true,
+          "width": 360,
+          "left": 15,
+          "right": 375
+        },
+        {
+          "loaded": true,
+          "width": 360,
+          "left": 15,
+          "right": 375
+        },
+        {
+          "loaded": true,
+          "width": 360,
+          "left": 15,
+          "right": 375
+        }
+      ]
+    },
+    {
+      "width": 430,
+      "images": [
+        {
+          "loaded": true,
+          "width": 400,
+          "left": 15,
+          "right": 415
+        },
+        {
+          "loaded": true,
+          "width": 400,
+          "left": 15,
+          "right": 415
+        },
+        {
+          "loaded": true,
+          "width": 400,
+          "left": 15,
+          "right": 415
+        },
+        {
+          "loaded": true,
+          "width": 400,
+          "left": 15,
+          "right": 415
+        },
+        {
+          "loaded": true,
+          "width": 400,
+          "left": 15,
+          "right": 415
+        },
+        {
+          "loaded": true,
+          "width": 400,
+          "left": 15,
+          "right": 415
+        },
+        {
+          "loaded": true,
+          "width": 400,
+          "left": 15,
+          "right": 415
+        },
+        {
+          "loaded": true,
+          "width": 400,
+          "left": 15,
+          "right": 415
+        },
+        {
+          "loaded": true,
+          "width": 400,
+          "left": 15,
+          "right": 415
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "images": [
+        {
+          "loaded": true,
+          "width": 538,
+          "left": 371,
+          "right": 909
+        },
+        {
+          "loaded": true,
+          "width": 538,
+          "left": 371,
+          "right": 909
+        },
+        {
+          "loaded": true,
+          "width": 538,
+          "left": 371,
+          "right": 909
+        },
+        {
+          "loaded": true,
+          "width": 538,
+          "left": 371,
+          "right": 909
+        },
+        {
+          "loaded": true,
+          "width": 538,
+          "left": 371,
+          "right": 909
+        },
+        {
+          "loaded": true,
+          "width": 538,
+          "left": 371,
+          "right": 909
+        },
+        {
+          "loaded": true,
+          "width": 538,
+          "left": 371,
+          "right": 909
+        },
+        {
+          "loaded": true,
+          "width": 538,
+          "left": 371,
+          "right": 909
+        },
+        {
+          "loaded": true,
+          "width": 538,
+          "left": 371,
+          "right": 909
+        }
+      ]
+    }
+  ],
+  "drawPosts": 0,
+  "authPosts": 0,
+  "otherPosts": 0,
+  "devPosts": 0,
+  "fallback": true,
+  "mode": "Mock APIs; existing yoga input; mood and duration selection; CTA trial only; no draw, payment or reading"
+}

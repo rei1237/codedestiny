@@ -1,4 +1,5 @@
 "use client";
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import Image from "next/image";
 import { PriceBadge } from "@/app/components/PriceBadge";
@@ -8,7 +9,7 @@ import { useAuthStore } from "@/app/_lib/auth-store";
 import { loginForCurrentPage } from "@/app/yeongnyangi/_lib/api";
 import { profileKey, useProfiles } from "@/app/yeongnyangi/_lib/use-profiles";
 import ProfileForm from "@/app/yeongnyangi/_components/ProfileForm";
-import { canOfferCheckout, canOfferFreeTrial, guardCheckout } from "./consultation-access";
+import { canOfferCheckout, guardCheckout } from "./consultation-access";
 import {
   consultationApi, ConsultationApiError, isConsultationId,
   type ChatConsultation, type ChatConsultationSummary, type ChatDomain, type ChatPersona, type ChatTarotKind,
@@ -21,8 +22,8 @@ import styles from "./consultation.module.css";
 
 // 가격 정본은 서버 레지스트리(fortune-chat-consultation)다. 아래 두 값은 결제창의 표시·스냅샷 선검사용으로,
 // 기존 대화형 상담(FortuneChatClient)과 같은 값을 쓴다.
-const COIN_PRICE = 30;
-const AMOUNT_KRW = 3000;
+const COIN_PRICE = 50;
+const AMOUNT_KRW = 5000;
 const RESUME_KIND = "fortune-chat-consultation:engine";
 const QUESTION_MAX = 300;
 const POLL_MS = 1500;
@@ -303,23 +304,6 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
     }
   };
 
-  const openFreeTrial = async () => {
-    if (!row || busy || !canOfferFreeTrial(row)) return;
-    const id = row.id;
-    setBusy(true); setError(""); setNotice("");
-    try {
-      const next = same(await consultationApi.activate(id, "free_trial"), id);
-      if (mounted.current) refresh(next);
-    } catch (reason) {
-      if (reason instanceof ConsultationApiError && reason.code === "PG_PAYMENT_NOT_PAID") {
-        setError("이 상담은 결제창이 열려 있어요. 결제를 마치거나 취소한 뒤 다시 시도해 주세요.");
-      } else fail(reason, "무료 상담을 열지 못했어요. 잠시 후 다시 시도해 주세요.");
-      void readWithEvidence(id).then((next) => { if (mounted.current) refresh(next); }).catch(() => {});
-    } finally {
-      if (mounted.current) setBusy(false);
-    }
-  };
-
   const pay = async () => {
     if (!row || busy || isPaying || !canOfferCheckout(row)) return;
     const id = row.id;
@@ -394,6 +378,7 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
       </header>
 
       <div className={base.timeline}>
+        {!row && <div style={{width:"100%",maxWidth:540,minWidth:0,margin:"0 auto",background:"#eee7dc",color:"#463a31",borderRadius:12}}><CraftedProductDisclosure featureKey="fortune-chat-consultation" variant={`engine-${persona}`} summaryLabel={`${personaName} 상담 구성 자세히 보기`} /></div>}
         {!row && (
           <>
             <section className={styles.panel} aria-labelledby="consultation-domain">
@@ -454,13 +439,12 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
               <div className={styles.accessPanel} data-consultation-access>
                 <p>{rowDomain === "tarot" ? "질문에 맞춰 카드를 펼쳐 두었어요." : "질문과 명식을 확인했어요."} 상담을 열면 {personaName}가 바로 답을 쓰기 시작해요.</p>
                 <div className={styles.actions}>
-                  {canOfferFreeTrial(row) && <button type="button" disabled={busy || isPaying} onClick={() => void openFreeTrial()}>무료 상담 1회로 열기</button>}
                   <button type="button" data-consultation-pay disabled={busy || isPaying} onClick={() => void pay()}>
                     {isPaying ? "결제창을 여는 중…" : "상담 열기"}
                   </button>
                 </div>
                 {/* 가격표 키는 서비스 등록 키다 — 상담별 결제 키(fc-<id>)는 가격표에 없어 "가격 확인 필요"가 뜬다. */}
-                <PriceBadge featureKey="fortune-chat-consultation" fallbackLabel="3,000원" prefix="1회 " className={base.priceBadge} />
+                <PriceBadge featureKey="fortune-chat-consultation" fallbackLabel="5,000원" prefix="1회 " className={base.priceBadge} />
               </div>
             )}
 

@@ -33,6 +33,7 @@ import ReportCover from "./_components/ReportCover";
 import ReportDownload from "./_components/ReportDownload";
 import GenerationProgress from "./_components/GenerationProgress";
 import ReportChapter from "./_components/ReportChapter";
+import CraftedProductDisclosure from '@/app/components/CraftedProductDisclosure';
 import ReportLockedPanel from "./_components/ReportLockedPanel";
 import ReportRail from "./_components/ReportRail";
 import { say } from "./_lib/copy";
@@ -209,6 +210,8 @@ export default function HumanDesignReportClient({ locale: localeOverride }: { lo
           </p>
         </section>
       )}
+
+      {chart && phase === "locked" && locale === "ko" && <div style={{maxWidth:540,marginInline:"auto"}}><CraftedProductDisclosure featureKey="human-design-report"/></div>}
 
       {chart && phase === "locked" && (
         <ReportLockedPanel

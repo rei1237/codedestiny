@@ -1,0 +1,18 @@
+{
+  "disposition": "ship",
+  "source": "Independent original and actual mobile visual reviewers",
+  "verified": [
+    "10 originals",
+    "10 actual 360px panels",
+    "CTA and notice 360/390/430",
+    "transcript viewport at panels 3,8,10"
+  ],
+  "captureCaveat": "Long element capture has a fixed-background artifact. Real scrolled viewport captures show readable light background.",
+  "checks": {
+    "targetedTests": 24,
+    "eslint": "pass"
+  },
+  "limits": [
+    "No real LLM, payment, PDF export, or production delivery"
+  ]
+}

@@ -16,6 +16,12 @@
     };
   }
   function currentInput() { return inputOf(root._astroBirth || root._ziweiBirth || {}); }
+  // 서버는 저장된 카드의 출생 정보로 해금을 판정한다. 화면 출생 정보와 같은 카드일 때만 id 가 나온다.
+  function requestBody(state) {
+    var profileId = '';
+    try { profileId = String((root.cdBirthScopeCurrentProfileId && root.cdBirthScopeCurrentProfileId()) || '').trim(); } catch (_) {}
+    return JSON.stringify(profileId ? Object.assign({ profileId: profileId }, state.input) : state.input);
+  }
   function current(state) {
     return active === state && state.host.isConnected && state.key === JSON.stringify(currentInput());
   }
@@ -50,7 +56,7 @@
       if (typeof root._cdAIPromptRequestJson !== 'function') throw new Error('requester unavailable');
       var result = await Promise.race([
         root._cdAIPromptRequestJson('/api/astro/basic-deep', {
-          method: 'POST', cache: 'no-store', body: JSON.stringify(state.input)
+          method: 'POST', cache: 'no-store', body: requestBody(state)
         }),
         new Promise(function (_, reject) { timer = setTimeout(function () { reject(new Error('timeout')); }, 20000); })
       ]);
@@ -76,6 +82,8 @@
           state.buy.textContent = data.amountKRW.toLocaleString('ko-KR') + '원 · 상세 해석 열기';
           state.buy.hidden = false;
         }
+      } else if ((result.status === 400 || result.status === 403) && data.requiresProfile === true) {
+        state.status.textContent = '상세 해석은 저장된 내 프로필 기준으로 열려요. 이 출생 정보를 프로필로 저장하거나 저장된 프로필을 선택해 주세요.';
       } else {
         state.status.textContent = result.status === 400 ? '출생 정보를 확인한 뒤 차트를 다시 열어 주세요.' : '상세 해석을 불러오지 못했어요. 잠시 후 다시 시도해 주세요. 구매 권리는 그대로 유지됩니다.';
       }
@@ -129,6 +137,7 @@
     readButton.addEventListener('click', function () { void read(state); });
     pdf.addEventListener('click', function () { void printPdf(state); });
     void read(state);
+    import('/js/core/astro/crafted-details.mjs').then(function (module) { if (area.isConnected) module.mountAstroCraftedDetails(area); }).catch(function () { /* Optional guide must not interrupt the existing report. */ });
   }
   root.addEventListener('cd:auth-changed', invalidate);
   document.addEventListener('cd:profile-card-published', invalidate);

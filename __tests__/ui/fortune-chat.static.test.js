@@ -13,8 +13,7 @@ test("Yeoni chat keeps a unified character choice and neutral usage label", () =
   assert.doesNotMatch(client, /계정당 총 3회/);
   assert.match(client, /type Character = "yeoni" \| "neo"/);
   assert.doesNotMatch(client, /\["flower_pig", "yeoni", "neo"\]/);
-  assert.match(client, /usage\.dailyFreeRemaining/);
-  assert.match(client, /무료 상담/);
+  assert.doesNotMatch(client, /무료 상담|1회 무료|무료로 시작/);
 });
 
 test("new chats always open with Yeoni, even from an old ?character=neo link", () => {
@@ -166,7 +165,7 @@ test("dev refresh keeps shared UMD billing boundaries out of ESM-only HMR output
   assert.match(nextConfig, /LEGACY_SHARED_BROWSER_MODULE/);
   assert.match(nextConfig, /checkout-entry\|pass-verdict\|payment-service/);
   assert.match(nextConfig, /name\.includes\("react-refresh"\)/);
-  assert.match(nextConfig, /visitWebpackRules\(config\.module\?\.rules\)/);
+  assert.match(nextConfig, /visitWebpackRules\(config\.module\?\.rules, dev\)/);
 });
 
 test("the free reading closes with the product the server picked for that topic", () => {

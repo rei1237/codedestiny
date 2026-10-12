@@ -504,6 +504,10 @@ describe("single payment entitlement consistency", () => {
     expect(parsed.payload.code).toBe("UNLOCK_RECORD_DEFERRED_ADMIN_REVIEW");
     expect(parsed.payload.refundStatus).toBe("not_refunded");
     expect(parsed.payload.adminReviewRequired).toBe(true);
+    // 출생 기반 키는 계정 배열로 열리지 않는다 — "권한 정상 처리" 오안내 금지, 프로필 선택 안내로 대신한다.
+    expect(parsed.payload.profileSelectionRequired).toBe(true);
+    expect(parsed.payload.message).not.toContain("정상 처리");
+    expect(parsed.payload.message).toContain("프로필");
     // 🔴 PortOne 단건 조회 1회뿐 — 취소 호출이 늘면 사용자 돈이 되돌아간 것이다.
     expect(global.fetch).toHaveBeenCalledTimes(1);
     expect(String(global.fetch.mock.calls[0][0])).not.toContain("/cancel");

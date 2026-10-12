@@ -1,4 +1,5 @@
 export type VisualDetail = {
+  crafted?: CraftedDetail[];
   slug: string; title: string; href: string; featureKey: string; featureKeyTo?: string; accessType: string;
   image: string; headline: string; description: string; ctaLabel: string; verification: string; category?: string;
   aliases: string[]; evidence: string[];
@@ -16,3 +17,6 @@ export type VisualDetail = {
 };
 export function renderFeatureDetailPanels(detail: VisualDetail, options?: {headingLevel?: number; conversionPrompt?: boolean; startPriceLabel?: string}): string;
 export function loadFeatureDetail(keys: (string | undefined)[]): Promise<VisualDetail | null>;
+export type CraftedDetail = { title?: string; panels: { src: string; text: string; title: string; width?: number; height?: number }[]; notice: string };
+export function renderCraftedDetail(detail: CraftedDetail): string;
+export function revealCraftedTranscript(event: {target: EventTarget | null}): void;

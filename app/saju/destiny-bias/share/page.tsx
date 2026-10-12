@@ -4,7 +4,7 @@ import MyDestinyBiasShell from "../components/MyDestinyBiasShell";
 import ShareLandingClient from "./ShareLandingClient";
 
 const TITLE = "공유된 최애 케미 카드 | 최애운명";
-const DESCRIPTION = "친구가 공유한 최애 케미 유형을 확인하고, 내 생일로 같은 최애와의 케미도 무료로 확인해 보세요.";
+const DESCRIPTION = "친구가 공유한 최애 케미 유형을 확인하고, 내 생일로 같은 최애와의 케미도 확인해 보세요.";
 const OG_IMAGE = "https://code-destiny.com/images/destiny-bias/og-default-1200x630.png";
 
 // 🔴 noindex 는 metadata 에만 둔다. robots.txt Disallow·_headers X-Robots 로 막으면 카카오 스크래퍼까지

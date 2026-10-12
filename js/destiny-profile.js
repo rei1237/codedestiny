@@ -57,12 +57,11 @@
   var _dpProfileMemoryScope = '';
   var _dpProfiles = [];
   var _dpCurrentId = '';
+  /* 2026-10-11: 프로필 카드 추가·수정·삭제는 무료이고 개수 상한이 없다(서버 정본
+     worker/lib/profile-card-mutation-policy.js). featureKey 는 정책 변경 전에 결제된 요청을
+     모바일 복귀로 마저 끝낼 때 서버 요청 본문에만 싣는다. */
   var PROFILE_CARD_MANAGE_FEATURE_KEY = 'profile-card-manage';
-  // 2026-10-10 5,000원 → 1,000원(10코인 · 월정석 100개). 서버 정본 worker/lib/profile-card-mutation-policy.js 와 같아야 한다.
-  var PROFILE_CARD_MANAGE_COST = 10;
-  var PROFILE_CARD_MANAGE_MONTHLY_COST = PROFILE_CARD_MANAGE_COST * 10;
-  var PROFILE_CARD_MANAGE_PRICE_LABEL = (PROFILE_CARD_MANAGE_COST * 100).toLocaleString('ko-KR') + '원';
-  var DP_PROFILE_DELETE_GATE_MARKER = 'profile-delete-dedicated-gate-v20260618-monthly';
+  var DP_PROFILE_DELETE_GATE_MARKER = 'profile-delete-confirm-gate-v20261011-free';
   var ACTIVE_PROFILE_CACHE_KEY = 'code-destiny.activeProfileCache.v1';
   var ACTIVE_PROFILE_ID_KEY = 'code-destiny.activeProfileId';
   var GUEST_PROFILE_KEY = 'codeDestiny:guestProfile';
@@ -95,6 +94,14 @@
       directResumeCardOpen: '「{feature}」 지금 열기',
       directResumeCardOpenGeneric: '지금 열기',
       directResumeCardDismiss: '닫기',
+      // 프로필 선택 지급(출생 기반 전환 전 주문의 지급 보류 해소). {name} 은 프로필 이름.
+      birthClaimTitle: '결제한 콘텐츠를 열 프로필을 골라 주세요',
+      birthClaimDesc: '결제는 확인됐어요. 고른 프로필의 생년월일로 열람 권한을 드려요. 다시 결제하지 않아도 돼요.',
+      birthClaimPickPartner: '상대 프로필도 골라 주세요.',
+      birthClaimNoProfile: '저장된 프로필이 없어요. 프로필을 먼저 저장한 뒤 다시 들어와 주세요.',
+      birthClaimConfirm: '「{name}」 프로필의 생년월일로 열람 권한을 적용할까요?\n적용한 뒤에는 바꿀 수 없어요.',
+      birthClaimDone: '선택한 프로필로 열람 권한을 적용했어요.',
+      birthClaimFailed: '열람 권한을 적용하지 못했어요. 잠시 후 다시 시도해 주세요.',
       directResumeFailed: '{method} 결제가 완료되지 않았습니다. 다시 시도해 주세요.',
       directResumeFailedGeneric: '결제가 완료되지 않았습니다. 다시 시도해 주세요.',
       directResumeError: '결제 확인 중 오류가 발생했습니다.\n잠시 후 이 화면을 새로고침하면 다시 확인합니다.',
@@ -108,12 +115,10 @@
       profileAddNewAria: '새 프로필 카드 추가',
       profileSaveEdit: '프로필 카드 수정',
       profileSaveCreate: '프로필 카드 생성',
-      profileSaveCreateExtra: '프로필 카드 추가 생성',
       profileSaveFirst: '이 정보를 나의 운명 카드에 저장',
       profileEditingNotice: '✎ 선택한 카드를 수정하는 중입니다 · 새로 만들려면 [＋ 새 프로필 카드]를 눌러 주세요',
-      profileEditConfirm: '이 카드의 정보를 수정할까요?\n수정에는 1,000원 단건 결제 또는 월정석이 필요합니다.\n생년월일·시각·성별·출생지를 다시 확인해 주세요.',
-      profileEditConfirmFree: '이 카드의 정보를 수정할까요?\nCode Destiny Family 이용권으로 추가 결제 없이 수정합니다.\n생년월일·시각·성별·출생지를 다시 확인해 주세요.',
-      profileCreateExtraConfirm: '프로필 카드를 하나 더 만들까요?\n기본 제공 한도를 모두 사용해, 추가 생성은 1,000원 단건 결제 또는 월정석으로 진행됩니다.',
+      profileEditBirthLockNotice: '생년월일·시각·양음력·성별을 바꾸면 이 카드로 열어 둔 결과가 잠길 수 있습니다. 원래 출생정보로 되돌리면 다시 열립니다.',
+      profileEditConfirm: '이 카드의 정보를 수정할까요?\n생년월일·시각·성별·출생지를 다시 확인해 주세요.',
       profileCreateConfirm: '새 프로필 카드를 만들까요?\n생년월일·시각·성별·출생지를 다시 확인해 주세요.',
       profileEditAria: '프로필 카드 수정',
       profileDeleteAria: '프로필 카드 삭제',
@@ -138,6 +143,13 @@
       directResumeCardOpen: 'Open “{feature}” now',
       directResumeCardOpenGeneric: 'Open now',
       directResumeCardDismiss: 'Close',
+      birthClaimTitle: 'Choose a profile for your purchase',
+      birthClaimDesc: 'Your payment is confirmed. Access is granted for the birth date of the profile you choose. No need to pay again.',
+      birthClaimPickPartner: 'Now choose the partner profile.',
+      birthClaimNoProfile: 'No saved profiles yet. Save a profile first, then come back.',
+      birthClaimConfirm: 'Apply access using the birth date of “{name}”?\nThis cannot be changed later.',
+      birthClaimDone: 'Access applied to the selected profile.',
+      birthClaimFailed: 'Could not apply access. Please try again shortly.',
       directResumeFailed: 'Your {method} payment was not completed. Please try again.',
       directResumeFailedGeneric: 'Your payment was not completed. Please try again.',
       directResumeError: 'Something went wrong while confirming your payment.\nRefresh this page in a moment to check again.',
@@ -151,12 +163,10 @@
       profileAddNewAria: 'Add a new profile card',
       profileSaveEdit: 'Update profile card',
       profileSaveCreate: 'Create profile card',
-      profileSaveCreateExtra: 'Add another card',
       profileSaveFirst: 'Save this as my destiny card',
       profileEditingNotice: '✎ Editing the selected card — tap [＋ New profile card] to start a fresh one instead',
-      profileEditConfirm: 'Update this card?\nUpdating requires a single 1,000 KRW payment or Moonlight Stones.\nPlease double-check the birth date, time, gender, and birthplace.',
-      profileEditConfirmFree: 'Update this card?\nYour Code Destiny Family pass covers this at no extra charge.\nPlease double-check the birth date, time, gender, and birthplace.',
-      profileCreateExtraConfirm: 'Create one more profile card?\nYou have used every card included in your plan, so this one takes a single 1,000 KRW payment or Moonlight Stones.',
+      profileEditBirthLockNotice: 'Changing the birth date, time, calendar type, or gender may lock results you unlocked with this card. Restoring the original birth details unlocks them again.',
+      profileEditConfirm: 'Update this card?\nPlease double-check the birth date, time, gender, and birthplace.',
       profileCreateConfirm: 'Create a new profile card?\nPlease double-check the birth date, time, gender, and birthplace.',
       profileEditAria: 'Update this profile card',
       profileDeleteAria: 'Delete this profile card',
@@ -181,6 +191,13 @@
       directResumeCardOpen: '「{feature}」を今すぐ開く',
       directResumeCardOpenGeneric: '今すぐ開く',
       directResumeCardDismiss: '閉じる',
+      birthClaimTitle: '購入したコンテンツを開くプロフィールを選んでください',
+      birthClaimDesc: '決済は確認済みです。選んだプロフィールの生年月日で閲覧権限を付与します。再度お支払いいただく必要はありません。',
+      birthClaimPickPartner: 'お相手のプロフィールも選んでください。',
+      birthClaimNoProfile: '保存されたプロフィールがありません。プロフィールを保存してから再度お越しください。',
+      birthClaimConfirm: '「{name}」の生年月日で閲覧権限を適用しますか？\n適用後は変更できません。',
+      birthClaimDone: '選んだプロフィールに閲覧権限を適用しました。',
+      birthClaimFailed: '閲覧権限を適用できませんでした。しばらくしてから再度お試しください。',
       directResumeFailed: '{method}の決済が完了しませんでした。もう一度お試しください。',
       directResumeFailedGeneric: '決済が完了しませんでした。もう一度お試しください。',
       directResumeError: '決済確認中にエラーが発生しました。\nしばらくしてこの画面を再読み込みすると再確認します。',
@@ -194,12 +211,10 @@
       profileAddNewAria: '新しいプロフィールカードを追加',
       profileSaveEdit: 'プロフィールカードを編集',
       profileSaveCreate: 'プロフィールカードを作成',
-      profileSaveCreateExtra: 'カードを追加で作成',
       profileSaveFirst: 'この情報を運命カードに保存',
       profileEditingNotice: '✎ 選択したカードを編集中です。新しく作るには［＋ 新しいカードを作る］をタップしてください',
-      profileEditConfirm: 'このカードの情報を更新しますか？\n更新には1,000ウォンの単発決済、または月精石が必要です。\n生年月日・時刻・性別・出生地をもう一度ご確認ください。',
-      profileEditConfirmFree: 'このカードの情報を更新しますか？\nCode Destiny Family 利用券により、追加決済なしで更新できます。\n生年月日・時刻・性別・出生地をもう一度ご確認ください。',
-      profileCreateExtraConfirm: 'プロフィールカードをもう一枚作成しますか？\n基本枠を使い切っているため、追加作成は1,000ウォンの単発決済または月精石で進みます。',
+      profileEditBirthLockNotice: '生年月日・時刻・暦（陽暦/陰暦）・性別を変えると、このカードで開いた結果がロックされる場合があります。元の出生情報に戻すと再び開きます。',
+      profileEditConfirm: 'このカードの情報を更新しますか？\n生年月日・時刻・性別・出生地をもう一度ご確認ください。',
       profileCreateConfirm: '新しいプロフィールカードを作成しますか？\n生年月日・時刻・性別・出生地をもう一度ご確認ください。',
       profileEditAria: 'プロフィールカードを編集',
       profileDeleteAria: 'プロフィールカードを削除',
@@ -224,6 +239,13 @@
       directResumeCardOpen: '立即打开「{feature}」',
       directResumeCardOpenGeneric: '立即打开',
       directResumeCardDismiss: '关闭',
+      birthClaimTitle: '请选择用于打开已购内容的档案',
+      birthClaimDesc: '付款已确认。将按所选档案的出生日期授予查看权限，无需再次付款。',
+      birthClaimPickPartner: '请再选择对方的档案。',
+      birthClaimNoProfile: '还没有保存的档案。请先保存档案后再回来。',
+      birthClaimConfirm: '要按「{name}」的出生日期授予查看权限吗？\n授予后无法更改。',
+      birthClaimDone: '已为所选档案授予查看权限。',
+      birthClaimFailed: '未能授予查看权限，请稍后再试。',
       directResumeFailed: '{method}支付未完成。请重试。',
       directResumeFailedGeneric: '支付未完成。请重试。',
       directResumeError: '确认支付时发生错误。\n请稍后刷新此页面再次确认。',
@@ -237,12 +259,10 @@
       profileAddNewAria: '新建个人资料卡',
       profileSaveEdit: '修改个人资料卡',
       profileSaveCreate: '创建个人资料卡',
-      profileSaveCreateExtra: '再建一张资料卡',
       profileSaveFirst: '将此信息存为我的命运卡',
       profileEditingNotice: '✎ 正在编辑所选卡片 · 若要新建，请点击［＋ 新建资料卡］',
-      profileEditConfirm: '要修改这张卡片的信息吗？\n修改需支付 1,000 韩元单次费用或使用月精石。\n请再次确认出生日期、时辰、性别与出生地。',
-      profileEditConfirmFree: '要修改这张卡片的信息吗？\nCode Destiny Family 使用券可免费修改，无需额外付款。\n请再次确认出生日期、时辰、性别与出生地。',
-      profileCreateExtraConfirm: '要再建一张个人资料卡吗？\n套餐内的名额已用完，新增将通过 1,000 韩元单次支付或月精石完成。',
+      profileEditBirthLockNotice: '修改出生日期、时辰、阴阳历或性别后，用这张卡片解锁的结果可能会被锁定。改回原来的出生信息即可重新解锁。',
+      profileEditConfirm: '要修改这张卡片的信息吗？\n请再次确认出生日期、时辰、性别与出生地。',
       profileCreateConfirm: '要新建一张个人资料卡吗？\n请再次确认出生日期、时辰、性别与出生地。',
       profileEditAria: '修改个人资料卡',
       profileDeleteAria: '删除个人资料卡',
@@ -267,6 +287,13 @@
       directResumeCardOpen: '立即開啟「{feature}」',
       directResumeCardOpenGeneric: '立即開啟',
       directResumeCardDismiss: '關閉',
+      birthClaimTitle: '請選擇用於開啟已購內容的檔案',
+      birthClaimDesc: '付款已確認。將依所選檔案的出生日期授予檢視權限，無需再次付款。',
+      birthClaimPickPartner: '請再選擇對方的檔案。',
+      birthClaimNoProfile: '尚無已儲存的檔案。請先儲存檔案後再回來。',
+      birthClaimConfirm: '要依「{name}」的出生日期授予檢視權限嗎？\n授予後無法變更。',
+      birthClaimDone: '已為所選檔案授予檢視權限。',
+      birthClaimFailed: '未能授予檢視權限，請稍後再試。',
       directResumeFailed: '{method}付款未完成。請重試。',
       directResumeFailedGeneric: '付款未完成。請重試。',
       directResumeError: '確認付款時發生錯誤。\n請稍後重新整理此頁面再次確認。',
@@ -280,12 +307,10 @@
       profileAddNewAria: '新增個人資料卡',
       profileSaveEdit: '修改個人資料卡',
       profileSaveCreate: '建立個人資料卡',
-      profileSaveCreateExtra: '再建一張資料卡',
       profileSaveFirst: '將此資訊存為我的命運卡',
       profileEditingNotice: '✎ 正在編輯所選卡片 · 若要新建，請點擊［＋ 新增命盤卡］',
-      profileEditConfirm: '要修改這張卡片的資訊嗎？\n修改需支付 1,000 韓元單次費用或使用月精石。\n請再次確認出生日期、時辰、性別與出生地。',
-      profileEditConfirmFree: '要修改這張卡片的資訊嗎？\nCode Destiny Family 使用券可免費修改，無需額外付款。\n請再次確認出生日期、時辰、性別與出生地。',
-      profileCreateExtraConfirm: '要再建一張個人資料卡嗎？\n方案內的名額已用完，新增將透過 1,000 韓元單次付款或月精石完成。',
+      profileEditBirthLockNotice: '修改出生日期、時辰、陰陽曆或性別後，用這張卡片解鎖的結果可能會被鎖定。改回原本的出生資訊即可重新解鎖。',
+      profileEditConfirm: '要修改這張卡片的資訊嗎？\n請再次確認出生日期、時辰、性別與出生地。',
       profileCreateConfirm: '要新增一張個人資料卡嗎？\n請再次確認出生日期、時辰、性別與出生地。',
       profileEditAria: '修改個人資料卡',
       profileDeleteAria: '刪除個人資料卡',
@@ -2511,7 +2536,7 @@
     try {
       var info = meta && typeof meta === 'object' ? meta : {};
       var tierRaw = String(info.subscriptionTier || info.tier || '').trim().toLowerCase();
-      var tierLabel = tierRaw === 'vvip' ? 'VVIP' : (tierRaw === 'premium' ? '프리미엄' : (tierRaw === 'standard' ? '스탠다드' : '구독'));
+      var tierLabel = tierRaw.indexOf('family') >= 0 ? '패밀리 꿀단지' : (tierRaw === 'vvip' ? '큰 꿀단지' : (tierRaw === 'premium' ? '중간 꿀단지' : (tierRaw === 'standard' ? '작은 꿀단지' : '구독')));
       var requiredCoins = Number(info.requiredCoins || 0);
       var freeLimit = Number(info.freeLimit || 0);
       var message = String(info.message || '').trim() || (tierLabel + ' 혜택으로 이번 리딩은 추가 결제 없이 열렸어요. 연이가 별빛 방패로 지켜드렸어요.');
@@ -4558,6 +4583,136 @@
     try { (openBtn || dismissBtn).focus({ preventScroll: true }); } catch (_focusError) {}
   }
 
+  /* 프로필 선택 지급 — 출생 기반 해금 전환 전 주문은 스냅샷에 생년월일이 없어, 그 프로필이 지워졌으면
+     서버가 지급을 보류한다(worker/payments/birth-profile-claim.js). 환불하지 않고 사용자가 저장 프로필을
+     고르면 그 출생 정보로 열람 권한을 준다. 🔴 활성 프로필(dpSelectProfile)은 바꾸지 않는다 — 지급
+     대상만 고른다. 조회는 GET 이라 결제 게이트의 profileId 요구(verify:paid-gate-profile-scope)와 무관하다. */
+  var _dpBirthProfilePendingProbe = null;
+  function _dpProbeBirthProfilePending(force) {
+    if (_dpBirthProfilePendingProbe && !force) return _dpBirthProfilePendingProbe;
+    if (!_dpHasAuthToken() || _dpIsPointsShopPath()) return Promise.resolve([]);
+    _dpBirthProfilePendingProbe = _dpPaymentFetchJson('/api/payments/birth-profile-pending', { method: 'GET' }, { retryOn401: true })
+      .then(function (res) {
+        var orders = (res && res.ok && res.payload && Array.isArray(res.payload.orders)) ? res.payload.orders : [];
+        // 복귀 카드가 떠 있으면 덮지 않는다(그 주문의 안내가 우선). 강제 조회는 그 복귀가 부른 것이다.
+        if (orders.length && (force || !document.getElementById('cdDirectResumeCard'))) {
+          _dpWhenProfilesReady(function (profiles) { _dpShowBirthProfileClaimCard(orders[0], profiles); });
+        }
+        return orders;
+      })
+      .catch(function () { return []; });
+    return _dpBirthProfilePendingProbe;
+  }
+
+  // 로그인 사용자의 프로필은 서버 동기화 뒤에 채워진다 — 비어 있으면 공개 신호를 한 번(최대 8초) 기다린다.
+  function _dpWhenProfilesReady(fn) {
+    var read = function () {
+      try {
+        var list = typeof window.__cdListDestinyProfiles === 'function' ? window.__cdListDestinyProfiles() : [];
+        return (list || []).filter(function (profile) { return _dpGetProfileId(profile); });
+      } catch (_) { return []; }
+    };
+    var ready = read();
+    if (ready.length) { fn(ready); return; }
+    var done = false;
+    var finish = function () {
+      if (done) return;
+      done = true;
+      document.removeEventListener('cd:profile-card-published', finish);
+      fn(read());
+    };
+    document.addEventListener('cd:profile-card-published', finish);
+    window.setTimeout(finish, 8000);
+  }
+
+  function _dpShowBirthProfileClaimCard(order, profiles) {
+    if (typeof document === 'undefined' || !document.body || !order || !order.orderId) return;
+    _dpDismissDirectResumeCard();
+    _dpEnsureDirectResumeCardStyle();
+    var card = document.createElement('div');
+    card.id = 'cdDirectResumeCard';
+    card.setAttribute('role', 'dialog');
+    card.setAttribute('aria-live', 'polite');
+    var title = document.createElement('p');
+    title.className = 'cd-direct-resume-title';
+    title.textContent = _dpText('birthClaimTitle');
+    var desc = document.createElement('p');
+    desc.className = 'cd-direct-resume-desc';
+    desc.style.whiteSpace = 'pre-line';
+    // 🔴 textContent 로만 넣는다 — 상품명·프로필 이름은 사용자·주문 데이터다.
+    var lead = String(order.productName || '').trim();
+    var setDesc = function (text) { desc.textContent = (lead ? lead + '\n' : '') + text; };
+    setDesc(profiles.length ? _dpText('birthClaimDesc') : _dpText('birthClaimNoProfile'));
+    var actions = document.createElement('div');
+    actions.className = 'cd-direct-resume-actions';
+    actions.style.flexWrap = 'wrap';
+    var buttons = [];
+    var first = null; // 궁합처럼 상대 프로필이 필요한 주문의 첫 선택
+    var reset = function (text) {
+      first = null;
+      setDesc(text);
+      buttons.forEach(function (btn) { btn.disabled = false; });
+    };
+    var claim = async function (profile, partner) {
+      var label = String(profile.name || '') + (partner ? ' · ' + String(partner.name || '') : '');
+      if (!window.confirm(_dpInterpolateText(_dpText('birthClaimConfirm'), { name: label }))) {
+        reset(_dpText('birthClaimDesc'));
+        return;
+      }
+      buttons.forEach(function (btn) { btn.disabled = true; });
+      var res = null;
+      try {
+        res = await _dpPaymentFetchJson('/api/payments/birth-profile-pending/' + encodeURIComponent(order.orderId) + '/claim', {
+          method: 'POST',
+          body: JSON.stringify({ profileId: _dpGetProfileId(profile), partnerProfileId: partner ? _dpGetProfileId(partner) : '' }),
+        }, { retryOn401: true, refreshOn401: true });
+      } catch (_) { res = null; }
+      if (!res || !res.ok) {
+        reset(_dpReadBillingMessage(res && res.payload, _dpText('birthClaimFailed')));
+        return;
+      }
+      _dpDismissDirectResumeCard();
+      try {
+        var accessCache = window.CodeDestinyUserAccessCache;
+        if (accessCache && typeof accessCache.refreshUserAccessAfterPayment === 'function') {
+          Promise.resolve(accessCache.refreshUserAccessAfterPayment()).catch(function () {});
+        }
+      } catch (_accessRefreshError) {}
+      _dpShowDirectResumeNotice(_dpText('birthClaimDone'), 'unlock-saving', 4000);
+      // 대기 주문이 더 있으면 안내가 걷힌 뒤 다음 것을 이어서 띄운다.
+      window.setTimeout(function () { void _dpProbeBirthProfilePending(true); }, 4200);
+    };
+    profiles.forEach(function (profile) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'cd-direct-resume-open';
+      btn.textContent = String(profile.name || '').trim() || _dpGetProfileId(profile);
+      btn.addEventListener('click', function () {
+        if (!order.requiresPartner) { void claim(profile, null); return; }
+        if (!first) {
+          first = profile;
+          btn.disabled = true;
+          setDesc(_dpText('birthClaimPickPartner'));
+          return;
+        }
+        void claim(first, profile);
+      });
+      buttons.push(btn);
+      actions.appendChild(btn);
+    });
+    var dismissBtn = document.createElement('button');
+    dismissBtn.type = 'button';
+    dismissBtn.className = 'cd-direct-resume-dismiss';
+    dismissBtn.textContent = _dpText('directResumeCardDismiss');
+    dismissBtn.addEventListener('click', _dpDismissDirectResumeCard);
+    actions.appendChild(dismissBtn);
+    card.appendChild(title);
+    card.appendChild(desc);
+    card.appendChild(actions);
+    document.body.appendChild(card);
+    try { (buttons[0] || dismissBtn).focus({ preventScroll: true }); } catch (_focusError) {}
+  }
+
   /**
    * @param {{pollingPaymentId?: string}} [options]
    *   pollingPaymentId 가 있으면 **폴링 안전망**(_dpStartDirectOrderPoll)이 서버로부터 승인을
@@ -4710,6 +4865,12 @@
       var resumePending = resumeCode === 'GRANT_PENDING' || resumeCode === 'PENDING_CONFIRMATION'
         || resumePayload.recoveryRequired === true || Number(confirmRes.status) === 202;
       if (resumePending) {
+        // 생년월일을 몰라 지급이 보류된 주문 — 새로고침으로는 풀리지 않는다. 프로필 선택 카드를 바로 연다.
+        if (resumePayload.profileSelectionRequired === true) {
+          _dpSetPaymentPending(false);
+          void _dpProbeBirthProfilePending(true);
+          return;
+        }
         var resumePendingMessage = resumePayload.message ? String(resumePayload.message) : _dpText('directResumePending');
         _dpShowDirectResumeNotice(resumePendingMessage, 'unlock-saving', 4000);
         return;
@@ -5212,9 +5373,18 @@
 
   // 낙관적 즉시 허용 후 서버에 pass 사용을 기록(fire-and-forget). pass는 무료라 기록 실패해도 금전영향 0.
   // 서버가 미커버(402)로 응답하면 로컬 스냅샷이 낡은 것이므로 세션을 갱신하고 낙관적 허용을 잠시 비활성화한다.
-  function _dpRecordMembershipPassInBackground(opts, title, coinPrice, requestId) {
+  // 백그라운드 이용권 기록의 일시장애 재시도 간격(셸 _CD_PASS_RECORD_RETRY_DELAYS_MS 와 같다).
+  var _DP_PASS_RECORD_RETRY_DELAYS_MS = [4000, 12000, 30000];
+
+  function _dpRecordMembershipPassInBackground(opts, title, coinPrice, requestId, retryAttempt) {
     try {
       var bgRequestId = String(requestId || '').trim() || ('opt-pass-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8));
+      var attempt = Math.max(0, Math.floor(Number(retryAttempt || 0)));
+      // 5xx·타임아웃·네트워크 오류는 같은 requestId 로 최대 3번 다시 보낸다. 서버 소비 마커가 이중 차감을 막는다.
+      var scheduleRetry = function() {
+        if (attempt >= _DP_PASS_RECORD_RETRY_DELAYS_MS.length) return;
+        setTimeout(function() { _dpRecordMembershipPassInBackground(opts, title, coinPrice, bgRequestId, attempt + 1); }, _DP_PASS_RECORD_RETRY_DELAYS_MS[attempt]);
+      };
       _dpPaymentFetchJson('/api/billing/coin-gate', { method: 'POST', body: JSON.stringify(_dpBuildPaidGatePayload(opts, title, coinPrice, bgRequestId, 'MEMBERSHIP_PASS')) })
         .then(function(res) {
           var payload = res && res.payload ? res.payload : res;
@@ -5251,10 +5421,12 @@
               && Math.max(0, Math.floor(Number(coinPrice || 0))) > _dpMembershipPassLimitForTier(deniedSnapshot.tier)) return;
             _dpDisableOptimisticPassBriefly();
             try { _dpRefreshAuthSessionSilently({}); } catch (_) {}
+            return;
           }
-          // 5xx/degraded는 일시장애 — 무시(재시도 불필요).
+          // 5xx/degraded·네트워크(status 0)는 일시장애 — 다시 보낸다. 다른 4xx 는 다시 보내도 같다.
+          if (statusCode === 0 || statusCode >= 500) scheduleRetry();
         })
-        .catch(function() {});
+        .catch(function() { scheduleRetry(); });
     } catch (_) {}
   }
 
@@ -5973,437 +6145,6 @@
     });
   }
 
-  window._cdCoinGatePerUse = function(cost, reason, cb, onCancel, options) {
-    if (!options && onCancel && typeof onCancel === 'object' && typeof cb === 'function') {
-      options = onCancel;
-      onCancel = undefined;
-    }
-    var optionBag = (options && typeof options === 'object') ? options : {};
-    var normalizedFeatureKey = _dpResolvePaidGateFeatureKey(optionBag, reason);
-    var now = Date.now();
-    var lockAt = Number(window.__cdCoinGatePerUseLockAt || 0);
-    var lockAgeMs = lockAt > 0 ? (now - lockAt) : 0;
-    var isStaleLock = !lockAt || lockAgeMs > 45000;
-
-    // 중복 실행 방지: 이전 fetch가 진행 중이면 차단
-    if (window._cdCoinGatePerUseInFlight) {
-      if (isStaleLock) {
-        window._cdCoinGatePerUseInFlight = false;
-        window.__cdCoinGatePerUseLockAt = 0;
-        _dpSetPaymentPending(false);
-        window.alert('이전 결제 상태를 복구했습니다. 다시 시도해 주세요.');
-      } else {
-      window.alert('이전 결제 처리 중입니다. 잠시 후 다시 시도해 주세요.');
-      }
-      if (typeof onCancel === 'function') onCancel();
-      return;
-    }
-
-    var dedupeKey = normalizedFeatureKey + '|' + String(reason || '') + '|' + String(cost || 0);
-    var dedupeMap = window.__cdCoinGatePromptDedup || (window.__cdCoinGatePromptDedup = {});
-    // ⚠️ Dedup 타임아웃을 2.5초로 증가 (우회 시간 제거)
-    if (dedupeMap[dedupeKey] && (now - dedupeMap[dedupeKey] < 2500)) {
-      if (typeof onCancel === 'function') onCancel();
-      return;
-    }
-    dedupeMap[dedupeKey] = now;
-
-    if (_cdIsAdminLikeUser()) {
-      if (typeof cb === 'function') cb();
-      return;
-    }
-
-    var gateGrantedDelivered = false;
-    function deliverGateGrant(transactionId, payload) {
-      gateGrantedDelivered = true;
-      _dpEmitPaymentSuccess(transactionId, payload, optionBag, normalizedFeatureKey, requestId);
-      if (typeof cb === 'function') cb(String(transactionId || requestId), payload || {});
-    }
-
-    if (typeof window._cdOpenPaidServiceGate === 'function') {
-      return window._cdOpenPaidServiceGate({
-        title: reason,
-        reason: reason,
-        coinPrice: cost,
-        cost: cost,
-        featureKey: normalizedFeatureKey,
-        requestId: requestId,
-        categoryKey: optionBag.categoryKey,
-        subFeatureKey: optionBag.subFeatureKey,
-        contentKey: optionBag.contentKey,
-        productId: optionBag.productId,
-        reportType: optionBag.reportType,
-        serviceKey: optionBag.serviceKey,
-        reportId: optionBag.reportId,
-        sessionId: optionBag.sessionId,
-        reportSessionId: optionBag.reportSessionId || optionBag.sessionId,
-        purchaseId: optionBag.purchaseId,
-        actionType: optionBag.actionType,
-        profileAction: optionBag.profileAction,
-        action: optionBag.action,
-        profileId: optionBag.profileId,
-        selectedProfileId: optionBag.selectedProfileId,
-        amountKrw: optionBag.amountKrw,
-        membershipCreditCost: optionBag.membershipCreditCost,
-        allowedPaymentModes: optionBag.allowedPaymentModes,
-        disablePassFirst: optionBag.disablePassFirst,
-        disablePassChoice: optionBag.disablePassChoice,
-        // 🔴 모바일 PortOne 리다이렉트는 이 프레임을 통째로 날린다 — 결제 전 화면 상태를 담은 재개
-        //    서술자를 게이트까지 넘겨야 복귀 문서가 기능을 다시 열 수 있다(없으면 홈으로 떨어진다).
-        resume: optionBag.resume,
-        onGranted: function(transactionId, payload) {
-          deliverGateGrant(transactionId, payload);
-        },
-        onCancel: onCancel
-      }).then(function(result) {
-        if (result && result.status === 'granted' && !gateGrantedDelivered) {
-          deliverGateGrant(result.transactionId, result.payload || result);
-        } else if (result && result.status === 'cancelled' && result.reason === 'pass_applied_in_modal' && !gateGrantedDelivered) {
-          deliverGateGrant(requestId, { __cdPassGateResolved: true, requestId: requestId, featureKey: normalizedFeatureKey });
-        }
-        return result;
-      }).catch(function(error) {
-        console.error('[legacy-main-paid-service-gate]', error);
-        var gateMessage = String(error && error.message || '\uACB0\uC81C\uB97C \uC644\uB8CC\uD558\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.');
-        var gateCode = String(error && error.code || '').toUpperCase();
-        if (gateCode === 'AUTH_STATUS_TEMPORARILY_UNAVAILABLE' || gateCode === 'AUTH_DB_UNAVAILABLE' || gateCode === 'AUTH_REFRESH_TEMPORARY_FAILURE') {
-          gateMessage = '로그아웃되지 않았어요. 이용권 확인이 잠시 지연되고 있으니 잠시 후 다시 시도해 주세요.';
-        } else if (Number(error && error.status || 0) >= 500 || gateCode.indexOf('SERVICE_UNAVAILABLE') >= 0 || gateMessage.toLowerCase().indexOf('database is temporarily unavailable') >= 0) {
-          gateMessage = '이용권 확인 서버 연결을 일시적으로 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.';
-        }
-        window.alert(gateMessage);
-        if (typeof onCancel === 'function') onCancel(error);
-        return null;
-      });
-    }
-    var token = '';
-    try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
-    var balance = 0;
-    var hasBalanceSnapshot = false;
-    try {
-      var _u2 = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null');
-      if (_u2 && typeof _u2.points === 'number') {
-        balance = Number(_u2.points) || 0;
-        hasBalanceSnapshot = true;
-      }
-    } catch(_) {}
-    var balanceLabel = hasBalanceSnapshot ? ((Number(balance) * 100).toLocaleString('ko-KR') + '원') : '알 수 없음';
-    var membershipCoverage = _dpReadActiveMembershipCoverage(cost);
-    if (!membershipCoverage) {
-      if (typeof window._cdResolvePaidContentAccess === 'function' && optionBag.disablePassFirst !== true && optionBag.disablePassChoice !== true) {
-        return window._cdResolvePaidContentAccess({
-          title: reason,
-          reason: reason,
-          coinPrice: cost,
-          cost: cost,
-          featureKey: normalizedFeatureKey || undefined,
-          requestId: requestId,
-          reportType: optionBag.reportType,
-          serviceKey: optionBag.serviceKey,
-          actionType: optionBag.actionType,
-          profileAction: optionBag.profileAction,
-          action: optionBag.action,
-          profileId: optionBag.profileId,
-          selectedProfileId: optionBag.selectedProfileId,
-          // 셸 메인 게이트와 같은 근거(_cdCoverageFromSubscriptionSnapshot)로 즉시 판정한다. 이 진입점만
-          // 빠져 있어 이용권 유무가 이미 확정된 사용자도 서버 왕복을 기다렸다.
-          allowSnapshotFastPath: true,
-          // 🔴 스냅샷이 확답하지 못해도 서버에 묻지 않는다(게이팅 절대 순서 1). 이게 없으면 coverage 조회 →
-          // /api/billing/coin-gate 로 결제창 앞 왕복 2회가 붙는다. 셸 정본 진입점은 전부 이 플래그를 갖고
-          // 있고 이 두 곳만 빠져 있었다. 이용권 확인은 결제창의 [이용권으로 구매] 카드가 그 자리에서 한다.
-          snapshotVerdictOnly: true
-        }).then(function(access) {
-          if (access && (access.status === 'already_unlocked' || access.status === 'pass_applied')) {
-            var passPayload = access.payload || access.rawPayload || {};
-            try { passPayload.__cdPassGateResolved = true; } catch (_) {}
-            var passTransactionId = String(passPayload.transactionId || passPayload.paymentId || passPayload.purchaseId || passPayload.requestId || access.requestId || requestId);
-            if (typeof cb === 'function') cb(passTransactionId, passPayload);
-            return passPayload;
-          }
-          if (access && access.status === 'error') {
-            window.alert(access.message || '이용권 확인에 실패했습니다.');
-            if (typeof onCancel === 'function') onCancel(access);
-            return null;
-          }
-          // 🔴 예전에는 여기서 alert 도 onCancel 도 없이 return null 이라, 결제 모듈 미로드 시
-          // 클릭이 완전 무음으로 먹혔다("아무 일도 안 일어남"의 두 원인 중 하나).
-          if (typeof window._cdChooseServicePaymentMode !== 'function' || typeof window._cdRunDirectKrwCheckout !== 'function') {
-            try { window.alert('결제 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.'); } catch (_dpChoiceMissingAlertErr) {}
-            if (typeof onCancel === 'function') onCancel();
-            return null;
-          }
-          return window._cdChooseServicePaymentMode({
-            title: reason,
-            coinPrice: cost,
-            cost: cost,
-            amountKrw: Number(cost || 0) * 100,
-            reason: reason,
-            featureKey: normalizedFeatureKey || undefined,
-            reportType: optionBag.reportType,
-            serviceKey: optionBag.serviceKey,
-            actionType: optionBag.actionType,
-            profileAction: optionBag.profileAction,
-            action: optionBag.action,
-            profileId: optionBag.profileId,
-            selectedProfileId: optionBag.selectedProfileId,
-            amountKrw: optionBag.amountKrw,
-            membershipCreditCost: optionBag.membershipCreditCost,
-            allowedPaymentModes: optionBag.allowedPaymentModes,
-            disablePassFirst: optionBag.disablePassFirst,
-            disablePassChoice: optionBag.disablePassChoice
-          }).then(function(choice) {
-            if ((choice === 'pass' || choice === 'pass_applied') && optionBag.disablePassChoice !== true) {
-              if (typeof cb === 'function') cb(requestId, { __cdPassGateResolved: true, requestId: requestId });
-              return { __cdPassGateResolved: true, requestId: requestId };
-            }
-            if (choice === 'monthly') {
-              window._cdCoinGatePerUseInFlight = true;
-              window.__cdCoinGatePerUseLockAt = Date.now();
-              _dpSetPaymentPending(true, '결제 권한을 확인하고 있습니다.', 'monthly');
-              return _dpRunMonthlyCreditFromMainGate({
-                title: reason,
-                reason: reason,
-                coinPrice: cost,
-                cost: cost,
-                featureKey: normalizedFeatureKey || undefined,
-                requestId: requestId,
-                reportType: optionBag.reportType,
-                serviceKey: optionBag.serviceKey,
-                actionType: optionBag.actionType,
-                profileAction: optionBag.profileAction,
-                action: optionBag.action,
-                profileId: optionBag.profileId,
-                selectedProfileId: optionBag.selectedProfileId
-              });
-            }
-            if (choice !== 'direct') {
-              if (typeof onCancel === 'function') onCancel();
-              return null;
-            }
-            window._cdCoinGatePerUseInFlight = true;
-            window.__cdCoinGatePerUseLockAt = Date.now();
-            // 🔴 PG창이 열리기 전에는 어떤 대기 UI도 켜지 않는다. 예전에는 여기서 '단건 결제를 진행
-            // 중입니다' 오버레이를 띄웠고, 사용자에게는 결제수단을 고른 뒤 또 한 겹 로딩이 끼는 것으로 보였다.
-            // _cdRunDirectKrwCheckout 이 진입 시점부터 PG 오픈까지 억제 창을 걸고 스스로 오버레이를 내린다.
-            return window._cdRunDirectKrwCheckout({
-              coinPrice: cost,
-              cost: cost,
-              title: reason,
-              reason: reason,
-              featureKey: normalizedFeatureKey || undefined,
-              requestId: requestId,
-              forceDirectPayment: true,
-              // 🔴 모바일 PortOne 리다이렉트는 이 프레임을 통째로 날린다 — 본선(_cdOpenPaidServiceGate)
-              //    과 같은 재개 서술자를 여기서도 실어야 복귀 문서가 기능을 다시 연다. 이 폴백만
-              //    빠져 있어서 결제 모듈만 있고 게이트가 없는 문서에서는 복귀가 홈으로 떨어졌다.
-              resume: optionBag.resume,
-              internalMainGate: true,
-              __cdPaymentGateAuthorized: true,
-              __cdDirectPaymentChoiceConfirmed: true,
-              checkoutPayload: {
-                paymentMode: 'DIRECT_KRW',
-                reportType: optionBag.reportType,
-                serviceKey: optionBag.serviceKey,
-                actionType: optionBag.actionType,
-                profileAction: optionBag.profileAction,
-                action: optionBag.action,
-                profileId: optionBag.profileId,
-                selectedProfileId: optionBag.selectedProfileId
-              },
-            });
-          });
-        }).then(function(payload) {
-          if (!payload) return null;
-          if (payload && (payload.__cdPassGateResolved === true || payload.freeBySubscription === true || String(payload.accessType || payload.transactionType || '').toLowerCase() === 'membership_pass')) return payload;
-          window._cdCoinGatePerUseInFlight = false;
-          window.__cdCoinGatePerUseLockAt = 0;
-          _dpSetPaymentPending(false);
-          var txId = String((payload && (payload.transactionId || payload.paymentId || payload.purchaseId || payload.requestId)) || requestId);
-          if (typeof cb === 'function') cb(txId, payload || {});
-          return payload;
-        }).catch(function(error) {
-          window._cdCoinGatePerUseInFlight = false;
-          window.__cdCoinGatePerUseLockAt = 0;
-          _dpSetPaymentPending(false);
-          console.error('[coin-gate-per-use-pass-first]', error);
-          window.alert(String(error && error.message || '결제를 완료하지 못했습니다. 결제 수단을 확인하고 다시 시도해 주세요.'));
-          if (typeof onCancel === 'function') onCancel(error);
-          return null;
-        });
-      }
-      if (typeof window._cdChooseServicePaymentMode === 'function' && typeof window._cdRunDirectKrwCheckout === 'function') {
-        return window._cdChooseServicePaymentMode({
-          title: reason,
-          coinPrice: cost,
-          cost: cost,
-          amountKrw: Number(cost || 0) * 100,
-          reason: reason,
-          featureKey: normalizedFeatureKey || undefined,
-          membershipCreditCost: optionBag.membershipCreditCost,
-          allowedPaymentModes: optionBag.allowedPaymentModes,
-          disablePassFirst: optionBag.disablePassFirst,
-          disablePassChoice: optionBag.disablePassChoice,
-          }).then(function(choice) {
-          if ((choice === 'pass' || choice === 'pass_applied') && optionBag.disablePassChoice !== true) {
-            if (typeof cb === 'function') cb(String(optionBag.requestId || ''), { __cdPassGateResolved: true });
-            return null;
-          }
-          if (choice === 'monthly') {
-            window._cdCoinGatePerUseInFlight = true;
-            window.__cdCoinGatePerUseLockAt = Date.now();
-            _dpSetPaymentPending(true, '결제 권한을 확인하고 있습니다.', 'monthly');
-            return _dpRunMonthlyCreditFromMainGate({
-              title: reason,
-              reason: reason,
-              coinPrice: cost,
-              cost: cost,
-              featureKey: normalizedFeatureKey || undefined,
-              requestId: String(optionBag.requestId || '').trim().slice(0, 120) || undefined
-            }).then(function(payload) {
-              window._cdCoinGatePerUseInFlight = false;
-              window.__cdCoinGatePerUseLockAt = 0;
-              _dpSetPaymentPending(false);
-              var txId = String((payload && (payload.transactionId || payload.paymentId || payload.purchaseId || payload.requestId)) || '');
-              if (typeof cb === 'function') cb(txId, payload || {});
-              return payload;
-            });
-          }
-          if (choice !== 'direct') {
-            if (typeof onCancel === 'function') onCancel();
-            return null;
-          }
-          window._cdCoinGatePerUseInFlight = true;
-          window.__cdCoinGatePerUseLockAt = Date.now();
-          // 🔴 PG창이 열리기 전에는 어떤 대기 UI도 켜지 않는다. 예전에는 여기서 '단건 결제를 진행
-          // 중입니다' 오버레이를 띄웠고, 사용자에게는 결제수단을 고른 뒤 또 한 겹 로딩이 끼는 것으로 보였다.
-          // _cdRunDirectKrwCheckout 이 진입 시점부터 PG 오픈까지 억제 창을 걸고 스스로 오버레이를 내린다.
-          return window._cdRunDirectKrwCheckout({
-            coinPrice: cost,
-            cost: cost,
-            title: reason,
-            reason: reason,
-            featureKey: normalizedFeatureKey || undefined,
-            requestId: String(optionBag.requestId || '').trim().slice(0, 120) || undefined,
-            forceDirectPayment: true,
-            internalMainGate: true,
-            __cdPaymentGateAuthorized: true,
-            __cdDirectPaymentChoiceConfirmed: true,
-            checkoutPayload: {
-              paymentMode: 'DIRECT_KRW',
-            },
-          }).then(function(payload) {
-            window._cdCoinGatePerUseInFlight = false;
-            window.__cdCoinGatePerUseLockAt = 0;
-            _dpSetPaymentPending(false);
-            var txId = String((payload && (payload.transactionId || payload.paymentId || payload.purchaseId || payload.requestId)) || '');
-            if (typeof cb === 'function') cb(txId, payload || {});
-            return payload;
-          });
-        }).catch(function(error) {
-          window._cdCoinGatePerUseInFlight = false;
-          window.__cdCoinGatePerUseLockAt = 0;
-          _dpSetPaymentPending(false);
-          console.error('[direct-checkout-choice]', error);
-          window.alert(String(error && error.message || '단건 결제를 완료하지 못했습니다. 결제 수단을 확인한 뒤 다시 시도해 주세요.'));
-          if (typeof onCancel === 'function') onCancel(error);
-        });
-      }
-    }
-
-    window._cdCoinGatePerUseInFlight = false;
-    window.__cdCoinGatePerUseLockAt = 0;
-    _dpSetPaymentPending(false);
-    window.alert('\uACB0\uC81C \uAC8C\uC774\uD2B8\uB97C \uBD88\uB7EC\uC624\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4. \uC0C8\uB85C\uACE0\uCE68 \uD6C4 \uB2E4\uC2DC \uC2DC\uB3C4\uD574 \uC8FC\uC138\uC694.');
-    if (typeof onCancel === 'function') onCancel();
-    return;
-
-    var consumeHeaders = { 'Content-Type': 'application/json' };
-    if (token) consumeHeaders.Authorization = 'Bearer ' + token;
-    window._cdCoinGatePerUseInFlight = true;
-    window.__cdCoinGatePerUseLockAt = Date.now();
-    var pendingLabel = String(reason || '').trim() || '유료 서비스';
-    // coin-gate 는 "이용권으로 커버되는가"를 판정하는 접근 확인 단계다 — mode 를 빼먹으면 셸 기본값
-    // 'payment' 로 낙하해 'PAYMENT CHECK · 결제 상태 확인 중' 스킨이 뜬다(아직 결제는 시작도 안 했다).
-    _dpSetPaymentPending(true, pendingLabel + (membershipCoverage ? ' 이용권 한도를 확인하는 중입니다...' : ' 단건 결제를 확인하는 중입니다...'), 'pass');
-    _dpWaitForPaymentOverlayPaint().then(function() {
-      return _dpFetchJsonWithFallback('/api/billing/coin-gate', {
-        method: 'POST',
-        headers: consumeHeaders,
-        credentials: 'include',
-        cache: 'no-store',
-        body: JSON.stringify({ cost: cost, reason: reason, featureKey: normalizedFeatureKey, requestId: requestId })
-      }, {
-        retryOn401: true,
-        timeoutMs: _DP_FETCH_TIMEOUT_MS,
-      });
-    })
-    .then(function(res) {
-      window._cdCoinGatePerUseInFlight = false;
-      window.__cdCoinGatePerUseLockAt = 0;
-      _dpSetPaymentPending(false);
-      if (_dpIsAuthRequiredResult(res)) {
-        if (typeof window.__cdOpenLoginRequiredModal === 'function') {
-          window.__cdOpenLoginRequiredModal({
-            reason: '로그인 후 이용할 수 있는 기능입니다.',
-            redirectTo: window.location.pathname + window.location.search + window.location.hash,
-          });
-        }
-        if (typeof onCancel === 'function') onCancel();
-        return;
-      }
-      if (res.status === 402 || !res.ok) {
-        var rawFailData = (res && res.data && typeof res.data === 'object') ? res.data : {};
-        var failData = (rawFailData.data && typeof rawFailData.data === 'object') ? rawFailData.data : rawFailData;
-        var msg = rawFailData.message || failData.message || '단건 결제가 필요합니다.';
-        if (res.status === 402) msg = msg + '\n\n단건 결제 기준: ' + (Math.max(0, Number(cost) || 0) * 100).toLocaleString('ko-KR') + '원\n포트원 V2 KG이니시스 결제로 진행됩니다.';
-        if (typeof window.__cdOpenChargeModal === 'function') { window.alert(msg); window.__cdOpenChargeModal(); }
-        else window.location.href = '/points';
-        if (typeof onCancel === 'function') onCancel();
-        return;
-      }
-      var rawData = (res && res.data && typeof res.data === 'object') ? res.data : {};
-      var data = (rawData.data && typeof rawData.data === 'object') ? rawData.data : rawData;
-      var consumeData = (data && data.consume && typeof data.consume === 'object') ? data.consume : {};
-      var accessGrant = (data && data.accessGrant && typeof data.accessGrant === 'object') ? data.accessGrant : {};
-      if (!data.message && rawData.message) data.message = rawData.message;
-      var chargedCoins = Number((data && data.chargedCoins) || consumeData.chargedCoins || 0);
-      var freeBySubscription = Boolean((data && data.freeBySubscription === true) || consumeData.accessType === 'membership_pass' || consumeData.transactionType === 'membership_pass');
-      var transactionId = data && data.transactionId ? String(data.transactionId) : String(consumeData.transactionId || accessGrant.evidenceId || accessGrant.purchaseId || accessGrant.requestId || '');
-      var requestedCost = Number(cost || 0);
-      var coinGateConfirmed = Number(res.status || 0) === 200
-        && data
-        && data.ok !== false
-        && (requestedCost <= 0 || freeBySubscription || chargedCoins > 0 || transactionId);
-      if (!coinGateConfirmed) {
-        var failMsg = String((data && data.message) || '원화 결제 확인값이 부족하여 생성을 시작하지 않았습니다. 다시 시도해 주세요.');
-        window.alert(failMsg);
-        if (typeof onCancel === 'function') onCancel();
-        return;
-      }
-      var nb = null;
-      if (data && data.user && typeof data.user.points === 'number') nb = data.user.points;
-      else if (data && typeof data.remainingPoints === 'number') nb = data.remainingPoints;
-      else if (data && typeof data.balance === 'number') nb = data.balance;
-      else if (freeBySubscription && hasBalanceSnapshot) nb = balance;
-      else if (hasBalanceSnapshot) nb = Math.max(0, balance - cost);
-      if (!Number.isFinite(Number(nb))) nb = _dpGetUserBalance();
-      try { var _u3 = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null') || {}; _u3.points = nb; _dpWriteAuthUser(_u3); } catch(_) {}
-      if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(nb);
-      if (freeBySubscription) {
-        _cdShowSubscriptionShieldNotice({
-          message: data.message,
-          subscriptionTier: data.subscriptionTier,
-          freeLimit: data.freeLimit,
-          requiredCoins: requestedCost,
-        });
-      } else if (chargedCoins > 0) {
-        _cdShowCoinDeductNotice(chargedCoins, nb, reason);
-      }
-      cb(transactionId, data);
-    })
-    .catch(function(e) { window._cdCoinGatePerUseInFlight = false; window.__cdCoinGatePerUseLockAt = 0; _dpSetPaymentPending(false); console.error('[coin-gate-per-use]', e); window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'); if (typeof onCancel === 'function') onCancel(); });
-  };
-
   function _dpGetAuthToken() {
     return _dpReadStoredAuthToken();
   }
@@ -6444,53 +6185,6 @@
     return tier;
   }
 
-  function _dpGetTierProfileLimit(tierRaw) {
-    var tier = _dpNormalizeTier(tierRaw);
-    if (tier === 'standard') return 3;
-    if (tier === 'premium') return 7;
-    if (tier === 'vvip') return 15;
-    if (tier === 'family') return 0;
-    return 1;
-  }
-
-  function _dpGetTierLabel(tierRaw) {
-    var tier = _dpNormalizeTier(tierRaw);
-    if (tier === 'standard') return '스탠다드 꿀';
-    if (tier === 'premium') return '프리미엄 꿀';
-    if (tier === 'vvip') return 'VVIP 꿀단지';
-    if (tier === 'family') return 'Code Destiny Family';
-    return '무료';
-  }
-
-  /* 한도 안내에 쓰는 상위 등급 요약. 오류 문구만 던지지 않고 "다음 등급에서는 몇 개까지"를
-     함께 보여 주기 위한 것이다(2026-08-24 정책 10항). 개수 정본은 _dpGetTierProfileLimit 이며
-     서버 정본 HONEY_PASS_POLICY.maxProfiles 와 같은 값을 든다. */
-  function _dpDescribeUpgradeProfileLimits(currentTierRaw) {
-    var current = _dpNormalizeTier(currentTierRaw);
-    var order = ['standard', 'premium', 'vvip', 'family'];
-    var startIndex = order.indexOf(current) + 1;
-    var parts = [];
-    for (var i = startIndex; i < order.length; i += 1) {
-      parts.push(_dpGetTierLabel(order[i]) + ' ' + _dpFormatLimitLabel(_dpGetTierProfileLimit(order[i])));
-    }
-    return parts.join(' · ');
-  }
-
-  function _dpGetNextTier(tierRaw) {
-    var tier = _dpNormalizeTier(tierRaw);
-    if (tier === 'free') return 'standard';
-    if (tier === 'standard') return 'premium';
-    if (tier === 'premium') return 'vvip';
-    if (tier === 'vvip') return 'family';
-    return '';
-  }
-
-  function _dpFormatLimitLabel(limit) {
-    var n = Number(limit);
-    if (!isFinite(n) || n <= 0) return '무제한';
-    return String(Math.floor(n)) + '개';
-  }
-
   function _dpReadProfileLimitValue(source) {
     if (!source || typeof source !== 'object') return NaN;
     var keys = ['profileLimit', 'maxProfileLimit', 'profileCardLimit', 'maxProfiles'];
@@ -6502,12 +6196,9 @@
     return NaN;
   }
 
-  function _dpResolveProfileLimit(tierRaw, valueRaw) {
-    var tier = _dpNormalizeTier(tierRaw);
-    if (tier === 'family') return 0;
-    var n = Number(valueRaw);
-    if (isFinite(n) && n > 0) return Math.floor(n);
-    return _dpGetTierProfileLimit(tier);
+  /* 2026-10-11: 프로필 카드 개수 상한이 없다 — 이용권 등급·서버 값과 무관하게 0(무제한)이다. */
+  function _dpResolveProfileLimit() {
+    return 0;
   }
 
   function _dpIsUnlimitedProfileLimit(maxProfiles) {
@@ -6518,17 +6209,6 @@
   function _dpGetPositiveProfileLimit(maxProfiles) {
     var n = Number(maxProfiles);
     return (isFinite(n) && n > 0) ? Math.max(1, Math.floor(n)) : 1;
-  }
-
-  function _dpCanUseProfileSlot(profileCount, maxProfiles) {
-    if (_dpIsUnlimitedProfileLimit(maxProfiles)) return true;
-    var count = Math.max(0, Math.floor(Number(profileCount || 0)));
-    return count < _dpGetPositiveProfileLimit(maxProfiles);
-  }
-
-  function _dpGetProfileLimitSlotLabel(profileCount, maxProfiles) {
-    var count = Math.max(0, Math.floor(Number(profileCount || 0)));
-    return count + '/' + (_dpIsUnlimitedProfileLimit(maxProfiles) ? '무제한' : _dpGetPositiveProfileLimit(maxProfiles));
   }
 
   /**
@@ -6895,12 +6575,9 @@
     });
   }
 
-  /** 현재 플랜에 따른 최대 프로필 수 반환 */
+  /** 최대 프로필 수. 2026-10-11부터 이용권과 무관하게 무제한(0)이다. */
   function _dpGetMaxProfiles() {
-    var scope = _dpGetProfileScope();
-    if (_dpSubScope !== scope || !_dpSubIsActive) _dpLoadSubCache();
-    if (_dpSubIsActive) return _dpSubProfileLimit;
-    return _dpGetTierProfileLimit(_dpGetUserPlan());
+    return 0;
   }
 
   function _dpApplyProfileAccess(access) {
@@ -6947,34 +6624,22 @@
   }
 
   /** 저장 버튼 상태를 구독 플랜에 맞게 업데이트 */
-  function _dpUpdateProfileQuotaText(profileCount, maxProfiles, planLabel, canUsePlanSlot) {
+  function _dpUpdateProfileQuotaText() {
     var quotaText = document.getElementById('dpProfileQuotaText');
     if (!quotaText) return;
-    var used = Math.max(0, Math.floor(Number(profileCount || 0)));
-    var unlimited = _dpIsUnlimitedProfileLimit(maxProfiles);
-    var limit = _dpGetPositiveProfileLimit(maxProfiles);
-    var remaining = unlimited ? '무제한' : String(Math.max(0, limit - used));
-    var limitLabel = unlimited ? '무제한' : String(limit);
-    var label = planLabel || '무료 플랜';
     /* 편집 모드에서는 남은 슬롯이 아니라 "지금 수정 중"이라는 사실이 유일하게 중요한 정보다.
        저장 버튼 라벨 말고는 추가/수정을 구분할 표시가 없으므로 여기서 알린다. */
     if (_dpProfileEditTargetId) {
+      /* 카드 수정은 무료지만, 출생정보를 바꾸면 출생 기반 해금(생년월일 단위)이 잠긴다 — 저장 전에 알린다. */
       quotaText.textContent = _dpText('profileEditingNotice');
+      quotaText.appendChild(document.createElement('br'));
+      quotaText.appendChild(document.createTextNode(_dpText('profileEditBirthLockNotice')));
+      quotaText.hidden = false;
       return;
     }
-    /* 남은 슬롯 안내는 띄우지 않는다 — 아직 무료로 만들 수 있다는 건 사용자가 할 일이 없다는
-       뜻이라 화면에 남길 정보가 아니다. 아래 두 분기(추가 생성 유료)는 결제 안내라 유지한다. */
-    if (canUsePlanSlot) {
-      quotaText.textContent = '';
-      quotaText.hidden = true;
-      return;
-    }
-    quotaText.hidden = false;
-    if (!_dpSubIsActive) {
-      quotaText.textContent = '무료 계정 · 기본 프로필 카드 1개 사용 완료 · 추가 생성 ' + PROFILE_CARD_MANAGE_PRICE_LABEL;
-    } else {
-      quotaText.textContent = '현재 ' + label + '에서는 프로필 최대 ' + limitLabel + '개 · 추가 생성 ' + PROFILE_CARD_MANAGE_PRICE_LABEL;
-    }
+    /* 개수 상한·추가 요금이 없으므로(2026-10-11) 슬롯 안내는 띄우지 않는다. */
+    quotaText.textContent = '';
+    quotaText.hidden = true;
   }
 
   /* 입력폼에는 #dpProfileQuotaText 마크업이 없다 — 셸 6벌을 건드리지 않으려고 여기서 만든다.
@@ -7001,14 +6666,8 @@
   function _dpUpdateSaveBtn() {
     var btn = document.getElementById('dpSaveBtn');
     _dpEnsureProfileFormControls(btn);
-    var profileCount = DPStorage.list().length;
-    var maxProfiles = _dpGetMaxProfiles();
-    var hasProfiles = profileCount > 0;
-    var canUsePlanSlot = _dpCanUseProfileSlot(profileCount, maxProfiles);
-    var canCreateWithoutPayment = canUsePlanSlot;
-    var planLabel = _dpGetTierLabel(_dpSubIsActive ? _dpSubTier : _dpGetUserPlan());
-    var slotLabel = _dpGetProfileLimitSlotLabel(profileCount, maxProfiles);
-    _dpUpdateProfileQuotaText(profileCount, maxProfiles, planLabel, canUsePlanSlot);
+    var hasProfiles = DPStorage.list().length > 0;
+    _dpUpdateProfileQuotaText();
     if (!btn) return;
 
     function setSaveButtonContent(label, badge) {
@@ -7025,26 +6684,15 @@
     }
 
     btn.disabled = false;
+    /* 2026-10-11: 추가·수정 모두 무료이고 개수 상한이 없어 가격·슬롯 배지를 달지 않는다. */
+    btn.removeAttribute('title');
     if (_dpProfileEditTargetId) {
-      var isFamilyPlan = _dpSubIsActive && _dpSubTier === 'family';
-      setSaveButtonContent(_dpText('profileSaveEdit'), isFamilyPlan ? '무료' : PROFILE_CARD_MANAGE_PRICE_LABEL);
-      btn.title = isFamilyPlan
-        ? 'Code Destiny Family 이용권으로 프로필 정보를 무료로 수정합니다.'
-        : '프로필 수정·삭제에는 ' + PROFILE_CARD_MANAGE_PRICE_LABEL + ' 단건 결제 또는 월정석 사용이 필요합니다.';
+      setSaveButtonContent(_dpText('profileSaveEdit'), '');
       return;
     }
-    if (!hasProfiles && canCreateWithoutPayment) {
-      setSaveButtonContent(_dpText('profileSaveFirst'), slotLabel);
-    } else if (canCreateWithoutPayment) {
-      setSaveButtonContent(_dpText('profileSaveCreate'), slotLabel + ' 사용 중');
-    } else {
-      setSaveButtonContent(_dpText('profileSaveCreateExtra'), PROFILE_CARD_MANAGE_PRICE_LABEL);
-    }
+    setSaveButtonContent(_dpText(hasProfiles ? 'profileSaveCreate' : 'profileSaveFirst'), '');
     btn.style.opacity = '';
     btn.style.cursor = '';
-    btn.title = canCreateWithoutPayment
-      ? planLabel + ' 한도 ' + _dpFormatLimitLabel(maxProfiles) + ' 중 ' + profileCount + '개를 사용 중입니다.'
-      : '프로필 카드 추가는 서버에서 ' + PROFILE_CARD_MANAGE_PRICE_LABEL + ' 결제를 확인한 뒤 저장됩니다.';
   }
 
   function _resolveEventElement(target) {
@@ -7507,71 +7155,6 @@
     }
   }
 
-  function _dpBuildProfileDeletePaymentBase(profileId, requestId) {
-    var title = '\uD504\uB85C\uD544 \uCE74\uB4DC \uC0AD\uC81C';
-    var normalizedProfileId = String(profileId || '').trim();
-    return {
-      title: title,
-      reason: title,
-      featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
-      coinPrice: PROFILE_CARD_MANAGE_COST,
-      cost: PROFILE_CARD_MANAGE_COST,
-      amountKrw: PROFILE_CARD_MANAGE_COST * 100,
-      amountKRW: PROFILE_CARD_MANAGE_COST * 100,
-      cashPrice: PROFILE_CARD_MANAGE_COST * 100,
-      membershipCreditCost: PROFILE_CARD_MANAGE_MONTHLY_COST,
-      requiredMonthlyCredits: PROFILE_CARD_MANAGE_MONTHLY_COST,
-      requestId: requestId,
-      profileId: normalizedProfileId,
-      selectedProfileId: normalizedProfileId,
-      profileCardId: normalizedProfileId,
-      serviceKey: 'profile_card_delete',
-      reportType: 'profile_card_delete',
-      actionType: 'profile_card_delete',
-      profileAction: 'delete',
-      action: 'delete',
-      allowedPaymentModes: ['direct', 'monthly'],
-      disablePassFirst: true,
-      disablePassChoice: true,
-      skipPassProbe: true,
-    };
-  }
-
-  function _dpNormalizeProfileDeletePaymentContext(payload, profileId, requestId, paymentMode) {
-    var data = _dpExtractBillingData(payload || {});
-    if (!data || typeof data !== 'object') data = {};
-    var accessGrant = data.accessGrant && typeof data.accessGrant === 'object' ? data.accessGrant : {};
-    var consume = data.consume && typeof data.consume === 'object' ? data.consume : {};
-    var paymentId = String(_dpPaidPassPayloadTransactionId(data, requestId) || requestId || '');
-    var normalizedProfileId = String(profileId || '').trim();
-    return {
-      requestId: requestId,
-      transactionId: paymentId,
-      paymentId: paymentId,
-      purchaseId: paymentId,
-      paymentSettled: true,
-      paymentMode: paymentMode,
-      payment: data,
-      accessGrant: accessGrant,
-      consume: consume,
-      _paymentContext: {
-        requestId: requestId,
-        transactionId: paymentId,
-        paymentId: paymentId,
-        purchaseId: paymentId,
-        paymentSettled: true,
-        paymentMode: paymentMode,
-        featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
-        profileId: normalizedProfileId,
-        selectedProfileId: normalizedProfileId,
-        profileCardId: normalizedProfileId,
-        actionType: 'profile_card_delete',
-        profileAction: 'delete',
-        action: 'delete'
-      }
-    };
-  }
-
   function _dpEnsureProfileDeleteGateStyles() {
     if (document.getElementById('dpProfileDeleteGateStyles')) return;
     var style = document.createElement('style');
@@ -7587,7 +7170,7 @@
       + '.dp-delete-gate__body{padding:14px 18px 18px;}'
       + '.dp-delete-gate__copy{margin:0 0 12px;font-size:13px;line-height:1.58;color:rgba(255,248,220,.86);}'
       + '.dp-delete-gate__warning{display:flex;gap:8px;align-items:flex-start;margin:0 0 14px;padding:10px 11px;border-left:3px solid rgba(255,150,120,.72);background:rgba(180,65,50,.12);color:#ffd9cf;font-size:12px;line-height:1.5;}'
-      + '.dp-delete-gate__options{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0 10px;}'
+      + '.dp-delete-gate__options{display:grid;grid-template-columns:1fr;gap:10px;margin:14px 0 10px;}'
       + '.dp-delete-gate__option{min-height:68px;border-radius:8px;border:1px solid rgba(255,215,0,.24);background:rgba(255,255,255,.07);color:#fff8dc;text-align:left;padding:11px 12px;cursor:pointer;transition:transform .16s ease,border-color .16s ease,background .16s ease;}'
       + '.dp-delete-gate__option:hover{transform:translateY(-1px);border-color:rgba(255,215,0,.58);background:rgba(255,215,0,.10);}'
       + '.dp-delete-gate__option:disabled{opacity:.55;cursor:wait;transform:none;}'
@@ -7603,7 +7186,6 @@
 
   function _dpOpenProfileDeleteGate(profile, profileId, requestId) {
     return new Promise(function(resolve) {
-      var isFamilyPlan = _dpSubIsActive && _dpSubTier === 'family';
       _dpEnsureProfileDeleteGateStyles();
       var previous = document.getElementById('dpProfileDeleteGate');
       if (previous && typeof previous.__dpClose === 'function') previous.__dpClose(null);
@@ -7644,9 +7226,7 @@
       body.className = 'dp-delete-gate__body';
       var copy = document.createElement('p');
       copy.className = 'dp-delete-gate__copy';
-      copy.textContent = isFamilyPlan
-        ? 'Code Destiny Family 이용권으로 프로필 카드를 결제 없이 삭제할 수 있습니다.'
-        : '프로필 수정·삭제에는 ' + PROFILE_CARD_MANAGE_PRICE_LABEL + ' 단건 결제 또는 월정석 사용이 필요합니다.';
+      copy.textContent = '이 카드로 결제한 결과는 보관함에 그대로 남습니다.';
       var warning = document.createElement('div');
       warning.className = 'dp-delete-gate__warning';
       warning.textContent = '\uC0AD\uC81C \uD6C4\uC5D0\uB294 \uBCF5\uAD6C\uD560 \uC218 \uC5C6\uC5B4\uC694. \uC0AD\uC81C\uD560 \uD504\uB85C\uD544\uC774 \uB9DE\uB294\uC9C0 \uD655\uC778\uD574 \uC8FC\uC138\uC694.';
@@ -7667,23 +7247,15 @@
         return btn;
       }
 
-      var directBtn = buildOption('direct', '\uB2E8\uAC74 \uACB0\uC81C ' + (PROFILE_CARD_MANAGE_COST * 100).toLocaleString('ko-KR') + '\uC6D0', '\uC0AD\uC81C \uC804\uC6A9 1\uD68C \uACB0\uC81C');
-      options.appendChild(directBtn);
-      var monthlyBtn = buildOption('monthly', '\uC6D4\uC815\uC11D\uC73C\uB85C \uC0AD\uC81C', '\uBCF4\uC720 \uC6D4\uC815\uC11D\uC5D0\uC11C ' + (PROFILE_CARD_MANAGE_MONTHLY_COST * 10).toLocaleString('ko-KR') + '\uC6D0 \uC0C1\uB2F9\uC744 \uC0AC\uC6A9');
-      options.appendChild(monthlyBtn);
-      var familyBtn = null;
-      if (isFamilyPlan) {
-        directBtn.hidden = true;
-        monthlyBtn.hidden = true;
-        familyBtn = buildOption('family', '프로필 삭제', 'Family 이용권으로 무료 진행');
-        options.appendChild(familyBtn);
-      }
+      /* 2026-10-11: 삭제는 무료다. 결제 방식 선택 없이 확인 버튼 하나만 둔다. */
+      var confirmBtn = buildOption('confirm', '프로필 삭제', '추가 결제 없이 삭제합니다');
+      options.appendChild(confirmBtn);
 
       var foot = document.createElement('div');
       foot.className = 'dp-delete-gate__foot';
       var status = document.createElement('div');
       status.className = 'dp-delete-gate__status';
-      status.textContent = isFamilyPlan ? 'Family 이용권을 적용해 삭제합니다.' : '\uC0AD\uC81C\uD560 \uACB0\uC81C \uBC29\uC2DD\uC744 \uC120\uD0DD\uD574 \uC8FC\uC138\uC694.';
+      status.textContent = '';
       var cancel = document.createElement('button');
       cancel.type = 'button';
       cancel.className = 'dp-delete-gate__cancel';
@@ -7710,10 +7282,7 @@
         if (event && event.key === 'Escape') done(null);
       }
       function pick(mode) {
-        status.textContent = '\uACB0\uC81C \uC120\uD0DD\uC744 \uD655\uC778\uD558\uB294 \uC911\uC785\uB2C8\uB2E4.';
-        directBtn.disabled = true;
-        monthlyBtn.disabled = true;
-        if (familyBtn) familyBtn.disabled = true;
+        confirmBtn.disabled = true;
         cancel.disabled = true;
         done(mode);
       }
@@ -7721,59 +7290,22 @@
       overlay.addEventListener('click', function(event) {
         if (event && event.target === overlay) done(null);
       });
-      directBtn.addEventListener('click', function() { pick('direct'); });
-      monthlyBtn.addEventListener('click', function() { pick('monthly'); });
-      if (familyBtn) familyBtn.addEventListener('click', function() { pick('family'); });
+      confirmBtn.addEventListener('click', function() { pick('confirm'); });
       cancel.addEventListener('click', function() { done(null); });
       document.addEventListener('keydown', onKey);
       document.body.appendChild(overlay);
-      (familyBtn || directBtn || cancel).focus({ preventScroll: true });
+      cancel.focus({ preventScroll: true });
     });
   }
 
+  /* 2026-10-11: 삭제는 무료다. 확인만 받고 빈 증빙({})으로 진행한다. 정책 변경 전에 결제해 둔
+     삭제 티켓이 남아 있으면 그 증빙을 그대로 실어 보낸다(서버는 무시하고 삭제만 수행한다). */
   async function _dpRunProfileDeleteGate(profile, profileId, requestId) {
     var pending = _dpProfileMutationTicket('delete', profileId);
     if (pending && pending.paymentContext) return pending.paymentContext;
-    var choice = pending && pending.method === 'monthly' ? 'monthly' : await _dpOpenProfileDeleteGate(profile, profileId, requestId);
+    var choice = await _dpOpenProfileDeleteGate(profile, profileId, requestId);
     if (!choice) return null;
-    if (choice === 'family') return {};
-    var base = _dpBuildProfileDeletePaymentBase(profileId, requestId);
-    if (choice === 'monthly') {
-      _dpProfileMutationTicket('delete', profileId, { requestId: requestId, method: 'monthly' });
-      _dpSetPaymentPending(true, '\uD504\uB85C\uD544 \uCE74\uB4DC \uC0AD\uC81C \uACB0\uC81C \uAD8C\uD55C\uC744 \uD655\uC778\uD558\uB294 \uC911\uC785\uB2C8\uB2E4...', 'monthly');
-      var monthlyPayload = await _dpRunMonthlyCreditFromMainGate(Object.assign({}, base, {
-        paymentMode: 'MOONLIGHT_STONE',
-        accessMode: 'moonlight_stone'
-      }));
-      var context = _dpNormalizeProfileDeletePaymentContext(monthlyPayload, profileId, requestId, 'MOONLIGHT_STONE');
-      _dpProfileMutationTicket('delete', profileId, { requestId: requestId, method: 'monthly', paymentContext: context });
-      return context;
-    }
-    if (typeof window._cdRunDirectKrwCheckout !== 'function') {
-      throw new Error('\uB2E8\uAC74\uACB0\uC81C \uBAA8\uB4C8\uC744 \uBD88\uB7EC\uC624\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4. \uD398\uC774\uC9C0\uB97C \uC0C8\uB85C\uACE0\uCE68 \uD55C \uB4A4 \uB2E4\uC2DC \uC2DC\uB3C4\uD574 \uC8FC\uC138\uC694.');
-    }
-    _dpSetPaymentPending(true, '\uB2E8\uAC74\uACB0\uC81C\uB85C \uD504\uB85C\uD544 \uCE74\uB4DC \uC0AD\uC81C \uACB0\uC81C\uB97C \uD655\uC778\uD558\uB294 \uC911\uC785\uB2C8\uB2E4...', 'checkout');
-    var directPayload = await window._cdRunDirectKrwCheckout(Object.assign({}, base, {
-      forceDirectPayment: true,
-      internalMainGate: true,
-      __cdPaymentGateAuthorized: true,
-      __cdDirectPaymentChoiceConfirmed: true,
-      /* 🔴 삭제는 공용 코인 게이트를 타지 않고 단건결제로 직행한다 — 재개 서술자를 여기 실어야
-         _dpWriteDirectResumeTicket 이 티켓에 담고, 모바일 복귀 문서가 삭제를 이어서 끝낸다. */
-      resume: _dpBuildProfileManageResumeDescriptor('delete', profileId, requestId, null),
-      checkoutPayload: Object.assign({}, base, {
-        paymentType: 'digital_content',
-        paymentMode: 'DIRECT_KRW',
-        provider: 'PORTONE_V2',
-        paymentAmount: base.amountKrw,
-        amountKrw: base.amountKrw,
-        amountKRW: base.amountKrw,
-        cashPrice: base.amountKrw,
-        idempotencyKey: requestId,
-        orderId: requestId
-      })
-    }));
-    return _dpNormalizeProfileDeletePaymentContext(directPayload, profileId, requestId, 'DIRECT_KRW');
+    return {};
   }
 
   /* 프로필 카드 추가·수정·삭제의 서버 요청 정본이다. 결제 직후 경로(dpSaveProfile·삭제 흐름)와
@@ -7840,8 +7372,8 @@
     };
   }
 
-  /* 인페이지 경로에서 _dpRunProfileManageGate 가 만들던 결제 증빙과 **같은 자리**를 채운다 —
-     서버(worker/routes/profile.js)가 읽는 키가 같아야 402 가 다시 나지 않는다. */
+  /* 정책 변경(2026-10-11) 전에 결제하고 모바일 복귀를 기다리던 요청만 이 경로로 들어온다.
+     서버는 이제 결제를 요구하지 않으므로 증빙은 기록용으로만 실린다. */
   function _dpBuildProfileResumePaymentContext(grant, mutationAction, profileId, requestId) {
     var granted = (grant && typeof grant === 'object') ? grant : null;
     if (!granted) return null;
@@ -7907,69 +7439,6 @@
   }
 
   _dpRegisterPaidResumeHandler(_DP_PROFILE_MANAGE_RESUME_KIND, _dpRunProfileManageResume);
-
-  function _dpRunProfileManageGate(action, profileId, requestId, profileData) {
-    return new Promise(function(resolve, reject) {
-      if (typeof window._cdCoinGatePerUse !== 'function') {
-        reject(new Error('결제 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.'));
-        return;
-      }
-      var normalizedAction = action === 'delete' ? 'delete' : (action === 'update' ? 'update' : 'create');
-      var serviceKey = normalizedAction === 'delete' ? 'profile_card_delete' : (normalizedAction === 'update' ? 'profile_card_update' : 'profile_card_create');
-      var reason = normalizedAction === 'delete' ? '\uD504\uB85C\uD544 \uCE74\uB4DC \uC0AD\uC81C' : (normalizedAction === 'update' ? '프로필 카드 수정' : '\uD504\uB85C\uD544 \uCE74\uB4DC \uCD94\uAC00');
-      var isDeleteAction = normalizedAction === 'delete';
-      window._cdCoinGatePerUse(PROFILE_CARD_MANAGE_COST, reason, function(transactionId, payload) {
-        var data = (payload && typeof payload === 'object') ? payload : {};
-        var accessGrant = data.accessGrant && typeof data.accessGrant === 'object' ? data.accessGrant : {};
-        var consume = data.consume && typeof data.consume === 'object' ? data.consume : {};
-        var paymentId = String(transactionId || data.transactionId || data.paymentId || data.purchaseId || requestId);
-        resolve({
-          requestId: requestId,
-          transactionId: paymentId,
-          paymentId: paymentId,
-          purchaseId: paymentId,
-          paymentSettled: true,
-          payment: data,
-          accessGrant: accessGrant,
-          consume: consume,
-          _paymentContext: {
-            requestId: requestId,
-            transactionId: paymentId,
-            paymentId: paymentId,
-            purchaseId: paymentId,
-            paymentSettled: true,
-            featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
-            profileId: profileId || '',
-            actionType: serviceKey,
-            profileAction: normalizedAction
-          }
-        });
-      }, function(error) {
-        if (error) reject(error);
-        else resolve(null);
-      }, {
-        featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
-        requestId: requestId,
-        profileId: profileId || '',
-        selectedProfileId: profileId || '',
-        serviceKey: serviceKey,
-        reportType: serviceKey,
-        actionType: serviceKey,
-        profileAction: normalizedAction,
-        action: normalizedAction,
-        amountKrw: PROFILE_CARD_MANAGE_COST * 100,
-        membershipCreditCost: isDeleteAction ? PROFILE_CARD_MANAGE_MONTHLY_COST : PROFILE_CARD_MANAGE_COST * 10,
-        // 프로필 카드 추가/삭제는 이용권으로 결제할 수 없다(D유형) — 추가·삭제 '모두' 이용권 선검사 없이
-        // 단건/월정석 결제창으로 직행한다. 과거엔 삭제만 스킵하고 추가는 선검사를 태워, premium/vvip가
-        // "이용권으로 커버됨" + 결제수단 전부 숨김을 받은 뒤 서버가 거부하는 막다른 길이 됐다.
-        // (무료 카드는 여기 오지 않는다 — profile.js가 402를 준 뒤에만 이 게이트가 열린다.)
-        allowedPaymentModes: ['direct', 'monthly'],
-        disablePassFirst: true,
-        disablePassChoice: true,
-        resume: _dpBuildProfileManageResumeDescriptor(normalizedAction, profileId, requestId, profileData)
-      });
-    });
-  }
 
   /* ──────────────────────────────────────────
      5. UI — Master Destiny Card (상단 카드)
@@ -9912,16 +9381,12 @@
     var _dpRenderProfileListFrame = function(callback) { callback(); };
     _dpRenderProfileListFrame(function() {
       try {
-        var listMaxProfiles = _dpGetMaxProfiles();
-        var isFreeUser = !_dpIsUnlimitedProfileLimit(listMaxProfiles) && _dpGetPositiveProfileLimit(listMaxProfiles) <= 1;
         var access = _dpProfileAccess || {};
         var selectionRequired = !!access.selectionRequired;
         var lockedProfileId = String(access.lockedProfileId || '').trim();
         var lockedNotice = selectionRequired
           ? '<div style="margin-top:10px;padding:8px 12px;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.4);border-radius:8px;text-align:center;font-size:0.72rem;color:#fbbf24;">이용권 혜택이 종료되었습니다. 계속 사용할 프로필 카드 1개를 선택하면 다음 이용권 결제 전까지 해당 카드만 사용할 수 있습니다.</div>'
-          : (isFreeUser
-          ? '<div style="margin-top:10px;padding:8px 12px;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.4);border-radius:8px;text-align:center;font-size:0.72rem;color:#fbbf24;">프로필 수정·삭제에는 ' + PROFILE_CARD_MANAGE_PRICE_LABEL + ' 단건 결제 또는 월정석 사용이 필요합니다.</div>'
-          : '');
+          : '';
 
         /* 카드를 이미 가진 사용자에게도 추가 진입점이 보여야 한다. 빈 상태 CTA는 list.length === 0 에서만
            렌더되므로, 보유자에겐 이 버튼이 유일한 명시적 "새로 만들기" 경로다. 편집 모드 취소도 겸한다. */
@@ -9954,8 +9419,6 @@
           var pname = safe.name || '이름 없음';
           var locLabel = l.label || '출생지 미지정';
 
-          var isLockedOut = !!lockedProfileId && pid !== lockedProfileId;
-
           return '<div class="dp-list-item' + (isActive ? ' dp-list-item--active' : '') + '"'
             + ' data-profile-id="' + pid + '"'
             + ' role="button" tabindex="0"'
@@ -9965,9 +9428,6 @@
               + '<div class="dp-li-body">'
                 + '<div class="dp-li-name">' + _esc(pname)
                   + (isActive ? ' <span class="dp-li-current-badge">현재</span>' : '')
-                  + (isFreeUser && isLockedOut
-                    ? ' <span style="font-size:0.62rem;color:#f87171;background:rgba(248,113,113,0.12);border:1px solid rgba(248,113,113,0.3);padding:1px 6px;border-radius:10px;">사용불가</span>'
-                    : '')
                   + (lockedProfileId && pid === lockedProfileId
                     ? ' <span style="font-size:0.62rem;color:#34d399;background:rgba(52,211,153,0.12);border:1px solid rgba(52,211,153,0.3);padding:1px 6px;border-radius:10px;">확정</span>'
                     : '')
@@ -9981,8 +9441,8 @@
               + '</div>'
             + '</div>'
             + '<div class="dp-li-actions" aria-label="' + _esc(_dpText('profileCardManage')) + '">'
-              + '<button type="button" class="dp-li-edit" aria-label="' + _esc(_dpText('profileEditAria')) + '" data-profile-edit-marker="profile-list-edit-50coin-v20260802">수정 · ' + (_dpSubIsActive && _dpSubTier === 'family' ? '무료' : PROFILE_CARD_MANAGE_PRICE_LABEL) + '</button>'
-              + '<button type="button" class="dp-li-del" aria-label="' + _esc(_dpText('profileDeleteAria')) + '" data-profile-delete-marker="profile-list-delete-only-50coin-v20260612">\uC0AD\uC81C \u00B7 ' + (PROFILE_CARD_MANAGE_COST * 100).toLocaleString('ko-KR') + '\uC6D0/\uC6D4\uC815\uC11D</button>'
+              + '<button type="button" class="dp-li-edit" aria-label="' + _esc(_dpText('profileEditAria')) + '" data-profile-edit-marker="profile-list-edit-free-v20261011">수정</button>'
+              + '<button type="button" class="dp-li-del" aria-label="' + _esc(_dpText('profileDeleteAria')) + '" data-profile-delete-marker="profile-list-delete-free-v20261011">삭제</button>'
             + '</div>'
             + '</div>';
         }).join('') + lockedNotice;
@@ -10125,10 +9585,7 @@
       alert('이름과 생년월일을 입력해주세요.');
       return;
     }
-    var profileCount = DPStorage.list().length;
-    var maxProfiles = _dpGetMaxProfiles();
-    var hasProfiles = profileCount > 0;
-    var canUsePlanSlot = _dpCanUseProfileSlot(profileCount, maxProfiles);
+    var hasProfiles = DPStorage.list().length > 0;
     /* 수정인지 생성인지는 편집 플래그 하나로만 정한다. "현재 프로필이 있는가"로 유도하면
        카드 보유자가 영구 수정 모드에 갇혀 추가가 불가능해진다. */
     var isUpdate = !!_dpProfileEditTargetId;
@@ -10141,10 +9598,6 @@
     }
     var mutationAction = isUpdate ? 'update' : 'create';
     var previousBirthSignature = isUpdate ? _dpBirthScopeSignature(currentProfile) : '';
-    var isFamilyPlan = _dpSubIsActive && _dpSubTier === 'family';
-    /* 과부하 금지 — 두 값은 의미가 다르다. 하나로 합치면 한도 가드가 수정까지 삼킨다(#248 회귀). */
-    var updateRequiresPayment = isUpdate && !isFamilyPlan;
-    var createRequiresPayment = !isUpdate && !canUsePlanSlot;
     var createDraftKey = 'cd_profile_create:' + _dpGetProfileScope();
     var createDraft = null;
     var createSignature = JSON.stringify(data);
@@ -10158,12 +9611,9 @@
     data.id = createProfileId;
     var createRequestId = _dpBuildProfileManageRequestId(mutationAction, createProfileId);
     var createScope = '';
-    /* 한도 초과는 차단이 아니라 유료 경로다 — 서버가 402를 주면 _dpRunProfileManageGate 가 결제창을 연다.
-       (React /me 및 서버 정책 profile_card_add_extra 와 같은 동작) */
-    var createConfirm = isUpdate
-      ? (updateRequiresPayment ? _dpText('profileEditConfirm') : _dpText('profileEditConfirmFree'))
-      : (createRequiresPayment ? _dpText('profileCreateExtraConfirm') : _dpText('profileCreateConfirm'));
-    if ((isUpdate || createRequiresPayment || !hasProfiles) && !confirm(createConfirm)) return;
+    /* 2026-10-11: 추가·수정 모두 무료이고 개수 상한이 없다. 결제창은 열지 않는다. */
+    var createConfirm = isUpdate ? _dpText('profileEditConfirm') : _dpText('profileCreateConfirm');
+    if ((isUpdate || !hasProfiles) && !confirm(createConfirm)) return;
     var btn = document.getElementById('dpSaveBtn');
     var savingCardVisible = false;
     function restoreCardAfterSaveAttempt() {
@@ -10225,53 +9675,17 @@
         throw new Error('AUTH_REQUIRED');
       }
       createScope = _dpGetProfileScope();
-      function postProfile(paymentContext) {
-        return _dpSendProfileMutation(mutationAction, createProfileId, createRequestId, data, paymentContext);
-      }
-      return postProfile().then(function(result) {
-        var payload = result && result.data ? result.data : null;
-        var code = String((payload && payload.code) || '').trim().toUpperCase();
-        if (result && result.status === 402 && code === 'PAYMENT_REQUIRED') {
-          return _dpRunProfileManageGate(mutationAction, createProfileId, createRequestId, data).then(function(paymentContext) {
-            if (!paymentContext) {
-              restoreCardAfterSaveAttempt();
-              return null;
-            }
-            return postProfile(paymentContext);
-          });
-        }
-        return result;
-      });
+      return _dpSendProfileMutation(mutationAction, createProfileId, createRequestId, data);
     }).then(function(result) {
       if (!result) return null;
       if (!result || !result.ok) {
         var payload = result && result.data ? result.data : null;
-        var code = String((payload && payload.code) || '').trim().toUpperCase();
         var msg = String((payload && payload.message) || '').trim();
         if (_dpIsAuthRequiredResult(result)) {
           throw new Error('AUTH_REQUIRED');
         }
         if (result && (result.status === 503 || result.status === 504 || result.status === 0)) {
           throw new Error('PROFILE_MUTATION_TRANSIENT_UNAVAILABLE');
-        }
-        if (result && (result.status === 409 || result.status === 403) && (code === 'PROFILE_LIMIT_RECONCILE_REQUIRED' || code === 'PROFILE_LIMIT_EXCEEDED')) {
-          if (payload && payload.profilePolicySnapshot) _dpApplyProfilePolicySnapshot(payload.profilePolicySnapshot, 'profile_reconcile');
-          var sub = payload && payload.subscription ? payload.subscription : null;
-          var tier = _dpNormalizeTier(sub && sub.tier);
-          var limit = Number(sub && sub.profileLimit);
-          var limitLabel = _dpFormatLimitLabel(limit);
-          var tierLabel = _dpGetTierLabel(tier);
-          var nextTier = _dpGetNextTier(tier);
-          /* 🔴 단순 오류 문구를 쓰지 않는다(2026-08-24 정책 10항). 지금 등급에서 몇 개까지
-             쓸 수 있는지 먼저 말하고, 상위 등급의 개수를 함께 보여 준다. 과한 결제 유도는
-             하지 않는다 — 사실만 적고 마지막 한 줄에서만 안내한다. */
-          var upgradeSummary = _dpDescribeUpgradeProfileLimits(tier);
-          var guide = nextTier && upgradeSummary
-            ? ('\n' + upgradeSummary + '까지 쓸 수 있어요. /points 에서 확인할 수 있습니다.')
-            : '';
-          window.alert(msg || ('현재 ' + tierLabel + '에서는 프로필을 최대 ' + limitLabel + ' 사용할 수 있어요.' + guide));
-          restoreCardAfterSaveAttempt();
-          return null;
         }
         throw new Error(msg || '프로필 저장 중 오류가 발생했습니다.');
       }
@@ -12722,7 +12136,7 @@
       : _dpCheckoutText('payment.directModal.passBuyTitle', '이용권으로 열기');
     var passHint = hasActivePassTier
       ? _dpCheckoutText('payment.directModal.passHint.upgrade', '지금 등급으로는 이 콘텐츠가 열리지 않아요. 더 넓은 등급을 확인해 보세요.')
-      : _dpCheckoutText('payment.directModal.passHint.store', '한 번 결제하고 30일 동안 여러 콘텐츠를 열 수 있어요. 이미 있다면 눌러서 바로 확인돼요.');
+      : _dpCheckoutText('payment.directModal.passHint.store', '한 번 결제하고 이용 한도를 다 쓸 때까지 여러 콘텐츠를 열 수 있어요. 이미 있다면 눌러서 바로 확인돼요.');
     // 활성 스냅샷이 월 잔여를 알면 "이번 달 남은 한도"를 덧붙인다(coin-gate 응답이 되쓴 값). 모르면 붙이지 않는다.
     try {
       var passCardApi = _dpPassVerdict();
@@ -13097,7 +12511,7 @@
               hit.classList.remove('is-loading');
               var passMonthlyNode = root.querySelector('[data-payment-status]');
               if (passMonthlyNode) {
-                passMonthlyNode.textContent = _dpCheckoutText('payment.directModal.passMonthlyExhausted', '이용권 월 한도를 모두 사용했어요. 만료일까지 등급과 프로필 상한은 유지되며, 추가 콘텐츠는 단건 결제나 월정석으로 이용할 수 있어요.');
+                passMonthlyNode.textContent = _dpCheckoutText('payment.directModal.passMonthlyExhausted', '이용 한도를 모두 사용해 이용권이 종료되었어요. 다시 구매하면 새 이용 한도로 시작하며, 지금은 단건 결제나 월정석으로 열 수 있어요.');
                 passMonthlyNode.style.color = '#fca5a5';
               }
               return;
@@ -13488,7 +12902,12 @@
   // 리다이렉트 복귀 확정은 한 번만 시도한다(같은 페이지에 이 스크립트가 두 번 주입되는 경우 대비).
   if (!window.__cdDirectPaymentResumeStarted) {
     window.__cdDirectPaymentResumeStarted = true;
-    try { void _dpResumeDirectPaymentAfterRedirect(); } catch (_) {}
+    try {
+      // 복귀 확정이 끝난 뒤에 본다 — 같은 고정 카드 자리를 두고 다투지 않게.
+      Promise.resolve(_dpResumeDirectPaymentAfterRedirect()).catch(function () {}).then(function () {
+        return _dpProbeBirthProfilePending(false);
+      }).catch(function () {});
+    } catch (_) {}
     // Mobile app switches and bfcache restores do not reload this script. Resume
     // the owned order poll on activation; approval is still verified server-side.
     var recoverDirectOrder = function () {

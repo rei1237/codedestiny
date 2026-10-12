@@ -636,6 +636,7 @@
     });
     hero.after(nav);
     var consult = dashboard.querySelector('#zwDeepAiPromptPanel');
+    var consultGuide = dashboard.querySelector('[data-crafted-static-offer="ziwei_ai_prompt_generator"]');
     var factsTable = dashboard.querySelector('.zw-fact-tables');
     if (factsTable) {
       // The engine tags these tables detail-only so the 간소 chart stays sparse, then hides them with
@@ -645,7 +646,7 @@
       factsTable.classList.remove('zw-detail-only');
       foldIfContent(dashboard, t('chartTables'), [factsTable]);
     }
-    var extra = Array.from(dashboard.children).filter(function (el) { return !el.matches('.fr-reading,.fr-disclosure,.fr-chart-section,.zw-fact-tables,#zwDeepAiPromptPanel'); });
+    var extra = Array.from(dashboard.children).filter(function (el) { return !el.matches('.fr-reading,.fr-disclosure,.fr-chart-section,.zw-fact-tables,#zwDeepAiPromptPanel,[data-crafted-static-offer="ziwei_ai_prompt_generator"]'); });
     if (extra.length) foldIfContent(dashboard, t('explore'), extra, 'fr-ziwei-explore');
     var full = area.querySelector('#zwComprehensiveReport');
     if (full) {
@@ -732,11 +733,12 @@
       nextReading.appendChild(node('p', 'fr-caption', '이용권·월정석·단건 결제의 적용 여부와 금액은 각 상세 안내에서 확인해 주세요.'));
       reading.appendChild(nextReading);
     }
+    if (consultGuide) area.appendChild(consultGuide);
     if (consult) area.appendChild(consult);
     area.appendChild(ziweiArticleLibrary(area));
     // The atlas is the sole decorative artwork on this surface. Keep text/captions.
     // The consultation entry scene is product imagery, not decoration — it must stay visible.
-    area.querySelectorAll('img').forEach(function (img) { if (!img.closest('.fc-entry__scene,.zwla-illustration,.fr-compat-entry')) img.hidden = true; });
+    area.querySelectorAll('img').forEach(function (img) { if (!img.closest('.fc-entry__scene,.zwla-illustration,.fr-compat-entry,[data-crafted-static-offer="ziwei_ai_prompt_generator"]')) img.hidden = true; });
     cells.forEach(function (cell) {
       cell.setAttribute('aria-label', cell.querySelector('.zw-palace-name').textContent + ' · ' + cell.querySelector('.zw-branch-name').textContent);
     });
@@ -837,7 +839,11 @@
       var section = node('section', 'astro-house-section'); section.id = id;
       section.appendChild(heading(label));
       selectors.forEach(function (selector) {
-        root.querySelectorAll(selector).forEach(function (el) { section.appendChild(el); });
+        root.querySelectorAll(selector).forEach(function (el) {
+          // Keep an optional product guide beside its original purchase section.
+          var pair = el.closest('.astro-crafted-pair');
+          section.appendChild(pair && root.contains(pair) ? pair : el);
+        });
       });
       return section.children.length > 1 ? section : null;
     }

@@ -1,9 +1,9 @@
-import { jsonSchemaFromExample } from "../lib/json-text-repair.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { getAmbientAiLocale } from "../lib/ai-locale-context.js";
 import { toAiLocale } from "../../lib/i18n/ai-locale.js";
 import { REASONING_OUTPUT_RULE_LINES } from "../lib/fortune-reasoning-contract.js";
 import { runPaidNarrativeDelivery } from "../lib/paid-narrative-delivery.js";
+import { NARRATIVE_RESPONSE_SCHEMA, narrativePriorDigest, parseNarrativeResponse } from "../lib/paid-narrative-candidate.js";
 import { HttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson, cookieValue } from "../lib/http.js";
 import { requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
@@ -33,32 +33,6 @@ function normalizeCard(raw, fallbackRole) {
     meaning: limitText(card.meaning || card.message, 2000),
     advice: limitText(card.advice || card.action, 1200),
   };
-}
-
-function parseJsonCandidate(text) {
-  const source = clean(text);
-  if (!source) return null;
-
-  const candidates = [source];
-  const fenced = source.match(/```(?:json)?\s*([\s\S]*?)```/i);
-  if (fenced?.[1]) candidates.push(clean(fenced[1]));
-
-  const firstBrace = source.indexOf("{");
-  const lastBrace = source.lastIndexOf("}");
-  if (firstBrace >= 0 && lastBrace > firstBrace) {
-    candidates.push(source.slice(firstBrace, lastBrace + 1));
-  }
-
-  for (const raw of candidates) {
-    try {
-      const parsed = JSON.parse(raw);
-      if (parsed && typeof parsed === "object") return parsed;
-    } catch (e) {
-      // try next candidate
-    }
-  }
-
-  return null;
 }
 
 function fillRichText(value, fallback, minChars) {
@@ -93,23 +67,15 @@ function buildGeomancyPrompt({ question, theme, cause, flow, judge, locale }) {
     ? "당신은 중동 사막의 궁정 지오맨시 대가입니다. 품위 있고 단정한 존댓말로, 별·사막·오아시스의 은유를 사용합니다."
     : "당신은 최고의 연금술 지오맨시 달인입니다. 존댓말로, 도가니·정련·원소 변환의 은유를 사용합니다.";
 
+  // 부분 호출용 seed. 신탁 전체 JSON 스키마·필드별 문장 수를 넣으면 모델이 한 부분에 전체를 다시 쓴다.
+  // 부분 범위와 출력 형식은 produce 가 붙인다.
   return [
     styleGuide,
-    "아래 3형상(원인/흐름/신탁)을 반드시 종합해, 매우 풍부하고 실전적인 최종 신탁을 작성하세요.",
-    "반드시 JSON 하나만 출력하세요. 마크다운/코드블록 금지.",
-    "JSON 스키마:",
-    '{"answer":"","keyJudgement":"","energyFlow":"","risk":"","timing":"","actionTip":"","advice":""}',
+    "아래 3형상(원인/흐름/신탁)을 종합해 실전적인 신탁을 이번 호출 범위만큼 작성하세요.",
     "작성 규칙:",
     // 유료 상담 공통 출력 계약(worker/lib/fortune-reasoning-contract.js) — 근거 먼저·사고과정 비노출·경향 표현.
     ...REASONING_OUTPUT_RULE_LINES.map((line) => `- ${line}`),
     "- 아래 카드 데이터에 실제로 있는 3형상(원인/흐름/신탁)의 이름을 그대로 인용해 근거로 삼는다. 카드에 없는 상징은 새로 만들지 않는다.",
-    "- answer: 최소 5~7문장, 원인->흐름->신탁의 인과를 명확히 연결",
-    "- keyJudgement: 핵심 결론 2~3문장",
-    "- energyFlow: 현재 에너지 구조와 방향성 3~4문장",
-    "- risk: 주의할 함정 2~3문장",
-    "- timing: 7일/21일/40일의 시간축 조언",
-    "- actionTip: 오늘 바로 실행할 행동 2~3개를 문장으로 제시",
-    "- advice: 현자의 한 줄 경구(1~2문장)",
     // 출력 언어 지시의 정본은 llm-client의 applyOutputLocale이다.
     ...(toAiLocale(locale) === "ko" ? ["- 한국어만 사용"] : []),
     "질문:",
@@ -140,12 +106,14 @@ export function geomancyNarrativeAdapter(env) {
   return {
     reportType: "geomancyOracle",
     produce: async (task, state) => {
-      const prompt = `${state.prompt}\n[이번 호출 범위] ${task.id}: ${task.prompt}\n위 전체 JSON 스키마 대신 이번 부분만 JSON {"evidenceHash":"${state.evidenceHash}","body":"본문"}로 출력하세요. 제목·목차·마크다운·공백 제외 최소 3,000자, 목표 3,900~4,600자입니다. 다른 부분을 반복하지 말고 세 형상의 실제 근거와 적용 조건을 연결하세요. 시간은 실천 점검 시점이며 확정 예언이 아닙니다.`;
+      const scope = task.id === "answer" ? "" : " 세 형상의 기본 상징 설명은 앞 부분에서 했으니 반복하지 말고 이번 범위로 바로 들어가세요.";
+      const timingScope = task.id === "timing" ? "\n7일·21일·40일을 각각 하나의 점검 단계로 쓰세요. 각 단계에는 확인할 현실 자료, 실행할 작은 행동, 중단하거나 수정할 조건을 넣으세요. 형상의 뜻·불의 충동·질문 요약으로 시작하지 말고 '7일 동안'의 행동부터 시작하세요. 세 단계가 끝나면 마무리하며 종합 해석을 다시 쓰지 마세요." : "";
+      const prompt = `${state.prompt}\n[이번 호출 범위] ${task.id}: ${task.prompt}${narrativePriorDigest(state, task)}\n이번 부분만 JSON {"body":"본문"}로 출력하세요. 제목·목차·마크다운·공백 제외 최소 ${task.minChars}자, 목표 ${Math.ceil(task.minChars * 1.3)}~${Math.ceil(task.minChars * 1.5)}자입니다.${scope} 세 형상의 실제 근거와 적용 조건을 연결하세요. 시간은 실천 점검 시점이며 확정 예언이 아닙니다.${timingScope}`;
       const ai = await callGeminiText(env, prompt, { model: clean(env.GEOMANCY_GEMINI_MODEL), temperature: 0.65,
         timeoutMs: Math.min(45000, Math.max(15000, Number(env.GEOMANCY_PROVIDER_TIMEOUT_MS) || 45000)),
-        maxOutputTokens: 11000, thinkingBudget: 0, fallbackToWorkersAI: false, responseMimeType: "application/json", responseSchema: jsonSchemaFromExample({ evidenceHash: "", body: "" }) });
+        maxOutputTokens: 11000, thinkingBudget: 0, fallbackToWorkersAI: false, responseMimeType: "application/json", responseSchema: NARRATIVE_RESPONSE_SCHEMA });
       if (!ai?.ok || ai.truncated || ai.isMock || /mock/i.test(`${ai.provider || ""} ${ai.model || ""}`)) return null;
-      return parseJsonCandidate(ai.text);
+      return parseNarrativeResponse(ai.text, state.evidenceHash);
     },
     render: state => ({ ...Object.fromEntries(ORACLE_SECTIONS.map(([id]) => [id, state.parts[id] || ""])),
       source: Object.keys(state.parts).length ? "gemini" : "pending", requestId: state.body.requestId,
@@ -186,8 +154,9 @@ export async function handleOracleRoutes(request, env = {}) {
       },
       seed: original => {
         const input = oracleInput(original);
-        return { input, prompt: buildGeomancyPrompt(input), minBodyChars: 20000,
-          tasks: ORACLE_SECTIONS.map(([id, title]) => ({ id, prompt: title, minChars: 3000 })) };
+        // 5,000원 상품: 7부분 × 1,800자 = 12,600자. 짧아도 완결된 본문은 전달한다.
+        return { input, prompt: buildGeomancyPrompt(input),
+          tasks: ORACLE_SECTIONS.map(([id, title]) => ({ id, prompt: title, minChars: 1800 })) };
       },
     });
   } catch (error) {

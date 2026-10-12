@@ -125,9 +125,8 @@ test("가격만으로도 찾을 수 있다", async () => {
   assert.ok(!hits.includes("운명의 업"), "무료로 좁혔는데 30,000원 상담이 남아 있다");
 });
 
-// 회귀 배경: service-registry.js에 3,000원대 항목이 하나도 없어 "3천원대" 칩이 항상 0건이었다
-// (2026-08-21 실측). 실제 3,000원 서비스 8개를 등록하며 이 케이스를 추가한다.
-test("가격 인하된 정적 상품과 3천원대 상담을 구분해 찾을 수 있다", async () => {
+// 2026-10-12 프리미엄 개편: 단발 오라클은 3,000원, 타로 리딩은 5,000원으로 분리한다.
+test("3천원 오라클과 5천원 타로를 가격대로 구분해 찾을 수 있다", async () => {
   const { doc } = await boot();
   const panel = doc.getElementById("fortuneGatewayRecs");
 
@@ -135,13 +134,13 @@ test("가격 인하된 정적 상품과 3천원대 상담을 구분해 찾을 �
 
   const hits = names(panel);
   assert.ok(hits.length > 0, "3천원대만 골랐을 때 결과가 없다");
-  assert.ok(hits.includes("재회운 타로"), `3천원대 결과에 재회운 타로가 없다: ${hits.join(", ")}`);
-  assert.ok(!hits.includes("이집트 신탁"), "1,000원 이집트 신탁이 이전 가격대에 남아 있다");
+  assert.ok(hits.includes("이집트 신탁"), `3천원대 결과에 이집트 신탁이 없다: ${hits.join(", ")}`);
+  assert.ok(!hits.includes("재회운 타로"), "5,000원 재회운 타로가 3천원대에 섞였다");
   doc.querySelector('#fortuneGatewayDiscover [data-price="mid"]').click();
-  doc.querySelector('#fortuneGatewayDiscover [data-price="low"]').click();
-  const lowHits = names(panel);
-  assert.ok(lowHits.includes("이집트 신탁"), "1,000원 가격대에 이집트 신탁이 없다");
-  assert.ok(!lowHits.includes("재회운 타로"), "3,000원 상담이 1,000원 가격대에 섞였다");
+  doc.querySelector('#fortuneGatewayDiscover [data-price="high"]').click();
+  const highHits = names(panel);
+  assert.ok(highHits.includes("재회운 타로"), "5천원대에 재회운 타로가 없다");
+  assert.ok(!highHits.includes("이집트 신탁"), "3,000원 이집트 신탁이 5천원대에 섞였다");
 });
 
 test("방식은 이름 정규식이 아니라 선언된 값으로 판정한다", async () => {
@@ -203,20 +202,20 @@ test("범위 가격 항목은 걸치는 가격대 칩에 모두 나온다", asyn
     return hit;
   };
 
-  // 룬은 1,000원 단일가가 됐으므로 예전 범위 가격대에 남지 않는다.
-  assert.ok(inChip("low", "스톤헨지 룬"));
-  assert.ok(!inChip("mid", "스톤헨지 룬"));
+  // 룬은 3,000원 단일가이므로 3천원대에만 남는다.
+  assert.ok(!inChip("low", "스톤헨지 룬"));
+  assert.ok(inChip("mid", "스톤헨지 룬"));
   assert.ok(!inChip("high", "스톤헨지 룬"));
-  // 인연의 서는 2026-10-10 개인판 인상으로 20,000원~30,000원이 되어 양끝이 모두 프리미엄 가격대다.
-  assert.ok(inChip("vvip", "마스터 인연의 서"), "20,000원~30,000원 항목이 프리미엄에서 빠졌다");
+  // 범위 가격 상품은 걸치는 가격대에만 나타난다 — 30,000원~50,000원은 시작가부터 프리미엄이다.
+  assert.ok(inChip("vvip", "마스터 인연의 서"), "30,000원~50,000원 항목이 프리미엄에서 빠졌다");
   assert.ok(!inChip("premium", "마스터 인연의 서"), "범위 밖의 1만원대에 섞였다");
   assert.ok(!inChip("mid", "마스터 인연의 서"), "범위 밖의 3천원대에 섞였다");
-  // 찻집은 전 상품 5,000원 단일 가격이므로 예전 상한 버킷에 남으면 안 된다.
-  assert.ok(inChip("high", "운명의 찻집"));
-  assert.ok(!inChip("premium", "운명의 찻집"));
+  // 찻집은 전 상품 10,000원 단일 가격이므로 1만원대에만 남는다.
+  assert.ok(!inChip("high", "운명의 찻집"));
+  assert.ok(inChip("premium", "운명의 찻집"));
   assert.ok(!inChip("vvip", "운명의 찻집"));
-  assert.ok(inChip("mid", "애니멀 토템"));
-  assert.ok(!inChip("high", "애니멀 토템"));
+  assert.ok(!inChip("mid", "애니멀 토템"));
+  assert.ok(inChip("high", "애니멀 토템"));
 });
 
 // 회귀 배경(2026-09-03 실측): 결과 카드의 가격·CTA 노드가 className 없이 생성돼
@@ -269,7 +268,7 @@ test("표시 가격은 레지스트리 값을 그대로 쓴다", async () => {
   const cards = Array.from(panel.querySelectorAll(".fortune-gateway__rec"));
   const codex = cards.find((c) => c.textContent.includes("마스터 인연의 서"));
   assert.ok(codex, "궁합 결과에 마스터 인연의 서가 없다");
-  assert.match(codex.querySelector(".fortune-gateway__rec-foot i").textContent, /20,000원/);
+  assert.match(codex.querySelector(".fortune-gateway__rec-foot i").textContent, /^30,000원~50,000원$/);
 });
 
 // 회귀 배경: 입력·칩 선택 전에는 `panel.hidden = true` 로 아무것도 렌더하지 않아, 홈에서 가장 강한
@@ -417,7 +416,7 @@ test("필터를 켰다가 모두 끄면 기본 목록으로 되돌아온다", as
 // 델리게이션 선택자에 걸리는 표식이 하나도 없어 시트가 안 열렸다(2026-09-01 실측: 표면 0/2).
 // 🔴 여기서 지키는 것은 "무엇이 붙는가" 보다 **무엇이 안 붙는가** 다 — data-coin-cost 계열이
 //    붙는 순간 이 카드에서 _cdRunPerUseCoinGate 가 결제 게이트를 무장한다.
-test("추천 카드는 결제 게이트를 무장하지 않고 유료/무료 표식만 싣는다", async () => {
+test("추천 카드는 결제 게이트를 무장하지 않고 결제 여부 표식만 싣는다", async () => {
   const { doc } = await boot();
   const panel = doc.getElementById("fortuneGatewayRecs");
   const input = doc.getElementById("fortuneGatewaySearch");
@@ -439,10 +438,11 @@ test("추천 카드는 결제 게이트를 무장하지 않고 유료/무료 표
     "시트 제목으로 읽힐 노드가 없거나 배지 문구가 섞였다",
   );
 
-  const free = cards.find((c) => c.getAttribute("data-pvw-free"));
-  assert.ok(free, "무료 면제 표식이 붙은 카드가 하나도 없다");
-  assert.equal(free.getAttribute("data-pvw-paid"), null, "무료 카드에 유료 표식이 붙었다");
-  assert.equal(free.getAttribute("data-feature-key"), null, "무료 카드에 featureKey 가 실려 유료로 프레이밍된다");
+  assert.equal(
+    cards.filter((c) => c.getAttribute("data-pvw-free")).length,
+    0,
+    "궁합 추천에 무상 운세 카드가 남았다",
+  );
 
   // 경계 항목 둘. 여기가 갈리면 /points 프로그래매틱 이동(결제 금지 패턴 ⑦)이 열린다.
   // 🔴 가격 칩으로 고른다 — 검색 입력은 120ms 디바운스라 이 동기 단언이 이전 목록을 읽는다.

@@ -1,0 +1,6 @@
+{
+  "original": "Independent SHIP24;animal06/08 orphan lines corrected",
+  "mobile": "Independent SHIP24 introduction panels,18 CTA/notice,3 transcripts;animal2 corrections rechecked",
+  "checks": "4 widths load/bounds/fallback PASS; existing introduction/recovery17 PASS; mocked totem render PASS",
+  "limits": "Local mock; no live payment/LLM; main pending"
+}

@@ -1,4 +1,6 @@
 "use client";
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
+import { detectLocale } from "@/lib/i18n/dictionary";
 
 // 택일(무후르타) — 회당 결제(₩5,000).
 //
@@ -210,6 +212,7 @@ export default function MuhurtaClient() {
           <p className={styles.lede} dangerouslySetInnerHTML={{ __html: copy.muhurtaLede }} />
         </header>
 
+        {!report && detectLocale() === "ko" && <div style={{width:"100%",maxWidth:540,minWidth:0,margin:"0 auto 24px",background:"#eee7dc",color:"#463a31",borderRadius:12}}><CraftedProductDisclosure featureKey="nakshatra-muhurta" summaryLabel="나크샤트라 택일 상세 안내" /></div>}
         <NakshatraProfilePicker context={profilePicker} copy={copy} disabled={isPaying || loading} />
         <NatalBar natal={natal} meta={meta} />
 

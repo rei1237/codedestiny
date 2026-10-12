@@ -164,3 +164,15 @@ test("친구 꽃 공개 카드는 로그인 없이 꽃 정보만 주고 모르�
   const post = new Request("https://code-destiny.com/api/destiny-flower/flower/magnolia", { method: "POST" });
   expect((await handleDestinyFlowerRoutes(post, {})).status).toBe(405);
 });
+
+test("lang 을 보내면 꽃 이름·꽃말·나의 꽃말을 그 언어로 내려주고 ko 는 그대로다", async () => {
+  const pick = async (body) => (await (await handleDestinyFlowerRoutes(post(body), {})).json()).sources.saju;
+  const ko = await pick({ profile: PROFILE });
+  const ja = await pick({ profile: PROFILE, lang: "ja" });
+  expect(ja.flower.id).toBe(ko.flower.id);
+  for (const field of [(r) => r.flower.name, (r) => r.flower.flower_language, (r) => r.destiny_flower_language]) {
+    expect(field(ja)).not.toMatch(/[가-힣]/);
+    expect(field(ja)).not.toBe(field(ko));
+  }
+  expect(ko.flower.flower_language).toBe((await pick({ profile: PROFILE, lang: "ko" })).flower.flower_language);
+});

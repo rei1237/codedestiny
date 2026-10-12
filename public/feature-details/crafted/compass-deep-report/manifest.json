@@ -1,0 +1,88 @@
+{
+  "id": "compass-deep-report",
+  "featureKey": "destiny-compass-deep-report",
+  "title": "운명의 지도 심층 리포트",
+  "notice": "생년 정보와 80자 이내 고민으로 기본 지도를 준비한 뒤 여는 별도 유료 AI 해석입니다. 사주·자미두수·숙요·타로와 베다의 요일 지배성 자료를 활용하며 전체 베다 차트/다샤 분석은 아닙니다. AI 10섹션이 무료 계산 화면과 함께 9칸에 배치됩니다. 체계별 근거·종합·시기·기회·주의·행동을 읽고 저장본 재열람 및 PDF 저장을 이용할 수 있습니다. 입력/시간 미상/생성 상태에 따라 내용과 근거가 달라집니다. 지수와 날씨는 상징이며 사건·성공 확률·시점을 보장하지 않습니다. 갈림길/미래 시뮬레이션/삶의 항로는 별도 상품입니다. 도식과 질문은 구성 설명용 가상 예시이며 실제 후기/생성 결과가 아닙니다. 현재 가격과 이용권·월정석·단건 결제 조건은 기존 결제 화면에서 확인합니다.",
+  "panels": [
+    {
+      "id": "01-more-than-a-bearing",
+      "title": "방향을 본 다음, 이유를 읽습니다.",
+      "src": "/feature-details/crafted/compass-deep-report/01-more-than-a-bearing.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "방향을 본 다음,\n이유를 읽습니다.\n지금의 고민\n왜\n다음의 선택\n\n운명의 지도 심층 리포트.\n기본 지도가 보여준 기운의 흐름을\n체계별 근거와 행동 조언으로 풀어내는\n별도 유료 AI 해석입니다."
+    },
+    {
+      "id": "02-your-question",
+      "title": "정보는 바탕이 되고, 고민은 중심이 됩니다.",
+      "src": "/feature-details/crafted/compass-deep-report/02-your-question.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "정보는 바탕이 되고,\n고민은 중심이 됩니다.\n생년 정보\n\n생일과 양력·음력 등 기존 입력으로\n기본 지도 계산 자료를 준비합니다.\n출생시간은 선택할 수 있습니다.\n\n지금의 고민\n\n관계, 일, 선택 앞에서 궁금한 점을\n80자 안에서 구체적으로 적어주세요.\n\n시간 미상 등 입력 조건에 따라\n활용할 수 있는 해석 근거가 달라집니다."
+    },
+    {
+      "id": "03-separate-lenses",
+      "title": "다른 체계를, 하나의 답으로 뭉개지 않게.",
+      "src": "/feature-details/crafted/compass-deep-report/03-separate-lenses.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "다른 체계를,\n하나의 답으로\n뭉개지 않게.\n\n사주 · 기질과 기운의 구조\n\n자미두수 · 궁과 별의 배치\n\n숙요 · 관계를 읽는 관점\n\n타로 · 카드의 상징\n\n베다 · 요일 지배성\n\n베다는 바라, 즉 요일 지배성만 활용합니다.\n전체 베다 차트나 다샤 분석은 아닙니다."
+    },
+    {
+      "id": "04-the-reading-order",
+      "title": "원인에서 행동까지, 읽는 순서가 있습니다.",
+      "src": "/feature-details/crafted/compass-deep-report/04-the-reading-order.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "원인에서 행동까지,\n읽는 순서가 있습니다.\n\n01   지금의 좌표와 체계별 해석\n\n02   체계를 함께 읽는 종합 조언\n\n03   시기별 흐름과 변화\n\n04   기회와 주의할 흐름\n\n05   현실에서 해볼 행동\n\nAI 본문은 10개 섹션으로 구성됩니다.\n화면에서는 무료 지도와 함께 9칸에 배치되며,\n체계별 해석은 한 칸에 모아 보여줍니다."
+    },
+    {
+      "id": "05-time-with-context",
+      "title": "서두를 때와, 돌아볼 때를 나누어.",
+      "src": "/feature-details/crafted/compass-deep-report/05-time-with-context.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "서두를 때와,\n돌아볼 때를 나누어.\n\n30일\n\n90일\n\n1년\n\n3년\n\n기존 지도 계산의 시기별 흐름을\n현재의 고민과 연결해 해석합니다.\n기회를 읽는 문장과 주의할 문장을\n함께 살펴보세요.\n\n지수와 날씨는 기운을 표현하는 비유입니다.\n특정 사건이나 성공 시점을 보장하지 않습니다."
+    },
+    {
+      "id": "06-example",
+      "title": "떠날지 남을지보다, 먼저 살필 조건.",
+      "src": "/feature-details/crafted/compass-deep-report/06-example.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "떠날지 남을지보다,\n먼저 살필 조건.\n“지금의 일을 계속하면서\n다른 가능성도\n준비하고 싶어요.”\n\n강점이 살아나는 환경은 무엇인지,\n서두르다 놓칠 조건은 없는지,\n작게 시작할 행동은 무엇인지.\n\n질문과 읽는 방법을 보여주는 가상 예시입니다.\n실제 구매 후기나 생성 결과 원문이 아닙니다."
+    },
+    {
+      "id": "07-a-useful-next-step",
+      "title": "해석을 읽고, 내 생활에 대입합니다.",
+      "src": "/feature-details/crafted/compass-deep-report/07-a-useful-next-step.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "해석을 읽고,\n내 생활에 대입합니다.\n반복되는 패턴 찾기\n\n여러 체계에서 비슷하게 등장하는\n강점과 주의점을 비교해보세요.\n\n작은 행동으로 옮기기\n\n행동 조언 중 지금 가능한 한 가지를\n나의 일정과 여건에 맞춰 정해보세요.\n\n중요한 선택은 현실의 정보와 함께 판단합니다.\n리포트가 결정을 대신하지는 않습니다."
+    },
+    {
+      "id": "08-keep-the-report",
+      "title": "다시 읽을 자리와, 따로 간직할 파일.",
+      "src": "/feature-details/crafted/compass-deep-report/08-keep-the-report.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "다시 읽을 자리와,\n따로 간직할 파일.\n\n저장된 리포트\n\nPDF 저장\n\n생성된 리포트는 저장본으로 다시 읽고,\n화면의 PDF 저장 기능으로\n파일을 간직할 수 있습니다.\n\n도착한 내용부터 차례로 읽습니다.\n실패 안내가 보이면 이어받기를 이용하세요.\n저장·내보내기 완료 여부를 확인해주세요."
+    },
+    {
+      "id": "09-which-product",
+      "title": "비교 화면과, 심층 해석은 다릅니다.",
+      "src": "/feature-details/crafted/compass-deep-report/09-which-product.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "비교 화면과,\n심층 해석은 다릅니다.\n이 심층 리포트\n\n체계별 근거와 시기 흐름을\n새 AI 본문으로 풀어 읽습니다.\n\n나침반의 다른 유료 화면\n\n갈림길 비교, 미래 시뮬레이션,\n삶의 항로는 각각 별도 상품입니다.\n이 구매에 함께 포함되지 않습니다.\n\n필요한 결과 형태를 확인한 뒤 선택해주세요."
+    },
+    {
+      "id": "10-before-reading",
+      "title": "나의 고민을, 더 넓게 읽을 준비.",
+      "src": "/feature-details/crafted/compass-deep-report/10-before-reading.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "나의 고민을,\n더 넓게 읽을 준비.\n\n기본 지도와 입력 내용을 확인하고\n기존 심층 리포트 열기 버튼에서\n가격과 이용 조건을 확인합니다.\n\n이용권·월정석·단건 결제는\n현재 결제 화면의 기준을 따릅니다.\n추가 혜택이나 무제한 상담을\n약속하는 상품은 아닙니다.\n\n이 안내의 도식은 구성 설명용입니다.\n개인별 문장과 해석 근거는\n입력에 따라 달라집니다."
+    }
+  ]
+}

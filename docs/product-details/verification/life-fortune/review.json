@@ -1,0 +1,17 @@
+{
+  "id": "life-fortune",
+  "status": "local applied and independently reviewed; delivery pending",
+  "independentOriginal": "ship after requested edits",
+  "independentActualMobile": "ship",
+  "viewports": [
+    360,
+    390,
+    430,
+    1280
+  ],
+  "evidence": [
+    "render.json",
+    "mobile.json"
+  ],
+  "verificationLimit": "mock browser and current code contracts; no real payment/LLM/PDF execution"
+}

@@ -32,7 +32,7 @@ beforeAll(async()=>{
 let proofs=[];
 beforeEach(()=>{docs=[];revoked=false;userId=owner;fault=null;lost=false;mode='pass';proofs=[];
  provider=jest.fn(async(_env,prompt,options)=>{expect(options.timeoutMs).toBeLessThanOrEqual(45000);expect(options.fallbackToWorkersAI).toBe(false);
- const evidenceHash=prompt.match(/evidenceHash":"([a-f0-9]{64})/)[1],label=prompt.split('[이번 호출 범위] ')[1].split('\n')[0];
+ const evidenceHash=prompt.match(/evidenceHash":"([a-f0-9]{64})/)?.[1],label=prompt.split('[이번 호출 범위] ')[1].split('\n')[0];
  return {ok:true,provider:'gemini',text:JSON.stringify({evidenceHash,body:Array.from({length:65},(_,i)=>`${label} ${i}번째 해석은 세 형상의 관계에 비추어 지금의 선택을 검토하는 과정이며 확정된 사건을 예언하지 않습니다. ${label} ${i}번째 관찰에서는 생활 속 조건과 실천의 결과를 기록하며 자신에게 맞는 방향을 선택할 수 있습니다.`).join('\n\n')})};
  });external=jest.spyOn(globalThis,'fetch').mockImplementation(()=>{throw Error('external fetch forbidden');});
 });
@@ -149,3 +149,12 @@ test.each(['short','missing','wrong-facts','truncated','interrupted','mock'])('%
 test('original owner, input and revoked/denied evidence are enforced',async()=>{mode='denied';expect((await start()).status).toBe(402);expect(provider).not.toHaveBeenCalled();mode='pass';await start();userId='other';expect((await resume()).status).toBe(404);userId=owner;expect((await post({...original(),question:'변경한 질문입니다.'})).status).toBe(409);mode='denied';expect((await resume()).status).toBe(402);mode='pass';revoked=true;expect((await resume()).status).toBe(403);expect(provider).toHaveBeenCalledTimes(4);});
 test('concurrent original requests share a lease and retain original locale',async()=>{const {runWithAiLocale,getAmbientAiLocale}=await import('../../worker/lib/ai-locale-context.js');let release;const hold=new Promise(resolve=>release=resolve),base=provider.getMockImplementation(),locales=[];provider.mockImplementation(async(...args)=>{locales.push(getAmbientAiLocale());await hold;return base(...args);});const first=runWithAiLocale('ja',start);for(let i=0;i<100&&provider.mock.calls.length<4;i++)await new Promise(resolve=>setImmediate(resolve));expect((await start()).status).toBe(202);release();await first;expect(locales).toEqual(['ja','ja','ja','ja']);const pending=await route(new Request('https://mock.test/api/oracle/result'),{});expect(pending.status).toBe(202);expect((await pending.json()).locale).toBe('ja');expect(provider).toHaveBeenCalledTimes(4);});
 test('provider interruptions have two attempts per part without false refund or completion',async()=>{provider.mockResolvedValue({ok:false});await start();for(let i=0;i<8;i++)await resume();expect(provider).toHaveBeenCalledTimes(14);expect(docs[0].status).toBe('pending');expect(Object.values(docs[0].metadata.paidNarrative.attempts).every(n=>n===2)).toBe(true);});
+test('part prompts carry no whole-oracle schema, later parts get the earlier gist, and targets total ~9,000 chars',async()=>{
+ await start();expect((await finish()).status).toBe(200);
+ const prompts=provider.mock.calls.map(call=>call[1]);
+ for(const prompt of prompts)expect(prompt).not.toMatch(/JSON 스키마|"keyJudgement"|"answer":""|최소 5~7문장/);
+ expect(prompts.at(-1)).toContain('[앞 부분 요지]');
+ const timing=prompts.find(p=>p.includes('[이번 호출 범위] timing:'));expect(timing).toContain('7일·21일·40일을 각각 하나의 점검 단계');expect(timing).toContain('종합 해석을 다시 쓰지 마세요');
+ const total=docs[0].metadata.paidNarrative.tasks.reduce((sum,task)=>sum+task.minChars,0);
+ expect(total).toBeGreaterThanOrEqual(12000);expect(total).toBeLessThanOrEqual(14000);
+});

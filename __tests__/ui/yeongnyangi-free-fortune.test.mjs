@@ -26,7 +26,7 @@ test('room keeps original artwork and restores its purple selection surface',()=
   const free=read('app/yeongnyangi/_components/FreeFortune.tsx');
   const css=read('app/yeongnyangi/_original/free-fortune.css');
   assert.match(room,/<FreeFortune\/>/);assert.match(room,/room-1440/);
-  assert.match(free,/freeCategories\.map/);assert.match(free,/멸치 1마리 건네기/);
+  assert.match(free,/freeCategories\.map/);assert.match(free,/멸치 \$\{state\.unlockCost\?\?3\}마리 건네기/);assert.match(free,/3마리로 오늘의 16종/);
   assert.match(css,/#261834/);assert.match(css,/#7541ad/);assert.match(css,/#e9c78d/);
   for(const asset of ['anchovy.webp','reaction-anchovy.webp'])assert.ok(existsSync(`public/assets/yeongnyangi/fish/${asset}`),asset);
   assert.ok(existsSync('public/assets/yeongnyangi/original/expression-calm.webp'));

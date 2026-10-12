@@ -1,0 +1,88 @@
+{
+  "id": "celestial-harmony",
+  "featureKey": "tarot-celestial-harmony",
+  "title": "천체의 선율 타로",
+  "notice": "출생 시각이나 장소를 계산하는 점성술 차트가 아니라, 열한 천체의 상징을 질문의 자리로 삼아 카드를 읽는 타로 상품입니다. 메이저 카드에서 열한 자리를 배치하고 통합 카드가 함께 정해집니다. 카드 배치 후 별도 결제로 천체별 해설과 별빛 통합 리딩을 생성합니다. 태양·달·수성·금성·화성·목성·토성·천왕성·해왕성·명왕성·카이론의 질문을 다룹니다. 천체별 결과는 카드 의미·천체 원형·원형 리딩·의식 메시지·무의식 패턴·그림자 경고·영혼 과제·통합 실천으로 표시합니다. 서버에서 AI 해설을 11개 천체와 통합 해설의 12부분으로 생성·저장하며, 중단된 경우 저장된 리딩을 이어 열 수 있습니다. 요약에는 전체 주제·강한 흐름·주의할 패턴·삶의 영역별 힌트가 있으며, 실천 제안과 7일 계획은 해당 결과가 있을 때 표시됩니다. 요약/오라클 텍스트 복사를 지원하며 PDF와 완성 시간·분량은 보장하지 않습니다. 심리·건강 진단이나 수익·관계 결과를 확정하지 않는 자기 성찰용 해석입니다. 콘셉트 이미지와 가상 편집 예시는 실제 개인 결과나 후기가 아닙니다. 현재 이용권·월정석·단건 결제의 범위와 조건은 결제창에서 확인하세요.",
+  "panels": [
+    {
+      "id": "01-a-chorus-of-questions",
+      "title": "마음 안의 여러 목소리를, 하나의 선율로 읽어요.",
+      "src": "/feature-details/crafted/celestial-harmony/01-a-chorus-of-questions.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "마음 안의 여러 목소리를,\n하나의 선율로 읽어요.\n\n태양부터 카이론까지,\n열한 천체의 질문과 타로가 만나는\n천체의 선율 타로입니다.\n\n콘셉트 이미지 · 실제 천체 배치나\n개인 결과 화면이 아닙니다."
+    },
+    {
+      "id": "02-symbols-not-a-birth-chart",
+      "title": "별의 위치 대신, 상징의 질문을 읽어요.",
+      "src": "/feature-details/crafted/celestial-harmony/02-symbols-not-a-birth-chart.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "별의 위치 대신,\n상징의 질문을 읽어요.\n천체는 질문의 자리\n\n태양은 드러내는 나,\n달은 마음에 남은 감정처럼\n각 천체를 삶의 주제로 읽어요.\n\n카드는 그 질문의 단서\n\n같은 카드라도 어떤 자리에 놓이고\n어느 방향으로 펼쳐졌는지에 따라\n해석의 초점이 달라져요.\n\n출생 시각·장소로 계산한 점성술 차트나\n별자리별 오늘의 운세가 아닙니다."
+    },
+    {
+      "id": "03-draw-then-open",
+      "title": "열한 자리에 카드를 놓고, 전체 리딩을 열어요.",
+      "src": "/feature-details/crafted/celestial-harmony/03-draw-then-open.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "열한 자리에 카드를 놓고,\n전체 리딩을 열어요.\n카드 배치\n→\n리딩 선택\n행성 자리 펼치기\n\n메이저 카드에서 열한 장이 배치되고\n통합을 위한 카드가 함께 정해져요.\n\n별빛 통합 리딩 열기\n\n별도 결제 확인 후\n천체별 해설과 통합 리딩을 만들어요.\n\n출생 정보 입력 없이 카드 배열로 진행해요.\n천체별 해설 11개와 통합 해설을\n서버에서 나누어 작성·저장합니다."
+    },
+    {
+      "id": "04-self-feeling-and-value",
+      "title": "나를 드러내고, 느끼고, 관계 맺는 방식.",
+      "src": "/feature-details/crafted/celestial-harmony/04-self-feeling-and-value.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "나를 드러내고, 느끼고,\n관계 맺는 방식.\n\n태양 · 드러나는 자아\n\n달 · 마음의 기억\n\n수성 · 생각과 언어\n\n금성 · 사랑과 가치\n\n내가 중요하게 여기는 것\n\n겉으로 보이는 태도와 속마음,\n말과 관계의 기준을 함께 살펴요."
+    },
+    {
+      "id": "05-drive-limits-and-change",
+      "title": "나아가는 힘에도, 속도 조절이 필요해요.",
+      "src": "/feature-details/crafted/celestial-harmony/05-drive-limits-and-change.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "나아가는 힘에도,\n속도 조절이 필요해요.\n\n화성 · 욕망과 추진력\n\n목성 · 확장과 믿음\n\n토성 · 책임과 시험\n\n천왕성 · 변화의 각성\n\n움직임과 경계를 함께\n\n하고 싶은 마음에 더해,\n지속할 조건과 바꿀 방식을 봐요."
+    },
+    {
+      "id": "06-the-quiet-questions",
+      "title": "설명하기 어려운 마음도, 천천히 이름 붙여봐요.",
+      "src": "/feature-details/crafted/celestial-harmony/06-the-quiet-questions.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "설명하기 어려운 마음도,\n천천히 이름 붙여봐요.\n해왕성 · 꿈과 직관\n\n바라는 모습과 현실 사이에서\n무엇을 확인할지 살펴요.\n\n명왕성 · 깊은 변용\n\n오래 붙잡은 방식 가운데\n새롭게 바라볼 부분을 읽어요.\n\n카이론 · 상처의 지혜\n\n민감하게 반응하는 지점을\n자기 이해의 질문으로 다뤄요."
+    },
+    {
+      "id": "07-inside-each-reading",
+      "title": "카드 뜻에서 시작해, 내 삶의 행동까지.",
+      "src": "/feature-details/crafted/celestial-harmony/07-inside-each-reading.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "카드 뜻에서 시작해,\n내 삶의 행동까지.\n\n카드 의미 · 천체의 원형\n\n원형 리딩 · 의식 메시지\n\n무의식 패턴 · 그림자 경고\n\n영혼 과제 · 통합 실천\n\n어려운 말은 이렇게 읽어요\n\n그림자는 놓치기 쉬운 반응,\n영혼 과제는 연습할 태도로 읽어요.\n\n심리 진단이나 상처의 원인을\n확정하는 분석은 아닙니다."
+    },
+    {
+      "id": "08-an-example-of-expression",
+      "title": "드러내고 싶은 나와, 망설이는 나 사이.",
+      "src": "/feature-details/crafted/celestial-harmony/08-an-example-of-expression.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "가상 편집 예시 · 실제 결과/후기 아님\n\n드러내고 싶은 나와,\n망설이는 나 사이.\n태양의 자리에서 묻는다면\n\n남의 반응을 미리 결론 내리기보다,\n작은 작업 하나를 믿을 만한 사람에게\n보여주는 것부터 시작해 보세요.\n\n해석을 읽고 나면\n지금 가능한 표현 한 가지를 정해요.\n큰 변화보다 작은 실험이어도 좋아요.\n\n실제 문장은 카드·방향과 생성 결과에 따라\n달라지며, 특정 반응을 보장하지 않아요."
+    },
+    {
+      "id": "09-bring-the-voices-together",
+      "title": "열한 해석을 지나, 지금 필요한 조율을 찾아요.",
+      "src": "/feature-details/crafted/celestial-harmony/09-bring-the-voices-together.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "열한 해석을 지나,\n지금 필요한 조율을 찾아요.\n별빛 통합 오라클\n\n전체 주제와 두드러진 흐름,\n주의할 패턴과 실천 방향을 엮어요.\n\n삶의 영역별 힌트\n\n관계·일·돈·컨디션을 돌아보며\n현재 선택에 연결해 볼 수 있어요.\n\n결과에 포함된 조율 실천\n\n실천 제안과 7일 조율 계획은\n해당 항목이 있을 때 표시됩니다."
+    },
+    {
+      "id": "10-return-to-your-reading",
+      "title": "끊긴 곳은 이어 읽고, 남은 문장은 간직해요.",
+      "src": "/feature-details/crafted/celestial-harmony/10-return-to-your-reading.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "끊긴 곳은 이어 읽고,\n남은 문장은 간직해요.\n작성된 부분부터 보존\n\n리딩은 부분별로 저장하며,\n중단되면 저장된 리딩을 이어 열어요.\n\n요약과 오라클 복사\n\n전체 요약이나 통합 메시지를\n텍스트로 복사할 수 있어요.\n\nPDF 제공이나 완성 시간·분량 보장은 없어요.\n건강·수익·관계의 결과를 보장하지 않아요.\n이용권·월정석·단건 결제의 적용 범위는\n현재 결제창에서 확인해 주세요."
+    }
+  ]
+}

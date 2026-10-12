@@ -12,11 +12,12 @@ const FEATURE = 'astro_basic_deep_pack';
 const birth = { year: 1990, month: 10, day: 14, hour: 14, minute: 30, tz: 9, lat: 37.5665, lon: 126.978 };
 const success = { ok: true, status: 200, payload: { ok: true, unlocked: true, featureKey: FEATURE, html: '<div id="asStory">서버 상세 본문</div><div id="asDeep">서버 심화 본문</div>' } };
 const tick = () => new Promise(resolve => setTimeout(resolve, 0));
-function setup(requester) {
+function setup(requester, profileId = 'p1') {
   const dom = new JSDOM('<div id="astroResult"><div data-astro-public-summary>무료 요약</div><section data-astro-server-detail></section></div>', { url: 'https://example.test', runScripts: 'outside-only' });
   const w = dom.window;
   w._astroBirth = { ...birth };
   w._cdAIPromptRequestJson = requester;
+  w.cdBirthScopeCurrentProfileId = () => profileId;
   w.isTileKeyUnlocked = () => true; // A forged/stale browser unlock must not grant the report.
   w.eval(client);
   const area = w.document.getElementById('astroResult');
@@ -63,7 +64,7 @@ test('read uses birth facts with credentials delegated to the existing requester
   const t = setup(async (path, init) => { seen = { path, init }; return success; });
   await tick();
   assert.equal(seen.path, '/api/astro/basic-deep'); assert.equal(seen.init.method, 'POST'); assert.equal(seen.init.cache, 'no-store');
-  assert.deepEqual(JSON.parse(seen.init.body), { date: '1990-10-14', time: '14:30', timeKnown: true, timezone: 9, latitude: 37.5665, longitude: 126.978 });
+  assert.deepEqual(JSON.parse(seen.init.body), { profileId: 'p1', date: '1990-10-14', time: '14:30', timeKnown: true, timezone: 9, latitude: 37.5665, longitude: 126.978 });
   assert.match(t.body().textContent, /서버 상세/);
   assert.equal(t.area.querySelector('#asStory'), null, 'server story ID must not collide with the free summary');
   assert.equal(t.buttons()[2].hidden, false);
@@ -120,4 +121,15 @@ test('sharing reads only the free summary even when authorized detail is visible
   t.w.shareAstroKakao();
   assert.match(shared.text, /무료 요약/); assert.doesNotMatch(shared.text, /서버 상세|서버 심화|구매 권한/);
   t.dom.window.close();
+});
+
+test('the saved card id that matches the shown birth is sent; an unsaved birth sends none and asks for a profile', async () => {
+  let seen;
+  const unsaved = setup(async (path, init) => { seen = JSON.parse(init.body); return { ok: false, status: 400, payload: { reason: 'MISSING_PROFILE_ID', requiresProfile: true, featureKey: FEATURE } }; }, '');
+  await tick();
+  assert.equal('profileId' in seen, false);
+  assert.match(unsaved.area.querySelector('[role=status]').textContent, /프로필로 저장하거나 저장된 프로필을 선택/);
+  assert.equal(unsaved.buttons()[1].hidden, true);
+  assert.equal(unsaved.body().textContent, '');
+  unsaved.dom.window.close();
 });

@@ -156,7 +156,7 @@ test("마크업이 없는 홈 카드 CSS 를 다시 들이지 않는다", () => 
     !shell.includes("feature-card--destiny-flower"),
     `${SHELL_REL}: 홈 카드가 되살아났다면 이 가드와 삭제된 CSS 를 함께 되돌릴 것`,
   );
-  const revived = [".destiny-flower-stage {", ".destiny-flower-backdrop {", ".df-garden-petal-field {", ".df-bud-icon {"]
+  const revived = [".destiny-flower-stage {", ".destiny-flower-backdrop {", ".df-garden-petal-field {", ".df-bud-icon {", ".df-studio-toast {"]
     .filter((sel) => css.includes(sel));
   assert.deepEqual(
     revived,
@@ -194,6 +194,18 @@ function topLevelFn(name) {
   return runtime.slice(at, runtime.indexOf("\n}\n", at) + 3);
 }
 
+/** ko 페이지의 cdTranslate 와 같은 동작: ko 원문에 변수를 넣고, `@경로` 변수는 ko 사전에서 푼다. */
+const koDict = JSON.parse(read("public/i18n/ko.json"));
+function koTranslate(_key, vars, ko) {
+  const lookup = (p) => p.split(".").reduce((node, k) => (node && typeof node === "object" ? node[k] : undefined), koDict);
+  return String(ko).replace(/{(w+)}/g, (m, name) => {
+    const raw = vars && vars[name];
+    if (raw == null) return m;
+    const looked = typeof raw === "string" && raw.startsWith("@") ? lookup(raw.slice(1)) : undefined;
+    return typeof looked === "string" ? looked : String(raw);
+  });
+}
+
 function loadShareBlock(search) {
   const vm = require("node:vm");
   const start = runtime.indexOf("var _DF_FLOWER_ID_RE");
@@ -205,6 +217,7 @@ function loadShareBlock(search) {
     JSON,
     Date,
     window: {
+      cdTranslate: koTranslate,
       location: { search, origin: "https://code-destiny.com" },
       sessionStorage: { getItem: (k) => (store.has(k) ? store.get(k) : null), setItem: (k, v) => store.set(k, String(v)) }
     },
@@ -213,7 +226,7 @@ function loadShareBlock(search) {
   };
   vm.createContext(ctx);
   vm.runInContext(
-    ["_dfHasBatchim", "_dfElementLabelKo", "_dfToArray"].map(topLevelFn).join("\n")
+    ["_dfHasBatchim", "_dfElementLabelKo", "_dfToArray", "_dfUiText", "_dfElementVar"].map(topLevelFn).join("\n")
       + runtime.slice(start, end + "_dfCaptureFriendFlowerParam();\n".length),
     ctx
   );

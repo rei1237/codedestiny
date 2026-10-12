@@ -1,0 +1,37 @@
+{
+  "source": [
+    "src/features/neo-war-room/NeoOperationRoomPage.tsx",
+    "src/features/neo-war-room/NeoOperationRoomResultPage.tsx",
+    "src/features/neo-war-room/data/method-registry.ts",
+    "src/features/neo-war-room/data/input-flow.ts",
+    "worker/lib/neo-operation-room-compat.js",
+    "worker/lib/neo-refinement-contract.js",
+    "worker/routes/neo-operation-room.js"
+  ],
+  "compatNote": "Route comment says ziwei only but actual imported NEO_COMPAT_METHODS + COMPAT_BUILDERS and client include all4. Follow running constants not stale comment.",
+  "report": [
+    "전선진단",
+    "긴급작전",
+    "네오판단",
+    "타고난성향",
+    "주제분석",
+    "시기전략",
+    "어긋난자리와근거",
+    "금지7일작전",
+    "현실점검",
+    "휘장과마무리",
+    "수정명령서:재판단·판정근거·행동대안·도움역할·30일전략·마무리"
+  ],
+  "conditions": [
+    "각챕터는내용존재시에만",
+    "관계궁합:연애재회+상대조건,4체계현재지원",
+    "궁교차등체계별근거차이",
+    "현실점검은남은횟수조건"
+  ],
+  "scope": [
+    "다른체계새상담권한확인",
+    "PDF·편지·전략서별도해금조건"
+  ],
+  "priceSource": "worker/lib/paid-feature-registry.js",
+  "mode": "Local source only, no LLM/result generation"
+}

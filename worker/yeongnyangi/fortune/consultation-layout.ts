@@ -92,6 +92,10 @@ export const lifeRows:LayoutStep[]=[
  {key:'life-caution',title:'주의할 시기',theme:'timing',timing:true,sections:[s('life-caution-when','조심할 구간','저장된 근거로 부담이 커지기 쉬운 구간과 영역을 설명한다. '+NO_TIMING),s('life-caution-how','그때의 대처','피할 행동과 대신 할 행동을 짝지어 제시한다.')]},
  {key:'life-remedy',title:'운을 여는 실행',theme:'action',sections:[s('life-remedy-habit','운을 돕는 생활 습관','근거에서 부족하거나 과한 부분을 보완하는 생활 습관을 제시한다. 치료 효능을 주장하지 않는다.'),s('life-remedy-start','오늘 시작할 한 가지','바로 시작할 행동 하나와 확인 질문을 제시한다.')]},
 ];
+/** Tuna only: replaces '올해의 월별 흐름' in the question book with the next twelve months, one line a month. */
+export const tunaRoadmapRow:LayoutStep={key:'tuna-roadmap',title:'앞으로 12개월 로드맵',theme:'timing',timing:true,sections:[
+ s('tuna-roadmap-table','12개월 월별 흐름표','이번 달부터 12개월을 한 달에 한 줄씩 「YYYY년 M월 · 그달의 저장된 근거(월운 간지·유년·다샤 등 실제 값) · 흐름 한 줄 · 그달에 할 일」 형식으로 순서대로 쓴다. 저장된 월 근거가 없는 달은 근거가 있는 연·장기 주기 근거로 묶어 그렇다고 밝히고 월 단위 사건을 만들지 않는다. '+NO_TIMING),
+ s('tuna-roadmap-actions','구간별 실행 처방','12개월을 2~4개 구간으로 나눠 구간마다 사용자의 질문과 연결된 우선할 행동·줄일 행동·점검 기준을 짝지어 제시한다.')]};
 /** Current-flow guidance added to every foundation chapter (D7: basics always include the current period). */
 export const currentFlowGuide:Record<DomainId,string>={
  saju:'저장된 현재 대운과 올해 세운이 원국과 만나는 방식을 쉬운 말로 설명한다. 대운이 바뀌는 해가 근거에 있으면 함께 밝힌다.',

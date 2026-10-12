@@ -9,10 +9,10 @@
 <script src="/js/core/fortune-consultation-ui.js?v=build-000000000000"></script>
 <title>베다 점성술 — 별들의 지도</title>
 <script src="/js/core/standalone-ai-locale.js?v=20260909-1"></script>
-<script src="/js/core/pass-verdict.js?v=build-6c9b9d6bbb38"></script>
-<script src="/js/core/checkout-entry.js?v=build-6c9b9d6bbb38"></script>
+<script src="/js/core/pass-verdict.js?v=build-f0d657bab4e4"></script>
+<script src="/js/core/checkout-entry.js?v=build-f0d657bab4e4"></script>
 <script src="/js/core/payment-service.js?v=build-payment-service-v1"></script>
-<script src="/js/destiny-profile.js?v=build-3125485d5e95"></script>
+<script src="/js/destiny-profile.js?v=build-d93b57bed522"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css" onerror="this.remove()">
 <style>
 /* ── 오프라인 폴백 폰트 스택 ─────────────────────────────
@@ -6676,6 +6676,9 @@ function renderResult(){
     initReveal();
     syncOpenAccordions(document.getElementById('result-content'));
     vedicAiRefreshUi();
+    import('/js/core/vedic/crafted-details.mjs').then(function(module){
+      module.mountVedicCraftedDetails(document.getElementById('result-content'));
+    }).catch(function(error){console.warn('[vedic] detail guide unavailable',error);});
     updateTabBarState();
   },100);
 }
@@ -6731,6 +6734,9 @@ function showDetail(id){
   else if(id==='vimshottari')html=renderVimshottari(c,ins);
   document.getElementById('detail-content').innerHTML=decorateBhavaTerms(html);
   syncOpenAccordions(document.getElementById('detail-content'));
+  import('/js/core/vedic/crafted-details.mjs').then(function(module){
+    module.mountVedicCraftedDetails(document.getElementById('detail-content'));
+  }).catch(function(error){console.warn('[vedic] detail guide unavailable',error);});
   showPage('detail');
 }
 

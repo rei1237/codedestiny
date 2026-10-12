@@ -8,6 +8,7 @@ import {
   matchSukuyoFlower,
   updateFlowerTheme,
   getPublicFlowerCard,
+  withDestinyFlowerLocale,
 } from "../lib/destiny-flower-engine.js";
 
 /** 아틀리에 전체 해금 키. `worker/lib/paid-feature-registry.js` 의 `unlock.flower_fc` 와 같은 값이다. */
@@ -49,10 +50,12 @@ async function handleMatch(request, env) {
     throw error;
   }
 
+  // 꽃 이름·꽃말·근거 문장은 요청 로케일로 번역해 내보낸다. 없거나 ko 면 한국어 원문 그대로.
+  const lang = typeof body.lang === "string" ? body.lang : (request.headers.get("x-code-destiny-locale") || "");
   const sources = {};
   for (const source of normalizeSources(body.sources)) {
     try {
-      sources[source] = MATCHER_BY_SOURCE[source](payload) || null;
+      sources[source] = withDestinyFlowerLocale(lang, () => MATCHER_BY_SOURCE[source](payload)) || null;
     } catch (error) {
       // 한 체계가 실패해도 나머지 셋은 내보낸다 — 넷을 한 화면에 그리는 4-up 이 통째로 비지 않게.
       console.warn("[destiny-flower] match failed", source, String(error?.message || error).slice(0, 200));
@@ -62,7 +65,7 @@ async function handleMatch(request, env) {
 
   let theme = null;
   try {
-    theme = updateFlowerTheme(payload, {}) || null;
+    theme = withDestinyFlowerLocale(lang, () => updateFlowerTheme(payload, {})) || null;
   } catch (_) {
     theme = null;
   }

@@ -1,12 +1,13 @@
 'use client';
 import {useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState,type ReactNode} from 'react';
 import {ArrowLeft,ArrowUp,ChevronDown} from 'lucide-react';
-import {questionCandidate,questionTopics,recommendQuestion,FOLLOWUP_LIMITS,type QuestionDecision} from '@/worker/yeongnyangi/fortune/ask/question-policy';
+import {questionCandidate,questionTopic,questionTopics,questionScopes,recommendQuestion,FOLLOWUP_LIMITS,type QuestionDecision,type QuestionFish} from '@/worker/yeongnyangi/fortune/ask/question-policy';
 import {products,systemNames} from '@/worker/yeongnyangi/payments/catalog';
 import {intakeSteps,intakeAnswer,intakeStepValid,intakePrompts,intakeCursor,type IntakeValue,type IntakeStep} from '../_lib/intake-chat';
 import type {VoiceStyle} from '../_lib/voice-style-copy';
 import styles from './intake-chat.module.css';
 import ChatInputBar,{IntakeComposerContext} from './ChatInputBar';
+import CraftedProductDisclosure from '@/app/components/CraftedProductDisclosure';
 
 // 질문 단계마다 영냥이가 짓는 전신 포즈(360×300, 흰 바탕 WebP). 글자가 없는 moods 에셋만 쓴다.
 const poseByStep:Record<string,string>={question:'ponder',situation:'side-sit',options:'abacus',constraints:'blanket',period:'wink',category:'sparkle',target:'sparkle',horizon:'sparkle',relationshipType:'sparkle',domain:'sparkle',scope:'heart',review:'beam'};
@@ -15,7 +16,7 @@ type Props={value:IntakeValue;onChange:(next:IntakeValue)=>void;confirmed:boolea
 export default function IntakeChat({value,onChange,confirmed,onConfirm,onEdit,step,onStep,voice,onVoice,onLegacy,preparation,review,busy}:Props){
  const root=useRef<HTMLElement>(null),scroll=useRef<HTMLDivElement>(null),follow=useRef(true),composer=useRef<HTMLDivElement>(null),field=useRef<HTMLTextAreaElement>(null),focusNext=useRef(false);
  const [touch,setTouch]=useState(false),[atBottom,setAtBottom]=useState(true),[typing,setTyping]=useState(false);
- const [slot,setSlot]=useState<HTMLDivElement|null>(null),[claims,setClaims]=useState(0);
+ const [slot,setSlot]=useState<HTMLDivElement|null>(null),[claims,setClaims]=useState(0),[moreExamples,setMoreExamples]=useState(false);
  // 대화 안의 단계(프로필 만들기)가 하단 슬롯을 차지하면 기본 전송 버튼을 숨겨 전송 버튼을 하나만 둔다.
  const toBottom=useCallback(()=>{follow.current=true;setAtBottom(true);requestAnimationFrame(()=>scroll.current?.scrollTo({top:scroll.current.scrollHeight,behavior:'instant'}));},[]);
  const claim=useCallback((on:boolean)=>setClaims(n=>n+(on?1:-1)),[]);
@@ -34,6 +35,11 @@ export default function IntakeChat({value,onChange,confirmed,onConfirm,onEdit,st
  const update=(patch:Partial<QuestionDecision>)=>onChange({...value,decision:{...value.decision,...patch,confirmed:false}});
  const setText=(text:string)=>textStep==='question'?onChange({...value,question:text}):textStep&&update({[textStep]:text});
  const valid=scopeStep?intakeStepValid(scopeStep,value):preparationStep?.valid;
+ // 고민 입구에서 주제를 갖고 들어오면 그 주제의 예시만, 아니면 대표 6개만 먼저 보인다. 일·돈은 한 묶음이다.
+ const exampleGroup=(id:string)=>{const topic=questionTopic(id as QuestionDecision['category']);return topic==='money'?'work':topic;};
+ const allExamples=questionTopics.filter(t=>t.example),entryCategory=value.decision.category;
+ const focusedExamples=entryCategory==='self'?[]:allExamples.filter(t=>exampleGroup(t.id)===exampleGroup(entryCategory)).sort((a,b)=>Number(b.id===entryCategory)-Number(a.id===entryCategory)).slice(0,4);
+ const examples=focusedExamples.length?focusedExamples:moreExamples?allExamples:allExamples.slice(0,6);
  const max=textStep==='question'?1000:600;
  function next(){follow.current=true;focusNext.current=true;if(active==='scope'){onConfirm();onStep(value.domain==='tarot'?'tarot':'profile');}else onStep(steps[index+1]||'review');}
  function edit(id:string){if(busy)return;follow.current=true;if(scopeSteps.includes(id as IntakeStep))onEdit();onStep(id);}
@@ -83,7 +89,8 @@ export default function IntakeChat({value,onChange,confirmed,onConfirm,onEdit,st
    <figure className={styles.pose} aria-hidden="true"><img src={`/assets/yeongnyangi/moods/${poseByStep[active]||'wave'}.webp`} alt="" width={360} height={300} decoding="async"/></figure>
    <div className={styles.current}><img src="/assets/yeongnyangi/profiles/welcome.webp" alt="" width={36} height={36}/><div><span className={styles.name}>영냥이</span>{typing?<p className={`${styles.catBubble} ${styles.typing}`} aria-hidden="true"><i/><i/><i/></p>:<p key={active} className={styles.catBubble}>{activePrompt}</p>}</div></div>
    <div className={styles.srOnly} role="status" aria-live="polite" aria-atomic="true">{typing?'':activePrompt}</div>
-   {!typing&&active==='scope'&&<div className={styles.summary}><h2>{plan.reason}</h2><p>{systemNames[value.domain]} · {product.fishName}</p><strong>{product.priceKRW.toLocaleString('ko-KR')}원</strong><p>기본 상담 + 추가 질문 {FOLLOWUP_LIMITS[plan.fish]}회</p><p>다음으로 {value.domain==='tarot'?'카드와 입력 정보':'프로필'}를 확인해요. 아직 결제되지 않아요.</p>{plan.unsupported&&<p role="alert">{plan.unsupported}</p>}{plan.missing.length>0&&<ul>{plan.missing.map(message=><li key={message}>{message}</li>)}</ul>}{!valid&&<button type="button" onClick={()=>edit('category')}>주제와 범위 수정하기</button>}<details><summary>추가 질문·결과 보관 안내</summary><p>확인 대화·서비스 오류 정정·지원 문의는 횟수를 쓰지 않아요. 상담을 마쳐도 저장된 결과는 다시 볼 수 있어요.</p><p>출생 차트만으로 사건의 날짜를 예측하지 않아요. 타로는 카드의 상징과 자리로 선택을 살펴봐요.</p></details></div>}
+   {!typing&&active==='scope'&&<div className={styles.summary}><h2>{plan.reason}</h2><p>{systemNames[value.domain]} · {product.fishName}</p><strong>{product.priceKRW.toLocaleString('ko-KR')}원</strong><p>기본 상담 + 추가 질문 {FOLLOWUP_LIMITS[plan.fish]}회</p><p>다음으로 {value.domain==='tarot'?'카드와 입력 정보':'프로필'}를 확인해요. 아직 결제되지 않아요.</p>{plan.unsupported&&<p role="alert">{plan.unsupported}</p>}{plan.missing.length>0&&<ul>{plan.missing.map(message=><li key={message}>{message}</li>)}</ul>}{!valid&&<button type="button" onClick={()=>edit('category')}>주제와 범위 수정하기</button>}<details><summary>생선별 상담 범위 비교</summary><ul>{(Object.keys(FOLLOWUP_LIMITS) as QuestionFish[]).map(fish=>{const tier=products.find(p=>p.domain===value.domain&&p.fishId===fish&&p.readingKind==='single');return tier&&<li key={fish}>{fish===plan.fish?<b>{tier.fishName} · 이 질문에 추천</b>:tier.fishName} · {tier.priceKRW.toLocaleString('ko-KR')}원 · {questionScopes[fish]} · 추가 질문 {FOLLOWUP_LIMITS[fish]}회</li>;})}</ul><p>구성은 질문의 주제와 범위에 맞춰 정해져요.</p></details><details><summary>추가 질문·결과 보관 안내</summary><p>확인 대화·서비스 오류 정정·지원 문의는 횟수를 쓰지 않아요. 상담을 마쳐도 저장된 결과는 다시 볼 수 있어요.</p><p>출생 차트만으로 사건의 날짜를 예측하지 않아요. 타로는 카드의 상징과 자리로 선택을 살펴봐요.</p></details></div>}
+   {!typing&&active==='scope'&&<CraftedProductDisclosure featureKey={product.cdFeatureKey}/>}
    {preparationStep&&<div className={styles.preparation} ref={composer} hidden={typing}>{preparationStep.content}</div>}
    {active==='review'&&<div className={styles.preparation} hidden={typing}>{review}</div>}
   </div>
@@ -96,7 +103,7 @@ export default function IntakeChat({value,onChange,confirmed,onConfirm,onEdit,st
    {scopeStep==='horizon'&&choices([{value:'current',label:'지금의 고민과 선택'},{value:'transition',label:'현재와 다음 장기 시기'}],value.decision.horizon,horizon=>update({horizon:horizon as QuestionDecision['horizon']}))}
    {scopeStep==='relationshipType'&&choices([{value:'romantic_adults',label:'성인 연인·배우자'},{value:'family',label:'가족'},{value:'other',label:'그 밖의 관계'}],value.decision.relationshipType||'',relationshipType=>update({relationshipType:relationshipType as QuestionDecision['relationshipType']}))}
    {scopeStep==='domain'&&choices(Object.entries(systemNames).map(([id,label])=>({value:id,label})),value.domain,domain=>onChange({...value,domain:domain as IntakeValue['domain']}))}
-   {scopeStep==='question'&&!text.trim()&&<div className={styles.chips} role="group" aria-label="예시 질문"><span>예시로 시작</span>{questionTopics.filter(t=>t.example).map(t=><button type="button" key={t.id} onClick={()=>onChange({...value,question:t.example,decision:{...value.decision,category:t.id,...(t.id==='compatibility'?{target:'pair'}:{})}})}>{t.label}</button>)}</div>}
+   {scopeStep==='question'&&!text.trim()&&<div className={styles.chips} role="group" aria-label="예시 질문"><span>예시로 시작</span>{examples.map(t=><button type="button" key={t.id} onClick={()=>onChange({...value,question:t.example,decision:{...value.decision,category:t.id,...(t.id==='compatibility'?{target:'pair'}:{})}})}>{t.label}</button>)}{!focusedExamples.length&&!moreExamples&&allExamples.length>6&&<button type="button" onClick={()=>setMoreExamples(true)}>더 보기</button>}</div>}
    {scopeStep==='situation'&&<div className={styles.chips}><button type="button" onClick={()=>update({situation:value.question.slice(0,600)})}>앞에서 말한 내용으로 충분해</button></div>}
    {scopeStep==='constraints'&&<div className={styles.chips}><button type="button" onClick={()=>update({constraints:'없음'})}>특별한 조건은 없어</button></div>}
    {scopeStep==='period'&&!['salmon','tuna'].includes(plan.fish)&&<div className={styles.chips}><button type="button" onClick={()=>{update({period:''});next();}}>기간은 정하지 않을게</button></div>}

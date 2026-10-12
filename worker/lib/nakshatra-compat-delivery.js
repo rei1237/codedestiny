@@ -36,8 +36,13 @@ export async function deliverNakshatraCompat(env, auth, body, calculate) {
   if (doc && doc.metadata?.nakshatraCompat?.inputHash !== inputHash) return json({ ok: false, code: "INPUT_MISMATCH" }, { status: 409 });
   // Completed results outlive passes and catalogue price changes.
   if (!doc) {
-    const proof = await verifyPerUsePayment(env, { userId, featureKey: FEATURE,
-      coinPrice: FEATURE_KEY_PRICE_TABLE[FEATURE].cost, requestId, requireExisting: true });
+    const input = { userId, featureKey: FEATURE, coinPrice: FEATURE_KEY_PRICE_TABLE[FEATURE].cost, requestId };
+    let proof = await verifyPerUsePayment(env, { ...input, requireExisting: true });
+    // 이용권 즉시 사용은 결과를 먼저 열고 사용 기록을 뒤에서 쓴다 — 기록보다 먼저 도착하면 여기서
+    // 같은 requestId 로 이용권을 직접 확정한다(소비 마커로 멱등, compat-result-archive.js provePerUse 와 같다).
+    if (proof.proven === false && String(body.accessMethod || "").toLowerCase() === "pass") {
+      proof = await verifyPerUsePayment(env, input);
+    }
     if (proof.proven !== true) return json({ ok: false, code: proof.proven === null ? "PAYMENT_CHECK_UNAVAILABLE" : "PAYMENT_REQUIRED",
       message: proof.proven === null ? "결제 내역 확인이 지연되고 있어요. 잠시 후 다시 받아 주세요." : "궁합 이용 내역을 확인한 뒤 다시 시도해 주세요." },
     { status: proof.proven === null ? 503 : 402 });

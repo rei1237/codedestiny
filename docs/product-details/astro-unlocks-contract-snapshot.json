@@ -1,0 +1,120 @@
+{
+  "mode": "Local static fixture execution; no network/LLM/DB",
+  "basic": [
+    {
+      "timeKnown": true,
+      "categories": [
+        {
+          "title": "연애"
+        },
+        {
+          "title": "재물"
+        },
+        {
+          "title": "인간관계"
+        },
+        {
+          "title": "일"
+        },
+        {
+          "title": "마음과 회복"
+        },
+        {
+          "title": "성장"
+        }
+      ],
+      "planets": 10,
+      "aspects": 5,
+      "periods": {
+        "items": [
+          {
+            "key": "firdaria",
+            "title": "인생 시기 지도",
+            "text": [
+              "지금은 달의 시기예요. 2021년부터 2030년까지 이어져요.",
+              "그 안에서 2026년까지는 화성의 결이 함께 섞여요.",
+              "2030년부터는 토성의 시기로 넘어가요."
+            ]
+          },
+          {
+            "key": "profection",
+            "title": "올해의 주제 집",
+            "text": [
+              "35세인 올해는 혼자만의 시간이 중심이 되는 해예요.",
+              "이 해의 주인 행성은 토성이에요. 서두르지 않고 기초를 다질수록 단단해져요."
+            ]
+          }
+        ],
+        "note": "시기 해석은 흐름을 읽는 지도예요. 정해진 일을 말하지는 않아요."
+      },
+      "headings": [
+        "행성 열 개",
+        "행성끼리의 대화",
+        "인생 시기",
+        "인생 시기 지도",
+        "올해의 주제 집",
+        "원소와 기질의 균형",
+        "원소",
+        "기질"
+      ]
+    },
+    {
+      "timeKnown": false,
+      "categories": [
+        {
+          "title": "연애"
+        },
+        {
+          "title": "재물"
+        },
+        {
+          "title": "인간관계"
+        },
+        {
+          "title": "일"
+        },
+        {
+          "title": "마음과 회복"
+        },
+        {
+          "title": "성장"
+        }
+      ],
+      "planets": 10,
+      "aspects": 5,
+      "periods": {
+        "items": [],
+        "note": null,
+        "timeless": "태어난 시간을 알면 낮과 밤 차트를 가려 인생 시기 지도와 올해의 주제 집까지 볼 수 있어요."
+      },
+      "headings": [
+        "행성 열 개",
+        "행성끼리의 대화",
+        "인생 시기",
+        "원소와 기질의 균형",
+        "원소",
+        "기질"
+      ]
+    }
+  ],
+  "career": [
+    "MC",
+    "10하우스 룰러",
+    "6하우스 업무스타일",
+    "ASC 룰러",
+    "목성하우스",
+    "직업분야와이유"
+  ],
+  "growth": [
+    "Saturn",
+    "Pluto",
+    "Neptune"
+  ],
+  "separate": [
+    "astro_basic_deep_pack",
+    "astro_career_talent_deep",
+    "astro_growth_shadow_deep",
+    "astro_stellar_career_room",
+    "astro_stellar_growth_room"
+  ]
+}

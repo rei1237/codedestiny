@@ -479,7 +479,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "description": "그룹과 멤버를 고르고 내 생일만 넣으면 케미 총점과 등급, 아홉 가지 케미 유형이 포토카드로 나오는 팬덤 특화 운세 콘텐츠입니다.",
       "heroImageAlt": "최애운명 대표 이미지",
       "tags": ["최애운명", "K-POP", "포토카드", "최애 케미"],
-      "highlights": ["무료 · 로그인 없이", "포토카드 스타일 결과"],
+      "highlights": ["단건 결제 5,000원", "포토카드 스타일 결과"],
       "howItWorks": [
         {
           "title": "최애 고르기",
@@ -4012,7 +4012,8 @@ const FEATURE_DEFINITIONS: ServiceFeatureDefinition[] = ([
     image: "/feature-details/assets/bias-destiny-320.webp",
     detailRoute: "/services/bias-destiny",
     launchRoute: "/saju/destiny-bias",
-    accessType: "free",
+    accessType: "paid",
+    featureKey: "destiny-bias-analyze",
   },
   {
     slug: "love-code",

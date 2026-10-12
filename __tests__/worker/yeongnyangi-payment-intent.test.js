@@ -109,9 +109,9 @@ test('more than three cancelled attempts still have one deterministic next order
 });
 
 describe('fortune-chat consultation card prepare (fc-)',()=>{
- const chat={productId:'fortune-chat-consultation',featureKey:'fortune-chat-consultation',priceKRW:3000,priceCoins:30,monthlyCost:300,billingType:'per_use'};
+ const chat={productId:'fortune-chat-consultation',featureKey:'fortune-chat-consultation',priceKRW:5000,priceCoins:50,monthlyCost:500,billingType:'per_use'};
  const chatSetup=overrides=>{
-  const fixture=setup({featureKey:chat.featureKey,amountKRW:3000,...overrides});
+  const fixture=setup({featureKey:chat.featureKey,amountKRW:5000,...overrides});
   const models=[],read=fixture.db.findOne,write=fixture.db.findOneAndUpdate;
   fixture.db.findOne=async(Model,...rest)=>{models.push(Model.modelName);return read(Model,...rest);};
   fixture.db.findOneAndUpdate=async(Model,...rest)=>{models.push(Model.modelName);return write(Model,...rest);};

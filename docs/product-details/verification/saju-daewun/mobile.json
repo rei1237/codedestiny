@@ -1,0 +1,250 @@
+[
+  {
+    "width": 360,
+    "scrollWidth": 330,
+    "images": [
+      {
+        "loaded": true,
+        "width": 330,
+        "left": 15,
+        "right": 345
+      },
+      {
+        "loaded": true,
+        "width": 330,
+        "left": 15,
+        "right": 345
+      },
+      {
+        "loaded": true,
+        "width": 330,
+        "left": 15,
+        "right": 345
+      },
+      {
+        "loaded": true,
+        "width": 330,
+        "left": 15,
+        "right": 345
+      },
+      {
+        "loaded": true,
+        "width": 330,
+        "left": 15,
+        "right": 345
+      },
+      {
+        "loaded": true,
+        "width": 330,
+        "left": 15,
+        "right": 345
+      },
+      {
+        "loaded": true,
+        "width": 330,
+        "left": 15,
+        "right": 345
+      },
+      {
+        "loaded": true,
+        "width": 330,
+        "left": 15,
+        "right": 345
+      },
+      {
+        "loaded": true,
+        "width": 330,
+        "left": 15,
+        "right": 345
+      }
+    ],
+    "noticeSize": "16px",
+    "cta": true
+  },
+  {
+    "width": 390,
+    "scrollWidth": 360,
+    "images": [
+      {
+        "loaded": true,
+        "width": 360,
+        "left": 15,
+        "right": 375
+      },
+      {
+        "loaded": true,
+        "width": 360,
+        "left": 15,
+        "right": 375
+      },
+      {
+        "loaded": true,
+        "width": 360,
+        "left": 15,
+        "right": 375
+      },
+      {
+        "loaded": true,
+        "width": 360,
+        "left": 15,
+        "right": 375
+      },
+      {
+        "loaded": true,
+        "width": 360,
+        "left": 15,
+        "right": 375
+      },
+      {
+        "loaded": true,
+        "width": 360,
+        "left": 15,
+        "right": 375
+      },
+      {
+        "loaded": true,
+        "width": 360,
+        "left": 15,
+        "right": 375
+      },
+      {
+        "loaded": true,
+        "width": 360,
+        "left": 15,
+        "right": 375
+      },
+      {
+        "loaded": true,
+        "width": 360,
+        "left": 15,
+        "right": 375
+      }
+    ],
+    "noticeSize": "16px",
+    "cta": true
+  },
+  {
+    "width": 430,
+    "scrollWidth": 400,
+    "images": [
+      {
+        "loaded": true,
+        "width": 400,
+        "left": 15,
+        "right": 415
+      },
+      {
+        "loaded": true,
+        "width": 400,
+        "left": 15,
+        "right": 415
+      },
+      {
+        "loaded": true,
+        "width": 400,
+        "left": 15,
+        "right": 415
+      },
+      {
+        "loaded": true,
+        "width": 400,
+        "left": 15,
+        "right": 415
+      },
+      {
+        "loaded": true,
+        "width": 400,
+        "left": 15,
+        "right": 415
+      },
+      {
+        "loaded": true,
+        "width": 400,
+        "left": 15,
+        "right": 415
+      },
+      {
+        "loaded": true,
+        "width": 400,
+        "left": 15,
+        "right": 415
+      },
+      {
+        "loaded": true,
+        "width": 400,
+        "left": 15,
+        "right": 415
+      },
+      {
+        "loaded": true,
+        "width": 400,
+        "left": 15,
+        "right": 415
+      }
+    ],
+    "noticeSize": "16px",
+    "cta": true
+  },
+  {
+    "width": 1280,
+    "scrollWidth": 1250,
+    "images": [
+      {
+        "loaded": true,
+        "width": 540,
+        "left": 370,
+        "right": 910
+      },
+      {
+        "loaded": true,
+        "width": 540,
+        "left": 370,
+        "right": 910
+      },
+      {
+        "loaded": true,
+        "width": 540,
+        "left": 370,
+        "right": 910
+      },
+      {
+        "loaded": true,
+        "width": 540,
+        "left": 370,
+        "right": 910
+      },
+      {
+        "loaded": true,
+        "width": 540,
+        "left": 370,
+        "right": 910
+      },
+      {
+        "loaded": true,
+        "width": 540,
+        "left": 370,
+        "right": 910
+      },
+      {
+        "loaded": true,
+        "width": 540,
+        "left": 370,
+        "right": 910
+      },
+      {
+        "loaded": true,
+        "width": 540,
+        "left": 370,
+        "right": 910
+      },
+      {
+        "loaded": true,
+        "width": 540,
+        "left": 370,
+        "right": 910
+      }
+    ],
+    "noticeSize": "16px",
+    "cta": true
+  }
+]

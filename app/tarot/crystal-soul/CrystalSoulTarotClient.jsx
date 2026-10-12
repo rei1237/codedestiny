@@ -1,4 +1,5 @@
 "use client";
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
@@ -702,6 +703,7 @@ function GemSelectScreen({ selectedGem, onSelect, copy, locale }) {
         <h1>{copy.title}</h1>
       </div>
       <p className="crystal-subtitle">{copy.subtitle}</p>
+      {locale === "ko" && <div style={{width:"100%",maxWidth:540,margin:"24px auto",position:"relative",zIndex:1,textAlign:"left"}}><CraftedProductDisclosure featureKey="tarot-crystal-soul-reading" summaryLabel="원석 소울 타로 상세 안내" /></div>}
 
       <div className="gem-grid" aria-label={copy.selectAria}>
         {GEM_TYPES.map((type) => {

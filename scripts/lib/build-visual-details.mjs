@@ -9,6 +9,13 @@ import { extractObjectLiteral } from './feature-marketing-extract.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const cleanPath = value => String(value || '').replace(/\/+$/, '');
+const craftedCatalog = JSON.parse(fs.readFileSync(path.join(root, 'content/product-details/catalog.json'), 'utf8'));
+function craftedIntroductions(slug) {
+  return (craftedCatalog.introductions[slug] || []).map(id => {
+    if (!/^[a-z0-9-]+$/.test(id)) throw new Error('Invalid crafted product ID');
+    return JSON.parse(fs.readFileSync(path.join(root, 'content/product-details', id, 'manifest.json'), 'utf8'));
+  });
+}
 
 function writeJsonAtomic(destination, value, spacing = 0) {
   const temporary = `${destination}.${process.pid}.tmp`;
@@ -29,7 +36,7 @@ const REVIEWED_FEATURES = new Set([
   'sukuyo', 'human-design', 'nakshatra', 'maya', 'daily-fortune', 'today-hub',
   'palm-reading', 'physiognomy', 'face-reading', 'dream', 'psychotest', 'manse', 'famous-saju',
   'kemet-oracle', 'ifa-oracle', 'juyuk-turtle', 'neville-meditation', 'yoga-guru',
-  'tarot-numerology', 'dream-psycho-analysis', 'animal-totem', 'mbti-animal-compat',
+  'tarot-numerology', 'dream-psycho-analysis', 'animal-totem', 'animal-destiny', 'mbti-animal-compat',
   'tarot-crystal-soul', 'royal-tea-oracle', 'geomancy-oracle', 'stonehenge-runes',
   'luck-sync-diary', 'music', 'novel', 'tarot-prompt-maker', 'bias-destiny',
   'omikuji', 'destiny-meeting-place', 'ziwei-ai',
@@ -152,6 +159,8 @@ export function buildVisualDetails(html, book) {
       ...verified[record.slug],
     };
     const final = items[record.slug];
+    const crafted = craftedIntroductions(record.slug);
+    if (crafted.length) final.crafted = crafted;
     if (['book', 'letter'].includes(final.material)) {
       final.founder = { credential: founder.credential, method: founder.method };
     }

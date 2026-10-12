@@ -1,0 +1,59 @@
+{
+  "_comment": "운명의 업 현행 15장 결과 안내. 생성/결제 정책 변경 없이 판매 안내를 실제 결과 구성에 맞춤. merge --namespace karmaDeliverable --core",
+  "karmaDestiny.deliverable.volumeValue": {
+    "ko": "장문 상담 본문",
+    "en": "Long-form consultation",
+    "ja": "長文の相談レポート",
+    "zh-CN": "长篇咨询正文",
+    "zh-TW": "長篇諮詢正文",
+    "vi": "Nội dung tư vấn dài",
+    "hi": "विस्तृत परामर्श",
+    "es": "Consulta extensa",
+    "fr": "Consultation détaillée",
+    "de": "Ausführliche Beratung",
+    "nl": "Uitgebreid advies",
+    "ms": "Kandungan konsultasi terperinci"
+  },
+  "karmaDestiny.deliverable.chaptersValue": {
+    "ko": "15개 장 · 주제별 해석과 마지막 편지",
+    "en": "15 chapters · themed readings and a final letter",
+    "ja": "15章 · テーマ別の解釈と最後の手紙",
+    "zh-CN": "15章 · 主题解读与最后的信",
+    "zh-TW": "15章 · 主題解讀與最後的信",
+    "vi": "15 chương · diễn giải theo chủ đề và thư cuối",
+    "hi": "15 अध्याय · विषयवार व्याख्या और अंतिम पत्र",
+    "es": "15 capítulos · lecturas temáticas y carta final",
+    "fr": "15 chapitres · lectures thématiques et lettre finale",
+    "de": "15 Kapitel · thematische Deutungen und Schlussbrief",
+    "nl": "15 hoofdstukken · thematische duiding en slotbrief",
+    "ms": "15 bab · tafsiran mengikut tema dan surat akhir"
+  },
+  "karmaDestiny.deliverable.keepValue": {
+    "ko": "PDF 저장 · 장별 내용 복사",
+    "en": "Save as PDF · copy individual chapters",
+    "ja": "PDF保存 · 章ごとのコピー",
+    "zh-CN": "保存PDF · 复制各章内容",
+    "zh-TW": "儲存PDF · 複製各章內容",
+    "vi": "Lưu PDF · sao chép từng chương",
+    "hi": "PDF सहेजें · अध्याय की सामग्री कॉपी करें",
+    "es": "Guardar PDF · copiar capítulos",
+    "fr": "Enregistrer en PDF · copier un chapitre",
+    "de": "Als PDF speichern · Kapitel kopieren",
+    "nl": "PDF opslaan · hoofdstukken kopiëren",
+    "ms": "Simpan PDF · salin setiap bab"
+  },
+  "karmaDestiny.deliverable.guarantee": {
+    "ko": "출생 정보와 계산 자료에 따라 해석 범위가 달라집니다. 저장된 상담에서 완료된 내용을 다시 확인할 수 있습니다.",
+    "en": "The scope of interpretation depends on birth information and available calculation data. Completed content can be revisited in your saved consultation.",
+    "ja": "出生情報と計算データにより解釈できる範囲は異なります。保存された相談から完成済みの内容を再確認できます。",
+    "zh-CN": "解读范围取决于出生信息与可用的计算数据。可在已保存的咨询中再次查看已完成的内容。",
+    "zh-TW": "解讀範圍取決於出生資訊與可用的計算資料。可在已儲存的諮詢中再次查看已完成的內容。",
+    "vi": "Phạm vi diễn giải phụ thuộc vào thông tin sinh và dữ liệu tính toán hiện có. Bạn có thể xem lại nội dung đã hoàn thành trong buổi tư vấn đã lưu.",
+    "hi": "व्याख्या का दायरा जन्म की जानकारी और उपलब्ध गणना डेटा पर निर्भर है। सहेजे गए परामर्श में पूरी हो चुकी सामग्री दोबारा देखी जा सकती है।",
+    "es": "El alcance depende de los datos de nacimiento y de cálculo disponibles. Puedes volver a consultar el contenido completado en la consulta guardada.",
+    "fr": "La portée dépend des informations de naissance et des données de calcul disponibles. Le contenu terminé reste consultable dans la consultation enregistrée.",
+    "de": "Der Umfang hängt von den Geburtsangaben und verfügbaren Berechnungsdaten ab. Fertige Inhalte lassen sich in der gespeicherten Beratung erneut lesen.",
+    "nl": "De reikwijdte hangt af van de geboortegegevens en beschikbare berekeningen. Voltooide inhoud is opnieuw te lezen in het opgeslagen advies.",
+    "ms": "Skop tafsiran bergantung pada maklumat kelahiran dan data pengiraan yang tersedia. Kandungan yang telah siap boleh dibaca semula dalam konsultasi tersimpan."
+  }
+}

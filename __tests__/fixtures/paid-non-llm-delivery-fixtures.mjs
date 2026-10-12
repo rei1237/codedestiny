@@ -38,6 +38,55 @@ const SUKUYO_STATIC_PRODUCTS = [
 
 export const PAID_NON_LLM_DELIVERY_FIXTURES = Object.freeze([
   sameSurface(
+    "destiny-bias-analyze",
+    "per_use",
+    "app/saju/destiny-bias/DestinyBiasClient.tsx",
+    "featureKey: DESTINY_BIAS_ANALYZE_FEATURE_KEY",
+    "const report = buildChemiReport({",
+  ),
+  sameSurface(
+    "daily-fortune-reading",
+    "per_use",
+    "app/today/TodayHubClient.tsx",
+    "featureKey: TODAY_FEATURE_KEY",
+    "setData(payload)",
+  ),
+  sameSurface(
+    "fortune-prompt-hub-generate",
+    "per_use",
+    "app/fortune/prompt-hub/PromptHubClient.tsx",
+    "featureKey: PROMPT_HUB_GENERATE_FEATURE_KEY",
+    "await runPromptGeneration(shortfall.toolId, shortfall.draft, requestId)",
+  ),
+  sameSurface(
+    "dream-prompt-generator",
+    "per_use",
+    "js/dream-ledger.js",
+    "featureKey: 'dream-prompt-generator'",
+    "openDreamModalCore",
+  ),
+  sameSurface(
+    "psychotest-reading",
+    "per_use",
+    "app/psychotest/_components/PaidPsychotestLink.tsx",
+    "featureKey: FEATURE_KEY",
+    "window.location.assign(href)",
+  ),
+  sameSurface(
+    "mbti-animal-compat",
+    "per_use",
+    "js/astral-soul.js",
+    "featureKey: 'mbti-animal-compat'",
+    "openMbtiModalCore",
+  ),
+  sameSurface(
+    "nakshatra-basic-reading",
+    "per_use",
+    "app/nakshatra/NakshatraFormClient.tsx",
+    "featureKey: BASIC_READING_FEATURE_KEY",
+    "resolveReading(body)",
+  ),
+  sameSurface(
     "love-code",
     "per_use",
     "app/saju/love-simulation/_components/LoveSimulationEngine.tsx",
@@ -414,6 +463,14 @@ export const PAID_NON_LLM_DELIVERY_FIXTURES = Object.freeze([
 
 export const HISTORICAL_PAID_FEATURE_FIXTURES = Object.freeze([
   {
+    // 2026-10-11: 프로필 카드 추가·수정·삭제가 무료가 되어 결제 CTA 가 사라졌다. 정책 변경 전 주문의
+    // 모바일 복귀와 증빙 대조를 위해 가격 키만 남는다.
+    featureKey: "profile-card-manage",
+    billingType: "per_use",
+    retained: { file: "worker/lib/profile-card-mutation-policy.js", marker: "아래 가격 상수는 정책 변경 전에 이미 만들어진 주문·월정석 차감 증빙을 대조하는 용도로만 남긴다" },
+    replacement: { file: "worker/lib/profile-card-mutation-policy.js", marker: 'reason: "PROFILE_CARD_MUTATION_FREE"' },
+  },
+  {
     featureKey: "palm-reading-ai-consult",
     billingType: "per_use",
     retained: { file: "worker/lib/billing-feature-registry.js", marker: "aiConsult: Object.freeze" },
@@ -446,12 +503,6 @@ export const REGISTRY_ONLY_NON_LLM_KEYS = Object.freeze([
 ]);
 
 export const PAID_NON_RESULT_FIXTURES = Object.freeze([
-  {
-    featureKey: "profile-card-manage",
-    billingType: "per_use",
-    cta: { file: "js/destiny-profile.js", marker: "window._cdCoinGatePerUse(PROFILE_CARD_MANAGE_COST, reason," },
-    consumer: { file: "worker/routes/profile.js", marker: "async function findProfileMutationPaymentEvidence(" },
-  },
 ]);
 
 export const ACTIVE_NON_LLM_ALIAS_FIXTURES = Object.freeze([

@@ -3,6 +3,7 @@
 import { describe, expect, it } from "@jest/globals";
 import { buildFortuneQuestionFocus } from "../../worker/lib/fortune-question-focus.js";
 import { buildContextDrivenGuardianFallback } from "../../worker/lib/guardian-fortune-fallback.js";
+import { buildGuardianFortunePrompt } from "../../worker/lib/guardian-fortune-prompt.js";
 import { buildFusionFortunePrompt, projectFusionFortuneContextForPrompt } from "../../worker/lib/fusion-fortune-prompt.js";
 
 const CASES = [
@@ -35,6 +36,23 @@ describe("question-focused Guardian fallback", () => {
 
     expect(focus).toMatchObject({ topic: "money_work", intentKey: "career_move" });
     expect(JSON.stringify(focus)).not.toContain("회사에서 이직 제안을 받았는데 옮길까요");
+  });
+
+  it("keeps every concern when one question weighs a job move against a side job", () => {
+    const concern = "6년째 백엔드 개발자로 일하는데 연봉이 정체돼서, 내년에 이직과 부업 중 어디에 먼저 힘을 써야 할지 고민이에요";
+    const focus = buildFortuneQuestionFocus({ concern, topic: "money_work" });
+    const prompt = buildGuardianFortunePrompt({
+      input: { topic: "money_work", category: "saju", mode: "yeoni", concern },
+      context: contextFor("saju", "money_work", { dayMaster: "SAJU_DAY_MASTER" }),
+    });
+
+    expect(focus.intentKey).toBe("career_move");
+    expect(focus.intentKeys).toEqual(["career_move", "side_income"]);
+    expect(focus.answerFrame).toContain("부업");
+    expect(focus.answerFrame).toContain("옮기기 전에");
+    expect(prompt.userPrompt).toContain(focus.answerFrame);
+    expect(prompt.userPrompt).not.toContain(concern);
+    expect(JSON.stringify(focus)).not.toContain(concern);
   });
 
   it.each(CASES)("answers the received %s question with only its calculated evidence", (category, topic, concern, intentKey, data, specialistSignal) => {

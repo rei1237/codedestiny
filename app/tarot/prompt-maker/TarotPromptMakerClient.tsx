@@ -1,5 +1,6 @@
 "use client";
 
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { AnimatePresence, m } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
@@ -3306,6 +3307,7 @@ export default function TarotPromptMakerPage() {
                   transition={{ duration: 0.35, ease: "easeOut" }}
                   className="max-w-2xl mx-auto"
                 >
+                  {!isLenormandMode && locale === "ko" && <div style={{width:"100%",maxWidth:540,margin:"0 auto 24px",color:"#463a31",background:"#eee7dc",borderRadius:12}}><CraftedProductDisclosure featureKey={oracleTierFeatureKey} summaryLabel="선택한 카드 수의 상담 상세 안내" /></div>}
                   {/* Question card */}
                   <div
                     className="rounded-3xl p-6 sm:p-8 border border-[#7c3aed]/40"

@@ -1,0 +1,31 @@
+No	검색 웹문서	클릭	노출	CTR(%)
+11
+https://code-destiny.com/fortune/tomorrow/monkey/
+	113	17,744	0.6
+12
+https://code-destiny.com/fortune/tomorrow/goat/
+	108	20,879	0.5
+13
+https://code-destiny.com/naming-ai/
+	102	3,448	3
+14
+https://code-destiny.com/fortune/tomorrow/cancer/
+	93	25,854	0.4
+15
+https://code-destiny.com/fortune/tomorrow/rabbit/
+	85	22,413	0.4
+16
+https://code-destiny.com/fortune/tomorrow/aries/
+	84	31,972	0.3
+17
+https://code-destiny.com/sukuyo/
+	84	2,855	2.9
+18
+https://code-destiny.com/fortune/tomorrow/horse/
+	74	2,667	2.8
+19
+https://code-destiny.com/kkul-kkul-unse/
+	73	206	35.4
+20
+https://code-destiny.com/astrology/
+	66	4,114	1.6

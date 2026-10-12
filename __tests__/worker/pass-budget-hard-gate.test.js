@@ -76,7 +76,7 @@ describe("레거시 이용권 카운터 복구 — 실제 문제 기능", () => 
   test.each([
     ["premium", "ziwei_ai_prompt_generator"],
     ["vvip", "saju_ai_prompt_generator"],
-    ["vvip", "master-love-codex"],
+    ["family", "master-love-codex"],
     ["family", "master-love-codex-compat"],
     ["family", "ziwei-ai-consultation"],
   ])("%s 이용권은 %s 가격을 커버하면 누락 카운터를 원자적으로 시작한다", async (tier, requestedFeatureKey) => {
@@ -111,6 +111,7 @@ describe("레거시 이용권 카운터 복구 — 실제 문제 기능", () => 
   test.each([
     ["standard", "saju_ai_prompt_generator"],
     ["premium", "master-love-codex-compat"],
+    ["vvip", "master-love-codex"],
     ["premium", "ziwei-ai-consultation"],
     ["vvip", "master-love-codex-compat"],
     ["vvip", "ziwei-ai-consultation"],
@@ -489,4 +490,18 @@ describe("Family 회귀 — 실제 문제 기능·캐시·동시성", () => {
       }
     }
   });
+});
+
+test("이용권 사용 기록(PointHistory deduct)에 결제한 카드를 남긴다", async () => {
+  const db = makeFakePaymentDb();
+  const at = expiresAt();
+  const user = seed(db, { spent: 0, at });
+  const result = await consumePassForFeature({
+    db, user, entitlement: entitlement(at), userId: USER,
+    featureKey: FEATURE, requestId: "card-evidence", coinCost: 10, profileId: "card-a",
+  });
+
+  expect(result.covered).toBe(true);
+  const evidence = db.rows.find((row) => row.kind === "deduct");
+  expect(evidence.metadata).toMatchObject({ accessType: "membership_pass", requestId: "card-evidence", profileId: "card-a" });
 });

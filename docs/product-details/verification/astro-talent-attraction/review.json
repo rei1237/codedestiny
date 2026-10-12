@@ -1,0 +1,6 @@
+{
+  "original": "Independent SHIP20;4 heading orphans repaired",
+  "mobile": "Independent SHIP20 panels,18 mobileCTA/notices,3transcripts,3desktopCTA;4heading and2fallbackCTA rechecks SHIP",
+  "checks": "4 widths bounds/load/imagefailure PASS;normal stellar and forced legacy failure routes explicitly separate;ESLintclean",
+  "limits": "API mocked;no livepayment/LLM;main pending"
+}

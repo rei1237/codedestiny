@@ -1,0 +1,6 @@
+{
+  "original": "Independent SHIP10",
+  "mobile": "Independent SHIP10+notice+transcript+CTA4",
+  "checks": "304/334/374/540 load/all clipping ancestors/fallback PASS;static display2 PASS;ESLint/syntax PASS",
+  "limits": "AllAPI mocked;no purchase/generation;main/CI pending"
+}

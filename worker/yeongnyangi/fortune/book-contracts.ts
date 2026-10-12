@@ -43,6 +43,9 @@ export interface ChapterSpec {
   factIds?:string[];
   focus?:string;
   periodScope?:string;
+  // Fusion ask chapters that answer the question (prepare sets it from consultation.period). Their yearly and
+  // monthly luck rows are the requested years and dates; chapters without it read the stored calculation year.
+  timeScope?:{years:number[];start:string;end:string};
   id: string;
   title: string;
   part: string;
@@ -55,6 +58,8 @@ export interface ChapterBody {
   deliveryVersion?: string;
   // Server-set when a chapter shorter than the delivery floor was delivered rather than held (D8).
   shortDelivery?: boolean;
+  // Server-set when the tuna self-review rewrote the chapter once (tuna-quality.ts); never shown to readers.
+  selfReview?: 'rewritten';
   title?: string;
   questionAnswers?: { questionId: string; answer: string; reason: string; timing: string; action: string; review?: string; mode?: 'normal' | 'limited' | 'care' }[];
   // palaces: 자미 궁 강조용 선택 필드(fortune/ziwei/block-palaces.ts). 옛 결과에는 없다.

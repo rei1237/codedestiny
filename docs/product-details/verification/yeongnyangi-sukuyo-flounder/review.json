@@ -1,0 +1,6 @@
+{
+  "original": "Independent SHIP18 panels; four orphan lines fixed and reinspected",
+  "mobile": "Independent SHIP27 panels,18 CTA/notice,6 transcript viewports; final six changed captures reinspected",
+  "checks": "All supported flows 4 widths load/bounds/fallback PASS; existing v7 ledger/manifest15 PASS",
+  "limits": "All APIs mock; no paid LLM/payment; main delivery pending"
+}

@@ -577,8 +577,8 @@
       "sajuFptiAlt": "Prueba Saju FPTI - Personalidad de cuatro ejes a través de elementos y Diez Dioses",
       "sajuFptiImgAlt": "Prueba FPTI de Saju",
       "basicFreeBadge": "Básico gratis",
-      "price3000": "Una vez KRW 3000",
-      "price5000": "Una vez 3000 KRW",
+      "price3000": "Una vez KRW 3,000",
+      "price5000": "Una vez 5,000 KRW",
       "price10000": "Una vez 10.000 KRW",
       "cosmicSoulPrice": "30 min 5 000 KRW · 60 min 10 000 KRW",
       "compatibilityPrice": "Compatibilidad KRW 3000",
@@ -600,7 +600,9 @@
       "price5000Price3000": "Una vez 3,000 KRW",
       "price10000Price5000": "Una vez 5.000 KRW",
       "unlock1000": "Desbloquear KRW 1,000",
-      "price1000": "Una vez KRW 1,000"
+      "price1000": "Una vez KRW 1,000",
+      "sajuGuardianPricePrice5000Price7000": "Desbloqueo permanente KRW 7 000",
+      "unlock1000Price5000": "Desbloquear KRW 5,000"
     },
     "destinyFlowerStudio": {
       "closeAria": "Cerrar Atelier de la Flor del Destino",
@@ -667,7 +669,15 @@
       "close": "Cerrar",
       "home": "Ir al inicio",
       "keywords": "veredicto saju • renacimiento • pureza • flujo",
-      "quadAria": "Las flores del destino de los cuatro sistemas"
+      "quadAria": "Las flores del destino de los cuatro sistemas",
+      "letterTitle": "La carta floral de hoy · una cosa que tu corazón necesita",
+      "letterIntro": "Historias de flores para pequeñas acciones, más que predicciones. Elige la carta que encaje con cómo te sientes ahora.",
+      "letterRestTitle": "Como una magnolia · Quiero descansar un rato",
+      "letterRestBody": "Antes de que una flor se abra, sus ramas reúnen fuerza en silencio. Hoy, deja a un lado una de tus tareas y tómate un momento para mirar las plantas o el cielo por la ventana.",
+      "letterStartTitle": "Como un brote · Necesito valor para empezar",
+      "letterStartBody": "En lugar de una gran resolución, deja que brote un pequeño retoño. Escribe solo el primer paso de algo que hayas ido posponiendo y dedícale cinco minutos.",
+      "letterShareTitle": "Como un ramo · Quiero expresar lo que siento",
+      "letterShareBody": "Más que lo que quieres oír, recuerda un momento en el que sentiste gratitud. Transmite lo que sientes con un saludo breve que no presione para recibir respuesta."
     },
     "tarotSelfEsteem": {
       "levelUp": "Tu criterio se vuelve un poco más claro",
@@ -806,10 +816,10 @@
       "aria": "Guía del pase a la luz de la luna",
       "kicker": "PASE A LA LUZ DE LA LUNA",
       "title": "Deja que tu rutina de la fortuna fluya más suavemente con un pase a la luz de la luna",
-      "desc": "El Moonlight Pass abre durante 30 días, dentro de un rango definido, las lecturas a las que vuelves con frecuencia. Las señales de hoy siguen su curso sin interrupciones.",
+      "desc": "El Moonlight Pass abre, dentro de un rango definido y hasta que agotes su límite de uso, las lecturas a las que vuelves con frecuencia. Las señales de hoy siguen su curso sin interrupciones.",
       "guideLabel": "GUIA DE LUZ LUNAR",
-      "guideTitle": "Durante 30 dias, las lecturas que abres a menudo se despliegan primero con suavidad",
-      "guideText": "De Standard a Family, las lecturas de tarot, oraculo y saju se abren primero dentro de tu alcance de luz lunar. Las lecturas mas profundas fuera de ese alcance pasan a pago unico en KRW solo cuando lo necesitas.",
+      "guideTitle": "Hasta agotar tu límite de uso, las lecturas que abres a menudo se despliegan primero con suavidad",
+      "guideText": "Del Tarro de miel pequeño al Tarro de miel familiar, las lecturas de tarot, oráculo y saju se abren primero dentro de tu alcance de luz lunar. Las lecturas más profundas fuera de ese alcance pasan a pago único en KRW solo cuando lo necesitas.",
       "toggle": "Beneficios abiertos a la luz de la luna",
       "heroAria": "Consulta los servicios disponibles de forma gratuita en el flujo de luz de la luna.",
       "heroTitle": "Ver el rango del Moonlight Pass",
@@ -821,51 +831,51 @@
       "primaryAction": "Encuentra el pase que me conviene",
       "chipsAria": "Beneficios del pase principal",
       "chipIncluded": "Libre dentro del rango de pase",
-      "chipThirtyDays": "Pase de 30 días",
+      "chipThirtyDays": "Pase",
       "chipShareReward": "Pago único fuera del rango",
       "plansAria": "Tarjetas de resumen del plan de pase",
-      "standardName": "Miel Estándar 30 días",
-      "standardPrice": "30 días · KRW 9.900",
+      "standardName": "Tarro de miel pequeño",
+      "standardPrice": "KRW 9.900",
       "standardLine": "Contenido de hasta 5000 KRW",
-      "standardBenefit1": "Hasta 20.000 KRW al mes",
-      "standardBenefit2": "Hasta 3 perfiles",
-      "standardCta": "Ver estándar",
+      "standardBenefit1": "Hasta 20.000 KRW",
+      "standardCta": "Ver Tarro de miel pequeño",
       "recommendedAria": "Plan recomendado",
       "recommendedBadge": "Recomendado",
-      "premiumName": "Miel Premium 30 días",
-      "premiumPrice": "30 días · KRW 29.900",
+      "premiumName": "Tarro de miel mediano",
+      "premiumPrice": "KRW 29.900",
       "premiumLine": "Contenido de hasta 10.000 KRW",
-      "premiumBenefit1": "Hasta 60.000 KRW al mes",
-      "premiumBenefit2": "Hasta 7 perfiles",
+      "premiumBenefit1": "Hasta 60.000 KRW",
       "premiumCta": "Ver plan recomendado",
-      "vvipName": "VVIP Tarro Miel 30 días",
-      "vvipPrice": "30 días · KRW 59.900",
+      "vvipName": "Tarro de miel grande",
+      "vvipPrice": "KRW 59.900",
       "vvipLine": "Contenido de hasta 30.000 KRW",
-      "vvipBenefit1": "Hasta 120.000 KRW al mes",
-      "vvipBenefit2": "Hasta 15 perfiles",
-      "vvipCta": "Ver beneficios VVIP",
-      "familyName": "Código Destino Familia 30 días",
-      "familyPrice": "30 días · KRW 149.000",
+      "vvipBenefit1": "Hasta 120.000 KRW",
+      "vvipCta": "Ver beneficios del Tarro de miel grande",
+      "familyName": "Tarro de miel familiar",
+      "familyPrice": "KRW 149.000",
       "familyLine": "Todo el contenido incluido en el pase",
-      "familyBenefit1": "Hasta 350.000 KRW al mes",
-      "familyBenefit2": "Perfiles ilimitados",
-      "familyCta": "Ver familia",
-      "premiumNote": "Premium Honey es la opción más equilibrada si sueles usar contenido de unos 10.000 KRW.",
-      "footnote": "Los pases nuevos se venden únicamente como pases de 30 días. Este pase de 30 días no es una suscripción que se renueva automáticamente. Los servicios fuera del rango del pase se pueden utilizar con un pago único en KRW por producto.",
+      "familyBenefit1": "Hasta 350.000 KRW",
+      "familyCta": "Ver Tarro de miel familiar",
+      "premiumNote": "El Tarro de miel mediano es la opción más equilibrada si sueles usar contenido de unos 10.000 KRW.",
+      "footnote": "Los pases no tienen límite de tiempo y terminan al agotar el límite de uso. Este pase no es una suscripción que se renueva automáticamente. Los servicios fuera del rango del pase se pueden utilizar con un pago único en KRW por producto.",
       "howtoAria": "Cómo usar el pase moonlight",
       "howtoTitle": "Así fluye el pase moonlight",
-      "step1Label": "Elige un rango moonlight de 30 días",
-      "step1Text": "Con un pase de 30 días sin renovación automática, primero fija el rango de precio de las lecturas que consultas a menudo.",
+      "step1Label": "Elige un rango moonlight",
+      "step1Text": "Con un pase sin límite de tiempo ni renovación automática, primero fija el rango de precio de las lecturas que consultas a menudo.",
       "step2Label": "Las lecturas dentro del rango se abren sin pago",
       "step2Text": "Las lecturas de tarot, oráculo y saju dentro de tu rango se abren al instante, sin ventana de pago.",
       "step3Label": "Solo las lecturas más profundas se pagan por uso",
       "step3Text": "Las lecturas fuera de tu rango continúan con un pago único en KRW solo cuando lo necesitas.",
-      "terminationNote": "Aunque el límite mensual llegue a cero, se mantienen la fecha de vencimiento, el nivel y el límite de perfiles del pase. El contenido adicional de pago está disponible con un pago único o un pase mensual."
+      "terminationNote": "Cuando se agota el límite de uso, el pase termina. Si lo vuelves a comprar, empiezas con un nuevo límite de uso. El contenido adicional de pago está disponible con un pago único o Piedras de Luz Lunar.",
+      "noExpiryNote": "Sin límite de tiempo · Termina al agotar el límite de uso"
     },
     "promptHub": {
       "aria": "Ir a indicaciones completas sobre la fortuna",
       "alt": "Indicaciones completas de fortuna",
-      "sr": "Indicaciones completas de fortuna"
+      "sr": "Indicaciones completas de fortuna",
+      "honeyLabel": "Mis gotas de miel",
+      "honeyAttend": "Asiste hoy y gana gotas de miel",
+      "honeyAttended": "Asistencia de hoy hecha"
     },
     "premiumArchive": {
       "kicker": "ARCHIVO DE DESTINO VVIP",
@@ -901,11 +911,11 @@
       "eyebrow": "Pase a la luz de la luna",
       "savingsBadge": "Con el pase, hasta un tercio del precio",
       "title": "Dos lecturas de 5.000 KRW ya cuestan más que el pase de 9.900 KRW",
-      "desc": "Las lecturas dentro del rango que elijas se abren durante 30 días, hasta tu límite de uso mensual; solo las más caras se pagan una a una cuando las necesitas. Los cuatro rangos son 5.000 KRW · 10.000 KRW · 20.000 KRW y todo el contenido incluido en el pase, así que elige el precio que más consultas.",
+      "desc": "Las lecturas dentro del rango que elijas se abren hasta que agotes tu límite de uso; solo las más caras se pagan una a una cuando las necesitas. Los cuatro rangos son 5.000 KRW · 10.000 KRW · 20.000 KRW y todo el contenido incluido en el pase, así que elige el precio que más consultas.",
       "pointsAria": "Guía de pase básico",
       "point1": "Se abre al instante, sin pago",
-      "point2": "Guarda 3 perfiles o más",
-      "point3": "Pase de 30 días sin renovación automática",
+      "point2": "Sin límite de tiempo · Termina al agotar el límite de uso",
+      "point3": "Pase sin renovación automática",
       "mascotAria": "Ver las ventajas del Moonlight Pass · Tienda del Moonlight Pass",
       "mascotAlt": "Imagen de las ventajas del Moonlight Pass",
       "mascotKicker": "Moonlight Pass Guide",
@@ -1348,8 +1358,9 @@
         "w20000": "₩20,000",
         "from3000": "From ₩3,000",
         "w1000": "₩1,000",
-        "from9000": "From ₩9,000",
-        "from20000": "From ₩20,000"
+        "from5000": "From ₩5,000",
+        "w7000": "₩7,000",
+        "from30000": "From ₩30,000"
       },
       "chip": {
         "love": "Their feelings · My next love",
@@ -1610,14 +1621,14 @@
       "pass": "Pases",
       "login": "Iniciar sesión",
       "account": "Mi cuenta",
-      "offerTitle": "El Saju que se leía en consultas 1:1 de ₩300.000, ahora desde ₩3.000",
+      "offerTitle": "El Saju que se leía en consultas 1:1 de ₩300.000, ahora desde ₩5.000",
       "reviewsLead": "Mensajes reales de KakaoTalk de clientes de las consultas 1:1 de Neo, citados en el coreano original. Las omisiones se marcan con ….",
       "reviewsBar": "Consulta 1:1 con Neo · KakaoTalk",
       "reviewsMeta": "Opinión real · publicada con consentimiento",
       "reviewsPosted": "publicado en el blog",
       "reviewsFine": "Las opiniones reflejan experiencias personales y no garantizan resultados. La lectura Saju es solo orientativa.",
-      "offerNote": "Las consultas 1:1 las hacía Neo en persona; la lectura de ₩3.000 se ofrece con un motor de cálculo y comentarios de IA.",
-      "offerCta": "Ver la lectura Saju de ₩3.000 →",
+      "offerNote": "Las consultas 1:1 las hacía Neo en persona; la lectura de ₩5.000 se ofrece con un motor de cálculo y comentarios de IA.",
+      "offerCta": "Ver la lectura Saju de ₩5.000 →",
       "expertiseTitle": "Cálculo con reglas fijas, comentario con IA",
       "expertise": {
         "engine": "La carta natal se construye con reglas de cálculo fijas y la IA redacta el comentario a partir de ese resultado. Si el comentario cita un pilar del día o de la hora distinto del calculado, el servidor lo descarta.",
@@ -1649,12 +1660,12 @@
       "saysName": "Yeoni",
       "saysLine": "Which reading shall we start with? Just one is plenty.",
       "passMascotAlt": "Yeoni the flower pig smiling with a pass card",
-      "passEyebrow": "30-day pass, no auto-renewal",
-      "passTitle": "Reading often? Try a 30-day pass",
-      "passDesc": "Each reading's price is deducted from your allowance. It ends automatically after 30 days.",
-      "passPer": "/ 30 days",
+      "passEyebrow": "Pase sin límite de tiempo ni renovación automática",
+      "passTitle": "Yeoni te presenta el pase",
+      "passDesc": "Paga por lectura de vez en cuando o usa un pase si lees a menudo. Revisa las consultas disponibles y tu límite de uso.",
+      "passPer": "· Sin límite de tiempo",
       "passBadge": "Incl. Yeongnyangi",
-      "passNote": "Standard, Premium and VVIP apply to Flower Pig readings; Family applies to paid readings from both Flower Pig and Yeongnyangi. Passes you already bought keep the terms from the time of purchase.",
+      "passNote": "Los Tarros de miel pequeño, mediano y grande se aplican a las lecturas de Flower Pig; el Tarro de miel familiar se aplica a las lecturas de pago de Flower Pig y Yeongnyangi. Los pases que ya compraste conservan las condiciones del momento de la compra.",
       "passCta": "See all 4 passes",
       "moreTitle": "Explora el taller de Yeoni",
       "moreItems": "Daily readings · consultations · records · stories",
@@ -1723,7 +1734,7 @@
     "chatEntry": {
       "title": "Ask Yeoni and Neo the one thing on your mind right now",
       "cta": "Talk through my concern",
-      "price": "1 free after signing up · ₩3,000 each after"
+      "price": "₩3.000 por sesión"
     },
     "svcQuestion": {
       "master-love-codex": "When will my next relationship begin?",
@@ -1829,9 +1840,9 @@
       "reviewReward": "Moonstones after publication approval",
       "reviewDetail": "Use them in Ggulggul. Awarded once per product.",
       "reviewAction": "Write a review",
-      "passStandard": "Yeoni Standard",
-      "passPremium": "Yeoni Premium",
-      "passVvip": "Yeoni VVIP",
+      "passStandard": "Tarro de miel pequeño",
+      "passPremium": "Tarro de miel mediano",
+      "passVvip": "Tarro de miel grande",
       "passPerLimit": "Up to KRW {amount} per reading",
       "passTotal": "Total allowance: KRW {amount}",
       "passNoLimit": "No per-reading price limit",
@@ -1859,17 +1870,18 @@
       "neoClassSource": "Saju student · KakaoTalk excerpt (Korean)",
       "neoNote": "Excerpts from Neo’s personal consultations and classes, separate from the AI reading service. Individual experiences do not guarantee similar results.",
       "neoAbout": "About Neo and the service",
-      "neoMore": "More consultation reviews"
+      "neoMore": "More consultation reviews",
+      "passFamily": "Tarro de miel familiar"
     },
     "simple": {
-      "lead": "Cuéntanos qué te preocupa. Consulta el contenido y el precio antes de empezar.",
+      "lead": "Las consultas son de pago. Puedes ver el precio y un ejemplo de resultado antes.",
       "start": "Consultar mi inquietud",
       "free": "Ver la lectura gratuita de hoy",
       "startLabel": "Otras formas de empezar",
-      "love": "Amor y relaciones",
+      "love": "Amor y compatibilidad",
       "work": "Trabajo y dinero",
       "self": "Conocerme mejor",
-      "future": "Mirar al futuro",
+      "future": "Momento y decisiones",
       "title": "Una lectura que empieza con tu pregunta",
       "brand": "Conoce a Yeongnyangi, Yeoni y Neo en Ggulggul Fortune. Explora tu pregunta con Yeongnyangi o visita la Casa de Té de Yeoni y la Sala de Estrategia de Neo.",
       "stepQuestion": "Cuéntanos qué te preocupa",
@@ -1877,11 +1889,20 @@
       "stepResult": "Lee la respuesta, sus razones y los siguientes pasos",
       "example": "Leer un ejemplo antes de pagar",
       "explore": "Explorar todas las lecturas y consultas",
-      "exploreNote": "Saju, tarot, consultas con personajes, informes e historias",
+      "exploreNote": "Sistemas adivinatorios, consultas de Yeongnyangi, bonos y extras",
       "passTitle": "Si consultas a menudo, descubre los pases",
       "passNote": "Comprueba la cobertura y la validez antes de elegir.",
       "passLink": "Ver pases",
-      "passHistory": "Los pases comprados conservan sus condiciones originales."
+      "passHistory": "Los pases comprados conservan sus condiciones originales.",
+      "topicsLabel": "Elige una consulta según tu inquietud",
+      "loveNote": "Master Love Codex · 20 capítulos · PDF para guardar",
+      "lovePrice": "Individual KRW {solo} · Pareja KRW {pair}",
+      "workNote": "Cambios de trabajo, empleo, negocio y dinero",
+      "futureNote": "Si es momento de actuar y cuándo cambia el ciclo",
+      "priceFrom": "Desde KRW {amount}",
+      "samplesTitle": "Lee un ejemplo de resultado antes de pagar",
+      "sampleCodex": "Ejemplo de Love Codex",
+      "sampleConsult": "Ejemplo de consulta de Yeongnyangi"
     },
     "yeongnyangiEntry": {
       "badge": "Consulta de preguntas con Yeongnyangi",
@@ -2336,13 +2357,13 @@
         "passSaveUnverified": "No hemos podido guardar el resultado de aplicar tu pase. Vuelve a comprobarlo con la tarjeta de pase de abajo o elige otro método de pago.",
         "passCheckFailed": "No hemos podido comprobar tu pase. Vuelve a intentarlo con la tarjeta de pase de abajo o elige otro método de pago.",
         "passMiss": "Tu pase no abre este contenido gratis, así que aquí tienes las opciones de pago.",
-        "passMonthlyExhausted": "Your pass allowance is fully used, so the pass has ended. Here are the payment options."
+        "passMonthlyExhausted": "Your pass usage limit is fully used, so the pass has ended. Here are the payment options."
       },
       "passBadge": "Pase a la luz de la luna",
       "passStoreTitle": "Tienda de pases a la luz de la luna",
       "passRetryTitle": "Verificar pase nuevamente",
       "passHint": {
-        "store": "Paga una vez y abre muchos contenidos durante 30 días. ¿Ya tienes uno? Toca para comprobarlo.",
+        "store": "Paga una vez y abre muchos contenidos hasta agotar el límite de uso. ¿Ya tienes uno? Toca para comprobarlo.",
         "retry": "Revisaremos el servidor nuevamente para ver si su pase puede abrirlo sin pago.",
         "upgrade": "Tu nivel actual no abre este contenido. Echa un vistazo a un nivel superior."
       },
@@ -2415,7 +2436,7 @@
         "comingSoon": "Próximamente",
         "back": "Atrás"
       },
-      "passMonthlyExhausted": "Your pass allowance is fully used, so the pass has ended. Buying a new pass starts another 30 days; for now you can open this with a one-time payment or moonstones.",
+      "passMonthlyExhausted": "Your pass usage limit is fully used, so the pass has ended. Buying again starts a new usage limit; for now you can open this with a one-time payment or moonstones.",
       "passMonthlyRemaining": "Pass allowance left {remaining} / {limit}",
       "wait": {
         "card": "After you finish verifying in your card or payment app, come back to this browser and checkout will continue automatically.",
@@ -2447,7 +2468,7 @@
         "pass": {
           "eyebrow": "VERIFICACIÓN DEL PASE A LA LUZ DE LA LUNA",
           "title": "Comprobando tu pase",
-          "message": "Comprobando si su pase de 30 días puede abrir esto de inmediato.",
+          "message": "Comprobando si su pase puede abrir esto de inmediato.",
           "meta": "Si está disponible, continuará sin una ventana de pago."
         },
         "passApplied": {
@@ -2518,7 +2539,7 @@
         "pass": {
           "eyebrow": "VERIFICACIÓN DEL PASE A LA LUZ DE LA LUNA",
           "title": "Comprobando tu pase",
-          "message": "Comprobando si su pase de 30 días puede abrir esto de inmediato.",
+          "message": "Comprobando si su pase puede abrir esto de inmediato.",
           "meta": "Si está disponible, continuará sin una ventana de pago."
         },
         "passApplied": {
@@ -2602,7 +2623,7 @@
     "passShop": {
       "monthlyStatus": "Tu saldo de piedras lunares está confirmado.",
       "chargeButton": "Ir a la página de pago de {amount}",
-      "chargeNotice": "Producto de pase {price} · Es un pase de 30 días, no un pago con renovación automática. Los pases solo se compran con un pago único en KRW.",
+      "chargeNotice": "Producto de pase {price} · Es un pase, no un pago con renovación automática. Los pases solo se compran con un pago único en KRW.",
       "best": "BEST",
       "monthlyBasisWithPrice": "Base de crédito mensual {credits} · {price}",
       "profileUnlimited": "Perfiles ilimitados",
@@ -2613,24 +2634,24 @@
       "closeAria": "Cerrar Guía de la tienda Moonlight Pass",
       "openAria": "Guía de la tienda Open Moonlight Pass",
       "title": "Guía de compras del Moonlight Pass",
-      "subtitle": "Revise el pase de 30 días y el flujo de crédito mensual a la luz de la luna.",
-      "footerNotice": "Este pase de 30 días no es un producto que se renueva automáticamente. Debes comprarlo nuevamente después de que caduque.",
+      "subtitle": "Los pases se compran con un pago único en KRW y las Piedras de Luz Lunar se usan en funciones de pago individuales.",
+      "footerNotice": "Este pase no es un producto que se renueva automáticamente. Debes comprarlo nuevamente después de agotar su límite de uso.",
       "packages": {
         "standard": {
-          "name": "Miel Estándar 30 Días",
-          "desc": "30 días · Contenido de hasta 5000 KRW · Hasta 20.000 KRW al mes · Hasta 3 perfiles"
+          "name": "Tarro de miel pequeño",
+          "desc": "Contenido de hasta 5000 KRW · Hasta 20.000 KRW"
         },
         "premium": {
-          "name": "Miel Premium 30 Días",
-          "desc": "30 días · Contenido de hasta 10.000 KRW · Hasta 60.000 KRW al mes · Hasta 7 perfiles"
+          "name": "Tarro de miel mediano",
+          "desc": "Contenido de hasta 10.000 KRW · Hasta 60.000 KRW"
         },
         "vvip": {
-          "name": "Tarro de Miel VVIP 30 Días",
-          "desc": "30 días · Contenido de hasta 30.000 KRW · Hasta 120.000 KRW al mes · Hasta 15 perfiles"
+          "name": "Tarro de miel grande",
+          "desc": "Contenido de hasta 30.000 KRW · Hasta 120.000 KRW"
         },
         "family": {
-          "name": "Código Destino Familia 30 Días",
-          "desc": "30 días · Todo el contenido incluido en el pase · Hasta 350.000 KRW al mes · Perfiles ilimitados"
+          "name": "Tarro de miel familiar",
+          "desc": "Todo el contenido incluido en el pase · Hasta 350.000 KRW"
         }
       },
       "monthlyStatusChecking": "Verificando el saldo y el estado del Pase.",
@@ -2639,7 +2660,7 @@
       "monthlyButton": "Pagar con {credits} créditos mensuales",
       "monthlyButtonBusy": "Activando tu pase con créditos mensuales...",
       "monthlyButtonShort": "Se necesitan {credits} · saldo insuficiente",
-      "terminationNotice": "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day."
+      "terminationNotice": "Cuando se agota el límite de uso, el pase termina. Si lo vuelves a comprar, empiezas con un nuevo límite de uso. El contenido adicional de pago está disponible con un pago único o Piedras de Luz Lunar."
     },
     "access": {
       "passAppliedContinue": "Abierto con su pase."
@@ -2708,7 +2729,26 @@
   "fortune": {
     "destinyFlower": {
       "common": {
-        "unknown": "Desconocido"
+        "unknown": "Desconocido",
+        "bloomLabel": {
+          "seed": "Semilla · Maestro del día",
+          "season": "Estación · Nacimiento",
+          "bloom": "La flor que floreció"
+        },
+        "bloom": {
+          "verdict": "Y así floreció — {title}."
+        },
+        "flowerLanguage": {
+          "anchor": "'{language}' — lo que esta flor te dice, leída a través de {anchor}.",
+          "plain": "'{language}' — lo que esta flor te dice ahora."
+        },
+        "shareHook": {
+          "rarityAnchor": "La única flor leída a través de {anchor}"
+        },
+        "anonymousName": "Viajero anónimo",
+        "rationaleLabel": {
+          "verdict": "Por eso, esta flor"
+        }
       },
       "astro": {
         "elements": {
@@ -2716,7 +2756,7 @@
           "Earth": "tierra",
           "Air": "aire",
           "Water": "agua",
-          "Cosmic": "luz de las estrellas"
+          "Cosmic": "luz estelar"
         },
         "unknownSun": "Signo solar desconocido",
         "unknownRising": "Signo ascendente desconocido",
@@ -2730,22 +2770,41 @@
         "ritualTip": "Esta noche, estabiliza tu respiración durante tres minutos y establece una intención debajo de una estrella.",
         "relationshipTheme": "Cuando las relaciones siguen el ritmo de tu signo principal, la fricción se suaviza.",
         "careerTheme": "Incorpora el impulso central de tu signo solar a tu rutina de trabajo para lograr un impulso más estable.",
-        "growthCycle": "Llamada estelar Nebulosa “formando órbita” floreciendo → difusión de resplandor",
+        "growthCycle": "Llamada estelar → formación de la órbita → floración de la nebulosa → expansión del resplandor",
         "fallbackNote": "Los datos de signos solares no estaban disponibles, por lo que la lectura utilizó el elemento aire predeterminado.",
         "ultimateTitle": "Flor del Destino Definitivo",
         "ultimateConcept": "Una floración híbrida donde la energía oriental {dayMaster} se fusiona con la luz estelar occidental {sunSign}",
         "verdict": "A través de la astrología, tu flor del destino es {flowerName} ({scientificName}). Los tres ejes de los signos del sol, la salida y la luna muestran que esta flor resuena estrechamente contigo ahora.",
-        "narrative": "La chispa {sunElement} que surge del signo solar {sun} se convierte en el centro de esta elección de flores. El signo ascendente {rising} ({risingElement}) da forma al tono visible, mientras que el signo lunar {moon} ({moonElement}) añade rocío emocional, dejando que el símbolo de {flowerName}, {flowerSymbolism}, abrir claramente. La palabra clave “{keyword}” es la luz de las estrellas que llama a esta flor hacia adelante."
+        "narrative": "La chispa {sunElement} que surge del signo solar {sun} se convierte en el centro de esta elección de flores. El signo ascendente {rising} ({risingElement}) da forma al tono visible, mientras que el signo lunar {moon} ({moonElement}) añade rocío emocional, dejando que el símbolo de {flowerName}, {flowerSymbolism}, abrir claramente. La palabra clave “{keyword}” es la luz de las estrellas que llama a esta flor hacia adelante.",
+        "signs": {
+          "aries": "Aries",
+          "taurus": "Tauro",
+          "gemini": "Géminis",
+          "cancer": "Cáncer",
+          "leo": "Leo",
+          "virgo": "Virgo",
+          "libra": "Libra",
+          "scorpio": "Escorpio",
+          "sagittarius": "Sagitario",
+          "capricorn": "Capricornio",
+          "aquarius": "Acuario",
+          "pisces": "Piscis"
+        },
+        "rationaleLabel": {
+          "sun": "Signo solar",
+          "risingMoon": "Ascendente · Signo lunar"
+        }
       },
       "ziwei": {
         "brightness": {
-          "miao": "Miao",
-          "wang": "Wang",
-          "li": "Li",
-          "de": "De",
-          "ping": "Hacer ping",
-          "han": "Han",
-          "xian": "Xian"
+          "miao": "Miao (廟)",
+          "wang": "Wang (旺)",
+          "li": "Li (利)",
+          "de": "De (得)",
+          "ping": "Ping (平)",
+          "han": "Xián (閑)",
+          "xian": "Xiàn (陷)",
+          "bu": "Bu (不)"
         },
         "coreFlow": "flujo de fortuna central",
         "coreEnergy": "expresión de energía central",
@@ -2756,7 +2815,7 @@
         "ritualTip": "Palabra clave principal hoy: {keyword}",
         "relationshipTheme": "Deje que el temperamento de estrella fuerte se convierta en su estándar relacional y la armonía se vuelva más clara.",
         "careerTheme": "Cuando la fuerza de la estrella principal toma el frente, la ejecución y el posicionamiento se estabilizan.",
-        "growthCycle": "Alineación de estrellas “recolección de energía” ignición de semillas → floración",
+        "growthCycle": "Alineación estelar → concentración de energía → ignición de la semilla → floración",
         "secondaryFallbackNote": "Ajuste de estrella principal compuesto: {primaryStar} centrado + {secondaryStar} mezcla de aromas",
         "palaceFallbackNote": "Ajuste de rasgo de palacio: {palace} · {trait}",
         "hybridHint": "Representación híbrida disponible al combinar la energía de Saju {dayMaster} con las estrellas principales de Ziwei {stars}",
@@ -2767,7 +2826,7 @@
           "peonyZiwei": {
             "title": "Peonía imperial",
             "keyword": "aplomo imperial",
-            "personality": "un líder que centra el campo y restaura el orden"
+            "personality": "un líder que se sitúa en el centro y pone orden a su alrededor"
           },
           "thornyRoseGeneral": {
             "title": "Rosa Roja del General",
@@ -2776,7 +2835,7 @@
           },
           "thornyRosePioneer": {
             "title": "Rosa roja del pionero",
-            "keyword": "la unidad para remodelar el campo",
+            "keyword": "el impulso que cambia las reglas del juego",
             "personality": "un innovador que rompe el viejo marco y abre un nuevo orden"
           },
           "delicateWillow": {
@@ -2790,173 +2849,354 @@
             "personality": "un ejecutor que reúne energía para lograr resultados visibles"
           },
           "nightCereus": {
-            "title": "Cereus que florece en la noche iluminado por la luna",
+            "title": "Cereus nocturno a la luz de la luna",
             "keyword": "misterio que se abre por la noche",
             "personality": "un alma contemplativa que lee la corriente invisible"
           },
           "orchidTanlang": {
             "title": "Orquídea flor de durazno",
             "keyword": "magnetismo sensual",
-            "personality": "un tipo magnético que guía a través de la belleza, las relaciones y la expresión."
+            "personality": "un tipo magnético que guía a través de la belleza, las relaciones y la expresión"
           }
+        },
+        "stars": {
+          "ziwei": "Zi Wei (紫微)",
+          "tianji": "Tian Ji (天機)",
+          "taiyang": "Tai Yang (太陽)",
+          "wuqu": "Wu Qu (武曲)",
+          "tiantong": "Tian Tong (天同)",
+          "lianzhen": "Lian Zhen (廉貞)",
+          "tianfu": "Tian Fu (天府)",
+          "taiyin": "Tai Yin (太陰)",
+          "tanlang": "Tan Lang (貪狼)",
+          "jumen": "Ju Men (巨門)",
+          "tianxiang": "Tian Xiang (天相)",
+          "tianliang": "Tian Liang (天梁)",
+          "qisha": "Qi Sha (七殺)",
+          "pojun": "Po Jun (破軍)",
+          "wenchang": "Wen Chang (文昌)",
+          "wenqu": "Wen Qu (文曲)",
+          "zuofu": "Zuo Fu (左輔)",
+          "youbi": "You Bi (右弼)",
+          "tianma": "Tian Ma (天馬)",
+          "lucun": "Lu Cun (祿存)",
+          "tiankui": "Tian Kui (天魁)",
+          "tianyue": "Tian Yue (天鉞)",
+          "qingyang": "Qing Yang (擎羊)",
+          "tuoluo": "Tuo Luo (陀羅)",
+          "dikong": "Di Kong (地空)",
+          "dijie": "Di Jie (地劫)",
+          "huoxing": "Huo Xing (火星)",
+          "lingxing": "Ling Xing (鈴星)"
+        },
+        "palaces": {
+          "life": "Palacio de la Vida",
+          "siblings": "Palacio de los Hermanos",
+          "spouse": "Palacio del Cónyuge",
+          "children": "Palacio de los Hijos",
+          "wealth": "Palacio de la Riqueza",
+          "health": "Palacio de la Salud",
+          "travel": "Palacio de los Viajes",
+          "friends": "Palacio de los Amigos",
+          "career": "Palacio de la Carrera",
+          "property": "Palacio de la Propiedad",
+          "fortune": "Palacio de la Fortuna",
+          "parents": "Palacio de los Padres"
+        },
+        "palaceTraits": {
+          "life": "un fuerte sentido del yo y presencia",
+          "siblings": "la cooperación y el sentido de la coordinación",
+          "spouse": "la gracia en las relaciones y la comunicación íntima",
+          "children": "la creatividad y el deseo de expresarse",
+          "wealth": "la gestión de los recursos y la expansión de la abundancia",
+          "health": "la resiliencia y el sentido del equilibrio interior",
+          "travel": "la adaptabilidad y el criterio sobre el terreno",
+          "friends": "la gestión de redes y el cuidado del equipo",
+          "career": "el impulso social y la orientación al logro",
+          "property": "la construcción de bases y la acumulación constante",
+          "fortune": "la recarga emocional y la comprensión espiritual",
+          "parents": "el instinto protector y el sentido de la tradición"
+        },
+        "natalVerdict": "Leída a través de la naturaleza de {stars} en tu Palacio de la Vida, tu flor es {flowerName} ({scientificName}).",
+        "natalScenarioTitle": "Escenario de floración de la estrella principal del Palacio de la Vida",
+        "rationale": {
+          "lifeStar": "Tu Palacio de la Vida alberga {starsJosa}.",
+          "borrowedStar": "Tu Palacio de la Vida no tiene estrella principal, así que leímos tomando prestado {starsObject} del Palacio de los Viajes opuesto.",
+          "personality": "{star}: “{keyword}” — {personality}.",
+          "verdict": "Por eso, la flor que te ofrecemos ahora es {flowerName}."
+        },
+        "rationaleLabel": {
+          "lifeStar": "Estrella principal del Palacio de la Vida",
+          "personality": "Personalidad innata"
         }
       },
       "sukuyo": {
         "moon": {
           "full": "luna llena",
-          "new": "luna oscura",
+          "new": "luna nueva",
           "crescent": "luna creciente",
           "gibbous": "luna creciente/menguante"
         },
-        "stickerLabel": "Flor de Sukuyo",
+        "stickerLabel": "Flor según Sukuyo",
         "moonPhaseLabel": "Fase lunar {moon}",
-        "guardianLabel": "Tutor {guardian}",
-        "scenarioTitle": "27 mansiones y escenario floreciente en fase lunar",
+        "guardianLabel": "Animal guardián {guardian}",
+        "scenarioTitle": "Escenario de floración de las 27 mansiones lunares y la fase lunar",
         "ritualTip": "Junto a una ventana iluminada por la luna, respira 27 veces y establece la intención de hoy en una palabra.",
         "relationshipTheme": "Seguir la textura de {group} suaviza la tensión y aclara la conexión.",
         "careerTheme": "Cuando el ritmo de {guardian} se refleja en tu rutina de trabajo, los resultados se estabilizan.",
-        "growthCycle": "Constelación que une la ignición espiritual de “recolección de luz de luna” → floración",
+        "growthCycle": "Unión de constelaciones → concentración de la luz lunar → ignición espiritual → floración",
         "verdict": "A través de la textura de la luz de la luna de Sukuyo, la flor de tu destino es {flowerName} ({scientificName}). La combinación de {mansion}, {moon} y {guardian} se alinea delicadamente con el ritmo de la relación, la emoción y la acción ahora.",
-        "narrative": "La textura relacional de {mansion} ({group}), la marea de la fase lunar {moon} y el patrón protector de {guardian} se encuentran en el jardín nocturno, profundizando la cualidad de{symbolism}. Leídos juntos, estas tres señales iluminadas por la luna apuntan a {flowerName} como la flor de tu destino más precisa ahora."
+        "narrative": "La textura relacional de {mansion} ({group}), la marea de la fase lunar {moon} y el patrón protector de {guardianJosa} se encuentran en el jardín nocturno, profundizando la cualidad de {symbolism}. Leídos juntos, estas tres señales iluminadas por la luna apuntan a {flowerName} como la flor de tu destino más precisa ahora.",
+        "mansions": {
+          "m1": "Kaku (角)",
+          "m2": "Kou (亢)",
+          "m3": "Tei (氐)",
+          "m4": "Bou (房)",
+          "m5": "Shin (心)",
+          "m6": "Bi (尾)",
+          "m7": "Ki (箕)",
+          "m8": "To (斗)",
+          "m9": "Jo (女)",
+          "m10": "Kyo (虛)",
+          "m11": "Ki (危)",
+          "m12": "Shitsu (室)",
+          "m13": "Heki (壁)",
+          "m14": "Kei (奎)",
+          "m15": "Ro (婁)",
+          "m16": "I (胃)",
+          "m17": "Bo (昴)",
+          "m18": "Hitsu (畢)",
+          "m19": "Shi (觜)",
+          "m20": "Shin (參)",
+          "m21": "Sei (井)",
+          "m22": "Ki (鬼)",
+          "m23": "Ryu (柳)",
+          "m24": "Sei (星)",
+          "m25": "Cho (張)",
+          "m26": "Yoku (翼)",
+          "m27": "Shin (軫)"
+        },
+        "groups": {
+          "anjung": "Mansiones estables",
+          "gangseong": "Mansiones fuertes",
+          "gyeongkwae": "Mansiones ágiles",
+          "jihye": "Mansiones sabias"
+        },
+        "groupLabels": {
+          "anjung": "Grupo estable",
+          "gangseong": "Grupo fuerte",
+          "gyeongkwae": "Grupo ágil",
+          "jihye": "Grupo sabio"
+        },
+        "guardians": {
+          "crane": "Grulla",
+          "dragon": "Dragón",
+          "marten": "Marta",
+          "rabbit": "Conejo",
+          "fox": "Zorro",
+          "tiger": "Tigre",
+          "leopard": "Leopardo",
+          "haetae": "Haetae",
+          "bat": "Murciélago",
+          "rat": "Rata",
+          "swallow": "Golondrina",
+          "pig": "Cerdo",
+          "hedgehog": "Erizo",
+          "wolf": "Lobo",
+          "dog": "Perro",
+          "pheasant": "Faisán",
+          "rooster": "Gallo",
+          "crow": "Cuervo",
+          "monkey": "Mono",
+          "ape": "Simio",
+          "wildDog": "Perro salvaje",
+          "sheep": "Oveja",
+          "roeDeer": "Corzo",
+          "horse": "Caballo",
+          "deer": "Ciervo",
+          "snake": "Serpiente",
+          "earthworm": "Lombriz"
+        },
+        "rationaleLabel": {
+          "mansion": "Mansión · Fase lunar"
+        }
       },
       "saju": {
         "scenarios": {
           "default": {
-            "title": "{dayMasterBadge} escenario floreciente del entorno"
+            "title": "{dayMasterBadge} escenario floreciente del entorno",
+            "reason": "Observamos cómo tu maestro del día encaja con el entorno actual de los Cinco Elementos y elegimos la flor que mejor se adapta a este periodo."
           },
           "jia": {
             "springWood": {
-              "title": "Jia Wood escenario floreciente líder en posición vertical"
+              "title": "Jia Wood escenario floreciente líder en posición vertical",
+              "reason": "La Madera Jia (甲木) tiene la naturaleza de un árbol alto que crece recto hacia arriba. Ahora que la energía de madera de la primavera coincide con ese temperamento, tu fuerza para dar un paso al frente y abrir nuevos caminos florece por completo."
             },
             "autumnMetal": {
-              "title": "Escenario de templado de metales de Jia Wood"
+              "title": "Escenario de templado de metales de Jia Wood",
+              "reason": "Con la energía de metal del otoño presionando sobre la Madera Jia (甲木), es momento de podar las ramas laterales y quedarte solo con el tronco que de verdad importa. Cuanto más sueltas, más firme te vuelves."
             },
             "dryFire": {
-              "title": "Escenario de resistencia al calor seco de Jia Wood"
+              "title": "Escenario de resistencia al calor seco de Jia Wood",
+              "reason": "Para la Madera Jia (甲木), situada en medio de una energía seca y caliente, lo que importa ahora es la resistencia de sus raíces. En lugar de apresurarte, fortalece tu resiliencia aguantando a largo plazo, y volverás a florecer con la tenacidad del hibisco de Siria."
             }
           },
           "yi": {
             "metalWater": {
-              "title": "Yi Wood escenario de armonía metal-agua"
+              "title": "Yi Wood escenario de armonía metal-agua",
+              "reason": "La Madera Yi (乙木) tiene una naturaleza suave que se filtra, como las enredaderas y las plantas con flor. Con la energía de metal y agua fuerte ahora, tu elegancia y tu poder de aclarar y purificar cobran más vida."
             },
             "dryEarth": {
-              "title": "Escenario de supervivencia en suelo seco de Yi Wood"
+              "title": "Escenario de supervivencia en suelo seco de Yi Wood",
+              "reason": "Para la Madera Yi (乙木), que se alza sobre una energía de tierra seca, el tema de ahora es la fuerza para resistir. Como la flor del cactus que atraviesa la tierra árida y al fin florece, brillas justo allí donde resistes."
             },
             "autumn": {
-              "title": "Escenario de refinamiento otoñal de Yi Wood"
+              "title": "Escenario de refinamiento otoñal de Yi Wood",
+              "reason": "La Madera Yi (乙木), al atravesar la energía de metal del otoño, vive una etapa en la que transforma la delicadeza en un orden sereno. Cuanto más ordenas lo disperso, más se aquieta también tu mente."
             },
             "wetSpring": {
-              "title": "Escenario de expansión de resorte húmedo de Yi Wood"
+              "title": "Escenario de expansión de resorte húmedo de Yi Wood",
+              "reason": "Al encontrarse con la energía húmeda de la primavera, la Madera Yi (乙木) mejora notablemente su capacidad de conectar a las personas. Ahora es momento de crecer a través de las relaciones más que en solitario."
             }
           },
           "bing": {
             "springWood": {
-              "title": "Escenario de ignición del resorte de Bing Fire"
+              "title": "Escenario de ignición del resorte de Bing Fire",
+              "reason": "El Fuego Bing (丙火) es una energía que prende rápido y se extiende a lo lejos, como el sol. Con la energía de madera de la primavera como combustible, tu fuerza para empezar algo nuevo y darlo a conocer arde con intensidad."
             },
             "summerFire": {
-              "title": "Escenario de expansión de verano de Bing Fire"
+              "title": "Escenario de expansión de verano de Bing Fire",
+              "reason": "Con la energía de fuego del verano sumada, el Fuego Bing (丙火) arde con más brillo que nunca. Es la etapa en la que tu fuerza para dar un paso al frente y guiar a las personas alcanza su punto máximo."
             },
             "waterControl": {
-              "title": "Escenario de control de agua de Bing Fire"
+              "title": "Escenario de control de agua de Bing Fire",
+              "reason": "Para el Fuego Bing (丙火), que se encuentra con una fuerte energía de agua, lo que importa ahora no es arder más, sino fijar bien la dirección. Mantén el sentido de la realidad y protege la llama, y su luz durará."
             }
           },
           "ding": {
             "coldWet": {
-              "title": "Escenario de calor frío-húmedo de Ding Fire"
+              "title": "Escenario de calor frío-húmedo de Ding Fire",
+              "reason": "El Fuego Ding (丁火) es una energía que brilla en silencio desde dentro, como una vela. En este tiempo frío y húmedo, mantener vivo ese calor durante mucho tiempo es una fuerza mayor que el brillo."
             },
             "autumnMetal": {
-              "title": "Escenario de refinación de metales de Ding Fire"
+              "title": "Escenario de refinación de metales de Ding Fire",
+              "reason": "Al encontrarse con la energía de metal, el Fuego Ding (丁火) afina la precisión de sus manos y su ojo para la belleza. Es la etapa en la que más brillas cuando te aferras a una sola cosa y la terminas con esmero."
             },
             "resonance": {
-              "title": "Escenario floreciente de resonancia de Ding Fire"
+              "title": "Escenario floreciente de resonancia de Ding Fire",
+              "reason": "El Fuego Ding (丁火) es una energía que acaricia con delicadeza la textura de las emociones y profundiza las relaciones. Cuanto más libremente expreses tu corazón, más se abrirá con él el camino de tu fortuna."
             }
           },
           "wu": {
             "fireEarth": {
-              "title": "Escenario de logro de fuego-tierra de Wu Earth"
+              "title": "Escenario de logro de fuego-tierra de Wu Earth",
+              "reason": "La Tierra Wu (戊土) es una energía amplia y confiable, como una gran montaña. Con el fuego y la tierra apoyándote ahora, las grandes empresas y los grandes logros ganan una fuerza inusual."
             },
             "winterWater": {
-              "title": "Escenario de fundación invernal de la Tierra Wu"
+              "title": "Escenario de fundación invernal de la Tierra Wu",
+              "reason": "Para la Tierra Wu (戊土), que se encuentra con la energía de agua del invierno, ahora es momento de bajar el ritmo y afianzar el terreno. Cuanto más te detengas a consolidar lo básico, más firme será tu siguiente paso."
             },
             "center": {
-              "title": "Escenario de construcción del centro Wu Earth"
+              "title": "Escenario de construcción del centro Wu Earth",
+              "reason": "La verdadera fuerza de la Tierra Wu (戊土) es el poder de centrar que sostiene desde el medio una situación inestable. Cuanto más constante seas con tu rutina diaria, más se acumularán tus resultados."
             }
           },
           "ji": {
             "wetEarth": {
-              "title": "Escenario de expansión del cultivo de Ji Earth"
+              "title": "Escenario de expansión del cultivo de Ji Earth",
+              "reason": "La Tierra Ji (己土) es una energía que cultiva las cosas con esmero, como un campo bien labrado. En este tiempo húmedo, los frutos crecen dentro de relaciones en las que se trabaja en equipo y hay cuidado mutuo."
             },
             "metalDesign": {
-              "title": "Escenario de diseño de precisión de Ji Earth"
+              "title": "Escenario de diseño de precisión de Ji Earth",
+              "reason": "Al encontrarse con la energía de metal, la Tierra Ji (己土) despierta un sentido para diseñar y ordenar hasta el más pequeño detalle. Tus fortalezas destacan en tareas que exigen un acabado impecable."
             },
             "balance": {
-              "title": "Escenario de ajuste del equilibrio de Ji Earth"
+              "title": "Escenario de ajuste del equilibrio de Ji Earth",
+              "reason": "La Tierra Ji (己土) es una energía que destaca en mediar con suavidad entre las personas y crear el ambiente adecuado. Basta con que manejes bien el ritmo del tira y afloja para que eso mismo se convierta en tu suerte."
             }
           },
           "geng": {
             "metalEarth": {
-              "title": "Escenario básico de Geng Metal"
+              "title": "Escenario básico de Geng Metal",
+              "reason": "El Metal Geng (庚金) es una energía que corta con audacia y decisión, como una piedra en bruto. Con la tierra y el metal apoyándote ahora, tu fuerza para llevar adelante los principios que te has marcado alcanza su punto máximo."
             },
             "fireTraining": {
-              "title": "Escenario de templado al fuego de Geng Metal"
+              "title": "Escenario de templado al fuego de Geng Metal",
+              "reason": "Templado en el fuego ardiente, el Metal Geng (庚金) se fortalece tanto en carisma como en habilidad. Es una etapa en la que tu concentración se vuelve especialmente aguda en los momentos decisivos."
             },
             "clearJudgment": {
-              "title": "Escenario de juicio decisivo de Geng Metal"
+              "title": "Escenario de juicio decisivo de Geng Metal",
+              "reason": "La fortaleza del Metal Geng (庚金) es un juicio que corta con precisión hasta lo esencial. Fija criterios claros y esa nitidez se traducirá directamente en resultados."
             }
           },
           "xin": {
             "metalWater": {
-              "title": "Escenario de refinamiento de metal-agua de Xin Metal"
+              "title": "Escenario de refinamiento de metal-agua de Xin Metal",
+              "reason": "El Metal Xin (辛金) es una energía de sentidos y lenguaje refinados, como una joya finamente tallada. Con el metal y el agua en armonía ahora, tu capacidad de analizar y expresar se vuelve aún más clara."
             },
             "springWood": {
-              "title": "Escenario de afinación de madera de Xin Metal"
+              "title": "Escenario de afinación de madera de Xin Metal",
+              "reason": "Al encontrarse con la energía de madera de la primavera, el Metal Xin (辛金) llega más lejos ajustando con suavidad que afilando su filo. Es una etapa en la que los resultados llegan de lo que pules con sensibilidad."
             },
             "completion": {
-              "title": "Escenario de finalización de Xin Metal"
+              "title": "Escenario de finalización de Xin Metal",
+              "reason": "El Metal Xin (辛金) es fuerte cuando termina una sola cosa con esmero en lugar de abarcar mucho. Cuanto más cuidadosamente remates los detalles, más confianza ganarás de los demás."
             }
           },
           "ren": {
             "summerCooling": {
-              "title": "Escenario de enfriamiento de verano de Ren Water"
+              "title": "Escenario de enfriamiento de verano de Ren Water",
+              "reason": "El Agua Ren (壬水) es una energía que maneja grandes corrientes, como un mar abierto. Ahora, mientras refresca el calor del verano, tu capacidad de concentrarte con calma aumenta notablemente."
             },
             "winterCondensing": {
-              "title": "Escenario de condensación invernal de Ren Water"
+              "title": "Escenario de condensación invernal de Ren Water",
+              "reason": "En resonancia con la energía de agua del invierno, el Agua Ren (壬水) vive un tiempo de reunir fuerzas bajo el hielo. Aunque en la superficie parezca tranquila, en su interior madura un potencial sólido, como una flor de glaciar."
             },
             "nightIntuition": {
-              "title": "Escenario de intuición nocturna de Ren Water"
+              "title": "Escenario de intuición nocturna de Ren Water",
+              "reason": "El Agua Ren (壬水) es una energía que encuentra mejor su camino a través de la intuición de una noche tranquila que a plena luz del día. Cuando decides a tu propio ritmo en lugar de apresurarte a responder, la dirección encaja."
             }
           },
           "gui": {
             "coldWetPurifying": {
-              "title": "Escenario de purificación de agua fría y húmeda de Gui"
+              "title": "Escenario de purificación de agua fría y húmeda de Gui",
+              "reason": "El Agua Gui (癸水) es una energía que percibe lo sutil y lo limpia, como el rocío del amanecer. En este tiempo frío y húmedo, esa quietud silenciosa y absorta se convierte en tu fuerza."
             },
             "summerEmpathy": {
-              "title": "Escenario de empatía de verano de Gui Water"
+              "title": "Escenario de empatía de verano de Gui Water",
+              "reason": "Para el Agua Gui (癸水), que se encuentra con el calor del verano, la empatía que alivia los corazones y conecta a las personas es la mayor baza. Como una hortensia, el camino se abre a medida que reúnes la calidez de muchos."
             },
             "subtleSignal": {
-              "title": "Escenario de señal sutil de Gui Water"
+              "title": "Escenario de señal sutil de Gui Water",
+              "reason": "El Agua Gui (癸水) es una energía que capta antes que nadie las pequeñas señales que otros pasan por alto. Si eliges bien el momento con esa sensibilidad aguda, esa sola jugada decidirá el resultado."
             }
           }
         },
-        "stickerLabel": "Flor de Saju",
+        "stickerLabel": "Flor según Saju",
         "dayMasterWaiting": "Esperando lectura maestra del día",
         "signalPending": "Esperando señales principales",
         "scenarioTitleFallback": "{dayMasterBadge} escenario floreciente",
         "scenarioFallbackReason": "El flujo floreciente se leyó integrando el maestro del día y el entorno.",
-        "growthCycle": "Brotar (reunir energía) “Crecimiento (acción amplificadora)” Florecer (resultados aflorando) → Fructificación (profundización de relaciones y activos)",
-        "fallbackNote": "Se aplicó la lógica de enriquecimiento del maestro de días.",
+        "growthCycle": "Brote (reunir energía) → Crecimiento (amplificar la acción) → Floración (los logros salen a la luz) → Fruto (acumular relaciones y bienes)",
+        "fallbackNote": "Leímos con cuidado la energía de tu maestro del día solo a partir de tu fecha de nacimiento.",
         "verdict": "En tu lectura de Saju, tu flor es {flowerName} ({scientificName}).",
         "rationale": {
           "verdict": "En tu lectura de Saju, la flor de tu destino es {flowerName} ({scientificName}).",
           "elements": "La lectura de los Cinco Elementos muestra {dominant} como tu energía principal y {support} como el flujo de apoyo.",
           "context": "La temporada de la fortuna actual es {season}, la densidad de energía es {water} y la etapa de vida se lee como {environment}.",
           "dayMaster": "El día maestro se confirma como {dayMasterBadge} y se priorizó la interacción estación-entorno a su alrededor.",
-          "scenario": "Escenario de entorno maestro del día: {reason}",
+          "scenario": "{reason}",
           "levels": "Los niveles de los elementos son {elementLevelLine} y los cinco niveles fueron ponderados para confirmar la flor del destino.",
           "symbolism": "Esta flor simboliza {symbolism} y refleja el tema de esta temporada con mayor claridad.",
           "description": "Lectura de la flor del destino: {description}",
           "vibe": "Guía de floración: {vibeMessage}",
-          "fallback": "Lógica de ajuste: {note}"
+          "fallback": "Lógica de ajuste: {note}",
+          "dayMasterSame": "Una flor que lleva la misma energía {element} que tu maestro del día {dayMasterBadge}.",
+          "strengthRelease": "Tu carta es fuerte, así que dimos más peso a las flores con energía {elements}, que deja salir la energía acumulada.",
+          "strengthSupport": "Tu carta es débil, así que dimos más peso a las flores con energía {elements}, que refuerza tu maestro del día.",
+          "yongshin": "Esta flor lleva el elemento útil (yongshin) que necesita tu carta — {elements}.",
+          "johuWarm": "Tu carta tiende a ser fría y húmeda, así que dimos más peso a flores cálidas que la caldeen como la luz del sol.",
+          "johuCool": "Tu carta tiende a ser cálida y seca, así que dimos más peso a flores ricas en agua que refresquen el calor."
         },
         "elements": {
           "wood": "Madera",
@@ -3018,6 +3258,55 @@
           "Earth": "Las operaciones, la gestión y la creación de sistemas resaltan sus puntos fuertes.",
           "Metal": "El análisis, la planificación y el control de calidad convierten la precisión en resultados.",
           "Water": "La investigación, la investigación y el diseño de contenido permiten que su profundidad brille."
+        },
+        "bloom": {
+          "season": "Como tú, que naciste en {season}, esta flor se abre con más luz en {season}."
+        },
+        "flowerLanguage": {
+          "yongshin": "'{language}' — lo que esta flor, impregnada de tu elemento útil {elements}, quiere decirte.",
+          "dayMaster": "'{language}' — lo que esta flor te dice a ti, con maestro del día {dayMasterBadge}."
+        },
+        "shareHook": {
+          "raritySeason": "Una flor entre {total}, elegida por un Saju de maestro del día {dayMasterBadge} nacido en {season}",
+          "rarityDayMaster": "Una flor entre {total}, elegida por un Saju de maestro del día {dayMasterBadge}",
+          "rarityPlain": "La flor que mi Saju eligió entre {total}"
+        },
+        "dayMasters": {
+          "jia": "Madera Jia (甲木)",
+          "yi": "Madera Yi (乙木)",
+          "bing": "Fuego Bing (丙火)",
+          "ding": "Fuego Ding (丁火)",
+          "wu": "Tierra Wu (戊土)",
+          "ji": "Tierra Ji (己土)",
+          "geng": "Metal Geng (庚金)",
+          "xin": "Metal Xin (辛金)",
+          "ren": "Agua Ren (壬水)",
+          "gui": "Agua Gui (癸水)"
+        },
+        "dayMasterStems": {
+          "jia": "Jia (甲)",
+          "yi": "Yi (乙)",
+          "bing": "Bing (丙)",
+          "ding": "Ding (丁)",
+          "wu": "Wu (戊)",
+          "ji": "Ji (己)",
+          "geng": "Geng (庚)",
+          "xin": "Xin (辛)",
+          "ren": "Ren (壬)",
+          "gui": "Gui (癸)"
+        },
+        "dayMasterFallback": {
+          "ziwei": "Como los datos del maestro del día de Saju son limitados, se ajustó la naturaleza del maestro del día según la estrella principal de Zi Wei.",
+          "astrology": "Como los datos del maestro del día de Saju son limitados, las tendencias del signo solar sustituyeron la naturaleza del maestro del día.",
+          "dominant": "Como los indicadores clave de Saju, Zi Wei y astrología son limitados, se estimó la naturaleza del maestro del día a partir del elemento dominante."
+        },
+        "rationaleLabel": {
+          "dayMaster": "Naturaleza del maestro del día",
+          "strengthRelease": "Carta fuerte",
+          "strengthSupport": "Carta débil",
+          "yongshin": "Elemento útil",
+          "johuWarm": "Equilibrio climático · frío y húmedo",
+          "johuCool": "Equilibrio climático · cálido y seco"
         }
       },
       "flowers": {
@@ -3031,7 +3320,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Buen carácter"
         },
         "aster": {
           "name": "Áster",
@@ -3043,7 +3333,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Confianza, elegancia"
         },
         "astro_lavender": {
           "name": "Nebulosa Lavanda",
@@ -3055,7 +3346,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Pureza, devoción, paz interior"
         },
         "azalea": {
           "name": "Azalea",
@@ -3067,7 +3359,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Amor de la naturaleza"
         },
         "begonia": {
           "name": "Begonia",
@@ -3079,7 +3372,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Cordialidad, afecto sincero"
         },
         "bellflower": {
           "name": "Campanilla",
@@ -3091,7 +3385,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Amor incondicional"
         },
         "bird_of_paradise": {
           "name": "Ave del paraíso",
@@ -3103,7 +3398,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Libertad, alegría, amor duradero"
         },
         "black_rose": {
           "name": "Rosa Negra",
@@ -3115,7 +3411,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Amor y pasión eternos"
         },
         "blue_iris": {
           "name": "Iris azul",
@@ -3127,7 +3424,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Confianza, buenas noticias"
         },
         "blue_lotus": {
           "name": "Loto Azul",
@@ -3139,7 +3437,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Pureza, tranquilidad"
         },
         "bluebell": {
           "name": "Campanilla",
@@ -3151,7 +3450,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Humildad, constancia"
         },
         "cactus_flower": {
           "name": "Flor de cactus",
@@ -3163,7 +3463,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Pedir justicia"
         },
         "camellia": {
           "name": "Camelia",
@@ -3175,7 +3476,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Te querré siempre"
         },
         "carnation": {
           "name": "Clavel",
@@ -3187,7 +3489,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Amor vivo y puro"
         },
         "cherry_blossom": {
           "name": "Flor de cerezo",
@@ -3199,7 +3502,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Buena educación"
         },
         "chrysanthemum_gold": {
           "name": "Crisantemo Dorado",
@@ -3211,7 +3515,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Felicidad, longevidad"
         },
         "cornflower": {
           "name": "Aciano",
@@ -3223,7 +3528,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Delicadeza"
         },
         "cosmos": {
           "name": "Cosmos",
@@ -3235,7 +3541,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Paz, integridad, modestia"
         },
         "crocus": {
           "name": "Azafrán",
@@ -3247,7 +3554,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Alegría"
         },
         "dahlia": {
           "name": "Dalia",
@@ -3259,7 +3567,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Reconocimiento"
         },
         "daisy": {
           "name": "Margarita",
@@ -3271,7 +3580,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Inocencia, pureza"
         },
         "delicate_willow": {
           "name": "Flor de sauce",
@@ -3283,7 +3593,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Resiliencia, afecto"
         },
         "delphinium": {
           "name": "Delfinio",
@@ -3295,7 +3606,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Alegría, buena voluntad, protección"
         },
         "edelweiss": {
           "name": "Edelweiss",
@@ -3307,7 +3619,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Pureza, nobleza, coraje"
         },
         "flame_tulip": {
           "name": "Tulipán Llama",
@@ -3319,7 +3632,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Tienes unos ojos preciosos"
         },
         "forsythia": {
           "name": "Forsitia",
@@ -3331,7 +3645,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Esperanza, renovación, buena suerte"
         },
         "foxglove": {
           "name": "Dedalera",
@@ -3343,7 +3658,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Ocupación"
         },
         "freesia": {
           "name": "Fresia",
@@ -3355,7 +3671,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Acogida, protección, tranquilidad"
         },
         "gardenia": {
           "name": "Gardenia",
@@ -3367,7 +3684,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Amor secreto"
         },
         "gentian": {
           "name": "Genciana",
@@ -3379,7 +3697,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Justicia, te amo cuando estás triste"
         },
         "geranium": {
           "name": "Geranio",
@@ -3391,7 +3710,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Consuelo, determinación"
         },
         "glacier_bloom": {
           "name": "Floración del glaciar",
@@ -3403,7 +3723,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Una promesa guardada bajo el hielo"
         },
         "heliotrope": {
           "name": "Heliotropo",
@@ -3415,7 +3736,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Devoción, deseo de amistad"
         },
         "hibiscus": {
           "name": "Hibisco",
@@ -3427,7 +3749,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Belleza delicada"
         },
         "honeysuckle": {
           "name": "Madreselva",
@@ -3439,7 +3762,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Lazos de amor"
         },
         "hydrangea": {
           "name": "Hortensia",
@@ -3451,7 +3775,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Amor constante"
         },
         "iris": {
           "name": "Iris",
@@ -3463,7 +3788,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Noticias placenteras"
         },
         "ivy_bloom": {
           "name": "Floración de hiedra",
@@ -3475,7 +3801,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Amistad"
         },
         "jasmine": {
           "name": "Jazmín",
@@ -3487,7 +3814,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Amabilidad"
         },
         "larkspur": {
           "name": "Espuela de caballero",
@@ -3499,7 +3827,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Corazón abierto, fuerte apego"
         },
         "lavender": {
           "name": "Lavanda",
@@ -3511,7 +3840,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Constancia, pureza"
         },
         "lily": {
           "name": "Lirio",
@@ -3523,7 +3853,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Majestad, inocencia"
         },
         "lotus": {
           "name": "Loto",
@@ -3535,7 +3866,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Pureza espiritual, verdad"
         },
         "lotus_golden": {
           "name": "Loto Dorado",
@@ -3547,7 +3879,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Resurrección, pureza divina"
         },
         "lotus_pink": {
           "name": "Loto Rosa",
@@ -3559,7 +3892,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Pureza espiritual, renacimiento"
         },
         "lotus_white": {
           "name": "Loto Blanco",
@@ -3571,7 +3905,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Pureza, fuerza, renacimiento"
         },
         "magnolia": {
           "name": "Magnolia",
@@ -3583,7 +3918,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Simpatía, amor a la naturaleza"
         },
         "marigold": {
           "name": "Caléndula",
@@ -3595,7 +3931,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Pureza, buena suerte"
         },
         "moon_lily": {
           "name": "Lirio de Luna",
@@ -3607,7 +3944,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Corazón inocente, pureza absoluta"
         },
         "moon_narcissus": {
           "name": "Luna Narciso",
@@ -3619,7 +3957,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Renovación de la vida"
         },
         "moonflower": {
           "name": "Flor de luna",
@@ -3631,7 +3970,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "La espera, magia"
         },
         "morning_glory": {
           "name": "Gloria de la mañana",
@@ -3643,7 +3983,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Amor, afecto, nuevos comienzos"
         },
         "mugunghwa": {
           "name": "Mugunghwa",
@@ -3655,7 +3996,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Amor, belleza, prosperidad"
         },
         "narcissus": {
           "name": "Narciso",
@@ -3667,7 +4009,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Nuevos comienzos"
         },
         "nemophila": {
           "name": "Nemófila",
@@ -3679,7 +4022,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Éxito en todas partes"
         },
         "night_cereus": {
           "name": "Cereus que florece de noche",
@@ -3691,7 +4035,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Un encuentro único, belleza efímera"
         },
         "orange_trumpet": {
           "name": "Flor de trompeta naranja",
@@ -3703,7 +4048,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Honor, añoranza"
         },
         "orchid": {
           "name": "Orquídea",
@@ -3715,7 +4061,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Encantos femeninos"
         },
         "orchid_tanlang": {
           "name": "Orquídea Tanlang",
@@ -3727,7 +4074,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Belleza, amor refinado"
         },
         "passionflower": {
           "name": "Pasiflora",
@@ -3739,7 +4087,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Fe religiosa"
         },
         "peony": {
           "name": "Peonía",
@@ -3751,7 +4100,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Prosperidad, buena suerte"
         },
         "peony_ziwei": {
           "name": "Ziwei Peonía",
@@ -3763,7 +4113,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Riqueza, honor, futuro feliz"
         },
         "persian_buttercup": {
           "name": "Ranúnculo persa",
@@ -3775,7 +4126,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Eres bella"
         },
         "plum_blossom": {
           "name": "Flor de ciruelo",
@@ -3787,7 +4139,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Promesa cumplida"
         },
         "poppy": {
           "name": "Amapola",
@@ -3799,7 +4152,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Sueño, consuelo"
         },
         "primrose": {
           "name": "Prímula",
@@ -3811,7 +4165,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Primera juventud"
         },
         "queen_anne_lace": {
           "name": "Encaje de la reina Ana",
@@ -3823,7 +4178,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Corazón sereno, gratitud"
         },
         "ranunculus": {
           "name": "Ranúnculo",
@@ -3835,7 +4191,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Encanto, atractivo radiante"
         },
         "red_lycoris": {
           "name": "Licoris rojo",
@@ -3847,7 +4204,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Superación, renovación"
         },
         "red_spider_lily": {
           "name": "Lirio Araña Roja",
@@ -3859,7 +4217,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Transformación, cambio"
         },
         "resilient_rose": {
           "name": "Rosa clásica",
@@ -3871,7 +4230,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Amor romántico, apasionamiento"
         },
         "rose": {
           "name": "rosa",
@@ -3883,7 +4243,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Amor, belleza"
         },
         "snapdragon": {
           "name": "Boca de dragón",
@@ -3895,7 +4256,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Reconciliación"
         },
         "sunflower": {
           "name": "Girasol",
@@ -3907,7 +4269,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Admiración, fidelidad en el amor"
         },
         "sunflower_ziwei": {
           "name": "Girasol Ziwei",
@@ -3919,7 +4282,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Adoración, admiración, felicidad"
         },
         "sweet_pea": {
           "name": "Guisante dulce",
@@ -3931,7 +4295,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Placeres delicados"
         },
         "thorny_rose": {
           "name": "Rosa espinada",
@@ -3943,7 +4308,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Amor para toda la vida"
         },
         "tiger_lily": {
           "name": "Lirio tigre",
@@ -3955,7 +4321,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Confianza, riqueza"
         },
         "tulip": {
           "name": "Tulipán",
@@ -3967,7 +4334,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Declaración de amor"
         },
         "violet": {
           "name": "Violeta",
@@ -3979,7 +4347,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Modestia"
         },
         "violet_wisteria": {
           "name": "Glicinia violeta",
@@ -3991,7 +4360,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Conexión, afecto"
         },
         "water_anemone": {
           "name": "Anémona de agua",
@@ -4003,7 +4373,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Ideas candorosas"
         },
         "water_lily": {
           "name": "Lirio de agua",
@@ -4015,7 +4386,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Pureza de corazón"
         },
         "water_narcissus": {
           "name": "Narciso de agua",
@@ -4027,7 +4399,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Recuerdos"
         },
         "white_baby_breath": {
           "name": "Aliento de bebé blanco",
@@ -4039,7 +4412,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Pureza, inocencia, amor eterno"
         },
         "wild_chrysanthemum": {
           "name": "Crisantemo salvaje",
@@ -4051,7 +4425,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Eternidad"
         },
         "winter_plum": {
           "name": "Ciruela de invierno",
@@ -4063,7 +4438,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Mantén tu promesa"
         },
         "wisteria": {
           "name": "Glicinia",
@@ -4075,7 +4451,8 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
-          }
+          },
+          "flowerLanguage": "Me aferro a ti"
         },
         "yarrow": {
           "name": "Milenrama",
@@ -4087,7 +4464,435 @@
             "0": "Floración",
             "1": "Armonía",
             "2": "Flujo"
+          },
+          "flowerLanguage": "Curación, liderazgo"
+        }
+      },
+      "ui": {
+        "source": {
+          "saju": "Saju",
+          "astrology": "Astrología",
+          "jamidusu": "Ziwei",
+          "sukuyo": "Sukuyo"
+        },
+        "specimen": {
+          "language": "Significado",
+          "system": "Sistema",
+          "mark": {
+            "saju": {
+              "primary": "Maestro del día",
+              "secondary": "Estación"
+            },
+            "astrology": {
+              "primary": "Signo",
+              "secondary": "Ascendente"
+            },
+            "jamidusu": {
+              "primary": "Estrella principal",
+              "secondary": "Brillo"
+            },
+            "sukuyo": {
+              "primary": "Mansión natal",
+              "secondary": "Luna"
+            }
+          },
+          "yongshin": "Elemento útil"
+        },
+        "bouquet": {
+          "sourcesAll": "Los cuatro sistemas",
+          "sourcesPair": "{a} y {b}",
+          "sourcesTrio": "{a}, {b} y {c}",
+          "sameFlower": "{sources} eligieron la misma flor: {name}. Así de nítida es tu esencia.",
+          "sameElement": "{sources} señalaron la misma energía: {element}.",
+          "diverse": "Flores de distinta naturaleza se reúnen para guardar tus muchas facetas en un solo ramo.",
+          "title": "Ramo del destino",
+          "sub": "Las flores que eligieron {count} sistemas, reunidas en un solo ramo."
+        },
+        "share": {
+          "preparing": "Estamos preparando tu flor del destino.",
+          "hookTitle": "🌸 Dicen que mi flor del destino es '{name}'",
+          "hookLanguage": "Significado: {language}",
+          "hookAsk": "¿Y tú qué flor eres? → {url}",
+          "hashtagsNamed": "#FlorDelDestino #MiFlorEs{tag}",
+          "hashtag": "#FlorDelDestino",
+          "languageDot": "Significado · {language}",
+          "ogTitle": "{name}, mi flor del destino",
+          "ogAsk": "¿Cuál es tu flor?",
+          "title": "Flor del destino",
+          "copiedText": "Texto copiado. Pégalo en un mensaje para enviarlo.",
+          "preparedText": "El texto está listo. Si tu app de mensajería no se abre, pégalo para enviarlo.",
+          "kakaoTitle": "Mi flor del destino es '{name}'",
+          "bloomMine": "Hacer florecer mi flor",
+          "kakaoOpened": "Se abrió la ventana para compartir en KakaoTalk.",
+          "kakaoPrepared": "Tu mensaje para KakaoTalk está listo. Si no se abre, pégalo para enviarlo."
+        },
+        "card": {
+          "kicker": "Mi flor del destino",
+          "ask": "¿Y la tuya?",
+          "failed": "No se pudo crear la imagen de la tarjeta; enviaremos el texto en su lugar.",
+          "saved": "Tarjeta guardada. El texto también se copió.",
+          "ready": "Tu tarjeta está lista. Compártela en tus historias de Instagram.",
+          "drawing": "Dibujando tu tarjeta. Un momento, por favor."
+        },
+        "sheet": {
+          "story": "Tarjeta para historias",
+          "storyHint": "Guarda o comparte una imagen 9:16",
+          "kakao": "KakaoTalk",
+          "kakaoHint": "Envía tu flor a un amigo",
+          "link": "Copiar enlace",
+          "linkHint": "Copiar con su significado",
+          "compat": "Compatibilidad floral con un amigo",
+          "compatHint": "Envía un enlace de compatibilidad",
+          "compatHintFriend": "Ver la compatibilidad con la flor de tu amigo",
+          "title": "Comparte tu flor",
+          "close": "Cerrar",
+          "linkCopied": "Copiamos el significado y el enlace. Pégalos para enviárselos a un amigo.",
+          "notReady": "Podrás compartir cuando florezca tu flor.",
+          "sub": "{name} · Significado '{language}'"
+        },
+        "compatShare": {
+          "inviteTitle": "🌸 Mi flor del destino es '{name}'",
+          "inviteAsk": "Haz florecer la tuya y mira si nuestras flores combinan",
+          "hashtags": "#FlorDelDestino #CompatibilidadFloral",
+          "title": "Compatibilidad de la flor del destino",
+          "pair": "🌸 Yo soy '{mine}' y mi amigo, '{friend}'",
+          "result": "Nuestra compatibilidad floral: '{title}'",
+          "ask": "Mira tú también la compatibilidad de tu flor → {url}"
+        },
+        "friend": {
+          "kicker": "Una flor del destino de tu amigo",
+          "shareCompat": "Compartir compatibilidad",
+          "note": "Cuando florezca tu flor, te mostraremos al instante vuestra compatibilidad.",
+          "birthToast": "Introduce tu fecha de nacimiento y tu flor florecerá. Después verás la compatibilidad con la flor de tu amigo."
+        },
+        "compat": {
+          "twin": {
+            "title": "Una pareja de la misma flor",
+            "line": "Los dos son {name}. Sin decir nada, viven la misma estación."
+          },
+          "blend": {
+            "title": "Flores de distinta naturaleza",
+            "line": "Dos flores de distinto color se encuentran y el ramo se vuelve más rico."
+          },
+          "same": {
+            "title": "Flores afines",
+            "line": "Ambas flores llevan la energía {mine}. Nadie entiende mejor el ritmo del otro."
+          },
+          "give": {
+            "title": "La flor que hago florecer",
+            "line": "La energía {mine} de mi flor nutre la energía {friend} de la flor de mi amigo. A mi lado, su flor brilla más."
+          },
+          "receive": {
+            "title": "La flor que me hace florecer",
+            "line": "La energía {friend} de la flor de mi amigo impulsa la energía {mine} de la mía. A su lado, mi flor se abre más."
+          },
+          "shape": {
+            "title": "Flores que se pulen mutuamente",
+            "line": "La energía {mine} de mi flor pule la energía {friend} de la de mi amigo. Cuanto más acompasan su ritmo, más firmes se vuelven."
+          },
+          "spark": {
+            "title": "Flores que se estimulan",
+            "line": "La energía {friend} de la flor de mi amigo templa la energía {mine} de la mía. Son un buen estímulo el uno para el otro."
           }
+        },
+        "cta": {
+          "rebloom": "🌸 Hacer florecer de nuevo mi flor del destino",
+          "astrologyAgain": "✨ Invocar de nuevo mi flor astrológica",
+          "jamidusuAgain": "🌺 Invocar de nuevo mi flor Ziwei",
+          "sukuyoAgain": "🌙 Invocar de nuevo mi flor Sukuyo"
+        },
+        "status": {
+          "atelierLocked": "Debes desbloquear el Atelier de la Flor del Destino.",
+          "loginRequired": "Inicia sesión para ver tu flor del destino.",
+          "newlyUnlocked": "✨ Se ha abierto tu flor de {source}.",
+          "resultReady": "{verdict} Puedes guardar este resultado o compartirlo en KakaoTalk.",
+          "reloading": "Volviendo a cargar tus datos. Espera un momento.",
+          "linking": "Vinculando tus datos de {source}. Espera un momento.",
+          "loaded": "Se han cargado tus datos de {source}.",
+          "copied": "Copiado al portapapeles.",
+          "copyPermission": "No hay permiso para acceder al portapapeles; cópialo manualmente.",
+          "copyFailed": "No se pudo copiar.",
+          "kakaoPcCopied": "En PC, el enlace de KakaoTalk se ha copiado al portapapeles. Pégalo en KakaoTalk para compartirlo.",
+          "kakaoNotOpenedCopied": "No pudimos confirmar que KakaoTalk se abriera, así que copiamos el resumen al portapapeles. Pégalo en KakaoTalk para compartirlo.",
+          "kakaoOpening": "Abriendo el uso compartido de KakaoTalk...",
+          "kakaoFailedCopied": "No pudimos abrir el uso compartido de KakaoTalk, así que copiamos el resumen al portapapeles.",
+          "refreshed": "Pestañas y mensajes actualizados según: {verdict}",
+          "aiOpening": "Abriendo la IA en una pestaña nueva. Si no se abre, permite las ventanas emergentes y vuelve a intentarlo.",
+          "aiBlocked": "Parece que se ha bloqueado la pestaña nueva. Permite las ventanas emergentes en tu navegador o abre directamente el sitio de IA que prefieras.",
+          "summaryCopied": "Resumen copiado al portapapeles.",
+          "promptCopied": "Se copió al portapapeles el mensaje principal de la flor IA.",
+          "promptPackCopied": "Se copió al portapapeles el conjunto de mensajes principal y negativo."
+        },
+        "fallback": {
+          "astrology": {
+            "name": "Lavanda nebulosa",
+            "symbolism": "Una intuición clara que fluye siguiendo la textura de la luz estelar",
+            "vibe": "Respira al ritmo de las estrellas y tu intuición se volverá más nítida."
+          },
+          "jamidusu": {
+            "name": "Peonía arbórea",
+            "symbolism": "La elegancia imperial y la fuerza del centro",
+            "keyword1": "Emperador",
+            "keyword2": "Elegancia",
+            "keyword3": "Centro",
+            "vibe": "Mantener tu centro es lo que, al final, te lleva más lejos."
+          },
+          "sukuyo": {
+            "name": "Lirio",
+            "symbolism": "Una flor guardiana que florece nítida a la luz de la luna",
+            "keyword1": "Luz de luna",
+            "keyword2": "Guardián",
+            "keyword3": "Purificación",
+            "vibe": "Acompasa tu respiración y tu ritmo a la luna de esta noche y tus decisiones serán más claras.",
+            "keywordMansion": "Sukuyo",
+            "keywordGuardian": "Animal guardián",
+            "keywordPhase": "Fase lunar"
+          }
+        },
+        "legacy": {
+          "astrologyReading": "Leyendo tu flor del destino a partir de tu carta astral.",
+          "astrologyRhythm": "Fijando el ritmo de las estrellas.",
+          "brightnessEven": "Neutro (平)",
+          "jamidusuReading": "Leyendo tu flor del destino a partir de la estrella fuerte de hoy.",
+          "mainStarUnknown": "Estrella principal desconocida",
+          "jamidusuRhythm": "Alineando la energía de las estrellas.",
+          "imperialGrace": "Elegancia imperial",
+          "moonQuarter": "Cuarto creciente/menguante",
+          "sukuyoReading": "Leyendo tu flor del destino a partir de las 27 mansiones Sukuyo.",
+          "mansionUnknown": "Mansión desconocida"
+        },
+        "badge": {
+          "sun": "Signo solar {value}",
+          "rising": "Signo ascendente {value}",
+          "moon": "Signo lunar {value}",
+          "strongStar": "Estrella fuerte de hoy {value}",
+          "brightness": "Brillo de la estrella {value}",
+          "moonPhase": "Fase lunar {value}",
+          "guardian": "Animal guardián {value}",
+          "palace": "Palacio {value}",
+          "mansionLabel": "Mansión",
+          "group": "Grupo {group}"
+        },
+        "value": {
+          "unknown": "Desconocido",
+          "pending": "Lectura pendiente",
+          "lifePalace": "Palacio de la Vida"
+        },
+        "wait": {
+          "chartSignal": "Esperando la señal de la carta",
+          "starSignal": "Esperando la señal de la estrella principal",
+          "sukuyoSignal": "Esperando la señal Sukuyo",
+          "moonRhythm": "Sincronizando con el ritmo de la luna.",
+          "nebulaRhythm": "Alineando el ritmo de la nebulosa.",
+          "imperialRhythm": "Afinando la energía imperial.",
+          "dayMaster": "Esperando la lectura del maestro del día",
+          "sourceVerdict": "Esperando la lectura de {source}",
+          "mainStar": "Esperando la lectura de la estrella principal",
+          "sukuyoReading": "Esperando la lectura Sukuyo",
+          "dataLoad": "Esperando la carga de datos",
+          "birth": "Esperando tu fecha de nacimiento"
+        },
+        "stage": {
+          "keywords": "Palabras clave de {source} · {list}",
+          "astrologyScenario": "Calculando el escenario de floración de tu signo zodiacal.",
+          "jamidusuScenario": "Calculando el escenario de floración de tu estrella principal Ziwei.",
+          "sukuyoScenario": "Calculando tu escenario de floración Sukuyo a la luz de la luna.",
+          "seasonTexture": "Textura de {season}",
+          "seasonDefault": "Estación",
+          "environmentMood": "Ambiente de {environment}",
+          "environmentDefault": "Entorno",
+          "sajuScenario": "Calculando el escenario de floración de tu maestro del día y tu entorno.",
+          "dataSheetPreparing": "Preparando la ficha técnica de tu flor.",
+          "symbolizes": "Esta flor simboliza {symbolism}.",
+          "resonates": "Esta flor resuena con fuerza con el flujo actual de tu fortuna.",
+          "narrativeFallback": "{verdict} Alineamos tu punto de floración actual con el equilibrio de tu {source}."
+        },
+        "guide": {
+          "allBloomed": "Todas las flores han florecido. Vuelve a verlas en la pestaña que quieras.",
+          "startSaju": "Siguiente paso: abre primero tu flor de Saju para empezar a florecer.",
+          "next": "Siguiente paso: pasa a tu flor de {source} para seguir floreciendo."
+        },
+        "tab": {
+          "lockLabel": "Se abre al desbloquear el atelier"
+        },
+        "verdict": {
+          "preparing": "Preparando la lectura de tu flor del destino.",
+          "defaultFlower": "Flor del destino",
+          "sukuyo": "Según Sukuyo, tu flor es {name}.",
+          "jamidusu": "Según Ziwei, tu flor es {name}.",
+          "astrology": "Según la astrología, tu flor es {name}.",
+          "saju": "Según el Saju, tu flor es {name}."
+        },
+        "snapshot": {
+          "guidance": "Hoy, si ajustas tu ritmo antes de buscar resultados, florecerás más rápido."
+        },
+        "empty": {
+          "noDomainData": "Aún no hay datos de {source} vinculados. Toca el botón de abajo y tu propia flor del destino florecerá ahora mismo.",
+          "astroCalculating": "Hemos leído tu carta astral. Ahora estamos eligiendo tu flor astrológica.",
+          "notLinked": "Tu flor de {source} florece en el momento en que tocas el botón de vincular. Toca el botón de abajo para conocer la flor que ha llegado a ti ahora.",
+          "linkButton": "Vincular mi flor del destino",
+          "linking": "Vinculando...",
+          "dataWaiting": "Esperando vincular los datos de {source}",
+          "readingWaiting": "Esperando la lectura de {source}",
+          "keywordsLoading": "Palabras clave de {source} · cargando"
+        },
+        "artMood": {
+          "astrology": "Floral onírico envuelto en nebulosas estelares y resplandor de neón",
+          "jamidusu": "Floral donde la dignidad imperial se une a la refinada elegancia de la corte",
+          "sukuyo": "Floral límpido como una meditación a la luz de la luna y un agua en calma",
+          "saju": "Floral lírico de Asia Oriental que florece siguiendo la textura de los Cinco Elementos"
+        },
+        "care": {
+          "wood": "Despierta tu punto de crecimiento con 8 minutos de estiramientos junto a una ventana orientada al este, bajo el sol de la mañana",
+          "fire": "Toma 5 minutos de luz orientada al sur y declara en voz alta tu objetivo de hoy",
+          "earth": "Ordena un rincón de tu espacio de trabajo para afianzar tu eje central",
+          "metal": "Anota 3 prioridades y poda con decisión los compromisos innecesarios",
+          "water": "Abre la circulación de tus emociones con un paseo de 10 minutos al anochecer y algo de agua",
+          "default": "Fija tus rutinas de luz (mañana) y agua (noche) para estabilizar primero tu ritmo básico de crecimiento."
+        },
+        "synergy": {
+          "astrology": "jarrones de vidrio, marcos plateados, microiluminación suave",
+          "jamidusu": "tela de satén, objetos de bronce, cerámica simétrica",
+          "sukuyo": "vidrio esmerilado, lino en tonos de luz de luna, bandejas con motivo de olas",
+          "saju": "cerámica mate, madera natural, telas de estampado suave",
+          "line": "Colores sugeridos: Primario {primary}, Secundario {secondary}, Acento {accent} / Materiales sugeridos: {materials}."
+        },
+        "atelier": {
+          "scenarioTitle": "Escenario de floración de {source}",
+          "growthCycleWaiting": "Esperando el cálculo del ciclo de floración",
+          "ritualWaiting": "Calculando tu rutina práctica de hoy.",
+          "astrology": {
+            "lightingFire": "Luz solar intensa de ángulo alto, como el mediodía de pleno verano",
+            "lightingEarth": "Luz estable en la que el dorado del final de la tarde se queda largo rato",
+            "lightingWater": "Luz azul y fría del amanecer que se extiende lentamente",
+            "lightingAir": "Luz oblicua, inclinada como el viento, que abre el espacio con ligereza",
+            "humidityWater": "Un estado de bruma plateada con alta humedad emocional",
+            "humidityFire": "Aire seco que retiene el calor; un estado de respuesta emocional rápida",
+            "humidityEarth": "Humedad estable de maceta de barro; un estado en el que los sentimientos maduran despacio",
+            "humidityAir": "Humedad de brisa, ligera y cambiante; un estado en el que las ideas se renuevan rápido",
+            "seasonFire": "Acelerador de floración: un tramo en el que la acción y la presentación empujan los capullos hacia arriba",
+            "seasonWater": "Nutrición interior: un tramo en el que el descanso y la intuición llenan la capa de raíces",
+            "seasonBalance": "Ajuste del equilibrio: un tramo en el que estructura y sensibilidad se cruzan para preparar el próximo brote",
+            "section": "Luz y energía celestes",
+            "matrixLighting": "☀️ Luz celeste: {value}",
+            "matrixHumidity": "💧 Humedad atmosférica: {value}",
+            "matrixSeason": "🪐 Estación cósmica: {value}",
+            "log": "Diario de observación del jardinero: la dirección de tu signo solar {sun} y la luz de tu ascendente {rising} fijan el ángulo del tallo. El control de humedad de tu signo lunar {moon} abre con suavidad las nervaduras de la emoción, y esta semana es un tramo previo a la floración en el que las oportunidades se ven primero.",
+            "recipe": "Receta secreta: después de las 9 de la noche, baja un nivel la luz de la ventana y escribe en la primera línea de tu cuaderno la única cosa que harás mañana. Concéntrate solo en ella durante los primeros 12 minutos de la mañana y el ritmo de la luz estelar se ajustará más rápido.",
+            "flowerLanguage": "Significado de la flor del destino: el valor de confiar en el ángulo de las estrellas y dar el primer paso.",
+            "gardenerWord": "La palabra del jardinero para esta flor: la intuición de hoy no es una exageración, sino un pronóstico. Las pequeñas acciones convierten la nebulosa en un jardín de flores real.",
+            "particle": "Traducida en partículas, la luz de la {source} brilla con más estabilidad con una textura “{particle}”."
+          },
+          "jamidusu": {
+            "structureZiwei": "Un tallo firme que lleva la elegancia imperial de la familia de la estrella Ziwei",
+            "structureBreaker": "Un tallo grueso y erguido, forjado por el temperamento de un general que abre brecha",
+            "structureFlexible": "Pétalos en capas delicadas, flexibles pero difíciles de quebrar",
+            "structureBalanced": "Una estructura floral refinada y simétrica, formada por una estrella principal equilibrada",
+            "social": "Como mariposas y abejas que revolotean alrededor de tu {palace}, los vínculos cercanos se reparten los papeles y te ayudan a crecer.",
+            "thornsDim": "Una etapa en la que espinas cortas, densas y muy protectoras te ayudan a marcar límites",
+            "thornsBright": "Una etapa en la que vetas que reflejan la luz sustituyen a las espinas y te protegen con dignidad",
+            "section": "La dignidad y la forma de la flor",
+            "matrixStructure": "🏛️ Estructura de la flor: {value}",
+            "matrixSocial": "🦋 Mariposas y abejas: {value}",
+            "matrixThorns": "🌵 Espinas guardianas: {value}",
+            "log": "Diario de observación del jardinero: la estrella fuerte de hoy, {star}, mantiene erguido el centro del tallo, y el brillo de la estrella, {brightness}, ajusta el lustre de los pétalos. Ahora es un momento en el que la solidez estructural, más que la ostentación, hace crecer tus resultados.",
+            "recipe": "Receta secreta: coloca un objeto metálico en el lado izquierdo de tu escritorio y anota a la vez un criterio para hoy y un punto en el que cederás. Cuanto más claros sean tus límites, con más elegancia florecerá la flor.",
+            "flowerLanguage": "Significado de la flor del destino: la dignidad es el resplandor más silencioso, que florece de una estructura sólida.",
+            "gardenerWord": "La palabra del jardinero para esta flor: no te apresures a deslumbrar. Un día dedicado a mantener tus criterios construye el tallo más duradero.",
+            "particle": "Traducida en partículas, la jerarquía de {source} muestra su orden con más belleza con un ambiente “{particle}”."
+          },
+          "sukuyo": {
+            "scentFriend": "Una nota suave de almizcle blanco que se extiende bajo la luz de la luna",
+            "scentDanger": "Una nota densa y profunda de agar que agudiza la concentración",
+            "scentDefault": "Una nota floral herbal y límpida que templa con suavidad la temperatura de las relaciones",
+            "dewFull": "Rocío nocturno en su plenitud; la inspiración y la expresión emocional abundan a la vez",
+            "dewNew": "Un tramo de luna nueva con rocío fino; la observación y la preparación van primero",
+            "dewDefault": "Una cantidad moderada de rocío; el equilibrio emocional y la capacidad de acción crecen juntos",
+            "companionDragon": "Glicina y salvia azul, que sostienen un gran flujo de expansión",
+            "companionDog": "Romero y manzanilla, que refuerzan la estabilidad de las relaciones y la resiliencia",
+            "companionTiger": "Eucalipto y rudbeckia, que refuerzan la determinación y el instinto protector",
+            "companionDefault": "Lavanda y hiedra, que apoyan a la vez la estabilidad emocional y el crecimiento a largo plazo",
+            "section": "El aroma del vínculo y el rocío",
+            "matrixScent": "🌙 Aroma del destino: {value}",
+            "matrixDew": "💦 Rocío nocturno: {value}",
+            "matrixCompanion": "🌿 Plantas compañeras: {value}",
+            "log": "Diario de observación del jardinero: la naturaleza relacional de {mansion} se manifiesta primero como aroma, y la fase lunar {phase} ajusta tu ritmo emocional mediante la densidad del rocío. Ahora, el cuidado de acompasarse el uno al otro, más que apresurar el ritmo de un vínculo, mantiene viva la flor por más tiempo.",
+            "recipe": "Receta secreta: antes de dormir, bebe despacio un vaso de agua y luego escribe en silencio el nombre de una persona a la que hoy quieras dar las gracias. El ritmo hídrico de la luna se estabiliza y tu suerte en las relaciones se abre con suavidad.",
+            "flowerLanguage": "Significado de la flor del destino: la empatía silenciosa se convierte en el aroma que llega más lejos.",
+            "gardenerWord": "La palabra del jardinero para esta flor: no pasa nada si no te apresuras. Igual que se acumula el rocío nocturno, tus vínculos se aclararán justo en el momento oportuno.",
+            "particle": "Traducido en partículas, el ritmo lunar de {source} te envuelve con más calidez con un ambiente “{particle}”."
+          },
+          "saju": {
+            "soilCold": "Suelo fértil y pantanoso que retiene la humedad",
+            "soilHot": "Mezcla cálida de grava con buen drenaje",
+            "soilBalanced": "Suelo fértil de grano uniforme y minerales estables",
+            "rootStrong": "Una etapa en la que las raíces profundas mantienen el centro incluso ante los cambios externos",
+            "rootWeak": "Una etapa en la que las raicillas finas se extienden primero y necesitan apoyo",
+            "rootBalanced": "Una etapa equilibrada en la que las raíces de profundidad media se extienden de forma uniforme",
+            "section": "Suelo y raíces para crecer",
+            "matrixSoil": "🪨 Composición del suelo: {value}",
+            "matrixRoot": "🌱 Profundidad de las raíces: {value}",
+            "matrixNutrient": "🧪 Nutriente del jardinero: {value}",
+            "log": "Diario de observación del jardinero: hoy el jardín adopta la textura “{soil}”, y la energía de crecimiento se mueve siguiendo el flujo de “{root}”. Puede parecer tranquilo en la superficie, pero en la capa de raíces se está almacenando con firmeza la fuerza para la próxima floración.",
+            "recipe": "Receta secreta: coloca una planta de hojas verdes junto a una ventana orientada al norte o al este, relaja el cuerpo 10 minutos por la mañana y calma tu respiración 10 minutos por la noche. Fijar este ritmo dos veces al día eleva más rápido la energía de tu elemento útil.",
+            "flowerLanguage": "Significado de la flor del destino: las raíces fuertes pueden parecer lentas, pero al final florecen más alto.",
+            "gardenerWord": "La palabra del jardinero para esta flor: confía en la constancia más que en la prisa. Los pequeños cuidados de hoy dan la gran cosecha de la próxima estación.",
+            "particle": "Traducido en partículas, el movimiento sutil de la energía de {source} resulta más armonioso con un ambiente “{particle}”."
+          },
+          "themesWaiting": "Analizando tus temas de relaciones y trabajo.",
+          "guidance": "Guía práctica de la flor del destino de {source}: {text}"
+        },
+        "prompt": {
+          "badgesSukuyo": "Insignias Sukuyo: {mansion} / fase lunar {phase} / animal guardián {guardian}",
+          "badgesJamidusu": "Insignias Ziwei: estrella fuerte de hoy {star} / brillo de la estrella {brightness} / palacio {palace}",
+          "badgesAstrology": "Insignias de astrología: signo solar {sun} / ascendente {rising} / signo lunar {moon}",
+          "badgesSaju": "Insignias Saju: fuerza {strength} / elemento útil {yongshin} / equilibrio estacional {johu}",
+          "symbolismFallback": "Una flor que simboliza el flujo del destino",
+          "narrativeFallback": "Relato de la flor del destino",
+          "scenarioFallback": "Puesta en escena basada en el escenario de floración",
+          "toneDirection": "Dirección de tono de {source}: {mood} / {background}"
+        },
+        "history": {
+          "emptyStatus": "Aún no hay registros de floración guardados. Prueba a guardar tu resultado actual.",
+          "restore": "Abrir",
+          "kakao": "Compartir en Kakao",
+          "delete": "Eliminar",
+          "saved": "Registro de floración guardado: {name} ({time})",
+          "notFound": "No se encontró ese registro.",
+          "restored": "Se cargó tu registro de floración guardado: {name}",
+          "deleteNotFound": "No se encontró el registro que quieres eliminar.",
+          "deleted": "Se eliminó el registro de floración seleccionado.",
+          "nothingToClear": "No hay registros de floración para eliminar.",
+          "cleared": "Se eliminaron todos los registros de floración guardados.",
+          "shareNotFound": "No se encontró el registro que quieres compartir."
+        },
+        "noBirth": {
+          "jamidusu": "Introduce tu fecha de nacimiento para ver tu flor Ziwei.",
+          "sukuyo": "Introduce tu fecha de nacimiento para ver tu flor Sukuyo.",
+          "astrology": "Introduce tu fecha y hora de nacimiento para ver tu flor astrológica.",
+          "saju": "Introduce primero tu nombre y tu fecha de nacimiento, y tu propia flor del destino florecerá aquí."
+        },
+        "studioTitle": "🌸 Atelier de la Flor del Destino",
+        "sourceDesc": {
+          "saju": "Leemos uno a uno tu maestro del día, tu mes de nacimiento y el equilibrio de tus Cinco Elementos, y elegimos la flor que conecta más profundamente con tu energía en esta estación.",
+          "astrology": "Superponemos los tres hilos de luz estelar que trazan tu signo solar, tu ascendente y tu signo lunar, y hacemos florecer la flor que armoniza con más claridad con tu carta en este momento.",
+          "jamidusu": "Seguimos la estrella principal de tu Palacio de la Vida, su brillo y el flujo de las Cuatro Transformaciones, y encontramos la flor que tu carta hace florecer con más nitidez ahora.",
+          "sukuyo": "Contrastamos la mansión lunar de tu día de nacimiento con la fase de la luna de esta noche y te entregamos la flor que encaja con más delicadeza con tu corazón ahora."
+        },
+        "sourceShort": {
+          "saju": "Saju",
+          "astrology": "carta",
+          "jamidusu": "Ziwei",
+          "sukuyo": "Sukuyo"
+        },
+        "strength": {
+          "strong": "Fuerte",
+          "weak": "Débil"
+        },
+        "johu": {
+          "hot": "Cálido y seco",
+          "cold": "Frío y húmedo",
+          "balanced": "Equilibrado"
         }
       }
     }
@@ -4418,7 +5223,7 @@
     },
     "premium": {
       "lockedTitle": "INFORME DOMINADOR BLOQUEADO",
-      "lockedDesc": "Lectura en modo Dominator · Gráfico de riesgo de 10 años · Informe profesional completo (más de 20 000 caracteres) · Prescripción del remedio del destino",
+      "lockedDesc": "Modo Dominator · Gráfico de 10 años · 10 capítulos · Planes de acción mensuales",
       "lockedCost": "Desbloquear permanentemente por ₩5,000",
       "unlockCta": "⚡ EJECUTAR DOMINADOR — ₩5,000",
       "generatingTitle": "DOMINADOR EJECUTANDO…",
@@ -6341,7 +7146,7 @@
         "k53h7ds": "Test de personalidad",
         "k79pfmc": "Nakshatra",
         "k871xeu": "Gratis · Análisis facial con selfie",
-        "ka0v1mf": "Gratis · 11 herramientas",
+        "ka0v1mf": "Gotas de miel · 16 herramientas",
         "kry6axn": "27 Nakshatras",
         "kslqazg": "Prompt de lectura completa",
         "kxgi8q8": "Pez adivino",
@@ -6666,7 +7471,7 @@
         "k1ygnp9f2": {
           "ariaLabel": "Puntos clave"
         },
-        "k231dx8": "Crea prompts de consulta gratuitos al instante con 16 herramientas como Cuatro Pilares (BaZi), Tarot, Astrología y Zi Wei Dou Shu.",
+        "k231dx8": "Crea al instante prompts de consulta con 16 herramientas: Saju, tarot, astrología, Zi Wei Dou Shu y más.",
         "k3baulf": "Estudio de Nombres Hunminjeongeum",
         "k6uqkuq": {
           "ariaLabel": "Resumen clave"
@@ -6718,7 +7523,7 @@
         "k1scb7d8": {
           "alt": "Imagen representativa del destino"
         },
-        "koe32kc": "Prueba gratuita",
+        "koe32kc": "Gotas de miel",
         "ktgbfsy": "NUEVO · Edición definitiva",
         "n50001000020000": "Tarot 5.000 KRW · Cuatro Pilares (BaZi) 10.000 KRW · Compatibilidad 20.000 KRW",
         "k1dw3t0h": "Carta gratis · consulta experta de pago",
@@ -6739,7 +7544,7 @@
     "tarotTileBody": {
       "featuredContentCardCta": {
         "k1f1oofn": "Entrar a la casa de té del destino",
-        "kdyjsns": "Probar gratis",
+        "kdyjsns": "Crear un prompt",
         "kwux29x": "Entrar a la sala de estrategia"
       },
       "pvcPremMeta": {
@@ -6809,7 +7614,7 @@
         "ko4w810": "16 herramientas como Cuatro Pilares, Tarot y astrología",
         "kozjlt4": "Consejos prácticos para relaciones, finanzas, trabajo y decisiones",
         "kqwk9o": "Consulta de casas temáticas y flujo estelar",
-        "krx9ppb": "1 prueba gratis · ilimitado al registrarte",
+        "krx9ppb": "1 gota de miel cada 3 asistencias · 1 gota por prompt",
         "ktv5xm9": "Lectura de la carta natal de Cuatro Pilares y equilibrio de los Cinco Elementos",
         "ktx0v26": "Mapa del destino elegido bajo el emblema del león",
         "kvigm32": "Consejos prácticos adaptados a tu relación actual",
@@ -6952,7 +7757,9 @@
         "n20000Price10000": "Desde ₩10.000",
         "n50000": "₩50.000",
         "n30000Price20000": "₩20.000",
-        "n20000Price10000Price20000": "Desde ₩20.000"
+        "n5000Price10000": "Desde ₩10.000",
+        "n30000Price20000Price30000": "₩30.000",
+        "n20000Price10000Price30000": "Desde ₩30.000"
       }
     },
     "cdSigCardBody": {
@@ -7014,10 +7821,9 @@
     },
     "fortuneGatewayDoor": {
       "fortuneGatewayDoorMeta": {
-        "k18ykrep": "1 gratis al iniciar sesión",
-        "n115000": "1 gratis tras registrarte · ₩3.000 cada una después",
         "n130000": "₩30.000 por lectura",
-        "k1lo4ibg": "verificación cruzada final"
+        "k1lo4ibg": "verificación cruzada final",
+        "n13000": "₩5.000 por sesión"
       },
       "fortuneGatewayDoorGo": {
         "kkmvgqi": "Start a reading",
@@ -7406,7 +8212,7 @@
       "007": "Signo Ascendente",
       "008": "Signo Lunar",
       "009": "Fuerte/Débil",
-      "010": "Dios Útil",
+      "010": "Elemento Útil",
       "011": "Ajuste Térmico"
     },
     "message": {
@@ -7899,12 +8705,12 @@
     "deliverable": {
       "title": "Lo que recibes al pagar",
       "volumeLabel": "Extensión",
-      "volumeValue": "Mínimo 30.000 caracteres",
+      "volumeValue": "Consulta extensa",
       "chaptersLabel": "Estructura",
-      "chaptersValue": "16 capítulos · 1.900–2.400 caracteres cada uno",
+      "chaptersValue": "15 capítulos · lecturas temáticas y carta final",
       "keepLabel": "Consérvalo",
-      "keepValue": "Guárdalo en PDF para siempre",
-      "guarantee": "Todo capítulo que se quede corto se reescribe automáticamente, hasta dos veces. Si aun así no llega, la solicitud se marca como fallida en vez de entregarse, de modo que el reintento y el reembolso siguen disponibles."
+      "keepValue": "Guardar PDF · copiar capítulos",
+      "guarantee": "El alcance depende de los datos de nacimiento y de cálculo disponibles. Puedes volver a consultar el contenido completado en la consulta guardada."
     }
   },
   "errorBoundary": {
@@ -19750,17 +20556,17 @@
     },
     "sign": {
       "aries": "Aries",
-      "taurus": "Taurus",
-      "gemini": "Gemini",
-      "cancer": "Cancer",
+      "taurus": "Tauro",
+      "gemini": "Géminis",
+      "cancer": "Cáncer",
       "leo": "Leo",
       "virgo": "Virgo",
       "libra": "Libra",
-      "scorpio": "Scorpio",
-      "sagittarius": "Sagittarius",
-      "capricorn": "Capricorn",
-      "aquarius": "Aquarius",
-      "pisces": "Pisces"
+      "scorpio": "Escorpio",
+      "sagittarius": "Sagitario",
+      "capricorn": "Capricornio",
+      "aquarius": "Acuario",
+      "pisces": "Piscis"
     },
     "stem": {
       "wood": "Wood",

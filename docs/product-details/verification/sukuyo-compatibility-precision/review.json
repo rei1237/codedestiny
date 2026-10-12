@@ -1,0 +1,6 @@
+{
+  "original": "Independent SHIP10",
+  "mobile": "Independent final SHIP10+notices+transcript+CTA4;clipping/notice width/date select corrected;precision report border bleed removed",
+  "checks": "304/334/374/540;all image clipping ancestors;load/fallback PASS;static display2 tests PASS;ESLint/syntax PASS",
+  "limits": "AllAPI mocked;no live purchase/LLM;one earlier setup run recorded duplicated basic mock gate calls from existing delayed initializer;final capture one mocked basic grant only;extension not clicked;main pending"
+}

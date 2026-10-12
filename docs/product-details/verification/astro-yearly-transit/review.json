@@ -1,0 +1,6 @@
+{
+  "original": "Independent SHIP10",
+  "mobile": "Independent SHIP10 panels,6mobileCTA/notices,1transcript,desktopCTA;4CTAs rechecked after existing deterministic preview/copy corrected",
+  "checks": "21 transit tests PASS;4width313/343/383/540 load/bounds/fallback;networkidle+fonts wait;ESLint0errors",
+  "limits": "API mocked;no real payment/LLM;main pending"
+}

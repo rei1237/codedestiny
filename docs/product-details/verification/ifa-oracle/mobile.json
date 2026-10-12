@@ -1,0 +1,171 @@
+{
+  "rows": [
+    {
+      "width": 360,
+      "images": [
+        {
+          "loaded": true,
+          "width": 322,
+          "left": 19,
+          "right": 341
+        },
+        {
+          "loaded": true,
+          "width": 322,
+          "left": 19,
+          "right": 341
+        },
+        {
+          "loaded": true,
+          "width": 322,
+          "left": 19,
+          "right": 341
+        },
+        {
+          "loaded": true,
+          "width": 322,
+          "left": 19,
+          "right": 341
+        },
+        {
+          "loaded": true,
+          "width": 322,
+          "left": 19,
+          "right": 341
+        },
+        {
+          "loaded": true,
+          "width": 322,
+          "left": 19,
+          "right": 341
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "images": [
+        {
+          "loaded": true,
+          "width": 352,
+          "left": 19,
+          "right": 371
+        },
+        {
+          "loaded": true,
+          "width": 352,
+          "left": 19,
+          "right": 371
+        },
+        {
+          "loaded": true,
+          "width": 352,
+          "left": 19,
+          "right": 371
+        },
+        {
+          "loaded": true,
+          "width": 352,
+          "left": 19,
+          "right": 371
+        },
+        {
+          "loaded": true,
+          "width": 352,
+          "left": 19,
+          "right": 371
+        },
+        {
+          "loaded": true,
+          "width": 352,
+          "left": 19,
+          "right": 371
+        }
+      ]
+    },
+    {
+      "width": 430,
+      "images": [
+        {
+          "loaded": true,
+          "width": 392,
+          "left": 19,
+          "right": 411
+        },
+        {
+          "loaded": true,
+          "width": 392,
+          "left": 19,
+          "right": 411
+        },
+        {
+          "loaded": true,
+          "width": 392,
+          "left": 19,
+          "right": 411
+        },
+        {
+          "loaded": true,
+          "width": 392,
+          "left": 19,
+          "right": 411
+        },
+        {
+          "loaded": true,
+          "width": 392,
+          "left": 19,
+          "right": 411
+        },
+        {
+          "loaded": true,
+          "width": 392,
+          "left": 19,
+          "right": 411
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "images": [
+        {
+          "loaded": true,
+          "width": 482,
+          "left": 399,
+          "right": 881
+        },
+        {
+          "loaded": true,
+          "width": 482,
+          "left": 399,
+          "right": 881
+        },
+        {
+          "loaded": true,
+          "width": 482,
+          "left": 399,
+          "right": 881
+        },
+        {
+          "loaded": true,
+          "width": 482,
+          "left": 399,
+          "right": 881
+        },
+        {
+          "loaded": true,
+          "width": 482,
+          "left": 399,
+          "right": 881
+        },
+        {
+          "loaded": true,
+          "width": 482,
+          "left": 399,
+          "right": 881
+        }
+      ]
+    }
+  ],
+  "fallback": true,
+  "posts": 0,
+  "mode": "Actual IFÀ payment-entry page; price unchanged per user direction; all API mocked; no payment/LLM"
+}

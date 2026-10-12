@@ -1,4 +1,4 @@
-import { loadFeatureDetail, preloadFeatureDetail, renderFeatureDetailPanels } from './feature-detail-panels.mjs';
+import { loadFeatureDetail, preloadFeatureDetail, renderFeatureDetailPanels, loadInlineCraftedDetail, revealCraftedTranscript } from './feature-detail-panels.mjs';
 import { shareIntroductionFromButton } from './feature-introduction-share.mjs';
 const revisions = new WeakMap();
 const actionCleanups = new WeakMap();
@@ -15,7 +15,7 @@ function ensureFeatureDetailStyles() {
     style.rel = 'stylesheet';
     // /styles/*.css 는 1년 immutable 로 나간다(_headers). 무버전 URL 이면 9/14 전 옛 시트가 굳어
     // 새 상세창 버튼이 회색 네이티브 버튼으로 보였다. ?v= 는 sync:public 이 내용 해시로 다시 쓴다.
-    style.href = '/styles/feature-visual-detail.css?v=build-843832182957';
+    style.href = '/styles/feature-visual-detail.css?v=build-b92d63bd0060';
     style.addEventListener('load', resolve, { once: true });
     style.addEventListener('error', () => {
       stylePromise = undefined;
@@ -54,7 +54,7 @@ export async function mountFeatureDetailPreview(overlay, keys, inlineDetail) {
   host.textContent = '상품 이야기를 펼치고 있어요.';
   title.after(host);
   try {
-    const detailRequest = inlineDetail ? Promise.resolve(inlineDetail) : loadFeatureDetail(keys);
+    const detailRequest = inlineDetail ? loadInlineCraftedDetail(inlineDetail) : loadFeatureDetail(keys);
     const [detail] = await Promise.all([detailRequest, ensureFeatureDetailStyles()]);
     if (revisions.get(overlay) !== revision || !overlay.classList.contains('pvw-open')) return;
     if (!detail) {
@@ -66,6 +66,7 @@ export async function mountFeatureDetailPreview(overlay, keys, inlineDetail) {
       return;
     }
     host.innerHTML = renderFeatureDetailPanels(detail, { conversionPrompt: true });
+    host.addEventListener('error', revealCraftedTranscript, true);
     host.removeAttribute('aria-busy');
     const source = overlay.querySelector('#tilePvwCtaBtn');
     const price = overlay.querySelector('#tilePvwCost');

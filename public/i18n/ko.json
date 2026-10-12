@@ -471,7 +471,7 @@
       "sajuFptiImgAlt": "사주로 보는 FPTI 테스트 대표 이미지",
       "basicFreeBadge": "기본 무료",
       "price3000": "1회 3,000원",
-      "price5000": "1회 3,000원",
+      "price5000": "1회 5,000원",
       "price10000": "1회 10,000원",
       "cosmicSoulPrice": "30분 5,000원 · 60분 10,000원",
       "compatibilityPrice": "궁합 3,000원",
@@ -493,7 +493,9 @@
       "price5000Price3000": "1회 3,000원",
       "price10000Price5000": "1회 5,000원",
       "unlock1000": "🔒 해금 1,000원",
-      "price1000": "1회 1,000원"
+      "price1000": "1회 1,000원",
+      "sajuGuardianPricePrice5000Price7000": "영구 해금 7,000원",
+      "unlock1000Price5000": "🔒 해금 5,000원"
     },
     "destinyFlowerStudio": {
       "closeAria": "운명의 꽃 아틀리에 닫기",
@@ -558,7 +560,17 @@
       "emptyHistory": "🌸 아직 저장된 개화 기록이 없습니다.",
       "home": "홈화면으로 바로가기",
       "keywords": "saju verdict • rebirth • purity • flow",
-      "quadAria": "네 점술의 운명의 꽃"
+      "quadAria": "네 점술의 운명의 꽃",
+      "letterTitle": "오늘의 꽃 편지 · 마음에 필요한 한 가지",
+      "letterIntro": "예측보다 작은 실천을 위한 꽃 이야기예요. 지금 마음에 맞는 편지를 골라보세요.",
+      "letterRestTitle": "목련처럼 · 잠시 쉬고 싶어요",
+      "letterRestBody": "꽃이 피기 전에는 가지도 조용히 힘을 모아요. 오늘은 해야 할 일 하나를 덜어내고, 창밖의 식물이나 하늘을 잠깐 바라보세요.",
+      "letterStartTitle": "새싹처럼 · 시작할 용기가 필요해요",
+      "letterStartBody": "큰 결심보다 작은 싹 하나를 틔워봐요. 미뤄둔 일의 첫 단계만 적고, 5분 동안 손을 움직여 보세요.",
+      "letterShareTitle": "꽃다발처럼 · 마음을 전하고 싶어요",
+      "letterShareBody": "상대에게 바라는 말보다 고마웠던 순간 하나를 떠올려봐요. 답을 재촉하지 않는 짧은 안부로 마음을 건네보세요.",
+      "askAi": "AI에게 묻기",
+      "close": "닫기"
     },
     "tarotSelfEsteem": {
       "levelUp": "내 기준이 따뜻하게 되살아납니다",
@@ -692,10 +704,10 @@
       "aria": "달빛 이용권 안내",
       "kicker": "MOONLIGHT PASS",
       "title": "자주 찾는 운세는 문라이트 패스로 더 편안하게 이어가요",
-      "desc": "달빛 이용권은 30일 동안 반복해서 찾는 리딩을 정해진 범위 안에서 먼저 열어 주는 문라이트 패스예요. 오늘의 징조를 멈추지 않고 차분히 이어볼 수 있습니다.",
+      "desc": "달빛 이용권은 이용 한도를 다 쓸 때까지 반복해서 찾는 리딩을 정해진 범위 안에서 먼저 열어 주는 문라이트 패스예요. 오늘의 징조를 멈추지 않고 차분히 이어볼 수 있습니다.",
       "guideLabel": "MOONLIGHT GUIDE",
-      "guideTitle": "30일 동안, 자주 여는 운세를 먼저 부드럽게",
-      "guideText": "스탠다드부터 Family까지, 선택한 달빛 범위 안에서 타로·신탁·사주 리딩이 결제 흐름 없이 먼저 열립니다. 범위 밖의 깊은 리딩은 필요한 순간에만 원화 단건 결제로 이어집니다.",
+      "guideTitle": "이용 한도를 다 쓸 때까지, 자주 여는 운세를 먼저 부드럽게",
+      "guideText": "작은 꿀단지부터 패밀리 꿀단지까지, 선택한 달빛 범위 안에서 타로·신탁·사주 리딩이 결제 흐름 없이 먼저 열립니다. 범위 밖의 깊은 리딩은 필요한 순간에만 원화 단건 결제로 이어집니다.",
       "toggle": "달빛 혜택 펼치기",
       "heroAria": "달빛 흐름으로 무료 이용 가능 서비스 확인",
       "heroTitle": "문라이트 패스 범위 보기",
@@ -704,50 +716,50 @@
       "primaryAction": "문라이트 패스 살펴보기",
       "chipsAria": "이용권 핵심 혜택",
       "chipIncluded": "이용권 범위 안 무료",
-      "chipThirtyDays": "30일 이용권",
+      "chipThirtyDays": "이용권",
       "chipShareReward": "범위 밖 단건결제",
       "plansAria": "이용권 플랜 요약 카드",
-      "standardName": "스탠다드 꿀 30일",
-      "standardPrice": "30일 · 9,900원",
+      "standardName": "작은 꿀단지",
+      "standardPrice": "9,900원",
       "standardLine": "5천원급 콘텐츠까지",
-      "standardBenefit1": "월 최대 2만원 상당",
-      "standardBenefit2": "프로필 최대 3개",
-      "standardCta": "스탠다드 보기",
+      "standardBenefit1": "최대 2만원 상당",
+      "standardCta": "작은 꿀단지 보기",
       "recommendedAria": "추천 플랜",
       "recommendedBadge": "추천",
-      "premiumName": "프리미엄 꿀 30일",
-      "premiumPrice": "30일 · 29,900원",
+      "premiumName": "중간 꿀단지",
+      "premiumPrice": "29,900원",
       "premiumLine": "1만원급 콘텐츠까지",
-      "premiumBenefit1": "월 최대 6만원 상당",
-      "premiumBenefit2": "프로필 최대 7개",
+      "premiumBenefit1": "최대 6만원 상당",
       "premiumCta": "추천 플랜 보기",
-      "vvipName": "VVIP 꿀단지 30일",
-      "vvipPrice": "30일 · 59,900원",
+      "vvipName": "큰 꿀단지",
+      "vvipPrice": "59,900원",
       "vvipLine": "3만원급 콘텐츠까지",
-      "vvipBenefit1": "월 최대 12만원 상당",
-      "vvipBenefit2": "프로필 최대 15개",
-      "vvipCta": "VVIP 혜택 보기",
-      "familyName": "Code Destiny Family 30일",
-      "familyPrice": "30일 · 149,000원",
+      "vvipBenefit1": "최대 12만원 상당",
+      "vvipCta": "큰 꿀단지 혜택 보기",
+      "familyName": "패밀리 꿀단지",
+      "familyPrice": "149,000원",
       "familyLine": "이용권 대상 전체",
-      "familyBenefit1": "월 최대 35만원 상당",
-      "familyBenefit2": "프로필 무제한",
-      "familyCta": "Family 보기",
-      "premiumNote": "프리미엄 꿀은 1만원급 콘텐츠를 자주 보는 분께 가장 균형이 잘 맞습니다.",
-      "footnote": "신규 판매 이용권은 30일권만 제공됩니다. 이 30일 이용권은 자동결제 상품이 아닙니다. 이용권 범위 밖 서비스는 상품별 원화 단건 결제로 이용할 수 있습니다.",
+      "familyBenefit1": "최대 35만원 상당",
+      "familyCta": "패밀리 꿀단지 보기",
+      "premiumNote": "중간 꿀단지는 1만원급 콘텐츠를 자주 보는 분께 가장 균형이 잘 맞습니다.",
+      "footnote": "이용권은 기간 제한 없이 이용 한도를 모두 쓰면 종료됩니다. 이 이용권은 자동결제 상품이 아닙니다. 이용권 범위 밖 서비스는 상품별 원화 단건 결제로 이용할 수 있습니다.",
       "howtoAria": "문라이트 패스 이용 방법",
       "howtoTitle": "문라이트 패스, 이렇게 이어져요",
-      "step1Label": "30일 달빛 범위를 골라요",
-      "step1Text": "자동갱신 없는 30일 이용권으로, 자주 보는 리딩 가격대를 먼저 정해요.",
+      "step1Label": "달빛 범위를 골라요",
+      "step1Text": "기간·자동갱신 없는 이용권으로, 자주 보는 리딩 가격대를 먼저 정해요.",
       "step2Label": "범위 안 리딩은 결제 없이 바로",
       "step2Text": "고른 범위 안 타로·신탁·사주 리딩은 결제창 없이 그대로 열려요.",
       "step3Label": "범위 밖 깊은 리딩만 단건 결제",
       "step3Text": "범위 밖의 깊은 리딩은 필요한 순간에만 원화로 한 번 결제해요.",
-      "terminationNote": "월 최대 한도가 0이 되어도 이용권의 만료일·등급·프로필 상한은 유지됩니다. 추가 유료 콘텐츠는 단건 결제 또는 월정석으로 이용할 수 있습니다."
+      "terminationNote": "이용 한도를 모두 사용하면 이용권이 종료됩니다. 다시 구매하면 새 이용 한도로 시작합니다. 추가 유료 콘텐츠는 단건 결제 또는 월정석으로 이용할 수 있습니다.",
+      "noExpiryNote": "기간 제한 없음 · 한도 소진 시 종료"
     },
     "promptHub": {
       "aria": "종합 운세 프롬프트로 이동",
-      "alt": "종합 운세 프롬프트"
+      "alt": "종합 운세 프롬프트",
+      "honeyLabel": "내 꿀방울",
+      "honeyAttend": "오늘 출석하고 꿀방울 받기",
+      "honeyAttended": "오늘 출석 완료"
     },
     "premiumArchive": {
       "kicker": "VVIP DESTINY ARCHIVE",
@@ -765,11 +777,11 @@
       "eyebrow": "Moonlight Pass",
       "savingsBadge": "이용권 사용 시 최대 3분의 1 수준",
       "title": "5,000원 리딩 두 번이면, 9,900원 이용권이 더 쌉니다",
-      "desc": "고른 가격대 안의 리딩은 30일 동안 월 이용 한도까지 열리고, 그보다 비싼 리딩만 필요할 때 단건으로 결제해요. 범위는 5천원급·1만원급·2만원급·이용권 대상 전체 네 단계라 자주 보는 가격대로 고르면 됩니다.",
+      "desc": "고른 가격대 안의 리딩은 이용 한도를 다 쓸 때까지 열리고, 그보다 비싼 리딩만 필요할 때 단건으로 결제해요. 범위는 5천원급·1만원급·2만원급·이용권 대상 전체 네 단계라 자주 보는 가격대로 고르면 됩니다.",
       "pointsAria": "이용권 핵심 안내",
       "point1": "결제창 없이 바로 열림",
-      "point2": "프로필 저장 3개 이상",
-      "point3": "자동결제 없는 30일권",
+      "point2": "기간 제한 없음 · 한도 소진 시 종료",
+      "point3": "자동결제 없는 이용권",
       "mascotAria": "문라이트 패스 혜택 보기 · 달빛 이용권 상점",
       "mascotAlt": "문라이트 패스 혜택 이미지",
       "mascotKicker": "Moonlight Pass Guide",
@@ -1184,8 +1196,9 @@
         "w20000": "20,000원",
         "from3000": "3,000원부터",
         "w1000": "1,000원",
-        "from9000": "9,000원부터",
-        "from20000": "20,000원부터"
+        "from5000": "5,000원부터",
+        "w7000": "7,000원",
+        "from30000": "30,000원부터"
       },
       "chip": {
         "love": "그 사람의 마음 · 내 다음 연애",
@@ -1457,14 +1470,14 @@
       "pass": "이용권",
       "login": "로그인",
       "account": "내 계정",
-      "offerTitle": "1회 30만원 1:1 상담으로 풀던 사주를, 이제 3,000원부터",
+      "offerTitle": "1회 30만원 1:1 상담으로 풀던 사주를, 이제 5,000원부터",
       "reviewsLead": "네오가 1:1로 상담할 때 받은 실제 카카오톡 후기예요. 고객이 쓴 문장 그대로 옮겼고, 생략한 곳은 …로 표시했어요.",
       "reviewsBar": "네오 1:1 상담 · 카카오톡",
       "reviewsMeta": "실제 이용자 후기 · 게시 동의",
       "reviewsPosted": "블로그 게시",
       "reviewsFine": "개인 경험에 따른 후기이며 결과를 보장하지 않습니다. 사주 풀이는 참고용 정보입니다.",
-      "offerNote": "1:1 상담은 네오가 직접 진행한 상담이고, 3,000원 상담은 계산 엔진과 AI 해설로 제공돼요.",
-      "offerCta": "영냥이 3,000원 사주 보기 →",
+      "offerNote": "1:1 상담은 네오가 직접 진행한 상담이고, 5,000원 상담은 계산 엔진과 AI 해설로 제공돼요.",
+      "offerCta": "영냥이 5,000원 사주 보기 →",
       "expertiseTitle": "계산은 규칙대로, 해설은 AI가",
       "expertise": {
         "engine": "원국은 정해진 계산 규칙으로 세우고, AI는 계산된 결과를 바탕으로 해설을 써요. 해설에 계산과 다른 일주·시주가 적히면 서버가 걸러내요.",
@@ -1496,12 +1509,12 @@
       "saysName": "연이",
       "saysLine": "어떤 운세부터 볼까요? 하나만 골라도 충분해요.",
       "passMascotAlt": "이용권 카드를 들고 웃는 꽃돼지 연이",
-      "passEyebrow": "자동갱신 없는 30일 이용권",
-      "passTitle": "연이가 알려드리는 30일 이용권",
-      "passDesc": "가끔은 단건 결제로, 자주 본다면 이용권으로 이용해요. 사용할 수 있는 상담과 30일 이용 한도를 확인해 주세요.",
-      "passPer": "/ 30일",
+      "passEyebrow": "기간·자동갱신 없는 이용권",
+      "passTitle": "연이가 알려드리는 이용권",
+      "passDesc": "가끔은 단건 결제로, 자주 본다면 이용권으로 이용해요. 사용할 수 있는 상담과 이용 한도를 확인해 주세요.",
+      "passPer": "· 기간 제한 없음",
       "passBadge": "영냥이까지",
-      "passNote": "Standard·Premium·VVIP는 꽃돼지 운세에, Family는 꽃돼지와 영냥이 유료 리딩에 적용됩니다. 기존에 구매한 이용권은 구매 당시 조건을 유지합니다.",
+      "passNote": "작은·중간·큰 꿀단지는 꽃돼지 운세에, 패밀리 꿀단지는 꽃돼지와 영냥이 유료 리딩에 적용됩니다. 기존에 구매한 이용권은 구매 당시 조건을 유지합니다.",
       "passCta": "나에게 맞는 이용권 확인하기",
       "moreTitle": "연이의 아틀리에 더 둘러보기",
       "moreItems": "오늘의 운세 · 상담 · 기록과 이야기",
@@ -1570,7 +1583,7 @@
     "chatEntry": {
       "title": "연이와 네오에게, 지금 가장 궁금한 한 가지",
       "cta": "내 고민 상담하기",
-      "price": "회원가입 무료 1회 · 이후 1회 3,000원"
+      "price": "1회 3,000원"
     },
     "svcQuestion": {
       "master-love-codex": "내 다음 연애는 언제 시작될까?",
@@ -1676,9 +1689,9 @@
       "reviewReward": "공개 승인 후 월정석 지급",
       "reviewDetail": "꿀꿀 사주에서 사용할 수 있어요. 상품별 1회 지급됩니다.",
       "reviewAction": "후기 남기기",
-      "passStandard": "꽃돼지 스탠다드",
-      "passPremium": "꽃돼지 프리미엄",
-      "passVvip": "꽃돼지 VVIP",
+      "passStandard": "작은 꿀단지",
+      "passPremium": "중간 꿀단지",
+      "passVvip": "큰 꿀단지",
       "passPerLimit": "건당 {amount}원 이하",
       "passTotal": "누적 {amount}원까지",
       "passNoLimit": "유료 리딩 건당 한도 없음",
@@ -1706,29 +1719,39 @@
       "neoClassSource": "사주 강의 수강생 · 카카오톡 후기 발췌",
       "neoNote": "네오가 직접 진행한 1:1 상담과 사주 강의의 후기 일부입니다. AI 상담과는 다른 서비스이며, 개인의 경험이 같은 결과를 보장하지는 않습니다.",
       "neoAbout": "네오와 서비스 소개",
-      "neoMore": "상담 후기 더 읽기"
+      "neoMore": "상담 후기 더 읽기",
+      "passFamily": "패밀리 꿀단지"
     },
     "simple": {
-      "lead": "고민을 들려주면, 상담에서 다룰 내용과 가격을 먼저 알려드려요.",
+      "lead": "상담은 유료예요. 가격과 결과 예시는 먼저 확인할 수 있어요.",
       "start": "내 고민 상담하기",
       "free": "오늘의 무료 운세 보기",
       "startLabel": "다른 시작 방법",
-      "love": "연애·관계",
+      "love": "연애·궁합",
       "work": "일·돈",
       "self": "나 자신",
-      "future": "앞으로의 흐름",
+      "future": "시기·선택",
       "title": "영냥이와 내 질문부터 풀어봐요",
       "brand": "꿀꿀 사주의 기본 상담은 영냥이예요. 따뜻한 위로가 필요하면 연이, 현실적인 정리가 필요하면 네오를 만나보세요.",
       "stepQuestion": "지금의 고민을 알려주세요",
       "stepPrice": "다룰 내용과 가격을 확인해요",
       "stepResult": "답과 근거, 다음 행동을 읽어요",
       "example": "결제 전 상담 예시 읽기",
-      "explore": "가볍게 즐기는 운세 모아보기",
-      "exploreNote": "사주·타로 · 캐릭터 상담 · 리포트와 이야기",
+      "explore": "전체 운세 모아보기",
+      "exploreNote": "체계별 운세 · 영냥이 상담 · 이용권 · 즐길거리",
       "passTitle": "자주 이용한다면, 이용권",
       "passNote": "상품별 적용 범위와 기간을 확인하고 선택하세요.",
       "passLink": "이용권 알아보기",
-      "passHistory": "기존에 구매한 이용권은 구매 당시 조건을 유지합니다."
+      "passHistory": "기존에 구매한 이용권은 구매 당시 조건을 유지합니다.",
+      "topicsLabel": "고민별 상담 고르기",
+      "loveNote": "마스터 인연의 서 · 20장 리딩 · PDF 소장",
+      "lovePrice": "개인 {solo}원 · 궁합 {pair}원",
+      "workNote": "이직·취업·사업·돈 관리처럼 조건을 따지는 선택",
+      "futureNote": "지금 움직여도 될지, 흐름은 언제 바뀔지",
+      "priceFrom": "{amount}원부터",
+      "samplesTitle": "결제 전에 결과 예시부터 읽어보세요",
+      "sampleCodex": "인연의 서 결과 예시",
+      "sampleConsult": "영냥이 상담 결과 예시"
     },
     "yeongnyangiEntry": {
       "badge": "영냥이의 질문 상담",
@@ -1972,13 +1995,13 @@
         "passSaveUnverified": "이용권 적용 결과를 저장하지 못했어요. 아래 이용권 카드로 다시 확인하거나 다른 결제 수단을 고를 수 있어요.",
         "passCheckFailed": "이용권 확인에 실패했어요. 아래 이용권 카드로 다시 확인하거나 다른 결제 수단을 고를 수 있어요.",
         "passMiss": "보유하신 이용권으로는 이 콘텐츠가 무료로 열리지 않아 결제 방법을 고르는 창을 열었어요.",
-        "passMonthlyExhausted": "이용권 월 한도를 모두 사용했어요. 이용권은 만료일까지 등급과 프로필 상한이 유지되며, 추가 콘텐츠는 단건 결제나 월정석으로 이용할 수 있어요."
+        "passMonthlyExhausted": "이용 한도를 모두 사용해 이용권이 종료되었어요. 결제 방법을 안내해 드릴게요."
       },
       "passBadge": "달빛 이용권",
       "passStoreTitle": "달빛 이용권 상점",
       "passRetryTitle": "이용권 다시 확인",
       "passHint": {
-        "store": "한 번 결제하고 30일 동안 여러 콘텐츠를 열 수 있어요. 이미 있다면 눌러서 바로 확인돼요.",
+        "store": "한 번 결제하고 이용 한도를 다 쓸 때까지 여러 콘텐츠를 열 수 있어요. 이미 있다면 눌러서 바로 확인돼요.",
         "retry": "보유 이용권으로 결제 없이 열릴 수 있는지 서버에서 다시 확인합니다.",
         "upgrade": "지금 등급으로는 이 콘텐츠가 열리지 않아요. 더 넓은 등급을 확인해 보세요."
       },
@@ -2051,7 +2074,7 @@
         "comingSoon": "준비 중",
         "back": "뒤로"
       },
-      "passMonthlyExhausted": "이용권 월 한도를 모두 사용했어요. 만료일까지 등급과 프로필 상한은 유지되며, 추가 콘텐츠는 단건 결제나 월정석으로 이용할 수 있어요.",
+      "passMonthlyExhausted": "이용 한도를 모두 사용해 이용권이 종료되었어요. 다시 구매하면 새 이용 한도로 시작하며, 지금은 단건 결제나 월정석으로 열 수 있어요.",
       "passMonthlyRemaining": "이용권 남은 한도 {remaining} / {limit}",
       "wait": {
         "card": "카드사·간편결제 앱에서 인증을 마친 뒤 이 브라우저로 돌아오면 자동으로 이어집니다.",
@@ -2085,6 +2108,9 @@
         },
         "cardMethod": {
           "title": "{method} 결제창을 여는 중입니다."
+        },
+        "pass": {
+          "message": "보유한 이용권으로 바로 열 수 있는지 확인하고 있어요."
         }
       },
       "deliveryProcessing": {
@@ -2102,12 +2128,17 @@
       "refunded": {
         "message": "유료 콘텐츠가 정상적으로 제공되지 않아 결제 금액이 100% 환불되었습니다.\n같은 결제 건으로 다시 청구되지 않습니다.",
         "title": "환불 완료"
+      },
+      "default": {
+        "pass": {
+          "message": "보유한 이용권으로 바로 열 수 있는지 확인하고 있어요."
+        }
       }
     },
     "passShop": {
       "monthlyStatus": "월정석 잔량이 확인되었습니다.",
       "chargeButton": "{amount} 결제 페이지로 이동",
-      "chargeNotice": "이용권 상품 {price} · 자동결제가 아닌 30일 이용권입니다. 이용권은 원화 단건 결제로만 구매할 수 있습니다.",
+      "chargeNotice": "이용권 상품 {price} · 자동결제가 아닌 이용권입니다. 이용권은 원화 단건 결제로만 구매할 수 있습니다.",
       "monthlyBasisWithPrice": "월정석 기준 {credits} · {price}",
       "profileUnlimited": "프로필 무제한",
       "profileLimit": "프로필 {count}개",
@@ -2118,8 +2149,8 @@
       "closeAria": "달빛이용권 상점 안내 닫기",
       "openAria": "달빛이용권 상점 안내 열기",
       "title": "달빛이용권 상점 안내",
-      "subtitle": "30일 이용권은 원화 단건 결제로 구매하며, 월정석은 개별 유료 기능에 사용됩니다.",
-      "footerNotice": "이 30일 이용권은 자동결제 상품이 아닙니다. 만료 후 다시 구매해야 합니다.",
+      "subtitle": "이용권은 원화 단건 결제로 구매하며, 월정석은 개별 유료 기능에 사용됩니다.",
+      "footerNotice": "이 이용권은 자동결제 상품이 아닙니다. 한도를 모두 사용한 뒤 다시 구매해야 합니다.",
       "monthlyStatusChecking": "잔량과 이용권 상태를 확인하고 있습니다.",
       "monthlyStatusError": "잔량 확인이 지연되고 있습니다. 결제와 이용권 선택은 계속 진행할 수 있습니다.",
       "provisionNotice": "이용권은 결제 완료 즉시 활성화되어 바로 이용할 수 있으며, 활성화 이후에는 관련 법령에 따라 청약철회가 제한될 수 있습니다.",
@@ -2128,19 +2159,23 @@
       "monthlyButtonShort": "월정석 {credits} 필요 · 잔량 부족",
       "packages": {
         "standard": {
-          "desc": "30일 · 5천원급 콘텐츠까지 · 월 최대 2만원 상당 · 프로필 최대 3개"
+          "desc": "5천원급 콘텐츠까지 · 최대 2만원 상당",
+          "name": "작은 꿀단지"
         },
         "premium": {
-          "desc": "30일 · 1만원급 콘텐츠까지 · 월 최대 6만원 상당 · 프로필 최대 7개"
+          "desc": "1만원급 콘텐츠까지 · 최대 6만원 상당",
+          "name": "중간 꿀단지"
         },
         "vvip": {
-          "desc": "30일 · 3만원급 콘텐츠까지 · 월 최대 12만원 상당 · 프로필 최대 15개"
+          "desc": "3만원급 콘텐츠까지 · 최대 12만원 상당",
+          "name": "큰 꿀단지"
         },
         "family": {
-          "desc": "30일 · 이용권 대상 전체 · 월 최대 35만원 상당 · 프로필 무제한"
+          "desc": "이용권 대상 전체 · 최대 35만원 상당",
+          "name": "패밀리 꿀단지"
         }
       },
-      "terminationNotice": "월 최대 한도가 0이 되어도 이용권의 만료일·등급·프로필 상한은 유지됩니다. 추가 유료 콘텐츠는 단건 결제 또는 월정석으로 이용할 수 있습니다."
+      "terminationNotice": "이용 한도를 모두 사용하면 이용권이 종료됩니다. 다시 구매하면 새 이용 한도로 시작합니다. 추가 유료 콘텐츠는 단건 결제 또는 월정석으로 이용할 수 있습니다."
     },
     "access": {
       "passAppliedContinue": "이용권으로 열람되었습니다."
@@ -2498,7 +2533,7 @@
     },
     "premium": {
       "lockedTitle": "DOMINATOR REPORT LOCKED",
-      "lockedDesc": "도미네이터 모드 판정 · 10년 위험 계수 그래프 · 전문 리포트 (20,000자+) · 개운 처방전",
+      "lockedDesc": "도미네이터 모드 · 10년 흐름 그래프 · 10장 심층 해설 · 월별 대응 계획",
       "lockedCost": "5,000원으로 영구 해금",
       "unlockCta": "⚡ EXECUTE DOMINATOR — 5,000원",
       "generatingTitle": "DOMINATOR EXECUTING…",
@@ -4140,7 +4175,7 @@
         "k53h7ds": "심리테스트",
         "k79pfmc": "나크샤트라",
         "k871xeu": "무료 · 셀카 얼굴 분석",
-        "ka0v1mf": "무료 · 11가지 도구",
+        "ka0v1mf": "출석 꿀방울 · 16가지 도구",
         "kry6axn": "27수 달자리",
         "kslqazg": "종합 운세 프롬프트",
         "kxgi8q8": "포춘텔러 물고기",
@@ -4380,7 +4415,7 @@
         "k1ygnp9f2": {
           "ariaLabel": "핵심 포인트"
         },
-        "k231dx8": "사주·타로·점성술·자미두수 등 16가지 도구로 무료 상담 프롬프트를 바로 만들어 보세요.",
+        "k231dx8": "사주·타로·점성술·자미두수 등 16가지 도구로 상담 프롬프트를 바로 만들어 보세요.",
         "k3baulf": "훈민정음 작명소",
         "k6uqkuq": {
           "ariaLabel": "핵심 요약"
@@ -4413,7 +4448,7 @@
         "k1scb7d8": {
           "alt": "운명의 업 대표 이미지"
         },
-        "koe32kc": "무료체험",
+        "koe32kc": "출석 꿀방울",
         "ktgbfsy": "NEW · 결정판",
         "k1dw3t0h": "명반 무료 · 전문가 상담 유료",
         "kg12w8e": "신규 · 인생의 나침반",
@@ -4432,7 +4467,7 @@
     },
     "tarotTileBody": {
       "featuredContentCardCta": {
-        "kdyjsns": "무료로 체험하기"
+        "kdyjsns": "프롬프트 만들기"
       },
       "pvcPremMeta": {
         "k10vo8": "파다",
@@ -4488,7 +4523,7 @@
         "ko4w810": "사주·타로·점성술 등 16가지 도구",
         "kozjlt4": "관계·재물·일·선택을 위한 현실 조언",
         "kqwk9o": "주제별 궁과 별의 흐름 상담",
-        "krx9ppb": "1회 무료 체험 · 가입하면 무제한",
+        "krx9ppb": "3일 출석마다 꿀방울 1개 · 1회에 1방울",
         "ktv5xm9": "사주 명식과 오행 균형 판독",
         "kvigm32": "지금 관계에 맞춘 현실 조언",
         "kwuh556": "끌림과 갈등의 반복 패턴",
@@ -4614,7 +4649,7 @@
         "k1f3556p": "사주·타로·궁합을 다정하게 풀어주는 감성 상담",
         "n5000": "5,000원~",
         "kntw327": "나크샤트라 결정판",
-        "koevlcx": "일본 숙요와 인도 베다의 두 시선으로 성향·직업·연애·결혼을 읽습니다. 개인 요약은 무료, 두 사람의 궁합은 선택 상품입니다.",
+        "koevlcx": "일본 숙요와 인도 베다의 두 시선으로 성향·직업·연애·결혼을 읽습니다.",
         "k18zdwwf": "무료 공개",
         "kk0w8v": "팩폭 전략소",
         "k1bs96nr": "네오가 냉정하게 짚어주는 선택의 작전 브리핑",
@@ -4622,7 +4657,9 @@
         "n20000Price10000": "10,000원~",
         "n50000": "50,000원",
         "n30000Price20000": "20,000원",
-        "n20000Price10000Price20000": "20,000원~"
+        "n5000Price10000": "10,000원~",
+        "n30000Price20000Price30000": "30,000원",
+        "n20000Price10000Price30000": "30,000원~"
       }
     },
     "cdSigCardBody": {
@@ -4684,10 +4721,9 @@
     },
     "fortuneGatewayDoor": {
       "fortuneGatewayDoorMeta": {
-        "k18ykrep": "회원가입 무료 1회",
-        "n115000": "이후 1회 3,000원",
         "n130000": "1회 30,000원",
-        "k1lo4ibg": "최종 교차 판정"
+        "k1lo4ibg": "최종 교차 판정",
+        "n13000": "1회 5,000원"
       },
       "fortuneGatewayDoorGo": {
         "kkmvgqi": "상담 시작하기",
@@ -5591,12 +5627,12 @@
     "deliverable": {
       "title": "결제하면 받는 것",
       "volumeLabel": "분량",
-      "volumeValue": "최소 30,000자",
+      "volumeValue": "장문 상담 본문",
       "chaptersLabel": "구성",
-      "chaptersValue": "16개 장 · 장마다 1,900~2,400자",
+      "chaptersValue": "15개 장 · 주제별 해석과 마지막 편지",
       "keepLabel": "보관",
-      "keepValue": "PDF로 저장해 영구 소장",
-      "guarantee": "장이 기준 분량에 못 미치면 최대 2회까지 자동으로 다시 씁니다. 끝내 채우지 못하면 결과를 내보내지 않고 실패로 처리해, 재시도와 환불 경로가 그대로 살아 있습니다."
+      "keepValue": "PDF 저장 · 장별 내용 복사",
+      "guarantee": "출생 정보와 계산 자료에 따라 해석 범위가 달라집니다. 저장된 상담에서 완료된 내용을 다시 확인할 수 있습니다."
     }
   },
   "errorBoundary": {
@@ -9694,7 +9730,7 @@
       "paymentVerifyFailedError": "결제 확인에 실패했습니다.",
       "checkingPassMessage": "이용권 확인 중",
       "introEyebrow": "사주 성향과 선택으로 흐름이 달라지는 대화",
-      "introTitle": "Love Code: 운명의 상대와 대화하기",
+      "introTitle": "러브 코드",
       "introDescription": "캐릭터의 성향, 취향, 거리감을 따라가는 비주얼 노벨 궁합입니다.",
       "introChips": {
         "saju": "사주 성향",
@@ -10081,6 +10117,1159 @@
       "unreadable": "이 기록은 지금 화면으로 열 수 없어요. 고객센터로 문의해 주세요.",
       "detailNote": "저장된 결과예요. 다시 열어도 AI를 새로 부르지 않고 추가 결제도 없어요.",
       "duplicate": "같은 조건(내 사주·상대 이름·궁합 유형)으로 저장된 사주 궁합 결과가 보관함에 이미 있어요.\n\n[확인] 새로 결제하고 다시 보기\n[취소] 보관함에서 저장된 결과 열기"
+    }
+  },
+  "fortune": {
+    "destinyFlower": {
+      "common": {
+        "bloomLabel": {
+          "seed": "씨앗 · 일간",
+          "season": "계절 · 태어난 때",
+          "bloom": "그래서 피어난 꽃"
+        },
+        "bloom": {
+          "verdict": "그래서 피어난 꽃 — {title}."
+        },
+        "flowerLanguage": {
+          "anchor": "'{language}' — {anchor}의 당신에게 이 꽃이 건네는 말이에요.",
+          "plain": "'{language}' — 지금의 당신에게 이 꽃이 건네는 말이에요."
+        },
+        "shareHook": {
+          "rarityAnchor": "{anchor}(으)로 읽어 낸 단 한 송이"
+        },
+        "anonymousName": "익명의 여행자",
+        "rationaleLabel": {
+          "verdict": "그래서 이 꽃"
+        }
+      },
+      "saju": {
+        "bloom": {
+          "season": "{season}에 태어난 당신처럼, 이 꽃도 {season}에 가장 환하게 피어나요."
+        },
+        "flowerLanguage": {
+          "yongshin": "'{language}' — 용신 {elements} 기운을 머금은 이 꽃이 당신에게 건네는 말이에요.",
+          "dayMaster": "'{language}' — {dayMasterBadge} 일간인 당신에게 이 꽃이 건네는 말이에요."
+        },
+        "shareHook": {
+          "raritySeason": "{dayMasterBadge} 일간 · {season} 태생의 사주가 {total}송이 가운데 고른 한 송이",
+          "rarityDayMaster": "{dayMasterBadge} 일간의 사주가 {total}송이 가운데 고른 한 송이",
+          "rarityPlain": "내 사주가 {total}송이 가운데 고른 한 송이"
+        },
+        "elements": {
+          "wood": "목(木)",
+          "fire": "화(火)",
+          "earth": "토(土)",
+          "metal": "금(金)",
+          "water": "수(水)"
+        },
+        "dayMasters": {
+          "jia": "갑목(甲木)",
+          "yi": "을목(乙木)",
+          "bing": "병화(丙火)",
+          "ding": "정화(丁火)",
+          "wu": "무토(戊土)",
+          "ji": "기토(己土)",
+          "geng": "경금(庚金)",
+          "xin": "신금(辛金)",
+          "ren": "임수(壬水)",
+          "gui": "계수(癸水)"
+        },
+        "dayMasterStems": {
+          "jia": "갑",
+          "yi": "을",
+          "bing": "병",
+          "ding": "정",
+          "wu": "무",
+          "ji": "기",
+          "geng": "경",
+          "xin": "신",
+          "ren": "임",
+          "gui": "계"
+        },
+        "dayMasterFallback": {
+          "ziwei": "사주 일간 데이터가 부족해 자미두수 주성을 기준으로 일간 성질을 보정했습니다.",
+          "astrology": "사주 일간 데이터가 부족해 태양궁 성향으로 일간 성질을 대체했습니다.",
+          "dominant": "사주/자미/점성 핵심 지표가 부족해 우세 오행을 기준으로 일간 성질을 추정했습니다."
+        },
+        "scenarios": {
+          "default": {
+            "reason": "당신의 일간이 지금의 오행 환경과 맞물리는 결을 살펴, 이 시기에 가장 잘 어울리는 꽃 한 송이를 골랐어요."
+          },
+          "jia": {
+            "springWood": {
+              "reason": "갑목(甲木)은 큰 나무처럼 곧게 위로 뻗는 기질이에요. 봄의 목기운이 그 성정과 맞아떨어지는 지금, 앞장서서 새 판을 여는 힘이 활짝 피어납니다."
+            },
+            "autumnMetal": {
+              "reason": "가을 금기운이 갑목(甲木)을 눌러 오는 지금은, 곁가지를 쳐 내고 정말 중요한 줄기만 남길 때예요. 덜어 낼수록 오히려 더 단단해집니다."
+            },
+            "dryFire": {
+              "reason": "메마르고 뜨거운 기운 속에 놓인 갑목(甲木)에게 지금 필요한 건 뿌리의 체력이에요. 서두르기보다 길게 버티며 회복력을 키울 때, 무궁화처럼 끈질기게 다시 피어납니다."
+            }
+          },
+          "yi": {
+            "metalWater": {
+              "reason": "을목(乙木)은 넝쿨과 화초처럼 부드럽게 스며드는 기질이에요. 금과 수의 기운이 강한 지금, 당신의 품위와 맑게 정화하는 힘이 가장 크게 살아납니다."
+            },
+            "dryEarth": {
+              "reason": "건조한 토기운 위에 선 을목(乙木)에게 지금의 화두는 살아남는 힘이에요. 척박함을 뚫고 끝내 피어나는 선인장꽃처럼, 버티는 자리에서 오히려 빛이 납니다."
+            },
+            "autumn": {
+              "reason": "가을 금기운을 지나는 을목(乙木)은 섬세함을 차분한 질서로 바꾸는 시기예요. 흩어진 것을 고르게 정리할수록 마음도 함께 단정해집니다."
+            },
+            "wetSpring": {
+              "reason": "봄의 촉촉한 기운을 만난 을목(乙木)은 사람과 사람을 잇는 힘이 부쩍 커져요. 지금은 혼자보다 관계를 통해 뻗어 나갈 때입니다."
+            }
+          },
+          "bing": {
+            "springWood": {
+              "reason": "병화(丙火)는 태양처럼 빠르게 불붙고 널리 퍼지는 기운이에요. 봄 목기운을 땔감 삼는 지금, 무언가를 새로 시작하고 알리는 힘이 강하게 타오릅니다."
+            },
+            "summerFire": {
+              "reason": "여름 화기운까지 겹친 병화(丙火)는 그 어느 때보다 밝게 타오릅니다. 앞에 나서서 사람들을 이끄는 힘이 최고조에 이르는 시기예요."
+            },
+            "waterControl": {
+              "reason": "강한 수기운을 만난 병화(丙火)에게 지금 중요한 건 더 뜨거워지는 게 아니라 방향을 잘 잡는 일이에요. 현실 감각을 챙기며 불꽃을 지킬 때 그 빛이 오래갑니다."
+            }
+          },
+          "ding": {
+            "coldWet": {
+              "reason": "정화(丁火)는 촛불처럼 안으로 조용히 빛나는 기운이에요. 춥고 습한 지금은 화려함보다, 그 온기를 오래도록 꺼뜨리지 않는 것이 가장 큰 힘이 됩니다."
+            },
+            "autumnMetal": {
+              "reason": "금기운을 만난 정화(丁火)는 손끝의 정밀함과 아름다움을 보는 눈이 예리해져요. 하나를 붙잡고 곱게 완성해 낼 때 가장 빛나는 시기입니다."
+            },
+            "resonance": {
+              "reason": "정화(丁火)는 감정의 결을 섬세하게 어루만져 관계를 깊게 만드는 기운이에요. 마음을 아끼지 말고 표현할수록 운의 길이 함께 열립니다."
+            }
+          },
+          "wu": {
+            "fireEarth": {
+              "reason": "무토(戊土)는 큰 산처럼 넓고 든든한 기운이에요. 화와 토가 받쳐 주는 지금은, 크게 벌이고 크게 이루는 일에 유난히 힘이 실립니다."
+            },
+            "winterWater": {
+              "reason": "겨울 수기운을 만난 무토(戊土)에게 지금은 속도를 늦추고 바닥을 다질 때예요. 잠시 쉬어 가며 기초를 단단히 할수록 다음 걸음이 든든해집니다."
+            },
+            "center": {
+              "reason": "무토(戊土)의 진짜 힘은 흔들리는 판을 가운데서 붙잡아 주는 중심력이에요. 매일의 루틴을 꾸준히 지켜 낼수록 성과가 차곡차곡 쌓입니다."
+            }
+          },
+          "ji": {
+            "wetEarth": {
+              "reason": "기토(己土)는 잘 일군 밭처럼 무언가를 정성껏 길러 내는 기운이에요. 촉촉한 지금은 함께 일하고 서로 돌보는 관계 속에서 결실이 커집니다."
+            },
+            "metalDesign": {
+              "reason": "금기운과 만난 기토(己土)는 작은 부분까지 설계하고 정돈하는 감각이 살아나요. 완성도를 챙기는 일에서 당신의 강점이 도드라집니다."
+            },
+            "balance": {
+              "reason": "기토(己土)는 부드럽게 사이를 조율하며 분위기를 맞추는 데 뛰어난 기운이에요. 밀고 당기는 완급만 잘 조절하면 그것이 곧 행운이 됩니다."
+            }
+          },
+          "geng": {
+            "metalEarth": {
+              "reason": "경금(庚金)은 다듬지 않은 원석처럼 굵고 단호하게 끊어 내는 기운이에요. 토와 금이 받쳐 주는 지금, 정한 원칙을 밀고 나가는 힘이 최고조에 이릅니다."
+            },
+            "fireTraining": {
+              "reason": "뜨거운 불에 담금질된 경금(庚金)은 카리스마와 실력이 함께 단단해져요. 중요한 승부처에서 집중력이 유난히 날카롭게 서는 시기입니다."
+            },
+            "clearJudgment": {
+              "reason": "경금(庚金)의 강점은 핵심을 정확히 잘라 내는 판단력이에요. 기준을 분명히 세워 두면, 그 선명함이 그대로 성과로 이어집니다."
+            }
+          },
+          "xin": {
+            "metalWater": {
+              "reason": "신금(辛金)은 잘 세공된 보석처럼 감각과 언어가 정제된 기운이에요. 금과 수가 어우러지는 지금, 분석하고 표현하는 힘이 한층 또렷해집니다."
+            },
+            "springWood": {
+              "reason": "봄 목기운을 만난 신금(辛金)은 날을 세우기보다 부드럽게 조율할 때 더 멀리 갑니다. 감각으로 매만지는 일에서 성과가 나는 시기예요."
+            },
+            "completion": {
+              "reason": "신금(辛金)은 넓게 벌이기보다 하나를 곱게 완성해 낼 때 강한 기운이에요. 세부를 야무지게 마무리할수록 사람들의 신뢰가 쌓입니다."
+            }
+          },
+          "ren": {
+            "summerCooling": {
+              "reason": "임수(壬水)는 넓은 바다처럼 큰 흐름을 다루는 기운이에요. 여름의 열기를 시원하게 식히는 지금, 차분하게 집중하는 힘이 부쩍 올라갑니다."
+            },
+            "winterCondensing": {
+              "reason": "겨울 수기운과 공명하는 임수(壬水)는 얼음 아래 힘을 그러모으는 때예요. 겉으론 고요해 보여도, 빙하꽃처럼 속으로 단단한 잠재력이 여물어 갑니다."
+            },
+            "nightIntuition": {
+              "reason": "임수(壬水)는 환한 낮보다 고요한 밤의 직감에서 길을 잘 찾는 기운이에요. 조급하게 답을 내기보다 자기 리듬을 따라 결정할 때 방향이 맞아떨어집니다."
+            }
+          },
+          "gui": {
+            "coldWetPurifying": {
+              "reason": "계수(癸水)는 새벽이슬처럼 미세한 것을 감지하고 맑게 씻어 내는 기운이에요. 춥고 습한 지금은 조용히 몰입하는 그 고요함이 곧 당신의 힘이 됩니다."
+            },
+            "summerEmpathy": {
+              "reason": "여름 화열을 만난 계수(癸水)에게는 마음을 어루만지고 사람을 잇는 공감이 가장 큰 무기예요. 수국처럼 여럿의 온기를 모아 갈 때 길이 열립니다."
+            },
+            "subtleSignal": {
+              "reason": "계수(癸水)는 남들이 놓치는 작은 신호를 먼저 읽어 내는 기운이에요. 그 예민한 감각으로 타이밍만 잘 잡으면, 그 한 수가 성패를 가릅니다."
+            }
+          }
+        },
+        "rationale": {
+          "dayMasterSame": "{dayMasterBadge} 일간과 같은 {element} 기운을 품은 꽃이에요.",
+          "strengthRelease": "사주가 신강해 차오른 기운을 밖으로 풀어 주는 {elements} 기운의 꽃에 무게를 두었어요.",
+          "strengthSupport": "사주가 신약해 일간을 북돋아 주는 {elements} 기운의 꽃에 무게를 두었어요.",
+          "yongshin": "이 꽃에는 사주에 필요한 용신 기운이 담겨 있어요 — {elements}.",
+          "johuWarm": "사주가 차고 습한 편이라 햇볕처럼 데워 줄 따뜻한 꽃에 무게를 두었어요.",
+          "johuCool": "사주가 덥고 메마른 편이라 열기를 식혀 줄 물기 많은 꽃에 무게를 두었어요.",
+          "scenario": "{reason}",
+          "verdict": "그래서 지금 당신에게 건네는 꽃은 {flowerName}({scientificName})입니다."
+        },
+        "rationaleLabel": {
+          "dayMaster": "일간 기질",
+          "strengthRelease": "신강",
+          "strengthSupport": "신약",
+          "yongshin": "용신",
+          "johuWarm": "조후 · 한습",
+          "johuCool": "조후 · 온조"
+        },
+        "growthCycle": "발아(기운 수집) → 신장(행동 증폭) → 개화(성과 표면화) → 결실(관계/자산 축적)",
+        "fallbackNote": "생년월일 정보만으로 일간의 기운을 조심스럽게 짚어보았습니다.",
+        "stickerLabel": "사주로 보는 꽃",
+        "verdict": "사주로 볼 때 지금 당신에게 온 꽃은 {flowerName}({scientificName})입니다."
+      },
+      "ui": {
+        "source": {
+          "saju": "사주",
+          "astrology": "점성술",
+          "jamidusu": "자미두수",
+          "sukuyo": "숙요점"
+        },
+        "specimen": {
+          "language": "꽃말",
+          "system": "체계",
+          "mark": {
+            "saju": {
+              "primary": "일간",
+              "secondary": "계절"
+            },
+            "astrology": {
+              "primary": "별자리",
+              "secondary": "상승"
+            },
+            "jamidusu": {
+              "primary": "주성",
+              "secondary": "밝기"
+            },
+            "sukuyo": {
+              "primary": "본명숙",
+              "secondary": "달"
+            }
+          },
+          "yongshin": "용신"
+        },
+        "bouquet": {
+          "sourcesAll": "네 갈래 점술",
+          "sourcesPair": "{a}·{b}",
+          "sourcesTrio": "{a}·{b}·{c}",
+          "sameFlower": "{sources} 모두 같은 꽃, {name}을(를) 골랐어요. 그만큼 또렷한 당신의 결이에요.",
+          "sameElement": "{sources} 모두 {element} 기운을 가리켰어요.",
+          "diverse": "서로 다른 결의 꽃이 모여, 여러 얼굴의 당신을 한 다발에 담았어요.",
+          "title": "운명 꽃다발",
+          "sub": "{count}갈래 점술이 고른 꽃을 한 다발로 묶었어요."
+        },
+        "share": {
+          "preparing": "운명의 꽃 결과를 준비 중이에요.",
+          "hookTitle": "🌸 내 운명의 꽃은 '{name}'이래",
+          "hookLanguage": "꽃말: {language}",
+          "hookAsk": "너는 무슨 꽃일까? → {url}",
+          "hashtagsNamed": "#운명의꽃 #나의꽃은{tag}",
+          "hashtag": "#운명의꽃",
+          "languageDot": "꽃말 · {language}",
+          "ogTitle": "{name}, 나의 운명의 꽃",
+          "ogAsk": "너의 꽃은 무엇일까?",
+          "title": "운명의 꽃",
+          "copiedText": "공유 문구를 복사했어요. 카카오톡에 붙여넣어 보내 보세요.",
+          "preparedText": "공유 문구를 준비했어요. 카카오톡이 열리지 않으면 붙여넣어 보내 보세요.",
+          "kakaoTitle": "나의 운명의 꽃은 '{name}'",
+          "bloomMine": "내 꽃 피워보기",
+          "kakaoOpened": "카카오톡 공유 창을 열었어요.",
+          "kakaoPrepared": "카카오톡으로 보낼 문구를 준비했어요. 열리지 않으면 붙여넣어 보내 보세요."
+        },
+        "card": {
+          "kicker": "나의 운명의 꽃",
+          "ask": "너의 꽃은?",
+          "failed": "카드 이미지를 만들지 못해 공유 문구로 대신 보낼게요.",
+          "saved": "스토리 카드를 저장했어요. 공유 문구도 함께 복사됐어요.",
+          "ready": "스토리 카드를 준비했어요. 인스타그램·카카오톡 스토리에 올려 보세요.",
+          "drawing": "카드를 그리는 중이에요. 잠시만 기다려 주세요."
+        },
+        "sheet": {
+          "story": "스토리 카드",
+          "storyHint": "9:16 이미지로 저장·공유",
+          "kakao": "카카오톡",
+          "kakaoHint": "친구에게 내 꽃 보내기",
+          "link": "링크 복사",
+          "linkHint": "꽃말과 함께 복사",
+          "compat": "친구와 꽃 궁합",
+          "compatHint": "친구에게 궁합 링크 보내기",
+          "compatHintFriend": "친구 꽃과의 궁합 보기",
+          "title": "꽃 공유하기",
+          "close": "닫기",
+          "linkCopied": "꽃말과 링크를 복사했어요. 친구에게 붙여넣어 보내 보세요.",
+          "notReady": "내 꽃이 피면 공유할 수 있어요.",
+          "sub": "{name} · 꽃말 '{language}'"
+        },
+        "compatShare": {
+          "inviteTitle": "🌸 내 운명의 꽃은 '{name}'이야",
+          "inviteAsk": "너도 네 꽃 피워 보고 우리 꽃 궁합 확인해 봐",
+          "hashtags": "#운명의꽃 #꽃궁합",
+          "title": "운명의 꽃 궁합",
+          "pair": "🌸 나는 '{mine}', 친구는 '{friend}'",
+          "result": "우리 꽃 궁합은 '{title}'이래",
+          "ask": "너도 네 꽃이랑 궁합 봐 → {url}"
+        },
+        "friend": {
+          "kicker": "친구가 보낸 운명의 꽃",
+          "shareCompat": "꽃 궁합 공유하기",
+          "note": "내 꽃이 피면 둘의 꽃 궁합을 바로 보여 드려요.",
+          "birthToast": "생년월일을 넣으면 내 꽃이 피어나요. 친구 꽃과의 궁합도 이어서 보여 드려요."
+        },
+        "compat": {
+          "twin": {
+            "title": "같은 꽃 한 쌍",
+            "line": "둘 다 {name}이에요. 말하지 않아도 같은 계절을 사는 사이예요."
+          },
+          "blend": {
+            "title": "서로 다른 결의 꽃",
+            "line": "서로 다른 빛깔의 두 꽃이 만나 한 다발이 더 풍성해지는 사이예요."
+          },
+          "same": {
+            "title": "닮은 결의 꽃",
+            "line": "둘 다 {mine} 기운을 품은 꽃이에요. 서로의 속도를 가장 잘 알아보는 사이예요."
+          },
+          "give": {
+            "title": "내가 피워 주는 꽃",
+            "line": "내 꽃의 {mine} 기운이 친구 꽃의 {friend} 기운을 키워 줘요. 곁에 있으면 친구가 더 환하게 피어나요."
+          },
+          "receive": {
+            "title": "나를 피워 주는 꽃",
+            "line": "친구 꽃의 {friend} 기운이 내 꽃의 {mine} 기운을 북돋아요. 함께 있으면 내가 더 활짝 피어나요."
+          },
+          "shape": {
+            "title": "서로를 다듬는 꽃",
+            "line": "내 꽃의 {mine} 기운이 친구 꽃의 {friend} 기운을 다듬어요. 속도를 맞춰 갈수록 단단해지는 사이예요."
+          },
+          "spark": {
+            "title": "자극이 되는 꽃",
+            "line": "친구 꽃의 {friend} 기운이 내 꽃의 {mine} 기운을 다잡아 줘요. 서로에게 좋은 자극이 되는 사이예요."
+          }
+        },
+        "cta": {
+          "rebloom": "🌸 운명의 꽃 다시 피우기",
+          "astrologyAgain": "✨ 점성술 꽃 다시 소환하기",
+          "jamidusuAgain": "🌺 자미두수 꽃 다시 소환하기",
+          "sukuyoAgain": "🌙 숙요 꽃 다시 소환하기"
+        },
+        "status": {
+          "atelierLocked": "운명의 꽃 아틀리에 해금이 필요합니다.",
+          "loginRequired": "로그인 후 운명의 꽃을 볼 수 있습니다.",
+          "newlyUnlocked": "✨ {source} 꽃이 새로 열렸습니다.",
+          "resultReady": "{verdict} 결과를 저장하거나 카카오톡으로 공유할 수 있습니다.",
+          "reloading": "데이터를 다시 불러오는 중입니다. 잠시만 기다려주세요.",
+          "linking": "{source} 데이터를 연동 중입니다. 잠시만 기다려주세요.",
+          "loaded": "{source} 데이터를 불러왔습니다.",
+          "copied": "클립보드에 복사되었습니다.",
+          "copyPermission": "복사 권한이 없어 수동 복사가 필요합니다.",
+          "copyFailed": "복사에 실패했습니다.",
+          "kakaoPcCopied": "PC 환경에서는 카카오톡 링크를 클립보드에 복사했습니다. 카카오톡에 붙여넣어 공유하세요.",
+          "kakaoNotOpenedCopied": "카카오톡 실행이 확인되지 않아 요약을 클립보드에 복사했습니다. 카카오톡에 붙여넣어 공유하세요.",
+          "kakaoOpening": "카카오톡 공유를 여는 중입니다...",
+          "kakaoFailedCopied": "카카오톡 공유를 열지 못해 요약을 클립보드에 복사했습니다.",
+          "refreshed": "{verdict} 기준으로 탭과 프롬프트를 갱신했습니다.",
+          "aiOpening": "AI를 새 탭에서 엽니다. 열리지 않으면 팝업 허용 후 다시 시도해 주세요.",
+          "aiBlocked": "새 탭이 차단된 것 같습니다. 브라우저에서 팝업을 허용하거나 원하는 AI 사이트를 직접 열어 주세요.",
+          "summaryCopied": "요약을 클립보드에 복사했습니다.",
+          "promptCopied": "AI 꽃 메인 프롬프트를 클립보드에 복사했습니다.",
+          "promptPackCopied": "메인/네거티브 프롬프트 세트를 클립보드에 복사했습니다."
+        },
+        "fallback": {
+          "astrology": {
+            "name": "성운 라벤더",
+            "symbolism": "별빛의 결을 따라 흐르는 청명한 직관",
+            "vibe": "별의 리듬을 따라 호흡하면 직관이 선명해집니다."
+          },
+          "jamidusu": {
+            "name": "모란",
+            "symbolism": "제왕의 기품과 중심의 힘",
+            "keyword1": "제왕",
+            "keyword2": "기품",
+            "keyword3": "중심",
+            "vibe": "중심을 지키는 태도가 결국 가장 멀리 갑니다."
+          },
+          "sukuyo": {
+            "name": "백합",
+            "symbolism": "달빛 속에서 맑게 피어나는 수호의 꽃",
+            "keyword1": "달빛",
+            "keyword2": "수호",
+            "keyword3": "정화",
+            "vibe": "오늘 밤 달의 호흡과 리듬을 맞추면 선택이 더 선명해집니다.",
+            "keywordMansion": "숙요",
+            "keywordGuardian": "수호동물",
+            "keywordPhase": "달위상"
+          }
+        },
+        "legacy": {
+          "astrologyReading": "점성술 차트 기반 운명꽃을 판독 중입니다.",
+          "astrologyRhythm": "별의 리듬을 고정 중입니다.",
+          "brightnessEven": "평(平)",
+          "jamidusuReading": "오늘의 강한 별 기반 운명꽃을 판독 중입니다.",
+          "mainStarUnknown": "주성 미확인",
+          "jamidusuRhythm": "별의 기운을 정렬 중입니다.",
+          "imperialGrace": "제왕의 기품",
+          "moonQuarter": "상현/하현달",
+          "sukuyoReading": "숙요 27숙 기반 운명꽃을 판독 중입니다.",
+          "mansionUnknown": "숙 미확인"
+        },
+        "badge": {
+          "sun": "태양궁 {value}",
+          "rising": "상승궁 {value}",
+          "moon": "달궁 {value}",
+          "strongStar": "오늘의 강한 별 {value}",
+          "brightness": "별 밝기 {value}",
+          "moonPhase": "달 위상 {value}",
+          "guardian": "수호동물 {value}",
+          "palace": "궁위 {value}",
+          "mansionLabel": "숙",
+          "group": "{group} 그룹"
+        },
+        "value": {
+          "unknown": "미확인",
+          "pending": "판정 대기",
+          "lifePalace": "명궁"
+        },
+        "wait": {
+          "chartSignal": "차트 시그널 대기",
+          "starSignal": "주성 시그널 대기",
+          "sukuyoSignal": "숙요 시그널 대기",
+          "moonRhythm": "달의 리듬을 동기화 중입니다.",
+          "nebulaRhythm": "성운 리듬을 정렬 중입니다.",
+          "imperialRhythm": "제왕의 기운을 조율 중입니다.",
+          "dayMaster": "일간 판독 대기",
+          "sourceVerdict": "{source} 판정 대기",
+          "mainStar": "주성 판독 대기",
+          "sukuyoReading": "숙요 판독 대기",
+          "dataLoad": "데이터 불러오기 대기",
+          "birth": "생년월일 입력 대기"
+        },
+        "stage": {
+          "keywords": "{source} 키워드 · {list}",
+          "astrologyScenario": "점성술 별자리 개화 시나리오를 계산 중입니다.",
+          "jamidusuScenario": "자미두수 주성 개화 시나리오를 계산 중입니다.",
+          "sukuyoScenario": "숙요 달빛 개화 시나리오를 계산 중입니다.",
+          "seasonTexture": "{season} 결",
+          "seasonDefault": "계절",
+          "environmentMood": "{environment} 무드",
+          "environmentDefault": "환경",
+          "sajuScenario": "일간-환경 개화 시나리오를 계산 중입니다.",
+          "dataSheetPreparing": "꽃 데이터 시트를 준비 중입니다.",
+          "symbolizes": "이 꽃은 {symbolism}을 상징합니다.",
+          "resonates": "이 꽃이 당신의 현재 운세 흐름과 강하게 공명합니다.",
+          "narrativeFallback": "{verdict} {source} 균형을 기준으로 지금의 개화 포인트를 정렬했습니다."
+        },
+        "guide": {
+          "allBloomed": "모든 꽃이 개화되었습니다. 원하는 탭에서 다시 감상해 보세요.",
+          "startSaju": "다음 단계: 사주 꽃을 먼저 열어 개화를 시작해 보세요.",
+          "next": "다음 단계: {source} 꽃으로 이동해 개화를 이어가세요."
+        },
+        "tab": {
+          "lockLabel": "아틀리에 해금 시 열림"
+        },
+        "verdict": {
+          "preparing": "운명의 꽃 판정을 준비 중입니다.",
+          "defaultFlower": "운명의 꽃",
+          "sukuyo": "숙요점으로 볼 때 당신의 꽃은 {name} 입니다.",
+          "jamidusu": "자미두수로 볼 때 당신의 꽃은 {name} 입니다.",
+          "astrology": "점성술로 볼 때 당신의 꽃은 {name} 입니다.",
+          "saju": "사주로 볼 때 당신의 꽃은 {name} 입니다."
+        },
+        "snapshot": {
+          "guidance": "오늘은 결과보다 리듬을 먼저 맞추면 개화 속도가 빨라집니다."
+        },
+        "empty": {
+          "noDomainData": "아직 연동된 {source} 데이터가 없어요. 아래 버튼을 누르면 지금 당신만의 운명의 꽃이 피어납니다.",
+          "astroCalculating": "별자리 차트를 읽었어요. 지금 점성술 꽃을 고르는 중입니다.",
+          "notLinked": "{source} 꽃은 연동하기 버튼을 누르는 순간 피어납니다. 아래 버튼을 눌러 지금 당신에게 온 한 송이를 만나보세요.",
+          "linkButton": "운명의 꽃 연동하기",
+          "linking": "연동 중...",
+          "dataWaiting": "{source} 데이터 연동 대기",
+          "readingWaiting": "{source} 판독 대기",
+          "keywordsLoading": "{source} keywords · loading"
+        },
+        "artMood": {
+          "astrology": "별빛 성운과 네온 글로우가 감도는 몽환적 플로럴",
+          "jamidusu": "제왕의 품격과 궁중의 정제미가 공존하는 플로럴",
+          "sukuyo": "달빛 명상과 고요한 수면 같은 청명한 플로럴",
+          "saju": "오행의 결을 따라 피어나는 서정적 동양 플로럴"
+        },
+        "care": {
+          "wood": "아침 햇살이 드는 동쪽 창가에서 8분 스트레칭으로 생장점을 깨우기",
+          "fire": "남향 빛을 5분 쬐며 오늘의 목표를 소리 내어 선언하기",
+          "earth": "작업 공간 한 구역을 정리해 중심 축을 단단히 세우기",
+          "metal": "우선순위 3가지를 적고 불필요한 약속을 과감히 가지치기",
+          "water": "저녁 10분 산책과 수분 보충으로 감정의 순환로 열기",
+          "default": "빛(오전)과 수분(저녁) 루틴을 고정해 기초 생육 리듬을 먼저 안정화하세요."
+        },
+        "synergy": {
+          "astrology": "유리 화기, 실버 프레임, 미세 조명",
+          "jamidusu": "새틴 패브릭, 브론즈 오브제, 대칭형 세라믹",
+          "sukuyo": "서리 유리, 달빛 톤 린넨, 물결 무늬 트레이",
+          "saju": "무광 세라믹, 내추럴 우드, 잔잔한 패턴 패브릭",
+          "line": "추천 컬러: Primary {primary}, Secondary {secondary}, Accent {accent} / 추천 소재: {materials}."
+        },
+        "atelier": {
+          "scenarioTitle": "{source} 개화 시나리오",
+          "growthCycleWaiting": "개화 사이클 계산 대기",
+          "ritualWaiting": "오늘의 실천 루틴을 계산 중입니다.",
+          "astrology": {
+            "lightingFire": "한여름 정오처럼 각도가 높은 강렬한 태양광",
+            "lightingEarth": "늦은 오후의 황금빛이 오래 머무는 안정형 광량",
+            "lightingWater": "새벽녘의 차가운 푸른 빛이 천천히 번지는 조도",
+            "lightingAir": "바람결처럼 기울어진 사선광이 공간을 가볍게 여는 조도",
+            "humidityWater": "감성 습도가 높은 실버 미스트 상태",
+            "humidityFire": "열기를 품은 드라이 에어, 감정 반응이 빠른 상태",
+            "humidityEarth": "안정적인 토분 습도, 감정이 서서히 농익는 상태",
+            "humidityAir": "가볍고 유동적인 브리즈 습도, 아이디어가 빠르게 환기되는 상태",
+            "seasonFire": "개화 가속기: 실행과 발표가 꽃봉오리를 밀어 올리는 구간",
+            "seasonWater": "내면 양분기: 휴식과 직관이 뿌리층을 채우는 구간",
+            "seasonBalance": "균형 조율기: 구조와 감성이 교차하며 다음 꽃눈을 준비하는 구간",
+            "section": "천체의 조도와 에너지",
+            "matrixLighting": "☀️ 천체의 조도: {value}",
+            "matrixHumidity": "💧 대기의 습도: {value}",
+            "matrixSeason": "🪐 우주의 계절: {value}",
+            "log": "정원사의 관찰 일지: 태양궁 {sun}의 방향성과 상승궁 {rising}의 빛이 꽃대의 각도를 잡아줍니다. 달궁 {moon}의 습도 조절이 감정 잎맥을 부드럽게 열며, 이번 주는 기회가 먼저 보이는 개화 전조 구간입니다.",
+            "recipe": "비밀 레시피: 밤 9시 이후 창가 조명을 한 단계 낮추고, 내일 실행할 한 가지를 노트 첫 줄에 적어 두세요. 아침 첫 12분은 그 한 가지에만 집중하면 별빛 리듬이 가장 빠르게 맞춰집니다.",
+            "flowerLanguage": "운명의 꽃말: 별의 각도를 믿고 한 걸음을 먼저 내딛는 용기.",
+            "gardenerWord": "이 꽃을 위한 가드너의 한 마디: 오늘의 직감은 과장이 아니라 예보입니다. 작은 실행이 성운을 현실의 꽃밭으로 바꿉니다.",
+            "particle": "{source}의 광량을 입자로 번역하면 \"{particle}\" 결이 가장 안정적으로 빛납니다."
+          },
+          "jamidusu": {
+            "structureZiwei": "자미성 계열의 황실 기품이 깃든 단단한 꽃대",
+            "structureBreaker": "돌파형 장군 기질이 만든 굵고 강직한 줄기",
+            "structureFlexible": "유연하지만 쉽게 꺾이지 않는 세밀한 복층 꽃잎",
+            "structureBalanced": "균형형 주성이 만든 정제된 대칭 구조의 꽃골격",
+            "social": "{palace} 주변으로 나비와 벌이 순환하듯, 가까운 인연이 역할 분담을 나눠 성장을 돕는 흐름입니다.",
+            "thornsDim": "방어력이 높은 짧은 가시가 촘촘해 경계를 세워주는 시기",
+            "thornsBright": "빛을 반사하는 결 무늬가 가시 역할을 대신해 품격 있게 자신을 보호하는 시기",
+            "section": "꽃의 품격과 형태",
+            "matrixStructure": "🏛️ 꽃의 골격: {value}",
+            "matrixSocial": "🦋 나비와 벌: {value}",
+            "matrixThorns": "🌵 수호의 가시: {value}",
+            "log": "정원사의 관찰 일지: 오늘의 강한 별 {star}이 줄기 중심을 곧게 세우고, 별 밝기 {brightness}가 꽃잎의 윤기를 조정합니다. 지금은 화려함보다 구조적 완성도가 성과를 키우는 시기입니다.",
+            "recipe": "비밀 레시피: 책상 왼쪽에 메탈 계열 오브제를 하나 두고, 오늘의 기준 1개와 양보선 1개를 동시에 기록하세요. 경계가 선명해질수록 꽃은 더 우아하게 핍니다.",
+            "flowerLanguage": "운명의 꽃말: 품격은 단단한 구조에서 피어나는 가장 조용한 광채.",
+            "gardenerWord": "이 꽃을 위한 가드너의 한 마디: 화려함을 서두르지 마세요. 기준을 지킨 하루가 결국 가장 오래가는 꽃대를 만듭니다.",
+            "particle": "{source}의 위계를 입자로 번역하면 \"{particle}\" 무드가 질서를 가장 아름답게 드러냅니다."
+          },
+          "sukuyo": {
+            "scentFriend": "달빛 아래 번지는 은은한 화이트 머스크 계열",
+            "scentDanger": "짙고 깊은 침향 계열, 집중력을 끌어올리는 향",
+            "scentDefault": "청명한 허브 플로럴 계열, 관계의 온도를 부드럽게 맞추는 향",
+            "dewFull": "밤이슬이 가장 충만해 영감과 감정 표현이 동시에 풍성한 상태",
+            "dewNew": "이슬이 얇게 맺히는 신월 구간으로, 관찰과 준비가 우선인 상태",
+            "dewDefault": "적당한 이슬량으로 감정의 균형과 실행력이 함께 자라는 상태",
+            "companionDragon": "등나무와 블루세이지 조합, 큰 확장 흐름을 지지",
+            "companionDog": "로즈메리와 캐모마일 조합, 관계 안정과 회복 탄력 강화",
+            "companionTiger": "유칼립투스와 루드베키아 조합, 결단력과 보호 본능 강화",
+            "companionDefault": "라벤더와 아이비 조합, 정서 안정과 장기 성장 동시 지원",
+            "section": "인연의 향기와 이슬",
+            "matrixScent": "🌙 운명의 향기: {value}",
+            "matrixDew": "💦 밤이슬의 양: {value}",
+            "matrixCompanion": "🌿 동반 식물: {value}",
+            "log": "정원사의 관찰 일지: {mansion}의 관계성은 향기로 먼저 드러나고, 달 위상 {phase}은 이슬의 밀도로 감정 리듬을 조절합니다. 지금은 인연의 속도를 재촉하기보다 결을 맞추는 세심함이 꽃을 오래 지킵니다.",
+            "recipe": "비밀 레시피: 자기 전 물 한 잔을 천천히 마신 뒤, 오늘 고마웠던 이름 1개를 조용히 적어두세요. 달의 수분 리듬이 안정되며 관계 운이 부드럽게 열립니다.",
+            "flowerLanguage": "운명의 꽃말: 조용한 공감이 가장 멀리 퍼지는 향기가 된다.",
+            "gardenerWord": "이 꽃을 위한 가드너의 한 마디: 서두르지 않아도 괜찮습니다. 밤이슬이 모이듯, 당신의 인연도 정확한 타이밍에 선명해집니다.",
+            "particle": "{source}의 달빛 리듬을 입자로 번역하면 \"{particle}\" 무드가 가장 포근하게 감싸줍니다."
+          },
+          "saju": {
+            "soilCold": "수분을 머금은 습지형 옥토",
+            "soilHot": "배수성이 높은 따뜻한 자갈 혼합토",
+            "soilBalanced": "입자가 고르고 미네랄이 안정된 비옥한 옥토",
+            "rootStrong": "뿌리가 깊게 박혀 외부 변화에도 중심을 지키는 단계",
+            "rootWeak": "섬세한 잔뿌리가 먼저 퍼지며 지지대를 필요로 하는 단계",
+            "rootBalanced": "중간 깊이 뿌리가 고르게 확장되는 균형 단계",
+            "section": "성장의 토양과 뿌리",
+            "matrixSoil": "🪨 토양의 성분: {value}",
+            "matrixRoot": "🌱 뿌리의 깊이: {value}",
+            "matrixNutrient": "🧪 가드너의 영양제: {value}",
+            "log": "정원사의 관찰 일지: 오늘 정원은 {soil}의 결을 띠며, {root} 흐름으로 생장 에너지가 움직입니다. 겉으로 조용해 보여도 뿌리층에서는 다음 개화를 위한 힘이 단단히 저장되고 있습니다.",
+            "recipe": "비밀 레시피: 북쪽 또는 동쪽 창가에 푸른 잎 식물을 두고, 아침 10분은 몸을 풀고 저녁 10분은 호흡을 고르세요. 하루 두 번의 리듬 고정이 용신 기운을 가장 빠르게 끌어올립니다.",
+            "flowerLanguage": "운명의 꽃말: 단단한 뿌리는 늦어 보여도 결국 가장 높게 핀다.",
+            "gardenerWord": "이 꽃을 위한 가드너의 한 마디: 조급함보다 축적을 믿으세요. 오늘의 작은 관리가 다음 계절의 큰 결실을 만듭니다.",
+            "particle": "{source} 기운의 미세한 움직임을 입자로 번역하면 \"{particle}\" 무드가 가장 조화롭습니다."
+          },
+          "themesWaiting": "관계/일 테마를 분석 중입니다.",
+          "guidance": "{source} 운명꽃 실천 가이드: {text}"
+        },
+        "prompt": {
+          "badgesSukuyo": "숙요 배지: {mansion} / 달 위상 {phase} / 수호동물 {guardian}",
+          "badgesJamidusu": "자미두수 배지: 오늘의 강한 별 {star} / 별 밝기 {brightness} / 궁위 {palace}",
+          "badgesAstrology": "점성술 배지: 태양궁 {sun} / 상승궁 {rising} / 달궁 {moon}",
+          "badgesSaju": "사주 배지: 신강/신약 {strength} / 용신 {yongshin} / 조후 {johu}",
+          "symbolismFallback": "운명의 흐름을 상징하는 꽃",
+          "narrativeFallback": "운명의 꽃 서사",
+          "scenarioFallback": "개화 시나리오 기반 연출",
+          "toneDirection": "{source} 톤 디렉션: {mood} / {background}"
+        },
+        "history": {
+          "emptyStatus": "아직 저장된 개화 기록이 없습니다. 현재 결과를 저장해보세요.",
+          "restore": "불러오기",
+          "kakao": "카카오 공유",
+          "delete": "삭제",
+          "saved": "개화 기록이 저장되었습니다: {name} ({time})",
+          "notFound": "해당 기록을 찾을 수 없습니다.",
+          "restored": "저장한 개화 기록을 불러왔습니다: {name}",
+          "deleteNotFound": "삭제할 기록을 찾지 못했습니다.",
+          "deleted": "선택한 개화 기록을 삭제했습니다.",
+          "nothingToClear": "삭제할 개화 기록이 없습니다.",
+          "cleared": "저장된 개화 기록을 모두 삭제했습니다.",
+          "shareNotFound": "공유할 기록을 찾을 수 없습니다."
+        },
+        "noBirth": {
+          "jamidusu": "자미두수 꽃을 보려면 생년월일을 입력해주세요.",
+          "sukuyo": "숙요점 꽃을 보려면 생년월일을 입력해주세요.",
+          "astrology": "점성술 꽃을 보려면 생년월일과 태어난 시간을 입력해주세요.",
+          "saju": "이름과 생년월일 정보를 먼저 입력하면, 나만의 운명의 꽃이 여기에서 피어납니다."
+        },
+        "studioTitle": "🌸 운명의 꽃 아틀리에",
+        "sourceDesc": {
+          "saju": "당신의 일간과 월령, 오행의 균형을 하나하나 읽어, 지금 이 계절 당신의 기운과 가장 깊이 맞닿는 꽃 한 송이를 골라 드립니다.",
+          "astrology": "태양궁·상승궁·달궁이 그리는 세 갈래 별빛을 겹쳐 읽어, 지금 당신의 별자리와 가장 맑게 어우러지는 꽃을 피워 드립니다.",
+          "jamidusu": "명궁에 든 주성과 그 밝기, 사화의 흐름을 짚어, 지금 당신의 명반이 가장 또렷하게 피워 내는 꽃을 찾아 드립니다.",
+          "sukuyo": "태어난 날의 27수와 오늘 밤 달의 위상을 맞대어, 지금 당신의 마음결과 가장 곱게 맞물리는 꽃을 건네 드립니다."
+        },
+        "sourceShort": {
+          "saju": "사주",
+          "astrology": "차트",
+          "jamidusu": "자미두수",
+          "sukuyo": "숙요"
+        },
+        "strength": {
+          "strong": "신강",
+          "weak": "신약"
+        },
+        "johu": {
+          "hot": "온조(溫燥)",
+          "cold": "한습(寒濕)",
+          "balanced": "중화(中和)"
+        }
+      },
+      "flowers": {
+        "lotus": {
+          "flowerLanguage": "청결, 깨끗한 마음",
+          "name": "연꽃"
+        },
+        "cactus_flower": {
+          "flowerLanguage": "불타는 마음, 열정"
+        },
+        "winter_plum": {
+          "flowerLanguage": "고결한 마음, 인내"
+        },
+        "hibiscus": {
+          "flowerLanguage": "섬세한 아름다움, 신선한 사랑"
+        },
+        "edelweiss": {
+          "flowerLanguage": "소중한 추억, 고귀한 용기"
+        },
+        "wild_chrysanthemum": {
+          "flowerLanguage": "순수한 사랑, 상쾌함"
+        },
+        "peony": {
+          "flowerLanguage": "부귀, 왕자의 품격"
+        },
+        "rose": {
+          "flowerLanguage": "사랑, 아름다움"
+        },
+        "sunflower": {
+          "flowerLanguage": "당신만을 바라봅니다"
+        },
+        "orchid": {
+          "flowerLanguage": "청초한 아름다움, 우아함"
+        },
+        "camellia": {
+          "flowerLanguage": "누구보다 그대를 사랑합니다"
+        },
+        "magnolia": {
+          "flowerLanguage": "고귀함, 숭고한 정신"
+        },
+        "lily": {
+          "flowerLanguage": "순결, 변함없는 사랑"
+        },
+        "tulip": {
+          "flowerLanguage": "사랑의 고백"
+        },
+        "daisy": {
+          "flowerLanguage": "평화, 희망"
+        },
+        "hydrangea": {
+          "flowerLanguage": "진심"
+        },
+        "lavender": {
+          "flowerLanguage": "침묵, 기대"
+        },
+        "narcissus": {
+          "flowerLanguage": "자기애, 고결"
+        },
+        "iris": {
+          "flowerLanguage": "좋은 소식, 희망"
+        },
+        "anemone": {
+          "flowerLanguage": "기대, 진실"
+        },
+        "cosmos": {
+          "flowerLanguage": "순정, 조화"
+        },
+        "carnation": {
+          "flowerLanguage": "사랑, 존경"
+        },
+        "azalea": {
+          "flowerLanguage": "사랑의 기쁨"
+        },
+        "forsythia": {
+          "flowerLanguage": "희망, 깊은 정"
+        },
+        "gardenia": {
+          "flowerLanguage": "한없는 즐거움, 행복"
+        },
+        "jasmine": {
+          "flowerLanguage": "사랑스러움, 상냥함"
+        },
+        "cherry_blossom": {
+          "flowerLanguage": "정신의 아름다움"
+        },
+        "ranunculus": {
+          "flowerLanguage": "매력, 눈부신 마음"
+        },
+        "poppy": {
+          "flowerLanguage": "위로, 위안"
+        },
+        "bluebell": {
+          "flowerLanguage": "겸손, 변하지 않는 마음"
+        },
+        "water_lily": {
+          "flowerLanguage": "청순한 마음"
+        },
+        "glacier_bloom": {
+          "flowerLanguage": "얼음 아래 지켜 온 약속"
+        },
+        "marigold": {
+          "flowerLanguage": "반드시 오고야 말 행복"
+        },
+        "dahlia": {
+          "flowerLanguage": "감사, 화려함"
+        },
+        "snapdragon": {
+          "flowerLanguage": "탐스러움, 수다쟁이"
+        },
+        "freesia": {
+          "flowerLanguage": "새로운 시작, 천진난만"
+        },
+        "violet": {
+          "flowerLanguage": "겸양, 성실"
+        },
+        "aster": {
+          "flowerLanguage": "추억, 믿는 사랑"
+        },
+        "begonia": {
+          "flowerLanguage": "친절, 정중함"
+        },
+        "geranium": {
+          "flowerLanguage": "그대가 있어 행복해요"
+        },
+        "heliotrope": {
+          "flowerLanguage": "헌신, 영원한 사랑"
+        },
+        "yarrow": {
+          "flowerLanguage": "치유, 지도력"
+        },
+        "foxglove": {
+          "flowerLanguage": "열애, 숨기지 않는 마음"
+        },
+        "honeysuckle": {
+          "flowerLanguage": "사랑의 인연, 헌신적인 사랑"
+        },
+        "bellflower": {
+          "flowerLanguage": "영원한 사랑"
+        },
+        "crocus": {
+          "flowerLanguage": "청춘의 기쁨"
+        },
+        "primrose": {
+          "flowerLanguage": "첫사랑, 행복의 열쇠"
+        },
+        "larkspur": {
+          "flowerLanguage": "자유, 열린 마음"
+        },
+        "queen_anne_lace": {
+          "flowerLanguage": "그윽한 마음, 감사"
+        },
+        "wisteria": {
+          "flowerLanguage": "환영, 사랑에 취함"
+        },
+        "moonflower": {
+          "flowerLanguage": "기다림, 마법"
+        },
+        "passionflower": {
+          "flowerLanguage": "성스러운 사랑"
+        },
+        "blue_lotus": {
+          "flowerLanguage": "부활, 신성한 영감"
+        },
+        "red_spider_lily": {
+          "flowerLanguage": "다시 만날 날을 기다리며"
+        },
+        "morning_glory": {
+          "flowerLanguage": "기쁜 소식"
+        },
+        "sweet_pea": {
+          "flowerLanguage": "기쁜 추억, 우정"
+        },
+        "chrysanthemum_gold": {
+          "flowerLanguage": "장수, 고결한 지조"
+        },
+        "persian_buttercup": {
+          "flowerLanguage": "매력, 빛나는 매혹"
+        },
+        "plum_blossom": {
+          "flowerLanguage": "고결한 마음, 기품"
+        },
+        "cornflower": {
+          "flowerLanguage": "행복감, 섬세함"
+        },
+        "lotus_pink": {
+          "flowerLanguage": "자비로운 사랑"
+        },
+        "mugunghwa": {
+          "flowerLanguage": "일편단심, 영원"
+        },
+        "gentian": {
+          "flowerLanguage": "정의, 당신이 슬플 때 사랑해요"
+        },
+        "nemophila": {
+          "flowerLanguage": "어디서나 성공"
+        },
+        "lotus_white": {
+          "flowerLanguage": "깨끗한 마음"
+        },
+        "delphinium": {
+          "flowerLanguage": "당신을 행복하게 해 줄게요"
+        },
+        "lotus_golden": {
+          "flowerLanguage": "번영의 약속"
+        },
+        "flame_tulip": {
+          "flowerLanguage": "열정의 고백"
+        },
+        "tiger_lily": {
+          "flowerLanguage": "자부심, 깨끗한 마음"
+        },
+        "ivy_bloom": {
+          "flowerLanguage": "변치 않는 우정"
+        },
+        "resilient_rose": {
+          "flowerLanguage": "고전적인 아름다움, 사랑"
+        },
+        "astro_lavender": {
+          "flowerLanguage": "기대, 맑은 생각",
+          "name": "성운 라벤더"
+        },
+        "bird_of_paradise": {
+          "flowerLanguage": "영원히 사랑하는 멋쟁이"
+        },
+        "water_narcissus": {
+          "flowerLanguage": "고결, 신비"
+        },
+        "water_anemone": {
+          "flowerLanguage": "기대, 다정한 진실"
+        },
+        "peony_ziwei": {
+          "flowerLanguage": "부귀, 왕자의 품격"
+        },
+        "thorny_rose": {
+          "flowerLanguage": "열렬한 사랑"
+        },
+        "delicate_willow": {
+          "flowerLanguage": "솔직, 자유"
+        },
+        "sunflower_ziwei": {
+          "flowerLanguage": "당신만을 바라봅니다"
+        },
+        "night_cereus": {
+          "flowerLanguage": "단 한 번의 만남, 덧없는 아름다움"
+        },
+        "orchid_tanlang": {
+          "flowerLanguage": "미인, 청초한 아름다움"
+        },
+        "white_baby_breath": {
+          "flowerLanguage": "맑은 마음, 깨끗한 마음"
+        },
+        "moon_lily": {
+          "flowerLanguage": "순결, 변함없는 사랑"
+        },
+        "red_lycoris": {
+          "flowerLanguage": "정열, 다시 만날 날을 기약하며"
+        },
+        "black_rose": {
+          "flowerLanguage": "당신은 영원한 나의 것"
+        },
+        "violet_wisteria": {
+          "flowerLanguage": "환영, 사랑에 취함"
+        },
+        "orange_trumpet": {
+          "flowerLanguage": "명예, 그리움"
+        },
+        "blue_iris": {
+          "flowerLanguage": "좋은 소식, 신비로운 사람"
+        },
+        "moon_narcissus": {
+          "flowerLanguage": "자존심, 고결"
+        }
+      },
+      "astro": {
+        "signs": {
+          "aries": "양자리",
+          "taurus": "황소자리",
+          "gemini": "쌍둥이자리",
+          "cancer": "게자리",
+          "leo": "사자자리",
+          "virgo": "처녀자리",
+          "libra": "천칭자리",
+          "scorpio": "전갈자리",
+          "sagittarius": "사수자리",
+          "capricorn": "염소자리",
+          "aquarius": "물병자리",
+          "pisces": "물고기자리"
+        },
+        "rationaleLabel": {
+          "sun": "태양궁",
+          "risingMoon": "상승궁 · 달궁"
+        },
+        "elements": {
+          "Fire": "불",
+          "Earth": "흙",
+          "Air": "공기",
+          "Water": "물",
+          "Cosmic": "별"
+        },
+        "growthCycle": "별의 호출 → 궤적 형성 → 성운 개화 → 광휘 확산"
+      },
+      "ziwei": {
+        "stars": {
+          "ziwei": "자미",
+          "tianji": "천기",
+          "taiyang": "태양",
+          "wuqu": "무곡",
+          "tiantong": "천동",
+          "lianzhen": "염정",
+          "tianfu": "천부",
+          "taiyin": "태음",
+          "tanlang": "탐랑",
+          "jumen": "거문",
+          "tianxiang": "천상",
+          "tianliang": "천량",
+          "qisha": "칠살",
+          "pojun": "파군",
+          "wenchang": "문창",
+          "wenqu": "문곡",
+          "zuofu": "좌보",
+          "youbi": "우필",
+          "tianma": "천마",
+          "lucun": "녹존",
+          "tiankui": "천괴",
+          "tianyue": "천월",
+          "qingyang": "경양",
+          "tuoluo": "타라",
+          "dikong": "지공",
+          "dijie": "지겁",
+          "huoxing": "화성",
+          "lingxing": "영성"
+        },
+        "palaces": {
+          "life": "명궁",
+          "siblings": "형제궁",
+          "spouse": "부부궁",
+          "children": "자녀궁",
+          "wealth": "재백궁",
+          "health": "질액궁",
+          "travel": "천이궁",
+          "friends": "노복궁",
+          "career": "관록궁",
+          "property": "전택궁",
+          "fortune": "복덕궁",
+          "parents": "부모궁"
+        },
+        "palaceTraits": {
+          "life": "자아의 중심성과 존재감",
+          "siblings": "협력과 조율 감각",
+          "spouse": "관계의 미감과 친밀한 소통",
+          "children": "창조성과 표현 욕구",
+          "wealth": "자원 운용과 풍요의 확장력",
+          "health": "회복력과 내면 균형 감각",
+          "travel": "환경 적응력과 현장 판단력",
+          "friends": "네트워크 운영과 팀 케어",
+          "career": "사회적 추진력과 성취 지향성",
+          "property": "기반 구축과 안정적 축적력",
+          "fortune": "정서적 충전과 정신적 통찰",
+          "parents": "보호 본능과 전통의식"
+        },
+        "brightness": {
+          "bu": "불(不)",
+          "miao": "묘(廟)",
+          "wang": "왕(旺)",
+          "de": "득(得)",
+          "li": "리(利)",
+          "ping": "평(平)",
+          "han": "한(閑)",
+          "xian": "함(陷)"
+        },
+        "natalVerdict": "명궁 {stars}의 기질로 읽은 당신의 꽃은 {flowerName}({scientificName})입니다.",
+        "natalScenarioTitle": "명궁 주성 개화 시나리오",
+        "rationale": {
+          "lifeStar": "명궁에 {starsJosa} 자리하고 있어요.",
+          "borrowedStar": "명궁에 주성이 없어 마주 보는 천이궁의 {starsObject} 빌려 읽었어요.",
+          "personality": "{star}의 \"{keyword}\" — {personality}의 기질이에요.",
+          "verdict": "그래서 지금 당신에게 건네는 꽃은 {flowerName}입니다."
+        },
+        "rationaleLabel": {
+          "lifeStar": "명궁 주성",
+          "personality": "타고난 성격"
+        },
+        "rules": {
+          "peonyZiwei": {
+            "title": "제왕의 모란",
+            "keyword": "제왕의 기품",
+            "personality": "중심을 세우고 주변의 질서를 정돈하는 리더형"
+          },
+          "thornyRoseGeneral": {
+            "title": "장군의 붉은 장미",
+            "keyword": "돌파의 결단",
+            "personality": "압박 속에서도 전선을 밀어붙이는 결단형"
+          },
+          "thornyRosePioneer": {
+            "title": "개척자의 붉은 장미",
+            "keyword": "판을 바꾸는 추진력",
+            "personality": "기존 틀을 깨고 새 질서를 여는 혁신형"
+          },
+          "delicateWillow": {
+            "title": "책사의 버드나무꽃",
+            "keyword": "부드러운 지략",
+            "personality": "상황을 유연하게 읽고 최적 해법을 찾는 전략형"
+          },
+          "sunflowerZiwei": {
+            "title": "태양의 해바라기",
+            "keyword": "빛의 확장",
+            "personality": "목표를 향해 에너지를 집중해 성과를 끌어내는 실행형"
+          },
+          "nightCereus": {
+            "title": "달빛의 월하미인",
+            "keyword": "야간 개화의 신비",
+            "personality": "깊은 내면 통찰로 보이지 않는 흐름을 읽는 성찰형"
+          },
+          "orchidTanlang": {
+            "title": "도화의 난초",
+            "keyword": "관능적 매혹",
+            "personality": "관계와 표현의 미감을 살려 사람을 이끄는 매력형"
+          }
+        },
+        "growthCycle": "별 정렬 → 기운 응집 → 씨앗 점화 → 개화",
+        "hybridHint": "사주 {dayMaster} 기운과 자미두수 {stars} 주성을 결합한 하이브리드 렌더링 가능"
+      },
+      "sukuyo": {
+        "mansions": {
+          "m1": "각숙",
+          "m2": "항숙",
+          "m3": "저숙",
+          "m4": "방숙",
+          "m5": "심숙",
+          "m6": "미숙",
+          "m7": "기숙",
+          "m8": "두숙",
+          "m9": "여숙",
+          "m10": "허숙",
+          "m11": "위숙",
+          "m12": "실숙",
+          "m13": "벽숙",
+          "m14": "규숙",
+          "m15": "루숙",
+          "m16": "위숙",
+          "m17": "묘숙",
+          "m18": "필숙",
+          "m19": "자숙",
+          "m20": "삼숙",
+          "m21": "정숙",
+          "m22": "귀숙",
+          "m23": "류숙",
+          "m24": "성숙",
+          "m25": "장숙",
+          "m26": "익숙",
+          "m27": "진숙"
+        },
+        "groups": {
+          "anjung": "안중숙",
+          "gangseong": "강성숙",
+          "gyeongkwae": "경쾌숙",
+          "jihye": "지혜숙"
+        },
+        "groupLabels": {
+          "anjung": "안중 그룹",
+          "gangseong": "강성 그룹",
+          "gyeongkwae": "경쾌 그룹",
+          "jihye": "지혜 그룹"
+        },
+        "guardians": {
+          "crane": "학",
+          "dragon": "용",
+          "marten": "담비",
+          "rabbit": "토끼",
+          "fox": "여우",
+          "tiger": "호랑이",
+          "leopard": "표범",
+          "haetae": "해태",
+          "bat": "박쥐",
+          "rat": "쥐",
+          "swallow": "제비",
+          "pig": "돼지",
+          "hedgehog": "고슴도치",
+          "wolf": "이리",
+          "dog": "개",
+          "pheasant": "꿩",
+          "rooster": "닭",
+          "crow": "까마귀",
+          "monkey": "원숭이",
+          "ape": "유인원",
+          "wildDog": "들개",
+          "sheep": "양",
+          "roeDeer": "노루",
+          "horse": "말",
+          "deer": "사슴",
+          "snake": "뱀",
+          "earthworm": "지렁이"
+        },
+        "rationaleLabel": {
+          "mansion": "숙 · 달 위상"
+        },
+        "moon": {
+          "full": "보름달",
+          "new": "그믐달",
+          "crescent": "초승달",
+          "gibbous": "상현/하현달"
+        },
+        "stickerLabel": "숙요점으로 보는 꽃",
+        "moonPhaseLabel": "달 위상 {moon}",
+        "guardianLabel": "수호동물 {guardian}",
+        "scenarioTitle": "27숙-달 위상 통합 개화 시나리오",
+        "ritualTip": "달빛이 보이는 창가에서 27번 호흡하며 오늘의 의도를 한 단어로 고정해보세요.",
+        "relationshipTheme": "{group}의 결을 따를수록 관계의 긴장이 누그러지고 교감이 선명해집니다.",
+        "careerTheme": "{guardian} 패턴의 실행 리듬을 업무 루틴에 반영하면 성과가 안정됩니다.",
+        "verdict": "달빛의 결로 읽은 당신의 꽃은 {flowerName}({scientificName})입니다. {mansion}·{moon}·{guardian}이 어우러지는 자리가 지금 당신의 인연과 감정, 행동의 리듬과 가장 섬세하게 맞물립니다.",
+        "narrative": "{mansion}({group})이 맺어 주는 인연의 결, 달 위상 {moon}이 밀어 올리는 감정의 조수, 수호동물 {guardianJosa} 새겨 준 보호의 문양이 한밤의 정원에서 하나로 겹칩니다. 이 세 갈래 달빛을 포개어 읽으면 \"{symbolism}\"의 성향이 짙게 배어나고, 지금 당신에게 가장 정확한 한 송이는 {flowerName}입니다.",
+        "growthCycle": "별자리 연결 → 달빛 응집 → 영성 점화 → 개화"
+      }
     }
   }
 }

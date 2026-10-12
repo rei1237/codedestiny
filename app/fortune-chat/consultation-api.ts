@@ -8,14 +8,13 @@ export type ChatPersona = "yeoni" | "neo";
 export type ChatDomain = "saju" | "ziwei" | "sukuyo" | "vedic" | "astrology" | "tarot";
 /** 타로는 명식 없이 고민의 종류로 읽는다. 서버 허용 목록은 worker/yeongnyangi/payments/catalog.ts 의 chatTarotKinds. */
 export type ChatTarotKind = "choice" | "love" | "feelings" | "contact" | "reunion" | "career" | "money" | "healing";
-export type ChatAccessChoice = "free_trial" | "pass" | "checkout" | "";
+export type ChatAccessChoice = "pass" | "checkout" | "";
 
 export type ChatConsultation = Omit<FortuneRecord, "accessMethod"> & {
   accessMethod?: string;
   persona: ChatPersona;
   paidFeatureKey: string;
   paymentRequestId: string;
-  freeTrialAvailable?: boolean;
 };
 
 export type ChatConsultationSummary = {

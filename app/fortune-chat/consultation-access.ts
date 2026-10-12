@@ -12,15 +12,10 @@ export type CheckoutCandidate = {
   paid?: boolean;
   state?: string;
   accessMethod?: string | null;
-  freeTrialAvailable?: boolean;
 };
 
 export function canOfferCheckout(row: CheckoutCandidate | null | undefined): boolean {
   return Boolean(row) && row!.paid !== true && row!.state === "CREATED" && !row!.accessMethod;
-}
-
-export function canOfferFreeTrial(row: CheckoutCandidate | null | undefined): boolean {
-  return canOfferCheckout(row) && row!.freeTrialAvailable === true;
 }
 
 export type GuardedCheckout<Row, Result> =

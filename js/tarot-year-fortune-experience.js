@@ -677,6 +677,7 @@
       else document.body.style.overflow = "hidden";
       resetTarotYearFortuneFlow();
       bindTarotYearStaticActions();
+      import("./core/oracle/crafted-details.mjs").then(function (m) { m.mountOracleCraftedDetails(overlay.querySelector(".tarot-year-shell"), { target: ".tarot-year-panel", id: "year-fortune-tarot", title: "십이지신 천운 타로" }); });
       restoreStoredYearResult();
     } catch (err) {
       console.error("[Tarot Year Fortune] openTarotYearFortuneModal error:", err);

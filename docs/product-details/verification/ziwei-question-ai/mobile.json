@@ -1,0 +1,635 @@
+{
+  "rows": [
+    {
+      "width": 360,
+      "ancestors": [
+        {
+          "tag": "DETAILS",
+          "id": "",
+          "cls": "saju-crafted-offer saju-crafted-offer--modal",
+          "left": 29,
+          "right": 316,
+          "width": 287,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "",
+          "left": 29,
+          "right": 316,
+          "width": 287,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "ziweiModalSection",
+          "cls": "fr-report",
+          "left": 19,
+          "right": 326,
+          "width": 307,
+          "overflow": "clip",
+          "padding": "12px 10px 40px"
+        },
+        {
+          "tag": "DIV",
+          "id": "ziweiModalCard",
+          "cls": "",
+          "left": 19,
+          "right": 326,
+          "width": 307,
+          "overflow": "hidden",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "modal-content-inner-700 modal-content-pad-ziwei",
+          "left": 15,
+          "right": 330,
+          "width": 315,
+          "overflow": "visible",
+          "padding": "0px 4px 180px"
+        },
+        {
+          "tag": "DIV",
+          "id": "ziweiModalSheet",
+          "cls": "modal-sheet-base",
+          "left": 15,
+          "right": 345,
+          "width": 330,
+          "overflow": "hidden",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "ziweiModalOverlay",
+          "cls": "modal-overlay-shell modal-overlay-ziwei MobileFeatureDetail fr-overlay fr-ziwei",
+          "left": 15,
+          "right": 345,
+          "width": 330,
+          "overflow": "hidden",
+          "padding": "0px"
+        },
+        {
+          "tag": "BODY",
+          "id": "",
+          "cls": "cd-reduced-motion cd-overlay-shell-open cd-mobile-nav-hidden",
+          "left": 15,
+          "right": 345,
+          "width": 330,
+          "overflow": "hidden",
+          "padding": "0px"
+        },
+        {
+          "tag": "HTML",
+          "id": "",
+          "cls": "cd-mobile-runtime mobile-safe-render cd-reduced-motion mobile-gpu-lite cdh-input-open runtime-safe-lite",
+          "left": 15,
+          "right": 345,
+          "width": 330,
+          "overflow": "hidden",
+          "padding": "0px"
+        }
+      ],
+      "images": [
+        {
+          "loaded": true,
+          "width": 304,
+          "left": 20.5,
+          "right": 324.5
+        },
+        {
+          "loaded": true,
+          "width": 304,
+          "left": 20.5,
+          "right": 324.5
+        },
+        {
+          "loaded": true,
+          "width": 304,
+          "left": 20.5,
+          "right": 324.5
+        },
+        {
+          "loaded": true,
+          "width": 304,
+          "left": 20.5,
+          "right": 324.5
+        },
+        {
+          "loaded": true,
+          "width": 304,
+          "left": 20.5,
+          "right": 324.5
+        },
+        {
+          "loaded": true,
+          "width": 304,
+          "left": 20.5,
+          "right": 324.5
+        },
+        {
+          "loaded": true,
+          "width": 304,
+          "left": 20.5,
+          "right": 324.5
+        },
+        {
+          "loaded": true,
+          "width": 304,
+          "left": 20.5,
+          "right": 324.5
+        },
+        {
+          "loaded": true,
+          "width": 304,
+          "left": 20.5,
+          "right": 324.5
+        },
+        {
+          "loaded": true,
+          "width": 304,
+          "left": 20.5,
+          "right": 324.5
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "ancestors": [
+        {
+          "tag": "DETAILS",
+          "id": "",
+          "cls": "saju-crafted-offer saju-crafted-offer--modal",
+          "left": 29,
+          "right": 346,
+          "width": 317,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "",
+          "left": 29,
+          "right": 346,
+          "width": 317,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "ziweiModalSection",
+          "cls": "fr-report",
+          "left": 19,
+          "right": 356,
+          "width": 337,
+          "overflow": "clip",
+          "padding": "12px 10px 40px"
+        },
+        {
+          "tag": "DIV",
+          "id": "ziweiModalCard",
+          "cls": "",
+          "left": 19,
+          "right": 356,
+          "width": 337,
+          "overflow": "hidden",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "modal-content-inner-700 modal-content-pad-ziwei",
+          "left": 15,
+          "right": 360,
+          "width": 345,
+          "overflow": "visible",
+          "padding": "0px 4px 180px"
+        },
+        {
+          "tag": "DIV",
+          "id": "ziweiModalSheet",
+          "cls": "modal-sheet-base",
+          "left": 15,
+          "right": 375,
+          "width": 360,
+          "overflow": "hidden",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "ziweiModalOverlay",
+          "cls": "modal-overlay-shell modal-overlay-ziwei MobileFeatureDetail fr-overlay fr-ziwei",
+          "left": 15,
+          "right": 375,
+          "width": 360,
+          "overflow": "hidden",
+          "padding": "0px"
+        },
+        {
+          "tag": "BODY",
+          "id": "",
+          "cls": "cd-reduced-motion cd-overlay-shell-open cd-mobile-nav-hidden",
+          "left": 15,
+          "right": 375,
+          "width": 360,
+          "overflow": "hidden",
+          "padding": "0px"
+        },
+        {
+          "tag": "HTML",
+          "id": "",
+          "cls": "cd-mobile-runtime mobile-safe-render cd-reduced-motion mobile-gpu-lite cdh-input-open runtime-safe-lite",
+          "left": 15,
+          "right": 375,
+          "width": 360,
+          "overflow": "hidden",
+          "padding": "0px"
+        }
+      ],
+      "images": [
+        {
+          "loaded": true,
+          "width": 334,
+          "left": 20.5,
+          "right": 354.5
+        },
+        {
+          "loaded": true,
+          "width": 334,
+          "left": 20.5,
+          "right": 354.5
+        },
+        {
+          "loaded": true,
+          "width": 334,
+          "left": 20.5,
+          "right": 354.5
+        },
+        {
+          "loaded": true,
+          "width": 334,
+          "left": 20.5,
+          "right": 354.5
+        },
+        {
+          "loaded": true,
+          "width": 334,
+          "left": 20.5,
+          "right": 354.5
+        },
+        {
+          "loaded": true,
+          "width": 334,
+          "left": 20.5,
+          "right": 354.5
+        },
+        {
+          "loaded": true,
+          "width": 334,
+          "left": 20.5,
+          "right": 354.5
+        },
+        {
+          "loaded": true,
+          "width": 334,
+          "left": 20.5,
+          "right": 354.5
+        },
+        {
+          "loaded": true,
+          "width": 334,
+          "left": 20.5,
+          "right": 354.5
+        },
+        {
+          "loaded": true,
+          "width": 334,
+          "left": 20.5,
+          "right": 354.5
+        }
+      ]
+    },
+    {
+      "width": 430,
+      "ancestors": [
+        {
+          "tag": "DETAILS",
+          "id": "",
+          "cls": "saju-crafted-offer saju-crafted-offer--modal",
+          "left": 29,
+          "right": 386,
+          "width": 357,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "",
+          "left": 29,
+          "right": 386,
+          "width": 357,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "ziweiModalSection",
+          "cls": "fr-report",
+          "left": 19,
+          "right": 396,
+          "width": 377,
+          "overflow": "clip",
+          "padding": "12px 10px 40px"
+        },
+        {
+          "tag": "DIV",
+          "id": "ziweiModalCard",
+          "cls": "",
+          "left": 19,
+          "right": 396,
+          "width": 377,
+          "overflow": "hidden",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "modal-content-inner-700 modal-content-pad-ziwei",
+          "left": 15,
+          "right": 400,
+          "width": 385,
+          "overflow": "visible",
+          "padding": "0px 4px 180px"
+        },
+        {
+          "tag": "DIV",
+          "id": "ziweiModalSheet",
+          "cls": "modal-sheet-base",
+          "left": 15,
+          "right": 415,
+          "width": 400,
+          "overflow": "hidden",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "ziweiModalOverlay",
+          "cls": "modal-overlay-shell modal-overlay-ziwei MobileFeatureDetail fr-overlay fr-ziwei",
+          "left": 15,
+          "right": 415,
+          "width": 400,
+          "overflow": "hidden",
+          "padding": "0px"
+        },
+        {
+          "tag": "BODY",
+          "id": "",
+          "cls": "cd-reduced-motion cd-overlay-shell-open cd-mobile-nav-hidden",
+          "left": 15,
+          "right": 415,
+          "width": 400,
+          "overflow": "hidden",
+          "padding": "0px"
+        },
+        {
+          "tag": "HTML",
+          "id": "",
+          "cls": "cd-mobile-runtime mobile-safe-render cd-reduced-motion mobile-gpu-lite cdh-input-open runtime-safe-lite",
+          "left": 15,
+          "right": 415,
+          "width": 400,
+          "overflow": "hidden",
+          "padding": "0px"
+        }
+      ],
+      "images": [
+        {
+          "loaded": true,
+          "width": 374,
+          "left": 20.5,
+          "right": 394.5
+        },
+        {
+          "loaded": true,
+          "width": 374,
+          "left": 20.5,
+          "right": 394.5
+        },
+        {
+          "loaded": true,
+          "width": 374,
+          "left": 20.5,
+          "right": 394.5
+        },
+        {
+          "loaded": true,
+          "width": 374,
+          "left": 20.5,
+          "right": 394.5
+        },
+        {
+          "loaded": true,
+          "width": 374,
+          "left": 20.5,
+          "right": 394.5
+        },
+        {
+          "loaded": true,
+          "width": 374,
+          "left": 20.5,
+          "right": 394.5
+        },
+        {
+          "loaded": true,
+          "width": 374,
+          "left": 20.5,
+          "right": 394.5
+        },
+        {
+          "loaded": true,
+          "width": 374,
+          "left": 20.5,
+          "right": 394.5
+        },
+        {
+          "loaded": true,
+          "width": 374,
+          "left": 20.5,
+          "right": 394.5
+        },
+        {
+          "loaded": true,
+          "width": 374,
+          "left": 20.5,
+          "right": 394.5
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "ancestors": [
+        {
+          "tag": "DETAILS",
+          "id": "",
+          "cls": "saju-crafted-offer saju-crafted-offer--modal",
+          "left": 106.5,
+          "right": 1158.5,
+          "width": 1052,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "",
+          "left": 106.5,
+          "right": 1158.5,
+          "width": 1052,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "ziweiModalSection",
+          "cls": "fr-report",
+          "left": 82.5,
+          "right": 1182.5,
+          "width": 1100,
+          "overflow": "clip",
+          "padding": "20px 24px 64px"
+        },
+        {
+          "tag": "DIV",
+          "id": "ziweiModalCard",
+          "cls": "",
+          "left": 15,
+          "right": 1250,
+          "width": 1235,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "modal-content-inner-700 modal-content-pad-ziwei",
+          "left": 15,
+          "right": 1250,
+          "width": 1235,
+          "overflow": "visible",
+          "padding": "0px 0px 180px"
+        },
+        {
+          "tag": "DIV",
+          "id": "ziweiModalSheet",
+          "cls": "modal-sheet-base",
+          "left": 15,
+          "right": 1265,
+          "width": 1250,
+          "overflow": "hidden",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "ziweiModalOverlay",
+          "cls": "modal-overlay-shell modal-overlay-ziwei MobileFeatureDetail fr-overlay fr-ziwei",
+          "left": 15,
+          "right": 1265,
+          "width": 1250,
+          "overflow": "hidden",
+          "padding": "0px"
+        },
+        {
+          "tag": "BODY",
+          "id": "",
+          "cls": "cd-reduced-motion cd-overlay-shell-open",
+          "left": 15,
+          "right": 1265,
+          "width": 1250,
+          "overflow": "clip",
+          "padding": "0px"
+        },
+        {
+          "tag": "HTML",
+          "id": "",
+          "cls": "mobile-safe-render cd-reduced-motion mobile-gpu-lite cdh-input-open runtime-safe-lite",
+          "left": 15,
+          "right": 1265,
+          "width": 1250,
+          "overflow": "visible",
+          "padding": "0px"
+        }
+      ],
+      "images": [
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 362.5,
+          "right": 902.5
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 362.5,
+          "right": 902.5
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 362.5,
+          "right": 902.5
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 362.5,
+          "right": 902.5
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 362.5,
+          "right": 902.5
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 362.5,
+          "right": 902.5
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 362.5,
+          "right": 902.5
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 362.5,
+          "right": 902.5
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 362.5,
+          "right": 902.5
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 362.5,
+          "right": 902.5
+        }
+      ]
+    }
+  ],
+  "fallback": true,
+  "mockedGates": [],
+  "mode": "All API mocked;existing saved local profile and openZiweiModal entry;no purchase or generation clicked"
+}

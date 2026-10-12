@@ -5,7 +5,7 @@ import { signJwt, verifyJwt } from "./jwt.js";
 import { createHash } from "node:crypto";
 import { connectDb, mongoose, withMongoRetry, isTransientMongoError } from "./db.js";
 import { RefreshTokenSession, User } from "./models.js";
-import { normalizeHoneyPassEntitlement, PASS_LIMITS } from "./profile-limits.js";
+import { normalizeHoneyPassEntitlement, PASS_LIMITS, resolveProfileLimitForClient } from "./profile-limits.js";
 import { ensureLotsForBalance, resolveNextExpiry } from "./monthly-credit-lots.js";
 
 export const JWT_ISSUER = "code-destiny-api";
@@ -758,7 +758,7 @@ function normalizeAuthProfileSubscription(user = {}) {
     membershipStatus: isActive ? String(rawSub.membershipStatus || rawSub.status || "active") : "free",
     source: isActive ? String(entitlement.source || rawSub.source || "auth_me") : "auth_me",
     expiresAt: isActive ? (entitlement.expiresAt || toAuthIsoOrNull(rawSub.expiresAt)) : null,
-    profileLimit: isActive ? readNonNegativeInteger(entitlement.maxProfiles || rawSub.profileLimit, 1) : 1,
+    profileLimit: resolveProfileLimitForClient(), // 2026-10-11 프로필 개수 상한 없음(0 = 무제한)
     freeLimit: passLimit,
     passLimit,
     maxCoveredCoin: passLimit,

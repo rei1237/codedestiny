@@ -63,7 +63,7 @@ assertIncludes(pageSource, "buildChartDataBlocks(integratedResult, copy)", "PDF 
 assertIncludes(pageSource, "사주 원국 데이터", "saju chart data included");
 assertIncludes(pageSource, "서양 점성술 차트 데이터", "western chart data included");
 assertIncludes(pageSource, "베다 점성술 차트 데이터", "vedic chart data included");
-assertIncludes(pageSource, "30,000자 이상으로 여는 운명의 업 리포트", "premium value copy");
+assertIncludes(pageSource, "다섯 관점으로 읽는 운명의 업 리포트", "reviewed premium value copy");
 assertIncludes(pageSource, "sticky", "sticky table of contents");
 assertIncludes(pageSource, "이번 장의 핵심", "chapter core box");
 assertIncludes(pageSource, "전체 복사", "copy all action");

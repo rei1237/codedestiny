@@ -7,7 +7,7 @@ import {CONCISE_READING_VERSION,conciseOutputTokens} from './concise-reading';
 
 export const CONSULTATION_BUDGET_VERSION='consultation-split-20261010';
 export const LEGACY_CONSULTATION_BUDGET_VERSION='consultation-total-20261008';
-export const CONSULTATION_FOLLOWUPS={mackerel:0,salmon:1,flounder:2,tuna:4,assorted:5,omakase:7} as const;
+export const CONSULTATION_FOLLOWUPS={mackerel:0,salmon:1,flounder:2,tuna:6,assorted:5,omakase:7} as const;
 // D7: length comes from the chapter count. One call writes about 1,600~2,400 chars, so per-chapter targets stay there.
 export const CONSULTATION_CHAPTERS={mackerel:6,salmon:11,flounder:15,tuna:24,assorted:28,omakase:36} as const;
 export const CONSULTATION_CHAPTER_TARGETS:Record<PackageId,readonly [number,number]>={
@@ -16,6 +16,9 @@ export const CONSULTATION_CHAPTER_TARGETS:Record<PackageId,readonly [number,numb
 export const CONSULTATION_FOLLOWUP_TARGETS={single:[2000,2600],fusion:[2400,3000]} as const;
 /** A delivered chapter shorter than this gets one length repair; delivery itself only stops at half of it (D8). */
 export const LAYOUT_MINIMUM_RATIO=.55;
+/** 11: fusion chapters (MA·MO) ask for ~80% of their target low, so the one length repair (reading-quality chapterFloor, 70%)
+ * starts where a chapter is really short. The delivery floor stays half of minimumChars (chapter-delivery-contract.js). */
+export const FUSION_LAYOUT_MINIMUM_RATIO=.8;
 /** D9: screens show length as A4 pages (10pt body, default margins). Contracts and checks keep counting chars. */
 export const A4_CHARS_PER_PAGE=1800;
 export const A4_PAGE_NOTE='A4 1장은 약 1,800자 기준';
@@ -44,7 +47,7 @@ export function layoutTargets(weights:number[],tier:PackageId):[number,number][]
  const sum=weights.reduce((a,b)=>a+b,0);
  return weights.map(w=>per.map((chars,i)=>(i?Math.floor:Math.ceil)(chars*w*weights.length/sum)) as [number,number]);
 }
-export const layoutMinimum=(target:readonly [number,number])=>Math.ceil(target[0]*LAYOUT_MINIMUM_RATIO);
+export const layoutMinimum=(target:readonly [number,number],ratio=LAYOUT_MINIMUM_RATIO)=>Math.ceil(target[0]*ratio);
 
 /** New purchases: per-system foundation and expert chapters, the question outline, cross-system life chapters and synthesis. */
 export function fusionConsultationManifest(product:Product,topic='general'):ChapterSpec[]{
@@ -59,11 +62,19 @@ export function allocateConsultationBudget(rows:ChapterSpec[],tier:PackageId):Ch
   const ordered=[...rows.filter(row=>row.layoutRole!=='synthesis'),...synthesis].map((row,ordinal)=>({...row,ordinal,
    consultationLayout:FUSION_LAYOUT_VERSION,layoutRole:row.layoutRole||(row.key==='prevention'?'life':'question')}));
   const targets=layoutTargets(ordered.map(row=>ROLE_WEIGHTS[row.layoutRole]||1),tier);
-  return ordered.map((row,i)=>scaled(row,targets[i],layoutMinimum(targets[i])));
+  return ordered.map((row,i)=>scaled(row,targets[i],layoutMinimum(targets[i],FUSION_LAYOUT_MINIMUM_RATIO)));
  }
  const budget=legacyConsultationBudget(tier);
  const sums=[0,1].map(i=>rows.reduce((sum,row)=>sum+row.targetChars![i],0));
  return rows.map(row=>scaled(row,row.targetChars!.map((n,i)=>Math.floor(n/sums[i]*budget.initial[i])) as [number,number],0));
+}
+/** 4: in a fusion ask, the opening answer and the question chapters read the requested period's years and dates.
+ * 'question-year' (질문과 이어진 올해) and the life/foundation/expert/synthesis chapters keep the stored calculation year. */
+export const readsRequestedPeriod=(row:ChapterSpec)=>row.ordinal===0||['answer','question'].includes(row.layoutRole||'')&&row.key!=='question-year';
+export function withRequestedPeriodScope(rows:ChapterSpec[],period:{kind:string;start?:string;end?:string;years?:{year:number}[]}|undefined):ChapterSpec[]{
+ if(period?.kind!=='requested'||!period.start||!period.end||!period.years?.length||!rows.some(row=>row.consultationLayout===FUSION_LAYOUT_VERSION))return rows;
+ const timeScope={years:period.years.map(y=>y.year),start:period.start,end:period.end};
+ return rows.map(row=>readsRequestedPeriod(row)?{...row,timeScope}:row);
 }
 function scaled(row:ChapterSpec,targetChars:[number,number],minimumChars:number):ChapterSpec{
  const sections=row.sections?.map(section=>({...section,minimumChars:0,targetChars:section.targetChars.map((n,i)=>Math.floor(n/row.targetChars![i]*targetChars[i])) as [number,number]}));

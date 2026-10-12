@@ -1,5 +1,6 @@
 "use client";
 
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type KeyboardEvent } from "react";
@@ -2305,6 +2306,7 @@ export default function NeoOperationRoomPage() {
           <div><h2>{welcome.results}</h2><p>{welcome.lead}</p><Link href="/neo-operation-room/strategy-books/">{bookCopy.title} →</Link><p className={styles.strategyBookHint}>{bookCopy.rule}</p></div>
         </div>
         <ExpertValueCards theme="neo" points={welcome.points} />
+        {dialogueLocale === "ko" && <CraftedProductDisclosure featureKey={FEATURE_KEY} />}
       </section>}
 
       {showOperationMap ? (

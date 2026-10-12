@@ -550,6 +550,36 @@ contentEntitlementSchema.index(
   },
 );
 
+// 구매 프로필을 몰라 BIRTH 행으로 옮기지 못한 기존 출생 기반 해금(마이그레이션 20261010 이 만든다).
+// 사용자가 저장 프로필을 고르면 그 생년월일 하나로 지급한다(worker/payments/birth-profile-claim.js) — 환불 없음.
+// 해금 판정 경로는 이 컬렉션을 읽지 않는다. claimId 는 userId·sourceKind·sourceId 의 해시(클라이언트 노출 id).
+const birthScopeLegacyClaimSchema = new mongoose.Schema({
+  claimId: { type: String, required: true, trim: true, maxlength: 64 },
+  userId: { type: String, required: true, trim: true },
+  sourceKind: { type: String, enum: ["entitlement", "payment", "point_history", "user_array"], required: true },
+  sourceId: { type: String, required: true, trim: true, maxlength: 180 },
+  reason: { type: String, default: "", trim: true, maxlength: 80 },
+  featureKey: { type: String, required: true, trim: true, maxlength: 160 },
+  serviceKey: { type: String, default: "", trim: true, maxlength: 80 },
+  contentKey: { type: String, default: "", trim: true, maxlength: 160 },
+  orderId: { type: String, default: "", trim: true, maxlength: 160 },
+  paymentId: { type: String, default: "", trim: true, maxlength: 160 },
+  priceKRW: { type: Number, default: 0, min: 0 },
+  priceCoins: { type: Number, default: 0, min: 0 },
+  paidAt: { type: Date, default: null },
+  claim: {
+    profileId: { type: String, default: undefined, trim: true, maxlength: 80 },
+    partnerProfileId: { type: String, default: undefined, trim: true, maxlength: 80 },
+    birthKey: { type: String, default: undefined, trim: true, maxlength: 64 },
+    claimedAt: { type: Date, default: undefined },
+    grantedAt: { type: Date, default: undefined },
+  },
+}, { timestamps: true, collection: "birth_scope_legacy_claims" });
+
+// autoIndex:false — 생성은 20261010-birth-scope-unlocks.mjs --create-index.
+birthScopeLegacyClaimSchema.index({ userId: 1, sourceKind: 1, sourceId: 1 }, { unique: true, name: "legacy_claim_source" });
+birthScopeLegacyClaimSchema.index({ claimId: 1 }, { unique: true, name: "legacy_claim_id" });
+
 const refreshTokenSessionSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
   tokenHash: { type: String, required: true, unique: true, index: true },
@@ -1995,6 +2025,8 @@ export const MonthlyCreditLedger = scopedModel(mongoose.models.MonthlyCreditLedg
   || mongoose.model("MonthlyCreditLedger", monthlyCreditLedgerSchema));
 export const ContentEntitlement = scopedModel(mongoose.models.ContentEntitlement
   || mongoose.model("ContentEntitlement", contentEntitlementSchema));
+export const BirthScopeLegacyClaim = scopedModel(mongoose.models.BirthScopeLegacyClaim
+  || mongoose.model("BirthScopeLegacyClaim", birthScopeLegacyClaimSchema));
 export const PaymentFailureLog = scopedModel(mongoose.models.PaymentFailureLog || mongoose.model("PaymentFailureLog", paymentFailureLogSchema));
 export const PaymentWebhookEvent = scopedModel(mongoose.models.PaymentWebhookEvent
   || mongoose.model("PaymentWebhookEvent", paymentWebhookEventSchema));

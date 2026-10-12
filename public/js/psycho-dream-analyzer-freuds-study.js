@@ -856,6 +856,9 @@
 
   window.openPsychoDreamModal = function openPsychoDreamModal() {
     injectFreudsStudyStyles();
+    import('/js/core/dream/crafted-details.mjs').then(function(module) {
+      module.mountDreamCraftedDetails($(INPUT_SCREEN_ID));
+    }).catch(function() { /* Keep the existing dream input available. */ });
 
     // 이전 세션에서 남은 승인 신호가 있으면 게이트를 건너뛰고 무료로 분석되므로 진입 시 제거한다.
     try { sessionStorage.removeItem("cd_pa_psychoDreamStartAnalysis"); } catch (_) {}

@@ -1,0 +1,80 @@
+{
+  "id": "reunion-tarot",
+  "featureKey": "tarot-reunion-reading",
+  "title": "재회운 타로",
+  "notice": "다섯 카드를 뽑아 순서대로 공개한 뒤 유료 재회 리딩을 요청합니다. 생년월일이나 개인 사연 입력은 없습니다. 남은 감정의 온기·상대의 지금 마음·연락이 멈춘 배경·말 너머 마음·관계 회복 조건을 카드와 방향, 키워드, 장면, 재회 해석, 현실 조언과 주의점으로 읽습니다. 현재 리딩은 카드 자료를 조합하는 규칙형 해석이며 AI 자유 상담이 아닙니다. 종합 회복 신호·마음의 결·거리와 때·현실 장벽·판단 기준과 연락 전 기준, 첫 문장, 아껴둘 표현, 7일 회복 루틴 및 결과에 포함된 체크리스트를 확인합니다. 상대 관점이나 회복 신호는 확인된 사실·측정 확률이 아닙니다. 상대가 원하지 않는 연락과 경계를 넘는 행동을 권하지 않습니다. 후속 질문문 복사와 짧은 결과 공유를 지원하며 추가 AI 상담 이용권·PDF·전체 결과 파일 저장은 포함하지 않습니다. 표지와 예시는 콘셉트·가상 편집으로 개인 결과나 후기가 아닙니다. 재회·답장·연락 시점·효과를 보장하지 않습니다. 이용권·월정석·단건 결제 조건은 결제 안내에서 확인하세요.",
+  "panels": [
+    {
+      "id": "01-a-light-before-contact",
+      "title": "다시 연락하기 전, 비춰볼 마음과 거리.",
+      "src": "/feature-details/crafted/reunion-tarot/01-a-light-before-contact.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "다시 연락하기 전,\n비춰볼 마음과 거리.\n\n남아 있는 감정과 멈춘 연락,\n관계 회복에 필요한 조건을\n다섯 카드로 읽는 재회운 타로입니다.\n\n콘셉트 이미지 · 개인 결과가 아닙니다.\n재회나 연락의 성사를 보장하지 않아요."
+    },
+    {
+      "id": "02-five-lighthouse-questions",
+      "title": "그리움에서 회복의 조건까지.",
+      "src": "/feature-details/crafted/reunion-tarot/02-five-lighthouse-questions.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "그리움에서\n회복의 조건까지.\n\n01 · 남아 있는 감정의 온기\n\n02 · 상대의 지금 마음\n\n03 · 연락이 멈춘 배경\n\n04 · 말 너머 상대의 속마음\n\n05 · 관계 회복의 조건\n\n다섯 자리는 카드에 던지는 질문입니다.\n상대에게 확인한 사실이나\n마음의 측정값이 아닙니다."
+    },
+    {
+      "id": "03-what-stopped-the-contact",
+      "title": "마음만으로 설명되지 않는 멈춤.",
+      "src": "/feature-details/crafted/reunion-tarot/03-what-stopped-the-contact.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "마음만으로\n설명되지 않는 멈춤.\n남은 감정\n현실 조건\n\n감정이 남아 있더라도\n지금 관계를 이어갈 준비가\n되어 있다는 뜻은 아닐 수 있어요.\n\n연락이 멈춘 배경을 읽어요\n\n카드가 보여주는 상황과 장벽을\n감정의 방향과 함께 살펴봅니다.\n\n기다림이 길어질수록 확인한 사실과\n바라는 마음을 구분해 읽어주세요."
+    },
+    {
+      "id": "04-what-each-card-explains",
+      "title": "다섯 장 모두, 현실 조언까지.",
+      "src": "/feature-details/crafted/reunion-tarot/04-what-each-card-explains.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "다섯 장 모두,\n현실 조언까지.\n카드와 핵심 신호\n\n카드 이름·방향·키워드와\n카드가 비추는 장면을 읽어요.\n\n재회 흐름의 해석\n\n이 자리가 관계 회복의 질문과\n어떻게 연결되는지 살펴봅니다.\n\n현실 조언과 조심할 파도\n\n지금 할 수 있는 행동과\n다시 반복하지 않을 조건을\n함께 정리합니다."
+    },
+    {
+      "id": "05-the-current-coordinates",
+      "title": "회복 신호보다, 먼저 볼 조건이 있어요.",
+      "src": "/feature-details/crafted/reunion-tarot/05-the-current-coordinates.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "회복 신호보다,\n먼저 볼 조건이 있어요.\n마음의 결\n연락의 간격\n현실 장벽\n지킬 기준\n\n종합 안내에서 회복의 흐름과\n상대가 보이는 마음의 결,\n다시 닿기 전의 거리와 때를\n함께 살펴봅니다.\n\n‘회복 신호’와 ‘마음의 온도’는\n측정한 재회 확률이 아닌 해석 언어입니다."
+    },
+    {
+      "id": "06-a-message-with-space",
+      "title": "연락을 한다면, 답을 재촉하지 않는 말.",
+      "src": "/feature-details/crafted/reunion-tarot/06-a-message-with-space.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "가상 편집 예시 · 실제 결과가 아닙니다\n\n연락을 한다면,\n답을 재촉하지 않는 말.\n“문득 생각나서 안부를 남겨.\n요즘 잘 지내고 있길 바라.\n답장은 편할 때 해도 괜찮아.”\n\n연락 여부를 결정하기 전에\n상대가 거리를 원했는지,\n지금 연락이 부담은 아닐지\n먼저 돌아봐 주세요.\n\n예시는 연락을 권하는 처방이 아닙니다.\n상대가 거절한 경계를 존중해 주세요."
+    },
+    {
+      "id": "07-seven-days-for-yourself",
+      "title": "앞으로 7일, 내 마음을 회복하는 쪽으로.",
+      "src": "/feature-details/crafted/reunion-tarot/07-seven-days-for-yourself.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "앞으로 7일,\n내 마음을 회복하는 쪽으로.\n먼저 움직이기 전 기준\n\n지금 연락할지 판단하는 관점과\n부담을 낮춘 첫 문장을 읽어요.\n\n잠시 아껴둘 표현\n\n추궁이나 감정의 증명으로\n관계의 부담을 키우지 않도록요.\n\n7일 루틴과 체크리스트\n\n결과의 행동 제안에서\n지금 가능한 것부터 골라보세요.\n\n7일은 실천 계획이며 재회 기한이 아닙니다."
+    },
+    {
+      "id": "08-how-to-read-and-keep",
+      "title": "다섯 카드를 열고, 질문을 이어가요.",
+      "src": "/feature-details/crafted/reunion-tarot/08-how-to-read-and-keep.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "다섯 카드를 열고,\n질문을 이어가요.\n\n카드 뽑기 후 순서대로 공개하고\n유료 리딩 안내로 이어집니다.\n생년월일·개인 사연 입력은 없어요.\n\n카드 자료를 조합한 해설\n\n현재 리딩은 규칙형 해석입니다.\nAI 자유 상담과는 다릅니다.\n\n후속 질문문 복사와 공유\n\n카드 맥락이 담긴 질문문을 복사하고\n짧은 결과 메시지를 공유할 수 있어요.\n\n질문문은 추가 AI 상담 이용권이 아닙니다.\nPDF·전체 결과 파일 저장은 제공하지 않아요."
+    },
+    {
+      "id": "09-a-choice-you-can-respect",
+      "title": "다시 닿는 길에도, 나의 경계가 필요해요.",
+      "src": "/feature-details/crafted/reunion-tarot/09-a-choice-you-can-respect.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "다시 닿는 길에도,\n나의 경계가 필요해요.\n\n카드는 돌아볼 관점을 비춥니다.\n재회의 가능성만큼\n나를 지키는 선택도 살펴주세요.\n\n관계 회복은 두 사람의 의사와\n현실의 변화가 함께 필요합니다.\n카드로 타인의 마음이나\n연락 시점을 확정하지 않습니다.\n\n이용권·월정석·단건 결제 조건은\n결제 안내에서 확인해 주세요.\n\n예시는 가상 편집이며 고객 후기가 아닙니다.\n재회·답장·상담 효과를 보장하지 않아요."
+    }
+  ]
+}

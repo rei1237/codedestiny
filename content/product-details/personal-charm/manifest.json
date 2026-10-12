@@ -1,0 +1,80 @@
+{
+  "id": "personal-charm",
+  "featureKey": "rpt_specialCharmCard",
+  "title": "나의 매력 클래스",
+  "notice": "사주 결과의 지지 구성과 오행을 바탕으로 읽는 매력 해금 리포트입니다. 매력 클래스, 핵심 요약, 상황별 발동 리포트, 도화·역마·화개 스탯, 오행 매력 마그네티즘, 활용 무대, 팩폭 카드, 천기 처방전, 오늘의 미션까지 아홉 부분으로 구성됩니다. 도화·역마·화개는 이 기능의 정해진 지지 규칙으로 환산하는 상징 지표이며 모든 명리 유파의 신살 판정과 동일하지 않습니다. 수치는 외모·인기·타인 대비 순위나 실제 호감 확률을 측정한 값이 아닙니다. 상대의 마음을 판정하거나 연애·수익의 성과를 보장하지 않습니다. 브라우저 규칙과 준비된 문장으로 구성하며 새 AI 답변·얼굴 분석·이미지 파일·PDF 제공이 아닙니다. 가상 편집 예시는 실제 결과나 후기가 아니며 이미지는 분위기 연출입니다. 처방과 미션은 행동을 돌아보는 상징적인 제안입니다. 현재 이용권·월정석·단건 결제 및 해금 범위는 결제창을 확인하세요.",
+  "panels": [
+    {
+      "id": "01-the-impression-you-leave",
+      "title": "사람들 곁에 남는, 나만의 분위기는?",
+      "alt": "사람들 곁에 남는, 나만의 분위기는 무엇일까요.",
+      "src": "/feature-details/crafted/personal-charm/01-the-impression-you-leave.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "사람들 곁에 남는,\n나만의 분위기는?\n\n처음 보이는 모습과 오래 남는 결,\n호감이 오해로 바뀌는 순간까지.\n사주로 매력의 쓰임을 읽어보세요.\n\n나의 매력 클래스 · 분위기 연출 이미지"
+    },
+    {
+      "id": "02-three-symbolic-qualities",
+      "title": "도화·역마·화개를, 매력의 언어로 읽어요.",
+      "alt": "도화·역마·화개를, 매력의 언어로 읽어요.",
+      "src": "/feature-details/crafted/personal-charm/02-three-symbolic-qualities.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "도화·역마·화개를,\n매력의 언어로 읽어요.\n도화 · 시선을 끄는 결\n\n사람에게 남기는 인상을 살펴요.\n\n역마 · 움직임과 새로움\n\n새로운 장면에서 드러나는 매력.\n\n화개 · 깊이와 고유한 취향\n\n혼자 쌓은 세계가 전해지는 방식.\n\n이 기능의 지지 규칙으로 환산해요.\n신살 해석은 유파마다 달라요."
+    },
+    {
+      "id": "03-the-first-five-parts",
+      "title": "나의 결을 발견하는, 앞부분의 다섯 이야기.",
+      "alt": "나의 결을 발견하는, 앞부분의 다섯 이야기.",
+      "src": "/feature-details/crafted/personal-charm/03-the-first-five-parts.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "나의 결을 발견하는,\n앞부분의 다섯 이야기.\n\n매력 클래스\n\n핵심 요약 · 첫인상과 남는 결\n\n상황별 매력 발동 리포트\n\n세 가지 매력 신살 스탯\n\n오행 매력 마그네티즘\n\n오행 마그네티즘은\n목·화·토·금·수의 분위기를 풀어줘요."
+    },
+    {
+      "id": "04-how-to-use-your-charm",
+      "title": "발견한 매력을, 생활에 쓰는 네 이야기.",
+      "alt": "발견한 매력을, 생활 속에서 써보는 네 이야기.",
+      "src": "/feature-details/crafted/personal-charm/04-how-to-use-your-charm.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "발견한 매력을,\n생활에 쓰는 네 이야기.\n\n매력을 쓰기 좋은 무대\n\n팩폭 카드 · 오해가 생기는 지점\n\n천기 처방전 · 매력 운용법\n\n오늘의 매력 미션\n\n앞의 다섯 부분에 이어\n활용과 주의, 오늘의 행동까지\n아홉 부분을 함께 읽어요.\n\n처방은 상징적인 행동 제안이에요."
+    },
+    {
+      "id": "05-the-scene-changes-the-impression",
+      "title": "같은 매력도, 장면마다 다르게 전해져요.",
+      "alt": "같은 매력도, 장면에 따라 다르게 전해져요.",
+      "src": "/feature-details/crafted/personal-charm/05-the-scene-changes-the-impression.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "같은 매력도,\n장면마다 다르게 전해져요.\n새로운 만남과 익숙한 관계\n\n처음의 인상과 시간이 쌓인 뒤\n드러나는 결을 나누어 읽어요.\n\n일과 나를 알리는 자리\n\n말투·관점·취향이\n어떻게 보일지 돌아보세요.\n\n갈등이 생기는 순간\n\n호감이 오해로 바뀌는 지점과\n표현을 조절할 방향을 살펴요."
+    },
+    {
+      "id": "06-an-example-of-expression",
+      "title": "조용한 마음도, 작은 표현으로 전해요.",
+      "alt": "조용한 마음도, 작은 표현으로 전해질 수 있게.",
+      "src": "/feature-details/crafted/personal-charm/06-an-example-of-expression.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "조용한 마음도,\n작은 표현으로 전해요.\n\n가상 편집 예시 · 실제 결과·후기 아님\n\n“친해지고 싶은데,\n차갑다는 말을 자주 들어요.”\n\n긴 설명을 준비하기보다\n고마웠던 일 하나를 짚어\n짧게 전해 보는 건 어떨까요?\n\n해석을 읽으며 오늘의 미션을\n내 상황에 맞게 골라보세요."
+    },
+    {
+      "id": "07-what-the-numbers-mean",
+      "title": "매력 스탯은, 외모·인기 점수가 아니에요.",
+      "alt": "매력 스탯은, 외모나 인기의 점수가 아니에요.",
+      "src": "/feature-details/crafted/personal-charm/07-what-the-numbers-mean.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "매력 스탯은,\n외모·인기 점수가 아니에요.\n사주를 번역한 상징\n\n특정 기운의 구성을 보여줘요.\n타인 대비 순위가 아니에요.\n\n상대의 마음과는 별개\n\n호감 확률이나 연애 성공을\n계산하는 기능은 아니에요.\n\n화면에서 읽는 리포트\n\n새 AI 답변이나 얼굴 분석,\n이미지·PDF 저장은 포함하지 않아요."
+    },
+    {
+      "id": "08-read-your-own-style",
+      "title": "내 매력을 단정하기보다, 쓰는 방식을 돌아보세요.",
+      "alt": "내 매력을 단정하기보다, 쓰는 방식을 돌아보세요.",
+      "src": "/feature-details/crafted/personal-charm/08-read-your-own-style.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "내 매력을 단정하기보다,\n쓰는 방식을 돌아보세요.\n\n기존 사주 결과에서\n나의 매력 클래스를 펼쳐\n지금의 관계와 연결해 읽어요.\n\n해금 범위 확인\n\n이용권·월정석·단건 결제는\n현재 결제창을 기준으로 해요.\n\n관계나 수익의 성과를 보장하지 않아요."
+    }
+  ]
+}

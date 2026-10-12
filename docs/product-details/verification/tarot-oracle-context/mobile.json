@@ -1,0 +1,246 @@
+{
+  "rows": [
+    {
+      "width": 360,
+      "images": [
+        {
+          "loaded": true,
+          "width": 328,
+          "left": 0,
+          "right": 328
+        },
+        {
+          "loaded": true,
+          "width": 328,
+          "left": 0,
+          "right": 328
+        },
+        {
+          "loaded": true,
+          "width": 328,
+          "left": 0,
+          "right": 328
+        },
+        {
+          "loaded": true,
+          "width": 328,
+          "left": 0,
+          "right": 328
+        },
+        {
+          "loaded": true,
+          "width": 328,
+          "left": 0,
+          "right": 328
+        },
+        {
+          "loaded": true,
+          "width": 328,
+          "left": 0,
+          "right": 328
+        },
+        {
+          "loaded": true,
+          "width": 328,
+          "left": 0,
+          "right": 328
+        },
+        {
+          "loaded": true,
+          "width": 328,
+          "left": 0,
+          "right": 328
+        },
+        {
+          "loaded": true,
+          "width": 328,
+          "left": 0,
+          "right": 328
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "images": [
+        {
+          "loaded": true,
+          "width": 358,
+          "left": 0,
+          "right": 358
+        },
+        {
+          "loaded": true,
+          "width": 358,
+          "left": 0,
+          "right": 358
+        },
+        {
+          "loaded": true,
+          "width": 358,
+          "left": 0,
+          "right": 358
+        },
+        {
+          "loaded": true,
+          "width": 358,
+          "left": 0,
+          "right": 358
+        },
+        {
+          "loaded": true,
+          "width": 358,
+          "left": 0,
+          "right": 358
+        },
+        {
+          "loaded": true,
+          "width": 358,
+          "left": 0,
+          "right": 358
+        },
+        {
+          "loaded": true,
+          "width": 358,
+          "left": 0,
+          "right": 358
+        },
+        {
+          "loaded": true,
+          "width": 358,
+          "left": 0,
+          "right": 358
+        },
+        {
+          "loaded": true,
+          "width": 358,
+          "left": 0,
+          "right": 358
+        }
+      ]
+    },
+    {
+      "width": 430,
+      "images": [
+        {
+          "loaded": true,
+          "width": 398,
+          "left": 0,
+          "right": 398
+        },
+        {
+          "loaded": true,
+          "width": 398,
+          "left": 0,
+          "right": 398
+        },
+        {
+          "loaded": true,
+          "width": 398,
+          "left": 0,
+          "right": 398
+        },
+        {
+          "loaded": true,
+          "width": 398,
+          "left": 0,
+          "right": 398
+        },
+        {
+          "loaded": true,
+          "width": 398,
+          "left": 0,
+          "right": 398
+        },
+        {
+          "loaded": true,
+          "width": 398,
+          "left": 0,
+          "right": 398
+        },
+        {
+          "loaded": true,
+          "width": 398,
+          "left": 0,
+          "right": 398
+        },
+        {
+          "loaded": true,
+          "width": 398,
+          "left": 0,
+          "right": 398
+        },
+        {
+          "loaded": true,
+          "width": 398,
+          "left": 0,
+          "right": 398
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "images": [
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        }
+      ]
+    }
+  ],
+  "drawPosts": 0,
+  "authPosts": 0,
+  "otherPosts": 0,
+  "devPosts": 0,
+  "fallback": true,
+  "mode": "Mock APIs; existing question input and local five-card selection; CTA trial only; no paid calculation or AI reading"
+}

@@ -4,7 +4,7 @@ import {
   isProfileScopedContentUnlockFeatureKey,
 } from "./content-unlocks.js";
 import { isBirthScopedUnlockFeatureKey, isLegacyLoveCodeUnlockAlias, isPerUsePaidFeatureKey, isUnlockPaidFeatureKey, LOVE_CODE_FEATURE_KEY, normalizePaidFeatureKey } from "./paid-feature-registry.js";
-import { KRW_PER_COIN, resolvePassPolicy, normalizePassTier, resolveMonthlyPassLimitCoin } from "./profile-limits.js";
+import { KRW_PER_COIN, resolvePassPolicy, normalizePassTier, resolveMonthlyPassLimitCoin, resolveProfileLimitForClient } from "./profile-limits.js";
 import {
   ACCESS_STATE_STALE_TTL_MS,
   ACCESS_STATE_TTL_MS,
@@ -172,9 +172,8 @@ export function buildAccessState({
   const tier = String(active?.tier || active?.passTier || entitlement?.tier || "free").trim().toLowerCase();
   const hasActivePass = Boolean(active?.isActive) && tier !== "free" && tier !== "none";
   const activeUntil = active?.expiresAt || entitlement?.expiresAt || null;
-  const maxProfileCount = Number.isFinite(Number(active?.profileLimit))
-    ? Math.max(0, Math.floor(Number(active.profileLimit)))
-    : 1;
+  // 2026-10-11: 프로필 카드 개수 상한 없음(0 = 무제한). 이용권 등급과 무관하다.
+  const maxProfileCount = resolveProfileLimitForClient();
   const checkedMs = Date.parse(checkedAt);
   const fetchedMs = Number.isFinite(checkedMs) ? checkedMs : Date.now();
   const expiresAt = new Date(fetchedMs + ACCESS_STATE_TTL_MS).toISOString();
@@ -201,6 +200,11 @@ export function buildAccessState({
       : resolvedUnlockedFeatureIds,
   );
   const unlockedFeatureGrants = buildUnlockGrants(contentState, unlockedFeatureIds);
+  // 출생 기반 키 중 전환 이전 USER/PROFILE 행으로 열린 것(레거시 유지). 계정 키는 클라이언트가 저장 프로필 없이도 연다.
+  const legacyUnlockedIds = (keys) => normalizeUnlockFeatureArray(Array.isArray(keys) ? keys : [])
+    .filter((key) => unlockedFeatureIds.includes(key));
+  const legacyAccountUnlockedFeatureIds = legacyUnlockedIds(contentState?.legacyAccountFeatureKeys);
+  const legacyProfileUnlockedFeatureIds = legacyUnlockedIds(contentState?.legacyProfileFeatureKeys);
   const normalizedContentKeys = normalizeStringArray([
     ...unlockedContentKeys,
     ...(Array.isArray(contentState?.contentKeys) ? contentState.contentKeys : []),
@@ -253,6 +257,8 @@ export function buildAccessState({
     passUsage,
     unlockedFeatureIds,
     unlockedFeatureGrants,
+    legacyAccountUnlockedFeatureIds,
+    legacyProfileUnlockedFeatureIds,
     monthlyBalance,
     profileEntitlements,
     ownedProductIds,
@@ -295,6 +301,8 @@ export function buildAccessState({
     unlockedFeatureIds,
     unlockedFeatures: unlockedFeatureIds,
     unlockedFeatureGrants,
+    legacyAccountUnlockedFeatureIds,
+    legacyProfileUnlockedFeatureIds,
     unlockMap,
     lockMap,
     profileEntitlements,

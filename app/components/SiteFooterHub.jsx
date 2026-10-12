@@ -227,7 +227,7 @@ export default function SiteFooterHub() {
           <section aria-label="환불 정책 안내">
             <h2 style={{ fontSize: '1.25rem', marginTop: '2rem', marginBottom: '1rem', fontWeight: 600 }}>디지털 운세 서비스 환불 안내</h2>
             <p style={{ marginBottom: '1.5rem', lineHeight: 1.6 }}>
-              유료 결제 상품은 30일 이용권과 상품별 원화 단건 결제이며, 월정석은 별도 구매·충전 상품이 아닙니다.
+              유료 결제 상품은 이용권과 상품별 원화 단건 결제이며, 월정석은 별도 구매·충전 상품이 아닙니다.
             </p>
             {/* 🔴 환불정책 전문을 여기에 렌더하지 않는다.
                 푸터는 모든 페이지에 붙으므로, 전문을 담으면 색인 페이지가 같은 본문을 공유한다.

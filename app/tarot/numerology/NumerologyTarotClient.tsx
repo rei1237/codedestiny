@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { RefreshCw, Save, Share2 } from "lucide-react";
@@ -1546,6 +1547,8 @@ export default function NumerologyTarotClient() {
             <button type="button" className={styles.lightBtn} onClick={toggleFullscreen}>{isFullscreen ? "전체화면 해제" : "전체화면"}</button>
           </div>
         </header>
+
+        <div style={{ width: "100%", maxWidth: 540, margin: "0 auto 24px" }}><CraftedProductDisclosure featureKey="tarot-numerology-reading" /></div>
 
         <section className={styles.heroGrid}>
           <div className={styles.mainPanel}>

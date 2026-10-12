@@ -50,7 +50,7 @@ describe("relationship boundary test", () => {
 
   it("exposes the registry 5,000 won common payment payload", () => {
     expect(__relationshipBoundaryTestTestUtils.paymentPayload("rbt-test-request-0002")).toMatchObject({
-      featureKey: "relationship-boundary-test", amountKRW: 5000,
+      featureKey: "relationship-boundary-test", amountKRW: 10000,
       allowedPaymentModes: ["MEMBERSHIP_PASS", "MOONLIGHT_STONE", "DIRECT_KRW"],
     });
   });

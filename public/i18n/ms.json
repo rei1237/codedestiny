@@ -369,7 +369,7 @@
       "olympusOracleTitle": "⚡ Orakel Olympus",
       "olympusOracleDesc": "Bacaan takdir 12 dewa dan zodiak",
       "destinyFlowerTitle": "🌸 Bunga Takdir",
-      "destinyFlowerDesc": "Empat kuntum: Saju, astrologi, Zi Wei dan Sukuyo",
+      "destinyFlowerDesc": "Empat kuntum: Empat Tiang, astrologi, Zi Wei dan Sukuyo",
       "astrologyFlowerTitle": "✨ Bunga Astrologi",
       "astrologyFlowerDesc": "Matahari · Terbit · Bulan",
       "ziweiFlowerTitle": "🌺 Bunga Zi Wei",
@@ -526,7 +526,7 @@
       "olympusOracleAlt": "Olympus Oracle - 12 tuhan dan bacaan takdir zodiak",
       "olympusOracleImgAlt": "Olympus Oracle",
       "destinyFlowerAria": "Mulakan Bunga Destiny",
-      "destinyFlowerAlt": "Bunga Takdir - gabungan Saju, astrologi, Zi Wei dan Sukuyo",
+      "destinyFlowerAlt": "Bunga Takdir - gabungan Empat Tiang, astrologi, Zi Wei dan Sukuyo",
       "destinyFlowerImgAlt": "Bunga Takdir",
       "astrologyFlowerAria": "Mulakan Bunga Astrologi",
       "astrologyFlowerAlt": "Bunga Astrologi - Matahari · Terbit · Bulan",
@@ -578,7 +578,7 @@
       "sajuFptiImgAlt": "Ujian FPTI Saju",
       "basicFreeBadge": "Asas percuma",
       "price3000": "Sekali KRW 3,000",
-      "price5000": "Sekali KRW 3,000",
+      "price5000": "Sekali KRW 5,000",
       "price10000": "Sekali KRW 10,000",
       "cosmicSoulPrice": "30 min KRW 5,000 · 60 min KRW 10,000",
       "compatibilityPrice": "Keserasian KRW 3,000",
@@ -600,29 +600,31 @@
       "price5000Price3000": "Sekali KRW 3,000",
       "price10000Price5000": "Sekali KRW 5,000",
       "unlock1000": "Buka kunci KRW 1,000",
-      "price1000": "Sekali KRW 1,000"
+      "price1000": "Sekali KRW 1,000",
+      "sajuGuardianPricePrice5000Price7000": "Buka kunci kekal KRW 7,000",
+      "unlock1000Price5000": "Buka kunci KRW 5,000"
     },
     "destinyFlowerStudio": {
       "closeAria": "Tutup Atelier Bunga Takdir",
       "kicker": "Destiny Flower Atelier",
       "title": "Atelier Bunga Takdir",
-      "sourceDesc": "Daripada day master, cabang musim dan imbangan Lima Unsur, tekstur mekar yang selari dengan tenaga anda sedang terbuka.",
+      "sourceDesc": "Kami membaca Tuan Hari, cabang bulan lahir dan imbangan Lima Unsur anda satu demi satu, lalu memilih sekuntum bunga yang paling dekat dengan tenaga anda pada musim ini.",
       "sourceTabsAria": "Tab sumber ramalan atelier",
-      "tabSaju": "Bunga Saju",
+      "tabSaju": "Bunga Empat Tiang",
       "tabAstrology": "Bunga astrologi",
       "tabZiwei": "Bunga Ziwei",
       "tabSukuyo": "Bunga Sukuyo",
-      "sajuBadgesAria": "Lencana analisis teras Saju",
+      "sajuBadgesAria": "Lencana analisis teras Empat Tiang",
       "badgeStrength": "Imbangan kekuatan",
       "waiting": "Menunggu bacaan",
       "badgeYongshin": "Elemen berguna",
       "badgeJohu": "Baki bermusim",
-      "narrative": "Cerita bunga anda sedang dibentuk daripada bacaan Lima Unsur Saju anda.",
+      "narrative": "Cerita bunga anda sedang dibentuk daripada bacaan Lima Unsur dalam Empat Tiang anda.",
       "imageAlt": "Pratonton Atelier Bunga Destiny",
       "defaultFlowerName": "Teratai",
       "daymasterWaiting": "Menunggu bacaan tuan hari",
       "whyTitle": "Mengapa bunga ini?",
-      "symbolism": "Dalam bacaan Saju ini, bunga anda adalah teratai, simbol pembaharuan yang mekar dengan jelas walaupun melalui air yang keruh.",
+      "symbolism": "Menurut Empat Tiang, bunga anda ialah teratai, simbol pembaharuan yang mekar jernih walaupun di dalam air yang keruh.",
       "panelsAria": "Panel tafsiran Destiny Flower",
       "paletteTitle": "Palet warna peribadi",
       "particleTitle": "Suasana zarah",
@@ -667,7 +669,15 @@
       "close": "Tutup",
       "home": "Pergi ke skrin utama",
       "keywords": "keputusan saju • kelahiran semula • kesucian • mengalir",
-      "quadAria": "Bunga takdir daripada keempat-empat sistem"
+      "quadAria": "Bunga takdir daripada keempat-empat sistem",
+      "letterTitle": "Surat bunga hari ini · Satu perkara yang hati anda perlukan",
+      "letterIntro": "Ini bukan ramalan, tetapi kisah bunga untuk tindakan kecil. Pilih surat yang sesuai dengan hati anda sekarang.",
+      "letterRestTitle": "Seperti bunga magnolia · Saya mahu berehat sebentar",
+      "letterRestBody": "Sebelum bunga mekar, dahan juga mengumpul tenaga secara senyap. Hari ini, kurangkan satu tugasan dan luangkan sedikit masa memandang pokok atau langit di luar tingkap.",
+      "letterStartTitle": "Seperti tunas baharu · Saya perlukan keberanian untuk bermula",
+      "letterStartBody": "Daripada tekad yang besar, biarkan satu tunas kecil tumbuh. Tulis hanya langkah pertama perkara yang anda tangguhkan, dan mulakannya selama 5 minit.",
+      "letterShareTitle": "Seperti sejambak bunga · Saya mahu menyampaikan isi hati",
+      "letterShareBody": "Daripada kata-kata yang anda mahu dengar, ingat kembali satu saat anda berasa bersyukur. Sampaikan isi hati dengan satu sapaan ringkas tanpa mendesak balasan."
     },
     "tarotSelfEsteem": {
       "levelUp": "Piawai diri anda menjadi lebih jelas",
@@ -806,10 +816,10 @@
       "aria": "Panduan pas cahaya bulan",
       "kicker": "LULUS CAHAYA BULAN",
       "title": "Biarkan rutin rezeki anda mengalir dengan lebih lembut dengan cahaya bulan berlalu",
-      "desc": "Moonlight Pass membuka bacaan yang kerap anda kembali kepadanya, dalam julat yang ditetapkan, selama 30 hari. Petanda hari ini terus mengalir tanpa terputus.",
+      "desc": "Moonlight Pass membuka bacaan yang kerap anda kembali kepadanya, dalam julat yang ditetapkan, sehingga had penggunaannya habis. Petanda hari ini terus mengalir tanpa terputus.",
       "guideLabel": "PANDUAN CAHAYA BULAN",
-      "guideTitle": "Selama 30 hari, bacaan yang sering dibuka mengalir lebih lembut dahulu",
-      "guideText": "Daripada Standard hingga Family, bacaan tarot, oracle dan saju dalam julat cahaya bulan anda dibuka dahulu tanpa aliran bayaran. Bacaan yang lebih mendalam di luar julat itu hanya diteruskan kepada bayaran sekali dalam KRW apabila diperlukan.",
+      "guideTitle": "Sehingga had penggunaan habis, bacaan yang sering dibuka mengalir lebih lembut dahulu",
+      "guideText": "Daripada Balang Madu Kecil hingga Balang Madu Keluarga, bacaan tarot, oracle dan saju dalam julat cahaya bulan anda dibuka dahulu tanpa aliran bayaran. Bacaan yang lebih mendalam di luar julat itu hanya diteruskan kepada bayaran sekali dalam KRW apabila diperlukan.",
       "toggle": "Faedah cahaya bulan terbuka",
       "heroAria": "Semak perkhidmatan tersedia secara percuma dalam aliran cahaya bulan",
       "heroTitle": "Lihat julat Moonlight Pass",
@@ -821,51 +831,51 @@
       "primaryAction": "Cari pas yang sesuai dengan saya",
       "chipsAria": "Faedah pas teras",
       "chipIncluded": "Percuma dalam julat hantaran",
-      "chipThirtyDays": "Pas 30 hari",
+      "chipThirtyDays": "Pas",
       "chipShareReward": "Bayaran sekali di luar julat",
       "plansAria": "Lulus kad ringkasan pelan",
-      "standardName": "Madu Standard 30 hari",
-      "standardPrice": "30 hari · KRW 9,900",
+      "standardName": "Balang Madu Kecil",
+      "standardPrice": "KRW 9,900",
       "standardLine": "Kandungan sehingga KRW 5,000",
-      "standardBenefit1": "Sehingga KRW 20,000 sebulan",
-      "standardBenefit2": "Sehingga 3 profil",
-      "standardCta": "Lihat Standard",
+      "standardBenefit1": "Sehingga KRW 20,000",
+      "standardCta": "Lihat Balang Madu Kecil",
       "recommendedAria": "Pelan yang disyorkan",
       "recommendedBadge": "Disyorkan",
-      "premiumName": "Madu Premium 30 hari",
-      "premiumPrice": "30 hari · KRW 29,900",
+      "premiumName": "Balang Madu Sederhana",
+      "premiumPrice": "KRW 29,900",
       "premiumLine": "Kandungan sehingga KRW 10,000",
-      "premiumBenefit1": "Sehingga KRW 60,000 sebulan",
-      "premiumBenefit2": "Sehingga 7 profil",
+      "premiumBenefit1": "Sehingga KRW 60,000",
       "premiumCta": "Lihat pelan yang disyorkan",
-      "vvipName": "Balang Madu VVIP 30 hari",
-      "vvipPrice": "30 hari · KRW 59,900",
+      "vvipName": "Balang Madu Besar",
+      "vvipPrice": "KRW 59,900",
       "vvipLine": "Kandungan sehingga KRW 30,000",
-      "vvipBenefit1": "Sehingga KRW 120,000 sebulan",
-      "vvipBenefit2": "Sehingga 15 profil",
-      "vvipCta": "Lihat faedah VVIP",
-      "familyName": "Keluarga Kod Destiny 30 hari",
-      "familyPrice": "30 hari · KRW 149,000",
+      "vvipBenefit1": "Sehingga KRW 120,000",
+      "vvipCta": "Lihat faedah Balang Madu Besar",
+      "familyName": "Balang Madu Keluarga",
+      "familyPrice": "KRW 149,000",
       "familyLine": "Semua kandungan yang dilindungi pas",
-      "familyBenefit1": "Sehingga KRW 350,000 sebulan",
-      "familyBenefit2": "Profil tanpa had",
-      "familyCta": "Lihat Keluarga",
-      "premiumNote": "Premium Honey ialah pilihan paling seimbang jika anda kerap menggunakan kandungan sekitar KRW 10,000.",
-      "footnote": "Pas baharu dijual hanya sebagai pas 30 hari. Pas 30 hari ini bukan langganan memperbaharui secara automatik. Perkhidmatan di luar julat pas boleh digunakan dengan pembayaran KRW sekali mengikut produk.",
+      "familyBenefit1": "Sehingga KRW 350,000",
+      "familyCta": "Lihat Balang Madu Keluarga",
+      "premiumNote": "Balang Madu Sederhana ialah pilihan paling seimbang jika anda kerap menggunakan kandungan sekitar KRW 10,000.",
+      "footnote": "Pas tiada had tempoh dan tamat apabila had penggunaan habis. Pas ini bukan langganan memperbaharui secara automatik. Perkhidmatan di luar julat pas boleh digunakan dengan pembayaran KRW sekali mengikut produk.",
       "howtoAria": "Cara menggunakan pas moonlight",
       "howtoTitle": "Pas moonlight, begini ia diteruskan",
-      "step1Label": "Pilih julat moonlight 30 hari",
-      "step1Text": "Dengan pas 30 hari tanpa pembaharuan automatik, tetapkan dahulu julat harga bacaan yang kerap anda lihat.",
+      "step1Label": "Pilih julat moonlight",
+      "step1Text": "Dengan pas tanpa had tempoh dan tanpa pembaharuan automatik, tetapkan dahulu julat harga bacaan yang kerap anda lihat.",
       "step2Label": "Bacaan dalam julat dibuka tanpa pembayaran",
       "step2Text": "Bacaan tarot, orakel dan saju dalam julat anda terbuka terus, tanpa tetingkap pembayaran.",
       "step3Label": "Hanya bacaan lebih mendalam dibayar setiap guna",
       "step3Text": "Bacaan di luar julat anda diteruskan dengan pembayaran KRW sekali sahaja apabila diperlukan.",
-      "terminationNote": "Walaupun had bulanan mencapai sifar, tarikh luput, peringkat dan had profil pas kekal. Kandungan berbayar tambahan boleh digunakan dengan bayaran sekali atau pas bulanan."
+      "terminationNote": "Apabila had penggunaan habis digunakan, pas akan tamat. Membeli semula akan bermula dengan had penggunaan baharu. Kandungan berbayar tambahan boleh digunakan dengan bayaran sekali atau Batu Cahaya Bulan.",
+      "noExpiryNote": "Tiada had tempoh · Tamat apabila had penggunaan habis"
     },
     "promptHub": {
       "aria": "Pergi ke gesaan nasib yang komprehensif",
       "alt": "Gesaan nasib yang komprehensif",
-      "sr": "Gesaan nasib yang komprehensif"
+      "sr": "Gesaan nasib yang komprehensif",
+      "honeyLabel": "Titisan madu saya",
+      "honeyAttend": "Hadir hari ini untuk titisan madu",
+      "honeyAttended": "Sudah hadir hari ini"
     },
     "premiumArchive": {
       "kicker": "ARKIB DESTINY VVIP",
@@ -901,11 +911,11 @@
       "eyebrow": "Pas Cahaya Bulan",
       "savingsBadge": "Dengan pas, sehingga satu pertiga harga",
       "title": "Dua bacaan KRW 5,000 sudah lebih mahal daripada pas KRW 9,900",
-      "desc": "Bacaan dalam julat yang anda pilih terbuka selama 30 hari, dalam had penggunaan bulanan anda; hanya bacaan yang lebih mahal dibayar satu per satu apabila diperlukan. Empat julat itu ialah KRW 5,000 · 10,000 · 20,000 dan semua kandungan yang dilindungi pas, jadi pilih harga yang paling kerap anda lihat.",
+      "desc": "Bacaan dalam julat yang anda pilih terbuka sehingga had penggunaan anda habis; hanya bacaan yang lebih mahal dibayar satu per satu apabila diperlukan. Empat julat itu ialah KRW 5,000 · 10,000 · 20,000 dan semua kandungan yang dilindungi pas, jadi pilih harga yang paling kerap anda lihat.",
       "pointsAria": "Panduan lulus teras",
       "point1": "Terbuka terus, tanpa pembayaran",
-      "point2": "Simpan 3 profil atau lebih",
-      "point3": "Pas 30 hari tanpa pembaharuan automatik",
+      "point2": "Tiada had tempoh · Tamat apabila had penggunaan habis",
+      "point3": "Pas tanpa pembaharuan automatik",
       "mascotAria": "Lihat manfaat Moonlight Pass · Kedai Moonlight Pass",
       "mascotAlt": "Imej manfaat Moonlight Pass",
       "mascotKicker": "Moonlight Pass Guide",
@@ -1348,8 +1358,9 @@
         "w20000": "₩20,000",
         "from3000": "From ₩3,000",
         "w1000": "₩1,000",
-        "from9000": "From ₩9,000",
-        "from20000": "From ₩20,000"
+        "from5000": "From ₩5,000",
+        "w7000": "₩7,000",
+        "from30000": "From ₩30,000"
       },
       "chip": {
         "love": "Their feelings · My next love",
@@ -1610,14 +1621,14 @@
       "pass": "Pas",
       "login": "Log masuk",
       "account": "Akaun saya",
-      "offerTitle": "Saju yang dahulu dibaca dalam sesi 1:1 bernilai ₩300,000, kini dari ₩3,000",
+      "offerTitle": "Saju yang dahulu dibaca dalam sesi 1:1 bernilai ₩300,000, kini dari ₩5,000",
       "reviewsLead": "Mesej KakaoTalk sebenar daripada pelanggan sesi 1:1 Neo, dipetik dalam bahasa Korea asal. Bahagian yang ditinggalkan ditanda dengan ….",
       "reviewsBar": "Sesi 1:1 bersama Neo · KakaoTalk",
       "reviewsMeta": "Ulasan sebenar · disiarkan dengan persetujuan",
       "reviewsPosted": "disiarkan di blog",
       "reviewsFine": "Ulasan berdasarkan pengalaman peribadi dan tidak menjamin hasil. Bacaan Saju hanya sebagai rujukan.",
-      "offerNote": "Sesi 1:1 dikendalikan sendiri oleh Neo; bacaan ₩3,000 disediakan oleh enjin pengiraan dengan ulasan AI.",
-      "offerCta": "Lihat bacaan Saju ₩3,000 →",
+      "offerNote": "Sesi 1:1 dikendalikan sendiri oleh Neo; bacaan ₩5,000 disediakan oleh enjin pengiraan dengan ulasan AI.",
+      "offerCta": "Lihat bacaan Saju ₩5,000 →",
       "expertiseTitle": "Pengiraan ikut peraturan, ulasan oleh AI",
       "expertise": {
         "engine": "Carta kelahiran dibina dengan peraturan pengiraan tetap, dan AI menulis ulasan berdasarkan hasil itu. Jika ulasan menyebut tiang hari atau jam yang berbeza daripada pengiraan, pelayan akan menolaknya.",
@@ -1649,12 +1660,12 @@
       "saysName": "Yeoni",
       "saysLine": "Which reading shall we start with? Just one is plenty.",
       "passMascotAlt": "Yeoni the flower pig smiling with a pass card",
-      "passEyebrow": "30-day pass, no auto-renewal",
-      "passTitle": "Reading often? Try a 30-day pass",
-      "passDesc": "Each reading's price is deducted from your allowance. It ends automatically after 30 days.",
-      "passPer": "/ 30 days",
+      "passEyebrow": "Pas tanpa had tempoh atau pembaharuan automatik",
+      "passTitle": "Yeoni memperkenalkan pas",
+      "passDesc": "Bayar sekali-sekala bagi setiap bacaan, atau guna pas jika kerap membaca. Semak perundingan yang boleh digunakan dan had penggunaan anda.",
+      "passPer": "· Tiada had tempoh",
       "passBadge": "Incl. Yeongnyangi",
-      "passNote": "Standard, Premium and VVIP apply to Flower Pig readings; Family applies to paid readings from both Flower Pig and Yeongnyangi. Passes you already bought keep the terms from the time of purchase.",
+      "passNote": "Balang Madu Kecil, Sederhana dan Besar terpakai untuk bacaan Flower Pig; Balang Madu Keluarga terpakai untuk bacaan berbayar Flower Pig dan Yeongnyangi. Pas yang telah anda beli kekal dengan syarat semasa pembelian.",
       "passCta": "See all 4 passes",
       "moreTitle": "Terokai atelier Yeoni",
       "moreItems": "Daily readings · consultations · records · stories",
@@ -1723,7 +1734,7 @@
     "chatEntry": {
       "title": "Ask Yeoni and Neo the one thing on your mind right now",
       "cta": "Talk through my concern",
-      "price": "1 free after signing up · ₩3,000 each after"
+      "price": "₩3,000 setiap sesi"
     },
     "svcQuestion": {
       "master-love-codex": "When will my next relationship begin?",
@@ -1829,9 +1840,9 @@
       "reviewReward": "Moonstones after publication approval",
       "reviewDetail": "Use them in Ggulggul. Awarded once per product.",
       "reviewAction": "Write a review",
-      "passStandard": "Yeoni Standard",
-      "passPremium": "Yeoni Premium",
-      "passVvip": "Yeoni VVIP",
+      "passStandard": "Balang Madu Kecil",
+      "passPremium": "Balang Madu Sederhana",
+      "passVvip": "Balang Madu Besar",
       "passPerLimit": "Up to KRW {amount} per reading",
       "passTotal": "Total allowance: KRW {amount}",
       "passNoLimit": "No per-reading price limit",
@@ -1859,17 +1870,18 @@
       "neoClassSource": "Saju student · KakaoTalk excerpt (Korean)",
       "neoNote": "Excerpts from Neo’s personal consultations and classes, separate from the AI reading service. Individual experiences do not guarantee similar results.",
       "neoAbout": "About Neo and the service",
-      "neoMore": "More consultation reviews"
+      "neoMore": "More consultation reviews",
+      "passFamily": "Balang Madu Keluarga"
     },
     "simple": {
-      "lead": "Kongsi kebimbangan anda. Lihat kandungan dan harga sebelum bermula.",
+      "lead": "Konsultasi berbayar. Anda boleh lihat harga dan contoh hasil dahulu.",
       "start": "Tanya tentang kebimbangan saya",
       "free": "Lihat ramalan percuma hari ini",
       "startLabel": "Cara lain untuk bermula",
-      "love": "Cinta dan hubungan",
+      "love": "Cinta dan keserasian",
       "work": "Kerja dan wang",
       "self": "Memahami diri",
-      "future": "Melihat ke hadapan",
+      "future": "Masa dan pilihan",
       "title": "Bacaan bermula dengan soalan anda",
       "brand": "Temui Yeongnyangi, Yeoni dan Neo dalam Ggulggul Fortune. Terokai soalan bersama Yeongnyangi, atau lawati Rumah Teh Yeoni dan Bilik Strategi Neo.",
       "stepQuestion": "Kongsi kebimbangan anda",
@@ -1877,11 +1889,20 @@
       "stepResult": "Baca jawapan, asas dan langkah seterusnya",
       "example": "Baca contoh sebelum membayar",
       "explore": "Terokai semua ramalan dan bacaan",
-      "exploreNote": "Saju, tarot, konsultasi watak, laporan dan cerita",
+      "exploreNote": "Sistem ramalan, konsultasi Yeongnyangi, pas dan hiburan",
       "passTitle": "Untuk penggunaan kerap, lihat pas",
       "passNote": "Semak skop dan tempoh sah sebelum memilih.",
       "passLink": "Lihat pas",
-      "passHistory": "Pas yang telah dibeli mengekalkan syarat asalnya."
+      "passHistory": "Pas yang telah dibeli mengekalkan syarat asalnya.",
+      "topicsLabel": "Pilih konsultasi mengikut kebimbangan",
+      "loveNote": "Master Love Codex · 20 bab · PDF untuk disimpan",
+      "lovePrice": "Individu KRW {solo} · Pasangan KRW {pair}",
+      "workNote": "Tukar kerja, kerjaya, perniagaan dan wang",
+      "futureNote": "Sama ada perlu bertindak sekarang dan bila aliran berubah",
+      "priceFrom": "Dari KRW {amount}",
+      "samplesTitle": "Baca contoh hasil sebelum membayar",
+      "sampleCodex": "Contoh Love Codex",
+      "sampleConsult": "Contoh konsultasi Yeongnyangi"
     },
     "yeongnyangiEntry": {
       "badge": "Konsultasi soalan bersama Yeongnyangi",
@@ -2336,13 +2357,13 @@
         "passSaveUnverified": "Kami tidak dapat menyimpan hasil penggunaan Pas anda. Semak semula dengan kad Pas di bawah, atau pilih kaedah pembayaran lain.",
         "passCheckFailed": "Kami tidak dapat menyemak Pas anda. Cuba semula dengan kad Pas di bawah, atau pilih kaedah pembayaran lain.",
         "passMiss": "Pas anda tidak membuka kandungan ini secara percuma, jadi ini pilihan pembayaran.",
-        "passMonthlyExhausted": "Your pass allowance is fully used, so the pass has ended. Here are the payment options."
+        "passMonthlyExhausted": "Your pass usage limit is fully used, so the pass has ended. Here are the payment options."
       },
       "passBadge": "Pas Cahaya Bulan",
       "passStoreTitle": "Kedai Moonlight Pass",
       "passRetryTitle": "Semak pas sekali lagi",
       "passHint": {
-        "store": "Bayar sekali dan buka banyak kandungan selama 30 hari. Sudah ada? Ketik untuk semak.",
+        "store": "Bayar sekali dan buka banyak kandungan sehingga had penggunaan habis. Sudah ada? Ketik untuk semak.",
         "retry": "Kami akan menyemak pelayan sekali lagi untuk melihat sama ada pas anda boleh membukanya tanpa bayaran.",
         "upgrade": "Tahap semasa anda tidak membuka kandungan ini. Lihat tahap lebih luas."
       },
@@ -2415,7 +2436,7 @@
         "comingSoon": "Akan datang",
         "back": "Kembali"
       },
-      "passMonthlyExhausted": "Your pass allowance is fully used, so the pass has ended. Buying a new pass starts another 30 days; for now you can open this with a one-time payment or moonstones.",
+      "passMonthlyExhausted": "Your pass usage limit is fully used, so the pass has ended. Buying again starts a new usage limit; for now you can open this with a one-time payment or moonstones.",
       "passMonthlyRemaining": "Pass allowance left {remaining} / {limit}",
       "wait": {
         "card": "After you finish verifying in your card or payment app, come back to this browser and checkout will continue automatically.",
@@ -2447,7 +2468,7 @@
         "pass": {
           "eyebrow": "SEMAK LULUS CAHAYA BULAN",
           "title": "Menyemak pas anda",
-          "message": "Menyemak sama ada pas 30 hari anda boleh membukanya dengan segera.",
+          "message": "Menyemak sama ada pas anda boleh membukanya dengan segera.",
           "meta": "Jika tersedia, anda akan meneruskan tanpa tetingkap daftar keluar."
         },
         "passApplied": {
@@ -2518,7 +2539,7 @@
         "pass": {
           "eyebrow": "SEMAK LULUS CAHAYA BULAN",
           "title": "Menyemak pas anda",
-          "message": "Menyemak sama ada pas 30 hari anda boleh membukanya dengan segera.",
+          "message": "Menyemak sama ada pas anda boleh membukanya dengan segera.",
           "meta": "Jika tersedia, anda akan meneruskan tanpa tetingkap daftar keluar."
         },
         "passApplied": {
@@ -2602,7 +2623,7 @@
     "passShop": {
       "monthlyStatus": "Baki batu bulan anda telah disahkan.",
       "chargeButton": "Pergi ke halaman pembayaran untuk {amount}",
-      "chargeNotice": "Produk Pass {price} · Ini Pass 30 hari, bukan bayaran auto-perbaharui. Pass hanya boleh dibeli dengan bayaran sekali dalam KRW.",
+      "chargeNotice": "Produk Pass {price} · Ini Pass, bukan bayaran auto-perbaharui. Pass hanya boleh dibeli dengan bayaran sekali dalam KRW.",
       "best": "BEST",
       "monthlyBasisWithPrice": "Asas kredit bulanan {credits} · {price}",
       "profileUnlimited": "Profil tanpa had",
@@ -2613,24 +2634,24 @@
       "closeAria": "Tutup panduan Kedai Moonlight Pass",
       "openAria": "Panduan Kedai Buka Moonlight Pass",
       "title": "Panduan Kedai Moonlight Pass",
-      "subtitle": "Semak pas 30 hari dan aliran kredit bulanan yang dipegang dalam cahaya bulan.",
-      "footerNotice": "Pas 30 hari ini bukan produk yang diperbaharui secara automatik. Anda perlu membelinya semula selepas tamat tempoh.",
+      "subtitle": "Pas dibeli dengan bayaran sekali dalam KRW, dan Batu Cahaya Bulan digunakan untuk ciri berbayar individu.",
+      "footerNotice": "Pas ini bukan produk yang diperbaharui secara automatik. Anda perlu membelinya semula selepas had penggunaan habis.",
       "packages": {
         "standard": {
-          "name": "Madu Standard 30 Hari",
-          "desc": "30 hari · Kandungan sehingga KRW 5,000 · Sehingga KRW 20,000 sebulan · Sehingga 3 profil"
+          "name": "Balang Madu Kecil",
+          "desc": "Kandungan sehingga KRW 5,000 · Sehingga KRW 20,000"
         },
         "premium": {
-          "name": "Madu Premium 30 Hari",
-          "desc": "30 hari · Kandungan sehingga KRW 10,000 · Sehingga KRW 60,000 sebulan · Sehingga 7 profil"
+          "name": "Balang Madu Sederhana",
+          "desc": "Kandungan sehingga KRW 10,000 · Sehingga KRW 60,000"
         },
         "vvip": {
-          "name": "Balang Madu VVIP 30 Hari",
-          "desc": "30 hari · Kandungan sehingga KRW 30,000 · Sehingga KRW 120,000 sebulan · Sehingga 15 profil"
+          "name": "Balang Madu Besar",
+          "desc": "Kandungan sehingga KRW 30,000 · Sehingga KRW 120,000"
         },
         "family": {
-          "name": "Kod Destiny Keluarga 30 Hari",
-          "desc": "30 hari · Semua kandungan yang dilindungi pas · Sehingga KRW 350,000 sebulan · Profil tanpa had"
+          "name": "Balang Madu Keluarga",
+          "desc": "Semua kandungan yang dilindungi pas · Sehingga KRW 350,000"
         }
       },
       "monthlyStatusChecking": "Menyemak baki dan status Pas.",
@@ -2639,7 +2660,7 @@
       "monthlyButton": "Bayar dengan {credits} kredit bulanan",
       "monthlyButtonBusy": "Mengaktifkan pas dengan kredit bulanan...",
       "monthlyButtonShort": "Perlu {credits} · baki tidak cukup",
-      "terminationNotice": "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day."
+      "terminationNotice": "Apabila had penggunaan habis digunakan, pas akan tamat. Membeli semula akan bermula dengan had penggunaan baharu. Kandungan berbayar tambahan boleh digunakan dengan bayaran sekali atau Batu Cahaya Bulan."
     },
     "access": {
       "passAppliedContinue": "Dibuka dengan pas anda."
@@ -2708,12 +2729,31 @@
   "fortune": {
     "destinyFlower": {
       "common": {
-        "unknown": "Tidak diketahui"
+        "unknown": "Tidak diketahui",
+        "bloomLabel": {
+          "seed": "Benih · Tuan Hari",
+          "season": "Musim · Waktu lahir",
+          "bloom": "Bunga yang mekar"
+        },
+        "bloom": {
+          "verdict": "Maka mekarlah — {title}."
+        },
+        "flowerLanguage": {
+          "anchor": "'{language}' — pesanan bunga ini untuk anda, dibaca melalui {anchor}.",
+          "plain": "'{language}' — pesanan bunga ini untuk anda saat ini."
+        },
+        "shareHook": {
+          "rarityAnchor": "Satu-satunya bunga yang dibaca melalui {anchor}"
+        },
+        "anonymousName": "Pengembara tanpa nama",
+        "rationaleLabel": {
+          "verdict": "Oleh itu, bunga ini"
+        }
       },
       "astro": {
         "elements": {
-          "Fire": "kebakaran",
-          "Earth": "bumi",
+          "Fire": "api",
+          "Earth": "tanah",
           "Air": "udara",
           "Water": "air",
           "Cosmic": "cahaya bintang"
@@ -2730,22 +2770,41 @@
         "ritualTip": "Malam ini, tenangkan nafas anda selama tiga minit dan tetapkan satu niat di bawah bintang.",
         "relationshipTheme": "Apabila perhubungan mengikut rentak tanda utama anda, geseran menjadi lembut.",
         "careerTheme": "Bawa pemacu teras tanda matahari anda ke dalam rutin kerja anda untuk momentum yang lebih mantap.",
-        "growthCycle": "Panggilan bintang \" membentuk orbit \" nebula mekar → penyebaran sinaran",
+        "growthCycle": "Panggilan bintang → pembentukan orbit → nebula mekar → sinaran tersebar",
         "fallbackNote": "Data tanda matahari tidak tersedia, jadi bacaan menggunakan elemen udara lalai.",
         "ultimateTitle": "Bunga Takdir Tertinggi",
         "ultimateConcept": "Bunga hibrid di mana tenaga {dayMaster} Timur bergabung dengan cahaya bintang {sunSign} Barat",
         "verdict": "Melalui astrologi, bunga takdir anda ialah {flowerName} ({scientificName}). Tiga paksi tanda matahari, terbit dan bulan menunjukkan bunga ini bergema rapat dengan anda sekarang.",
-        "narrative": "Percikan {sunElement} terbit dari tanda matahari {sun} menjadi pusat pilihan bunga ini. Tanda terbit {rising} ({risingElement}) membentuk nada yang kelihatan, manakala tanda bulan {moon} ({moonElement}) menambah embun emosi, membiarkan simbol {flowerName}, {flowerSymbolism}, terbuka dengan jelas. Kata kunci \"{keyword}\" ialah cahaya bintang yang memanggil bunga ini ke hadapan."
+        "narrative": "Percikan {sunElement} terbit dari tanda matahari {sun} menjadi pusat pilihan bunga ini. Tanda terbit {rising} ({risingElement}) membentuk nada yang kelihatan, manakala tanda bulan {moon} ({moonElement}) menambah embun emosi, membiarkan simbol {flowerName}, {flowerSymbolism}, terbuka dengan jelas. Kata kunci \"{keyword}\" ialah cahaya bintang yang memanggil bunga ini ke hadapan.",
+        "signs": {
+          "aries": "Aries",
+          "taurus": "Taurus",
+          "gemini": "Gemini",
+          "cancer": "Cancer",
+          "leo": "Leo",
+          "virgo": "Virgo",
+          "libra": "Libra",
+          "scorpio": "Scorpio",
+          "sagittarius": "Sagittarius",
+          "capricorn": "Capricorn",
+          "aquarius": "Aquarius",
+          "pisces": "Pisces"
+        },
+        "rationaleLabel": {
+          "sun": "Tanda matahari",
+          "risingMoon": "Ascendant · Tanda bulan"
+        }
       },
       "ziwei": {
         "brightness": {
-          "miao": "Miao",
-          "wang": "Wang",
-          "li": "Li",
-          "de": "De",
-          "ping": "Ping",
-          "han": "Han",
-          "xian": "Xian"
+          "miao": "Miao (廟)",
+          "wang": "Wang (旺)",
+          "li": "Li (利)",
+          "de": "De (得)",
+          "ping": "Ping (平)",
+          "han": "Xián (閑)",
+          "xian": "Xiàn (陷)",
+          "bu": "Bu (不)"
         },
         "coreFlow": "aliran rezeki teras",
         "coreEnergy": "ungkapan tenaga teras",
@@ -2756,212 +2815,393 @@
         "ritualTip": "Kata kunci teras hari ini: {keyword}",
         "relationshipTheme": "Biarkan perangai bintang yang kuat menjadi standard perhubungan anda dan keharmonian menjadi lebih jelas.",
         "careerTheme": "Apabila kekuatan bintang utama berada di hadapan, pelaksanaan dan kedudukan menjadi stabil.",
-        "growthCycle": "Penjajaran bintang \" pengumpulan tenaga \" penyalaan benih → mekar",
+        "growthCycle": "Penjajaran bintang → penghimpunan tenaga → penyalaan benih → mekar",
         "secondaryFallbackNote": "Pelarasan bintang utama komposit: {primaryStar} berpusat + {secondaryStar} campuran bau",
         "palaceFallbackNote": "Pelarasan sifat istana: {palace} · {trait}",
-        "hybridHint": "Paparan hibrid tersedia dengan menggabungkan tenaga {dayMaster} Saju dengan bintang utama Ziwei {stars}",
+        "hybridHint": "Paparan hibrid boleh menggabungkan tenaga {dayMaster} Empat Tiang dengan bintang utama Ziwei {stars}",
         "verdict": "Di Ziwei, bunga takdir yang dibaca melalui bintang terkuat hari ini ialah {flowerName} ({scientificName}). Atas sifat {palace}, {palaceTrait}, kualiti bintang “{keyword}” daripada {stars} menjadi paling jelas melalui kecerahan {brightness}.",
         "narrativeWithSecondary": "{palace} mentadbir{palaceEnergy}. Gabungan {stars} timbul di sini, menetapkan {title} sebagai bunga tengah. Sifat bintang utama “{personality}” bercantum dengan tekstur “{secondaryKeyword}” bintang sekunder. Kerana kecerahan {brightness} menyokongnya secara berterusan, {flowerName} menterjemahkan struktur kekayaan ini dengan paling jelas.",
         "narrativeSingle": "{palace} pemegang{palaceEnergy}. Bintang kuat hari ini {star} meletakkan kualiti “{keyword}” dan sifat “{personality}” di tengah-tengah bunga. Kecerahan {brightness} mengekalkan cahaya itu stabil, dan {flowerName} bergema paling mendalam dengan tenaga pusat anda.",
         "rules": {
           "peonyZiwei": {
-            "title": "Imperial Peony",
-            "keyword": "ketenangan empayar",
-            "personality": "seorang pemimpin yang memusatkan bidang dan memulihkan keadaan"
+            "title": "Peoni Maharaja",
+            "keyword": "keanggunan maharaja",
+            "personality": "seorang pemimpin yang berdiri di tengah dan menyusun ketertiban di sekelilingnya"
           },
           "thornyRoseGeneral": {
             "title": "Mawar Merah Jeneral",
-            "keyword": "kejayaan yang menentukan",
+            "keyword": "tekad menembusi halangan",
             "personality": "kuasa penentu yang maju walaupun di bawah tekanan"
           },
           "thornyRosePioneer": {
             "title": "Mawar Merah Perintis",
-            "keyword": "pemacu untuk membentuk semula medan",
-            "personality": "seorang inovator yang memecahkan bingkai lama dan membuka pesanan baharu"
+            "keyword": "daya penggerak yang mengubah keadaan",
+            "personality": "seorang inovator yang memecahkan kerangka lama dan membuka tatanan baharu"
           },
           "delicateWillow": {
-            "title": "Bunga Willow Pakar Strategi",
+            "title": "Bunga Dedalu Ahli Strategi",
             "keyword": "strategi lembut",
-            "personality": "ahli strategi yang membaca detik dan mencari jawapan yang paling bersih"
+            "personality": "ahli strategi yang membaca keadaan dengan fleksibel dan mencari penyelesaian terbaik"
           },
           "sunflowerZiwei": {
             "title": "Bunga Matahari Suria",
-            "keyword": "mengembang cahaya",
+            "keyword": "cahaya yang meluas",
             "personality": "seorang pelaksana yang mengumpulkan tenaga ke arah hasil yang boleh dilihat"
           },
           "nightCereus": {
             "title": "Cereus Mekar Malam Bercahaya Bulan",
-            "keyword": "misteri yang dibuka pada waktu malam",
-            "personality": "jiwa yang termenung yang membaca arus ghaib"
+            "keyword": "misteri yang mekar pada waktu malam",
+            "personality": "jiwa reflektif yang membaca arus tersembunyi melalui renungan mendalam"
           },
           "orchidTanlang": {
-            "title": "Orkid Peach-Blossom",
-            "keyword": "kemagnetan berahi",
+            "title": "Orkid Bunga Pic",
+            "keyword": "pesona yang memikat",
             "personality": "jenis magnet yang memimpin melalui kecantikan, perhubungan dan ekspresi"
           }
+        },
+        "stars": {
+          "ziwei": "Zi Wei (紫微)",
+          "tianji": "Tian Ji (天機)",
+          "taiyang": "Tai Yang (太陽)",
+          "wuqu": "Wu Qu (武曲)",
+          "tiantong": "Tian Tong (天同)",
+          "lianzhen": "Lian Zhen (廉貞)",
+          "tianfu": "Tian Fu (天府)",
+          "taiyin": "Tai Yin (太陰)",
+          "tanlang": "Tan Lang (貪狼)",
+          "jumen": "Ju Men (巨門)",
+          "tianxiang": "Tian Xiang (天相)",
+          "tianliang": "Tian Liang (天梁)",
+          "qisha": "Qi Sha (七殺)",
+          "pojun": "Po Jun (破軍)",
+          "wenchang": "Wen Chang (文昌)",
+          "wenqu": "Wen Qu (文曲)",
+          "zuofu": "Zuo Fu (左輔)",
+          "youbi": "You Bi (右弼)",
+          "tianma": "Tian Ma (天馬)",
+          "lucun": "Lu Cun (祿存)",
+          "tiankui": "Tian Kui (天魁)",
+          "tianyue": "Tian Yue (天鉞)",
+          "qingyang": "Qing Yang (擎羊)",
+          "tuoluo": "Tuo Luo (陀羅)",
+          "dikong": "Di Kong (地空)",
+          "dijie": "Di Jie (地劫)",
+          "huoxing": "Huo Xing (火星)",
+          "lingxing": "Ling Xing (鈴星)"
+        },
+        "palaces": {
+          "life": "Istana Kehidupan",
+          "siblings": "Istana Adik-beradik",
+          "spouse": "Istana Pasangan",
+          "children": "Istana Anak",
+          "wealth": "Istana Kekayaan",
+          "health": "Istana Kesihatan",
+          "travel": "Istana Perjalanan",
+          "friends": "Istana Sahabat",
+          "career": "Istana Kerjaya",
+          "property": "Istana Harta",
+          "fortune": "Istana Tuah",
+          "parents": "Istana Ibu Bapa"
+        },
+        "palaceTraits": {
+          "life": "kestabilan diri dan kehadiran",
+          "siblings": "semangat kerjasama dan kebolehan menyelaras",
+          "spouse": "keindahan hubungan dan komunikasi yang mesra",
+          "children": "daya kreatif dan keinginan untuk berekspresi",
+          "wealth": "pengurusan sumber dan perluasan kemewahan",
+          "health": "daya pemulihan dan rasa keseimbangan dalaman",
+          "travel": "kebolehsuaian dan pertimbangan di tempat kejadian",
+          "friends": "mengurus rangkaian dan menjaga komuniti",
+          "career": "dorongan sosial dan cita-cita pencapaian",
+          "property": "membina asas dan pengumpulan yang stabil",
+          "fortune": "mengecas semula tenaga emosi dan celik minda",
+          "parents": "naluri melindungi dan kesedaran tradisi"
+        },
+        "natalVerdict": "Ditafsir melalui sifat {stars} di Istana Kehidupan anda, bunga anda ialah {flowerName} ({scientificName}).",
+        "natalScenarioTitle": "Senario mekar mengikut bintang utama Istana Kehidupan",
+        "rationale": {
+          "lifeStar": "Istana Kehidupan anda menempatkan {starsJosa}.",
+          "borrowedStar": "Istana Kehidupan anda tiada bintang utama, jadi kami mentafsir dengan meminjam {starsObject} daripada Istana Perjalanan yang bertentangan.",
+          "personality": "{star}: \"{keyword}\" — sifat {personality}.",
+          "verdict": "Oleh itu, bunga yang kami berikan kepada anda sekarang ialah {flowerName}."
+        },
+        "rationaleLabel": {
+          "lifeStar": "Bintang utama Istana Kehidupan",
+          "personality": "Sifat semula jadi"
         }
       },
       "sukuyo": {
         "moon": {
           "full": "bulan penuh",
-          "new": "bulan gelap",
+          "new": "bulan baru",
           "crescent": "anak bulan",
-          "gibbous": "bulan waxing/pudar"
+          "gibbous": "bulan bertambah/berkurang"
         },
-        "stickerLabel": "Bunga oleh Sukuyo",
+        "stickerLabel": "Bunga mengikut Sukuyo",
         "moonPhaseLabel": "Fasa bulan {moon}",
-        "guardianLabel": "Penjaga {guardian}",
-        "scenarioTitle": "27 rumah agam dan senario mekar fasa bulan",
+        "guardianLabel": "Haiwan penjaga {guardian}",
+        "scenarioTitle": "Senario mekar gabungan 27 rumah bulan dan fasa bulan",
         "ritualTip": "Di tepi tingkap yang diterangi cahaya bulan, bernafas 27 kali dan tetapkan niat hari ini dalam satu perkataan.",
         "relationshipTheme": "Mengikut tekstur {group} melembutkan ketegangan dan menjelaskan sambungan.",
         "careerTheme": "Apabila irama {guardian} dicerminkan dalam rutin kerja anda, keputusan menjadi stabil.",
-        "growthCycle": "Buruj yang menghubungkan \" pengumpulan cahaya bulan \" penyalaan semangat → mekar",
+        "growthCycle": "Buruj bersambung → cahaya bulan terhimpun → kerohanian menyala → mekar",
         "verdict": "Melalui tekstur cahaya bulan Sukuyo, bunga takdir anda ialah {flowerName} ({scientificName}). Gabungan {mansion}, {moon} dan {guardian} selaras dengan rentak hubungan, emosi dan tindakan sekarang.",
-        "narrative": "Tekstur hubungan {mansion} ({group}), air pasang fasa bulan {moon}, dan corak perlindungan {guardian} bertemu di taman malam, memperdalam kualiti{symbolism}. Baca bersama-sama, tiga isyarat cahaya bulan ini menunjuk kepada {flowerName} sebagai bunga takdir anda yang paling tepat sekarang."
+        "narrative": "Tekstur hubungan {mansion} ({group}), air pasang fasa bulan {moon}, dan corak perlindungan {guardianJosa} bertemu di taman malam, memperdalam kualiti {symbolism}. Baca bersama-sama, tiga isyarat cahaya bulan ini menunjuk kepada {flowerName} sebagai bunga takdir anda yang paling tepat sekarang.",
+        "mansions": {
+          "m1": "Kaku (角)",
+          "m2": "Kou (亢)",
+          "m3": "Tei (氐)",
+          "m4": "Bou (房)",
+          "m5": "Shin (心)",
+          "m6": "Bi (尾)",
+          "m7": "Ki (箕)",
+          "m8": "To (斗)",
+          "m9": "Jo (女)",
+          "m10": "Kyo (虛)",
+          "m11": "Ki (危)",
+          "m12": "Shitsu (室)",
+          "m13": "Heki (壁)",
+          "m14": "Kei (奎)",
+          "m15": "Ro (婁)",
+          "m16": "I (胃)",
+          "m17": "Bo (昴)",
+          "m18": "Hitsu (畢)",
+          "m19": "Shi (觜)",
+          "m20": "Shin (參)",
+          "m21": "Sei (井)",
+          "m22": "Ki (鬼)",
+          "m23": "Ryu (柳)",
+          "m24": "Sei (星)",
+          "m25": "Cho (張)",
+          "m26": "Yoku (翼)",
+          "m27": "Shin (軫)"
+        },
+        "groups": {
+          "anjung": "Rumah bulan teguh",
+          "gangseong": "Rumah bulan kuat",
+          "gyeongkwae": "Rumah bulan lincah",
+          "jihye": "Rumah bulan bijak"
+        },
+        "groupLabels": {
+          "anjung": "Kumpulan teguh",
+          "gangseong": "Kumpulan kuat",
+          "gyeongkwae": "Kumpulan lincah",
+          "jihye": "Kumpulan bijak"
+        },
+        "guardians": {
+          "crane": "Bangau",
+          "dragon": "Naga",
+          "marten": "Mengkira",
+          "rabbit": "Arnab",
+          "fox": "Musang",
+          "tiger": "Harimau",
+          "leopard": "Harimau bintang",
+          "haetae": "Haetae",
+          "bat": "Kelawar",
+          "rat": "Tikus",
+          "swallow": "Burung layang-layang",
+          "pig": "Babi",
+          "hedgehog": "Landak",
+          "wolf": "Serigala",
+          "dog": "Anjing",
+          "pheasant": "Kuang",
+          "rooster": "Ayam jantan",
+          "crow": "Gagak",
+          "monkey": "Monyet",
+          "ape": "Mawas",
+          "wildDog": "Anjing liar",
+          "sheep": "Biri-biri",
+          "roeDeer": "Kijang",
+          "horse": "Kuda",
+          "deer": "Rusa",
+          "snake": "Ular",
+          "earthworm": "Cacing tanah"
+        },
+        "rationaleLabel": {
+          "mansion": "Rumah bulan · Fasa bulan"
+        }
       },
       "saju": {
         "scenarios": {
           "default": {
-            "title": "{dayMasterBadge} senario mekar persekitaran"
+            "title": "{dayMasterBadge} senario mekar persekitaran",
+            "reason": "Kami melihat bagaimana Tuan Hari anda sepadan dengan persekitaran Lima Unsur semasa, lalu memilih bunga yang paling sesuai untuk tempoh ini."
           },
           "jia": {
             "springWood": {
-              "title": "Jia Wood senario mekar yang mendahului tegak"
+              "title": "Jia Wood senario mekar yang mendahului tegak",
+              "reason": "Jia Kayu (甲木) ialah tenaga yang tumbuh lurus ke atas seperti pokok besar. Kini, apabila tenaga Kayu musim bunga selari dengan sifat itu, kekuatan perintis anda untuk membuka jalan baharu mekar dengan megah."
             },
             "autumnMetal": {
-              "title": "Senario pembajaan logam Jia Wood"
+              "title": "Senario pembajaan logam Jia Wood",
+              "reason": "Apabila tenaga Logam musim luruh menekan Jia Kayu (甲木), inilah masa untuk mencantas dahan dan menyimpan hanya batang yang benar-benar penting. Semakin banyak anda lepaskan, semakin kukuh anda."
             },
             "dryFire": {
-              "title": "Senario ketahanan haba kering kayu Jia"
+              "title": "Senario ketahanan haba kering kayu Jia",
+              "reason": "Bagi Jia Kayu (甲木) di tengah haba kering, yang diperlukan sekarang ialah ketahanan akar. Daripada tergesa-gesa, bertahanlah dengan tabah dan pupuk daya pemulihan, dan anda akan mekar semula dengan teguh seperti bunga mugunghwa."
             }
           },
           "yi": {
             "metalWater": {
-              "title": "Yi Senario keharmonian logam-air kayu"
+              "title": "Yi Senario keharmonian logam-air kayu",
+              "reason": "Yi Kayu (乙木) ialah tenaga yang lembut meresap seperti tumbuhan menjalar dan bunga. Kini, ketika tenaga Logam dan Air kuat, maruah dan daya penyucian anda yang jernih bersinar paling terang."
             },
             "dryEarth": {
-              "title": "Senario kemandirian tanah kering kayu Yi"
+              "title": "Senario kemandirian tanah kering kayu Yi",
+              "reason": "Bagi Yi Kayu (乙木) yang berdiri di atas tenaga Tanah yang kering, tema sekarang ialah daya hidup yang gigih. Seperti kaktus yang menembusi tanah gersang dan akhirnya mekar, anda bersinar tepat di tempat anda bertahan."
             },
             "autumn": {
-              "title": "Senario penghalusan musim luruh Kayu Yi"
+              "title": "Senario penghalusan musim luruh Kayu Yi",
+              "reason": "Melalui tenaga Logam musim luruh, Yi Kayu (乙木) berada dalam fasa mengubah kehalusan menjadi susunan yang tenang. Semakin anda kemaskan perkara yang berselerak, semakin teratur juga hati anda."
             },
             "wetSpring": {
-              "title": "Senario pengembangan mata air lembap Kayu Yi"
+              "title": "Senario pengembangan mata air lembap Kayu Yi",
+              "reason": "Bertemu kelembapan musim bunga, daya Yi Kayu (乙木) untuk menghubungkan orang tumbuh dengan ketara. Inilah masa untuk berkembang melalui hubungan, bukan bersendirian."
             }
           },
           "bing": {
             "springWood": {
-              "title": "Senario pencucuhan spring api Bing"
+              "title": "Senario pencucuhan spring api Bing",
+              "reason": "Bing Api (丙火) ialah tenaga yang cepat menyala dan merebak luas seperti matahari. Kini, dengan Kayu musim bunga sebagai bahan bakar, kekuatan anda untuk memulakan sesuatu yang baharu dan menyebarkannya marak dengan kuat."
             },
             "summerFire": {
-              "title": "Senario pengembangan musim panas Bing Fire"
+              "title": "Senario pengembangan musim panas Bing Fire",
+              "reason": "Ditambah tenaga Api musim panas, Bing Api (丙火) menyala lebih terang daripada sebelumnya. Inilah fasa ketika kekuatan anda untuk tampil ke hadapan dan memimpin orang berada di puncak."
             },
             "waterControl": {
-              "title": "Senario kawalan air Kebakaran Bing"
+              "title": "Senario kawalan air Kebakaran Bing",
+              "reason": "Bagi Bing Api (丙火) yang bertemu tenaga Air yang kuat, yang penting sekarang bukan menyala lebih panas, tetapi menetapkan arah yang betul. Kekalkan pertimbangan praktikal dan lindungi nyalaan itu, dan cahayanya akan bertahan lama."
             }
           },
           "ding": {
             "coldWet": {
-              "title": "Senario kehangatan sejuk-lembap Ding Fire"
+              "title": "Senario kehangatan sejuk-lembap Ding Fire",
+              "reason": "Ding Api (丁火) ialah tenaga yang bersinar tenang dari dalam seperti lilin. Dalam masa yang sejuk dan lembap ini, kekuatan terbesar bukan kecemerlangan, tetapi menjaga kehangatan itu agar tidak padam lama."
             },
             "autumnMetal": {
-              "title": "Senario penapisan logam Ding Fire"
+              "title": "Senario penapisan logam Ding Fire",
+              "reason": "Bertemu tenaga Logam, ketelitian hujung jari dan mata estetik Ding Api (丁火) menjadi lebih tajam. Inilah masa anda paling bersinar apabila memegang satu tugasan dan menyiapkannya dengan indah."
             },
             "resonance": {
-              "title": "Senario berkembang resonans Api Ding"
+              "title": "Senario berkembang resonans Api Ding",
+              "reason": "Ding Api (丁火) ialah tenaga halus yang membelai setiap lapisan emosi dan mendalamkan hubungan. Semakin anda tidak segan meluahkan isi hati, semakin terbuka jalan tuah anda."
             }
           },
           "wu": {
             "fireEarth": {
-              "title": "Senario pencapaian bumi api Wu Earth"
+              "title": "Senario pencapaian bumi api Wu Earth",
+              "reason": "Wu Tanah (戊土) ialah tenaga yang luas dan teguh seperti gunung besar. Kini, ketika Api dan Tanah menyokong, kerja besar dan pencapaian besar mendapat kekuatan yang luar biasa."
             },
             "winterWater": {
-              "title": "Senario asas musim sejuk Wu Earth"
+              "title": "Senario asas musim sejuk Wu Earth",
+              "reason": "Bagi Wu Tanah (戊土) yang bertemu tenaga Air musim sejuk, inilah masa untuk perlahan dan mengukuhkan asas. Semakin anda berhenti seketika dan memantapkan asas, semakin kukuh langkah seterusnya."
             },
             "center": {
-              "title": "Senario pembinaan pusat Wu Earth"
+              "title": "Senario pembinaan pusat Wu Earth",
+              "reason": "Kekuatan sebenar Wu Tanah (戊土) ialah daya pusat yang memegang keadaan goyah dari tengah. Semakin tekun anda mengekalkan rutin harian, semakin hasil terkumpul sedikit demi sedikit."
             }
           },
           "ji": {
             "wetEarth": {
-              "title": "Senario pengembangan penanaman Ji Earth"
+              "title": "Senario pengembangan penanaman Ji Earth",
+              "reason": "Ji Tanah (己土) ialah tenaga yang memupuk segala-galanya dengan teliti seperti ladang yang diusahakan dengan baik. Dalam masa yang lembap ini, hasil berkembang dalam hubungan yang bekerja bersama dan saling menjaga."
             },
             "metalDesign": {
-              "title": "Senario reka bentuk ketepatan Ji Earth"
+              "title": "Senario reka bentuk ketepatan Ji Earth",
+              "reason": "Bertemu tenaga Logam, Ji Tanah (己土) membangkitkan kebolehan mereka bentuk dan menyusun hingga ke butiran kecil. Kekuatan anda terserlah dalam kerja yang menuntut kesempurnaan tinggi."
             },
             "balance": {
-              "title": "Senario penalaan imbangan Ji Earth"
+              "title": "Senario penalaan imbangan Ji Earth",
+              "reason": "Ji Tanah (己土) ialah tenaga yang mahir menyelaras orang dengan lembut dan mencipta suasana. Asalkan anda menala laju dan perlahan setiap langkah dengan baik, itulah yang akan menjadi tuah anda."
             }
           },
           "geng": {
             "metalEarth": {
-              "title": "Senario melalui prinsip Geng Metal"
+              "title": "Senario melalui prinsip Geng Metal",
+              "reason": "Geng Logam (庚金) ialah tenaga yang kuat dan memotong dengan tegas seperti batu mentah yang belum diasah. Kini, ketika Tanah dan Logam menyokong, kekuatan anda untuk berpegang pada prinsip yang ditetapkan berada di puncak."
             },
             "fireTraining": {
-              "title": "Senario pembajaan api Geng Metal"
+              "title": "Senario pembajaan api Geng Metal",
+              "reason": "Ditempa dalam api yang panas, Geng Logam (庚金) menjadi lebih kukuh dari segi daya tarikan dan kemampuan. Inilah fasa ketika tumpuan anda menjadi sangat tajam pada saat-saat penentu."
             },
             "clearJudgment": {
-              "title": "Senario penghakiman penentu Geng Metal"
+              "title": "Senario penghakiman penentu Geng Metal",
+              "reason": "Kekuatan Geng Logam (庚金) ialah pertimbangan yang memotong tepat ke inti. Tetapkan piawaian yang jelas, dan kejelasan itu akan terus menjadi hasil."
             }
           },
           "xin": {
             "metalWater": {
-              "title": "Xin Senario penapisan logam logam-air"
+              "title": "Xin Senario penapisan logam logam-air",
+              "reason": "Xin Logam (辛金) ialah tenaga dengan deria dan kata-kata yang halus seperti permata yang digilap. Kini, ketika Logam dan Air bertemu, kebolehan anda untuk menganalisis dan berekspresi menjadi lebih tajam."
             },
             "springWood": {
-              "title": "Senario penalaan kayu Xin Metal"
+              "title": "Senario penalaan kayu Xin Metal",
+              "reason": "Bertemu tenaga Kayu musim bunga, Xin Logam (辛金) pergi lebih jauh dengan penalaan lembut berbanding mengasah mata pisau. Inilah fasa ketika hasil datang daripada kerja yang anda perhalusi dengan deria anda."
             },
             "completion": {
-              "title": "Senario penyiapan Xin Metal"
+              "title": "Senario penyiapan Xin Metal",
+              "reason": "Xin Logam (辛金) ialah tenaga yang paling kuat apabila menyiapkan satu perkara dengan indah, bukan meluaskannya. Semakin kemas anda menyelesaikan setiap butiran, semakin kepercayaan orang bertambah."
             }
           },
           "ren": {
             "summerCooling": {
-              "title": "Ren Water senario penyejukan musim panas"
+              "title": "Ren Water senario penyejukan musim panas",
+              "reason": "Ren Air (壬水) ialah tenaga yang menggerakkan aliran besar seperti lautan luas. Kini, sambil menyejukkan bahang musim panas, tumpuan tenang anda meningkat dengan ketara."
             },
             "winterCondensing": {
-              "title": "Ren Water senario pemeluwapan musim sejuk"
+              "title": "Ren Water senario pemeluwapan musim sejuk",
+              "reason": "Bergema dengan tenaga Air musim sejuk, Ren Air (壬水) berada dalam fasa mengumpul kekuatan di bawah ais. Di luar ia kelihatan tenang, tetapi seperti bunga glasier, potensi yang kukuh sedang matang di dalam."
             },
             "nightIntuition": {
-              "title": "Ren Water senario intuisi malam"
+              "title": "Ren Water senario intuisi malam",
+              "reason": "Ren Air (壬水) ialah tenaga yang lebih mudah mencari jalan melalui gerak hati malam yang tenang berbanding siang yang terang. Apabila anda membuat keputusan mengikut rentak sendiri dan bukan tergesa-gesa mencari jawapan, arah akan menjadi tepat."
             }
           },
           "gui": {
             "coldWetPurifying": {
-              "title": "Senario penulenan sejuk-lembap Air Gui"
+              "title": "Senario penulenan sejuk-lembap Air Gui",
+              "reason": "Gui Air (癸水) ialah tenaga yang merasai perkara halus dan menyucikannya jernih seperti embun pagi. Dalam masa yang sejuk dan lembap ini, ketenangan untuk tenggelam dalam diri secara senyap itulah kekuatan anda."
             },
             "summerEmpathy": {
-              "title": "Senario empati musim panas Air Gui"
+              "title": "Senario empati musim panas Air Gui",
+              "reason": "Bagi Gui Air (癸水) yang bertemu bahang Api musim panas, empati yang menenangkan hati dan menghubungkan orang ialah senjata terbesar. Seperti bunga hidrangea, jalan terbuka apabila anda mengumpulkan kehangatan ramai orang."
             },
             "subtleSignal": {
-              "title": "Senario isyarat halus Air Gui"
+              "title": "Senario isyarat halus Air Gui",
+              "reason": "Gui Air (癸水) ialah tenaga yang paling awal membaca isyarat kecil yang terlepas pandang oleh orang lain. Tangkap sahaja masa yang tepat dengan deria tajam itu, dan satu langkah itu akan menentukan menang kalah."
             }
           }
         },
-        "stickerLabel": "Bunga oleh Saju",
+        "stickerLabel": "Bunga mengikut Empat Tiang",
         "dayMasterWaiting": "Menunggu bacaan tuan hari",
         "signalPending": "Menunggu isyarat teras",
         "scenarioTitleFallback": "{dayMasterBadge} senario berkembang",
         "scenarioFallbackReason": "Aliran mekar dibaca dengan menyepadukan tuan hari dan persekitaran.",
-        "growthCycle": "Pucuk (mengumpul tenaga) “ Pertumbuhan (tindakan menguatkan) ” Mekar (hasil timbul) → Buah (hubungan dan memperdalam aset)",
-        "fallbackNote": "Logik pengayaan induk hari telah digunakan.",
-        "verdict": "Dalam bacaan Saju anda, bunga anda ialah {flowerName} ({scientificName}).",
+        "growthCycle": "Bercambah (mengumpul tenaga) → Membesar (menguatkan tindakan) → Mekar (hasil terserlah) → Berbuah (menghimpun hubungan/aset)",
+        "fallbackNote": "Kami meneliti tenaga Tuan Hari anda dengan berhati-hati berdasarkan tarikh lahir sahaja.",
+        "verdict": "Menurut Empat Tiang, bunga yang datang kepada anda sekarang ialah {flowerName} ({scientificName}).",
         "rationale": {
-          "verdict": "Dalam bacaan Saju anda, bunga takdir anda ialah {flowerName} ({scientificName}).",
+          "verdict": "Maka, bunga yang kami hulurkan kepada anda sekarang ialah {flowerName} ({scientificName}).",
           "elements": "Bacaan Lima Elemen menunjukkan {dominant} sebagai tenaga utama anda dan {support} sebagai aliran sokongan.",
           "context": "Musim nasib semasa ialah {season}, ketumpatan tenaga ialah {water}, dan peringkat hayat dibaca sebagai {environment}.",
           "dayMaster": "Induk hari disahkan sebagai {dayMasterBadge} dan interaksi musim-persekitaran di sekelilingnya diutamakan.",
-          "scenario": "Senario persekitaran induk hari: {reason}",
+          "scenario": "{reason}",
           "levels": "Aras unsur ialah {elementLevelLine} dan kelima-lima aras telah ditimbang untuk mengesahkan bunga takdir.",
           "symbolism": "Bunga ini melambangkan {symbolism}, mencerminkan tema musim ini dengan paling jelas.",
           "description": "Bacaan bunga takdir: {description}",
           "vibe": "Panduan mekar: {vibeMessage}",
-          "fallback": "Logik pelarasan: {note}"
+          "fallback": "Logik pelarasan: {note}",
+          "dayMasterSame": "Bunga yang membawa tenaga {element} yang sama dengan Tuan Hari {dayMasterBadge} anda.",
+          "strengthRelease": "Carta anda kuat, jadi kami mengutamakan bunga bertenaga {elements} yang membantu menyalurkan tenaga yang melimpah ke luar.",
+          "strengthSupport": "Carta anda lemah, jadi kami mengutamakan bunga bertenaga {elements} yang menyokong Tuan Hari anda.",
+          "yongshin": "Bunga ini membawa unsur berguna yang diperlukan oleh carta anda — {elements}.",
+          "johuWarm": "Carta anda condong kepada sejuk dan lembap, jadi kami mengutamakan bunga hangat yang memanaskan seperti cahaya matahari.",
+          "johuCool": "Carta anda condong kepada panas dan kering, jadi kami mengutamakan bunga yang kaya air untuk meredakan bahang."
         },
         "elements": {
           "wood": "Kayu",
-          "fire": "Kebakaran",
-          "earth": "Bumi",
+          "fire": "Api",
+          "earth": "Tanah",
           "metal": "Logam",
           "water": "Air"
         },
@@ -3018,6 +3258,55 @@
           "Earth": "Operasi, pengurusan dan pembinaan sistem menunjukkan kekuatan anda.",
           "Metal": "Analisis, perancangan dan kawalan kualiti menukar ketepatan kepada keputusan.",
           "Water": "Penyelidikan, penyiasatan dan reka bentuk kandungan membolehkan kedalaman anda bersinar."
+        },
+        "bloom": {
+          "season": "Seperti anda yang lahir pada {season}, bunga ini juga mekar paling cerah pada {season}."
+        },
+        "flowerLanguage": {
+          "yongshin": "'{language}' — pesanan bunga yang membawa unsur berguna {elements} ini untuk anda.",
+          "dayMaster": "'{language}' — pesanan bunga ini untuk anda dengan Tuan Hari {dayMasterBadge}."
+        },
+        "shareHook": {
+          "raritySeason": "Sekuntum daripada {total}, dipilih oleh Tuan Hari {dayMasterBadge} yang lahir pada {season}",
+          "rarityDayMaster": "Sekuntum daripada {total}, dipilih oleh Tuan Hari {dayMasterBadge}",
+          "rarityPlain": "Sekuntum yang dipilih Empat Tiang aku daripada {total}"
+        },
+        "dayMasters": {
+          "jia": "Jia Kayu (甲木)",
+          "yi": "Yi Kayu (乙木)",
+          "bing": "Bing Api (丙火)",
+          "ding": "Ding Api (丁火)",
+          "wu": "Wu Tanah (戊土)",
+          "ji": "Ji Tanah (己土)",
+          "geng": "Geng Logam (庚金)",
+          "xin": "Xin Logam (辛金)",
+          "ren": "Ren Air (壬水)",
+          "gui": "Gui Air (癸水)"
+        },
+        "dayMasterStems": {
+          "jia": "Jia (甲)",
+          "yi": "Yi (乙)",
+          "bing": "Bing (丙)",
+          "ding": "Ding (丁)",
+          "wu": "Wu (戊)",
+          "ji": "Ji (己)",
+          "geng": "Geng (庚)",
+          "xin": "Xin (辛)",
+          "ren": "Ren (壬)",
+          "gui": "Gui (癸)"
+        },
+        "dayMasterFallback": {
+          "ziwei": "Oleh sebab data Tuan Hari Empat Tiang terhad, sifat Tuan Hari telah dilaraskan berdasarkan bintang utama Ziwei.",
+          "astrology": "Oleh sebab data Tuan Hari Empat Tiang terhad, kecenderungan tanda matahari digunakan sebagai ganti sifat Tuan Hari.",
+          "dominant": "Oleh sebab penunjuk utama Empat Tiang, Ziwei dan astrologi terhad, sifat Tuan Hari dianggarkan berdasarkan unsur yang dominan."
+        },
+        "rationaleLabel": {
+          "dayMaster": "Sifat Tuan Hari",
+          "strengthRelease": "Carta kuat",
+          "strengthSupport": "Carta lemah",
+          "yongshin": "Unsur berguna",
+          "johuWarm": "Imbangan iklim · sejuk dan lembap",
+          "johuCool": "Imbangan iklim · panas dan kering"
         }
       },
       "flowers": {
@@ -3031,7 +3320,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Penantian, kebenaran"
         },
         "aster": {
           "name": "Aster",
@@ -3043,7 +3333,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kesetiaan, kesabaran"
         },
         "astro_lavender": {
           "name": "Nebula Lavender",
@@ -3055,7 +3346,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Ketenangan"
         },
         "azalea": {
           "name": "Azalea",
@@ -3067,7 +3359,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kegembiraan cinta"
         },
         "begonia": {
           "name": "Begonia",
@@ -3079,7 +3372,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kebaikan hati, kesopanan"
         },
         "bellflower": {
           "name": "Bunga loceng",
@@ -3091,7 +3385,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Cinta abadi"
         },
         "bird_of_paradise": {
           "name": "Burung Syurga",
@@ -3103,7 +3398,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kegembiraan"
         },
         "black_rose": {
           "name": "Mawar Hitam",
@@ -3115,7 +3411,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Awak milikku selamanya"
         },
         "blue_iris": {
           "name": "Iris Biru",
@@ -3127,7 +3424,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kehidupan, hidup semula"
         },
         "blue_lotus": {
           "name": "Teratai Biru",
@@ -3139,7 +3437,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kebangkitan semula, ilham suci"
         },
         "bluebell": {
           "name": "Loceng biru",
@@ -3151,7 +3450,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Rendah hati, hati yang tidak berubah"
         },
         "cactus_flower": {
           "name": "Bunga Kaktus",
@@ -3163,7 +3463,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Hati yang membara, semangat"
         },
         "camellia": {
           "name": "Camellia",
@@ -3175,7 +3476,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Keanggunan, cinta abadi"
         },
         "carnation": {
           "name": "Carnation",
@@ -3187,7 +3489,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Cinta abadi"
         },
         "cherry_blossom": {
           "name": "Bunga Sakura",
@@ -3199,7 +3502,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Nostalgia, permulaan baru"
         },
         "chrysanthemum_gold": {
           "name": "Golden Chrysanthemum",
@@ -3211,7 +3515,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Umur yang panjang, kelahiran semula"
         },
         "cornflower": {
           "name": "Bunga jagung",
@@ -3223,7 +3528,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Rasa bahagia, kehalusan"
         },
         "cosmos": {
           "name": "Kosmos",
@@ -3235,7 +3541,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Ketulusan hati, keharmonian"
         },
         "crocus": {
           "name": "Crocus",
@@ -3247,7 +3554,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kegembiraan masa muda"
         },
         "dahlia": {
           "name": "Dahlia",
@@ -3259,7 +3567,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Mencari kekuatan dalaman"
         },
         "daisy": {
           "name": "Daisy",
@@ -3271,7 +3580,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kesucian, keharmonian, cinta sejati"
         },
         "delicate_willow": {
           "name": "Bunga Willow",
@@ -3283,7 +3593,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Keterusterangan, kebebasan"
         },
         "delphinium": {
           "name": "Delphinium",
@@ -3295,7 +3606,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Saya akan membahagiakan awak"
         },
         "edelweiss": {
           "name": "Edelweiss",
@@ -3307,7 +3619,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kenangan berharga, keberanian yang mulia"
         },
         "flame_tulip": {
           "name": "Tulip Api",
@@ -3319,7 +3632,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Perasaan romantik"
         },
         "forsythia": {
           "name": "Forsythia",
@@ -3331,7 +3645,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Harapan, kasih yang mendalam"
         },
         "foxglove": {
           "name": "Foxglove",
@@ -3343,7 +3658,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Cinta yang membara, hati yang tidak disembunyikan"
         },
         "freesia": {
           "name": "Freesia",
@@ -3355,7 +3671,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Persahabatan, keikhlasan, ingatan berkekalan"
         },
         "gardenia": {
           "name": "Gardenia",
@@ -3367,7 +3684,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Keceriaan, cinta rahsia"
         },
         "gentian": {
           "name": "Gentian",
@@ -3379,7 +3697,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Keadilan, menyayangi awak ketika awak bersedih"
         },
         "geranium": {
           "name": "Geranium",
@@ -3391,7 +3710,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Bahagia kerana adanya awak"
         },
         "glacier_bloom": {
           "name": "Glasier Bloom",
@@ -3403,7 +3723,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Janji yang dijaga di bawah ais"
         },
         "heliotrope": {
           "name": "Heliotrope",
@@ -3415,7 +3736,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Pengabdian, cinta abadi"
         },
         "hibiscus": {
           "name": "Bunga raya",
@@ -3427,7 +3749,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Keberanian, perpaduan"
         },
         "honeysuckle": {
           "name": "Honeysuckle",
@@ -3439,7 +3762,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Ikatan cinta, cinta yang setia"
         },
         "hydrangea": {
           "name": "Hydrangea",
@@ -3451,7 +3775,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Penghargaan yang tulus, emosi sejati, pemahaman"
         },
         "iris": {
           "name": "Iris",
@@ -3463,7 +3788,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kehidupan, hidup semula"
         },
         "ivy_bloom": {
           "name": "Ivy Bloom",
@@ -3475,7 +3801,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Persahabatan yang kekal"
         },
         "jasmine": {
           "name": "Jasmine",
@@ -3487,7 +3814,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kesucian, kehalusan budi, kecantikan"
         },
         "larkspur": {
           "name": "Larkspur",
@@ -3499,7 +3827,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kebebasan, hati yang terbuka"
         },
         "lavender": {
           "name": "Lavender",
@@ -3511,7 +3840,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Ketenangan"
         },
         "lily": {
           "name": "Lily",
@@ -3523,7 +3853,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kesucian, kesopanan, kemurnian"
         },
         "lotus": {
           "name": "Teratai",
@@ -3535,7 +3866,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kejujuran, kebaikan, kesucian"
         },
         "lotus_golden": {
           "name": "Teratai Emas",
@@ -3547,7 +3879,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kesempurnaan, kesucian"
         },
         "lotus_pink": {
           "name": "Teratai Merah Jambu",
@@ -3559,7 +3892,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kebaikan, kecantikan"
         },
         "lotus_white": {
           "name": "Teratai Putih",
@@ -3571,7 +3905,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kesucian"
         },
         "magnolia": {
           "name": "Magnolia",
@@ -3583,7 +3918,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kemuliaan, jiwa yang luhur"
         },
         "marigold": {
           "name": "Marigold",
@@ -3595,7 +3931,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kebahagiaan yang pasti akan tiba"
         },
         "moon_lily": {
           "name": "Moon Lily",
@@ -3607,7 +3944,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kesucian, kehormatan"
         },
         "moon_narcissus": {
           "name": "Moon Narcissus",
@@ -3619,7 +3957,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kelahiran semula, permulaan baru"
         },
         "moonflower": {
           "name": "Bunga bulan",
@@ -3631,7 +3970,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Penantian, keajaiban"
         },
         "morning_glory": {
           "name": "Morning Glory",
@@ -3643,7 +3983,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Berita gembira"
         },
         "mugunghwa": {
           "name": "Mugunghwa",
@@ -3655,7 +3996,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kesetiaan yang tidak berbelah bahagi, keabadian"
         },
         "narcissus": {
           "name": "Narcissus",
@@ -3667,7 +4009,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kebahagiaan, permulaan baru"
         },
         "nemophila": {
           "name": "Nemophila",
@@ -3679,7 +4022,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kejayaan di mana-mana"
         },
         "night_cereus": {
           "name": "Cereus Mekar Malam",
@@ -3691,7 +4035,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Pertemuan sekali seumur hidup, keindahan yang sekejap"
         },
         "orange_trumpet": {
           "name": "Bunga Sangkakala Jingga",
@@ -3703,7 +4048,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kemuliaan, kerinduan"
         },
         "orchid": {
           "name": "Orkid",
@@ -3715,7 +4061,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kemewahan, kecantikan yang halus, keanggunan"
         },
         "orchid_tanlang": {
           "name": "Orkid Tanlang",
@@ -3727,7 +4074,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Cinta, keindahan, kekuatan"
         },
         "passionflower": {
           "name": "Bunga nafsu",
@@ -3739,7 +4087,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Cinta yang suci"
         },
         "peony": {
           "name": "Peony",
@@ -3751,7 +4100,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kemakmuran, tuah, kehormatan"
         },
         "peony_ziwei": {
           "name": "Ziwei Peony",
@@ -3763,7 +4113,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Cinta, kasih sayang"
         },
         "persian_buttercup": {
           "name": "Parsi Buttercup",
@@ -3775,7 +4126,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Daya tarikan, pesona yang bersinar"
         },
         "plum_blossom": {
           "name": "Bunga Plum",
@@ -3787,7 +4139,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kecantikan, umur yang panjang"
         },
         "poppy": {
           "name": "Popi",
@@ -3799,7 +4152,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Menyenangkan hati"
         },
         "primrose": {
           "name": "Primrose",
@@ -3811,7 +4165,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Cinta pertama, kunci kebahagiaan"
         },
         "queen_anne_lace": {
           "name": "Renda Ratu Anne",
@@ -3823,7 +4178,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Hati yang mendalam, kesyukuran"
         },
         "ranunculus": {
           "name": "Ranunculus",
@@ -3835,7 +4191,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Daya tarikan, hati yang berseri"
         },
         "red_lycoris": {
           "name": "Lycoris Merah",
@@ -3847,7 +4204,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Semangat membara, janji untuk bertemu kembali"
         },
         "red_spider_lily": {
           "name": "Red Spider Lily",
@@ -3859,7 +4217,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Menanti hari bertemu kembali"
         },
         "resilient_rose": {
           "name": "Mawar Klasik",
@@ -3871,7 +4230,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Cinta, keberanian, semangat yang tidak pernah padam"
         },
         "rose": {
           "name": "Mawar",
@@ -3883,7 +4243,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Cinta"
         },
         "snapdragon": {
           "name": "Snapdragon",
@@ -3895,7 +4256,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Menawan, peramah"
         },
         "sunflower": {
           "name": "Bunga matahari",
@@ -3907,7 +4269,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kesetiaan, kekaguman, kegembiraan murni"
         },
         "sunflower_ziwei": {
           "name": "Bunga Matahari Ziwei",
@@ -3919,7 +4282,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kebahagiaan yang kekal, panjang umur"
         },
         "sweet_pea": {
           "name": "Kacang Manis",
@@ -3931,7 +4295,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kenangan manis, persahabatan"
         },
         "thorny_rose": {
           "name": "Mawar Berduri",
@@ -3943,7 +4308,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Cinta, asmara"
         },
         "tiger_lily": {
           "name": "Tiger Lily",
@@ -3955,7 +4321,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Keyakinan, kebanggaan diri"
         },
         "tulip": {
           "name": "Tulip",
@@ -3967,7 +4334,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Cinta yang sempurna dan mendalam"
         },
         "violet": {
           "name": "Violet",
@@ -3979,7 +4347,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kerendahan hati, kejujuran"
         },
         "violet_wisteria": {
           "name": "Violet Wisteria",
@@ -3991,7 +4360,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Selamat datang, mabuk cinta"
         },
         "water_anemone": {
           "name": "Anemon Air",
@@ -4003,7 +4373,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Penantian, kebenaran yang lembut"
         },
         "water_lily": {
           "name": "Water Lily",
@@ -4015,7 +4386,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Hati yang suci murni"
         },
         "water_narcissus": {
           "name": "Narcissus Air",
@@ -4027,7 +4399,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kebahagiaan, permulaan baru"
         },
         "white_baby_breath": {
           "name": "Nafas Bayi Putih",
@@ -4039,7 +4412,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Cinta abadi, kesucian"
         },
         "wild_chrysanthemum": {
           "name": "Kekwa Liar",
@@ -4051,7 +4425,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Optimis, keceriaan"
         },
         "winter_plum": {
           "name": "Plum Musim Sejuk",
@@ -4063,7 +4438,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kecantikan, umur yang panjang"
         },
         "wisteria": {
           "name": "Wisteria",
@@ -4075,7 +4451,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Selamat datang, mabuk cinta"
         },
         "yarrow": {
           "name": "Yarrow",
@@ -4087,7 +4464,435 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
+          },
+          "flowerLanguage": "Penyembuhan, kepimpinan"
+        }
+      },
+      "ui": {
+        "source": {
+          "saju": "Empat Tiang",
+          "astrology": "Astrologi",
+          "jamidusu": "Ziwei",
+          "sukuyo": "Sukuyo"
+        },
+        "specimen": {
+          "language": "Maksud bunga",
+          "system": "Sistem",
+          "mark": {
+            "saju": {
+              "primary": "Tuan Hari",
+              "secondary": "Musim"
+            },
+            "astrology": {
+              "primary": "Zodiak",
+              "secondary": "Ascendan"
+            },
+            "jamidusu": {
+              "primary": "Bintang utama",
+              "secondary": "Kecerahan"
+            },
+            "sukuyo": {
+              "primary": "Rumah bulan",
+              "secondary": "Bulan"
+            }
+          },
+          "yongshin": "Unsur berguna"
+        },
+        "bouquet": {
+          "sourcesAll": "Keempat-empat sistem",
+          "sourcesPair": "{a} dan {b}",
+          "sourcesTrio": "{a}, {b} dan {c}",
+          "sameFlower": "{sources} memilih bunga yang sama, {name}. Begitu jelasnya sifat anda.",
+          "sameElement": "{sources} sama-sama menunjuk kepada tenaga {element}.",
+          "diverse": "Bunga-bunga berlainan sifat berkumpul, menghimpunkan pelbagai sisi diri anda dalam satu jambak.",
+          "title": "Jambak takdir",
+          "sub": "Bunga pilihan {count} sistem, diikat menjadi satu jambak."
+        },
+        "share": {
+          "preparing": "Keputusan bunga takdir anda sedang disediakan.",
+          "hookTitle": "🌸 Rupanya bunga takdir aku '{name}'",
+          "hookLanguage": "Maksud bunga: {language}",
+          "hookAsk": "Kau pula bunga apa? → {url}",
+          "hashtagsNamed": "#BungaTakdir #BungaAkuIalah{tag}",
+          "hashtag": "#BungaTakdir",
+          "languageDot": "Maksud bunga · {language}",
+          "ogTitle": "{name}, bunga takdir aku",
+          "ogAsk": "Apa bunga kau?",
+          "title": "Bunga takdir",
+          "copiedText": "Teks telah disalin. Tampalkan dalam mesej untuk dihantar.",
+          "preparedText": "Teks sudah sedia. Jika aplikasi mesej tidak terbuka, tampalkan untuk dihantar.",
+          "kakaoTitle": "Bunga takdir aku ialah '{name}'",
+          "bloomMine": "Mekarkan bunga saya",
+          "kakaoOpened": "Tetingkap perkongsian KakaoTalk telah dibuka.",
+          "kakaoPrepared": "Mesej KakaoTalk anda sudah sedia. Jika tidak terbuka, tampalkan untuk dihantar."
+        },
+        "card": {
+          "kicker": "Bunga takdir saya",
+          "ask": "Bunga kau?",
+          "failed": "Imej kad tidak dapat dibuat, jadi teks perkongsian akan dihantar.",
+          "saved": "Kad cerita disimpan. Teks perkongsian juga telah disalin.",
+          "ready": "Kad cerita anda sudah sedia. Kongsikan di cerita Instagram anda.",
+          "drawing": "Kad sedang dilukis. Sila tunggu sebentar."
+        },
+        "sheet": {
+          "story": "Kad cerita",
+          "storyHint": "Simpan atau kongsi sebagai imej 9:16",
+          "kakao": "KakaoTalk",
+          "kakaoHint": "Hantar bunga saya kepada rakan",
+          "link": "Salin pautan",
+          "linkHint": "Salin bersama maksud bunga",
+          "compat": "Keserasian bunga dengan rakan",
+          "compatHint": "Hantar pautan keserasian kepada rakan",
+          "compatHintFriend": "Lihat keserasian dengan bunga rakan",
+          "title": "Kongsi bunga",
+          "close": "Tutup",
+          "linkCopied": "Maksud bunga dan pautan telah disalin. Tampalkan untuk dihantar kepada rakan.",
+          "notReady": "Anda boleh berkongsi selepas bunga anda mekar.",
+          "sub": "{name} · Maksud bunga '{language}'"
+        },
+        "compatShare": {
+          "inviteTitle": "🌸 Bunga takdir aku ialah '{name}'",
+          "inviteAsk": "Mekarkan bunga kau juga dan tengok keserasian bunga kita",
+          "hashtags": "#BungaTakdir #KeserasianBunga",
+          "title": "Keserasian bunga takdir",
+          "pair": "🌸 Aku '{mine}', kawan aku '{friend}'",
+          "result": "Keserasian bunga kita: '{title}'",
+          "ask": "Kau pun cubalah keserasian bunga kau → {url}"
+        },
+        "friend": {
+          "kicker": "Bunga takdir daripada rakan anda",
+          "shareCompat": "Kongsi keserasian bunga",
+          "note": "Sebaik bunga anda mekar, kami akan terus tunjukkan keserasian bunga kalian.",
+          "birthToast": "Masukkan tarikh lahir anda dan bunga anda akan mekar. Kemudian kami tunjukkan keserasian dengan bunga rakan."
+        },
+        "compat": {
+          "twin": {
+            "title": "Sepasang bunga yang sama",
+            "line": "Kalian berdua {name}. Tanpa perlu berkata, kalian hidup dalam musim yang sama."
+          },
+          "blend": {
+            "title": "Bunga berlainan sifat",
+            "line": "Dua bunga berlainan warna bertemu dan menjadikan jambak lebih mekar."
+          },
+          "same": {
+            "title": "Bunga sejiwa",
+            "line": "Kedua-dua bunga membawa tenaga {mine}. Kalian paling memahami rentak satu sama lain."
+          },
+          "give": {
+            "title": "Bunga yang saya mekarkan",
+            "line": "Tenaga {mine} bunga saya menyuburkan tenaga {friend} bunga rakan. Di sisi saya, bunga rakan mekar lebih cerah."
+          },
+          "receive": {
+            "title": "Bunga yang memekarkan saya",
+            "line": "Tenaga {friend} bunga rakan menguatkan tenaga {mine} bunga saya. Bersama, bunga saya mekar lebih penuh."
+          },
+          "shape": {
+            "title": "Bunga yang saling membentuk",
+            "line": "Tenaga {mine} bunga saya membentuk tenaga {friend} bunga rakan. Semakin seirama, semakin kukuh hubungan kalian."
+          },
+          "spark": {
+            "title": "Bunga yang saling menyuntik semangat",
+            "line": "Tenaga {friend} bunga rakan mengimbangi tenaga {mine} bunga saya. Kalian pendorong yang baik antara satu sama lain."
           }
+        },
+        "cta": {
+          "rebloom": "🌸 Mekarkan semula bunga takdir",
+          "astrologyAgain": "✨ Panggil semula bunga astrologi",
+          "jamidusuAgain": "🌺 Panggil semula bunga Ziwei",
+          "sukuyoAgain": "🌙 Panggil semula bunga Sukuyo"
+        },
+        "status": {
+          "atelierLocked": "Atelier Bunga Takdir perlu dibuka kunci.",
+          "loginRequired": "Log masuk untuk melihat bunga takdir anda.",
+          "newlyUnlocked": "✨ Bunga {source} anda baru sahaja dibuka.",
+          "resultReady": "{verdict} Anda boleh menyimpan keputusan ini atau berkongsinya di KakaoTalk.",
+          "reloading": "Memuatkan semula data anda. Sila tunggu sebentar.",
+          "linking": "Memautkan data {source} anda. Sila tunggu sebentar.",
+          "loaded": "Data {source} anda telah dimuatkan.",
+          "copied": "Disalin ke papan klip.",
+          "copyPermission": "Akses papan klip tidak dibenarkan, sila salin secara manual.",
+          "copyFailed": "Gagal menyalin.",
+          "kakaoPcCopied": "Di PC, pautan KakaoTalk telah disalin ke papan klip. Tampalkannya di KakaoTalk untuk berkongsi.",
+          "kakaoNotOpenedCopied": "Kami tidak dapat mengesahkan KakaoTalk telah dibuka, jadi ringkasan telah disalin ke papan klip. Tampalkannya di KakaoTalk untuk berkongsi.",
+          "kakaoOpening": "Membuka perkongsian KakaoTalk...",
+          "kakaoFailedCopied": "Perkongsian KakaoTalk tidak dapat dibuka, jadi ringkasan telah disalin ke papan klip.",
+          "refreshed": "Tab dan prompt telah dikemas kini berdasarkan: {verdict}",
+          "aiOpening": "Membuka AI dalam tab baharu. Jika tidak terbuka, benarkan pop-up dan cuba lagi.",
+          "aiBlocked": "Tab baharu nampaknya telah disekat. Benarkan pop-up dalam pelayar anda atau buka sendiri halaman AI pilihan anda.",
+          "summaryCopied": "Ringkasan disalin ke papan klip.",
+          "promptCopied": "Prompt utama bunga AI disalin ke papan klip.",
+          "promptPackCopied": "Pek prompt utama/negatif disalin ke papan klip."
+        },
+        "fallback": {
+          "astrology": {
+            "name": "Lavender Nebula",
+            "symbolism": "Gerak hati jernih yang mengalir mengikut urat cahaya bintang",
+            "vibe": "Bernafaslah mengikut rentak bintang, gerak hati anda akan menjadi jelas."
+          },
+          "jamidusu": {
+            "name": "Peoni",
+            "symbolism": "Keagungan diraja dan kekuatan pusat",
+            "keyword1": "Diraja",
+            "keyword2": "Keagungan",
+            "keyword3": "Pusat",
+            "vibe": "Berpegang pada pusat diri anda itulah yang membawa anda paling jauh."
+          },
+          "sukuyo": {
+            "name": "Bunga lili",
+            "symbolism": "Bunga pelindung yang mekar jernih di bawah cahaya bulan",
+            "keyword1": "Cahaya bulan",
+            "keyword2": "Pelindung",
+            "keyword3": "Penyucian",
+            "vibe": "Ikutilah nafas dan rentak bulan malam ini, pilihan anda akan menjadi lebih jelas.",
+            "keywordMansion": "Sukuyo",
+            "keywordGuardian": "Haiwan pelindung",
+            "keywordPhase": "Fasa bulan"
+          }
+        },
+        "legacy": {
+          "astrologyReading": "Mentafsir bunga takdir berdasarkan carta astrologi anda.",
+          "astrologyRhythm": "Menetapkan rentak bintang.",
+          "brightnessEven": "Sekata (平)",
+          "jamidusuReading": "Mentafsir bunga takdir berdasarkan bintang kuat hari ini.",
+          "mainStarUnknown": "Bintang utama tidak diketahui",
+          "jamidusuRhythm": "Menyelaraskan tenaga bintang.",
+          "imperialGrace": "Keagungan diraja",
+          "moonQuarter": "Bulan separa",
+          "sukuyoReading": "Mentafsir bunga takdir berdasarkan 27 rumah bulan Sukuyo.",
+          "mansionUnknown": "Rumah bulan tidak diketahui"
+        },
+        "badge": {
+          "sun": "Tanda matahari {value}",
+          "rising": "Ascendant {value}",
+          "moon": "Tanda bulan {value}",
+          "strongStar": "Bintang kuat hari ini {value}",
+          "brightness": "Kecerahan bintang {value}",
+          "moonPhase": "Fasa bulan {value}",
+          "guardian": "Haiwan pelindung {value}",
+          "palace": "Istana {value}",
+          "mansionLabel": "Rumah bulan",
+          "group": "Kumpulan {group}"
+        },
+        "value": {
+          "unknown": "Tidak diketahui",
+          "pending": "Menunggu tafsiran",
+          "lifePalace": "Istana Kehidupan"
+        },
+        "wait": {
+          "chartSignal": "Menunggu isyarat carta",
+          "starSignal": "Menunggu isyarat bintang utama",
+          "sukuyoSignal": "Menunggu isyarat Sukuyo",
+          "moonRhythm": "Menyelaraskan dengan rentak bulan.",
+          "nebulaRhythm": "Menyelaraskan rentak nebula.",
+          "imperialRhythm": "Menala tenaga diraja.",
+          "dayMaster": "Menunggu tafsiran Tuan Hari",
+          "sourceVerdict": "Menunggu tafsiran {source}",
+          "mainStar": "Menunggu tafsiran bintang utama",
+          "sukuyoReading": "Menunggu tafsiran Sukuyo",
+          "dataLoad": "Menunggu data dimuatkan",
+          "birth": "Menunggu tarikh lahir anda"
+        },
+        "stage": {
+          "keywords": "Kata kunci {source} · {list}",
+          "astrologyScenario": "Mengira senario mekar mengikut zodiak anda.",
+          "jamidusuScenario": "Mengira senario mekar mengikut bintang utama Ziwei anda.",
+          "sukuyoScenario": "Mengira senario mekar di bawah cahaya bulan Sukuyo.",
+          "seasonTexture": "Tekstur {season}",
+          "seasonDefault": "Musim",
+          "environmentMood": "Suasana {environment}",
+          "environmentDefault": "Persekitaran",
+          "sajuScenario": "Mengira senario mekar mengikut Tuan Hari dan persekitaran anda.",
+          "dataSheetPreparing": "Menyediakan helaian data bunga anda.",
+          "symbolizes": "Bunga ini melambangkan {symbolism}.",
+          "resonates": "Bunga ini bergema kuat dengan aliran tuah anda sekarang.",
+          "narrativeFallback": "{verdict} Titik mekar anda buat masa ini diselaraskan dengan keseimbangan {source} anda."
+        },
+        "guide": {
+          "allBloomed": "Semua bunga telah mekar. Buka semula mana-mana tab yang anda mahu.",
+          "startSaju": "Langkah seterusnya: buka bunga Empat Tiang anda dahulu untuk mula mekar.",
+          "next": "Langkah seterusnya: beralih ke bunga {source} untuk terus mekar."
+        },
+        "tab": {
+          "lockLabel": "Dibuka apabila atelier dibuka kunci"
+        },
+        "verdict": {
+          "preparing": "Menyediakan tafsiran bunga takdir anda.",
+          "defaultFlower": "Bunga takdir",
+          "sukuyo": "Menurut Sukuyo, bunga anda ialah {name}.",
+          "jamidusu": "Menurut Ziwei, bunga anda ialah {name}.",
+          "astrology": "Menurut astrologi, bunga anda ialah {name}.",
+          "saju": "Menurut Empat Tiang, bunga anda ialah {name}."
+        },
+        "snapshot": {
+          "guidance": "Hari ini, selaraskan rentak dahulu sebelum mengejar hasil, dan bunga anda akan mekar lebih cepat."
+        },
+        "empty": {
+          "noDomainData": "Belum ada data {source} yang dipautkan. Tekan butang di bawah dan bunga takdir anda sendiri akan mekar sekarang juga.",
+          "astroCalculating": "Carta bintang anda telah dibaca. Sedang memilih bunga astrologi anda.",
+          "notLinked": "Bunga {source} anda mekar sebaik sahaja anda menekan butang pautan. Tekan butang di bawah untuk bertemu bunga yang datang kepada anda sekarang.",
+          "linkButton": "Pautkan bunga takdir saya",
+          "linking": "Memautkan...",
+          "dataWaiting": "Menunggu data {source} dipautkan",
+          "readingWaiting": "Menunggu tafsiran {source}",
+          "keywordsLoading": "Kata kunci {source} · sedang dimuatkan"
+        },
+        "artMood": {
+          "astrology": "Gaya bunga penuh impian yang diselubungi nebula berbintang dan cahaya neon",
+          "jamidusu": "Gaya bunga yang memadukan keagungan diraja dengan keanggunan istana",
+          "sukuyo": "Gaya bunga jernih seperti bertafakur di bawah bulan dan air yang tenang",
+          "saju": "Gaya bunga Timur yang puitis, mekar mengikut urat Lima Unsur"
+        },
+        "care": {
+          "wood": "Bangkitkan titik pertumbuhan dengan regangan 8 minit di tingkap timur yang disinari matahari pagi",
+          "fire": "Terima cahaya dari arah selatan selama 5 minit dan sebut matlamat hari ini dengan lantang",
+          "earth": "Kemaskan satu sudut ruang kerja anda untuk meneguhkan paksi pusat",
+          "metal": "Tulis 3 keutamaan dan berani pangkas janji yang tidak perlu",
+          "water": "Lancarkan aliran emosi dengan berjalan 10 minit pada waktu petang dan minum air",
+          "default": "Tetapkan dahulu rutin cahaya (pagi) dan air (malam) untuk menstabilkan rentak asas pertumbuhan."
+        },
+        "synergy": {
+          "astrology": "pasu kaca, bingkai perak, pencahayaan mikro yang lembut",
+          "jamidusu": "kain satin, objek gangsa, seramik simetri",
+          "sukuyo": "kaca kabur, linen berwarna cahaya bulan, dulang bercorak ombak",
+          "saju": "seramik matte, kayu asli, kain bercorak lembut",
+          "line": "Warna dicadangkan: utama {primary}, sokongan {secondary}, aksen {accent} / Bahan dicadangkan: {materials}."
+        },
+        "atelier": {
+          "scenarioTitle": "Senario mekar {source}",
+          "growthCycleWaiting": "Menunggu pengiraan kitaran mekar",
+          "ritualWaiting": "Mengira rutin amalan hari ini.",
+          "astrology": {
+            "lightingFire": "Cahaya terik yang jatuh dari sudut tinggi seperti tengah hari musim panas",
+            "lightingEarth": "Cahaya stabil dengan rona keemasan lewat petang yang kekal lama",
+            "lightingWater": "Cahaya biru sejuk waktu subuh yang merebak perlahan-lahan",
+            "lightingAir": "Cahaya condong seperti angin yang membuka ruang dengan ringan",
+            "humidityWater": "Keadaan kabus perak dengan kelembapan emosi yang tinggi",
+            "humidityFire": "Udara kering yang membawa haba, keadaan emosi yang cepat bertindak balas",
+            "humidityEarth": "Kelembapan stabil seperti pasu tanah liat, keadaan emosi yang matang perlahan-lahan",
+            "humidityAir": "Kelembapan angin yang ringan dan fleksibel, keadaan idea yang cepat diperbaharui",
+            "seasonFire": "Fasa pecutan mekar: tindakan dan ekspresi menolak kuntum ke atas",
+            "seasonWater": "Fasa pemupukan dalaman: rehat dan gerak hati mengisi lapisan akar",
+            "seasonBalance": "Fasa penalaan keseimbangan: struktur dan emosi bersilang untuk menyediakan kuntum seterusnya",
+            "section": "Cahaya dan tenaga cakerawala",
+            "matrixLighting": "☀️ Cahaya cakerawala: {value}",
+            "matrixHumidity": "💧 Kelembapan atmosfera: {value}",
+            "matrixSeason": "🪐 Musim kosmik: {value}",
+            "log": "Catatan pemerhatian tukang kebun: arah tanda matahari {sun} dan cahaya ascendant {rising} menentukan sudut dahan. Kelembapan yang diatur oleh tanda bulan {moon} membuka urat emosi dengan lembut, dan minggu ini ialah fasa isyarat mekar, ketika peluang muncul paling awal.",
+            "recipe": "Resipi rahsia: selepas jam 9 malam, malapkan lampu tingkap satu tahap dan tulis satu perkara yang akan anda lakukan esok pada baris pertama buku nota. Fokus hanya pada perkara itu dalam 12 minit pertama pagi, dan rentak cahaya bintang akan selari paling cepat.",
+            "flowerLanguage": "Maksud bunga takdir: keberanian untuk mempercayai sudut bintang dan mengambil langkah pertama.",
+            "gardenerWord": "Pesan tukang kebun untuk bunga ini: gerak hati hari ini bukan keterlaluan, tetapi ramalan. Tindakan kecil akan mengubah nebula menjadi taman yang sebenar.",
+            "particle": "Apabila cahaya {source} diubah menjadi zarah, tekstur \"{particle}\" bersinar paling stabil."
+          },
+          "jamidusu": {
+            "structureZiwei": "Dahan teguh yang membawa keagungan diraja sistem bintang Ziwei",
+            "structureBreaker": "Batang tebal dan keras yang dibentuk oleh tenaga panglima penembus halangan",
+            "structureFlexible": "Kelopak berlapis yang halus, lembut tetapi sukar patah",
+            "structureBalanced": "Rangka bunga simetri yang kemas, dibentuk oleh bintang utama yang seimbang",
+            "social": "Seperti rama-rama dan lebah yang berlegar di sekitar {palace}, hubungan rapat berkongsi peranan dan membantu anda berkembang.",
+            "thornsDim": "Fasa duri pendek yang rapat dengan daya pertahanan tinggi, membantu anda menetapkan sempadan",
+            "thornsBright": "Fasa tekstur yang memantulkan cahaya menggantikan duri, melindungi anda dengan penuh maruah",
+            "section": "Maruah dan bentuk bunga",
+            "matrixStructure": "🏛️ Rangka bunga: {value}",
+            "matrixSocial": "🦋 Rama-rama dan lebah: {value}",
+            "matrixThorns": "🌵 Duri pelindung: {value}",
+            "log": "Catatan pemerhatian tukang kebun: bintang kuat hari ini {star} meluruskan paksi batang, dan kecerahan bintang {brightness} menala kilauan kelopak. Kini, kesempurnaan struktur, bukan kemewahan, yang membesarkan hasil anda.",
+            "recipe": "Resipi rahsia: letakkan satu objek logam di sebelah kiri meja, kemudian tulis satu prinsip hari ini dan satu perkara yang sanggup anda alah bersama-sama. Semakin jelas sempadan, semakin anggun bunga mekar.",
+            "flowerLanguage": "Maksud bunga takdir: maruah ialah cahaya paling tenang yang mekar daripada struktur yang kukuh.",
+            "gardenerWord": "Pesan tukang kebun untuk bunga ini: jangan tergesa-gesa untuk bersinar terang. Sehari yang berpegang pada prinsip membina dahan yang paling tahan lama.",
+            "particle": "Apabila susunan hierarki {source} diubah menjadi zarah, suasana \"{particle}\" menunjukkan susunan yang paling indah."
+          },
+          "sukuyo": {
+            "scentFriend": "Haruman kasturi putih yang lembut merebak di bawah cahaya bulan",
+            "scentDanger": "Haruman kayu yang pekat dan dalam, meningkatkan tumpuan",
+            "scentDefault": "Haruman herba bunga yang segar, menala suhu hubungan dengan lembut",
+            "dewFull": "Embun malam paling penuh, inspirasi dan ekspresi emosi sama-sama melimpah",
+            "dewNew": "Fasa anak bulan dengan embun nipis, pemerhatian dan persediaan didahulukan",
+            "dewDefault": "Embun sederhana, emosi dan daya tindakan berkembang seiring",
+            "companionDragon": "Gandingan wisteria dan sage biru, menyokong aliran pengembangan yang besar",
+            "companionDog": "Gandingan rosemary dan kamomil, menguatkan kestabilan hubungan dan daya pemulihan",
+            "companionTiger": "Gandingan eukaliptus dan rudbeckia, menguatkan ketegasan dan naluri melindungi",
+            "companionDefault": "Gandingan lavender dan ivi, membantu kestabilan emosi dan pertumbuhan jangka panjang",
+            "section": "Haruman jodoh dan embun malam",
+            "matrixScent": "🌙 Haruman takdir: {value}",
+            "matrixDew": "💦 Embun malam: {value}",
+            "matrixCompanion": "🌿 Tumbuhan teman: {value}",
+            "log": "Catatan pemerhatian tukang kebun: sifat hubungan {mansion} terserlah dahulu melalui haruman, dan fasa bulan {phase} menala rentak emosi melalui ketumpatan embun. Kini, kehalusan menyelaraskan rentak bersama, bukan mendesak laju jodoh, yang mengekalkan kesegaran bunga lebih lama.",
+            "recipe": "Resipi rahsia: sebelum tidur, minum segelas air perlahan-lahan dan tulis secara senyap satu nama yang anda syukuri hari ini. Rentak air bulan akan stabil dan tuah jodoh akan terbuka dengan lembut.",
+            "flowerLanguage": "Maksud bunga takdir: empati yang senyap menjadi haruman yang paling jauh tersebar.",
+            "gardenerWord": "Pesan tukang kebun untuk bunga ini: tidak perlu tergesa-gesa. Seperti embun malam yang berkumpul perlahan-lahan, jodoh anda juga akan menjadi jelas pada masa yang tepat.",
+            "particle": "Apabila rentak cahaya bulan {source} diubah menjadi zarah, suasana \"{particle}\" memeluk anda paling hangat."
+          },
+          "saju": {
+            "soilCold": "Tanah subur berpaya yang menyimpan banyak kelembapan",
+            "soilHot": "Tanah bercampur kerikil yang hangat dan mudah menyalirkan air",
+            "soilBalanced": "Tanah subur dengan butiran sekata dan mineral yang stabil",
+            "rootStrong": "Fasa akar tunjang yang dalam, berpegang pada pusat walaupun dunia luar berubah",
+            "rootWeak": "Fasa akar halus yang merebak dahulu dan memerlukan sokongan",
+            "rootBalanced": "Fasa seimbang, akar sederhana dalam yang merebak sekata",
+            "section": "Tanah dan akar untuk pertumbuhan",
+            "matrixSoil": "🪨 Komposisi tanah: {value}",
+            "matrixRoot": "🌱 Kedalaman akar: {value}",
+            "matrixNutrient": "🧪 Nutrien tukang kebun: {value}",
+            "log": "Catatan pemerhatian tukang kebun: hari ini taman membawa tekstur {soil}, dan tenaga pertumbuhan bergerak dalam aliran \"{root}\". Di luar ia kelihatan tenang, tetapi di lapisan akar, kekuatan untuk mekar seterusnya sedang dikumpul dengan kukuh.",
+            "recipe": "Resipi rahsia: letakkan satu pokok berdaun hijau di tingkap utara atau timur, longgarkan badan 10 minit pada waktu pagi dan atur pernafasan 10 minit pada waktu malam. Mengekalkan rentak dua kali sehari ini menaikkan tenaga unsur berguna paling cepat.",
+            "flowerLanguage": "Maksud bunga takdir: akar yang kukuh mungkin kelihatan perlahan, tetapi akhirnya mekar paling tinggi.",
+            "gardenerWord": "Pesan tukang kebun untuk bunga ini: percayalah pada pengumpulan, bukan ketergesaan. Penjagaan kecil hari ini menjadi tuaian besar musim depan.",
+            "particle": "Apabila gerak halus tenaga {source} diubah menjadi zarah, suasana \"{particle}\" paling harmoni."
+          },
+          "themesWaiting": "Menganalisis tema hubungan dan kerja.",
+          "guidance": "Panduan amalan bunga takdir {source}: {text}"
+        },
+        "prompt": {
+          "badgesSukuyo": "Lencana Sukuyo: {mansion} / fasa bulan {phase} / haiwan pelindung {guardian}",
+          "badgesJamidusu": "Lencana Ziwei: bintang kuat hari ini {star} / kecerahan bintang {brightness} / istana {palace}",
+          "badgesAstrology": "Lencana astrologi: tanda matahari {sun} / ascendant {rising} / tanda bulan {moon}",
+          "badgesSaju": "Lencana Empat Tiang: kekuatan {strength} / unsur berguna {yongshin} / imbangan musim {johu}",
+          "symbolismFallback": "Bunga yang melambangkan aliran takdir",
+          "narrativeFallback": "Kisah bunga takdir",
+          "scenarioFallback": "Penataan berdasarkan senario mekar",
+          "toneDirection": "Hala tuju nada {source}: {mood} / {background}"
+        },
+        "history": {
+          "emptyStatus": "Belum ada rekod mekar yang disimpan. Cuba simpan keputusan semasa.",
+          "restore": "Buka semula",
+          "kakao": "Kongsi di Kakao",
+          "delete": "Padam",
+          "saved": "Rekod mekar disimpan: {name} ({time})",
+          "notFound": "Rekod ini tidak ditemui.",
+          "restored": "Rekod mekar yang disimpan telah dibuka semula: {name}",
+          "deleteNotFound": "Rekod untuk dipadam tidak ditemui.",
+          "deleted": "Rekod mekar yang dipilih telah dipadam.",
+          "nothingToClear": "Tiada rekod mekar untuk dipadam.",
+          "cleared": "Semua rekod mekar yang disimpan telah dipadam.",
+          "shareNotFound": "Rekod untuk dikongsi tidak ditemui."
+        },
+        "noBirth": {
+          "jamidusu": "Masukkan tarikh lahir anda untuk melihat bunga Ziwei anda.",
+          "sukuyo": "Masukkan tarikh lahir anda untuk melihat bunga Sukuyo anda.",
+          "astrology": "Masukkan tarikh dan masa lahir anda untuk melihat bunga astrologi anda.",
+          "saju": "Masukkan nama dan tarikh lahir anda dahulu, dan bunga takdir anda sendiri akan mekar di sini."
+        },
+        "studioTitle": "🌸 Atelier Bunga Takdir",
+        "sourceDesc": {
+          "saju": "Kami membaca Tuan Hari, bulan lahir dan imbangan Lima Unsur anda satu demi satu, kemudian memilih bunga yang paling menyentuh tenaga anda pada musim ini.",
+          "astrology": "Kami menindih tiga jalur cahaya bintang yang dilukis oleh tanda matahari, ascendant dan tanda bulan anda, kemudian memekarkan bunga yang paling jernih selaras dengan carta anda sekarang.",
+          "jamidusu": "Kami menjejaki bintang utama di Istana Kehidupan anda, kecerahannya dan aliran Empat Transformasi, kemudian mencari bunga yang paling jelas dimekarkan oleh carta anda sekarang.",
+          "sukuyo": "Kami meletakkan rumah bulan kelahiran anda daripada 27 rumah bulan di samping fasa bulan malam ini, kemudian memberikan bunga yang paling lembut sepadan dengan urat hati anda sekarang."
+        },
+        "sourceShort": {
+          "saju": "Empat Tiang",
+          "astrology": "carta",
+          "jamidusu": "Ziwei",
+          "sukuyo": "Sukuyo"
+        },
+        "strength": {
+          "strong": "Kuat",
+          "weak": "Lemah"
+        },
+        "johu": {
+          "hot": "Hangat & kering",
+          "cold": "Sejuk & lembap",
+          "balanced": "Seimbang"
         }
       }
     }
@@ -4418,7 +5223,7 @@
     },
     "premium": {
       "lockedTitle": "LAPORAN DOMINATOR DIKUNCI",
-      "lockedDesc": "Bacaan mod Dominator · graf risiko 10 tahun · laporan profesional penuh (20,000+ aksara) · preskripsi ubat takdir",
+      "lockedDesc": "Mod Dominator · Carta aliran 10 tahun · 10 bab · Pelan tindakan bulanan",
       "lockedCost": "Buka kunci secara kekal pada harga ₩5,000",
       "unlockCta": "⚡ LAKUKAN DOMINATOR — ₩5,000",
       "generatingTitle": "DOMINATOR MELAKSANAKAN…",
@@ -6341,7 +7146,7 @@
         "k53h7ds": "Ujian Psikologi",
         "k79pfmc": "Nakshatra",
         "k871xeu": "Percuma · Analisis Wajah Selfie",
-        "ka0v1mf": "Percuma · 11 Alat",
+        "ka0v1mf": "Titisan madu · 16 alat",
         "kry6axn": "27 Nakshatra",
         "kslqazg": "Prom Bacaan Komprehensif",
         "kxgi8q8": "Ikan Fortune Teller",
@@ -6666,7 +7471,7 @@
         "k1ygnp9f2": {
           "ariaLabel": "Poin Utama"
         },
-        "k231dx8": "Cipta prompt konsultasi percuma dengan 16 alat seperti Empat Tiang, Tarot, Astrologi, Zi Wei Dou Shu, dan banyak lagi.",
+        "k231dx8": "Bina prompt rundingan serta-merta dengan 16 alat: Saju, tarot, astrologi, Zi Wei Dou Shu dan lain-lain.",
         "k3baulf": "Pusat Penamaan Hunminjeongeum",
         "k6uqkuq": {
           "ariaLabel": "Ringkasan Utama"
@@ -6718,7 +7523,7 @@
         "k1scb7d8": {
           "alt": "Imej wakil Takdir"
         },
-        "koe32kc": "Cuba Percuma",
+        "koe32kc": "Titisan madu",
         "ktgbfsy": "BARU · Edisi Muktamad",
         "n50001000020000": "Tarot 5,000 won · Empat Tiang 10,000 won · Keserasian 20,000 won",
         "k1dw3t0h": "Carta percuma · rundingan pakar berbayar",
@@ -6739,7 +7544,7 @@
     "tarotTileBody": {
       "featuredContentCardCta": {
         "k1f1oofn": "Masuk Kedai Teh Takdir",
-        "kdyjsns": "Cuba secara percuma",
+        "kdyjsns": "Bina prompt",
         "kwux29x": "Masuk Bilik Strategi"
       },
       "pvcPremMeta": {
@@ -6809,7 +7614,7 @@
         "ko4w810": "16 alat termasuk Empat Tiang (BaZi) · Tarot · Astrologi",
         "kozjlt4": "Nasihat praktikal untuk hubungan · kekayaan · kerja · pilihan",
         "kqwk9o": "Konsultasi aliran rumah dan bintang mengikut topik",
-        "krx9ppb": "1 percubaan percuma · tanpa had selepas daftar",
+        "krx9ppb": "1 titisan madu setiap 3 kehadiran · 1 titisan setiap prompt",
         "ktv5xm9": "Pembacaan carta kelahiran Empat Tiang (BaZi) dan keseimbangan Lima Unsur",
         "ktx0v26": "Peta nasib yang dipilih di bawah lambang singa",
         "kvigm32": "Nasihat praktikal yang disesuaikan dengan hubungan semasa",
@@ -6952,7 +7757,9 @@
         "n20000Price10000": "Dari ₩10,000",
         "n50000": "₩50,000",
         "n30000Price20000": "₩20,000",
-        "n20000Price10000Price20000": "Dari ₩20,000"
+        "n5000Price10000": "Dari ₩10,000",
+        "n30000Price20000Price30000": "₩30,000",
+        "n20000Price10000Price30000": "Dari ₩30,000"
       }
     },
     "cdSigCardBody": {
@@ -7014,10 +7821,9 @@
     },
     "fortuneGatewayDoor": {
       "fortuneGatewayDoorMeta": {
-        "k18ykrep": "1 percuma selepas log masuk",
-        "n115000": "1 percuma selepas mendaftar · selepas itu ₩3,000 setiap satu",
         "n130000": "₩30,000 setiap bacaan",
-        "k1lo4ibg": "semakan silang akhir"
+        "k1lo4ibg": "semakan silang akhir",
+        "n13000": "₩5,000 setiap sesi"
       },
       "fortuneGatewayDoorGo": {
         "kkmvgqi": "Start a reading",
@@ -7406,7 +8212,7 @@
       "007": "Zodiak Menaik",
       "008": "Zodiak Bulan",
       "009": "Kuat/Lemah",
-      "010": "Dewa Berguna",
+      "010": "Unsur Berguna",
       "011": "Suhu"
     },
     "message": {
@@ -7899,12 +8705,12 @@
     "deliverable": {
       "title": "Apa yang anda dapat apabila membayar",
       "volumeLabel": "Panjang",
-      "volumeValue": "Sekurang-kurangnya 30,000 aksara",
+      "volumeValue": "Kandungan konsultasi terperinci",
       "chaptersLabel": "Struktur",
-      "chaptersValue": "16 bab · setiap satu 1,900–2,400 aksara",
+      "chaptersValue": "15 bab · tafsiran mengikut tema dan surat akhir",
       "keepLabel": "Simpan",
-      "keepValue": "Simpan sebagai PDF dan miliki selamanya",
-      "guarantee": "Mana-mana bab yang tidak cukup panjang akan ditulis semula secara automatik, sehingga dua kali. Jika masih tidak cukup, permintaan digagalkan dan bukannya dihantar — jadi laluan cuba semula dan bayaran balik kekal terbuka."
+      "keepValue": "Simpan PDF · salin setiap bab",
+      "guarantee": "Skop tafsiran bergantung pada maklumat kelahiran dan data pengiraan yang tersedia. Kandungan yang telah siap boleh dibaca semula dalam konsultasi tersimpan."
     }
   },
   "errorBoundary": {

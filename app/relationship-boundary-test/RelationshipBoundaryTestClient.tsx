@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import "./relationship-boundary.css";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AlertCircle, ChevronRight, Loader2, Sparkles } from "lucide-react";
@@ -174,7 +175,7 @@ export default function RelationshipBoundaryTestClient({ embedded = false }: { e
   }
 
   const busy = phase !== "form";
-  return <main className={embedded ? "rt-page rt-page--embedded" : "rt-page"}><div className="rt-shell">{!embedded && <RelationshipCover />}<div className="rt-body">
+  return <main className={embedded ? "rt-page rt-page--embedded" : "rt-page"}><div className="rt-shell">{!embedded && <RelationshipCover />}<div style={{ width: "100%", maxWidth: 540, margin: "0 auto" }}><CraftedProductDisclosure featureKey={FEATURE_KEY} /></div><div className="rt-body">
     <h1 className="rt-title">{embedded ? "대상자 생년 정보" : "그 사람의 바람끼는?"}</h1><p className="mt-4 leading-7 text-[var(--rt-muted)]">본인이 아닌 <strong className="text-[var(--rt-ink)]">대상자</strong>의 생년 정보로 관계 경계와 외부 자극에 흔들릴 수 있는 경향을 읽습니다. 실제 외도나 마음을 단정하지 않습니다.</p>
     <section className="rt-input-panel mt-7"><div className="flex items-start gap-3 rounded-2xl border border-[var(--rt-accent)]/25 bg-[var(--rt-accent)]/10 p-4 text-sm leading-6 text-[var(--rt-ink)]"><AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />입력하는 정보는 대상자의 사주 분석에만 사용됩니다. 본인 정보로 자동 입력되지 않습니다.</div>
       <fieldset className="mt-6"><legend className="text-sm font-bold">대상자 성별</legend><div className="mt-3 grid grid-cols-2 gap-3">{([['female','여성'],['male','남성']] as const).map(([value,label]) => <button key={value} type="button" aria-pressed={target.gender === value} onClick={() => patch({ gender: value })} className={`min-h-12 rounded-xl border px-4 font-bold ${target.gender === value ? 'border-[var(--rt-accent)] bg-[var(--rt-accent)]/15 text-[var(--rt-ink)]' : 'border-[var(--rt-border)] text-[var(--rt-muted)]'}`}>{label}</button>)}</div></fieldset>

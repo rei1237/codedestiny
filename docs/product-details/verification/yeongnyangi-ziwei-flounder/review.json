@@ -1,0 +1,7 @@
+{
+  "original": "Independent SHIP",
+  "mobile": "Independent SHIP two flows all360 panels,3width CTA/notice,2transcript viewports each",
+  "corrections": "orphan lines fixed; flounder05 changed into relationship path; input requirements made explicit",
+  "captureNote": "Long transcript screenshot had browser capture artifacts; actual360 middle/end independently verified. Salmon legacy final recaptured from fresh page, DOM bounds y287.78..611.78.",
+  "limits": "All APIs mocked; no payment/LLM; CTA appearance not purchase completion"
+}

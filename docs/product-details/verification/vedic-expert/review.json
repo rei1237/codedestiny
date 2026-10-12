@@ -1,0 +1,6 @@
+{
+  "original": "Independent SHIP10",
+  "mobile": "Independent SHIP19 + notice-end360/390 recheck SHIP",
+  "checks": "328/358/398/419;every clipping ancestor;fallback;POST0;notice end above fixed bar PASS",
+  "limits": "All API mocked;no purchase or generation;main CI pending"
+}

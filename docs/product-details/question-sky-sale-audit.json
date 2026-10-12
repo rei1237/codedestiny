@@ -1,0 +1,28 @@
+{
+  "source": [
+    "app/yeongnyangi/_components/Experience.tsx",
+    "app/yeongnyangi/_components/QuestionSkyConsultation.tsx",
+    "worker/yeongnyangi/fortune/question-sky.ts",
+    "worker/yeongnyangi/fortune/question-sky-reading.ts"
+  ],
+  "activePaid": {
+    "mode": "prashna-v1",
+    "paths": [
+      "mode=spirit",
+      "mode=prashna"
+    ],
+    "productId": "saju_flounder",
+    "presentation": "Two-stage first answer and buyer-requested deepening; not natal Saju",
+    "detailPending": false,
+    "detailId": "yeongnyangi-prashna"
+  },
+  "free": {
+    "mode": "horary-v1",
+    "path": "mode=horary",
+    "paidDetailExcluded": true
+  },
+  "inactiveLegacy": {
+    "component": "SpiritConsultation.tsx",
+    "reason": "Experience no longer imports it; new spirit URL resolves to QuestionSkyConsultation"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "id": "yeongnyangi-saju-flounder",
+  "status": "local applied and visual verified; delivery gate pending",
+  "independentOriginalReview": "ship",
+  "independentMobileReview": "ship",
+  "inspected": "legacy/question 360px all panels and CTA 360/390/430",
+  "evidence": [
+    "render.json",
+    "mobile.json",
+    "legacy-transcript.png",
+    "question-transcript.png"
+  ],
+  "targeted": "23 existing UI tests pass; changed TS/TSX ESLint pass",
+  "limitations": [
+    "synthetic question inputs",
+    "no paid LLM or real payment",
+    "no production deployment"
+  ],
+  "pricing": "unchanged registry-backed web UI"
+}

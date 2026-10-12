@@ -119,6 +119,7 @@
 /public/js/core/app-context.d.ts
 /public/js/core/app-context.js
 /public/js/core/astro/basic-deep-client.js
+/public/js/core/astro/crafted-details.mjs
 /public/js/core/astro/natal-reading.js
 /public/js/core/astro/transit-reading.js
 /public/js/core/astro/transits.js
@@ -130,6 +131,7 @@
 /public/js/core/checkout-entry.d.ts
 /public/js/core/checkout-entry.js
 /public/js/core/cms-static.js
+/public/js/core/dream/crafted-details.mjs
 /public/js/core/feature-pricing-store.js
 /public/js/core/fortune-consultation-ui.js
 /public/js/core/fortune-report-content.mjs
@@ -139,14 +141,17 @@
 /public/js/core/init.js
 /public/js/core/kasi-calendar-service.js
 /public/js/core/korean-calendar.js
+/public/js/core/oracle/crafted-details.mjs
 /public/js/core/paid-editorial-report.mjs
 /public/js/core/paid-narrative-reader.js
 /public/js/core/pass-verdict.d.ts
 /public/js/core/pass-verdict.js
 /public/js/core/payment-service.d.ts
 /public/js/core/payment-service.js
+/public/js/core/pet/crafted-details.mjs
 /public/js/core/premium-chapter-orchestrator.js
 /public/js/core/saju/basicFortunePresentation.js
+/public/js/core/saju/crafted-product-details.mjs
 /public/js/core/saju/destiny-anatomy/boot.js
 /public/js/core/saju/destiny-anatomy/copy.js
 /public/js/core/saju/destiny-anatomy/engine.js
@@ -161,11 +166,13 @@
 /public/js/core/saju/reading-rich-intl.js
 /public/js/core/saju/reading-rich.js
 /public/js/core/saju/reportDashboard.js
+/public/js/core/saju/section-client.js
 /public/js/core/service-registry.js
 /public/js/core/shell-sheet.js
 /public/js/core/standalone-ai-locale.js
 /public/js/core/sukuyo-astronomy.js
 /public/js/core/uiBindings.js
+/public/js/core/vedic/crafted-details.mjs
 /public/js/destiny-profile.js
 /public/js/dream-ledger.js
 /public/js/dream-meaning-library.js
@@ -197,6 +204,7 @@
 /public/js/noncritical-defer-loader.js
 /public/js/olympus-oracle.js
 /public/js/oracle-kcg.js
+/public/js/prompt-hub-honey.js
 /public/js/psycho-dream-analyzer-freuds-study.js
 /public/js/pwa-install-prompt.js
 /public/js/recommendations-browser.mjs
@@ -242,7 +250,6 @@
 /public/js/vendor/sweph-wasm/index.js
 /public/js/vendor/sweph-wasm/wasm/swisseph.js
 /public/js/vendor/sweph-wasm/wasm/swisseph.wasm
-/public/llms.txt
 /public/manifest-neo.json
 /public/manifest.en.json
 /public/manifest.ja.json

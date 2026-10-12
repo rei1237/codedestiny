@@ -1,5 +1,6 @@
 "use client";
 
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { authFetch } from "@/app/_lib/auth-client";
@@ -2462,6 +2463,12 @@ export default function NamingAiClient() {
             <PriceBadge featureKey={FEATURE_KEY} className={engineOptIn ? "inline-flex items-center rounded-full border border-[color:var(--nm-badge-line)] bg-[color:var(--nm-badge-fill)] px-3 py-1 text-xs font-bold text-[color:var(--nm-badge-ink)]" : undefined} />
           </div>
         </header>
+
+        {locale === "ko" && !showGeneratingCard && (
+          <div style={{ width: "100%", maxWidth: 540, margin: "0 auto" }}>
+            <CraftedProductDisclosure featureKey={FEATURE_KEY} />
+          </div>
+        )}
 
         {showGeneratingCard ? (
           <NamingGeneratingCard phase={phase} />

@@ -1,0 +1,40 @@
+{
+  "rows": [
+    {
+      "outerWidth": 360,
+      "width": 298,
+      "hostWidth": 298,
+      "imageWidth": 298,
+      "overflow": false
+    },
+    {
+      "outerWidth": 390,
+      "width": 328,
+      "hostWidth": 328,
+      "imageWidth": 328,
+      "overflow": false
+    },
+    {
+      "outerWidth": 430,
+      "width": 368,
+      "hostWidth": 368,
+      "imageWidth": 368,
+      "overflow": false
+    },
+    {
+      "outerWidth": 1280,
+      "width": 720,
+      "hostWidth": 540,
+      "imageWidth": 540,
+      "overflow": false
+    }
+  ],
+  "posts": 0,
+  "mockCalendarPosts": [
+    "/api/kasi/calendar",
+    "/api/kasi/calendar",
+    "/api/kasi/calendar",
+    "/api/kasi/calendar"
+  ],
+  "mode": "Actual report dashboard iframe opened by native card toggle;all APIs mocked;no purchase"
+}

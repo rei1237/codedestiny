@@ -38,3 +38,17 @@ test('the ask period picker only rewrites the question text and previews the sam
  assert.match(book,/\{answer\.review&&/);
  assert.match(result,/period\.ranges\?\.length\?/);
 });
+
+test('question choices stay short: entry topics filter examples and tiers compare by scope (2026-10-12)',()=>{
+ const intake=read('app/yeongnyangi/_components/IntakeChat.tsx');
+ const form=read('app/yeongnyangi/_components/Consultation.tsx');
+ // A concern entry (?category=) shows only its own examples; otherwise six first, the rest behind "더 보기".
+ assert.match(intake,/allExamples\.filter\(t=>exampleGroup\(t\.id\)===exampleGroup\(entryCategory\)\)[^;]*\.slice\(0,4\)/);
+ assert.match(intake,/moreExamples\?allExamples:allExamples\.slice\(0,6\)/);
+ // The scope review keeps the server's recommendation and only explains the other tiers.
+ assert.match(intake,/<summary>생선별 상담 범위 비교<\/summary>[\s\S]*?questionScopes\[fish\]/);
+ // Equal-depth copy stays; each Korean tier card adds its question scope line.
+ assert.match(form,/data-question-scope=\{item\.fishId\}>\{questionScopes\[item\.fishId as QuestionFish\]\}/);
+ assert.match(form,/readingTierDepth\(item\.fishId,siteLocale\)/);
+ assert.match(form,/siteLocale==='ko'\?<details className=\{styles\.readingSettings\}>/);
+});

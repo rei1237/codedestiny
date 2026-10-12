@@ -578,7 +578,7 @@
       "sajuFptiImgAlt": "Saju FPTI 測試",
       "basicFreeBadge": "基本上免費",
       "price3000": "一次 3,000 韓元",
-      "price5000": "一次 3,000 韓元",
+      "price5000": "一次 5,000 韓元",
       "price10000": "一次 10,000 韓元",
       "cosmicSoulPrice": "30 分钟 5,000 韩元 · 60 分钟 10,000 韩元",
       "compatibilityPrice": "相容性 3,000 韓元",
@@ -600,7 +600,9 @@
       "price5000Price3000": "一次 3,000 韓元",
       "price10000Price5000": "一次 5,000 韓元",
       "unlock1000": "解鎖 1,000 韓元",
-      "price1000": "一次 1,000 韓元"
+      "price1000": "一次 1,000 韓元",
+      "sajuGuardianPricePrice5000Price7000": "永久解鎖 7,000 韓元",
+      "unlock1000Price5000": "解鎖 5,000 韓元"
     },
     "destinyFlowerStudio": {
       "closeAria": "關閉命運之花工坊",
@@ -667,7 +669,15 @@
       "close": "關閉",
       "home": "前往首頁",
       "keywords": "四柱判定 • 重生 • 純淨 • 流動",
-      "quadAria": "四種占術的命運之花"
+      "quadAria": "四種占術的命運之花",
+      "letterTitle": "今日花之信 · 心裡需要的一件事",
+      "letterIntro": "這是為了小小實踐、而非預測的花之故事。選一封契合你此刻心情的信吧。",
+      "letterRestTitle": "像玉蘭一樣 · 想稍微休息一下",
+      "letterRestBody": "花開之前，枝條也會靜靜地積蓄力量。今天就放下一件該做的事，花點時間看看窗外的植物或天空吧。",
+      "letterStartTitle": "像新芽一樣 · 需要開始的勇氣",
+      "letterStartBody": "比起宏大的決心，不如先讓一顆小芽破土而出。只寫下拖延已久之事的第一步，動手做5分鐘試試吧。",
+      "letterShareTitle": "像花束一樣 · 想傳達心意",
+      "letterShareBody": "比起希望對方說出的話，先回想一個讓你心懷感激的瞬間吧。用一句不催促回覆的簡短問候，傳達你的心意。"
     },
     "tarotSelfEsteem": {
       "levelUp": "你的標準又清晰了一格",
@@ -806,10 +816,10 @@
       "aria": "月光通行證指南",
       "kicker": "月光通行證",
       "title": "让你的运程在月光下更加温柔地流动",
-      "desc": "月光通行證會在 30 天裡，把您常回來看的解讀，先在設定的範圍內為您打開。今日的徵兆不必中斷，可以安靜地一路讀下去。",
+      "desc": "月光通行證會在額度用完之前，把您常回來看的解讀，先在設定的範圍內為您打開。今日的徵兆不必中斷，可以安靜地一路讀下去。",
       "guideLabel": "MOONLIGHT GUIDE",
-      "guideTitle": "For 30 days, readings you open often unfold first with a softer flow",
-      "guideText": "From Standard to Family, tarot, oracle, and saju readings open first within your moonlight range. Deeper readings outside that range continue to one-time KRW payment only when needed.",
+      "guideTitle": "在額度用完之前，常打開的運勢先柔和展開",
+      "guideText": "從小蜜罐到家庭蜜罐，在所選的月光範圍內，塔羅、神諭與八字解讀無需經過付款流程即可優先開啟。範圍之外的深度解讀，僅在需要時才轉為韓元單次付款。",
       "toggle": "開放式月光福利",
       "heroAria": "检查月光流中免费提供的服务",
       "heroTitle": "查看月光通行證範圍",
@@ -821,51 +831,51 @@
       "primaryAction": "找到適合我的通行證",
       "chipsAria": "核心通行證優勢",
       "chipIncluded": "在通過範圍內自由",
-      "chipThirtyDays": "30 天通行證",
+      "chipThirtyDays": "通行證",
       "chipShareReward": "範圍外單次付費",
       "plansAria": "透過計畫摘要卡",
-      "standardName": "標準蜂蜜 30 天",
-      "standardPrice": "30 天 · 9,900 韓元",
+      "standardName": "小蜜罐",
+      "standardPrice": "9,900 韓元",
       "standardLine": "5,000韓元級內容",
-      "standardBenefit1": "每月最多20,000韓元",
-      "standardBenefit2": "最多 3 個設定檔",
-      "standardCta": "查看標準",
+      "standardBenefit1": "最多20,000韓元",
+      "standardCta": "查看小蜜罐",
       "recommendedAria": "推薦計劃",
       "recommendedBadge": "推薦",
-      "premiumName": "優質蜂蜜 30 天",
-      "premiumPrice": "30 天 · 29,900 韓元",
+      "premiumName": "中蜜罐",
+      "premiumPrice": "29,900 韓元",
       "premiumLine": "10,000韓元級內容",
-      "premiumBenefit1": "每月最多 60,000韓元",
-      "premiumBenefit2": "最多 7 個設定檔",
+      "premiumBenefit1": "最多60,000韓元",
       "premiumCta": "查看推薦計劃",
-      "vvipName": "VVIP 蜂蜜罐 30 天",
-      "vvipPrice": "30 天 · 59,900 韓元",
+      "vvipName": "大蜜罐",
+      "vvipPrice": "59,900 韓元",
       "vvipLine": "30,000韓元級內容",
-      "vvipBenefit1": "每月最多 120,000韓元",
-      "vvipBenefit2": "最多 15 個設定檔",
-      "vvipCta": "查看 VVIP 福利",
-      "familyName": "代碼命運家庭 30 天",
-      "familyPrice": "30 天 · 149,000 韓元",
+      "vvipBenefit1": "最多120,000韓元",
+      "vvipCta": "查看大蜜罐福利",
+      "familyName": "家庭蜜罐",
+      "familyPrice": "149,000 韓元",
       "familyLine": "使用權涵蓋的全部內容",
-      "familyBenefit1": "每月最多350,000韓元",
-      "familyBenefit2": "檔案數量不限",
-      "familyCta": "查看系列",
-      "premiumNote": "如果您常看10,000韓元級內容,高級蜂蜜最為均衡。",
-      "footnote": "新通行證僅以 30 天通行證出售。此 30 天通行證不是自動續訂訂閱。通行證範圍外的服務可透過以產品一次支付韓元的方式使用。",
+      "familyBenefit1": "最多350,000韓元",
+      "familyCta": "查看家庭蜜罐",
+      "premiumNote": "如果您常看10,000韓元級內容，中蜜罐最為均衡。",
+      "footnote": "通行證沒有期限限制，額度用完即結束。此通行證不是自動續訂訂閱。通行證範圍外的服務可透過以產品一次支付韓元的方式使用。",
       "howtoAria": "月光通行證使用方法",
       "howtoTitle": "月光通行證，這樣延續",
-      "step1Label": "選擇 30 天月光範圍",
-      "step1Text": "用不自動續訂的 30 天通行證，先定下你常看的解讀價位。",
+      "step1Label": "選擇月光範圍",
+      "step1Text": "用沒有期限、不自動續訂的通行證，先定下你常看的解讀價位。",
       "step2Label": "範圍內解讀免付款即刻開啟",
       "step2Text": "所選範圍內的塔羅、神諭、四柱解讀，無需付款頁面即可直接開啟。",
       "step3Label": "僅範圍外的深度解讀按次付款",
       "step3Text": "範圍外的深度解讀，只在需要時以韓元付款一次。",
-      "terminationNote": "即使每月額度變為0，通行證的到期日、等級和個人資料上限仍會保留。額外付費內容可透過單次付費或月度通行證使用。"
+      "terminationNote": "用完使用額度後，通行證即結束。再次購買將以新的使用額度開始。額外付費內容可透過單次付費或月精石使用。",
+      "noExpiryNote": "無期限限制 · 額度用完即結束"
     },
     "promptHub": {
       "aria": "進入綜合運勢提示",
       "alt": "綜合算命提示",
-      "sr": "綜合算命提示"
+      "sr": "綜合算命提示",
+      "honeyLabel": "我的蜜滴",
+      "honeyAttend": "今天簽到領蜜滴",
+      "honeyAttended": "今天已簽到"
     },
     "premiumArchive": {
       "kicker": "VVIP 命運檔案",
@@ -901,11 +911,11 @@
       "eyebrow": "月光通行證",
       "savingsBadge": "使用通行證，價格最高可降至三分之一",
       "title": "兩次5,000韓元的解讀,已經比9,900韓元的使用權更貴",
-      "desc": "所選價位內的解讀在30天內可在每月使用額度內打開,只有更貴的解讀才在需要時單次付款。範圍分為5,000韓元級、10,000韓元級、20,000韓元級與使用權涵蓋的全部內容四檔,選擇您常看的價位即可。",
+      "desc": "所選價位內的解讀可在使用額度用完之前打開,只有更貴的解讀才在需要時單次付款。範圍分為5,000韓元級、10,000韓元級、20,000韓元級與使用權涵蓋的全部內容四檔,選擇您常看的價位即可。",
       "pointsAria": "核心通行證指南",
       "point1": "無需結帳，立即開啟",
-      "point2": "可儲存 3 張以上資料卡",
-      "point3": "不自動續費的 30 天通行證",
+      "point2": "無期限限制 · 額度用完即結束",
+      "point3": "不自動續費的通行證",
       "mascotAria": "查看月光通行證權益 · 月光通行證商店",
       "mascotAlt": "月光通行證權益圖",
       "mascotKicker": "Moonlight Pass Guide",
@@ -1348,8 +1358,9 @@
         "w20000": "20,000韓元",
         "from3000": "3,000韓元起",
         "w1000": "1,000韓元",
-        "from9000": "9,000韓元起",
-        "from20000": "20,000韓元起"
+        "from5000": "5,000韓元起",
+        "w7000": "7,000韓元",
+        "from30000": "30,000韓元起"
       },
       "chip": {
         "love": "那個人的心意 · 我的下一段戀愛",
@@ -1610,14 +1621,14 @@
       "pass": "使用券",
       "login": "登入",
       "account": "我的帳戶",
-      "offerTitle": "曾以每次300,000韓元一對一諮詢解讀的四柱，現在3,000韓元起",
+      "offerTitle": "曾以每次300,000韓元一對一諮詢解讀的四柱，現在5,000韓元起",
       "reviewsLead": "這是 Neo 一對一諮詢時收到的真實 KakaoTalk 評價，按韓文原文照錄，省略處以…標示。",
       "reviewsBar": "Neo 一對一諮詢 · KakaoTalk",
       "reviewsMeta": "真實用戶評價 · 已獲發布同意",
       "reviewsPosted": "部落格發布",
       "reviewsFine": "評價基於個人體驗，不保證結果。四柱解讀僅供參考。",
-      "offerNote": "一對一諮詢由 Neo 親自進行；3,000韓元諮詢由計算引擎與 AI 解讀提供。",
-      "offerCta": "查看3,000韓元四柱諮詢 →",
+      "offerNote": "一對一諮詢由 Neo 親自進行；5,000韓元諮詢由計算引擎與 AI 解讀提供。",
+      "offerCta": "查看5,000韓元四柱諮詢 →",
       "expertiseTitle": "命盤按規則計算，解讀交給 AI",
       "expertise": {
         "engine": "命盤按固定計算規則排出，AI 根據計算結果撰寫解讀。若解讀中出現與計算不符的日柱或時柱，伺服器會將其攔下。",
@@ -1649,12 +1660,12 @@
       "saysName": "妍伊",
       "saysLine": "先看哪種運勢呢？選一個就夠了。",
       "passMascotAlt": "拿著使用券卡片微笑的花豬妍伊",
-      "passEyebrow": "不自動續訂的30天使用券",
-      "passTitle": "經常看運勢的話，就選30天使用券",
-      "passDesc": "每次諮詢按價格從額度中扣除。30天後自動結束。",
-      "passPer": "/ 30天",
+      "passEyebrow": "無期限、不自動續訂的使用券",
+      "passTitle": "Yeoni 為你介紹的使用券",
+      "passDesc": "偶爾看就單次付款，常看就用使用券。請確認可使用的諮詢與使用額度。",
+      "passPer": "· 無期限限制",
       "passBadge": "含靈喵",
-      "passNote": "Standard、Premium、VVIP 適用於花豬運勢，Family 適用於花豬和靈喵的付費解讀。已購買的使用券維持購買時的條件。",
+      "passNote": "小蜜罐、中蜜罐、大蜜罐適用於花豬運勢，家庭蜜罐適用於花豬和靈喵的付費解讀。已購買的使用券維持購買時的條件。",
       "passCta": "查看4種使用券",
       "moreTitle": "探索妍伊的工作室",
       "moreItems": "Daily readings · consultations · records · stories",
@@ -1723,7 +1734,7 @@
     "chatEntry": {
       "title": "向 Yeoni 和 Neo 問出此刻最想知道的一件事",
       "cta": "諮詢我的煩惱",
-      "price": "註冊後免費1次 · 之後每次3,000韓元"
+      "price": "每次3,000韓元"
     },
     "svcQuestion": {
       "master-love-codex": "我的下一段戀愛什麼時候開始？",
@@ -1829,9 +1840,9 @@
       "reviewReward": "公開審核通過後發放月光石",
       "reviewDetail": "可在Ggulggul使用，每個商品限發放一次。",
       "reviewAction": "寫評價",
-      "passStandard": "妍伊 Standard",
-      "passPremium": "妍伊 Premium",
-      "passVvip": "妍伊 VVIP",
+      "passStandard": "小蜜罐",
+      "passPremium": "中蜜罐",
+      "passVvip": "大蜜罐",
       "passPerLimit": "每次解讀上限{amount}韓元",
       "passTotal": "總額度：{amount}韓元",
       "passNoLimit": "付費解讀無單次價格上限",
@@ -1859,17 +1870,18 @@
       "neoClassSource": "八字課程學員 · KakaoTalk評價摘錄（韓文）",
       "neoNote": "以下摘錄來自Neo本人提供的諮詢和課程，與AI諮詢屬於不同服務。個人經歷不保證相同結果。",
       "neoAbout": "瞭解Neo與服務",
-      "neoMore": "更多諮詢評價"
+      "neoMore": "更多諮詢評價",
+      "passFamily": "家庭蜜罐"
     },
     "simple": {
-      "lead": "說說你的煩惱，先了解解讀內容和價格。",
+      "lead": "諮詢為付費服務。可以先查看價格和結果範例。",
       "start": "諮詢我的煩惱",
       "free": "查看今日免費運勢",
       "startLabel": "其他開始方式",
-      "love": "愛情與關係",
+      "love": "戀愛與合盤",
       "work": "工作與金錢",
       "self": "認識自己",
-      "future": "未來的走向",
+      "future": "時機與選擇",
       "title": "從你的問題開始解讀",
       "brand": "在Ggulggul Fortune認識靈喵、Yeoni與Neo。與靈喵探討問題，也可探索Yeoni茶館和Neo策略室。",
       "stepQuestion": "說說當下的煩惱",
@@ -1877,11 +1889,20 @@
       "stepResult": "閱讀解答、依據與行動建議",
       "example": "付款前閱讀範例",
       "explore": "瀏覽所有運勢與諮詢",
-      "exploreNote": "四柱、塔羅、角色諮詢、報告與故事",
+      "exploreNote": "各體系運勢 · 靈喵諮詢 · 使用券 · 趣味內容",
       "passTitle": "經常使用？了解通行證",
       "passNote": "選擇前請確認適用範圍和有效期。",
       "passLink": "了解通行證",
-      "passHistory": "已購買的通行證保留購買時的條件。"
+      "passHistory": "已購買的通行證保留購買時的條件。",
+      "topicsLabel": "按煩惱選擇諮詢",
+      "loveNote": "大師姻緣之書 · 20章解讀 · PDF保存",
+      "lovePrice": "個人 {solo}韓元 · 合盤 {pair}韓元",
+      "workNote": "跳槽、求職、創業、理財等需要權衡條件的選擇",
+      "futureNote": "現在能否行動，走勢何時轉變",
+      "priceFrom": "{amount}韓元起",
+      "samplesTitle": "付款前先讀讀結果範例",
+      "sampleCodex": "姻緣之書結果範例",
+      "sampleConsult": "靈喵諮詢結果範例"
     },
     "yeongnyangiEntry": {
       "badge": "靈喵的問題諮詢",
@@ -2342,7 +2363,7 @@
       "passStoreTitle": "月光通行券商店",
       "passRetryTitle": "重新检查通行券",
       "passHint": {
-        "store": "支付一次，30天內可打開多個內容。已經有了？點一下即可確認。",
+        "store": "支付一次，在額度用完之前可打開多個內容。已經有了？點一下即可確認。",
         "retry": "服务器将重新检查持有通行券是否可免支付开启。",
         "upgrade": "目前等級無法打開此內容。看看更高的等級吧。"
       },
@@ -2415,7 +2436,7 @@
         "comingSoon": "敬請期待",
         "back": "返回"
       },
-      "passMonthlyExhausted": "通行證額度已全部用完，通行證已結束。重新購買將重新開始 30 天，現在可以透過單次付款或月精石解鎖。",
+      "passMonthlyExhausted": "通行證額度已全部用完，通行證已結束。重新購買將以新的額度開始，現在可以透過單次付款或月精石解鎖。",
       "passMonthlyRemaining": "通行證剩餘額度 {remaining} / {limit}",
       "wait": {
         "card": "在信用卡或行動支付 App 中完成認證後，回到此瀏覽器即可自動繼續。",
@@ -2447,7 +2468,7 @@
         "pass": {
           "eyebrow": "月光通行證檢查",
           "title": "正在确认通行券",
-          "message": "正在确认持有的30天通行券是否可立即开启。",
+          "message": "正在確認持有的通行券是否可立即開啟。",
           "meta": "如可使用，将无需打开支付窗口继续。"
         },
         "passApplied": {
@@ -2518,7 +2539,7 @@
         "pass": {
           "eyebrow": "月光通行證檢查",
           "title": "正在确认通行券",
-          "message": "正在确认持有的30天通行券是否可立即开启。",
+          "message": "正在確認持有的通行券是否可立即開啟。",
           "meta": "如可使用，将无需打开支付窗口继续。"
         },
         "passApplied": {
@@ -2602,7 +2623,7 @@
     "passShop": {
       "monthlyStatus": "已確認月精石餘量。",
       "chargeButton": "前往 {amount} 支付页面",
-      "chargeNotice": "通行證商品 {price} · 這是 30 天通行證，並非自動續約。通行證僅能以韓元單次付款購買。",
+      "chargeNotice": "通行證商品 {price} · 這是通行證，並非自動續約。通行證僅能以韓元單次付款購買。",
       "best": "BEST",
       "monthlyBasisWithPrice": "月定石基准 {credits} · {price}",
       "profileUnlimited": "不限资料",
@@ -2613,24 +2634,24 @@
       "closeAria": "关闭月光通行券商店说明",
       "openAria": "打开月光通行券商店说明",
       "title": "月光通行券商店说明",
-      "subtitle": "查看月光停留的30天通行券与月定石流程。",
-      "footerNotice": "此30天通行券不是自动续费商品。到期后需要重新购买。",
+      "subtitle": "使用券以韓元單次付款購買，月精石用於單項付費功能。",
+      "footerNotice": "此通行券不是自動續費商品。額度用完後需要重新購買。",
       "packages": {
         "standard": {
-          "name": "标准蜂蜜30天",
-          "desc": "30天 · 5,000韓元級內容 · 每月最多20,000韓元 · 最多 3 個設定檔"
+          "name": "小蜜罐",
+          "desc": "5,000韓元級內容 · 最多20,000韓元"
         },
         "premium": {
-          "name": "高级蜂蜜30天",
-          "desc": "30天 · 10,000韓元級內容 · 每月最多 60,000韓元 · 最多 7 個設定檔"
+          "name": "中蜜罐",
+          "desc": "10,000韓元級內容 · 最多60,000韓元"
         },
         "vvip": {
-          "name": "VVIP蜂蜜罐30天",
-          "desc": "30天 · 30,000韓元級內容 · 每月最多 120,000韓元 · 最多 15 個設定檔"
+          "name": "大蜜罐",
+          "desc": "30,000韓元級內容 · 最多120,000韓元"
         },
         "family": {
-          "name": "Code Destiny Family 30天",
-          "desc": "30天 · 使用權涵蓋的全部內容 · 每月最多350,000韓元 · 檔案數量不限"
+          "name": "家庭蜜罐",
+          "desc": "使用權涵蓋的全部內容 · 最多350,000韓元"
         }
       },
       "monthlyStatusChecking": "正在確認餘額和通行證狀態。",
@@ -2639,7 +2660,7 @@
       "monthlyButton": "使用月定石 {credits} 付款",
       "monthlyButtonBusy": "正在用月定石啟用通行證...",
       "monthlyButtonShort": "需要月定石 {credits} · 餘額不足",
-      "terminationNotice": "用完每月額度後，無論還剩多少天，通行證都會結束。重新購買將從當天起重新開始 30 天。"
+      "terminationNotice": "用完使用額度後，通行證即結束。再次購買將以新的使用額度開始。額外付費內容可透過單次付費或月精石使用。"
     },
     "access": {
       "passAppliedContinue": "已使用通行券開啟。"
@@ -2708,13 +2729,32 @@
   "fortune": {
     "destinyFlower": {
       "common": {
-        "unknown": "未知"
+        "unknown": "未知",
+        "bloomLabel": {
+          "seed": "種子 · 日干",
+          "season": "季節 · 出生時節",
+          "bloom": "於是綻放的花"
+        },
+        "bloom": {
+          "verdict": "於是綻放的花 — {title}。"
+        },
+        "flowerLanguage": {
+          "anchor": "「{language}」— 這朵花想對{anchor}的你說的話。",
+          "plain": "「{language}」— 這朵花想對此刻的你說的話。"
+        },
+        "shareHook": {
+          "rarityAnchor": "從{anchor}讀出的唯一一朵"
+        },
+        "anonymousName": "匿名旅人",
+        "rationaleLabel": {
+          "verdict": "所以是這朵花"
+        }
       },
       "astro": {
         "elements": {
           "Fire": "火",
-          "Earth": "地球",
-          "Air": "空氣",
+          "Earth": "土",
+          "Air": "風",
           "Water": "水",
           "Cosmic": "星光"
         },
@@ -2730,22 +2770,41 @@
         "ritualTip": "今晚，穩定呼吸三分鐘，在星星下方設定目標。",
         "relationshipTheme": "當人際關係遵循你的主要星座的節奏時，摩擦就會減弱。",
         "careerTheme": "將太陽星座的核心驅動力帶入您的日常工作中，以獲得更穩定的動力。",
-        "growthCycle": "恆星稱為「軌道形成」星雲綻放→輻射擴散",
+        "growthCycle": "星辰召喚 → 軌跡成形 → 星雲綻放 → 光輝擴散",
         "fallbackNote": "太陽星座資料不可用，因此讀數使用預設的風元素。",
         "ultimateTitle": "終極命運之花",
         "ultimateConcept": "東方 {dayMaster} 能量與西方 {sunSign} 星光融合的混合綻放",
         "verdict": "透過占星學，你的命運之花是 {flowerName} ({scientificName})。太陽、上升和月亮星座的三個軸表明這朵花現在與你密切共鳴。",
-        "narrative": "從太陽星座 {sun} 升起的 {sunElement} 火花成為此花選擇的中心。上升星座{rising} ({risingElement}) 塑造可見的基調，而月亮星座{moon} ({moonElement}) 加入情緒露水，讓{flowerName}、{flowerSymbolism}、？打開清楚。關鍵字「{keyword}」是召喚這朵花前進的星光。"
+        "narrative": "從太陽星座 {sun} 升起的 {sunElement} 火花成為此花選擇的中心。上升星座{rising} ({risingElement}) 塑造可見的基調，而月亮星座{moon} ({moonElement}) 加入情緒露水，讓{flowerName}、{flowerSymbolism}、？打開清楚。關鍵字「{keyword}」是召喚這朵花前進的星光。",
+        "signs": {
+          "aries": "牡羊座",
+          "taurus": "金牛座",
+          "gemini": "雙子座",
+          "cancer": "巨蟹座",
+          "leo": "獅子座",
+          "virgo": "處女座",
+          "libra": "天秤座",
+          "scorpio": "天蠍座",
+          "sagittarius": "射手座",
+          "capricorn": "摩羯座",
+          "aquarius": "水瓶座",
+          "pisces": "雙魚座"
+        },
+        "rationaleLabel": {
+          "sun": "太陽星座",
+          "risingMoon": "上升星座 · 月亮星座"
+        }
       },
       "ziwei": {
         "brightness": {
-          "miao": "苗",
-          "wang": "王",
-          "li": "李",
-          "de": "德",
+          "miao": "廟",
+          "wang": "旺",
+          "li": "利",
+          "de": "得",
           "ping": "平",
-          "han": "韓",
-          "xian": "西安"
+          "han": "閑",
+          "xian": "陷",
+          "bu": "不"
         },
         "coreFlow": "核心財富流程",
         "coreEnergy": "核心能量表達",
@@ -2756,7 +2815,7 @@
         "ritualTip": "今日核心關鍵字：{keyword}",
         "relationshipTheme": "讓強勢明星氣質成為你的人際關係標準，和諧變得更加清晰。",
         "careerTheme": "當主星實力佔上風時，執行力和定位就穩定了。",
-        "growthCycle": "星星對準「能量聚集」種子點火→綻放",
+        "growthCycle": "星辰排列 → 氣的凝聚 → 種子點燃 → 綻放",
         "secondaryFallbackNote": "複合主星調整：{primaryStar} 置中 + {secondaryStar} 香味混合",
         "palaceFallbackNote": "宮殿特質調整：{palace} · {trait}",
         "hybridHint": "透過將 Saju {dayMaster} 能量與紫微主星 {stars} 混合來實現混合渲染",
@@ -2765,204 +2824,385 @@
         "narrativeSingle": "{palace} 句柄 {palaceEnergy}。 ？今天的強星{star}將品質「{keyword}」和性質「{personality}」置於花的中心。亮度 {brightness} 保持光線穩定，而 {flowerName} 與您的中心能量產生最深刻的共鳴。",
         "rules": {
           "peonyZiwei": {
-            "title": "牡丹",
-            "keyword": "帝國風度",
-            "personality": "一位集中戰場並恢復秩序的領導者"
+            "title": "帝王牡丹",
+            "keyword": "帝王氣度",
+            "personality": "立於中心、整頓周遭秩序的領袖型"
           },
           "thornyRoseGeneral": {
             "title": "將軍的紅玫瑰",
-            "keyword": "決定性突破",
-            "personality": "即使在壓力下也能前進的決定性力量"
+            "keyword": "突破的決斷",
+            "personality": "在重壓下仍推進戰線的決斷型"
           },
           "thornyRosePioneer": {
-            "title": "先鋒紅玫瑰",
-            "keyword": "重塑領域的動力",
-            "personality": "打破舊框架、開啟新秩序的創新者"
+            "title": "開拓者的紅玫瑰",
+            "keyword": "改變局面的推動力",
+            "personality": "打破舊框架、開創新秩序的革新型"
           },
           "delicateWillow": {
             "title": "軍師的柳花",
-            "keyword": "溫和策略",
-            "personality": "一位善於洞察當下並找出最簡潔答案的策略家"
+            "keyword": "柔和的謀略",
+            "personality": "靈活洞察局勢、尋找最佳解法的策略型"
           },
           "sunflowerZiwei": {
-            "title": "太陽能向日葵",
-            "keyword": "擴充光",
-            "personality": "為可見結果聚集能量的執行者"
+            "title": "太陽的向日葵",
+            "keyword": "光的擴展",
+            "personality": "朝目標集中能量、帶出成果的實幹型"
           },
           "nightCereus": {
-            "title": "月夜盛開的仙人掌",
-            "keyword": "夜間揭開的謎團",
-            "personality": "一個沉思的靈魂，讀取看不見的電流"
+            "title": "月光曇花",
+            "keyword": "夜間綻放的神秘",
+            "personality": "以深層內省洞察無形之流的省思型"
           },
           "orchidTanlang": {
             "title": "桃花蘭",
-            "keyword": "感性磁力",
-            "personality": "一種磁性類型，引領美麗、關係和表達"
+            "keyword": "魅惑風情",
+            "personality": "善用關係與表達之美來吸引他人的魅力型"
           }
+        },
+        "stars": {
+          "ziwei": "紫微",
+          "tianji": "天機",
+          "taiyang": "太陽",
+          "wuqu": "武曲",
+          "tiantong": "天同",
+          "lianzhen": "廉貞",
+          "tianfu": "天府",
+          "taiyin": "太陰",
+          "tanlang": "貪狼",
+          "jumen": "巨門",
+          "tianxiang": "天相",
+          "tianliang": "天梁",
+          "qisha": "七殺",
+          "pojun": "破軍",
+          "wenchang": "文昌",
+          "wenqu": "文曲",
+          "zuofu": "左輔",
+          "youbi": "右弼",
+          "tianma": "天馬",
+          "lucun": "祿存",
+          "tiankui": "天魁",
+          "tianyue": "天鉞",
+          "qingyang": "擎羊",
+          "tuoluo": "陀羅",
+          "dikong": "地空",
+          "dijie": "地劫",
+          "huoxing": "火星",
+          "lingxing": "鈴星"
+        },
+        "palaces": {
+          "life": "命宮",
+          "siblings": "兄弟宮",
+          "spouse": "夫妻宮",
+          "children": "子女宮",
+          "wealth": "財帛宮",
+          "health": "疾厄宮",
+          "travel": "遷移宮",
+          "friends": "交友宮",
+          "career": "官祿宮",
+          "property": "田宅宮",
+          "fortune": "福德宮",
+          "parents": "父母宮"
+        },
+        "palaceTraits": {
+          "life": "自我的核心感與存在感",
+          "siblings": "合作與協調的分寸感",
+          "spouse": "關係中的美感與親密溝通",
+          "children": "創造力與表達欲",
+          "wealth": "資源運用與豐盛的擴展力",
+          "health": "恢復力與內在平衡感",
+          "travel": "環境適應力與臨場判斷力",
+          "friends": "人脈經營與團隊照顧",
+          "career": "社會推動力與成就導向",
+          "property": "打基礎與穩定累積的能力",
+          "fortune": "情緒充電與精神洞察",
+          "parents": "保護本能與傳統意識"
+        },
+        "natalVerdict": "以命宮{stars}的特質來解讀，你的花是{flowerName}（{scientificName}）。",
+        "natalScenarioTitle": "命宮主星開花情境",
+        "rationale": {
+          "lifeStar": "你的命宮坐守著{starsJosa}。",
+          "borrowedStar": "你的命宮沒有主星，因此借對宮遷移宮的{starsObject}來解讀。",
+          "personality": "{star}的「{keyword}」— {personality}的特質。",
+          "verdict": "所以，此刻送給你的花是{flowerName}。"
+        },
+        "rationaleLabel": {
+          "lifeStar": "命宮主星",
+          "personality": "天生性格"
         }
       },
       "sukuyo": {
         "moon": {
           "full": "滿月",
-          "new": "闇月",
-          "crescent": "新月",
-          "gibbous": "盈月/虧損月"
+          "new": "新月",
+          "crescent": "蛾眉月",
+          "gibbous": "盈月/虧月"
         },
-        "stickerLabel": "Sukuyo 的花",
+        "stickerLabel": "宿曜之花",
         "moonPhaseLabel": "月相 {moon}",
-        "guardianLabel": "監護人 {guardian}",
-        "scenarioTitle": "27宮與月相綻放場景",
+        "guardianLabel": "守護動物 {guardian}",
+        "scenarioTitle": "二十七宿與月相綜合開花場景",
         "ritualTip": "在月光照射下的窗前，呼吸 27 次，用一個字表達今天的意圖。",
-        "relationshipTheme": "遵循 {group} 的紋理可以緩解緊張並澄清聯繫。",
-        "careerTheme": "當 {guardian} 的節奏反映在您的日常工作中時，結果就會穩定。",
-        "growthCycle": "星座連動「月光聚」靈火→綻放",
-        "verdict": "透過 Sukuyo 的月光紋理，你的命運之花是 {flowerName} ({scientificName})。 {mansion}、{moon} 和 {guardian} 的組合與現在的關係、情緒和行動的節奏微妙地一致。",
-        "narrative": "{mansion} ({group}) 的關係紋理、月相潮汐{moon} 和{guardian} 的保護圖案在夜花園中相遇，加深了{symbolism} 的品質。一起閱讀，這三個月光訊號顯示 {flowerName} 是你現在最精確的命運之花。"
+        "relationshipTheme": "越順著{group}的脈絡，關係中的緊張越能緩和，彼此的交流也越清晰。",
+        "careerTheme": "把{guardian}模式的行動節奏融入日常工作，成果就會穩定。",
+        "growthCycle": "星宿相連 → 月光凝聚 → 靈性點燃 → 綻放",
+        "verdict": "以月光的脈絡解讀，你的花是{flowerName}（{scientificName}）。{mansion}、{moon}與{guardian}交織之處，正與你此刻的緣分、情感和行動節奏最細膩地契合。",
+        "narrative": "{mansion}（{group}）結下的緣分脈絡、月相{moon}推起的情感潮汐、守護動物{guardianJosa}刻下的守護紋樣，在午夜的花園裡重疊為一。將這三縷月光疊在一起解讀，「{symbolism}」的氣質便濃濃地滲出，此刻最適合你的那一朵，是{flowerName}。",
+        "mansions": {
+          "m1": "角宿",
+          "m2": "亢宿",
+          "m3": "氐宿",
+          "m4": "房宿",
+          "m5": "心宿",
+          "m6": "尾宿",
+          "m7": "箕宿",
+          "m8": "斗宿",
+          "m9": "女宿",
+          "m10": "虛宿",
+          "m11": "危宿",
+          "m12": "室宿",
+          "m13": "壁宿",
+          "m14": "奎宿",
+          "m15": "婁宿",
+          "m16": "胃宿",
+          "m17": "昴宿",
+          "m18": "畢宿",
+          "m19": "觜宿",
+          "m20": "參宿",
+          "m21": "井宿",
+          "m22": "鬼宿",
+          "m23": "柳宿",
+          "m24": "星宿",
+          "m25": "張宿",
+          "m26": "翼宿",
+          "m27": "軫宿"
+        },
+        "groups": {
+          "anjung": "安重宿",
+          "gangseong": "剛強宿",
+          "gyeongkwae": "輕快宿",
+          "jihye": "智慧宿"
+        },
+        "groupLabels": {
+          "anjung": "安重組",
+          "gangseong": "剛強組",
+          "gyeongkwae": "輕快組",
+          "jihye": "智慧組"
+        },
+        "guardians": {
+          "crane": "鶴",
+          "dragon": "龍",
+          "marten": "貂",
+          "rabbit": "兔",
+          "fox": "狐",
+          "tiger": "虎",
+          "leopard": "豹",
+          "haetae": "獬豸",
+          "bat": "蝙蝠",
+          "rat": "鼠",
+          "swallow": "燕",
+          "pig": "豬",
+          "hedgehog": "刺蝟",
+          "wolf": "狼",
+          "dog": "狗",
+          "pheasant": "雉",
+          "rooster": "雞",
+          "crow": "烏鴉",
+          "monkey": "猴",
+          "ape": "猿",
+          "wildDog": "豺",
+          "sheep": "羊",
+          "roeDeer": "獐",
+          "horse": "馬",
+          "deer": "鹿",
+          "snake": "蛇",
+          "earthworm": "蚯蚓"
+        },
+        "rationaleLabel": {
+          "mansion": "宿 · 月相"
+        }
       },
       "saju": {
         "scenarios": {
           "default": {
-            "title": "{dayMasterBadge}的環境中，命運之花正在綻放"
+            "title": "{dayMasterBadge}的環境中，命運之花正在綻放",
+            "reason": "我們觀察了你的日干與當下五行環境相互契合的紋理，挑選出最適合這個時期的一朵花。"
           },
           "jia": {
             "springWood": {
-              "title": "甲木帶著筆直引領的力量綻放命運之花的走勢"
+              "title": "甲木帶著筆直引領的力量綻放命運之花的走勢",
+              "reason": "甲木有著如參天大樹般筆直向上生長的氣質。春天的木氣正與這份性情相契，此刻，你挺身而出、開創新局的力量正盡情綻放。"
             },
             "autumnMetal": {
-              "title": "甲木帶著metal-tempering scenario綻放命運之花的走勢"
+              "title": "甲木帶著metal-tempering scenario綻放命運之花的走勢",
+              "reason": "秋天的金氣壓向甲木的此刻，正是剪去旁枝、只留下真正重要主幹的時候。放下得越多，反而越堅實。"
             },
             "dryFire": {
-              "title": "甲木帶著dry-heat endurance scenario綻放命運之花的走勢"
+              "title": "甲木帶著dry-heat endurance scenario綻放命運之花的走勢",
+              "reason": "對於身處乾燥炎熱之氣中的甲木來說，此刻需要的是根的體力。與其急躁，不如長久堅持、培養恢復力，你便會像木槿花一樣堅韌地再次綻放。"
             }
           },
           "yi": {
             "metalWater": {
-              "title": "乙木帶著metal-water harmony scenario綻放命運之花的走勢"
+              "title": "乙木帶著metal-water harmony scenario綻放命運之花的走勢",
+              "reason": "乙木有著如藤蔓與花草般柔和滲透的氣質。在金與水之氣強盛的此刻，你的優雅與清澈淨化的力量最為鮮活。"
             },
             "dryEarth": {
-              "title": "乙木帶著dry-soil survival scenario綻放命運之花的走勢"
+              "title": "乙木帶著dry-soil survival scenario綻放命運之花的走勢",
+              "reason": "對於立於乾燥土氣之上的乙木，此刻的課題是生存的力量。就像突破貧瘠、終於綻放的仙人掌花，你恰恰在堅守之處閃耀光芒。"
             },
             "autumn": {
-              "title": "乙木帶著autumn refinement scenario綻放命運之花的走勢"
+              "title": "乙木帶著autumn refinement scenario綻放命運之花的走勢",
+              "reason": "穿過秋天金氣的乙木，正處於把細膩轉化為沉穩秩序的時期。越是把散亂之物整理得井然有序，心也會隨之變得端正。"
             },
             "wetSpring": {
-              "title": "乙木帶著moist-spring expansion scenario綻放命運之花的走勢"
+              "title": "乙木帶著moist-spring expansion scenario綻放命運之花的走勢",
+              "reason": "遇上春天濕潤之氣的乙木，連結人與人的力量明顯增強。此刻比起獨自前行，更適合藉由關係向外伸展。"
             }
           },
           "bing": {
             "springWood": {
-              "title": "丙火帶著spring ignition scenario綻放命運之花的走勢"
+              "title": "丙火帶著spring ignition scenario綻放命運之花的走勢",
+              "reason": "丙火是如太陽般迅速燃起、廣泛擴散的氣。以春天的木氣為柴薪的此刻，你開啟新事物並讓人知曉的力量正熊熊燃燒。"
             },
             "summerFire": {
-              "title": "丙火帶著summer expansion scenario綻放命運之花的走勢"
+              "title": "丙火帶著summer expansion scenario綻放命運之花的走勢",
+              "reason": "再疊加夏天火氣的丙火，燃燒得比任何時候都明亮。這是你挺身而出、帶領眾人的力量達到顛峰的時期。"
             },
             "waterControl": {
-              "title": "丙火帶著water-control scenario綻放命運之花的走勢"
+              "title": "丙火帶著water-control scenario綻放命運之花的走勢",
+              "reason": "對於遇上強盛水氣的丙火，此刻重要的不是燒得更旺，而是把握好方向。保持現實感、守護火焰，光芒才能長久。"
             }
           },
           "ding": {
             "coldWet": {
-              "title": "丁火帶著cold-damp warmth scenario綻放命運之花的走勢"
+              "title": "丁火帶著cold-damp warmth scenario綻放命運之花的走勢",
+              "reason": "丁火是如燭光般在內裡靜靜發亮的氣。在寒冷潮濕的此刻，比起華麗，讓那份溫暖長久不熄才是最大的力量。"
             },
             "autumnMetal": {
-              "title": "丁火帶著metal-refining scenario綻放命運之花的走勢"
+              "title": "丁火帶著metal-refining scenario綻放命運之花的走勢",
+              "reason": "遇上金氣的丁火，指尖的精準與審美的眼光變得敏銳。這是專注一件事、將它細緻完成時最閃耀的時期。"
             },
             "resonance": {
-              "title": "丁火帶著resonance綻放命運之花的走勢"
+              "title": "丁火帶著resonance綻放命運之花的走勢",
+              "reason": "丁火是細膩撫慰情感紋理、讓關係更加深厚的氣。越是不吝於表達心意，運勢之路也會隨之敞開。"
             }
           },
           "wu": {
             "fireEarth": {
-              "title": "戊土帶著fire-earth achievement scenario綻放命運之花的走勢"
+              "title": "戊土帶著fire-earth achievement scenario綻放命運之花的走勢",
+              "reason": "戊土是如巍峨大山般寬廣而可靠的氣。在火與土支撐的此刻，大展身手、成就大事時格外有力。"
             },
             "winterWater": {
-              "title": "戊土帶著winter foundation scenario綻放命運之花的走勢"
+              "title": "戊土帶著winter foundation scenario綻放命運之花的走勢",
+              "reason": "對於遇上冬天水氣的戊土，此刻是放慢速度、打穩根基的時候。越是稍作停歇、穩固基礎，下一步就越踏實。"
             },
             "center": {
-              "title": "戊土帶著center-building scenario綻放命運之花的走勢"
+              "title": "戊土帶著center-building scenario綻放命運之花的走勢",
+              "reason": "戊土真正的力量，是從中間穩住動盪局面的定力。越是堅持每天的日常節奏，成果就越會一點一滴累積。"
             }
           },
           "ji": {
             "wetEarth": {
-              "title": "己土帶著cultivation expansion scenario綻放命運之花的走勢"
+              "title": "己土帶著cultivation expansion scenario綻放命運之花的走勢",
+              "reason": "己土是如精心耕耘的田地般，用心培育事物的氣。在濕潤的此刻，成果會在一起合作、彼此照顧的關係中壯大。"
             },
             "metalDesign": {
-              "title": "己土帶著precision-design scenario綻放命運之花的走勢"
+              "title": "己土帶著precision-design scenario綻放命運之花的走勢",
+              "reason": "遇上金氣的己土，連細微之處都能規劃整理的感覺被喚醒。在講究完成度的事情上，你的長處格外突出。"
             },
             "balance": {
-              "title": "己土帶著balance-tuning scenario綻放命運之花的走勢"
+              "title": "己土帶著balance-tuning scenario綻放命運之花的走勢",
+              "reason": "己土是擅長柔和地居中協調、營造氣氛的氣。只要把推拉之間的節奏掌握好，那本身就會成為好運。"
             }
           },
           "geng": {
             "metalEarth": {
-              "title": "庚金帶著principle-through scenario綻放命運之花的走勢"
+              "title": "庚金帶著principle-through scenario綻放命運之花的走勢",
+              "reason": "庚金是如未經雕琢的原石般，粗獷而果斷地斬斷的氣。在土與金支撐的此刻，堅持既定原則的力量達到顛峰。"
             },
             "fireTraining": {
-              "title": "庚金帶著fire-tempering scenario綻放命運之花的走勢"
+              "title": "庚金帶著fire-tempering scenario綻放命運之花的走勢",
+              "reason": "經過烈火淬鍊的庚金，魅力與實力一同變得堅實。這是在關鍵勝負時刻，專注力格外鋒利的時期。"
             },
             "clearJudgment": {
-              "title": "庚金帶著decisive-judgment scenario綻放命運之花的走勢"
+              "title": "庚金帶著decisive-judgment scenario綻放命運之花的走勢",
+              "reason": "庚金的強項，是精準切中核心的判斷力。只要明確立下標準，那份清晰便會直接化為成果。"
             }
           },
           "xin": {
             "metalWater": {
-              "title": "辛金帶著metal-water refinement scenario綻放命運之花的走勢"
+              "title": "辛金帶著metal-water refinement scenario綻放命運之花的走勢",
+              "reason": "辛金是如精工細琢的寶石般，感受力與語言都經過淬鍊的氣。在金與水交融的此刻，分析與表達的能力更加清晰。"
             },
             "springWood": {
-              "title": "辛金帶著wood-tuning scenario綻放命運之花的走勢"
+              "title": "辛金帶著wood-tuning scenario綻放命運之花的走勢",
+              "reason": "遇上春天木氣的辛金，比起磨利鋒芒，柔和地調和反而走得更遠。這是憑感覺細細打磨的事情會出成果的時期。"
             },
             "completion": {
-              "title": "辛金帶著completion scenario綻放命運之花的走勢"
+              "title": "辛金帶著completion scenario綻放命運之花的走勢",
+              "reason": "辛金比起廣泛鋪開，更擅長把一件事細緻完成。細節收尾得越俐落，人們的信任就越會累積。"
             }
           },
           "ren": {
             "summerCooling": {
-              "title": "壬水帶著summer-cooling scenario綻放命運之花的走勢"
+              "title": "壬水帶著summer-cooling scenario綻放命運之花的走勢",
+              "reason": "壬水是如遼闊大海般駕馭巨大流勢的氣。在為夏天的熱氣帶來清涼的此刻，沉穩專注的力量明顯提升。"
             },
             "winterCondensing": {
-              "title": "壬水帶著winter-condensing scenario綻放命運之花的走勢"
+              "title": "壬水帶著winter-condensing scenario綻放命運之花的走勢",
+              "reason": "與冬天水氣共鳴的壬水，正處於在冰層下聚集力量的時期。表面看似平靜，堅實的潛力卻如冰河之花般在內裡成熟。"
             },
             "nightIntuition": {
-              "title": "壬水帶著night-intuition scenario綻放命運之花的走勢"
+              "title": "壬水帶著night-intuition scenario綻放命運之花的走勢",
+              "reason": "壬水比起明亮的白天，更擅長在寧靜夜晚的直覺中找到方向。與其急著給出答案，不如按自己的節奏做決定，方向自然會對上。"
             }
           },
           "gui": {
             "coldWetPurifying": {
-              "title": "癸水帶著cold-damp purification scenario綻放命運之花的走勢"
+              "title": "癸水帶著cold-damp purification scenario綻放命運之花的走勢",
+              "reason": "癸水是如清晨露珠般，能察覺細微之物並將其洗滌澄淨的氣。在寒冷潮濕的此刻，那份安靜專注的沉靜正是你的力量。"
             },
             "summerEmpathy": {
-              "title": "癸水帶著summer-empathy scenario綻放命運之花的走勢"
+              "title": "癸水帶著summer-empathy scenario綻放命運之花的走勢",
+              "reason": "對於遇上夏天火熱的癸水，撫慰人心、連結人與人的同理心是最大的武器。像繡球花一樣匯聚眾人的溫暖時，道路便會打開。"
             },
             "subtleSignal": {
-              "title": "癸水帶著subtle-signal scenario綻放命運之花的走勢"
+              "title": "癸水帶著subtle-signal scenario綻放命運之花的走勢",
+              "reason": "癸水是能比別人更早讀出他人錯過的小訊號的氣。只要憑那份敏銳的感覺把握好時機，那一步就能決定成敗。"
             }
           }
         },
-        "stickerLabel": "Saju 的花",
+        "stickerLabel": "八字之花",
         "dayMasterWaiting": "等待日主閱讀",
         "signalPending": "等待核心訊號",
         "scenarioTitleFallback": "{dayMasterBadge} 開花場景",
         "scenarioFallbackReason": "透過整合日主和環境來讀取綻放的流程。",
-        "growthCycle": "萌芽（聚集能量）「成長（放大行動）」綻放（結果浮現）→成果（關係與資產深化）",
-        "fallbackNote": "應用了日主豐富邏輯。",
+        "growthCycle": "發芽（匯聚能量） → 伸展（放大行動） → 綻放（成果顯現） → 結果（累積關係與資產）",
+        "fallbackNote": "僅憑出生日期資訊，謹慎地解讀了日干的氣。",
         "verdict": "在您的 Saju 閱讀中，您的花是 {flowerName} ({scientificName})。",
         "rationale": {
           "verdict": "在您的 Saju 解讀中，您的命運之花是 {flowerName} ({scientificName})。",
           "elements": "五元素讀數顯示 {dominant} 作為您的主要能量，{support} 作為支援流程。",
           "context": "目前運勢季節為{season}，能量密度為{water}，生命階段讀作{environment}。",
           "dayMaster": "日主被確認為 {dayMasterBadge}，並優先考慮圍繞它的季節-環境互動。",
-          "scenario": "天主環境場景：{reason}",
+          "scenario": "{reason}",
           "levels": "元素等級為 {elementLevelLine}，所有五個等級均經過加權以確定命運之花。",
           "symbolism": "這朵花象徵著{symbolism}，最清楚地反映了這個季節的主題。",
           "description": "命運之花閱讀：{description}",
           "vibe": "開花指南：{vibeMessage}",
-          "fallback": "調整邏輯：{note}"
+          "fallback": "調整邏輯：{note}",
+          "dayMasterSame": "這是一朵與你的{dayMasterBadge}日干同樣蘊含{element}之氣的花。",
+          "strengthRelease": "你的八字身強，因此我們更看重能把滿溢之氣向外疏洩的{elements}之氣的花。",
+          "strengthSupport": "你的八字身弱，因此我們更看重能扶助日干的{elements}之氣的花。",
+          "yongshin": "這朵花蘊含你的八字所需的用神之氣 — {elements}。",
+          "johuWarm": "你的八字偏寒濕，因此我們更看重能像陽光一樣帶來溫暖的花。",
+          "johuCool": "你的八字偏燥熱，因此我們更看重水分充足、能消散熱氣的花。"
         },
         "elements": {
-          "wood": "木材",
+          "wood": "木",
           "fire": "火",
-          "earth": "地球",
-          "metal": "金屬",
+          "earth": "土",
+          "metal": "金",
           "water": "水"
         },
         "seasons": {
@@ -3018,6 +3258,55 @@
           "Earth": "營運、管理、系統建構發揮你的優勢。",
           "Metal": "分析、規劃和品質控制將精度轉換為結果。",
           "Water": "研究、調查和內容設計讓您的深度閃耀。"
+        },
+        "bloom": {
+          "season": "就像生於{season}的你，這朵花也在{season}開得最燦爛。"
+        },
+        "flowerLanguage": {
+          "yongshin": "「{language}」— 這朵蘊含用神{elements}之氣的花，想對你說的話。",
+          "dayMaster": "「{language}」— 這朵花想對日干為{dayMasterBadge}的你說的話。"
+        },
+        "shareHook": {
+          "raritySeason": "日干{dayMasterBadge}、生於{season}的八字，從{total}朵中選出的一朵",
+          "rarityDayMaster": "日干{dayMasterBadge}的八字，從{total}朵中選出的一朵",
+          "rarityPlain": "我的八字從{total}朵中選出的一朵"
+        },
+        "dayMasters": {
+          "jia": "甲木",
+          "yi": "乙木",
+          "bing": "丙火",
+          "ding": "丁火",
+          "wu": "戊土",
+          "ji": "己土",
+          "geng": "庚金",
+          "xin": "辛金",
+          "ren": "壬水",
+          "gui": "癸水"
+        },
+        "dayMasterStems": {
+          "jia": "甲",
+          "yi": "乙",
+          "bing": "丙",
+          "ding": "丁",
+          "wu": "戊",
+          "ji": "己",
+          "geng": "庚",
+          "xin": "辛",
+          "ren": "壬",
+          "gui": "癸"
+        },
+        "dayMasterFallback": {
+          "ziwei": "由於八字日干資料不足，已依據紫微斗數主星校正日干特質。",
+          "astrology": "由於八字日干資料不足，已以太陽星座的傾向代替日干特質。",
+          "dominant": "由於八字、紫微、占星的核心指標不足，已依據優勢五行推估日干特質。"
+        },
+        "rationaleLabel": {
+          "dayMaster": "日干特質",
+          "strengthRelease": "身強",
+          "strengthSupport": "身弱",
+          "yongshin": "用神",
+          "johuWarm": "調候 · 寒濕",
+          "johuCool": "調候 · 溫燥"
         }
       },
       "flowers": {
@@ -3031,7 +3320,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "深信不疑的等待"
         },
         "aster": {
           "name": "紫菀",
@@ -3043,7 +3333,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "耐心"
         },
         "astro_lavender": {
           "name": "星雲薰衣草",
@@ -3055,7 +3346,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "等待愛情、心心相印"
         },
         "azalea": {
           "name": "杜鵑花",
@@ -3067,7 +3359,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "愛的快樂、鴻運高照"
         },
         "begonia": {
           "name": "海棠",
@@ -3079,7 +3372,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "親切、誠懇"
         },
         "bellflower": {
           "name": "風鈴草",
@@ -3091,7 +3385,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "幸福的愛、永恆的愛"
         },
         "bird_of_paradise": {
           "name": "天堂鳥",
@@ -3103,7 +3398,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "自由、幸福、吉祥"
         },
         "black_rose": {
           "name": "黑玫瑰",
@@ -3115,7 +3411,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "神秘高貴、溫柔真心"
         },
         "blue_iris": {
           "name": "藍色虹膜",
@@ -3127,7 +3424,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "好消息、使者"
         },
         "blue_lotus": {
           "name": "藍蓮花",
@@ -3139,7 +3437,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "冷靜、智慧"
         },
         "bluebell": {
           "name": "風信子",
@@ -3151,7 +3450,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "愛心、堅貞堅定"
         },
         "cactus_flower": {
           "name": "仙人掌花",
@@ -3163,7 +3463,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "堅強"
         },
         "camellia": {
           "name": "茶花",
@@ -3175,7 +3476,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "理想的愛、謙讓"
         },
         "carnation": {
           "name": "康乃馨",
@@ -3187,7 +3489,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "母愛的純潔"
         },
         "cherry_blossom": {
           "name": "櫻花",
@@ -3199,7 +3502,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "純潔、高尚、精神美"
         },
         "chrysanthemum_gold": {
           "name": "金菊花",
@@ -3211,7 +3515,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "清淨、高潔、真情"
         },
         "cornflower": {
           "name": "矢車菊",
@@ -3223,7 +3528,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "纖細、優雅、幸福"
         },
         "cosmos": {
           "name": "宇宙",
@@ -3235,7 +3541,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "少女的真心、少女的純情"
         },
         "crocus": {
           "name": "番紅花",
@@ -3247,7 +3554,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "進退得宜、青春喜悅"
         },
         "dahlia": {
           "name": "大麗花",
@@ -3259,7 +3567,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "華麗、優雅"
         },
         "daisy": {
           "name": "雛菊",
@@ -3271,7 +3580,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "開朗、快樂、清純"
         },
         "delicate_willow": {
           "name": "柳花",
@@ -3283,7 +3593,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "思念"
         },
         "delphinium": {
           "name": "飛燕草",
@@ -3295,7 +3606,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "清靜"
         },
         "edelweiss": {
           "name": "雪絨花",
@@ -3307,7 +3619,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "重要的回憶、勇氣"
         },
         "flame_tulip": {
           "name": "火焰鬱金香",
@@ -3319,7 +3632,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "美麗的你"
         },
         "forsythia": {
           "name": "連翹",
@@ -3331,7 +3645,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "預料"
         },
         "foxglove": {
           "name": "毛地黃",
@@ -3343,7 +3658,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "隱藏的戀情"
         },
         "freesia": {
           "name": "小蒼蘭",
@@ -3355,7 +3671,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "純潔、幸福"
         },
         "gardenia": {
           "name": "梔子花",
@@ -3367,7 +3684,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "喜悅"
         },
         "gentian": {
           "name": "龍膽草",
@@ -3379,7 +3697,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "最愛憂傷時的你"
         },
         "geranium": {
           "name": "天竺葵",
@@ -3391,7 +3710,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "偶然的相遇"
         },
         "glacier_bloom": {
           "name": "冰河綻放",
@@ -3403,7 +3723,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "冰層下守護的約定"
         },
         "heliotrope": {
           "name": "天芥菜",
@@ -3415,7 +3736,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "永恆的愛"
         },
         "hibiscus": {
           "name": "芙蓉",
@@ -3427,7 +3749,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "新鮮的戀情、體貼"
         },
         "honeysuckle": {
           "name": "金銀花",
@@ -3439,7 +3762,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "奉獻"
         },
         "hydrangea": {
           "name": "繡球花",
@@ -3451,7 +3775,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "希望、忠貞、團聚"
         },
         "iris": {
           "name": "虹膜",
@@ -3463,7 +3788,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "好消息、使者"
         },
         "ivy_bloom": {
           "name": "常春藤花",
@@ -3475,7 +3801,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "沉靜、安詳"
         },
         "jasmine": {
           "name": "茉莉花",
@@ -3487,7 +3814,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "忠貞、尊敬、清純"
         },
         "larkspur": {
           "name": "拉克斯珀",
@@ -3499,7 +3827,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "清靜"
         },
         "lavender": {
           "name": "薰衣草",
@@ -3511,7 +3840,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "等待愛情、心心相印"
         },
         "lily": {
           "name": "莉莉",
@@ -3523,7 +3853,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "純潔、莊嚴、心心相印"
         },
         "lotus": {
           "name": "蓮花",
@@ -3535,7 +3866,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "聖潔高雅"
         },
         "lotus_golden": {
           "name": "金蓮花",
@@ -3547,7 +3879,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "花中君子"
         },
         "lotus_pink": {
           "name": "粉紅蓮花",
@@ -3559,7 +3892,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "聖潔高雅"
         },
         "lotus_white": {
           "name": "白蓮花",
@@ -3571,7 +3905,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "純淨、出淤泥而不染"
         },
         "magnolia": {
           "name": "玉蘭",
@@ -3583,7 +3918,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "高潔、純潔、高貴"
         },
         "marigold": {
           "name": "萬壽菊",
@@ -3595,7 +3931,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "友情、健康"
         },
         "moon_lily": {
           "name": "月百合",
@@ -3607,7 +3944,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "純潔、莊嚴、聖母之花"
         },
         "moon_narcissus": {
           "name": "月亮水仙",
@@ -3619,7 +3957,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "期盼愛情、純潔"
         },
         "moonflower": {
           "name": "月花",
@@ -3631,7 +3970,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "默默的愛、自由的心"
         },
         "morning_glory": {
           "name": "牽牛花",
@@ -3643,7 +3983,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "愛情永固"
         },
         "mugunghwa": {
           "name": "木槿花",
@@ -3655,7 +3996,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "纖美"
         },
         "narcissus": {
           "name": "水仙",
@@ -3667,7 +4009,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "多情"
         },
         "nemophila": {
           "name": "粉紅蝶屬",
@@ -3679,7 +4022,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "處處成功"
         },
         "night_cereus": {
           "name": "夜晚開花仙人掌",
@@ -3691,7 +4035,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "剎那間的美麗、一瞬間的永恆"
         },
         "orange_trumpet": {
           "name": "橘色喇叭花",
@@ -3703,7 +4048,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "敬佩、聲譽"
         },
         "orchid": {
           "name": "蘭花",
@@ -3715,7 +4061,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "高潔、典雅、堅貞不渝"
         },
         "orchid_tanlang": {
           "name": "檀蘭蘭",
@@ -3727,7 +4074,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "高潔、典雅、堅貞不渝"
         },
         "passionflower": {
           "name": "西番蓮",
@@ -3739,7 +4087,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "憧憬"
         },
         "peony": {
           "name": "牡丹",
@@ -3751,7 +4100,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "富貴"
         },
         "peony_ziwei": {
           "name": "紫微牡丹",
@@ -3763,7 +4113,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "雍容華貴、繁華昌盛"
         },
         "persian_buttercup": {
           "name": "波斯毛茛",
@@ -3775,7 +4126,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "光芒四射的魅力"
         },
         "plum_blossom": {
           "name": "梅花",
@@ -3787,7 +4139,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "堅貞、剛毅、聖潔"
         },
         "poppy": {
           "name": "罌粟",
@@ -3799,7 +4152,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "安慰"
         },
         "primrose": {
           "name": "報春花",
@@ -3811,7 +4165,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "含羞、青春"
         },
         "queen_anne_lace": {
           "name": "安妮女王蕾絲",
@@ -3823,7 +4178,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "惹人憐愛"
         },
         "ranunculus": {
           "name": "毛茛屬植物",
@@ -3835,7 +4191,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "受歡迎"
         },
         "red_lycoris": {
           "name": "紅石蒜",
@@ -3847,7 +4204,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "熱情"
         },
         "red_spider_lily": {
           "name": "紅蜘蛛百合",
@@ -3859,7 +4217,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "重逢、熱情"
         },
         "resilient_rose": {
           "name": "經典玫瑰",
@@ -3871,7 +4230,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "熱情、熱愛著你、我愛你"
         },
         "rose": {
           "name": "玫瑰",
@@ -3883,7 +4243,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "愛情、愛與美"
         },
         "snapdragon": {
           "name": "金魚草",
@@ -3895,7 +4256,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "活潑熱鬧"
         },
         "sunflower": {
           "name": "向日葵",
@@ -3907,7 +4269,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "信念、光輝、我的眼中只有你"
         },
         "sunflower_ziwei": {
           "name": "紫微向日葵",
@@ -3919,7 +4282,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "信念、光輝、我的眼中只有你"
         },
         "sweet_pea": {
           "name": "甜豌豆",
@@ -3931,7 +4295,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "快樂的回憶、友誼"
         },
         "thorny_rose": {
           "name": "帶刺玫瑰",
@@ -3943,7 +4308,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "熱情、熱愛著你、我愛你"
         },
         "tiger_lily": {
           "name": "虎百合",
@@ -3955,7 +4321,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "自豪、純潔的心"
         },
         "tulip": {
           "name": "鬱金香",
@@ -3967,7 +4334,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "愛的表白、榮譽、祝福"
         },
         "violet": {
           "name": "紫羅蘭色",
@@ -3979,7 +4347,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "謙遜、誠實"
         },
         "violet_wisteria": {
           "name": "紫藤",
@@ -3991,7 +4360,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "醉人的戀情、依依的思念"
         },
         "water_anemone": {
           "name": "水葵",
@@ -4003,7 +4373,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "深信不疑的等待"
         },
         "water_lily": {
           "name": "睡蓮",
@@ -4015,7 +4386,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "潔淨、純真"
         },
         "water_narcissus": {
           "name": "水仙",
@@ -4027,7 +4399,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "多情"
         },
         "white_baby_breath": {
           "name": "白色滿天星",
@@ -4039,7 +4412,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "清純、真心喜歡"
         },
         "wild_chrysanthemum": {
           "name": "野菊花",
@@ -4051,7 +4425,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "高潔、隱逸"
         },
         "winter_plum": {
           "name": "冬梅",
@@ -4063,7 +4438,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "傲霜、堅貞"
         },
         "wisteria": {
           "name": "紫藤",
@@ -4075,7 +4451,8 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
-          }
+          },
+          "flowerLanguage": "醉人的戀情、依依的思念"
         },
         "yarrow": {
           "name": "西洋蓍草",
@@ -4087,7 +4464,435 @@
             "0": "布魯姆",
             "1": "和諧",
             "2": "流程"
+          },
+          "flowerLanguage": "安慰、治療"
+        }
+      },
+      "ui": {
+        "source": {
+          "saju": "八字",
+          "astrology": "占星",
+          "jamidusu": "紫微斗數",
+          "sukuyo": "宿曜"
+        },
+        "specimen": {
+          "language": "花語",
+          "system": "體系",
+          "mark": {
+            "saju": {
+              "primary": "日干",
+              "secondary": "季節"
+            },
+            "astrology": {
+              "primary": "星座",
+              "secondary": "上升"
+            },
+            "jamidusu": {
+              "primary": "主星",
+              "secondary": "亮度"
+            },
+            "sukuyo": {
+              "primary": "本命宿",
+              "secondary": "月"
+            }
+          },
+          "yongshin": "用神"
+        },
+        "bouquet": {
+          "sourcesAll": "四種占術",
+          "sourcesPair": "{a}和{b}",
+          "sourcesTrio": "{a}、{b}和{c}",
+          "sameFlower": "{sources}選中了同一朵花——{name}。這正是你鮮明的本色。",
+          "sameElement": "{sources}都指向了{element}之氣。",
+          "diverse": "不同氣質的花聚在一起，把多面的你束成一束。",
+          "title": "命運花束",
+          "sub": "把{count}種占術選出的花紮成了一束。"
+        },
+        "share": {
+          "preparing": "正在準備你的命運之花結果。",
+          "hookTitle": "🌸 聽說我的命運之花是「{name}」",
+          "hookLanguage": "花語：{language}",
+          "hookAsk": "你會是什麼花呢？→ {url}",
+          "hashtagsNamed": "#命運之花 #我的花是{tag}",
+          "hashtag": "#命運之花",
+          "languageDot": "花語 · {language}",
+          "ogTitle": "{name}，我的命運之花",
+          "ogAsk": "你的花會是什麼？",
+          "title": "命運之花",
+          "copiedText": "已複製分享文字，貼到聊天裡傳送吧。",
+          "preparedText": "分享文字已準備好。如果聊天應用程式沒有開啟，請貼上後傳送。",
+          "kakaoTitle": "我的命運之花是「{name}」",
+          "bloomMine": "讓我的花綻放",
+          "kakaoOpened": "已開啟 KakaoTalk 分享視窗。",
+          "kakaoPrepared": "已準備好 KakaoTalk 分享文字。如果沒有開啟，請貼上後傳送。"
+        },
+        "card": {
+          "kicker": "我的命運之花",
+          "ask": "你的花呢？",
+          "failed": "無法產生卡片圖片，改為傳送分享文字。",
+          "saved": "限時動態卡已儲存，分享文字也已複製。",
+          "ready": "限時動態卡已準備好，發到 Instagram 限時動態吧。",
+          "drawing": "正在繪製卡片，請稍候。"
+        },
+        "sheet": {
+          "story": "限時動態卡",
+          "storyHint": "儲存或分享 9:16 圖片",
+          "kakao": "KakaoTalk",
+          "kakaoHint": "把我的花傳給朋友",
+          "link": "複製連結",
+          "linkHint": "連同花語一起複製",
+          "compat": "和朋友的花之緣",
+          "compatHint": "把配對連結傳給朋友",
+          "compatHintFriend": "查看與朋友之花的緣分",
+          "title": "分享我的花",
+          "close": "關閉",
+          "linkCopied": "已複製花語和連結，貼上傳給朋友吧。",
+          "notReady": "你的花綻放後就能分享。",
+          "sub": "{name} · 花語「{language}」"
+        },
+        "compatShare": {
+          "inviteTitle": "🌸 我的命運之花是「{name}」",
+          "inviteAsk": "你也讓自己的花綻放，看看我們的花合不合吧",
+          "hashtags": "#命運之花 #花之緣",
+          "title": "命運之花緣分",
+          "pair": "🌸 我是「{mine}」，朋友是「{friend}」",
+          "result": "我們的花之緣是「{title}」",
+          "ask": "你也來測測你的花吧 → {url}"
+        },
+        "friend": {
+          "kicker": "朋友送來的命運之花",
+          "shareCompat": "分享花之緣",
+          "note": "你的花綻放後，馬上為你呈現兩人的花之緣。",
+          "birthToast": "輸入出生日期，你的花就會綻放，接著還會呈現與朋友之花的緣分。"
+        },
+        "compat": {
+          "twin": {
+            "title": "同一朵花的一對",
+            "line": "你們都是{name}。不必多說，你們活在同一個季節。"
+          },
+          "blend": {
+            "title": "氣質不同的花",
+            "line": "兩朵顏色不同的花相遇，讓花束更加豐盈。"
+          },
+          "same": {
+            "title": "氣質相近的花",
+            "line": "兩朵花都蘊含{mine}之氣，最懂彼此的節奏。"
+          },
+          "give": {
+            "title": "我滋養的花",
+            "line": "我的花的{mine}之氣滋養朋友的花的{friend}之氣。在我身邊，朋友會開得更燦爛。"
+          },
+          "receive": {
+            "title": "滋養我的花",
+            "line": "朋友的花的{friend}之氣助長我的花的{mine}之氣。在一起時，我的花會開得更盛。"
+          },
+          "shape": {
+            "title": "相互雕琢的花",
+            "line": "我的花的{mine}之氣雕琢朋友的花的{friend}之氣。步調越一致，彼此越堅實。"
+          },
+          "spark": {
+            "title": "彼此激勵的花",
+            "line": "朋友的花的{friend}之氣約束著我的花的{mine}之氣。你們是彼此的良性激勵。"
           }
+        },
+        "cta": {
+          "rebloom": "🌸 讓命運之花再次綻放",
+          "astrologyAgain": "✨ 再次召喚占星之花",
+          "jamidusuAgain": "🌺 再次召喚紫微之花",
+          "sukuyoAgain": "🌙 再次召喚宿曜之花"
+        },
+        "status": {
+          "atelierLocked": "需要先解鎖命運之花工坊。",
+          "loginRequired": "登入後即可查看命運之花。",
+          "newlyUnlocked": "✨ 新開啟了{source}之花。",
+          "resultReady": "{verdict} 你可以儲存此結果，或分享到 KakaoTalk。",
+          "reloading": "正在重新載入資料，請稍候。",
+          "linking": "正在同步{source}資料，請稍候。",
+          "loaded": "已載入{source}資料。",
+          "copied": "已複製到剪貼簿。",
+          "copyPermission": "沒有複製權限，請手動複製。",
+          "copyFailed": "複製失敗。",
+          "kakaoPcCopied": "在電腦上已將 KakaoTalk 連結複製到剪貼簿。請貼到 KakaoTalk 中分享。",
+          "kakaoNotOpenedCopied": "未能確認 KakaoTalk 已開啟，已將摘要複製到剪貼簿。請貼到 KakaoTalk 中分享。",
+          "kakaoOpening": "正在開啟 KakaoTalk 分享...",
+          "kakaoFailedCopied": "無法開啟 KakaoTalk 分享，已將摘要複製到剪貼簿。",
+          "refreshed": "已依據{verdict}更新分頁與提示詞。",
+          "aiOpening": "正在新分頁開啟 AI。如果沒有開啟，請允許彈出式視窗後再試一次。",
+          "aiBlocked": "新分頁似乎被封鎖了。請在瀏覽器中允許彈出式視窗，或直接開啟想用的 AI 網站。",
+          "summaryCopied": "已將摘要複製到剪貼簿。",
+          "promptCopied": "已將 AI 花朵主提示詞複製到剪貼簿。",
+          "promptPackCopied": "已將主/負面提示詞套組複製到剪貼簿。"
+        },
+        "fallback": {
+          "astrology": {
+            "name": "星雲薰衣草",
+            "symbolism": "沿著星光紋理流淌的清澈直覺",
+            "vibe": "跟著星星的節奏呼吸，直覺會變得更加清晰。"
+          },
+          "jamidusu": {
+            "name": "牡丹",
+            "symbolism": "帝王的氣度與中心的力量",
+            "keyword1": "帝王",
+            "keyword2": "氣度",
+            "keyword3": "中心",
+            "vibe": "守住中心的姿態，終將讓你走得最遠。"
+          },
+          "sukuyo": {
+            "name": "百合",
+            "symbolism": "在月光中清澈綻放的守護之花",
+            "keyword1": "月光",
+            "keyword2": "守護",
+            "keyword3": "淨化",
+            "vibe": "今晚與月亮的呼吸和節奏同步，你的選擇會更加清晰。",
+            "keywordMansion": "宿曜",
+            "keywordGuardian": "守護動物",
+            "keywordPhase": "月相"
+          }
+        },
+        "legacy": {
+          "astrologyReading": "正在根據占星星盤解讀你的命運之花。",
+          "astrologyRhythm": "正在鎖定星星的節奏。",
+          "brightnessEven": "平",
+          "jamidusuReading": "正在根據今日強星解讀你的命運之花。",
+          "mainStarUnknown": "主星未知",
+          "jamidusuRhythm": "正在校準星辰之氣。",
+          "imperialGrace": "帝王風範",
+          "moonQuarter": "上弦/下弦月",
+          "sukuyoReading": "正在根據宿曜二十七宿解讀你的命運之花。",
+          "mansionUnknown": "本命宿未知"
+        },
+        "badge": {
+          "sun": "太陽星座 {value}",
+          "rising": "上升星座 {value}",
+          "moon": "月亮星座 {value}",
+          "strongStar": "今日強星 {value}",
+          "brightness": "星曜亮度 {value}",
+          "moonPhase": "月相 {value}",
+          "guardian": "守護動物 {value}",
+          "palace": "宮位 {value}",
+          "mansionLabel": "宿",
+          "group": "{group}組"
+        },
+        "value": {
+          "unknown": "未知",
+          "pending": "等待判定",
+          "lifePalace": "命宮"
+        },
+        "wait": {
+          "chartSignal": "等待星盤訊號",
+          "starSignal": "等待主星訊號",
+          "sukuyoSignal": "等待宿曜訊號",
+          "moonRhythm": "正在與月亮的節奏同步。",
+          "nebulaRhythm": "正在校準星雲的節奏。",
+          "imperialRhythm": "正在調和帝王之氣。",
+          "dayMaster": "等待日干判讀",
+          "sourceVerdict": "等待{source}判定",
+          "mainStar": "等待主星判讀",
+          "sukuyoReading": "等待宿曜判讀",
+          "dataLoad": "等待載入資料",
+          "birth": "等待輸入出生日期"
+        },
+        "stage": {
+          "keywords": "{source}關鍵字 · {list}",
+          "astrologyScenario": "正在計算占星星座的開花情境。",
+          "jamidusuScenario": "正在計算紫微斗數主星的開花情境。",
+          "sukuyoScenario": "正在計算宿曜月光的開花情境。",
+          "seasonTexture": "{season}的紋理",
+          "seasonDefault": "季節",
+          "environmentMood": "{environment}氛圍",
+          "environmentDefault": "環境",
+          "sajuScenario": "正在計算日干與環境的開花情境。",
+          "dataSheetPreparing": "正在準備花朵資料表。",
+          "symbolizes": "這朵花象徵著{symbolism}。",
+          "resonates": "這朵花與你目前的運勢流向強烈共鳴。",
+          "narrativeFallback": "{verdict} 已依據{source}的平衡，校準你此刻的開花節點。"
+        },
+        "guide": {
+          "allBloomed": "所有的花都已綻放。可以在任一分頁中再次欣賞。",
+          "startSaju": "下一步：先打開八字之花，開始綻放吧。",
+          "next": "下一步：前往{source}之花，繼續綻放吧。"
+        },
+        "tab": {
+          "lockLabel": "解鎖工坊後開放"
+        },
+        "verdict": {
+          "preparing": "正在準備命運之花的判定。",
+          "defaultFlower": "命運之花",
+          "sukuyo": "從宿曜來看，你的花是{name}。",
+          "jamidusu": "從紫微斗數來看，你的花是{name}。",
+          "astrology": "從占星來看，你的花是{name}。",
+          "saju": "從八字來看，你的花是{name}。"
+        },
+        "snapshot": {
+          "guidance": "今天先調整好節奏，再去追求結果，花會開得更快。"
+        },
+        "empty": {
+          "noDomainData": "還沒有已同步的{source}資料。點選下方按鈕，此刻專屬於你的命運之花就會綻放。",
+          "astroCalculating": "已讀取你的星盤，正在挑選你的占星之花。",
+          "notLinked": "按下同步按鈕的那一刻，{source}之花就會綻放。點選下方按鈕，遇見此刻來到你身邊的那一朵花吧。",
+          "linkButton": "同步命運之花",
+          "linking": "同步中...",
+          "dataWaiting": "等待同步{source}資料",
+          "readingWaiting": "等待{source}判讀",
+          "keywordsLoading": "{source}關鍵字 · 載入中"
+        },
+        "artMood": {
+          "astrology": "星光星雲與霓虹光暈交織的夢幻花藝",
+          "jamidusu": "帝王風範與宮廷精緻美感並存的花藝",
+          "sukuyo": "如月光冥想與靜謐水面般清澈的花藝",
+          "saju": "沿著五行紋理綻放的抒情東方花藝"
+        },
+        "care": {
+          "wood": "在晨光灑進的東側窗邊做8分鐘伸展，喚醒生長點",
+          "fire": "沐浴朝南的陽光5分鐘，大聲宣告今天的目標",
+          "earth": "整理工作區的一個角落，穩穩立起中心軸",
+          "metal": "寫下3件優先事項，果斷修剪不必要的約定",
+          "water": "用傍晚10分鐘散步和補充水分，打開情緒的循環通道",
+          "default": "固定光照（上午）與補水（傍晚）的日常節奏，先穩定基礎的生長節律。"
+        },
+        "synergy": {
+          "astrology": "玻璃花器、銀色相框、柔和的微光照明",
+          "jamidusu": "緞面織品、青銅擺飾、對稱造型陶瓷",
+          "sukuyo": "霧面玻璃、月光色調亞麻、波紋托盤",
+          "saju": "霧面陶瓷、原木、圖案柔和的織品",
+          "line": "推薦色彩：主色 {primary}，輔色 {secondary}，點綴色 {accent} / 推薦材質：{materials}。"
+        },
+        "atelier": {
+          "scenarioTitle": "{source}開花情境",
+          "growthCycleWaiting": "等待計算開花週期",
+          "ritualWaiting": "正在計算今日的實踐習慣。",
+          "astrology": {
+            "lightingFire": "如盛夏正午般高角度的強烈陽光",
+            "lightingEarth": "午後金色斜陽久久停留的穩定光量",
+            "lightingWater": "黎明時分冷冽藍光緩緩暈開的照度",
+            "lightingAir": "如風般傾斜的斜射光，輕盈打開空間的照度",
+            "humidityWater": "情感濕度很高的銀色薄霧狀態",
+            "humidityFire": "蘊含熱氣的乾燥空氣，情緒反應迅速的狀態",
+            "humidityEarth": "穩定的陶盆濕度，情感慢慢醞釀成熟的狀態",
+            "humidityAir": "輕盈流動的微風濕度，想法迅速煥新的狀態",
+            "seasonFire": "開花加速期：行動與發表推動花苞向上的階段",
+            "seasonWater": "內在滋養期：休息與直覺充實根層的階段",
+            "seasonBalance": "平衡調和期：結構與感性交會、孕育下一個花芽的階段",
+            "section": "天體的照度與能量",
+            "matrixLighting": "☀️ 天體的照度：{value}",
+            "matrixHumidity": "💧 大氣的濕度：{value}",
+            "matrixSeason": "🪐 宇宙的季節：{value}",
+            "log": "園丁觀察日記：太陽星座{sun}的方向性與上升星座{rising}的光芒，為花莖定下角度。月亮星座{moon}的濕度調節溫柔地打開情感的葉脈，本週是機會率先顯現的開花前兆期。",
+            "recipe": "秘密配方：晚上9點後把窗邊的燈光調暗一格，並在筆記本第一行寫下明天要做的一件事。早上最初的12分鐘只專注於那一件事，星光的節奏就會最快對齊。",
+            "flowerLanguage": "命運花語：相信星星的角度，率先邁出一步的勇氣。",
+            "gardenerWord": "園丁給這朵花的一句話：今天的直覺不是誇張，而是預報。小小的行動會把星雲變成現實中的花田。",
+            "particle": "若把{source}的光量轉譯為粒子，「{particle}」的紋理會閃耀得最穩定。"
+          },
+          "jamidusu": {
+            "structureZiwei": "承載紫微星系帝王風範的堅實花莖",
+            "structureBreaker": "由突破型將軍氣質塑造的粗壯挺拔的莖幹",
+            "structureFlexible": "柔韌卻不易折斷的細膩重瓣",
+            "structureBalanced": "由平衡型主星塑造的精緻對稱花骨架",
+            "social": "如同蝴蝶與蜜蜂環繞{palace}往來，身邊親近的緣分分擔角色、助你成長。",
+            "thornsDim": "防禦力強的短刺密密生長，幫你立起界線的時期",
+            "thornsBright": "反射光線的紋路代替尖刺，有品格地守護自己的時期",
+            "section": "花的品格與形態",
+            "matrixStructure": "🏛️ 花的骨架：{value}",
+            "matrixSocial": "🦋 蝴蝶與蜜蜂：{value}",
+            "matrixThorns": "🌵 守護之刺：{value}",
+            "log": "園丁觀察日記：今日強星{star}讓花莖的中心挺直，星曜亮度{brightness}調節花瓣的光澤。此刻比起華麗，結構上的完成度更能讓成果壯大。",
+            "recipe": "秘密配方：在書桌左側放一件金屬質感的擺飾，同時寫下今天的1條原則和1條可以讓步的底線。界線越清楚，花開得越優雅。",
+            "flowerLanguage": "命運花語：品格是從堅實結構中綻放的、最安靜的光彩。",
+            "gardenerWord": "園丁給這朵花的一句話：不要急於展現華麗。守住原則的一天，終將造就最持久的花莖。",
+            "particle": "若把{source}的層級轉譯為粒子，「{particle}」的氛圍最能美麗地展現秩序。"
+          },
+          "sukuyo": {
+            "scentFriend": "在月光下暈開的淡雅白麝香調",
+            "scentDanger": "濃郁深沉的沉香調，提升專注力的香氣",
+            "scentDefault": "清新的草本花香調，溫柔調和關係溫度的香氣",
+            "dewFull": "夜露最為充盈，靈感與情感表達同樣豐沛的狀態",
+            "dewNew": "露水薄薄凝結的新月階段，以觀察與準備為先的狀態",
+            "dewDefault": "露水適量，情感平衡與執行力一同成長的狀態",
+            "companionDragon": "紫藤與藍鼠尾草組合，支持大幅擴張的流勢",
+            "companionDog": "迷迭香與洋甘菊組合，強化關係穩定與復原力",
+            "companionTiger": "尤加利與金光菊組合，強化決斷力與保護本能",
+            "companionDefault": "薰衣草與常春藤組合，同時支持情緒穩定與長期成長",
+            "section": "緣分的香氣與露水",
+            "matrixScent": "🌙 命運的香氣：{value}",
+            "matrixDew": "💦 夜露的量：{value}",
+            "matrixCompanion": "🌿 共榮植物：{value}",
+            "log": "園丁觀察日記：{mansion}的關係特質首先以香氣顯現，月相{phase}則以露水的濃度調節情緒節奏。此刻與其催促緣分的速度，不如細心地彼此契合，才能長久守護這朵花。",
+            "recipe": "秘密配方：睡前慢慢喝一杯水，然後靜靜寫下一個今天讓你心懷感激的名字。月亮的水分節奏會穩定下來，人際運勢也會溫柔地打開。",
+            "flowerLanguage": "命運花語：安靜的同理心，會成為飄得最遠的香氣。",
+            "gardenerWord": "園丁給這朵花的一句話：不必著急也沒關係。就像夜露慢慢凝聚，你的緣分也會在恰好的時機變得清晰。",
+            "particle": "若把{source}的月光節奏轉譯為粒子，「{particle}」的氛圍最能溫暖地包覆你。"
+          },
+          "saju": {
+            "soilCold": "飽含水分的濕地型沃土",
+            "soilHot": "排水性佳的溫暖礫石混合土",
+            "soilBalanced": "顆粒均勻、礦物質穩定的肥沃土壤",
+            "rootStrong": "根系深紮、即使外界變化也能守住中心的階段",
+            "rootWeak": "纖細的鬚根率先蔓延、需要支撐的階段",
+            "rootBalanced": "中等深度的根均勻擴展的平衡階段",
+            "section": "成長的土壤與根",
+            "matrixSoil": "🪨 土壤成分：{value}",
+            "matrixRoot": "🌱 根的深度：{value}",
+            "matrixNutrient": "🧪 園丁營養劑：{value}",
+            "log": "園丁觀察日記：今天的花園帶著{soil}的紋理，生長能量沿著{root}的流向運行。表面看似平靜，根層中卻正穩穩積蓄著下一次開花的力量。",
+            "recipe": "秘密配方：在朝北或朝東的窗邊放一盆綠葉植物，早上用10分鐘舒展身體，晚上用10分鐘調勻呼吸。每天兩次固定節奏，最能迅速提升用神之氣。",
+            "flowerLanguage": "命運花語：堅實的根看似緩慢，終將開得最高。",
+            "gardenerWord": "園丁給這朵花的一句話：比起急躁，請相信累積。今天的小小照料，會成就下一季的豐碩果實。",
+            "particle": "若把{source}之氣的細微流動轉譯為粒子，「{particle}」的氛圍最為和諧。"
+          },
+          "themesWaiting": "正在分析人際與工作主題。",
+          "guidance": "{source}命運之花實踐指南：{text}"
+        },
+        "prompt": {
+          "badgesSukuyo": "宿曜徽章：{mansion} / 月相 {phase} / 守護動物 {guardian}",
+          "badgesJamidusu": "紫微斗數徽章：今日強星 {star} / 星曜亮度 {brightness} / 宮位 {palace}",
+          "badgesAstrology": "占星徽章：太陽星座 {sun} / 上升星座 {rising} / 月亮星座 {moon}",
+          "badgesSaju": "八字徽章：身強/身弱 {strength} / 用神 {yongshin} / 調候 {johu}",
+          "symbolismFallback": "象徵命運流向的花",
+          "narrativeFallback": "命運之花敘事",
+          "scenarioFallback": "基於開花情境的演繹",
+          "toneDirection": "{source}色調方向：{mood} / {background}"
+        },
+        "history": {
+          "emptyStatus": "尚未儲存任何開花紀錄。試著儲存目前的結果吧。",
+          "restore": "載入",
+          "kakao": "Kakao分享",
+          "delete": "刪除",
+          "saved": "開花紀錄已儲存：{name}（{time}）",
+          "notFound": "找不到該筆紀錄。",
+          "restored": "已載入儲存的開花紀錄：{name}",
+          "deleteNotFound": "找不到要刪除的紀錄。",
+          "deleted": "已刪除所選的開花紀錄。",
+          "nothingToClear": "沒有可刪除的開花紀錄。",
+          "cleared": "已刪除所有儲存的開花紀錄。",
+          "shareNotFound": "找不到要分享的紀錄。"
+        },
+        "noBirth": {
+          "jamidusu": "請輸入出生日期，即可查看紫微之花。",
+          "sukuyo": "請輸入出生日期，即可查看宿曜之花。",
+          "astrology": "請輸入出生日期與出生時間，即可查看占星之花。",
+          "saju": "先輸入姓名與出生日期，專屬於你的命運之花就會在這裡綻放。"
+        },
+        "studioTitle": "🌸 命運之花工坊",
+        "sourceDesc": {
+          "saju": "我們逐一解讀你的日干、月令與五行平衡，為你挑選此刻這個季節裡，與你的氣息最深切相契的一朵花。",
+          "astrology": "我們將太陽星座·上升星座·月亮星座描繪出的三縷星光疊加解讀，為你綻放此刻與你的星座最清澈和諧的花。",
+          "jamidusu": "我們細察命宮中的主星、它的亮度與四化的流轉，為你找到此刻你的命盤最鮮明綻放的花。",
+          "sukuyo": "我們將你出生之日的本命宿與今晚的月相相互對照，為你送上此刻與你心緒最溫柔契合的花。"
+        },
+        "sourceShort": {
+          "saju": "八字",
+          "astrology": "星盤",
+          "jamidusu": "紫微斗數",
+          "sukuyo": "宿曜"
+        },
+        "strength": {
+          "strong": "身強",
+          "weak": "身弱"
+        },
+        "johu": {
+          "hot": "溫燥",
+          "cold": "寒濕",
+          "balanced": "中和"
         }
       }
     }
@@ -4418,7 +5223,7 @@
     },
     "premium": {
       "lockedTitle": "統治者報告已鎖定",
-      "lockedDesc": "DOMINATOR 模式判定 · 10年风险系数图 · 专业报告（20,000字以上）· 开运处方",
+      "lockedDesc": "主導模式 · 十年趨勢圖 · 十章深度解讀 · 每月行動計畫",
       "lockedCost": "5,000韩元永久解锁",
       "unlockCta": "⚡ 执行 DOMINATOR — 5,000韩元",
       "generatingTitle": "統治者正在執行...",
@@ -6341,7 +7146,7 @@
         "k53h7ds": "心理測驗",
         "k79pfmc": "Nakshatra",
         "k871xeu": "免費 · 自拍臉部分析",
-        "ka0v1mf": "免費 · 11種工具",
+        "ka0v1mf": "簽到蜜滴 · 16種工具",
         "kry6axn": "27宿月宿",
         "kslqazg": "綜合運勢提示",
         "kxgi8q8": "占卜師魚",
@@ -6666,7 +7471,7 @@
         "k1ygnp9f2": {
           "ariaLabel": "核心重點"
         },
-        "k231dx8": "立即使用四柱八字·塔羅·占星術·紫微斗數等16種工具，免費生成諮詢提示詞。",
+        "k231dx8": "用八字、塔羅、占星、紫微斗數等16種工具，立即生成諮詢提示詞。",
         "k3baulf": "訓民正音命名所",
         "k6uqkuq": {
           "ariaLabel": "核心摘要"
@@ -6718,7 +7523,7 @@
         "k1scb7d8": {
           "alt": "命運之業代表圖片"
         },
-        "koe32kc": "免費體驗",
+        "koe32kc": "簽到蜜滴",
         "ktgbfsy": "NEW · 決定版",
         "n50001000020000": "塔羅 5,000韓元 · 四柱八字 10,000韓元 · 合婚 20,000韓元",
         "k1dw3t0h": "命盤免費 · 專家諮詢付費",
@@ -6739,7 +7544,7 @@
     "tarotTileBody": {
       "featuredContentCardCta": {
         "k1f1oofn": "進入命運茶館",
-        "kdyjsns": "免費體驗",
+        "kdyjsns": "生成提示詞",
         "kwux29x": "進入戰略室"
       },
       "pvcPremMeta": {
@@ -6809,7 +7614,7 @@
         "ko4w810": "四柱八字、塔羅、占星術等16種工具",
         "kozjlt4": "針對關係、財富、工作、選擇的現實建議",
         "kqwk9o": "按主題的宮位與星辰流動諮詢",
-        "krx9ppb": "免費體驗1次 · 註冊後無限使用",
+        "krx9ppb": "每簽到3次得1滴蜜 · 每次生成用1滴",
         "ktv5xm9": "四柱八字命盤與五行平衡判讀",
         "ktx0v26": "在獅子徽章下選擇命運地圖",
         "kvigm32": "針對當前關係的現實建議",
@@ -6952,7 +7757,9 @@
         "n20000Price10000": "10,000韓元起",
         "n50000": "50,000韓元",
         "n30000Price20000": "20,000韓元",
-        "n20000Price10000Price20000": "20,000韓元起"
+        "n5000Price10000": "10,000韓元起",
+        "n30000Price20000Price30000": "30,000韓元",
+        "n20000Price10000Price30000": "30,000韓元起"
       }
     },
     "cdSigCardBody": {
@@ -7014,10 +7821,9 @@
     },
     "fortuneGatewayDoor": {
       "fortuneGatewayDoorMeta": {
-        "k18ykrep": "登入後免費1次",
-        "n115000": "註冊後免費1次 · 之後每次3,000韓元",
         "n130000": "每次30,000韓元",
-        "k1lo4ibg": "最終交叉判定"
+        "k1lo4ibg": "最終交叉判定",
+        "n13000": "每次5,000韓元"
       },
       "fortuneGatewayDoorGo": {
         "kkmvgqi": "開始諮詢",
@@ -7899,12 +8705,12 @@
     "deliverable": {
       "title": "付費後你會得到",
       "volumeLabel": "篇幅",
-      "volumeValue": "至少30,000字",
+      "volumeValue": "長篇諮詢正文",
       "chaptersLabel": "結構",
-      "chaptersValue": "共16章 · 每章1,900～2,400字",
+      "chaptersValue": "15章 · 主題解讀與最後的信",
       "keepLabel": "保存",
-      "keepValue": "匯出PDF，永久保存",
-      "guarantee": "篇幅未達標準的章節最多自動重寫兩次。若仍無法達標，則判定為失敗而不交付結果，重試與退款通道保持有效。"
+      "keepValue": "儲存PDF · 複製各章內容",
+      "guarantee": "解讀範圍取決於出生資訊與可用的計算資料。可在已儲存的諮詢中再次查看已完成的內容。"
     }
   },
   "errorBoundary": {

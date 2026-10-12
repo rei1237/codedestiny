@@ -1,0 +1,206 @@
+{
+  "checkedAt": "2026-10-11T17:03:58.398Z",
+  "base": "https://code-destiny.com",
+  "sitemapCount": 955,
+  "coverage": "critical landing sample plus robots and declared sitemap coverage for every sitemap URL",
+  "declaredSitemaps": [
+    "https://code-destiny.com/sitemap-index.xml"
+  ],
+  "sitemapFiles": [
+    {
+      "url": "https://code-destiny.com/sitemap-index.xml",
+      "status": 200,
+      "type": "index",
+      "count": 5
+    },
+    {
+      "url": "https://code-destiny.com/sitemap-ko.xml",
+      "status": 200,
+      "type": "urlset",
+      "count": 454
+    },
+    {
+      "url": "https://code-destiny.com/sitemap-ja.xml",
+      "status": 200,
+      "type": "urlset",
+      "count": 128
+    },
+    {
+      "url": "https://code-destiny.com/sitemap-en.xml",
+      "status": 200,
+      "type": "urlset",
+      "count": 127
+    },
+    {
+      "url": "https://code-destiny.com/sitemap-zh.xml",
+      "status": 200,
+      "type": "urlset",
+      "count": 127
+    },
+    {
+      "url": "https://code-destiny.com/sitemap-zh-tw.xml",
+      "status": 200,
+      "type": "urlset",
+      "count": 119
+    }
+  ],
+  "rootRedirect": {
+    "status": 301,
+    "location": "https://code-destiny.com/ggulggul/"
+  },
+  "rows": [
+    {
+      "url": "https://code-destiny.com/ggulggul/",
+      "status": 200,
+      "xRobots": "",
+      "location": null,
+      "indexable": true,
+      "issues": []
+    },
+    {
+      "url": "https://code-destiny.com/saju/",
+      "status": 200,
+      "xRobots": "",
+      "location": null,
+      "indexable": true,
+      "issues": []
+    },
+    {
+      "url": "https://code-destiny.com/manse/",
+      "status": 200,
+      "xRobots": "",
+      "location": null,
+      "indexable": true,
+      "issues": []
+    },
+    {
+      "url": "https://code-destiny.com/ziwei/",
+      "status": 200,
+      "xRobots": "",
+      "location": null,
+      "indexable": true,
+      "issues": []
+    },
+    {
+      "url": "https://code-destiny.com/sukuyo/",
+      "status": 200,
+      "xRobots": "",
+      "location": null,
+      "indexable": true,
+      "issues": []
+    },
+    {
+      "url": "https://code-destiny.com/vedic/",
+      "status": 200,
+      "xRobots": "",
+      "location": null,
+      "indexable": true,
+      "issues": []
+    },
+    {
+      "url": "https://code-destiny.com/astrology/",
+      "status": 200,
+      "xRobots": "",
+      "location": null,
+      "indexable": true,
+      "issues": []
+    },
+    {
+      "url": "https://code-destiny.com/tarot/",
+      "status": 200,
+      "xRobots": "",
+      "location": null,
+      "indexable": true,
+      "issues": []
+    },
+    {
+      "url": "https://code-destiny.com/compatibility/",
+      "status": 200,
+      "xRobots": "",
+      "location": null,
+      "indexable": true,
+      "issues": []
+    },
+    {
+      "url": "https://code-destiny.com/today/",
+      "status": 200,
+      "xRobots": "",
+      "location": null,
+      "indexable": true,
+      "issues": []
+    },
+    {
+      "url": "https://code-destiny.com/insights/",
+      "status": 200,
+      "xRobots": "",
+      "location": null,
+      "indexable": true,
+      "issues": []
+    },
+    {
+      "url": "https://code-destiny.com/guides/",
+      "status": 200,
+      "xRobots": "",
+      "location": null,
+      "indexable": true,
+      "issues": []
+    },
+    {
+      "url": "https://code-destiny.com/ja/",
+      "status": 200,
+      "xRobots": "",
+      "location": null,
+      "indexable": true,
+      "issues": []
+    },
+    {
+      "url": "https://code-destiny.com/en/",
+      "status": 200,
+      "xRobots": "",
+      "location": null,
+      "indexable": true,
+      "issues": []
+    },
+    {
+      "url": "https://code-destiny.com/zh/",
+      "status": 200,
+      "xRobots": "",
+      "location": null,
+      "indexable": true,
+      "issues": []
+    },
+    {
+      "url": "https://code-destiny.com/ja/saju/",
+      "status": 200,
+      "xRobots": "",
+      "location": null,
+      "indexable": true,
+      "issues": []
+    },
+    {
+      "url": "https://code-destiny.com/ja/vedic/",
+      "status": 200,
+      "xRobots": "",
+      "location": null,
+      "indexable": true,
+      "issues": []
+    },
+    {
+      "url": "https://code-destiny.com/ja/sukuyo/",
+      "status": 200,
+      "xRobots": "",
+      "location": null,
+      "indexable": true,
+      "issues": []
+    },
+    {
+      "url": "https://code-destiny.com/ja/ziwei/",
+      "status": 200,
+      "xRobots": "",
+      "location": null,
+      "indexable": true,
+      "issues": []
+    }
+  ],
+  "issues": []
+}

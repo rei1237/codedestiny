@@ -546,6 +546,8 @@
 
 /* ─── Draw Stage ─── */
 .tarot-love-draw-header {
+  padding-top: 44px;
+  text-wrap: balance;
   font-size: 1.15rem;
   font-weight: 600;
   color: rgba(255, 220, 240, 0.95);
@@ -1553,3 +1555,7 @@
 .tarot-love-delivery section { margin: 28px 0; scroll-margin-top: 16px; }
 .tarot-love-delivery h3 { margin-bottom: 12px; font-size: 17px; }
 .tarot-love-delivery-body { white-space: pre-wrap; font-size: 15px; }
+
+/* Authored detail stays in the introduction, before the existing altar. */
+#tarotLoveOverlay .oracle-crafted{margin:20px auto}
+#tarotLoveOverlay .tarot-love-shell:has(#tarotLoveIntroStage:not(.is-active))>.oracle-crafted{display:none}

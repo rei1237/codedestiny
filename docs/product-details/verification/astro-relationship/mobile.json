@@ -1,0 +1,325 @@
+{
+  "rows": [
+    {
+      "width": 360,
+      "ancestors": [
+        {
+          "tag": "DETAILS",
+          "cls": "astro-crafted",
+          "width": 333
+        },
+        {
+          "tag": "DIV",
+          "cls": "astro-counsel",
+          "width": 315
+        },
+        {
+          "tag": "DIV",
+          "cls": "",
+          "width": 315
+        },
+        {
+          "tag": "DIV",
+          "cls": "astro-card",
+          "width": 315
+        },
+        {
+          "tag": "DIV",
+          "cls": "",
+          "width": 315
+        },
+        {
+          "tag": "DIV",
+          "cls": "modal-content-inner-700 modal-content-pad-astro",
+          "width": 315
+        },
+        {
+          "tag": "DIV",
+          "cls": "modal-sheet-base",
+          "width": 315
+        }
+      ],
+      "images": [
+        {
+          "loaded": true,
+          "left": 6,
+          "right": 339,
+          "width": 333
+        },
+        {
+          "loaded": true,
+          "left": 6,
+          "right": 339,
+          "width": 333
+        },
+        {
+          "loaded": true,
+          "left": 6,
+          "right": 339,
+          "width": 333
+        },
+        {
+          "loaded": true,
+          "left": 6,
+          "right": 339,
+          "width": 333
+        },
+        {
+          "loaded": true,
+          "left": 6,
+          "right": 339,
+          "width": 333
+        },
+        {
+          "loaded": true,
+          "left": 6,
+          "right": 339,
+          "width": 333
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "ancestors": [
+        {
+          "tag": "DETAILS",
+          "cls": "astro-crafted",
+          "width": 363
+        },
+        {
+          "tag": "DIV",
+          "cls": "astro-counsel",
+          "width": 345
+        },
+        {
+          "tag": "DIV",
+          "cls": "",
+          "width": 345
+        },
+        {
+          "tag": "DIV",
+          "cls": "astro-card",
+          "width": 345
+        },
+        {
+          "tag": "DIV",
+          "cls": "",
+          "width": 345
+        },
+        {
+          "tag": "DIV",
+          "cls": "modal-content-inner-700 modal-content-pad-astro",
+          "width": 345
+        },
+        {
+          "tag": "DIV",
+          "cls": "modal-sheet-base",
+          "width": 345
+        }
+      ],
+      "images": [
+        {
+          "loaded": true,
+          "left": 6,
+          "right": 369,
+          "width": 363
+        },
+        {
+          "loaded": true,
+          "left": 6,
+          "right": 369,
+          "width": 363
+        },
+        {
+          "loaded": true,
+          "left": 6,
+          "right": 369,
+          "width": 363
+        },
+        {
+          "loaded": true,
+          "left": 6,
+          "right": 369,
+          "width": 363
+        },
+        {
+          "loaded": true,
+          "left": 6,
+          "right": 369,
+          "width": 363
+        },
+        {
+          "loaded": true,
+          "left": 6,
+          "right": 369,
+          "width": 363
+        }
+      ]
+    },
+    {
+      "width": 430,
+      "ancestors": [
+        {
+          "tag": "DETAILS",
+          "cls": "astro-crafted",
+          "width": 403
+        },
+        {
+          "tag": "DIV",
+          "cls": "astro-counsel",
+          "width": 385
+        },
+        {
+          "tag": "DIV",
+          "cls": "",
+          "width": 385
+        },
+        {
+          "tag": "DIV",
+          "cls": "astro-card",
+          "width": 385
+        },
+        {
+          "tag": "DIV",
+          "cls": "",
+          "width": 385
+        },
+        {
+          "tag": "DIV",
+          "cls": "modal-content-inner-700 modal-content-pad-astro",
+          "width": 385
+        },
+        {
+          "tag": "DIV",
+          "cls": "modal-sheet-base",
+          "width": 385
+        }
+      ],
+      "images": [
+        {
+          "loaded": true,
+          "left": 6,
+          "right": 409,
+          "width": 403
+        },
+        {
+          "loaded": true,
+          "left": 6,
+          "right": 409,
+          "width": 403
+        },
+        {
+          "loaded": true,
+          "left": 6,
+          "right": 409,
+          "width": 403
+        },
+        {
+          "loaded": true,
+          "left": 6,
+          "right": 409,
+          "width": 403
+        },
+        {
+          "loaded": true,
+          "left": 6,
+          "right": 409,
+          "width": 403
+        },
+        {
+          "loaded": true,
+          "left": 6,
+          "right": 409,
+          "width": 403
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "ancestors": [
+        {
+          "tag": "DETAILS",
+          "cls": "astro-crafted",
+          "width": 758
+        },
+        {
+          "tag": "DIV",
+          "cls": "astro-counsel",
+          "width": 760
+        },
+        {
+          "tag": "DIV",
+          "cls": "",
+          "width": 760
+        },
+        {
+          "tag": "DIV",
+          "cls": "astro-card",
+          "width": 1235
+        },
+        {
+          "tag": "DIV",
+          "cls": "",
+          "width": 1235
+        },
+        {
+          "tag": "DIV",
+          "cls": "modal-content-inner-700 modal-content-pad-astro",
+          "width": 1235
+        },
+        {
+          "tag": "DIV",
+          "cls": "modal-sheet-base",
+          "width": 1235
+        }
+      ],
+      "images": [
+        {
+          "loaded": true,
+          "left": 362.5,
+          "right": 902.5,
+          "width": 540
+        },
+        {
+          "loaded": true,
+          "left": 362.5,
+          "right": 902.5,
+          "width": 540
+        },
+        {
+          "loaded": true,
+          "left": 362.5,
+          "right": 902.5,
+          "width": 540
+        },
+        {
+          "loaded": true,
+          "left": 362.5,
+          "right": 902.5,
+          "width": 540
+        },
+        {
+          "loaded": true,
+          "left": 362.5,
+          "right": 902.5,
+          "width": 540
+        },
+        {
+          "loaded": true,
+          "left": 362.5,
+          "right": 902.5,
+          "width": 540
+        }
+      ]
+    }
+  ],
+  "fallback": true,
+  "entry": "Existing fallback renderer forced by mocked legacy renderer failure; these are not normal stellar-room SKUs",
+  "requests": [
+    "/api/astro/basic-deep",
+    "/api/astro/basic-deep",
+    "/api/astro/basic-deep",
+    "/api/astro/basic-deep"
+  ],
+  "mode": "All API mocked; basic-deep 402 pricing mock; no live purchase/LLM; production-hidden dev tester excluded"
+}

@@ -4,10 +4,10 @@ import {readFileSync,existsSync} from 'node:fs';
 test('Yeongnyangi home entry keeps its original artwork and background without SoulCat hosting',()=>{
  const html=readFileSync('index.html','utf8');
  const start=html.indexOf('data-marker="cd-soulcat-home-primary-v20261008"');assert.ok(start>=0);
- const entry=html.slice(start,html.indexOf('<div class="cdh-slot" id="cdhFeatured">',start));
+ const entry=html.slice(start,html.indexOf('<details class="cdh-specialists">',start));
  assert.equal((html.match(/class="cd-soulcat-entry"/g)||[]).length,1,'home has one Yeongnyangi entry');
  assert.ok(start>html.indexOf('class="cdh-topics"'),'entry follows the question topics');
- assert.ok(start<html.indexOf('<details class="cdh-more"'),'entry stays outside the folded garden');
+ assert.ok(start>html.indexOf('id="cdhGardenBody"'),'fish tiers live in the full catalogue (2026-10-12 home simplification)');
  assert.equal(html.includes('cd-soulcat-navigation-template'),false,'legacy runtime entry template removed');
  assert.equal(html.includes('cdh-reading-intro'),false,'legacy compact entry removed');
  assert.ok(!entry.includes('/_soulcat/'),'Independent worker asset dependency returned');
@@ -20,7 +20,7 @@ test('Yeongnyangi home entry keeps its original artwork and background without S
 test('Yeongnyangi primary entry keeps both destinations and localized service appeal copy',()=>{
  const html=readFileSync('index.html','utf8');
  const start=html.indexOf('data-marker="cd-soulcat-home-primary-v20261008"');
- const entry=html.slice(start,html.indexOf('<div class="cdh-slot" id="cdhFeatured">',start));
+ const entry=html.slice(start,html.indexOf('<details class="cdh-specialists">',start));
  assert.match(entry,/href="\/yeongnyangi\/\?utm_source=code_destiny&utm_medium=referral&utm_campaign=yeongnyangi_home&utm_content=hero"/);
  assert.match(entry,/href="\/yeongnyangi\/room\/\?utm_source=code_destiny&utm_medium=referral&utm_campaign=yeongnyangi_home&utm_content=free#daily"/);
  assert.doesNotMatch(entry,/Family 이용권|단건 결제\(카드·카카오페이 등\)/);

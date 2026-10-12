@@ -1,0 +1,243 @@
+{
+  "rows": [
+    {
+      "width": 360,
+      "images": [
+        {
+          "loaded": true,
+          "width": 304,
+          "left": 28,
+          "right": 332
+        },
+        {
+          "loaded": true,
+          "width": 304,
+          "left": 28,
+          "right": 332
+        },
+        {
+          "loaded": true,
+          "width": 304,
+          "left": 28,
+          "right": 332
+        },
+        {
+          "loaded": true,
+          "width": 304,
+          "left": 28,
+          "right": 332
+        },
+        {
+          "loaded": true,
+          "width": 304,
+          "left": 28,
+          "right": 332
+        },
+        {
+          "loaded": true,
+          "width": 304,
+          "left": 28,
+          "right": 332
+        },
+        {
+          "loaded": true,
+          "width": 304,
+          "left": 28,
+          "right": 332
+        },
+        {
+          "loaded": true,
+          "width": 304,
+          "left": 28,
+          "right": 332
+        },
+        {
+          "loaded": true,
+          "width": 304,
+          "left": 28,
+          "right": 332
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "images": [
+        {
+          "loaded": true,
+          "width": 334,
+          "left": 28,
+          "right": 362
+        },
+        {
+          "loaded": true,
+          "width": 334,
+          "left": 28,
+          "right": 362
+        },
+        {
+          "loaded": true,
+          "width": 334,
+          "left": 28,
+          "right": 362
+        },
+        {
+          "loaded": true,
+          "width": 334,
+          "left": 28,
+          "right": 362
+        },
+        {
+          "loaded": true,
+          "width": 334,
+          "left": 28,
+          "right": 362
+        },
+        {
+          "loaded": true,
+          "width": 334,
+          "left": 28,
+          "right": 362
+        },
+        {
+          "loaded": true,
+          "width": 334,
+          "left": 28,
+          "right": 362
+        },
+        {
+          "loaded": true,
+          "width": 334,
+          "left": 28,
+          "right": 362
+        },
+        {
+          "loaded": true,
+          "width": 334,
+          "left": 28,
+          "right": 362
+        }
+      ]
+    },
+    {
+      "width": 430,
+      "images": [
+        {
+          "loaded": true,
+          "width": 374,
+          "left": 28,
+          "right": 402
+        },
+        {
+          "loaded": true,
+          "width": 374,
+          "left": 28,
+          "right": 402
+        },
+        {
+          "loaded": true,
+          "width": 374,
+          "left": 28,
+          "right": 402
+        },
+        {
+          "loaded": true,
+          "width": 374,
+          "left": 28,
+          "right": 402
+        },
+        {
+          "loaded": true,
+          "width": 374,
+          "left": 28,
+          "right": 402
+        },
+        {
+          "loaded": true,
+          "width": 374,
+          "left": 28,
+          "right": 402
+        },
+        {
+          "loaded": true,
+          "width": 374,
+          "left": 28,
+          "right": 402
+        },
+        {
+          "loaded": true,
+          "width": 374,
+          "left": 28,
+          "right": 402
+        },
+        {
+          "loaded": true,
+          "width": 374,
+          "left": 28,
+          "right": 402
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "images": [
+        {
+          "loaded": true,
+          "width": 380,
+          "left": 450,
+          "right": 830
+        },
+        {
+          "loaded": true,
+          "width": 380,
+          "left": 450,
+          "right": 830
+        },
+        {
+          "loaded": true,
+          "width": 380,
+          "left": 450,
+          "right": 830
+        },
+        {
+          "loaded": true,
+          "width": 380,
+          "left": 450,
+          "right": 830
+        },
+        {
+          "loaded": true,
+          "width": 380,
+          "left": 450,
+          "right": 830
+        },
+        {
+          "loaded": true,
+          "width": 380,
+          "left": 450,
+          "right": 830
+        },
+        {
+          "loaded": true,
+          "width": 380,
+          "left": 450,
+          "right": 830
+        },
+        {
+          "loaded": true,
+          "width": 380,
+          "left": 450,
+          "right": 830
+        },
+        {
+          "loaded": true,
+          "width": 380,
+          "left": 450,
+          "right": 830
+        }
+      ]
+    }
+  ],
+  "fallback": true,
+  "posts": 0,
+  "mode": "Actual legacy tarot modal; three mode and topic selected; cards revealed before payment; final CTA trial only; all APIs mocked, external aborted"
+}

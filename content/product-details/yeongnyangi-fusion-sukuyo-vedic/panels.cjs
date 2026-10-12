@@ -1,0 +1,74 @@
+module.exports={
+  "id": "yeongnyangi-fusion-sukuyo-vedic",
+  "featureKey": "yeongnyangi-fusion-sukuyo-vedic",
+  "title": "영냥이 숙요·베다 모둠 상담",
+  "notice": "숙요와 베다 두 체계를 구분해 읽는 28장 개인 모둠 상담입니다. 숙요는 천문식 27숙의 기질과 관계 유형을, 베다는 라그나·달·나크샤트라·행성과 실제 다샤 근거를 사용합니다. 두 체계가 달의 관측을 공유한다고 독립된 두 증거가 되는 것은 아닙니다. 이 안내는 기본 자기이해 주제의 목차이며 주제에 따라 중간 목차가 달라집니다. 개인 관계 지도는 특정 상대와 계산한 궁합이 아닙니다. 공통 목차 ‘10년 주기·월별 흐름’은 실제 다샤 기간으로 제한하며 숙요에 없는 월별 예측을 만들지 않습니다. 본인 출생시간·지역·시간대가 필요하며 예시는 가상 편집, 본문은 AI 작성입니다. 가격·추가 질문 조건은 기존 화면을 따릅니다.",
+  "panels": [
+    {
+      "id": "01-close-to-others-far-from-rest",
+      "title": "사람들과 가까워질수록, 쉴 자리가 줄어든다면.",
+      "alt": "공식융합영냥이와관계회복리듬의고민표지.",
+      "html": "<h1>사람들과 가까워질수록,<br>쉴 자리가 줄어든다면.</h1><div class=\"duet\"><img src=\"/assets/yeongnyangi/readings/sukuyo-v5.webp\" alt=\"\"><img src=\"/assets/yeongnyangi/readings/vedic-v5.webp\" alt=\"\"></div><p>관계에서 맡는 역할과 마음의 리듬을<br>숙요·베다의 다른 언어로 읽어요.</p><p class=\"sign\">영냥이 모둠 · 숙요와 베다</p>"
+    },
+    {
+      "id": "02-the-calendar-full-of-yes",
+      "title": "좋아서 한 약속인데, 내 시간이 남지 않는다면.",
+      "alt": "초대수락과회복시간의간극을구체화한가상달력장면.",
+      "html": "<h2>좋아서 한 약속인데,<br>내 시간이 남지 않는다면.</h2><div class=\"calendar\"><section><h3>약속을 정할 때</h3><p>함께하고 싶어서 흔쾌히 답해요.</p></section><section><h3>일정이 가까워지면</h3><p>쉴 틈이 없다는 생각에<br>괜히 마음이 무거워져요.</p></section><section><h3>이번에 이해하고 싶은 것</h3><p>가까움을 지키면서도<br>내 속도를 잃지 않는 방법.</p></section></div><p class=\"note\">질문을 돕기 위한 가상 상황입니다.</p>"
+    },
+    {
+      "id": "03-one-moon-two-languages",
+      "title": "같은 달을 보더라도, 해석의 체계는 달라요.",
+      "alt": "숙요27숙과베다달나크샤트라의차이상관근거구분.",
+      "html": "<h2>같은 달을 보더라도,<br>해석의 체계는 달라요.</h2><div class=\"lenses\"><section><h3>숙요 · 본명숙과 관계의 역할</h3><p>천문식 27숙으로 기질과<br>끌림·협력·거리의 유형을 읽어요.</p></section><section><h3>베다 · 달과 라그나, 행성</h3><p>마음의 습관과 삶의 출발점,<br>다샤라는 시기의 흐름을 읽어요.</p></section></div><p class=\"note\">나크샤트라와 본명숙을 같은 말로 쓰지 않아요.<br>공유하는 관측을 별개의 증거로 세지 않아요.</p>"
+    },
+    {
+      "id": "04-the-two-foundations",
+      "title": "나를 움직이는 리듬을, 두 체계에서 따로 살펴요.",
+      "alt": "숙요베다모둠실제기본전문4장구성안내.",
+      "html": "<h2>나를 움직이는 리듬을,<br>두 체계에서 따로 살펴요.</h2><p class=\"label\">전체 28장 · 처음의 네 장</p><div class=\"chapters\"><section><h3>1–2장 · 타고난 성향과 현재 흐름</h3><p>숙요 한 장 · 베다 한 장</p></section><section><h3>3장 · 숙요의 전문 해석</h3><p>기질과 관계의 거리</p></section><section><h3>4장 · 베다의 전문 해석</h3><p>행성·요가와 보조 차트</p></section></div><p class=\"note\">요가는 행성의 조합을 뜻해요.<br>보조 차트는 실제 계산 근거가 있을 때 읽어요.</p>"
+    },
+    {
+      "id": "05-the-pattern-inside-the-question",
+      "title": "왜 같은 선택을 하는지, 질문의 안쪽을 읽어요.",
+      "alt": "기본자기이해5~10장답비교조건반복관계기준목차.",
+      "html": "<h2>왜 같은 선택을 하는지,<br>질문의 안쪽을 읽어요.</h2><p class=\"label\">기본 자기이해 주제의 목차 예시</p><div class=\"chapters\"><section><h3>5–7장 · 질문과 근거</h3><p>질문에 대한 답 · 체계별 근거 비교<br>기회와 주의 조건</p></section><section><h3>8–10장 · 반복되는 선택</h3><p>반복되는 마음의 패턴<br>관계 속의 나 · 선택의 기준</p></section></div><p class=\"note\">내 관계 유형을 읽는 개인 상담이에요.<br>상대 정보 없이 궁합을 확정하지 않아요.</p>"
+    },
+    {
+      "id": "06-try-a-different-rhythm",
+      "title": "조금 다른 리듬을, 생활에서 시험해봐요.",
+      "alt": "자기이해11~14장시기작은변화시나리오다음방향목차.",
+      "html": "<h2>조금 다른 리듬을,<br>생활에서 시험해봐요.</h2><div class=\"path\"><section><h3>11–12장 · 시기와 작은 변화</h3><p>시기와 흐름 · 작은 변화의 실험</p></section><section><h3>13–14장 · 다른 선택 이후</h3><p>시나리오별 대응 · 다음 주기의 방향</p></section></div><p>일정을 더 채우는 선택과<br>회복할 시간을 남기는 선택을 비교해요.</p><p class=\"note\">다샤는 고정된 10년 단위가 아니에요.<br>실제 계산된 기간과 성향의 설명을 구분해요.</p>"
+    },
+    {
+      "id": "07-the-rest-of-your-life",
+      "title": "관계의 리듬은, 생활의 여러 곳에 닿아 있어요.",
+      "alt": "인생영역11장범위및월별예측없는근거단위안내.",
+      "html": "<h2>관계의 리듬은,<br>일상에도 이어져요.</h2><div class=\"chapters\"><section><h3>15–20장 · 삶의 여러 영역</h3><p>성향의 영향 · 재물 · 직업과 적성<br>연애와 결혼 · 가족과 관계 · 건강 리듬</p></section><section><h3>21–23장 · 공통 시기 목차</h3><p>10년 주기 · 올해 월별 흐름 · 내년 예고</p></section><section><h3>24–25장 · 생활 속 활용</h3><p>강점을 활용하는 법 · 운을 여는 실행</p></section></div><p class=\"note\">실제 다샤 기간 안에서 읽으며,<br>숙요에 없는 월별 사건 예측을 만들지 않아요.</p>"
+    },
+    {
+      "id": "08-a-boundary-without-a-label",
+      "title": "나를 지키는 선택은, 인연의 등급표가 아니에요.",
+      "alt": "주의점종합계획3장과관계낙인방지선택조건안내.",
+      "html": "<h2>나를 지키는 선택은,<br>인연의 등급표가 아니에요.</h2><div class=\"chapters\"><section><h3>조심할 흐름과 나를 지키는 선택</h3><p>어떤 때 부담이 커지고 줄어드는지</p></section><section><h3>공통점·차이와 판단을 바꿀 조건</h3><p>같은 설명과 다른 설명을 나눠 보기</p></section><section><h3>우선 행동과 실천 계획</h3><p>내 생활에서 확인하고 바꿀 한 가지</p></section></div><p class=\"note\">사람을 좋은 인연·나쁜 인연으로 닫지 않아요.<br>관계의 역할과 현재 조건을 함께 살펴요.</p>"
+    },
+    {
+      "id": "09-make-room-before-saying-yes",
+      "title": "마음은 반갑게, 일정은 천천히 답해봐요.",
+      "alt": "관계호감과일정수락을분리하는구체적가상답장예시.",
+      "html": "<h2>마음은 반갑게,<br>일정은 천천히 답해봐요.</h2><p class=\"label\">이해를 돕기 위한 편집 예시</p><blockquote>“만나자는 말이 반가워.<br>일정을 확인하고 내일 답해도 될까?”<br><br>좋아하는 마음을 먼저 전하되,<br>약속은 내 여유를 본 뒤 정해요.<br><br>바로 수락하지 않아도<br>가까움을 표현할 방법은 남아 있어요.</blockquote><p class=\"note\">실제 출생정보나 고객 결과가 아닌 예시예요.</p>"
+    },
+    {
+      "id": "10-keep-room-for-yourself",
+      "title": "가까움을 지키면서, 나의 여유도 남기도록.",
+      "alt": "본인천문식출생정보와AI가격저장결과마무리.",
+      "html": "<h2>가까움을 지키면서,<br>나의 여유도 남기도록.</h2><img class=\"cover\" src=\"/assets/yeongnyangi/readings/fusion-v5.webp\" alt=\"\"><p>본인의 생년월일·출생시간·지역과<br>반복되는 상황을 준비해 주세요.</p><p class=\"note\">두 체계의 근거를 구분해 AI가 작성합니다.<br>가격·추가 질문 조건은 현재 화면에서,<br>저장된 결과는 내 상담에서 확인해요.</p>"
+    }
+  ],
+  "evidence": [
+    "docs/product-details/yeongnyangi-fusion-contract-snapshot.json",
+    "worker/yeongnyangi/fortune/reading-manifest.ts",
+    "worker/yeongnyangi/fortune/consultation-budget.ts",
+    "worker/yeongnyangi/service.ts"
+  ]
+};

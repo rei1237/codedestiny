@@ -1,0 +1,225 @@
+{
+  "rows": [
+    {
+      "width": 360,
+      "images": [
+        {
+          "loaded": true,
+          "width": 298,
+          "left": 31,
+          "right": 329
+        },
+        {
+          "loaded": true,
+          "width": 298,
+          "left": 31,
+          "right": 329
+        },
+        {
+          "loaded": true,
+          "width": 298,
+          "left": 31,
+          "right": 329
+        },
+        {
+          "loaded": true,
+          "width": 298,
+          "left": 31,
+          "right": 329
+        },
+        {
+          "loaded": true,
+          "width": 298,
+          "left": 31,
+          "right": 329
+        },
+        {
+          "loaded": true,
+          "width": 298,
+          "left": 31,
+          "right": 329
+        },
+        {
+          "loaded": true,
+          "width": 298,
+          "left": 31,
+          "right": 329
+        },
+        {
+          "loaded": true,
+          "width": 298,
+          "left": 31,
+          "right": 329
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "images": [
+        {
+          "loaded": true,
+          "width": 328,
+          "left": 31,
+          "right": 359
+        },
+        {
+          "loaded": true,
+          "width": 328,
+          "left": 31,
+          "right": 359
+        },
+        {
+          "loaded": true,
+          "width": 328,
+          "left": 31,
+          "right": 359
+        },
+        {
+          "loaded": true,
+          "width": 328,
+          "left": 31,
+          "right": 359
+        },
+        {
+          "loaded": true,
+          "width": 328,
+          "left": 31,
+          "right": 359
+        },
+        {
+          "loaded": true,
+          "width": 328,
+          "left": 31,
+          "right": 359
+        },
+        {
+          "loaded": true,
+          "width": 328,
+          "left": 31,
+          "right": 359
+        },
+        {
+          "loaded": true,
+          "width": 328,
+          "left": 31,
+          "right": 359
+        }
+      ]
+    },
+    {
+      "width": 430,
+      "images": [
+        {
+          "loaded": true,
+          "width": 368,
+          "left": 31,
+          "right": 399
+        },
+        {
+          "loaded": true,
+          "width": 368,
+          "left": 31,
+          "right": 399
+        },
+        {
+          "loaded": true,
+          "width": 368,
+          "left": 31,
+          "right": 399
+        },
+        {
+          "loaded": true,
+          "width": 368,
+          "left": 31,
+          "right": 399
+        },
+        {
+          "loaded": true,
+          "width": 368,
+          "left": 31,
+          "right": 399
+        },
+        {
+          "loaded": true,
+          "width": 368,
+          "left": 31,
+          "right": 399
+        },
+        {
+          "loaded": true,
+          "width": 368,
+          "left": 31,
+          "right": 399
+        },
+        {
+          "loaded": true,
+          "width": 368,
+          "left": 31,
+          "right": 399
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "images": [
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        }
+      ]
+    }
+  ],
+  "fallback": true,
+  "posts": 0,
+  "mockCalendarPosts": [
+    "/api/kasi/calendar",
+    "/api/kasi/calendar",
+    "/api/kasi/calendar",
+    "/api/kasi/calendar"
+  ],
+  "mode": "Existing free number panel opens then authored disclosure before paid ritual CTA;all APIs mocked;free birth-form calendar POSTs recorded separately;no purchase or paid generation"
+}

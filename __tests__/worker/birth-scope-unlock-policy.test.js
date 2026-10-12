@@ -55,11 +55,17 @@ const ContentEntitlement = {
     const query = { select: () => query, session: () => query, lean: async () => rows.find((row) => matchesFilter(row, filter)) || null };
     return query;
   },
+  find(filter) {
+    const query = { select: () => query, lean: async () => rows.filter((row) => matchesFilter(row, filter)) };
+    return query;
+  },
 };
 
 let grantPermanentUnlock;
 let findActivePaidContentUnlock;
 let hasPaidUnlockForProfile;
+let getUnlockedContentSnapshot;
+let listLegacyProfileBirthUnlockKeys;
 let hasUserScopedPermanentUnlock;
 let resolveBirthUnlockIdentity;
 
@@ -84,7 +90,7 @@ beforeAll(async () => {
     ProfileCard: profileCardModel(cards),
     User: {},
   }));
-  ({ grantPermanentUnlock, findActivePaidContentUnlock, hasPaidUnlockForProfile } = await import("../../worker/lib/content-unlocks.js"));
+  ({ grantPermanentUnlock, findActivePaidContentUnlock, hasPaidUnlockForProfile, getUnlockedContentSnapshot, listLegacyProfileBirthUnlockKeys } = await import("../../worker/lib/content-unlocks.js"));
   ({ hasUserScopedPermanentUnlock } = await import("../../worker/lib/paid-content-read-access.js"));
   ({ resolveBirthUnlockIdentity } = await import("../../worker/lib/birth-scoped-unlock-identity.js"));
 });
@@ -153,22 +159,108 @@ describe("C: 추가 리포트(rpt_*)도 계정 공유가 아니다", () => {
     expect(await opens("rpt_quantumCard", "p1")).toBe(true);
     expect(await opens("rpt_quantumCard", "p2")).toBe(false);
   });
+});
 
-  test("전환 이전 USER/PROFILE 행은 근거가 아니다", async () => {
+// 출생 기반 전환 이전에 결제한 고객이 다시 잠기면 안 된다(2026-10-11 결정). 새 해금은 BIRTH 로만 쓰므로 scope 로 레거시를 정한다.
+describe("I: 전환 이전 USER/PROFILE 행(레거시)은 계속 열린다", () => {
+  const legacyRow = (extra) => ({ userId: TEST_USER_ID, serviceKey: "saju", status: "ACTIVE", expiresAt: null, ...extra });
+
+  test("USER 행은 계정의 모든 프로필에서, 프로필 없이도 열린다", async () => {
     rows.push(
-      { userId: TEST_USER_ID, profileId: "__user__", scope: "USER", serviceKey: "saju", contentKey: "rpt_quantumCard", featureKey: "rpt_quantumCard", status: "ACTIVE", expiresAt: null },
-      { userId: TEST_USER_ID, profileId: "p1", scope: "PROFILE", serviceKey: "saju", contentKey: "saju.fullReading", featureKey: "section_summary", status: "ACTIVE", expiresAt: null },
+      legacyRow({ profileId: "__user__", scope: "USER", serviceKey: "paid_content", contentKey: "rpt_quantumCard", featureKey: "rpt_quantumCard" }),
+      // 2026-06 무렵 행은 featureKey 없이 contentKey 만 있다.
+      legacyRow({ profileId: "__user__", scope: "USER", contentKey: "saju.daeunAnalysis" }),
     );
 
-    expect(await opens("rpt_quantumCard", "p1")).toBe(false);
+    for (const featureKey of ["rpt_quantumCard", "section_daewun"]) {
+      expect(await opens(featureKey, "p1")).toBe(true);
+      expect(await opens(featureKey, "p2")).toBe(true);
+      expect(await findActivePaidContentUnlock({ userId: TEST_USER_ID, featureKey })).not.toBeNull();
+    }
     expect(await opens("section_summary", "p1")).toBe(false);
+  });
+
+  test("PROFILE 행은 그 프로필에서만 열리고, 생년월일을 고쳐도 열린다", async () => {
+    rows.push(legacyRow({ profileId: "p1", scope: "PROFILE", contentKey: "saju.fullReading", featureKey: "section_summary" }));
+    const card = cards.find((item) => item.profileId === "p1");
+
+    expect(await opens("section_summary", "p1")).toBe(true);
+    card.birth = { ...card.birth, day: 18 };
+    expect(await opens("section_summary", "p1")).toBe(true);
+    expect(await opens("section_summary", "p1-twin")).toBe(false);
+    expect(await opens("section_summary", "p2")).toBe(false);
+    expect(await findActivePaidContentUnlock({ userId: TEST_USER_ID, featureKey: "section_summary" })).toBeNull();
+  });
+
+  test("궁합 PROFILE 행도 그 프로필에서 열린다", async () => {
+    rows.push(legacyRow({ profileId: "p1", scope: "PROFILE", contentKey: "saju.compatibility", featureKey: "section_compat" }));
+
+    expect(await opens("section_compat", "p1", { partnerProfileId: "p2" })).toBe(true);
+    expect(await opens("section_compat", "p2", { partnerProfileId: "p1" })).toBe(false);
+  });
+
+  test("스냅샷은 레거시로 열린 키를 계정(USER)·프로필(PROFILE)로 나눠 싣는다", async () => {
+    rows.push(
+      legacyRow({ profileId: "__user__", scope: "USER", contentKey: "saju.daeunAnalysis" }),
+      legacyRow({ profileId: "p1", scope: "PROFILE", contentKey: "saju.fullReading", featureKey: "section_summary" }),
+    );
+    await grant("rpt_quantumCard");
+
+    const onP1 = await getUnlockedContentSnapshot({ userId: TEST_USER_ID, profileId: "p1" });
+    expect(onP1.featureKeys.sort()).toEqual(["rpt_quantumCard", "section_daewun", "section_summary"]);
+    expect(onP1.legacyAccountFeatureKeys).toEqual(["section_daewun"]);
+    expect(onP1.legacyProfileFeatureKeys).toEqual(["section_summary"]);
+
+    // 저장 프로필 없이도 계정 레거시 키는 실린다. BIRTH 행·다른 카드의 PROFILE 행은 실리지 않는다.
+    const noProfile = await getUnlockedContentSnapshot({ userId: TEST_USER_ID });
+    expect(noProfile.featureKeys).toEqual(["section_daewun"]);
+    expect(noProfile.legacyAccountFeatureKeys).toEqual(["section_daewun"]);
+    expect(noProfile.legacyProfileFeatureKeys).toEqual([]);
+
+    const onP2 = await getUnlockedContentSnapshot({ userId: TEST_USER_ID, profileId: "p2" });
+    expect(onP2.featureKeys).toEqual(["section_daewun"]);
+  });
+
+  test("카드 수정 감사용: 그 카드의 레거시 PROFILE 출생 기반 키만 고른다", async () => {
+    rows.push(
+      legacyRow({ profileId: "p1", scope: "PROFILE", contentKey: "saju.fullReading" }),
+      legacyRow({ profileId: "p1", scope: "PROFILE", serviceKey: "flower", contentKey: "flower-fc", featureKey: "flower-fc" }),
+      legacyRow({ profileId: "__user__", scope: "USER", contentKey: "saju.daeunAnalysis" }),
+    );
+    await grant("section_daewun");
+
+    expect(await listLegacyProfileBirthUnlockKeys({ userId: TEST_USER_ID, profileId: "p1" })).toEqual(["section_summary"]);
+    expect(await listLegacyProfileBirthUnlockKeys({ userId: TEST_USER_ID, profileId: "p2" })).toEqual([]);
+  });
+
+  test("만료·비활성 레거시 행은 열지 않는다", async () => {
+    rows.push(
+      legacyRow({ profileId: "__user__", scope: "USER", contentKey: "saju.daeunAnalysis", status: "REFUNDED" }),
+      legacyRow({ profileId: "p1", scope: "PROFILE", contentKey: "saju.fullReading", expiresAt: new Date("2026-01-01T00:00:00Z") }),
+    );
+
+    expect(await opens("section_daewun", "p1")).toBe(false);
+    expect(await opens("section_summary", "p1")).toBe(false);
+  });
+
+  test.each([
+    ["section_summary", "USER"],
+    ["section_daewun", "PROFILE"],
+    ["rpt_quantumCard", "USER"],
+  ])("%s: scope %s 를 요구해도 새 해금은 레거시 행으로 쓰지 않는다", async (featureKey, scope) => {
+    await grant(featureKey, { scope });
+
+    expect(rows.map((row) => row.scope)).toEqual(["BIRTH"]);
   });
 });
 
 describe("D: 생년월일 수정", () => {
-  test("고치면 다시 잠기고, 되돌리면 다시 열린다", async () => {
+  // 2026-10-11 부터 카드 수정이 무료라, 이 재잠금이 "남의 출생 정보로 고쳐 공짜로 보기"를 막는 유일한 장치다.
+  // 예외: 전환 이전 레거시 PROFILE 행은 고쳐도 열린다(I 절 — 재잠금 방지, 수정은 로그로만 감시).
+  test("결제한 카드에서 열리고, 고치면 다시 잠기고, 되돌리면 다시 열린다", async () => {
     await grant("section_summary");
     const card = cards.find((item) => item.profileId === "p1");
+    expect(await opens("section_summary", "p1")).toBe(true);
 
     card.birth = { ...card.birth, day: 18 };
     expect(await opens("section_summary", "p1")).toBe(false);

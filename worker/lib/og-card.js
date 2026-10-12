@@ -32,6 +32,26 @@ export const BADGES = {
   flower: "운명의 꽃",
 };
 
+/**
+ * 로케일별 배지. 여기 없는 배지·언어 조합은 BADGES(한국어)로 떨어진다.
+ * lang 도 프리셋 키로만 받는다 — 사용자가 준 문자열을 그대로 쓰지 않는다.
+ */
+export const BADGE_I18N = {
+  flower: {
+    en: "Destiny Flower",
+    ja: "運命の花",
+    "zh-cn": "命运之花",
+    "zh-tw": "命運之花",
+    vi: "Hoa định mệnh",
+    hi: "भाग्य का फूल",
+    es: "Flor del destino",
+    fr: "Fleur du destin",
+    de: "Schicksalsblume",
+    nl: "Lotsbloem",
+    ms: "Bunga takdir",
+  },
+};
+
 export const THEMES = {
   dark: {
     background: "#0b0b16",
@@ -79,6 +99,10 @@ export function parseOgParams(searchParams) {
   const badgeKey = String(searchParams.get("badge") || "").trim().toLowerCase();
   const themeKey = String(searchParams.get("theme") || "").trim().toLowerCase();
   const character = searchParams.get('character');
+  const langKey = String(searchParams.get("lang") || "").trim().toLowerCase();
+  const localized = Object.hasOwn(BADGE_I18N, badgeKey) && Object.hasOwn(BADGE_I18N[badgeKey], langKey)
+    ? BADGE_I18N[badgeKey][langKey]
+    : "";
 
   return {
     title: sanitizeText(searchParams.get("title"), TITLE_MAX) || DEFAULT_TITLE,
@@ -86,7 +110,7 @@ export function parseOgParams(searchParams) {
     // 🔴 Object.hasOwn 이어야 한다. BADGES["__proto__"] 는 Object.prototype 을 돌려주고
     // 그건 truthy 라, 단순 조회로는 배지가 객체가 되고(카드에 [object Object] 가 찍힌다)
     // 테마는 값이 전부 undefined 인 팔레트로 렌더된다.
-    badge: Object.hasOwn(BADGES, badgeKey) ? BADGES[badgeKey] : DEFAULT_BADGE,
+    badge: localized || (Object.hasOwn(BADGES, badgeKey) ? BADGES[badgeKey] : DEFAULT_BADGE),
     theme: Object.hasOwn(THEMES, themeKey) ? themeKey : "dark",
     ...(badgeKey === 'insight' && ['yeongnyangi','yeoni','neo'].includes(character) ? {character} : {}),
   };

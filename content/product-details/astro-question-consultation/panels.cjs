@@ -1,0 +1,68 @@
+module.exports={
+  "id": "astro-question-consultation",
+  "featureKey": "astrology_ai_prompt_generator",
+  "title": "점성술 질문 AI 상담",
+  "notice": "기본 점성술 결과에서 질문을 입력해 AI 상담문을 받는 기능입니다. 열 부분의 상담 본문과 상담에 사용된 질문문을 함께 살펴볼 수 있습니다. 기본 결과와 5~1000자의 질문이 필요합니다. 궁합 데이터가 있을 때만 해당 두 사람의 근거를 사용합니다. 다른 전문가 상담·차트 패키지·트랜짓 해금은 별도입니다. 상담 내용은 질문과 계산 근거에 따라 달라집니다. 예시는 가상 편집입니다. 가격과 결제 조건은 현재 화면을 따릅니다.",
+  "panels": [
+    {
+      "id": "01-a-question-inside-your-chart",
+      "title": "차트는 읽었는데, 내 고민은 아직 남았다면.",
+      "alt": "차트는 읽었는데, 내 고민은 아직 남았다면.",
+      "html": "<h2>차트는 읽었는데,<br>내 고민은 아직 남았다면.</h2><img class=\"cover\" src=\"/images/feature-details/astrology-hero-v2.webp\" alt=\"\"><p>지금 궁금한 장면 하나를 적고,<br>내 점성술 결과와 연결해 상담받아요.</p><p class=\"sign\">기본 점성술 결과 안의 질문 AI 상담</p>"
+    },
+    {
+      "id": "02-turn-a-worry-into-a-question",
+      "title": "막연한 운보다, 지금의 고민을 적어주세요.",
+      "alt": "막연한 운보다, 지금의 고민을 적어주세요.",
+      "html": "<h2>막연한 운보다,<br>지금의 고민을 적어주세요.</h2><div class=\"chapters\"><section><h3>지금의 상황</h3><p>어떤 일이 이어지고 있나요?</p></section><section><h3>마음이 갈리는 선택</h3><p>어느 지점에서 망설이고 있나요?</p></section><section><h3>알고 싶은 기준</h3><p>무엇을 확인하면 결정에 도움이 될까요?</p></section></div><p class=\"note\">기본 점성술 결과와 질문이 필요해요.<br>질문은 5자 이상 1000자 이하로 입력해요.</p>"
+    },
+    {
+      "id": "03-the-chart-becomes-evidence",
+      "title": "상담의 출발점은, 이미 계산된 내 차트예요.",
+      "alt": "상담의 출발점은, 이미 계산된 내 차트예요.",
+      "html": "<h2>상담의 출발점은,<br>이미 계산된 내 차트예요.</h2><div class=\"chapters\"><section><h3>성향의 중심</h3><p>태양·달·상승궁 등 확인되는 근거</p></section><section><h3>생활 속 선택</h3><p>행성 배치와 관계를 질문에 연결</p></section><section><h3>해석의 경계</h3><p>없는 근거는 새로 계산했다고<br>가정하지 않고 제한을 살펴요.</p></section></div><p class=\"note\">시기와 하우스의 해석 범위는<br>출생정보와 제공된 계산 근거에 달려요.</p>"
+    },
+    {
+      "id": "04-the-first-three-parts",
+      "title": "질문을 다시 짚고, 나의 반복을 살펴요.",
+      "alt": "질문을 다시 짚고, 나의 반복을 살펴요.",
+      "html": "<h2>질문을 다시 짚고,<br>나의 반복을 살펴요.</h2><div class=\"chapters\"><section><h3>01 · 질문의 핵심과 한 줄 답변</h3><p>지금 묻는 말의 중심</p></section><section><h3>02 · 타고난 기질과 반복되는 선택</h3><p>비슷한 장면에서 보이는 패턴</p></section><section><h3>03 · 현재 흐름을 보여 주는 근거</h3><p>판단에 사용한 계산 자료</p></section></div><p class=\"note\">상담 본문의 첫 세 부분을 안내해요.</p>"
+    },
+    {
+      "id": "05-your-resources-and-conditions",
+      "title": "쓸 수 있는 강점과, 확인할 조건을 나눠요.",
+      "alt": "쓸 수 있는 강점과, 확인할 조건을 나눠요.",
+      "html": "<h2>쓸 수 있는 강점과,<br>확인할 조건을 나눠요.</h2><div class=\"chapters\"><section><h3>04 · 강점과 활용할 자원</h3><p>이미 가진 힘을 쓰는 방식</p></section><section><h3>05 · 관계에서 드러나는 패턴</h3><p>사람 사이에서 반복되는 모습</p></section><section><h3>06 · 일과 재물에서 확인할 조건</h3><p>현실의 선택에 필요한 기준</p></section></div><p class=\"note\">질문에 따라 각 부분의 강조점은 달라져요.</p>"
+    },
+    {
+      "id": "06-from-caution-to-action",
+      "title": "반대 가능성까지 보고, 행동으로 마무리해요.",
+      "alt": "반대 가능성까지 보고, 행동으로 마무리해요.",
+      "html": "<h2>반대 가능성까지 보고,<br>행동으로 마무리해요.</h2><div class=\"chapters\"><section><h3>07–08 · 해석의 경계</h3><p>주의할 약점과 반대 가능성<br>가까운 변화와 시기 해석의 한계</p></section><section><h3>09–10 · 다음 선택</h3><p>현실적인 행동 계획<br>종합 판단과 마지막 메시지</p></section></div><p>한쪽 결론에만 기대기보다<br>다르게 볼 조건도 함께 읽어요.</p>"
+    },
+    {
+      "id": "07-when-the-question-is-about-us",
+      "title": "내 연애 성향과, 우리의 궁합은 구분해요.",
+      "alt": "내 연애 성향과, 우리의 궁합은 구분해요.",
+      "html": "<h2>내 연애 성향과,<br>우리의 궁합은 구분해요.</h2><div class=\"chapters\"><section><h3>내 차트만 있다면</h3><p>나의 애정 욕구와 관계 패턴을 읽어요.</p></section><section><h3>실제 궁합 자료가 있다면</h3><p>제공된 두 사람의 근거를<br>질문에 연결해 살펴요.</p></section></div><p class=\"note\">상대 자료 없이 속마음을 단정하거나<br>두 사람 궁합을 계산한 것처럼 쓰지 않아요.</p>"
+    },
+    {
+      "id": "08-answer-and-question-text",
+      "title": "읽을 상담문과, 다시 살펴볼 질문문을.",
+      "alt": "읽을 상담문과, 다시 살펴볼 질문문을.",
+      "html": "<h2>읽을 상담문과,<br>다시 살펴볼 질문문을.</h2><div class=\"chapters\"><section><h3>AI 상담 본문</h3><p>열 부분의 내용을 화면에서 읽어요.</p></section><section><h3>이 상담에 쓰인 질문문</h3><p>함께 표시된 질문문을 펼쳐보고<br>복사할 수 있어요.</p></section></div><p class=\"note\">다른 AI에서의 사용은 별도 서비스예요.<br>그쪽의 답변·비용까지 포함되지는 않아요.<br>복사한 질문문은 따로 보관할 수 있어요.</p>"
+    },
+    {
+      "id": "09-fictional-work-question",
+      "title": "남을지 옮길지보다, 무엇이 반복되는지부터.",
+      "alt": "남을지 옮길지보다, 무엇이 반복되는지부터.",
+      "html": "<h2>남을지 옮길지보다,<br>무엇이 반복되는지부터.</h2><p class=\"label\">가상 편집 예시 · 실제 AI 결과가 아닙니다</p><blockquote>“새로운 곳을 원하지만,<br>역할이 불분명할 때마다<br>같은 피로를 느끼는지도 살펴보세요.</blockquote><blockquote>이번 선택에서는 회사 이름보다<br>결정할 수 있는 범위와<br>도움을 요청할 구조를 먼저 비교해보세요.”</blockquote>"
+    },
+    {
+      "id": "10-start-with-one-scene",
+      "title": "한 가지 장면에서, 나만의 질문을 시작해요.",
+      "alt": "한 가지 장면에서, 나만의 질문을 시작해요.",
+      "html": "<h2>한 가지 장면에서,<br>나만의 질문을 시작해요.</h2><img class=\"cover\" src=\"/images/feature-details/astrology-hero-v2.webp\" alt=\"\"><p>기본 차트와 현재 상황을 확인하고,<br>가장 궁금한 선택 하나를 적어주세요.</p><p class=\"note\">다른 전문가 상담·개별 해금은 별도예요.<br>새 상담 요청의 결제 조건은<br>현재 화면에서 확인해 주세요.</p>"
+    }
+  ]
+};

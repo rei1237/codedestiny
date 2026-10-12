@@ -578,7 +578,7 @@
       "sajuFptiImgAlt": "サジュ FPTI テスト",
       "basicFreeBadge": "基本無料",
       "price3000": "1回 3,000ウォン",
-      "price5000": "1回 3,000ウォン",
+      "price5000": "1回 5,000ウォン",
       "price10000": "1回 10,000ウォン",
       "cosmicSoulPrice": "30分 5,000ウォン · 60分 10,000ウォン",
       "compatibilityPrice": "互換性 KRW 3,000",
@@ -600,7 +600,9 @@
       "price5000Price3000": "1回 3,000ウォン",
       "price10000Price5000": "1回 5,000ウォン",
       "unlock1000": "1,000 ウォンのロックを解除",
-      "price1000": "1回 1,000ウォン"
+      "price1000": "1回 1,000ウォン",
+      "sajuGuardianPricePrice5000Price7000": "永久ロック解除 KRW 7,000",
+      "unlock1000Price5000": "5,000 ウォンのロックを解除"
     },
     "destinyFlowerStudio": {
       "closeAria": "運命の花アトリエを閉じる",
@@ -667,7 +669,15 @@
       "close": "閉じる",
       "home": "ホーム画面へ",
       "keywords": "四柱判定 • 再生 • 純粋さ • 流れ",
-      "quadAria": "四つの占術の運命の花"
+      "quadAria": "四つの占術の運命の花",
+      "letterTitle": "今日の花の手紙 · 心に必要なひとつのこと",
+      "letterIntro": "予測よりも、小さな実践のための花の物語です。今の気持ちに合う手紙を選んでみてください。",
+      "letterRestTitle": "モクレンのように · 少し休みたいです",
+      "letterRestBody": "花が咲く前には、枝も静かに力を蓄えています。今日はやるべきことを一つ減らして、窓の外の植物や空を少し眺めてみてください。",
+      "letterStartTitle": "新芽のように · 始める勇気がほしいです",
+      "letterStartBody": "大きな決心よりも、小さな芽をひとつ出してみましょう。先延ばしにしていたことの最初のステップだけを書き出して、5分間手を動かしてみてください。",
+      "letterShareTitle": "花束のように · 気持ちを伝えたいです",
+      "letterShareBody": "相手に求める言葉よりも、感謝した瞬間をひとつ思い出してみましょう。返事を急かさない短いあいさつで、気持ちを届けてみてください。"
     },
     "tarotSelfEsteem": {
       "levelUp": "自分の基準が一段はっきりします",
@@ -806,10 +816,10 @@
       "aria": "ムーンライト パス ガイド",
       "kicker": "ムーンライトパス",
       "title": "月明かりのパスで、幸運のルーチンがより穏やかに流れるようにしましょう",
-      "desc": "月明かりの利用券は、30日のあいだ、繰り返し訪れるリーディングを決められた範囲の中で先に開いてくれるムーンライトパスです。今日の兆しを止めずに、静かに読み継ぐことができます。",
+      "desc": "月明かりの利用券は、利用上限を使い切るまで、繰り返し訪れるリーディングを決められた範囲の中で先に開いてくれるムーンライトパスです。今日の兆しを止めずに、静かに読み継ぐことができます。",
       "guideLabel": "MOONLIGHT GUIDE",
-      "guideTitle": "For 30 days, readings you open often unfold first with a softer flow",
-      "guideText": "From Standard to Family, tarot, oracle, and saju readings open first within your moonlight range. Deeper readings outside that range continue to one-time KRW payment only when needed.",
+      "guideTitle": "利用上限を使い切るまで、よく開く占いを先にやわらかく",
+      "guideText": "小さなはちみつ壺からファミリーはちみつ壺まで、選んだ月明かりの範囲内でタロット・神託・四柱推命のリーディングが決済の流れなしで先に開きます。範囲外の深いリーディングは、必要なときだけウォン建ての単発決済に進みます。",
       "toggle": "オープンムーンライト特典",
       "heroAria": "月光の流れで無料で利用できるサービスをチェックする",
       "heroTitle": "ムーンライトパスの範囲を見る",
@@ -821,51 +831,51 @@
       "primaryAction": "自分に合ったパスを見つける",
       "chipsAria": "コア パスの特典",
       "chipIncluded": "合格範囲内でフリー",
-      "chipThirtyDays": "30 日間パス",
+      "chipThirtyDays": "パス",
       "chipShareReward": "範囲外は都度払い",
       "plansAria": "パス計画の概要カード",
-      "standardName": "スタンダードはちみつ 30日分",
-      "standardPrice": "30日間 · 9,900ウォン",
+      "standardName": "小さなはちみつ壺",
+      "standardPrice": "9,900ウォン",
       "standardLine": "5,000ウォン級のコンテンツまで",
-      "standardBenefit1": "月あたり最大20,000ウォン相当",
-      "standardBenefit2": "最大 3 つのプロファイル",
-      "standardCta": "標準を表示",
+      "standardBenefit1": "最大20,000ウォン相当",
+      "standardCta": "小さなはちみつ壺を見る",
       "recommendedAria": "おすすめプラン",
       "recommendedBadge": "推奨",
-      "premiumName": "プレミアムハニー 30日",
-      "premiumPrice": "30日間 · 29,900ウォン",
+      "premiumName": "中くらいのはちみつ壺",
+      "premiumPrice": "29,900ウォン",
       "premiumLine": "10,000ウォン級のコンテンツまで",
-      "premiumBenefit1": "月あたり最大 60,000ウォン相当",
-      "premiumBenefit2": "最大 7 つのプロファイル",
+      "premiumBenefit1": "最大60,000ウォン相当",
       "premiumCta": "推奨プランを見る",
-      "vvipName": "VVIP ハニージャー 30 日",
-      "vvipPrice": "30日間 · 59,900ウォン",
+      "vvipName": "大きなはちみつ壺",
+      "vvipPrice": "59,900ウォン",
       "vvipLine": "30,000ウォン級のコンテンツまで",
-      "vvipBenefit1": "月あたり最大 120,000ウォン相当",
-      "vvipBenefit2": "最大 15 個のプロファイル",
-      "vvipCta": "VVIP の特典を見る",
-      "familyName": "コード デスティニー ファミリー 30 日",
-      "familyPrice": "30日 · 149,000ウォン",
+      "vvipBenefit1": "最大120,000ウォン相当",
+      "vvipCta": "大きなはちみつ壺の特典を見る",
+      "familyName": "ファミリーはちみつ壺",
+      "familyPrice": "149,000ウォン",
       "familyLine": "利用券対象すべて",
-      "familyBenefit1": "月あたり最大350,000ウォン相当",
-      "familyBenefit2": "プロフィール無制限",
-      "familyCta": "ファミリーを表示",
-      "premiumNote": "プレミアムハニーは10,000ウォン級のコンテンツをよく見る方に最もバランスよく合います。",
-      "footnote": "新しいパスは 30 日パスとしてのみ販売されます。この 30 日間パスは自動更新のサブスクリプションではありません。パス範囲外のサービスは、商品ごとに1回限りのウォン決済でご利用いただけます。",
+      "familyBenefit1": "最大350,000ウォン相当",
+      "familyCta": "ファミリーはちみつ壺を見る",
+      "premiumNote": "中くらいのはちみつ壺は10,000ウォン級のコンテンツをよく見る方に最もバランスよく合います。",
+      "footnote": "パスに期間制限はなく、利用上限を使い切ると終了します。このパスは自動更新のサブスクリプションではありません。パス範囲外のサービスは、商品ごとに1回限りのウォン決済でご利用いただけます。",
       "howtoAria": "ムーンライトパスの使い方",
       "howtoTitle": "ムーンライトパスは、こう続きます",
-      "step1Label": "30日間の月光レンジを選ぶ",
-      "step1Text": "自動更新のない30日パスで、よく見るリーディングの価格帯をまず決めます。",
+      "step1Label": "月光レンジを選ぶ",
+      "step1Text": "期間も自動更新もないパスで、よく見るリーディングの価格帯をまず決めます。",
       "step2Label": "レンジ内は決済なしですぐ開く",
       "step2Text": "選んだレンジ内のタロット・神託・四柱推命のリーディングは、決済画面なしでそのまま開きます。",
       "step3Label": "レンジ外の深いリーディングだけ都度決済",
       "step3Text": "レンジ外の深いリーディングは、必要なときだけウォンで一度だけ決済します。",
-      "terminationNote": "月の利用上限が0になっても、利用券の有効期限・ランク・プロフィール上限は維持されます。追加の有料コンテンツは都度払いまたは月額パスで利用できます。"
+      "terminationNote": "利用上限をすべて使い切ると利用券は終了します。再度購入すると新しい利用上限で始まります。追加の有料コンテンツは都度払いまたは月精石で利用できます。",
+      "noExpiryNote": "期間制限なし · 利用上限を使い切ると終了"
     },
     "promptHub": {
       "aria": "総合的なフォーチュン プロンプトに移動します",
       "alt": "総合的な運勢のプロンプト",
-      "sr": "総合的な運勢のプロンプト"
+      "sr": "総合的な運勢のプロンプト",
+      "honeyLabel": "わたしのハチミツ",
+      "honeyAttend": "今日出席してハチミツをもらう",
+      "honeyAttended": "今日の出席完了"
     },
     "premiumArchive": {
       "kicker": "VVIP DESTINY アーカイブ",
@@ -901,11 +911,11 @@
       "eyebrow": "ムーンライトパス",
       "savingsBadge": "利用券なら最大3分の1ほどの価格に",
       "title": "5,000ウォンのリーディング2回で、9,900ウォンの利用券のほうがお得です",
-      "desc": "選んだ価格帯のリーディングは30日間、月間利用上限まで開きます。それより高いリーディングだけ必要なときに都度決済します。範囲は5,000ウォン級・10,000ウォン級・20,000ウォン級・利用券対象すべての4段階なので、よく見る価格帯を選べば大丈夫です。",
+      "desc": "選んだ価格帯のリーディングは利用上限を使い切るまで開きます。それより高いリーディングだけ必要なときに都度決済します。範囲は5,000ウォン級・10,000ウォン級・20,000ウォン級・利用券対象すべての4段階なので、よく見る価格帯を選べば大丈夫です。",
       "pointsAria": "コア パス ガイド",
       "point1": "決済画面なしですぐ開く",
-      "point2": "プロフィール保存3件以上",
-      "point3": "自動更新のない30日券",
+      "point2": "期間制限なし · 利用上限を使い切ると終了",
+      "point3": "自動更新のない利用券",
       "mascotAria": "ムーンライトパスの特典を見る · 月明かりの利用券ストア",
       "mascotAlt": "ムーンライトパス特典の画像",
       "mascotKicker": "Moonlight Pass Guide",
@@ -1348,8 +1358,9 @@
         "w20000": "20,000ウォン",
         "from3000": "3,000ウォン〜",
         "w1000": "1,000ウォン",
-        "from9000": "9,000ウォン〜",
-        "from20000": "20,000ウォン〜"
+        "from5000": "5,000ウォン〜",
+        "w7000": "7,000ウォン",
+        "from30000": "30,000ウォン〜"
       },
       "chip": {
         "love": "あの人の気持ち・次の恋",
@@ -1610,14 +1621,14 @@
       "pass": "利用券",
       "login": "ログイン",
       "account": "アカウント",
-      "offerTitle": "1回300,000ウォンの1対1鑑定で読んでいた四柱推命を、いまは3,000ウォンから",
+      "offerTitle": "1回300,000ウォンの1対1鑑定で読んでいた四柱推命を、いまは5,000ウォンから",
       "reviewsLead": "ネオの1対1鑑定で届いた実際のカカオトークの感想です。韓国語の原文のまま載せ、省略した箇所は…で示しています。",
       "reviewsBar": "ネオの1対1鑑定・カカオトーク",
       "reviewsMeta": "実際の利用者の感想・掲載同意済み",
       "reviewsPosted": "ブログ掲載",
       "reviewsFine": "個人の体験による感想であり、結果を保証するものではありません。四柱推命の解釈は参考情報です。",
-      "offerNote": "1対1鑑定はネオが直接行ったもので、3,000ウォンの鑑定は計算エンジンとAIの解説で提供されます。",
-      "offerCta": "3,000ウォンの四柱推命鑑定を見る →",
+      "offerNote": "1対1鑑定はネオが直接行ったもので、5,000ウォンの鑑定は計算エンジンとAIの解説で提供されます。",
+      "offerCta": "5,000ウォンの四柱推命鑑定を見る →",
       "expertiseTitle": "計算はルールどおりに、解説はAIが",
       "expertise": {
         "engine": "命式は決まった計算規則で立て、AIは計算結果をもとに解説を書きます。解説に計算と異なる日柱・時柱が書かれると、サーバーが弾きます。",
@@ -1649,12 +1660,12 @@
       "saysName": "ヨニ",
       "saysLine": "どの占いから見ましょうか？ひとつ選ぶだけで十分です。",
       "passMascotAlt": "利用券カードを持って笑う花飾りの子ぶたヨニ",
-      "passEyebrow": "自動更新なしの30日利用券",
-      "passTitle": "よく占うなら、30日利用券",
-      "passDesc": "鑑定の価格分だけ上限から差し引かれます。30日が過ぎると自動で終了します。",
-      "passPer": "/ 30日",
+      "passEyebrow": "期間・自動更新なしの利用券",
+      "passTitle": "ヨニが案内する利用券",
+      "passDesc": "ときどきなら単発決済で、よく見るなら利用券でどうぞ。利用できる相談と利用上限をご確認ください。",
+      "passPer": "· 期間制限なし",
       "passBadge": "ヨンニャンイも対象",
-      "passNote": "Standard・Premium・VVIPは花ぶた占いに、Familyは花ぶたとヨンニャンイの有料リーディングに適用されます。購入済みの利用券は購入時の条件を維持します。",
+      "passNote": "小さな・中くらいの・大きなはちみつ壺は花ぶた占いに、ファミリーはちみつ壺は花ぶたとヨンニャンイの有料リーディングに適用されます。購入済みの利用券は購入時の条件を維持します。",
       "passCta": "利用券4種を見る",
       "moreTitle": "ヨニのアトリエをもっと見る",
       "moreItems": "Daily readings · consultations · records · stories",
@@ -1723,7 +1734,7 @@
     "chatEntry": {
       "title": "ヨニとネオに、今いちばん気になるひとつを",
       "cta": "わたしの悩みを相談する",
-      "price": "会員登録で無料1回・以降1回3,000ウォン"
+      "price": "1回3,000ウォン"
     },
     "svcQuestion": {
       "master-love-codex": "次の恋はいつ始まる？",
@@ -1829,9 +1840,9 @@
       "reviewReward": "公開承認後に月光石を付与",
       "reviewDetail": "Ggulggulで利用できます。付与は商品ごとに1回です。",
       "reviewAction": "感想を書く",
-      "passStandard": "ヨニ Standard",
-      "passPremium": "ヨニ Premium",
-      "passVvip": "ヨニ VVIP",
+      "passStandard": "小さなはちみつ壺",
+      "passPremium": "中くらいのはちみつ壺",
+      "passVvip": "大きなはちみつ壺",
       "passPerLimit": "1回あたり{amount} KRWまで",
       "passTotal": "合計利用枠：{amount} KRW",
       "passNoLimit": "有料鑑定の1回あたり価格上限なし",
@@ -1859,17 +1870,18 @@
       "neoClassSource": "四柱推命講座の受講者 · KakaoTalkの感想抜粋（韓国語）",
       "neoNote": "ネオ本人による個別相談と講座の感想です。AI相談とは別のサービスであり、個人の体験が同じ結果を保証するものではありません。",
       "neoAbout": "ネオとサービスについて",
-      "neoMore": "相談の感想をもっと読む"
+      "neoMore": "相談の感想をもっと読む",
+      "passFamily": "ファミリーはちみつ壺"
     },
     "simple": {
-      "lead": "お悩みに合わせて、相談内容と料金を先にご案内します。",
+      "lead": "相談は有料です。料金と結果の例は先に確認できます。",
       "start": "悩みを相談する",
       "free": "今日の無料運勢を見る",
       "startLabel": "ほかの始め方",
-      "love": "恋愛・人間関係",
+      "love": "恋愛・相性",
       "work": "仕事・お金",
       "self": "自分を知る",
-      "future": "これからの流れ",
+      "future": "時期・選択",
       "title": "あなたの質問から始まる相談",
       "brand": "Ggulggul Fortuneでヨンニャンイ・ヨニ・ネオに会えます。ヨンニャンイへの相談や、ヨニの茶屋・ネオの作戦室をお楽しみください。",
       "stepQuestion": "今の悩みを教えてください",
@@ -1877,11 +1889,20 @@
       "stepResult": "答え・根拠・次の行動を読む",
       "example": "支払い前に相談例を読む",
       "explore": "すべての占い・相談を見る",
-      "exploreNote": "四柱推命・タロット・キャラクター相談・レポートと物語",
+      "exploreNote": "占術別の占い・ヨンニャンイ相談・利用券・お楽しみ",
       "passTitle": "よく利用する方には利用券",
       "passNote": "対象サービスと有効期間を確認してお選びください。",
       "passLink": "利用券を見る",
-      "passHistory": "購入済みの利用券は購入時の条件が適用されます。"
+      "passHistory": "購入済みの利用券は購入時の条件が適用されます。",
+      "topicsLabel": "悩み別に相談を選ぶ",
+      "loveNote": "マスター縁の書 · 全20章 · PDF保存",
+      "lovePrice": "個人 {solo} KRW · 相性 {pair} KRW",
+      "workNote": "転職・就職・事業・お金の管理など条件を比べる選択",
+      "futureNote": "今動いてもいいか、流れはいつ変わるか",
+      "priceFrom": "{amount} KRWから",
+      "samplesTitle": "お支払い前に結果の例を読んでみてください",
+      "sampleCodex": "縁の書の結果例",
+      "sampleConsult": "ヨンニャンイ相談の結果例"
     },
     "yeongnyangiEntry": {
       "badge": "ヨンニャンイの質問相談",
@@ -2342,7 +2363,7 @@
       "passStoreTitle": "月光利用券ショップ",
       "passRetryTitle": "利用券を再確認",
       "passHint": {
-        "store": "一度の決済で30日間いろいろなコンテンツを開けます。すでにお持ちならタップで確認できます。",
+        "store": "一度の決済で、利用上限を使い切るまでいろいろなコンテンツを開けます。すでにお持ちならタップで確認できます。",
         "retry": "保有利用券で決済なしに開けるかサーバーで再確認します。",
         "upgrade": "今の等級ではこのコンテンツは開きません。上位の等級をご確認ください。"
       },
@@ -2415,7 +2436,7 @@
         "comingSoon": "準備中",
         "back": "戻る"
       },
-      "passMonthlyExhausted": "パスの利用上限を使い切ったため、パスが終了しました。新しく購入すると30日が再び始まります。今は単品購入または月霊石で開けます。",
+      "passMonthlyExhausted": "パスの利用上限を使い切ったため、パスが終了しました。新しく購入すると新しい利用上限で始まります。今は単品購入または月霊石で開けます。",
       "passMonthlyRemaining": "パスの残り上限 {remaining} / {limit}",
       "wait": {
         "card": "カード会社・簡単決済アプリで認証を終えたら、このブラウザに戻ると自動で続きます。",
@@ -2447,7 +2468,7 @@
         "pass": {
           "eyebrow": "ムーンライトパスチェック",
           "title": "利用券を確認しています",
-          "message": "保有中の30日利用券ですぐ開けるか確認しています。",
+          "message": "保有中の利用券ですぐ開けるか確認しています。",
           "meta": "可能なら決済画面なしで続きます。"
         },
         "passApplied": {
@@ -2518,7 +2539,7 @@
         "pass": {
           "eyebrow": "ムーンライトパスチェック",
           "title": "利用券を確認しています",
-          "message": "保有中の30日利用券ですぐ開けるか確認しています。",
+          "message": "保有中の利用券ですぐ開けるか確認しています。",
           "meta": "可能なら決済画面なしで続きます。"
         },
         "passApplied": {
@@ -2602,7 +2623,7 @@
     "passShop": {
       "monthlyStatus": "月精石の残量を確認しました。",
       "chargeButton": "{amount} 決済ページへ移動",
-      "chargeNotice": "パス商品 {price} · 自動決済ではない30日間のパスです。パスはウォン建ての単発決済でのみ購入できます。",
+      "chargeNotice": "パス商品 {price} · 自動決済ではないパスです。パスはウォン建ての単発決済でのみ購入できます。",
       "best": "BEST",
       "monthlyBasisWithPrice": "月定石基準 {credits} · {price}",
       "profileUnlimited": "プロフィール無制限",
@@ -2613,24 +2634,24 @@
       "closeAria": "月光利用券ショップ案内を閉じる",
       "openAria": "月光利用券ショップ案内を開く",
       "title": "月光利用券ショップ案内",
-      "subtitle": "月光に宿る30日利用券と月定石の流れを確認してください。",
-      "footerNotice": "この30日利用券は自動決済商品ではありません。満了後は再購入が必要です。",
+      "subtitle": "利用券はウォン建ての単発決済で購入し、月精石は個別の有料機能に使われます。",
+      "footerNotice": "この利用券は自動決済商品ではありません。利用上限を使い切った後は再購入が必要です。",
       "packages": {
         "standard": {
-          "name": "スタンダードハニー30日",
-          "desc": "30日 · 5,000ウォン級のコンテンツまで · 月あたり最大20,000ウォン相当 · 最大 3 つのプロファイル"
+          "name": "小さなはちみつ壺",
+          "desc": "5,000ウォン級のコンテンツまで · 最大20,000ウォン相当"
         },
         "premium": {
-          "name": "プレミアムハニー30日",
-          "desc": "30日 · 10,000ウォン級のコンテンツまで · 月あたり最大 60,000ウォン相当 · 最大 7 つのプロファイル"
+          "name": "中くらいのはちみつ壺",
+          "desc": "10,000ウォン級のコンテンツまで · 最大60,000ウォン相当"
         },
         "vvip": {
-          "name": "VVIPハニージャー30日",
-          "desc": "30日 · 30,000ウォン級のコンテンツまで · 月あたり最大 120,000ウォン相当 · 最大 15 個のプロファイル"
+          "name": "大きなはちみつ壺",
+          "desc": "30,000ウォン級のコンテンツまで · 最大120,000ウォン相当"
         },
         "family": {
-          "name": "Code Destiny Family 30日",
-          "desc": "30日 · 利用券対象すべて · 月あたり最大350,000ウォン相当 · プロフィール無制限"
+          "name": "ファミリーはちみつ壺",
+          "desc": "利用券対象すべて · 最大350,000ウォン相当"
         }
       },
       "monthlyStatusChecking": "残量とパスの状態を確認しています。",
@@ -2639,7 +2660,7 @@
       "monthlyButton": "月定石 {credits} で決済",
       "monthlyButtonBusy": "月定石で利用券を有効化しています...",
       "monthlyButtonShort": "月定石 {credits} 必要 · 残量不足",
-      "terminationNotice": "月の利用上限を使い切ると、残り日数に関係なくパスは終了します。新しく購入すると、その日から30日が改めて始まります。"
+      "terminationNotice": "利用上限をすべて使い切ると利用券は終了します。再度購入すると新しい利用上限で始まります。追加の有料コンテンツは都度払いまたは月精石で利用できます。"
     },
     "access": {
       "passAppliedContinue": "利用券で開きました。"
@@ -2708,15 +2729,34 @@
   "fortune": {
     "destinyFlower": {
       "common": {
-        "unknown": "不明"
+        "unknown": "不明",
+        "bloomLabel": {
+          "seed": "種・日干",
+          "season": "季節・生まれた時",
+          "bloom": "そして咲いた花"
+        },
+        "bloom": {
+          "verdict": "そして咲いた花 — {title}。"
+        },
+        "flowerLanguage": {
+          "anchor": "「{language}」— {anchor}のあなたに、この花が贈る言葉です。",
+          "plain": "「{language}」— 今のあなたに、この花が贈る言葉です。"
+        },
+        "shareHook": {
+          "rarityAnchor": "{anchor}から読み解いた、ただ一輪"
+        },
+        "anonymousName": "名もなき旅人",
+        "rationaleLabel": {
+          "verdict": "だから、この花"
+        }
       },
       "astro": {
         "elements": {
-          "Fire": "火災",
-          "Earth": "地球",
-          "Air": "空気",
+          "Fire": "火",
+          "Earth": "地",
+          "Air": "風",
           "Water": "水",
-          "Cosmic": "スターライト"
+          "Cosmic": "星"
         },
         "unknownSun": "太陽星座不明",
         "unknownRising": "上昇サインが不明",
@@ -2730,22 +2770,41 @@
         "ritualTip": "今夜、3 分間呼吸を整えて、星の下に 1 つの意図を定めてください。",
         "relationshipTheme": "人間関係があなたの主星座のリズムに従うと、摩擦は和らぎます。",
         "careerTheme": "太陽星座のコアドライブを仕事のルーチンに取り入れて、より安定した勢いを取り戻しましょう。",
-        "growthCycle": "スターコール「軌道形成」星雲開花→輝き拡散",
+        "growthCycle": "星の呼び声 → 軌道形成 → 星雲開花 → 光輝拡散",
         "fallbackNote": "太陽星座データが利用できなかったため、測定値にはデフォルトの空気要素が使用されました。",
         "ultimateTitle": "究極の運命の花",
         "ultimateConcept": "東洋の{dayMaster}エネルギーが西洋の{sunSign}スターライトと融合するハイブリッドブルーム",
         "verdict": "占星術でわかる、あなたの運命の花は {flowerName} ({scientificName}) です。太陽、日の出、月の3つの軸は、この花が今、あなたと密接に共鳴していることを示しています。",
-        "narrative": "太陽星座 {sun} から立ち上る ​​{sunElement} の火花が、この花の選択の中心になります。上昇星座 {rising} ({risingElement}) は目に見えるトーンを形成し、月星座 {moon} ({moonElement}) は感情的な露を加え、{flowerName}、{flowerSymbolism}、? のシンボルを表現します。はっきりと開きます。キーワード「{keyword}」は、この花を前に導く星の光です。"
+        "narrative": "太陽星座 {sun} から立ち上る ​​{sunElement} の火花が、この花の選択の中心になります。上昇星座 {rising} ({risingElement}) は目に見えるトーンを形成し、月星座 {moon} ({moonElement}) は感情的な露を加え、{flowerName}、{flowerSymbolism}、? のシンボルを表現します。はっきりと開きます。キーワード「{keyword}」は、この花を前に導く星の光です。",
+        "signs": {
+          "aries": "牡羊座",
+          "taurus": "牡牛座",
+          "gemini": "双子座",
+          "cancer": "蟹座",
+          "leo": "獅子座",
+          "virgo": "乙女座",
+          "libra": "天秤座",
+          "scorpio": "蠍座",
+          "sagittarius": "射手座",
+          "capricorn": "山羊座",
+          "aquarius": "水瓶座",
+          "pisces": "魚座"
+        },
+        "rationaleLabel": {
+          "sun": "太陽星座",
+          "risingMoon": "アセンダント · 月星座"
+        }
       },
       "ziwei": {
         "brightness": {
-          "miao": "ミャオ族",
-          "wang": "ワン",
-          "li": "リー",
-          "de": "デ",
-          "ping": "ping",
-          "han": "ハン",
-          "xian": "西安"
+          "miao": "廟",
+          "wang": "旺",
+          "li": "利",
+          "de": "得",
+          "ping": "平",
+          "han": "閑",
+          "xian": "陷",
+          "bu": "不"
         },
         "coreFlow": "コア フォーチュン フロー",
         "coreEnergy": "コアエネルギーの表現",
@@ -2756,7 +2815,7 @@
         "ritualTip": "今日の中心キーワード: {keyword}",
         "relationshipTheme": "強いスターの気質を人間関係の基準にすると、調和がより明確になります。",
         "careerTheme": "主星の力が前に出ると、実行とポジショニングが安定します。",
-        "growthCycle": "星配列「エネルギー集合」種子点火→開花",
+        "growthCycle": "星の整列 → 気の凝集 → 種の点火 → 開花",
         "secondaryFallbackNote": "複合メインスター調整: {primaryStar} 中心 + {secondaryStar} 香りブレンド",
         "palaceFallbackNote": "パレス特性調整: {palace} · {trait}",
         "hybridHint": "Saju {dayMaster} エネルギーと Ziwei の主星 {stars} をブレンドすることでハイブリッド レンダリングが利用可能",
@@ -2765,204 +2824,385 @@
         "narrativeSingle": "{palace} は{palaceEnergy} を処理します。今日の強い星 {star} は、品質「{keyword}」と性質「{personality}」を花の中心に配置します。明るさ {brightness} はその光を安定させ、{flowerName} は中心エネルギーと最も深く共鳴します。",
         "rules": {
           "peonyZiwei": {
-            "title": "インペリアルピオニー",
-            "keyword": "帝国の落ち着き",
-            "personality": "現場を中心にして秩序を回復するリーダー"
+            "title": "帝王の牡丹",
+            "keyword": "帝王の気品",
+            "personality": "中心に立ち、周囲の秩序を整えるリーダー型"
           },
           "thornyRoseGeneral": {
-            "title": "将軍の赤いバラ",
-            "keyword": "決定的な進歩",
-            "personality": "プレッシャーの下でも前進する決定的な力"
+            "title": "将軍の紅いバラ",
+            "keyword": "突破の決断",
+            "personality": "重圧の中でも前線を押し進める決断型"
           },
           "thornyRosePioneer": {
-            "title": "パイオニアの赤いバラ",
-            "keyword": "フィールドを再形成するドライブ",
-            "personality": "古い枠組みを打ち破り、新しい注文を開くイノベーター"
+            "title": "開拓者の紅いバラ",
+            "keyword": "局面を変える推進力",
+            "personality": "古い枠を破り、新しい秩序を開く革新型"
           },
           "delicateWillow": {
             "title": "軍師の柳の花",
-            "keyword": "優しい戦略",
-            "personality": "瞬間を読み、最も明確な答えを見つける戦略家"
+            "keyword": "しなやかな知略",
+            "personality": "状況を柔軟に読み、最適な解を見つける戦略型"
           },
           "sunflowerZiwei": {
-            "title": "ソーラーひまわり",
-            "keyword": "光を拡大する",
-            "personality": "目に見える結果に向けてエネルギーを集める実行者"
+            "title": "太陽のひまわり",
+            "keyword": "光の広がり",
+            "personality": "目標に向けてエネルギーを集中させ、成果を引き出す実行型"
           },
           "nightCereus": {
-            "title": "月夜に咲くセレウス",
-            "keyword": "夜に開くミステリー",
-            "personality": "目に見えない流れを読む瞑想的な魂"
+            "title": "月光の月下美人",
+            "keyword": "夜に咲く神秘",
+            "personality": "深い内省で見えない流れを読む省察型"
           },
           "orchidTanlang": {
-            "title": "桃の花の蘭",
-            "keyword": "官能的な磁力",
-            "personality": "美、人間関係、表現を通してリードする魅力的なタイプ"
+            "title": "桃花の蘭",
+            "keyword": "官能的な魅惑",
+            "personality": "人間関係と表現の美しさを生かして人を惹きつける魅力型"
           }
+        },
+        "stars": {
+          "ziwei": "紫微",
+          "tianji": "天機",
+          "taiyang": "太陽",
+          "wuqu": "武曲",
+          "tiantong": "天同",
+          "lianzhen": "廉貞",
+          "tianfu": "天府",
+          "taiyin": "太陰",
+          "tanlang": "貪狼",
+          "jumen": "巨門",
+          "tianxiang": "天相",
+          "tianliang": "天梁",
+          "qisha": "七殺",
+          "pojun": "破軍",
+          "wenchang": "文昌",
+          "wenqu": "文曲",
+          "zuofu": "左輔",
+          "youbi": "右弼",
+          "tianma": "天馬",
+          "lucun": "禄存",
+          "tiankui": "天魁",
+          "tianyue": "天鉞",
+          "qingyang": "擎羊",
+          "tuoluo": "陀羅",
+          "dikong": "地空",
+          "dijie": "地劫",
+          "huoxing": "火星",
+          "lingxing": "鈴星"
+        },
+        "palaces": {
+          "life": "命宮",
+          "siblings": "兄弟宮",
+          "spouse": "夫妻宮",
+          "children": "子女宮",
+          "wealth": "財帛宮",
+          "health": "疾厄宮",
+          "travel": "遷移宮",
+          "friends": "交友宮",
+          "career": "官禄宮",
+          "property": "田宅宮",
+          "fortune": "福徳宮",
+          "parents": "父母宮"
+        },
+        "palaceTraits": {
+          "life": "自我の中心性と存在感",
+          "siblings": "協力と調整のセンス",
+          "spouse": "関係の美意識と親密なコミュニケーション",
+          "children": "創造性と表現への欲求",
+          "wealth": "資源の運用と豊かさを広げる力",
+          "health": "回復力と内面のバランス感覚",
+          "travel": "環境への適応力と現場での判断力",
+          "friends": "ネットワークの運営とチームへの気配り",
+          "career": "社会的な推進力と達成志向",
+          "property": "基盤づくりと安定した蓄積力",
+          "fortune": "情緒の充電と精神的な洞察",
+          "parents": "保護本能と伝統を重んじる意識"
+        },
+        "natalVerdict": "命宮の{stars}の気質から読み解いたあなたの花は、{flowerName}（{scientificName}）です。",
+        "natalScenarioTitle": "命宮主星の開花シナリオ",
+        "rationale": {
+          "lifeStar": "命宮に{starsJosa}が入っています。",
+          "borrowedStar": "命宮に主星がないため、向かい合う遷移宮の{starsObject}を借りて読み解きました。",
+          "personality": "{star}の「{keyword}」 — {personality}の気質です。",
+          "verdict": "だから今、あなたに贈る花は{flowerName}です。"
+        },
+        "rationaleLabel": {
+          "lifeStar": "命宮の主星",
+          "personality": "生まれ持った性格"
         }
       },
       "sukuyo": {
         "moon": {
           "full": "満月",
-          "new": "ダークムーン",
+          "new": "新月",
           "crescent": "三日月",
           "gibbous": "上弦/下弦の月"
         },
-        "stickerLabel": "花 by Sukuyo",
-        "moonPhaseLabel": "ムーンフェイズ {moon}",
-        "guardianLabel": "ガーディアン {guardian}",
-        "scenarioTitle": "27 の邸宅と月相開花シナリオ",
+        "stickerLabel": "宿曜占星術で見る花",
+        "moonPhaseLabel": "月相 {moon}",
+        "guardianLabel": "守護動物 {guardian}",
+        "scenarioTitle": "27宿と月相の統合開花シナリオ",
         "ritualTip": "月明かりの窓辺で、27回呼吸して、今日の意志を一言で決めましょう。",
-        "relationshipTheme": "{group}の質感を踏襲し、緊張感を和らげ、つながりを明確にします。",
-        "careerTheme": "{guardian} のリズムが仕事のルーチンに反映されると、結果が安定します。",
-        "growthCycle": "星座をつなぐ「月光採り」精霊点火→開花",
-        "verdict": "宿曜の月光テクスチャーを通して、あなたの運命の花は{flowerName}({scientificName})です。 {mansion}、{moon}、{guardian} の組み合わせは、現在の人間関係、感情、行動のリズムと微妙に調和しています。",
-        "narrative": "{mansion} ({group}) の関係性テクスチャ、ムーンフェイズの潮流 {moon}、および {guardian} の保護パターンが夜の庭で出会い、{symbolism} の品質が深まります。一緒に読んでください。これらの 3 つの月明かりの信号は、今あなたの最も正確な運命の花として {flowerName} を示しています。"
+        "relationshipTheme": "{group}の流れに沿うほど、関係の緊張がほどけ、心の通い合いが鮮やかになります。",
+        "careerTheme": "{guardian}のパターンが持つ実行のリズムを仕事のルーティンに取り入れると、成果が安定します。",
+        "growthCycle": "星宿の結びつき → 月光の凝集 → 霊性の点火 → 開花",
+        "verdict": "月光の流れで読み解いたあなたの花は{flowerName}（{scientificName}）です。{mansion}・{moon}・{guardian}が重なり合うこの位置が、今のあなたの縁と感情、行動のリズムに最も繊細に噛み合っています。",
+        "narrative": "{mansion}（{group}）が結ぶ縁の流れ、月相{moon}が押し上げる感情の潮、守護動物{guardianJosa}が刻んだ守りの紋様が、真夜中の庭でひとつに重なります。この三筋の月光を重ねて読むと「{symbolism}」の気質が濃くにじみ出て、今のあなたに最もふさわしい一輪は{flowerName}です。",
+        "mansions": {
+          "m1": "角宿",
+          "m2": "亢宿",
+          "m3": "氐宿",
+          "m4": "房宿",
+          "m5": "心宿",
+          "m6": "尾宿",
+          "m7": "箕宿",
+          "m8": "斗宿",
+          "m9": "女宿",
+          "m10": "虚宿",
+          "m11": "危宿",
+          "m12": "室宿",
+          "m13": "壁宿",
+          "m14": "奎宿",
+          "m15": "婁宿",
+          "m16": "胃宿",
+          "m17": "昴宿",
+          "m18": "畢宿",
+          "m19": "觜宿",
+          "m20": "参宿",
+          "m21": "井宿",
+          "m22": "鬼宿",
+          "m23": "柳宿",
+          "m24": "星宿",
+          "m25": "張宿",
+          "m26": "翼宿",
+          "m27": "軫宿"
+        },
+        "groups": {
+          "anjung": "安重宿",
+          "gangseong": "強盛宿",
+          "gyeongkwae": "軽快宿",
+          "jihye": "智慧宿"
+        },
+        "groupLabels": {
+          "anjung": "安重グループ",
+          "gangseong": "強盛グループ",
+          "gyeongkwae": "軽快グループ",
+          "jihye": "智慧グループ"
+        },
+        "guardians": {
+          "crane": "鶴",
+          "dragon": "龍",
+          "marten": "テン",
+          "rabbit": "ウサギ",
+          "fox": "キツネ",
+          "tiger": "トラ",
+          "leopard": "ヒョウ",
+          "haetae": "獬豸（かいち）",
+          "bat": "コウモリ",
+          "rat": "ネズミ",
+          "swallow": "ツバメ",
+          "pig": "ブタ",
+          "hedgehog": "ハリネズミ",
+          "wolf": "オオカミ",
+          "dog": "イヌ",
+          "pheasant": "キジ",
+          "rooster": "ニワトリ",
+          "crow": "カラス",
+          "monkey": "サル",
+          "ape": "類人猿",
+          "wildDog": "野犬",
+          "sheep": "ヒツジ",
+          "roeDeer": "ノロジカ",
+          "horse": "ウマ",
+          "deer": "シカ",
+          "snake": "ヘビ",
+          "earthworm": "ミミズ"
+        },
+        "rationaleLabel": {
+          "mansion": "宿 · 月相"
+        }
       },
       "saju": {
         "scenarios": {
           "default": {
-            "title": "{dayMasterBadge}の環境で運命花が開く流れ"
+            "title": "{dayMasterBadge}の環境で運命花が開く流れ",
+            "reason": "あなたの日干が今の五行の環境とどう噛み合うかを見て、この時期にいちばんよく似合う花を一輪選びました。"
           },
           "jia": {
             "springWood": {
-              "title": "甲木がまっすぐ導く力を帯びて運命花が開く流れ"
+              "title": "甲木がまっすぐ導く力を帯びて運命花が開く流れ",
+              "reason": "甲木（きのえ）は、大木のようにまっすぐ上へ伸びる気質です。春の木の気がその性質とぴたりと合う今、先頭に立って新しい局面を切り開く力が大きく花開きます。"
             },
             "autumnMetal": {
-              "title": "甲木がmetal-tempering scenarioを帯びて運命花が開く流れ"
+              "title": "甲木がmetal-tempering scenarioを帯びて運命花が開く流れ",
+              "reason": "秋の金の気が甲木（きのえ）を押さえつける今は、脇枝を払い、本当に大切な幹だけを残すときです。手放すほど、かえって強くなれます。"
             },
             "dryFire": {
-              "title": "甲木がdry-heat endurance scenarioを帯びて運命花が開く流れ"
+              "title": "甲木がdry-heat endurance scenarioを帯びて運命花が開く流れ",
+              "reason": "乾いて熱い気の中に置かれた甲木（きのえ）に今必要なのは、根の体力です。急ぐよりも長く持ちこたえて回復力を育てるとき、ムクゲのようにしぶとく何度でも咲きます。"
             }
           },
           "yi": {
             "metalWater": {
-              "title": "乙木がmetal-water harmony scenarioを帯びて運命花が開く流れ"
+              "title": "乙木がmetal-water harmony scenarioを帯びて運命花が開く流れ",
+              "reason": "乙木（きのと）は、つるや草花のようにやわらかく染み込む気質です。金と水の気が強い今、あなたの品位と清らかに浄化する力がもっとも生き生きと発揮されます。"
             },
             "dryEarth": {
-              "title": "乙木がdry-soil survival scenarioを帯びて運命花が開く流れ"
+              "title": "乙木がdry-soil survival scenarioを帯びて運命花が開く流れ",
+              "reason": "乾いた土の気の上に立つ乙木（きのと）にとって、今のテーマは生き抜く力です。やせた地を突き破ってついに咲くサボテンの花のように、踏みとどまる場所でこそ輝きます。"
             },
             "autumn": {
-              "title": "乙木がautumn refinement scenarioを帯びて運命花が開く流れ"
+              "title": "乙木がautumn refinement scenarioを帯びて運命花が開く流れ",
+              "reason": "秋の金の気を通り抜ける乙木（きのと）は、繊細さを落ち着いた秩序へと変える時期です。散らばったものを丁寧に整えるほど、心も一緒に整っていきます。"
             },
             "wetSpring": {
-              "title": "乙木がmoist-spring expansion scenarioを帯びて運命花が開く流れ"
+              "title": "乙木がmoist-spring expansion scenarioを帯びて運命花が開く流れ",
+              "reason": "春のしっとりとした気に出会った乙木（きのと）は、人と人をつなぐ力がぐんと大きくなります。今はひとりよりも、関係を通して伸びていくときです。"
             }
           },
           "bing": {
             "springWood": {
-              "title": "丙火がspring ignition scenarioを帯びて運命花が開く流れ"
+              "title": "丙火がspring ignition scenarioを帯びて運命花が開く流れ",
+              "reason": "丙火（ひのえ）は、太陽のように素早く燃え上がり、広く行き渡る気です。春の木の気を薪にする今、何かを新しく始めて広める力が力強く燃え上がります。"
             },
             "summerFire": {
-              "title": "丙火がsummer expansion scenarioを帯びて運命花が開く流れ"
+              "title": "丙火がsummer expansion scenarioを帯びて運命花が開く流れ",
+              "reason": "夏の火の気まで重なった丙火（ひのえ）は、これまで以上に明るく燃え上がります。前に出て人々を導く力が最高潮に達する時期です。"
             },
             "waterControl": {
-              "title": "丙火がwater-control scenarioを帯びて運命花が開く流れ"
+              "title": "丙火がwater-control scenarioを帯びて運命花が開く流れ",
+              "reason": "強い水の気に出会った丙火（ひのえ）にとって今大切なのは、さらに熱くなることではなく、方向をしっかり定めることです。現実感覚を保ちながら炎を守るとき、その光は長く続きます。"
             }
           },
           "ding": {
             "coldWet": {
-              "title": "丁火がcold-damp warmth scenarioを帯びて運命花が開く流れ"
+              "title": "丁火がcold-damp warmth scenarioを帯びて運命花が開く流れ",
+              "reason": "丁火（ひのと）は、ろうそくの炎のように内側で静かに輝く気です。寒く湿った今は、華やかさよりも、そのぬくもりを長く絶やさないことがいちばんの力になります。"
             },
             "autumnMetal": {
-              "title": "丁火がmetal-refining scenarioを帯びて運命花が開く流れ"
+              "title": "丁火がmetal-refining scenarioを帯びて運命花が開く流れ",
+              "reason": "金の気に出会った丁火（ひのと）は、手先の精密さと美を見る目が鋭くなります。一つのことに打ち込み、美しく仕上げるときにもっとも輝く時期です。"
             },
             "resonance": {
-              "title": "丁火がresonanceを帯びて運命花が開く流れ"
+              "title": "丁火がresonanceを帯びて運命花が開く流れ",
+              "reason": "丁火（ひのと）は、感情の機微を繊細にいたわり、関係を深める気です。心を惜しまずに表すほど、運の道も一緒に開けていきます。"
             }
           },
           "wu": {
             "fireEarth": {
-              "title": "戊土がfire-earth achievement scenarioを帯びて運命花が開く流れ"
+              "title": "戊土がfire-earth achievement scenarioを帯びて運命花が開く流れ",
+              "reason": "戊土（つちのえ）は、大きな山のように広く頼もしい気です。火と土が支えてくれる今は、大きく仕掛けて大きく成し遂げることに、ひときわ力が宿ります。"
             },
             "winterWater": {
-              "title": "戊土がwinter foundation scenarioを帯びて運命花が開く流れ"
+              "title": "戊土がwinter foundation scenarioを帯びて運命花が開く流れ",
+              "reason": "冬の水の気に出会った戊土（つちのえ）にとって、今はスピードを落として足元を固めるときです。ひと休みしながら基礎をしっかり固めるほど、次の一歩が確かなものになります。"
             },
             "center": {
-              "title": "戊土がcenter-building scenarioを帯びて運命花が開く流れ"
+              "title": "戊土がcenter-building scenarioを帯びて運命花が開く流れ",
+              "reason": "戊土（つちのえ）の本当の力は、揺れる状況を真ん中でしっかり支える中心力です。毎日のルーティンを着実に守るほど、成果が着々と積み上がります。"
             }
           },
           "ji": {
             "wetEarth": {
-              "title": "己土がcultivation expansion scenarioを帯びて運命花が開く流れ"
+              "title": "己土がcultivation expansion scenarioを帯びて運命花が開く流れ",
+              "reason": "己土（つちのと）は、よく耕された畑のように、何かを心を込めて育てる気です。潤いのある今は、一緒に働き、互いを気遣う関係の中で実りが大きくなります。"
             },
             "metalDesign": {
-              "title": "己土がprecision-design scenarioを帯びて運命花が開く流れ"
+              "title": "己土がprecision-design scenarioを帯びて運命花が開く流れ",
+              "reason": "金の気と出会った己土（つちのと）は、細部まで設計し整える感覚が生きてきます。完成度が問われる仕事で、あなたの強みが際立ちます。"
             },
             "balance": {
-              "title": "己土がbalance-tuning scenarioを帯びて運命花が開く流れ"
+              "title": "己土がbalance-tuning scenarioを帯びて運命花が開く流れ",
+              "reason": "己土（つちのと）は、やわらかく間を取り持ち、場の空気を整えることに長けた気です。押し引きの緩急さえうまく調整すれば、それがそのまま幸運になります。"
             }
           },
           "geng": {
             "metalEarth": {
-              "title": "庚金がprinciple-through scenarioを帯びて運命花が開く流れ"
+              "title": "庚金がprinciple-through scenarioを帯びて運命花が開く流れ",
+              "reason": "庚金（かのえ）は、磨かれていない原石のように、太く断固として断ち切る気です。土と金が支えてくれる今、決めた原則を押し通す力が最高潮に達します。"
             },
             "fireTraining": {
-              "title": "庚金がfire-tempering scenarioを帯びて運命花が開く流れ"
+              "title": "庚金がfire-tempering scenarioを帯びて運命花が開く流れ",
+              "reason": "熱い炎で鍛えられた庚金（かのえ）は、カリスマと実力がともに強固になります。大事な勝負どころで、集中力がひときわ鋭く研ぎ澄まされる時期です。"
             },
             "clearJudgment": {
-              "title": "庚金がdecisive-judgment scenarioを帯びて運命花が開く流れ"
+              "title": "庚金がdecisive-judgment scenarioを帯びて運命花が開く流れ",
+              "reason": "庚金（かのえ）の強みは、核心を正確に切り分ける判断力です。基準をはっきり立てておけば、その明快さがそのまま成果につながります。"
             }
           },
           "xin": {
             "metalWater": {
-              "title": "辛金がmetal-water refinement scenarioを帯びて運命花が開く流れ"
+              "title": "辛金がmetal-water refinement scenarioを帯びて運命花が開く流れ",
+              "reason": "辛金（かのと）は、丁寧にカットされた宝石のように、感覚と言葉が洗練された気です。金と水が調和する今、分析し表現する力が一段と冴えわたります。"
             },
             "springWood": {
-              "title": "辛金がwood-tuning scenarioを帯びて運命花が開く流れ"
+              "title": "辛金がwood-tuning scenarioを帯びて運命花が開く流れ",
+              "reason": "春の木の気に出会った辛金（かのと）は、刃を研ぐよりもやわらかく調整するときにこそ遠くまで進めます。感覚で仕上げていく仕事で成果が出る時期です。"
             },
             "completion": {
-              "title": "辛金がcompletion scenarioを帯びて運命花が開く流れ"
+              "title": "辛金がcompletion scenarioを帯びて運命花が開く流れ",
+              "reason": "辛金（かのと）は、手を広げるよりも、一つを美しく仕上げるときに強い気です。細部をきっちり仕上げるほど、人々からの信頼が積み重なります。"
             }
           },
           "ren": {
             "summerCooling": {
-              "title": "壬水がsummer-cooling scenarioを帯びて運命花が開く流れ"
+              "title": "壬水がsummer-cooling scenarioを帯びて運命花が開く流れ",
+              "reason": "壬水（みずのえ）は、広い海のように大きな流れを扱う気です。夏の熱気を涼やかに冷ます今、落ち着いて集中する力がぐんと高まります。"
             },
             "winterCondensing": {
-              "title": "壬水がwinter-condensing scenarioを帯びて運命花が開く流れ"
+              "title": "壬水がwinter-condensing scenarioを帯びて運命花が開く流れ",
+              "reason": "冬の水の気と共鳴する壬水（みずのえ）は、氷の下で力をかき集めるときです。表面は静かに見えても、氷河の花のように、内側では確かな潜在力が実っていきます。"
             },
             "nightIntuition": {
-              "title": "壬水がnight-intuition scenarioを帯びて運命花が開く流れ"
+              "title": "壬水がnight-intuition scenarioを帯びて運命花が開く流れ",
+              "reason": "壬水（みずのえ）は、明るい昼よりも静かな夜の直感の中で道を見つけるのが得意な気です。急いで答えを出すより、自分のリズムに従って決めるとき、方向がぴたりと定まります。"
             }
           },
           "gui": {
             "coldWetPurifying": {
-              "title": "癸水がcold-damp purification scenarioを帯びて運命花が開く流れ"
+              "title": "癸水がcold-damp purification scenarioを帯びて運命花が開く流れ",
+              "reason": "癸水（みずのと）は、夜明けの露のように微かなものを感じ取り、清らかに洗い流す気です。寒く湿った今は、静かに没頭するその静けさこそがあなたの力になります。"
             },
             "summerEmpathy": {
-              "title": "癸水がsummer-empathy scenarioを帯びて運命花が開く流れ"
+              "title": "癸水がsummer-empathy scenarioを帯びて運命花が開く流れ",
+              "reason": "夏の火の熱に出会った癸水（みずのと）にとっては、心をいたわり人と人をつなぐ共感がいちばんの武器です。あじさいのように多くの人のぬくもりを集めていくとき、道が開けます。"
             },
             "subtleSignal": {
-              "title": "癸水がsubtle-signal scenarioを帯びて運命花が開く流れ"
+              "title": "癸水がsubtle-signal scenarioを帯びて運命花が開く流れ",
+              "reason": "癸水（みずのと）は、人が見逃す小さなサインを誰よりも先に読み取る気です。その鋭い感覚でタイミングさえうまくつかめば、その一手が成否を分けます。"
             }
           }
         },
-        "stickerLabel": "花 by Saju",
+        "stickerLabel": "四柱推命で見る花",
         "dayMasterWaiting": "デイマスターの読み取りを待っています",
         "signalPending": "コア信号を待機しています",
         "scenarioTitleFallback": "{dayMasterBadge} 開花シナリオ",
         "scenarioFallbackReason": "デイマスターと環境を統合して開花の流れを読み取りました。",
-        "growthCycle": "Sprout（エネルギーの集合） 「Growth（作用の増幅）」 Bloom（成果の表面化）→結実（関係と資産の深化）",
-        "fallbackNote": "デイマスターエンリッチメントロジックが適用されました。",
+        "growthCycle": "発芽（気を集める） → 伸長（行動を増幅） → 開花（成果が表に出る） → 結実（関係・資産の蓄積）",
+        "fallbackNote": "生年月日の情報だけで、日干の気を慎重に読み取りました。",
         "verdict": "あなたのサジュリーディングでは、あなたの花は {flowerName} ({scientificName}) です。",
         "rationale": {
           "verdict": "あなたのサジュリーディングでは、あなたの運命の花は {flowerName} ({scientificName}) です。",
           "elements": "ファイブ エレメントのリーディングでは、主なエネルギーとして {dominant}、補助的な流れとして {support} が示されています。",
           "context": "現在の運勢の季節は{season}、エネルギー密度は{water}、ライフステージは{environment}と読みます。",
           "dayMaster": "デイマスターは {dayMasterBadge} として確認され、その周囲の季節と環境の相互作用が優先されました。",
-          "scenario": "デイマスター環境シナリオ: {reason}",
+          "scenario": "{reason}",
           "levels": "要素レベルは {elementLevelLine} であり、運命の花を確認するために 5 つのレベルすべてが重み付けされています。",
           "symbolism": "この花は{symbolism}を象徴しており、今シーズンのテーマを最も明確に反映しています。",
           "description": "運命の花の読み方: {description}",
           "vibe": "開花ガイド: {vibeMessage}",
-          "fallback": "調整ロジック: {note}"
+          "fallback": "調整ロジック: {note}",
+          "dayMasterSame": "日干{dayMasterBadge}と同じ{element}の気を宿した花です。",
+          "strengthRelease": "命式が身強なので、満ちあふれた気を外へ解き放つ{elements}の気をもつ花を重視しました。",
+          "strengthSupport": "命式が身弱なので、日干を後押しする{elements}の気をもつ花を重視しました。",
+          "yongshin": "この花には、命式に必要な用神の気が込められています — {elements}。",
+          "johuWarm": "命式が冷えて湿りがちなので、日差しのように温めてくれる暖かな花を重視しました。",
+          "johuCool": "命式が暑く乾きがちなので、熱を冷ましてくれる水気の多い花を重視しました。"
         },
         "elements": {
-          "wood": "木材",
-          "fire": "火災",
-          "earth": "地球",
-          "metal": "金属",
+          "wood": "木",
+          "fire": "火",
+          "earth": "土",
+          "metal": "金",
           "water": "水"
         },
         "seasons": {
@@ -3018,6 +3258,55 @@
           "Earth": "あなたの強みを引き出す運用・管理・システム構築。",
           "Metal": "分析、計画、品質管理により、精度が結果に変わります。",
           "Water": "リサーチ、調査、コンテンツ デザインにより、あなたの深みがさらに輝きます。"
+        },
+        "bloom": {
+          "season": "{season}に生まれたあなたのように、この花も{season}にいちばん明るく咲きます。"
+        },
+        "flowerLanguage": {
+          "yongshin": "「{language}」— 用神の{elements}の気を宿したこの花が、あなたに贈る言葉です。",
+          "dayMaster": "「{language}」— 日干が{dayMasterBadge}のあなたに、この花が贈る言葉です。"
+        },
+        "shareHook": {
+          "raritySeason": "日干{dayMasterBadge}・{season}生まれの命式が{total}輪の中から選んだ一輪",
+          "rarityDayMaster": "日干{dayMasterBadge}の命式が{total}輪の中から選んだ一輪",
+          "rarityPlain": "私の命式が{total}輪の中から選んだ一輪"
+        },
+        "dayMasters": {
+          "jia": "甲木（きのえ）",
+          "yi": "乙木（きのと）",
+          "bing": "丙火（ひのえ）",
+          "ding": "丁火（ひのと）",
+          "wu": "戊土（つちのえ）",
+          "ji": "己土（つちのと）",
+          "geng": "庚金（かのえ）",
+          "xin": "辛金（かのと）",
+          "ren": "壬水（みずのえ）",
+          "gui": "癸水（みずのと）"
+        },
+        "dayMasterStems": {
+          "jia": "甲（きのえ）",
+          "yi": "乙（きのと）",
+          "bing": "丙（ひのえ）",
+          "ding": "丁（ひのと）",
+          "wu": "戊（つちのえ）",
+          "ji": "己（つちのと）",
+          "geng": "庚（かのえ）",
+          "xin": "辛（かのと）",
+          "ren": "壬（みずのえ）",
+          "gui": "癸（みずのと）"
+        },
+        "dayMasterFallback": {
+          "ziwei": "四柱推命の日干データが不足しているため、紫微斗数の主星をもとに日干の性質を補正しました。",
+          "astrology": "四柱推命の日干データが不足しているため、太陽星座の傾向で日干の性質を代替しました。",
+          "dominant": "四柱推命・紫微斗数・占星術の主要指標が不足しているため、優勢な五行をもとに日干の性質を推定しました。"
+        },
+        "rationaleLabel": {
+          "dayMaster": "日干の気質",
+          "strengthRelease": "身強",
+          "strengthSupport": "身弱",
+          "yongshin": "用神",
+          "johuWarm": "調候 · 寒湿",
+          "johuCool": "調候 · 温燥"
         }
       },
       "flowers": {
@@ -3031,7 +3320,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "真実、期待、希望"
         },
         "aster": {
           "name": "アスター",
@@ -3043,10 +3333,11 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "若者に負けぬ元気、老いても元気で"
         },
         "astro_lavender": {
-          "name": "ネビュラベンダー",
+          "name": "星雲ラベンダー",
           "symbolism": "開花、ハーモニー、内なるリズム",
           "title": "ネビュラベンダー、いまの運命に開く花",
           "description": "ネビュラベンダーは、いま集まりつつある気配が静かなタイミングと感情の明晰さをもって形になる様子を映します。",
@@ -3055,7 +3346,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "期待、私に答えてください"
         },
         "azalea": {
           "name": "ツツジ",
@@ -3067,7 +3359,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "節度、慎み、愛の喜び"
         },
         "begonia": {
           "name": "ベゴニア",
@@ -3079,7 +3372,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "親切、幸福な日々、愛の告白"
         },
         "bellflower": {
           "name": "キキョウ",
@@ -3091,7 +3385,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "永遠の愛、誠実、清楚"
         },
         "bird_of_paradise": {
           "name": "極楽鳥",
@@ -3103,7 +3398,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "気取った恋、恋する伊達者"
         },
         "black_rose": {
           "name": "ブラックローズ",
@@ -3115,7 +3411,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "永遠の愛、絶対に滅びることのない愛"
         },
         "blue_iris": {
           "name": "ブルーアイリス",
@@ -3127,7 +3424,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "よい便り、メッセージ、希望"
         },
         "blue_lotus": {
           "name": "ブルー ロータス",
@@ -3139,7 +3437,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "信頼、信仰"
         },
         "bluebell": {
           "name": "ブルーベル",
@@ -3151,7 +3450,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "謙遜、変わらぬ心"
         },
         "cactus_flower": {
           "name": "サボテンの花",
@@ -3163,7 +3463,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "燃える心、温かい心、枯れない愛"
         },
         "camellia": {
           "name": "カメリア",
@@ -3175,7 +3476,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "控えめな優しさ、誇り"
         },
         "carnation": {
           "name": "カーネーション",
@@ -3187,7 +3489,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "無垢で深い愛、母への愛"
         },
         "cherry_blossom": {
           "name": "桜",
@@ -3199,7 +3502,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "精神の美、優美な女性"
         },
         "chrysanthemum_gold": {
           "name": "黄金の菊",
@@ -3211,7 +3515,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "高貴、高潔、高尚"
         },
         "cornflower": {
           "name": "ヤグルマギク",
@@ -3223,7 +3528,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "繊細、優美、信頼"
         },
         "cosmos": {
           "name": "コスモス",
@@ -3235,7 +3541,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "乙女の真心、調和、謙虚"
         },
         "crocus": {
           "name": "クロッカス",
@@ -3247,7 +3554,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "青春の喜び、切望"
         },
         "dahlia": {
           "name": "ダリア",
@@ -3259,7 +3567,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "華麗、優雅、気品"
         },
         "daisy": {
           "name": "デイジー",
@@ -3271,7 +3580,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "平和、希望、純潔"
         },
         "delicate_willow": {
           "name": "柳の花",
@@ -3283,7 +3593,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "従順、自由"
         },
         "delphinium": {
           "name": "デルフィニウム",
@@ -3295,7 +3606,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "清明"
         },
         "edelweiss": {
           "name": "エーデルワイス",
@@ -3307,7 +3619,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "大切な思い出、勇気"
         },
         "flame_tulip": {
           "name": "フレームチューリップ",
@@ -3319,7 +3632,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "愛の告白"
         },
         "forsythia": {
           "name": "レンギョウ",
@@ -3331,7 +3645,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "期待、希望、集中力"
         },
         "foxglove": {
           "name": "ジギタリス",
@@ -3343,7 +3658,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "熱愛"
         },
         "freesia": {
           "name": "フリージア",
@@ -3355,7 +3671,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "あどけなさ、純潔、親愛の情"
         },
         "gardenia": {
           "name": "クチナシ",
@@ -3367,7 +3684,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "とても幸せです、喜びを運ぶ"
         },
         "gentian": {
           "name": "リンドウ",
@@ -3379,7 +3697,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "正義、誠実、悲しんでいるあなたを愛する"
         },
         "geranium": {
           "name": "ゼラニウム",
@@ -3391,7 +3710,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "尊敬、信頼、真の友情"
         },
         "glacier_bloom": {
           "name": "グレイシャー ブルーム",
@@ -3403,7 +3723,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "氷の下で守り続けた約束"
         },
         "heliotrope": {
           "name": "ヘリオトロープ",
@@ -3415,7 +3736,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "献身的な愛、夢中、熱望"
         },
         "hibiscus": {
           "name": "ハイビスカス",
@@ -3427,7 +3749,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "繊細な美、新しい恋"
         },
         "honeysuckle": {
           "name": "スイカズラ",
@@ -3439,7 +3762,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "愛の絆、献身的な愛"
         },
         "hydrangea": {
           "name": "あじさい",
@@ -3451,7 +3775,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "辛抱強さ、寛容"
         },
         "iris": {
           "name": "アイリス",
@@ -3463,7 +3788,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "燃える思い、情熱"
         },
         "ivy_bloom": {
           "name": "アイビー ブルーム",
@@ -3475,7 +3801,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "永遠の愛、友情、誠実"
         },
         "jasmine": {
           "name": "ジャスミン",
@@ -3487,7 +3814,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "愛想のよい、優美、愛らしさ"
         },
         "larkspur": {
           "name": "ラークスパー",
@@ -3499,7 +3827,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "陽気、快活"
         },
         "lavender": {
           "name": "ラベンダー",
@@ -3511,7 +3840,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "沈黙、期待"
         },
         "lily": {
           "name": "リリー",
@@ -3523,10 +3853,11 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "純潔、甘美、威厳"
         },
         "lotus": {
-          "name": "ロータス",
+          "name": "蓮",
           "symbolism": "開花、ハーモニー、内なるリズム",
           "title": "ロータス、いまの運命に開く花",
           "description": "ロータスは、いま集まりつつある気配が静かなタイミングと感情の明晰さをもって形になる様子を映します。",
@@ -3535,7 +3866,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "清らかな心、神聖"
         },
         "lotus_golden": {
           "name": "ゴールデン ロータス",
@@ -3547,7 +3879,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "神聖"
         },
         "lotus_pink": {
           "name": "ピンク ロータス",
@@ -3559,7 +3892,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "神聖、雄弁"
         },
         "lotus_white": {
           "name": "ホワイト ロータス",
@@ -3571,7 +3905,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "清らかな心"
         },
         "magnolia": {
           "name": "マグノリア",
@@ -3583,7 +3918,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "友情、友愛、愛らしさ"
         },
         "marigold": {
           "name": "マリーゴールド",
@@ -3595,7 +3931,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "健康、予言"
         },
         "moon_lily": {
           "name": "ムーンリリー",
@@ -3607,7 +3944,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "純潔、威厳"
         },
         "moon_narcissus": {
           "name": "月の水仙",
@@ -3619,7 +3957,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "すてきな装い"
         },
         "moonflower": {
           "name": "ムーンフラワー",
@@ -3631,7 +3970,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "ほのかな恋"
         },
         "morning_glory": {
           "name": "朝顔",
@@ -3643,7 +3983,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "固い絆、愛情"
         },
         "mugunghwa": {
           "name": "ムグンファ",
@@ -3655,7 +3996,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "信念、新しい美"
         },
         "narcissus": {
           "name": "水仙",
@@ -3667,7 +4009,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "神秘"
         },
         "nemophila": {
           "name": "ネモフィラ",
@@ -3679,7 +4022,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "どこでも成功、可憐"
         },
         "night_cereus": {
           "name": "夜に咲くセレウス",
@@ -3691,7 +4035,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "あでやかな美人、はかない美"
         },
         "orange_trumpet": {
           "name": "オレンジ色のトランペットの花",
@@ -3703,7 +4048,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "名声、名誉"
         },
         "orchid": {
           "name": "蘭",
@@ -3715,7 +4061,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "美しい淑女、優雅"
         },
         "orchid_tanlang": {
           "name": "タンラン蘭",
@@ -3727,7 +4074,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "美しい淑女、優雅"
         },
         "passionflower": {
           "name": "トケイソウ",
@@ -3739,7 +4087,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "聖なる愛、信仰"
         },
         "peony": {
           "name": "牡丹",
@@ -3751,7 +4100,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "風格、富貴"
         },
         "peony_ziwei": {
           "name": "紫微牡丹",
@@ -3763,7 +4113,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "富貴、風格"
         },
         "persian_buttercup": {
           "name": "ペルシャキンポウゲ",
@@ -3775,7 +4126,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "晴れやかな魅力、光輝を放つ"
         },
         "plum_blossom": {
           "name": "梅の花",
@@ -3787,7 +4139,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "高潔、気品"
         },
         "poppy": {
           "name": "ポピー",
@@ -3799,7 +4152,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "いたわり、思いやり、恋の予感"
         },
         "primrose": {
           "name": "サクラソウ",
@@ -3811,7 +4165,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "青春の恋"
         },
         "queen_anne_lace": {
           "name": "アン女王のレース",
@@ -3823,7 +4178,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "可憐な心、細やかな愛情、感謝"
         },
         "ranunculus": {
           "name": "ラナンキュラス",
@@ -3835,7 +4191,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "とても魅力的、晴れやかな魅力"
         },
         "red_lycoris": {
           "name": "レッドリコリス",
@@ -3847,7 +4204,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "情熱"
         },
         "red_spider_lily": {
           "name": "曼珠沙華",
@@ -3859,7 +4217,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "情熱、独立"
         },
         "resilient_rose": {
           "name": "クラシック ローズ",
@@ -3871,7 +4230,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "あなたを愛してます、愛情"
         },
         "rose": {
           "name": "ローズ",
@@ -3883,7 +4243,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "愛、美"
         },
         "snapdragon": {
           "name": "スナップドラゴン",
@@ -3895,7 +4256,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "おしゃべり"
         },
         "sunflower": {
           "name": "ひまわり",
@@ -3907,7 +4269,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "私はあなただけを見つめる"
         },
         "sunflower_ziwei": {
           "name": "Ziwei ひまわり",
@@ -3919,7 +4282,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "愛慕、崇拝"
         },
         "sweet_pea": {
           "name": "スイートピー",
@@ -3931,7 +4295,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "門出、優しい思い出、ほのかな喜び"
         },
         "thorny_rose": {
           "name": "トゲのあるバラ",
@@ -3943,7 +4308,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "情熱、熱烈な恋"
         },
         "tiger_lily": {
           "name": "オニユリ",
@@ -3955,7 +4321,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "賢者、富と誇り"
         },
         "tulip": {
           "name": "チューリップ",
@@ -3967,7 +4334,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "思いやり"
         },
         "violet": {
           "name": "バイオレット",
@@ -3979,7 +4347,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "謙虚、誠実、小さな幸せ"
         },
         "violet_wisteria": {
           "name": "バイオレットウィステリア",
@@ -3991,7 +4360,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "歓迎、決して離れない"
         },
         "water_anemone": {
           "name": "アネモネ",
@@ -4003,7 +4373,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "あなたを信じて待つ"
         },
         "water_lily": {
           "name": "スイレン",
@@ -4015,7 +4386,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "清純な心、信頼、信仰"
         },
         "water_narcissus": {
           "name": "水仙",
@@ -4027,7 +4399,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "神秘"
         },
         "white_baby_breath": {
           "name": "白い赤ちゃんの息",
@@ -4039,7 +4412,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "清らかな心、無邪気、幸福"
         },
         "wild_chrysanthemum": {
           "name": "野菊",
@@ -4051,7 +4425,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "高潔、高尚"
         },
         "winter_plum": {
           "name": "冬梅",
@@ -4063,7 +4438,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "高潔、忍耐"
         },
         "wisteria": {
           "name": "藤",
@@ -4075,7 +4451,8 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
-          }
+          },
+          "flowerLanguage": "優しさ、歓迎、恋に酔う"
         },
         "yarrow": {
           "name": "ノコギリソウ",
@@ -4087,7 +4464,435 @@
             "0": "ブルーム",
             "1": "ハーモニー",
             "2": "フロー"
+          },
+          "flowerLanguage": "勇敢、治癒"
+        }
+      },
+      "ui": {
+        "source": {
+          "saju": "四柱推命",
+          "astrology": "占星術",
+          "jamidusu": "紫微斗数",
+          "sukuyo": "宿曜占星術"
+        },
+        "specimen": {
+          "language": "花言葉",
+          "system": "占術",
+          "mark": {
+            "saju": {
+              "primary": "日干",
+              "secondary": "季節"
+            },
+            "astrology": {
+              "primary": "星座",
+              "secondary": "アセンダント"
+            },
+            "jamidusu": {
+              "primary": "主星",
+              "secondary": "輝度"
+            },
+            "sukuyo": {
+              "primary": "本命宿",
+              "secondary": "月"
+            }
+          },
+          "yongshin": "用神"
+        },
+        "bouquet": {
+          "sourcesAll": "四つの占術",
+          "sourcesPair": "{a}と{b}",
+          "sourcesTrio": "{a}・{b}・{c}",
+          "sameFlower": "{sources}が同じ花、{name}を選びました。それだけはっきりとしたあなたの気質です。",
+          "sameElement": "{sources}がそろって{element}の気を指しました。",
+          "diverse": "異なる気質の花が集まり、いくつもの顔をもつあなたを一束にまとめました。",
+          "title": "運命の花束",
+          "sub": "{count}つの占術が選んだ花を、一つの花束にまとめました。"
+        },
+        "share": {
+          "preparing": "運命の花の結果を準備しています。",
+          "hookTitle": "🌸 私の運命の花は「{name}」なんだって",
+          "hookLanguage": "花言葉：{language}",
+          "hookAsk": "あなたはどんな花かな？ → {url}",
+          "hashtagsNamed": "#運命の花 #私の花は{tag}",
+          "hashtag": "#運命の花",
+          "languageDot": "花言葉 · {language}",
+          "ogTitle": "{name}、私の運命の花",
+          "ogAsk": "あなたの花は何だろう？",
+          "title": "運命の花",
+          "copiedText": "共有テキストをコピーしました。メッセージに貼り付けて送ってみてください。",
+          "preparedText": "共有テキストを用意しました。メッセージアプリが開かない場合は、貼り付けて送ってください。",
+          "kakaoTitle": "私の運命の花は「{name}」",
+          "bloomMine": "自分の花を咲かせる",
+          "kakaoOpened": "カカオトークの共有画面を開きました。",
+          "kakaoPrepared": "カカオトークで送る文面を用意しました。開かない場合は貼り付けて送ってください。"
+        },
+        "card": {
+          "kicker": "私の運命の花",
+          "ask": "あなたの花は？",
+          "failed": "カード画像を作れなかったため、共有テキストで送ります。",
+          "saved": "ストーリーカードを保存しました。共有テキストもコピーしました。",
+          "ready": "ストーリーカードができました。インスタグラムのストーリーズに投稿してみてください。",
+          "drawing": "カードを描いています。少々お待ちください。"
+        },
+        "sheet": {
+          "story": "ストーリーカード",
+          "storyHint": "9:16の画像で保存・共有",
+          "kakao": "カカオトーク",
+          "kakaoHint": "友だちに私の花を送る",
+          "link": "リンクをコピー",
+          "linkHint": "花言葉と一緒にコピー",
+          "compat": "友だちと花の相性",
+          "compatHint": "友だちに相性リンクを送る",
+          "compatHintFriend": "友だちの花との相性を見る",
+          "title": "花をシェア",
+          "close": "閉じる",
+          "linkCopied": "花言葉とリンクをコピーしました。友だちに貼り付けて送ってみてください。",
+          "notReady": "自分の花が咲いたらシェアできます。",
+          "sub": "{name} · 花言葉「{language}」"
+        },
+        "compatShare": {
+          "inviteTitle": "🌸 私の運命の花は「{name}」だよ",
+          "inviteAsk": "きみも自分の花を咲かせて、私たちの花の相性を見てみて",
+          "hashtags": "#運命の花 #花の相性",
+          "title": "運命の花の相性",
+          "pair": "🌸 私は「{mine}」、友だちは「{friend}」",
+          "result": "私たちの花の相性は「{title}」だって",
+          "ask": "きみも自分の花で相性を見てみて → {url}"
+        },
+        "friend": {
+          "kicker": "友だちから届いた運命の花",
+          "shareCompat": "花の相性をシェア",
+          "note": "あなたの花が咲いたら、ふたりの花の相性をすぐにお見せします。",
+          "birthToast": "生年月日を入力すると、あなたの花が咲きます。続けて友だちの花との相性もお見せします。"
+        },
+        "compat": {
+          "twin": {
+            "title": "同じ花のふたり",
+            "line": "ふたりとも{name}です。言葉にしなくても、同じ季節を生きる間柄です。"
+          },
+          "blend": {
+            "title": "違う気質の花",
+            "line": "違う色の二つの花が出会い、花束がもっと豊かになる間柄です。"
+          },
+          "same": {
+            "title": "似た気質の花",
+            "line": "ふたりとも{mine}の気を宿した花です。お互いのペースをいちばんよく分かり合える間柄です。"
+          },
+          "give": {
+            "title": "私が咲かせてあげる花",
+            "line": "私の花の{mine}の気が、友だちの花の{friend}の気を育てます。そばにいると、友だちがもっと明るく咲きます。"
+          },
+          "receive": {
+            "title": "私を咲かせてくれる花",
+            "line": "友だちの花の{friend}の気が、私の花の{mine}の気を後押しします。一緒にいると、私の花がもっと大きく咲きます。"
+          },
+          "shape": {
+            "title": "互いを磨き合う花",
+            "line": "私の花の{mine}の気が、友だちの花の{friend}の気を整えます。歩調を合わせるほど、強くなっていく間柄です。"
+          },
+          "spark": {
+            "title": "刺激し合う花",
+            "line": "友だちの花の{friend}の気が、私の花の{mine}の気を引き締めてくれます。お互いにいい刺激になる間柄です。"
           }
+        },
+        "cta": {
+          "rebloom": "🌸 運命の花をもう一度咲かせる",
+          "astrologyAgain": "✨ 占星術の花をもう一度呼び出す",
+          "jamidusuAgain": "🌺 紫微斗数の花をもう一度呼び出す",
+          "sukuyoAgain": "🌙 宿曜の花をもう一度呼び出す"
+        },
+        "status": {
+          "atelierLocked": "運命の花アトリエの解放が必要です。",
+          "loginRequired": "ログインすると運命の花をご覧いただけます。",
+          "newlyUnlocked": "✨ {source}の花が新たに開きました。",
+          "resultReady": "{verdict} 結果を保存したり、カカオトークで共有したりできます。",
+          "reloading": "データを再読み込みしています。少々お待ちください。",
+          "linking": "{source}のデータを連携しています。少々お待ちください。",
+          "loaded": "{source}のデータを読み込みました。",
+          "copied": "クリップボードにコピーしました。",
+          "copyPermission": "コピーの権限がないため、手動でコピーしてください。",
+          "copyFailed": "コピーに失敗しました。",
+          "kakaoPcCopied": "PC環境のため、カカオトークのリンクをクリップボードにコピーしました。カカオトークに貼り付けて共有してください。",
+          "kakaoNotOpenedCopied": "カカオトークの起動を確認できなかったため、要約をクリップボードにコピーしました。カカオトークに貼り付けて共有してください。",
+          "kakaoOpening": "カカオトークの共有を開いています...",
+          "kakaoFailedCopied": "カカオトークの共有を開けなかったため、要約をクリップボードにコピーしました。",
+          "refreshed": "{verdict} を基準に、タブとプロンプトを更新しました。",
+          "aiOpening": "AIを新しいタブで開きます。開かない場合は、ポップアップを許可してからもう一度お試しください。",
+          "aiBlocked": "新しいタブがブロックされたようです。ブラウザでポップアップを許可するか、お好みのAIサイトを直接開いてください。",
+          "summaryCopied": "要約をクリップボードにコピーしました。",
+          "promptCopied": "AI花のメインプロンプトをクリップボードにコピーしました。",
+          "promptPackCopied": "メイン/ネガティブプロンプトのセットをクリップボードにコピーしました。"
+        },
+        "fallback": {
+          "astrology": {
+            "name": "星雲ラベンダー",
+            "symbolism": "星明かりの流れに沿って広がる、澄みわたる直感",
+            "vibe": "星のリズムに合わせて呼吸すると、直感が研ぎ澄まされます。"
+          },
+          "jamidusu": {
+            "name": "紫微牡丹",
+            "symbolism": "帝王の気品と中心の力",
+            "keyword1": "帝王",
+            "keyword2": "気品",
+            "keyword3": "中心",
+            "vibe": "中心を守る姿勢こそが、最後にいちばん遠くまで届きます。"
+          },
+          "sukuyo": {
+            "name": "ムーンリリー",
+            "symbolism": "月明かりの中で清らかに咲く守護の花",
+            "keyword1": "月明かり",
+            "keyword2": "守護",
+            "keyword3": "浄化",
+            "vibe": "今夜の月の呼吸とリズムに合わせると、選択がより鮮明になります。",
+            "keywordMansion": "宿曜",
+            "keywordGuardian": "守護動物",
+            "keywordPhase": "月相"
+          }
+        },
+        "legacy": {
+          "astrologyReading": "占星術チャートをもとに運命の花を読み解いています。",
+          "astrologyRhythm": "星のリズムを定めています。",
+          "brightnessEven": "平",
+          "jamidusuReading": "今日の強い星をもとに運命の花を読み解いています。",
+          "mainStarUnknown": "主星未確認",
+          "jamidusuRhythm": "星の気を整えています。",
+          "imperialGrace": "帝王の気品",
+          "moonQuarter": "上弦/下弦の月",
+          "sukuyoReading": "宿曜の二十七宿をもとに運命の花を読み解いています。",
+          "mansionUnknown": "宿未確認"
+        },
+        "badge": {
+          "sun": "太陽星座 {value}",
+          "rising": "アセンダント {value}",
+          "moon": "月星座 {value}",
+          "strongStar": "今日の強い星 {value}",
+          "brightness": "星の明るさ {value}",
+          "moonPhase": "月相 {value}",
+          "guardian": "守護動物 {value}",
+          "palace": "宮位 {value}",
+          "mansionLabel": "宿",
+          "group": "{group}グループ"
+        },
+        "value": {
+          "unknown": "未確認",
+          "pending": "判定待ち",
+          "lifePalace": "命宮"
+        },
+        "wait": {
+          "chartSignal": "チャートのシグナル待ち",
+          "starSignal": "主星のシグナル待ち",
+          "sukuyoSignal": "宿曜のシグナル待ち",
+          "moonRhythm": "月のリズムと同期しています。",
+          "nebulaRhythm": "星雲のリズムを整えています。",
+          "imperialRhythm": "帝王の気を調律しています。",
+          "dayMaster": "日干の判読待ち",
+          "sourceVerdict": "{source}の判定待ち",
+          "mainStar": "主星の判読待ち",
+          "sukuyoReading": "宿曜の判読待ち",
+          "dataLoad": "データの読み込み待ち",
+          "birth": "生年月日の入力待ち"
+        },
+        "stage": {
+          "keywords": "{source}のキーワード · {list}",
+          "astrologyScenario": "占星術の星座開花シナリオを計算しています。",
+          "jamidusuScenario": "紫微斗数の主星開花シナリオを計算しています。",
+          "sukuyoScenario": "宿曜の月光開花シナリオを計算しています。",
+          "seasonTexture": "{season}の趣",
+          "seasonDefault": "季節",
+          "environmentMood": "{environment}のムード",
+          "environmentDefault": "環境",
+          "sajuScenario": "日干と環境の開花シナリオを計算しています。",
+          "dataSheetPreparing": "花のデータシートを準備しています。",
+          "symbolizes": "この花は{symbolism}を象徴しています。",
+          "resonates": "この花は、あなたの今の運勢の流れと強く共鳴しています。",
+          "narrativeFallback": "{verdict} {source}のバランスを基準に、今の開花ポイントを整えました。"
+        },
+        "guide": {
+          "allBloomed": "すべての花が開花しました。お好きなタブでもう一度ご覧ください。",
+          "startSaju": "次のステップ：まず四柱推命の花を開いて、開花を始めましょう。",
+          "next": "次のステップ：{source}の花に進んで、開花を続けましょう。"
+        },
+        "tab": {
+          "lockLabel": "アトリエ解放で開きます"
+        },
+        "verdict": {
+          "preparing": "運命の花の判定を準備しています。",
+          "defaultFlower": "運命の花",
+          "sukuyo": "宿曜占星術で見ると、あなたの花は{name}です。",
+          "jamidusu": "紫微斗数で見ると、あなたの花は{name}です。",
+          "astrology": "占星術で見ると、あなたの花は{name}です。",
+          "saju": "四柱推命で見ると、あなたの花は{name}です。"
+        },
+        "snapshot": {
+          "guidance": "今日は結果よりも先にリズムを整えると、開花のスピードが速まります。"
+        },
+        "empty": {
+          "noDomainData": "まだ連携された{source}のデータがありません。下のボタンを押すと、今あなただけの運命の花が咲きます。",
+          "astroCalculating": "星座チャートを読み取りました。今、占星術の花を選んでいます。",
+          "notLinked": "{source}の花は、連携ボタンを押した瞬間に咲きます。下のボタンを押して、今あなたのもとに届いた一輪に出会ってください。",
+          "linkButton": "運命の花を連携する",
+          "linking": "連携中...",
+          "dataWaiting": "{source}のデータ連携待ち",
+          "readingWaiting": "{source}の判読待ち",
+          "keywordsLoading": "{source}のキーワード · 読み込み中"
+        },
+        "artMood": {
+          "astrology": "星明かりの星雲とネオングローが漂う、幻想的なフローラル",
+          "jamidusu": "帝王の品格と宮廷の洗練美が共存するフローラル",
+          "sukuyo": "月明かりの瞑想と静かな水面のような、澄んだフローラル",
+          "saju": "五行の流れに沿って咲く、叙情的な東洋のフローラル"
+        },
+        "care": {
+          "wood": "朝日が差し込む東向きの窓辺で8分間ストレッチをして、成長点を目覚めさせる",
+          "fire": "南向きの光を5分浴びながら、今日の目標を声に出して宣言する",
+          "earth": "作業スペースの一角を片づけて、中心軸をしっかり立てる",
+          "metal": "優先事項を3つ書き出し、不要な約束は思い切って剪定する",
+          "water": "夜の10分間の散歩と水分補給で、感情の循環路を開く",
+          "default": "光（午前）と水分（夜）のルーティンを固定して、まず基礎の生育リズムを安定させましょう。"
+        },
+        "synergy": {
+          "astrology": "ガラスの花器、シルバーフレーム、繊細な照明",
+          "jamidusu": "サテン生地、ブロンズのオブジェ、左右対称のセラミック",
+          "sukuyo": "すりガラス、月明かりトーンのリネン、波模様のトレイ",
+          "saju": "マットなセラミック、ナチュラルウッド、穏やかな柄のファブリック",
+          "line": "おすすめカラー：プライマリー {primary}、セカンダリー {secondary}、アクセント {accent} / おすすめ素材：{materials}。"
+        },
+        "atelier": {
+          "scenarioTitle": "{source}の開花シナリオ",
+          "growthCycleWaiting": "開花サイクルの計算待ち",
+          "ritualWaiting": "今日の実践ルーティンを計算しています。",
+          "astrology": {
+            "lightingFire": "真夏の正午のように角度の高い、強烈な太陽光",
+            "lightingEarth": "遅い午後の黄金色の光が長くとどまる、安定した光量",
+            "lightingWater": "夜明けの冷たく青い光がゆっくりと広がる照度",
+            "lightingAir": "風のように傾いた斜めの光が、空間を軽やかに開く照度",
+            "humidityWater": "感性の湿度が高い、シルバーミストの状態",
+            "humidityFire": "熱気をはらんだドライエア、感情の反応が速い状態",
+            "humidityEarth": "安定した素焼き鉢の湿度、感情がゆっくりと熟していく状態",
+            "humidityAir": "軽やかで流動的なそよ風の湿度、アイデアがすばやく入れ替わる状態",
+            "seasonFire": "開花加速期：実行と発表がつぼみを押し上げる時期",
+            "seasonWater": "内なる養分期：休息と直感が根の層を満たす時期",
+            "seasonBalance": "バランス調律期：構造と感性が交わり、次の花芽を準備する時期",
+            "section": "天体の照度とエネルギー",
+            "matrixLighting": "☀️ 天体の照度：{value}",
+            "matrixHumidity": "💧 大気の湿度：{value}",
+            "matrixSeason": "🪐 宇宙の季節：{value}",
+            "log": "庭師の観察日誌：太陽星座{sun}の方向性とアセンダント{rising}の光が、花茎の角度を定めます。月星座{moon}の湿度調整が感情の葉脈をやわらかく開き、今週はチャンスが先に見えてくる開花の前兆期です。",
+            "recipe": "秘密のレシピ：夜9時以降は窓辺の照明を一段階落とし、明日実行することを一つ、ノートの一行目に書いておきましょう。朝の最初の12分をその一つだけに集中させると、星明かりのリズムがいちばん早く整います。",
+            "flowerLanguage": "運命の花言葉：星の角度を信じて、先に一歩を踏み出す勇気。",
+            "gardenerWord": "この花に贈るガーデナーのひと言：今日の直感は誇張ではなく予報です。小さな実行が、星雲を現実の花畑に変えます。",
+            "particle": "{source}の光量を粒子に翻訳すると、「{particle}」の質感がもっとも安定して輝きます。"
+          },
+          "jamidusu": {
+            "structureZiwei": "紫微系の星がもつ皇室の気品が宿る、しっかりとした花茎",
+            "structureBreaker": "突破型の将軍気質がつくった、太く剛直な茎",
+            "structureFlexible": "しなやかでありながら簡単には折れない、繊細に重なり合う花びら",
+            "structureBalanced": "均衡型の主星がつくった、洗練された左右対称の花の骨格",
+            "social": "{palace}のまわりを蝶と蜂がめぐるように、身近な縁が役割を分け合って成長を助ける流れです。",
+            "thornsDim": "防御力の高い短い棘が密に生え、境界を築いてくれる時期",
+            "thornsBright": "光を反射する木目のような模様が棘の代わりとなり、気品をもって自分を守る時期",
+            "section": "花の品格とかたち",
+            "matrixStructure": "🏛️ 花の骨格：{value}",
+            "matrixSocial": "🦋 蝶と蜂：{value}",
+            "matrixThorns": "🌵 守護の棘：{value}",
+            "log": "庭師の観察日誌：今日の強い星{star}が茎の中心をまっすぐに立て、星の明るさ{brightness}が花びらのつやを整えます。今は華やかさよりも、構造の完成度が成果を育てる時期です。",
+            "recipe": "秘密のレシピ：机の左側にメタル系のオブジェを一つ置き、今日の基準を一つと譲れるラインを一つ、同時に書き留めましょう。境界がはっきりするほど、花はより優雅に咲きます。",
+            "flowerLanguage": "運命の花言葉：品格とは、堅固な構造から咲くもっとも静かな輝き。",
+            "gardenerWord": "この花に贈るガーデナーのひと言：華やかさを急がないでください。基準を守った一日が、最後にはいちばん長持ちする花茎をつくります。",
+            "particle": "{source}の位階を粒子に翻訳すると、「{particle}」のムードが秩序をもっとも美しく映し出します。"
+          },
+          "sukuyo": {
+            "scentFriend": "月明かりの下に広がる、ほのかなホワイトムスク系",
+            "scentDanger": "濃く深い沈香系、集中力を高める香り",
+            "scentDefault": "澄んだハーブフローラル系、関係の温度をやさしく整える香り",
+            "dewFull": "夜露がもっとも満ち、ひらめきと感情表現がともに豊かな状態",
+            "dewNew": "露が薄く結ぶ新月の時期で、観察と準備が優先される状態",
+            "dewDefault": "ほどよい露の量で、感情のバランスと実行力がともに育つ状態",
+            "companionDragon": "藤とブルーセージの組み合わせ、大きな拡張の流れを支える",
+            "companionDog": "ローズマリーとカモミールの組み合わせ、関係の安定と回復力を強める",
+            "companionTiger": "ユーカリとルドベキアの組み合わせ、決断力と保護本能を強める",
+            "companionDefault": "ラベンダーとアイビーの組み合わせ、情緒の安定と長期的な成長を同時に支える",
+            "section": "縁の香りと露",
+            "matrixScent": "🌙 運命の香り：{value}",
+            "matrixDew": "💦 夜露の量：{value}",
+            "matrixCompanion": "🌿 コンパニオンプランツ：{value}",
+            "log": "庭師の観察日誌：{mansion}の関係性はまず香りとして現れ、月相{phase}は露の密度で感情のリズムを整えます。今は縁のスピードを急かすより、互いの調子を合わせる細やかさが花を長く守ります。",
+            "recipe": "秘密のレシピ：寝る前にコップ一杯の水をゆっくり飲み、今日感謝した人の名前を一つ、そっと書き留めておきましょう。月の水分リズムが安定し、対人運がやわらかく開きます。",
+            "flowerLanguage": "運命の花言葉：静かな共感こそが、もっとも遠くまで広がる香りになる。",
+            "gardenerWord": "この花に贈るガーデナーのひと言：急がなくても大丈夫です。夜露が集まるように、あなたの縁もちょうどよいタイミングで鮮明になります。",
+            "particle": "{source}の月光のリズムを粒子に翻訳すると、「{particle}」のムードがもっとも温かく包み込んでくれます。"
+          },
+          "saju": {
+            "soilCold": "水分を含んだ湿地型の肥沃な土",
+            "soilHot": "水はけのよい、温かな砂利混じりの土",
+            "soilBalanced": "粒がそろい、ミネラルが安定した肥沃な土",
+            "rootStrong": "根が深く張り、外の変化にも中心を保つ段階",
+            "rootWeak": "繊細なひげ根が先に広がり、支えを必要とする段階",
+            "rootBalanced": "中くらいの深さの根が均等に広がる、バランスの段階",
+            "section": "成長の土壌と根",
+            "matrixSoil": "🪨 土壌の成分：{value}",
+            "matrixRoot": "🌱 根の深さ：{value}",
+            "matrixNutrient": "🧪 ガーデナーの栄養剤：{value}",
+            "log": "庭師の観察日誌：今日の庭は{soil}の質感を帯び、「{root}」の流れで生長のエネルギーが動いています。表面は静かに見えても、根の層では次の開花に向けた力がしっかりと蓄えられています。",
+            "recipe": "秘密のレシピ：北向きか東向きの窓辺に青葉の植物を置き、朝の10分は体をほぐし、夜の10分は呼吸を整えましょう。一日二回のリズムを固定することが、用神の気をもっとも早く引き上げます。",
+            "flowerLanguage": "運命の花言葉：しっかりした根は遅く見えても、最後にはいちばん高く咲く。",
+            "gardenerWord": "この花に贈るガーデナーのひと言：焦りよりも積み重ねを信じてください。今日の小さな手入れが、次の季節の大きな実りをつくります。",
+            "particle": "{source}の気の繊細な動きを粒子に翻訳すると、「{particle}」のムードがもっとも調和します。"
+          },
+          "themesWaiting": "人間関係／仕事のテーマを分析しています。",
+          "guidance": "{source}運命の花の実践ガイド：{text}"
+        },
+        "prompt": {
+          "badgesSukuyo": "宿曜バッジ：{mansion} / 月相 {phase} / 守護動物 {guardian}",
+          "badgesJamidusu": "紫微斗数バッジ：今日の強い星 {star} / 星の明るさ {brightness} / 宮位 {palace}",
+          "badgesAstrology": "占星術バッジ：太陽星座 {sun} / アセンダント {rising} / 月星座 {moon}",
+          "badgesSaju": "四柱推命バッジ：身強/身弱 {strength} / 用神 {yongshin} / 調候 {johu}",
+          "symbolismFallback": "運命の流れを象徴する花",
+          "narrativeFallback": "運命の花の物語",
+          "scenarioFallback": "開花シナリオにもとづく演出",
+          "toneDirection": "{source}のトーンディレクション：{mood} / {background}"
+        },
+        "history": {
+          "emptyStatus": "まだ保存された開花記録はありません。現在の結果を保存してみましょう。",
+          "restore": "読み込む",
+          "kakao": "カカオで共有",
+          "delete": "削除",
+          "saved": "開花記録を保存しました：{name}（{time}）",
+          "notFound": "該当する記録が見つかりません。",
+          "restored": "保存した開花記録を読み込みました：{name}",
+          "deleteNotFound": "削除する記録が見つかりませんでした。",
+          "deleted": "選択した開花記録を削除しました。",
+          "nothingToClear": "削除する開花記録がありません。",
+          "cleared": "保存された開花記録をすべて削除しました。",
+          "shareNotFound": "共有する記録が見つかりません。"
+        },
+        "noBirth": {
+          "jamidusu": "紫微斗数の花を見るには、生年月日を入力してください。",
+          "sukuyo": "宿曜占星術の花を見るには、生年月日を入力してください。",
+          "astrology": "占星術の花を見るには、生年月日と生まれた時刻を入力してください。",
+          "saju": "名前と生年月日を先に入力すると、あなただけの運命の花がここに咲きます。"
+        },
+        "studioTitle": "🌸 運命の花アトリエ",
+        "sourceDesc": {
+          "saju": "あなたの日干と月令、五行のバランスを一つひとつ読み解き、今この季節のあなたの気といちばん深く響き合う花を一輪選びます。",
+          "astrology": "太陽星座・アセンダント・月星座が描く三筋の星明かりを重ねて読み、今のあなたのホロスコープといちばん澄んで調和する花を咲かせます。",
+          "jamidusu": "命宮に入った主星とその明るさ、四化の流れをたどり、今のあなたの命盤がもっとも鮮やかに咲かせる花を見つけます。",
+          "sukuyo": "生まれた日の二十七宿と今夜の月相を照らし合わせ、今のあなたの心模様にいちばんやさしく寄り添う花をお届けします。"
+        },
+        "sourceShort": {
+          "saju": "四柱推命",
+          "astrology": "チャート",
+          "jamidusu": "紫微斗数",
+          "sukuyo": "宿曜"
+        },
+        "strength": {
+          "strong": "身強",
+          "weak": "身弱"
+        },
+        "johu": {
+          "hot": "温燥",
+          "cold": "寒湿",
+          "balanced": "中和"
         }
       }
     }
@@ -4418,7 +5223,7 @@
     },
     "premium": {
       "lockedTitle": "ドミネーター レポートがロックされました",
-      "lockedDesc": "ドミネーターモード判定 · 10年リスク係数グラフ · 専門リポート（20,000字以上）· 開運処方箋",
+      "lockedDesc": "ドミネーターモード · 10年の推移グラフ · 全10章の解説 · 月別行動プラン",
       "lockedCost": "5,000ウォンで永久解放",
       "unlockCta": "⚡ DOMINATOR 実行 — 5,000ウォン",
       "generatingTitle": "ドミネーターを実行中…",
@@ -6341,7 +7146,7 @@
         "k53h7ds": "心理テスト",
         "k79pfmc": "ナクシャトラ",
         "k871xeu": "無料・セルフィー顔分析",
-        "ka0v1mf": "無料・11種類のツール",
+        "ka0v1mf": "出席ハチミツ・16の道具",
         "kry6axn": "27宿 月の星座",
         "kslqazg": "総合占いプロンプト",
         "kxgi8q8": "フォーチュンテラー魚",
@@ -6666,7 +7471,7 @@
         "k1ygnp9f2": {
           "ariaLabel": "キーポイント"
         },
-        "k231dx8": "四柱推命・タロット・占星術・紫微斗数など16種類のツールで無料相談プロンプトをすぐに作成してみてください。",
+        "k231dx8": "四柱推命・タロット・占星術・紫微斗数など16の道具で、相談用プロンプトをすぐに作れます。",
         "k3baulf": "訓民正音命名所",
         "k6uqkuq": {
           "ariaLabel": "主要要約"
@@ -6718,7 +7523,7 @@
         "k1scb7d8": {
           "alt": "運命の業 代表イメージ"
         },
-        "koe32kc": "無料体験",
+        "koe32kc": "出席ハチミツ",
         "ktgbfsy": "NEW · 決定版",
         "n50001000020000": "タロット 5,000ウォン · 四柱推命 10,000ウォン · 相性 20,000ウォン",
         "k1dw3t0h": "命盤は無料・専門家相談は有料",
@@ -6739,7 +7544,7 @@
     "tarotTileBody": {
       "featuredContentCardCta": {
         "k1f1oofn": "運命茶屋に入場する",
-        "kdyjsns": "無料で体験する",
+        "kdyjsns": "プロンプトを作る",
         "kwux29x": "戦略室に入場する"
       },
       "pvcPremMeta": {
@@ -6809,7 +7614,7 @@
         "ko4w810": "四柱推命・タロット・占星術など16種類のツール",
         "kozjlt4": "関係・財物・仕事・選択のための現実的助言",
         "kqwk9o": "テーマ別宮と星の流れ相談",
-        "krx9ppb": "無料体験1回・登録後は無制限",
+        "krx9ppb": "3回出席ごとにハチミツ1滴・1回1滴",
         "ktv5xm9": "四柱推命命式と五行バランス判読",
         "ktx0v26": "獅子の紋章の下で選ぶ運命地図",
         "kvigm32": "現在の関係に合わせた現実的助言",
@@ -6952,7 +7757,9 @@
         "n20000Price10000": "10,000ウォン〜",
         "n50000": "50,000ウォン",
         "n30000Price20000": "20,000ウォン",
-        "n20000Price10000Price20000": "20,000ウォン〜"
+        "n5000Price10000": "10,000ウォン〜",
+        "n30000Price20000Price30000": "30,000ウォン",
+        "n20000Price10000Price30000": "30,000ウォン〜"
       }
     },
     "cdSigCardBody": {
@@ -7014,10 +7821,9 @@
     },
     "fortuneGatewayDoor": {
       "fortuneGatewayDoorMeta": {
-        "k18ykrep": "ログインで無料1回",
-        "n115000": "会員登録後1回無料・以降1回3,000ウォン",
         "n130000": "1回30,000ウォン",
-        "k1lo4ibg": "最終クロス判定"
+        "k1lo4ibg": "最終クロス判定",
+        "n13000": "1回5,000ウォン"
       },
       "fortuneGatewayDoorGo": {
         "kkmvgqi": "鑑定を始める",
@@ -7899,12 +8705,12 @@
     "deliverable": {
       "title": "決済で受け取るもの",
       "volumeLabel": "分量",
-      "volumeValue": "最低30,000文字",
+      "volumeValue": "長文の相談レポート",
       "chaptersLabel": "構成",
-      "chaptersValue": "全16章・各章1,900〜2,400文字",
+      "chaptersValue": "15章 · テーマ別の解釈と最後の手紙",
       "keepLabel": "保存",
-      "keepValue": "PDFで保存して永久保存",
-      "guarantee": "基準分量に届かない章は最大2回まで自動で書き直します。それでも満たせないときは結果を出さず失敗として扱うため、再試行と返金の導線がそのまま残ります。"
+      "keepValue": "PDF保存 · 章ごとのコピー",
+      "guarantee": "出生情報と計算データにより解釈できる範囲は異なります。保存された相談から完成済みの内容を再確認できます。"
     }
   },
   "errorBoundary": {

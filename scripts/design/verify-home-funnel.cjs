@@ -21,13 +21,13 @@ function contrast(foreground, background) {
   return (Math.max(a, b) + .05) / (Math.min(a, b) + .05);
 }
 
-// 첫 방문은 질문 상담과 무료 운세가 우선이며, 전체 카탈로그는 펼쳐서 탐색한다.
+// 2026-10-12: 첫 방문은 고민 입구 3개 → 결과 예시 → 신뢰 기록 → 대표 상담 순서다. 전체 카탈로그는 펼쳐서 탐색한다.
 async function assertEssentials(page, label) {
   const essentials = [
-    ['search', '#cdhServices #fortuneGatewaySearch'],
-    ['methods', '#cdQuickServices'],
-    ['concern', '#cdhConcern #cdConcernPick'],
-    ['chat', '.cdh-room-link:visible'],
+    ['question', '.cdh-primary'],
+    ['topics', '.cdh-topics a[href="/yeongnyangi/consult/work-money/"]'],
+    ['samples', '.cdh-samples a'],
+    ['records', '.cdh-records'],
     ['signature', '#cdSignatureConsult'],
   ];
   for (const [name, selector] of essentials) {
@@ -76,8 +76,7 @@ async function assertEssentials(page, label) {
       assert.equal(await page.locator('#cdhMore').evaluate((more) => more.open), false, 'secondary garden starts folded');
       assert.equal(await page.locator('#cdhDiarySlot #cdDiaryPlannerEntry').isVisible(), false, 'diary waits behind one tap');
       const passCta = page.locator('#cdhPass .cdh-pass__btn');
-      assert.ok(await passCta.isVisible(), 'pass is visible in the primary flow');
-      assert.equal(await passCta.evaluate((node) => Boolean(node.closest('details:not([open])'))), false, 'pass stays outside the closed garden');
+      for (const selector of ['#cdhPass .cdh-pass__btn', '#cdQuickServices', '.cd-soulcat-entry']) assert.equal(await page.locator(selector).first().evaluate((node) => Boolean(node.closest('details:not([open])'))), true, selector + ' waits in the full catalogue');
       assert.ok(await page.locator('#cdhFeedbackSlot .cd-feedback__cta').isVisible(), 'bug report card stays in the primary flow');
       // 버그 제보실은 한 줄 행이 아니라 마스코트·본문이 보이는 큰 카드다(2026-10-01).
       const bugCard = await page.locator('#cdhFeedbackSlot .cd-feedback__card').evaluate((card) => ({
@@ -102,7 +101,7 @@ async function assertEssentials(page, label) {
       await page.waitForFunction(() => document.querySelector('#cdhMore > summary').getAttribute('aria-expanded') === 'true', null, { timeout: 1000 });
       assert.ok(await page.locator('#cdhMore .cdh-more__off').isVisible(), 'open label offers to close the garden');
       assert.equal(await page.locator('#cdhMore .cdh-more__on').isVisible(), false, 'only one garden label shows');
-      for(const selector of ['#cdQuickServices','#cdConcernPick','#cdSignatureConsult','.cdh-room-link'])assert.ok(await page.locator(selector).first().isVisible(), 'exploration restores '+selector);
+      for(const selector of ['#cdhServices #fortuneGatewaySearch','#cdQuickServices','.cd-soulcat-entry','#cdConcernPick','#cdSignatureConsult','.cdh-room-link'])assert.ok(await page.locator(selector).first().isVisible(), 'exploration restores '+selector);
       assert.ok(await page.locator('#cdhDiarySlot #cdDiaryPlannerEntry').isVisible(), 'diary restored');
       assert.ok(await page.locator('#cdhExpertsSlot #cdAiFeatures').isVisible(), 'experts restored');
       assert.equal(await page.locator('#cdHomeExpandToggle').count(), 0, 'the garden is the only home fold');
@@ -250,7 +249,7 @@ async function assertEssentials(page, label) {
     assert.equal(await deepLink.locator('#cdhMore').evaluate((more) => more.open), false, 'featured is directly visible without opening more');
     await deepLink.goto(origin + '/static/index.html#cdhPass', { waitUntil: 'domcontentloaded' });
     await deepLink.locator('#cdhPass .cdh-pass__btn').waitFor({ state: 'visible', timeout: 10000 });
-    assert.equal(await deepLink.locator('#cdhMore').evaluate((more) => more.open), false, '#cdhPass stays in the primary flow without opening the garden');
+    assert.equal(await deepLink.locator('#cdhMore').evaluate((more) => more.open), true, '#cdhPass deep link opens the full catalogue');
 
     for (const anchor of ['cdhExpertsSlot']) {
       await deepLink.goto(origin + '/static/index.html#' + anchor, { waitUntil: 'domcontentloaded' });

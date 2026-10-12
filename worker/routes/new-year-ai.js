@@ -1694,8 +1694,13 @@ function describeConsistencyIssuesForRepair(issues = [], fortuneData = null) {
 }
 
 // 재생성은 "처음부터 다시"가 아니라 "직전 결과를 살리며 보강"이다 — 살릴 내용을 잃지 않는다.
-function buildSectionPrompt(input, fortuneData, section, repairLines = [], previousText = "") {
-  const base = buildFirstPrompt(input, fortuneData, section);
+function buildSectionPrompt(input, fortuneData, section, repairLines = [], previousText = "", priorSections = []) {
+  const opening = priorSections.find(row => row.key === "opening" && clean(row.text));
+  const decision = section.key !== "opening" && opening
+    ? ["", "[앞 장의 질문 답변 — 판단의 연속성]", clean(opening.text).split(/\*\*타고난 성향/)[0].slice(0, 2000),
+      "위 답변은 앞 장에서 이미 제시한 판단입니다. 이번 장의 권고 방향·우선순위·시기를 그 판단과 연결하세요. 병행·준비 단계와 최종 선택을 구분하고, 다른 선택지가 더 낫다고 결론을 뒤집지 마세요. 달라지는 조건이 있다면 그 조건을 명시하세요. 앞 장 문장을 반복하지 마세요."]
+    : [];
+  const base = [buildFirstPrompt(input, fortuneData, section), ...decision].join("\n");
   if (!repairLines.length) return base;
   // 첫 시도에는 직전 본문이 없다 — 빈 "다시 쓰세요" 블록을 붙이지 않는다.
   return [
@@ -1867,12 +1872,12 @@ function buildMockConsultationText(options = {}) {
 // 섹션 하나를 생성한다. **절대 throw 하지 않는다** — 실패를 값으로 돌려주어
 // 한 섹션의 실패가 나머지 세 섹션까지 죽이지 못하게 한다(master-love-codex의 챕터 폴백과 같은 철학).
 async function generateConsultationSection(env, options) {
-  const { input, fortuneData, section, cache, timeoutMs, logContext, repairLines = [], previousText = "" } = options;
+  const { input, fortuneData, section, cache, timeoutMs, logContext, repairLines = [], previousText = "", priorSections = [] } = options;
   const base = { key: section.key, section, provider: "", model: "", truncated: false, isMock: false };
   // 예산이 바닥났으면 호출 자체를 건너뛴다(직전 텍스트가 있으면 그대로 살린다).
   if (!(timeoutMs > 0)) return { ...base, text: previousText, ok: false, reason: "BUDGET_EXHAUSTED" };
   try {
-    const ai = await callGeminiText(env, buildSectionPrompt(input, fortuneData, section, repairLines, previousText), {
+    const ai = await callGeminiText(env, buildSectionPrompt(input, fortuneData, section, repairLines, previousText, priorSections), {
       systemPrompt: buildSystemPrompt(section),
       taskType: "fortune",
       temperature: repairLines.length ? 0.62 : 0.72,
@@ -2397,6 +2402,7 @@ async function generateNewYearWave(env, input, fortuneData, options) {
       await options.onReserve(candidate.key, valid(candidate) && !mapIssuesToSections({ issues: contentIssues(results) }, results).has(candidate.key));
       const generated = await generateConsultationSection(env, {
         input, fortuneData, section: candidate.section, allowShortDraft: true,
+        priorSections: results.filter(row => row.key !== candidate.key && row.ok && !row.truncated && !row.isMock),
         timeoutMs: Math.min(NEW_YEAR_AI_SECTION_TIMEOUT_MS, remaining),
         cache: null, logContext: options.logContext,
         repairLines: [

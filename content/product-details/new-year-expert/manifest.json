@@ -1,0 +1,98 @@
+{
+  "id": "new-year-expert",
+  "featureKey": "new-year-ai-consultation",
+  "title": "신년운세 전문가 상담",
+  "notice": "선택한 연도의 명식·세운·월별 흐름을 읽는 AI 상담입니다. 이름 또는 닉네임·성별·생년월일·출생시간·양음력·상담연도·집중흐름을 입력하고 질문은 최대1,000자이며 직접질문 주제는2자 이상 필수입니다. 올해·내년·다른연도를 선택할 수 있습니다. 실제 생성은 질문과 성향,총운,재물직업,애정관계,1~12월,건강개운의6부분이며 화면은 질문 답변,원국,다섯분야,월별달력·편지로 제공합니다. 결과 PDF와 상담기록을 지원합니다. 진행 중 부분상담과 완성상태를 구분합니다. 시간미상 등 자료한계를 유지하며 건강해석은 진단·처방이 아닙니다. 색·방향은 전통적 상징 참고이며 성과보장이 아닙니다. 예시는 가상 예시 프로필로 생성한 실제 AI 결과를 고치지 않고 발췌한 것으로 고객 결과·후기가 아니며, 결과는 입력에 따라 달라집니다. 이미지는 분위기연출입니다. 실제사람의 실시간1:1상담이 아닙니다. 종합사주·인생책·다른연도 새상담은 별도입니다. 현재 이용권·월정석·단건결제 조건은 결제창에서 확인합니다.",
+  "panels": [
+    {
+      "id": "01-a-year-you-can-read-month-by-month",
+      "title": "새로운 한 해, 어디에 힘을 쓸까요?",
+      "alt": "새로운 한 해, 무엇을 준비하고 어디서 쉬어갈까요?",
+      "src": "/feature-details/crafted/new-year-expert/01-a-year-you-can-read-month-by-month.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "새로운 한 해,\n어디에 힘을 쓸까요?\n\n해가 바뀌어도 고민은 이어지죠.\n나의 명식과 선택한 연도의 흐름을\n겹쳐 읽으며, 일과 관계의 선택을\n열두 달의 계획으로 풀어보세요.\n\n신년운세 전문가 상담 · AI 해설"
+    },
+    {
+      "id": "02-select-a-year-and-a-question",
+      "title": "올해도 내년도, 살펴볼 연도부터 고르세요.",
+      "alt": "올해도 내년도, 살펴볼 연도부터 고르세요.",
+      "src": "/feature-details/crafted/new-year-expert/02-select-a-year-and-a-question.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "올해도 내년도,\n살펴볼 연도부터 고르세요.\n상담 연도 선택\n\n올해·내년 또는 다른 연도를\n직접 입력해 살펴볼 수 있어요.\n\n더 깊게 볼 흐름 선택\n\n일·돈·관계 등 관심 주제를 골라요.\n\n궁금한 선택을 질문으로\n\n현재 상황과 비교할 선택을 적으면\n그 질문에 먼저 답해요.\n\n질문은 최대 1,000자.\n직접 질문 주제는 2자 이상 입력해요."
+    },
+    {
+      "id": "03-your-chart-and-the-year",
+      "title": "타고난 바탕과 올해의 변화를 나눠 읽어요.",
+      "alt": "타고난 바탕과 올해의 변화를 나눠 읽어요.",
+      "src": "/feature-details/crafted/new-year-expert/03-your-chart-and-the-year.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "타고난 바탕과\n올해의 변화를 나눠 읽어요.\n타고난 성향과 지금의 마음\n\n일간·태어난 계절·오행의 근거로\n강점과 반복되는 부담을 살펴요.\n\n올해의 총운\n\n선택한 연도의 기운이\n내 명식과 만나는 조건을 풀어요.\n\n사주 원국을 함께 확인\n\n해설의 출발점이 된 명식과\n제공된 핵심 자료를 읽어요."
+    },
+    {
+      "id": "04-work-and-relationships",
+      "title": "돈과 일, 마음과 관계를 각각 살펴요.",
+      "alt": "돈과 일, 마음과 관계를 각각 살펴요.",
+      "src": "/feature-details/crafted/new-year-expert/04-work-and-relationships.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "돈과 일, 마음과 관계를\n각각 살펴요.\n재물과 직업\n\n재물·수입, 직업·이직의 흐름을\n역할과 선택의 조건으로 풀어요.\n\n애정과 대인관계\n\n연애·재회, 가족·관계의 흐름에서\n표현과 거리의 조절을 살펴요.\n\n학업과 성장\n\n올해 총운 안에서 배움과\n성장에 힘을 쓰는 방향을 읽어요.\n\n입력하지 않은 개인사나 상대 마음을\n사실처럼 단정하는 상담이 아니에요."
+    },
+    {
+      "id": "05-twelve-months-with-different-emphases",
+      "title": "열두 달을 펼치면, 힘을 쓸 자리가 보여요.",
+      "alt": "열두 달을 펼치면, 힘을 쓸 자리가 보여요.",
+      "src": "/feature-details/crafted/new-year-expert/05-twelve-months-with-different-emphases.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "열두 달을 펼치면,\n힘을 쓸 자리가 보여요.\n1월\n2월\n3월\n4월\n5월\n6월\n7월\n8월\n9월\n10월\n11월\n12월\n\n월별 달력과 각 달의 편지를 통해\n그 달의 간지·핵심 키워드와\n기회·주의·정비의 흐름을 읽어요.\n\n그림은 목차 안내예요.\n특정 달의 길흉을 미리 정한 예시는 아니에요."
+    },
+    {
+      "id": "06-the-monthly-letter",
+      "title": "같은 조언을 열두 번, 반복하지 않도록.",
+      "alt": "같은 조언을 열두 번, 반복하지 않도록.",
+      "src": "/feature-details/crafted/new-year-expert/06-the-monthly-letter.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "같은 조언을 열두 번,\n반복하지 않도록.\n달마다 다른 근거\n\n계산된 월의 간지와 십성,\n두드러지는 생활 영역을 짚어요.\n\n달마다 다른 확인\n\n움직일지 정리할지 살피며\n그 달에 해볼 행동을 읽어요.\n\n시기는 계획의 참고로\n\n계약·재회·합격의 확정 날짜나\n성공 확률을 제공하지 않아요."
+    },
+    {
+      "id": "07-health-and-everyday-renewal",
+      "title": "몸과 마음의 리듬도, 한 해의 계획 안에.",
+      "alt": "몸과 마음의 리듬도, 한 해의 계획 안에.",
+      "src": "/feature-details/crafted/new-year-expert/07-health-and-everyday-renewal.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "몸과 마음의 리듬도,\n한 해의 계획 안에.\n\n건강과 개운법에서는 오행의 쏠림을\n전통적 관점에서 읽고,\n휴식·생활 습관·마음가짐을 살펴요.\n\n색이나 방향은 상징적 참고.\n성과를 보장하는 방법이나\n의학적 진단·처방으로\n받아들이지 말아주세요.\n\n불편한 증상은 의료진에게 확인해요.\n해석을 이유로 필요한 진료를 미루지 않아요."
+    },
+    {
+      "id": "08-an-annual-question-in-action",
+      "title": "계획을 세울 때, 확인할 조건을 남겨요.",
+      "alt": "가상 예시 프로필로 재생성한 실제 신년운세 AI 결과 「재물과 직업」 장에서 직무와 성장 가능성을 확인하는 원문 두 문장 발췌.",
+      "src": "/feature-details/crafted/new-year-expert/08-an-annual-question-in-action.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "계획을 세울 때,\n확인할 조건을 남겨요.\n\n실제 AI 결과 원문 발췌 · 가상 예시 프로필\n\n특히 6월과 7월은 정관(正官)과 편관(偏官)이 연이어 들어오면서, 조직 내에서의 당신의 역할이 명확해지고 중요한 제안을 받을 가능성이 높습니다. 이때는 단순히 연봉만을 기준으로 삼기보다는, 당신의 역량을 최대한 발휘할 수 있는 직무와 성장 가능성을 함께 고려하는 것이 중요합니다.\n\n가상 프로필로 생성한 실제 결과 중\n「재물과 직업」 장 · 선택의 기준.\n고객 결과나 후기가 아니에요."
+    },
+    {
+      "id": "09-read-save-and-return",
+      "title": "분야별로 읽고, PDF로 다시 펼쳐보세요.",
+      "alt": "분야별로 읽고, PDF로 다시 펼쳐보세요.",
+      "src": "/feature-details/crafted/new-year-expert/09-read-save-and-return.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "분야별로 읽고,\nPDF로 다시 펼쳐보세요.\n질문 답변과 다섯 분야\n\n성향·총운·재물직업·애정관계·건강\n\n별도로 펼치는 열두 달\n\n달력과 월별 편지로 이동해요.\n\n결과 PDF와 상담 기록\n\n저장한 상담을 다시 읽고\n필요한 계획을 정리해요.\n\n생성 중 일부 분야만 보이는 상태와\n완료된 전체 상담을 구분해 주세요."
+    },
+    {
+      "id": "10-check-the-input-before-you-start",
+      "title": "한 해를 단정하기보다, 선택을 준비하는 상담.",
+      "alt": "한 해를 단정하기보다, 선택을 준비하는 상담.",
+      "src": "/feature-details/crafted/new-year-expert/10-check-the-input-before-you-start.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "한 해를 단정하기보다,\n선택을 준비하는 상담.\n\n생년월일·출생시간·양력 또는 음력,\n성별과 상담 연도를 확인해 주세요.\n시간을 모르면 관련 해석에 한계가 있어요.\n\nAI가 작성하는 상담이며 실제 인물의\n실시간 일대일 상담이 아니에요.\n종합 사주·인생책·다른 연도 상담은 별도예요.\n현재 이용 조건은 결제창에서 확인해요."
+    }
+  ]
+}

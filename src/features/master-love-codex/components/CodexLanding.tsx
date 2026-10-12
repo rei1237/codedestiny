@@ -11,7 +11,10 @@
  *    거짓 가격이 되므로 두 상품을 나란히 세운다. 금액은 전부 PriceBadge(서버 조회)다.
  */
 
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
+import { PriceBadge } from "@/app/components/PriceBadge";
+import { trackEvent } from "@/lib/analytics";
 import Link from "next/link";
 import { ArrowDownRight, Check, ChevronLeft, Home } from "lucide-react";
 import CodexShell from "./CodexShell";
@@ -40,13 +43,27 @@ interface CodexLandingProps {
 
 /** 하단 고정 바는 추천 상품(궁합)의 금액을 든다 — 눌렀을 때 시작되는 상품과 반드시 같아야 한다. */
 const FLOATING_MODE: MasterLoveCodexMode = "compat";
+/** 홈 결과 예시 띠가 여는 자리 — 한국어 상세 안내(CraftedProductDisclosure) 묶음이다. */
+const SAMPLE_ID = "codex-sample";
+
+function trackCodexStep(event: string, locale: string) {
+  trackEvent(event, { service: "master-love-codex", surface: "codex_landing", locale });
+}
 
 export default function CodexLanding({ hasSeenPrologue, chapterCount, onEnter, onReplayPrologue, library }: CodexLandingProps) {
   const locale = useMasterLoveCodexLocale();
   const copy = useMasterLoveCodexCopy();
   const heroSpecs = useCodexContentCopy("heroSpecs", CODEX_HERO_SPECS);
   const floatingBilling = masterLoveCodexBilling(FLOATING_MODE, locale);
-  const soloTitle = masterLoveCodexBilling("solo", locale).title;
+  const soloBilling = masterLoveCodexBilling("solo", locale);
+  const compatBilling = masterLoveCodexBilling("compat", locale);
+  const soloTitle = soloBilling.title;
+  useEffect(() => { trackCodexStep("product_detail_view", locale); }, [locale]);
+  const openSample = () => {
+    trackCodexStep("product_sample_open", locale);
+    const sample = document.querySelector<HTMLDetailsElement>(`#${SAMPLE_ID} details`);
+    if (sample) sample.open = true;
+  };
 
   return (
     <CodexShell ariaLabel={copy.entryAriaLabel(soloTitle)}>
@@ -68,12 +85,22 @@ export default function CodexLanding({ hasSeenPrologue, chapterCount, onEnter, o
         <div className={styles.landingHeroCopy}>
           <h2 className={styles.landingHeroTitle}>{soloTitle}</h2>
           <p className={styles.landingHeroEnglish}>MASTER LOVE CODEX</p>
+          {/* 첫 화면에서 가격·분량·소장 방식을 먼저 보인다. 금액은 두 SKU 모두 PriceBadge(서버 조회)다. */}
+          <p className={styles.landingPrice}>
+            <span>{locale === "ko" ? "개인" : "Solo"} <PriceBadge featureKey={soloBilling.featureKey} fallbackCoins={soloBilling.cost} /></span>
+            <span aria-hidden="true"> · </span>
+            <span>{locale === "ko" ? "궁합" : "Pair"} <PriceBadge featureKey={compatBilling.featureKey} fallbackCoins={compatBilling.cost} /></span>
+            <small>{locale === "ko" ? `${chapterCount}장 · PDF 소장 · 결과 영구 보관` : `${chapterCount} chapters · PDF to keep · Results saved`}</small>
+          </p>
           <p className={styles.landingLead}>{copy.heroDescription(chapterCount)}</p>
           <p className={styles.landingEdition}>{copy.chaptersActsSuffix(chapterCount)}</p>
-          <a href="#codex-reading-options" className={`${styles.cta} ${styles.heroChoose}`}>
-            {copy.chooseReadingButton}
-            <ArrowDownRight className="h-4 w-4" aria-hidden="true" />
-          </a>
+          <div className={styles.heroActions}>
+            <a href="#codex-reading-options" className={`${styles.cta} ${styles.heroChoose}`} onClick={() => trackCodexStep("product_start_click", locale)}>
+              {copy.chooseReadingButton}
+              <ArrowDownRight className="h-4 w-4" aria-hidden="true" />
+            </a>
+            {locale === "ko" && <a href={`#${SAMPLE_ID}`} className={styles.heroSample} onClick={openSample}>결과 예시 보기</a>}
+          </div>
         </div>
         <figure className={styles.landingPortrait}>
           <CodexArtwork
@@ -135,6 +162,18 @@ export default function CodexLanding({ hasSeenPrologue, chapterCount, onEnter, o
               <CodexPremiumCard mode="solo" onSelect={onEnter} />
             </CodexReveal>
           </div>
+          {locale === "ko" && <div id={SAMPLE_ID} className="mt-10 space-y-8">
+            <section aria-label="개인판 상세 안내">
+              <h3 className={styles.chapterTitle}>나를 읽는 개인판</h3>
+              <CraftedProductDisclosure featureKey="master-love-codex" />
+              <a className={styles.detailReturn} href="#codex-plan-solo">개인판 가격과 상담 시작 확인하기</a>
+            </section>
+            <section aria-label="궁합판 상세 안내">
+              <h3 className={styles.chapterTitle}>두 사람을 읽는 궁합판</h3>
+              <CraftedProductDisclosure featureKey="master-love-codex-compat" />
+              <a className={styles.detailReturn} href="#codex-plan-compat">궁합판 가격과 상담 시작 확인하기</a>
+            </section>
+          </div>}
         </div>
       </section>
 

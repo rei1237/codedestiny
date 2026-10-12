@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { DestinyProfileCard } from "@/app/_lib/profile-card-storage";
 import { Yantra, Spark } from "./NakshatraSymbols";
@@ -14,10 +14,27 @@ import {
 } from "./nakshatra-birth";
 import { useNakshatraCopy } from "./_lib/copy";
 import { NAKSHATRA_RESULT_STORAGE_KEY } from "./_lib/nakshatra-context";
+import { useCoinGate } from "@/app/hooks/useCoinGate";
+import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "@/app/hooks/usePaidResume";
+import { resolveServerFeaturePricing } from "@/lib/payment/server-feature-pricing";
 
 export { NAKSHATRA_RESULT_STORAGE_KEY } from "./_lib/nakshatra-context";
 
 const nowYear = new Date().getFullYear();
+const BASIC_READING_FEATURE_KEY = "nakshatra-basic-reading";
+const BASIC_READING_PRICING = resolveServerFeaturePricing({ featureKey: BASIC_READING_FEATURE_KEY });
+
+type NakshatraResolveBody = {
+  year: number;
+  month: number;
+  day: number;
+  hour: number;
+  minute: number;
+  timezone: number;
+  lat: number;
+  lon: number;
+  timeUnknown: boolean;
+};
 
 function digits(value: string, max: number): string {
   return value.replace(/\D/g, "").slice(0, max);
@@ -45,6 +62,41 @@ export default function NakshatraFormClient() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { ensurePaidAccess, isPaying } = useCoinGate();
+
+  const resolveReading = useCallback(async (body: NakshatraResolveBody) => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/nakshatra/resolve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data || !data.ok) {
+        setError(data && data.message ? data.message : copy.formResolveFailedError);
+        return false;
+      }
+      try {
+        sessionStorage.setItem(NAKSHATRA_RESULT_STORAGE_KEY, JSON.stringify(data));
+      } catch {
+        // sessionStorage 불가(사생활 모드 등) — 결과 화면에서 재입력 안내로 폴백.
+      }
+      router.push("/nakshatra/result");
+      return true;
+    } catch {
+      setError(copy.formNetworkError);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, [copy.formNetworkError, copy.formResolveFailedError, router]);
+
+  const buildResolveResume = usePaidResume(BASIC_READING_FEATURE_KEY, async (args) => {
+    const body = unpackPaidResumeArg<NakshatraResolveBody>(args.body);
+    if (!body) return false;
+    return resolveReading(body);
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -138,29 +190,18 @@ export default function NakshatraFormClient() {
       timeUnknown: effectiveTimeUnknown,
     };
 
-    setLoading(true);
-    try {
-      const res = await fetch("/api/nakshatra/resolve", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      const data = await res.json().catch(() => null);
-      if (!res.ok || !data || !data.ok) {
-        setError(data && data.message ? data.message : copy.formResolveFailedError);
-        setLoading(false);
-        return;
-      }
-      try {
-        sessionStorage.setItem(NAKSHATRA_RESULT_STORAGE_KEY, JSON.stringify(data));
-      } catch {
-        // sessionStorage 불가(사생활 모드 등) — 결과 화면에서 재입력 안내로 폴백.
-      }
-      router.push("/nakshatra/result");
-    } catch {
-      setError(copy.formNetworkError);
-      setLoading(false);
-    }
+    if (!BASIC_READING_PRICING || isPaying) return;
+    const paid = await ensurePaidAccess({
+      resume: buildResolveResume({ body: packPaidResumeArg(body) }),
+      featureKey: BASIC_READING_FEATURE_KEY,
+      coinPrice: BASIC_READING_PRICING.cost,
+      cost: BASIC_READING_PRICING.cost,
+      amountKRW: BASIC_READING_PRICING.amountKRW,
+      reason: "나크샤트라 기본 리딩",
+      requestId: `${BASIC_READING_FEATURE_KEY}:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+    });
+    if (paid.ok) await resolveReading(body);
+    else if (paid.code !== "PAYMENT_CANCELLED") setError(paid.message || "결제를 완료하지 못했어요. 잠시 후 다시 시도해 주세요.");
   }
 
   return (
@@ -263,9 +304,9 @@ export default function NakshatraFormClient() {
 
       {error && <p role="alert" className={styles.errorBox}>{error}</p>}
 
-      <button type="submit" disabled={loading} className={styles.submit}>
+      <button type="submit" disabled={loading || isPaying || !BASIC_READING_PRICING} className={styles.submit}>
         <Spark className={styles.spark} />
-        {loading ? copy.formSubmittingButton : copy.formSubmitButton}
+        {loading || isPaying ? "이용권 확인 중" : `${copy.formSubmitButton} · 3,000원`}
       </button>
       <p className={styles.disclaimer}>{copy.formDisclaimer}</p>
     </form>

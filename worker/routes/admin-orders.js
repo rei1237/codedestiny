@@ -78,6 +78,8 @@ function toAdminOrder(payment) {
   };
 }
 
+const ADMIN_FAILURE_CODE_FILTERS = new Set(["delivery_failed_manual_review"]);
+
 async function buildListFilter(request, env) {
   const url = new URL(request.url);
   const q = String(url.searchParams.get("q") || "").trim();
@@ -86,6 +88,7 @@ async function buildListFilter(request, env) {
   const status = String(url.searchParams.get("status") || "").trim();
   const orderState = String(url.searchParams.get("orderState") || "").trim();
   const paymentType = String(url.searchParams.get("paymentType") || "").trim();
+  const failureCode = String(url.searchParams.get("failureCode") || "").trim();
   const from = String(url.searchParams.get("from") || "").trim();
   const to = String(url.searchParams.get("to") || "").trim();
 
@@ -93,6 +96,8 @@ async function buildListFilter(request, env) {
   if (status) filter.status = status;
   if (orderState) filter.orderState = orderState;
   if (paymentType) filter.paymentType = paymentType;
+  // 허용값만 받는다 — 지급 보류(프로필 선택 대기 포함, worker/payments/birth-profile-claim.js) 조회용.
+  if (ADMIN_FAILURE_CODE_FILTERS.has(failureCode)) filter.failureCode = failureCode;
 
   if (q) {
     const rx = { $regex: escapeRegex(q), $options: "i" };

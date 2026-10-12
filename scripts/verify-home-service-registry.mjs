@@ -77,6 +77,14 @@ function bucketOfWon(won) {
 function readPrice(raw) {
   const text = String(raw || "").trim();
   if (!text) return null;
+  if (["차트 공개", "읽을거리", "기록 도구", "연재 읽을거리"].includes(text)) {
+    return { bucket: "free", krw: null, krwTo: null };
+  }
+  const streamingWithDownload = text.replace(/,/g, "").match(/^스트리밍\s*·\s*다운로드\s*(\d{3,7})원$/);
+  if (streamingWithDownload) {
+    const won = Number(streamingWithDownload[1]);
+    return { bucket: "free", extraBucket: bucketOfWon(won), krw: null, krwTo: null, optionalKRW: won };
+  }
   if (/^무료(\s*시작)?$/.test(text)) return { bucket: "free", krw: null, krwTo: null };
   const freeWithPaidOption = text.replace(/,/g, "").match(/^무료\s*재생\s*·\s*다운로드\s*(\d{3,7})원$/);
   if (freeWithPaidOption) {
@@ -147,7 +155,7 @@ for (const item of registry) {
 
   const price = readPrice(item.price);
   if (!price) {
-    fail(`${at}: price "${item.price}" 를 해석할 수 없다 — '무료' | '무료 시작' | '이용권' | 'N,NNN원' | 'N,NNN원~M,MMM원' 만 허용`);
+    fail(`${at}: price "${item.price}" 를 해석할 수 없다 — 비운세 분류 라벨 | '무료 시작' | '이용권' | 'N,NNN원' | 'N,NNN원~M,MMM원' 만 허용`);
     continue;
   }
 
@@ -215,13 +223,13 @@ while ((match = TILE_OPEN.exec(shell))) {
   const coin = attrOf(head, "data-coin-cost") || attrOf(head, "data-tile-lock-cost");
   const label = attrOf(head, "aria-label") || featureKey;
   const chunk = shell.slice(match.index, match.index + 3000);
-  const badge = (chunk.match(/class="(?:tarot-tile__coin-badge|cd-sig-card__price[^"]*)"[^>]*>([^<]{1,40})/) || [])[1] || "";
+  const badge = (chunk.match(/class="[^"]*(?:tarot-tile__coin-badge|cd-sig-card__price)[^"]*"[^>]*>([^<]{1,40})/) || [])[1] || "";
 
   const shown = badge.replace(/,/g, "").match(/(\d{3,7})\s*원/);
   const feature = resolveFeature(featureKey);
   if (!feature) {
     /* 값이 걸린 타일만 정본 등재를 강제한다. 코인·가격이 전혀 없는 타일의 data-feature-key 는
-       과금 키가 아니라 단순 마커다(예: fortune-prompt-hub — 무료 진입). 돈 냄새가 나면 실패. */
+       과금 키가 아니라 단순 마커다(예: fortune-prompt-hub — 출석 꿀방울 진입). 돈 냄새가 나면 실패. */
     if (coin || shown) {
       fail(`셸 타일 "${label}": data-feature-key "${featureKey}" 가 결제 정본에 없는데 가격이 걸려 있다 (coin=${coin || "-"}, 배지="${badge.trim() || "-"}")`);
     } else {

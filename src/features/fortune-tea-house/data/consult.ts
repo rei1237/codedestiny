@@ -358,6 +358,8 @@ export type FortuneTeaSukuyoCompatibilitySnapshot = {
   strengths: string[];
   cautions: string[];
   adviceKeywords: string[];
+  /** 월별 흐름·관계 처방·실행 체크리스트 — 제목은 서버 정본. */
+  chapters?: { title: string; body: string }[];
   roleGuide?: {
     userAction: string;
     partnerAction: string;

@@ -6,10 +6,10 @@
   <meta name="robots" content="noindex, nofollow">
   <title>천체의 선율 타로 | Celestial Harmony Tarot</title>
   <script src="/js/core/standalone-ai-locale.js?v=20260909-1"></script>
-<script src="/js/core/pass-verdict.js?v=build-6c9b9d6bbb38"></script>
-<script src="/js/core/checkout-entry.js?v=build-6c9b9d6bbb38"></script>
+<script src="/js/core/pass-verdict.js?v=build-f0d657bab4e4"></script>
+<script src="/js/core/checkout-entry.js?v=build-f0d657bab4e4"></script>
   <script src="/js/core/payment-service.js?v=build-payment-service-v1"></script>
-<script src="/js/destiny-profile.js?v=build-3125485d5e95"></script>
+<script src="/js/destiny-profile.js?v=build-d93b57bed522"></script>
 <style>
     *, *::before, *::after { box-sizing: border-box; }
     body {
@@ -848,6 +848,7 @@ body{font-family:var(--font-body)!important;line-height:1.68;letter-spacing:0;te
 h1,h2,h3,.title,.cover-title,.hero-title,.card-title,.section-title{font-family:var(--font-display)!important;letter-spacing:0;word-break:keep-all}
 button,input,select,textarea{font-family:var(--font-body)!important}
 </style>
+<style>.cd-page>.oracle-crafted{margin:28px auto}</style>
 </head>
 <body>
   <div id="starsBg"></div>
@@ -2361,5 +2362,9 @@ button,input,select,textarea{font-family:var(--font-body)!important}
     }());
   }());
   </script>
+<script type="module">
+import {mountOracleCraftedDetails} from "/js/core/oracle/crafted-details.mjs";
+mountOracleCraftedDetails(document.querySelector(".cd-page"),{target:"#boardSec",id:"celestial-harmony",title:"천체의 선율 타로"});
+</script>
 </body>
 </html>

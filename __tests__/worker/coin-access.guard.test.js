@@ -132,7 +132,7 @@ describe("Fortune coin access guard", () => {
     });
 
     expect(priced.ok).toBe(true);
-    expect(priced.cost).toBe(30);
+    expect(priced.cost).toBe(50);
     expect(priced.pricingSource).toBe("feature-reason");
   });
 
@@ -147,7 +147,7 @@ describe("Fortune coin access guard", () => {
 
     expect(priced.ok).toBe(true);
     expect(priced.featureKey).toBe("neville-meditation");
-    expect(priced.cost).toBe(30);
+    expect(priced.cost).toBe(50);
     expect(priced.pricingSource).toBe("feature-reason");
   });
 
@@ -178,7 +178,7 @@ describe("Fortune coin access guard", () => {
     });
 
     expect(priced.ok).toBe(true);
-    expect(priced.cost).toBe(30);
+    expect(priced.cost).toBe(50);
     expect(priced.featureKey).toBe("animal-totem-deep");
   });
 
@@ -206,7 +206,7 @@ describe("Fortune coin access guard", () => {
     });
 
     expect(priced.ok).toBe(true);
-    expect(priced.cost).toBe(10);
+    expect(priced.cost).toBe(30);
     expect(priced.pricingSource).toBe("feature-reason-fallback");
   });
 
@@ -220,7 +220,7 @@ describe("Fortune coin access guard", () => {
     });
 
     expect(priced.ok).toBe(true);
-    expect(priced.cost).toBe(10);
+    expect(priced.cost).toBe(50);
     expect(priced.pricingSource).toBe("unlock-feature");
   });
 
