@@ -8,6 +8,8 @@ import type {VoiceStyle} from '../_lib/voice-style-copy';
 import styles from './intake-chat.module.css';
 import ChatInputBar,{IntakeComposerContext} from './ChatInputBar';
 
+// 질문 단계마다 영냥이가 짓는 전신 포즈(360×300, 흰 바탕 WebP). 글자가 없는 moods 에셋만 쓴다.
+const poseByStep:Record<string,string>={question:'ponder',situation:'side-sit',options:'abacus',constraints:'blanket',period:'wink',category:'sparkle',target:'sparkle',horizon:'sparkle',relationshipType:'sparkle',domain:'sparkle',scope:'heart',review:'beam'};
 export type PreparationStep={id:string;prompt:string;answer:string;content:ReactNode;valid:boolean;pending?:boolean};
 type Props={value:IntakeValue;onChange:(next:IntakeValue)=>void;confirmed:boolean;onConfirm:()=>void;onEdit:()=>void;step:string;onStep:(step:string)=>void;voice:VoiceStyle;onVoice:(voice:VoiceStyle)=>void;onLegacy:()=>void;preparation:PreparationStep[];review:ReactNode;busy:boolean};
 export default function IntakeChat({value,onChange,confirmed,onConfirm,onEdit,step,onStep,voice,onVoice,onLegacy,preparation,review,busy}:Props){
@@ -78,6 +80,7 @@ export default function IntakeChat({value,onChange,confirmed,onConfirm,onEdit,st
     <div className={styles.cat}><img src="/assets/yeongnyangi/profiles/welcome.webp" alt="" width={36} height={36}/><div className={styles.catBubble}>{prompt(id)}</div></div>
     <div className={styles.reply}><p>{scopeSteps.includes(id as IntakeStep)?intakeAnswer(id as IntakeStep,value)||'건너뛰었어요':preparation.find(p=>p.id===id)?.answer||'확인했어요'}</p><button type="button" disabled={busy} onClick={()=>edit(id)}>수정</button></div>
    </div>)}
+   <figure className={styles.pose} aria-hidden="true"><img src={`/assets/yeongnyangi/moods/${poseByStep[active]||'wave'}.webp`} alt="" width={360} height={300} decoding="async"/></figure>
    <div className={styles.current}><img src="/assets/yeongnyangi/profiles/welcome.webp" alt="" width={36} height={36}/><div><span className={styles.name}>영냥이</span>{typing?<p className={`${styles.catBubble} ${styles.typing}`} aria-hidden="true"><i/><i/><i/></p>:<p key={active} className={styles.catBubble}>{activePrompt}</p>}</div></div>
    <div className={styles.srOnly} role="status" aria-live="polite" aria-atomic="true">{typing?'':activePrompt}</div>
    {!typing&&active==='scope'&&<div className={styles.summary}><h2>{plan.reason}</h2><p>{systemNames[value.domain]} · {product.fishName}</p><strong>{product.priceKRW.toLocaleString('ko-KR')}원</strong><p>기본 상담 + 추가 질문 {FOLLOWUP_LIMITS[plan.fish]}회</p><p>다음으로 {value.domain==='tarot'?'카드와 입력 정보':'프로필'}를 확인해요. 아직 결제되지 않아요.</p>{plan.unsupported&&<p role="alert">{plan.unsupported}</p>}{plan.missing.length>0&&<ul>{plan.missing.map(message=><li key={message}>{message}</li>)}</ul>}{!valid&&<button type="button" onClick={()=>edit('category')}>주제와 범위 수정하기</button>}<details><summary>추가 질문·결과 보관 안내</summary><p>확인 대화·서비스 오류 정정·지원 문의는 횟수를 쓰지 않아요. 상담을 마쳐도 저장된 결과는 다시 볼 수 있어요.</p><p>출생 차트만으로 사건의 날짜를 예측하지 않아요. 타로는 카드의 상징과 자리로 선택을 살펴봐요.</p></details></div>}

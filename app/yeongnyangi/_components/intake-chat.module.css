@@ -29,6 +29,9 @@
 .chat .reply { align-self: flex-end; max-width: 88%; text-align: right; }
 .chat .reply p { background: var(--yn-gold); color: var(--yn-deep); padding: 12px 18px; border-radius: 18px 4px 18px 18px; margin: 0; text-align: left; white-space: pre-wrap; }
 .chat .reply button { border: 0; background: none; color: var(--yn-muted); padding: 4px 10px; font-size: 13px; }
+/* 질문 단계별 전신 포즈. 흰 바탕 WebP 라서 아이보리 타일 위에서 multiply 로 합성한다(moods/README.md). */
+.chat .pose { display: flex; justify-content: center; margin: 0 0 14px; padding: 8px; border-radius: 20px; background: var(--yn-ivory); }
+.chat .pose img { display: block; width: auto; height: 104px; max-width: 100%; object-fit: contain; mix-blend-mode: multiply; }
 .chat .current { display: flex; align-items: flex-start; gap: 10px; }
 .chat .current > div { min-width: 0; flex: 1; }
 .chat .current .catBubble { max-width: 100%; animation: ynRise 160ms ease-out; }

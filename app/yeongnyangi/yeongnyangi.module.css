@@ -262,6 +262,8 @@
 .consultationForm { padding:30px; }
 .birthDetails { padding:2px 0 20px; }
 .questionSection { border-top:1px solid var(--yn-line); padding-top:24px; }
+.questionPose { display:flex; justify-content:center; margin:0 0 16px; padding:8px; border-radius:20px; background:var(--yn-ivory); }
+.questionPose img { display:block; width:auto; height:104px; max-width:100%; object-fit:contain; mix-blend-mode:multiply; }
 .questionSection h2,.questionIntro h2 { font-size:1.28rem; color:var(--yn-ivory); margin:0 0 10px; }
 .questionSection > p { margin:0 0 22px; }
 .consultationForm textarea { min-height:150px; line-height:1.8; }

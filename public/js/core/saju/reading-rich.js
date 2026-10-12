@@ -73,6 +73,15 @@
   /* ── 공통 조각 ── */
   function section(title, body, cls) { return '<section class="saju-rich__block' + (cls ? ' ' + cls : '') + '"><h4>' + esc(title) + '</h4>' + body + '</section>'; }
   function para(text) { return '<p>' + esc(text) + '</p>'; }
+  // 글과 글 사이에 끼우는 장식 그림. 연이는 세로형(264×372), 네오는 정사각(314×314)이다.
+  var ART = {
+    pig: {dir:'yeoni', w:264, h:372},
+    neo: {dir:'neo', w:314, h:314}
+  };
+  function art(mode, pose) {
+    var a = ART[mode === 'neo' ? 'neo' : 'pig'];
+    return '<figure class="saju-rich__art" aria-hidden="true"><img src="/images/fortune-chat/persona/' + a.dir + '-' + pose + '.webp" width="' + a.w + '" height="' + a.h + '" alt="" loading="lazy" decoding="async"></figure>';
+  }
   function gauge(o) {
     var at = 0, i;
     for (i = 0; i < o.zones.length; i++) if (o.value >= o.zones[i]) at = i + 1;
@@ -191,8 +200,11 @@
       (ok ? more(c.parts, table(c.parts, ['자리', '글자', '오행', '온도', '습·조'],
         [['월령 계절', season, '—', num(parts.seasonTemp), '—']].concat(parts.rows.map(function (r) { return [r.label + hourMark(facts, r.key), r.char, EL[r.el] || '—', r.temp ? num(r.temp) : '0', (r.moist ? '습' + (r.moist > 1 ? '×' + r.moist : '') : '') + (r.dry ? '조' + (r.dry > 1 ? '×' + r.dry : '') : '') || '—']; })),
         ['합계', '', '', num(parts.total), '습 ' + parts.moist + ' · 조 ' + parts.dry])) : ''));
+    html += art(mode, 'read');
     html += section(c.env, '<p class="saju-rich__title">' + esc(env.title) + '</p>' + para(neo ? env.neo : env.pig));
+    html += art(mode, 'think');
     html += section(c.versus, climateVersus(facts, neo));
+    html += art(mode, 'cheer');
     var rx = TEMP_RX[j.type] || TEMP_RX.neutral, mrx = MOIST_RX[j.moistType] || MOIST_RX.balanced;
     html += section(c.rx, para(c.rxIntro) + tiles([['채울 기운', rx.need, '氣'], ['색', rx.color, '色'], ['방향', rx.dir, '方'], ['활동', rx.act, '動'], ['줄일 것', rx.less, '減'], [c.moistRx + ' (' + mrx.need + ')', mrx.act, j.moistType === 'wet' ? '燥' : '濕']]) + '<p class="saju-rich__note">' + esc(c.notHealth) + '</p>', 'saju-rich__wide');
     html += more('한난조습이란 무엇인가요?', '<p>' + esc(neo ? '한난조습은 원국의 온도(차고 뜨거움)와 습도(건조하고 촉촉함)를 보는 조후의 기준입니다. 어떤 환경에서 힘이 잘 쓰이는지 판단하는 데 씁니다.' : '한난조습은 원국의 온도(차고 뜨거움)와 습도(건조하고 촉촉함)를 살피는 조후의 기준이에요. 자연에 계절과 날씨가 있듯 사람의 기질에도 기후가 있다고 보고, 어떤 환경에서 내가 편안하고 힘이 잘 쓰이는지 알아보는 데 써요.') + '</p>' +
@@ -508,7 +520,12 @@
       var day = depth.dayReading(dg + dj), month = depth.monthReading(dg, p.m && p.m.j);
       if (day) {
         html += section(day.title + ' · 나를 읽는 여덟 가지 관점', para(day.summary), 'saju-rich__lead saju-rich__wide');
-        html += day.sections.map(function (s) { return section(s.title, para(s.text)); }).join('');
+        // 여덟 관점을 둘씩 묶고 사이마다 그림을 둔다: 글 · 그림 · 글 · 그림.
+        var ART_POSES = ['read', 'think', 'listen', 'cheer'];
+        day.sections.forEach(function (s, i) {
+          html += section(s.title, para(s.text));
+          if (i % 2 === 1 && ART_POSES[(i - 1) / 2]) html += art(mode, ART_POSES[(i - 1) / 2]);
+        });
       }
       if (month) html += '<section id="sajuMonthReading" class="saju-rich__wide"><h3>' + esc(month.title) + '</h3>' + para(month.basis) + month.sections.map(function (s) { return section(s.title, para(s.text)); }).join('') + '</section>';
       html += '<section id="sajuContextReading" class="saju-rich__wide"><h3>당신의 명식에서는 이렇게 달라져요</h3>' + depth.contextualReading(facts).map(function (s) { return section(s.title, para(s.text)); }).join('') + '</section>';

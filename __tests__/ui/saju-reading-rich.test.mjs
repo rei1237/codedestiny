@@ -220,3 +220,17 @@ test('climate base follows the month branch (12 steps) and the worker policy cop
     assert.equal(w.score,analyzeJohu(q).score,b);
   }
 });
+
+test('ilju and climate interleave decorative persona art between text blocks, matched to the voice',()=>{
+  // ilju 의 여덟 관점은 reading-depth 가 있어야 나온다. 다른 테스트에 영향이 없도록 별도 컨텍스트에서 읽는다.
+  const withDepth=vm.createContext({});
+  vm.runInContext(tables+tenGod+readFileSync('js/core/saju/reading-depth.generated.js','utf8')+readFileSync('js/core/saju/reading-rich.js','utf8'),withDepth);
+  const rich=withDepth.SajuReadingRich,facts=factsOf(charts[3]);
+  const count=(html,re)=>(html.match(re)||[]).length;
+  const art=/<figure class="saju-rich__art" aria-hidden="true"><img [^>]*alt=""/g;
+  const ilju={pig:rich.ilju(facts,'pig'),neo:rich.ilju(facts,'neo')},climate={pig:rich.climate(facts,'pig'),neo:rich.climate(facts,'neo')};
+  assert.equal(count(ilju.pig,art),4);assert.equal(count(climate.pig,art),3);
+  assert.match(ilju.pig,/persona\/yeoni-read\.webp/);assert.doesNotMatch(ilju.pig,/persona\/neo-/);
+  assert.match(ilju.neo,/persona\/neo-read\.webp/);assert.doesNotMatch(ilju.neo,/persona\/yeoni-/);
+  assert.doesNotMatch(rich.strength(facts,'pig'),/saju-rich__art/);
+});
