@@ -28,6 +28,7 @@ const server = createServer(async (req, res) => {
       });
       payload = {ok:true, unlocked:true, featureKey:body.featureKey, ...result};
     } catch (error) { status = 400; payload = {ok:false, message:error.message}; }
+    sectionRequests.push({ case: activeCase, featureKey: payload.featureKey, status, message: payload.message });
     res.writeHead(status, {'content-type':'application/json'}); res.end(JSON.stringify(payload)); return;
   }
   if (pathname.startsWith('/api/')) { res.writeHead(200, {'content-type':'application/json'}); res.end('{"ok":true,"unlocks":[],"profiles":[]}'); return; }
@@ -47,6 +48,8 @@ const fingerprints = async () => Object.fromEntries(await Promise.all(inputs.map
 const before = await fingerprints();
 let activePage;
 let activeCase = '';
+// 실패 진단용: 검증 서버가 받은 본문 요청.
+const sectionRequests = [];
 const browserErrors = [];
 
 async function settleScroll(page) {
@@ -208,7 +211,11 @@ try {
     return !!button && !!(button.offsetWidth || button.offsetHeight || button.getClientRects().length);
   }, undefined, {timeout:15000});
   if (!await page.locator('#summaryArea .saju-summary-report').count()) {
-    await page.locator('#summaryGate button[data-unlock-key]').click();
+    // 해금 알림이 버튼을 숨긴 뒤에 본문이 오면 누를 버튼이 없다 — 그때는 아래에서 본문을 기다린다.
+    const gateButton = page.locator('#summaryGate button[data-unlock-key]');
+    await gateButton.click({timeout:5000}).catch(async (error) => {
+      if (await gateButton.isVisible()) throw error;
+    });
   }
   }
   await page.locator('#summaryArea .saju-summary-report').waitFor({state:'visible'});
@@ -366,6 +373,22 @@ try {
     console.error('SUMMARY DOM:', await activePage.locator('#summaryCard').evaluate(el => ({ classes: el.className, rect: el.getBoundingClientRect().toJSON(), viewport: innerHeight, scrollY, opacity: getComputedStyle(el).opacity })).catch(() => null));
     await activePage.screenshot({ path: resolve(directory, 'failure.png') }).catch(() => {});
   }
-  console.error('SUMMARY DIAGNOSTICS:', JSON.stringify({ case: activeCase, directory, freeMemory: freemem(), before, after: await fingerprints(), browserErrors }));
+  // 게이트·해금·본문 칸 상태 — CI 에서만 나는 실패를 로그만으로 읽을 수 있게 남긴다.
+  const state = activePage && !activePage.isClosed() ? await activePage.evaluate(() => {
+    const gate = document.querySelector('#summaryGate');
+    const button = gate && gate.querySelector('button[data-unlock-key]');
+    const area = document.querySelector('#summaryArea');
+    const style = button && getComputedStyle(button);
+    return {
+      gateClass: gate && gate.className,
+      button: button && { rect: button.getBoundingClientRect().toJSON(), visibility: style.visibility, display: style.display },
+      area: area && area.innerHTML.slice(0, 300),
+      unlocked: typeof window.isTileKeyUnlocked === 'function' ? window.isTileKeyUnlocked('section_summary') : null,
+      gateUnlocked: typeof window._cdSajuGateUnlocked === 'function' ? window._cdSajuGateUnlocked('section_summary') : null,
+      profileId: typeof window.cdBirthScopeCurrentProfileId === 'function' ? window.cdBirthScopeCurrentProfileId() : null,
+      hasInput: !!window.__cdSajuSectionInput,
+    };
+  }).catch((error) => String(error)) : null;
+  console.error('SUMMARY DIAGNOSTICS:', JSON.stringify({ case: activeCase, directory, freeMemory: freemem(), state, sectionRequests, before, after: await fingerprints(), browserErrors }));
   throw error;
 } finally { await browser.close(); server.close(); }
