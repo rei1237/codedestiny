@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-13
-next: "Secret Scan 0건 재현 완료 → 관련 회귀·check:fast 검증 → 판정 커밋 → check:pre-push → push·main CI 1회 확인. F 정책 2건과 메일 키 정리는 로컬/외부 적용 완료."
+next: "판정·전체 이력 Secret Scan·check:fast 완료 → check:pre-push → push origin main → main CI 1회 확인. 운영 승격은 별도 승인 전 실행하지 않는다."
 ---
 
 # 결제·로그인 보안 후속 — Codex 인수인계 (2026-10-13)
@@ -27,6 +27,7 @@ next: "Secret Scan 0건 재현 완료 → 관련 회귀·check:fast 검증 → �
 - 최종 27건 재판정 완료: Google 형식 19건·19지문(서로 다른 13개 키)은 콘텐츠 생성 없이 메타데이터 GET만 호출해 모두 `API_KEY_INVALID`를 확인했다. 3월 빌드 생성물의 JWT/관리자 계열 6건·3지문은 운영에서 현행 JWT 양성 대조만 200, 과거 값과 임의 대조는 401이었고 `ADMIN_SECRET_HASH` 이름도 운영 Worker에 없음을 확인했다. 실제 계정 데이터나 쓰기 요청은 사용하지 않았다.
 - MongoDB 이력 2건·2지문은 2026-03-13·16 노출 뒤 동일 Atlas DB 사용자가 03-29, 04-01, 04-03, 05-01, 09-06에 갱신됐다. 다섯 Activity Feed 이벤트 모두 공개 payload가 사용자 이름과 보호된 변경 객체만 포함하고 역할·스코프 변경 필드는 없었으며, 현행 로컬 URI도 두 과거 값과 불일치한다. 운영 DB 접속이나 비밀번호 변경 없이 회전된 역사 자격 증명으로 판정했다.
 - 위 근거를 `.gitleaksignore`에 지문 단위로 반영한 뒤 gitleaks v8.24.2 전체 이력 스캔을 `--redact`로 다시 실행해 **exit 0·탐지 0건**을 확인했다. 가림 보고서는 저장소 밖 `%TEMP%\\codex-security-20261013\\redacted-final.json`에 있다. 원격 Secret Scan·push·운영 승격은 아직 아니다.
+- `143954347`: Google·JWT/관리자·MongoDB 역사 지문의 최종 판정과 인수인계를 커밋했다. gitleaks 설정 4/4, 인수인계 계약 201개, 문서 신선도와 `check:fast --committed-head`가 통과했다(유료 게이트 88/88, Node 3,201/3,201, Jest 395 suites/6,033 tests, lint·typecheck·Worker dry-run 포함). 실결제·실 LLM·운영 DB 접속/쓰기·배포는 0건이다.
 - `393d54f29`: 위 판정 지문과 인수인계를 커밋했다. gitleaks 설정 회귀 4/4, 인수인계 계약 201개, 문서 신선도, 커밋 기준 `check:fast`가 통과했다(유료 게이트 88/88, Jest 395 suites/6,033 tests, lint·typecheck·Node·Worker dry-run 포함). 실결제·실 LLM·운영 DB 쓰기·배포는 0건이다. 원격 main은 여전히 `b4ee8a845`이고 최신 Secret Scan run 38339017478은 실패라 `check:pre-push`·push를 진행하지 않았다.
 - `180ebc2b3`: 메일 환경 계약의 필수 이름을 `RESEND_API_KEY`로 변경했다. 폐기된 별칭을 복구하지 않고 정본 소비자(`worker/lib/resend.js`)를 명시했다. 서버의 기존 호환 별칭 읽기는 유지한다.
 - 관련 검사: Jest 14/14, Node 관련 검사 34/34, 사이트맵 6/6, gitleaks 설정 4/4 통과. 첫 `check:fast`는 88개 중 87개 통과하고 서명 원장 미갱신 때문에 사이트맵 테스트 1건이 실패했다. 원장 재생성 후 변경 범위를 `--base=cdfc99e54`로 고정해 재실행한 최종 `check:fast`는 exit 0이다(결제 게이트 88/88, Node 3,201/3,201, Jest 395 suites/6,033 tests). `check:pre-push`는 홈 레지스트리·공개 미러·사이트맵 모두 통과했다. 실제 화면 캡처·실결제·실 LLM·메일 발송은 하지 않았다.
