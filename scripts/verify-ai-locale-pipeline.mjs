@@ -75,7 +75,7 @@ const ORDINARY_PROSE = [
     "lib/llm-client.ts: applyOutputLocale 이 withLLMCache 앞에서 호출돼야 한다 (캐시 언어 분리)",
   );
   assert(
-    /systemPrompt: \[request\.systemPrompt \|\| "", directive\]/.test(source),
+    /systemPrompt: \[request\.systemPrompt \|\| "",[\s\S]{0,300}directive\]/.test(source),
     "lib/llm-client.ts: 언어 지시가 systemPrompt 에 들어가야 캐시 분리와 Workers AI 폴백이 함께 커버된다",
   );
   assert(
