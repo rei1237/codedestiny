@@ -193,5 +193,7 @@ main c96764241의 PR CI 38329231428 실패를 최종 확인했다. Static guards
 ## 최종 전달 기록
 - 수정 커밋 f39680144. 브랜드 SEO 5개 파일 ESLint 통과.
 - 커밋 상태 check:pre-push 통과: home-service-registry, public-mirror-fresh, sitemap-drift(955 URL).
-- 전체 check:fast 중단과 기존 main CI 실패는 해소되지 않았다. main 통합/push 및 운영/검색 반영은 미완료.
+- 최신 main d8a868f09 결합 뒤 전체 check:fast 통과: paid suite 88/88, Node 3196/3196, Jest 394 suites·6026 tests, lint·typecheck·Worker dry-run 통과.
+- 기존 GA4 차단은 b31597016에서 해소됐다. 후속 public mirror drift는 f39680144의 `.ignore` 생성 제외 항목으로 해소했고, AI Locale inventory drift는 e6f5b3112로 복구했다.
+- Secret Scan은 과거 9,741개 커밋에서 기존 34건을 찾은 별도 이력 문제다. 이번 변경에서 새 비밀값·운영 설정을 추가하지 않았으며 운영/검색 반영은 별도 승인 범위다.
 - 재개 문서: docs/handoff/ggulggul-brand-seo-20261013.md.
