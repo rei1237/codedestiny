@@ -79,8 +79,10 @@ export async function fixtures(browser,base,product,width=390,{monthlyBalance=0}
   if(path==='/api/reviews/products'&&request.method()==='GET')return send({ok:true,
    rewardPolicy:{amount:REVIEW_REWARD_AMOUNT,currency:'moonstone',trigger:'approved'},
    items:listReviewProductSummaries().map(product=>({...product,total:0,average:0}))});
+  if(path==='/api/recommendations'&&request.method()==='GET')return send({enabled:false,products:[]});
   if(!state.auth&&path!=='/api/yeongnyangi/products')return send({ok:false,code:'UNAUTHORIZED',message:'QA 세션 만료'},401);
   if(path==='/api/payments/config')return send(config);
+  if(path==='/api/payments/birth-profile-pending'&&request.method()==='GET')return send({ok:true,orders:[]});
   if(path==='/api/payments/service-packs/catalog'&&request.method()==='GET')return send({ok:true,plans:listServicePackPlans(),giftEnabled:false});
   if(path==='/api/me/payment-phone')return send({ok:true,hasPhone:true,phoneNumber:user.phoneNumber,phoneConsent:true});
   if(path==='/api/geocode')return send({lat:35.1796,lng:129.0756,name:'대한민국 부산',timezone:'Asia/Seoul',fallback:false});
@@ -315,7 +317,7 @@ export async function verifyMobilePayments({base,products,systemNames}){
    // chunk itself is served, so a genuinely missing chunk still fails.
    const servedChunks=new Set();
    if(browser.browserType().name()==='webkit')for(const message of f.state.errors){
-    const url=message.match(/^ChunkLoadError: Loading chunk \S+ failed\.\n\(error: (http:\/\/(?:127\.0\.0\.1|localhost):\d+\/_next\/static\/chunks\/[^?)]+)(?:\?cdcb=\d+)?\)$/)?.[1];
+    const url=message.match(/^(?:ChunkLoadError: )?Loading chunk \S+ failed\.\n\(error: (http:\/\/(?:127\.0\.0\.1|localhost):\d+\/_next\/static\/chunks\/[^?)]+)(?:\?cdcb=\d+)?\)$/)?.[1];
     if(url&&(await f.page.request.get(url)).status()===200)servedChunks.add(message);
    }
    const pageErrors=f.state.errors.filter(message=>{
@@ -323,8 +325,9 @@ export async function verifyMobilePayments({base,products,systemNames}){
     if(servedChunks.has(message))return false;
     // WebKit reports these checkout-page reads as access-control errors when the PG return navigation cancels them.
     // AppVersionGuard's cache-busted /version.json read is cancelled the same way and already falls back in its catch.
-    const path=message.match(/^\/(?:127\.0\.0\.1|localhost):\d+(\/api\/[^ ]+|\/version\.json(?=\?t=\d+ ))(?:\?t=\d+)? due to access control checks\.$/)?.[1];
-    const navigationReads=new Set(['/api/auth/me','/api/me/access-state','/api/profile','/api/billing/balance','/api/payments/service-packs/quote','/api/payments/service-packs/catalog','/version.json']);
+    const cancelledPath=message.match(/^\/(?:127\.0\.0\.1|localhost):\d+(\/api\/[^ ]+|\/version\.json(?=\?t=\d+ ))(?:\?t=\d+)? due to access control checks\.$/)?.[1];
+    const path=cancelledPath?.split('?')[0];
+    const navigationReads=new Set(['/api/auth/me','/api/me/access-state','/api/profile','/api/billing/balance','/api/payments/birth-profile-pending','/api/payments/service-packs/quote','/api/payments/service-packs/catalog','/api/recommendations','/version.json']);
     return !path||!navigationReads.has(path);
    });
    assert.deepEqual(pageErrors,[],'Browser page errors');
@@ -354,12 +357,21 @@ export async function verifyMobilePayments({base,products,systemNames}){
     }
     await check(browser,`${engine.name()}-question-purpose-entry`,products[0],390,async f=>{
      await f.page.goto(base+'/yeongnyangi/fortune/');
-     await f.page.getByRole('heading',{name:'지금의 고민부터 들려주세요',exact:true}).waitFor();
-     await f.page.getByLabel('궁금한 질문',{exact:true}).fill('업무 부탁을 거절할 때 어떻게 말하면 좋을까?');
-     await f.page.getByRole('button',{name:'질문에 적은 상황 그대로 사용하기',exact:true}).click();
-     await f.page.getByRole('heading',{name:'고등어 상담 · 3,000원',exact:true}).waitFor();
+     await f.page.getByRole('heading',{name:'영냥이와 상담 준비',exact:true}).waitFor();
+     await f.page.getByPlaceholder('영냥이에게 답장하기…').fill('업무 부탁을 거절할 때 어떻게 말하면 좋을까?');
+     await f.page.getByRole('button',{name:'답장 보내기',exact:true}).click();
+     await f.page.getByRole('button',{name:'성향·자기이해·일상',exact:true}).click();
+     for(let n=0;n<3;n++)await f.page.getByRole('button',{name:'선택 확인하고 계속하기',exact:true}).click();
+     await f.page.getByRole('button',{name:'앞에서 말한 내용으로 충분해',exact:true}).click();
+     await f.page.getByRole('button',{name:'답장 보내기',exact:true}).click();
+     await f.page.getByRole('button',{name:'기간은 정하지 않을게',exact:true}).click();
+     await f.page.getByRole('button',{name:'선택 확인하고 계속하기',exact:true}).click();
+     await f.page.getByText(`${systemNames[products[0].domain]} · ${products[0].fishName}`,{exact:true}).waitFor();
+     await f.page.getByText(`${products[0].priceKRW.toLocaleString('ko-KR')}원`,{exact:true}).waitFor();
      await f.page.getByRole('button',{name:'범위·가격 확인하고 계속하기',exact:true}).click();
      await f.page.getByRole('group',{name:'함께 읽을 프로필'}).getByRole('button',{name:/QA 고객/}).click();
+     await f.page.getByRole('button',{name:'선택 확인하고 계속하기',exact:true}).click();
+     await f.page.getByRole('button',{name:'선택 확인하고 계속하기',exact:true}).click();
      await f.page.getByRole('button',{name:'결제 내용 확인하기',exact:true}).click();
      await f.page.waitForURL('**/checkout/**');await f.page.getByRole('button',{name:/결제 방식 선택하기/}).waitFor();
      assert.equal(f.state.requestInput.questionDecision.version,'question-consultation-20261007');
@@ -372,7 +384,7 @@ export async function verifyMobilePayments({base,products,systemNames}){
      assert.equal(await f.page.locator('.ynOriginal').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(11, 18, 32)');
      await f.page.getByRole('button',{name:'영냥이 쓰다듬기'}).click();await f.page.getByText('쓰다듬는 건… 딱 한 번만이야.',{exact:true}).waitFor();
      await f.page.waitForLoadState('load');
-     await f.page.goto(base+'/yeongnyangi/fortune/');await f.page.getByRole('button',{name:'기존 성향 해석·상담 메뉴 보기',exact:true}).click();await f.page.getByRole('button',{name:'새 프로필 만들기'}).click();
+     await f.page.goto(base+'/yeongnyangi/fortune/?flow=legacy');await f.page.getByRole('button',{name:'새 프로필 만들기'}).click();
      await f.page.getByLabel('이름',{exact:true}).fill('QA 고객');await f.page.getByLabel('생년월일',{exact:true}).fill('1990-06-15');
      await f.page.getByLabel('출생시간',{exact:true}).fill('14:30');await f.page.getByLabel('출생지역',{exact:true}).fill('부산');
      await f.page.getByRole('button',{name:'프로필 저장하기',exact:true}).click();await waitFixture(()=>f.state.profileCreates===1);
@@ -457,13 +469,13 @@ export async function verifyMobilePayments({base,products,systemNames}){
        await f.page.goto(target.href);await f.page.getByRole('button',{name:/결제 방식 선택하기/}).waitFor();
        // 결제를 그만두는 링크는 결제 "성공" 뒤 주소(미결제 결과 화면)가 아니라 영냥이 방·생선 고르기로 간다.
        assert.equal(await f.page.locator('a').filter({hasText:'← 영냥이 방'}).getAttribute('href'),'/yeongnyangi/');
-       assert.equal(await f.page.locator('a').filter({hasText:'생선 다시 고르기'}).getAttribute('href'),'/yeongnyangi/fortune/');
+       assert.equal(await f.page.locator('a').filter({hasText:'질문 조건 수정하기'}).getAttribute('href'),'/yeongnyangi/fortune/');
        assert.equal(await f.page.locator('a[href*="outside.example.invalid"]').count(),0,'External returnTo must not reach any link');
        assert.equal(f.state.sdk.length,0);return;
       }
       if(scenario==='abandon-back'){
        // 결제창까지 갔다가 그만두면 직전 화면(상담 폼)으로 돌아간다. 미결제 결과 화면은 한 번도 거치지 않는다.
-       await f.page.goto(base+'/yeongnyangi/fortune/');await f.page.getByRole('button',{name:'기존 성향 해석·상담 메뉴 보기',exact:true}).click();
+       await f.page.goto(base+'/yeongnyangi/fortune/?flow=legacy');
        await f.page.getByRole('group',{name:'운세 종류'}).getByRole('button',{name:systemNames.saju,exact:true}).click();
        await f.page.getByRole('group',{name:'함께 읽을 프로필'}).getByRole('button',{name:/QA 고객/}).click();
        await f.page.getByRole('group',{name:'상담 종류'}).getByRole('button',{name:/무엇이든 물어보기/}).click();
@@ -473,7 +485,7 @@ export async function verifyMobilePayments({base,products,systemNames}){
        assert.equal(f.state.creates,1);
        await f.page.locator('a').filter({hasText:'← 영냥이 방'}).click();
        await f.page.waitForURL(url=>url.pathname==='/yeongnyangi/fortune/');
-       await f.page.getByRole('heading',{name:'지금의 고민부터 들려주세요',exact:true}).waitFor();
+       await f.page.getByRole('heading',{name:'무엇부터 읽어볼까?',exact:true}).waitFor();
        assert.equal(f.state.creates,1);assert.equal(f.state.sdk.length,0);
        assert.equal(f.state.activates,0,'Leaving before paying must not open the unpaid result screen');
        assert.deepEqual(f.state.visited.filter(path=>path.startsWith('/yeongnyangi/result')),[],'Unpaid result must not be visited');return;
