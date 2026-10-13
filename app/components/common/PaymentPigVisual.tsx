@@ -37,9 +37,9 @@ export function PaymentPigVisual({
       data-react-pig-visual={tone}
       aria-hidden="true"
     >
-      <div className="saju-loader-payment-core absolute inset-0 rounded-[32px] border border-white/15 bg-[linear-gradient(145deg,rgba(15,23,42,.76),rgba(30,41,59,.46))] shadow-[0_0_48px_rgba(251,191,36,.18),inset_0_1px_0_rgba(255,255,255,.18)]">
-        <span className="absolute -inset-3 rounded-[38px] border border-white/10 motion-safe:animate-spin motion-reduce:animate-none" style={{ animationDuration: isPassTone ? "10.8s" : "12s" }} />
-        <span className="absolute inset-3 rounded-[28px] border border-cyan-200/20 border-t-amber-200/80 motion-safe:animate-spin motion-reduce:animate-none" style={{ animationDirection: "reverse", animationDuration: isPassTone ? "5.4s" : "4.2s" }} />
+      <div className="saju-loader-payment-core absolute inset-0 rounded-[32px] border border-white/15 bg-[var(--cd-welcome-paper)] shadow-[0_0_48px_rgba(251,191,36,.18),inset_0_1px_0_rgba(255,255,255,.18)]">
+        <span className="absolute -inset-3 rounded-[38px] border border-white/10 motion-safe:animate-pulse motion-reduce:animate-none" style={{ animationDuration: isPassTone ? "10.8s" : "12s" }} />
+        <span className="absolute inset-3 rounded-[28px] border border-[var(--cd-welcome-rose)] border-t-[var(--cd-welcome-gold)] motion-safe:animate-pulse motion-reduce:animate-none" style={{ animationDirection: "reverse", animationDuration: isPassTone ? "5.4s" : "4.2s" }} />
         <span className="absolute inset-6 rounded-[22px] bg-[radial-gradient(circle,rgba(254,243,199,.26),rgba(251,191,36,.08)_44%,transparent_70%)] motion-safe:animate-pulse motion-reduce:animate-none" />
       </div>
       <div className={`saju-loader-pass-moon absolute -right-1 top-5 h-11 w-11 rounded-full border border-amber-100/40 bg-[radial-gradient(circle_at_35%_30%,rgba(255,255,255,.86),rgba(254,243,199,.72)_32%,rgba(251,191,36,.18)_72%,transparent)] shadow-[0_0_22px_rgba(254,243,199,.32)] transition-opacity ${isPassTone ? "opacity-100" : "opacity-60"}`} />

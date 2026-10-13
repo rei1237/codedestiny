@@ -14,6 +14,7 @@ import {
   type LoadingStage,
   type PaymentType,
 } from "@/constants/loadingMessages";
+import { PaymentWelcome } from "./PaymentWelcome";
 import { PaymentPigVisual, PAYMENT_PIG_LOGO_URL } from "./PaymentPigVisual";
 
 export type PaymentLoadingProps = {
@@ -36,6 +37,7 @@ export type PaymentLoadingProps = {
   paymentType?: PaymentType;
   actionLabel?: string;
   onAction?: () => void;
+  onCompletionPresented?: () => void;
 };
 
 const DEFAULT_TITLE = FALLBACK_LOADING_MESSAGE.title;
@@ -212,6 +214,7 @@ export default function PaymentLoading({
   paymentType,
   actionLabel,
   onAction,
+  onCompletionPresented,
 }: PaymentLoadingProps) {
   const [loadingPhase, setLoadingPhase] = useState<LoadingMotionPhase>("fresh");
   const [locale, setLocale] = useState<LoadingLocale>("ko");
@@ -232,6 +235,10 @@ export default function PaymentLoading({
     if (!open) return;
     setLocale(getCurrentLoadingLocale());
   }, [open]);
+
+  useEffect(() => {
+    if (open && (variant === "pass-applied" || variant === "payment-complete")) onCompletionPresented?.();
+  }, [open, variant, onCompletionPresented]);
 
   const isPaymentComplete = variant === "payment-complete" || variant === "unlock-saving" || variant === "pass-applied";
   // 이용권 확인 구간은 정상이면 서버 왕복 0~1회라 8초는 너무 늦다 — 정적 셸(2.5초/6초)과 같은 시점에
@@ -317,6 +324,10 @@ export default function PaymentLoading({
   // 지연 안내 문구(delayed8s/20s)는 시간 기반 그대로 둔다 — 그건 정직한 정보다.
   const progressStep = resolvedStage === "result_loading" ? 2 : resolvedStage === "pg_processing" ? 1 : 0;
 
+  if ((variant === "pass-applied" || variant === "payment-complete") && typeof window !== "undefined" && !/^\/(yeongnyangi|checkout)(\/|$)/.test(window.location.pathname)) {
+    return <PaymentWelcome title={locale === "ko" ? (isPassAppliedVariant ? "이용권이 적용됐어요." : statusMessage === "월정석이 적용됐어요." ? "월정석이 적용됐어요." : "결제가 확인됐어요.") : resolvedTitle}
+      description={locale === "ko" ? (window.location.pathname.startsWith("/fusion-fortune") ? "질문에 맞춰 상담을 준비할게요." : "이용하실 콘텐츠를 준비할게요.") : resolvedDescription} />;
+  }
   return (
     <div
       role={isPassAppliedVariant ? "dialog" : "alertdialog"}

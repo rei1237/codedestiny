@@ -315,8 +315,17 @@ function resolveLoginRequired(code: string, status: number) {
 }
 
 export function useCoinGate() {
-  // startPayment 는 더 이상 쓰지 않는다 — 진입 이용권 확인 화면이 사라졌다(2026-08 정책 전환).
-  const { endPayment, setPaymentMessage } = usePayment();
+  // 서버가 권한을 확인한 뒤에만 완료 연출을 시작한다.
+  const { startPayment, endPayment, setPaymentMessage } = usePayment();
+  const completionSeen = useRef(new Set<string>());
+  const showConfirmedAccess = useCallback((requestId: string, pass: boolean, monthly = false) => {
+    if (!requestId || typeof window === "undefined" || window.location.pathname.startsWith("/yeongnyangi") || window.location.pathname.startsWith("/checkout")) return;
+    const key = `cdPaidWelcome:${requestId}`;
+    if (completionSeen.current.has(key)) return;
+    try { if (sessionStorage.getItem(key)) return; sessionStorage.setItem(key, "1"); } catch { /* Memory still deduplicates restricted storage. */ }
+    completionSeen.current.add(key);
+    startPayment(monthly ? "월정석이 적용됐어요." : undefined, pass ? "pass-applied" : "payment-complete");
+  }, [startPayment]);
   const inFlightRef = useRef(false);
   const [isPaying, setIsPaying] = useState(false);
 
@@ -416,8 +425,9 @@ export function useCoinGate() {
       if (paidGrantReceipt) {
         requiredCoins = toNumber(input.coinPrice ?? input.cost, requiredCoins);
         const receiptTransactionId = toText(paidGrantReceipt.merchantUid || paidGrantReceipt.requestId);
+        setPaymentMessage(coinGateText("generatingResult"));
+        showConfirmedAccess(toText(input.requestId || receiptTransactionId), false);
         if (typeof input.onPaid === "function") {
-          setPaymentMessage(coinGateText("generatingResult"));
           markPaidAttemptGenerationStarted("paid_grant_receipt");
           try {
             await input.onPaid({
@@ -593,8 +603,9 @@ export function useCoinGate() {
             : "payment";
       const subscriptionTier = toText(chargeData.subscriptionTier || chargeData.passTier || consume.subscriptionTier || consume.passTier || chargeAccessGrant.subscriptionTier || chargeAccessGrant.passTier);
 
+      setPaymentMessage(coinGateText("generatingResult"));
+      if (!chargeAlreadyGranted) showConfirmedAccess(toText(input.requestId || transactionId), chargePassGranted, chargeMonthlyGranted);
       if (typeof input.onPaid === "function") {
-        setPaymentMessage(coinGateText("generatingResult"));
         markPaidAttemptGenerationStarted("onPaid_callback_start");
         try {
           await input.onPaid({
@@ -652,7 +663,7 @@ export function useCoinGate() {
       setIsPaying(false);
       inFlightRef.current = false;
     }
-  }, [endPayment, setPaymentMessage]);
+  }, [endPayment, setPaymentMessage, showConfirmedAccess]);
 
   return {
     isPaying,

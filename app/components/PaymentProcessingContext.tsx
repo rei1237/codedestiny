@@ -1292,30 +1292,41 @@ export function PaymentProcessingProvider({
     if (typeof message === "string" && message.trim()) {
       setProcessingMessageState(message);
     }
+    overlayStateRef.current = { open: true, message: message || DEFAULT_PROCESSING_MESSAGE, mode: variant || resolvePaymentLoadingVariant(message) };
     setPaymentLoadingVariant(variant || resolvePaymentLoadingVariant(message));
     setIsProcessing(true);
-  }, [clearCompletionCloseTimer, setPaymentLoadingVariant]);
+    if (isPaymentCompletionVariant(variant || resolvePaymentLoadingVariant(message))) {
+      // Loading the deferred renderer must not consume the visible welcome time.
+      completionCloseTimerRef.current = setTimeout(closeProcessingNow, 10000);
+    }
+  }, [clearCompletionCloseTimer, setPaymentLoadingVariant, closeProcessingNow]);
 
   const stopProcessing = useCallback(() => {
     if (isPaymentCompletionVariant(processingVariantRef.current) && typeof window !== "undefined") {
-      clearCompletionCloseTimer();
-      completionCloseTimerRef.current = setTimeout(() => {
-        closeProcessingNow();
-      }, processingVariantRef.current === "pass-applied" ? 800 : 700);
+      // A confirmed welcome closes from its presentation timer, not onPaid completion.
       return;
     }
     closeProcessingNow();
   }, [clearCompletionCloseTimer, closeProcessingNow]);
 
+  const onCompletionPresented = useCallback(() => {
+    if (!isPaymentCompletionVariant(processingVariantRef.current)) return;
+    clearCompletionCloseTimer();
+    completionCloseTimerRef.current = setTimeout(closeProcessingNow, 1500);
+  }, [clearCompletionCloseTimer, closeProcessingNow]);
+
   const setProcessingMessage = useCallback((message: string) => {
     if (!message || !message.trim()) {
+      clearCompletionCloseTimer();
       setProcessingMessageState(DEFAULT_PROCESSING_MESSAGE);
       setPaymentLoadingVariant("payment");
       return;
     }
     setProcessingMessageState(message);
-    setPaymentLoadingVariant(resolvePaymentLoadingVariant(message));
-  }, [setPaymentLoadingVariant]);
+    const nextVariant = resolvePaymentLoadingVariant(message);
+    if (nextVariant !== processingVariantRef.current) clearCompletionCloseTimer();
+    setPaymentLoadingVariant(nextVariant);
+  }, [setPaymentLoadingVariant, clearCompletionCloseTimer]);
 
   useEffect(() => {
     return () => clearCompletionCloseTimer();
@@ -1332,11 +1343,14 @@ export function PaymentProcessingProvider({
       if (previous.open && previous.message === nextMessage && previous.mode === nextMode) return;
       overlayStateRef.current = { open: true, message: nextMessage, mode: nextMode };
       closeStaticPaymentOverlay();
-      clearCompletionCloseTimer();
       const nextVariant = resolvePaymentLoadingVariant(nextMessage, nextMode);
+      if (!(isPaymentCompletionVariant(nextVariant) && processingVariantRef.current === nextVariant && completionCloseTimerRef.current)) clearCompletionCloseTimer();
       setPaymentLoadingVariant(nextVariant);
       setProcessingMessageState(nextMessage);
       setIsProcessing(true);
+      if (isPaymentCompletionVariant(nextVariant) && !completionCloseTimerRef.current) {
+        completionCloseTimerRef.current = setTimeout(closeProcessingNow, 10000);
+      }
       return;
     }
     if (!previous.open) {
@@ -1452,6 +1466,7 @@ export function PaymentProcessingProvider({
             statusMessage={processingMessage}
             actionLabel={processingAction?.label}
             onAction={processingAction?.onClick}
+            onCompletionPresented={onCompletionPresented}
           />
         ) : null}
       </PaidFeatureGateProvider>

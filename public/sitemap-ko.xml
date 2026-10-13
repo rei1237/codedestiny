@@ -128,7 +128,7 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/destiny-compass/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/destiny-compass/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/destiny-compass/" />
-    <lastmod>2026-10-11</lastmod>
+    <lastmod>2026-10-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.90</priority>
   </url>
@@ -518,7 +518,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/fortune/prompt-hub/</loc>
-    <lastmod>2026-10-11</lastmod>
+    <lastmod>2026-10-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.70</priority>
   </url>
@@ -1436,7 +1436,7 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/ggulggul/" />
-    <lastmod>2026-10-12</lastmod>
+    <lastmod>2026-10-13</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.00</priority>
   </url>
@@ -2454,7 +2454,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/nakshatra/</loc>
-    <lastmod>2026-10-11</lastmod>
+    <lastmod>2026-10-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.90</priority>
   </url>
@@ -2652,7 +2652,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/oracle/rune/</loc>
-    <lastmod>2026-10-11</lastmod>
+    <lastmod>2026-10-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.86</priority>
   </url>
@@ -2698,7 +2698,7 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/psychotest/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/psychotest/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/psychotest/" />
-    <lastmod>2026-10-11</lastmod>
+    <lastmod>2026-10-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.84</priority>
   </url>
@@ -2788,7 +2788,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/saju/destiny-bias/</loc>
-    <lastmod>2026-10-11</lastmod>
+    <lastmod>2026-10-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.86</priority>
   </url>
@@ -3422,7 +3422,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/tarot/mindscan/</loc>
-    <lastmod>2026-10-11</lastmod>
+    <lastmod>2026-10-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.94</priority>
   </url>
@@ -3434,13 +3434,13 @@
   </url>
   <url>
     <loc>https://code-destiny.com/tarot/numerology/</loc>
-    <lastmod>2026-10-11</lastmod>
+    <lastmod>2026-10-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.90</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/tarot/prompt-maker/</loc>
-    <lastmod>2026-10-11</lastmod>
+    <lastmod>2026-10-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>

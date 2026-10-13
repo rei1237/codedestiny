@@ -2724,6 +2724,7 @@
     var style = document.createElement('style');
     style.id = 'cdStandalonePaymentOverlayStyle';
     style.textContent = [
+      '#cdStandalonePaymentOverlay:is([data-mode=pass-applied],[data-mode=payment-complete]) .cd-standalone-payment-card {background:var(--cd-welcome-paper);color:var(--cd-welcome-ink);border-color:var(--cd-welcome-gold);}',
       '@keyframes cdStandalonePaymentSpin {',
       '  from { transform: rotate(0deg); }',
       '  to { transform: rotate(360deg); }',
@@ -2862,6 +2863,7 @@
     var overlay = _dpEnsureStandalonePaymentOverlay();
     if (!overlay) return;
     var copy = _dpResolveStandaloneOverlayCopy(mode);
+    overlay.setAttribute('data-mode', String(mode || 'payment'));
     var titleEl = document.getElementById('cdStandalonePaymentOverlayTitle');
     var descEl = document.getElementById('cdStandalonePaymentOverlayDesc');
     var spinnerEl = document.getElementById('cdStandalonePaymentOverlaySpinner');
@@ -2887,7 +2889,7 @@
     };
   }
 
-  // 결제 완료(이용권 적용/월정석 사용/단건 결제) 오버레이를 표시하고 최소 노출(~1.2s) 후 자동으로 닫는다.
+  // 결제 완료(이용권 적용/월정석 사용/단건 결제) 오버레이를 표시하고 최소 노출(~1.5s) 후 자동으로 닫는다.
   // 콘텐츠 생성(onGranted)은 이 표시와 병렬로 진행되므로, 완료 UI를 보장하면서도 체감 지연을 최소화한다.
   var _dpPaymentDoneHideTimer = 0;
   function _dpShowPaymentDoneOverlay(message, mode) {
@@ -2897,7 +2899,7 @@
     _dpPaymentDoneHideTimer = window.setTimeout(function () {
       _dpPaymentDoneHideTimer = 0;
       try { window._cdSetCoinGateOverlay(false); } catch (_) {}
-    }, 1200);
+    }, 1500);
   }
   function _dpShowPassAppliedOverlay(message) {
     _dpShowPaymentDoneOverlay(message || _dpText('passAppliedOverlay'), 'pass-applied');

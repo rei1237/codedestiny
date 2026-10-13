@@ -7,6 +7,11 @@
  */
 
 :root {
+  --cd-welcome-paper: #fff7f3;
+  --cd-welcome-ink: #4b263b;
+  --cd-welcome-muted: #715064;
+  --cd-welcome-rose: #f1ccd6;
+  --cd-welcome-gold: #c5a36b;
   /* 연이 — 아름다운 꽃 */
   --cd-bg: #fffaf7;
   --cd-bg-gradient: linear-gradient(180deg, #fffaf7 0%, #fff3f8 42%, #f8fbf4 100%);

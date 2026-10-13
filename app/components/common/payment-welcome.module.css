@@ -1,0 +1,19 @@
+.backdrop {
+  position: fixed; inset: 0; z-index: 2147483003; display: grid; place-items: center;
+  padding: 24px; background: color-mix(in srgb, var(--cd-welcome-ink) 55%, transparent);
+}
+.card {
+  position: relative; isolation: isolate; overflow: hidden; width: min(100%, 440px);
+  padding: 36px 28px; border: 1px solid var(--cd-welcome-gold); border-radius: var(--cd-r-section);
+  background: var(--cd-welcome-paper); color: var(--cd-welcome-ink); text-align: center;
+  box-shadow: 0 24px 72px color-mix(in srgb, var(--cd-welcome-ink) 25%, transparent);
+}
+.card h2 { font-family: var(--font-display); font-size: 24px; line-height: 1.5; margin: 16px 0; }
+.card p { font-size: 16px; line-height: 1.8; white-space: pre-line; color: var(--cd-welcome-muted); }
+.card:focus-visible { outline: 3px solid var(--cd-welcome-ink); outline-offset: 5px; }
+.petals { position: absolute; z-index: -1; width: 150px; height: 150px; right: -60px; bottom: -60px;
+  border: 24px solid var(--cd-welcome-rose); border-radius: 60% 40% 65% 35%; }
+@media (prefers-reduced-motion: no-preference) {
+  .petals { animation: flower-breathe 4s ease-in-out infinite alternate; }
+  @keyframes flower-breathe { to { transform: rotate(18deg) scale(1.08); } }
+}
