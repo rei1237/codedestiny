@@ -274,17 +274,18 @@ function sectionOf(id) {
 
 const byId = new Map(registry.map((item) => [item.id, item]));
 const PLACEMENTS = [
-  { role: "quick", sectionId: "cdQuickServices", label: "빠른 서비스" },
-  { role: "recommended", sectionId: "cdSignatureConsult", label: "대표 상담" },
+  { role: "quick", sectionIds: ["cdQuickServices"], label: "빠른 서비스" },
+  { role: "recommended", sectionIds: ["cdSignatureConsult", "cdFusionRecommendation"], label: "대표 상담" },
 ];
 
 const placed = new Map();
-for (const { role, sectionId, label } of PLACEMENTS) {
-  const html = sectionOf(sectionId);
-  if (!html) {
-    fail(`${label}: index.html 에 #${sectionId} 가 없다`);
-    continue;
-  }
+for (const { role, sectionIds, label } of PLACEMENTS) {
+  // Recommended products remain one registry set across the featured and Fusion sections.
+  const html = sectionIds.map(sectionId => {
+    const section = sectionOf(sectionId);
+    if (!section) fail(`${label}: index.html 에 #${sectionId} 가 없다`);
+    return section || "";
+  }).join("\n");
   const cardRe = /<a\b([^>]*\bdata-cd-service-id="([^"]+)"[^>]*)>/g;
   const found = [];
   let card;
