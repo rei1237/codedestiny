@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-13
-next: "👤 사람이 Google 키 삭제·메일 API 키 교체·콘솔 판정 25건 → 결과를 받아 .gitleaksignore 반영 → Secret Scan 초록 확인 → 로컬 커밋 push·main CI·운영 승격"
+next: "👤 사람이 Google 키 삭제·메일 API 키 교체·콘솔 판정 25건과 F 정책 2건 결정 → 결과를 받아 .gitleaksignore·C-2·C-5·C-8 반영 → Secret Scan 초록 확인 → push·main CI·운영 승격"
 ---
 
 # 결제·로그인 보안 후속 — Codex 인수인계 (2026-10-13)
@@ -12,7 +12,7 @@ next: "👤 사람이 Google 키 삭제·메일 API 키 교체·콘솔 판정 25
 
 ## 지금 상태
 
-- origin/main `b4ee8a845`, 로컬 main `9fb545e73`(2커밋 앞). 이전 보안 변경(시크릿 fail-closed·JWT exp·확정 주체·gitleaks 기본 규칙)은 `a4ecd5cc6` 으로 이미 운영 반영됐다. 운영 `/api/health`: `keyHealth.ok true`.
+- origin/main `b4ee8a845`. 로컬 보안·홈 코드는 `cd9cf63df`까지 커밋돼 있고 이 인수인계 갱신 커밋이 그 위에 있다. 이전 보안 변경(시크릿 fail-closed·JWT exp·확정 주체·gitleaks 기본 규칙)은 `a4ecd5cc6` 으로 이미 운영 반영됐다. 운영 `/api/health`: `keyHealth.ok true`.
 - 보안 후속은 `edce37d61 fix(payments): harden security follow-ups` 로 커밋했다:
   - `worker/routes/payments.js` — 웹훅 원장 쓰기 삼킴 4곳을 `logSwallowedPaymentError` 로(줄 수 3800 그대로)
   - `worker/payments/orders.js` — `normalizeOrderReturnPath` 추가, 주문 스냅샷 `returnPath` 정규화
@@ -24,7 +24,7 @@ next: "👤 사람이 Google 키 삭제·메일 API 키 교체·콘솔 판정 25
 - 미추적 `.claude/skills/fire-your-seo-agency/` 는 **다른 사람 것**이다. 스테이징·커밋 금지.
 - 이 세션에서 한 일(코드 밖): 스테이징 Worker 시크릿 `YOUTUBE_API_KEY` 삭제, 로컬 `.env.local` 의 같은 줄 삭제.
 - 홈 바로가기는 `9fb545e73 feat(home): surface fortune systems above fold` 로 별도 커밋했다. 사주·자미두수·숙요점·베다점·점성술·타로의 기존 직접 진입 계약은 그대로 두고 접힌 카탈로그 밖으로 이동했다.
-- `npm run check:fast`, `npm run check:pre-push`, `npm run verify:release` 모두 통과했다. 홈 브라우저 검증은 320~1440px 오버플로 없음, 여섯 직접 진입 성공이다.
+- 홈·초기 보안 커밋 뒤 `npm run check:pre-push`, `npm run verify:release`가 통과했다. C 후속까지 반영한 마지막 `npm run check:fast`도 통과했다(결제 게이트 88/88, Node 3,200건, Jest 395 suites/6,030 tests). 홈 브라우저 검증은 320~1440px 오버플로 없음, 여섯 직접 진입 성공이다.
 - origin/main의 `PR CI`는 초록이지만 `Secret Scan` run `38339017478`은 아래 A가 끝나지 않아 붉다. 저장소 규칙상 이 red 위에 push하지 않았고 운영 승격도 실행하지 않았다.
 - `Yeongnyangi Browser Shadow` run `38339025962` attempt 1은 WebKit 페이지 전환 중 일반 `[object Event]` 1건만 실패했다. 결제·활성화·5챕터 결과는 성공했고 실패 잡만 attempt 2로 재실행했다. 폴링하지 않는다.
 
@@ -91,14 +91,14 @@ gh workflow run "Release Cloudflare Pages and Worker" --ref main -f mode=product
 
 | # | 일 | 메모 |
 |---|---|---|
-| C-1 | 레거시 단건 결제 경로의 죽은 코드 정리(`routes/payments.js` 의 `single_*` 단계, `.catch(() => {})` 4곳 포함) | 410 으로 닫혀 있다. **재조정 크론이 이 핸들러 본문에 의존하는지** 먼저 증명(`git grep`·`verify:payment-reconcile`). 동결 구간이면 `--update` |
-| C-2 | AI 라우트 자체 `verifyJwt` 에 `requireExp` 적용 | 기존 토큰 호환 위험 — exp 없는 토큰이 실제로 쓰이는지 데이터 확인 후. 액세스·리프레시는 이미 적용됨(`worker/lib/auth.js`) |
-| C-3 | `lib/payment/portone.ts:444` 의 `new URL(redirectPath, origin)` 는 절대 URL `redirectPath` 를 그대로 따른다 | `redirectPath` 출처를 추적해 사이트 내부 상대경로만 허용하는지 확인. 출처 확인 전에는 단정하지 않는다 |
-| C-4 | 공개 `GET /api/payments/config` 의 `inicis*Configured`·`missing` 최소화 | 값이 아니라 설정 여부일 뿐. 고정 테스트·검증 스크립트·픽스처를 같이 바꿔야 해 결제 게이트에 연쇄 — 우선순위 낮음 |
-| C-5 | B1 엄격 모드(storeId/channel 부재 시 거부) | 운영 데이터(absent 비율) 선결. 현재 present-only 는 `payments-v2.db-pg.test.js:111,149` 가 의도로 고정 |
-| C-6 | 사용 중인 DB URI·PortOne 시크릿용 커스텀 gitleaks 규칙 | `.gitleaks.toml` 은 `[extend] useDefault = true` + 단수 `[allowlist]` 만 적용된다(`[[allowlists]]` 는 v8.24.2 에서 무시됨) |
-| C-7 | PR 단계 시크릿 스캔 | `.github/workflows/secret-scan.yml` 수정이 필요 — **사용자 승인 없이 수정 금지** |
-| C-8 | `.env.local` 에 같은 값이 두 이름으로(`PORTONE_STORE`/`PORTONE_STORE_ID`, `INISTOREID`/`MID` 등) | `verify:env-parity` 경고. 교체 때 한쪽만 바꾸면 어긋난다 — 이름 정리는 계약·동기화 스크립트·테스트를 함께 |
+| C-1 | **삭제 안 함 — 의존성 확인 완료** | `worker/lib/payment-reconcile-task.js` → `settleSinglePaymentForReconcile` → 내부 `/api/payments/single/complete` 요청으로 본문을 실제 재사용한다. 죽은 코드가 아니므로 삭제하면 재조정 정산이 깨진다 |
+| C-2 | **운영 데이터 대기** | 기존 토큰 호환 위험 — exp 없는 토큰이 실제로 쓰이는지 데이터 확인 후. 액세스·리프레시는 이미 적용됨(`worker/lib/auth.js`) |
+| C-3 | **완료 `b46531856`** | PortOne redirect를 사이트 내부 절대경로로 제한하고 외부·protocol-relative·역슬래시·제어문자 입력은 루트로 폴백 |
+| C-4 | **완료 `cd9cf63df`** | 공개 `GET /api/payments/config`에서 `inicis*Configured`·`serverVerificationConfigured`·`missing` 상세 제거. 결제창 필수 공개 키는 유지 |
+| C-5 | **운영 데이터 대기** | B1 엄격 모드는 storeId/channel 부재 비율 확인이 선결. 현재 present-only 는 고정 테스트의 의도 |
+| C-6 | **완료 `d73f327c4`** | `.gitleaks.toml`에 MongoDB URI 자격증명·PortOne API 시크릿 규칙과 회귀 테스트 추가 |
+| C-7 | **적용 대상 아님** | 2026-09-12 이후 PR을 쓰지 않는 main-only 전달 정책이다. 현재 Secret Scan은 `push: main`과 수동 dispatch에서 실행됨 |
+| C-8 | **키 교체와 함께 처리** | `verify:env-parity` 경고 7건. 로컬·스테이징·운영의 실제 이름을 한 번에 정리해야 하므로 A 결과 없이 코드 별칭만 제거하지 않는다 |
 
 CI 에서 이미 붉은 것은 이 문서의 범위가 아니다: Gift·Shadow·조사·영냥이 문구는 `followups-and-key-rotation-2026-10-13.md` B~E. 공개 미러(`.ignore` 1개): `npm run sync:public` 을 돌려 결과를 같은 커밋에. LLM 호출 인벤토리: 호출 라우트를 검토한 뒤 `node scripts/audit-ai-locale-calls.mjs --write`(마지막 변경 커밋 `d8a868f09`).
 
