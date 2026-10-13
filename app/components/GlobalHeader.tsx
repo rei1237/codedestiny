@@ -63,7 +63,7 @@ const GLOBAL_HEADER_COPY: Record<LoadingLocale, {
     menu: "메뉴",
     auth: "인증",
     policyLinks: "정책 링크",
-    brandTagline: "꿀꿀운세",
+    brandTagline: "사주·타로 상담",
   },
   en: {
     nav: { "/index.html": "Home", "/insights": "Insights", "/privacy": "Privacy", "/terms": "Terms", "/contact": "Contact", "/about": "About", "/disclaimer": "Disclaimer", "/advertising-policy": "Advertising Policy", "/editorial-policy": "Editorial Policy", "/methodology": "Content Methodology" },
@@ -230,7 +230,7 @@ export default function GlobalHeader() {
           >
             <Image className={styles.brandImage} src="/icons/moonlight-garden-v1-512.webp" alt="" width={512} height={512} sizes="42px" />
             <span className={styles.brandText}>
-              <strong>CODE DESTINY</strong>
+              <strong>꿀꿀 운세</strong>
               <small>{copy.brandTagline}</small>
             </span>
           </a>

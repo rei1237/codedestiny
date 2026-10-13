@@ -1,6 +1,7 @@
-// 🔴 Organization(회사) 이름이다. 브랜드(WebSite)는 "꿀꿀운세" 로 따로 있다.
-//    lib/seo/siteSeo.ts 의 organization.name 과 같아야 한다.
-const BRAND_NAME = "CODE DESTINY";
+// Public organization name and registered legal identity are separate.
+import { BUSINESS_IDENTITY } from "../../lib/site-policy-config";
+import { siteSeo } from "../../lib/seo/siteSeo";
+const BRAND_NAME = siteSeo.brandName;
 const BRAND_URL = "https://code-destiny.com";
 const DEFAULT_IMAGE = `${BRAND_URL}/og/code-destiny-og.png`;
 
@@ -26,7 +27,8 @@ function buildOrganization() {
     "@type": "Organization",
     "@id": `${BRAND_URL}/#organization`,
     name: BRAND_NAME,
-    alternateName: ["CODE DESTINY", "CodeDestiny", "코드데스티니", "코드 데스티니", "꿀꿀운세", "꿀꿀 사주", "꿀꿀사주", "꿀꿀만세력", "꽃돼지 운세"],
+    alternateName: siteSeo.alternateName,
+    legalName: BUSINESS_IDENTITY.companyName,
     url: BRAND_URL,
     logo: {
       "@type": "ImageObject",

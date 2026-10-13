@@ -5,22 +5,22 @@ import PremiumUnlockClient from "./PremiumUnlockClient";
 
 const PREMIUM_UNLOCK_METADATA_COPY = {
   ko: {
-    title: "인생 총운 전문가 상담 | Code Destiny",
+    title: "인생 총운 전문가 상담 | 꿀꿀 운세",
     description:
       "생년월일시와 명리 계산값을 바탕으로 대운, 세운, 성향, 일, 재물, 관계의 큰 흐름을 차분히 읽어드립니다.",
   },
   en: {
-    title: "Life Fortune Expert Consultation | Code Destiny",
+    title: "Life Fortune Expert Consultation | 꿀꿀 운세",
     description:
       "From your birth date and time and the calculated Myeongni values, we read the larger currents of your luck cycles, disposition, work, wealth, and relationships.",
   },
   ja: {
-    title: "人生総運 専門家相談 | Code Destiny",
+    title: "人生総運 専門家相談 | 꿀꿀 운세",
     description:
       "生年月日時と命理の計算値をもとに、大運・歳運・性向・仕事・財・関係の大きな流れを落ち着いて読み解きます。",
   },
   zh: {
-    title: "人生总运专家咨询 | Code Destiny",
+    title: "人生总运专家咨询 | 꿀꿀 운세",
     description:
       "以出生年月日时与命理计算值为基础，平静地读出大运、流年、性情、事业、财富与关系的大流向。",
   },

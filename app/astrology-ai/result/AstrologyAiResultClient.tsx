@@ -672,7 +672,7 @@ export default function AstrologyAiResultClient() {
           <div id="astrology-ai-result-document" className="relative grid gap-6 rounded-lg border border-white/10 bg-[#060817] p-4 shadow-2xl shadow-black/40 ring-1 ring-white/[0.03] sm:p-6 lg:grid-cols-[minmax(0,1fr)_340px]">
             <article className="space-y-6">
               <header className={`${RESULT_PANEL_CLASS} overflow-hidden p-6 sm:p-8`}>
-                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#f5d487]">Code Destiny Astrology</p>
+                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#f5d487]">꿀꿀 운세 Astrology</p>
                 <h1 className="mt-3 break-keep text-3xl font-black leading-tight text-white [font-family:var(--font-premium)] sm:text-5xl">
                   {userName}님의 별자리 상담
                 </h1>

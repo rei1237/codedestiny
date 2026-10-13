@@ -1754,7 +1754,7 @@ export default function LifeBookAiClient() {
         <header className={intro.hero}>
           <div className={intro.bookObject} aria-hidden="true">
             <p className={intro.coverTitle}>{copy.modeOptions[form.mode].label}</p>
-            <p className={intro.coverSubtitle}>Code Destiny</p>
+            <p className={intro.coverSubtitle}>꿀꿀 운세</p>
           </div>
           <div className={intro.heroCopy}>
             <h2>{copy.heroTitle}</h2>

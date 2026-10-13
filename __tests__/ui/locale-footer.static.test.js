@@ -88,7 +88,7 @@ test("푸터 카피는 5개 로케일이 모두 채워져 있고 ko 외에는 �
   const koStart = table.indexOf("ko: {");
   const koBlock = sliceBalanced(table.slice(koStart), "ko: {", "{", "}");
   const withoutKo = table.replace(koBlock, "");
-  const leftoverHangul = withoutKo.match(/[가-힣]+/g) || [];
+  const leftoverHangul = withoutKo.replaceAll('꿀꿀 운세', '').match(/[가-힣]+/g) || [];
   // 사업자 정보 '값'은 등록 원문이라 LocaleFooterHub 쪽에 있고 이 표에는 없어야 한다.
   assert.deepEqual(
     leftoverHangul,
@@ -198,10 +198,11 @@ test("WebSite 엔티티 이름이 셸과 정본에서 같다", () => {
     "app/layout.js 가 WebSite name 을 다시 손으로 적고 있다 — 정본은 siteSeo.brandName 하나여야 한다",
   );
 
-  // 브랜드(WebSite)와 회사(Organization)는 서로 다른 엔티티다. 같은 값으로 되돌리지 말 것.
+  // 공개 브랜드는 일치시키고 등록 상호는 legalName으로 따로 보존한다.
   const orgName = (siteSeoSource.match(/organization:\s*\{[\s\S]{0,200}?name:\s*"([^"]+)"/) || [])[1];
   assert.ok(orgName, "lib/seo/siteSeo.ts 에서 organization.name 을 찾지 못했다");
-  assert.notEqual(orgName, brandName, "브랜드와 회사 이름이 같아졌다 — 두 엔티티가 한 덩어리로 읽힌다");
+  assert.equal(orgName, brandName, "공개 조직 이름은 서비스 브랜드와 같아야 한다");
+  assert.match(read("lib/structured-data.ts"), /legalName: BUSINESS_IDENTITY.companyName/, "법적 운영자명은 사업자 정본을 사용해야 한다");
 });
 
 test("로케일 푸터는 같은 언어 목적지 링크를 제공한다", () => {

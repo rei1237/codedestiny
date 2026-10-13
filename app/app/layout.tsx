@@ -5,8 +5,8 @@ import MobileAppRuntimeBridge from "@/app/app/MobileAppRuntimeBridge";
 import PurchaseRecoveryBoot from "@/app/app/_components/PurchaseRecoveryBoot";
 
 export const metadata: Metadata = {
-  title: "Code Destiny",
-  description: "Code Destiny Android 앱 홈",
+  title: "꿀꿀 운세",
+  description: "꿀꿀 운세 Android 앱 홈",
   // 앱 전용 셸이라 색인 대상이 아니다.
   robots: {
     index: false,

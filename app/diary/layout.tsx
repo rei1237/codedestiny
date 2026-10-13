@@ -8,7 +8,7 @@ const DIARY_LAYOUT_TEXT_TRANSLATIONS = {
     description: "오늘의 운기를 보고 계획·기록·회고를 한 곳에 남기는 개인 다이어리입니다.",
   },
   en: {
-    title: "Fortune Diary | Code Destiny",
+    title: "Fortune Diary | 꿀꿀 운세",
     description: "A private diary that keeps your daily fortune, plans, entries, and reflections in one place.",
   },
 } as const;

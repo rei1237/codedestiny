@@ -4,11 +4,11 @@ import { siteSeo } from "@/lib/seo/siteSeo";
 import GuardianFortuneShareClient from "./GuardianFortuneShareClient";
 
 export const metadata: Metadata = {
-  title: "공유된 오늘의 귀인 운세 | Code Destiny",
+  title: "공유된 오늘의 귀인 운세 | 꿀꿀 운세",
   description: "연이와 네오가 읽어준 오늘의 귀인 운세를 확인해 보세요.",
   robots: { index: false, follow: false },
   openGraph: {
-    title: "공유된 오늘의 귀인 운세 | Code Destiny",
+    title: "공유된 오늘의 귀인 운세 | 꿀꿀 운세",
     description: "사주·타로·점성술의 흐름을 엮어 오늘의 메시지를 읽어봤어요.",
     url: "https://code-destiny.com/fortune/share/",
     siteName: siteSeo.brandName,
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "공유된 오늘의 귀인 운세 | Code Destiny",
+    title: "공유된 오늘의 귀인 운세 | 꿀꿀 운세",
     description: "연이와 네오가 읽어준 오늘의 귀인 운세를 확인해 보세요.",
     images: [siteSeo.defaultOgImage],
   },

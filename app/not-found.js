@@ -3,8 +3,8 @@ import { SystemNotice } from "./components/SystemNotice";
 const NOT_FOUND_I18N = {
   ko: {
     metadata: {
-      title: "페이지를 찾을 수 없습니다 | Code Destiny",
-      description: "요청한 페이지를 찾을 수 없습니다. Code Destiny의 공개 운세 가이드와 주요 서비스로 이동할 수 있습니다.",
+      title: "페이지를 찾을 수 없습니다 | 꿀꿀 운세",
+      description: "요청한 페이지를 찾을 수 없습니다. 꿀꿀 운세의 공개 운세 가이드와 주요 서비스로 이동할 수 있습니다.",
     },
     eyebrow: "ERROR 404",
     title: "페이지를 찾을 수 없습니다",

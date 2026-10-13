@@ -24,22 +24,22 @@ const notoSansKRVariable = "font-noto-sans-kr-offline";
 
 const ROOT_LAYOUT_COPY = {
   ko: {
-    insightsRssTitle: "Code Destiny Insights RSS",
+    insightsRssTitle: "꿀꿀 운세 Insights RSS",
   },
   en: {
-    insightsRssTitle: "Code Destiny Insights RSS",
+    insightsRssTitle: "꿀꿀 운세 Insights RSS",
   },
   ja: {
-    insightsRssTitle: "Code Destiny Insights RSS",
+    insightsRssTitle: "꿀꿀 운세 Insights RSS",
   },
   zh: {
-    insightsRssTitle: "Code Destiny Insights RSS",
+    insightsRssTitle: "꿀꿀 운세 Insights RSS",
   },
 };
 
 const ROOT_SEO = {
-  title: "꿀꿀운세 | 사주·타로·영냥이 상담",
-  description: "꿀꿀운세는 CODE DESTINY의 사주·타로 상담 서비스입니다. 꽃돼지 연이, 네오, 영냥이와 함께 자신의 기질과 관계를 살펴보고 일상에서 선택할 방향을 찾아보세요.",
+  title: "꿀꿀 운세 | 사주·타로·영냥이 상담",
+  description: "꿀꿀 운세는 사주·타로 상담 서비스입니다. 꽃돼지 연이, 네오, 영냥이와 함께 자신의 기질과 관계를 살펴보고 일상에서 선택할 방향을 찾아보세요.",
   ogTitle: siteSeo.defaultTitle,
   ogDescription: siteSeo.defaultDescription,
 };
@@ -109,7 +109,7 @@ export const metadata = {
         url: siteSeo.defaultOgImage,
         width: 1200,
         height: 630,
-        alt: "Code Destiny 무료 사주 타로 오늘의 운세 플랫폼",
+        alt: "꿀꿀 운세 사주·타로 상담 서비스",
       },
     ],
   },

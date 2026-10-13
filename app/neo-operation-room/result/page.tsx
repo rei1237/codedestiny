@@ -5,7 +5,7 @@ import NeoOperationRoomResultClient from "./NeoOperationRoomResultClient";
 // app/layout.js 기본값이 내려와 홈 설명과 홈 canonical 을 쓰면서 index,follow 로 노출된다
 // (엣지의 `X-Robots-Tag: noindex, nofollow` 와 모순되는 신호였다).
 export const metadata = {
-  title: "네오의 작전 명령서 | Code Destiny",
+  title: "네오의 작전 명령서 | 꿀꿀 운세",
   description: "네오가 정리한 개인 작전 명령서입니다. 상담을 진행한 본인에게만 표시되며 검색에는 공개되지 않습니다.",
   alternates: {
     canonical: "https://code-destiny.com/neo-operation-room/result",

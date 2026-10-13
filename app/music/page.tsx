@@ -2,16 +2,16 @@
 
 const MUSIC_PAGE_TEXT_TRANSLATIONS = {
   ko: {
-    title: "Code Destiny Moon Library | Code Destiny",
+    title: "꿀꿀 운세 Moon Library | 꿀꿀 운세",
     description: "달빛 무드의 코드데스티니 뮤직 플레이리스트를 감상하세요.",
   },
   en: {
-    title: "Code Destiny Moon Library | Code Destiny",
-    description: "Listen to Code Destiny music playlists in a moonlit mood.",
+    title: "꿀꿀 운세 Moon Library | 꿀꿀 운세",
+    description: "Listen to 꿀꿀 운세 music playlists in a moonlit mood.",
   },
   ja: {
-    title: "Code Destiny Moon Library | Code Destiny",
-    description: "月明かりのムードでCode Destinyの音楽プレイリストをお楽しみください。",
+    title: "꿀꿀 운세 Moon Library | 꿀꿀 운세",
+    description: "月明かりのムードで꿀꿀 운세の音楽プレイリストをお楽しみください。",
   },
 } as const;
 

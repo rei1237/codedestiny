@@ -86,7 +86,7 @@ export interface AppShellCopy {
 }
 
 const APP_SHELL_COPY_EN: AppShellCopy = {
-  appHomeAriaLabel: "Code Destiny App Home",
+  appHomeAriaLabel: "꿀꿀 운세 App Home",
   moonlightHomeTagline: "Moonlight Fortune Home",
   passLinkLabel: "Pass",
   todayRecommendLabel: "Today's Pick",
@@ -155,7 +155,7 @@ const APP_SHELL_COPY_EN: AppShellCopy = {
 
 const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
   ko: {
-    appHomeAriaLabel: "Code Destiny 앱 홈",
+    appHomeAriaLabel: "꿀꿀 운세 앱 홈",
     moonlightHomeTagline: "달빛 운세 홈",
     passLinkLabel: "이용권",
     todayRecommendLabel: "오늘의 추천",
@@ -222,7 +222,7 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     passTerminationNote: "이용 한도를 모두 사용하면 이용권이 종료됩니다. 다시 구매하면 새 이용 한도로 시작합니다.",
   },
   ja: {
-    appHomeAriaLabel: "Code Destiny アプリホーム",
+    appHomeAriaLabel: "꿀꿀 운세 アプリホーム",
     moonlightHomeTagline: "月光運勢ホーム",
     passLinkLabel: "利用券",
     todayRecommendLabel: "今日のおすすめ",
@@ -289,7 +289,7 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     passTerminationNote: "利用上限を使い切るとパスは終了します。再度購入すると新しい利用上限で始まります。",
   },
   "zh-CN": {
-    appHomeAriaLabel: "Code Destiny 应用主页",
+    appHomeAriaLabel: "꿀꿀 운세 应用主页",
     moonlightHomeTagline: "月光运势之家",
     passLinkLabel: "使用权",
     todayRecommendLabel: "今日推荐",
@@ -356,7 +356,7 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     passTerminationNote: "使用额度用完后，通行证即结束。重新购买将以新的使用额度开始。",
   },
   "zh-TW": {
-    appHomeAriaLabel: "Code Destiny 應用程式首頁",
+    appHomeAriaLabel: "꿀꿀 운세 應用程式首頁",
     moonlightHomeTagline: "月光運勢之家",
     passLinkLabel: "使用權",
     todayRecommendLabel: "今日推薦",
@@ -423,7 +423,7 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     passTerminationNote: "使用額度用完後，通行證即結束。重新購買將以新的使用額度開始。",
   },
   vi: {
-    appHomeAriaLabel: "Trang chủ ứng dụng Code Destiny",
+    appHomeAriaLabel: "Trang chủ ứng dụng 꿀꿀 운세",
     moonlightHomeTagline: "Trang Nhà Vận Mệnh Ánh Trăng",
     passLinkLabel: "Vé sử dụng",
     todayRecommendLabel: "Gợi ý hôm nay",
@@ -490,7 +490,7 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     passTerminationNote: "Khi dùng hết hạn mức sử dụng, vé sẽ kết thúc. Mua lại sẽ bắt đầu với hạn mức sử dụng mới.",
   },
   hi: {
-    appHomeAriaLabel: "Code Destiny ऐप होम",
+    appHomeAriaLabel: "꿀꿀 운세 ऐप होम",
     moonlightHomeTagline: "चंद्रकिरण भाग्य होम",
     passLinkLabel: "पास",
     todayRecommendLabel: "आज की पसंद",
@@ -557,7 +557,7 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     passTerminationNote: "उपयोग सीमा पूरी तरह इस्तेमाल होने पर पास समाप्त हो जाता है। दोबारा खरीदने पर नई उपयोग सीमा से शुरुआत होती है।",
   },
   es: {
-    appHomeAriaLabel: "Inicio de la app Code Destiny",
+    appHomeAriaLabel: "Inicio de la app 꿀꿀 운세",
     moonlightHomeTagline: "Inicio de Fortuna a la Luz de la Luna",
     passLinkLabel: "Pase",
     todayRecommendLabel: "Recomendado de hoy",
@@ -624,7 +624,7 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     passTerminationNote: "Cuando se agota el límite de uso, el pase termina. Si vuelves a comprarlo, empiezas con un nuevo límite de uso.",
   },
   fr: {
-    appHomeAriaLabel: "Accueil de l'app Code Destiny",
+    appHomeAriaLabel: "Accueil de l'app 꿀꿀 운세",
     moonlightHomeTagline: "Accueil Fortune au Clair de Lune",
     passLinkLabel: "Pass",
     todayRecommendLabel: "Recommandation du jour",
@@ -691,7 +691,7 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     passTerminationNote: "Lorsque la limite d'utilisation est entièrement utilisée, le pass prend fin. Un nouvel achat repart avec une nouvelle limite d'utilisation.",
   },
   de: {
-    appHomeAriaLabel: "Code Destiny App-Startseite",
+    appHomeAriaLabel: "꿀꿀 운세 App-Startseite",
     moonlightHomeTagline: "Mondlicht-Schicksals-Startseite",
     passLinkLabel: "Pass",
     todayRecommendLabel: "Heutige Empfehlung",
@@ -758,7 +758,7 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     passTerminationNote: "Wenn das Nutzungslimit aufgebraucht ist, endet der Pass. Ein erneuter Kauf beginnt mit einem neuen Nutzungslimit.",
   },
   nl: {
-    appHomeAriaLabel: "Code Destiny app-startpagina",
+    appHomeAriaLabel: "꿀꿀 운세 app-startpagina",
     moonlightHomeTagline: "Maanlicht Lots-thuis",
     passLinkLabel: "Pas",
     todayRecommendLabel: "Aanbeveling van vandaag",
@@ -825,7 +825,7 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     passTerminationNote: "Zodra de gebruikslimiet volledig is gebruikt, eindigt de pas. Bij een nieuwe aankoop begin je met een nieuwe gebruikslimiet.",
   },
   ms: {
-    appHomeAriaLabel: "Laman utama aplikasi Code Destiny",
+    appHomeAriaLabel: "Laman utama aplikasi 꿀꿀 운세",
     moonlightHomeTagline: "Laman Utama Nasib Cahaya Bulan",
     passLinkLabel: "Pas",
     todayRecommendLabel: "Cadangan hari ini",

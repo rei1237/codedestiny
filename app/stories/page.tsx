@@ -15,7 +15,7 @@ import {
 
 export const metadata = buildSeoMetadata({
   path: "/stories",
-  title: "연이의 운명 노벨 — 사주로 걷는 70화 판타지 | Code Destiny",
+  title: "연이의 운명 노벨 — 사주로 걷는 70화 판타지 | 꿀꿀 운세",
   description:
     "평범한 대학생이 꽃돼지가 되어 십성의 섬과 자미두수·점성술·베다·타로의 네 하늘을 건너는 70화 완결 창작 소설. 등장인물과 세계관, 화별 줄거리를 한자리에서 볼 수 있습니다.",
   keywords: ["연이의 운명 노벨", "사주 소설", "운세 웹소설", "십성 판타지", "코드데스티니 스토리"],

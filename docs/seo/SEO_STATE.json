@@ -3962,5 +3962,32 @@
       "auditSeedRecheck": "passed: zero issues"
     },
     "worktree": "D:\\wt\\seo-health-20261012-20261012-092305"
+  },
+  "brandSearchFinal20261013": {
+    "status": "implementation-in-progress",
+    "brand": "꿀꿀 운세",
+    "alternateName": [
+      "꿀꿀운세"
+    ],
+    "d0": null,
+    "production": "not-promoted; baseline still uses 꿀꿀 사주",
+    "google": {
+      "search": "unverified: automation challenge",
+      "console": "unverified: login required"
+    },
+    "naver": {
+      "search": "observed official URLs for both brand spellings with obsolete title",
+      "console": "unverified: login required"
+    },
+    "evidence": "docs/seo/evidence/2026-10-13-brand-final",
+    "measurement": {
+      "days": [
+        7,
+        14,
+        28
+      ],
+      "automaticSchedule": false,
+      "comparison": "identical filters and completed periods; query and page aggregates separate; missing values remain null"
+    }
   }
 }

@@ -9,7 +9,7 @@ import CheckoutRouteClient from "./CheckoutRouteClient";
  * 검색 노출 대상이 아니다(app/robots.ts 의 `/checkout/` Disallow 와 짝).
  */
 export const metadata: Metadata = {
-  title: "영냥이 복채 결제 | Code Destiny",
+  title: "영냥이 복채 결제 | 꿀꿀 운세",
   description: "영냥이 유료 리딩은 패밀리 꿀단지 이용권·월정석 또는 단건 결제(카드·카카오페이 등)로 이용해요.",
   robots: {
     index: false,

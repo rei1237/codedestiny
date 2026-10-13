@@ -24,7 +24,7 @@ type FaqItem = {
 export const SITE_AUTHOR = {
   name: "박병하",
   jobTitle: "명리학자",
-  description: "10년 경력의 명리학자. Code Destiny 가 공개하는 사주·운세 콘텐츠의 최종 검수 책임자입니다.",
+  description: "10년 경력의 명리학자. 꿀꿀 운세가 공개하는 사주·운세 콘텐츠의 최종 검수 책임자입니다.",
   knowsAbout: ["사주", "명리학", "만세력", "자미두수", "숙요점"],
   sameAs: ["https://blog.naver.com/neosaju"] as string[],
 } as const;
@@ -94,7 +94,7 @@ export function buildOrganizationJsonLd() {
         "@type": "Thing",
         name: FUSION_FORTUNE_PROFILE.primary,
         alternateName: FUSION_FORTUNE_PROFILE.secondary,
-        description: "사주, 자미두수, 숙요점, 베다 점성술, 서양 점성술, 타로의 해석 관점을 AI가 종합하는 CODE DESTINY의 초융합 운세 방법론입니다.",
+        description: "사주, 자미두수, 숙요점, 베다 점성술, 서양 점성술, 타로의 해석 관점을 AI가 종합하는 꿀꿀 운세의 초융합 운세 방법론입니다.",
       },
       { "@type": "Thing", name: "사주" },
       { "@type": "Thing", name: "자미두수" },
@@ -124,7 +124,7 @@ export function buildWebsiteJsonLd(locale?: string) {
     "@type": "WebSite",
     "@id": `${siteSeo.siteUrl}/#website`,
     url: siteSeo.siteUrl,
-    // 🔴 브랜드 이름이다(꿀꿀운세). 회사 이름(CODE DESTINY)은 Organization 노드가 갖는다.
+    // 🔴 브랜드 이름이다(꿀꿀 운세). 등록 상호는 Organization.legalName으로 별도 보존한다.
     // 정적 셸 index.html 의 #website 노드와 글자 단위로 같아야 한다.
     name: siteSeo.brandName,
     alternateName: siteSeo.alternateName,

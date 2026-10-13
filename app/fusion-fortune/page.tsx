@@ -13,7 +13,7 @@ import { FusionFortuneSeoContent, FUSION_FORTUNE_FAQS } from "./FusionFortuneSeo
 import { buildKrwOffer } from "@/lib/seo/paid-offer";
 
 const pageCopy = getFusionExpertCopy("ko");
-const title = `${pageCopy.narrator} | Code Destiny`;
+const title = `${pageCopy.narrator} | 꿀꿀 운세`;
 const description = pageCopy.intro;
 
 export const metadata = buildSeoMetadata({
@@ -39,7 +39,7 @@ export default function FusionFortunePage() {
         offer: buildKrwOffer("fusion-fortune-consultation", "/fusion-fortune"),
       }),
       buildBreadcrumbJsonLd([
-        { name: "Code Destiny", path: "/" },
+        { name: "꿀꿀 운세", path: "/" },
         { name: pageCopy.narrator, path: "/fusion-fortune" },
       ]),
       buildFaqPageJsonLd([...FUSION_FORTUNE_FAQS]),

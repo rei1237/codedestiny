@@ -1,8 +1,8 @@
 const SITE_SEO_TEXT_TRANSLATIONS = {
   ko: {
-    "siteSeo.001": "무료 사주팔자 · 타로 · 오늘의 운세 | Code Destiny",
-    "siteSeo.002": "Code Destiny 소개 | 무료 운세 플랫폼",
-    "siteSeo.003": "Code Destiny 자주 묻는 질문",
+    "siteSeo.001": "무료 사주팔자 · 타로 · 오늘의 운세 | 꿀꿀 운세",
+    "siteSeo.002": "꿀꿀 운세 소개 | 무료 운세 플랫폼",
+    "siteSeo.003": "꿀꿀 운세 자주 묻는 질문",
     "siteSeo.004": "운세 콘텐츠 방법론과 면책 고지",
     "siteSeo.005": "무료 만세력 사주 분석 | 오행·십성·대운 해석",
     "siteSeo.006": "무료 사주팔자 분석 | 오행·십성·대운 흐름",
@@ -22,7 +22,7 @@ const SITE_SEO_TEXT_TRANSLATIONS = {
     "siteSeo.021": "연애 리포트 PDF 안내 | 관계 흐름 심층 분석",
     "siteSeo.023": "운세 인사이트 가이드 | 사주·타로·궁합·점성술",
     "siteSeo.024": "운세 인사이트 아카이브 | 사주·타로·자미두수 가이드",
-    "siteSeo.025": "연이와 네오 — 꿀꿀운세 캐릭터·세계관 소개",
+    "siteSeo.025": "연이와 네오 — 꿀꿀 운세 캐릭터·세계관 소개",
     "siteSeo.026": "2026년 9월 일간별 운세 | 정유월 사주 흐름",
     "siteSeo.027": "최근 30일 띠별 날짜 운세",
   },
@@ -53,7 +53,7 @@ export const SOCIAL_PROFILES = [
 
 export const siteSeo = {
   /**
-   * 발행처 표기용 이름(`creator`·`publisher`). 회사 쪽 이름이다.
+   * 공개 발행처 표기용 이름(`creator`·`publisher`). 등록 상호는 organization.legalName으로 구분한다.
    *
    * 🔴 **`og:site_name` 과 `application-name` 에는 쓰지 말 것 — 그 둘은 brandName 이다.**
    * 예전에는 여기가 og:site_name 이었고, 그 결과 사이트 이름 신호가 다섯 갈래로 갈렸다
@@ -63,13 +63,13 @@ export const siteSeo = {
    * 검색엔진이 결정하며, 신호 일치만으로 노출이나 순위를 보장하지 않는다.
    * 가드: `__tests__/ui/site-name-signals.static.test.js`
    */
-  siteName: "꿀꿀운세",
+  siteName: "꿀꿀 운세",
   /**
    * `WebSite` 엔티티의 이름 = 서비스 브랜드.
    *
-   * 회사 이름과 다르다(운영자 확인, 2026-08-16): 브랜드는 **꿀꿀운세**(2026-10-13 공식명 복원), 회사는 **CODE DESTINY**.
-   * schema.org 에서 WebSite 와 Organization 은 서로 다른 엔티티이므로 이름이 갈리는 것이 정상이고,
-   * 오히려 둘을 같은 이름으로 두면 브랜드와 발행처가 한 덩어리로 읽힌다.
+   * 회사 이름과 다르다(운영자 확인, 2026-08-16): 브랜드는 **꿀꿀 운세**(2026-10-13 공식명 복원), 회사는 **CODE DESTINY**.
+   * WebSite와 Organization의 공개 이름은 같은 브랜드를 사용하며,
+   * 법적 운영자 신원은 기존 사업자 정본의 legalName으로 보존한다.
    *
    * 🔴 이 값이 곧 `og:site_name` · `application-name` 이기도 하다(2026-08-28) — 위 siteName 주석 참고.
    *
@@ -78,20 +78,20 @@ export const siteSeo = {
    * 갈리면 Google 이 한 엔티티에 두 이름을 보게 된다.
    * `__tests__/ui/locale-footer.static.test.js` 가 그 일치를 강제한다.
    */
-  brandName: "꿀꿀운세",
-  alternateName: ["꿀꿀 운세", "꿀꿀 사주", "꿀꿀사주", "Ggulggul Fortune", "CODE DESTINY", "CodeDestiny", "코드데스티니", "코드 데스티니"],
+  brandName: "꿀꿀 운세",
+  alternateName: ["꿀꿀운세"],
   siteUrl: "https://code-destiny.com",
   defaultLocale: "ko",
   supportedLocales: ["ko"],
-  defaultTitle: "꿀꿀운세 — 사주·궁합·타로",
+  defaultTitle: "꿀꿀 운세 — 사주·궁합·타로",
   titleTemplate: "%s",
   defaultDescription:
-    "꿀꿀운세에서 사주풀이와 궁합, 타로, 자미두수, 숙요점을 만나보세요. 고양이 영냥이와 꽃돼지 연이가 내 성향과 지금의 고민을 살펴보는 길을 안내합니다.",
-  defaultOgImage: "https://code-destiny.com/og/code-destiny-og-vvip.png?v=78417fecff",
+    "꿀꿀 운세에서 사주풀이와 궁합, 타로, 자미두수, 숙요점을 만나보세요. 고양이 영냥이와 꽃돼지 연이가 내 성향과 지금의 고민을 살펴보는 길을 안내합니다.",
+  defaultOgImage: "https://code-destiny.com/og/code-destiny-og-vvip.png?v=42dedf5c85",
   twitterCard: "summary_large_image",
   organization: {
-    // 회사 이름(운영자 확인, 2026-08-16). 브랜드(brandName = 꿀꿀운세)와 의도적으로 다르다.
-    name: "CODE DESTINY",
+    // 공개 조직 이름. 등록 상호는 BUSINESS_IDENTITY.companyName으로 별도 출력한다.
+    name: "꿀꿀 운세",
     legalName: "코드 데스티니",
     url: "https://code-destiny.com",
     logo: "https://code-destiny.com/og/code-destiny-og.png",
@@ -121,7 +121,7 @@ export const publicSeoPages: Record<string, PublicSeoPage> = {
     path: "/",
     title: siteSeoText("siteSeo.001"),
     description:
-      "사주, 타로, 자미두수, 점성술, 숙요점, 궁합, 오늘의 운세를 한곳에서 확인하세요. Code Destiny는 자기성찰을 돕는 한국어 운세 플랫폼입니다.",
+      "사주, 타로, 자미두수, 점성술, 숙요점, 궁합, 오늘의 운세를 한곳에서 확인하세요. 꿀꿀 운세는 자기성찰을 돕는 한국어 운세 플랫폼입니다.",
     h1: "무료 사주팔자 · 타로 · 오늘의 운세 통합 플랫폼",
     keywords: ["무료 사주", "무료 타로", "오늘의 운세", "만세력", "궁합"],
     changeFrequency: "daily",
@@ -132,8 +132,8 @@ export const publicSeoPages: Record<string, PublicSeoPage> = {
     path: "/about",
     title: siteSeoText("siteSeo.002"),
     description:
-      "Code Destiny가 제공하는 무료 사주, 타로, 자미두수, 점성술, 숙요점 서비스와 콘텐츠 운영 원칙을 소개합니다.",
-    h1: "Code Destiny 소개",
+      "꿀꿀 운세에서 제공하는 무료 사주, 타로, 자미두수, 점성술, 숙요점 서비스와 콘텐츠 운영 원칙을 소개합니다.",
+    h1: "꿀꿀 운세 소개",
     changeFrequency: "monthly",
     priority: 0.8,
     structuredData: ["Organization", "AboutPage"],
@@ -143,7 +143,7 @@ export const publicSeoPages: Record<string, PublicSeoPage> = {
     title: siteSeoText("siteSeo.003"),
     description:
       "무료 운세 이용, 회원가입, 개인정보, 결제와 환불, 결과 해석 기준에 대한 자주 묻는 질문을 정리했습니다.",
-    h1: "Code Destiny 자주 묻는 질문",
+    h1: "꿀꿀 운세 자주 묻는 질문",
     changeFrequency: "monthly",
     priority: 0.72,
     structuredData: ["FAQPage", "BreadcrumbList"],
@@ -152,7 +152,7 @@ export const publicSeoPages: Record<string, PublicSeoPage> = {
     path: "/methodology",
     title: siteSeoText("siteSeo.004"),
     description:
-      "Code Destiny의 운세 콘텐츠 작성 원칙, 검수 방식, 업데이트 기준, 오락 및 자기성찰 목적의 면책 고지를 안내합니다.",
+      "꿀꿀 운세의 운세 콘텐츠 작성 원칙, 검수 방식, 업데이트 기준, 오락 및 자기성찰 목적의 면책 고지를 안내합니다.",
     h1: "운세 콘텐츠 방법론과 면책 고지",
     changeFrequency: "monthly",
     priority: 0.78,
@@ -360,9 +360,9 @@ export const publicSeoPages: Record<string, PublicSeoPage> = {
     path: "/world",
     title: siteSeoText("siteSeo.025"),
     description:
-      "꿀꿀운세의 상담자 연이와 네오는 누구인지, 사주의 강·인성의 도서관 같은 장소가 어디서 왔는지 한자리에 모아 소개합니다.",
+      "꿀꿀 운세의 상담자 연이와 네오는 누구인지, 사주의 강·인성의 도서관 같은 장소가 어디서 왔는지 한자리에 모아 소개합니다.",
     h1: "캐릭터와 세계관",
-    keywords: ["연이", "네오", "꿀꿀운세 캐릭터", "사주의 강", "운명 세계관"],
+    keywords: ["연이", "네오", "꿀꿀 운세 캐릭터", "사주의 강", "운명 세계관"],
     changeFrequency: "monthly",
     priority: 0.7,
     structuredData: ["WebPage", "BreadcrumbList"],

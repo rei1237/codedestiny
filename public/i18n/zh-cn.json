@@ -70,7 +70,7 @@
       "flowerDream": "花与梦",
       "vvip": "VVIP书库",
       "oracle": "神谕",
-      "brandAlias": "蜜豚运势",
+      "brandAlias": "꿀꿀 운세",
       "brandAria": "前往 Code Destiny 首页",
       "mainAria": "主要服务快捷入口",
       "astrologyHub": "占星术",
@@ -1692,7 +1692,7 @@
       "searchHint": "可按运势名称、烦恼或旧服务名搜索。",
       "heroTitle": "四柱八字与塔罗",
       "heroTitleEm": "理清自己的下一步",
-      "heroLead": "Code Destiny · 紫微命盘、宿曜关系与个人问题解读",
+      "heroLead": "꿀꿀 운세 · 紫微命盘、宿曜关系与个人问题解读",
       "heroPrimary": "选择运势",
       "allFortunes": "查看全部运势",
       "todayTerms": "免费 · 无需登录 · 按出生日期资料卡计算",
@@ -1727,7 +1727,7 @@
       "chemiTitle": "我和本命,是什么默契?",
       "chemiNote": "只要输入生日,就能生成小卡",
       "chemiCta": "查看我和本命的默契",
-      "brandOtherEntry": "Ggulggul Fortune：灵喵四柱与塔罗 →",
+      "brandOtherEntry": "꿀꿀 운세：灵喵四柱与塔罗 →",
       "publicRecordsTitle": "十年经验命理学者朴秉河（Neo）的公开分析记录",
       "publicRecordsLink": "查看日期、原文与吻合范围"
     },
@@ -1883,7 +1883,7 @@
       "self": "认识自己",
       "future": "时机与选择",
       "title": "从你的问题开始解读",
-      "brand": "在Ggulggul Fortune认识灵喵、Yeoni与Neo。与灵喵探讨问题，也可探索Yeoni茶馆和Neo策略室。",
+      "brand": "在꿀꿀 운세认识灵喵、Yeoni与Neo。与灵喵探讨问题，也可探索Yeoni茶馆和Neo策略室。",
       "stepQuestion": "说说当下的烦恼",
       "stepPrice": "确认内容与价格",
       "stepResult": "阅读解答、依据与行动建议",
@@ -2721,10 +2721,10 @@
     "passCheckingNote": "正在安全地匹配月光通行证和会员等级。"
   },
   "seo": {
-    "homeTitle": "免费四柱、塔罗与今日运势 | Code Destiny 蜜猪运势",
-    "rssTitle": "Code Destiny & 蜜猪运势 RSS",
-    "description": "按出生日期查看免费四柱、塔罗、合盘、新年运、土亭秘诀和 MBTI 兼容度。Code Destiny 蜜猪运势也可通过旧名蜜猪万年历搜索。",
-    "keywords": "四柱, 免费四柱, 万年历, 塔罗, 今日运势, 合盘, 新年运, 土亭秘诀, 面相, 财运, 复合运, MBTI兼容度, 解梦, 宿曜占, 龟卜, 周易, 埃及神谕, Kemet Oracle, 紫微斗数, 占星, Code Destiny, 蜜猪运势, 蜜猪万年历"
+    "homeTitle": "免费四柱、塔罗与今日运势 | 꿀꿀 운세",
+    "rssTitle": "꿀꿀 운세 RSS",
+    "description": "꿀꿀 운세: 按出生日期查看免费四柱、塔罗、合盘、新年运、土亭秘诀和 MBTI 兼容度。",
+    "keywords": "四柱, 免费四柱, 万年历, 塔罗, 今日运势, 合盘, 新年运, 土亭秘诀, 面相, 财运, 复合运, MBTI兼容度, 꿀꿀 운세"
   },
   "fortune": {
     "destinyFlower": {
@@ -6962,7 +6962,7 @@
     "sq_9794_attr_aria_label": "宿曜姻缘雷达图"
   },
   "shell": {
-    "CODEDESTINY": "八字排盘·紫微斗数·塔罗占卜｜Code Destiny",
+    "CODEDESTINY": "八字排盘·紫微斗数·塔罗占卜｜꿀꿀 운세",
     "cdCookieConsentCopy": {
       "cdCookieConsentActions": {
         "kniuoqf": "同意",
@@ -17432,7 +17432,7 @@
             "2": "喜欢什么",
             "3": "食物"
           },
-          "answer": "当然是蜂蜜啦！🍯 我真的沉迷蜂蜜。蜂蜜蛋糕、蜂蜜拿铁、蜂蜜炒年糕…只要加了蜜都最棒。哼哼 所以我的名字才叫蜜豚运势～"
+          "answer": "当然是蜂蜜啦！🍯 我真的沉迷蜂蜜。蜂蜜蛋糕、蜂蜜拿铁、蜂蜜炒年糕…只要加了蜜都最棒。哼哼 所以我的名字才叫꿀꿀 운세～"
         },
         "3": {
           "keywords": {

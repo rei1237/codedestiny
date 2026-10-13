@@ -471,14 +471,14 @@ const LOCALE_SHELL_SEO = {
     lang: "ja",
     ogLocale: "ja_JP",
     language: "Japanese",
-    title: "四柱推命・宿曜・タロット占い｜Code Destiny",
+    title: "四柱推命・宿曜・タロット占い｜꿀꿀 운세",
     description:
       "韓国式四柱推命の命式、宿曜の本命宿と相性、紫微斗数の十二宮を日本語で。占術ごとの見方と必要な入力を確認し、今の悩みに合う占いを選べます。",
     keywords:
       "四柱推命 無料, 占い 無料, タロット占い 無料, 今日の運勢, 相性占い, 紫微斗数, 宿曜占星術, 誕生日占い, 恋愛占い, 韓国 占い, 無料鑑定",
-    appTitle: "Ggulggul Fortune",
+    appTitle: "꿀꿀 운세",
     imageAlt:
-      "ハニーピッグ占い HONEY FORTUNE — 花豚ヨニのカメオとサービス紹介を収めた CODE DESTINY の名刺カード",
+      "꿀꿀 운세 HONEY FORTUNE — 花豚ヨニのカメオとサービス紹介を収めた CODE DESTINY の名刺カード",
     dictionaryFile: "ja.json",
     // 공유 미리보기 카드(scripts/og/render-og-card.mjs ggulggul-*) — 한국어 문구 카드 대신 이 로케일 문구 카드.
     ogImage: "code-destiny-og-ja.png",
@@ -487,14 +487,14 @@ const LOCALE_SHELL_SEO = {
     lang: "zh-CN",
     ogLocale: "zh_CN",
     language: "Chinese",
-    title: "八字排盘·紫微斗数·塔罗占卜｜Code Destiny",
+    title: "八字排盘·紫微斗数·塔罗占卜｜꿀꿀 운세",
     description:
       "从四柱八字、紫微斗数十二宫到宿曜关系与塔罗问题解读。用简体中文了解不同体系的输入与看盘顺序，选择适合自己的命盘或咨询入口。",
     keywords:
       "免费算命, 八字算命, 生辰八字, 塔罗牌占卜, 今日运势, 合婚配对, 紫微斗数, 宿曜占星, 星座运势, 姻缘测算",
-    appTitle: "Ggulggul Fortune",
+    appTitle: "꿀꿀 운세",
     imageAlt:
-      "蜜豚运势 HONEY FORTUNE — 印有花猪 Yeoni 客串形象与服务介绍的 CODE DESTINY 名片卡",
+      "꿀꿀 운세 HONEY FORTUNE — 印有花猪 Yeoni 客串形象与服务介绍的 CODE DESTINY 名片卡",
     dictionaryFile: "zh-cn.json",
     // 공유 미리보기 카드(scripts/og/render-og-card.mjs ggulggul-*) — 한국어 문구 카드 대신 이 로케일 문구 카드.
     ogImage: "code-destiny-og-zh.png",
@@ -505,14 +505,14 @@ const LOCALE_SHELL_SEO = {
     lang: "zh-TW",
     ogLocale: "zh_TW",
     language: "Chinese",
-    title: "八字排盤·紫微斗數·塔羅占卜｜Code Destiny",
+    title: "八字排盤·紫微斗數·塔羅占卜｜꿀꿀 운세",
     description:
       "從四柱八字、紫微斗數十二宮到宿曜關係與塔羅問題解讀。用繁體中文了解不同體系的輸入與看盤順序，選擇適合自己的命盤或諮詢入口。",
     keywords:
       "免費算命, 八字算命, 生辰八字, 塔羅牌占卜, 今日運勢, 合婚配對, 紫微斗數, 宿曜占星, 星座運勢, 姻緣測算",
-    appTitle: "Ggulggul Fortune",
+    appTitle: "꿀꿀 운세",
     imageAlt:
-      "蜜豚運勢 HONEY FORTUNE — 印有花豬 Yeoni 客串形象與服務介紹的 CODE DESTINY 名片卡",
+      "꿀꿀 운세 HONEY FORTUNE — 印有花豬 Yeoni 客串形象與服務介紹的 CODE DESTINY 名片卡",
     dictionaryFile: "zh-tw.json",
     // 공유 미리보기 카드(scripts/og/render-og-card.mjs ggulggul-*) — 한국어 문구 카드 대신 이 로케일 문구 카드.
     ogImage: "code-destiny-og-zh-tw.png",
@@ -521,14 +521,14 @@ const LOCALE_SHELL_SEO = {
     lang: "en",
     ogLocale: "en_US",
     language: "English",
-    title: "Korean Saju, Tarot & Birth Charts | Code Destiny",
+    title: "Korean Saju, Tarot & Birth Charts | 꿀꿀 운세",
     description:
       "Explore Korean Saju, Zi Wei Dou Shu, Sukuyo and tarot in English. Compare traditions, check birth-chart inputs and choose a reading for your question.",
     keywords:
       "free fortune telling, saju reading, four pillars of destiny, free tarot reading, daily horoscope, zi wei dou shu, compatibility test, korean astrology, birth chart",
-    appTitle: "Ggulggul Fortune",
+    appTitle: "꿀꿀 운세",
     imageAlt:
-      "Honey Pig Fortune HONEY FORTUNE — a CODE DESTINY calling card with a cameo of Yeoni the flower pig and an overview of the service",
+      "꿀꿀 운세 HONEY FORTUNE — a CODE DESTINY calling card with a cameo of Yeoni the flower pig and an overview of the service",
     dictionaryFile: "en.json",
     // 공유 미리보기 카드(scripts/og/render-og-card.mjs ggulggul-*) — 한국어 문구 카드 대신 이 로케일 문구 카드.
     ogImage: "code-destiny-og-en.png",
@@ -562,8 +562,8 @@ function resolveLocaleShellTitle(seo) {
  */
 const LOCALE_MANIFEST = {
   "/ja": {
-    name: "Ggulggul Fortune — Code Destiny",
-    short_name: "Ggulggul Fortune",
+    name: "꿀꿀 운세",
+    short_name: "꿀꿀 운세",
     description: "今日の運勢と四柱推命、相性とタロットの流れが静かに開きます。",
     lang: "ja",
     shortcut: {
@@ -573,8 +573,8 @@ const LOCALE_MANIFEST = {
     },
   },
   "/zh": {
-    name: "Ggulggul Fortune — Code Destiny",
-    short_name: "Ggulggul Fortune",
+    name: "꿀꿀 운세",
+    short_name: "꿀꿀 운세",
     description: "今日运势与八字命理、合婚配对和塔罗的流向静静展开。",
     lang: "zh-CN",
     shortcut: {
@@ -585,8 +585,8 @@ const LOCALE_MANIFEST = {
   },
   // 기존 public/manifest.zh-tw.json 의 문구를 그대로 유지한다(재생성해도 값이 바뀌지 않게).
   "/zh-tw": {
-    name: "Ggulggul Fortune — Code Destiny",
-    short_name: "Ggulggul Fortune",
+    name: "꿀꿀 운세",
+    short_name: "꿀꿀 운세",
     description: "今日運勢與四柱八字、合婚配對和塔羅的流向靜靜展開。",
     lang: "zh-TW",
     shortcut: {
@@ -596,8 +596,8 @@ const LOCALE_MANIFEST = {
     },
   },
   "/en": {
-    name: "Ggulggul Fortune — Code Destiny",
-    short_name: "Ggulggul Fortune",
+    name: "꿀꿀 운세",
+    short_name: "꿀꿀 운세",
     description: "Today's fortune, Four Pillars, compatibility, and tarot — read with a calm, steady hand.",
     lang: "en",
     shortcut: {

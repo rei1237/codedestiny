@@ -33,10 +33,10 @@ type SeoPageKey = "home" | "ziwei" | "sukuyo" | "today";
 export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleContent>> = {
   home: {
     ko: {
-      title: "무료 사주팔자 · 타로 · 오늘의 운세 | Code Destiny",
+      title: "무료 사주팔자 · 타로 · 오늘의 운세 | 꿀꿀 운세",
       description: "사주, 타로, 자미두수, 숙요점, 오늘의 운세를 한곳에서 확인하고 지금 필요한 흐름을 차분히 읽어보세요.",
       h1: "무료 사주팔자 · 타로 · 오늘의 운세",
-      intro: "Code Destiny는 생년월일과 질문의 맥락을 바탕으로 여러 운세 체계를 차분히 연결해 주는 한국어 운세 공간입니다.",
+      intro: "꿀꿀 운세는 생년월일과 질문의 맥락을 바탕으로 여러 운세 체계를 차분히 연결해 주는 한국어 운세 공간입니다.",
       mainKeyword: "무료 사주팔자",
       relatedKeywords: ["오늘의 운세", "무료 타로", "자미두수", "숙요점"],
       valuePoints: ["사주와 타로를 한 화면에서 비교", "초보자도 읽기 쉬운 상담형 문장", "심화 리포트로 이어지는 구조"],
@@ -47,7 +47,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
         { href: "/insights", label: "운세 인사이트 읽기" },
       ],
       faq: [
-        { question: "Code Destiny는 무료인가요?", answer: "기본 사주, 타로, 오늘의 운세는 무료로 시작할 수 있으며 일부 심화 리포트만 유료입니다." },
+        { question: "꿀꿀 운세는 무료인가요?", answer: "기본 사주, 타로, 오늘의 운세는 무료로 시작할 수 있으며 일부 심화 리포트만 유료입니다." },
         { question: "처음이라면 어디서 시작하면 좋나요?", answer: "오늘의 운세로 현재 흐름을 보고, 이후 사주나 자미두수로 확장하면 이해가 쉽습니다." },
         { question: "운세 결과는 확정된 미래인가요?", answer: "아닙니다. 결과는 자기 점검과 선택을 돕는 참고 흐름으로 읽는 것이 좋습니다." },
         { question: "여러 운세를 함께 봐도 되나요?", answer: "네. 사주, 자미두수, 숙요점은 서로 다른 관점으로 현재의 고민을 비춰줍니다." },
@@ -55,10 +55,10 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
       disclaimer: "모든 운세 콘텐츠는 참고용이며 의료, 법률, 재무 전문가의 조언을 대신하지 않습니다.",
     },
     ja: {
-      title: "四柱推命・宿曜・タロット占い｜Code Destiny",
+      title: "四柱推命・宿曜・タロット占い｜꿀꿀 운세",
       description: "韓国式四柱推命の命式、宿曜の本命宿と相性、紫微斗数の十二宮を日本語で。占術ごとの見方と必要な入力を確認し、今の悩みに合う占いを選べます。",
       h1: "四柱推命とタロットで 次の一歩を見つけよう",
-      intro: "Code Destinyは、韓国式四柱推命、タロット、紫微斗数、宿曜、西洋占星術、ヴェーダ占星術を日本語で探せる占いサービスです。自分の傾向を知りたいときは出生情報を使う命式・命盤から、具体的な悩みを整理したいときは質問に合うタロットから選べます。四柱推命とタロットでは必要な入力も読み方も異なります。各解説から対応する鑑定画面へ進み、公開機能と有料相談の範囲を確認できます。ヨニ、ネオ、ヨンニャンイは同じCode Destiny内で異なる相談体験を案内します。",
+      intro: "꿀꿀 운세は、韓国式四柱推命、タロット、紫微斗数、宿曜、西洋占星術、ヴェーダ占星術を日本語で探せる占いサービスです。自分の傾向を知りたいときは出生情報を使う命式・命盤から、具体的な悩みを整理したいときは質問に合うタロットから選べます。四柱推命とタロットでは必要な入力も読み方も異なります。各解説から対応する鑑定画面へ進み、公開機能と有料相談の範囲を確認できます。ヨニ、ネオ、ヨンニャンイは同じ꿀꿀 운세内で異なる相談体験を案内します。",
       mainKeyword: "無料四柱推命",
       relatedKeywords: ["今日の運勢", "無料タロット", "紫微斗数", "宿曜"],
       valuePoints: ["四柱推命とタロットを横断して確認", "初心者にも読みやすい相談文", "深いレポートへ自然につながる構成"],
@@ -69,7 +69,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
         { href: "/ja/insights", label: "運勢インサイトを読む" },
       ],
       faq: [
-        { question: "Code Destinyは無料ですか？", answer: "基本の四柱推命、タロット、今日の運勢は無料で始められ、一部の詳細レポートのみ有料です。" },
+        { question: "꿀꿀 운세は無料ですか？", answer: "基本の四柱推命、タロット、今日の運勢は無料で始められ、一部の詳細レポートのみ有料です。" },
         { question: "初めてならどこから始めるとよいですか？", answer: "まず今日の運勢で流れを確認し、その後に四柱推命や紫微斗数へ広げると分かりやすくなります。" },
         { question: "運勢は確定した未来ですか？", answer: "いいえ。自己理解と選択を助ける参考の流れとして読むことをおすすめします。" },
         { question: "複数の占術を一緒に見てもよいですか？", answer: "はい。四柱推命、紫微斗数、宿曜はそれぞれ違う角度から悩みを照らします。" },
@@ -77,10 +77,10 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
       disclaimer: "占いコンテンツは参考情報であり、医療・法律・財務の専門的助言に代わるものではありません。",
     },
     zh: {
-      title: "八字排盘·紫微斗数·塔罗占卜｜Code Destiny",
+      title: "八字排盘·紫微斗数·塔罗占卜｜꿀꿀 운세",
       description: "从四柱八字、紫微斗数十二宫到宿曜关系与塔罗问题解读。用简体中文了解不同体系的输入与看盘顺序，选择适合自己的命盘或咨询入口。",
       h1: "四柱八字与塔罗 理清自己的下一步",
-      intro: "Code Destiny提供四柱八字、紫微斗数、宿曜、西洋占星、吠陀占星与塔罗的简体中文入口。想了解长期的性格与选择模式，可以从出生信息对应的命盘开始；想梳理某个具体问题，可以选择塔罗。八字需要出生资料，塔罗从问题与牌面出发，两者不能套用同一解释。每个介绍页说明本体系的阅读方法，并连接相应工具。妍伊、Neo与Yeongnyangi提供同一平台内不同风格的咨询体验。公开功能和可选付费咨询的范围，以对应服务页说明为准。",
+      intro: "꿀꿀 운세提供四柱八字、紫微斗数、宿曜、西洋占星、吠陀占星与塔罗的简体中文入口。想了解长期的性格与选择模式，可以从出生信息对应的命盘开始；想梳理某个具体问题，可以选择塔罗。八字需要出生资料，塔罗从问题与牌面出发，两者不能套用同一解释。每个介绍页说明本体系的阅读方法，并连接相应工具。妍伊、Neo与Yeongnyangi提供同一平台内不同风格的咨询体验。公开功能和可选付费咨询的范围，以对应服务页说明为准。",
       mainKeyword: "免费四柱八字",
       relatedKeywords: ["今日运势", "免费塔罗", "紫微斗数", "宿曜"],
       valuePoints: ["在同一页面比较八字与塔罗", "新手也容易理解的咨询语气", "可自然延伸到深度报告"],
@@ -91,7 +91,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
         { href: "/zh/insights", label: "阅读运势洞察" },
       ],
       faq: [
-        { question: "Code Destiny是免费的吗？", answer: "基础八字、塔罗与今日运势可以免费开始，部分深度报告为付费内容。" },
+        { question: "꿀꿀 운세是免费的吗？", answer: "基础八字、塔罗与今日运势可以免费开始，部分深度报告为付费内容。" },
         { question: "第一次使用应从哪里开始？", answer: "建议先看今日运势，再进入四柱八字或紫微斗数，会更容易理解。" },
         { question: "运势结果是确定的未来吗？", answer: "不是。它更适合作为自我整理与选择判断的参考。" },
         { question: "可以同时查看多种占术吗？", answer: "可以。八字、紫微斗数与宿曜会从不同角度照亮同一个问题。" },
@@ -99,10 +99,10 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
       disclaimer: "所有运势内容仅供参考，不能替代医疗、法律或财务等专业建议。",
     },
     "zh-TW": {
-      title: "八字排盤·紫微斗數·塔羅占卜｜Code Destiny",
+      title: "八字排盤·紫微斗數·塔羅占卜｜꿀꿀 운세",
       description: "從四柱八字、紫微斗數十二宮到宿曜關係與塔羅問題解讀。用繁體中文了解不同體系的輸入與看盤順序，選擇適合自己的命盤或諮詢入口。",
       h1: "四柱八字與塔羅 理清自己的下一步",
-      intro: "Code Destiny提供四柱八字、紫微斗數、宿曜、西洋占星、吠陀占星與塔羅的繁體中文入口。想了解長期的性格與選擇模式，可以從出生資訊對應的命盤開始；想梳理某個具體問題，可以選擇塔羅。八字需要出生資料，塔羅從問題與牌面出發，兩者不能套用同一解釋。每個介紹頁說明本體系的閱讀方法，並連結相應工具。妍伊、Neo與Yeongnyangi提供同一平台內不同風格的諮詢體驗。公開功能和可選付費諮詢的範圍，以對應服務頁說明為準。",
+      intro: "꿀꿀 운세提供四柱八字、紫微斗數、宿曜、西洋占星、吠陀占星與塔羅的繁體中文入口。想了解長期的性格與選擇模式，可以從出生資訊對應的命盤開始；想梳理某個具體問題，可以選擇塔羅。八字需要出生資料，塔羅從問題與牌面出發，兩者不能套用同一解釋。每個介紹頁說明本體系的閱讀方法，並連結相應工具。妍伊、Neo與Yeongnyangi提供同一平台內不同風格的諮詢體驗。公開功能和可選付費諮詢的範圍，以對應服務頁說明為準。",
       mainKeyword: "免費四柱八字",
       relatedKeywords: ["今日運勢", "免費塔羅", "紫微斗數", "宿曜"],
       valuePoints: ["在同一頁面比較八字與塔羅", "新手也容易理解的諮詢語氣", "可自然延伸到深度報告"],
@@ -113,7 +113,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
         { href: "/zh-tw/insights", label: "閱讀運勢洞察" },
       ],
       faq: [
-        { question: "Code Destiny是免費的嗎？", answer: "基礎八字、塔羅與今日運勢可以免費開始，部分深度報告為付費內容。" },
+        { question: "꿀꿀 운세是免費的嗎？", answer: "基礎八字、塔羅與今日運勢可以免費開始，部分深度報告為付費內容。" },
         { question: "第一次使用該從哪裡開始？", answer: "建議先看今日運勢，再進入四柱八字或紫微斗數，會比較容易理解。" },
         { question: "運勢結果是確定的未來嗎？", answer: "不是。它比較適合作為自我整理與選擇判斷的參考。" },
         { question: "可以同時查看多種占術嗎？", answer: "可以。八字、紫微斗數與宿曜會從不同角度照亮同一個問題。" },
@@ -121,10 +121,10 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
       disclaimer: "所有運勢內容僅供參考，不能取代醫療、法律或財務等專業建議。",
     },
     en: {
-      title: "Korean Saju, Tarot & Birth Charts | Code Destiny",
+      title: "Korean Saju, Tarot & Birth Charts | 꿀꿀 운세",
       description: "Explore Korean Saju, Zi Wei Dou Shu, Sukuyo and tarot in English. Compare traditions, check birth-chart inputs and choose a reading for your question.",
       h1: "Korean Saju & tarot for your next step",
-      intro: "Code Destiny brings Korean Saju (Four Pillars, also called BaZi), tarot, Zi Wei Dou Shu, Sukuyo, Western astrology and Vedic astrology together. Start with a birth chart when you want to understand recurring patterns, or choose tarot for a specific question. Saju uses birth details; tarot begins with your question and cards. Each guide explains its own method and links to the corresponding tool. Yeoni, Neo and Yeongnyangi offer different reading experiences within the same platform. Public guidance and optional paid consultations are described separately on each service page.",
+      intro: "꿀꿀 운세 brings Korean Saju (Four Pillars, also called BaZi), tarot, Zi Wei Dou Shu, Sukuyo, Western astrology and Vedic astrology together. Start with a birth chart when you want to understand recurring patterns, or choose tarot for a specific question. Saju uses birth details; tarot begins with your question and cards. Each guide explains its own method and links to the corresponding tool. Yeoni, Neo and Yeongnyangi offer different reading experiences within the same platform. Public guidance and optional paid consultations are described separately on each service page.",
       mainKeyword: "free saju reading",
       relatedKeywords: ["daily fortune", "free tarot", "zi wei dou shu", "sukuyo"],
       valuePoints: ["Compare Saju and Tarot in one place", "Beginner-friendly consultation language", "A clear path into deeper reports"],
@@ -135,7 +135,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
         { href: "/en/insights", label: "Read Fortune Insights" },
       ],
       faq: [
-        { question: "Is Code Destiny free?", answer: "Core Saju, Tarot, and daily fortune readings can be started for free. Some deeper reports are paid." },
+        { question: "Is 꿀꿀 운세 free?", answer: "Core Saju, Tarot, and daily fortune readings can be started for free. Some deeper reports are paid." },
         { question: "Where should beginners start?", answer: "Start with the daily flow, then expand into Saju or Zi Wei Dou Shu for more context." },
         { question: "Are fortune results fixed predictions?", answer: "No. They are best used as reflective guidance for choices and self-understanding." },
         { question: "Can I combine several systems?", answer: "Yes. Saju, Zi Wei Dou Shu, and Sukuyo illuminate the same question from different angles." },
@@ -217,7 +217,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
   },
   {
     "question": "四柱推命との違いは何ですか？",
-    "answer": "四柱推命は年・月・日・時の四柱と五行の関係、紫微斗数は十二宮と星の配置を中心に読みます。Code Destinyではそれぞれの解説と道具を分けて提供しています。"
+    "answer": "四柱推命は年・月・日・時の四柱と五行の関係、紫微斗数は十二宮と星の配置を中心に読みます。꿀꿀 운세ではそれぞれの解説と道具を分けて提供しています。"
   },
   {
     "question": "命盤はどこから読めばよいですか？",
@@ -279,7 +279,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
   },
   {
     "question": "紫微斗数和八字有什么不同？",
-    "answer": "八字以年、月、日、时四柱及五行关系为核心，紫微斗数以十二宫与星曜配置为核心。Code Destiny分别提供两者的介绍和工具。"
+    "answer": "八字以年、月、日、时四柱及五行关系为核心，紫微斗数以十二宫与星曜配置为核心。꿀꿀 운세分别提供两者的介绍和工具。"
   },
   {
     "question": "新手先看哪个宫？",
@@ -341,7 +341,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
   },
   {
     "question": "紫微斗數和八字有什麼不同？",
-    "answer": "八字以年、月、日、時四柱及五行關係為核心，紫微斗數以十二宮與星曜配置為核心。Code Destiny分別提供兩者的介紹和工具。"
+    "answer": "八字以年、月、日、時四柱及五行關係為核心，紫微斗數以十二宮與星曜配置為核心。꿀꿀 운세分別提供兩者的介紹和工具。"
   },
   {
     "question": "新手先看哪個宮？",
@@ -376,7 +376,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
     ]
   ]
 },
-      title: "Zi Wei Dou Shu Chart & 12 Palaces | Code Destiny",
+      title: "Zi Wei Dou Shu Chart & 12 Palaces | 꿀꿀 운세",
       description: "Explore a Zi Wei Dou Shu chart through the Life, Career, Wealth and Spouse palaces. Check the birth details needed and open the chart tool in English.",
       h1: "Zi Wei Dou Shu chart: a guide to the 12 palaces",
       intro: "Zi Wei Dou Shu maps birth details into 12 palaces and star placements. Start with the Life Palace, then compare the Career, Wealth and Spouse palaces without treating one star as a complete reading.",
@@ -403,7 +403,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
   },
   {
     "question": "How is Zi Wei Dou Shu different from BaZi or Saju?",
-    "answer": "BaZi and Korean Saju use four birth pillars and Five Element relationships. Zi Wei Dou Shu uses 12 palaces and star placements. Code Destiny provides separate guides and tools for both."
+    "answer": "BaZi and Korean Saju use four birth pillars and Five Element relationships. Zi Wei Dou Shu uses 12 palaces and star placements. 꿀꿀 운세 provides separate guides and tools for both."
   },
   {
     "question": "How do I start reading a chart?",
@@ -463,7 +463,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
       title: "宿曜占星術｜本命宿・27宿の相性を調べる",
       description: "生年月日から本命宿を調べ、27宿の関係を読む宿曜占星術。栄親・友衰・安壊・危成・業胎・命の見方と、相性を比べる前の確認点を解説します。",
       h1: "宿曜占星術で本命宿と相性を調べる",
-      intro: "宿曜占星術は生年月日に対応する本命宿を求め、二人の宿の関係を読む占術です。Code Destinyの27宿の解説から、本命宿を調べる画面へ進めます。",
+      intro: "宿曜占星術は生年月日に対応する本命宿を求め、二人の宿の関係を読む占術です。꿀꿀 운세の27宿の解説から、本命宿を調べる画面へ進めます。",
       mainKeyword: "宿曜 相性",
       relatedKeywords: ["27宿", "栄親", "業胎", "安壊"],
       valuePoints: [
@@ -646,7 +646,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
     ]
   ]
 },
-      title: "Sukuyo Compatibility & 27 Birth Stars | Code Destiny",
+      title: "Sukuyo Compatibility & 27 Birth Stars | 꿀꿀 운세",
       description: "Find your Sukuyo birth star and compare 27-star relationship patterns. Check the birth dates needed and learn how Sukuyo differs from Vedic astrology.",
       h1: "Find your Sukuyo birth star and explore compatibility",
       intro: "Sukuyo compatibility compares two birth stars in a 27-star system. Start with each person’s birth date, then read the relationship category as a prompt for understanding patterns, not a verdict on the relationship.",

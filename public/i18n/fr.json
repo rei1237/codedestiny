@@ -70,7 +70,7 @@
       "flowerDream": "Fleurs & rêves",
       "vvip": "Bibliothèque VVIP",
       "oracle": "Oracles",
-      "brandAlias": "Fortune du cochon de miel",
+      "brandAlias": "꿀꿀 운세",
       "brandAria": "Accédez à la page d'accueil de Code Destiny",
       "mainAria": "Raccourcis du service principal",
       "astrologyHub": "Astrologie",
@@ -1727,7 +1727,7 @@
       "chemiTitle": "You and your bias: what's the chemistry?",
       "chemiNote": "Enter your birthday and get a photocard",
       "chemiCta": "See my bias chemistry",
-      "brandOtherEntry": "Ggulggul Fortune : Saju et tarot avec Yeongnyangi →",
+      "brandOtherEntry": "꿀꿀 운세 : Saju et tarot avec Yeongnyangi →",
       "publicRecordsTitle": "Analyses publiques de Park Byung-ha (Neo), spécialiste du Saju avec 10 ans d’expérience",
       "publicRecordsLink": "Comparer les dates, textes originaux et résultats"
     },
@@ -1883,7 +1883,7 @@
       "self": "Mieux me comprendre",
       "future": "Moment et choix",
       "title": "Une lecture qui part de votre question",
-      "brand": "Retrouvez Yeongnyangi, Yeoni et Neo dans Ggulggul Fortune. Explorez votre question avec Yeongnyangi, ou visitez le salon de thé de Yeoni et la salle de stratégie de Neo.",
+      "brand": "Retrouvez Yeongnyangi, Yeoni et Neo dans 꿀꿀 운세. Explorez votre question avec Yeongnyangi, ou visitez le salon de thé de Yeoni et la salle de stratégie de Neo.",
       "stepQuestion": "Partagez votre question",
       "stepPrice": "Vérifiez le contenu et le prix",
       "stepResult": "Lisez la réponse, ses fondements et les prochaines actions",
@@ -2721,10 +2721,10 @@
     "passCheckingNote": "Nous ajustons en toute sécurité votre Pass Pierre de Clair de Lune et votre niveau d'adhésion."
   },
   "seo": {
-    "homeTitle": "Saju, Tarot et Daily Fortune gratuits | Code Destiny Honey Pig Fortune",
-    "rssTitle": "Code Destiny et Honey Pig Fortune RSS",
-    "description": "Saju gratuit par date de naissance, tarot, compatibilité, fortune du Nouvel An, Tojeong Bigyeol et compatibilité MBTI. Code Destiny Honey Pig Fortune est également consultable sous son ancien nom Honey Pig Manse.",
-    "keywords": "Saju, Saju gratuit, calendrier Manse, tarot, fortune quotidienne, compatibilité, fortune du Nouvel An, Tojeong Bigyeol, lecture du visage, fortune en argent, fortune des retrouvailles, compatibilité MBTI, interprétation des rêves, Sukuyo, divination en carapace de tortue, I Ching, Kemet Oracle, Zi Wei Dou Shu, astrologie, horoscope, divination, lecture de tarot gratuite, Code Destiny, Honey Pig Fortune, Honey Pig Manse"
+    "homeTitle": "Saju, Tarot et Daily Fortune gratuits | 꿀꿀 운세",
+    "rssTitle": "꿀꿀 운세 RSS",
+    "description": "꿀꿀 운세: Saju gratuit par date de naissance, tarot, compatibilité, fortune du Nouvel An, Tojeong Bigyeol et compatibilité MBTI.",
+    "keywords": "Saju, Saju gratuit, calendrier Manse, tarot, fortune quotidienne, compatibilité, fortune du Nouvel An, Tojeong Bigyeol, lecture du visage, fortune en argent, fortune des retrouvailles, compatibilité MBTI, 꿀꿀 운세"
   },
   "fortune": {
     "destinyFlower": {
@@ -6962,7 +6962,7 @@
     "sq_9794_attr_aria_label": "Diagramme radar de compatibilité Sukuyo"
   },
   "shell": {
-    "CODEDESTINY": "CODE DESTINY | Quatre Piliers (BaZi)·Tarot·Zi Wei Dou Shu·Compatibilité gratuits — Lecture de chance",
+    "CODEDESTINY": "꿀꿀 운세 | Quatre Piliers (BaZi)·Tarot·Zi Wei Dou Shu·Compatibilité gratuits — Lecture de chance",
     "cdCookieConsentCopy": {
       "cdCookieConsentActions": {
         "kniuoqf": "Accepter",
@@ -17432,7 +17432,7 @@
             "2": "what do you like",
             "3": "food"
           },
-          "answer": "Honey, obviously! 🍯 I am deep in my honey era. Honey cake, honey latte, honey tteokbokki… if it has honey, it wins. Oink — that's why my name is Honey Pig Fortune~"
+          "answer": "Honey, obviously! 🍯 I am deep in my honey era. Honey cake, honey latte, honey tteokbokki… if it has honey, it wins. Oink — that's why my name is 꿀꿀 운세~"
         },
         "3": {
           "keywords": {
@@ -20310,7 +20310,7 @@
       "title": "Yeoni's Destiny Tea House",
       "library": "My readings",
       "account": "Account",
-      "back": "Ggulggul Fortune",
+      "back": "꿀꿀 운세",
       "heading": "A moonlit night,\na cup just for you",
       "lead": "A flower pig welcomes you. A story unfolds across the table with Yeoni.",
       "intro": "Explore life's timing with Saju, today's choices with Tarot, and relationship dynamics with Sukuyo.",

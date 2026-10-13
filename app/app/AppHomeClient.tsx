@@ -82,7 +82,7 @@ export default function AppHomeClient() {
             style={{ background: "var(--cd-app-bg-raised)", boxShadow: "var(--cd-app-shadow-1)" }}
           />
           <span className="grid min-w-0 gap-0.5">
-            <span className="truncate text-sm font-black leading-tight" style={{ color: "var(--cd-app-ink)" }}>Code Destiny</span>
+            <span className="truncate text-sm font-black leading-tight" style={{ color: "var(--cd-app-ink)" }}>꿀꿀 운세</span>
             <span className="truncate text-xs font-semibold leading-tight" style={{ color: "var(--cd-app-ink-subtle)" }}>{copy.moonlightHomeTagline}</span>
           </span>
         </Link>

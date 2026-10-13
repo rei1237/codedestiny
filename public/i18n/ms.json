@@ -70,7 +70,7 @@
       "flowerDream": "Bunga & Mimpi",
       "vvip": "Arkib VVIP",
       "oracle": "Orakel",
-      "brandAlias": "Nasib Babi Madu",
+      "brandAlias": "꿀꿀 운세",
       "brandAria": "Pergi ke rumah Code Destiny",
       "mainAria": "Pintasan perkhidmatan utama",
       "astrologyHub": "Astrologi",
@@ -1727,7 +1727,7 @@
       "chemiTitle": "You and your bias: what's the chemistry?",
       "chemiNote": "Enter your birthday and get a photocard",
       "chemiCta": "See my bias chemistry",
-      "brandOtherEntry": "Ggulggul Fortune: Saju dan Tarot bersama Yeongnyangi →",
+      "brandOtherEntry": "꿀꿀 운세: Saju dan Tarot bersama Yeongnyangi →",
       "publicRecordsTitle": "Rekod analisis awam Park Byung-ha (Neo), pengamal Saju berpengalaman 10 tahun",
       "publicRecordsLink": "Bandingkan tarikh, catatan asal dan hasil"
     },
@@ -1883,7 +1883,7 @@
       "self": "Memahami diri",
       "future": "Masa dan pilihan",
       "title": "Bacaan bermula dengan soalan anda",
-      "brand": "Temui Yeongnyangi, Yeoni dan Neo dalam Ggulggul Fortune. Terokai soalan bersama Yeongnyangi, atau lawati Rumah Teh Yeoni dan Bilik Strategi Neo.",
+      "brand": "Temui Yeongnyangi, Yeoni dan Neo dalam 꿀꿀 운세. Terokai soalan bersama Yeongnyangi, atau lawati Rumah Teh Yeoni dan Bilik Strategi Neo.",
       "stepQuestion": "Kongsi kebimbangan anda",
       "stepPrice": "Semak kandungan dan harga",
       "stepResult": "Baca jawapan, asas dan langkah seterusnya",
@@ -2721,10 +2721,10 @@
     "passCheckingNote": "Menyelaraskan Pas Batu Cahaya Bulan dan tahap keahlian anda dengan selamat."
   },
   "seo": {
-    "homeTitle": "Saju Percuma, Tarot dan Rezeki Harian | Nasib Babi Madu Kod Destiny",
-    "rssTitle": "RSS Kod Destiny & Babi Madu",
-    "description": "Percuma Saju mengikut tarikh lahir, tarot, keserasian, nasib Tahun Baru, Tojeong Bigyeol dan keserasian MBTI. Code Destiny Honey Pig Fortune juga boleh dicari di bawah nama bekas Honey Pig Mansenya.",
-    "keywords": "Saju, Saju percuma, kalendar Manse, tarot, nasib harian, keserasian, nasib Tahun Baru, Tojeong Bigyeol, bacaan muka, nasib wang, nasib perjumpaan semula, keserasian MBTI, tafsir mimpi, Sukuyo, ramalan cangkerang penyu, I Ching, Oracle Kemet, horoskop percuma, Zi Weiturotu Doturou membaca, Code Destiny, Honey Pig Fortune, Honey Pig Manse"
+    "homeTitle": "Saju Percuma, Tarot dan Rezeki Harian | 꿀꿀 운세",
+    "rssTitle": "꿀꿀 운세 RSS",
+    "description": "꿀꿀 운세: Percuma Saju mengikut tarikh lahir, tarot, keserasian, nasib Tahun Baru, Tojeong Bigyeol dan keserasian MBTI.",
+    "keywords": "Saju, Saju percuma, kalendar Manse, tarot, nasib harian, keserasian, nasib Tahun Baru, Tojeong Bigyeol, bacaan muka, nasib wang, nasib perjumpaan semula, keserasian MBTI, 꿀꿀 운세"
   },
   "fortune": {
     "destinyFlower": {
@@ -6962,7 +6962,7 @@
     "sq_9794_attr_aria_label": "Carta Radar Keserasian Sukuyo"
   },
   "shell": {
-    "CODEDESTINY": "CODE DESTINY | Empat Tiang (BaZi) Percuma·Tarot·Zi Wei Dou Shu·Keserasian — Bacaan Bertuah",
+    "CODEDESTINY": "꿀꿀 운세 | Empat Tiang (BaZi) Percuma·Tarot·Zi Wei Dou Shu·Keserasian — Bacaan Bertuah",
     "cdCookieConsentCopy": {
       "cdCookieConsentActions": {
         "kniuoqf": "Setuju",
@@ -17432,7 +17432,7 @@
             "2": "what do you like",
             "3": "food"
           },
-          "answer": "Honey, obviously! 🍯 I am deep in my honey era. Honey cake, honey latte, honey tteokbokki… if it has honey, it wins. Oink — that's why my name is Honey Pig Fortune~"
+          "answer": "Honey, obviously! 🍯 I am deep in my honey era. Honey cake, honey latte, honey tteokbokki… if it has honey, it wins. Oink — that's why my name is 꿀꿀 운세~"
         },
         "3": {
           "keywords": {
@@ -20310,7 +20310,7 @@
       "title": "Yeoni's Destiny Tea House",
       "library": "My readings",
       "account": "Account",
-      "back": "Ggulggul Fortune",
+      "back": "꿀꿀 운세",
       "heading": "A moonlit night,\na cup just for you",
       "lead": "A flower pig welcomes you. A story unfolds across the table with Yeoni.",
       "intro": "Explore life's timing with Saju, today's choices with Tarot, and relationship dynamics with Sukuyo.",

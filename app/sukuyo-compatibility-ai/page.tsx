@@ -12,7 +12,7 @@ import { createHreflangFromRoutes } from "@/lib/seo/createHreflang";
 import { introductionRoutes } from "@/lib/i18n/feature-introductions.mjs";
 
 const PAGE_PATH = "/sukuyo-compatibility-ai/";
-const PAGE_TITLE = "숙요 궁합 상담 | 27수 관계 유형 1:1 해석 — Code Destiny";
+const PAGE_TITLE = "숙요 궁합 상담 | 27수 관계 유형 1:1 해석 — 꿀꿀 운세";
 const PAGE_DESCRIPTION =
   "두 사람의 27숙과 숙요점 관계 유형으로 끌림과 갈등의 리듬을 풀어 주는 1:1 궁합 상담입니다. 그 유형이 실제 갈등 장면에서 어떻게 드러나는지까지 짚습니다.";
 

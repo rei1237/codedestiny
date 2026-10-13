@@ -31,7 +31,7 @@ const INSIGHT_FALLBACK_IMAGES = {
 
 const INSIGHT_DETAIL_PAGE_TEXT_TRANSLATIONS = {
   ko: {
-    fallbackTitle: "운세 인사이트 | Code Destiny",
+    fallbackTitle: "운세 인사이트 | 꿀꿀 운세",
     fallbackDescription: "운세 인사이트 상세 글입니다.",
     fallbackKeyword: "운세 인사이트",
     titleSuffix: "운세 인사이트",
@@ -41,7 +41,7 @@ const INSIGHT_DETAIL_PAGE_TEXT_TRANSLATIONS = {
     readingLeadBody: "전통적 해석과 실제로 확인할 수 있는 정보를 구분하며 읽어 보세요.",
   },
   en: {
-    fallbackTitle: "Fortune Insights | Code Destiny",
+    fallbackTitle: "Fortune Insights | 꿀꿀 운세",
     fallbackDescription: "Detailed fortune insight article.",
     fallbackKeyword: "fortune insights",
     titleSuffix: "Fortune Insights",
@@ -51,7 +51,7 @@ const INSIGHT_DETAIL_PAGE_TEXT_TRANSLATIONS = {
     readingLeadBody: "Distinguish traditional interpretations from information you can verify in practice.",
   },
   ja: {
-    fallbackTitle: "運勢インサイト | Code Destiny",
+    fallbackTitle: "運勢インサイト | 꿀꿀 운세",
     fallbackDescription: "運勢インサイトの詳細記事です。",
     fallbackKeyword: "運勢インサイト",
     titleSuffix: "運勢インサイト",
@@ -232,7 +232,7 @@ export default async function InsightArticlePage({ params }) {
     articleJsonLd.citation = publicRecordCopy.ko.rows.map(row => ({ '@type': 'CreativeWork', url: row.url, name: row.title, author: { '@id': 'https://code-destiny.com/#author' } }));
   }
   const breadcrumb = buildBreadcrumbJsonLd([
-    { name: "꿀꿀운세 홈", path: "/" },
+    { name: "꿀꿀 운세 홈", path: "/" },
     { name: "운세 인사이트", path: "/insights" },
     { name: article.title, path: `/insights/${article.slug}` },
   ]);

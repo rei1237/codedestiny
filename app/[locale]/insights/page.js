@@ -8,7 +8,7 @@ import { resolveLocale } from "../_lib";
 
 const INSIGHTS_COPY = {
   ja: {
-    title: "占いインサイト記事 | Code Destiny",
+    title: "占いインサイト記事 | 꿀꿀 운세",
     description: "紫微斗数と宿曜の基礎から実践的な読み解き方まで、日本語でわかりやすく解説するインサイト記事の一覧です。",
     h1: "占いインサイト記事",
     intro:
@@ -16,7 +16,7 @@ const INSIGHTS_COPY = {
     keywords: ["占い", "紫微斗数", "宿曜", "無料占い", "運勢"]
   },
   zh: {
-    title: "占卜洞察文章 | Code Destiny",
+    title: "占卜洞察文章 | 꿀꿀 운세",
     description: "聚焦紫微斗数与宿曜占星术的入门知识与实战应用，为你提供简洁、可执行且易于快速阅读与落地实践的洞察文章。",
     h1: "占卜洞察文章",
     intro:
@@ -24,7 +24,7 @@ const INSIGHTS_COPY = {
     keywords: ["占卜", "紫微斗数", "宿曜", "免费算命", "运势"]
   },
   "zh-TW": {
-    title: "命理探索文章 | Code Destiny",
+    title: "命理探索文章 | 꿀꿀 운세",
     description: "聚焦紫微斗數與宿曜占星術的入門知識與實戰應用，為你提供簡潔、可執行且易於快速閱讀與落地實踐的洞察文章。",
     h1: "命理探索文章",
     intro:
@@ -32,7 +32,7 @@ const INSIGHTS_COPY = {
     keywords: ["占卜", "紫微斗數", "宿曜", "免費算命", "運勢"]
   },
   en: {
-    title: "Fortune Insights | Code Destiny",
+    title: "Fortune Insights | 꿀꿀 운세",
     description: "Read practical beginner insights on Zi Wei Dou Shu and Sukuyo in English.",
     h1: "Fortune Insights",
     intro:

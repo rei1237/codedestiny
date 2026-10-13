@@ -323,7 +323,7 @@ type FeatureLandingCopy = {
 const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
   ko: {
     defaultTitle: "운세 서비스",
-    defaultDescription: "Code Destiny 메인 기능으로 연결되는 서비스입니다.",
+    defaultDescription: "꿀꿀 운세 메인 기능으로 연결되는 서비스입니다.",
     valueGuideTitle: "실전 활용 가이드",
     corePoints: "핵심 포인트",
     freeMainService: "FREE · 무료 메인 서비스",
@@ -338,7 +338,7 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
   },
   en: {
     defaultTitle: "Fortune service",
-    defaultDescription: "A service connected to the main Code Destiny experience.",
+    defaultDescription: "A service connected to the main 꿀꿀 운세 experience.",
     valueGuideTitle: "Practical Guide",
     corePoints: "Key Points",
     freeMainService: "FREE · Main free service",
@@ -353,7 +353,7 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
   },
   ja: {
     defaultTitle: "占いサービス",
-    defaultDescription: "Code Destinyのメイン機能につながるサービスです。",
+    defaultDescription: "꿀꿀 운세のメイン機能につながるサービスです。",
     valueGuideTitle: "実践活用ガイド",
     corePoints: "注目ポイント",
     freeMainService: "FREE · 無料メインサービス",
@@ -368,7 +368,7 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
   },
   "zh-CN": {
     defaultTitle: "占卜服务",
-    defaultDescription: "连接到 Code Destiny 主功能的服务。",
+    defaultDescription: "连接到 꿀꿀 운세 主功能的服务。",
     valueGuideTitle: "实用指南",
     corePoints: "重点提示",
     freeMainService: "FREE · 免费主服务",
@@ -383,7 +383,7 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
   },
   "zh-TW": {
     defaultTitle: "占卜服務",
-    defaultDescription: "連接到 Code Destiny 主功能的服務。",
+    defaultDescription: "連接到 꿀꿀 운세 主功能的服務。",
     valueGuideTitle: "實用指南",
     corePoints: "重點提示",
     freeMainService: "FREE · 免費主服務",
@@ -398,7 +398,7 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
   },
   vi: {
     defaultTitle: "Dịch vụ vận mệnh",
-    defaultDescription: "Dịch vụ kết nối với trải nghiệm chính của Code Destiny.",
+    defaultDescription: "Dịch vụ kết nối với trải nghiệm chính của 꿀꿀 운세.",
     valueGuideTitle: "Hướng dẫn ứng dụng",
     corePoints: "Điểm chính",
     freeMainService: "FREE · Dịch vụ chính miễn phí",
@@ -413,7 +413,7 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
   },
   hi: {
     defaultTitle: "भाग्य सेवा",
-    defaultDescription: "Code Destiny के मुख्य अनुभव से जुड़ी सेवा.",
+    defaultDescription: "꿀꿀 운세 के मुख्य अनुभव से जुड़ी सेवा.",
     valueGuideTitle: "व्यावहारिक मार्गदर्शिका",
     corePoints: "मुख्य बिंदु",
     freeMainService: "FREE · मुफ्त मुख्य सेवा",
@@ -428,7 +428,7 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
   },
   es: {
     defaultTitle: "Servicio de destino",
-    defaultDescription: "Un servicio conectado con la experiencia principal de Code Destiny.",
+    defaultDescription: "Un servicio conectado con la experiencia principal de 꿀꿀 운세.",
     valueGuideTitle: "Guía práctica",
     corePoints: "Puntos clave",
     freeMainService: "FREE · Servicio principal gratis",
@@ -443,7 +443,7 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
   },
   fr: {
     defaultTitle: "Service de destinée",
-    defaultDescription: "Un service relié à l'expérience principale de Code Destiny.",
+    defaultDescription: "Un service relié à l'expérience principale de 꿀꿀 운세.",
     valueGuideTitle: "Guide pratique",
     corePoints: "Points clés",
     freeMainService: "FREE · Service principal gratuit",
@@ -458,7 +458,7 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
   },
   de: {
     defaultTitle: "Schicksalsservice",
-    defaultDescription: "Ein Service, der mit der Hauptfunktion von Code Destiny verbunden ist.",
+    defaultDescription: "Ein Service, der mit der Hauptfunktion von 꿀꿀 운세 verbunden ist.",
     valueGuideTitle: "Praxisguide",
     corePoints: "Kernpunkte",
     freeMainService: "FREE · Kostenloser Hauptservice",
@@ -473,7 +473,7 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
   },
   nl: {
     defaultTitle: "Bestemmingsservice",
-    defaultDescription: "Een service die is verbonden met de hoofdbeleving van Code Destiny.",
+    defaultDescription: "Een service die is verbonden met de hoofdbeleving van 꿀꿀 운세.",
     valueGuideTitle: "Praktische gids",
     corePoints: "Kernpunten",
     freeMainService: "FREE · Gratis hoofdservice",
@@ -488,7 +488,7 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
   },
   ms: {
     defaultTitle: "Servis takdir",
-    defaultDescription: "Servis yang disambungkan kepada pengalaman utama Code Destiny.",
+    defaultDescription: "Servis yang disambungkan kepada pengalaman utama 꿀꿀 운세.",
     valueGuideTitle: "Panduan praktikal",
     corePoints: "Perkara utama",
     freeMainService: "FREE · Servis utama percuma",
