@@ -1,0 +1,65 @@
+{
+  "version": "yn-three-failed-services-live-review-v1",
+  "reviewDate": "2026-10-14",
+  "codeSha": "158da9695004da208ce78bd45da9efcf71eab633",
+  "codeFingerprint": "e57c99879da8d99663ccafdf8d6b7b455ef0b333dafa876bb2144ebc2fb6c1a3",
+  "provider": "Gemini",
+  "model": "gemini-2.5-flash",
+  "generationCalls": 36,
+  "countTokensCalls": 36,
+  "inputTokens": 646901,
+  "outputTokensIncludingThinking": 107005,
+  "costEstimateUSD": 0.4615827999999999,
+  "costBasis": "Standard input 0.30 / output 2.50 USD per million; implicit cache discounts not subtracted; not a billing statement",
+  "pricingSource": "https://ai.google.dev/gemini-api/docs/pricing",
+  "privacy": "All inputs are synthetic P1; no customer data, production DB writes, payments, or social posts",
+  "tarot": "NOT_RECALLED",
+  "samples": [
+    {
+      "id": "Y1",
+      "productId": "saju_salmon",
+      "asOf": "2026-10-14",
+      "chapters": 11,
+      "changedChapters": [
+        1
+      ],
+      "failures": [],
+      "bodyChars": 26474,
+      "repeatedSentences": [],
+      "finalSha256": "d3b85dde419eb0c212ac412e4dad563bce2c0075ed319f50e2a16a082554c01e",
+      "timingEvidenceReview": "PASS",
+      "editorialScope": "Period/pillar/transformations/natal-only timing and direct answer separation; not empirical fortune prediction accuracy",
+      "fullText": "D:/Development/code-destiny/build-cache/yn-quality-release-20261014/Y1/final-result.md"
+    },
+    {
+      "id": "Z",
+      "productId": "ziwei_salmon",
+      "asOf": "2026-10-14",
+      "chapters": 11,
+      "changedChapters": [],
+      "failures": [],
+      "bodyChars": 25370,
+      "repeatedSentences": [],
+      "finalSha256": "e064c68ce84f1612a8efa4490f4cfeb94f93073ab2c8290324beb09ceff281d1",
+      "timingEvidenceReview": "PASS",
+      "editorialScope": "Period/pillar/transformations/natal-only timing and direct answer separation; not empirical fortune prediction accuracy",
+      "fullText": "D:/Development/code-destiny/build-cache/yn-quality-release-20261014/Z/final-result.md"
+    },
+    {
+      "id": "A",
+      "productId": "astrology_salmon",
+      "asOf": "2026-10-14",
+      "chapters": 11,
+      "changedChapters": [
+        10
+      ],
+      "failures": [],
+      "bodyChars": 26227,
+      "repeatedSentences": [],
+      "finalSha256": "a9c095271d7959e31e69c785cc6d3e28f5d90c3b902c310f9f2f351c66692f3e",
+      "timingEvidenceReview": "PASS",
+      "editorialScope": "Period/pillar/transformations/natal-only timing and direct answer separation; not empirical fortune prediction accuracy",
+      "fullText": "D:/Development/code-destiny/build-cache/yn-quality-release-20261014/A/final-result.md"
+    }
+  ]
+}
