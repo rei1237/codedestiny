@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-13
-next: "세션: B(Gift 테스트 기대값)→C(Shadow 목)→D(조사)→E(영냥이 문구 마감). 👤 사람: A 이력 노출 키 교체 — 끝나면 .gitleaksignore 반영으로 Secret Scan 초록"
+next: "👤 사람: A 이력 노출 키 교체와 F의 두 정책 결정. B~E 코드는 완료했으며 main 워크플로 결과는 아래 완료 기록에 갱신한다."
 ---
 
 # 기존 결함 후속 + 이력 노출 키 교체 — 인수인계
@@ -12,8 +12,15 @@ next: "세션: B(Gift 테스트 기대값)→C(Shadow 목)→D(조사)→E(영�
 사용자(2026-10-13): "이전부터 있었던 문제들과 키 교체작업도 해줄 인수인계 문서와 명령어 작성해줘". 사주 풀이 연이/영냥이 전환 작업(main `63ae95649`, 운영 run 38322460960) 중에 봤지만 범위 밖이라 손대지 않은 것들이다.
 
 ## 지금 상태
-- main `63ae95649` 운영 반영. PR CI·스테이징·Main drift 초록.
-- 붉은 워크플로 3개: `Secret Scan`(의도, A) · `Gift transaction integrity`(B, 10-11부터) · `Yeongnyangi Browser Shadow`(C, 최근 12회 연속).
+- B~E 코드는 2026-10-13 완료했다. A의 실제 키 교체와 F의 정책 선택은 사람 결정이 필요해 남겨 두었다.
+- `Secret Scan`은 A를 마치기 전까지 의도된 미해결 상태다.
+
+## B~E 완료 기록 (2026-10-13)
+- B `9548c60b8`: 같은 등급 이용권의 만료 기대값을 기간 없음 정책(`isOpenEndedPassExpiry`)에 맞췄다.
+- C `91f0458b9`: 추천·생년월일 대기 주문 API 목과 현재 영냥이 상담/복귀 흐름을 브라우저 픽스처에 반영했다. Chromium·WebKit 분할 시나리오는 모두 통과했다.
+- D·E `2e2db5336`: 조사 감사를 0종으로 만들고, 격국 반말판을 원천 데이터로 분리했으며, 귀인 명사구와 영냥이 현실 체크 테마 토큰을 정리했다. 의도된 렌더 변경에 맞춰 패리티 해시와 공개 미러를 갱신했다.
+- 공통 로컬 게이트: `npm run check:fast` 통과(Node 3,197건, Jest 394 suites/6,026 tests 포함). 마지막 문구 조정 뒤 관련 사주 테스트 70건도 재통과했다.
+- C의 `--build-static`은 다른 세션이 사용 중인 로컬 개발 서버를 중지하지 않기 위해 생략했다. 기존 정적 산출물을 이용한 Chromium·WebKit 검증은 통과했으며, main 전달 뒤 Shadow CI를 다시 실행한다.
 
 ## 남은 작업
 
@@ -49,26 +56,26 @@ next: "세션: B(Gift 테스트 기대값)→C(Shadow 목)→D(조사)→E(영�
    ```
 - 끝 기준: main `Secret Scan` 초록 + 운영 `keyHealth.ok: true` + 스테이징은 교체 전과 같은 결과(2026-10-13 기준 `broken ["payments-core"]` 는 구 이니시스 키 미설정이라 원래 그렇다 — 런북 문서 '남은 일' 5번) + 모든 구 값이 제공자 쪽에서 폐기됨.
 
-### B. Gift transaction integrity — 테스트 기대값이 옛 정책
+### B. ✅ 완료 — Gift transaction integrity — 테스트 기대값이 옛 정책
 - 증상: `tests/integration/gifts.replica.integration.js:120`("same-tier claim preserves spend and adds period and budget")이 만료 = 기존+30일을 기대하는데, 실제 값은 약 100년 뒤다.
 - 원인: `6ad346571`(10-11, 이용권 기간 제거)이 같은 등급 지급을 기간 없음(활성화+100년 센티널 `PASS_OPEN_ENDED_MS`)으로 바꿨다. 이 통합 테스트는 jest 기본 roots 밖이라 그때 같이 고쳐지지 않았다. 마지막 성공 `d7b7238f4` → 첫 실패 `395d2d125`.
 - 할 일: 테스트만 바꾼다. 기대값을 `isOpenEndedPassExpiry(...)` 로 바꾸고 테스트 이름의 "adds period" 도 정책에 맞춘다. 정본 예시: `__tests__/worker/pass-open-ended.test.js`.
 - 검증: 이 PC 에는 Docker 가 없다(리플리카셋 Mongo 필요). `gh workflow run gift-integrity.yml --ref main -R rei1237/codedestiny` → 33/33.
 
-### C. Yeongnyangi Browser Shadow — 새 API 목 누락
+### C. ✅ 완료 — Yeongnyangi Browser Shadow — 새 API 목 누락
 - 증상: `scripts/lib/yeongnyangi-mobile-payment.mjs:313` "Unrecognised API must not silently succeed". 목에 없는 `GET /api/payments/birth-profile-pending` 이 호출된다.
 - 원인: `73445d45f`(10-10, 프로필 선택 지급 카드)가 추가한 엔드포인트를 브라우저 픽스처가 모른다.
 - 할 일: 같은 파일의 API 목에 이 경로를 추가한다. 응답 형태는 워커 쪽 정의를 `git grep birth-profile-pending` 해서 맞추고, 기본값은 "대기 주문 없음"으로 한다.
 - 검증: `node scripts/verify-yeongnyangi-browser.mjs --build-static` → `node scripts/verify-yeongnyangi-browser.mjs`, 그다음 `gh workflow run yeongnyangi-browser-shadow.yml --ref main -R rei1237/codedestiny`.
 
-### D. 조사(로/가/와) 받침 오류 — 연이·영냥이 공통
+### D. ✅ 완료 — 조사(로/가/와) 받침 오류 — 연이·영냥이 공통
 - 감지: `node scripts/audit-saju-josa.mjs`. 2026-10-13 기준 11종이 나온다(근육와·근육가·시력와·시력가·오행로·보석로 등).
 - 원인: 렌더러가 `값+'와 '`·`값+'가 '` 처럼 조사를 고정으로 붙인다. 예: `worker/lib/saju-section/paid-renderers.src.js:607`(`health.weak+'와'`), `:611`(`+'가'`).
 - 할 일: 서버 렌더러에 받침 조사 도우미를 하나 두고, 고정 접합을 그것으로 바꾼다. 클라 쪽 정본 도우미는 `js/core/saju/reading-rich.js:507` 의 `jo()` 다.
 - 연이 문구도 바뀌므로 패리티 픽스처의 pig 해시도 바뀐다. 의도된 변경이라고 커밋 메시지에 적는다.
 - 끝 기준: 감사 출력이 비어 있음.
 
-### E. 영냥이 문구 마감(코드, 작음)
+### E. ✅ 완료 — 영냥이 문구 마감(코드, 작음)
 1. 귀인: `paid-renderers.src.js:1032` 의 `guiinByDomNeo` 값은 "~야."로 끝나는 완결문인데, `:1537`·`:1578` 이 그 값을 문장 중간(`<b>…</b>와의 만남`, `귀인(…)과의 인연`)에 끼운다. 명사구 표를 따로 둔다.
 2. 격국 판단 이유: `lib/saju/reading-depth.mjs:272` 의 `neoReason` 이 존댓말 원문(`worker/lib/saju-gyeokguk.js` 의 `judgmentReason`)을 정규식으로 반말로 바꾼다. 새 어미가 생기면 존댓말이 샌다. 원천에서 반말판을 내거나, 가능한 끝맺음 전수를 테스트로 고정한다. 재생성: `node scripts/build-saju-reading-depth.mjs`.
 3. 현실 체크 상자: `paid-renderers.src.js` 1630~1636 의 인라인 스타일이 옛 '팩폭' 빨강(`#e53935`, 짙은 적색 그라데이션)이다. `docs/context/design-canon.md` 의 영냥이 톤으로 바꾸고, 라이트·다크 둘 다 본다.
