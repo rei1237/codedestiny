@@ -70,7 +70,7 @@ const profile = { id:'home-art-fixture', name:'검증용 프로필', gender:'F',
       if(target.id!=='saju')await page.evaluate(async p=>{await window.__cdEnsureDestinyProfileLoaded();const s=window.DestinyProfileManager.storage;s.save([p]);s.setCurrent(p.id);await window.__cdEnsureBirthModalDepsLoaded();},profile);
       await page.locator(`#cdQuickServices [data-cd-service-id="${target.id}"]`).click();
       if(target.id==='saju')await page.locator('#destinyCardForm #nameInput').waitFor({state:'visible'});
-      else if(target.id==='vedic'){await page.waitForURL(/vedic-astrology\.html/);await page.locator('#vedicConsultation').waitFor({state:'visible',timeout:30000});}
+      else if(target.id==='vedic'){await page.waitForURL(/\/vedic-astrology(?:\.html)?(?:[?#]|$)/);await page.locator('#vedicConsultation').waitFor({state:'visible',timeout:30000});}
       else await page.locator('#'+target.overlay).waitFor({state:'visible',timeout:30000});
       results.push({action:target.id,opened:true});await page.close();
     }

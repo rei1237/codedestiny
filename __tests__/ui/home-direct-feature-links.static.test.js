@@ -24,8 +24,8 @@ assert.doesNotMatch(quickSection, /data-cd-open-collection/, 'home tiles open th
 assert.deepEqual([...quickSection.matchAll(/data-cd-service-id="([^"]+)"/g)].map(m => m[1]), ['saju', 'ziwei', 'sukuyo', 'vedic', 'astrology', 'tarot']);
 const template = read('templates/home-funnel.html');
 assert.ok(template.indexOf('id="cdhQuickSlot"') < template.indexOf('id="cdhServices"'), 'methods precede search');
-// 2026-10-12: 첫 화면은 고민 입구 3개만 둔다. 체계별 바로가기는 전체 운세(#cdhMore) 맨 앞에서 그대로 연다.
-assert.ok(template.indexOf('id="cdhGardenBody"') < template.indexOf('id="cdhQuickSlot"'), 'fortune systems open first inside the full catalogue');
+// 2026-10-13: 체계별 바로가기는 첫 화면에서 바로 고르고, 상세 카탈로그만 #cdhMore 안에 둔다.
+assert.ok(template.indexOf('id="cdhQuickSlot"') < template.indexOf('id="cdhGardenBody"'), 'fortune systems stay visible before the folded full catalogue');
 
 assert.equal([...quickSection.matchAll(/href="\/\?action=([^"]+)" data-action="\1"/g)].length, 6, 'early clicks retain the selected action before JavaScript is ready');
 
