@@ -17,6 +17,16 @@ test("v8.24.2 가 적용하지 않는 [[allowlists]] 형식은 쓰지 않는다"
   assert.match(config, /^\[allowlist\]\s*$/m);
 });
 
+test("MongoDB URI 비밀번호와 PortOne API 시크릿을 프로젝트 규칙으로 잡는다", () => {
+  const rules = [...config.matchAll(/^\[\[rules\]\][\s\S]*?^regex\s*=\s*'''(.+?)'''[\s\S]*?^secretGroup\s*=\s*1\s*$/gm)]
+    .map((match) => new RegExp(match[1].replace(/^\(\?i\)/, ""), "i"));
+  assert.equal(rules.length, 2);
+  assert.ok(rules.some((rule) => rule.test("MONGO_URI=mongodb+srv://user:superSecretPassword@cluster.example/db")));
+  assert.ok(rules.some((rule) => rule.test(`PORTONE_API_SECRET=${"A1_b".repeat(12)}`)));
+  assert.ok(!rules.some((rule) => rule.test("MONGO_URI=mongodb+srv://cluster.example/db")));
+  assert.ok(!rules.some((rule) => rule.test("PORTONE_API_SECRET=process.env.PORTONE_API_SECRET")));
+});
+
 test("allowlist 는 네이버 사이트 소유확인 메타 태그 한 줄로만 한정된다", () => {
   const section = config.split(/^\[allowlist\]\s*$/m)[1];
   assert.ok(section, "[allowlist] 섹션이 있어야 한다");
