@@ -365,6 +365,9 @@ async function launchReadyChrome() {
       "--headless=new",
       "--disable-gpu",
       "--disable-background-networking",
+      // This fixture uses only the loopback server. External analytics/CDN/SDK
+      // loads must fail locally rather than hold Page.loadEventFired open in CI.
+      "--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE 127.0.0.1, EXCLUDE localhost",
       "--disable-default-apps",
       "--disable-extensions",
       "--disable-sync",
