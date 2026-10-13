@@ -164,7 +164,8 @@ function findBadValues(flat, koFlat) {
       return registered === undefined || stripSeparator(value) !== stripSeparator(registered);
     }
     if (HANGUL_QUOTE_ALLOWED_KEYS.has(key)) return false;
-    return /^\?+$/.test(value) || value.includes("\uFFFD") || /[\uAC00-\uD7A3]/u.test(value);
+    // The approved brand is a proper noun; surrounding Korean still fails translation coverage.
+    return /^\?+$/.test(value) || value.includes("\uFFFD") || /[\uAC00-\uD7A3]/u.test(value.replaceAll("꿀꿀 운세", ""));
   }).map(([key]) => key);
 }
 
