@@ -1,4 +1,5 @@
 "use client";
+import signupBenefitPolicy from "@/js/core/signup-benefit-policy.mjs";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -88,8 +89,8 @@ const EN: Copy = {
   loginTitle: "Welcome back", signupTitle: "Save your destiny safely",
   loginDescription: "Continue quickly with a social account or email.",
   signupDescription: "Sign up and a special gift is waiting for you. We only ask for the essentials.",
-  moonstoneBadgeTitle: "Get 500 moonstones the moment you sign up",
-  moonstoneBadgeDetail: "Worth ₩5,000 · a bonus currency available only through events · usable on paid content for 30 days",
+  moonstoneBadgeTitle: "Get {amount} moonstones the moment you sign up",
+  moonstoneBadgeDetail: "Use within {days} days on eligible content. Required moonstones vary by product; not cash or a pass coupon.",
   socialLabel: "Continue with a social account", google: "Continue with Google", naver: "Continue with Naver",
   kakao: "Continue with Kakao", moving: "Opening authentication…", orEmail: "or use email",
   email: "Email", password: "Password", phone: "Mobile number",
@@ -117,8 +118,8 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     loginTitle: "다시 만나서 반가워요", signupTitle: "운명의 기록을 안전하게 저장해 보세요",
     loginDescription: "소셜 계정 또는 이메일로 빠르게 이어갈 수 있어요.",
     signupDescription: "가입하면 특별한 선물이 기다리고 있어요. 계정에는 꼭 필요한 정보만 받아요.",
-    moonstoneBadgeTitle: "가입 즉시 월정석 500개 지급",
-    moonstoneBadgeDetail: "5,000원 상당 · 이벤트로만 받을 수 있는 보너스 재화 · 30일 안에 유료 콘텐츠 결제에 사용",
+    moonstoneBadgeTitle: "가입 즉시 월정석 {amount}개 지급",
+    moonstoneBadgeDetail: "지급일부터 {days}일 · 일반 환산 기준 2만원 상당, 상품별 차감량은 달라요. 현금 쿠폰이 아니며 이용권 구매에는 쓸 수 없어요.",
     socialLabel: "소셜 계정으로 계속하기", google: "Google로 계속하기", naver: "네이버로 계속하기",
     kakao: "카카오로 계속하기", moving: "인증 화면으로 이동 중…", orEmail: "또는 이메일로 계속하기",
     email: "이메일", password: "비밀번호", phone: "휴대폰 번호",
@@ -145,8 +146,8 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     loginTitle: "おかえりなさい", signupTitle: "運命の記録を安全に保存しましょう",
     loginDescription: "ソーシャルアカウントまたはメールで手早く続けられます。",
     signupDescription: "登録すると特別なプレゼントが待っています。必要最小限の情報のみお伺いします。",
-    moonstoneBadgeTitle: "登録するとすぐに月光石500個をプレゼント",
-    moonstoneBadgeDetail: "₩5,000相当・イベントでしか手に入らないボーナス通貨・30日以内に有料コンテンツで使用可能",
+    moonstoneBadgeTitle: "登録するとすぐに月光石{amount}個をプレゼント",
+    moonstoneBadgeDetail: "対象コンテンツで{days}日間有効。必要数は商品により異なります。現金や利用券の購入には使えません。",
     socialLabel: "ソーシャルアカウントで続ける", google: "Googleで続ける", naver: "Naverで続ける",
     kakao: "Kakaoで続ける", moving: "認証画面に移動しています…", orEmail: "またはメールで続ける",
     email: "メールアドレス", password: "パスワード", phone: "携帯電話番号",
@@ -173,8 +174,8 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     loginTitle: "欢迎回来", signupTitle: "安全保存你的命运记录",
     loginDescription: "使用社交账号或邮箱即可快速继续。",
     signupDescription: "注册后有惊喜礼物在等你。我们只收集必要的信息。",
-    moonstoneBadgeTitle: "注册即刻获得500个月光石",
-    moonstoneBadgeDetail: "价值₩5,000 · 仅限活动获得的奖励货币 · 30天内可用于付费内容",
+    moonstoneBadgeTitle: "注册即刻获得{amount}个月光石",
+    moonstoneBadgeDetail: "有效期{days}天 · 仅限适用内容，扣除数量因商品而异 · 不可兑现或购买使用券",
     socialLabel: "使用社交账号继续", google: "使用Google继续", naver: "使用Naver继续",
     kakao: "使用Kakao继续", moving: "正在跳转到认证页面…", orEmail: "或使用邮箱继续",
     email: "电子邮箱", password: "密码", phone: "手机号码",
@@ -201,8 +202,8 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     loginTitle: "歡迎回來", signupTitle: "安全保存你的命運記錄",
     loginDescription: "使用社群帳號或電子郵件即可快速繼續。",
     signupDescription: "註冊後有驚喜禮物在等你。我們只收集必要的資訊。",
-    moonstoneBadgeTitle: "註冊即刻獲得500個月光石",
-    moonstoneBadgeDetail: "價值₩5,000 · 僅限活動獲得的獎勵貨幣 · 30天內可用於付費內容",
+    moonstoneBadgeTitle: "註冊即刻獲得{amount}個月光石",
+    moonstoneBadgeDetail: "有效期{days}天 · 僅限適用內容，扣除數量因商品而異 · 不可兌現或購買使用券",
     socialLabel: "使用社群帳號繼續", google: "使用Google繼續", naver: "使用Naver繼續",
     kakao: "使用Kakao繼續", moving: "正在前往驗證畫面…", orEmail: "或使用電子郵件繼續",
     email: "電子郵件", password: "密碼", phone: "手機號碼",
@@ -229,8 +230,8 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     loginTitle: "Chào mừng bạn trở lại", signupTitle: "Lưu trữ vận mệnh của bạn một cách an toàn",
     loginDescription: "Tiếp tục nhanh chóng bằng tài khoản mạng xã hội hoặc email.",
     signupDescription: "Sign up and a special gift is waiting for you. We only ask for the essentials.",
-    moonstoneBadgeTitle: "Get 500 moonstones the moment you sign up",
-    moonstoneBadgeDetail: "Worth ₩5,000 · a bonus currency available only through events · usable on paid content for 30 days",
+    moonstoneBadgeTitle: "Get {amount} moonstones the moment you sign up",
+    moonstoneBadgeDetail: "Use within {days} days on eligible content. Required moonstones vary by product; not cash or a pass coupon.",
     socialLabel: "Tiếp tục bằng tài khoản mạng xã hội", google: "Tiếp tục với Google", naver: "Tiếp tục với Naver",
     kakao: "Tiếp tục với Kakao", moving: "Đang chuyển đến màn hình xác thực…", orEmail: "hoặc dùng email",
     email: "Email", password: "Mật khẩu", phone: "Số điện thoại di động",
@@ -257,8 +258,8 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     loginTitle: "वापसी पर स्वागत है", signupTitle: "अपनी नियति को सुरक्षित रूप से सहेजें",
     loginDescription: "सोशल खाते या ईमेल से तुरंत जारी रखें।",
     signupDescription: "Sign up and a special gift is waiting for you. We only ask for the essentials.",
-    moonstoneBadgeTitle: "Get 500 moonstones the moment you sign up",
-    moonstoneBadgeDetail: "Worth ₩5,000 · a bonus currency available only through events · usable on paid content for 30 days",
+    moonstoneBadgeTitle: "Get {amount} moonstones the moment you sign up",
+    moonstoneBadgeDetail: "Use within {days} days on eligible content. Required moonstones vary by product; not cash or a pass coupon.",
     socialLabel: "सोशल खाते से जारी रखें", google: "Google से जारी रखें", naver: "Naver से जारी रखें",
     kakao: "Kakao से जारी रखें", moving: "प्रमाणीकरण स्क्रीन पर जा रहे हैं…", orEmail: "या ईमेल से जारी रखें",
     email: "ईमेल", password: "पासवर्ड", phone: "मोबाइल नंबर",
@@ -285,8 +286,8 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     loginTitle: "Bienvenido de nuevo", signupTitle: "Guarda tu destino de forma segura",
     loginDescription: "Continúa rápidamente con una cuenta social o correo electrónico.",
     signupDescription: "Sign up and a special gift is waiting for you. We only ask for the essentials.",
-    moonstoneBadgeTitle: "Get 500 moonstones the moment you sign up",
-    moonstoneBadgeDetail: "Worth ₩5,000 · a bonus currency available only through events · usable on paid content for 30 days",
+    moonstoneBadgeTitle: "Get {amount} moonstones the moment you sign up",
+    moonstoneBadgeDetail: "Use within {days} days on eligible content. Required moonstones vary by product; not cash or a pass coupon.",
     socialLabel: "Continuar con una cuenta social", google: "Continuar con Google", naver: "Continuar con Naver",
     kakao: "Continuar con Kakao", moving: "Abriendo la autenticación…", orEmail: "o usa tu correo electrónico",
     email: "Correo electrónico", password: "Contraseña", phone: "Número de móvil",
@@ -313,8 +314,8 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     loginTitle: "Content de vous revoir", signupTitle: "Sauvegardez votre destin en toute sécurité",
     loginDescription: "Continuez rapidement avec un compte social ou un e-mail.",
     signupDescription: "Sign up and a special gift is waiting for you. We only ask for the essentials.",
-    moonstoneBadgeTitle: "Get 500 moonstones the moment you sign up",
-    moonstoneBadgeDetail: "Worth ₩5,000 · a bonus currency available only through events · usable on paid content for 30 days",
+    moonstoneBadgeTitle: "Get {amount} moonstones the moment you sign up",
+    moonstoneBadgeDetail: "Use within {days} days on eligible content. Required moonstones vary by product; not cash or a pass coupon.",
     socialLabel: "Continuer avec un compte social", google: "Continuer avec Google", naver: "Continuer avec Naver",
     kakao: "Continuer avec Kakao", moving: "Ouverture de l'authentification…", orEmail: "ou utilisez votre e-mail",
     email: "E-mail", password: "Mot de passe", phone: "Numéro de mobile",
@@ -341,8 +342,8 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     loginTitle: "Willkommen zurück", signupTitle: "Speichere dein Schicksal sicher",
     loginDescription: "Setze schnell mit einem sozialen Konto oder deiner E-Mail-Adresse fort.",
     signupDescription: "Sign up and a special gift is waiting for you. We only ask for the essentials.",
-    moonstoneBadgeTitle: "Get 500 moonstones the moment you sign up",
-    moonstoneBadgeDetail: "Worth ₩5,000 · a bonus currency available only through events · usable on paid content for 30 days",
+    moonstoneBadgeTitle: "Get {amount} moonstones the moment you sign up",
+    moonstoneBadgeDetail: "Use within {days} days on eligible content. Required moonstones vary by product; not cash or a pass coupon.",
     socialLabel: "Mit einem sozialen Konto fortfahren", google: "Mit Google fortfahren", naver: "Mit Naver fortfahren",
     kakao: "Mit Kakao fortfahren", moving: "Authentifizierung wird geöffnet…", orEmail: "oder per E-Mail fortfahren",
     email: "E-Mail", password: "Passwort", phone: "Mobilnummer",
@@ -369,8 +370,8 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     loginTitle: "Welkom terug", signupTitle: "Bewaar je lot veilig",
     loginDescription: "Ga snel verder met een sociaal account of e-mailadres.",
     signupDescription: "Sign up and a special gift is waiting for you. We only ask for the essentials.",
-    moonstoneBadgeTitle: "Get 500 moonstones the moment you sign up",
-    moonstoneBadgeDetail: "Worth ₩5,000 · a bonus currency available only through events · usable on paid content for 30 days",
+    moonstoneBadgeTitle: "Get {amount} moonstones the moment you sign up",
+    moonstoneBadgeDetail: "Use within {days} days on eligible content. Required moonstones vary by product; not cash or a pass coupon.",
     socialLabel: "Doorgaan met een sociaal account", google: "Doorgaan met Google", naver: "Doorgaan met Naver",
     kakao: "Doorgaan met Kakao", moving: "Verificatiescherm wordt geopend…", orEmail: "of ga verder met e-mail",
     email: "E-mail", password: "Wachtwoord", phone: "Mobiel nummer",
@@ -397,8 +398,8 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     loginTitle: "Selamat kembali", signupTitle: "Simpan takdir anda dengan selamat",
     loginDescription: "Teruskan dengan pantas menggunakan akaun sosial atau e-mel.",
     signupDescription: "Sign up and a special gift is waiting for you. We only ask for the essentials.",
-    moonstoneBadgeTitle: "Get 500 moonstones the moment you sign up",
-    moonstoneBadgeDetail: "Worth ₩5,000 · a bonus currency available only through events · usable on paid content for 30 days",
+    moonstoneBadgeTitle: "Get {amount} moonstones the moment you sign up",
+    moonstoneBadgeDetail: "Use within {days} days on eligible content. Required moonstones vary by product; not cash or a pass coupon.",
     socialLabel: "Teruskan dengan akaun sosial", google: "Teruskan dengan Google", naver: "Teruskan dengan Naver",
     kakao: "Teruskan dengan Kakao", moving: "Membuka skrin pengesahan…", orEmail: "atau gunakan e-mel",
     email: "E-mel", password: "Kata laluan", phone: "Nombor telefon bimbit",
@@ -423,7 +424,13 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
   },
 };
 
-function getCopy(locale: LoadingLocale): Copy { return COPY[locale] || EN; }
+function getCopy(locale: LoadingLocale): Copy {
+  const copy = COPY[locale] || EN;
+  return { ...copy,
+    moonstoneBadgeTitle: copy.moonstoneBadgeTitle.replace('{amount}', signupBenefitPolicy.amount.toLocaleString(locale)),
+    moonstoneBadgeDetail: copy.moonstoneBadgeDetail.replace('{days}', String(signupBenefitPolicy.days)),
+  };
+}
 function isValidEmail(value: string) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim()); }
 // 5xx 는 사용자가 고칠 수 없는 서버 문제라 안내 문구는 그대로 두되, 서버가 준 code·requestId 만
 // 괄호로 덧붙인다. 이게 없으면 원인을 알아내려고 개발자도구를 열어야 한다(2026-08 가입 500 사례:
@@ -608,7 +615,9 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
       redirect(payload.nextPath, payload.user?.role);
     } catch (reason) {
       const message = reason instanceof Error ? reason.message : copy.network;
-      setError(/status|unauthorized|invalid|failed/i.test(message) ? (mode === "login" ? copy.credentialsError : copy.invalidSignup) : message);
+      // fetch 실패는 계정 오류가 아니다. 입력을 유지하고 연결 재시도를 안내한다.
+      setError(/failed to fetch|network|load failed|fetch failed/i.test(message) ? copy.network
+        : /unauthorized|invalid credentials/i.test(message) ? copy.credentialsError : message);
     } finally { setBusy(false); }
   };
 
@@ -653,7 +662,7 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
         </header>
         <div className="my-4 min-h-6" aria-live="polite">{error ? <p id="auth-error" role="alert" className="rounded-xl border border-[#ff8ca5]/40 bg-[#421d2a] px-3 py-2.5 text-sm text-[#ffd7df]">{error}</p> : null}</div>
         {appReturnUrl ? <a href={appReturnUrl} className="flex min-h-12 w-full items-center justify-center rounded-xl border border-[#b89ae8]/45 bg-[#7c5cbf] px-4 text-sm font-black text-white shadow-[0_10px_28px_rgba(65,42,116,.36)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#dbc9ff]">{copy.returnToApp}</a> : null}
-        {!ticket && <><section aria-label={copy.socialLabel}><div className="grid gap-3">{(["google", "naver", "kakao"] as const).map((provider) => <button key={provider} type="button" disabled={Boolean(socialBusy) || busy} onClick={() => startSocial(provider)} className={`min-h-12 rounded-xl border px-4 text-sm font-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:opacity-55 ${provider === "google" ? "border-[#d9dce5] bg-white text-[#252735]" : provider === "naver" ? "border-[#03a94d] bg-[#03C75A] text-white" : "border-[#e3cb00] bg-[#FEE500] text-[#191919]"}`}>{socialBusy === provider ? copy.moving : provider === "google" ? copy.google : provider === "naver" ? copy.naver : copy.kakao}</button>)}</div><p className="mt-3 text-center text-xs leading-5 text-[#a99dbd]">{copy.providerPolicy}</p><section aria-label={copy.agreeOnSubmit} className="mt-3 space-y-1.5 rounded-xl border border-[#c9b7f0]/18 bg-[#0d1022] p-3 text-[11px] leading-5 text-[#aa9fbd]"><p className="text-[#cfc4e5]">{copy.agreeOnSubmit}</p><p className="flex flex-wrap items-center gap-x-3"><Link href="/terms" target="_blank" className="min-h-11 py-2.5 font-bold text-[#d7c1ff] underline underline-offset-4">{copy.terms}</Link><Link href="/privacy" target="_blank" className="min-h-11 py-2.5 font-bold text-[#d7c1ff] underline underline-offset-4">{copy.privacy}</Link></p><p>{copy.privacySummary}</p></section></section><div className="my-5 flex items-center gap-3 text-xs text-[#aa9fbd]"><span className="h-px flex-1 bg-[#c9b7f0]/15" /><span>{copy.orEmail}</span><span className="h-px flex-1 bg-[#c9b7f0]/15" /></div></>}
+        {!ticket && <><section aria-label={copy.socialLabel}><div className="grid gap-3">{(["kakao", "naver", "google"] as const).map((provider) => <button key={provider} type="button" disabled={Boolean(socialBusy) || busy} onClick={() => startSocial(provider)} className={`min-h-12 rounded-xl border px-4 text-sm font-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:opacity-55 ${provider === "google" ? "border-[#d9dce5] bg-white text-[#252735]" : provider === "naver" ? "border-[#03a94d] bg-[#03C75A] text-white" : "border-[#e3cb00] bg-[#FEE500] text-[#191919]"}`}>{socialBusy === provider ? copy.moving : provider === "google" ? copy.google : provider === "naver" ? copy.naver : copy.kakao}</button>)}</div><p className="mt-3 text-center text-xs leading-5 text-[#a99dbd]">{copy.providerPolicy}</p><section aria-label={copy.agreeOnSubmit} className="mt-3 space-y-1.5 rounded-xl border border-[#c9b7f0]/18 bg-[#0d1022] p-3 text-[11px] leading-5 text-[#aa9fbd]"><p className="text-[#cfc4e5]">{copy.agreeOnSubmit}</p><p className="flex flex-wrap items-center gap-x-3"><Link href="/terms" target="_blank" className="min-h-11 py-2.5 font-bold text-[#d7c1ff] underline underline-offset-4">{copy.terms}</Link><Link href="/privacy" target="_blank" className="min-h-11 py-2.5 font-bold text-[#d7c1ff] underline underline-offset-4">{copy.privacy}</Link></p><p>{copy.privacySummary}</p></section></section><div className="my-5 flex items-center gap-3 text-xs text-[#aa9fbd]"><span className="h-px flex-1 bg-[#c9b7f0]/15" /><span>{copy.orEmail}</span><span className="h-px flex-1 bg-[#c9b7f0]/15" /></div></>}
         {!appReturnUrl && <form onSubmit={ticket ? finishSocialSignup : submitEmail} className="space-y-4" noValidate aria-describedby={error ? "auth-error" : undefined}>
           {/* 🔴 이름은 받지 않는다(2026-08-25). 소셜은 공급자가 항상 넘겨 주고(mapSocialProfile 이
               없으면 "<provider> user" 로 채운다), 이메일은 서버가 이메일 아이디에서 파생한다.
