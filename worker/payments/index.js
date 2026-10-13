@@ -1223,8 +1223,8 @@ const ROUTES = {
 
   /**
    * 🔴 컷오버 어댑터 — 구 GET /api/payments/config 승계. 결제창 오픈 임계경로의 공개 설정이라
-   * Mongo 0회·무인증이 계약이다. 봉투 키는 구 handlePaymentConfig(payments.js:5926, 동결) 그대로 —
-   * 소비 키는 storeId·channelKey·currency·payMethod·noticeUrl(셸 checkoutAssets·PointsClient).
+    * Mongo 0회·무인증이 계약이다. 소비 키는 storeId·channelKey·currency·payMethod·noticeUrl
+    * (셸 checkoutAssets·PointsClient). 비밀 설정의 개별 준비 상태는 공개하지 않는다.
    */
   "GET /config": {
     auth: "none",
@@ -1234,26 +1234,11 @@ const ROUTES = {
         return json({
           message: "PortOne V2 KG Inicis public payment config is missing.",
           code: "PORTONE_V2_PUBLIC_CONFIG_MISSING",
-          missing: {
-            storeId: !config.storeId,
-            channelKey: !config.channelKey,
-            serverVerification: !config.serverVerificationConfigured,
-            inicisMid: !config.inicisMidConfigured,
-            inicisSignKey: !config.inicisSignKeyConfigured,
-            inicisApiKey: !config.inicisApiKeyConfigured,
-            inicisApiIv: !config.inicisApiIvConfigured,
-          },
         }, { status: 503 });
       }
       return json({
         ok: true,
         configured: config.configured,
-        serverVerificationConfigured: Boolean(config.serverVerificationConfigured),
-        inicisConfigured: Boolean(config.inicisConfigured),
-        inicisMidConfigured: Boolean(config.inicisMidConfigured),
-        inicisSignKeyConfigured: Boolean(config.inicisSignKeyConfigured),
-        inicisApiKeyConfigured: Boolean(config.inicisApiKeyConfigured),
-        inicisApiIvConfigured: Boolean(config.inicisApiIvConfigured),
         provider: config.provider,
         pg: config.pg,
         storeId: config.storeId,
