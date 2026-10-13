@@ -1924,6 +1924,18 @@
       "insightsNote": "幫助理解八字、塔羅與命盤的文章",
       "heading": "為日常帶來啟發的運勢故事",
       "open": "閱讀文章"
+    },
+    "followup": {
+      "start": "選擇精選諮詢",
+      "all": "查看全部占卜",
+      "light": "輕鬆體驗",
+      "free": "免費開始 · 深度解讀另收費",
+      "benefit": "首次註冊贈2,000個月光石",
+      "benefitNote": "自發放日起30天有效。按一般標準折合20,000韓元，各商品扣除數量不同。不可兌現或購買使用券。",
+      "join": "透過Kakao或信箱註冊",
+      "signatureDescription": "先看看適合你困擾的諮詢和結果範例。",
+      "member": "查看月晶石餘額、有效期及各商品使用條件。",
+      "balance": "查看我的月晶石"
     }
   },
   "terms": {
@@ -2680,7 +2692,7 @@
     "neoSubline": "不加情緒，只留下事實。",
     "signup": "註冊",
     "login": "登入",
-    "guestMoonstoneTeaser": "🌙 註冊即贈500個月光石（價值₩5,000）",
+    "guestMoonstoneTeaser": "首次註冊贈2,000個月光石 · 30天 · 查看各商品所需數量",
     "loadingGreeting": "正在校準帳號星光",
     "loadingChip": "會話同步",
     "loadingTitle": "正在讀取登入資訊",
@@ -2718,7 +2730,14 @@
       "signupButton": "註冊"
     },
     "passCheckingGreeting": "正在確認通行證",
-    "passCheckingNote": "正在安全地核對月光通行證和會員等級。"
+    "passCheckingNote": "正在安全地核對月光通行證和會員等級。",
+    "exitBenefit": {
+      "title": "首次註冊禮 · {amount}顆月晶石",
+      "copy": "首次註冊僅贈送一次，自發放日起{days}天內可用於適用內容。",
+      "note": "各商品所需月晶石不同，不是現金，也不能用於購買通行證。",
+      "join": "透過Kakao註冊",
+      "email": "透過電子郵件註冊"
+    }
   },
   "seo": {
     "homeTitle": "免費四柱、塔羅與今日運勢 | 꿀꿀 운세",

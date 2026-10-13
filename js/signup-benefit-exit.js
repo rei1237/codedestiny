@@ -15,20 +15,20 @@ import signupBenefitPolicy from './core/signup-benefit-policy.mjs';
 
   function text(key, fallback) {
     try {
-      if (typeof global.cdTranslate === 'function') return global.cdTranslate(key, {}, fallback);
+      if (typeof global.cdTranslate === 'function') return global.cdTranslate(key, { amount: signupBenefitPolicy.amount.toLocaleString(), days: signupBenefitPolicy.days }, fallback);
     } catch (_) {}
     return fallback;
   }
 
   function isEligible() {
     if (shown) return false;
-    if (document.querySelector('dialog[open], [aria-modal="true"]:not([hidden]), .payment-modal.active')) return false;
+    if (Array.from(document.querySelectorAll('dialog[open], [aria-modal="true"], .payment-modal.active')).some(function (node) { return node.getClientRects().length > 0 && global.getComputedStyle(node).visibility !== 'hidden'; })) return false;
     try {
       var hideUntil = Number(global.localStorage.getItem(HIDE_UNTIL_KEY) || 0);
       if (hideUntil > Date.now()) return false;
     } catch (_) { /* 저장소 차단은 팝업 비노출 사유가 아니다 */ }
     try {
-      return Boolean(document.querySelector('#authQuickLinks .auth-btn--signup'));
+      return Boolean(document.querySelector('#authQuickLinks .auth-btn--signup')) && document.getElementById('authQuickLinks').dataset.authState === 'guest';
     } catch (_) {
       return false;
     }
@@ -77,9 +77,9 @@ import signupBenefitPolicy from './core/signup-benefit-policy.mjs';
         '<button type="button" class="cd-signup-exit__close" data-close aria-label="' + text('auth.exitBenefit.close', '혜택 안내 닫기') + '"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6L18 18M18 6L6 18"/></svg></button>' +
         '<img class="cd-signup-exit__art" src="/assets/mascot/yeoni-moonstone-reward-v1-160.webp" width="160" height="165" alt="' + text('auth.exitBenefit.artAlt', '월정석 선물을 건네는 꽃돼지 연이') + '">' +
         '<h2 class="cd-signup-exit__title" id="cdSignupBenefitExitTitle">' + text('auth.exitBenefit.title', '첫 가입 선물<strong>월정석 ' + signupBenefitPolicy.amount.toLocaleString('ko-KR') + '개</strong>') + '</h2>' +
-        '<p class="cd-signup-exit__copy" id="cdSignupBenefitExitCopy">' + text('auth.exitBenefit.copy', '첫 가입 시 한 번 지급돼요. 지급일부터 30일 동안 적용 가능한 콘텐츠에 사용할 수 있어요.') + '</p>' +
-        '<p class="cd-signup-exit__benefit"><svg class="cd-signup-exit__moon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M17.5 15.7A7.7 7.7 0 0 1 8.3 6.5a7.7 7.7 0 1 0 9.2 9.2Z"/><path d="m17.8 5.2.45 1.25 1.25.45-1.25.45-.45 1.25-.45-1.25-1.25-.45 1.25-.45Z"/></svg><span>' + text('auth.exitBenefit.note', '일반 환산 기준 2만원 상당이며 상품별 차감량은 달라요. 현금 쿠폰이 아니며 이용권 구매에는 쓸 수 없어요.') + '</span></p>' +
-        '<div class="cd-signup-exit__actions"><a class="cd-signup-exit__primary" href="/signup/?next=%2F">' + text('auth.exitBenefit.join', '카카오로 가입하기') + '</a><a class="cd-signup-exit__today" href="/signup/?next=%2F">' + text('auth.exitBenefit.email', '이메일로 가입하기') + '</a><div class="cd-signup-exit__secondary"><button type="button" class="cd-signup-exit__leave">' + text('auth.exitBenefit.leave', '그냥 종료하기') + '</button><button type="button" class="cd-signup-exit__today">' + text('auth.exitBenefit.today', '오늘 하루 보지 않기') + '</button></div></div>' +
+        '<p class="cd-signup-exit__copy" id="cdSignupBenefitExitCopy">' + text('auth.exitBenefit.copy', '첫 가입 시 한 번 지급돼요. 지급일부터 ' + signupBenefitPolicy.days + '일 동안 적용 가능한 콘텐츠에 사용할 수 있어요.') + '</p>' +
+        '<p class="cd-signup-exit__benefit"><svg class="cd-signup-exit__moon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M17.5 15.7A7.7 7.7 0 0 1 8.3 6.5a7.7 7.7 0 1 0 9.2 9.2Z"/><path d="m17.8 5.2.45 1.25 1.25.45-1.25.45-.45 1.25-.45-1.25-1.25-.45 1.25-.45Z"/></svg><span>' + text('auth.exitBenefit.note', '상품별 월정석 차감량은 달라요. 현금 쿠폰이 아니며 이용권 구매에는 쓸 수 없어요.') + '</span></p>' +
+        '<div class="cd-signup-exit__actions"><a class="cd-signup-exit__primary" href="/signup/?next=%2F">' + text('auth.exitBenefit.join', '카카오로 가입하기') + '</a><a class="cd-signup-exit__today" href="/signup/?next=%2F">' + text('auth.exitBenefit.email', '이메일로 가입하기') + '</a><div class="cd-signup-exit__secondary"><button type="button" class="cd-signup-exit__leave">' + text('auth.exitBenefit.leave', '그냥 종료하기') + '</button><button type="button" class="cd-signup-exit__today" data-hide-today>' + text('auth.exitBenefit.today', '오늘 하루 보지 않기') + '</button></div></div>' +
       '</section>';
     document.body.appendChild(root);
 
@@ -89,11 +89,13 @@ import signupBenefitPolicy from './core/signup-benefit-policy.mjs';
       close(false);
       if (typeof action === 'function') action();
     });
-    root.querySelector('.cd-signup-exit__today').addEventListener('click', function () {
+    root.querySelector('[data-hide-today]').addEventListener('click', function () {
       try {
         var tomorrow = new Date();
         tomorrow.setHours(24, 0, 0, 0);
         global.localStorage.setItem(HIDE_UNTIL_KEY, String(tomorrow.getTime()));
+        var inlineBenefit = document.getElementById('cdhSignupBenefit');
+        if (inlineBenefit) inlineBenefit.hidden = true;
       } catch (_) {}
       close();
     });

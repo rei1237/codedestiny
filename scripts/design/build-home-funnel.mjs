@@ -1,6 +1,7 @@
 import { renderPressCoverageHtml } from "../../lib/seo/press-coverage.mjs";
 import { readFileSync, writeFileSync } from 'node:fs';
 import { parse } from 'parse5';
+import { runInNewContext } from 'node:vm';
 import { CURRENT_PASS_PLANS } from '../../lib/payment/pass-policy.js';
 import { FEATURE_KEY_PRICE_TABLE } from '../../worker/lib/paid-feature-registry.js';
 import { splitReviews, postedMonth } from '../../lib/brand/customer-reviews.mjs';
@@ -8,6 +9,7 @@ import { EXPERTISE_FACTS } from '../../lib/brand/expertise-facts.mjs';
 import { renderTrustStoriesHtml } from '../../lib/brand/trust-stories.mjs';
 import { renderNeoHomeIntroduction } from '../../lib/brand/neo-home-introduction.mjs';
 import { KRW_PER_COIN, MEMBERSHIP_CREDIT_PER_COIN } from '../../worker/lib/billing-policy.js';
+import signupBenefitPolicy from '../../js/core/signup-benefit-policy.mjs';
 
 const original = readFileSync('index.html', 'utf8');
 const doc = parse(original, { sourceCodeLocationInfo: true });
@@ -49,6 +51,21 @@ const nodes = {
 };
 
 const vars = Object.fromEntries(Object.entries(nodes).map(([key, node]) => [key, htmlOf(node, key)]));
+const fusionCard = htmlOf(byClass('cd-sig-card--fusion'), 'fusion recommendation');
+vars.signature = vars.signature.replace(fusionCard, '');
+// The second render finds the same authoritative card in its new section.
+if (byId('cdFusionRecommendation')) nodes.fusionRecommendation = byId('cdFusionRecommendation');
+vars.fusionRecommendation = `<section id="cdFusionRecommendation" class="cdh-fusion-recommendation" aria-label="초융합 운세">${fusionCard}</section>`;
+const registryWindow = {};
+runInNewContext(readFileSync('js/core/service-registry.js', 'utf8'), { window: registryWindow });
+const lightCards = ['saju', 'tarot', 'ziwei', 'sukuyo'].map(id => {
+  const service = registryWindow.__cdServiceRegistry.find(item => item.id === id);
+  if (service?.price !== '무료 시작') throw new Error('Light recommendation must retain its catalog free entry: ' + id);
+  const card = find(nodes.quick, (_node, values) => values['data-cd-service-id'] === id);
+  return htmlOf(card, id).replace('</a>', '<span data-cd-trans="home.followup.free">무료 시작 · 심화는 별도</span></a>');
+});
+vars.lightRecommendations = `<section class="cdh-light" aria-labelledby="cdhLightTitle"><h2 id="cdhLightTitle" data-cd-trans="home.followup.light">가볍게 둘러보기</h2><div class="cdh-methods-grid">${lightCards.join('')}</div></section>`;
+vars.signupBenefit = `<section id="cdhSignupBenefit" class="cdh-signup-benefit" hidden aria-live="polite"><h2 data-cd-trans="home.followup.benefit">첫 가입 월정석 ${signupBenefitPolicy.amount.toLocaleString('ko-KR')}개</h2><p data-cd-trans="home.followup.benefitNote">지급일부터 ${signupBenefitPolicy.days}일 · 일반 환산 기준 ${(signupBenefitPolicy.amount * KRW_PER_COIN / MEMBERSHIP_CREDIT_PER_COIN).toLocaleString('ko-KR')}원 상당. 상품별 차감량이 다르며 현금 쿠폰이나 이용권 구매에는 쓸 수 없어요.</p><a href="/signup/?next=%2F" data-cd-trans="home.followup.join">카카오 또는 이메일로 가입하기</a></section>`;
 vars.pickReason = htmlOf(byId('cdPickReason'), 'consultation recommendation');
 vars.signature = vars.signature.replace(vars.pickReason, '').replace(/^[ \t]+$/gm, '');
 vars.pressCoverage = renderPressCoverageHtml();

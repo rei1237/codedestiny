@@ -1924,6 +1924,18 @@
       "insightsNote": "Helpful reading on Saju, tarot and birth charts",
       "heading": "Insightful stories for your day",
       "open": "Read the stories"
+    },
+    "followup": {
+      "start": "Choose a featured consultation",
+      "all": "Explore all readings",
+      "light": "Try a lighter reading",
+      "free": "Start free · In-depth readings cost extra",
+      "benefit": "2,000 moonstones on first signup",
+      "benefitNote": "Valid for 30 days. Equivalent to KRW 20,000 at the standard rate; costs vary by product. Not cash or credit for purchasing passes.",
+      "join": "Sign up with Kakao or email",
+      "signatureDescription": "Explore consultations and sample results for your concern.",
+      "member": "Check your Moonstone balance, expiry dates and product conditions.",
+      "balance": "View my Moonstones"
     }
   },
   "terms": {
@@ -2680,7 +2692,7 @@
     "neoSubline": "No extra sentiment. Only the facts remain.",
     "signup": "Sign up",
     "login": "Log in",
-    "guestMoonstoneTeaser": "🌙 Sign up and get 500 free moonstones (worth ₩5,000)",
+    "guestMoonstoneTeaser": "2,000 moonstones on first signup · 30 days · check product costs",
     "loadingGreeting": "Aligning your account starlight",
     "loadingChip": "SESSION SYNC",
     "loadingTitle": "Loading your login information",
@@ -2718,7 +2730,14 @@
       "signupButton": "Sign up"
     },
     "passCheckingGreeting": "Checking your Pass",
-    "passCheckingNote": "We're securely matching your Moonlight Pass and membership tier."
+    "passCheckingNote": "We're securely matching your Moonlight Pass and membership tier.",
+    "exitBenefit": {
+      "title": "Welcome gift · {amount} Moonstones",
+      "copy": "Granted once on first signup. Use on eligible content within {days} days of issue.",
+      "note": "Moonstone costs vary by product. Not cash or a coupon for purchasing passes.",
+      "join": "Sign up with Kakao",
+      "email": "Sign up with email"
+    }
   },
   "seo": {
     "homeTitle": "Free Saju, Tarot, and Daily Fortune | 꿀꿀 운세",

@@ -32,7 +32,7 @@ test("shared auth shell keeps email and social login in one mobile-first surface
   const shell = read("app/components/auth/AuthShell.tsx");
   assert.match(shell, /type=\"email\"/);
   assert.match(shell, /autoComplete=\{isSignup \? \"new-password\" : \"current-password\"\}/);
-  assert.match(shell, /\["google", "naver", "kakao"\]/);
+  assert.match(shell, /\["kakao", "naver", "google"\]/);
   // 🔴 만 14세 확인은 체크박스가 아니라 생년이다(2026-08-25). 카카오는 로그인 폼이, 네이버는
   // 제공 항목이 그 확인을 대신하므로 그때만 칸이 숨는다 — 구글·이메일 가입에는 항상 남는다.
   assert.match(shell, /birthYear: birthYear.trim()/);

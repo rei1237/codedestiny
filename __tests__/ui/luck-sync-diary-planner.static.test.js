@@ -53,7 +53,7 @@ test("fortune planner entry cuts over to the /diary app", () => {
   // 전체 탐색(#cdhGardenBody)에 보존하며 기존 직접 진입은 유지한다.
   assert.match(html, /<section class="cd-diary-planner-entry" id="cdDiaryPlannerEntry"/);
   assert.ok(html.indexOf('id="cdhDiarySlot"') < html.indexOf('id="cdDiaryPlannerEntry"'));
-  assert.ok(html.indexOf('class="cdh-topics"') < html.indexOf('id="cdhGardenBody"'));
+  assert.ok(html.indexOf('class="cdh-topics"') > html.indexOf('id="cdhGardenBody"'));
   assert.ok(html.indexOf('id="cdhConcern"') > html.indexOf('id="cdhGardenBody"'));
   assert.ok(html.indexOf('id="cdhGardenBody"') < html.indexOf('id="cdDiaryPlannerEntry"'));
   assert.doesNotMatch(html, /id="cdHomeSecondaryPanel"/);

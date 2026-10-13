@@ -1924,6 +1924,18 @@
       "insightsNote": "Hilfreiche Texte über Saju, Tarot und Geburtshoroskope",
       "heading": "Inspirierende Geschichten für deinen Tag",
       "open": "Geschichten lesen"
+    },
+    "followup": {
+      "start": "Eine Hauptberatung wählen",
+      "all": "Alle Deutungen ansehen",
+      "light": "Eine kurze Deutung ausprobieren",
+      "free": "Kostenlos starten · Vertiefung kostet extra",
+      "benefit": "2.000 Mondsteine bei erster Anmeldung",
+      "benefitNote": "30 Tage gültig. Zum Standardkurs 20.000 KRW wert; der Verbrauch hängt vom Produkt ab. Kein Bargeld und nicht für Passkäufe.",
+      "join": "Mit Kakao oder E-Mail anmelden",
+      "signatureDescription": "Entdecke passende Beratungen und Beispielergebnisse für dein Anliegen.",
+      "member": "Prüfe dein Mondstein-Guthaben, Ablaufdaten und Produktbedingungen.",
+      "balance": "Meine Mondsteine ansehen"
     }
   },
   "terms": {
@@ -2680,7 +2692,7 @@
     "neoSubline": "Keine zusätzliche Stimmung. Es bleiben nur die Fakten.",
     "signup": "Melden Sie sich an",
     "login": "Einloggen",
-    "guestMoonstoneTeaser": "🌙 Sign up and get 500 free moonstones (worth ₩5,000)",
+    "guestMoonstoneTeaser": "2.000 Mondsteine bei erster Anmeldung · 30 Tage · Produktkosten prüfen",
     "loadingGreeting": "Richten Sie Ihr Konto im Sternenlicht aus",
     "loadingChip": "SITZUNGSSYNC",
     "loadingTitle": "Ihre Anmeldeinformationen werden geladen",
@@ -2718,7 +2730,14 @@
       "signupButton": "Registrieren"
     },
     "passCheckingGreeting": "Pass wird überprüft",
-    "passCheckingNote": "Ihr Mondlicht-Pass und Ihre Mitgliedsstufe werden sicher abgeglichen."
+    "passCheckingNote": "Ihr Mondlicht-Pass und Ihre Mitgliedsstufe werden sicher abgeglichen.",
+    "exitBenefit": {
+      "title": "Willkommensgeschenk · {amount} Mondsteine",
+      "copy": "Einmalig bei der ersten Registrierung. Ab Ausgabe {days} Tage für berechtigte Inhalte nutzbar.",
+      "note": "Die Kosten variieren je nach Produkt. Kein Bargeld und nicht für den Kauf von Pässen.",
+      "join": "Mit Kakao registrieren",
+      "email": "Mit E-Mail registrieren"
+    }
   },
   "seo": {
     "homeTitle": "Kostenloses Saju, Tarot und Daily Fortune | 꿀꿀 운세",

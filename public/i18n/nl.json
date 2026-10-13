@@ -1924,6 +1924,18 @@
       "insightsNote": "Nuttige artikelen over Saju, tarot en geboortehoroscopen",
       "heading": "Inspirerende verhalen voor je dag",
       "open": "Lees de verhalen"
+    },
+    "followup": {
+      "start": "Kies een uitgelicht consult",
+      "all": "Bekijk alle lezingen",
+      "light": "Probeer een korte lezing",
+      "free": "Gratis starten · Verdieping kost extra",
+      "benefit": "2.000 maanstenen bij eerste registratie",
+      "benefitNote": "30 dagen geldig. Bij de standaardkoers gelijk aan 20.000 KRW; verbruik verschilt per product. Geen contant geld en niet voor passen.",
+      "join": "Registreer met Kakao of e-mail",
+      "signatureDescription": "Bekijk consulten en voorbeeldresultaten voor jouw vraag.",
+      "member": "Bekijk je Maanstenen, vervaldata en productvoorwaarden.",
+      "balance": "Mijn Maanstenen bekijken"
     }
   },
   "terms": {
@@ -2680,7 +2692,7 @@
     "neoSubline": "Geen extra sentiment. Alleen de feiten blijven over.",
     "signup": "Schrijf je in",
     "login": "Log in",
-    "guestMoonstoneTeaser": "🌙 Sign up and get 500 free moonstones (worth ₩5,000)",
+    "guestMoonstoneTeaser": "2.000 maanstenen bij eerste registratie · 30 dagen · bekijk de productkosten",
     "loadingGreeting": "Uw account op één lijn brengen",
     "loadingChip": "SESSIESYNC",
     "loadingTitle": "Uw inloggegevens worden geladen",
@@ -2718,7 +2730,14 @@
       "signupButton": "Schrijf je in"
     },
     "passCheckingGreeting": "Pas wordt gecontroleerd",
-    "passCheckingNote": "We synchroniseren veilig uw Maanlichtsteen Pas en lidmaatschapsniveau."
+    "passCheckingNote": "We synchroniseren veilig uw Maanlichtsteen Pas en lidmaatschapsniveau.",
+    "exitBenefit": {
+      "title": "Welkomstcadeau · {amount} Maanstenen",
+      "copy": "Eenmalig bij de eerste registratie. Tot {days} dagen na uitgifte te gebruiken voor in aanmerking komende inhoud.",
+      "note": "De kosten verschillen per product. Geen geld en niet bruikbaar om passen te kopen.",
+      "join": "Registreren met Kakao",
+      "email": "Registreren met e-mail"
+    }
   },
   "seo": {
     "homeTitle": "Gratis Saju, Tarot en dagelijks fortuin | 꿀꿀 운세",
