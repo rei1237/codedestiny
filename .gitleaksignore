@@ -327,6 +327,7 @@ fcb121c32cc74c8761ca2743870fd72df7ac53b3:app/_lib/fortune-usage-store.ts:generic
 206c694860fee3d0d1a043d3c63d6315b8b76cad:__tests__/ui/saju-reading-personas.test.mjs:generic-api-key:41
 75394d76716680a4711d1a8e40ad665ea1b55867:js/core/saju/reading-personas.js:generic-api-key:141
 75394d76716680a4711d1a8e40ad665ea1b55867:public/js/core/saju/reading-personas.js:generic-api-key:141
+d54ce95917e0f1eb429565df04aeaad4eb74b135:__tests__/ui/saju-paid-delivery.behavior.test.js:generic-api-key:256
 
 # 2026-10-13 비활성 확인: EMAILAPI_KEY — Resend API가 invalid 판정, 현행 RESEND_API_KEY와 다른 값
 e44649c5ea90b9dce58d1181753e1d269ea62879:.env.cloudflare.example:generic-api-key:42
@@ -343,3 +344,15 @@ d73f327c4d9a748276369674304329c1b2182acd:__tests__/release/gitleaks-config.test.
 274c4906e9475d786e5c1ac89481590b33f72327:CLOUDFLARE_PAGES_SETUP.md:code-destiny-mongodb-uri-credentials:30
 af6ffdc6db3582fea20307d831422bbce9a3a769:app/api/admin/ping/route.js:code-destiny-mongodb-uri-credentials:19
 b3b54e7c1eef647b846cdd21780cb07e92428428:server/.env.example:code-destiny-mongodb-uri-credentials:5
+
+# 2026-10-13 오탐: 관리자 ping URI 가림 예시(실제 자격증명 아님)
+af6ffdc6db3582fea20307d831422bbce9a3a769:app/api/admin/ping/route.js:code-destiny-mongodb-uri-credentials:25
+
+# 2026-10-13 오탐: PortOne 단건 결제 회귀 테스트의 합성 fixture(모의 fetch 전용)
+40ce88690f5a7b05ef3a69f878d5854c29889b7f:scripts/verify-portone-single-payment-regression.mjs:code-destiny-portone-api-secret:34
+dd0deb3cef6af9c42d193f575c9107838ff2de3b:scripts/verify-portone-single-payment-regression.mjs:code-destiny-portone-api-secret:34
+990ae81c318573438d79f1d71e7cb709952ef78f:scripts/verify-portone-single-payment-regression.mjs:code-destiny-portone-api-secret:35
+
+# 2026-10-13 비활성 확인: 제거된 관리자 입장 SHA-256 상수(현행 PBKDF2 환경변수 경로와 분리)
+e9987ba9ffd5184050ea75e8620a180904d76754:app/api/admin/entry/password/route.js:generic-api-key:7
+d4bf3fca87ee683b2a3b94674ac7bcf935bdb387:server/routes/admin.routes.js:generic-api-key:26
