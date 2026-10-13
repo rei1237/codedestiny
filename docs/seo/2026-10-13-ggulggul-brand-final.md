@@ -57,10 +57,10 @@ Google Search Console은 공개 소개 화면, 네이버 서치어드바이저�
 - verify:business-identity, verify:payment-freeze, verify-i18n-public-parity --all, verify:seo-entity-registry 통과.
 - 로컬 8경우: 홈 JS off/on 390px, JS on 1280px; en JS off/on, ja/zh/zh-tw JS off 390px. 제목·사이트명 일치 및 가로 넘침 없음. 외부 요청 차단/API mock. 상담·결제 기능이나 전체 Next 빌드의 브라우저 검증을 의미하지 않는다.
 - 생성: 번역 원본 병합, OG 5언어 렌더, public sync, llms, sitemap. sitemap 955 URL 유지; lastmod는 생성기가 실제 소스 변경을 반영.
-- 첫 check:fast는 paid suite 87/88에서 npm test 내 4개 단언이 실패했다. 고유명사 번역 예외, 누락된 사전 브랜드 키를 보완하고 검수 원고를 복구한 뒤 해당 회귀 23개가 통과했다. 두 번째 실행은 paid suite 88/88 통과 후 마지막 편집에 따른 sitemap 원장 드리프트로 중단했다. 생성기를 실행해 정합성을 복원했다. 세 번째 실행은 Node 3,199/3,200 통과 후 이전 siteName 4개를 허용하던 정적 단언 하나가 실패했다. 비한국어 잔여 siteName도 공식명으로 맞추고 예외를 0개로 바꾼 회귀 검사는 통과했다. 통합본 최종 check:fast 실행 예정이며 check:pre-push와 최종 CI 결과는 전달 완료 시 추가한다. 미실행/실패는 통과로 기록하지 않는다.
+- 첫 check:fast는 paid suite 87/88에서 npm test 내 4개 단언이 실패했다. 고유명사 번역 예외, 누락된 사전 브랜드 키를 보완하고 검수 원고를 복구한 뒤 해당 회귀 23개가 통과했다. 두 번째 실행은 paid suite 88/88 통과 후 마지막 편집에 따른 sitemap 원장 드리프트로 중단했다. 생성기를 실행해 정합성을 복원했다. 세 번째 실행은 Node 3,199/3,200 통과 후 이전 siteName 4개를 허용하던 정적 단언 하나가 실패했다. 비한국어 잔여 siteName도 공식명으로 맞추고 예외를 0개로 바꾼 회귀 검사는 통과했다. 통합본 `npm run check:fast -- --committed-head --base=main`은 exit 0으로 완료했다. paid suite 88/88, Node 3,210/3,210, Jest 395 suites·6,033 tests, lint·typecheck·Worker dry-run·인코딩 등 계획된 전체 가드 통과. `check:pre-push`는 브랜드 커밋에서 이미 통과했으며 최종 기록 커밋에서도 재확인한다. 원격 push와 CI의 최종 SHA·실행 링크는 전달 응답에 기록한다.
 
 ## 7. 전달과 운영
-A 코드 수정: 검증 중. B 커밋/push/CI: 진행 중. C 운영 반영: 미실행, 운영은 이전 이름. D 콘솔 색인: 엔진별 미확인. E 네이버: 이전 이름으로 공식 URL 노출 관측; Google: 미확인. 운영 승격·검색엔진 제출은 별도 승인 후 실행한다.
+A 코드 수정: 완료(법적 명칭·고정 검수 원고 등 명시한 예외 보존). B 로컬 검증: 통과, 구현 커밋 `b1aec3eed`, main 통합 `5ef271ef4`, 추가 공개 표기 `9d7a92315`. 최종 main push/CI는 이 문서 저장 이후 전달 단계에서 확인한다. C 운영 반영: 미실행. 18:08 KST 재검사에서 홈·사주·타로는 꿀꿀 사주, 안내는 반대 개명 제목이며 Pages/Worker 모두 `63ae9564903a789e867295a1c444520b3881c353`다. D 콘솔 색인: 엔진별 미확인. E 네이버: 이전 이름으로 공식 URL 노출 관측; Google: 미확인. 운영 승격·검색엔진 제출은 별도 승인 후 실행한다. 현재 코드 후보 `9d7a92315`의 운영 기준점 이후 이력은 [release-scope.json](evidence/2026-10-13-brand-final/release-scope.json)에 있다. 운영 승격은 이번 SEO뿐 아니라 기존 main의 결제 복구·영냥이 품질·보안 등 누적 변경도 포함하며, 여기서는 승격하지 않았다.
 
 ## 8. 측정 계획
 D0는 운영 HTML과 배포 버전 확인일이며 현재 null. D+7 재수집/제목 잔존, D+14 질의별 노출·클릭·CTR·평균 게재순위 및 대표 URL, D+28 배포 전/후 완결 28일 비교. 같은 엔진·검색유형·국가·기기·질의 필터를 유지하고 데이터 지연시 판정을 연기한다. 검색어/페이지 집계 독립 비교, 임의 결합·누락값 0 처리 금지. 기존 10/08 실험과 겹치므로 효과를 이번 변경에 단독 귀속하지 않는다. 자동 예약 없음.
@@ -68,7 +68,7 @@ D0는 운영 HTML과 배포 버전 확인일이며 현재 null. D+7 재수집/�
 ## 9. 근거
 - [Google 사이트 이름](https://developers.google.com/search/docs/appearance/site-names): 이름과 페이지 제목의 구분, 신호 일치, 리다이렉트 대상과 재수집 지연.
 - [네이버 SEO 기본 가이드](https://searchadvisor.naver.com/guide/seo-help), [제목/설명 갱신](https://searchadvisor.naver.com/guide/faq-serpedit).
-- [운영 HTTP 표본](evidence/2026-10-13-brand-final/public-baseline.json), [로컬 브라우저 표본](evidence/2026-10-13-brand-final/local-browser.json).
+- [운영 HTTP 표본](evidence/2026-10-13-brand-final/public-baseline.json), [18:08 운영 버전·HTML 재확인](evidence/2026-10-13-brand-final/production-before-delivery.json), [로컬 브라우저 표본](evidence/2026-10-13-brand-final/local-browser.json).
 
 ## 변경 파일 목록
 전체 변경 경로는 [changed-files.json](evidence/2026-10-13-brand-final/changed-files.json)에 기록한다. 대부분 공통 브랜드 문구와 그 생성 미러이며, 기능 로직을 재설계하지 않았다. 번역 원본은 `i18n/authored/brandSignals-01.json`, 공유 카드 원본은 `scripts/og/vvip-card.html`, 생성 검사는 `__tests__/ui/brand-search-identity.test.mjs`와 `brand-dictionary-generation.test.mjs`다.

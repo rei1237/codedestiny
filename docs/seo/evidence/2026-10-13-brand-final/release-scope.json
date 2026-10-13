@@ -1,0 +1,180 @@
+{
+  "productionBaseline": "63ae9564903a789e867295a1c444520b3881c353",
+  "codeCandidate": "9d7a923154ab7e829b085964ce0733eaac0e61b0",
+  "productionPromotion": "not authorized or executed",
+  "note": "Promoting this code also includes earlier main changes listed here, not only this SEO task. Final delivery may add documentation-only commits.",
+  "commits": [
+    {
+      "sha": "9d7a923154ab7e829b085964ce0733eaac0e61b0",
+      "title": "fix(brand): align remaining shared navigation labels"
+    },
+    {
+      "sha": "5ef271ef4692274a8c798f5080b954f0000e7e71",
+      "title": "merge: preserve current main while regenerating brand mirrors"
+    },
+    {
+      "sha": "b1aec3eed911de95557f02b212de96598f7e3080",
+      "title": "fix(seo): restore official 꿀꿀 운세 brand signals"
+    },
+    {
+      "sha": "5c0a23aceea3d76b7a1d4c69d68286e358355720",
+      "title": "Merge branch 'main' into wt/yn-quality-fish-20261013-153119"
+    },
+    {
+      "sha": "b250f743ae49950ac05da3b16d42107b77388aa9",
+      "title": "docs(yeongnyangi): record quality verification"
+    },
+    {
+      "sha": "e72ea199b24c9cd2239ef3a2e152d537babbfd82",
+      "title": "docs: record secret scan closure"
+    },
+    {
+      "sha": "7c6b49f5b8fb137f916b4ef19aa95a27ac63d3e7",
+      "title": "chore(mirrors): refresh generated search ledger"
+    },
+    {
+      "sha": "078cb54679d4b28f8fdbc3ebeec0820cb3679767",
+      "title": "fix(yeongnyangi): ground question timing"
+    },
+    {
+      "sha": "cdb49df568513a78b3367c8751995928e3f73f78",
+      "title": "feat(yeongnyangi): let users choose fish depth"
+    },
+    {
+      "sha": "fc0554718915f0cb972057b7e98b28f23a718b25",
+      "title": "fix(yeongnyangi): recover Pro 404 with Flash"
+    },
+    {
+      "sha": "1439543475dcb353253ac889d511b563a2106b33",
+      "title": "security: close historical secret findings"
+    },
+    {
+      "sha": "18e1b8fe44ee4eb5bf450b3a8a7ef5dabaf9afbb",
+      "title": "docs: record secret finding verification"
+    },
+    {
+      "sha": "393d54f299f3a50bf399dcf1bb1264c0200459bb",
+      "title": "security: classify remaining secret findings"
+    },
+    {
+      "sha": "ece44795b08452a00001aebb773a538be9021357",
+      "title": "docs: record blocked temporary cleanup"
+    },
+    {
+      "sha": "be7bcc99425c22241662ecf942dcaf8dfada673f",
+      "title": "docs: record security follow-up evidence"
+    },
+    {
+      "sha": "180ebc2b3aaacb28b8bd1a6a36cf0481c4e194c2",
+      "title": "fix(env): require the canonical Resend key"
+    },
+    {
+      "sha": "ff669d3723933898d931a26c08215fd769f95f81",
+      "title": "security: baseline verified inactive credentials"
+    },
+    {
+      "sha": "d54ce95917e0f1eb429565df04aeaad4eb74b135",
+      "title": "fix(saju): follow the selected reading persona"
+    },
+    {
+      "sha": "a4d784c0ced2151509e0e8a3fe7c96bfea33ca5a",
+      "title": "fix(crm): allow a bounded v1 consent grace"
+    },
+    {
+      "sha": "cdfc99e5475eb01e98bb50833ebc7422efaf1d8d",
+      "title": "docs(handoff): record WebKit shadow repair"
+    },
+    {
+      "sha": "424020badcdd829689fe61444376ecd5adb1e40e",
+      "title": "test(yeongnyangi): narrow WebKit navigation noise"
+    },
+    {
+      "sha": "e2eb73e699f947a7dd94caacf198f698e7a958da",
+      "title": "docs(handoff): record security follow-up outcomes"
+    },
+    {
+      "sha": "cd9cf63df6578d25f5f33d8f5c13b18bb39438d5",
+      "title": "security(payments): minimize public config status"
+    },
+    {
+      "sha": "d73f327c4d9a748276369674304329c1b2182acd",
+      "title": "security: detect project payment secrets"
+    },
+    {
+      "sha": "b46531856958ea61a0e5700db98c5fcee3440867",
+      "title": "fix(payments): constrain PortOne redirect origin"
+    },
+    {
+      "sha": "27689df01fa2995ae6937893327ca74e0f2eb34e",
+      "title": "docs(handoff): record release security blocker"
+    },
+    {
+      "sha": "9fb545e73f59eb3802a8e15416ebdaac4744a408",
+      "title": "feat(home): surface fortune systems above fold"
+    },
+    {
+      "sha": "edce37d619ccb6cf662382abed1ebf2fa76a2275",
+      "title": "fix(payments): harden security follow-ups"
+    },
+    {
+      "sha": "b4ee8a8459a5bae08a610d8f38611c0a7259cd35",
+      "title": "Merge remote-tracking branch 'origin/main' into wt/followups-b-e-20261013-20261013-102616"
+    },
+    {
+      "sha": "9667223547eb74fc307e4d63bf279beac961e3e9",
+      "title": "docs(handoff): record B through E completion"
+    },
+    {
+      "sha": "2e2db53368f0c701be295ac80ef922e19fa82671",
+      "title": "fix(saju): close copy quality follow-ups"
+    },
+    {
+      "sha": "91f0458b99e3646d476cf3c35f5ada38438a35e8",
+      "title": "test(yeongnyangi): refresh browser payment fixtures"
+    },
+    {
+      "sha": "48f9f24dee76dd9dadf747dbe0c2d12fd94c2aa7",
+      "title": "docs(seo): close Ggulggul brand handoff"
+    },
+    {
+      "sha": "9548c60b8592e05d2853d755e0e5f05f6dce929c",
+      "title": "test(gifts): align same-tier claim expiry"
+    },
+    {
+      "sha": "e6f5b31126f4f15f0e861e874f53c685f1bc1fc9",
+      "title": "fix(ci): refresh AI locale call inventory"
+    },
+    {
+      "sha": "54f6cef3d1bf630c3b34e5cf77f5cc8e748a8d8c",
+      "title": "Merge remote-tracking branch 'origin/main' into wt/ggulggul-brand-seo-20261013-095636"
+    },
+    {
+      "sha": "d8a868f09e069c6dd12dba86b35ab83458b7cff4",
+      "title": "perf(llm): reserve Pro for critical synthesis"
+    },
+    {
+      "sha": "b315970166b2b728cfb95c39949574a60a0736f1",
+      "title": "fix(analytics): classify payment welcome route check"
+    },
+    {
+      "sha": "ef854963ff98b85c4cf8033300a41dc538ae2642",
+      "title": "docs(seo): record validation and upstream CI blocker"
+    },
+    {
+      "sha": "f39680144557158081b0c94b6b5642781d7a5fae",
+      "title": "fix(seo): restore Ggulggul Fortune brand signals"
+    },
+    {
+      "sha": "dc27572fea3eb49245cf76a9ed9a82c3120122b4",
+      "title": "docs(handoff): 기존 결함 후속·이력 노출 키 교체 인수인계와 사주 조사 감사 스크립트"
+    },
+    {
+      "sha": "c96764241f4f0407f6bddbe52e36d04ee507d9a2",
+      "title": "fix(payments): show flower pig after confirmed access"
+    },
+    {
+      "sha": "82e05025d1a2a1e2f06617a2ca72c9e9da24e16f",
+      "title": "feat(fusion): add question-led Pro premium reports"
+    }
+  ]
+}
