@@ -8,6 +8,7 @@ import RoomInteractions from './RoomInteractions';
 import CatMotion from './CatMotion';
 import ServiceNavigation from './ServiceNavigation';
 import FreeFortune from '../_components/FreeFortune';
+import SortingHat from '../_components/SortingHat';
 import DailyTarotCard from '../_components/DailyTarotCard';
 import './original.css';
 import './room.css';
@@ -46,6 +47,7 @@ export default function Room(){
    </section>
    <section className="room-small-moment" aria-label="영냥이의 작은 휴식"><CatMotion/><div><Sparkles size={18}/><h2>한숨 끝에도,<br/>네 자리는 남겨둘게.</h2><p>웃는 날에도, 그렇지 못한 날에도.<br/>다른 표정의 영냥이를 만나봐.</p><a className="room-fortune-link" href="/yeongnyangi/fortune/">상담 내용 살펴보기<ArrowRight size={16}/></a><a className="room-fortune-link" href="/yeongnyangi/library/">내 상담 이어보기<BookOpen size={16}/></a></div></section>
    <DailyTarotCard/>
+   <SortingHat/>
    <FreeFortune/>
   </div><footer className="room-footer"><PawPrint size={18}/>오늘도, 네 이야기에 작은 달빛 하나.</footer>
   {storyOpen&&<dialog ref={dialog} className="experience-dialog story-dialog" aria-label="영냥이의 프롤로그" onCancel={event=>{event.preventDefault();closeStory();}}><div className="dialog-inner"><div className="dialog-header"><span><BookOpen size={17}/>내 이름이 네오였던 밤</span><button className="icon-button" aria-label="닫기" onClick={closeStory}><X size={22}/></button></div><StoryPanel step={step} onPrevious={()=>setStep(v=>Math.max(0,v-1))} onNext={()=>setStep(v=>Math.min(story.length-1,v+1))} onClose={closeStory} onReading={readDaily} soundControls={<RoomSoundControls sound={sound}/>}/></div></dialog>}
