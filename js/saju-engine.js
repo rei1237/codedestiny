@@ -7859,8 +7859,9 @@ try {
   }
 } catch (_) {}
 
-// 2026-10-13: 네오 모드(neo-mode)는 이제 다크 테마일 뿐이고 풀이 페르소나는 늘 연이다. 다크 색은 CSS 의 neo-mode 클래스가 맡는다.
+// 화자는 풀이 선택을 따른다. 테마는 독립이며 저장된 두 화자 요약만 전환한다.
 function _sajuPromptReadPersonaMode() {
+  try { return window.localStorage.getItem('cdSajuPersonaV1') === 'neo' ? 'neo' : 'pig'; } catch (_) {}
   return 'pig';
 }
 
@@ -7881,7 +7882,7 @@ function _sajuPromptBuildPersonaSummaryText(payload, mode) {
   var summary = _sajuPromptReadPersonaSummary(payload, mode);
   if (!summary) return '';
   if (summary.mode === 'neo') {
-    return ['네오의 판단 기록', '결론: ' + summary.conclusion, '명식 근거: ' + summary.basis, '주의점: ' + summary.caution, '다음 확인: ' + summary.nextCheck].join('\n');
+    return ['영냥이의 판단 기록', '결론: ' + summary.conclusion, '명식 근거: ' + summary.basis, '주의점: ' + summary.caution, '다음 확인: ' + summary.nextCheck].join('\n');
   }
   return ['연이의 마무리 편지', summary.letter, '작은 실천: ' + summary.action].join('\n');
 }
@@ -7891,7 +7892,7 @@ function _sajuPromptBuildResultSummaryHtml(payload, mode) {
   var persona = _sajuPromptReadPersonaSummary(item, mode === 'neo' ? 'neo' : 'pig');
   if (persona && persona.mode === 'neo') {
     return '<section class="consultation-persona consultation-persona--neo" aria-labelledby="sajuNeoRecordTitle">'
-      + '<p class="consultation-persona__kicker">GUARDIAN RECORD · 동일한 상담문</p><h4 id="sajuNeoRecordTitle">네오의 판단 기록</h4>'
+      + '<p class="consultation-persona__kicker">GUARDIAN RECORD · 동일한 상담문</p><h4 id="sajuNeoRecordTitle">영냥이의 판단 기록</h4>'
       + '<dl><div><dt>결론</dt><dd>' + _sajuPromptEscapeHtml(persona.conclusion) + '</dd></div>'
       + '<div><dt>명식 근거</dt><dd>' + _sajuPromptEscapeHtml(persona.basis) + '</dd></div>'
       + '<div><dt>주의점</dt><dd>' + _sajuPromptEscapeHtml(persona.caution) + '</dd></div>'
@@ -8421,7 +8422,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
     if (currentResultPayload && summaryEl) summaryEl.innerHTML = _sajuPromptBuildResultSummaryHtml(currentResultPayload, currentPersonaMode);
     if (modeStatusEl) {
       modeStatusEl.textContent = announce
-        ? (currentPersonaMode === 'neo' ? '네오의 판단 순서로 같은 상담을 읽습니다.' : '연이의 편지 순서로 같은 상담을 읽습니다.')
+        ? (currentPersonaMode === 'neo' ? '영냥이의 판단 순서로 같은 상담을 읽습니다.' : '연이의 편지 순서로 같은 상담을 읽습니다.')
         : '';
     }
   }
@@ -9195,13 +9196,16 @@ function _bindSajuQuestionPromptCard(rootEl) {
     inputEl.focus();
     _sajuPromptSetStatus(statusEl, '새 질문을 입력해 주세요.', 'info');
   });
-  // 라이트·다크 전환은 화자를 바꾸지 않는다(늘 연이) — 다시 그리기만 하고 화자 안내는 띄우지 않는다.
+  // 테마와 화자는 독립이다. 같은 탭의 풀이 선택과 다른 탭의 저장소 변경을 모두 반영한다.
   var themeCheckbox = document.getElementById('themeCheckbox');
   if (themeCheckbox) themeCheckbox.addEventListener('change', function() {
     setTimeout(function() { if (rootEl.isConnected !== false) applyPersonaMode(_sajuPromptReadPersonaMode(), false); }, 0);
   });
   window.addEventListener('storage', function(event) {
-    if (event && event.key === 'fortuneThemeModeStateV1' && rootEl.isConnected !== false) applyPersonaMode(_sajuPromptReadPersonaMode(), false);
+    if (event && (event.key === 'cdSajuPersonaV1' || event.key === null) && rootEl.isConnected !== false) applyPersonaMode(_sajuPromptReadPersonaMode(), false);
+  });
+  window.addEventListener('cd:saju-persona-changed', function() {
+    if (rootEl.isConnected !== false) applyPersonaMode(_sajuPromptReadPersonaMode(), true);
   });
   applyPersonaMode(currentPersonaMode, false);
   updateCount();

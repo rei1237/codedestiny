@@ -14,9 +14,13 @@ export const TUNA_MIN_CITED_VALUES=2;
 /** The roadmap chapter reads month rows through the same day next year. */
 export const tunaRoadmapEnd=(asOf:string)=>`${Number(asOf.slice(0,4))+1}${asOf.slice(4,10)}`;
 export const tunaQualityApplies=(snapshot:any)=>snapshot?.tunaQualityPolicy===TUNA_QUALITY_POLICY;
-export const tunaReasoningTask=(snapshot:any,chapter:any)=>tunaQualityApplies(snapshot)&&chapter?.layoutRole==='synthesis'&&chapter?.key!=='action'?'tuna-synthesis' as const:undefined;
-export function tunaChapterModel(env:Record<string,unknown>|undefined,snapshot:any,chapter?:any):string|undefined{
+// Durable server receipts, not a client model preference, select recovery on the next existing attempt.
+export const tunaProUnavailable=(row:any)=>row?.state!=='REFUNDED'&&Array.isArray(row?.recoveryAudit)&&row.recoveryAudit.some((entry:any)=>
+ entry.code==='FORTUNE_PROVIDER_FAILED'&&entry.receipt?.status===404&&entry.receipt?.provider==='gemini'&&entry.receipt?.model===GEMINI_PRO_MODEL);
+export const tunaReasoningTask=(snapshot:any,chapter:any,proUnavailable=false)=>!proUnavailable&&tunaQualityApplies(snapshot)&&chapter?.layoutRole==='synthesis'&&chapter?.key!=='action'?'tuna-synthesis' as const:undefined;
+export function tunaChapterModel(env:Record<string,unknown>|undefined,snapshot:any,chapter?:any,proUnavailable=false):string|undefined{
   if(!tunaQualityApplies(snapshot))return undefined;
+  if(proUnavailable)return GEMINI_PROSE_MODEL;
   const configured=String(env?.YEONGNYANGI_TUNA_GEMINI_MODEL||'').trim();
   return selectGeminiModel(/^gemini-[a-z0-9.-]+$/.test(configured)?configured:TUNA_DEFAULT_MODEL,tunaReasoningTask(snapshot,chapter));
 }

@@ -24,7 +24,7 @@ import {validateAskChapter} from '../fortune/ask/validate';
 import {blockAnchorNames,sanitizeBlockAnchors,withBlockAnchorsSchema} from '../fortune/block-anchors';
 import {escapeAskData, type AskAnalysis} from '../fortune/ask/analysis';
 import type {EvidencePacket} from '../fortune/ask/contracts';
-import {alignRelativeYears, assertProfessionalProse, correctDashaSequence, correctPersonaAddress, correctProseMarkup, redactInternalEvidence, tarotPositionNames, validateConsultationAnswers, validatePreciseTiming, natalOnlyTiming, professionalEvidenceNames, yearGanji} from '../fortune/consultation';
+import {correctTimingEvidence,alignRelativeYears, assertProfessionalProse, correctDashaSequence, correctPersonaAddress, correctProseMarkup, redactInternalEvidence, tarotPositionNames, validateConsultationAnswers, validatePreciseTiming, natalOnlyTiming, professionalEvidenceNames, yearGanji} from '../fortune/consultation';
 import {
   ChapterBody,
   ChapterSpec,
@@ -124,6 +124,12 @@ export function correctChapterProse(v: ChapterBody, input: ChapterRequest): Chap
   if(listing)console.log('[yeongnyangi-tarot-listing]',JSON.stringify({chapter:input.chapter.ordinal,...listing}));
   return v;
 }
+// Only the approved question contract edits unsupported timing. Legacy/v7 validators keep rejecting invented dates.
+export function correctQuestionTiming(body:ChapterBody,input:ChapterRequest):ChapterBody{
+  if(!input.chapter.questionPolicy||!input.analysis.consultation?.questionDecision)return body;
+  const evidence=Object.values(input.analysis.contexts).flatMap(c=>selectChapterFacts(c,input.chapter,input.analysis.topicId));
+  return correctTimingEvidence(body,input.analysis.consultation,evidence,input.locale||'ko',input.voiceStyle==='honorific'||Boolean(input.persona));
+}
 // The fallback delivers a chapter the evidence check rejected (delivery.ts). A chapter system that another block already
 // cites, or that the Korean prose names, gets its source back on the block the check reads: the evidence block, or in
 // v7 the first block naming it. A system the chapter never uses stays uncited rather than gaining a reference.
@@ -219,6 +225,7 @@ export function validateChapter(
   // '올해(2025년)' against a 2026 consultation: the word follows the year, never a paid regeneration (principle 17).
   const aligned=input.analysis.consultation?alignRelativeYears(v,input.analysis.consultation.asOf,input.locale):{body:v,count:0};
   if(aligned.count){v=aligned.body;console.log('[yeongnyangi-year-alignment]',JSON.stringify({chapter:input.chapter.ordinal,count:aligned.count}));}
+  v=correctQuestionTiming(v,input);
   // Section targets may exceed the paragraph cap: split at sentence ends before any check reads the blocks.
   if(hasReadingSections(input.chapter.version))v=normalizeSectionParagraphs(v);
   // The chapter's own evidence, before the ask packet widens what a citation may point at.

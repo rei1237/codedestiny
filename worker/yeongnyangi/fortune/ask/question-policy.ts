@@ -36,11 +36,12 @@ export const questionTopics=[
  {id:'other',label:'복합·분류가 어려운 질문',example:''},
 ] as const;
 export const questionScopes:Record<QuestionFish,string>={
- mackerel:'일상과 개인의 관계 고민에 대한 하나의 질문',
- salmon:'시험·진로·재물·이동 등 중요한 선택의 조건과 준비',
- flounder:'두 사람의 성향·표현·갈등·생활·돈·책임의 비교',
- tuna:'현재와 다음 장기 시기의 과제와 전환 준비',
+ mackerel:'핵심 답과 근거, 지금 해 볼 행동',
+ salmon:'선택의 조건과 준비를 구체적으로 살피는 상담',
+ flounder:'여러 관점과 생활 영역을 연결하는 깊은 상담',
+ tuna:'질문과 삶의 흐름을 함께 살피는 상세 상담',
 };
+export const questionNeedsDecisionDetails=(d:QuestionDecision)=>d.target==='self'&&d.horizon==='current'&&['study','career','job_change','money','business','move'].includes(d.category);
 export function questionTopic(category:AskCategory){
  if(['career','job_change','study'].includes(category))return 'work';
  if(['money','business'].includes(category))return 'money';
@@ -83,19 +84,19 @@ export function recommendQuestion(domain:DomainId,d:QuestionDecision,question=''
  if(d.category==='compatibility'&&d.target!=='pair')missing.push('두 사람을 비교하는 질문이라면 판단 대상을 궁합과 관계 구조로 선택해 주세요.');
  if(d.category==='other')missing.push('독립적인 고민이 여러 개라면 먼저 다룰 하나의 결정과 주제를 골라 주세요.');
  if(!d.situation)missing.push('현재 상황을 알려 주세요. 같은 주제라도 준비 단계에 따라 행동이 달라져요.');
- if((fish==='salmon'||fish==='tuna')&&!d.period)missing.push('목표 시기나 살펴볼 기간을 알려 주세요. 계산 근거의 기간과 대조해요.');
- if(fish==='salmon'&&!d.options)missing.push('선택지 또는 준비 목표를 알려 주세요. 비교할 대상이 필요해요.');
- if(fish==='salmon'&&!d.constraints)missing.push('중요한 조건이나 제약을 알려 주세요. 없다면 ‘없음’으로 적어 주세요.');
- if(fish==='flounder'&&!d.relationshipType)missing.push('두 사람의 관계 유형을 골라 주세요.');
+ if((questionNeedsDecisionDetails(d)||d.horizon==='transition')&&!d.period)missing.push('목표 시기나 살펴볼 기간을 알려 주세요. 계산 근거의 기간과 대조해요.');
+ if(questionNeedsDecisionDetails(d)&&!d.options)missing.push('선택지 또는 준비 목표를 알려 주세요. 비교할 대상이 필요해요.');
+ if(questionNeedsDecisionDetails(d)&&!d.constraints)missing.push('중요한 조건이나 제약을 알려 주세요. 없다면 ‘없음’으로 적어 주세요.');
+ if(d.target==='pair'&&!d.relationshipType)missing.push('두 사람의 관계 유형을 골라 주세요.');
  const unsupported=d.target==='pair'&&d.horizon==='transition'?'궁합과 장기 흐름은 먼저 다룰 하나를 선택해 주세요. 두 범위를 자동으로 묶어 결제하지 않아요.':
-  fish==='tuna'&&!['saju','ziwei','vedic'].includes(domain)?'장기 시기 전환은 현재 사주 대운·자미두수 대한·베다 다샤에서 제공해요. 다른 체계는 계산 지원이 필요해요.':undefined;
+  d.horizon==='transition'&&!['saju','ziwei','vedic'].includes(domain)?'장기 시기 전환은 현재 사주 대운·자미두수 대한·베다 다샤에서 제공해요. 다른 체계는 계산 지원이 필요해요.':undefined;
  return {fish,reason:questionScopes[fish],missing,...(unsupported?{unsupported}:{})};
 }
 export function assertQuestionOrder(product:{domain:DomainId;fishId:string;readingKind:string},d:QuestionDecision,question=''){
  const plan=recommendQuestion(product.domain,d,question);
  if(product.readingKind!=='single'||plan.unsupported)throw new FortuneError('QUESTION_SCOPE_UNSUPPORTED');
  if(!d.confirmed||plan.missing.length)throw new FortuneError('QUESTION_SCOPE_REQUIRED');
- if(plan.fish!==product.fishId)throw new FortuneError('QUESTION_PRODUCT_MISMATCH');
+ if(!Object.hasOwn(FOLLOWUP_LIMITS,product.fishId))throw new FortuneError('QUESTION_PRODUCT_MISMATCH');
  return plan;
 }
 export function questionManifest(domain:DomainId,fish:QuestionFish,d:QuestionDecision,spread?:{positions:{id:string;label:string;question:string;role:string;readOrder:number}[]},question='',expanded=true):ChapterSpec[]{

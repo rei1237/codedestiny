@@ -432,3 +432,12 @@ test('D5: astrology facts reach the prompt with Korean dignity names',async()=>{
  assert.match(sent,/자기 별자리\(룰러십\)/);assert.match(sent,/추락\(폴\)/);
  assert.doesNotMatch(sent,/"dignity\?":\?"(?:domicile|fall)/);
 });
+
+ test('plain relative years in summaries, blocks and question answers follow the fixed consultation date',()=>{
+ const body={summary:'내년 2026년의 흐름',analysis:[],example:'',advice:'',persona:'',highlights:[],topics:[],sources:[],blocks:[{title:'시기',paragraphs:['작년 2027년과 올해 2026년을 비교해.'],sources:[]}],questionAnswers:[{questionId:'Q1',answer:'내년 2026년을 살펴봐.',reason:'',timing:'내년 2027년',action:''}]};
+ const out=loaded.exports.alignRelativeYears(body,'2026-10-13');
+ assert.equal(out.body.summary,'올해 2026년의 흐름');assert.equal(out.body.blocks[0].paragraphs[0],'내년 2027년과 올해 2026년을 비교해.');
+ assert.equal(out.body.questionAnswers[0].answer,'올해 2026년을 살펴봐.');assert.equal(out.body.questionAnswers[0].timing,'내년 2027년');
+ assert.doesNotThrow(()=>validatePreciseTiming(out.body,{asOf:'2026-10-13',questions:[]},[]));
+ assert.equal(body.summary,'내년 2026년의 흐름');
+ });

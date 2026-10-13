@@ -323,3 +323,66 @@ fcb121c32cc74c8761ca2743870fd72df7ac53b3:app/_lib/fortune-usage-store.ts:generic
 # [A7 콘텐츠 게이트 unlockKey 이름(영문 단어)] 지문 2개 (탐지 4건)
 2db1502582462d309d731415927fc234c866dbca:index.html:generic-api-key:5977
 2db1502582462d309d731415927fc234c866dbca:public/index.html:generic-api-key:5977
+# 2026-10-13 오탐: 영냥이 풀이 전환의 localStorage 키 이름(PERSONA_KEY) — 비밀값이 아니다
+206c694860fee3d0d1a043d3c63d6315b8b76cad:__tests__/ui/saju-reading-personas.test.mjs:generic-api-key:41
+75394d76716680a4711d1a8e40ad665ea1b55867:js/core/saju/reading-personas.js:generic-api-key:141
+75394d76716680a4711d1a8e40ad665ea1b55867:public/js/core/saju/reading-personas.js:generic-api-key:141
+d54ce95917e0f1eb429565df04aeaad4eb74b135:__tests__/ui/saju-paid-delivery.behavior.test.js:generic-api-key:256
+
+# 2026-10-13 비활성 확인: EMAILAPI_KEY — Resend API가 invalid 판정, 현행 RESEND_API_KEY와 다른 값
+e44649c5ea90b9dce58d1181753e1d269ea62879:.env.cloudflare.example:generic-api-key:42
+355c2ccb6273f4da34f3bdd4500963ff40fbb410:.env.example:generic-api-key:32
+
+# 2026-10-13 교체 확인: 과거 PortOne API 시크릿 — 현행 V1 불일치 및 V2 발급 목록 확인
+16d9470d543f4c954639aaa960ab9dfc6142b5a9:.env.example:generic-api-key:18
+cde105e4977b12d297bf54b2c6f67fd03558ea43:.env.example:generic-api-key:22
+
+# 2026-10-13 오탐: MongoDB 문서·예시·회귀 테스트의 명시적 자리표시자(자격증명 아님)
+d73f327c4d9a748276369674304329c1b2182acd:__tests__/release/gitleaks-config.test.js:code-destiny-mongodb-uri-credentials:24
+362f4ab775568ffbbe2a63f6e1fc063d4974ecb7:.env.example:code-destiny-mongodb-uri-credentials:5
+4061527b0222a108127544279e626b9ecab82dc7:.env.example:code-destiny-mongodb-uri-credentials:6
+274c4906e9475d786e5c1ac89481590b33f72327:CLOUDFLARE_PAGES_SETUP.md:code-destiny-mongodb-uri-credentials:30
+af6ffdc6db3582fea20307d831422bbce9a3a769:app/api/admin/ping/route.js:code-destiny-mongodb-uri-credentials:19
+b3b54e7c1eef647b846cdd21780cb07e92428428:server/.env.example:code-destiny-mongodb-uri-credentials:5
+
+# 2026-10-13 오탐: 관리자 ping URI 가림 예시(실제 자격증명 아님)
+af6ffdc6db3582fea20307d831422bbce9a3a769:app/api/admin/ping/route.js:code-destiny-mongodb-uri-credentials:25
+
+# 2026-10-13 오탐: PortOne 단건 결제 회귀 테스트의 합성 fixture(모의 fetch 전용)
+40ce88690f5a7b05ef3a69f878d5854c29889b7f:scripts/verify-portone-single-payment-regression.mjs:code-destiny-portone-api-secret:34
+dd0deb3cef6af9c42d193f575c9107838ff2de3b:scripts/verify-portone-single-payment-regression.mjs:code-destiny-portone-api-secret:34
+990ae81c318573438d79f1d71e7cb709952ef78f:scripts/verify-portone-single-payment-regression.mjs:code-destiny-portone-api-secret:35
+
+# 2026-10-13 비활성 확인: 제거된 관리자 입장 SHA-256 상수(현행 PBKDF2 환경변수 경로와 분리)
+e9987ba9ffd5184050ea75e8620a180904d76754:app/api/admin/entry/password/route.js:generic-api-key:7
+d4bf3fca87ee683b2a3b94674ac7bcf935bdb387:server/routes/admin.routes.js:generic-api-key:26
+
+# 2026-10-13 제공자 무효 확인: 과거 Gemini·YouTube Google API 키 13종(API_KEY_INVALID, 메타데이터 GET만 사용)
+9efec96c8afdacfb4457d597b552690548c7ac22:.env.cloudflare.example:gcp-api-key:13
+9efec96c8afdacfb4457d597b552690548c7ac22:.env.example:gcp-api-key:28
+0b2869c2ec3833d8cf66821041dad433e21c0e47:.env.example:gcp-api-key:41
+7ecb804cd68e68411c57a3f267cf6762c30dcdba:.env.example:gcp-api-key:64
+7ecb804cd68e68411c57a3f267cf6762c30dcdba:.env.example:gcp-api-key:65
+7ecb804cd68e68411c57a3f267cf6762c30dcdba:.env.example:gcp-api-key:66
+7ecb804cd68e68411c57a3f267cf6762c30dcdba:.env.example:gcp-api-key:67
+7ecb804cd68e68411c57a3f267cf6762c30dcdba:.env.example:gcp-api-key:68
+7ecb804cd68e68411c57a3f267cf6762c30dcdba:.env.example:gcp-api-key:69
+7ecb804cd68e68411c57a3f267cf6762c30dcdba:.env.example:gcp-api-key:70
+7ecb804cd68e68411c57a3f267cf6762c30dcdba:.env.example:gcp-api-key:71
+7ecb804cd68e68411c57a3f267cf6762c30dcdba:.env.example:gcp-api-key:72
+d6fe412c0f1b63e032ab676cdbf3df5e791d4a3c:.open-next/cloudflare/next-env.mjs:gcp-api-key:1
+d6fe412c0f1b63e032ab676cdbf3df5e791d4a3c:.open-next/cloudflare/next-env.mjs:gcp-api-key:2
+a1adf01f403134e6c9b8455cc1c475a6cc9b7f37:app/api/youtube/search/route.js:gcp-api-key:7
+872c902c234fb4652063d49c36ee2d284472fb84:js/luck-sync-diary.js:gcp-api-key:1080
+6e94051d61e58030ab793206cb7f98dede182d42:js/services/animal-totem-content-engine.js:gcp-api-key:4
+872c902c234fb4652063d49c36ee2d284472fb84:public/js/luck-sync-diary.js:gcp-api-key:1080
+6e94051d61e58030ab793206cb7f98dede182d42:public/js/services/animal-totem-content-engine.js:gcp-api-key:4
+
+# 2026-10-13 비활성 확인: 3월 빌드 스냅샷 JWT·관리자 해시(운영 JWT 양성 대조 200/과거 401, ADMIN_SECRET_HASH 미등록)
+d6fe412c0f1b63e032ab676cdbf3df5e791d4a3c:.open-next/cloudflare/next-env.mjs:generic-api-key:1
+d6fe412c0f1b63e032ab676cdbf3df5e791d4a3c:.open-next/cloudflare/next-env.mjs:generic-api-key:2
+d6fe412c0f1b63e032ab676cdbf3df5e791d4a3c:.open-next/cloudflare/next-env.mjs:generic-api-key:3
+
+# 2026-10-13 회전 확인: 3월 노출 뒤 Atlas DB 사용자가 5회 갱신됐고 현행 URI도 두 과거 값과 불일치
+42a28e5937546284d065e89209c8c5133e9f6c4b:server/.env:code-destiny-mongodb-uri-credentials:2
+ab1bfa7d17712d75d7ca1d92d8e3cf054aff643e:server/README.md:code-destiny-mongodb-uri-credentials:8

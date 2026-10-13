@@ -1,11 +1,12 @@
 import type {ChapterBody} from '../fortune/book-contracts';
 import type {ChapterRequest} from './chapter';
-import {correctChapterProse,pruneV7Overlap,repeatedSummary,supplementSystemSources,validateChapter} from './chapter';
+import {correctChapterProse,correctQuestionTiming,pruneV7Overlap,repeatedSummary,supplementSystemSources,validateChapter} from './chapter';
 import {FortuneError} from '../fortune/shared/contracts';
 import {salvageTruncatedJsonObject} from '../../../lib/llm-text.js';
 import {readingLocale,validateReadingLanguage} from '../fortune/reading-locale';
-import {alignRelativeYears} from '../fortune/consultation';
+import {alignRelativeYears,validatePreciseTiming} from '../fortune/consultation';
 import {selectChapterFacts} from '../fortune/chapter-facts';
+import {validateTarotDiscipline} from '../fortune/tarot/chapter-discipline';
 import {attachTarotSafetyNotice} from '../fortune/tarot/master-reading';
 import {hasOutOfTierTerm,nearDuplicate,splitSectionParagraph} from '../fortune/reading-quality';
 import {sanitizeQuestionSkyBody} from '../fortune/question-sky-reading';
@@ -109,6 +110,10 @@ function deliverChapterBody(raw:unknown,input:ChapterRequest):ChapterBody {
   // The evidence check this draft may have failed is bypassed here; restore only sources the chapter already uses.
   body=supplementSystemSources(pruneV7Overlap(correctChapterProse(body,input),input,'fallback'),input);
   if(input.analysis.consultation)body=alignRelativeYears(body,input.analysis.consultation.asOf,input.locale).body;
+  const evidence=Object.values(input.analysis.contexts).flatMap(c=>selectChapterFacts(c,input.chapter,input.analysis.topicId));
+  body=correctQuestionTiming(body,input);
+  validatePreciseTiming(body,input.analysis.consultation,evidence);
+  validateTarotDiscipline(body,input);
   validateReadingLanguage(body,readingLocale(input.locale));
   return sanitizeBlockAnchors(attachTarotSafetyNotice(body,input.analysis.question,readingLocale(input.locale),input.chapter.ordinal),blockAnchorNames(input.analysis,input.chapter.systems));
 }

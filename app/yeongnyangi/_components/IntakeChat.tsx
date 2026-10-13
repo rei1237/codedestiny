@@ -1,9 +1,10 @@
 'use client';
 import {useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState,type ReactNode} from 'react';
 import {ArrowLeft,ArrowUp,ChevronDown} from 'lucide-react';
-import {questionCandidate,questionTopic,questionTopics,questionScopes,recommendQuestion,FOLLOWUP_LIMITS,type QuestionDecision,type QuestionFish} from '@/worker/yeongnyangi/fortune/ask/question-policy';
+import {questionCandidate,questionTopic,questionTopics,recommendQuestion,FOLLOWUP_LIMITS,type QuestionDecision} from '@/worker/yeongnyangi/fortune/ask/question-policy';
+import QuestionFishPicker from './QuestionFishPicker';
 import {products,systemNames} from '@/worker/yeongnyangi/payments/catalog';
-import {intakeSteps,intakeAnswer,intakeStepValid,intakePrompts,intakeCursor,type IntakeValue,type IntakeStep} from '../_lib/intake-chat';
+import {intakeFish,intakeSteps,intakeAnswer,intakeStepValid,intakePrompts,intakeCursor,type IntakeValue,type IntakeStep} from '../_lib/intake-chat';
 import type {VoiceStyle} from '../_lib/voice-style-copy';
 import styles from './intake-chat.module.css';
 import ChatInputBar,{IntakeComposerContext} from './ChatInputBar';
@@ -29,7 +30,7 @@ export default function IntakeChat({value,onChange,confirmed,onConfirm,onEdit,st
  const prompt=(id:string)=>intakePrompts[id as IntakeStep]?.[voice==='honorific'?1:0]||preparation.find(p=>p.id===id)?.prompt||'입력 내용 확인';
  const activePrompt=active==='review'?(voice==='honorific'?'준비가 됐어요. 마지막으로 함께 확인해 주세요.':'준비가 됐어. 마지막으로 함께 확인하자.'):prompt(active);
  const plan=recommendQuestion(value.domain,value.decision,value.question);
- const product=products.find(p=>p.domain===value.domain&&p.fishId===plan.fish&&p.readingKind==='single')!;
+ const product=products.find(p=>p.domain===value.domain&&p.fishId===intakeFish(value)&&p.readingKind==='single')!;
  const textStep=scopeStep&&['question','situation','options','constraints','period'].includes(scopeStep)?scopeStep:null;
  const text=textStep?intakeAnswer(textStep,value):'';
  const update=(patch:Partial<QuestionDecision>)=>onChange({...value,decision:{...value.decision,...patch,confirmed:false}});
@@ -89,7 +90,9 @@ export default function IntakeChat({value,onChange,confirmed,onConfirm,onEdit,st
    <figure className={styles.pose} aria-hidden="true"><img src={`/assets/yeongnyangi/moods/${poseByStep[active]||'wave'}.webp`} alt="" width={360} height={300} decoding="async"/></figure>
    <div className={styles.current}><img src="/assets/yeongnyangi/profiles/welcome.webp" alt="" width={36} height={36}/><div><span className={styles.name}>영냥이</span>{typing?<p className={`${styles.catBubble} ${styles.typing}`} aria-hidden="true"><i/><i/><i/></p>:<p key={active} className={styles.catBubble}>{activePrompt}</p>}</div></div>
    <div className={styles.srOnly} role="status" aria-live="polite" aria-atomic="true">{typing?'':activePrompt}</div>
-   {!typing&&active==='scope'&&<div className={styles.summary}><h2>{plan.reason}</h2><p>{systemNames[value.domain]} · {product.fishName}</p><strong>{product.priceKRW.toLocaleString('ko-KR')}원</strong><p>기본 상담 + 추가 질문 {FOLLOWUP_LIMITS[plan.fish]}회</p><p>다음으로 {value.domain==='tarot'?'카드와 입력 정보':'프로필'}를 확인해요. 아직 결제되지 않아요.</p>{plan.unsupported&&<p role="alert">{plan.unsupported}</p>}{plan.missing.length>0&&<ul>{plan.missing.map(message=><li key={message}>{message}</li>)}</ul>}{!valid&&<button type="button" onClick={()=>edit('category')}>주제와 범위 수정하기</button>}<details><summary>생선별 상담 범위 비교</summary><ul>{(Object.keys(FOLLOWUP_LIMITS) as QuestionFish[]).map(fish=>{const tier=products.find(p=>p.domain===value.domain&&p.fishId===fish&&p.readingKind==='single');return tier&&<li key={fish}>{fish===plan.fish?<b>{tier.fishName} · 이 질문에 추천</b>:tier.fishName} · {tier.priceKRW.toLocaleString('ko-KR')}원 · {questionScopes[fish]} · 추가 질문 {FOLLOWUP_LIMITS[fish]}회</li>;})}</ul><p>구성은 질문의 주제와 범위에 맞춰 정해져요.</p></details><details><summary>추가 질문·결과 보관 안내</summary><p>확인 대화·서비스 오류 정정·지원 문의는 횟수를 쓰지 않아요. 상담을 마쳐도 저장된 결과는 다시 볼 수 있어요.</p><p>출생 차트만으로 사건의 날짜를 예측하지 않아요. 타로는 카드의 상징과 자리로 선택을 살펴봐요.</p></details></div>}
+   {!typing&&active==='scope'&&<div className={styles.summary}><h2>상담 내용 확인</h2><p>추천 이유: {plan.reason}</p>
+    <QuestionFishPicker domain={value.domain} selected={intakeFish(value)} recommended={plan.fish} disabled={busy} onSelect={fish=>onChange({...value,fish,decision:{...value.decision,confirmed:false}})}/>
+    <p>{systemNames[value.domain]} · {product.fishName} · {product.priceKRW.toLocaleString('ko-KR')}원</p><p>기본 상담 + 추가 질문 {FOLLOWUP_LIMITS[intakeFish(value)]}회</p><p>다음으로 {value.domain==='tarot'?'카드와 입력 정보':'프로필'}를 확인해요. 아직 결제되지 않아요.</p>{plan.unsupported&&<p role="alert">{plan.unsupported}</p>}{plan.missing.length>0&&<ul>{plan.missing.map(message=><li key={message}>{message}</li>)}</ul>}{!valid&&<button type="button" onClick={()=>edit('category')}>주제와 범위 수정하기</button>}<details><summary>추가 질문·결과 보관 안내</summary><p>확인 대화·서비스 오류 정정·지원 문의는 횟수를 쓰지 않아요. 상담을 마쳐도 저장된 결과는 다시 볼 수 있어요.</p><p>출생 차트만으로 사건의 날짜를 예측하지 않아요. 타로는 카드의 상징과 자리로 선택을 살펴봐요.</p></details></div>}
    {!typing&&active==='scope'&&<CraftedProductDisclosure featureKey={product.cdFeatureKey}/>}
    {preparationStep&&<div className={styles.preparation} ref={composer} hidden={typing}>{preparationStep.content}</div>}
    {active==='review'&&<div className={styles.preparation} hidden={typing}>{review}</div>}

@@ -255,6 +255,7 @@ html.neo-mode .cdh-kakao__quote:before,body.neo-mode .cdh-kakao__quote:before{ba
 .cdh-more__close:focus-visible,.cdh-more__summary:focus-visible{outline:2px solid var(--cdh-accent);outline-offset:3px}
 #cdhReviewsSlot:has(#cdReviews[hidden]){display:none}
 .cdh-more__body{display:grid;gap:clamp(48px,7vw,88px);padding:16px clamp(10px,2vw,24px) clamp(24px,3vw,40px)}
+#cdHomeFunnel .cdh-more__body>.cdh-services{width:100%;min-width:0;max-width:100%}
 /* 버그 제보실(2026-10-01): 한 줄 행으로 줄였던 것을 원래의 3열 다크 카드로 되돌리고 더 크게 둔다 —
    마스코트·본문·모란 장식을 다시 보이고, 제목·보상·버튼을 키운다. 색은 기존 --fb-* 토큰(연이·네오)을 그대로 쓴다. */
 #cdhFeedbackSlot .cd-feedback__card{min-height:200px;gap:clamp(18px,3vw,36px);padding:clamp(26px,3.4vw,40px) clamp(22px,3.8vw,44px);border-radius:28px;box-shadow:0 20px 48px rgba(36,8,26,.26),inset 0 0 0 1px rgba(234,208,137,.16)}
