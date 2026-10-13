@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-13
-next: "Google·JWT·MongoDB 미확정 키 판정 → 남은 Secret Scan 탐지 27건·24지문 해소 → check:pre-push → push·main CI 확인. F 정책 2건과 메일 키 정리는 로컬/외부 적용 완료이며 코드 push는 아직 금지 상태."
+next: "Secret Scan 0건 재현 완료 → 관련 회귀·check:fast 검증 → 판정 커밋 → check:pre-push → push·main CI 1회 확인. F 정책 2건과 메일 키 정리는 로컬/외부 적용 완료."
 ---
 
 # 결제·로그인 보안 후속 — Codex 인수인계 (2026-10-13)
@@ -24,7 +24,9 @@ next: "Google·JWT·MongoDB 미확정 키 판정 → 남은 Secret Scan 탐지 2
 - PortOne: 현행 V1 시크릿과 이력의 80자 시크릿은 해시 대조에서 불일치다. V2 발급 목록에는 이력보다 뒤인 8월·9월 발급 2개만 있다. 결제 채널·웹훅·현재 PortOne 키는 변경하지 않았다.
 - 로컬 gitleaks v8.24.2 실측은 43건·40지문이었다. 인수인계의 31건 외에 C-6의 새 규칙이 12건을 추가로 탐지했다. `ff669d372`에는 제공자에서 무효/교체를 확인한 메일·PortOne 4지문과 명시적 MongoDB 자리표시자 6지문만 추가했다. 동일 스캔의 남은 미기준선은 33건·30지문이다. 이 숫자는 기준선 반영 후 기존 보고서 재집계이며, exit 0 재스캔·원격 Secret Scan 초록은 아직 없다. 새 규칙의 미확정 MongoDB 3건과 PortOne 테스트 문자열 3건도 남겨 두었다.
 - 33건 재판정: PortOne 모의 회귀 테스트 fixture 3건, 관리자 ping의 가림 예시 1건은 실제 자격증명이 아닌 오탐으로 확인했다. 제거된 관리자 입장 SHA-256 상수 2건은 현행 PBKDF2 환경변수 경로와 분리된 비활성 값으로 확인했다. 재스캔에서 기존 `PERSONA_KEY`와 같은 localStorage 키를 쓰는 UI 테스트 오탐 1건을 추가 발견해 함께 기준선에 넣었다. 값은 출력하지 않았다.
-- 재스캔 결과는 27건·24지문이 남아 exit 1이다: Google 형식 19건·19지문, 삭제된 빌드 생성물의 JWT/관리자 계열 6건·3지문, 실제 MongoDB 이력 2건·2지문이다. Atlas에는 노출 커밋 뒤 동일 DB 사용자의 갱신 이벤트가 여러 번 있으나 변경 필드가 비밀번호인지 확인되지 않았고, 현행 로컬 값도 운영 값의 증거가 아니므로 MongoDB 2건은 폐기 판정하지 않았다. Cloudflare 감사 로그 화면은 최근 7일까지만 조회할 수 있어 3월 JWT/관리자 시크릿 회전을 입증하지 못했다. Google 19건도 전체 소유권·다른 계정 여부가 미확정이라 유지한다. Secret Scan 초록·push·운영 승격은 아직 아니다.
+- 최종 27건 재판정 완료: Google 형식 19건·19지문(서로 다른 13개 키)은 콘텐츠 생성 없이 메타데이터 GET만 호출해 모두 `API_KEY_INVALID`를 확인했다. 3월 빌드 생성물의 JWT/관리자 계열 6건·3지문은 운영에서 현행 JWT 양성 대조만 200, 과거 값과 임의 대조는 401이었고 `ADMIN_SECRET_HASH` 이름도 운영 Worker에 없음을 확인했다. 실제 계정 데이터나 쓰기 요청은 사용하지 않았다.
+- MongoDB 이력 2건·2지문은 2026-03-13·16 노출 뒤 동일 Atlas DB 사용자가 03-29, 04-01, 04-03, 05-01, 09-06에 갱신됐다. 다섯 Activity Feed 이벤트 모두 공개 payload가 사용자 이름과 보호된 변경 객체만 포함하고 역할·스코프 변경 필드는 없었으며, 현행 로컬 URI도 두 과거 값과 불일치한다. 운영 DB 접속이나 비밀번호 변경 없이 회전된 역사 자격 증명으로 판정했다.
+- 위 근거를 `.gitleaksignore`에 지문 단위로 반영한 뒤 gitleaks v8.24.2 전체 이력 스캔을 `--redact`로 다시 실행해 **exit 0·탐지 0건**을 확인했다. 가림 보고서는 저장소 밖 `%TEMP%\\codex-security-20261013\\redacted-final.json`에 있다. 원격 Secret Scan·push·운영 승격은 아직 아니다.
 - `393d54f29`: 위 판정 지문과 인수인계를 커밋했다. gitleaks 설정 회귀 4/4, 인수인계 계약 201개, 문서 신선도, 커밋 기준 `check:fast`가 통과했다(유료 게이트 88/88, Jest 395 suites/6,033 tests, lint·typecheck·Node·Worker dry-run 포함). 실결제·실 LLM·운영 DB 쓰기·배포는 0건이다. 원격 main은 여전히 `b4ee8a845`이고 최신 Secret Scan run 38339017478은 실패라 `check:pre-push`·push를 진행하지 않았다.
 - `180ebc2b3`: 메일 환경 계약의 필수 이름을 `RESEND_API_KEY`로 변경했다. 폐기된 별칭을 복구하지 않고 정본 소비자(`worker/lib/resend.js`)를 명시했다. 서버의 기존 호환 별칭 읽기는 유지한다.
 - 관련 검사: Jest 14/14, Node 관련 검사 34/34, 사이트맵 6/6, gitleaks 설정 4/4 통과. 첫 `check:fast`는 88개 중 87개 통과하고 서명 원장 미갱신 때문에 사이트맵 테스트 1건이 실패했다. 원장 재생성 후 변경 범위를 `--base=cdfc99e54`로 고정해 재실행한 최종 `check:fast`는 exit 0이다(결제 게이트 88/88, Node 3,201/3,201, Jest 395 suites/6,033 tests). `check:pre-push`는 홈 레지스트리·공개 미러·사이트맵 모두 통과했다. 실제 화면 캡처·실결제·실 LLM·메일 발송은 하지 않았다.
@@ -78,7 +80,7 @@ gh workflow run "Release Cloudflare Pages and Worker" --ref main -f mode=product
 |---|---|---|
 | A-1 | Google Cloud 콘솔에서 **YouTube 용 Google API 키 삭제** | 미사용(호출 코드 없음). 현행 값과 일치(이력 노출 4탐지). 삭제=폐기라 재발급 불필요 |
 | A-2 | **메일 API 키(`EMAILAPI_KEY`) 교체** | 현행 값과 일치(2탐지). 운영 Worker 에 `EMAILAPI_KEY`·`RESEND_API_KEY` 둘 다 있다(2026-10-13 이름 확인). 코드(`worker/lib/resend.js:45`, `worker/lib/env.js` 별칭)는 `RESEND_API_KEY` 를 먼저, 없으면 `emailapi`/`EMAILAPI_KEY` 를 읽는다 → **새 키를 `RESEND_API_KEY` 에 넣고 `EMAILAPI_KEY` 는 삭제**(두 이름이 다른 값이면 어느 쪽이 쓰였는지 헷갈린다). 스테이징 먼저 → 발송 확인 → 운영 |
-| A-3 | **불일치 25건 판정**(교체가 필요 없을 수도 있다) | (a) 나머지 Google 키 12종: 콘솔에서 존재·Referer/API 제한·호출 로그 확인, 남아 있고 제한이 없으면 삭제 (b) 80자 포트원 API 시크릿: 포트원 콘솔 발급 목록에 그 값이 남아 있는지 (c) `JWT_SECRET`·`ADMIN_SECRET_HASH`(2026-03-19 빌드 스냅샷): 운영 설정 시점이 그 뒤인지 (d) 관리자 입장 비밀번호 해시: 2026-04-03 이후 변경했는지(A2b) |
+| A-3 | **완료 — 불일치 25건 판정** | Google 13종은 제공자 `API_KEY_INVALID`, PortOne 이력 값은 현행·발급 목록과 불일치, 3월 JWT는 운영 음성/양성 대조로 비활성, `ADMIN_SECRET_HASH`는 운영 미등록, 제거된 관리자 입장 SHA-256은 현행 PBKDF2 경로와 분리됨을 확인했다. 값은 기록하지 않았다. |
 | A-4 | 포트원 고객센터 웹 문의 발송 | 문안: advisory 문서 '포트원 문의 문안'. 이니시스 기술문의 ts@kggroup.co.kr |
 | A-5 | Atlas Network Access 가 `0.0.0.0/0` 이 아닌지, 시드·테스트 계정 비밀번호, 관리자 감사 로그(2026-04-07 이후) 확인 | 값 인용 금지, "변경 필요/불필요"만 보고 |
 | A-6 | 유니크 인덱스 3종 읽기 전용 확인 | `docs/content-entitlements-unique-indexes-2026-10.md` 절차. **생성은 별도 승인 후** |
@@ -87,7 +89,7 @@ gh workflow run "Release Cloudflare Pages and Worker" --ref main -f mode=product
 
 ## B. A 의 결과를 받은 뒤 Codex 가 하는 일 — `.gitleaksignore` 반영
 
-**교체·삭제가 완료된 증거가 있는 항목만** 넣는다. 사용자 대행 승인 이후 제공자의 무효 판정·현행 키 대조도 증거로 삼되, 추측으로 제외하지 않는다. 최신 미기준선은 위 재개 실측의 27건·24지문이며, 원격 Secret Scan은 아직 붉다.
+**교체·삭제가 완료된 증거가 있는 항목만** 넣는다. 사용자 대행 승인 이후 제공자의 무효 판정·현행 키 대조도 증거로 삼되, 추측으로 제외하지 않는다. 2026-10-13 최종 재스캔은 미기준선 0건·0지문, exit 0이다. 원격 Secret Scan은 아직 재실행 전이다.
 
 1. gitleaks v8.24.2 준비·재스캔 명령은 `followups-and-key-rotation-2026-10-13.md` A-1 을 따른다. **보고서는 `--redact` 로 만들고 저장소 밖(`$TMP`)에만 둔다.**
 2. YouTube 키 지문 뽑기(A-1 완료 후). `gcp-api-key` 규칙은 `Match` 자체가 키라 **비-redact 출력을 화면에 찍으면 키가 노출된다.** 파이프로 메모리에서만 처리하고 지문만 출력한다:
