@@ -276,6 +276,11 @@ button{font-family:inherit;color:inherit;background:none;border:none;cursor:poin
   background:linear-gradient(135deg,#fff6d8,#e7c66a 58%,#f7a8c8);border:1px solid rgba(233,196,106,.5)}
 .dlg .spk b{font-family:var(--serif);font-weight:800;font-size:1rem;color:var(--gold-soft);letter-spacing:.02em}
 .dlg .body{font-family:var(--serif);font-size:clamp(1.02rem,1.5vw,1.16rem);line-height:1.84;color:var(--ink);white-space:pre-wrap;min-height:2.6em}
+.choicePanel{display:none;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:18px;position:relative;z-index:2}
+.choicePanel.on{display:grid}.choicePanel.one{grid-template-columns:1fr}
+.choiceBtn[aria-pressed="true"]{border-color:rgba(255,218,132,.92);box-shadow:0 0 0 2px rgba(255,218,132,.18),0 12px 30px rgba(0,0,0,.28)}
+.choiceBtn{min-height:52px;padding:12px 16px;border:1px solid rgba(233,196,106,.46);border-radius:14px;background:rgba(16,22,50,.82);color:var(--gold-soft);font-family:var(--serif);font-weight:800;line-height:1.4;cursor:pointer;transition:transform .18s,border-color .18s,background .18s}
+.choiceBtn:hover,.choiceBtn:focus-visible{transform:translateY(-2px);border-color:var(--gold);background:rgba(233,196,106,.16);outline:2px solid rgba(255,246,216,.7);outline-offset:2px}
 .dlg .caret{color:var(--gold-soft);opacity:.85;animation:caret .9s steps(1) infinite}
 @keyframes caret{50%{opacity:0}}
 .dlg .next{position:absolute;right:24px;bottom:14px;font-size:.76rem;font-weight:800;color:rgba(255,233,177,.9);opacity:0;transition:opacity .3s}
@@ -472,6 +477,7 @@ button{font-family:inherit;color:inherit;background:none;border:none;cursor:poin
   .dlg{min-height:130px;padding:18px 18px 24px;border-radius:20px 20px 20px 8px}
   .dlg .body{font-size:1rem;line-height:1.72}
   .dlg .next{right:16px;bottom:12px}
+  .choicePanel{grid-template-columns:1fr}.choiceBtn{min-height:48px}
   .dlgWrap{padding-left:10px;padding-right:10px}
   .ovCard{padding:22px 18px 26px}
 }
@@ -576,6 +582,7 @@ body.novel-playing #nebula{display:none}
     <div class="dlg" id="dlg" role="button" tabindex="0" aria-label="대사 진행">
       <div class="spk"><i id="spkIcon">연</i><b id="spkName">연이</b></div>
       <div class="body" id="dlgBody"></div>
+      <div class="choicePanel" id="choicePanel" role="group" aria-label="결말 선택"></div>
       <svg class="leaf" viewBox="0 0 24 24" fill="none" stroke="#e9c46a" stroke-width="1.4"><path d="M12 3c5 3 7 7 7 11a7 7 0 0 1-14 0c0-4 2-8 7-11Z" fill="rgba(233,196,106,.12)"/><path d="M12 6v12"/></svg>
       <span class="next">다음 ▾</span>
     </div>
@@ -655,17 +662,8 @@ var YEON={
   onigiri:"/images/novel/remaster/yeon/onigiri.webp",
   disappoint:"/images/novel/remaster/yeon/disappoint.webp"
 };
-/* 연이(꽃돼지) — 전부 투명 컷(nobackground). 변신은 8프레임 시퀀스 시트 */
-var PIG={
-  base:CAFE+enc("nobackground/꽃돼지-Photoroom.webp"),
-  talk:CAFE+enc("nobackground/꽃돼지2-Photoroom.webp"),
-  transform:CAFE+enc("nobackground/꽃돼지 연이 변신-Photoroom.webp")
-};
-/* 꽃돼지 연이 표정/포즈 시트 — 원본(R2) 시트는 도형이 균등 격자에 놓여 있지 않아(행마다 40~50px 밀림)
-   격자 크롭 시 윗칸 발굽이 딸려 들어오고 다리가 잘렸다. scripts/build-novel-pig-sheets.mjs 로
-   도형을 실측해 균등 격자(셀 264×372)로 재조립한 정규화 시트를 쓴다. 동일 출처라 앱 번들에도 포함된다. */
-var PIGSHEET="/images/novel/pig-expressions.webp"; /* 표정 4×4 */
-var PIGPOSE ="/images/novel/pig-poses.webp";       /* 동작 포즈 4×2 */
+var YEONI_V2="/images/novel/remaster/v2/yeoni/"; /* 구 시트는 롤백용만 보존 */
+var PIG={base:YEONI_V2+"neutral.webp",talk:YEONI_V2+"talk.webp"};
 var NEO=WAR+enc("전략실 네오-Photoroom.webp"); /* 구 네오 4×4 표정 시트 — 영냥이 낱장 도입 뒤 미사용 */
 var MU =WAR+enc("검은 그림자-Photoroom.webp");
 var TAROT=CAFE+enc("nobackground/연이 타로 카드-Photoroom.webp");
@@ -673,8 +671,7 @@ var TAROT=CAFE+enc("nobackground/연이 타로 카드-Photoroom.webp");
 var YEONI_SHEET=CAFE+enc("nobackground/연이 스프라이트1-Photoroom.webp");
 /* 모카(식상의 섬 동료·래퍼 지망생) / 까마귀 빌런(식상의 섬 EP.9~12 · EP.32 무리) — CodeDestinyNovel/ raw png. */
 /* 모카 — 3×2 표정 시트 한 장을 CSS 배경 위치로 크롭한다(개별 컷 6장 대신 1요청). */
-var MOKA_SHEET="/images/novel/remaster/moka-sheet.webp";
-var MOKA_CELL={base:"0% 0%",moved:"50% 0%",angry:"100% 0%",p1:"0% 100%",p2:"50% 100%",p3:"100% 100%"};
+var MOKA_V2="/images/novel/remaster/v2/moka/";
 var CROW={base:"/images/novel/remaster/crow/base.webp",alt:"/images/novel/remaster/crow/alt.webp"};
 /* 완결부(EP.15~40) 캐스트.
    루나: 원본 3×2가 균등 격자라 CSS % 크롭 직사용.
@@ -857,6 +854,15 @@ var PIG_CELL={
   angry:{s:PF,p:"100% 33.333%"},fear:{s:PF,p:"33.333% 66.667%"},cry:{s:PF,p:"100% 0%"},
   sad:{s:PF,p:"33.333% 0%"},disappoint:{s:PF,p:"33.333% 0%"},base:{s:PF,p:"0% 0%"}
 };
+/* v2 낱장 매핑. 놀람·당황·두려움·슬픔·오열을 서로 다른 파일로 보장한다. */
+var PIG_EXPR={neutral:"neutral",base:"neutral",soft:"soft-smile",calm:"soft-smile",smile:"soft-smile",gentle:"soft-smile",
+  talk:"talk",laugh:"laugh",bliss:"laugh",happy:"laugh",grin:"laugh",shy:"shy",surprise:"surprise",shock:"surprise",
+  flustered:"flustered",embarrassed:"flustered",fear:"fear",sad:"sad",disappoint:"sad",cry:"cry",angry:"angry",
+  serious:"determined",resolve:"determined",think:"think",wave:"wave",greet:"wave",cheer:"cheer",excited:"cheer",
+  run:"run",vine:"vine-magic",magic:"vine-magic",hug:"hug",sleep:"sleep",wedding:"wedding",serene:"soft-smile"};
+var MOKA_EXPR={base:"neutral",neutral:"neutral",talk:"talk",rap:"rap",angry:"angry",moved:"moved",sad:"moved",
+  laugh:"laugh",smile:"laugh",p1:"rap",p2:"performance",p3:"pot-beat",cook:"cook",performance:"performance",
+  beat:"pot-beat",fire:"fire-attack",rescue:"swim-rescue",swim:"swim-rescue",wedding:"wedding-rap"};
 /* 완결부 시트 셀 좌표 — 전부 균등 격자(정규화 완료)라 % 등분 크롭 */
 var RAB_CELL={sly:"0% 0%",scheme:"33.333% 0%",coin:"66.667% 0%",invite:"100% 0%",
   snarl:"0% 100%",greed:"33.333% 100%",contract:"66.667% 100%",smug:"100% 100%"};
@@ -905,7 +911,7 @@ function spriteMaster(who,expr,form,neoForm){
   }
   if(who==="rab")return {url:RAB_SHEET,cls:"rab",sheet:true,size:"400% 200%",pos:(RAB_CELL[expr]||RAB_CELL.sly)};
   if(who==="pje")return {url:(PJE[expr]||PJE.base),cls:"pje"};
-  if(who==="moka")return {url:MOKA_SHEET,cls:"moka mokaSheet",sheet:true,size:"300% 200%",pos:(MOKA_CELL[expr]||MOKA_CELL.base)};
+  if(who==="moka")return {url:MOKA_V2+(MOKA_EXPR[expr]||"neutral")+".webp",cls:"moka mokaV2"};
   if(who==="crow")return {url:(expr==="alt"?CROW.alt:CROW.base),cls:"crow"};
   if(who==="mirror"){
     /* 초기엔 거울에 비친 반전 꽃돼지(x:"pig"), 이후 진짜 인간 연이(시트) */
@@ -913,14 +919,14 @@ function spriteMaster(who,expr,form,neoForm){
     return {url:YEONI_SHEET,cls:"mirror sheet",sheet:true};
   }
   /* yeon */
-  if(form==="pig"){var pc=PIG_CELL[expr]||PIG_CELL.neutral;return {url:(pc.u?PIGPOSE:PIGSHEET),cls:"pig pigsheet",sheet:true,size:pc.s,pos:pc.p};}
+  if(form==="pig")return {url:YEONI_V2+(PIG_EXPR[expr]||"neutral")+".webp",cls:"pig pigV2"};
   return {url:(YEON[expr]||YEON.base),cls:""};
 }
 
-var MOBILE_SPRITES={"pig pigsheet|400% 400%|0% 0%":"/images/novel/mobile/yeon-511ca35e27.webp","pig pigsheet|400% 400%|33.333% 0%":"/images/novel/mobile/yeon-e821d4126a.webp","pig pigsheet|400% 400%|0% 100%":"/images/novel/mobile/yeon-bbc793a664.webp","pig pigsheet|400% 400%|100% 33.333%":"/images/novel/mobile/yeon-079ebbc0be.webp","pig pigsheet|400% 400%|33.333% 66.667%":"/images/novel/mobile/yeon-089fe114c2.webp","pig pigsheet|400% 200%|33.333% 100%":"/images/novel/mobile/yeon-650e3aa60f.webp","pig pigsheet|400% 400%|0% 33.333%":"/images/novel/mobile/yeon-91db69b155.webp","pig pigsheet|400% 400%|66.667% 0%":"/images/novel/mobile/yeon-0beb3130aa.webp","neo||2.306% 3.145%":"/images/novel/mobile/neo-cef04fde61.webp","neo||2.516% 65.618%":"/images/novel/mobile/neo-91ec563fb8.webp","neo||63.941% 65.618%":"/images/novel/mobile/neo-aaca47d16c.webp","pig pigsheet|400% 400%|100% 66.667%":"/images/novel/mobile/yeon-2e3363da63.webp","neo||95.388% 34.591%":"/images/novel/mobile/neo-48d4aa814f.webp","neo||63.941% 34.172%":"/images/novel/mobile/neo-0d22992d55.webp","neo||31.866% 34.591%":"/images/novel/mobile/neo-e2bc681b39.webp","neo||63.732% 97.065%":"/images/novel/mobile/neo-770ae3da96.webp","neo||95.178% 65.618%":"/images/novel/mobile/neo-aaded9f0ec.webp","pig pigsheet|400% 400%|100% 0%":"/images/novel/mobile/yeon-c56b4fc813.webp","neo||32.075% 3.145%":"/images/novel/mobile/neo-42784c3e31.webp","neo||2.306% 34.172%":"/images/novel/mobile/neo-b7e4708f9f.webp","pig pigsheet|400% 400%|66.667% 33.333%":"/images/novel/mobile/yeon-c601d7fed1.webp","pig pigsheet|400% 400%|100% 100%":"/images/novel/mobile/yeon-66860e6eed.webp","neo||95.178% 97.065%":"/images/novel/mobile/neo-4e363560f9.webp","pig pigsheet|400% 400%|66.667% 66.667%":"/images/novel/mobile/yeon-b3f0682d42.webp","neo||32.285% 65.618%":"/images/novel/mobile/neo-a6de56bfed.webp","pig pigsheet|400% 400%|33.333% 33.333%":"/images/novel/mobile/yeon-2ed429eeff.webp","moka mokaSheet|300% 200%|0% 0%":"/images/novel/mobile/moka-9241a3cc05.webp","moka mokaSheet|300% 200%|0% 100%":"/images/novel/mobile/moka-286bb8c381.webp","moka mokaSheet|300% 200%|50% 100%":"/images/novel/mobile/moka-81bbc57e45.webp","moka mokaSheet|300% 200%|100% 100%":"/images/novel/mobile/moka-b79d339faa.webp","moka mokaSheet|300% 200%|50% 0%":"/images/novel/mobile/moka-4fc96ec439.webp","pig pigsheet|400% 200%|100% 0%":"/images/novel/mobile/yeon-d4ea56aadb.webp","pig pigsheet|400% 400%|0% 66.667%":"/images/novel/mobile/yeon-201523f9c7.webp","moka mokaSheet|300% 200%|100% 0%":"/images/novel/mobile/moka-cd05085bef.webp","neo||64.151% 3.145%":"/images/novel/mobile/neo-a066db3e3e.webp","ln|300% 200%|100% 0%":"/images/novel/mobile/ln-abb8cbdbef.webp","ln|300% 200%|0% 100%":"/images/novel/mobile/ln-f5b881ef14.webp","ln|300% 200%|50% 0%":"/images/novel/mobile/ln-fd2c878ec5.webp","ln|300% 200%|0% 0%":"/images/novel/mobile/ln-48e4401feb.webp","ln|300% 200%|50% 100%":"/images/novel/mobile/ln-4925ce956d.webp","ln|300% 200%|100% 100%":"/images/novel/mobile/ln-20acba39fe.webp","lns|300% 200%|0% 0%":"/images/novel/mobile/lns-77af965511.webp","lns|300% 200%|50% 0%":"/images/novel/mobile/lns-c27e6907ac.webp","lns|300% 200%|100% 0%":"/images/novel/mobile/lns-b83f9483ca.webp","lns|300% 200%|0% 100%":"/images/novel/mobile/lns-a8fad6cca1.webp","lns|300% 200%|100% 100%":"/images/novel/mobile/lns-a52d7a350d.webp","rab|400% 200%|100% 0%":"/images/novel/mobile/rab-67bd7120be.webp","rab|400% 200%|33.333% 0%":"/images/novel/mobile/rab-dff925a61c.webp","rab|400% 200%|66.667% 0%":"/images/novel/mobile/rab-4d662d2808.webp","rab|400% 200%|100% 100%":"/images/novel/mobile/rab-cc2556418a.webp","rab|400% 200%|0% 0%":"/images/novel/mobile/rab-7b1bb9895a.webp","rab|400% 200%|0% 100%":"/images/novel/mobile/rab-36781a8649.webp","rab|400% 200%|33.333% 100%":"/images/novel/mobile/rab-fec6a9e93e.webp","rab|400% 200%|66.667% 100%":"/images/novel/mobile/rab-e55066a30c.webp","neoh|400% 200%|0% 100%":"/images/novel/mobile/neo-47e3141579.webp","neoh|400% 200%|66.667% 100%":"/images/novel/mobile/neo-1c948b4319.webp","neoh|400% 200%|66.667% 0%":"/images/novel/mobile/neo-116fe205d9.webp","neoh|400% 200%|33.333% 100%":"/images/novel/mobile/neo-12d20ee33e.webp","neoh|400% 200%|100% 100%":"/images/novel/mobile/neo-d52f6d3ba7.webp"};
+var MOBILE_SPRITES={"pig pigV2|/images/novel/remaster/v2/yeoni/sleep.webp":"/images/novel/mobile/yeon-99e2bed181.webp","pig pigV2|/images/novel/remaster/v2/yeoni/sad.webp":"/images/novel/mobile/yeon-fe3d978253.webp","pig pigV2|/images/novel/remaster/v2/yeoni/soft-smile.webp":"/images/novel/mobile/yeon-5cf0ad78ef.webp","pig pigV2|/images/novel/remaster/v2/yeoni/neutral.webp":"/images/novel/mobile/yeon-b51a615980.webp","pig pigV2|/images/novel/remaster/v2/yeoni/angry.webp":"/images/novel/mobile/yeon-4b7d63a2ed.webp","pig pigV2|/images/novel/remaster/v2/yeoni/fear.webp":"/images/novel/mobile/yeon-dc17e49671.webp","pig pigV2|/images/novel/remaster/v2/yeoni/surprise.webp":"/images/novel/mobile/yeon-47bee7a179.webp","pig pigV2|/images/novel/remaster/v2/yeoni/think.webp":"/images/novel/mobile/yeon-1ff1df0cf1.webp","pig pigV2|/images/novel/remaster/v2/yeoni/talk.webp":"/images/novel/mobile/yeon-a1d1c67b46.webp","pig pigV2|/images/novel/remaster/v2/yeoni/laugh.webp":"/images/novel/mobile/yeon-407d5c1abc.webp","pig pigV2|/images/novel/remaster/v2/yeoni/shy.webp":"/images/novel/mobile/yeon-6888308945.webp","pig pigV2|/images/novel/remaster/v2/yeoni/cheer.webp":"/images/novel/mobile/yeon-bda44a2b1b.webp","pig pigV2|/images/novel/remaster/v2/yeoni/cry.webp":"/images/novel/mobile/yeon-2e65bc4e2f.webp","moka mokaV2|/images/novel/remaster/v2/moka/angry.webp":"/images/novel/mobile/moka-c6dba55408.webp","moka mokaV2|/images/novel/remaster/v2/moka/neutral.webp":"/images/novel/mobile/moka-77f73c506a.webp","moka mokaV2|/images/novel/remaster/v2/moka/moved.webp":"/images/novel/mobile/moka-1c20c6f5cd.webp","ln|300% 200%|0% 100%":"/images/novel/mobile/ln-f5b881ef14.webp","ln|300% 200%|50% 0%":"/images/novel/mobile/ln-fd2c878ec5.webp","ln|300% 200%|100% 100%":"/images/novel/mobile/ln-20acba39fe.webp","lns|300% 200%|50% 100%":"/images/novel/mobile/lns-c45d8b73e5.webp","lns|300% 200%|50% 0%":"/images/novel/mobile/lns-c27e6907ac.webp","lns|300% 200%|100% 0%":"/images/novel/mobile/lns-b83f9483ca.webp","lns|300% 200%|0% 100%":"/images/novel/mobile/lns-a8fad6cca1.webp","lns|300% 200%|0% 0%":"/images/novel/mobile/lns-77af965511.webp","ln|300% 200%|100% 0%":"/images/novel/mobile/ln-abb8cbdbef.webp","ln|300% 200%|0% 0%":"/images/novel/mobile/ln-48e4401feb.webp","pig pigV2|/images/novel/remaster/v2/yeoni/determined.webp":"/images/novel/mobile/yeon-1a6684d26b.webp","rab|400% 200%|100% 0%":"/images/novel/mobile/rab-67bd7120be.webp","rab|400% 200%|66.667% 100%":"/images/novel/mobile/rab-e55066a30c.webp","rab|400% 200%|100% 100%":"/images/novel/mobile/rab-cc2556418a.webp","rab|400% 200%|0% 0%":"/images/novel/mobile/rab-7b1bb9895a.webp","rab|400% 200%|33.333% 0%":"/images/novel/mobile/rab-dff925a61c.webp","rab|400% 200%|33.333% 100%":"/images/novel/mobile/rab-fec6a9e93e.webp","rab|400% 200%|66.667% 0%":"/images/novel/mobile/rab-4d662d2808.webp","rab|400% 200%|0% 100%":"/images/novel/mobile/rab-36781a8649.webp","ln|300% 200%|50% 100%":"/images/novel/mobile/ln-4925ce956d.webp","lns|300% 200%|100% 100%":"/images/novel/mobile/lns-a52d7a350d.webp","moka mokaV2|/images/novel/remaster/v2/moka/talk.webp":"/images/novel/mobile/moka-c69e59a2dc.webp","moka mokaV2|/images/novel/remaster/v2/moka/rap.webp":"/images/novel/mobile/moka-27df51ec1b.webp","pig pigV2|/images/novel/remaster/v2/yeoni/flustered.webp":"/images/novel/mobile/yeon-b2ac85d610.webp","moka mokaV2|/images/novel/remaster/v2/moka/cook.webp":"/images/novel/mobile/moka-58be3c9c65.webp","moka mokaV2|/images/novel/remaster/v2/moka/pot-beat.webp":"/images/novel/mobile/moka-089f3091db.webp","moka mokaV2|/images/novel/remaster/v2/moka/performance.webp":"/images/novel/mobile/moka-b86fdbe610.webp","pig pigV2|/images/novel/remaster/v2/yeoni/hug.webp":"/images/novel/mobile/yeon-d6b6d687ce.webp","moka mokaV2|/images/novel/remaster/v2/moka/wedding-rap.webp":"/images/novel/mobile/moka-4aa4851d59.webp","pig pigV2|/images/novel/remaster/v2/yeoni/wedding.webp":"/images/novel/mobile/yeon-105df2e1d7.webp"};
 function mobileArt(){return window.innerWidth<=760;}
 function spriteFor(who,expr,form,neoForm){
-  var sp=spriteMaster(who,expr,form,neoForm),key=sp.cls+"|"+(sp.size||"")+"|"+(sp.pos||"");
+  var sp=spriteMaster(who,expr,form,neoForm),key=sp.sheet?sp.cls+"|"+(sp.size||"")+"|"+(sp.pos||""):sp.cls+"|"+sp.url;
   if(mobileArt()&&MOBILE_SPRITES[key])return {url:MOBILE_SPRITES[key],cls:sp.cls+" mobileFrame"};
   return sp;
 }
@@ -1083,7 +1089,7 @@ function buildMenu(){
 function buildEnterPig(){
   var pig=document.getElementById("enterPig");if(!pig)return;
   var img=pig.querySelector(".epImg");
-  if(img)setImg(img,CAFE+enc("nobackground/꽃돼지-Photoroom.webp"),svgData('<rect width="10" height="10" fill="none"/>',10,10));
+  if(img)setImg(img,PIG.base,svgData('<rect width="10" height="10" fill="none"/>',10,10));
   var sparks=pig.querySelector(".sparks");
   if(sparks&&!sparks.childElementCount){
     var pts=[[2,22,11],[93,14,9],[88,82,12],[8,74,10],[52,-6,11]];
@@ -1301,6 +1307,20 @@ function flushCard(){
   return true;
 }
 function curBeats(){return EPISODES[S.ep].beats;}
+var ENDING_CHOICE_KEY="cd.novelEnding.v1",_endingChoice=null;
+function readEndingChoice(){try{_endingChoice=localStorage.getItem(ENDING_CHOICE_KEY)||_endingChoice;}catch(e){}return _endingChoice;}
+function rememberEndingChoice(id){_endingChoice=id;try{localStorage.setItem(ENDING_CHOICE_KEY,id);}catch(e){}}
+function episodeIndexById(id){for(var i=0;i<EPISODES.length;i++)if(EPISODES[i].id===id)return i;return -1;}
+function renderChoice(choice){
+  var panel=document.getElementById("choicePanel");panel.replaceChildren();panel.classList.add("on");panel.classList.toggle("one",choice.options.length===1);
+  var remembered=readEndingChoice();
+  choice.options.forEach(function(option){var button=document.createElement("button");button.type="button";button.className="choiceBtn";button.textContent=option.label;
+    button.setAttribute("aria-pressed",remembered===option.id?"true":"false");if(remembered===option.id)button.title="지난 선택";
+    button.addEventListener("click",function(event){event.stopPropagation();rememberEndingChoice(option.id);var target=episodeIndexById(option.target);if(target<0){toast("선택한 결말을 찾지 못했어요");return;}
+      panel.classList.remove("on");ensureEpisodeLoaded(target).then(function(){S.bi=0;enterEpisode(target,true);}).catch(showNovelDataError);});panel.appendChild(button);});
+  setTimeout(function(){var first=panel.querySelector("button");if(first)first.focus();},0);
+}
+function hideChoice(){var panel=document.getElementById("choicePanel");panel.classList.remove("on","one");panel.replaceChildren();}
 
 function runBeat(){
   var beats=curBeats();
@@ -1337,19 +1357,25 @@ function preloadNextBg(){
   }catch(e){}
 }
 async function nextEpisode(){
-  if(S.ep+1<EPISODES.length){
+  var current=EPISODES[S.ep];
+  if(current&&current.ending){endStory(current);return;}
+  var nextIndex=S.ep+1;
+  if(current&&current.branch){while(nextIndex<EPISODES.length&&EPISODES[nextIndex].branch!==current.branch)nextIndex++;}
+  if(nextIndex<EPISODES.length){
     /* 세션 도중 청크 페치가 실패하면 여기서 unhandled rejection 이 나고 화면이 그대로 멈췄다. */
-    try{await ensureEpisodeLoaded(S.ep+1);}catch(e){showNovelDataError(e);return;}
-    S.bi=0;enterEpisode(S.ep+1,true);
+    try{await ensureEpisodeLoaded(nextIndex);}catch(e){showNovelDataError(e);return;}
+    S.bi=0;enterEpisode(nextIndex,true);
   }
   else{endStory();}
 }
-function endStory(){
-  showBeatText({s:"sys",t:"[ CODE DESTINY — 전 "+EPISODES.length+"화 완결. 운명은 읽는 것이 아니라, 쓰는 것이다. 함께해 주셔서 고맙습니다. ]"});
+function endStory(episode){
+  var label=episode&&episode.ending?episode.ending.label:"이야기의 봄";
+  showBeatText({s:"sys",t:"[ "+label+" · 운명은 읽는 것이 아니라, 쓰는 것이다. ]"});
   S.save={ep:0,bi:0};
-  // simple end: allow back
   dlg.dataset.done="true";
   curBeat={end:true};
+  var other=episode&&episode.branch==="reality"?{id:"destiny",label:"운세 세계 엔딩 보기",target:"ep-51s"}:{id:"reality",label:"현실 세계 엔딩 보기",target:"ep-51"};
+  renderChoice({options:[other]});
 }
 
 /* --- 임의 지점 점프(지속상태 무손실 복원): 목차/뒤로가기용 --- */
@@ -1413,7 +1439,11 @@ async function stepPrev(){
   if(S.typing){finishType();return;}
   if(S.bi>0){hydrateTo(S.ep,S.bi-1);return;}
   if(S.ep>0){
-    var pe=S.ep-1;
+    var pe=S.ep-1,current=EPISODES[S.ep];
+    if(current&&current.branch){
+      while(pe>=0&&EPISODES[pe].branch!==current.branch)pe--;
+      if(pe<0)pe=episodeIndexById("ep-50");
+    }
     var prev=EPISODES[pe];
     if(!Array.isArray(prev&&prev.beats)){try{prev=await ensureEpisodeLoaded(pe);}catch(e){return;}}
     if(!prev||!Array.isArray(prev.beats))return;
@@ -1676,6 +1706,7 @@ var NAME={yeon:"연이",neo:"네오",mu:"무성",geo:"거울 속 연이",moka:"�
 function speakerName(s,ep,bi){return s==="neo"&&neoFormAt(ep,bi)!=="human"?"영냥이":(NAME[s]||"");}
 function speakerIcon(s,ep,bi){return s==="neo"&&neoFormAt(ep,bi)!=="human"?"냥":(ICON[s]||"달");}
 function showDialogue(b){
+  hideChoice();
   document.getElementById("player").dataset.shot=b.shot||"medium";
   clearTimeout(typeTimer);
   var spk=b.s||"n";
@@ -1708,6 +1739,7 @@ function scheduleSkipStep(){clearTimeout(_skipTimer);_skipTimer=setTimeout(doSki
 function finishType(){
   clearTimeout(typeTimer);shownLen=fullText.length;dlgBody.textContent=fullText;
   dlg.dataset.typing="false";dlg.dataset.done="true";S.typing=false;
+  if(curBeat&&curBeat.choice){S.auto=false;S.skip=false;clearTimeout(autoT);clearTimeout(_skipTimer);renderChoice(curBeat.choice);return;}
   if(S.auto)scheduleAuto();
   if(S.skip&&!_inSkipStep)scheduleSkipStep();
 }
@@ -1716,6 +1748,7 @@ function advance(){
   if(flushCard())return; /* 챕터 카드 중 클릭 시 beat0을 스킵하지 않고 실행 */
   if(curBeat&&curBeat.end){backToMain();return;}
   if(S.typing){finishType();return;}
+  if(curBeat&&curBeat.choice)return;
   S.bi++;runBeat();
 }
 function doSkipStep(){
@@ -1889,13 +1922,13 @@ function fxTarot(){
   },2300);
   cleanup(d,3500);
 }
-/* 변신: 투명 8프레임 시퀀스(사람→꽃돼지) + 스케일 팝 + 화이트아웃 */
+/* 변신: 새 투명 꽃돼지 컷 + 스케일 팝 + 화이트아웃 */
 function fxTransform(){
   var d=mkOverlay();d.style.display="flex";d.style.alignItems="center";d.style.justifyContent="center";d.style.overflow="hidden";
   var glow=document.createElement("div");glow.style.cssText="position:absolute;left:50%;top:50%;width:66vh;height:66vh;max-width:700px;max-height:700px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,rgba(248,187,221,.42),rgba(233,196,106,.2) 42%,transparent 70%);animation:pigGlow 1.6s ease-in-out";d.appendChild(glow);
   var m=document.createElement("div");
-  m.style.cssText="position:absolute;left:50%;top:50%;width:min(58vh,460px);aspect-ratio:1/1;transform:translate(-50%,-50%);background-repeat:no-repeat;background-size:400% 200%;background-position:100% 100%;filter:drop-shadow(0 0 30px rgba(248,187,221,.6));animation:morphFrames 1.6s steps(1,end) forwards,morphPop 1.6s ease forwards";
-  m.style.backgroundImage="url('"+PIG.transform+"')";d.appendChild(m);
+  m.style.cssText="position:absolute;left:50%;top:50%;width:min(58vh,460px);aspect-ratio:1/1;transform:translate(-50%,-50%);background-repeat:no-repeat;background-size:contain;background-position:center;filter:drop-shadow(0 0 30px rgba(248,187,221,.6));animation:morphPop 1.6s ease forwards";
+  m.style.backgroundImage="url('"+YEONI_V2+"vine-magic.webp')";d.appendChild(m);
   var flash=document.createElement("div");flash.style.cssText="position:absolute;inset:0;background:radial-gradient(circle,rgba(255,255,255,.8),rgba(255,240,248,.35) 38%,transparent 70%);opacity:0;animation:flash 1.6s ease forwards";d.appendChild(flash);
   cleanup(d,1900);
 }
@@ -2226,7 +2259,7 @@ function retainEpisode(index,episode){
   }
   return episode;
 }
-function episodeMeta(meta){return {id:meta.id,no:meta.no,tag:meta.tag,title:meta.title,rev:meta.rev||1,beatCount:meta.beatCount,chunkPath:meta.path,legacyRanges:meta.legacyRanges||[],beats:null};}
+function episodeMeta(meta){return {id:meta.id,no:meta.no,tag:meta.tag,title:meta.title,rev:meta.rev||1,branch:meta.branch||null,ending:meta.ending||null,beatCount:meta.beatCount,chunkPath:meta.path,legacyRanges:meta.legacyRanges||[],beats:null};}
 function initNovelData(){
   if(NOVEL_DATA_READY)return NOVEL_DATA_READY;
   NOVEL_DATA_READY=fetch("/data/novel/manifest.json",{cache:"no-cache"}).then(function(response){

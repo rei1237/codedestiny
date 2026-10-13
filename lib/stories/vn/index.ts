@@ -16,6 +16,7 @@ export interface StoryBeat {
   sceneBreak?: boolean;
   im?: string;
   skill?: { el?: string; unit?: string; name?: string; han?: string };
+  choice?: { id: string; options: Array<{ id: "reality" | "destiny"; label: string; target: string }> };
 }
 
 export interface StoryEpisode {
@@ -23,6 +24,8 @@ export interface StoryEpisode {
   slug: string;
   title: string;
   tag: string;
+  branch?: "reality" | "destiny";
+  ending?: { id: string; label: string };
   beats: StoryBeat[];
 }
 
@@ -153,7 +156,7 @@ export const STORY_ARCS: StoryArc[] = [
     summary:
       "모든 하늘이 일식에 잠긴다. 다섯 기운과 을경합으로 명식을 완성한 연이는 스물세 번째 카드를 직접 쓰고, 현실로 돌아와 갚는 사람과 기다린 사람을 다시 만난다.",
     from: 62,
-    to: 69,
+    to: 72,
   },
 ];
 
@@ -229,6 +232,9 @@ export const STORY_LOGLINES: Record<string, string> = {
   "ep-51": "현실에서 직접 갚으러 다니는 서한비. 비 오는 정류장에서 이번엔 연이가 우산을 기울인다.",
   "ep-52": "벚꽃 강가 벤치의 낯선 남자가 말한다. 양말 짝이 안 맞는데요. 연이는 그를 네오라고 부른다.",
   "ep-53": "최종화. 몇 해 뒤의 결혼식, 비 오는 하객석과 별 다섯 개짜리 리뷰. 운명 복구 완료.",
+  "ep-51s": "연이가 운세 세계를 삶의 터전으로 고른다. 서한비는 현실로 돌아가고, 스물세 번째 문은 두 세계의 소식을 잇는다.",
+  "ep-52s": "운명 찻집에서 상담을 시작한 연이. 현실의 편지와 병하의 투박한 청혼이 새 집의 약속으로 이어진다.",
+  "ep-53s": "두 달이 차오른 세계수 아래, 현실과 운세 세계의 동료들이 함께한 결혼식. 연이가 고른 봄이 시작된다.",
 };
 
 export function getEpisodeBySlug(slug: string): StoryEpisode | null {
@@ -238,6 +244,23 @@ export function getEpisodeBySlug(slug: string): StoryEpisode | null {
 
 export function getEpisodeIndex(slug: string): number {
   return STORY_EPISODES.findIndex((episode) => episode.slug === String(slug || "").trim().toLowerCase());
+}
+
+export function getEpisodeNeighbors(slug: string): { previous: StoryEpisode | null; next: StoryEpisode | null } {
+  const index = getEpisodeIndex(slug);
+  const episode = STORY_EPISODES[index];
+  if (!episode) return { previous: null, next: null };
+  if (!episode.branch) return {
+    previous: index > 0 ? STORY_EPISODES[index - 1] : null,
+    next: episode.beats.some((beat) => beat.choice) ? null : (STORY_EPISODES[index + 1] ?? null),
+  };
+  const branchEpisodes = STORY_EPISODES.filter((entry) => entry.branch === episode.branch);
+  const branchIndex = branchEpisodes.findIndex((entry) => entry.slug === episode.slug);
+  const choiceEpisode = STORY_EPISODES.find((entry) => entry.beats.some((beat) => beat.choice)) ?? null;
+  return {
+    previous: branchIndex > 0 ? branchEpisodes[branchIndex - 1] : choiceEpisode,
+    next: episode.ending ? null : (branchEpisodes[branchIndex + 1] ?? null),
+  };
 }
 
 export function getArcForIndex(index: number): StoryArc | null {

@@ -41,7 +41,7 @@ async function waitFor(check, label) {
 }
 
 /* clampTimers=false 는 타이밍 경합 전용이다 — 나머지 검사는 클램프가 있어야 빨리 끝난다. */
-function createPlayerDom({ hash = "", failManifest = false, bookmark = null, appRuntime = false, clampTimers = true, mobile = false, staleCache = false } = {}) {
+function createPlayerDom({ hash = "", failManifest = false, bookmark = null, endingChoice = null, appRuntime = false, clampTimers = true, mobile = false, staleCache = false } = {}) {
   const errors = [];
   const virtualConsole = new VirtualConsole();
   virtualConsole.on("jsdomError", (error) => errors.push(`jsdom: ${error.message}`));
@@ -73,11 +73,50 @@ function createPlayerDom({ hash = "", failManifest = false, bookmark = null, app
       window.requestAnimationFrame = (callback) => window.setTimeout(() => callback(Date.now()), 0);
       window.cancelAnimationFrame = (id) => window.clearTimeout(id);
       if (bookmark) window.localStorage.setItem("cd_novel_bookmark", JSON.stringify({ ...bookmark, at: Date.now() }));
+      if (endingChoice) window.localStorage.setItem("cd.novelEnding.v1", endingChoice);
       // 앱 번들(scripts/build-mobile-app.mjs)이 주입하는 브릿지가 세우는 플래그. 정본은 js/core/app-context.js.
       if (appRuntime) window.__CODE_DESTINY_RUNTIME_TARGET = "mobile-app";
     },
   });
   return { dom, errors };
+}
+
+async function verifyDualEndingChoice() {
+  const { dom, errors } = createPlayerDom({ endingChoice: "reality" });
+  try {
+    const win = dom.window;
+    await waitFor(() => win.__NOVEL_READY === true, "dual-ending manifest");
+    const ep50 = win.EPISODES.findIndex((episode) => episode.id === "ep-50");
+    await win.ensureEpisodeLoaded(ep50);
+    const choiceBeat = win.EPISODES[ep50].beats.find((beat) => beat.choice);
+    assert.ok(choiceBeat?.choice, "EP.50 final choice is missing");
+    win.renderChoice(choiceBeat.choice);
+    const buttons = Array.from(win.document.querySelectorAll("#choicePanel .choiceBtn"));
+    assert.deepEqual(buttons.map((button) => button.textContent), ["현실로 돌아간다", "운세 세계에 남는다"]);
+    assert.equal(buttons[0].getAttribute("aria-pressed"), "true", "the saved ending choice was not restored");
+    buttons[1].click();
+    await waitFor(() => win.EPISODES[win.S.ep]?.id === "ep-51s", "destiny-ending navigation");
+    assert.equal(win.localStorage.getItem("cd.novelEnding.v1"), "destiny");
+    assert.equal(win.EPISODES[win.S.ep].branch, "destiny");
+
+    const destinyEnd = win.EPISODES.findIndex((episode) => episode.id === "ep-53s");
+    await win.ensureEpisodeLoaded(destinyEnd);
+    win.endStory(win.EPISODES[destinyEnd]);
+    const otherEnding = win.document.querySelector("#choicePanel .choiceBtn");
+    assert.equal(otherEnding?.textContent, "현실 세계 엔딩 보기");
+    otherEnding.click();
+    await waitFor(() => win.EPISODES[win.S.ep]?.id === "ep-51", "other-ending navigation");
+    assert.equal(win.EPISODES[win.S.ep].branch, "reality");
+
+    const nativeSetItem = win.localStorage.setItem.bind(win.localStorage);
+    Object.defineProperty(win.localStorage, "setItem", { configurable: true, value() { throw new Error("blocked"); } });
+    win.rememberEndingChoice("destiny");
+    assert.equal(win.readEndingChoice(), "destiny", "blocked storage did not keep the in-memory choice");
+    Object.defineProperty(win.localStorage, "setItem", { configurable: true, value: nativeSetItem });
+    assert.deepEqual(errors, [], "dual-ending choice emitted runtime errors");
+  } finally {
+    dom.window.close();
+  }
 }
 
 async function verifyDirectStart() {
@@ -245,7 +284,7 @@ async function verifyFormContinuity() {
       assert.equal(win.S.bi, 0, "this case must resume at cut 0 — the entry that never replays the marker");
       assert.equal(win.S.form, "pig", "resuming inside the pig arc left Yeon in her human form");
       win.setSlot("l", "yeon", "neutral");
-      assert.match(document.getElementById("char_l").className, /\bpigsheet\b/, "the staged Yeon sprite is not the pig sheet");
+      assert.match(document.getElementById("char_l").className, /\bpigV2\b/, "the staged Yeon sprite is not the v2 individual art");
       assert.deepEqual(errors, [], "resume-at-cut-0 emitted runtime errors");
     } finally {
       dom.window.close();
@@ -708,6 +747,7 @@ async function verifyNeoReturnAndCover() {
   } finally { dom.window.close(); }
 }
 await verifyNeoReturnAndCover();
+await verifyDualEndingChoice();
 await verifyMobileAssetsAndCache();
 await verifyExpandedBookmarks();
 await verifySilentTrack();

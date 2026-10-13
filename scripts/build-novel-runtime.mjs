@@ -104,6 +104,16 @@ function validateBeat(beat, context, bgKeys, trackKeys, sfxKeys) {
   if (beat.form && !BEAT_FORMS.has(beat.form)) throw new Error(`${context}: 모습 '${beat.form}'이 허용 목록(${[...BEAT_FORMS].join(", ")})에 없습니다.`);
   if (beat.tone && !BEAT_TONES.has(beat.tone)) throw new Error(`${context}: 톤 '${beat.tone}'이 허용 목록(${[...BEAT_TONES].join(", ")})에 없습니다.`);
   if (beat.c?.who && !CAST_IDS.has(beat.c.who)) throw new Error(`${context}: 중앙 캐릭터 '${beat.c.who}'가 알 수 없는 캐스트입니다.`);
+  if (beat.choice !== undefined) {
+    if (!beat.choice || typeof beat.choice.id !== "string" || !/^[a-z0-9-]+$/.test(beat.choice.id)) throw new Error(`${context}: choice.id 형식이 잘못됐습니다.`);
+    if (!Array.isArray(beat.choice.options) || beat.choice.options.length !== 2) throw new Error(`${context}: 선택지는 정확히 2개여야 합니다.`);
+    const optionIds = new Set();
+    for (const option of beat.choice.options) {
+      if (!option || typeof option.id !== "string" || !/^[a-z0-9-]+$/.test(option.id) || optionIds.has(option.id)) throw new Error(`${context}: 선택 옵션 ID가 비었거나 중복됩니다.`);
+      if (typeof option.label !== "string" || !option.label.trim() || typeof option.target !== "string") throw new Error(`${context}: 선택 라벨·대상이 필요합니다.`);
+      optionIds.add(option.id);
+    }
+  }
   for (const slot of ["l", "c", "r"]) {
     if (beat[slot]?.who && !CAST_IDS.has(beat[slot].who)) throw new Error(`${context}: ${slot} 슬롯 캐릭터 '${beat[slot].who}'가 알 수 없습니다.`);
   }
@@ -159,8 +169,28 @@ export function buildNovelPayload() {
       if (scene) priorScene = scene;
       return beat;
     });
-    return { id, no: episode.no, tag: episode.tag, title: episode.title, ...(rev > 1 ? { rev } : {}), beats };
+    if (episode.branch !== undefined && !["reality", "destiny"].includes(episode.branch)) throw new Error(`${episode.no}: branch는 reality 또는 destiny여야 합니다.`);
+    if (episode.ending !== undefined && (!episode.ending || typeof episode.ending.id !== "string" || typeof episode.ending.label !== "string")) throw new Error(`${episode.no}: ending 메타데이터가 잘못됐습니다.`);
+    return { id, no: episode.no, tag: episode.tag, title: episode.title, ...(rev > 1 ? { rev } : {}), ...(episode.branch ? { branch: episode.branch } : {}), ...(episode.ending ? { ending: episode.ending } : {}), beats };
   });
+  const choiceIds = new Set();
+  const episodeIndexById = new Map(episodes.map((episode, index) => [episode.id, index]));
+  for (const [episodeIndex, episode] of episodes.entries()) for (const beat of episode.beats) if (beat.choice) {
+    if (choiceIds.has(beat.choice.id)) throw new Error(`중복 선택 ID: ${beat.choice.id}`);
+    choiceIds.add(beat.choice.id);
+    for (const option of beat.choice.options) {
+      const targetIndex = episodeIndexById.get(option.target);
+      if (targetIndex === undefined) throw new Error(`${beat.choice.id}: 대상 화 '${option.target}'가 없습니다.`);
+      if (targetIndex <= episodeIndex) throw new Error(`${beat.choice.id}: 선택 대상은 현재 화 뒤에 있어야 합니다(순환 금지).`);
+      if (episodes[targetIndex].branch !== option.id) throw new Error(`${beat.choice.id}: 옵션 '${option.id}'과 대상 branch가 다릅니다.`);
+    }
+  }
+  for (const branch of ["reality", "destiny"]) {
+    const branchEpisodes = episodes.filter((episode) => episode.branch === branch);
+    if (branchEpisodes.length !== 3) throw new Error(`${branch}: 3화 분기가 필요합니다.`);
+    const endings = branchEpisodes.filter((episode) => episode.ending);
+    if (endings.length !== 1 || endings[0] !== branchEpisodes.at(-1)) throw new Error(`${branch}: 마지막 화에만 ending이 필요합니다.`);
+  }
   for (const slug of Object.keys(readLegacyRanges())) {
     if (!episodeIds.has(slug)) throw new Error(`얼린 책갈피 범위표의 화 '${slug}'가 정본에 없습니다. 화 주소는 바꾸거나 지우지 않습니다.`);
   }
@@ -182,6 +212,8 @@ export function readerPayload(runtime) {
         slug: episode.id,
         tag: episode.tag,
         title: episode.title,
+        ...(episode.branch ? { branch: episode.branch } : {}),
+        ...(episode.ending ? { ending: episode.ending } : {}),
         beats: episode.beats.map((beat) => {
           if (beat.neoForm) neoForm = beat.neoForm;
           const nm = beat.nm || (beat.s === "neo" && neoForm !== "human" ? "영냥이" : null);
@@ -195,6 +227,7 @@ export function readerPayload(runtime) {
             ...(sceneBreak ? { sceneBreak: true } : {}),
             ...(beat.im ? { im: String(beat.im) } : {}),
             ...(beat.skill ? { skill: beat.skill } : {}),
+            ...(beat.choice ? { choice: beat.choice } : {}),
           };
         }),
       };
@@ -260,6 +293,8 @@ export function writeNovelRuntime(runtime = buildNovelPayload()) {
       no: episode.no,
       tag: episode.tag,
       title: episode.title,
+      ...(episode.branch ? { branch: episode.branch } : {}),
+      ...(episode.ending ? { ending: episode.ending } : {}),
       ...(episode.rev ? { rev: episode.rev } : {}),
       beatCount: episode.beats.length,
       legacyRanges: legacyRanges[episode.id] ?? [],

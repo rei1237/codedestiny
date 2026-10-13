@@ -2,6 +2,7 @@
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { runInNewContext } from "node:vm";
+import sharp from "sharp";
 import { buildNovelPayload, MANIFEST_PATH, SCENE_MATRIX_PATH, readLegacyRanges, EFFECTS, SPEAKERS, INSTRUMENTAL_TRACKS } from "./build-novel-runtime.mjs";
 import { FORBIDDEN_STORY_NAMES } from "./lib/novel-constraints.mjs";
 
@@ -15,7 +16,10 @@ const EVENT_BACKGROUNDS = [
 ];
 const YEON_SPRITE_DIR = resolve(ROOT, "public/images/novel/remaster/yeon");
 const YEON_SPRITES = ["base", "left", "right", "sideL", "sideR", "fear", "angry", "smile", "sleep", "cry", "onigiri", "disappoint"];
-const MOKA_SHEET = resolve(ROOT, "public/images/novel/remaster/moka-sheet.webp");
+const YEONI_V2_DIR = resolve(ROOT, "public/images/novel/remaster/v2/yeoni");
+const MOKA_V2_DIR = resolve(ROOT, "public/images/novel/remaster/v2/moka");
+const YEONI_V2 = ["neutral", "soft-smile", "talk", "laugh", "shy", "surprise", "flustered", "fear", "sad", "cry", "angry", "determined", "think", "wave", "cheer", "run", "vine-magic", "hug", "sleep", "wedding"];
+const MOKA_V2 = ["neutral", "talk", "rap", "angry", "moved", "laugh", "cook", "performance", "pot-beat", "fire-attack", "swim-rescue", "wedding-rap"];
 const CROW_SPRITES = ["base", "alt"];
 
 function fail(message) {
@@ -141,7 +145,15 @@ for (const sprite of YEON_SPRITES) {
   if (!existsSync(spritePath) || statSync(spritePath).size === 0) fail(`transparent Yeon sprite missing: ${sprite}`);
   if (!html.includes(`/images/novel/remaster/yeon/${sprite}.webp`)) fail(`player does not use local Yeon sprite: ${sprite}`);
 }
-if (!existsSync(MOKA_SHEET) || statSync(MOKA_SHEET).size > 360_000 || !html.includes("/images/novel/remaster/moka-sheet.webp")) fail("transparent Moka expression sheet is missing or unused");
+for (const [dir, names, actor, maxBytes] of [[YEONI_V2_DIR, YEONI_V2, "Yeoni", 240_000], [MOKA_V2_DIR, MOKA_V2, "Moka", 450_000]]) {
+  for (const name of names) {
+    const file = resolve(dir, `${name}.webp`);
+    if (!existsSync(file) || statSync(file).size === 0 || statSync(file).size > maxBytes) fail(`${actor} v2 sprite missing or over budget: ${name}`);
+    const meta = await sharp(file).metadata();
+    if (!meta.hasAlpha || Math.max(meta.width ?? 0, meta.height ?? 0) < 1300) fail(`${actor} v2 sprite needs alpha and a 1300px long edge: ${name}`);
+  }
+}
+if (!html.includes("YEONI_V2+") || !html.includes("MOKA_V2+")) fail("player does not route Yeoni and Moka to v2 individual sprites");
 for (const sprite of CROW_SPRITES) {
   const spritePath = resolve(ROOT, `public/images/novel/remaster/crow/${sprite}.webp`);
   if (!existsSync(spritePath) || !html.includes(`/images/novel/remaster/crow/${sprite}.webp`)) fail(`transparent Crow sprite missing or unused: ${sprite}`);
@@ -154,7 +166,7 @@ for (const [index, source] of inlineScripts.entries()) {
 }
 
 // 정본(content/novel/episodes.source.json)의 총 비트 수. 비트를 더하거나 빼는 개편마다 같은 커밋에서 갱신한다.
-const EXPECTED_BEAT_COUNT = 7693;
+const EXPECTED_BEAT_COUNT = 7844;
 const runtime = buildNovelPayload();
 const mobileAssets = JSON.parse(readFileSync(resolve(ROOT, "content/novel/mobile-assets.json"), "utf8"));
 const mobileSpriteMap = JSON.parse(html.match(/var MOBILE_SPRITES=(\{[^\n]+\});/)?.[1] || "{}");
@@ -206,8 +218,8 @@ for (const expr of yunExprs) {
 if (runtime.episodes.some(episode => episode.beats.some(beat => !beat.id))) fail("stable story IDs are required");
 const manifest = JSON.parse(readFileSync(MANIFEST_PATH, "utf8"));
 const matrix = JSON.parse(readFileSync(SCENE_MATRIX_PATH, "utf8"));
-if (manifest.sourceHash !== runtime.sourceHash || manifest.episodeCount !== 70 || manifest.beatCount !== EXPECTED_BEAT_COUNT) {
-  fail(`manifest is not synchronized with the 70-episode canonical source (expected ${EXPECTED_BEAT_COUNT} beats, canonical source has ${runtime.beatCount}). 정본에 비트를 더하거나 뺐다면 이 파일의 EXPECTED_BEAT_COUNT 를 같은 커밋에서 갱신할 것.`);
+if (manifest.sourceHash !== runtime.sourceHash || manifest.episodeCount !== 73 || manifest.beatCount !== EXPECTED_BEAT_COUNT) {
+  fail(`manifest is not synchronized with the 73-episode canonical source (expected ${EXPECTED_BEAT_COUNT} beats, canonical source has ${runtime.beatCount}). 정본에 비트를 더하거나 뺐다면 이 파일의 EXPECTED_BEAT_COUNT 를 같은 커밋에서 갱신할 것.`);
 }
 // 🔴 emotionPath 가 아예 없으면 undefined < 3 이 false 라 통과했다(fail-open). 배열 여부를 먼저 본다.
 if (matrix.sourceHash !== runtime.sourceHash || matrix.episodes?.length !== runtime.episodeCount || matrix.episodes.some((episode) => !Array.isArray(episode.emotionPath) || episode.emotionPath.length < 3 || !episode.visualCues?.every((cue) => cue.accessibility))) {
