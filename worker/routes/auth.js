@@ -115,7 +115,7 @@ function buildSignupProfileSubscription(now = new Date()) {
       amount: SIGNUP_MONTHLY_CREDIT_GRANT,
       remaining: SIGNUP_MONTHLY_CREDIT_GRANT,
       grantedAt,
-      expiresAt: new Date(grantedAt.getTime() + MONTHLY_CREDIT_TTL_MS),
+      expiresAt: new Date(grantedAt.getTime() + signupBenefitPolicy.days * 86400000),
     }],
     membershipCreditLotsVersion: 0,
     legacyCoinCreditSeeded: true,
