@@ -8,17 +8,17 @@ import styles from "../home-cosmic.module.css";
 import { siteSeo } from "../../lib/seo/siteSeo";
 
 const PAGE_URL = "https://code-destiny.com/kkul-kkul-unse/";
-const OG_IMAGE = "https://code-destiny.com/og/code-destiny-og-vvip.png?v=aa88d371b4";
+const OG_IMAGE = "https://code-destiny.com/og/code-destiny-og-vvip.png?v=78417fecff";
 
-// 브랜드의 대표 URL 은 /ggulggul/ 이고("/" 는 그리로 301) 이 페이지는 옛 이름(꿀꿀 운세)으로 찾아온
-// 사람에게 개명(2026-10-10 꿀꿀 운세 → 꿀꿀 사주)을 알리는 보조 안내다. 경로는 기존 검색·링크를 위해 유지한다.
+// 대표 서비스 URL은 /ggulggul/. 이 페이지는 공식 주소와 이용 방법을 안내한다.
+// 기존 검색·공유 링크를 위해 경로를 유지한다.
 // 제목은 브랜드 헤드텀 단독이 아니라 "안내" 성격으로 둔다 — 홈과 같은 쿼리를 두고 다투면 둘 다 밀린다.
 const SEO = {
-  title: "꿀꿀 운세는 이제 꿀꿀 사주예요 | 브랜드 안내",
-  description: "꿀꿀 사주는 기존 꿀꿀 운세의 새 이름입니다. CODE DESTINY에서 제공하던 사주·타로·궁합과 영냥이·연이 상담을 같은 서비스에서 이용할 수 있습니다.",
-  ogTitle: "꿀꿀 운세는 이제 꿀꿀 사주예요 | 브랜드 안내",
+  title: "꿀꿀운세 공식 사이트·카카오 채널 이용 안내",
+  description: "꿀꿀운세의 공식 주소와 카카오 채널을 확인하세요. 사주·타로·궁합과 연이·네오·영냥이 상담의 이용 방법, 기존 이름과 계정에 관한 궁금증을 안내합니다.",
+  ogTitle: "꿀꿀운세 공식 사이트·카카오 채널 이용 안내",
   ogDescription:
-    "꿀꿀 운세가 꿀꿀 사주로 이름을 바꿨습니다. 사주·타로·궁합과 영냥이·연이 상담을 같은 주소 code-destiny.com에서 이어서 이용하세요.",
+    "꿀꿀운세 공식 주소와 카카오 채널, 서비스 이용 방법을 안내합니다. 사주·타로·궁합과 영냥이·연이 상담을 같은 주소 code-destiny.com에서 이어서 이용하세요.",
 };
 
 const BRAND_ALIAS_SENTENCE = brandCopy('aliases');
@@ -69,35 +69,39 @@ const SERVICES = [
   },
 ];
 
-// 앞의 네 문항이 개명 안내다. 계정·구매 내역·보관함 문장은 이번 개명이 경로·저장 키·로그인 식별자를
+// 공식 이름과 이용 방법을 안내한다. 계정·구매 내역·보관함 문장은 이번 개명이 경로·저장 키·로그인 식별자를
 // 바꾸지 않았기 때문에 쓸 수 있다 — 그 전제가 바뀌면 이 답도 함께 고친다.
 const FAQS = [
   {
-    question: "꿀꿀 사주와 꿀꿀 운세는 같은 서비스인가요?",
+    question: "공식 카카오 채널 이름은 무엇인가요?",
+    answer: "공식 카카오 채널은 꿀꿀 운세이며, 채널 주소는 https://pf.kakao.com/_GgxaGX입니다. 웹사이트의 꿀꿀운세와 같은 서비스입니다. 상담은 이 사이트에서 시작할 수 있습니다.",
+  },
+  {
+    question: "꿀꿀 사주와 꿀꿀운세는 같은 서비스인가요?",
     answer:
-      "네, 같은 서비스입니다. 꿀꿀 사주는 기존 꿀꿀 운세의 새 이름입니다. 주소(code-destiny.com)와 로그인 계정은 그대로이고, 구매 내역과 저장된 결과도 이전처럼 나의 기록 보관함과 영냥이 상담 기록에서 다시 볼 수 있습니다.",
+      "네. 한때 꿀꿀 사주라는 이름을 사용했으며, 현재 공식 서비스명은 꿀꿀운세입니다. 주소(code-destiny.com)와 로그인 계정은 그대로이고, 구매 내역과 저장된 결과도 이전처럼 나의 기록 보관함과 영냥이 상담 기록에서 다시 볼 수 있습니다.",
   },
   {
     question: "꿀꿀만세력으로 찾던 서비스도 여기에서 이용할 수 있나요?",
     answer:
-      "네. 꿀꿀만세력은 이 서비스가 처음 쓰던 이름이고, 꽃돼지 운세는 꽃돼지 연이 캐릭터로 기억하던 이름입니다. 생년월일과 출생시간으로 사주팔자를 확인하는 만세력은 꿀꿀 사주의 만세력 페이지에서 그대로 이용할 수 있습니다.",
+      "네. 꿀꿀만세력은 이 서비스가 처음 쓰던 이름이고, 꽃돼지 운세는 꽃돼지 연이 캐릭터로 기억하던 이름입니다. 생년월일과 출생시간으로 사주팔자를 확인하는 만세력은 꿀꿀운세의 만세력 페이지에서 그대로 이용할 수 있습니다.",
   },
   {
-    question: "CODE DESTINY와 꿀꿀 사주는 어떤 관계인가요?",
+    question: "CODE DESTINY와 꿀꿀운세는 어떤 관계인가요?",
     answer:
-      "CODE DESTINY(코드데스티니)는 플랫폼 이름이고, 꿀꿀 사주는 그 한국어 사주·운세 상담 서비스 이름입니다. 공식 웹사이트는 code-destiny.com 하나이며, 꿀꿀 사주와 꿀꿀사주는 띄어쓰기만 다른 같은 이름입니다.",
+      "CODE DESTINY(코드데스티니)는 플랫폼 이름이고, 꿀꿀운세는 그 한국어 사주·운세 상담 서비스 이름입니다. 공식 웹사이트는 code-destiny.com 하나이며, 꿀꿀운세와 꿀꿀 운세는 띄어쓰기만 다른 같은 이름입니다.",
   },
   {
     question: "영냥이와 연이 상담은 어디에서 이용하나요?",
     answer:
-      "꽃돼지 연이의 상담은 꿀꿀 사주 홈(code-destiny.com/ggulggul/)에서, 사주보는 고양이 영냥이의 사주·타로 상담은 영냥이 페이지(code-destiny.com/yeongnyangi/)에서 시작합니다. 연이가 차를 내려 주며 이야기를 듣는 연이의 운명 찻집도 같은 사이트에 있습니다.",
+      "꽃돼지 연이의 상담은 꿀꿀운세 홈(code-destiny.com/ggulggul/)에서, 사주보는 고양이 영냥이의 사주·타로 상담은 영냥이 페이지(code-destiny.com/yeongnyangi/)에서 시작합니다. 연이가 차를 내려 주며 이야기를 듣는 연이의 운명 찻집도 같은 사이트에 있습니다.",
   },
   {
     question: brandCopy('officialSiteQuestion'),
     answer: brandCopy('officialSiteAnswer'),
   },
   {
-    question: "꿀꿀 사주에서 어떤 운세를 볼 수 있나요?",
+    question: "꿀꿀운세에서 어떤 운세를 볼 수 있나요?",
     answer:
       brandCopy('systemsScope'),
   },
@@ -157,8 +161,8 @@ export const metadata = {
   title: { absolute: SEO.title },
   description: SEO.description,
   keywords: [
-    "꿀꿀 사주",
     "꿀꿀운세",
+    "꿀꿀 운세",
     "꿀꿀 만세력",
     "꽃돼지 운세",
     "코드데스티니",
@@ -209,11 +213,11 @@ export default function KkulKkulUnsePage() {
       <section className={styles.heroSection} aria-labelledby="kkulKkulUnseTitle">
         <div className={styles.heroCopy}>
           <p className={styles.heroKicker}>{brandCopy('name')} / Code Destiny</p>
-          <h1 id="kkulKkulUnseTitle" className={styles.heroTitle}>꿀꿀 운세는 이제 꿀꿀 사주예요</h1>
+          <h1 id="kkulKkulUnseTitle" className={styles.heroTitle}>꿀꿀운세 공식 사이트·이용 안내</h1>
           <p className={styles.heroLead}>
-            꿀꿀 사주는 기존 꿀꿀 운세의 새 이름입니다. CODE DESTINY에서 제공하던 사주·타로·궁합과 영냥이·연이 상담을 같은 서비스에서 이용할 수 있습니다.
+            꿀꿀운세의 공식 주소와 카카오 채널을 확인하세요. 사주·타로·궁합과 연이·네오·영냥이 상담의 이용 방법, 기존 이름과 계정에 관한 궁금증을 안내합니다.
           </p>
-          {/* 브랜드 앵커("꿀꿀 사주")는 대표 URL /ggulggul/ 로만 보낸다. 같은 앵커로 /manse 를 가리키면
+          {/* 브랜드 앵커("꿀꿀운세")는 대표 URL /ggulggul/ 로만 보낸다. 같은 앵커로 /manse 를 가리키면
               브랜드 쿼리에서 만세력 페이지가 홈을 밀어내는 지금 상태가 유지된다. */}
           <div className={styles.ctaRow}>
             <Link className={`${styles.ctaButton} ${styles.ctaPrimary}`} href="/ggulggul/">
@@ -225,7 +229,7 @@ export default function KkulKkulUnsePage() {
           </div>
         </div>
 
-        <div className={styles.heroVisual} aria-label="꿀꿀 사주 주요 서비스">
+        <div className={styles.heroVisual} aria-label="꿀꿀운세 주요 서비스">
           <div className={styles.serviceGrid}>
             {SERVICES.map((service) => (
               <Link key={service.href} href={service.href} className={styles.serviceCard}>
@@ -243,15 +247,14 @@ export default function KkulKkulUnsePage() {
       <section className={styles.sectionBand} aria-labelledby="brandHistoryHeading">
         <div className={styles.sectionHeader}>
           <p className={styles.sectionKicker}>Brand Story</p>
-          <h2 id="brandHistoryHeading" className={styles.sectionTitle}>꿀꿀 만세력에서 꿀꿀 운세, 그리고 꿀꿀 사주로</h2>
+          <h2 id="brandHistoryHeading" className={styles.sectionTitle}>카카오에서도 같은 꿀꿀운세를 만나세요</h2>
           <p className={styles.sectionLead}>
-            처음에는 사주와 만세력의 기본 흐름을 쉽게 펼치는 꿀꿀 만세력으로 시작했습니다.
-            타로, 궁합, 자미두수, 숙요점까지 넓어지면서 꿀꿀 운세라는 이름을 썼고,
-            2026년 10월부터는 사주를 중심에 둔 상담 서비스라는 뜻을 담아 꿀꿀 사주로 부릅니다.
+            공식 서비스명은 꿀꿀운세이며, 카카오 채널에는 꿀꿀 운세로 표시됩니다.
+            사주와 타로, 오늘의 운세부터 연이·네오·영냥이 상담까지 같은 사이트에서 이용할 수 있습니다.
           </p>
           <p className={styles.sectionLead}>
-            이름만 바뀌었고 주소와 서비스, 계정은 그대로입니다. 지금 바로{" "}
-            <Link href="/ggulggul/">꿀꿀 사주 홈</Link>에서 이어서 이용해 보세요.
+            <a href="https://pf.kakao.com/_GgxaGX" target="_blank" rel="noopener noreferrer">공식 카카오 채널 꿀꿀 운세</a>와{" "}
+            <Link href="/ggulggul/">꿀꿀운세 홈</Link>에서 서비스 소식과 상담 입구를 확인해 보세요.
           </p>
         </div>
       </section>
@@ -259,9 +262,9 @@ export default function KkulKkulUnsePage() {
       <section className={styles.sectionBand} aria-labelledby="characterBrandHeading">
         <div className={styles.sectionHeader}>
           <p className={styles.sectionKicker}>Brand Identity</p>
-          <h2 id="characterBrandHeading" className={styles.sectionTitle}>꽃돼지 연이로 기억하는 꿀꿀 사주</h2>
+          <h2 id="characterBrandHeading" className={styles.sectionTitle}>꽃돼지 연이로 기억하는 꿀꿀운세</h2>
           <p className={styles.sectionLead}>
-            꽃돼지 운세 사이트를 찾았다면 Code Destiny의 꿀꿀 사주가 맞습니다. 꽃돼지 연이로 기억하는 분들을 위해
+            꽃돼지 운세 사이트를 찾았다면 Code Destiny의 꿀꿀운세가 맞습니다. 꽃돼지 연이로 기억하는 분들을 위해
             사주, 만세력, 자미두수, 숙요점, 베다 점성술, 점성술과 AI 상담을 하나의 브랜드 안에서 이어 두었습니다.
           </p>
           <p className={styles.sectionLead}>
@@ -292,7 +295,7 @@ export default function KkulKkulUnsePage() {
       <section className={`${styles.sectionBand} ${styles.refundSection}`} aria-labelledby="faqHeading">
         <div className={styles.sectionHeader}>
           <p className={styles.sectionKicker}>FAQ</p>
-          <h2 id="faqHeading" className={styles.sectionTitle}>꿀꿀 사주 자주 묻는 질문</h2>
+          <h2 id="faqHeading" className={styles.sectionTitle}>꿀꿀운세 자주 묻는 질문</h2>
         </div>
         <div className={styles.refundGrid}>
           {FAQS.map((item) => (
