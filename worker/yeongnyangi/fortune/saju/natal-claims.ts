@@ -39,7 +39,7 @@ const PILLAR_POSITION:Record<string,['year'|'month'|'day'|'hour','branch'|'pilla
 const PILLAR_GANJI=`(?:\\s*(?:[${HANJA_STEMS}]?[${HANJA_BRANCHES}][木火土金水]?|[${KO_STEMS}]?[${KO_BRANCHES}][목화토금수]?)(?:\\s*\\([^()]{1,8}\\))?)?`;
 const PILLAR_LINK='(?:\\s*(?:속에는|속에|속의|안에|에는|에 있는|에서|에|의|:))?';
 const pillarTenGod=()=>new RegExp(`(?<![가-힣])(${Object.keys(PILLAR_POSITION).join('|')})(${PILLAR_GANJI}${PILLAR_LINK}${PILLAR_GANJI}\\s*)(${TEN_GOD_ITEM}(?:${TEN_GOD_JOINER}${TEN_GOD_ITEM})*)(?:${PARTICLE.slice(0,-1)}|([의도만에인])|(?![가-힣]))`,'gu');
-const BRANCH_PAIR='(?:戌未|未戌|술미|미술)',PUNISH_WORD='(?:형살|형|刑殺|刑)';
+const BRANCH_PAIR='(?:戌\\s*[-·]?\\s*未|未\\s*[-·]?\\s*戌|술미|미술)',PUNISH_WORD='(?:형살|형|刑殺|刑)';
 const unsupportedPunishment=()=>new RegExp(`(?<![丑축])(${BRANCH_PAIR}(?:\\s*\\(${BRANCH_PAIR}\\))?\\s*)(${PUNISH_WORD})(\\s*\\((?:${BRANCH_PAIR}\\s*)?${PUNISH_WORD}\\))?(?:${PARTICLE.slice(0,-1)}|([의도만에인])|(?![가-힣]))`,'gu');
 
 const hanja=(ganji:string)=>[HANJA_STEMS[KO_STEMS.indexOf(ganji[0])]||ganji[0],...(ganji.length>1?[HANJA_BRANCHES[KO_BRANCHES.indexOf(ganji[1])]||ganji[1]]:[])].join('');

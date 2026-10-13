@@ -115,7 +115,7 @@ export function correctChapterProse(v: ChapterBody, input: ChapterRequest): Chap
   const natal=correctNatalClaims(v,{pillars:sajuFact('pillars'),dayMaster:sajuFact('dayMaster'),strength:sajuFact('strengthHeuristic'),majorLuck:sajuFact('majorLuck'),tenGodsByPillar:sajuFact('tenGodsByPillar')},input.locale||'ko');
   if(natal.replaced||natal.dropped){v=natal.body;console.log('[yeongnyangi-natal-correction]',JSON.stringify({chapter:input.chapter.ordinal,replaced:natal.replaced,dropped:natal.dropped}));}
   // A 삼합·대궁 pair or a year's 유년사화 is fixed by the palace order and the year's stem (fortune/ziwei/claims.ts).
-  const ziwei=input.analysis.contexts?.ziwei?correctZiweiClaims(v,input.locale||'ko'):{body:v,replaced:0,dropped:0};
+  const ziwei=input.analysis.contexts?.ziwei?correctZiweiClaims(v,input.locale||'ko',input.chapter.questionPolicy?input.analysis.contexts.ziwei.facts.find(f=>f.label==='fourTransformations')?.value as Record<string,string>:undefined,input.voiceStyle!=='banmal'):{body:v,replaced:0,dropped:0};
   if(ziwei.replaced||ziwei.dropped){v=ziwei.body;console.log('[yeongnyangi-ziwei-correction]',JSON.stringify({chapter:input.chapter.ordinal,replaced:ziwei.replaced,dropped:ziwei.dropped}));}
   // Korean tarot: stored card names, 영냥이's own endings, the first chapter's answer and card-only timing (fortune/tarot/chapter-discipline.ts).
   const tarot=correctTarotChapter(v,input);
@@ -128,7 +128,11 @@ export function correctChapterProse(v: ChapterBody, input: ChapterRequest): Chap
 export function correctQuestionTiming(body:ChapterBody,input:ChapterRequest):ChapterBody{
   if(!input.chapter.questionPolicy||!input.analysis.consultation?.questionDecision)return body;
   const evidence=Object.values(input.analysis.contexts).flatMap(c=>selectChapterFacts(c,input.chapter,input.analysis.topicId));
-  return correctTimingEvidence(body,input.analysis.consultation,evidence,input.locale||'ko',input.voiceStyle==='honorific'||Boolean(input.persona));
+  const polite=input.voiceStyle==='honorific'||Boolean(input.persona);
+  const corrected=correctTimingEvidence(body,input.analysis.consultation,evidence,input.locale||'ko',polite);
+  if((input.locale||'ko')!=='ko'||!natalOnlyTiming(evidence))return corrected;
+  const limit=polite?'이 장은 출생 차트의 반복 패턴을 올해 점검할 관점으로 정리한 내용이에요. 트랜짓 등 시기 계산이 없어 올해나 내년의 사건·변화를 예측하는 근거로 사용할 수 없어요.':'이 장은 출생 차트의 반복 패턴을 올해 점검할 관점으로 정리한 내용이야. 트랜짓 등 시기 계산이 없어 올해나 내년의 사건·변화를 예측하는 근거로 사용할 수 없어.';
+  return {...corrected,...(corrected.blocks?{blocks:corrected.blocks.map(block=>block.id==='bonus-year-flow'&&!block.paragraphs.includes(limit)?{...block,paragraphs:[limit,...block.paragraphs]}:block)}:{})};
 }
 // The fallback delivers a chapter the evidence check rejected (delivery.ts). A chapter system that another block already
 // cites, or that the Korean prose names, gets its source back on the block the check reads: the evidence block, or in
@@ -586,6 +590,9 @@ export class StructuredChapterProvider implements FortuneChapterProvider {
         excludedSubjects: input.chapter.excludes,
         paidScope: paidScoped?(allowsPreventionBalance(input.chapter)?preventionTierRule:REPAIR_INSTRUCTIONS.TIER_SCOPE_VIOLATION):undefined,
         evidenceLimit: '자료 부족은 낮은 위험이나 좋은 운이 아니다. 없는 시기와 사실은 만들지 않는다. 질병·장기 이상·음식의 치료 효능을 명식으로 판단하지 않는다.',
+        ...(input.chapter.questionPolicy&&input.analysis.contexts.saju?{sajuCombinationContract:'천간합의 element는 전통적인 연결 오행을 뜻하며 합화 성립을 계산한 값이 아니다. 병신합이 있다고 수 기운이 만들어졌다거나 오행 개수가 늘었다고 쓰지 않는다. 합의 연결 가능성과 합화 성립의 미확정을 구분한다. 원국·대운에 丑이 없고 해당 시기에도 丑이 제공되지 않으면 未·戌 두 글자만으로 삼형을 성립시키지 않고 계산된 미술파로 설명한다.'}:{}),
+        ...(input.chapter.questionPolicy&&input.analysis.contexts.ziwei?{ziweiFrameContract:'fourTransformations와 palaces.transformations는 생년 사화다. yearlyLuck·yearlyTimeline의 annualTransformations는 그 해 천간의 유년 사화다. 두 표가 같은 별에 다른 사화를 주더라도 서로 상쇄하거나 바꾸지 않는다. 올해 보너스 장에서도 생년·유년을 명시해서 구분한다.'}:{}),
+        ...(input.chapter.questionPolicy&&input.analysis.contexts.astrology?{astrologyPeriodContract:'트랜짓 등 시기 계산이 제공되지 않으면 올해 보너스 장도 사건 예측으로 쓰지 않는다. 요청한 기간은 질문 또는 준비·점검 기간이며 그 기간에 전환점이나 새로운 기회가 찾아온다는 근거가 아니다. 특정 시기의 좋고 나쁨 대신 출생 기질에 맞는 선택 조건과 확인할 현실 신호를 설명한다.'}:{}),
         citationContract: '최상위 sources에는 모든 blocks[].sources의 합집합을 빠짐없이 넣는다. sources는 CALCULATED_DATA.facts의 id를 그대로 사용한다. label이나 새 ID를 만들지 않는다.',
         blockContract: hasReadingSections(input.chapter.version)?'sections의 각 ID에 대응하는 blocks를 순서대로 생성한다. title은 구매 언어로 된 자연스러운 소제목. paragraphs는 각각 500자 이하, 보통 150~350자. 소절 목표 분량이 500자를 넘으면 문장 단위로 끊어 여러 문단으로 나눈다. 본문은 blocks에만 쓰고 analysis는 빈 배열, example과 advice는 빈 문자열이다. 각 block의 sources에 실제 사용한 제공 근거 ID를 넣는다. evidence 소절에는 근거가 제공된 각 체계의 출처를 포함하고 모든 생선에서 서로 다른 실제 근거를 교차 검토하고 근거가 부족하면 개수를 채우기 위해 만들지 않는다. 소절별 minimumChars와 역할을 충족한다.':isStructuredReading(input.chapter.version)?'blocks는 requiredSections의 모든 제목을 그대로 사용하고 문단당 500자 이하의 짧은 해설 문단을 담는다. analysis는 빈 배열. example과 advice는 blocks를 반복하지 않는 사례와 실행이다.':undefined,
         narrativeTask: !isStructuredReading(input.chapter.version)&&tier==='mackerel'?[

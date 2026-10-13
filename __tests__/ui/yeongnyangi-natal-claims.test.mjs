@@ -61,6 +61,8 @@ test('MA 1B: a 戌未 형 the engine never computed becomes 미술파 unless 丑
  assert.deepEqual(r.body.blocks[0].paragraphs,['대운 丙戌과 세운 丁未가 戌未 파를 이뤄.','년주 未와는 戌未(술미) 파라는 관계를 만들어.','지지에서는 未戌破(미술파)가 보여.','戌과 未 사이에 술미파(戌未破)가 발생해.','세운의 戌未(술미) 파(破)는 변동이야.']);
  assert.equal(r.replaced,5);
  // 丑 in the natal chart (facts: 丁丑 년주) or the current luck completes 축술미형; general and partner sentences stay too.
+ const separated=run(['대운과 세운에서 未-戌(미술) 형의 작용이 있어.','未 · 戌(미술) 형은 변동이야.'],ma);
+ assert.deepEqual(separated.body.blocks[0].paragraphs,['대운과 세운에서 未-戌(미술) 파의 작용이 있어.','未 · 戌(미술) 파는 변동이야.']);
  const kept=['대운 戌과 세운 未가 戌未 형을 이뤄.'];
  assert.equal(run(kept).body.blocks[0].paragraphs[0],kept[0]);
  assert.equal(run(kept,{...ma,majorLuck:{currentCycle:{pillar:'己丑'}}}).body.blocks[0].paragraphs[0],kept[0]);

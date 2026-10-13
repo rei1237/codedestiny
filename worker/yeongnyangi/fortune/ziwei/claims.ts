@@ -38,7 +38,7 @@ const starFirst=()=>new RegExp(`${STAR}${GLOSS}\\s*(?:이|가|은|는|에|의|�
 const transformFirst=()=>new RegExp(`${TRANSFORM}${PARTICLE}\\s*(?:${PALACE}${GLOSS}\\s*(?:의|에\\s*있는|에)\\s*)?${STAR}(?=${GLOSS}\\s*(?:에|으로|로)(?![가-힣]))`,'gu');
 const transformGloss=()=>new RegExp(`(화록|화권|화과|화기)\\s*[(（]${STAR}[)）]${PARTICLE}`,'gu');
 
-export function correctZiweiClaims(body:ChapterBody,locale='ko'):{body:ChapterBody;replaced:number;dropped:number} {
+export function correctZiweiClaims(body:ChapterBody,locale='ko',birthTransformations?:Record<string,string>,polite=true):{body:ChapterBody;replaced:number;dropped:number} {
   if(locale!=='ko')return {body,replaced:0,dropped:0};
   let replaced=0,dropped=0,flow=new Set<number>();
   const sentence=(s:string)=>{
@@ -82,9 +82,30 @@ export function correctZiweiClaims(body:ChapterBody,locale='ko'):{body:ChapterBo
   const fix=(value:unknown,scope?:string)=>{
     if(typeof value!=='string'||!value)return value;
     const before={replaced,dropped};
-    flow=new Set([...(scope??value).matchAll(FLOW_ENTRY())].map(m=>position(m[1])));
+    let prepared=value;
+    // Only new question readings supply the stored birth table. Never infer it from a flow-year table.
+    if(birthTransformations&&!/상대|파트너|궁합|자화/u.test(value)){
+      const years=[...new Set([...value.matchAll(/(20\d{2})\s*년/gu)].map(m=>Number(m[1])))];
+      prepared=value.split(/(?<=[.!?。？！])(?=\s)/u).map(s=>{
+        if(!s.includes('생년')||/유년|(?<!에\s?)대한|상대|파트너|자화/u.test(s))return s;
+        const plain=s.replace(/['"‘’“”](화록|화권|화과|화기)['"‘’“”]/gu,'$1');
+        const claim=[...plain.matchAll(starFirst())].find(m=>{
+          const key=Object.keys(birthTransformations).find(k=>birthTransformations[k]===m[1]);
+          return key&&LABEL[key]!==m[3];
+        });
+        if(!claim)return s;
+        const star=claim[1],key=Object.keys(birthTransformations).find(k=>birthTransformations[k]===star)!;
+        const truth=LABEL[key],table=years.length===1?TABLE[STEMS[((years[0]-4)%10+10)%10]]:undefined;
+        const annual=table&&Object.keys(table).find(k=>table[k]===star);
+        replaced++;
+        return `생년 사화에서 ${star}${refit('은',star)} ${truth}로 계산${polite?'됩니다':'돼'}. `+
+          (annual?`${years[0]}년 유년 사화에서는 ${LABEL[annual]}로 계산${polite?'됩니다':'돼'}. `:'')+
+          `생년 사화와 유년 사화는 서로 다른 기준이므로 구분해서 읽어${polite?'야 합니다':'야 해'}. `;
+      }).join('');
+    }
+    flow=new Set([...(scope??prepared).matchAll(FLOW_ENTRY())].map(m=>position(m[1])));
     // Keep each sentence's own separator so paragraph line breaks survive a dropped sentence.
-    const next=value.split(/(?<=[.!?。？！])(?=\s)/u).map(sentence).join('').replace(/^\s+/u,'').trim();
+    const next=prepared.split(/(?<=[.!?。？！])(?=\s)/u).map(sentence).join('').replace(/^\s+/u,'').trim();
     // Never blank a field to pass: an emptied string stays as written for the guard to see.
     if(!next){replaced=before.replaced;dropped=before.dropped;return value;}
     return next;

@@ -497,10 +497,11 @@ export function natalOnlyTiming(evidence: unknown) {
 export const PERIOD_WORD=/20\d{2}\s*년|올해|금년|내년|명년|다음\s*해|[상하]반기|[1-4]\s*분기|(?<![\d.])\d{1,2}\s*월(?!\s*\d)/u;
 export const TIMING_CLAIM=/(?:유리한|불리한|긍정적인|부정적인|좋은|나쁜|적절한|적합한|알맞은|길한|흉한|위험한)\s*(?:시기|때|타이밍|시점)|적기|호기|(?:시기|때|타이밍|시점)(?:가|이|는|로|라)?\s*(?:좋|유리|무르익|열리)/u;
 export const TIMING_DENIAL=/(?:특정|단정|판단|예측|가늠)(?:할|하기|하지|되지)?\s*(?:수\s*)?(?:없|않|어렵)|근거가\s*없|알\s*수\s*없/u;
+const NATAL_EVENT_FORECAST=/(?:새로운\s*)?가능성을\s*찾게\s*될|전환점을\s*맞이|기회(?:가|는)\s*(?:찾아오|열리|강해|늘어)|운(?:이|은|의\s*흐름이)\s*(?:좋아지|강해지|풀리)|흐름이.{0,40}(?:올해|내년).{0,24}(?:이어질|지속될)|(?:갈등|긴장)이.{0,20}반복될/u;
 /** A sentence that ranks a named period ('2027년 상반기가 유리한 시기') without denying it is unsupported here. */
 export function validateUngroundedTiming(text: string) {
   for(const sentence of text.split(/\n|(?<=[.!?。])\s+/))
-    if(PERIOD_WORD.test(sentence)&&TIMING_CLAIM.test(sentence)&&!TIMING_DENIAL.test(sentence))throw new FortuneError('CHAPTER_UNGROUNDED_TIMING');
+    if(PERIOD_WORD.test(sentence)&&(TIMING_CLAIM.test(sentence)||NATAL_EVENT_FORECAST.test(sentence))&&!TIMING_DENIAL.test(sentence))throw new FortuneError('CHAPTER_UNGROUNDED_TIMING');
 }
 
 const STEM_KO='갑을병정무기경신임계',STEM_HJ='甲乙丙丁戊己庚辛壬癸',BRANCH_KO='자축인묘진사오미신유술해',BRANCH_HJ='子丑寅卯辰巳午未申酉戌亥';

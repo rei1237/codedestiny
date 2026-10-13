@@ -217,4 +217,10 @@ test('delivery fallback cannot reintroduce a birth-chart-only favourable period'
  const out=m.deliverChapter(raw,next);
  assert.match(out.summary,/계산 근거/);assert.doesNotMatch(JSON.stringify(out),/2027년 상반기가 이직에 유리한/);
  assert.doesNotThrow(()=>m.validatePreciseTiming(out,next.analysis.consultation,facts));assert.equal(out.complete,true);
+ for(const summary of ['내년 상반기까지는 새로운 가능성을 찾게 될 거야.','2026년 4분기부터 2027년 상반기까지의 흐름을 보면 중요한 전환점을 맞이할 수 있어.','이 흐름이 올해 내내 이어질 수 있어.','올해 4분기부터 내년 상반기에 이런 갈등이 반복될 수 있어.']){
+  const repaired=m.deliverChapter({...raw,summary},next);
+  assert.match(repaired.summary,/계산 근거/);
+ }
+ const echoed=m.deliverChapter({...raw,summary:'내년 상반기에 이직을 고민한다면 네 기질에 맞는 업무와 수입 안정성을 확인해 봐.'},next);
+ assert.match(echoed.summary,/이직을 고민한다면/);
 });

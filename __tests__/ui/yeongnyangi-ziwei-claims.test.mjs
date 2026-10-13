@@ -7,6 +7,17 @@ const {correctZiweiClaims}=await import('data:text/javascript;base64,'+Buffer.fr
 const body=paragraphs=>({summary:'요약',analysis:[],blocks:[{id:'one',title:'자미',paragraphs,sources:[]}]});
 const run=paragraphs=>correctZiweiClaims(body(paragraphs));
 
+test('a new question reading corrects an explicit birth-frame mismatch from its stored table',()=>{
+ const natal={huaLu:'거문',huaQuan:'태양',huaKe:'문곡',huaJi:'문창'};
+ const wrong=body(["2026년 유년은 재백궁에 들어와. 생년 사화 중 문창에 '화과'가 붙어 있어."]);
+ const r=correctZiweiClaims(wrong,'ko',natal,false);
+ assert.match(r.body.blocks[0].paragraphs[0],/생년 사화에서 문창은 화기로 계산돼/);
+ assert.match(r.body.blocks[0].paragraphs[0],/2026년 유년 사화에서는 화과로 계산돼/);
+ assert.equal(correctZiweiClaims(wrong).body,wrong);
+ const kept=body(['문창에 생년 화기가 붙어 있어.','상대는 생년 사화에서 문창 화과를 받아.','문창의 생년 화기와 유년 화과를 함께 읽어.']);
+ assert.equal(correctZiweiClaims(kept,'ko',natal).body,kept);
+});
+
 test('MA/MO/Y2 2B: a year\'s 유년사화 follows that year\'s stem; a wrong 삼합·대궁 swaps the word or drops the sentence',()=>{
  // 2026 丙: 록천동·권천기·과문창·기염정. 2027 丁: 록태음·권천동·과천기·기거문. 명0 형제1 부부2 자녀3 재백4 질액5 천이6 노복7 관록8 전택9 복덕10 부모11.
  const r=run(['2026년 너의 재백궁에 유년사화 화기가 문창에 붙어.','2027년 유년 사화에서 천동(天同)이 명궁에 화기(化忌)로 변해.','2026년은 유년 화기(문창)가 들어와.',
