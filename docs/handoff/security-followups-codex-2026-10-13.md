@@ -26,7 +26,7 @@ next: "👤 사람이 Google 키 삭제·메일 API 키 교체·콘솔 판정 25
 - 홈 바로가기는 `9fb545e73 feat(home): surface fortune systems above fold` 로 별도 커밋했다. 사주·자미두수·숙요점·베다점·점성술·타로의 기존 직접 진입 계약은 그대로 두고 접힌 카탈로그 밖으로 이동했다.
 - 홈·초기 보안 커밋 뒤 `npm run check:pre-push`, `npm run verify:release`가 통과했다. C 후속까지 반영한 마지막 `npm run check:fast`도 통과했다(결제 게이트 88/88, Node 3,200건, Jest 395 suites/6,030 tests). 홈 브라우저 검증은 320~1440px 오버플로 없음, 여섯 직접 진입 성공이다.
 - origin/main의 `PR CI`는 초록이지만 `Secret Scan` run `38339017478`은 아래 A가 끝나지 않아 붉다. 저장소 규칙상 이 red 위에 push하지 않았고 운영 승격도 실행하지 않았다.
-- `Yeongnyangi Browser Shadow` run `38339025962` attempt 1은 WebKit 페이지 전환 중 일반 `[object Event]` 1건만 실패했다. 결제·활성화·5챕터 결과는 성공했고 실패 잡만 attempt 2로 재실행했다. 폴링하지 않는다.
+- `Yeongnyangi Browser Shadow` run `38339025962` attempt 1·2는 서로 다른 WebKit 시나리오의 페이지 전환 중 일반 `[object Event]` 1건만 실패했다. 둘 다 결제·활성화·5챕터 결과는 성공했다. `424020bad`에서 이 이벤트를 WebKit + 알려진 전환 페이지 + 결제·활성화·전체 챕터 완료 조건에만 무시하도록 좁혔고, 실패했던 두 시나리오를 로컬에서 재실행해 통과했다(실 PG·LLM·운영 DB 쓰기 0). main 전달 전이므로 CI 재실행은 아직 없다.
 
 ## 결정 사항(바꾸지 않는다)
 
