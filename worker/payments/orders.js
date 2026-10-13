@@ -95,6 +95,32 @@ export async function deriveOrderId(userId, idempotencyKey) {
 }
 
 /**
+ * 주문 스냅샷에 저장하는 복귀 경로 정규화. 클라이언트 입력이 길이·형식 제한 없이 DB 에 들어가던 것을 막는다.
+ * 규칙은 routes/payments.js sanitizeReturnPath 와 같다(사이트 내부 상대경로만, 700자). 비어 있으면 그대로 비워 둔다.
+ */
+export function normalizeOrderReturnPath(value) {
+  let candidate = String(value ?? "").trim();
+  if (!candidate) return "";
+  if (/^https?:\/\//i.test(candidate)) {
+    try {
+      const parsed = new URL(candidate);
+      candidate = `${parsed.pathname || "/"}${parsed.search || ""}${parsed.hash || ""}`;
+    } catch (_) {
+      return "/";
+    }
+  }
+  if (!candidate.startsWith("/") || candidate.startsWith("//")) return "/";
+  if (candidate.includes("\\") || /[\u0000-\u001f\u007f]/.test(candidate)) return "/";
+  try {
+    const base = "https://code-destiny.invalid";
+    if (new URL(candidate, base).origin !== base) return "/";
+  } catch (_) {
+    return "/";
+  }
+  return candidate.slice(0, 700);
+}
+
+/**
  * T1 · (none) → PENDING. 사용자가 결제수단을 고른 시점. **Mongo 왕복 1회.**
  * 같은 idempotencyKey 로 다시 부르면 **같은 문서**가 그대로 돌아온다(같은 merchantUid → 같은 PG 창).
  */
@@ -181,7 +207,7 @@ export async function createOrder(db, {
             monthlyCost: product.monthlyCost,
             billingType: product.billingType,
             ...(product.fulfillmentType==='service_pack'?{fulfillmentType:'service_pack',packSnapshot:product.packSnapshot}:{}),
-            profileId, contentKey, scope, returnPath,
+            profileId, contentKey, scope, returnPath: normalizeOrderReturnPath(returnPath),
             ...birthSnapshotFields(birth),
             createdAt: now.toISOString(),
           },

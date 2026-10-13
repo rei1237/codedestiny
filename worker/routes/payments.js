@@ -559,7 +559,7 @@ async function writeFailureLog(params = {}) {
     requestMeta: request ? getRequestMeta(request) : undefined,
     payload: summarizePayload(payload),
     rawPortOne: summarizePayload(rawPortOne),
-  }).catch(() => {});
+  }).catch(logSwallowedPaymentError("failure_log_write", { paymentId: String(merchantUid || impUid || ""), stage: String(stage || "unknown") }));
 }
 
 function extractPortOneWebhookId(headers) {
@@ -669,7 +669,7 @@ async function markPortOneWebhookEventProcessed(event, response) {
       lastError: "",
       "payload.resultStatus": Number(response?.status || 200),
     },
-  }).catch(() => {});
+  }).catch(logSwallowedPaymentError("webhook_event_mark_processed", { eventId: String(event._id) }));
 }
 
 async function markPortOneWebhookEventFailed(event, error) {
@@ -681,7 +681,7 @@ async function markPortOneWebhookEventFailed(event, error) {
       lastAttemptAt: new Date(),
       lastError: String(error?.message || error || "Webhook processing failed.").slice(0, 500),
     },
-  }).catch(() => {});
+  }).catch(logSwallowedPaymentError("webhook_event_mark_failed", { eventId: String(event._id) }));
 }
 
 function isSukuyoYearlyPaymentKey(value) {
@@ -1940,7 +1940,7 @@ async function markPaymentCancellationForAdminReview({ request, paymentId, body,
       lastErrorAt: new Date(),
     },
     $inc: { confirmAttempts: 1 },
-  }).catch(() => {});
+  }).catch(logSwallowedPaymentError("webhook_cancel_state_write", { paymentId: String(current._id) }));
 
   return json({
     ok: true,

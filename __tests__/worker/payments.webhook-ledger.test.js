@@ -144,6 +144,24 @@ describe("PortOne webhook event ledger", () => {
     expect(Payment.findOneAndUpdate).not.toHaveBeenCalled();
   });
 
+  test("원장 'processed' 기록 쓰기가 거절돼도 웹훅 응답은 그대로이고 삼켜진 오류가 로그에 남는다", async () => {
+    const body = { type: "Transaction.Failed", data: { paymentId: "pay_ledger_write_001" } };
+    const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+
+    PaymentWebhookEvent.create = jest.fn().mockResolvedValue({ _id: "evt-doc-ledger-write" });
+    PaymentWebhookEvent.findByIdAndUpdate = jest.fn().mockRejectedValue(new Error("mongo ledger write timeout"));
+    Payment.findOneAndUpdate = jest.fn().mockReturnValue(queryResult({ merchantUid: "pay_ledger_write_001" }));
+    PaymentFailureLog.create = jest.fn().mockResolvedValue({});
+
+    const result = await readResponse(await testUtils.handleWebhook(await buildWebhookRequest(body), env));
+
+    expect(result.status).toBe(200);
+    expect(result.payload.status).toBe("FAILED");
+    const line = warn.mock.calls.map((call) => call.join(" ")).find((text) => text.startsWith("[payment-swallowed]") && text.includes("webhook_event_mark_processed"));
+    expect(line).toContain("evt-doc-ledger-write");
+    expect(line).toContain("mongo ledger write timeout");
+  });
+
   test("Transaction.Paid webhook with ctx returns an immediate ack and defers heavy work to waitUntil", async () => {
     const body = { type: "Transaction.Paid", data: { paymentId: "pay_ack_001" } };
 

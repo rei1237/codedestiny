@@ -26,6 +26,14 @@ next: "사람 몫(이력에 노출된 키 교체·`.gitleaksignore` 반영·포�
 - 범위: 2026-10-13 로컬 참조 전체이고 원격 main(`35bc6406c`, `git ls-remote` 로 로컬 `origin/main` 과 일치 확인)을 포함한다. 그 뒤 올라오는 커밋은 CI 의 `Secret Scan`(`gitleaks git --redact --verbose`, 전체 이력)이 처음 본다 — 새 탐지가 나오면 위 절차로 분류한다.
 - 적용 조건: `.gitleaks.toml`(기본 규칙 상속)과 `.gitleaksignore`(기준선)가 **커밋·푸시돼야** CI 에 반영된다. 푸시하면 이 문서의 31건이 `Secret Scan` 을 붉게 만든다 — 교체 전에 CI 를 초록으로 만들려고 이 지문들을 넣지 않는다.
 
+#### 2026-10-13 현행 값 대조 결과 — "교체가 정말 필요한가"
+- 이니시스 회신(KG이니시스 기술지원): 포트원 호스팅 연동이라 채널·연동은 포트원 문의 사항이고, "키를 교체하면 기존 키는 즉시 못 쓰니 새 키 적용을 준비하라"는 일반 안내다. **교체 요구가 아니다.** 결제 채널 키(`MID`·`INIsignkey`·`INIAPIKEY`·`INIAPI_IV`·`PORTONE_*` 채널·웹훅)는 이력 노출 근거가 0건이라 교체하지 않는다.
+- 이력 31건의 값을 로컬 env 파일(`.env.local`·`.env.cloudflare.local`·`.env.staging.local`) 값과 해시로 대조했다(값·해시는 출력·저장하지 않음). **일치 6건(교체 필요)**: `YOUTUBE_API_KEY`(Google 키 1종, 4탐지), `EMAILAPI_KEY`(메일 API 키, 2탐지). **불일치 25건**.
+- **불일치는 "안전"이 아니다.** 운영 Cloudflare 시크릿 목록(이름만, `wrangler secret list`)에는 `ADMIN_ENTRY_PASSWORD_HASH`·`PORTONE_API_SECRET` 등이 있는데 로컬 env 파일에는 없다 — 운영 값이 로컬 파일을 거치지 않고 설정됐다는 뜻이라 "로컬과 다르다"가 "운영과 다르다"를 증명하지 못한다. 그래서 불일치 항목도 기준선에 넣지 않았다. 판정은 제공자 콘솔에서 한다: (a) Google 키 — 해당 키가 아직 존재하는지, Referer/API 제한이 있는지, 최근 호출이 정상인지, (b) `PORTONE_API_SECRET` — 콘솔의 발급 목록에 노출 시점의 값이 남아 있는지, (c) `JWT_SECRET`·`ADMIN_SECRET_HASH`(2026-03-19 빌드 스냅샷) — 운영 값 설정 시점이 그 뒤인지, (d) 관리자 입장 비밀번호 — 2026-04-03 이후 변경했는지(A2b).
+- 오탐 3건은 기준선에 추가했다(영냥이 풀이 전환의 localStorage 키 이름 `PERSONA_KEY`, 비밀값 아님). 따라서 미기준선 목록은 여전히 31건·28지문이다.
+- 운영 시크릿 이름 확인(2026-10-13): fail-closed 대상은 `AUTH_SECRET`·`JWT_SECRET`이 운영·스테이징에 있어 `PREMIUM_ACCESS_TOKEN_SECRET`·`CSRF_SECRET`·`SUKUYO_COMPAT_AI_ACCESS_SECRET`의 대체 이름으로 해석된다(`resolveRequiredAuthSecret`). `FLOWER_ADMIN_SECRET`·`PEXELS_API_KEY`도 둘 다 있다.
+- **`YOUTUBE_API_KEY`는 미사용이라 정리했다(2026-10-13)**: HEAD 에 호출 코드가 없다(검색 라우트는 이미 삭제됨). 스테이징 Worker 시크릿 삭제, 로컬 `.env.local` 줄 삭제, `scripts/sync-cloudflare-worker-secrets.mjs` 의 `YOUTUBE_DATA_API_KEY`·`GOOGLE_YOUTUBE_API_KEY` 이름 제거. 운영 Worker 에는 원래 없었다. **남은 일(사람)**: Google Cloud 콘솔(API 및 서비스 → 사용자 인증 정보)에서 해당 키를 삭제 — 삭제가 곧 폐기라 새 키 발급은 필요 없다. 삭제 뒤 일치했던 4탐지의 지문만 `.gitleaksignore` 에 `# 2026-MM-DD 폐기: YOUTUBE_API_KEY` 사유로 추가한다.
+
 ### 키 교체 런북(이름·절차만 — 값은 어디에도 적지 않는다)
 - 트리거: 유출 의심, 저장소·로그·스크린샷 노출, 담당자 권한 회수, 공개 저장소 스캔 탐지, 제공자 안내.
 - 이름·별칭·사용처의 단일 출처는 `config/env.contract.json`(`name`·`required_in`). 결제 키 그룹은 `worker/lib/key-health.js` 의 `payments-core`, 관리자 게이트는 `admin-gate`(`FLOWER_ADMIN_SECRET`).
