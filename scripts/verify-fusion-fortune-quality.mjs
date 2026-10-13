@@ -627,3 +627,6 @@ if (failures.length) {
   process.exit(1);
 }
 console.log("\n[verify-fusion-fortune-quality] PASS (mock only — 실제 모델 호출 없음)");
+
+// Premium report contract shares this existing CI gate.
+await import("./verify-fusion-fortune-premium.mjs");

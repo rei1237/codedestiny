@@ -91,7 +91,7 @@ export function fusionCheckpointMatches(result, identity) {
 export async function fusionInputIdentity(input, requestId) {
   const bytes = new TextEncoder().encode(JSON.stringify([FUSION_EXPERT_VERSION, requestId,
     input.birthDate, input.birthTime, input.calendarType, input.gender, input.birthPlace,
-    input.topic, input.concern, input.locale]));
+    input.topic, input.concern, input.locale, ...(input.reportVersion ? [input.reportVersion] : [])]));
   const digest = await crypto.subtle.digest("SHA-256", bytes);
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }

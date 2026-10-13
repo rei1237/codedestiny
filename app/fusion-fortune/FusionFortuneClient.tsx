@@ -2,6 +2,9 @@
 import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
 import ReviewRewardBanner from "@/app/components/ReviewRewardBanner";
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
+import { FUSION_PREMIUM_VERSION } from "@/lib/fusion-premium-report";
+import { useFusionSections } from "./_lib/useFusionSections";
+import { PaymentPigVisual } from "../components/common/PaymentPigVisual";
 import { useFusionExpertCopy } from "./ExpertEvidence";
 
 import { useLocaleRequestScope, type LocaleRequestScope } from "@/app/hooks/useLocaleRequestScope";
@@ -107,6 +110,7 @@ const FUSION_HANDOFF_KEY = "cdGuardianFusionHandoffV1";
 type FusionRequestBody = {
   locale?: string;
   contextVersion?: number;
+  reportVersion?: string;
   birthDate?: string;
   birthTime?: string;
   birthTimeUnknown?: boolean;
@@ -2070,7 +2074,8 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
   const [qualityNotice, setQualityNotice] = useState("");
   /** 재열람으로 연 보관본의 입력 요약. PDF 표지가 폼 대신 이걸 본다. */
   const [openedSummary, setOpenedSummary] = useState<{ topic?: string; nickname?: string } | null>(null);
-  const [openSection, setOpenSection] = useState<string>("");
+  const { openSections, openSection, toggleSection } = useFusionSections();
+  const [questionDetails, setQuestionDetails] = useState({ situation: "", choices: "", timing: "", worry: "" });
   /** 생성 실패는 폼이 아니라 대화 안에 남는다 — 어디까지 진행됐는지와 함께 봐야 재시도를 고른다. */
   const [failure, setFailure] = useState<{ message: string; retryable: boolean; reason?: string } | null>(null);
   // 2단계 생성: 여섯 체계 섹션(1단계)은 받았는데 종합·판정(2단계)이 끝나지 않은 상태.
@@ -2236,12 +2241,12 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
     // 강등 배달이었으면 다시 열었을 때도 같은 안내가 붙는다 — 화면에서만 알리면 근거가 사라진다.
     setQualityNotice(consultation.qualityTier === "degraded" ? (consultation.qualityNotice || "") : "");
     setFailure(null);
-    setOpenSection("");
+    toggleSection("all");
     // 1단계만 저장된 보관본(partial)은 완성본이 아니다 — 재열람 링크(?cid=)를 남기지 않는다.
     if (consultation.status === "partial") return;
     setOpenedConsultationId(consultation.id);
     rememberConsultationUrl(consultation.id);
-  }, [setResult]);
+  }, [setResult, toggleSection]);
 
   /**
    * 결제 키로 보관본을 되찾는다. 찾았으면 화면에 올리고 true.
@@ -2462,6 +2467,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
     // 결제 전에 한 번 만들어 둔다 — 재개 서술자가 이 입력을 그대로 싣고 리다이렉트를 건너간다.
     const formRequestBody: FusionRequestBody = {
       contextVersion: 2,
+      reportVersion: FUSION_PREMIUM_VERSION,
       locale: getCurrentLoadingLocale(),
       birthDate: form.birthDate,
       birthTime: form.birthTimeUnknown ? "" : form.birthTime,
@@ -2470,7 +2476,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
       gender: form.gender,
       nickname: form.nickname,
       topic: form.topic,
-      concern: form.concern,
+      concern: [form.concern, ...Object.entries(questionDetails).filter(([,value]) => value.trim()).map(([key,value]) => `${({ situation: "현재 상황", choices: "비교 중인 선택지", timing: "원하는 시점", worry: "가장 걱정되는 점" } as Record<string,string>)[key]}: ${value.trim()}`)].filter(Boolean).join("\n"),
       ...(selectedPlace ? { birthPlace: { city: selectedPlace.label, country: selectedPlace.country, latitude: selectedPlace.lat, longitude: selectedPlace.lon, timezone: selectedPlace.tz } } : {}),
     };
     if (!requestId) {
@@ -2824,7 +2830,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
     observer.observe(formNode);
     return () => observer.disconnect();
   }, []);
-  const toggleSection = (key: string) => setOpenSection((current) => current === key ? "" : key);
+
   const completedStageCount = useMemo(
     () => fusionStages.filter((stage) => stage.key !== "fusion" && (stageStates[stage.key] === "completed" || Boolean(result?.[`${stage.key}Section` as keyof Result]))).length,
     [fusionStages, stageStates, result],
@@ -2978,6 +2984,13 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
         <label>{copy.nicknameLabel}<em>{copy.optionalTag}</em><input maxLength={40} value={form.nickname} onChange={(event) => setForm({ ...form, nickname: event.target.value })} placeholder={copy.nicknamePlaceholder} /></label>
         <label><span className={styles.labelRow}>{copy.topicLabel}<FieldSystems field="topic" copy={copy} /></span><select value={form.topic} onChange={(event) => setForm({ ...form, topic: event.target.value })}><option value="삶의 전반적인 흐름">{copy.topicOptionOverall}</option><option value="연애와 관계">{copy.topicOptionLove}</option><option value="일과 돈">{copy.topicOptionWorkMoney}</option><option value="마음과 회복">{copy.topicOptionMind}</option></select></label>
         <label className={styles.wide}><span className={styles.labelRow}><span>{copy.concernLabel}<em>{copy.optionalTag}</em></span><FieldSystems field="concern" copy={copy} /></span><textarea maxLength={1000} value={form.concern} onChange={(event) => setForm({ ...form, concern: event.target.value })} placeholder={copy.concernPlaceholder} /></label>
+        {getCurrentLoadingLocale() === "ko" && <details className={styles.wide}>
+          <summary className="min-h-11 cursor-pointer py-3">상담을 더 구체적으로 준비하기 · 선택</summary>
+          <div className="grid gap-4 py-3 sm:grid-cols-2">
+            {([["situation", "현재 상황"], ["choices", "비교 중인 선택지"], ["timing", "원하는 시점"], ["worry", "가장 걱정되는 점"]] as const).map(([key,label]) =>
+              <label key={key}>{label}<textarea maxLength={200} value={questionDetails[key]} onChange={event => setQuestionDetails(current => ({ ...current, [key]: event.target.value }))} /></label>)}
+          </div>
+        </details>}
         {status.message && <p className={styles.notice}>{status.message}</p>}{notice && <p className={styles.success} role="status">{notice}</p>}
         {/* 결제는 끝났는데 결과를 못 받은 요청이 남아 있으면 그것부터 알린다 — 이 안내가 없으면
             사용자는 처음부터 다시 하는 줄 알고 결제를 한 번 더 한다. */}
@@ -3027,6 +3040,11 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
         </div>
       </header>
 
+      {!exporting && loading && <div className="mx-4 my-5 flex items-center gap-4 rounded-[var(--cd-r-section)] border border-white/20 p-4 sm:mx-9" role="status">
+        <PaymentPigVisual tone="pass" className="!m-0 !h-24 !w-24 shrink-0" />
+        <div><p className="font-display text-[var(--fx-ink-1)]">{getCurrentLoadingLocale() === "ko" ? "연이가 질문에 맞춰 상담을 준비하고 있어요." : copy.buttonLoadingLabel}</p>
+        <p className="mt-2 text-sm text-[var(--fx-ink-2)]">{completedStageCount} / 6 · {getCurrentLoadingLocale() === "ko" ? "완료한 해석부터 아래에서 읽을 수 있어요." : copy.stageDefaultProgressMessage}</p></div>
+      </div>}
       {!exporting && (loading || stageTwoFailed) && <FusionConvergence stageStates={stageStates} result={result} loading={loading} composeProgress={composeProgress} />}
 
       {result && stageTwoFailed && !loading && <div role="status" className={styles.recoveryNotice}>
@@ -3061,7 +3079,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
           </div>
         </li>}
 
-        {result && <FusionResultThread result={result} openSection={openSection} onToggleSection={toggleSection} exporting={exporting} stageTwoGenerating={loading} />}
+        {result && <FusionResultThread result={result} openSections={openSections} onToggleSection={toggleSection} exporting={exporting} stageTwoGenerating={loading} />}
         {result && !loading && !stageTwoFailed && <SavedRecordLink source="fusion" id={openedConsultationId} />}
 
 
@@ -3078,7 +3096,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
           </div>
         </li>}
       </ol>
-      {result && <FusionResultRail result={result} generating={loading} exporting={exporting} onOpenSection={(key) => setOpenSection(key)} scopeRef={threadRef} storageKey={deliveryOwnerId && readingRequestId ? `cdFusionReading:${encodeURIComponent(deliveryOwnerId)}:${encodeURIComponent(readingRequestId)}` : ""} />}
+      {result && <FusionResultRail result={result} generating={loading} exporting={exporting} onOpenSection={openSection} scopeRef={threadRef} storageKey={deliveryOwnerId && readingRequestId ? `cdFusionReading:${encodeURIComponent(deliveryOwnerId)}:${encodeURIComponent(readingRequestId)}` : ""} />}
       </div>
       {result && !loading && !stageTwoFailed && openedConsultationId && <ReviewRewardBanner afterResult/>}
 

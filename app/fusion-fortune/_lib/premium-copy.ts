@@ -3,6 +3,7 @@ import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loading
 
 const COPY = {
   ko: {
+    expandAll: "전체 펼치기", collapseAll: "전체 접기",
     heading: "여섯 관점이 하나의 답으로",
     description: "각 체계의 해석을 모아, 같은 방향과 서로 다른 조건을 살펴보고 있어요.",
     completed: "해석 완료", active: "해석 중", pending: "준비 중", paused: "이어받기 대기",
@@ -11,6 +12,7 @@ const COPY = {
     progress: "완료한 분석 묶음", repair: "내용 확인 중", art: "챕터 분위기를 위한 상징 이미지",
   },
   en: {
+    expandAll: "Expand all", collapseAll: "Collapse all",
     heading: "Six perspectives, one considered answer",
     description: "Bringing the readings together to explore shared directions and different conditions.",
     completed: "Reading complete", active: "Reading", pending: "Preparing", paused: "Waiting to resume",
@@ -19,6 +21,7 @@ const COPY = {
     progress: "Analysis groups complete", repair: "Reviewing content", art: "Symbolic chapter artwork",
   },
   ja: {
+    expandAll: "すべて開く", collapseAll: "すべて閉じる",
     heading: "六つの視点から、一つの答えへ",
     description: "それぞれの解釈を合わせ、共通する方向と異なる条件を読み解いています。",
     completed: "解釈完了", active: "解釈中", pending: "準備中", paused: "再開待ち",
@@ -27,6 +30,7 @@ const COPY = {
     progress: "完了した分析グループ", repair: "内容を確認中", art: "章の雰囲気を表す象徴的な画像",
   },
   zh: {
+    expandAll: "全部展开", collapseAll: "全部收起",
     heading: "六种视角，汇成一个答案",
     description: "汇集各体系的解读，梳理共同方向与不同的适用条件。",
     completed: "解读完成", active: "解读中", pending: "准备中", paused: "等待继续",

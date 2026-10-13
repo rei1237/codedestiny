@@ -261,7 +261,7 @@ test("the result screen can be exported to PDF without blank pages", () => {
   // 🔴 캡처 전에 접힌 섹션을 모두 펼치고 두 프레임을 기다린다 — 접힌 섹션은 display:none 이
   //    아니라 아예 렌더되지 않으므로 그냥 캡처하면 본문이 통째로 빠진다.
   assert.match(client, /requestAnimationFrame\(\(\) => requestAnimationFrame/);
-  assert.match(resultThread, /exporting \|\| openSection === key/);
+  assert.match(resultThread, /exporting \|\| readOnly \|\| openSections\.has\(key\)/);
 
   // 🔴 content-visibility 와 진입 애니메이션은 html2canvas 클론에서 빈 상자·백지를 만든다.
   assert.match(thread, /deferRender && !exporting/);

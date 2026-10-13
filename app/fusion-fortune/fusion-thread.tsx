@@ -15,7 +15,8 @@ import type { FusionVisualizationData } from "./FusionVisualization";
 import type { FusionSharedCopy } from "./_lib/copy";
 import styles from "./fusion-fortune.module.css";
 
-export type Section = { title: string; content: string; keyPoints: string[] };
+export type FusionSubchapter = { title: string; start: number; end: number; questionIds: string[]; evidenceKeys: string[]; artKey: string };
+export type Section = { title: string; content: string; keyPoints: string[]; subchapters?: FusionSubchapter[] };
 export type VerdictStance = "agree" | "conditional" | "caution";
 export type FinalVerdict = {
   headline: string;
@@ -26,13 +27,15 @@ export type FinalVerdict = {
   avoid: string[];
 };
 export type Result = Record<"sajuSection" | "ziweiSection" | "vedicSection" | "sukuyoSection" | "astrologySection" | "tarotSection" | "integratedReading", Section> & {
+  reportVersion?: string;
+  consultationPlan?: { version: string; question: string; questions: { id: string; title: string }[] };
   expertMeta?: { version: string; identity?: string; locale: string; complete: boolean; pendingStage: 1 | 2 };
   tarotCards?: FusionTarotCard[];
   evidenceCrossCheck?: FusionCrossCheck;
   title: string;
   openingMessage: string;
   executiveSummary: string;
-  timingAndAction: { title: string; content: string; luckyActions: string[]; cautionPatterns: string[] };
+  timingAndAction: { subchapters?: FusionSubchapter[]; title: string; content: string; luckyActions: string[]; cautionPatterns: string[] };
   /** 서버가 항상 채워 보낸다(worker/lib/fusion-fortune-visual.js). 그래도 옛 저장본을 위해 관용한다. */
   visualization?: FusionVisualizationData;
   /** 여섯 체계를 각각 판정한 뒤 하나로 수렴시킨 마지막 답. 옛 저장본에는 없다. */
