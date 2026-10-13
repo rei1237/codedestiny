@@ -89,6 +89,19 @@ await chat.getByRole('button',{name:'앞에서 말한 내용으로 충분해',ex
 await chat.getByRole('button',{name:'답장 보내기',exact:true}).click();
 await chat.getByRole('button',{name:'기간은 정하지 않을게',exact:true}).click();
 await next();
+const picker=chat.getByRole('group',{name:'상담의 깊이를 골라 주세요'});await picker.waitFor();
+const output=process.env.YN_INTAKE_OUTPUT||'build-cache/yn-intake-qa';fs.mkdirSync(output,{recursive:true});
+const viewportEvidence=[];
+for(const width of [360,390,430,1440]){
+ await page.setViewportSize({width,height:width===1440?1000:844});
+ for(const fish of ['mackerel','salmon','flounder','tuna']){await picker.locator('input[value="'+fish+'"]').check();assert.equal(await picker.locator('input:checked').inputValue(),fish);}
+ const tuna=picker.locator('input[value="tuna"]');await tuna.focus();await tuna.press('ArrowUp');assert.equal(await picker.locator('input:checked').inputValue(),'flounder');await tuna.check();
+ await tuna.scrollIntoViewIfNeeded();
+ const geometry=await page.evaluate(()=>({viewport:innerWidth,scroll:document.documentElement.scrollWidth}));assert.ok(geometry.scroll<=width+1,JSON.stringify(geometry));
+ viewportEvidence.push({width,...geometry,selected:await picker.locator('input:checked').inputValue()});await page.screenshot({path:path.join(output,'fish-'+width+'.png')});
+}
+console.log(JSON.stringify({fishSelection:'PASS',viewportEvidence,output}));
+await page.setViewportSize({width:390,height:844});
 await chat.getByRole('button',{name:'범위·가격 확인하고 계속하기',exact:true}).click();
 await next();await next();
 await chat.getByRole('heading',{name:'상담 내용 확인'}).waitFor();
@@ -104,7 +117,7 @@ if(await checkout.count()){await checkout.click();await chat.getByRole('alert').
 assert.equal(requests.length,1);
 assert.equal(requests[0].question,'부탁을 거절할 때 어떻게 말하면 좋을까?');
 assert.equal(requests[0].questionDecision.confirmed,true);
-assert.equal(requests[0].productId,'saju_mackerel');
+assert.equal(requests[0].productId,'saju_tuna','chosen tier survives scope confirmation and reload');
 assert.equal(requests[0].profileId,'mock-profile');
 assert.equal(requests[0].consultationKind,'ask');
 assert.ok(requests[0].consultationAttemptId);

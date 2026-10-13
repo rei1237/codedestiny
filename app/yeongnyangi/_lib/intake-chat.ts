@@ -1,13 +1,13 @@
-import {QUESTION_POLICY_VERSION,questionTopics,recommendQuestion,type QuestionDecision} from '@/worker/yeongnyangi/fortune/ask/question-policy';
+import {QUESTION_POLICY_VERSION,questionTopics,recommendQuestion,questionNeedsDecisionDetails,type QuestionDecision,type QuestionFish} from '@/worker/yeongnyangi/fortune/ask/question-policy';
 import {systemNames} from '@/worker/yeongnyangi/payments/catalog';
 import type {DomainId} from '@/worker/yeongnyangi/fortune/shared/contracts';
 
 export const emptyIntakeDecision=():QuestionDecision=>({version:QUESTION_POLICY_VERSION,category:'self',target:'self',horizon:'current',situation:'',options:'',period:'',constraints:'',confirmed:false});
-export type IntakeValue={domain:DomainId;question:string;decision:QuestionDecision};
+export type IntakeValue={domain:DomainId;question:string;decision:QuestionDecision;fish?:QuestionFish};
+export const intakeFish=(value:IntakeValue)=>value.fish||recommendQuestion(value.domain,value.decision,value.question).fish;
 export type IntakeStep='question'|'category'|'target'|'horizon'|'situation'|'relationshipType'|'options'|'constraints'|'period'|'domain'|'scope';
 export function intakeSteps(value:IntakeValue):IntakeStep[]{
- const fish=recommendQuestion(value.domain,value.decision,value.question).fish;
- return ['question','category','target','horizon','situation',...(value.decision.target==='pair'?['relationshipType' as const]:[]),...(fish==='salmon'?['options' as const,'constraints' as const]:[]),'period','domain','scope'];
+ return ['question','category','target','horizon','situation',...(value.decision.target==='pair'?['relationshipType' as const]:[]),...(questionNeedsDecisionDetails(value.decision)?['options' as const,'constraints' as const]:[]),'period','domain','scope'];
 }
 export function intakeAnswer(step:IntakeStep,value:IntakeValue):string{
  const d=value.decision;
@@ -25,7 +25,7 @@ export function intakeAnswer(step:IntakeStep,value:IntakeValue):string{
 export function intakeStepValid(step:IntakeStep,value:IntakeValue):boolean{
  const plan=recommendQuestion(value.domain,value.decision,value.question);
  if(step==='scope')return Boolean(value.question.trim())&&!plan.unsupported&&!plan.missing.length;
- if(step==='period'&&!['salmon','tuna'].includes(plan.fish))return true;
+ if(step==='period'&&!questionNeedsDecisionDetails(value.decision)&&value.decision.horizon!=='transition')return true;
  return Boolean(intakeAnswer(step,value).trim());
 }
 /** A restored cursor never skips missing inputs or a preparation invalidated by edits. */

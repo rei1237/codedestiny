@@ -1,10 +1,10 @@
 "use client";
 import {getQuestionGuide,questionScopeEntry} from "@/lib/fortune/question-journey";
 import IntakeChat,{type PreparationStep} from './IntakeChat';
-import {emptyIntakeDecision,type IntakeValue} from '../_lib/intake-chat';
+import {emptyIntakeDecision,intakeFish,type IntakeValue} from '../_lib/intake-chat';
 import {PREVENTION_TITLE} from '@/worker/lib/fortune-prevention.js';
 import {consultationBudget,fusionConsultationManifest,a4Label,A4_PAGE_NOTE} from '@/worker/yeongnyangi/fortune/consultation-budget';
-import {QUESTION_POLICY_VERSION,questionTopics,questionDecision,questionManifest,recommendQuestion,questionScopes,FOLLOWUP_LIMITS,type QuestionDecision,type QuestionFish} from '@/worker/yeongnyangi/fortune/ask/question-policy';
+import {QUESTION_POLICY_VERSION,questionTopics,questionDecision,questionManifest,questionScopes,FOLLOWUP_LIMITS,type QuestionDecision,type QuestionFish} from '@/worker/yeongnyangi/fortune/ask/question-policy';
 import RelationshipJourney from './RelationshipJourney';
 import {additionalKindDescription} from '../_lib/consultation-kind-copy';
 import {relationshipCopyFor} from '../_lib/relationship-locales';
@@ -73,6 +73,7 @@ export default function Consultation(){
  const [kindId,setKindId]=useState('personal');
  const [questionMode,setQuestionMode]=useState(true),[decision,setDecision]=useState<QuestionDecision|undefined>();
  const [scopeDraft,setScopeDraft]=useState<QuestionDecision|undefined>();
+ const [questionFish,setQuestionFish]=useState<QuestionFish|undefined>();
  const [chatStep,setChatStep]=useState('question');
  const [domain,setDomain]=useState('saju'),[productId,setProductId]=useState('saju_mackerel');
  const [available,setAvailable]=useState<Product[]>([]),[catalogError,setCatalogError]=useState('');
@@ -165,6 +166,7 @@ export default function Consultation(){
   if(params.get('flow')==='legacy'||params.has('consultationKind')||params.get('domain')==='fusion')setQuestionMode(false);
   if(params.get('flow')==='relationship')setRelationshipStage('question');
   const selected=products.find(p=>p.id===params.get('product'))||(requested==='fusion'?products.find(p=>p.readingKind==='pair'):undefined)||products.find(p=>p.domain===requested&&p.fishId===params.get('fish')&&p.readingKind==='single')||products.find(p=>p.domain===requested&&p.readingKind==='single')||products[0];
+  if(selected.readingKind==='single'&&(params.has('fish')||params.has('product')))setQuestionFish(selected.fishId as QuestionFish);
   setProductId(selected.id);setDomain(selected.readingKind==='single'?selected.domain:'fusion');
   const nextDomain=consultationDomain(selected);
   const requestedKind=consultationKinds[nextDomain].find(k=>k.id===params.get('consultationKind'))||(params.get('topic')?consultationKinds[nextDomain].find(k=>k.id==='ask'):undefined)||defaultKind(nextDomain);
@@ -199,7 +201,7 @@ export default function Consultation(){
     if(typeof draft.extraTime==='string')setExtraTime(draft.extraTime);
     if(typeof draft.extraPlace==='string')setExtraPlace(draft.extraPlace);
     if(draft.topicId==='general'||Object.hasOwn(topicCatalog,draft.topicId))setTopicId(draft.topicId);
-    if(draft.questionDecision?.version===QUESTION_POLICY_VERSION){try{if(draft.editScope){setScopeDraft({...questionDecision(draft.questionDecision),confirmed:false});setDecision(undefined);}else setDecision(questionDecision(draft.questionDecision));setQuestionMode(true);}catch{/* Unknown draft contracts are ignored. */}}
+    if(draft.questionDecision?.version===QUESTION_POLICY_VERSION){try{if(savedProduct?.readingKind==='single')setQuestionFish(savedProduct.fishId as QuestionFish);if(draft.editScope){setScopeDraft({...questionDecision(draft.questionDecision),confirmed:false});setDecision(undefined);}else setDecision(questionDecision(draft.questionDecision));setQuestionMode(true);}catch{/* Unknown draft contracts are ignored. */}}
     if(typeof draft.chatStep==='string')setChatStep(draft.chatStep);
     if(draft.editScope&&Object.hasOwn(systemNames,draft.intakeDomain))setDomain(draft.intakeDomain);
     if(typeof draft.question==='string')setQuestion(draft.question.slice(0,1000));
@@ -262,7 +264,7 @@ export default function Consultation(){
  function chooseRelationshipEngine(next:DomainId){const tarotKind=relationshipQuestionId==='contact'?'contact':relationshipQuestionId==='reunion'?'reunion':['feelings','flirting'].includes(relationshipQuestionId)?'feelings':'compatibility';setDomain(next);setKindId(next==='tarot'?tarotKind:'compatibility');setProductId(next+'_mackerel');setTopicId('relationship');setRelationshipStage('consultation');setError('');}
 
  if(ready&&questionMode&&siteLocale==='ko'&&domain!=='fusion'){
-  const intake:IntakeValue={domain:domain as DomainId,question,decision:decision||scopeDraft||emptyIntakeDecision()};
+  const intake:IntakeValue={domain:domain as DomainId,question,decision:decision||scopeDraft||emptyIntakeDecision(),fish:questionFish};
   const prep:PreparationStep[]=[];
   if(!tarotOnly){
    prep.push({id:'profile',pending:profileState.loading,prompt:voiceStyle==='honorific'?'누구의 흐름을 살펴볼까요? 저장된 프로필을 확인해 주세요.':'누구의 흐름을 살펴볼까? 저장된 프로필이 있으면 다시 적지 않아도 돼.',answer:selectedProfile?.name||'프로필 확인',valid:!guest&&!profileState.loading&&Boolean(selectedProfile),content:<ProfilePicker state={profileState} locale={siteLocale} conversational voice={voiceStyle} onLogin={loginWithDraft}/>});
@@ -277,7 +279,7 @@ export default function Consultation(){
   }
   else {
    prep.push({id:'tarot',prompt:voiceStyle==='honorific'?'질문에 맞는 카드 배치를 확인해 볼까요?':'질문에 맞는 카드 배치를 함께 골라볼까?',answer:tarotSpreadView?.title||'타로 준비',valid:Boolean(tarotSpread&&tierAllowsSpread(product.fishId,tarotSpread)),content:<><TarotSpreadPlanner conversational panel="spread" locale={siteLocale} question={question} onQuestion={value=>{setQuestion(value);setDecision(undefined);setChatStep('question');}} plan={tarotPlan} onPlan={plan=>{setTarotPlan(plan);setTierNotice('');}} tier={product.fishId} purposeMode={questionActive} disabled={busy} notice={tierNotice}
-    onTier={(fishId,cards)=>{const next=choices.find(item=>item.fishId===fishId);if(next){setProductId(next.id);setTierNotice(tarotSpreadCopy.tierRaised(fishName(fishId,siteLocale),cards));}}}/></>});
+    onTier={(fishId,cards)=>{const next=choices.find(item=>item.fishId===fishId);if(next){setQuestionFish(next.fishId as QuestionFish);setProductId(next.id);setTierNotice(tarotSpreadCopy.tierRaised(fishName(fishId,siteLocale),cards));}}}/></>});
    for(const input of (tarotSpread?.requiredInputs||[])){
     if(!['options','period','relationStatus'].includes(input))continue;
     const panel=input as 'options'|'period'|'relationStatus';
@@ -289,9 +291,9 @@ export default function Consultation(){
   }
   prep.push({id:'language',prompt:voiceStyle==='honorific'?'결과를 어떤 언어로 읽으시겠어요?':'결과는 어떤 언어로 읽고 싶어?',answer:readingLanguageNames[locale],valid:true,content:<ReadingLanguageSelect locale={locale} siteLocale={siteLocale} fallback={fallback} disabled={busy||kind.koOnly} onChange={value=>{setLocale(value);setError('');}}/>});
   return <IntakeChat value={intake} confirmed={Boolean(decision)} step={chatStep} onStep={step=>{setChatStep(step);if(step!=='review')consultationAttemptId.current='';}} voice={voiceStyle} onVoice={setVoiceStyle} busy={busy}
-   onChange={next=>{setDomain(next.domain);setQuestion(next.question);setScopeDraft({...next.decision,confirmed:false});setDecision(undefined);setError('');}}
+   onChange={next=>{setQuestionFish(next.fish);if(next.fish)setProductId(next.domain+'_'+next.fish);setDomain(next.domain);setQuestion(next.question);setScopeDraft({...next.decision,confirmed:false});setDecision(undefined);setError('');}}
    onEdit={()=>{setScopeDraft(intake.decision);setDecision(undefined);consultationAttemptId.current='';setError('');}}
-   onConfirm={()=>{const d={...intake.decision,confirmed:true};setDecision(d);setScopeDraft(d);setProductId(intake.domain+'_'+recommendQuestion(intake.domain,d,question).fish);setKindId(intake.domain==='tarot'?TAROT_SPREAD_KIND:d.target==='pair'?'compatibility':'ask');setTopicId(d.category);setRelationshipStage('');consultationAttemptId.current='';}}
+   onConfirm={()=>{const d={...intake.decision,confirmed:true};setDecision(d);setScopeDraft(d);const fish=intakeFish(intake);setQuestionFish(fish);setProductId(intake.domain+'_'+fish);setKindId(intake.domain==='tarot'?TAROT_SPREAD_KIND:d.target==='pair'?'compatibility':'ask');setTopicId(d.category);setRelationshipStage('');consultationAttemptId.current='';}}
    onLegacy={()=>setQuestionMode(false)} preparation={prep.map(item=>({...item,pending:item.pending||Boolean(restoredDraft.current)}))}
    review={<><h2>상담 내용 확인</h2><p>{question}</p><p>{systemNames[intake.domain]} · {tarotOnly?tarotSpreadView?.title:selectedProfile?.name}{partnerProfile?' · '+partnerProfile.name:''}</p><p>기본 상담 + 추가 질문 {FOLLOWUP_LIMITS[product.fishId as QuestionFish]}회</p><div className={styles.checkoutSection}><div className={styles.checkoutTotal}><span>{tierLabel(product)} · {ui.payment}</span><strong><LaunchPlannedPrice className={styles.totalPlanned} amount={plannedTotal}/>{plannedTotal!==null&&<span className={styles.srOnly}>, 체험가 </span>}{price(product.priceKRW)}</strong></div>
    <p>{ui.afterPayment}</p><p>{askCopy.language}: <b lang={locale}>{readingLanguageNames[locale]}</b> · {ui.languageHint}</p><p>{ui.priceHint}</p>
@@ -310,7 +312,7 @@ export default function Consultation(){
  return <section className={`${styles.consultation} ${styles.consultationRoom}`}>
   {relationshipStage&&<button onClick={()=>setRelationshipStage('question')}>{relationshipCopy.change}</button>}
   <header className={styles.consultationHeader}><div><h1>{ui.title}</h1><p>{ui.intro}</p></div><Moon size={36} strokeWidth={1} aria-hidden="true"/></header>
-  {questionActive&&<div className={styles.systemDescription}><h2>{recommendQuestion(product.domain,decision!).reason}</h2><p>{question}</p><p>기본 상담 + 추가 질문 {FOLLOWUP_LIMITS[product.fishId as QuestionFish]}회 · {price(product.priceKRW)}</p><button onClick={()=>{setScopeDraft(decision);setDecision(undefined);}}>질문 범위 다시 선택하기</button></div>}
+  {questionActive&&<div className={styles.systemDescription}><h2>{questionScopes[product.fishId as QuestionFish]}</h2><p>{question}</p><p>기본 상담 + 추가 질문 {FOLLOWUP_LIMITS[product.fishId as QuestionFish]}회 · {price(product.priceKRW)}</p><button onClick={()=>{setScopeDraft(decision);setDecision(undefined);}}>질문 범위 다시 선택하기</button></div>}
   {(()=>{const settings=<><ReadingLanguageSelect locale={locale} siteLocale={siteLocale} fallback={fallback} disabled={busy||kind.koOnly} onChange={value=>{setLocale(value);setError('');}}/>
   {locale==='ko'&&<div className={styles.kindChoices} role="group" aria-label={voiceStyleCopy.heading}>{(['banmal','honorific'] as const).map(value=><button key={value} type="button" aria-pressed={voiceStyle===value} disabled={busy} onClick={()=>setVoiceStyle(value)}><strong>{voiceStyleCopy[value]}</strong><span>{voiceStyleCopy[value==='banmal'?'banmalNote':'honorificNote']}</span></button>)}</div>}</>;
   // 한국어 화면은 결과 언어·말투를 기본값으로 접어 두고, 상담 종류와 생선 선택을 먼저 보인다.

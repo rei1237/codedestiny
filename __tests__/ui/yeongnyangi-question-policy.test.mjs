@@ -30,7 +30,8 @@ test('short career questions are checked by subject and decision, not length or 
 test('mixed comparison/timing and unsupported long-term calculations never select automatic paid upgrades',()=>{
  assert.ok(p.recommendQuestion('saju',d({target:'pair',horizon:'transition'})).unsupported);
  for(const domain of ['astrology','tarot','sukuyo'])assert.ok(p.recommendQuestion(domain,d({horizon:'transition'})).unsupported);
- assert.throws(()=>p.assertQuestionOrder({domain:'saju',readingKind:'single',fishId:'tuna'},d()),/QUESTION_PRODUCT_MISMATCH/);
+ assert.equal(p.assertQuestionOrder({domain:'saju',readingKind:'single',fishId:'tuna'},d()).fish,'mackerel','recommendation does not force the paid tier');
+ assert.throws(()=>p.assertQuestionOrder({domain:'saju',readingKind:'single',fishId:'invented'},d()),/QUESTION_PRODUCT_MISMATCH/);
 });
 test('one intent survives clarification, failures and duplicates; limit is used only on saved answers',()=>{
  let c=p.reserveConversation(undefined,1,'one','첫 질문',0,'a');

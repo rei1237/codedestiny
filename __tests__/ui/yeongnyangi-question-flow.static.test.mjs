@@ -45,8 +45,10 @@ test('question choices stay short: entry topics filter examples and tiers compar
  // A concern entry (?category=) shows only its own examples; otherwise six first, the rest behind "더 보기".
  assert.match(intake,/allExamples\.filter\(t=>exampleGroup\(t\.id\)===exampleGroup\(entryCategory\)\)[^;]*\.slice\(0,4\)/);
  assert.match(intake,/moreExamples\?allExamples:allExamples\.slice\(0,6\)/);
- // The scope review keeps the server's recommendation and only explains the other tiers.
- assert.match(intake,/<summary>생선별 상담 범위 비교<\/summary>[\s\S]*?questionScopes\[fish\]/);
+ // The recommendation is advisory; the selected fish travels through the shared radio picker.
+ assert.match(intake,/<QuestionFishPicker[^>]*selected=\{intakeFish\(value\)\}[^>]*recommended=\{plan.fish\}/);
+ const picker=read('app/yeongnyangi/_components/QuestionFishPicker.tsx');
+ assert.match(picker,/type="radio"/);assert.match(picker,/questionScopes\[fish\]/);assert.match(picker,/product.priceKRW/);
  // Equal-depth copy stays; each Korean tier card adds its question scope line.
  assert.match(form,/data-question-scope=\{item\.fishId\}>\{questionScopes\[item\.fishId as QuestionFish\]\}/);
  assert.match(form,/readingTierDepth\(item\.fishId,siteLocale\)/);
