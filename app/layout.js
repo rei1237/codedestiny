@@ -24,22 +24,22 @@ const notoSansKRVariable = "font-noto-sans-kr-offline";
 
 const ROOT_LAYOUT_COPY = {
   ko: {
-    insightsRssTitle: "꿀꿀 운세 Insights RSS",
+    insightsRssTitle: "꿀꿀운세 Insights RSS",
   },
   en: {
-    insightsRssTitle: "꿀꿀 운세 Insights RSS",
+    insightsRssTitle: "꿀꿀운세 Insights RSS",
   },
   ja: {
-    insightsRssTitle: "꿀꿀 운세 Insights RSS",
+    insightsRssTitle: "꿀꿀운세 Insights RSS",
   },
   zh: {
-    insightsRssTitle: "꿀꿀 운세 Insights RSS",
+    insightsRssTitle: "꿀꿀운세 Insights RSS",
   },
 };
 
 const ROOT_SEO = {
-  title: "꿀꿀 운세 | 사주·타로·영냥이 상담",
-  description: "꿀꿀 운세는 사주·타로 상담 서비스입니다. 꽃돼지 연이, 네오, 영냥이와 함께 자신의 기질과 관계를 살펴보고 일상에서 선택할 방향을 찾아보세요.",
+  title: "꿀꿀운세 | 사주·타로·영냥이 상담",
+  description: "꿀꿀운세는 사주·타로 상담 서비스입니다. 꽃돼지 연이, 네오, 영냥이와 함께 자신의 기질과 관계를 살펴보고 일상에서 선택할 방향을 찾아보세요.",
   ogTitle: siteSeo.defaultTitle,
   ogDescription: siteSeo.defaultDescription,
 };
@@ -109,7 +109,7 @@ export const metadata = {
         url: siteSeo.defaultOgImage,
         width: 1200,
         height: 630,
-        alt: "꿀꿀 운세 사주·타로 상담 서비스",
+        alt: "꿀꿀운세 사주·타로 상담 서비스",
       },
     ],
   },
@@ -156,8 +156,8 @@ export const viewport = {
 //
 // 같은 @id(https://code-destiny.com/#website)를 홈(승격된 정적 셸)과 나머지 400여 Next 라우트
 // (이 레이아웃)가 각각 선언하므로 두 값이 글자 단위로 같아야 한다. 예전에는 여기 이름을 손으로
-// 적어 두는 바람에 **3중 드리프트**가 났다 — 셸 "CODE DESTINY (꿀꿀 운세)" vs 여기
-// "꿀꿀 운세 — Code Destiny" vs buildWebsiteJsonLd 기본값 "Code Destiny"(2026-08-16 실측).
+// 적어 두는 바람에 **3중 드리프트**가 났다 — 셸 "CODE DESTINY (꿀꿀운세)" vs 여기
+// "꿀꿀운세 — Code Destiny" vs buildWebsiteJsonLd 기본값 "Code Destiny"(2026-08-16 실측).
 // 이제 override 를 없애 세 번째 값이 생길 자리를 아예 지웠다. 셸과의 일치는
 // __tests__/ui/locale-footer.static.test.js 가 강제한다.
 const BRAND_WEBSITE_JSON_LD = buildWebsiteJsonLd("ko");

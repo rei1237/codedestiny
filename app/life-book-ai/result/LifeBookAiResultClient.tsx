@@ -1706,7 +1706,7 @@ function LifeBookResultContent() {
             <div className={styles.coverIntroduction}>
               <h1 ref={documentHeadingRef} tabIndex={-1} className={styles.coverTitle}>{report.title}</h1>
               <p className={styles.coverSubtitle}>{report.subtitle}</p>
-              <p className={styles.coverSignature}>{userName} · 꿀꿀 운세</p>
+              <p className={styles.coverSignature}>{userName} · 꿀꿀운세</p>
             </div>
             <div className={styles.coverDetails}>
             <p className={styles.coverStatement}>{toText(report.coreSummary?.oneLine)}</p>

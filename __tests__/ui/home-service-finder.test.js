@@ -38,7 +38,7 @@ function sliceById(html, id) {
 async function boot(extraTiles = [], { home = false } = {}) {
   const markup = [
     '<main id="inputPage">',
-    // 홈(꿀꿀 운세) 안에 마운트되면 입력 전에는 결과를 그리지 않는다.
+    // 홈(꿀꿀운세) 안에 마운트되면 입력 전에는 결과를 그리지 않는다.
     ...(home ? ['<div id="cdHomeFunnel">'] : []),
     sliceById(shell, "fortuneGatewayDiscover"),
     sliceById(shell, "cdServiceIndex"),

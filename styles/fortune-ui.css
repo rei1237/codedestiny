@@ -3683,7 +3683,7 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
 }
 .tarot-oracle.show{opacity:1;transform:translateY(0)}
 
-/* 골드 더스트 효과 — 순금 네온(#FFD700) 대신 꿀꿀 운세 앤틱골드 토큰과 같은 색.
+/* 골드 더스트 효과 — 순금 네온(#FFD700) 대신 꿀꿀운세 앤틱골드 토큰과 같은 색.
    적은 개수(js: 30→18)·느린 낙하가 "적을수록 고급스럽다"는 방향과 맞는다. */
 .gold-dust{
   position:absolute;width:3px;height:3px;background:#ead089;
@@ -12243,7 +12243,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
       .dp-switch-yes:active { transform:scale(0.97); }
 
 /* --- block 7 --- */
-            /* 꿀꿀 운세 고유 로즈/골드 톤(--cd-accent, --cd-gold) 안에서 영냥이 수준의 무게감을 낸다 —
+            /* 꿀꿀운세 고유 로즈/골드 톤(--cd-accent, --cd-gold) 안에서 영냥이 수준의 무게감을 낸다 —
                보라/인디고 네온 팔레트를 걷어내고, 와인블랙 무대 + 저채도 금 헤어라인 + 레이어드 그림자로.
                색 계열은 바꾸지 않는다(Hue-Stays Rule) — design-canon.md: 영냥이 --yn-* 팔레트는 이식하지 않음. */
             .glass-oracle-modal {

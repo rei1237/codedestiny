@@ -88,7 +88,7 @@ test("푸터 카피는 5개 로케일이 모두 채워져 있고 ko 외에는 �
   const koStart = table.indexOf("ko: {");
   const koBlock = sliceBalanced(table.slice(koStart), "ko: {", "{", "}");
   const withoutKo = table.replace(koBlock, "");
-  const leftoverHangul = withoutKo.replaceAll('꿀꿀 운세', '').match(/[가-힣]+/g) || [];
+  const leftoverHangul = withoutKo.replaceAll('꿀꿀운세', '').match(/[가-힣]+/g) || [];
   // 사업자 정보 '값'은 등록 원문이라 LocaleFooterHub 쪽에 있고 이 표에는 없어야 한다.
   assert.deepEqual(
     leftoverHangul,

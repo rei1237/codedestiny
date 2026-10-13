@@ -77,7 +77,7 @@ const YEON_STAR_HUG_TEXT_TRANSLATIONS = {
     "yeonStar.text.004": "연이가 전하는 오늘의 한 문장",
     "yeonStar.text.005": "오늘의 행운 상징",
     "yeonStar.text.006": "연이의 응원은 짧고 선명하게, 너의 오늘을 지켜줄 거야.",
-    "yeonStar.text.007": "꿀꿀 운세 · Yeon Cheer Card",
+    "yeonStar.text.007": "꿀꿀운세 · Yeon Cheer Card",
     "yeonStar.title.001": "연이의 마음 별자리",
     "yeonStar.title.002": "연이의 마음 별자리",
     "yeonStar.alt.001": "연이의 마음 별자리 아트",

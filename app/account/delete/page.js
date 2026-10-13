@@ -5,7 +5,7 @@ import AccountDeleteActions from "./AccountDeleteActions";
 
 const ACCOUNT_DELETE_METADATA_COPY = {
   ko: {
-    title: "계정 삭제 안내 | 꿀꿀 운세",
+    title: "계정 삭제 안내 | 꿀꿀운세",
     description:
       "Code Destiny 계정 삭제 절차 안내입니다. 삭제되는 데이터와 법령에 따라 보관되는 데이터, 삭제 요청 방법, 처리 기간을 확인할 수 있습니다.",
     keywords: ["계정 삭제", "회원 탈퇴", "데이터 삭제", "Code Destiny 계정", "개인정보 파기"],

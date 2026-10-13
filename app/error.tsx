@@ -32,7 +32,7 @@ export default function RootRouteError({
   return (
     <SystemNotice
       title={t("errorBoundary.title")}
-      eyebrow="꿀꿀 운세"
+      eyebrow="꿀꿀운세"
       description={t("errorBoundary.description")}
       actions={
         <>

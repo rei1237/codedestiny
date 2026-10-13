@@ -706,7 +706,7 @@ export function useMusicPlayer(tracks: readonly Track[], options: UseMusicPlayer
     navigator.mediaSession.metadata = new MediaMetadata({
       title: currentTrack.title,
       artist: currentTrack.artistName,
-      album: "꿀꿀 운세 Music",
+      album: "꿀꿀운세 Music",
       artwork,
     });
   }, [currentTrack]);

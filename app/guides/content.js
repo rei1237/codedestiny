@@ -23,7 +23,7 @@ const HIGH_VALUE_CONTENT_TEXT_TRANSLATIONS = {
     "highValueContent.021": "연애운 무료 보기",
     "highValueContent.022": "운세 서비스를 안전하게 이용하는 FAQ",
     "highValueContent.023": "오늘의 운세 무료 보기",
-    "highValueContent.024": "꿀꿀 운세 자주 묻는 질문",
+    "highValueContent.024": "꿀꿀운세 자주 묻는 질문",
   },
 };
 

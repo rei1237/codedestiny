@@ -129,7 +129,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "사주 정밀 분석 소개 | 꿀꿀 운세",
+        "title": "사주 정밀 분석 소개 | 꿀꿀운세",
         "description": "사주팔자, 오행, 십성, 대운/세운 흐름을 읽는 사주 정밀 분석 서비스 소개 페이지입니다.",
         "keywords": ["사주", "사주팔자", "오행", "십성", "대운", "세운", "만세력"]
       }
@@ -172,7 +172,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "priceLabel": "20,000원",
       "premiumOptions": [],
       "seo": {
-        "title": "심화 자미두수 12궁 상담 소개 | 꿀꿀 운세",
+        "title": "심화 자미두수 12궁 상담 소개 | 꿀꿀운세",
         "description": "자미두수 12궁과 명궁, 신궁, 사화 흐름으로 성향과 인생 흐름을 읽는 심화 상담 서비스 소개 페이지입니다.",
         "keywords": ["자미두수", "紫微斗數", "12궁", "명반", "명궁", "신궁", "사화"]
       }
@@ -214,7 +214,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "숙요점 27숙 분석 소개 | 꿀꿀 운세",
+        "title": "숙요점 27숙 분석 소개 | 꿀꿀운세",
         "description": "숙요점 27숙 체계로 성향, 궁합, 운의 흐름을 분석하는 서비스 소개 페이지입니다.",
         "keywords": ["숙요점", "27수", "숙요", "궁합", "동양 점성술"]
       }
@@ -256,7 +256,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "베다 점성술 분석 소개 | 꿀꿀 운세",
+        "title": "베다 점성술 분석 소개 | 꿀꿀운세",
         "description": "라그나와 다샤 중심으로 인생 흐름을 해석하는 베다 점성술 서비스 소개 페이지입니다.",
         "keywords": ["베다 점성술", "Jyotish", "라그나", "다샤", "나크샤트라"]
       }
@@ -298,7 +298,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "서양 점성술 차트 분석 소개 | 꿀꿀 운세",
+        "title": "서양 점성술 차트 분석 소개 | 꿀꿀운세",
         "description": "태양, 달, 상승궁 기반으로 성향과 흐름을 읽는 서양 점성술 서비스 소개 페이지입니다.",
         "keywords": ["점성술", "서양 점성술", "태양궁", "달궁", "상승궁", "코즈믹"]
       }
@@ -339,7 +339,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
         }
       ],
       "seo": {
-        "title": "타로 리딩 소개 | 꿀꿀 운세",
+        "title": "타로 리딩 소개 | 꿀꿀운세",
         "description": "연애, 선택, 관계 흐름을 카드 상징으로 해석하는 타로 리딩 서비스 소개 페이지입니다.",
         "keywords": ["타로", "타로 리딩", "연애 타로", "운세", "카드 리딩"]
       },
@@ -382,7 +382,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "priceLabel": "3,000원~5,000원",
       "seo": {
-        "title": "타로 오라클 상담 | 꿀꿀 운세",
+        "title": "타로 오라클 상담 | 꿀꿀운세",
         "description": "질문 기반 스프레드 선택과 카드 드로우로 실제 AI 타로 상담을 받는 타로 오라클 상담 소개 페이지입니다.",
         "keywords": ["타로 오라클 상담", "AI 타로", "타로 AI 상담", "타로 프롬프트"]
       },
@@ -425,7 +425,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "priceLabel": "부분 유료",
       "seo": {
-        "title": "전문가 손금 분석 소개 | 꿀꿀 운세",
+        "title": "전문가 손금 분석 소개 | 꿀꿀운세",
         "description": "손바닥 이미지를 기반으로 생명선, 감정선, 운명선을 읽는 전문가 손금 분석 서비스 소개 페이지입니다.",
         "keywords": ["손금", "손금 분석", "전문가 손금", "생명선", "운명선"]
       },
@@ -467,7 +467,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
         }
       ],
       "seo": {
-        "title": "전문가 관상 분석 소개 | 꿀꿀 운세",
+        "title": "전문가 관상 분석 소개 | 꿀꿀운세",
         "description": "얼굴 이미지를 기반으로 인상과 성향을 읽는 전문가 관상 분석 서비스 소개 페이지입니다.",
         "keywords": ["관상", "전문가 관상", "얼굴 분석", "성향 분석"]
       },
@@ -509,7 +509,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
         }
       ],
       "seo": {
-        "title": "최애운명 소개 | 꿀꿀 운세",
+        "title": "최애운명 소개 | 꿀꿀운세",
         "description": "내 최애와 나의 케미를 포토카드로 보는 최애운명 서비스 소개 페이지입니다.",
         "keywords": ["최애운명", "최애 케미", "K-POP 궁합", "포토카드 운세"]
       },
@@ -551,7 +551,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
         }
       ],
       "seo": {
-        "title": "러브 코드 소개 | 꿀꿀 운세",
+        "title": "러브 코드 소개 | 꿀꿀운세",
         "description": "상대 사주 기반으로 연애 시뮬레이션을 제공하는 러브 코드 서비스 소개 페이지입니다.",
         "keywords": ["러브 코드", "연애 시뮬레이션", "사주 연애", "궁합"]
       },
@@ -593,7 +593,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
         }
       ],
       "seo": {
-        "title": "이모이 오미쿠지 소개 | 꿀꿀 운세",
+        "title": "이모이 오미쿠지 소개 | 꿀꿀운세",
         "description": "일본 신사 감성으로 오늘의 운세를 가볍게 확인하는 이모이 오미쿠지 소개 페이지입니다.",
         "keywords": ["오미쿠지", "오늘의 운세", "감성 운세", "일본 운세"]
       },
@@ -635,7 +635,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
         }
       ],
       "seo": {
-        "title": "사주 가디언 아트 소개 | 꿀꿀 운세",
+        "title": "사주 가디언 아트 소개 | 꿀꿀운세",
         "description": "생년월일의 일주와 오행 기운으로 60갑자 가디언 카드를 확인하는 무료 사주 가디언 아트입니다.",
         "keywords": ["사주 가디언", "일주 가디언", "60갑자", "사주 가디언 아트"]
       },
@@ -677,7 +677,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
         }
       ],
       "seo": {
-        "title": "사주로 보는 인연의 장소 소개 | 꿀꿀 운세",
+        "title": "사주로 보는 인연의 장소 소개 | 꿀꿀운세",
         "description": "사주 에너지로 인연 장소, 도시, 시기를 추천하는 독립 실행 리포트 서비스 소개 페이지입니다.",
         "keywords": ["사주 인연 장소", "인연운", "사주 장소 추천", "만남 타이밍"]
       },
@@ -720,7 +720,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
         }
       ],
       "seo": {
-        "title": "인생의 책 전문가 상담 | 꿀꿀 운세",
+        "title": "인생의 책 전문가 상담 | 꿀꿀운세",
         "description": "명식과 상담 주제를 바탕으로 삶의 흐름을 따뜻하게 읽어주는 인생의 책 전문가 상담입니다.",
         "keywords": ["인생의 책 전문가 상담", "명리학 상담", "사주 상담", "인생 상담"]
       },
@@ -763,7 +763,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "priceLabel": "30,000원",
       "seo": {
-        "title": "자미두수 전문가 상담 소개 | 꿀꿀 운세",
+        "title": "자미두수 전문가 상담 소개 | 꿀꿀운세",
         "description": "자미두수 명반을 바탕으로 명궁, 신궁, 12궁, 대한과 유년 흐름을 상담형으로 풀어주는 자미두수 전문가 상담 소개 페이지입니다.",
         "keywords": ["자미두수 전문가 상담", "자미두수 명반 상담", "명궁 해석", "자미두수 상담"]
       },
@@ -806,7 +806,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "priceLabel": "3,000원~5,000원",
       "seo": {
-        "title": "스톤헨지 룬점 소개 | 꿀꿀 운세",
+        "title": "스톤헨지 룬점 소개 | 꿀꿀운세",
         "description": "고대 룬 상징으로 선택과 시기를 해석하는 스톤헨지 룬 오라클 소개 페이지입니다.",
         "keywords": ["룬", "스톤헨지 룬", "룬 오라클", "룬 점"]
       },
@@ -849,7 +849,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "priceLabel": "3,000원",
       "seo": {
-        "title": "애니멀 토템 소개 | 꿀꿀 운세",
+        "title": "애니멀 토템 소개 | 꿀꿀운세",
         "description": "수호 동물 상징으로 현재 흐름을 읽는 애니멀 토템 서비스 소개 페이지입니다.",
         "keywords": ["애니멀 토템", "수호 동물", "토템 리딩"]
       },
@@ -894,7 +894,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "Precise Saju Reading | 꿀꿀 운세",
+        "title": "Precise Saju Reading | 꿀꿀운세",
         "description": "A complete birth-chart reading of Five Elements, Ten Gods, timing, and life direction.",
         "keywords": ["Precise Saju Reading", "Saju", "Five Elements", "Ten Gods", "Timing"]
       }
@@ -937,7 +937,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "Advanced Zi Wei Dou Shu 12-Palace Counsel | 꿀꿀 운세",
+        "title": "Advanced Zi Wei Dou Shu 12-Palace Counsel | 꿀꿀운세",
         "description": "Read the Life Palace, Body Palace, transformations, and the twelve palaces as a practical destiny map.",
         "keywords": ["Advanced Zi Wei Dou Shu 12-Palace Counsel", "Zi Wei", "12 Palaces", "Life Palace", "Four Transformations"]
       }
@@ -979,7 +979,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "Sukuyo Relationship Radar | 꿀꿀 운세",
+        "title": "Sukuyo Relationship Radar | 꿀꿀운세",
         "description": "Trace emotional distance, affinity, and timing through the twenty-seven lunar mansions.",
         "keywords": ["Sukuyo Relationship Radar", "Sukuyo", "Compatibility", "Moon Mansions"]
       }
@@ -1021,7 +1021,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "Vedic Astrology Reading | 꿀꿀 운세",
+        "title": "Vedic Astrology Reading | 꿀꿀운세",
         "description": "Open a Jyotish-style chart reading that follows planets, houses, and life rhythm.",
         "keywords": ["Vedic Astrology Reading", "Vedic Astrology", "Jyotish", "Natal Chart"]
       }
@@ -1063,7 +1063,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "Western Astrology Chart Reading | 꿀꿀 운세",
+        "title": "Western Astrology Chart Reading | 꿀꿀운세",
         "description": "Read personality, relationships, work, and timing through a Western natal chart.",
         "keywords": ["Western Astrology Chart Reading", "Astrology", "Natal Chart", "Planets"]
       }
@@ -1105,7 +1105,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "Tarot Reading | 꿀꿀 운세",
+        "title": "Tarot Reading | 꿀꿀운세",
         "description": "Cards reveal the texture of the present question and the next standard for choice.",
         "keywords": ["Tarot Reading", "Tarot", "Cards", "Oracle"]
       }
@@ -1148,7 +1148,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "premiumOptions": [],
       "priceLabel": "KRW 3,000~5,000",
       "seo": {
-        "title": "Tarot Oracle Consultation | 꿀꿀 운세",
+        "title": "Tarot Oracle Consultation | 꿀꿀운세",
         "description": "Get a real AI tarot consultation by choosing a question-matched spread and drawing your own cards.",
         "keywords": ["Tarot Oracle Consultation", "AI Tarot", "Tarot AI Consultation", "Tarot Prompt"]
       }
@@ -1191,7 +1191,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "Expert Palm Reading | 꿀꿀 운세",
+        "title": "Expert Palm Reading | 꿀꿀운세",
         "description": "Read the major lines and hand signs from a palm image with guided expert interpretation.",
         "keywords": ["Expert Palm Reading", "Palm Reading", "Expert", "Hand Lines"]
       }
@@ -1233,7 +1233,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "Expert Face Reading | 꿀꿀 운세",
+        "title": "Expert Face Reading | 꿀꿀운세",
         "description": "Read facial structure and impression signals through a careful expert face-reading flow.",
         "keywords": ["Expert Face Reading", "Face Reading", "Expert", "Impression"]
       }
@@ -1275,7 +1275,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "Favorite-Person Destiny | 꿀꿀 운세",
+        "title": "Favorite-Person Destiny | 꿀꿀운세",
         "description": "See the resonance between your chart and the person who keeps drawing your heart.",
         "keywords": ["Favorite-Person Destiny", "Favorite Person", "Resonance", "Saju"]
       }
@@ -1317,7 +1317,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "LOVE CODE | 꿀꿀 운세",
+        "title": "LOVE CODE | 꿀꿀운세",
         "description": "A Saju-based love simulation that reveals attraction rhythm, friction, and timing.",
         "keywords": ["LOVE CODE", "Love", "Compatibility", "Simulation"]
       }
@@ -1359,7 +1359,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "Emoi Omikuji | 꿀꿀 운세",
+        "title": "Emoi Omikuji | 꿀꿀운세",
         "description": "Open a light daily omen with charm, mood, and a small sign for the day.",
         "keywords": ["Emoi Omikuji", "Omikuji", "Daily Omen", "Mood"]
       }
@@ -1401,7 +1401,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "Saju Guardian Art | 꿀꿀 운세",
+        "title": "Saju Guardian Art | 꿀꿀운세",
         "description": "Meet the guardian animal awakened by your Saju rhythm and twelve growth stars.",
         "keywords": ["Saju Guardian Art", "Guardian Animal", "Saju", "Art"]
       }
@@ -1443,7 +1443,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "Destined Meeting Place by Saju | 꿀꿀 운세",
+        "title": "Destined Meeting Place by Saju | 꿀꿀운세",
         "description": "Read places, cities, and timing where meaningful connection is more likely to open.",
         "keywords": ["Destined Meeting Place by Saju", "Destined Place", "Relationship", "Timing"]
       }
@@ -1485,9 +1485,9 @@ const SERVICE_FEATURE_TRANSLATIONS = {
         }
       ],
       "seo": {
-        "title": "Life Book Expert Consultation | 꿀꿀 운세",
+        "title": "Life Book Expert Consultation | 꿀꿀운세",
         "description": "A warm Life Book Expert consultation that reads your life flow from birth details and your chosen theme.",
-        "keywords": ["Life Book Expert Consultation", "Saju consultation", "life reading", "꿀꿀 운세"]
+        "keywords": ["Life Book Expert Consultation", "Saju consultation", "life reading", "꿀꿀운세"]
       },
       "premiumOptions": []
     },
@@ -1529,7 +1529,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "Zi Wei Expert Consultation | 꿀꿀 운세",
+        "title": "Zi Wei Expert Consultation | 꿀꿀운세",
         "description": "A Zi Wei Expert consultation that reads your twelve-palace chart as a practical life conversation.",
         "keywords": ["Zi Wei Expert Consultation", "Expert Consultation", "Zi Wei", "12 Palaces"]
       }
@@ -1572,7 +1572,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "Stonehenge Rune Oracle | 꿀꿀 운세",
+        "title": "Stonehenge Rune Oracle | 꿀꿀운세",
         "description": "Ancient rune symbols open a compact oracle reading for the question in front of you.",
         "keywords": ["Stonehenge Rune Oracle", "Runes", "Oracle", "Stonehenge"]
       }
@@ -1615,7 +1615,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "Animal Totem | 꿀꿀 운세",
+        "title": "Animal Totem | 꿀꿀운세",
         "description": "A guardian-animal message that reflects the current state of your heart and path.",
         "keywords": ["Animal Totem", "Guardian Message", "Oracle"]
       }
@@ -1659,7 +1659,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "四柱推命 精密鑑定 | 꿀꿀 운세",
+        "title": "四柱推命 精密鑑定 | 꿀꿀운세",
         "description": "五行・十神・時期運・人生の流れを一つにつなげて読む命式リーディング。",
         "keywords": ["四柱推命 精密鑑定", "Saju", "Five Elements", "Ten Gods", "Timing"]
       }
@@ -1702,7 +1702,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "紫微斗数 12宮 詳細鑑定 | 꿀꿀 운세",
+        "title": "紫微斗数 12宮 詳細鑑定 | 꿀꿀운세",
         "description": "命宮・身宮・四化・十二宮から人生の地図を実用的に読み解きます。",
         "keywords": ["紫微斗数 12宮 詳細鑑定", "Zi Wei", "12 Palaces", "Life Palace", "Four Transformations"]
       }
@@ -1744,7 +1744,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "宿曜 ご縁レーダー | 꿀꿀 운세",
+        "title": "宿曜 ご縁レーダー | 꿀꿀운세",
         "description": "二十七宿の月の相から、距離感・相性・タイミングを見ます。",
         "keywords": ["宿曜 ご縁レーダー", "Sukuyo", "Compatibility", "Moon Mansions"]
       }
@@ -1786,7 +1786,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "ヴェーダ占星術鑑定 | 꿀꿀 운세",
+        "title": "ヴェーダ占星術鑑定 | 꿀꿀운세",
         "description": "惑星、ハウス、人生のリズムをジョーティシュの視点で読みます。",
         "keywords": ["ヴェーダ占星術鑑定", "Vedic Astrology", "Jyotish", "Natal Chart"]
       }
@@ -1828,7 +1828,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "西洋占星術チャート鑑定 | 꿀꿀 운세",
+        "title": "西洋占星術チャート鑑定 | 꿀꿀운세",
         "description": "出生図から性格、関係性、仕事、タイミングを読み解きます。",
         "keywords": ["西洋占星術チャート鑑定", "Astrology", "Natal Chart", "Planets"]
       }
@@ -1870,7 +1870,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "タロットリーディング | 꿀꿀 운세",
+        "title": "タロットリーディング | 꿀꿀운세",
         "description": "カードが今の問いの質感と、次に選ぶ基準を照らします。",
         "keywords": ["タロットリーディング", "Tarot", "Cards", "Oracle"]
       }
@@ -1913,7 +1913,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "premiumOptions": [],
       "priceLabel": "3,000~5,000ウォン",
       "seo": {
-        "title": "タロットオラクル相談 | 꿀꿀 운세",
+        "title": "タロットオラクル相談 | 꿀꿀운세",
         "description": "質問に合わせたスプレッド選択とカードドローで、実際のAIタロット相談を受けられるタロットオラクル相談の紹介ページです。",
         "keywords": ["タロットオラクル相談", "AIタロット", "タロットAI相談", "タロットプロンプト"]
       }
@@ -1956,7 +1956,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "専門家手相鑑定 | 꿀꿀 운세",
+        "title": "専門家手相鑑定 | 꿀꿀운세",
         "description": "手のひら画像から主要線とサインを丁寧に読み解きます。",
         "keywords": ["専門家手相鑑定", "Palm Reading", "Expert", "Hand Lines"]
       }
@@ -1998,7 +1998,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "専門家観相鑑定 | 꿀꿀 운세",
+        "title": "専門家観相鑑定 | 꿀꿀운세",
         "description": "顔立ちと印象のサインを専門家観相の流れで読みます。",
         "keywords": ["専門家観相鑑定", "Face Reading", "Expert", "Impression"]
       }
@@ -2040,7 +2040,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "推し運命 | 꿀꿀 운세",
+        "title": "推し運命 | 꿀꿀운세",
         "description": "あなたの命式と心惹かれる相手の共鳴を読みます。",
         "keywords": ["推し運命", "Favorite Person", "Resonance", "Saju"]
       }
@@ -2082,7 +2082,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "LOVE CODE | 꿀꿀 운세",
+        "title": "LOVE CODE | 꿀꿀운세",
         "description": "四柱推命ベースで恋の引力、摩擦、タイミングを読みます。",
         "keywords": ["LOVE CODE", "Love", "Compatibility", "Simulation"]
       }
@@ -2124,7 +2124,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "エモいおみくじ | 꿀꿀 운세",
+        "title": "エモいおみくじ | 꿀꿀운세",
         "description": "今日の気分と小さな兆しを軽やかに開きます。",
         "keywords": ["エモいおみくじ", "Omikuji", "Daily Omen", "Mood"]
       }
@@ -2166,7 +2166,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "四柱守護アニマルアート | 꿀꿀 운세",
+        "title": "四柱守護アニマルアート | 꿀꿀운세",
         "description": "命式のリズムから目覚める守護動物を描きます。",
         "keywords": ["四柱守護アニマルアート", "Guardian Animal", "Saju", "Art"]
       }
@@ -2208,7 +2208,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "四柱で見るご縁の場所 | 꿀꿀 운세",
+        "title": "四柱で見るご縁の場所 | 꿀꿀운세",
         "description": "意味ある出会いが開きやすい場所、都市、時期を読みます。",
         "keywords": ["四柱で見るご縁の場所", "Destined Place", "Relationship", "Timing"]
       }
@@ -2250,9 +2250,9 @@ const SERVICE_FEATURE_TRANSLATIONS = {
         }
       ],
       "seo": {
-        "title": "Life Book Expert Consultation | 꿀꿀 운세",
+        "title": "Life Book Expert Consultation | 꿀꿀운세",
         "description": "A warm Life Book Expert consultation that reads your life flow from birth details and your chosen theme.",
-        "keywords": ["Life Book Expert Consultation", "Saju consultation", "life reading", "꿀꿀 운세"]
+        "keywords": ["Life Book Expert Consultation", "Saju consultation", "life reading", "꿀꿀운세"]
       },
       "premiumOptions": []
     },
@@ -2294,7 +2294,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "紫微斗数プレミアムPDF | 꿀꿀 운세",
+        "title": "紫微斗数プレミアムPDF | 꿀꿀운세",
         "description": "十二宮の命盤を実用的な人生戦略の本に整えます。",
         "keywords": ["紫微斗数プレミアムPDF", "Expert Consultation", "Zi Wei", "12 Palaces"]
       }
@@ -2337,7 +2337,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "ストーンヘンジ ルーン神託 | 꿀꿀 운세",
+        "title": "ストーンヘンジ ルーン神託 | 꿀꿀운세",
         "description": "古代ルーンの象徴が、今の問いに短く深い答えを開きます。",
         "keywords": ["ストーンヘンジ ルーン神託", "Runes", "Oracle", "Stonehenge"]
       }
@@ -2380,7 +2380,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "アニマルトーテム | 꿀꿀 운세",
+        "title": "アニマルトーテム | 꿀꿀운세",
         "description": "守護動物のメッセージが今の心と道筋を映します。",
         "keywords": ["アニマルトーテム", "Animal Totem", "Guardian Message", "Oracle"]
       }
@@ -2424,7 +2424,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "八字精密分析 | 꿀꿀 운세",
+        "title": "八字精密分析 | 꿀꿀운세",
         "description": "从五行、十神、时运与人生方向读出完整命盘。",
         "keywords": ["八字精密分析", "Saju", "Five Elements", "Ten Gods", "Timing"]
       }
@@ -2467,7 +2467,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "紫微斗数十二宫深度咨询 | 꿀꿀 운세",
+        "title": "紫微斗数十二宫深度咨询 | 꿀꿀운세",
         "description": "以命宫、身宫、四化与十二宫整理一张实用的人生命盘。",
         "keywords": ["紫微斗数十二宫深度咨询", "Zi Wei", "12 Palaces", "Life Palace", "Four Transformations"]
       }
@@ -2509,7 +2509,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "宿曜缘分雷达 | 꿀꿀 운세",
+        "title": "宿曜缘分雷达 | 꿀꿀운세",
         "description": "通过二十七宿月相读取距离感、相性与时机。",
         "keywords": ["宿曜缘分雷达", "Sukuyo", "Compatibility", "Moon Mansions"]
       }
@@ -2551,7 +2551,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "吠陀占星分析 | 꿀꿀 운세",
+        "title": "吠陀占星分析 | 꿀꿀운세",
         "description": "以 Jyotish 视角解读行星、宫位与生命节奏。",
         "keywords": ["吠陀占星分析", "Vedic Astrology", "Jyotish", "Natal Chart"]
       }
@@ -2593,7 +2593,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "西洋占星星盘分析 | 꿀꿀 운세",
+        "title": "西洋占星星盘分析 | 꿀꿀운세",
         "description": "从出生星盘读取性格、关系、事业与时间节奏。",
         "keywords": ["西洋占星星盘分析", "Astrology", "Natal Chart", "Planets"]
       }
@@ -2635,7 +2635,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "塔罗解读 | 꿀꿀 운세",
+        "title": "塔罗解读 | 꿀꿀운세",
         "description": "牌面照亮当下问题的质地和下一步选择标准。",
         "keywords": ["塔罗解读", "Tarot", "Cards", "Oracle"]
       }
@@ -2678,7 +2678,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "premiumOptions": [],
       "priceLabel": "3,000~5,000韩元",
       "seo": {
-        "title": "塔罗神谕咨询 | 꿀꿀 운세",
+        "title": "塔罗神谕咨询 | 꿀꿀운세",
         "description": "通过问题匹配的牌阵选择与亲自抽牌，获得真实AI塔罗咨询的塔罗神谕咨询介绍页面。",
         "keywords": ["塔罗神谕咨询", "AI塔罗", "塔罗AI咨询", "塔罗提示词"]
       }
@@ -2721,7 +2721,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "专家手相分析 | 꿀꿀 운세",
+        "title": "专家手相分析 | 꿀꿀운세",
         "description": "从手掌图像读取主要掌纹与手相讯号。",
         "keywords": ["专家手相分析", "Palm Reading", "Expert", "Hand Lines"]
       }
@@ -2763,7 +2763,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "专家面相分析 | 꿀꿀 운세",
+        "title": "专家面相分析 | 꿀꿀운세",
         "description": "以专家面相流程读取五官结构与第一印象讯号。",
         "keywords": ["专家面相分析", "Face Reading", "Expert", "Impression"]
       }
@@ -2805,7 +2805,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "本命偏爱运 | 꿀꿀 운세",
+        "title": "本命偏爱运 | 꿀꿀운세",
         "description": "读取你的命盘与牵动内心之人的共鸣。",
         "keywords": ["本命偏爱运", "Favorite Person", "Resonance", "Saju"]
       }
@@ -2847,7 +2847,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "LOVE CODE | 꿀꿀 운세",
+        "title": "LOVE CODE | 꿀꿀운세",
         "description": "以八字模拟恋爱吸引、摩擦与时机。",
         "keywords": ["LOVE CODE", "Love", "Compatibility", "Simulation"]
       }
@@ -2889,7 +2889,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "Emoi御神签 | 꿀꿀 운세",
+        "title": "Emoi御神签 | 꿀꿀운세",
         "description": "打开今日心情、魅力和一个小小征兆。",
         "keywords": ["Emoi御神签", "Omikuji", "Daily Omen", "Mood"]
       }
@@ -2931,7 +2931,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "八字守护动物艺术 | 꿀꿀 운세",
+        "title": "八字守护动物艺术 | 꿀꿀운세",
         "description": "唤醒藏在八字节奏中的守护动物。",
         "keywords": ["八字守护动物艺术", "Guardian Animal", "Saju", "Art"]
       }
@@ -2973,7 +2973,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "八字看缘分地点 | 꿀꿀 운세",
+        "title": "八字看缘分地点 | 꿀꿀운세",
         "description": "读取更容易开启重要缘分的地点、城市与时机。",
         "keywords": ["八字看缘分地点", "Destined Place", "Relationship", "Timing"]
       }
@@ -3015,9 +3015,9 @@ const SERVICE_FEATURE_TRANSLATIONS = {
         }
       ],
       "seo": {
-        "title": "Life Book Expert Consultation | 꿀꿀 운세",
+        "title": "Life Book Expert Consultation | 꿀꿀운세",
         "description": "A warm Life Book Expert consultation that reads your life flow from birth details and your chosen theme.",
-        "keywords": ["Life Book Expert Consultation", "Saju consultation", "life reading", "꿀꿀 운세"]
+        "keywords": ["Life Book Expert Consultation", "Saju consultation", "life reading", "꿀꿀운세"]
       },
       "premiumOptions": []
     },
@@ -3059,7 +3059,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "紫微斗数高级PDF | 꿀꿀 운세",
+        "title": "紫微斗数高级PDF | 꿀꿀운세",
         "description": "将十二宫命盘整理成实用的人生策略书。",
         "keywords": ["紫微斗数高级PDF", "Expert Consultation", "Zi Wei", "12 Palaces"]
       }
@@ -3102,7 +3102,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "巨石阵卢恩神谕 | 꿀꿀 운세",
+        "title": "巨石阵卢恩神谕 | 꿀꿀운세",
         "description": "古老卢恩符号为眼前的问题开启简洁而深刻的答案。",
         "keywords": ["巨石阵卢恩神谕", "Runes", "Oracle", "Stonehenge"]
       }
@@ -3145,7 +3145,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "动物图腾 | 꿀꿀 운세",
+        "title": "动物图腾 | 꿀꿀운세",
         "description": "守护动物讯息映照此刻的心境与道路。",
         "keywords": ["动物图腾", "Animal Totem", "Guardian Message", "Oracle"]
       }
@@ -3189,7 +3189,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "八字精密分析 | 꿀꿀 운세",
+        "title": "八字精密分析 | 꿀꿀운세",
         "description": "從五行、十神、時運與人生方向讀出完整命盤。",
         "keywords": ["八字精密分析", "Saju", "Five Elements", "Ten Gods", "Timing"]
       }
@@ -3232,7 +3232,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "紫微斗數十二宮深度諮詢 | 꿀꿀 운세",
+        "title": "紫微斗數十二宮深度諮詢 | 꿀꿀운세",
         "description": "以命宮、身宮、四化與十二宮整理一張實用的人生命盤。",
         "keywords": ["紫微斗數十二宮深度諮詢", "Zi Wei", "12 Palaces", "Life Palace", "Four Transformations"]
       }
@@ -3274,7 +3274,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "宿曜緣分雷達 | 꿀꿀 운세",
+        "title": "宿曜緣分雷達 | 꿀꿀운세",
         "description": "透過二十七宿月相讀取距離感、相性與時機。",
         "keywords": ["宿曜緣分雷達", "Sukuyo", "Compatibility", "Moon Mansions"]
       }
@@ -3316,7 +3316,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "吠陀占星分析 | 꿀꿀 운세",
+        "title": "吠陀占星分析 | 꿀꿀운세",
         "description": "以 Jyotish 視角解讀行星、宮位與生命節奏。",
         "keywords": ["吠陀占星分析", "Vedic Astrology", "Jyotish", "Natal Chart"]
       }
@@ -3358,7 +3358,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "西洋占星星盤分析 | 꿀꿀 운세",
+        "title": "西洋占星星盤分析 | 꿀꿀운세",
         "description": "從出生星盤讀取性格、關係、事業與時間節奏。",
         "keywords": ["西洋占星星盤分析", "Astrology", "Natal Chart", "Planets"]
       }
@@ -3400,7 +3400,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "塔羅解讀 | 꿀꿀 운세",
+        "title": "塔羅解讀 | 꿀꿀운세",
         "description": "牌面照亮當下問題的質地和下一步選擇標準。",
         "keywords": ["塔羅解讀", "Tarot", "Cards", "Oracle"]
       }
@@ -3443,7 +3443,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "premiumOptions": [],
       "priceLabel": "3,000~5,000韓元",
       "seo": {
-        "title": "塔羅神諭諮詢 | 꿀꿀 운세",
+        "title": "塔羅神諭諮詢 | 꿀꿀운세",
         "description": "透過問題匹配的牌陣選擇與親自抽牌，獲得真實AI塔羅諮詢的塔羅神諭諮詢介紹頁面。",
         "keywords": ["塔羅神諭諮詢", "AI塔羅", "塔羅AI諮詢", "塔羅提示詞"]
       }
@@ -3486,7 +3486,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "專家手相分析 | 꿀꿀 운세",
+        "title": "專家手相分析 | 꿀꿀운세",
         "description": "從手掌圖像讀取主要掌紋與手相訊號。",
         "keywords": ["專家手相分析", "Palm Reading", "Expert", "Hand Lines"]
       }
@@ -3528,7 +3528,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "專家面相分析 | 꿀꿀 운세",
+        "title": "專家面相分析 | 꿀꿀운세",
         "description": "以專家面相流程讀取五官結構與第一印象訊號。",
         "keywords": ["專家面相分析", "Face Reading", "Expert", "Impression"]
       }
@@ -3570,7 +3570,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "本命偏愛運 | 꿀꿀 운세",
+        "title": "本命偏愛運 | 꿀꿀운세",
         "description": "讀取你的命盤與牽動內心之人的共鳴。",
         "keywords": ["本命偏愛運", "Favorite Person", "Resonance", "Saju"]
       }
@@ -3612,7 +3612,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "LOVE CODE | 꿀꿀 운세",
+        "title": "LOVE CODE | 꿀꿀운세",
         "description": "以八字模擬戀愛吸引、摩擦與時機。",
         "keywords": ["LOVE CODE", "Love", "Compatibility", "Simulation"]
       }
@@ -3654,7 +3654,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "Emoi御神籤 | 꿀꿀 운세",
+        "title": "Emoi御神籤 | 꿀꿀운세",
         "description": "打開今日心情、魅力和一個小小徵兆。",
         "keywords": ["Emoi御神籤", "Omikuji", "Daily Omen", "Mood"]
       }
@@ -3696,7 +3696,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "八字守護動物藝術 | 꿀꿀 운세",
+        "title": "八字守護動物藝術 | 꿀꿀운세",
         "description": "喚醒藏在八字節奏中的守護動物。",
         "keywords": ["八字守護動物藝術", "Guardian Animal", "Saju", "Art"]
       }
@@ -3738,7 +3738,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "八字看緣分地點 | 꿀꿀 운세",
+        "title": "八字看緣分地點 | 꿀꿀운세",
         "description": "讀取更容易開啟重要緣分的地點、城市與時機。",
         "keywords": ["八字看緣分地點", "Destined Place", "Relationship", "Timing"]
       }
@@ -3780,9 +3780,9 @@ const SERVICE_FEATURE_TRANSLATIONS = {
         }
       ],
       "seo": {
-        "title": "Life Book Expert Consultation | 꿀꿀 운세",
+        "title": "Life Book Expert Consultation | 꿀꿀운세",
         "description": "A warm Life Book Expert consultation that reads your life flow from birth details and your chosen theme.",
-        "keywords": ["Life Book Expert Consultation", "Saju consultation", "life reading", "꿀꿀 운세"]
+        "keywords": ["Life Book Expert Consultation", "Saju consultation", "life reading", "꿀꿀운세"]
       },
       "premiumOptions": []
     },
@@ -3824,7 +3824,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "紫微斗數高級PDF | 꿀꿀 운세",
+        "title": "紫微斗數高級PDF | 꿀꿀운세",
         "description": "將十二宮命盤整理成實用的人生策略書。",
         "keywords": ["紫微斗數高級PDF", "Expert Consultation", "Zi Wei", "12 Palaces"]
       }
@@ -3867,7 +3867,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "巨石陣盧恩神諭 | 꿀꿀 운세",
+        "title": "巨石陣盧恩神諭 | 꿀꿀운세",
         "description": "古老盧恩符號為眼前的問題開啟簡潔而深刻的答案。",
         "keywords": ["巨石陣盧恩神諭", "Runes", "Oracle", "Stonehenge"]
       }
@@ -3910,7 +3910,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "動物圖騰 | 꿀꿀 운세",
+        "title": "動物圖騰 | 꿀꿀운세",
         "description": "守護動物訊息映照此刻的心境與道路。",
         "keywords": ["動物圖騰", "Animal Totem", "Guardian Message", "Oracle"]
       }

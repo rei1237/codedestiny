@@ -3,7 +3,7 @@ import { generatePageMetadata } from "../../lib/generate-page-metadata";
 
 const META = {
   path: "/flower",
-  title: "운명의 꽃 - 통합 아틀리에 | 꿀꿀 운세",
+  title: "운명의 꽃 - 통합 아틀리에 | 꿀꿀운세",
   description:
     "사주의 오행과 십성, 점성술의 행성 배치, 자미두수의 명궁, 숙요점의 27수 — 네 학문이 각각 짚어낸 기운을 소스 탭으로 넘겨 보며, 나만의 운명 꽃 한 송이로 모읍니다.",
   keywords: ["운명의 꽃", "사주 꽃", "점성술 꽃", "자미두수 꽃", "숙요 꽃", "destiny flower"],

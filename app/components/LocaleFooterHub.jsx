@@ -101,7 +101,7 @@ export default function LocaleFooterHub({ locale }) {
         <a href={I18N_ROUTE_MAP.home[locale]} className={styles.sfhBrand} aria-label={copy.localeNavLabels.home}>
           <Image src="/icons/moonlight-garden-v1-512.webp" alt="" width={512} height={512} sizes="56px" />
           <span>
-            <strong>꿀꿀 운세</strong>
+            <strong>꿀꿀운세</strong>
             <small>{copy.title}</small>
           </span>
         </a>

@@ -70,7 +70,7 @@
       "flowerDream": "Hoa & Giấc mơ",
       "vvip": "Thư viện VVIP",
       "oracle": "Lời tiên tri",
-      "brandAlias": "꿀꿀 운세",
+      "brandAlias": "꿀꿀운세",
       "brandAria": "Vào Code Destiny home",
       "mainAria": "Phím tắt dịch vụ chính",
       "astrologyHub": "Chiêm tinh",
@@ -1727,7 +1727,7 @@
       "chemiTitle": "You and your bias: what's the chemistry?",
       "chemiNote": "Enter your birthday and get a photocard",
       "chemiCta": "See my bias chemistry",
-      "brandOtherEntry": "꿀꿀 운세: Saju và Tarot với Yeongnyangi →",
+      "brandOtherEntry": "꿀꿀운세: Saju và Tarot với Yeongnyangi →",
       "publicRecordsTitle": "Hồ sơ phân tích công khai của Park Byung-ha (Neo), chuyên gia Saju với 10 năm kinh nghiệm",
       "publicRecordsLink": "Đối chiếu ngày, bài gốc và kết quả"
     },
@@ -1883,7 +1883,7 @@
       "self": "Hiểu bản thân",
       "future": "Thời điểm và lựa chọn",
       "title": "Bắt đầu tư vấn từ câu hỏi của bạn",
-      "brand": "Gặp Yeongnyangi, Yeoni và Neo tại 꿀꿀 운세. Khám phá câu hỏi với Yeongnyangi, hoặc ghé quán trà Yeoni và phòng chiến lược Neo.",
+      "brand": "Gặp Yeongnyangi, Yeoni và Neo tại 꿀꿀운세. Khám phá câu hỏi với Yeongnyangi, hoặc ghé quán trà Yeoni và phòng chiến lược Neo.",
       "stepQuestion": "Chia sẻ băn khoăn hiện tại",
       "stepPrice": "Xem nội dung và giá",
       "stepResult": "Đọc giải đáp, cơ sở và bước tiếp theo",
@@ -2740,10 +2740,10 @@
     }
   },
   "seo": {
-    "homeTitle": "Saju, Tarot và Vận may hàng ngày miễn phí | 꿀꿀 운세",
-    "rssTitle": "꿀꿀 운세 RSS",
-    "description": "꿀꿀 운세: Saju miễn phí theo ngày sinh, tarot, khả năng tương thích, vận may năm mới, khả năng tương thích Tojeong Bigyeol và MBTI.",
-    "keywords": "Saju, Saju miễn phí, lịch Manse, tarot, vận may hàng ngày, tương thích, vận may năm mới, Tojeong Bigyeol, xem tướng, vận may về tiền bạc, vận may đoàn tụ, tương thích MBTI, 꿀꿀 운세"
+    "homeTitle": "Saju, Tarot và Vận may hàng ngày miễn phí | 꿀꿀운세",
+    "rssTitle": "꿀꿀운세 RSS",
+    "description": "꿀꿀운세: Saju miễn phí theo ngày sinh, tarot, khả năng tương thích, vận may năm mới, khả năng tương thích Tojeong Bigyeol và MBTI.",
+    "keywords": "Saju, Saju miễn phí, lịch Manse, tarot, vận may hàng ngày, tương thích, vận may năm mới, Tojeong Bigyeol, xem tướng, vận may về tiền bạc, vận may đoàn tụ, tương thích MBTI, 꿀꿀운세"
   },
   "fortune": {
     "destinyFlower": {
@@ -6981,7 +6981,7 @@
     "sq_9794_attr_aria_label": "Biểu đồ radar Túc Diệu nhân duyên"
   },
   "shell": {
-    "CODEDESTINY": "꿀꿀 운세 | Tứ Trụ (Bát Tự)·Tarot·Tử Vi Đẩu Số·Hợp Duyên Miễn Phí — Vận Mệnh May Mắn",
+    "CODEDESTINY": "꿀꿀운세 | Tứ Trụ (Bát Tự)·Tarot·Tử Vi Đẩu Số·Hợp Duyên Miễn Phí — Vận Mệnh May Mắn",
     "cdCookieConsentCopy": {
       "cdCookieConsentActions": {
         "kniuoqf": "Đồng ý",
@@ -17451,7 +17451,7 @@
             "2": "what do you like",
             "3": "food"
           },
-          "answer": "Honey, obviously! 🍯 I am deep in my honey era. Honey cake, honey latte, honey tteokbokki… if it has honey, it wins. Oink — that's why my name is 꿀꿀 운세~"
+          "answer": "Honey, obviously! 🍯 I am deep in my honey era. Honey cake, honey latte, honey tteokbokki… if it has honey, it wins. Oink — that's why my name is 꿀꿀운세~"
         },
         "3": {
           "keywords": {
@@ -20329,7 +20329,7 @@
       "title": "Yeoni's Destiny Tea House",
       "library": "My readings",
       "account": "Account",
-      "back": "꿀꿀 운세",
+      "back": "꿀꿀운세",
       "heading": "A moonlit night,\na cup just for you",
       "lead": "A flower pig welcomes you. A story unfolds across the table with Yeoni.",
       "intro": "Explore life's timing with Saju, today's choices with Tarot, and relationship dynamics with Sukuyo.",

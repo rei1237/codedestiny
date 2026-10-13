@@ -55,7 +55,7 @@ export function buildMarketingEmail({ env, campaign, weekKey, unsubscribeUrl }) 
 ${rest.map(line => `<p style="margin:0 0 8px;font-size:15px;line-height:1.7;color:#374151;">${escapeHtml(line)}</p>`).join('')}
 </td></tr>
 <tr><td align="center" style="padding:16px 28px 28px;"><a href="${escapeHtml(cta)}" style="display:inline-block;background:#6d4fd8;color:#ffffff;text-decoration:none;padding:14px 28px;border-radius:999px;font-weight:700;font-size:15px;">${escapeHtml(campaign.button)}</a></td></tr>`;
-  const footer = `이 메일은 광고성 정보 수신에 동의하신 꿀꿀 사주(구 꿀꿀 운세) 회원님께 발송되었습니다.<br>
+  const footer = `이 메일은 광고성 정보 수신에 동의하신 꿀꿀운세(구 꿀꿀운세) 회원님께 발송되었습니다.<br>
 더 받지 않으시려면 <a href="${escapeHtml(unsubscribeUrl)}" style="color:#6d4fd8;font-weight:700;">수신거부</a>를 눌러 주세요. 수신 설정은 <a href="${escapeHtml(settingsUrlFor(env))}" style="color:#6b7280;">알림 설정</a>에서 바꿀 수 있습니다.<br><br>
 ${businessFooter()}`;
   const text = [campaign.subject, '', campaign.body, '', `${campaign.button}: ${cta}`, '', '광고성 정보 수신에 동의하신 회원님께 발송되었습니다.', `수신거부: ${unsubscribeUrl}`, '', `${BUSINESS_IDENTITY.companyName} · ${BUSINESS_IDENTITY.address} · ${BUSINESS_IDENTITY.phone}`].join('\n');
@@ -81,14 +81,14 @@ ${lines.map(line => `<p style="margin:0 0 10px;font-size:15px;line-height:1.7;co
 export function buildConsentResultNotice({ env, granted, at }) {
   const date = formatKstDate(at);
   return granted
-    ? noticeEmail({ env, subject: '[꿀꿀 사주] 광고성 정보 이메일 수신에 동의하셨습니다', title: '광고성 정보 수신 동의 처리 결과 안내', lines: [
-      `${date}에 꿀꿀 사주(구 꿀꿀 운세)의 광고성 정보 이메일 수신에 동의하신 내용이 처리되었습니다.`,
-      '전송자: 꿀꿀 사주(코드 데스티니) · 수신 동의 일자: ' + date + ' · 처리 내용: 수신 동의',
+    ? noticeEmail({ env, subject: '[꿀꿀운세] 광고성 정보 이메일 수신에 동의하셨습니다', title: '광고성 정보 수신 동의 처리 결과 안내', lines: [
+      `${date}에 꿀꿀운세(구 꿀꿀운세)의 광고성 정보 이메일 수신에 동의하신 내용이 처리되었습니다.`,
+      '전송자: 꿀꿀운세(코드 데스티니) · 수신 동의 일자: ' + date + ' · 처리 내용: 수신 동의',
       '운세 콘텐츠, 상담 추천, 이벤트·혜택 소식을 주 1회 이내로 보내드립니다. 원하지 않으시면 메일 하단 수신거부나 알림 설정에서 언제든 철회할 수 있습니다.',
     ] })
-    : noticeEmail({ env, subject: '[꿀꿀 사주] 광고성 정보 이메일 수신을 거부하셨습니다', title: '광고성 정보 수신 거부 처리 결과 안내', lines: [
-      `${date}에 꿀꿀 사주(구 꿀꿀 운세)의 광고성 정보 이메일 수신 거부(동의 철회)가 처리되었습니다.`,
-      '전송자: 꿀꿀 사주(코드 데스티니) · 처리 일자: ' + date + ' · 처리 내용: 수신 거부',
+    : noticeEmail({ env, subject: '[꿀꿀운세] 광고성 정보 이메일 수신을 거부하셨습니다', title: '광고성 정보 수신 거부 처리 결과 안내', lines: [
+      `${date}에 꿀꿀운세(구 꿀꿀운세)의 광고성 정보 이메일 수신 거부(동의 철회)가 처리되었습니다.`,
+      '전송자: 꿀꿀운세(코드 데스티니) · 처리 일자: ' + date + ' · 처리 내용: 수신 거부',
       '이제 광고 메일은 보내지 않습니다. 결제 영수증 등 서비스 이용에 필요한 안내 메일은 계속 발송될 수 있습니다.',
     ] });
 }
@@ -96,8 +96,8 @@ export function buildConsentResultNotice({ env, granted, at }) {
 /** §50⑧ 2년마다 수신동의 여부 확인 안내. */
 export function buildReconfirmNotice({ env, consentAt }) {
   const date = formatKstDate(consentAt);
-  return noticeEmail({ env, subject: '[꿀꿀 사주] 광고성 정보 수신 동의 여부를 확인해 주세요', title: '광고성 정보 수신 동의 여부 확인 안내', lines: [
-    `회원님은 ${date}에 꿀꿀 사주(구 꿀꿀 운세)의 광고성 정보 이메일 수신에 동의하셨습니다.`,
+  return noticeEmail({ env, subject: '[꿀꿀운세] 광고성 정보 수신 동의 여부를 확인해 주세요', title: '광고성 정보 수신 동의 여부 확인 안내', lines: [
+    `회원님은 ${date}에 꿀꿀운세(구 꿀꿀운세)의 광고성 정보 이메일 수신에 동의하셨습니다.`,
     '정보통신망법에 따라 2년마다 수신 동의 여부를 안내드립니다. 계속 받으시려면 별도 조치가 필요하지 않습니다.',
     '더 이상 받지 않으시려면 아래 알림 설정에서 수신을 해제해 주세요.',
   ] });

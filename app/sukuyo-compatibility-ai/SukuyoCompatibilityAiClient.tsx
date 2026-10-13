@@ -1214,7 +1214,7 @@ function CompatResultModal({ result, onClose, onDownloadError, basis = null, com
         ))}
 
         <footer className={`${styles.modalFooter} ${styles.pdfPage} ${styles.pdfFooterPage}`} data-pdf-section>
-          <strong>꿀꿀 운세</strong>
+          <strong>꿀꿀운세</strong>
           <span>숙요점 궁합 · {new Date().toLocaleDateString(INTL_LOCALE_BY_LOADING_LOCALE[getCurrentLoadingLocale()])}</span>
           <p>이 해석은 숙요점 상징 체계를 바탕으로 관계의 흐름을 비추는 참고용 상담입니다. 현실의 선택, 동의, 경계, 건강과 법률·재정 판단은 당사자의 충분한 대화와 전문 검토를 함께 따라야 합니다.</p>
         </footer>

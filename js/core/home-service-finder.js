@@ -555,7 +555,7 @@
     var summary = document.getElementById(config.summaryId || 'fortuneGatewayResultSummary');
     var filterPanel = root.querySelector('.fortune-gateway__filter-panel');
     var filterCount = root.querySelector('[data-cd-filter-count]');
-    /* 홈(꿀꿀 운세)에서는 입력·칩을 고르기 전에는 결과를 깔지 않는다(2026-10-01 홈 개편).
+    /* 홈(꿀꿀운세)에서는 입력·칩을 고르기 전에는 결과를 깔지 않는다(2026-10-01 홈 개편).
        단독 마운트(테스트·홈 밖)는 기존처럼 기본 목록을 보여 준다.
        모든 운세 화면(showAll)은 아무것도 고르지 않아도 레지스트리 전체를 깐다. */
     var homeFunnel = document.getElementById("cdHomeFunnel");

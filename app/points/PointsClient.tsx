@@ -2400,7 +2400,7 @@ function MoonlightShopPlans({
       <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-black uppercase tracking-[0.2em] text-[color:var(--moon-glow)]">이용권 상품</p>
-          <h2 className="mt-2 text-2xl font-black text-white">꿀꿀 운세 이용권 4종</h2>
+          <h2 className="mt-2 text-2xl font-black text-white">꿀꿀운세 이용권 4종</h2>
         </div>
         {subscription.isActive && subscription.tier !== "free" ? (
           <button
@@ -4714,7 +4714,7 @@ export default function PointsPage() {
         />
         </details>
         <ServicePackShop locale={lang} overseasCharge={overseasCharge} onWalletChange={setOwnedPacks} context={consultationContext} contextual={consultationShop}/>
-        {!consultationShop&&<section aria-label={lang==='ko'?'꿀꿀 운세 이용권':'Ggulggul passes'}><h2 className="mb-4 text-2xl font-black">{lang==='ko'?'꿀꿀 운세 이용권':'Ggulggul passes'}</h2>
+        {!consultationShop&&<section aria-label={lang==='ko'?'꿀꿀운세 이용권':'Ggulggul passes'}><h2 className="mb-4 text-2xl font-black">{lang==='ko'?'꿀꿀운세 이용권':'Ggulggul passes'}</h2>
         <MoonlightShopPlans
           subscription={subscription}
           onSubscribe={openSelfPurchase}

@@ -230,7 +230,7 @@ export default function GlobalHeader() {
           >
             <Image className={styles.brandImage} src="/icons/moonlight-garden-v1-512.webp" alt="" width={512} height={512} sizes="42px" />
             <span className={styles.brandText}>
-              <strong>꿀꿀 운세</strong>
+              <strong>꿀꿀운세</strong>
               <small>{copy.brandTagline}</small>
             </span>
           </a>

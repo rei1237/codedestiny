@@ -545,7 +545,7 @@ if (DIST) {
     const pagesToCheck = [
       ["index.html", "루트 진입점"],
       [YEONGNYANGI_HOME_PATH, "영냥이 앱 첫 화면"],
-      [LEGACY_SHELL_PATH, "꿀꿀 운세(기존 연이/네오 셸)"],
+      [LEGACY_SHELL_PATH, "꿀꿀운세(기존 연이/네오 셸)"],
       [path.join("saju", "basic", "index.html"), "/saju/basic (앱 탭 — /insights 링크 있던 곳)"],
       [path.join("en", "today", "index.html"), "/en/today (로케일 페이지 — /en/insights 링크 있던 곳)"],
     ];

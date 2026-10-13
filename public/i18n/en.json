@@ -70,7 +70,7 @@
       "flowerDream": "Flowers & Dreams",
       "vvip": "VVIP Library",
       "oracle": "Oracles",
-      "brandAlias": "꿀꿀 운세",
+      "brandAlias": "꿀꿀운세",
       "brandAria": "Go to Code Destiny home",
       "mainAria": "Main service shortcuts",
       "astrologyHub": "Astrology",
@@ -1692,7 +1692,7 @@
       "searchHint": "Search by reading name, worry, or a former service name.",
       "heroTitle": "Korean Saju & tarot",
       "heroTitleEm": "for your next step",
-      "heroLead": "꿀꿀 운세 · Birth charts, compatibility and a place for your questions",
+      "heroLead": "꿀꿀운세 · Birth charts, compatibility and a place for your questions",
       "heroPrimary": "Choose a reading",
       "allFortunes": "See all readings",
       "todayTerms": "Free · no sign-in · calculated from your birth-date profile card",
@@ -1727,7 +1727,7 @@
       "chemiTitle": "You and your bias: what's the chemistry?",
       "chemiNote": "Enter your birthday and get a photocard",
       "chemiCta": "See my bias chemistry",
-      "brandOtherEntry": "꿀꿀 운세: Yeongnyangi Saju & Tarot →",
+      "brandOtherEntry": "꿀꿀운세: Yeongnyangi Saju & Tarot →",
       "publicRecordsTitle": "Public analysis records by Park Byung-ha (Neo), a Saju practitioner with 10 years of experience",
       "publicRecordsLink": "Compare dates, original posts and outcomes"
     },
@@ -1883,7 +1883,7 @@
       "self": "Understanding myself",
       "future": "Timing & choices",
       "title": "A reading that starts with your question",
-      "brand": "Meet Yeongnyangi, Yeoni and Neo within 꿀꿀 운세. Explore your question with Yeongnyangi, or visit Yeoni’s Tea House and Neo’s Strategy Room.",
+      "brand": "Meet Yeongnyangi, Yeoni and Neo within 꿀꿀운세. Explore your question with Yeongnyangi, or visit Yeoni’s Tea House and Neo’s Strategy Room.",
       "stepQuestion": "Tell us what’s on your mind",
       "stepPrice": "Check the scope and price",
       "stepResult": "Read the answer, reasoning and next steps",
@@ -2740,10 +2740,10 @@
     }
   },
   "seo": {
-    "homeTitle": "Free Saju, Tarot, and Daily Fortune | 꿀꿀 운세",
-    "rssTitle": "꿀꿀 운세 RSS",
-    "description": "꿀꿀 운세: Free Saju by birth date, tarot, compatibility, New Year fortune, Tojeong Bigyeol, and MBTI compatibility.",
-    "keywords": "Saju, free Saju, Manse calendar, tarot, daily fortune, compatibility, New Year fortune, Tojeong Bigyeol, face reading, money fortune, reunion fortune, MBTI compatibility, 꿀꿀 운세"
+    "homeTitle": "Free Saju, Tarot, and Daily Fortune | 꿀꿀운세",
+    "rssTitle": "꿀꿀운세 RSS",
+    "description": "꿀꿀운세: Free Saju by birth date, tarot, compatibility, New Year fortune, Tojeong Bigyeol, and MBTI compatibility.",
+    "keywords": "Saju, free Saju, Manse calendar, tarot, daily fortune, compatibility, New Year fortune, Tojeong Bigyeol, face reading, money fortune, reunion fortune, MBTI compatibility, 꿀꿀운세"
   },
   "fortune": {
     "destinyFlower": {
@@ -6981,7 +6981,7 @@
     "sq_9794_attr_aria_label": "Sukuyo (27 Nakshatras) Relationship Radar Chart"
   },
   "shell": {
-    "CODEDESTINY": "Korean Saju, Tarot & Birth Charts | 꿀꿀 운세",
+    "CODEDESTINY": "Korean Saju, Tarot & Birth Charts | 꿀꿀운세",
     "cdCookieConsentCopy": {
       "cdCookieConsentActions": {
         "kniuoqf": "Agree",
@@ -17451,7 +17451,7 @@
             "2": "what do you like",
             "3": "food"
           },
-          "answer": "Honey, obviously! 🍯 I am deep in my honey era. Honey cake, honey latte, honey tteokbokki… if it has honey, it wins. Oink — that's why my name is 꿀꿀 운세~"
+          "answer": "Honey, obviously! 🍯 I am deep in my honey era. Honey cake, honey latte, honey tteokbokki… if it has honey, it wins. Oink — that's why my name is 꿀꿀운세~"
         },
         "3": {
           "keywords": {
@@ -20329,7 +20329,7 @@
       "title": "Yeoni's Destiny Tea House",
       "library": "My readings",
       "account": "Account",
-      "back": "꿀꿀 운세",
+      "back": "꿀꿀운세",
       "heading": "A moonlit night,\na cup just for you",
       "lead": "A flower pig welcomes you. A story unfolds across the table with Yeoni.",
       "intro": "Explore life's timing with Saju, today's choices with Tarot, and relationship dynamics with Sukuyo.",

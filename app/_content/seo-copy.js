@@ -3,7 +3,7 @@ import { BUSINESS_IDENTITY } from "../../lib/site-policy-config";
 export const HOME_FAQ_SECTION_COPY = {
   heading: "무료 사주 · 자미두수 운세 분석 기초 지식 & 자주 묻는 질문",
   intro:
-    "꿀꿀 운세의 핵심 분석 화면에서 사용하는 개념을 한 번에 이해할 수 있도록, 실전 해석에 자주 등장하는 이론을 설명형 문서로 정리했습니다. 아래 FAQ는 단순 기능 안내가 아니라 사주·자미두수 결과를 읽는 기준, 합충형파해의 해석 맥락, 출생시간 불확실성 처리, 명왕이함과 같은 심화 개념의 활용법까지 포함합니다. 검색 엔진과 사용자 모두가 읽을 수 있도록 본문형 텍스트로 공개됩니다.",
+    "꿀꿀운세의 핵심 분석 화면에서 사용하는 개념을 한 번에 이해할 수 있도록, 실전 해석에 자주 등장하는 이론을 설명형 문서로 정리했습니다. 아래 FAQ는 단순 기능 안내가 아니라 사주·자미두수 결과를 읽는 기준, 합충형파해의 해석 맥락, 출생시간 불확실성 처리, 명왕이함과 같은 심화 개념의 활용법까지 포함합니다. 검색 엔진과 사용자 모두가 읽을 수 있도록 본문형 텍스트로 공개됩니다.",
 };
 
 export const HOME_FAQ_ITEMS = [
@@ -41,15 +41,15 @@ export const HOME_FAQ_ITEMS = [
 
 export const FAQ_PAGE_COPY = {
   introKo:
-    "꿀꿀 운세 이용에 관해 자주 받는 질문을 정리했습니다. 더 자세한 내용은 개인정보처리방침·이용약관을 참고하시거나 문의하기로 연락해 주세요.",
+    "꿀꿀운세 이용에 관해 자주 받는 질문을 정리했습니다. 더 자세한 내용은 개인정보처리방침·이용약관을 참고하시거나 문의하기로 연락해 주세요.",
   introEn:
-    "Below are answers to common questions about 꿀꿀 운세. For details, see our Privacy Policy and Terms of Service, or reach us via Contact Us.",
+    "Below are answers to common questions about 꿀꿀운세. For details, see our Privacy Policy and Terms of Service, or reach us via Contact Us.",
 };
 
 export const FAQ_PAGE_ITEMS = [
   {
     q: "서비스는 무료인가요? / Is the service free?",
-    a: "네. 꿀꿀 운세는 기본적으로 무료로 운세·타로·점성술 등 콘텐츠를 이용할 수 있도록 설계되어 있습니다. 일부 기능은 광고 또는 포인트 정책이 적용될 수 있으며, 해당 경우 화면 안내를 따릅니다. / Yes. 꿀꿀 운세 is designed so core fortune and tarot experiences are generally free. Some features may involve ads or points; follow on-screen notices when applicable.",
+    a: "네. 꿀꿀운세는 기본적으로 무료로 운세·타로·점성술 등 콘텐츠를 이용할 수 있도록 설계되어 있습니다. 일부 기능은 광고 또는 포인트 정책이 적용될 수 있으며, 해당 경우 화면 안내를 따릅니다. / Yes. 꿀꿀운세 is designed so core fortune and tarot experiences are generally free. Some features may involve ads or points; follow on-screen notices when applicable.",
   },
   {
     q: "회원가입이 필수인가요? / Do I need an account?",
@@ -90,11 +90,11 @@ export const ZIWEI_PREMIUM_METHOD_COPY = {
 };
 
 export const ABOUT_PAGE_COPY = {
-  heading: "무료 사주 · 자미두수 운세 분석 서비스 소개 — 꿀꿀 운세",
+  heading: "무료 사주 · 자미두수 운세 분석 서비스 소개 — 꿀꿀운세",
   intro:
-    "꿀꿀 운세는 사주팔자·AI 타로·자미두수·점성술·숙요점·동물관상·꿈 해몽 등 다양한 운세·점술 콘텐츠를 제공하는 AI 기반 운세 플랫폼입니다. 생년월일 하나로 폭넓은 해석 경험을 제공하며, 사용자가 자신의 상황을 더 명확히 이해하고 선택을 정리하도록 돕습니다.",
+    "꿀꿀운세는 사주팔자·AI 타로·자미두수·점성술·숙요점·동물관상·꿈 해몽 등 다양한 운세·점술 콘텐츠를 제공하는 AI 기반 운세 플랫폼입니다. 생년월일 하나로 폭넓은 해석 경험을 제공하며, 사용자가 자신의 상황을 더 명확히 이해하고 선택을 정리하도록 돕습니다.",
   operatorRows: [
-    ["서비스명", "꿀꿀 운세"],
+    ["서비스명", "꿀꿀운세"],
     ["사이트 주소", "https://code-destiny.com"],
     ["운영 주체", "코드 데스티니"],
     ["사업자등록번호", BUSINESS_IDENTITY.registrationNumber],

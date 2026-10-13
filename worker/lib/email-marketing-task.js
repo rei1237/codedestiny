@@ -21,7 +21,7 @@ import {
 } from '../../lib/marketing/email-marketing.mjs';
 
 // 광고 메일을 별도 서브도메인으로 분리할 때 이 상수만 바꾼다(그 도메인을 Resend 에서 먼저 인증해야 한다).
-export const MARKETING_FROM = '꿀꿀 사주 <admin@code-destiny.com>';
+export const MARKETING_FROM = '꿀꿀운세 <admin@code-destiny.com>';
 export const DEFAULT_WEEKLY_CAP = 300;
 export const MAX_WEEKLY_CAP = 5000;
 const TICK_LIMIT = 40;

@@ -7,11 +7,11 @@ const ANIMAL_DESTINY_PAGE_TEXT_TRANSLATIONS = {
     description: "생년월일로 세운 사주의 십이운성 흐름에서 나만의 운명 동물을 무료로 찾아 드립니다. 핵심 성향과 관계, 일과 재물 감각, 지금 단계의 성장 미션을 봅니다.",
   },
   en: {
-    title: "Destiny Animal Codex | Twelve Growth Animal Reading | 꿀꿀 운세",
+    title: "Destiny Animal Codex | Twelve Growth Animal Reading | 꿀꿀운세",
     description: "Find your destiny animal through the Twelve Growth flow of your saju chart, with core traits, relationships, work and wealth senses, and growth missions at a glance.",
   },
   ja: {
-    title: "運命の動物図鑑 | 十二運星動物占い | 꿀꿀 운세",
+    title: "運命の動物図鑑 | 十二運星動物占い | 꿀꿀운세",
     description: "生まれた四柱の十二運星の流れから自分だけの運命動物を見つけ、核心性向、関係、仕事と財の感覚、成長ミッションまで一目で確認できます。",
   },
 } as const;

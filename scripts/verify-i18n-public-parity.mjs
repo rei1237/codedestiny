@@ -87,7 +87,7 @@ for (const fileName of targetFiles) {
     if (LEGAL_VERBATIM_KEY.test(key)) return false;
     if (HANGUL_QUOTE_ALLOWED_KEYS.has(key)) return false;
     // User-approved proper noun; this does not exempt untranslated surrounding text.
-    return /[가-힣]/.test(value.replaceAll('꿀꿀 운세', ''));
+    return /[가-힣]/.test(value.replaceAll('꿀꿀운세', ''));
   });
   // 법정 표기는 "한글이면 실패"가 아니라 "ko 와 다르면 실패"다.
   const driftedLegalValues = Object.entries(flat).filter(([key, value]) => {

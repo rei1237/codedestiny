@@ -5,7 +5,7 @@ module.exports=[
     "title": "성격은 알겠는데, 일과 사랑에서는 어떻게 써야 할까요?",
     "desc": "타고난 기질부터 일·사랑·돈의 선택까지, 내 사주를 생활의 언어로.",
     "alt": "종합 사주 풀이 표지. 성격을 일과 사랑에 어떻게 활용할지 묻는 큰 문장과 달빛 서재의 네 기둥 삽화.",
-    "html": "<div class=\"eyebrow\">꿀꿀 사주 · 종합 사주 풀이</div><h1>성격은 알겠는데,<br>일과 사랑에서는<br>어떻게 써야 할까요?</h1><p class=\"lead\">타고난 기질부터 일·사랑·돈의 선택까지,<br>내 사주를 생활의 언어로.</p><img class=\"cover-art\" src=\"study.webp\" alt=\"\"><div class=\"ribbon\">기질의 설명에서, 생활의 선택까지.</div>"
+    "html": "<div class=\"eyebrow\">꿀꿀운세 · 종합 사주 풀이</div><h1>성격은 알겠는데,<br>일과 사랑에서는<br>어떻게 써야 할까요?</h1><p class=\"lead\">타고난 기질부터 일·사랑·돈의 선택까지,<br>내 사주를 생활의 언어로.</p><img class=\"cover-art\" src=\"study.webp\" alt=\"\"><div class=\"ribbon\">기질의 설명에서, 생활의 선택까지.</div>"
   },
   {
     "id": "02-concerns",

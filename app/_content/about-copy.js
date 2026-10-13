@@ -7,10 +7,10 @@ export const ABOUT_PAGE_TEXT_TRANSLATIONS = {
   // 정체성 페이지라 실질 한국어 콘텐츠를 충분히 담았다(신규 키는 렌더 대상 ko에만 둔다).
   ko: {
     ...ABOUT_INTRO_COPY,
-    "title": "꿀꿀 운세 소개",
-    "intro": "꿀꿀 운세는 사주팔자·만세력·타로·자미두수·서양 점성술·베다 점성술·숙요점·궁합·오늘의 운세를 한곳에서 볼 수 있는 한국어 운세 플랫폼입니다. 생년월일과 태어난 시간만 있으면 오행과 십성, 대운의 흐름, 별자리와 27수의 관계까지 차분하게 펼쳐 드립니다. 모든 해석은 미래를 단정하는 예언이 아니라, 오늘의 선택을 정리하고 자신을 돌아보게 돕는 참고 자료로 제공됩니다.",
+    "title": "꿀꿀운세 소개",
+    "intro": "꿀꿀운세는 사주팔자·만세력·타로·자미두수·서양 점성술·베다 점성술·숙요점·궁합·오늘의 운세를 한곳에서 볼 수 있는 한국어 운세 플랫폼입니다. 생년월일과 태어난 시간만 있으면 오행과 십성, 대운의 흐름, 별자리와 27수의 관계까지 차분하게 펼쳐 드립니다. 모든 해석은 미래를 단정하는 예언이 아니라, 오늘의 선택을 정리하고 자신을 돌아보게 돕는 참고 자료로 제공됩니다.",
     "mission.title": "우리가 만들고 싶은 것",
-    "mission.body": "운세는 오래전부터 사람들이 자기 삶을 이해하고 마음을 다잡는 언어였습니다. 꿀꿀 운세는 그 전통을 재미있고 부담 없이, 그러나 근거 있는 방식으로 전하려 합니다. 무료로 시작하는 기본 리딩부터 더 깊이 들여다보고 싶을 때 선택하는 심화 리포트까지, 필요한 만큼만 열어볼 수 있도록 설계했습니다. 불안을 부추겨 결제를 유도하지 않으며, 결과가 좋든 아쉽든 스스로 결정을 내리는 데 도움이 되는 방향으로 문장을 씁니다.",
+    "mission.body": "운세는 오래전부터 사람들이 자기 삶을 이해하고 마음을 다잡는 언어였습니다. 꿀꿀운세는 그 전통을 재미있고 부담 없이, 그러나 근거 있는 방식으로 전하려 합니다. 무료로 시작하는 기본 리딩부터 더 깊이 들여다보고 싶을 때 선택하는 심화 리포트까지, 필요한 만큼만 열어볼 수 있도록 설계했습니다. 불안을 부추겨 결제를 유도하지 않으며, 결과가 좋든 아쉽든 스스로 결정을 내리는 데 도움이 되는 방향으로 문장을 씁니다.",
     "systems.title": "다루는 운세 체계",
     "systems.saju": "사주팔자·만세력 — 태어난 연·월·일·시를 네 기둥으로 세워 천간과 지지, 오행의 균형과 십성, 대운의 흐름을 읽습니다.",
     "systems.tarot": "타로 — 78장의 상징으로 지금의 질문과 마음의 결을 비추고, 연애·재회·관계·선택의 방향을 정리합니다.",
@@ -93,8 +93,8 @@ export const ABOUT_PAGE_TEXT_TRANSLATIONS = {
     "docs.contact": "문의하기",
   },
   en: {
-    "title": "About 꿀꿀 운세",
-    "intro": "꿀꿀 운세 is a Korean fortune platform where you can explore free Saju, Manseryeok, tarot, today's fortune, compatibility, Zi Wei Dou Shu, astrology, and Sukuyo in one place. Every reading is provided as a reference for entertainment and self-reflection.",
+    "title": "About 꿀꿀운세",
+    "intro": "꿀꿀운세 is a Korean fortune platform where you can explore free Saju, Manseryeok, tarot, today's fortune, compatibility, Zi Wei Dou Shu, astrology, and Sukuyo in one place. Every reading is provided as a reference for entertainment and self-reflection.",
     "services.title": "Services",
     "services.saju": "Saju calendar, five elements, ten gods, and luck-cycle interpretation",
     "services.tarot": "Tarot readings for love, reunion, and emotional insight",
@@ -109,8 +109,8 @@ export const ABOUT_PAGE_TEXT_TRANSLATIONS = {
     "docs.insights": "Fortune Insight Guide",
   },
   ja: {
-    "title": "꿀꿀 운세 について",
-    "intro": "꿀꿀 운세は、無料の四柱推命、万年暦、タロット、今日の運勢、相性、紫微斗数、占星術、宿曜を一か所で見られる韓国語の占いプラットフォームです。すべての解釈は、娯楽と自己省察を助ける参考資料として提供されます。",
+    "title": "꿀꿀운세 について",
+    "intro": "꿀꿀운세は、無料の四柱推命、万年暦、タロット、今日の運勢、相性、紫微斗数、占星術、宿曜を一か所で見られる韓国語の占いプラットフォームです。すべての解釈は、娯楽と自己省察を助ける参考資料として提供されます。",
     "services.title": "提供サービス",
     "services.saju": "四柱推命の万年暦、五行、十神、大運の流れの解釈",
     "services.tarot": "タロットカードリーディング、恋愛、復縁、気持ちの解釈",
@@ -125,8 +125,8 @@ export const ABOUT_PAGE_TEXT_TRANSLATIONS = {
     "docs.insights": "占いインサイトガイド",
   },
   zh: {
-    "title": "꿀꿀 운세 介绍",
-    "intro": "꿀꿀 운세 是一个韩语占卜平台，可在一处查看免费四柱八字、万年历、塔罗、今日运势、合盘、紫微斗数、占星术与宿曜。所有解读均作为娱乐与自我觉察的参考资料提供。",
+    "title": "꿀꿀운세 介绍",
+    "intro": "꿀꿀운세 是一个韩语占卜平台，可在一处查看免费四柱八字、万年历、塔罗、今日运势、合盘、紫微斗数、占星术与宿曜。所有解读均作为娱乐与自我觉察的参考资料提供。",
     "services.title": "提供服务",
     "services.saju": "四柱万年历、五行、十神、大运流向解读",
     "services.tarot": "塔罗牌解读以及恋爱、复合、内心解析",

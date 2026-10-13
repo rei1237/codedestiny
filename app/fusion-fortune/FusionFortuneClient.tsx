@@ -2782,7 +2782,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
             name: openedSummary?.nickname || form.nickname || undefined,
             date: new Date().toLocaleDateString(INTL_LOCALE_BY_LOADING_LOCALE[getCurrentLoadingLocale()]),
           },
-          watermarkText: "꿀꿀 운세",
+          watermarkText: "꿀꿀운세",
         });
       }
       setNotice(copy.pdfSavedNotice);

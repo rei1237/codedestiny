@@ -80,7 +80,7 @@ for (const file of files) {
     const missing = LOCALES.filter((l) => typeof translations[l] !== "string" || !translations[l].trim());
     if (missing.length) { problems.push(`${file} ${key}: 누락 ${missing.join(",")}`); continue; }
     // The exact public brand is intentionally Korean in every locale; other Korean still fails.
-    const leftover = LOCALES.filter((l) => l !== "ko" && /[가-힣]/.test(translations[l].replaceAll('꿀꿀 운세', '')));
+    const leftover = LOCALES.filter((l) => l !== "ko" && /[가-힣]/.test(translations[l].replaceAll('꿀꿀운세', '')));
     if (leftover.length) { problems.push(`${file} ${key}: 한글 잔존 ${leftover.join(",")}`); continue; }
     byNamespace[namespace] ||= {};
     for (const locale of LOCALES) {
