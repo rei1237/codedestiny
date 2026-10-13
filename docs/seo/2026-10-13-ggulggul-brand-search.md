@@ -189,3 +189,9 @@ main c96764241의 PR CI 38329231428 실패를 최종 확인했다. Static guards
 - src/features/fortune-tea-house/components/FortuneTeaHouseLanding.tsx
 - src/features/fortune-tea-house/components/HoneyDropRewardOverlay.tsx
 - templates/home-funnel.html
+
+## 최종 전달 기록
+- 수정 커밋 f39680144. 브랜드 SEO 5개 파일 ESLint 통과.
+- 커밋 상태 check:pre-push 통과: home-service-registry, public-mirror-fresh, sitemap-drift(955 URL).
+- 전체 check:fast 중단과 기존 main CI 실패는 해소되지 않았다. main 통합/push 및 운영/검색 반영은 미완료.
+- 재개 문서: docs/handoff/ggulggul-brand-seo-20261013.md.

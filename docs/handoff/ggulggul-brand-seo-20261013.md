@@ -11,6 +11,7 @@ next: 기존 main GA4 CI 실패가 해결됐는지 확인한 뒤 격리 SEO 커�
 
 ## 상태
 - 작업 디렉터리: D:/Development/codedestiny-worktrees/ggulggul-brand-seo-20261013-095636
+- 변경 커밋: f39680144 (fix(seo): restore Ggulggul Fortune brand signals).
 - 브랜치: wt/ggulggul-brand-seo-20261013-095636. main 통합·push·운영 승격 없음.
 - 차단: 기준 c96764241 PR CI https://github.com/rei1237/codedestiny/actions/runs/38329231428 의 GA4 static guard 실패. PaymentLoading.tsx의 cross_sell_click 분류 누락. Main drift watchdog·Secret Scan도 실패했으므로 전달 전 별도 확인한다.
 
@@ -19,6 +20,8 @@ next: 기존 main GA4 CI 실패가 해결됐는지 확인한 뒤 격리 SEO 커�
 
 ## 검증
 브랜드/공통 화면/후기/보관함 node 검사 19/19, payment-freeze, i18n-public-parity 통과. 로컬 390/1280px 가로 넘침 없음, 이름·구조화 데이터 일치. check:fast는 전체 mock 검사로 승격됐고 다른 세션 검사와 겹쳐 본 Jest RSS 약 4GB에서 중단: 전체 통과 아님. 실 LLM·결제 호출 없음.
+
+추가 확인: 수정한 브랜드 SEO 파일 5개 ESLint 통과. 커밋 f39680144에서 check:pre-push 전체 통과(홈 레지스트리·미러 신선도·사이트맵 955 URL).
 
 ## 남은 일
 1. 다른 세션 검사 종료와 main CI 복구 확인. 필요 시 최신 main을 이 워크트리에 통합해 이름 충돌 검토.
