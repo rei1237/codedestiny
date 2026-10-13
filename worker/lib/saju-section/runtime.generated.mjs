@@ -2261,6 +2261,13 @@ var HEALTH_ADVICE_NEO={
   metal:'건조한 환경은 피하는 게 좋아. 물을 자주 마시고 피부 보습도 챙겨 봐.',
   water:'몸이 차가워지기 쉬운 편이야. 반신욕이나 족욕으로 체온을 올려 봐.'
 };
+// 마지막 한글 음절의 받침에 맞는 조사를 고른다. '으로/로'는 ㄹ 받침도 '로'를 쓴다.
+function _sajuJo(word,withBatchim,withoutBatchim){
+  var value=String(word||''),code=value.charCodeAt(value.length-1)-0xAC00;
+  var batchim=code>=0&&code<=11171?code%28:-1;
+  if(batchim<0)return withBatchim+'('+withoutBatchim+')';
+  return batchim===0||(batchim===8&&withoutBatchim==='로')?withoutBatchim:withBatchim;
+}
 var TS_DEEP_NEO={
   '비견':{nature:'누구의 간섭도 받기 싫어하는 <b>자유로운 영혼</b>이야. 겉으론 조용해 보여도 속엔 "내가 최고"라는 자존심이 꽉 차 있어. 남 밑에서 일하기보다 네 이름을 걸고 하는 일이 잘 어울려.',career:'프리랜서, 전문직, 개인 사업, 예체능 분야 — 조직 생활보다 독립적인 업무에서 빛나는 편이야.',love:'<b>친구 같은 편안한 연애</b>를 좋아해. 너를 구속하거나 집착하는 상대랑은 오래 가기 어려울 수 있어. 서로 사생활을 존중해 주는 쿨한 사람이랑 잘 맞아.',advice:'고집이 너무 세지면 주변 사람이 멀어질 수 있어. 가끔은 "내가 틀릴 수도 있겠다"고 생각해 보는 유연함이 성공의 열쇠야. 동업보다는 혼자 움직이는 쪽이 유리해.'},
   '겁재':{nature:'승부욕이 정말 강한 타입이야. <b>"지면 잠이 안 오는"</b> 성격이거든. 겉으론 웃고 있어도 속으론 상대를 이길 수를 짜고 있어. 리더십이 있고 사람을 모으는 재주가 뛰어나.',career:'스포츠 에이전트, 엔터테인먼트, 투기성 사업, 정치, 영업직에서 두각을 나타내기 쉬워.',love:'<b>드라마틱하고 화려한 연애</b>를 꿈꿔. 경쟁자가 있는 상대의 마음을 얻었을 때 큰 희열을 느끼는 편이야.',advice:'도박이나 무리한 투자는 큰 손실로 이어지기 쉬워. 돈은 들어오는데 나가는 구멍도 커. 자동이체 같은 강제 저축 장치를 하나 만들어 봐.'},
@@ -2737,7 +2744,7 @@ function renderSummary(p,johu,natal){
       }
       if(key==='eokbu'){
         return depthParagraph('강약을 활용하는 법',
-          '지금 구조는 '+(pw&&pw.isStrong?'일간의 힘이 비교적 강한 편':'일간의 힘이 외부 도움과 조율을 필요로 하는 편')+'으로 읽혀. '+(jg&&jg.isJong?'종격 가능성도 같이 검토되는 구조라서, 한 방향의 힘을 덮어놓고 누르기보다 실제 삶에서 오래 갈 수 있는지 확인하는 과정이 중요해.':'일반적인 억부 흐름에서는 강한 쪽을 설기하거나 부족한 쪽을 보완하는 균형 감각이 핵심이야.')+' 용신 후보는 '+yong+', 조심해서 다룰 기운은 '+kij+'로 정리돼.')+
+          '지금 구조는 '+(pw&&pw.isStrong?'일간의 힘이 비교적 강한 편':'일간의 힘이 외부 도움과 조율을 필요로 하는 편')+'으로 읽혀. '+(jg&&jg.isJong?'종격 가능성도 같이 검토되는 구조라서, 한 방향의 힘을 덮어놓고 누르기보다 실제 삶에서 오래 갈 수 있는지 확인하는 과정이 중요해.':'일반적인 억부 흐름에서는 강한 쪽을 설기하거나 부족한 쪽을 보완하는 균형 감각이 핵심이야.')+' 용신 후보는 '+yong+', 조심해서 다룰 기운은 '+kij+_sajuJo(kij,'으로','로')+' 정리돼.')+
           depthParagraph('선택의 기준',
             '좋은 선택은 용신이라는 이름을 무작정 따르는 게 아니야. 그 기운을 썼을 때 집중력·회복력·관계의 안정이 실제로 좋아지는지 확인하는 선택이지. 반대로 기신으로 읽힌 기운도 필요한 역할이 있으니까, 없애려 하기보다 양과 속도를 조절하는 식으로 다가가 봐.')+
           depthParagraph('수치가 뜻하는 것',
@@ -2765,7 +2772,7 @@ function renderSummary(p,johu,natal){
       }
       if(key==='ohaeng'){
         return depthParagraph('비율보다 중요한 균형',
-          '지금 오행 비율은 '+ratStr+'로 보여. 여기서 핵심은 가장 많은 오행을 좋다·나쁘다로 가르는 게 아니라, 그 기운이 어떤 역할은 충분히 하고 어떤 역할은 비어 있는지 살피는 거야. '+elTop+'가 중심인 흐름은 '+(ctips.action||'조절 행동')+'처럼 구체적인 루틴으로 옮길 때 생활에서 체감하기 쉬워.')+
+          '지금 오행 비율을 보면 '+ratStr+'야. 여기서 핵심은 가장 많은 오행을 좋다·나쁘다로 가르는 게 아니라, 그 기운이 어떤 역할은 충분히 하고 어떤 역할은 비어 있는지 살피는 거야. '+elTop+'가 중심인 흐름은 '+(ctips.action||'조절 행동')+'처럼 구체적인 루틴으로 옮길 때 생활에서 체감하기 쉬워.')+
           depthParagraph('부족함을 채우는 방식',
             '모자라 보이는 오행을 한꺼번에 늘리기보다 일·주거·관계·식습관 중 한 영역부터 작게 보완해 봐. 반대로 넘치는 기운은 억지로 끊기보다 '+(dtips.action||'속도를 낮추는 활동')+'처럼 흩어 주는 행동을 더하는 쪽이 오래 가.')+
           depthParagraph('순환이 끊기는 자리',
@@ -2773,7 +2780,7 @@ function renderSummary(p,johu,natal){
           depthParagraph('두꺼운 층과 얇은 층의 역할',
             elTop+'가 앞선 구조에서는 그 기운이 잘하는 일을 자연스럽게 반복하게 돼서 성과도 그쪽에서 먼저 나와. 문제는 '+elLow+'가 맡는 영역 — 대체로 기록·마감·거절·휴식처럼 눈에 잘 안 띄는 일 — 이 자꾸 뒤로 밀린다는 거야. 이 얇은 층을 사람이나 시스템으로 대신 채우는 것도 훌륭한 해법이야.')+
           depthParagraph('흔한 오해 바로잡기',
-            '비어 있는 오행을 색이나 물건으로 한 번에 채우려는 시도는 대개 오래 못 가. 오행은 물건의 속성이기 전에 행동의 성질에 가깝거든. '+ctrlEl+'을 쓰는 행동('+(ctips.action||'정리와 원칙 세우기')+')과 '+drainEl+'로 힘을 빼는 행동('+(dtips.action||'활동과 교류')+')처럼 동사로 바꿔야 진짜 변화가 생겨.')+
+            '비어 있는 오행을 색이나 물건으로 한 번에 채우려는 시도는 대개 오래 못 가. 오행은 물건의 속성이기 전에 행동의 성질에 가깝거든. '+ctrlEl+'을 쓰는 행동('+(ctips.action||'정리와 원칙 세우기')+')과 '+drainEl+_sajuJo(drainEl,'으로','로')+' 힘을 빼는 행동('+(dtips.action||'활동과 교류')+')처럼 동사로 바꿔야 진짜 변화가 생겨.')+
           depthParagraph('스스로 확인할 질문',
             '이번 주에 미룬 일 세 가지를 적고, 각각이 어떤 오행의 성질을 요구하는지 표시해 봐. 미룬 일이 한 오행에 몰려 있다면, 그게 이 사주에서 가장 얇은 층일 가능성이 커.')+actionNeo;
       }
@@ -2849,11 +2856,11 @@ function renderSummary(p,johu,natal){
       }
       if(key==='geongang'){
         return depthParagraph('컨디션의 패턴',
-          '건강 해석은 진단이 아니라 생활 리듬을 점검하는 참고 신호야. '+(health.weak||'취약하기 쉬운 컨디션')+'와 '+(health.stress||'스트레스 신호')+'가 겹치는 시기에는 의지로 버티기보다 수면·식사·움직임부터 정돈하는 쪽이 안전해.')+
+          '건강 해석은 진단이 아니라 생활 리듬을 점검하는 참고 신호야. '+(health.weak||'취약하기 쉬운 컨디션')+_sajuJo(health.weak||'취약하기 쉬운 컨디션','과','와')+' '+(health.stress||'스트레스 신호')+_sajuJo(health.stress||'스트레스 신호','이','가')+' 겹치는 시기에는 의지로 버티기보다 수면·식사·움직임부터 정돈하는 쪽이 안전해.')+
           depthParagraph('회복 루틴의 기준',
             (health.advice||'작고 반복 가능한 회복 루틴')+' '+(health.food||'몸에 맞는 식사')+'를 한꺼번에 바꾸기보다 하나씩 실험해 봐. 증상이 계속되거나 일상에 영향을 준다면 운세 해석보다 의료 전문가의 판단이 먼저야.')+
           depthParagraph('신호가 먼저 오는 자리',
-            '일간 '+dg+'('+dayElKo+') 기준으로는 '+(health.weak||'주의할 부위')+'가 먼저 신호를 보내는 편이고, 오행 분포에서 '+elLow+'가 얇다는 건 회복 자원이 모자라기 쉬운 지점을 알려 줘. 조후가 '+johuType+' 쪽이라면 계절이 바뀌는 구간에 컨디션 진폭이 특히 커질 수 있어.')+
+            '일간 '+dg+'('+dayElKo+') 기준으로는 '+(health.weak||'주의할 부위')+_sajuJo(health.weak||'주의할 부위','이','가')+' 먼저 신호를 보내는 편이고, 오행 분포에서 '+elLow+'가 얇다는 건 회복 자원이 모자라기 쉬운 지점을 알려 줘. 조후가 '+johuType+' 쪽이라면 계절이 바뀌는 구간에 컨디션 진폭이 특히 커질 수 있어.')+
           depthParagraph('식사를 다루는 방식',
             (health.food||'몸에 맞는 식사')+'는 치료식이 아니라 기울어진 기운을 되돌리는 생활 재료로 보는 게 맞아. '+(ctips.food||'담백한 식사')+' 같은 방향을 평소 식단에 조금씩 섞고, 극단적으로 제한하기보다 비율만 바꿔 봐. 오래 못 지키는 식단은 효과를 확인할 기회조차 안 주거든.')+
           depthParagraph('꼭 지켜야 할 한계',
@@ -2958,7 +2965,7 @@ function renderSummary(p,johu,natal){
     }
     if(key==='eokbu'){
       return depthParagraph('강약을 활용하는 법',
-        '현재 구조는 '+(pw&&pw.isStrong?'일간의 힘이 비교적 강한 편':'일간의 힘이 외부 도움과 조율을 필요로 하는 편')+'으로 읽힙니다. '+(jg&&jg.isJong?'종격 가능성이 함께 검토되는 구조이므로 한 방향의 힘을 무조건 억누르기보다 실제 삶에서 지속 가능한지 확인하는 과정이 중요합니다.':'일반적인 억부 흐름에서는 강한 부분을 설기하거나 부족한 부분을 보완하는 균형 감각이 핵심입니다.')+' 용신 후보는 '+yong+', 조심해서 다룰 기운은 '+kij+'로 정리됩니다.')+
+        '현재 구조는 '+(pw&&pw.isStrong?'일간의 힘이 비교적 강한 편':'일간의 힘이 외부 도움과 조율을 필요로 하는 편')+'으로 읽힙니다. '+(jg&&jg.isJong?'종격 가능성이 함께 검토되는 구조이므로 한 방향의 힘을 무조건 억누르기보다 실제 삶에서 지속 가능한지 확인하는 과정이 중요합니다.':'일반적인 억부 흐름에서는 강한 부분을 설기하거나 부족한 부분을 보완하는 균형 감각이 핵심입니다.')+' 용신 후보는 '+yong+', 조심해서 다룰 기운은 '+kij+_sajuJo(kij,'으로','로')+' 정리됩니다.')+
         depthParagraph('선택의 기준',
           '좋은 선택은 용신이라는 이름을 맹목적으로 따르는 것이 아니라, 그 기운을 활용했을 때 집중력·회복력·관계의 안정이 실제로 좋아지는지 확인하는 선택입니다. 반대로 기신으로 읽힌 기운도 필요한 역할이 있으므로 없애기보다 양과 속도를 조절하는 방식으로 접근하세요.')+
         depthParagraph('수치가 뜻하는 것',
@@ -2986,7 +2993,7 @@ function renderSummary(p,johu,natal){
     }
     if(key==='ohaeng'){
       return depthParagraph('비율보다 중요한 균형',
-        '현재 오행 비율은 '+ratStr+'로 보입니다. 여기서 핵심은 가장 많은 오행을 좋다·나쁘다로 판단하는 것이 아니라, 그 기운이 어떤 역할을 충분히 하고 어떤 역할은 비어 있는지 살피는 것입니다. '+elTop+'가 중심이 된 흐름은 '+(ctips.action||'조절 행동')+'처럼 구체적인 루틴으로 옮길 때 생활에서 체감되기 쉽습니다.')+
+        '현재 오행 비율을 보면 '+ratStr+'입니다. 여기서 핵심은 가장 많은 오행을 좋다·나쁘다로 판단하는 것이 아니라, 그 기운이 어떤 역할을 충분히 하고 어떤 역할은 비어 있는지 살피는 것입니다. '+elTop+'가 중심이 된 흐름은 '+(ctips.action||'조절 행동')+'처럼 구체적인 루틴으로 옮길 때 생활에서 체감되기 쉽습니다.')+
         depthParagraph('부족함을 채우는 방식',
           '부족해 보이는 오행을 한꺼번에 늘리기보다 일·주거·관계·식습관 중 한 영역부터 작게 보완하세요. 반대로 과한 기운은 억지로 끊기보다 '+(dtips.action||'속도를 낮추는 활동')+'처럼 분산시키는 행동을 더하는 편이 지속 가능합니다.')+
         depthParagraph('순환이 끊기는 자리',
@@ -2994,7 +3001,7 @@ function renderSummary(p,johu,natal){
         depthParagraph('두꺼운 층과 얇은 층의 역할',
           elTop+'가 앞선 구조에서는 그 기운이 잘하는 일을 자연스럽게 반복하게 되므로 성과도 그 방향에서 먼저 나옵니다. 문제는 '+elLow+'가 담당하는 영역 — 대체로 기록·마감·거절·휴식처럼 눈에 잘 띄지 않는 일 — 이 계속 뒤로 밀린다는 점입니다. 이 얇은 층을 사람이나 시스템으로 대신 채우는 것도 훌륭한 해법입니다.')+
         depthParagraph('흔한 오해 바로잡기',
-          '비어 있는 오행을 색이나 물건으로 한 번에 채우려는 시도는 대개 오래가지 않습니다. 오행은 물건의 속성이기 이전에 행동의 성질에 가깝기 때문입니다. '+ctrlEl+'을 쓰는 행동('+(ctips.action||'정리와 원칙 세우기')+')과 '+drainEl+'로 힘을 빼는 행동('+(dtips.action||'활동과 교류')+')처럼 동사로 바꿔야 실제 변화가 생깁니다.')+
+          '비어 있는 오행을 색이나 물건으로 한 번에 채우려는 시도는 대개 오래가지 않습니다. 오행은 물건의 속성이기 이전에 행동의 성질에 가깝기 때문입니다. '+ctrlEl+'을 쓰는 행동('+(ctips.action||'정리와 원칙 세우기')+')과 '+drainEl+_sajuJo(drainEl,'으로','로')+' 힘을 빼는 행동('+(dtips.action||'활동과 교류')+')처럼 동사로 바꿔야 실제 변화가 생깁니다.')+
         depthParagraph('스스로 확인할 질문',
           '이번 주에 미룬 일 세 가지를 적고 각각이 어떤 오행의 성질을 요구하는지 표시해 보세요. 미룬 일이 한 오행에 몰려 있다면, 그것이 이 사주에서 가장 얇은 층일 가능성이 높습니다.')+action;
     }
@@ -3070,11 +3077,11 @@ function renderSummary(p,johu,natal){
     }
     if(key==='geongang'){
       return depthParagraph('컨디션의 패턴',
-        '건강 해석은 진단이 아니라 생활 리듬을 점검하는 참고 신호입니다. '+(health.weak||'취약하기 쉬운 컨디션')+'와 '+(health.stress||'스트레스 신호')+'가 겹치는 시기에는 의지로 버티기보다 수면·식사·움직임을 먼저 정돈하는 방식이 안전합니다.')+
+        '건강 해석은 진단이 아니라 생활 리듬을 점검하는 참고 신호입니다. '+(health.weak||'취약하기 쉬운 컨디션')+_sajuJo(health.weak||'취약하기 쉬운 컨디션','과','와')+' '+(health.stress||'스트레스 신호')+_sajuJo(health.stress||'스트레스 신호','이','가')+' 겹치는 시기에는 의지로 버티기보다 수면·식사·움직임을 먼저 정돈하는 방식이 안전합니다.')+
         depthParagraph('회복 루틴의 기준',
           (health.advice||'작고 반복 가능한 회복 루틴')+' '+(health.food||'몸에 맞는 식사')+'를 한꺼번에 바꾸기보다 하나씩 실험하세요. 증상이 지속되거나 일상에 영향을 준다면 운세 해석보다 의료 전문가의 판단을 우선해야 합니다.')+
         depthParagraph('신호가 먼저 오는 자리',
-          '일간 '+dg+'('+dayElKo+') 기준으로는 '+(health.weak||'주의할 부위')+'가 먼저 신호를 보내는 편이고, 오행 분포에서 '+elLow+'가 얇다는 점은 회복 자원이 부족해지기 쉬운 지점을 알려줍니다. 조후가 '+johuType+' 쪽이라면 계절이 바뀌는 구간에 컨디션의 진폭이 특히 커질 수 있습니다.')+
+          '일간 '+dg+'('+dayElKo+') 기준으로는 '+(health.weak||'주의할 부위')+_sajuJo(health.weak||'주의할 부위','이','가')+' 먼저 신호를 보내는 편이고, 오행 분포에서 '+elLow+'가 얇다는 점은 회복 자원이 부족해지기 쉬운 지점을 알려줍니다. 조후가 '+johuType+' 쪽이라면 계절이 바뀌는 구간에 컨디션의 진폭이 특히 커질 수 있습니다.')+
         depthParagraph('식사를 다루는 방식',
           (health.food||'몸에 맞는 식사')+'는 치료식이 아니라 기울어진 기운을 되돌리는 생활 재료로 보는 편이 맞습니다. '+(ctips.food||'담백한 식사')+' 같은 방향을 평소 식단에 조금씩 섞고, 극단적인 제한 대신 비율만 바꾸세요. 오래 지키지 못하는 식단은 효과를 확인할 기회조차 주지 않습니다.')+
         depthParagraph('반드시 지켜야 할 한계',
@@ -3280,6 +3287,14 @@ function renderSummary(p,johu,natal){
     earth:'현실 조언을 똑 부러지게 해 주는 연장자야. 부동산·금융 쪽 인맥이 네 자산을 지켜 줄 수 있고.',
     metal:'날카로운 조언·정확한 피드백을 주는 법률·의료·기술 분야 전문가야. 듣기 불편해도 너한텐 약이 될 수 있어.',
     water:'깊은 통찰을 나눠 주는 학자나 철학자, 상담가 타입이야. 조용히 네 깊은 면을 알아봐 주는 사람이지.'
+  };
+  // 문장 중간에 끼우는 귀인 명사구. 완결문인 guiinByDomNeo와 역할을 섞지 않는다.
+  var guiinNounByDomNeo={
+    wood:'창의적이고 추진력 있는 교육·문화계 선배나 멘토',
+    fire:'열정적인 리더나 PR 전문가',
+    earth:'현실 조언이 분명한 부동산·금융 분야 연장자',
+    metal:'정확한 피드백을 주는 법률·의료·기술 분야 전문가',
+    water:'깊은 통찰을 나누는 학자·철학자·상담가'
   };
 
   // 인생 전략 요약
@@ -3779,7 +3794,7 @@ function renderSummary(p,johu,natal){
     '<br>'+subHead('귀인을 만나고 지키는 법','#1565C0')+
     '<div style="font-size:.84rem;line-height:1.85">'+
     (_isNeoSaju
-      ?'귀인은 거창한 데서 오지 않아. 네가 진심을 다하는 영역에서 꾸준히 가치를 쌓으면 자연스럽게 나타나. 먼저 네가 누군가의 귀인이 되어야 귀인도 끌어당길 수 있어. <b>'+dominant+'</b> 에너지를 가진 너의 귀인 유형인 <b>'+((guiinByDomNeo[domE])||'성장을 돕는 멘토')+'</b>와의 만남, 의도적으로 늘려 봐. 커뮤니티·스터디·업계 행사에 꾸준히 나가면서 네 가치를 먼저 나누는 태도, 그게 제일 좋은 방법이야. 한번 만난 귀인은 정기적으로 안부를 전하면서 이어 가 봐. 안 그러면 그냥 스쳐 지나갈 수도 있거든.'
+      ?'귀인은 거창한 데서 오지 않아. 네가 진심을 다하는 영역에서 꾸준히 가치를 쌓으면 자연스럽게 나타나. 먼저 네가 누군가의 귀인이 되어야 귀인도 끌어당길 수 있어. <b>'+dominant+'</b> 에너지를 가진 너의 귀인 유형인 <b>'+((guiinNounByDomNeo[domE])||'성장을 돕는 멘토')+'</b>와의 만남, 의도적으로 늘려 봐. 커뮤니티·스터디·업계 행사에 꾸준히 나가면서 네 가치를 먼저 나누는 태도, 그게 제일 좋은 방법이야. 한번 만난 귀인은 정기적으로 안부를 전하면서 이어 가 봐. 안 그러면 그냥 스쳐 지나갈 수도 있거든.'
       :'귀인은 거창한 곳에서 오지 않습니다. 당신이 진심을 다하는 영역에서, 꾸준히 가치를 쌓을 때 자연스럽게 나타납니다. 먼저 당신 자신이 타인의 귀인이 되어야 귀인을 끌어당길 수 있습니다. <b>'+dominant+'</b> 에너지를 가진 당신의 귀인 유형인 <b>'+(guiinByDom[domE]||'성장을 돕는 멘토')+'</b>와의 만남을 의도적으로 늘리세요. 커뮤니티, 스터디 모임, 업계 행사 등에 꾸준히 참여하면서 자신의 가치를 먼저 나누는 태도가 귀인 인연을 만드는 가장 확실한 방법입니다. 한번 만난 귀인과의 관계는 정기적인 연락과 관심으로 유지해야 합니다.')+'</div>',
     '#1565C0','rgba(227,242,253,.7)');
 
@@ -3820,7 +3835,7 @@ function renderSummary(p,johu,natal){
       ?['강점인 <b>'+dominant+'</b> 에너지, 일이랑 관계에 마음껏 써 봐',
         '약점인 <b>'+EL_K[domE]+'</b> 과잉, 의식해서 다스려 봐',
         '용신 에너지 '+((pw&&pw.yongshin)||[]).map(function(e){return EL_KO[e];}).join('·')+' 꾸준히 생활에 들여 봐',
-        '귀인('+(guiinByDomNeo[domE]||guiinByDom[domE])+')과의 인연, 일부러라도 만들어 가 봐']
+        '귀인('+(guiinNounByDomNeo[domE]||'성장을 돕는 멘토')+')과의 인연, 일부러라도 만들어 가 봐']
       :['강점인 <b>'+dominant+'</b> 에너지를 일과 관계에 최대한 활용하세요',
         '약점인 <b>'+EL_K[domE]+'</b> 과잉을 의식적으로 다스리세요',
         '용신 에너지 '+((pw&&pw.yongshin)||[]).map(function(e){return EL_KO[e];}).join('·')+'를 생활에 꾸준히 흡수하세요',
@@ -3876,8 +3891,8 @@ function renderSummary(p,johu,natal){
      13. 연이의 현실 조언 / 영냥이의 현실 체크 (NEO_MODE 분기)
   ─────────────────────────────── */
   if (_isNeoSaju) {
-    html+='<div class="prem-box" style="background:linear-gradient(135deg,rgba(30,5,5,.9),rgba(60,10,10,.85));border-color:#e53935">'+
-      '<span class="prem-title" style="border-color:#e53935;color:#FF6B6B">🐱 영냥이의 현실 체크 — '+(USER_NAME||'너')+'에게 해 주는 이야기</span>'+
+    html+='<div class="prem-box" style="background:var(--cd-surface-2);border-color:var(--cd-border)">'+
+      '<span class="prem-title" style="border-color:var(--cd-accent);color:var(--cd-accent)">🐱 영냥이의 현실 체크 — '+(USER_NAME||'너')+'에게 해 주는 이야기</span>'+
       '<div class="prem-text">'+generateNeoFactPunch(p,pw,jg,dominant,dayMaster,domE,natal,deep)+'</div></div>';
   } else {
     html+='<div class="prem-box" style="background:linear-gradient(135deg,#E8F5E9,#F1F8E9);border-color:#A5D6A7">'+
@@ -4021,18 +4036,18 @@ function generateNeoFactPunch(p,pw,jg,dominant,dayMaster,domE,natal,deep){
   };
 
   // 구성
-  out+='<div style="border-radius:10px;padding:14px;margin-bottom:14px;border-left:4px solid #e53935;background:rgba(229,57,53,.08)">';
-  out+='<b style="font-size:.9rem;color:#FF6B6B">🐱 일간 '+dg+' — 영냥이가 네 사주에서 본 것</b><br>';
+  out+='<div style="border-radius:10px;padding:14px;margin-bottom:14px;border:1px solid var(--cd-border);background:var(--cd-surface)">';
+  out+='<b style="font-size:.9rem;color:var(--cd-accent)">🐱 일간 '+dg+' — 영냥이가 네 사주에서 본 것</b><br>';
   out+='<span style="font-size:.86rem;line-height:1.9">'+(ganPunch[dg]||deep.advice)+'</span>';
   out+='</div>';
 
-  out+='<div style="border-radius:10px;padding:14px;margin-bottom:14px;border-left:4px solid #ff9800;background:rgba(255,152,0,.08)">';
-  out+='<b style="font-size:.9rem;color:#FFA726">🌙 '+( jg&&jg.isJong ? '종격':'(신강/신약)' )+' 현실 체크</b><br>';
+  out+='<div style="border-radius:10px;padding:14px;margin-bottom:14px;border:1px solid var(--cd-border);background:var(--cd-surface)">';
+  out+='<b style="font-size:.9rem;color:var(--cd-accent)">🌙 '+( jg&&jg.isJong ? '종격':'(신강/신약)' )+' 현실 체크</b><br>';
   out+='<span style="font-size:.86rem;line-height:1.9">'+powerPunch+'</span>';
   out+='</div>';
 
-  out+='<div style="border-radius:10px;padding:14px;margin-bottom:14px;border-left:4px solid #9c27b0;background:rgba(156,39,176,.08)">';
-  out+='<b style="font-size:.9rem;color:#CE93D8">🔮 핵심 십성 '+dominant+' — 짚고 갈 것</b><br>';
+  out+='<div style="border-radius:10px;padding:14px;margin-bottom:14px;border:1px solid var(--cd-border);background:var(--cd-surface)">';
+  out+='<b style="font-size:.9rem;color:var(--cd-accent)">🔮 핵심 십성 '+dominant+' — 짚고 갈 것</b><br>';
   out+='<span style="font-size:.86rem;line-height:1.9">'+(tsPunch[dominant]||deep.advice)+'</span>';
   out+='</div>';
 
@@ -4044,13 +4059,13 @@ function generateNeoFactPunch(p,pw,jg,dominant,dayMaster,domE,natal,deep){
       metal:'금(金) 과잉. 요즘 주변에서 "차갑다", "무뚝뚝하다"는 말 들었어? 피부 건조나 기침도 체크해 봐. 따뜻한 색(빨강, 주황)을 일상에 더하고, 봉사나 표현 활동으로 화(火) 기운을 채워 봐.',
       water:'수(水) 과잉. 결정을 계속 미루고 있어? 두려움이나 불안이 크다면 수 기운 과잉 신호일 수 있어. 노란색·황토색 소품으로 토(土) 기운을 보강하고, 규칙적인 루틴으로 방향을 잡아 봐.'
     };
-    out+='<div style="border-radius:10px;padding:12px;margin-bottom:14px;border-left:4px solid #e65100;background:rgba(230,81,0,.08)">';
-    out+='<b style="font-size:.88rem;color:#FF8A65">⚠️ '+EL_KO[domE]+' 편중 — 지금부터 균형 맞춰 봐</b><br>';
+    out+='<div style="border-radius:10px;padding:12px;margin-bottom:14px;border:1px solid var(--cd-border);background:var(--cd-surface)">';
+    out+='<b style="font-size:.88rem;color:var(--cd-accent)">⚠️ '+EL_KO[domE]+' 편중 — 지금부터 균형 맞춰 봐</b><br>';
     out+='<span style="font-size:.84rem;line-height:1.9">'+(elPunch[domE]||'')+'</span>';
     out+='</div>';
   }
 
-  out+='<div style="text-align:right;margin-top:8px;font-style:italic;color:#FF6B6B;font-size:.8rem">— 수정구슬로 네 사주를 들여다본 영냥이가. 쓴소리 같아도 난 네 편이야 🐱</div>';
+  out+='<div style="text-align:right;margin-top:8px;font-style:italic;color:var(--cd-text-muted);font-size:.8rem">— 수정구슬로 네 사주를 들여다본 영냥이가. 쓴소리 같아도 난 네 편이야 🐱</div>';
   return out;
 }
 function getDaewunBranchEvidence(zhi,p,unknown){

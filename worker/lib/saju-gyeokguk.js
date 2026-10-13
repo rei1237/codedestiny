@@ -59,6 +59,14 @@ const GEOK_BY_TEN_GOD = Object.freeze({
 const LAYER_WEIGHT = Object.freeze({ 정기: 1.2, 중기: 0.65, 여기: 0.35 });
 const EXPOSURE_BONUS = 2.2; // 월지 지장간이 천간에 투출되면 격이 뚜렷해진다.
 
+function withJosa(word, withBatchim, withoutBatchim) {
+  const value = String(word || "");
+  const code = value.charCodeAt(value.length - 1) - 0xac00;
+  const batchim = code >= 0 && code <= 11171 ? code % 28 : -1;
+  const suffix = batchim < 0 ? `${withBatchim}(${withoutBatchim})` : batchim === 0 ? withoutBatchim : withBatchim;
+  return value + suffix;
+}
+
 function normalizeStemChar(value) {
   const text = String(value == null ? "" : value).trim();
   for (const stem of Object.keys(STEM_ELEMENT_KEY)) {
@@ -278,23 +286,28 @@ export function buildGyeokgukAnalysis({
   let finalGyeokguk = "";
   let finalType = "일반격";
   let judgmentReason = "";
+  let judgmentReasonNeo = "";
   let confident = true;
 
   if (jong && jong.isJong) {
     finalGyeokguk = String(jong.name || "종격").trim() || "종격";
     finalType = "특수격";
     judgmentReason = "일간이 극도로 편중되어 종격(특수격)으로 성립합니다. 정기·투출보다 세력의 종속이 우선입니다.";
+    judgmentReasonNeo = "일간이 극도로 편중돼서 종격(특수격)으로 성립해. 정기·투출보다 세력의 종속이 우선이야.";
   } else if (mainQi && (mainQi.tenGod === "비견" || mainQi.tenGod === "겁재")) {
     // 월령 본기가 일간과 같은 오행 → 정규 격 대신 건록/양인/월겁 구조.
     if (monthStage === "건록") {
       finalGyeokguk = "건록격";
-      judgmentReason = `월지 ${monthBranchKo}가 일간 ${STEM_KO[day] || day}의 건록 자리라 건록격으로 봅니다.`;
+      judgmentReason = `월지 ${withJosa(monthBranchKo, "이", "가")} 일간 ${STEM_KO[day] || day}의 건록 자리라 건록격으로 봅니다.`;
+      judgmentReasonNeo = `월지 ${withJosa(monthBranchKo, "이", "가")} 일간 ${STEM_KO[day] || day}의 건록 자리라 건록격으로 봐.`;
     } else if (monthStage === "제왕" && dayIsYang) {
       finalGyeokguk = "양인격";
-      judgmentReason = `월지 ${monthBranchKo}가 양간 일간의 제왕(양인) 자리라 양인격으로 봅니다.`;
+      judgmentReason = `월지 ${withJosa(monthBranchKo, "이", "가")} 양간 일간의 제왕(양인) 자리라 양인격으로 봅니다.`;
+      judgmentReasonNeo = `월지 ${withJosa(monthBranchKo, "이", "가")} 양간 일간의 제왕(양인) 자리라 양인격으로 봐.`;
     } else {
       finalGyeokguk = "월겁격";
       judgmentReason = `월령 본기가 ${mainQi.tenGod}이라 정규 격 대신 월겁격(신강 구조)으로 봅니다.`;
+      judgmentReasonNeo = `월령 본기가 ${mainQi.tenGod}이라 정규 격 대신 월겁격(신강 구조)으로 봐.`;
     }
     finalType = "특수격";
   } else if (candidates.length) {
@@ -304,11 +317,15 @@ export function buildGyeokgukAnalysis({
     judgmentReason = best.exposed
       ? `월지 ${monthBranchKo} 지장간의 ${best.tenGod}이 천간에 투출되어 ${best.name}이 뚜렷합니다.`
       : `월지 ${monthBranchKo} 지장간의 ${best.tenGod}을 기준으로 ${best.name}으로 보되, 투출이 약해 확정도는 낮습니다.`;
+    judgmentReasonNeo = best.exposed
+      ? `월지 ${monthBranchKo} 지장간의 ${best.tenGod}이 천간에 투출돼서 ${best.name}이 뚜렷해.`
+      : `월지 ${monthBranchKo} 지장간의 ${best.tenGod}을 기준으로 ${best.name}으로 보되, 투출이 약해서 확정도는 낮아.`;
     if (!best.exposed) confident = false;
   } else {
     finalGyeokguk = "미정";
     finalType = "참고";
     judgmentReason = "월지 지장간에서 뚜렷한 정규 격이 성립하지 않아, 억부·조후 흐름으로 보완해 읽습니다.";
+    judgmentReasonNeo = "월지 지장간에서 뚜렷한 정규 격이 성립하지 않아서, 억부·조후 흐름으로 보완해 읽어.";
     confident = false;
   }
 
@@ -339,6 +356,7 @@ export function buildGyeokgukAnalysis({
     finalGyeokguk,
     finalType,
     judgmentReason,
+    judgmentReasonNeo,
     confident,
     monthBranch,
     monthBranchKo,

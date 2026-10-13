@@ -100,6 +100,7 @@ describe("saju-gyeokguk: 격국 판정", () => {
     });
     expect(result.finalGyeokguk).toBe("건록격");
     expect(result.finalType).toBe("특수격");
+    expect(result.judgmentReasonNeo).toBe("월지 인이 일간 갑의 건록 자리라 건록격으로 봐.");
   });
 
   test("甲 일간 酉월(본기 辛=정관) + 辛 투출 → 정관격", () => {
@@ -116,6 +117,7 @@ describe("saju-gyeokguk: 격국 판정", () => {
     expect(result.finalGyeokguk).toBe("정관격");
     expect(result.finalType).toBe("일반격");
     expect(result.confident).toBe(true);
+    expect(result.judgmentReasonNeo).toBe("월지 유 지장간의 정관이 천간에 투출돼서 정관격이 뚜렷해.");
   });
 
   test("종격이면 jong.name을 존중한다", () => {
@@ -128,11 +130,13 @@ describe("saju-gyeokguk: 격국 판정", () => {
     });
     expect(result.finalGyeokguk).toBe("종재격");
     expect(result.finalType).toBe("특수격");
+    expect(result.judgmentReasonNeo).toMatch(/성립해\..*우선이야\.$/);
   });
 
   test("입력이 비어도 예외 없이 참고 등급을 반환한다", () => {
     const result = gyeokguk.buildGyeokgukAnalysis({});
     expect(result.finalType).toBe("참고");
     expect(result.luckTiming.note).toContain("참고용");
+    expect(result.judgmentReasonNeo).toMatch(/읽어\.$/);
   });
 });

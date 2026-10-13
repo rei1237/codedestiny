@@ -70,3 +70,14 @@ test("브라우저는 본문을 서버에만 묻는다", () => {
   assert.match(engine, /function showDwDetail\([^)]*\)\{[^}]*CdSajuSectionClient\.showDaewun\(/, "showDwDetail 이 서버 로더를 거치지 않는다");
   assert.match(read("index.html"), /<script defer src="\/js\/core\/saju\/section-client\.js"><\/script>/, "index.html 이 본문 로더를 싣지 않는다");
 });
+
+test("영냥이 귀인 문구와 현실 체크는 문장 역할·테마 토큰을 지킨다", () => {
+  const paid = read("worker/lib/saju-section/paid-renderers.src.js");
+  assert.match(paid, /var guiinNounByDomNeo=\{/);
+  assert.match(paid, /guiinNounByDomNeo\[domE\].*<\/b>와의 만남/);
+  assert.match(paid, /귀인\('\+\(guiinNounByDomNeo\[domE\]/);
+  assert.match(paid, /영냥이의 현실 체크[\s\S]*background:var\(--cd-surface-2\);border-color:var\(--cd-border\)/);
+  assert.match(paid, /영냥이가 네 사주에서 본 것[\s\S]*color:var\(--cd-text-muted\)/);
+  const realityCheck = paid.slice(paid.indexOf("function generateNeoFactPunch("), paid.indexOf("function getDaewunBranchEvidence("));
+  assert.doesNotMatch(realityCheck, /#e53935|#FF6B6B|#ff9800|#FFA726|#9c27b0|#CE93D8|#e65100|#FF8A65/);
+});

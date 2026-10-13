@@ -253,6 +253,13 @@ var SajuReadingDepth = (() => {
   });
   var LAYER_WEIGHT = Object.freeze({ 정기: 1.2, 중기: 0.65, 여기: 0.35 });
   var EXPOSURE_BONUS = 2.2;
+  function withJosa(word, withBatchim, withoutBatchim) {
+    const value = String(word || "");
+    const code = value.charCodeAt(value.length - 1) - 44032;
+    const batchim = code >= 0 && code <= 11171 ? code % 28 : -1;
+    const suffix = batchim < 0 ? `${withBatchim}(${withoutBatchim})` : batchim === 0 ? withoutBatchim : withBatchim;
+    return value + suffix;
+  }
   function normalizeStemChar(value) {
     const text = String(value == null ? "" : value).trim();
     for (const stem of Object.keys(STEM_ELEMENT_KEY)) {
@@ -400,21 +407,26 @@ var SajuReadingDepth = (() => {
     let finalGyeokguk = "";
     let finalType = "일반격";
     let judgmentReason = "";
+    let judgmentReasonNeo = "";
     let confident = true;
     if (jong && jong.isJong) {
       finalGyeokguk = String(jong.name || "종격").trim() || "종격";
       finalType = "특수격";
       judgmentReason = "일간이 극도로 편중되어 종격(특수격)으로 성립합니다. 정기·투출보다 세력의 종속이 우선입니다.";
+      judgmentReasonNeo = "일간이 극도로 편중돼서 종격(특수격)으로 성립해. 정기·투출보다 세력의 종속이 우선이야.";
     } else if (mainQi && (mainQi.tenGod === "비견" || mainQi.tenGod === "겁재")) {
       if (monthStage === "건록") {
         finalGyeokguk = "건록격";
-        judgmentReason = `월지 ${monthBranchKo}가 일간 ${STEM_KO[day] || day}의 건록 자리라 건록격으로 봅니다.`;
+        judgmentReason = `월지 ${withJosa(monthBranchKo, "이", "가")} 일간 ${STEM_KO[day] || day}의 건록 자리라 건록격으로 봅니다.`;
+        judgmentReasonNeo = `월지 ${withJosa(monthBranchKo, "이", "가")} 일간 ${STEM_KO[day] || day}의 건록 자리라 건록격으로 봐.`;
       } else if (monthStage === "제왕" && dayIsYang) {
         finalGyeokguk = "양인격";
-        judgmentReason = `월지 ${monthBranchKo}가 양간 일간의 제왕(양인) 자리라 양인격으로 봅니다.`;
+        judgmentReason = `월지 ${withJosa(monthBranchKo, "이", "가")} 양간 일간의 제왕(양인) 자리라 양인격으로 봅니다.`;
+        judgmentReasonNeo = `월지 ${withJosa(monthBranchKo, "이", "가")} 양간 일간의 제왕(양인) 자리라 양인격으로 봐.`;
       } else {
         finalGyeokguk = "월겁격";
         judgmentReason = `월령 본기가 ${mainQi.tenGod}이라 정규 격 대신 월겁격(신강 구조)으로 봅니다.`;
+        judgmentReasonNeo = `월령 본기가 ${mainQi.tenGod}이라 정규 격 대신 월겁격(신강 구조)으로 봐.`;
       }
       finalType = "특수격";
     } else if (candidates.length) {
@@ -422,11 +434,13 @@ var SajuReadingDepth = (() => {
       finalGyeokguk = best.name;
       finalType = "일반격";
       judgmentReason = best.exposed ? `월지 ${monthBranchKo} 지장간의 ${best.tenGod}이 천간에 투출되어 ${best.name}이 뚜렷합니다.` : `월지 ${monthBranchKo} 지장간의 ${best.tenGod}을 기준으로 ${best.name}으로 보되, 투출이 약해 확정도는 낮습니다.`;
+      judgmentReasonNeo = best.exposed ? `월지 ${monthBranchKo} 지장간의 ${best.tenGod}이 천간에 투출돼서 ${best.name}이 뚜렷해.` : `월지 ${monthBranchKo} 지장간의 ${best.tenGod}을 기준으로 ${best.name}으로 보되, 투출이 약해서 확정도는 낮아.`;
       if (!best.exposed) confident = false;
     } else {
       finalGyeokguk = "미정";
       finalType = "참고";
       judgmentReason = "월지 지장간에서 뚜렷한 정규 격이 성립하지 않아, 억부·조후 흐름으로 보완해 읽습니다.";
+      judgmentReasonNeo = "월지 지장간에서 뚜렷한 정규 격이 성립하지 않아서, 억부·조후 흐름으로 보완해 읽어.";
       confident = false;
     }
     const breakFactors = [];
@@ -453,6 +467,7 @@ var SajuReadingDepth = (() => {
       finalGyeokguk,
       finalType,
       judgmentReason,
+      judgmentReasonNeo,
       confident,
       monthBranch,
       monthBranchKo,
@@ -705,6 +720,12 @@ var SajuReadingDepth = (() => {
   var ELEMENT_KO = { wood: "목", fire: "화", earth: "토", metal: "금", water: "수" };
   var POS = { y: "year", m: "month", d: "day", h: "hour" };
   var POS_KO = { y: "년주", m: "월주", d: "일주", h: "시주" };
+  function jo(word, withBatchim, withoutBatchim) {
+    const value = String(word ?? ""), code = value.charCodeAt(value.length - 1) - 44032;
+    const batchim = code >= 0 && code <= 11171 ? code % 28 : -1;
+    if (batchim < 0) return `${withBatchim}(${withoutBatchim})`;
+    return batchim === 0 || batchim === 8 && withoutBatchim === "로" ? withoutBatchim : withBatchim;
+  }
   var STEMS = {
     甲: ["갑목", "뿌리를 내리고 위로 자라는 나무", "스스로 방향을 정하고 끝까지 성장하려는 마음", "기준을 세우고 앞장서는 힘이 있어요. 그 기준이 굳어지면 도움을 받아도 간섭처럼 느낄 수 있어요.", "목표와 책임이 분명한 일을 맡되, 중간 점검에서 다른 사람의 방법도 받아들여 보세요.", "존중받는다는 느낌이 중요해요. 상대에게 방향을 제시하기 전에 어떤 도움을 원하는지 물어보세요.", "성장 가능성을 보고 자원을 오래 묶어둘 수 있어요. 기대하는 미래와 지금 감당할 비용을 따로 적어 보세요.", "완수한 일과 아직 자라는 일을 나눠 적고, 끝내지 못한 일을 모두 실패로 묶지 않아 보세요."],
     乙: ["을목", "환경을 살피며 뻗는 덩굴과 풀", "관계를 해치지 않으면서 나의 자리를 확보하려는 마음", "상황을 읽고 방법을 바꾸는 힘이 있어요. 적응이 길어지면 정작 내가 원하는 것을 놓치기 쉬워요.", "조율·편집·연결 역할에서 능력을 시험하되, 맡은 범위와 최종 결정권을 먼저 정해 보세요.", "작은 말과 분위기를 섬세하게 읽을 수 있어요. 짐작한 마음을 사실처럼 다루기 전에 대화로 확인해 보세요.", "관계나 생활의 필요 때문에 지출이 늘 수 있어요. 다른 사람을 위한 비용에도 자신만의 한도를 두세요.", "오늘 맞춰 준 일 가운데 다음에는 거절해도 될 일 하나를 골라 보세요."],
@@ -945,7 +966,6 @@ var SajuReadingDepth = (() => {
       { key: "relation", title: "관계와 일상에 연결하면", text: `${s[5]} ${s[7]} 계절 비유를 성격의 결론으로 받아들이기보다, 반복되는 상황 하나에서 너한테 맞는 방법인지 확인해 봐.` }
     ] };
   }
-  var neoReason = (t) => String(t ?? "").replace(/성립합니다\./g, "성립해.").replace(/뚜렷합니다\./g, "뚜렷해.").replace(/입니다\./g, "이야.").replace(/봅니다\./g, "봐.").replace(/낮습니다\./g, "낮아.").replace(/읽습니다\./g, "읽어.").replace(/합니다\./g, "해.");
   function dayReading(key, persona) {
     if (!PILLAR_NOTES[key]) return null;
     if (persona === "neo") return dayReadingNeo(key);
@@ -966,7 +986,7 @@ var SajuReadingDepth = (() => {
     const s = STEMS[stem], m = MONTHS[month], note = MONTH_NOTES[stem]?.[MONTH_ORDER.indexOf(month)];
     if (!s || !m || !note) return null;
     return { key: stem + month, title: `${m[0]}월(${month}月)의 ${s[0]}`, basis: "양력·음력의 달 번호가 아닌, 계산된 절기 기준 월지로 읽어요.", sections: [
-      { key: "season", title: "태어난 계절과 일간의 만남", text: `${m[0]}월은 ${m[1]}이에요. ${s[1]}로 비유하는 ${s[0]}이 이 환경에서 어떻게 힘을 쓰는지 살펴요. ${note}` },
+      { key: "season", title: "태어난 계절과 일간의 만남", text: `${m[0]}월은 ${m[1]}이에요. ${s[1]}${jo(s[1], "으로", "로")} 비유하는 ${s[0]}이 이 환경에서 어떻게 힘을 쓰는지 살펴요. ${note}` },
       { key: "condition", title: "힘을 살리는 조건과 주의점", text: `${m[2]}를 첫 질문으로 삼아 보세요. 계절의 요구에 맞추려다 원래 가진 ${s[2]}을 지나치게 누르거나 밀어붙이지 않는지 살펴요. 계절만으로 용신을 정하지 않고 원국의 뿌리·도움·소모와 조후·억부 판정을 함께 확인해야 해요.` },
       { key: "work", title: "일과 돈에 연결하면", text: `${s[4]} ${s[6]} 이 달의 ${m[2]}라는 주제를 실제 일정과 비용에 대입해, 지금 유지할 수 있는 작은 단위부터 시험해 보세요.` },
       { key: "relation", title: "관계와 일상에 연결하면", text: `${s[5]} ${s[7]} 계절의 비유를 성격의 결론으로 받아들이기보다, 반복되는 상황 하나에서 자신에게 맞는 방법인지 확인해 보세요.` }
@@ -1009,7 +1029,7 @@ var SajuReadingDepth = (() => {
     const g = d.gyeokguk, pw = facts.power, j = facts.johu;
     const uncertain = d.unknown || !g.confident || facts.jong?.isGaJong;
     const candidates = uncertain ? (g.candidates || []).map((c) => `${c.name}(${c.layer}${c.exposed ? "·투간 확인" : "·투간 미확인"})`) : [];
-    const out = [{ key: "gyeok", title: "격국과 뿌리에서 달라지는 점", text: `지금 계산으로는 격국을 ${g.finalGyeokguk}${uncertain ? " 후보로 읽어" : "으로 읽어"}. ${neoReason(g.judgmentReason)} 격국은 좋고 나쁨의 등급이 아니라, 월령의 어떤 역할이 중심으로 드러나는지 보는 틀이야. ${d.roots.length ? `일간과 같은 오행이 지장간에 들어 있는 자리는 ${d.roots.join(" · ")}, 여기서 뿌리를 찾을 수 있어. 뿌리가 있다는 사실과 충분히 강하다는 판단은 구분해서 봐.` : "확인한 기둥에서는 일간과 같은 오행의 뿌리가 안 보여. 그렇다고 무능하거나 불리하다는 뜻은 아니야."} 실제 생활에서 그 역할을 맡을 자원과 지원이 있는지 확인해 봐.` }];
+    const out = [{ key: "gyeok", title: "격국과 뿌리에서 달라지는 점", text: `지금 계산으로는 격국을 ${g.finalGyeokguk}${uncertain ? " 후보로 읽어" : "으로 읽어"}. ${g.judgmentReasonNeo} 격국은 좋고 나쁨의 등급이 아니라, 월령의 어떤 역할이 중심으로 드러나는지 보는 틀이야. ${d.roots.length ? `일간과 같은 오행이 지장간에 들어 있는 자리는 ${d.roots.join(" · ")}, 여기서 뿌리를 찾을 수 있어. 뿌리가 있다는 사실과 충분히 강하다는 판단은 구분해서 봐.` : "확인한 기둥에서는 일간과 같은 오행의 뿌리가 안 보여. 그렇다고 무능하거나 불리하다는 뜻은 아니야."} 실제 생활에서 그 역할을 맡을 자원과 지원이 있는지 확인해 봐.` }];
     if (candidates.length) out[0].text += ` 함께 남아 있는 후보로는 ${candidates.join(" · ")}도 있어. 투간은 지장간의 역할이 천간에 드러난다는 뜻이고, 시간 미상이거나 성립 조건이 남아 있으면 직업·성과의 결론으로 못 박지 않아.`;
     if (pw && typeof pw.isStrong === "boolean") out.push({ key: "capacity", title: "감당할 힘에 맞춰 쓰는 방법", text: facts.jong?.isJong ? `${facts.jong.name || "종격"}에서는 한 방향으로 모인 기세부터 살펴. 일반적인 신강·신약 조언을 그대로 갖다 대지 않고, 기존 계산이 내놓은 용신과 조건을 확인해. 큰 전환 전에는 지금 잘 유지되는 일과 무너지는 일을 나눠서 적어 봐.` : pw.isStrong ? "기존 억부 계산에서는 일간을 돕는 힘이 비교적 큰 쪽이야. 혼자 버티는 장점을 결과물과 협업으로 이어 봐. 이번 주 맡은 일 하나의 기준을 공유하고 일부를 나눈 다음, 진행 속도와 충돌이 어떻게 달라지는지 확인해 봐." : "기존 억부 계산에서는 주변 요구에 비해 일간을 돕는 힘을 보완할 필요가 있는 쪽이야. 능력이 부족하다는 뜻은 아니야. 새 역할을 늘리기 전에 필요한 기술·시간·도움을 적어 보고, 지원받을 조건이 갖춰진 작은 과제부터 시작해 봐." });
     if (j) {

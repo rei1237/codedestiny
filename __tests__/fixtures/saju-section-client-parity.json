@@ -125,7 +125,7 @@
   {
    "id": "solar-m-1990",
    "mode": "pig",
-   "summary": "bda2419aa6a40b8ce6bb7fc64e57dca3f917196f495ea6ae64f0dd3929d7a65c",
+   "summary": "4c2c945c2b278e15e9dc8899021171343376d720629f866e23323023fd8dd53f",
    "daewun": [
     [
      8,
@@ -177,7 +177,7 @@
   {
    "id": "solar-m-1990",
    "mode": "neo",
-   "summary": "e2f4295868cc3388b695e46adab62a024535beb9d728843e30b1b81469d8e493",
+   "summary": "662fa535a7b0a89c7a11aef9e9265521abd7babc6b260d8456ee8ac12b8722df",
    "daewun": [
     [
      8,
@@ -229,7 +229,7 @@
   {
    "id": "solar-f-1985",
    "mode": "pig",
-   "summary": "f88da5b53b140d49a17b1f3c8f626e52c3b6515d9327f2cf6c17267806e2b86e",
+   "summary": "f4f25d778343dd3dd4a8d4a965b835261f05ea8d798dcd42b20a123ebba60ed2",
    "daewun": [
     [
      3,
@@ -281,7 +281,7 @@
   {
    "id": "solar-f-1985",
    "mode": "neo",
-   "summary": "143004fcfd1ac0e6a2e7d1948e9ae917419ae734f06612a97a48f5c5cf6bfc40",
+   "summary": "5fa73d16b9d7a4b45b81900430b7642f4e148a6b10492f305437bcaf14adb17f",
    "daewun": [
     [
      3,
@@ -333,19 +333,19 @@
   {
    "id": "unknown-f-1978",
    "mode": "pig",
-   "summary": "9f582da8019ace980d1532ee345f7e71d4a04c79bba51ffd946f7fb3eeddb6fd",
+   "summary": "fbb1de7586ef8bfc64c28fe15eec47361f5dc00d065d3a94a8fb914dfdf96138",
    "daewun": []
   },
   {
    "id": "unknown-f-1978",
    "mode": "neo",
-   "summary": "e2802d4e8d6f0a05637506ac3ea9b4871456461067e3fe9213f689b3ba42bbf7",
+   "summary": "a294bad03a991c98e4230f0bde39d227e234fbbfb0d32e3d9998d8e9fee89529",
    "daewun": []
   },
   {
    "id": "lunar-m-1962",
    "mode": "pig",
-   "summary": "56ad5ebf4fa526fa25625fecb55412d946fc4bfc5f7b74b300758e7a96156376",
+   "summary": "792b51fe5a057d4603b2e096818b13357dc19aaa85b072fab7c9157d6d2db3fd",
    "daewun": [
     [
      10,
@@ -397,7 +397,7 @@
   {
    "id": "lunar-m-1962",
    "mode": "neo",
-   "summary": "695e8712726ff2fdeaf9b53de883dcc5d5733057bb589607454c6cf58fb0883a",
+   "summary": "f4e60c9b71c879bb7fb959541def9d0b2e496473a973262210aa2d9c4e25615a",
    "daewun": [
     [
      10,
@@ -449,7 +449,7 @@
   {
    "id": "leap-f-2020",
    "mode": "pig",
-   "summary": "88c5dadb7215376395ee10a46005bde309353062fbe480f03eb856fa2dfcabf7",
+   "summary": "9cb6cc9b2e9e699d9be8292b1e707499a2d896b90a72c9e239912f03e166c879",
    "daewun": [
     [
      10,
@@ -501,7 +501,7 @@
   {
    "id": "leap-f-2020",
    "mode": "neo",
-   "summary": "2843a0b538fd5fc5791aaeb1d2c4375b97f0a9e1919e69a6abc4017871a2f49d",
+   "summary": "222d1f768672f5d3eab59d7c43ba583867dca6929f964e82bf293049f49a0a49",
    "daewun": [
     [
      10,
@@ -553,7 +553,7 @@
   {
    "id": "newyear-m-2001",
    "mode": "pig",
-   "summary": "43247e177eb87f881ff4d09f5580993164a9378e0e0646c7998b88323cbdd60a",
+   "summary": "69ff4833ccd6ba30cc6e49f0c580b33c18935636d8f810a20d738734978e6e32",
    "daewun": [
     [
      2,
@@ -605,7 +605,7 @@
   {
    "id": "newyear-m-2001",
    "mode": "neo",
-   "summary": "17e5dd1ffe468d47a36e65022c57679711219e21370803a6ec73ca58a7574c57",
+   "summary": "5f2575dabad76a032a3496e2ef79fa5586cc402fba658c7570d2d322684c2971",
    "daewun": [
     [
      2,
@@ -657,7 +657,7 @@
   {
    "id": "ny-f-1995",
    "mode": "pig",
-   "summary": "5c974a79b470fd0c21d60451b9c41c127959de4874664d1fbe08c1bf83d8d244",
+   "summary": "23d04ec57fa456423dd6c739221ed4af948ac2a815eb19a84b6c232dd893ee1f",
    "daewun": [
     [
      7,
@@ -709,7 +709,7 @@
   {
    "id": "ny-f-1995",
    "mode": "neo",
-   "summary": "f9e82b0f7f1251f623eccac43eb920fe5c73bea3b142ef09d901680704864204",
+   "summary": "e98633c6367c3648153dd1a3d8d46163b1a726a38f35cfe6c72546b1f780e69a",
    "daewun": [
     [
      7,
@@ -761,7 +761,7 @@
   {
    "id": "old-m-1941",
    "mode": "pig",
-   "summary": "9661e9028ec47888253e67f63b45f8e05426341e1c79918055f869ab7dad1afe",
+   "summary": "dc9f87844f76c8edc3daea676b4fc412d860ea613dd5558aa33dcd81a7acc43a",
    "daewun": [
     [
      6,
@@ -813,7 +813,7 @@
   {
    "id": "old-m-1941",
    "mode": "neo",
-   "summary": "23aa95682482f9d952c53f90ecbb7506f10ec503f5f158f25d72585ee50baa4c",
+   "summary": "3356756ffa961c9776c7ed4be9de4e0910c5eb92f2886c544d71c063f5240488",
    "daewun": [
     [
      6,
@@ -865,59 +865,59 @@
   {
    "id": "young-f-2015",
    "mode": "pig",
-   "summary": "948a1a23935cf61a2f020964cd094daf428323d821f0ff440f6ad5d124d488c0",
+   "summary": "13d29185e1997b61cfa9b0d404cc21acee21d854d9c11d88dd236d65262606d7",
    "daewun": [
     [
      3,
      "己丑",
-     "9cff20ba8da446a622c32c526a57afd3a321e44abb42860639a7d9542cffa9a3"
+     "82bb8dc62a1068ec21c9878197380141c0c8ddff9d4d098521f58cb486c1d3dc"
     ],
     [
      13,
      "庚寅",
-     "0752b22dd1ba79f5c5c166e7308c409407cc2b7cdc8198c077ace3b7a7f616f3"
+     "74b7650d707f1aea8d49618230a8892078609ec563cf1d81173a722112c7d4d6"
     ],
     [
      23,
      "辛卯",
-     "7f2ef3e01b12d2684d7bf4cc9235546eced26b576a4e96706a95afe21c88dee7"
+     "80a047ffe4051341b46a2db08111648961c30947b47575ba4a8738c380c592ba"
     ],
     [
      33,
      "壬辰",
-     "ad50f453d4775a0d79e188e8f020197c2922b042efd78454d6f80ffb486e8956"
+     "ef0e73e4e4e70a67de80d0d9f7c5f47a52ba4bd86f23a5339b592e246a2faa95"
     ],
     [
      43,
      "癸巳",
-     "5569285559be0640470ffafa5d5337858035316a3fb38adebc4f7c74050fe9ac"
+     "402c544d50281386a411a7ff5598d85c35d64a8a637e0dcd576cbd4442050b75"
     ],
     [
      53,
      "甲午",
-     "d1c8aec500101875bedfe361f37c0a182cc108dc6cd6f0e979fa278964d46ad0"
+     "9b8d859cdccf45c7d9e697b4312a1325a8de1562e868cfd275da6c4f6d085c49"
     ],
     [
      63,
      "乙未",
-     "e1121c67738beeb2868e3748a3ce05bb51e818ac43fed6b5add55da153985a53"
+     "607f2253ae7b7b022c866a8bfe51bcfffbc9863ed97bcf644eb8010f202d29a2"
     ],
     [
      73,
      "丙申",
-     "91e5e8818819c0f58d448901849af4f7a2e5435274e34b9cbc7e0da4b5dcadb4"
+     "f8fc46cce87af4f7e97d14c0fbc3291b615592c11adce8e24c3e279884f729c1"
     ],
     [
      83,
      "丁酉",
-     "aa4dcc09181cef0fc8e82b3eaba6db8b5a3257f40309906b299a28b609d2e9c2"
+     "c0f6cdb151092c9fe9013f715a5653db06f936dfec9bcb4353db743db45968a9"
     ]
    ]
   },
   {
    "id": "young-f-2015",
    "mode": "neo",
-   "summary": "b68794d586bd35237a32cc53ef2762cb63e1446477ad2f33961b6d0328e8f5b5",
+   "summary": "3e73989275bdd0938e71789933ad82c541a25b7d167220e09fda76a9f4f4cb85",
    "daewun": [
     [
      3,
@@ -969,7 +969,7 @@
   {
    "id": "jong-confirmed",
    "mode": "pig",
-   "summary": "ba5d7b1cfe6a4d6bfc51464c7c982b4a426f1cd04da1da7ede23f8cbfbf91501",
+   "summary": "43aadb92fb5bcfcb7048270587a2bd43dd42274658325f3e251bf13a70833204",
    "daewun": [
     [
      1,
@@ -1021,7 +1021,7 @@
   {
    "id": "jong-confirmed",
    "mode": "neo",
-   "summary": "1ff6bd7422baa335c178f37a546be1d7937fdfaa736f0084776d2956db732699",
+   "summary": "110f9212a49cb54df89c21b54894a1ff74fa797900cc34b5ae27a0fc2d9f15c9",
    "daewun": [
     [
      1,
@@ -1073,7 +1073,7 @@
   {
    "id": "jong-rejected",
    "mode": "pig",
-   "summary": "9b64756b65f8b900ecf8e541a7dfd9217ae1eb442305bba346f0d235d19f4268",
+   "summary": "b53ae4e79ec00baa2a3e54062eab7c75525fe46197afd139b8303b3472ebe041",
    "daewun": [
     [
      1,
@@ -1125,7 +1125,7 @@
   {
    "id": "jong-rejected",
    "mode": "neo",
-   "summary": "f1b3f61139fd29a66e4198d75855b41bd1968f87270a4ca3ebe0cae8fb52e322",
+   "summary": "757378b42bd3524b0d71950eb81eabdab2cbc46ec523fda934c20c185c57ba61",
    "daewun": [
     [
      1,
@@ -1177,7 +1177,7 @@
   {
    "id": "jong-unverified",
    "mode": "pig",
-   "summary": "ba5d7b1cfe6a4d6bfc51464c7c982b4a426f1cd04da1da7ede23f8cbfbf91501",
+   "summary": "43aadb92fb5bcfcb7048270587a2bd43dd42274658325f3e251bf13a70833204",
    "daewun": [
     [
      1,
@@ -1229,7 +1229,7 @@
   {
    "id": "jong-unverified",
    "mode": "neo",
-   "summary": "1ff6bd7422baa335c178f37a546be1d7937fdfaa736f0084776d2956db732699",
+   "summary": "110f9212a49cb54df89c21b54894a1ff74fa797900cc34b5ae27a0fc2d9f15c9",
    "daewun": [
     [
      1,
@@ -1281,7 +1281,7 @@
   {
    "id": "hwa-confirmed",
    "mode": "pig",
-   "summary": "49f7503d4c3adda16ef04edf56aef0b2be6ce48ad8087bcd55290988683117a7",
+   "summary": "08d65ed04ba240537e7adb03b22fbb99f6944d568d11203fa4aaa8eb5b86023b",
    "daewun": [
     [
      6,
@@ -1333,7 +1333,7 @@
   {
    "id": "hwa-confirmed",
    "mode": "neo",
-   "summary": "89c46ca6c272698559a2f5e38d196dafe80ac8340356b6fa787dc28a5ba5e0b6",
+   "summary": "c792a841cbfe6ca7ed2519ca2c9afe7012b80e0fb200c653f1021d8090e25c45",
    "daewun": [
     [
      6,
