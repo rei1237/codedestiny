@@ -546,7 +546,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     pdfCoverFallbackTitle: "초융합 운세",
     pdfCoverSubtitle: (topic) => `여섯 체계 교차 판정 · ${topic}`,
     pdfSavedNotice: "PDF 로 저장했어요.",
-    pdfFailedMessage: "PDF 를 만들지 못했어요. 잠시 후 다시 시도해 주세요.",
+    pdfFailedMessage: "PDF를 저장하지 못했어요. 상담 결과는 그대로 있어요. 잠시 후 PDF 저장을 다시 눌러 주세요.",
     buttonLoadingLabel: "여섯 전문가의 흐름을 엮는 중…",
     buttonPayingLabel: "결제를 확인하고 있어요",
     buttonLoginLabel: "로그인하고 시작하기",
