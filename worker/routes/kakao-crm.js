@@ -3,7 +3,7 @@ import { connectDb, withMongoRetry } from '../lib/db.js';
 import { User } from '../lib/models.js';
 import { CrmPreference, CrmRelationship } from '../lib/kakao-crm-models.js';
 import { json, readJson, getRoutePath, handleRouteError, createHttpError, notFound, methodNotAllowed } from '../lib/http.js';
-import { KAKAO_CHANNEL, CRM_CONSENT_TEXT, CRM_CONSENT_VERSION, CRM_SOURCES } from '../../lib/marketing/kakao-crm.mjs';
+import { KAKAO_CHANNEL, CRM_CONSENT_TEXT, CRM_CONSENT_VERSION, CRM_SOURCES, crmConsentTextForVersion } from '../../lib/marketing/kakao-crm.mjs';
 
 export function checkOrigin(request) {
   const origin = request.headers.get('Origin');
@@ -77,8 +77,10 @@ export async function handleKakaoCrmRoutes(request, env) {
       if (body.action === 'dismiss') {
         await withMongoRetry(env, () => CrmPreference.updateOne({ _id: auth.userId }, { $set: { dismissed: true } }, { upsert: true }));
       } else {
-        if (typeof body.granted !== 'boolean' || body.version !== CRM_CONSENT_VERSION || !CRM_SOURCES.includes(body.source)) return json({ error: 'invalid_consent' }, { status: 400 });
-        const consent = { granted: body.granted, at: new Date(), source: body.source, version: CRM_CONSENT_VERSION, text: CRM_CONSENT_TEXT };
+        const at = new Date();
+        const text = crmConsentTextForVersion(body.version, at.getTime());
+        if (typeof body.granted !== 'boolean' || !text || !CRM_SOURCES.includes(body.source)) return json({ error: 'invalid_consent' }, { status: 400 });
+        const consent = { granted: body.granted, at, source: body.source, version: body.version, text };
         await withMongoRetry(env, () => CrmPreference.updateOne({ _id: auth.userId }, { $set: { consent, dismissed: true }, $push: { history: consent } }, { upsert: true }));
       }
     }
