@@ -297,7 +297,7 @@
   }
   function changed() {preserve(function(){render('all');refreshCopy();if(typeof root.refreshDaewunReadingGuide==='function')root.refreshDaewunReadingGuide();if(!root.G_PILLARS)renderHeader();});}
   // 화자 전환: 머리글(그림·버튼)을 다시 그리고, 해금된 종합 풀이는 새 화자로 서버에서 다시 받는다(펼친 대운은 changed 가 맡는다).
-  function personaChanged() {preserve(function(){renderHeader();try{if(root.G_PILLARS&&typeof root.renderSummary==='function'&&(typeof root._cdSajuGateUnlocked!=='function'||root._cdSajuGateUnlocked('section_summary')))root.renderSummary();}catch(_){}changed();});}
+  function personaChanged() {preserve(function(){renderHeader();try{if(root.G_PILLARS&&typeof root.renderSummary==='function'&&(typeof root._cdSajuGateUnlocked!=='function'||root._cdSajuGateUnlocked('section_summary')))root.renderSummary();}catch(_){}changed();});root.dispatchEvent(new root.CustomEvent('cd:saju-persona-changed'));}
   root.SajuReadingPresentation={build:build,render:render,changed:changed,showGod:showGod,setFlow:function(rows){flow=rows.map(function(r){return Object.assign({},r);});render('flow');},setDaily:function(day,month){daily=[day,month];render('daily');},copy:langCopy,sourceCopy:copy,escape:esc,locale:locale,refreshCopy:refreshCopy};
   if(typeof document==='undefined')return;
   document.addEventListener('click',function(event){
