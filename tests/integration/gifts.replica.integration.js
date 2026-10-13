@@ -12,6 +12,7 @@ import { handleGiftRoute } from "../../worker/payments/gift-routes.js";
 import { refundGiftAsOperator } from "../../worker/payments/gift-refund.js";
 import { applyEntitlementUpdate } from "../../worker/routes/app-store.js";
 import { FOREIGN_CARD_POLICY_VERSION } from "../../worker/payments/foreign-card-policy.js";
+import { isOpenEndedPassExpiry } from "../../worker/lib/profile-limits.js";
 
 const uri = "mongodb://127.0.0.1:27029/gift_integration_test?replicaSet=gift-test";
 const purchaser = new mongoose.Types.ObjectId("64b000000000000000000001");
@@ -112,12 +113,12 @@ test("concurrent recipients get exactly one grant; winner retries idempotently",
   expect((await claimGift(db, { tokenHash, userId: claimed.recipientUserId, now })).replayed).toBe(true);
   expect(await User.countDocuments({ "profileSubscription.tier": "standard" })).toBe(1);
 });
-test("same-tier claim preserves spend and adds period and budget", async () => {
+test("same-tier claim preserves spend, opens expiry, and adds budget", async () => {
   const { tokenHash } = await paidGift();
   const expiry = new Date(now.getTime() + 10 * day);
   await User.collection.updateOne({ _id: receiver }, { $set: { profileSubscription: { tier: "standard", expiresAt: expiry, premiumUseCycleKey: expiry.toISOString(), monthlyLimitCoin: 600, monthlySpendCoin: 120, premiumUseCount: 3 } } });
   const result = await claimGift(db, { tokenHash, userId: receiver, now });
-  expect(new Date(result.grant.after.expiresAt).getTime()).toBe(expiry.getTime() + 30 * day);
+  expect(isOpenEndedPassExpiry(result.grant.after.expiresAt, now)).toBe(true);
   expect(result.grant.after.monthlySpendCoin).toBe(120);
   expect(result.grant.after.monthlyLimitCoin).toBeGreaterThan(600);
 });
