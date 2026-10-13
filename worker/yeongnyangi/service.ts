@@ -57,7 +57,7 @@ import { jongCheckApplies } from './fortune/saju/jong-check-policy';
 import { enqueueConsultation } from './queue.js';
 import { FortuneError, type DomainContext, type DomainId } from './fortune/shared/contracts';
 import { CodeDestinyProvider } from './providers/code-destiny';
-import {TUNA_QUALITY_POLICY,TUNA_REVIEW_MAX_REWRITES,auditTunaChapter,tunaChapterModel,tunaReasoningTask,tunaRoadmapEnd,tunaQualityApplies,tunaRewritesUsed} from './fortune/tuna-quality';
+import {TUNA_QUALITY_POLICY,TUNA_REVIEW_MAX_REWRITES,auditTunaChapter,tunaProUnavailable,tunaChapterModel,tunaReasoningTask,tunaRoadmapEnd,tunaQualityApplies,tunaRewritesUsed} from './fortune/tuna-quality';
 import { StructuredChapterProvider, type ChatPersona } from './providers/chapter';
 import { deliverChapter } from './providers/delivery';
 import { createRequest, commitTarotDraw, readRequest, attachPayment, claimChapter, finishChapter, failChapter, ownerId, saveAskAnalysis, saveChapterDraft, allowedChapterAttempts, holdAutoResumes, userCanRetry, reserveQuestionSkyFollowup } from './repository.js';
@@ -335,7 +335,7 @@ async function reviewTunaChapter(env:Record<string,unknown>,row:any,requestId:st
   try {
     const reviewer=new CodeDestinyProvider(env,{serviceId:row.featureKey,requestId,access:row.accessMethod || (row.paymentId?'DIRECT_KRW':''),
       sectionGroup:`${ordinal+1}-review`,attempt:Number(row.chapterAttempts?.[ordinal] || 1),generationSource:source},
-      {owner:String(row.userId),skipRead:true},Math.min(chapterTimeoutMs(row),remaining),tunaChapterModel(env,row.snapshot,row.snapshot.manifest[ordinal]),tunaReasoningTask(row.snapshot,row.snapshot.manifest[ordinal]));
+      {owner:String(row.userId),skipRead:true},Math.min(chapterTimeoutMs(row),remaining),tunaChapterModel(env,row.snapshot,row.snapshot.manifest[ordinal],tunaProUnavailable(row)),tunaReasoningTask(row.snapshot,row.snapshot.manifest[ordinal],tunaProUnavailable(row)));
     const raw=await new StructuredChapterProvider(reviewer).generateChapter({...input,repair:{code:'TUNA_SELF_REVIEW',issues}});
     const body:any=deliverChapter(raw,input);
     if(natalFacts)assertSajuPillarClaims(body,natalFacts);
@@ -452,7 +452,7 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
         // Storage retries can reuse the response; other retries bypass any
         // rejected cached output, including failures with legacy quality codes.
         {owner:String(row.userId),skipRead:Number(row.chapterAttempts?.[ordinal] || 1)>1 && row.lastFailure?.stage!=='storage'},
-        chapterTimeoutMs(row),tunaChapterModel(env,row.snapshot,row.snapshot.manifest[ordinal]),tunaReasoningTask(row.snapshot,row.snapshot.manifest[ordinal]));
+        chapterTimeoutMs(row),tunaChapterModel(env,row.snapshot,row.snapshot.manifest[ordinal],tunaProUnavailable(row)),tunaReasoningTask(row.snapshot,row.snapshot.manifest[ordinal],tunaProUnavailable(row)));
       let ask: {analysis:AskAnalysis;evidence:EvidencePacket}|undefined;
       if(row.generationCheckpoint?.version==='ask-generation-v1') {
         const consultation=row.snapshot.analysis.consultation;
