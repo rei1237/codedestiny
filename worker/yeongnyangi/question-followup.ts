@@ -56,7 +56,7 @@ export async function questionConversation(env:any,userId:string,id:string,body:
  // Do not silently discard evidence or start unbounded context calls. Support keeps the original result.
  if(input.length>120000)throw new FortuneError('QUESTION_FOLLOWUP_SUPPORT',409);
  row=await saveConversation(env,userId,id,current,next);
- // Tuna answers on the chapter model; pro cannot run with a zero thinking budget, so it gets its own on top of the answer.
+ // Followup explanations use the ordinary model, without synthesis escalation.
  const tunaModel=tunaChapterModel(env,snapshot);
  const thinkingBudget=tunaModel?TUNA_FOLLOWUP_THINKING_BUDGET:0;
  try{

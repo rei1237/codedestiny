@@ -31,13 +31,23 @@ for(const group of all){const p=buildFusionSectionGroupPrompt({context,group,pri
 assert.equal(fusionGroupsForStage(1)[0].keys.includes('consultationPlan'),false);
 assert.equal(normalizeFusionFortuneInput({birthDate:'1995-04-18'}).reportVersion,undefined);
 assert.notEqual(await fusionInputIdentity({locale:'ko'},'same'),await fusionInputIdentity({locale:'ko',reportVersion:version},'same'));
-const originalFetch=globalThis.fetch;globalThis.fetch=async()=>{throw new Error('Network prohibited in premium mock');};
+const originalFetch=globalThis.fetch;const cacheModels=new Map();const deletedCaches=new Set();
+globalThis.fetch=async(url,init)=>{
+ const path=new URL(String(url)).pathname;
+ if(path.endsWith(':countTokens'))return Response.json({totalTokens:1000});
+ if(path.endsWith('/cachedContents')&&init.method==='POST'){
+  const name='cachedContents/mock-'+cacheModels.size;cacheModels.set(name,JSON.parse(init.body).model.replace('models/',''));return Response.json({name});
+ }
+ if(path.includes('/cachedContents/')&&init.method==='DELETE'){deletedCaches.add(path.split('/v1beta/')[1]);return new Response(null,{status:204});}
+ throw new Error('Network prohibited in premium mock');
+};
 try {
  let prior={}; const attempts={}; const calls=[]; let firstWave;
  for(const stage of [1,2]) for(let wave=0;wave<10;wave++) {
   const generated=await generateFusionFortuneWithRealLLM({context,stage,requestId:'premium-mock',env:{GEMINI_API_KEY:'mock-not-a-real-key',ENABLE_FUSION_FORTUNE_REAL_LLM:'true',ALLOW_FUSION_FORTUNE_REAL_LLM:'true'},priorResult:prior,priorSnapshot:{attempts},onCheckpoint:async result=>{prior={...prior,...result};},onAttempt:async id=>{attempts[id]=(attempts[id]||0)+1;return attempts[id];},providerCall:async(_env,prompt,options)=>{
-   assert.equal(options.model,'gemini-2.5-pro');assert.equal(options.thinkingBudget,4096);assert.equal(options.fallbackToWorkersAI,false);
+   assert.equal(options.model,['integration','verdict'].includes(options.logContext.sectionGroup)?'gemini-2.5-pro':'gemini-2.5-flash');assert.equal(options.reasoningTask,['integration','verdict'].includes(options.logContext.sectionGroup)?'fusion-'+options.logContext.sectionGroup:undefined);assert.equal(options.thinkingBudget,4096);assert.equal(options.fallbackToWorkersAI,false);
    const group=all.find(g=>g.id===options.logContext.sectionGroup);calls.push(group.id);
+   if(options.geminiCachedContent)assert.equal(cacheModels.get(options.geminiCachedContent.name),options.model,'mixed waves must not share a cache across models');
    if(group.id!=='saju')assert(prompt.includes(plan.questions[0].title),'shared question plan');
    return {ok:true,text:JSON.stringify(payload(group)),provider:'gemini',model:options.model};
   }});
@@ -46,6 +56,8 @@ try {
   assert(wave<9,'must complete within bounded waves');
  }
  assert.deepEqual(firstWave,['saju']);assert.equal(calls.length,9,'complete groups never regenerate');
+ assert(new Set(cacheModels.values()).has('gemini-2.5-pro'));assert(new Set(cacheModels.values()).has('gemini-2.5-flash'));
+ assert.equal(deletedCaches.size,cacheModels.size,'all model-specific caches are released');
  assert(fusionReportMeetsTotalFloor(prior));assert(countFusionReportBodyChars(prior)>=36000);
  const inflated={...prior,executiveSummary:'短',openingMessage:'短',closingMessage:'短',finalVerdict:{rationale:'短'},timingAndAction:{content:'短'}};
  for(const s of [...systems.map(s=>s+'Section'),'integratedReading'])inflated[s]={content:'短',keyPoints:['假'.repeat(60000)]};
@@ -76,6 +88,6 @@ try {
   const refs=built.geminiSchema.properties.sajuSection.properties.subchapters.items.properties.evidenceKeys.items.enum;
   assert(refs.every(ref=>ref.startsWith('saju.')),'independent analysis only cites its own system');
  }
- console.log('[fusion-premium] PASS: Pro/4096, 9 calls, shared plan, 51k targets, body floor, range repair, PDF, legacy identity (mock only)');
+ console.log('[fusion-premium] PASS: Flash prose + Pro synthesis/4096, 9 calls, shared plan, 51k targets, body floor, range repair, PDF, legacy identity (mock only)');
 } finally {globalThis.fetch=originalFetch;}
 

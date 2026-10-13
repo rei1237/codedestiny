@@ -99,6 +99,7 @@ export function createGeminiContextCache(env, options = {}) {
     systemPrompt: clean(options.systemPrompt),
     locale: clean(options.locale) || getAmbientAiLocale() || undefined,
     model: clean(options.model),
+    reasoningTask: options.reasoningTask,
     ttlSeconds: Number(options.ttlSeconds) || undefined,
     timeoutMs: Number(options.timeoutMs) || undefined,
   }, env);
@@ -127,6 +128,7 @@ export async function callGeminiText(env, prompt, options = {}) {
       temperature: Number.isFinite(Number(options.temperature)) ? Number(options.temperature) : undefined,
       taskType: normalizeTaskType(options),
       model: clean(options.model),
+      reasoningTask: options.reasoningTask,
       timeoutMs: Number(options.timeoutMs || 0) || undefined,
       maxProviderAttempts: getPaidGenerationContext() ? 1 : Number(options.maxProviderAttempts) || 1,
       responseMimeType: clean(options.responseMimeType) || undefined,

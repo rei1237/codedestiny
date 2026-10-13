@@ -3,7 +3,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {build} from 'esbuild';
 import {readFileSync} from 'node:fs';
-const bundle=await build({stdin:{contents:`export {products} from './worker/yeongnyangi/payments/catalog';export {consultationManifest,consultationKinds} from './worker/yeongnyangi/fortune/consultation-kinds';export {conciseReadingManifest} from './worker/yeongnyangi/fortune/concise-reading';export {conciseReadingPrompt} from './worker/yeongnyangi/fortune/concise-reading-prompt';export {productOffers} from './app/yeongnyangi/_lib/product-offers';export {readingDepthCopy,readingTierDepth} from './app/yeongnyangi/_lib/reading-depth-copy';export {readingLocales} from './worker/yeongnyangi/fortune/reading-locale';export {questionManifest,FOLLOWUP_LIMITS,QUESTION_POLICY_VERSION} from './worker/yeongnyangi/fortune/ask/question-policy';export {tunaChapterModel,auditTunaChapter,TUNA_QUALITY_POLICY,TUNA_DEFAULT_MODEL} from './worker/yeongnyangi/fortune/tuna-quality';export {tunaBookCostRatio,V7_COST} from './worker/yeongnyangi/fortune/reading-v7-cost';export {tierComparison} from './app/yeongnyangi/_lib/reading-depth-copy';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,format:'esm',platform:'node',write:false});
+const bundle=await build({stdin:{contents:`export {products} from './worker/yeongnyangi/payments/catalog';export {consultationManifest,consultationKinds} from './worker/yeongnyangi/fortune/consultation-kinds';export {conciseReadingManifest} from './worker/yeongnyangi/fortune/concise-reading';export {conciseReadingPrompt} from './worker/yeongnyangi/fortune/concise-reading-prompt';export {productOffers} from './app/yeongnyangi/_lib/product-offers';export {readingDepthCopy,readingTierDepth} from './app/yeongnyangi/_lib/reading-depth-copy';export {readingLocales} from './worker/yeongnyangi/fortune/reading-locale';export {questionManifest,FOLLOWUP_LIMITS,QUESTION_POLICY_VERSION} from './worker/yeongnyangi/fortune/ask/question-policy';export {tunaChapterModel,auditTunaChapter,TUNA_QUALITY_POLICY,TUNA_DEFAULT_MODEL,TUNA_REASONING_MODEL,tunaReasoningTask} from './worker/yeongnyangi/fortune/tuna-quality';export {tunaBookCostRatio,V7_COST} from './worker/yeongnyangi/fortune/reading-v7-cost';export {tierComparison} from './app/yeongnyangi/_lib/reading-depth-copy';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,format:'esm',platform:'node',write:false});
 const m=await import('data:text/javascript;base64,'+Buffer.from(bundle.outputFiles[0].text).toString('base64'));
 test('public product comparisons use the same default consultation chapters as preparation',()=>{
  for(const [domain,offers] of Object.entries(m.productOffers))for(const offer of offers){
@@ -41,14 +41,20 @@ test('참치만 가진 챕터와 기능이 있다',()=>{
  assert.equal(m.FOLLOWUP_LIMITS.tuna,6);assert.equal(m.FOLLOWUP_LIMITS.flounder,2);
  assert.equal(m.tunaChapterModel({},{tunaQualityPolicy:m.TUNA_QUALITY_POLICY}),m.TUNA_DEFAULT_MODEL);
  assert.equal(m.tunaChapterModel({},{}),undefined,'orders created before the policy keep their model');
+ const snapshot={tunaQualityPolicy:m.TUNA_QUALITY_POLICY};
+ assert.equal(m.tunaChapterModel({YEONGNYANGI_TUNA_GEMINI_MODEL:'gemini-2.5-pro'},snapshot,{layoutRole:'foundation'}),'gemini-2.5-flash');
+ assert.equal(m.tunaChapterModel({},snapshot,{layoutRole:'synthesis',key:'compare'}),'gemini-2.5-pro');
+ assert.equal(m.tunaChapterModel({},snapshot,{layoutRole:'synthesis',key:'action'}),'gemini-2.5-flash');
+ const manifest=m.questionManifest('saju','tuna',decision,undefined,QUESTION);
+ assert.equal(manifest.filter(ch=>m.tunaReasoningTask(snapshot,ch)).length,1,'one synthesis chapter, not all prose');
  assert.equal(m.tierComparison('ko').rows.length,5);
  for(const locale of m.readingLocales){
   const table=m.tierComparison(locale);assert.ok(table.title.trim());assert.ok(table.rows.length>=2);
   if(locale!=='ko')for(const row of table.rows)for(const text of [row.label,row.flounder,row.tuna]){assert.doesNotMatch(text,/[가-힣]/);assert.doesNotMatch(text,/[0-9]/);}
  }
 });
-test('tuna on the top model stays within 20% of price with every rewrite and followup',()=>{
- const tariff=JSON.parse(readFileSync('config/llm-tariffs-20260921.json','utf8'))['gemini/'+m.TUNA_DEFAULT_MODEL];
+test('conservative all-Pro cost bound stays within 20% with every rewrite and followup',()=>{
+ const tariff=JSON.parse(readFileSync('config/llm-tariffs-20260921.json','utf8'))['gemini/'+m.TUNA_REASONING_MODEL];
  const targets=m.questionManifest('saju','tuna',decision,undefined,QUESTION).map(ch=>ch.targetChars[1]);
  const price=m.products.find(p=>p.id==='saju_tuna').priceKRW;
  assert.ok(m.tunaBookCostRatio(targets,price,tariff,m.FOLLOWUP_LIMITS.tuna)<=m.V7_COST.tunaMaxCostRatio);

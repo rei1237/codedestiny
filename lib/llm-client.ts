@@ -1,4 +1,5 @@
 import { withLLMCache } from "./llm-cache.ts";
+import { selectGeminiModel } from "./gemini-model-policy.js";
 import type { LLMCacheConfig } from "./llm-cache.ts";
 import { buildOutputLanguageDirective, toAiLocale } from "./i18n/ai-locale.js";
 import { isStagingLlmMockEnabled } from "../worker/lib/staging-llm-mock.js";
@@ -28,6 +29,7 @@ export interface LLMRequest {
   temperature?: number;
   taskType?: "pdf" | "fortune" | "healing" | "general";
   model?: string;
+  reasoningTask?: "fusion-integration" | "fusion-verdict" | "tuna-synthesis";
   endpoint?: string;
   apiEndpoint?: string;
   timeoutMs?: number;
@@ -96,6 +98,7 @@ export interface GeminiContextCacheInput {
   systemPrompt?: string;
   locale?: string;
   model?: string;
+  reasoningTask?: LLMRequest["reasoningTask"];
   ttlSeconds?: number;
   timeoutMs?: number;
 }
@@ -332,14 +335,11 @@ function resolveThinkingBudget(value: unknown): number {
 
 function resolveGeminiModel(request: LLMRequest, env?: CloudflareEnv): string {
   const requested = String(request.model || "").trim();
-  if (requested) return requested;
 
   const envModel = String(
     (env as Record<string, unknown> | undefined)?.["GEMINI_MODEL"] || "",
   ).trim();
-  if (envModel) return envModel;
-
-  return GEMINI_MODEL;
+  return selectGeminiModel(requested || envModel || GEMINI_MODEL, request.reasoningTask);
 }
 
 function resolveGeminiEndpoint(request: LLMRequest, model: string): string {
@@ -733,7 +733,7 @@ export async function createGeminiContextCache(
   });
   const systemPrompt = String(localized.systemPrompt || "");
 
-  const model = resolveGeminiEndpointModel({ prompt: "", model: input?.model }, env);
+  const model = resolveGeminiEndpointModel({ prompt: "", model: input?.model, reasoningTask: input?.reasoningTask }, env);
   const ttlSeconds = Number(input?.ttlSeconds) > 0
     ? Number(input.ttlSeconds)
     : GEMINI_CONTEXT_CACHE_TTL_SECONDS;

@@ -1,9 +1,11 @@
-// Tuna (₩30,000) quality contract: top model, computed-value citations, question links and one self-review rewrite.
+import {GEMINI_PRO_MODEL,GEMINI_PROSE_MODEL,selectGeminiModel} from '../../../lib/gemini-model-policy.js';
+// Tuna quality contract: computed-value citations, question links and one self-review rewrite.
 // Only orders whose snapshot carries TUNA_QUALITY_POLICY get it; orders created before it keep flash and the old flow.
 export const TUNA_QUALITY_POLICY='tuna-quality-20261012';
-export const TUNA_DEFAULT_MODEL='gemini-2.5-pro';
-/** Pro thinks before writing and cannot run with a zero thinking budget, so followups reserve the chapter budget. */
-export const TUNA_FOLLOWUP_THINKING_BUDGET=1024;
+export const TUNA_DEFAULT_MODEL=GEMINI_PROSE_MODEL;
+export const TUNA_REASONING_MODEL=GEMINI_PRO_MODEL;
+/** Followup explanation uses Flash; no extra reasoning budget is reserved. */
+export const TUNA_FOLLOWUP_THINKING_BUDGET=0;
 export const TUNA_FOLLOWUP_TIMEOUT_MS=90000;
 /** At most a third of a 24-chapter book is rewritten, which keeps the estimate under 20% of the price (reading-v7-cost.ts). */
 export const TUNA_REVIEW_MAX_REWRITES=8;
@@ -12,10 +14,11 @@ export const TUNA_MIN_CITED_VALUES=2;
 /** The roadmap chapter reads month rows through the same day next year. */
 export const tunaRoadmapEnd=(asOf:string)=>`${Number(asOf.slice(0,4))+1}${asOf.slice(4,10)}`;
 export const tunaQualityApplies=(snapshot:any)=>snapshot?.tunaQualityPolicy===TUNA_QUALITY_POLICY;
-export function tunaChapterModel(env:Record<string,unknown>|undefined,snapshot:any):string|undefined{
+export const tunaReasoningTask=(snapshot:any,chapter:any)=>tunaQualityApplies(snapshot)&&chapter?.layoutRole==='synthesis'&&chapter?.key!=='action'?'tuna-synthesis' as const:undefined;
+export function tunaChapterModel(env:Record<string,unknown>|undefined,snapshot:any,chapter?:any):string|undefined{
   if(!tunaQualityApplies(snapshot))return undefined;
   const configured=String(env?.YEONGNYANGI_TUNA_GEMINI_MODEL||'').trim();
-  return /^gemini-[a-z0-9.-]+$/.test(configured)?configured:TUNA_DEFAULT_MODEL;
+  return selectGeminiModel(/^gemini-[a-z0-9.-]+$/.test(configured)?configured:TUNA_DEFAULT_MODEL,tunaReasoningTask(snapshot,chapter));
 }
 
 export const TUNA_PROMPT_CONTRACT={
