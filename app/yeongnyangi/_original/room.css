@@ -105,3 +105,14 @@
 .ynOriginal .daily-tarot-reading>p {font-size:15px;line-height:1.9}
 .ynOriginal .daily-tarot-next {justify-content:center}
 @media(max-width:480px){.ynOriginal .daily-tarot-flip {gap:8px}.ynOriginal .daily-tarot-flip strong {font-size:14px}.ynOriginal .daily-tarot-position {font-size:13px}.ynOriginal .daily-tarot-copy h2 {font-size:23px}.ynOriginal .daily-tarot-copy p {font-size:14px}}
+.ynOriginal .daily-tarot-days{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+.ynOriginal .daily-tarot-days button{min-height:44px;padding:10px 22px;border:1px solid #b6936466;border-radius:12px;color:#f0d5aa;background:#261d34;font-size:15px}
+.ynOriginal .daily-tarot-days button[aria-pressed="true"]{background:#f0d5aa;color:#261d34;border-color:#f0d5aa}
+.ynOriginal .daily-tarot-days button:hover{border-color:#f0d5aa}
+.ynOriginal .daily-tarot-days button:focus-visible{outline:3px solid #e8c78b;outline-offset:4px}
+.ynOriginal .daily-tarot-synthesis{width:100%;max-width:68ch;margin-inline:auto;position:relative;color:#f8eddd}
+.ynOriginal .daily-tarot-synthesis h3{font-family:var(--serif);font-size:24px;color:#f2d8aa;margin-bottom:16px}
+.ynOriginal .daily-tarot-synthesis h4{font-size:17px;color:#f2d8aa;margin:28px 0 10px}
+.ynOriginal .daily-tarot-synthesis p{font-size:16px;line-height:1.95;margin-bottom:16px;overflow-wrap:anywhere}
+.ynOriginal .daily-tarot-synthesis .daily-tarot-headline{font-family:var(--serif);font-size:19px;color:#f2d8aa}
+.ynOriginal .daily-tarot-note{max-width:68ch;margin-inline:auto;font-size:13px;line-height:1.8;color:#d1bfd5}
