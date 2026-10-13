@@ -471,6 +471,7 @@ const eventNames = (calls) => events(calls).map((c) => c[1]);
     "guide-cta-targets.js": { marked: false, why: "데이터 표일 뿐 링크를 렌더하지 않는다" },
     // 라우트 이름 목록(몰입형 판정)이라 <a> 가 없다. 전역 크롬은 크로스셀 축이 아니다.
     "AppChrome.tsx": { marked: false, why: "라우트 목록일 뿐 링크를 렌더하지 않는다" },
+    "PaymentLoading.tsx": { marked: false, why: "현재 경로에 맞는 결제 완료 안내 문구를 선택할 뿐 링크를 렌더하지 않는다" },
   };
 
   const walkComponents = (dir) => {

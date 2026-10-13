@@ -15,7 +15,7 @@ export const V7_COST={
   krwPerUsd:1400,
   retryFactor:1.25,
   maxCostRatio:.1,
-  // Tuna under TUNA_QUALITY_POLICY writes every chapter on the top model (approved 2026-10-12: up to 20% of price).
+  // Conservative all-Pro upper bound for the mixed-model book; the ceiling remains unchanged.
   tunaMaxCostRatio:.2,
   followup:{input:20000,output:4096},
 } as const;

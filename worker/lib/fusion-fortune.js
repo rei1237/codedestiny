@@ -1,4 +1,5 @@
-import { FUSION_PREMIUM_VERSION, FUSION_PREMIUM_MODEL, FUSION_PREMIUM_THINKING, FUSION_PREMIUM_LENGTH, FUSION_PREMIUM_TARGETS, premiumFusionBody, normalizeFusionSubchapters, isPremiumFusion, premiumGroupTarget, validFusionConsultationPlan, fusionSubchapters } from "../../lib/fusion-premium-report.js";
+import { selectGeminiModel } from "../../lib/gemini-model-policy.js";
+import { FUSION_PREMIUM_VERSION, fusionGroupModel, fusionReasoningTask, FUSION_PREMIUM_THINKING, FUSION_PREMIUM_LENGTH, FUSION_PREMIUM_TARGETS, premiumFusionBody, normalizeFusionSubchapters, isPremiumFusion, premiumGroupTarget, validFusionConsultationPlan, fusionSubchapters } from "../../lib/fusion-premium-report.js";
 import { fusionEvidenceReferences, fusionLocaleLengthScale, fusionExpertEvidenceReady, FUSION_EXPERT_VERSION, validFusionSignals, normalizeFusionSignals, buildFusionEvidenceCrossCheck, fusionInputIdentity, fusionCheckpointMatches } from "./fusion-expert-contract.js";
 import { tokensRequiredForChars } from "./llm-budget.js";
 import { FusionFortuneGenerationAttempt } from "./models.js";
@@ -1046,7 +1047,7 @@ export async function generateFusionFortuneWithRealLLM({
   const startedAt = Number.isFinite(Number(deadlineStartAt)) && Number(deadlineStartAt) > 0 ? Number(deadlineStartAt) : Date.now();
   const remainingMs = () => FUSION_GENERATION_DEADLINE_MS - (Date.now() - startedAt);
 
-  const model = isPremiumFusion(context) ? FUSION_PREMIUM_MODEL : text(env.FUSION_FORTUNE_LLM_MODEL, 100) || "gemini-2.5-flash";
+  const groupModel = group => isPremiumFusion(context) ? fusionGroupModel(group) : selectGeminiModel(text(env.FUSION_FORTUNE_LLM_MODEL, 100));
   // 🔴 ignoreLength:true is the *acceptance* gate only (rule L1, docs/handoff/2026-09-27-llm-length-never-fatal.md):
   //    a short valid group is kept, never failed. Length still decides two things below — whether a
   //    group is owed its one length repair (rule L2), and the delivery tier (degraded vs full).
@@ -1065,7 +1066,7 @@ export async function generateFusionFortuneWithRealLLM({
   let providerCalls = 0;
   // Gemini 명시적 컨텍스트 캐시 핸들. 1차 병렬 직전에 만들고 보완 물결까지 쓴 뒤 지운다.
   // null 이면(캐시 꺼짐·접두사 짧음·생성 실패) 예전과 똑같이 전체 프롬프트가 나간다.
-  let contextCache = null;
+  const contextCaches = new Map();
   // 🔴 진행 카운터는 **국면마다 새로** 센다. 예전에는 하나를 1차 병렬과 재생성이 공유해
   //    화면에 "6 / 4 묶음 완성"이 떴다 — 총량을 넘는 진행률은 사용자에게 고장으로 보인다.
   const composeProgress = { phase: "compose", total: groups.length, done: 0 };
@@ -1143,7 +1144,8 @@ export async function generateFusionFortuneWithRealLLM({
         maxOutputTokens: fusionGroupTokens(group, env, context),
         temperature: 0.62,
         timeoutMs: clampedTimeoutMs,
-        model,
+        model: groupModel(group),
+        reasoningTask: isPremiumFusion(context) ? fusionReasoningTask(group) : undefined,
         ...(isPremiumFusion(context) ? { thinkingBudget: FUSION_PREMIUM_THINKING } : {}),
         taskType: "fortune",
 
@@ -1153,7 +1155,7 @@ export async function generateFusionFortuneWithRealLLM({
         fallbackToWorkersAI: false,
         // 🔴 묶음마다 같은 접두사(공통 규칙 + 1단계 요약 + 서버 컨텍스트)를 정가로 다시 보내지
         //    않는다. 접두사 제거는 llm-client 가 전송 직전에만 하므로 userPrompt 는 전체로 둔다.
-        geminiCachedContent: contextCache || undefined,
+        geminiCachedContent: contextCaches.get(groupModel(group)) || undefined,
         logContext: { requestId: text(requestId, 120), featureKey: "fusion_fortune", stage: stageNumber, sectionGroup: group.id },
       });
     } catch (error) {
@@ -1216,12 +1218,16 @@ export async function generateFusionFortuneWithRealLLM({
   // 🔴 예산을 확인한 **뒤에** 만든다 — 어차피 호출을 못 할 상황이면 왕복(최대 10초)만 태운다.
   //    접두사가 4,000자 미만이거나 캐시가 꺼져 있거나 생성이 실패하면 null 이고, 그때는
   //    지금까지와 완전히 같은 바디가 나간다(createGeminiContextCache 는 던지지 않는다).
-  if (remainingMs() > FUSION_TAIL_RESERVE_MS) {
-    contextCache = await createGeminiContextCache(env, {
+  // A cache is model-specific. Mixed Flash/Pro waves never share its handle.
+  for (const group of waveGroups) {
+    const model = groupModel(group);
+    if (contextCaches.has(model) || remainingMs() <= FUSION_TAIL_RESERVE_MS) continue;
+    contextCaches.set(model, await createGeminiContextCache(env, {
       prefix: buildFusionSectionPromptPrefix({ context, stage: stageNumber, priorSections: prior }),
       systemPrompt: buildFusionSectionSystemPrompt(context),
       model,
-    });
+      reasoningTask: isPremiumFusion(context) ? fusionReasoningTask(group) : undefined,
+    }));
   }
 
   try {
@@ -1293,8 +1299,8 @@ export async function generateFusionFortuneWithRealLLM({
     }
   } finally {
     // 다 쓴 캐시는 바로 지운다 — 저장은 시간당 과금이고 TTL(300초)은 안전망일 뿐이다.
-    await deleteGeminiContextCache(env, contextCache);
-    contextCache = null;
+    await Promise.all([...contextCaches.values()].map(cache => deleteGeminiContextCache(env, cache)));
+    contextCaches.clear();
   }
 
   await checkpointQueue;

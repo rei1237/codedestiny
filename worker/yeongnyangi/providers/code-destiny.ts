@@ -37,9 +37,9 @@ export class CodeDestinyProvider implements LLMProvider {
     private cacheContext: {owner?:string;skipRead?:boolean}={},
     // The order's tier timeout (chapterTimeoutMs); orders without the policy marker keep CHAPTER_TIMEOUT_MS.
     private timeoutMs = CHAPTER_TIMEOUT_MS,
-    // Tuna orders under TUNA_QUALITY_POLICY write chapters on the top model (tunaChapterModel); others keep the env default.
+    // Only server-classified synthesis chapters can opt into Pro.
     // The question analysis stays on the default model because it runs with a zero thinking budget.
-    private model?: string) {}
+    private model?: string, private reasoningTask?: 'tuna-synthesis') {}
   async analyzeQuestion(system: string, data: string): Promise<string> {
     if(getEnv(this.env,'LLM_DRY_RUN')==='true'||!getEnv(this.env,'GEMINIF_API_KEY'))throw new FortuneError('LLM_NOT_CONFIGURED',503);
     const response=await callGeminiText(this.env,data,{
@@ -73,7 +73,7 @@ export class CodeDestinyProvider implements LLMProvider {
       outputRegister:'persona',
       // The chapter lease reserves another 90 seconds for analysis, validation and persisted reread.
       maxOutputTokens:cap,thinkingBudget:CHAPTER_THINKING_BUDGET,timeoutMs:this.timeoutMs,
-      ...(this.model?{model:this.model}:{}),
+      ...(this.model?{model:this.model}:{}),reasoningTask:this.reasoningTask,
       preserveTermination:true,
       // The durable chapter counter owns retries. Hidden provider retries would
       // multiply calls behind one recorded attempt and delay queue recovery.
