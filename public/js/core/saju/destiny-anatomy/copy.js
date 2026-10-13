@@ -20,7 +20,7 @@
       title: '운명 구조도', subtitle: 'DESTINY ANATOMY', free: 'FREE',
       intro: '방금 본 사주로 내 머릿속 사고 엔진부터 에너지 구조까지 한 장의 설계도로 펼쳐 봤어요.',
       explore: '무료 리포트 전체 펼쳐 보기', exploreNote: '한눈에 요약부터 다섯 사고 엔진, 에너지 구조, 교차 해석, AI 상담 질문까지 한 권으로 정리했어요.',
-      brainTitle: '내 뇌구조 (사주 ver.)',
+      brainTitle: '나의 뇌구조',
       brainHeadline: '내 머릿속 지분 1위는 {name}',
       brainHeadlineBalanced: '다섯 엔진이 사이좋게 지분을 나눠 가졌어요',
       memeHot: '과열', memeCombo: '조합 별명', memeCaption: '칸 크기는 사주 십성 비중 그대로예요 · 재미로 보는 뇌구조',
@@ -4441,31 +4441,31 @@
   // existing engine state; never by a random seed or a new personality score.
   var LIVING_MEMES = {
     selfDrive: [
-      ['내 속도 확인 중','내 페이스는 내가 정함','혼자 다 하려는 중','필요할 땐 내 의견도'],
+      ['내 속도로 접속 중','내 인생 결재권은 나한테','팀플인데 혼자 풀가동','필요할 땐 나도 할 말 있음'],
       ['Checking my pace','My pace, my rules','Doing it all myself','My view counts too'],
       ['自分のペース確認中','ペースは自分で決める','全部ひとりで抱え中','私の意見もひとつ'],
       ['确认自己的节奏','节奏由我来定','又想一个人扛','也说说我的想法'],
       ['確認自己的節奏','節奏由我來定','又想一個人扛','也說說我的想法']],
     expression: [
-      ['재밌는 것 탐색 중','아이디어 장바구니 가득','벌인 일 탭이 너무 많음','가끔 번쩍이는 한 수'],
+      ['일단 저장, 실행은 미래의 나','아이디어는 이미 시즌 3','취미를 시작하는 게 취미','가끔 던진 한마디가 킬포'],
       ['Looking for the spark','Idea cart overflowing','Too many projects open','An occasional bright idea'],
       ['面白さを探索中','アイデアのカート満杯','広げたタブが多すぎる','ときどき光る一手'],
       ['寻找有趣的事','灵感购物车满了','开的项目太多了','偶尔灵光一闪'],
       ['尋找有趣的事','靈感購物車滿了','開的專案太多了','偶爾靈光一閃']],
     reality: [
-      ['그래서 뭐가 남지?','가성비 레이더 켜짐','쉬는 시간도 손익 계산','계산기는 필요할 때'],
+      ['좋은데… 그래서 가성비는?','장바구니에도 전략이 있음','쉬면서도 생산성 체크 중','쓸 땐 쓰고 따질 땐 따짐'],
       ['What comes of this?','Value radar on','Pricing my rest time','Calculator when needed'],
       ['何が残るかな？','コスパレーダー作動','休み時間も損益計算','必要なときに計算機'],
       ['这样能留下什么？','性价比雷达启动','休息也在算收益','需要时再按计算器'],
       ['這樣能留下什麼？','性價比雷達啟動','休息也在算收益','需要時再按計算機']],
     structure: [
-      ['기준부터 확인할게','계획표에 진심인 편','쉬는 것도 허락 필요?','중요한 약속은 체크'],
+      ['일단 일정부터 맞춰볼까','쉬는 날도 계획은 있어야 함','쉬는 나에게도 결재 요청','중요한 약속은 캘린더에'],
       ['Checking the criteria','Committed to my planner','Permission to rest?','Checking key promises'],
       ['まず基準を確認','予定表には本気','休むのも許可が必要？','大事な約束は確認'],
       ['先确认一下标准','认真对待计划表','休息也要批准？','重要约定要记住'],
       ['先確認一下標準','認真對待計畫表','休息也要批准？','重要約定要記住']],
     reflection: [
-      ['한 번 더 생각해 볼게','답장 하나에 회의 세 번','생각 탭 닫는 중','필요한 만큼만 복습'],
+      ['검색 하나로 탭 열일곱 개','답장 하나에 뇌내 회의 세 번','새벽에 혼자 대화 복기 중','필요할 때 켜지는 분석 모드'],
       ['Let me think again','Three meetings per reply','Closing mental tabs','Reviewing what I need'],
       ['もう一度考えるね','返信ひとつに会議三回','思考タブを閉じる中','必要な分だけ復習'],
       ['让我再想一想','回条消息开三次会','正在关闭脑内标签','只复盘需要的部分'],
@@ -4504,7 +4504,9 @@
     function enrich(c) {
       var state = s.overloadPatterns.indexOf(c.axis) >= 0 ? 2 : !s.balanced && c.axis === s.ranked[0] ? 1 : s.ranked.indexOf(c.axis) >= 3 ? 3 : 0;
       c.line = LIVING_MEMES[c.axis][lang][state];
-      c.explanation = (state === 2 ? C.axes[c.axis].over : C.axes[c.axis].strong).join(' ');
+      c.shortLine = L === 'ko' ? {selfDrive:['내 속도 접속 중','내 인생 결재권','혼자 풀가동','나도 할 말 있음'],expression:['일단 저장','아이디어 시즌 3','취미가 취미','가끔 킬포'],reality:['그래서 가성비는?','장바구니 전략','휴식도 생산성?','따질 땐 따짐'],structure:['일정부터 확인','휴식도 계획적','휴식 결재 요청','약속은 캘린더'],reflection:['탭 열일곱 개','뇌내 회의 중','새벽 대화 복기','분석 모드 ON']}[c.axis][state] : c.label;
+      c.explanation = (state === 2 ? C.axes[c.axis].strong.concat(C.axes[c.axis].over) : C.axes[c.axis].strong).join(' ');
+      if (L === 'ko' && state === 3) c.explanation = '비중이 작다고 이 힘이 없는 것은 아니에요. 필요할 때 꺼내 쓰는 방식으로 살펴봐요.';
       return c;
     }
     if (t.meme) { t.meme.cells.forEach(enrich); t.meme.legend.forEach(enrich); }

@@ -284,7 +284,9 @@ test('첫 화면은 영역 크기에 맞는 공감 문구와 범례를 읽고 �
   assert.equal(el.querySelector('.da-stk,.da-meme__pat,.da-meme__sheen'), null);
   for (const cell of el.querySelectorAll('.da-meme__cell')) {
     const row=m.text.meme.cells.find(c=>c.axis===cell.dataset.daAxis);
-    assert.equal(cell.querySelector('.da-meme__line').textContent, row.tier==='full'?row.line:row.label);
+    assert.equal(cell.querySelector('.da-meme__line').textContent, row.tier==='full'?row.line:row.shortLine||row.label);
+    assert.equal(cell.querySelector('.da-meme__line').dataset.full,row.line);
+    assert.equal(cell.querySelector('.da-meme__line').dataset.short,row.shortLine||row.label);
   }
   assert.equal(el.querySelectorAll('[data-da-format]').length,2);
   assert.equal(el.querySelectorAll('.da-meme__rowline:not(.da-sr)').length, 5);

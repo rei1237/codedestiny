@@ -28,7 +28,7 @@
       viewBox: m.viewBox, head: m.head, ear: m.ear, eye: m.eye, cheek: m.cheek, box: m.box, inner: m.inner || m.box,
       luckMark: m.luckMark || '', comboLabel: m.comboLabel || '',
       cells: m.cells.map(function (c) {
-        return {axis: c.axis, label: c.label, line: c.line, pct: c.pct, x: c.x, y: c.y, w: c.w, h: c.h, top: !!c.top, hot: !!c.hot, luck: c.luck || null};
+        return {axis: c.axis, label: c.label, line: c.line, shortLine: c.shortLine || c.label, pct: c.pct, x: c.x, y: c.y, w: c.w, h: c.h, top: !!c.top, hot: !!c.hot, luck: c.luck || null};
       }),
       legend: (m.legend || []).map(function (c) { return {axis: c.axis, god: c.god, name: c.label, line: c.line, pct: c.pct}; })
     } : null;
@@ -165,7 +165,8 @@
     var fit = null;
     [36, 32, 28, 24, 20, 18].some(function (size) {
       setFont(ctx, wt, size, fam);
-      var lines = ctx.measureText(c.label).width <= Wc - 14 ? [c.label] : null;
+      var phrase = c.shortLine || c.label;
+      var lines = wrap(ctx, phrase, Wc - 20, 2, true);
       if (!lines) return false;
       var pctSize = Math.round(size * .9);
       var hgt = lines.length * size * 1.2 + pctSize * 1.3;

@@ -81,7 +81,7 @@
       cells += '<div class="da-meme__cell da-ax-' + esc(c.axis) + ' is-' + esc(c.tier) + (c.luck ? ' is-luck da-tone-' + esc(c.luck) : '') +
         '" data-da-axis="' + esc(c.axis) + '" data-da-tier="' + esc(c.tier) + '" style="left:' + pc(c.x + g, vb[2]) + ';top:' + pc(c.y + g, vb[3]) +
         ';width:' + pc(c.w - MEME_GAP, vb[2]) + ';height:' + pc(c.h - MEME_GAP, vb[3]) + '">' +
-        '<span class="da-meme__line">' + esc(c.tier === 'full' ? c.line : c.label) + '</span><b class="da-meme__pct">' + c.pct + '%</b></div>';
+        '<span class="da-meme__line" data-full="' + esc(c.line) + '" data-short="' + esc(c.shortLine || c.label) + '">' + esc(c.tier === 'full' ? c.line : c.shortLine || c.label) + '</span><b class="da-meme__pct">' + c.pct + '%</b></div>';
     });
     Object.keys(MEME_PATTERNS).forEach(function (k) { pats += MEME_PATTERNS[k]; });
     pats += '<linearGradient id="daGlass" x1="0" y1="0" x2="1" y2="1"><stop class="da-sheen-a" offset="0"/><stop class="da-sheen-b" offset=".55"/></linearGradient>';
@@ -91,7 +91,8 @@
       return '<li class="da-meme__row da-ax-' + esc(c.axis) + (c.luck ? ' is-luck da-tone-' + esc(c.luck) : '') + '" data-da-axis="' + esc(c.axis) + '">' +
         memeSwatch(c.axis) + '<span class="da-meme__name">' + esc(c.label) + '</span>' +
         '<b class="da-meme__rowpct">' + c.pct + '%</b>' +
-        '<span class="da-meme__rowline">“' + esc(c.line) + '”</span></li>';
+        '<span class="da-meme__rowline">“' + esc(c.line) + '”</span>' +
+        '<span class="da-meme__basis">' + esc(c.god || '') + (c.explanation ? ' · ' + esc(c.explanation) : '') + '</span></li>';
     }).join('');
     var box = 'x="' + b.x + '" y="' + b.y + '" width="' + b.w + '" height="' + b.h + '" rx="' + b.r + '"';
     var n = m.inner || b, inner = 'x="' + n.x + '" y="' + n.y + '" width="' + n.w + '" height="' + n.h + '" rx="' + n.r + '"';
@@ -119,6 +120,8 @@
       var k = 0;
       var setTier = function (tier) {
         TIERS.forEach(function (x) { el.classList.toggle('is-' + x, x === tier); });
+        var text = el.querySelector('.da-meme__line');
+        if (text && text.hasAttribute('data-full')) text.textContent = text.getAttribute(tier === 'full' ? 'data-full' : 'data-short');
       };
       setTier(TIERS[k]);
       while (k < TIERS.length - 1 && (el.scrollHeight > el.clientHeight + 1 || el.scrollWidth > el.clientWidth + 1)) setTier(TIERS[++k]);
@@ -148,8 +151,10 @@
 
   function brainHtml(model, t, state) {
     var ui = t.ui;
+    var leading = t.meme && t.meme.legend.filter(function (c) { return c.axis === model.saju.ranked[0]; })[0];
     return '<section class="da-sec da-brain" data-da-sec="brain" aria-labelledby="daBrainTitle">' +
       '<h4 class="da-h" id="daBrainTitle">' + esc(ui.brainTitle) + '</h4>' +
+      '<p class="da-brain__thought">“' + esc(leading ? leading.line : model.saju.brainHeadline) + '”</p>' +
       '<p class="da-lead">' + esc(model.saju.brainHeadline) + '</p>' +
       memeHtml(t) +
       '</section>';
