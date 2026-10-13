@@ -4714,7 +4714,7 @@ export default function PointsPage() {
         />
         </details>
         <ServicePackShop locale={lang} overseasCharge={overseasCharge} onWalletChange={setOwnedPacks} context={consultationContext} contextual={consultationShop}/>
-        {!consultationShop&&<section aria-label={lang==='ko'?'꿀꿀 사주 이용권':'Ggulggul passes'}><h2 className="mb-4 text-2xl font-black">{lang==='ko'?'꿀꿀 사주 이용권':'Ggulggul passes'}</h2>
+        {!consultationShop&&<section aria-label={lang==='ko'?'꿀꿀운세 이용권':'Ggulggul passes'}><h2 className="mb-4 text-2xl font-black">{lang==='ko'?'꿀꿀운세 이용권':'Ggulggul passes'}</h2>
         <MoonlightShopPlans
           subscription={subscription}
           onSubscribe={openSelfPurchase}

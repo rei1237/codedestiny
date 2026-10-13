@@ -167,7 +167,11 @@
 - CTR 자동화 `10-8-ctr-d-14-d-30` 활성: D+14 **10/22**, D+30 **11/07**, KST 10:40 확인. 측정일 전과 변화 없는 기간에는 알리지 않는다. 갱신 지연이면 완전한 배포 후 30일이 쌓일 때 다시 확인하며 저노출은 판단 유보. 홈·오늘·내일 허브/상세·인사이트·유명인 군을 분리한다. 최근 30일 기준선을 28일로 바꾸지 않으며 상세 title 기존 실험은 유지한다.
 - 원시 수치·전후 메타·화면 근거: `D:/Development/code-destiny/output/release-20261008-measurement/release-results.md`, `comparison.json`, `visual/production-result.json`. 지속 기록은 [SEO_STATE.json](../seo/SEO_STATE.json)의 `naver20261008.releaseMeasurement`. 측정 자체의 API·결제 정책·DB 스키마 변경 없음.
 
-## 2026-10-10 꿀꿀 사주 개명
+## 2026-10-13 공식명 복원
+
+공식 서비스명은 **꿀꿀운세**, 카카오 채널 표기는 **꿀꿀 운세**로 유지한다. 10/10 개명 지침은 아래 이력으로만 남기며 현재 명칭 기준으로 적용하지 않는다. 대표 URL·법적 상호·결제 정책은 유지한다. 진단과 검증 기록은 [브랜드 검색 정비](../seo/2026-10-13-ggulggul-brand-search.md)를 따른다.
+
+## 2026-10-10 꿀꿀 사주 개명 (이력; 현재 지침 아님)
 
 - 한국어 서비스 공식명은 **꿀꿀 사주**(별칭 꿀꿀사주)다. 꿀꿀 운세·꿀꿀운세는 옛 이름이다. WebSite.name·og:site_name·application-name·manifest·한국어 title 접미사가 모두 "꿀꿀 사주"이며, og:site_name과 WebSite.name은 전 로케일에서 같다. CODE DESTINY(Organization)·법적 상호·경로·저장 키는 바꾸지 않았다.
 - 옛 이름은 `/kkul-kkul-unse/` 전환 안내와 alternateName에만 남긴다. 모든 title이나 푸터에 옛 이름을 나열하지 않는다. 의도적으로 남긴 곳과 이유, GSC·네이버 수동 작업, 관찰표는 [개명 문서](../seo/2026-10-10-ggulggul-saju-rename.md)가 정본이다.
