@@ -76,6 +76,7 @@ export function alignRelativeYears(body: ChapterBody, asOf: string, locale = 'ko
   let count = 0;
   const wordFirst = new RegExp(`(${RELATIVE_WORDS})(\\s*[(（]\\s*)(20\\d{2})(\\s*년?\\s*[)）])`, 'gu');
   const yearFirst = new RegExp(`(20\\d{2})(\\s*년\\s*[(（]\\s*)(${RELATIVE_WORDS})(\\s*[)）])`, 'gu');
+  const plain = new RegExp(`(${RELATIVE_WORDS})(\\s*)(20\\d{2})(\\s*년)`, 'gu');
   const fix = (value: unknown) => {
     if (typeof value !== 'string' || !value) return value;
     const next = value.replace(wordFirst, (whole, word: string, open: string, y: string, close: string) => {
@@ -90,15 +91,22 @@ export function alignRelativeYears(body: ChapterBody, asOf: string, locale = 'ko
       count++;
       const right = yearWord(year, base);
       return right ? `${y}${open}${right}${close}` : `${y}년`;
+    }).replace(plain, (whole, word: string, space: string, y: string, suffix: string) => {
+      const year=Number(y),offset=relativeOffset(word);
+      if(offset===undefined||base+offset===year)return whole;
+      count++;
+      const right=yearWord(year,base);
+      return right?`${right}${space}${y}${suffix}`:`${y}${suffix}`;
     });
     return next;
   };
   const out: ChapterBody = { ...body, summary: fix(body.summary) as string, example: fix(body.example) as string,
+    ...(body.title===undefined?{}:{title:fix(body.title) as string}),
     advice: fix(body.advice) as string, persona: fix(body.persona) as string,
     analysis: Array.isArray(body.analysis) ? body.analysis.map(fix) as string[] : body.analysis,
     highlights: Array.isArray(body.highlights) ? body.highlights.map(fix) as string[] : body.highlights,
     ...(Array.isArray(body.blocks) ? { blocks: body.blocks.map(b => !b || typeof b !== 'object' ? b : { ...b,
-      paragraphs: Array.isArray(b.paragraphs) ? b.paragraphs.map(fix) as string[] : b.paragraphs }) } : {}),
+      title:fix(b.title) as string, paragraphs: Array.isArray(b.paragraphs) ? b.paragraphs.map(fix) as string[] : b.paragraphs }) } : {}),
     ...(Array.isArray(body.questionAnswers) ? { questionAnswers: body.questionAnswers.map(a => !a || typeof a !== 'object' ? a :
       { ...a, answer: fix(a.answer) as string, reason: fix(a.reason) as string, timing: fix(a.timing) as string, action: fix(a.action) as string, ...(typeof a.review === 'string' ? { review: fix(a.review) as string } : {}) }) } : {}),
   };
@@ -459,6 +467,28 @@ export function correctDashaSequence(body: ChapterBody, evidence: unknown, level
 
 // Facts that move with time. A question chapter holding none of them can name a period but cannot rank one.
 const TIMING_LABELS=new Set(['monthlyLuck','yearlyLuck','majorLuck','questionTiming','yearlyTimeline','minorLuck','vimshottariDasha','dasha','transits']);
+const REPAIRABLE_TIMING=new Set(['UNSUPPORTED_PRECISE_TIMING','CHAPTER_MONTH_PILLAR_MISMATCH','CHAPTER_UNGROUNDED_TIMING','CHAPTER_DASHA_SEQUENCE_MISMATCH','CHAPTER_YEAR_LABEL_MISMATCH','CHAPTER_YEARLY_PALACE_MISMATCH']);
+/** Keep the useful prose; unsupported timing becomes an explicit limit on both delivery paths. */
+export function correctTimingEvidence(body:ChapterBody,consultation:Consultation|undefined,evidence:unknown,locale='ko',polite=true):ChapterBody{
+ if(locale!=='ko'||!consultation)return body;
+ try{validatePreciseTiming(body,consultation,evidence);return body;}
+ catch(error){if(!(error instanceof FortuneError)||!REPAIRABLE_TIMING.has(error.code))throw error;}
+ const limit=polite?'제공된 계산 근거로는 이 시기나 사건을 특정하기 어려워요. 실제 선택은 준비 상태와 생활 조건을 함께 확인해 주세요.':'제공된 계산 근거로는 이 시기나 사건을 특정하기 어려워. 실제 선택은 준비 상태와 생활 조건을 함께 확인해 봐.';
+ const fix=(text:string)=>{
+  let limited=false;
+  return text.split(/(?<=[.!?。？！])\s+|\n/u).map(sentence=>{
+   try{validatePreciseTiming({summary:sentence,analysis:[],example:'',advice:'',persona:'',highlights:[],topics:[],sources:[]},consultation,evidence);return sentence;}
+   catch(error){
+    if(!(error instanceof FortuneError)||!REPAIRABLE_TIMING.has(error.code))throw error;
+    if(limited)return '';limited=true;return limit;
+   }
+  }).filter(Boolean).join(' ');
+ };
+ return {...body,summary:fix(body.summary),analysis:body.analysis.map(fix),example:fix(body.example),advice:fix(body.advice),persona:fix(body.persona),
+  highlights:body.highlights.map(fix),...(body.title===undefined?{}:{title:fix(body.title)}),
+  ...(body.blocks?{blocks:body.blocks.map(block=>({...block,title:fix(block.title),paragraphs:block.paragraphs.map(fix)}))}:{}),
+  ...(body.questionAnswers?{questionAnswers:body.questionAnswers.map(answer=>({...answer,answer:fix(answer.answer),reason:fix(answer.reason),timing:fix(answer.timing),action:fix(answer.action),...(answer.review===undefined?{}:{review:fix(answer.review)})}))}:{})};
+}
 /** Astrology question chapters carry the birth chart only (no transits), so no period can be called favourable from them. */
 export function natalOnlyTiming(evidence: unknown) {
   const facts=Array.isArray(evidence)?evidence:[];

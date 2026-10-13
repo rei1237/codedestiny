@@ -15,7 +15,7 @@ import {savedTarotCards} from './master-reading';
 export interface TarotDisciplineInput{
  locale?:string;
  chapter:ChapterSpec;
- analysis:{question?:string;contexts:Record<string,DomainContext|undefined>};
+ analysis:{question?:string;contexts:Record<string,DomainContext|undefined>;consultation?:{questionDecision?:unknown}};
  previous:Partial<ChapterBody>[];
  persona?:string;
  voiceStyle?:'banmal'|'honorific';
@@ -161,6 +161,8 @@ function cardOnlyTiming(input:TarotDisciplineInput,context:DomainContext){
  const keys=Object.entries(input.analysis.contexts).filter(([,value])=>value).map(([key])=>key);
  if(!keys.length||keys.some(key=>key!=='tarot'))return false;
  const evidence=savedTarotConsultation(context) as any;
+ // New question readings never acquire event timing from the requested period. Historical readings retain their contract.
+ if(input.chapter.questionPolicy&&input.analysis.consultation?.questionDecision)return true;
  return evidence?.spread?.purpose!=='period'&&!evidence?.inputs?.period;
 }
 const claimsTiming=(sentence:string)=>PERIOD_WORD.test(sentence)&&(TIMING_CLAIM.test(sentence)||PREDICTION.test(sentence))&&!TIMING_DENIAL.test(sentence)&&!TAROT_TIMING_DENIAL.test(sentence);
@@ -200,7 +202,7 @@ export function correctTarotChapter(body:ChapterBody,input:TarotDisciplineInput)
  const counts={names:0,cards:0,voice:0,verdict:0,timing:0};
  if(!context)return {body,counts};
  const drawn=drawnCards(context);
- const polite=honorific(input);
+ const polite=honorific(input)||Boolean(input.persona);
  const verdict=ownsAnswers(body)?undefined:settledVerdict(input,context);
  const timing=cardOnlyTiming(input,context);
  const out=mapProse(body,(text,field)=>{
@@ -218,7 +220,7 @@ export function correctTarotChapter(body:ChapterBody,input:TarotDisciplineInput)
   if(timing){
    const kept=filterSentences(value,claimsTiming);
    counts.timing+=kept.dropped;value=kept.text;
-   if(kept.residual&&field==='answer.timing'&&!input.persona){counts.timing++;value=TIMING_LIMIT[polite?1:0];}
+   if(kept.residual&&((field==='answer.timing'&&!input.persona)||(input.chapter.questionPolicy&&input.analysis.consultation?.questionDecision))){counts.timing++;value=TIMING_LIMIT[polite?1:0];}
   }
   return value;
  });
@@ -247,6 +249,7 @@ export function tarotChapterDiscipline(input:TarotDisciplineInput){
   ...(input.persona?{}:{voice:`영냥이는 ${honorific(input)?'해요체(~해요, ~예요)':'반말(~해, ~야, ~어)'}로만 말한다. 어른이 아이를 타이르는 어미(~란다, ~단다, ~렴, ~려무나, ~거라, ~느니라)를 쓰지 않는다.`}),
   cardNames:`카드 이름은 savedCardsOnly의 name 그대로 쓰고 방향은 이름 뒤에 정방향·역방향으로 붙인다(예: ${sample}). 따옴표·괄호·꺾쇠로 감싸거나 영어 이름을 병기하지 않는다. 광대·소드 9·컵의 기사·여왕·왕 같은 다른 덱의 표기로 바꾸지 않는다.`,
   cardListing:owner?'자리마다 그 자리에 저장된 카드를 이름과 방향으로 한 번 밝히고 자리의 질문에 맞춰 해석한다.':'이 장은 카드와 자리를 하나씩 다시 나열하지 않는다. 자리별 카드 소개는 자리 해석 장이 맡는다. 이 장의 논점에 필요한 카드만 골라 인용한다.',
+  ...(input.chapter.questionPolicy&&input.analysis.consultation?.questionDecision?{questionCardScope:owner?'이 장의 소제목과 일치하는 자리만 맡고 다른 자리의 전체 카드 목록을 다시 설명하지 않는다.':'논점에 필요한 카드 1~3장만 인용하고 앞 장의 해석 대신 서로 다른 선택 조건과 행동을 설명한다.',...(owner?{assignedPositions:evidence.cards.filter((card:any)=>titles.has(card.positionLabel)).map((card:any)=>({positionKey:card.positionKey,positionLabel:card.positionLabel,name:card.name,orientation:card.orientation}))}:{})}:{}),
   ...(verdict?{answerVerdict:{side:verdict.label,rule:`첫 장의 답은 '${verdict.label}' 쪽이다. ${TAROT_VERDICT_RULE}`}}:{}),
   ...(cardOnlyTiming(input,context)?{timingLimit:TAROT_TIMING_RULE}:{}),
  };

@@ -96,3 +96,16 @@ test('the prompt names the elder endings and the card name form',()=>{
  assert.equal(yn.tarotChapterDiscipline(input(linksChapter,{persona:'yeoni'})).voice,undefined);
  assert.equal(yn.tarotChapterDiscipline(input(linksChapter,{locale:'en'})),undefined);
 });
+
+test('a whole answer field with a predicted period becomes a usable limit, even on a period spread',()=>{
+ const ch=body(['컵 식스 카드는 익숙한 관계를 다시 점검하라고 말해.'],{summary:'내년 상반기에 좋은 기회가 찾아올 가능성이 커.',questionAnswers:[{...T_ANSWER,answer:'2027년 상반기에는 새로운 기회가 찾아올 가능성이 커.'}]});
+ const questionInput=input({...answerChapter,questionPolicy:'question-consultation-20261007'},{analysis:{question:QUESTION,contexts:{tarot:ctx},consultation:{questionDecision:{}}}});
+ const out=yn.correctChapterProse(ch,questionInput);
+ assert.match(out.summary,/타로는 시기를 정해 주지 않아/);
+ assert.match(out.questionAnswers[0].answer,/질문한 기간에 무엇을 살필지/);
+ assert.match(yn.correctChapterProse(ch,{...questionInput,persona:'yeoni'}).summary,/않아요/);
+ assert.doesNotThrow(()=>yn.validateTarotDiscipline(out,questionInput));
+ const periodContext={...ctx,facts:ctx.facts.map(f=>f.label==='tarotConsultation'?{...f,value:{...f.value,inputs:{...f.value.inputs,period:'next_year'}}}:f)};
+ const periodInput={...questionInput,analysis:{...questionInput.analysis,contexts:{tarot:periodContext}}};
+ assert.match(yn.correctChapterProse(ch,periodInput).summary,/시기를 정해 주지 않아/);
+});

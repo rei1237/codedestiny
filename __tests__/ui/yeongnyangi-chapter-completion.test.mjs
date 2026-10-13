@@ -7,7 +7,7 @@ import path from 'node:path';
 import {CHAPTER_DELIVERY_VERSION as version,CHAPTER_TIMEOUT_MS,CHAPTER_LEASE_MS,CHAPTER_TIMEOUT_POLICY,chapterTimeoutMs,chapterLeaseMs,chapterDeliveryFailure,chapterDeliveryFloor,deliveredCharacterCount} from '../../worker/yeongnyangi/chapter-delivery-contract.js';
 import {chapterRecoveryPlan} from '../../worker/yeongnyangi/recovery-plan.js';
 const Module=createRequire(import.meta.url)('node:module');
-const bundle=await build({stdin:{contents:`export {StructuredChapterProvider,validateChapter,repeatedSummary} from './worker/yeongnyangi/providers/chapter'; export {deliverChapter} from './worker/yeongnyangi/providers/delivery'; export {mockReadingV5} from './__tests__/fixtures/yeongnyangi-chapter'; export {products} from './worker/yeongnyangi/payments/catalog'; export {consultationKinds,consultationDomain,consultationManifest,supportsKind} from './worker/yeongnyangi/fortune/consultation-kinds';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false});
+const bundle=await build({stdin:{contents:`export {StructuredChapterProvider,validateChapter,repeatedSummary} from './worker/yeongnyangi/providers/chapter'; export {deliverChapter} from './worker/yeongnyangi/providers/delivery';export {validatePreciseTiming} from './worker/yeongnyangi/fortune/consultation'; export {mockReadingV5} from './__tests__/fixtures/yeongnyangi-chapter'; export {products} from './worker/yeongnyangi/payments/catalog'; export {consultationKinds,consultationDomain,consultationManifest,supportsKind} from './worker/yeongnyangi/fortune/consultation-kinds';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false});
 const filename=path.resolve('chapter-completion.test.cjs'),loaded=new Module(filename);loaded.paths=Module._nodeModulePaths(process.cwd());loaded._compile(bundle.outputFiles[0].text,filename);
 const m=loaded.exports,product=m.products.find(p=>p.id==='saju_tuna'),kind=m.consultationKinds.saju.find(k=>k.id==='timing');
 const manifest=m.consultationManifest(product,kind);
@@ -208,4 +208,13 @@ test('D8: a length-only shortfall carries its edited draft; the server flag lift
  // A model-supplied flag neither delivers a short reply nor survives on a full one.
  assert.equal((()=>{try{m.deliverChapter({...short,shortDelivery:true},input);}catch(e){return e.shortCandidate?.shortDelivery;}})(),undefined);
  assert.equal(m.deliverChapter({...complete(),shortDelivery:true},input).shortDelivery,undefined);
+});
+
+test('delivery fallback cannot reintroduce a birth-chart-only favourable period',()=>{
+ const facts=[{id:'astrology.planets',label:'planets',value:[{name:'태양',house:3}]}];
+ const next={...input,locale:'ko',chapter:{...input.chapter,questionPolicy:'question-consultation-20261007',systems:['astrology'],factSelectors:{astrology:['planets']}},analysis:{...input.analysis,contexts:{astrology:{...context,domain:'astrology',facts}},consultation:{asOf:'2026-10-13',questions:[],questionDecision:{}}}};
+ const raw={...complete(),summary:'2027년 상반기가 이직에 유리한 시기야.',sources:['unknown']};
+ const out=m.deliverChapter(raw,next);
+ assert.match(out.summary,/계산 근거/);assert.doesNotMatch(JSON.stringify(out),/2027년 상반기가 이직에 유리한/);
+ assert.doesNotThrow(()=>m.validatePreciseTiming(out,next.analysis.consultation,facts));assert.equal(out.complete,true);
 });
