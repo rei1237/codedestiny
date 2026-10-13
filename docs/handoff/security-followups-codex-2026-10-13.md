@@ -1,19 +1,19 @@
 ---
 status: active
 updated: 2026-10-13
-next: "미커밋 변경 7파일 커밋 → 👤 사람이 Google 키 삭제·메일 API 키 교체·콘솔 판정 25건 → 결과를 받아 .gitleaksignore 반영 → 코드 후속(레거시 단건 경로 정리 등)"
+next: "👤 사람이 Google 키 삭제·메일 API 키 교체·콘솔 판정 25건 → 결과를 받아 .gitleaksignore 반영 → Secret Scan 초록 확인 → 로컬 커밋 push·main CI·운영 승격"
 ---
 
 # 결제·로그인 보안 후속 — Codex 인수인계 (2026-10-13)
 
-다음 세션 첫 문장: "docs/handoff/security-followups-codex-2026-10-13.md 를 읽고 '0. 커밋'부터 해."
+다음 세션 첫 문장: "docs/handoff/security-followups-codex-2026-10-13.md 를 읽고 'A. 사람만 할 수 있는 일'의 완료 증거부터 확인해."
 
 이 문서는 `inicis-security-advisory-2026-09.md`(판정·런북·문의 문안)와 `followups-and-key-rotation-2026-10-13.md`(Gift·Shadow·조사·키 교체 명령)를 **대체하지 않고** 그 위에 얹는다. 중복되는 명령은 그쪽을 따른다.
 
 ## 지금 상태
 
-- main `d8a868f09` = origin/main. 이전 보안 변경(시크릿 fail-closed·JWT exp·확정 주체·gitleaks 기본 규칙)은 `a4ecd5cc6` 으로 이미 운영 반영됐다. 운영 `/api/health`: `keyHealth.ok true`.
-- **이 세션의 미커밋 변경 7개**(작업 트리):
+- origin/main `b4ee8a845`, 로컬 main `9fb545e73`(2커밋 앞). 이전 보안 변경(시크릿 fail-closed·JWT exp·확정 주체·gitleaks 기본 규칙)은 `a4ecd5cc6` 으로 이미 운영 반영됐다. 운영 `/api/health`: `keyHealth.ok true`.
+- 보안 후속은 `edce37d61 fix(payments): harden security follow-ups` 로 커밋했다:
   - `worker/routes/payments.js` — 웹훅 원장 쓰기 삼킴 4곳을 `logSwallowedPaymentError` 로(줄 수 3800 그대로)
   - `worker/payments/orders.js` — `normalizeOrderReturnPath` 추가, 주문 스냅샷 `returnPath` 정규화
   - `__tests__/worker/payments.webhook-ledger.test.js` — 원장 쓰기 거절 케이스 1개 추가
@@ -23,6 +23,10 @@ next: "미커밋 변경 7파일 커밋 → 👤 사람이 Google 키 삭제·메
   - `docs/handoff/inicis-security-advisory-2026-09.md` — 이니시스 회신·현행 값 대조 결과·YouTube 정리 기록
 - 미추적 `.claude/skills/fire-your-seo-agency/` 는 **다른 사람 것**이다. 스테이징·커밋 금지.
 - 이 세션에서 한 일(코드 밖): 스테이징 Worker 시크릿 `YOUTUBE_API_KEY` 삭제, 로컬 `.env.local` 의 같은 줄 삭제.
+- 홈 바로가기는 `9fb545e73 feat(home): surface fortune systems above fold` 로 별도 커밋했다. 사주·자미두수·숙요점·베다점·점성술·타로의 기존 직접 진입 계약은 그대로 두고 접힌 카탈로그 밖으로 이동했다.
+- `npm run check:fast`, `npm run check:pre-push`, `npm run verify:release` 모두 통과했다. 홈 브라우저 검증은 320~1440px 오버플로 없음, 여섯 직접 진입 성공이다.
+- origin/main의 `PR CI`는 초록이지만 `Secret Scan` run `38339017478`은 아래 A가 끝나지 않아 붉다. 저장소 규칙상 이 red 위에 push하지 않았고 운영 승격도 실행하지 않았다.
+- `Yeongnyangi Browser Shadow` run `38339025962` attempt 1은 WebKit 페이지 전환 중 일반 `[object Event]` 1건만 실패했다. 결제·활성화·5챕터 결과는 성공했고 실패 잡만 attempt 2로 재실행했다. 폴링하지 않는다.
 
 ## 결정 사항(바꾸지 않는다)
 
@@ -30,29 +34,21 @@ next: "미커밋 변경 7파일 커밋 → 👤 사람이 Google 키 삭제·메
 - 이니시스·PortOne 코드에 `centerCd`·`P_CHKFAKE`·IDC 값을 넣지 않는다(PortOne V2 이니시스 옵션에 없음 — 문의는 사람 몫).
 - 레거시 단건 경로(`/api/payments/single/*`, 410)의 `.catch(() => {})` 4곳(`routes/payments.js` 약 1346·1425·1470·1642행)은 죽은 코드라 손대지 않았다. 지우려면 아래 C-1.
 
-## 0. 커밋 (요청이 있을 때만 — 이 문서를 넘긴다는 것이 그 요청이다)
+## 0. 커밋 — 완료
+
+`edce37d61`로 완료했다. `routes/payments.js` 는 동결 파일(상한 3801줄, 현재 3800)이므로 후속에서 줄을 늘리지 않는다. 동결 구간을 건드리면 `node scripts/verify-payment-freeze.mjs --update` 를 **같은 커밋**에 넣는다.
+
+Secret Scan이 초록이 된 뒤 전달 순서:
 
 ```bash
 cd /d/Development/code-destiny
-git status --short                       # 위 7개 + 타인의 .claude/skills/fire-your-seo-agency/ 만 있어야 한다
-git add .gitleaksignore \
-  __tests__/worker/payments.webhook-ledger.test.js \
-  __tests__/worker/payments-v2.order-return-path.test.js \
-  scripts/sync-cloudflare-worker-secrets.mjs \
-  docs/handoff/inicis-security-advisory-2026-09.md \
-  docs/handoff/security-followups-codex-2026-10-13.md \
-  worker/payments/orders.js worker/routes/payments.js
-NODE_OPTIONS=--experimental-vm-modules npx jest \
-  __tests__/worker/payments-v2.order-return-path.test.js \
-  __tests__/worker/payments.webhook-ledger.test.js \
-  __tests__/worker/payment-refund.swallowed-write.test.js --runInBand --testEnvironment node
-npm run test:worker:auth-payments        # 기대: 44 스위트 / 862 테스트 통과
-npm run verify:payment-freeze && npm run verify:worker-security-guards && npm run verify:no-secret-leak
-npm run verify:handoff-contract && npm run lint && npm run typecheck
-git commit    # 메시지 끝에 Co-Authored-By 줄(저장소 규약)
+git status --short
+git log --oneline origin/main..HEAD
+npm run check:pre-push
+git push origin main
+# main CI 결과는 한 번만 확인한 뒤, 성공하면 사용자가 승인한 1회 운영 승격을 실행한다.
+gh workflow run "Release Cloudflare Pages and Worker" --ref main -f mode=production
 ```
-
-주의: `routes/payments.js` 는 동결 파일(상한 3801줄, 현재 3800). 줄을 늘리지 않는다. 동결 구간을 건드리게 되면 `node scripts/verify-payment-freeze.mjs --update` 를 **같은 커밋**에 넣는다. 푸시는 사용자가 말할 때만.
 
 ## A. 👤 사람만 할 수 있는 일 (Codex 는 안내만, 값은 받지 않는다)
 
