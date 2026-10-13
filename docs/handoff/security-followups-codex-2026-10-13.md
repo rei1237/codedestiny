@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-13
-next: "👤 사람이 Google 키 삭제·메일 API 키 교체·콘솔 판정 25건과 F 정책 2건 결정 → 결과를 받아 .gitleaksignore·C-2·C-5·C-8 반영 → Secret Scan 초록 확인 → push·main CI·운영 승격"
+next: "Google·JWT·관리자·MongoDB 미확정 키 판정 → 남은 Secret Scan 탐지 33건·30지문 해소 → check:pre-push → push·main CI 확인. F 정책 2건과 메일 키 정리는 로컬/외부 적용 완료이며 코드 push는 아직 금지 상태."
 ---
 
 # 결제·로그인 보안 후속 — Codex 인수인계 (2026-10-13)
@@ -11,6 +11,24 @@ next: "👤 사람이 Google 키 삭제·메일 API 키 교체·콘솔 판정 25
 이 문서는 `inicis-security-advisory-2026-09.md`(판정·런북·문의 문안)와 `followups-and-key-rotation-2026-10-13.md`(Gift·Shadow·조사·키 교체 명령)를 **대체하지 않고** 그 위에 얹는다. 중복되는 명령은 그쪽을 따른다.
 
 ## 지금 상태
+
+### Codex 재개 실측 (2026-10-13)
+
+- 사용자 결정: F-1은 선택한 연이/영냥이 풀이를 따르고, F-2는 구버전 동의를 유예한다. 외부 키 처리를 대행하도록 승인했으며, 메일은 "유효한것만 남겨"로 지시했다. 발송 승인·수신 주소는 없으므로 테스트 메일은 보내지 않았다.
+- `a4d784c0c`: CRM v1에 2026-10-20 23:59:59 KST까지 유예를 적용하고, 당시 문구·버전을 기록한다. 만료 시점과 미등록 버전은 거절한다. 영향받은 사이트맵 서명은 생성기로 갱신했다.
+- `d54ce9591`: 사주 AI의 저장된 두 화자 요약·복사·공유를 `cdSajuPersonaV1` 선택에 연결했다. 실제 선택 버튼과 다른 탭 storage 변경을 검증했고 추가 결제·생성 POST는 0건이다. 공통 본문과 서버 LLM 프롬프트는 유지한다.
+- 메일 제공자 실측: `RESEND_API_KEY`는 API 조회 200, 이력 탐지 0건이다. 옛 `EMAILAPI_KEY`는 `400 validation_error / API key is invalid`이며 이력 탐지 2건과 정확히 일치한다. 현재 유효한 키를 스테이징·운영 `RESEND_API_KEY`에 적용했고, 운영 `EMAILAPI_KEY` 삭제 및 `.env.local`의 무효 키 1줄 제거를 완료했다. 스테이징에는 옛 이름이 원래 없었다. 운영 메일 시크릿 목록은 `RESEND_API_KEY` 하나만 남았다.
+- 적용 후 운영 health는 `keyHealth.ok=true`, broken=[]이다. 스테이징은 기존과 같은 broken=[payments-core]다. 실발송은 미검증이다. 메일 정본 계약도 `RESEND_API_KEY`로 맞췄고 `verify:env-parity --remote`는 PASS(경고 10건), Pages 조회는 프로젝트 이름 미설정으로 생략됐다. 다른 키 별칭은 제거하지 않았다.
+- Google 현재 로그인 계정의 프로젝트 13개를 확인했다. 현행 CrUX 키와 Google 키 목록에서 이력 YouTube 키를 찾지 못했다. 소유 프로젝트·다른 계정 여부가 확인되지 않아 삭제·폐기 완료로 처리하지 않는다. 현행 정상 키는 삭제하지 않았다.
+- Google `Gemini` 프로젝트 키 표시 응답 중 새 형식 키가 자동 가림에서 빠져 도구 응답에 1회 노출됐다. 파일·커밋에 저장하지 않았으며 이후 키 필드 전체를 가렸다. 해당 현행 키의 순환도 후속으로 남는다. 이력의 Google 키와 동일하다고 판정한 것은 아니다.
+- PortOne: 현행 V1 시크릿과 이력의 80자 시크릿은 해시 대조에서 불일치다. V2 발급 목록에는 이력보다 뒤인 8월·9월 발급 2개만 있다. 결제 채널·웹훅·현재 PortOne 키는 변경하지 않았다.
+- 로컬 gitleaks v8.24.2 실측은 43건·40지문이었다. 인수인계의 31건 외에 C-6의 새 규칙이 12건을 추가로 탐지했다. `ff669d372`에는 제공자에서 무효/교체를 확인한 메일·PortOne 4지문과 명시적 MongoDB 자리표시자 6지문만 추가했다. 동일 스캔의 남은 미기준선은 33건·30지문이다. 이 숫자는 기준선 반영 후 기존 보고서 재집계이며, exit 0 재스캔·원격 Secret Scan 초록은 아직 없다. 새 규칙의 미확정 MongoDB 3건과 PortOne 테스트 문자열 3건도 남겨 두었다.
+- `180ebc2b3`: 메일 환경 계약의 필수 이름을 `RESEND_API_KEY`로 변경했다. 폐기된 별칭을 복구하지 않고 정본 소비자(`worker/lib/resend.js`)를 명시했다. 서버의 기존 호환 별칭 읽기는 유지한다.
+- 관련 검사: Jest 14/14, Node 관련 검사 34/34, 사이트맵 6/6, gitleaks 설정 4/4 통과. 첫 `check:fast`는 88개 중 87개 통과하고 서명 원장 미갱신 때문에 사이트맵 테스트 1건이 실패했다. 원장 재생성 후 변경 범위를 `--base=cdfc99e54`로 고정해 재실행한 최종 `check:fast`는 exit 0이다(결제 게이트 88/88, Node 3,201/3,201, Jest 395 suites/6,033 tests). `check:pre-push`는 홈 레지스트리·공개 미러·사이트맵 모두 통과했다. 실제 화면 캡처·실결제·실 LLM·메일 발송은 하지 않았다.
+- A-5 읽기 실측: Atlas Codedestiny 프로젝트 Network Access에 `0.0.0.0/0`이 Active다. DB 사용자는 2개이며 기존 서버 MongoDB 이력 2건의 호스트·사용자 이름이 현재 로컬 설정 및 Atlas 사용자와 일치한다. 비밀번호는 현행 로컬 값과 다르지만 운영 값을 확인한 것이 아니므로 폐기 판정하지 않았다. DB 사용자·비밀번호·네트워크·운영 데이터는 변경하지 않았다. 시드 계정·관리자 감사 로그·유니크 인덱스는 미확인이다.
+- 원격 main은 여전히 `b4ee8a845`다. PR CI는 성공, Secret Scan run 38339017478은 실패다. 기존 실패 위에 push하지 않았으며 코드 운영 승격도 하지 않았다. 다른 세션의 `.claude/skills/fire-your-seo-agency/`는 보존했다. 새 브랜치·워크트리·PR은 만들지 않았다.
+
+아래 "지금 상태" 목록은 이전 세션 기록이다. 위 재개 실측이 키 처리·F 결정·검증의 최신 상태다.
 
 - origin/main `b4ee8a845`. 로컬 보안·홈 코드는 `cd9cf63df`까지 커밋돼 있고 이 인수인계 갱신 커밋이 그 위에 있다. 이전 보안 변경(시크릿 fail-closed·JWT exp·확정 주체·gitleaks 기본 규칙)은 `a4ecd5cc6` 으로 이미 운영 반영됐다. 운영 `/api/health`: `keyHealth.ok true`.
 - 보안 후속은 `edce37d61 fix(payments): harden security follow-ups` 로 커밋했다:
@@ -65,7 +83,7 @@ gh workflow run "Release Cloudflare Pages and Worker" --ref main -f mode=product
 
 ## B. A 의 결과를 받은 뒤 Codex 가 하는 일 — `.gitleaksignore` 반영
 
-**교체·삭제가 끝났다고 사용자가 말한 항목만** 넣는다. 말하지 않은 것은 넣지 않는다(넣으면 노출 사실이 CI 에서 사라진다). 현재 미기준선 = 31건·28지문(`Secret Scan` 이 붉은 이유).
+**교체·삭제가 완료된 증거가 있는 항목만** 넣는다. 사용자 대행 승인 이후 제공자의 무효 판정·현행 키 대조도 증거로 삼되, 추측으로 제외하지 않는다. 최신 미기준선은 위 재개 실측의 33건·30지문이며, 원격 Secret Scan은 아직 붉다.
 
 1. gitleaks v8.24.2 준비·재스캔 명령은 `followups-and-key-rotation-2026-10-13.md` A-1 을 따른다. **보고서는 `--redact` 로 만들고 저장소 밖(`$TMP`)에만 둔다.**
 2. YouTube 키 지문 뽑기(A-1 완료 후). `gcp-api-key` 규칙은 `Match` 자체가 키라 **비-redact 출력을 화면에 찍으면 키가 노출된다.** 파이프로 메모리에서만 처리하고 지문만 출력한다:

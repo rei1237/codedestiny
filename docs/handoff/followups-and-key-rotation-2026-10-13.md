@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-13
-next: "👤 사람: A 이력 노출 키 교체와 F의 두 정책 결정. B~E 코드는 완료했으며 main 워크플로 결과는 아래 완료 기록에 갱신한다."
+next: "A의 남은 Google·JWT·관리자·MongoDB 키 판정과 Secret Scan 해소. F-1·F-2는 사용자 결정에 따라 로컬 커밋 완료. 메일은 유효한 RESEND_API_KEY만 스테이징·운영에 유지했다. 코드 push는 Secret Scan 실패로 대기."
 ---
 
 # 기존 결함 후속 + 이력 노출 키 교체 — 인수인계
@@ -80,9 +80,11 @@ next: "👤 사람: A 이력 노출 키 교체와 F의 두 정책 결정. B~E �
 2. 격국 판단 이유: `lib/saju/reading-depth.mjs:272` 의 `neoReason` 이 존댓말 원문(`worker/lib/saju-gyeokguk.js` 의 `judgmentReason`)을 정규식으로 반말로 바꾼다. 새 어미가 생기면 존댓말이 샌다. 원천에서 반말판을 내거나, 가능한 끝맺음 전수를 테스트로 고정한다. 재생성: `node scripts/build-saju-reading-depth.mjs`.
 3. 현실 체크 상자: `paid-renderers.src.js` 1630~1636 의 인라인 스타일이 옛 '팩폭' 빨강(`#e53935`, 짙은 적색 그라데이션)이다. `docs/context/design-canon.md` 의 영냥이 톤으로 바꾸고, 라이트·다크 둘 다 본다.
 
-### F. 👤 결정 필요 — 추측해서 하지 말고 사용자에게 묻는다
-1. AI 상담 화자: `js/saju-engine.js:7863` `_sajuPromptReadPersonaMode()` 가 `'pig'` 고정이다. 풀이 전환(`cdSajuPersonaV1`)을 따르게 할지 정해야 한다. 따르게 하면 영냥이 LLM 프롬프트 경로(유료 호출)를 같이 봐야 한다. `:9204` 리스너는 아직 테마 키를 듣는다.
-2. 카카오 CRM 동의 버전: `c683fbba9` 가 문구 변경에 맞춰 `CRM_CONSENT_VERSION`(`lib/marketing/kakao-crm.mjs:4`)을 v2 로 올렸다. 배포 전부터 열려 있던 페이지는 옛 버전을 보내 `worker/routes/kakao-crm.js:80` 에서 400 을 받고, 새로고침하면 해결된다. 동의 기록 정확성 때문에 fail-closed 가 맞다고 보고 그대로 뒀다. 유예를 둘지는 사용자가 정한다.
+### F. ✅ 사용자 결정 반영 — 로컬 커밋 완료, 원격 전달 대기
+1. AI 상담 화자(`d54ce9591`): 선택한 연이/영냥이 풀이를 따르도록 승인했다. 저장된 두 화자 요약을 사용하고 공통 상담문·서버 프롬프트를 유지한다. 실제 버튼 선택과 storage 변경으로 요약·복사·공유를 전환하며, 추가 결제·LLM 생성·결과 삭제는 없다. mock 동작 검증에서 POST 0건이다.
+2. 카카오 CRM 동의 버전(`a4d784c0c`): 구버전 유예를 승인했다. 이름 변경 전 v1만 2026-10-20까지 수신하며 표시했던 v1 문구·버전을 그대로 기록한다. 경계 시각부터 거절하고 v2는 계속 받는다. 기간 내 동의/철회·기간 경계·알 수 없는 버전을 mock으로 검증했다.
+
+외부 키 실측·메일 정리·추가 시크릿 탐지·최신 검증 기록은 `security-followups-codex-2026-10-13.md`의 "Codex 재개 실측"을 따른다. 메일 제공자 조회와 스테이징·운영 시크릿 정리는 완료했지만 실제 메일 발송은 하지 않았다. Secret Scan 초록·push·코드 운영 승격은 완료되지 않았다.
 
 ### G. 로컬 전용 — site-name 테스트 헛실패
 `__tests__/ui/site-name-signals.static.test.js` 는 `dist/`·`out/` 이 있으면 그 안도 훑는다. 이 PC 에 있는 것은 개명 전 빌드라 "꿀꿀운세"가 남아 실패한다. 둘 다 gitignore 대상이라 CI 와는 무관하다. `rm -rf dist out` 뒤 `npm run test:node`.
