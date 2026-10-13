@@ -1924,6 +1924,18 @@
       "insightsNote": "Bài đọc hữu ích về Saju, tarot và lá số",
       "heading": "Câu chuyện vận mệnh hữu ích mỗi ngày",
       "open": "Đọc bài viết"
+    },
+    "followup": {
+      "start": "Chọn tư vấn nổi bật",
+      "all": "Xem tất cả nội dung",
+      "light": "Thử xem nhẹ nhàng",
+      "free": "Bắt đầu miễn phí · Chuyên sâu tính phí riêng",
+      "benefit": "2.000 đá mặt trăng khi đăng ký lần đầu",
+      "benefitNote": "Có hiệu lực 30 ngày. Tương đương 20.000 KRW theo tỷ lệ thông thường; mức trừ tùy sản phẩm. Không phải tiền mặt và không dùng mua thẻ.",
+      "join": "Đăng ký bằng Kakao hoặc email",
+      "signatureDescription": "Xem tư vấn và kết quả mẫu phù hợp với điều bạn quan tâm.",
+      "member": "Kiểm tra số dư Đá Mặt Trăng, ngày hết hạn và điều kiện sử dụng.",
+      "balance": "Xem Đá Mặt Trăng"
     }
   },
   "terms": {
@@ -2680,7 +2692,7 @@
     "neoSubline": "Không có thêm ý kiến gì. Chỉ có sự thật vẫn còn.",
     "signup": "Đăng ký",
     "login": "Đăng nhập",
-    "guestMoonstoneTeaser": "🌙 Sign up and get 500 free moonstones (worth ₩5,000)",
+    "guestMoonstoneTeaser": "2.000 đá mặt trăng khi đăng ký lần đầu · 30 ngày · kiểm tra chi phí sản phẩm",
     "loadingGreeting": "Căn chỉnh ánh sao cho tài khoản của bạn",
     "loadingChip": "ĐỒNG BỘ PHIÊN",
     "loadingTitle": "Đang tải thông tin đăng nhập của bạn",
@@ -2718,7 +2730,14 @@
       "signupButton": "Đăng ký"
     },
     "passCheckingGreeting": "Đang kiểm tra Thẻ Pass",
-    "passCheckingNote": "Đang điều chỉnh Thẻ Pass Ánh Trăng và cấp độ thành viên một cách an toàn."
+    "passCheckingNote": "Đang điều chỉnh Thẻ Pass Ánh Trăng và cấp độ thành viên một cách an toàn.",
+    "exitBenefit": {
+      "title": "Quà đăng ký · {amount} Đá Mặt Trăng",
+      "copy": "Nhận một lần khi đăng ký lần đầu. Dùng cho nội dung áp dụng trong {days} ngày kể từ khi cấp.",
+      "note": "Số đá cần dùng tùy sản phẩm. Không phải tiền mặt và không dùng để mua gói.",
+      "join": "Đăng ký với Kakao",
+      "email": "Đăng ký bằng email"
+    }
   },
   "seo": {
     "homeTitle": "Saju, Tarot và Vận may hàng ngày miễn phí | 꿀꿀 운세",

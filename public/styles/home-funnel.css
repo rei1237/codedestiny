@@ -718,6 +718,19 @@ html body #cdFinalCtaBand{padding:24px 16px;margin:8px auto 28px;border:0;backgr
 .cdh-reading__copy{display:flex;flex:1;flex-direction:column;align-items:flex-start;gap:var(--cd-sp-sm,12px);padding:var(--cd-sp-lg,24px)}
 .cdh-reading__copy h3{font-family:"CodeDestinySerifKR",var(--font-premium,serif);font-size:var(--cd-t-h3,1.4rem)}
 .cdh-reading__copy p{color:var(--cdh-muted);font-size:var(--cd-t-body,1rem);line-height:1.7;word-break:keep-all}
+/* 추천 순서의 세 주력 입구. 상세/결제 컨트롤은 기존 카드를 그대로 사용한다. */
+.cdh-fusion-recommendation .cd-sig-card{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);width:100%;max-width:none}
+.cdh-fusion-recommendation .cd-sig-card__media{height:100%;min-height:200px}
+.cdh-fusion-recommendation .cd-sig-card__img{height:100%;width:100%;object-fit:cover}
+.cdh-light .cdh-methods-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+.cdh-light .cdh-method{min-height:44px}
+.cdh-light .cdh-method>span{font-size:.78rem;color:var(--cdh-muted);line-height:1.5;text-align:center}
+.cdh-signup-benefit{padding:24px 0;border-block:1px solid var(--cdh-line)}
+.cdh-signup-benefit[hidden]{display:none}
+.cdh-signup-benefit p{max-width:65ch;color:var(--cdh-muted);line-height:1.75}
+.cdh-signup-benefit a{display:inline-flex;align-items:center;min-height:44px;color:var(--cdh-accent);font-weight:700;text-decoration:underline;text-underline-offset:4px}
+.cdh-fusion-recommendation :focus-visible,.cdh-signup-benefit :focus-visible{outline:2px solid var(--cdh-accent);outline-offset:4px}
+@media(max-width:640px){.cdh-fusion-recommendation .cd-sig-card{grid-template-columns:minmax(0,1fr)}.cdh-light .cdh-methods-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .cdh-reading__cta{display:flex;align-items:center;justify-content:space-between;gap:var(--cd-sp-md,16px);width:100%;min-height:44px;margin-top:auto;padding-top:var(--cd-sp-sm,12px);color:var(--cdh-accent);font-weight:700}
 .cdh-reading__story:hover{border-color:var(--cdh-accent)}
 @media(max-width:600px){.cdh-reading{padding:var(--cd-sp-md,16px)}.cdh-reading__grid{grid-template-columns:minmax(0,1fr)}.cdh-reading__copy{padding:var(--cd-sp-md,16px)}}

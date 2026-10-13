@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { CONSULTATION_COUNSEL_GUIDE } from "../lib/fortune/consultation-counsel.mjs";
 /**
  * 토큰 계측의 실행 가드.
  *
@@ -137,7 +138,7 @@ assert(fallbackLogs.length === 1 && fallbackLogs[0]?.provider === "cloudflare", 
     `캐시 생성 model 에 "models/" 접두사가 없다 (${requests[0]?.body?.model})`,
   );
   assert(
-    requests[0]?.body?.systemInstruction?.parts?.[0]?.text === `${SYSTEM}\n\n${buildOutputLanguageDirective("ko")}`,
+    requests[0]?.body?.systemInstruction?.parts?.[0]?.text === `${SYSTEM}\n\n${CONSULTATION_COUNSEL_GUIDE}\n\n${buildOutputLanguageDirective("ko")}`,
     "systemInstruction 이 캐시에 구워지지 않았다 — 호출 쪽에서 빠지므로 지시가 통째로 사라진다",
   );
 
@@ -166,7 +167,7 @@ assert(fallbackLogs.length === 1 && fallbackLogs[0]?.provider === "cloudflare", 
     env,
   );
   assert(requests[0]?.body?.cachedContent === undefined, "prompt 가 접두사로 시작하지 않는데 캐시를 참조했다");
-  assert(requests[0]?.body?.systemInstruction?.parts?.[0]?.text === `${SYSTEM}\n\n${buildOutputLanguageDirective("ko")}`, "캐시를 안 쓰는 경로에서 systemInstruction 이 빠졌다");
+  assert(requests[0]?.body?.systemInstruction?.parts?.[0]?.text === `${SYSTEM}\n\n${CONSULTATION_COUNSEL_GUIDE}\n\n${buildOutputLanguageDirective("ko")}`, "캐시를 안 쓰는 경로에서 systemInstruction 이 빠졌다");
 
   //     systemPrompt 가 캐시에 구운 값과 다른 경우 — 캐시가 옛 지시를 들고 있으므로 쓰면 안 된다.
   stubRecordingGemini(() => geminiOk());
@@ -194,7 +195,7 @@ assert(fallbackLogs.length === 1 && fallbackLogs[0]?.provider === "cloudflare", 
     (requests[1]?.body?.contents?.[0]?.parts?.[0]?.text || "").includes(PREFIX),
     "무캐시 재시도가 접두사를 빠뜨렸다 — 모델이 명식을 못 본다",
   );
-  assert(requests[1]?.body?.systemInstruction?.parts?.[0]?.text === `${SYSTEM}\n\n${buildOutputLanguageDirective("ko")}`, "무캐시 재시도에 systemInstruction 이 없다");
+  assert(requests[1]?.body?.systemInstruction?.parts?.[0]?.text === `${SYSTEM}\n\n${CONSULTATION_COUNSEL_GUIDE}\n\n${buildOutputLanguageDirective("ko")}`, "무캐시 재시도에 systemInstruction 이 없다");
 
   // (e) 만들지 말아야 할 때는 왕복조차 하지 않는다.
   stubRecordingGemini(() => ok({ name: CACHE_NAME }));

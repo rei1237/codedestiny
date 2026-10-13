@@ -1,3 +1,4 @@
+import signupBenefitPolicy from "../../js/core/signup-benefit-policy.mjs";
 import { mapSocialProfile, normalizeKoreanPhoneNumber } from "../lib/social-profile.js";
 import { connectDb, mongoose, requestPoolRecovery, resolveMongoDbName, withMongoRetry } from "../lib/db.js";
 import { IdempotencyKey, MonthlyCreditLedger, PointHistory, RESTORE_CREDENTIAL_CAP, RefreshTokenSession, User } from "../lib/models.js";
@@ -88,7 +89,7 @@ const PHONE_CHANGE_RATE_LIMIT_MAX = 5;
 const PHONE_CHANGE_RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
 const LOGIN_RATE_LIMIT_DEFAULT_MAX = 20;
 const LOGIN_RATE_LIMIT_DEFAULT_WINDOW_MS = 60 * 1000;
-const SIGNUP_MONTHLY_CREDIT_GRANT = 500;
+const SIGNUP_MONTHLY_CREDIT_GRANT = signupBenefitPolicy.amount;
 const AUTH_TERMS_VERSION = "2026-04-11";
 // 🔴 app/privacy-policy/PrivacyPolicyContent.jsx 의 PRIVACY_POLICY_EFFECTIVE_DATE 와 같아야 한다.
 const AUTH_PRIVACY_VERSION = "2026-10-10";
@@ -114,7 +115,7 @@ function buildSignupProfileSubscription(now = new Date()) {
       amount: SIGNUP_MONTHLY_CREDIT_GRANT,
       remaining: SIGNUP_MONTHLY_CREDIT_GRANT,
       grantedAt,
-      expiresAt: new Date(grantedAt.getTime() + MONTHLY_CREDIT_TTL_MS),
+      expiresAt: new Date(grantedAt.getTime() + signupBenefitPolicy.days * 86400000),
     }],
     membershipCreditLotsVersion: 0,
     legacyCoinCreditSeeded: true,
@@ -2621,7 +2622,8 @@ async function handleRegister(request, env) {
     );
   }
 
-  const requiredKeys = ["name", "email", "password"];
+  // 이름은 validateRegisterPayload가 이메일에서 생성한다. 실제 가입 폼에는 이름 칸이 없다.
+  const requiredKeys = ["email", "password"];
   const missingFields = requiredKeys.filter((key) => {
     const value = body[key];
     return typeof value !== "string" || value.trim() === "";

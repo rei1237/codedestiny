@@ -76,9 +76,17 @@
   function syncAccountState() {
     if (!accountBtn || !authCard) return;
     accountBtn.setAttribute('data-auth', authCard.querySelector('.cd-user-card') ? 'member' : 'guest');
+    var memberBenefit = document.getElementById('cdhMemberBenefit');
+    if (memberBenefit) memberBenefit.hidden = authCard.dataset.authState !== 'member';
+    var benefit = document.getElementById('cdhSignupBenefit');
+    if (benefit) {
+      var hiddenToday = false;
+      try { hiddenToday = Number(localStorage.getItem('cd_signup_benefit_exit_hide_until_v1') || 0) > Date.now(); } catch (_) {}
+      benefit.hidden = authCard.dataset.authState !== 'guest' || hiddenToday;
+    }
   }
   syncAccountState();
-  if (authCard && window.MutationObserver) new MutationObserver(syncAccountState).observe(authCard, { childList: true, subtree: true });
+  if (authCard && window.MutationObserver) new MutationObserver(syncAccountState).observe(authCard, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-auth-state'] });
   // 마이는 읽기 전용 요약이다. 프로필/퀘스트 조작은 단일 원본 카드에서만 한다.
   var accountSheet = document.getElementById('cdAccountSheet');
   function gardenText(key, fallback, vars) {

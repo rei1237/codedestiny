@@ -1,4 +1,5 @@
 import { withLLMCache } from "./llm-cache.ts";
+import { CONSULTATION_COUNSEL_GUIDE } from "./fortune/consultation-counsel.mjs";
 import { selectGeminiModel } from "./gemini-model-policy.js";
 import type { LLMCacheConfig } from "./llm-cache.ts";
 import { buildOutputLanguageDirective, toAiLocale } from "./i18n/ai-locale.js";
@@ -1258,7 +1259,11 @@ function applyOutputLocale(request: LLMRequest): LLMRequest {
   if (!directive) return request;
   return {
     ...request,
-    systemPrompt: [request.systemPrompt || "", directive].filter(Boolean).join("\n\n"),
+    // Cache creation and every provider use this same normalization. The guide
+    // explicitly excludes extraction/classification and preserves wire schemas.
+    systemPrompt: [request.systemPrompt || "",
+      String(request.systemPrompt || "").includes(CONSULTATION_COUNSEL_GUIDE) ? "" : CONSULTATION_COUNSEL_GUIDE,
+      directive].filter(Boolean).join("\n\n"),
     prompt: `${request.prompt}\n\n${directive}`,
   };
 }

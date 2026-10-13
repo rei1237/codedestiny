@@ -200,6 +200,16 @@ describe("login enumeration and brute-force guard", () => {
     expect(payload.message).toBe("Email or password is incorrect.");
   });
 
+  test("OAuth-only accounts cannot use email login or reveal their provider", async () => {
+    mockFindOne.mockResolvedValue({ _id: "64f0a1b2c3d4e5f678901234", email: "tester@example.com", localAuth: { enabled: false }, oauthProvider: "kakao" });
+    const response = await authRoutes.__authTestUtils.handleLogin(buildLoginRequest(), env);
+    const { status, payload } = await readResponse(response);
+    expect(status).toBe(401);
+    expect(payload.code).toBe("invalid_credentials");
+    expect(payload.message).toBe("Email or password is incorrect.");
+    expect(mockVerifyPassword).not.toHaveBeenCalled();
+  });
+
   test("withdrawn local account returns generic invalid_credentials", async () => {
     mockFindOne.mockResolvedValue({
       _id: "64f0a1b2c3d4e5f678901234",

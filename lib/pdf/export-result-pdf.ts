@@ -111,19 +111,44 @@ function drawCoverPage(pdf: JsPDFInstance, cover: PdfCoverInfo, fonts: { title: 
   if (cover.date) pdf.text(cover.date, PAGE_MARGIN_MM, PAGE_HEIGHT_MM - 32);
 }
 
-function addCapturedCanvasAsPages(pdf: JsPDFInstance, canvas: HTMLCanvasElement, jpegQuality: number, startNewPage: boolean) {
-  const imageData = canvas.toDataURL("image/jpeg", jpegQuality);
-  const imageHeight = (canvas.height * CONTENT_WIDTH_MM) / canvas.width;
-  let remainingHeight = imageHeight;
-  let position = PAGE_MARGIN_MM;
-  if (startNewPage) pdf.addPage();
-  pdf.addImage(imageData, "JPEG", PAGE_MARGIN_MM, position, CONTENT_WIDTH_MM, imageHeight, undefined, "MEDIUM");
-  remainingHeight -= CONTENT_HEIGHT_MM;
-  while (remainingHeight > 0) {
-    position = PAGE_MARGIN_MM + remainingHeight - imageHeight;
-    pdf.addPage();
-    pdf.addImage(imageData, "JPEG", PAGE_MARGIN_MM, position, CONTENT_WIDTH_MM, imageHeight, undefined, "MEDIUM");
-    remainingHeight -= CONTENT_HEIGHT_MM;
+function addCapturedCanvasAsPages(pdf: JsPDFInstance, canvas: HTMLCanvasElement, jpegQuality: number, startNewPage: boolean, element: HTMLElement) {
+  const bounds = element.getBoundingClientRect();
+  const ratio = canvas.height / Math.max(1, bounds.height);
+  const lines: Array<{ top: number; bottom: number }> = [];
+  const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+  while (walker.nextNode()) {
+    if (!walker.currentNode.textContent?.trim()) continue;
+    const range = document.createRange();
+    range.selectNodeContents(walker.currentNode);
+    for (const rect of Array.from(range.getClientRects())) {
+      if (rect.height > 0) lines.push({ top: (rect.top - bounds.top) * ratio, bottom: (rect.bottom - bounds.top) * ratio });
+    }
+  }
+  const pagePixels = Math.floor(CONTENT_HEIGHT_MM * canvas.width / CONTENT_WIDTH_MM);
+  let offset = 0;
+  while (offset < canvas.height) {
+    let end = Math.min(canvas.height, offset + pagePixels);
+    // Move a page boundary before the intersecting text line, never through it.
+    if (end < canvas.height) {
+      let previous;
+      do {
+        previous = end;
+        for (const line of lines) {
+          if (line.top < end && line.bottom > end && line.top > offset) end = Math.floor(line.top);
+        }
+      } while (end < previous && end > offset);
+    }
+    if (end <= offset) throw new Error("PDF page cannot fit this text line.");
+    const slice = document.createElement("canvas");
+    slice.width = canvas.width;
+    slice.height = end - offset;
+    const ctx = slice.getContext("2d");
+    if (!ctx) throw new Error("PDF canvas is unavailable.");
+    ctx.drawImage(canvas, 0, offset, canvas.width, slice.height, 0, 0, canvas.width, slice.height);
+    if (startNewPage || offset > 0) pdf.addPage();
+    pdf.addImage(slice.toDataURL("image/jpeg", jpegQuality), "JPEG", PAGE_MARGIN_MM, PAGE_MARGIN_MM,
+      CONTENT_WIDTH_MM, slice.height * CONTENT_WIDTH_MM / canvas.width, undefined, "MEDIUM");
+    offset = end;
   }
 }
 
@@ -168,15 +193,34 @@ export async function exportResultPdf(options: ExportResultPdfOptions): Promise<
   }
 
   const fonts = await registerPdfFontsSafely(pdf);
+  await document.fonts.ready;
 
-  if (cover) drawCoverPage(pdf, cover, fonts);
+  if (cover && fonts) drawCoverPage(pdf, cover, fonts);
+  else if (cover) {
+    // jsPDF's default fonts have no Korean glyphs. Rasterize the cover too when
+    // embedding fails, rather than delivering a broken first page.
+    const sheet = document.createElement("section");
+    sheet.style.cssText = "position:fixed;left:-10000px;top:0;width:680px;min-height:980px;padding:100px 40px;box-sizing:border-box;background:#ffffff;color:#282018;font-family:Malgun Gothic,sans-serif;";
+    for (const [index, text] of [cover.title, cover.subtitle, cover.name, cover.date].entries()) {
+      if (!text) continue;
+      const line = document.createElement(index === 0 ? "h1" : "p");
+      line.textContent = text;
+      line.style.cssText = "overflow-wrap:anywhere;line-height:1.6;font-size:" + (index === 0 ? "30px" : "18px");
+      sheet.appendChild(line);
+    }
+    document.body.appendChild(sheet);
+    try {
+      const canvas = await html2canvas(sheet, { backgroundColor: "#ffffff", scale, useCORS: true });
+      addCapturedCanvasAsPages(pdf, canvas, jpegQuality, false, sheet);
+    } finally { sheet.remove(); }
+  }
 
   let isFirstContentPage = !cover;
   let capturedAnyPage = false;
   for (const element of elements) {
     const canvas = await html2canvas(element, { backgroundColor, scale, useCORS: true });
     if (!canvas.width || !canvas.height) continue;
-    addCapturedCanvasAsPages(pdf, canvas, jpegQuality, !isFirstContentPage);
+    addCapturedCanvasAsPages(pdf, canvas, jpegQuality, !isFirstContentPage, element);
     isFirstContentPage = false;
     capturedAnyPage = true;
   }
@@ -184,7 +228,7 @@ export async function exportResultPdf(options: ExportResultPdfOptions): Promise<
     throw new Error("exportResultPdf: all matched capture targets produced an empty canvas");
   }
 
-  addFooterToAllPages(pdf, watermarkText, fonts?.body ?? null);
+  addFooterToAllPages(pdf, fonts ? watermarkText : "Code Destiny", fonts?.body ?? null);
 
   pdf.save(fileName);
 }

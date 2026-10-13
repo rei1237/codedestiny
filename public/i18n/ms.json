@@ -1924,6 +1924,18 @@
       "insightsNote": "Bacaan berguna tentang Saju, tarot dan carta kelahiran",
       "heading": "Kisah bermakna untuk hari anda",
       "open": "Baca kisah"
+    },
+    "followup": {
+      "start": "Pilih konsultasi utama",
+      "all": "Lihat semua bacaan",
+      "light": "Cuba bacaan ringkas",
+      "free": "Mula percuma · Bacaan mendalam berbayar",
+      "benefit": "2,000 batu bulan untuk pendaftaran pertama",
+      "benefitNote": "Sah selama 30 hari. Bersamaan KRW 20,000 pada kadar biasa; penggunaan berbeza mengikut produk. Bukan wang tunai atau untuk membeli pas.",
+      "join": "Daftar dengan Kakao atau e-mel",
+      "signatureDescription": "Lihat konsultasi dan contoh hasil yang sesuai dengan persoalan anda.",
+      "member": "Semak baki Batu Bulan, tarikh luput dan syarat produk.",
+      "balance": "Lihat Batu Bulan saya"
     }
   },
   "terms": {
@@ -2680,7 +2692,7 @@
     "neoSubline": "Tiada sentimen tambahan. Hanya fakta yang tinggal.",
     "signup": "Daftar",
     "login": "Log masuk",
-    "guestMoonstoneTeaser": "🌙 Sign up and get 500 free moonstones (worth ₩5,000)",
+    "guestMoonstoneTeaser": "2,000 batu bulan untuk pendaftaran pertama · 30 hari · semak kos produk",
     "loadingGreeting": "Menjajarkan cahaya bintang akaun anda",
     "loadingChip": "SESI SYNC",
     "loadingTitle": "Memuatkan maklumat log masuk anda",
@@ -2718,7 +2730,14 @@
       "signupButton": "Daftar"
     },
     "passCheckingGreeting": "Menyemak Pas anda",
-    "passCheckingNote": "Menyelaraskan Pas Batu Cahaya Bulan dan tahap keahlian anda dengan selamat."
+    "passCheckingNote": "Menyelaraskan Pas Batu Cahaya Bulan dan tahap keahlian anda dengan selamat.",
+    "exitBenefit": {
+      "title": "Hadiah pendaftaran · {amount} Batu Bulan",
+      "copy": "Diberi sekali pada pendaftaran pertama. Gunakan pada kandungan layak dalam {days} hari selepas diberikan.",
+      "note": "Kos berbeza mengikut produk. Bukan wang tunai dan tidak boleh digunakan untuk membeli pas.",
+      "join": "Daftar dengan Kakao",
+      "email": "Daftar dengan e-mel"
+    }
   },
   "seo": {
     "homeTitle": "Saju Percuma, Tarot dan Rezeki Harian | 꿀꿀 운세",

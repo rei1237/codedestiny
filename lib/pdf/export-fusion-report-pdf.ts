@@ -97,12 +97,17 @@ function drawCover(pdf: JsPDFInstance, fonts: { title: string; body: string }, o
   pdf.text("CODE DESTINY · 여섯 체계 교차 판정", MARGIN_X_MM, 74);
 
   pdf.setFont(fonts.title, "normal");
-  pdf.setFontSize(25);
+  let titleSize = 25;
+  pdf.setFontSize(titleSize);
+  while ((pdf.splitTextToSize(title, CONTENT_WIDTH_MM) as string[]).length * lineHeightMm(titleSize, 1.4) > 100 && titleSize > 14) {
+    titleSize -= 1;
+    pdf.setFontSize(titleSize);
+  }
   pdf.setTextColor(INK.title[0], INK.title[1], INK.title[2]);
   let cursorY = 92;
   for (const line of pdf.splitTextToSize(title, CONTENT_WIDTH_MM) as string[]) {
     pdf.text(line, MARGIN_X_MM, cursorY);
-    cursorY += lineHeightMm(25, 1.4);
+    cursorY += lineHeightMm(titleSize, 1.4);
   }
 
   pdf.setDrawColor(INK.gold[0], INK.gold[1], INK.gold[2]);
@@ -115,8 +120,10 @@ function drawCover(pdf: JsPDFInstance, fonts: { title: string; body: string }, o
   cursorY += 16;
   for (const line of ["사주 · 자미두수 · 베다점 · 숙요점 · 점성술 · 타로", options.topic ? `상담 주제 · ${clean(options.topic, 80)}` : ""]) {
     if (!line) continue;
-    pdf.text(line, MARGIN_X_MM, cursorY);
-    cursorY += lineHeightMm(11, 1.8);
+    for (const wrapped of pdf.splitTextToSize(line, CONTENT_WIDTH_MM) as string[]) {
+      pdf.text(wrapped, MARGIN_X_MM, cursorY);
+      cursorY += lineHeightMm(11, 1.8);
+    }
   }
 
   pdf.setFontSize(10);

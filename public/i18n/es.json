@@ -1924,6 +1924,18 @@
       "insightsNote": "Lecturas útiles sobre Saju, tarot y cartas natales",
       "heading": "Historias que inspiran tu día",
       "open": "Leer historias"
+    },
+    "followup": {
+      "start": "Elige una consulta destacada",
+      "all": "Ver todas las lecturas",
+      "light": "Prueba una lectura breve",
+      "free": "Inicio gratis · Lecturas profundas aparte",
+      "benefit": "2.000 piedras lunares al registrarte",
+      "benefitNote": "Válidas 30 días. Equivalen a 20.000 KRW a la tasa estándar; el coste varía según el producto. No son efectivo ni sirven para comprar pases.",
+      "join": "Regístrate con Kakao o correo",
+      "signatureDescription": "Explora consultas y resultados de ejemplo para tu inquietud.",
+      "member": "Consulta tu saldo de Piedras Lunares, caducidad y condiciones.",
+      "balance": "Ver mis Piedras Lunares"
     }
   },
   "terms": {
@@ -2680,7 +2692,7 @@
     "neoSubline": "Sin sentimiento adicional. Sólo quedan los hechos.",
     "signup": "Regístrate",
     "login": "Iniciar sesión",
-    "guestMoonstoneTeaser": "🌙 Sign up and get 500 free moonstones (worth ₩5,000)",
+    "guestMoonstoneTeaser": "2.000 piedras lunares al registrarte · 30 días · consulta el coste de cada producto",
     "loadingGreeting": "Alineando tu cuenta starlight",
     "loadingChip": "SINCRONIZACIÓN DE SESIÓN",
     "loadingTitle": "Cargando su información de inicio de sesión",
@@ -2718,7 +2730,14 @@
       "signupButton": "Regístrate"
     },
     "passCheckingGreeting": "Verificando su Pase",
-    "passCheckingNote": "Ajustando de forma segura su Pase de Luz Lunar y nivel de membresía."
+    "passCheckingNote": "Ajustando de forma segura su Pase de Luz Lunar y nivel de membresía.",
+    "exitBenefit": {
+      "title": "Regalo de bienvenida · {amount} Piedras Lunares",
+      "copy": "Se otorgan una vez al registrarte por primera vez. Úsalas en contenido apto durante {days} días desde su emisión.",
+      "note": "El coste varía según el producto. No son dinero ni sirven para comprar pases.",
+      "join": "Registrarse con Kakao",
+      "email": "Registrarse con email"
+    }
   },
   "seo": {
     "homeTitle": "Saju, Tarot y Daily Fortune gratis | 꿀꿀 운세",

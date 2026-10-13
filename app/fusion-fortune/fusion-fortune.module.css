@@ -26,7 +26,7 @@
   --fx-surface: rgba(255, 255, 255, 0.035);
   --fx-surface-deep: rgba(0, 0, 0, 0.25);
   /* 자체 호스팅 세리프(나눔명조 + Cinzel). 새 서체를 들이지 않는다 — styles/fonts-serif.css 가 이미 싣는다. */
-  --fx-serif: var(--font-serif, Georgia, serif);
+  --fx-serif: var(--font-serif, "Nanum Myeongjo"), "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
 
   min-height: 100vh;
   background:

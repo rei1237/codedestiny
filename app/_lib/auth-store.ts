@@ -1014,6 +1014,12 @@ export async function login(credentials: LoginCredentials) {
 
     const payload = await parseJsonResponse<LoginApiPayload>(response);
     if (!response.ok) {
+      if (response.status >= 500) {
+        const diagnostics = [payload.code, (payload as { requestId?: string }).requestId]
+          .filter((value) => typeof value === "string" && /^[a-zA-Z0-9_-]{1,100}$/.test(value));
+        throw new Error("로그인 서버에 일시적인 문제가 있어요. 잠시 후 다시 시도해 주세요." +
+          (diagnostics.length ? ` (${diagnostics.join(" · ")})` : ""));
+      }
       throw new Error(normalizeAuthApiError(payload, "로그인에 실패했어요."));
     }
 

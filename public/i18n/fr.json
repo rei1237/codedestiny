@@ -1924,6 +1924,18 @@
       "insightsNote": "Des lectures utiles sur le Saju, le tarot et les thèmes astraux",
       "heading": "Des lectures pour éclairer votre journée",
       "open": "Lire les articles"
+    },
+    "followup": {
+      "start": "Choisir une consultation phare",
+      "all": "Voir toutes les lectures",
+      "light": "Essayer une lecture légère",
+      "free": "Début gratuit · Lecture approfondie payante",
+      "benefit": "2 000 pierres de lune à la première inscription",
+      "benefitNote": "Valables 30 jours. Équivalent à 20 000 KRW au taux standard ; le coût varie selon le produit. Ni argent ni crédit pour acheter un pass.",
+      "join": "Inscription avec Kakao ou e-mail",
+      "signatureDescription": "Découvrez les consultations et exemples de résultats adaptés à votre question.",
+      "member": "Consultez le solde, les dates d’expiration et les conditions des produits.",
+      "balance": "Voir mes Pierres de Lune"
     }
   },
   "terms": {
@@ -2680,7 +2692,7 @@
     "neoSubline": "Aucun sentiment supplémentaire. Seuls les faits demeurent.",
     "signup": "S'inscrire",
     "login": "Connectez-vous",
-    "guestMoonstoneTeaser": "🌙 Sign up and get 500 free moonstones (worth ₩5,000)",
+    "guestMoonstoneTeaser": "2 000 pierres de lune à la première inscription · 30 jours · vérifier le coût par produit",
     "loadingGreeting": "Aligner votre compte starlight",
     "loadingChip": "SYNCHRONISATION DE SESSION",
     "loadingTitle": "Chargement de vos informations de connexion",
@@ -2718,7 +2730,14 @@
       "signupButton": "S'inscrire"
     },
     "passCheckingGreeting": "Vérification de votre Pass",
-    "passCheckingNote": "Nous ajustons en toute sécurité votre Pass Pierre de Clair de Lune et votre niveau d'adhésion."
+    "passCheckingNote": "Nous ajustons en toute sécurité votre Pass Pierre de Clair de Lune et votre niveau d'adhésion.",
+    "exitBenefit": {
+      "title": "Cadeau de bienvenue · {amount} Pierres de Lune",
+      "copy": "Accordées une seule fois à la première inscription. Utilisables sur les contenus éligibles pendant {days} jours après attribution.",
+      "note": "Le coût varie selon le produit. Ce ne sont ni des espèces ni un bon pour acheter des pass.",
+      "join": "S’inscrire avec Kakao",
+      "email": "S’inscrire par e-mail"
+    }
   },
   "seo": {
     "homeTitle": "Saju, Tarot et Daily Fortune gratuits | 꿀꿀 운세",
