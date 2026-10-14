@@ -26,7 +26,19 @@ const template = read('templates/home-funnel.html');
 assert.ok(template.indexOf('id="cdhQuickSlot"') < template.indexOf('id="cdhServices"'), 'methods precede search');
 // 2026-10-14: 전체 운세 체계와 검색은 접힌 보조 콘텐츠가 아니라 메인 흐름에서 바로 쓴다.
 assert.ok(template.indexOf('id="cdhQuickSlot"') < template.indexOf('id="cdhGardenBody"'), 'all fortune systems remain in the primary flow');
-assert.match(home, /class="result-samples__overview" href="\/consultation-samples\/"/, 'home consultation cards expose the complete sample guide');
+const signatureSection = home.match(/<section[^>]*id="cdSignatureConsult"[\s\S]*?<\/section>/)?.[0] || '';
+assert.ok(signatureSection, '대표 운명 상담 섹션을 찾지 못했습니다');
+assert.match(signatureSection, /class="cd-sig__samples-link" href="\/consultation-samples\/"/, 'representative consultations expose the complete sample guide');
+assert.deepEqual(
+  [...signatureSection.matchAll(/data-cd-service-id="([^"]+)"/g)].map((match) => match[1]),
+  ['master-love-codex', 'love-secret-ai', 'new-year-ai', 'life-book-ai'],
+  '대표 상담은 네 상품을 한 번씩만 노출합니다',
+);
+assert.equal((signatureSection.match(/class="cd-sig-card__img"/g) || []).length, 4, '대표 상담 네 장 모두 전용 이미지가 있어야 합니다');
+assert.equal((signatureSection.match(/<b>리포트 구성<\/b>/g) || []).length, 4, '대표 상담 네 장 모두 리포트 구성을 보여줘야 합니다');
+const lifeBookCard = signatureSection.match(/<a class="cd-sig-card cd-sig-card--life"[\s\S]*?<\/a>/)?.[0] || '';
+assert.match(lifeBookCard, />30,000원<\/span>/, '인생의 책 대표 카드 가격은 결제 정본과 같은 30,000원이어야 합니다');
+assert.doesNotMatch(home, /id="cdhSamples"/, '중복 결과 샘플 카드 묶음은 홈에 다시 만들지 않습니다');
 
 assert.equal([...quickSection.matchAll(/href="\/\?action=([^"]+)" data-action="\1"/g)].length, 6, 'early clicks retain the selected action before JavaScript is ready');
 

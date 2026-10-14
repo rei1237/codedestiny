@@ -288,13 +288,77 @@ html.neo-mode .cdh-kakao__quote:before,body.neo-mode .cdh-kakao__quote:before{ba
 #cdHomeFunnel .cd-sig-card__img{position:static;width:100%;height:auto;object-fit:contain;transform:none}
 #cdHomeFunnel .cd-sig-card__media--portrait{aspect-ratio:16/9;background:#241820 url('/images/home/illustrated/moon-floral-dark-480.webp') center 30% / cover no-repeat}
 #cdHomeFunnel .cd-sig-card__portrait{height:100%;padding:10px 12px 0;object-fit:contain;background:none}
+/* 2026-10-14 대표 상담 통합 — 상품 소개와 리포트 구성을 한 장에 담아 하단 중복 카드를 없앤다. */
+#cdHomeFunnel .cd-sig--curated{
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  max-width:1240px;
+  padding:clamp(28px,4vw,52px);
+  border:1px solid color-mix(in srgb,var(--cdh-gold) 58%,var(--cdh-line));
+  border-radius:clamp(24px,3vw,36px);
+  background:
+    linear-gradient(180deg,rgba(255,250,244,.74),rgba(255,247,239,.9)),
+    url('/images/home/illustrated/moon-floral-light-1280.webp') center top / cover no-repeat,
+    #fff8f1;
+  box-shadow:0 34px 74px -50px color-mix(in srgb,var(--cdh-ink) 72%,transparent),inset 0 0 0 5px color-mix(in srgb,var(--cdh-gold) 8%,transparent);
+}
+#cdHomeFunnel .cd-sig--curated::before{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  inset:auto auto -54px -28px;
+  width:220px;
+  height:180px;
+  background:var(--cdh-gold);
+  opacity:.16;
+  -webkit-mask:var(--cd-yehwa-mask-peony) center/contain no-repeat;
+  mask:var(--cd-yehwa-mask-peony) center/contain no-repeat;
+  pointer-events:none;
+}
+#cdHomeFunnel .cd-sig--curated .cd-sig__head{max-width:760px;margin:0 auto clamp(24px,3vw,36px)}
+#cdHomeFunnel .cd-sig--curated .cd-sig__eyebrow{margin:0 0 8px;color:var(--cdh-gold);font:700 .72rem/1.4 "CodeDestinySerifLatin",serif;letter-spacing:.18em}
+#cdHomeFunnel .cd-sig--curated .cd-sig__title,#cdHomeFunnel .cd-sig--curated .cd-sig__sub{color:var(--cdh-ink)!important}
+#cdHomeFunnel .cd-sig--curated .cd-sig__grid{gap:clamp(16px,2vw,22px)}
+#cdHomeFunnel .cd-sig--curated .cd-sig-card{
+  --cd-text:#fff8ee;
+  --cd-surface:#1a1220;
+  --cd-accent:#efd89a;
+  min-width:0;
+  border-color:rgba(239,216,154,.38);
+  background:linear-gradient(165deg,rgba(50,31,50,.97),rgba(23,15,30,.99) 72%);
+  box-shadow:0 24px 50px -34px rgba(0,0,0,.92),inset 0 0 0 1px rgba(255,245,218,.05);
+}
+#cdHomeFunnel .cd-sig--curated .cd-sig-card--love{background:linear-gradient(165deg,#4a2034,#21131f 72%)}
+#cdHomeFunnel .cd-sig--curated .cd-sig-card--year{background:linear-gradient(165deg,#3d294d,#1c172b 72%)}
+#cdHomeFunnel .cd-sig--curated .cd-sig-card--life{background:linear-gradient(165deg,#213d38,#111f22 72%)}
+#cdHomeFunnel .cd-sig--curated .cd-sig-card__media{aspect-ratio:16/10;min-height:0;background:#17111f}
+#cdHomeFunnel .cd-sig--curated .cd-sig-card__img{width:100%;height:100%;object-fit:cover}
+#cdHomeFunnel .cd-sig--curated .cd-sig-card__body{gap:9px;padding:18px 18px 20px}
+#cdHomeFunnel .cd-sig--curated .cd-sig-card__title{color:#efd89a;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+#cdHomeFunnel .cd-sig--curated .cd-sig-card__q{min-height:3.9em;color:#fff8ee;font-size:17px;line-height:1.45}
+#cdHomeFunnel .cd-sig--curated .cd-sig-card__desc{color:rgba(255,248,238,.8);font-size:13px;line-height:1.68}
+#cdHomeFunnel .cd-sig-card__report{display:grid;gap:6px;margin-top:3px;padding:12px 13px;border:1px solid rgba(239,216,154,.24);border-radius:14px;background:rgba(255,248,238,.055);color:rgba(255,248,238,.82);font-size:11.5px;line-height:1.45}
+#cdHomeFunnel .cd-sig-card__report b{color:#efd89a;font-size:11px;letter-spacing:.08em}
+#cdHomeFunnel .cd-sig-card__report span{display:flex;align-items:flex-start;gap:7px}
+#cdHomeFunnel .cd-sig-card__report span::before{content:"✦";flex:none;color:#efd89a;font-size:9px;line-height:1.75}
+#cdHomeFunnel .cd-sig--curated .cd-sig-card__price{color:#1d1620;background:#efd89a;border-color:#efd89a}
+#cdHomeFunnel .cd-sig--curated .cd-sig-card__meta{color:rgba(255,248,238,.72)}
+#cdHomeFunnel .cd-sig--curated .cd-sig-card__cta{margin-top:3px;color:#efd89a}
+#cdHomeFunnel .cd-sig__samples-link{display:flex;align-items:center;justify-content:space-between;gap:20px;width:min(100%,420px);min-height:50px;margin:clamp(22px,3vw,34px) auto 0;padding:12px 18px;border:1px solid color-mix(in srgb,var(--cdh-gold) 60%,transparent);border-radius:999px;background:color-mix(in srgb,var(--cdh-gold) 12%,var(--cdh-card));color:var(--cdh-ink)!important;font-weight:800;text-decoration:none;box-shadow:0 18px 36px -28px var(--cdh-ink)}
+#cdHomeFunnel .cd-sig__samples-link:hover{text-decoration:underline;text-underline-offset:4px}
+#cdHomeFunnel .cd-sig__samples-link:focus-visible{outline:2px solid var(--cdh-gold);outline-offset:4px}
+html.neo-mode #cdHomeFunnel .cd-sig--curated{background:linear-gradient(180deg,rgba(18,13,31,.72),rgba(16,12,29,.94)),url('/images/home/illustrated/moon-floral-dark-1280.webp') center top/cover no-repeat,#100c1d}
 @media (max-width:767px){
+  #cdHomeFunnel .cd-sig--curated{margin-top:0;padding:26px 16px 22px;background-size:auto,auto 560px,auto;background-position:center,center top,center}
   #cdHomeFunnel .cd-sig__grid{display:grid;grid-template-columns:minmax(0,1fr);gap:20px;width:auto;padding-inline:0}
   #cdHomeFunnel .cd-sig-card{flex:none;max-width:none;display:flex;flex-direction:column;border-radius:18px;transform:none;opacity:1;backdrop-filter:none;-webkit-backdrop-filter:none}
   #cdHomeFunnel .cd-sig-card__body{gap:7px;padding:18px 20px 20px}
   #cdHomeFunnel .cd-sig-card__title{font-size:15px}
   #cdHomeFunnel .cd-sig-card__desc{display:block;overflow:visible;font-size:13px;line-height:1.65;-webkit-line-clamp:unset}
   #cdHomeFunnel .cd-sig-card__price{margin-top:3px}
+  #cdHomeFunnel .cd-sig--curated .cd-sig-card__q{min-height:0}
+  #cdHomeFunnel .cd-sig__samples-link{width:100%;font-size:.9rem}
 }
 @media (max-width:380px){#cdHomeFunnel .fortune-gateway__doors--duo .fortune-gateway__door{grid-template-columns:minmax(0,1fr) 76px}#cdHomeFunnel .fortune-gateway__doors--duo .fortune-gateway__door-art{width:76px;height:76px}#cdHomeFunnel .fortune-gateway__door-title{word-break:keep-all;overflow-wrap:anywhere}}
 @media (min-width:541px){.cdh .cd-review-invite{grid-template-columns:minmax(0,1fr) 120px;gap:18px;padding:20px 26px}}

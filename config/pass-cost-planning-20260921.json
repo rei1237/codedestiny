@@ -76,7 +76,7 @@
     },
     {
       "id": "life-book-ai-consultation",
-      "featurePriceKRW": 10000,
+      "featurePriceKRW": 30000,
       "parts": 15,
       "durableAttemptsPerPart": 3,
       "maxOutputTokensPerFullPartSet": 88000,

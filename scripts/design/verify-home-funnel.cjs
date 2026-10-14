@@ -29,8 +29,8 @@ async function assertEssentials(page, label) {
     ['systems', '#cdQuickServices'],
     ['topics', '.cdh-topics a[href="/yeongnyangi/consult/work-money/"]'],
     ['search', '#cdhServices #fortuneGatewaySearch'],
-    ['samples', '#cdhSamples .result-sample__cta'],
-    ['sample guide', '#cdhSamples .result-samples__overview[href="/consultation-samples/"]'],
+    ['report composition', '#cdSignatureConsult .cd-sig-card__report'],
+    ['sample guide', '#cdSignatureConsult .cd-sig__samples-link[href="/consultation-samples/"]'],
     ['signature', '#cdSignatureConsult'],
   ];
   for (const [name, selector] of essentials) {
@@ -83,7 +83,9 @@ async function assertEssentials(page, label) {
       assert.ok(await page.locator('#cdQuickServices').isVisible(), 'fortune systems are visible on the first visit');
       for (const selector of ['#cdhPass .cdh-pass__btn', '.cd-soulcat-entry']) assert.equal(await page.locator(selector).first().evaluate((node) => Boolean(node.closest('details:not([open])'))), false, selector + ' stays in the primary flow');
       assert.equal(await page.locator('.cdh-portals').count(), 0, 'duplicate character portals are removed from the secondary garden');
-      assert.equal(await page.locator('#cdhSamples .result-sample__visual').count(), 4, 'each representative consultation uses an editorial visual');
+      assert.equal(await page.locator('#cdSignatureConsult .cd-sig-card__img').count(), 4, 'each representative consultation uses an editorial visual');
+      assert.equal(await page.locator('#cdSignatureConsult .cd-sig-card__report').count(), 4, 'each representative consultation keeps its report composition');
+      assert.equal(await page.locator('#cdhSamples').count(), 0, 'duplicate result sample cards are removed from home');
       assert.equal(await page.locator('#cdhAllFortunes #cdQuickServices .cdh-method').count(), 6, 'the complete six-system chooser replaces the partial shortcut group');
       assert.equal(await page.locator('#cdhAllFortunes #cdQuickServices .cdh-method').first().isVisible(), true, 'fortune-system shortcuts stay visible in the main flow');
       assert.equal(await page.locator('#cdhAllFortunes #cdQuickServices').evaluate(node => getComputedStyle(node).contentVisibility), 'visible', 'fortune-system shortcuts must not collapse into an intrinsic blank placeholder');

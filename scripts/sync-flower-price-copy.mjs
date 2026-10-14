@@ -45,12 +45,22 @@ function visit(node, amount = null) {
         const attrName = attrs["data-key"] ? "data-key" : attrs["data-cd-trans"] ? "data-cd-trans" : null;
         const key = attrs[attrName];
         if (key) {
-          const newKey = /^home\.concernPick\.price\.(?:w|from)\d+$/.test(key)
-            ? key.replace(/\d+$/, String(amount))
-            : /^home\.tiles\.price\d+(?:Price\d+)*$/.test(key) ? `home.tiles.price${amount}` : `${key}Price${amount}`;
-          const a = loc.attrs[attrName];
-          edits.push({ start: a.startOffset, end: a.endOffset, text: `${attrName}="${newKey}"` });
-          dictionaryCopies.push({ key, newKey, amount, fallback: next });
+          if (key === "home.overseasCopy.krwAmount") {
+            const varsAttr = loc.attrs["data-cd-vars"];
+            if (!varsAttr) throw new Error(`Missing data-cd-vars for parameterized price: ${key}`);
+            edits.push({
+              start: varsAttr.startOffset,
+              end: varsAttr.endOffset,
+              text: `data-cd-vars='${JSON.stringify({ amount: (amount / 1000) + ",000" })}'`,
+            });
+          } else {
+            const newKey = /^home\.concernPick\.price\.(?:w|from)\d+$/.test(key)
+              ? key.replace(/\d+$/, String(amount))
+              : /^home\.tiles\.price\d+(?:Price\d+)*$/.test(key) ? `home.tiles.price${amount}` : `${key}Price${amount}`;
+            const a = loc.attrs[attrName];
+            edits.push({ start: a.startOffset, end: a.endOffset, text: `${attrName}="${newKey}"` });
+            dictionaryCopies.push({ key, newKey, amount, fallback: next });
+          }
         }
       }
     }

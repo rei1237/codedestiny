@@ -325,7 +325,7 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   // 과거 주문·환불 이력이 참조하므로 키와 가격은 그대로 남긴다.
   "palm-reading-general": { cost: 100, reason: "손금 정밀 판독 + 심층 해석" },
   "palm-reading-ai-consult": { cost: 100, reason: "손금 전문가 상담 생성" },
-  "life-book-ai-consultation": { cost: 100, amountKRW: 10000, reason: "인생의 책 전문가 상담" },
+  "life-book-ai-consultation": { cost: 300, amountKRW: 30000, reason: "인생의 책 전문가 상담" },
   // 인생 총운은 분량이 3배(30,000자 vs 10,000자)라 2026-08-01 부터 별도 SKU 로 분리했다.
   "life-fortune-ai-consultation": { cost: 300, amountKRW: 30000, reason: "인생 총운 전문가 상담" },
   "astrology-ai-consultation": { cost: 300, amountKRW: 30000, reason: "점성술 전문가 상담" },

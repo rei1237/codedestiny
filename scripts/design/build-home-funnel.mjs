@@ -1,4 +1,3 @@
-import { renderResultSamples } from '../../lib/marketing/render-result-samples.mjs';
 import { MOONSTONE_MIN_PRODUCT_KRW } from '../../worker/lib/paid-feature-registry.js';
 import { renderPressCoverageHtml } from "../../lib/seo/press-coverage.mjs";
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -12,7 +11,6 @@ import { renderTrustStoriesHtml } from '../../lib/brand/trust-stories.mjs';
 import { renderNeoHomeIntroduction } from '../../lib/brand/neo-home-introduction.mjs';
 import { KRW_PER_COIN, MEMBERSHIP_CREDIT_PER_COIN } from '../../worker/lib/billing-policy.js';
 import signupBenefitPolicy from '../../js/core/signup-benefit-policy.mjs';
-import { createAssetCacheKeys } from '../lib/asset-cache-keys.mjs';
 
 const original = readFileSync('index.html', 'utf8');
 const doc = parse(original, { sourceCodeLocationInfo: true });
@@ -69,13 +67,77 @@ const lightCards = ['saju', 'tarot', 'ziwei', 'sukuyo'].map(id => {
 });
 vars.lightRecommendations = `<section class="cdh-light" aria-labelledby="cdhLightTitle"><h2 id="cdhLightTitle" data-cd-trans="home.followup.light">가볍게 둘러보기</h2><div class="cdh-methods-grid">${lightCards.join('')}</div></section>`;
 vars.signupBenefit = `<section id="cdhSignupBenefit" class="cdh-signup-benefit" hidden aria-live="polite"><h2 data-cd-trans="home.followup.benefit">첫 가입 월정석 ${signupBenefitPolicy.amount.toLocaleString('ko-KR')}개</h2><p data-cd-trans="home.followup.benefitNote">지급일부터 ${signupBenefitPolicy.days}일 · 일반 환산 기준 ${(signupBenefitPolicy.amount * KRW_PER_COIN / MEMBERSHIP_CREDIT_PER_COIN).toLocaleString('ko-KR')}원 상당. ${MOONSTONE_MIN_PRODUCT_KRW.toLocaleString('ko-KR')}원 이상 대상 서비스 할인에만 사용할 수 있어요. 이용권 구매에는 쓸 수 없어요.</p><a href="/signup/?next=%2F" data-cd-trans="home.followup.join">카카오 또는 이메일로 가입하기</a></section>`;
-vars.resultSamples = renderResultSamples({prefix:'home-sample',overviewHref:'/consultation-samples/'});
 vars.signupAmount = signupBenefitPolicy.amount.toLocaleString('ko-KR');
 vars.signupValue = (signupBenefitPolicy.amount * KRW_PER_COIN / MEMBERSHIP_CREDIT_PER_COIN).toLocaleString('ko-KR');
 vars.signupDays = signupBenefitPolicy.days;
 vars.moonstoneMinimum = MOONSTONE_MIN_PRODUCT_KRW.toLocaleString('ko-KR');
 vars.pickReason = htmlOf(byId('cdPickReason'), 'consultation recommendation');
 vars.signature = vars.signature.replace(vars.pickReason, '').replace(/^[ \t]+$/gm, '');
+const signatureProducts = [
+  {
+    id: 'master-love-codex',
+    className: 'master',
+    href: '/master-love-codex/',
+    title: '마스터 인연의 서',
+    question: '내 다음 연애는 언제 시작될까?',
+    description: '사주와 자미두수를 함께 읽어 관계의 반복 패턴과 만남의 방향을 살펴봅니다.',
+    image: '/images/feature-details/master-love-codex-hero-v3.webp',
+    imageAlt: '달빛 아래 인연의 지도를 펼쳐 보는 마스터 인연의 서',
+    featureKey: 'master-love-codex',
+    priceSuffix: '~',
+    report: ['20장 연애 리포트', '사주 · 자미두수 교차 해석', 'PDF 저장'],
+    cta: '인연의 서 펼치기',
+  },
+  {
+    id: 'love-secret-ai',
+    className: 'love',
+    href: '/love-secret-ai/',
+    title: '연애 비책',
+    question: '지금 이 관계에서 어떤 말을 건네야 할까?',
+    description: '내 연애 성향부터 상대와의 거리, 갈등과 시기, 다음 대화까지 항목별로 읽습니다.',
+    image: '/images/feature-details/love-secret-ai-hero-v2.webp',
+    imageAlt: '달빛과 봉인된 편지로 그린 연애 비책',
+    featureKey: 'love-secret-ai-consultation',
+    report: ['6부 28개 섹션', '관계 · 궁합 · 시기 분석', '7일 실천 가이드 · PDF'],
+    cta: '연애 비책 시작하기',
+  },
+  {
+    id: 'new-year-ai',
+    className: 'year',
+    href: '/new-year-ai-consultation/',
+    title: '신년운세',
+    question: '올해는 무엇을 밀고, 언제 속도를 늦춰야 할까?',
+    description: '선택한 해의 세운을 명식과 대조해 일·재물·관계와 열두 달의 변화를 나눠 봅니다.',
+    image: '/images/feature-details/new-year-ai-hero-v3.webp',
+    imageAlt: '사계절과 달빛이 흐르는 신년운세 두루마리',
+    featureKey: 'new-year-ai-consultation',
+    report: ['5개 세운 섹션', '1월~12월 월별 흐름', '질문 답변 · PDF'],
+    cta: '신년운세 받기',
+  },
+  {
+    id: 'life-book-ai',
+    className: 'life',
+    href: '/life-book-ai/',
+    title: '인생의 책',
+    question: '내 삶의 큰 흐름과 반복되는 장면은 어디에서 올까?',
+    description: '타고난 기질부터 일·사랑·재물, 대운과 가까운 세운까지 한 권의 서사로 엮습니다.',
+    image: '/feature-details/assets/life-book-entry-20260929-960.webp',
+    imageAlt: '달빛 아래 펼쳐진 녹색 인생의 책',
+    featureKey: 'life-book-ai-consultation',
+    report: ['10개 장의 인생 서사', '대운 · 세운 흐름', '핵심 판독 4편 · PDF'],
+    cta: '인생의 책 펼치기',
+  },
+];
+const signaturePrice = (featureKey, suffix = '') => {
+  const amount = FEATURE_KEY_PRICE_TABLE[featureKey]?.amountKRW;
+  if (!Number.isSafeInteger(amount) || amount <= 0) throw new Error(`Missing signature consultation price: ${featureKey}`);
+  return `${amount.toLocaleString('ko-KR')}원${suffix}`;
+};
+vars.signature = `<section data-cd-funnel-section="signature_consult" class="cd-sig cd-sig--curated" id="cdSignatureConsult" data-marker="cd-signature-consult-v20261014" aria-labelledby="cdSignatureTitle" lang="ko">
+  <div class="cd-sig__head"><p class="cd-sig__eyebrow">MOONLIGHT SIGNATURE</p><h2 class="cd-sig__title" id="cdSignatureTitle">대표 운명 상담</h2><p class="cd-sig__sub">고민의 깊이와 필요한 리포트 구성을 먼저 확인하고, 지금의 나에게 맞는 상담을 골라보세요.</p></div>
+  <div class="cd-sig__viewport" id="cdSigViewport"><div class="cd-sig__grid" id="cdSigGrid">${signatureProducts.map((product) => `<a class="cd-sig-card cd-sig-card--${product.className}" data-cd-service-id="${product.id}" href="${product.href}" aria-label="${product.title} 상담 알아보기" data-pvw-paid="true"><span class="cd-yehwa-seal" aria-hidden="true"></span><span class="cd-sig-card__media"><img class="cd-sig-card__img" width="1200" height="675" loading="lazy" decoding="async" src="${product.image}" sizes="(max-width: 767px) calc(100vw - 72px), (max-width: 1199px) 46vw, 280px" alt="${product.imageAlt}"></span><span class="cd-sig-card__body"><span class="cd-sig-card__title">${product.title}</span><span class="cd-sig-card__q">${product.question}</span><span class="cd-sig-card__desc">${product.description}</span><span class="cd-sig-card__report"><b>리포트 구성</b>${product.report.map((item) => `<span>${item}</span>`).join('')}</span><span class="cd-sig-card__price">${signaturePrice(product.featureKey, product.priceSuffix)}</span><span class="cd-sig-card__meta"><span>이용권 · 월정석 · 단건 결제</span></span><span class="cd-sig-card__cta"><span>${product.cta}</span> <i aria-hidden="true">→</i></span></span></a>`).join('')}</div></div>
+  <a class="cd-sig__samples-link" href="/consultation-samples/">상담 결과 전체 미리보기 <span aria-hidden="true">→</span></a>
+</section>`;
 vars.pressCoverage = renderPressCoverageHtml();
 vars.trustStories = renderTrustStoriesHtml();
 vars.neoIntroduction = renderNeoHomeIntroduction();
@@ -163,11 +225,8 @@ if (marker.test(cleaned)) {
   updated = cleaned.replace('    <header class="logo-area" role="banner">', homeHtml + '\n    <header class="logo-area" role="banner">');
 }
 
-// /styles has immutable caching: every update must change the stylesheet URL.
-const sampleStyle = '/styles/result-samples.css';
-const sampleStyleKey = createAssetCacheKeys(process.cwd()).resolve(sampleStyle, 'index.html').key;
-updated = updated.replace(/href="\/styles\/result-samples\.css(?:\?v=[^"]*)?"/g,
-  `href="${sampleStyle}?v=${sampleStyleKey}"`);
+// Result samples now live on their own application pages. Do not load their stylesheet on the home shell.
+updated = updated.replace(/\s*<link rel="stylesheet" href="\/styles\/result-samples\.css(?:\?v=[^"]*)?">/g, '');
 
 if (process.argv.includes('--check')) {
   if (original !== updated) throw new Error('Home funnel needs regeneration');

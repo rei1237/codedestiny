@@ -352,7 +352,7 @@ test("체계 허브(roles:quick)는 홈 타일이 없어도 체계 그림을 쓴
 
 test("상품명은 띄어쓰기와 관계없이 검색되며 고민·가격 필터를 함께 유지한다", async () => {
   const { doc, window } = await boot();
-  for (const [name, purpose, bucket] of [["인생의 책", "life", "premium"], ["연애 비책", "love", "vvip"]]) {
+  for (const [name, purpose, bucket] of [["인생의 책", "life", "vvip"], ["연애 비책", "love", "vvip"]]) {
     doc.querySelector(`[data-purpose="${purpose}"]`).click();
     doc.querySelector(`[data-price="${bucket}"]`).click();
     for (const query of [name, name.replace(/\s/g, ""), name.split("").join(" ")]) {

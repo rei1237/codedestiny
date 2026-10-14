@@ -151,12 +151,16 @@ test('restored hero artwork, catalog reuse, and collection previews stay in sync
     assert.ok(fs.existsSync(`public${preview}`));
   }
 
-  const signatureSources = Object.fromEntries([...fragment.querySelectorAll('[data-cd-service-id]')].map(card => [card.getAttribute('data-cd-service-id'), card.querySelector('img')?.getAttribute('src') || '']));
-  assert.equal(signatureSources['master-love-codex'], '/images/feature-details/master-love-codex-hero-v3.webp');
-  assert.equal(signatureSources['fortune-tea-house'], '/images/feature-details/fortune-tea-house-hero-v3.webp');
-  assert.equal(signatureSources['neo-operation-room'], '/images/feature-details/neo-operation-room-hero-v1.webp');
-  for (const id of ['master-love-codex', 'fortune-tea-house', 'neo-operation-room']) {
-    assert.ok(fs.existsSync(`public${signatureSources[id]}`), `${id}: referenced character artwork is missing`);
+  const signatureSources = Object.fromEntries([...fragment.querySelectorAll('#cdSignatureConsult [data-cd-service-id]')].map(card => [card.getAttribute('data-cd-service-id'), card.querySelector('img')?.getAttribute('src') || '']));
+  const signatureArtwork = {
+    'master-love-codex': '/images/feature-details/master-love-codex-hero-v3.webp',
+    'love-secret-ai': '/images/feature-details/love-secret-ai-hero-v2.webp',
+    'new-year-ai': '/images/feature-details/new-year-ai-hero-v3.webp',
+    'life-book-ai': '/feature-details/assets/life-book-entry-20260929-960.webp',
+  };
+  assert.deepEqual(signatureSources, signatureArtwork);
+  for (const [id, source] of Object.entries(signatureArtwork)) {
+    assert.ok(fs.existsSync(`public${source}`), `${id}: referenced signature artwork is missing`);
   }
   const masterAssets = fs.readFileSync('src/features/master-love-codex/data/assets.ts', 'utf8');
   assert.match(masterAssets, /humanHero:\s*"\/images\/feature-details\/master-love-codex-hero-v3\.webp"/);

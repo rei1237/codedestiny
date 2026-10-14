@@ -79,8 +79,6 @@ window.__cdServiceRegistry = [
     purposes: ["love", "self", "life"],
     methods: ["tarot", "saju", "ai"],
     keys: "찻집 상담 연이 마음 고민",
-    badge: "대표",
-    roles: ["recommended"],
   },
   {
     id: "love-secret-ai",
@@ -94,6 +92,8 @@ window.__cdServiceRegistry = [
     purposes: ["love"],
     methods: ["ai"],
     keys: "연애 재회 짝사랑 이별 관계",
+    badge: "대표",
+    roles: ["recommended"],
   },
   {
     id: "fortune-chat",
@@ -181,8 +181,6 @@ window.__cdServiceRegistry = [
     purposes: ["money", "career", "life"],
     methods: ["saju", "ai"],
     keys: "네오 작전실 팩폭 전략 현실",
-    badge: "대표",
-    roles: ["recommended"],
   },
   {
     id: "destiny-compass",
@@ -220,6 +218,8 @@ window.__cdServiceRegistry = [
     purposes: ["career", "money", "life"],
     methods: ["saju", "ai"],
     keys: "신년 새해 올해 세운",
+    badge: "대표",
+    roles: ["recommended"],
   },
 
   {
@@ -244,10 +244,12 @@ window.__cdServiceRegistry = [
     href: "/life-book-ai/",
     featureKey: "life-book-ai-consultation",
     imageAlt: "녹색 천으로 제본한 인생의 책 표지",
-    price: "10,000원",
+    price: "30,000원",
     purposes: ["life", "self"],
     methods: ["saju", "ai"],
     keys: "인생의책 라이프북 pdf 리포트",
+    badge: "대표",
+    roles: ["recommended"],
   },
   {
     id: "karma-destiny-ai",
@@ -459,7 +461,6 @@ window.__cdServiceRegistry = [
     methods: ["vedic"],
     keys: "나크샤트라 베다 달자리 27수",
     badge: "티저",
-    roles: ["recommended"],
   },
   {
     id: "maya",
