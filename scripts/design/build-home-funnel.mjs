@@ -12,6 +12,7 @@ import { renderTrustStoriesHtml } from '../../lib/brand/trust-stories.mjs';
 import { renderNeoHomeIntroduction } from '../../lib/brand/neo-home-introduction.mjs';
 import { KRW_PER_COIN, MEMBERSHIP_CREDIT_PER_COIN } from '../../worker/lib/billing-policy.js';
 import signupBenefitPolicy from '../../js/core/signup-benefit-policy.mjs';
+import { createAssetCacheKeys } from '../lib/asset-cache-keys.mjs';
 
 const original = readFileSync('index.html', 'utf8');
 const doc = parse(original, { sourceCodeLocationInfo: true });
@@ -161,6 +162,12 @@ if (marker.test(cleaned)) {
 } else {
   updated = cleaned.replace('    <header class="logo-area" role="banner">', homeHtml + '\n    <header class="logo-area" role="banner">');
 }
+
+// /styles has immutable caching: every update must change the stylesheet URL.
+const sampleStyle = '/styles/result-samples.css';
+const sampleStyleKey = createAssetCacheKeys(process.cwd()).resolve(sampleStyle, 'index.html').key;
+updated = updated.replace(/href="\/styles\/result-samples\.css(?:\?v=[^"]*)?"/g,
+  `href="${sampleStyle}?v=${sampleStyleKey}"`);
 
 if (process.argv.includes('--check')) {
   if (original !== updated) throw new Error('Home funnel needs regeneration');

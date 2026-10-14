@@ -76,8 +76,6 @@
   function syncAccountState() {
     if (!accountBtn || !authCard) return;
     accountBtn.setAttribute('data-auth', authCard.querySelector('.cd-user-card') ? 'member' : 'guest');
-    var memberBenefit = document.getElementById('cdhMemberBenefit');
-    if (memberBenefit) memberBenefit.hidden = authCard.dataset.authState !== 'member';
     var benefit = document.getElementById('cdhSignupBenefit');
     if (benefit) {
       var hiddenToday = false;

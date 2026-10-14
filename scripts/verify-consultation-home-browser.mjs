@@ -43,7 +43,7 @@ for (const channel of ['chrome', 'msedge']) {
       await page.waitForFunction(() => !document.getElementById('cdhSignupBenefit').hidden);
       await page.evaluate(() => { document.getElementById('authQuickLinks').dataset.authState = 'member'; });
       await page.waitForFunction(() => document.getElementById('cdhSignupBenefit').hidden);
-      await page.waitForFunction(() => !document.getElementById('cdhMemberBenefit').hidden);
+      assert.equal(await page.locator('#cdhMemberBenefit').count(), 0, 'no duplicate balance section on home');
       if (width === 390) {
         await page.evaluate(() => { document.getElementById('authQuickLinks').dataset.authState = 'guest'; const modal = document.createElement('div'); modal.id = 'mockDialog'; modal.setAttribute('aria-modal','true'); modal.textContent = 'Mock payment'; document.body.appendChild(modal); });
         assert.equal(await page.evaluate(() => window.__cdSignupBenefitExit.open()), false, 'no signup popup over payment');
