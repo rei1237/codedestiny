@@ -13,8 +13,8 @@ test('question results present one answer flow and polling repairs delivery auto
  assert.match(result,/const askReading=!!row\?\.consultation\?\.questions\?\.length/);
  assert.match(result,/askReading\?stateCopy\.answering:stateCopy\.saved/);
  assert.doesNotMatch(result,/busy\?copy\.loading:copy\.continue/);
- assert.match(book,/ask\?answerCopy\.answer/);
- assert.match(book,/ask\?'':`\$\{i\+1\}\. `/);
+ assert.match(book,/ask&&!fusion\?answerCopy\.answer/);
+ assert.match(book,/ask&&!fusion\?'':`\$\{i\+1\}\. `/);
  assert.match(route,/readAndContinueFortune\(env,auth\.userId,id\)/);
  assert.match(delivery,/row\.errorCode==='AUTOMATIC_RECOVERY_STOPPED'\)row=await repository\.escalateStopped/);
  assert.match(delivery,/await enqueueConsultation\(env,row\)/);

@@ -1,3 +1,7 @@
+import {createBookWriter} from './book-writer';
+import {bookParagraphs} from './book-paragraphs';
+import {loadFusionArt} from './report-art';
+import {planLinkedContents,drawLinkedContents} from './linked-contents';
 import type { jsPDF as JsPDFInstance } from "jspdf";
 import { registerPdfFontsSafely } from "./export-result-pdf";
 import { buildFusionReportPlan, cleanReportText as clean } from "./fusion-report-plan";
@@ -13,8 +17,6 @@ import {
 import {
   PdfFontError,
   captureElementAsImage,
-  createTypesetWriter,
-  drawContentsPage,
   drawFooters,
   paintPaper,
 } from "./typeset-writer";
@@ -164,6 +166,7 @@ export async function exportFusionReportPdf(options: ExportFusionReportPdfOption
   //    읽을 수 없는 3만원짜리 문서를 내려주느니 호출자가 캡처 방식으로 되돌아가게 한다.
   if (!fonts) throw new FusionPdfFontError();
 
+  const art = await loadFusionArt();
   const visual = visualizationSelector ? await captureElementAsImage(visualizationSelector) : null;
   const chapters = buildFusionReportPlan(options.result, { includeVisual: Boolean(visual) });
   if (!chapters.length) throw new Error("fusion report pdf: nothing to typeset");
@@ -171,16 +174,23 @@ export async function exportFusionReportPdf(options: ExportFusionReportPdfOption
   paintPaper(pdf);
   drawCover(pdf, fonts, options);
 
-  pdf.addPage();
-  paintPaper(pdf);
-  const contentsPage = pdf.getNumberOfPages();
+  const toc = planLinkedContents(pdf, fonts, chapters.map(chapter => chapter.title));
+  for (let i = 0; i < toc.pages; i++) {
+    pdf.addPage();
+    paintPaper(pdf);
+  }
 
-  const writer = createTypesetWriter(pdf, fonts);
-  const entries: { label: string; page: number }[] = [];
-  for (const chapter of chapters) {
+  const writer = createBookWriter(pdf, fonts);
+
+  for (const [index, chapter] of chapters.entries()) {
     writer.chapter(chapter.kicker, chapter.title);
-    entries.push({ label: chapter.title, page: writer.page });
-    for (const block of chapter.blocks) {
+    toc.entries[index].destination = writer.page;
+    let illustrated = false;
+    for (const [blockIndex, block] of chapter.blocks.entries()) {
+      if (!illustrated && blockIndex === Math.min(2, chapter.blocks.length - 1) && art[chapter.kicker]) {
+        illustrated = true; const illustration = art[chapter.kicker];
+        writer.image(illustration.dataUrl, CONTENT_WIDTH_MM, CONTENT_WIDTH_MM * illustration.ratio, `${chapter.kicker} 해설을 위한 상징 그림 · 계산 수치를 나타내지 않습니다`);
+      }
       if (block.kind === "bullets") { writer.bullets(block.items); continue; }
       if (block.kind === "visual") {
         if (!visual) continue;
@@ -191,11 +201,21 @@ export async function exportFusionReportPdf(options: ExportFusionReportPdfOption
         );
         continue;
       }
-      writer[block.kind](block.text);
+      if (block.kind === 'keyvalue') { writer.keyValueTable(block.rows); continue; }
+      if (block.kind === 'body') {
+        const paragraphs = bookParagraphs(block.text);
+        for (const [i, paragraph] of paragraphs.entries()) {
+          writer.body(paragraph);
+          if (!illustrated && i === 1 && art[chapter.kicker]) {
+            const illustration = art[chapter.kicker];
+            writer.image(illustration.dataUrl, CONTENT_WIDTH_MM, CONTENT_WIDTH_MM * illustration.ratio, '해설을 위한 상징 그림 · 계산 수치가 아닙니다'); illustrated = true;
+          }
+        }
+      } else writer[block.kind](block.text);
     }
   }
 
-  drawContentsPage(pdf, fonts, contentsPage, entries, "차례");
-  drawFooters(pdf, fonts, watermarkText);
+  drawLinkedContents(pdf, fonts, toc);
+  drawFooters(pdf, fonts, watermarkText, toc.pages + 2);
   pdf.save(fileName);
 }

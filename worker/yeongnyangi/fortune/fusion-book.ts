@@ -38,7 +38,8 @@ export function fusionBookManifest(product:Product,topic='general'):ChapterSpec[
  });
  const life=old.filter(row=>row.layoutRole==='life');
  if(product.fishId==='omakase')for(const step of lifeRows.filter(row=>['life-strength','life-remedy'].includes(row.key))){
-  life.push({...life[0],key:step.key,title:`인생 전반 · ${step.title}`,theme:step.theme,
+  const action=old.find(row=>row.layoutRole==='synthesis'&&row.key==='action')!;
+  life.push({...life[0],systems:product.systems,factSelectors:action.factSelectors,key:step.key,title:`인생 전반 · ${step.title}`,theme:step.theme,
    focus:`${step.title}: 앞선 해석을 반복하지 않고 실행과 점검 방법을 구체화한다.`,
    sections:step.sections.map((section,i)=>({role:'interpretation' as const,...section,id:i===0?'evidence':section.id,minimumChars:0,targetChars:[1050,1350] as [number,number]})),targetChars:[2100,2700]});
  }

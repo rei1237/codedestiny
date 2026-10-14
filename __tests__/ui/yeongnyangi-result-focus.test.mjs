@@ -6,7 +6,7 @@ const bundled=await build({stdin:{contents:`import React from 'react';import {re
 const {render}=await import('data:text/javascript;base64,'+Buffer.from(bundled.outputFiles[0].text).toString('base64'));
 const question={id:'q1',text:'MY ORIGINAL QUESTION'};
 const answer={questionId:'q1',answer:'SAVED ANSWER',reason:'SAVED REASON',timing:'SAVED TIMING',action:'SAVED ACTION'};
-const fixture=()=>({id:'a'.repeat(64),locale:'ko',state:'COMPLETED',paid:true,manifest:[{id:'first',title:'첫 해석',ordinal:0,theme:'self'}],consultation:{questions:[question],question:question.text},chapters:[{summary:'SAVED SUMMARY',advice:'SAVED ADVICE',analysis:['SAVED DETAIL'],example:'SAVED EXAMPLE',persona:'SAVED PERSONA',highlights:['SAVED HIGHLIGHT'],questionAnswers:[answer]}],charts:[]});
+const fixture=()=>({product:{readingKind:'single'},id:'a'.repeat(64),locale:'ko',state:'COMPLETED',paid:true,manifest:[{id:'first',title:'첫 해석',ordinal:0,theme:'self'}],consultation:{questions:[question],question:question.text},chapters:[{summary:'SAVED SUMMARY',advice:'SAVED ADVICE',analysis:['SAVED DETAIL'],example:'SAVED EXAMPLE',persona:'SAVED PERSONA',highlights:['SAVED HIGHLIGHT'],questionAnswers:[answer]}],charts:[]});
 const count=(html,text)=>html.split(text).length-1;
 test('the first saved answer leads once while every owned answer field remains readable and immutable',()=>{
  const row=fixture();const before=JSON.stringify(row);const html=render(row);

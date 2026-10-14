@@ -11,6 +11,7 @@ import {resultStateCopy,deliveryRefundCopy} from '../_lib/result-state-copy';
 import {readingLanguageNames} from '@/worker/yeongnyangi/fortune/reading-locale';
 import {formatAskRange} from '@/worker/yeongnyangi/fortune/ask/period';
 import ReadingBook from './ReadingBook';
+import FusionBookExtras,{FusionBookIntroduction} from './FusionBookExtras';
 import QuestionConversation,{QuestionConversationEntry} from './QuestionConversation';
 import ReadingIdentity from './ReadingIdentity';
 import SpiritResult from './SpiritResult';
@@ -218,7 +219,7 @@ export default function Result(){
     </div>
    </div>
    {supportLink}
-   {!unpaid&&<ReadingBook row={row}/>}
+   {!unpaid&&<><FusionBookIntroduction row={row}/><ReadingBook row={row}/><FusionBookExtras row={row}/></>}
    {row.conversation&&<QuestionConversation row={row} onRow={setRow}/>}
    {row.state==='COMPLETED'&&<SummaryReportView row={row}/>}
    {row.state==='COMPLETED'&&<>{shouldInvitePaidReview(row)&&<ReviewRewardBanner afterResult brand="yeongnyangi" locale={row.locale||'ko'}/>}<ResultBridge row={row} locale={row.locale}/><ResultSharing key={row.id} row={row}/><RecommendationResult service={row.product.id} locale={row.locale} brand="yeongnyangi" practiceTags={chapterAdviceTopics(row.chapters)}/><OrderReference id={row.id} locale={row.locale}/>{row.consultation&&<details className={styles.questionContext}><summary>{consultationLabel}</summary>{row.consultation.question&&<p style={{whiteSpace:'pre-wrap'}}>{row.consultation.question}</p>}{row.consultation.relationship?.participants&&<p>{row.consultation.relationship.participants.self} · {row.consultation.relationship.participants.partner}</p>}{row.consultation.asOf&&<p>{stateCopy.asOf}: {row.consultation.asOf} · {row.consultation.timezone||'Asia/Seoul'}</p>}{row.consultation.period&&<p>{stateCopy.period}: {periodLabel}. {stateCopy.periodHint}</p>}</details>}</>}

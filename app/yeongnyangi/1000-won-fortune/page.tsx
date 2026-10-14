@@ -1,3 +1,4 @@
+import {fusionChapterCount} from '../_lib/consultation-copy';
 import type {Metadata} from 'next';
 import {products,systemNames,packages,type Product} from '@/worker/yeongnyangi/payments/catalog';
 import {policyForReading,depthDescriptions} from '@/worker/yeongnyangi/fortune/reading-policy';
@@ -44,7 +45,7 @@ for(const item of FUN){const spec=(FEATURE_KEY_PRICE_TABLE as Record<string,{amo
 const FUN_PRICE=won(1000);
 const QUESTION_HREF='/yeongnyangi/fortune/?domain=saju&fish=mackerel&consultationKind=ask';
 const fusions=products.filter(p=>p.readingKind!=='single');
-const chapterRange=(items:Product[])=>{const counts=items.flatMap(consultationChapterCounts);const min=Math.min(...counts),max=Math.max(...counts);return min===max?`${min}개`:`${min}~${max}개`;};
+const chapterRange=(items:Product[])=>{const counts=items.flatMap(p=>p.readingKind==='single'?consultationChapterCounts(p):[fusionChapterCount(p)]);const min=Math.min(...counts),max=Math.max(...counts);return min===max?`${min}개`:`${min}~${max}개`;};
 const mackerelPolicy=policyForReading('mackerel',mackerels[0].manifestVersion);
 
 // 필수 입력은 worker/yeongnyangi/fortune/shared/input.ts 의 서버 검증을 옮긴 요약이다(화면 설명용).
@@ -197,7 +198,7 @@ export default function Page(){
     <thead><tr><th scope="col">생선</th><th scope="col">가격</th><th scope="col">챕터</th><th scope="col">분량 <small>({A4_PAGE_NOTE})</small></th><th scope="col">상담 깊이</th></tr></thead>
     <tbody>
      {TIERS.map(tier=>{const items=DOMAINS.map(domain=>single(domain,tier));const prices=[...new Set(items.map(p=>p.priceKRW))];if(prices.length!==1)throw new Error(`영냥이 ${tier} 가격이 체계마다 다르다: ${prices.join(',')}`);return <tr key={tier}><th scope="row">{packages[tier].name}</th><td>{won(prices[0])}</td><td>{chapterRange(items)}</td><td>{a4Label(consultationBudget(tier).initial)}</td><td>{depthDescriptions[tier]}</td></tr>;})}
-     {(['assorted','omakase'] as const).map(fish=>{const items=fusions.filter(p=>p.fishId===fish);if(new Set(items.map(p=>p.priceKRW)).size!==1)throw new Error(`영냥이 ${fish} 가격이 상품마다 다르다`);return <tr key={fish}><th scope="row">{packages[fish].name}</th><td>{won(items[0].priceKRW)}</td><td>{chapterRange(items)}</td><td>{a4Label(consultationBudget(fish).initial)}</td><td>{depthDescriptions[fish]} ({items.map(p=>p.name).join(' / ')})</td></tr>;})}
+     {(['assorted','omakase'] as const).map(fish=>{const items=fusions.filter(p=>p.fishId===fish);if(new Set(items.map(p=>p.priceKRW)).size!==1)throw new Error(`영냥이 ${fish} 가격이 상품마다 다르다`);return <tr key={fish}><th scope="row">{packages[fish].name}</th><td>{won(items[0].priceKRW)}</td><td>{chapterRange(items)}</td><td>체계별 심화 · 생활 상담 · 실행 노트</td><td>{depthDescriptions[fish]} ({items.map(p=>p.name).join(' / ')})</td></tr>;})}
     </tbody>
    </table></div>
   </section>

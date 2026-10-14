@@ -59,8 +59,9 @@ const browser = await chromium.launch({ headless: true });
 try {
   for (const mode of ['typeset', 'long-cover', 'font-failure']) {
     const context = await browser.newContext({ acceptDownloads: true, serviceWorkers: 'block', viewport: { width: 1280, height: 900 } });
-    await context.route('**/*', route => {
+    await context.route('**/*', async route => {
       const url = new URL(route.request().url());
+      if(url.pathname==='/images/fusion-fortune/premium-chapters-v1.webp')return route.fulfill({body:await readFile('public'+url.pathname),contentType:'image/webp'});
       const font = fontFiles[url.pathname.slice(1)];
       if (font && mode !== 'font-failure') return route.fulfill({ body: font, contentType: 'font/ttf', headers: { 'access-control-allow-origin': '*' } });
       if (url.href === 'http://127.0.0.1/pdf-test') return route.fulfill({ contentType: 'text/html', body: '<!doctype html><html lang="ko"><body></body></html>' });
