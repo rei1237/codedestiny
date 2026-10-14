@@ -158,6 +158,8 @@ export async function spendMoonstone(db, { userId, product, purchaseId, profileI
   if (!sourceId) throw paymentError("IDEMPOTENCY_KEY_REQUIRED", "결제 요청 식별자가 필요합니다.");
   const cost = Math.max(0, Math.floor(Number(product?.monthlyCost || 0)));
   if (cost <= 0) throw paymentError("PRODUCT_NOT_FOUND", "월정석으로 결제할 수 없는 상품입니다.");
+  const mutationMetadata = profileMutationMetadata({ featureKey: product.featureKey, profileId, purchaseId: sourceId, action: profileAction });
+  if (!mutationMetadata) throw paymentError("INVALID_REQUEST", "프로필 변경 정보를 확인해 주세요.");
   if (getPaidFeaturePaymentPolicy(product.featureKey).monthlyExcluded) {
     // Completed charges remain replayable; a new debit cannot bypass the catalog floor.
     const existing = await db.findOne(MonthlyCreditLedger, ledgerFilter(uid, sourceId));
@@ -175,8 +177,6 @@ export async function spendMoonstone(db, { userId, product, purchaseId, profileI
     && (Number(product.priceCoins)!==Number(FEATURE_KEY_PRICE_TABLE[product.featureKey]?.cost)
       || cost!==calculatePaidFeatureMembershipCreditCost(product.featureKey)))
     throw paymentError('INVALID_REQUEST','상담 상품의 월정석 금액이 일치하지 않습니다.');
-  const mutationMetadata = profileMutationMetadata({ featureKey: product.featureKey, profileId, purchaseId: sourceId, action: profileAction });
-  if (!mutationMetadata) throw paymentError("INVALID_REQUEST", "프로필 변경 정보를 확인해 주세요.");
   const funding=/^yeongnyangi-/.test(String(product.featureKey || ''))?await import('../yeongnyangi/payment-funding.js'):null;
   const fundingClaim=funding?await funding.reserveFortuneFunding(db,{userId,requestId:sourceId,featureKey:product.featureKey,coinCost:product.priceCoins,method:'MOONLIGHT_STONE'}):null;
   const finishSpend=async result=>{

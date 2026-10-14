@@ -39,6 +39,8 @@ beforeEach(()=>{
 function request(action,id=PID,requestId=`profile-card:${action}:${id}:one`){return new Request('https://example.com/api/profile'+(action==='create'?'':'/'+id),{method:action==='delete'?'DELETE':action==='update'?'PATCH':'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({requestId,paymentMode:'MOONLIGHT_STONE',profile:{...collections.ProfileCard.rows[0],profileId:id}})});}
 async function pay(action,id=PID,requestId=`profile-card:${action}:${id}:one`,price={monthlyCost:100,priceCoins:10}){return spendMoonstone(collections.MonthlyCreditLedger,{userId:UID,product:{productId:'profile-card-manage',featureKey:'profile-card-manage',...price},purchaseId:requestId,profileId:id,profileAction:action},{consumeLots});}
 
+async function seedLegacySpend(){await collections.MonthlyCreditLedger.insertOne(models.MonthlyCreditLedger,{userId:UID,type:'MONTHLY_CREDIT_SPEND',sourceId:'profile-card:delete:'+PID+':one',serviceKey:'profile-card-manage',profileId:PID,amount:100,afterBalance:1500,settledAt:new Date(),metadata:{profileAction:'delete',profileMutation:true}});}
+
 // 2026-10-11: 프로필 카드 추가·수정·삭제는 무료다. 라우트는 결제 증빙을 요구하지도, 월정석을 차감하지도 않는다.
 function freeRequest(action,id=PID,extra={}){return new Request('https://example.com/api/profile'+(action==='create'?'':'/'+id),{method:action==='delete'?'DELETE':action==='update'?'PATCH':'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({profile:{...collections.ProfileCard.rows[0],profileId:id},...extra})});}
 test('delete needs no payment proof and charges nothing',async()=>{
@@ -62,9 +64,9 @@ test('a moonstone mode request is still free and never charges at the route',asy
 });
 // 정책 변경 전에 차감된 월정석 증빙이 남아 있어도 조작은 막히지 않고 다시 차감되지도 않는다.
 test('a spend made before the policy change does not block the mutation or charge again',async()=>{
- await pay('delete');expect(consumeLots).toHaveBeenCalledTimes(1);
+ await seedLegacySpend();
  expect((await handleProfileRoutes(request('delete'),{})).status).toBe(200);
- expect(collections.ProfileCard.rows).toHaveLength(0);expect(consumeLots).toHaveBeenCalledTimes(1);
+ expect(collections.ProfileCard.rows).toHaveLength(0);expect(consumeLots).not.toHaveBeenCalled();
 });
 test('legacy price constants stay available for matching pre-change evidence',async()=>{
  const {LEGACY_PROFILE_CARD_COSTS,PROFILE_CARD_DELETE_COST_MONTHLY_STONES}=await import('../../worker/lib/profile-card-mutation-policy.js');
@@ -75,7 +77,7 @@ test('insufficient balance creates no spend',async()=>{
  expect(collections.MonthlyCreditLedger.rows.filter(r=>r.type==='spend')).toHaveLength(0);
 });
 test('refund uses one lot, revokes the spend and cannot restore twice',async()=>{
- await pay('delete');const row=collections.MonthlyCreditLedger.rows[0];
+ await seedLegacySpend();const row=collections.MonthlyCreditLedger.rows[0];
  expect(await refundProfileMoonstone(row,UID,'failed delete')).toBe(true);expect(await refundProfileMoonstone(row,UID,'failed delete')).toBe(false);
  expect(restoreLots).toHaveBeenCalledTimes(1);expect(restoreLots).toHaveBeenCalledWith(expect.objectContaining({lotId:`profile-mutation-refund:${row._id}`,amount:100}));
 });

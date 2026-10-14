@@ -8,7 +8,7 @@ import { paymentError } from '../payments/errors.js';
 
 export async function reserveFortuneFunding(db,{userId,requestId,featureKey,coinCost,method}) {
   if(!String(featureKey).startsWith('yeongnyangi-'))return null;
-  if(!/^yn-[a-f0-9]{64}$/.test(String(requestId)) || getPaidFeaturePaymentPolicy(featureKey).monthlyExcluded)
+  if(!/^yn-[a-f0-9]{64}$/.test(String(requestId)) || (method === 'MOONLIGHT_STONE' && getPaidFeaturePaymentPolicy(featureKey).monthlyExcluded))
     throw paymentError('INVALID_REQUEST','영냥이 방에서 상담 내용을 먼저 선택해 주세요.');
   if(!['PASS','SERVICE_PACK','MOONLIGHT_STONE'].includes(method))throw paymentError('INVALID_REQUEST','결제 방식을 확인해 주세요.');
   const id=requestId.slice(3),owner=toObjectId(userId),key='alliance:'+method+':'+requestId;

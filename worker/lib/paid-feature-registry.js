@@ -463,7 +463,8 @@ export function calculateMoonstoneDiscount(listPriceKRW, fullCost, quantity) {
 }
 
 export function getPaidFeaturePaymentPolicy(featureKey) {
-  const spec = FEATURE_KEY_PRICE_TABLE[normalizePaidFeatureKey(featureKey)];
+  const key = normalizePaidFeatureKey(featureKey);
+  const spec = FEATURE_KEY_PRICE_TABLE[key] || Object.values(PIG_COIN_UNLOCK_PRODUCTS).find(item => item.featureKey === key);
   const directOnly = isDirectOnlyPaidFeatureKey(featureKey);
   const familyPassOnly = isDirectOrFamilyPaidFeatureKey(featureKey);
   const monthlyExcluded = !meetsMoonstoneMinimum(spec?.amountKRW)

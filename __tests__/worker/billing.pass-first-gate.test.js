@@ -26,7 +26,7 @@ function activePass(tier) {
   };
 }
 
-function pricing(coinPrice, featureKey = "tarot-year-fortune") {
+function pricing(coinPrice, featureKey = "master-love-codex") {
   return { featureKey, coinPrice };
 }
 
@@ -143,8 +143,8 @@ describe("이용권 선검사 게이트", () => {
       expect(decision.canUseByPass).toBe(false);
       expect(decision.decisionReason).toBe("PASS_EXCLUDED_PAYMENT_REQUIRED");
       // 막다른 길 방지: 이용권으로 못 사는데 결제수단까지 숨기면 안 된다.
-      expect(decision.hiddenMethods).toEqual([]);
-      expect(decision.recommendedMethods).toEqual(EQUAL_METHODS);
+      expect(decision.hiddenMethods).toEqual(["MOONLIGHT_STONE"]);
+      expect(decision.recommendedMethods).toEqual(["DIRECT_KRW"]);
     }
   });
 });

@@ -1365,7 +1365,7 @@ const ROUTES = {
       assertRegionalPaymentMethod(request, paymentMethod);
       let moonstoneDiscount=null;
       try { moonstoneDiscount=quoteYeongnyangiMoonstoneDiscount(product.featureKey,body.moonstoneQuantity ?? 0); }
-      catch { throw paymentError('INVALID_REQUEST','사용할 월정석 수량을 확인해 주세요. 단건 결제 잔액은 1,000원 이상이어야 해요.'); }
+      catch { throw paymentError('INVALID_REQUEST',product.monthlyExcluded ? '이 상품은 월정석 사용 대상이 아닙니다. 다른 결제 방식을 선택해 주세요.' : '사용할 월정석 수량을 확인해 주세요. 단건 결제 잔액은 1,000원 이상이어야 해요.'); }
       if (moonstoneDiscount && (product.priceKRW!==moonstoneDiscount.listPriceKRW || /paypal/i.test(paymentMethod)))
         throw paymentError('INVALID_REQUEST','이 결제에서는 월정석 할인을 사용할 수 없어요.');
       const paypalCharge = await preparePaypalCharge(env, paymentMethod, product.priceKRW);
@@ -1589,11 +1589,11 @@ const ROUTES = {
             alreadyUnlocked = true;
             return { balance: null, replayed: true, ledgerId: "" };
           }
-      if (resolveProduct({ featureKey: product.featureKey }).monthlyExcluded) {
-        throw paymentError(directOnly ? "DIRECT_ONLY_PAYMENT_REQUIRED" : "FAMILY_OR_DIRECT_PAYMENT_REQUIRED",
-          directOnly ? "이 상품은 단건 결제로만 이용할 수 있습니다." : "이 상품은 Family 이용권 또는 단건 결제로 이용해 주세요.",
-          { featureKey: product.featureKey, familyPassOnly });
-      }
+          if (resolveProduct({ featureKey: product.featureKey }).monthlyExcluded) {
+            throw paymentError(directOnly ? "DIRECT_ONLY_PAYMENT_REQUIRED" : familyPassOnly ? "FAMILY_OR_DIRECT_PAYMENT_REQUIRED" : "MONTHLY_NOT_ALLOWED",
+              "이 상품은 월정석 사용 대상이 아닙니다. 다른 결제 방식을 선택해 주세요.",
+              { featureKey: product.featureKey, familyPassOnly });
+          }
           if (unlock) {
             const granted = await grantEntitlement(db, {
               userId, product, orderId: requestId, profileId, partnerProfileId: body.partnerProfileId,

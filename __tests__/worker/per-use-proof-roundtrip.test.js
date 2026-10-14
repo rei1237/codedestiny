@@ -26,6 +26,8 @@ import * as mongooseModule from "mongoose";
 import { makeFakePaymentDb, matches } from "../fixtures/fake-payment-db.mjs";
 import { ORACLE_CONSULTATION_TIERS } from "../../lib/tarot/oracle-consultation-pricing.mjs";
 
+import { getPaidFeaturePaymentPolicy } from "../../worker/lib/paid-feature-registry.js";
+
 const USER_ID = "507f1f77bcf86cd799439011";
 const FUSION_FEATURE_KEY = "fusion-fortune-consultation";
 const OTHER_FEATURE_KEY = "fortune-chat-consultation";
@@ -118,6 +120,16 @@ beforeEach(() => {
 async function runWriter({ product = PRODUCT, purchaseId = REQUEST_ID, consumeLots } = {}) {
   const db = makeLedgerDb();
   const deduct = consumeLots || (async () => ({ ok: true, reason: "OK", balance: 5000, user: null }));
+  // Below-minimum/retired keys remain readable using persisted pre-policy evidence.
+  // New writes must fail without invoking the debit dependency.
+  if (getPaidFeaturePaymentPolicy(product.featureKey).monthlyExcluded) {
+    const debit = jest.fn();
+    await expect(spendMoonstone(db, {userId:USER_ID, product, purchaseId}, {consumeLots:debit})).rejects.toMatchObject({code:'MONTHLY_NOT_ALLOWED'});
+    expect(debit).not.toHaveBeenCalled();
+    const row = {_id:new (mongooseModule.default || mongooseModule).Types.ObjectId(), userId:USER_ID, type:'MONTHLY_CREDIT_SPEND', sourceId:purchaseId, serviceKey:product.featureKey, amount:product.monthlyCost, settledAt:new Date(), createdAt:new Date(), afterBalance:5000, metadata:{productId:product.productId,purchaseId}};
+    db.rows.push(row);ledgerRows.push(row);
+    return {db,spend:{ledgerId:String(row._id),balance:5000,replayed:true}};
+  }
   let spend = null;
   try {
     spend = await spendMoonstone(db, { userId: USER_ID, product, purchaseId }, { consumeLots: deduct });

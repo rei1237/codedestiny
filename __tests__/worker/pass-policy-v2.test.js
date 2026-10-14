@@ -142,7 +142,7 @@ test("VVIP consumes one 30,000 reading exactly, preserves gift version, and Yeon
   expect(evaluatePassCoverage({ user, entitlement: user.profileSubscription, coinCost: 30 }).covered).toBe(true);
   const other = { profileSubscription: { ...plan, isActive: true, expiresAt } };
   const yn = resolveProduct({ featureKey: "yeongnyangi-saju-mackerel" });
-  expect(yn).toMatchObject({ familyPassOnly: true, monthlyExcluded: false, passExcluded: false, allowedPaymentMethods: ["FAMILY", "DIRECT_KRW", "MOONLIGHT_STONE"] });
+  expect(yn).toMatchObject({ familyPassOnly: true, monthlyExcluded: true, passExcluded: false, allowedPaymentMethods: ["FAMILY", "DIRECT_KRW"] });
   expect(describePassEligibility({ user: other, entitlement: other.profileSubscription, product: { ...yn, passExcluded: true } }).eligible).toBe(false);
 });
 

@@ -599,10 +599,10 @@ describe("동시 확정 CAS — 다른 주문이 먼저 반영되면 덮어쓰�
    MONTHLY 요청은 worker/index.js 가 이 두 라우트로 재작성하므로 여기가 실제 관문이다. */
 describe("영냥이 제휴 상품 — Family·월정석·단건 허용", () => {
   const FAMILY_PRODUCTS = listProducts().filter((p) => p.familyPassOnly === true);
-  const FAMILY_ONLY = FAMILY_PRODUCTS.find(p=>p.featureKey==='yeongnyangi-saju-mackerel');
+  const FAMILY_ONLY = FAMILY_PRODUCTS.find(p=>!p.monthlyExcluded);
   const fortuneId='a'.repeat(64),requestId='yn-'+fortuneId;
   function seedFortune(db) {
-    db.rows.push({_id:fortuneId,userId:USER,featureKey:FAMILY_ONLY.featureKey,productId:'saju_mackerel',amountKRW:FAMILY_ONLY.priceKRW,state:'CREATED',paymentId:null});
+    db.rows.push({_id:fortuneId,userId:USER,featureKey:FAMILY_ONLY.featureKey,productId:FAMILY_ONLY.featureKey.replace('yeongnyangi-','').replaceAll('-','_'),amountKRW:FAMILY_ONLY.priceKRW,state:'CREATED',paymentId:null});
   }
 
   async function postMoonstone(db, body) {
@@ -623,9 +623,9 @@ describe("영냥이 제휴 상품 — Family·월정석·단건 허용", () => {
     for (const product of FAMILY_PRODUCTS) {
       expect(product).toMatchObject({
         familyPassOnly: true,
-        monthlyExcluded: false,
+        monthlyExcluded: product.priceKRW < 10000,
         passExcluded: false,
-        allowedPaymentMethods: ["FAMILY", "DIRECT_KRW", "MOONLIGHT_STONE"],
+        allowedPaymentMethods: ["FAMILY", "DIRECT_KRW", ...(product.priceKRW >= 10000 ? ["MOONLIGHT_STONE"] : [])],
       });
     }
   });

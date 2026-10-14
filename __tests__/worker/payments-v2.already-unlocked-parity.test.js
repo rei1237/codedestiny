@@ -21,7 +21,7 @@ const USER = "64b000000000000000000001";
 const ENV = { JWT_ACCESS_SECRET: "test-access-secret-value-0123456789" };
 
 // 영구 해금형(per_use 가 아닌) 상품을 레지스트리에서 고른다.
-const UNLOCK_ITEM = listProducts().find((p) => p.billingType !== "per_use" && Number(p.priceCoins) > 0);
+const UNLOCK_ITEM = listProducts().find((p) => p.billingType !== "per_use" && !p.monthlyExcluded && Number(p.priceCoins) > 0);
 // 출생 기반 해금은 이 계정의 저장 프로필로만 산다. p2 는 p1 과 출생 정보가 같고, p3 는 다르다.
 const CARDS = [
   testCard("p1", { userId: USER }),
@@ -192,17 +192,16 @@ test("재열람 응답은 모르는 잔액을 0 으로 싣지 않는다 — 해�
 });
 
 
-test('profile moonstone adapter retains operation metadata and replays without deducting twice',async()=>{
+test('profile moonstone adapter rejects new subminimum purchases without debit',async()=>{
  const db=makeDb({uniqueKeys:[['userId','type','sourceId']]});const user=seedFundedUser(db);
  const requestId='profile-card:delete:yn_test:adapter';
  async function send(actionType='profile_card_delete') {
   return handlePaymentsContext(new Request('https://code-destiny.com/api/payments/coin-gate/moonstone',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${await tokenFor(USER)}`},body:JSON.stringify({featureKey:'profile-card-manage',paymentMode:'MOONLIGHT_STONE',profileId:'yn_test',requestId,actionType})}),ENV,{prefix:'/api/payments',withDb:(_e,_c,fn)=>fn(db)});
  }
- expect((await send()).status).toBe(200);expect((await send()).status).toBe(200);
- const spends=db.rows.filter(r=>r.type==='MONTHLY_CREDIT_SPEND');expect(spends).toHaveLength(1);
- expect(spends[0].metadata).toMatchObject({profileAction:'delete',profileId:'yn_test',requestId});
- expect(spends[0].amount).toBe(100);expect(user.profileSubscription.membershipCreditBalance).toBe(99900);
- expect((await send('profile_card_update')).status).toBe(409);
+ expect((await send()).status).toBe(402);expect((await send()).status).toBe(402);
+ expect(db.rows.filter(r=>r.type==='MONTHLY_CREDIT_SPEND')).toHaveLength(0);
+ expect(user.profileSubscription.membershipCreditBalance).toBe(100000);
+ expect((await send('profile_card_update')).status).toBe(402);
 });
 
 /**

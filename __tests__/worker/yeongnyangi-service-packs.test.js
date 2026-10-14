@@ -89,7 +89,7 @@ test('concurrent use of one consultation produces one receipt and one decrement'
  expect(f.row.accessMethod).toBe('SERVICE_PACK');
  expect(f.db.rows.filter(r=>r.reason==='service_pack_use')).toHaveLength(1);
 });
-test.each(['PASS','MOONLIGHT_STONE'])('reserved %s excludes pack consumption and keeps its count',async method=>{
+test.each(['PASS'])('reserved %s excludes pack consumption and keeps its count',async method=>{
  const f=fixture(),right=await purchase(f);
  await reserveFortuneFunding(f.db,{userId:USER,requestId:RID,featureKey:consultation.featureKey,coinCost:consultation.priceKRW/100,method});
  await expect(consume(f,right)).rejects.toMatchObject({code:'MOONSTONE_IN_PROGRESS'});
@@ -305,7 +305,7 @@ test.each(approvedFish.flatMap(([fish])=>approvedFish.map(([target,price])=>[fis
  else{await expect(consume(f,right)).rejects.toMatchObject({code:'SERVICE_PACK_NOT_COVERED'});expect(f.db.rows.find(r=>r.type==='service_pack').remainingUses).toBe(offer.packSnapshot.totalUses);expect(f.row.paymentClaimOrderId).toBe('');}
 });
 
-test.each(approvedFish)('%s moonstones deduct the restored 10 KRW per stone amount',async(fish,amount)=>{
+test.each(approvedFish.filter(([,amount])=>amount>=10000))('%s moonstones deduct the restored 10 KRW per stone amount',async(fish,amount)=>{
  const f=fixture(),item=resolveProduct({featureKey:'yeongnyangi-saju-'+fish}),expected=amount/10;
  Object.assign(f.row,{featureKey:item.featureKey,amountKRW:amount});
  f.user.profileSubscription.membershipCreditBalance=expected;
