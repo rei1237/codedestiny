@@ -24,8 +24,8 @@ assert.doesNotMatch(quickSection, /data-cd-open-collection/, 'home tiles open th
 assert.deepEqual([...quickSection.matchAll(/data-cd-service-id="([^"]+)"/g)].map(m => m[1]), ['saju', 'ziwei', 'sukuyo', 'vedic', 'astrology', 'tarot']);
 const template = read('templates/home-funnel.html');
 assert.ok(template.indexOf('id="cdhQuickSlot"') < template.indexOf('id="cdhServices"'), 'methods precede search');
-// 2026-10-14: 추천 네 가지는 먼저 보이고, 전체 체계 바로가기는 전체 목록에 보존한다.
-assert.ok(template.indexOf('id="cdhQuickSlot"') > template.indexOf('id="cdhGardenBody"'), 'all fortune systems remain in the folded catalogue');
+// 2026-10-14: 전체 운세 체계와 검색은 접힌 보조 콘텐츠가 아니라 메인 흐름에서 바로 쓴다.
+assert.ok(template.indexOf('id="cdhQuickSlot"') < template.indexOf('id="cdhGardenBody"'), 'all fortune systems remain in the primary flow');
 
 assert.equal([...quickSection.matchAll(/href="\/\?action=([^"]+)" data-action="\1"/g)].length, 6, 'early clicks retain the selected action before JavaScript is ready');
 
@@ -49,4 +49,4 @@ console.log("[home-direct-feature-links] PASS");
 
 assert.ok(template.indexOf('id="cdhFeatured"') < template.indexOf('id="cdhMore"'), 'signature readings are visible before optional exploration');
 
-assert.ok(template.indexOf("{{lightRecommendations}}") < template.indexOf('id="cdhMore"'), "four lighter recommendations remain visible");
+assert.doesNotMatch(template, /\{\{lightRecommendations\}\}/, "the complete fortune chooser replaces the incomplete shortcut group");

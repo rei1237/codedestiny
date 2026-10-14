@@ -1590,7 +1590,11 @@
     "appInstall": {
       "title": "把应用添加到主屏幕",
       "desc": "安装后无需经过浏览器即可一键打开，今日运势也能更快查看。",
-      "cta": "获取应用"
+      "cta": "获取应用",
+      "iosBody": "在 iPhone 和 iPad 上，可通过 Safari 添加到主屏幕，像应用一样打开。",
+      "iosCta": "添加到 iPhone 或 iPad",
+      "iosSafari": "请在 Safari 中点按分享，再选择“添加到主屏幕”。目前尚无 App Store 下载版。",
+      "iosOther": "请在 Safari 中打开此页面，点按分享，再选择“添加到主屏幕”。目前尚无 App Store 下载版。"
     },
     "mobileFunnel": {
       "lowPrice": "₩1,000档",
@@ -1902,7 +1906,10 @@
       "priceFrom": "{amount}韩元起",
       "samplesTitle": "付款前先读读结果示例",
       "sampleCodex": "姻缘之书结果示例",
-      "sampleConsult": "灵喵咨询结果示例"
+      "sampleConsult": "灵喵咨询结果示例",
+      "allLead": "可直接选择占卜体系，也可从当下最贴近的烦恼开始。",
+      "moreContent": "更多运势与内容",
+      "moreContentNote": "集中查看特别解读、公开分析记录与今日运势。"
     },
     "yeongnyangiEntry": {
       "badge": "灵喵的问题咨询",

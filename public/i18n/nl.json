@@ -1590,7 +1590,11 @@
     "appInstall": {
       "title": "Keep Code Destiny on your home screen",
       "desc": "Install it and it opens in one tap without the browser, and today's fortune loads faster.",
-      "cta": "Get the app"
+      "cta": "Get the app",
+      "iosBody": "Voeg deze site op iPhone en iPad via Safari toe aan je beginscherm om hem als app te openen.",
+      "iosCta": "Toevoegen op iPhone of iPad",
+      "iosSafari": "Tik in Safari op Delen en kies Zet op beginscherm. Downloaden via de App Store is nog niet beschikbaar.",
+      "iosOther": "Open deze pagina in Safari, tik op Delen en kies Zet op beginscherm. Downloaden via de App Store is nog niet beschikbaar."
     },
     "mobileFunnel": {
       "lowPrice": "Vanaf ₩1.000",
@@ -1902,7 +1906,10 @@
       "priceFrom": "Vanaf KRW {amount}",
       "samplesTitle": "Lees een voorbeeldresultaat voordat je betaalt",
       "sampleCodex": "Voorbeeld uit de Love Codex",
-      "sampleConsult": "Voorbeeld van een Yeongnyangi-consult"
+      "sampleConsult": "Voorbeeld van een Yeongnyangi-consult",
+      "allLead": "Kies een systeem of begin bij je belangrijkste vraag.",
+      "moreContent": "Meer lezingen en verhalen",
+      "moreContentNote": "Bekijk bijzondere lezingen, openbare analyses en dagelijkse voorspellingen."
     },
     "yeongnyangiEntry": {
       "badge": "Vraagconsult met Yeongnyangi",

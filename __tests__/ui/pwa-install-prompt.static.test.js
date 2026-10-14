@@ -7,27 +7,48 @@ const vm = require("node:vm");
 const root = path.resolve(__dirname, "../..");
 const source = fs.readFileSync(path.join(root, "js/pwa-install-prompt.js"), "utf8");
 
-function loadPrompt({ native = false, standalone = false, mobile = false } = {}) {
+function loadPrompt({ native = false, standalone = false, mobile = false, ios = false, safari = false, lang = 'ko' } = {}) {
   const listeners = new Map();
   let ctaClick;
   const cta = {
+    textContent: '',
+    attributes: new Map(),
     addEventListener: (name, listener) => {
       if (name === "click") ctaClick = listener;
     },
+    setAttribute(name, value) {
+      this.attributes.set(name, value);
+    },
+    removeAttribute() {},
   };
+  const body = { textContent: '', removeAttribute() {} };
+  const note = { hidden: true, textContent: '' };
   const card = {
     hidden: true,
-    querySelector: () => cta,
+    querySelector: (selector) => selector === '[data-cd-app-install]'
+      ? cta
+      : selector === '.cd-app-install__body'
+        ? body
+        : selector === '[data-cd-app-install-note]'
+          ? note
+          : null,
   };
   const sandbox = {
     Promise,
     console,
     document: {
-      documentElement: { getAttribute: () => null },
+      readyState: 'complete',
+      documentElement: { getAttribute: (name) => name === 'lang' ? lang : null },
       getElementById: (id) => (id === "cdAppInstall" ? card : null),
     },
     window: {
-      navigator: { standalone },
+      navigator: {
+        standalone,
+        userAgent: ios ? (safari ? 'Mozilla/5.0 iPhone Safari/605.1' : 'Mozilla/5.0 iPhone CriOS/120.0 Safari/605.1') : 'Mozilla/5.0 Chrome/120.0',
+        vendor: ios ? 'Apple Computer, Inc.' : 'Google Inc.',
+        platform: ios ? 'iPhone' : 'Win32',
+        maxTouchPoints: ios ? 5 : 0,
+      },
       matchMedia: (query) => ({
         matches: query === "(display-mode: standalone)" ? standalone : query === "(max-width:720px)" && mobile,
       }),
@@ -38,6 +59,9 @@ function loadPrompt({ native = false, standalone = false, mobile = false } = {})
   vm.runInNewContext(source, sandbox, { filename: "pwa-install-prompt.js" });
   return {
     card,
+    body,
+    note,
+    cta,
     listeners,
     get ctaClick() {
       return ctaClick;
@@ -66,6 +90,26 @@ test("does not expose a dead install card when beforeinstallprompt is absent on 
   const { card, ctaClick } = loadPrompt({ mobile: true });
   assert.equal(card.hidden, true);
   assert.equal(ctaClick, undefined);
+});
+
+test("shows iPhone home-screen guidance and states that App Store download is unavailable", () => {
+  const controls = loadPrompt({ ios: true, safari: true });
+  assert.equal(controls.card.hidden, false);
+  assert.match(controls.body.textContent, /홈 화면 추가/);
+  assert.equal(controls.cta.textContent, '핸드폰에 추가하기');
+  assert.equal(controls.note.hidden, true);
+
+  controls.ctaClick();
+  assert.equal(controls.note.hidden, false);
+  assert.match(controls.note.textContent, /공유 버튼/);
+  assert.match(controls.note.textContent, /App Store 다운로드 방식은 아직 제공하지 않아요/);
+  assert.equal(controls.cta.attributes.get('aria-expanded'), 'true');
+});
+
+test("tells iPhone users in another browser to reopen the page in Safari", () => {
+  const controls = loadPrompt({ ios: true, safari: false });
+  controls.ctaClick();
+  assert.match(controls.note.textContent, /^Safari에서/);
 });
 
 test("shows the card only for a valid install event and keeps it visible until accepted", async () => {

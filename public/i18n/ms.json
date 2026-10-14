@@ -1590,7 +1590,11 @@
     "appInstall": {
       "title": "Keep Code Destiny on your home screen",
       "desc": "Install it and it opens in one tap without the browser, and today's fortune loads faster.",
-      "cta": "Get the app"
+      "cta": "Get the app",
+      "iosBody": "On iPhone and iPad, add this site to your Home Screen in Safari to open it like an app.",
+      "iosCta": "Add on iPhone or iPad",
+      "iosSafari": "Tap Share in Safari, then choose Add to Home Screen. An App Store download is not available yet.",
+      "iosOther": "Open this page in Safari, tap Share, then choose Add to Home Screen. An App Store download is not available yet."
     },
     "mobileFunnel": {
       "lowPrice": "Julat ₩1,000",
@@ -1902,7 +1906,10 @@
       "priceFrom": "Dari KRW {amount}",
       "samplesTitle": "Baca contoh hasil sebelum membayar",
       "sampleCodex": "Contoh Love Codex",
-      "sampleConsult": "Contoh konsultasi Yeongnyangi"
+      "sampleConsult": "Contoh konsultasi Yeongnyangi",
+      "allLead": "Choose a system directly, or start with the concern closest to you.",
+      "moreContent": "More readings and stories",
+      "moreContentNote": "Explore special readings, public analysis records and daily fortunes in one place."
     },
     "yeongnyangiEntry": {
       "badge": "Konsultasi soalan bersama Yeongnyangi",

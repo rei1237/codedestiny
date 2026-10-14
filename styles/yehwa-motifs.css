@@ -326,7 +326,7 @@
 }
 
 /* 앱 설치 카드(2026-09-04) — .cd-feedback 과 같은 3열 카드라 같은 자리·같은 처방을 쓴다.
- * 카드는 기본 hidden 이고 beforeinstallprompt 가 와야 열린다(js/pwa-install-prompt.js). */
+ * 카드는 기본 hidden 이고 Chromium 설치 이벤트 또는 iOS 홈 화면 안내가 있을 때 열린다. */
 .cd-app-install__copy {
   position: relative;
 }

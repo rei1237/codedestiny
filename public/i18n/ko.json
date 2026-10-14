@@ -1439,7 +1439,11 @@
     "appInstall": {
       "title": "홈 화면에 앱으로 담아 두세요",
       "desc": "설치하면 브라우저를 거치지 않고 한 번에 열리고, 오늘의 운세도 더 빠르게 확인할 수 있어요.",
-      "cta": "앱으로 다운받기"
+      "cta": "앱으로 다운받기",
+      "iosBody": "iPhone과 iPad에서는 Safari의 홈 화면 추가로 앱처럼 빠르게 열 수 있어요.",
+      "iosCta": "핸드폰에 추가하기",
+      "iosSafari": "Safari 하단의 공유 버튼을 누른 뒤 ‘홈 화면에 추가’를 선택해 주세요. App Store 다운로드 방식은 아직 제공하지 않아요.",
+      "iosOther": "Safari에서 이 페이지를 연 뒤 공유 버튼 → ‘홈 화면에 추가’를 선택해 주세요. App Store 다운로드 방식은 아직 제공하지 않아요."
     },
     "mobileFunnel": {
       "lowPrice": "1천원대",
@@ -1751,7 +1755,10 @@
       "priceFrom": "{amount}원부터",
       "samplesTitle": "결제 전에 결과 예시부터 읽어보세요",
       "sampleCodex": "인연의 서 결과 예시",
-      "sampleConsult": "영냥이 상담 결과 예시"
+      "sampleConsult": "영냥이 상담 결과 예시",
+      "allLead": "운세 체계로 바로 고르거나, 지금 마음에 가까운 고민으로 찾아보세요.",
+      "moreContent": "더 많은 운세와 콘텐츠",
+      "moreContentNote": "특별한 리딩과 공개 분석 기록, 오늘의 운세를 한곳에서 살펴보세요."
     },
     "yeongnyangiEntry": {
       "badge": "영냥이의 질문 상담",
