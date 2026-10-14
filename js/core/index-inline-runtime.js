@@ -2290,11 +2290,11 @@ function __cdEnsureSajuCoreLoaded() {
       '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-af86863a4717',
     '/js/core/saju/basicFortunePresentation.js?v=build-058fc601fa33',
     '/js/core/saju/modalProfileState.js?v=build-70bc2c91ff63',
-    '/js/core/saju/reportDashboard.js?v=build-73e0a9f4ac9f',
+    '/js/core/saju/reportDashboard.js?v=build-dcc517ee3a0b',
     '/js/saju-engine-continuation.js?v=build-b10118108171',
     '/js/entertain-engine.js?v=build-6efeaaf5d54d',
     /* 체인은 순차 reduce라 앞에 끼우면 이 파일의 실패가 뒤쪽 전체를 죽인다 — 신규 카드 스크립트는 맨 뒤에 둔다. */
-    '/js/core/saju/dopamineResult.js?v=build-c2d0a3979a9a'
+    '/js/core/saju/dopamineResult.js?v=build-137173cf1c04'
   ];
 
   /* 다운로드만 병렬로 앞당긴다 — 아래 reduce 의 순차 실행은 그대로다(__cdPreloadScripts 주석 참고). */
