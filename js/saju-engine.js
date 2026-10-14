@@ -28967,6 +28967,7 @@ function renderDaewun(bazi){
       }
 
       h+='<div class="dw-item '+ev.cls+'" onclick="showDwDetail('+age+',\''+g+'\',\''+j+'\',\''+ev.label+'\','+ev.score+')">'+
+        (window.SajuReadingRich ? window.SajuReadingRich.stemThumb(g) : '')+
         '<span class="dw-tag '+ev.tagCls+'">'+ev.emoji+'</span>'+
         '<span class="dw-age">'+age+'세~</span>'+
         '<div class="dw-gz">'+g+'<br>'+j+'</div>'+

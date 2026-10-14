@@ -124,6 +124,7 @@
       if (result.ok && delivered('section_summary', data)) {
         summary.state = 'done';
         el.innerHTML = data.html;
+        if (lang() === 'ko' && root.SajuReadingRich) root.SajuReadingRich.decorateDelivered(el, null, root.G_PILLARS);
         notify('section_summary');
         return;
       }
@@ -158,6 +159,7 @@
       if (result.ok && delivered('section_daewun', data)) {
         daewun.state = 'done';
         detail.innerHTML = data.html;
+        if (lang() === 'ko' && root.SajuReadingRich) root.SajuReadingRich.decorateDelivered(detail, row, root.G_PILLARS);
         detail.classList.add('show');
         try { if (typeof root._bindDaewunDetailTapGuards === 'function') root._bindDaewunDetailTapGuards(); } catch (_) {}
         notify('section_daewun');
