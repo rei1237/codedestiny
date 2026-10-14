@@ -221,16 +221,24 @@ test('climate base follows the month branch (12 steps) and the worker policy cop
   }
 });
 
-test('ilju and climate interleave decorative persona art between text blocks, matched to the voice',()=>{
+test('nature imagery follows calculated stem and solar month, independent of narrator',()=>{
   // ilju 의 여덟 관점은 reading-depth 가 있어야 나온다. 다른 테스트에 영향이 없도록 별도 컨텍스트에서 읽는다.
   const withDepth=vm.createContext({});
   vm.runInContext(tables+tenGod+readFileSync('js/core/saju/reading-depth.generated.js','utf8')+readFileSync('js/core/saju/reading-rich.js','utf8'),withDepth);
   const rich=withDepth.SajuReadingRich,facts=factsOf(charts[3]);
   const count=(html,re)=>(html.match(re)||[]).length;
-  const art=/<figure class="saju-rich__art" aria-hidden="true"><img [^>]*alt=""/g;
+  const art=/<figure class="saju-nature"/g;
   const ilju={pig:rich.ilju(facts,'pig'),neo:rich.ilju(facts,'neo')},climate={pig:rich.climate(facts,'pig'),neo:rich.climate(facts,'neo')};
-  assert.equal(count(ilju.pig,art),4);assert.equal(count(climate.pig,art),3);
-  assert.match(ilju.pig,/persona\/yeoni-read\.webp/);assert.doesNotMatch(ilju.pig,/persona\/neo-/);
-  assert.match(ilju.neo,/saju\/yeongnyangi-read\.webp/);assert.doesNotMatch(ilju.neo,/persona\/yeoni-/);
-  assert.doesNotMatch(rich.strength(facts,'pig'),/saju-rich__art/);
+  assert.equal(count(ilju.pig,art),2);assert.equal(count(climate.pig,art),1);
+  assert.deepEqual(ilju.pig.match(/src="[^"]+"/g),ilju.neo.match(/src="[^"]+"/g));
+  assert.doesNotMatch(ilju.pig+ilju.neo,/persona\/yeoni|yeongnyangi-.*webp/);
+  const names=['gap','eul','byeong','jeong','mu','gi','gyeong','sin','im','gye'];
+  stems.forEach((stem,i)=>{
+    const html=rich.ilju(factsOf({...charts[3],d:{g:stem,j:'子'},m:{g:'甲',j:'酉'}}),'pig');
+    assert.ok(html.includes('/nature/'+names[i]+'-960.webp'));
+    assert.match(html,/autumn-960.webp/);
+    for(const width of [480,960])assert.ok(readFileSync('public/images/saju/nature/'+names[i]+'-'+width+'.webp').length>0);
+  });
+  assert.equal(rich.stemArt('unknown'),'');
+  assert.equal(rich.seasonArt('unknown'),'');
 });
