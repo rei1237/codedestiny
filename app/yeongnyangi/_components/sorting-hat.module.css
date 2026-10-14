@@ -51,8 +51,9 @@
 .directory>div { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:2rem 1.5rem; padding-top:1rem; }
 .directory article { min-width:0; }
 .directory img { border-radius:var(--yn-radius); aspect-ratio:3/2; object-fit:cover; }
-.directory h4 { margin:1rem 0 .5rem; }
-.directory h4 span { font-size:.8rem; color:var(--yn-gold); margin-left:.7rem; font-weight:400; }
+.houseHeading { display:flex; align-items:center; gap:12px; margin-top:12px; color:var(--yn-gold); }
+.directory h4 { margin:0; }
+.directory h4 span { display:block; font-size:.8rem; color:var(--yn-gold); margin-top:.35rem; font-weight:400; }
 .directory p { color:var(--yn-muted); font-size:.9rem; }
 @keyframes hat-reveal { from { opacity:.55; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
 @media(max-width:700px) { .invitation { grid-template-columns:1fr; } .invitationArt { min-height:0; } .invitationArt img { aspect-ratio:3/2; height:auto; } .directory>div { grid-template-columns:repeat(2,minmax(0,1fr)); } .invitationCopy { padding:1.5rem; } }
