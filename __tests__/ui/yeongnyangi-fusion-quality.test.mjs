@@ -194,11 +194,13 @@ test('9A tarot: each card names its time frame and the prompt copy drops image f
 });
 
 // 12: the ask opening answers the question across systems; its catalog title named only the first system.
-test('12 ask opening title differs from the catalog and from the later answer chapter',async()=>{
+test('12 answer leads once and every system retains its independent foundation',async()=>{
  for(const productId of ['fusion_saju_ziwei','fusion_all']){
   const row=await prepare(productId,'ask'),manifest=row.snapshot.manifest;
   assert.doesNotMatch(manifest[0].title,/타고난 성향과 지금의 흐름/,productId);
-  assert.notEqual(manifest[0].title,byKey(manifest,'answer').title);
+  assert.equal(manifest[0].key,'answer');
+  assert.equal(manifest.filter(c=>c.key==='answer').length,1);
+  assert.equal(manifest.filter(c=>c.layoutRole==='foundation').length,row.snapshot.product.systems.length);
   assert.equal(manifest[0].title.split(' · ')[0],byKey(manifest,'answer').title.split(' · ')[0]);
  }
 });
@@ -336,4 +338,16 @@ test('C14 fusion chapters carry a ledger of evidence earlier chapters already le
  assert.deepEqual(rules.claimLedger.uses,{'ziwei.bodyPalace':3,'saju.pillars':2});
  assert.match(rules.claimLedger.rule,/3개 장 이상/);
  assert.equal((await rulesOf(row,chapter,false,[prev(['saju.pillars'])])).claimLedger,undefined,'one use is not a ledger entry');
+});
+
+
+test('v3 direct answer carries review conditions, distinct foundation facts and sufficient output headroom',async()=>{
+ for(const productId of ['fusion_saju_ziwei','fusion_sukuyo_vedic','fusion_astrology_tarot','fusion_all']){
+  const row=await prepare(productId,'ask'),chapter=row.snapshot.manifest[0];
+  const request=await captureRequest(row,chapter,true),rules=JSON.parse(request.domainRules);
+  assert.equal(chapter.key,'answer');assert.match(rules.directAnswer,/결론 → 실제 근거 → 지금 할 행동/);
+  assert.ok(request.outputSchema.properties.questionAnswers.items.required.includes('review'));
+  assert.ok(request.maxOutputTokens>chapter.targetChars[1]);assert.ok(request.maxOutputTokens<=24576);
+  assert.ok(row.snapshot.manifest.filter(c=>c.layoutRole==='foundation').every(c=>c.systems.length===1&&c.ordinal>0));
+ }
 });

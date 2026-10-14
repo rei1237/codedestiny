@@ -19,7 +19,7 @@ test('D7 budget: initial is chapters × per-chapter target and every followup ha
  assert.deepEqual(m.CONSULTATION_FOLLOWUPS,{mackerel:0,salmon:1,flounder:2,tuna:6,assorted:5,omakase:7});
  assert.deepEqual(m.CONSULTATION_CHAPTERS,{mackerel:6,salmon:11,flounder:15,tuna:24,assorted:28,omakase:36});
  for(const tier of Object.keys(m.CONSULTATION_FOLLOWUPS)){
-  const budget=m.consultationBudget(tier);
+  const budget=m.consultationBudget(tier,m.CONSULTATION_BUDGET_VERSION);
   assert.equal(budget.version,m.CONSULTATION_BUDGET_VERSION);
   assert.deepEqual(budget.initial,INITIAL[tier]);
   assert.deepEqual(budget.followup,tier==='mackerel'?[0,0]:['assorted','omakase'].includes(tier)?[2400,3000]:[2000,2600]);
@@ -123,8 +123,8 @@ test('D9 screens show the initial reading as A4 pages: low end floored, high end
  assert.equal(m.A4_PAGE_NOTE,'A4 1장은 약 1,800자 기준');
  const pages={mackerel:[5,6],salmon:[12,16],flounder:[17,22],tuna:[28,36],assorted:[32,42],omakase:[42,54]};
  for(const [tier,range] of Object.entries(pages)){
-  assert.deepEqual(m.a4Pages(m.consultationBudget(tier).initial),range,tier);
-  assert.equal(m.a4Label(m.consultationBudget(tier).initial),`A4 약 ${range[0]}~${range[1]}장`,tier);
+  assert.deepEqual(m.a4Pages(m.consultationBudget(tier,m.CONSULTATION_BUDGET_VERSION).initial),range,tier);
+  assert.equal(m.a4Label(m.consultationBudget(tier,m.CONSULTATION_BUDGET_VERSION).initial),`A4 약 ${range[0]}~${range[1]}장`,tier);
  }
  assert.equal(m.a4Label([1800,1800]),'A4 약 1장');
  assert.deepEqual(m.a4Pages([500,900]),[1,1]);

@@ -1,7 +1,8 @@
+import {FUSION_BOOK_VERSION,DIRECT_FUSION_ANSWER} from './fortune/fusion-book';
 import {questionEvidence,questionPeriodTiming} from './fortune/ask/question-evidence';
 import {conversationView} from './fortune/ask/conversation';
 import {questionSkyCalculationInput} from './fortune/question-sky-locale-input';
-import {consultationBudget,fusionConsultationManifest,allocateConsultationBudget,withRequestedPeriodScope} from './fortune/consultation-budget';
+import {CONSULTATION_BUDGET_VERSION,consultationBudget,fusionPremiumManifest,allocateConsultationBudget,withRequestedPeriodScope} from './fortune/consultation-budget';
 import {QUESTION_POLICY_VERSION,questionDecision,questionTopic,assertQuestionOrder,questionManifest,type QuestionFish} from './fortune/ask/question-policy';
 import {COUNSEL_VERSION,counselManifest} from './fortune/counsel-purpose';
 import {withSajuCycleEvidence} from './fortune/saju/cycle-evidence';
@@ -256,7 +257,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
     product.manifestVersion=READING_V7_VERSION;
     product.chapterCount=manifest.length;
   }
-  if(locale==='ko'&&!persona&&!body.mode&&product.readingKind!=='single'){manifest=fusionConsultationManifest(product,analysis.topicId);product.chapterCount=manifest.length;product.manifestVersion=READING_V5_VERSION;}
+  if(locale==='ko'&&!persona&&!body.mode&&product.readingKind!=='single'){manifest=fusionPremiumManifest(product,analysis.topicId);product.chapterCount=manifest.length;product.manifestVersion=READING_V5_VERSION;}
   if(!decision&&!spiritInput&&preventionEligible(product.fishId)){
     if(v7Timing)analysis.contexts[product.domain]=withV7Timing(contexts[product.domain]!,v7Timing);
     manifest=withPreventionReading(manifest,analysis,product.fishId);product.chapterCount=manifest.length;
@@ -281,7 +282,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   if(kind){analysis.consultation.consultationKind=kind.id;analysis.consultation.kindVersion=1;analysis.consultation.kindLabel=tarotV3?tarotOrder!.spread.title:kind.label;if(!kind.question)analysis.consultation.period={kind:'default',label:kind.professional?(product.domain==='saju'?'계산된 과거·현재·미래 대운의 흐름':'저장된 계산 기준의 현재 시기와 다음 전환'):'출생 성향과 선택한 상담의 조건'};}
   if(!decision&&(!kind||kind.question)&&!relationship&&!tarotQuestion){
   // Questions are answered before the fixed outline, without reducing paid depth.
-  manifest[0].focus='사용자가 입력한 모든 질문에 먼저 직접 답하고 선택 주제와 연결해 해석한다. 질문이 없으면 선택 주제의 핵심 흐름부터 설명한다.';
+  manifest[0].focus=(manifest[0].consultationLayout===FUSION_BOOK_VERSION?DIRECT_FUSION_ANSWER+' ':'')+'사용자가 입력한 모든 질문에 먼저 직접 답하고 선택 주제와 연결해 해석한다. 질문이 없으면 선택 주제의 핵심 흐름부터 설명한다.';
   manifest[0].excludes=[];
   manifest[0].systems=product.systems;
   const cross=await crossDaily;
@@ -319,7 +320,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   return createRequest(env,userId,id,{profileId:body.profileId,productId:product.id,featureKey:product.cdFeatureKey,
     amountKRW:product.priceKRW,fingerprint,...(persona?{persona}:{}),
     ...(askEvidence?{generationCheckpoint:{version:'ask-generation-v1',evidence:askEvidence}}:{}),
-    growthAttribution:normalizeGrowthAttribution(body.growthAttribution),snapshot:{...((decision||locale==='ko'&&!persona&&!body.mode&&product.readingKind!=='single')?{questionContract:{version:QUESTION_POLICY_VERSION,followups:consultationBudget(product.fishId).followups,...(!persona&&!body.mode?{readingBudget:consultationBudget(product.fishId)}:{})}}:{}),deliveryContract:CHAPTER_DELIVERY_VERSION,chapterTimeoutPolicy:CHAPTER_TIMEOUT_POLICY,...(product.fishId==='tuna'?{tunaQualityPolicy:TUNA_QUALITY_POLICY}:{}),...(product.systems.includes("saju")?{natalInput:normalized.saju}:{}),locale,...(persona?{persona}:{}),...(voiceStyle?{voiceStyle}:{}),...(!body.mode?{outputContext:readingOutputContext(locale,body)}:{}),product,analysis,manifest,profileUpdatedAt:profile.updatedAt,...(tarotV2?{tarotConsultation:{version:TAROT_CONSULTATION_VERSION,kind:kind!.id}}:{}),...(tarotV3?{tarotConsultation:{version:TAROT_SPREAD_VERSION,kind:kind!.id},tarotSpread:spreadSnapshot(tarotOrder!.spread),tarotInputs:tarotOrder!.inputs,tarotDeck:commitTarotDeck()}:{}),...(spiritInput?{normalized}: {}),...(v7Timing?{v7Timing}:{})}},tarotV3?{initialState:'AWAITING_DRAW'}:{});
+    growthAttribution:normalizeGrowthAttribution(body.growthAttribution),snapshot:{...((decision||locale==='ko'&&!persona&&!body.mode&&product.readingKind!=='single')?{questionContract:{version:QUESTION_POLICY_VERSION,followups:consultationBudget(product.fishId).followups,...(!persona&&!body.mode?{readingBudget:consultationBudget(product.fishId,manifest[0]?.consultationLayout===FUSION_BOOK_VERSION?undefined:CONSULTATION_BUDGET_VERSION)}:{})}}:{}),deliveryContract:CHAPTER_DELIVERY_VERSION,chapterTimeoutPolicy:CHAPTER_TIMEOUT_POLICY,...(product.fishId==='tuna'?{tunaQualityPolicy:TUNA_QUALITY_POLICY}:{}),...(product.systems.includes("saju")?{natalInput:normalized.saju}:{}),locale,...(persona?{persona}:{}),...(voiceStyle?{voiceStyle}:{}),...(!body.mode?{outputContext:readingOutputContext(locale,body)}:{}),product,analysis,manifest,profileUpdatedAt:profile.updatedAt,...(tarotV2?{tarotConsultation:{version:TAROT_CONSULTATION_VERSION,kind:kind!.id}}:{}),...(tarotV3?{tarotConsultation:{version:TAROT_SPREAD_VERSION,kind:kind!.id},tarotSpread:spreadSnapshot(tarotOrder!.spread),tarotInputs:tarotOrder!.inputs,tarotDeck:commitTarotDeck()}:{}),...(spiritInput?{normalized}: {}),...(v7Timing?{v7Timing}:{})}},tarotV3?{initialState:'AWAITING_DRAW'}:{});
 }
 
 /** Tuna self-review: one rewrite of a chapter whose local audit finds a problem, inside the remaining lease.

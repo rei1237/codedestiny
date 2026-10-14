@@ -1,7 +1,8 @@
+import {FUSION_BOOK_VERSION,FUSION_BOOK_BUDGET_VERSION,FUSION_BOOK_TARGETS,fusionBookManifest,isFusionBookLayout} from './fusion-book';
 import type {PackageId} from './shared/contracts';
 import type {ChapterSpec} from './book-contracts';
 import type {Product} from '../payments/catalog';
-import {v6ReadingPolicies,FUSION_LAYOUT_VERSION} from './reading-policy';
+import {v6ReadingPolicies} from './reading-policy';
 import {fusionManifestV2} from './reading-manifest';
 import {CONCISE_READING_VERSION,conciseOutputTokens} from './concise-reading';
 
@@ -26,12 +27,13 @@ export const a4Pages=([low,high]:readonly [number,number]):[number,number]=>[Mat
 export const a4Label=(chars:readonly [number,number])=>{const [low,high]=a4Pages(chars);return low===high?`A4 약 ${low}장`:`A4 약 ${low}~${high}장`;};
 
 /** initial = chapters × per-chapter target; every followup answer has its own fixed target. */
-export function consultationBudget(tier:PackageId){
+export function consultationBudget(tier:PackageId,version=FUSION_BOOK_BUDGET_VERSION){
  const followups=CONSULTATION_FOLLOWUPS[tier];
- const initial=CONSULTATION_CHAPTER_TARGETS[tier].map(chars=>chars*CONSULTATION_CHAPTERS[tier]) as [number,number];
+ const premium=version===FUSION_BOOK_BUDGET_VERSION&&(tier==='assorted'||tier==='omakase');
+ const initial=(premium?[...FUSION_BOOK_TARGETS[tier as keyof typeof FUSION_BOOK_TARGETS]]:CONSULTATION_CHAPTER_TARGETS[tier].map(chars=>chars*CONSULTATION_CHAPTERS[tier])) as [number,number];
  const followup=(followups?[...CONSULTATION_FOLLOWUP_TARGETS[['assorted','omakase'].includes(tier)?'fusion':'single']]:[0,0]) as [number,number];
  const total=initial.map((chars,i)=>chars+followup[i]*followups) as [number,number];
- return {version:CONSULTATION_BUDGET_VERSION,total,initial,followup,followups};
+ return {version:premium?FUSION_BOOK_BUDGET_VERSION:CONSULTATION_BUDGET_VERSION,total,initial,followup,followups};
 }
 /** Snapshots before 2026-10-10 split the historical full-reading target: 20% to followups, the rest to the first reading. */
 export function legacyConsultationBudget(tier:PackageId){
@@ -54,14 +56,22 @@ export function fusionConsultationManifest(product:Product,topic='general'):Chap
  return allocateConsultationBudget(fusionManifestV2(product,topic),product.fishId);
 }
 
-const ROLE_WEIGHTS:Record<string,number>={foundation:1.05,expert:1.05,answer:1.1,question:1,life:1,synthesis:.9};
+export function fusionPremiumManifest(product:Product,topic='general'):ChapterSpec[]{
+ return allocateConsultationBudget(fusionBookManifest(product,topic),product.fishId);
+}
+
+const ROLE_WEIGHTS:Record<string,number>={foundation:1.05,expert:1.05,application:1.05,answer:1.1,question:1,life:1,synthesis:.9};
 export function allocateConsultationBudget(rows:ChapterSpec[],tier:PackageId):ChapterSpec[]{
- if(rows.some(row=>row.consultationLayout===FUSION_LAYOUT_VERSION)){
+ if(rows.some(row=>isFusionBookLayout(row.consultationLayout))){
   // The prevention chapter appended after preparation stands in for the life row '주의 시기'; synthesis stays last.
   const synthesis=rows.filter(row=>row.layoutRole==='synthesis');
   const ordered=[...rows.filter(row=>row.layoutRole!=='synthesis'),...synthesis].map((row,ordinal)=>({...row,ordinal,
-   consultationLayout:FUSION_LAYOUT_VERSION,layoutRole:row.layoutRole||(row.key==='prevention'?'life':'question')}));
-  const targets=layoutTargets(ordered.map(row=>ROLE_WEIGHTS[row.layoutRole]||1),tier);
+   consultationLayout:rows[0].consultationLayout,layoutRole:row.layoutRole||(row.key==='prevention'?'life':'question')}));
+  const weights=ordered.map(row=>ROLE_WEIGHTS[row.layoutRole]||1);
+  const sum=weights.reduce((a,b)=>a+b,0);
+  const premium=rows[0].consultationLayout===FUSION_BOOK_VERSION;
+  const initial=consultationBudget(tier).initial;
+  const targets=premium?weights.map(w=>initial.map((chars,i)=>(i?Math.floor:Math.ceil)(chars*w/sum)) as [number,number]):layoutTargets(weights,tier);
   return ordered.map((row,i)=>scaled(row,targets[i],layoutMinimum(targets[i],FUSION_LAYOUT_MINIMUM_RATIO)));
  }
  const budget=legacyConsultationBudget(tier);
@@ -72,7 +82,7 @@ export function allocateConsultationBudget(rows:ChapterSpec[],tier:PackageId):Ch
  * 'question-year' (질문과 이어진 올해) and the life/foundation/expert/synthesis chapters keep the stored calculation year. */
 export const readsRequestedPeriod=(row:ChapterSpec)=>row.ordinal===0||['answer','question'].includes(row.layoutRole||'')&&row.key!=='question-year';
 export function withRequestedPeriodScope(rows:ChapterSpec[],period:{kind:string;start?:string;end?:string;years?:{year:number}[]}|undefined):ChapterSpec[]{
- if(period?.kind!=='requested'||!period.start||!period.end||!period.years?.length||!rows.some(row=>row.consultationLayout===FUSION_LAYOUT_VERSION))return rows;
+ if(period?.kind!=='requested'||!period.start||!period.end||!period.years?.length||!rows.some(row=>isFusionBookLayout(row.consultationLayout)))return rows;
  const timeScope={years:period.years.map(y=>y.year),start:period.start,end:period.end};
  return rows.map(row=>readsRequestedPeriod(row)?{...row,timeScope}:row);
 }
