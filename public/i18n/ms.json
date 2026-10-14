@@ -2692,7 +2692,7 @@
     "neoSubline": "Tiada sentimen tambahan. Hanya fakta yang tinggal.",
     "signup": "Daftar",
     "login": "Log masuk",
-    "guestMoonstoneTeaser": "500 batu bulan untuk pendaftaran pertama · 30 hari · semak kos produk",
+    "guestMoonstoneTeaser": "500 batu bulan untuk pendaftaran pertama · Bernilai KRW 5,000. Hanya untuk diskaun perkhidmatan layak berharga KRW 10,000 atau lebih.",
     "loadingGreeting": "Menjajarkan cahaya bintang akaun anda",
     "loadingChip": "SESI SYNC",
     "loadingTitle": "Memuatkan maklumat log masuk anda",
@@ -2733,7 +2733,7 @@
     "passCheckingNote": "Menyelaraskan Pas Batu Cahaya Bulan dan tahap keahlian anda dengan selamat.",
     "exitBenefit": {
       "title": "Hadiah pendaftaran · {amount} Batu Bulan",
-      "copy": "Diberi sekali pada pendaftaran pertama. Gunakan pada kandungan layak dalam {days} hari selepas diberikan. Hanya untuk diskaun perkhidmatan layak berharga KRW 10,000 atau lebih.",
+      "copy": "Bernilai KRW 5,000. Diberi sekali pada pendaftaran pertama. Gunakan pada kandungan layak dalam {days} hari selepas diberikan. Hanya untuk diskaun perkhidmatan layak berharga KRW 10,000 atau lebih.",
       "note": "Kos berbeza mengikut produk. Bukan wang tunai dan tidak boleh digunakan untuk membeli pas.",
       "join": "Daftar dengan Kakao",
       "email": "Daftar dengan e-mel"
