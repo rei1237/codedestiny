@@ -1,3 +1,4 @@
+import ResultSamples from "@/app/components/ResultSamples";
 import type { Metadata } from "next";
 import NewYearAiRouteClient from "./NewYearAiRouteClient";
 import {
@@ -107,6 +108,7 @@ export default function NewYearAiConsultationPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(newYearJsonLd) }}
       />
             <NewYearAiRouteClient />
+      <ResultSamples ids={["new-year"]}/>
             <ServiceIntroSection label="신년운세 전문가 상담 안내">
         <h1><span>신년운세 보는 곳 — 새해 흐름과 월별 운세 풀이</span>올해 나에게 가장 중요한 일은 뭘까?</h1>
         <p>

@@ -153,17 +153,14 @@
 {{lightRecommendations}}
 <div class="cdh-slot cdh-slot--pass" id="cdhPass"><div id="cdhPassSlot">{{pass}}</div></div>
 {{signupBenefit}}
-<section id="cdhMemberBenefit" class="cdh-signup-benefit" hidden><p data-cd-trans="home.followup.member">보유 월정석과 만료일을 확인하고, 상품별 사용 조건을 살펴보세요.</p><a href="/points/" data-cd-trans="home.followup.balance">내 월정석 확인하기</a></section>
-<section class="cdh-samples" aria-labelledby="cdhSamplesTitle">
-      <h2 id="cdhSamplesTitle" data-cd-trans="home.simple.samplesTitle">결제 전에 결과 예시부터 읽어보세요</h2>
-      <a href="/master-love-codex/#codex-sample"><span data-cd-trans="home.simple.sampleCodex">인연의 서 결과 예시</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
-      <a href="/yeongnyangi/consult/work-money/#concern-sample"><span data-cd-trans="home.simple.sampleConsult">영냥이 상담 결과 예시</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
-    </section>
+<section class="cdh-moonstone-guide" aria-labelledby="cdhMoonstoneTitle"><img src="/assets/mascot/yeoni-moonstone-reward-v1-320.webp" width="320" height="320" loading="lazy" alt="월정석을 소개하는 연이"/><div><h2 id="cdhMoonstoneTitle">월정석, 이렇게 사용해요</h2><p>월정석은 <strong>{{moonstoneMinimum}}원 이상 대상 상품</strong>의 서비스 이용과 상담 결제 할인에 사용할 수 있어요.</p><ul><li><strong>프로필 활동</strong> · 활동으로 경험치를 쌓고, 레벨 보상 조건을 확인해요.</li><li><strong>후기 남기기</strong> · 대상 상담 후기를 남기면 공개 승인 후 보상을 받을 수 있어요.</li><li><strong>버그 제보</strong> · 문제를 알려주시면 확인·승인된 제보에 보상이 지급돼요.</li></ul><p class="cdh-moonstone-guide__note">상품별 사용 조건과 지급분별 만료일이 적용돼요. 이용권 구매에는 사용할 수 없어요.</p><a href="/points/">월정석과 사용 조건 확인하기 <span aria-hidden="true">→</span></a></div></section>
+<section id="cdhMemberBenefit" class="cdh-signup-benefit" hidden><p data-cd-trans="home.followup.member" data-cd-vars='{"minimum":"{{moonstoneMinimum}}"}'>보유 월정석과 만료일을 확인하세요. 월정석은 {{moonstoneMinimum}}원 이상 대상 상품에 사용할 수 있어요.</p><a href="/points/" data-cd-trans="home.followup.balance">내 월정석 확인하기</a></section>
+<section class="cdh-sample-landing-entry"><div><h2>내 질문에는 어떤 답이 돌아올까요?</h2><p>연애의 한마디부터 일과 돈의 선택까지. 실제 답변 발췌와 도식으로 상담의 차이를 먼저 만나보세요.</p><a href="/consultation-samples/">상담 결과와 혜택 한눈에 보기 →</a></div><img src="/assets/yeongnyangi/reading-art/insight.webp" width="720" height="480" loading="lazy" alt="수정구 앞에서 이야기를 듣는 영냥이"/></section><div id="cdhSamples">{{resultSamples}}</div>
 
 
 
     <details class="cdh-more" id="cdhMore">
-      <summary class="cdh-more__summary" aria-expanded="false" aria-controls="cdhGardenBody"><span data-cd-trans="home.followup.all">전체 운세 보기</span></summary>
+      <summary class="cdh-more__summary" aria-expanded="false" aria-controls="cdhGardenBody"><span class="cdh-more__copy"><strong data-cd-trans="home.followup.all">전체 운세 보기</strong><small>사주부터 타로까지, 지금 마음이 향하는 운세를 찾아보세요.</small></span><span class="cdh-more__prompt">운세 펼치기</span><svg class="cdh-more__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
       <div class="cdh-more__body" id="cdhGardenBody">
 <div class="cdh-slot" id="cdhQuickSlot">{{quick}}</div>
 <nav class="cdh-topics" aria-label="고민별 상담 고르기" data-cd-trans-attr="aria-label:home.simple.topicsLabel">

@@ -1934,7 +1934,7 @@
       "benefitNote": "Valables 30 jours. Équivalent à 20 000 KRW au taux standard ; le coût varie selon le produit. Ni argent ni crédit pour acheter un pass.",
       "join": "Inscription avec Kakao ou e-mail",
       "signatureDescription": "Découvrez les consultations et exemples de résultats adaptés à votre question.",
-      "member": "Consultez le solde, les dates d’expiration et les conditions des produits.",
+      "member": "Consultez vos Pierres de lune et leur expiration. Produits éligibles à partir de {{minimum}} KRW.",
       "balance": "Voir mes Pierres de Lune"
     }
   },

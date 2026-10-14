@@ -1934,7 +1934,7 @@
       "benefitNote": "30 dagen geldig. Bij de standaardkoers gelijk aan 20.000 KRW; verbruik verschilt per product. Geen contant geld en niet voor passen.",
       "join": "Registreer met Kakao of e-mail",
       "signatureDescription": "Bekijk consulten en voorbeeldresultaten voor jouw vraag.",
-      "member": "Bekijk je Maanstenen, vervaldata en productvoorwaarden.",
+      "member": "Bekijk je Maanstenen en vervaldatums. Voor geschikte producten vanaf {{minimum}} KRW.",
       "balance": "Mijn Maanstenen bekijken"
     }
   },

@@ -1,3 +1,5 @@
+import { renderResultSamples } from '../../lib/marketing/render-result-samples.mjs';
+import { MOONSTONE_MIN_PRODUCT_KRW } from '../../worker/lib/paid-feature-registry.js';
 import { renderPressCoverageHtml } from "../../lib/seo/press-coverage.mjs";
 import { readFileSync, writeFileSync } from 'node:fs';
 import { parse } from 'parse5';
@@ -66,6 +68,8 @@ const lightCards = ['saju', 'tarot', 'ziwei', 'sukuyo'].map(id => {
 });
 vars.lightRecommendations = `<section class="cdh-light" aria-labelledby="cdhLightTitle"><h2 id="cdhLightTitle" data-cd-trans="home.followup.light">가볍게 둘러보기</h2><div class="cdh-methods-grid">${lightCards.join('')}</div></section>`;
 vars.signupBenefit = `<section id="cdhSignupBenefit" class="cdh-signup-benefit" hidden aria-live="polite"><h2 data-cd-trans="home.followup.benefit">첫 가입 월정석 ${signupBenefitPolicy.amount.toLocaleString('ko-KR')}개</h2><p data-cd-trans="home.followup.benefitNote">지급일부터 ${signupBenefitPolicy.days}일 · 일반 환산 기준 ${(signupBenefitPolicy.amount * KRW_PER_COIN / MEMBERSHIP_CREDIT_PER_COIN).toLocaleString('ko-KR')}원 상당. 상품별 차감량이 다르며 현금 쿠폰이나 이용권 구매에는 쓸 수 없어요.</p><a href="/signup/?next=%2F" data-cd-trans="home.followup.join">카카오 또는 이메일로 가입하기</a></section>`;
+vars.resultSamples = renderResultSamples({prefix:'home-sample'});
+vars.moonstoneMinimum = MOONSTONE_MIN_PRODUCT_KRW.toLocaleString('ko-KR');
 vars.pickReason = htmlOf(byId('cdPickReason'), 'consultation recommendation');
 vars.signature = vars.signature.replace(vars.pickReason, '').replace(/^[ \t]+$/gm, '');
 vars.pressCoverage = renderPressCoverageHtml();

@@ -1934,7 +1934,7 @@
       "benefitNote": "30 Tage gültig. Zum Standardkurs 20.000 KRW wert; der Verbrauch hängt vom Produkt ab. Kein Bargeld und nicht für Passkäufe.",
       "join": "Mit Kakao oder E-Mail anmelden",
       "signatureDescription": "Entdecke passende Beratungen und Beispielergebnisse für dein Anliegen.",
-      "member": "Prüfe dein Mondstein-Guthaben, Ablaufdaten und Produktbedingungen.",
+      "member": "Prüfe Mondsteine und Ablaufdaten. Für berechtigte Produkte ab {{minimum}} KRW.",
       "balance": "Meine Mondsteine ansehen"
     }
   },

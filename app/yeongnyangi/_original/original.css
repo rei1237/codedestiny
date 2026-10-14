@@ -4130,3 +4130,8 @@
  .ynOriginal .fortune-relationship-entry__content {padding:24px;}
  .ynOriginal .fortune-relationship-entry__art {width:160px;justify-self:end;margin:0 24px 24px;border-radius:12px;}
 }
+/* Free entry: the sorting hat is visible before the smaller navigation links. */
+.ynOriginal .hero-hat-invitation{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center;gap:24px;grid-column:1/-1;padding:24px;border:1px solid #b997655e;border-radius:22px;background:#20182e;color:#f5e9d5;text-decoration:none}
+.ynOriginal .hero-hat-invitation>img{width:100%;height:auto;border-radius:14px}.ynOriginal .hero-hat-invitation>span{display:grid;gap:14px;line-height:1.7}.ynOriginal .hero-hat-invitation strong{font:700 clamp(1.5rem,3vw,2.2rem)/1.4 var(--serif,serif)}.ynOriginal .hero-hat-invitation b{display:flex;align-items:center;gap:12px;min-height:48px;color:#f3d296}.ynOriginal .hero-hat-invitation small{color:#d4c2dc}.ynOriginal .hero-hat-invitation:focus-visible{outline:2px solid #f3d296;outline-offset:4px}
+.ynOriginal .yn-founder-disclosure{margin-block:40px;border-block:1px solid #795b8255}.ynOriginal .yn-founder-disclosure>summary{padding:20px;min-height:56px;cursor:pointer;color:#e8d5a3;font-weight:600}.ynOriginal .yn-founder-disclosure>summary:focus-visible{outline:2px solid #e8d5a3;outline-offset:3px}
+@media(max-width:700px){.ynOriginal .hero-hat-invitation{grid-template-columns:minmax(0,1fr);gap:18px;padding:18px}.ynOriginal .hero-hat-invitation>img{max-height:240px;object-fit:cover}}

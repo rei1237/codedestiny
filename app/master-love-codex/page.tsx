@@ -1,3 +1,4 @@
+import ResultSamples from "@/app/components/ResultSamples";
 import type { Metadata } from "next";
 import MasterLoveCodexRouteClient from "./MasterLoveCodexRouteClient";
 import {
@@ -158,6 +159,7 @@ export default function MasterLoveCodexPageRoute() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(masterLoveCodexJsonLd) }}
       />
       <MasterLoveCodexRouteClient />
+      <ResultSamples ids={["codex"]}/>
       <ServiceIntroSection label="마스터 인연의 서 안내">
         <h1><span>사주 연애 리포트 — 자미두수와 함께 읽는 스무 장의 연애 전략서</span>내 다음 연애는 언제 시작될까?</h1>
         <p>

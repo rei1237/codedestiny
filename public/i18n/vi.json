@@ -1934,7 +1934,7 @@
       "benefitNote": "Có hiệu lực 30 ngày. Tương đương 20.000 KRW theo tỷ lệ thông thường; mức trừ tùy sản phẩm. Không phải tiền mặt và không dùng mua thẻ.",
       "join": "Đăng ký bằng Kakao hoặc email",
       "signatureDescription": "Xem tư vấn và kết quả mẫu phù hợp với điều bạn quan tâm.",
-      "member": "Kiểm tra số dư Đá Mặt Trăng, ngày hết hạn và điều kiện sử dụng.",
+      "member": "Kiểm tra Đá Mặt Trăng và hạn dùng. Áp dụng cho sản phẩm đủ điều kiện từ {{minimum}} KRW.",
       "balance": "Xem Đá Mặt Trăng"
     }
   },

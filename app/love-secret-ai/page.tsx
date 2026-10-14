@@ -1,3 +1,4 @@
+import ResultSamples from "@/app/components/ResultSamples";
 import type { Metadata } from "next";
 import LoveSecretAiRouteClient from "./LoveSecretAiRouteClient";
 import {
@@ -97,6 +98,7 @@ export default function LoveSecretAiPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(loveSecretJsonLd) }}
       />
             <LoveSecretAiRouteClient />
+      <ResultSamples ids={["love-secret"]}/>
             <ServiceIntroSection label="사랑의 비밀 전문가 상담 안내">
         <h1>짝사랑 운세 — 재회와 연애 마음 리딩</h1>
         <p>

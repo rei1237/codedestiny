@@ -176,6 +176,7 @@ const staticCanonicalRouteEntries = STATIC_CANONICAL_ROUTES.map((route) => ({
 }));
 
 const coreRoutes = [
+  { path: "/consultation-samples", changefreq: "monthly", priority: 0.7 },
   // 🔴 "/" 는 넣지 않는다 — 워커가 /ggulggul/ 로 301 한다(2026-10-02 사용자 결정: /ggulggul/ 단일 대표).
   //    리다이렉트 URL 을 사이트맵에 내면 대표 URL 신호가 둘로 갈린다.
   // 브랜드 별칭("꿀꿀 운세") 의 대표 URL 은 /ggulggul/ 다. 이 페이지는 그 관계를

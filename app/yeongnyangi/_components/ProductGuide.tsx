@@ -1,4 +1,5 @@
 'use client';
+import ResultSamples from "@/app/components/ResultSamples";
 import {useEffect, useId, useState} from 'react';
 import type {DomainId} from '@/worker/yeongnyangi/fortune/shared/contracts';
 import {questionGuides,contextualQuestionGuides,questionGuideHref} from '@/lib/fortune/question-journey';
@@ -32,6 +33,7 @@ export default function ProductGuide({domain,offers,surface='home_catalog'}:{dom
  useEffect(()=>{trackProductStep('product_detail_view',domain,offers[0].itemId,surface,siteLocale);},[domain,offers,surface,siteLocale]);
  if(siteLocale!=='ko')return <LocalizedProductGuide domain={domain} offers={offers} locale={siteLocale} surface={surface}/>;
  return <div className={styles.guide}>
+  {["saju","tarot","ziwei","astrology"].includes(domain)&&<ResultSamples ids={[`yn-${domain}`]} prefix={`product-sample-${surface}`}/>}
   <section className={styles.offer} aria-label="질문 상담 시작">
    <Heading>내 질문부터 들려주세요</Heading>
    <p>{copy.hook}</p><p>질문의 대상과 기간에 맞는 상담을 안내해요. 생선 이름을 먼저 고를 필요는 없어요.</p>

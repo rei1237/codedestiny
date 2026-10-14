@@ -1,0 +1,121 @@
+[
+  {
+    "id": "fusion",
+    "title": "초융합 운세",
+    "group": "대표 상담",
+    "href": "/fusion-fortune/",
+    "question": "여러 운세의 해석을 한 번에 비교하고 싶다면?",
+    "receives": "사주 · 자미두수 · 베다점 · 숙요점 · 점성술 · 타로",
+    "excerpts": [
+      "서로 다른 여섯 체계의 관점을 함께 살펴보는 리포트입니다. 각 체계의 근거와 해석을 구분해 읽고, 내 고민에 필요한 방향을 찾아보세요."
+    ],
+    "image": "/assets/yeongnyangi/reading-art/insight.webp",
+    "kind": "structure",
+    "source": "FusionValuePreview"
+  },
+  {
+    "id": "codex",
+    "title": "마스터 인연의 서",
+    "group": "대표 상담",
+    "href": "/master-love-codex/#codex-sample",
+    "question": "나의 연애 패턴과 관계의 방향을 깊이 알고 싶다면?",
+    "receives": "사주와 자미두수 · 스무 장의 연애 리포트 · PDF 소장",
+    "excerpts": [
+      "사주 명식과 자미두수 명반을 함께 읽으며, 사랑에서 반복하는 패턴과 관계의 방향을 살펴봅니다."
+    ],
+    "image": "/assets/mascot/yeoni-moonstone-reward-v1-320.webp",
+    "kind": "structure",
+    "source": "master-love-codex existing introduction"
+  },
+  {
+    "id": "love-secret",
+    "title": "연애 비책",
+    "group": "대표 상담",
+    "href": "/love-secret-ai/",
+    "question": "고백할까, 조금 더 기다릴까?",
+    "receives": "관계 진단 · 대화 예시 · 7일 실천 가이드",
+    "excerpts": [
+      "관계의 불확실성을 해소하고 다음 단계로 나아가기 위해 당신의 솔직한 마음을 표현할 때입니다.",
+      "상대의 관심사를 담은 가벼운 질문 던지기",
+      "[상대 관심사] 요즘도 자주 해? 문득 궁금해졌어."
+    ],
+    "image": "/assets/result-samples/love-secret.jpg",
+    "kind": "result",
+    "source": "LS1"
+  },
+  {
+    "id": "new-year",
+    "title": "신년운세",
+    "group": "대표 상담",
+    "href": "/new-year-ai-consultation/",
+    "question": "새해에는 이직과 부업 중 무엇을 준비할까?",
+    "receives": "한 해의 흐름 · 12개월 변화 · 현실적인 준비",
+    "excerpts": [
+      "2027년에는 지금 회사를 계속 다니면서 부업으로 수입을 늘리는 방향보다는 이직을 통해 연봉을 올리는 쪽이 더 명확하고 유리한 흐름으로 보입니다.",
+      "다만, 편관의 기운은 때로는 과도한 스트레스나 압박감으로 다가올 수 있습니다.",
+      "따라서 이직을 고려한다면, 새로운 직장의 업무 환경과 당신의 역량을 객관적으로 평가하고, 충분한 준비 기간을 갖는 것이 중요합니다."
+    ],
+    "image": "/assets/result-samples/new-year.jpg",
+    "kind": "result",
+    "source": "NY1"
+  },
+  {
+    "id": "yn-saju",
+    "title": "영냥이 사주",
+    "group": "영냥이 상담",
+    "href": "/yeongnyangi/fortune/?domain=saju",
+    "question": "변화를 바라면서도 안정이 중요한 나, 왜 그럴까?",
+    "receives": "오행 균형 · 반복하는 성향 · 선택의 기준",
+    "excerpts": [
+      "너는 자기만의 기준과 독립적인 역량을 중요하게 생각하는 강한 기질을 가졌어.",
+      "변화의 시기에는 완벽주의나 혼자 감당하려는 태도가 오히려 부담이 될 수 있으니 주의해야 해."
+    ],
+    "image": "/assets/result-samples/yn-saju.jpg",
+    "kind": "result",
+    "source": "Y1"
+  },
+  {
+    "id": "yn-tarot",
+    "title": "영냥이 타로",
+    "group": "영냥이 상담",
+    "href": "/yeongnyangi/fortune/?domain=tarot",
+    "question": "지금 회사에 남을까, 다른 길로 옮길까?",
+    "receives": "카드 스프레드 · 선택지 비교 · 행동 조언",
+    "excerpts": [
+      "소드 나인 역방향 카드는 네가 과장된 걱정에서 벗어나 실제 상황을 객관적으로 보려 한다는 걸 보여주거든."
+    ],
+    "image": "/assets/result-samples/yn-tarot.jpg",
+    "kind": "result",
+    "source": "T"
+  },
+  {
+    "id": "yn-ziwei",
+    "title": "영냥이 자미두수",
+    "group": "영냥이 상담",
+    "href": "/yeongnyangi/fortune/?domain=ziwei",
+    "question": "내 강점이 살아나는 일과 환경은 무엇일까?",
+    "receives": "명궁과 관록궁 · 별의 배치 · 직업적 성향",
+    "excerpts": [
+      "너의 명궁에는 천동(天同)이라는 별이 평(平)한 상태로 앉아 있어서, 안정적이고 평온한 환경을 선호하는 경향이 강해.",
+      "관록궁에는 천기(天機)와 태음(太陰)이 득(得)하고 왕(旺)한 상태로 있어서 직업적인 면에서는 분석적이고 계획성이 뛰어나며 꾸준하게 발전하려는 모습이 돋보일 거야."
+    ],
+    "image": "/assets/result-samples/yn-ziwei.jpg",
+    "kind": "result",
+    "source": "Z"
+  },
+  {
+    "id": "yn-astrology",
+    "title": "영냥이 점성술",
+    "group": "영냥이 상담",
+    "href": "/yeongnyangi/fortune/?domain=astrology",
+    "question": "도전하고 싶은 마음과 안정을 원하는 마음, 어떻게 맞출까?",
+    "receives": "출생 차트 · 행성 관계 · 나를 이해하는 실마리",
+    "excerpts": [
+      "네가 어떤 선택을 하든, 후회하지 않을 방법을 찾는 게 중요하지. 네 속마음이 뭘 원하는지 잘 살펴봐.",
+      "너의 출생 차트에서 상승점이 양자리에 있고 달이 황소자리에 위치한 것은, 외부로 드러나는 너의 모습은 활동적이고 선구적이지만, 감정적으로는 안정과 편안함을 중시한다는 것을 나타내."
+    ],
+    "image": "/assets/result-samples/yn-astrology.jpg",
+    "kind": "result",
+    "source": "A"
+  }
+]

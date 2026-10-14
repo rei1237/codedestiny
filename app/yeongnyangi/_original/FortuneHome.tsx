@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import ResultSamples from "@/app/components/ResultSamples";
 import QuestionJourney from "@/app/components/QuestionJourney";
 import {relationshipCopy} from '../_lib/relationship-copy';
 import NightHero from "../_components/NightHero";
@@ -257,6 +258,7 @@ export default function FortuneHome({offers}:{offers:ProductOffers}) {
             <Image className="fortune-relationship-entry__art" src="/assets/yeongnyangi/reading-art/insight.webp" width={720} height={480} sizes="(max-width: 759px) 160px, 420px" alt="수정구 앞에서 두 사람의 이야기를 기다리는 영냥이" loading="lazy"/>
           </section>
           <nav className="hero-secondary-links" aria-label="다른 서비스와 상담 기록">
+            <a className="hero-hat-invitation" href="/yeongnyangi/room/#sorting-hat"><Image src="/assets/yeongnyangi/hat/invitation-v1.webp" width={1200} height={800} sizes="(max-width:700px) 100vw, 540px" alt="여섯 기숙사의 문 앞에서 초승달 모자를 쓴 영냥이"/><span><strong>영냥이의 모자</strong><span>나와 닮은 기숙사는 어디일까?<br/>타고난 기질과 마음의 결로 찾아보는 나의 자리.</span><b>내 기숙사 알아보기 <ArrowRight size={18}/></b><small>로그인 후 무료 · 멸치 차감 없이 이용해요</small></span></a>
             <a className="hero-free-invitation" href="/yeongnyangi/room/#daily-tarot">
               <Image src="/assets/yeongnyangi/fish/reaction-anchovy-288.webp" width={144} height={140} alt="멸치를 들고 기다리는 영냥이"/>
               <span><strong>무료 운세, 나랑 놀다 갈래?</strong><span>오늘의 타로 세 장부터 가볍게 펼쳐봐.</span><b>무료 운세 보러 가기 <ArrowRight size={18}/></b></span>
@@ -264,7 +266,7 @@ export default function FortuneHome({offers}:{offers:ProductOffers}) {
             <div className="hero-category-links">
               <a href="/yeongnyangi/library/"><BookOpen size={22}/><span><strong>내 상담 기록</strong><small>맡겨둔 이야기, 다시 펼쳐봐.</small></span><ChevronRight size={17}/></a>
               <a href="/ggulggul/"><Compass size={22}/><span><strong>다른 운세 둘러보기</strong><small>꽃돼지의 점술방도 구경할래?</small></span><ChevronRight size={17}/></a>
-              <a href="#founder-records"><Bookmark size={22}/><span><strong>상담사 경력과 실제 상담 후기</strong><small>네오가 1:1로 상담하며 받은 이야기를 보여줄게.</small></span><ChevronRight size={17}/></a>
+              <a href="#yn-result-samples"><BookOpen size={22}/><span><strong>결과 예시 먼저 보기</strong><small>어떤 답변을 받는지 살펴봐.</small></span><ChevronRight size={17}/></a>
             </div>
           </nav>
 
@@ -317,6 +319,8 @@ export default function FortuneHome({offers}:{offers:ProductOffers}) {
 
 
             <QuestionSkyEntry/>
+            <div id="yn-result-samples"><ResultSamples ids={["yn-saju","yn-tarot","yn-ziwei","yn-astrology"]} prefix="yn-home-sample"/></div>
+            <details className="yn-founder-disclosure"><summary>영냥이 이야기와 상담사 소개</summary>
             <button
               className="prologue-banner"
               onClick={() => window.location.assign("/yeongnyangi/room/")}
@@ -327,7 +331,7 @@ export default function FortuneHome({offers}:{offers:ProductOffers}) {
                   <BookOpen size={14} /> 영냥이의 방 · 프롤로그
                 </span>
                 <strong>
-                  대통령의 운세를 읽었던 네오. <br />이제는 네 이야기를 듣는다.
+                  내 이름이 네오였던 밤. <br />영냥이의 이야기를 들어볼래?
                 </strong>
                 <span className="text-link">
                   그날의 이야기 <ArrowRight size={15} />
@@ -344,6 +348,7 @@ export default function FortuneHome({offers}:{offers:ProductOffers}) {
             <FeedbackInvitation/>
             <FounderTrust/>
             <LaunchOfferBanner/>
+            </details>
             <aside className="starter-invitation">
               <h2>{Number(packages.mackerel.priceKRW) === 1000 ? "천원부터 시작하는 운세" : `${packages.mackerel.priceKRW.toLocaleString("ko-KR")}원부터 시작하는 운세`}</h2>
               <p>가볍게 시작해도, 네 이야기는 깊이 있게. 기질과 고민의 흐름을 읽고 오늘 해볼 작은 행동까지 짚어줄게.</p>
