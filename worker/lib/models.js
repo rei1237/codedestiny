@@ -1277,6 +1277,8 @@ const masterLoveCodexSchema = new mongoose.Schema({
     isLeapMonth: { type: Boolean, default: false },
   },
   partnerInfo: { type: masterLoveCodexPartnerSchema, default: null },
+  consultation: { type: mongoose.Schema.Types.Mixed, default: null },
+  consultationHash: { type: String, default: "", maxlength: 80 },
   prologueChoice: { type: String, default: "", trim: true, maxlength: 20 },
   sajuResult: { type: mongoose.Schema.Types.Mixed, default: null },
   ziweiChart: { type: mongoose.Schema.Types.Mixed, default: null },

@@ -1,3 +1,4 @@
+import { normalizeCodexConsultation, buildCodexConsultation, codexConsultationPrompt, buildCodexConsultationFixture, assertCodexConsultation } from "../lib/master-love-codex-consultation.js";
 /**
  * ═══════════════════════════════════════════════════════════════════════════
  *  마스터 인연의 서  (MASTER_LOVE_CODEX)  —  워커 라우트
@@ -249,6 +250,9 @@ function normalizeInput(body = {}) {
     if (!partnerInfo.birthTime) partnerInfo.birthTimeUnknown = true;
   }
 
+  let consultation;
+  try { consultation = normalizeCodexConsultation(body.consultation); }
+  catch { return { ok: false, message: "질문은 3개까지 각 500자, 상황은 1,500자 이내로 입력하고 날짜를 확인해 주세요." }; }
   const prologueChoiceRaw = clean(body.prologueChoice, 20).toLowerCase();
   const prologueChoice = ["yes", "unsure", "partner", "self"].includes(prologueChoiceRaw) ? prologueChoiceRaw : "";
 
@@ -258,17 +262,17 @@ function normalizeInput(body = {}) {
     partnerInfo ? `${selfHashSource}|compat|${personHashParts(partnerInfo).join("|")}` : selfHashSource,
   );
 
-  return { ok: true, mode: partnerInfo ? "compat" : "solo", birthInfo, partnerInfo, prologueChoice, inputHash };
+  return { ok: true, mode: partnerInfo ? "compat" : "solo", birthInfo, partnerInfo, prologueChoice, inputHash, consultation };
 }
 
 /**
  * 명식·명반을 세운다. 궁합이면 상대 것까지 4개를 세우고 궁합 판정을 함께 만든다.
  * 실패 시 code=CALCULATION_FAILED
  */
-function buildCharts(normalized) {
+function buildCharts(normalized, now = new Date()) {
   const { birthInfo, partnerInfo } = asObject(normalized);
   try {
-    const year = new Date().getFullYear();
+    const year = new Date(now.getTime() + 9 * 3600000).getUTCFullYear();
     const saju = calculateLifeBookAiSaju(birthInfo, { year });
     const ziweiChart = calculateZiweiAiChart({ birthInfo }, { year });
     if (!partnerInfo) return { saju, ziweiChart, partnerSaju: null, partnerZiweiChart: null, compatibility: null };
@@ -515,7 +519,7 @@ async function runWithConcurrency(items, limit, worker) {
 }
 
 function chapterCache(env, modeKey, chapter, evidenceContract) {
-  // 명식·명반 기반 결정론(자유질문 없음)이라 응답 캐시 + in-flight dedup 이 안전하다.
+  // 고정된 명식·명반·질문·시기 근거를 프롬프트 해시에 포함해 회차 간 캐시를 구분한다.
   // 캐시 키는 프롬프트 전문까지 해시하므로(lib/llm-cache.ts) keyExtra 는 모드 구분용 명시적 가드다.
   return {
     store: qualityCheckedCodexCache(createLlmCacheStore(env), value => {
@@ -587,6 +591,8 @@ function normalizeLoveDna(parsed, metricDefs = LOVE_DNA_METRICS) {
 function normalizeChapterContent(parsed, fallbackBody = "", evidenceContract = null) {
   const source = asObject(parsed);
   const text = (value, limit) => stripCodexEvidenceIds(clean(value, limit), evidenceContract);
+  const privateTexts = [evidenceContract?.consultation?.situation, ...(evidenceContract?.consultation?.questions || []).map(q => q.text), ...(evidenceContract?.consultation?.focusQuestions || [])].filter(Boolean);
+  const shareText = (value, limit) => privateTexts.some(raw => String(value || "").includes(raw)) ? "" : text(value, limit);
   const id = (value, limit) => clean(value, limit);
   const list = (value, limit, max = 4) => (Array.isArray(value) ? value : [])
     .map((item) => text(item, limit))
@@ -601,7 +607,7 @@ function normalizeChapterContent(parsed, fallbackBody = "", evidenceContract = n
         label,
         evidenceId: id(entry.evidenceId, 120),
         subject: text(entry.subject, 16),
-        period: text(entry.period, 32),
+        period: text(entry.period, 100),
         certainty: text(entry.certainty, 16),
         system: entry.system === "saju" ? "사주" : entry.system === "ziwei" ? "자미두수" : text(entry.system, 32),
         explanation: text(entry.explanation, 180),
@@ -622,15 +628,25 @@ function normalizeChapterContent(parsed, fallbackBody = "", evidenceContract = n
     .slice(0, 6);
   const body = text(source.body, 12000) || text(fallbackBody, 12000);
   return {
+    questionAnswers: (Array.isArray(source.questionAnswers) ? source.questionAnswers : []).map(a => ({
+      questionId: id(a.questionId, 16), answer: text(a.answer, 1600), reasoning: text(a.reasoning, 3200),
+      outlook: text(a.outlook, 1600), actions: list(a.actions, 800, 5), reassess: text(a.reassess, 1200),
+      evidenceIds: Array.isArray(a.evidenceIds) ? a.evidenceIds : [],
+    })),
+    periodReadings: (Array.isArray(source.periodReadings) ? source.periodReadings : []).map(a => ({
+      periodId: id(a.periodId, 32), interpretation: text(a.interpretation, 1600),
+      action: text(a.action, 800), reassess: text(a.reassess, 800),
+      evidenceIds: Array.isArray(a.evidenceIds) ? a.evidenceIds : [],
+    })),
     narration: text(source.narration, 520),
     evidence,
     crossChecks: Array.isArray(source.crossChecks) ? source.crossChecks.map(item => ({
       id: id(item.id, 120), status: id(item.status, 24), explanation: text(item.explanation, 600),
     })) : [],
-    insight: text(source.insight, 1200),
-    keySentence: text(source.keySentence, 320),
+    insight: shareText(source.insight, 1200),
+    keySentence: shareText(source.keySentence, 320),
     caution: text(source.caution, 900),
-    actions: list(source.actions, 240, 3),
+    actions: (Array.isArray(source.actions) ? source.actions : []).map(value => shareText(value, 240)).filter(Boolean).slice(0, 3),
     bridge: text(source.bridge, 360),
     visualization: visualizationItems.length
       ? { kind: text(visualization.kind, 32), title: text(visualization.title, 80), items: visualizationItems }
@@ -648,7 +664,7 @@ function buildChapterLogContext(modeDef, chapter) {
 
 async function generateChapter(env, {
   mode = "solo", saju, ziweiChart, partnerSaju, partnerZiweiChart, compatibility,
-  birthInfo, partnerInfo, chapter, prologueChoice, memory, previousError = "", snapshotKey, deadlineAt = Infinity,
+  birthInfo, partnerInfo, chapter, prologueChoice, consultation, memory, previousError = "", snapshotKey, deadlineAt = Infinity,
 }) {
   // 남은 예산이 한 장을 쓰기에도 모자라면 아예 시작하지 않는다(시작해도 못 끝낸다).
   const remainingMs = deadlineAt - Date.now();
@@ -658,8 +674,10 @@ async function generateChapter(env, {
 
   const modeDef = resolveMode(mode);
   const logContext = buildChapterLogContext(modeDef, chapter);
+  const evidenceContract = buildCodexEvidence({ chapter, saju, ziweiChart, partnerSaju, partnerZiweiChart, compatibility, consultation });
   if (isStagingLlmMockEnabled(env)) {
-    const parsed = buildCodexStagingChapter(chapter, modeDef.dnaMetrics);
+    const parsed = { ...buildCodexStagingChapter(chapter, modeDef.dnaMetrics), ...buildCodexConsultationFixture(evidenceContract) };
+    assertCodexConsultation(parsed, evidenceContract);
     assertCodexChapterQuality(parsed, chapter, modeDef.dnaMetrics);
     const content = normalizeChapterContent(parsed);
     return { status: "ok",
@@ -667,14 +685,13 @@ async function generateChapter(env, {
         content, chars: content.body.length, provider: "staging-mock", ok: true },
       loveDna: chapter.jsonMode ? normalizeLoveDna(parsed, modeDef.dnaMetrics) : null };
   }
-  const evidenceContract = buildCodexEvidence({ chapter, saju, ziweiChart, partnerSaju, partnerZiweiChart, compatibility });
   const basePrompt = modeDef.mode === "compat"
     ? buildMasterLoveCodexCompatChapterPrompt({
       selfSaju: saju, selfZiwei: ziweiChart, partnerSaju, partnerZiwei: partnerZiweiChart,
       compatibility, birthInfo, partnerInfo, chapter, memory, evidenceProvided: true,
     })
     : buildMasterLoveCodexChapterPrompt({ saju, ziweiChart, birthInfo, chapter, prologueChoice, memory, evidenceProvided: true });
-  const prompt = `${basePrompt}\n${formatCodexEvidence(evidenceContract)}`;
+  const prompt = `${basePrompt}\n${formatCodexEvidence(evidenceContract)}\n${codexConsultationPrompt(evidenceContract)}`;
   const cache = chapterCache(env, modeDef.mode, chapter, evidenceContract);
   // A reserved repair must reach the provider instead of replaying the short draft.
   if (previousError) cache.store.get = async () => null;
@@ -852,6 +869,7 @@ function publicSession(doc) {
     birthInfo: doc?.birthInfo || null,
     partnerInfo: doc?.partnerInfo || null,
     prologueChoice: clean(doc?.prologueChoice),
+    consultation: doc?.consultation ? { ...doc.consultation, records: undefined } : null,
     sajuResult: doc?.sajuResult || null,
     ziweiChart: doc?.ziweiChart || null,
     partnerSajuResult: doc?.partnerSajuResult || null,
@@ -1093,9 +1111,11 @@ export async function startCodexSession(request, env, auth, body) {
   if (recovered?.denied) return json({ ok: false, reason: recovered.reason, message: "구매한 회차의 입력 또는 구매 상태를 확인해 주세요." }, { status: 409 });
   if (recovered?.session) return sessionWithAccessToken(env, recovered.session);
 
-  let charts;
+  let charts, consultation;
   try {
-    charts = buildCharts(normalized);
+    const now = new Date();
+    charts = buildCharts(normalized, now);
+    consultation = buildCodexConsultation(normalized.consultation, normalized.mode, charts, normalized.birthInfo, normalized.partnerInfo, now);
   } catch (_) {
     return json({ ok: false, reason: "CALCULATION_FAILED", message: MESSAGES.calculationFailed }, { status: 422 });
   }
@@ -1124,6 +1144,8 @@ export async function startCodexSession(request, env, auth, body) {
     birthInfo: normalized.birthInfo,
     partnerInfo: normalized.partnerInfo,
     prologueChoice: normalized.prologueChoice,
+    consultation,
+    consultationHash: consultation ? sha256(JSON.stringify(consultation)) : "",
     sajuResult: charts.saju,
     ziweiChart: charts.ziweiChart,
     partnerSajuResult: charts.partnerSaju,
@@ -1429,7 +1451,7 @@ async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, de
   try {
     const byId = savedChapterRows(doc, expected);
     const snapshotStore = dependencies.chapterSnapshotStore || (!dependencies.generateChapter ? createLlmCacheStore(env) : null);
-    const snapshotKey = chapter => `codex-chapter:${sha256(JSON.stringify([sessionId, doc.inputHash, modeDef.mode, chapter.id, CODEX_EVIDENCE_VERSION, doc.deliveryMeta?.locale || "ko", "chapter-v2"]))}`;
+    const snapshotKey = chapter => `codex-chapter:${sha256(JSON.stringify([sessionId, doc.inputHash, modeDef.mode, chapter.id, CODEX_EVIDENCE_VERSION, doc.deliveryMeta?.locale || "ko", "chapter-v2", ...(doc.consultationHash ? [doc.consultationHash] : [])]))}`;
     // Read committed storage first (the lock document), then a stable validated cache.
     // Even an exhausted uncertain reservation may already have a completed checkpoint.
     if (snapshotStore) for (const chapter of expected.filter(spec => (!byId.has(spec.id) || byId.get(spec.id).lengthDraft) && Number(doc.deliveryMeta?.attempts?.[spec.id]) > 0)) {
@@ -1440,7 +1462,7 @@ async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, de
         if (!cached?.parsed || cached.chapter?.id !== chapter.id) continue;
         const cachedContract = buildCodexEvidence({ chapter,
           saju: doc.sajuResult, ziweiChart: doc.ziweiChart, partnerSaju: doc.partnerSajuResult,
-          partnerZiweiChart: doc.partnerZiweiChart, compatibility: doc.compatibility });
+          partnerZiweiChart: doc.partnerZiweiChart, compatibility: doc.compatibility, consultation: doc.consultation });
         assertCodexChapterQuality(cached.parsed, chapter, modeDef.dnaMetrics, cachedContract, { allowShort: true });
         const content = normalizeChapterContent(cached.parsed, "", cachedContract);
         const recovered = dedupeChapterAgainst({ id: chapter.id, order: chapter.order, title: chapter.title, symbol: chapter.symbol,
@@ -1497,7 +1519,7 @@ async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, de
         try { result = await (dependencies.generateChapter || generateChapter)(env, {
           mode: modeDef.mode, saju: doc.sajuResult, ziweiChart: doc.ziweiChart,
           partnerSaju: doc.partnerSajuResult, partnerZiweiChart: doc.partnerZiweiChart, compatibility: doc.compatibility,
-          birthInfo: doc.birthInfo, partnerInfo: doc.partnerInfo, chapter, prologueChoice: clean(doc.prologueChoice), memory, deadlineAt,
+          birthInfo: doc.birthInfo, partnerInfo: doc.partnerInfo, chapter, prologueChoice: clean(doc.prologueChoice), consultation: doc.consultation, memory, deadlineAt,
           previousError: byId.has(chapter.id) ? "LLM_OUTPUT_TOO_SHORT" : errors[chapter.id]?.kind === "quality" ? errors[chapter.id].code : "", snapshotKey: snapshotKey(chapter),
         }); } catch { result = { status: "retryable", failure: { code: "LLM_TIMEOUT_UNCERTAIN", kind: "uncertain" } }; }
         const write = queue.catch(() => {}).then(async () => {

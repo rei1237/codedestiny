@@ -20,6 +20,7 @@
  *      추가 안전망으로 문서에 `data-codex-exporting` 을 달아 모션을 전역 정지시킨다.
  */
 
+import { codexConsultationCopy, type CodexConsultation } from "../_lib/consultation";
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
@@ -55,6 +56,7 @@ export type CodexChapter = CodexChapterData & { symbol?: string; chars?: number 
 export type { CodexLoveDna, CodexLoveDnaMetric };
 
 interface CodexReaderProps {
+  consultation?: CodexConsultation | null;
   chapters: CodexChapter[];
   /**
    * 서버가 주는 기대 장 목록(publicSession 의 `outline`). 받은 장이 아니라 **구매한 구성**이
@@ -123,6 +125,7 @@ function ChapterPlaceholder({ row }: { row: CodexOutlineRow<CodexChapterData> })
 }
 
 export default function CodexReader({
+  consultation,
   chapters,
   outline,
   totalChapters,
@@ -138,6 +141,7 @@ export default function CodexReader({
   const locale = useMasterLoveCodexLocale();
   const copy = useMasterLoveCodexCopy();
   // 표지·PDF 파일명·막 제목이 모드에 따라 갈린다(리더 레이아웃은 두 모드가 공유한다).
+  const consultationCopy = codexConsultationCopy(locale);
   const bookTitle = masterLoveCodexBilling(mode, locale).title;
   const [decrypted, setDecrypted] = useState(false);
   const [decryptStep, setDecryptStep] = useState(0);
@@ -365,6 +369,15 @@ export default function CodexReader({
           </div>
         </header>
 
+        {!!consultation?.questions.length && <section data-codex-pdf-page className={styles.section}>
+          <div className={styles.measure}>
+            <h2 className={styles.chapterTitle}>{consultationCopy.index}</h2>
+            <ol className={styles.questionIndex}>
+              {consultation.questions.map(q => <li key={q.id}><a href={"#" + CODEX_CHAPTER_ANCHOR_PREFIX + q.chapterOrder}>{q.text} · {copy.chapterOrderSrLabel(q.chapterOrder)}</a></li>)}
+            </ol>
+          </div>
+        </section>}
+
         {/* 종합 점수 — 표지 바로 다음. 문서 div 안이라 PDF 두 번째 장이 된다 */}
         {loveDna ? <CodexScoreOverview loveDna={loveDna} mode={mode} forceVisible={isExporting} /> : null}
 
@@ -375,7 +388,7 @@ export default function CodexReader({
               <CodexActInterstitial act={group.act} forceVisible={isExporting} />
             </div>
             {group.chapters.map((row) => (row.state === "ready" && row.chapter ? (
-              <ChapterSection key={row.id} chapter={row.chapter} forceVisible={isExporting} />
+              <ChapterSection key={row.id} chapter={row.chapter} consultation={consultation} forceVisible={isExporting} />
             ) : (
               <ChapterPlaceholder key={row.id} row={row} />
             )))}

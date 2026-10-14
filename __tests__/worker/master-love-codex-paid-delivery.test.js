@@ -490,3 +490,25 @@ for (const floor of ['paid body', 'legacy aggregate']) it(`keeps the independent
   expect(docs[0].status).toBe('completed');
   expect(provider).not.toHaveBeenCalled(); expect(refund).not.toHaveBeenCalled();
 });
+
+it('resumed waves retain the frozen question snapshot and bind checkpoints to its content hash', async () => {
+ const consultation={version:'codex-consultation-v1',referenceDate:'2026-10-14',relationship:'reunion',questions:[{id:'q1',text:'다시 연락해도 될까요?',chapterOrder:15}],periods:[],years:[],records:[]};
+ docs[0].consultation=consultation;
+ docs[0].consultationHash='question-content-a';
+ await generate();
+ expect(provider).toHaveBeenCalled();
+ const first=provider.mock.calls[0][1];
+ expect(first.consultation).toEqual(consultation);
+ const keyA=first.snapshotKey;
+ const chapterId=first.chapter.id;
+ docs[0].chapters=[];
+ docs[0].deliveryMeta={};
+ docs[0].generationProgress=null;
+ docs[0].consultationHash='question-content-b';
+ provider.mockClear();
+ await generate();
+ const next=provider.mock.calls.find(([,args])=>args.chapter.id===chapterId)[1];
+ expect(next.consultation).toEqual(consultation);
+ expect(next.snapshotKey).not.toBe(keyA);
+ expect(refund).not.toHaveBeenCalled();
+});

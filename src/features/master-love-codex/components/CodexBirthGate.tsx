@@ -15,6 +15,8 @@
  * 금액을 계속 들고 있는다. 두 슬롯 모두 현재 모드(개인/궁합)의 SKU 를 따라간다.
  */
 
+import CodexConsultationForm from "./CodexConsultationForm";
+import type { CodexConsultationInput } from "../_lib/consultation";
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { useEffect, useRef, useState } from "react";
 import { Loader2, RefreshCw } from "lucide-react";
@@ -26,6 +28,7 @@ import { useMasterLoveCodexCopy } from "../_lib/copy";
 import styles from "../styles/codex.module.css";
 
 export interface CodexBirthInput {
+  consultation?: CodexConsultationInput;
   name: string;
   gender: "male" | "female" | "";
   birthDate: string;
@@ -443,6 +446,8 @@ export default function CodexBirthGate({
             ) : null}
           </div>
         </CodexReveal>
+
+        <CodexConsultationForm value={value.consultation} onChange={consultation => patch({ consultation })} disabled={busy} />
 
         {error ? (
           <p role="alert" className="mt-9 leading-8" style={{ fontSize: "var(--codex-caption)", color: "#ffb4b4" }}>{error}</p>

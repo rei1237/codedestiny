@@ -1027,3 +1027,30 @@
   .landingSpecs { grid-template-columns: minmax(0, 1fr); }
   .landingSpecs li { min-height: 52px; }
 }
+
+/* Private question intake and evidence-backed answers, in the existing ink palette. */
+.consultationForm { min-inline-size: 0; margin: 3rem 0; padding: 0; border: 0; display: grid; gap: .875rem; color: var(--codex-ink-text); }
+.consultationForm label { display: block; line-height: 1.8; }
+.consultationForm small { color: var(--codex-ink-text-muted); margin-inline-start: .5rem; }
+.consultationForm p { font-size: .875rem; line-height: 1.9; color: var(--codex-ink-text-muted); }
+.consultationForm input, .consultationForm textarea, .consultationForm select {
+  width: 100%; min-width: 0; box-sizing: border-box; padding: .75rem; border: 1px solid var(--codex-gold-dim);
+  border-radius: .25rem; background: var(--codex-ink-2); color: var(--codex-ink-text); font: inherit; font-size: 1rem; caret-color: var(--codex-gold-dim);
+}
+.consultationForm textarea { resize: vertical; }
+.consultationForm button { min-height: 44px; padding: .5rem 1rem; text-decoration: underline; text-underline-offset: .3em; justify-self: start; }
+.consultationForm :focus-visible, .questionIndex a:focus-visible { outline: 2px solid var(--codex-gold-dim); outline-offset: 4px; }
+.consultationAnswers { margin: 2rem 0; overflow-wrap: anywhere; line-height: 1.95; }
+.consultationAnswers section { margin-block: 2rem; }
+.consultationAnswers h3 { font-size: 1.25rem; color: var(--codex-gold); }
+.consultationAnswers h4 { margin-block: 1.5rem .5rem; font-size: 1rem; }
+.consultationAnswers p, .consultationAnswers li { white-space: pre-wrap; margin-block: .75rem; }
+.consultationAnswers ol, .questionIndex { padding-inline-start: 1.5rem; list-style: decimal; }
+.questionIndex li { padding-block: .75rem; line-height: 1.8; overflow-wrap: anywhere; }
+.questionIndex a { text-decoration: underline; text-underline-offset: .3em; }
+
+.consultationScene { margin: 1.25rem 0 .5rem; }
+.consultationArtwork { display: block; width: 100%; aspect-ratio: 16 / 9; }
+.consultationDialogue { padding: 1.25rem 0; border-bottom: 1px solid var(--codex-rule); }
+.consultationDialogue strong { color: var(--codex-gold); font-size: 1rem; }
+.consultationDialogue p { color: var(--codex-ink-text); font-size: 1rem; line-height: 1.9; margin: .625rem 0 0; min-height: 3.8em; }
