@@ -12,7 +12,7 @@ export function FusionBookIntroduction({row}:{row:FortuneRecord}){
 }
 export default function FusionBookExtras({row}:{row:FortuneRecord}){
  if(row.product.readingKind==='single'||row.locale&&row.locale!=='ko')return null;
- return <FusionBookContent row={row}/>;
+ return <FusionBookContent key={row.id} row={row}/>;
 }
 function FusionBookContent({row}:{row:FortuneRecord}){
  const [includeQuestion,setIncludeQuestion]=useState(false),[phase,setPhase]=useState<ReadingPdfPhase|null>(null),[message,setMessage]=useState(''),[failed,setFailed]=useState(false);

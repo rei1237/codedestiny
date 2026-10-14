@@ -46,12 +46,14 @@ try{
   }
   if(width===1440){await page.evaluate(row=>window.bookTest.mount({...row,state:'GENERATING',chapters:row.chapters.slice(0,2)}),row);await page.waitForFunction(()=>document.querySelector('#fusion-book-export button')?.disabled===true);}
   if(width===430){
+   await page.getByRole('checkbox').check();
    const target='chapter-'+row.manifest[2].id;await page.locator('#'+target).scrollIntoViewIfNeeded();
    await page.waitForFunction(({id,target})=>localStorage.getItem('yeongnyangi:reading-position:'+id)===target,{id:row.id,target});
    // Return to the same saved purchase after mounting another record.
    await page.evaluate(row=>window.bookTest.mount({...row,id:'other-mock'}),row);await page.waitForTimeout(30);
    await page.evaluate(row=>window.bookTest.mount(row),row);
    await page.waitForFunction(target=>Array.from(document.querySelectorAll('aside>a')).some(a=>a.getAttribute('href')==='#'+target),target);
+   assert.equal(await page.getByRole('checkbox',{includeHidden:true}).isChecked(),false);
   }
   assert.equal(apiRequests,0);assert.deepEqual(errors,[]);await context.close();console.log(`PASS reader/export ${width}px`);
  }
