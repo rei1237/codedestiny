@@ -1,7 +1,7 @@
 ---
-status: done
+status: active
 updated: 2026-10-14
-next: 구현 완료. 아래 완료 기록의 검증 범위를 참조한다.
+next: 구현 완료, 전달 차단. 기존 main CI 오류 해소 후 아래 재개 절차로 push한다.
 ---
 
 # 영냥이의 모자 — 프로필 선택 후 기숙사 배정 연출
@@ -52,3 +52,11 @@ mock으로 6개 배정·실패·느린 응답·건너뛰기·프로필 전환·�
 - mock 컴포넌트 브라우저 검사 통과: 여섯 배정, 느린 응답, 건너뛰기, 오류/재시도, 프로필 전환의 오래된 응답, 근거 없는 결과 차단, 타이핑 완성, Enter/Space 진행과 결과 초점. 360/390/430/1280px 가로 넘침 없음, 캡처 확인.
 - 기존 hat 회귀 9건 통과. ESLint 오류 0, 기존 generation ref cleanup 경고 1건. impeccable detect exit 0.
 - 실 LLM·실결제·운영 DB·운영 승격·실기기 검증은 수행하지 않았다. 최종 전달/CI 상태는 커밋과 최종 보고를 기준으로 한다.
+
+## 전달 차단 — 2026-10-14
+- 마지막 구현 커밋: `df91350f68b53b9caf25a86060c116b3d90f80bb` (main, 로컬 보존, push 보류).
+- `npm run check:fast -- --committed-head`: lint, 사이트맵, typecheck, Node 3,224건 및 앞선 정책 가드 통과. `verify:worker-no-undef`에서 기존 `lib/marketing/render-result-samples.mjs:1:45`의 `with` 구문 파싱 실패로 중단. 이후 단계는 미실행.
+- 기준 `423857592`와 위 파일 및 검증기는 diff 없음. 원격 같은 SHA의 CI도 동일 오류로 실패: https://github.com/rei1237/codedestiny/actions/runs/38497591928 (failed logs 확인).
+- `npm run check:pre-push`: 홈 레지스트리, public 미러, 사이트맵 모두 통과.
+- 저장소 규칙상 기존 실패 main 위로 push하지 않는다. 구현은 완료했으며 이 문서는 전달 절차만 남아 active다. 범위 밖 기존 오류는 수정하지 않았다.
+- 재개: `D:\Development\code-destiny`에서 이 문서 `D:\Development\code-destiny\docs\handoff\yeongnyangi-hat-prologue-2026-10-14.md`를 읽고 `df91350f68b53b9caf25a86060c116b3d90f80bb` 및 변경 소유권을 확인한다. 기존 main 파싱 오류가 해결되었는지 먼저 확인한 뒤 남은 검사와 pre-push를 실행하고 main push, CI 1회 확인, 문서 done 처리를 진행한다.
