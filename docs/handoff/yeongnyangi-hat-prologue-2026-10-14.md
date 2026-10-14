@@ -1,7 +1,7 @@
 ---
-status: active
+status: done
 updated: 2026-10-14
-next: 구현 완료, 전달 차단. 기존 main CI 오류 해소 후 아래 재개 절차로 push한다.
+next: 기존 전달 차단 해소 및 검증 완료. 후속 UI 개선은 별도 변경으로 진행한다.
 ---
 
 # 영냥이의 모자 — 프로필 선택 후 기숙사 배정 연출
@@ -60,3 +60,8 @@ mock으로 6개 배정·실패·느린 응답·건너뛰기·프로필 전환·�
 - `npm run check:pre-push`: 홈 레지스트리, public 미러, 사이트맵 모두 통과.
 - 저장소 규칙상 기존 실패 main 위로 push하지 않는다. 구현은 완료했으며 이 문서는 전달 절차만 남아 active다. 범위 밖 기존 오류는 수정하지 않았다.
 - 재개: `D:\Development\code-destiny`에서 이 문서 `D:\Development\code-destiny\docs\handoff\yeongnyangi-hat-prologue-2026-10-14.md`를 읽고 `df91350f68b53b9caf25a86060c116b3d90f80bb` 및 변경 소유권을 확인한다. 기존 main 파싱 오류가 해결되었는지 먼저 확인한 뒤 남은 검사와 pre-push를 실행하고 main push, CI 1회 확인, 문서 done 처리를 진행한다.
+
+## 전달 차단 해소
+- `.mjs`의 JSON import attributes를 지원하는 기존 설치 파서를 미선언 변수 검사에 적용했다. no-undef 및 문법 오류 차단 유지, self-test 3종 통과.
+- `verify:worker-no-undef` 645파일 통과. 이전 중단 뒤 남은 mongo-reset/cron/admin 가드, Worker dry-run 빌드, strict-core 인코딩 검사 통과. Jest 396스위트/6,044건 통과. 이전 Node 3,224건/타입/lint 결과와 합쳐 남은 검증 완료.
+- 기존 실패 원인을 이번 커밋에서 수정하므로 기존 실패 위에 무관한 push를 쌓는 경우가 아니다. main push 후 CI는 저장소 규칙대로 한 번 확인하며 진행 중이면 최종 보고에 명시한다.
