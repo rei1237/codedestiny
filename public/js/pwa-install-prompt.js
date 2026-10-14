@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  /* 홈 하단 "앱으로 다운받기" 카드(#cdAppInstall)의 컨트롤러.
+  /* 홈 하단 "핸드폰에 추가하기" 카드(#cdAppInstall)의 컨트롤러.
      2026-09-04: 초기 진입 전면 모달(#cdPwaInstallPrompt, position:fixed;inset:0)을 걷어내고
      이메일 구독 박스 아래 상시 카드로 옮겼다. 모달은 첫 화면을 막고 홈 카드 탭을 가로챈
      기록이 있다(docs/handoff/mobile-home-perf.md).

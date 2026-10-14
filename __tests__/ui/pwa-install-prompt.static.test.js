@@ -6,6 +6,13 @@ const vm = require("node:vm");
 
 const root = path.resolve(__dirname, "../..");
 const source = fs.readFileSync(path.join(root, "js/pwa-install-prompt.js"), "utf8");
+const home = fs.readFileSync(path.join(root, "index.html"), "utf8");
+const ko = JSON.parse(fs.readFileSync(path.join(root, "public/i18n/ko.json"), "utf8"));
+
+test("uses phone-first install copy before the platform-specific prompt runs", () => {
+  assert.match(home, /data-cd-app-install[^>]*>핸드폰에 추가하기<\/button>/);
+  assert.equal(ko.home.appInstall.cta, "핸드폰에 추가하기");
+});
 
 function loadPrompt({ native = false, standalone = false, mobile = false, ios = false, safari = false, lang = 'ko' } = {}) {
   const listeners = new Map();
