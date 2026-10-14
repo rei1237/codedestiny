@@ -81,6 +81,8 @@ import {
 } from "./data/form-copy";
 import type { NeoWarRoomEmotionState } from "./data/sprite-states";
 import styles from "./neo-operation-room.module.css";
+import MasterProfile from "@/components/fortune/MasterProfile";
+import { masterProfiles } from "@/components/fortune/master-profiles";
 
 type IntensityId = NeoWarRoomIntensityId;
 type FlowPhase = "idle" | "invalid" | "checking" | "payment" | "generating" | "completed" | "failed";
@@ -2298,6 +2300,8 @@ export default function NeoOperationRoomPage() {
         </div>
       </section>
       ) : null}
+
+      {!hasActiveWarRoomEntry && !showCommandDeck && !showOperationMap && !displayBriefing && !displayRefinedOrder && dialogueLocale === "ko" && <MasterProfile profile={masterProfiles.neo} />}
 
       {!showOperationMap && !displayBriefing && !displayRefinedOrder && <section className={styles.consultationValue} aria-label={welcome.results}>
         <div className={styles.consultationValueIntro}>
