@@ -1590,7 +1590,11 @@
     "appInstall": {
       "title": "將應用程式加入主畫面",
       "desc": "安裝後不必經過瀏覽器即可一鍵開啟，今日運勢也能更快查看。",
-      "cta": "取得應用程式"
+      "cta": "取得應用程式",
+      "iosBody": "在 iPhone 和 iPad 上，可透過 Safari 加入主畫面，像 App 一樣開啟。",
+      "iosCta": "加入 iPhone 或 iPad",
+      "iosSafari": "請在 Safari 中點按分享，再選擇「加入主畫面」。目前尚無 App Store 下載版。",
+      "iosOther": "請在 Safari 中開啟此頁面，點按分享，再選擇「加入主畫面」。目前尚無 App Store 下載版。"
     },
     "mobileFunnel": {
       "lowPrice": "₩1,000級距",
@@ -1902,7 +1906,10 @@
       "priceFrom": "{amount}韓元起",
       "samplesTitle": "付款前先讀讀結果範例",
       "sampleCodex": "姻緣之書結果範例",
-      "sampleConsult": "靈喵諮詢結果範例"
+      "sampleConsult": "靈喵諮詢結果範例",
+      "allLead": "可直接選擇占卜體系，也可從當下最貼近的煩惱開始。",
+      "moreContent": "更多運勢與內容",
+      "moreContentNote": "集中查看特別解讀、公開分析記錄與今日運勢。"
     },
     "yeongnyangiEntry": {
       "badge": "靈喵的問題諮詢",

@@ -1590,7 +1590,11 @@
     "appInstall": {
       "title": "Keep Code Destiny on your home screen",
       "desc": "Install it and it opens in one tap without the browser, and today's fortune loads faster.",
-      "cta": "Get the app"
+      "cta": "Get the app",
+      "iosBody": "Sur iPhone et iPad, ajoutez ce site à l’écran d’accueil depuis Safari pour l’ouvrir comme une app.",
+      "iosCta": "Ajouter sur iPhone ou iPad",
+      "iosSafari": "Touchez Partager dans Safari puis Sur l’écran d’accueil. Le téléchargement App Store n’est pas encore disponible.",
+      "iosOther": "Ouvrez cette page dans Safari, touchez Partager puis Sur l’écran d’accueil. Le téléchargement App Store n’est pas encore disponible."
     },
     "mobileFunnel": {
       "lowPrice": "Dès 1 000 ₩",
@@ -1902,7 +1906,10 @@
       "priceFrom": "À partir de KRW {amount}",
       "samplesTitle": "Lisez un exemple de résultat avant de payer",
       "sampleCodex": "Exemple du Love Codex",
-      "sampleConsult": "Exemple de consultation Yeongnyangi"
+      "sampleConsult": "Exemple de consultation Yeongnyangi",
+      "allLead": "Choisissez un système ou partez de votre préoccupation principale.",
+      "moreContent": "Plus de lectures et de contenus",
+      "moreContentNote": "Explorez les lectures spéciales, les analyses publiques et l’horoscope du jour."
     },
     "yeongnyangiEntry": {
       "badge": "Consultation question avec Yeongnyangi",

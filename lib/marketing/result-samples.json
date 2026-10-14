@@ -10,6 +10,7 @@
       "서로 다른 여섯 체계의 관점을 함께 살펴보는 리포트입니다. 각 체계의 근거와 해석을 구분해 읽고, 내 고민에 필요한 방향을 찾아보세요."
     ],
     "image": "/assets/yeongnyangi/reading-art/insight.webp",
+    "visual": "/images/feature-details/fusion-fortune-hero-v2.webp",
     "kind": "structure",
     "source": "FusionValuePreview"
   },
@@ -24,6 +25,7 @@
       "사주 명식과 자미두수 명반을 함께 읽으며, 사랑에서 반복하는 패턴과 관계의 방향을 살펴봅니다."
     ],
     "image": "/assets/mascot/yeoni-moonstone-reward-v1-320.webp",
+    "visual": "/images/feature-details/master-love-codex-hero-v3.webp",
     "kind": "structure",
     "source": "master-love-codex existing introduction"
   },
@@ -32,6 +34,7 @@
     "title": "연애 비책",
     "group": "대표 상담",
     "href": "/love-secret-ai/",
+    "visual": "/images/feature-details/love-secret-ai-hero-v2.webp",
     "question": "고백할까, 조금 더 기다릴까?",
     "receives": "관계 진단 · 대화 예시 · 7일 실천 가이드",
     "excerpts": [
@@ -48,6 +51,7 @@
     "title": "신년운세",
     "group": "대표 상담",
     "href": "/new-year-ai-consultation/",
+    "visual": "/images/feature-details/new-year-ai-hero-v3.webp",
     "question": "새해에는 이직과 부업 중 무엇을 준비할까?",
     "receives": "한 해의 흐름 · 12개월 변화 · 현실적인 준비",
     "excerpts": [

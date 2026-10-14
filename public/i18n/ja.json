@@ -1590,7 +1590,11 @@
     "appInstall": {
       "title": "ホーム画面にアプリとして追加",
       "desc": "インストールすればブラウザを経由せず一度で開き、今日の運勢もより早く確認できます。",
-      "cta": "アプリを入手"
+      "cta": "アプリを入手",
+      "iosBody": "iPhoneとiPadでは、Safariからホーム画面に追加するとアプリのように開けます。",
+      "iosCta": "iPhoneにアプリとして追加",
+      "iosSafari": "Safariの共有ボタンから「ホーム画面に追加」を選んでください。App Store版はまだ提供していません。",
+      "iosOther": "Safariでこのページを開き、共有から「ホーム画面に追加」を選んでください。App Store版はまだ提供していません。"
     },
     "mobileFunnel": {
       "lowPrice": "₩1,000台",
@@ -1902,7 +1906,10 @@
       "priceFrom": "{amount} KRWから",
       "samplesTitle": "お支払い前に結果の例を読んでみてください",
       "sampleCodex": "縁の書の結果例",
-      "sampleConsult": "ヨンニャンイ相談の結果例"
+      "sampleConsult": "ヨンニャンイ相談の結果例",
+      "allLead": "占術から直接選ぶか、今の悩みに近いテーマから探せます。",
+      "moreContent": "もっと多くの占いとコンテンツ",
+      "moreContentNote": "特別なリーディング、公開分析記録、今日の運勢をまとめて見られます。"
     },
     "yeongnyangiEntry": {
       "badge": "ヨンニャンイの質問相談",

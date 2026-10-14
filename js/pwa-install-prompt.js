@@ -5,13 +5,15 @@
      2026-09-04: 초기 진입 전면 모달(#cdPwaInstallPrompt, position:fixed;inset:0)을 걷어내고
      이메일 구독 박스 아래 상시 카드로 옮겼다. 모달은 첫 화면을 막고 홈 카드 탭을 가로챈
      기록이 있다(docs/handoff/mobile-home-perf.md).
-     카드는 마크업에서 hidden 으로 시작하고 beforeinstallprompt 가 와야 열린다 —
-     iOS Safari 처럼 이벤트가 없는 브라우저·이미 설치된 환경·네이티브 앱에서는 계속 숨겨진다. */
+     카드는 마크업에서 hidden 으로 시작한다. Chromium 계열은 beforeinstallprompt 가 왔을 때,
+     iOS/iPadOS 는 Safari 의 공유 메뉴 설치 안내를 제공할 수 있을 때만 연다. 이미 설치된 환경과
+     네이티브 앱에서는 계속 숨겨진다. */
 
   var CARD_ID = 'cdAppInstall';
   var deferredInstallPrompt = null;
   var boundCta = null;
   var promptInFlight = false;
+  var installMode = '';
 
   function isNativeApp() {
     /* 🔴 판별 정본은 js/core/app-context.js 하나다(docs/app-audit/APP_UIUX_SPEC.md §2). */
@@ -44,12 +46,57 @@
     return document.getElementById(CARD_ID);
   }
 
+  function isIOS() {
+    try {
+      var navigator = window.navigator || {};
+      return /iPad|iPhone|iPod/i.test(navigator.userAgent || '')
+        || (navigator.platform === 'MacIntel' && Number(navigator.maxTouchPoints) > 1);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function isSafari() {
+    try {
+      var navigator = window.navigator || {};
+      return /Safari/i.test(navigator.userAgent || '')
+        && /Apple/i.test(navigator.vendor || '')
+        && !/CriOS|FxiOS|EdgiOS|OPiOS/i.test(navigator.userAgent || '');
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function isKorean() {
+    try {
+      return /^ko\b/i.test(document.documentElement.getAttribute('lang') || '');
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function installText(key, korean, english) {
+    var fallback = isKorean() ? korean : english;
+    try {
+      return typeof window.cdTranslate === 'function' ? window.cdTranslate(key, {}, fallback) : fallback;
+    } catch (_) {
+      return fallback;
+    }
+  }
+
   function hideCard() {
     var el = getCard();
     if (el) el.hidden = true;
   }
 
   function onCtaClick() {
+    if (installMode === 'ios') {
+      var iosCard = getCard();
+      var note = iosCard && iosCard.querySelector('[data-cd-app-install-note]');
+      if (note) note.hidden = false;
+      if (boundCta) boundCta.setAttribute('aria-expanded', 'true');
+      return;
+    }
     var promptEvent = deferredInstallPrompt;
     if (promptInFlight || !promptEvent || typeof promptEvent.prompt !== 'function') return;
     promptInFlight = true;
@@ -86,10 +133,45 @@
     el.hidden = false;
   }
 
+  function showIOSGuidance() {
+    if (!isIOS() || isNativeApp() || isStandalone()) return;
+    var el = getCard();
+    if (!el) return;
+    installMode = 'ios';
+    var cta = el.querySelector('[data-cd-app-install]');
+    var body = el.querySelector('.cd-app-install__body');
+    var note = el.querySelector('[data-cd-app-install-note]');
+    if (body) {
+      body.removeAttribute('data-cd-trans');
+      body.removeAttribute('data-key');
+      body.textContent = installText('home.appInstall.iosBody',
+        'iPhone과 iPad에서는 Safari의 홈 화면 추가로 앱처럼 빠르게 열 수 있어요.',
+        'On iPhone and iPad, add this site to your Home Screen in Safari to open it like an app.');
+    }
+    if (cta) {
+      cta.removeAttribute('data-cd-trans');
+      cta.removeAttribute('data-key');
+      cta.textContent = installText('home.appInstall.iosCta', '핸드폰에 추가하기', 'Add to this phone');
+      cta.setAttribute('aria-expanded', 'false');
+      cta.setAttribute('aria-controls', 'cdAppInstallNote');
+    }
+    if (note) {
+      note.textContent = isSafari()
+        ? installText('home.appInstall.iosSafari',
+          'Safari 하단의 공유 버튼을 누른 뒤 ‘홈 화면에 추가’를 선택해 주세요. App Store 다운로드 방식은 아직 제공하지 않아요.',
+          'Tap Share in Safari, then choose Add to Home Screen. An App Store download is not available yet.')
+        : installText('home.appInstall.iosOther',
+          'Safari에서 이 페이지를 연 뒤 공유 버튼 → ‘홈 화면에 추가’를 선택해 주세요. App Store 다운로드 방식은 아직 제공하지 않아요.',
+          'Open this page in Safari, tap Share, then choose Add to Home Screen. An App Store download is not available yet.');
+    }
+    showCard();
+  }
+
   window.addEventListener('beforeinstallprompt', function (event) {
     if (isNativeApp() || isStandalone()) return;
     if (!event || typeof event.prompt !== 'function') return;
     event.preventDefault();
+    installMode = 'prompt';
     deferredInstallPrompt = event;
     promptInFlight = false;
     showCard();
@@ -99,5 +181,11 @@
     deferredInstallPrompt = null;
     hideCard();
   });
+
+  if (document.readyState === 'loading' && typeof document.addEventListener === 'function') {
+    document.addEventListener('DOMContentLoaded', showIOSGuidance, { once: true });
+  } else {
+    showIOSGuidance();
+  }
 
 })();

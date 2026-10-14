@@ -21,13 +21,15 @@ function contrast(foreground, background) {
   return (Math.max(a, b) + .05) / (Math.min(a, b) + .05);
 }
 
-// 2026-10-12: 첫 방문은 고민 입구 3개 → 결과 예시 → 신뢰 기록 → 대표 상담 순서다. 전체 카탈로그는 펼쳐서 탐색한다.
+// 2026-10-14: 첫 방문은 대표 상담과 전체 운세 탐색을 바로 제공한다. 보조 콘텐츠만 접어서 밀도를 낮춘다.
 async function assertEssentials(page, label) {
   const essentials = [
     ['question', '.cdh-primary'],
+    ['all fortunes', '#cdhAllFortunes'],
+    ['systems', '#cdQuickServices'],
     ['topics', '.cdh-topics a[href="/yeongnyangi/consult/work-money/"]'],
-    ['samples', '.cdh-samples a'],
-    ['records', '.cdh-records'],
+    ['search', '#cdhServices #fortuneGatewaySearch'],
+    ['samples', '#cdhSamples .result-sample__cta'],
     ['signature', '#cdSignatureConsult'],
   ];
   for (const [name, selector] of essentials) {
@@ -66,7 +68,7 @@ async function assertEssentials(page, label) {
       await page.goto(origin + '/static/index.html', { waitUntil: 'domcontentloaded' });
       await page.locator('#cdhConcernSlot #cdConcernPick').waitFor({ state: 'attached', timeout: 10000 });
       await page.waitForTimeout(250);
-      // 2026-10-13: 여섯 운세 체계는 첫 화면에서 바로 고르고 상세 목록만 요청할 때 연다.
+      // 여섯 운세 체계·고민별 입구·검색은 첫 화면에서 바로 쓰고, 보조 콘텐츠만 요청할 때 연다.
       await assertEssentials(page, `${width}px first visit`);
       assert.equal(await page.locator('#fortuneGatewaySearch').getAttribute('placeholder'), '연애, 재물, 이직… 궁금한 운세를 찾아보세요', 'search placeholder');
       assert.equal(await page.locator('#fortuneGatewayRecs').isVisible(), false, 'no search results before input');
@@ -78,7 +80,12 @@ async function assertEssentials(page, label) {
       const passCta = page.locator('#cdhPass .cdh-pass__btn');
       assert.equal(await page.locator('#cdQuickServices').evaluate((node) => Boolean(node.closest('details:not([open])'))), false, 'fortune systems stay visible before the full catalogue');
       assert.ok(await page.locator('#cdQuickServices').isVisible(), 'fortune systems are visible on the first visit');
-      for (const selector of ['#cdhPass .cdh-pass__btn', '.cd-soulcat-entry']) assert.equal(await page.locator(selector).first().evaluate((node) => Boolean(node.closest('details:not([open])'))), true, selector + ' waits in the full catalogue');
+      for (const selector of ['#cdhPass .cdh-pass__btn', '.cd-soulcat-entry']) assert.equal(await page.locator(selector).first().evaluate((node) => Boolean(node.closest('details:not([open])'))), false, selector + ' stays in the primary flow');
+      assert.equal(await page.locator('.cdh-portals').count(), 0, 'duplicate character portals are removed from the secondary garden');
+      assert.equal(await page.locator('#cdhSamples .result-sample__visual').count(), 4, 'each representative consultation uses an editorial visual');
+      assert.equal(await page.locator('#cdhAllFortunes #cdQuickServices .cdh-method').count(), 6, 'the complete six-system chooser replaces the partial shortcut group');
+      assert.equal(await page.locator('#cdhAllFortunes #cdQuickServices .cdh-method').first().isVisible(), true, 'fortune-system shortcuts stay visible in the main flow');
+      assert.equal(await page.locator('#cdhAllFortunes #cdQuickServices').evaluate(node => getComputedStyle(node).contentVisibility), 'visible', 'fortune-system shortcuts must not collapse into an intrinsic blank placeholder');
       assert.ok(await page.locator('#cdhFeedbackSlot .cd-feedback__cta').isVisible(), 'bug report card stays in the primary flow');
       // 버그 제보실은 한 줄 행이 아니라 마스코트·본문이 보이는 큰 카드다(2026-10-01).
       const bugCard = await page.locator('#cdhFeedbackSlot .cd-feedback__card').evaluate((card) => ({
@@ -97,13 +104,10 @@ async function assertEssentials(page, label) {
       const gardenSummary = page.locator('#cdhMore > summary');
       assert.equal(await gardenSummary.getAttribute('aria-controls'), 'cdhGardenBody', 'garden summary controls its body');
       assert.equal(await gardenSummary.getAttribute('aria-expanded'), 'false', 'garden summary reports closed');
-      assert.ok(await page.locator('#cdhMore .cdh-more__on').isVisible(), 'closed label offers to open the garden');
       await gardenSummary.click();
       // details 의 toggle 이벤트는 비동기 태스크다 — aria-expanded 동기화를 기다린다(1초 안).
       await page.waitForFunction(() => document.querySelector('#cdhMore > summary').getAttribute('aria-expanded') === 'true', null, { timeout: 1000 });
-      assert.ok(await page.locator('#cdhMore .cdh-more__off').isVisible(), 'open label offers to close the garden');
-      assert.equal(await page.locator('#cdhMore .cdh-more__on').isVisible(), false, 'only one garden label shows');
-      for(const selector of ['#cdhServices #fortuneGatewaySearch','#cdQuickServices','.cd-soulcat-entry','#cdConcernPick','#cdSignatureConsult','.cdh-room-link'])assert.ok(await page.locator(selector).first().isVisible(), 'exploration restores '+selector);
+      for(const selector of ['.cdh-records','#cdConcernPick','#cdhDiarySlot #cdDiaryPlannerEntry'])assert.ok(await page.locator(selector).first().isVisible(), 'exploration restores '+selector);
       assert.ok(await page.locator('#cdhDiarySlot #cdDiaryPlannerEntry').isVisible(), 'diary restored');
       const specialists = page.locator('.cdh-specialists');
       assert.ok(await specialists.locator('> summary').isVisible(), 'specialist consultation toggle restored');
@@ -113,7 +117,7 @@ async function assertEssentials(page, label) {
       assert.ok(await page.locator('#cdhCollections').isVisible(), 'collections open with the garden');
       assert.ok(await page.locator('#cdhCollections > .feature-card-grid').count(), 'existing cards live inside the garden');
       assert.ok(await passCta.isVisible(), 'pass remains visible after opening the garden');
-      assert.ok(await page.locator('#cdhQuickSlot [data-cdh-free]').isVisible(), 'free saju entry opens with the garden');
+      assert.ok(await page.locator('#cdhQuickSlot [data-cdh-free]').isVisible(), 'free saju entry stays visible outside the garden');
       assert.equal(await page.locator('#fortuneGatewayRecs').isVisible(), false, 'opening the garden does not touch search');
       const closeButton = page.locator('#cdhMore [data-cdh-garden-close]');
       await closeButton.focus();
@@ -200,7 +204,7 @@ async function assertEssentials(page, label) {
       await page.evaluate(() => { window.__cdCloseGarden(); });
       await page.evaluate(() => { document.documentElement.classList.remove('neo-mode'); document.body.classList.remove('neo-mode'); location.hash = 'services'; });
       await page.waitForFunction(() => document.activeElement && document.activeElement.id === 'fortuneGatewaySearch');
-      assert.equal(await page.locator('#cdhMore').evaluate((more) => more.open), true, 'search hash opens the folded garden before focusing search');
+      assert.equal(await page.locator('#cdhMore').evaluate((more) => more.open), false, 'search hash focuses the visible catalogue without opening secondary content');
       assert.equal(await page.locator('#fortuneGatewayRecs .fortune-gateway__rec').count(), 0, 'search hash alone renders no results');
       const searchBorders = await page.locator('.fortune-gateway__search').evaluate((shell) => ({
         shell: getComputedStyle(shell).borderTopWidth,
@@ -213,11 +217,11 @@ async function assertEssentials(page, label) {
       assert.ok(await page.locator('#fortuneGatewayRecs').filter({ hasText: '일치하는 서비스가 없어요' }).isVisible(), 'empty search explains no match');
       await page.locator('#fortuneGatewayDiscover [data-cd-search-clear]').click();
       assert.equal(await page.locator('#fortuneGatewayRecs').isVisible(), false, 'clearing the query hides results again');
-      // 정원 안 컬렉션에만 있는 서비스도 검색된다(타일 스크랩). 검색 해시가 먼저 정원을 연 상태를 유지한다.
+      // 보조 영역 컬렉션에만 있는 서비스도 검색된다(타일 스크랩). 검색을 위해 접힌 콘텐츠를 펼치지는 않는다.
       await page.locator('#fortuneGatewaySearch').fill('나크샤트라');
       await page.waitForTimeout(250);
       assert.ok(await page.locator('#fortuneGatewayRecs .fortune-gateway__rec').count() > 0, 'garden-only service is searchable');
-      assert.equal(await page.locator('#cdhMore').evaluate((more) => more.open), true, 'search keeps the garden open');
+      assert.equal(await page.locator('#cdhMore').evaluate((more) => more.open), false, 'search keeps secondary content folded');
       await page.locator('#fortuneGatewayFilterPanel > summary').click();
       await page.locator('[data-price="free"]').click();
       assert.equal(await page.locator('[data-cd-filter-count]').textContent(), '1', 'filter toggle counts active panel filters');
@@ -254,7 +258,7 @@ async function assertEssentials(page, label) {
     assert.equal(await deepLink.locator('#cdhMore').evaluate((more) => more.open), false, 'featured is directly visible without opening more');
     await deepLink.goto(origin + '/static/index.html#cdhPass', { waitUntil: 'domcontentloaded' });
     await deepLink.locator('#cdhPass .cdh-pass__btn').waitFor({ state: 'visible', timeout: 10000 });
-    assert.equal(await deepLink.locator('#cdhMore').evaluate((more) => more.open), true, '#cdhPass deep link opens the full catalogue');
+    assert.equal(await deepLink.locator('#cdhMore').evaluate((more) => more.open), false, '#cdhPass is directly visible without opening secondary content');
 
     for (const anchor of ['cdhExpertsSlot']) {
       await deepLink.goto(origin + '/static/index.html#' + anchor, { waitUntil: 'domcontentloaded' });

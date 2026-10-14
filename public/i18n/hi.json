@@ -1590,7 +1590,11 @@
     "appInstall": {
       "title": "Keep Code Destiny on your home screen",
       "desc": "Install it and it opens in one tap without the browser, and today's fortune loads faster.",
-      "cta": "Get the app"
+      "cta": "Get the app",
+      "iosBody": "On iPhone and iPad, add this site to your Home Screen in Safari to open it like an app.",
+      "iosCta": "Add on iPhone or iPad",
+      "iosSafari": "Tap Share in Safari, then choose Add to Home Screen. An App Store download is not available yet.",
+      "iosOther": "Open this page in Safari, tap Share, then choose Add to Home Screen. An App Store download is not available yet."
     },
     "mobileFunnel": {
       "lowPrice": "₩1,000 श्रेणी",
@@ -1902,7 +1906,10 @@
       "priceFrom": "KRW {amount} से",
       "samplesTitle": "भुगतान से पहले नमूना परिणाम पढ़ें",
       "sampleCodex": "लव कोडेक्स नमूना",
-      "sampleConsult": "योंगन्यांगी परामर्श नमूना"
+      "sampleConsult": "योंगन्यांगी परामर्श नमूना",
+      "allLead": "Choose a system directly, or start with the concern closest to you.",
+      "moreContent": "More readings and stories",
+      "moreContentNote": "Explore special readings, public analysis records and daily fortunes in one place."
     },
     "yeongnyangiEntry": {
       "badge": "योंगन्यांगी प्रश्न परामर्श",
