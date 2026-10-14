@@ -27864,6 +27864,8 @@ async function _seSajuCompatLlmDeliver(llm, ctx) {
   var body = kit.flow.buildSajuCompatBody({
     selfPillars: G_PILLARS,
     partnerPillars: ctx.p2,
+    selfTimeUnknown: window.__cdSajuTimeUnknown === true,
+    partnerTimeUnknown: !String(document.getElementById('compatBirthTimeText')?.value || '').trim(),
     compatType: ctx.type,
     partnerName: ctx.name,
     compatFacts: ctx.compat.facts,

@@ -211,7 +211,7 @@ test.each(['pass', 'monthly', 'single'])('%s 결제 확인 뒤 네 그룹을 한
   const response = await drive();
   expect(response.status).toBe(200);
   const data = await response.json();
-  expect(data).toMatchObject({ ok: true, status: 'completed', saved: true, schemaVersion: 1, type: 'saju-compat-basic', locale: 'ko' });
+  expect(data).toMatchObject({ ok: true, status: 'completed', saved: true, schemaVersion: 2, type: 'saju-compat-basic', locale: 'ko' });
   expect(data.facts.score).toEqual(body.facts.score);
   expect(data.narrative.overview.length).toBeGreaterThan(30);
   expect(provider).toHaveBeenCalledTimes(4);
@@ -319,13 +319,13 @@ describe('보관함', () => {
     expect(list.status).toBe(200);
     const items = (await list.json()).items;
     expect(items).toHaveLength(1);
-    expect(items[0]).toMatchObject({ resultId: id, compatType: 'love', partnerName: '하늘', schemaVersion: 1, score: body.facts.score.display, grade: body.facts.grade.code });
+    expect(items[0]).toMatchObject({ resultId: id, compatType: 'love', partnerName: '하늘', schemaVersion: 2, score: body.facts.score.display, grade: body.facts.grade.code });
     expect(Object.keys(items[0]).sort()).toEqual(['compatType', 'createdAt', 'generatedAt', 'grade', 'partnerName', 'partnerKey', 'pastLifeGrade', 'resultId', 'schemaVersion', 'score', 'selfKey'].sort());
     const detail = await call(`/archive/${encodeURIComponent(id)}`, { method: 'GET' });
     expect(detail.status).toBe(200);
     const text = await detail.text();
     const data = JSON.parse(text);
-    expect(data).toMatchObject({ ok: true, resultId: id, result: { type: 'saju-compat-basic', schemaVersion: 1 } });
+    expect(data).toMatchObject({ ok: true, resultId: id, result: { type: 'saju-compat-basic', schemaVersion: 2 } });
     expect(data.result.narrative.overview.length).toBeGreaterThan(30);
     expect(text).not.toMatch(/paidNarrative|rawResponses|compat-request-0001|paid-pass/);
     expect(provider).not.toHaveBeenCalled();

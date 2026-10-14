@@ -21,6 +21,12 @@ export function syncYeongnyangiFishPrices(root) {
 
 // Presentation seeds use the same resolver as billing; no second price table.
 export function syncSajuReadingPrices(root) {
+  const dashboard = join(root, 'js/core/saju/reportDashboard.js');
+  const source = readFileSync(dashboard, 'utf8');
+  const relationship = getBillingFeaturePricing({ featureKey: 'relationship-boundary-test' });
+  if (!relationship.ok) throw new Error('Missing relationship price');
+  const updated = source.replace(/(id:'relationshipTemptation'[^\n]+?coinCost:)\d+/, `$1${relationship.pricing.cost}`);
+  if (updated !== source) writeFileSync(dashboard, updated);
   const file = join(root, 'index.html');
   let html = readFileSync(file, 'utf8');
   for (const featureKey of ['section_daewun', 'section_summary']) {

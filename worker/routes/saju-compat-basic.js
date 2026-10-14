@@ -32,10 +32,10 @@ const providerIsLive = (ai) => Boolean(ai?.ok) && !ai.isMock && !/mock/i.test(`$
 
 async function generateGroup(env, group, input, seen, promptOptions) {
   const ai = await callGeminiText(env, buildSajuCompatPrompt(group, input, promptOptions), {
-    systemPrompt: buildSajuCompatSystemPrompt(),
+    systemPrompt: buildSajuCompatSystemPrompt(input),
     locale: "ko", // v1 서술은 한국어만(UI 로케일과 무관).
     temperature: 0.6,
-    maxOutputTokens: 8192,
+    maxOutputTokens: group === "core" && input.facts.relationship ? 16384 : 8192,
     thinkingBudget: 0,
     timeoutMs: PROVIDER_TIMEOUT_MS,
     fallbackToWorkersAI: false,
@@ -103,7 +103,7 @@ export function sajuCompatNarrativeAdapter(env) {
 
 // 엔진의 반복 문단 검사를 통과하지 못할 본문은 내지 않는다(정제 단계가 미리 막아 두므로 방어선이다).
 function acceptable(state, group, shaped, model, attempt) {
-  const body = buildSajuCompatPart(group, shaped, { model, attempt });
+  const body = buildSajuCompatPart(group, shaped, { model, attempt, schemaVersion: state.input.schemaVersion || 1, promptVersion: state.input.promptVersion || "saju-compat-basic-p1" });
   return hasRepeatedReportPassage(body) ? null : { evidenceHash: state.evidenceHash, body };
 }
 

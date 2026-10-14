@@ -1,3 +1,4 @@
+import { COMPAT_ART, pastLifeArt } from './saju-compat-art.mjs';
 // 기본 사주 궁합 결과 렌더러 — 결과 화면과 보관함 상세가 같은 모듈로 같은 HTML 을 그린다.
 // 순수 함수(DOM·window 없음): 입력은 서버가 불변 저장한 스냅샷(worker/lib/saju-compat-schema.js 의
 // assembleSajuCompatSnapshot 결과)이고, 출력은 이스케이프된 HTML 문자열이다.
@@ -283,8 +284,15 @@ export function renderSajuCompat(snapshot, { t = createSajuCompatT(), selfName =
   ].join("");
   const advice = adviceItems ? `<div class="compat-advice-box"><div class="compat-advice-title">${T("sajuCompat.advice.title")}</div><div class="compat-advice-body">${adviceItems}</div></div>` : "";
 
+  const art = (asset) => `<figure class="compat-story-art"><img src="${asset.src}" width="${asset.width}" height="${asset.height}" alt="${escapeHtml(asset.alt)}" loading="lazy" decoding="async"><figcaption>관계의 분위기를 담은 상징 삽화</figcaption></figure>`;
+  const evidence = facts.relationship;
+  const point = (row) => `${row.side === 'self' ? self : partner} ${row.label} ${row.gan}${row.ji}`;
+  const relation = (row) => `${point(row.from)} ↔ ${point(row.to)}: 천간 ${row.stem || '관계 없음'} / 지지 ${row.branches.join('·') || '특별한 짝 관계 없음'}`;
+  const matrix = evidence ? section('두 명식이 만나는 자리', `<p class="compat-text">${escapeHtml(evidence.dayStem?.direction || '')}. 같은 글자도 놓인 자리와 생활 조건에 따라 다르게 읽습니다.</p><div class="compat-relation-map">${evidence.cross.filter(row => row.from.pillar === row.to.pillar).map(row => `<p>${escapeHtml(relation(row))}</p>`).join('')}</div><details><summary>전체 교차 관계와 원국 근거 보기</summary><ul>${evidence.cross.map(row => `<li>${escapeHtml(relation(row))}</li>`).join('')}</ul><h4>각자의 원국 내부 관계</h4><ul>${evidence.natal.filter(row => row.branches.length).map(row => `<li>${escapeHtml(relation(row))}</li>`).join('')}</ul><p>${escapeHtml(evidence.triads.map(row => `${row.scope === 'cross' ? '두 명식 교차' : row.scope === 'selfNatal' ? self : partner}: ${row.group} ${row.kind}`).join(' / '))}</p></details>`) : '';
+  const chapters = evidence ? section('우리 관계의 기승전결', evidence.chapters.map((ch,i) => `<article class="compat-story-chapter">${ch.available ? art(COMPAT_ART[ch.key]) : ''}<h3>${['기','승','전','결'][i]} · ${escapeHtml(ch.label)} — ${escapeHtml(ch.area)}</h3>${paragraphs(ch.available ? stringAt(narrative.pillarStory, ch.key) : '출생시간이 확인되지 않아 두 사람의 시주 비교는 생략합니다.', 'compat-text')}<details><summary>이 장면의 명리 근거</summary><ul>${evidence.cross.filter(row => ch.evidenceIds.includes(row.id)).map(row => `<li>${escapeHtml(relation(row))}</li>`).join('')}</ul></details></article>`).join('') + evidence.limitations.map(line => `<p class="compat-note">${escapeHtml(line)}</p>`).join('')) : '';
+  const past = renderPastLife(snapshot, { t, T, self, partner, paragraphs });
   return `<div class="compat-wrap cd-compat-snap" data-saju-compat-schema="${escapeHtml(snapshot.schemaVersion ?? "")}">`
-    + grade + overview + energy + details + reasons + love + fact + advice + renderPastLife(snapshot, { t, T, self, partner, paragraphs })
+    + (evidence ? art(COMPAT_ART[type]) : "") + grade + overview + matrix + chapters + energy + details + reasons + love + fact + (evidence && past ? art(pastLifeArt(facts.pastLife.grade.code)) : "") + past + advice
     + `<div class="compat-footnote">${T("sajuCompat.footer")}</div></div>`;
 }
 

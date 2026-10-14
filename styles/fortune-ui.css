@@ -17527,3 +17527,16 @@ body.neo-mode .cd-compat-archive .compat-check-detail {
 html:has(#destinyFlowerStudioOverlay.is-show) { scrollbar-gutter: auto !important; }
 #destinyFlowerStudioOverlay { left: 0; right: auto; width: 100vw; box-sizing: border-box; }
 #destinyFlowerStudioOverlay.df-studio-overlay.is-show { left: 0 !important; right: auto !important; width: 100vw !important; min-width: 100vw !important; max-width: none !important; }
+
+/* Illustrated compatibility: prose remains available even when artwork fails. */
+.cd-compat-snap .compat-story-art{margin:24px 0;color:var(--cd-text-muted)}
+.cd-compat-snap .compat-story-art img{display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:cover;border-radius:var(--cd-r-card)}
+.cd-compat-snap .compat-story-art figcaption{font-size:12px;line-height:1.6;margin-top:8px;text-align:center}
+.cd-compat-snap .compat-story-chapter{margin:40px 0;padding-bottom:24px;border-bottom:1px solid var(--cd-border)}
+.cd-compat-snap .compat-story-chapter h3{font-family:var(--font-myeongjo),serif;font-size:clamp(20px,4vw,28px);line-height:1.5;color:var(--cd-text);text-wrap:balance}
+.cd-compat-snap .compat-story-chapter .compat-text{font-size:16px;line-height:1.9;max-width:70ch;color:var(--cd-text)}
+.cd-compat-snap details{color:var(--cd-text-muted);line-height:1.8;overflow-wrap:anywhere}
+.cd-compat-snap summary{min-height:44px;padding:12px 0;cursor:pointer;color:var(--cd-accent);text-underline-offset:4px}
+.cd-compat-snap summary:focus-visible{outline:2px solid var(--cd-accent);outline-offset:4px}
+.cd-compat-snap .compat-relation-map{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:16px;background:var(--cd-surface-2);color:var(--cd-text);border-radius:var(--cd-r-card);overflow-wrap:anywhere}
+@media(max-width:600px){.cd-compat-snap .compat-relation-map{grid-template-columns:1fr}.cd-compat-snap .compat-story-chapter{margin-top:32px}}

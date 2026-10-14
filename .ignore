@@ -218,6 +218,8 @@
 /public/js/review-reward-invite.mjs
 /public/js/runtime-stability.js
 /public/js/saju-compat-archive.js
+/public/js/saju-compat-art.d.mts
+/public/js/saju-compat-art.mjs
 /public/js/saju-compat-flow.mjs
 /public/js/saju-compat-render.d.mts
 /public/js/saju-compat-render.mjs
@@ -289,7 +291,6 @@
 /public/styles/fortune-consultation.css
 /public/styles/fortune-gateway.css
 /public/styles/fortune-ui-home.css
-/public/styles/fortune-ui.css
 /public/styles/home-funnel.css
 /public/styles/life-book.css
 /public/styles/mobile-bottom-nav.css

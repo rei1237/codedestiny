@@ -1,0 +1,57 @@
+{
+  "generator": "built-in image_gen",
+  "date": "2026-10-15",
+  "style": "Refined East Asian fantasy watercolor, ivory rose plum antique gold, landscape 3:2, no text",
+  "assets": [
+    {
+      "key": "love",
+      "prompt": "Two adult travelers meeting under a flowering plum tree by a moonlit Korean garden pond, gentle mutual curiosity.",
+      "source": "C:\\Users\\user\\.codex\\generated_images\\01a13c99-218e-7333-9596-60a8a2287356\\exec-7ab6956e-cadc-4567-9785-40b949f8e8b7.png"
+    },
+    {
+      "key": "business",
+      "prompt": "Two adult partners studying an unlettered scroll and wooden compass in an elegant Korean pavilion at dawn, shared purpose.",
+      "source": "C:\\Users\\user\\.codex\\generated_images\\01a13c99-218e-7333-9596-60a8a2287356\\exec-84965929-ecc3-4d88-9b1b-1e3c866e31cf.png"
+    },
+    {
+      "key": "friend",
+      "prompt": "Two adult friends walking beside a river under soft lanterns, comfortable companionship.",
+      "source": "C:\\Users\\user\\.codex\\generated_images\\01a13c99-218e-7333-9596-60a8a2287356\\exec-4fd3cb2e-41b0-4ab2-9ccc-68d887097a10.png"
+    },
+    {
+      "key": "year",
+      "prompt": "An open wooden garden gate, distant mountains and two paths approaching it, origins and background.",
+      "source": "C:\\Users\\user\\.codex\\generated_images\\01a13c99-218e-7333-9596-60a8a2287356\\exec-748e1baa-b62b-4122-b0fb-d92dcf2fbbe5.png"
+    },
+    {
+      "key": "month",
+      "prompt": "An elegant pavilion with two work tables overlooking a lively but distant garden, social life and shared rhythm.",
+      "source": "C:\\Users\\user\\.codex\\generated_images\\01a13c99-218e-7333-9596-60a8a2287356\\exec-d16d6a1f-9ae4-4463-83e7-caee1ab3ed83.png"
+    },
+    {
+      "key": "day",
+      "prompt": "Two porcelain teacups and interweaving plum branches beside a warm window, closeness and everyday tenderness.",
+      "source": "C:\\Users\\user\\.codex\\generated_images\\01a13c99-218e-7333-9596-60a8a2287356\\exec-c7a4faad-64c6-4f8f-b637-9e460495efe0.png"
+    },
+    {
+      "key": "hour",
+      "prompt": "Two lanterns on a winding path towards a sunrise over mountains, future plans and open possibility.",
+      "source": "C:\\Users\\user\\.codex\\generated_images\\01a13c99-218e-7333-9596-60a8a2287356\\exec-9d4f2924-5afc-441f-b635-857555157506.png"
+    },
+    {
+      "key": "past-resonance",
+      "prompt": "Two warm lantern reflections meeting on a quiet lotus pond, a symbolic familiar connection.",
+      "source": "C:\\Users\\user\\.codex\\generated_images\\01a13c99-218e-7333-9596-60a8a2287356\\exec-9940ef7d-9958-4227-80f7-f44464c3c038.png"
+    },
+    {
+      "key": "past-growth",
+      "prompt": "Two young flowering trees growing on opposite banks joined by a graceful stone bridge, a symbolic growing connection.",
+      "source": "C:\\Users\\user\\.codex\\generated_images\\01a13c99-218e-7333-9596-60a8a2287356\\exec-bd827fbb-68cb-4249-9b94-808ddb804281.png"
+    },
+    {
+      "key": "past-knot",
+      "prompt": "A loosely woven silk ribbon resting beside a lotus flower and a softly lit window, a symbolic knot that can be patiently untied.",
+      "source": "C:\\Users\\user\\.codex\\generated_images\\01a13c99-218e-7333-9596-60a8a2287356\\exec-2ae574c9-83da-4ca8-93ff-d32ba33546c9.png"
+    }
+  ]
+}
