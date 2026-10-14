@@ -1,11 +1,13 @@
 'use client';
 import {useEffect,useState} from 'react';
+import Image from 'next/image';
 import {ArrowRight,Moon,Sparkles} from 'lucide-react';
 import {dailyTarotSpread,kstDateKey} from '@/lib/tarot/yeongnyangi-daily-card';
 import {offsetTarotDate,synthesizeDailyTarot} from '@/lib/tarot/yeongnyangi-daily-synthesis';
 import TarotCardArt from './TarotCardArt';
 import {fortuneApi,loginForCurrentPage} from '../_lib/api';
 import type {AttendanceState} from '@/worker/yeongnyangi/fortune/free/categories';
+import styles from './daily-tarot-story.module.css';
 
 const DEVICE_KEY='cd:yn:daily-tarot-device:v1';
 const positions=['하루의 흐름','살필 마음','운을 여는 행동'];
@@ -36,8 +38,11 @@ export default function DailyTarotCard(){
  const opened=revealed[dateKey]||[];
  const synthesis=reading?synthesizeDailyTarot(reading):null;
  return <section id="daily-tarot" tabIndex={-1} className="daily-tarot" aria-labelledby="daily-tarot-title">
-  <div className="daily-tarot-copy"><Moon size={20}/><h2 id="daily-tarot-title">오늘과 내일, 영냥이의 세 장 타로</h2><p>내일이 궁금한 밤에도, 오늘의 방향이 필요한 아침에도 찾아와.<br/>세 장을 펼치면 흐름과 마음, 행동을 하나의 이야기로 읽어줄게. 출석으로 오늘의 운세를 열면 내일 타로도 함께 볼 수 있어.</p></div>
-  {!unlocked?<div className="daily-tarot-luck"><Sparkles size={17}/><span>오늘의 운세 잠김</span><b>사흘 출석해 모은 멸치 3마리로 오늘의 16종 운세와 오늘·내일 타로를 함께 열어줘.</b>{guest?<button type="button" onClick={loginForCurrentPage}>로그인하고 출석하기</button>:<a href="#daily">출석 멸치로 열기<ArrowRight size={16}/></a>}</div>:<>
+  <div className={styles.intro}>
+   <figure className={styles.scene}><Image src="/assets/yeongnyangi/readings/tarot-v5.webp" width={960} height={640} sizes="(max-width: 700px) 100vw, 50vw" alt="달빛 점술방에서 영냥이가 세 장의 상징 카드를 펼쳐 보이는 안내 삽화"/><figcaption>영냥이가 준비한 자리 · 실제 카드는 아래에서 펼쳐요</figcaption></figure>
+   <div className="daily-tarot-copy"><Moon size={20}/><h2 id="daily-tarot-title">오늘과 내일, 영냥이의 세 장 타로</h2><p>내일이 궁금한 밤에도, 오늘의 방향이 필요한 아침에도 찾아와.<br/>세 장을 펼치면 흐름과 마음, 행동을 하나의 이야기로 읽어줄게. 출석으로 오늘의 운세를 열면 내일 타로도 함께 볼 수 있어.</p><ol className={styles.chapterKeys}>{positions.map((position,index)=><li key={position}><span>{['첫 장','둘째 장','셋째 장'][index]}</span>{position}</li>)}</ol></div>
+  </div>
+  {!unlocked?<div className={`daily-tarot-luck ${styles.access}`}><Sparkles size={17}/><span>오늘의 운세 잠김</span><b>사흘 출석해 모은 멸치 3마리로 오늘의 16종 운세와 오늘·내일 타로를 함께 열어줘.</b>{guest?<button type="button" onClick={loginForCurrentPage}>로그인하고 출석하기</button>:<a href="#daily">출석 멸치로 열기<ArrowRight size={16}/></a>}</div>:<>
   <div className="daily-tarot-days" role="group" aria-label="타로를 볼 날짜">
    {[1,0].map(offset=><button type="button" key={offset} aria-pressed={dayOffset===offset} onClick={()=>setDayOffset(offset)}>{offset===1?'내일의 운세':'오늘의 운세'}</button>)}
   </div>
@@ -58,7 +63,7 @@ export default function DailyTarotCard(){
    <h4>일과 돈을 대하는 자세</h4><p>{synthesis.work}</p>
    <h4>{dayOffset===1?'오늘 밤, 내일을 위한 준비':'하루 중 마음이 복잡해진다면'}</h4><p>{synthesis.preparation}</p>
    <h4>{dayLabel}의 작은 승부수</h4><p>{synthesis.mission}</p>
-   <p className="daily-tarot-comment">{synthesis.closing}</p>
+   <div className={styles.guide}><Image src="/assets/yeongnyangi/original/tarot.webp" width={460} height={300} sizes="96px" alt="카드를 든 영냥이"/><p className="daily-tarot-comment">{synthesis.closing}</p></div>
   </article>}
   <div className="daily-tarot-readings">
    {positions.map((position,index)=>{const card=reading?.[index];return <article id={`daily-tarot-reading-${index}`} key={position} className="daily-tarot-reading" hidden={!opened.includes(index)||!card}>

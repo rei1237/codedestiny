@@ -54,6 +54,15 @@ test('hat story: six houses, reveal, skip, errors, stale requests, keyboard and 
    await dialogue.press('Space');await dialogue.press('Enter');
    await page.locator('#hat-result-title').waitFor();assert.equal(await page.locator('#hat-result-title').innerText(),names[i]);
    assert.equal(await page.evaluate(()=>document.activeElement.id),'hat-result-title');
+   const result=page.getByRole('article',{name:names[i],exact:true});
+   await result.getByText('모자가 읽은, 타고난 마음의 결',{exact:true}).waitFor();
+   assert.ok(await result.locator('figure img').evaluate(img=>img.complete&&img.naturalWidth>0));
+   const secret=result.locator('details').filter({hasText:'모자의 비밀 쪽지 펼치기'});
+   assert.equal(await secret.getAttribute('open'),null);await secret.locator('summary').click();assert.notEqual(await secret.getAttribute('open'),null);
+   const choices=result.locator('button[aria-pressed]');await choices.nth(0).click();const reply=await result.getByRole('status').first().innerText();await choices.nth(1).click();assert.notEqual(await result.getByRole('status').first().innerText(),reply);assert.equal(await choices.nth(1).getAttribute('aria-pressed'),'true');assert.equal(await page.evaluate(()=>window.calls.length),1);
+   assert.equal(await page.locator('#hat-result-title').innerText(),names[i]);
+   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+   if(process.env.HAT_CAPTURE_DIR)await result.screenshot({path:join(process.env.HAT_CAPTURE_DIR,`result-${i}.png`)});
   }
   await start();await story.getByRole('button',{name:'이야기 건너뛰기'}).click();assert.equal(await page.locator('#hat-result-title').count(),0);await settle(ids[0]);await page.locator('#hat-result-title').waitFor();
   await start();for(let n=0;n<6;n++)await dialogue.click();assert.equal(await page.locator('[data-reveal="true"]').count(),0);await settle(ids[1]);await story.getByRole('button',{name:/창작/}).waitFor();assert.match(await dialogue.getAttribute('aria-label'),/창작/);

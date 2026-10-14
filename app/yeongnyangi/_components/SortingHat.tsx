@@ -9,6 +9,7 @@ import {profileKey,useProfiles} from '../_lib/use-profiles';
 import ProfilePicker from './ProfilePicker';
 import HatPrologue from './HatPrologue';
 import HatHouseEmblem from './HatHouseEmblem';
+import HatPersonality from './HatPersonality';
 import styles from './sorting-hat.module.css';
 export default function SortingHat(){
  const profiles=useProfiles();
@@ -53,12 +54,11 @@ export default function SortingHat(){
    </div>
    {story&&<HatPrologue key={attempt} result={pending} error={error} onRetry={()=>void sort()} onFinish={()=>{if(pending){setResult(pending);setStory(false);}}}/>}
    {result&&house&&<article className={styles.result} aria-labelledby="hat-result-title">
-    <div className={styles.resultArt}><Image src={hatImage(house.id)} width={1200} height={800} sizes="(max-width: 900px) 100vw, 900px" alt={`${house.scene}에서 원래의 초승달 모자를 쓴 영냥이. 기숙사 상징은 ${house.symbol}.`}/></div>
-    <header className={styles.resultTitle}><HatHouseEmblem id={house.id}/><p>모자가 너를 이곳으로 안내했어.</p><h3 id="hat-result-title" ref={heading} tabIndex={-1}>{house.name}</h3><p className={styles.motto}>{house.motto}</p><p className={styles.note}>{result.mode==='reference'?`참고 배정 · 6개 중 ${result.usedCount}개 체계 반영`:'정식 배정 · 여섯 체계의 출생 근거 반영'}</p></header>
-    <div className={styles.letter}><h4>이 기숙사에는 어떤 사람들이 올까?</h4><p>{house.admission}</p><ul className={styles.thoughts}>{house.points.map(p=><li key={p}>“{p}”</li>)}</ul></div>
-    <section className={styles.reasons}><h4>모자가 너를 여기로 보낸 이유</h4><p className={styles.note}>각 체계의 상징을 영냥이의 기숙사 이야기로 연결했어요.</p><ol>{result.reasons.map((e,i)=><li key={`${e.source}-${i}`}><strong>{hatSystems[e.source]} · {e.label}</strong><p>{e.meaning}을 {house.trait}의 단서로 읽었어.</p></li>)}</ol></section>
+    <figure className={styles.resultArt}><Image src={hatImage(house.id)} width={1200} height={800} sizes="(max-width: 900px) 100vw, 900px" alt={`${house.scene}에서 원래의 초승달 모자를 쓴 영냥이. 기숙사 상징은 ${house.symbol}.`}/><figcaption><span>너의 기숙사에 도착했어</span><strong>{house.scene}</strong></figcaption></figure>
+    <header className={styles.resultTitle}><HatHouseEmblem id={house.id}/><p>모자가 너를 이곳으로 안내했어.</p><h3 id="hat-result-title" ref={heading} tabIndex={-1}>{house.name}</h3><p className={styles.motto}>{house.motto}</p><p className={styles.note}>{result.mode==='reference'?'확인할 수 있는 출생 정보로 읽은 참고 배정이에요.':'출생 정보의 상징을 모자의 성향 이야기로 풀었어요.'}</p></header>
+    <HatPersonality result={result}/><div className={styles.letter}><h4>이런 순간, 혹시 익숙하니?</h4><ul className={styles.thoughts}>{house.points.map(p=><li key={p}>“{p}”</li>)}</ul></div>
     <dl className={styles.advice}><div><dt>네가 가져온 강점</dt><dd>{house.strength}</dd></div><div><dt>너무 몰입한 날에는</dt><dd>{house.shadow}</dd></div><div><dt>오늘 해볼 작은 선택</dt><dd>{house.action}</dd></div></dl>
-    <details className={styles.evidence}><summary>모자가 펼쳐 본 여섯 개의 지도<ChevronDown size={18} aria-hidden="true"/></summary>{result.systems.map(s=><section key={s.id}><h4>{hatSystems[s.id]} <span>{s.status==='used'?'반영했어요':'이번에는 제외했어요'}</span></h4>{s.reason&&<p>{s.reason}</p>}{s.evidence.map((e,i)=><p key={i}>{e.label} — {e.meaning}</p>)}</section>)}<p>사주·자미두수·베다점·서양 점성술·휴먼 디자인·숙요점은 서로 다른 체계예요. 배정은 이 상징을 엮은 창작 성향 이야기이며, 성격 검사나 미래의 확정 예측이 아니에요.</p></details>
+    <details className={styles.evidence}><summary>배정의 바탕, 간단히 보기<ChevronDown size={18} aria-hidden="true"/></summary><p>출생 정보로 계산한 {result.systems.filter(s=>s.status==='used').map(s=>hatSystems[s.id]).join(' · ')}의 상징에서 {house.trait}의 흐름을 읽었어요.</p>{result.systems.filter(s=>s.status==='omitted').map(s=><p key={s.id}>{hatSystems[s.id]}은 이번 해석에서 제외했어요.{s.reason&&` ${s.reason}`}</p>)}<p>각 운세 체계는 서로 달라요. 기숙사와 모자의 대사는 계산된 상징을 바탕으로 쓴 창작 성향 이야기이며, 성격이나 미래를 확정하지 않아요.</p></details>
     <div className={styles.save}><button type="button" className={styles.primary} onClick={()=>void save()} disabled={saving}><Download size={18} aria-hidden="true"/>{saving?'이미지 준비 중':'내 기숙사 이미지 저장하기'}</button><p className={styles.note}>이미지에는 기숙사 이야기만 담아요. 이름과 출생 정보는 담지 않아요.</p><p role="status">{notice}</p></div>
    </article>}
    <details className={styles.directory} open={Boolean(result)}><summary>여섯 기숙사 둘러보기<ChevronDown size={18} aria-hidden="true"/></summary><div>{hatHouses.map(h=><article key={h.id}><Image src={hatImage(h.id)} width={600} height={400} sizes="(max-width: 600px) 100vw, 33vw" alt={`${h.name}의 ${h.scene}`} loading="lazy"/><div className={styles.houseHeading}><HatHouseEmblem id={h.id}/><h4>{h.name}<span>{h.trait}</span></h4></div><p>{h.admission}</p></article>)}</div></details>
