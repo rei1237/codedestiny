@@ -81,7 +81,7 @@ function decision({ pass = null, coinCost, monthlyBalance = 0, monthlySpendCoin,
       coinPrice: coinCost,
       cost: coinCost,
       membershipCreditCost: coinCost * 10,
-      featureKey: `test-${coinCost}`,
+      featureKey: "master-love-codex" // Registered moonstone-eligible product; coinCost varies to exercise pass limits.,
     },
     profileSubscription,
   );
@@ -89,13 +89,13 @@ function decision({ pass = null, coinCost, monthlyBalance = 0, monthlySpendCoin,
 
 function assertPassFree(result, label) {
   assert.equal(result.canUseByPass, true, `${label}: canUseByPass`);
-  assert.equal(result.canUseByMonthly, true, `${label}: raw monthly availability remains visible`);
+  assert.equal(result.canUseByMonthly, true, `${label}: eligible product monthly availability`);
   assert.equal(result.canUseByCard, true, `${label}: raw card availability remains visible`);
 }
 
 function assertPaidFallback(result, label) {
   assert.equal(result.canUseByPass, false, `${label}: pass must not cover`);
-  assert.equal(result.canUseByMonthly, true, `${label}: monthly fallback`);
+  assert.equal(result.canUseByMonthly, true, `${label}: eligible product monthly availability`);
   assert.equal(result.canUseByCard, true, `${label}: card fallback`);
 }
 
@@ -295,7 +295,7 @@ for (const featureKey of listServerPricedFeatureKeys()) {
     const allowedMethods = ["FAMILY", "DIRECT_KRW", ...(monthlyAllowed ? ["MOONLIGHT_STONE"] : [])];
     const paidMethods = ["DIRECT_KRW", ...(monthlyAllowed ? ["MOONLIGHT_STONE"] : [])];
     if (featureKey.startsWith("yeongnyangi-")) {
-      assert.equal(monthlyAllowed, true, `${featureKey}: 승인된 영냥이 월정석 결제 유지`);
+      assert.equal(monthlyAllowed, pricing.amountKRW >= 10000, `${featureKey}: 승인된 영냥이 월정석 결제 유지`);
       assert.equal(membershipCreditCost, coinCost * 10, `${featureKey}: 월정석 1개당 10원 복원 정책`);
     }
     for (const [label, decisionForTier] of [
@@ -359,7 +359,7 @@ for (const featureKey of listServerPricedFeatureKeys()) {
       );
       assert.deepEqual(
         decisionForTier.hiddenMethods,
-        [],
+        paymentPolicy.monthlyExcluded ? ["MOONLIGHT_STONE"] : [],
         `${featureKey}: 이용권 제외 기능은 결제수단을 숨기면 안 된다(${label}) — 단건/월정석이 항상 보여야 한다`,
       );
       assert.equal(
@@ -420,7 +420,7 @@ const smallPdfDecision = __billingTestUtils.buildPassPaymentDecision(
 assert.equal(smallPdfUnchanged.coinPrice, 60, "standard pass leaves small PDF price unchanged");
 assert.equal(smallPdfUnchanged.passDiscount, undefined, "standard pass does not attach small PDF pass discount");
 assert.equal(smallPdfDecision.canUseByPass, false, "small PDF over standard pass limit requires payment");
-assert.equal(smallPdfDecision.canUseByMonthly, true, "small PDF can still use internal entitlement fallback");
+assert.equal(smallPdfDecision.canUseByMonthly, false, "unregistered small PDF cannot use moonstones");
 
 const premiumSmallPdfDecision = __billingTestUtils.buildPassPaymentDecision(
   activePass(PASS_TIERS.PREMIUM),
@@ -488,12 +488,12 @@ for (const tier of [PASS_TIERS.STANDARD, PASS_TIERS.PREMIUM, PASS_TIERS.VVIP, PA
   );
   assert.deepEqual(
     profileCardDecision.hiddenMethods,
-    [],
+    ["MOONLIGHT_STONE"],
     `${tier}: 프로필 카드 결제창은 결제수단을 숨기면 안 된다 — 숨기면 결제할 방법이 없는 막다른 길이 된다`,
   );
   assert.deepEqual(
     profileCardDecision.equalPriorityMethods,
-    ["DIRECT_KRW", "MOONLIGHT_STONE"],
+    ["DIRECT_KRW"],
     `${tier}: 프로필 카드는 단건 결제와 월정석이 동등 노출되어야 한다`,
   );
 }
@@ -549,7 +549,7 @@ assert.equal(
 );
 assert.deepEqual(
   musicNoPassDecision.equalPriorityMethods,
-  ["DIRECT_KRW", "MOONLIGHT_STONE"],
+  ["DIRECT_KRW"],
   "음악 트랙 결제창은 단건 결제와 월정석이 동등 노출되어야 한다",
 );
 

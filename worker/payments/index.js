@@ -1573,11 +1573,6 @@ const ROUTES = {
       } catch { billingType = "per_use"; }
       // 카탈로그가 월정석을 제외한 상품은 월정석으로 열 수 없다 — 정본은 카탈로그 범위 필드다. 구 coin-gate
       // MONTHLY 요청은 worker/index.js 가 여기로 재작성하므로 이 자리가 실제 관문이다.
-      if (resolveProduct({ featureKey: product.featureKey }).monthlyExcluded) {
-        throw paymentError(directOnly ? "DIRECT_ONLY_PAYMENT_REQUIRED" : "FAMILY_OR_DIRECT_PAYMENT_REQUIRED",
-          directOnly ? "이 상품은 단건 결제로만 이용할 수 있습니다." : "이 상품은 Family 이용권 또는 단건 결제로 이용해 주세요.",
-          { featureKey: product.featureKey, familyPassOnly });
-      }
       const unlock = billingType !== "per_use";
 
       let spend;
@@ -1594,6 +1589,11 @@ const ROUTES = {
             alreadyUnlocked = true;
             return { balance: null, replayed: true, ledgerId: "" };
           }
+      if (resolveProduct({ featureKey: product.featureKey }).monthlyExcluded) {
+        throw paymentError(directOnly ? "DIRECT_ONLY_PAYMENT_REQUIRED" : "FAMILY_OR_DIRECT_PAYMENT_REQUIRED",
+          directOnly ? "이 상품은 단건 결제로만 이용할 수 있습니다." : "이 상품은 Family 이용권 또는 단건 결제로 이용해 주세요.",
+          { featureKey: product.featureKey, familyPassOnly });
+      }
           if (unlock) {
             const granted = await grantEntitlement(db, {
               userId, product, orderId: requestId, profileId, partnerProfileId: body.partnerProfileId,

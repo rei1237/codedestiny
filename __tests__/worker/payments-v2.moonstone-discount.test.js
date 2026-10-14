@@ -29,7 +29,7 @@ test.each([-1,0,0.5,NaN,Infinity,891,990,1000,'500'])('invalid or PG-under-minim
 });
 test('discount activates only with the restored value; unrelated features remain excluded',()=>{
   expect(quoteYeongnyangiMoonstoneDiscount('yeongnyangi-saju-mackerel',0)).toBeNull();
-  if(getPaidFeaturePaymentPolicy('yeongnyangi-saju-mackerel').membershipCreditMultiplier===1)
+  if(!getPaidFeaturePaymentPolicy('yeongnyangi-saju-mackerel').monthlyExcluded)
     expect(quoteYeongnyangiMoonstoneDiscount('yeongnyangi-saju-mackerel',100).payableKRW)
       .toBe(FEATURE_KEY_PRICE_TABLE['yeongnyangi-saju-mackerel'].amountKRW-1000);
   else expect(()=>quoteYeongnyangiMoonstoneDiscount('yeongnyangi-saju-mackerel',500)).toThrow();
@@ -110,7 +110,7 @@ test('prepare uses the release registry and rejects client discount amounts; rep
     return {status:response.status,body:await response.json()};
   };
   const first=await prepare();
-  if(getPaidFeaturePaymentPolicy(featureKey).membershipCreditMultiplier!==1){
+  if(getPaidFeaturePaymentPolicy(featureKey).monthlyExcluded || getPaidFeaturePaymentPolicy(featureKey).membershipCreditMultiplier!==1){
     expect(first.status).toBe(400);expect(balance(db)).toBe(700);return;
   }
   expect(first.status).toBe(201);

@@ -413,6 +413,11 @@ export const FEATURE_KEY_PRICE_TABLE = normalizeRegistryPricingTable(RAW_FEATURE
 /** 결제 범위 `direct_only`: 이용권·월정석 모두 불가, 단건 결제(카드·카카오페이)만. 정본 판정은 이 함수 하나. */
 export const PAYMENT_SCOPE_DIRECT_ONLY = "direct_only";
 export const PAYMENT_SCOPE_DIRECT_OR_FAMILY = "direct_or_family";
+export const MOONSTONE_MIN_PRODUCT_KRW = 10000;
+
+export function meetsMoonstoneMinimum(amountKRW) {
+  return Number.isSafeInteger(amountKRW) && amountKRW >= MOONSTONE_MIN_PRODUCT_KRW;
+}
 
 export function isDirectOnlyPaidFeatureKey(featureKey) {
   const key = normalizePaidFeatureKey(featureKey);
@@ -440,7 +445,8 @@ export function quoteYeongnyangiMoonstoneDiscount(featureKey, quantity = 0) {
   const spec = FEATURE_KEY_PRICE_TABLE[normalizePaidFeatureKey(featureKey)];
   if (!Number.isSafeInteger(quantity) || quantity < 0) throw new RangeError('INVALID_MOONSTONE_QUANTITY');
   if (!quantity) return null;
-  if (!YEONGNYANGI_PAID_FEATURE_KEYS.includes(featureKey) || !spec?.membershipCreditAllowed
+  if (getPaidFeaturePaymentPolicy(featureKey).monthlyExcluded
+    || !YEONGNYANGI_PAID_FEATURE_KEYS.includes(featureKey) || !spec?.membershipCreditAllowed
     || spec.membershipCreditMultiplier !== 1) throw new RangeError('MOONSTONE_DISCOUNT_UNAVAILABLE');
   return calculateMoonstoneDiscount(spec.amountKRW,calculatePaidFeatureMembershipCreditCost(featureKey),quantity);
 }
@@ -460,14 +466,15 @@ export function getPaidFeaturePaymentPolicy(featureKey) {
   const spec = FEATURE_KEY_PRICE_TABLE[normalizePaidFeatureKey(featureKey)];
   const directOnly = isDirectOnlyPaidFeatureKey(featureKey);
   const familyPassOnly = isDirectOrFamilyPaidFeatureKey(featureKey);
-  const monthlyExcluded = directOnly || (familyPassOnly && spec?.membershipCreditAllowed !== true);
+  const monthlyExcluded = !meetsMoonstoneMinimum(spec?.amountKRW)
+    || directOnly || (familyPassOnly && spec?.membershipCreditAllowed !== true);
   return {
     paymentScope: String(spec?.paymentScope || ""),
     directOnly, familyPassOnly, monthlyExcluded,
     membershipCreditMultiplier: Number(spec?.membershipCreditMultiplier || 1),
     allowedPaymentMethods: familyPassOnly
       ? ["FAMILY", "DIRECT_KRW", ...(!monthlyExcluded ? ["MOONLIGHT_STONE"] : [])]
-      : directOnly ? ["DIRECT_KRW"] : ["PASS", "DIRECT_KRW", "MOONLIGHT_STONE"],
+      : directOnly ? ["DIRECT_KRW"] : ["PASS", "DIRECT_KRW", ...(!monthlyExcluded ? ["MOONLIGHT_STONE"] : [])],
   };
 }
 

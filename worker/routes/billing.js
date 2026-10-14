@@ -1068,7 +1068,7 @@ function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscri
     recommendedMethods: passCovered ? ["PASS"] : equalPriorityPaidMethods,
     equalPriorityMethods: passCovered ? [] : equalPriorityPaidMethods,
     paymentPriority: passCovered ? "PASS_FIRST" : "USER_CHOICE_EQUAL",
-    hiddenMethods: passCovered ? ["DIRECT_KRW", "MOONLIGHT_STONE", "COIN"] : (directOnly ? ["PASS", "COIN", "MOONLIGHT_STONE"] : (familyPassOnly ? ["COIN", ...(monthlyExcluded ? ["MOONLIGHT_STONE"] : [])] : [])),
+    hiddenMethods: passCovered ? ["DIRECT_KRW", "MOONLIGHT_STONE", "COIN"] : (directOnly ? ["PASS", "COIN", "MOONLIGHT_STONE"] : (familyPassOnly ? ["COIN", ...(monthlyExcluded ? ["MOONLIGHT_STONE"] : [])] : (monthlyExcluded ? ["MOONLIGHT_STONE"] : []))),
     // 포함 횟수를 다 쓴 경우에도 결제수단은 그대로 동등 노출된다(위 equalPriorityPaidMethods).
     // 클라이언트가 "이용권이 없어서"가 아니라 "포함 횟수를 다 써서"라고 안내할 수 있도록
     // 사유와 잔여 횟수를 함께 내린다.
@@ -4523,7 +4523,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
   if (passExcludedForPricing && coinPaymentRequested) {
     // 월정석은 잔량과 무관히 단건결제와 항상 동등 노출(부족 시 클라이언트가 비활성 처리).
     // 이용권 제외 기능 공용 경로(프로필 카드 추가/삭제 + 음악 트랙) — 문구·변수명을 기능 중립으로 둔다.
-    const passExcludedPaymentMethods = directOnlyForPricing ? ["DIRECT_KRW"] : ["DIRECT_KRW", "MOONLIGHT_STONE"];
+    const passExcludedPaymentMethods = getPaidFeaturePaymentPolicy(pricing?.featureKey).monthlyExcluded ? ["DIRECT_KRW"] : ["DIRECT_KRW", "MOONLIGHT_STONE"];
     return failure(402, "PAYMENT_REQUIRED", directOnlyForPricing ? "이 상품은 단건 결제로만 이용할 수 있습니다." : "이 기능은 단건 결제 또는 월정석으로 이용해 주세요.", undefined, {
       pricing,
       ...paymentDecision,
@@ -4533,7 +4533,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         recommendedMethod: "PAYMENT_CHOICE",
         recommendedMethods: passExcludedPaymentMethods,
         equalPriorityMethods: passExcludedPaymentMethods,
-        hiddenMethods: directOnlyForPricing ? ["PASS", "COIN", "MOONLIGHT_STONE"] : ["PASS", "COIN"],
+        hiddenMethods: getPaidFeaturePaymentPolicy(pricing?.featureKey).monthlyExcluded ? ["PASS", "COIN", "MOONLIGHT_STONE"] : ["PASS", "COIN"],
         paymentPriority: "USER_CHOICE_EQUAL",
       },
       accessDecision,
