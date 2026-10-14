@@ -12,8 +12,6 @@ const BINARY = new Set(['.png', '.webp', '.jpg', '.jpeg', '.svg', '.ico', '.gif'
 // 유명인 사주 데이터 속 정치인은 신뢰 문구가 아니라 인물 데이터라 유지한다(2026-10-01 사용자 결정). 숫자는 정확히 맞아야 해서, 새 문구는 허용목록에 묻히지 않는다.
 const ALLOWED = {
   'app/yeongnyangi/_original/home-data.ts': { count: 14, reason: '2026-10-05 승인: 원문에 연결된 대통령 기록과 공개 반응, 사실과 구분한 프롤로그' },
-  'app/yeongnyangi/_original/Room.tsx': { count: 1, reason: '2026-10-05 승인: 원문에 연결된 대통령 기록과 공개 반응, 사실과 구분한 프롤로그' },
-  'app/yeongnyangi/_original/FortuneHome.tsx': { count: 1, reason: '2026-10-05 승인: 원문에 연결된 대통령 기록과 공개 반응, 사실과 구분한 프롤로그' },
   'app/components/FounderTrust.tsx': { count: 1, reason: '2026-10-05 승인: 원문에 연결된 대통령 기록과 공개 반응, 사실과 구분한 프롤로그' },
   'app/components/TrustStories.tsx': { count: 4, reason: '2026-10-05 승인: 원문에 연결된 대통령 기록과 공개 반응, 사실과 구분한 프롤로그' },
   'lib/brand/trust-stories.mjs': { count: 26, reason: '2026-10-05 승인: 원문에 연결된 대통령 기록과 공개 반응, 사실과 구분한 프롤로그' },
