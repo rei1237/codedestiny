@@ -701,7 +701,7 @@
       evidence: evidence,
       elements: rows.map(function (row) {
         var item = STUDY_ELEMENTS[row.key];
-        return { name: item.name, value: row.value, title: item.title, text: item.strength + ' ' + item.shadow, method: item.method,
+        return { key: row.key, name: item.name, value: row.value, title: item.title, text: item.strength + ' ' + item.shadow, method: item.method,
           note: !valid ? '분포 미확인: 일반적인 오행별 해석입니다.' : row.value === 0 ? '원국 분포에서 드러나지 않아도 이 능력이 없다는 뜻은 아닙니다. 연습 방법의 선택지로 참고하세요.' : '비중은 능력 점수가 아닙니다. 기운이 과하면 장점도 분산이나 부담으로 나타날 수 있어요.' };
       })
     };
@@ -834,8 +834,7 @@
     return ''
       + '<div class="dp-wrap dp-wrap--intro">'
       + '  <div class="dp-intro">'
-      + _dpStudyArt()
-      + '    <h4 class="dp-intro-title">마음을 빼앗기는 순간에서,<br>깊이 몰입하는 시간으로</h4>'
+      + '<div class="dp-intro-scene"><div><h4 class="dp-intro-title">마음을 빼앗기는 순간에서,<br>깊이 몰입하는 시간으로</h4><p class="dp-intro-promise">나의 오행으로 찾는<br>집중과 배움의 리듬</p></div><div class="dp-portrait"><img src="/fuctionassets/%EB%8F%84%ED%8C%8C%EB%AF%BC%20%EC%A4%91%EB%8F%85.webp" width="1659" height="948" alt="" loading="lazy" decoding="async"></div></div>'
       + '    <p class="dp-intro-sub">사주의 오행과 원국으로 자극에 끌리는 성향, 집중 환경, 나에게 맞는 공부법을 함께 읽어보세요.</p>'
       + '    <button type="button" class="dp-btn dp-btn--start" data-dp-start="1">나의 몰입과 공부법 보기</button>'
       + '    <p class="dp-disclaimer">사주를 활용한 자기 탐색 콘텐츠입니다. 중독·ADHD 진단이나 실제 집중력·학습 능력 측정이 아닙니다.</p>'
@@ -877,24 +876,31 @@
   }
 
   function _dpStudyArt() {
-    return '<svg class="dp-study-art" viewBox="0 0 320 180" width="320" height="180" aria-hidden="true" focusable="false">'
+    return '<svg class="dp-study-art" viewBox="0 0 320 300" width="320" height="300" aria-hidden="true" focusable="false">'
+      + '<g class="dp-orbit" fill="none" stroke="currentColor"><circle cx="160" cy="145" r="109"/><circle cx="160" cy="145" r="96" stroke-dasharray="1 9"/><path d="M160 36 264 111 224 233 96 233 56 111Z M160 36 224 233 56 111 264 111 96 233Z"/></g>'
+      + '<g class="dp-orbit-book" transform="translate(48 85) scale(.7)">'
       + '<g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">'
       + '<path d="M160 144C130 123 93 121 53 133V65c40-12 77-10 107 11 30-21 67-23 107-11v68c-40-12-77-10-107 11Z"/>'
       + '<path d="M160 76v68M66 81c29-7 56-4 78 8M66 97c29-7 56-4 78 8M176 89c22-12 49-15 78-8M176 105c22-12 49-15 78-8M45 143c47-12 84-9 115 12 31-21 68-24 115-12"/>'
       + '<path d="M99 44c17-28 105-28 122 0" stroke-dasharray="2 7"/><circle cx="160" cy="23" r="5"/><circle cx="125" cy="29" r="4"/><circle cx="195" cy="29" r="4"/><circle cx="99" cy="44" r="3"/><circle cx="221" cy="44" r="3"/>'
-      + '</g></svg>';
+      + '</g></g>'
+      + '<g class="dp-orbit-node dp-element-wood"><circle cx="160" cy="36" r="20"/><text x="160" y="43">木</text></g>'
+      + '<g class="dp-orbit-node dp-element-fire"><circle cx="264" cy="111" r="20"/><text x="264" y="118">火</text></g>'
+      + '<g class="dp-orbit-node dp-element-earth"><circle cx="224" cy="233" r="20"/><text x="224" y="240">土</text></g>'
+      + '<g class="dp-orbit-node dp-element-metal"><circle cx="96" cy="233" r="20"/><text x="96" y="240">金</text></g>'
+      + '<g class="dp-orbit-node dp-element-water"><circle cx="56" cy="111" r="20"/><text x="56" y="118">水</text></g></svg>';
   }
 
   function _dpStudyHtml(study) {
     var bars = study.rows.map(function (row) {
-      return '<li><span>' + _dpEscape(row.name) + '</span><span class="dp-element-track"><span style="width:' + (row.value || 0) + '%"></span></span><b>' + (row.value === null ? '—' : Math.round(row.value) + '%') + '</b></li>';
+      return '<li class="dp-element-' + row.key + '"><span>' + _dpEscape(row.name) + '</span><span class="dp-element-track"><span style="width:' + (row.value || 0) + '%"></span></span><b>' + (row.value === null ? '—' : Math.round(row.value) + '%') + '</b></li>';
     }).join('');
     return '<section class="dp-study" aria-labelledby="dp-study-title">'
       + '<header class="dp-study-head">' + _dpStudyArt() + '<div><h4 id="dp-study-title" tabindex="-1">' + _dpEscape(study.title) + '</h4><p>' + _dpEscape(study.summary) + '</p></div></header>'
       + '<p class="dp-disclaimer">사주를 활용한 자기 탐색용 해석입니다. 중독·ADHD를 진단하거나 집중력·학습 능력을 측정하지 않습니다. 공부법은 실제로 시도한 결과에 맞춰 조절하세요.</p>'
       + '<section class="dp-study-section"><h5>내 오행의 학습 지도</h5><p>원국의 오행 분포를 읽기 쉽게 옮겼습니다. 비중이 크다고 더 뛰어난 능력을 뜻하지 않아요.</p><ul class="dp-element-bars">' + bars + '</ul>'
       + '<div class="dp-element-readings">' + study.elements.map(function (item) {
-        return '<details><summary>' + _dpEscape(item.name + ' · ' + item.title) + '</summary><p>' + _dpEscape(item.text) + '</p><p>' + _dpEscape(item.method) + '</p><p class="dp-disclaimer">' + _dpEscape(item.note) + '</p></details>';
+        return '<details class="dp-element-' + item.key + '"><summary>' + _dpEscape(item.name + ' · ' + item.title) + '</summary><p>' + _dpEscape(item.text) + '</p><p>' + _dpEscape(item.method) + '</p><p class="dp-disclaimer">' + _dpEscape(item.note) + '</p></details>';
       }).join('') + '</div></section>'
       + '<section class="dp-study-section"><h5>원국에서 읽는 공부의 단서</h5>' + (study.evidence.length ? study.evidence.map(function (item) {
         return '<div class="dp-evidence"><h6>' + _dpEscape(item.title) + '</h6><p>' + _dpEscape(item.text) + '</p></div>';

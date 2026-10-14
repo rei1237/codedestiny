@@ -3984,52 +3984,69 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
   margin:0!important;border-radius:0 0 22px 22px!important}
 
 /* 도파민 · 몰입과 공부법: 카드 내부에만 적용한다. */
-#dopamineCard .dp-wrap{--dp-text:var(--cd-text);--dp-text-dim:var(--cd-text-muted);--dp-line:var(--cd-border);color:var(--dp-text);background:var(--cd-surface);border:1px solid var(--dp-line);border-radius:var(--cd-r-card);padding:clamp(16px,4vw,32px);margin-block:16px;min-width:0;overflow-wrap:anywhere}
+#dopamineCard .dp-wrap{--dp-text:#f8edde;--dp-text-dim:#d5bcc3;--dp-line:rgba(231,195,138,.3);--dp-ink:#160f1a;--dp-panel:#281925;--dp-gold:#e7c38a;--dp-rose:#e79b9f;--dp-soft:rgba(231,195,138,.13);--dp-wood:#96cab0;--dp-fire:#f2a18c;--dp-earth:#e6be79;--dp-metal:#e6d6bd;--dp-water:#9bbadd;color:var(--dp-text);background:radial-gradient(ellipse at 100% 0,var(--dp-panel),transparent 55%),var(--dp-ink);border:1px solid var(--dp-line);border-radius:var(--cd-r-card);padding:clamp(16px,4vw,32px);margin-block:16px;min-width:0;overflow-wrap:anywhere}
 #dopamineCard .dp-wrap *,#dopamineCard .dp-wrap *::before,#dopamineCard .dp-wrap *::after{box-sizing:border-box}
-#dopamineCard .dp-wrap ::selection{background:var(--cd-accent-soft);color:var(--dp-text)}
+#dopamineCard .dp-wrap ::selection{background:var(--dp-metal);color:var(--dp-ink)}
 #dopamineCard .dp-wrap :is(h4,h5,h6,p){color:inherit;word-break:keep-all;overflow-wrap:anywhere}
 #dopamineCard .dp-wrap :is(h4,h5,h6){line-height:1.45;text-wrap:balance}
 #dopamineCard .dp-wrap h4{font-family:var(--font-serif),serif;font-size:clamp(1.4rem,3vw,1.9rem);margin:0 0 16px}
-#dopamineCard .dp-wrap h5{font-size:1.12rem;margin:0 0 16px}
+#dopamineCard .dp-wrap h5{color:var(--dp-gold);font-family:var(--font-serif),serif;font-size:1.2rem;margin:0 0 16px}
 #dopamineCard .dp-wrap h6{font-size:1rem;margin:0 0 8px}
 #dopamineCard .dp-wrap p{font-size:1rem;line-height:1.85;margin:0 0 16px;max-width:66ch}
-#dopamineCard .dp-intro{text-align:center;padding-block:8px 16px}
+#dopamineCard .dp-intro{text-align:center;padding-block:0 16px}
+#dopamineCard .dp-intro-scene{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);align-items:center;gap:16px;text-align:left;margin-bottom:28px;border-bottom:1px solid var(--dp-line)}
+#dopamineCard .dp-intro-scene h4{color:var(--dp-text);font-size:clamp(1.4rem,3.5vw,2.2rem)}
+#dopamineCard .dp-intro-scene .dp-intro-promise{color:var(--dp-gold);font-size:.9rem}
+#dopamineCard .dp-portrait{position:relative;height:300px;overflow:hidden;mask-image:linear-gradient(to bottom,black 75%,transparent)}
+#dopamineCard .dp-portrait img{display:block;width:100%;height:100%;object-fit:cover;object-position:56% 38%;transform:scale(2);transform-origin:56% 38%;border-radius:var(--cd-r-section) var(--cd-r-section) 0 0}
+#dopamineCard .dp-portrait::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,var(--dp-ink),transparent 18%,transparent 85%,var(--dp-ink))}
+#dopamineCard .dp-orbit{opacity:.5;stroke-width:1}
+#dopamineCard .dp-orbit-book{color:var(--dp-gold)}
+#dopamineCard .dp-orbit-node circle{fill:var(--dp-ink);stroke:var(--dp-element);stroke-width:1.5}
+#dopamineCard .dp-orbit-node text{fill:var(--dp-element);font-family:var(--font-serif),serif;font-size:22px;text-anchor:middle}
+#dopamineCard .dp-element-wood{--dp-element:var(--dp-wood)}
+#dopamineCard .dp-element-fire{--dp-element:var(--dp-fire)}
+#dopamineCard .dp-element-earth{--dp-element:var(--dp-earth)}
+#dopamineCard .dp-element-metal{--dp-element:var(--dp-metal)}
+#dopamineCard .dp-element-water{--dp-element:var(--dp-water)}
 #dopamineCard .dp-intro p{margin-inline:auto}
-#dopamineCard .dp-study-art{display:block;width:min(240px,100%);height:auto;margin:0 auto 20px;color:var(--cd-accent)}
-#dopamineCard .dp-study-head{display:grid;grid-template-columns:minmax(120px,1fr) minmax(0,2fr);gap:24px;align-items:center;padding-block:8px 24px}
+#dopamineCard .dp-study-art{display:block;width:min(240px,100%);height:auto;margin:0 auto 20px;color:var(--dp-gold)}
+#dopamineCard .dp-study-head{display:grid;grid-template-columns:minmax(120px,1fr) minmax(0,2fr);gap:24px;align-items:center;padding-block:8px 24px;background:radial-gradient(ellipse at 16% 45%,var(--dp-soft),transparent 60%)}
 #dopamineCard .dp-study-head .dp-study-art{margin:0 auto}
 #dopamineCard .dp-wrap .dp-disclaimer{font-size:.85rem;line-height:1.75;color:var(--dp-text-dim);margin-block:16px}
 #dopamineCard .dp-study-section{padding-block:28px;border-top:1px solid var(--dp-line)}
 #dopamineCard .dp-element-bars{display:grid;gap:14px;list-style:none;padding:0;margin:24px 0;font-variant-numeric:tabular-nums}
 #dopamineCard .dp-element-bars li{display:grid;grid-template-columns:64px minmax(0,1fr) 48px;gap:12px;align-items:center}
-#dopamineCard .dp-element-bars b{text-align:right;font-size:.88rem}
-#dopamineCard .dp-element-track{height:8px;background:var(--cd-accent-soft);border-radius:var(--cd-r-pill);overflow:hidden}
-#dopamineCard .dp-element-track span{display:block;height:100%;background:var(--cd-accent);border-radius:inherit}
+#dopamineCard .dp-element-bars b{color:var(--dp-element);text-align:right;font-size:.88rem}
+#dopamineCard .dp-element-track{height:8px;background:var(--dp-soft);border-radius:var(--cd-r-pill);overflow:hidden}
+#dopamineCard .dp-element-track span{display:block;height:100%;background:var(--dp-element);border-radius:inherit}
 #dopamineCard .dp-wrap summary{min-height:48px;cursor:pointer;padding:14px 4px;font-weight:700;line-height:1.6;color:var(--dp-text);overflow-wrap:anywhere}
-#dopamineCard .dp-wrap summary::marker{color:var(--cd-accent)}
-#dopamineCard .dp-wrap summary:focus-visible,#dopamineCard .dp-btn:focus-visible{outline:2px solid var(--cd-accent);outline-offset:4px}
+#dopamineCard .dp-wrap summary::marker{color:var(--dp-gold)}
+#dopamineCard .dp-wrap summary:focus-visible,#dopamineCard .dp-btn:focus-visible{outline:2px solid var(--dp-gold);outline-offset:4px}
 #dopamineCard .dp-element-readings details{border-top:1px solid var(--dp-line)}
+#dopamineCard .dp-element-readings summary{color:var(--dp-element)}
+#dopamineCard .dp-element-readings summary::marker{color:var(--dp-element)}
 #dopamineCard .dp-element-readings details p{padding-inline:4px}
 #dopamineCard .dp-evidence{padding-block:8px 16px}
 #dopamineCard .dp-study-steps{margin:0;padding-left:24px}
 #dopamineCard .dp-study-steps li{padding:4px 0 16px 8px}
-#dopamineCard .dp-study-steps li::marker{font-weight:700;color:var(--cd-accent)}
-#dopamineCard .dp-study-check{padding:20px;background:var(--cd-surface-2);border-radius:var(--cd-r-md)}
+#dopamineCard .dp-study-steps li::marker{font-weight:700;color:var(--dp-gold)}
+#dopamineCard .dp-study-check{padding:20px;border:1px solid var(--dp-line);background:linear-gradient(120deg,var(--dp-panel),var(--dp-ink));border-radius:var(--cd-r-md)}
 #dopamineCard .dp-stimulus{border-top:1px solid var(--dp-line)}
-#dopamineCard .dp-btn{min-height:48px;max-width:100%;padding:12px 24px;border:1px solid var(--cd-accent);border-radius:var(--cd-r-control);background:var(--cd-surface);color:var(--cd-accent);font:inherit;font-weight:700;cursor:pointer;touch-action:manipulation}
-#dopamineCard .dp-btn:hover{background:var(--cd-accent-soft);color:var(--dp-text)}
+#dopamineCard .dp-btn{min-height:48px;max-width:100%;padding:12px 24px;border:1px solid var(--dp-gold);border-radius:var(--cd-r-control);background:linear-gradient(120deg,var(--dp-metal),var(--dp-gold) 55%,var(--dp-rose));color:var(--dp-ink);font:inherit;font-weight:700;cursor:pointer;touch-action:manipulation}
+#dopamineCard .dp-btn:hover{background:var(--dp-soft);color:var(--dp-text)}
 #dopamineCard .dp-btn:disabled{opacity:.6;cursor:wait}
 #dopamineCard .dp-loading{text-align:center;padding:32px 0}
-#dopamineCard .dp-progress{height:8px;background:var(--cd-accent-soft);overflow:hidden;border-radius:var(--cd-r-pill)}
-#dopamineCard .dp-progress-bar{display:block;height:100%;background:var(--cd-accent);transform:scaleX(.06);transform-origin:left;transition:transform 1.85s ease}
+#dopamineCard .dp-progress{height:8px;background:var(--dp-soft);overflow:hidden;border-radius:var(--cd-r-pill)}
+#dopamineCard .dp-progress-bar{display:block;height:100%;background:var(--dp-gold);transform:scaleX(.06);transform-origin:left;transition:transform 1.85s ease}
 #dopamineCard .dp-progress-bar.is-full{transform:scaleX(1)}
-#dopamineCard .dp-score-card{padding:24px;margin-block:16px 28px;border:1px solid var(--dp-line);border-radius:var(--cd-r-card);background:var(--cd-surface-2);text-align:center}
+#dopamineCard .dp-score-card{padding:24px;margin-block:16px 28px;border:1px solid var(--dp-line);border-radius:var(--cd-r-card);background:var(--dp-panel);text-align:center}
 #dopamineCard .dp-score-card p{margin-inline:auto}
 #dopamineCard .dp-score-head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;margin-bottom:24px;font-size:.85rem}
 #dopamineCard .dp-score-value b{font-size:2.5rem;font-variant-numeric:tabular-nums}
 #dopamineCard .dp-score-value span{margin-left:8px}
-#dopamineCard .dp-grade{font-weight:700;color:var(--cd-accent)}
-#dopamineCard .dp-score-stars{color:var(--cd-accent)}
+#dopamineCard .dp-grade{font-weight:700;color:var(--dp-gold)}
+#dopamineCard .dp-score-stars{color:var(--dp-gold)}
 #dopamineCard .dp-sec{padding-block:20px;border-top:1px solid var(--dp-line)}
 #dopamineCard .dp-why-list,#dopamineCard .dp-check-list{padding-left:20px;line-height:1.85}
 #dopamineCard .dp-why-list li,#dopamineCard .dp-check-list li{margin-bottom:8px}
@@ -4037,15 +4054,15 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
 #dopamineCard .dp-radar{width:min(280px,100%);height:auto;flex:0 1 280px}
 #dopamineCard .dp-radar-ring{fill:none;stroke:var(--dp-line)}
 #dopamineCard .dp-radar-spoke{stroke:var(--dp-line)}
-#dopamineCard .dp-radar-shape{fill:var(--cd-accent-soft);stroke:var(--cd-accent);stroke-width:1.5}
+#dopamineCard .dp-radar-shape{fill:var(--dp-soft);stroke:var(--dp-gold);stroke-width:1.5}
 #dopamineCard .dp-radar-label{fill:var(--dp-text);font-size:9.5px}
 #dopamineCard .dp-legend{flex:1 1 180px;min-width:0;list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 #dopamineCard .dp-legend-row,#dopamineCard .dp-star-row{display:flex;justify-content:space-between;gap:12px;font-size:.9rem}
 #dopamineCard .dp-star-list,#dopamineCard .dp-bar-list{list-style:none;padding:0;margin:0;display:grid;gap:16px}
-#dopamineCard .dp-star-mark{white-space:nowrap;color:var(--cd-accent)}
+#dopamineCard .dp-star-mark{white-space:nowrap;color:var(--dp-gold)}
 #dopamineCard .dp-bar-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(30px,1fr) 28px;align-items:center;gap:12px;font-size:.9rem}
-#dopamineCard .dp-bar-track{height:6px;background:var(--cd-accent-soft);border-radius:var(--cd-r-pill);overflow:hidden}
-#dopamineCard .dp-bar-fill{display:block;height:100%;background:var(--cd-accent)}
+#dopamineCard .dp-bar-track{height:6px;background:var(--dp-soft);border-radius:var(--cd-r-pill);overflow:hidden}
+#dopamineCard .dp-bar-fill{display:block;height:100%;background:var(--dp-gold)}
 #dopamineCard .dp-bar-value{text-align:right}
 #dopamineCard .dp-today-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;padding-block:24px}
 #dopamineCard .dp-today-tag{display:block;font-weight:700;margin-bottom:12px}
@@ -4055,6 +4072,8 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
 #dopamineCard .dp-actions{display:flex;flex-wrap:wrap;gap:12px;margin-block:24px}
 #dopamineCard .dp-actions .dp-btn{flex:1 1 180px}
 @media(max-width:540px){
+  #dopamineCard .dp-portrait{height:240px}
+  #dopamineCard .dp-intro-scene{gap:12px;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr)}
   #dopamineCard .dp-study-head{grid-template-columns:minmax(0,1fr);gap:8px}
   #dopamineCard .dp-study-head .dp-study-art{width:180px}
   #dopamineCard .dp-today-row{grid-template-columns:minmax(0,1fr)}
