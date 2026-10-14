@@ -38,6 +38,7 @@ import CodexGenerating from "./components/CodexGenerating";
 import CodexShell from "./components/CodexShell";
 import type { CodexChapter } from "./components/CodexReader";
 import { masterLoveCodexBgmTracks } from "./data/assets";
+import { EMPTY_CONSULTATION } from "./_lib/consultation";
 import { codexPrologueStageOrder, type CodexPrologueChoiceKey, type CodexPrologueStage } from "./data/prologue";
 import {
   MASTER_LOVE_CODEX_PROLOGUE_SEEN_KEY,
@@ -371,7 +372,7 @@ export default function MasterLoveCodexPage() {
     idempotencyRef.current = idempotencyKey;
     chargedRef.current = true;
     setError("");
-    setBirth((current) => ({ ...current, ...asRecord(restored.birthInfo), partner: restored.partnerInfo ? { ...EMPTY_CODEX_PARTNER, ...asRecord(restored.partnerInfo) } : null }));
+    setBirth((current) => ({ ...current, ...asRecord(restored.birthInfo), consultation: restored.consultation as CodexBirthInput["consultation"], partner: restored.partnerInfo ? { ...EMPTY_CODEX_PARTNER, ...asRecord(restored.partnerInfo) } : null }));
     setGenerationError("");
     setPhase("generating");
     try {
@@ -514,6 +515,7 @@ export default function MasterLoveCodexPage() {
       locale,
       idempotencyKey,
       prologueChoice,
+      consultation: birth.consultation || EMPTY_CONSULTATION,
       birthInfo: {
         name: birth.name,
         gender: birth.gender,

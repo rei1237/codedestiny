@@ -7,6 +7,8 @@
  * 장 표식은 큰 Cinzel 숫자다(한자 심볼은 20자 중 15자가 로드된 폰트에 없어 두부 박스가 된다).
  */
 
+import CodexConsultationAnswers from "./CodexConsultationAnswers";
+import type { CodexConsultation, CodexQuestionAnswer, CodexPeriodReading } from "../_lib/consultation";
 import AiResultProse from "@/components/fortune/AiResultProse";
 import CodexReveal from "./CodexReveal";
 import { CODEX_CHAPTER_ANCHOR_PREFIX } from "../data/acts";
@@ -19,6 +21,8 @@ export interface CodexChapterData {
   title: string;
   body: string;
   content?: {
+    questionAnswers?: CodexQuestionAnswer[];
+    periodReadings?: CodexPeriodReading[];
     narration?: string;
     evidence?: Array<{ label: string; system?: string; explanation?: string }>;
     crossChecks?: Array<{ id: string; status: "agreement" | "conflict" | "pending"; explanation: string }>;
@@ -37,6 +41,7 @@ export interface CodexChapterData {
 }
 
 interface CodexChapterProps {
+  consultation?: CodexConsultation | null;
   chapter: CodexChapterData;
   /** PDF 캡처 중 — 등장 애니메이션을 건너뛰고 즉시 노출 */
   forceVisible?: boolean;
@@ -62,7 +67,7 @@ export function stripChapterPrefix(title: string): string {
   return String(title || "").replace(/^제\s*\d+\s*장\s*·\s*/, "");
 }
 
-export default function CodexChapter({ chapter, forceVisible = false }: CodexChapterProps) {
+export default function CodexChapter({ chapter, forceVisible = false, consultation }: CodexChapterProps) {
   const copy = useMasterLoveCodexCopy();
   const heading = stripChapterPrefix(chapter.title);
   const content = chapter.content;
@@ -93,6 +98,7 @@ export default function CodexChapter({ chapter, forceVisible = false }: CodexCha
         </CodexReveal>
 
         <CodexReveal forceVisible={forceVisible} index={1} className="mt-10">
+          {consultation && <CodexConsultationAnswers consultation={consultation} answers={content?.questionAnswers} periods={content?.periodReadings} />}
           {content?.narration ? (
             <blockquote className={styles.narration}>
               <span aria-hidden="true">{copy.narratorName}</span>

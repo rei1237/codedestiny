@@ -227,7 +227,7 @@ export async function readRecord(userId, sourceId, id) {
   }
   let content = source.id === 'executions' ? doc.metadata?.result || doc.metadata?.archive || doc.metadata?.palmResult || doc.metadata?.celestialDelivery?.reading || {} :
     source.id === 'paid-results' ? doc.result : source.id === 'legacy-naming' ? doc.namingPrompt || doc.pricingSnapshot?.namingPrompt : doc;
-  if (source.id === 'codex') content = { ...doc, status: record.status };
+  if (source.id === 'codex') content = { ...doc, status: record.status, consultationHash: undefined, consultation: doc.consultation ? { ...doc.consultation, records: undefined } : null };
   if (source.id === 'chat-consultation') {
     const { presentFortune } = await import('../yeongnyangi/service.ts');
     content = { ...presentFortune(doc), persona: doc.persona };

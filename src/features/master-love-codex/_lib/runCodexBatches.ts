@@ -55,6 +55,7 @@ export type CodexGenerationProgress = {
 };
 
 export type CodexSessionPayload = {
+  consultation?: import("./consultation").CodexConsultation | null;
   ok?: boolean;
   reason?: string;
   message?: string;

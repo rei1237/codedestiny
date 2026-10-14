@@ -29,6 +29,7 @@ import styles from "@/src/features/master-love-codex/styles/codex.module.css";
 import { masterLoveCodexBilling } from "@/src/features/master-love-codex/constants";
 
 type SessionState = {
+  consultation?: import("@/src/features/master-love-codex/_lib/consultation").CodexConsultation | null;
   sessionId: string;
   status: string;
   /**
@@ -168,6 +169,7 @@ export default function MasterLoveCodexResultClient() {
         updatedAt: payload.updatedAt ? String(payload.updatedAt) : undefined,
         retryable: payload.retryable, retryAfterMs: payload.retryAfterMs, message: payload.message,
         birthInfo: payload.birthInfo || null,
+        consultation: payload.consultation || null,
       };
       setSession((current) => (isStaleCodexUpdate(current, latest.sessionId, latest.updatedAt) ? current : latest));
       return latest;
@@ -388,7 +390,7 @@ export default function MasterLoveCodexResultClient() {
           </p>
         </div>
       ) : null}
-      <CodexReader
+      <CodexReader consultation={session.consultation}
         completed={session.status === "completed"}
         chapters={session.chapters}
         outline={session.outline}
