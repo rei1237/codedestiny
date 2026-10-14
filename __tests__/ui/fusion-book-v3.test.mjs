@@ -6,7 +6,7 @@ import {build} from 'esbuild';
 import {createRequire} from 'node:module';
 const require=createRequire(import.meta.url),Module=require('node:module');
 const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/fortune/fusion-book';export * from './worker/yeongnyangi/fortune/consultation-budget';export * from './lib/pdf/yeongnyangi-report-plan';export {products} from './worker/yeongnyangi/payments/catalog';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false});
-const module=new Module('fusion-book.cjs');module.paths=Module._nodeModulePaths(process.cwd());module._compile(built.outputFiles[0].text,'fusion-book.cjs');const m=module.exports;
+const loadedModule=new Module('fusion-book.cjs');loadedModule.paths=Module._nodeModulePaths(process.cwd());loadedModule._compile(built.outputFiles[0].text,'fusion-book.cjs');const m=loadedModule.exports;
 test('v3 has an answer first, three consecutive independent chapters per system and complete life coverage',()=>{
  for(const product of m.products.filter(p=>p.readingKind!=='single'))for(const topic of ['love','money','work','self','relationship','luck','healing']){
   const rows=m.fusionPremiumManifest(product,topic);
