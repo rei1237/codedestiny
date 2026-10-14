@@ -30,6 +30,7 @@ async function assertEssentials(page, label) {
     ['topics', '.cdh-topics a[href="/yeongnyangi/consult/work-money/"]'],
     ['search', '#cdhServices #fortuneGatewaySearch'],
     ['samples', '#cdhSamples .result-sample__cta'],
+    ['sample guide', '#cdhSamples .result-samples__overview[href="/consultation-samples/"]'],
     ['signature', '#cdSignatureConsult'],
   ];
   for (const [name, selector] of essentials) {

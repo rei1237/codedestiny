@@ -26,6 +26,7 @@ const template = read('templates/home-funnel.html');
 assert.ok(template.indexOf('id="cdhQuickSlot"') < template.indexOf('id="cdhServices"'), 'methods precede search');
 // 2026-10-14: 전체 운세 체계와 검색은 접힌 보조 콘텐츠가 아니라 메인 흐름에서 바로 쓴다.
 assert.ok(template.indexOf('id="cdhQuickSlot"') < template.indexOf('id="cdhGardenBody"'), 'all fortune systems remain in the primary flow');
+assert.match(home, /class="result-samples__overview" href="\/consultation-samples\/"/, 'home consultation cards expose the complete sample guide');
 
 assert.equal([...quickSection.matchAll(/href="\/\?action=([^"]+)" data-action="\1"/g)].length, 6, 'early clicks retain the selected action before JavaScript is ready');
 

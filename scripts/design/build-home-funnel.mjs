@@ -69,7 +69,7 @@ const lightCards = ['saju', 'tarot', 'ziwei', 'sukuyo'].map(id => {
 });
 vars.lightRecommendations = `<section class="cdh-light" aria-labelledby="cdhLightTitle"><h2 id="cdhLightTitle" data-cd-trans="home.followup.light">가볍게 둘러보기</h2><div class="cdh-methods-grid">${lightCards.join('')}</div></section>`;
 vars.signupBenefit = `<section id="cdhSignupBenefit" class="cdh-signup-benefit" hidden aria-live="polite"><h2 data-cd-trans="home.followup.benefit">첫 가입 월정석 ${signupBenefitPolicy.amount.toLocaleString('ko-KR')}개</h2><p data-cd-trans="home.followup.benefitNote">지급일부터 ${signupBenefitPolicy.days}일 · 일반 환산 기준 ${(signupBenefitPolicy.amount * KRW_PER_COIN / MEMBERSHIP_CREDIT_PER_COIN).toLocaleString('ko-KR')}원 상당. ${MOONSTONE_MIN_PRODUCT_KRW.toLocaleString('ko-KR')}원 이상 대상 서비스 할인에만 사용할 수 있어요. 이용권 구매에는 쓸 수 없어요.</p><a href="/signup/?next=%2F" data-cd-trans="home.followup.join">카카오 또는 이메일로 가입하기</a></section>`;
-vars.resultSamples = renderResultSamples({prefix:'home-sample'});
+vars.resultSamples = renderResultSamples({prefix:'home-sample',overviewHref:'/consultation-samples/'});
 vars.signupAmount = signupBenefitPolicy.amount.toLocaleString('ko-KR');
 vars.signupValue = (signupBenefitPolicy.amount * KRW_PER_COIN / MEMBERSHIP_CREDIT_PER_COIN).toLocaleString('ko-KR');
 vars.signupDays = signupBenefitPolicy.days;
