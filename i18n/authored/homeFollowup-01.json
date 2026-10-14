@@ -196,18 +196,18 @@
     "ms": "Lihat konsultasi dan contoh hasil yang sesuai dengan persoalan anda."
   },
   "home.followup.member": {
-    "ko": "보유 월정석과 만료일을 확인하세요. 월정석은 {{minimum}}원 이상 대상 상품에 사용할 수 있어요.",
-    "en": "Check your Moonstones and expiry dates. Eligible products start at KRW {{minimum}}.",
-    "ja": "月晶石の残高と有効期限をご確認ください。{{minimum}}ウォン以上の対象商品に利用できます。",
-    "zh-CN": "查看月晶石余额和有效期。可用于价格不低于{{minimum}}韩元的适用商品。",
-    "zh-TW": "查看月晶石餘額和有效期限。可用於價格不低於{{minimum}}韓元的適用商品。",
-    "vi": "Kiểm tra Đá Mặt Trăng và hạn dùng. Áp dụng cho sản phẩm đủ điều kiện từ {{minimum}} KRW.",
-    "hi": "मूनस्टोन शेष और समाप्ति देखें। {{minimum}} KRW या अधिक के पात्र उत्पादों पर उपयोग करें।",
-    "es": "Consulta tus Piedras Lunares y su caducidad. Para productos aptos desde {{minimum}} KRW.",
-    "fr": "Consultez vos Pierres de lune et leur expiration. Produits éligibles à partir de {{minimum}} KRW.",
-    "de": "Prüfe Mondsteine und Ablaufdaten. Für berechtigte Produkte ab {{minimum}} KRW.",
-    "nl": "Bekijk je Maanstenen en vervaldatums. Voor geschikte producten vanaf {{minimum}} KRW.",
-    "ms": "Semak Batu Bulan dan tarikh luput. Untuk produk layak mulai {{minimum}} KRW."
+    "ko": "보유 월정석과 만료일을 확인하세요. 월정석은 {minimum}원 이상 대상 상품에 사용할 수 있어요.",
+    "en": "Check your Moonstones and expiry dates. Eligible products start at KRW {minimum}.",
+    "ja": "月晶石の残高と有効期限をご確認ください。{minimum}ウォン以上の対象商品に利用できます。",
+    "zh-CN": "查看月晶石余额和有效期。可用于价格不低于{minimum}韩元的适用商品。",
+    "zh-TW": "查看月晶石餘額和有效期限。可用於價格不低於{minimum}韓元的適用商品。",
+    "vi": "Kiểm tra Đá Mặt Trăng và hạn dùng. Áp dụng cho sản phẩm đủ điều kiện từ {minimum} KRW.",
+    "hi": "मूनस्टोन शेष और समाप्ति देखें। {minimum} KRW या अधिक के पात्र उत्पादों पर उपयोग करें।",
+    "es": "Consulta tus Piedras Lunares y su caducidad. Para productos aptos desde {minimum} KRW.",
+    "fr": "Consultez vos Pierres de lune et leur expiration. Produits éligibles à partir de {minimum} KRW.",
+    "de": "Prüfe Mondsteine und Ablaufdaten. Für berechtigte Produkte ab {minimum} KRW.",
+    "nl": "Bekijk je Maanstenen en vervaldatums. Voor geschikte producten vanaf {minimum} KRW.",
+    "ms": "Semak Batu Bulan dan tarikh luput. Untuk produk layak mulai {minimum} KRW."
   },
   "home.followup.balance": {
     "ko": "내 월정석 확인하기",

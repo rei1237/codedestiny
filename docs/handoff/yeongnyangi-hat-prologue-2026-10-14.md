@@ -35,3 +35,12 @@ next: SortingHat과 현재 라이트 노벨 플레이어를 읽고, 아래 4장�
 
 ## 검증
 mock으로 6개 배정·실패·느린 응답·건너뛰기·프로필 전환·모션 감소. 관련 검사 → commit → pre-push → main push·최종 CI 확인. 이 문서는 후속 구현 완료 때 `status: done`으로 닫는다.
+
+## 재개 기준
+- 구현 기준 커밋: 31ecf2eef (월정석 최소금액 회귀 검사 포함). 홈·예시 랜딩은 87f0f431b에서 추가했다.
+- 작업 디렉터리: D:\Development\code-destiny
+- 문서: D:\Development\code-destiny\docs\handoff\yeongnyangi-hat-prologue-2026-10-14.md
+- 다음 행동: 이 문서와 SortingHat.tsx, public/codedestiny-novel.html의 실제 대사창·타이핑 코드를 읽고 4장면을 구현한다.
+- 현재 진입 UI는 360/390/430/1280px에서 가로 넘침·모자 노출·예시 펼침을 mock 브라우저로 확인했다. 후속 배정 연출 자체는 미구현·미검증이다.
+
+재개 지시: D:\Development\code-destiny에서 위 문서를 읽고 main의 변경 소유권과 31ecf2eef를 확인한 뒤, 기존 라이트 노벨의 대사창을 기준으로 모자 프롤로그·기숙사별 대사·결과 공개 효과를 구현한다.

@@ -1934,7 +1934,7 @@
       "benefitNote": "Valid for 30 days. Equivalent to KRW 20,000 at the standard rate; costs vary by product. Not cash or credit for purchasing passes.",
       "join": "Sign up with Kakao or email",
       "signatureDescription": "Explore consultations and sample results for your concern.",
-      "member": "Check your Moonstones and expiry dates. Eligible products start at KRW {{minimum}}.",
+      "member": "Check your Moonstones and expiry dates. Eligible products start at KRW {minimum}.",
       "balance": "View my Moonstones"
     }
   },

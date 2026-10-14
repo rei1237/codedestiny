@@ -1934,7 +1934,7 @@
       "benefitNote": "Válidas 30 días. Equivalen a 20.000 KRW a la tasa estándar; el coste varía según el producto. No son efectivo ni sirven para comprar pases.",
       "join": "Regístrate con Kakao o correo",
       "signatureDescription": "Explora consultas y resultados de ejemplo para tu inquietud.",
-      "member": "Consulta tus Piedras Lunares y su caducidad. Para productos aptos desde {{minimum}} KRW.",
+      "member": "Consulta tus Piedras Lunares y su caducidad. Para productos aptos desde {minimum} KRW.",
       "balance": "Ver mis Piedras Lunares"
     }
   },
