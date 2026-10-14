@@ -62,7 +62,7 @@ export function recordMetadata(source, doc) {
     createdAt: doc.createdAt && Number.isFinite(Date.parse(doc.createdAt)) ? new Date(doc.createdAt).toISOString() : null,
     status, group: source.dynamic ? variant?.group || source.group : source.group, character: clean(doc.persona || doc.characterId || source.character, 30),
     href: savedRecordPath(source.id, id), startHref: variant?.href || product?.href || source.href,
-    recoveryHref: source.id === 'tea' ? `/fortune-tea-house/?recoverResultId=${encodeURIComponent(id)}` : source.resultPath && source.group !== 'chat' ? source.resultPath + encodeURIComponent(id) : '/points/history/',
+    recoveryHref: featureKey === 'premium-sibyl-dominator' ? savedRecordPath(source.id,id) : source.id === 'tea' ? `/fortune-tea-house/?recoverResultId=${encodeURIComponent(id)}` : source.resultPath && source.group !== 'chat' ? source.resultPath + encodeURIComponent(id) : '/points/history/',
     nativeHref: status === 'completed' && featureKey === 'nakshatra-compat' && doc.metadata?.nakshatraCompat ? '/nakshatra/compat/?resultId=' + encodeURIComponent(id) : status === 'completed' && source.resultPath && doc[source.idField] ? source.resultPath + encodeURIComponent(id) : '',
   };
 }

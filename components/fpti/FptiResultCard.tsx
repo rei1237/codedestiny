@@ -550,6 +550,7 @@ function createInitialDeepReport(result: FptiAnalysisResult): FptiDeepReport {
 export default function FptiResultCard({ result, savedProfileId = "", buildResumeDescriptor }: Props) {
   const copy = useFptiSharedCopy();
   const codeParts = (result?.code || "").split("").filter(Boolean);
+  const [archiveKey, setArchiveKey] = useState('');
   const [deepLoading, setDeepLoading] = useState(false);
   const [deepError, setDeepError] = useState("");
   const [deepNotice, setDeepNotice] = useState("");
@@ -579,6 +580,8 @@ export default function FptiResultCard({ result, savedProfileId = "", buildResum
   );
 
   const signature = useMemo(() => buildSignature(result), [result]);
+  const archiveIdentity = savedProfileId + ':' + signature;
+  const archiveReady = archiveKey === archiveIdentity;
 
   useEffect(() => {
     let cancelled = false;
@@ -586,6 +589,7 @@ export default function FptiResultCard({ result, savedProfileId = "", buildResum
     // 🔴 브라우저 저장본은 해금 근거가 아니다 — 서버가 이 저장 프로필(생년월일)에 대해 답한 것만 믿는다.
     // 저장본은 해금 수단·거래 id 같은 표시용 메타데이터로만 쓴다.
     const stored = savedProfileId ? safeReadStored(scope, signature) : null;
+    setArchiveKey('');
     setAccessChecking(Boolean(savedProfileId));
     setAccessState({ isUnlocked: false });
     setDeepReport(normalizeDeepReport(createInitialDeepReport(result), false));
@@ -617,6 +621,7 @@ export default function FptiResultCard({ result, savedProfileId = "", buildResum
           transactionId: stored?.access?.transactionId,
           unlockedAt: stored?.access?.unlockedAt || new Date().toISOString(),
         };
+        setArchiveKey(unlockedReport ? archiveIdentity : '');
         const finalReport = unlockedReport || buildFptiDeepReport({ result }, { unlocked: true });
         setAccessState(nextAccess);
         setDeepReport(normalizeDeepReport(finalReport, true));
@@ -641,7 +646,7 @@ export default function FptiResultCard({ result, savedProfileId = "", buildResum
     return () => {
       cancelled = true;
     };
-  }, [copy.deepNoticeAlreadyUnlocked, fptiSnapshotUnlocked, result, savedProfileId, signature]);
+  }, [archiveIdentity, copy.deepNoticeAlreadyUnlocked, fptiSnapshotUnlocked, result, savedProfileId, signature]);
 
   const handleUnlockDeepReport = async () => {
     if (deepLoading || accessChecking || unlockingRef.current) return;
@@ -697,8 +702,9 @@ export default function FptiResultCard({ result, savedProfileId = "", buildResum
         unlockedAt: String(consume?.createdAt || new Date().toISOString()),
       };
 
-      const unlockedReport = await fetchServerDeepReport(result, signature, savedProfileId)
-        || resolveUnlockReport(result);
+      const serverReport = await fetchServerDeepReport(result, signature, savedProfileId);
+      setArchiveKey(serverReport ? archiveIdentity : '');
+      const unlockedReport = serverReport || resolveUnlockReport(result);
 
       setAccessState(nextAccess);
       setDeepReport(normalizeDeepReport(unlockedReport, true));
@@ -932,6 +938,8 @@ export default function FptiResultCard({ result, savedProfileId = "", buildResum
           {copy.statusLabel} <span className={accessState.isUnlocked ? styles.neonTextCyan : styles.neonTextGold}>{accessState.isUnlocked ? copy.statusUnlockedValue : accessChecking ? copy.accessCheckingMessage : copy.statusPreviewValue}</span>
         </div>
         {accessChecking && !accessState.isUnlocked && <p className="mt-3 rounded-xl border border-amber-300/35 bg-amber-500/15 p-3 text-sm text-amber-100">{copy.accessCheckingMessage}</p>}
+        {accessState.isUnlocked && archiveReady && <a className="mt-3 inline-flex min-h-11 items-center text-cyan-100 underline underline-offset-4" href={'/records/view/?source=executions&id='+encodeURIComponent('fpti-deep:'+signature)}>보관함에서 리포트 다시 보기</a>}
+        {accessState.isUnlocked && !archiveReady && <div className="mt-3 text-sm text-slate-100"><p>보관함 저장을 아직 확인하지 못했어요. 추가 결제 없이 다시 연결할 수 있어요.</p><button type="button" disabled={deepLoading} className="mt-2 min-h-11 rounded-xl border border-cyan-200 px-4" onClick={async () => {setDeepLoading(true);setDeepError('');try {const saved=await fetchServerDeepReport(result,signature,savedProfileId);if(!saved){setDeepError('저장 연결을 확인하지 못했어요. 잠시 후 다시 시도해 주세요.');return;}setArchiveKey(archiveIdentity);setDeepReport(normalizeDeepReport(saved,true));}finally{setDeepLoading(false);}}}>보관함 연결 다시 시도하기</button></div>}
         {deepNotice && <p className="mt-3 rounded-xl border border-emerald-300/35 bg-emerald-500/15 p-3 text-sm text-emerald-100">{deepNotice}</p>}
         {deepError && <p className="mt-3 rounded-xl border border-rose-300/35 bg-rose-500/15 p-3 text-sm text-rose-100">{deepError}</p>}
       </div>

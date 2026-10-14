@@ -1148,26 +1148,7 @@ async function handleDeepReport(request, env) {
 
   const archived = await readArchivedReport(env, auth.userId, reportSignature);
   if (archived?.chapters?.length) {
-    const archivedQuality = isArchivedReportUsable(archived);
-    if (archivedQuality.ok) {
-      return json({
-        ok: true,
-        data: {
-          source: archived.source || "archive",
-          report: archived,
-        },
-      });
-    }
-
-    const regenerated = await createAndArchiveDeepReport(env, auth.userId, reportSignature, input, access || {});
-    return json({
-      ok: true,
-      data: {
-        source: "regenerated",
-        reason: archivedQuality.reason,
-        report: regenerated,
-      },
-    });
+    return json({ok:true,data:{source:"archive",report:archived}});
   }
 
   const report = await createAndArchiveDeepReport(env, auth.userId, reportSignature, input, access || {});
@@ -1211,10 +1192,6 @@ async function handleReadDeepReport(request, env) {
     return json({ ok: false, code: "REPORT_NOT_FOUND", message: "저장된 리포트를 찾을 수 없습니다." }, { status: 404 });
   }
 
-  const archivedQuality = isArchivedReportUsable(archived);
-  if (!archivedQuality.ok) {
-    return json({ ok: false, code: "REPORT_NEEDS_REFRESH", message: "리포트 갱신이 필요합니다. POST /api/fpti/deep-report로 재생성해 주세요." }, { status: 409 });
-  }
 
   return json({
     ok: true,

@@ -382,7 +382,7 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   // 2026-08-24 에 폐지된 제도이고 그 상수는 레포에 존재하지 않는다(2026-09-03 정정).
   // 전수 가드: scripts/verify-billing-pass-policy.mjs 의 "family must cover every paid service".
   "fusion-fortune-consultation": { cost: 500, amountKRW: 50000, reason: "초융합 운세 상담 1회" },
-  "premium-sibyl-dominator": { cost: 70, reason: "시빌라 도미네이터 리포트" },
+  "premium-sibyl-dominator": { cost: 200, reason: "시빌라 연간 대비 리포트" },
   "ziwei_decade_luck": { cost: 50, reason: "자미두수 대한 흐름 해금" },
   "ziwei_love_deep": { cost: 50, reason: "자미두수 부부궁 심화 상담 해금" },
   "ziwei_twelve_palaces": { cost: 50, reason: "자미두수 12궁 정밀 해설 해금" },

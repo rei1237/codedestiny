@@ -33,6 +33,8 @@ jest.unstable_mockModule("../../worker/lib/models.js", () => ({
   ProfileCard: { modelName: "ProfileCard", findOne: (...args) => profileCards.findOne(...args) },
 }));
 
+const reportStore=jest.fn(async (_env,_uid,access,year)=>({status:200,body:{ok:true,storedBirth:access.birth,year}}));
+jest.unstable_mockModule('../../worker/lib/sibyl-report-store.js',()=>({readOrGenerateSibyl:reportStore}));
 let sibylUtils, handleSibylRoutes, resolvePaidContentUnlockTarget, getBillingFeaturePricing;
 
 beforeAll(async () => {
@@ -191,12 +193,10 @@ describe("Sibyl report route — birth-scoped unlock", () => {
     grant();
     const result = await request();
     expect(result.status).toBe(200);
-    expect(result.body.chapters).toHaveLength(10);
-    expect(result.body.canonical.input).toMatchObject({ birthDate: "1990-5-17", birthTime: "09:30", gender: "F" });
-    expect(result.body.canonical.saju).toMatchObject({ dayPillar: "임오", dayMaster: "임" });
+    expect(result.body.storedBirth).toMatchObject({date:'1990-05-17',time:'09:30'});
+    expect(reportStore).toHaveBeenCalledWith(expect.anything(),TEST_USER_ID,expect.objectContaining({birth:expect.objectContaining({date:'1990-05-17'})}),undefined);
     expect(JSON.stringify(result.body)).not.toMatch(/2001|병자/);
-    // 출생 정보가 아닌 보조 점수는 본문 값을 쓴다.
-    expect(result.body.canonical.sibyl).toMatchObject({ riskScore: 58, aptitudeScore: 640 });
+    expect(result.body.riskScore).toBeUndefined();
   });
 
   test.each(["unlockedFeatures", "paidFeatures"])("legacy %s account array is not evidence", async (field) => {

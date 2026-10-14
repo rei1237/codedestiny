@@ -31,5 +31,12 @@ export function syncSajuReadingPrices(root) {
     html = html.replace(new RegExp(`<button\\b(?=[^>]*data-unlock-key="${featureKey}")[^>]*>`, 'g'), tag =>
       tag.replace(/data-unlock-cost="\d+"/, `data-unlock-cost="${cost}"`));
   }
+  const sibyl = getBillingFeaturePricing({featureKey:'premium-sibyl-dominator'});
+  if (!sibyl.ok || !Number.isSafeInteger(sibyl.pricing.amountKRW)) throw new Error('Missing Sibyl price');
+  html=html.replace(/(<(?:span|p) data-sibyl-price>)[^<]*(<\/(?:span|p)>)/g, '$1심층 리포트 '+sibyl.pricing.amountKRW.toLocaleString('ko-KR')+'원$2');
   if (html !== readFileSync(file, 'utf8')) writeFileSync(file, html);
+  const registryFile=join(root,'js/core/service-registry.js');
+  const registry=readFileSync(registryFile,'utf8');
+  const updatedRegistry=registry.replace(/(featureKey: "premium-sibyl-dominator",\s*price: ")[^"]*(")/, '$1'+sibyl.pricing.amountKRW.toLocaleString('ko-KR')+'원$2');
+  if(updatedRegistry!==registry) writeFileSync(registryFile,updatedRegistry);
 }

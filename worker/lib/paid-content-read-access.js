@@ -124,6 +124,6 @@ export async function readProfileBirthUnlock(env, { userId, profileId, partnerPr
       featureKey: key,
       findProfileCard: async ({ profileId: wanted }) => (wanted === pid ? card : findCard(wanted)),
     });
-    return { ok: true, unlocked: Boolean(doc), card, birth: profileCardSolarBirth(card) };
+    return { ok: true, unlocked: Boolean(doc), card, birth: profileCardSolarBirth(card), purchaseEvidence: doc ? { entitlementId:String(doc._id || ''), paymentId:String(doc.paymentId || ''), orderId:String(doc.orderId || ''), evidenceId:String(doc.evidenceId || '') } : null };
   });
 }
