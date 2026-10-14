@@ -79,6 +79,8 @@ window.__cdServiceRegistry = [
     purposes: ["love", "self", "life"],
     methods: ["tarot", "saju", "ai"],
     keys: "찻집 상담 연이 마음 고민",
+    badge: "대표",
+    roles: ["recommended"],
   },
   {
     id: "love-secret-ai",
@@ -181,6 +183,8 @@ window.__cdServiceRegistry = [
     purposes: ["money", "career", "life"],
     methods: ["saju", "ai"],
     keys: "네오 작전실 팩폭 전략 현실",
+    badge: "대표",
+    roles: ["recommended"],
   },
   {
     id: "destiny-compass",

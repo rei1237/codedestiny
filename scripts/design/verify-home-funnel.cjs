@@ -32,6 +32,10 @@ async function assertEssentials(page, label) {
     ['report composition', '#cdSignatureConsult .cd-sig-card__report'],
     ['sample guide', '#cdSignatureConsult .cd-sig__samples-link[href="/consultation-samples/"]'],
     ['signature', '#cdSignatureConsult'],
+    ['concern chooser', '#cdhConcernSlot #cdConcernPick'],
+    ['free today fortune', '#cdhTodaySlot #cdTodayHub'],
+    ['destiny flower', '#cdhFlowerTitle'],
+    ['favorite destiny', '[data-cdh-chemi]'],
   ];
   for (const [name, selector] of essentials) {
     const node = page.locator(selector).first();
@@ -83,8 +87,11 @@ async function assertEssentials(page, label) {
       assert.ok(await page.locator('#cdQuickServices').isVisible(), 'fortune systems are visible on the first visit');
       for (const selector of ['#cdhPass .cdh-pass__btn', '.cd-soulcat-entry']) assert.equal(await page.locator(selector).first().evaluate((node) => Boolean(node.closest('details:not([open])'))), false, selector + ' stays in the primary flow');
       assert.equal(await page.locator('.cdh-portals').count(), 0, 'duplicate character portals are removed from the secondary garden');
-      assert.equal(await page.locator('#cdSignatureConsult .cd-sig-card__img').count(), 4, 'each representative consultation uses an editorial visual');
-      assert.equal(await page.locator('#cdSignatureConsult .cd-sig-card__report').count(), 4, 'each representative consultation keeps its report composition');
+      assert.equal(await page.locator('#cdSignatureConsult .cd-sig-card__img').count(), 6, 'each representative consultation uses an editorial visual');
+      assert.equal(await page.locator('#cdSignatureConsult .cd-sig-card__report').count(), 6, 'each representative consultation keeps its report composition');
+      assert.equal(await page.locator('#cdSignatureConsult [data-cd-service-id]').first().getAttribute('data-cd-service-id'), 'neo-operation-room', 'Neo leads the representative consultations');
+      assert.equal(await page.locator('#cdSignatureConsult [data-cd-service-id]').nth(1).getAttribute('data-cd-service-id'), 'fortune-tea-house', 'Yeoni tea house follows Neo');
+      assert.equal((await page.locator('#cdTodayHub .cd-today__terms').innerText()).startsWith('무료'), true, 'today fortune is disclosed as free on home');
       assert.equal(await page.locator('#cdhSamples').count(), 0, 'duplicate result sample cards are removed from home');
       assert.equal(await page.locator('#cdhAllFortunes #cdQuickServices .cdh-method').count(), 6, 'the complete six-system chooser replaces the partial shortcut group');
       assert.equal(await page.locator('#cdhAllFortunes #cdQuickServices .cdh-method').first().isVisible(), true, 'fortune-system shortcuts stay visible in the main flow');

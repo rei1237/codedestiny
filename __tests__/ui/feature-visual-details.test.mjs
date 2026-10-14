@@ -153,6 +153,8 @@ test('restored hero artwork, catalog reuse, and collection previews stay in sync
 
   const signatureSources = Object.fromEntries([...fragment.querySelectorAll('#cdSignatureConsult [data-cd-service-id]')].map(card => [card.getAttribute('data-cd-service-id'), card.querySelector('img')?.getAttribute('src') || '']));
   const signatureArtwork = {
+    'neo-operation-room': '/images/feature-details/neo-operation-room-hero-v1.webp',
+    'fortune-tea-house': '/images/fortune-tea-house/premium-tea-house-desktop.webp',
     'master-love-codex': '/images/feature-details/master-love-codex-hero-v3.webp',
     'love-secret-ai': '/images/feature-details/love-secret-ai-hero-v2.webp',
     'new-year-ai': '/images/feature-details/new-year-ai-hero-v3.webp',

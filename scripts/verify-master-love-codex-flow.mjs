@@ -566,8 +566,8 @@ for (const shell of [
   const sectionEnd = section.indexOf("</section>");
   const sectionHtml = sectionEnd > 0 ? section.slice(0, sectionEnd) : section;
   assert(
-    (sectionHtml.match(/<a class="cd-sig-card/g) || []).length === 4,
-    `${shell}: 대표 운명 상담 카드는 4장이어야 합니다 (현재 ${(sectionHtml.match(/<a class="cd-sig-card/g) || []).length}장)`,
+    (sectionHtml.match(/<a class="cd-sig-card/g) || []).length === 6,
+    `${shell}: 대표 운명 상담 카드는 6장이어야 합니다 (현재 ${(sectionHtml.match(/<a class="cd-sig-card/g) || []).length}장)`,
   );
   assert((source.match(/class="cd-sig-card cd-sig-card--fusion"/g) || []).length === 1, shell + ': 초융합은 한 번만 추천한다');
   assert(source.indexOf('id="cdFusionRecommendation"') > source.indexOf('id="cdSignatureConsult"'), shell + ': 초융합은 대표 상담 다음이다');

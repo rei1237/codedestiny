@@ -329,6 +329,8 @@ html.neo-mode .cdh-kakao__quote:before,body.neo-mode .cdh-kakao__quote:before{ba
   background:linear-gradient(165deg,rgba(50,31,50,.97),rgba(23,15,30,.99) 72%);
   box-shadow:0 24px 50px -34px rgba(0,0,0,.92),inset 0 0 0 1px rgba(255,245,218,.05);
 }
+#cdHomeFunnel .cd-sig--curated .cd-sig-card--neo{background:linear-gradient(165deg,#25203e,#11101f 72%)}
+#cdHomeFunnel .cd-sig--curated .cd-sig-card--tea{background:linear-gradient(165deg,#48223a,#21131f 72%)}
 #cdHomeFunnel .cd-sig--curated .cd-sig-card--love{background:linear-gradient(165deg,#4a2034,#21131f 72%)}
 #cdHomeFunnel .cd-sig--curated .cd-sig-card--year{background:linear-gradient(165deg,#3d294d,#1c172b 72%)}
 #cdHomeFunnel .cd-sig--curated .cd-sig-card--life{background:linear-gradient(165deg,#213d38,#111f22 72%)}
@@ -345,9 +347,12 @@ html.neo-mode .cdh-kakao__quote:before,body.neo-mode .cdh-kakao__quote:before{ba
 #cdHomeFunnel .cd-sig--curated .cd-sig-card__price{color:#1d1620;background:#efd89a;border-color:#efd89a}
 #cdHomeFunnel .cd-sig--curated .cd-sig-card__meta{color:rgba(255,248,238,.72)}
 #cdHomeFunnel .cd-sig--curated .cd-sig-card__cta{margin-top:3px;color:#efd89a}
-#cdHomeFunnel .cd-sig__samples-link{display:flex;align-items:center;justify-content:space-between;gap:20px;width:min(100%,420px);min-height:50px;margin:clamp(22px,3vw,34px) auto 0;padding:12px 18px;border:1px solid color-mix(in srgb,var(--cdh-gold) 60%,transparent);border-radius:999px;background:color-mix(in srgb,var(--cdh-gold) 12%,var(--cdh-card));color:var(--cdh-ink)!important;font-weight:800;text-decoration:none;box-shadow:0 18px 36px -28px var(--cdh-ink)}
-#cdHomeFunnel .cd-sig__samples-link:hover{text-decoration:underline;text-underline-offset:4px}
+#cdHomeFunnel .cd-sig__samples-link{display:flex;align-items:center;justify-content:space-between;gap:20px;width:min(100%,420px);min-height:52px;margin:clamp(22px,3vw,34px) auto 0;padding:12px 18px 12px 22px;border:1px solid rgba(235,198,160,.34);border-radius:14px;background:#3a0e28;color:#fff8ee!important;font-weight:800;text-decoration:none;box-shadow:0 18px 36px -26px rgba(58,14,40,.82);transition:transform .18s ease,background-color .18s ease,box-shadow .18s ease}
+#cdHomeFunnel .cd-sig__samples-link:hover{background:#4a1433;box-shadow:0 22px 40px -25px rgba(58,14,40,.95);transform:translateY(-1px)}
 #cdHomeFunnel .cd-sig__samples-link:focus-visible{outline:2px solid var(--cdh-gold);outline-offset:4px}
+#cdHomeFunnel .cd-sig__samples-motif{flex:0 0 34px;width:34px;height:24px;background:#d2ad6f;opacity:.88;-webkit-mask:var(--cd-yehwa-mask-branch-spray) center/contain no-repeat;mask:var(--cd-yehwa-mask-branch-spray) center/contain no-repeat}
+html.neo-mode #cdHomeFunnel .cd-sig__samples-link{border-color:rgba(232,213,163,.36);background:#211931;color:#fff8ee!important}
+html.neo-mode #cdHomeFunnel .cd-sig__samples-link:hover{background:#2b2141}
 html.neo-mode #cdHomeFunnel .cd-sig--curated{background:linear-gradient(180deg,rgba(18,13,31,.72),rgba(16,12,29,.94)),url('/images/home/illustrated/moon-floral-dark-1280.webp') center top/cover no-repeat,#100c1d}
 @media (max-width:767px){
   #cdHomeFunnel .cd-sig--curated{margin-top:0;padding:26px 16px 22px;background-size:auto,auto 560px,auto;background-position:center,center top,center}
@@ -360,6 +365,22 @@ html.neo-mode #cdHomeFunnel .cd-sig--curated{background:linear-gradient(180deg,r
   #cdHomeFunnel .cd-sig--curated .cd-sig-card__q{min-height:0}
   #cdHomeFunnel .cd-sig__samples-link{width:100%;font-size:.9rem}
 }
+/* 2026-10-15 메인 스포트라이트 — 무료 오늘 운세와 운명의 꽃·최애운명을 접힘 밖 한 흐름으로 묶는다. */
+#cdHomeFunnel .cdh-slot--concern{scroll-margin-top:88px}
+.cdh-home-spotlight{position:relative;isolation:isolate;display:grid;gap:clamp(18px,2.6vw,28px);padding:clamp(22px,3vw,38px);overflow:hidden;border:1px solid color-mix(in srgb,var(--cdh-gold) 36%,var(--cdh-line));border-radius:clamp(24px,3vw,34px);background:linear-gradient(180deg,color-mix(in srgb,var(--cdh-card) 92%,transparent),color-mix(in srgb,var(--cdh-bg) 94%,transparent));box-shadow:0 28px 58px -46px color-mix(in srgb,var(--cdh-ink) 68%,transparent)}
+.cdh-home-spotlight::before{content:"";position:absolute;inset:-28px -40px auto auto;z-index:-1;width:240px;height:150px;background:var(--cdh-gold);opacity:.14;pointer-events:none;-webkit-mask:var(--cd-yehwa-mask-branch-spray) center/contain no-repeat;mask:var(--cd-yehwa-mask-branch-spray) center/contain no-repeat}
+.cdh-home-spotlight__head{margin-bottom:0}
+.cdh-home-spotlight__duo{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(16px,2vw,22px);align-items:stretch}
+#cdHomeFunnel .cdh-home-spotlight__duo .cdh-flower{grid-template-columns:minmax(0,1fr);height:100%;margin:0;align-content:start;box-shadow:0 18px 40px -34px color-mix(in srgb,var(--cdh-ink) 65%,transparent)}
+#cdHomeFunnel .cdh-home-spotlight__duo .cdh-flower picture{height:250px;overflow:hidden}
+#cdHomeFunnel .cdh-home-spotlight__duo .cdh-flower img{max-height:none;object-position:center 46%}
+#cdHomeFunnel .cdh-home-spotlight__duo .cdh-flower>div{padding:clamp(22px,2.5vw,34px)}
+#cdHomeFunnel .cdh-home-spotlight__duo .cdh-chemi{height:100%;min-height:520px;margin:0;border-color:rgba(232,213,163,.36);border-radius:var(--cd-r-section,24px);box-shadow:0 18px 40px -34px #000}
+#cdHomeFunnel .cdh-home-spotlight__duo .cdh-chemi__art{inset:auto 0 0 auto;width:100%;height:72%;object-position:58% 50%}
+#cdHomeFunnel .cdh-home-spotlight__duo .cdh-chemi::after{background:linear-gradient(180deg,#120b26 0%,rgba(18,11,38,.94) 36%,rgba(18,11,38,.32) 74%,rgba(18,11,38,.08) 100%)}
+#cdHomeFunnel .cdh-home-spotlight__duo .cdh-chemi__copy{max-width:34rem;padding:clamp(24px,3vw,38px)}
+#cdHomeFunnel #cdTodayHub .cd-today__terms strong{display:inline-flex;align-items:center;min-height:28px;padding:3px 11px;border:1px solid color-mix(in srgb,var(--td-line) 72%,transparent);border-radius:999px;background:var(--td-card);color:var(--td-gold-ink);font-size:.78rem;letter-spacing:.04em}
+@media(max-width:760px){.cdh-home-spotlight{padding:20px 14px;border-radius:24px}.cdh-home-spotlight__duo{grid-template-columns:minmax(0,1fr)}#cdHomeFunnel .cdh-home-spotlight__duo .cdh-flower picture{height:210px}#cdHomeFunnel .cdh-home-spotlight__duo .cdh-chemi{min-height:360px}#cdHomeFunnel .cdh-home-spotlight__duo .cdh-chemi__art{width:100%;height:auto;-webkit-mask-image:linear-gradient(180deg,transparent,#000 24%);mask-image:linear-gradient(180deg,transparent,#000 24%)}#cdHomeFunnel .cdh-home-spotlight__duo .cdh-chemi::after{background:linear-gradient(180deg,#120b26 0%,rgba(18,11,38,.9) 46%,rgba(18,11,38,.22) 100%)}}
 @media (max-width:380px){#cdHomeFunnel .fortune-gateway__doors--duo .fortune-gateway__door{grid-template-columns:minmax(0,1fr) 76px}#cdHomeFunnel .fortune-gateway__doors--duo .fortune-gateway__door-art{width:76px;height:76px}#cdHomeFunnel .fortune-gateway__door-title{word-break:keep-all;overflow-wrap:anywhere}}
 @media (min-width:541px){.cdh .cd-review-invite{grid-template-columns:minmax(0,1fr) 120px;gap:18px;padding:20px 26px}}
 /* 오늘의 운세 — 달빛 예화 카드(2026-10-01): 아이보리 면에 금선 두 겹, 머리에는 찻잔 연이를 담은 달문(아치) 창, 날짜는 금빛 명조.

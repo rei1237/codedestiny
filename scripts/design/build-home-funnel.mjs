@@ -73,7 +73,37 @@ vars.signupDays = signupBenefitPolicy.days;
 vars.moonstoneMinimum = MOONSTONE_MIN_PRODUCT_KRW.toLocaleString('ko-KR');
 vars.pickReason = htmlOf(byId('cdPickReason'), 'consultation recommendation');
 vars.signature = vars.signature.replace(vars.pickReason, '').replace(/^[ \t]+$/gm, '');
+const paidTodayTerms = '<p class="cd-today__terms">1회 3,000원 · 생년월일 프로필 카드로 계산해요</p>';
+const freeTodayTerms = '<p class="cd-today__terms"><strong>무료</strong> · 생년월일 프로필 카드로 계산해요</p>';
+if (vars.today.includes(paidTodayTerms)) vars.today = vars.today.replace(paidTodayTerms, freeTodayTerms);
+else if (!vars.today.includes(freeTodayTerms)) throw new Error('Today hub terms changed: keep the free home disclosure in sync');
 const signatureProducts = [
+  {
+    id: 'neo-operation-room',
+    className: 'neo',
+    href: '/neo-operation-room/',
+    title: '네오의 팩폭 전략실',
+    question: '고민은 충분히 했다. 이제 무엇부터 바꿀까?',
+    description: '선택한 운세 체계의 근거로 반복되는 선택의 빈틈을 짚고, 오늘 실행할 현실적인 작전을 정리합니다.',
+    image: '/images/feature-details/neo-operation-room-hero-v1.webp',
+    imageAlt: '달빛 전략실에서 선택의 판세를 정리하는 네오',
+    featureKey: 'neo-operation-room-consultation',
+    report: ['선택한 운세 체계 1종', '초기 브리핑 · 현실 점검', '정제 리포트 · 다음 작전'],
+    cta: '전략실 입장하기',
+  },
+  {
+    id: 'fortune-tea-house',
+    className: 'tea',
+    href: '/fortune-tea-house/',
+    title: '연이의 운명 찻집',
+    question: '이 마음을 어떻게 정리하면 좋을까?',
+    description: '쉽게 꺼내지 못한 이야기도 괜찮아요. 연이와 찻잔을 고르고, 질문에 남은 감정과 다음 선택을 천천히 읽습니다.',
+    image: '/images/fortune-tea-house/premium-tea-house-desktop.webp',
+    imageAlt: '달빛 아래 따뜻한 차와 카드를 준비한 연이의 운명 찻집',
+    featureKey: 'fortune-tea-house-tarot-consultation',
+    report: ['선택한 찻잔과 질문', '타로 3장 마음 리딩', '오늘의 기준 · 행동 제안'],
+    cta: '운명 찻집 들어가기',
+  },
   {
     id: 'master-love-codex',
     className: 'master',
@@ -133,10 +163,10 @@ const signaturePrice = (featureKey, suffix = '') => {
   if (!Number.isSafeInteger(amount) || amount <= 0) throw new Error(`Missing signature consultation price: ${featureKey}`);
   return `${amount.toLocaleString('ko-KR')}원${suffix}`;
 };
-vars.signature = `<section data-cd-funnel-section="signature_consult" class="cd-sig cd-sig--curated" id="cdSignatureConsult" data-marker="cd-signature-consult-v20261014" aria-labelledby="cdSignatureTitle" lang="ko">
+vars.signature = `<section data-cd-funnel-section="signature_consult" class="cd-sig cd-sig--curated" id="cdSignatureConsult" data-marker="cd-signature-consult-v20261015" aria-labelledby="cdSignatureTitle" lang="ko">
   <div class="cd-sig__head"><p class="cd-sig__eyebrow">MOONLIGHT SIGNATURE</p><h2 class="cd-sig__title" id="cdSignatureTitle">대표 운명 상담</h2><p class="cd-sig__sub">고민의 깊이와 필요한 리포트 구성을 먼저 확인하고, 지금의 나에게 맞는 상담을 골라보세요.</p></div>
   <div class="cd-sig__viewport" id="cdSigViewport"><div class="cd-sig__grid" id="cdSigGrid">${signatureProducts.map((product) => `<a class="cd-sig-card cd-sig-card--${product.className}" data-cd-service-id="${product.id}" href="${product.href}" aria-label="${product.title} 상담 알아보기" data-pvw-paid="true"><span class="cd-yehwa-seal" aria-hidden="true"></span><span class="cd-sig-card__media"><img class="cd-sig-card__img" width="1200" height="675" loading="lazy" decoding="async" src="${product.image}" sizes="(max-width: 767px) calc(100vw - 72px), (max-width: 1199px) 46vw, 280px" alt="${product.imageAlt}"></span><span class="cd-sig-card__body"><span class="cd-sig-card__title">${product.title}</span><span class="cd-sig-card__q">${product.question}</span><span class="cd-sig-card__desc">${product.description}</span><span class="cd-sig-card__report"><b>리포트 구성</b>${product.report.map((item) => `<span>${item}</span>`).join('')}</span><span class="cd-sig-card__price">${signaturePrice(product.featureKey, product.priceSuffix)}</span><span class="cd-sig-card__meta"><span>이용권 · 월정석 · 단건 결제</span></span><span class="cd-sig-card__cta"><span>${product.cta}</span> <i aria-hidden="true">→</i></span></span></a>`).join('')}</div></div>
-  <a class="cd-sig__samples-link" href="/consultation-samples/">상담 결과 전체 미리보기 <span aria-hidden="true">→</span></a>
+  <a class="cd-sig__samples-link" href="/consultation-samples/"><span>상담 결과 전체 미리보기</span><span class="cd-yehwa-spray cd-sig__samples-motif" aria-hidden="true"></span></a>
 </section>`;
 vars.pressCoverage = renderPressCoverageHtml();
 vars.trustStories = renderTrustStoriesHtml();

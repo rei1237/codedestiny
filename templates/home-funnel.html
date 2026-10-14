@@ -128,6 +128,25 @@
   <div id="cdhCookieSlot"></div>
   <div class="cdh-flow">
 <div class="cdh-slot" id="cdhFeatured"><div id="cdhSignatureSlot">{{signature}}</div></div>
+<div class="cdh-slot cdh-slot--concern" id="cdhConcern" tabindex="-1"><div id="cdhConcernSlot">{{concern}}</div></div>
+<section class="cdh-home-spotlight" aria-labelledby="cdhHomeSpotlightTitle">
+  <header class="cdh-section-head cdh-home-spotlight__head">
+    <p class="cdh-intro">MOONLIGHT TODAY</p>
+    <h2 id="cdhHomeSpotlightTitle">오늘, 먼저 펼쳐볼 운세</h2>
+    <p class="cdh-lead">무료 오늘 운세부터 나를 닮은 꽃과 최애 케미까지, 지금 바로 확인할 수 있어요.</p>
+  </header>
+  <div class="cdh-slot" id="cdhTodaySlot">{{today}}</div>
+  <div class="cdh-home-spotlight__duo">
+    <section class="cdh-flower" aria-labelledby="cdhFlowerTitle">
+      <picture><source srcset="/images/consultation/destiny-flower-editorial-v1-480.webp 480w, /images/consultation/destiny-flower-editorial-v1-960.webp 960w" sizes="(max-width:640px) calc(100vw - 32px), 440px"><img src="/images/consultation/destiny-flower-editorial-v1-480.webp" alt="목련과 모란으로 그린 운명의 꽃" width="960" height="640" loading="lazy" decoding="async"></picture>
+      <div><p class="cdh-flower__eyebrow">나를 알아가는 프리미엄 리딩</p><h2 id="cdhFlowerTitle">당신의 흐름을 닮은 꽃 한 송이</h2><p>사주와 별자리에서 나를 닮은 꽃을 찾아보세요. 꽃말을 읽고, 오늘 나에게 건넬 작은 메시지도 골라볼 수 있어요.</p><button type="button" class="cdh-flower__cta" data-action="openDestinyFlowerStudio">나의 운명의 꽃 보기</button><span>운명의 꽃 전체 · 1회 5,000원</span></div>
+    </section>
+    <a class="cdh-chemi" href="/saju/destiny-bias/?from=home_top" data-cdh-chemi>
+      <img class="cdh-chemi__art" src="/images/destiny-bias/home-card-640.webp" srcset="/images/destiny-bias/home-card-320.webp 320w, /images/destiny-bias/home-card-640.webp 640w" sizes="(max-width: 640px) 100vw, 640px" width="640" height="427" loading="lazy" decoding="async" alt="">
+      <span class="cdh-chemi__copy"><em data-cd-trans="home.gardenCopy.chemiKicker">K-POP 최애 케미</em><strong data-cd-trans="home.gardenCopy.chemiTitle">내 최애랑 나, 무슨 케미일까?</strong><small data-cd-trans="home.gardenCopy.chemiNote">생일만 넣으면 포토카드로 나와요</small><span class="cdh-chemi__go" data-cd-trans="home.gardenCopy.chemiCta">내 최애와 케미 보기</span></span>
+    </a>
+  </div>
+</section>
 {{fusionRecommendation}}
 <section class="cd-soulcat-entry" aria-labelledby="cd-soulcat-title" data-marker="cd-soulcat-home-primary-v20261008">
       <div class="cd-soulcat-entry__copy">
@@ -183,15 +202,6 @@
     </section>
 
     <details class="cdh-specialists"><summary>체계별 전문가 상담 살펴보기</summary>    <div class="cdh-slot" id="cdhExpertsSlot">{{experts}}</div></details>
-    <section class="cdh-flower" aria-labelledby="cdhFlowerTitle">
-      <picture><source srcset="/images/consultation/destiny-flower-editorial-v1-480.webp 480w, /images/consultation/destiny-flower-editorial-v1-960.webp 960w" sizes="(max-width:640px) calc(100vw - 32px), 440px"><img src="/images/consultation/destiny-flower-editorial-v1-480.webp" alt="목련과 모란으로 그린 운명의 꽃" width="960" height="640" loading="lazy" decoding="async"></picture>
-      <div><p class="cdh-flower__eyebrow">나를 알아가는 프리미엄 리딩</p><h2 id="cdhFlowerTitle">당신의 흐름을 닮은 꽃 한 송이</h2><p>사주와 별자리에서 나를 닮은 꽃을 찾아보세요. 꽃말을 읽고, 오늘 나에게 건넬 작은 메시지도 골라볼 수 있어요.</p><button type="button" class="cdh-flower__cta" data-action="openDestinyFlowerStudio">나의 운명의 꽃 보기</button><span>운명의 꽃 전체 · 1회 5,000원</span></div>
-    </section>
-  <a class="cdh-chemi" href="/saju/destiny-bias/?from=home_top" data-cdh-chemi>
-    <img class="cdh-chemi__art" src="/images/destiny-bias/home-card-640.webp" srcset="/images/destiny-bias/home-card-320.webp 320w, /images/destiny-bias/home-card-640.webp 640w" sizes="(max-width: 640px) 100vw, 640px" width="640" height="427" loading="lazy" decoding="async" alt="">
-    <span class="cdh-chemi__copy"><em data-cd-trans="home.gardenCopy.chemiKicker">K-POP 최애 케미</em><strong data-cd-trans="home.gardenCopy.chemiTitle">내 최애랑 나, 무슨 케미일까?</strong><small data-cd-trans="home.gardenCopy.chemiNote">생일만 넣으면 포토카드로 나와요</small><span class="cdh-chemi__go" data-cd-trans="home.gardenCopy.chemiCta">내 최애와 케미 보기</span></span>
-  </a>
-
         {{pickReason}}
 
   <nav class="cdh-public-bridges" aria-label="공개 분석 기록">
@@ -203,13 +213,7 @@
       <svg class="cdh-public-bridge__arrow" aria-hidden="true" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
     </a>
   </nav>
-    <div class="cdh-slot" id="cdhConcern" tabindex="-1"><div id="cdhConcernSlot">{{concern}}</div></div>
-
-
     <div class="cdh-slot" id="cdhGatewaySlot">{{gateway}}</div>
-<div class="cdh-slot" id="cdhTodaySlot">{{today}}</div>
-
-
     <div class="cdh-slot" id="cdhDiarySlot">{{diary}}</div>
 
     <div class="cdh-slot" id="cdhCollectionToggleSlot"><div id="cdhCollections"></div></div>
