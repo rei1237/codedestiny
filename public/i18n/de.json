@@ -1930,8 +1930,8 @@
       "all": "Alle Deutungen ansehen",
       "light": "Eine kurze Deutung ausprobieren",
       "free": "Kostenlos starten · Vertiefung kostet extra",
-      "benefit": "2.000 Mondsteine bei erster Anmeldung",
-      "benefitNote": "30 Tage gültig. Zum Standardkurs 20.000 KRW wert; der Verbrauch hängt vom Produkt ab. Kein Bargeld und nicht für Passkäufe.",
+      "benefit": "500 Mondsteine bei erster Anmeldung",
+      "benefitNote": "30 Tage gültig. Zum Standardkurs 5.000 KRW wert; der Verbrauch hängt vom Produkt ab. Kein Bargeld und nicht für Passkäufe. Nur als Rabatt auf berechtigte Dienste ab 10.000 KRW.",
       "join": "Mit Kakao oder E-Mail anmelden",
       "signatureDescription": "Entdecke passende Beratungen und Beispielergebnisse für dein Anliegen.",
       "member": "Prüfe Mondsteine und Ablaufdaten. Für berechtigte Produkte ab {minimum} KRW.",
@@ -2692,7 +2692,7 @@
     "neoSubline": "Keine zusätzliche Stimmung. Es bleiben nur die Fakten.",
     "signup": "Melden Sie sich an",
     "login": "Einloggen",
-    "guestMoonstoneTeaser": "2.000 Mondsteine bei erster Anmeldung · 30 Tage · Produktkosten prüfen",
+    "guestMoonstoneTeaser": "500 Mondsteine bei erster Anmeldung · 30 Tage · Produktkosten prüfen",
     "loadingGreeting": "Richten Sie Ihr Konto im Sternenlicht aus",
     "loadingChip": "SITZUNGSSYNC",
     "loadingTitle": "Ihre Anmeldeinformationen werden geladen",
@@ -2733,7 +2733,7 @@
     "passCheckingNote": "Ihr Mondlicht-Pass und Ihre Mitgliedsstufe werden sicher abgeglichen.",
     "exitBenefit": {
       "title": "Willkommensgeschenk · {amount} Mondsteine",
-      "copy": "Einmalig bei der ersten Registrierung. Ab Ausgabe {days} Tage für berechtigte Inhalte nutzbar.",
+      "copy": "Einmalig bei der ersten Registrierung. Ab Ausgabe {days} Tage für berechtigte Inhalte nutzbar. Nur als Rabatt auf berechtigte Dienste ab 10.000 KRW.",
       "note": "Die Kosten variieren je nach Produkt. Kein Bargeld und nicht für den Kauf von Pässen.",
       "join": "Mit Kakao registrieren",
       "email": "Mit E-Mail registrieren"

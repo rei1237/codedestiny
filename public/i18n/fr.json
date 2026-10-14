@@ -1930,8 +1930,8 @@
       "all": "Voir toutes les lectures",
       "light": "Essayer une lecture légère",
       "free": "Début gratuit · Lecture approfondie payante",
-      "benefit": "2 000 pierres de lune à la première inscription",
-      "benefitNote": "Valables 30 jours. Équivalent à 20 000 KRW au taux standard ; le coût varie selon le produit. Ni argent ni crédit pour acheter un pass.",
+      "benefit": "500 pierres de lune à la première inscription",
+      "benefitNote": "Valables 30 jours. Équivalent à 5 000 KRW au taux standard ; le coût varie selon le produit. Ni argent ni crédit pour acheter un pass. Uniquement en réduction sur les services éligibles dès 10 000 KRW.",
       "join": "Inscription avec Kakao ou e-mail",
       "signatureDescription": "Découvrez les consultations et exemples de résultats adaptés à votre question.",
       "member": "Consultez vos Pierres de lune et leur expiration. Produits éligibles à partir de {minimum} KRW.",
@@ -2692,7 +2692,7 @@
     "neoSubline": "Aucun sentiment supplémentaire. Seuls les faits demeurent.",
     "signup": "S'inscrire",
     "login": "Connectez-vous",
-    "guestMoonstoneTeaser": "2 000 pierres de lune à la première inscription · 30 jours · vérifier le coût par produit",
+    "guestMoonstoneTeaser": "500 pierres de lune à la première inscription · 30 jours · vérifier le coût par produit",
     "loadingGreeting": "Aligner votre compte starlight",
     "loadingChip": "SYNCHRONISATION DE SESSION",
     "loadingTitle": "Chargement de vos informations de connexion",
@@ -2733,7 +2733,7 @@
     "passCheckingNote": "Nous ajustons en toute sécurité votre Pass Pierre de Clair de Lune et votre niveau d'adhésion.",
     "exitBenefit": {
       "title": "Cadeau de bienvenue · {amount} Pierres de Lune",
-      "copy": "Accordées une seule fois à la première inscription. Utilisables sur les contenus éligibles pendant {days} jours après attribution.",
+      "copy": "Accordées une seule fois à la première inscription. Utilisables sur les contenus éligibles pendant {days} jours après attribution. Uniquement en réduction sur les services éligibles dès 10 000 KRW.",
       "note": "Le coût varie selon le produit. Ce ne sont ni des espèces ni un bon pour acheter des pass.",
       "join": "S’inscrire avec Kakao",
       "email": "S’inscrire par e-mail"

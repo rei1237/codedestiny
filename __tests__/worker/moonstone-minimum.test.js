@@ -60,4 +60,5 @@ test('the 10000 KRW consultation supports both full and partial moonstone paymen
   expect(product.priceKRW).toBe(10000);expect(product.monthlyExcluded).toBe(false);
   expect(product.allowedPaymentMethods).toContain('MOONLIGHT_STONE');
   expect(quoteYeongnyangiMoonstoneDiscount(product.featureKey,100)).toMatchObject({discountKRW:1000,payableKRW:9000});
+  expect(quoteYeongnyangiMoonstoneDiscount(product.featureKey,500)).toMatchObject({discountKRW:5000,payableKRW:5000});
 });

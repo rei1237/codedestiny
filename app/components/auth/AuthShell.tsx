@@ -1,4 +1,6 @@
 "use client";
+import { formatKrwFromMonthlyCredits } from "@/lib/payment/coin-pricing";
+import { MOONSTONE_MIN_PRODUCT_KRW } from "@/worker/lib/paid-feature-registry.js";
 import signupBenefitPolicy from "@/js/core/signup-benefit-policy.mjs";
 
 import Link from "next/link";
@@ -119,7 +121,7 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     loginDescription: "소셜 계정 또는 이메일로 빠르게 이어갈 수 있어요.",
     signupDescription: "가입하면 특별한 선물이 기다리고 있어요. 계정에는 꼭 필요한 정보만 받아요.",
     moonstoneBadgeTitle: "가입 즉시 월정석 {amount}개 지급",
-    moonstoneBadgeDetail: "지급일부터 {days}일 · 일반 환산 기준 2만원 상당, 상품별 차감량은 달라요. 현금 쿠폰이 아니며 이용권 구매에는 쓸 수 없어요.",
+    moonstoneBadgeDetail: "{value} 상당 월정석 · {minimum}원 이상 대상 서비스 할인에만 이용 가능해요. 지급일부터 {days}일 · 이용권 구매에는 쓸 수 없어요.",
     socialLabel: "소셜 계정으로 계속하기", google: "Google로 계속하기", naver: "네이버로 계속하기",
     kakao: "카카오로 계속하기", moving: "인증 화면으로 이동 중…", orEmail: "또는 이메일로 계속하기",
     email: "이메일", password: "비밀번호", phone: "휴대폰 번호",
@@ -428,7 +430,7 @@ function getCopy(locale: LoadingLocale): Copy {
   const copy = COPY[locale] || EN;
   return { ...copy,
     moonstoneBadgeTitle: copy.moonstoneBadgeTitle.replace('{amount}', signupBenefitPolicy.amount.toLocaleString(locale)),
-    moonstoneBadgeDetail: copy.moonstoneBadgeDetail.replace('{days}', String(signupBenefitPolicy.days)),
+    moonstoneBadgeDetail: copy.moonstoneBadgeDetail.replace('{days}', String(signupBenefitPolicy.days)).replace('{value}', formatKrwFromMonthlyCredits(signupBenefitPolicy.amount, locale)).replace('{minimum}', MOONSTONE_MIN_PRODUCT_KRW.toLocaleString(locale)),
   };
 }
 function isValidEmail(value: string) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim()); }

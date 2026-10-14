@@ -255,9 +255,9 @@ describe("번호 필수 가입", () => {
     const created = mockUserCreate.mock.calls[0][0];
     expect(created.email).toBe("mock@example.com");
     expect(created.name).toBe("mock");
-    expect(created.profileSubscription.membershipCreditBalance).toBe(2000);
+    expect(created.profileSubscription.membershipCreditBalance).toBe(500);
     const lot = created.profileSubscription.membershipCreditLots[0];
-    expect(lot).toMatchObject({ lotId: "signup", amount: 2000, remaining: 2000 });
+    expect(lot).toMatchObject({ lotId: "signup", amount: 500, remaining: 500 });
     expect(+lot.expiresAt - +lot.grantedAt).toBe(30 * 86400000);
     mockCollectionFindOne.mockResolvedValue({ ...created, _id: "64f0a1b2c3d4e5f678901234" });
     const loginResponse = await authRoutes.__authTestUtils.handleLogin(new Request("https://example.com/api/auth/login", {

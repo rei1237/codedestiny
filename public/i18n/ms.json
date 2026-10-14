@@ -1930,8 +1930,8 @@
       "all": "Lihat semua bacaan",
       "light": "Cuba bacaan ringkas",
       "free": "Mula percuma · Bacaan mendalam berbayar",
-      "benefit": "2,000 batu bulan untuk pendaftaran pertama",
-      "benefitNote": "Sah selama 30 hari. Bersamaan KRW 20,000 pada kadar biasa; penggunaan berbeza mengikut produk. Bukan wang tunai atau untuk membeli pas.",
+      "benefit": "500 batu bulan untuk pendaftaran pertama",
+      "benefitNote": "Sah selama 30 hari. Bersamaan KRW 5,000 pada kadar biasa; penggunaan berbeza mengikut produk. Bukan wang tunai atau untuk membeli pas. Hanya untuk diskaun perkhidmatan layak berharga KRW 10,000 atau lebih.",
       "join": "Daftar dengan Kakao atau e-mel",
       "signatureDescription": "Lihat konsultasi dan contoh hasil yang sesuai dengan persoalan anda.",
       "member": "Semak Batu Bulan dan tarikh luput. Untuk produk layak mulai {minimum} KRW.",
@@ -2692,7 +2692,7 @@
     "neoSubline": "Tiada sentimen tambahan. Hanya fakta yang tinggal.",
     "signup": "Daftar",
     "login": "Log masuk",
-    "guestMoonstoneTeaser": "2,000 batu bulan untuk pendaftaran pertama · 30 hari · semak kos produk",
+    "guestMoonstoneTeaser": "500 batu bulan untuk pendaftaran pertama · 30 hari · semak kos produk",
     "loadingGreeting": "Menjajarkan cahaya bintang akaun anda",
     "loadingChip": "SESI SYNC",
     "loadingTitle": "Memuatkan maklumat log masuk anda",
@@ -2733,7 +2733,7 @@
     "passCheckingNote": "Menyelaraskan Pas Batu Cahaya Bulan dan tahap keahlian anda dengan selamat.",
     "exitBenefit": {
       "title": "Hadiah pendaftaran · {amount} Batu Bulan",
-      "copy": "Diberi sekali pada pendaftaran pertama. Gunakan pada kandungan layak dalam {days} hari selepas diberikan.",
+      "copy": "Diberi sekali pada pendaftaran pertama. Gunakan pada kandungan layak dalam {days} hari selepas diberikan. Hanya untuk diskaun perkhidmatan layak berharga KRW 10,000 atau lebih.",
       "note": "Kos berbeza mengikut produk. Bukan wang tunai dan tidak boleh digunakan untuk membeli pas.",
       "join": "Daftar dengan Kakao",
       "email": "Daftar dengan e-mel"

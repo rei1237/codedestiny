@@ -1930,8 +1930,8 @@
       "all": "Xem tất cả nội dung",
       "light": "Thử xem nhẹ nhàng",
       "free": "Bắt đầu miễn phí · Chuyên sâu tính phí riêng",
-      "benefit": "2.000 đá mặt trăng khi đăng ký lần đầu",
-      "benefitNote": "Có hiệu lực 30 ngày. Tương đương 20.000 KRW theo tỷ lệ thông thường; mức trừ tùy sản phẩm. Không phải tiền mặt và không dùng mua thẻ.",
+      "benefit": "500 đá mặt trăng khi đăng ký lần đầu",
+      "benefitNote": "Có hiệu lực 30 ngày. Tương đương 5.000 KRW theo tỷ lệ thông thường; mức trừ tùy sản phẩm. Không phải tiền mặt và không dùng mua thẻ. Chỉ giảm giá dịch vụ áp dụng từ 10.000 KRW.",
       "join": "Đăng ký bằng Kakao hoặc email",
       "signatureDescription": "Xem tư vấn và kết quả mẫu phù hợp với điều bạn quan tâm.",
       "member": "Kiểm tra Đá Mặt Trăng và hạn dùng. Áp dụng cho sản phẩm đủ điều kiện từ {minimum} KRW.",
@@ -2692,7 +2692,7 @@
     "neoSubline": "Không có thêm ý kiến gì. Chỉ có sự thật vẫn còn.",
     "signup": "Đăng ký",
     "login": "Đăng nhập",
-    "guestMoonstoneTeaser": "2.000 đá mặt trăng khi đăng ký lần đầu · 30 ngày · kiểm tra chi phí sản phẩm",
+    "guestMoonstoneTeaser": "500 đá mặt trăng khi đăng ký lần đầu · 30 ngày · kiểm tra chi phí sản phẩm",
     "loadingGreeting": "Căn chỉnh ánh sao cho tài khoản của bạn",
     "loadingChip": "ĐỒNG BỘ PHIÊN",
     "loadingTitle": "Đang tải thông tin đăng nhập của bạn",
@@ -2733,7 +2733,7 @@
     "passCheckingNote": "Đang điều chỉnh Thẻ Pass Ánh Trăng và cấp độ thành viên một cách an toàn.",
     "exitBenefit": {
       "title": "Quà đăng ký · {amount} Đá Mặt Trăng",
-      "copy": "Nhận một lần khi đăng ký lần đầu. Dùng cho nội dung áp dụng trong {days} ngày kể từ khi cấp.",
+      "copy": "Nhận một lần khi đăng ký lần đầu. Dùng cho nội dung áp dụng trong {days} ngày kể từ khi cấp. Chỉ giảm giá dịch vụ áp dụng từ 10.000 KRW.",
       "note": "Số đá cần dùng tùy sản phẩm. Không phải tiền mặt và không dùng để mua gói.",
       "join": "Đăng ký với Kakao",
       "email": "Đăng ký bằng email"

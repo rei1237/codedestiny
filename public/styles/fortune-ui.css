@@ -237,11 +237,7 @@ img, canvas, svg, video {
   height: auto;
 }
 
-/* Global image fallback baseline */
-img {
-  background-color: #e5e5e5;
-}
-
+/* Only failed images need a placeholder; transparent artwork retains its alpha. */
 img.img-fallback-broken {
   background-color: #e5e5e5 !important;
   color: transparent;
