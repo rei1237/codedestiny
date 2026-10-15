@@ -113,6 +113,18 @@ test('vision fields the model omitted are not compared as measured medium values
   expect(body.bothHandsComparison.enabled).toBe(true);
   expect(body.bothHandsComparison.differenceSummary).not.toMatch(/유사/);
 });
+test('scores copied from the old prompt example are not kept as measurements', async () => {
+  const reply = (scores, palmCoverage) => JSON.stringify({ palmDetected: true, scores, imageQuality: { brightness: 'good', sharpness: 'good', palmCoverage }, majorLines: { lifeLine: { detected: true, summary: '선 확인' } } });
+  visionReply.text = reply({ love: 75, career: 80, wealth: 70, vitality: 85, creativity: 78, communication: 72 }, 0.85);
+  const copied = await vision({}, 'data:image/png;base64,AAAAAAAA', 'left');
+  expect(Object.values(copied.handReading.scores)).toEqual(Array(6).fill(null));
+  expect(copied.imageQuality.palmCoverage).toBeNull();
+  expect(copied.imageQuality.defaultedFields).toContain('palmCoverage');
+  visionReply.text = reply({ love: 64, career: 81, wealth: 50, vitality: 88, creativity: 57, communication: '0-100' }, 0.85);
+  const measured = await vision({}, 'data:image/png;base64,AAAAAAAA', 'left');
+  expect(measured.handReading.scores).toEqual({ love: 64, career: 81, wealth: 50, vitality: 88, creativity: 57, communication: null });
+  expect(measured.imageQuality.palmCoverage).toBe(0.85);
+});
 test('heading lines separated by a blank line stay attached to their section', async () => {
   const body = '사진에서 확인된 선을 토대로 생활 속 선택을 차분히 살펴봅니다. '.repeat(4).trim();
   ai.text = `■ 한 문장 요약\n\n${body}\n\n■ 타고난 성향\n\n${body}`;

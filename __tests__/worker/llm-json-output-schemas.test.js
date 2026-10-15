@@ -40,6 +40,9 @@ test('love-secret schemas share the prompt example and keep section items as obj
 test('palm schema preserves negative detection and numeric confidence without inventing observations', () => {
   expect(PALM_VISION_RESPONSE_SCHEMA.properties.palmDetected.type).toBe('BOOLEAN');
   expect(PALM_VISION_RESPONSE_SCHEMA.properties.majorLines.properties.lifeLine.properties.confidence.type).toBe('NUMBER');
+  // Score and coverage examples are placeholder strings in the prompt; the response stays numeric.
+  expect(Object.values(PALM_VISION_RESPONSE_SCHEMA.properties.scores.properties).map(item => item.type)).toEqual(Array(6).fill('NUMBER'));
+  expect(PALM_VISION_RESPONSE_SCHEMA.properties.imageQuality.properties.palmCoverage.type).toBe('NUMBER');
   const source = { result: { palmDetected: false, notPalmReason: '손바닥이 보이지 않음' } };
   expect(repairJsonFieldLocations(source, PALM_VISION_RESPONSE_SCHEMA)).toEqual(source.result);
 });

@@ -72,7 +72,18 @@ export const PALM_VISION_SYSTEM_PROMPT = `당신은 전통 손금과 현대 손�
    - 직업 변화 지표(Career Shift): 두뇌선의 꺾임과 생명선-두뇌선 시작점 관계 기반
 10. 건강·수명·사고·재난·질병을 단정하지 마세요. 의학적 진단을 하지 마세요. 조언은 현실적인 행동 지침으로 쓰세요.
 11. summary 는 키워드 나열이 아니라, 전문가가 마주 앉아 설명하듯 구체적인 문장으로 쓰세요.
-12. 설명·인사말·코드펜스 없이 아래 JSON 스키마로만 응답하세요.
+12. scores 는 영역마다 따로 매긴 0~100 정수입니다. 아래 [점수 기준]을 따르세요.
+13. imageQuality.palmCoverage 는 손바닥(손가락 제외)이 잘리거나 가려지지 않고 보이는 정도입니다(0.0~1.0). 손바닥 전체가 들어오면 0.9 이상, 가장자리가 잘리면 0.5~0.8, 절반 이상 잘리거나 가려지면 0.5 미만으로 두세요.
+14. 설명·인사말·코드펜스 없이 아래 JSON 스키마로만 응답하세요.
+
+[점수 기준]
+- 영역별 근거: love=감정선·금성구·결혼선, career=운명선·두뇌선·목성구, wealth=태양선·재물선·수성구, vitality=생명선·화성구·손목선, creativity=두뇌선 곡률·태양구·월구, communication=수성구·수성선·감정선
+- 85~100: 근거 선이 길고 깊으며 끊김 없이 뚜렷하고, 관련 언덕도 도톰합니다.
+- 70~84: 근거 선이 뚜렷하지만 길이·깊이 중 하나가 약하거나 작은 끊김이 있습니다.
+- 55~69: 근거가 보통이거나, 강한 근거와 약한 근거가 섞여 있습니다.
+- 35~54: 근거 선이 옅고 짧거나 끊김·갈라짐이 많습니다.
+- 근거 선이 이번 사진에서 확인되지 않은 영역은 50 으로 두세요. 이 50 은 나쁘다는 뜻이 아니라 판단 보류입니다.
+- 점수는 판독한 근거에서만 나옵니다. 여섯 점수를 비슷하게 맞추거나 보기 좋게 올리지 마세요.
 
 {
   "palmDetected": true,
@@ -114,7 +125,7 @@ export const PALM_VISION_SYSTEM_PROMPT = `당신은 전통 손금과 현대 손�
     "mercury": { "fullness": "medium", "summary": "수성구 (기지·사업)" },
     "mars":    { "fullness": "medium", "summary": "화성구 (투지·회복력)" }
   },
-  "scores": { "love": 75, "career": 80, "wealth": 70, "vitality": 85, "creativity": 78, "communication": 72 },
+  "scores": { "love": "0-100", "career": "0-100", "wealth": "0-100", "vitality": "0-100", "creativity": "0-100", "communication": "0-100" },
   "overall": {
     "title": "판독을 관통하는 핵심 제목",
     "summary": "우세선과 손바닥 곡률 유형을 포함한 종합 설명 (5문장 이상)",
@@ -128,7 +139,7 @@ export const PALM_VISION_SYSTEM_PROMPT = `당신은 전통 손금과 현대 손�
   "imageQuality": {
     "brightness": "good|normal|dark",
     "sharpness": "good|normal|blurry",
-    "palmCoverage": 0.85,
+    "palmCoverage": "0.0-1.0",
     "notes": "판독을 제한한 사진 문제가 있으면 한 문장"
   },
   "purposeAnalysis": {
@@ -149,9 +160,18 @@ export const PALM_VISION_SYSTEM_PROMPT = `당신은 전통 손금과 현대 손�
 }`;
 
 // The literal output example above is code-owned, never customer or model text.
-export const PALM_VISION_RESPONSE_SCHEMA = jsonSchemaFromExample(JSON.parse(
+const visionSchema = jsonSchemaFromExample(JSON.parse(
   PALM_VISION_SYSTEM_PROMPT.slice(PALM_VISION_SYSTEM_PROMPT.indexOf('{'), PALM_VISION_SYSTEM_PROMPT.lastIndexOf('}') + 1),
 ));
+// 점수·coverage 예시는 자리표시 문자열이다(숫자 예시는 모델이 그대로 베꼈다). 응답 타입은 숫자로 고정한다.
+for (const key of Object.keys(visionSchema.properties.scores.properties)) visionSchema.properties.scores.properties[key] = { type: "NUMBER" };
+visionSchema.properties.imageQuality.properties.palmCoverage = { type: "NUMBER" };
+export const PALM_VISION_RESPONSE_SCHEMA = visionSchema;
+
+// 2026-10-15 까지 프롬프트 JSON 예시에 박혀 있던 숫자다. 응답이 이 값을 그대로 내면 채점이 아니라
+// 예시를 베낀 것이므로 측정값으로 쓰지 않고 모름(null)으로 둔다.
+const COPIED_SCORE_EXAMPLE = Object.freeze({ love: 75, career: 80, wealth: 70, vitality: 85, creativity: 78, communication: 72 });
+const COPIED_COVERAGE_EXAMPLE = 0.85;
 
 function buildVisionUserPrompt(declaredSide, analysisPurpose) {
   const purposeText = PURPOSE_KO[analysisPurpose] || PURPOSE_KO.general;
@@ -193,6 +213,18 @@ function unit(v) {
   const n = Number(v);
   if (!Number.isFinite(n)) return 0;
   return Math.max(0, Math.min(1, n));
+}
+
+// 0~100 밖이거나 숫자가 아니면(자리표시 "0-100" 을 그대로 낸 경우 포함) 모름(null)이다.
+function score(v) {
+  if (v == null || v === "" || typeof v === "boolean") return null;
+  const n = Number(v);
+  return Number.isFinite(n) && n >= 0 && n <= 100 ? Math.round(n) : null;
+}
+
+function isCopiedScoreExample(raw) {
+  const sc = asObj(raw);
+  return Object.entries(COPIED_SCORE_EXAMPLE).filter(([key, value]) => score(sc[key]) === value).length >= 4;
 }
 
 function asObj(v) {
@@ -294,6 +326,7 @@ export function geminiResultToHandReading(g) {
   const mn = asObj(g.minorLines);
   const mt = asObj(g.mounts);
   const sc = asObj(g.scores);
+  const copiedScores = isCopiedScoreExample(g.scores);
   const ov = asObj(g.overall);
   const hs = asObj(g.handShape);
 
@@ -370,14 +403,7 @@ export function geminiResultToHandReading(g) {
       mercury: mount(mt.mercury),
       mars: mount(mt.mars),
     },
-    scores: {
-      love: num(sc.love, null),
-      career: num(sc.career, null),
-      wealth: num(sc.wealth, null),
-      vitality: num(sc.vitality, null),
-      creativity: num(sc.creativity, null),
-      communication: num(sc.communication, null),
-    },
+    scores: Object.fromEntries(Object.keys(COPIED_SCORE_EXAMPLE).map((key) => [key, copiedScores ? null : score(sc[key])])),
     overall: {
       title: str(ov.title, "손금 분석 결과"),
       summary: str(ov.summary, "손금을 분석했습니다."),
@@ -540,6 +566,14 @@ export async function analyzeHandWithGeminiVision(env, imageDataUrl, declaredSid
   const palmDetected = parsed.palmDetected === false ? false : parsed.palmDetected === true || detectedLineKeys.length > 0;
 
   const iq = asObj(parsed.imageQuality);
+  const copiedExample = isCopiedScoreExample(parsed.scores);
+  if (copiedExample) console.warn("[palm-vision] score example copied", { side: declaredSide });
+  // 점수를 베낀 응답의 coverage 0.85 도 같은 예시에서 온 값이다.
+  const palmCoverage =
+    iq.palmCoverage == null || iq.palmCoverage === "" || !Number.isFinite(Number(iq.palmCoverage)) ||
+    (copiedExample && Number(iq.palmCoverage) === COPIED_COVERAGE_EXAMPLE)
+      ? null
+      : unit(iq.palmCoverage);
   const imageQuality = {
     isPalmDetected: palmDetected,
     handSide: str(parsed.handSide, declaredSide),
@@ -548,11 +582,12 @@ export async function analyzeHandWithGeminiVision(env, imageDataUrl, declaredSid
     // 모델이 coverage 를 빼면 모름(null)이다. 예전 기본값 0.58/0.36 은 품질 문턱 0.42 양쪽에 걸려
     // 판정을 "선이 하나라도 잡혔나"로 바꿔 버렸다. null 은 품질 문턱을 통과하지 못하고(fail-closed)
     // 판정은 선 검출 근거가 맡는다.
-    palmCoverage: iq.palmCoverage == null || iq.palmCoverage === "" || !Number.isFinite(Number(iq.palmCoverage)) ? null : unit(iq.palmCoverage),
+    palmCoverage,
     rotation: 0,
     notes: str(iq.notes, ""),
     warnings: [],
-    defaultedFields: ["brightness", "sharpness", "palmCoverage"].filter((key) => iq[key] == null || iq[key] === ""),
+    defaultedFields: ["brightness", "sharpness", "palmCoverage"].filter((key) =>
+      key === "palmCoverage" ? palmCoverage === null : iq[key] == null || iq[key] === ""),
   };
 
   const purposeAnalysis = asObj(parsed.purposeAnalysis);
