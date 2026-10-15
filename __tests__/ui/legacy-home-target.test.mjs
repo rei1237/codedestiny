@@ -17,6 +17,7 @@ test('language selection stays on Yeongnyangi, while paid legacy returns keep th
 test("new home and its anchors retain campaign attribution", () => {
   for (const hash of ["", "#home", "#readings", "#recommendations", "#room"]) {
     assert.equal(legacyHomeTarget("?utm_source=kakao", hash), null);
+    assert.equal(legacyHomeTarget("?gclid=a&gbraid=b&wbraid=c", hash), null);
   }
 });
 test("legacy payment returns, service inputs and shared fragments survive verbatim", () => {
@@ -43,13 +44,18 @@ const componentBundle = await build({
   bundle: true, platform: "node", format: "cjs", write: false, external: ["react"],
 });
 
-function homeRedirects(search = "", hash = "") {
+function homeRedirects(search = "", hash = "", { anchors = [], standalone = false, appBuild = false } = {}) {
   const redirects = [];
   const effects = [];
   const componentModule = { exports: {} };
   runInNewContext(componentBundle.outputFiles[0].text, {
     module: componentModule, URL, URLSearchParams,
-    window: { location: { search, hash, origin: "https://code-destiny.com", replace: target => redirects.push(target) } },
+    process: { env: { NEXT_PUBLIC_RUNTIME_TARGET: appBuild ? "mobile-app" : "web" } },
+    window: {
+      location: { search, hash, origin: "https://code-destiny.com", replace: target => redirects.push(target) },
+      matchMedia: query => ({ matches: standalone && query === "(display-mode: standalone)" }),
+    },
+    document: { getElementById: id => (anchors.includes(id) ? {} : null) },
     require(name) {
       assert.equal(name, "react");
       return { useEffect: effect => effects.push(effect) };
@@ -64,9 +70,21 @@ function homeRedirects(search = "", hash = "") {
   return redirects;
 }
 
-test("home component opens Ggulggul and preserves campaign attribution", () => {
-  assert.deepEqual(homeRedirects(), ["/ggulggul/"]);
+// 2026-10-15: `/` is the brand home. Plain visits, campaign links and its own anchors stay.
+test("brand home stays put for plain visits, campaign links and its own anchors", () => {
+  assert.deepEqual(homeRedirects(), []);
+  assert.deepEqual(homeRedirects("?utm_source=google&utm_campaign=free-fortune"), []);
+  assert.deepEqual(homeRedirects("", "#brandHistoryTitle", { anchors: ["brandHistoryTitle"] }), []);
+});
+
+test("app anchors and installs that still start at / move on to the app home", () => {
   assert.deepEqual(homeRedirects("?utm_source=google&utm_campaign=free-fortune", "#readings"), ["/ggulggul/?utm_source=google&utm_campaign=free-fortune#readings"]);
+  assert.deepEqual(homeRedirects("", "", { standalone: true }), ["/ggulggul/"]);
+});
+
+test("the mobile app bundle has no brand home and opens the app home", () => {
+  assert.deepEqual(homeRedirects("", "", { appBuild: true }), ["/ggulggul/"]);
+  assert.deepEqual(homeRedirects("?utm_source=app", "", { appBuild: true }), ["/ggulggul/?utm_source=app"]);
 });
 
 test("home component preserves question guides and their campaign attribution", () => {

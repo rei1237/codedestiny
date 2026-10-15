@@ -66,7 +66,7 @@ push를 배포 승인으로 확대 해석하지 않는다. push는 스테이징�
 - 검색·삭제: [search-discipline](docs/context/search-discipline.md)
 - 명령·예외: [reference-basics](docs/context/reference-basics.md)
 
-홈 `/` 정본은 app/page.js다(꿀꿀운세 — 검색용 안내를 그리고 LegacyHomeEntry가 브라우저를 `/ggulggul/`로 보낸다). 꽃돼지 `/ggulggul/` 및 기존 로케일 정적 셸 정본은 index.html이며 public 미러는 sync:public으로 생성한다. 영냥이는 `/yeongnyangi/`(app/yeongnyangi/)다. Pages 준비 단계에서 `/`를 정적 셸로 덮어쓰지 않는다.
+홈 `/` 정본은 app/page.js다(꿀꿀 운세 공식 대표 홈, 200. 워커가 추적 키만 붙은 요청은 그대로 200, 기능 키는 `/ggulggul/`로 302, `/index.html`은 `/`로 301 한다. LegacyHomeEntry는 옛 해시 딥링크와 standalone PWA만 `/ggulggul/`로 보낸다). 브랜드 이름·운영자·공식 채널 원본은 lib/brand/brand-facts.mjs다(2026-10-15 사용자 결정: 공식 "꿀꿀 운세", 별칭 "꿀꿀운세"). 꽃돼지 `/ggulggul/` 및 기존 로케일 정적 셸 정본은 index.html이며 public 미러는 sync:public으로 생성한다. 영냥이는 `/yeongnyangi/`(app/yeongnyangi/)다. Pages 준비 단계에서 `/`를 정적 셸로 덮어쓰지 않는다.
 결제 진입은 로컬 스냅샷, 서버 이용권 판정은 결제창에서. 단건은 사용자의 선택 후에만.
 이용권·월정석·단건 결제 용어와 정책을 유지한다. 동결 파일 변경은 payment-freeze 절차를 따른다.
 

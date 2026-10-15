@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
+    <loc>https://code-destiny.com/</loc>
+    <lastmod>2026-10-15</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.00</priority>
+  </url>
+  <url>
     <loc>https://code-destiny.com/about/</loc>
     <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/about/" />
     <xhtml:link rel="alternate" hreflang="ko-KR" href="https://code-destiny.com/about/" />

@@ -178,10 +178,10 @@ const staticCanonicalRouteEntries = STATIC_CANONICAL_ROUTES.map((route) => ({
 
 const coreRoutes = [
   { path: "/consultation-samples", changefreq: "monthly", priority: 0.7 },
-  // 🔴 "/" 는 넣지 않는다 — 워커가 /ggulggul/ 로 301 한다(2026-10-02 사용자 결정: /ggulggul/ 단일 대표).
-  //    리다이렉트 URL 을 사이트맵에 내면 대표 URL 신호가 둘로 갈린다.
-  // 브랜드 별칭("꿀꿀 운세") 의 대표 URL 은 /ggulggul/ 다. 이 페이지는 그 관계를
-  // 설명하는 보조 안내라 대표보다 우선순위를 낮춰 브랜드 쿼리에서 자기잠식하지 않게 한다.
+  // "/" 는 꿀꿀 운세 공식 대표 홈이다(2026-10-15 사용자 결정, 200). /ggulggul/ 로케일 클러스터와
+  // 섞지 않도록 alternates 없이 둔다. 앱 입구 /ggulggul/ 은 아래에 그대로 남는다.
+  { path: "/", changefreq: "daily", priority: 1.0 },
+  // 공식 주소·표기 안내 페이지. 대표 홈보다 우선순위를 낮춰 브랜드 쿼리에서 자기잠식하지 않게 한다.
   { path: "/kkul-kkul-unse", changefreq: "weekly", priority: 0.85 },
   // 천원사주 허브. 무료 키워드는 /saju/ 등 무료 랜딩의 몫이고, 이 페이지는 1,000원 재미 사주 콘텐츠와 영냥이 고등어 상담 안내를 맡는다.
   { path: "/yeongnyangi/1000-won-fortune", changefreq: "weekly", priority: 0.8 },

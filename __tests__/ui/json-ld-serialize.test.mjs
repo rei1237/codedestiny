@@ -16,7 +16,7 @@ test('serializeJsonLd keeps the value but never closes the script element', () =
 
 test('brand pages serialize JSON-LD through the shared helper', () => {
   // yeongnyangi 는 '<' 를 '<' 로 바꾸는 무효 escape 였다.
-  for (const file of ['app/layout.js', 'app/yeongnyangi/page.tsx']) {
+  for (const file of ['app/layout.js', 'app/page.js', 'app/yeongnyangi/page.tsx']) {
     const source = read(file);
     assert.match(source, /serializeJsonLd\(/, file);
     assert.doesNotMatch(source, /__html:\s*JSON\.stringify\(/, file);
