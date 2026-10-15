@@ -1595,7 +1595,8 @@
               "height": 1440,
               "text": "다음 관계의 속도는,\n내가 정할 수 있도록.\n\n본인의 생년월일·성별·달력 기준을\n준비해 주세요. 모르는 출생 시간은\n모름으로 선택할 수 있어요.\n\n20장이 모두 완성되면 PDF로 저장해요.\n10년 경력 상담사·명리학자가 만든\n서비스이며, 결과 문장은 AI가 씁니다.\n\n마스터 인연의 서 · 개인\n나를 알고, 사랑의 방식을 고르는 시간."
             }
-          ]
+          ],
+          "priceKRW": 30000
         },
         {
           "id": "master-love-codex-compat",
@@ -1693,9 +1694,12 @@
               "height": 1440,
               "text": "두 사람의 다음 장은,\n함께 정하는 약속으로.\n\n두 사람의 생년월일·성별·달력 기준과\n출생 시간을 준비해 주세요.\n모르는 시간은 모름으로 선택해요.\n\n20장 완성 후 PDF 저장이 가능합니다.\n10년 경력 상담사·명리학자가 만든\n서비스이며, 결과 문장은 AI가 씁니다.\n\n마스터 인연의 서 · 궁합\n차이를 이해하고, 동행의 방법을 찾는 시간."
             }
-          ]
+          ],
+          "priceKRW": 50000
         }
       ],
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/master-love-codex-480.webp",
@@ -1889,7 +1893,8 @@
               "height": 1440,
               "text": "나를 몰아붙이기보다,\n내 결을 이해하는 시간.\n\n맞고 틀린 사람으로 나누지 않고,\n같은 힘이 언제 도움이 되고\n언제 부담이 되는지 살펴봐요.\n\n연이는 서비스 캐릭터예요.\n상담 문장은 AI가 작성하며,\n사람이 직접 답하는 상담은 아닙니다.\n\n운명의 찻집 · 사주 상담"
             }
-          ]
+          ],
+          "priceKRW": 10000
         },
         {
           "id": "tea-saju-compat",
@@ -1978,7 +1983,8 @@
               "height": 1440,
               "text": "관계의 결론보다,\n다음 대화의 실마리를.\n\n어떤 명식도 상대의 마음을\n대신 대답해 주지는 않아요.\n\n서로의 말을 듣고 조율할 때\n참고할 관점으로 받아들여 주세요.\n\n연이는 서비스 캐릭터예요.\n상담 문장은 AI가 작성하며,\n사람이 직접 답하는 상담은 아닙니다.\n\n운명의 찻집 · 두 사람 사주 궁합"
             }
-          ]
+          ],
+          "priceKRW": 10000
         },
         {
           "id": "tea-sukuyo",
@@ -2058,7 +2064,8 @@
               "height": 1440,
               "text": "가까워지는 방법도,\n서로에게 맞게.\n\n완성된 결과는 텍스트와 PDF로\n저장해 다시 읽을 수 있어요.\n\n사주 궁합·타로는 별도 상품이에요.\n꿀편지는 별도 조건의 추가 기능입니다.\n\n연이는 서비스 캐릭터예요.\n상담 문장은 AI가 작성하며,\n사람이 직접 답하는 상담은 아닙니다.\n\n운명의 찻집 · 숙요 궁합"
             }
-          ]
+          ],
+          "priceKRW": 10000
         },
         {
           "id": "tea-tarot-three",
@@ -2138,7 +2145,8 @@
               "height": 1440,
               "text": "오늘의 답을,\n조금 다정하게 찾아요.\n\n반드시 그렇게 될 미래보다,\n지금의 나에게 가능한 선택을.\n\n사주 정보 대신,\n지금 겪는 상황과 질문을 준비해요.\n\n연이는 서비스 캐릭터예요.\n상담 문장은 AI가 작성하며,\n사람이 직접 답하는 상담은 아닙니다.\n\n운명의 찻집 · 타로 3장"
             }
-          ]
+          ],
+          "priceKRW": 10000
         },
         {
           "id": "tea-tarot-five",
@@ -2227,10 +2235,13 @@
               "height": 1440,
               "text": "정답을 기다리기보다,\n내 마음을 알아가요.\n\n다가갈 때와 쉬어 갈 때,\n나의 바람과 상대의 경계를 함께.\n\n연이는 서비스 캐릭터이며\n상담 문장은 AI가 작성합니다.\n사람이 직접 답하는 상담은 아닙니다.\n\n운명의 찻집 · 타로 5장\n선택의 여지를 남기는 다정한 상담."
             }
-          ]
+          ],
+          "priceKRW": 10000
         }
       ],
       "theme": "navy",
+      "imageWidth": 1920,
+      "imageHeight": 1080,
       "heroVariants": [
         {
           "src": "/feature-details/assets/fortune-tea-house-480.webp",
@@ -2457,7 +2468,8 @@
               "height": 1440,
               "text": "누군가의 정답보다,\n지금의 나에게 필요한 말.\n\n지금의 관계 단계와 고민,\n궁금한 질문을 먼저 적어 주세요.\n\n본인의 출생 정보를 준비하고,\n상대 정보는 아는 만큼 입력해요.\n모르는 시간은 모름으로 선택해요.\n\n10년 경력 상담사·명리학자가 만든\n서비스이며, 결과 문장은 AI가 씁니다.\n\n연애 비책\n다음 대화가 조금 더 나다울 수 있도록."
             }
-          ]
+          ],
+          "priceKRW": 30000
         }
       ],
       "founder": {
@@ -2615,7 +2627,8 @@
               "height": 1440,
               "text": "한 가지 고민이면,\n시작할 수 있어요.\n\n질문은 300자 안에서 적어주세요.\n상담을 시작하려면 로그인이 필요해요.\n준비된 상담의 가격과 이용 조건을\n기존 결제 화면에서 확인해주세요.\n\n연이와 네오는 같은 결제 상품의\n상담자 선택이에요.\n답변의 말투와 읽는 순서가 달라져요.\n\n연이는 AI 상담 캐릭터입니다.\n이용권·월정석·단건 결제는\n현재 화면에 표시된 기준을 따릅니다."
             }
-          ]
+          ],
+          "priceKRW": 5000
         },
         {
           "id": "chat-engine-neo",
@@ -2687,10 +2700,13 @@
               "height": 1440,
               "text": "결정은 네 몫.\n읽을 근거는 여기서.\n\n상담을 준비한 뒤 기존 화면에서\n가격과 이용 조건을 확인해라.\n중요한 선택은 현실의 정보와\n리포트의 조언을 함께 놓고 판단해라.\n\n연이로 바꾸면 말투와 읽는 순서가\n달라진다. 같은 결제 상품 안의\n상담자 선택이다.\n\n네오는 AI 상담 캐릭터입니다.\n이용권·월정석·단건 결제는\n현재 화면의 기준을 따릅니다."
             }
-          ]
+          ],
+          "priceKRW": 5000
         }
       ],
       "theme": "navy",
+      "imageWidth": 1024,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/fortune-chat-480.webp",
@@ -2770,6 +2786,8 @@
         "note": "풀이의 문체와 구성을 보여주는 예시입니다. 실제 카드·입력 정보에 따라 내용이 달라집니다."
       },
       "theme": "burgundy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/tarot-love-relationship-480.webp",
@@ -2859,6 +2877,8 @@
         ]
       },
       "theme": "burgundy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/tarot-reunion-480.webp",
@@ -2946,6 +2966,8 @@
         ]
       },
       "theme": "burgundy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/tarot-mindscan-480.webp",
@@ -3043,6 +3065,8 @@
         ]
       },
       "theme": "rose",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/love-simulation-480.webp",
@@ -3128,6 +3152,8 @@
         ]
       },
       "theme": "rose",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/nakshatra-compat-480.webp",
@@ -3318,10 +3344,13 @@
               "height": 1440,
               "text": "네 편에서 짚겠다.\n선택은 네 손에 남겨두고.\n\n가능성을 사실처럼 단정하지 않고,\n지금 고칠 수 있는 행동부터.\n\n네오는 서비스 캐릭터다.\n상담 문장은 AI가 작성하며,\n사람이 직접 답하는 상담은 아니다.\n\n네오의 팩폭 작전실"
             }
-          ]
+          ],
+          "priceKRW": 30000
         }
       ],
       "theme": "navy",
+      "imageWidth": 1672,
+      "imageHeight": 941,
       "heroVariants": [
         {
           "src": "/feature-details/assets/neo-operation-room-480.webp",
@@ -3404,6 +3433,8 @@
         "faq": []
       },
       "theme": "navy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/destiny-compass-480.webp",
@@ -3483,6 +3514,8 @@
         "faq": []
       },
       "theme": "navy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/saju-sibyl-480.webp",
@@ -3609,6 +3642,8 @@
           "궁금한 주제"
         ]
       },
+      "imageWidth": 1672,
+      "imageHeight": 941,
       "heroVariants": [
         {
           "src": "/feature-details/assets/new-year-ai-480.webp",
@@ -3696,6 +3731,8 @@
         ]
       },
       "theme": "burgundy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/tarot-ijik-480.webp",
@@ -3921,7 +3958,8 @@
               "height": 1440,
               "text": "아직 쓰이지 않은 장은,\n오늘의 선택으로.\n\n생년월일과 달력 기준,\n출생 시간을 확인해 주세요.\n모르는 시간은 모름으로 선택해요.\n\n전체 흐름 또는 더 읽고 싶은 영역을\n고르고, 지금의 나를 펼쳐 보세요.\n\n인생의 책\n당신의 시간을 한 권의 이야기로."
             }
-          ]
+          ],
+          "priceKRW": 30000
         }
       ],
       "founder": {
@@ -4022,6 +4060,8 @@
         ]
       },
       "theme": "navy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/karma-destiny-ai-480.webp",
@@ -4112,6 +4152,8 @@
         ]
       },
       "theme": "navy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/saju-guardian-480.webp",
@@ -4208,6 +4250,8 @@
         ]
       },
       "theme": "navy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/naming-ai-480.webp",
@@ -4400,10 +4444,13 @@
               "height": 1440,
               "text": "선택의 이유를,\n나의 말로 정리해요.\n\n같은 흐름에는 근거를 더하고,\n다른 해석에는 조건을 살펴요.\n\n결정은 지금의 정보와 현실을 함께.\n상담은 그 선택을 정리하는 도구입니다.\n\n사주 엔진은 10년 경력 명리학자가\n설계·자문했습니다. 결과 문장은 AI가\n작성하며, 사람 6명의 직접 상담은 아닙니다.\n\n초융합 운세\n나를 이해하는 관점에서, 다음 한 걸음까지."
             }
-          ]
+          ],
+          "priceKRW": 50000
         }
       ],
       "theme": "navy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/fusion-fortune-480.webp",
@@ -4492,6 +4539,8 @@
         ]
       },
       "theme": "burgundy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/tarot-year-fortune-480.webp",
@@ -4580,6 +4629,8 @@
         ]
       },
       "theme": "burgundy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/tarot-celestial-harmony-480.webp",
@@ -4737,10 +4788,13 @@
               "height": 1440,
               "text": "날짜를 고르는,\n하나의 참고표로.\n\n기존 날짜 찾기 버튼에서\n가격과 이용 조건을 확인합니다.\n이용권·월정석·단건 결제는\n현재 화면의 기준을 따릅니다.\n\n택일은 계산과 준비된 해석을 조합합니다.\nVVIP 통합서나 AI 심화 상담,\n두 사람 궁합은 각각 별도 상품입니다.\n\n결제 후 본문을 받지 못했다면\n같은 결제의 다시 받기 안내를 이용해주세요."
             }
-          ]
+          ],
+          "priceKRW": 7000
         }
       ],
       "theme": "indigo",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/nakshatra-muhurta-480.webp",
@@ -4799,6 +4853,8 @@
       "contents": [],
       "imageAlt": "사주 정밀 분석의 주제를 담은 오리지널 일러스트",
       "theme": "navy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/saju-480.webp",
@@ -4859,6 +4915,8 @@
       "contents": [],
       "imageAlt": "타로의 주제를 담은 오리지널 일러스트",
       "theme": "burgundy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/tarot-480.webp",
@@ -4918,6 +4976,8 @@
       "contents": [],
       "imageAlt": "심화 자미두수 12궁 상담의 주제를 담은 오리지널 일러스트",
       "theme": "navy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/ziwei-480.webp",
@@ -5015,6 +5075,8 @@
         ]
       },
       "theme": "navy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/sukuyo-480.webp",
@@ -5074,6 +5136,8 @@
       "contents": [],
       "imageAlt": "베다 점성술 분석의 주제를 담은 오리지널 일러스트",
       "theme": "indigo",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/vedic-480.webp",
@@ -5133,6 +5197,8 @@
       "contents": [],
       "imageAlt": "서양 점성술 차트 분석의 주제를 담은 오리지널 일러스트",
       "theme": "indigo",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/astrology-480.webp",
@@ -5215,6 +5281,8 @@
         "faq": []
       },
       "theme": "indigo",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/human-design-480.webp",
@@ -5278,6 +5346,8 @@
         "note": "풀이의 문체와 구성을 보여주는 가상의 편집 예시입니다. 실제 입력 정보에 따라 내용이 달라집니다."
       },
       "theme": "indigo",
+      "imageWidth": 1672,
+      "imageHeight": 941,
       "heroVariants": [
         {
           "src": "/feature-details/assets/nakshatra-480.webp",
@@ -5334,6 +5404,8 @@
         "faq": []
       },
       "theme": "indigo",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/maya-480.webp",
@@ -5397,6 +5469,8 @@
         "faq": []
       },
       "theme": "saffron",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/daily-fortune-480.webp",
@@ -5460,6 +5534,8 @@
         "faq": []
       },
       "theme": "saffron",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/today-hub-480.webp",
@@ -5551,6 +5627,8 @@
         ]
       },
       "theme": "emerald",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/palm-reading-480.webp",
@@ -5608,6 +5686,8 @@
         "faq": []
       },
       "theme": "emerald",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/physiognomy-480.webp",
@@ -5672,6 +5752,8 @@
         "faq": []
       },
       "theme": "emerald",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/dream-480.webp",
@@ -5735,6 +5817,8 @@
         "faq": []
       },
       "theme": "emerald",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/psychotest-480.webp",
@@ -5791,6 +5875,8 @@
         "faq": []
       },
       "theme": "navy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/manse-480.webp",
@@ -5847,6 +5933,8 @@
         "faq": []
       },
       "theme": "navy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/famous-saju-480.webp",
@@ -6007,10 +6095,13 @@
               "height": 1440,
               "text": "나를 설명할 한 장을,\n생활 가까이에 남겨요.\n\n생년월일과 달력 종류를 확인해요.\n출생시간을 모르면 비워도 괜찮아요.\n\n결과 요약 카드를 이미지로 저장·공유해요.\n전체 리포트 PDF를 뜻하지는 않아요.\n기존 화면의 이용 조건과 버튼을 따라 시작해요."
             }
-          ]
+          ],
+          "priceKRW": 7000
         }
       ],
       "theme": "emerald",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/animal-destiny-480.webp",
@@ -6099,6 +6190,8 @@
         ]
       },
       "theme": "burgundy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/kemet-oracle-480.webp",
@@ -6187,6 +6280,8 @@
         ]
       },
       "theme": "burgundy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/ifa-oracle-480.webp",
@@ -6275,6 +6370,8 @@
         ]
       },
       "theme": "burgundy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/juyuk-turtle-480.webp",
@@ -6367,6 +6464,8 @@
         ]
       },
       "theme": "navy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/neville-meditation-480.webp",
@@ -6460,6 +6559,8 @@
         ]
       },
       "theme": "navy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/yoga-guru-480.webp",
@@ -6539,6 +6640,8 @@
         "faq": []
       },
       "theme": "burgundy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/tarot-numerology-480.webp",
@@ -6618,6 +6721,8 @@
         "note": "풀이의 문체와 구성을 보여주는 예시입니다. 실제 카드·입력 정보에 따라 내용이 달라집니다."
       },
       "theme": "emerald",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/dream-psycho-analysis-480.webp",
@@ -6776,7 +6881,8 @@
               "height": 1440,
               "text": "지금의 마음에 맞는\n읽는 방식을 골라요.\n\n질문 입력 → 한 장 또는 세 장 선택\n기존 결제 확인 → 카드 공개 → 결과\n\n실제 카드는 성좌 문양으로 표시돼요.\n위 일러스트는 분위기를 담은 이미지예요.\n가격과 이용 조건은 기존 선택 화면을 따릅니다."
             }
-          ]
+          ],
+          "priceKRW": 5000
         },
         {
           "id": "animal-totem-deep",
@@ -6856,10 +6962,13 @@
               "height": 1440,
               "text": "다섯 자리 앞에,\n지금의 질문을 놓아봐요.\n\n최대 300자의 질문을 적거나 건너뛰고,\n‘별자리 다섯 동물’을 선택해요.\n\n기존 결제 확인 후 카드를 공개해요.\n실제 카드는 성좌 문양으로 표시됩니다.\n가격·이용 조건은 현재 선택 화면을 따릅니다."
             }
-          ]
+          ],
+          "priceKRW": 5000
         }
       ],
       "theme": "emerald",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/animal-totem-480.webp",
@@ -6923,6 +7032,8 @@
         "faq": []
       },
       "theme": "rose",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/mbti-animal-compat-480.webp",
@@ -7011,6 +7122,8 @@
         ]
       },
       "theme": "burgundy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/tarot-crystal-soul-480.webp",
@@ -7099,6 +7212,8 @@
         ]
       },
       "theme": "burgundy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/royal-tea-oracle-480.webp",
@@ -7187,6 +7302,8 @@
         ]
       },
       "theme": "burgundy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/geomancy-oracle-480.webp",
@@ -7276,6 +7393,8 @@
         ]
       },
       "theme": "burgundy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/stonehenge-runes-480.webp",
@@ -7333,6 +7452,8 @@
         "faq": []
       },
       "theme": "saffron",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/luck-sync-diary-480.webp",
@@ -7389,6 +7510,8 @@
         "faq": []
       },
       "theme": "navy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/music-480.webp",
@@ -7445,6 +7568,8 @@
         "faq": []
       },
       "theme": "navy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/novel-480.webp",
@@ -7600,6 +7725,8 @@
       ],
       "imageAlt": "숙요 인연 레이더의 주제를 담은 오리지널 일러스트",
       "theme": "navy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/sukyo-480.webp",
@@ -7687,6 +7814,8 @@
         ]
       },
       "theme": "burgundy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/tarot-prompt-maker-480.webp",
@@ -7739,6 +7868,8 @@
         "faq": []
       },
       "theme": "navy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/face-reading-480.webp",
@@ -7815,6 +7946,8 @@
         ]
       },
       "theme": "navy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/bias-destiny-480.webp",
@@ -7872,6 +8005,8 @@
       "catalogImage": "/feature-details/assets/omikuji-catalog-320.webp",
       "imageAlt": "이모이 오미쿠지의 주제를 담은 오리지널 일러스트",
       "theme": "burgundy",
+      "imageWidth": 1672,
+      "imageHeight": 941,
       "heroVariants": [
         {
           "src": "/feature-details/assets/omikuji-480.webp",
@@ -7997,6 +8132,8 @@
         ]
       },
       "theme": "rose",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/destiny-meeting-place-480.webp",
@@ -8090,6 +8227,8 @@
         ]
       },
       "theme": "navy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/ziwei-ai-480.webp",
@@ -8162,6 +8301,8 @@
       },
       "imageAlt": "운명의 꽃 아틀리에의 주제를 담은 오리지널 판타지 일러스트",
       "theme": "emerald",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/destiny-flower-480.webp",
@@ -8234,6 +8375,8 @@
       },
       "imageAlt": "점성술 꽃의 주제를 담은 오리지널 판타지 일러스트",
       "theme": "emerald",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/astrology-flower-480.webp",
@@ -8306,6 +8449,8 @@
       },
       "imageAlt": "자미두수 꽃의 주제를 담은 오리지널 판타지 일러스트",
       "theme": "emerald",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/ziwei-flower-480.webp",
@@ -8378,6 +8523,8 @@
       },
       "imageAlt": "숙요 꽃의 주제를 담은 오리지널 판타지 일러스트",
       "theme": "emerald",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/sukuyo-flower-480.webp",
@@ -8454,6 +8601,8 @@
       },
       "imageAlt": "코스믹 소울 명상의 주제를 담은 오리지널 판타지 일러스트",
       "theme": "indigo",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/cosmic-soul-meditation-480.webp",
@@ -8613,9 +8762,12 @@
               "height": 1440,
               "text": "신탁은 하나의 이야기,\n방향은 나의 선택.\n익숙한 나를\n낯선 신화의 언어로\n다시 만나보세요.\n\n기존 화면에서 이용 조건을 확인하고\n프로필과 궁합, 신탁을 펼쳐보세요.\n\n재미있게 읽되, 중요한 결정은\n실제 정보와 내 판단을 함께 놓고 해요.\n\n수익·관계·시기·행운을 보장하지 않아요.\nAI 자유상담이나 PDF는 포함하지 않아요.\n예시는 실제 고객 결과·후기가 아닙니다."
             }
-          ]
+          ],
+          "priceKRW": 5000
         }
       ],
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/olympus-oracle-480.webp",
@@ -8692,6 +8844,8 @@
       },
       "imageAlt": "등불 두 개가 놓인 달밤의 다리 앞에서 덮인 장부를 든 숙요점 상담가 서한비의 오리지널 일러스트",
       "theme": "indigo",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/sukuyo-compatibility-ai-480.webp",
@@ -8771,6 +8925,8 @@
       },
       "imageAlt": "밤하늘 천문대 하늘배 갑판에서 열두 하우스 차트 휠과 겹친 접부채를 든 점성술사 윤달과 흰 고양이의 오리지널 일러스트",
       "theme": "indigo",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/astrology-ai-480.webp",
@@ -8850,6 +9006,8 @@
       },
       "imageAlt": "베다점 전문가 상담의 천문 관측 장면을 담은 오리지널 일러스트",
       "theme": "saffron",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/vedic-ai-480.webp",
@@ -8929,6 +9087,8 @@
       },
       "imageAlt": "숙요·나크샤트라 통합 상담의 천문 관측 장면을 담은 오리지널 일러스트",
       "theme": "indigo",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/nakshatra-ai-480.webp",
@@ -9007,6 +9167,8 @@
       },
       "imageAlt": "나크샤트라 VVIP 코덱스의 천문 관측 장면을 담은 오리지널 일러스트",
       "theme": "indigo",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/nakshatra-vvip-codex-480.webp",

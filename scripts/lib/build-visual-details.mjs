@@ -10,10 +10,15 @@ import { extractObjectLiteral } from './feature-marketing-extract.mjs';
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const cleanPath = value => String(value || '').replace(/\/+$/, '');
 const craftedCatalog = JSON.parse(fs.readFileSync(path.join(root, 'content/product-details/catalog.json'), 'utf8'));
+let resolvePricing;
+// Same resolver as the page's start price, so a card never disagrees with the checkout.
+const priceKRWFor = featureKey => (resolvePricing ||= loadTsModule('lib/payment/server-feature-pricing.ts').resolveServerFeaturePricing)({ featureKey })?.amountKRW;
 function craftedIntroductions(slug) {
   return (craftedCatalog.introductions[slug] || []).map(id => {
     if (!/^[a-z0-9-]+$/.test(id)) throw new Error('Invalid crafted product ID');
-    return JSON.parse(fs.readFileSync(path.join(root, 'content/product-details', id, 'manifest.json'), 'utf8'));
+    const manifest = JSON.parse(fs.readFileSync(path.join(root, 'content/product-details', id, 'manifest.json'), 'utf8'));
+    const priceKRW = priceKRWFor(manifest.featureKey);
+    return priceKRW ? { ...manifest, priceKRW } : manifest;
   });
 }
 
@@ -226,10 +231,8 @@ export async function writeVisualDetails(html, book) {
         const publicRoot = path.resolve(root, 'public') + path.sep;
         if (!source.startsWith(publicRoot)) throw new Error('Image outside public');
         const meta = await sharp(source).metadata();
-        if (['book', 'letter'].includes(item.material)) {
-          item.imageWidth = meta.width;
-          item.imageHeight = meta.height;
-        }
+        item.imageWidth = meta.width;
+        item.imageHeight = meta.height;
         const resizeOptions = ['book', 'letter'].includes(item.material)
           ? { fit: 'contain', background: item.material === 'book' ? '#152721' : '#f6f2ed' }
           : { fit: 'cover' };

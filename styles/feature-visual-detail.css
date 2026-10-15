@@ -17,7 +17,38 @@
 .featureVisualDetail[data-crafted-introduction] .craftedDetailTranscript p{white-space:pre-line}
 .featureVisualDetail[data-crafted-introduction] .craftedDetailTranscript h3{font-size:20px;line-height:1.5}
 .featureVisualDetail[data-crafted-introduction] .craftedDetailTranscript section{margin-block:24px}
-.featureVisualDetail[data-crafted-introduction] :is(.craftedEdition>summary,.craftedDetailTranscript>summary){min-height:44px;padding:12px 16px;cursor:pointer;font-size:18px;line-height:1.6}
+.featureVisualDetail[data-crafted-introduction] .craftedDetailTranscript>summary{min-height:44px;padding:12px 16px;cursor:pointer;font-size:18px;line-height:1.6;color:var(--fortune-accent);font-weight:600;text-underline-offset:4px}
+/* 대표 상담: 원본 비율 히어로 → 상담별 카드(실제 목차 + 그림 안내). 이미지는 어느 폭에서도 자르지 않는다. */
+.featureVisualDetail .craftedHero .craftedHeroArt{display:block;width:100%;height:auto}
+.featureVisualDetail .craftedHero .featureDetailBody:before{display:none}
+.featureVisualDetail .craftedBadge{display:inline-flex;align-items:center;gap:8px;margin:4px 0 0;padding:8px 14px;border:1px solid var(--fortune-line);border-radius:999px;background:var(--fortune-tint);color:var(--fortune-accent);font:700 14px/1.5 var(--font-body,system-ui)}
+.featureVisualDetail .craftedBadge svg{flex:0 0 auto}
+.featureVisualDetail .craftedEditionsLead{margin-top:-8px}
+.featureVisualDetail[data-crafted-introduction] .craftedEdition{margin-top:16px;border:1px solid var(--fortune-line);border-radius:16px;background:#fffdf8;box-shadow:0 12px 28px -24px #202b3e66}
+.featureVisualDetail[data-crafted-introduction] .craftedEdition>summary{display:grid;grid-template-columns:72px minmax(0,1fr) 20px;gap:14px;align-items:center;min-height:44px;padding:14px 16px;list-style:none;cursor:pointer;color:var(--fortune-ink)}
+.featureVisualDetail[data-crafted-introduction] .craftedEdition>summary::-webkit-details-marker{display:none}
+.featureVisualDetail[data-crafted-introduction] .craftedEdition[open]>summary{border-bottom:1px solid var(--fortune-line)}
+.featureVisualDetail[data-crafted-introduction] .craftedCardCover{display:block;width:72px;height:auto;border:1px solid var(--fortune-line);border-radius:8px}
+.featureVisualDetail[data-crafted-introduction] .craftedCardText{display:grid;gap:4px;min-width:0}
+.featureVisualDetail[data-crafted-introduction] .craftedCardText strong{font:600 19px/1.45 var(--font-serif,Georgia,serif);word-break:keep-all}
+.featureVisualDetail[data-crafted-introduction] .craftedCardHook{color:var(--fortune-muted);font-size:15px;line-height:1.6;word-break:keep-all}
+.featureVisualDetail[data-crafted-introduction] .craftedCardMeta{color:var(--fortune-accent);font:600 13px/1.5 var(--font-body,system-ui)}
+.featureVisualDetail[data-crafted-introduction] .craftedCardBadge{justify-self:start;margin-top:4px;padding:3px 10px;border-radius:999px;background:var(--fortune-tint);color:var(--fortune-accent);font:700 12px/1.5 var(--font-body,system-ui)}
+.featureVisualDetail[data-crafted-introduction] .craftedCardChevron{color:var(--fortune-accent);transition:transform 180ms ease-out}
+.featureVisualDetail[data-crafted-introduction] .craftedEdition[open] .craftedCardChevron{transform:rotate(90deg)}
+.featureVisualDetail[data-crafted-introduction] .craftedEdition .craftedDetail{margin:0 auto;padding:18px 0 20px;background:transparent}
+.featureVisualDetail[data-crafted-introduction] .craftedChapters{margin:0 16px 20px;padding:16px 18px 6px;border-radius:12px;background:var(--fortune-tint)}
+.featureVisualDetail[data-crafted-introduction] .craftedChaptersTitle{display:flex;justify-content:space-between;gap:12px;margin:0 0 6px;color:var(--fortune-ink);font:700 15px/1.5 var(--font-body,system-ui)}
+.featureVisualDetail[data-crafted-introduction] .craftedChaptersTitle span{color:var(--fortune-accent)}
+.featureVisualDetail[data-crafted-introduction] .craftedChapters ol{margin:0;padding:0;list-style:none;counter-reset:chapter}
+.featureVisualDetail[data-crafted-introduction] .craftedChapters li{display:grid;grid-template-columns:2.2em minmax(0,1fr);column-gap:10px;padding:10px 0;border-top:1px solid var(--fortune-line);counter-increment:chapter}
+.featureVisualDetail[data-crafted-introduction] .craftedChapters li:first-child{border-top:0}
+.featureVisualDetail[data-crafted-introduction] .craftedChapters li:before{content:counter(chapter,decimal-leading-zero);grid-row:span 2;color:var(--fortune-accent);font:400 18px/1.4 var(--font-serif,Georgia,serif);font-variant-numeric:tabular-nums}
+.featureVisualDetail[data-crafted-introduction] .craftedChapters strong{font-size:16px;line-height:1.55;word-break:keep-all}
+.featureVisualDetail[data-crafted-introduction] .craftedChapters li>span{grid-column:2;color:var(--fortune-muted);font-size:14px;line-height:1.65;word-break:keep-all}
+@media(max-width:699px){.featureVisualDetail section.featureDetailPanel.craftedEditions{padding:32px 16px}}
+@media(min-width:860px){.featureVisualDetail:not([data-fortune-material]) .craftedHero{display:block;min-height:0}}
+@media(prefers-reduced-motion:reduce){.featureVisualDetail[data-crafted-introduction] .craftedCardChevron{transition:none}}
 /* The two bound/paper products continue the same material as their actual reports. */
 .featureVisualDetail[data-fortune-material=book]{--fortune-paper:#f6f1e6;--fortune-ink:#20362a;--fortune-muted:#52624d;--fortune-accent:#285640;--fortune-tint:#e5e9dc;--fortune-line:#c9cbb7}
 .featureVisualDetail[data-fortune-material=letter]{--fortune-paper:#f6f2ed;--fortune-ink:#35262c;--fortune-muted:#71545f;--fortune-accent:#763d53;--fortune-tint:#efe5e1;--fortune-line:#e0d3cc}

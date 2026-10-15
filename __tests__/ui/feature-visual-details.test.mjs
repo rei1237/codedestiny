@@ -58,6 +58,27 @@ test('authored introductions escape transcript text and retain only safe image l
   assert.match(fragment.querySelector('.craftedDetailTranscript').textContent, /<b>example<\/b>/);
 });
 
+test('representative introductions open as product cards with real chapters, uncropped art and lazy panels', () => {
+  const detail = JSON.parse(fs.readFileSync('public/feature-details/fortune-tea-house.json', 'utf8'));
+  const fragment = JSDOM.fragment(renderFeatureDetailPanels(detail));
+  const hero = fragment.querySelector('.craftedHero .craftedHeroArt');
+  assert.equal(`${hero.getAttribute('width')}x${hero.getAttribute('height')}`, `${detail.imageWidth}x${detail.imageHeight}`);
+  assert.equal(hero.dataset.lcpCandidate, '1');
+  const cards = [...fragment.querySelectorAll('details.craftedEdition[data-crafted-card]')];
+  assert.equal(cards.length, detail.crafted.length);
+  cards.forEach((card, index) => {
+    assert.equal(card.querySelector('summary strong').textContent, detail.crafted[index].title.split(' · ')[1]);
+    assert.match(card.querySelector('.craftedCardMeta').textContent, /그림 안내 \d+장 · 10,000원$/);
+    assert.ok([...card.querySelectorAll('.craftedDetail img')].every(image => image.getAttribute('loading') === 'lazy'));
+  });
+  assert.ok(fragment.querySelector('.fortuneSample') && fragment.querySelector('.fortuneBenefits'), 'sample and benefits follow the cards');
+  const single = JSDOM.fragment(renderFeatureDetailPanels({verification:'verified',title:'t',crafted:[{title:'t',notice:'예시',badge:'추가 질문 1회 포함',chapters:[{title:'첫 장',detail:'<b>근거</b>'},{title:'둘째 장'}],panels:[{title:'p',text:'p',src:'/p.webp'}]}]}));
+  assert.equal(single.querySelector('.craftedBadge').textContent, '추가 질문 1회 포함');
+  assert.deepEqual([...single.querySelectorAll('.craftedChapters li strong')].map(node => node.textContent), ['첫 장', '둘째 장']);
+  assert.equal(single.querySelector('.craftedChapters b'), null);
+  assert.equal(single.querySelector('.craftedEditionsLead').textContent, '목차 2개 · 그림 안내 1장');
+});
+
 test('tile popup preserves the selected product art before hydration', () => {
   assert.ok(shell.includes("var imgSrc=(tileImage&&(tileImage.currentSrc||tileImage.getAttribute('src')))||d.img||'';"));
   assert.ok(shell.includes("_heroImg.removeAttribute('srcset')"));
