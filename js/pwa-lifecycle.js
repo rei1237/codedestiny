@@ -48,7 +48,7 @@
     document.body.appendChild(dialog); dialog.showModal(); return dialog;
   }
   function guidance() {
-    var d=openDialog('꿀꿀 사주를 홈 화면에'); if(!d)return;
+    var d=openDialog('꿀꿀운세를 홈 화면에'); if(!d)return;
     var p=document.createElement('p');
     var inApp=/KAKAOTALK|Instagram|FBAN|FBAV/i.test(navigator.userAgent);
     p.textContent=inApp ? '현재 앱의 메뉴에서 외부 브라우저로 열어 주세요. 공유 메뉴에 ‘홈 화면에 추가’가 있다면 그 메뉴를 사용할 수 있어요.' : '브라우저의 공유 또는 메뉴에서 ‘홈 화면에 추가’나 ‘앱 설치’를 찾아 주세요. 메뉴가 없다면 이 기능을 지원하는 브라우저에서 열어 주세요.';
@@ -77,7 +77,7 @@
     if (!promptEvent && !/iPhone|iPad|iPod|KAKAOTALK|Instagram|FBAN|FBAV/i.test(navigator.userAgent)) return;
     banner=document.createElement('aside'); banner.className='cd-moon-install';banner.setAttribute('aria-label','앱 설치 안내');
     var img=document.createElement('img');img.src='/assets/yeongnyangi/original/hero-800.webp';img.width=48;img.height=48;img.alt='';banner.appendChild(img);
-    var text=document.createElement('div');var title=document.createElement('strong');title.textContent='꿀꿀 사주를 홈 화면에';text.appendChild(title);var desc=document.createElement('p');desc.textContent='달빛 이야기를 더 가깝게 만나세요';text.appendChild(desc);banner.appendChild(text);
+    var text=document.createElement('div');var title=document.createElement('strong');title.textContent='꿀꿀운세를 홈 화면에';text.appendChild(title);var desc=document.createElement('p');desc.textContent='달빛 이야기를 더 가깝게 만나세요';text.appendChild(desc);banner.appendChild(text);
     banner.appendChild(button(promptEvent?'설치':'추가 방법',install));var close=button('닫기',function(){deferInstall(policy.closeDays);});close.setAttribute('aria-label','설치 안내 닫기');banner.appendChild(close);
     document.body.appendChild(banner);write(sessionStorage,'cd.pwa.shown','1');track('pwa_install_impression');
   }

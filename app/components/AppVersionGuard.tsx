@@ -59,7 +59,19 @@ function getBlockingReason(isPaymentProcessing: boolean): string {
 
 export default function AppVersionGuard() {
  const { isPaymentLoading } = usePaymentProcessing();
- useEffect(() => { restorePaidAttemptFromUrlOrStorage(); }, []);
+ useEffect(() => {
+   (function removeCompletedVersionQuery() {
+     try {
+       const url = new URL(window.location.href);
+       const reloadVersion = window.sessionStorage.getItem("app_version_reload_guard");
+       if (reloadVersion && url.searchParams.get("v") === reloadVersion) {
+         url.searchParams.delete("v");
+         window.history.replaceState(window.history.state, "", url.toString());
+       }
+     } catch { /* Embedded storage may be unavailable. */ }
+   })();
+   restorePaidAttemptFromUrlOrStorage();
+ }, []);
  useEffect(() => {
    const bind = () => { const runtime = (window as unknown as { __cdPwaLifecycle?: { setSafetyProvider: (fn: (() => boolean) | null) => void } }).__cdPwaLifecycle;
    runtime?.setSafetyProvider(() => !getBlockingReason(isPaymentLoading)); };

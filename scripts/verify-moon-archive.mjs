@@ -12,6 +12,15 @@ assert.equal(ILJU.length,60);assert.equal(new Set(ILJU.map(x=>x.name)).size,60);
 for(const stem of STEMS)assert.equal(ILJU.filter(x=>x.stem===stem).length,6);
 assert.deepEqual(ILJU.filter(x=>x.stem==='병').map(x=>x.name).sort(),['병자','병인','병진','병오','병신','병술'].sort());
 const people=getFamousArchive();assert.equal(new Set(people.map(x=>x.slug)).size,people.length);
+const rescene=people.filter(p=>p.aliases.some(alias=>alias.toLowerCase()==='rescene'));
+assert.deepEqual(rescene.map(p=>p.slug).sort(),['rescene-liv','rescene-mei','rescene-minami','rescene-wonyi','rescene-zena']);
+for(const slug of ['grace-hopper','alan-turing','katherine-johnson']){
+ const person=people.find(p=>p.slug===slug);
+ assert.ok(person?.fields.includes('과학자·발명가'),slug);
+ assert.equal(person.birthTime,null);
+ assert.ok(person.sourceRecord.birthSources.length>0,`${slug}: birth source`);
+ assert.equal(person.reviewed,false,`${slug}: do not invent expert review`);
+}
 for(const person of people){
  assert.ok(fs.existsSync('public'+person.cover));
  const source=celebritySajuSeeds.find(x=>x.slug===person.slug);
@@ -24,6 +33,11 @@ const report={people:people.length,published:celebritySajuSeeds.filter(x=>x.publ
 fs.writeFileSync('docs/design/moon-library/data-audit.json',JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report));
 
 const bundle=buildSync({entryPoints:['app/insights/seed-articles.js'],bundle:true,platform:'node',format:'cjs',write:false}).outputFiles[0].text;
-const module=new Module(process.cwd()+'/audit.cjs');module._compile(bundle,'audit.cjs');const articles=module.exports.INSIGHT_SEED_ARTICLES;
+const articleModule=new Module(process.cwd()+'/audit.cjs');articleModule._compile(bundle,'audit.cjs');const articles=articleModule.exports.INSIGHT_SEED_ARTICLES;
 assert.equal(articles.length,new Set(articles.map(x=>x.slug)).size);
+for(const slug of ['rescene-members-saju-reading-guide','tarot-question-journal-before-redraw','same-day-pillar-different-season-reading']){
+ const article=articles.find(a=>a.slug===slug);
+ assert.equal(article?.contentSource,'authored',slug);
+ assert.ok(article.displayDescription.length>30 && article.displayDescription.length<200,`${slug}: specific short summary`);
+}
 fs.writeFileSync('docs/design/moon-library/insight-audit.json',JSON.stringify({total:articles.length,published:articles.filter(x=>x.isPublished!==false).length,drafts:articles.filter(x=>x.isPublished===false).length,duplicates:articles.length-new Set(articles.map(x=>x.slug)).size,categories:[...new Set(articles.map(x=>x.category))]},null,2)+'\n');

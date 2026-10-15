@@ -57,7 +57,7 @@ export const metadata = generatePageMetadata({
 export default function FamousSajuInsightIndexPage() {
   const people = getFamousArchive();
   return <main className="moon-library"><div className="moon-container">
-    <header className="moon-heading"><div><a href="/ggulggul/">꿀꿀 사주</a><h1>연예인·인물 사주</h1><p>스타의 재능부터 위인의 삶까지</p></div><Image src="/images/feature-details/famous-saju-hero-v2.webp" width={180} height={120} alt="" priority /></header>
+    <header className="moon-hero"><div><a href="/ggulggul/">꿀꿀운세</a><h1>연예인·인물 사주</h1><p>스타의 재능부터 위인의 삶까지</p></div><Image src="/images/feature-details/famous-saju-hero-v2.webp" width={640} height={420} alt="" priority /></header>
     <FamousArchive people={people} /><ArchiveMethodology />
     <details className="moon-method"><summary>출생 자료와 해석 기준</summary><p>공개 출생일과 기존 계산 엔진을 사용합니다. 출처·역법·시간대가 불확실한 인물은 일주별 확정 목록에서 제외합니다. 같은 일주도 월지·계절·다른 기둥과 삶의 환경에 따라 다르게 읽습니다.</p><a href="/methodology/">계산·편집 방법론 읽기</a><PublicRecordLink /></details>
     <section className="moon-method"><h2>검수 원고 읽기</h2><p>기존 원고와 상세 URL을 그대로 보존합니다.</p><div className="moon-chips">{people.filter(p=>p.reviewed).map(p=><a key={p.slug} href={'/insights/famous-saju/'+p.slug+'/'}>{p.name} 사주</a>)}</div></section>

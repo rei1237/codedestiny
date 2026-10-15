@@ -6,7 +6,7 @@ export const dynamicParams = false;
 export function generateStaticParams(){return ILJU.map(x=>({slug:x.slug}));}
 export async function generateMetadata({params}:{params:Promise<{slug:string}>}){
   const {slug}=await params;const x=ILJU.find(x=>x.slug===slug);
-  return {title:`${x?.name || ''}일주 인물 탐색 | 꿀꿀 사주`,robots:{index:false,follow:true},alternates:{canonical:`https://code-destiny.com/insights/famous-saju/ilju/${slug}/`}};
+  return {title:`${x?.name || ''}일주 인물 탐색 | 꿀꿀운세`,robots:{index:false,follow:true,googleBot:{index:false,follow:true}},alternates:{canonical:`https://code-destiny.com/insights/famous-saju/ilju/${slug}/`}};
 }
 export default async function IljuPage({params}:{params:Promise<{slug:string}>}){
   const {slug}=await params;const cycle=ILJU.find(x=>x.slug===slug);if(!cycle)notFound();

@@ -197,7 +197,7 @@ export default async function InsightsPage() {
         CLS 0.275 이력이 있어 클라이언트에서만 나타나는 블록을 위에 두지 않는다).
         🔴 H1 은 이 하나뿐이어야 한다 — InsightsCosmicClient 의 제목은 h2 다.
       */}
-      <header className="moon-container moon-heading" style={{paddingTop:24}}><div><a href="/ggulggul/">꿀꿀 사주</a><h1>운세 인사이트</h1><p>내 사주를 이해하는 달빛 지식 서재</p></div><Image src="/images/feature-details/fusion-fortune-hero-v2.webp" width={100} height={92} alt="" priority /></header>
+      <header className="moon-container moon-hero"><div><a href="/ggulggul/">꿀꿀운세</a><h1>운세 인사이트</h1><p>내 사주를 이해하는 달빛 지식 서재</p></div><Image src="/images/feature-details/fusion-fortune-hero-v2.webp" width={640} height={420} alt="" priority /></header>
       <InsightsCosmicRouteClient
         initialItems={initialItems}
         initialAllItems={initialAllItems}

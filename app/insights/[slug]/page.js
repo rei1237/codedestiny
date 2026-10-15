@@ -255,7 +255,7 @@ export default async function InsightArticlePage({ params }) {
               <span>{copy.readingGuide}</span>
             </div>
             <h1>{article.title}</h1>
-            {description ? <p className={styles.description}>{description}</p> : null}
+            {description ? <p className={styles.description}>{article.displayDescription || description}</p> : null}
             <div className={styles.tags} aria-label="관련 주제">
               {(article.tags || article.keywords || []).slice(0, 10).map((tag) => (
                 <span key={tag}>#{tag}</span>

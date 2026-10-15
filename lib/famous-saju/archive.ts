@@ -5,6 +5,7 @@ import { getCelebrityEditorial } from './celebrity-editorial';
 import { ILJU } from './cycle';
 
 const occupationOverrides: Record<string,string[]> = {
+ 'grace-hopper':['과학자·발명가'],'alan-turing':['과학자·발명가'],'katherine-johnson':['과학자·발명가'],
  'oprah-winfrey':['방송·미디어','기업인'],'miyazaki-hayao':['감독·작가'],'murakami-haruki':['감독·작가'],'akutagawa-ryunosuke':['감독·작가'],'osamu-tezuka':['감독·작가','예술가·사상가'],'otani-shohei':['스포츠'],'hanyu-yuzuru':['스포츠'],'jackie-chan':['배우','감독·작가'],'jet-li':['배우'],'zhang-ziyi':['배우'],'gong-li':['배우'],'tony-leung':['배우'],'marilyn-monroe':['배우'],'takeshi-kitano':['배우','감독·작가'],'bruce-lee':['배우'],'toyotomi-hideyoshi':['역사 인물','공적 정치 인물'],'akira-kurosawa':['감독·작가']
 };
 function fields(category: string, tags: string[], slug: string) {
@@ -32,7 +33,7 @@ export function getFamousArchive() {
       sourceRecord: { birthDate:person.birthDate, originalCalendar:person.isHistoricalDateUncertain ? 'unverified' : person.birthCalendar, leapMonth:null, birthPlace:person.birthPlace, timeZone:null, reportedBirthTime:person.reportedBirthTime || null,
         birthSources:(editorial?.sources || []).filter(x=>/생년월일|출생/.test(x.label)), activitySources:(editorial?.sources || []).filter(x=>!/생년월일|출생/.test(x.label)) },
       calculation: { method:'localSajuCalculator', build:process.env.NEXT_PUBLIC_GIT_SHA || 'development', dayCandidates:pillar ? [pillar.name,ILJU[(ILJU.indexOf(pillar)+1)%60].name] : [], boundaryStatus:'birth_time_unknown' },
-      aliases: [person.nameEn || '', ...person.aliases], fields: fields(person.category, person.tags, person.slug),
+      aliases: [...new Set([person.nameEn || '', ...person.aliases, ...person.tags])], fields: fields(person.category, person.tags, person.slug),
       country: person.country || '', birthDate: person.birthDate, birthTime: null,
       dayPillar: pillar?.name || null, stem: pillar?.stem || null,
       classification: 'needs_review',

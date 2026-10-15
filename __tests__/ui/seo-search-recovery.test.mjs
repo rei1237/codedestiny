@@ -9,7 +9,7 @@ import vm from 'node:vm';
 const root = process.cwd();
 const read = p => readFileSync(resolve(root, p), 'utf8');
 const legacy = read('js/share.js').match(/\(function removeCompletedVersionQuery\(\) \{[\s\S]*?\}\)\(\);/)[0];
-const react = read('app/components/AppVersionGuard.tsx').split('// Keep the cache-busting request, but do not leave build URLs to be shared.')[1].split('    void retireLegacyServiceWorkersOnce();')[0];
+const react = read('app/components/AppVersionGuard.tsx').match(/\(function removeCompletedVersionQuery\(\) \{[\s\S]*?\}\)\(\);/)[0];
 for (const [name, source] of [['shell', legacy], ['React', react]]) {
   test(`${name}: completed refresh keeps action, payment resume, hash and history state`, () => {
     const state = { __NA: true, tree: ['existing router state'] };

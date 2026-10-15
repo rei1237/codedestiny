@@ -581,19 +581,7 @@ export default function InsightsCosmicClient({
             </button>
           </div>
         </section>
-        {children}
-        <details><summary>운세 인사이트 안내</summary><header className="rounded-3xl border border-[#d8cdbb] bg-[#fffdf8] p-5 md:p-7 ">
-          <h2 className="mt-2 text-2xl md:text-4xl font-semibold leading-tight text-[#242139]">운세 인사이트 허브</h2>
-          <p className="mt-3 text-sm md:text-base text-[#242139] leading-7">
-            흩어진 질문이 조용히 한 줄로 모이도록,
-            사주와 타로, 별의 언어를 차분한 해석 순서로 정리했습니다.
-          </p>
-          <p className="mt-2 text-sm text-[#242139] leading-7">
-            사주, 자미두수, 숙요점, 타로, 점성술의 결을 함께 살피며
-            지금 필요한 선택의 감각을 천천히 비춰볼 수 있습니다.
-          </p>
-          <p className="mt-3 text-xs text-[#242139]">총 {activeTotalCount.toLocaleString("ko-KR")}개 글</p>
-        </header></details>
+
 
         <nav className="flex gap-2 overflow-x-auto pb-1" aria-label="운세 인사이트 카테고리">
           {categoryTabs.map((value) => {
@@ -619,98 +607,14 @@ export default function InsightsCosmicClient({
           })}
         </nav>
 
-        {famousSajuItems.length > 0 ? (
-          <details><summary>인물 사례 둘러보기</summary>
-          <section className="overflow-hidden rounded-3xl border border-amber-200/20 bg-[linear-gradient(135deg,rgba(251,191,36,0.11),rgba(168,85,247,0.08),rgba(15,23,42,0.08))]">
-            <div className="grid gap-5 p-4 md:p-6 lg:grid-cols-[0.85fr_1.15fr]">
-              <div className="flex min-w-0 flex-col justify-between gap-5">
-                <div>
-                  <p className="text-xs font-semibold tracking-[0.18em] text-[#242139]">FAMOUS SAJU MAGAZINE</p>
-                  <h2 className="mt-2 text-2xl font-semibold leading-tight text-[#242139]">유명인 사주 분석</h2>
-                  <p className="mt-3 text-sm leading-7 text-[#242139]">
-                    공개 자료로 확인 가능한 생년월일만 조심스럽게 놓고, 역사 인물과 대중문화 인물의 선택과 상징을 사주 언어로 읽습니다.
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-[#242139]">인기 키워드</p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {FAMOUS_SAJU_POPULAR_KEYWORDS.map((keyword) => (
-                      <Link
-                        key={keyword.label}
-                        href={keyword.href}
-                        className="rounded-full border border-[#d8cdbb] bg-white/5 px-3 py-1.5 text-xs text-[#242139] transition hover:border-amber-200/50 hover:text-[#242139]"
-                      >
-                        {keyword.label}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-                <Link
-                  href="/insights/famous-saju"
-                  className="inline-flex w-fit items-center justify-center rounded-lg border border-amber-200/40 bg-amber-100/15 px-4 py-2 text-sm font-semibold text-[#242139] transition hover:bg-amber-100/25"
-                >
-                  유명인 사주 전체 보기
-                </Link>
-              </div>
-
-              <div className="grid min-w-0 gap-3 sm:grid-cols-2">
-                {famousSajuItems.slice(0, 4).map((item) => {
-                  const image = buildCardImage(item);
-                  const href = item.serviceLink || `/insights/${item.slug}`;
-                  return (
-                    <Link
-                      key={`famous-${item.slug}`}
-                      href={href}
-                      className="group overflow-hidden rounded-2xl border border-[#d8cdbb] bg-white/[0.055] transition hover:border-amber-200/45 hover:bg-white/[0.08]"
-                    >
-                      {image.url ? (
-                        <img
-                          src={image.url}
-                          alt={image.alt}
-                          loading="lazy"
-                          decoding="async"
-                          width={640}
-                          height={360}
-                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                          data-fallback-src={image.fallbackUrl}
-                          onError={handleCardImageError}
-                          className="h-36 w-full object-cover sm:h-32"
-                        />
-                      ) : (
-                        <div className="h-36 w-full bg-gradient-to-br from-amber-300/20 to-fuchsia-300/10 sm:h-32" />
-                      )}
-                      <div className="p-4">
-                        <div className="flex flex-wrap items-center gap-2 text-[11px] text-[#242139]">
-                          <span>{formatDate(item.publishedAt || item.updatedAt)}</span>
-                          <span>{item.readingTime ? `약 ${item.readingTime}분 읽기` : "원문 읽기"}</span>
-                        </div>
-                        <h3 className="mt-2 text-base font-semibold leading-6 text-[#242139] group-hover:text-[#242139]">{item.title}</h3>
-                        <p className="mt-2 line-clamp-2 text-sm leading-6 text-[#242139]">{item.excerpt}</p>
-                        <div className="mt-3 flex flex-wrap gap-1.5">
-                          {item.tags.slice(0, 3).map((value) => (
-                            <span key={`${item.slug}-${value}`} className="rounded-full border border-[#d8cdbb] bg-white/5 px-2 py-0.5 text-[11px] text-[#242139]">
-                              #{value}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          </section></details>
-        ) : null}
-
-
         {activeRecommended.length > 0 ? (
           <section className="space-y-3">
             <h2 className="text-lg font-semibold text-[#242139]">추천 글</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {activeRecommended.map((item) => {
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {activeRecommended.slice(0,2).map((item) => {
                 const image = buildCardImage(item);
                 return (
-                  <Link key={`recommend-${item.slug}`} href={`/insights/${item.slug}`} className="group rounded-2xl border border-amber-200/20 bg-amber-100/[0.05] overflow-hidden hover:border-amber-200/40 transition">
+                  <Link key={`recommend-${item.slug}`} href={`/insights/${item.slug}`} className="moon-recommend group">
                     {image.url ? (
                       <img
                         src={image.url}
@@ -844,6 +748,103 @@ export default function InsightsCosmicClient({
             </>
           ) : null}
         </section>
+        {children}
+        <details><summary>운세 인사이트 안내</summary><header className="rounded-3xl border border-[#d8cdbb] bg-[#fffdf8] p-5 md:p-7 ">
+          <h2 className="mt-2 text-2xl md:text-4xl font-semibold leading-tight text-[#242139]">운세 인사이트 허브</h2>
+          <p className="mt-3 text-sm md:text-base text-[#242139] leading-7">
+            흩어진 질문이 조용히 한 줄로 모이도록,
+            사주와 타로, 별의 언어를 차분한 해석 순서로 정리했습니다.
+          </p>
+          <p className="mt-2 text-sm text-[#242139] leading-7">
+            사주, 자미두수, 숙요점, 타로, 점성술의 결을 함께 살피며
+            지금 필요한 선택의 감각을 천천히 비춰볼 수 있습니다.
+          </p>
+          <p className="mt-3 text-xs text-[#242139]">총 {activeTotalCount.toLocaleString("ko-KR")}개 글</p>
+        </header></details>
+        {famousSajuItems.length > 0 ? (
+          <details><summary>인물 사례 둘러보기</summary>
+          <section className="overflow-hidden rounded-3xl border border-amber-200/20 bg-[linear-gradient(135deg,rgba(251,191,36,0.11),rgba(168,85,247,0.08),rgba(15,23,42,0.08))]">
+            <div className="grid gap-5 p-4 md:p-6 lg:grid-cols-[0.85fr_1.15fr]">
+              <div className="flex min-w-0 flex-col justify-between gap-5">
+                <div>
+                  <p className="text-xs font-semibold tracking-[0.18em] text-[#242139]">FAMOUS SAJU MAGAZINE</p>
+                  <h2 className="mt-2 text-2xl font-semibold leading-tight text-[#242139]">유명인 사주 분석</h2>
+                  <p className="mt-3 text-sm leading-7 text-[#242139]">
+                    공개 자료로 확인 가능한 생년월일만 조심스럽게 놓고, 역사 인물과 대중문화 인물의 선택과 상징을 사주 언어로 읽습니다.
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-[#242139]">인기 키워드</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {FAMOUS_SAJU_POPULAR_KEYWORDS.map((keyword) => (
+                      <Link
+                        key={keyword.label}
+                        href={keyword.href}
+                        className="rounded-full border border-[#d8cdbb] bg-white/5 px-3 py-1.5 text-xs text-[#242139] transition hover:border-amber-200/50 hover:text-[#242139]"
+                      >
+                        {keyword.label}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+                <Link
+                  href="/insights/famous-saju"
+                  className="inline-flex w-fit items-center justify-center rounded-lg border border-amber-200/40 bg-amber-100/15 px-4 py-2 text-sm font-semibold text-[#242139] transition hover:bg-amber-100/25"
+                >
+                  유명인 사주 전체 보기
+                </Link>
+              </div>
+
+              <div className="grid min-w-0 gap-3 sm:grid-cols-2">
+                {famousSajuItems.slice(0, 4).map((item) => {
+                  const image = buildCardImage(item);
+                  const href = item.serviceLink || `/insights/${item.slug}`;
+                  return (
+                    <Link
+                      key={`famous-${item.slug}`}
+                      href={href}
+                      className="group overflow-hidden rounded-2xl border border-[#d8cdbb] bg-white/[0.055] transition hover:border-amber-200/45 hover:bg-white/[0.08]"
+                    >
+                      {image.url ? (
+                        <img
+                          src={image.url}
+                          alt={image.alt}
+                          loading="lazy"
+                          decoding="async"
+                          width={640}
+                          height={360}
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          data-fallback-src={image.fallbackUrl}
+                          onError={handleCardImageError}
+                          className="h-36 w-full object-cover sm:h-32"
+                        />
+                      ) : (
+                        <div className="h-36 w-full bg-gradient-to-br from-amber-300/20 to-fuchsia-300/10 sm:h-32" />
+                      )}
+                      <div className="p-4">
+                        <div className="flex flex-wrap items-center gap-2 text-[11px] text-[#242139]">
+                          <span>{formatDate(item.publishedAt || item.updatedAt)}</span>
+                          <span>{item.readingTime ? `약 ${item.readingTime}분 읽기` : "원문 읽기"}</span>
+                        </div>
+                        <h3 className="mt-2 text-base font-semibold leading-6 text-[#242139] group-hover:text-[#242139]">{item.title}</h3>
+                        <p className="mt-2 line-clamp-2 text-sm leading-6 text-[#242139]">{item.excerpt}</p>
+                        <div className="mt-3 flex flex-wrap gap-1.5">
+                          {item.tags.slice(0, 3).map((value) => (
+                            <span key={`${item.slug}-${value}`} className="rounded-full border border-[#d8cdbb] bg-white/5 px-2 py-0.5 text-[11px] text-[#242139]">
+                              #{value}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          </section></details>
+        ) : null}
+
+
       </section>
     </main>
   );
