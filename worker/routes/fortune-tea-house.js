@@ -1,4 +1,5 @@
 import { canonicalTeaSaju } from "../lib/tea-saju-facts.js";
+import { buildTeaSajuMonthlyRows } from "../lib/tea-saju-monthly.js";
 import { jsonSchemaFromExample } from "../lib/json-text-repair.js";
 import { buildFortuneTeaSajuSnapshot, buildFortuneTeaSajuSnapshotFromParts, buildSajuResultSection } from "../../lib/fortune-tea-house/saju-result-adapter.mjs";
 import { teaCombinationEvidence } from "../../lib/fortune-tea-house/tarot-contract.mjs";
@@ -1946,8 +1947,8 @@ function buildSajuPersonProfile(request, personEntry, defaultName = "상대") {
 // 요구하던 "지금 이 시기"가 사실상 LLM 창작이었다. resolution 이 근거 유무를 프롬프트에 그대로 전달한다.
 const FORTUNE_TEA_SEWOON_YEARS_AHEAD = 5;
 // 사실값·프롬프트 개정 번호. 결정론 캐시(30일)가 이전 근거로 만든 응답을 재생하지 않게 한다.
-// r1: 현재 대운 표시 + 입춘 기준 세운.
-const FORTUNE_TEA_PROMPT_REV = 1;
+// r1: 현재 대운 표시 + 입춘 기준 세운. r2: 절기 월운 석 달.
+const FORTUNE_TEA_PROMPT_REV = 2;
 
 function buildFortuneTeaTimingFacts(saju, todayKst = kstDate()) {
   const dayGanji = fortuneTeaSajuPillarGanji(saju, "day");
@@ -1983,6 +1984,21 @@ function buildFortuneTeaTimingFacts(saju, todayKst = kstDate()) {
     });
   }
 
+  // 월운은 절기(절입 시각)에 바뀐다. 오늘 날짜를 지정한 호출은 그날 정오(KST) 기준으로 본다.
+  const monthNow = todayKst === kstDate() ? new Date() : new Date(`${todayKst}T12:00:00+09:00`);
+  const monthlyRows = buildTeaSajuMonthlyRows(
+    Object.fromEntries(["year", "month", "day", "hour"].map((key) => [key, fortuneTeaSajuPillarGanji(saju, key)])),
+    monthNow,
+  ).map((row, index) => {
+    const ganji = toKoreanGanji(row.pillar);
+    return {
+      ...row,
+      pillar: ganji,
+      label: `${row.startsOn} 절입 ${ganji}월${index === 0 ? " (지금의 월운)" : ""}`,
+      ...(index === 0 ? { isCurrent: true } : {}),
+    };
+  });
+
   const availableYears = [
     ...sewoonRows.map((row) => row.year),
     ...daewoonRows.flatMap((row) => [row.startYear, row.endYear]),
@@ -1993,12 +2009,15 @@ function buildFortuneTeaTimingFacts(saju, todayKst = kstDate()) {
     todayKst,
     daewoonRows,
     sewoonRows,
-    monthlyAvailable: false,
+    monthlyRows,
+    monthlyAvailable: monthlyRows.length > 0,
     availableYears: Array.from(new Set(availableYears)).sort((a, b) => a - b),
     // 시기 답변의 최대 해상도. 대운이 있으면 구간(PERIOD), 세운만 있으면 연(YEAR), 아무것도 없으면 NONE.
     resolution: daewoonRows.length ? "PERIOD" : sewoonRows.length ? "YEAR" : "NONE",
     rule: daewoonRows.length || sewoonRows.length
-      ? "시기를 답할 때는 daewoonRows/sewoonRows에 실제로 있는 연도·대운 구간만 인용한다. 세운 연도는 입춘에 바뀐다. 월운이 없으므로 특정 월·날짜·상반기/하반기 적기를 만들지 않는다."
+      ? `시기를 답할 때는 daewoonRows/sewoonRows에 실제로 있는 연도·대운 구간만 인용한다. 세운 연도는 입춘에 바뀐다. ${monthlyRows.length
+        ? "월 단위는 monthlyRows의 절기월(startsOn부터 nextStartsOn 전까지)만 말하고, 그 밖의 월·날짜·상반기/하반기 적기는 만들지 않는다."
+        : "월운이 없으므로 특정 월·날짜·상반기/하반기 적기를 만들지 않는다."}`
       : "시기 근거 데이터가 없다. 연도나 월을 특정하지 말고 '어떤 조건이 갖춰지면'의 조건부 표현으로만 답하고, 시기를 특정할 수 없는 이유를 한 문장으로 밝힌다.",
   };
 }
@@ -3961,16 +3980,16 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "", 
             repetitionRule: "같은 조언과 같은 문장을 여러 챕터·필드에서 반복하지 않는다. 구체 행동·금지 행동 목록은 actionPrescription에만, 단계 플랜은 choiceSimulation에만 두고, '찻집의 처방' 챕터는 그 플랜을 손님의 생활 장면으로 풀어내는 서사에 집중한다. 나머지 챕터는 해석과 명리 근거에 집중한다.",
             sectionLengthRule: "각 deepSection body는 요구 하한을 넘겨 대략 250~350자 안팎으로 쓰되, 분량은 아래 evidenceDistribution의 서로 다른 근거로 채운다. 같은 명식 사실을 여러 챕터에서 되풀이해 길이를 늘리지 않는다.",
             evidenceDistribution: isSajuCompat
-              ? "섹션마다 서로 다른 근거를 나눠 쓴다: '당신의 사주'=selfProfile의 일간·월지/계절·오행·selfProfile.myeongsikFacts 십성 확정표, '상대방의 사주'=partnerProfile의 일간·월지/계절·오행·partnerProfile.myeongsikFacts 십성 확정표, '두 사람의 궁합'=두 일간의 상생·상극과 오행 보완·충돌·십성 대조, '지금 이 시기 관계의 운'=두 사람의 대운/세운 순풍·역풍. 본인 근거와 상대 근거를 섞지 않는다."
-              : "챕터마다 myeongsikFacts의 서로 다른 근거를 나눠 쓴다: '타고난 결/마음의 물길'=일간·월지/계절·오행·십성 확정표·격국, '잘 풀리는 결'=강하게 드러난 십성과 지장간 투간(성향·재능으로 발현)·용신, '삐걱대는 결'=개고·도충과 치우친 오행·기신, '지금 이 시기'=timingFacts의 대운 구간과 세운 연도. 한 챕터에서 쓴 근거를 다른 챕터에서 그대로 되풀이하지 않는다.",
+              ? "섹션마다 서로 다른 근거를 나눠 쓴다: '당신의 사주'=selfProfile의 일간·월지/계절·오행·selfProfile.myeongsikFacts 십성 확정표, '상대방의 사주'=partnerProfile의 일간·월지/계절·오행·partnerProfile.myeongsikFacts 십성 확정표, '두 사람의 궁합'=두 일간의 상생·상극과 오행 보완·충돌·십성 대조, '지금 이 시기 관계의 운'=두 사람의 대운/세운 순풍·역풍, '월별 흐름'=timingFacts.monthlyRows(본인 명식 기준 절기월)의 간지·십성·원국 관계. 본인 근거와 상대 근거를 섞지 않는다."
+              : "챕터마다 myeongsikFacts의 서로 다른 근거를 나눠 쓴다: '타고난 결/마음의 물길'=일간·월지/계절·오행·십성 확정표·격국, '잘 풀리는 결'=강하게 드러난 십성과 지장간 투간(성향·재능으로 발현)·용신, '삐걱대는 결'=개고·도충과 치우친 오행·기신, '지금 이 시기'=timingFacts의 대운 구간과 세운 연도, '월별 흐름'=timingFacts.monthlyRows의 절기월 간지·stemTenGod·natalRelations. 한 챕터에서 쓴 근거를 다른 챕터에서 그대로 되풀이하지 않는다.",
             evidenceUseOrder: isSajuCompat
               ? ["사용자 질문", "본인 일간(selfProfile)", "상대 일간(partnerProfile)", "각자의 월지/계절", "각자의 오행 과다/부족", "두 명식의 십성 대조(사람별 확정표 준수)", "두 일간의 상생·상극·동류·보완", "두 사람의 대운·세운", "찻잔 카테고리"]
               : ["사용자 질문", "일간", "월지/계절", "오행 과다/부족", "십성 구조(myeongsikFacts.tenGodFixedTable 준수)", "지장간과 투간/투출(myeongsikFacts)", "개고·도충(myeongsikFacts)", "대운 구간·세운 연도(timingFacts)", "찻잔 카테고리"],
             // 🔴 시기 답변의 근거는 timingFacts 하나뿐이다. resolution 이 데이터 유무에 따라 확신 수위를 자동 전환한다.
             timingRule: [
               "'언제', '언제쯤', '몇 년', '얼마나 기다려야' 류의 질문에는 timingFacts를 근거로 **시기를 먼저 답하고** 그 다음에 명식 근거를 설명한다. 시기 답을 마지막 문단으로 미루지 않는다.",
-              "인용 가능한 연도·구간은 timingFacts.availableYears와 daewoonRows의 startYear~endYear 뿐이다. 여기에 없는 연도·월을 쓰면 실패다.",
-              "월 단위 운은 계산 입력이 없다(timingFacts.monthlyAvailable=false). 특정 월·날짜·상반기/하반기 적기를 만들지 않는다. 실제 대운 구간과 세운 연도까지만 답한다.",
+              "인용 가능한 연도·구간은 timingFacts.availableYears와 daewoonRows의 startYear~endYear, 월은 timingFacts.monthlyRows의 절기월 뿐이다. 여기에 없는 연도·월을 쓰면 실패다.",
+              "월 단위 운은 timingFacts.monthlyRows(지금부터 절기 기준 석 달)만 근거로 쓴다. 각 달은 startsOn 절입일부터 nextStartsOn 전까지이며, 그 달의 간지·stemTenGod·natalRelations로 읽는다. monthlyRows에 없는 월·날짜·상반기/하반기 적기는 만들지 않고, monthlyAvailable=false면 대운 구간과 세운 연도까지만 답한다.",
               "확정 어투를 쓰지 않는다. '2027년 3월에 반드시 벌게 됩니다'가 아니라 '2027년 세운이 ○○이라 수익화 흐름이 강해지는 것으로 해석할 수 있습니다'처럼 근거와 해석을 함께 쓴다.",
               "timingFacts.resolution이 'NONE'이면 연도를 아예 쓰지 말고 조건부로만 답한 뒤 시기를 특정할 수 없는 이유를 한 문장 밝힌다.",
             ],

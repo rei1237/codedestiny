@@ -36,4 +36,19 @@ describe("시기 근거", () => {
     expect(utils.buildFortuneTeaTimingFacts(saju, "2027-01-20").sewoonRows[0]).toMatchObject({ year: 2026, pillar: "병오", isCurrent: true });
     expect(utils.buildFortuneTeaTimingFacts(saju, "2027-02-10").sewoonRows[0]).toMatchObject({ year: 2027, pillar: "정미", isCurrent: true });
   });
+
+  test("월운은 절입 시각부터 바뀌고 석 달만 원국 관계와 함께 넘긴다", async () => {
+    const { buildTeaSajuMonthlyRows } = await import("../../worker/lib/tea-saju-monthly.js");
+    const pillars = { year: "庚午", month: "庚辰", day: "庚午", hour: "辛巳" };
+    // 2026년 한로 절입은 10월 8일 15:30(KST)이다.
+    expect(buildTeaSajuMonthlyRows(pillars, new Date("2026-10-08T06:00:00Z"))[0].pillar).toBe("丁酉");
+    expect(buildTeaSajuMonthlyRows(pillars, new Date("2026-10-08T07:00:00Z"))[0]).toMatchObject({
+      startsOn: "2026-10-08", nextStartsOn: "2026-11-07", pillar: "戊戌", stemTenGod: "편인", natalRelations: ["월운↔월주 지지충 진술충"],
+    });
+
+    const timing = utils.buildFortuneTeaTimingFacts(canonicalTeaSaju({ ...birth, gender: "female" }), "2026-10-15");
+    expect(timing.monthlyAvailable).toBe(true);
+    expect(timing.monthlyRows.map(row => row.pillar)).toEqual(["무술", "기해", "경자"]);
+    expect(timing.monthlyRows[0]).toMatchObject({ isCurrent: true });
+  });
 });
