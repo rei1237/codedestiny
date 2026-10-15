@@ -726,6 +726,10 @@ ${context}`;
 
   // "■ 제목" 줄이 빈 줄로 떨어져 단독 문단이 되면 문장부호가 없어 normalizeNarrativeBody 가 버린다.
   // 거부 대신 결정적으로 교정한다: 제목 문단을 다음 문단에 붙인다.
-  const text = normalizeNarrativeBody(String(ai.text || "").trim().replace(/^(■[^\n]*)\n\s*\n/gmu, "$1\n"));
-  return text.replace(/\s/g, '').length >= PALM_CONSULT_FALLBACK_MIN_CHARS && /[.!?。？！]["'”’)]?\s*$/u.test(text) ? { text, rawText: ai.rawText || ai.text, provider: ai.provider, model: ai.model } : null;
+  const body = normalizeNarrativeBody(String(ai.text || "").trim().replace(/^(■[^\n]*)\n\s*\n/gmu, "$1\n"));
+  // 마지막 문단이 근거 인용·안내 라벨로 끝나도 상담 전체를 버리지 않는다(원칙 17 전달 우선).
+  // 마지막 완결 문장까지 잘라 전달한다.
+  const lastSentence = [...body.matchAll(/[.!?。？！]["'”’)\]」』]*(?=\s|$)/gu)].at(-1);
+  const text = lastSentence ? body.slice(0, lastSentence.index + lastSentence[0].length) : "";
+  return text.replace(/\s/g, '').length >= PALM_CONSULT_FALLBACK_MIN_CHARS ? { text, rawText: ai.rawText || ai.text, provider: ai.provider, model: ai.model } : null;
 }

@@ -105,6 +105,10 @@ test('deep consult appends the Yeoni persona after the unchanged 18-section form
   expect(system.match(/^■ /gmu)).toHaveLength(18);
   expect(system).not.toMatch(/d+년 경력|애매한 표현 대신/u);
 });
+test.each([[' (근거: 생명선)', ''], ['\n\n이어서 볼 흐름은 다음과 같습니다:', ''], ['」', '」']])('deep consult ending %j is delivered up to its last complete sentence', async (tail, kept) => {
+  const original = ai.text.trim(); ai.text = original + tail;
+  expect(await deep({}, {})).toMatchObject({ text: original + kept });
+});
 test('raw prose is persisted privately and excluded from the paid response',async()=>{
  await save({},owner,'palm-original',result,'provider raw');expect(docs[0].metadata.palmRaw).toBe('provider raw');expect(await read({},owner,'palm-original')).not.toHaveProperty('palmRaw');
 });
