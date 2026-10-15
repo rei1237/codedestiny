@@ -19,7 +19,7 @@ try {
   assert.ok(html.includes('href="/insights/famous-saju/park-wi/"'), 'server-rendered directory link');
   const search = page.getByRole('searchbox');
   await search.waitFor();
-  for (const [query, slug] of [['박위 사주', 'park-wi'], ['WERACLE', 'park-wi'], ['이말년', 'chimchakman'], ['곽준빈', 'kwaktube'], ['이상혁', 'faker'], ['입짧은 햇님', 'haetnim']]) {
+  for (const [query, slug] of [['박위 사주', 'park-wi'], ['WERACLE', 'park-wi'], ['이말년', 'chimchakman'], ['곽준빈', 'kwaktube'], ['이상혁', 'faker'], ['입짧은 햇님', 'haetnim'], ['민규 사주','seventeen-mingyu'], ['조승연','woodz'], ['추영우 사주','choo-young-woo'], ['Kim Yoo-jung','kim-yoo-jung']]) {
     await search.fill(query);
     await page.locator(`.moon-person[href="/insights/famous-saju/${slug}/"]`).waitFor();
     results.push({ query, slug, matched: true });
@@ -32,7 +32,10 @@ try {
   await page.waitForURL(/\/park-wi\//, { timeout: 120000 });
   await page.locator('[data-public-profile]').waitFor();
   assert.ok((await page.locator('[data-public-profile]').innerText()).includes('1987-03-13'));
-  assert.ok((await page.locator('meta[name=robots]').getAttribute('content')).includes('noindex'));
+  assert.ok(!(await page.locator('meta[name=robots]').getAttribute('content')).includes('noindex'));
+  assert.ok((await page.locator('[data-public-profile]').innerText()).includes('공개 승인 박병하(네오)'));
+  assert.ok((await page.title()).includes('박위 사주'));
+  await page.locator('[data-public-profile]').screenshot({ path: directory + '/publication-article-390.png' });
   for (const width of [320, 360, 390, 430, 1280]) {
     await page.setViewportSize({ width, height: 900 });
     await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));

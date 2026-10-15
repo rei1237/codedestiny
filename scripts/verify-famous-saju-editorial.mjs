@@ -155,4 +155,5 @@ if (failures.length > 0) {
 }
 
 localEphemerisServer?.close();
-console.log(`[verify:famous-saju-editorial] OK — 원고 ${entries.length}건 (검수·색인 ${getIndexedCelebritySlugs().length}건), 엔진 정합·분량·출처·중복도 통과`);
+await import('./verify-famous-profile-publication.mjs');
+console.log(`[verify:famous-saju-editorial] OK — 기존 원고 ${entries.length}건, 승인 프로필 포함 색인 대상 ${getIndexedCelebritySlugs().length}건, 엔진 정합·분량·출처·중복도 통과`);

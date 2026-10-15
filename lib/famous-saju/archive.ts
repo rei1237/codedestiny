@@ -1,4 +1,5 @@
 import { getPublicProfile } from "./public-profiles";
+import { isProfilePublished } from './profile-publication';
 import { celebritySajuSeeds } from './celebrity-data';
 import { calculateFamousSaju } from './celebrity-saju-service';
 import { getCelebrityEditorial } from './celebrity-editorial';
@@ -35,7 +36,7 @@ export function getFamousArchive() {
       || person.country !== 'KR' || !editorial?.sources?.length;
     return {
       id: person.id, slug: person.slug, name: person.nameKo,
-      sourceRecord: { birthDate:person.birthDate, originalCalendar:person.isHistoricalDateUncertain || profile?.calendarVerification === 'pending' ? 'unverified' : person.birthCalendar, leapMonth:null, birthPlace:person.birthPlace, timeZone:null, reportedBirthTime:person.reportedBirthTime || null,
+      sourceRecord: { birthDate:person.birthDate, originalCalendar:person.isHistoricalDateUncertain || profile?.calendarVerification === 'pending' ? 'unverified' : person.birthCalendar, leapMonth:null, birthPlace:profile?.birthPlace || person.birthPlace, timeZone:null, reportedBirthTime:person.reportedBirthTime || null,
         birthSources:sources.filter(x=>/생년월일|출생/.test(x.label)), activitySources:sources.filter(x=>!/생년월일|출생/.test(x.label)) },
       calculation: { method:'localSajuCalculator', build:process.env.NEXT_PUBLIC_GIT_SHA || 'development', dayCandidates:pillar ? [pillar.name,ILJU[(ILJU.indexOf(pillar)+1)%60].name] : [], boundaryStatus:'birth_time_unknown' },
       aliases: [...new Set([person.nameEn || '', ...person.aliases, ...person.tags])], fields: fields(person.category, person.tags, person.slug),
@@ -46,7 +47,7 @@ export function getFamousArchive() {
       classificationNote: uncertain ? '출처·역법·현지 날짜 확인 중' : '출처 연결 · 출생시각과 자시 경계 미확인',
       cover: `/images/saju/nature/${pillar?.image || 'winter'}-480.webp`,
       intro: editorial?.hook || profile?.intro || `${person.tags.slice(0, 3).join(' · ')}을 주제로 ${person.nameKo}의 공개 이력과 명식을 읽습니다. 고유 원고 검토 중입니다.`,
-      reviewed: Boolean(editorial?.reviewedAt), sources,
+      reviewed: Boolean(editorial?.reviewedAt), publicationApproved: isProfilePublished(profile), sources,
       month: chart.saju?.pillars.month.ganji || null,
     };
   });

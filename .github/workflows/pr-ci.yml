@@ -270,6 +270,7 @@ jobs:
           npm run verify:famous-saju-editorial
           npm run verify:famous-saju-multisystem
           npm run verify:famous-saju-magazine
+          npm run verify:moon-library
 
       # 🔴 이 두 가드는 **fast 잡**에 있어야 한다. 입력이 CSS·정적 셸·package.json 이라
       # build/critical 잡에 두면 `styles/mobile-lite.css` 한 줄 수정에는 깨어나지 않는데,

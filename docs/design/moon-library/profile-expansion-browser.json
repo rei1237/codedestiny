@@ -30,6 +30,26 @@
     "matched": true
   },
   {
+    "query": "민규 사주",
+    "slug": "seventeen-mingyu",
+    "matched": true
+  },
+  {
+    "query": "조승연",
+    "slug": "woodz",
+    "matched": true
+  },
+  {
+    "query": "추영우 사주",
+    "slug": "choo-young-woo",
+    "matched": true
+  },
+  {
+    "query": "Kim Yoo-jung",
+    "slug": "kim-yoo-jung",
+    "matched": true
+  },
+  {
     "width": 320,
     "overflow": false
   },

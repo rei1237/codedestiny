@@ -1,4 +1,5 @@
 import { getPublicProfile } from "../../../../lib/famous-saju/public-profiles";
+import { getPublishedProfile, isProfilePublished } from "../../../../lib/famous-saju/profile-publication";
 import Image from "next/image";
 import Link from "next/link";
 import ContentIntegrityNote from "../../../components/ContentIntegrityNote";
@@ -127,6 +128,15 @@ export async function generateMetadata({ params }: PageProps) {
 
   const seo = getFamousSajuSeoMetadata(reading.celebrity, reading);
   const editorial = getCelebrityEditorial(slug);
+  const profile = getPublishedProfile(slug);
+  if (profile) {
+    const title = `${profile.name} 사주·일주 풀이 | 꿀꿀운세`;
+    return generateFamousSajuMetadata({ ...seo, title, headline: title,
+      description: truncateToDisplayWidth(`${profile.name} 사주: ${profile.intro} 공개 생일·일주 계산 근거와 출생시간 미상의 해석 범위를 확인하세요.`),
+      publishedAt: profile.publication.publishedAt, updatedAt: profile.publication.updatedAt,
+      image: '/images/feature-details/famous-saju-hero-v2.webp',
+    });
+  }
   if (editorial?.reviewedAt) {
     // 🔴 색인 여부의 정본은 celebrity-editorial.js 의 reviewedAt 하나다. 검수된 고유 원고가 있는
     // 인물만 index 로 내보내고, 사이트맵(generate-sitemap.mjs)과 readiness 가드가 같은 값을 본다.
@@ -244,7 +254,7 @@ function CelebritySajuHero({ magazine, heroImage, profile }: { magazine: Celebri
     <header className="pt-8 text-center sm:pt-10">
       <p className="text-xs font-semibold text-[#242139] [font-family:var(--font-decorative)]">사주 통식 분석 · 유명인</p>
       <h1 className="mt-4 text-4xl font-semibold leading-tight text-[#242139] sm:text-5xl [font-family:var(--font-premium)]">
-        {magazine.profile.displayName}
+        {profile ? `${profile.name} 사주` : magazine.profile.displayName}
       </h1>
       <p className="mt-4 text-base font-semibold leading-7 [font-family:var(--font-display)]" style={{ color: accent.color }}>
         {profile ? profile.question : `${dayPillar} 일주 · ${magazine.summary.coreMetaphor}`}
@@ -256,7 +266,7 @@ function CelebritySajuHero({ magazine, heroImage, profile }: { magazine: Celebri
         {profile ? `${profile.birthDate} · 공개 날짜 기준 ${dayPillar}일주 후보 · 출생시간 미상` : magazine.summary.subtitle}
       </p>
       <div className="mt-5 inline-flex max-w-full items-center rounded-lg border px-4 py-2 text-xs font-semibold [font-family:var(--font-playful)]" style={{ borderColor: accent.color, backgroundColor: accent.soft, color: accent.color }}>
-        {profile ? '공개 활동 읽기 · 전문가 검수 전' : `공개 원국 직접 해석 · ${basis}`}
+        {profile ? (isProfilePublished(profile) ? '공개 자료와 명식으로 읽는 인물 이야기' : '공개 활동 읽기 · 편집 초안') : `공개 원국 직접 해석 · ${basis}`}
       </div>
       <figure className="relative mx-auto mt-6 max-w-3xl overflow-hidden rounded-xl border" style={{ borderColor: accent.soft }}>
         <Image
@@ -716,8 +726,10 @@ export default async function FamousSajuInsightDetailPage({ params }: PageProps)
   const { celebrity, magazine } = reading;
   const editorial = getCelebrityEditorial(celebrity.slug);
   const profile = getPublicProfile(celebrity.slug);
+  const publication = getPublishedProfile(celebrity.slug)?.publication;
+  const comparison = profile?.comparisonSlug ? getCelebritySajuPage(profile.comparisonSlug) : null;
   const reviewedAt = editorial?.reviewedAt || null;
-  const multiSystem = await buildCelebrityMultiSystem({ birthDate: celebrity.birthDate || "", birthTime: celebrity.birthTime, country: celebrity.country, magazine });
+  const multiSystem = await buildCelebrityMultiSystem({ birthDate: celebrity.birthDate || "", birthTime: celebrity.birthTime, country: profile?.birthCountry || celebrity.country, magazine });
   const related = getCelebrityRelatedList(celebrity);
   const relatedSummary: RelatedCelebrity = { slug: celebrity.slug, category: celebrity.category, nameKo: celebrity.nameKo, tags: celebrity.tags };
   const accent = accentFor(magazine.dayElement);
@@ -725,7 +737,7 @@ export default async function FamousSajuInsightDetailPage({ params }: PageProps)
   const canonicalUrl = toAbsoluteUrl(canonicalPath);
   const seo = getFamousSajuSeoMetadata(celebrity, reading);
   const heroImage = getFamousSajuHeroImage(celebrity.slug, magazine.summary.dayMasterImagery);
-  const heroImageUrl = heroImage.source === "pexels" ? heroImage.src : toAbsoluteUrl(celebrity.profileImage || seo.image || "");
+  const heroImageUrl = profile ? toAbsoluteUrl('/images/feature-details/famous-saju-hero-v2.webp') : heroImage.source === "pexels" ? heroImage.src : toAbsoluteUrl(celebrity.profileImage || seo.image || "");
 
   const highlightedTenGods = new Set(magazine.tenGods.highlights.map((item) => item.name));
   const dayPillarSection = sectionById(magazine, "day-pillar-texture");
@@ -746,8 +758,8 @@ export default async function FamousSajuInsightDetailPage({ params }: PageProps)
     finalSection ? { id: "final-texture", title: "맺는 문장" } : null,
     editorial ? { id: "cross-system", title: "체계 교차 해설" } : null,
   ].filter((item): item is TocItem => Boolean(item));
-  const articleHeadline = reviewedAt ? buildEditorialSeoTitle(celebrity) : seo.headline;
-  const articleDescription = reviewedAt && editorial ? truncateToDisplayWidth(editorial.seoDescription) : seo.description;
+  const articleHeadline = publication && profile ? `${profile.name} 사주·일주 풀이 | 꿀꿀운세` : reviewedAt ? buildEditorialSeoTitle(celebrity) : seo.headline;
+  const articleDescription = publication && profile ? truncateToDisplayWidth(`${profile.name} 사주: ${profile.intro} 공개 생일·일주 계산 근거와 출생시간 미상의 해석 범위를 확인하세요.`) : reviewedAt && editorial ? truncateToDisplayWidth(editorial.seoDescription) : seo.description;
 
   const personJsonLd = {
     "@context": "https://schema.org",
@@ -766,12 +778,12 @@ export default async function FamousSajuInsightDetailPage({ params }: PageProps)
     image: [heroImageUrl],
     url: canonicalUrl,
     mainEntityOfPage: canonicalUrl,
-    datePublished: new Date(seo.publishedAt).toISOString(),
+    datePublished: new Date(publication?.publishedAt || seo.publishedAt).toISOString(),
     // 검수된 원고는 검수일이 곧 수정일이다 — 사이트맵 lastmod(generate-sitemap.mjs)와 같은 값.
-    dateModified: new Date(reviewedAt || seo.updatedAt).toISOString(),
+    dateModified: new Date(publication?.updatedAt || reviewedAt || seo.updatedAt).toISOString(),
     // 검수된 원고만 실명 저자(박병하 Person 노드). 템플릿 조립물에 사람의 경력을 붙이지 않는다.
     author: reviewedAt ? buildAuthorPersonJsonLd() : { "@type": "Organization", name: "CODE DESTINY" },
-    ...(reviewedAt && editorial ? { citation: editorial.sources.map((source) => source.url) } : {}),
+    ...(publication && profile ? { citation: [...new Set(profile.sources.map(source => source.url))] } : reviewedAt && editorial ? { citation: editorial.sources.map((source) => source.url) } : {}),
     publisher: { "@type": "Organization", name: "CODE DESTINY" },
     articleSection: seo.articleSection,
     keywords: seo.keywords.join(", "),
@@ -827,14 +839,25 @@ body:has(main[data-famous-saju-detail]) {
         <CelebritySajuHero magazine={magazine} heroImage={heroImage} profile={profile} />
         <CelebritySajuNotice magazine={magazine} />
         <p className="my-5 rounded-xl border border-[#d8cdbb] bg-[#fffdf8] p-4 text-base leading-8 text-[#242139]">이 페이지의 일주는 공개 날짜를 기준으로 계산한 후보입니다. 출생시각·현지 날짜·역법 검수가 끝나기 전에는 같은 일주의 확인된 인물 수에 포함하지 않습니다.</p>
-        {profile && <section data-public-profile className="my-6 rounded-2xl border border-[#d8cdbb] bg-[#fffdf8] p-5 sm:p-7">
-          <p className="text-sm text-[#625b74]">공개 활동 읽기 · 편집 초안</p>
+        {profile && <section data-public-profile data-famous-saju-profile-article={publication ? '' : undefined} className="my-6 rounded-2xl border border-[#d8cdbb] bg-[#fffdf8] p-5 sm:p-7">
+          <p className="text-sm text-[#625b74]">공개 활동 읽기 · {publication ? '인물별 편집 원고' : '편집 초안'}</p>
           <h2 className="my-3 text-xl font-semibold">{profile.question}</h2>
-          <div className="space-y-4 text-base leading-8"><p>{profile.career}</p><p>{profile.reading}</p></div>
+          <div className="space-y-4 text-base leading-8"><p>{profile.career}</p>{profile.reading.split('\n\n').map(paragraph=><p key={paragraph}>{paragraph}</p>)}</div>
+          <h3 className="mb-2 mt-5 font-semibold">{profile.name}의 일주는 무엇인가요?</h3>
+          <p className="text-base leading-8">공개 생일 {profile.birthDate}를 양력 날짜로 입력한 기존 엔진의 계산 후보는 {magazine.pillars.day.ganji}일주입니다. 연주 {magazine.pillars.year.ganji}, 월주 {magazine.pillars.month.ganji}를 함께 보며 시주는 비워 둡니다. 일간 {magazine.pillars.day.stem}과 월지 {magazine.pillars.month.branch}는 서로 다른 자리입니다. 같은 일간의 사람을 모두 같은 일주로 분류하지 않습니다.</p>
+          <h3 className="mb-2 mt-5 font-semibold">일주 외에 함께 읽을 명식의 근거</h3>
+          <p className="text-base leading-8">월간 {magazine.pillars.month.stem}과 일간의 관계는 {magazine.pillars.month.stemTenGod}, 월지의 중심 기운과의 관계는 {magazine.pillars.month.branchTenGod}으로 계산됩니다. 십성은 일간을 기준으로 다른 글자와 맺는 관계의 이름입니다. 이것을 직업의 원인이나 성공의 점수로 읽기보다, 위의 공개 활동에서 표현·학습·책임을 어떻게 구별할지 묻는 관점으로 사용합니다. 아래 오행표는 시주를 제외한 여섯 글자의 구성입니다. 지장간의 비중이나 통근·투간을 모두 수치화한 신강약 점수가 아닙니다.</p>
           <h3 className="mb-2 mt-5 font-semibold">출생 자료와 출처</h3>
-          <p className="text-sm leading-7">공개 프로필의 생일: {profile.birthDate} · 출생시간 미상. 2차 자료를 연결한 편집 초안이며 원기록의 역법·현지 날짜·날짜 경계와 전문가 해설 검수는 아직 완료되지 않았습니다.</p>
+          {profile.birthPlace && <p className="text-sm leading-7">공개 출생지: {profile.birthPlace}. 국가 필터의 국적과 출생지는 별도로 관리합니다.</p>}
+          <p className="text-sm leading-7">공개 프로필의 생일: {profile.birthDate} · 출생시간 미상. 출처의 종류는 링크에 표시합니다. 원기록의 역법·현지 시각·자시와 절입 경계는 확정하지 않았습니다. 날짜 기준 비교용 계산이며, 시주·격국·대운 시작 시점이나 사생활을 단정하지 않습니다. 콘텐츠 공개 승인과 출생 자료의 확정은 별개입니다.</p>
           <ul className="mt-3 space-y-2 text-sm leading-7">{profile.sources.map(source=><li key={source.label}><a href={source.url} target="_blank" rel="noopener noreferrer" className="underline">{source.label}</a></li>)}</ul>
-          <p className="mt-3 text-sm leading-7">자료 확인 {profile.sourceCheckedAt} · AI 편집 점검, 인간 전문가 검수 전. <a href="/contact/" className="underline">자료 수정 제보</a></p>
+          <p className="mt-3 text-sm leading-7">자료 확인 {profile.sourceCheckedAt} · AI 작성·편집 점검{publication ? ` · 공개 승인 ${publication.approvedBy} (${publication.approvedAt})` : ' · 공개 승인 전'}. <a href="/contact/" className="underline">자료 수정 제보</a></p>
+          {comparison && comparison.magazine.pillars.day.ganji === magazine.pillars.day.ganji && <section className="mt-6 border-t border-[#d8cdbb] pt-5">
+            <h3 className="font-semibold">같은 일주 후보, 명식 비교</h3>
+            <p className="mt-3 text-base leading-8">날짜 기준으로 {comparison.celebrity.nameKo}도 {magazine.pillars.day.ganji}일주 후보입니다. {profile.name}의 월주는 {magazine.pillars.month.ganji}, {comparison.celebrity.nameKo}의 월주는 {comparison.magazine.pillars.month.ganji}입니다. 월주는 계절과 환경을 읽는 자리로, 같은 일주라도 다른 기둥을 함께 살펴야 합니다. 월주까지 같더라도 출생시각·환경·훈련·선택은 서로 다르며 성공이나 성격이 같다는 뜻이 아닙니다. 두 인물 모두 출생시각과 날짜 경계가 확정된 일주 목록에는 포함하지 않습니다.</p>
+            <Link className="mt-3 inline-block underline" href={`/insights/famous-saju/${comparison.celebrity.slug}/`}>{comparison.celebrity.nameKo} 사주와 비교하기</Link>
+            <p className="mt-3"><Link className="underline" href="/insights/same-day-pillar-different-season-reading/">같은 일주, 다른 계절 해설 읽기</Link></p>
+          </section>}
         </section>}
         {editorial ? <EditorialNarrative editorial={editorial} /> : null}
         <MultiSystemTable rows={multiSystem.rows} />
@@ -868,7 +891,7 @@ body:has(main[data-famous-saju-detail]) {
             <p className="mt-6 text-xs leading-6 text-[#242139]">{magazine.profile.sourceNote}</p>
             {/* 검수된 고유 원고(reviewedAt)가 있는 인물만 "사람이 검토했다"고 말한다. 나머지는
                 이름과 생년월일을 규칙에 대입해 구성한 페이지라 그렇게 주장하지 않는다(그래서 noindex 다). */}
-            {reviewedAt ? (
+            {publication ? <p className="mt-6 text-sm leading-7">AI가 공개 자료를 바탕으로 편집하고 박병하(네오)의 승인으로 공개한 원고입니다. 인물의 활동 사실과 전통 명리 해석을 구분합니다. <Link href="/editorial-policy/" className="underline">콘텐츠 제작 기준</Link></p> : reviewedAt ? (
               <ContentIntegrityNote contentSource="editorial" datePublished={seo.publishedAt} dateModified={reviewedAt} />
             ) : (
               <ContentIntegrityNote contentSource="template" />
