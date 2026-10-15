@@ -2,11 +2,11 @@ const test = require('node:test'), assert = require('node:assert/strict'), fs = 
 const React = require('react'), { renderToStaticMarkup } = require('react-dom/server');
 const source = fs.readFileSync('app/palm-reading/PalmLineOverlay.tsx', 'utf8');
 function loadOverlay() {
-  const module = { exports: {} };
+  const mod = { exports: {} };
   const stubs = { '@/constants/loadingMessages': { getCurrentLoadingLocale: () => 'ko' } };
-  const context = vm.createContext({ module, exports: module.exports, require: id => stubs[id] || require(id) });
+  const context = vm.createContext({ module: mod, exports: mod.exports, require: id => stubs[id] || require(id) });
   vm.runInContext(ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX } }).outputText, context);
-  return module.exports.default;
+  return mod.exports.default;
 }
 const render = undetectedLines => renderToStaticMarkup(React.createElement(loadOverlay(), { imageUrl: '/palm.webp', imageAlt: 'palm', pathMap: {}, undetectedLines, activeLine: null, onSelectLine() {} }));
 test('a line the reading did not detect is drawn dashed and explained', () => {
