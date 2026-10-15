@@ -52,13 +52,14 @@ const unknownBirthTime = service.publishedCelebritySajuSeeds.find((item) => {
   if (!item.birthDate || item.isBirthTimeKnown) return false;
   return service.buildCelebrityReading(item).calculationStatus === "calculated";
 });
-const knownBirthTime = service.publishedCelebritySajuSeeds.find((item) => {
-  if (!item.birthDate || !item.isBirthTimeKnown) return false;
-  return service.buildCelebrityReading(item).calculationStatus === "calculated";
-});
-
 assert(unknownBirthTime, "A celebrity seed with unknown birth time is required");
-assert(knownBirthTime, "A celebrity seed with known birth time is required");
+// Exercise verified-time behavior with a test-only fixture. Public records must
+// never gain an invented birth time merely to satisfy this regression test.
+const knownBirthTime = {
+  ...unknownBirthTime,
+  id: "test-known-time", slug: "test-known-time", name: "합성 검증 자료", nameKo: "합성 검증 자료",
+  birthTime: "10:30", birthTimeStatus: "verified", isBirthTimeKnown: true,
+};
 
 const unknownReading = service.buildCelebrityReading(unknownBirthTime);
 const knownReading = service.buildCelebrityReading(knownBirthTime);

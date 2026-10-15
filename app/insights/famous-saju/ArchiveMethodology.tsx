@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import EditorNote from '../../components/EditorNote';
+import { EDITOR_NOTES } from '../../_content/editor-notes';
 export default function ArchiveMethodology(){return <details className="moon-method"><summary>기존 편집 안내 자세히 읽기</summary><div><section >
           <h2 >이 아카이브를 만드는 기준</h2>
           <p>
@@ -68,4 +70,4 @@ export default function ArchiveMethodology(){return <details className="moon-met
             <Link href="/editorial-policy" >콘텐츠 제작 및 AI 활용 고지</Link>와{" "}
             <Link href="/methodology" >운세 콘텐츠 방법론</Link>에 적어 두었습니다.
           </p>
-        </section></div></details>;}
+        </section><EditorNote note={EDITOR_NOTES['/insights/famous-saju']} className="!text-[#242139] [&_p]:!text-[#625b74] [&_span]:!text-[#242139]" /></div></details>;}
