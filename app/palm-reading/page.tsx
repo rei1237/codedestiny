@@ -36,7 +36,8 @@ const PALM_READING_METADATA_COPY = {
 const META = {
   path: "/palm-reading",
   ...PALM_READING_METADATA_COPY.ko,
-  image: "https://code-destiny.com/fuctionassets/ai%20animal.webp",
+  // 공유 카드: 상세 히어로(연이 v3)에서 sync:public 이 만드는 1200x630.
+  image: "https://code-destiny.com/feature-details/assets/palm-reading-og.webp",
   applicationCategory: "LifestyleApplication",
 } as const;
 
