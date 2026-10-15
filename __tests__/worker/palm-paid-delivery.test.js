@@ -1,6 +1,6 @@
 /** @jest-environment node */
 import { jest } from '@jest/globals';
-let save, read, route, deep, vision, docs, fault, proof, revoked, userId, ai, visionReply;
+let save, read, route, deep, vision, docs, fault, proof, revoked, userId, ai, visionReply, textCall;
 const owner = '64b7f2a1c3d4e5f601234567';
 const query = value => ({ sort() { return this; }, lean: async () => structuredClone(value) });
 const match = (row, filter) => Object.entries(filter).every(([key, value]) => row[key] === value);
@@ -11,7 +11,7 @@ beforeAll(async () => {
   jest.unstable_mockModule('../../worker/lib/auth.js', () => ({ ...auth, requireAuth: async () => ({ userId }) }));
   jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js', () => ({ verifyPerUsePayment: payment }));
   jest.unstable_mockModule('../../worker/lib/paid-result-revocation.js', () => ({ isPaidResultRevoked: async () => revoked }));
-  jest.unstable_mockModule('../../worker/lib/gemini.js', () => ({ ...gemini, callGeminiText: async () => ai }));
+  jest.unstable_mockModule('../../worker/lib/gemini.js', () => ({ ...gemini, callGeminiText: async (_env, _prompt, options) => { textCall = options; return ai; } }));
   jest.unstable_mockModule('../../worker/lib/structured-consultation.js', () => ({ callGeminiJsonWithRetry: async () => visionReply }));
   jest.unstable_mockModule('../../worker/lib/models.js', () => ({ ...models, ServiceExecutionTransaction: {
     findOne: filter => { if (fault === 'confirm') { fault = ''; return query(null); } return query(docs.find(row => match(row, filter)) || null); },
@@ -97,6 +97,13 @@ test('analysis without a requestId is refused before the vision call', async () 
 test.each(['truncated','unfinished'])('deep %s keeps complete prose without requesting a repair',async kind=>{
  const original=ai.text.trim();if(kind==='truncated')ai.truncated=true;else ai.text+=' 아직 끝나지 않은';
  expect(await deep({},{})).toMatchObject({text:original,rawText:ai.text});
+});
+test('deep consult appends the Yeoni persona after the unchanged 18-section format', async () => {
+  await deep({}, {});
+  const system = textCall.systemPrompt;
+  expect(system.indexOf('[상담자 페르소나 — 연이]')).toBeGreaterThan(system.indexOf('■ 오늘의 한마디'));
+  expect(system.match(/^■ /gmu)).toHaveLength(18);
+  expect(system).not.toMatch(/d+년 경력|애매한 표현 대신/u);
 });
 test('raw prose is persisted privately and excluded from the paid response',async()=>{
  await save({},owner,'palm-original',result,'provider raw');expect(docs[0].metadata.palmRaw).toBe('provider raw');expect(await read({},owner,'palm-original')).not.toHaveProperty('palmRaw');

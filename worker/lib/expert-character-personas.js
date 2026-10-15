@@ -7,6 +7,7 @@ import {
   HANBI_PERSONA_KO,
   MUSUNG_PERSONA_EN,
   MUSUNG_PERSONA_KO,
+  YEONI_PERSONA_KO,
   YUN_PERSONA_KO,
   isKoreanLocale,
 } from "./expert-character-persona-text.js";
@@ -18,6 +19,7 @@ const PERSONA_RESOLVERS = {
   yun: (env) => cmsPromptText(env, "expert-persona-yun", YUN_PERSONA_KO),
   musung: (env) => cmsPromptText(env, "expert-persona-musung", MUSUNG_PERSONA_KO),
   hanbi: (env) => cmsPromptText(env, "expert-persona-hanbi", HANBI_PERSONA_KO),
+  yeoni: (env) => cmsPromptText(env, "expert-persona-yeoni", YEONI_PERSONA_KO),
 };
 
 /**

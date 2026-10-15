@@ -81,6 +81,12 @@ const SYSTEM_PROMPT_SOURCES = [
     service: "숙요",
     load: async () => (await import("./expert-character-personas.js")).getDefaultExpertPersona("hanbi"),
   },
+  {
+    key: "expert-persona-yeoni",
+    label: "손금 캐릭터 페르소나 (연이)",
+    service: "손금",
+    load: async () => (await import("./expert-character-personas.js")).getDefaultExpertPersona("yeoni"),
+  },
   // sukuyo.js 의 SUKYO_COMPAT_AI_SYSTEM_PROMPT 는 선언만 있고 호출부가 없다(데드코드).
   // 편집해도 서비스에 영향이 없으므로 일부러 목록에서 뺀다 — 상수 자체는 손대지 않았다.
   {

@@ -18,6 +18,7 @@ import { normalizeNarrativeBody } from "./paid-narrative-candidate.js";
 import { callGeminiJsonWithRetry } from "./structured-consultation.js";
 import { jsonSchemaFromExample } from "./json-text-repair.js";
 import { callGeminiText } from "./gemini.js";
+import { appendExpertPersona } from "./expert-character-personas.js";
 import { tokensRequiredForChars } from "./llm-budget.js";
 
 // 심층 해석의 쓰기 목표(공백 포함). 합격선이 아니다 — 프롬프트에 목표로만 싣는다.
@@ -52,7 +53,7 @@ export function dataUrlToBase64(dataUrl) {
  * 프롬프트
  * ------------------------------------------------------------------ */
 
-export const PALM_VISION_SYSTEM_PROMPT = `당신은 전통 손금과 현대 손금학(Palm-Astro)을 함께 다루는 최고 수준의 손금 판독 전문가입니다.
+export const PALM_VISION_SYSTEM_PROMPT = `당신은 전통 손금과 현대 손금학(Palm-Astro)을 함께 다루는 손금 판독가입니다.
 업로드된 손바닥 사진을 보고 손금을 판독하세요.
 
 [근거 원칙 — 가장 중요]
@@ -70,7 +71,7 @@ export const PALM_VISION_SYSTEM_PROMPT = `당신은 전통 손금과 현대 손�
    - 우세선(Dominant Line): 생명선·두뇌선·감정선 중 가장 길고 뚜렷한 선
    - 손바닥 곡률 유형(Palm Type): "곡선형/표현형", "균형형", "직선형/실용형" 중 하나
    - 직업 변화 지표(Career Shift): 두뇌선의 꺾임과 생명선-두뇌선 시작점 관계 기반
-10. 건강·수명·사고·재난·질병을 단정하지 마세요. 의학적 진단을 하지 마세요. 조언은 현실적인 행동 지침으로 쓰세요.
+10. 건강·수명·사고·재난·질병, 결혼 시기·상대, 재물 액수를 단정하지 마세요. 의학적 진단을 하지 마세요. 선의 모양은 분명하게 쓰되, 앞날은 가능성과 현실적인 행동 지침으로 쓰세요.
 11. summary 는 키워드 나열이 아니라, 전문가가 마주 앉아 설명하듯 구체적인 문장으로 쓰세요.
 12. scores 는 영역마다 따로 매긴 0~100 정수입니다. 아래 [점수 기준]을 따르세요.
 13. imageQuality.palmCoverage 는 손바닥(손가락 제외)이 잘리거나 가려지지 않고 보이는 정도입니다(0.0~1.0). 손바닥 전체가 들어오면 0.9 이상, 가장자리가 잘리면 0.5~0.8, 절반 이상 잘리거나 가려지면 0.5 미만으로 두세요.
@@ -638,13 +639,13 @@ export function visionToSideAnalysis(vision, side) {
  * 심층 해석 (구 palm-reading-ai-consult — 이제 기본 분석에 통합)
  * ------------------------------------------------------------------ */
 
-const DEEP_CONSULT_SYSTEM_PROMPT = `당신은 30년 경력의 손금 상담 전문가입니다. 이미 판독이 끝난 손금 데이터를 받아, 내담자가 마주 앉아 듣는 것 같은 깊이 있는 상담문을 씁니다.
+const DEEP_CONSULT_SYSTEM_PROMPT = `당신은 손금 상담가입니다. 이미 판독이 끝난 손금 데이터를 받아, 내담자가 마주 앉아 듣는 것 같은 깊이 있는 상담문을 씁니다.
 
 [작성 규칙]
 1. 주어진 판독 데이터에 있는 근거만 사용하세요. 사진을 다시 추측하지 마세요.
 2. detected=false 인 선과 문양은 "이번 사진에서는 확인되지 않았다"고 쓰거나 아예 언급하지 마세요. 있는 것처럼 쓰지 마세요.
-3. 사람이 쓴 조언처럼 직설적이고 구체적으로 쓰세요. "~할 수도 있습니다" 같은 애매한 표현 대신 "~하세요"로 쓰세요.
-4. 건강·수명·질병·사고를 단정하지 마세요. 의학적 진단 금지.
+3. 판독 데이터에 있는 선의 모양은 분명하고 구체적으로 말하세요. 그 선이 가리키는 앞날, 특히 결혼·인연, 건강·활력, 향후 변화는 확정 예언 대신 가능성과 바로 해 볼 수 있는 행동 제안으로 쓰세요. 같은 말을 흐리게 되풀이하지 마세요.
+4. 건강·수명·질병·사고, 결혼 시기·상대, 재물 액수를 단정하지 마세요. 공포를 키우는 표현과 의학적 진단은 금지입니다.
 5. 각 항목은 3~5문장, 추상적 덕담이 아니라 이 사람의 판독 결과에 붙는 내용이어야 합니다.
 6. 마크다운 제목(#) 없이, 아래 형식의 일반 텍스트로 쓰세요. ■ 제목 줄 바로 다음 줄부터 본문을 쓰고, 빈 줄은 항목 사이에만 두세요.
 7. 전체 분량은 공백 포함 ${PALM_CONSULT_MIN_CHARS.toLocaleString("en-US")}~${PALM_CONSULT_MAX_CHARS.toLocaleString("en-US")}자를 목표로 하세요.
@@ -707,7 +708,8 @@ ${handsNote}
 ${context}`;
 
   const ai = await callGeminiText(env, userPrompt, {
-    systemPrompt: DEEP_CONSULT_SYSTEM_PROMPT,
+    // 연이 페르소나는 작성 규칙·■ 형식 뒤에 붙는다(말투·태도만 정한다). CMS 키: expert-persona-yeoni.
+    systemPrompt: await appendExpertPersona(env, "yeoni", DEEP_CONSULT_SYSTEM_PROMPT),
     maxOutputTokens: PALM_CONSULT_MAX_OUTPUT_TOKENS,
     temperature: 0.75,
     taskType: "fortune",

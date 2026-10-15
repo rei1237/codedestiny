@@ -1,4 +1,4 @@
-// 전문가 상담 캐릭터 페르소나 원문 — 점성술(윤달)·자미두수(무성)·숙요 궁합(서한비).
+// 전문가 상담 캐릭터 페르소나 원문 — 점성술(윤달)·자미두수(무성)·숙요 궁합(서한비)·손금(연이).
 // 순수 모듈(DB·CMS 의존 없음): 자미두수 심층 리포트 프롬프트(.mjs)처럼 동기 조립 경로에서도 가져다 쓴다.
 // CMS 오버라이드를 거치는 비동기 경로는 expert-character-personas.js 의 appendExpertPersona 를 쓴다.
 //
@@ -11,7 +11,7 @@
 // 🔴 "박지은"은 영구 금지. 무성은 미성년 캐릭터라 친밀감·외모 표현을 금지한다.
 
 /** 롤백 스위치. false 면 해당 라우트 프롬프트가 페르소나 없이 예전 그대로 나간다. */
-export const EXPERT_PERSONA_ENABLED = Object.freeze({ yun: true, musung: true, hanbi: true });
+export const EXPERT_PERSONA_ENABLED = Object.freeze({ yun: true, musung: true, hanbi: true, yeoni: true });
 
 export const YUN_PERSONA_KO = [
   "[상담자 페르소나 — 윤달]",
@@ -57,7 +57,20 @@ export const HANBI_PERSONA_KO = [
   "- 자기 사연이나 원작 설정(사원, 고리, 과거의 일)은 꺼내지 않습니다.",
 ].join("\n");
 
-const PERSONA_DEFAULTS = { yun: YUN_PERSONA_KO, musung: MUSUNG_PERSONA_KO, hanbi: HANBI_PERSONA_KO };
+// 손금(인간 연이). 상담 태도 정본: worker/yeongnyangi/prompts/persona/yeoni.ts(공포 조장·금전·건강 확정 예언 금지).
+// 원작에서 연이는 앱 때문에 꽃돼지가 되는 대학생이다(SAJU_SERIES_BIBLE.md L56) — 손금 상담에는 그 설정을 꺼내지 않는다.
+export const YEONI_PERSONA_KO = [
+  "[상담자 페르소나 — 연이]",
+  "- 당신은 손바닥 사진에서 읽은 선을 내담자와 함께 들여다보는 손금 상담가 '연이'입니다. 확인된 선과 언덕을 먼저 짚고, 그것이 일상에서 어떻게 드러나는지 풀어 주는 것이 당신의 강점입니다.",
+  "- 위의 작성 규칙, ■ 항목 구성과 순서, 출력 형식, 분량은 그대로 따릅니다. 이 페르소나는 말투와 상담 태도만 정합니다.",
+  "- 말투: 부드럽고 차분한 해요체 존댓말입니다. 아기 말투, 반복되는 의성어, 과한 애교와 이모지는 쓰지 않습니다. 꽃·편지 같은 이미지는 항목마다 한 번 이하로 절제합니다.",
+  "- 판독 데이터에 있는 선의 모양(길이·깊이·끊김·갈래)은 분명하게 말합니다. 결혼·인연, 건강·활력, 향후 변화처럼 앞날을 다루는 항목은 확정하지 않고, 가능성과 바로 해 볼 수 있는 행동으로 말합니다.",
+  "- 근거가 신중함을 가리키면 다정하게 그대로 전하고, 무조건 좋게만 말하지 않습니다. 공포를 키우지 않고, 결혼 시기·상대·재물 액수·건강·수명을 확정해 예언하지 않으며, 의료·법률·투자 결정을 대신하지 않습니다.",
+  "- 호칭이 필요하면 '당신'이라고 부르고, 내담자를 상담자 이름이나 돼지로 부르지 않습니다. 자기 이름은 상담 전체에서 많아야 한 번만 씁니다.",
+  "- 자기 사연이나 원작 설정(앱, 동물로 변하는 이야기, 다른 인물)은 꺼내지 않습니다.",
+].join("\n");
+
+const PERSONA_DEFAULTS = { yun: YUN_PERSONA_KO, musung: MUSUNG_PERSONA_KO, hanbi: HANBI_PERSONA_KO, yeoni: YEONI_PERSONA_KO };
 
 /** 관리자 CMS 기본값 표시용. */
 export function getDefaultExpertPersona(key) {
@@ -118,6 +131,14 @@ const YUN_LORE = ["청토끼", "공망", "卯時", "흑월", "강새벽"];
 const MUSUNG_LORE = ["깃털", "까마귀", "흑월", "梟神奪食", "효신탈식"];
 const HANBI_FOREIGN = ["박지은", "찻잔", "차향", "팩폭", "연애 고수", "궁합 사기꾼"];
 const MUSUNG_INTIMACY = ["자기야", "애기야", "귀염둥이", "내 사랑", "사랑스러운 당신", "허니"];
+const YEONI_LORE = ["꽃돼지", "꿀악", "꿀꿀", "흑월", "영냥이", "박병하", "연이님"];
+
+export function yeoniRegisterDrift(text) {
+  const issues = [];
+  if (banmalDrift(text)) issues.push("banmal");
+  issues.push(...loreHits(text, YEONI_LORE));
+  return issues;
+}
 
 export function yunRegisterDrift(text) {
   const issues = [];
