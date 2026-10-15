@@ -7,7 +7,7 @@ const branches = { 자: '子', 축: '丑', 인: '寅', 묘: '卯', 진: '辰', �
 const wallMs = t => Date.UTC(t.year, t.month - 1, t.day, t.hour, t.minute);
 const ymd = t => `${t.year}-${String(t.month).padStart(2, '0')}-${String(t.day).padStart(2, '0')}`;
 // Pillars arrive as Hanja (server chart) or Hangul (legacy snapshots); the relation tables are Hanja.
-const toHanja = value => {
+export const toHanjaPillar = value => {
   const [s = '', b = ''] = Array.from(String(value || '').trim());
   const pillar = `${stems[s] || s}${branches[b] || b}`;
   return /^[甲乙丙丁戊己庚辛壬癸][子丑寅卯辰巳午未申酉戌亥]$/.test(pillar) ? pillar : '';
@@ -22,7 +22,7 @@ export function buildTeaSajuMonthlyRows(pillars, now = new Date(), count = 3) {
   const terms = [...nodeTerms(year - 1).slice(-1), ...nodeTerms(year), ...nodeTerms(year + 1)];
   const start = terms.findLastIndex(term => wallMs(term) <= kst.getTime());
   const details = Object.fromEntries(Object.entries(labels)
-    .map(([key, label]) => [key, label, toHanja(pillars?.[key])])
+    .map(([key, label]) => [key, label, toHanjaPillar(pillars?.[key])])
     .filter(([, , pillar]) => pillar)
     .map(([key, label, pillar]) => [key, { label, pillar, heavenlyStem: pillar[0], earthlyBranch: pillar[1] }]));
   const dayStem = details.day?.heavenlyStem;

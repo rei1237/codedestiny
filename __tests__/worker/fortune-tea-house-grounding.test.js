@@ -67,3 +67,45 @@ describe("시기 근거", () => {
     await expect(buildTeaSukuyoMonthlyRhythm({}, undefined, 17, { todayKst: "2026-10-15" })).resolves.toBeNull();
   });
 });
+
+describe("명식 관계 근거", () => {
+  test("궁합 교차 관계는 같은 자리 지지끼리 계산하고 한쪽 시주가 없으면 시지를 뺀다", async () => {
+    const { buildTeaCompatRelations, buildTeaNatalRelations } = await import("../../worker/lib/tea-saju-relations.js");
+    const relations = buildTeaCompatRelations({ year: "庚午", month: "辛巳", day: "甲子", hour: "丙寅" }, { year: "병자", month: "辛丑", day: "己丑" });
+    expect(relations.dayStems).toBe("갑↔기 천간합");
+    expect(relations.branchPairs).toEqual([
+      { position: "일지", self: "자", partner: "축", relations: ["육합"] },
+      { position: "년지", self: "오", partner: "자", relations: ["충"] },
+      { position: "월지", self: "사", partner: "축", relations: ["반합"] },
+    ]);
+    expect(buildTeaNatalRelations({ year: "庚午", day: "甲子" })).toEqual(["년주↔일주 천간충 갑경충", "년주↔일주 지지충 자오충"]);
+  });
+
+  test("궁합 근거에는 교차 관계와 상대 시기 표가, 단독 사주에는 원국 관계가 실린다", async () => {
+    const { __fortuneTeaHouseTestUtils: utils } = await import("../../worker/routes/fortune-tea-house.js");
+    const { canonicalTeaSaju } = await import("../../worker/lib/tea-saju-facts.js");
+    const { buildSajuResultSection } = await import("../../lib/fortune-tea-house/saju-result-adapter.mjs");
+    const request = { consultationVersion: "tea-v2", consultationMode: "sajuCompatibility", question: "우리 관계는 어떻게 흘러갈까요?" };
+    const people = {
+      user: { name: "나", gender: "female", ...birth, birthTimeUnknown: false },
+      partner: { name: "상대", gender: "male", birthDate: "1992-08-20", birthTime: "", birthTimeUnknown: true, calendarType: "solar", timezone: "Asia/Seoul" },
+    };
+    const pair = Object.fromEntries(Object.entries(people).map(([key, person]) => {
+      const personRequest = { ...request, ...person, nickname: person.name };
+      return [key, { ...person, saju: canonicalTeaSaju(personRequest, buildSajuResultSection(buildFortuneTeaSajuSnapshotFromParts(person), personRequest)) }];
+    }));
+    const facts = utils.buildSajuFactInput(request, pair.user.saju, utils.resolveSajuCategoryRule(request), { sajuCompatibility: pair });
+    expect(facts.compatRelations.dayStems).toBe("경↔무 상생");
+    expect(facts.compatRelations.branchPairs.map(row => row.position)).toEqual(["일지", "년지", "월지"]);
+    expect(facts.selfProfile.natalRelations).toEqual(["년주↔일주 지지형 오오형"]);
+    expect(facts.partnerProfile.natalRelations).toEqual([]);
+    expect(facts.partnerTimingFacts.monthlyRows).toHaveLength(3);
+    expect(facts.sajuFacts.natalRelations).toBeUndefined();
+
+    const single = { ...request, ...people.user, consultationMode: "saju" };
+    const singleFacts = utils.buildSajuFactInput(single, canonicalTeaSaju(single), utils.resolveSajuCategoryRule(single));
+    expect(singleFacts.sajuFacts.natalRelations).toEqual(["년주↔일주 지지형 오오형"]);
+    expect(singleFacts.compatRelations).toBeUndefined();
+    expect(singleFacts.partnerTimingFacts).toBeUndefined();
+  });
+});

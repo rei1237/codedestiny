@@ -1,6 +1,7 @@
 import { canonicalTeaSaju } from "../lib/tea-saju-facts.js";
 import { buildTeaSajuMonthlyRows } from "../lib/tea-saju-monthly.js";
 import { buildTeaSukuyoMonthlyRhythm } from "../lib/tea-sukuyo-monthly.js";
+import { buildTeaCompatRelations, buildTeaNatalRelations } from "../lib/tea-saju-relations.js";
 import { jsonSchemaFromExample } from "../lib/json-text-repair.js";
 import { buildFortuneTeaSajuSnapshot, buildFortuneTeaSajuSnapshotFromParts, buildSajuResultSection } from "../../lib/fortune-tea-house/saju-result-adapter.mjs";
 import { teaCombinationEvidence } from "../../lib/fortune-tea-house/tarot-contract.mjs";
@@ -1835,6 +1836,13 @@ function fortuneTeaSajuPillarGanji(saju, key) {
   return "";
 }
 
+// 년·월·일·시주 간지 맵. 출생시간을 모르면 시주를 뺀다.
+function fortuneTeaSajuPillarMap(saju, birthTimeUnknown = false) {
+  return Object.fromEntries(["year", "month", "day", "hour"]
+    .filter((key) => key !== "hour" || !birthTimeUnknown)
+    .map((key) => [key, fortuneTeaSajuPillarGanji(saju, key)]));
+}
+
 // 독립 "AI 사주 생성" 기능의 순수 파생(지장간 투간/투출·도충·개고·십성 확정표)을
 // 찻집 명식(pillars 간지 + 대운 목록)에 그대로 적용한다 — 같은 워커 번들 재사용, 재계산 없음.
 function buildFortuneTeaSajuMyeongsikFacts(request, saju, includeGuests = false) {
@@ -1964,6 +1972,7 @@ function buildSajuPersonProfile(request, personEntry, defaultName = "상대") {
     strongElements: normalizeSajuFactText(personSaju.strongElements),
     monthSeason: combineSajuFactText(personSaju.monthBranch, personSaju.season),
     coreSummary: cleanMultiline(personSaju.coreSummary, 800),
+    natalRelations: buildTeaNatalRelations(fortuneTeaSajuPillarMap(personSaju, person.birthTimeUnknown === true)),
     myeongsikFacts: scopeMyeongsikTableRule(buildFortuneTeaSajuMyeongsikFacts(request, personSaju), name),
   };
 }
@@ -1974,7 +1983,8 @@ function buildSajuPersonProfile(request, personEntry, defaultName = "상대") {
 const FORTUNE_TEA_SEWOON_YEARS_AHEAD = 5;
 // 사실값·프롬프트 개정 번호. 결정론 캐시(30일)가 이전 근거로 만든 응답을 재생하지 않게 한다.
 // r1: 현재 대운 표시 + 입춘 기준 세운. r2: 절기 월운 석 달. r3: 숙요 석 달 일숙 리듬.
-const FORTUNE_TEA_PROMPT_REV = 3;
+// r4: 원국·궁합 교차 합충형파해 + 상대 시기 표.
+const FORTUNE_TEA_PROMPT_REV = 4;
 
 function buildFortuneTeaTimingFacts(saju, todayKst = kstDate()) {
   const dayGanji = fortuneTeaSajuPillarGanji(saju, "day");
@@ -2013,7 +2023,7 @@ function buildFortuneTeaTimingFacts(saju, todayKst = kstDate()) {
   // 월운은 절기(절입 시각)에 바뀐다. 오늘 날짜를 지정한 호출은 그날 정오(KST) 기준으로 본다.
   const monthNow = todayKst === kstDate() ? new Date() : new Date(`${todayKst}T12:00:00+09:00`);
   const monthlyRows = buildTeaSajuMonthlyRows(
-    Object.fromEntries(["year", "month", "day", "hour"].map((key) => [key, fortuneTeaSajuPillarGanji(saju, key)])),
+    fortuneTeaSajuPillarMap(saju),
     monthNow,
   ).map((row, index) => {
     const ganji = toKoreanGanji(row.pillar);
@@ -2088,6 +2098,13 @@ function buildSajuFactInput(request, saju, rule, fallback) {
   const selfProfile = selfPersonProfile
     ? { ...baseSelfProfile, ...selfPersonProfile, birthPlace: baseSelfProfile.birthPlace }
     : baseSelfProfile;
+  const partnerSaju = isCompat && partnerProfile ? fallback.sajuCompatibility.partner.saju : undefined;
+  const compatRelations = partnerSaju && selfPersonProfile
+    ? buildTeaCompatRelations(
+        fortuneTeaSajuPillarMap(fallback.sajuCompatibility.user.saju, selfProfile.birthTimeUnknown),
+        fortuneTeaSajuPillarMap(partnerSaju, partnerProfile.birthTimeUnknown),
+      )
+    : null;
   const dataCheck = isCompat
     ? {
         selfDayMaster: selfProfile?.dayMaster || "",
@@ -2105,6 +2122,10 @@ function buildSajuFactInput(request, saju, rule, fallback) {
     dataCheck,
     selfProfile,
     partnerProfile,
+    // 두 명식의 교차 관계(일간 관계, 같은 자리 지지끼리의 합·충·형·파·해·원진·귀문). 각자 원국 안의 관계는 profile.natalRelations.
+    ...(compatRelations
+      ? { compatRelations: { ...compatRelations, rule: "일지는 배우자궁이다. 적힌 관계만 인용하고, relations가 빈 자리는 뚜렷한 합충이 없는 것이니 관계를 만들지 않는다." } }
+      : {}),
     sajuFacts: {
       dayMaster: cleanText(saju?.dayMaster, 80),
       pillars: normalizeSajuFactText(saju?.pillars),
@@ -2113,9 +2134,10 @@ function buildSajuFactInput(request, saju, rule, fallback) {
       tenGodsBalance,
       strongElements: normalizeSajuFactText(saju?.dominantElements),
       tenGodSnapshot: normalizeSajuFactText(saju?.tenGodSnapshot?.tenGodLabels),
-      // 🔴 원국 합·충·형·파·해 계산기는 이 레포에 없다. 값이 비면 키 자체를 빼서
-      // "빈 항목을 채우려는" 창작을 유도하지 않는다(충/형/파/해 근거는 myeongsikFacts.earthStorageOpenings 경유분만 쓴다).
+      // 클라 스냅샷의 관계 문구. 값이 비면 키 자체를 빼서 "빈 항목을 채우려는" 창작을 유도하지 않는다.
       ...(stemBranchRelations ? { stemBranchRelations } : {}),
+      // 원국 합·충·형·파·해는 서버가 명식에서 계산한다(궁합은 사람별 profile.natalRelations로 나눠 싣는다).
+      ...(!isCompat ? { natalRelations: buildTeaNatalRelations(fortuneTeaSajuPillarMap(saju, baseSelfProfile.birthTimeUnknown)) } : {}),
       currentLuckSummary: cleanMultiline(luckFlow || saju?.summary, 1200),
       caution: cleanMultiline(saju?.cautionReading || saju?.caution, 800),
       actionPrescription: cleanMultiline(saju?.actionPrescription, 800),
@@ -2125,6 +2147,8 @@ function buildSajuFactInput(request, saju, rule, fallback) {
     },
     // 시기 질문의 유일한 근거 테이블. sajuFacts 밖 최상위에 두어 우선순위를 드러낸다.
     timingFacts: buildFortuneTeaTimingFacts(saju),
+    // 궁합에서 timingFacts는 본인 시기 표이고, 상대 시기 표는 상대 명식으로 따로 계산한다.
+    ...(partnerSaju ? { partnerTimingFacts: buildFortuneTeaTimingFacts(partnerSaju) } : {}),
     // 명식 심화 사실(십성 확정표·지장간·투간/투출·도충·개고·운 흐름) — 독립 AI 사주 생성 로직 재사용.
     // 궁합에서는 사람별 확정표(selfProfile/partnerProfile.myeongsikFacts)만 쓰고, 전역 확정표는 두지 않는다(유출 방지).
     myeongsikFacts: isCompat ? undefined : buildFortuneTeaSajuMyeongsikFacts(request, saju),
@@ -2419,7 +2443,7 @@ function buildCategorySajuDeepSections(request, saju = {}, rule = resolveSajuCat
   const elements = facts.sajuFacts.fiveElementsBalance || "오행 균형";
   const tenGods = facts.sajuFacts.tenGodsBalance || "십성 흐름";
   const monthSeason = facts.sajuFacts.monthSeason || "입력된 범위에서 확인되는 계절감";
-  const relations = facts.sajuFacts.stemBranchRelations || "천간과 지지의 세부 관계는 확인된 범위 안에서만";
+  const relations = facts.sajuFacts.stemBranchRelations || facts.sajuFacts.natalRelations?.join(", ") || "천간과 지지의 세부 관계는 확인된 범위 안에서만";
   const currentLuck = facts.sajuFacts.currentLuckSummary || "현재 운의 흐름은 질문의 결 안에서 조심스럽게 살핍니다.";
   const timeLimit = facts.selfProfile.birthTimeUnknown ? "출생시간이 비어 있어 시주의 세밀한 해석은 제한하고, 확인된 생년월일과 질문의 결을 중심으로 봅니다." : "출생시간까지 놓고 반응 방식과 하루의 리듬을 함께 살핍니다.";
   const angleGuides = [
@@ -3955,15 +3979,16 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "", 
                   "본인(selfProfile) 일간이 월지 계절에서 힘을 얻는지 잃는지, 오행 분포, 십성 배치를 selfProfile·sajuFacts만으로 정리한다. 십성은 selfProfile.myeongsikFacts.tenGodFixedTable만 쓴다.",
                   `상대(partnerProfile, ${partnerName})의 일간·오행·십성을 partnerProfile만으로, 본인과 같은 깊이로 정리한다. 십성은 partnerProfile.myeongsikFacts.tenGodFixedTable만 쓴다.`,
                   "두 일간의 오행 관계(상생/상극/동류/보완)와 오행의 보완·충돌을 판정한다.",
+                  "compatRelations로 두 일간의 관계와 일지(배우자궁)·년지·월지(·시지)끼리의 합·충·형·파·해·원진을 확인하고, 각자 원국 안의 관계는 selfProfile/partnerProfile.natalRelations로 본다. 적히지 않은 관계는 만들지 않는다.",
                   "십성 대조로 두 사람의 표현·현실·절제·생각 방식이 어디서 맞고 어디서 어긋나는지 본다.",
-                  "두 사람의 현재 대운·세운이 관계에 순풍인지 역풍인지 본다.",
+                  "timingFacts(본인)와 partnerTimingFacts(상대)의 현재 대운·세운이 관계에 순풍인지 역풍인지 본다.",
                   "위 근거들을 질문 한 문장과 연결해 하나의 궁합 이야기로 엮는다.",
                 ]
               : [
               "일간이 월지 계절에서 힘을 얻는지 잃는지, 생극제화의 방향을 먼저 본다.",
               "오행 분포의 과다/부족과 그것이 삶에서 나타나는 장면을 본다.",
               "십성 배치가 만드는 표현·현실·절제·생각·자아의 균형을 본다.",
-              "myeongsikFacts의 개고·도충이 실제 생활에서 만드는 마찰과 조화 지점을 찾는다(원국 합·충·형·파·해 표는 입력에 없으므로 지어내지 않는다).",
+              "sajuFacts.natalRelations(원국 합·충·형·파·해)와 myeongsikFacts의 개고·도충이 실제 생활에서 만드는 마찰과 조화 지점을 찾는다. natalRelations에 없는 관계는 지어내지 않는다.",
               "timingFacts.daewoonRows/sewoonRows를 보고 지금과 앞으로의 운이 이 질문에 순풍인지 역풍인지 판정한다. 표에 있는 연도·구간만 쓴다.",
               "myeongsikFacts가 있으면 십성 확정표(tenGodFixedTable)를 벗어난 십성을 만들지 말고, 지장간 투간/투출·개고·도충·운 흐름(luckRows) 사실을 해당 챕터의 근거로 자연스럽게 인용한다.",
               "위 근거들을 손님의 질문 한 문장과 연결해 하나의 이야기로 엮는다.",
@@ -3972,11 +3997,11 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "", 
               ? [
                   "'당신의 사주': 본인(selfProfile)이 어떤 사람인지 일간·월지/계절·오행 분포·십성 근거로 충분히 짚는다. 이 섹션은 오직 본인 데이터(selfProfile·sajuFacts)만 쓴다.",
                   `'상대방의 사주': 상대(${partnerName}, partnerProfile)가 어떤 사람인지 본인과 동등한 분량으로 같은 틀(일간·월지/계절·오행·십성)로 짚는다. 오직 partnerProfile 데이터만 쓰고, 본인 명식과 반드시 다른 내용이어야 한다. 한두 줄 요약은 실패다.`,
-                  "'두 사람의 궁합': 두 일간의 오행 관계(상생/상극/동류/보완), 오행의 보완·충돌, 십성 대조로 두 사람이 어디서 맞물리고 어디서 부딪히는지 실제로 교차 분석한다. 한 사람 사주만 반복하지 않는다.",
+                  "'두 사람의 궁합': compatRelations의 일간 관계와 일지(배우자궁)·년지·월지 관계, 두 일간의 오행 관계(상생/상극/동류/보완), 오행의 보완·충돌, 십성 대조로 두 사람이 어디서 맞물리고 어디서 부딪히는지 실제로 교차 분석한다. 한 사람 사주만 반복하지 않는다.",
                   "'질문에 대한 답': 손님의 질문에 직접 답하되, 본인 사주와 상대 사주가 그 답에 각각 어떻게 작용하는지 두 사람 관점을 모두 밝힌다.",
                   "'함께일 때의 강점': 두 명식이 함께일 때 살아나는 강점 2~3가지를 명리 근거와 함께 짚는다.",
                   "'미리 알아둘 주의점': 부딪히기 쉬운 지점 2~3가지를 위협이 아니라 '이 부분만 알면 돼요'의 온도로 짚는다.",
-                  "'지금 이 시기 관계의 운': 두 사람의 대운·세운이 관계에 부는 순풍·역풍을 짚는다.",
+                  "'지금 이 시기 관계의 운': timingFacts(본인)와 partnerTimingFacts(상대)의 대운·세운이 관계에 부는 순풍·역풍을 짚는다.",
                   "'찻집의 처방': 두 사람이 오늘부터 할 수 있는 관계 실천을 준다.",
                   "'연이의 한마디': 따뜻한 제안 하나로 마무리한다.",
                 ]
@@ -4007,16 +4032,19 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "", 
             repetitionRule: "같은 조언과 같은 문장을 여러 챕터·필드에서 반복하지 않는다. 구체 행동·금지 행동 목록은 actionPrescription에만, 단계 플랜은 choiceSimulation에만 두고, '찻집의 처방' 챕터는 그 플랜을 손님의 생활 장면으로 풀어내는 서사에 집중한다. 나머지 챕터는 해석과 명리 근거에 집중한다.",
             sectionLengthRule: "각 deepSection body는 요구 하한을 넘겨 대략 250~350자 안팎으로 쓰되, 분량은 아래 evidenceDistribution의 서로 다른 근거로 채운다. 같은 명식 사실을 여러 챕터에서 되풀이해 길이를 늘리지 않는다.",
             evidenceDistribution: isSajuCompat
-              ? "섹션마다 서로 다른 근거를 나눠 쓴다: '당신의 사주'=selfProfile의 일간·월지/계절·오행·selfProfile.myeongsikFacts 십성 확정표, '상대방의 사주'=partnerProfile의 일간·월지/계절·오행·partnerProfile.myeongsikFacts 십성 확정표, '두 사람의 궁합'=두 일간의 상생·상극과 오행 보완·충돌·십성 대조, '지금 이 시기 관계의 운'=두 사람의 대운/세운 순풍·역풍, '월별 흐름'=timingFacts.monthlyRows(본인 명식 기준 절기월)의 간지·십성·원국 관계. 본인 근거와 상대 근거를 섞지 않는다."
-              : "챕터마다 myeongsikFacts의 서로 다른 근거를 나눠 쓴다: '타고난 결/마음의 물길'=일간·월지/계절·오행·십성 확정표·격국, '잘 풀리는 결'=강하게 드러난 십성과 지장간 투간(성향·재능으로 발현)·용신, '삐걱대는 결'=개고·도충과 치우친 오행·기신, '지금 이 시기'=timingFacts의 대운 구간과 세운 연도, '월별 흐름'=timingFacts.monthlyRows의 절기월 간지·stemTenGod·natalRelations. 한 챕터에서 쓴 근거를 다른 챕터에서 그대로 되풀이하지 않는다.",
+              ? "섹션마다 서로 다른 근거를 나눠 쓴다: '당신의 사주'=selfProfile의 일간·월지/계절·오행·selfProfile.myeongsikFacts 십성 확정표, '상대방의 사주'=partnerProfile의 일간·월지/계절·오행·partnerProfile.myeongsikFacts 십성 확정표, '두 사람의 궁합'=compatRelations(일간 관계·같은 자리 지지끼리의 합충형파해)와 오행 보완·충돌·십성 대조, '미리 알아둘 주의점'=compatRelations의 충·형·파·해·원진과 각자의 natalRelations, '지금 이 시기 관계의 운'=timingFacts(본인)·partnerTimingFacts(상대)의 대운/세운 순풍·역풍, '월별 흐름'=timingFacts.monthlyRows와 partnerTimingFacts.monthlyRows(각자 명식 기준 절기월)의 간지·십성·원국 관계. 본인 근거와 상대 근거를 섞지 않는다."
+              : "챕터마다 myeongsikFacts의 서로 다른 근거를 나눠 쓴다: '타고난 결/마음의 물길'=일간·월지/계절·오행·십성 확정표·격국, '잘 풀리는 결'=강하게 드러난 십성과 지장간 투간(성향·재능으로 발현)·용신, '삐걱대는 결'=개고·도충과 sajuFacts.natalRelations, 치우친 오행·기신, '지금 이 시기'=timingFacts의 대운 구간과 세운 연도, '월별 흐름'=timingFacts.monthlyRows의 절기월 간지·stemTenGod·natalRelations. 한 챕터에서 쓴 근거를 다른 챕터에서 그대로 되풀이하지 않는다.",
             evidenceUseOrder: isSajuCompat
-              ? ["사용자 질문", "본인 일간(selfProfile)", "상대 일간(partnerProfile)", "각자의 월지/계절", "각자의 오행 과다/부족", "두 명식의 십성 대조(사람별 확정표 준수)", "두 일간의 상생·상극·동류·보완", "두 사람의 대운·세운", "찻잔 카테고리"]
-              : ["사용자 질문", "일간", "월지/계절", "오행 과다/부족", "십성 구조(myeongsikFacts.tenGodFixedTable 준수)", "지장간과 투간/투출(myeongsikFacts)", "개고·도충(myeongsikFacts)", "대운 구간·세운 연도(timingFacts)", "찻잔 카테고리"],
+              ? ["사용자 질문", "본인 일간(selfProfile)", "상대 일간(partnerProfile)", "각자의 월지/계절", "각자의 오행 과다/부족", "두 명식의 십성 대조(사람별 확정표 준수)", "두 일간의 상생·상극·동류·보완", "두 명식의 교차 관계(compatRelations)", "각자의 원국 관계(natalRelations)", "두 사람의 대운·세운(timingFacts·partnerTimingFacts)", "찻잔 카테고리"]
+              : ["사용자 질문", "일간", "월지/계절", "오행 과다/부족", "십성 구조(myeongsikFacts.tenGodFixedTable 준수)", "지장간과 투간/투출(myeongsikFacts)", "원국 합충형파해(sajuFacts.natalRelations)", "개고·도충(myeongsikFacts)", "대운 구간·세운 연도(timingFacts)", "찻잔 카테고리"],
             // 🔴 시기 답변의 근거는 timingFacts 하나뿐이다. resolution 이 데이터 유무에 따라 확신 수위를 자동 전환한다.
             timingRule: [
               "'언제', '언제쯤', '몇 년', '얼마나 기다려야' 류의 질문에는 timingFacts를 근거로 **시기를 먼저 답하고** 그 다음에 명식 근거를 설명한다. 시기 답을 마지막 문단으로 미루지 않는다.",
-              "인용 가능한 연도·구간은 timingFacts.availableYears와 daewoonRows의 startYear~endYear, 월은 timingFacts.monthlyRows의 절기월 뿐이다. 여기에 없는 연도·월을 쓰면 실패다.",
+              "인용 가능한 연도·구간은 timingFacts.availableYears와 daewoonRows의 startYear~endYear, 월은 timingFacts.monthlyRows의 절기월 뿐이다(궁합이면 partnerTimingFacts의 같은 항목까지). 여기에 없는 연도·월을 쓰면 실패다.",
               "월 단위 운은 timingFacts.monthlyRows(지금부터 절기 기준 석 달)만 근거로 쓴다. 각 달은 startsOn 절입일부터 nextStartsOn 전까지이며, 그 달의 간지·stemTenGod·natalRelations로 읽는다. monthlyRows에 없는 월·날짜·상반기/하반기 적기는 만들지 않고, monthlyAvailable=false면 대운 구간과 세운 연도까지만 답한다.",
+              ...(isSajuCompat
+                ? ["궁합에서 timingFacts는 본인, partnerTimingFacts는 상대의 시기 표다. 상대 시기는 partnerTimingFacts에 있는 대운 구간·세운 연도·절기월만 인용하고, 두 표를 섞지 않는다."]
+                : []),
               "확정 어투를 쓰지 않는다. '2027년 3월에 반드시 벌게 됩니다'가 아니라 '2027년 세운이 ○○이라 수익화 흐름이 강해지는 것으로 해석할 수 있습니다'처럼 근거와 해석을 함께 쓴다.",
               "timingFacts.resolution이 'NONE'이면 연도를 아예 쓰지 말고 조건부로만 답한 뒤 시기를 특정할 수 없는 이유를 한 문장 밝힌다.",
             ],
@@ -5997,6 +6025,7 @@ export async function deferUnchangedConsultation(env, doc, now) {
 export const __fortuneTeaHouseTestUtils = {
   buildFallbackSajuDeepSections,
   buildFortuneTeaTimingFacts,
+  buildSajuFactInput,
   getSajuRequiredSectionTitles,
   normalizeDraftResult,
   resolveSajuCategoryRule,
