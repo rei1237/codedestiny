@@ -619,9 +619,9 @@ html.neo-mode .cd-af,body.neo-mode .cd-af{--cd-af-ink:#f4eeff;--cd-af-muted:#d8c
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr);
   align-items: center;
-  min-height: 400px;
+  min-height: 440px;
   margin: 20px 40px 0;
-  padding: 36px 42px;
+  padding: 44px 48px;
   isolation: isolate;
   overflow: hidden;
   border: 1px solid var(--cdh-line);
@@ -631,9 +631,24 @@ html.neo-mode .cd-af,body.neo-mode .cd-af{--cd-af-ink:#f4eeff;--cd-af-muted:#d8c
 /* 다크 모드도 연이 방이다 — 같은 구도의 밤 버전. */
 html.neo-mode .cdh-hero { --cdh-scene-image: url('/images/home/illustrated/yeoni-room-night-1280.webp'); }
 #cdHomeFunnel .cdh-scene-copy { position: relative; z-index: 2; }
-#cdHomeFunnel .cdh-scene-copy h1 { font-family: "CodeDestinySerifKR", var(--font-premium, serif); font-size: clamp(28px, 3.2vw, 44px); line-height: 1.42; color: var(--cdh-ink); }
-#cdHomeFunnel .cdh-scene-lead { margin: 14px 0 24px; font-size: 16px; color: var(--cdh-ink); }
-#cdHomeFunnel .cdh-scene-copy .cdh-primary { display: inline-flex; min-height: var(--cd-btn-h); padding: 12px 44px 12px 24px; background: var(--cd-cta-primary-bg); color: var(--cd-cta-primary-ink); border: 1px solid var(--cd-cta-hairline); }
+#cdHomeFunnel .cdh-scene-copy h1 { font-family: "CodeDestinySerifKR", "Batang", serif; font-size: clamp(30px, 3.6vw, 52px); font-weight: 700; line-height: 1.5; letter-spacing: -.025em; color: var(--cdh-ink); word-break: keep-all; }
+#cdHomeFunnel .cdh-scene-copy h1 span { font-family: inherit; font-weight: inherit; }
+#cdHomeFunnel .cdh-scene-copy h1 [data-cd-trans="home.gardenCopy.heroTitleEm"] { color: var(--cdh-muted); }
+#cdHomeFunnel .cdh-scene-inscription { display:flex; align-items:center; gap:16px; margin:0 0 22px; font-family:"CodeDestinySerifKR", "Batang", serif; font-size:14px; line-height:1.7; letter-spacing:.18em; color:var(--cdh-gold); }
+.cdh-scene-inscription::after { content:""; width:72px; height:1px; background:var(--cd-yehwa-line); }
+#cdHomeFunnel .cdh-scene-lead { max-width:38em; margin: 20px 0 28px; font-size: 16px; line-height:1.8; color: var(--cdh-ink); word-break:keep-all; }
+.cdh-scene-actions { display:flex; flex-wrap:wrap; gap:14px; }
+#cdHomeFunnel .cdh-scene-actions .cdh-scene-button { position:relative; display:inline-flex; justify-content:center; align-items:center; gap:12px; width:auto; min-height:58px; padding:14px 22px; border:1px solid var(--cd-yehwa-line-deep); border-radius:var(--cd-r-sm); font:700 16px/1.5 "CodeDestinySerifKR", "Batang", serif; text-decoration:none; box-shadow:0 8px 20px -14px var(--cdh-muted); transition:background-color .18s,border-color .18s,transform .18s; }
+#cdHomeFunnel .cdh-scene-button::before { content:""; position:absolute; inset:4px; border:1px solid color-mix(in srgb,var(--cd-yehwa-line) 58%,transparent); border-radius:4px; pointer-events:none; }
+#cdHomeFunnel .cdh-scene-button::after { content:none; }
+#cdHomeFunnel .cdh-scene-button span { font:inherit; }
+.cdh-scene-button svg { width:26px; height:26px; flex:none; fill:none; stroke:var(--cd-yehwa-line-deep); stroke-width:1.35; stroke-linecap:round; stroke-linejoin:round; }
+.cdh-scene-button.cdh-primary svg { stroke:var(--cd-yehwa-line); }
+.cdh-scene-button svg.cdh-scene-button__arrow { width:20px; height:20px; }
+#cdHomeFunnel .cdh-scene-button--catalog { background:var(--cdh-bg); color:var(--cdh-ink); }
+#cdHomeFunnel .cdh-scene-actions a:hover { transform:translateY(-2px); border-color:var(--cdh-gold); }
+#cdHomeFunnel .cdh-scene-actions a:focus-visible { outline:3px solid var(--cdh-accent); outline-offset:4px; }
+#cdHomeFunnel .cdh-scene-copy .cdh-primary { background: var(--cd-cta-primary-bg); color: var(--cd-cta-primary-ink); }
 html.neo-mode #cdHomeFunnel .cdh-scene-copy .cdh-primary { background: var(--cd-cta-primary-bg); color: var(--cd-cta-primary-ink); }
 .cdh-scene-art { position: relative; align-self: end; justify-self: end; width: 100%; max-width: 340px; aspect-ratio: 1; }
 #cdHomeFunnel .cdh-scene-art img { width: 100%; height: auto; aspect-ratio: 1; object-fit: contain; border: 0; box-shadow: none; background: none; }
@@ -655,12 +670,15 @@ html.neo-mode #cdHomeFunnel .cdh-scene-copy .cdh-primary { background: var(--cd-
 #cdHomeFunnel .cdh-search .fortune-gateway__discover { display: block; }
 #cdHomeFunnel .cdh-search .fortune-gateway__search { width: 100%; min-width: 0; }
 @media (max-width: 640px) {
-  .cdh-hero { --cdh-scene-image: url('/images/home/illustrated/yeoni-room-640.webp'); grid-template-columns: 60% 40%; min-height: 246px; margin: 8px 12px 0; padding: 22px 16px; border-radius: var(--cd-r-card, 20px); }
+  .cdh-hero { --cdh-scene-image: url('/images/home/illustrated/yeoni-room-640.webp'); grid-template-columns: minmax(0,1fr); min-height: 440px; margin: 8px 12px 0; padding: 28px 22px 0; border-radius: var(--cd-r-card, 20px); background-position:left center; }
   html.neo-mode .cdh-hero { --cdh-scene-image: url('/images/home/illustrated/yeoni-room-night-640.webp'); }
-  #cdHomeFunnel .cdh-scene-copy h1 { font-size: clamp(19px, 5.2vw, 22px); line-height: 1.45; letter-spacing: -.035em; }
-  #cdHomeFunnel .cdh-scene-lead { margin: 10px 0 18px; font-size: 13px; line-height: 1.5; }
-  #cdHomeFunnel .cdh-scene-copy .cdh-primary { padding: 12px 44px 12px 20px; min-height: var(--cd-btn-h); font-size: 14px; }
-  .cdh-scene-art { width: 130%; max-width: 200px; margin-left: -15%; margin-right: -12px; margin-bottom: -12px; }
+  #cdHomeFunnel .cdh-scene-copy h1 { font-size: clamp(27px, 7vw, 32px); line-height: 1.5; letter-spacing: -.035em; }
+  #cdHomeFunnel .cdh-scene-inscription { margin-bottom:18px; font-size:12px; letter-spacing:.1em; gap:10px; }
+  .cdh-scene-inscription::after { width:28px; }
+  #cdHomeFunnel .cdh-scene-lead { max-width:22em; margin: 16px 0 24px; font-size: 14px; line-height: 1.8; }
+  .cdh-scene-actions { display:grid; gap:12px; max-width:300px; }
+  #cdHomeFunnel .cdh-scene-actions .cdh-scene-button { width:100%; min-height:54px; padding:12px 18px; font-size:15px; }
+  .cdh-scene-art { position:relative; width:170px; max-width:60%; margin-top:8px; margin-bottom:-12px; pointer-events:none; }
   #cdHomeFunnel #cdhQuickSlot { margin: 18px 16px 0; }
   #cdHomeFunnel .cdh-methods h2 { margin-bottom: 10px; font-size: 18px; }
   .cdh-methods-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
