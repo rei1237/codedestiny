@@ -1,9 +1,9 @@
 ---
-status: blocked
+status: done
 date: 2026-10-15
 ---
 
-# 세 서비스 마스터 프로필 — 구현 완료, 전달 차단
+# 세 서비스 마스터 프로필 — 구현 및 전달 검증 완료
 
 ## 재개 위치
 - 작업 디렉터리: `D:\Development\codedestiny-worktrees\master-profiles-20261015-083302`
@@ -38,12 +38,13 @@ date: 2026-10-15
 - `node --test --test-reporter=dot __tests__/ui/luck-sync-diary-planner.static.test.js`: 같은 실패 재현. 105행은 coinCost:50을 기대하지만 `js/core/saju/reportDashboard.js`는 100이다. 두 파일 모두 기준 HEAD 대비 변경 없음. 이 작업에서 정책/테스트를 수정하지 않았다.
 - `npm run check:pre-push`: 최초 sitemap 원장 drift 확인 → `npm run sitemap:generate`로 세 경로만 갱신 → 재실행 통과(레지스트리/미러/사이트맵 959 URL).
 
-## 전달 차단과 다음 행동
-기존 main 커밋 b530a08c9의 공식 PR CI가 이미 실패했다: https://github.com/rei1237/codedestiny/actions/runs/38653682887 (Static guards, CI required 실패). 저장소 지시대로 실패한 main 위에 push하지 않았다. 이 구현은 main에 merge하지 않았고 로컬 워크트리에 보존했다. PR/운영 배포 없음.
-
-1. 현재 main의 공식 CI 및 기존 관계 성향 카드 assertion 해결 여부를 확인한다. 이 작업 범위를 가격 정책 수정으로 확대하지 않는다.
-2. 해결된 main을 작업 브랜치에 반영하고 충돌 시 이 작업 14개 파일 범위만 검토한다. 변경/실패와 관련된 검사와 check:pre-push를 수행한다. 통과한 전체 테스트를 이유 없이 반복하지 않는다.
-3. main 작업 디렉터리의 다른 세션 변경을 확인/보존하고 이 브랜치를 main에 merge한다. 인수인계 status를 done으로 닫고 커밋한 뒤 `git push origin main`한다. 최종 보고 직전에 해당 SHA의 main CI를 한 번 확인한다. CI/staging 반복 폴링 금지.
-4. 전달 완료 후 자기 워크트리의 node_modules 정션을 먼저 해제하고 worktree 및 머지된 wt 브랜치를 제거한다. 기존 다른 작업 파일/워크트리는 건드리지 않는다.
+## 전달 재개 결과
+- 기존 main 실패는 `9e1d72e338376ee497c4eee4d7ea9f49f14224a8`에서 관계 성향 카드 가격 assertion을 현재 정본 100코인에 맞추며 해결됐다.
+- 해당 SHA의 공식 PR CI `38659205350`은 Static guards를 포함한 `CI required`가 성공했다.
+- 최신 `origin/main` `9e1d72e338376ee497c4eee4d7ea9f49f14224a8`을 병합 커밋 `84d87abb1be8ef9d50721aa28beac9d36475da57`로 충돌 없이 반영했다.
+- 기존 실패 단일 테스트 재실행: 11개 통과.
+- `npm run check:fast -- --committed-head`: 통과. Node 3,245개, Jest 397 suites / 6,060 tests, 결제·권한·AI mock·Worker dry-run 포함.
+- 이 작업은 가격 정책을 수정하지 않았고, main의 assertion 복구 커밋만 병합해 검증했다.
+- PR/운영 배포 없음. main 병합·push 후 해당 SHA의 main CI만 최종 확인한다.
 
 현재 mock 개발 서버와 이 작업 검증 프로세스는 종료했다. main의 기존 미추적 `.claude/skills/fire-your-seo-agency/`, `scripts/grant-family-pass.mjs`는 그대로 보존했다.
