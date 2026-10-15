@@ -184,12 +184,12 @@ const baseSukuyoSystemPrompt = [
   "너는 운명 찻집의 숙요점 상담사 연이다.",
   "연이는 두 사람의 숙과 관계성을 통해 인연의 결, 끌림, 거리감, 상처가 생기는 지점, 오래 가기 위한 방식을 읽어준다.",
   "연이는 좋다/나쁘다로 단정하지 않고, 왜 끌리는지, 왜 부딪히는지, 어떻게 조율해야 하는지를 따뜻하고 구체적으로 설명한다.",
-  "상담은 사용자 본명숙, 상대 본명숙, 관계 유형, 거리, 방향별 관계, 오행 조화, 영역 점수, 질문 맥락을 근거로 삼는다.",
+  "상담은 사용자 본명숙, 상대 본명숙, 관계 유형, 거리, 방향별 관계, 석 달 일숙 리듬, 질문 맥락을 근거로 삼는다.",
   "숙요점 용어는 그대로 던지지 않고, 실제 관계에서 어떤 말투·거리·역할·반복 패턴으로 나타나는지 풀어준다.",
 ];
 const sukuyoSafetyRules = [
   "consultationMode가 sukuyo이면 타로, 사주, 점성술, 자미두수 해석을 섞지 않는다.",
-  "전달받은 27숙, 관계 유형, 거리, 방향별 관계, 오행 조화, 영역 점수, 키워드만 사용한다.",
+  "전달받은 27숙, 관계 유형, 거리, 방향별 관계, 키워드, 석 달 일숙 리듬만 사용한다.",
   "사용자 본명숙과 상대 본명숙을 바꾸지 않고, 관계 유형과 거리값을 새로 만들지 않는다.",
   "상대의 속마음, 재회 성사, 결혼 결과, 사업 성공을 확정하지 않는다.",
   "영친은 친밀감·익숙함·보호감과 소홀해지는 문제를 함께 본다.",
@@ -1985,7 +1985,8 @@ const FORTUNE_TEA_SEWOON_YEARS_AHEAD = 5;
 // 사실값·프롬프트 개정 번호. 결정론 캐시(30일)가 이전 근거로 만든 응답을 재생하지 않게 한다.
 // r1: 현재 대운 표시 + 입춘 기준 세운. r2: 절기 월운 석 달. r3: 숙요 석 달 일숙 리듬.
 // r4: 원국·궁합 교차 합충형파해 + 상대 시기 표.
-const FORTUNE_TEA_PROMPT_REV = 4;
+// r5: 숙요 점수·오행 조화 참조 제거, 타로·숙요 오늘 날짜, 카드 주제별 전통 해석, 사주 장 분량 규칙 정리.
+const FORTUNE_TEA_PROMPT_REV = 5;
 
 function buildFortuneTeaTimingFacts(saju, todayKst = kstDate()) {
   const dayGanji = fortuneTeaSajuPillarGanji(saju, "day");
@@ -2223,6 +2224,30 @@ function buildTarotSpreadDigest(cards, spread) {
   };
 }
 
+// 서버가 카드를 뽑을 때 질문 주제(연애·금전·일반)로 고른 전통 해석. JSON이 아니면(예전 클라 초안) 뺀다.
+function tarotTopicMeaning(seed) {
+  let meaning;
+  try {
+    meaning = JSON.parse(seed);
+  } catch {
+    return undefined;
+  }
+  if (!meaning || typeof meaning !== "object") return undefined;
+  const text = (value) => (typeof value === "string" && cleanMultiline(value, 240)) || undefined;
+  const love = meaning.relationship && typeof meaning.relationship === "object" ? meaning.relationship : {};
+  const topic = {
+    psychological: text(meaning.psychologicalMeaning),
+    advice: text(meaning.advice),
+    shadow: text(meaning.shadow),
+    attraction: text(love.attractionSignal),
+    fear: text(love.fearSignal),
+    communication: text(love.communicationPattern),
+    commitment: text(love.commitmentSignal),
+    relationshipAdvice: text(love.advice),
+  };
+  return Object.values(topic).some(Boolean) ? JSON.parse(JSON.stringify(topic)) : undefined;
+}
+
 function buildTarotFactInput(request, fallback, rule) {
   const spread = normalizeTarotSpread(fallback?.tarotSpread || request?.tarotSpread);
   const cards = Array.isArray(fallback?.tarotSpreadCards) && fallback.tarotSpreadCards.length
@@ -2233,6 +2258,8 @@ function buildTarotFactInput(request, fallback, rule) {
   return {
     consultationMode: "tarot",
     question: cleanMultiline(request?.question || fallback?.questionSummary, 700),
+    todayKst: kstDate(),
+    dateRule: "todayKst는 오늘(한국 시각)이다. 7일 플랜처럼 날짜를 세는 조언은 오늘부터 센다. 카드는 특정 날의 사건을 정하지 않으므로 날짜를 단정하지 않는다.",
     category: rule.category,
     concept: rule.concept,
     spread,
@@ -2276,6 +2303,7 @@ function buildTarotFactInput(request, fallback, rule) {
         isCourt: structure.isCourt || undefined,
         keywords: Array.isArray(card.keywords) ? card.keywords.slice(0, 5) : [],
         traditionalMeaning: cleanMultiline(card.meaning, 500),
+        topicMeaning: tarotTopicMeaning(card.topicReadingSeed),
         existingReading: cleanMultiline(card.reading, 500),
       };
     }),
@@ -2371,15 +2399,18 @@ function buildSukuyoFactInput(request, fallback) {
       intensity: cleanText(relationDetail.intensity, 40),
       direction: cleanText(compatibility.direction, 80),
     },
-    scores: compatibility.scores || {},
-    compatibilityIndex: compatibility.compatibilityIndex,
-    elementHarmony: compatibility.elementHarmony || {},
+    // tea-v2 초안은 점수·궁합 지수·오행 조화를 지운다. 빈 객체를 넘기면 채우려 지어내므로 값이 있을 때만 싣는다.
+    ...(compatibility.scores ? { scores: compatibility.scores } : {}),
+    ...(compatibility.compatibilityIndex != null ? { compatibilityIndex: compatibility.compatibilityIndex } : {}),
+    ...(compatibility.elementHarmony ? { elementHarmony: compatibility.elementHarmony } : {}),
     strengths: Array.isArray(compatibility.strengths) ? compatibility.strengths.slice(0, 5) : [],
     cautions: Array.isArray(compatibility.cautions) ? compatibility.cautions.slice(0, 5) : [],
     adviceKeywords: Array.isArray(compatibility.adviceKeywords) ? compatibility.adviceKeywords.slice(0, 6) : [],
     roleGuide: compatibility.roleGuide || {},
     categoryAdviceRule: sukuyoCategoryGuide(`${relationshipType} ${request?.question || ""} ${compatibility.focus || ""}`),
     ...(request?.sukuyo?.monthlyRhythm ? { monthlyRhythm: request.sukuyo.monthlyRhythm } : {}),
+    todayKst: kstDate(),
+    dateRule: "todayKst는 오늘(한국 시각)이다. 날짜를 말할 때는 오늘과 monthlyRhythm에 적힌 날짜만 쓴다.",
     uncertaintyRule: "입력된 숙, 관계 유형, 거리, 방향별 관계 밖의 계산값은 만들지 않는다. 상대 속마음과 관계 결말은 단정하지 않고 조건과 조율 방식으로 말한다.",
   };
 }
@@ -3939,7 +3970,7 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "", 
       : consultationMode === "saju"
         ? `사주 상담만 작성한다. ${sajuRule.category} 카테고리의 관점으로만 쓴다. 상담 컨셉은 "${sajuRule.concept}"이다. 기존 사주 초안, 일간, 월지/계절, 오행, 십성, 천간·지지 관계, 현재 운, 출생정보 안에서 확인되는 흐름만 말하고 타로 카드는 상담 근거로 쓰지 않는다. 우선 해석 렌즈는 ${sajuRule.focus.join(", ")}이다.`
       : consultationMode === "sukuyo"
-        ? "숙요점 궁합 상담만 작성한다. sukuyoFactInput의 사용자 본명숙, 상대 본명숙, 관계 유형, 거리, 방향별 관계, 오행 조화, 영역 점수, 관계 카테고리, 석 달 일숙 리듬(monthlyRhythm)만 근거로 삼고 타로 카드와 사주 오행·십성은 상담 근거로 쓰지 않는다."
+        ? "숙요점 궁합 상담만 작성한다. sukuyoFactInput의 사용자 본명숙, 상대 본명숙, 관계 유형, 거리, 방향별 관계, 관계 카테고리, 석 달 일숙 리듬(monthlyRhythm)만 근거로 삼고 타로 카드와 사주 오행·십성은 상담 근거로 쓰지 않는다."
       : `타로 상담만 작성한다. ${tarotRule.category} 카테고리의 관점으로만 쓴다. 상담 컨셉은 "${tarotRule.concept}"이다. tarotFactInput의 카드명, 정방향/역방향, 전통 의미, 배열법, 위치 의미를 바꾸지 말고 질문 맥락과 연결해 실제 리딩처럼 쓴다. 우선 해석 렌즈는 ${tarotRule.focus.join(", ")}이다.`;
   const bridgeRule =
     isSajuCompat
@@ -4031,7 +4062,7 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "", 
                 ],
             sectionRule: "saju.deepSections는 requiredDeepSections의 제목을 정확히 title로 쓰고, 각 body는 실제 입력값·일간·월지/계절·오행·십성·천간/지지 관계·현재 운의 흐름·질문 중 확인된 근거를 2개 이상 자연스럽게 연결한다.",
             repetitionRule: "같은 조언과 같은 문장을 여러 챕터·필드에서 반복하지 않는다. 구체 행동·금지 행동 목록은 actionPrescription에만, 단계 플랜은 choiceSimulation에만 두고, '찻집의 처방' 챕터는 그 플랜을 손님의 생활 장면으로 풀어내는 서사에 집중한다. 나머지 챕터는 해석과 명리 근거에 집중한다.",
-            sectionLengthRule: "각 deepSection body는 요구 하한을 넘겨 대략 250~350자 안팎으로 쓰되, 분량은 아래 evidenceDistribution의 서로 다른 근거로 채운다. 같은 명식 사실을 여러 챕터에서 되풀이해 길이를 늘리지 않는다.",
+            sectionLengthRule: "각 deepSection body는 그룹 호출이면 groupRule.minimumKoreanChars를 넘기도록, 한 번에 쓰는 호출이면 lengthRule의 전체 분량을 장마다 고르게 나눠 쓰되, 분량은 아래 evidenceDistribution의 서로 다른 근거로 채운다. 같은 명식 사실을 여러 챕터에서 되풀이해 길이를 늘리지 않는다.",
             evidenceDistribution: isSajuCompat
               ? "섹션마다 서로 다른 근거를 나눠 쓴다: '당신의 사주'=selfProfile의 일간·월지/계절·오행·selfProfile.myeongsikFacts 십성 확정표, '상대방의 사주'=partnerProfile의 일간·월지/계절·오행·partnerProfile.myeongsikFacts 십성 확정표, '두 사람의 궁합'=compatRelations(일간 관계·같은 자리 지지끼리의 합충형파해)와 오행 보완·충돌·십성 대조, '미리 알아둘 주의점'=compatRelations의 충·형·파·해·원진과 각자의 natalRelations, '지금 이 시기 관계의 운'=timingFacts(본인)·partnerTimingFacts(상대)의 대운/세운 순풍·역풍, '월별 흐름'=timingFacts.monthlyRows와 partnerTimingFacts.monthlyRows(각자 명식 기준 절기월)의 간지·십성·원국 관계. 본인 근거와 상대 근거를 섞지 않는다."
               : "챕터마다 myeongsikFacts의 서로 다른 근거를 나눠 쓴다: '타고난 결/마음의 물길'=일간·월지/계절·오행·십성 확정표·격국, '잘 풀리는 결'=강하게 드러난 십성과 지장간 투간(성향·재능으로 발현)·용신, '삐걱대는 결'=개고·도충과 sajuFacts.natalRelations, 치우친 오행·기신, '지금 이 시기'=timingFacts의 대운 구간과 세운 연도, '월별 흐름'=timingFacts.monthlyRows의 절기월 간지·stemTenGod·natalRelations. 한 챕터에서 쓴 근거를 다른 챕터에서 그대로 되풀이하지 않는다.",
@@ -4085,6 +4116,7 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "", 
               "정/역방향을 정확히 반영한다. 역방향을 기계적으로 나쁘게 보지 말고 내면화, 지연, 과잉, 재조정 중 어느 결인지 다층적으로 본다.",
               "메이저/마이너 비율, 수트 편중, 코트 카드, 정/역 비율은 spreadDigest에 계산되어 있다 — 스스로 다시 세지 말고 그 값을 그대로 인용해 전체 흐름의 신호로 읽는다.",
               "카드의 숫자(rank)와 원소(element: 완드=불, 컵=물, 소드=공기, 펜타클=흙)는 spreadCards에 적힌 값을 근거로 상호작용을 읽는다. spreadDigest.elementFlow의 원소 흐름도 함께 본다.",
+              "spreadCards[].topicMeaning은 이 질문의 주제로 고른 그 카드의 전통 해석(심리·조언·그림자, 연애면 끌림·두려움·소통·관계 확정 신호)이다. 카드별 해석의 근거로 쓰고, 적히지 않은 의미를 만들지 않는다.",
               "카드들 사이의 이야기를 엮는다. 나열이 아니라 하나의 서사로 — spreadDigest.sequenceRule의 위치 관계와 firstToLast의 변화 방향을 따른다.",
               "확정 예언이 아니라 조건부 흐름으로 말하고, 마지막에는 실제 행동 조언을 준다.",
             ],
@@ -4161,8 +4193,7 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "", 
               "전달받은 관계 유형(영친/안괴/업태/성위/우쇠/명 등)과 relationGuide를 중심 해석 축으로 삼되, 새 관계명이나 거리값을 계산해 만들지 않는다.",
               "typeAToB와 typeBToA는 정본 링 매핑이 정한 두 사람의 '자리'다. 각 자리의 의미(userToPartnerMeaning/partnerToUserMeaning)를 서로 다르게 풀어 양방향 비대칭을 놓치지 않는다.",
               "distanceLabel, distanceTier, shortestDistance에 더해 forwardDistance/reverseDistance의 실제 칸수 차이와 directionalDistanceGuide로 가까워지는 속도와 회복 간격을 해석한다.",
-              "각 숙의 고유 성격과 오행 조화를 두 사람의 기질 조화 근거로 쓴다.",
-              "scores와 elementHarmony는 좋고 나쁨이 아니라 조율 포인트로 쓴다.",
+              "각 숙의 고유 성격(keywords)을 두 사람의 기질 근거로 쓴다. 두 숙 사이의 오행 조화·점수는 입력에 없으므로 만들지 않는다.",
               "달이 각 숙에 머무는 결을 서정적으로 곁들이되, 계산값을 새로 만들지 않는다.",
               "장점, 충돌 지점, 지금 할 행동을 모두 남긴다.",
             ],
@@ -4174,7 +4205,7 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "", 
             fieldStructure: {
               "sukuyoCompatibility.title": "두 사람의 본명숙과 관계 유형이 드러나는 상담 제목.",
               "sukuyoCompatibility.summary": "본명숙, 관계 유형, 거리, 방향별 관계, 질문 카테고리를 3-5문장으로 연결한 핵심 요약. 권장 분량: 200~320자.",
-              "sukuyoCompatibility.strengths": "관계의 장점 3개. 각 문장은 숙, 관계 유형, 거리, 오행 조화, 방향별 관계 중 하나 이상을 근거로 삼는다. 각 항목 권장 분량: 90~140자.",
+              "sukuyoCompatibility.strengths": "관계의 장점 3개. 각 문장은 숙, 관계 유형, 거리, 방향별 관계 중 하나 이상을 근거로 삼는다. 각 항목 권장 분량: 90~140자.",
               "sukuyoCompatibility.cautions": "충돌 포인트 3개. 불안 조장 없이 반복될 수 있는 말투, 거리감, 역할 차이를 짚는다. 각 항목 권장 분량: 90~140자.",
               "synthesis.summary": "전체 관계 흐름. 좋다/나쁘다보다 끌림과 조율 조건을 묶는다. 권장 분량: 180~280자.",
               "synthesis.sajuTarotBridge": "이름과 달라도 숙요점-only 전체 리딩으로 쓴다. 사주와 타로 언급 없이 27숙 인연의 흐름을 정리한다. 권장 분량: 180~280자.",
@@ -4189,11 +4220,11 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "", 
             depthLenses: [
               "두 별의 타고난 성향: 각 본명숙의 고유 기질(성수 상징)이 실제 성향으로 어떻게 드러나는지. (주로 summary·yeoniReading.main이 담당)",
               "방향의 비대칭: 내가 서는 자리(typeAToB)와 상대가 서는 자리(typeBToA), directionalDistanceGuide의 다가감 속도 vs 회복 간격. (주로 yeoniReading.main·synthesis가 담당)",
-              "오행과 수호신 조화: elementHarmony(상생/상극/동류/보완)와 음양·수호신이 만드는 조율의 결. (주로 strengths·synthesis가 담당)",
-              "거리와 타이밍: distanceLabel·계절 흐름이 가리키는 가까워지는 속도와 확인할 시기. (주로 summary·choiceSimulation이 담당)",
+              "역할의 결: roleGuide와 두 숙의 keywords가 만드는 서로의 역할 분담과 기대는 지점. (주로 strengths·synthesis가 담당)",
+              "거리와 타이밍: distanceLabel이 가리키는 가까워지는 속도와, monthlyRhythm이 있으면 그 석 달 리듬이 가리키는 확인할 시기. (주로 summary·choiceSimulation이 담당)",
               "조율과 경계: 반복될 수 있는 충돌과 지켜야 할 선. (주로 cautions·yeoniReading.caution·actionPrescription이 담당)",
             ],
-            depthStrategyRule: "요구 분량은 같은 말을 늘려서가 아니라, 위 depthLenses의 서로 다른 각도를 각기 다른 필드에서 새 근거로 풀어 채운다. 특히 방향 비대칭(directionalDistanceGuide)과 오행 조화(elementHarmony)는 아직 덜 쓰인 근거이니 이를 활용해 깊이를 더한다.",
+            depthStrategyRule: "요구 분량은 같은 말을 늘려서가 아니라, 위 depthLenses의 서로 다른 각도를 각기 다른 필드에서 새 근거로 풀어 채운다. 특히 방향 비대칭(directionalDistanceGuide)과 역할의 결(roleGuide)은 아직 덜 쓰인 근거이니 이를 활용해 깊이를 더한다.",
             relationTypeRule: {
               영친: "친밀감, 익숙함, 보호감, 정서적 연결과 소홀해지는 문제를 함께 쓴다.",
               안괴: "강한 끌림, 불안정성, 상처, 집착, 거리 조절을 말하되 공포스럽게 단정하지 않는다.",
@@ -4249,7 +4280,7 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "", 
           ? "required — { name(heartScentCatalog에 있는 향 이름), category(그 향의 카테고리), reason }"
           : "omit",
         sukuyoCompatibility: consultationMode === "sukuyo"
-          ? "preserve user/partner/calculationBasis/relationDetail/relation/distance/scores/elementHarmony/index fields, improve only title/summary/strengths/cautions/adviceKeywords/chapters. chapters 는 sukuyoQualityRule.requiredChapters 제목 그대로 [{ title, body }] 를 순서대로 쓴다"
+          ? "preserve user/partner/calculationBasis/relationDetail/relation/distance/index fields, improve only title/summary/strengths/cautions/adviceKeywords/chapters. chapters 는 sukuyoQualityRule.requiredChapters 제목 그대로 [{ title, body }] 를 순서대로 쓴다"
           : "omit — 초안 값이 그대로 유지된다",
         emotionAnalysis: "4-5 items with label/value/description/tone",
         yeoniReading: "intro/main/advice/caution",
@@ -6036,6 +6067,7 @@ export const __fortuneTeaHouseTestUtils = {
   buildFallbackSajuDeepSections,
   buildFortuneTeaTimingFacts,
   buildSajuFactInput,
+  buildUserPrompt,
   fortuneTeaRequestHash,
   getSajuRequiredSectionTitles,
   normalizeDraftResult,

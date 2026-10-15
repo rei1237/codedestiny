@@ -92,6 +92,46 @@ describe("숙요 출생 시각 근거", () => {
   });
 });
 
+describe("타로·숙요 프롬프트 근거", () => {
+  const base = { selectedTeaCupId: "cup", selectedTeaCupName: "찻잔", selectedTeaCupTopic: "연애", question: "그 사람에게 지금 연락해도 될까요?", consultationVersion: "tea-v2" };
+
+  test("타로 카드마다 서버가 고른 주제별 전통 해석과 오늘 날짜를 넘긴다", async () => {
+    const { __fortuneTeaHouseTestUtils: utils } = await import("../../worker/routes/fortune-tea-house.js");
+    const { teaDrawCards, teaSpread } = await import("../../lib/fortune-tea-house/tarot-contract.mjs");
+    const { TAROT_CARDS } = await import("../../lib/tarot/tarot-cards.mjs");
+    const request = utils.normalizeRequest({ ...base, consultationMode: "tarot", tarotSpread: "five" });
+    const deck = { order: TAROT_CARDS.map(card => card.code), reversed: TAROT_CARDS.map((_, i) => i % 2 === 1) };
+    const cards = teaDrawCards(teaSpread("yn_contact_first"), deck, [6, 1, 2, 3, 4]);
+    const fallback = utils.normalizeDraftResult({ tarot: cards[0], tarotSpreadCards: cards, tarotSpread: "five" }, request);
+    const facts = JSON.parse(utils.buildUserPrompt(request, fallback)).tarotFactInput;
+    expect(facts.todayKst).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(facts.spreadCards).toHaveLength(5);
+    // 연인 정방향, 연애 배열: 심리·조언·그림자에 연애 신호까지.
+    expect(facts.spreadCards[0]).toMatchObject({ nameKo: "연인", orientation: "upright" });
+    expect(Object.keys(facts.spreadCards[0].topicMeaning)).toEqual(expect.arrayContaining(["psychological", "advice", "shadow", "attraction", "fear", "commitment"]));
+    // 예전 클라 초안처럼 JSON이 아닌 씨앗은 싣지 않는다.
+    const legacy = utils.normalizeDraftResult({ tarot: cards[0], tarotSpreadCards: cards.map(card => ({ ...card, topicReadingSeed: "요약 문장" })), tarotSpread: "five" }, request);
+    expect(JSON.parse(utils.buildUserPrompt(request, legacy)).tarotFactInput.spreadCards[0].topicMeaning).toBeUndefined();
+  });
+
+  test("숙요 프롬프트는 지운 점수·오행 조화를 근거로 요구하지 않는다", async () => {
+    const { __fortuneTeaHouseTestUtils: utils } = await import("../../worker/routes/fortune-tea-house.js");
+    const request = utils.normalizeRequest({ ...base, consultationMode: "sukuyo", sukuyo: { user: { birthDate: "1990-05-05" }, partner: { birthDate: "1992-08-20" } } });
+    const prompt = utils.buildUserPrompt(request, utils.normalizeDraftResult({}, request));
+    expect(prompt).not.toMatch(/elementHarmony|영역 점수|오행 조화\(|"scores"/);
+    expect(JSON.parse(prompt).sukuyoFactInput.todayKst).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  test("사주 장 분량 규칙은 그룹 하한과 어긋나는 고정 글자 수를 두지 않는다", async () => {
+    const { __fortuneTeaHouseTestUtils: utils } = await import("../../worker/routes/fortune-tea-house.js");
+    const { canonicalTeaSaju } = await import("../../worker/lib/tea-saju-facts.js");
+    const request = { ...base, ...birth, gender: "female", consultationMode: "saju" };
+    const prompt = utils.buildUserPrompt(request, utils.normalizeDraftResult({ saju: canonicalTeaSaju(request) }, request));
+    expect(JSON.parse(prompt).sajuQualityRule.sectionLengthRule).toContain("groupRule.minimumKoreanChars");
+    expect(prompt).not.toContain("250~350자");
+  });
+});
+
 describe("명식 관계 근거", () => {
   test("궁합 교차 관계는 같은 자리 지지끼리 계산하고 한쪽 시주가 없으면 시지를 뺀다", async () => {
     const { buildTeaCompatRelations, buildTeaNatalRelations } = await import("../../worker/lib/tea-saju-relations.js");
