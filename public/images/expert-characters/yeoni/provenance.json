@@ -1,0 +1,30 @@
+{
+  "created": "2026-10-15",
+  "reference": "public/images/novel/remaster/yeon/base.webp",
+  "note": "손금 상담의 연이(소설 캐주얼). 모든 새 그림은 기준 이미지를 첨부해 그리고 나란히 비교했다. 찻집 한복 연이·돼지 폼은 쓰지 않는다.",
+  "files": {
+    "hero.webp": {
+      "tool": "Codex image_gen (gpt-image-2) 1536x1024 high",
+      "transform": "extract {left:0,top:24,width:1536,height:864} → webp q88",
+      "scene": "봄 정원 창가 탁자, 펼친 손바닥을 검지로 짚는 16:9 키아트"
+    },
+    "hero-portrait.webp": {
+      "tool": "Codex image_gen (gpt-image-2) 1024x1536 high",
+      "transform": "extract {left:0,top:60,width:1024,height:1280} → resize 864x1080 → webp q88",
+      "scene": "장미 퍼걸러 정원, 손바닥을 들여다보는 4:5 키아트"
+    },
+    "shooting-guide.webp": {
+      "tool": "Codex image_gen (gpt-image-2) 1024x1024 high",
+      "transform": "resize 720x720 → webp q88",
+      "scene": "아이보리 바탕, 손바닥을 카메라 쪽으로 펴 보이는 촬영 가이드 스팟"
+    },
+    "base.webp, smile.webp, sideL.webp, right.webp, left.webp, sideR.webp": {
+      "tool": "novel/remaster/yeon 같은 이름 스프라이트 재사용",
+      "transform": "몸통 아래 라벨 잔여물 제거, 384x452 캔버스에 바닥 정렬·가로 가운데 → webp q90"
+    },
+    "talk-a.webp, talk-b.webp": {
+      "tool": "Codex image_gen 얼굴 크롭 편집(입만 벌림) — base 의 {left:81,top:142,128x128} 크롭을 1024로 키워 첨부",
+      "transform": "128로 줄여 정렬 오프셋 0 확인, 입 둘레 페더 타원만 base 에 합성 → base 와 같은 캔버스·머리 위치 → 위와 같은 정렬"
+    }
+  }
+}

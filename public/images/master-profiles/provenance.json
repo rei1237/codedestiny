@@ -32,5 +32,14 @@
     "promptSummary": "Reference used for face and hair only. Dignified mid-teen boy, hood down, no crow cloak; modest fully covered charcoal scholar robe with ash-grey and gold star embroidery. Ability-focused: golden feather held like a conductor's baton lighting the twelve palace lanterns. Front/back full body, composed/verdict/warm-smile expressions. Labels: 무성 / 막힌 별을 녹으로 바꾸는 판결 / 자미두수 / 막힌 자리를 짚고, 풀어 갈 행동을 처방합니다. Neutral poses, no romance or fanservice, no ages, brands or credentials.",
     "portraitCrop": { "left": 48, "top": 45, "width": 455, "height": 680 }
   },
+  "yeoniPalm": {
+    "created": "2026-10-15",
+    "files": ["yeoni-palm-profile.webp", "yeoni-palm-portrait.webp"],
+    "generationTool": "Codex CLI built-in image_gen (gpt-image-2), 1536x1024, quality high",
+    "references": ["public/images/novel/remaster/yeon/base.webp"],
+    "promptSummary": "Novel casual Yeoni for palm reading, not the teahouse hanbok version or the pig form. Preserve face, rosy pink-brown eyes, long wavy pastel-pink hair, flower hair ornament with gold beads on the viewer's right, dangling gold earrings, layered thin necklaces, cream blouse with rose and mauve floral print, brown shoulder bag. Light ivory/blush sheet: sunlit garden-window portrait raising an open palm, front/back full body in a beige long skirt, gentle/thoughtful/warm expressions, garden table with a palm sketch notebook. Labels: 연이 / 손바닥 선을 함께 들여다보는 손금 상담가 / 손금 / 사진 속 선을 하나씩 짚고, 조심스럽게 풀어 드려요. No ages, brands or credentials.",
+    "portraitCrop": { "left": 20, "top": 20, "width": 520, "height": 624 },
+    "comparedWithReference": "Checked side by side with yeon/base.webp: hair, ornament side, earrings, necklaces, blouse print and bag strap match."
+  },
   "encoding": { "sheetWebpQuality": 90, "portraitWebpQuality": 87, "portraitWidth": 600, "portraitHeight": 720, "portraitFit": "cover", "portraitPosition": "top" }
 }
