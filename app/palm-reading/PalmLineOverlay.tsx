@@ -27,6 +27,7 @@ const PALM_LINE_OVERLAY_TEXT_TRANSLATIONS = {
     aiDetected: "전문가가 인식한 주요 흐름",
     symbolic: "상징적 안내선",
     symbolicNote: "현재 라인은 정밀 좌표가 아닌 상징적 안내선입니다. 정밀 인식 결과가 없을 때 흐름 이해를 돕기 위한 시각화입니다.",
+    undetectedNote: "점선은 이번 사진에서 판독되지 않은 선이에요. 자리만 짐작해 보여 주는 안내선입니다.",
   },
   en: {
     labels: { lifeLine: "Life line", headLine: "Head line", heartLine: "Heart line", fateLine: "Fate line" },
@@ -35,6 +36,7 @@ const PALM_LINE_OVERLAY_TEXT_TRANSLATIONS = {
     aiDetected: "AI-detected major lines",
     symbolic: "Symbolic guide lines",
     symbolicNote: "These lines are symbolic guides rather than precise coordinates. They help visualize the flow when detailed recognition data is unavailable.",
+    undetectedNote: "Dashed lines were not read in this photo. They only suggest where the line would be.",
   },
   ja: {
     labels: { lifeLine: "生命線", headLine: "頭脳線", heartLine: "感情線", fateLine: "運命線" },
@@ -43,6 +45,7 @@ const PALM_LINE_OVERLAY_TEXT_TRANSLATIONS = {
     aiDetected: "AIが認識した主要な流れ",
     symbolic: "象徴的なガイド線",
     symbolicNote: "現在の線は精密座標ではなく象徴的なガイド線です。精密認識結果がないときに流れを理解しやすくするための表示です。",
+    undetectedNote: "点線はこの写真で読み取れなかった線です。位置の目安として表示しています。",
   },
   "zh-CN": {
     labels: { lifeLine: "生命线", headLine: "智慧线", heartLine: "感情线", fateLine: "命运线" },
@@ -51,6 +54,7 @@ const PALM_LINE_OVERLAY_TEXT_TRANSLATIONS = {
     aiDetected: "AI 识别的主要纹路",
     symbolic: "象征性引导线",
     symbolicNote: "当前线条并非精确坐标,而是象征性引导线,用于在没有精确识别结果时帮助理解纹路走向。",
+    undetectedNote: "虚线是这张照片中未能判读的纹线,仅作为位置参考。",
   },
   "zh-TW": {
     labels: { lifeLine: "生命線", headLine: "智慧線", heartLine: "感情線", fateLine: "命運線" },
@@ -59,6 +63,7 @@ const PALM_LINE_OVERLAY_TEXT_TRANSLATIONS = {
     aiDetected: "AI 辨識的主要紋路",
     symbolic: "象徵性引導線",
     symbolicNote: "目前線條並非精確座標,而是象徵性引導線,用於在沒有精確辨識結果時幫助理解紋路走向。",
+    undetectedNote: "虛線是這張照片中未能判讀的紋線,僅作為位置參考。",
   },
 } as const;
 
@@ -85,6 +90,7 @@ export default function PalmLineOverlay({
   imageUrl,
   imageAlt,
   pathMap,
+  undetectedLines,
   activeLine,
   immersive,
   onSelectLine,
@@ -92,6 +98,8 @@ export default function PalmLineOverlay({
   imageUrl: string | null;
   imageAlt: string;
   pathMap?: OverlayPathMap | null;
+  /** 판독이 detected:false 라 한 선. 점선·옅게 그린다. */
+  undetectedLines?: OverlayLineKey[];
   activeLine: OverlayLineKey | null;
   immersive?: boolean;
   onSelectLine: (line: OverlayLineKey) => void;
@@ -162,6 +170,7 @@ export default function PalmLineOverlay({
         >
           {LINE_META.map((line) => {
             const isActive = activeLine === line.key || hoverLine === line.key;
+            const undetected = undetectedLines?.includes(line.key) ?? false;
             return (
               <g key={line.key}>
                 <path
@@ -171,9 +180,12 @@ export default function PalmLineOverlay({
                   strokeWidth={isActive ? 2.3 : 1.6}
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  opacity={isActive ? 0.98 : 0.88}
+                  strokeDasharray={undetected ? "2.4 2.6" : undefined}
+                  opacity={undetected ? (isActive ? 0.72 : 0.5) : isActive ? 0.98 : 0.88}
                   style={{
-                    filter: isActive
+                    filter: undetected
+                      ? "none"
+                      : isActive
                       ? `drop-shadow(0 0 8px ${line.glow}) drop-shadow(0 0 14px ${line.glow})`
                       : `drop-shadow(0 0 5px ${line.glow})`,
                     transition: "all 200ms ease",
@@ -218,6 +230,12 @@ export default function PalmLineOverlay({
           );
         })}
       </div>
+
+      {undetectedLines?.length ? (
+        <p className="border-t border-[#d8bf72]/25 px-3 py-2 text-[11px] leading-5 text-[#f5eccc]/80 md:px-4 md:text-xs">
+          {copy.undetectedNote}
+        </p>
+      ) : null}
 
       {!hasPreciseCoordinates ? (
         <p className="border-t border-[#d8bf72]/25 px-3 py-2 text-[11px] leading-5 text-[#f5eccc]/80 md:px-4 md:text-xs">

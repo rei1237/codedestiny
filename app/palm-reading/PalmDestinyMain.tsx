@@ -1769,6 +1769,11 @@ export default function PalmDestinyMain() {
 
   const activeOverlayPaths: OverlayPathMap =
     (analysisResult?.overlayPathsBySide?.[overlaySide] as OverlayPathMap | null) || analysisResult?.overlayPaths || {};
+  // 오버레이 선은 사진 픽셀을 샘플링해 그리므로, 판독이 "확인 안 됨"이라 한 선도 그려질 수 있다.
+  // 그런 선은 점선으로 구분해 판독된 선처럼 보이지 않게 한다.
+  const undetectedOverlayLines: OverlayLineKey[] = activeHandReading
+    ? (["lifeLine", "headLine", "heartLine", "fateLine"] as const).filter((key) => activeHandReading.majorLines[key]?.detected === false)
+    : [];
 
   const hasCoordinatePaths = Boolean(
     analysisResult &&
@@ -3413,6 +3418,7 @@ export default function PalmDestinyMain() {
                       imageUrl={overlayImageUrl}
                       imageAlt={overlayImageAlt}
                       pathMap={activeOverlayPaths}
+                      undetectedLines={undetectedOverlayLines}
                       activeLine={activeCardKey in LINE_TO_CARD_KEY ? (activeCardKey as OverlayLineKey) : null}
                       immersive={isImmersiveView}
                       onSelectLine={handleOverlayLineSelect}
