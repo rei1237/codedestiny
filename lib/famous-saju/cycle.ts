@@ -6,4 +6,3 @@ export const ILJU = Array.from({ length: 60 }, (_, i) => ({
   name: STEMS[i % 10] + BRANCHES[i % 12], stem: STEMS[i % 10],
   slug: `cycle-${String(i + 1).padStart(2, '0')}`, image: STEM_ASSETS[i % 10],
 }));
-
