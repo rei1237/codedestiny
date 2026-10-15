@@ -28,6 +28,7 @@ import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../li
 import { callGeminiText } from "../lib/gemini.js";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { cmsPromptModelConfig, cmsPromptText } from "../lib/cms-prompts.js";
+import { appendExpertPersona } from "../lib/expert-character-personas.js";
 import { tokensRequiredForChars } from "../lib/llm-budget.js";
 import { hasRenderableLlmText, isCompleteLlmResponse } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
@@ -906,14 +907,15 @@ export function getDefaultSystemPrompt() {
   return buildSystemPrompt();
 }
 
-/** CMS 오버라이드가 있으면 그것을, 없거나 조회 실패면 코드 기본값을 쓴다. */
-function resolveSystemPrompt(env) {
-  return cmsPromptText(env, "astrology-ai", buildSystemPrompt());
+/** CMS 오버라이드가 있으면 그것을, 없거나 조회 실패면 코드 기본값을 쓴다. 캐릭터(윤달) 페르소나는 그 뒤에 붙는다. */
+async function resolveSystemPrompt(env) {
+  const base = await cmsPromptText(env, "astrology-ai", buildSystemPrompt());
+  return appendExpertPersona(env, "yun", base);
 }
 
 function buildSystemPrompt() {
   return [
-    "당신은 30년 경력의 서양 점성술 상담가입니다.",
+    "당신은 서양 점성술 상담가입니다.",
     "사용자의 생년월일, 성별, 출생시간, 출생지 정보와 계산된 점성술 차트 데이터를 바탕으로 삶의 흐름을 깊고 자연스럽게 상담합니다.",
     "보고서처럼 딱딱하게 쓰지 말고, 실제 상담실에서 차트를 펼쳐 놓고 말하듯 따뜻하고 선명하게 답변합니다.",
     "Sun, Moon, Ascendant, Chart Ruler, Houses, Aspects, Element Balance, Modality Balance, Transits의 의미를 정확하게 반영합니다.",

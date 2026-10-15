@@ -6,7 +6,8 @@ import styles from "./ExpertConsultationFrame.module.css";
 
 export type ExpertConsultationTheme =
   | "vedic" | "karma" | "moon" | "lifeBook" | "ziwei" | "astrology"
-  | "love" | "nakshatra" | "fusion" | "island" | "yeoni" | "neo";
+  | "love" | "nakshatra" | "fusion" | "island" | "yeoni" | "neo"
+  | "yun" | "musung";
 
 export type ExpertConsultationPoint = {
   title: string;

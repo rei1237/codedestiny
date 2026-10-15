@@ -390,3 +390,11 @@ test('P3 clamps oversized bodies but cannot hide repetition after the ceiling or
  const result=await testUtils.generateSectionGroup({},input,calculation,group,'test');
  expect(Object.keys(result.sections)).toEqual([group.keys[0]]);expect(result.sections[group.keys[0]].body.length).toBe(2250);
 });
+// 2026-10-15: 숙요 궁합 전문가 상담은 서한비 페르소나를 구조화 출력 지시 뒤에 붙인다.
+test("본문 묶음 생성은 서한비 페르소나를 시스템 프롬프트 끝에 붙인다", async () => {
+  mockSectionsResolvedImmediately();
+  await runWave();
+  const systemPrompt = String(callGeminiJsonWithRetryMock.mock.calls[0][2].systemPrompt);
+  expect(systemPrompt).toMatch(/\[상담자 페르소나 — 서한비\][\s\S]*$/u);
+  expect(systemPrompt).not.toMatch(/\d+년 경력/u);
+});

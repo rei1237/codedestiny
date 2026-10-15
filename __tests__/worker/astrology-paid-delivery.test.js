@@ -245,3 +245,13 @@ it("calculates transits at the start of each of the next four quarters", async (
   const prompt = String(provider.mock.calls[0][1]);
   expect((prompt.match(/"quarter":[1-4]/gu) || [])).toHaveLength(4);
 });
+// 2026-10-15: 점성술 전문가 상담은 윤달 페르소나를 시스템 프롬프트 끝에 붙인다(섹션 지시는 그대로).
+it("sends the Yundal persona at the end of every section's system prompt", async () => {
+  await start();
+  const systemPrompts = provider.mock.calls.map(([, , options]) => String(options.systemPrompt));
+  expect(systemPrompts.length).toBeGreaterThan(0);
+  for (const prompt of systemPrompts) {
+    expect(prompt).toMatch(/\[상담자 페르소나 — 윤달\][\s\S]*$/u);
+    expect(prompt).not.toMatch(/\d+년 경력/u);
+  }
+});

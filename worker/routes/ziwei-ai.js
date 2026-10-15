@@ -12,6 +12,7 @@ import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 import { cmsPromptModelConfig, cmsPromptText } from "../lib/cms-prompts.js";
+import { appendExpertPersona } from "../lib/expert-character-personas.js";
 import { tokensRequiredForChars } from "../lib/llm-budget.js";
 import { MonthlyCreditLedger, Payment, PointHistory, PaidExecutionRecord, User, ZiweiAiConsultation } from "../lib/models.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
@@ -1041,14 +1042,15 @@ export function getDefaultSystemPrompt() {
   return buildSystemPrompt();
 }
 
-/** CMS 오버라이드가 있으면 그것을, 없거나 조회 실패면 코드 기본값을 쓴다. */
-function resolveSystemPrompt(env) {
-  return cmsPromptText(env, "ziwei-ai", buildSystemPrompt());
+/** CMS 오버라이드가 있으면 그것을, 없거나 조회 실패면 코드 기본값을 쓴다. 캐릭터(무성) 페르소나는 그 뒤에 붙는다. */
+async function resolveSystemPrompt(env, locale = "ko") {
+  const base = await cmsPromptText(env, "ziwei-ai", buildSystemPrompt());
+  return appendExpertPersona(env, "musung", base, { locale });
 }
 
 function buildSystemPrompt() {
   return [
-    "당신은 30년 경력의 자미두수(紫微斗數) 명인입니다. 눈앞에 앉은 사람의 명반을 손끝으로 짚어 가며, 따뜻하지만 정확하게 짚어 주는 현역 상담가처럼 답합니다.",
+    "당신은 자미두수(紫微斗數) 상담가입니다. 눈앞에 앉은 사람의 명반을 손끝으로 짚어 가며, 따뜻하지만 정확하게 짚어 주는 현역 상담가처럼 답합니다.",
     "",
     "대만·홍콩 정통 파계를 기반으로 하되, 현대인의 삶에 실용적으로 적용하는 심화 독법으로 상담합니다.",
     "정확도는 계산된 명반 데이터에 둡니다. 없는 별, 없는 궁, 확인되지 않은 사건은 만들지 말고, 근거가 약한 부분은 부드러운 가능성으로 말합니다.",
@@ -1669,7 +1671,7 @@ async function generateConsultationText(env, prompt, options = {}) {
   // callGeminiJsonWithRetry 가 잘림 재시도를 하므로 한 그룹이 timeout×attempts 를 쓸 수 있기 때문이다.
   const ziweiTimeoutMs = clampSyncLlmTimeoutMs(Number(options.timeoutMs) || Number(env?.ZIWEI_AI_TIMEOUT_MS) || 240000);
   const ziweiCallOptions = {
-    systemPrompt: await resolveSystemPrompt(env),
+    systemPrompt: await resolveSystemPrompt(env, options.locale),
     taskType: "fortune",
     // 호출부가 CMS 오버라이드(클램프 후)를 넘기면 그 값을 쓴다. follow-up 처럼 안 넘기면 기본값.
     temperature: options.temperature ?? 0.72,
@@ -1729,7 +1731,7 @@ async function generateConsultationText(env, prompt, options = {}) {
     "",
     text,
   ].filter(Boolean).join("\n"), {
-    systemPrompt: await resolveSystemPrompt(env),
+    systemPrompt: await resolveSystemPrompt(env, options.locale),
     taskType: "fortune",
     // 금칙어 재작성 웨이브는 본 생성보다 뜨겁지 않아야 한다 — 오버라이드가 낮게 내려와도 그 관계를 지킨다.
     temperature: Math.min(ziweiCallOptions.temperature, 0.58),
@@ -1872,7 +1874,7 @@ async function generateCheckpointedZiwei(env, { input, chart, logContext, checkp
         ...(repairIds.includes(group.id) ? describeZiweiGroundingIssues(grounding.issues, chart) : []),
         ...(repairing ? [`직전 본문은 공백 제외 ${countPaidReportBodyChars(ziweiSectionBody(groups[group.id]))}자입니다. 같은 문장 반복 없이 계산 근거와 행동 조언을 보강해 완결된 JSON으로 다시 작성하세요.`] : []),
       ].join("\n"), {
-        systemPrompt: await resolveSystemPrompt(env), taskType: "fortune", responseMimeType: "application/json",
+        systemPrompt: await resolveSystemPrompt(env, input.locale), taskType: "fortune", responseMimeType: "application/json",
         responseSchema: jsonSchemaFromExample({ sections: buildSectionSchemaFor(group.sections) }),
         temperature: config.temperature ?? 0.72, attempts: 1, timeoutMs: 45000,
         baseTokens: Math.max(SECTION_GROUP_TARGET_TOKENS, Math.floor(Number(config.maxOutputTokens || INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS) / SECTION_GROUP_SPECS.length)),
@@ -1917,7 +1919,7 @@ async function generateCheckpointedZiwei(env, { input, chart, logContext, checkp
     attempts.meta = 1;
     await checkpoint({ groups, attempts, meta, rawResponses });
     const generated = await callGeminiJsonWithRetry(env, buildMetaPrompt(input, chart), {
-      systemPrompt: await resolveSystemPrompt(env), attempts: 1, timeoutMs: 45000,
+      systemPrompt: await resolveSystemPrompt(env, input.locale), attempts: 1, timeoutMs: 45000,
       baseTokens: 2600, capTokens: 2600, fallbackToWorkersAI: false,
       responseMimeType: "application/json", responseSchema: jsonSchemaFromExample({ meta: buildMetaOutputExample(input).meta }), logContext: { ...logContext, sectionGroup: "meta" },
     }).catch(() => null); // Optional meta failure keeps the saved body deliverable.
@@ -1974,6 +1976,7 @@ async function generateInitialConsultation(env, { input, chart, logContext = {},
       fallbackMinChars: groupMinChars,
       renderableMinChars: groupMinChars,
       cacheKeyExtra: group.id,
+      locale: input.locale,
       logContext: { ...logContext, sectionGroup: group.id },
     });
   };
@@ -1991,6 +1994,7 @@ async function generateInitialConsultation(env, { input, chart, logContext = {},
       renderableMinChars: 120,
       responseSchema: jsonSchemaFromExample({ meta: buildMetaOutputExample(input).meta }),
       cacheKeyExtra: "meta",
+      locale: input.locale,
       logContext: { ...logContext, sectionGroup: "meta" },
     }),
     ...SECTION_GROUP_SPECS.map((group) => runGroup(group)),
