@@ -91,10 +91,10 @@ const SERVICE_SECTION_DEFINITIONS = [
       { href: "/neo-operation-room", fallbackTitle: "네오 전략실", fallbackDesc: "네오와 짜는 실행 전략 상담" },
       { href: "/palm-reading", fallbackTitle: "손금 리딩", fallbackDesc: "손바닥 선으로 읽는 기질과 흐름" },
       { href: "/saju-guardian", fallbackTitle: "사주 수호신", fallbackDesc: "십성으로 찾는 나의 수호신" },
-      { href: "/ziwei-ai", fallbackTitle: "자미두수 전문가 상담", fallbackDesc: "명반 기반 1:1 심층 상담" },
-      { href: "/astrology-ai", fallbackTitle: "점성술 전문가 상담", fallbackDesc: "출생 차트 기반 1:1 상담" },
+      { href: "/ziwei-ai", fallbackTitle: "자미두수 전문가 상담", fallbackDesc: "무성과 막힌 별을 푸는 명반 상담" },
+      { href: "/astrology-ai", fallbackTitle: "점성술 전문가 상담", fallbackDesc: "윤달과 생시부터 읽는 출생 차트 상담" },
       { href: "/vedic-ai", fallbackTitle: "베다 점성술 전문가 상담", fallbackDesc: "다샤·나크샤트라 심층 상담" },
-      { href: "/sukuyo-compatibility-ai", fallbackTitle: "숙요 궁합 전문가 상담", fallbackDesc: "27수 기반 관계 상담" },
+      { href: "/sukuyo-compatibility-ai", fallbackTitle: "숙요 궁합 전문가 상담", fallbackDesc: "서한비와 두 사람의 거리를 재는 궁합 상담" },
     ],
   },
 ];
