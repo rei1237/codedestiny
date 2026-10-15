@@ -74,7 +74,7 @@ test('상대 호칭은 정제되고 알 수 없는 필드와 생년월일은 버
   const body = { ...sample(), partnerName: '  <b>하늘</b>"\n{}  ', birthDate: '1990-01-01', extra: 1 };
   const input = normalizeSajuCompatInput(body);
   assert.equal(input.partnerName, 'b하늘b');
-  assert.deepEqual(Object.keys(input).sort(), ['compatType', 'facts', 'partner', 'partnerName', 'self']);
+  assert.deepEqual(Object.keys(input).sort(), ['compatType', 'facts', 'partner', 'partnerName', 'promptVersion', 'schemaVersion', 'self']);
   assert.equal(normalizeSajuCompatInput({ ...sample(), partnerName: '' }).partnerName, '상대방');
 });
 

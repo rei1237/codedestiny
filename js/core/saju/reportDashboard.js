@@ -169,8 +169,8 @@ var REPORT_CARDS = [
   // rpt-v2-section-undefined 가 두 번 나온다.
   { id:'legacyLuckSyncDiary', thumb:'luck-sync-diary-v2.webp', label:'운기 다이어리 (이전 버전)', desc:'사주 원국과 동기화된 이전 버전 기록 화면입니다.', note:'새 다이어리로 옮기기 전 쓰던 기록을 확인합니다.', cta:'이전 버전 열기', accent:'#a78bfa', glow:'rgba(167,139,250,.5)', target:'legacyLuckSyncDiary', action:'openLegacyLuckSyncDiary', coinCost:0, badge:'기록 도구' },
   { id:'4CUT',       thumb:'사주 네컷.webp', label:_reportDashboardText("rd.label.012"),   desc:'사주 데이터를 인생네컷 감성으로 재해석해 한 장에 담아보세요.', note:'네 컷 해석은 종합 사주풀이 안에서 확인할 수 있습니다.', cta:_reportDashboardText("rd.cta.015"),            accent:'#f97316', glow:'rgba(249,115,22,.45)',  target:'sajuFourCutCard', lockKey:'section_summary', coinCost:300   },
-  { id:'relationshipTemptation', thumb:'saju-relationship-temptation-768.webp', label:'그 사람의 바람끼는?', shortTitle:'그 사람의 바람끼는?', desc:'대상자의 생년 정보로 관계 경계와 외부 자극에 흔들릴 수 있는 경향을 살펴봅니다.', note:'도화 하나로 단정하지 않고 계산된 사주 근거와 현실적인 관계 기준을 함께 읽어드려요.', cta:'관계 성향 확인하기', accent:'#b31955', glow:'rgba(179,25,85,.38)', target:'relationshipBoundaryTestEntry', coinCost:50, selfGated:true, badge:'NEW' },
-  { id:'dopamine',   thumb:'도파민 중독.webp', label:_reportDashboardText("rd.label.018"), shortTitle:'도파민 중독 테스트', desc:'새로운 자극을 쫓는 타입인지, 안정을 더 사랑하는 타입인지 확인해보세요.', note:'자극 지수와 등급, 자극 레이더 8축은 종합 사주풀이 안에서 확인합니다.', cta:_reportDashboardText("rd.cta.017"), accent:'#e879f9', glow:'rgba(232,121,249,.5)', target:'dopamineCard', lockKey:'section_summary', coinCost:300, badge:'잠금' },
+  { id:'relationshipTemptation', thumb:'saju-relationship-temptation-768.webp', label:'그 사람의 바람끼는?', shortTitle:'그 사람의 바람끼는?', desc:'상대의 관계 성향을 살펴보고, 본인 정보를 더하면 두 사람의 연애 궁합까지 읽습니다.', note:'도화 하나로 단정하지 않고 계산된 사주 근거와 현실적인 관계 기준을 함께 읽어드려요.', cta:'관계 성향·궁합 확인하기', accent:'#b31955', glow:'rgba(179,25,85,.38)', target:'relationshipBoundaryTestEntry', coinCost:100, selfGated:true, badge:'NEW' },
+  { id:'dopamine',   thumb:'도파민 중독.webp', label:_reportDashboardText("rd.label.018"), shortTitle:'도파민·집중력과 공부법', desc:'자극에 끌리는 성향부터 집중 환경과 공부법까지, 오행과 사주 원국으로 읽어보세요.', note:'자극 지수와 등급, 자극 레이더 8축은 종합 사주풀이 안에서 확인합니다.', cta:_reportDashboardText("rd.cta.017"), accent:'#e879f9', glow:'rgba(232,121,249,.5)', target:'dopamineCard', lockKey:'section_summary', coinCost:300, badge:'잠금' },
   { id:'secretHouse', thumb:'시크릿 하우스.webp', label:_reportDashboardText("rd.label.013"), desc:'선택형 사주 연애 리얼리티로 엔딩 루트를 체험해보세요.', note:'일간과 선택이 만나는 다중 엔딩 이야기입니다. 엔딩 문구와 링크를 공유할 수 있어요.', cta:_reportDashboardText("rd.cta.016"), accent:'#f43f5e', glow:'rgba(244,63,94,.45)', target:'secretHouseEntryCard', action:'openSecretHouseRoute', coinCost:50 },
   { id: SAJU_ANIMAL_TEST_FEATURE.id, thumb: SAJU_ANIMAL_TEST_FEATURE.thumb, label: SAJU_ANIMAL_TEST_FEATURE.title, shortTitle: SAJU_ANIMAL_TEST_FEATURE.shortTitle, desc: SAJU_ANIMAL_TEST_FEATURE.description, note:'열두 운성의 기세를 동물 캐릭터로 매핑해 "왜 이 관계에서 힘든지"와 "지금 바로 써먹을 한 줄 행동"까지 재밌고 현실적으로 제시합니다.', cta: SAJU_ANIMAL_TEST_FEATURE.cta, accent:'#f59e0b', glow:'rgba(245,158,11,.45)', target: SAJU_ANIMAL_TEST_FEATURE.target, action: SAJU_ANIMAL_TEST_FEATURE.action, lockKey: SAJU_ANIMAL_TEST_FEATURE.lockKey, coinCost: SAJU_ANIMAL_TEST_FEATURE.coinCost, badge: SAJU_ANIMAL_TEST_FEATURE.badge, tags: SAJU_ANIMAL_TEST_FEATURE.tags, group: SAJU_ANIMAL_TEST_FEATURE.group },
   { id: DESTINY_MEETING_PLACE_FEATURE.id, thumb: DESTINY_MEETING_PLACE_FEATURE.thumb, label: DESTINY_MEETING_PLACE_FEATURE.title, shortTitle: DESTINY_MEETING_PLACE_FEATURE.shortTitle, desc: DESTINY_MEETING_PLACE_FEATURE.description, note:'이 페이지 단독으로 생년월일 입력부터 분석까지 실행하며, 인연 장소 TOP5·국가/도시·만남 타이밍·아이템·실천 플랜을 한 번에 제시합니다.', cta: DESTINY_MEETING_PLACE_FEATURE.cta, accent:'#c084fc', glow:'rgba(192,132,252,.45)', target: DESTINY_MEETING_PLACE_FEATURE.target, action: DESTINY_MEETING_PLACE_FEATURE.action, lockKey: DESTINY_MEETING_PLACE_FEATURE.lockKey, coinCost: DESTINY_MEETING_PLACE_FEATURE.coinCost, mainLock: DESTINY_MEETING_PLACE_FEATURE.mainLock, selfGated: DESTINY_MEETING_PLACE_FEATURE.selfGated, badge: DESTINY_MEETING_PLACE_FEATURE.badge, tags: DESTINY_MEETING_PLACE_FEATURE.tags, group: DESTINY_MEETING_PLACE_FEATURE.group },
@@ -382,6 +382,21 @@ window.openLoveSimulationRoute = function() {
 // relationshipTemptationAnalysis.js 가 다시 렌더되어 새 결제·LLM 흐름을 우회한다.
 window.openRelationshipBoundaryTestRoute = function() {
   var target = '/relationship-boundary-test/';
+  try {
+    var profile = _sajuFunGetCurrentProfile();
+    var b = profile && profile.birth;
+    if (b && b.year && b.month && b.day) {
+      var pad = function(n) { return String(n).padStart(2, '0'); };
+      sessionStorage.setItem('cd:relationship-self-prefill', JSON.stringify({ createdAt: Date.now(), info: {
+        gender: profile.gender === 'female' || b.gender === 'female' ? 'female' : profile.gender === 'male' || b.gender === 'male' ? 'male' : '',
+        birthDate: b.year + '-' + pad(b.month) + '-' + pad(b.day),
+        birthTime: b.hour == null ? '' : pad(b.hour) + ':' + pad(b.minute || 0),
+        birthTimeUnknown: b.unknownHour === true || b.timeUnknown === true || b.hour == null,
+        calendarType: b.calendarType === 'lunar' || b.calendarType === 'lunar_leap' ? 'lunar' : 'solar',
+        isLeapMonth: b.isLeapMonth === true || b.calendarType === 'lunar_leap'
+      } }));
+    }
+  } catch (prefillError) {}
   try {
     window.location.assign(target);
   } catch (e) {
@@ -1418,8 +1433,8 @@ function renderReportDashboard() {
       var rawThumb = String(img.thumb || (img.id + '.webp'));
       var thumbSrc = '/fuctionassets/' + encodeURIComponent(rawThumb).replace(/%2F/g, '/');
       var tileWonPrice = (Number(b.coinCost || 0) * 100).toLocaleString('ko-KR') + '원';
-      var tilePriceText = (b.coinCost > 0) ? (b.mainLock === false ? ('1회 ' + tileWonPrice) : ('🔒 ' + tileWonPrice + ' · 잠금 콘텐츠')) : '무료';
-      var tilePriceClass = (b.coinCost > 0) ? (b.mainLock === false ? 'rpt-v2-price-badge is-per-use' : 'rpt-v2-price-badge') : 'rpt-v2-price-badge is-free';
+      var tilePriceText = (b.coinCost > 0) ? ((b.mainLock === false || b.selfGated) ? ('1회 ' + tileWonPrice) : ('🔒 ' + tileWonPrice + ' · 잠금 콘텐츠')) : '무료';
+      var tilePriceClass = (b.coinCost > 0) ? ((b.mainLock === false || b.selfGated) ? 'rpt-v2-price-badge is-per-use' : 'rpt-v2-price-badge') : 'rpt-v2-price-badge is-free';
       gridHtml += '<button type="button" class="rpt-v2-img-wrap" data-rpt-preview-src="' + thumbSrc + '" data-rpt-preview-title="' + img.label + '" aria-label="' + img.label + ' 이미지 크게 보기">';
       gridHtml += '<img class="rpt-v2-img" src="' + thumbSrc + '" alt="' + img.label + '" loading="lazy" decoding="async" onerror="handleReportThumbError(this)">';
       gridHtml += '<span class="' + tilePriceClass + '">' + tilePriceText + '</span>';

@@ -89,7 +89,7 @@ test('사용자·LLM 문자열은 전부 이스케이프된다', () => {
   const reasonCode = snapshot.facts.reasons[0].code;
   snapshot.narrative.reasonDetails[reasonCode] = '<svg/onload=1>';
   const html = renderSajuCompat(snapshot, { selfName: '"><iframe>' });
-  assert.doesNotMatch(html, /<script|<img|<iframe|<svg|<b onmouseover/);
+  assert.doesNotMatch(html, /<script|<img src=x|<iframe|<svg|<b onmouseover/);
   assert.ok(html.includes('&lt;script&gt;alert(1)&lt;/script&gt; &amp; &quot;인용&quot;'));
   assert.equal(escapeHtml(null), '');
 });

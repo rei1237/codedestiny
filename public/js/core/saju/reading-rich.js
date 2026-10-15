@@ -73,14 +73,50 @@
   /* ── 공통 조각 ── */
   function section(title, body, cls) { return '<section class="saju-rich__block' + (cls ? ' ' + cls : '') + '"><h4>' + esc(title) + '</h4>' + body + '</section>'; }
   function para(text) { return '<p>' + esc(text) + '</p>'; }
-  // 글과 글 사이에 끼우는 장식 그림. 연이는 세로형(264×372), 영냥이는 세로형(270×360)이다.
-  var ART = {
-    pig: {src:'/images/fortune-chat/persona/yeoni', w:264, h:372},
-    neo: {src:'/images/saju/yeongnyangi', w:270, h:360}
+  // 표시 전용 물상: 일간과 월지는 이미 계산된 글자를 그대로 사용한다.
+  var STEM_ART = {
+    '甲':['gap','wood','갑목 · 곧게 자라는 큰 나무'], '乙':['eul','wood','을목 · 유연하게 뻗는 풀과 꽃'],
+    '丙':['byeong','fire','병화 · 넓게 비추는 태양'], '丁':['jeong','fire','정화 · 고요히 밝히는 등불'],
+    '戊':['mu','earth','무토 · 중심을 지키는 산'], '己':['gi','earth','기토 · 생명을 품는 흙'],
+    '庚':['gyeong','metal','경금 · 단단한 원석'], '辛':['sin','metal','신금 · 섬세하게 다듬은 보석'],
+    '壬':['im','water','임수 · 넓고 깊은 바다'], '癸':['gye','water','계수 · 스며드는 비와 이슬']
   };
-  function art(mode, pose) {
-    var a = ART[mode === 'neo' ? 'neo' : 'pig'];
-    return '<figure class="saju-rich__art" aria-hidden="true"><img src="' + a.src + '-' + pose + '.webp" width="' + a.w + '" height="' + a.h + '" alt="" loading="lazy" decoding="async"></figure>';
+  var SEASON_ART = {'봄':['spring','wood'],'여름':['summer','fire'],'가을':['autumn','metal'],'겨울':['winter','water']};
+  function natureFigure(id, element, title, note) {
+    return '<figure class="saju-nature" data-el="'+element+'"><img src="/images/saju/nature/'+id+'-960.webp" srcset="/images/saju/nature/'+id+'-480.webp 480w, /images/saju/nature/'+id+'-960.webp 960w" sizes="(max-width:600px) 100vw, 760px" width="960" height="640" alt="'+esc(title)+'" loading="lazy" decoding="async"><figcaption><strong>'+esc(title)+'</strong><span>'+esc(note)+'</span></figcaption></figure>';
+  }
+  function stemArt(stem, label) {
+    var a = STEM_ART[stem];
+    return a ? natureFigure(a[0], a[1], a[2], (label || '일간의 물상')+' · '+EL[a[1]]+' · 성질을 이해하기 위한 자연의 비유') : '';
+  }
+  function stemThumb(stem) {
+    var a = STEM_ART[stem];
+    return a ? '<img class="saju-nature-thumb" src="/images/saju/nature/'+a[0]+'-480.webp" width="480" height="320" alt="'+esc(a[2])+'" loading="lazy" decoding="async">' : '';
+  }
+  function seasonArt(branch, label) {
+    var season = SEASON[branch], a = SEASON_ART[season];
+    return a ? natureFigure(a[0], a[1], season+'의 풍경', (label || '태어난 월지')+' '+branch+' · 절기 기준의 계절을 표현한 그림') : '';
+  }
+  function elementKey() {
+    return '<ul class="saju-element-key" aria-label="오행 색상 안내">'+Object.keys(EL).map(function(e){return '<li data-el="'+e+'"><i aria-hidden="true"></i>'+EL[e]+'</li>';}).join('')+'</ul>';
+  }
+  // 권한 확인 후 전달된 본문에만 도판을 붙인다. 요청·권한·서버 본문은 변경하지 않는다.
+  function decorateDelivered(host, row, pillars) {
+    if (!host || host.querySelector('[data-cd-summary-fallback]')) return;
+    var cycle = host.querySelector('.saju-cycle-guide');
+    var stem = cycle ? cycle.getAttribute('data-cycle-gan') : row ? row.gan : pillars && pillars.d && pillars.d.g;
+    if (!STEM_ART[stem]) return;
+    host.classList.add('saju-nature-report');
+    host.setAttribute('data-day-el', STEM_ART[stem][1]);
+    var cover = document.createElement('div');
+    cover.className = 'saju-nature-cover saju-reading';
+    cover.innerHTML = stemArt(stem, cycle || row ? '선택한 대운 천간의 물상' : '일간의 물상')+elementKey();
+    host.prepend(cover);
+    host.querySelectorAll('.saju-summary-illustration').forEach(function(node,i){
+      var branch = pillars && pillars.m && pillars.m.j;
+      if (i === 0 && branch) node.outerHTML = '<div class="saju-reading saju-nature-insert">'+seasonArt(branch)+'</div>';
+      else node.remove();
+    });
   }
   function gauge(o) {
     var at = 0, i;
@@ -118,7 +154,8 @@
   function chips(items, cls) { return '<ul class="saju-chips' + (cls ? ' ' + cls : '') + '">' + items.map(function (it) { return '<li class="saju-chip"' + (it.tone ? ' data-tone="' + it.tone + '"' : '') + (it.el ? ' data-el="' + it.el + '"' : '') + '>' + (it.tag ? '<b>' + esc(it.tag) + '</b>' : '') + esc(it.text) + (it.note ? '<small>' + esc(it.note) + '</small>' : '') + '</li>'; }).join('') + '</ul>'; }
   function more(summary, body) { return '<details class="saju-rich__more"><summary>' + esc(summary) + '</summary>' + body + '</details>'; }
   function wrap(mode, body, facts) {
-    return '<div class="saju-reading saju-rich" data-reading-mode="' + (mode === 'neo' ? 'neo' : 'pig') + '">' + body + (facts.unknown && facts.warning ? '<p class="saju-reading__uncertain">' + esc(facts.warning) + '</p>' : '') + '</div>';
+    var a = facts.p && facts.p.d && STEM_ART[facts.p.d.g];
+    return '<div class="saju-reading saju-rich"'+(a?' data-day-el="'+a[1]+'"':'')+' data-reading-mode="' + (mode === 'neo' ? 'neo' : 'pig') + '">' + body + (facts.unknown && facts.warning ? '<p class="saju-reading__uncertain">' + esc(facts.warning) + '</p>' : '') + '</div>';
   }
 
   /* ── 한난조습 ── */
@@ -200,11 +237,9 @@
       (ok ? more(c.parts, table(c.parts, ['자리', '글자', '오행', '온도', '습·조'],
         [['월령 계절', season, '—', num(parts.seasonTemp), '—']].concat(parts.rows.map(function (r) { return [r.label + hourMark(facts, r.key), r.char, EL[r.el] || '—', r.temp ? num(r.temp) : '0', (r.moist ? '습' + (r.moist > 1 ? '×' + r.moist : '') : '') + (r.dry ? '조' + (r.dry > 1 ? '×' + r.dry : '') : '') || '—']; })),
         ['합계', '', '', num(parts.total), '습 ' + parts.moist + ' · 조 ' + parts.dry])) : ''));
-    html += art(mode, 'read');
+    html += seasonArt(p.m.j);
     html += section(c.env, '<p class="saju-rich__title">' + esc(env.title) + '</p>' + para(neo ? env.neo : env.pig));
-    html += art(mode, 'think');
     html += section(c.versus, climateVersus(facts, neo));
-    html += art(mode, 'cheer');
     var rx = TEMP_RX[j.type] || TEMP_RX.neutral, mrx = MOIST_RX[j.moistType] || MOIST_RX.balanced;
     html += section(c.rx, para(c.rxIntro) + tiles([['채울 기운', rx.need, '氣'], ['색', rx.color, '色'], ['방향', rx.dir, '方'], ['활동', rx.act, '動'], ['줄일 것', rx.less, '減'], [c.moistRx + ' (' + mrx.need + ')', mrx.act, j.moistType === 'wet' ? '燥' : '濕']]) + '<p class="saju-rich__note">' + esc(c.notHealth) + '</p>', 'saju-rich__wide');
     html += more('한난조습이란 무엇인가요?', '<p>' + esc(neo ? '한난조습은 원국의 온도(차고 뜨거움)와 습도(건조하고 촉촉함)를 보는 조후의 기준이야. 어떤 환경에서 네 힘이 잘 쓰이는지 볼 때 써.' : '한난조습은 원국의 온도(차고 뜨거움)와 습도(건조하고 촉촉함)를 살피는 조후의 기준이에요. 자연에 계절과 날씨가 있듯 사람의 기질에도 기후가 있다고 보고, 어떤 환경에서 내가 편안하고 힘이 잘 쓰이는지 알아보는 데 써요.') + '</p>' +
@@ -515,20 +550,17 @@
     if (!p || !p.d || !p.d.g || !p.d.j || !L.GAN[p.d.g] || !L.getTenGod) return '';
     var neo = mode === 'neo', k = neo ? 1 : 0, dg = p.d.g, dj = p.d.j, dayName = L.GAN[dg].n || dg, twelve = L.cdTwelveStage || function () { return ''; };
     var god = function (c) { var g = L.getTenGod(dg, c); return g && g !== '?' ? g : ''; };
-    var html = '';
+    var html = stemArt(dg)+elementKey();
     var depth = root.SajuReadingDepth;
     if (depth) {
       var persona = neo ? 'neo' : undefined, day = depth.dayReading(dg + dj, persona), month = depth.monthReading(dg, p.m && p.m.j, persona);
       if (day) {
         html += section(day.title + ' · 나를 읽는 여덟 가지 관점', para(day.summary), 'saju-rich__lead saju-rich__wide');
-        // 여덟 관점을 둘씩 묶고 사이마다 그림을 둔다: 글 · 그림 · 글 · 그림.
-        var ART_POSES = ['read', 'think', 'listen', 'cheer'];
-        day.sections.forEach(function (s, i) {
+        day.sections.forEach(function (s) {
           html += section(s.title, para(s.text));
-          if (i % 2 === 1 && ART_POSES[(i - 1) / 2]) html += art(mode, ART_POSES[(i - 1) / 2]);
         });
       }
-      if (month) html += '<section id="sajuMonthReading" class="saju-rich__wide"><h3>' + esc(month.title) + '</h3>' + para(month.basis) + month.sections.map(function (s) { return section(s.title, para(s.text)); }).join('') + '</section>';
+      if (month) html += '<section id="sajuMonthReading" class="saju-rich__wide">'+seasonArt(p.m.j)+'<h3>' + esc(month.title) + '</h3>' + para(month.basis) + month.sections.map(function (s) { return section(s.title, para(s.text)); }).join('') + '</section>';
       html += '<section id="sajuContextReading" class="saju-rich__wide"><h3>' + (neo ? '네 명식에서는 이렇게 달라져' : '당신의 명식에서는 이렇게 달라져요') + '</h3>' + depth.contextualReading(facts, persona).map(function (s) { return section(s.title, para(s.text)); }).join('') + '</section>';
     }
     var rows = (L.CD_PALACE || [{key:'y', label:'년주'}, {key:'m', label:'월주'}, {key:'d', label:'일주'}, {key:'h', label:'시주'}]).map(function (pal) {
@@ -618,7 +650,7 @@
       // 대운·세운이 같은 톤이면 같은 문단이 두 번 나오므로 처음 한 번만 붙인다.
       var tone = at >= 3 ? 'open' : at === 2 ? 'even' : 'care';
       if (!toned[tone]) { toned[tone] = true; body += para(FLOW_TONE[tone][k]); }
-      return section(title, body, 'saju-rich__lead saju-flow saju-flow--' + (year ? 'year' : 'period'));
+      return stemArt(r.g,year?'올해 세운 천간의 물상':'현재 대운 천간의 물상')+section(title, body, 'saju-rich__lead saju-flow saju-flow--' + (year ? 'year' : 'period'));
     }).join('');
     if (!html) return '';
     return wrap(mode, html + '<p class="saju-rich__note">' + esc('※ 여기까지는 무료입니다. 10년 대운의 전체 흐름·연도별 세운 상세·종합 풀이는 아래 프리미엄에서 이어집니다.') + '</p>', facts);
@@ -647,7 +679,7 @@
     var neo = mode === 'neo', k = neo ? 1 : 0, dg = p.d.g, month = index === 1, when = month ? '이달' : '오늘', twelve = L.cdTwelveStage || function () { return ''; };
     var g = row.gz.g, j = row.gz.j, gEl = row.gEl || (L.GAN[g] || {}).e, jEl = row.jEl || (L.JI[j] || {}).e, bp = row.batteryPercent, good = bp >= 60;
     var lb = row.lb || {}, lt = row.lt || {}, grade = plain(row.grade);
-    var html = section((month ? '이달의 월운 ' : '오늘의 일진 ') + g + j,
+    var html = stemArt(g,month?'이달 월운 천간의 물상':'오늘 일진 천간의 물상')+section((month ? '이달의 월운 ' : '오늘의 일진 ') + g + j,
       hero(g + j, ['에너지 ' + bp + '%', grade, EL[gEl] && EL[jEl] ? EL[gEl] + ' · ' + EL[jEl] : ''], true) + gauge({kind:'energy', value:bp, min:0, max:100, zones:[40, 60, 80], names:['회복을 먼저', '고르게', '무난하게', '힘이 실리는'], ends:['쉬어 가기', '힘 실림'], caption:'에너지 게이지 ' + bp + '%' + (grade ? ' · ' + grade : ''), aria:when + ' 에너지 게이지 ' + bp + '%' + (grade ? ', ' + grade : '')}) +
       chips([
         {tag:'#', text:bp >= 80 ? '가속' : good ? '균형' : '쉼표'},
@@ -668,7 +700,7 @@
     return wrap(mode, html, facts);
   }
 
-  root.SajuReadingRich = {daily:daily, flow:flow, powerParts:powerParts, johuParts:johuParts, powerMatches:powerMatches, johuMatches:johuMatches, stage:stage, godMap:godMap, climate:climate, strength:strength, tenOverview:tenOverview, tenCards:tenCards, godDetail:godDetail, ilju:ilju, escape:esc,
+  root.SajuReadingRich = {stemThumb:stemThumb, stemArt:stemArt, seasonArt:seasonArt, decorateDelivered:decorateDelivered, daily:daily, flow:flow, powerParts:powerParts, johuParts:johuParts, powerMatches:powerMatches, johuMatches:johuMatches, stage:stage, godMap:godMap, climate:climate, strength:strength, tenOverview:tenOverview, tenCards:tenCards, godDetail:godDetail, ilju:ilju, escape:esc,
     // 비한국어 판(reading-rich-intl.js)이 같은 조각·계산 보조를 재사용한다. 문구는 들어 있지 않다.
     kit:{esc:esc, fmt:fmt, num:num, pct:pct, lib:lib, elOf:elOf, family:family, section:section, para:para, gauge:gauge, table:table, hero:hero, tiles:tiles, chips:chips, more:more, wrap:wrap, familyEl:familyEl, roleOf:roleOf, SEASON:SEASON, BRANCH_TEMP:BRANCH_TEMP, GOD_FAMILY:GOD_FAMILY, FAMILY_ORDER:FAMILY_ORDER}};
 })(typeof window === 'undefined' ? globalThis : window);

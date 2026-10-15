@@ -27864,6 +27864,8 @@ async function _seSajuCompatLlmDeliver(llm, ctx) {
   var body = kit.flow.buildSajuCompatBody({
     selfPillars: G_PILLARS,
     partnerPillars: ctx.p2,
+    selfTimeUnknown: window.__cdSajuTimeUnknown === true,
+    partnerTimeUnknown: !String(document.getElementById('compatBirthTimeText')?.value || '').trim(),
     compatType: ctx.type,
     partnerName: ctx.name,
     compatFacts: ctx.compat.facts,
@@ -28967,6 +28969,7 @@ function renderDaewun(bazi){
       }
 
       h+='<div class="dw-item '+ev.cls+'" onclick="showDwDetail('+age+',\''+g+'\',\''+j+'\',\''+ev.label+'\','+ev.score+')">'+
+        (window.SajuReadingRich ? window.SajuReadingRich.stemThumb(g) : '')+
         '<span class="dw-tag '+ev.tagCls+'">'+ev.emoji+'</span>'+
         '<span class="dw-age">'+age+'세~</span>'+
         '<div class="dw-gz">'+g+'<br>'+j+'</div>'+
