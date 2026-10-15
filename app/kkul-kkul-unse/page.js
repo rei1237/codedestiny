@@ -1,30 +1,33 @@
 import PublicRecordLink from '../components/PublicRecordLink';
-import { publicRecordCopy } from '../../lib/seo/public-record-copy.mjs';
 import { brandCopy } from '../../lib/seo/brand-copy.mjs';
 import { PRESS_COVERAGE } from "../../lib/seo/press-coverage.mjs";
 import PressCoverage from "../components/PressCoverage";
 import Link from "next/link";
 import styles from "../home-cosmic.module.css";
-import { siteSeo } from "../../lib/seo/siteSeo";
+import { BRAND_FACTS } from "../../lib/brand/brand-facts.mjs";
+import { founder } from "../../lib/brand/founder";
+import { BUSINESS_IDENTITY } from "../../lib/site-policy-config";
+import { serializeJsonLd } from "../../lib/seo/json-ld.mjs";
 
 const PAGE_URL = "https://code-destiny.com/kkul-kkul-unse/";
 const OG_IMAGE = "https://code-destiny.com/og/code-destiny-og-vvip.png?v=42dedf5c85";
 
-// 대표 서비스 URL은 /ggulggul/. 이 페이지는 공식 주소와 이용 방법을 안내한다.
-// 기존 검색·공유 링크를 위해 경로를 유지한다.
-// 제목은 브랜드 헤드텀 단독이 아니라 "안내" 성격으로 둔다 — 홈과 같은 쿼리를 두고 다투면 둘 다 밀린다.
+// 공식 대표 홈은 `/`, 상담 앱 입구는 /ggulggul/ 이다(2026-10-15). 이 페이지는 공식 주소·표기·운영자·이력을
+// 안내한다. 기존 검색·공유 링크를 위해 경로를 유지한다. 제목은 "안내" 성격으로 둬서 대표 홈과 같은 쿼리를 두고
+// 다투지 않게 한다(lib/seo/entity-registry.mjs 의 /kkul-kkul-unse 프로필과 같은 제목).
+const { service, operator, characters, historyKo } = BRAND_FACTS;
+const JOINED_ALIAS = service.alternateNames[0];
+const APP_ENTRY_URL = `${service.siteUrl}${service.appEntryPath}`;
+
 const SEO = {
-  title: "꿀꿀운세 공식 사이트·카카오 채널 이용 안내",
-  description: "꿀꿀운세의 공식 주소와 카카오 채널을 확인하세요. 사주·타로·궁합과 연이·네오·영냥이 상담의 이용 방법, 기존 이름과 계정에 관한 궁금증을 안내합니다.",
-  ogTitle: "꿀꿀운세 공식 사이트·카카오 채널 이용 안내",
-  ogDescription:
-    "꿀꿀운세 공식 주소와 카카오 채널, 서비스 이용 방법을 안내합니다. 사주·타로·궁합과 영냥이·연이 상담을 같은 주소 code-destiny.com에서 이어서 이용하세요.",
+  title: `${service.name} 공식 사이트·서비스 이용 안내`,
+  description: `${service.name}의 공식 주소와 표기, 운영자 ${operator.name}, 꽃돼지 연이·영냥이의 관계와 이용 방법을 안내합니다.`,
+  ogTitle: `${service.name} 공식 사이트 안내`,
+  ogDescription: `${service.name} 공식 홈페이지는 ${service.homeUrl}입니다. 표기와 운영자, 이용 방법, 문의·환불 경로를 한곳에서 확인하세요.`,
 };
 
-const BRAND_ALIAS_SENTENCE = brandCopy('aliases');
-
 const FUSION_FORTUNE_SUMMARY =
-  "초융합 운세는 사주, 자미두수, 숙요점, 베다 점성술(Jyotish), 서양 점성술, 타로처럼 서로 다른 체계의 관점을 AI가 교차해 하나의 자기성찰 리포트로 정리하는 꿀꿀운세의 대표 해석 방법론입니다.";
+  "초융합 운세는 사주, 자미두수, 숙요점, 베다 점성술(Jyotish), 서양 점성술, 타로처럼 서로 다른 체계의 관점을 AI가 교차해 하나의 자기성찰 리포트로 정리하는 꿀꿀 운세의 대표 해석 방법론입니다.";
 
 const SERVICES = [
   {
@@ -69,59 +72,67 @@ const SERVICES = [
   },
 ];
 
-// 공식 이름과 이용 방법을 안내한다. 계정·구매 내역·보관함 문장은 이번 개명이 경로·저장 키·로그인 식별자를
-// 바꾸지 않았기 때문에 쓸 수 있다 — 그 전제가 바뀌면 이 답도 함께 고친다.
+const OFFICIAL_FACTS = [
+  ["공식 서비스명", service.name],
+  ["붙여 쓴 표기", `${JOINED_ALIAS} (같은 서비스)`],
+  ["공식 홈페이지", service.homeUrl],
+  ["상담 앱 입구", APP_ENTRY_URL],
+  ["운영", `${operator.name} (${operator.nameKo})`],
+  ["등록 상호", BUSINESS_IDENTITY.companyName],
+];
+
+// 답은 brand-facts·founder·사업자 정보에서 만든다. 가격은 결제 화면이 정본이라 금액을 적지 않는다.
+// 이력 문항의 계정·구매 내역 문장은 개명이 경로·저장 키·로그인 식별자를 바꾸지 않았기 때문에 쓸 수 있다 —
+// 그 전제가 바뀌면 이 답도 함께 고친다.
 const FAQS = [
   {
-    question: "공식 카카오 채널 이름은 무엇인가요?",
-    answer: "공식 카카오 채널은 꿀꿀운세이며, 채널 주소는 https://pf.kakao.com/_GgxaGX입니다. 웹사이트의 꿀꿀운세와 같은 서비스입니다. 상담은 이 사이트에서 시작할 수 있습니다.",
-  },
-  {
-    question: "꿀꿀 사주와 꿀꿀운세는 같은 서비스인가요?",
-    answer:
-      "네. 한때 꿀꿀 사주라는 이름을 사용했으며, 현재 공식 서비스명은 꿀꿀운세입니다. 주소(code-destiny.com)와 로그인 계정은 그대로이고, 구매 내역과 저장된 결과도 이전처럼 나의 기록 보관함과 영냥이 상담 기록에서 다시 볼 수 있습니다.",
-  },
-  {
-    question: "꿀꿀만세력으로 찾던 서비스도 여기에서 이용할 수 있나요?",
-    answer:
-      "네. 꿀꿀만세력은 이 서비스가 처음 쓰던 이름이고, 꽃돼지 운세는 꽃돼지 연이 캐릭터로 기억하던 이름입니다. 생년월일과 출생시간으로 사주팔자를 확인하는 만세력은 꿀꿀운세의 만세력 페이지에서 그대로 이용할 수 있습니다.",
-  },
-  {
-    question: "CODE DESTINY와 꿀꿀운세는 어떤 관계인가요?",
-    answer:
-      "CODE DESTINY(코드데스티니)는 플랫폼 이름이고, 꿀꿀운세는 그 한국어 사주·운세 상담 서비스 이름입니다. 공식 웹사이트는 code-destiny.com 하나이며, 꿀꿀운세와 꿀꿀 운세는 띄어쓰기만 다른 같은 이름입니다.",
-  },
-  {
-    question: "영냥이와 연이 상담은 어디에서 이용하나요?",
-    answer:
-      "꽃돼지 연이의 상담은 꿀꿀운세 홈(code-destiny.com/ggulggul/)에서, 사주보는 고양이 영냥이의 사주·타로 상담은 영냥이 페이지(code-destiny.com/yeongnyangi/)에서 시작합니다. 연이가 차를 내려 주며 이야기를 듣는 연이의 운명 찻집도 같은 사이트에 있습니다.",
-  },
-  {
-    question: brandCopy('officialSiteQuestion'),
+    question: `${service.name} 공식 사이트는 어디인가요?`,
     answer: brandCopy('officialSiteAnswer'),
   },
   {
-    question: "꿀꿀운세에서 어떤 운세를 볼 수 있나요?",
-    answer:
-      brandCopy('systemsScope'),
-  },
-  ...publicRecordCopy.ko.faqs.slice(1),
-  {
-    question: "초융합 운세란 무엇인가요?",
-    answer: FUSION_FORTUNE_SUMMARY,
+    question: `${JOINED_ALIAS}와 ${service.name}는 같은 서비스인가요?`,
+    answer: `네. 공식 서비스명은 ${service.name}이고, 붙여 쓴 ${JOINED_ALIAS}는 같은 서비스의 다른 표기입니다. 주소와 로그인 계정, 구매 내역은 표기와 관계없이 같습니다.`,
   },
   {
-    question: "사주와 자미두수를 함께 보는 AI 운세는 어떻게 활용하나요?",
-    answer:
-      "한 체계의 결과를 정답으로 단정하지 않고, 사주의 기질과 자미두수의 삶의 영역처럼 서로 다른 관점에서 반복되는 신호를 비교해 현재의 선택과 관계를 정리하는 참고 정보로 활용합니다.",
+    question: "사주 달빛 정원이나 꿀꿀 사주가 이름을 바꾼 서비스인가요?",
+    answer: `${historyKo} 주소(code-destiny.com)와 로그인 계정은 그대로이고, 이전에 구매한 내역과 저장된 결과도 같은 계정에서 다시 볼 수 있습니다.`,
+    history: true,
   },
   {
-    question: "초융합 운세에는 어떤 해석 체계가 연결되나요?",
-    answer:
-      "사주, 자미두수, 숙요점, 베다 점성술, 서양 점성술, 타로를 중심으로 질문의 성격에 맞는 해석 관점을 연결합니다. 체계마다 보는 기준이 다르므로 같은 말로 섞어 설명하지 않습니다.",
+    question: `${operator.name}와 ${service.name}는 어떤 관계인가요?`,
+    answer: `${operator.name}(${operator.nameKo})는 ${service.name}를 운영하는 사업자입니다. ${service.name}는 서비스 이름이고, 등록 상호는 ${BUSINESS_IDENTITY.companyName}, 대표는 ${BUSINESS_IDENTITY.representative}입니다.`,
+    links: [["/about/", "운영자·사업자 정보"]],
+  },
+  {
+    question: "영냥이는 별도 서비스인가요?",
+    answer: `영냥이는 같은 운영자가 제공하는 사주보는 고양이 상담 서비스로, ${service.siteUrl}/yeongnyangi/에서 시작합니다. ${service.name}와 같은 계정으로 로그인하고, 영냥이 상담 기록은 영냥이 상담 기록 페이지에서 다시 볼 수 있습니다.`,
+    links: [["/yeongnyangi/", "영냥이 상담 시작"]],
+  },
+  {
+    question: "무료인가요, 유료인가요?",
+    answer: "사주·타로·오늘의 운세 같은 기본 기능은 무료로 시작할 수 있습니다. 심층 리포트와 영냥이 상담 같은 유료 상품은 상품별 원화 단건 결제나 이용권으로 이용하며, 가격은 결제 전에 결제 화면에 표시되는 금액이 기준입니다.",
+  },
+  {
+    question: "사람이 상담하나요, AI가 답하나요?",
+    answer: `${founder.method} 결과는 오락과 자기성찰을 위한 참고 자료이며, 의료·법률·투자 판단을 대신하지 않습니다.`,
+  },
+  {
+    question: "태어난 시간을 모르면 볼 수 없나요?",
+    answer: "출생 시간을 모르면 비워 두고 볼 수 있습니다. 이때는 연·월·일을 기준으로 해석하고, 시주처럼 태어난 시간으로 정해지는 항목은 빼거나 확인할 수 없는 부분으로 남깁니다. 자미두수처럼 시간 비중이 큰 체계는 정확도가 낮아질 수 있으니 임의의 시각을 넣지 않는 편이 정확합니다.",
+  },
+  {
+    question: "결제한 결과는 어디에서 다시 보나요?",
+    answer: "결제한 계정으로 로그인하면 꿀꿀 운세 결과는 나의 기록 보관함(/records/)에서, 영냥이 상담은 영냥이 상담 기록(/yeongnyangi/library/)에서 다시 열 수 있습니다.",
+    links: [["/records/", "나의 기록 보관함"], ["/yeongnyangi/library/", "영냥이 상담 기록"]],
+  },
+  {
+    question: "문의, 환불, 오류 신고는 어디로 하나요?",
+    answer: `문의와 오류 신고는 문의 페이지(/contact/)나 ${BUSINESS_IDENTITY.email}로 보내 주세요. 환불 기준과 절차는 교환/환불 정책(/refund-policy/)에서 확인할 수 있습니다.`,
+    links: [["/contact/", "문의하기"], ["/refund-policy/", "교환/환불 정책"]],
   },
 ];
 
+// 리치결과를 기대하지 않는 의미 마크업이다. 화면에 보이는 문항과 같은 내용만 담는다.
 const faqJsonLd = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
@@ -146,26 +157,26 @@ const webPageJsonLd = {
   inLanguage: "ko-KR",
   isPartOf: {
     "@type": "WebSite",
-    "@id": "https://code-destiny.com/#website",
-    // 🔴 같은 @id 의 WebSite 다. lib/seo/siteSeo.ts 의 brandName 과 같아야 한다.
-    name: siteSeo.brandName,
-    url: "https://code-destiny.com",
+    "@id": `${service.siteUrl}/#website`,
+    // 🔴 같은 @id 의 WebSite 다. 이름은 lib/brand/brand-facts.mjs 의 서비스명과 같아야 한다.
+    name: service.name,
+    url: service.homeUrl,
   },
   about: {
-    "@id": "https://code-destiny.com/#organization",
+    "@id": `${service.siteUrl}/#organization`,
   },
 };
 
 export const metadata = {
-  metadataBase: new URL("https://code-destiny.com"),
+  metadataBase: new URL(service.siteUrl),
   title: { absolute: SEO.title },
   description: SEO.description,
   keywords: [
-    "꿀꿀 운세",
-    "꿀꿀운세",
-    "꿀꿀 만세력",
+    service.name,
+    ...service.alternateNames,
+    `${service.name} 공식 사이트`,
+    operator.nameKo,
     "꽃돼지 운세",
-    "코드데스티니",
   ],
   alternates: {
     canonical: PAGE_URL,
@@ -185,7 +196,7 @@ export const metadata = {
     type: "website",
     locale: "ko_KR",
     url: PAGE_URL,
-    siteName: siteSeo.brandName,
+    siteName: service.name,
     title: SEO.ogTitle,
     description: SEO.ogDescription,
     images: [
@@ -212,15 +223,17 @@ export default function KkulKkulUnsePage() {
 
       <section className={styles.heroSection} aria-labelledby="kkulKkulUnseTitle">
         <div className={styles.heroCopy}>
-          <p className={styles.heroKicker}>{brandCopy('name')}</p>
-          <h1 id="kkulKkulUnseTitle" className={styles.heroTitle}>꿀꿀운세 공식 사이트·이용 안내</h1>
+          <p className={styles.heroKicker}>{service.name}</p>
+          <h1 id="kkulKkulUnseTitle" className={styles.heroTitle}>{service.name} 공식 사이트 안내</h1>
           <p className={styles.heroLead}>
-            꿀꿀운세의 공식 주소와 카카오 채널을 확인하세요. 사주·타로·궁합과 연이·네오·영냥이 상담의 이용 방법, 기존 이름과 계정에 관한 궁금증을 안내합니다.
+            {service.name}의 공식 홈페이지는 {service.homeUrl}입니다. {service.summary}이며, 붙여 쓴 {JOINED_ALIAS}도 같은 서비스입니다.
+            공식 주소와 표기, 운영자, 이용 방법을 이 페이지에서 확인하세요.
           </p>
-          {/* 브랜드 앵커("꿀꿀운세")는 대표 URL /ggulggul/ 로만 보낸다. 같은 앵커로 /manse 를 가리키면
-              브랜드 쿼리에서 만세력 페이지가 홈을 밀어내는 지금 상태가 유지된다. */}
           <div className={styles.ctaRow}>
-            <Link className={`${styles.ctaButton} ${styles.ctaPrimary}`} href="/ggulggul/">
+            <a className={`${styles.ctaButton} ${styles.ctaPrimary}`} href="/">
+              {service.name} 공식 홈
+            </a>
+            <Link className={`${styles.ctaButton} ${styles.ctaSecondary}`} href={service.appEntryPath}>
               {brandCopy('ggulggulLink')}
             </Link>
             <Link className={`${styles.ctaButton} ${styles.ctaSecondary}`} href="/yeongnyangi/">
@@ -229,59 +242,71 @@ export default function KkulKkulUnsePage() {
           </div>
         </div>
 
-        <div className={styles.heroVisual} aria-label="꿀꿀운세 주요 서비스">
+        <div className={styles.heroVisual} aria-label={`${service.name} 주요 서비스`}>
           <div className={styles.serviceGrid}>
-            {SERVICES.map((service) => (
-              <Link key={service.href} href={service.href} className={styles.serviceCard}>
-                <span className={styles.serviceMeta}>{brandCopy('name')}</span>
-                <strong>{service.title}</strong>
-                <span>{service.description}</span>
+            {SERVICES.map((item) => (
+              <Link key={item.href} href={item.href} className={styles.serviceCard}>
+                <span className={styles.serviceMeta}>{service.name}</span>
+                <strong>{item.title}</strong>
+                <span>{item.description}</span>
               </Link>
             ))}
           </div>
         </div>
       </section>
 
-      <PublicRecordLink />
-      <PressCoverage />
-      <section className={styles.sectionBand} aria-labelledby="brandHistoryHeading">
+      <section className={styles.sectionBand} aria-labelledby="officialFactsHeading">
         <div className={styles.sectionHeader}>
-          <p className={styles.sectionKicker}>Brand Story</p>
-          <h2 id="brandHistoryHeading" className={styles.sectionTitle}>카카오에서도 같은 꿀꿀운세를 만나세요</h2>
-          <p className={styles.sectionLead}>
-            공식 서비스명과 카카오 채널명은 모두 꿀꿀운세입니다. 띄어쓴 꿀꿀 운세도 같은 서비스를 가리킵니다.
-            사주와 타로, 오늘의 운세부터 연이·네오·영냥이 상담까지 같은 사이트에서 이용할 수 있습니다.
-          </p>
-          <p className={styles.sectionLead}>
-            <a href="https://pf.kakao.com/_GgxaGX" target="_blank" rel="noopener noreferrer">공식 카카오 채널 꿀꿀운세</a>와{" "}
-            <Link href="/ggulggul/">꿀꿀운세 홈</Link>에서 서비스 소식과 상담 입구를 확인해 보세요.
-          </p>
+          <p className={styles.sectionKicker}>Official</p>
+          <h2 id="officialFactsHeading" className={styles.sectionTitle}>공식 주소와 표기</h2>
+        </div>
+        <div className={styles.refundGrid}>
+          {OFFICIAL_FACTS.map(([label, value]) => (
+            <article key={label} className={styles.refundCard}>
+              <h3>{label}</h3>
+              <p>{value}</p>
+            </article>
+          ))}
         </div>
       </section>
 
       <section className={styles.sectionBand} aria-labelledby="characterBrandHeading">
         <div className={styles.sectionHeader}>
-          <p className={styles.sectionKicker}>Brand Identity</p>
-          <h2 id="characterBrandHeading" className={styles.sectionTitle}>꽃돼지 연이로 기억하는 꿀꿀운세</h2>
+          <p className={styles.sectionKicker}>Characters</p>
+          <h2 id="characterBrandHeading" className={styles.sectionTitle}>꽃돼지 연이·네오·영냥이</h2>
+          <ul className={styles.sectionLead}>
+            {characters.map((character) => (
+              <li key={character.key}>
+                <strong>{character.name}</strong> — {character.role}
+                {character.path ? <> (<Link href={character.path}>{service.siteUrl}{character.path}</Link>)</> : null}
+              </li>
+            ))}
+          </ul>
           <p className={styles.sectionLead}>
-            꽃돼지 운세 사이트를 찾았다면 Code Destiny의 꿀꿀운세가 맞습니다. 꽃돼지 연이로 기억하는 분들을 위해
-            사주, 만세력, 자미두수, 숙요점, 베다 점성술, 점성술과 AI 상담을 하나의 브랜드 안에서 이어 두었습니다.
-          </p>
-          <p className={styles.sectionLead}>
-            {BRAND_ALIAS_SENTENCE}
-          </p>
-          <p className={styles.sectionLead}>
-            같은 계정 안에는 고양이 캐릭터가 상담해 주는 <Link href="/yeongnyangi/">사주보는 고양이 영냥이</Link>도 있습니다.
-            사주, 자미두수, 숙요점, 베다점, 점성술, 타로를 가장 가벼운 고등어 상담으로 시작하는 방법은{" "}
+            꽃돼지 운세로 기억하셨다면 꽃돼지 연이가 안내하는 {service.name}가 맞습니다. 가볍게 시작하는 영냥이 상담은{" "}
             <Link href="/yeongnyangi/1000-won-fortune/">천원사주 안내</Link>에서 볼 수 있습니다.
           </p>
         </div>
       </section>
 
+      <section className={styles.sectionBand} aria-labelledby="brandHistoryHeading" data-brand-history="">
+        <div className={styles.sectionHeader}>
+          <p className={styles.sectionKicker}>History</p>
+          <h2 id="brandHistoryHeading" className={styles.sectionTitle}>이전 이름 안내</h2>
+          <p className={styles.sectionLead}>{historyKo}</p>
+          <p className={styles.sectionLead}>
+            이전 이름으로 된 검색 결과나 게시물을 보셨다면 같은 서비스입니다. 이용은 공식 홈페이지 {service.homeUrl}에서 하시면 됩니다.
+          </p>
+        </div>
+      </section>
+
+      <PublicRecordLink />
+      <PressCoverage />
+
       <section className={styles.sectionBand} aria-labelledby="fusionFortuneHeading">
         <div className={styles.sectionHeader}>
           <p className={styles.sectionKicker}>Fusion Fortune</p>
-          <h2 id="fusionFortuneHeading" className={styles.sectionTitle}>꿀꿀운세의 초융합 운세</h2>
+          <h2 id="fusionFortuneHeading" className={styles.sectionTitle}>{service.name}의 초융합 운세</h2>
           <p className={styles.sectionLead}>{FUSION_FORTUNE_SUMMARY}</p>
           <p className={styles.sectionLead}>
             사주와 자미두수를 함께 보는 운세, 사주와 숙요점을 같이 보는 AI, 베다점과 점성술을 동시에 보는 운세처럼
@@ -295,20 +320,30 @@ export default function KkulKkulUnsePage() {
       <section className={`${styles.sectionBand} ${styles.refundSection}`} aria-labelledby="faqHeading">
         <div className={styles.sectionHeader}>
           <p className={styles.sectionKicker}>FAQ</p>
-          <h2 id="faqHeading" className={styles.sectionTitle}>꿀꿀운세 자주 묻는 질문</h2>
+          <h2 id="faqHeading" className={styles.sectionTitle}>{service.name} 자주 묻는 질문</h2>
         </div>
         <div className={styles.refundGrid}>
           {FAQS.map((item) => (
-            <article key={item.question} className={styles.refundCard}>
+            <article key={item.question} className={styles.refundCard} data-brand-history={item.history ? "" : undefined}>
               <h3>{item.question}</h3>
               <p>{item.answer}</p>
+              {item.links ? (
+                <p>
+                  {item.links.map(([href, label], index) => (
+                    <span key={href}>
+                      {index ? " · " : null}
+                      <Link href={href}>{label}</Link>
+                    </span>
+                  ))}
+                </p>
+              ) : null}
             </article>
           ))}
         </div>
       </section>
 
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageJsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(webPageJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(faqJsonLd) }} />
     </main>
   );
 }

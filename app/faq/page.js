@@ -3,6 +3,7 @@ import { trustRoutes } from "../../lib/i18n/public-trust-copy.mjs";
 import Link from "next/link";
 import { buildSeoMetadata } from "../../lib/seo";
 import { buildBreadcrumbJsonLd, buildFaqPageJsonLd } from "../../lib/structured-data";
+import { serializeJsonLd } from "../../lib/seo/json-ld.mjs";
 import { publicSeoPages } from "../../lib/seo/siteSeo";
 import { cmsQaList } from "../../lib/cms/build-text";
 import { FAQS_DEFAULT } from "../_content/faq-copy";
@@ -19,7 +20,7 @@ const faqs = cmsQaList("faq", "faq-page", "items", FAQS_DEFAULT);
 
 export const metadata = buildSeoMetadata({ ...seo, hreflang: trustRoutes("faq") });
 
-const jsonLd = JSON.stringify({
+const jsonLd = serializeJsonLd({
   "@context": "https://schema.org",
   "@graph": [
     buildBreadcrumbJsonLd([
@@ -51,6 +52,7 @@ export default function FaqPage() {
       </section>
 
       <nav className="cd-chip-wrap" aria-label="FAQ 관련 문서">
+        <Link href="/kkul-kkul-unse/" className="cd-chip">공식 사이트 안내</Link>
         <Link href="/about" className="cd-chip">서비스 소개</Link>
         <Link href="/methodology" className="cd-chip">운세 콘텐츠 방법론</Link>
         <Link href="/privacy" className="cd-chip">개인정보처리방침</Link>

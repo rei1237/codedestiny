@@ -131,8 +131,8 @@ export const publicSeoPages: Record<string, PublicSeoPage> = {
     path: "/about",
     title: siteSeoText("siteSeo.002"),
     description:
-      "꿀꿀운세에서 제공하는 무료 사주, 타로, 자미두수, 점성술, 숙요점 서비스와 콘텐츠 운영 원칙을 소개합니다.",
-    h1: "꿀꿀운세 소개",
+      "꿀꿀 운세에서 제공하는 무료 사주, 타로, 자미두수, 점성술, 숙요점 서비스와 운영자 CODE DESTINY, 콘텐츠 운영 원칙을 소개합니다.",
+    h1: "꿀꿀 운세 소개",
     changeFrequency: "monthly",
     priority: 0.8,
     structuredData: ["Organization", "AboutPage"],
@@ -142,7 +142,7 @@ export const publicSeoPages: Record<string, PublicSeoPage> = {
     title: siteSeoText("siteSeo.003"),
     description:
       "무료 운세 이용, 회원가입, 개인정보, 결제와 환불, 결과 해석 기준에 대한 자주 묻는 질문을 정리했습니다.",
-    h1: "꿀꿀운세 자주 묻는 질문",
+    h1: "꿀꿀 운세 자주 묻는 질문",
     changeFrequency: "monthly",
     priority: 0.72,
     structuredData: ["FAQPage", "BreadcrumbList"],
