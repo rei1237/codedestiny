@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { stripLocalePrefix } from "../_lib/localePath";
+import { SHELL_HOME_PATH } from "@/lib/navigation/shellHome";
 import { resolveFeatureAccessModel, useServerPrice } from "@/app/hooks/useServerPrice";
 import { useMobileFortuneRenderTrace } from "@/app/_lib/mobile-fortune-trace";
 import { useUserAccess } from "@/app/_lib/user-session-cache";
@@ -632,7 +633,7 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
     ? "/ziwei/chart"
     : action
     ? `/index.html?action=${encodeURIComponent(action)}`
-    : "/index.html";
+    : SHELL_HOME_PATH;
   const paidMeta = PAID_SLUG_META[basePath];
   const isPaidFeature = !!paidMeta;
   // 서버 가격 정본 조회. 유료 기능은 UI fallback 가격을 사용하지 않는다.

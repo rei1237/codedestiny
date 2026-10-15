@@ -183,9 +183,9 @@ export default function SiteFooterHub() {
       <div className={`${styles.sfhStars} ${styles.sfhStarsFar}`} aria-hidden />
 
       <div className={styles.sfhShell}>
-        {/* 정적 홈 셸로 곧장 이동한다. */}
+        {/* 대표 홈 / 으로 문서 이동한다(워커가 로케일을 판정). */}
         {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-        <a href="/index.html" className={styles.sfhBrand} aria-label="꿀꿀 운세 홈">
+        <a href="/" className={styles.sfhBrand} aria-label="꿀꿀 운세 홈">
           <Image src="/icons/moonlight-garden-v1-512.webp" alt="" width={512} height={512} sizes="56px" />
           <span>
             <strong>꿀꿀 운세</strong>

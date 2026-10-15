@@ -28,6 +28,7 @@ import {
   type DailyFortuneSystem,
 } from "@/lib/lock-screen-daily-fortune";
 import { isMobileAppRuntime } from "../_lib/auth-client";
+import { SHELL_HOME_PATH } from "@/lib/navigation/shellHome";
 import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLocale } from "@/constants/loadingMessages";
 
 // ── 꽃돼지(연이) 마스코트 — R1: 앱 번들 로컬 '단일 컷' 이미지(오프라인 동작) ──
@@ -879,7 +880,7 @@ export default function LockScreenFortuneClient() {
     if (typeof window === "undefined") return;
     if (!isMobileAppRuntime()) {
       setRuntimeOk(false);
-      try { window.location.replace("/"); } catch { /* noop */ }
+      try { window.location.replace(SHELL_HOME_PATH); } catch { /* noop */ }
       return;
     }
     setRuntimeOk(true);

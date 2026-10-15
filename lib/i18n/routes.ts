@@ -163,7 +163,7 @@ export function getLocalizedPublicHref(href: string, locale: Locale): string {
   const path = href.endsWith("/") && href !== "/" ? href.slice(0, -1) : href;
   let localized = path;
 
-  if (path === "/index.html") localized = locale === "ko" ? path : I18N_ROUTE_MAP.home[locale];
+  if (path === "/" || path === "/index.html") localized = locale === "ko" ? "/" : I18N_ROUTE_MAP.home[locale];
   else if (path === "/yeongnyangi") localized = I18N_ROUTE_MAP.yeongnyangi[locale];
   else if (path === "/insights") localized = I18N_ROUTE_MAP.insights[locale];
   else {

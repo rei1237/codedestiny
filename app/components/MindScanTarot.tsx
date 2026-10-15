@@ -14,6 +14,7 @@ import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
 import { formatKrwFromMonthlyCredits } from "@/lib/payment/coin-pricing";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { detectLocale } from "@/lib/i18n/dictionary";
+import { SHELL_HOME_PATH } from "@/lib/navigation/shellHome";
 import { getAuthState, refreshAuth, useAuthStore } from "@/app/_lib/auth-store";
 import { continueOracleDelivery, needsTarotRedraw, registerPaidNarrativeIntent, type OracleDeliveryResponse } from "@/app/_lib/oracle-delivery";
 import { getMindScanTarotCopy, type MindScanTarotCopy } from "./_lib/mind-scan-tarot-copy";
@@ -949,7 +950,7 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef,
 
   const handleGoHome = useCallback(() => {
     if (typeof window === "undefined") return;
-    window.location.assign("/");
+    window.location.assign(SHELL_HOME_PATH);
   }, []);
 
   const handleCopy = useCallback(async () => {
