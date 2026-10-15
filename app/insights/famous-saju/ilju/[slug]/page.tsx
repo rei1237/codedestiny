@@ -6,7 +6,7 @@ export const dynamicParams = false;
 export function generateStaticParams(){return ILJU.map(x=>({slug:x.slug}));}
 export async function generateMetadata({params}:{params:Promise<{slug:string}>}){
   const {slug}=await params;const x=ILJU.find(x=>x.slug===slug);
-  return {title:`${x?.name || ''}일주 인물 탐색 | 꿀꿀운세`,robots:{index:false,follow:true,googleBot:{index:false,follow:true}},alternates:{canonical:`https://code-destiny.com/insights/famous-saju/ilju/${slug}/`}};
+  return {title:`${x?.name || ''}일주 인물 탐색 | 꿀꿀운세`,description:`${x?.name || ""}일주의 상징과 월령·계절에 따른 차이를 읽고, 공개 생일로 계산한 인물 후보와 관련 명리 입문 글을 살펴보세요. 출생시각 미확인 자료는 확정 분류와 구분합니다.`,robots:{index:false,follow:true,googleBot:{index:false,follow:true}},alternates:{canonical:`https://code-destiny.com/insights/famous-saju/ilju/${slug}/`}};
 }
 export default async function IljuPage({params}:{params:Promise<{slug:string}>}){
   const {slug}=await params;const cycle=ILJU.find(x=>x.slug===slug);if(!cycle)notFound();

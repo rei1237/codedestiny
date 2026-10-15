@@ -1,13 +1,13 @@
 {
-  "people": 159,
-  "published": 159,
+  "people": 205,
+  "published": 205,
   "editorials": 17,
   "reviewed": 9,
   "editorialDrafts": 8,
-  "withoutUniqueEditorial": 142,
+  "withoutUniqueEditorial": 188,
   "duplicateSlugs": 0,
-  "calculatedCandidates": 139,
-  "classificationNeedsReview": 159,
+  "calculatedCandidates": 185,
+  "classificationNeedsReview": 205,
   "sourceLinked": 8,
   "cycle": 60
 }

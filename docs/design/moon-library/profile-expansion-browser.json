@@ -1,0 +1,56 @@
+[
+  {
+    "query": "박위 사주",
+    "slug": "park-wi",
+    "matched": true
+  },
+  {
+    "query": "WERACLE",
+    "slug": "park-wi",
+    "matched": true
+  },
+  {
+    "query": "이말년",
+    "slug": "chimchakman",
+    "matched": true
+  },
+  {
+    "query": "곽준빈",
+    "slug": "kwaktube",
+    "matched": true
+  },
+  {
+    "query": "이상혁",
+    "slug": "faker",
+    "matched": true
+  },
+  {
+    "query": "입짧은 햇님",
+    "slug": "haetnim",
+    "matched": true
+  },
+  {
+    "width": 320,
+    "overflow": false
+  },
+  {
+    "width": 360,
+    "overflow": false
+  },
+  {
+    "width": 390,
+    "overflow": false
+  },
+  {
+    "width": 430,
+    "overflow": false
+  },
+  {
+    "width": 1280,
+    "overflow": false
+  },
+  {
+    "reloadAndBack": true,
+    "creatorFilterAndPagination": true
+  }
+]

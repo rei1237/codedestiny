@@ -61,5 +61,9 @@ export default function FamousSajuInsightIndexPage() {
     <FamousArchive people={people} /><ArchiveMethodology />
     <details className="moon-method"><summary>출생 자료와 해석 기준</summary><p>공개 출생일과 기존 계산 엔진을 사용합니다. 출처·역법·시간대가 불확실한 인물은 일주별 확정 목록에서 제외합니다. 같은 일주도 월지·계절·다른 기둥과 삶의 환경에 따라 다르게 읽습니다.</p><a href="/methodology/">계산·편집 방법론 읽기</a><PublicRecordLink /></details>
     <section className="moon-method"><h2>검수 원고 읽기</h2><p>기존 원고와 상세 URL을 그대로 보존합니다.</p><div className="moon-chips">{people.filter(p=>p.reviewed).map(p=><a key={p.slug} href={'/insights/famous-saju/'+p.slug+'/'}>{p.name} 사주</a>)}</div></section>
+    <details className="moon-method"><summary>분야별 전체 인물 찾아보기 · {people.length}명</summary>
+      <p>본명·활동명·채널명으로 검색하거나 아래 이름에서 상세 자료를 읽어 보세요. 검수 전 자료는 편집 초안으로 구분합니다.</p>
+      {[...new Set(people.flatMap(p=>p.fields))].sort().map(field=><section key={field}><h2>{field}</h2><ul className="moon-chips">{people.filter(p=>p.fields.includes(field)).map(p=><li key={p.slug}><a href={`/insights/famous-saju/${p.slug}/`}>{p.name}</a></li>)}</ul></section>)}
+    </details>
   </div></main>;
 }

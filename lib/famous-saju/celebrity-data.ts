@@ -1,3 +1,4 @@
+import { publicProfiles, getPublicProfile } from "./public-profiles";
 import famousOverridesJson from "./overrides.generated.json";
 
 export type BirthStatus = "verified" | "public" | "uncertain" | "unknown";
@@ -57,6 +58,9 @@ export type CelebritySajuSeed = {
 };
 
 export const famousSajuCategories = [
+  "유튜버·크리에이터",
+  "방송·예능",
+  "셰프·요리",
   "역사 위인",
   "왕족·정치인",
   "K-스타",
@@ -83,6 +87,7 @@ type RawCelebritySeed = [
 ];
 
 const rawSeeds: RawCelebritySeed[] = [
+  ...publicProfiles.map((p): RawCelebritySeed => [p.slug, p.name, p.category, p.country, p.birthDate, null, p.fields, p.nameEn]),
   ["grace-hopper", "그레이스 호퍼", "사상가·예술가", "US", "1906-12-09", null, ["컴퓨터", "과학", "프로그래밍"], "Grace Hopper"],
   ["alan-turing", "앨런 튜링", "사상가·예술가", "UK", "1912-06-23", null, ["컴퓨터", "과학", "수학"], "Alan Turing"],
   ["katherine-johnson", "캐서린 존슨", "사상가·예술가", "US", "1918-08-26", null, ["과학", "수학", "우주"], "Katherine Johnson"],
@@ -267,6 +272,8 @@ function toFamousSajuCategory(category: string): FamousSajuCategory {
   if (category === "왕족·정치인") return "politics";
   if (category === "스포츠") return "sports";
   if (category === "기업인") return "business";
+  if (category === "유튜버·크리에이터" || category === "셰프·요리") return "creator";
+  if (category === "방송·예능") return "entertainer";
   if (category === "감독·작가" || category === "사상가·예술가") return "creator";
   if (category === "K-스타" || category === "배우" || category === "가수") return "entertainer";
   return "other";
@@ -288,7 +295,7 @@ export function normalizeCelebrityLookupKey(value: string) {
 
 function buildAliases(slug: string, nameKo: string, nameEn?: string) {
   const slugText = slug.replace(/-/g, " ");
-  return uniqueText([nameKo, nameEn, slugText, ...(extraAliasesBySlug[slug] || [])]);
+  return uniqueText([nameKo, nameEn, slugText, ...(extraAliasesBySlug[slug] || []), ...(getPublicProfile(slug)?.aliases || [])]);
 }
 
 function isDateUncertain(category: string, birthDate: string) {
@@ -320,6 +327,7 @@ export const celebritySajuSeeds: CelebritySajuSeed[] = rawSeeds.map(([slug, name
   const birthCalendar: FamousSajuBirthCalendar = "solar";
   const isBirthTimeKnown = false; // No field-specific time source is stored in the legacy tuple.
   const shortDescription = famousSajuOverrides[slug]?.shortDescription
+    || getPublicProfile(slug)?.intro
     || `${name}의 공개 생년월일을 바탕으로 일간, 오행, 직업적 흐름을 살펴보는 유명인 사주 분석입니다.`;
 
   return {
@@ -377,6 +385,9 @@ export const famousSajuPeople: FamousSajuPerson[] = publishedCelebritySajuSeeds.
 
 export function categoryToSlug(category: string) {
   const table: Record<string, string> = {
+    "유튜버·크리에이터": "youtube-creator",
+    "방송·예능": "broadcast",
+    "셰프·요리": "chef",
     "역사 위인": "history",
     "왕족·정치인": "politics",
     "K-스타": "k-star",

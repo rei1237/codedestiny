@@ -1,3 +1,4 @@
+import { getPublicProfile } from "../../../../lib/famous-saju/public-profiles";
 import Image from "next/image";
 import Link from "next/link";
 import ContentIntegrityNote from "../../../components/ContentIntegrityNote";
@@ -233,7 +234,7 @@ function Breadcrumb({ celebrity }: { celebrity: RelatedCelebrity }) {
   );
 }
 
-function CelebritySajuHero({ magazine, heroImage }: { magazine: CelebritySajuMagazineResult; heroImage: FamousSajuHeroImage }) {
+function CelebritySajuHero({ magazine, heroImage, profile }: { magazine: CelebritySajuMagazineResult; heroImage: FamousSajuHeroImage; profile: ReturnType<typeof getPublicProfile> }) {
   const basis = magazine.threePillarBasis ? "3주 기준" : "4주 기준";
   const dayPillar = magazine.pillars.day.ganji;
   const accent = accentFor(magazine.dayElement);
@@ -246,21 +247,21 @@ function CelebritySajuHero({ magazine, heroImage }: { magazine: CelebritySajuMag
         {magazine.profile.displayName}
       </h1>
       <p className="mt-4 text-base font-semibold leading-7 [font-family:var(--font-display)]" style={{ color: accent.color }}>
-        {dayPillar} 일주 · {magazine.summary.coreMetaphor}
+        {profile ? profile.question : `${dayPillar} 일주 · ${magazine.summary.coreMetaphor}`}
       </p>
       <p className="mx-auto mt-3 max-w-2xl text-sm leading-7 text-[#242139]">
-        {imagery}
+        {profile ? profile.intro : imagery}
       </p>
       <p className="mx-auto mt-2 max-w-2xl text-xs leading-6 text-[#242139]">
-        {magazine.summary.subtitle}
+        {profile ? `${profile.birthDate} · 공개 날짜 기준 ${dayPillar}일주 후보 · 출생시간 미상` : magazine.summary.subtitle}
       </p>
       <div className="mt-5 inline-flex max-w-full items-center rounded-lg border px-4 py-2 text-xs font-semibold [font-family:var(--font-playful)]" style={{ borderColor: accent.color, backgroundColor: accent.soft, color: accent.color }}>
-        공개 원국 직접 해석 · {basis}
+        {profile ? '공개 활동 읽기 · 전문가 검수 전' : `공개 원국 직접 해석 · ${basis}`}
       </div>
       <figure className="relative mx-auto mt-6 max-w-3xl overflow-hidden rounded-xl border" style={{ borderColor: accent.soft }}>
         <Image
-          src={heroImage.src}
-          alt={heroImage.alt}
+          src={profile ? '/images/feature-details/famous-saju-hero-v2.webp' : heroImage.src}
+          alt={profile ? '인물 이야기를 읽는 달빛 책 삽화' : heroImage.alt}
           width={1200}
           height={630}
           priority
@@ -268,7 +269,7 @@ function CelebritySajuHero({ magazine, heroImage }: { magazine: CelebritySajuMag
           style={{ aspectRatio: "1200 / 630" }}
         />
         <div className="pointer-events-none absolute inset-0" style={{ background: `linear-gradient(180deg, rgba(7,5,18,0) 45%, rgba(7,5,18,0.85) 100%)` }} />
-        {heroImage.source === "pexels" && heroImage.credit ? (
+        {!profile && heroImage.source === "pexels" && heroImage.credit ? (
           <figcaption className="absolute bottom-1 right-2 text-[10px] text-white">
             Photo:{" "}
             {heroImage.creditUrl ? (
@@ -556,7 +557,7 @@ function CelebrityActivityInsightCard({ magazine, highlightedTenGods }: { magazi
 function EditorialNarrative({ editorial }: { editorial: CelebrityEditorialEntry }) {
   return (
     <section id="editorial" data-famous-saju-editorial className="mt-6 scroll-mt-24 rounded-lg border border-amber-100/20 bg-[#fffdf8] p-4 sm:p-6">
-      <SectionHeader label="명리학자의 풀이" title="명식에서 행적으로 — 이 인물만의 해설" />
+      <SectionHeader label={editorial.reviewedAt ? "명리학자의 풀이" : "편집 해설 · 검수 전"} title="명식에서 행적으로 — 이 인물만의 해설" />
       <div className="space-y-4 text-sm leading-8 text-[#242139] sm:text-base">
         {editorial.narrative.map((paragraph, index) => <p key={index}>{paragraph}</p>)}
       </div>
@@ -714,6 +715,7 @@ export default async function FamousSajuInsightDetailPage({ params }: PageProps)
 
   const { celebrity, magazine } = reading;
   const editorial = getCelebrityEditorial(celebrity.slug);
+  const profile = getPublicProfile(celebrity.slug);
   const reviewedAt = editorial?.reviewedAt || null;
   const multiSystem = await buildCelebrityMultiSystem({ birthDate: celebrity.birthDate || "", birthTime: celebrity.birthTime, country: celebrity.country, magazine });
   const related = getCelebrityRelatedList(celebrity);
@@ -731,7 +733,7 @@ export default async function FamousSajuInsightDetailPage({ params }: PageProps)
   const finalSection = sectionById(magazine, "final-texture");
 
   const tableOfContents: TocItem[] = [
-    editorial ? { id: "editorial", title: "명리학자의 풀이" } : null,
+    editorial ? { id: "editorial", title: editorial.reviewedAt ? "명리학자의 풀이" : "편집 해설 · 검수 전" } : null,
     { id: "multi-system", title: "세 체계로 본 명식" },
     { id: "pillars", title: "원국 4주" },
     { id: "conclusion", title: "한 줄 결론" },
@@ -822,9 +824,18 @@ body:has(main[data-famous-saju-detail]) {
       />
       <article className="mx-auto max-w-5xl px-4 pb-10 sm:px-6 sm:pb-14">
         <Breadcrumb celebrity={relatedSummary} />
-        <CelebritySajuHero magazine={magazine} heroImage={heroImage} />
+        <CelebritySajuHero magazine={magazine} heroImage={heroImage} profile={profile} />
         <CelebritySajuNotice magazine={magazine} />
         <p className="my-5 rounded-xl border border-[#d8cdbb] bg-[#fffdf8] p-4 text-base leading-8 text-[#242139]">이 페이지의 일주는 공개 날짜를 기준으로 계산한 후보입니다. 출생시각·현지 날짜·역법 검수가 끝나기 전에는 같은 일주의 확인된 인물 수에 포함하지 않습니다.</p>
+        {profile && <section data-public-profile className="my-6 rounded-2xl border border-[#d8cdbb] bg-[#fffdf8] p-5 sm:p-7">
+          <p className="text-sm text-[#625b74]">공개 활동 읽기 · 편집 초안</p>
+          <h2 className="my-3 text-xl font-semibold">{profile.question}</h2>
+          <div className="space-y-4 text-base leading-8"><p>{profile.career}</p><p>{profile.reading}</p></div>
+          <h3 className="mb-2 mt-5 font-semibold">출생 자료와 출처</h3>
+          <p className="text-sm leading-7">공개 프로필의 생일: {profile.birthDate} · 출생시간 미상. 2차 자료를 연결한 편집 초안이며 원기록의 역법·현지 날짜·날짜 경계와 전문가 해설 검수는 아직 완료되지 않았습니다.</p>
+          <ul className="mt-3 space-y-2 text-sm leading-7">{profile.sources.map(source=><li key={source.label}><a href={source.url} target="_blank" rel="noopener noreferrer" className="underline">{source.label}</a></li>)}</ul>
+          <p className="mt-3 text-sm leading-7">자료 확인 {profile.sourceCheckedAt} · AI 편집 점검, 인간 전문가 검수 전. <a href="/contact/" className="underline">자료 수정 제보</a></p>
+        </section>}
         {editorial ? <EditorialNarrative editorial={editorial} /> : null}
         <MultiSystemTable rows={multiSystem.rows} />
         <CelebritySajuPillarTable magazine={magazine} />

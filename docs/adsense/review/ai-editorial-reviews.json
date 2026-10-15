@@ -286,5 +286,41 @@
     "limits": "카드 도상은 덱마다 다르며 의료·시험·계약·타인의 의사를 판정하지 않음",
     "humanReview": "unconfirmed",
     "adsAllowed": false
+  },
+  {
+    "slug": "rescene-members-saju-reading-guide",
+    "title": "리센느 사주를 찾았다면: 원이·리브·미나미·메이·제나를 읽는 순서",
+    "manuscriptSha256": "dcb4e1c38f77f3807ee9465055a2ee1e7baeca9a0043ce6a7cae5e2fe2831259",
+    "status": "ai-edited",
+    "reviewer": "OpenAI Codex (AI)",
+    "reviewedAt": "2026-10-15",
+    "finding": "공개 자료와 해석의 구분, 출생시간 미상, 결정론적 표현 및 내부 링크를 편집 점검. 인간 검수 표시는 추가하지 않음.",
+    "limits": "AI 편집 점검. 인간 전문가 검수 또는 예측 검증 아님.",
+    "humanReview": "unconfirmed",
+    "adsAllowed": false
+  },
+  {
+    "slug": "tarot-question-journal-before-redraw",
+    "title": "타로를 다시 뽑기 전에: 불안을 키우지 않는 질문 기록법",
+    "manuscriptSha256": "e8243340bd2c4bd73d2e430d165a184bb46b5dd8744e935be100ba656555c6e7",
+    "status": "ai-edited",
+    "reviewer": "OpenAI Codex (AI)",
+    "reviewedAt": "2026-10-15",
+    "finding": "공개 자료와 해석의 구분, 출생시간 미상, 결정론적 표현 및 내부 링크를 편집 점검. 인간 검수 표시는 추가하지 않음.",
+    "limits": "AI 편집 점검. 인간 전문가 검수 또는 예측 검증 아님.",
+    "humanReview": "unconfirmed",
+    "adsAllowed": false
+  },
+  {
+    "slug": "same-day-pillar-different-season-reading",
+    "title": "같은 일주인데 왜 다를까? 계절과 환경을 함께 읽는 세 가지 질문",
+    "manuscriptSha256": "85a05f43e281a84d32fb8e74bc62e76c354c63c5d04d563ae0b95fbb3965ded3",
+    "status": "ai-edited",
+    "reviewer": "OpenAI Codex (AI)",
+    "reviewedAt": "2026-10-15",
+    "finding": "공개 자료와 해석의 구분, 출생시간 미상, 결정론적 표현 및 내부 링크를 편집 점검. 인간 검수 표시는 추가하지 않음.",
+    "limits": "AI 편집 점검. 인간 전문가 검수 또는 예측 검증 아님.",
+    "humanReview": "unconfirmed",
+    "adsAllowed": false
   }
 ]
