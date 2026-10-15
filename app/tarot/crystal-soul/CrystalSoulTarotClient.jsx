@@ -3,6 +3,7 @@ import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure"
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
+import { SHELL_HOME_PATH } from "@/lib/navigation/shellHome";
 import { Copy, Gem as GemIcon, Home, Loader2, RotateCcw, Share2, Sparkles } from "lucide-react";
 import { getCurrentLoadingLocale, normalizeLoadingLocale } from "@/constants/loadingMessages";
 import CrystalGem, { GEM_META, getGemColor } from "@/src/components/crystal/CrystalGem";
@@ -1122,7 +1123,7 @@ export default function CrystalSoulTarotClient() {
             locale={locale}
           />
           {reading ? <CardSpread gemType={selectedGem} reading={reading} openedCards={openedCards} onOpenCard={openCard} copy={copy} /> : null}
-          {allRevealed ? <ReadingResult gemType={selectedGem} reading={reading} onRetry={resetAll} onHome={() => { window.location.href = "/"; }} copy={copy} locale={locale} /> : null}
+          {allRevealed ? <ReadingResult gemType={selectedGem} reading={reading} onRetry={resetAll} onHome={() => { window.location.href = SHELL_HOME_PATH; }} copy={copy} locale={locale} /> : null}
         </>
       ) : null}
 

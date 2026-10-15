@@ -90,7 +90,7 @@ export const ZIWEI_PREMIUM_METHOD_COPY = {
 };
 
 export const ABOUT_PAGE_COPY = {
-  heading: "무료 사주 · 자미두수 운세 분석 서비스 소개 — 꿀꿀운세",
+  heading: "무료 사주 · 자미두수 운세 분석 서비스 소개 — 꿀꿀 운세",
   intro:
     "꿀꿀운세는 사주팔자·AI 타로·자미두수·점성술·숙요점·동물관상·꿈 해몽 등 다양한 운세·점술 콘텐츠를 제공하는 AI 기반 운세 플랫폼입니다. 생년월일 하나로 폭넓은 해석 경험을 제공하며, 사용자가 자신의 상황을 더 명확히 이해하고 선택을 정리하도록 돕습니다.",
   operatorRows: [

@@ -6,7 +6,7 @@ import ContactForm from "./ContactForm";
 
 const CONTACT_US_PAGE_TEXT_TRANSLATIONS = {
   ko: {
-    title: "Contact Us | 문의하기 — 꿀꿀운세",
+    title: "Contact Us | 문의하기 — 꿀꿀 운세",
     replyMeta: "Contact Us · 보통 영업일 기준 1~3일 내 회신",
     replyTiming: "문의는 보통 영업일 기준 1~3일 내 회신합니다. 문의 내용과 확인 절차에 따라 더 걸릴 수 있습니다.",
     generalInquiry: " — 서비스 이용 방법, 오류 신고, 결과가 보이지 않는 문제를 접수합니다.",
@@ -14,12 +14,12 @@ const CONTACT_US_PAGE_TEXT_TRANSLATIONS = {
     keywords: ["Contact Us", "문의하기", "고객지원", "꿀꿀운세 문의"],
   },
   en: {
-    title: "Contact Us | 꿀꿀운세",
+    title: "Contact Us | 꿀꿀 운세",
     description: "Contact 꿀꿀운세 by email or inquiry form for service support.",
     keywords: ["Contact Us", "Support", "Customer Support", "꿀꿀운세 Contact"],
   },
   ja: {
-    title: "お問い合わせ | 꿀꿀운세",
+    title: "お問い合わせ | 꿀꿀 운세",
     description: "꿀꿀운세へのサービス関連のお問い合わせを、メールまたはフォームで受け付けています。",
     keywords: ["お問い合わせ", "サポート", "カスタマーサポート", "꿀꿀운세 お問い合わせ"],
   },

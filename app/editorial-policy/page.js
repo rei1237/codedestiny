@@ -4,7 +4,7 @@ import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "../../lib/site-policy-config";
 
 const EDITORIAL_POLICY_TEXT_TRANSLATIONS = {
   ko: {
-    metadataTitle: "콘텐츠 제작 및 AI 활용 고지 | 꿀꿀운세",
+    metadataTitle: "콘텐츠 제작 및 AI 활용 고지 | 꿀꿀 운세",
     metadataDescription: "꿀꿀운세의 운세 콘텐츠 제작 원칙, AI 활용 범위, 검수 기준, 광고와 편집 독립성, 정정 요청 절차를 안내합니다.",
     metadataKeywords: ["콘텐츠 제작 원칙", "AI 활용 고지", "운세 콘텐츠", "편집 정책", "꿀꿀운세"],
     creationIntro: "다음은 공개 문서를 작성·검토할 때 적용하는 기준입니다. 이 절차를 안내하는 것만으로 모든 문서의 개별 검수가 완료되었다는 뜻은 아닙니다. 원고별 완료 여부는 해당 글의 제작·검수 안내를 확인해 주세요.",
@@ -17,7 +17,7 @@ const EDITORIAL_POLICY_TEXT_TRANSLATIONS = {
     advertising: "광고 운영정책",
   },
   en: {
-    metadataTitle: "Content Creation and AI Use Notice | 꿀꿀운세",
+    metadataTitle: "Content Creation and AI Use Notice | 꿀꿀 운세",
     metadataDescription: "Learn how 꿀꿀운세 creates fortune content, uses AI support, reviews quality, separates ads from editorial decisions, and handles correction requests.",
     metadataKeywords: ["content creation standards", "AI use notice", "fortune content", "editorial policy", "꿀꿀운세"],
     privacy: "Privacy Policy",
@@ -25,7 +25,7 @@ const EDITORIAL_POLICY_TEXT_TRANSLATIONS = {
     advertising: "Advertising Policy",
   },
   ja: {
-    metadataTitle: "コンテンツ制作とAI活用に関する告知 | 꿀꿀운세",
+    metadataTitle: "コンテンツ制作とAI活用に関する告知 | 꿀꿀 운세",
     metadataDescription: "꿀꿀운세の運勢コンテンツ制作原則、AI活用範囲、検収基準、広告と編集の独立性、訂正依頼手順をご案内します。",
     metadataKeywords: ["コンテンツ制作基準", "AI活用告知", "運勢コンテンツ", "編集方針", "꿀꿀운세"],
     privacy: "プライバシーポリシー",

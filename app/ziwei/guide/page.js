@@ -7,7 +7,7 @@ import { buildArticleJsonLd, buildBreadcrumbJsonLd, buildFaqPageJsonLd } from ".
 
 const ZIWEI_GUIDE_TEXT_TRANSLATIONS = {
   ko: {
-    metaTitle: "자미두수 명반 읽는 법 | 꿀꿀운세",
+    metaTitle: "자미두수 명반 읽는 법 | 꿀꿀 운세",
     observe: "자미두수가 비추는 것",
     inputs: "필요한 입력값",
     useCases: "언제 참고하면 좋은가",

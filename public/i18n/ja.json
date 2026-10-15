@@ -70,7 +70,7 @@
       "flowerDream": "花・夢占い",
       "vvip": "VVIP書庫",
       "oracle": "神託",
-      "brandAlias": "꿀꿀운세",
+      "brandAlias": "꿀꿀 운세",
       "brandAria": "Code Destinyホームへ移動",
       "mainAria": "メインサービスショートカット",
       "astrologyHub": "占星術",
@@ -1696,7 +1696,7 @@
       "searchHint": "占いの名前・悩み・以前のサービス名で探せます。",
       "heroTitle": "四柱推命とタロット",
       "heroTitleEm": "次の一歩を見つける",
-      "heroLead": "꿀꿀운세 · 宿曜の本命宿・相性から紫微斗数の命盤まで",
+      "heroLead": "꿀꿀 운세 · 宿曜の本命宿・相性から紫微斗数の命盤まで",
       "heroPrimary": "占いを選ぶ",
       "allFortunes": "すべての占いを見る",
       "heroInscription": "月明かりの下、自分を見つめる時間",
@@ -1733,7 +1733,7 @@
       "chemiTitle": "推しとわたし、どんなケミ?",
       "chemiNote": "誕生日を入れるだけでフォトカードに",
       "chemiCta": "推しとのケミを見る",
-      "brandOtherEntry": "꿀꿀운세：ヨンニャンイの四柱推命・タロット →",
+      "brandOtherEntry": "꿀꿀 운세：ヨンニャンイの四柱推命・タロット →",
       "publicRecordsTitle": "10年の経験を持つ四柱推命家パク・ビョンハ（ネオ）の公開分析記録",
       "publicRecordsLink": "日付・原文・一致する範囲を確認"
     },
@@ -1889,7 +1889,7 @@
       "self": "自分を知る",
       "future": "時期・選択",
       "title": "あなたの質問から始まる相談",
-      "brand": "꿀꿀운세でヨンニャンイ・ヨニ・ネオに会えます。ヨンニャンイへの相談や、ヨニの茶屋・ネオの作戦室をお楽しみください。",
+      "brand": "꿀꿀 운세でヨンニャンイ・ヨニ・ネオに会えます。ヨンニャンイへの相談や、ヨニの茶屋・ネオの作戦室をお楽しみください。",
       "stepQuestion": "今の悩みを教えてください",
       "stepPrice": "相談内容と料金を確認",
       "stepResult": "答え・根拠・次の行動を読む",
@@ -2775,9 +2775,9 @@
     }
   },
   "seo": {
-    "homeTitle": "無料四柱推命・タロット・今日の運勢 | 꿀꿀운세",
-    "rssTitle": "꿀꿀운세 RSS",
-    "description": "꿀꿀운세: 生年月日で読む無料四柱推命、タロット、相性、新年運、土亭秘訣、MBTI相性まで。",
+    "homeTitle": "無料四柱推命・タロット・今日の運勢 | 꿀꿀 운세",
+    "rssTitle": "꿀꿀 운세 RSS",
+    "description": "꿀꿀 운세: 生年月日で読む無料四柱推命、タロット、相性、新年運、土亭秘訣、MBTI相性まで。",
     "keywords": "四柱推命, 無料四柱推命, 万歳暦, タロット, 今日の運勢, 相性, 新年運, 土亭秘訣, 観相, 金運, 復縁運, MBTI相性, 꿀꿀운세"
   },
   "fortune": {
@@ -7016,7 +7016,7 @@
     "sq_9794_attr_aria_label": "宿曜縁レーダーチャート"
   },
   "shell": {
-    "CODEDESTINY": "四柱推命・宿曜・タロット占い｜꿀꿀운세",
+    "CODEDESTINY": "四柱推命・宿曜・タロット占い｜꿀꿀 운세",
     "cdCookieConsentCopy": {
       "cdCookieConsentActions": {
         "kniuoqf": "同意する",

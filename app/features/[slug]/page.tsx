@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const description = `${detail.title} · ${detail.description}`;
   const shareTitle = detail.journey?.questions?.[0] || detail.title;
   return {
-    title: `${detail.title} 상세 안내 | 꿀꿀운세`, description,
+    title: `${detail.title} 상세 안내 | 꿀꿀 운세`, description,
     alternates: { canonical: url }, robots: { index: false, follow: true },
     openGraph: { type: "website", title: shareTitle, description, url, images: image ? [{ url: new URL(image, url).href }] : [] },
     twitter: { card: "summary_large_image", title: shareTitle, description, images: image ? [new URL(image, url).href] : [] },

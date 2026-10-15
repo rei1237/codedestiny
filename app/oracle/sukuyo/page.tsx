@@ -3,7 +3,7 @@ import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 
 const ORACLE_SUKUYO_TEXT_TRANSLATIONS = {
   ko: {
-    "meta.title": "숙요 인연 레이더 | 꿀꿀운세",
+    "meta.title": "숙요 인연 레이더 | 꿀꿀 운세",
     "meta.description": "상대의 생년월일로 나와의 숙요 관계를 분석하고, 끌림·안정감·소모도·장기 인연 가능성을 확인해보세요.",
     "service.h1": "숙요 인연 레이더",
     "service.seoText": "숙요 인연 레이더는 두 사람의 본명숙과 27숙 관계를 바탕으로 끌림, 안정감, 소모도, 장기 인연 가능성을 비춥니다.",
@@ -16,7 +16,7 @@ const ORACLE_SUKUYO_TEXT_TRANSLATIONS = {
     "value.6.title": "6. 반복 관찰로 나만의 리듬 아카이브를 만드세요",
   },
   en: {
-    "meta.title": "Sukuyo Relationship Radar | 꿀꿀운세",
+    "meta.title": "Sukuyo Relationship Radar | 꿀꿀 운세",
     "meta.description": "Analyze your Sukuyo relationship with another person by birth date, and check attraction, steadiness, exhaustion, and long-term connection potential.",
     "service.h1": "Sukuyo Relationship Radar",
     "service.seoText": "Sukuyo Relationship Radar reflects attraction, steadiness, exhaustion, and long-term potential through both people's natal mansion and 27-mansion relationship.",
@@ -56,7 +56,7 @@ const SERVICE = {
   seoText: oracleSukuyoText("service.seoText"),
   localized: {
     en: {
-      title: "Sukuyo Relationship Radar | 꿀꿀운세",
+      title: "Sukuyo Relationship Radar | 꿀꿀 운세",
       h1: "Sukuyo Relationship Radar",
       description:
         "Analyze your Sukuyo relationship with another person by birth date, and check attraction, steadiness, exhaustion, and long-term connection potential.",
@@ -98,7 +98,7 @@ const SERVICE = {
       ],
     },
     ja: {
-      title: "宿曜ご縁レーダー | 꿀꿀운세",
+      title: "宿曜ご縁レーダー | 꿀꿀 운세",
       h1: "宿曜ご縁レーダー",
       description:
         "相手の生年月日から宿曜占星術の関係を読み、惹かれ方、安心感、消耗度、長く続くご縁の可能性を見ていきます。",
@@ -140,7 +140,7 @@ const SERVICE = {
       ],
     },
     "zh-CN": {
-      title: "宿曜缘分雷达 | 꿀꿀운세",
+      title: "宿曜缘分雷达 | 꿀꿀 운세",
       h1: "宿曜缘分雷达",
       description:
         "通过对方出生日期分析与你的宿曜关系，查看吸引力、安定感、消耗度与长期缘分可能性。",
@@ -182,7 +182,7 @@ const SERVICE = {
       ],
     },
     "zh-TW": {
-      title: "宿曜緣分雷達 | 꿀꿀운세",
+      title: "宿曜緣分雷達 | 꿀꿀 운세",
       h1: "宿曜緣分雷達",
       description:
         "透過對方出生日期分析與你的宿曜關係，查看吸引力、安定感、消耗度與長期緣分可能性。",
@@ -224,7 +224,7 @@ const SERVICE = {
       ],
     },
     vi: {
-      title: "Radar duyên phận Sukuyo | 꿀꿀운세",
+      title: "Radar duyên phận Sukuyo | 꿀꿀 운세",
       h1: "Radar duyên phận Sukuyo",
       description:
         "Phân tích quan hệ Sukuyo giữa bạn và người ấy bằng ngày sinh, rồi xem sức hút, độ ổn định, mức tiêu hao và khả năng gắn bó dài lâu.",
@@ -266,7 +266,7 @@ const SERVICE = {
       ],
     },
     hi: {
-      title: "सुकुयो संबंध रडार | 꿀꿀운세",
+      title: "सुकुयो संबंध रडार | 꿀꿀 운세",
       h1: "सुकुयो संबंध रडार",
       description:
         "जन्मतिथि से दूसरे व्यक्ति के साथ आपका सुकुयो संबंध पढ़ें और आकर्षण, स्थिरता, थकान और दीर्घकालिक जुड़ाव की संभावना देखें.",
@@ -308,7 +308,7 @@ const SERVICE = {
       ],
     },
     es: {
-      title: "Radar de vínculo Sukuyo | 꿀꿀운세",
+      title: "Radar de vínculo Sukuyo | 꿀꿀 운세",
       h1: "Radar de vínculo Sukuyo",
       description:
         "Analiza tu relación Sukuyo con otra persona por fecha de nacimiento y revisa atracción, estabilidad, desgaste y potencial a largo plazo.",
@@ -350,7 +350,7 @@ const SERVICE = {
       ],
     },
     fr: {
-      title: "Radar de lien Sukuyo | 꿀꿀운세",
+      title: "Radar de lien Sukuyo | 꿀꿀 운세",
       h1: "Radar de lien Sukuyo",
       description:
         "Analysez votre relation Sukuyo avec une autre personne par date de naissance, et observez attraction, stabilité, épuisement et potentiel durable.",
@@ -392,7 +392,7 @@ const SERVICE = {
       ],
     },
     de: {
-      title: "Sukuyo-Beziehungsradar | 꿀꿀운세",
+      title: "Sukuyo-Beziehungsradar | 꿀꿀 운세",
       h1: "Sukuyo-Beziehungsradar",
       description:
         "Analysiere deine Sukuyo-Beziehung zu einer anderen Person über das Geburtsdatum und prüfe Anziehung, Stabilität, Erschöpfung und langfristiges Potenzial.",
@@ -434,7 +434,7 @@ const SERVICE = {
       ],
     },
     nl: {
-      title: "Sukuyo relatie-radar | 꿀꿀운세",
+      title: "Sukuyo relatie-radar | 꿀꿀 운세",
       h1: "Sukuyo relatie-radar",
       description:
         "Analyseer je Sukuyo-relatie met iemand via geboortedatum en bekijk aantrekking, stabiliteit, uitputting en langetermijnpotentieel.",
@@ -476,7 +476,7 @@ const SERVICE = {
       ],
     },
     ms: {
-      title: "Radar hubungan Sukuyo | 꿀꿀운세",
+      title: "Radar hubungan Sukuyo | 꿀꿀 운세",
       h1: "Radar hubungan Sukuyo",
       description:
         "Analisis hubungan Sukuyo anda dengan seseorang melalui tarikh lahir, lalu semak tarikan, kestabilan, keletihan dan potensi hubungan jangka panjang.",

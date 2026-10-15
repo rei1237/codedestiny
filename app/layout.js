@@ -15,6 +15,7 @@ import RuntimeClientGuards from "./components/RuntimeClientGuards";
 import ShellHomeHardNavGuard from "./components/ShellHomeHardNavGuard";
 import { SEO_CORE_KEYWORDS } from "../lib/seo-metadata";
 import { siteSeo } from "../lib/seo/siteSeo";
+import { serializeJsonLd } from "../lib/seo/json-ld.mjs";
 import {
   buildOrganizationJsonLd,
   buildWebsiteJsonLd,
@@ -24,22 +25,22 @@ const notoSansKRVariable = "font-noto-sans-kr-offline";
 
 const ROOT_LAYOUT_COPY = {
   ko: {
-    insightsRssTitle: "꿀꿀운세 Insights RSS",
+    insightsRssTitle: "꿀꿀 운세 Insights RSS",
   },
   en: {
-    insightsRssTitle: "꿀꿀운세 Insights RSS",
+    insightsRssTitle: "꿀꿀 운세 Insights RSS",
   },
   ja: {
-    insightsRssTitle: "꿀꿀운세 Insights RSS",
+    insightsRssTitle: "꿀꿀 운세 Insights RSS",
   },
   zh: {
-    insightsRssTitle: "꿀꿀운세 Insights RSS",
+    insightsRssTitle: "꿀꿀 운세 Insights RSS",
   },
 };
 
 const ROOT_SEO = {
-  title: "꿀꿀운세 | 사주·타로·영냥이 상담",
-  description: "꿀꿀운세는 사주·타로 상담 서비스입니다. 꽃돼지 연이, 네오, 영냥이와 함께 자신의 기질과 관계를 살펴보고 일상에서 선택할 방향을 찾아보세요.",
+  title: "꿀꿀 운세 | 사주·타로·영냥이 상담",
+  description: "꿀꿀 운세는 사주·타로 상담 서비스입니다. 꽃돼지 연이, 네오, 영냥이와 함께 자신의 기질과 관계를 살펴보고 일상에서 선택할 방향을 찾아보세요.",
   ogTitle: siteSeo.defaultTitle,
   ogDescription: siteSeo.defaultDescription,
 };
@@ -109,7 +110,7 @@ export const metadata = {
         url: siteSeo.defaultOgImage,
         width: 1200,
         height: 630,
-        alt: "꿀꿀운세 사주·타로 상담 서비스",
+        alt: "꿀꿀 운세 사주·타로 상담 서비스",
       },
     ],
   },
@@ -152,7 +153,7 @@ export const viewport = {
   colorScheme: "dark light",
 };
 
-// 🔴 name 을 여기에 손으로 적지 않는다. 정본은 lib/seo/siteSeo.ts 의 brandName 이다.
+// 🔴 name 을 여기에 손으로 적지 않는다. 정본은 lib/brand/brand-facts.mjs 이고 lib/seo/siteSeo.ts 의 brandName 으로 내려온다.
 //
 // 같은 @id(https://code-destiny.com/#website)를 홈(승격된 정적 셸)과 나머지 400여 Next 라우트
 // (이 레이아웃)가 각각 선언하므로 두 값이 글자 단위로 같아야 한다. 예전에는 여기 이름을 손으로
@@ -203,7 +204,7 @@ export default function RootLayout({ children }) {
             canonical=/saju/ 인데 hreflang ko=/ 를 함께 내보내는 자기모순 상태였다).
             로케일 대체 URL 은 metadata.alternates.languages 가, og 는 metadata.openGraph 가
             페이지별로 생성한다. */}
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdGraph) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLdGraph) }} />
         {/* 정적 셸과 동일한 라이트/다크 테마 키 공유(저장값 neo = 다크, 페르소나는 늘 연이) — hydration 전에 html 속성으로 반영 (FOUC 방지).
 
             예전에는 Capacitor 앱이면 저장값이 없을 때 네오(다크)를 기본으로 강제했다. 그때는 앱이

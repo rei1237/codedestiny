@@ -101,6 +101,36 @@ function localizedEntryPath(pathname, locale) {
   return null;
 }
 
+// Campaign attribution only. These never change what the home shows.
+const HOME_CAMPAIGN_KEY = /^(utm_.+|gclid|gbraid|wbraid|fbclid|msclkid)$/;
+// Inputs that still keep a question guide on Yeongnyangi instead of the Ggulggul app.
+const HOME_GUIDE_KEY = /^(utm_.+|gclid|gbraid|wbraid|fbclid|msclkid|ref|question|lang)$/;
+
+// `/` is the brand home (2026-10-15): plain and campaign-only GET/HEAD visits get it with 200,
+// crawlers included. App inputs (payment and OAuth returns, ref, lang, question guides) still
+// move on, and overseas visitors still land on their locale home. Returns null to serve `/`.
+function brandHomeRedirect(request, url, visitorLocale) {
+  const keys = [...url.searchParams.keys()];
+  const target = new URL(url);
+  target.pathname = keys.every(key => HOME_GUIDE_KEY.test(key)) && url.searchParams.get("question")
+    ? "/yeongnyangi/"
+    : "/ggulggul/";
+  const localizedHome = visitorLocale && localizedEntryPath(target.pathname, visitorLocale.locale);
+  if (localizedHome) {
+    target.pathname = localizedHome;
+  } else if (keys.every(key => HOME_CAMPAIGN_KEY.test(key)) && ["GET", "HEAD"].includes(request.method)) {
+    if (url.pathname === "/") return null;
+    target.pathname = "/";
+    return new Response(null, { status: 301, headers: { Location: target.toString(), "Cache-Control": "no-store" } });
+  }
+  // Keep the query verbatim. Browsers inherit the original fragment when Location has none,
+  // preserving existing service/result deep links. 302: the target depends on the request.
+  return new Response(null, {
+    status: 302,
+    headers: visitorLocaleHeaders(new Headers({ Location: target.toString(), "Cache-Control": "no-store" }), visitorLocale),
+  });
+}
+
 // 🔴 /fortune/** 레거시 리다이렉트가 _redirects 가 아니라 여기 있는 이유.
 //
 // Cloudflare Pages 는 `public/_redirects` 의 **첫 102개 규칙만** 적용하고 나머지는 에러도
@@ -625,26 +655,11 @@ export default {
       return new Response(null, { status: 301, headers: { Location: url.toString(), 'Cache-Control': 'no-store' } });
     }
     const visitorLocale = visitorLocaleContext(request, url);
-    // Resolve the home before serving HTML: waiting for React's useEffect
-    // briefly paints the introductory page before the actual main screen.
+    // Resolve app inputs before serving HTML: waiting for React's useEffect
+    // briefly paints the brand home before the app screen they belong to.
     if (url.pathname === "/" || url.pathname === "/index.html") {
-      const hasLegacyInput = [...url.searchParams.keys()].some(
-        key => !/^(utm_.+|gclid|fbclid|msclkid|ref|question|lang)$/.test(key),
-      );
-      url.pathname = !hasLegacyInput && url.searchParams.get("question")
-        ? "/yeongnyangi/"
-        : "/ggulggul/";
-      const localizedHome = visitorLocale && localizedEntryPath(url.pathname, visitorLocale.locale);
-      if (localizedHome) url.pathname = localizedHome;
-      // Keep the query verbatim. Browsers inherit the original fragment when
-      // Location has none, preserving existing service/result deep links.
-      // 301, not 302: /ggulggul/ is the one canonical ggulggul URL (2026-10-02), so search
-      // engines must consolidate "/" into it instead of keeping "/" indexed with this content.
-      // no-store keeps browsers from pinning the permanent redirect if the home ever changes.
-      return new Response(null, {
-        status: visitorLocale ? 302 : 301,
-        headers: visitorLocaleHeaders(new Headers({ Location: url.toString(), "Cache-Control": "no-store" }), visitorLocale),
-      });
+      const homeRedirect = brandHomeRedirect(request, url, visitorLocale);
+      if (homeRedirect) return homeRedirect;
     }
     const localizedEntry = visitorLocale && localizedEntryPath(url.pathname, visitorLocale.locale);
     if (localizedEntry) {

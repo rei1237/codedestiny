@@ -1,4 +1,5 @@
 import { brandCopy } from '../lib/seo/brand-copy.mjs';
+import { BRAND_FACTS } from '../lib/brand/brand-facts.mjs';
 import { localizeHubLinks } from '../lib/i18n/localized-hub-links.mjs';
 import { syncSajuReadingPrices, syncYeongnyangiFishPrices } from './lib/sync-saju-reading-prices.mjs';
 /**
@@ -471,12 +472,12 @@ const LOCALE_SHELL_SEO = {
     lang: "ja",
     ogLocale: "ja_JP",
     language: "Japanese",
-    title: "四柱推命・宿曜・タロット占い｜꿀꿀운세",
+    title: `四柱推命・宿曜・タロット占い｜${BRAND_FACTS.service.name}`,
     description:
       "韓国式四柱推命の命式、宿曜の本命宿と相性、紫微斗数の十二宮を日本語で。占術ごとの見方と必要な入力を確認し、今の悩みに合う占いを選べます。",
     keywords:
       "四柱推命 無料, 占い 無料, タロット占い 無料, 今日の運勢, 相性占い, 紫微斗数, 宿曜占星術, 誕生日占い, 恋愛占い, 韓国 占い, 無料鑑定",
-    appTitle: "꿀꿀운세",
+    appTitle: BRAND_FACTS.service.name,
     imageAlt:
       "꿀꿀운세 HONEY FORTUNE — 花豚ヨニのカメオとサービス紹介を収めた CODE DESTINY の名刺カード",
     dictionaryFile: "ja.json",
@@ -487,12 +488,12 @@ const LOCALE_SHELL_SEO = {
     lang: "zh-CN",
     ogLocale: "zh_CN",
     language: "Chinese",
-    title: "八字排盘·紫微斗数·塔罗占卜｜꿀꿀운세",
+    title: `八字排盘·紫微斗数·塔罗占卜｜${BRAND_FACTS.service.name}`,
     description:
       "从四柱八字、紫微斗数十二宫到宿曜关系与塔罗问题解读。用简体中文了解不同体系的输入与看盘顺序，选择适合自己的命盘或咨询入口。",
     keywords:
       "免费算命, 八字算命, 生辰八字, 塔罗牌占卜, 今日运势, 合婚配对, 紫微斗数, 宿曜占星, 星座运势, 姻缘测算",
-    appTitle: "꿀꿀운세",
+    appTitle: BRAND_FACTS.service.name,
     imageAlt:
       "꿀꿀운세 HONEY FORTUNE — 印有花猪 Yeoni 客串形象与服务介绍的 CODE DESTINY 名片卡",
     dictionaryFile: "zh-cn.json",
@@ -505,12 +506,12 @@ const LOCALE_SHELL_SEO = {
     lang: "zh-TW",
     ogLocale: "zh_TW",
     language: "Chinese",
-    title: "八字排盤·紫微斗數·塔羅占卜｜꿀꿀운세",
+    title: `八字排盤·紫微斗數·塔羅占卜｜${BRAND_FACTS.service.name}`,
     description:
       "從四柱八字、紫微斗數十二宮到宿曜關係與塔羅問題解讀。用繁體中文了解不同體系的輸入與看盤順序，選擇適合自己的命盤或諮詢入口。",
     keywords:
       "免費算命, 八字算命, 生辰八字, 塔羅牌占卜, 今日運勢, 合婚配對, 紫微斗數, 宿曜占星, 星座運勢, 姻緣測算",
-    appTitle: "꿀꿀운세",
+    appTitle: BRAND_FACTS.service.name,
     imageAlt:
       "꿀꿀운세 HONEY FORTUNE — 印有花豬 Yeoni 客串形象與服務介紹的 CODE DESTINY 名片卡",
     dictionaryFile: "zh-tw.json",
@@ -521,12 +522,12 @@ const LOCALE_SHELL_SEO = {
     lang: "en",
     ogLocale: "en_US",
     language: "English",
-    title: "Korean Saju, Tarot & Birth Charts | 꿀꿀운세",
+    title: `Korean Saju, Tarot & Birth Charts | ${BRAND_FACTS.service.name}`,
     description:
       "Explore Korean Saju, Zi Wei Dou Shu, Sukuyo and tarot in English. Compare traditions, check birth-chart inputs and choose a reading for your question.",
     keywords:
       "free fortune telling, saju reading, four pillars of destiny, free tarot reading, daily horoscope, zi wei dou shu, compatibility test, korean astrology, birth chart",
-    appTitle: "꿀꿀운세",
+    appTitle: BRAND_FACTS.service.name,
     imageAlt:
       "꿀꿀운세 HONEY FORTUNE — a CODE DESTINY calling card with a cameo of Yeoni the flower pig and an overview of the service",
     dictionaryFile: "en.json",
@@ -562,8 +563,8 @@ function resolveLocaleShellTitle(seo) {
  */
 const LOCALE_MANIFEST = {
   "/ja": {
-    name: "꿀꿀운세",
-    short_name: "꿀꿀운세",
+    name: BRAND_FACTS.service.name,
+    short_name: BRAND_FACTS.service.name,
     description: "今日の運勢と四柱推命、相性とタロットの流れが静かに開きます。",
     lang: "ja",
     shortcut: {
@@ -573,8 +574,8 @@ const LOCALE_MANIFEST = {
     },
   },
   "/zh": {
-    name: "꿀꿀운세",
-    short_name: "꿀꿀운세",
+    name: BRAND_FACTS.service.name,
+    short_name: BRAND_FACTS.service.name,
     description: "今日运势与八字命理、合婚配对和塔罗的流向静静展开。",
     lang: "zh-CN",
     shortcut: {
@@ -585,8 +586,8 @@ const LOCALE_MANIFEST = {
   },
   // 기존 public/manifest.zh-tw.json 의 문구를 그대로 유지한다(재생성해도 값이 바뀌지 않게).
   "/zh-tw": {
-    name: "꿀꿀운세",
-    short_name: "꿀꿀운세",
+    name: BRAND_FACTS.service.name,
+    short_name: BRAND_FACTS.service.name,
     description: "今日運勢與四柱八字、合婚配對和塔羅的流向靜靜展開。",
     lang: "zh-TW",
     shortcut: {
@@ -596,8 +597,8 @@ const LOCALE_MANIFEST = {
     },
   },
   "/en": {
-    name: "꿀꿀운세",
-    short_name: "꿀꿀운세",
+    name: BRAND_FACTS.service.name,
+    short_name: BRAND_FACTS.service.name,
     description: "Today's fortune, Four Pillars, compatibility, and tarot — read with a calm, steady hand.",
     lang: "en",
     shortcut: {
@@ -629,6 +630,22 @@ function writeLocaleManifest(localePath) {
   return fileName;
 }
 
+// 셸 JSON-LD 의 서비스·운영자 이름이 lib/brand/brand-facts.mjs 와 다르면 빌드를 멈춘다(fail-closed).
+// WebSite 는 서비스(꿀꿀 운세), Organization 은 운영자(CODE DESTINY)다.
+function assertShellBrandIdentity(node, canonicalUrl) {
+  const fail = (field, actual) => {
+    throw new Error(`[sync-legacy-static-to-public] ${node["@type"]}.${field} must come from brand-facts (${canonicalUrl}): ${JSON.stringify(actual)}`);
+  };
+  if (node["@type"] === "WebSite") {
+    if (node.name !== BRAND_FACTS.service.name) fail("name", node.name);
+    if (JSON.stringify(node.alternateName) !== JSON.stringify(BRAND_FACTS.service.alternateNames)) fail("alternateName", node.alternateName);
+  }
+  if (node["@type"] === "Organization") {
+    if (node.name !== BRAND_FACTS.operator.name) fail("name", node.name);
+    if (JSON.stringify(node.alternateName) !== JSON.stringify(BRAND_FACTS.operator.alternateNames)) fail("alternateName", node.alternateName);
+  }
+}
+
 // Each shell owns its WebPage; the shared WebSite and publisher keep their global IDs.
 function applyShellPageIdentity(indexHtml, canonicalUrl) {
   const headEnd = indexHtml.indexOf("</head>");
@@ -644,9 +661,16 @@ function applyShellPageIdentity(indexHtml, canonicalUrl) {
     throw new Error(`[sync-legacy-static-to-public] Missing shell page metadata: ${canonicalUrl}`);
   }
   let pageCount = 0;
+  let siteCount = 0;
+  let organizationCount = 0;
   const html = indexHtml.replace(/(<script\b[^>]*\btype=["']application\/ld\+json["'][^>]*>)([\s\S]*?)(<\/script>)/gi, (full, open, source, close) => {
     const data = JSON.parse(source);
     const nodes = data["@graph"] || [data];
+    for (const node of nodes) {
+      assertShellBrandIdentity(node, canonicalUrl);
+      if (node["@type"] === "WebSite") siteCount += 1;
+      if (node["@type"] === "Organization") organizationCount += 1;
+    }
     const pages = nodes.filter((node) => node["@type"] === "WebPage");
     if (!pages.length) return full;
     for (const page of pages) {
@@ -656,6 +680,9 @@ function applyShellPageIdentity(indexHtml, canonicalUrl) {
     return `${open}\n${JSON.stringify(data, null, 2).replace(/</g, "\\u003c")}\n${close}`;
   });
   if (pageCount !== 1) throw new Error(`[sync-legacy-static-to-public] Expected one WebPage for ${canonicalUrl}; found ${pageCount}`);
+  if (siteCount !== 1 || organizationCount !== 1) {
+    throw new Error(`[sync-legacy-static-to-public] Expected one WebSite and one Organization for ${canonicalUrl}; found ${siteCount}/${organizationCount}`);
+  }
   return html
     .replace(/<link rel="canonical" href="[^"]*">/i, `<link rel="canonical" href="${canonicalUrl}">`)
     .replace(/<meta property="og:url" content="[^"]*">/i, `<meta property="og:url" content="${canonicalUrl}">`);

@@ -8,7 +8,7 @@ import { resolveLocale } from "../_lib";
 
 const PAGE_COPY = {
   en: {
-    title: "Privacy Policy | 꿀꿀운세",
+    title: "Privacy Policy | 꿀꿀 운세",
     description: "How 꿀꿀운세 collects, uses, retains, and protects personal information, including cookies and Google AdSense.",
     heading: "Privacy Policy",
     lede: "This document explains what personal information Code Destiny collects, why, for how long, and the rights you can exercise over it.",
@@ -20,7 +20,7 @@ const PAGE_COPY = {
     translationNotice: "This page is a machine-assisted translation for reference. In case of any discrepancy, the Korean-language original at /privacy-policy governs.",
   },
   ja: {
-    title: "プライバシーポリシー | 꿀꿀운세",
+    title: "プライバシーポリシー | 꿀꿀 운세",
     description: "꿀꿀운세が個人情報をどのように収集・利用・保管・保護するか、Cookie及びGoogle AdSenseの取り扱いを含めて説明します。",
     heading: "プライバシーポリシー",
     lede: "Code Destinyが処理する個人情報の項目、目的、保管期間、および利用者が行使できる権利を説明する文書です。",
@@ -32,7 +32,7 @@ const PAGE_COPY = {
     translationNotice: "本ページは参考用の機械補助翻訳です。内容に相違がある場合は、韓国語原文（/privacy-policy）が優先します。",
   },
   zh: {
-    title: "隐私政策 | 꿀꿀운세",
+    title: "隐私政策 | 꿀꿀 운세",
     description: "说明 꿀꿀운세 如何收集、使用、保存与保护个人信息，含 Cookie 与 Google AdSense 相关说明。",
     heading: "隐私政策",
     lede: "本文档说明 Code Destiny 处理哪些个人信息、出于何种目的、保存多久，以及用户可以行使的权利。",
@@ -44,7 +44,7 @@ const PAGE_COPY = {
     translationNotice: "本页面为参考用的机器辅助翻译。如与韩语原文（/privacy-policy）存在出入，以韩语原文为准。",
   },
   "zh-TW": {
-    title: "隱私權政策 | 꿀꿀운세",
+    title: "隱私權政策 | 꿀꿀 운세",
     description: "說明 꿀꿀운세 如何蒐集、使用、保存與保護個人資料，含 Cookie 與 Google AdSense 相關說明。",
     heading: "隱私權政策",
     lede: "本文件說明 Code Destiny 處理哪些個人資料、基於何種目的、保存多久，以及使用者得行使之權利。",

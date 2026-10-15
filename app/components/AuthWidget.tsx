@@ -6,6 +6,7 @@ import { logout, refreshAuth, useAuthStore } from "../_lib/auth-store";
 import { ensureUserAccessLoaded, useUserAccess } from "../_lib/user-session-cache";
 import { formatKrwAmount } from "@/lib/payment/coin-pricing";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+import { SHELL_HOME_PATH } from "@/lib/navigation/shellHome";
 
 type AuthUser = {
   id?: string;
@@ -184,7 +185,7 @@ export default function AuthWidget() {
 
   const handleLogout = async () => {
     await logout();
-    window.location.assign("/");
+    window.location.assign(SHELL_HOME_PATH);
   };
 
   if (!mounted) return null;

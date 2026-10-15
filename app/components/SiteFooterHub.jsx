@@ -32,11 +32,11 @@ function siteFooterHubText(key) {
 // layout 청크가 41KB → 63KB 로 커진다(2026-08-16 실측). 로케일 카피는 서버 전용
 // LocaleFooterHub 가 넘기고, 여기에는 ko 문자열만 둔다.
 const KO_SOCIAL_COPY = {
-  sectionAriaLabel: "꿀꿀운세 공식 SNS 채널",
+  sectionAriaLabel: "꿀꿀 운세 공식 SNS 채널",
   kicker: "Official Channels",
-  title: "꿀꿀운세 공식 채널",
-  navAriaLabel: "꿀꿀운세 SNS 바로가기",
-  linkAriaTemplate: "꿀꿀운세 공식 {channel} 새 창으로 열기",
+  title: "꿀꿀 운세 공식 채널",
+  navAriaLabel: "꿀꿀 운세 SNS 바로가기",
+  linkAriaTemplate: "꿀꿀 운세 공식 {channel} 새 창으로 열기",
   labels: { youtube: "유튜브", threads: "쓰레드", instagram: "인스타그램", naverBlog: "블로그", x: "X" },
 };
 const POLICY_LINKS = [
@@ -59,7 +59,7 @@ export const SEO_LINK_GROUPS = [
   {
     title: siteFooterHubText("siteFooter.001"),
     links: [
-      { href: "/kkul-kkul-unse/", text: "꿀꿀운세 브랜드 안내" },
+      { href: "/kkul-kkul-unse/", text: "꿀꿀 운세 브랜드 안내" },
       { href: "/saju/", text: "무료 사주풀이 보기" },
       { href: "/manse/", text: "꿀꿀 만세력 확인하기" },
       { href: "/today/", text: "오늘의 운세 확인하기" },
@@ -183,12 +183,12 @@ export default function SiteFooterHub() {
       <div className={`${styles.sfhStars} ${styles.sfhStarsFar}`} aria-hidden />
 
       <div className={styles.sfhShell}>
-        {/* 정적 홈 셸로 곧장 이동한다. */}
+        {/* 대표 홈 / 으로 문서 이동한다(워커가 로케일을 판정). */}
         {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-        <a href="/index.html" className={styles.sfhBrand} aria-label="꿀꿀운세 홈">
+        <a href="/" className={styles.sfhBrand} aria-label="꿀꿀 운세 홈">
           <Image src="/icons/moonlight-garden-v1-512.webp" alt="" width={512} height={512} sizes="56px" />
           <span>
-            <strong>꿀꿀운세</strong>
+            <strong>꿀꿀 운세</strong>
             <small>오늘의 마음이 조금 가벼워지는 곳</small>
           </span>
         </a>
@@ -201,7 +201,7 @@ export default function SiteFooterHub() {
               전자상거래법상 앱 안에 접근 경로가 있어야 한다. 같이 지우지 말 것. */}
           {!IS_APP_BUILD && (
             <>
-              <p className={styles.sfhKicker}>꿀꿀운세 길잡이</p>
+              <p className={styles.sfhKicker}>꿀꿀 운세 길잡이</p>
               <p className={styles.sfhTitle}>서비스 링크 허브</p>
               <p className={styles.sfhSubtitle}>
                 사주·타로·자미두수부터 상담과 콘텐츠 안내까지, 꽃돼지가 필요한 길을 차분히 안내합니다.
@@ -254,7 +254,7 @@ export default function SiteFooterHub() {
                 정본은 /disclaimer 이며, 푸터는 크롤러가 서버 렌더 본문에서 읽을 두 문장과 링크만 둔다
                 (DisclaimerBanner 는 클라이언트 전용이라 정적 HTML 에 남지 않는다). */}
             <p style={{ marginBottom: '0.5rem', lineHeight: 1.6 }}>
-              꿀꿀운세의 사주·타로·점성술 등 모든 운세 콘텐츠는 오락 및 자기 성찰 목적의 참고 정보이며, 확정된 미래를 예언하거나 결과의 정확성을 보장하지 않습니다. 의료·법률·투자·정신건강 등 중요한 결정은 반드시 해당 분야 전문가와 상담하시기 바랍니다.
+              꿀꿀 운세의 사주·타로·점성술 등 모든 운세 콘텐츠는 오락 및 자기 성찰 목적의 참고 정보이며, 확정된 미래를 예언하거나 결과의 정확성을 보장하지 않습니다. 의료·법률·투자·정신건강 등 중요한 결정은 반드시 해당 분야 전문가와 상담하시기 바랍니다.
             </p>
             <p style={{ fontSize: '0.95rem', lineHeight: 1.6 }}>
               <a href="/disclaimer/" className={styles.sfhLink}>면책 고지 전문 보기</a>
@@ -288,7 +288,7 @@ export default function SiteFooterHub() {
         </nav>
 
         <p className={styles.sfhCopyright}>
-          © 2026 Code Destiny. 코드 데스티니 · 꿀꿀운세
+          © 2026 Code Destiny. 코드 데스티니 · 꿀꿀 운세
         </p>
       </div>
     </footer>

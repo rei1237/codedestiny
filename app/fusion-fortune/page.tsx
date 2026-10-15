@@ -13,7 +13,7 @@ import { FusionFortuneSeoContent, FUSION_FORTUNE_FAQS } from "./FusionFortuneSeo
 import { buildKrwOffer } from "@/lib/seo/paid-offer";
 
 const pageCopy = getFusionExpertCopy("ko");
-const title = `${pageCopy.narrator} | 꿀꿀운세`;
+const title = `${pageCopy.narrator} | 꿀꿀 운세`;
 const description = pageCopy.intro;
 
 export const metadata = buildSeoMetadata({

@@ -7,7 +7,7 @@ import { buildArticleJsonLd, buildBreadcrumbJsonLd, buildFaqPageJsonLd } from ".
 
 const VEDIC_GUIDE_TEXT_TRANSLATIONS = {
   ko: {
-    metaTitle: "베다 점성술 기본 구조 | 꿀꿀운세",
+    metaTitle: "베다 점성술 기본 구조 | 꿀꿀 운세",
     observe: "베다 점성술이 살피는 것",
     inputs: "필요한 입력값",
     useCases: "어떤 때 참고하면 좋은가",

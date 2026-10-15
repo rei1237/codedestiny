@@ -7,7 +7,7 @@ import { buildArticleJsonLd, buildBreadcrumbJsonLd, buildFaqPageJsonLd } from ".
 
 const SUKUYO_GUIDE_TEXT_TRANSLATIONS = {
   ko: {
-    metaTitle: "숙요 27숙과 궁합 구조 | 꿀꿀운세",
+    metaTitle: "숙요 27숙과 궁합 구조 | 꿀꿀 운세",
     observe: "숙요점이 살피는 것",
     inputs: "필요한 입력값",
     useCases: "언제 참고하면 좋은가",

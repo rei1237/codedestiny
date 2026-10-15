@@ -16,6 +16,7 @@ const test = require("node:test");
 
 const ROOT = path.resolve(__dirname, "../..");
 const read = (relativePath) => fs.readFileSync(path.join(ROOT, relativePath), "utf8");
+const { BRAND_FACTS } = require("../../lib/brand/brand-facts.mjs");
 
 /** `export const X = [...]` / `{...}` 를 괄호 균형으로 잘라 온다(이름 grep 으로 판단하지 않는다). */
 function sliceBalanced(source, startMarker, open, close) {
@@ -88,7 +89,8 @@ test("푸터 카피는 5개 로케일이 모두 채워져 있고 ko 외에는 �
   const koStart = table.indexOf("ko: {");
   const koBlock = sliceBalanced(table.slice(koStart), "ko: {", "{", "}");
   const withoutKo = table.replace(koBlock, "");
-  const leftoverHangul = withoutKo.replaceAll('꿀꿀운세', '').match(/[가-힣]+/g) || [];
+  const brandNames = [BRAND_FACTS.service.name, ...BRAND_FACTS.service.alternateNames];
+  const leftoverHangul = brandNames.reduce((text, name) => text.replaceAll(name, ''), withoutKo).match(/[가-힣]+/g) || [];
   // 사업자 정보 '값'은 등록 원문이라 LocaleFooterHub 쪽에 있고 이 표에는 없어야 한다.
   assert.deepEqual(
     leftoverHangul,
@@ -183,13 +185,13 @@ test("WebSite 엔티티 이름이 셸과 정본에서 같다", () => {
   const shellName = (shell.match(/"@type":\s*"WebSite"[\s\S]{0,200}?"name":\s*"([^"]+)"/) || [])[1];
   assert.ok(shellName, "정적 셸에서 WebSite name 을 찾지 못했다");
 
-  const brandName = (siteSeoSource.match(/brandName:\s*"([^"]+)"/) || [])[1];
-  assert.ok(brandName, "lib/seo/siteSeo.ts 에서 brandName 을 찾지 못했다");
+  const brandName = BRAND_FACTS.service.name;
+  assert.match(siteSeoSource, /brandName:\s*BRAND_FACTS\.service\.name/, "siteSeo.brandName 은 brand-facts 에서 파생해야 한다");
 
   assert.equal(
     shellName,
     brandName,
-    `WebSite name 이 갈렸다 — 셸 "${shellName}" vs siteSeo.brandName "${brandName}". 같은 @id 다.`,
+    `WebSite name 이 갈렸다 — 셸 "${shellName}" vs brand-facts "${brandName}". 같은 @id 다.`,
   );
 
   const layoutOverride = layout.match(/BRAND_WEBSITE_JSON_LD\s*=\s*\{[\s\S]{0,300}?\bname:\s*"/);
@@ -198,10 +200,9 @@ test("WebSite 엔티티 이름이 셸과 정본에서 같다", () => {
     "app/layout.js 가 WebSite name 을 다시 손으로 적고 있다 — 정본은 siteSeo.brandName 하나여야 한다",
   );
 
-  // 공개 브랜드는 일치시키고 등록 상호는 legalName으로 따로 보존한다.
-  const orgName = (siteSeoSource.match(/organization:\s*\{[\s\S]{0,200}?name:\s*"([^"]+)"/) || [])[1];
-  assert.ok(orgName, "lib/seo/siteSeo.ts 에서 organization.name 을 찾지 못했다");
-  assert.equal(orgName, brandName, "공개 조직 이름은 서비스 브랜드와 같아야 한다");
+  // 2026-10-15: 조직은 운영자 CODE DESTINY, WebSite 는 서비스 꿀꿀 운세다. 등록 상호는 legalName으로 따로 보존한다.
+  assert.match(siteSeoSource, /organization:\s*\{[\s\S]{0,300}?name:\s*BRAND_FACTS\.operator\.name/, "siteSeo.organization.name 은 운영자명(brand-facts)이어야 한다");
+  assert.notEqual(BRAND_FACTS.operator.name, brandName, "운영자와 서비스 이름을 다시 합치지 않는다");
   assert.match(read("lib/structured-data.ts"), /legalName: BUSINESS_IDENTITY.companyName/, "법적 운영자명은 사업자 정본을 사용해야 한다");
 });
 

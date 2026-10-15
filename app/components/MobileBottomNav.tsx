@@ -46,7 +46,7 @@ const ICON_CLASS = "cd-mnav__icon";
  * "몇 번 눌러야 열린다"로 보였다. 그래서 이 탭들은 문서 로드로 확실히 보낸다.
  */
 function targetsStaticShellHome(href: string) {
-  return href === "/" || href.startsWith("/?");
+  return href === "/" || href.startsWith("/?") || href === "/ggulggul/" || href.startsWith("/ggulggul/?");
 }
 
 // 이동이 시작되지 않는 최악의 경우에도 네비가 영구히 잠기지 않게 하는 안전장치.

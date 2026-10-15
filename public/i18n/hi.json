@@ -70,7 +70,7 @@
       "flowerDream": "फूल व स्वप्न",
       "vvip": "VVIP पुस्तकालय",
       "oracle": "ओरैकल",
-      "brandAlias": "꿀꿀운세",
+      "brandAlias": "꿀꿀 운세",
       "brandAria": "कोड डेस्टिनी होम पर जाएं",
       "mainAria": "मुख्य सेवा शॉर्टकट",
       "astrologyHub": "ज्योतिष",
@@ -1733,7 +1733,7 @@
       "chemiTitle": "You and your bias: what's the chemistry?",
       "chemiNote": "Enter your birthday and get a photocard",
       "chemiCta": "See my bias chemistry",
-      "brandOtherEntry": "꿀꿀운세: Yeongnyangi साजू और टैरो →",
+      "brandOtherEntry": "꿀꿀 운세: Yeongnyangi साजू और टैरो →",
       "publicRecordsTitle": "10 वर्षों के अनुभव वाले साजू विशेषज्ञ Park Byung-ha (Neo) के सार्वजनिक विश्लेषण अभिलेख",
       "publicRecordsLink": "तारीखें, मूल लेख और परिणाम की तुलना करें"
     },
@@ -1889,7 +1889,7 @@
       "self": "खुद को समझना",
       "future": "समय और चुनाव",
       "title": "आपके सवाल से शुरू होने वाला परामर्श",
-      "brand": "꿀꿀운세 में Yeongnyangi, Yeoni और Neo से मिलें। Yeongnyangi से अपनी बात करें, या Yeoni के चायघर और Neo के रणनीति कक्ष को देखें।",
+      "brand": "꿀꿀 운세 में Yeongnyangi, Yeoni और Neo से मिलें। Yeongnyangi से अपनी बात करें, या Yeoni के चायघर और Neo के रणनीति कक्ष को देखें।",
       "stepQuestion": "अपनी चिंता बताएं",
       "stepPrice": "विषय और कीमत देखें",
       "stepResult": "जवाब, आधार और अगले कदम पढ़ें",
@@ -2775,9 +2775,9 @@
     }
   },
   "seo": {
-    "homeTitle": "निःशुल्क साजू, टैरो, और दैनिक फॉर्च्यून | 꿀꿀운세",
-    "rssTitle": "꿀꿀운세 RSS",
-    "description": "꿀꿀운세: जन्मतिथि, टैरो, अनुकूलता, नए साल का भाग्य, तोजेओंग बिगयोल और एमबीटीआई अनुकूलता के आधार पर निःशुल्क साजू।",
+    "homeTitle": "निःशुल्क साजू, टैरो, और दैनिक फॉर्च्यून | 꿀꿀 운세",
+    "rssTitle": "꿀꿀 운세 RSS",
+    "description": "꿀꿀 운세: जन्मतिथि, टैरो, अनुकूलता, नए साल का भाग्य, तोजेओंग बिगयोल और एमबीटीआई अनुकूलता के आधार पर निःशुल्क साजू।",
     "keywords": "साजू, मुफ्त साजू, मानसे कैलेंडर, टैरो, दैनिक भाग्य, अनुकूलता, नए साल का भाग्य, तोजेओंग बिगयोल, चेहरा पढ़ना, धन भाग्य, पुनर्मिलन भाग्य, एमबीटीआई अनुकूलता, 꿀꿀운세"
   },
   "fortune": {
@@ -7016,7 +7016,7 @@
     "sq_9794_attr_aria_label": "नक्षत्र ज्योतिष अनुकूलता रडार चार्ट"
   },
   "shell": {
-    "CODEDESTINY": "꿀꿀운세 | मुफ्त फोर पिलर्स (बाज़ी)·टैरो·ज़ी वेई दोउ शू·अनुकूलता — भविष्यफल",
+    "CODEDESTINY": "꿀꿀 운세 | मुफ्त फोर पिलर्स (बाज़ी)·टैरो·ज़ी वेई दोउ शू·अनुकूलता — भविष्यफल",
     "cdCookieConsentCopy": {
       "cdCookieConsentActions": {
         "kniuoqf": "सहमत",

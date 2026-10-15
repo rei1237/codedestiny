@@ -12,6 +12,7 @@ import {
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSunHealingTarotCopy, type SunHealingTarotCopy } from "./_lib/sun-healing-tarot-copy";
+import { SHELL_HOME_PATH } from "@/lib/navigation/shellHome";
 import { computeSunHealingReading, loadSunHealingEngine } from "./_lib/sun-healing-local-reading";
 
 
@@ -467,7 +468,7 @@ export default function SunHealingTarot() {
   const progressPct = useMemo(() => clamp((revealedCount / SPREAD_CARD_COUNT) * 100, 0, 100), [revealedCount]);
 
   const goHome = useCallback(() => {
-    window.location.assign("/");
+    window.location.assign(SHELL_HOME_PATH);
   }, []);
 
   const requestReading = useCallback(async (cardsToRead: TarotCardDto[]): Promise<ReadingFetchResult> => {

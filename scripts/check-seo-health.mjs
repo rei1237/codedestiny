@@ -34,14 +34,17 @@ const declared = await collectSitemapUrls(declaredSitemaps, BASE,
   path => path === '/sitemap.xml' ? Promise.resolve(sitemap) : get(path));
 const declaredUrls = declared.urls;
 issues.push(...declared.issues);
+// The root is either the 200 brand landing (then audited like any landing) or the
+// legacy permanent redirect to the /ggulggul/ app entry. Anything else is a defect.
 const rootRedirect = await get('/');
-if (rootRedirect.status !== 301 || new URL(rootRedirect.location || '/', BASE).href !== `${BASE}/ggulggul/`) {
-  issues.push('root must permanently redirect to /ggulggul/');
+const rootIsLanding = rootRedirect.status === 200;
+if (!rootIsLanding && (rootRedirect.status !== 301 || new URL(rootRedirect.location || '/', BASE).href !== `${BASE}/ggulggul/`)) {
+  issues.push('root must be the 200 brand landing or permanently redirect to /ggulggul/');
 }
 for (const url of urls) {
   if (!declaredUrls.has(url)) issues.push(`URL absent from declared sitemaps: ${url}`);
 }
-for (const path of targets) {
+for (const path of rootIsLanding ? ['/', ...targets] : targets) {
   const row = await get(path);
   row.indexable = urls.includes(row.url);
   row.issues = inspectPage({ ...row, indexable: row.indexable });

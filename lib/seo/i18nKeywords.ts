@@ -33,7 +33,7 @@ type SeoPageKey = "home" | "ziwei" | "sukuyo" | "today";
 export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleContent>> = {
   home: {
     ko: {
-      title: "무료 사주팔자 · 타로 · 오늘의 운세 | 꿀꿀운세",
+      title: "무료 사주팔자 · 타로 · 오늘의 운세 | 꿀꿀 운세",
       description: "사주, 타로, 자미두수, 숙요점, 오늘의 운세를 한곳에서 확인하고 지금 필요한 흐름을 차분히 읽어보세요.",
       h1: "무료 사주팔자 · 타로 · 오늘의 운세",
       intro: "꿀꿀운세는 생년월일과 질문의 맥락을 바탕으로 여러 운세 체계를 차분히 연결해 주는 한국어 운세 공간입니다.",
@@ -55,7 +55,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
       disclaimer: "모든 운세 콘텐츠는 참고용이며 의료, 법률, 재무 전문가의 조언을 대신하지 않습니다.",
     },
     ja: {
-      title: "四柱推命・宿曜・タロット占い｜꿀꿀운세",
+      title: "四柱推命・宿曜・タロット占い｜꿀꿀 운세",
       description: "韓国式四柱推命の命式、宿曜の本命宿と相性、紫微斗数の十二宮を日本語で。占術ごとの見方と必要な入力を確認し、今の悩みに合う占いを選べます。",
       h1: "四柱推命とタロットで 次の一歩を見つけよう",
       intro: "꿀꿀운세は、韓国式四柱推命、タロット、紫微斗数、宿曜、西洋占星術、ヴェーダ占星術を日本語で探せる占いサービスです。自分の傾向を知りたいときは出生情報を使う命式・命盤から、具体的な悩みを整理したいときは質問に合うタロットから選べます。四柱推命とタロットでは必要な入力も読み方も異なります。各解説から対応する鑑定画面へ進み、公開機能と有料相談の範囲を確認できます。ヨニ、ネオ、ヨンニャンイは同じ꿀꿀운세内で異なる相談体験を案内します。",
@@ -77,7 +77,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
       disclaimer: "占いコンテンツは参考情報であり、医療・法律・財務の専門的助言に代わるものではありません。",
     },
     zh: {
-      title: "八字排盘·紫微斗数·塔罗占卜｜꿀꿀운세",
+      title: "八字排盘·紫微斗数·塔罗占卜｜꿀꿀 운세",
       description: "从四柱八字、紫微斗数十二宫到宿曜关系与塔罗问题解读。用简体中文了解不同体系的输入与看盘顺序，选择适合自己的命盘或咨询入口。",
       h1: "四柱八字与塔罗 理清自己的下一步",
       intro: "꿀꿀운세提供四柱八字、紫微斗数、宿曜、西洋占星、吠陀占星与塔罗的简体中文入口。想了解长期的性格与选择模式，可以从出生信息对应的命盘开始；想梳理某个具体问题，可以选择塔罗。八字需要出生资料，塔罗从问题与牌面出发，两者不能套用同一解释。每个介绍页说明本体系的阅读方法，并连接相应工具。妍伊、Neo与Yeongnyangi提供同一平台内不同风格的咨询体验。公开功能和可选付费咨询的范围，以对应服务页说明为准。",
@@ -99,7 +99,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
       disclaimer: "所有运势内容仅供参考，不能替代医疗、法律或财务等专业建议。",
     },
     "zh-TW": {
-      title: "八字排盤·紫微斗數·塔羅占卜｜꿀꿀운세",
+      title: "八字排盤·紫微斗數·塔羅占卜｜꿀꿀 운세",
       description: "從四柱八字、紫微斗數十二宮到宿曜關係與塔羅問題解讀。用繁體中文了解不同體系的輸入與看盤順序，選擇適合自己的命盤或諮詢入口。",
       h1: "四柱八字與塔羅 理清自己的下一步",
       intro: "꿀꿀운세提供四柱八字、紫微斗數、宿曜、西洋占星、吠陀占星與塔羅的繁體中文入口。想了解長期的性格與選擇模式，可以從出生資訊對應的命盤開始；想梳理某個具體問題，可以選擇塔羅。八字需要出生資料，塔羅從問題與牌面出發，兩者不能套用同一解釋。每個介紹頁說明本體系的閱讀方法，並連結相應工具。妍伊、Neo與Yeongnyangi提供同一平台內不同風格的諮詢體驗。公開功能和可選付費諮詢的範圍，以對應服務頁說明為準。",
@@ -121,7 +121,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
       disclaimer: "所有運勢內容僅供參考，不能取代醫療、法律或財務等專業建議。",
     },
     en: {
-      title: "Korean Saju, Tarot & Birth Charts | 꿀꿀운세",
+      title: "Korean Saju, Tarot & Birth Charts | 꿀꿀 운세",
       description: "Explore Korean Saju, Zi Wei Dou Shu, Sukuyo and tarot in English. Compare traditions, check birth-chart inputs and choose a reading for your question.",
       h1: "Korean Saju & tarot for your next step",
       intro: "꿀꿀운세 brings Korean Saju (Four Pillars, also called BaZi), tarot, Zi Wei Dou Shu, Sukuyo, Western astrology and Vedic astrology together. Start with a birth chart when you want to understand recurring patterns, or choose tarot for a specific question. Saju uses birth details; tarot begins with your question and cards. Each guide explains its own method and links to the corresponding tool. Yeoni, Neo and Yeongnyangi offer different reading experiences within the same platform. Public guidance and optional paid consultations are described separately on each service page.",
@@ -376,7 +376,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
     ]
   ]
 },
-      title: "Zi Wei Dou Shu Chart & 12 Palaces | 꿀꿀운세",
+      title: "Zi Wei Dou Shu Chart & 12 Palaces | 꿀꿀 운세",
       description: "Explore a Zi Wei Dou Shu chart through the Life, Career, Wealth and Spouse palaces. Check the birth details needed and open the chart tool in English.",
       h1: "Zi Wei Dou Shu chart: a guide to the 12 palaces",
       intro: "Zi Wei Dou Shu maps birth details into 12 palaces and star placements. Start with the Life Palace, then compare the Career, Wealth and Spouse palaces without treating one star as a complete reading.",
@@ -646,7 +646,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
     ]
   ]
 },
-      title: "Sukuyo Compatibility & 27 Birth Stars | 꿀꿀운세",
+      title: "Sukuyo Compatibility & 27 Birth Stars | 꿀꿀 운세",
       description: "Find your Sukuyo birth star and compare 27-star relationship patterns. Check the birth dates needed and learn how Sukuyo differs from Vedic astrology.",
       h1: "Find your Sukuyo birth star and explore compatibility",
       intro: "Sukuyo compatibility compares two birth stars in a 27-star system. Start with each person’s birth date, then read the relationship category as a prompt for understanding patterns, not a verdict on the relationship.",

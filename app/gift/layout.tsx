@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import "./gift.css";
 
 export const metadata = {
-  title: "운명의 선물 | 꿀꿀운세",
+  title: "운명의 선물 | 꿀꿀 운세",
   description: "꿀꿀운세 이용권 선물을 확인하고, 로그인한 계정으로 수령하거나 보낸 선물을 관리하세요.",
   robots: { index: false, follow: false },
   referrer: "no-referrer",

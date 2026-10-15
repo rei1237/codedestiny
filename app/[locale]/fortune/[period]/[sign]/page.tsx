@@ -17,10 +17,10 @@ function toLocale(value: string): FortuneLocale | null {
 }
 function signPageTitle(name: string, period: FortunePeriodId, locale: FortuneLocale): string {
   const label = periodTitle(period, locale);
-  if (locale === "ja") return `${name}の${label}運勢 | 꿀꿀운세`;
-  if (locale === "zh-CN") return `${name}${label}运势 | 꿀꿀운세`;
-  if (locale === "zh-TW") return `${name}${label}運勢 | 꿀꿀운세`;
-  return `${name} ${label} Fortune | 꿀꿀운세`;
+  if (locale === "ja") return `${name}の${label}運勢 | 꿀꿀 운세`;
+  if (locale === "zh-CN") return `${name}${label}运势 | 꿀꿀 운세`;
+  if (locale === "zh-TW") return `${name}${label}運勢 | 꿀꿀 운세`;
+  return `${name} ${label} Fortune | 꿀꿀 운세`;
 }
 function signDescription(name: string, period: FortunePeriodId, locale: FortuneLocale): string {
   const label = periodLabel(period, locale);

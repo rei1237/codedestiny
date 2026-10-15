@@ -12,9 +12,14 @@
  * 문서 로드는 새 화면이 준비될 때까지 현재 화면을 그대로 두므로 React 홈이 아예 렌더되지
  * 않는다. HomeRedirectToStatic 은 그래도 "/" 의 React 홈에 도달한 경우(직접 진입·히스토리
  * 복원 등)를 위한 안전망으로 남는다.
+ *
+ * 2026-10-15 부터 루트(/)는 브랜드 대표 홈(app/page.js, 200)이고 앱 홈은 /ggulggul/ 이다.
+ * 앱 안의 "홈으로"는 모두 /ggulggul/ 로 간다. 옛 "/" 링크도 같은 앱 홈으로 본다.
  */
 
-export const SHELL_HOME_PATH = "/";
+export const SHELL_HOME_PATH = "/ggulggul/";
+
+const SHELL_HOME_PATHS = new Set(["/", "/index.html", "/ggulggul", SHELL_HOME_PATH]);
 
 /**
  * 정적 메인 셸이 담당하는 홈 경로인가. 쿼리·해시는 목적지가 아니라 셸이 해석할 인자다.
@@ -25,7 +30,7 @@ export const SHELL_HOME_PATH = "/";
  * 셸이 다른 문서로 취급돼 전체 재로드가 난다.
  */
 export function isShellHomePath(pathname: string | null | undefined) {
-  return pathname === SHELL_HOME_PATH || pathname === "/index.html";
+  return SHELL_HOME_PATHS.has(String(pathname || ""));
 }
 
 /**

@@ -7,7 +7,7 @@ import { buildArticleJsonLd, buildBreadcrumbJsonLd, buildFaqPageJsonLd } from ".
 
 const HEALTH_REPORT_GUIDE_TEXT_TRANSLATIONS = {
   ko: {
-    "metadata.title": "명리 헬스 리포트 사용 시 주의사항 | 꿀꿀운세",
+    "metadata.title": "명리 헬스 리포트 사용 시 주의사항 | 꿀꿀 운세",
     heading: "명리 헬스 리포트 사용 시 주의사항",
     "section.scope": "헬스 리포트가 살피는 것",
     "section.inputs": "필요한 입력값",
@@ -19,7 +19,7 @@ const HEALTH_REPORT_GUIDE_TEXT_TRANSLATIONS = {
     "section.medicalNotice": "의료 고지",
   },
   en: {
-    "metadata.title": "Myeongri Health Report Notice | 꿀꿀운세",
+    "metadata.title": "Myeongri Health Report Notice | 꿀꿀 운세",
     heading: "Myeongri Health Report Notice",
     "section.scope": "What the Health Report Looks At",
     "section.inputs": "Required Inputs",
@@ -31,7 +31,7 @@ const HEALTH_REPORT_GUIDE_TEXT_TRANSLATIONS = {
     "section.medicalNotice": "Medical Notice",
   },
   ja: {
-    "metadata.title": "命理ヘルスレポート利用時の注意事項 | 꿀꿀운세",
+    "metadata.title": "命理ヘルスレポート利用時の注意事項 | 꿀꿀 운세",
     heading: "命理ヘルスレポート利用時の注意事項",
     "section.scope": "ヘルスレポートが見るもの",
     "section.inputs": "必要な入力項目",
@@ -43,7 +43,7 @@ const HEALTH_REPORT_GUIDE_TEXT_TRANSLATIONS = {
     "section.medicalNotice": "医療に関する注意",
   },
   "zh-CN": {
-    "metadata.title": "命理健康报告使用注意事项 | 꿀꿀운세",
+    "metadata.title": "命理健康报告使用注意事项 | 꿀꿀 운세",
     heading: "命理健康报告使用注意事项",
     "section.scope": "健康报告会观察什么",
     "section.inputs": "需要输入的信息",
@@ -55,7 +55,7 @@ const HEALTH_REPORT_GUIDE_TEXT_TRANSLATIONS = {
     "section.medicalNotice": "医疗提示",
   },
   "zh-TW": {
-    "metadata.title": "命理健康報告使用注意事項 | 꿀꿀운세",
+    "metadata.title": "命理健康報告使用注意事項 | 꿀꿀 운세",
     heading: "命理健康報告使用注意事項",
     "section.scope": "健康報告會觀察什麼",
     "section.inputs": "需要輸入的資訊",

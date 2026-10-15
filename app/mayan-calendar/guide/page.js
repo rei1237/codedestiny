@@ -7,7 +7,7 @@ import { buildArticleJsonLd, buildBreadcrumbJsonLd, buildFaqPageJsonLd } from ".
 
 const MAYAN_CALENDAR_GUIDE_TEXT_TRANSLATIONS = {
   ko: {
-    "metadata.title": "마야 달력과 마야점 이해 | 꿀꿀운세",
+    "metadata.title": "마야 달력과 마야점 이해 | 꿀꿀 운세",
     heading: "마야 달력과 마야점 이해",
     "section.scope": "마야 달력이 살피는 것",
     "section.inputs": "필요한 입력값",
@@ -19,7 +19,7 @@ const MAYAN_CALENDAR_GUIDE_TEXT_TRANSLATIONS = {
     "section.caution": "해석 시 주의할 점",
   },
   en: {
-    "metadata.title": "Understanding the Mayan Calendar and Mayan Oracle | 꿀꿀운세",
+    "metadata.title": "Understanding the Mayan Calendar and Mayan Oracle | 꿀꿀 운세",
     heading: "Understanding the Mayan Calendar and Mayan Oracle",
     "section.scope": "What the Mayan Calendar Looks At",
     "section.inputs": "Required Inputs",
@@ -31,7 +31,7 @@ const MAYAN_CALENDAR_GUIDE_TEXT_TRANSLATIONS = {
     "section.caution": "What to Keep in Mind",
   },
   ja: {
-    "metadata.title": "マヤ暦とマヤ占いの理解 | 꿀꿀운세",
+    "metadata.title": "マヤ暦とマヤ占いの理解 | 꿀꿀 운세",
     heading: "マヤ暦とマヤ占いの理解",
     "section.scope": "マヤ暦が見るもの",
     "section.inputs": "必要な入力項目",
@@ -43,7 +43,7 @@ const MAYAN_CALENDAR_GUIDE_TEXT_TRANSLATIONS = {
     "section.caution": "解釈時の注意点",
   },
   "zh-CN": {
-    "metadata.title": "理解玛雅日历与玛雅占卜 | 꿀꿀운세",
+    "metadata.title": "理解玛雅日历与玛雅占卜 | 꿀꿀 운세",
     heading: "理解玛雅日历与玛雅占卜",
     "section.scope": "玛雅日历会观察什么",
     "section.inputs": "需要输入的信息",
@@ -55,7 +55,7 @@ const MAYAN_CALENDAR_GUIDE_TEXT_TRANSLATIONS = {
     "section.caution": "解读时的注意事项",
   },
   "zh-TW": {
-    "metadata.title": "理解瑪雅曆與瑪雅占卜 | 꿀꿀운세",
+    "metadata.title": "理解瑪雅曆與瑪雅占卜 | 꿀꿀 운세",
     heading: "理解瑪雅曆與瑪雅占卜",
     "section.scope": "瑪雅曆會觀察什麼",
     "section.inputs": "需要輸入的資訊",

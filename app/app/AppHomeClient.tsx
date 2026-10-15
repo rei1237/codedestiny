@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ChevronRight, MoonStar, Sparkles } from "lucide-react";
 import MobileAppActions from "./MobileAppActions";
 import { listServiceFeatures } from "@/app/_lib/serviceFeatureRegistry";
+import { SHELL_HOME_PATH } from "@/lib/navigation/shellHome";
 import { FeatureMarketingLink, type FeatureMarketingTarget } from "@/app/components/FeatureMarketingDetailModal";
 import { useAppShellCopy, type AppShellCopy } from "./_lib/copy";
 
@@ -48,14 +49,14 @@ function buildSpotlightFeatures(copy: AppShellCopy): Array<FeatureMarketingTarge
 }
 
 function normalizeLaunchRoute(route: string) {
-  if (!route) return "/";
+  if (!route) return SHELL_HOME_PATH;
   if (route.includes("action=cdOneStepFreeSajuEntry")) return "/?action=cdOneStepFreeSajuEntry";
   if (route.includes("action=openTarotModal")) return "/tarot/mingri";
   if (route.includes("action=openSukuyoModal")) return "/oracle/sukuyo";
   if (route.includes("action=navigateToVedic")) return "/vedic/jyotish";
   if (route.includes("action=openAstroModal")) return "/astrology/cosmic";
   if (route.includes("action=openZiweiModal")) return "/ziwei/chart";
-  if (route.startsWith("/index.html")) return "/";
+  if (route.startsWith("/index.html")) return SHELL_HOME_PATH;
   return route;
 }
 

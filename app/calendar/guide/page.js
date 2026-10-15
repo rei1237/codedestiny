@@ -7,7 +7,7 @@ import { buildArticleJsonLd, buildBreadcrumbJsonLd, buildFaqPageJsonLd } from ".
 
 const CALENDAR_GUIDE_TEXT_TRANSLATIONS = {
   ko: {
-    "metadata.title": "운세 달력과 일진 달력 사용법 | 꿀꿀운세",
+    "metadata.title": "운세 달력과 일진 달력 사용법 | 꿀꿀 운세",
     heading: "운세 달력과 일진 달력 사용법",
     "section.scope": "운세 달력이 살피는 것",
     "section.inputs": "필요한 입력값",
@@ -19,7 +19,7 @@ const CALENDAR_GUIDE_TEXT_TRANSLATIONS = {
     "section.caution": "해석 시 주의할 점",
   },
   en: {
-    "metadata.title": "Fortune Calendar and Daily Cycle Guide | 꿀꿀운세",
+    "metadata.title": "Fortune Calendar and Daily Cycle Guide | 꿀꿀 운세",
     heading: "Fortune Calendar and Daily Cycle Guide",
     "section.scope": "What the Fortune Calendar Looks At",
     "section.inputs": "Required Inputs",
@@ -31,7 +31,7 @@ const CALENDAR_GUIDE_TEXT_TRANSLATIONS = {
     "section.caution": "What to Keep in Mind",
   },
   ja: {
-    "metadata.title": "運勢カレンダーと日運カレンダーの使い方 | 꿀꿀운세",
+    "metadata.title": "運勢カレンダーと日運カレンダーの使い方 | 꿀꿀 운세",
     heading: "運勢カレンダーと日運カレンダーの使い方",
     "section.scope": "運勢カレンダーが見るもの",
     "section.inputs": "必要な入力項目",
@@ -43,7 +43,7 @@ const CALENDAR_GUIDE_TEXT_TRANSLATIONS = {
     "section.caution": "解釈時の注意点",
   },
   "zh-CN": {
-    "metadata.title": "运势日历与日辰日历使用指南 | 꿀꿀운세",
+    "metadata.title": "运势日历与日辰日历使用指南 | 꿀꿀 운세",
     heading: "运势日历与日辰日历使用指南",
     "section.scope": "运势日历会观察什么",
     "section.inputs": "需要输入的信息",
@@ -55,7 +55,7 @@ const CALENDAR_GUIDE_TEXT_TRANSLATIONS = {
     "section.caution": "解读时的注意事项",
   },
   "zh-TW": {
-    "metadata.title": "運勢日曆與日辰日曆使用指南 | 꿀꿀운세",
+    "metadata.title": "運勢日曆與日辰日曆使用指南 | 꿀꿀 운세",
     heading: "運勢日曆與日辰日曆使用指南",
     "section.scope": "運勢日曆會觀察什麼",
     "section.inputs": "需要輸入的資訊",

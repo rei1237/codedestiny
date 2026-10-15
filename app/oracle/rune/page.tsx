@@ -9,7 +9,7 @@ import { siteSeo } from "../../../lib/seo/siteSeo";
 import ImmersiveRelatedLinks from "../../components/ImmersiveRelatedLinks";
 
 const PAGE_PATH = "/oracle/rune/";
-const PAGE_TITLE = "무료 룬 점 보기 | 엘더 푸타르크 24룬 오라클 | 꿀꿀운세";
+const PAGE_TITLE = "무료 룬 점 보기 | 엘더 푸타르크 24룬 오라클 | 꿀꿀 운세";
 const PAGE_DESCRIPTION =
   "고대 북유럽 엘더 푸타르크 24개 룬 문자로 오늘의 질문을 비춰보는 무료 룬 점. 스톤헨지 제단에서 룬을 뽑고 사랑·일·선택의 방향을 전문가 해석과 함께 확인하세요.";
 

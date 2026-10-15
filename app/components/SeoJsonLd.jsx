@@ -1,7 +1,8 @@
-// Public organization name and registered legal identity are separate.
+// Operator name (CODE DESTINY) and registered legal identity are separate; the service name lives on WebSite.
 import { BUSINESS_IDENTITY } from "../../lib/site-policy-config";
 import { siteSeo } from "../../lib/seo/siteSeo";
-const BRAND_NAME = siteSeo.brandName;
+import { serializeJsonLd } from "../../lib/seo/json-ld.mjs";
+const OPERATOR_NAME = siteSeo.organization.name;
 const BRAND_URL = "https://code-destiny.com";
 const DEFAULT_IMAGE = `${BRAND_URL}/og/code-destiny-og.png`;
 
@@ -17,7 +18,7 @@ function StructuredDataScript({ id, data }) {
     <script
       id={id}
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+      dangerouslySetInnerHTML={{ __html: serializeJsonLd(data) }}
     />
   );
 }
@@ -26,8 +27,8 @@ function buildOrganization() {
   return {
     "@type": "Organization",
     "@id": `${BRAND_URL}/#organization`,
-    name: BRAND_NAME,
-    alternateName: siteSeo.alternateName,
+    name: OPERATOR_NAME,
+    alternateName: siteSeo.organization.alternateName,
     legalName: BUSINESS_IDENTITY.companyName,
     url: BRAND_URL,
     logo: {
@@ -72,7 +73,7 @@ export function ArticleJsonLd({
         author: {
           "@type": "Organization",
           "@id": `${BRAND_URL}/#organization`,
-          name: BRAND_NAME,
+          name: OPERATOR_NAME,
         },
         publisher: {
           "@id": `${BRAND_URL}/#organization`,

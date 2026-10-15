@@ -28,8 +28,10 @@ test('sitemap and HTML keep the Flower Pig cluster separate from Yeongnyangi roo
   assert.equal(links.find(a=>a.getAttribute('hreflang')==='ko')?.getAttribute('href'),origin+'/ggulggul/');
   for(const href of homes)assert.ok(links.some(a=>a.getAttribute('href')===origin+href),`${path} misses ${href}`);
  }
- // `/` 는 2026-10-02 부터 `/ggulggul/` 로 301 이라 sitemap 에 두지 않는다(대표 URL 하나).
- assert.ok(!rows.some(r=>r.getElementsByTagName('loc')[0]?.textContent===origin+'/'),'the 301 root stays out of the sitemap');
+ // 2026-10-15: `/` 는 200 브랜드 대표 홈이다. 꽃돼지 로케일 클러스터와 섞이지 않게 alternates 없이 하나만 둔다.
+ const rootRows=rows.filter(r=>r.getElementsByTagName('loc')[0]?.textContent===origin+'/');
+ assert.equal(rootRows.length,1,'the brand home is in the sitemap once');
+ assert.equal(rootRows[0].getElementsByTagName('xhtml:link').length,0,'the brand home has no hreflang alternates');
 });
 
 test('Flower Pig shell page identities match their canonical URL and localized metadata',()=>{

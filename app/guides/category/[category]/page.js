@@ -12,16 +12,16 @@ export const dynamicParams = false;
 
 const HIGH_VALUE_CATEGORY_METADATA_COPY = {
   ko: {
-    notFoundTitle: "카테고리를 찾을 수 없습니다 | 꿀꿀운세",
+    notFoundTitle: "카테고리를 찾을 수 없습니다 | 꿀꿀 운세",
   },
   en: {
-    notFoundTitle: "Category not found | 꿀꿀운세",
+    notFoundTitle: "Category not found | 꿀꿀 운세",
   },
   ja: {
-    notFoundTitle: "カテゴリが見つかりません | 꿀꿀운세",
+    notFoundTitle: "カテゴリが見つかりません | 꿀꿀 운세",
   },
   zh: {
-    notFoundTitle: "未找到分类 | 꿀꿀운세",
+    notFoundTitle: "未找到分类 | 꿀꿀 운세",
   },
 };
 
@@ -57,7 +57,7 @@ export function generateMetadata({ params }) {
 
   return buildSeoMetadata({
     path: `/guides/category/${category.slug}`,
-    title: `${category.name} 가이드 | 꿀꿀운세`,
+    title: `${category.name} 가이드 | 꿀꿀 운세`,
     description,
     keywords: [category.name, "운세 인사이트", "Code Destiny"],
   });

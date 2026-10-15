@@ -4,6 +4,7 @@ import Image from "next/image";
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { SHELL_HOME_PATH } from "@/lib/navigation/shellHome";
 import { RefreshCw, Save, Share2 } from "lucide-react";
 import { useCoinGate } from "../../hooks/useCoinGate";
 import { usePaidResume, packPaidResumeArg, unpackPaidResumeArg } from "../../hooks/usePaidResume";
@@ -1543,7 +1544,7 @@ export default function NumerologyTarotClient() {
         <header className={styles.topBar}>
           <strong className={styles.brand}>수비학 타로</strong>
           <div className={styles.actions}>
-            {isFullscreen && (<button type="button" className={styles.ghostBtn} onClick={() => router.push("/index.html")}>메인으로</button>)}
+            {isFullscreen && (<button type="button" className={styles.ghostBtn} onClick={() => router.push(SHELL_HOME_PATH)}>메인으로</button>)}
             <button type="button" className={styles.lightBtn} onClick={toggleFullscreen}>{isFullscreen ? "전체화면 해제" : "전체화면"}</button>
           </div>
         </header>

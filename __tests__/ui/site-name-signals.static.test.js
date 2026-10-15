@@ -28,15 +28,10 @@ const path = require("node:path");
 
 const root = path.resolve(__dirname, "../..");
 
-/** 기대값의 정본. 상수로 복제하면 브랜드 변경 때 두 곳이 갈린다. */
-function readBrandName() {
-  const source = fs.readFileSync(path.join(root, "lib", "seo", "siteSeo.ts"), "utf8");
-  const match = /\bbrandName:\s*"([^"]+)"/.exec(source);
-  assert.ok(match, "lib/seo/siteSeo.ts 에서 brandName 을 읽지 못했습니다 — 구조가 바뀌었다면 이 가드를 함께 고치세요.");
-  return match[1];
-}
+/** 기대값의 정본은 lib/brand/brand-facts.mjs 다. 상수로 복제하면 브랜드 변경 때 두 곳이 갈린다. */
+const { BRAND_FACTS } = require("../../lib/brand/brand-facts.mjs");
 
-const BRAND = readBrandName();
+const BRAND = BRAND_FACTS.service.name;
 
 /**
  * 정적 셸이 있을 수 있는 곳. 존재하지 않는 경로는 건너뛰되, 전체가 비면 아래에서 실패한다.
