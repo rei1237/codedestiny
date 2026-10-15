@@ -1,0 +1,21 @@
+{
+  "created": "2026-10-15",
+  "purpose": "Introductory fictional character profiles; no consultation logic changes",
+  "generationTool": "built-in image_gen",
+  "master": {
+    "source": "User supplied master character profile sheet (PNG)",
+    "operation": "Original sheet converted to WebP; portrait extracted from the upper-left panel",
+    "portraitCrop": { "left": 35, "top": 25, "width": 425, "height": 425 }
+  },
+  "neo": {
+    "references": ["User supplied 네오 인간 프로필1.png", "public/neo-operation-room/briefing/neo-explain-v1.webp"],
+    "promptSummary": "Preserve silver hair, blue eyes and face. Match navy strategist uniform, gold embroidery, white cape and black gloves. Landscape profile sheet with portrait, front/back full body, calm/analytical/encouraging expressions, white lion spirit and strategy room. Labels: 네오 / 백사자의 영혼을 가진 운명 마스터 / 운명 전략론 / 반복되는 선택을 짚고, 실행할 행동을 정리합니다. No ages, brands or credentials.",
+    "portraitCrop": { "left": 30, "top": 45, "width": 510, "height": 700 }
+  },
+  "yeoni": {
+    "references": ["User supplied 여_연이 프로필 사복버전.webp"],
+    "promptSummary": "Preserve pink eyes, long wavy pink hair, face and flower accessory. Replace all clothing with Korean ivory/blush hanbok: jeogori, white dongjeong collar, goreum and full chima, lotus embroidery; not kimono or obi. Landscape sheet with portrait holding tea, full-body views, gentle/listening/thoughtful expressions and Korean tea house. Labels: 연이 / 운명 찻집 마스터 / 따뜻한 공감으로 여는 상담 / 마음을 먼저 듣고, 작은 실천을 함께 찾아요. Remove brands, age, birthday, height, MBTI and credentials.",
+    "portraitCrop": { "left": 20, "top": 30, "width": 480, "height": 690 }
+  },
+  "encoding": { "sheetWebpQuality": 90, "portraitWebpQuality": 87, "portraitWidth": 600, "portraitHeight": 720, "portraitFit": "cover", "portraitPosition": "top" }
+}

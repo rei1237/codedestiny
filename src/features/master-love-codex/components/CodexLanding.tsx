@@ -12,6 +12,8 @@
  */
 
 import { useEffect, type ReactNode } from "react";
+import MasterProfile from "@/components/fortune/MasterProfile";
+import { masterProfiles } from "@/components/fortune/master-profiles";
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { PriceBadge } from "@/app/components/PriceBadge";
 import { trackEvent } from "@/lib/analytics";
@@ -118,6 +120,8 @@ export default function CodexLanding({ hasSeenPrologue, chapterCount, onEnter, o
           </figcaption>
         </figure>
       </div>
+
+      {locale === "ko" && <MasterProfile profile={masterProfiles.master} />}
 
       <div className={styles.landingContents}>
         <ul className={styles.landingSpecs}>
