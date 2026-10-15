@@ -22,6 +22,7 @@ import { formatKoreanPhoneInput, normalizeKoreanPhoneNumber } from "../../_lib/k
 import { resolveAuthReturnPath, sanitizeAuthReturnPath } from "../../_lib/auth-return";
 import { hydrateAuthSuccessUser, login } from "../../_lib/auth-store";
 import { AUTH_INPUT, AUTH_LABEL } from "./styles";
+import { SHELL_HOME_PATH } from "@/lib/navigation/shellHome";
 
 type AuthMode = "login" | "signup";
 type SocialProvider = "google" | "naver" | "kakao";
@@ -528,7 +529,7 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
   const redirect = (raw?: string, role?: string) => {
     const target = sanitizeAuthReturnPath(raw) || nextPath();
     if (role === "admin" && target === "/") router.replace("/admin");
-    else if (target === "/" || target === "/index.html") window.location.replace("/");
+    else if (target === "/" || target === "/index.html") window.location.replace(SHELL_HOME_PATH);
     else router.replace(target);
   };
   const completeClientLogin = (payload: { accessToken?: string; refreshToken?: string; user?: AuthUser }) => {

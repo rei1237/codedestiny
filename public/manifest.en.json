@@ -45,7 +45,7 @@
       "name": "Today's Fortune",
       "short_name": "Fortune",
       "description": "See today's flow at a glance.",
-      "url": "/#today",
+      "url": "/ggulggul/#today",
       "icons": [
         {
           "src": "/icons/moonlight-garden-v1-192.png",

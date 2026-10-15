@@ -45,7 +45,7 @@
       "name": "今日の運勢",
       "short_name": "運勢",
       "description": "今日一日の流れをすぐに照らします。",
-      "url": "/#today",
+      "url": "/ggulggul/#today",
       "icons": [
         {
           "src": "/icons/moonlight-garden-v1-192.png",

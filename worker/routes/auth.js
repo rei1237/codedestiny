@@ -1329,9 +1329,13 @@ box-shadow:0 12px 24px rgba(179,25,85,.18)}
   });
 }
 
+// 로그인 뒤 "홈"은 앱 홈(/ggulggul/)이다. 루트(/)는 브랜드 대표 홈이라 앱 화면이 아니다.
+const OAUTH_APP_HOME_PATH = "/ggulggul/";
+
 function buildOAuthFrontendUrl(frontendBase, nextPath = "/") {
   const base = String(frontendBase || "http://localhost:3000").replace(/\/+$/, "") || "http://localhost:3000";
-  const safeNextPath = sanitizeOAuthNextPath(nextPath);
+  const sanitizedNextPath = sanitizeOAuthNextPath(nextPath);
+  const safeNextPath = sanitizedNextPath === "/" || sanitizedNextPath === "/index.html" ? OAUTH_APP_HOME_PATH : sanitizedNextPath;
   try {
     return new URL(safeNextPath, `${base}/`).toString();
   } catch (e) {
