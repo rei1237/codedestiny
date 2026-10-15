@@ -56,6 +56,8 @@ export default function ExpertCharacterStage({
   const name = getExpertCharacterName(character, locale);
   const announces = placement === "loading" || mood === "error";
   const isHero = placement === "hero";
+  // 결과 표지·끝맺음은 PDF 캡처 대상 안에 있다. 지연 로드면 화면 밖 컷이 빈 칸으로 찍힌다.
+  const loading = isHero ? undefined : placement === "result" ? "eager" : "lazy";
 
   return (
     <figure
@@ -76,7 +78,7 @@ export default function ExpertCharacterStage({
           fill
           sizes={SPRITE_SIZES[placement]}
           priority={isHero}
-          loading={isHero ? undefined : "lazy"}
+          loading={loading}
           unoptimized
         />
       </div>

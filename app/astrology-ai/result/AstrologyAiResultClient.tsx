@@ -19,6 +19,8 @@ import type { AnalysisBasis } from "@/lib/fortune/analysis-basis";
 import { readDevPreviewState } from "@/lib/dev-preview/core";
 import { buildAstrologyPreviewPayload } from "@/lib/dev-preview/fixtures/astrology";
 import AstrologyChartWheel from "@/components/fortune/AstrologyChartWheel";
+import ExpertCharacterStage from "@/app/components/expert-consulting/ExpertCharacterStage";
+import { getExpertLine } from "@/src/features/expert-characters";
 import type { RawPlanetLike, RawWesternChart } from "@/types/astrology";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
@@ -240,7 +242,8 @@ function getAstrologyResultCopy(locale: LoadingLocale): AstrologyResultCopy {
   return ASTROLOGY_RESULT_COPY[locale] || ASTROLOGY_RESULT_EN;
 }
 
-function useAstrologyResultCopy(): AstrologyResultCopy {
+// 윤달 대사(getExpertLine)도 같은 로케일을 써야 해서 문구 대신 로케일을 돌려준다.
+function useAstrologyResultLocale(): LoadingLocale {
   const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
   useEffect(() => {
     const sync = () => setLocale(getCurrentLoadingLocale());
@@ -251,7 +254,7 @@ function useAstrologyResultCopy(): AstrologyResultCopy {
       window.removeEventListener("cd:locale-ready", sync);
     };
   }, []);
-  return getAstrologyResultCopy(locale);
+  return locale;
 }
 
 type ChartPoint = { sign?: string; signKo?: string; degree?: number; house?: number | null };
@@ -465,7 +468,10 @@ function safeFilePart(value: string) {
 }
 
 export default function AstrologyAiResultClient() {
-  const copy = useAstrologyResultCopy();
+  const locale = useAstrologyResultLocale();
+  const copy = getAstrologyResultCopy(locale);
+  const yunOpen = getExpertLine("yun", "result.open", locale);
+  const yunClose = getExpertLine("yun", "result.close", locale);
   const [resultId, setResultId] = useState("");
   const [queryReady, setQueryReady] = useState(false);
   const [consultation, setConsultation] = useState<Consultation | null>(null);
@@ -688,6 +694,7 @@ export default function AstrologyAiResultClient() {
                     ))}
                   </div>
                 )}
+                <ExpertCharacterStage character="yun" mood={yunOpen.mood} line={yunOpen.text} placement="result" locale={locale} className="mt-6" />
               </header>
 
               <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -731,6 +738,7 @@ export default function AstrologyAiResultClient() {
                   expandForExport={exportExpand}
                 />
               </section>
+              <ExpertCharacterStage character="yun" mood={yunClose.mood} line={yunClose.text} placement="result" locale={locale} />
             </article>
 
             <aside className="space-y-4 lg:sticky lg:top-6 lg:self-start">
