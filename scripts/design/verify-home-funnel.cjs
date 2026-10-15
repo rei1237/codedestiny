@@ -75,6 +75,28 @@ async function assertEssentials(page, label) {
       await page.waitForTimeout(250);
       // 여섯 운세 체계·고민별 입구·검색은 첫 화면에서 바로 쓰고, 보조 콘텐츠만 요청할 때 연다.
       await assertEssentials(page, `${width}px first visit`);
+      assert.ok(await page.evaluate(() => Boolean(document.getElementById('cdhAllFortunes').compareDocumentPosition(document.getElementById('cdSignatureConsult')) & Node.DOCUMENT_POSITION_FOLLOWING)), 'chooser precedes signature in DOM');
+      assert.equal(await page.locator('.cdh-moonstone-guide').count(), 1, 'one moonstone card');
+      assert.equal(await page.locator('#cdhSignupBenefit').count(), 1, 'one signup offer');
+      const grid = await page.locator('#cdSigGrid').evaluate(node => getComputedStyle(node).gridTemplateColumns.split(' ').length);
+      assert.equal(grid, width < 768 ? 1 : width < 1200 ? 2 : 3, 'responsive consultation columns');
+      const methods = await page.locator('.cdh-methods-grid').first().evaluate(node => getComputedStyle(node).gridTemplateColumns.split(' ').length);
+      assert.equal(methods, width <= 640 ? 3 : 6, 'six systems in compact rows');
+      const chooserBox = await page.locator('#cdhAllFortunes').boundingBox();
+      const signatureBox = await page.locator('#cdSignatureConsult').boundingBox();
+      assert.ok(chooserBox.y + chooserBox.height <= signatureBox.y, 'chooser visually precedes signature');
+      await page.evaluate(() => { localStorage.removeItem('cd_signup_benefit_exit_hide_until_v1'); document.getElementById('authQuickLinks').dataset.authState = 'guest'; });
+      await page.waitForFunction(() => !document.getElementById('cdhSignupBenefit').hidden);
+      assert.ok(await page.locator('#cdhSignupBenefit a').isVisible(), 'guest sees signup CTA');
+      await page.evaluate(() => { document.getElementById('authQuickLinks').dataset.authState = 'member'; });
+      await page.waitForFunction(() => document.getElementById('cdhSignupBenefit').hidden);
+      assert.ok(await page.locator('.cdh-moonstone-guide__terms').isVisible(), 'member retains general terms');
+      await page.evaluate(() => { localStorage.setItem('cd_signup_benefit_exit_hide_until_v1', String(Date.now()+60000)); document.getElementById('authQuickLinks').dataset.authState = 'guest'; });
+      await page.waitForTimeout(50);
+      assert.equal(await page.locator('#cdhSignupBenefit').isVisible(), false, 'hide today suppresses signup only');
+      assert.ok(await page.locator('.cdh-moonstone-guide__terms').isVisible(), 'hide today retains general terms');
+      await page.evaluate(() => { localStorage.removeItem('cd_signup_benefit_exit_hide_until_v1'); document.getElementById('authQuickLinks').dataset.authState = 'pending'; document.getElementById('authQuickLinks').dataset.authState = 'guest'; });
+      await page.waitForFunction(() => !document.getElementById('cdhSignupBenefit').hidden);
       assert.equal(await page.locator('#fortuneGatewaySearch').getAttribute('placeholder'), '연애, 재물, 이직… 궁금한 운세를 찾아보세요', 'search placeholder');
       assert.equal(await page.locator('#fortuneGatewayRecs').isVisible(), false, 'no search results before input');
       assert.equal(await page.locator('#fortuneGatewayRecs .fortune-gateway__rec').count(), 0, 'no default list rendered before input');

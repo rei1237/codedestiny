@@ -66,7 +66,6 @@ const lightCards = ['saju', 'tarot', 'ziwei', 'sukuyo'].map(id => {
   return htmlOf(card, id).replace('</a>', '<span data-cd-trans="home.followup.free">무료 시작 · 심화는 별도</span></a>');
 });
 vars.lightRecommendations = `<section class="cdh-light" aria-labelledby="cdhLightTitle"><h2 id="cdhLightTitle" data-cd-trans="home.followup.light">가볍게 둘러보기</h2><div class="cdh-methods-grid">${lightCards.join('')}</div></section>`;
-vars.signupBenefit = `<section id="cdhSignupBenefit" class="cdh-signup-benefit" hidden aria-live="polite"><h2 data-cd-trans="home.followup.benefit">첫 가입 월정석 ${signupBenefitPolicy.amount.toLocaleString('ko-KR')}개</h2><p data-cd-trans="home.followup.benefitNote">지급일부터 ${signupBenefitPolicy.days}일 · 일반 환산 기준 ${(signupBenefitPolicy.amount * KRW_PER_COIN / MEMBERSHIP_CREDIT_PER_COIN).toLocaleString('ko-KR')}원 상당. ${MOONSTONE_MIN_PRODUCT_KRW.toLocaleString('ko-KR')}원 이상 대상 서비스 할인에만 사용할 수 있어요. 이용권 구매에는 쓸 수 없어요.</p><a href="/signup/?next=%2F" data-cd-trans="home.followup.join">카카오 또는 이메일로 가입하기</a></section>`;
 vars.signupAmount = signupBenefitPolicy.amount.toLocaleString('ko-KR');
 vars.signupValue = (signupBenefitPolicy.amount * KRW_PER_COIN / MEMBERSHIP_CREDIT_PER_COIN).toLocaleString('ko-KR');
 vars.signupDays = signupBenefitPolicy.days;
@@ -98,8 +97,8 @@ const signatureProducts = [
     title: '연이의 운명 찻집',
     question: '이 마음을 어떻게 정리하면 좋을까?',
     description: '쉽게 꺼내지 못한 이야기도 괜찮아요. 연이와 찻잔을 고르고, 질문에 남은 감정과 다음 선택을 천천히 읽습니다.',
-    image: '/images/fortune-tea-house/premium-tea-house-desktop.webp',
-    imageAlt: '달빛 아래 따뜻한 차와 카드를 준비한 연이의 운명 찻집',
+    image: '/images/home/yeoni-tea-together-v1-1200.webp',
+    imageAlt: '한복 입은 연이와 꽃돼지가 함께 차를 건네는 운명의 찻집',
     featureKey: 'fortune-tea-house-tarot-consultation',
     report: ['선택한 찻잔과 질문', '타로 3장 마음 리딩', '오늘의 기준 · 행동 제안'],
     cta: '운명 찻집 들어가기',
@@ -164,8 +163,8 @@ const signaturePrice = (featureKey, suffix = '') => {
   return `${amount.toLocaleString('ko-KR')}원${suffix}`;
 };
 vars.signature = `<section data-cd-funnel-section="signature_consult" class="cd-sig cd-sig--curated" id="cdSignatureConsult" data-marker="cd-signature-consult-v20261015" aria-labelledby="cdSignatureTitle" lang="ko">
-  <div class="cd-sig__head"><p class="cd-sig__eyebrow">MOONLIGHT SIGNATURE</p><h2 class="cd-sig__title" id="cdSignatureTitle">대표 운명 상담</h2><p class="cd-sig__sub">고민의 깊이와 필요한 리포트 구성을 먼저 확인하고, 지금의 나에게 맞는 상담을 골라보세요.</p></div>
-  <div class="cd-sig__viewport" id="cdSigViewport"><div class="cd-sig__grid" id="cdSigGrid">${signatureProducts.map((product) => `<a class="cd-sig-card cd-sig-card--${product.className}" data-cd-service-id="${product.id}" href="${product.href}" aria-label="${product.title} 상담 알아보기" data-pvw-paid="true"><span class="cd-yehwa-seal" aria-hidden="true"></span><span class="cd-sig-card__media"><img class="cd-sig-card__img" width="1200" height="675" loading="lazy" decoding="async" src="${product.image}" sizes="(max-width: 767px) calc(100vw - 72px), (max-width: 1199px) 46vw, 280px" alt="${product.imageAlt}"></span><span class="cd-sig-card__body"><span class="cd-sig-card__title">${product.title}</span><span class="cd-sig-card__q">${product.question}</span><span class="cd-sig-card__desc">${product.description}</span><span class="cd-sig-card__report"><b>리포트 구성</b>${product.report.map((item) => `<span>${item}</span>`).join('')}</span><span class="cd-sig-card__price">${signaturePrice(product.featureKey, product.priceSuffix)}</span><span class="cd-sig-card__meta"><span>이용권 · 월정석 · 단건 결제</span></span><span class="cd-sig-card__cta"><span>${product.cta}</span> <i aria-hidden="true">→</i></span></span></a>`).join('')}</div></div>
+  <div class="cd-sig__head"><h2 class="cd-sig__title" id="cdSignatureTitle">대표 운명 상담</h2><p class="cd-sig__sub">고민의 깊이와 필요한 리포트 구성을 먼저 확인하고, 지금의 나에게 맞는 상담을 골라보세요.</p></div>
+  <div class="cd-sig__viewport" id="cdSigViewport"><div class="cd-sig__grid" id="cdSigGrid">${signatureProducts.map((product) => `<a class="cd-sig-card cd-sig-card--${product.className}" data-cd-service-id="${product.id}" href="${product.href}" aria-label="${product.title} 상담 알아보기" data-pvw-paid="true"><span class="cd-yehwa-seal" aria-hidden="true"></span><span class="cd-sig-card__media"><img class="cd-sig-card__img" width="1200" height="675" loading="lazy" decoding="async" src="${product.image}" sizes="(max-width: 767px) calc(100vw - 64px), (max-width: 1199px) 42vw, 360px" alt="${product.imageAlt}"></span><span class="cd-sig-card__body"><span class="cd-sig-card__title">${product.title}</span><span class="cd-sig-card__q">${product.question}</span><span class="cd-sig-card__desc">${product.description}</span><span class="cd-sig-card__report"><b>리포트 구성</b>${product.report.map((item) => `<span>${item}</span>`).join('')}</span><span class="cd-sig-card__price">${signaturePrice(product.featureKey, product.priceSuffix)}</span><span class="cd-sig-card__meta"><span>이용권 · 월정석 · 단건 결제</span></span><span class="cd-sig-card__cta"><span>상담 알아보기</span> <i aria-hidden="true">→</i></span></span></a>`).join('')}</div></div>
   <a class="cd-sig__samples-link" href="/consultation-samples/"><span>상담 결과 전체 미리보기</span><span class="cd-yehwa-spray cd-sig__samples-motif" aria-hidden="true"></span></a>
 </section>`;
 vars.pressCoverage = renderPressCoverageHtml();

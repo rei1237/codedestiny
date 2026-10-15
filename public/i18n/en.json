@@ -1945,6 +1945,13 @@
       "signatureDescription": "Explore consultations and sample results for your concern.",
       "member": "Check your Moonstones and expiry dates. Eligible products start at KRW {minimum}.",
       "balance": "View my Moonstones"
+    },
+    "refresh": {
+      "moonstone": "Moonlight readings with Moonstones",
+      "gift": "{amount} Moonstones on first signup",
+      "giftTerms": "Worth KRW {value} · Valid for {days} days from issue · Discounts on eligible services priced KRW {minimum} or more. Cannot be used to buy passes.",
+      "terms": "View Moonstone terms",
+      "rewards": "Activities and rewards"
     }
   },
   "terms": {

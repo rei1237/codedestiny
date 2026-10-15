@@ -1945,6 +1945,13 @@
       "signatureDescription": "先看看适合你困扰的咨询和结果示例。",
       "member": "查看月晶石余额和有效期。可用于价格不低于{minimum}韩元的适用商品。",
       "balance": "查看我的月晶石"
+    },
+    "refresh": {
+      "moonstone": "用月晶石开启月光咨询",
+      "gift": "首次注册赠送{amount}颗月晶石",
+      "giftTerms": "价值{value}韩元 · 发放日起{days}天有效 · 可用于价格不低于{minimum}韩元的适用服务折扣。不可用于购买通行券。",
+      "terms": "查看月晶石使用条件",
+      "rewards": "活动与奖励说明"
     }
   },
   "terms": {

@@ -1945,6 +1945,13 @@
       "signatureDescription": "Xem tư vấn và kết quả mẫu phù hợp với điều bạn quan tâm.",
       "member": "Kiểm tra Đá Mặt Trăng và hạn dùng. Áp dụng cho sản phẩm đủ điều kiện từ {minimum} KRW.",
       "balance": "Xem Đá Mặt Trăng"
+    },
+    "refresh": {
+      "moonstone": "Tư vấn ánh trăng với Nguyệt thạch",
+      "gift": "{amount} Nguyệt thạch khi đăng ký lần đầu",
+      "giftTerms": "Trị giá {value} KRW · Hiệu lực {days} ngày từ ngày cấp · Giảm giá dịch vụ đủ điều kiện từ {minimum} KRW. Không dùng để mua vé.",
+      "terms": "Xem điều kiện Nguyệt thạch",
+      "rewards": "Hoạt động và phần thưởng"
     }
   },
   "terms": {

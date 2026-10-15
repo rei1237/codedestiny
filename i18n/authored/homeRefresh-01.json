@@ -1,0 +1,72 @@
+{
+  "home.refresh.moonstone": {
+    "ko": "월정석으로 만나는 달빛 상담",
+    "en": "Moonlight readings with Moonstones",
+    "ja": "月晶石で出会う月明かりの相談",
+    "zh-CN": "用月晶石开启月光咨询",
+    "zh-TW": "用月晶石開啟月光諮詢",
+    "vi": "Tư vấn ánh trăng với Nguyệt thạch",
+    "hi": "मूनस्टोन से चाँदनी परामर्श",
+    "es": "Consultas a la luz de la luna con Piedras Lunares",
+    "fr": "Consultations au clair de lune avec les Pierres de lune",
+    "de": "Mondlicht-Beratungen mit Mondsteinen",
+    "nl": "Maanlichtconsulten met Maanstenen",
+    "ms": "Konsultasi cahaya bulan dengan Batu Bulan"
+  },
+  "home.refresh.gift": {
+    "ko": "첫 가입 월정석 {amount}개",
+    "en": "{amount} Moonstones on first signup",
+    "ja": "初回登録で月晶石{amount}個",
+    "zh-CN": "首次注册赠送{amount}颗月晶石",
+    "zh-TW": "首次註冊贈送{amount}顆月晶石",
+    "vi": "{amount} Nguyệt thạch khi đăng ký lần đầu",
+    "hi": "पहले पंजीकरण पर {amount} मूनस्टोन",
+    "es": "{amount} Piedras Lunares al registrarte por primera vez",
+    "fr": "{amount} Pierres de lune à la première inscription",
+    "de": "{amount} Mondsteine bei der ersten Registrierung",
+    "nl": "{amount} Maanstenen bij je eerste registratie",
+    "ms": "{amount} Batu Bulan pada pendaftaran pertama"
+  },
+  "home.refresh.giftTerms": {
+    "ko": "{value}원 상당 · 지급일부터 {days}일 · {minimum}원 이상 대상 서비스 할인에 사용해요. 이용권 구매에는 사용할 수 없어요.",
+    "en": "Worth KRW {value} · Valid for {days} days from issue · Discounts on eligible services priced KRW {minimum} or more. Cannot be used to buy passes.",
+    "ja": "{value}ウォン相当・付与日から{days}日間・{minimum}ウォン以上の対象サービスの割引に利用できます。利用券の購入には使えません。",
+    "zh-CN": "价值{value}韩元 · 发放日起{days}天有效 · 可用于价格不低于{minimum}韩元的适用服务折扣。不可用于购买通行券。",
+    "zh-TW": "價值{value}韓元 · 發放日起{days}天有效 · 可用於價格不低於{minimum}韓元的適用服務折扣。不可用於購買通行券。",
+    "vi": "Trị giá {value} KRW · Hiệu lực {days} ngày từ ngày cấp · Giảm giá dịch vụ đủ điều kiện từ {minimum} KRW. Không dùng để mua vé.",
+    "hi": "{value} KRW के बराबर · जारी होने से {days} दिन मान्य · {minimum} KRW या अधिक की पात्र सेवाओं पर छूट। पास खरीदने के लिए उपयोग नहीं कर सकते।",
+    "es": "Valor de {value} KRW · Válidas {days} días desde su entrega · Descuentos en servicios aptos desde {minimum} KRW. No sirven para comprar pases.",
+    "fr": "Valeur de {value} KRW · Valables {days} jours après attribution · Réductions sur les services éligibles à partir de {minimum} KRW. Non utilisables pour acheter des pass.",
+    "de": "Wert: {value} KRW · Ab Ausgabe {days} Tage gültig · Rabatte auf berechtigte Dienste ab {minimum} KRW. Nicht für den Kauf von Pässen.",
+    "nl": "Waarde: {value} KRW · {days} dagen geldig vanaf uitgifte · Korting op geschikte diensten vanaf {minimum} KRW. Niet voor de aankoop van passen.",
+    "ms": "Bernilai {value} KRW · Sah {days} hari dari tarikh pemberian · Diskaun perkhidmatan layak berharga {minimum} KRW ke atas. Tidak boleh digunakan untuk membeli pas."
+  },
+  "home.refresh.terms": {
+    "ko": "월정석 사용 조건 확인하기",
+    "en": "View Moonstone terms",
+    "ja": "月晶石の利用条件を見る",
+    "zh-CN": "查看月晶石使用条件",
+    "zh-TW": "查看月晶石使用條件",
+    "vi": "Xem điều kiện Nguyệt thạch",
+    "hi": "मूनस्टोन की शर्तें देखें",
+    "es": "Ver condiciones de Piedras Lunares",
+    "fr": "Voir les conditions des Pierres de lune",
+    "de": "Mondstein-Bedingungen ansehen",
+    "nl": "Voorwaarden van Maanstenen bekijken",
+    "ms": "Lihat syarat Batu Bulan"
+  },
+  "home.refresh.rewards": {
+    "ko": "활동과 보상 안내",
+    "en": "Activities and rewards",
+    "ja": "活動と報酬のご案内",
+    "zh-CN": "活动与奖励说明",
+    "zh-TW": "活動與獎勵說明",
+    "vi": "Hoạt động và phần thưởng",
+    "hi": "गतिविधियाँ और पुरस्कार",
+    "es": "Actividades y recompensas",
+    "fr": "Activités et récompenses",
+    "de": "Aktivitäten und Belohnungen",
+    "nl": "Activiteiten en beloningen",
+    "ms": "Aktiviti dan ganjaran"
+  }
+}

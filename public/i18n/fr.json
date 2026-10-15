@@ -1945,6 +1945,13 @@
       "signatureDescription": "Découvrez les consultations et exemples de résultats adaptés à votre question.",
       "member": "Consultez vos Pierres de lune et leur expiration. Produits éligibles à partir de {minimum} KRW.",
       "balance": "Voir mes Pierres de Lune"
+    },
+    "refresh": {
+      "moonstone": "Consultations au clair de lune avec les Pierres de lune",
+      "gift": "{amount} Pierres de lune à la première inscription",
+      "giftTerms": "Valeur de {value} KRW · Valables {days} jours après attribution · Réductions sur les services éligibles à partir de {minimum} KRW. Non utilisables pour acheter des pass.",
+      "terms": "Voir les conditions des Pierres de lune",
+      "rewards": "Activités et récompenses"
     }
   },
   "terms": {

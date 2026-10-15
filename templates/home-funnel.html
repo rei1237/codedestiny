@@ -114,12 +114,11 @@
 
   <section class="cdh-hero" aria-labelledby="cdhTitle">
     <div class="cdh-scene-copy">
-      <p class="cdh-scene-inscription" data-cd-trans="home.gardenCopy.heroInscription">달빛 아래, 나를 읽는 시간</p>
       <h1 id="cdhTitle"><span class="cdh-persona--yeoni"><span data-cd-trans="home.gardenCopy.heroTitle">꿀꿀운세에서</span><br><span data-cd-trans="home.gardenCopy.heroTitleEm">차근차근 풀어봐요</span></span></h1>
       <p class="cdh-scene-lead" data-cd-trans="home.simple.lead">상담은 유료예요. 가격과 결과 예시는 먼저 확인할 수 있어요.</p>
       <nav class="cdh-scene-actions" aria-label="다른 시작 방법" data-cd-trans-attr="aria-label:home.simple.startLabel">
         <a class="cdh-primary cdh-scene-button" href="#cdSignatureConsult" data-cd-business-entry="question"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 26C9 21 10 13 16 5c6 8 7 16 0 21Zm0 0C6 26 3 19 3 12c8 1 13 6 13 14Zm0 0c10 0 13-7 13-14-8 1-13 6-13 14Z"/></svg><span data-cd-trans="home.followup.start">대표 상담 고르기</span></a>
-        <a class="cdh-scene-button cdh-scene-button--catalog" href="#cdFinder"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 8C12 5 7 5 3 7v20c4-2 9-2 13 1 4-3 9-3 13-1V7c-4-2-9-2-13 1Zm0 0v20M7 11l5 1m-5 4 5 1m-5 4 5 1m8-10 5-1m-5 6 5-1m-5 6 5-1"/></svg><span data-cd-trans="home.gardenCopy.heroCatalog">모든 운세 펼쳐보기</span><svg class="cdh-scene-button__arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6"/></svg></a>
+        <a class="cdh-scene-button cdh-scene-button--catalog" href="#cdhAllFortunes"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 8C12 5 7 5 3 7v20c4-2 9-2 13 1 4-3 9-3 13-1V7c-4-2-9-2-13 1Zm0 0v20M7 11l5 1m-5 4 5 1m-5 4 5 1m8-10 5-1m-5 6 5-1m-5 6 5-1"/></svg><span data-cd-trans="home.gardenCopy.heroCatalog">모든 운세 펼쳐보기</span><svg class="cdh-scene-button__arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6"/></svg></a>
       </nav>
     </div>
     <div class="cdh-scene-art" aria-hidden="true">
@@ -130,11 +129,36 @@
 
   <div id="cdhCookieSlot"></div>
   <div class="cdh-flow">
+<section class="cdh-all-fortunes" id="cdhAllFortunes" aria-labelledby="cdhAllFortunesTitle">
+  <header class="cdh-all-fortunes__head">
+    <h2 id="cdhAllFortunesTitle" data-cd-trans="home.gardenCopy.quickTitle">어떤 운세를 볼까요?</h2>
+    <p data-cd-trans="home.simple.allLead">운세 체계로 바로 고르거나, 지금 마음에 가까운 고민으로 찾아보세요.</p>
+  </header>
+  <div class="cdh-slot" id="cdhQuickSlot">{{quick}}</div>
+  <nav class="cdh-topics" aria-label="고민별 상담 고르기" data-cd-trans-attr="aria-label:home.simple.topicsLabel">
+    <a href="/master-love-codex/"><span class="cdh-topics__copy"><strong data-cd-trans="home.simple.love">연애·궁합</strong><small data-cd-trans="home.simple.loveNote">마스터 인연의 서 · 20장 리딩 · PDF 소장</small><b data-cd-trans="home.simple.lovePrice" data-cd-vars='{"solo":"{{codexPrice}}","pair":"{{codexCompatPrice}}"}'>개인 {{codexPrice}}원 · 궁합 {{codexCompatPrice}}원</b></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
+    <a href="/yeongnyangi/consult/work-money/"><span class="cdh-topics__copy"><strong data-cd-trans="home.simple.work">일·돈</strong><small data-cd-trans="home.simple.workNote">이직·취업·사업·돈 관리처럼 조건을 따지는 선택</small><b data-cd-trans="home.simple.priceFrom" data-cd-vars='{"amount":"{{yeongnyangiMackerelPrice}}"}'>{{yeongnyangiMackerelPrice}}원부터</b></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
+    <a href="/yeongnyangi/consult/timing/"><span class="cdh-topics__copy"><strong data-cd-trans="home.simple.future">시기·선택</strong><small data-cd-trans="home.simple.futureNote">지금 움직여도 될지, 흐름은 언제 바뀔지</small><b data-cd-trans="home.simple.priceFrom" data-cd-vars='{"amount":"{{yeongnyangiMackerelPrice}}"}'>{{yeongnyangiMackerelPrice}}원부터</b></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
+  </nav>
+  <section class="cdh cdh-services cdh-search" id="cdhServices" aria-labelledby="cdhServicesTitle"><h2 class="cdh-sr-only" id="cdhServicesTitle" data-cd-trans="home.gardenCopy.searchTitle">어떤 운세가 궁금하세요?</h2>{{finder}}</section>
+</section>
 <div class="cdh-slot" id="cdhFeatured"><div id="cdhSignatureSlot">{{signature}}</div></div>
+<section class="cdh-moonstone-guide" aria-labelledby="cdhMoonstoneTitle">
+  <img src="/assets/mascot/moonstone-lotus-v2-480.webp" width="320" height="320" loading="lazy" decoding="async" alt=""/>
+  <div>
+    <h2 id="cdhMoonstoneTitle" data-cd-trans="home.refresh.moonstone">월정석으로 만나는 달빛 상담</h2>
+    <div id="cdhSignupBenefit" hidden aria-live="polite">
+      <p class="cdh-moonstone-guide__amount" data-cd-trans="home.refresh.gift" data-cd-vars='{"amount":"{{signupAmount}}"}'>첫 가입 월정석 {{signupAmount}}개</p>
+      <p class="cdh-moonstone-guide__note" data-cd-trans="home.refresh.giftTerms" data-cd-vars='{"value":"{{signupValue}}","days":"{{signupDays}}","minimum":"{{moonstoneMinimum}}"}'>{{signupValue}}원 상당 · 지급일부터 {{signupDays}}일 · {{moonstoneMinimum}}원 이상 대상 서비스 할인에 사용해요. 이용권 구매에는 사용할 수 없어요.</p>
+      <a class="cdh-moonstone-guide__join" href="/signup/?next=%2Fggulggul%2F" data-cd-trans="home.followup.join">카카오 또는 이메일로 가입하기</a>
+    </div>
+    <a class="cdh-moonstone-guide__terms" href="/points/" data-cd-trans="home.refresh.terms">월정석 사용 조건 확인하기</a>
+    <details class="cdh-moonstone-guide__rewards"><summary data-cd-trans="home.refresh.rewards">활동과 보상 안내</summary><ul><li><strong>프로필 활동</strong> · 활동으로 경험치를 쌓고, 레벨 보상 조건을 확인해요.</li><li><strong>후기 남기기</strong> · 대상 상담 후기를 남기면 공개 승인 후 보상을 받을 수 있어요.</li><li><strong>버그 제보</strong> · 문제를 알려주시면 확인·승인된 제보에 보상이 지급돼요.</li></ul></details>
+  </div>
+</section>
 <div class="cdh-slot cdh-slot--concern" id="cdhConcern" tabindex="-1"><div id="cdhConcernSlot">{{concern}}</div></div>
 <section class="cdh-home-spotlight" aria-labelledby="cdhHomeSpotlightTitle">
   <header class="cdh-section-head cdh-home-spotlight__head">
-    <p class="cdh-intro">MOONLIGHT TODAY</p>
     <h2 id="cdhHomeSpotlightTitle">오늘, 먼저 펼쳐볼 운세</h2>
     <p class="cdh-lead">무료 오늘 운세부터 나를 닮은 꽃과 최애 케미까지, 지금 바로 확인할 수 있어요.</p>
   </header>
@@ -172,22 +196,8 @@
       </div>
       <div class="cd-soulcat-entry__stage"><img class="cd-soulcat-entry__art" src="/assets/yeongnyangi/original/hero-800.webp" srcset="/assets/yeongnyangi/original/hero-480.webp 480w, /assets/yeongnyangi/original/hero-800.webp 800w" sizes="(max-width:600px) 240px, 400px" width="400" height="400" loading="lazy" alt="사주보는 고양이 영냥이, 보랏빛 모자를 쓰고 턱을 괸 모습" decoding="async"></div>
     </section>
-<section class="cdh-all-fortunes" id="cdhAllFortunes" aria-labelledby="cdhAllFortunesTitle">
-  <header class="cdh-all-fortunes__head">
-    <h2 id="cdhAllFortunesTitle" data-cd-trans="home.gardenCopy.quickTitle">어떤 운세를 볼까요?</h2>
-    <p data-cd-trans="home.simple.allLead">운세 체계로 바로 고르거나, 지금 마음에 가까운 고민으로 찾아보세요.</p>
-  </header>
-  <div class="cdh-slot" id="cdhQuickSlot">{{quick}}</div>
-  <nav class="cdh-topics" aria-label="고민별 상담 고르기" data-cd-trans-attr="aria-label:home.simple.topicsLabel">
-    <a href="/master-love-codex/"><span class="cdh-topics__copy"><strong data-cd-trans="home.simple.love">연애·궁합</strong><small data-cd-trans="home.simple.loveNote">마스터 인연의 서 · 20장 리딩 · PDF 소장</small><b data-cd-trans="home.simple.lovePrice" data-cd-vars='{"solo":"{{codexPrice}}","pair":"{{codexCompatPrice}}"}'>개인 {{codexPrice}}원 · 궁합 {{codexCompatPrice}}원</b></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
-    <a href="/yeongnyangi/consult/work-money/"><span class="cdh-topics__copy"><strong data-cd-trans="home.simple.work">일·돈</strong><small data-cd-trans="home.simple.workNote">이직·취업·사업·돈 관리처럼 조건을 따지는 선택</small><b data-cd-trans="home.simple.priceFrom" data-cd-vars='{"amount":"{{yeongnyangiMackerelPrice}}"}'>{{yeongnyangiMackerelPrice}}원부터</b></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
-    <a href="/yeongnyangi/consult/timing/"><span class="cdh-topics__copy"><strong data-cd-trans="home.simple.future">시기·선택</strong><small data-cd-trans="home.simple.futureNote">지금 움직여도 될지, 흐름은 언제 바뀔지</small><b data-cd-trans="home.simple.priceFrom" data-cd-vars='{"amount":"{{yeongnyangiMackerelPrice}}"}'>{{yeongnyangiMackerelPrice}}원부터</b></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
-  </nav>
-  <section class="cdh cdh-services cdh-search" id="cdhServices" aria-labelledby="cdhServicesTitle"><h2 class="cdh-sr-only" id="cdhServicesTitle" data-cd-trans="home.gardenCopy.searchTitle">어떤 운세가 궁금하세요?</h2>{{finder}}</section>
-</section>
 <div class="cdh-slot cdh-slot--pass" id="cdhPass"><div id="cdhPassSlot">{{pass}}</div></div>
-{{signupBenefit}}
-<section class="cdh-moonstone-guide" aria-labelledby="cdhMoonstoneTitle"><img src="/assets/mascot/moonstone-lotus-v2-480.webp" width="320" height="320" loading="lazy" alt="연꽃에 담긴 진주빛 월정석과 금빛 초승달"/><div><h2 id="cdhMoonstoneTitle">첫 만남을 위한 달빛 선물</h2><p><strong class="cdh-moonstone-guide__amount">첫 가입 월정석 {{signupAmount}}개</strong><span class="cdh-moonstone-guide__value">{{signupValue}}원 상당 월정석 · {{moonstoneMinimum}}원 이상 대상 서비스 할인에만 이용 가능해요.</span></p><ul><li><strong>프로필 활동</strong> · 활동으로 경험치를 쌓고, 레벨 보상 조건을 확인해요.</li><li><strong>후기 남기기</strong> · 대상 상담 후기를 남기면 공개 승인 후 보상을 받을 수 있어요.</li><li><strong>버그 제보</strong> · 문제를 알려주시면 확인·승인된 제보에 보상이 지급돼요.</li></ul><p class="cdh-moonstone-guide__note">첫 가입 선물은 지급일부터 {{signupDays}}일 동안 사용할 수 있어요. 상품별 사용 조건이 적용되며, 이용권 구매에는 사용할 수 없어요.</p><a href="/points/">월정석과 사용 조건 확인하기 <span aria-hidden="true">→</span></a></div></section>
+
     <details class="cdh-more" id="cdhMore">
       <summary class="cdh-more__summary" aria-expanded="false" aria-controls="cdhGardenBody"><span class="cdh-more__copy"><strong data-cd-trans="home.simple.moreContent">더 많은 운세와 콘텐츠</strong><small data-cd-trans="home.simple.moreContentNote">특별한 리딩과 공개 분석 기록, 오늘의 운세를 한곳에서 살펴보세요.</small></span><span class="cdh-more__prompt" data-cd-trans="home.funnelCopy.explore">더 둘러보기</span><svg class="cdh-more__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
       <div class="cdh-more__body" id="cdhGardenBody">

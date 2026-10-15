@@ -1945,6 +1945,13 @@
       "signatureDescription": "Explora consultas y resultados de ejemplo para tu inquietud.",
       "member": "Consulta tus Piedras Lunares y su caducidad. Para productos aptos desde {minimum} KRW.",
       "balance": "Ver mis Piedras Lunares"
+    },
+    "refresh": {
+      "moonstone": "Consultas a la luz de la luna con Piedras Lunares",
+      "gift": "{amount} Piedras Lunares al registrarte por primera vez",
+      "giftTerms": "Valor de {value} KRW · Válidas {days} días desde su entrega · Descuentos en servicios aptos desde {minimum} KRW. No sirven para comprar pases.",
+      "terms": "Ver condiciones de Piedras Lunares",
+      "rewards": "Actividades y recompensas"
     }
   },
   "terms": {

@@ -1794,6 +1794,13 @@
       "signatureDescription": "지금의 고민에 맞는 상담과 결과 예시를 먼저 살펴보세요.",
       "member": "보유 월정석과 만료일을 확인하세요. 월정석은 {minimum}원 이상 대상 상품에 사용할 수 있어요.",
       "balance": "내 월정석 확인하기"
+    },
+    "refresh": {
+      "moonstone": "월정석으로 만나는 달빛 상담",
+      "gift": "첫 가입 월정석 {amount}개",
+      "giftTerms": "{value}원 상당 · 지급일부터 {days}일 · {minimum}원 이상 대상 서비스 할인에 사용해요. 이용권 구매에는 사용할 수 없어요.",
+      "terms": "월정석 사용 조건 확인하기",
+      "rewards": "활동과 보상 안내"
     }
   },
   "footer": {

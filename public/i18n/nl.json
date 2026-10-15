@@ -1945,6 +1945,13 @@
       "signatureDescription": "Bekijk consulten en voorbeeldresultaten voor jouw vraag.",
       "member": "Bekijk je Maanstenen en vervaldatums. Voor geschikte producten vanaf {minimum} KRW.",
       "balance": "Mijn Maanstenen bekijken"
+    },
+    "refresh": {
+      "moonstone": "Maanlichtconsulten met Maanstenen",
+      "gift": "{amount} Maanstenen bij je eerste registratie",
+      "giftTerms": "Waarde: {value} KRW · {days} dagen geldig vanaf uitgifte · Korting op geschikte diensten vanaf {minimum} KRW. Niet voor de aankoop van passen.",
+      "terms": "Voorwaarden van Maanstenen bekijken",
+      "rewards": "Activiteiten en beloningen"
     }
   },
   "terms": {

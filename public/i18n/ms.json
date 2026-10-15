@@ -1945,6 +1945,13 @@
       "signatureDescription": "Lihat konsultasi dan contoh hasil yang sesuai dengan persoalan anda.",
       "member": "Semak Batu Bulan dan tarikh luput. Untuk produk layak mulai {minimum} KRW.",
       "balance": "Lihat Batu Bulan saya"
+    },
+    "refresh": {
+      "moonstone": "Konsultasi cahaya bulan dengan Batu Bulan",
+      "gift": "{amount} Batu Bulan pada pendaftaran pertama",
+      "giftTerms": "Bernilai {value} KRW · Sah {days} hari dari tarikh pemberian · Diskaun perkhidmatan layak berharga {minimum} KRW ke atas. Tidak boleh digunakan untuk membeli pas.",
+      "terms": "Lihat syarat Batu Bulan",
+      "rewards": "Aktiviti dan ganjaran"
     }
   },
   "terms": {

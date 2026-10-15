@@ -1945,6 +1945,13 @@
       "signatureDescription": "Entdecke passende Beratungen und Beispielergebnisse für dein Anliegen.",
       "member": "Prüfe Mondsteine und Ablaufdaten. Für berechtigte Produkte ab {minimum} KRW.",
       "balance": "Meine Mondsteine ansehen"
+    },
+    "refresh": {
+      "moonstone": "Mondlicht-Beratungen mit Mondsteinen",
+      "gift": "{amount} Mondsteine bei der ersten Registrierung",
+      "giftTerms": "Wert: {value} KRW · Ab Ausgabe {days} Tage gültig · Rabatte auf berechtigte Dienste ab {minimum} KRW. Nicht für den Kauf von Pässen.",
+      "terms": "Mondstein-Bedingungen ansehen",
+      "rewards": "Aktivitäten und Belohnungen"
     }
   },
   "terms": {
