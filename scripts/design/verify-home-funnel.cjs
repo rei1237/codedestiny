@@ -196,7 +196,8 @@ async function assertEssentials(page, label) {
       for (const mode of ['yeoni', 'neo']) {
         if (mode === 'neo') await page.locator('#cdhThemeSlot [data-theme-mode="neo"]').click({ force: true });
         else await page.evaluate(() => { document.documentElement.classList.remove('neo-mode'); document.body.classList.remove('neo-mode'); });
-        await page.waitForTimeout(80);
+        await page.waitForFunction((neo) => document.documentElement.classList.contains('neo-mode') === neo, mode === 'neo');
+        await page.locator('body').evaluate(async (node) => { await Promise.all(node.getAnimations().map((animation) => animation.finished.catch(() => {}))); });
         const colors = await page.locator('#cdhGatewaySlot #fortuneGatewayEntry').evaluate((gateway) => ({
           title: getComputedStyle(gateway.querySelector('h2')).color,
           lead: getComputedStyle(gateway.querySelector('.fortune-gateway__entry-copy > p:last-child')).color,
