@@ -86,24 +86,7 @@ function resolveRuntimeVersion() {
 }
 
 /** 모든 SW 해제 + 모든 Cache Storage 삭제 */
-function nukeAllCachesLegacy() {
-  var tasks = [];
-  if ('serviceWorker' in navigator) {
-    tasks.push(
-      navigator.serviceWorker.getRegistrations().then(function(regs) {
-        return Promise.all(regs.map(function(reg) { return reg.unregister(); }));
-      }).catch(function() {})
-    );
-  }
-  if ('caches' in window) {
-    tasks.push(
-      caches.keys().then(function(keys) {
-        return Promise.all(keys.map(function(key) { return caches.delete(key); }));
-      }).catch(function() {})
-    );
-  }
-  return Promise.all(tasks).catch(function() {});
-}
+function nukeAllCachesLegacy() { return Promise.resolve(); }
 
 function isVersionGuardVisibleElement(element) {
   if (!element) return false;
@@ -205,26 +188,7 @@ function removeVersionUpdateBanner() {
   }
 }
 
-function applyVersionRefresh(version) {
-  return nukeAllCachesLegacy().then(function() {
-    try { localStorage.setItem(APP_VERSION_KEY, version); } catch (e) {}
-    try { localStorage.setItem(SW_PURGED_VERSION_KEY, version); } catch (e) {}
-    try {
-      sessionStorage.setItem(APP_VERSION_RELOAD_GUARD, version);
-      sessionStorage.removeItem(APP_VERSION_DEFER_GUARD);
-    } catch (e) {}
-    var nextUrl;
-    try {
-      var parsed = new URL(window.location.href);
-      parsed.searchParams.set('v', version);
-      nextUrl = parsed.toString();
-    } catch (e) {
-      nextUrl = window.location.href;
-    }
-    window.location.replace(nextUrl);
-    return version;
-  });
-}
+function applyVersionRefresh(version) { return runNuclearVersionGuard(); }
 
 function showVersionUpdateBanner(version, reason) {
   if (!document || !document.body) return;
@@ -358,86 +322,7 @@ function showVersionUpdateBanner(version, reason) {
 
 var __versionGuardInFlight = false;
 var __versionGuardLastStartedAt = 0;
-function runNuclearVersionGuard() {
-  // focus·visibilitychange·interval·이벤트가 겹쳐 version.json을 중복 요청하지 않도록 단일 실행 보장.
-  if (__versionGuardInFlight) return Promise.resolve();
-  // 🔴 ① 트리거가 겹쳐도 30초(VERSION_GUARD_MIN_GAP_MS)에 1회를 넘지 않는다 ② 결제 등 critical
-  // operation 중에는 fetch 자체를 내보내지 않는다 — 예전에는 리로드만 막고 요청은 그대로 나가서
-  // 결제 네트워크와 경쟁했다. 상태가 풀리면 cd:critical-operation-state 리스너와 60초 폴링이
-  // 늦어도 한 주기 안에 재검사한다(자동 리로드는 이미 폐지, 배너 안내라 지연 비용이 없다).
-  var now = Date.now();
-  if (now - __versionGuardLastStartedAt < VERSION_GUARD_MIN_GAP_MS) return Promise.resolve();
-  if (isCriticalOperationInProgress()) return Promise.resolve();
-  __versionGuardLastStartedAt = now;
-  __versionGuardInFlight = true;
-  return resolveRuntimeVersion().then(function(version) {
-    // dev 버전 또는 fetch 실패 시 아무 작업 안 함
-    if (!version || version === 'dev') return version;
-
-    var saved = '';
-    try { saved = localStorage.getItem(APP_VERSION_KEY) || ''; } catch (e) { saved = ''; }
-
-    // 저장값이 없다 = 이 브라우저/앱이 이 사이트를 처음 본다. 지금 손에 든 문서는 방금 받아온
-    // 것이라(셸은 no-store, 앱은 번들 에셋) 같은 URL 을 다시 로드해도 달라질 것이 없다.
-    // 이걸 "버전 불일치"로 흘려보내면 첫 방문·재설치·배포 직후 사용자가 전원 강제 리로드를
-    // 한 번씩 겪는다(=메인 화면 이중 로딩). 버전만 기록하고 캐시 정리는 그대로 수행한다.
-    if (!saved) {
-      try { localStorage.setItem(APP_VERSION_KEY, version); } catch (e) {}
-    }
-
-    if (!saved || saved === version) {
-      removeVersionUpdateBanner();
-      // 버전 동일: SW/캐시만 정리 (이미 정리된 버전이면 skip)
-      var purged = '';
-      try { purged = localStorage.getItem(SW_PURGED_VERSION_KEY) || ''; } catch (e) {}
-      if (purged !== version) {
-        nukeAllCachesLegacy().then(function() {
-          try { localStorage.setItem(SW_PURGED_VERSION_KEY, version); } catch (e) {}
-        });
-      }
-      return version;
-    }
-
-    // 버전 불일치: 무한 reload 방지 체크
-    var reloaded = '';
-    try { reloaded = sessionStorage.getItem(APP_VERSION_RELOAD_GUARD) || ''; } catch (e) { reloaded = ''; }
-
-    if (reloaded === version) {
-      // 이미 이 버전으로 reload 했음 → 버전만 저장하고 종료
-      try { localStorage.setItem(APP_VERSION_KEY, version); } catch (e) {}
-      return version;
-    }
-
-    var deferred = '';
-    try { deferred = sessionStorage.getItem(APP_VERSION_DEFER_GUARD) || ''; } catch (e) { deferred = ''; }
-    if (deferred === version) {
-      removeVersionUpdateBanner();
-      return version;
-    }
-
-    // 🔴 자동 location.replace 는 하지 않는다(2026-08-01 폐지). 배포마다 저장된 버전과 다른 모든
-    // 재방문자가 매번 자동 리로드를 1회씩 겪었고, 하필 noncritical-defer-loader 가 share.js 를
-    // 첫 기능 탭/45초 방치/앱 전환 시점에 주입해 "탭했더니 화면이 통째로 새로고침됨"으로 보였다
-    // (15초 interval + focus + visibilitychange 가 계속 재검사한다). 스토리지가 막힌 환경(iOS
-    // 프라이빗 모드 등)에서는 무한 reload 방지 가드까지 무력화돼 15초마다 영구 리로드로 번졌다.
-    // '/' · '/index.html' 은 no-store 라 다음 문서 이동에서 어차피 최신을 받는다 — 자동 리로드는
-    // 신선도 유지의 필수 수단이 아니라 가장 거친 수단이었다. 캐시 정리는 그대로 하고 배너로 맡긴다.
-    var blockingReason = isCriticalOperationInProgress();
-    // 배너는 응답 없이 매 15초/포커스마다 재호출되므로, 캐시 정리는 이 버전당 한 번만 한다
-    // (안 그러면 SW 해제·Cache Storage 삭제가 사용자가 새로고침을 누를 때까지 계속 반복된다).
-    var purgedForVersion = '';
-    try { purgedForVersion = localStorage.getItem(SW_PURGED_VERSION_KEY) || ''; } catch (e) {}
-    if (purgedForVersion !== version) {
-      nukeAllCachesLegacy().then(function() {
-        try { localStorage.setItem(SW_PURGED_VERSION_KEY, version); } catch (e) {}
-      });
-    }
-    showVersionUpdateBanner(version, blockingReason);
-    return version;
-  }).finally(function() {
-    __versionGuardInFlight = false;
-  });
-}
+function runNuclearVersionGuard() { return window.__cdPwaLifecycle ? window.__cdPwaLifecycle.check() : Promise.resolve(); }
 
 runNuclearVersionGuard();
 
@@ -1374,40 +1259,7 @@ function syncThemeLogoSources(reason) {
   logThemeLogoSync(reason, 'after', pigLogo, neoLogo);
 }
 
-function retireServiceWorkers() {
-  var tasks = [];
-  var prefixes = Array.isArray(SW_CACHE_PREFIXES) && SW_CACHE_PREFIXES.length > 0
-    ? SW_CACHE_PREFIXES
-    : ['kkul-mansaeryeok-', 'workbox', 'code-destiny', 'next', 'tadagochi', 'legacy'];
-
-  if ('serviceWorker' in navigator) {
-    tasks.push(
-      navigator.serviceWorker.getRegistrations().then(function(regs) {
-        return Promise.all(regs.map(function(reg) { return reg.unregister(); }));
-      }).catch(function() {})
-    );
-  }
-
-  if ('caches' in window) {
-    tasks.push(
-      caches.keys().then(function(keys) {
-        return Promise.all(
-          keys
-            .filter(function(key) {
-              var normalized = String(key || '').toLowerCase();
-              return prefixes.some(function(prefix) {
-                var token = String(prefix || '').toLowerCase();
-                return normalized.indexOf(token) >= 0;
-              });
-            })
-            .map(function(key) { return caches.delete(key); })
-        );
-      }).catch(function() {})
-    );
-  }
-
-  return Promise.all(tasks).catch(function() {});
-}
+function retireServiceWorkers() { return Promise.resolve(); }
 
 function retireServiceWorkersOnce(version) {
   var target = String(version || APP_VERSION || 'dev').trim() || 'dev';

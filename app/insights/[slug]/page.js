@@ -1,3 +1,4 @@
+import ReadingTools from "../ReadingTools";
 import { RecommendationResult } from '@/app/components/recommendations/RecommendationResult';
 import { editorialTopics } from '@/js/recommendations-editorial.mjs';
 import { publicRecordCopy, PUBLIC_RECORD_PATH } from '../../../lib/seo/public-record-copy.mjs';
@@ -239,7 +240,7 @@ export default async function InsightArticlePage({ params }) {
 
   return (
     <main className={styles.page}>
-      <article className={styles.article}>
+      <article className={styles.article}><ReadingTools />
         <nav className={styles.breadcrumb} aria-label="인사이트 위치">
           <Link href="/insights" className={styles.backLink}>← 운세 인사이트</Link>
           <span aria-hidden="true">·</span>

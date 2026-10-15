@@ -1,0 +1,13 @@
+{
+  "people": 156,
+  "published": 156,
+  "editorials": 12,
+  "reviewed": 9,
+  "editorialDrafts": 3,
+  "withoutUniqueEditorial": 144,
+  "duplicateSlugs": 0,
+  "calculatedCandidates": 136,
+  "classificationNeedsReview": 156,
+  "sourceLinked": 7,
+  "cycle": 60
+}

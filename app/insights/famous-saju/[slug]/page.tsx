@@ -148,9 +148,9 @@ export async function generateMetadata({ params }: PageProps) {
 }
 
 const elementRows = [
-  { key: "wood", label: "목", hanja: "木", color: "#5fd198", tone: "border-emerald-200/25 bg-emerald-200/10 text-emerald-100" },
-  { key: "fire", label: "화", hanja: "火", color: "#f08a8a", tone: "border-rose-200/25 bg-rose-200/10 text-rose-100" },
-  { key: "earth", label: "토", hanja: "土", color: "#caa45a", tone: "border-amber-200/25 bg-amber-200/10 text-amber-100" },
+  { key: "wood", label: "목", hanja: "木", color: "#5fd198", tone: "border-emerald-200/25 bg-emerald-200/10 text-[#242139]" },
+  { key: "fire", label: "화", hanja: "火", color: "#f08a8a", tone: "border-rose-200/25 bg-rose-200/10 text-[#242139]" },
+  { key: "earth", label: "토", hanja: "土", color: "#caa45a", tone: "border-amber-200/25 bg-amber-200/10 text-[#242139]" },
   { key: "metal", label: "금", hanja: "金", color: "#d9d3c1", tone: "border-stone-200/25 bg-stone-200/10 text-stone-100" },
   { key: "water", label: "수", hanja: "水", color: "#69a7f7", tone: "border-sky-200/25 bg-sky-200/10 text-sky-100" },
 ] as const;
@@ -169,10 +169,10 @@ function accentFor(dayElement: string) {
 }
 
 const pillarAccents = [
-  "border-emerald-200/25 bg-[#0d1d1a]",
-  "border-amber-200/25 bg-[#20180b]",
-  "border-violet-200/65 bg-[#1d1235] shadow-[0_0_36px_rgba(139,92,246,0.2)]",
-  "border-sky-200/20 bg-[#0b1625]",
+  "border-emerald-200/25 bg-[#fffdf8]",
+  "border-amber-200/25 bg-[#fffdf8]",
+  "border-violet-200/65 bg-[#fffdf8] shadow-[0_0_36px_rgba(139,92,246,0.2)]",
+  "border-sky-200/20 bg-[#fffdf8]",
 ] as const;
 
 function displayPillar(value: MagazinePillar | null): MagazinePillar {
@@ -198,7 +198,7 @@ function sectionById(magazine: CelebritySajuMagazineResult, id: string) {
 function SectionHeader({ label, title }: { label: string; title: string }) {
   return (
     <div className="mb-4 border-b border-amber-100/15 pb-3">
-      <p className="text-[11px] font-semibold text-amber-100/80 [font-family:var(--font-decorative)]">{label}</p>
+      <p className="text-[11px] font-semibold text-[#242139] [font-family:var(--font-decorative)]">{label}</p>
       <h2 className="mt-2 text-xl font-semibold leading-snug text-white sm:text-2xl [font-family:var(--font-premium)]">{title}</h2>
     </div>
   );
@@ -206,9 +206,9 @@ function SectionHeader({ label, title }: { label: string; title: string }) {
 
 function OracleQuote({ children, accent }: { children: string; accent: string }) {
   return (
-    <blockquote className="mt-5 rounded-r-lg border-l-2 pl-4 text-sm italic leading-7 text-slate-100/80" style={{ borderColor: accent }}>
+    <blockquote className="mt-5 rounded-r-lg border-l-2 pl-4 text-sm italic leading-7 text-[#242139]" style={{ borderColor: accent }}>
       {children}
-      <cite className="mt-2 block text-[11px] not-italic text-amber-100/55 [font-family:var(--font-decorative)]">— 연이의 상담 노트</cite>
+      <cite className="mt-2 block text-[11px] not-italic text-[#242139] [font-family:var(--font-decorative)]">— 연이의 상담 노트</cite>
     </blockquote>
   );
 }
@@ -220,13 +220,13 @@ function splitFortuneParagraphs(value: string) {
 function Breadcrumb({ celebrity }: { celebrity: RelatedCelebrity }) {
   return (
     <nav aria-label="breadcrumb" className="pt-6">
-      <ol className="flex flex-wrap items-center gap-1.5 text-xs text-slate-300/70">
-        <li><Link href="/insights" className="hover:text-amber-100">운세 인사이트</Link></li>
-        <li aria-hidden className="text-slate-500">›</li>
-        <li><Link href="/insights/famous-saju" className="hover:text-amber-100">유명인 사주</Link></li>
-        <li aria-hidden className="text-slate-500">›</li>
-        <li className="text-amber-100/80">{celebrity.category}</li>
-        <li aria-hidden className="text-slate-500">›</li>
+      <ol className="flex flex-wrap items-center gap-1.5 text-xs text-[#242139]">
+        <li><Link href="/insights" className="hover:text-[#242139]">운세 인사이트</Link></li>
+        <li aria-hidden className="text-[#242139]0">›</li>
+        <li><Link href="/insights/famous-saju" className="hover:text-[#242139]">유명인 사주</Link></li>
+        <li aria-hidden className="text-[#242139]0">›</li>
+        <li className="text-[#242139]">{celebrity.category}</li>
+        <li aria-hidden className="text-[#242139]0">›</li>
         <li className="font-semibold text-white">{celebrity.nameKo}</li>
       </ol>
     </nav>
@@ -241,17 +241,17 @@ function CelebritySajuHero({ magazine, heroImage }: { magazine: CelebritySajuMag
 
   return (
     <header className="pt-8 text-center sm:pt-10">
-      <p className="text-xs font-semibold text-amber-100/75 [font-family:var(--font-decorative)]">사주 통식 분석 · 유명인</p>
+      <p className="text-xs font-semibold text-[#242139] [font-family:var(--font-decorative)]">사주 통식 분석 · 유명인</p>
       <h1 className="mt-4 text-4xl font-semibold leading-tight text-white sm:text-5xl [font-family:var(--font-premium)]">
         {magazine.profile.displayName}
       </h1>
       <p className="mt-4 text-base font-semibold leading-7 [font-family:var(--font-display)]" style={{ color: accent.color }}>
         {dayPillar} 일주 · {magazine.summary.coreMetaphor}
       </p>
-      <p className="mx-auto mt-3 max-w-2xl text-sm leading-7 text-slate-200/70">
+      <p className="mx-auto mt-3 max-w-2xl text-sm leading-7 text-[#242139]">
         {imagery}
       </p>
-      <p className="mx-auto mt-2 max-w-2xl text-xs leading-6 text-slate-300/55">
+      <p className="mx-auto mt-2 max-w-2xl text-xs leading-6 text-[#242139]">
         {magazine.summary.subtitle}
       </p>
       <div className="mt-5 inline-flex max-w-full items-center rounded-lg border px-4 py-2 text-xs font-semibold [font-family:var(--font-playful)]" style={{ borderColor: accent.color, backgroundColor: accent.soft, color: accent.color }}>
@@ -269,7 +269,7 @@ function CelebritySajuHero({ magazine, heroImage }: { magazine: CelebritySajuMag
         />
         <div className="pointer-events-none absolute inset-0" style={{ background: `linear-gradient(180deg, rgba(7,5,18,0) 45%, rgba(7,5,18,0.85) 100%)` }} />
         {heroImage.source === "pexels" && heroImage.credit ? (
-          <figcaption className="absolute bottom-1 right-2 text-[10px] text-slate-200/70">
+          <figcaption className="absolute bottom-1 right-2 text-[10px] text-[#242139]">
             Photo:{" "}
             {heroImage.creditUrl ? (
               <a href={heroImage.creditUrl} target="_blank" rel="noopener noreferrer nofollow" className="underline hover:text-white">
@@ -293,11 +293,11 @@ function CelebritySajuNotice({ magazine }: { magazine: CelebritySajuMagazineResu
 
 function TableOfContents({ items }: { items: TocItem[] }) {
   return (
-    <ol className="space-y-1.5 text-sm text-violet-100/65">
+    <ol className="space-y-1.5 text-sm text-[#242139]">
       {items.map((item, index) => (
         <li key={item.id}>
-          <a href={`#${item.id}`} className="flex gap-2 hover:text-violet-100">
-            <span className="text-violet-300/45">{String(index + 1).padStart(2, "0")}</span>
+          <a href={`#${item.id}`} className="flex gap-2 hover:text-[#242139]">
+            <span className="text-[#242139]">{String(index + 1).padStart(2, "0")}</span>
             <span>{item.title}</span>
           </a>
         </li>
@@ -315,25 +315,25 @@ function CelebritySajuPillarTable({ magazine }: { magazine: CelebritySajuMagazin
         {pillars.map((pillar, index) => (
           <article key={`${pillar.label}-${index}`} className={`min-h-[128px] rounded-lg border p-4 ${pillarAccents[index]}`}>
             <div className="flex items-start justify-between gap-2">
-              <p className="text-xs font-medium text-slate-100/60 [font-family:var(--font-decorative)]">{pillar.label}</p>
+              <p className="text-xs font-medium text-[#242139] [font-family:var(--font-decorative)]">{pillar.label}</p>
               {index === 2 ? <span className="rounded-md bg-violet-400 px-2 py-0.5 text-[11px] font-bold text-white">일주</span> : null}
             </div>
-            <h3 className={`mt-3 text-3xl font-semibold [font-family:var(--font-premium)] ${pillar.isUnknown ? "text-slate-100/35" : "text-white"}`}>{pillar.ganji}</h3>
+            <h3 className={`mt-3 text-3xl font-semibold [font-family:var(--font-premium)] ${pillar.isUnknown ? "text-[#242139]" : "text-white"}`}>{pillar.ganji}</h3>
             <div className="mt-3 flex gap-2">
-              <span className={`rounded-md px-2 py-1 text-sm font-semibold ${pillar.isUnknown ? "bg-white/5 text-violet-100/35" : "bg-violet-400/20 text-violet-100"}`}>{pillar.stem}</span>
-              <span className={`rounded-md px-2 py-1 text-sm font-semibold ${pillar.isUnknown ? "bg-white/5 text-violet-100/35" : "bg-amber-300/20 text-amber-100"}`}>{pillar.branch}</span>
+              <span className={`rounded-md px-2 py-1 text-sm font-semibold ${pillar.isUnknown ? "bg-white/5 text-[#242139]" : "bg-violet-400/20 text-[#242139]"}`}>{pillar.stem}</span>
+              <span className={`rounded-md px-2 py-1 text-sm font-semibold ${pillar.isUnknown ? "bg-white/5 text-[#242139]" : "bg-amber-300/20 text-[#242139]"}`}>{pillar.branch}</span>
             </div>
-            <dl className="mt-3 space-y-1 text-xs leading-5 text-slate-100/60">
+            <dl className="mt-3 space-y-1 text-xs leading-5 text-[#242139]">
               <div className="flex justify-between gap-2">
-                <dt className="text-slate-100/40">십성</dt>
+                <dt className="text-[#242139]">십성</dt>
                 <dd className="text-right">{pillar.isUnknown ? "미상" : `${pillar.stemTenGod} · ${pillar.branchTenGod}`}</dd>
               </div>
               <div className="flex justify-between gap-2">
-                <dt className="text-slate-100/40">12운성</dt>
+                <dt className="text-[#242139]">12운성</dt>
                 <dd className="text-right">{pillar.isUnknown ? "미상" : pillar.twelveStage}</dd>
               </div>
               <div className="flex justify-between gap-2">
-                <dt className="text-slate-100/40">신살</dt>
+                <dt className="text-[#242139]">신살</dt>
                 <dd className="text-right">{pillar.isUnknown ? "미상" : pillar.majorStars}</dd>
               </div>
             </dl>
@@ -357,10 +357,10 @@ function CelebritySajuQuickSummaryCards({ magazine }: { magazine: CelebritySajuM
   return (
     <section className="mt-5 grid gap-3 md:grid-cols-3">
       {cards.map((card) => (
-        <article key={card.label} className="rounded-lg border border-amber-100/15 bg-[#12131f] p-4">
-          <p className="text-xs font-semibold text-amber-100/70 [font-family:var(--font-decorative)]">{card.label}</p>
+        <article key={card.label} className="rounded-lg border border-amber-100/15 bg-[#fffdf8] p-4">
+          <p className="text-xs font-semibold text-[#242139] [font-family:var(--font-decorative)]">{card.label}</p>
           <h3 className="mt-2 text-lg font-semibold text-white [font-family:var(--font-display)]">{card.title}</h3>
-          <p className="mt-3 text-sm leading-7 text-slate-200/75">{card.body}</p>
+          <p className="mt-3 text-sm leading-7 text-[#242139]">{card.body}</p>
         </article>
       ))}
     </section>
@@ -386,7 +386,7 @@ function FiveElementBarChart({ magazine }: { magazine: CelebritySajuMagazineResu
   const chartW = elementRows.length * barW + (elementRows.length - 1) * gap;
 
   return (
-    <section id="five-elements" className="mt-5 scroll-mt-24 rounded-lg border border-emerald-100/15 bg-[#0d1720] p-4 sm:p-5">
+    <section id="five-elements" className="mt-5 scroll-mt-24 rounded-lg border border-emerald-100/15 bg-[#fffdf8] p-4 sm:p-5">
       <SectionHeader label={famousSajuInsightText("famousSajuInsight.005")} title={`${magazine.fiveElements.strongest.join("·") || "알 수 없음"} 강, ${magazine.fiveElements.weakest.join("·") || "알 수 없음"} 보완`} />
       <div className="overflow-x-auto">
         <svg viewBox={`0 0 ${chartW} 128`} role="img" aria-label="오행 분포 막대 그래프" className="mx-auto h-40 w-full max-w-md">
@@ -414,8 +414,8 @@ function FiveElementBarChart({ magazine }: { magazine: CelebritySajuMagazineResu
           return <span key={`empty-${item.key}`} className={`rounded-md border px-2 py-1 text-xs ${item.tone}`}>{item.label} 공백</span>;
         })}
       </div>
-      <p className="mt-4 text-sm leading-7 text-slate-100/85">{magazine.fiveElements.structureLine}</p>
-      <div className="mt-4 space-y-3 border-t border-white/10 pt-4 text-sm leading-8 text-slate-200/75">
+      <p className="mt-4 text-sm leading-7 text-[#242139]">{magazine.fiveElements.structureLine}</p>
+      <div className="mt-4 space-y-3 border-t border-white/10 pt-4 text-sm leading-8 text-[#242139]">
         {splitFortuneParagraphs(magazine.fiveElements.interpretation).map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
       </div>
     </section>
@@ -425,22 +425,22 @@ function FiveElementBarChart({ magazine }: { magazine: CelebritySajuMagazineResu
 function TenGodHighlightCards({ magazine }: { magazine: CelebritySajuMagazineResult }) {
   const intro = sectionById(magazine, "ten-gods");
   return (
-    <section id="ten-gods" className="mt-5 scroll-mt-24 rounded-lg border border-amber-100/15 bg-[#151319] p-4 sm:p-5">
+    <section id="ten-gods" className="mt-5 scroll-mt-24 rounded-lg border border-amber-100/15 bg-[#fffdf8] p-4 sm:p-5">
       <SectionHeader label={famousSajuInsightText("famousSajuInsight.007")} title={famousSajuInsightText("famousSajuInsight.008")} />
       {intro?.body ? (
-        <div className="mb-4 space-y-3 text-sm leading-8 text-slate-200/70">
+        <div className="mb-4 space-y-3 text-sm leading-8 text-[#242139]">
           {splitFortuneParagraphs(intro.body).map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
         </div>
       ) : null}
       <div className="grid gap-3">
         {magazine.tenGods.highlights.map((item) => (
-          <article key={item.name} className="grid gap-4 rounded-lg border border-violet-300/20 bg-[#171426] p-4 sm:grid-cols-[3.5rem_1fr]">
-            <div className="flex h-14 w-14 items-center justify-center rounded-lg border border-amber-200/20 bg-amber-200/10 text-lg font-bold text-amber-100">
+          <article key={item.name} className="grid gap-4 rounded-lg border border-violet-300/20 bg-[#fffdf8] p-4 sm:grid-cols-[3.5rem_1fr]">
+            <div className="flex h-14 w-14 items-center justify-center rounded-lg border border-amber-200/20 bg-amber-200/10 text-lg font-bold text-[#242139]">
               {item.name.slice(0, 1)}
             </div>
             <div>
               <h3 className="text-base font-semibold text-white [font-family:var(--font-display)]">{item.name} · {item.meaning}</h3>
-              <div className="mt-2 space-y-3 text-sm leading-7 text-slate-200/75">
+              <div className="mt-2 space-y-3 text-sm leading-7 text-[#242139]">
                 {splitFortuneParagraphs(item.reading).map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
               </div>
             </div>
@@ -453,18 +453,18 @@ function TenGodHighlightCards({ magazine }: { magazine: CelebritySajuMagazineRes
 
 function SinsalBadgeGrid({ magazine }: { magazine: CelebritySajuMagazineResult }) {
   const groups = [
-    { title: famousSajuInsightText("famousSajuInsight.009"), items: magazine.stars.goodStars, tone: "border-emerald-200/25 bg-emerald-100/[0.07] text-emerald-100" },
+    { title: famousSajuInsightText("famousSajuInsight.009"), items: magazine.stars.goodStars, tone: "border-emerald-200/25 bg-emerald-100/[0.07] text-[#242139]" },
     { title: famousSajuInsightText("famousSajuInsight.010"), items: magazine.stars.neutralStars, tone: "border-sky-200/25 bg-sky-100/[0.06] text-sky-100" },
-    { title: famousSajuInsightText("famousSajuInsight.011"), items: magazine.stars.cautionStars, tone: "border-rose-200/25 bg-rose-100/[0.06] text-rose-100" },
+    { title: famousSajuInsightText("famousSajuInsight.011"), items: magazine.stars.cautionStars, tone: "border-rose-200/25 bg-rose-100/[0.06] text-[#242139]" },
   ];
   const texture = sectionById(magazine, "stars");
 
   return (
-    <section id="stars" className="mt-5 scroll-mt-24 rounded-lg border border-sky-100/15 bg-[#0b1522] p-4 sm:p-5">
+    <section id="stars" className="mt-5 scroll-mt-24 rounded-lg border border-sky-100/15 bg-[#fffdf8] p-4 sm:p-5">
       <SectionHeader label={famousSajuInsightText("famousSajuInsight.012")} title={famousSajuInsightText("famousSajuInsight.013")} />
       <div className="grid gap-3 md:grid-cols-3">
         {groups.map((group) => (
-          <div key={group.title} className="rounded-lg border border-slate-100/10 bg-[#121827] p-4">
+          <div key={group.title} className="rounded-lg border border-slate-100/10 bg-[#fffdf8] p-4">
             <p className="text-sm font-semibold text-white [font-family:var(--font-display)]">{group.title}</p>
             <div className="mt-3 flex flex-wrap gap-2">
               {group.items.length ? group.items.map((item) => (
@@ -472,14 +472,14 @@ function SinsalBadgeGrid({ magazine }: { magazine: CelebritySajuMagazineResult }
                   {item.name}
                 </span>
               )) : (
-                <span className="rounded-md border border-violet-300/15 px-2 py-1 text-xs text-violet-100/35">알 수 없음</span>
+                <span className="rounded-md border border-violet-300/15 px-2 py-1 text-xs text-[#242139]">알 수 없음</span>
               )}
             </div>
           </div>
         ))}
       </div>
       {texture?.body ? (
-        <div className="mt-4 space-y-3 border-t border-white/10 pt-4 text-sm leading-8 text-slate-200/75">
+        <div className="mt-4 space-y-3 border-t border-white/10 pt-4 text-sm leading-8 text-[#242139]">
           {splitFortuneParagraphs(texture.body).map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
         </div>
       ) : null}
@@ -489,19 +489,19 @@ function SinsalBadgeGrid({ magazine }: { magazine: CelebritySajuMagazineResult }
 
 function MagazineSection({ section, accent }: { section: CelebritySajuMagazineResult["sections"][number]; accent?: string }) {
   return (
-    <section id={section.id} className="mt-5 scroll-mt-24 rounded-lg border border-amber-100/15 bg-[#10131d] p-4 sm:p-5">
+    <section id={section.id} className="mt-5 scroll-mt-24 rounded-lg border border-amber-100/15 bg-[#fffdf8] p-4 sm:p-5">
       <h2 className="text-lg font-semibold leading-snug text-white sm:text-xl [font-family:var(--font-premium)]">{section.title}</h2>
-      <div className="mt-4 space-y-4 text-sm leading-8 text-slate-200/75 sm:text-base">
+      <div className="mt-4 space-y-4 text-sm leading-8 text-[#242139] sm:text-base">
         {splitFortuneParagraphs(section.body).map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
       </div>
       {accent && section.body ? <OracleQuote accent={accent}>{splitFortuneParagraphs(section.body)[0] || section.body}</OracleQuote> : null}
       {section.cards?.length ? (
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
           {section.cards.map((card) => (
-            <div key={`${section.id}-${card.label}`} className="rounded-lg border border-sky-100/10 bg-[#121827] p-4">
-              <p className="text-xs text-amber-100/70 [font-family:var(--font-decorative)]">{card.label}</p>
+            <div key={`${section.id}-${card.label}`} className="rounded-lg border border-sky-100/10 bg-[#fffdf8] p-4">
+              <p className="text-xs text-[#242139] [font-family:var(--font-decorative)]">{card.label}</p>
               <h3 className="mt-2 font-semibold text-white [font-family:var(--font-display)]">{card.title}</h3>
-              <div className="mt-2 space-y-3 text-sm leading-6 text-slate-200/60">
+              <div className="mt-2 space-y-3 text-sm leading-6 text-[#242139]">
                 {splitFortuneParagraphs(card.description).map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
               </div>
             </div>
@@ -522,14 +522,14 @@ function CelebrityActivityInsightCard({ magazine, highlightedTenGods }: { magazi
   return (
     <section id="deeds-and-chart" className="mt-5 scroll-mt-24 rounded-lg border p-4 sm:p-5" style={{ borderColor: accent.color, backgroundColor: "#0f0d1a" }}>
       <SectionHeader label="행적" title={section.title.replace(/^\[|\]$/g, "")} />
-      <div className="space-y-3 text-sm leading-8 text-slate-200/75 sm:text-base">
+      <div className="space-y-3 text-sm leading-8 text-[#242139] sm:text-base">
         {splitFortuneParagraphs(section.body).map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
       </div>
       <ol className="mt-5 space-y-4">
         {magazine.deeds.map((deed, index) => {
           const alsoInTenGodCard = deed.linkType === "tenGod" && highlightedTenGods.has(deed.link);
           return (
-            <li key={deed.deed} className="relative rounded-lg border border-white/10 bg-[#141122] p-4 pl-5">
+            <li key={deed.deed} className="relative rounded-lg border border-white/10 bg-[#fffdf8] p-4 pl-5">
               <span className="absolute left-0 top-4 h-[calc(100%-2rem)] w-[3px] rounded-full" style={{ backgroundColor: accent.color }} />
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold" style={{ color: accent.color }}>{String(index + 1).padStart(2, "0")}</span>
@@ -539,9 +539,9 @@ function CelebrityActivityInsightCard({ magazine, highlightedTenGods }: { magazi
               </div>
               <p className="mt-2 text-sm font-medium leading-7 text-white">{deed.deed}</p>
               {alsoInTenGodCard ? (
-                <p className="mt-2 text-xs leading-6 text-slate-300/55">위 &lsquo;{deed.link}&rsquo; 십성 해석에서 이 행적을 증거로 자세히 풀이했어요.</p>
+                <p className="mt-2 text-xs leading-6 text-[#242139]">위 &lsquo;{deed.link}&rsquo; 십성 해석에서 이 행적을 증거로 자세히 풀이했어요.</p>
               ) : (
-                <p className="mt-2 text-sm leading-7 text-slate-200/70">{deed.note}</p>
+                <p className="mt-2 text-sm leading-7 text-[#242139]">{deed.note}</p>
               )}
             </li>
           );
@@ -555,18 +555,18 @@ function CelebrityActivityInsightCard({ magazine, highlightedTenGods }: { magazi
 // 저자·검수 표기는 검수된 뒤에만 붙는다 — 검토했다는 주장은 검토한 페이지만 한다.
 function EditorialNarrative({ editorial }: { editorial: CelebrityEditorialEntry }) {
   return (
-    <section id="editorial" data-famous-saju-editorial className="mt-6 scroll-mt-24 rounded-lg border border-amber-100/20 bg-[#0f0c1e] p-4 sm:p-6">
+    <section id="editorial" data-famous-saju-editorial className="mt-6 scroll-mt-24 rounded-lg border border-amber-100/20 bg-[#fffdf8] p-4 sm:p-6">
       <SectionHeader label="명리학자의 풀이" title="명식에서 행적으로 — 이 인물만의 해설" />
-      <div className="space-y-4 text-sm leading-8 text-slate-100/85 sm:text-base">
+      <div className="space-y-4 text-sm leading-8 text-[#242139] sm:text-base">
         {editorial.narrative.map((paragraph, index) => <p key={index}>{paragraph}</p>)}
       </div>
-      <p className="mt-5 text-xs leading-6 text-amber-100/60 [font-family:var(--font-decorative)]">
+      <p className="mt-5 text-xs leading-6 text-[#242139] [font-family:var(--font-decorative)]">
         {editorial.reviewedAt ? `글 · 박병하(명리학자) · 검수 ${editorial.reviewedAt}` : "검수 전 초안 — 검색 색인에 올리지 않은 상태입니다."}
       </p>
-      <ul className="mt-2 space-y-1 text-xs text-slate-400/80">
+      <ul className="mt-2 space-y-1 text-xs text-[#242139]">
         {editorial.sources.map((source) => (
           <li key={source.url}>
-            출처: <a href={source.url} rel="noopener noreferrer" target="_blank" className="underline decoration-slate-500/60 hover:text-amber-100">{source.label}</a>
+            출처: <a href={source.url} rel="noopener noreferrer" target="_blank" className="underline decoration-slate-500/60 hover:text-[#242139]">{source.label}</a>
           </li>
         ))}
       </ul>
@@ -584,12 +584,12 @@ const MULTI_SYSTEM_STATUS_LABEL: Record<MultiSystemRow["status"], string> = {
 // 못 구한 체계도 줄을 지우지 않고 사유(basis)를 보여 준다.
 function MultiSystemTable({ rows }: { rows: MultiSystemRow[] }) {
   return (
-    <section id="multi-system" data-famous-saju-multi-system className="mt-6 scroll-mt-24 rounded-lg border border-sky-100/15 bg-[#0b1220] p-4 sm:p-6">
+    <section id="multi-system" data-famous-saju-multi-system className="mt-6 scroll-mt-24 rounded-lg border border-sky-100/15 bg-[#fffdf8] p-4 sm:p-6">
       <SectionHeader label="세 체계로 본 명식" title="사주 · 숙요 27수 · 베다 달 낙샤트라" />
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[560px] text-left text-sm text-slate-200/85">
+        <table className="w-full min-w-[560px] text-left text-sm text-[#242139]">
           <thead>
-            <tr className="text-xs text-amber-100/70 [font-family:var(--font-decorative)]">
+            <tr className="text-xs text-[#242139] [font-family:var(--font-decorative)]">
               <th scope="col" className="py-2 pr-3 font-semibold">체계</th>
               <th scope="col" className="py-2 pr-3 font-semibold">값</th>
               <th scope="col" className="py-2 pr-3 font-semibold">상태</th>
@@ -602,10 +602,10 @@ function MultiSystemTable({ rows }: { rows: MultiSystemRow[] }) {
                 <th scope="row" className="py-3 pr-3 font-semibold text-white">{row.label}</th>
                 <td className="py-3 pr-3">
                   <p className="font-semibold text-white">{row.value}</p>
-                  {row.detail ? <p className="mt-1 text-xs leading-6 text-slate-300/80">{row.detail}</p> : null}
+                  {row.detail ? <p className="mt-1 text-xs leading-6 text-[#242139]">{row.detail}</p> : null}
                 </td>
                 <td className="py-3 pr-3 text-xs">{MULTI_SYSTEM_STATUS_LABEL[row.status]}</td>
-                <td className="py-3 text-xs leading-6 text-slate-400/85">{row.basis}</td>
+                <td className="py-3 text-xs leading-6 text-[#242139]">{row.basis}</td>
               </tr>
             ))}
           </tbody>
@@ -617,9 +617,9 @@ function MultiSystemTable({ rows }: { rows: MultiSystemRow[] }) {
 
 function CrossSystemNote({ editorial }: { editorial: CelebrityEditorialEntry }) {
   return (
-    <section id="cross-system" className="mt-5 scroll-mt-24 rounded-lg border border-amber-100/15 bg-[#10131d] p-4 sm:p-5">
+    <section id="cross-system" className="mt-5 scroll-mt-24 rounded-lg border border-amber-100/15 bg-[#fffdf8] p-4 sm:p-5">
       <h2 className="text-lg font-semibold leading-snug text-white sm:text-xl [font-family:var(--font-premium)]">체계 교차 해설</h2>
-      <p className="mt-4 text-sm leading-8 text-slate-200/80 sm:text-base">{editorial.crossSystemNote}</p>
+      <p className="mt-4 text-sm leading-8 text-[#242139] sm:text-base">{editorial.crossSystemNote}</p>
     </section>
   );
 }
@@ -628,13 +628,13 @@ function CelebritySajuFAQ({ faq }: { faq: CelebritySajuMagazineResult["faq"] }) 
   if (!faq.length) return null;
 
   return (
-    <section className="mt-5 rounded-lg border border-emerald-100/15 bg-[#0d1720] p-4 sm:p-5">
+    <section className="mt-5 rounded-lg border border-emerald-100/15 bg-[#fffdf8] p-4 sm:p-5">
       <SectionHeader label={famousSajuInsightText("famousSajuInsight.014")} title={famousSajuInsightText("famousSajuInsight.015")} />
       <dl className="divide-y divide-violet-300/10">
         {faq.map((item) => (
           <div key={item.question} className="py-4">
             <dt className="font-semibold text-white [font-family:var(--font-display)]">Q. {item.question}</dt>
-            <dd className="mt-2 text-sm leading-7 text-slate-200/70">{item.answer}</dd>
+            <dd className="mt-2 text-sm leading-7 text-[#242139]">{item.answer}</dd>
           </div>
         ))}
       </dl>
@@ -644,12 +644,12 @@ function CelebritySajuFAQ({ faq }: { faq: CelebritySajuMagazineResult["faq"] }) 
 
 function CelebritySajuCTA({ cta }: { cta: CelebritySajuMagazineResult["cta"] }) {
   return (
-    <section className="mt-5 rounded-lg border border-amber-200/30 bg-[#1a1524] p-4 sm:p-5">
+    <section className="mt-5 rounded-lg border border-amber-200/30 bg-[#fffdf8] p-4 sm:p-5">
       <h2 className="text-xl font-semibold text-white [font-family:var(--font-premium)]">{cta.title}</h2>
-      <p className="mt-3 text-sm leading-7 text-slate-200/70">{cta.description}</p>
+      <p className="mt-3 text-sm leading-7 text-[#242139]">{cta.description}</p>
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
         <Link href="/?action=cdOneStepFreeSajuEntry" className="rounded-lg border border-violet-300 bg-violet-500/20 px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-violet-500/30">{cta.buttonText}</Link>
-        <Link href="/insights/famous-saju" className="rounded-lg border border-violet-300/20 px-4 py-3 text-center text-sm font-semibold text-violet-100 transition hover:border-violet-200/60">다른 유명인 보기</Link>
+        <Link href="/insights/famous-saju" className="rounded-lg border border-violet-300/20 px-4 py-3 text-center text-sm font-semibold text-[#242139] transition hover:border-violet-200/60">다른 유명인 보기</Link>
       </div>
     </section>
   );
@@ -657,14 +657,14 @@ function CelebritySajuCTA({ cta }: { cta: CelebritySajuMagazineResult["cta"] }) 
 
 function RelatedCelebritySajuList({ related }: { related: RelatedCelebrity[] }) {
   return (
-    <section className="mt-5 rounded-lg border border-sky-100/15 bg-[#0b1522] p-4 sm:p-5">
+    <section className="mt-5 rounded-lg border border-sky-100/15 bg-[#fffdf8] p-4 sm:p-5">
       <SectionHeader label={famousSajuInsightText("famousSajuInsight.016")} title={famousSajuInsightText("famousSajuInsight.017")} />
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {related.map((item) => (
-          <Link key={item.slug} href={`/insights/famous-saju/${item.slug}`} className="rounded-lg border border-violet-300/15 bg-[#17102d] p-4 transition hover:border-violet-200/60">
-            <p className="text-sm text-violet-200/70">{item.category}</p>
+          <Link key={item.slug} href={`/insights/famous-saju/${item.slug}`} className="rounded-lg border border-violet-300/15 bg-[#fffdf8] p-4 transition hover:border-violet-200/60">
+            <p className="text-sm text-[#242139]">{item.category}</p>
             <p className="mt-1 font-semibold text-white">{item.nameKo}</p>
-            <p className="mt-2 text-sm text-violet-100/50">{item.tags.slice(0, 2).join(" · ")}</p>
+            <p className="mt-2 text-sm text-[#242139]">{item.tags.slice(0, 2).join(" · ")}</p>
           </Link>
         ))}
       </div>
@@ -676,29 +676,29 @@ function UnknownCelebrityPage({ slug }: { slug: string }) {
   const suggestions = publishedCelebritySajuSeeds.slice(0, 6);
 
   return (
-    <main className="min-h-screen bg-[#090b18] text-slate-100">
-      <section className="mx-auto max-w-5xl px-5 py-14">
-        <Link href="/insights" className="text-sm font-semibold text-amber-100/80 hover:text-amber-50">
+    <main className="min-h-screen bg-[#fffdf8] text-[#242139]">
+      <section className="mx-auto max-w-[720px] px-5 py-14">
+        <Link href="/insights" className="text-sm font-semibold text-[#242139] hover:text-[#242139]">
           운세 인사이트 허브
         </Link>
         <h1 className="mt-6 text-3xl font-bold text-white sm:text-5xl">아직 준비되지 않은 유명인 사주입니다</h1>
-        <p className="mt-5 max-w-3xl text-base leading-8 text-slate-300">
-          요청한 slug <span className="text-amber-100">{decodeURIComponent(String(slug || ""))}</span>에 맞는 공개 유명인 명식이 아직 열리지 않았습니다. 아래 글이나 유명인 사주 목록에서 다른 별빛의 흐름을 이어 살펴보세요.
+        <p className="mt-5 max-w-3xl text-base leading-8 text-[#242139]">
+          요청한 slug <span className="text-[#242139]">{decodeURIComponent(String(slug || ""))}</span>에 맞는 공개 유명인 명식이 아직 열리지 않았습니다. 아래 글이나 유명인 사주 목록에서 다른 별빛의 흐름을 이어 살펴보세요.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
-          <Link href="/insights/famous-saju" className="rounded-lg border border-amber-200/40 bg-amber-100/10 px-4 py-2 text-sm font-semibold text-amber-50 hover:bg-amber-100/15">
+          <Link href="/insights/famous-saju" className="rounded-lg border border-amber-200/40 bg-amber-100/10 px-4 py-2 text-sm font-semibold text-[#242139] hover:bg-amber-100/15">
             유명인 사주 목록
           </Link>
-          <Link href="/insights" className="rounded-lg border border-white/15 px-4 py-2 text-sm font-semibold text-slate-100 hover:border-amber-200/40">
+          <Link href="/insights" className="rounded-lg border border-white/15 px-4 py-2 text-sm font-semibold text-[#242139] hover:border-amber-200/40">
             운세 인사이트 허브
           </Link>
         </div>
         <section className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {suggestions.map((item) => (
             <Link key={item.slug} href={`/insights/famous-saju/${item.slug}`} className="rounded-lg border border-white/10 bg-white/[0.04] p-4 hover:border-amber-200/50">
-              <p className="text-sm text-amber-100/70">{item.category}</p>
+              <p className="text-sm text-[#242139]">{item.category}</p>
               <h2 className="mt-1 font-semibold text-white">{item.nameKo}</h2>
-              <p className="mt-2 text-sm leading-6 text-slate-400">{item.tags.slice(0, 3).join(" · ")}</p>
+              <p className="mt-2 text-sm leading-6 text-[#242139]">{item.tags.slice(0, 3).join(" · ")}</p>
             </Link>
           ))}
         </section>
@@ -806,7 +806,7 @@ export default async function FamousSajuInsightDetailPage({ params }: PageProps)
   };
 
   return (
-    <main data-famous-saju-detail className="min-h-screen bg-[#070512] text-slate-100 [font-family:var(--font-body)]">
+    <main data-famous-saju-detail className="min-h-screen bg-[#fffdf8] text-[#242139] [font-family:var(--font-body)]">
       <style
         dangerouslySetInnerHTML={{
           __html: `
@@ -815,7 +815,7 @@ body:has(main[data-famous-saju-detail]) > button.fixed {
   display: none !important;
 }
 body:has(main[data-famous-saju-detail]) {
-  background: #070512;
+  background: #faf7f1;
 }
           `,
         }}
@@ -824,14 +824,15 @@ body:has(main[data-famous-saju-detail]) {
         <Breadcrumb celebrity={relatedSummary} />
         <CelebritySajuHero magazine={magazine} heroImage={heroImage} />
         <CelebritySajuNotice magazine={magazine} />
+        <p className="my-5 rounded-xl border border-[#d8cdbb] bg-[#fffdf8] p-4 text-base leading-8 text-[#242139]">이 페이지의 일주는 공개 날짜를 기준으로 계산한 후보입니다. 출생시각·현지 날짜·역법 검수가 끝나기 전에는 같은 일주의 확인된 인물 수에 포함하지 않습니다.</p>
         {editorial ? <EditorialNarrative editorial={editorial} /> : null}
         <MultiSystemTable rows={multiSystem.rows} />
         <CelebritySajuPillarTable magazine={magazine} />
 
         <div className="mt-5 lg:grid lg:grid-cols-[minmax(0,1fr)_216px] lg:items-start lg:gap-8">
           <div className="min-w-0">
-            <details className="mb-5 rounded-lg border border-violet-300/20 bg-[#100b23] p-4 lg:hidden">
-              <summary className="cursor-pointer text-sm font-semibold text-violet-100/80 [font-family:var(--font-decorative)]">
+            <details className="mb-5 rounded-lg border border-violet-300/20 bg-[#fffdf8] p-4 lg:hidden">
+              <summary className="cursor-pointer text-sm font-semibold text-[#242139] [font-family:var(--font-decorative)]">
                 {famousSajuInsightText("famousSajuInsight.019")}
               </summary>
               <div className="mt-3">
@@ -853,7 +854,7 @@ body:has(main[data-famous-saju-detail]) {
             <CelebritySajuCTA cta={magazine.cta} />
             <FusionCrossSell fromPath={`/insights/famous-saju/${slug}`} tone="neo" />
             <RelatedCelebritySajuList related={related} />
-            <p className="mt-6 text-xs leading-6 text-slate-400/70">{magazine.profile.sourceNote}</p>
+            <p className="mt-6 text-xs leading-6 text-[#242139]">{magazine.profile.sourceNote}</p>
             {/* 검수된 고유 원고(reviewedAt)가 있는 인물만 "사람이 검토했다"고 말한다. 나머지는
                 이름과 생년월일을 규칙에 대입해 구성한 페이지라 그렇게 주장하지 않는다(그래서 noindex 다). */}
             {reviewedAt ? (
@@ -864,8 +865,8 @@ body:has(main[data-famous-saju-detail]) {
           </div>
 
           <aside className="hidden lg:block">
-            <div className="sticky top-6 rounded-lg border border-violet-300/20 bg-[#100b23] p-4">
-              <p className="mb-3 text-[11px] font-semibold text-amber-100/70 [font-family:var(--font-decorative)]">{famousSajuInsightText("famousSajuInsight.019")}</p>
+            <div className="sticky top-6 rounded-lg border border-violet-300/20 bg-[#fffdf8] p-4">
+              <p className="mb-3 text-[11px] font-semibold text-[#242139] [font-family:var(--font-decorative)]">{famousSajuInsightText("famousSajuInsight.019")}</p>
               <TableOfContents items={tableOfContents} />
             </div>
           </aside>

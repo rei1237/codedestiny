@@ -140,7 +140,7 @@
     "migrate:birth-scope-unlocks": "node scripts/migrations/20261010-birth-scope-unlocks.mjs --dry-run",
     "verify:birth-scope-unlock-index": "node scripts/migrations/20261010-birth-scope-unlocks.mjs --check",
     "verify:birth-scope-migrated-user": "node scripts/verify-birth-scope-migrated-user.mjs",
-    "verify:birth-scope-client-mirror":"node scripts/verify-birth-scope-client-mirror.mjs",
+    "verify:birth-scope-client-mirror": "node scripts/verify-birth-scope-client-mirror.mjs",
     "migrate:v2-entitlement-service-keys": "node scripts/migrations/20260813-normalize-v2-entitlement-service-keys.mjs --apply",
     "repair:love-code-unlocks": "node scripts/migrations/repair-love-code-unlocks.mjs",
     "repair:legacy-saju-profile-unlocks": "node scripts/migrations/20261011-backfill-legacy-saju-profile-unlocks.mjs",
@@ -568,7 +568,8 @@
     "delivery:verify-batch": "node scripts/delivery-verify-batch.mjs",
     "verify:staging": "node scripts/delivery-verify-batch.mjs",
     "verify:release": "npm run deploy:critical",
-    "ci:fast": "npm run lint && npm run lint:changed -- --self-test && npm run lint:changed && npm run typecheck"
+    "ci:fast": "npm run lint && npm run lint:changed -- --self-test && npm run lint:changed && npm run typecheck",
+    "verify:moon-library": "node scripts/verify-moon-archive.mjs && node scripts/verify-moon-pwa.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.4.1",

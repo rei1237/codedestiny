@@ -44,6 +44,7 @@ export type CelebritySajuSeed = {
   gender?: "male" | "female" | "unknown";
   birthDateStatus: BirthStatus;
   birthTimeStatus: BirthTimeStatus;
+  reportedBirthTime?: string | null;
   isBirthTimeKnown: boolean;
   isHistoricalDateUncertain?: boolean;
   shortBio: string;
@@ -314,7 +315,7 @@ export const celebritySajuSeeds: CelebritySajuSeed[] = rawSeeds.map(([slug, name
   const categoryKey = toFamousSajuCategory(category);
   const aliases = buildAliases(slug, name, nameEn);
   const birthCalendar: FamousSajuBirthCalendar = "solar";
-  const isBirthTimeKnown = Boolean(birthTime);
+  const isBirthTimeKnown = false; // No field-specific time source is stored in the legacy tuple.
   const shortDescription = famousSajuOverrides[slug]?.shortDescription
     || `${name}의 공개 생년월일을 바탕으로 일간, 오행, 직업적 흐름을 살펴보는 유명인 사주 분석입니다.`;
 
@@ -330,12 +331,13 @@ export const celebritySajuSeeds: CelebritySajuSeed[] = rawSeeds.map(([slug, name
     country,
     birthDate,
     birthCalendar,
-    birthTime: birthTime || null,
+    reportedBirthTime: birthTime || null,
+    birthTime: null,
     birthPlace: null,
     calendarType: "solar",
     gender: "unknown",
     birthDateStatus: "public",
-    birthTimeStatus: isBirthTimeKnown ? "verified" : "unknown",
+    birthTimeStatus: birthTime ? "estimated_not_used" : "unknown",
     isBirthTimeKnown,
     isHistoricalDateUncertain: isDateUncertain(category, birthDate),
     shortBio: shortDescription,

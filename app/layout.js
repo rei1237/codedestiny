@@ -177,6 +177,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="ko" dir="ltr" className={notoSansKRVariable}>
       <head>
+        <script src="/js/pwa-lifecycle.js?v=moon-library-1" defer />
         <Script src="/js/core/pass-verdict.js?v=build-f0d657bab4e4" strategy="beforeInteractive" />
         <Script src="/js/core/auth-hint.js?v=build-ce0e961efebc" strategy="beforeInteractive" />
         {/* 앱 판별 정본. checkout-entry 가 진입 분기에서 읽으므로 그보다 먼저 둔다. */}
