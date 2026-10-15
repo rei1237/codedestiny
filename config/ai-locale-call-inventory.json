@@ -33,27 +33,27 @@
     "file": "lib/llm-client.ts",
     "matches": [
       {
-        "line": 2,
+        "line": 3,
         "kind": "import-or-injected-call",
         "symbol": "./gemini-model-policy.js"
       },
       {
-        "line": 6,
+        "line": 7,
         "kind": "import-or-injected-call",
         "symbol": "./gemini-input-token-limit.mjs"
       },
       {
-        "line": 144,
+        "line": 145,
         "kind": "provider-url",
         "symbol": "direct REST"
       },
       {
-        "line": 920,
+        "line": 921,
         "kind": "provider-url",
         "symbol": "direct REST"
       },
       {
-        "line": 1052,
+        "line": 1053,
         "kind": "call",
         "symbol": "env.AI.run"
       }
@@ -410,6 +410,21 @@
     ]
   },
   {
+    "file": "worker/lib/sibyl-report-store.js",
+    "matches": [
+      {
+        "line": 5,
+        "kind": "import-or-injected-call",
+        "symbol": "./structured-consultation.js"
+      },
+      {
+        "line": 39,
+        "kind": "call",
+        "symbol": "callGeminiJsonWithRetry"
+      }
+    ]
+  },
+  {
     "file": "worker/lib/structured-consultation.js",
     "matches": [
       {
@@ -738,22 +753,22 @@
     "file": "worker/routes/master-love-codex.js",
     "matches": [
       {
-        "line": 48,
+        "line": 49,
         "kind": "import-or-injected-call",
         "symbol": "../lib/gemini.js"
       },
       {
-        "line": 49,
+        "line": 50,
         "kind": "import-or-injected-call",
         "symbol": "../lib/structured-consultation.js"
       },
       {
-        "line": 685,
+        "line": 702,
         "kind": "call",
         "symbol": "callGeminiJsonWithRetry"
       },
       {
-        "line": 706,
+        "line": 723,
         "kind": "call",
         "symbol": "callGeminiText"
       }
