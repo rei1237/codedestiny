@@ -28,7 +28,9 @@ try{
  const busy=await context.newPage();await busy.goto(origin+'/insights/test/');await busy.getByLabel('미저장 입력').fill('보존할 내용');
  build=2;await page.evaluate(async()=>{const reg=await navigator.serviceWorker.getRegistration();await reg.update();});
  await page.waitForFunction(async()=>Boolean((await navigator.serviceWorker.getRegistration()).waiting));
- await page.getByRole('dialog').waitFor();await page.screenshot({path:'docs/design/moon-library/update-fixture-390.png'});
+ await page.getByRole('dialog').waitFor();
+ // Verification must not mutate tracked screenshots on different OS/font stacks.
+ if(process.argv.includes('--capture'))await page.screenshot({path:'docs/design/moon-library/update-fixture-390.png'});
  await page.getByRole('button',{name:'새 버전으로 만나기'}).click();await page.getByRole('status').filter({hasText:'화면을 유지'}).waitFor();
  assert.equal(await busy.getByLabel('미저장 입력').inputValue(),'보존할 내용');
  assert.equal(await page.evaluate(async()=>Boolean((await navigator.serviceWorker.getRegistration()).waiting)),true);

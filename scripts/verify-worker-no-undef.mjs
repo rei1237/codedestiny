@@ -86,7 +86,7 @@ function buildEslint(globalNames, ignore = []) {
       // Node 24 JSON imports use `with { type: 'json' }`. The bundled Espree 9
       // cannot parse import attributes; keep no-undef active with the installed
       // parser already used by the project's TypeScript lint configuration.
-      overrides: [{ files: ["**/*.mjs"], parser: "@typescript-eslint/parser" }],
+      overrides: [{ files: ["**/*.js", "**/*.mjs"], parser: "@typescript-eslint/parser" }],
       env: { es2022: true },
       globals: Object.fromEntries(globalNames.map((name) => [name, "readonly"])),
       rules: { "no-undef": "error" },
@@ -100,10 +100,12 @@ function buildEslint(globalNames, ignore = []) {
 if (process.argv.includes("--self-test")) {
   const { strict: assert } = await import("node:assert");
   const eslint = buildEslint(WORKER_RUNTIME_GLOBALS);
-  const lint = async code => (await eslint.lintText(code, { filePath: "lib/guard-fixture.mjs" }))[0].messages;
+  for (const extension of ['js', 'mjs']) {
+  const lint = async code => (await eslint.lintText(code, { filePath: `lib/guard-fixture.${extension}` }))[0].messages;
   assert.deepEqual(await lint("import data from './data.json' with {type:'json'}; console.log(data);"), []);
   assert.ok((await lint("import data from './data.json' with {type:'json'}; console.log(missingName);")).some(m => m.ruleId === 'no-undef'));
   assert.ok((await lint("import data from './data.json' with {type: ;")).some(m => m.fatal));
+  }
   console.log('[verify-worker-no-undef] parser self-test PASS: import attributes, undefined name, invalid syntax');
   process.exit(0);
 }
