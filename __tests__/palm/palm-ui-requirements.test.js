@@ -184,6 +184,14 @@ describe("Palm UI requirements", () => {
     expect(storage).toContain("다시 시도");
   });
 
+  test("Test E-4: 한국어가 아닌 화면에서는 서버가 그 언어로 보낸 이유·문구를 쓴다", () => {
+    const quality = mapPalmAnalyzeError({ status: 422, code: "IMAGE_QUALITY_LOW", message: "The photo is not clear enough to read the lines.", locale: "en" });
+    const reason = mapPalmAnalyzeError({ status: 422, code: "PALM_NOT_DETECTED", message: "x", reason: "写真から手のひらを認識できませんでした。", locale: "ja" });
+
+    expect(quality).toBe("The photo is not clear enough to read the lines.");
+    expect(reason).toBe("写真から手のひらを認識できませんでした。");
+  });
+
   test("Test F: hasPalm=false면 결과 표시 조건이 false다", () => {
     expect(shouldShowPalmResult({ validation: { hasPalm: false } })).toBe(false);
     expect(shouldShowPalmResult({ validation: { hasPalm: true } })).toBe(true);

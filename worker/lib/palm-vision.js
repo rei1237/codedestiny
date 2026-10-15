@@ -19,6 +19,9 @@ import { callGeminiJsonWithRetry } from "./structured-consultation.js";
 import { jsonSchemaFromExample } from "./json-text-repair.js";
 import { callGeminiText } from "./gemini.js";
 import { appendExpertPersona } from "./expert-character-personas.js";
+import { getAmbientAiLocale } from "./ai-locale-context.js";
+import { buildOutputLanguageDirective } from "../../lib/i18n/ai-locale.js";
+import { palmCopy } from "./palm-locale-copy.js";
 import { tokensRequiredForChars } from "./llm-budget.js";
 
 // 심층 해석의 쓰기 목표(공백 포함). 합격선이 아니다 — 프롬프트에 목표로만 싣는다.
@@ -168,9 +171,6 @@ const visionSchema = jsonSchemaFromExample(JSON.parse(
 for (const key of Object.keys(visionSchema.properties.scores.properties)) visionSchema.properties.scores.properties[key] = { type: "NUMBER" };
 visionSchema.properties.imageQuality.properties.palmCoverage = { type: "NUMBER" };
 export const PALM_VISION_RESPONSE_SCHEMA = visionSchema;
-
-// 판독이 손바닥이라 했지만 주요선이 하나도 없어 거부할 때의 안내.
-const NO_MAJOR_LINES_REASON = "사진에서 손금의 주요 선을 찾지 못했어요. 손바닥 전체가 밝고 또렷하게 보이도록 다시 찍어 주세요.";
 
 // 2026-10-15 까지 프롬프트 JSON 예시에 박혀 있던 숫자다. 응답이 이 값을 그대로 내면 채점이 아니라
 // 예시를 베낀 것이므로 측정값으로 쓰지 않고 모름(null)으로 둔다.
@@ -521,9 +521,14 @@ export async function analyzeHandWithGeminiVision(env, imageDataUrl, declaredSid
   }
 
   const userPrompt = buildVisionUserPrompt(declaredSide, analysisPurpose);
+  // geminiParts 가 user 턴을 통째로 대신하므로 공통 경로가 프롬프트 꼬리에 붙이는 출력 언어
+  // 지시가 여기서는 빠진다(systemInstruction 에만 남음). 판독 해설·거부 이유가 화면 언어로
+  // 오도록 user 턴에도 직접 붙인다. 한국어는 프롬프트가 이미 한국어라 붙이지 않는다.
+  const locale = getAmbientAiLocale() || "ko";
+  const languageNote = locale === "ko" ? "" : buildOutputLanguageDirective(locale);
   const parts = [
     { text: PALM_VISION_SYSTEM_PROMPT },
-    { text: userPrompt },
+    { text: languageNote ? `${userPrompt}\n\n${languageNote}` : userPrompt },
     { inline_data: { mime_type: imageInfo.mimeType, data: imageInfo.data } },
   ];
 
@@ -608,7 +613,7 @@ export async function analyzeHandWithGeminiVision(env, imageDataUrl, declaredSid
     detectedLineKeys,
     qualityScore: computeQualityScore({ imageQuality, detectedLineKeys, palmDetected }),
     // 모델은 손바닥이라 했는데 주요선이 안 잡혀 거부한 경우, 모델 사유는 비어 있다.
-    notPalmReason: palmDetected ? "" : str(parsed.notPalmReason, declaredPalm === false ? "" : NO_MAJOR_LINES_REASON),
+    notPalmReason: palmDetected ? "" : str(parsed.notPalmReason, declaredPalm === false ? "" : palmCopy().noMajorLines),
     provider: ai.provider,
     model: ai.model,
   };
@@ -760,7 +765,7 @@ ${context}`;
 
   const ai = await callGeminiText(env, userPrompt, {
     // 연이 페르소나는 작성 규칙·■ 형식 뒤에 붙는다(말투·태도만 정한다). CMS 키: expert-persona-yeoni.
-    systemPrompt: await appendExpertPersona(env, "yeoni", DEEP_CONSULT_SYSTEM_PROMPT),
+    systemPrompt: await appendExpertPersona(env, "yeoni", DEEP_CONSULT_SYSTEM_PROMPT, { locale: getAmbientAiLocale() || "ko" }),
     maxOutputTokens: PALM_CONSULT_MAX_OUTPUT_TOKENS,
     temperature: 0.75,
     taskType: "fortune",

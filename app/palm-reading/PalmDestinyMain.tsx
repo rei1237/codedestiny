@@ -215,7 +215,7 @@ const {
     analysisPurpose: AnalysisPurpose | "";
     isSubmitting: boolean;
   }) => boolean;
-  mapPalmAnalyzeError: (input: { status: number; code: string; message: string; reasonCode?: string; reason?: string }) => string;
+  mapPalmAnalyzeError: (input: { status: number; code: string; message: string; reasonCode?: string; reason?: string; locale?: string }) => string;
   shouldShowPalmResult: (canonicalPalmReading: unknown) => boolean;
   revokeObjectUrls: (urls: Array<string | null | undefined>, revokeFn?: (url: string) => void) => number;
 };
@@ -2422,9 +2422,9 @@ export default function PalmDestinyMain() {
           subFeatureKey: initialSubFeatureKey,
           requestId: billingRequestId,
           status: "error",
-          message: mapPalmAnalyzeError({ status: response.status, code, reasonCode, message, reason: serverReason }),
+          message: mapPalmAnalyzeError({ status: response.status, code, reasonCode, message, reason: serverReason, locale: aiLocale }),
         });
-        setSubmitMessage(mapPalmAnalyzeError({ status: response.status, code, reasonCode, message, reason: serverReason }));
+        setSubmitMessage(mapPalmAnalyzeError({ status: response.status, code, reasonCode, message, reason: serverReason, locale: aiLocale }));
         return;
       }
 

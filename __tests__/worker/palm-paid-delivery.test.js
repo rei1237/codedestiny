@@ -1,6 +1,6 @@
 /** @jest-environment node */
 import { jest } from '@jest/globals';
-let save, read, route, deep, vision, docs, fault, proof, revoked, userId, ai, visionReply, textCall, visionPrompt, sides, clientSide, textPrompt;
+let save, read, route, deep, vision, docs, fault, proof, revoked, userId, ai, visionReply, textCall, visionPrompt, sides, clientSide, textPrompt, visionParts, runWithAiLocale;
 const owner = '64b7f2a1c3d4e5f601234567';
 const query = value => ({ sort() { return this; }, lean: async () => structuredClone(value) });
 const match = (row, filter) => Object.entries(filter).every(([key, value]) => row[key] === value);
@@ -12,7 +12,7 @@ beforeAll(async () => {
   jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js', () => ({ verifyPerUsePayment: payment }));
   jest.unstable_mockModule('../../worker/lib/paid-result-revocation.js', () => ({ isPaidResultRevoked: async () => revoked }));
   jest.unstable_mockModule('../../worker/lib/gemini.js', () => ({ ...gemini, callGeminiText: async (_env, prompt, options) => { textCall = options; textPrompt = prompt; return ai; } }));
-  jest.unstable_mockModule('../../worker/lib/structured-consultation.js', () => ({ callGeminiJsonWithRetry: async (_env, prompt) => { visionPrompt = prompt; return typeof visionReply === 'function' ? visionReply(prompt) : visionReply; } }));
+  jest.unstable_mockModule('../../worker/lib/structured-consultation.js', () => ({ callGeminiJsonWithRetry: async (_env, prompt, options) => { visionPrompt = prompt; visionParts = options?.geminiParts; return typeof visionReply === 'function' ? visionReply(prompt) : visionReply; } }));
   jest.unstable_mockModule('../../worker/lib/models.js', () => ({ ...models, ServiceExecutionTransaction: {
     findOne: filter => { if (fault === 'confirm') { fault = ''; return query(null); } return query(docs.find(row => match(row, filter)) || null); },
     findOneAndUpdate: (filter, update) => {
@@ -26,6 +26,7 @@ beforeAll(async () => {
   ({ savePalmAnalysis: save, readPaidPalmAnalysis: read } = await import('../../worker/lib/palm-result-delivery.js'));
   ({ buildPalmDeepConsult: deep, analyzeHandWithGeminiVision: vision, compareHandSides: sides, clientHandSide: clientSide } = await import('../../worker/lib/palm-vision.js'));
   ({ handlePalmRoutes: route } = await import('../../worker/routes/palm.js'));
+  ({ runWithAiLocale } = await import('../../worker/lib/ai-locale-context.js'));
 });
 beforeEach(() => { docs = []; fault = ''; proof = true; revoked = false; userId = owner; ai = { ok: true, text: '계산한 선의 방향을 바탕으로 생활 속 선택을 살펴봅니다. '.repeat(70), provider: 'gemini' }; visionReply = { ok: true, text: JSON.stringify({ palmDetected: true, imageQuality: { brightness: 'good', sharpness: 'good', palmCoverage: 0.95 }, majorLines: { lifeLine: { detected: true, summary: '선 확인' } } }), provider: 'gemini' }; payment.mockClear(); });
 const result = { interpretation: { consultText: '원래 손금 본문 마지막 문장입니다.' }, mode: 'full' };
@@ -178,6 +179,16 @@ test('a non-palm photo in one slot is refused instead of filled by the landmark 
   expect(response.status).toBe(422);
   expect(await response.json()).toMatchObject({ code: 'PALM_NOT_DETECTED', reason: '오른손 칸 사진에서는 손바닥을 찾지 못했어요. 고양이 사진입니다.' });
   expect(docs).toHaveLength(0);
+  expect(visionParts[1].text).toBe(visionPrompt);
+});
+test('a non-Korean locale gets its own refusal copy and an output-language note in the vision turn', async () => {
+  const palm = visionReply.text;
+  visionReply = prompt => ({ ok: true, provider: 'gemini', text: prompt.includes('오른손 칸') ? JSON.stringify({ palmDetected: false, notPalmReason: 'It is a cat.' }) : palm });
+  const response = await runWithAiLocale('en', () => analyze({ rightPalmImage: 'data:image/png;base64,' + 'B'.repeat(80) }));
+  expect(await response.json()).toMatchObject({ code: 'PALM_NOT_DETECTED', reason: 'We could not find a palm in the right hand photo. It is a cat.' });
+  expect(visionParts[1].text).toContain('Write the ENTIRE response in English only.');
+  visionReply = { ok: true, provider: 'gemini', text: JSON.stringify({ palmDetected: true, imageQuality: { palmCoverage: 0.2 }, majorLines: { lifeLine: { detected: true } } }) };
+  expect(await (await runWithAiLocale('ja', () => analyze())).json()).toMatchObject({ code: 'IMAGE_QUALITY_LOW', error: '線を読み取れるほど写真が鮮明ではありません。' });
 });
 test('a line the model saw on a mostly hidden palm does not pass the quality gate', async () => {
   visionReply.text = JSON.stringify({ palmDetected: true, imageQuality: { brightness: 'good', sharpness: 'good', palmCoverage: 0.2 }, majorLines: { lifeLine: { detected: true } } });

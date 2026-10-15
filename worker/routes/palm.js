@@ -12,6 +12,7 @@ import {
   resolveAnalysisMode,
   visionToSideAnalysis,
 } from "../lib/palm-vision.js";
+import { palmCopy } from "../lib/palm-locale-copy.js";
 
 const { analyzePalmHandInput, applySafetyExpressionFilter } = palmMapEngine;
 const { buildBothHandsComparison } = bothHandsComparisonLib;
@@ -55,16 +56,17 @@ function hasImage(sideData) {
  * 공용 readJson 은 무제한 request.text() 라 이 라우트(이미지 2장)에는 쓰지 않는다.
  */
 async function readJsonWithLimit(request, maxBytes) {
+  const copy = palmCopy();
   const declared = Number(request.headers.get("Content-Length") || 0);
   if (Number.isFinite(declared) && declared > maxBytes) {
-    throw createHttpError(413, "이미지 용량이 너무 큽니다. 더 작은 사진으로 다시 시도해 주세요.", {
+    throw createHttpError(413, copy.imageTooLarge, {
       code: "IMAGE_TOO_LARGE",
     });
   }
 
   const text = await request.text();
   if (text.length > maxBytes) {
-    throw createHttpError(413, "이미지 용량이 너무 큽니다. 더 작은 사진으로 다시 시도해 주세요.", {
+    throw createHttpError(413, copy.imageTooLarge, {
       code: "IMAGE_TOO_LARGE",
     });
   }
@@ -73,7 +75,7 @@ async function readJsonWithLimit(request, maxBytes) {
   try {
     return JSON.parse(text);
   } catch (e) {
-    throw createHttpError(400, "Request body must be valid JSON.", { code: "INVALID_JSON" });
+    throw createHttpError(400, copy.invalidJson, { code: "INVALID_JSON" });
   }
 }
 
@@ -87,11 +89,11 @@ async function requirePalmAuth(request, env) {
     return await requireAuth(request, env);
   } catch (error) {
     if (isAuthDbInfraError(error)) {
-      throw createHttpError(503, "일시적인 접속 문제로 확인이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.", {
+      throw createHttpError(503, palmCopy().authUnavailable, {
         code: "AUTH_TEMPORARILY_UNAVAILABLE",
       });
     }
-    throw createHttpError(401, "로그인이 필요합니다.", { code: "LOGIN_REQUIRED" });
+    throw createHttpError(401, palmCopy().loginRequired, { code: "LOGIN_REQUIRED" });
   }
 }
 
@@ -105,11 +107,10 @@ function toSide(payload, side) {
   };
 }
 
-const HAND_KO = { left: "왼손", right: "오른손" };
-
 // 판독은 올린 칸 기준으로 그대로 두고, 다른 손처럼 보였다는 사실만 알린다.
 function handSideMismatchWarning(check) {
-  return `${HAND_KO[check.declared]} 칸에 올린 사진이 ${HAND_KO[check.vision]}처럼 보였어요. 해석은 올려 주신 대로 ${HAND_KO[check.declared]} 기준이에요. 손을 바꿔 올렸다면 칸을 확인해 주세요.`;
+  const copy = palmCopy();
+  return copy.handSideMismatch(copy.hand[check.declared], copy.hand[check.vision]);
 }
 
 function isEnoughQuality(recognition) {
@@ -247,6 +248,7 @@ export async function handlePalmRoutes(request, env) {
     const auth = await requirePalmAuth(request, env);
 
     const body = await readJsonWithLimit(request, MAX_REQUEST_BODY_BYTES);
+    const copy = palmCopy();
 
     const payload = {
       leftPalmImage: body.leftPalmImage ?? null,
@@ -264,21 +266,21 @@ export async function handlePalmRoutes(request, env) {
     };
 
     if (!payload.dominantHand) {
-      throw createHttpError(400, "dominantHand 입력이 필요합니다.", { code: "MISSING_DOMINANT_HAND" });
+      throw createHttpError(400, copy.missingDominantHand, { code: "MISSING_DOMINANT_HAND" });
     }
     if (!payload.analysisPurpose) {
-      throw createHttpError(400, "analysisPurpose 입력이 필요합니다.", { code: "MISSING_ANALYSIS_PURPOSE" });
+      throw createHttpError(400, copy.missingAnalysisPurpose, { code: "MISSING_ANALYSIS_PURPOSE" });
     }
     // 본문은 저장본(GET /result)으로만 전달되므로 저장 키가 없으면 비전 호출 전에 거절한다.
     if (typeof body.requestId !== "string" || body.requestId.length < 8 || body.requestId.length > 120) {
-      throw createHttpError(422, "판독 요청 ID가 필요합니다.", { code: "REQUEST_ID_REQUIRED" });
+      throw createHttpError(422, copy.requestIdRequired, { code: "REQUEST_ID_REQUIRED" });
     }
 
     const leftInput = toSide(payload, "left");
     const rightInput = toSide(payload, "right");
 
     if (!hasMeaningfulInput(leftInput) && !hasMeaningfulInput(rightInput)) {
-      throw createHttpError(400, "left/right 입력 중 최소 하나는 이미지 또는 인식 데이터(lineCandidates/handLandmarks)가 필요합니다.", {
+      throw createHttpError(400, copy.missingImage, {
         code: "MISSING_IMAGE",
       });
     }
@@ -376,7 +378,7 @@ export async function handlePalmRoutes(request, env) {
           ok: false,
           code: "PALM_VISION_UNAVAILABLE",
           retryable: true,
-          error: "손금 판독이 잠시 원활하지 않아요. 같은 사진으로 다시 시도해 주세요.",
+          error: copy.visionUnavailable,
         },
         { status: 503 },
       );
@@ -390,14 +392,14 @@ export async function handlePalmRoutes(request, env) {
       // 무엇을 고쳐야 하는지 알 수 없었다.
       const modelReason = (rejectedSide ? [rejectedSide] : analyses).map((a) => a.notPalmReason).find((reason) => reason) || "";
       const visionReason = rejectedSide
-        ? `${HAND_KO[rejectedSide.side]} 칸 사진에서는 손바닥을 찾지 못했어요. ${modelReason || "손바닥이 보이는 사진으로 바꾸거나 그 칸을 비워 주세요."}`
+        ? `${copy.rejectedSlot(copy.hand[rejectedSide.side])} ${modelReason || copy.rejectedSlotFallback}`
         : modelReason;
       return json(
         {
           ok: false,
           code: "PALM_NOT_DETECTED",
           reasonCode: "NO_PALM",
-          error: visionReason || "손바닥 인식에 실패했습니다.",
+          error: visionReason || copy.palmNotDetected,
           reason: visionReason,
           checks: analyses.map((item) => ({
             side: item.side,
@@ -422,7 +424,7 @@ export async function handlePalmRoutes(request, env) {
           ok: false,
           code: "IMAGE_QUALITY_LOW",
           reasonCode: "LOW_CONFIDENCE",
-          error: "이미지 품질이 부족합니다.",
+          error: copy.imageQualityLow,
           checks: analyses.map((item) => ({
             side: item.side,
             brightness: item?.recognitionData?.imageQuality?.brightness,
@@ -571,7 +573,7 @@ export async function handlePalmRoutes(request, env) {
       || null;
 
     if ((hasImage(leftInput) || hasImage(rightInput)) && (!usedVision || !consultText)) {
-      return json({ ok: false, code: 'PALM_INTERPRETATION_INCOMPLETE', retryable: true, error: '판독을 완료하지 못했어요. 사진과 연결 상태를 확인한 뒤 다시 시도해 주세요.' }, { status: 503 });
+      return json({ ok: false, code: 'PALM_INTERPRETATION_INCOMPLETE', retryable: true, error: copy.interpretationIncomplete }, { status: 503 });
     }
     const result = {
       ...canonical,
