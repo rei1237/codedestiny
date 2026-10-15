@@ -1,5 +1,6 @@
 import { canonicalTeaSaju } from "../lib/tea-saju-facts.js";
 import { buildTeaSajuMonthlyRows } from "../lib/tea-saju-monthly.js";
+import { buildTeaSukuyoMonthlyRhythm } from "../lib/tea-sukuyo-monthly.js";
 import { jsonSchemaFromExample } from "../lib/json-text-repair.js";
 import { buildFortuneTeaSajuSnapshot, buildFortuneTeaSajuSnapshotFromParts, buildSajuResultSection } from "../../lib/fortune-tea-house/saju-result-adapter.mjs";
 import { teaCombinationEvidence } from "../../lib/fortune-tea-house/tarot-contract.mjs";
@@ -760,6 +761,29 @@ async function prepareFortuneTeaSukuyoAstronomy(request, env, requestUrl) {
       birthTimeKnown: !timeUnknown,
     }, { requestUrl });
   }
+  const [userIndex, partnerIndex] = [request.sukuyo.user, request.sukuyo.partner].map((person) => person?.astronomySukuyo?.index);
+  try {
+    const rhythm = await buildTeaSukuyoMonthlyRhythm(env, userIndex, partnerIndex, { todayKst: kstDate(), requestUrl });
+    if (rhythm) request.sukuyo.monthlyRhythm = rhythm;
+  } catch {
+    // 석 달 리듬은 보조 근거다. 계산이 닫히면 날짜를 특정하지 않는 문구로 상담을 이어 간다.
+  }
+}
+
+function fortuneTeaMonthDay(date) {
+  const [, month, day] = String(date || "").split("-").map(Number);
+  return month && day ? `${month}월 ${day}일` : "";
+}
+
+// 석 달 일숙 리듬(prepareFortuneTeaSukuyoAstronomy)을 날짜가 있는 문장으로 옮긴다. 리듬이 없으면 null.
+function fortuneTeaSukuyoRhythmText(rhythm) {
+  if (!Array.isArray(rhythm?.windows) || rhythm.windows.length !== 3) return null;
+  const windows = rhythm.windows.map((window, index) => `${["첫", "둘째", "셋째"][index]} 달(${fortuneTeaMonthDay(window.startsOn)}~${fortuneTeaMonthDay(window.endsOn)})은 두 사람 모두에게 순한 날이 ${window.sharedGood}일, 함께 조심할 날이 ${window.sharedCaution}일`).join(", ");
+  const days = (list) => (Array.isArray(list) ? list : []).map((item) => `${fortuneTeaMonthDay(item.date)}(${item.dayMansion})`).join(", ");
+  const best = days(rhythm.bestSharedDays);
+  const caution = days(rhythm.cautionSharedDays);
+  const dayClauses = [best && `함께 마음을 꺼내기 좋은 날은 ${best}`, caution && `서로 말을 아끼는 편이 좋은 날은 ${caution}`].filter(Boolean);
+  return `달이 날마다 머무는 수로 앞으로 석 달을 짚어 보면 ${windows}입니다.${dayClauses.length ? ` ${dayClauses.join("이고, ")}입니다.` : ""}`;
 }
 
 function fortuneTeaSukuyoName(value = {}) {
@@ -1031,7 +1055,9 @@ function buildFortuneTeaSukuyoCompatibility(request) {
       ].slice(0, 3),
       adviceKeywords: [relationType, distanceLabel, directional.aRoleLabel, directional.bRoleLabel, ...guide.keywords].slice(0, 5),
       chapters: [
-        `${user.sukuyoName || "나의 숙"}과 ${partner.sukuyoName || "상대의 숙"}이 ${relationType} 관계로 맞닿는 석 달은 한 번에 가까워지기보다 달의 차오름과 기욺처럼 오가는 흐름으로 읽습니다. 첫 달은 서로의 속도를 확인하는 때, 둘째 달은 ${directional.aRoleLabel}의 자리에서 먼저 건네는 말이 관계의 온도를 정하는 때, 셋째 달은 ${distancePhrase}가 만드는 간격을 두 사람이 받아들이는 때입니다. ${distanceGuide}`,
+        fortuneTeaSukuyoRhythmText(request.sukuyo?.monthlyRhythm)
+          ? `${user.sukuyoName || "나의 숙"}과 ${partner.sukuyoName || "상대의 숙"}이 ${relationType} 관계로 맞닿는 석 달입니다. ${fortuneTeaSukuyoRhythmText(request.sukuyo.monthlyRhythm)} ${distanceGuide}`
+          : `${user.sukuyoName || "나의 숙"}과 ${partner.sukuyoName || "상대의 숙"}이 ${relationType} 관계로 맞닿는 석 달은 한 번에 가까워지기보다 달의 차오름과 기욺처럼 오가는 흐름으로 읽습니다. 첫 달은 서로의 속도를 확인하는 때, 둘째 달은 ${directional.aRoleLabel}의 자리에서 먼저 건네는 말이 관계의 온도를 정하는 때, 셋째 달은 ${distancePhrase}가 만드는 간격을 두 사람이 받아들이는 때입니다. ${distanceGuide}`,
         `${relationType} 관계에서 가장 덜 다치는 처방은 ${guide.keywords.slice(0, 2).join("과 ") || "속도 확인"}을 함께 지키는 일입니다. ${user.name}은 ${directional.aRoleLabel}의 자리에서, ${partner.name}은 ${directional.bRoleLabel}의 자리에서 서로에게 필요한 말을 다르게 듣습니다. ${categoryGuide}`,
         `함께 확인할 것은 세 가지입니다. 첫째, 이번 주에 서로 기대한 연락의 간격을 말로 맞추었는가. 둘째, ${guide.cautions[0] || "서운함이 쌓이는 지점"}을 상대 탓이 아니라 거리의 문제로 다시 보았는가. 셋째, ${relationType} 관계의 장점인 ${guide.strengths[0] || "서로를 비추는 힘"}을 하루 한 번 의식해서 썼는가.`,
       ].map((body, index) => ({ title: SUKUYO_CHAPTER_TITLES[index], body })),
@@ -1947,8 +1973,8 @@ function buildSajuPersonProfile(request, personEntry, defaultName = "상대") {
 // 요구하던 "지금 이 시기"가 사실상 LLM 창작이었다. resolution 이 근거 유무를 프롬프트에 그대로 전달한다.
 const FORTUNE_TEA_SEWOON_YEARS_AHEAD = 5;
 // 사실값·프롬프트 개정 번호. 결정론 캐시(30일)가 이전 근거로 만든 응답을 재생하지 않게 한다.
-// r1: 현재 대운 표시 + 입춘 기준 세운. r2: 절기 월운 석 달.
-const FORTUNE_TEA_PROMPT_REV = 2;
+// r1: 현재 대운 표시 + 입춘 기준 세운. r2: 절기 월운 석 달. r3: 숙요 석 달 일숙 리듬.
+const FORTUNE_TEA_PROMPT_REV = 3;
 
 function buildFortuneTeaTimingFacts(saju, todayKst = kstDate()) {
   const dayGanji = fortuneTeaSajuPillarGanji(saju, "day");
@@ -2328,6 +2354,7 @@ function buildSukuyoFactInput(request, fallback) {
     adviceKeywords: Array.isArray(compatibility.adviceKeywords) ? compatibility.adviceKeywords.slice(0, 6) : [],
     roleGuide: compatibility.roleGuide || {},
     categoryAdviceRule: sukuyoCategoryGuide(`${relationshipType} ${request?.question || ""} ${compatibility.focus || ""}`),
+    ...(request?.sukuyo?.monthlyRhythm ? { monthlyRhythm: request.sukuyo.monthlyRhythm } : {}),
     uncertaintyRule: "입력된 숙, 관계 유형, 거리, 방향별 관계 밖의 계산값은 만들지 않는다. 상대 속마음과 관계 결말은 단정하지 않고 조건과 조율 방식으로 말한다.",
   };
 }
@@ -3887,7 +3914,7 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "", 
       : consultationMode === "saju"
         ? `사주 상담만 작성한다. ${sajuRule.category} 카테고리의 관점으로만 쓴다. 상담 컨셉은 "${sajuRule.concept}"이다. 기존 사주 초안, 일간, 월지/계절, 오행, 십성, 천간·지지 관계, 현재 운, 출생정보 안에서 확인되는 흐름만 말하고 타로 카드는 상담 근거로 쓰지 않는다. 우선 해석 렌즈는 ${sajuRule.focus.join(", ")}이다.`
       : consultationMode === "sukuyo"
-        ? "숙요점 궁합 상담만 작성한다. sukuyoFactInput의 사용자 본명숙, 상대 본명숙, 관계 유형, 거리, 방향별 관계, 오행 조화, 영역 점수, 관계 카테고리만 근거로 삼고 타로 카드와 사주 오행·십성은 상담 근거로 쓰지 않는다."
+        ? "숙요점 궁합 상담만 작성한다. sukuyoFactInput의 사용자 본명숙, 상대 본명숙, 관계 유형, 거리, 방향별 관계, 오행 조화, 영역 점수, 관계 카테고리, 석 달 일숙 리듬(monthlyRhythm)만 근거로 삼고 타로 카드와 사주 오행·십성은 상담 근거로 쓰지 않는다."
       : `타로 상담만 작성한다. ${tarotRule.category} 카테고리의 관점으로만 쓴다. 상담 컨셉은 "${tarotRule.concept}"이다. tarotFactInput의 카드명, 정방향/역방향, 전통 의미, 배열법, 위치 의미를 바꾸지 말고 질문 맥락과 연결해 실제 리딩처럼 쓴다. 우선 해석 렌즈는 ${tarotRule.focus.join(", ")}이다.`;
   const bridgeRule =
     isSajuCompat
@@ -4086,6 +4113,9 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "", 
         ? {
             lengthRule: `공백 제외 ${SUKUYO_MIN_RESULT_CHARS}자 이상, 챕터마다 호흡이 있는 문단으로 깊게 쓴다. 지식을 뽐내지 않고 손님 눈높이로 푼다.`,
             requiredChapters: SUKUYO_CHAPTER_TITLES,
+            monthlyRhythmRule: sukuyoFactInput?.monthlyRhythm
+              ? `'${SUKUYO_CHAPTER_TITLES[0]}' 챕터는 sukuyoFactInput.monthlyRhythm만 근거로 쓴다. windows의 세 구간(startsOn~endsOn)별 두 사람의 순한 날·조심할 날 수와 bestSharedDays·cautionSharedDays의 날짜·그날의 수를 그대로 인용하고, 거기 없는 날짜·월은 만들지 않는다.`
+              : `'${SUKUYO_CHAPTER_TITLES[0]}' 챕터는 날짜별 계산값이 없다. 특정 날짜·월을 만들지 말고 관계 유형과 거리가 만드는 흐름으로만 쓴다.`,
             resultFlow: [
               "두 별의 타고난 결: 관계를 논하기 전에, 사용자의 본명숙과 상대의 본명숙이 각각 어떤 타고난 성향·기질인지 성수(星宿)의 상징과 함께 먼저 짚어준다. 사용자와 상대에게 비슷한 분량의 문단을 각각 배분해, 어느 한쪽만 자세히 풀고 다른 쪽을 한두 줄로 요약하지 않는다. 각 숙의 성격이 실제 성향으로 어떻게 드러나는지 풀어, 신뢰가 서도록 성향부터 전반적으로 소개한다.",
               "두 사람의 인연 관계: 앞서 읽은 두 사람의 타고난 결을 바탕으로, 전달받은 숙 거리와 관계 유형 판정을 근거로 이 관계가 어떤 결인지 푼다. '사용자의 ○숙에서 상대의 △숙은 ○ 자리에 있어요, 그래서...'처럼 근거를 밝힌다.",
