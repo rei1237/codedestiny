@@ -192,3 +192,16 @@ describe("해외 출생 경도 근거", () => {
     expect(pillar(canonicalTeaSaju(seoul), "hour")).toBe(pillar(canonicalTeaSaju({ ...seoul, longitude: 126.978 }), "hour"));
   });
 });
+
+describe("분량 목표", () => {
+  test("체크포인트 그룹은 하한을 그대로 두고 목표만 15% 올린다", async () => {
+    const { __fortuneTeaHouseTestUtils: utils } = await import("../../worker/routes/fortune-tea-house.js");
+    const request = { consultationVersion: "tea-v2", consultationMode: "saju", question: "올해 일은 어떻게 풀릴까요?", ...birth };
+    const main = utils.buildTeaCheckpointGroups(request, {}).find(group => group.key === "reading-main");
+    expect([main.minChars, main.targetChars]).toEqual([3500, 5032]);
+    const { groupRule } = utils.applyFortuneTeaGroupScope({ outputSchema: {} }, main);
+    expect(groupRule.minimumKoreanChars).toBe(3500);
+    expect(groupRule.targetBodyChars).toBe(5032);
+    expect(groupRule.lengthRule).toContain("목표는 5032자 안팎");
+  });
+});

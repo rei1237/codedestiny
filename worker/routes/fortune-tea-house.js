@@ -58,7 +58,11 @@ const SYSTEM_COPY_PATTERN = /AI cannot|I cannot|language model|system prompt|pro
 const TAROT_GENERIC_COPY_PATTERN = /긍정적으로 생각|대화가 중요|마음을 차분히|작은 행동 하나|기다려 보세요|당신의 선택입니다|인간 상담사 연이로서|결과를 맞히는 것보다/i;
 const TAROT_DETERMINISTIC_CLAIM_PATTERN = /반드시.*사랑|상대는 반드시|재회됩니다|절대 안 됩니다|계속 연락|포기하지 말고 계속/i;
 const SAJU_MIN_RESULT_CHARS = 18000;
-const SAJU_TARGET_RESULT_CHARS = 21000;
+// 분량은 목표만 이만큼 올리고 하한(…_MIN_RESULT_CHARS, 그룹 minChars)은 그대로 둔다. 모자라도 실패로 보지 않는다.
+// 1로 되돌리면 예전 목표로 돌아간다. 가드: verify:llm-generation-resilience(1.2 이하, 그룹 토큰 한계).
+const FORTUNE_TEA_LENGTH_UPLIFT = 1.15;
+const fortuneTeaTargetChars = (minChars) => Math.round(minChars * FORTUNE_TEA_LENGTH_UPLIFT);
+const SAJU_TARGET_RESULT_CHARS = fortuneTeaTargetChars(21000);
 // 🔴 이 세 하한은 이제 **섹션 병렬** 결과 전체에 걸린다(FORTUNE_TEA_SECTION_GROUPS 가 한 요청 안에서
 //    동시에 돈다). 한 호출은 6천자 근처에서 스스로 멈추므로, 하한을 올릴 때는 그룹 하나가 받는
 //    몫(share × 이 값)이 그 한계 아래인지 함께 봐야 한다 — 그룹 몫이 6천을 넘으면 분량이 느는 게
@@ -1987,7 +1991,8 @@ const FORTUNE_TEA_SEWOON_YEARS_AHEAD = 5;
 // r4: 원국·궁합 교차 합충형파해 + 상대 시기 표.
 // r5: 숙요 점수·오행 조화 참조 제거, 타로·숙요 오늘 날짜, 카드 주제별 전통 해석, 사주 장 분량 규칙 정리.
 // r6: 해외 출생 경도 미입력 시 서울 경도 대신 그 시간대 표준 자오선.
-const FORTUNE_TEA_PROMPT_REV = 6;
+// r7: 분량 목표 +15%(하한 그대로).
+const FORTUNE_TEA_PROMPT_REV = 7;
 
 function buildFortuneTeaTimingFacts(saju, todayKst = kstDate()) {
   const dayGanji = fortuneTeaSajuPillarGanji(saju, "day");
@@ -3889,12 +3894,13 @@ function applyFortuneTeaGroupScope(prompt, group) {
       ...(group.chapterTitle ? { exactChapterTitle: group.chapterTitle, sukuyoChapters: "sukuyoCompatibility.chapters 에는 오직 이 제목의 장 하나만 반환한다." } : {}),
       minimumKoreanChars: group.minChars,
       ...(group.paths ? {
-        targetBodyChars: Math.ceil(group.minChars / 0.8),
+        targetBodyChars: group.targetChars || Math.ceil(group.minChars / 0.8),
         completionRule: '제목·목차·공백·기호를 제외한 본문만 센다. 각 담당 필드에 고르게 배분하고 계산 근거, 생활 패턴, 반대 조건, 실행 조언을 서로 다른 문단으로 설명한다. 계산값을 만들거나 수정하지 않는다.',
         fieldLimits: '일반 본문 필드당 최대 4000자, 카드별 detail 각 900자, 감정 description 각 900자, choice result 1600자/caution 600자, closingLine 1200자. 특정 필드 하나에 몰아 쓰지 않는다.',
       } : {}),
       lengthRule: `이번 호출이 담당한 필드의 텍스트 합계가 공백 제외 ${group.minChars}자 이상이 되도록 쓴다.`
-        + ` 상담 전체 목표는 ${group.modeMinChars}자이고 나머지는 다른 그룹이 같은 시각에 쓰고 있다.`,
+        + (group.targetChars ? ` 목표는 ${group.targetChars}자 안팎이다.` : "")
+        + ` 상담 전체 목표는 ${fortuneTeaTargetChars(group.modeMinChars)}자이고 나머지는 다른 그룹이 같은 시각에 쓰고 있다.`,
       handledElsewhere: group.handledElsewhere,
       noOverlapRule: "다른 그룹이 담당하는 내용을 미리 요약하거나 반복하지 않는다."
         + " 같은 상담의 다른 장을 쓰는 중이라고 생각하고, 이 그룹의 각도로만 새 근거를 풀어 쓴다.",
@@ -3903,6 +3909,7 @@ function applyFortuneTeaGroupScope(prompt, group) {
       ...prompt.sajuQualityRule,
       minimumKoreanChars: group.minChars,
       lengthRule: `이번 호출이 담당한 필드 합계가 공백 제외 ${group.minChars}자 이상이 되도록 쓴다.`
+        + (group.targetChars ? ` 목표는 ${group.targetChars}자 안팎이다.` : "")
         + " 챕터 구분은 requiredDeepSections의 부드러운 소제목으로 하고, 각 챕터는 호흡이 있는 문단으로 채운다.",
     },
     outputSchema,
@@ -4101,7 +4108,7 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "", 
             minimumKoreanChars: getTarotMinResultChars(request),
             requiredDeepSections: tarotRule.requiredSections,
             categorySchema: tarotResultSchemaByCategory[tarotRule.id],
-            lengthRule: `공백 제외 ${getTarotMinResultChars(request)}자 이상, requiredDeepSections 의 장을 빠짐없이 담아 쓴다. 카드 나열이 아니라 하나의 서사로 이어지게 한다.`,
+            lengthRule: `공백 제외 ${getTarotMinResultChars(request)}자 이상, 전체 ${fortuneTeaTargetChars(getTarotMinResultChars(request))}자 안팎으로, requiredDeepSections 의 장을 빠짐없이 담아 쓴다. 카드 나열이 아니라 하나의 서사로 이어지게 한다.`,
             resultFlow: [
               "카드를 펼치며: 분위기와 전체 그림을 한눈에 담아 짧게 연다. 메이저/마이너 비율, 수트 편중, 코트 카드 등장이 만드는 전체 흐름을 먼저 느끼게 한다.",
               "카드별 리딩(tarotCardReadings): 뽑힌 카드를 한 장도 빠짐없이 개별적으로 푼다. 카드마다 핵심 의미 → 현재 상황에서의 의미 → 질문과의 연결 → 조언 → 주의할 점 순서로 쓴다.",
@@ -4173,7 +4180,7 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "", 
         : undefined,
       sukuyoQualityRule: consultationMode === "sukuyo"
         ? {
-            lengthRule: `공백 제외 ${SUKUYO_MIN_RESULT_CHARS}자 이상, 챕터마다 호흡이 있는 문단으로 깊게 쓴다. 지식을 뽐내지 않고 손님 눈높이로 푼다.`,
+            lengthRule: `공백 제외 ${SUKUYO_MIN_RESULT_CHARS}자 이상, 전체 ${fortuneTeaTargetChars(SUKUYO_MIN_RESULT_CHARS)}자 안팎으로, 챕터마다 호흡이 있는 문단으로 깊게 쓴다. 지식을 뽐내지 않고 손님 눈높이로 푼다.`,
             requiredChapters: SUKUYO_CHAPTER_TITLES,
             monthlyRhythmRule: sukuyoFactInput?.monthlyRhythm
               ? `'${SUKUYO_CHAPTER_TITLES[0]}' 챕터는 sukuyoFactInput.monthlyRhythm만 근거로 쓴다. windows의 세 구간(startsOn~endsOn)별 두 사람의 순한 날·조심할 날 수와 bestSharedDays·cautionSharedDays의 날짜·그날의 수를 그대로 인용하고, 거기 없는 날짜·월은 만들지 않는다.`
@@ -4408,7 +4415,8 @@ function pickTeaCheckpointFields(parsed, group) {
 function buildTeaCheckpointGroups(request, fallback) {
     const groups = [];
     const modeMinChars = resolveFortuneTeaGroups(request, fallback, normalizeConsultationMode(request.consultationMode))[0].modeMinChars;
-    const add = (key, label, paths, minChars, extra = {}) => groups.push({ key, label, paths, minChars, fields: [...new Set(paths.map(path => path.split('.')[0]))], modeMinChars, handledElsewhere: [], ...extra });
+    // 0.8은 본문 외 필드·기호 몫이다. 목표만 올려 하한/목표 비율은 0.70이 된다.
+    const add = (key, label, paths, minChars, extra = {}) => groups.push({ key, label, paths, minChars, targetChars: Math.ceil(minChars * FORTUNE_TEA_LENGTH_UPLIFT / 0.8), fields: [...new Set(paths.map(path => path.split('.')[0]))], modeMinChars, handledElsewhere: [], ...extra });
     if (isSajuFamilyMode(request.consultationMode)) {
         add('saju-summary', '명식의 핵심 근거', ['sessionTitle', 'questionSummary', 'saju.title', 'saju.summary', 'saju.oneLineAdvice'], 1000);
         const titles = getSajuRequiredSectionTitles(request), min = Math.max(1000, Math.ceil(6000 / titles.length));
@@ -6068,7 +6076,9 @@ export async function deferUnchangedConsultation(env, doc, now) {
 }
 
 export const __fortuneTeaHouseTestUtils = {
+  applyFortuneTeaGroupScope,
   buildFallbackSajuDeepSections,
+  buildTeaCheckpointGroups,
   buildFortuneTeaTimingFacts,
   buildSajuFactInput,
   buildUserPrompt,

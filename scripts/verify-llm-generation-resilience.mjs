@@ -612,6 +612,37 @@ const SINGLE_CALL_FLOOR_CEILING = 6000;
     );
   }
 
+  // 체크포인트 그룹은 하한을 그대로 두고 목표만 FORTUNE_TEA_LENGTH_UPLIFT 만큼 올린다.
+  // 목표를 너무 올리면 그룹 하나가 토큰 상한에서 잘리고, 하한을 목표에 붙이면 목표 근처 응답이 거부된다.
+  {
+    const uplift = Number((source.match(/const FORTUNE_TEA_LENGTH_UPLIFT = ([\d.]+);/) || [])[1]);
+    const groupTokens = constant("FORTUNE_TEA_GROUP_MAX_OUTPUT_TOKENS");
+    const block = (source.match(/function buildTeaCheckpointGroups\([\s\S]*?\n\}/) || [])[0] || "";
+    // Math.max(하한, Math.ceil(총량 / 개수)) 형태는 개수가 가장 적은 3장 스프레드를 최악으로 본다.
+    const mins = [
+      ...[...block.matchAll(/\], (\d+)(?:, \{|\);)/g)].map((match) => Number(match[1])),
+      ...[...block.matchAll(/Math\.max\((\d+), Math\.ceil\((\d+) \//g)].map((match) => Math.max(Number(match[1]), Math.ceil(Number(match[2]) / 3))),
+    ];
+    const widestMin = Math.max(...mins);
+    const widestTarget = Math.ceil(widestMin * uplift / 0.8);
+
+    checks += 1;
+    assert(
+      uplift >= 1 && uplift <= 1.2 && block.includes("targetChars: Math.ceil(minChars * FORTUNE_TEA_LENGTH_UPLIFT / 0.8)"),
+      `${feature}: 분량 목표 배율 ${uplift}가 1~1.2 밖이거나 그룹 목표 계산식이 바뀌었다`,
+    );
+    checks += 1;
+    assert(
+      mins.length >= 5 && widestMin <= widestTarget * 0.8,
+      `${feature}: 그룹 하한 ${widestMin}자가 목표 ${widestTarget}자의 0.8배를 넘는다 — 하한을 올리지 말고 목표를 올려라`,
+    );
+    checks += 1;
+    assert(
+      Number.isFinite(groupTokens) && tokensRequiredForChars(widestTarget) <= groupTokens,
+      `${feature}: 가장 큰 그룹 목표 ${widestTarget}자에 ${tokensRequiredForChars(widestTarget)} 토큰이 필요한데 상한은 ${groupTokens}이다`,
+    );
+  }
+
   // 카테고리 규칙이 하한을 덮어쓰던 구조(리터럴 12벌)로 되돌아가면 상수만 고쳐도 아무 일이 없다.
   checks += 1;
   assert(
