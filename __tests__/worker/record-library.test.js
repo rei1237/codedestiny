@@ -198,6 +198,11 @@ test('partial shared deliveries expose accepted parts and stored cards, without 
   const detail=await library.readRecord(owner,'executions','part-fixture');expect(detail.content.chapters[0].body).toBe('저장된 첫 장');expect(detail.content.cards[0].nameKo).toBe('바보');expect(JSON.stringify(detail.content)).not.toContain('never expose');
   revoked=true;expect((await route(request('/detail?source=executions&id=part-fixture'))).status).toBe(403);
 });
+test('tea archives keep the follow-up answer read-only, without its lease or provider',async()=>{
+  stores.fortune_tea_house_results=[seed('1','01',{resultId:'tea-follow-up',featureKey:'fortune-tea-house-tarot-consultation',result:{questionSummary:'질문'},followUps:[{id:'f1',question:'언제 움직일까요?',answer:{directAnswer:'다음 달이 좋아요.'},provider:'gemini'}],leaseFollowUp:{token:'lease-token',clientQuestionId:'client-question-1'}})];
+  const {content}=await library.readRecord(owner,'tea','tea-follow-up');
+  expect(content.followUps[0]).toEqual({id:'f1',question:'언제 움직일까요?',answer:{directAnswer:'다음 달이 좋아요.'}});expect(content.leaseFollowUp).toBeUndefined();
+});
 test('sukuyo per-use compat archives are listed by product name and reopen with the saved sections',async()=>{
   // worker/routes/sukuyo-archive.js 가 쓰는 저장 모양.
   const result={title:'숙요점 궁합',summary:'안괴 · 근거리',sukuyoResult:{mansion:'나 각숙 · 상대 항숙',relation:'안괴'},sections:[{title:'인연 요약',body:'저장된 궁합 본문'}]};

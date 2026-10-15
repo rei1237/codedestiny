@@ -77,6 +77,9 @@ function applyUpdate(doc, update, inserting = false) {
   if (update.$unset) {
     Object.keys(update.$unset).forEach((key) => unsetAt(doc, key));
   }
+  if (update.$push) {
+    Object.entries(update.$push).forEach(([key, value]) => setAt(doc, key, [...(valueAt(doc, key) || []), clone(value)]));
+  }
   if (inserting && update.$setOnInsert) {
     Object.entries(update.$setOnInsert).forEach(([key, value]) => setAt(doc, key, clone(value)));
   }
@@ -1074,4 +1077,98 @@ test('sukuyo consult ignores an available flag forged on the client draft', asyn
   });
   expect(forged.status).toBe(422);
   expect(callGeminiTextMock).not.toHaveBeenCalled();
+});
+
+describe("tea follow-up question", () => {
+  const results = () => collection("fortune_tea_house_results");
+  const env = { NODE_ENV: "test", GEMINIF_API_KEY: "mock-key" };
+  const long = (label, n) => Array.from({ length: n }, (_, i) => `${label} ${i + 1}번째 장면에서 같은 카드의 흐름을 차분히 짚어 봅니다.`).join(" ");
+  const answer = { answerTitle: "이직 시기", directAnswer: long("핵심", 14), evidence: [long("현재", 10), long("흐름", 10), long("조언", 10)], guidance: long("해볼 일", 14), caution: long("주의", 6), closing: "천천히 정해도 늦지 않아요." };
+  const reply = { ok: true, provider: "gemini", model: "gemini-2.5-flash", text: JSON.stringify(answer) };
+  // 앞 스위트의 모의 구현이 남지 않게, 모델은 기본으로 실패한다.
+  beforeEach(() => callGeminiTextMock.mockReset().mockResolvedValue({ ok: false, error: "external_call_blocked" }));
+  const ask =async (resultId, clientQuestionId, question = "이직은 언제쯤 움직이면 좋을까요?") => {
+    const response = await handleFortuneTeaHouseRoutes(new Request(`https://example.com/api/fortune-tea-house/results/${encodeURIComponent(resultId)}/follow-up`, {
+      method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ question, clientQuestionId }),
+    }), env);
+    return { status: response.status, retryAfter: response.headers.get("Retry-After"), payload: await response.json() };
+  };
+  // 실제 체크포인트 경로로 결제된 타로 상담을 끝낸다. 추가 질문은 이 문서의 서버 체크포인트로 근거를 다시 만든다.
+  async function completedTarot(id) {
+    paidAccessAllowed = false;
+    callGeminiTextMock.mockImplementation(async () => ({ ok: true, provider: "gemini", model: "gemini-2.5-flash", text: JSON.stringify(teaFixtures.buildLlmPayload("three")) }));
+    await seedBillingEvidence({ featureKey: FEATURE_KEYS.tarot, requestId: id });
+    const body = { ...teaFixtures.consultBody({ attemptId: id }), requestId: id, idempotencyKey: id, billingGate: billingGatePayload(FEATURE_KEYS.tarot, id) };
+    for (let wave = 0; wave < 12; wave += 1) {
+      const response = await handleFortuneTeaHouseRoutes(new Request("https://example.com/api/fortune-tea-house/consult", {
+        method: "POST", headers: { "content-type": "application/json", "cf-connecting-ip": id }, body: JSON.stringify(body),
+      }), env);
+      if (response.status === 200) {
+        callGeminiTextMock.mockReset();
+        return { body, doc: results().all()[0] };
+      }
+    }
+    throw new Error("mock wave budget exhausted");
+  }
+
+  test("a saved tarot result answers one follow-up from the same stored cards", async () => {
+    const { doc } = await completedTarot("follow-up-cards");
+    let prompt;
+    callGeminiTextMock.mockImplementation(async (_env, raw, options) => { prompt = { input: JSON.parse(raw), options }; return reply; });
+    const answered = await ask(doc.resultId, "client-question-1");
+    expect(answered.status).toBe(200);
+    expect(answered.payload).toMatchObject({ ok: true, alreadyApplied: false, followUpAllowance: { limit: 1, used: 1, remaining: 0 } });
+    expect(answered.payload.followUp.answer.evidence).toHaveLength(3);
+    expect(callGeminiTextMock).toHaveBeenCalledTimes(1);
+    expect(prompt.input.tarotFactInput.spreadCards.map((card) => card.cardId)).toEqual(doc.generationCheckpoint.fallback.tarotSpreadCards.map((card) => card.cardId));
+    expect(prompt.input.followUpQuestion).toBe("이직은 언제쯤 움직이면 좋을까요?");
+    expect(prompt.options).toMatchObject({ fallbackToWorkersAI: false, thinkingBudget: 0, responseMimeType: "application/json" });
+    expect(prompt.options.systemPrompt).toContain("새 카드를 뽑지 않는다");
+    const saved = results().all()[0];
+    expect(saved.leaseFollowUp).toBeUndefined();
+    expect(saved.followUps).toHaveLength(1);
+    const detail = await readJson(await handleFortuneTeaHouseRoutes(new Request(`https://example.com/api/fortune-tea-house/results/${encodeURIComponent(doc.resultId)}`), env));
+    expect(detail.payload.result.followUps[0].question).toBe("이직은 언제쯤 움직이면 좋을까요?");
+    expect(detail.payload.result.followUps[0].model).toBeUndefined();
+  });
+
+  test("the same client id replays the saved answer and a second question is refused", async () => {
+    const resultId = await seedReadyResult({ resultId: "fortune-tea-house:follow-up-once" });
+    callGeminiTextMock.mockResolvedValue(reply);
+    expect((await ask(resultId, "client-question-1")).status).toBe(200);
+    const replay = await ask(resultId, "client-question-1");
+    expect([replay.status, replay.payload.alreadyApplied]).toEqual([200, true]);
+    const second = await ask(resultId, "client-question-2", "그럼 연애운은 어떤가요?");
+    expect([second.status, second.payload.errorCode, second.payload.followUpAllowance.remaining]).toEqual([409, "FOLLOW_UP_LIMIT_REACHED", 0]);
+    expect(callGeminiTextMock).toHaveBeenCalledTimes(1);
+    expect(results().all()[0].followUps).toHaveLength(1);
+  });
+
+  test("an active lease waits with 202 and a failed answer keeps the allowance", async () => {
+    const resultId = await seedReadyResult({ resultId: "fortune-tea-house:follow-up-busy" });
+    await results().updateOne({ resultId }, { $set: { leaseFollowUp: { token: "other", clientQuestionId: "client-question-0", expiresAt: new Date(Date.now() + 60000) } } });
+    const busy = await ask(resultId, "client-question-1");
+    expect([busy.status, busy.payload.errorCode, busy.retryAfter]).toEqual([202, "FOLLOW_UP_IN_PROGRESS", "5"]);
+    expect(callGeminiTextMock).not.toHaveBeenCalled();
+    await results().updateOne({ resultId }, { $set: { "leaseFollowUp.expiresAt": new Date(0) } });
+    const failed = await ask(resultId, "client-question-1");
+    expect([failed.status, failed.payload.errorCode, failed.payload.retryable, failed.payload.followUpAllowance.remaining]).toEqual([503, "FOLLOW_UP_GENERATION_FAILED", true, 1]);
+    const saved = results().all()[0];
+    expect([saved.followUps, saved.leaseFollowUp]).toEqual([undefined, undefined]);
+  });
+
+  test("a refund during generation saves nothing and other accounts cannot ask", async () => {
+    const { body, doc } = await completedTarot("follow-up-revoked");
+    authState = { userId: "64f0a1b2c3d4e5f678901999", role: "user" };
+    expect((await ask(doc.resultId, "client-question-1")).status).toBe(404);
+    authState = { userId: USER_ID, role: "user" };
+    callGeminiTextMock.mockImplementation(async () => {
+      await collection("paid_execution_records").updateOne({ requestId: body.requestId }, { $set: { status: "refunded" } });
+      return reply;
+    });
+    const revoked = await ask(doc.resultId, "client-question-1");
+    expect([revoked.status, revoked.payload.errorCode]).toEqual([403, "RESULT_REVOKED"]);
+    const saved = results().all()[0];
+    expect([saved.followUps, saved.leaseFollowUp]).toEqual([undefined, undefined]);
+  });
 });

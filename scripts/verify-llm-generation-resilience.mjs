@@ -1020,7 +1020,8 @@ const EXPECTED_LLM_CALL_SITES = {
   "worker/lib/celestial-report-delivery.js": 1, "worker/routes/destiny-compass-ai.js": 1, "worker/routes/destiny-compass.js": 1, "worker/routes/destiny-anatomy.js": 1,
   // fortune.js 3건: 사주 그룹 생성(웨이브1·2가 같은 호출부를 공유) + 형제 4종 공용 풀 생성 + 그 이어쓰기 repair.
   // 사주의 전용 이어쓰기 repair 호출은 그룹 재생성으로 대체되며 사라졌다(4 → 3).
-  "worker/routes/dream.js": 0, "worker/routes/fortune-tea-house.js": 2, "worker/routes/fortune.js": 3,
+  // 찻집 3건: 상담 그룹 생성 + 꿀편지 + 추가 질문 답변(폴백 끔, 길이만으로 실패하지 않음).
+  "worker/routes/dream.js": 0, "worker/routes/fortune-tea-house.js": 3, "worker/routes/fortune.js": 3,
   "worker/routes/karma-destiny-ai.js": 5, "worker/routes/life-book-ai.js": 1, "worker/routes/love-secret-ai.js": 2,
   "worker/routes/master-love-codex.js": 2, "worker/routes/nakshatra-ai.js": 1, "worker/lib/naming-report-delivery.js": 1,
   // 작명 v2 1건: 서술·8장이 같은 호출부를 공유한다(요청당 1콜).
