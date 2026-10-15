@@ -8,7 +8,7 @@ import { createHreflangFromRoutes } from "@/lib/seo/createHreflang";
 import { introductionRoutes } from "@/lib/i18n/feature-introductions.mjs";
 
 export const metadata: Metadata = {
-  title: "연이의 운명 찻집 · 사주·타로·숙요점 상담 | 꿀꿀운세",
+  title: "연이의 운명 찻집 · 사주·타로·숙요점 상담 | 꿀꿀 운세",
   description:
     "꽃돼지 연이와 고민을 나누고 사주·타로·숙요점으로 근거와 행동 방향을 살펴보세요. 상담 결과는 내 상담함에서 다시 읽을 수 있습니다.",
   alternates: {
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     languages: createHreflangFromRoutes(introductionRoutes("fortune-tea-house")),
   },
   openGraph: {
-    title: "연이의 운명 찻집 · 사주·타로·숙요점 상담 | 꿀꿀운세",
+    title: "연이의 운명 찻집 · 사주·타로·숙요점 상담 | 꿀꿀 운세",
     description: "말하지 못했던 고민을 내려놓고, 사주·타로·숙요점으로 내 삶과 관계의 흐름을 차분히 읽는 연이의 운명 찻집.",
     url: "https://code-destiny.com/fortune-tea-house",
     siteName: siteSeo.brandName,

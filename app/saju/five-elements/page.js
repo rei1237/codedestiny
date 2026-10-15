@@ -5,7 +5,7 @@ import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 
 const FIVE_ELEMENTS_GUIDE_TEXT_TRANSLATIONS = {
   ko: {
-    "metadata.title": "오행과 균형 가이드 | 꿀꿀운세",
+    "metadata.title": "오행과 균형 가이드 | 꿀꿀 운세",
     heading: "오행과 균형 가이드",
     "section.scope": "오행이 살피는 것",
     "section.inputs": "필요한 입력값",
@@ -17,7 +17,7 @@ const FIVE_ELEMENTS_GUIDE_TEXT_TRANSLATIONS = {
     "section.caution": "해석 시 주의할 점",
   },
   en: {
-    "metadata.title": "Five Elements and Balance Guide | 꿀꿀운세",
+    "metadata.title": "Five Elements and Balance Guide | 꿀꿀 운세",
     heading: "Five Elements and Balance Guide",
     "section.scope": "What the Five Elements Look At",
     "section.inputs": "Required Inputs",
@@ -29,7 +29,7 @@ const FIVE_ELEMENTS_GUIDE_TEXT_TRANSLATIONS = {
     "section.caution": "What to Keep in Mind",
   },
   ja: {
-    "metadata.title": "五行とバランスガイド | 꿀꿀운세",
+    "metadata.title": "五行とバランスガイド | 꿀꿀 운세",
     heading: "五行とバランスガイド",
     "section.scope": "五行が見るもの",
     "section.inputs": "必要な入力項目",
@@ -41,7 +41,7 @@ const FIVE_ELEMENTS_GUIDE_TEXT_TRANSLATIONS = {
     "section.caution": "解釈時の注意点",
   },
   "zh-CN": {
-    "metadata.title": "五行与平衡指南 | 꿀꿀운세",
+    "metadata.title": "五行与平衡指南 | 꿀꿀 운세",
     heading: "五行与平衡指南",
     "section.scope": "五行会观察什么",
     "section.inputs": "需要输入的信息",
@@ -53,7 +53,7 @@ const FIVE_ELEMENTS_GUIDE_TEXT_TRANSLATIONS = {
     "section.caution": "解读时的注意事项",
   },
   "zh-TW": {
-    "metadata.title": "五行與平衡指南 | 꿀꿀운세",
+    "metadata.title": "五行與平衡指南 | 꿀꿀 운세",
     heading: "五行與平衡指南",
     "section.scope": "五行會觀察什麼",
     "section.inputs": "需要輸入的資訊",

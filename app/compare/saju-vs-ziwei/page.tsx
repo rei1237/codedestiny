@@ -22,7 +22,7 @@ import { buildBreadcrumbJsonLd, buildFaqPageJsonLd, buildWebPageJsonLd } from "@
  */
 
 const PATH = "/compare/saju-vs-ziwei";
-const TITLE = "사주와 자미두수는 무엇이 다른가 | 꿀꿀운세";
+const TITLE = "사주와 자미두수는 무엇이 다른가 | 꿀꿀 운세";
 const DESCRIPTION =
   "같은 생년월일로 사주와 자미두수를 보면 왜 다른 이야기가 나오는지, 두 체계가 각각 무엇을 세우고 무엇을 답하는지 비교해 정리합니다.";
 

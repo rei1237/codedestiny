@@ -7,7 +7,7 @@
 | 층 | 이름 | 실물 |
 |---|---|---|
 | 회사 | CODE DESTINY | 푸터·법적 표기에만 |
-| 브랜드(노출 1순위) | 꿀꿀운세(2026-10-15 사용자 확인: 여러 점술을 아우르는 운세 플랫폼) — "오늘의 마음이 조금 가벼워지는 곳" | `lib/seo/siteSeo.ts:81`, `app/components/SiteFooterHub.jsx:192`. `/`(`app/page.js`)는 꽃돼지 `/ggulggul/`(정적 셸 `index.html`)로 보낸다 |
+| 브랜드(노출 1순위) | 꿀꿀 운세(2026-10-15 사용자 결정: 공식 표기. 붙여 쓴 "꿀꿀운세"는 별칭, 운영자는 CODE DESTINY. 여러 점술을 아우르는 운세 플랫폼) — "오늘의 마음이 조금 가벼워지는 곳" | 원본 `lib/brand/brand-facts.mjs`(과거명은 `historyKo` 에만). 파생: `lib/seo/siteSeo.ts`, `app/components/SiteFooterHub.jsx`. 상담 앱 입구는 꽃돼지 `/ggulggul/`(정적 셸 `index.html`) |
 | 주인공 상담가 | 영냥이 — 흰 장모 치비 마법사 고양이(남색 모자·금빛 초승달), 달빛 점술방 | `/yeongnyangi/`(`app/yeongnyangi/`). 마스터 이미지 `public/assets/yeongnyangi/original/hero-800.webp`, 묘사 정본 `docs/design/yeongnyangi-tarot/art-ledger.jsonl:1`. 캐릭터 원본은 고치지 않는다 |
 | 상담가 | 연이(꽃돼지) 🌸 | 상담실 "꽃빛 상담실"(`worker/yeongnyangi/prompts/persona/yeoni.ts:1`), 기능 "운명의 찻집"(`/fortune-tea-house`) |
 | 상담가 | 네오 🦁 | 상담실 "별빛 전략실"(`persona/neo.ts:1`, `app/fortune-chat/`), 기능 "팩폭 전략실"(`lib/consultation-sharing.ts:11`) |

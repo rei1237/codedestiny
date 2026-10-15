@@ -2,15 +2,15 @@ import MusicPlayerExample from "./MusicPlayerExample";
 
 const MUSIC_PAGE_TEXT_TRANSLATIONS = {
   ko: {
-    title: "꿀꿀운세 Moon Library | 꿀꿀운세",
+    title: "꿀꿀운세 Moon Library | 꿀꿀 운세",
     description: "달빛 무드의 코드데스티니 뮤직 플레이리스트를 감상하세요.",
   },
   en: {
-    title: "꿀꿀운세 Moon Library | 꿀꿀운세",
+    title: "꿀꿀운세 Moon Library | 꿀꿀 운세",
     description: "Listen to 꿀꿀운세 music playlists in a moonlit mood.",
   },
   ja: {
-    title: "꿀꿀운세 Moon Library | 꿀꿀운세",
+    title: "꿀꿀운세 Moon Library | 꿀꿀 운세",
     description: "月明かりのムードで꿀꿀운세の音楽プレイリストをお楽しみください。",
   },
 } as const;

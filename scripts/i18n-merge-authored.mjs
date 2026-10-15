@@ -18,6 +18,7 @@
  */
 import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync } from "node:fs";
 import { resolve, join } from "node:path";
+import { BRAND_FACTS } from "../lib/brand/brand-facts.mjs";
 
 const rootDir = process.cwd();
 const i18nDir = resolve(rootDir, "public", "i18n");
@@ -66,6 +67,10 @@ if (!files.length) {
   process.exit(1);
 }
 
+// 공식명과 별칭만 예외다. 긴 이름부터 지워야 "꿀꿀 운세" 안의 "운세"가 남지 않는다.
+const BRAND_TOKENS = [BRAND_FACTS.service.name, ...BRAND_FACTS.service.alternateNames].sort((a, b) => b.length - a.length);
+const stripBrandNames = (text) => BRAND_TOKENS.reduce((value, name) => value.replaceAll(name, ""), text);
+
 /** namespace → { locale → { key → value } } */
 const byNamespace = {};
 const problems = [];
@@ -80,7 +85,7 @@ for (const file of files) {
     const missing = LOCALES.filter((l) => typeof translations[l] !== "string" || !translations[l].trim());
     if (missing.length) { problems.push(`${file} ${key}: 누락 ${missing.join(",")}`); continue; }
     // The exact public brand is intentionally Korean in every locale; other Korean still fails.
-    const leftover = LOCALES.filter((l) => l !== "ko" && /[가-힣]/.test(translations[l].replaceAll('꿀꿀운세', '')));
+    const leftover = LOCALES.filter((l) => l !== "ko" && /[가-힣]/.test(stripBrandNames(translations[l])));
     if (leftover.length) { problems.push(`${file} ${key}: 한글 잔존 ${leftover.join(",")}`); continue; }
     byNamespace[namespace] ||= {};
     for (const locale of LOCALES) {

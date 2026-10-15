@@ -43,7 +43,7 @@ const NUMEROLOGY_TAROT_PAGE_TEXT_TRANSLATIONS = {
     "method.note": "세 숫자는 카드를 고르는 가중치로 쓰입니다. 메이저 아르카나 22장에는 각각 공명하는 숫자가 붙어 있어, 생명수·오늘수·질문수와 맞닿은 카드가 조금 더 자주 뽑히도록 섞습니다. 그래서 결과는 무작위이면서도 입력한 숫자의 결을 따라갑니다.",
   },
   en: {
-    "metadata.title": "Numerology Tarot | 꿀꿀운세",
+    "metadata.title": "Numerology Tarot | 꿀꿀 운세",
     "metadata.description": "A five-card tarot reading guided by your life number, day number, and question number. Read it calmly as a reflection point for relationships, work, and choices.",
     "metadata.keyword.1": "numerology tarot",
     "metadata.keyword.2": "number tarot",
@@ -83,7 +83,7 @@ const NUMEROLOGY_TAROT_PAGE_TEXT_TRANSLATIONS = {
     "method.note": "The three numbers act as weights when the cards are chosen. Each of the 22 Major Arcana carries resonant numbers, and cards touching your life, day, and question numbers are shuffled to appear a little more often. The result stays random while following the grain of the numbers you entered.",
   },
   ja: {
-    "metadata.title": "数秘タロット | 꿀꿀운세",
+    "metadata.title": "数秘タロット | 꿀꿀 운세",
     "metadata.description": "ライフナンバー、今日の数、質問の数をもとに五枚のカードの流れを読む数秘タロットです。関係、仕事、選択の方向を参考として静かに受け取ってください。",
     "metadata.keyword.1": "数秘タロット",
     "metadata.keyword.2": "数字タロット",
@@ -123,7 +123,7 @@ const NUMEROLOGY_TAROT_PAGE_TEXT_TRANSLATIONS = {
     "method.note": "三つの数はカードを選ぶ重みとして使われます。大アルカナ22枚にはそれぞれ共鳴する数字があり、ライフナンバー・今日の数・質問の数に触れるカードが少し多く出るように混ぜます。そのため結果は無作為でありながら、入力した数字の質に沿います。",
   },
   zh: {
-    "metadata.title": "数字塔罗 | 꿀꿀운세",
+    "metadata.title": "数字塔罗 | 꿀꿀 운세",
     "metadata.description": "依据生命数、今日数与问题数，阅读五张塔罗牌流向的数字塔罗。请把它作为关系、工作与选择方向的温柔参考。",
     "metadata.keyword.1": "数字塔罗",
     "metadata.keyword.2": "数秘塔罗",

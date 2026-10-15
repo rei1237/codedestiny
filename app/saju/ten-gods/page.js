@@ -5,7 +5,7 @@ import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 
 const TEN_GODS_GUIDE_TEXT_TRANSLATIONS = {
   ko: {
-    metaTitle: "십성 해석 가이드 | 꿀꿀운세",
+    metaTitle: "십성 해석 가이드 | 꿀꿀 운세",
     observe: "십성이 살피는 것",
     inputs: "필요한 입력값",
     useCases: "어떤 때 참고하면 좋은가",

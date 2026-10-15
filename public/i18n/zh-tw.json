@@ -70,7 +70,7 @@
       "flowerDream": "花與夢",
       "vvip": "VVIP書庫",
       "oracle": "神諭",
-      "brandAlias": "꿀꿀운세",
+      "brandAlias": "꿀꿀 운세",
       "brandAria": "前往 Code Destiny 首頁",
       "mainAria": "主要服務快捷入口",
       "astrologyHub": "占星術",
@@ -1696,7 +1696,7 @@
       "searchHint": "可按運勢名稱、煩惱或舊服務名搜尋。",
       "heroTitle": "四柱八字與塔羅",
       "heroTitleEm": "理清自己的下一步",
-      "heroLead": "꿀꿀운세 · 紫微命盤、宿曜關係與個人問題解讀",
+      "heroLead": "꿀꿀 운세 · 紫微命盤、宿曜關係與個人問題解讀",
       "heroPrimary": "選擇運勢",
       "allFortunes": "查看全部運勢",
       "heroInscription": "月光下，讀懂自己的時光",
@@ -1733,7 +1733,7 @@
       "chemiTitle": "我和本命,是什麼默契?",
       "chemiNote": "只要輸入生日,就能生成小卡",
       "chemiCta": "查看我和本命的默契",
-      "brandOtherEntry": "꿀꿀운세：靈喵四柱與塔羅 →",
+      "brandOtherEntry": "꿀꿀 운세：靈喵四柱與塔羅 →",
       "publicRecordsTitle": "十年經驗命理學者朴秉河（Neo）的公開分析紀錄",
       "publicRecordsLink": "查看日期、原文與吻合範圍"
     },
@@ -1889,7 +1889,7 @@
       "self": "認識自己",
       "future": "時機與選擇",
       "title": "從你的問題開始解讀",
-      "brand": "在꿀꿀운세認識靈喵、Yeoni與Neo。與靈喵探討問題，也可探索Yeoni茶館和Neo策略室。",
+      "brand": "在꿀꿀 운세認識靈喵、Yeoni與Neo。與靈喵探討問題，也可探索Yeoni茶館和Neo策略室。",
       "stepQuestion": "說說當下的煩惱",
       "stepPrice": "確認內容與價格",
       "stepResult": "閱讀解答、依據與行動建議",
@@ -2756,9 +2756,9 @@
     }
   },
   "seo": {
-    "homeTitle": "免費四柱、塔羅與今日運勢 | 꿀꿀운세",
-    "rssTitle": "꿀꿀운세 RSS",
-    "description": "꿀꿀운세: 依出生日期查看免費四柱、塔羅、合盤、新年運、土亭秘訣與 MBTI 相性。",
+    "homeTitle": "免費四柱、塔羅與今日運勢 | 꿀꿀 운세",
+    "rssTitle": "꿀꿀 운세 RSS",
+    "description": "꿀꿀 운세: 依出生日期查看免費四柱、塔羅、合盤、新年運、土亭秘訣與 MBTI 相性。",
     "keywords": "四柱, 免費四柱, 萬年曆, 塔羅, 今日運勢, 合盤, 新年運, 土亭秘訣, 面相, 財運, 復合運, MBTI相性, 꿀꿀운세"
   },
   "fortune": {
@@ -6997,7 +6997,7 @@
     "sq_9794_attr_aria_label": "宿曜姻緣雷達圖"
   },
   "shell": {
-    "CODEDESTINY": "八字排盤·紫微斗數·塔羅占卜｜꿀꿀운세",
+    "CODEDESTINY": "八字排盤·紫微斗數·塔羅占卜｜꿀꿀 운세",
     "cdCookieConsentCopy": {
       "cdCookieConsentActions": {
         "kniuoqf": "同意",

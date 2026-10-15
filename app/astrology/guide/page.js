@@ -7,7 +7,7 @@ import { buildArticleJsonLd, buildBreadcrumbJsonLd, buildFaqPageJsonLd } from ".
 
 const ASTROLOGY_GUIDE_TEXT_TRANSLATIONS = {
   ko: {
-    "metadata.title": "서양 점성술 기본 구조 | 꿀꿀운세",
+    "metadata.title": "서양 점성술 기본 구조 | 꿀꿀 운세",
     heading: "서양 점성술 기본 구조",
     "section.scope": "점성술이 살피는 것",
     "section.inputs": "필요한 입력값",
@@ -20,7 +20,7 @@ const ASTROLOGY_GUIDE_TEXT_TRANSLATIONS = {
     "section.caution": "해석 시 주의할 점",
   },
   en: {
-    "metadata.title": "Western Astrology Basics | 꿀꿀운세",
+    "metadata.title": "Western Astrology Basics | 꿀꿀 운세",
     heading: "Western Astrology Basics",
     "section.scope": "What Astrology Looks At",
     "section.inputs": "Required Inputs",
@@ -33,7 +33,7 @@ const ASTROLOGY_GUIDE_TEXT_TRANSLATIONS = {
     "section.caution": "What to Keep in Mind",
   },
   ja: {
-    "metadata.title": "西洋占星術の基本構造 | 꿀꿀운세",
+    "metadata.title": "西洋占星術の基本構造 | 꿀꿀 운세",
     heading: "西洋占星術の基本構造",
     "section.scope": "占星術が見つめるもの",
     "section.inputs": "必要な入力項目",
@@ -46,7 +46,7 @@ const ASTROLOGY_GUIDE_TEXT_TRANSLATIONS = {
     "section.caution": "解釈時の注意点",
   },
   "zh-CN": {
-    "metadata.title": "西洋占星术基础结构 | 꿀꿀운세",
+    "metadata.title": "西洋占星术基础结构 | 꿀꿀 운세",
     heading: "西洋占星术基础结构",
     "section.scope": "占星术会观察什么",
     "section.inputs": "需要输入的信息",
@@ -59,7 +59,7 @@ const ASTROLOGY_GUIDE_TEXT_TRANSLATIONS = {
     "section.caution": "解读时的注意事项",
   },
   "zh-TW": {
-    "metadata.title": "西洋占星術基礎結構 | 꿀꿀운세",
+    "metadata.title": "西洋占星術基礎結構 | 꿀꿀 운세",
     heading: "西洋占星術基礎結構",
     "section.scope": "占星術會觀察什麼",
     "section.inputs": "需要輸入的資訊",

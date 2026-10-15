@@ -11,7 +11,7 @@ import ImmersiveRelatedLinks from "../components/ImmersiveRelatedLinks";
 import { buildKrwOffer } from "@/lib/seo/paid-offer";
 
 const PAGE_PATH = "/vedic-ai/";
-const PAGE_TITLE = "베다 점성술 상담 · 나크샤트라·다샤 해석 | 꿀꿀운세";
+const PAGE_TITLE = "베다 점성술 상담 · 나크샤트라·다샤 해석 | 꿀꿀 운세";
 const PAGE_DESCRIPTION =
   "인도 조티쉬 전통의 나크샤트라와 행성 배치, 다샤 주기로 지금의 질문을 읽는 베다 점성술 상담입니다. 달이 머문 나크샤트라와 현재의 다샤 흐름을 풀어 드립니다.";
 

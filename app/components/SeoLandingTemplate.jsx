@@ -39,7 +39,7 @@ const DEFAULT_FAQS = [
 ];
 
 const DEFAULT_RELATED_LABELS = {
-  "/": "꿀꿀운세 홈",
+  "/": "꿀꿀 운세 홈",
   "/manse": "무료 만세력 사주 분석",
   "/saju": "무료 사주팔자 분석",
   "/saju/monthly/2026-09": "2026년 9월 일간별 운세",
@@ -82,7 +82,7 @@ const SEO_LANDING_TEMPLATE_COPY = {
       result: "제공 결과",
       disclaimer: "주의와 면책",
     },
-    breadcrumbHome: "꿀꿀운세 홈",
+    breadcrumbHome: "꿀꿀 운세 홈",
     breadcrumbServices: "운세 서비스",
     serviceType: "운세 해석 서비스",
     defaultCta: "무료로 시작하기",
@@ -256,7 +256,7 @@ export default function SeoLandingTemplate({ page, hero = null }) {
         {landingHero || <header className="mt-[clamp(2.5rem,6vw,4rem)] border-b border-[var(--cd-border)] pb-[clamp(2.5rem,6vw,4rem)]">
           <p className="flex items-center gap-2.5 text-[0.85rem] font-semibold text-[var(--cd-accent)]">
             <MoonMark />
-            <span className="font-[family-name:var(--font-serif)] tracking-[0.02em]">꿀꿀운세</span>
+            <span className="font-[family-name:var(--font-serif)] tracking-[0.02em]">꿀꿀 운세</span>
           </p>
           <h1 className="mt-5 max-w-[20ch] break-keep font-[family-name:var(--font-serif)] text-[clamp(2.15rem,6vw,4rem)] font-bold leading-[1.16] tracking-[-0.02em] text-[var(--cd-text)] [text-wrap:balance]">
             {/* h1Question 이 있으면 키워드 H1 은 눈썹으로 내리고 고객 질문을 주인공으로 둔다(질문 우선 2026-10-02). */}

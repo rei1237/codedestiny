@@ -5,6 +5,7 @@
  * selects a payment method, creates an order, confirms payment, or mutates data.
  */
 import { chromium } from "@playwright/test";
+import { findFormerBrandNames } from "../lib/brand/brand-facts.mjs";
 
 function valueAfter(name) {
   const index = process.argv.indexOf(name);
@@ -319,6 +320,14 @@ async function checkPages() {
     if (!(await page.locator('a[href="/ggulggul/"]').count())) fail("root landing has no link to the /ggulggul/ app entry");
   }
 
+  // 과거 브랜드명은 이력 문단에만 남는다. 런타임 i18n 이 제목을 다시 쓴 뒤에도 사이트명 신호에 돌아오면 안 된다.
+  async function checkBrandSignals(route) {
+    await page.waitForTimeout(1500);
+    const signals = await page.evaluate(() => [document.title, document.querySelector('meta[property="og:site_name"]')?.content || ""].join(" "));
+    const former = findFormerBrandNames(signals);
+    if (former.length) fail("route " + route + " shows a former brand name in title/og:site_name: " + former.join(", "));
+  }
+
   const routes = ["/", "/ggulggul/", "/login", "/saju/basic", "/fortune-tea-house", "/app", "/app/store", "/lock-screen-fortune"];
   for (const route of routes) {
     try {
@@ -335,6 +344,7 @@ async function checkPages() {
         if (settledPath === "/") await checkRootLanding(nav.interrupted ? null : nav.response);
         else if (settledPath !== "/ggulggul/") fail("route / settled on unexpected path " + settledPath);
       }
+      if (route === "/" || route === "/ggulggul/") await checkBrandSignals(route);
       if (route === "/ggulggul/") await checkAssets(page);
     } catch (error) {
       fail("route " + route + " failed: " + error.message);

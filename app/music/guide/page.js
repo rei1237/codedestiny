@@ -7,7 +7,7 @@ import { buildArticleJsonLd, buildBreadcrumbJsonLd, buildFaqPageJsonLd } from ".
 
 const MUSIC_GUIDE_PAGE_TEXT_TRANSLATIONS = {
   ko: {
-    "musicGuide.001": "운세·명상 음악 콘텐츠 소개 | 꿀꿀운세",
+    "musicGuide.001": "운세·명상 음악 콘텐츠 소개 | 꿀꿀 운세",
     "musicGuide.002": "운세를 보기 전",
     "musicGuide.003": "리딩을 읽은 뒤",
     "musicGuide.004": "하루를 마무리할 때",

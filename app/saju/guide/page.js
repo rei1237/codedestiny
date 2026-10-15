@@ -7,7 +7,7 @@ import { buildArticleJsonLd, buildBreadcrumbJsonLd, buildFaqPageJsonLd } from ".
 
 const SAJU_GUIDE_TEXT_TRANSLATIONS = {
   ko: {
-    metaTitle: "사주 명리학 기본 가이드 | 꿀꿀운세",
+    metaTitle: "사주 명리학 기본 가이드 | 꿀꿀 운세",
     observe: "사주가 살피는 것",
     inputs: "필요한 입력값",
     useCases: "어떤 때 참고하면 좋은가",

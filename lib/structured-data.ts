@@ -24,7 +24,7 @@ type FaqItem = {
 export const SITE_AUTHOR = {
   name: "박병하",
   jobTitle: "명리학자",
-  description: "10년 경력의 명리학자. 꿀꿀운세가 공개하는 사주·운세 콘텐츠의 최종 검수 책임자입니다.",
+  description: "10년 경력의 명리학자. 꿀꿀 운세가 공개하는 사주·운세 콘텐츠의 최종 검수 책임자입니다.",
   knowsAbout: ["사주", "명리학", "만세력", "자미두수", "숙요점"],
   sameAs: ["https://blog.naver.com/neosaju"] as string[],
 } as const;
@@ -58,8 +58,9 @@ export function buildOrganizationJsonLd() {
     "@context": "https://schema.org",
     "@type": "Organization",
     "@id": `${siteSeo.siteUrl}/#organization`,
+    // 운영자(CODE DESTINY). 서비스 이름과 그 별칭은 WebSite 노드에만 둔다.
     name: siteSeo.organization.name,
-    alternateName: siteSeo.alternateName,
+    alternateName: siteSeo.organization.alternateName,
     url: siteSeo.siteUrl,
     logo: {
       "@type": "ImageObject",
@@ -94,7 +95,7 @@ export function buildOrganizationJsonLd() {
         "@type": "Thing",
         name: FUSION_FORTUNE_PROFILE.primary,
         alternateName: FUSION_FORTUNE_PROFILE.secondary,
-        description: "사주, 자미두수, 숙요점, 베다 점성술, 서양 점성술, 타로의 해석 관점을 AI가 종합하는 꿀꿀운세의 초융합 운세 방법론입니다.",
+        description: "사주, 자미두수, 숙요점, 베다 점성술, 서양 점성술, 타로의 해석 관점을 AI가 종합하는 초융합 운세 방법론입니다.",
       },
       { "@type": "Thing", name: "사주" },
       { "@type": "Thing", name: "자미두수" },
@@ -123,8 +124,8 @@ export function buildWebsiteJsonLd(locale?: string) {
     "@context": "https://schema.org",
     "@type": "WebSite",
     "@id": `${siteSeo.siteUrl}/#website`,
-    url: siteSeo.siteUrl,
-    // 🔴 브랜드 이름이다(꿀꿀운세). 등록 상호는 Organization.legalName으로 별도 보존한다.
+    url: `${siteSeo.siteUrl}/`,
+    // 🔴 서비스 이름이다(꿀꿀 운세, 별칭 꿀꿀운세). 운영자 CODE DESTINY 는 Organization 노드에 둔다.
     // 정적 셸 index.html 의 #website 노드와 글자 단위로 같아야 한다.
     name: siteSeo.brandName,
     alternateName: siteSeo.alternateName,

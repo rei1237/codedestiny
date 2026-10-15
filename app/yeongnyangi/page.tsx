@@ -1,4 +1,5 @@
 import {brandCopy} from '@/lib/seo/brand-copy.mjs';
+import {serializeJsonLd} from '@/lib/seo/json-ld.mjs';
 import type {Metadata} from 'next';
 import {siteSeo} from '@/lib/seo/siteSeo';
 import {yeongnyangiOgImage} from './_lib/share-image';
@@ -16,7 +17,7 @@ const TITLE=brandCopy('yeongnyangiTitle');
 const DESCRIPTION=brandCopy('yeongnyangiDescription');
 const URL_=`https://code-destiny.com${PATH}`;
 export const metadata:Metadata={title:{absolute:TITLE},description:DESCRIPTION,
- keywords:['사주 보는 고양이','사주보는고양이','사주보는 고양이','영냥이','꿀꿀운세','꿀꿀운세','코드데스티니'],
+ keywords:['사주 보는 고양이','사주보는고양이','사주보는 고양이','영냥이','꿀꿀 운세','꿀꿀운세','코드데스티니'],
  alternates:{canonical:URL_,languages:createHreflangFromRoutes(getAlternatesByRouteKey('yeongnyangi'))},robots:{index:true,follow:true},
  openGraph:{type:'website',locale:'ko_KR',url:URL_,siteName:siteSeo.brandName,title:TITLE,description:DESCRIPTION,images:[yeongnyangiOgImage]},
  twitter:{card:'summary_large_image',title:TITLE,description:DESCRIPTION,images:[yeongnyangiOgImage.url]}};
@@ -26,8 +27,7 @@ const jsonLd=[
  buildServiceJsonLd({name:'사주 보는 고양이 영냥이 운세 상담',description:'사주·자미두수·숙요점·베다점·서양 점성술·타로 중 한 체계의 계산을 바탕으로 AI가 고민을 챕터별로 해설하는 유료 운세 상담',path:PATH}),
  buildFaqPageJsonLd(YEONGNYANGI_FAQS),
 ];
-const serialize=(value:unknown)=>JSON.stringify(value).replace(/</g,'\u003c');
 export default function Page(){return <>
  <Home guide={<KoreanOnly><YeongnyangiGuide/></KoreanOnly>}/>
- {jsonLd.map((item,index)=><script key={index} type="application/ld+json" dangerouslySetInnerHTML={{__html:serialize(item)}}/>)}
+ {jsonLd.map((item,index)=><script key={index} type="application/ld+json" dangerouslySetInnerHTML={{__html:serializeJsonLd(item)}}/>)}
 </>;}
