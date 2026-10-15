@@ -605,7 +605,8 @@ function normalizeSukuyoPerson(value, fallbackName) {
     birthTime: cleanText(source.birthTime || source.time, 12),
     birthTimeUnknown: source.birthTimeUnknown === true,
     timezone: cleanText(source.timezone, 80) || "Asia/Seoul",
-    timezoneOffset: Number.isFinite(Number(source.timezoneOffset ?? source.tzOffset)) ? Number(source.timezoneOffset ?? source.tzOffset) : 9,
+    // 오프셋을 따로 받지 않으면 timezone(IANA)의 그 시점 오프셋을 쓴다(1954~61년 +8:30, 1987~88년 서머타임 등).
+    timezoneOffset: Number.isFinite(Number(source.timezoneOffset ?? source.tzOffset)) ? Number(source.timezoneOffset ?? source.tzOffset) : null,
     latitude: Number.isFinite(Number(source.latitude ?? source.lat)) ? Number(source.latitude ?? source.lat) : null,
     longitude: Number.isFinite(Number(source.longitude ?? source.lon ?? source.lng)) ? Number(source.longitude ?? source.lon ?? source.lng) : null,
     gender: cleanText(source.gender, 20),
@@ -5702,6 +5703,15 @@ function assertSukuyoCalculationBasis(consultRequest, draft) {
   throw error;
 }
 
+// 서버 복구는 저장된 원문 요청을 다시 정규화해 해시를 비교한다. 정규화 기본값이 바뀌어도 같은 요청은
+// 같은 해시여야 배포 전에 시작된 상담이 409로 막히지 않는다. 숙요 오프셋 기본값은 예전 9로 보고 해시한다.
+function fortuneTeaRequestHash(consultRequest) {
+  const sukuyo = consultRequest.sukuyo;
+  const legacyPerson = (person) => (person && person.timezoneOffset === null ? { ...person, timezoneOffset: 9 } : person);
+  const hashed = sukuyo ? { ...consultRequest, sukuyo: { ...sukuyo, user: legacyPerson(sukuyo.user), partner: legacyPerson(sukuyo.partner) } } : consultRequest;
+  return createHash("sha256").update(JSON.stringify(hashed)).digest("hex");
+}
+
 async function handleConsult(request, env, ctx = null, recoveryAuth = null) {
   if (!checkRateLimit(request)) {
     return json(
@@ -5712,7 +5722,7 @@ async function handleConsult(request, env, ctx = null, recoveryAuth = null) {
 
   const body = await readJson(request);
   const consultRequest = normalizeRequest(body);
-  const requestHash = createHash("sha256").update(JSON.stringify(consultRequest)).digest("hex");
+  const requestHash = fortuneTeaRequestHash(consultRequest);
   await prepareFortuneTeaSukuyoAstronomy(consultRequest, env, request.url);
   const access = await verifyFortuneTeaHouseConsultAccess(request, env, body, consultRequest, recoveryAuth);
   if (!access.ok) return access.response;
@@ -6026,7 +6036,9 @@ export const __fortuneTeaHouseTestUtils = {
   buildFallbackSajuDeepSections,
   buildFortuneTeaTimingFacts,
   buildSajuFactInput,
+  fortuneTeaRequestHash,
   getSajuRequiredSectionTitles,
   normalizeDraftResult,
+  normalizeRequest,
   resolveSajuCategoryRule,
 };

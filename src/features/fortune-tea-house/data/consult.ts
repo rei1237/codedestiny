@@ -11,6 +11,9 @@ export type FortuneTeaTarotSpread = "three" | "five";
 export type FortuneTeaHouseSukuyoPersonInput = {
   name?: string;
   birthDate?: string;
+  /** 선택. 비우거나 미상이면 서버가 그날 정오로 본명숙을 계산한다. */
+  birthTime?: string;
+  birthTimeUnknown?: boolean;
   calendarType?: FortuneTeaHouseCalendarType;
   isLeapMonth?: boolean;
   timezone?: string;

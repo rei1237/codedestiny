@@ -68,6 +68,30 @@ describe("시기 근거", () => {
   });
 });
 
+describe("숙요 출생 시각 근거", () => {
+  test("오프셋을 받지 않으면 비워 두어 IANA 역사 오프셋을 쓰고, 복구 해시는 예전 기본값 9와 같다", async () => {
+    const { createHash } = await import("node:crypto");
+    const { __fortuneTeaHouseTestUtils: utils } = await import("../../worker/routes/fortune-tea-house.js");
+    const { resolveTimezoneOffsetHours } = await import("../../worker/lib/iana-offset.js");
+    const body = {
+      consultationMode: "sukuyo", selectedTeaCupId: "cup", selectedTeaCupName: "찻잔", selectedTeaCupTopic: "연애", question: "우리 사이는 어떨까요?",
+      sukuyo: { user: { birthDate: "1958-01-15", birthTime: "07:40" }, partner: { birthDate: "1988-07-15", birthTimeUnknown: true } },
+    };
+    const request = utils.normalizeRequest(body);
+    expect(request.sukuyo.user).toMatchObject({ birthTime: "07:40", birthTimeUnknown: false, timezone: "Asia/Seoul", timezoneOffset: null });
+    expect(request.sukuyo.partner).toMatchObject({ birthTimeUnknown: true, timezoneOffset: null });
+    // 서울은 1954~61년 +8:30, 1988년 여름은 서머타임 +10이었다.
+    expect(resolveTimezoneOffsetHours("Asia/Seoul", { year: 1958, month: 1, day: 15, hour: 7, minute: 40 })).toBe(8.5);
+    expect(resolveTimezoneOffsetHours("Asia/Seoul", { year: 1988, month: 7, day: 15, hour: 12, minute: 0 })).toBe(10);
+
+    const legacy = { ...request, sukuyo: { ...request.sukuyo, user: { ...request.sukuyo.user, timezoneOffset: 9 }, partner: { ...request.sukuyo.partner, timezoneOffset: 9 } } };
+    expect(utils.fortuneTeaRequestHash(request)).toBe(createHash("sha256").update(JSON.stringify(legacy)).digest("hex"));
+    const explicit = utils.normalizeRequest({ ...body, sukuyo: { ...body.sukuyo, user: { ...body.sukuyo.user, timezoneOffset: 8.5 } } });
+    expect(explicit.sukuyo.user.timezoneOffset).toBe(8.5);
+    expect(utils.fortuneTeaRequestHash(explicit)).not.toBe(utils.fortuneTeaRequestHash(request));
+  });
+});
+
 describe("명식 관계 근거", () => {
   test("궁합 교차 관계는 같은 자리 지지끼리 계산하고 한쪽 시주가 없으면 시지를 뺀다", async () => {
     const { buildTeaCompatRelations, buildTeaNatalRelations } = await import("../../worker/lib/tea-saju-relations.js");
