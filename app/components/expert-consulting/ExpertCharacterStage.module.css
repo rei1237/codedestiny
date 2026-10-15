@@ -134,6 +134,11 @@
 }
 
 .stage[data-placement="loading"] .frame { width: 112px; }
+
+/* 세로로 긴 컷(무성 깃털 240/870)은 폭을 줄여 높이를 표정 프레임과 비슷하게 맞춘다. */
+.stage[data-aspect="custom"] .sprite { object-fit: contain; object-position: center; }
+.stage[data-placement="loading"][data-aspect="custom"] .frame { width: 52px; }
+.stage[data-placement="result"][data-aspect="custom"] .frame { flex-basis: 34px; width: 34px; }
 .stage[data-placement="loading"] .bubble { width: 100%; text-align: center; }
 
 @keyframes moodIn {

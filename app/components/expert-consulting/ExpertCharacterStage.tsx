@@ -23,6 +23,8 @@ type ExpertCharacterStageProps = {
   locale?: string;
   /** 무성의 깃털 단계처럼 mood 표정 대신 보여 줄 컷. */
   spriteOverride?: ExpertSprite;
+  /** spriteOverride 가 표정 컷과 비율이 다를 때(무성 깃털 240/870) 프레임 비율. */
+  spriteAspect?: string;
   className?: string;
 };
 
@@ -46,6 +48,7 @@ export default function ExpertCharacterStage({
   placement = "inline",
   locale = "ko",
   spriteOverride,
+  spriteAspect,
   className = "",
 }: ExpertCharacterStageProps) {
   const gate = useSpritePlaybackGate<HTMLElement>();
@@ -68,8 +71,9 @@ export default function ExpertCharacterStage({
       data-mood={mood}
       data-fit={config.spriteFit}
       data-motion={gate.canAnimate ? "on" : "off"}
+      data-aspect={spriteAspect ? "custom" : undefined}
     >
-      <div className={styles.frame} style={{ aspectRatio: config.spriteAspect }}>
+      <div className={styles.frame} style={{ aspectRatio: spriteAspect ?? config.spriteAspect }}>
         <Image
           key={sprite.src}
           className={styles.sprite}

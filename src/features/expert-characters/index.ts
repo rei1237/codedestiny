@@ -1,10 +1,10 @@
 import { hanbiCharacter } from "./hanbi";
-import { musungCharacter, MUSUNG_FEATHER_STAGES } from "./musung";
+import { musungCharacter, MUSUNG_FEATHER_ASPECT, MUSUNG_FEATHER_STAGES } from "./musung";
 import { yunCharacter } from "./yun";
 import type { ExpertCharacter, ExpertCharacterKey, ExpertLine, ExpertLocale, ExpertMood, ExpertSprite } from "./types";
 
 export type { ExpertCharacter, ExpertCharacterKey, ExpertLine, ExpertLocale, ExpertMood, ExpertSprite } from "./types";
-export { MUSUNG_FEATHER_STAGES };
+export { MUSUNG_FEATHER_ASPECT, MUSUNG_FEATHER_STAGES };
 
 export const EXPERT_CHARACTERS: Record<ExpertCharacterKey, ExpertCharacter> = {
   yun: yunCharacter,
