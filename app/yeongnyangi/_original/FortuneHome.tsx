@@ -4,6 +4,7 @@ import ResultSamples from "@/app/components/ResultSamples";
 import QuestionJourney from "@/app/components/QuestionJourney";
 import {relationshipCopy} from '../_lib/relationship-copy';
 import NightHero from "../_components/NightHero";
+import OpeningSong from "../_components/OpeningSong";
 import QuestionSkyEntry from "../_components/QuestionSkyEntry";
 import FeedbackInvitation from '../_components/FeedbackInvitation';
 import FounderTrust from "@/app/components/FounderTrust";
@@ -252,6 +253,7 @@ export default function FortuneHome({offers}:{offers:ProductOffers}) {
 
         <main>
           <NightHero/>
+          <OpeningSong/>
           <QuestionJourney source="home"/>
           <section className="fortune-relationship-entry" aria-labelledby="relationship-entry-title">
             <div className="fortune-relationship-entry__content"><h2 id="relationship-entry-title">{relationshipCopy.intro}</h2><p>{relationshipCopy.description}</p><a href="/yeongnyangi/fortune/?flow=relationship">{relationshipCopy.entry}<ArrowRight size={18} aria-hidden="true"/></a></div>
