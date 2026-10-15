@@ -169,6 +169,9 @@ for (const key of Object.keys(visionSchema.properties.scores.properties)) vision
 visionSchema.properties.imageQuality.properties.palmCoverage = { type: "NUMBER" };
 export const PALM_VISION_RESPONSE_SCHEMA = visionSchema;
 
+// 판독이 손바닥이라 했지만 주요선이 하나도 없어 거부할 때의 안내.
+const NO_MAJOR_LINES_REASON = "사진에서 손금의 주요 선을 찾지 못했어요. 손바닥 전체가 밝고 또렷하게 보이도록 다시 찍어 주세요.";
+
 // 2026-10-15 까지 프롬프트 JSON 예시에 박혀 있던 숫자다. 응답이 이 값을 그대로 내면 채점이 아니라
 // 예시를 베낀 것이므로 측정값으로 쓰지 않고 모름(null)으로 둔다.
 const COPIED_SCORE_EXAMPLE = Object.freeze({ love: 75, career: 80, wealth: 70, vitality: 85, creativity: 78, communication: 72 });
@@ -565,7 +568,11 @@ export async function analyzeHandWithGeminiVision(env, imageDataUrl, declaredSid
   const detectedLineKeys = extractDetectedLineKeys(handReading);
   // palmDetected=false 는 모델의 명시적 거부다. 존중한다 — 선이 몇 개 잡혔다고 뒤집지 않는다.
   // (기존 route.ts 는 여기서 뒤집어, 손이 아닌 사진도 판독이 나오는 원인 중 하나였다.)
-  const palmDetected = parsed.palmDetected === false ? false : parsed.palmDetected === true || detectedLineKeys.length > 0;
+  // "false" 같은 문자열도 거부로 읽는다. 주요선이 하나도 없는 "손바닥"은 판독 근거가 없고,
+  // 모델이 판정을 빼먹었으면 주요선이 둘 이상 잡혔을 때만 손바닥으로 본다.
+  const declaredPalm = bool(parsed.palmDetected, null);
+  const majorCount = majorLineDetectedCount(handReading);
+  const palmDetected = declaredPalm === false ? false : declaredPalm === true ? majorCount > 0 : majorCount >= 2;
 
   const iq = asObj(parsed.imageQuality);
   const copiedExample = isCopiedScoreExample(parsed.scores);
@@ -604,7 +611,8 @@ export async function analyzeHandWithGeminiVision(env, imageDataUrl, declaredSid
     raw: parsed,
     detectedLineKeys,
     qualityScore: computeQualityScore({ imageQuality, detectedLineKeys, palmDetected }),
-    notPalmReason: str(parsed.notPalmReason, ""),
+    // 모델은 손바닥이라 했는데 주요선이 안 잡혀 거부한 경우, 모델 사유는 비어 있다.
+    notPalmReason: palmDetected ? "" : str(parsed.notPalmReason, declaredPalm === false ? "" : NO_MAJOR_LINES_REASON),
     provider: ai.provider,
     model: ai.model,
   };

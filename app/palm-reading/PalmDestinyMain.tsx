@@ -523,41 +523,62 @@ async function analyzeImageQuality(file: File, copy: PalmDestinyCopy): Promise<P
       glareLow: glareRatio <= 0.16,
     };
 
-    const score = Object.values(checks).filter(Boolean).length;
-    const confidence: QualityConfidence = score >= 5 ? "높음" : score >= 3 ? "보통" : "낮음";
-    const warnings = [
-      !checks.resolution ? copy.qualityWarningResolution : null,
-      !checks.brightness ? copy.qualityWarningBrightness : null,
-      !checks.sharpness ? copy.qualityWarningSharpness : null,
-      !checks.palmLikely ? copy.qualityWarningPalmLikely : null,
-      !checks.fullPalmLikely ? copy.qualityWarningFullPalmLikely : null,
-      !checks.glareLow ? copy.qualityWarningGlareLow : null,
-    ].filter((item): item is string => Boolean(item));
-
-    const summary =
-      confidence === "높음"
-        ? copy.qualityConfidenceSummaryHigh
-        : confidence === "보통"
-        ? copy.qualityConfidenceSummaryMedium
-        : copy.qualityConfidenceSummaryLow;
-
-    return {
-      confidence,
-      score,
-      summary,
-      warnings,
-      checks,
-      metrics: {
-        width,
-        height,
-        brightnessMean: Number(averageLuminance.toFixed(2)),
-        edgeStrength: Number(edgeStrength.toFixed(2)),
-        glareRatio: Number(glareRatio.toFixed(4)),
-      },
-    };
+    return summarizeImageQuality(checks, {
+      width,
+      height,
+      brightnessMean: Number(averageLuminance.toFixed(2)),
+      edgeStrength: Number(edgeStrength.toFixed(2)),
+      glareRatio: Number(glareRatio.toFixed(4)),
+    }, copy);
   } finally {
     renderer.cleanup();
   }
+}
+
+/**
+ * 가로세로 비율로 짐작한 palmLikely 를 실제 손 검출 결과로 바꾼다.
+ * 검출기를 못 쓴 경우("unavailable")에만 비율 추정을 그대로 둔다.
+ */
+function withLandmarkPalmCheck(
+  quality: PalmImageQualityFeedback | null,
+  landmarkState: PalmLandmarkState,
+  copy: PalmDestinyCopy,
+): PalmImageQualityFeedback | null {
+  if (!quality || landmarkState.status === "unavailable") return quality;
+  return summarizeImageQuality({ ...quality.checks, palmLikely: landmarkState.status === "detected" }, quality.metrics, copy);
+}
+
+function summarizeImageQuality(
+  checks: PalmImageQualityFeedback["checks"],
+  metrics: PalmImageQualityFeedback["metrics"],
+  copy: PalmDestinyCopy,
+): PalmImageQualityFeedback {
+  const score = Object.values(checks).filter(Boolean).length;
+  const confidence: QualityConfidence = score >= 5 ? "높음" : score >= 3 ? "보통" : "낮음";
+  const warnings = [
+    !checks.resolution ? copy.qualityWarningResolution : null,
+    !checks.brightness ? copy.qualityWarningBrightness : null,
+    !checks.sharpness ? copy.qualityWarningSharpness : null,
+    !checks.palmLikely ? copy.qualityWarningPalmLikely : null,
+    !checks.fullPalmLikely ? copy.qualityWarningFullPalmLikely : null,
+    !checks.glareLow ? copy.qualityWarningGlareLow : null,
+  ].filter((item): item is string => Boolean(item));
+
+  const summary =
+    confidence === "높음"
+      ? copy.qualityConfidenceSummaryHigh
+      : confidence === "보통"
+      ? copy.qualityConfidenceSummaryMedium
+      : copy.qualityConfidenceSummaryLow;
+
+  return {
+    confidence,
+    score,
+    summary,
+    warnings,
+    checks,
+    metrics,
+  };
 }
 
 function mirrorPalmX(value: number, side: HandSide): number {
@@ -1921,13 +1942,13 @@ export default function PalmDestinyMain() {
         }
       }
 
+      // 실제 손 검출. 결과를 캐시해 분석 시작 때 재사용한다(같은 사진을 두 번 추론하지 않는다).
+      const landmarkCheck = await detectHandForFile(normalizedFile, side);
+      quality = withLandmarkPalmCheck(quality, landmarkCheck, copy);
       setQualityFeedbackBySide((prev) => ({
         ...prev,
         [side]: quality,
       }));
-
-      // 실제 손 검출. 결과를 캐시해 분석 시작 때 재사용한다(같은 사진을 두 번 추론하지 않는다).
-      const landmarkCheck = await detectHandForFile(normalizedFile, side);
       setLandmarkStateBySide((prev) => ({ ...prev, [side]: landmarkCheck }));
       // 새 사진이 들어왔으므로 이전 "그대로 진행" 판단은 무효다.
       setQualityOverride(false);

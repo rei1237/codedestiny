@@ -12,7 +12,7 @@ beforeAll(async () => {
   jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js', () => ({ verifyPerUsePayment: payment }));
   jest.unstable_mockModule('../../worker/lib/paid-result-revocation.js', () => ({ isPaidResultRevoked: async () => revoked }));
   jest.unstable_mockModule('../../worker/lib/gemini.js', () => ({ ...gemini, callGeminiText: async (_env, _prompt, options) => { textCall = options; return ai; } }));
-  jest.unstable_mockModule('../../worker/lib/structured-consultation.js', () => ({ callGeminiJsonWithRetry: async (_env, prompt) => { visionPrompt = prompt; return visionReply; } }));
+  jest.unstable_mockModule('../../worker/lib/structured-consultation.js', () => ({ callGeminiJsonWithRetry: async (_env, prompt) => { visionPrompt = prompt; return typeof visionReply === 'function' ? visionReply(prompt) : visionReply; } }));
   jest.unstable_mockModule('../../worker/lib/models.js', () => ({ ...models, ServiceExecutionTransaction: {
     findOne: filter => { if (fault === 'confirm') { fault = ''; return query(null); } return query(docs.find(row => match(row, filter)) || null); },
     findOneAndUpdate: (filter, update) => {
@@ -153,6 +153,37 @@ test('hand-side signals only flag a mismatch the vision reading supports', () =>
   expect(sides('left', 'unknown', 'right').status).toBe('uncertain');
   expect(sides('left', 'unknown', 'unknown').status).toBe('unverified');
   expect([clientSide({ label: 'Right', score: 0.9 }), clientSide({ label: 'Left', score: 0.6 }), clientSide(null)]).toEqual(['left', 'unknown', 'unknown']);
+});
+const analyze = (extra = {}) => route(new Request('https://mock.test/api/palm/analyze', { method: 'POST', body: JSON.stringify({ requestId: 'palm-original', leftPalmImage: 'data:image/png;base64,' + 'A'.repeat(80), dominantHand: 'right', analysisPurpose: 'general', ...extra }) }), {});
+test.each([
+  ['a string "false"', { palmDetected: 'false', imageQuality: { palmCoverage: 0.9 }, majorLines: { lifeLine: { detected: true } } }, ''],
+  ['an omitted verdict with one line', { imageQuality: { palmCoverage: 0.9 }, majorLines: { lifeLine: { detected: true } } }, '주요 선을 찾지 못했어요'],
+  ['a palm verdict without any major line', { palmDetected: true, imageQuality: { palmCoverage: 0.95 }, minorLines: { marriageLine: { detected: true } } }, '주요 선을 찾지 못했어요'],
+])('a non-palm vision reply with %s does not become a reading', async (_name, reply, reason) => {
+  visionReply.text = JSON.stringify(reply);
+  const response = await analyze();
+  expect(response.status).toBe(422);
+  const body = await response.json();
+  expect(body.code).toBe('PALM_NOT_DETECTED'); expect(body.reason).toContain(reason);
+  expect(docs).toHaveLength(0);
+});
+test('an omitted verdict still reads a palm when two major lines are visible', async () => {
+  visionReply.text = JSON.stringify({ imageQuality: { palmCoverage: 0.9 }, majorLines: { lifeLine: { detected: true }, heartLine: { detected: true } } });
+  expect((await vision({}, 'data:image/png;base64,AAAAAAAA', 'left')).palmDetected).toBe(true);
+});
+test('a non-palm photo in one slot is refused instead of filled by the landmark engine', async () => {
+  const palm = visionReply.text;
+  visionReply = prompt => ({ ok: true, provider: 'gemini', text: prompt.includes('오른손 칸') ? JSON.stringify({ palmDetected: false, notPalmReason: '고양이 사진입니다.' }) : palm });
+  const response = await analyze({ rightPalmImage: 'data:image/png;base64,' + 'B'.repeat(80) });
+  expect(response.status).toBe(422);
+  expect(await response.json()).toMatchObject({ code: 'PALM_NOT_DETECTED', reason: '오른손 칸 사진에서는 손바닥을 찾지 못했어요. 고양이 사진입니다.' });
+  expect(docs).toHaveLength(0);
+});
+test('a line the model saw on a mostly hidden palm does not pass the quality gate', async () => {
+  visionReply.text = JSON.stringify({ palmDetected: true, imageQuality: { brightness: 'good', sharpness: 'good', palmCoverage: 0.2 }, majorLines: { lifeLine: { detected: true } } });
+  const response = await analyze();
+  expect(response.status).toBe(423); expect((await response.json()).code).toBe('IMAGE_QUALITY_LOW');
+  expect(docs).toHaveLength(0);
 });
 test('heading lines separated by a blank line stay attached to their section', async () => {
   const body = '사진에서 확인된 선을 토대로 생활 속 선택을 차분히 살펴봅니다. '.repeat(4).trim();

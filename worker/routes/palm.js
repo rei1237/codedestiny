@@ -206,7 +206,8 @@ function buildCanonical(params) {
     canonical.imageQuality.brightness !== "dark" &&
     canonical.imageQuality.palmCoverage >= 0.42;
 
-  const hasEnoughQuality = qualityByImage || hasMajorLines;
+  // 손바닥 판정 없이 선만 있는 경우는 품질 충족이 아니다.
+  const hasEnoughQuality = hasPalm && (qualityByImage || hasMajorLines);
 
   if (!canonical.imageQuality.isPalmDetected) missingFields.push("imageQuality.isPalmDetected");
   if (!hasMajorLines && canonical.imageQuality.palmCoverage < 0.42) {
@@ -380,11 +381,17 @@ export async function handlePalmRoutes(request, env) {
         { status: 503 },
       );
     }
-    if (!palmDetectedAny) {
+    // 한쪽 사진만 손바닥이 아니어도 막는다. 안 막으면 그 칸이 결정론 엔진 판독으로 채워져
+    // 손이 아닌 사진이 결과에 들어간다. 판독 저장·결제 전이라 다시 올리면 된다.
+    const rejectedSide = palmDetectedAny ? analyses.find((a) => a.source === "vision-rejected") : null;
+    if (!palmDetectedAny || rejectedSide) {
       // Gemini 가 이유를 말해줬으면 그대로 전달한다("손이 아닌 사진입니다" 등).
       // 종전에는 어떤 경우든 "손바닥 인식에 실패했습니다" 하나뿐이라 사용자가
       // 무엇을 고쳐야 하는지 알 수 없었다.
-      const visionReason = analyses.map((a) => a.notPalmReason).find((reason) => reason) || "";
+      const modelReason = (rejectedSide ? [rejectedSide] : analyses).map((a) => a.notPalmReason).find((reason) => reason) || "";
+      const visionReason = rejectedSide
+        ? `${HAND_KO[rejectedSide.side]} 칸 사진에서는 손바닥을 찾지 못했어요. ${modelReason || "손바닥이 보이는 사진으로 바꾸거나 그 칸을 비워 주세요."}`
+        : modelReason;
       return json(
         {
           ok: false,
@@ -403,9 +410,13 @@ export async function handlePalmRoutes(request, env) {
       );
     }
 
-    const hasEnoughQualityAny = analyses.some((a) => isEnoughQuality(a.recognitionData));
-    const hasLineEvidenceAny = analyses.some((a) => a.hasMajorDetected);
-    if (!hasEnoughQualityAny && !hasLineEvidenceAny) {
+    // 선 근거는 coverage 를 모를 때만 품질을 대신한다. 판독이 손바닥이 절반 넘게
+    // 가려졌다고(0.42 미만) 답했으면 선 몇 개가 잡혔다고 넘기지 않는다.
+    const hasLineEvidence = (a) => {
+      const coverage = a?.recognitionData?.imageQuality?.palmCoverage;
+      return a.hasMajorDetected && !(a.source === "gemini" && typeof coverage === "number" && coverage < 0.42);
+    };
+    if (!analyses.some((a) => isEnoughQuality(a.recognitionData) || hasLineEvidence(a))) {
       return json(
         {
           ok: false,
