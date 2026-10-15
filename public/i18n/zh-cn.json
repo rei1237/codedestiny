@@ -15180,26 +15180,26 @@
       }
     },
     "palm_reading": {
-      "tagline": "Checks 4 major lines, 9 minor lines, 7 mounts of the palm, and 6 special markings, then writes a reading of at least 1,200 characters.",
+      "tagline": "Checks 4 major lines, 9 minor lines, 7 mounts of the palm, and 6 special markings, then writes an overall reading aimed at around 3,000 characters.",
       "feats": {
-        "0": "Upload photos of both hands at once and each is read",
+        "0": "Works with just one hand; with both hands, each is read separately",
         "1": "Reads the 4 major lines: life, head, heart, and fate",
         "2": "Checks 9 minor lines and the 7 mounts of the palm as well",
         "3": "Of the 6 special markings, only those confirmed in the photo are written up",
-        "4": "Pick one of 6 consultation purposes and the reading is built on that axis",
-        "5": "The reading runs to at least 1,200 characters"
+        "4": "Ties lines, mounts, and markings together into one overall reading",
+        "5": "The reading aims for around 3,000 characters"
       },
       "premiumIntro": "Only the lines and markings confirmed in the photo are used as grounds. Lines that are blurred or not picked up are not written up as present.",
       "premiumAudience": {
         "0": "Those who want their palm read with reasons attached",
         "1": "Those who want to compare both hands",
-        "2": "Those who want the reading built around a specific concern"
+        "2": "Those who want their tendencies and life flow summed up in one reading"
       },
       "premiumChapters": {
-        "0": "A line reading for each hand",
+        "0": "A line reading for each hand you upload",
         "1": "A summary of 4 major lines, 9 minor lines, and 7 mounts",
-        "2": "A reading matched to your consultation purpose",
-        "3": "A reading of at least 1,200 characters"
+        "2": "An overall reading that ties lines, mounts, and markings together",
+        "3": "A reading aimed at around 3,000 characters"
       },
       "premiumOutcomes": {
         "0": "Analysis accuracy varies with image quality.",
@@ -15209,17 +15209,17 @@
       "answersQuestions": {
         "0": "Which line stands out most on my palm?",
         "1": "Why do my two hands look different?",
-        "2": "Which line touches on what I am worried about now?"
+        "2": "What tendencies and flow does my palm show?"
       },
       "fallbackCta": "Start the palm analysis",
       "analysisSteps": {
         "0": {
           "label": "Photo upload",
-          "detail": "Upload photos of both hands and pick one of 6 consultation purposes."
+          "detail": "Upload a photo of one hand or both. With both hands, the differences between them are read too."
         },
         "1": {
           "label": "Lines and mounts",
-          "detail": "Reads both hands together and checks 4 major lines, 9 minor lines, 7 mounts, and 6 special markings."
+          "detail": "Reads the uploaded hands and checks 4 major lines, 9 minor lines, 7 mounts, and 6 special markings."
         },
         "2": {
           "label": "Scoring",
@@ -15227,27 +15227,27 @@
         },
         "3": {
           "label": "Writing the reading",
-          "detail": "Writes at least 1,200 characters around the purpose you chose."
+          "detail": "Ties the reading together into an overall interpretation aimed at around 3,000 characters."
         }
       },
       "valueCompare": {
         "0": {
           "axis": "Reading scope",
-          "premium": "Each hand separately, 4 major lines, 9 minor lines, 7 mounts"
+          "premium": "Each uploaded hand, 4 major lines, 9 minor lines, 7 mounts"
         },
         "1": {
           "axis": "Reading length",
-          "premium": "A reading of at least 1,200 characters"
+          "premium": "A reading aimed at around 3,000 characters"
         },
         "2": {
-          "axis": "Purpose reflected",
-          "premium": "Rebuilt around the axis you chose from 6 consultation purposes"
+          "axis": "Both-hand comparison",
+          "premium": "With both hands, reads the difference between the hand you were born with and the hand you have lived"
         }
       },
       "faq": {
         "0": {
           "q": "Do I have to upload both hands?",
-          "a": "If you upload both hands together, each is read and compared."
+          "a": "No. One hand is enough for an analysis. If you upload both hands together, each is read and compared."
         },
         "1": {
           "q": "What if the photo is blurry?",
@@ -15260,8 +15260,8 @@
       },
       "receives": {
         "0": {
-          "title": "双手判读",
-          "detail": "分别上传双手照片，会一起解读并比较两只手。"
+          "title": "逐手判读",
+          "detail": "只上传一只手也能解读，上传双手则分别解读两只手。"
         },
         "1": {
           "title": "主线与副线确认",
@@ -15272,22 +15272,22 @@
           "detail": "同时确认手掌7个掌丘和特殊纹样。"
         },
         "3": {
-          "title": "按目的定制解读",
-          "detail": "以你从6种咨询目的中选择的一个为主线展开解读。"
+          "title": "双手比较",
+          "detail": "上传双手时，会一并解读先天之手与后天之手的差异。"
         },
         "4": {
-          "title": "1200字以上的解读文",
-          "detail": "将判读结果整理成1200字以上的解读文。"
+          "title": "以3000字左右为目标的解读文",
+          "detail": "将判读结果整理成以3000字左右为目标的解读文。"
         }
       },
       "outline": {
         "0": {
-          "title": "上传照片并选择目的",
-          "detail": "上传双手照片，并从6种咨询目的中选择一个。"
+          "title": "上传照片",
+          "detail": "上传一只手或双手的照片。若是双手，还会看两只手的差异。"
         },
         "1": {
           "title": "手相判读",
-          "detail": "一起解读双手，确认4条主线、9种副线、7个掌丘和特殊纹样。"
+          "detail": "解读所上传的手，确认4条主线、9种副线、7个掌丘和特殊纹样。"
         },
         "2": {
           "title": "分数汇总",
@@ -15295,7 +15295,7 @@
         },
         "3": {
           "title": "撰写解读文",
-          "detail": "以所选目的为主线，撰写1200字以上的解读。"
+          "detail": "综合判读结果，以3000字左右为目标撰写整体解读。"
         },
         "4": {
           "title": "查看结果",
