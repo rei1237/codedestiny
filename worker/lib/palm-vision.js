@@ -257,7 +257,7 @@ function measuredFields(raw, defaults) {
   return { values, defaultedFields };
 }
 
-function majorLine(raw, defaults) {
+function majorLine(raw) {
   const o = asObj(raw);
   const detected = bool(o.detected, false);
   return {
@@ -268,21 +268,28 @@ function majorLine(raw, defaults) {
     branches: num(o.branches, 0),
     startPoint: str(o.startPoint, ""),
     endPoint: str(o.endPoint, ""),
-    summary: str(o.summary, defaults.summary),
-    advice: str(o.advice, defaults.advice),
+    summary: str(o.summary, ""),
+    advice: str(o.advice, ""),
+    defaultedFields: textDefaultedFields(o, ["summary", "advice"]),
   };
 }
 
-function minorLine(raw, defaultSummary) {
+function minorLine(raw) {
   const o = asObj(raw);
   const detected = bool(o.detected, false);
   return {
     detected,
     confidence: detected ? unit(o.confidence) : 0,
     strength: detected ? str(o.strength, "medium") : "none",
-    summary: str(o.summary, defaultSummary),
-    defaultedFields: detected && !str(o.strength, "") ? ["strength"] : [],
+    summary: str(o.summary, ""),
+    defaultedFields: [...(detected && !str(o.strength, "") ? ["strength"] : []), ...textDefaultedFields(o, ["summary"])],
   };
+}
+
+// 모델이 쓰지 않은 해설·조언은 지어 넣지 않는다("결혼선을 분석했습니다." 같은 자리채움이
+// 유료 본문에 섞였다). 비워 두고 defaultedFields 로 알린다 — mount 와 같은 규칙.
+function textDefaultedFields(o, keys) {
+  return keys.filter((key) => !str(o[key], ""));
 }
 
 const SPECIAL_MARK_LABELS = {
@@ -335,22 +342,10 @@ export function geminiResultToHandReading(g) {
   const ov = asObj(g.overall);
   const hs = asObj(g.handShape);
 
-  const lifeLine = majorLine(ml.lifeLine, {
-    summary: "생명선을 판독했습니다.",
-    advice: "규칙적인 생활 리듬을 유지하세요.",
-  });
-  const headLine = majorLine(ml.headLine, {
-    summary: "두뇌선을 판독했습니다.",
-    advice: "명확한 목표 설정이 도움이 됩니다.",
-  });
-  const heartLine = majorLine(ml.heartLine, {
-    summary: "감정선을 판독했습니다.",
-    advice: "감정 표현을 솔직하게 하는 연습이 도움이 됩니다.",
-  });
-  const fateLine = majorLine(ml.fateLine, {
-    summary: "운명선을 판독했습니다.",
-    advice: "꾸준한 노력이 결실을 맺습니다.",
-  });
+  const lifeLine = majorLine(ml.lifeLine);
+  const headLine = majorLine(ml.headLine);
+  const heartLine = majorLine(ml.heartLine);
+  const fateLine = majorLine(ml.fateLine);
   const lifeShape = measuredFields(ml.lifeLine, { length: "medium", depth: "medium", curvature: "normal" });
   const headShape = measuredFields(ml.headLine, {
     length: "medium",
@@ -372,31 +367,32 @@ export function geminiResultToHandReading(g) {
       labelKo: str(hs.labelKo, "혼합형"),
       palmRatio: str(hs.palmRatio, "normal"),
       fingerRatio: str(hs.fingerRatio, "normal"),
-      summary: str(hs.summary, "손 형태를 분석했습니다."),
+      summary: str(hs.summary, ""),
     },
     majorLines: {
-      lifeLine: { ...lifeLine, ...lifeShape.values, defaultedFields: lifeShape.defaultedFields },
-      headLine: { ...headLine, ...headShape.values, defaultedFields: headShape.defaultedFields },
-      heartLine: { ...heartLine, ...heartShape.values, defaultedFields: heartShape.defaultedFields },
+      lifeLine: { ...lifeLine, ...lifeShape.values, defaultedFields: [...lifeLine.defaultedFields, ...lifeShape.defaultedFields] },
+      headLine: { ...headLine, ...headShape.values, defaultedFields: [...headLine.defaultedFields, ...headShape.defaultedFields] },
+      heartLine: { ...heartLine, ...heartShape.values, defaultedFields: [...heartLine.defaultedFields, ...heartShape.defaultedFields] },
       fateLine: {
         ...fateLine,
         ...fateShape.values,
         strength: fateLine.detected ? fateShape.values.strength : "none",
-        defaultedFields: fateLine.detected
-          ? fateShape.defaultedFields
-          : fateShape.defaultedFields.filter((key) => key !== "strength"),
+        defaultedFields: [
+          ...fateLine.defaultedFields,
+          ...(fateLine.detected ? fateShape.defaultedFields : fateShape.defaultedFields.filter((key) => key !== "strength")),
+        ],
       },
     },
     minorLines: {
-      sunLine: minorLine(mn.sunLine, "태양선을 분석했습니다."),
-      moneyLine: minorLine(mn.moneyLine, "재물선을 분석했습니다."),
-      marriageLine: minorLine(mn.marriageLine, "결혼선을 분석했습니다."),
-      mercuryLine: minorLine(mn.mercuryLine, "수성선을 분석했습니다."),
-      healthLine: minorLine(mn.healthLine, "건강선을 분석했습니다."),
-      intuitionLine: minorLine(mn.intuitionLine, "직관선을 분석했습니다."),
-      girdleOfVenus: minorLine(mn.girdleOfVenus, "금성대를 분석했습니다."),
-      travelLine: minorLine(mn.travelLine, "여행선을 분석했습니다."),
-      braceletLine: minorLine(mn.braceletLine, "손목선을 분석했습니다."),
+      sunLine: minorLine(mn.sunLine),
+      moneyLine: minorLine(mn.moneyLine),
+      marriageLine: minorLine(mn.marriageLine),
+      mercuryLine: minorLine(mn.mercuryLine),
+      healthLine: minorLine(mn.healthLine),
+      intuitionLine: minorLine(mn.intuitionLine),
+      girdleOfVenus: minorLine(mn.girdleOfVenus),
+      travelLine: minorLine(mn.travelLine),
+      braceletLine: minorLine(mn.braceletLine),
     },
     specialMarks: normalizeSpecialMarks(g.specialMarks),
     mounts: {
@@ -411,7 +407,7 @@ export function geminiResultToHandReading(g) {
     scores: Object.fromEntries(Object.keys(COPIED_SCORE_EXAMPLE).map((key) => [key, copiedScores ? null : score(sc[key])])),
     overall: {
       title: str(ov.title, "손금 분석 결과"),
-      summary: str(ov.summary, "손금을 분석했습니다."),
+      summary: str(ov.summary, ""),
       dominantLine: str(ov.dominantLine, ""),
       palmType: str(ov.palmType, ""),
       careerShift: str(ov.careerShift, ""),
@@ -719,7 +715,14 @@ const DEEP_CONSULT_SYSTEM_PROMPT = `당신은 손금 상담가입니다. 이미 
  * fallbackMinChars 로 "짧은 폴백이 유료 결과로 나가는 것"을 막는다.
  * 실패해도 throw 하지 않는다 — 결제 후 결과는 항상 전달한다(degrade-not-throw).
  */
+// 선별 불확실성: 사진에서 보였지만 모델이 해설을 쓰지 않은 선. 빈 해설을 상담이 지어 채우지 않게 따로 알린다.
+function uncertainLineKeys(reading) {
+  const lines = { ...reading?.majorLines, ...reading?.minorLines };
+  return Object.keys(lines).filter((key) => lines[key]?.detected && lines[key].defaultedFields?.includes("summary"));
+}
+
 export async function buildPalmDeepConsult(env, input, logContext = {}) {
+  const uncertainLines = { left: uncertainLineKeys(input.leftHandReading), right: uncertainLineKeys(input.rightHandReading) };
   const context = JSON.stringify(
     {
       analysisPurpose: input.analysisPurpose,
@@ -734,6 +737,7 @@ export async function buildPalmDeepConsult(env, input, logContext = {}) {
       bothHandsComparison: input.bothHandsComparison,
       specialMarks: input.specialMarks,
       missingData: input.missingData,
+      uncertainLines,
     },
     null,
     2,
@@ -743,11 +747,14 @@ export async function buildPalmDeepConsult(env, input, logContext = {}) {
     Array.isArray(input.uploadedHands) && input.uploadedHands.length >= 2
       ? "양손이 모두 등록되어 선천(비주로 쓰는 손)과 후천(주로 쓰는 손)의 차이를 함께 짚어 주세요."
       : "한 손만 등록되었습니다. 그 손의 역할(선천/후천)을 명시하고, 없는 손을 추측해 쓰지 마세요.";
+  const uncertainNote = uncertainLines.left.length + uncertainLines.right.length > 0
+    ? "\nuncertainLines 의 선은 사진에서 보였지만 판독 해설이 비어 있습니다. 그 선의 의미를 지어내지 말고, 이번 사진에서는 자세히 읽지 못했다고만 짧게 쓰세요.\n"
+    : "";
 
   const userPrompt = `아래 손금 판독 데이터를 바탕으로 심층 상담문을 작성하세요.
 
 ${handsNote}
-
+${uncertainNote}
 판독 데이터:
 ${context}`;
 

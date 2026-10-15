@@ -1,6 +1,6 @@
 /** @jest-environment node */
 import { jest } from '@jest/globals';
-let save, read, route, deep, vision, docs, fault, proof, revoked, userId, ai, visionReply, textCall, visionPrompt, sides, clientSide;
+let save, read, route, deep, vision, docs, fault, proof, revoked, userId, ai, visionReply, textCall, visionPrompt, sides, clientSide, textPrompt;
 const owner = '64b7f2a1c3d4e5f601234567';
 const query = value => ({ sort() { return this; }, lean: async () => structuredClone(value) });
 const match = (row, filter) => Object.entries(filter).every(([key, value]) => row[key] === value);
@@ -11,7 +11,7 @@ beforeAll(async () => {
   jest.unstable_mockModule('../../worker/lib/auth.js', () => ({ ...auth, requireAuth: async () => ({ userId }) }));
   jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js', () => ({ verifyPerUsePayment: payment }));
   jest.unstable_mockModule('../../worker/lib/paid-result-revocation.js', () => ({ isPaidResultRevoked: async () => revoked }));
-  jest.unstable_mockModule('../../worker/lib/gemini.js', () => ({ ...gemini, callGeminiText: async (_env, _prompt, options) => { textCall = options; return ai; } }));
+  jest.unstable_mockModule('../../worker/lib/gemini.js', () => ({ ...gemini, callGeminiText: async (_env, prompt, options) => { textCall = options; textPrompt = prompt; return ai; } }));
   jest.unstable_mockModule('../../worker/lib/structured-consultation.js', () => ({ callGeminiJsonWithRetry: async (_env, prompt) => { visionPrompt = prompt; return typeof visionReply === 'function' ? visionReply(prompt) : visionReply; } }));
   jest.unstable_mockModule('../../worker/lib/models.js', () => ({ ...models, ServiceExecutionTransaction: {
     findOne: filter => { if (fault === 'confirm') { fault = ''; return query(null); } return query(docs.find(row => match(row, filter)) || null); },
@@ -184,6 +184,18 @@ test('a line the model saw on a mostly hidden palm does not pass the quality gat
   const response = await analyze();
   expect(response.status).toBe(423); expect((await response.json()).code).toBe('IMAGE_QUALITY_LOW');
   expect(docs).toHaveLength(0);
+});
+test('line text the model left out stays empty and reaches the deep consult as uncertainty', async () => {
+  visionReply.text = JSON.stringify({ palmDetected: true, imageQuality: { brightness: 'good', sharpness: 'good', palmCoverage: 0.95 }, majorLines: { lifeLine: { detected: true, summary: '선 확인', advice: '천천히 가세요.' }, heartLine: { detected: true } }, minorLines: { marriageLine: { detected: true, strength: 'weak' } } });
+  expect((await analyze()).status).toBe(200);
+  const reading = docs[0].metadata.palmResult.leftHandReading;
+  expect(reading.minorLines.marriageLine).toMatchObject({ summary: '', defaultedFields: ['summary'] });
+  expect(reading.majorLines.heartLine).toMatchObject({ summary: '', advice: '' });
+  expect(reading.majorLines.heartLine.defaultedFields).toEqual(expect.arrayContaining(['summary', 'advice']));
+  expect(reading.majorLines.lifeLine.defaultedFields).not.toContain('summary');
+  expect(JSON.stringify(reading)).not.toMatch(/분석했습니다|판독했습니다/u);
+  expect(textPrompt).toMatch(/"uncertainLines": \{\s*"left": \[\s*"heartLine",\s*"marriageLine"\s*\]/u);
+  expect(textPrompt).toContain('그 선의 의미를 지어내지 말고');
 });
 test('heading lines separated by a blank line stay attached to their section', async () => {
   const body = '사진에서 확인된 선을 토대로 생활 속 선택을 차분히 살펴봅니다. '.repeat(4).trim();
