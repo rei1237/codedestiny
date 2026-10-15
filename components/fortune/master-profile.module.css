@@ -18,6 +18,26 @@
   --profile-accent: var(--cd-cta-primary-ink);
   --profile-line: var(--cd-cta-hairline);
 }
+/* 전문가 상담 캐릭터 — 세 랜딩 모두 다크 배경이라 라이트 테마 --cd-text 를 쓰면 묻힌다. ExpertCharacterStage 토큰과 맞춘다. */
+.profile[data-theme="yun"] {
+  --profile-ink: #f6f1ff;
+  --profile-muted: rgba(226, 222, 255, .8);
+  --profile-accent: #cdbcf2;
+  --profile-line: rgba(205, 188, 242, .34);
+}
+.profile[data-theme="musung"] {
+  --profile-ink: #fff7e2;
+  --profile-muted: rgba(232, 226, 210, .8);
+  --profile-accent: #e9c46a;
+  --profile-line: rgba(233, 196, 106, .32);
+}
+/* 서한비 — 빗빛 인디고·옅은 금빛(버건디 금지) */
+.profile[data-theme="hanbi"] {
+  --profile-ink: #f5f7ff;
+  --profile-muted: rgba(220, 228, 245, .8);
+  --profile-accent: #e2cc8c;
+  --profile-line: rgba(205, 218, 242, .34);
+}
 .portrait { width: 100%; height: auto; border-radius: var(--cd-r-card); }
 .copy { min-width: 0; word-break: keep-all; overflow-wrap: anywhere; }
 .copy h2 { margin: 0; font-family: var(--font-display, var(--font-body)); font-size: var(--cd-t-display); line-height: 1.3; }

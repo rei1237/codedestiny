@@ -17,5 +17,20 @@
     "promptSummary": "Preserve pink eyes, long wavy pink hair, face and flower accessory. Replace all clothing with Korean ivory/blush hanbok: jeogori, white dongjeong collar, goreum and full chima, lotus embroidery; not kimono or obi. Landscape sheet with portrait holding tea, full-body views, gentle/listening/thoughtful expressions and Korean tea house. Labels: 연이 / 운명 찻집 마스터 / 따뜻한 공감으로 여는 상담 / 마음을 먼저 듣고, 작은 실천을 함께 찾아요. Remove brands, age, birthday, height, MBTI and credentials.",
     "portraitCrop": { "left": 20, "top": 30, "width": 480, "height": 690 }
   },
+  "yun": {
+    "references": ["public/images/novel/remaster/yun/base.webp"],
+    "promptSummary": "Preserve face, indigo-violet low ponytail, grey-violet eyes, mole under left eye, silver crescent earring, navy durumagi with moon-phase embroidery, folding fan and bandaged left hand (palm never shown). Landscape sheet with sky-ship observatory portrait, front/back full body, laugh/serious/surprised expressions, telescope scene with white cat. Labels: 윤달 / 생시부터 묻는 점성술사 / 서양 점성술 / 태어난 시각을 분까지 맞추고, 열두 집을 하나씩 읽어 드려요. No ages, brands or credentials.",
+    "portraitCrop": { "left": 20, "top": 20, "width": 490, "height": 700 }
+  },
+  "hanbi": {
+    "references": ["public/images/novel/remaster/pje/smile.webp"],
+    "promptSummary": "Reference used for face and hair only. Adult woman in a modest, fully covered rain-indigo high-collar coat dress with silver rain-thread embroidery and pale gold trim; no burgundy or red. Landscape sheet with ledger portrait on a moonlit rain bridge, front/back full body, smile/thoughtful/resolved expressions, two threads between star clusters. Labels: 서한비 / 두 달집 사이의 거리를 재는 사람 / 숙요점 궁합 / 반복되는 엇갈림을 쌓이는 빚으로 읽고, 갚는 법을 함께 찾습니다. No ages, brands or credentials.",
+    "portraitCrop": { "left": 55, "top": 50, "width": 480, "height": 690 }
+  },
+  "musung": {
+    "references": ["public/images/novel/mu-01.webp"],
+    "promptSummary": "Reference used for face and hair only. Dignified mid-teen boy, hood down, no crow cloak; modest fully covered charcoal scholar robe with ash-grey and gold star embroidery. Ability-focused: golden feather held like a conductor's baton lighting the twelve palace lanterns. Front/back full body, composed/verdict/warm-smile expressions. Labels: 무성 / 막힌 별을 녹으로 바꾸는 판결 / 자미두수 / 막힌 자리를 짚고, 풀어 갈 행동을 처방합니다. Neutral poses, no romance or fanservice, no ages, brands or credentials.",
+    "portraitCrop": { "left": 48, "top": 45, "width": 455, "height": 680 }
+  },
   "encoding": { "sheetWebpQuality": 90, "portraitWebpQuality": 87, "portraitWidth": 600, "portraitHeight": 720, "portraitFit": "cover", "portraitPosition": "top" }
 }

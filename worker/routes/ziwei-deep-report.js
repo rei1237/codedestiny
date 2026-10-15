@@ -244,7 +244,7 @@ async function runWithConcurrency(items, limit, worker) {
 }
 
 async function generateChapter(env, chart, birthInfo, chapter, consultation, locale, attempt = 1) {
-  const prompt = buildZiweiDeepChapterPrompt(chart, birthInfo, chapter, consultation) + (attempt > 1
+  const prompt = buildZiweiDeepChapterPrompt(chart, birthInfo, chapter, consultation, locale) + (attempt > 1
     ? `\n[보강] 계산 근거를 유지하고 새로운 생활 장면과 행동 조언으로 공백 제외 본문 ${Math.ceil(chapter.minChars / 0.8)}자 이상을 목표로 완결된 장을 작성하세요. 같은 문장을 반복하지 마세요.` : "");
   // 결정적(명반+생년월일 기반, 자유질문 없음) 챕터 해석 → LLM 응답 캐시 + in-flight dedup.
   const chapterLlmCache = {

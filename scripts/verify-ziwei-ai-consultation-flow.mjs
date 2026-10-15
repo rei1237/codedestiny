@@ -92,7 +92,7 @@ const page = [
 ].join("\n");
 assert(page.includes("runBillingCoinGate"), "page must use runBillingCoinGate");
 assert(page.includes("/api/ziwei-ai/prepare") && page.includes("/api/ziwei-ai/generate"), "page API calls missing");
-assert(!/fuctionassets|\.webp|<img|backgroundImage|url\(/.test(page), "/ziwei-ai page must not depend on image files");
+assert(!/fuctionassets|\.webp|<img|backgroundImage|url\(/.test(page), "/ziwei-ai page must not hardcode image files (character art comes from src/features/expert-characters, guarded by expert-characters-data.test.js)");
 assert(page.includes("별궁을 열기 위한 정보를 확인하고 있습니다"), "loading copy missing");
 assert(page.includes("결제창을 확인해 주세요"), "payment copy missing");
 assert(page.includes("명궁과 신궁의 흐름을 맞춰보는 중"), "LLM loading copy missing");

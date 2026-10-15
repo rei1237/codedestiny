@@ -20,6 +20,7 @@
 import { formatStarWithBrightness } from "./ziwei-ai-chart.js";
 import { ZIWEI_STRENGTH_LEGEND } from "../../lib/ziwei-star-strength.js";
 import { buildZiweiBusinessBasis, formatZiweiBusinessLines } from "./ziwei-derived-signals.js";
+import { expertPersonaText } from "./expert-character-persona-text.js";
 
 export const ZIWEI_DEEP_PDF_META = Object.freeze({
   featureKey: "ziwei-deep-pdf",
@@ -215,7 +216,7 @@ function formatBirthLine(birthInfo) {
 /** 리포트 전체 공통 톤/규칙 가이드 (모든 챕터 프롬프트에 삽입) */
 export function buildZiweiDeepSystemGuide() {
   return [
-    "당신은 20년 경력의 자미두수(紫微斗數) 명리 상담가다. 아래 규칙을 반드시 지켜라.",
+    "당신은 자미두수(紫微斗數) 명리 상담가다. 아래 규칙을 반드시 지켜라.",
     "1. 제공된 [명반 데이터]에 실제로 배치된 성요·사화만 근거로 삼아라. 명반에 없는 별을 지어내지 마라.",
     "2. 과장된 예언·단정(반드시/절대) 대신, 성향과 확률·경향으로 서술하고 스스로 선택할 여지를 남겨라.",
     "3. 추상적 미사여구만 나열하지 말고, 일상·관계·일·돈의 구체적 장면과 실행 조언으로 연결하라.",
@@ -262,8 +263,9 @@ function buildBusinessBasisLines(chart, chapter) {
  * @param {object} birthInfo  { name, gender, birthDate, birthTime, birthTimeUnknown, calendarType }
  * @param {object} chapter  ZIWEI_DEEP_CHAPTERS 항목
  * @param {object} [consultation]  { topic, question } — 통합된 전문가 상담 입력(선택)
+ * @param {string} [locale]  리포트 생성 언어. 한국어는 무성 페르소나 전체, 그 밖은 영어 스타일 메모를 붙인다.
  */
-export function buildZiweiDeepChapterPrompt(chart, birthInfo, chapter, consultation = null) {
+export function buildZiweiDeepChapterPrompt(chart, birthInfo, chapter, consultation = null, locale = "ko") {
   const chartText = formatZiweiChartForPrompt(chart);
   const birthLine = formatBirthLine(birthInfo);
   const min = chapter.minChars || 2200;
@@ -301,6 +303,9 @@ export function buildZiweiDeepChapterPrompt(chart, birthInfo, chapter, consultat
     "- 명반 근거를 인용할 때 실제 배치된 성요 이름을 명시하라(예: '명궁의 자미·천부가…').",
     "- 마크다운 표/코드블록 없이, 소제목(●)과 문단만으로 작성하라.",
     "",
+    // 캐릭터(무성) 페르소나 — 위 지시 전체 뒤에 두어 말투만 정한다.
+    expertPersonaText("musung", locale),
+    "",
     `이제 "${chapter.title}"를 작성하라.`,
   ]
     .filter((line) => line !== "")
@@ -314,7 +319,7 @@ export function buildAdminLabPrompt(body = {}, options = {}) {
   const chapter = ZIWEI_DEEP_CHAPTERS.find((item) => item.id === options.variant) || ZIWEI_DEEP_CHAPTERS[0];
 
   return {
-    systemPrompt: buildZiweiDeepSystemGuide(),
+    systemPrompt: [buildZiweiDeepSystemGuide(), expertPersonaText("musung")].filter(Boolean).join("\n\n"),
     prompt: "",
     partial: true,
     partialReason: "장별 사용자 프롬프트는 계산된 자미두수 명반을 입력으로 받습니다. 시스템 지침만 표시합니다.",

@@ -1952,6 +1952,25 @@
       "giftTerms": "Waarde: {value} KRW · {days} dagen geldig vanaf uitgifte · Korting op geschikte diensten vanaf {minimum} KRW. Niet voor de aankoop van passen.",
       "terms": "Voorwaarden van Maanstenen bekijken",
       "rewards": "Activiteiten en beloningen"
+    },
+    "mv": {
+      "title": "Lotsreis in het maanlicht",
+      "lead": "Een verhaal dat begint bij één klein lantaarntje, vijf hemels doorkruist en eindigt met een weerzien onder twee manen",
+      "meta": "1:33 · Ondertiteling van de songtekst in het Koreaans",
+      "videoLabel": "Videoclip Lotsreis in het maanlicht",
+      "play": "Videoclip Lotsreis in het maanlicht afspelen, 1 minuut 33 seconden, met geluid",
+      "ctaIdle": "1:33 · Met geluid",
+      "ctaLoading": "Video wordt geladen…",
+      "ctaError": "Laden mislukt · Tik om het opnieuw te proberen",
+      "error": "De video kon niet worden geladen. Tik er nog eens op.",
+      "chaptersLabel": "Naar een scène gaan",
+      "ch1": "Lantaarn",
+      "ch2": "Eerste stappen",
+      "ch3": "Vijf hemels",
+      "ch4": "Bloei",
+      "ch5": "De echte timing",
+      "lyrics": "Songtekst",
+      "more": "Meer maanlichtmuziek luisteren"
     }
   },
   "terms": {

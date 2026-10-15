@@ -101,13 +101,13 @@
       "aiLifeFortune": "Life Fortune Expert",
       "aiLifeFortuneMeta": "Life flow via chart & luck cycles",
       "aiZiwei": "Zi Wei Expert Consult",
-      "aiZiweiMeta": "Personal 12-palace reading",
+      "aiZiweiMeta": "Museong · turns blocked stars into fortune",
       "aiAstro": "Astrology Expert Consult",
-      "aiAstroMeta": "In-depth natal chart Q&A",
+      "aiAstroMeta": "Yundal · asks your birth minute first",
       "aiVedic": "Vedic Expert Consult",
       "aiVedicMeta": "Rasi & nakshatra reading",
       "aiSukuyo": "Sukuyo Match Expert",
-      "aiSukuyoMeta": "27-mansion relationship reading",
+      "aiSukuyoMeta": "Seo Hanbi · the distance between two mansions",
       "aiKarma": "Karma of Destiny",
       "aiKarmaMeta": "Karma & past-life reading"
     },
@@ -1952,6 +1952,25 @@
       "giftTerms": "Worth KRW {value} · Valid for {days} days from issue · Discounts on eligible services priced KRW {minimum} or more. Cannot be used to buy passes.",
       "terms": "View Moonstone terms",
       "rewards": "Activities and rewards"
+    },
+    "mv": {
+      "title": "Moonlight Destiny Journey",
+      "lead": "A story that begins with one small lantern, crosses five skies, and ends in a reunion beneath two moons",
+      "meta": "1:33 · Korean lyric subtitles",
+      "videoLabel": "Moonlight Destiny Journey music video",
+      "play": "Play the Moonlight Destiny Journey music video, 1 minute 33 seconds, with sound",
+      "ctaIdle": "1:33 · Sound on",
+      "ctaLoading": "Loading the video…",
+      "ctaError": "Couldn't load · Tap to try again",
+      "error": "The video couldn't be loaded. Please tap it again.",
+      "chaptersLabel": "Jump to a scene",
+      "ch1": "Lantern",
+      "ch2": "First steps",
+      "ch3": "Five skies",
+      "ch4": "Bloom",
+      "ch5": "True timing",
+      "lyrics": "Lyrics",
+      "more": "More moonlight music"
     }
   },
   "terms": {

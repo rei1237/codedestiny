@@ -24,4 +24,25 @@ export const masterProfiles = {
     portrait: `${base}/yeoni-teahouse-portrait.webp`, portraitAlt: "분홍빛 한복을 입고 찻잔을 건네는 운명 찻집 마스터 연이",
     sheet: `${base}/yeoni-teahouse-profile.webp`, sheetWidth: 1536, sheetHeight: 1024, theme: "yeoni",
   },
+  yun: {
+    name: "윤달", role: "생시부터 묻는 점성술사 · 서양 점성술",
+    description: "누구에게나 태어난 시각부터 묻는 점성술사예요. 분까지 맞추면 상승궁과 열두 하우스가 또렷해지고, 태양·달과 함께 기질의 중심을 정확히 잡을 수 있어요.",
+    approach: "행성·사인·하우스·애스펙트의 근거를 먼저 보여 드리고, 비유는 쉽게 하나만 곁들여요. 생시를 모르면 상승궁 해석의 한계부터 말씀드리고, 읽을 수 있는 하늘부터 차근차근 풀어 드려요.",
+    portrait: `${base}/yun-astrology-portrait.webp`, portraitAlt: "남색 두루마기에 은빛 초승달 귀걸이를 하고 접부채를 든 점성술사 윤달",
+    sheet: `${base}/yun-astrology-profile.webp`, sheetWidth: 1536, sheetHeight: 1024, theme: "yun",
+  },
+  musung: {
+    name: "무성", role: "막힌 별을 녹으로 바꾸는 판결 · 자미두수",
+    description: "명반에서 막힌 자리(화기·化忌)를 먼저 짚고, 그 자리를 풀어 갈 길(화록·化祿)을 처방하는 자미두수 판결자입니다.",
+    approach: "짧고 분명한 판결로 시작해, 처방은 오늘 해 볼 수 있는 구체적인 행동으로 이어 드려요. 명궁과 열두 궁, 대운의 근거를 함께 보여 드리고, 미래를 단정하지 않습니다.",
+    portrait: `${base}/musung-ziwei-portrait.webp`, portraitAlt: "후드를 내리고 먹색 학자 도포를 입은 채 금빛 깃털을 든 자미두수 판결자 무성",
+    sheet: `${base}/musung-ziwei-profile.webp`, sheetWidth: 1536, sheetHeight: 1024, theme: "musung",
+  },
+  hanbi: {
+    name: "서한비", role: "두 달집 사이의 거리를 재는 사람 · 숙요점 궁합",
+    description: "두 사람의 달이 머문 자리를 나란히 놓고, 서로 다가가는 속도와 거리를 재는 숙요점 상담가예요. 반복되는 엇갈림을 누구의 잘못으로 보기보다, 관계에 쌓이는 습관으로 읽어요.",
+    approach: "쌓인 엇갈림을 장부처럼 하나씩 셈하고, 두 분이 함께 갚아 갈 수 있는 작은 약속을 찾아요. 서두르지 않고, 두 분 사이의 거리를 차분히 재어 드립니다.",
+    portrait: `${base}/hanbi-sukuyo-portrait.webp`, portraitAlt: "빗빛 인디고 코트 드레스를 입고 덮인 장부를 든 숙요점 상담가 서한비",
+    sheet: `${base}/hanbi-sukuyo-profile.webp`, sheetWidth: 1536, sheetHeight: 1024, theme: "hanbi",
+  },
 } satisfies Record<string, MasterProfileData>;

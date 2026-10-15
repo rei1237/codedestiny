@@ -1952,6 +1952,25 @@
       "giftTerms": "Valeur de {value} KRW · Valables {days} jours après attribution · Réductions sur les services éligibles à partir de {minimum} KRW. Non utilisables pour acheter des pass.",
       "terms": "Voir les conditions des Pierres de lune",
       "rewards": "Activités et récompenses"
+    },
+    "mv": {
+      "title": "Voyage du destin au clair de lune",
+      "lead": "Une histoire qui commence par une petite lanterne, traverse cinq ciels et s'achève sur des retrouvailles sous deux lunes",
+      "meta": "1 min 33 · Sous-titres des paroles en coréen",
+      "videoLabel": "Clip de Voyage du destin au clair de lune",
+      "play": "Lire le clip Voyage du destin au clair de lune, 1 minute 33, avec le son",
+      "ctaIdle": "1:33 · Avec le son",
+      "ctaLoading": "Chargement de la vidéo…",
+      "ctaError": "Chargement impossible · Touchez pour réessayer",
+      "error": "Impossible de charger la vidéo. Touchez-la de nouveau.",
+      "chaptersLabel": "Aller à une scène",
+      "ch1": "La lanterne",
+      "ch2": "Premiers pas",
+      "ch3": "Cinq ciels",
+      "ch4": "Floraison",
+      "ch5": "Le vrai timing",
+      "lyrics": "Paroles",
+      "more": "Écouter plus de musique au clair de lune"
     }
   },
   "terms": {

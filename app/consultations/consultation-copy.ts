@@ -33,17 +33,17 @@ export const hubTranslations: Record<string, Record<string, [string, string, str
 // Display-only descriptions; navigation and pricing remain in the service registry.
 export const expertCopy: Record<string, Record<string, [string, string, string]>> = {
   ko: {
-    ziwei: ['자미두수 전문가 상담', '타고난 성향과 삶의 여러 자리를 살펴보고 싶다면', '명반에 담긴 별의 배치와 질문별 해석'],
-    astrology: ['점성술 전문가 상담', '나의 성향과 지금의 변화를 함께 읽고 싶다면', '출생 차트와 행성의 흐름을 바탕으로 한 해석'],
+    ziwei: ['자미두수 전문가 상담', '타고난 성향과 삶의 여러 자리를 살펴보고 싶다면', '판결자 무성이 명반의 막힌 별을 짚고 풀어 갈 길을 처방하는 해석'],
+    astrology: ['점성술 전문가 상담', '나의 성향과 지금의 변화를 함께 읽고 싶다면', '생시부터 묻는 점성술사 윤달이 읽는 출생 차트와 행성의 흐름'],
     vedic: ['베다점 전문가 상담', '인생의 주기와 선택의 방향을 돌아보고 싶다면', '인도 점성술의 출생 차트와 시기별 흐름'],
-    'sukuyo-compat': ['숙요점 궁합 상담', '서로 다른 두 사람의 관계를 이해하고 싶다면', '27숙으로 살펴보는 관계의 성향과 거리'],
+    'sukuyo-compat': ['숙요점 궁합 상담', '서로 다른 두 사람의 관계를 이해하고 싶다면', '서한비가 27숙으로 재어 보는 두 사람의 거리'],
     'legacy-naming': ['훈민정음 작명소', '오래 불릴 이름에 어떤 뜻을 담고 싶으세요?', '사주와 성명학을 바탕으로 이름 후보와 풀이를 살펴보세요.'],
   },
   en: {
-    ziwei: ['Ziwei Consultation', 'Explore your temperament and different areas of life', 'A reading of your Ziwei chart and questions'],
-    astrology: ['Astrology Consultation', 'Understand your nature and the changes around you', 'Guidance based on your natal chart and planetary cycles'],
+    ziwei: ['Ziwei Consultation', 'Explore your temperament and different areas of life', 'Museong names the blocked star in your chart and how to unblock it'],
+    astrology: ['Astrology Consultation', 'Understand your nature and the changes around you', 'Yundal starts from your birth minute and reads your natal chart'],
     vedic: ['Vedic Consultation', 'Reflect on life cycles and the direction of your choices', 'Indian astrology birth chart and timing guidance'],
-    'sukuyo-compat': ['Sukuyo Compatibility', 'Understand the differences between two people', 'Relationship patterns through the 27 lunar mansions'],
+    'sukuyo-compat': ['Sukuyo Compatibility', 'Understand the differences between two people', 'Seo Hanbi measures the distance between two lunar mansions'],
     'legacy-naming': ['Hunminjeongeum Naming Studio', 'What meaning would you like a lasting name to carry?', 'Explore name candidates and readings based on saju and naming traditions.'],
   },
   ja: {

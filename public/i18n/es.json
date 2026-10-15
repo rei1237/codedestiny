@@ -1952,6 +1952,25 @@
       "giftTerms": "Valor de {value} KRW · Válidas {days} días desde su entrega · Descuentos en servicios aptos desde {minimum} KRW. No sirven para comprar pases.",
       "terms": "Ver condiciones de Piedras Lunares",
       "rewards": "Actividades y recompensas"
+    },
+    "mv": {
+      "title": "Viaje del destino a la luz de la luna",
+      "lead": "Una historia que empieza con un pequeño farol, cruza cinco cielos y termina en un reencuentro bajo dos lunas",
+      "meta": "1:33 · Subtítulos de la letra en coreano",
+      "videoLabel": "Videoclip de Viaje del destino a la luz de la luna",
+      "play": "Reproducir el videoclip Viaje del destino a la luz de la luna, 1 minuto 33 segundos, con sonido",
+      "ctaIdle": "1:33 · Con sonido",
+      "ctaLoading": "Cargando el vídeo…",
+      "ctaError": "No se pudo cargar · Toca para reintentar",
+      "error": "No se pudo cargar el vídeo. Vuelve a tocarlo.",
+      "chaptersLabel": "Ir a una escena",
+      "ch1": "El farol",
+      "ch2": "Primeros pasos",
+      "ch3": "Cinco cielos",
+      "ch4": "Floración",
+      "ch5": "El momento justo",
+      "lyrics": "Letra",
+      "more": "Escuchar más música de luna"
     }
   },
   "terms": {

@@ -244,3 +244,10 @@ it("discards a malformed body while retaining other usable sections", async () =
   expect((await start()).status).toBe(202); expect(Object.keys(docs[0].llmMeta.groups)).toHaveLength(1);
   expect(JSON.stringify(docs[0].llmMeta.groups)).not.toContain("본문 아님");
 });
+// 2026-10-15: 자미두수 전문가 상담은 무성 페르소나를 붙이고, 한국어 밖 로케일은 영어 메모로 바꾼다.
+for (const [locale, header] of [["ko", "[상담자 페르소나 — 무성]"], ["en", "[Advisor persona — Museong]"]]) it(`${locale}: sends the Museong persona after the system prompt`, async () => {
+  await start({ locale });
+  const systemPrompt = String(provider.mock.calls[0][2].systemPrompt);
+  expect(systemPrompt.indexOf(header)).toBeGreaterThan(0);
+  expect(systemPrompt).not.toMatch(/\d+년 경력/u);
+});

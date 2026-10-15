@@ -107,7 +107,7 @@ async function assertEssentials(page, label) {
       const passCta = page.locator('#cdhPass .cdh-pass__btn');
       assert.equal(await page.locator('#cdQuickServices').evaluate((node) => Boolean(node.closest('details:not([open])'))), false, 'fortune systems stay visible before the full catalogue');
       assert.ok(await page.locator('#cdQuickServices').isVisible(), 'fortune systems are visible on the first visit');
-      for (const selector of ['#cdhPass .cdh-pass__btn', '.cd-soulcat-entry']) assert.equal(await page.locator(selector).first().evaluate((node) => Boolean(node.closest('details:not([open])'))), false, selector + ' stays in the primary flow');
+      for (const selector of ['#cdhPass .cdh-pass__btn', '.cd-soulcat-entry', '.cdh-mv']) assert.equal(await page.locator(selector).first().evaluate((node) => Boolean(node.closest('details:not([open])'))), false, selector + ' stays in the primary flow');
       assert.equal(await page.locator('.cdh-portals').count(), 0, 'duplicate character portals are removed from the secondary garden');
       assert.equal(await page.locator('#cdSignatureConsult .cd-sig-card__img').count(), 6, 'each representative consultation uses an editorial visual');
       assert.equal(await page.locator('#cdSignatureConsult .cd-sig-card__report').count(), 6, 'each representative consultation keeps its report composition');

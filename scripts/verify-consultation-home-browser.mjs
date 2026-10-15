@@ -24,7 +24,7 @@ for (const channel of ['chrome', 'msedge']) {
       assert.equal(await main.locator('.cdh-primary').getAttribute('href'), '#cdSignatureConsult');
       assert.equal(await main.locator('.cdh-light a').count(), 4);
       assert.equal(await main.locator('#cdhMore').evaluate(e => e.open), false);
-      const order = await page.evaluate(() => ['cdSignatureConsult','cdFusionRecommendation','cd-soulcat-title','cdhLightTitle','cdhPass'].map(id => document.getElementById(id).getBoundingClientRect().top + scrollY));
+      const order = await page.evaluate(() => ['cdSignatureConsult','cdFusionRecommendation','cdhMvTitle','cd-soulcat-title','cdhLightTitle','cdhPass'].map(id => document.getElementById(id).getBoundingClientRect().top + scrollY));
       assert(order.every((top,i) => i===0 || top>order[i-1]), JSON.stringify(order));
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
       assert(overflow <= 0, 'home overflow: '+width+' / '+overflow);

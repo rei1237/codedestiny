@@ -10,6 +10,11 @@ import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-see
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { PriceBadge } from "@/app/components/PriceBadge";
 import { ExpertStickyCta, ExpertValueCards } from "@/app/components/expert-consulting/ExpertConsultationFrame";
+import ExpertCharacterStage from "@/app/components/expert-consulting/ExpertCharacterStage";
+import MasterProfile from "@/components/fortune/MasterProfile";
+import { masterProfiles } from "@/components/fortune/master-profiles";
+import { getExpertCharacter, getExpertCharacterName, getExpertCharacterTitle, getExpertLine, isExpertCharacterEnabled, MUSUNG_FEATHER_ASPECT, MUSUNG_FEATHER_STAGES } from "@/src/features/expert-characters";
+import Image from "next/image";
 import { Download, Loader2, Moon, Sparkles, Stars, WalletCards } from "lucide-react";
 import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 import { authFetch } from "@/app/_lib/auth-client";
@@ -954,6 +959,17 @@ export default function ZiweiAiPage() {
     }))
   )), [assistantMessages]);
   const isLoadingConsultation = !consultation && (phase === "checking" || phase === "payment" || phase === "reading");
+  // 무성 — 본문·워커 요청이 한국어 고정이라 대사도 ko. enabled 를 끄면 기존 12궁 헤더·시길만 남는다.
+  // 깃털은 시간이 아니라 실제 단계를 따른다: 확인·결제 중 먹색 → 생성 중 잿빛 → 완성 금빛.
+  const musungOn = isExpertCharacterEnabled("musung");
+  const musungHero = getExpertCharacter("musung").hero;
+  const musungGreet = getExpertLine("musung", "hero");
+  const musungLoading = getExpertLine("musung", phase === "reading" ? "loading.stream" : "loading.request");
+  const musungEmpty = getExpertLine("musung", "empty");
+  const musungError = getExpertLine("musung", "error");
+  const musungCompleted = consultation?.status === "completed";
+  const musungCover = getExpertLine("musung", musungCompleted ? "result.open" : "loading.stream");
+  const musungClose = getExpertLine("musung", "result.close");
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     formTouchedRef.current = true;
@@ -1140,6 +1156,7 @@ export default function ZiweiAiPage() {
         backgroundColor: "#060712",
         cover: {
           title: `${userName}님의 자미두수 상담`,
+          subtitle: musungOn ? getExpertLine("musung", "pdf.byline").text : undefined,
           name: userName,
           date: new Date().toISOString().slice(0, 10),
         },
@@ -1153,26 +1170,34 @@ export default function ZiweiAiPage() {
 
   return (
     <main className="ziweiAiShell">
-      <section className="ziweiHero">
-        <div className="heroConstellation" aria-hidden="true">
-          <span className="heroOrbit heroOrbit--outer" />
-          <span className="heroOrbit heroOrbit--middle" />
-          <span className="heroOrbit heroOrbit--inner" />
-          {Array.from({ length: 12 }).map((_, index) => <i key={index} style={{ "--angle": `${index * 30}deg` } as CSSProperties} />)}
-          <b>命</b>
-        </div>
+      <section className={`ziweiHero${musungOn ? " isMusung" : ""}`}>
+        {musungOn ? (
+          <div className="musungHeroArt">
+            <Image src={musungHero.src} alt={musungHero.alt} fill priority sizes="(min-width: 1400px) 1316px, 100vw" unoptimized />
+          </div>
+        ) : (
+          <div className="heroConstellation" aria-hidden="true">
+            <span className="heroOrbit heroOrbit--outer" />
+            <span className="heroOrbit heroOrbit--middle" />
+            <span className="heroOrbit heroOrbit--inner" />
+            {Array.from({ length: 12 }).map((_, index) => <i key={index} style={{ "--angle": `${index * 30}deg` } as CSSProperties} />)}
+            <b>命</b>
+          </div>
+        )}
         <div className="heroBackdropText" aria-hidden="true">紫微斗數</div>
         <div className="heroCopy">
-          <p className="eyebrow"><Stars size={16} /> 紫微斗數 · 별궁 전문가 상담</p>
+          <p className="eyebrow"><Stars size={16} /> {musungOn ? `${getExpertCharacterName("musung")} · ${getExpertCharacterTitle("musung")}` : "紫微斗數 · 별궁 전문가 상담"}</p>
           <h2>자미두수 전문가 상담</h2>
           <p>명궁과 12궁의 별 흐름을 따라 지금 가장 궁금한 질문을 차분히 풀어드립니다.</p>
         </div>
+        {/* heroCopy 밖에 둔다 — 안에 두면 .heroCopy p:last-child 가 대사창 글자를 덮는다. */}
+        <ExpertCharacterStage character="musung" mood={musungGreet.mood} line={musungGreet.text} placement="inline" className="musungHeroStage" />
         <div className="heroSeparator" aria-hidden="true" />
       </section>
 
       {!consultation && getCurrentLoadingLocale() === "ko" && <div className="craftedGuide"><CraftedProductDisclosure featureKey="ziwei-ai-consultation" /></div>}
       <section className="workspace">
-        <ExpertValueCards theme="ziwei" points={[{ title: "명궁의 기질", description: "명궁과 주요 별이 보여주는 기본 반응과 선택 습관을 살핍니다." }, { title: "12궁의 무대", description: "일·돈·관계처럼 지금 질문이 놓인 삶의 영역을 나눠 읽습니다." }, { title: "별의 전환점", description: "현재 흐름에서 서두를 때와 정리할 때를 현실적인 언어로 짚습니다." }]} />
+        <ExpertValueCards theme={musungOn ? "musung" : "ziwei"} points={[musungOn ? { title: "막힌 별부터 판결", description: "명반에서 화기(化忌)가 걸린 궁을 먼저 짚고, 그 자리를 화록(化祿)으로 돌릴 구체적인 행동을 처방합니다." } : { title: "명궁의 기질", description: "명궁과 주요 별이 보여주는 기본 반응과 선택 습관을 살핍니다." }, { title: "12궁의 무대", description: "일·돈·관계처럼 지금 질문이 놓인 삶의 영역을 나눠 읽습니다." }, { title: "별의 전환점", description: "현재 흐름에서 서두를 때와 정리할 때를 현실적인 언어로 짚습니다." }]} />
         <form id="ziwei-consultation-form" className="consultForm" onSubmit={handleSubmit}>
           <div className="formHeader flex-wrap">
             <div className="flex min-w-0 flex-1 items-center gap-2">
@@ -1265,16 +1290,29 @@ export default function ZiweiAiPage() {
           </button>
 
           {notice && <p className="notice"><Moon size={16} />{notice}</p>}
+          {/* 캐릭터 한 줄은 사실 문구 앞에만 둔다 — 결제·재시도 안내는 그대로. */}
+          {error && <ExpertCharacterStage character="musung" mood={musungError.mood} line={musungError.text} placement="inline" />}
           {error && <p className="error">{error}</p>}
         </form>
-        <ExpertStickyCta theme="ziwei" targetId={consultation ? "ziwei-saved-result" : "ziwei-consultation-form"} label={consultation ? "저장된 상담 읽기" : "별궁 상담 열기"} price={<PriceBadge featureKey="ziwei-ai-consultation" prefix="상담 이용 가격 " />} />
+        <ExpertStickyCta theme={musungOn ? "musung" : "ziwei"} targetId={consultation ? "ziwei-saved-result" : "ziwei-consultation-form"} label={consultation ? "저장된 상담 읽기" : "별궁 상담 열기"} price={<PriceBadge featureKey="ziwei-ai-consultation" prefix="상담 이용 가격 " />} />
 
         <div className="resultPane" id="ziwei-saved-result">
           {isLoadingConsultation ? (
             <div className="loadingState">
-              <div className="palaceSigil isSpinning" aria-hidden="true">
-                {Array.from({ length: 12 }).map((_, index) => <span key={index} />)}
-              </div>
+              {musungOn ? (
+                <ExpertCharacterStage
+                  character="musung"
+                  mood={musungLoading.mood}
+                  line={musungLoading.text}
+                  placement="loading"
+                  spriteOverride={MUSUNG_FEATHER_STAGES[phase === "reading" ? 1 : 0]}
+                  spriteAspect={MUSUNG_FEATHER_ASPECT}
+                />
+              ) : (
+                <div className="palaceSigil isSpinning" aria-hidden="true">
+                  {Array.from({ length: 12 }).map((_, index) => <span key={index} />)}
+                </div>
+              )}
               {/* 12궁 시길은 그대로 두고, 안쪽 문구만 실제 계산값으로 바꾼다.
                   근거가 아직 없거나 조회에 실패하면 기존 단계 문구로 되돌아간다. */}
               <AnalysisBasisLoading
@@ -1295,6 +1333,7 @@ export default function ZiweiAiPage() {
               </div>
               <strong>별궁을 펼칠 준비가 되어 있습니다</strong>
               <span>상담이 시작되면 이 자리에 당신의 12궁 명반과 주성이 놓입니다.</span>
+              <ExpertCharacterStage character="musung" mood={musungEmpty.mood} line={musungEmpty.text} placement="inline" className="musungEmptyStage" />
               {recentList.length > 0 && (
                 <div className="zwvRecentList" aria-label={copy.recentListAria}>
                   <strong>지난 별궁 기록 다시 보기</strong>
@@ -1326,6 +1365,15 @@ export default function ZiweiAiPage() {
                   <span>紫微斗數</span>
                   <h2>자미두수 별궁 상담</h2>
                   <p>{consultation.birthInfo?.name || form.name || "당신"} · {consultation.birthInfo?.birthDate || form.birthDate || "생년월일"} · {consultation.topic || FOCUS_TOPIC[form.focusArea]}</p>
+                  <ExpertCharacterStage
+                    character="musung"
+                    mood={musungCover.mood}
+                    line={musungCover.text}
+                    placement="result"
+                    spriteOverride={MUSUNG_FEATHER_STAGES[musungCompleted ? 2 : 1]}
+                    spriteAspect={MUSUNG_FEATHER_ASPECT}
+                    className="musungCoverStage"
+                  />
                 </section>
 
                 <div className="summaryGrid" data-ziwei-pdf-section>
@@ -1434,12 +1482,16 @@ export default function ZiweiAiPage() {
                     </article>
                   ))}
                 </div>
+                {/* PDF 섹션이 아니다 — 캡처는 섹션마다 새 페이지라 한 줄짜리 쪽이 생긴다. PDF 서명은 표지 부제가 맡는다. */}
+                {musungCompleted && <ExpertCharacterStage character="musung" mood={musungClose.mood} line={musungClose.text} placement="result" className="musungClose" />}
               </div>
               {consultation.status === "completed" && !busy && <RecommendationResult service="ziwei-ai-consultation" practiceTags={adviceTopics([structuredResult?.sections?.action_plan?.body])}/>}
             </>
           )}
         </div>
       </section>
+      {/* 소개용 캐릭터 프로필 — 상담 진행·결과 화면에서는 내린다. */}
+      {musungOn && !consultation && !busy && <MasterProfile profile={masterProfiles.musung} />}
 
       <style>{ZWV_CSS}</style>
       <style>{`
@@ -1491,7 +1543,7 @@ export default function ZiweiAiPage() {
         .resultPane{grid-column:1/-1;min-height:640px;padding:18px}
         .emptyState,.loadingState{min-height:584px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;text-align:center;color:#d7ceff}
         .emptyState strong,.loadingState strong{color:#fffaf0;font-family:var(--font-display);font-size:21px}
-        .emptyState span,.loadingState span{max-width:360px;color:#beb8df;line-height:1.65}
+        .emptyState span:not(figure *),.loadingState span:not(figure *){max-width:360px;color:#beb8df;line-height:1.65}
         .loadingSteps{display:flex;gap:10px;margin-top:8px}
         .loadingSteps i{display:grid;place-items:center;width:28px;aspect-ratio:1;border:1px solid rgba(224,210,255,.16);border-radius:999px;color:rgba(224,210,255,.38);font-style:normal;font-family:var(--font-premium);font-size:13px;transition:all .24s ease}
         .loadingSteps i.isActive{border-color:rgba(245,217,145,.46);background:rgba(245,217,145,.12);color:#fff0b8;box-shadow:0 0 18px rgba(245,217,145,.18)}
@@ -1508,9 +1560,9 @@ export default function ZiweiAiPage() {
         .resultToolbar button:disabled{cursor:not-allowed;opacity:.62}
         .resultDocument{display:grid;gap:14px;background:#060712;color:#f8fafc}
         .resultCover{display:grid;gap:8px;border:1px solid rgba(245,217,145,.24);border-radius:8px;background:radial-gradient(ellipse at 74% 18%,rgba(245,217,145,.16),transparent 38%),linear-gradient(145deg,rgba(14,16,43,.96),rgba(7,9,25,.98));padding:24px}
-        .resultCover span{color:#fff0b8;font-family:var(--zwv-serif);font-size:19px;font-weight:700;letter-spacing:.22em}
+        .resultCover>span{color:#fff0b8;font-family:var(--zwv-serif);font-size:19px;font-weight:700;letter-spacing:.22em}
         .resultCover h2{margin:0;color:#fffaf0;font-family:var(--zwv-serif);font-size:31px;font-weight:700;line-height:1.28;letter-spacing:.01em}
-        .resultCover p{margin:0;color:#d9c7ff;line-height:1.65}
+        .resultCover>p{margin:0;color:#d9c7ff;line-height:1.65}
         .chartDataPanel{display:grid;gap:13px;border:1px solid rgba(245,217,145,.24);border-radius:8px;background:linear-gradient(145deg,rgba(245,217,145,.11),rgba(32,38,78,.78));padding:16px}
         .chartDataHeader{display:grid;gap:4px}
         .chartDataHeader span{color:#cfc7f8;font-size:12px;font-weight:820}
@@ -1596,9 +1648,21 @@ export default function ZiweiAiPage() {
               break-word 는 min-content 를 안 줄여 효과가 없어 anywhere 를 쓴다). */
         .resultDocument,.resultCover,.chartDataPanel,.chartDataHeader,.dayunBanner,.chatList,.chatCard{grid-template-columns:minmax(0,1fr)}
         .summaryGrid>div,.chartDataGrid>div,.scoreGrid>div,.palaceCard,.chatCard,.chatCardTitle,.resultToolbar>div{min-width:0}
-        .chatCard p,.chatCardTitle h3,.summaryGrid strong,.summaryGrid span,.chartDataGrid strong,.resultCover p,.resultCover h2,.palaceHead strong,.dayunBanner strong{overflow-wrap:anywhere}
+        .chatCard p,.chatCardTitle h3,.summaryGrid strong,.summaryGrid span,.chartDataGrid strong,.resultCover>p,.resultCover h2,.palaceHead strong,.dayunBanner strong{overflow-wrap:anywhere}
+        /* 무성 — 12궁 궤도 대신 키아트 배너(점성술 윤달과 같은 구성). 얼굴이 62%/28% 근처라 그쪽으로 맞춘다. */
+        .ziweiHero.isMusung{display:block;min-height:0}
+        .ziweiHero.isMusung::before,.ziweiHero.isMusung::after{content:none}
+        .musungHeroArt{position:relative;width:100%;aspect-ratio:21/9;max-height:480px;overflow:hidden}
+        .musungHeroArt img{object-fit:cover;object-position:62% 30%}
+        .musungHeroArt::after{content:"";position:absolute;inset:auto 0 0;height:42%;background:linear-gradient(0deg,#0a0c18,transparent);pointer-events:none}
+        .ziweiHero.isMusung .heroCopy{padding:4px 40px 18px}
+        .musungHeroStage{position:relative;z-index:2;max-width:620px;margin:0 40px 40px}
+        .musungEmptyStage{width:min(100%,440px);margin-top:6px;text-align:left}
+        .musungCoverStage{max-width:560px;margin-top:6px}
+        .musungClose{justify-self:end;width:min(100%,520px)}
         @media(max-width:980px){.workspace{grid-template-columns:1fr}.consultForm{position:static}.summaryGrid,.scoreGrid,.chartDataGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.palaceGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.resultPane{min-height:520px}.emptyState,.loadingState{min-height:430px}}
         @media(max-width:620px){.ziweiAiShell{padding:10px}.ziweiHero{min-height:248px}.heroCopy{padding:calc(env(safe-area-inset-top,0px) + 54px) 20px 44px}.heroConstellation{right:-86px;top:48%;width:252px;opacity:.45}.heroConstellation i{transform:translate(-50%,-50%) rotate(var(--angle)) translateY(-112px)}.heroConstellation b{width:58px;font-size:27px}.heroBackdropText{right:-10%;bottom:14%;font-size:76px}.fieldRow,.summaryGrid,.chartDataGrid{grid-template-columns:1fr}.palaceGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.palaceBoard{padding:10px}.resultToolbar{align-items:stretch;flex-direction:column}.resultToolbar button{width:100%}.resultCover{padding:18px}.resultCover h2{font-size:24px}.resultPane{min-height:420px;padding:12px}.emptyState,.loadingState{min-height:340px}.palaceSigil{width:138px}.palaceSigil span{transform:rotate(calc(var(--i,0)*30deg)) translateY(-58px)}}
+        @media(max-width:620px){.musungHeroArt{aspect-ratio:16/10;max-height:none}.ziweiHero.isMusung .heroCopy{padding:2px 18px 14px}.musungHeroStage{margin:0 18px 26px}}
       `}</style>
     </main>
   );

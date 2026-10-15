@@ -43,6 +43,11 @@ import {
 } from "./_art/yehwaScene.generated";
 import { pickWelcomeQuote } from "./_data/welcomeQuotes";
 import styles from "./SukuyoCompatibilityAiClient.module.css";
+import ExpertCharacterStage from "@/app/components/expert-consulting/ExpertCharacterStage";
+import MasterProfile from "@/components/fortune/MasterProfile";
+import { masterProfiles } from "@/components/fortune/master-profiles";
+import { getExpertCharacter, getExpertLine, isExpertCharacterEnabled } from "@/src/features/expert-characters";
+import Image from "next/image";
 import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLocale } from "@/constants/loadingMessages";
 
 const QUOTE_SEEN_STORAGE_KEY = "cd:sukuyo-compat-result:quote-seen:v1";
@@ -172,7 +177,7 @@ function getSukuyoCompatCopy(locale: LoadingLocale): SukuyoCompatCopy {
 }
 
 /** 이 파일 전용 로케일 훅 — 여러 하위 컴포넌트가 각자 useState+useEffect를 반복하지 않도록 공용화. */
-function useSukuyoCompatCopy(): SukuyoCompatCopy {
+function useSukuyoCompatLocale(): LoadingLocale {
   const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
   useEffect(() => {
     const sync = () => setLocale(getCurrentLoadingLocale());
@@ -180,7 +185,11 @@ function useSukuyoCompatCopy(): SukuyoCompatCopy {
     window.addEventListener("cd:locale-ready", sync);
     return () => { window.removeEventListener("languagechange", sync); window.removeEventListener("cd:locale-ready", sync); };
   }, []);
-  return getSukuyoCompatCopy(locale);
+  return locale;
+}
+
+function useSukuyoCompatCopy(): SukuyoCompatCopy {
+  return getSukuyoCompatCopy(useSukuyoCompatLocale());
 }
 
 type CalendarType = "solar" | "lunar";
@@ -672,6 +681,8 @@ function buildFallbackReadingPages(consultation: Consultation): ResultViewerPage
 
 function MoonLoadingScreen({ basis }: { basis: AnalysisBasis | null }) {
   const reduceMotion = useReducedMotion() === true;
+  const locale = useSukuyoCompatLocale();
+  const hanbiLine = getExpertLine("hanbi", "loading", locale);
   useBodyScrollLock(true);
 
   return (
@@ -690,6 +701,10 @@ function MoonLoadingScreen({ basis }: { basis: AnalysisBasis | null }) {
           />
         ))}
       </div>
+      {/* 서한비 — 분위기 한 줄만. 진행 단계는 아래 AnalysisBasisLoading 이 실제 값으로 보여 준다. */}
+      {isExpertCharacterEnabled("hanbi") ? (
+        <ExpertCharacterStage character="hanbi" mood={hanbiLine.mood} line={hanbiLine.text} placement="loading" locale={locale} className={styles.hanbiLoadingStage} />
+      ) : (
       <div className={styles.loadingMoonWrap}>
         <LoadingBotanicalScene reduceMotion={reduceMotion} />
         <div className={styles.loadingMoon} aria-hidden="true">
@@ -706,6 +721,7 @@ function MoonLoadingScreen({ basis }: { basis: AnalysisBasis | null }) {
           </defs>
         </svg>
       </div>
+      )}
       {/* 달 애니메이션은 그대로 두고, 문구 자리는 서버가 실제로 계산한 두 본명숙과 방위 관계로 채운다.
           🔴 시간만 흐르는 가짜 단계 라벨을 여기에 두지 말 것 — AnalysisBasisLoading 이 실제 계산값을
           단계별로 드러내는 것이 이 프로젝트의 정본이다(components/fortune/AnalysisBasisLoading.tsx). */}
@@ -860,6 +876,9 @@ function CompatSummaryHeader({ meta }: { meta: CompatResult["meta"] }) {
 }
 
 function ChapterReadingArticle({ sectionKey, section }: { sectionKey: string; section: { title: string; body: string } }) {
+  const locale = useSukuyoCompatLocale();
+  // 마지막 편지에만 서명한다 — 화면과 PDF 가 같은 컴포넌트를 쓰므로 둘 다 남는다.
+  const signoff = sectionKey === "closingLetter" && isExpertCharacterEnabled("hanbi") ? getExpertLine("hanbi", "result.signoff", locale).text : "";
   return (
     <article className={styles.readingSection}>
       <div>
@@ -867,6 +886,7 @@ function ChapterReadingArticle({ sectionKey, section }: { sectionKey: string; se
         <h3>{section.title}</h3>
       </div>
       <div className={styles.readingBody}><AiResultProse value={section.body} /></div>
+      {signoff && <p className={styles.hanbiSignoff}>{signoff}</p>}
     </article>
   );
 }
@@ -999,7 +1019,9 @@ function QuoteWelcomeCard({ quote }: { quote: string }) {
 }
 
 function CompatResultModal({ result, onClose, onDownloadError, basis = null, completed = false }: { completed?: boolean; result: CompatResult; onClose: () => void; onDownloadError: (message: string) => void; basis?: AnalysisBasis | null }) {
-  const copy = useSukuyoCompatCopy();
+  const locale = useSukuyoCompatLocale();
+  const copy = getSukuyoCompatCopy(locale);
+  const hanbiOpen = getExpertLine("hanbi", "result.open", locale);
   const [isDownloading, setIsDownloading] = useState(false);
   const { meta, sections } = result;
   const readingPages = useMemo(() => chunkReadingSections(sections), [sections]);
@@ -1084,6 +1106,7 @@ function CompatResultModal({ result, onClose, onDownloadError, basis = null, com
       </header>
 
       <div className={styles.modalBody}>
+        <ExpertCharacterStage character="hanbi" mood={hanbiOpen.mood} line={hanbiOpen.text} placement="result" locale={locale} />
         {mounted && !hasSeenQuote && (
           <QuoteWelcomeCard quote={pickWelcomeQuote(meta.person_a.name, meta.person_b.name)} />
         )}
@@ -1246,7 +1269,14 @@ type RecentConsultation = {
 };
 
 export default function SukuyoCompatibilityAiClient() {
-  const copy = useSukuyoCompatCopy();
+  const locale = useSukuyoCompatLocale();
+  const copy = getSukuyoCompatCopy(locale);
+  // 서한비 — enabled 를 끄면 기존 예화 씬과 문구만 남는다.
+  const hanbiOn = isExpertCharacterEnabled("hanbi");
+  const hanbiHero = getExpertCharacter("hanbi").hero;
+  const hanbiGreet = getExpertLine("hanbi", "hero", locale);
+  const hanbiEmpty = getExpertLine("hanbi", "empty", locale);
+  const hanbiError = getExpertLine("hanbi", "error", locale);
   const reduceMotion = useReducedMotion() === true;
   const [personA, setPersonA] = useState<PersonForm>(() => buildInitialPersonA());
   const [personB, setPersonB] = useState<PersonForm>({ ...EMPTY_PERSON });
@@ -1746,7 +1776,7 @@ export default function SukuyoCompatibilityAiClient() {
   };
 
   return (
-    <main className={styles.screen} data-sukuyo-ai-consultation data-duo-linked={bothComplete ? "true" : undefined}>
+    <main className={styles.screen} data-sukuyo-ai-consultation data-duo-linked={bothComplete ? "true" : undefined} data-character={hanbiOn ? "hanbi" : undefined}>
       <div className={styles.threadLine} />
       <div className={styles.starField} aria-hidden="true" />
       {!consultation && getCurrentLoadingLocale() === "ko" && <div className={styles.productGuide}><CraftedProductDisclosure featureKey="sukuyo-compatibility-ai" /></div>}
@@ -1757,9 +1787,15 @@ export default function SukuyoCompatibilityAiClient() {
           animate={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
           transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
         >
-          <div className={styles.visualVeil} aria-hidden="true">
-            <SukuyoYehwaScene />
-          </div>
+          {hanbiOn ? (
+            <div className={styles.hanbiKeyArt}>
+              <Image src={hanbiHero.src} alt={hanbiHero.alt} fill priority sizes="(max-width: 900px) 100vw, 46vw" className={styles.hanbiKeyArtImage} unoptimized />
+            </div>
+          ) : (
+            <div className={styles.visualVeil} aria-hidden="true">
+              <SukuyoYehwaScene />
+            </div>
+          )}
           <m.div
             className={styles.visualCopy}
             initial={reduceMotion ? false : { opacity: 0, y: 10 }}
@@ -1773,6 +1809,7 @@ export default function SukuyoCompatibilityAiClient() {
             {/* 🔴 h1 은 page.tsx 의 서버 본문이 소유한다 — 여기는 h2 로 유지. */}
             <h2>우리의 인연은<br />어떤 달빛 아래에서<br />이어지고 있을까요?</h2>
             <p>끌림의 이유부터 반복되는 갈등까지. 27숙이 만드는 두 사람의 관계 리듬을 상담처럼 천천히 읽어드립니다.</p>
+            <ExpertCharacterStage character="hanbi" mood={hanbiGreet.mood} line={hanbiGreet.text} placement="inline" locale={locale} className={styles.hanbiHeroStage} />
           </m.div>
         </m.aside>
 
@@ -1836,6 +1873,9 @@ export default function SukuyoCompatibilityAiClient() {
                 <span><Sparkles size={14} /> 전문가 상담문</span>
               </div>
               <FormProgressIndicator filled={filledCount} total={2} />
+              {filledCount === 1 && (
+                <ExpertCharacterStage character="hanbi" mood={hanbiEmpty.mood} line={hanbiEmpty.text} placement="inline" locale={locale} className={styles.hanbiInlineStage} />
+              )}
 
               <m.div
                 className={`${styles.resultTeaser}${bothComplete ? ` ${styles.resultTeaserReady}` : ""}`}
@@ -1955,6 +1995,10 @@ export default function SukuyoCompatibilityAiClient() {
             </div>
           )}
 
+          {/* 캐릭터 한 줄은 사실 문구 앞에만 둔다 — 오류 문구·재시도 흐름은 그대로. */}
+          {error && (
+            <ExpertCharacterStage character="hanbi" mood={hanbiError.mood} line={hanbiError.text} placement="inline" locale={locale} className={styles.hanbiInlineStage} />
+          )}
           {(phaseText || notice || error) && (
             <div className={error ? styles.statusError : styles.statusInfo} role="status">
               {phaseText && <span><HeartHandshake size={16} /> {phaseText}</span>}
@@ -1964,6 +2008,8 @@ export default function SukuyoCompatibilityAiClient() {
           )}
         </section>
       </section>
+      {/* 소개용 캐릭터 프로필 — 상담 진행·결과 화면에서는 내리고, 사전이 없는 다른 로케일에는 띄우지 않는다. */}
+      {hanbiOn && locale === "ko" && !busy && !result && <MasterProfile profile={masterProfiles.hanbi} />}
       {phase === "start" && !result && <MoonLoadingScreen basis={basis} />}
       {result && resultOpen && (
         <CompatResultModal

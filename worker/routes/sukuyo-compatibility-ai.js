@@ -21,6 +21,7 @@ import { tokensRequiredForChars } from "../lib/llm-budget.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { cmsPromptText } from "../lib/cms-prompts.js";
+import { appendExpertPersona, expertPersonaText } from "../lib/expert-character-personas.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { extractReadableTextFromJsonLike } from "../../lib/llm-text.js";
@@ -153,7 +154,8 @@ export function buildAdminLabPrompt(body = {}, options = {}) {
   const variant = variants.find((item) => item.key === options.variant) || variants[0];
 
   return {
-    systemPrompt: variant.key === "json" ? COMPATIBILITY_JSON_SYSTEM_PROMPT : SYSTEM_PROMPT,
+    // 운영과 같게 캐릭터(서한비) 페르소나 기본값을 붙여 보여 준다(CMS 오버라이드는 반영하지 않는다).
+    systemPrompt: [variant.key === "json" ? COMPATIBILITY_JSON_SYSTEM_PROMPT : SYSTEM_PROMPT, expertPersonaText("hanbi")].filter(Boolean).join("\n\n"),
     prompt: "",
     partial: true,
     partialReason: "사용자 프롬프트는 계산된 본명숙과 두 사람의 관계 거리를 입력으로 받습니다. 시스템 프롬프트만 표시합니다.",
@@ -182,7 +184,7 @@ const SYSTEM_PROMPT = [
 ].join("\n");
 
 const COMPATIBILITY_JSON_SYSTEM_PROMPT = [
-  "당신은 20년 경력의 숙요점(宿曜占) 전문 역술가이자, 관계 상담에 능한 카운슬러입니다.",
+  "당신은 숙요점(宿曜占) 전문 상담가이자, 관계 상담에 능한 카운슬러입니다.",
   "인도에서 기원하여 당나라를 거쳐 한국에 전해진 27숙 체계로 두 사람의 궁합을 정밀하게 독해합니다.",
   "서버가 제공한 본명숙, 숙 그룹, 음양, 오행, 수호신, 관계 거리, 양방향 관계 유형, 점수는 확정값입니다.",
   "확정값을 바꾸거나 새로 계산하지 말고, 주어진 JSON 뼈대의 meta 값은 그대로 유지합니다.",
@@ -1586,7 +1588,7 @@ async function createCompatibilityAnswer(env, input, calculation, options = {}) 
     if (lengthRepair) attempts[`${group.id}:lengthRepair`] = 1;
     attempts[group.id] = attempt;
     await options.onReserve?.(group.id, attempt, lengthRepair);
-    const systemPrompt = await cmsPromptText(env, "sukuyo-compatibility-json", COMPATIBILITY_JSON_SYSTEM_PROMPT);
+    const systemPrompt = await appendExpertPersona(env, "hanbi", await cmsPromptText(env, "sukuyo-compatibility-json", COMPATIBILITY_JSON_SYSTEM_PROMPT));
     const generated = await generateSectionGroup(env, input, calculation, group, systemPrompt, attempt, sections);
     for (const [key, row] of Object.entries(generated.sections)) {
       const others = Object.entries(sections).filter(([other]) => other !== key).map(([, value]) => value.body).join("\n");
@@ -1600,7 +1602,7 @@ async function createCompatibilityAnswer(env, input, calculation, options = {}) 
   if (!group && !summary && !attempts.summary) {
     attempts.summary = 1;
     await options.onReserve?.('summary', 1, false);
-    const systemPrompt = await cmsPromptText(env, "sukuyo-compatibility-json", COMPATIBILITY_JSON_SYSTEM_PROMPT);
+    const systemPrompt = await appendExpertPersona(env, "hanbi", await cmsPromptText(env, "sukuyo-compatibility-json", COMPATIBILITY_JSON_SYSTEM_PROMPT));
     summary = await generateSummary(env, input, calculation, systemPrompt);
     await options.onCheckpoint?.({ sections, summary, rawResponses });
   }
@@ -1623,7 +1625,7 @@ async function saveSukuyoCheckpoint(sessionId, userId, generationLease, values) 
 /** 개인 상담(단일 텍스트)은 예전 그대로 한 번에 만든다 — 분량이 4천 토큰대라 배치가 필요 없다. */
 async function createPersonalAnswer(env, input, calculation) {
   const ai = await callGeminiText(env, buildFirstPrompt(input, calculation), {
-    systemPrompt: await cmsPromptText(env, "sukuyo-compatibility", SYSTEM_PROMPT),
+    systemPrompt: await appendExpertPersona(env, "hanbi", await cmsPromptText(env, "sukuyo-compatibility", SYSTEM_PROMPT)),
     taskType: "fortune",
     temperature: 0.74,
     timeoutMs: clampSyncLlmTimeoutMs(Number(env.SUKUYO_COMPAT_AI_TIMEOUT_MS) || 55000),
@@ -2181,7 +2183,7 @@ async function handleMessage(request, env) {
     return json({ ok: false, sessionId, status: consultationState, reason: "LLM_FAILED", message: MESSAGES.llmFailed }, { status: 409 });
   }
   const ai = await callGeminiText(env, buildFollowupPrompt(consultation, content), {
-    systemPrompt: await cmsPromptText(env, "sukuyo-compatibility", SYSTEM_PROMPT),
+    systemPrompt: await appendExpertPersona(env, "hanbi", await cmsPromptText(env, "sukuyo-compatibility", SYSTEM_PROMPT)),
     taskType: "fortune",
     temperature: 0.72,
     maxOutputTokens: 2600,
