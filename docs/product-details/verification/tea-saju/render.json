@@ -42,6 +42,48 @@
       "overflow": []
     }
   ],
+  "crops": [
+    {
+      "panel": "1",
+      "cropped": []
+    },
+    {
+      "panel": "2",
+      "cropped": []
+    },
+    {
+      "panel": "3",
+      "cropped": []
+    },
+    {
+      "panel": "4",
+      "cropped": []
+    },
+    {
+      "panel": "5",
+      "cropped": []
+    },
+    {
+      "panel": "6",
+      "cropped": []
+    },
+    {
+      "panel": "7",
+      "cropped": []
+    },
+    {
+      "panel": "8",
+      "cropped": []
+    },
+    {
+      "panel": "9",
+      "cropped": []
+    },
+    {
+      "panel": "10",
+      "cropped": []
+    }
+  ],
   "fontLoaded": true,
   "images": 10
 }
