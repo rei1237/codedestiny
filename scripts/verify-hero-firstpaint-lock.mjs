@@ -82,7 +82,8 @@ if (raw.includes('id="cdHomeFunnel"')) {
   assert.doesNotMatch(css, /(?:min-)?height:\s*100(?:d|s)?vh/);
   assert.match(css, /\.cdh-scene-art img\s*\{[^}]*width:\s*100%[^}]*aspect-ratio:\s*1[^}]*object-fit:\s*contain/);
   assert.doesNotMatch(css, /html\.neo-mode #cdHomeFunnel \.cdh-persona--yeoni\s*\{\s*display:\s*none/, 'dark mode keeps Yeoni visible');
-  assert.match(css, /\.cdh-hero\s*\{[^}]*min-height:\s*246px/, 'mobile hero reserves geometry');
+  // 2026-10-15 승인된 명조 히어로: 모바일에서도 문구·버튼 아래 캐릭터 공간을 미리 확보한다.
+  assert.match(css, /\.cdh-hero\s*\{[^}]*grid-template-columns:\s*minmax\(0,1fr\)[^}]*min-height:\s*440px/, 'mobile hero reserves approved stacked geometry');
   assert.match(css, /\.cdh\s*\{[^}]*width:\s*min\(100%,\s*1280px\)/, 'responsive desktop canvas');
   assert.ok(!css.includes('max-width:430px'), 'legacy fixed mobile canvas is removed');
   // 2026-10-03 운세 정원 개편: 신뢰 칩·말풍선은 첫 화면 중복 장식이라 코드째 지웠다 — 되살아나지 않게 막는다.
