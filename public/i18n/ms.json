@@ -17279,7 +17279,8 @@
       "resume": "Continue from saved sections",
       "pendingHelp": "Your question and access will be checked to resume the same reading.",
       "login": "Sign in to open My readings",
-      "openError": "The reading could not be opened. Please select it again."
+      "openError": "The reading could not be opened. Please select it again.",
+      "followUpRemaining": "Baki soalan susulan: {count}"
     },
     "teaCupSelection": {
       "eyebrow": "Six cups that answer the scent of a heart",
@@ -18005,7 +18006,9 @@
       "pdfFileName": "destiny-tea-house-{title}-{date}.pdf",
       "honeyLetterResume": "Semak semula surat yang sama",
       "safeShareLabel": "Tea house invitation without personal details",
-      "safeShareText": "A cup of tea with Yeoni, and time to quietly reflect on my feelings and choices."
+      "safeShareText": "A cup of tea with Yeoni, and time to quietly reflect on my feelings and choices.",
+      "followUpTextQuestion": "Soalan: {question}",
+      "followUpTextTitle": "Soalan susulan kepada Yeoni"
     },
     "fortuneTeaHouseDebugPanel": {
       "k1lcnd8v": "Yes",
@@ -20571,6 +20574,39 @@
       "downloadNote": "Once unlocked, the album can be saved as a PDF without spending more honey drops.",
       "chapter": "Yeoni’s moonlit library",
       "humanAlt": "Human-form Yeoni sharing tarot stories in the moonlight"
+    },
+    "followUpCard": {
+      "eyebrow": "Termasuk 1 soalan susulan",
+      "title": "Tanya Yeoni sekali lagi",
+      "remaining": "Baki soalan susulan: {count}",
+      "usedUp": "Soalan susulan telah digunakan",
+      "intro": "Selepas membaca bacaan anda, tulis satu perkara yang anda ingin tahu dengan lebih lanjut. Yeoni akan menjawab dengan fokus pada soalan itu sahaja, berdasarkan asas yang sama dengan bacaan asal anda. Tiada caj tambahan.",
+      "basis": {
+        "tarot": "Dijawab dengan kad yang sama · tiada cabutan baharu",
+        "saju": "Berdasarkan carta kelahiran yang sama",
+        "sajuCompatibility": "Berdasarkan carta kelahiran yang sama bagi kedua-dua anda",
+        "sukuyo": "Berdasarkan rumah bulan kelahiran yang sama bagi kedua-dua anda"
+      },
+      "label": "Soalan anda untuk Yeoni",
+      "placeholder": "Contoh: Dengan aliran ini, bilakah masa yang sesuai untuk saya menghubungi dahulu?",
+      "counter": "{count}/{max} aksara",
+      "tooShort": "Sila tulis soalan anda dengan lebih spesifik — sekurang-kurangnya 4 aksara, tidak termasuk ruang.",
+      "tooLong": "Soalan boleh mengandungi sehingga 600 aksara, tidak termasuk ruang.",
+      "submit": "Tanya Yeoni",
+      "resume": "Hantar semula soalan yang sama",
+      "sending": "Yeoni sedang membuka semula bacaan asal anda dan menulis jawapan. Ini mungkin mengambil masa kira-kira seminit.",
+      "waiting": "Jawapan untuk soalan yang anda hantar tadi sedang disiapkan. Sila tunggu sebentar.",
+      "arrived": "Jawapan susulan Yeoni telah tiba.",
+      "reopened": "Jawapan susulan yang disimpan telah dibuka semula.",
+      "limitReached": "Soalan susulan untuk bacaan ini telah digunakan.",
+      "failed": "Jawapan tidak dapat dihantar. Soalan susulan anda masih ada, jadi sila hantar semula soalan yang sama.",
+      "login": "Log masuk untuk bertanya soalan susulan.",
+      "revoked": "Bacaan ini telah dibatalkan atau dipulangkan wang, jadi soalan susulan tidak tersedia.",
+      "questionLabel": "Soalan anda",
+      "evidenceTitle": "Asas yang dirujuk Yeoni",
+      "directTitle": "Jawapan Yeoni",
+      "guidanceTitle": "Perkara untuk dicuba",
+      "cautionTitle": "Perkara yang perlu diberi perhatian"
     }
   },
   "fortuneVar": {

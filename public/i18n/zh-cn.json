@@ -17279,7 +17279,8 @@
       "resume": "从已保存的部分继续",
       "pendingHelp": "确认问题与权益后继续同一咨询。",
       "login": "登录并打开我的咨询",
-      "openError": "未能打开咨询，请再次选择。"
+      "openError": "未能打开咨询，请再次选择。",
+      "followUpRemaining": "剩余追问 {count} 次"
     },
     "teaCupSelection": {
       "eyebrow": "回应心之香气的六只茶杯",
@@ -18005,7 +18006,9 @@
       "pdfFileName": "运命茶馆-{title}-{date}.pdf",
       "honeyLetterResume": "再次查看同一封信",
       "safeShareLabel": "不含个人信息的茶馆邀请",
-      "safeShareText": "与妍妮喝杯茶，静静回顾心情与选择。"
+      "safeShareText": "与妍妮喝杯茶，静静回顾心情与选择。",
+      "followUpTextQuestion": "问题：{question}",
+      "followUpTextTitle": "向 Yeoni 的追问"
     },
     "fortuneTeaHouseDebugPanel": {
       "k1lcnd8v": "有",
@@ -20571,6 +20574,39 @@
       "downloadNote": "画册解锁后，保存PDF无需再次使用蜜滴。",
       "chapter": "缘儿的月光书阁",
       "humanAlt": "在月光下讲述塔罗故事的人形缘儿"
+    },
+    "followUpCard": {
+      "eyebrow": "含 1 次追问",
+      "title": "再问 Yeoni 一次",
+      "remaining": "剩余追问 {count} 次",
+      "usedUp": "追问次数已用完",
+      "intro": "读完这次咨询后，写下一个你还想深入了解的问题。Yeoni 会依据原咨询的同一份依据，专注回答这一个问题。不另收费。",
+      "basis": {
+        "tarot": "沿用同一组牌作答 · 不会重新抽牌",
+        "saju": "依据同一份命盘作答",
+        "sajuCompatibility": "依据两人的同一份命盘作答",
+        "sukuyo": "依据两人的同一本命宿作答"
+      },
+      "label": "想问 Yeoni 的问题",
+      "placeholder": "例如：照这个走势，什么时候主动联系比较好？",
+      "counter": "{count}/{max} 字",
+      "tooShort": "请把问题写得再具体一点，不计空格至少 4 个字。",
+      "tooLong": "问题不计空格最多 600 字。",
+      "submit": "问 Yeoni",
+      "resume": "重新发送同一个问题",
+      "sending": "Yeoni 正重新翻开原来的咨询，为你写答复，大约需要 1 分钟。",
+      "waiting": "正在完成你之前提交的问题的答复，请稍候。",
+      "arrived": "Yeoni 的追问答复送到了。",
+      "reopened": "已重新打开保存的追问答复。",
+      "limitReached": "这次咨询的追问已经用过了。",
+      "failed": "答复未能送达。追问次数仍然保留，请再次发送同一个问题。",
+      "login": "登录后即可追问。",
+      "revoked": "此咨询已取消或退款，无法追问。",
+      "questionLabel": "你的问题",
+      "evidenceTitle": "Yeoni 指出的依据",
+      "directTitle": "Yeoni 的答复",
+      "guidanceTitle": "可以尝试的事",
+      "cautionTitle": "需要留意的地方"
     }
   },
   "fortuneVar": {

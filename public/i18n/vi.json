@@ -17279,7 +17279,8 @@
       "resume": "Continue from saved sections",
       "pendingHelp": "Your question and access will be checked to resume the same reading.",
       "login": "Sign in to open My readings",
-      "openError": "The reading could not be opened. Please select it again."
+      "openError": "The reading could not be opened. Please select it again.",
+      "followUpRemaining": "Còn {count} câu hỏi thêm"
     },
     "teaCupSelection": {
       "eyebrow": "Six cups that answer the scent of a heart",
@@ -18005,7 +18006,9 @@
       "pdfFileName": "destiny-tea-house-{title}-{date}.pdf",
       "honeyLetterResume": "Xem lại cùng bức thư",
       "safeShareLabel": "Tea house invitation without personal details",
-      "safeShareText": "A cup of tea with Yeoni, and time to quietly reflect on my feelings and choices."
+      "safeShareText": "A cup of tea with Yeoni, and time to quietly reflect on my feelings and choices.",
+      "followUpTextQuestion": "Câu hỏi: {question}",
+      "followUpTextTitle": "Câu hỏi thêm gửi Yeoni"
     },
     "fortuneTeaHouseDebugPanel": {
       "k1lcnd8v": "Yes",
@@ -20571,6 +20574,39 @@
       "downloadNote": "Once unlocked, the album can be saved as a PDF without spending more honey drops.",
       "chapter": "Yeoni’s moonlit library",
       "humanAlt": "Human-form Yeoni sharing tarot stories in the moonlight"
+    },
+    "followUpCard": {
+      "eyebrow": "Đã gồm 1 câu hỏi thêm",
+      "title": "Hỏi Yeoni thêm một lần",
+      "remaining": "Còn {count} câu hỏi thêm",
+      "usedUp": "Bạn đã dùng hết câu hỏi thêm",
+      "intro": "Sau khi đọc bài luận giải, hãy viết ra một điều bạn còn muốn biết thêm. Yeoni sẽ tập trung trả lời riêng câu hỏi đó dựa trên cùng căn cứ của buổi tư vấn ban đầu. Không tính thêm phí.",
+      "basis": {
+        "tarot": "Trả lời bằng chính những lá bài cũ · không rút bài mới",
+        "saju": "Trả lời theo cùng lá số Tứ Trụ",
+        "sajuCompatibility": "Trả lời theo cùng lá số Tứ Trụ của hai người",
+        "sukuyo": "Trả lời theo cùng bản mệnh tú của hai người"
+      },
+      "label": "Câu hỏi dành cho Yeoni",
+      "placeholder": "Ví dụ: Với dòng chảy này, khi nào tôi nên chủ động liên lạc trước?",
+      "counter": "{count}/{max} ký tự",
+      "tooShort": "Hãy viết câu hỏi cụ thể hơn một chút — tối thiểu 4 ký tự, không tính khoảng trắng.",
+      "tooLong": "Câu hỏi tối đa 600 ký tự, không tính khoảng trắng.",
+      "submit": "Hỏi Yeoni",
+      "resume": "Gửi lại câu hỏi này",
+      "sending": "Yeoni đang mở lại buổi tư vấn ban đầu để viết câu trả lời. Có thể mất khoảng một phút.",
+      "waiting": "Đang hoàn thiện câu trả lời cho câu hỏi bạn đã gửi trước đó. Vui lòng đợi một chút.",
+      "arrived": "Câu trả lời thêm của Yeoni đã đến.",
+      "reopened": "Đã mở lại câu trả lời thêm đã lưu.",
+      "limitReached": "Câu hỏi thêm của buổi tư vấn này đã được sử dụng.",
+      "failed": "Chưa gửi được câu trả lời. Lượt hỏi vẫn còn nguyên, hãy gửi lại câu hỏi này.",
+      "login": "Đăng nhập để đặt câu hỏi thêm.",
+      "revoked": "Buổi tư vấn này đã bị hủy hoặc hoàn tiền nên không thể hỏi thêm.",
+      "questionLabel": "Câu hỏi của bạn",
+      "evidenceTitle": "Căn cứ Yeoni dựa vào",
+      "directTitle": "Câu trả lời của Yeoni",
+      "guidanceTitle": "Việc nên thử",
+      "cautionTitle": "Điều cần lưu ý"
     }
   },
   "fortuneVar": {

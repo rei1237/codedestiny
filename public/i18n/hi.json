@@ -17279,7 +17279,8 @@
       "resume": "Continue from saved sections",
       "pendingHelp": "Your question and access will be checked to resume the same reading.",
       "login": "Sign in to open My readings",
-      "openError": "The reading could not be opened. Please select it again."
+      "openError": "The reading could not be opened. Please select it again.",
+      "followUpRemaining": "शेष अतिरिक्त प्रश्न: {count}"
     },
     "teaCupSelection": {
       "eyebrow": "Six cups that answer the scent of a heart",
@@ -18005,7 +18006,9 @@
       "pdfFileName": "destiny-tea-house-{title}-{date}.pdf",
       "honeyLetterResume": "इसी पत्र को फिर से देखें",
       "safeShareLabel": "Tea house invitation without personal details",
-      "safeShareText": "A cup of tea with Yeoni, and time to quietly reflect on my feelings and choices."
+      "safeShareText": "A cup of tea with Yeoni, and time to quietly reflect on my feelings and choices.",
+      "followUpTextQuestion": "प्रश्न: {question}",
+      "followUpTextTitle": "Yeoni से पूछा गया अतिरिक्त प्रश्न"
     },
     "fortuneTeaHouseDebugPanel": {
       "k1lcnd8v": "Yes",
@@ -20571,6 +20574,39 @@
       "downloadNote": "Once unlocked, the album can be saved as a PDF without spending more honey drops.",
       "chapter": "Yeoni’s moonlit library",
       "humanAlt": "Human-form Yeoni sharing tarot stories in the moonlight"
+    },
+    "followUpCard": {
+      "eyebrow": "1 अतिरिक्त प्रश्न शामिल",
+      "title": "Yeoni से एक बार और पूछें",
+      "remaining": "शेष अतिरिक्त प्रश्न: {count}",
+      "usedUp": "अतिरिक्त प्रश्न का उपयोग हो चुका है",
+      "intro": "अपनी रीडिंग पढ़ने के बाद, एक बात लिखें जिसके बारे में आप और जानना चाहते हैं। पहली रीडिंग के उसी आधार पर Yeoni की ओर से उसी एक प्रश्न का केंद्रित उत्तर मिलेगा। इसका कोई अतिरिक्त शुल्क नहीं है।",
+      "basis": {
+        "tarot": "उन्हीं कार्डों से उत्तर · नए कार्ड नहीं निकाले जाते",
+        "saju": "उसी जन्म-चार्ट के आधार पर उत्तर",
+        "sajuCompatibility": "दोनों के उन्हीं जन्म-चार्टों के आधार पर उत्तर",
+        "sukuyo": "दोनों के उन्हीं जन्म चंद्र-भवनों के आधार पर उत्तर"
+      },
+      "label": "Yeoni से आपका प्रश्न",
+      "placeholder": "उदाहरण: इस प्रवाह में पहले संपर्क करने का अच्छा समय कब होगा?",
+      "counter": "{count}/{max} अक्षर",
+      "tooShort": "कृपया प्रश्न थोड़ा और स्पष्ट लिखें — रिक्त स्थान छोड़कर कम से कम 4 अक्षर।",
+      "tooLong": "प्रश्न रिक्त स्थान छोड़कर अधिकतम 600 अक्षरों का हो सकता है।",
+      "submit": "Yeoni से पूछें",
+      "resume": "वही प्रश्न फिर से भेजें",
+      "sending": "आपकी पहली रीडिंग दोबारा खोलकर Yeoni का उत्तर तैयार हो रहा है। इसमें लगभग एक मिनट लग सकता है।",
+      "waiting": "आपके पहले भेजे गए प्रश्न का उत्तर पूरा किया जा रहा है। कृपया थोड़ी देर प्रतीक्षा करें।",
+      "arrived": "Yeoni का अतिरिक्त उत्तर आ गया है।",
+      "reopened": "सहेजा गया अतिरिक्त उत्तर फिर से खोला गया।",
+      "limitReached": "इस रीडिंग का अतिरिक्त प्रश्न पहले ही उपयोग हो चुका है।",
+      "failed": "उत्तर नहीं पहुँचाया जा सका। आपका अतिरिक्त प्रश्न अब भी उपलब्ध है, कृपया वही प्रश्न फिर से भेजें।",
+      "login": "अतिरिक्त प्रश्न पूछने के लिए लॉग इन करें।",
+      "revoked": "यह रीडिंग रद्द या रिफ़ंड हो चुकी है, इसलिए अतिरिक्त प्रश्न उपलब्ध नहीं है।",
+      "questionLabel": "आपका प्रश्न",
+      "evidenceTitle": "Yeoni के बताए आधार",
+      "directTitle": "Yeoni का उत्तर",
+      "guidanceTitle": "क्या आज़माएँ",
+      "cautionTitle": "किन बातों का ध्यान रखें"
     }
   },
   "fortuneVar": {

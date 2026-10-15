@@ -5928,7 +5928,8 @@
       "resume": "저장된 부분부터 이어보기",
       "pendingHelp": "질문과 결제 권한을 확인해 같은 상담을 이어갑니다.",
       "login": "로그인하고 상담함 열기",
-      "openError": "상담을 열지 못했어요. 다시 선택해 주세요."
+      "openError": "상담을 열지 못했어요. 다시 선택해 주세요.",
+      "followUpRemaining": "추가 질문 {count}회 남음"
     },
     "teaCupSelection": {
       "eyebrow": "마음의 향에 반응하는 여섯 잔",
@@ -6654,7 +6655,9 @@
       "pdfFileName": "운명의-찻집-{title}-{date}.pdf",
       "honeyLetterResume": "같은 편지 다시 확인하기",
       "safeShareLabel": "개인정보 없는 찻집 초대",
-      "safeShareText": "연이와 차 한 잔, 내 마음과 선택을 차분히 돌아보는 시간."
+      "safeShareText": "연이와 차 한 잔, 내 마음과 선택을 차분히 돌아보는 시간.",
+      "followUpTextQuestion": "질문: {question}",
+      "followUpTextTitle": "연이에게 한 번 더 물은 질문"
     },
     "fortuneTeaHouseDebugPanel": {
       "k1lcnd8v": "있음",
@@ -9220,6 +9223,39 @@
       "downloadNote": "해금한 앨범은 꿀방울을 다시 사용하지 않고 PDF로 저장할 수 있어요.",
       "chapter": "연이의 달빛 서가",
       "humanAlt": "달빛 아래 타로 카드 이야기를 전하는 인간형 연이"
+    },
+    "followUpCard": {
+      "eyebrow": "추가 질문 1회 포함",
+      "title": "연이에게 한 번 더 묻기",
+      "remaining": "추가 질문 {count}회 남음",
+      "usedUp": "추가 질문을 모두 사용했어요",
+      "intro": "상담을 읽고 더 궁금해진 점 하나를 적어 주세요. 연이가 처음 상담의 근거로 그 질문 하나에 집중해 답해요. 추가 비용은 없어요.",
+      "basis": {
+        "tarot": "같은 카드로 답해요 · 카드를 새로 뽑지 않아요",
+        "saju": "같은 명식으로 답해요",
+        "sajuCompatibility": "두 사람의 같은 명식으로 답해요",
+        "sukuyo": "두 사람의 같은 본명숙으로 답해요"
+      },
+      "label": "연이에게 물어볼 질문",
+      "placeholder": "예: 이 흐름이라면 언제 먼저 연락하는 게 좋을까요?",
+      "counter": "{count}/{max}자",
+      "tooShort": "질문을 조금 더 구체적으로 적어 주세요. 공백을 빼고 4자 이상이면 돼요.",
+      "tooLong": "질문은 공백을 빼고 600자까지 적을 수 있어요.",
+      "submit": "연이에게 묻기",
+      "resume": "같은 질문 다시 보내기",
+      "sending": "연이가 처음 상담을 다시 펼쳐 답을 쓰고 있어요. 1분 정도 걸릴 수 있어요.",
+      "waiting": "앞서 보낸 질문의 답을 마무리하는 중이에요. 잠시만 기다려 주세요.",
+      "arrived": "연이의 추가 답변이 도착했어요.",
+      "reopened": "저장된 추가 답변을 다시 펼쳤어요.",
+      "limitReached": "이 상담의 추가 질문은 이미 사용했어요.",
+      "failed": "답을 전하지 못했어요. 횟수는 그대로 남아 있으니 같은 질문으로 다시 보내 주세요.",
+      "login": "로그인하면 추가 질문을 할 수 있어요.",
+      "revoked": "취소·환불된 상담이라 추가 질문을 할 수 없어요.",
+      "questionLabel": "손님의 질문",
+      "evidenceTitle": "연이가 짚은 근거",
+      "directTitle": "연이의 답",
+      "guidanceTitle": "해볼 일",
+      "cautionTitle": "조심할 점"
     }
   },
   "fortuneVar": {

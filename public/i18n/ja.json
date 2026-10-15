@@ -17279,7 +17279,8 @@
       "resume": "保存済みの部分から続ける",
       "pendingHelp": "質問と利用権を確認し、同じ相談を再開します。",
       "login": "ログインして相談記録を開く",
-      "openError": "相談を開けませんでした。もう一度選んでください。"
+      "openError": "相談を開けませんでした。もう一度選んでください。",
+      "followUpRemaining": "追加質問 残り{count}回"
     },
     "teaCupSelection": {
       "eyebrow": "心の香りに応える六つの茶碗",
@@ -18005,7 +18006,9 @@
       "pdfFileName": "運命の茶館-{title}-{date}.pdf",
       "honeyLetterResume": "同じ手紙をもう一度確認",
       "safeShareLabel": "個人情報を含まない茶房への招待",
-      "safeShareText": "ヨニとお茶を一杯。気持ちと選択を静かに見つめる時間。"
+      "safeShareText": "ヨニとお茶を一杯。気持ちと選択を静かに見つめる時間。",
+      "followUpTextQuestion": "質問：{question}",
+      "followUpTextTitle": "ヨニへの追加質問"
     },
     "fortuneTeaHouseDebugPanel": {
       "k1lcnd8v": "あり",
@@ -20571,6 +20574,39 @@
       "downloadNote": "解放後は、蜜のしずくを再び使わずにPDFを保存できます。",
       "chapter": "ヨニの月夜の書庫",
       "humanAlt": "月明かりの下でタロットの物語を語る、人の姿のヨニ"
+    },
+    "followUpCard": {
+      "eyebrow": "追加質問1回付き",
+      "title": "ヨニにもう一度たずねる",
+      "remaining": "追加質問 残り{count}回",
+      "usedUp": "追加質問はすべて使いました",
+      "intro": "鑑定を読んで、もっと知りたくなったことをひとつ書いてください。ヨニが最初の鑑定と同じ根拠をもとに、その質問ひとつに集中してお答えします。追加料金はかかりません。",
+      "basis": {
+        "tarot": "同じカードでお答えします · カードは引き直しません",
+        "saju": "同じ命式でお答えします",
+        "sajuCompatibility": "おふたりの同じ命式でお答えします",
+        "sukuyo": "おふたりの同じ本命宿でお答えします"
+      },
+      "label": "ヨニへの質問",
+      "placeholder": "例：この流れなら、いつ自分から連絡するのがいいですか？",
+      "counter": "{count}/{max}文字",
+      "tooShort": "質問をもう少し具体的に書いてください。空白を除いて4文字以上で大丈夫です。",
+      "tooLong": "質問は空白を除いて600文字まで書けます。",
+      "submit": "ヨニにたずねる",
+      "resume": "同じ質問をもう一度送る",
+      "sending": "ヨニが最初の鑑定をもう一度ひらいて、答えを書いています。1分ほどかかることがあります。",
+      "waiting": "先に送った質問の答えを仕上げています。少々お待ちください。",
+      "arrived": "ヨニの追加の答えが届きました。",
+      "reopened": "保存された追加の答えをもう一度ひらきました。",
+      "limitReached": "この鑑定の追加質問はすでに使われています。",
+      "failed": "答えをお届けできませんでした。回数はそのまま残っているので、同じ質問をもう一度送ってください。",
+      "login": "ログインすると追加質問ができます。",
+      "revoked": "取り消し・返金された鑑定のため、追加質問はできません。",
+      "questionLabel": "お客さまの質問",
+      "evidenceTitle": "ヨニが読み取った根拠",
+      "directTitle": "ヨニの答え",
+      "guidanceTitle": "やってみること",
+      "cautionTitle": "気をつけること"
     }
   },
   "fortuneVar": {
