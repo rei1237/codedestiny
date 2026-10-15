@@ -88,7 +88,7 @@ export const PALM_VISION_SYSTEM_PROMPT = `당신은 전통 손금과 현대 손�
 
 {
   "palmDetected": true,
-  "handSide": "right | left",
+  "handSide": "left | right | unknown",
   "notPalmReason": "palmDetected=false 일 때만 이유를 한 문장으로. 아니면 빈 문자열",
   "handShape": {
     "type": "earth|fire|air|water|mixed",
@@ -177,7 +177,8 @@ const COPIED_COVERAGE_EXAMPLE = 0.85;
 function buildVisionUserPrompt(declaredSide, analysisPurpose) {
   const purposeText = PURPOSE_KO[analysisPurpose] || PURPOSE_KO.general;
   const sideText = declaredSide === "left" ? "왼손" : "오른손";
-  return `이 사진은 ${sideText} 바닥입니다. 사용자의 분석 목적은 '${purposeText}'입니다.
+  return `사용자는 이 사진을 ${sideText} 칸에 올렸습니다. 사용자의 분석 목적은 '${purposeText}'입니다.
+handSide 는 이 안내를 옮겨 적지 말고, 사진에 보이는 엄지 위치와 손바닥 방향으로 직접 판단해 "left" 또는 "right" 로 쓰세요. 판단하기 어려우면 "unknown" 으로 두세요.
 
 이 목적에 맞춰 각 손금 영역을 깊이 있게 풀이하세요. summary 는 키워드 나열이 아니라 전문가가 대면 상담하듯 구체적인 문장으로 작성하세요.
 반드시 우세선·손바닥 곡률 유형·커리어 변화 지표 3가지를 명시하세요.
@@ -577,7 +578,9 @@ export async function analyzeHandWithGeminiVision(env, imageDataUrl, declaredSid
       : unit(iq.palmCoverage);
   const imageQuality = {
     isPalmDetected: palmDetected,
-    handSide: str(parsed.handSide, declaredSide),
+    // 판독 기준은 사용자가 올린 칸이다. 모델이 본 손은 따로 두고 덮어쓰지 않는다(compareHandSides).
+    handSide: declaredSide === "left" ? "left" : "right",
+    observedHandSide: normalizeHandSide(parsed.handSide),
     brightness: str(iq.brightness, "normal"),
     sharpness: str(iq.sharpness, "normal"),
     // 모델이 coverage 를 빼면 모름(null)이다. 예전 기본값 0.58/0.36 은 품질 문턱 0.42 양쪽에 걸려
@@ -607,14 +610,47 @@ export async function analyzeHandWithGeminiVision(env, imageDataUrl, declaredSid
   };
 }
 
+function normalizeHandSide(v) {
+  const s = String(v ?? "").trim().toLowerCase();
+  if (s === "left" || s === "왼손") return "left";
+  if (s === "right" || s === "오른손") return "right";
+  return "unknown";
+}
+
+/**
+ * 클라이언트 MediaPipe handedness → 실제 손. MediaPipe 는 셀피(좌우 반전) 입력을 가정하는데,
+ * 업로드는 후면 카메라(capture="environment")·갤러리 사진이라 반전되지 않은 경우가 대부분이다.
+ * 그래서 라벨을 뒤집는다. 반전된 셀피라면 틀리므로 혼자서는 불일치를 확정하지 못한다.
+ */
+export function clientHandSide(raw) {
+  const label = String(raw?.label || "");
+  if (!(Number(raw?.score) >= 0.8)) return "unknown";
+  return label === "Left" ? "right" : label === "Right" ? "left" : "unknown";
+}
+
+/**
+ * 사용자가 올린 칸(declared)·비전 모델이 본 손·MediaPipe 가 본 손을 비교한다. 판독 기준은 늘 declared 다.
+ * mismatch 는 비전이 다른 손으로 보고 MediaPipe 가 반박하지 않을 때만이다(둘 다 사진 반전을 모른다).
+ */
+export function compareHandSides(declared, vision, client) {
+  const known = [vision, client].filter((side) => side === "left" || side === "right");
+  const status = known.length === 0
+    ? "unverified"
+    : known.every((side) => side === declared)
+      ? "match"
+      : vision !== declared && vision !== "unknown" && known.every((side) => side === vision)
+        ? "mismatch"
+        : "uncertain";
+  return { declared, vision, client, status };
+}
+
 /**
  * Gemini 비전 결과를 worker/routes/palm.js 의 결정론 엔진 결과와 같은 형태로 감싼다.
  */
 export function visionToSideAnalysis(vision, side) {
   if (!vision) return null;
-  const resolvedSide = String(vision.imageQuality?.handSide || side).toLowerCase() === "left" ? "left" : "right";
   return {
-    side: resolvedSide,
+    side: side === "left" ? "left" : "right",
     source: "gemini",
     handReading: vision.handReading,
     palmDetected: vision.palmDetected,

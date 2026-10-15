@@ -121,6 +121,7 @@ type PalmLandmarkState = {
   landmarks: Record<string, PalmVisionPoint> | null;
   region: { minX: number; minY: number; width: number; height: number } | null;
   handedness: string;
+  handednessScore: number;
 };
 
 type PalmSampleBounds = {
@@ -706,7 +707,7 @@ function detectPalmSampleBounds(data: Uint8ClampedArray, sampleWidth: number, sa
  * MediaPipe 를 못 쓰는 환경에서는 "unavailable" 로 떨어져 기존 근사 경로가 그대로 돈다.
  */
 async function detectHandForFile(file: File, side: HandSide): Promise<PalmLandmarkState> {
-  const unavailable: PalmLandmarkState = { status: "unavailable", landmarks: null, region: null, handedness: "" };
+  const unavailable: PalmLandmarkState = { status: "unavailable", landmarks: null, region: null, handedness: "", handednessScore: 0 };
   let renderer: Awaited<ReturnType<typeof createImageRenderer>> | null = null;
   try {
     renderer = await createImageRenderer(file);
@@ -729,6 +730,7 @@ async function detectHandForFile(file: File, side: HandSide): Promise<PalmLandma
       landmarks: toEngineLandmarkMap(detection.result),
       region: computePalmRegion(detection.result),
       handedness: detection.result.handedness,
+      handednessScore: detection.result.handednessScore,
     };
   } catch (error) {
     console.warn("[palm] landmark detection error", { side, message: (error as Error)?.message });
@@ -986,6 +988,11 @@ async function extractPalmVisionPayload(
   } finally {
     renderer.cleanup();
   }
+}
+
+function toApiHandedness(state: PalmLandmarkState | null): { label: string; score: number } | null {
+  if (state?.status !== "detected" || (state.handedness !== "Left" && state.handedness !== "Right")) return null;
+  return { label: state.handedness, score: state.handednessScore };
 }
 
 function toApiImageQuality(quality: PalmImageQualityFeedback | null): Record<string, unknown> | null {
@@ -2318,6 +2325,9 @@ export default function PalmDestinyMain() {
         rightLineCandidates: rightVision?.lineCandidates ?? [],
         leftImageQuality: toApiImageQuality(qualityFeedbackBySide.left),
         rightImageQuality: toApiImageQuality(qualityFeedbackBySide.right),
+        // MediaPipe 원본 라벨. 서버가 사진 반전을 감안해 올린 칸과 비교만 한다(판독 기준은 칸).
+        leftHandedness: toApiHandedness(landmarkStateBySide.left),
+        rightHandedness: toApiHandedness(landmarkStateBySide.right),
         uploadedHandSide: leftHand.file && rightHand.file ? "both" : leftHand.file ? "left" : rightHand.file ? "right" : "",
         dominantHand,
         analysisPurpose: activeAnalysisPurpose,

@@ -1,6 +1,6 @@
 /** @jest-environment node */
 import { jest } from '@jest/globals';
-let save, read, route, deep, vision, docs, fault, proof, revoked, userId, ai, visionReply, textCall;
+let save, read, route, deep, vision, docs, fault, proof, revoked, userId, ai, visionReply, textCall, visionPrompt, sides, clientSide;
 const owner = '64b7f2a1c3d4e5f601234567';
 const query = value => ({ sort() { return this; }, lean: async () => structuredClone(value) });
 const match = (row, filter) => Object.entries(filter).every(([key, value]) => row[key] === value);
@@ -12,7 +12,7 @@ beforeAll(async () => {
   jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js', () => ({ verifyPerUsePayment: payment }));
   jest.unstable_mockModule('../../worker/lib/paid-result-revocation.js', () => ({ isPaidResultRevoked: async () => revoked }));
   jest.unstable_mockModule('../../worker/lib/gemini.js', () => ({ ...gemini, callGeminiText: async (_env, _prompt, options) => { textCall = options; return ai; } }));
-  jest.unstable_mockModule('../../worker/lib/structured-consultation.js', () => ({ callGeminiJsonWithRetry: async () => visionReply }));
+  jest.unstable_mockModule('../../worker/lib/structured-consultation.js', () => ({ callGeminiJsonWithRetry: async (_env, prompt) => { visionPrompt = prompt; return visionReply; } }));
   jest.unstable_mockModule('../../worker/lib/models.js', () => ({ ...models, ServiceExecutionTransaction: {
     findOne: filter => { if (fault === 'confirm') { fault = ''; return query(null); } return query(docs.find(row => match(row, filter)) || null); },
     findOneAndUpdate: (filter, update) => {
@@ -24,7 +24,7 @@ beforeAll(async () => {
     },
   } }));
   ({ savePalmAnalysis: save, readPaidPalmAnalysis: read } = await import('../../worker/lib/palm-result-delivery.js'));
-  ({ buildPalmDeepConsult: deep, analyzeHandWithGeminiVision: vision } = await import('../../worker/lib/palm-vision.js'));
+  ({ buildPalmDeepConsult: deep, analyzeHandWithGeminiVision: vision, compareHandSides: sides, clientHandSide: clientSide } = await import('../../worker/lib/palm-vision.js'));
   ({ handlePalmRoutes: route } = await import('../../worker/routes/palm.js'));
 });
 beforeEach(() => { docs = []; fault = ''; proof = true; revoked = false; userId = owner; ai = { ok: true, text: '계산한 선의 방향을 바탕으로 생활 속 선택을 살펴봅니다. '.repeat(70), provider: 'gemini' }; visionReply = { ok: true, text: JSON.stringify({ palmDetected: true, imageQuality: { brightness: 'good', sharpness: 'good', palmCoverage: 0.95 }, majorLines: { lifeLine: { detected: true, summary: '선 확인' } } }), provider: 'gemini' }; payment.mockClear(); });
@@ -135,6 +135,24 @@ test('scores copied from the old prompt example are not kept as measurements', a
   const measured = await vision({}, 'data:image/png;base64,AAAAAAAA', 'left');
   expect(measured.handReading.scores).toEqual({ love: 64, career: 81, wealth: 50, vitality: 88, creativity: 57, communication: null });
   expect(measured.imageQuality.palmCoverage).toBe(0.85);
+});
+test('a photo that looks like the other hand keeps the uploaded slot and is flagged', async () => {
+  visionReply.text = JSON.stringify({ palmDetected: true, handSide: 'right', imageQuality: { brightness: 'good', sharpness: 'good', palmCoverage: 0.95 }, majorLines: { lifeLine: { detected: true, summary: '선 확인' } } });
+  // MediaPipe "Left" on an unmirrored upload is the right hand, so both signals say right.
+  const response = await route(new Request('https://mock.test/api/palm/analyze', { method: 'POST', body: JSON.stringify({ requestId: 'palm-original', leftPalmImage: 'data:image/png;base64,' + 'A'.repeat(80), leftHandedness: { label: 'Left', score: 0.97 }, dominantHand: 'right', analysisPurpose: 'general' }) }), {});
+  expect(response.status).toBe(200);
+  expect(visionPrompt).not.toContain('바닥입니다');
+  const saved = docs[0].metadata.palmResult;
+  expect(saved.recognitionData.bySide.left.imageQuality).toMatchObject({ handSide: 'left', observedHandSide: 'right' });
+  expect(saved.recognitionData.bySide.left.handSideCheck).toEqual({ declared: 'left', vision: 'right', client: 'right', status: 'mismatch' });
+  expect(saved.warnings).toContain('왼손 칸에 올린 사진이 오른손처럼 보였어요. 해석은 올려 주신 대로 왼손 기준이에요. 손을 바꿔 올렸다면 칸을 확인해 주세요.');
+});
+test('hand-side signals only flag a mismatch the vision reading supports', () => {
+  expect(sides('left', 'left', 'unknown').status).toBe('match');
+  expect(sides('left', 'right', 'left').status).toBe('uncertain');
+  expect(sides('left', 'unknown', 'right').status).toBe('uncertain');
+  expect(sides('left', 'unknown', 'unknown').status).toBe('unverified');
+  expect([clientSide({ label: 'Right', score: 0.9 }), clientSide({ label: 'Left', score: 0.6 }), clientSide(null)]).toEqual(['left', 'unknown', 'unknown']);
 });
 test('heading lines separated by a blank line stay attached to their section', async () => {
   const body = '사진에서 확인된 선을 토대로 생활 속 선택을 차분히 살펴봅니다. '.repeat(4).trim();

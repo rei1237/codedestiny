@@ -6,6 +6,8 @@ import bothHandsComparisonLib from "../../lib/palm/both-hands-comparison.js";
 import {
   analyzeHandWithGeminiVision,
   buildPalmDeepConsult,
+  clientHandSide,
+  compareHandSides,
   majorLineDetectedCount,
   resolveAnalysisMode,
   visionToSideAnalysis,
@@ -99,7 +101,15 @@ function toSide(payload, side) {
     landmarks: side === "left" ? payload.leftHandLandmarks : payload.rightHandLandmarks,
     candidates: side === "left" ? payload.leftLineCandidates : payload.rightLineCandidates,
     quality: side === "left" ? payload.leftImageQuality : payload.rightImageQuality,
+    handedness: side === "left" ? payload.leftHandedness : payload.rightHandedness,
   };
+}
+
+const HAND_KO = { left: "왼손", right: "오른손" };
+
+// 판독은 올린 칸 기준으로 그대로 두고, 다른 손처럼 보였다는 사실만 알린다.
+function handSideMismatchWarning(check) {
+  return `${HAND_KO[check.declared]} 칸에 올린 사진이 ${HAND_KO[check.vision]}처럼 보였어요. 해석은 올려 주신 대로 ${HAND_KO[check.declared]} 기준이에요. 손을 바꿔 올렸다면 칸을 확인해 주세요.`;
 }
 
 function isEnoughQuality(recognition) {
@@ -124,6 +134,8 @@ function pickRepresentativeImageQuality(analyses) {
   for (let i = 0; i < analyses.length; i += 1) {
     const list = analyses[i]?.recognitionData?.extraction?.warnings;
     if (Array.isArray(list)) warnings.push(...list.map((w) => String(w)));
+    const check = analyses[i]?.recognitionData?.handSideCheck;
+    if (check?.status === "mismatch") warnings.push(handSideMismatchWarning(check));
   }
 
   return {
@@ -244,6 +256,8 @@ export async function handlePalmRoutes(request, env) {
       rightLineCandidates: toCandidateArray(body.rightLineCandidates),
       leftImageQuality: toObject(body.leftImageQuality),
       rightImageQuality: toObject(body.rightImageQuality),
+      leftHandedness: toObject(body.leftHandedness),
+      rightHandedness: toObject(body.rightHandedness),
       dominantHand: normalizeDominantHand(body.dominantHand),
       analysisPurpose: normalizeAnalysisPurpose(body.analysisPurpose),
     };
@@ -298,6 +312,7 @@ export async function handlePalmRoutes(request, env) {
 
       const local = runLocalEngine(side, input);
       const visionSide = visionToSideAnalysis(vision, side);
+      const handSideCheck = compareHandSides(side, vision?.imageQuality?.observedHandSide || "unknown", clientHandSide(input.handedness));
 
       // Gemini 가 "손이 아니다"라고 명시적으로 판정하면 그 판정을 존중한다.
       // 결정론 엔진은 조작 랜드마크만으로도 palmDetected 를 내주기 때문에,
@@ -314,6 +329,7 @@ export async function handlePalmRoutes(request, env) {
           handReading: visionSide.handReading,
           recognitionData: {
             ...visionSide.recognitionData,
+            handSideCheck,
             extraction: local?.recognitionData?.extraction || null,
             sections: local?.recognitionData?.sections || [],
           },
@@ -333,8 +349,8 @@ export async function handlePalmRoutes(request, env) {
         source: visionRejected ? "vision-rejected" : "local",
         handReading: local.handReading,
         recognitionData: visionRejected
-          ? { ...local.recognitionData, palmDetected: false }
-          : local.recognitionData,
+          ? { ...local.recognitionData, palmDetected: false, handSideCheck }
+          : { ...local.recognitionData, handSideCheck },
         overlayPaths: local.overlayPaths,
         hasMajorDetected: visionRejected ? false : local.hasMajorDetected,
         handRole: local.handRole,
