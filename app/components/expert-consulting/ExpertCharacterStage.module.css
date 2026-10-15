@@ -39,6 +39,20 @@
   --stage-glow: rgba(226, 204, 140, .2);
 }
 
+/* 연이 — 정원 아이보리·장밋빛. 무대가 라이트 화면(손금) 위에 놓인다. */
+.stage[data-character="yeoni"] {
+  --stage-accent: #b53660;
+  --stage-ink: #402a38;
+  --stage-muted: #6b4d5e;
+  --stage-surface: #ffffff;
+  --stage-line: rgba(181, 54, 96, .22);
+  --stage-glow: rgba(248, 196, 214, .55);
+}
+
+.stage[data-character="yeoni"] .bubble {
+  box-shadow: 0 8px 22px rgba(64, 42, 56, .08);
+}
+
 .frame {
   position: relative;
   overflow: hidden;
@@ -66,6 +80,15 @@
   object-fit: contain;
   object-position: bottom center;
 }
+
+/* 말하기 프레임: idle 컷 위에 겹쳐 두고 불투명도만 바꾼다. */
+.talk {
+  object-fit: contain;
+  object-position: bottom center;
+  opacity: 0;
+}
+
+.talk[data-on="true"] { opacity: 1; }
 
 .stage[data-motion="on"][data-placement="hero"] .frame,
 .stage[data-motion="on"][data-placement="loading"] .frame {

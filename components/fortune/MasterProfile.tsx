@@ -23,7 +23,7 @@ export type MasterProfileData = {
   sheet: string;
   sheetWidth: number;
   sheetHeight: number;
-  theme: "master" | "neo" | "yeoni" | "yun" | "musung" | "hanbi";
+  theme: "master" | "neo" | "yeoni" | "yeoniPalm" | "yun" | "musung" | "hanbi";
 };
 
 /** Introductory character art; never mounted in the consultation/result flow. */

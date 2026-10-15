@@ -6,8 +6,9 @@ import type { LoadingLocale } from "@/constants/loadingMessages";
  *  - yun    → 점성술 AI (윤달)
  *  - musung → 자미두수 AI·심층 리포트 (무성, 원작대로 소년)
  *  - hanbi  → 숙요점 궁합 AI (서한비 — R2 파일명·`pje` 키는 유지하되 "박지은"은 영구 금지)
+ *  - yeoni  → 손금 (소설 캐주얼 연이 — 찻집 한복 버전·돼지 폼은 쓰지 않는다)
  */
-export type ExpertCharacterKey = "yun" | "musung" | "hanbi";
+export type ExpertCharacterKey = "yun" | "musung" | "hanbi" | "yeoni";
 
 export type ExpertMood = "idle" | "greet" | "thinking" | "reveal" | "caution" | "comfort" | "error" | "empty";
 
@@ -36,6 +37,8 @@ export type ExpertCharacter = {
   spriteAspect: string;
   moods: Record<ExpertMood, ExpertSprite>;
   hero: ExpertSprite & { width: number; height: number };
+  /** 말하기 프레임. idle 표정과 같은 캔버스에서 입만 바뀐 컷이며, 대사가 바뀔 때 잠깐 돌린다. */
+  talkFrames?: readonly ExpertSprite[];
   lines: Record<string, ExpertLine>;
   /** 영어 번역. 표에 없는 로케일은 영어로, 영어에도 없으면 한국어 원문으로 내려간다. */
   linesEn: Record<string, string>;

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import http from "node:http";
 import { createRequire } from "node:module";
 import os from "node:os";
@@ -88,6 +88,19 @@ async function createHarness() {
     stdin: { contents: entry, resolveDir: process.cwd(), sourcefile: "palm-recovery-entry.tsx", loader: "tsx" },
     absWorkingDir: process.cwd(),
     alias: { "@": process.cwd() },
+    // app/package.json 이 "type": "module" 이라 esbuild 가 app/ 아래 CJS default import 를 Node 방식(모듈 객체 통째)으로 묶는다.
+    // Next 번들러처럼 next/image 의 default(컴포넌트)를 받도록 app/ 밖 가상 모듈로 한 번 감싼다.
+    plugins: [{
+      name: "next-image-default",
+      setup(pluginBuild) {
+        pluginBuild.onResolve({ filter: /^next\/image$/ }, () => ({ path: "next/image", namespace: "next-image-default" }));
+        pluginBuild.onLoad({ filter: /.*/, namespace: "next-image-default" }, () => ({
+          contents: 'import * as nextImage from "next/dist/shared/lib/image-external.js"; export default nextImage.default;',
+          resolveDir: process.cwd(),
+          loader: "js",
+        }));
+      },
+    }],
     bundle: true,
     define: { "process.env.NODE_ENV": '"development"', "process.env": "{}" },
     format: "iife",
@@ -104,11 +117,12 @@ async function createHarness() {
     content: ["./app/palm-reading/**/*.{ts,tsx}", "./app/components/PaymentProcessingContext.tsx"],
   }), autoprefixer]).process(globals, { from: path.resolve("styles/globals.css") });
   writeFileSync(path.join(tempRoot, "styles.css"), css.css);
-  writeFileSync(path.join(tempRoot, "index.html"), '<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/styles.css"></head><body><div id="root"></div><script src="/app.js"></script></body></html>');
+  writeFileSync(path.join(tempRoot, "index.html"), '<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/app.css"></head><body><div id="root"></div><script src="/app.js"></script></body></html>');
 
   const server = http.createServer((request, response) => {
     const pathname = new URL(request.url || "/", "http://localhost").pathname;
-    const file = pathname === "/app.js" ? "app.js" : pathname === "/styles.css" ? "styles.css" : "index.html";
+    // app.css 는 esbuild 가 CSS 모듈(연이 대사창·프로필 등)을 모아 app.js 옆에 쓴다.
+    const file = pathname === "/app.js" ? "app.js" : pathname === "/styles.css" ? "styles.css" : pathname === "/app.css" && existsSync(path.join(tempRoot, "app.css")) ? "app.css" : "index.html";
     const contentType = file.endsWith(".js") ? "text/javascript" : file.endsWith(".css") ? "text/css" : "text/html";
     response.writeHead(200, { "Content-Type": `${contentType}; charset=utf-8`, "Cache-Control": "no-store" });
     response.end(readFileSync(path.join(tempRoot, file)));

@@ -24,6 +24,14 @@ export const masterProfiles = {
     portrait: `${base}/yeoni-teahouse-portrait.webp`, portraitAlt: "분홍빛 한복을 입고 찻잔을 건네는 운명 찻집 마스터 연이",
     sheet: `${base}/yeoni-teahouse-profile.webp`, sheetWidth: 1536, sheetHeight: 1024, theme: "yeoni",
   },
+  // 손금 — 소설 캐주얼 연이. 찻집 한복 연이(yeoni)와 다른 사람처럼 보이지 않게 이름은 같고 역할만 다르다.
+  yeoniPalm: {
+    name: "연이", role: "손바닥 선을 함께 들여다보는 손금 상담가 · 손금",
+    description: "펼친 손바닥 사진에서 생명선·두뇌선·감정선·운명선을 하나씩 짚어 읽는 손금 상담가예요. 사진에 또렷이 보이는 선만 읽고, 보이지 않는 선은 보이지 않는다고 솔직하게 말씀드려요.",
+    approach: "손금을 정해진 운명으로 단정하기보다, 지금의 습관과 흐름을 비춰 보는 거울로 읽어요. 선마다 근거를 함께 보여 드리고, 오늘 해 볼 수 있는 작은 행동을 같이 찾아요.",
+    portrait: `${base}/yeoni-palm-portrait.webp`, portraitAlt: "꽃무늬 블라우스를 입고 펼친 손바닥을 들어 보이는 손금 상담가 연이",
+    sheet: `${base}/yeoni-palm-profile.webp`, sheetWidth: 1536, sheetHeight: 1024, theme: "yeoniPalm",
+  },
   yun: {
     name: "윤달", role: "생시부터 묻는 점성술사 · 서양 점성술",
     description: "누구에게나 태어난 시각부터 묻는 점성술사예요. 분까지 맞추면 상승궁과 열두 하우스가 또렷해지고, 태양·달과 함께 기질의 중심을 정확히 잡을 수 있어요.",

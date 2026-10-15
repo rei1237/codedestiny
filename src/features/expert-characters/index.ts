@@ -1,5 +1,6 @@
 import { hanbiCharacter } from "./hanbi";
 import { musungCharacter, MUSUNG_FEATHER_ASPECT, MUSUNG_FEATHER_STAGES } from "./musung";
+import { yeoniCharacter } from "./yeoni";
 import { yunCharacter } from "./yun";
 import type { ExpertCharacter, ExpertCharacterKey, ExpertLine, ExpertLocale, ExpertMood, ExpertSprite } from "./types";
 
@@ -10,6 +11,7 @@ export const EXPERT_CHARACTERS: Record<ExpertCharacterKey, ExpertCharacter> = {
   yun: yunCharacter,
   musung: musungCharacter,
   hanbi: hanbiCharacter,
+  yeoni: yeoniCharacter,
 };
 
 export function getExpertCharacter(key: ExpertCharacterKey): ExpertCharacter {

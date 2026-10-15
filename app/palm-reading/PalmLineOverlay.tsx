@@ -12,11 +12,12 @@ type OverlayMeta = {
   glow: string;
 };
 
+// 연이 정원 라이트 — 피부색 사진 위에서도 선이 묻히지 않게 짙은 색에 흰빛 번짐을 둘렀다.
 const LINE_META: OverlayMeta[] = [
-  { key: "lifeLine", stroke: "#8FBF7C", glow: "rgba(171, 214, 132, 0.55)" },
-  { key: "headLine", stroke: "#78ABD9", glow: "rgba(131, 188, 255, 0.55)" },
-  { key: "heartLine", stroke: "#DEA4BE", glow: "rgba(250, 178, 212, 0.55)" },
-  { key: "fateLine", stroke: "#B89ADA", glow: "rgba(203, 170, 245, 0.55)" },
+  { key: "lifeLine", stroke: "#3f7d4c", glow: "rgba(255, 255, 255, 0.85)" },
+  { key: "headLine", stroke: "#3f6fa8", glow: "rgba(255, 255, 255, 0.85)" },
+  { key: "heartLine", stroke: "#b53660", glow: "rgba(255, 255, 255, 0.85)" },
+  { key: "fateLine", stroke: "#6e5a8e", glow: "rgba(255, 255, 255, 0.85)" },
 ];
 
 const PALM_LINE_OVERLAY_TEXT_TRANSLATIONS = {
@@ -139,23 +140,23 @@ export default function PalmLineOverlay({
 
   if (!imageUrl) {
     return (
-      <div className="rounded-2xl border border-[#d8bf72]/40 bg-[#0b111b]/85 p-4 text-sm text-[#f6eecf]/90">
+      <div className="rounded-2xl border border-[#b53660]/20 bg-[#fff9f4] p-4 text-sm text-[#6b4d5e]">
         {copy.noImage}
       </div>
     );
   }
 
   return (
-    <section className={`cd-ink-card cd-hanji relative overflow-hidden rounded-2xl border border-[#d8bf72]/45 bg-[linear-gradient(145deg,rgba(9,14,23,0.95),rgba(26,18,16,0.9))] ${immersive ? "cd-overlay-immersive" : ""}`}>
-      <span className="cd-seal-dot pointer-events-none absolute right-2 top-2 h-3 w-3 rounded-full border border-[#f3d888]/65 bg-[#8f1c1c]/85" />
-      <div className="flex items-center justify-between border-b border-[#d8bf72]/25 px-3 py-2 md:px-4">
-        <h3 className="text-sm font-black text-[#f3de9e] md:text-base">{copy.title}</h3>
-        <span className="rounded-full border border-[#d8bf72]/35 bg-[#141f2f]/80 px-2 py-1 text-[11px] font-bold text-[#fce9b4]">
+    <section className={`cd-ink-card cd-hanji relative overflow-hidden rounded-2xl border border-[#b53660]/20 bg-white shadow-[0_10px_30px_rgba(64,42,56,0.06)] ${immersive ? "cd-overlay-immersive" : ""}`}>
+      <span aria-hidden className="cd-seal-dot pointer-events-none absolute right-2 top-2 h-3 w-3 rounded-full border border-[#c9a46a] bg-[#e9a7bc]" />
+      <div className="flex items-center justify-between border-b border-[#b53660]/15 px-3 py-2 md:px-4">
+        <h3 className="text-sm font-black text-[#402a38] md:text-base">{copy.title}</h3>
+        <span className="rounded-full border border-[#b53660]/25 bg-[#f8e4ea] px-2 py-1 text-[11px] font-bold text-[#b53660]">
           {hasPreciseCoordinates ? copy.aiDetected : copy.symbolic}
         </span>
       </div>
 
-      <div className="relative w-full bg-[#04070d]">
+      <div className="relative w-full bg-[#fff9f4]">
         {immersive ? <div aria-hidden className="cd-overlay-noise pointer-events-none absolute inset-0 z-[1]" /> : null}
         <img
           src={imageUrl}
@@ -221,8 +222,8 @@ export default function PalmLineOverlay({
               onClick={() => onSelectLine(line.key)}
               className={`min-h-[44px] min-w-[88px] shrink-0 rounded-lg border px-3 py-2 text-xs font-bold transition-all duration-200 md:text-sm ${
                 active
-                  ? "border-[#e5cd82]/70 bg-[#2c1d1c] text-[#ffe7b8] shadow-[0_0_14px_rgba(236,206,126,0.32)]"
-                  : "border-[#d8bf72]/30 bg-[#101828] text-[#f4e8c3] hover:bg-[#17233a] hover:shadow-[0_0_12px_rgba(226,193,106,0.24)]"
+                  ? "border-[#b53660] bg-[#f8e4ea] text-[#b53660] shadow-[inset_0_-2px_0_#b53660]"
+                  : "border-[#b53660]/20 bg-white text-[#402a38] hover:bg-[#fdf0f4] hover:shadow-[0_4px_10px_rgba(181,54,96,0.14)]"
               }`}
             >
               {copy.labels[line.key]}
@@ -232,13 +233,13 @@ export default function PalmLineOverlay({
       </div>
 
       {undetectedLines?.length ? (
-        <p className="border-t border-[#d8bf72]/25 px-3 py-2 text-[11px] leading-5 text-[#f5eccc]/80 md:px-4 md:text-xs">
+        <p className="border-t border-[#b53660]/15 px-3 py-2 text-[11px] leading-5 text-[#6b4d5e] md:px-4 md:text-xs">
           {copy.undetectedNote}
         </p>
       ) : null}
 
       {!hasPreciseCoordinates ? (
-        <p className="border-t border-[#d8bf72]/25 px-3 py-2 text-[11px] leading-5 text-[#f5eccc]/80 md:px-4 md:text-xs">
+        <p className="border-t border-[#b53660]/15 px-3 py-2 text-[11px] leading-5 text-[#6b4d5e] md:px-4 md:text-xs">
           {copy.symbolicNote}
         </p>
       ) : null}
@@ -246,17 +247,15 @@ export default function PalmLineOverlay({
       <style jsx>{`
         .cd-overlay-immersive {
           box-shadow:
-            0 0 0 1px rgba(216, 191, 114, 0.35),
-            0 20px 60px rgba(0, 0, 0, 0.5),
-            inset 0 0 34px rgba(216, 191, 114, 0.08);
+            0 0 0 1px rgba(181, 54, 96, 0.12),
+            0 20px 48px rgba(64, 42, 56, 0.12);
         }
 
         .cd-overlay-noise {
           background-image:
-            radial-gradient(circle at 10% 20%, rgba(255, 230, 160, 0.12) 0 1px, transparent 2px),
-            radial-gradient(circle at 70% 80%, rgba(255, 230, 160, 0.08) 0 1px, transparent 2px),
-            repeating-linear-gradient(0deg, rgba(216, 191, 114, 0.03) 0, rgba(216, 191, 114, 0.03) 1px, transparent 1px, transparent 8px);
-          opacity: 0.7;
+            radial-gradient(circle at 10% 20%, rgba(233, 167, 188, 0.35) 0 1px, transparent 2px),
+            radial-gradient(circle at 70% 80%, rgba(201, 164, 106, 0.3) 0 1px, transparent 2px);
+          opacity: 0.6;
           animation: cdOverlayDrift 14s ease-in-out infinite alternate;
         }
 

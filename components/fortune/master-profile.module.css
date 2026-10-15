@@ -38,6 +38,13 @@
   --profile-accent: #e2cc8c;
   --profile-line: rgba(205, 218, 242, .34);
 }
+/* 손금 연이 — 연이 정원 라이트 팔레트(아이보리 바탕). 장미색은 흰·아이보리 위 4.5:1 이상. */
+.profile[data-theme="yeoniPalm"] {
+  --profile-ink: #402a38;
+  --profile-muted: #6b4d5e;
+  --profile-accent: #b53660;
+  --profile-line: rgba(181, 54, 96, .18);
+}
 .portrait { width: 100%; height: auto; border-radius: var(--cd-r-card); }
 .copy { min-width: 0; word-break: keep-all; overflow-wrap: anywhere; }
 .copy h2 { margin: 0; font-family: var(--font-display, var(--font-body)); font-size: var(--cd-t-display); line-height: 1.3; }

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useEffect, useState } from "react";
 import { useSpritePlaybackGate } from "@/src/hooks/useSpritePlaybackGate";
 import {
   getExpertCharacter,
@@ -35,6 +36,10 @@ const SPRITE_SIZES: Record<ExpertStagePlacement, string> = {
   result: "96px",
 };
 
+/** 말하기 프레임 한 번 돌리는 길이. 대사 길이에 비례하되 짧게 끊어 계속 떠드는 느낌을 피한다. */
+const TALK_STEP_MS = 180;
+const talkSteps = (line: string) => Math.min(12, Math.max(4, Math.round(line.length / 4)));
+
 /**
  * 전문가 상담 캐릭터 무대. 네오 NeoSpriteActor 를 일반화했다.
  * - 프레임은 스프라이트 원본 비율로 고정해 표정이 바뀌어도 레이아웃이 흔들리지 않는다.
@@ -53,9 +58,36 @@ export default function ExpertCharacterStage({
 }: ExpertCharacterStageProps) {
   const gate = useSpritePlaybackGate<HTMLElement>();
   const config = getExpertCharacter(character);
+  const sprite = spriteOverride ?? getExpertMoodSprite(character, mood);
+  // 말하기 프레임은 idle 컷과 같은 캔버스에서 입만 바꾼 그림이라, idle 컷이 보일 때만 겹친다.
+  const talkFrames = config.talkFrames ?? [];
+  const canTalk = Boolean(line) && !spriteOverride && talkFrames.length > 0 && sprite.src === config.moods.idle.src && gate.canAnimate;
+  const [talkStep, setTalkStep] = useState(-1);
+
+  useEffect(() => {
+    if (!canTalk || !line) {
+      setTalkStep(-1);
+      return;
+    }
+    const steps = talkSteps(line);
+    let step = -1;
+    setTalkStep(-1);
+    const timer = window.setInterval(() => {
+      step += 1;
+      if (step >= steps) {
+        window.clearInterval(timer);
+        setTalkStep(-1);
+        return;
+      }
+      setTalkStep(step);
+    }, TALK_STEP_MS);
+    return () => window.clearInterval(timer);
+  }, [canTalk, line]);
+
   if (!config.enabled) return null;
 
-  const sprite = spriteOverride ?? getExpertMoodSprite(character, mood);
+  // a → b → 다문 입(idle) 순서로 돈다. 겹침 컷은 이미지를 바꾸지 않고 불투명도만 바꿔 moodIn 이 다시 돌지 않는다.
+  const talkFrameIndex = talkStep < 0 ? -1 : talkStep % (talkFrames.length + 1);
   const name = getExpertCharacterName(character, locale);
   const announces = placement === "loading" || mood === "error";
   const isHero = placement === "hero";
@@ -85,6 +117,22 @@ export default function ExpertCharacterStage({
           loading={loading}
           unoptimized
         />
+        {canTalk
+          ? talkFrames.map((frame, index) => (
+              <Image
+                key={frame.src}
+                className={styles.talk}
+                data-on={talkFrameIndex === index ? "true" : undefined}
+                src={frame.src}
+                alt=""
+                aria-hidden
+                fill
+                sizes={SPRITE_SIZES[placement]}
+                loading={loading}
+                unoptimized
+              />
+            ))
+          : null}
       </div>
       {line ? (
         <figcaption className={styles.bubble} aria-live={announces ? "polite" : undefined}>

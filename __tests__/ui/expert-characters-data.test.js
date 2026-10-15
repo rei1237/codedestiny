@@ -1,5 +1,5 @@
 /**
- * 전문가 상담 캐릭터 데이터(윤달·무성·서한비) 가드.
+ * 전문가 상담 캐릭터 데이터(윤달·무성·서한비·연이) 가드.
  *  - 모든 mood·히어로·깃털 컷 경로가 실제 public 파일인지 (깨진 이미지 = 빈 무대)
  *  - 사용자에게 보이는 문구에 "박지은"·"궁합 사기꾼"이 없는지 (영구 금지)
  *  - 제외한 스프라이트(공망 스포일러·악역기·조종당하던 시기 표정·호랑이 hanbi 폴더)를 쓰지 않는지
@@ -34,15 +34,16 @@ function rewrite(source, rewrites, label) {
 async function loadCharacters() {
   const lines = toDataUrl(rewrite(strip("src/features/expert-characters/lines.ts"), { "@/lib/cms/build-text": CMS_STUB }, "lines.ts"));
   const load = (key) => import(toDataUrl(rewrite(strip(`src/features/expert-characters/${key}.ts`), { "./lines": lines }, `${key}.ts`)));
-  const [yun, musung, hanbi] = await Promise.all([load("yun"), load("musung"), load("hanbi")]);
-  return { yun: yun.yunCharacter, musung: musung.musungCharacter, hanbi: hanbi.hanbiCharacter, featherStages: musung.MUSUNG_FEATHER_STAGES };
+  const [yun, musung, hanbi, yeoni] = await Promise.all([load("yun"), load("musung"), load("hanbi"), load("yeoni")]);
+  return { yun: yun.yunCharacter, musung: musung.musungCharacter, hanbi: hanbi.hanbiCharacter, yeoni: yeoni.yeoniCharacter, featherStages: musung.MUSUNG_FEATHER_STAGES };
 }
 
+const KEYS = ["yun", "musung", "hanbi", "yeoni"];
 const MOODS = ["idle", "greet", "thinking", "reveal", "caution", "comfort", "error", "empty"];
 const publicFile = (src) => path.join(root, "public", src.replace(/^\//, ""));
 
 function allSprites(character) {
-  return [...MOODS.map((mood) => character.moods[mood]), character.hero];
+  return [...MOODS.map((mood) => character.moods[mood]), character.hero, ...(character.talkFrames || [])];
 }
 
 function visibleText(character) {
@@ -54,9 +55,9 @@ function visibleText(character) {
   ].join("\n");
 }
 
-test("세 캐릭터의 mood·히어로·깃털 컷이 모두 실제 파일이다", async () => {
+test("캐릭터마다 mood·히어로·말하기·깃털 컷이 모두 실제 파일이다", async () => {
   const characters = await loadCharacters();
-  for (const key of ["yun", "musung", "hanbi"]) {
+  for (const key of KEYS) {
     const character = characters[key];
     assert.equal(character.key, key);
     for (const mood of MOODS) assert.ok(character.moods[mood], `${key}: mood "${mood}" 스프라이트가 없다`);
@@ -71,7 +72,7 @@ test("세 캐릭터의 mood·히어로·깃털 컷이 모두 실제 파일이다
 
 test("대사 표: 모든 대사에 영어가 있고 mood 가 유효하다", async () => {
   const characters = await loadCharacters();
-  for (const key of ["yun", "musung", "hanbi"]) {
+  for (const key of KEYS) {
     const { lines, linesEn } = characters[key];
     assert.ok(lines.hero, `${key}: hero 대사가 없다 — getExpertLine 의 대체 줄이다`);
     for (const [id, line] of Object.entries(lines)) {
@@ -84,7 +85,7 @@ test("대사 표: 모든 대사에 영어가 있고 mood 가 유효하다", asyn
 
 test("금지 이름·원작 비하 표현이 사용자 문구에 없다", async () => {
   const characters = await loadCharacters();
-  for (const key of ["yun", "musung", "hanbi"]) {
+  for (const key of KEYS) {
     const text = visibleText(characters[key]);
     for (const banned of ["박지은", "궁합 사기꾼", "Park Ji-eun", "Park Jieun"]) assert.ok(!text.includes(banned), `${key}: "${banned}" 노출`);
   }
@@ -102,6 +103,12 @@ test("제외한 스프라이트를 쓰지 않는다", async () => {
   for (const src of srcs("hanbi")) {
     assert.ok(!src.includes("/novel/hanbi/"), `서한비: novel/hanbi 는 호랑이 캐릭터다 — ${src}`);
     assert.ok(!/박지은|\/(angry|cry)\.webp$/.test(src), `서한비: 제외 스프라이트 ${src}`);
+  }
+  // 연이(손금)는 소설 캐주얼 연이만 쓴다 — 찻집 한복 버전·돼지 폼·상담에 안 맞는 표정은 제외.
+  for (const src of srcs("yeoni")) {
+    assert.ok(src.startsWith("/images/expert-characters/yeoni/"), `연이: 손금용으로 정규화한 컷이 아니다 — ${src}`);
+    assert.ok(!/teahouse|pig/.test(src), `연이: 찻집·돼지 폼 ${src}`);
+    assert.ok(!/\/(angry|cry|fear|sleep|onigiri|disappoint)\.webp$/.test(src), `연이: 제외 스프라이트 ${src}`);
   }
 });
 
