@@ -10,6 +10,8 @@ import type { FortuneTeaHouseConsultMode } from "../data/consult";
 import { getFortuneTeaHouseConsultPriceLabel } from "../data/consultPricing";
 import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 import styles from "../styles/tea-house-home.module.css";
+import MasterProfile from "@/components/fortune/MasterProfile";
+import { masterProfiles } from "@/components/fortune/master-profiles";
 const KO = {
  title:"연이의 운명 찻집",library:"내 상담함",account:"계정",back:"꿀꿀운세로",
  heading:"달빛이 머무는 밤,\n당신을 위한 한 잔",lead:"꽃돼지의 인사로 시작해, 연이와 마주 앉는 이야기.",
@@ -41,6 +43,7 @@ export default function FortuneTeaHouseLanding({onEnter,onReplayPrologue,onShowH
  return <div className={styles.home}>
  <header className={styles.header}><Link href="/fortune-tea-house/" className={styles.brand}><Flower2 aria-hidden size={24}/>{copy.title}</Link><nav aria-label={copy.title}><button onClick={onShowHistory}><BookOpen size={18} aria-hidden/>{copy.library}</button><Link href="/login/?next=%2Ffortune-tea-house%2F"><UserRound size={18} aria-hidden/>{copy.account}</Link><Link href="/ggulggul/">{copy.back}</Link>{soundControl}</nav></header>
  <section className={styles.hero}><div className={styles.heroCopy}><h1>{copy.heading}</h1><p className={styles.lead}>{copy.lead}</p><p>{copy.intro}</p><div className={styles.actions}><button className={styles.primary} onClick={hasBookmark ? onResumePrologue : onReplayPrologue}>{hasBookmark ? copy.resume : copy.start}<ArrowRight aria-hidden size={18}/></button><a className={styles.secondary} href="#tea-example">{copy.sample}</a><button className={styles.secondary} onClick={onChooseCup}>{copy.cups}</button>{hasBookmark && <button onClick={onReplayPrologue}>{copy.restart}</button>}</div></div><Image src="/images/fortune-tea-house/yeoni-moonlight-novel.webp" width={1536} height={1024} alt={copy.heroAlt} priority sizes="(max-width:700px) 100vw,60vw" className={styles.heroImage}/></section>
+ <MasterProfile profile={masterProfiles.yeoni}/>
  {onOpenAlbum && <TeaHouseAlbumInvitation honeyDrops={honeyDrops} onOpen={onOpenAlbum}/>}
  <section className={styles.section} id="tea-concerns"><h2>{copy.concerns}</h2><p>{copy.concernsHelp}</p><div className={styles.questions}>{copy.questions.map((q,i)=><button key={i} onClick={()=>onEnter(questionModes[i],q)}>{q}<ArrowRight aria-hidden size={18}/></button>)}</div></section>
  <section className={`${styles.section} ${styles.preview}`} id="tea-example"><div><h2>{copy.previewTitle}</h2><p>{copy.welcomeHuman}</p><Image src="/images/fortune-tea-house/renewal/yeoni-human-welcome.webp" width={720} height={720} alt="" sizes="(max-width:700px) 100vw,40vw"/></div><article className={styles.letter}><span>{copy.example}</span><h3>{copy.exampleQuestion}</h3><p className={styles.answer}>{copy.exampleAnswer}</p><p>{copy.exampleBody}</p><ol>{copy.resultParts.map(p=><li key={p}>{p}</li>)}</ol></article></section>

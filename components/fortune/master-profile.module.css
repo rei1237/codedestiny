@@ -1,0 +1,39 @@
+.profile {
+  --profile-ink: var(--codex-ink-text, var(--tea-ink, var(--cd-text)));
+  --profile-muted: var(--codex-ink-text-muted, var(--home-muted, var(--cd-text)));
+  --profile-line: var(--codex-rule, var(--cd-border));
+  --profile-accent: var(--codex-gold, var(--tea-rose, var(--cd-accent)));
+  position: relative;
+  width: calc(100% - 48px);
+  max-width: 1000px;
+  margin: 48px auto;
+  color: var(--profile-ink);
+  font-family: var(--font-body);
+  line-height: 1.8;
+}
+.introduction { display: grid; grid-template-columns: minmax(0, 320px) minmax(0, 1fr); align-items: center; gap: 40px; }
+.profile[data-theme="neo"] {
+  --profile-ink: var(--cd-cta-primary-ink);
+  --profile-muted: var(--cd-cta-primary-ink);
+  --profile-accent: var(--cd-cta-primary-ink);
+  --profile-line: var(--cd-cta-hairline);
+}
+.portrait { width: 100%; height: auto; border-radius: var(--cd-r-card); }
+.copy { min-width: 0; word-break: keep-all; overflow-wrap: anywhere; }
+.copy h2 { margin: 0; font-family: var(--font-display, var(--font-body)); font-size: var(--cd-t-display); line-height: 1.3; }
+.copy p { max-width: 60ch; margin: 16px 0 0; }
+.copy .role { color: var(--profile-accent); font-weight: 700; }
+.copy .note { color: var(--profile-muted); font-size: 1rem; margin-top: 24px; }
+.details { border-block: 1px solid var(--profile-line); margin-top: 28px; }
+.details summary { min-height: 48px; padding: 12px 0; cursor: pointer; color: var(--profile-accent); font-weight: 600; }
+.details summary:focus-visible, .sheet a:focus-visible { outline: 2px solid var(--profile-accent); outline-offset: 4px; }
+.sheet { padding-bottom: 24px; }
+.sheet p { margin: 0; }
+.sheet a { display: inline-flex; align-items: center; min-height: 44px; color: var(--profile-accent); text-underline-offset: 4px; }
+.sheet img { display: block; width: 100%; height: auto; margin-top: 12px; }
+.profile ::selection { background: var(--profile-accent); color: var(--codex-ink, var(--home-bg, var(--cd-cta-primary-bg, var(--cd-bg)))); }
+@media (max-width: 700px) {
+  .profile { width: calc(100% - 40px); margin-block: 36px; }
+  .introduction { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .portrait { max-width: 280px; justify-self: center; }
+}
