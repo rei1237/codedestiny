@@ -13,6 +13,8 @@ import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { PriceBadge } from "@/app/components/PriceBadge";
 import { ExpertStickyCta, ExpertValueCards } from "@/app/components/expert-consulting/ExpertConsultationFrame";
 import ExpertCharacterStage from "@/app/components/expert-consulting/ExpertCharacterStage";
+import MasterProfile from "@/components/fortune/MasterProfile";
+import { masterProfiles } from "@/components/fortune/master-profiles";
 import { getExpertCharacter, getExpertCharacterName, getExpertCharacterTitle, getExpertLine, isExpertCharacterEnabled } from "@/src/features/expert-characters";
 import Image from "next/image";
 import { AlertCircle, CalendarDays, CheckCircle2, ExternalLink, Loader2, MapPin, Moon, RotateCcw, Sparkles, Stars, WalletCards } from "lucide-react";
@@ -2301,6 +2303,8 @@ export default function AstrologyAiClient() {
           </aside>
         </div>
       </section>
+      {/* 소개용 캐릭터 프로필 — 상담 진행 중에는 내리고, 사전이 없는 다른 로케일에는 띄우지 않는다. */}
+      {yunOn && locale === "ko" && !busy && <MasterProfile profile={masterProfiles.yun} />}
     </main>
   );
 }

@@ -11,6 +11,8 @@ import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { PriceBadge } from "@/app/components/PriceBadge";
 import { ExpertStickyCta, ExpertValueCards } from "@/app/components/expert-consulting/ExpertConsultationFrame";
 import ExpertCharacterStage from "@/app/components/expert-consulting/ExpertCharacterStage";
+import MasterProfile from "@/components/fortune/MasterProfile";
+import { masterProfiles } from "@/components/fortune/master-profiles";
 import { getExpertCharacter, getExpertCharacterName, getExpertCharacterTitle, getExpertLine, isExpertCharacterEnabled, MUSUNG_FEATHER_ASPECT, MUSUNG_FEATHER_STAGES } from "@/src/features/expert-characters";
 import Image from "next/image";
 import { Download, Loader2, Moon, Sparkles, Stars, WalletCards } from "lucide-react";
@@ -1488,6 +1490,8 @@ export default function ZiweiAiPage() {
           )}
         </div>
       </section>
+      {/* 소개용 캐릭터 프로필 — 상담 진행·결과 화면에서는 내린다. */}
+      {musungOn && !consultation && !busy && <MasterProfile profile={masterProfiles.musung} />}
 
       <style>{ZWV_CSS}</style>
       <style>{`

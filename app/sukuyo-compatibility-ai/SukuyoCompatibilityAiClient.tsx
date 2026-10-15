@@ -44,6 +44,8 @@ import {
 import { pickWelcomeQuote } from "./_data/welcomeQuotes";
 import styles from "./SukuyoCompatibilityAiClient.module.css";
 import ExpertCharacterStage from "@/app/components/expert-consulting/ExpertCharacterStage";
+import MasterProfile from "@/components/fortune/MasterProfile";
+import { masterProfiles } from "@/components/fortune/master-profiles";
 import { getExpertCharacter, getExpertLine, isExpertCharacterEnabled } from "@/src/features/expert-characters";
 import Image from "next/image";
 import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLocale } from "@/constants/loadingMessages";
@@ -2006,6 +2008,8 @@ export default function SukuyoCompatibilityAiClient() {
           )}
         </section>
       </section>
+      {/* 소개용 캐릭터 프로필 — 상담 진행·결과 화면에서는 내리고, 사전이 없는 다른 로케일에는 띄우지 않는다. */}
+      {hanbiOn && locale === "ko" && !busy && !result && <MasterProfile profile={masterProfiles.hanbi} />}
       {phase === "start" && !result && <MoonLoadingScreen basis={basis} />}
       {result && resultOpen && (
         <CompatResultModal
