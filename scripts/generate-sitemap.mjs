@@ -1,4 +1,5 @@
 import { actualContentDate } from "../lib/content/editorial-review.mjs";
+import { getPublishedProfiles } from "../lib/famous-saju/profile-publication.js";
 import { INTRO_TOPICS, introductionRoutes } from "../lib/i18n/feature-introductions.mjs";
 import { TRUST_KEYS, trustRoutes } from "../lib/i18n/public-trust-copy.mjs";
 import { splitLocaleSitemaps, sitemapIndex } from "./lib/locale-sitemaps.mjs";
@@ -483,8 +484,8 @@ function extractFamousSajuRoutes() {
 
   // 상세 페이지(/insights/famous-saju/<slug>)는 **검수된 고유 원고가 있는 인물만** 넣는다.
   // 나머지는 app/insights/famous-saju/[slug]/page.tsx 가 noindex 로 내보내는 템플릿 조립물이라
-  // 색인 대상이 아니다. 색인 여부의 정본은 lib/famous-saju/celebrity-editorial.js 의 reviewedAt
-  // 하나이고, 페이지 robots · 이 사이트맵 · verify-adsense-readiness 가 전부 그 값을 본다.
+  // 색인 대상이 아니다. 기존 원고는 reviewedAt, 인물별 AI 편집 글은 profile-publication.js의
+  // 공개 승인을 사용한다. 페이지 robots와 readiness도 동일한 두 경로만 허용한다.
   // 카테고리 12개(`/famous-saju/category/<slug>`)는 2026-08-17 에 라우트째 삭제해서 뺐다.
   // 🔴 위 튜플 스캔은 셀럽 데이터의 모양이 깨지지 않았는지 보는 앵커다 — 0건이면 파싱이 깨진
   //    것이므로 통과시키지 않고, 원고의 슬러그가 튜플에 없어도 통과시키지 않는다.
@@ -501,6 +502,12 @@ function extractFamousSajuRoutes() {
     }
     // lastmod 는 검수일 — 페이지의 Article.dateModified 와 같은 값이어야 하므로 원장을 타지 않는다.
     routes.push({ path: `/insights/famous-saju/${slug}`, lastmod: entry.reviewedAt, changefreq: "monthly", priority: 0.78 });
+  }
+  for (const profile of getPublishedProfiles()) {
+    const path = `/insights/famous-saju/${profile.slug}`;
+    if (!routes.some(route => route.path === path)) {
+      routes.push({ path, lastmod: profile.publication.updatedAt, changefreq: "monthly", priority: 0.78 });
+    }
   }
   return routes;
 }

@@ -4,6 +4,7 @@ import { buildSync } from 'esbuild';
 import Module from 'node:module';
 import { loadTsModule } from './lib/load-ts-module.mjs';
 import { CELEBRITY_EDITORIAL } from '../lib/famous-saju/celebrity-editorial.js';
+import { getPublishedProfiles } from '../lib/famous-saju/profile-publication.js';
 const { ILJU, STEMS }=loadTsModule('lib/famous-saju/cycle.ts');
 const { getFamousArchive }=loadTsModule('lib/famous-saju/archive.ts');
 const { celebritySajuSeeds }=loadTsModule('lib/famous-saju/celebrity-data.ts');
@@ -48,9 +49,9 @@ for(const person of people){
  assert.equal(person.classification,'needs_review');
 }
 for(const cycle of ILJU)assert.ok(fs.existsSync(`public/images/saju/ilju/${cycle.slug}.svg`));
-const report={people:people.length,published:celebritySajuSeeds.filter(x=>x.published).length,editorials:Object.keys(CELEBRITY_EDITORIAL).length,reviewed:Object.values(CELEBRITY_EDITORIAL).filter(x=>x.reviewedAt).length,editorialDrafts:Object.values(CELEBRITY_EDITORIAL).filter(x=>!x.reviewedAt).length,withoutUniqueEditorial:people.filter(x=>!CELEBRITY_EDITORIAL[x.slug]).length,duplicateSlugs:people.length-new Set(people.map(x=>x.slug)).size,calculatedCandidates:people.filter(x=>x.dayPillar).length,classificationNeedsReview:people.filter(x=>x.classification==='needs_review').length,sourceLinked:people.filter(x=>x.dateSourceStatus==='source_linked').length,cycle:ILJU.length};
+const report={people:people.length,published:celebritySajuSeeds.filter(x=>x.published).length,editorials:Object.keys(CELEBRITY_EDITORIAL).length,reviewed:Object.values(CELEBRITY_EDITORIAL).filter(x=>x.reviewedAt).length,editorialDrafts:Object.values(CELEBRITY_EDITORIAL).filter(x=>!x.reviewedAt).length,profileArticles:getPublishedProfiles().length,withoutUniqueEditorial:people.filter(x=>!CELEBRITY_EDITORIAL[x.slug] && !publicProfiles.some(p=>p.slug===x.slug)).length,duplicateSlugs:people.length-new Set(people.map(x=>x.slug)).size,calculatedCandidates:people.filter(x=>x.dayPillar).length,classificationNeedsReview:people.filter(x=>x.classification==='needs_review').length,sourceLinked:people.filter(x=>x.dateSourceStatus==='source_linked').length,cycle:ILJU.length};
 fs.writeFileSync('docs/design/moon-library/data-audit.json',JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report));
-fs.writeFileSync('docs/design/moon-library/profile-expansion-audit.json',JSON.stringify({total:people.length,addedProfiles:publicProfiles.length,draftProfiles:publicProfiles.filter(p=>p.reviewStatus==='draft').length,humanReviewedProfiles:publicProfiles.filter(p=>p.reviewedAt).length,duplicateSlugs:report.duplicateSlugs,fields:Object.fromEntries([...new Set(publicProfiles.flatMap(p=>p.fields))].map(field=>[field,publicProfiles.filter(p=>p.fields.includes(field)).length])),slugs:publicProfiles.map(p=>p.slug)},null,2)+'\n');
+fs.writeFileSync('docs/design/moon-library/profile-expansion-audit.json',JSON.stringify({total:people.length,addedProfiles:publicProfiles.length,publicationApprovedProfiles:getPublishedProfiles().length,draftProfiles:publicProfiles.filter(p=>p.reviewStatus==='draft').length,humanReviewedProfiles:publicProfiles.filter(p=>p.reviewedAt).length,duplicateSlugs:report.duplicateSlugs,fields:Object.fromEntries([...new Set(publicProfiles.flatMap(p=>p.fields))].map(field=>[field,publicProfiles.filter(p=>p.fields.includes(field)).length])),slugs:publicProfiles.map(p=>p.slug)},null,2)+'\n');
 
 const bundle=buildSync({entryPoints:['app/insights/seed-articles.js'],bundle:true,platform:'node',format:'cjs',write:false}).outputFiles[0].text;
 const articleModule=new Module(process.cwd()+'/audit.cjs');articleModule._compile(bundle,'audit.cjs');const articles=articleModule.exports.INSIGHT_SEED_ARTICLES;

@@ -1,7 +1,8 @@
 {
-  "total": 205,
-  "addedProfiles": 46,
-  "draftProfiles": 46,
+  "total": 225,
+  "addedProfiles": 66,
+  "publicationApprovedProfiles": 66,
+  "draftProfiles": 0,
   "humanReviewedProfiles": 0,
   "duplicateSlugs": 0,
   "fields": {
@@ -11,8 +12,8 @@
     "스포츠": 8,
     "셰프·요리": 3,
     "기업인": 1,
-    "배우": 10,
-    "가수·아이돌": 10
+    "배우": 17,
+    "가수·아이돌": 23
   },
   "slugs": [
     "park-wi",
@@ -60,6 +61,26 @@
     "kim-min-jae",
     "hwang-hee-chan",
     "faker",
-    "chovy"
+    "chovy",
+    "seventeen-mingyu",
+    "seventeen-seungkwan",
+    "seventeen-jeonghan",
+    "seventeen-dk",
+    "seventeen-scoups",
+    "seventeen-wonwoo",
+    "seventeen-woozi",
+    "seventeen-dino",
+    "seventeen-joshua",
+    "seventeen-jun",
+    "seventeen-the8",
+    "seventeen-vernon",
+    "woodz",
+    "song-kang",
+    "ahn-hyo-seop",
+    "lee-do-hyun",
+    "moon-ga-young",
+    "kim-yoo-jung",
+    "kim-so-hyun",
+    "choo-young-woo"
   ]
 }
