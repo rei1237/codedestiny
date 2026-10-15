@@ -3,12 +3,13 @@ import assert from 'node:assert/strict';
 import {readFileSync,existsSync} from 'node:fs';
 const SHELLS=['index.html','public/ggulggul/index.html'];
 const section=html=>{const start=html.indexOf('<section class="cdh-mv" id="cdhMoonlightMv"');assert.ok(start>=0,'music video section');return html.slice(start,html.indexOf('</section>',start));};
-test('home music video sits between the Fusion recommendation and Yeongnyangi, outside the folded catalogue',()=>{
+test('home music video sits just above the signature consult section, outside the folded catalogue',()=>{
  for(const file of SHELLS){
   const html=readFileSync(file,'utf8');
   const start=html.indexOf('id="cdhMoonlightMv"');
   assert.equal((html.match(/id="cdhMoonlightMv"/g)||[]).length,1,file);
-  assert.ok(start>html.indexOf('id="cdFusionRecommendation"'),file+' follows Fusion');
+  assert.ok(start<html.indexOf('id="cdSignatureConsult"'),file+' precedes the signature consult section');
+  assert.ok(start>html.indexOf('id="cdhServices"'),file+' follows the fortune search section');
   assert.ok(start<html.indexOf('data-marker="cd-soulcat-home-primary-v20261008"'),file+' precedes Yeongnyangi');
   assert.ok(start<html.indexOf('id="cdhGardenBody"'),file+' stays in the primary flow');
  }
