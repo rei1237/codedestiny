@@ -1920,7 +1920,7 @@ var __cdLazyActionLoaders = {
   openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-86062dc39929'); },
   openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-afdec8293112'); },
   openSibylModal: function() {
-    return __cdLoadScriptOnce('/js/sibyl-system.js?v=build-17f27a22f2a0').then(function() {
+    return __cdLoadScriptOnce('/js/sibyl-system.js?v=build-1969477b5929').then(function() {
       if (typeof window.openSibylModal === 'function') window.openSibylModal();
     });
   },

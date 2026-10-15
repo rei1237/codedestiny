@@ -3,6 +3,9 @@ import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJ
 import { readProfileBirthUnlock } from "../lib/paid-content-read-access.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { buildSajuSnapshotFromBirth } from "../lib/saju-snapshot-from-birth.js";
+import { buildSibylAnnual, sibylPreview, validateSibylYear } from '../lib/sibyl-annual.js';
+import { profileCardSolarBirth } from '../lib/paid-content-read-access.js';
+import { readOrGenerateSibyl } from '../lib/sibyl-report-store.js';
 import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
 
 const SIBYL_FEATURE_KEY = "premium-sibyl-dominator";
@@ -439,6 +442,14 @@ export async function handleSibylRoutes(request, env = {}) {
     }
 
     const path = getRoutePath(request, "/api/sibyl");
+    if (path === "/preview") {
+      const body = await readJson(request);
+      try {
+        const year = validateSibylYear(body.year);
+        const birth = profileCardSolarBirth(body.profile);
+        return json({ ok:true, preview:sibylPreview(buildSibylAnnual(birth,year)) });
+      } catch { return json({ok:false,code:"SIBYL_INPUT_UNAVAILABLE",message:"출생 정보와 분석 연도를 확인해 주세요."},{status:400}); }
+    }
     if (path !== "/report") return notFound();
 
     const auth = await requireAuth(request, env);
@@ -470,57 +481,13 @@ export async function handleSibylRoutes(request, env = {}) {
         amountKRW: pricing.amountKRW, coinPrice: pricing.coinPrice,
       }, { status: 402 });
     }
-    // 🔴 해금은 프로필의 출생 정보 단위다 — 리포트도 저장된 프로필의 출생 정보로만 만든다(본문 생년월일·명식 무시).
-    const body = buildSibylBodyFromProfileBirth(rawBody, access);
-    if (!body) {
-      return json({
-        ok: false, code: "SIBYL_INVALID_BIRTH_INPUT", requiresProfile: true,
-        message: "프로필의 출생 정보를 확인해 주세요.",
-      }, { status: 400 });
-    }
-    const canonical = normalizeCanonicalSibylData(body);
-    const requestId = clean(rawBody?.requestId || rawBody?.paymentContext?.requestId || "").slice(0, 120) || `sibyl_${stableHash(JSON.stringify(body?.pillars || {})).slice(0, 8)}`;
-    const profileValidation = {
-      ok: Array.isArray(canonical?.debug?.missingFields) ? canonical.debug.missingFields.length === 0 : true,
-      missingFields: Array.isArray(canonical?.debug?.missingFields) ? canonical.debug.missingFields : [],
-    };
-
-    // 시빌라 도미네이터 리포트는 LLM 생성을 쓰지 않고, 캐노니컬 사주 계산만으로
-    // 결정론적으로 챕터를 구성한다(buildCanonicalChapterText 기반).
-    const rich = { source: "deterministic", warnings: [], model: "" };
-    let reportStatus = "generated";
-
-    const mapped = mapToSibylChapters([], canonical);
     try {
-      validateSibylReport(mapped.chapterMap);
-    } catch (e) {
-      reportStatus = "validation-warning";
-      rich.warnings = ["chapter validation warning"];
+      const result = await readOrGenerateSibyl(env, auth.userId, access, rawBody.year ?? rawBody.currentYear);
+      return json(result.body, { status:result.status });
+    } catch (error) {
+      const invalid = /SIBYL_INVALID_YEAR|SIBYL_INVALID_BIRTH_INPUT/.test(String(error?.message));
+      return json({ok:false,code:invalid ? "SIBYL_INVALID_INPUT" : "SIBYL_RETRYABLE",retryable:!invalid,message:invalid ? "출생 정보와 분석 연도를 확인해 주세요." : "리포트를 준비하지 못했어요. 구매 권한은 유지되며 다시 시도할 수 있어요."},{status:invalid?400:503});
     }
-
-    const totalChars = mapped.chapterList.reduce((sum, chapter) => sum + clean(chapter.content).length, 0);
-    console.log("[sibyl-report]", {
-      requestId,
-      featureKey,
-      hasUserId: Boolean(auth?.userId),
-      unlocked: true,
-      accessType: "birth-entitlement",
-      profileValidation,
-      reportStatus,
-      totalChars,
-      source: rich?.source || "unknown",
-    });
-    return json({
-      ...rich,
-      reportId: buildSibylFingerprint(body),
-      chapterMap: mapped.chapterMap,
-      chapters: mapped.chapterList,
-      canonical,
-      categoryCount: SIBYL_REPORT_CHAPTERS.length,
-      categories: SIBYL_REPORT_CHAPTERS.map((item) => item.title),
-      totalChars,
-      minTotalChars: Math.min(SIBYL_MIN_TOTAL_CHARS, Math.max(totalChars, 6000)),
-    });
   } catch (error) {
     console.warn("[sibyl-report:error]", {
       requestId: clean(error?.requestId || ""),

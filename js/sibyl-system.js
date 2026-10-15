@@ -530,70 +530,35 @@ function _sibylText(key) {
     if (!btn) return;
     var cached = _loadSibylCachedReport(profile);
     if (cached) {
-      btn.textContent = '⚡ 저장된 DOMINATOR 리포트 열기';
+      btn.textContent = '보유 리포트 열기';
       btn.disabled = false;
       return;
     }
 
     if (unlockStatus && unlockStatus.ok) {
       if (unlockStatus.unlocked) {
-        btn.textContent = '⚡ 저장된 DOMINATOR 리포트 열기';
+        btn.textContent = '보유 리포트 열기';
         btn.disabled = false;
         return;
       }
-      btn.textContent = '⚡ EXECUTE DOMINATOR — 5,000원';
+      btn.textContent = '연간 대비 리포트 열기';
       btn.disabled = false;
       return;
     }
 
-    btn.textContent = '⚡ EXECUTE DOMINATOR — 5,000원';
+    btn.textContent = '연간 대비 리포트 열기';
     btn.disabled = false;
   }
 
-  function _openCachedDominatorReport(profile, fallbackAnalysis) {
-    var cached = _loadSibylCachedReport(profile);
-    if (!cached || !cached.reportData) return false;
+  function _openCachedDominatorReport() { return false; }
 
-    var lockEl = _q('sbLockOverlay');
-    if (lockEl) lockEl.classList.add('sb-hidden');
-    var genEl = _q('sbGenerating');
-    if (genEl) genEl.classList.add('sb-hidden');
-
-    var analysis = cached.analysisData || fallbackAnalysis || {};
-    var canonicalData = (cached.reportData && cached.reportData.canonicalData)
-      || (analysis && analysis.canonicalData)
-      || null;
-    var shaped = _shapeSibylPremiumReport(cached.reportData, canonicalData);
-    var validation = _validateSibylPremiumChapterMap(shaped && shaped.chapterMap);
-    if (!validation.ok) return false;
-
-    _renderDominatorReport(shaped, analysis);
-    _saveSibylCachedReport(profile, shaped, analysis);
-    return true;
-  }
-
-  async function _openCachedDominatorReportIfUnlocked(profile, fallbackAnalysis) {
-    if (_openCachedDominatorReport(profile, fallbackAnalysis)) {
-      _syncSibylUnlockButton(profile, { ok: true, unlocked: true });
-      if (!_isAdminBypassUser()) {
-        _resolveSibylUnlockStatus(profile).then(function(unlockStatus) {
-          _syncSibylUnlockButton(profile, unlockStatus);
-        }).catch(function(err) {
-          _sibylLogWarn('[SIBYL] unlock-state post-cache check failed', {
-            code: String(err && err.code || ''),
-            message: String(err && err.message || '')
-          });
-        });
-      }
-      return true;
-    }
-
-    if (_isAdminBypassUser()) return false;
-
+  async function _openCachedDominatorReportIfUnlocked(profile) {
     var unlockStatus = await _resolveSibylUnlockStatus(profile);
     _syncSibylUnlockButton(profile, unlockStatus);
     if (!(unlockStatus && unlockStatus.ok && unlockStatus.unlocked)) return false;
-    return _openCachedDominatorReport(profile, fallbackAnalysis);
+    try { await _generateDominatorReport(); }
+    catch(error) { _setSibylState(SibylState.ERROR, _toFriendlySibylErrorMessage(error,'구매 권한은 유지됩니다. 리포트 생성을 다시 시도해 주세요.')); }
+    return true;
   }
 
   /* G_PILLARS → 십성 카운트 */
@@ -3043,7 +3008,7 @@ function _sibylText(key) {
       + '위 데이터는 원국의 <strong>정적 구조 분석</strong>입니다. 실제 운명은 <strong>현재 어느 대운에 위치하는지</strong>에 따라 완전히 달라집니다. '
       + '<strong>10년 위험 계수 그래프</strong>, 직업 전환 최적 타이밍, 관계 리스크, '
       + '개운 처방전은 <em class="sb-nature-hl">DOMINATOR REPORT</em>에서만 열람됩니다.</p>'
-      + '<div class="sb-nature-cta-hint">▼ 하단 ⚡ EXECUTE DOMINATOR (5,000원) 으로 전체 리포트 열람</div>'
+      + '<div class="sb-nature-cta-hint">▼ 하단 ⚡ EXECUTE DOMINATOR (결제창에 안내된 금액) 으로 전체 리포트 열람</div>'
       + '</div>';
 
     return html;
@@ -3252,10 +3217,10 @@ function _sibylText(key) {
       + '<div class="sb-nature-block">'
       + '<div class="sb-nature-tag">■ ACTION GUIDE — 무료 실행 가이드</div>'
       + '<p class="sb-nature-body">' + overview.action + '</p>'
-      + '<div class="sb-nature-row"><span class="sb-nature-key">유료와 구분</span><span class="sb-nature-val">무료는 요약/기본 지표, 5,000원은 10챕터 장문 리포트 잠금 해제 전용입니다.</span></div>'
+      + '<div class="sb-nature-row"><span class="sb-nature-key">유료와 구분</span><span class="sb-nature-val">무료는 요약/기본 지표, 결제창에 안내된 금액은 10챕터 장문 리포트 잠금 해제 전용입니다.</span></div>'
       + '<ul class="sb-free-recovery-checklist">'
       + '<li>무료 결과는 기본 지표와 월별 우선순위를 지속 제공합니다.</li>'
-      + '<li>유료 5,000원은 도미네이터 10챕터 리포트 잠금 해제 전용입니다.</li>'
+      + '<li>유료 결제창에 안내된 금액은 도미네이터 10챕터 리포트 잠금 해제 전용입니다.</li>'
       + '<li>복구 모드 해제 후 상세 계산 결과가 자동으로 갱신됩니다.</li>'
       + '</ul>'
       + '</div>';
@@ -3592,6 +3557,7 @@ function _sibylText(key) {
       throw { status: 422, code: 'PRICE_NOT_FOUND', message: _sibylText("sibyl.message.002") };
     }
     return {
+      amountKRW: Number(pricing.amountKRW),
       featureKey: String(pricing.featureKey || SIBYL_FEATURE_KEY),
       cost: Math.floor(cost),
       reason: reason
@@ -3723,7 +3689,7 @@ function _sibylText(key) {
   /* ── 결제 후 자동 재개(모바일 리다이렉트 복귀) ─────────────────────────────
      🔴 모바일 PortOne 은 상위 프레임을 리다이렉트하므로 게이트의 await 가 페이지와 함께 죽고
      리포트가 생성되지 않는다 — 결제하고 돌아오면 홈 화면이던 증상의 정체다.
-     도미네이터 리포트는 로컬 계산이고 paymentContext 에서 쓰는 것은 requestId 하나라
+     연간 리포트는 서버가 출생정보와 권한을 검증하고 선택 연도로 생성하므로
      복귀 증빙으로 그대로 조립된다(_generateDominatorReport 참조).
      🔴 재개 실패는 절대 환불 경로를 태우지 않는다 — 결제는 이미 확정됐고 리포트만 못 연 것이므로,
      환불을 걸면 돈도 돌려주고 리포트도 없는 상태가 된다. 조용히 false 를 돌려주면 복귀 처리가
@@ -3748,11 +3714,12 @@ function _sibylText(key) {
 
   function _sibylRunDominatorResume(descriptor, grant) {
     if (!grant) return false;
+    if (descriptor && descriptor.args && descriptor.args.year) _annualSelectedYear=Number(descriptor.args.year);
     return _sibylWaitForResumeTarget().then(function(ready) {
       if (!ready) return false;
       var paymentContext = {
         requestId: String((grant && grant.requestId) || ''),
-        pricing: { featureKey: SIBYL_FEATURE_KEY, cost: 50, reason: SIBYL_FEATURE_REASON },
+        pricing: { featureKey: SIBYL_FEATURE_KEY, reason: SIBYL_FEATURE_REASON },
         consumePayload: (grant && grant.payload && typeof grant.payload === 'object') ? grant.payload : {},
         bypass: false,
         // 🔴 환불 금지 표식이 아니라 재시도용 컨텍스트다 — 이 경로는 catch 에서 환불을 부르지 않는다.
@@ -3831,7 +3798,7 @@ function _sibylText(key) {
             requestId: requestId,
             payloadHash: String(payloadHash || '').slice(0, 120),
             action: 'openSibylModal',
-            resume: { kind: SIBYL_RESUME_KIND, action: 'openSibylModal', args: {} },
+            resume: { kind: SIBYL_RESUME_KIND, action: 'openSibylModal', args: {year:_annualYear()} },
             onGranted: function(transactionId, payload) {
               var grantedPayload = payload && typeof payload === 'object' ? payload : {};
               if (!grantedPayload.transactionId && transactionId) grantedPayload.transactionId = String(transactionId);
@@ -3986,128 +3953,73 @@ function _sibylText(key) {
     } catch (error) {
       _sibylLogError('[SIBYL] premium unlock failed', error);
 
-      if (paymentContext && !paymentContext.bypass) {
-        try {
-          await _requestSibylRefund(paymentContext, '시빌라 리포트 생성 실패 자동 환급');
-        } catch (refundErr) {
-          _sibylLogError('[SIBYL] premium unlock failed', refundErr);
-        }
-      }
 
       var userMessage = _toFriendlySibylErrorMessage(error, '시빌라 리포트를 생성하지 못했습니다. 잠시 후 다시 시도해 주세요.');
+      _syncSibylUnlockButton(_getCurrentProfile());
+      if (lockEl) lockEl.classList.remove('sb-hidden');
       _setSibylState(SibylState.ERROR, userMessage);
-      _restoreUnlockBtn();
     }
   }
 
-  /* ── 도미네이터 리포트 생성 (로컬 계산 고정) ── */
-  async function _generateDominatorReport(paymentContext) {
-    var data = window._sibylCurrentData || {};
+  /* ── 서버 계산·저장 기반 연간 리포트 ── */
+
+  var _annualSelectedYear = 0;
+  var _annualPreviewSequence = 0;
+  function _annualYear() {
+    var first = Number(new Intl.DateTimeFormat('en',{timeZone:'Asia/Seoul',year:'numeric'}).format(new Date()));
+    if (!_annualSelectedYear) { try {_annualSelectedYear=Number(sessionStorage.getItem('sibyl:year'));}catch(_){} }
+    if (_annualSelectedYear<first || _annualSelectedYear>first+9) _annualSelectedYear=first;
+    return _annualSelectedYear;
+  }
+  function _annualEscape(value) { return String(value == null ? '' : value).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+  function _annualParagraphs(value) { return String(value||'').split(/\n+/).filter(Boolean).map(function(p){return '<p>'+_annualEscape(p)+'</p>';}).join(''); }
+  async function _renderAnnualPreview(profile) {
+    var sequence=++_annualPreviewSequence;
+    window._sibylCurrentData={annual:true};
+    var free=_q('sbFreeSection'); if(!free) return;
+    free.classList.remove('sb-hidden');
+    var first=Number(new Intl.DateTimeFormat('en',{timeZone:'Asia/Seoul',year:'numeric'}).format(new Date()));
+    var options=Array.from({length:10},function(_,i){var y=first+i;return '<option value="'+y+'"'+(y===_annualYear()?' selected':'')+'>'+y+'년</option>';}).join('');
+    free.innerHTML='<div class="sb-annual-intro"><img src="/images/feature-details/saju-sibyl-observatory.webp" width="1200" height="675" alt="네 기둥과 시간 궤도를 관측하는 시빌라 분석실"><h2>앞으로의 흐름을 알고,<br>나의 선택을 준비하세요.</h2><label for="sbAnnualYear">분석할 연도</label><select id="sbAnnualYear">'+options+'</select><div id="sbAnnualPreview" aria-live="polite"><p>사주와 선택 연도의 흐름을 확인하고 있어요.</p></div></div>';
+    _q('sbAnnualYear').onchange=function(e){_annualSelectedYear=Number(e.target.value);try{sessionStorage.setItem('sibyl:year',String(_annualSelectedYear));}catch(_){} var paid=_q('sbDominatorSection');if(paid)paid.classList.add('sb-hidden');var lock=_q('sbLockOverlay');if(lock)lock.classList.remove('sb-hidden');_syncSibylUnlockButton(_getCurrentProfile());_renderAnnualPreview(_getCurrentProfile());};
+    var result=await _fetchApiJson('/api/sibyl/preview',{method:'POST',body:JSON.stringify({profile:profile,year:_annualYear()})});
+    if(sequence!==_annualPreviewSequence)return;
+    var target=_q('sbAnnualPreview');
+    if(!result.ok){target.innerHTML='<p>출생 정보를 확인한 뒤 다시 분석해 주세요.</p>';return;}
+    var p=result.payload.preview;
+    target.innerHTML='<p class="sb-annual-summary">'+_annualEscape(p.summary)+'</p><p>'+_annualEscape(p.period)+'</p>'+p.traits.map(function(t){return '<h3>'+_annualEscape(t.strength)+'</h3><p>'+_annualEscape(t.caution)+'</p>';}).join('')+'<h3>먼저 실천할 대비 행동</h3><p>'+_annualEscape(p.action)+'</p><p class="sb-annual-note">'+_annualEscape([p.limitation].concat(p.uncertainty).join(' '))+'</p>';
+    _resolveSibylPricing().then(function(pricing){var amount=Number(pricing.amountKRW);if(!amount)return;document.querySelectorAll('[data-sibyl-price]').forEach(function(el){el.textContent='심층 리포트 '+amount.toLocaleString('ko-KR')+'원';});}).catch(function(){});
+  }
+  function _annualReportMarkup(report) {
+    var a=report.analysis;
+    return '<article class="sb-annual-reading"><header><p>시빌라 · '+_annualEscape(report.profileLabel || '저장된 개인 리포트')+'</p><h2>'+_annualEscape(a.title)+'</h2><p class="sb-annual-summary">'+_annualEscape(a.summary)+'</p><p>'+_annualEscape(a.period)+'</p><a href="'+_annualEscape(report.recordsHref)+'">보관함에서 다시 보기</a></header><p class="sb-annual-note">'+_annualEscape([a.limitation].concat(a.uncertainty).join(' '))+'</p><nav aria-label="리포트 목차">'+a.domains.map(function(d){return '<a href="#sb-domain-'+d.id+'">'+d.title+'</a>';}).join('')+'</nav><h3>타고난 장점과 그림자</h3>'+a.natal.traits.map(function(t){return '<p><strong>'+_annualEscape(t.strength)+'</strong><br>'+_annualEscape(t.caution)+' '+_annualEscape(t.action)+'</p>';}).join('')+'<h3>주의 시기 타임라인</h3><ol class="sb-annual-timeline">'+a.months.map(function(m){return '<li><strong>'+_annualEscape(m.label)+'</strong><span>'+_annualEscape(m.start)+'부터</span><span>'+_annualEscape(m.tensions.length?m.tensions.map(function(t){return t.label;}).join(' · '):'뚜렷한 충형파해 신호 없음')+'</span></li>';}).join('')+'</ol>'+a.domains.map(function(d){return '<section id="sb-domain-'+d.id+'"><h3>'+d.title+'</h3><p class="sb-annual-summary">'+_annualEscape(d.caution)+'</p><p>'+_annualEscape(d.periods.length===12?'연중 비슷한 주의 수준':d.periods.map(function(p){return p.label;}).join(' · '))+'</p><h4>생활에서 확인할 징후</h4><p>'+_annualEscape(d.sign)+'</p><h4>대비와 개운 행동</h4><p>'+_annualEscape(d.action)+'</p><h4>판단을 바꿀 조건</h4><p>'+_annualEscape(d.change)+'</p><details><summary>계산 근거 확인하기</summary>'+d.reasons.map(function(r){return '<p>'+_annualEscape(r.text)+(r.supports.length?' · 조율 신호 '+_annualEscape(r.supports.join(' · ')):'')+'</p>';}).join('')+'<p>'+_annualEscape(d.balancedNote)+'</p></details></section>';}).join('')+'<h3>당신을 위한 심층 상담</h3>'+report.chapters.map(function(c){return '<section><h3>'+_annualEscape(c.title)+'</h3>'+_annualParagraphs(c.content)+'</section>';}).join('')+'<footer><p>완성된 원본이 보관함에 저장되었습니다. 다시 열 때 추가 결제나 생성이 필요하지 않아요.</p><a href="'+_annualEscape(report.recordsHref)+'">저장한 리포트 열기</a></footer></article>';
+  }
+
+  async function _generateDominatorReport() {
     var profile = _getCurrentProfile();
-    var pillars = _ensurePillarsWithProfileFallback(data.pillars || window.G_PILLARS, profile);
-    var ps = _pillarChars(pillars);
-    var normalizedProfile = sanitizeSibylProfile(
-      data.normalizedProfile
-      || (data.canonicalData && data.canonicalData.normalizedProfile)
-      || {}
-    );
-
-    // Build local payload
-    var payload = {
-      profile: profile,
-      pillars: pillars ? {
-        year:  { g: ps.y.g || '', j: ps.y.j || '' },
-        month: { g: ps.m.g || '', j: ps.m.j || '' },
-        day:   { g: ps.d.g || '', j: ps.d.j || '' },
-        hour:  { g: ps.h.g || '', j: ps.h.j || '' }
-      } : null,
-      natal: data.dist || null,
-      dominantEl: _safeText(normalizedProfile && normalizedProfile.saju && normalizedProfile.saju.dominantElement, data.domEl || null),
-      dominantTenStar: _safeText(normalizedProfile && normalizedProfile.saju && normalizedProfile.saju.tenGods && normalizedProfile.saju.tenGods.primary, data.dominant || null),
-      aptCoeff: _safeScore(normalizedProfile && normalizedProfile.scores && normalizedProfile.scores.aptitudeScore, data.coeff || SIBYL_DEFAULT_APTITUDE_SCORE, 0, 999),
-      riskScore: _safeScore(normalizedProfile && normalizedProfile.scores && normalizedProfile.scores.riskScore, data.risk || SIBYL_DEFAULT_RISK_SCORE, 0, 100),
-      gender: (profile && profile.gender) || 'F',
-      currentYear: new Date().getFullYear(),
-      requestId: paymentContext && paymentContext.requestId ? paymentContext.requestId : '',
-      kasiContext: (window.G_KASI_CONTEXT && typeof window.G_KASI_CONTEXT === 'object') ? {
-        solar: window.G_KASI_CONTEXT.solar || null,
-        lunar: window.G_KASI_CONTEXT.lunar || null,
-        ganji: window.G_KASI_CONTEXT.ganji || null,
-        solarTerms: window.G_KASI_CONTEXT.solarTerms || null,
-        calendarType: window.G_KASI_CONTEXT.calendarType || null,
-        source: window.G_KASI_CONTEXT.source || null
-      } : null
-    };
-
-    var normalized = data.normalized || _normalizeSibylInput(payload, data);
-    var annualPlan = Array.isArray(data.annualPreview) ? data.annualPreview : _buildAnnualRiskPlan(normalized, payload.currentYear);
-    var monthlyPlan = Array.isArray(data.monthlyPreview) ? data.monthlyPreview : _buildMonthlyRiskPlan(pillars, payload.dominantEl || normalized.dominantEl, payload.dominantTenStar || normalized.dominantTenStar, payload.riskScore || 45, payload.currentYear, normalized);
-    var conflictSignals = _collectCollisionSignals(pillars, payload.currentYear);
-    var riskBreakdown = data.riskBreakdown || _calcRiskBreakdown(normalized, monthlyPlan, annualPlan, conflictSignals);
-    var aptData = { score: payload.aptCoeff || 0, components: data.aptitudeComponents || null };
-    if (!aptData.components) {
-      aptData = _calcAptitudeComponents(normalized, riskBreakdown);
-      payload.aptCoeff = aptData.score;
+    var year = _annualYear();
+    var generation = _q('sbGenerating');
+    if (generation) generation.classList.remove('sb-hidden');
+    var response = await _fetchApiJson('/api/sibyl/report', {method:'POST',timeoutMs:75000,body:JSON.stringify({profileId:profile && (profile.id || profile.profileId),year:year})});
+    if (generation) generation.classList.add('sb-hidden');
+    if (!response.ok) throw {message:response.payload.message || '리포트를 준비하지 못했어요. 구매 권한은 유지됩니다. 다시 시도해 주세요.'};
+    if (year !== _annualYear() || String((_getCurrentProfile()||{}).id || (_getCurrentProfile()||{}).profileId) !== String(profile.id || profile.profileId)) return;
+    var report = response.payload;
+    var lock = _q('sbLockOverlay'); if(lock) lock.classList.add('sb-hidden');
+    var errorBox = _q('sbErrorState'); if(errorBox) errorBox.classList.add('sb-hidden');
+    var section = _q('sbDominatorSection');
+    section.classList.remove('sb-hidden');
+    if (response.status === 202) {
+      section.innerHTML = '<div class="sb-annual-reading" role="status"><h2>리포트를 준비하고 있어요</h2><p>다른 창에서 시작한 분석을 이어서 확인할 수 있어요. 잠시 후 진행 상태를 확인해 주세요.</p><button type="button" class="sb-unlock-btn" onclick="_sibylRetryDominator()">진행 상태 확인하기</button><a href="/records/">보관함에서 확인하기</a></div>';
+      return;
     }
-
-    var canonicalData = data.canonicalData || _buildSibylCanonicalData(normalized, riskBreakdown, aptData, annualPlan, monthlyPlan);
-    if (!canonicalData.normalizedProfile || !canonicalData.normalizedProfile.scores) {
-      canonicalData.normalizedProfile = buildNormalizedSibylProfile(normalized, riskBreakdown, aptData, annualPlan, monthlyPlan);
+    section.innerHTML = _annualReportMarkup(report);
+    var previous = _loadSibylCachedReport(profile);
+    var previousMap = previous && previous.reportData && previous.reportData.chapterMap;
+    if(previousMap && typeof previousMap === 'object') {
+      section.innerHTML += '<details class="sb-annual-reading"><summary>이 기기에 보관된 이전 리포트</summary><p>이전 형식의 원본입니다. 새 연간 분석과 별도로 유지하며, 이 기기에서만 볼 수 있어요.</p>'+Object.keys(previousMap).map(function(key){return typeof previousMap[key]==='string' ? _annualParagraphs(previousMap[key]) : '';}).join('')+'</details>';
     }
-    payload.normalizedProfile = canonicalData.normalizedProfile;
-    payload.canonicalData = canonicalData;
-
-    // Progress animation
-    var genBar = _q('sbGenBarFill');
-    var genStatus = _q('sbGenStatus');
-    var stages = [
-      { pct:10, msg:'>> 팔자 원국 파싱 중…' },
-      { pct:25, msg:'>> 사주 명식 오행 분포 분석 중…' },
-      { pct:40, msg:'>> 격국·용신 계산 엔진 가동…' },
-      { pct:55, msg:'>> 대운·세운 위험 인자 처리 중…' },
-      { pct:70, msg:'>> 도미네이터 리포트 생성 중…' },
-      { pct:85, msg:'>> 진로 적성 벡터 최적화 중…' },
-      { pct:95, msg:'>> 최종 리포트 컴파일 중…' }
-    ];
-    var stageIdx = 0;
-    function _advanceStage() {
-      if (stageIdx < stages.length) {
-        var s = stages[stageIdx++];
-        if (genBar) genBar.style.width = s.pct + '%';
-        if (genStatus) genStatus.textContent = s.msg;
-      }
-    }
-    _advanceStage();
-    var stageTimer = setInterval(_advanceStage, 2000);
-
-    try {
-      if (!payload.pillars || !payload.pillars.day || !payload.pillars.day.g) {
-        throw new Error('사주 원국 데이터가 비어 있습니다. 먼저 사주 분석을 완료해 주세요.');
-      }
-
-      await new Promise(function (r) { setTimeout(r, 240); });
-      var reportData = _shapeSibylPremiumReport(_buildLocalDominatorReport(payload, data), canonicalData);
-
-      var finalValidation = _validateSibylPremiumChapterMap(reportData.chapterMap);
-      if (!finalValidation.ok) {
-        throw {
-          status: 422,
-          code: 'SIBYL_REPORT_INVALID',
-          message: _sibylText("sibyl.message.006")
-        };
-      }
-
-      _saveSibylCachedReport(profile, reportData, data);
-
-      clearInterval(stageTimer);
-      if (genBar) genBar.style.width = '100%';
-      _renderDominatorReport(reportData, data);
-      _setSibylState(SibylState.READY);
-
-    } catch(e) {
-      clearInterval(stageTimer);
-      throw e;
-    }
+    section.scrollIntoView({behavior:'auto',block:'start'});
   }
 
   function _renderMonthlyRiskPanel(monthlyPlan) {
@@ -4608,7 +4520,7 @@ function _sibylText(key) {
 
       // Run scan animation then render free section
       _runScanAnim(function() {
-        _renderFreeSection(pillars, natal);
+        _renderAnnualPreview(profile);
         _syncSibylUnlockButton(profile);
         _openCachedDominatorReportIfUnlocked(profile, window._sibylCurrentData || {}).catch(function(err) {
           _sibylLogWarn('[SIBYL] unlock-state precheck failed', {
@@ -4710,11 +4622,6 @@ function _sibylText(key) {
   };
 
   window._sibylRetryDominator = function() {
-    if (!_sibylLastPaidContext && !_isAdminBypassUser()) {
-      _setSibylState(SibylState.ERROR, '재시도 전에 결제를 다시 진행해 주세요.');
-      return;
-    }
-
     _setSibylState(SibylState.GENERATING_REPORT, '>> 리포트 생성을 재시도하는 중입니다…');
     _generateDominatorReport(_sibylLastPaidContext).catch(function(e) {
       _sibylLogError('[SIBYL] premium unlock failed', e);

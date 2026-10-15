@@ -26,6 +26,7 @@ export const additionalSourceFixtures = {
  'legacy-naming':{generatedResult:finalBody,nameCards:[{name:'서연',hanja:'瑞姸',meaning:'저장된 이름의 의미'}]},
 };
 export const sharedFeatureFixtures = {
+ 'premium-sibyl-dominator':{title:'시빌라 연간 대비 리포트',year:2026,analysis:{summary:'저장된 연간 요약',version:'annual-v1'},chapters:[{key:'finalMessage',title:'마지막 장',content:finalBody}]},
  saju_ai_prompt_generator:{sajuResult:pillars,...base},
  vedic_prashna_prompt:{prashnaResult:{chart:{lagna:{name:'Virgo'}},promptText:finalBody}},
  'premium-naming-prompt':additionalSourceFixtures['legacy-naming'],

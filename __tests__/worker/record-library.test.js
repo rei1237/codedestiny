@@ -93,6 +93,17 @@ test('Neo source selection pages only owned Neo records and isolates its cursor'
   expect((await route(request(`?cursor=${encodeURIComponent(first.nextCursor)}`),{})).status).toBe(400);
   expect((await route(request('?source=unknown'),{})).status).toBe(400);
 });
+test('Sibyl archives preserve old years and incomplete recovery stays with its original record',async()=>{
+  const archive={title:'2020 시빌라 연간 대비 리포트',year:2020,chapters:[{key:'coreMatrix',content:'당시 저장한 상담 원문'}],analysis:{version:'annual-v1'}};
+  stores.serviceexecutiontransactions=[seed('1','01',{featureKey:'premium-sibyl-dominator',executionKey:'sibyl:birth:2020',status:'success',premiumStatus:'completed',metadata:{archive}})];
+  const result=await (await route(request('/detail?source=executions&id=sibyl%3Abirth%3A2020'))).json();
+  expect(result.content).toMatchObject(archive);expect(result.record.status).toBe('completed');
+  stores.serviceexecutiontransactions[0].status='failed';stores.serviceexecutiontransactions[0].premiumStatus='generating';
+  const pending=await (await route(request('/detail?source=executions&id=sibyl%3Abirth%3A2020'))).json();
+  expect(pending.record.status).toBe('generating');expect(pending.record.recoveryHref).toBe(pending.record.href);
+  user=foreign;expect((await route(request('/detail?source=executions&id=sibyl%3Abirth%3A2020'))).status).toBe(404);
+});
+
 test('coverage: every owned consultation model and raw result store is registered',async()=>{
   const {RECORD_SERVICES}=await import('../../lib/records/service-registry.js');
   expect(new Set(RECORD_SERVICES.map(source=>source.id)).size).toBe(RECORD_SERVICES.length);

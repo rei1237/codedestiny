@@ -80,13 +80,13 @@ describe("Premium access-control rules", () => {
     expect(utils.buildAlternativePaymentRules("vedicPremium", { mode: "compatibility" })).toHaveLength(0);
   });
 
-  test("sibylDominator는 7,000원 결제 증빙을 허용한다", () => {
+  test("sibylDominator 신규 결제는 서버의 20,000원 가격을 따른다", () => {
     const rules = utils.buildAlternativePaymentRules("sibylDominator", {});
     expect(rules).toHaveLength(1);
     expect(rules[0]).toMatchObject({
       featureKey: "premium-sibyl-dominator",
       reason: "시빌라 도미네이터 리포트",
-      minCost: 70,
+      minCost: 200,
     });
   });
 
@@ -120,7 +120,7 @@ describe("Premium access-control rules", () => {
 
 // New lower-price receipts must not be rejected by a stale report-specific floor.
 test.each([
-  ["celestialHarmony", 100], ["sibylDominator", 70], ["geomancyOracle", 50],
+  ["celestialHarmony", 100], ["sibylDominator", 200], ["geomancyOracle", 50],
   ["destinyCompassDeepReport", 70], ["petSajuReport", 50], ["petCompatReport", 50],
   ["sukuyoPastLifeReading", 100], ["fptiPremium", 100], ["sajuCompatBasic", 100],
 ])("%s uses the approved receipt floor %i for canonical and historical aliases", (reportType, expected) => {
