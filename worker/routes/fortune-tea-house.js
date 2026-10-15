@@ -9,7 +9,7 @@ import { callGeminiText } from "../lib/gemini.js";
 // 삭이 CST 23시대에 들면 그 달 전체의 음력일이 하루 밀린다 — 실측 2026-08-27 기준 1900~2100 전수
 // 음력 월·일은 화면 표시 메타데이터에만 사용한다. 숙 판정은 출생 장소·시각을
 // UTC/JD로 정규화한 뒤 공통 Swiss 항성 달 황경에서 직접 계산한다.
-import { lunarToSolar, solarToLunar } from "../../lib/korean-calendar/index.js";
+import { ganji as calendarGanji, lunarToSolar, solarToLunar } from "../../lib/korean-calendar/index.js";
 import { createHash, randomUUID } from "node:crypto";
 import { getCurrentUser, getOptionalUserFromRequest } from "../lib/auth.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
@@ -1945,18 +1945,23 @@ function buildSajuPersonProfile(request, personEntry, defaultName = "상대") {
 // 이전에는 대운이 어댑터 전달 결함으로 0건 유입됐고 세운은 올해 1행뿐이어서, 프롬프트가 필수 섹션으로
 // 요구하던 "지금 이 시기"가 사실상 LLM 창작이었다. resolution 이 근거 유무를 프롬프트에 그대로 전달한다.
 const FORTUNE_TEA_SEWOON_YEARS_AHEAD = 5;
+// 사실값·프롬프트 개정 번호. 결정론 캐시(30일)가 이전 근거로 만든 응답을 재생하지 않게 한다.
+// r1: 현재 대운 표시 + 입춘 기준 세운.
+const FORTUNE_TEA_PROMPT_REV = 1;
 
-function buildFortuneTeaTimingFacts(saju) {
+function buildFortuneTeaTimingFacts(saju, todayKst = kstDate()) {
   const dayGanji = fortuneTeaSajuPillarGanji(saju, "day");
   const dayStem = dayGanji ? Array.from(dayGanji)[0] : "";
-  const todayKst = kstDate();
   const nowYear = Number(todayKst.slice(0, 4));
+  // 세운은 1월 1일이 아니라 입춘(양력 2월 4일 전후)에 바뀐다. 입춘 전 1월은 아직 지난해 간지다.
+  const [kstY, kstM, kstD] = todayKst.split("-").map(Number);
+  const sewoonYear = calendarGanji({ year: kstY, month: kstM, day: kstD, hour: 12, minute: 0 })?.meta?.sexagenaryYear ?? nowYear;
 
   const daewoonRows = (Array.isArray(saju?.daewoon) ? saju.daewoon : [])
     .slice(0, 8)
     .map((row) => ({
       label: cleanText(row?.label, 60),
-      pillar: cleanText(row?.pillar, 12),
+      pillar: toKoreanGanji(cleanText(row?.pillar, 12)),
       startYear: Number.isFinite(Number(row?.startYear)) ? Number(row.startYear) : undefined,
       endYear: Number.isFinite(Number(row?.endYear)) ? Number(row.endYear) : undefined,
       isCurrent: row?.isCurrent === true,
@@ -1965,14 +1970,15 @@ function buildFortuneTeaTimingFacts(saju) {
 
   const sewoonRows = [];
   for (let offset = 0; offset <= FORTUNE_TEA_SEWOON_YEARS_AHEAD; offset += 1) {
-    const pillar = buildSexagenaryYearPillar(nowYear + offset);
+    const pillar = buildSexagenaryYearPillar(sewoonYear + offset);
     if (!pillar) continue;
     // 🔴 이 표만 한자로 나가면 명식(한글)과 표기가 갈려 LLM 이 서로 다른 자료로 읽는다.
     const ganji = toKoreanGanji(`${pillar.stem}${pillar.branch}`);
     sewoonRows.push({
       year: pillar.year,
       pillar: ganji,
-      label: `${pillar.year}년 ${ganji}`,
+      label: `${pillar.year}년 ${ganji}${offset === 0 ? " (지금의 세운)" : ""}`,
+      ...(offset === 0 ? { isCurrent: true } : {}),
       tenGodHint: dayStem ? getTenGodFromDayMaster(dayStem, pillar.stem) : "",
     });
   }
@@ -1992,7 +1998,7 @@ function buildFortuneTeaTimingFacts(saju) {
     // 시기 답변의 최대 해상도. 대운이 있으면 구간(PERIOD), 세운만 있으면 연(YEAR), 아무것도 없으면 NONE.
     resolution: daewoonRows.length ? "PERIOD" : sewoonRows.length ? "YEAR" : "NONE",
     rule: daewoonRows.length || sewoonRows.length
-      ? "시기를 답할 때는 daewoonRows/sewoonRows에 실제로 있는 연도·대운 구간만 인용한다. 월운이 없으므로 특정 월·날짜·상반기/하반기 적기를 만들지 않는다."
+      ? "시기를 답할 때는 daewoonRows/sewoonRows에 실제로 있는 연도·대운 구간만 인용한다. 세운 연도는 입춘에 바뀐다. 월운이 없으므로 특정 월·날짜·상반기/하반기 적기를 만들지 않는다."
       : "시기 근거 데이터가 없다. 연도나 월을 특정하지 말고 '어떤 조건이 갖춰지면'의 조건부 표현으로만 답하고, 시기를 특정할 수 없는 이유를 한 문장으로 밝힌다.",
   };
 }
@@ -4214,7 +4220,8 @@ async function generateFortuneTeaGroup(env, { request, fallback, group, consulta
         // 🔴 프롬프트를 바꾼 PR 은 이 버전을 반드시 올린다. 결정론 캐시 TTL 이 30일이라
         // 버전을 그대로 두면 캐시된 구버전 응답이 재생되어 테스트는 통과하는데 프로덕션 효과가 0이 된다.
         // v2: timingFacts(대운·다년 세운) 도입 + 시기 규칙 + 합충형해파 요구 제거.
-        keyExtra: `tea-house-${consultationMode}-${group.key}-${request.consultationVersion === "tea-v2" ? "yeoni-evidence-v2" : isSajuFamilyMode(consultationMode) ? "v5" : "v4"}`,
+        // r: FORTUNE_TEA_PROMPT_REV — 사실값·프롬프트를 바꾸는 커밋마다 올린다(되돌릴 때도 올린다).
+        keyExtra: `tea-house-${consultationMode}-${group.key}-${request.consultationVersion === "tea-v2" ? "yeoni-evidence-v2" : isSajuFamilyMode(consultationMode) ? "v5" : "v4"}-r${FORTUNE_TEA_PROMPT_REV}`,
         minChars: group.minChars,
       },
     });
@@ -5940,6 +5947,7 @@ export async function deferUnchangedConsultation(env, doc, now) {
 
 export const __fortuneTeaHouseTestUtils = {
   buildFallbackSajuDeepSections,
+  buildFortuneTeaTimingFacts,
   getSajuRequiredSectionTitles,
   normalizeDraftResult,
   resolveSajuCategoryRule,

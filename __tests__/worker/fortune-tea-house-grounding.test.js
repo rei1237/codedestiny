@@ -15,3 +15,25 @@ test("여성 표기는 male 패턴보다 먼저 여성으로 판정해 대운 �
   for (const gender of ["female", "Woman", "여", "여성"]) expect(firstPillar(gender)).toBe("己卯");
   for (const gender of ["male", "man", "남", "남성"]) expect(firstPillar(gender)).toBe("辛巳");
 });
+
+describe("시기 근거", () => {
+  let utils, canonicalTeaSaju;
+  beforeAll(async () => {
+    ({ __fortuneTeaHouseTestUtils: utils } = await import("../../worker/routes/fortune-tea-house.js"));
+    ({ canonicalTeaSaju } = await import("../../worker/lib/tea-saju-facts.js"));
+  });
+
+  test("서버 명식의 대운 중 한국 시각 기준 현재 대운 하나만 표시한다", () => {
+    const saju = canonicalTeaSaju({ ...birth, gender: "female" }, {}, new Date("2026-10-15T03:00:00Z"));
+    const current = saju.daewoon.filter(row => row.isCurrent);
+    expect(current).toHaveLength(1);
+    expect(current[0]).toMatchObject({ pillar: "丁丑", startYear: 2020, endYear: 2029 });
+    expect(utils.buildFortuneTeaTimingFacts(saju, "2026-10-15").daewoonRows.filter(row => row.isCurrent)).toHaveLength(1);
+  });
+
+  test("세운은 1월 1일이 아니라 입춘에 바뀐다", () => {
+    const saju = canonicalTeaSaju({ ...birth, gender: "female" });
+    expect(utils.buildFortuneTeaTimingFacts(saju, "2027-01-20").sewoonRows[0]).toMatchObject({ year: 2026, pillar: "병오", isCurrent: true });
+    expect(utils.buildFortuneTeaTimingFacts(saju, "2027-02-10").sewoonRows[0]).toMatchObject({ year: 2027, pillar: "정미", isCurrent: true });
+  });
+});

@@ -15,7 +15,15 @@ export function teaSajuProfile(input) {
     },
   });
 }
-export function canonicalTeaSaju(input, previous = {}) {
+// The engine's legacy daewoon rows carry years only; timing facts need the current one flagged.
+function teaDaewoonRows(rows, now) {
+  const year = new Date(now.getTime() + 9 * 3600000).getUTCFullYear();
+  return rows.map(row => {
+    const isCurrent = Number.isFinite(row.startYear) && Number.isFinite(row.endYear) && row.startYear <= year && year <= row.endYear;
+    return { ...row, pillar: row.ganji, label: `${row.index}대운 ${row.startAge}~${row.endAge}세${isCurrent ? ' (현재 대운)' : ''}`, ...(isCurrent ? { isCurrent } : {}) };
+  });
+}
+export function canonicalTeaSaju(input, previous = {}, now = new Date()) {
   const profile = teaSajuProfile(input);
   const scores = profile.fiveElements.scores;
   return {
@@ -37,6 +45,6 @@ export function canonicalTeaSaju(input, previous = {}) {
     })),
     elementMethod: { source:'destiny-bias-engine',scores,total:Object.values(scores).reduce((a,b)=>a+b,0) },
     usefulGodEvidence: profile.usefulGods,
-    daewoon: profile.daewoon.map(row => ({...row,pillar:row.ganji})),
+    daewoon: teaDaewoonRows(profile.daewoon, now),
   };
 }
