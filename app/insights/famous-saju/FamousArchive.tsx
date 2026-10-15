@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ILJU, STEMS } from '../../../lib/famous-saju/cycle';
 import type { ArchivePerson } from '../../../lib/famous-saju/archive';
+import { matchesFamousSearch } from '../../../lib/famous-saju/archive-search';
 
 type Filters = { q: string; field: string; country: string; stem: string; ilju: string; sort: string; page: number; view: string };
 const initial: Filters = { q:'',field:'',country:'',stem:'',ilju:'',sort:'editorial',page:1,view:'all' };
@@ -23,8 +24,7 @@ export default function FamousArchive({ people }: { people: ArchivePerson[] }) {
     history[value.q !== undefined ? 'replaceState' : 'pushState'](history.state,'',url);
   }
   const result = useMemo(() => people.filter(p => {
-    const text = [p.name,...p.aliases,p.dayPillar ? p.dayPillar+'일주' : '',...p.fields].join(' ').toLowerCase();
-    return (!filter.q || text.includes(filter.q.trim().toLowerCase())) && (!filter.field || p.fields.includes(filter.field))
+    return matchesFamousSearch(p, filter.q) && (!filter.field || p.fields.includes(filter.field))
       && (!filter.country || p.country === filter.country)
       && (!filter.stem || (p.classification === 'documented' && p.stem === filter.stem))
       && (!filter.ilju || (p.classification === 'documented' && p.dayPillar === filter.ilju));
