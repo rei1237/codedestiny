@@ -173,3 +173,22 @@ describe("명식 관계 근거", () => {
     expect(singleFacts.partnerTimingFacts).toBeUndefined();
   });
 });
+
+describe("해외 출생 경도 근거", () => {
+  test("경도 없는 뉴욕 출생은 그 시간대 표준 자오선으로 보정하고, 서울은 그대로 둔다", async () => {
+    const { canonicalTeaSaju, withTeaSajuLongitude } = await import("../../worker/lib/tea-saju-facts.js");
+    const pillar = (saju, key) => saju.pillars.find(row => row.key === key).ganji;
+    const newYork = { birthDate: "1990-01-15", birthTime: "10:00", calendarType: "solar", timezone: "America/New_York", gender: "female" };
+    expect(withTeaSajuLongitude(newYork).longitude).toBe(-75);
+    const guessed = canonicalTeaSaju(newYork);
+    const measured = canonicalTeaSaju({ ...newYork, longitude: -74.006 });
+    // 서울 경도로 보정하면 일주가 다음 날 辛巳로, 시주가 戊子로 밀린다.
+    expect([pillar(guessed, "day"), pillar(guessed, "hour")]).toEqual(["庚辰", "辛巳"]);
+    expect([pillar(measured, "day"), pillar(measured, "hour")]).toEqual(["庚辰", "辛巳"]);
+
+    const seoul = { ...newYork, timezone: "Asia/Seoul" };
+    expect(withTeaSajuLongitude(seoul)).toBe(seoul);
+    expect(withTeaSajuLongitude({ ...newYork, timezone: "KST" }).longitude).toBeUndefined();
+    expect(pillar(canonicalTeaSaju(seoul), "hour")).toBe(pillar(canonicalTeaSaju({ ...seoul, longitude: 126.978 }), "hour"));
+  });
+});

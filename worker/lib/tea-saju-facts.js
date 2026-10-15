@@ -1,8 +1,27 @@
 import { buildSajuProfile } from './destiny-bias-engine.js';
+import { standardMeridianForTimezone } from './birth-time-context.js';
 const labels = { year: '년주', month: '월주', day: '일주', hour: '시주' };
 const elements = { wood: '목', fire: '화', earth: '토', metal: '금', water: '수' };
+// 엔진은 경도가 없으면 서울 경도로 지방시를 보정해 뉴욕 출생이 열세 시간 넘게 밀린다.
+// 한국 밖의 유효한 IANA 시간대인데 경도가 없으면 그 시간대 표준 자오선으로 보아 보정을 0으로 둔다.
+export function withTeaSajuLongitude(input) {
+  if (!input || Number.isFinite(input.longitude)) return input;
+  let zone;
+  try {
+    zone = new Intl.DateTimeFormat('en-US', { timeZone: String(input.timezone || '').trim() }).resolvedOptions().timeZone;
+  } catch {
+    return input;
+  }
+  if (!input.timezone || zone === 'Asia/Seoul') return input;
+  const [year, month, day] = String(input.birthDate || '').split('-').map(Number);
+  if (![year, month, day].every(Number.isFinite)) return input;
+  const [hour, minute] = input.birthTimeUnknown ? [12, 0] : String(input.birthTime || '12:00').split(':').map(Number);
+  const longitude = standardMeridianForTimezone(zone, null, year, month, day, Number.isFinite(hour) ? hour : 12, Number.isFinite(minute) ? minute : 0);
+  return Number.isFinite(longitude) ? { ...input, longitude } : input;
+}
 // Use the same canonical natal engine as Yeongnyangi; never accept client pillars.
-export function teaSajuProfile(input) {
+export function teaSajuProfile(rawInput) {
+  const input = withTeaSajuLongitude(rawInput);
   return buildSajuProfile({
     name: input.nickname || input.name || '손님', gender: input.gender,
     birth: {

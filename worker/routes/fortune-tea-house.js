@@ -1,4 +1,4 @@
-import { canonicalTeaSaju } from "../lib/tea-saju-facts.js";
+import { canonicalTeaSaju, withTeaSajuLongitude } from "../lib/tea-saju-facts.js";
 import { buildTeaSajuMonthlyRows } from "../lib/tea-saju-monthly.js";
 import { buildTeaSukuyoMonthlyRhythm } from "../lib/tea-sukuyo-monthly.js";
 import { buildTeaCompatRelations, buildTeaNatalRelations } from "../lib/tea-saju-relations.js";
@@ -1986,7 +1986,8 @@ const FORTUNE_TEA_SEWOON_YEARS_AHEAD = 5;
 // r1: 현재 대운 표시 + 입춘 기준 세운. r2: 절기 월운 석 달. r3: 숙요 석 달 일숙 리듬.
 // r4: 원국·궁합 교차 합충형파해 + 상대 시기 표.
 // r5: 숙요 점수·오행 조화 참조 제거, 타로·숙요 오늘 날짜, 카드 주제별 전통 해석, 사주 장 분량 규칙 정리.
-const FORTUNE_TEA_PROMPT_REV = 5;
+// r6: 해외 출생 경도 미입력 시 서울 경도 대신 그 시간대 표준 자오선.
+const FORTUNE_TEA_PROMPT_REV = 6;
 
 function buildFortuneTeaTimingFacts(saju, todayKst = kstDate()) {
   const dayGanji = fortuneTeaSajuPillarGanji(saju, "day");
@@ -5762,15 +5763,18 @@ async function handleConsult(request, env, ctx = null, recoveryAuth = null) {
   // Legacy saved requests retain their original compatibility path.
   let serverDraft = consultRequest.consultationVersion === "tea-v2" ? {} : body?.draftResult;
   if (consultRequest.consultationVersion === "tea-v2" && consultRequest.consultationMode === "saju") {
-    const section = buildSajuResultSection(buildFortuneTeaSajuSnapshot(consultRequest), consultRequest);
-    serverDraft = { saju: canonicalTeaSaju(consultRequest, section) };
+    // 요약 문구와 명식이 같은 경도로 계산되도록 경도를 채운 사본을 두 경로에 넘긴다. 해시·저장 요청은 원본 그대로다.
+    const sajuRequest = withTeaSajuLongitude(consultRequest);
+    const section = buildSajuResultSection(buildFortuneTeaSajuSnapshot(sajuRequest), sajuRequest);
+    serverDraft = { saju: canonicalTeaSaju(sajuRequest, section) };
   }
   if (consultRequest.consultationVersion === "tea-v2" && consultRequest.consultationMode === "sajuCompatibility") {
     const pair = {};
     for (const key of ["user", "partner"]) {
       const person = consultRequest.sajuCompatibility[key];
-      const personRequest = { ...consultRequest, ...person, nickname: person.name };
-      const section = buildSajuResultSection(buildFortuneTeaSajuSnapshotFromParts(person), personRequest);
+      // 최상위 longitude는 사용자 프로필 값이라 상대에게 물려주지 않는다. 사람마다 자기 경도(없으면 표준 자오선)를 쓴다.
+      const personRequest = withTeaSajuLongitude({ ...consultRequest, longitude: undefined, ...person, nickname: person.name });
+      const section = buildSajuResultSection(buildFortuneTeaSajuSnapshotFromParts(withTeaSajuLongitude(person)), personRequest);
       pair[key] = { ...person, saju: canonicalTeaSaju(personRequest, section) };
     }
     serverDraft = { saju: pair.user.saju, sajuCompatibility: pair };
