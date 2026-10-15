@@ -1,10 +1,31 @@
 ---
-status: active
-updated: 2026-10-15
-next: "docs/handoff/2026-10-15-palm-reading-yeoni-human.md 를 읽고 '시작 방법'대로 준비한 뒤 '남은 작업'을 0번(상세 카피를 실제 동작에 맞춤)부터 순서대로 진행해. 항목당 커밋 하나, 로직(1~8)은 워커 테스트를 붙인다. 과금 LLM 실호출은 정확한 1회 승인 없이 하지 않는다."
+status: done
+updated: 2026-10-16
+next: "완료(2026-10-16). 0~11 모두 커밋·main 병합. 남은 일은 '결과 → 후속' 절만 본다."
 ---
 
 # 손금 × 연이(인간 버전) — 라이트 UI·꾸밈 아트·판독 로직 개선
+
+## 결과 (2026-10-16)
+
+- 0~11을 항목당 커밋으로 마쳤다. 워크트리 `wt/palm-yeoni-20261015-214204`(시작 `9aca927da`)에서 작업하고 main에 일반 병합했다. 항목별 SHA는 아래 체크리스트에 있다.
+- 항목마다 `check:fast`를 돌렸다. 과금 LLM 실호출은 하지 않았다(mock만).
+- 화면: 손금 화면 전체가 연이 정원 라이트 팔레트다. 업로드·촬영 가이드·로딩(실제 단계만)·오류·결과 표지·끝맺음에 소설 캐주얼 연이 무대가 붙는다. 마스터 프로필 키는 `yeoniPalm`이다. 롤백은 `src/features/expert-characters/yeoni.ts`의 `enabled`다.
+- 표정 매핑: idle=base, greet=smile, thinking=sideL, reveal=right, caution=left, comfort=smile, error=sideR, empty=sideR. angry·cry·fear·sleep·onigiri는 상담 화면에 맞지 않아 뺐다. disappoint는 팔짱 낀 반신 컷이라 캔버스가 달라 뺐다.
+- 상세·노출: 상세 1·9번 패널이 `palm-reading-hero-v3-yeoni.webp`를 쓴다. 첫 패널은 연이 훅이고 layout.css는 라이트다. 시각 상세·카드·OG(`/feature-details/assets/palm-reading-og.webp`)도 연이다. 홈 손금 타일의 초록 무료 배지 스타일은 뗐다.
+- 검증 하네스: `verify-palm-mobile-payment-recovery.mjs`가 next/image default와 CSS 모듈(app.css)을 Next처럼 묶는다. `app/package.json`이 `"type":"module"`이라 esbuild가 CJS default를 모듈 객체째 넘기던 문제다.
+
+### 후속 (이번 범위 밖, 손대지 않음)
+
+- 클라이언트 "손이 아님" 판정은 경고만 한다. 최종 판정은 서버 비전이 한다.
+- 클라이언트 폴백 해석 문구는 고정 문구다.
+- `handShape`의 `labelKo` 기본값이 남아 있다.
+- 429 등 일부 서버 메시지는 한국어가 아닌 로케일에서도 한국어로 남을 수 있다.
+- 오버레이 신뢰도 하한 `Math.max(0.2, …)`는 그대로다. 대신 `detected:false`인 선은 점선으로 구분한다.
+- 로딩 단계 문구의 1300ms 순환(`loadingPhases`)은 원래 있던 시간 기반 연출이다. 연이 대사는 실제 단계에만 붙였다.
+- 손금 라우트는 next/dynamic으로 붙는다. 그래서 SSR과 하이드레이션의 useId 경로가 어긋나고, 이를 피하려고 MasterProfile을 마운트 뒤에 그린다. 근본 원인은 라우트 로딩 방식이다.
+- 390px에서 흐름 칩 "1. 업로드"가 줄바꿈된다. 원래 있던 문제로 보인다.
+- `docs/purchase-journey/inventory.json`은 아직 v2 히어로를 가리킨다. 검토용 산출물이라 `build-purchase-journey-review.mjs`를 다시 돌릴 때 갱신된다.
 
 ## 왜
 
@@ -176,7 +197,7 @@ next: "docs/handoff/2026-10-15-palm-reading-yeoni-human.md 를 읽고 '시작 �
 
 ### 카피 — 가장 먼저 (독립·저위험, 워커 변경 없음)
 
-- [ ] **0. 상세 카피를 실제 동작에 맞춘다.**
+- [x] **0. 상세 카피를 실제 동작에 맞춘다.** — 완료 `ff0d0068e`
   - 사용자 결정(2026-10-15): "문구를 실제 동작에 맞추는 쪽"
   - 목적 선택 UI는 만들지 않는다.
   - 연이 훅과 아트 교체는 11번에서 한다. 0번은 사실 정정만 한다.
@@ -259,11 +280,11 @@ next: "docs/handoff/2026-10-15-palm-reading-yeoni-human.md 를 읽고 '시작 �
 
 ### 로직 — 카피 다음, 워커 테스트와 함께
 
-- [ ] **1. 점수 예시값 앵커링 제거 + 채점 루브릭.**
+- [x] **1. 점수 예시값 앵커링 제거 + 채점 루브릭.** — 완료 `83556bff1`
   - `palm-vision.js:117`의 JSON 예시 `"scores": { "love": 75, "career": 80, ... }`와 `:131`의 `"palmCoverage": 0.85`가 실제 값처럼 복사될 수 있다.
   - 예시는 자리표시(`0-100`)로 바꾸고, 점수 구간별 판정 기준을 프롬프트에 둔다.
   - 판정 기준: mock 응답 고정 테스트가 예시값과 같은 점수를 "정상"으로 보지 않는다.
-- [ ] **2. 과단정 규칙을 연이 캐논에 맞춘다.**
+- [x] **2. 과단정 규칙을 연이 캐논에 맞춘다.** — 완료 `6abfa49a2`
   - 원인 위치
     - `:55` 비전 시스템 프롬프트("최고 수준의 손금 판독 전문가")
     - `:606` 심층 상담 프롬프트("30년 경력의 손금 상담 전문가")
@@ -275,33 +296,33 @@ next: "docs/handoff/2026-10-15-palm-reading-yeoni-human.md 를 읽고 '시작 �
   - 페르소나 블록은 `worker/lib/expert-character-personas.js` 방식으로 덧붙인다.
     - "30년 경력"과 `:611` 규칙이 페르소나와 충돌하니 함께 고친다.
     - 덧붙이는 방식: `resolveSystemPrompt` 결과 **뒤에** 붙이고, CMS 키를 `cms-prompt-defaults.js`에 등록한다.
-- [ ] **3. 종결 부호 하나 때문에 심층 상담이 통째로 실패한다.**
+- [x] **3. 종결 부호 하나 때문에 심층 상담이 통째로 실패한다.** — 완료 `49480252b`
   - 실패 경로
     - `palm-vision.js:693`은 본문이 `[.!?。？！]`로 끝나지 않으면 `null`을 돌려준다.
     - 그러면 `palm.js:546-547`이 `PALM_INTERPRETATION_INCOMPLETE`(503)를 낸다.
     - 결제 전 단계라 과금은 없지만, 사용자는 다시 시도해야 한다.
   - 고치는 방향: 전달 우선 원칙(CLAUDE.md 원칙 17)에 따라, 120자 이상이면 마지막 완결 문장까지 잘라 전달한다.
   - `PALM_CONSULT_FALLBACK_MIN_CHARS = 120` 리터럴은 유지한다(아래 함정).
-- [ ] **4. 좌우 손 판정 3중 모순.**
+- [x] **4. 좌우 손 판정 3중 모순.** — 완료 `ebf9e64bc`
   - 서로 다른 세 출처
     - 프롬프트는 "이 사진은 {왼손|오른손} 바닥입니다"라고 단정한다(`:159`).
     - 정규화는 모델의 `imageQuality.handSide`를 사용자 입력보다 우선한다(`:579`).
     - 클라이언트에는 MediaPipe `handedness`(`palm-hand-landmarks.ts:39`, `PalmDestinyMain.tsx:731`)가 따로 있다. 셀피 카메라는 좌우가 뒤집힌다는 점도 고려한다.
   - 고치는 방향: 셋을 비교해 불일치를 표시하고, 조용히 덮어쓰지 않는다.
-- [ ] **5. 손바닥 판정 강화.**
+- [x] **5. 손바닥 판정 강화.** — 완료 `4171becfc`
   - 약한 지점
     - `:541`: 모델이 `palmDetected`를 빼도 선 키가 하나라도 있으면 `true`로 추론한다.
     - `palm.js:197`: 품질 게이트가 `qualityByImage || hasMajorLines`, 즉 OR다.
     - `PalmDestinyMain.tsx:520`: 클라이언트 `palmLikely`는 가로세로 비율(0.55–1.75)만 본다.
   - 판정 기준: 손이 아닌 사진 mock이 판독 결과로 이어지지 않는다.
-- [ ] **6. 기본 문구가 유료 본문에 섞인다.**
+- [x] **6. 기본 문구가 유료 본문에 섞인다.** — 완료 `efea3268c`
   - `palm-vision.js:239` `minorLine`의 기본 요약(`:355` "결혼선을 분석했습니다.", `:357` "건강선을 분석했습니다." 등)이, 모델이 필드를 뺀 경우에도 본문에 들어갈 수 있다.
   - 기본값으로 채운 필드는 본문에서 빼고, "선별 불확실성"으로 심층 상담 입력에 넘긴다.
-- [ ] **7. 서버가 locale을 무시한다.**
+- [x] **7. 서버가 locale을 무시한다.** — 완료 `ba1ffba50`
   - `worker/routes/palm.js`에는 `locale` 참조가 하나도 없다.
   - 오류 문구(`:58` 413, `:252` 400 외)와 두 프롬프트가 한국어로 고정돼 있다. 클라이언트 문구는 로케일별로 있다.
   - 한국어 기본값은 그대로 두고, 클라이언트가 보낸 locale을 받아 오류 코드별 문구와 출력 언어 메모를 정한다.
-- [ ] **8. 오버레이 선과 판독이 어긋난다.**
+- [x] **8. 오버레이 선과 판독이 어긋난다.** — 완료 `ce163b5fe + 819280185`
   - 원인
     - 오버레이는 고정 비율 가이드(`PalmDestinyMain.tsx:606-614` `fromPalm(...)`) 주변을 샘플링해서 그린다.
     - 신뢰도 하한이 0.2로 묶여 있다(`:943` `Math.max(0.2, ...)`). 그래서 판독에서 "확인 안 됨"인 선도 화면에 그려질 수 있다.
@@ -309,7 +330,7 @@ next: "docs/handoff/2026-10-15-palm-reading-yeoni-human.md 를 읽고 '시작 �
 
 ### 아트 — 로직 다음
 
-- [ ] **9. 새 아트.** 모두 `yeon/base.webp`를 첨부해 그리고, 원본과 나란히 비교한다. WebP q87–90.
+- [x] **9. 새 아트.** 모두 `yeon/base.webp`를 첨부해 그리고, 원본과 나란히 비교한다. WebP q87–90. — 완료 `542e43172`
   - 키아트 16:9·4:5: 밝은 정원이나 창가에서 손바닥을 들여다보는 장면
   - 촬영 가이드 스팟 일러스트
   - 상세 히어로 `public/images/feature-details/palm-reading-hero-v3-yeoni.webp`
@@ -321,7 +342,7 @@ next: "docs/handoff/2026-10-15-palm-reading-yeoni-human.md 를 읽고 '시작 �
 
 ### 라이트 UI
 
-- [ ] **10. 연이 정원 라이트 팔레트로 재스타일.**
+- [x] **10. 연이 정원 라이트 팔레트로 재스타일.** — 완료 `ef45e71c1`
   - 팔레트(`DESIGN.md` 「연이 정원 홈」 절)
     - 아이보리 `#fff9f4`
     - 분홍 표면 `#f8e4ea`
@@ -343,7 +364,7 @@ next: "docs/handoff/2026-10-15-palm-reading-yeoni-human.md 를 읽고 '시작 �
 
 ### 마케팅·노출
 
-- [ ] **11. 상세·허브·OG.**
+- [x] **11. 상세·허브·OG.** — 완료 `90e4e36e0`
   - 상세 원고(`panels.cjs`)의 히어로를 v3로 바꾸고 첫 패널 카피를 연이 훅으로 쓴다.
     - 렌더: `node scripts/render-crafted-detail.cjs palm-reading`
     - `FEATURE_VISUAL_DETAILS['palm-reading']`를 바꾼 뒤 `npm run sync:public`을 돌린다.
