@@ -1952,6 +1952,25 @@
       "giftTerms": "Trị giá {value} KRW · Hiệu lực {days} ngày từ ngày cấp · Giảm giá dịch vụ đủ điều kiện từ {minimum} KRW. Không dùng để mua vé.",
       "terms": "Xem điều kiện Nguyệt thạch",
       "rewards": "Hoạt động và phần thưởng"
+    },
+    "mv": {
+      "title": "Hành trình định mệnh dưới ánh trăng",
+      "lead": "Câu chuyện bắt đầu từ một ngọn đèn nhỏ, băng qua năm bầu trời và gặp lại nhau dưới hai vầng trăng",
+      "meta": "1 phút 33 giây · Phụ đề lời bài hát tiếng Hàn",
+      "videoLabel": "Video âm nhạc Hành trình định mệnh dưới ánh trăng",
+      "play": "Phát video âm nhạc Hành trình định mệnh dưới ánh trăng, 1 phút 33 giây, có âm thanh",
+      "ctaIdle": "1:33 · Có âm thanh",
+      "ctaLoading": "Đang tải video…",
+      "ctaError": "Không tải được · Hãy nhấn lại",
+      "error": "Không tải được video. Hãy nhấn lại.",
+      "chaptersLabel": "Chuyển đến cảnh",
+      "ch1": "Ngọn đèn",
+      "ch2": "Bước đầu tiên",
+      "ch3": "Năm bầu trời",
+      "ch4": "Nở hoa",
+      "ch5": "Đúng thời điểm",
+      "lyrics": "Phụ đề lời",
+      "more": "Nghe thêm nhạc ánh trăng"
     }
   },
   "terms": {

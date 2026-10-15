@@ -1952,6 +1952,25 @@
       "giftTerms": "Bernilai {value} KRW · Sah {days} hari dari tarikh pemberian · Diskaun perkhidmatan layak berharga {minimum} KRW ke atas. Tidak boleh digunakan untuk membeli pas.",
       "terms": "Lihat syarat Batu Bulan",
       "rewards": "Aktiviti dan ganjaran"
+    },
+    "mv": {
+      "title": "Perjalanan Takdir Cahaya Bulan",
+      "lead": "Kisah yang bermula daripada sebuah tanglung kecil, merentas lima langit dan bertemu semula di bawah dua bulan",
+      "meta": "1 min 33 saat · Sari kata lirik bahasa Korea",
+      "videoLabel": "Video muzik Perjalanan Takdir Cahaya Bulan",
+      "play": "Mainkan video muzik Perjalanan Takdir Cahaya Bulan, 1 minit 33 saat, ada bunyi",
+      "ctaIdle": "1:33 · Ada bunyi",
+      "ctaLoading": "Memuatkan video…",
+      "ctaError": "Gagal dimuatkan · Sila tekan sekali lagi",
+      "error": "Video tidak dapat dimuatkan. Sila tekan sekali lagi.",
+      "chaptersLabel": "Pergi ke babak",
+      "ch1": "Tanglung",
+      "ch2": "Langkah pertama",
+      "ch3": "Lima langit",
+      "ch4": "Mekar",
+      "ch5": "Masa yang tepat",
+      "lyrics": "Lirik",
+      "more": "Dengar lagi muzik cahaya bulan"
     }
   },
   "terms": {

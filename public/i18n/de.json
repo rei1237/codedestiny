@@ -1952,6 +1952,25 @@
       "giftTerms": "Wert: {value} KRW · Ab Ausgabe {days} Tage gültig · Rabatte auf berechtigte Dienste ab {minimum} KRW. Nicht für den Kauf von Pässen.",
       "terms": "Mondstein-Bedingungen ansehen",
       "rewards": "Aktivitäten und Belohnungen"
+    },
+    "mv": {
+      "title": "Schicksalsreise im Mondlicht",
+      "lead": "Eine Geschichte, die mit einer kleinen Laterne beginnt, fünf Himmel durchquert und unter zwei Monden zum Wiedersehen führt",
+      "meta": "1:33 · Liedtext-Untertitel auf Koreanisch",
+      "videoLabel": "Musikvideo „Schicksalsreise im Mondlicht“",
+      "play": "Musikvideo „Schicksalsreise im Mondlicht“ abspielen, 1 Minute 33 Sekunden, mit Ton",
+      "ctaIdle": "1:33 · Mit Ton",
+      "ctaLoading": "Video wird geladen…",
+      "ctaError": "Laden fehlgeschlagen · Bitte erneut tippen",
+      "error": "Das Video konnte nicht geladen werden. Bitte tippe erneut.",
+      "chaptersLabel": "Zu einer Szene springen",
+      "ch1": "Laterne",
+      "ch2": "Erste Schritte",
+      "ch3": "Fünf Himmel",
+      "ch4": "Blüte",
+      "ch5": "Das wahre Timing",
+      "lyrics": "Liedtext",
+      "more": "Mehr Mondlichtmusik hören"
     }
   },
   "terms": {
