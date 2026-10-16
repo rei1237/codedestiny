@@ -100,9 +100,10 @@ const GENERATED_ASSET_PATTERN = /^(.+)-(?:\d+|og)\.webp$/;
 
 /**
  * Crafted panels (public/feature-details/crafted/{id}/) are written once by
- * render-crafted-detail as 1080×1440 q93, so a 72px edition cover and a 540px
- * column both downloaded the full original. Editions shown in an introduction
- * get a 540w sibling and, when they render as a card, a 144px (2x) cover. These
+ * render-crafted-detail as 1080×1440 q76, so a 72px edition cover and a 540px
+ * column both downloaded the full original. Every crafted panel gets a 540w
+ * sibling (recorded as `variants` in its public manifest, which the popup and
+ * product pages fetch), and editions shown as a card a 144px (2x) cover. These
  * suffixes belong to this generator and are pruned here; a variant newer than
  * its source is kept so sync:public does not re-encode hundreds of panels.
  */
@@ -320,6 +321,16 @@ export async function writeVisualDetails(html, book) {
     const catalogStem = stem?.endsWith('-catalog') ? stem.slice(0, -'-catalog'.length) : '';
     if (!stem || !(knownSlugs.has(stem) || knownSlugs.has(catalogStem) || stem.startsWith(SHARED_ASSET_PREFIX))) continue;
     fs.unlinkSync(path.join(directory, 'assets', name));
+  }
+  // The public manifests are what the disclosure panels fetch; content/product-details keeps the authored copy.
+  for (const id of fs.existsSync(CRAFTED_DIRECTORY) ? fs.readdirSync(CRAFTED_DIRECTORY) : []) {
+    const file = path.join(CRAFTED_DIRECTORY, id, 'manifest.json');
+    if (!fs.existsSync(file)) continue;
+    const manifest = JSON.parse(fs.readFileSync(file, 'utf8'));
+    for (const panel of manifest.panels || []) {
+      if (CRAFTED_PANEL_SOURCE.test(panel.src || '') && Number(panel.width) > 540) panel.variants = [{ src: await craftedVariant(panel.src, 540, writtenCrafted), width: 540 }];
+    }
+    writeJsonAtomic(file, manifest, 2);
   }
   for (const id of fs.existsSync(CRAFTED_DIRECTORY) ? fs.readdirSync(CRAFTED_DIRECTORY) : []) {
     const folder = path.join(CRAFTED_DIRECTORY, id);
