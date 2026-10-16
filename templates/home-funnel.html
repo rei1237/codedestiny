@@ -65,12 +65,14 @@
   <dialog class="cd-sheet cd-sheet--all" id="cdAllFortunes" data-cd-sheet aria-labelledby="cdAllFortunesTitle">
     <div class="cd-sheet__panel">
       <div class="cd-sheet__head">
-        <h2 id="cdAllFortunesTitle" data-cd-trans="home.gardenCopy.allTitle">모든 운세</h2>
+        <h2 id="cdAllFortunesTitle" data-cd-trans="home.gardenCopy.allTitle">재밌는 운세 모두 보기</h2>
         <button type="button" class="cd-sheet__close" data-cd-sheet-close aria-label="닫기" data-cd-trans-attr="aria-label:home.gardenCopy.sheetClose"><span aria-hidden="true">×</span></button>
       </div>
       <div class="cd-sheet__body">
         <!-- 모든 운세 검색 블록: 모바일에서는 home-service-finder.js 가 '모든 운세' 개요 패널 맨 위로 옮긴다. -->
         <div class="cd-af" id="cdAllFortunesRoot">
+          <!-- 강약: 재밌는 운세 목록에서도 대표 상담 덱으로 돌아가는 길은 한 줄(텍스트 링크)로 둔다. -->
+          <a class="cd-af__signature" href="/ggulggul/#cdSignatureConsult" data-cd-af-signature><span data-cd-trans="home.gardenCopy.allSignatureLink">대표 상담 여섯 장 보기</span><span aria-hidden="true">→</span></a>
           <div class="cd-af__search" role="search">
             <input type="search" id="cdAllFortunesSearch" class="cd-af__input" placeholder="이직, 재회, 궁합처럼 찾아보세요" autocomplete="off" aria-label="모든 운세 검색" data-cd-trans-attr="aria-label:home.gardenCopy.allSearchLabel,placeholder:home.gardenCopy.allSearchPlaceholder">
             <button type="button" class="cd-af__clear" data-cd-search-clear aria-label="검색어 지우기" data-cd-trans-attr="aria-label:home.gardenCopy.allClear" hidden><span aria-hidden="true">×</span></button>

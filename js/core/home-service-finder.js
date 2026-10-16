@@ -811,6 +811,28 @@
     }
   }
 
+  // '대표 상담 여섯 장 보기' — 시트·오버레이를 닫고 홈 덱으로 스크롤한다. 덱이 없으면 링크대로 이동.
+  // 시트·오버레이가 닫히며 스크롤을 되돌리므로, 닫힌 뒤에 움직인다.
+  function afGoSignature(event) {
+    var link = event.target && event.target.closest ? event.target.closest("[data-cd-af-signature]") : null;
+    var deck = document.getElementById("cdSignatureConsult");
+    if (!link || !deck) return;
+    event.preventDefault();
+    var go = function () { deck.scrollIntoView({ block: "start" }); };
+    var sheets = window.CodeDestinyShellSheet;
+    var sheet = document.getElementById("cdAllFortunes");
+    var overlay = window.cdMobileCollectionFullscreen;
+    if (sheets && sheet && sheets.isOpen("cdAllFortunes")) {
+      sheet.addEventListener("cd:sheet-close", function () { window.setTimeout(go, 0); }, { once: true });
+      sheets.close("cdAllFortunes");
+    } else if (overlay && overlay.isOpen()) {
+      overlay.close();
+      window.setTimeout(go, 0);
+    } else {
+      go();
+    }
+  }
+
   // host 에 블록을 단다. before 가 있으면 그 앞에, 없으면 끝에.
   function attachAllFortunes(host, before) {
     var af = ensureAllFortunes();
@@ -831,6 +853,7 @@
   }
 
   function bootAllFortunes() {
+    document.addEventListener("click", afGoSignature);
     var sheet = document.getElementById("cdAllFortunes");
     if (sheet) {
       sheet.addEventListener("cd:sheet-open", function () {

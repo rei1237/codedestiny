@@ -459,6 +459,8 @@ button:hover, .feature-card:hover { transform: none !important; }
 .btn-insta:hover { transform: translateY(-2px); box-shadow: rgba(131, 58, 180, 0.4) 0px 6px 16px; }
 .btn-insta:active { transform: scale(0.96); box-shadow: rgba(131, 58, 180, 0.25) 0px 2px 8px; }
 .share-toast { position: fixed; bottom: 30px; left: 50%; transform: translate(-50%); background: rgba(50, 50, 50, 0.9); color: rgb(255, 255, 255); padding: 10px 22px; border-radius: 99px; font-size: 0.85rem; font-weight: 700; z-index: 9999; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+/* 하단 내비가 있으면 토스트를 그 위로 올린다(내비 높이 = --cd-mobile-nav-h). */
+body:has(#cdMobileBottomNav:not([hidden])) .share-toast { bottom: calc(var(--cd-mobile-nav-h, 91px) + 12px); }
 .cd-section-gate__badge { display: none !important; }
 @keyframes dpFloat {
   0%, 100% { transform: translateZ(0px); }

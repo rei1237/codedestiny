@@ -81,5 +81,10 @@ for (const marker of ['id="cdhQuickSlot"', 'id="cdhServices"', 'id="cdhConcern"'
   const at = template.indexOf(marker);
   assert.ok(at > otherStart && at < otherEnd, `${marker} belongs to other fortunes`);
 }
+// 재밌는 운세 시트 맨 위에서 대표 상담 덱으로 돌아가는 한 줄 링크.
+const afRoot = template.indexOf('id="cdAllFortunesRoot"');
+const afLink = template.indexOf('data-cd-af-signature');
+assert.ok(afRoot > 0 && afLink > afRoot && afLink < template.indexOf('id="cdAllFortunesSearch"'), 'signature link heads the all-fortunes sheet');
+assert.ok(template.includes('href="/ggulggul/#cdSignatureConsult" data-cd-af-signature'), 'signature link points at the home deck');
 
 assert.doesNotMatch(template, /\{\{lightRecommendations\}\}/, "the complete fortune chooser replaces the incomplete shortcut group");

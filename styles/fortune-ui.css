@@ -3919,6 +3919,8 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
   background:rgba(50,50,50,.9);color:#fff;padding:10px 22px;border-radius:99px;
   font-size:.85rem;font-weight:700;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none}
 .share-toast.show{opacity:1}
+/* 하단 내비가 있으면 토스트를 그 위로 올린다(내비 높이 = --cd-mobile-nav-h). */
+body:has(#cdMobileBottomNav:not([hidden])) .share-toast{bottom:calc(var(--cd-mobile-nav-h, 91px) + 12px)}
 
 /* ─── 매력 분석 전용 카드 ─── */
 .charm-master-card{background:linear-gradient(180deg,#FFFDFE 0%,#FFF8FB 100%);border:2px solid #FFD1DC}

@@ -568,6 +568,8 @@ html.neo-mode .cd-af,body.neo-mode .cd-af{--cd-af-ink:#f4eeff;--cd-af-muted:#d8c
 .cd-af__clear[hidden],.cd-af__reset[hidden]{display:none}
 .cd-af__group{display:grid;gap:6px;min-width:0}
 .cd-af__label{color:var(--cd-af-muted);font-size:.8rem;font-weight:800}
+.cd-af__signature{display:inline-flex;align-items:center;gap:6px;justify-self:start;min-height:44px;color:var(--cd-af-accent);font-size:.9rem;font-weight:800;text-decoration:underline;text-underline-offset:4px}
+.cd-af__signature:focus-visible{outline:3px solid var(--cd-af-accent);outline-offset:2px}
 .cd-af__chips{display:flex;gap:6px;min-width:0;padding-bottom:2px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .cd-af__chips::-webkit-scrollbar{display:none}
 @media (min-width:760px){.cd-af__chips{flex-wrap:wrap;overflow:visible}}
