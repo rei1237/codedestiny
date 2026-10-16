@@ -13814,7 +13814,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     var payload = response && response.payload ? response.payload : {};
     if (response && response.ok && payload && payload.ok && payload.data) return payload.data;
     var error = payload.error && typeof payload.error === 'object' ? payload.error : payload;
-    throw new Error(String(error.message || payload.message || '숙요 전생 인연 리딩을 열지 못했습니다.'));
+    var failure = new Error(String(error.message || payload.message || '숙요 전생 인연 리딩을 열지 못했습니다.'));
+    failure.status = Number(response && response.status || 0);
+    throw failure;
   }
 
   // 이미 결제한 조합(같은 상대·같은 목적)인지 서버 아카이브로만 판정한다.
@@ -13967,7 +13969,16 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
               if (status) status.textContent = '인연 레이더 리포트를 저장하고 있습니다...';
               await syRequestSukuyoPastLifeReading(inputPayload, gateResult);
             } catch (serverError) {
-              if (status) status.textContent = (serverError && serverError.message) ? String(serverError.message) : '서버 저장은 잠시 지연되고 있습니다. 리포트는 이 자리에서 열립니다.';
+              // 🔴 2026-10-16: 서버가 결제를 거절(4xx)하면 전체 리포트를 열지 않는다 — 예전에는 실패해도
+              // reveal(true) 라서, 복귀 경로(skipGate)를 증빙 없이 타기만 하면 결제 없이 열렸다.
+              // 일시 장애(5xx·네트워크)는 이 화면에서 게이트를 막 통과한 결제(gateResult)가 있을 때만 연다.
+              var rejectStatus = Number(serverError && serverError.status || 0);
+              var paymentRejected = rejectStatus >= 400 && rejectStatus < 500;
+              if (paymentRejected || !gateResult) {
+                if (status) status.textContent = (serverError && serverError.message) ? String(serverError.message) : '결제 확인이 끝나지 않아 전체 리포트를 열지 못했습니다. 잠시 후 다시 시도해 주세요.';
+                return;
+              }
+              if (status) status.textContent = '서버 저장은 잠시 지연되고 있습니다. 리포트는 이 자리에서 열립니다.';
             }
             reveal(true);
           };
