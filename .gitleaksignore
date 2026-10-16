@@ -386,3 +386,17 @@ d6fe412c0f1b63e032ab676cdbf3df5e791d4a3c:.open-next/cloudflare/next-env.mjs:gene
 # 2026-10-13 회전 확인: 3월 노출 뒤 Atlas DB 사용자가 5회 갱신됐고 현행 URI도 두 과거 값과 불일치
 42a28e5937546284d065e89209c8c5133e9f6c4b:server/.env:code-destiny-mongodb-uri-credentials:2
 ab1bfa7d17712d75d7ca1d92d8e3cf054aff643e:server/README.md:code-destiny-mongodb-uri-credentials:8
+
+# 2026-10-17 오탐: 사주 섹션 서버 이전 커밋. 비밀값이 아니다 — i18n 사전 줄의 id 값 "Api Karma"(sajuQuantum.sq_8978_prop_label)와
+# localStorage 키 이름 energyCoordRecentDestinationsV1 이 generic-api-key 에 걸렸다.
+e3ed63fcac91015670e7fc9c0fbe23275a748b19:worker/lib/saju-section/runtime.generated.mjs:generic-api-key:8
+9a72f32fef870b749aeeb37668272f1edab7807f:worker/lib/saju-section/runtime.generated.mjs:generic-api-key:8
+9587cc5cd749761b878b83eecae9f97fdf4c8031:worker/lib/saju-section/runtime.generated.mjs:generic-api-key:8
+ce80879ab5ab8a7efcc5dc4307802037eaa0a8f0:js/core/saju/section-client.js:generic-api-key:440
+be096b3a8259506278b9880df5f0e4ada8a0693b:worker/lib/saju-section/runtime.generated.mjs:generic-api-key:8
+ce80879ab5ab8a7efcc5dc4307802037eaa0a8f0:public/js/core/saju/section-client.js:generic-api-key:440
+ce80879ab5ab8a7efcc5dc4307802037eaa0a8f0:worker/lib/saju-section/report.js:generic-api-key:75
+ce80879ab5ab8a7efcc5dc4307802037eaa0a8f0:worker/lib/saju-section/runtime.generated.mjs:generic-api-key:8
+eee12f66d2aec1a1668cb50c70f6336cabe83255:worker/lib/saju-section/runtime.generated.mjs:generic-api-key:7
+89826021afb87d4ab57dcabc149183eebe54174b:worker/lib/saju-section/runtime.generated.mjs:generic-api-key:8
+0cf3fc7d40a3c9381112f6a54149e0e54dd5cf22:worker/lib/saju-section/runtime.generated.mjs:generic-api-key:8
