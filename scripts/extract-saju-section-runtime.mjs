@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import ts from 'typescript';
-// Bundles the paid saju summary/daewun/quantum/extreme-T/sukuyo-encyclopedia/sukuyo-nature/energy/villain/health/charm/skill-tree renderers (worker/lib/saju-section/*.src.js) with the
+// Bundles the paid saju summary/daewun/quantum/extreme-T/sukuyo-encyclopedia/sukuyo-nature/sukuyo-compat/energy/villain/health/charm/skill-tree renderers (worker/lib/saju-section/*.src.js) with the
 // shell helpers they call, copied verbatim from the browser sources. No formula is edited here:
 // --check fails when js/saju-engine.js, the tarot-chunk helpers, the entertain-engine helpers, the personas copy table
 // or the KASI service drift.
@@ -59,6 +59,9 @@ const encyclopediaSrc = read(encyclopediaPath); const encyclopediaAst = parse(en
 // 숙요 본성 심화 해석: 27숙 표·하루 리듬·수호 표 등 타로 파일의 숙요 헬퍼를 아래 tarot 클로저로 함께 가져온다.
 const naturePath = 'worker/lib/saju-section/paid-nature-deep-dive.src.js';
 const natureSrc = read(naturePath); const natureAst = parse(naturePath, natureSrc);
+// 숙요 기본 궁합·정밀 궁합 확장: 궁합 엔진(SukuyoCompatEngine)·27숙 표·관계 방향 판정은 타로 파일의 숙요 헬퍼를 아래 tarot 클로저로 함께 가져온다.
+const compatPath = 'worker/lib/saju-section/paid-sukuyo-compat.src.js';
+const compatSrc = read(compatPath); const compatAst = parse(compatPath, compatSrc);
 const energyPath = 'worker/lib/saju-section/paid-energy.src.js';
 const energySrc = read(energyPath); const energyAst = parse(energyPath, energySrc);
 const villainPath = 'worker/lib/saju-section/paid-villain.src.js';
@@ -69,15 +72,15 @@ const charmPath = 'worker/lib/saju-section/paid-charm.src.js';
 const charmSrc = read(charmPath); const charmAst = parse(charmPath, charmSrc);
 const skillPath = 'worker/lib/saju-section/paid-skill.src.js';
 const skillSrc = read(skillPath); const skillAst = parse(skillPath, skillSrc);
-const paidNames = declared(paidAst); const cycleNames = declared(cycleAst); const quantumNames = declared(quantumAst); const encyclopediaNames = declared(encyclopediaAst); const natureNames = declared(natureAst); const energyNames = declared(energyAst); const villainNames = declared(villainAst); const healthNames = declared(healthAst); const charmNames = declared(charmAst); const skillNames = declared(skillAst);
+const paidNames = declared(paidAst); const cycleNames = declared(cycleAst); const quantumNames = declared(quantumAst); const encyclopediaNames = declared(encyclopediaAst); const natureNames = declared(natureAst); const compatNames = declared(compatAst); const energyNames = declared(energyAst); const villainNames = declared(villainAst); const healthNames = declared(healthAst); const charmNames = declared(charmAst); const skillNames = declared(skillAst);
 
 // The quantum/energy cards' ganji/fortune/text helpers live in the tarot chunk. Its copy table is trimmed to
 // the keys the cards use (the rest is other cards' copy); every other statement is verbatim.
 const tarotAst = parse('saju-engine-tarot-sukuyo-quantum.js', read('js/saju-engine-tarot-sukuyo-quantum.js'));
 const Q_TEXT = 'SAJU_QUANTUM_TEXT_TRANSLATIONS';
-const tarotPicked = closure(tarotAst, tarotAst.statements, [...refs(quantumAst), ...refs(encyclopediaAst), ...refs(natureAst), ...refs(energyAst)], new Set([...quantumNames, ...encyclopediaNames, ...natureNames, ...energyNames, Q_TEXT]));
+const tarotPicked = closure(tarotAst, tarotAst.statements, [...refs(quantumAst), ...refs(encyclopediaAst), ...refs(natureAst), ...refs(compatAst), ...refs(energyAst)], new Set([...quantumNames, ...encyclopediaNames, ...natureNames, ...compatNames, ...energyNames, Q_TEXT]));
 const tarotNames = new Set(tarotPicked.flatMap(t => [...declared(parse('t.js', t))]));
-const Q_KEYS = [...new Set([quantumSrc, encyclopediaSrc, natureSrc, energySrc, ...tarotPicked].join('\n').match(/_sajuQuantumText\("([^"]+)"\)/g).map(m => m.slice(18, -2)))].sort();
+const Q_KEYS = [...new Set([quantumSrc, encyclopediaSrc, natureSrc, compatSrc, energySrc, ...tarotPicked].join('\n').match(/_sajuQuantumText\("([^"]+)"\)/g).map(m => m.slice(18, -2)))].sort();
 const qTextNode = tarotAst.statements.find(n => ownNames(n).includes(Q_TEXT));
 const qTextKo = new Function(`return (${qTextNode.declarationList.declarations[0].initializer.getText(tarotAst)});`)().ko;
 for (const k of Q_KEYS) if (!qTextKo[k]) throw new Error(`Missing quantum text: ${k}`);
@@ -87,8 +90,8 @@ const qText = `var ${Q_TEXT} = ${JSON.stringify({ ko: Object.fromEntries(Q_KEYS.
 const engineAst = parse('saju-engine.js', read('js/saju-engine.js'));
 const SEEDS = ['GENDER', 'USER_NAME', 'BIRTH_YEAR', 'DAY_GAN', 'JOHU_TYPE', 'JOHU_SCORE', 'CURRENT_AGE', 'G_POWER', 'G_JONG', 'G_JOHU', 'G_PILLARS', 'G_NATAL', 'G_BAZI'];
 const SERVER_ROOTS = ['attachKasiDaewunBridge', '_sajuDaewunRowsFromList', '_sajuApplyJongDecision', 'resetEvalDaewunMemo', 'parseKasiGanjiPair', 'GAN', 'JI', 'getTenGod', 'SHENG', ...SEEDS];
-const shellRoots = [...refs(paidAst), ...refs(quantumAst), ...refs(natureAst), ...refs(energyAst), ...refs(villainAst), ...refs(charmAst), ...refs(skillAst), ...tarotPicked.flatMap(t => [...refs(parse('t.js', t))]), ...SERVER_ROOTS];
-const shared = closure(engineAst, engineAst.statements, shellRoots, new Set([...paidNames, ...quantumNames, ...encyclopediaNames, ...natureNames, ...energyNames, ...villainNames, ...charmNames, ...skillNames, ...tarotNames]));
+const shellRoots = [...refs(paidAst), ...refs(quantumAst), ...refs(natureAst), ...refs(compatAst), ...refs(energyAst), ...refs(villainAst), ...refs(charmAst), ...refs(skillAst), ...tarotPicked.flatMap(t => [...refs(parse('t.js', t))]), ...SERVER_ROOTS];
+const shared = closure(engineAst, engineAst.statements, shellRoots, new Set([...paidNames, ...quantumNames, ...encyclopediaNames, ...natureNames, ...compatNames, ...energyNames, ...villainNames, ...charmNames, ...skillNames, ...tarotNames]));
 const sharedNames = new Set(shared.flatMap(t => [...declared(parse('s.js', t))]));
 for (const k of SERVER_ROOTS) if (!sharedNames.has(k)) throw new Error(`Missing shell declaration: ${k}`);
 
@@ -171,6 +174,9 @@ ${encyclopediaSrc.trim()}
   // ── paid sukuyo nature deep dive ──
 ${natureSrc.trim()}
 
+  // ── paid sukuyo compatibility + precision extension ──
+${compatSrc.trim()}
+
   // ── paid energy card ──
 ${energySrc.trim()}
 
@@ -198,6 +204,7 @@ ${healthSrc.trim()}
     renderExtremeTPaidPanels: window.renderExtremeTPaidPanels,
     renderSukuyoEncyclopediaPaid: renderSukuyoEncyclopediaPaid,
     renderSukuyoNatureDeepDivePaid: renderSukuyoNatureDeepDivePaid,
+    renderSukuyoCompatPaid: renderSukuyoCompatPaid,
     renderEnergyCoord: renderEnergyCoord,
     renderVillain: renderVillain,
     renderSpecialCharm: renderSpecialCharm,
@@ -220,7 +227,7 @@ ${SEEDS.map(k => `      if ('${k}' in state) ${k} = state.${k};`).join('\n')}
 `;
 if (process.argv.includes('--write')) {
   fs.writeFileSync(OUT, text);
-  console.log(`Wrote ${OUT}: ${shared.length} shell + ${tarotPicked.length} tarot + ${entPicked.length} entertain + ${kasi.length} KASI + ${personas.length} personas statements, ${paidNames.size + quantumNames.size + encyclopediaNames.size + natureNames.size + energyNames.size + villainNames.size + healthNames.size + charmNames.size + skillNames.size} paid declarations.`);
+  console.log(`Wrote ${OUT}: ${shared.length} shell + ${tarotPicked.length} tarot + ${entPicked.length} entertain + ${kasi.length} KASI + ${personas.length} personas statements, ${paidNames.size + quantumNames.size + encyclopediaNames.size + natureNames.size + compatNames.size + energyNames.size + villainNames.size + healthNames.size + charmNames.size + skillNames.size} paid declarations.`);
 } else {
   if (read(OUT) !== text) throw new Error('Saju section runtime drift: run node scripts/extract-saju-section-runtime.mjs --write');
   console.log(`PASS saju section runtime matches its sources (${shared.length} shell statements).`);

@@ -1,7 +1,7 @@
 /**
  * 사주 종합(section_summary)·대운 풀이(section_daewun)·퀀텀 명리 엔진(rpt_quantumCard)·
  * 극T 관계 회로(sukuyo-extreme-t-relationship)·숙요 인연 도감(sukuyo-relationship-encyclopedia)·숙요 본성 심화 해석(sukuyo-nature-deep-dive)
- * ·에너지 원정 리포트(rpt_energyCoordCard)
+ * ·숙요 기본/정밀 궁합(compat-sukuyo-compatibility·premium-sukuyo-compat-extra)·에너지 원정 리포트(rpt_energyCoordCard)
  * ·요주의 빌런 블랙리스트(rpt_villainCard)·명리 헬스 리포트(rpt_healthReportCard)
  * ·나의 매력 클래스(rpt_specialCharmCard)·인생 스킬 트리(rpt_skillTreeCard) 본문이 브라우저로 되돌아오지 않게 막는 가드.
  *
@@ -65,6 +65,10 @@ test("종합·대운 유료 렌더러와 문장이 브라우저 경로에 없다
     "syBuildSukuyoNatureDeepDiveHtml", "renderSukuyoNatureDeepDivePaid", "syComputeReadingMetrics", "syBuildLoveAttractionType",
     "syBuildCollaborationTipText", "syDedupeReadingTexts", "아침 참고 구간", "<h5>관계가 깊어지는 순간</h5>", "<h5>피하면 좋은 패턴</h5>",
     "새로운 일을 발견하면 쉬는 시간까지 계획으로 채우기 쉽습니다", "무언가를 처음 시작하는 착수기와 환절기에",
+    // 숙요 기본 궁합·정밀 궁합 확장(회당 결제) 생성기·장별 문장표. 입력 폼·잠금 카드·관계 미니맵·AI 상담 카드는 브라우저에 남는다.
+    "function syBuildEnhancedSukuyoResult", "precisionExtensionSections", "SY_SEAT_CHAPTERS", "SY_RELATION_SYNTHESIS", "function syBuildRelationChapters",
+    "function syBuildPastLifeChapter", "syBuildSukuyoExpertFinal", "syBuildSukuyoCompatYearlyForecast", "syBuildRelationshipTiming",
+    "숙요에서는 이 관계를 우열이 아니라 공명으로 읽습니다", "두 사람 모두 같은 자리에 서기 때문에 이 관계에는 밀고 당기는 축이 없습니다",
     // 에너지 원정 리포트(rpt_energyCoordCard) 본문·룰렛 추첨. 무료 스텁은 renderEnergyCoordStub 이다.
     "function renderEnergyCoord(", "setupEnergyRoulette", "energyTravelStory", "pickRouletteDestination", "scoreRouletteDestination",
     "나무가 많은 곳을 걷는 여행은 몸의 호흡을 위로 열고",
@@ -96,6 +100,7 @@ test("종합·대운 유료 렌더러와 문장이 브라우저 경로에 없다
   assert.ok(read("worker/lib/saju-section/paid-extreme-t.src.js").includes("function renderExtremeTPaidPanels(p, natal, johu) {"), "극T 해금 패널 정본이 서버에 없다");
   assert.ok(read("worker/lib/saju-section/paid-encyclopedia.src.js").includes("function renderSukuyoEncyclopediaPaid(input) {"), "숙요 인연 도감 정본이 서버에 없다");
   assert.ok(read("worker/lib/saju-section/paid-nature-deep-dive.src.js").includes("function renderSukuyoNatureDeepDivePaid(lunarObj) {"), "숙요 본성 심화 해석 정본이 서버에 없다");
+  assert.ok(read("worker/lib/saju-section/paid-sukuyo-compat.src.js").includes("function renderSukuyoCompatPaid(input) {"), "숙요 궁합 정본이 서버에 없다");
   assert.ok(read("worker/lib/saju-section/paid-energy.src.js").includes("function renderEnergyCoord(natal){"), "에너지 원정 리포트 정본이 서버에 없다");
   assert.ok(read("worker/lib/saju-section/paid-villain.src.js").includes("function renderVillain(p, power) {"), "빌런 블랙리스트 정본이 서버에 없다");
   assert.ok(read("worker/lib/saju-section/paid-health.src.js").includes("function buildWellnessHealthReport(p, natal, johu, pw, jg) {"), "명리 헬스 리포트 정본이 서버에 없다");
@@ -130,6 +135,10 @@ test("브라우저는 본문을 서버에만 묻는다", () => {
   assert.match(stripComments(read("js/saju-engine-tarot-sukuyo-quantum.js")), /sectionClient\.loadEncyclopedia\(resultHost, input,/, "인연 도감 해금 화면이 서버 로더를 거치지 않는다");
   assert.match(client, /var NATURE_KEY = 'sukuyo-nature-deep-dive';[\s\S]*featureKey: NATURE_KEY/, "본성 심화 해석이 서버 본문을 요청하지 않는다");
   assert.match(stripComments(read("js/saju-engine-tarot-sukuyo-quantum.js")), /client\.loadNatureDeepDive\(host, \{/, "본성 심화 해석 해금 화면이 서버 로더를 거치지 않는다");
+  assert.match(client, /var COMPAT_KEYS = \{ 'compat-sukuyo-compatibility': 'html', 'premium-sukuyo-compat-extra': 'precisionHtml' \};/, "숙요 궁합이 서버 본문을 요청하지 않는다");
+  const sukuyoShell = stripComments(read("js/saju-engine-tarot-sukuyo-quantum.js"));
+  assert.match(sukuyoShell, /sectionClient\.loadSukuyoCompat\(Object\.assign\(\{ featureKey: SY_PAID_FEATURES\.compatibility\.key,/, "기본 궁합 해금 화면이 서버 로더를 거치지 않는다");
+  assert.match(sukuyoShell, /precisionClient\.loadSukuyoCompat\(Object\.assign\(\{\s*featureKey: SY_PAID_FEATURES\.compatibilityPrecision\.key,/, "정밀 궁합 확장이 서버 로더를 거치지 않는다");
   assert.match(read("js/core/saju/reportDashboard.js"), /case 'quantumCard':[\s\S]{0,200}CdSajuSectionClient\.loadQuantum\(\)/, "퀀텀 카드 열기가 서버 로더를 거치지 않는다");
   assert.match(client, /rpt_energyCoordCard: \{[\s\S]{0,120}area: 'energyCoordSection'/, "에너지 원정 리포트가 서버 본문을 요청하지 않는다");
   assert.match(read("js/core/saju/reportDashboard.js"), /case 'energyCoordCard':[\s\S]{0,200}CdSajuSectionClient\.loadCard\('rpt_energyCoordCard'\)/, "에너지 원정 리포트 열기가 서버 로더를 거치지 않는다");

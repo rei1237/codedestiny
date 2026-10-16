@@ -1,6 +1,6 @@
 /* 사주 종합(section_summary)·대운 풀이(section_daewun)·퀀텀 명리 엔진(rpt_quantumCard)·
    극T 관계 회로(sukuyo-extreme-t-relationship)·숙요 인연 도감(sukuyo-relationship-encyclopedia)·
-   숙요 본성 심화 해석(sukuyo-nature-deep-dive)·
+   숙요 본성 심화 해석(sukuyo-nature-deep-dive)·숙요 기본/정밀 궁합(compat-sukuyo-compatibility·premium-sukuyo-compat-extra, 회당 결제)·
    리포트 대시보드 유료 카드(CARDS) 본문 배달.
    본문은 서버(/api/saju/section)가 계정·프로필 해금을 확인한 뒤에만 만든다.
    이 파일은 요청과 표시만 한다 — 유료 문장·생성기·본문 캐시가 없다. */
@@ -426,6 +426,52 @@
     return false;
   }
 
+  // 숙요 기본 궁합·정밀 궁합 확장(회당 결제). 서버가 이번 결제(게이트 requestId)를 확인하고 두 사람의 수(宿)를
+  // 출생 정보로 다시 계산해 본문을 만든다 — 결제 1건 = 상대 조합 1건(서버가 조합까지 묶는다).
+  // opts: { featureKey, access(게이트 기록: profileId·requestId·accessMethod), partner{date,calType,hour,minute,gender},
+  //         birth·place·gender(사주 계산 스냅샷이 없을 때 쓸 내 출생 순간) }. 받은 payload 로 resolve, 실패 문구(error.status)로 reject.
+  var COMPAT_KEYS = { 'compat-sukuyo-compatibility': 'html', 'premium-sukuyo-compat-extra': 'precisionHtml' };
+  function loadSukuyoCompat(options) {
+    var opts = options || {};
+    var featureKey = String(opts.featureKey || '');
+    var field = COMPAT_KEYS[featureKey];
+    if (!field) return Promise.reject(new Error('지원하지 않는 항목입니다.'));
+    var input = root.__cdSajuSectionInput;
+    var access = opts.access && typeof opts.access === 'object' ? opts.access : null;
+    var body = { featureKey: featureKey, lang: lang(), partner: opts.partner || {} };
+    if (input && input.birth) { body.birth = input.birth; body.place = input.place; body.gender = input.gender; }
+    else { if (opts.birth) body.birth = opts.birth; if (opts.place) body.place = opts.place; body.gender = opts.gender; }
+    // 결제한 그 카드·requestId 로 묻는다. 게이트 기록이 없으면(관리자 우회 등) 현재 카드로 묻고 서버가 예전 고정값으로 찾는다.
+    var pid = access && access.requestId ? String(access.profileId || '') : profileId();
+    if (pid) body.profileId = pid;
+    if (access && access.requestId) body.requestId = String(access.requestId);
+    if (access && access.accessMethod) body.accessMethod = String(access.accessMethod);
+    return new Promise(function (resolve, reject) {
+      // status: 0 = 네트워크·시간 초과. 화면은 5xx·0 이면 같은 결제로 다시 묻게 한다(재결제 없음).
+      function failWith(text, status) { var error = new Error(text); error.status = status || 0; reject(error); }
+      function attempt(tries) {
+        request(body).then(function (result) {
+          var data = result.payload || {};
+          if (result.ok && data.ok === true && data.unlocked === true && data.featureKey === featureKey && typeof data[field] === 'string' && data[field].trim()) {
+            notify(featureKey);
+            resolve(data);
+            return;
+          }
+          var status = result && result.status;
+          var retryable = (status === 402 && recentPassGrant(featureKey)) || !status || status >= 500;
+          if (retryable && tries < PASS_RECORD_RETRY_MS.length) { setTimeout(function () { attempt(tries + 1); }, PASS_RECORD_RETRY_MS[tries]); return; }
+          if (status === 409 && data.message) { failWith(String(data.message), status); return; }
+          if (status === 402) { failWith('이번 궁합 결제 기록을 찾지 못했어요. 결제가 끝났다면 잠시 후 다시 시도해 주세요.', status); return; }
+          failWith(failureText(result), status);
+        }, function () {
+          if (tries < PASS_RECORD_RETRY_MS.length) { setTimeout(function () { attempt(tries + 1); }, PASS_RECORD_RETRY_MS[tries]); return; }
+          failWith(failureText(null), 0);
+        });
+      }
+      attempt(0);
+    });
+  }
+
   // ── 리포트 대시보드 유료 카드 ──
   // 카드를 열 때 받는다. 받기 전에는 무료 스텁(data-cd-summary-fallback 표시)이 그대로 남는다.
   // area·card: 본문 칸과 카드 id. loading: 받는 동안의 안내. extra·delivered: 카드별 요청 보탬과 배달 뒤 처리.
@@ -770,5 +816,5 @@
     });
   });
 
-  root.CdSajuSectionClient = { loadSummary: loadSummary, showDaewun: showDaewun, refreshDaewun: refreshDaewun, loadQuantum: loadQuantum, loadExtremeT: loadExtremeT, loadEncyclopedia: loadEncyclopedia, loadNatureDeepDive: loadNatureDeepDive, loadCard: loadCard };
+  root.CdSajuSectionClient = { loadSummary: loadSummary, showDaewun: showDaewun, refreshDaewun: refreshDaewun, loadQuantum: loadQuantum, loadExtremeT: loadExtremeT, loadEncyclopedia: loadEncyclopedia, loadNatureDeepDive: loadNatureDeepDive, loadSukuyoCompat: loadSukuyoCompat, loadCard: loadCard };
 })(window);

@@ -40,6 +40,24 @@ jest.unstable_mockModule("../../worker/lib/swiss-ephemeris.js", () => ({
   getSwissMoonLongitudes: moonLongitudes, getSwissWesternChart: jest.fn(), getSwissVedicPlanets: jest.fn(), getSwissTropicalLongitudes: jest.fn(),
   aspectBetween: jest.fn(), locateHouseByCusps: jest.fn(), julianDayFromUtcMillis: jest.fn(), utcMillisFromJulianDay: jest.fn(), __swissEphemerisTestUtils: {},
 }));
+// 숙요 궁합(회당 결제): 정본 증빙 검사와 증빙 claim. claim 은 증빙 하나를 (userId, requestId) 하나에만 묶는 저장소를 흉내 낸다.
+const verifyPerUsePayment = jest.fn();
+const claimed = new Map();
+const claimRequestBillingEvidence = jest.fn(async (_env, { userId, requestId, evidenceIds }) => {
+  for (const id of evidenceIds) {
+    const owner = claimed.get(id);
+    if (owner && (owner.userId !== userId || owner.requestId !== requestId)) {
+      return { ok: false, status: 409, code: "EVIDENCE_ALREADY_USED", message: "이미 다른 상담에 사용된 결제입니다. 새 상담은 새로 결제해 주세요." };
+    }
+  }
+  for (const id of evidenceIds) claimed.set(id, { userId, requestId });
+  return { ok: true, claimed: evidenceIds.length };
+});
+jest.unstable_mockModule("../../worker/lib/nakshatra-paid-access.js", () => ({ verifyPerUsePayment, logPerUsePaymentProof: jest.fn() }));
+jest.unstable_mockModule("../../worker/lib/billing-evidence-claim.js", () => ({
+  claimRequestBillingEvidence,
+  evidenceClaimErrorBody: (result) => ({ ok: false, reason: result.code, code: result.code, message: result.message, error: { code: result.code, message: result.message } }),
+}));
 
 let handleSajuSection, buildSajuSectionHtml, resolvePaidContentUnlockTarget, getBillingFeaturePricing;
 beforeAll(async () => {
@@ -106,6 +124,8 @@ beforeEach(() => {
   exists.mockImplementation(async (query) => users.find((user) => matches(user, query)) || null);
   historyExists.mockImplementation(async (query) => histories.find((row) => matches(row, query)) || null);
   findOne.mockImplementation((query) => ({ lean: async () => grants.find((row) => matches(row, query)) || null }));
+  claimed.clear();
+  verifyPerUsePayment.mockReset().mockResolvedValue({ proven: false, source: "", reason: "NO_EXISTING_CONSUMPTION" });
 });
 
 test("anonymous and forged unlock hints cannot read a section", async () => {
@@ -504,6 +524,127 @@ describe("sukuyo-nature-deep-dive", () => {
     const result = buildSajuSectionHtml({ featureKey: KEY, lang: c.lang, sukuyo: { moonEclipticLongitude: c.moonEclipticLongitude }, now: new Date(PARITY.now) });
     expect(result.mansionIdx).toBe(c.mansionIdx);
     expect(sha256(result.html)).toBe(PARITY.nature[id]);
+  });
+});
+
+describe("sukuyo compatibility (per use)", () => {
+  const BASE = "compat-sukuyo-compatibility";
+  const PRECISION = "premium-sukuyo-compat-extra";
+  const rid = (key, tail = "lz9k2abcd", profileId = "p1") => `sukuyo-paid:${key}|${profileId}|${tail}`;
+  // 상대 출생일 16일 → 190°(이 파일의 천문 목). 내 카드 p1 은 15일 → 150°.
+  const PARTNER = { date: "1992-03-16", calType: "solar", hour: 9, minute: 0, gender: "F" };
+  const compat = (featureKey = BASE, extra = {}) => ({ featureKey, profileId: "p1", requestId: rid(featureKey), partner: PARTNER, lang: "ko", ...extra });
+  const expected = (mine, partner, partnerGender = "F") => buildSajuSectionHtml({
+    featureKey: BASE, lang: "ko", gender: "M", partnerGender,
+    sukuyo: { mine: { moonEclipticLongitude: mine }, partner: { moonEclipticLongitude: partner } },
+  });
+  const paidBy = (transactionId) => verifyPerUsePayment.mockResolvedValue({ proven: true, source: "coin", reason: "", transactionId });
+
+  test("without this request's payment there is no body, only registry pricing", async () => {
+    const result = await request(compat(BASE, { unlocked: true, passActive: true }));
+    const { pricing } = getBillingFeaturePricing({ featureKey: BASE });
+    expect(result).toEqual({ status: 402, body: expect.objectContaining({ reason: "PAYMENT_REQUIRED", featureKey: BASE, amountKRW: pricing.amountKRW, coinPrice: pricing.coinPrice }) });
+    expect(result.body.html).toBeUndefined();
+    expect(verifyPerUsePayment).toHaveBeenCalledTimes(1);
+    expect(claimRequestBillingEvidence).not.toHaveBeenCalled();
+  });
+
+  test("a proven payment renders both mansions the server computes and claims the evidence for this pair", async () => {
+    paidBy("ded-1");
+    const result = await request(compat(BASE, { birth: { date: "2001-01-16", hour: 3, minute: 0 }, myIdx: 21, partnerIdx: 3, sukuyo: { moonEclipticLongitude: 70 } }));
+    expect(result.status).toBe(200);
+    const report = expected(150, 190);
+    expect(result.body).toEqual({
+      ok: true, unlocked: true, featureKey: BASE, html: report.html, lastCompat: report.lastCompat,
+      glowColor: report.glowColor, temperature: report.temperature, relationLabel: report.relationLabel,
+    });
+    expect(result.body.precisionHtml).toBeUndefined();
+    expect(verifyPerUsePayment).toHaveBeenCalledWith(expect.anything(), { userId: TEST_USER_ID, featureKey: BASE, coinPrice: 50, requestId: rid(BASE), profileId: "p1", requireExisting: true });
+    expect(claimRequestBillingEvidence).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      userId: TEST_USER_ID, evidenceIds: ["ded-1"], featureKey: BASE, requestId: expect.stringMatching(new RegExp(`^${rid(BASE).replace(/[|]/g, "\\|")}\\|[0-9a-f]{32}$`)),
+    }));
+  });
+
+  test("the precision extension returns only its own body under its own payment", async () => {
+    paidBy("ded-2");
+    const result = await request(compat(PRECISION));
+    expect(result.status).toBe(200);
+    expect(result.body).toEqual({ ok: true, unlocked: true, featureKey: PRECISION, precisionHtml: expected(150, 190).precisionHtml });
+    expect(verifyPerUsePayment).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ featureKey: PRECISION, coinPrice: 50, requestId: rid(PRECISION) }));
+  });
+
+  test("one payment opens one pair: a retry of the same pair is served, another partner is 409", async () => {
+    paidBy("ded-3");
+    expect((await request(compat())).status).toBe(200);
+    expect((await request(compat())).status).toBe(200);
+    const other = await request(compat(BASE, { partner: { ...PARTNER, date: "1992-03-15" } }));
+    expect(other.status).toBe(409);
+    expect(other.body).toMatchObject({ code: "EVIDENCE_ALREADY_USED" });
+    expect(other.body.html).toBeUndefined();
+  });
+
+  test("a request id of another card or product is rejected before any payment lookup", async () => {
+    for (const requestId of [rid(BASE, "lz9k2abcd", "p3"), rid(PRECISION), `${rid(BASE)}|x`, "sukuyo-paid:compat-sukuyo-compatibility|p1|A!"]) {
+      const result = await request(compat(BASE, { requestId }));
+      expect(result.status).toBe(400);
+      expect(result.body).toMatchObject({ code: "REQUEST_ID_INVALID" });
+    }
+    expect(verifyPerUsePayment).not.toHaveBeenCalled();
+  });
+
+  test("a pass opened in the shell is settled on this request id only when the shell says it used a pass", async () => {
+    expect((await request(compat())).status).toBe(402);
+    verifyPerUsePayment.mockReset()
+      .mockResolvedValueOnce({ proven: false, source: "", reason: "NO_EXISTING_CONSUMPTION" })
+      .mockResolvedValueOnce({ proven: true, source: "pass", reason: "" });
+    const result = await request(compat(BASE, { accessMethod: "pass" }));
+    expect(result.status).toBe(200);
+    expect(verifyPerUsePayment).toHaveBeenNthCalledWith(2, expect.anything(), { userId: TEST_USER_ID, featureKey: BASE, coinPrice: 50, requestId: rid(BASE), profileId: "p1" });
+    expect(claimRequestBillingEvidence).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ evidenceIds: [`pass-use:${TEST_USER_ID}:${BASE}:${rid(BASE)}`] }));
+  });
+
+  test("an admin is served without a claim; a missing saved card falls back to the body birth", async () => {
+    verifyPerUsePayment.mockResolvedValue({ proven: true, source: "admin", reason: "" });
+    const result = await request(compat(BASE, { profileId: "", requestId: "", birth: { date: "1990-05-16", calType: "solar", hour: 9, minute: 0 }, gender: "M" }));
+    expect(result.status).toBe(200);
+    expect(result.body.html).toBe(expected(190, 190).html);
+    expect(verifyPerUsePayment).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ requestId: `sukuyo-paid:${BASE}|`, profileId: "" }));
+    expect(claimRequestBillingEvidence).not.toHaveBeenCalled();
+  });
+
+  test("payment DB doubt, claim store failure or astronomy failure stays retryable instead of prompting purchase", async () => {
+    verifyPerUsePayment.mockResolvedValue({ proven: null, source: "", reason: "DB_DEGRADED" });
+    const doubt = await request(compat());
+    expect(doubt.status).toBe(503);
+    expect(doubt.body).toMatchObject({ reason: "TEMPORARY_UNAVAILABLE", retryable: true });
+    verifyPerUsePayment.mockRejectedValueOnce(new Error("private database connection information"));
+    expect((await request(compat())).status).toBe(503);
+    paidBy("ded-4");
+    claimRequestBillingEvidence.mockResolvedValueOnce({ ok: false, status: 503, code: "PAYMENT_VERIFY_UNAVAILABLE", message: "결제 확인이 잠시 지연되고 있어요." });
+    const store = await request(compat());
+    expect(store.status).toBe(503);
+    expect(store.body.html).toBeUndefined();
+    verifyPerUsePayment.mockClear();
+    moonLongitudes.mockRejectedValueOnce(new Error("ephemeris unavailable"));
+    const astro = await request(compat());
+    expect(astro.status).toBe(503);
+    // 그리기 전에 실패하면 결제를 확인(이용권 차감)하지 않는다.
+    expect(verifyPerUsePayment).not.toHaveBeenCalled();
+  });
+
+  // PARITY.compat: 1030ca817 의 클라이언트 window._triggerSynergyCheckCore 렌더 부분(기본 보고서 html·정밀 확장
+  // precisionExtensionSections·window._syLastCompat)을 같은 두 달 황경·같은 now(PARITY.now, KST 벽시계)로 그린 결과.
+  // 기본 보고서는 정밀 확장 잠금 카드·AI 상담 카드를 뺀 것이고 관계 미니맵은 자리표시다(둘 다 화면이 붙인다).
+  test.each(PARITY.compatCases.map((c) => [c.id, c]))("server compatibility equals the HEAD client output: %s", (id, c) => {
+    const result = buildSajuSectionHtml({
+      featureKey: BASE, lang: c.lang, gender: c.gender, partnerGender: c.partnerGender, now: new Date(PARITY.now),
+      sukuyo: { mine: { moonEclipticLongitude: c.myMoonEclipticLongitude }, partner: { moonEclipticLongitude: c.partnerMoonEclipticLongitude } },
+    });
+    expect([result.myMansionIdx, result.partnerMansionIdx]).toEqual([c.myMansionIdx, c.partnerMansionIdx]);
+    expect({
+      html: sha256(result.html), precisionHtml: sha256(result.precisionHtml), lastCompat: sha256(JSON.stringify(result.lastCompat)),
+      temperature: result.temperature, relationLabel: result.relationLabel, glowColor: result.glowColor,
+    }).toEqual(PARITY.compat[id]);
   });
 });
 

@@ -1,8 +1,12 @@
+import { createHash } from "node:crypto";
 import { getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
 import { isDbUnavailableError, HttpError, json, methodNotAllowed, readJson } from "../lib/http.js";
 import { hasLegacyBundlePurchase, readAccountLegacyUnlock, readProfileBirthUnlock } from "../lib/paid-content-read-access.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
-import { SAJU_SECTION_FEATURE_KEYS, SajuSectionInputError, buildSajuSectionHtml, sukuyoNatureMoment } from "../lib/saju-section/report.js";
+import { FEATURE_KEY_PRICE_TABLE } from "../lib/paid-feature-registry.js";
+import { logPerUsePaymentProof, verifyPerUsePayment } from "../lib/nakshatra-paid-access.js";
+import { claimRequestBillingEvidence, evidenceClaimErrorBody } from "../lib/billing-evidence-claim.js";
+import { SAJU_SECTION_FEATURE_KEYS, SUKUYO_COMPAT_FEATURE_KEYS, SajuSectionInputError, buildSajuSectionHtml, sukuyoNatureMoment } from "../lib/saju-section/report.js";
 import { calculateSukuyoForMoment } from "../lib/sukuyo-astronomy.js";
 
 const degraded = () => json({
@@ -16,6 +20,10 @@ const degraded = () => json({
 const BIRTH_ALIAS_KEYS = Object.freeze({ rpt_energyCoordCard: ["travelDestiny"], rpt_healthReportCard: ["healthReport"] });
 const BUNDLE_ALIAS_KEYS = Object.freeze({ rpt_energyCoordCard: ["allPaidSaju"], rpt_healthReportCard: ["allPaidSaju"], rpt_skillTreeCard: ["allPaidSaju", "rpgCharacter"] });
 
+const astronomyFailed = () => json({
+  ok: false, reason: "TEMPORARY_UNAVAILABLE", retryable: true, message: "풀이를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
+}, { status: 503 });
+
 function bodyBirth(body) {
   const birth = body?.birth && typeof body.birth === "object" ? body.birth : {};
   return {
@@ -24,10 +32,116 @@ function bodyBirth(body) {
   };
 }
 
+// ── 숙요 기본 궁합(compat-sukuyo-compatibility)·정밀 궁합 확장(premium-sukuyo-compat-extra) — 회당 결제 ──
+// 출생 해금이 아니라 결제 1건마다 여는 본문이다. 게이트가 결제에 쓴 requestId(sukuyo-paid:<기능>|<카드>|<꼬리>)로
+// 그 결제를 정본 verifyPerUsePayment 로 찾고, 찾은 증빙을 (requestId, 두 사람의 수 조합)에 claim 한다 —
+// 같은 결제로 상대만 바꿔 다른 궁합을 여는 재생은 409 다(숙요 전생 리딩의 claimBindingKey 와 같은 생각).
+// 같은 결제·같은 조합을 다시 열면(새로고침·재시도) 같은 claim 의 재생이라 다시 준다.
+// 🔴 DB 판단 보류(null)·claim 저장소 장애는 503 이다 — 결제한 사람에게 402 를 주지 않는다.
+const COMPAT_TAIL_PATTERN = /^[a-z0-9]{6,40}$/;
+
+// sukuyo-archive.js resolvePerUseRequestId 와 같은 규칙 — 비었으면 예전 고정값, 이 기능·이 카드 것이 아니면 null.
+function compatRequestId(featureKey, profileId, raw) {
+  const legacy = `sukuyo-paid:${featureKey}|${profileId}`;
+  const requestId = typeof raw === "string" ? raw.trim() : "";
+  if (!requestId) return legacy;
+  const tail = requestId.startsWith(`${legacy}|`) ? requestId.slice(legacy.length + 1) : "";
+  return COMPAT_TAIL_PATTERN.test(tail) ? requestId : null;
+}
+
+function compatPartnerBirth(body) {
+  const partner = body?.partner && typeof body.partner === "object" ? body.partner : {};
+  return {
+    birth: { calendarDate: String(partner.date || ""), calType: partner.calType, timeKnown: true, hour: partner.hour, minute: partner.minute },
+    gender: partner.gender === "M" || partner.gender === "F" ? partner.gender : "OTHER",
+  };
+}
+
+async function handleSukuyoCompat(env, auth, body, featureKey) {
+  const userId = auth.userId;
+  const profileId = String(body?.profileId || "").trim().slice(0, 80);
+  const requestId = compatRequestId(featureKey, profileId, body?.requestId);
+  if (!requestId) return json({
+    ok: false, code: "REQUEST_ID_INVALID", message: "결제 요청 번호가 이 카드의 결제가 아닙니다.",
+  }, { status: 400 });
+
+  // 내 출생 정보: 저장 카드가 있으면 그 카드, 없으면(로컬 프로필·비저장) 요청 값. 회당 결제는 카드 해금이 아니라
+  // 이번 결제·이번 조합에 묶이므로 카드가 없어도 막지 않는다.
+  let birth = bodyBirth(body);
+  let gender = body?.gender;
+  if (profileId) {
+    let card;
+    try {
+      card = await readProfileBirthUnlock(env, { userId, profileId, featureKey });
+    } catch {
+      return degraded();
+    }
+    if (card?.ok && card.birth) {
+      birth = { calendarDate: card.birth.calendarDate, calType: card.birth.calType, timeKnown: card.birth.timeKnown, hour: card.birth.hour, minute: card.birth.minute };
+      gender = card.card?.gender;
+    }
+  }
+  const userGender = gender === "M" || gender === "F" ? gender : "OTHER";
+  const partner = compatPartnerBirth(body);
+  // 상대 출생지는 화면과 같이 내 출생지를 쓴다(입력 칸이 없다).
+  const mineMoment = sukuyoNatureMoment(birth, body?.place);
+  const partnerMoment = sukuyoNatureMoment(partner.birth, body?.place);
+  let sukuyo;
+  try {
+    const [mine, other] = await Promise.all([calculateSukuyoForMoment(env, mineMoment), calculateSukuyoForMoment(env, partnerMoment)]);
+    sukuyo = { mine, partner: other };
+  } catch (error) {
+    console.error("[saju-section] sukuyo compat astronomy failed", error?.message || error);
+    return astronomyFailed();
+  }
+  // 결제를 쓰기 전에 먼저 그린다 — 순수 계산이라, 여기서 실패하면 이용권 차감·claim 없이 503 이다.
+  const lang = typeof body?.lang === "string" ? body.lang.slice(0, 8) : "ko";
+  const report = buildSajuSectionHtml({ featureKey, birth, gender: userGender, partnerGender: partner.gender, lang, place: body?.place, sukuyo });
+
+  const accessMethod = String(body?.accessMethod || "").trim().toLowerCase();
+  const proofInput = { userId, featureKey, coinPrice: Number(FEATURE_KEY_PRICE_TABLE[featureKey]?.cost) || 0, requestId, profileId };
+  let proof;
+  try {
+    proof = await verifyPerUsePayment(env, { ...proofInput, requireExisting: true });
+    // 이용권으로 연 결제는 화면이 먼저 열리고 기록이 뒤에 온다 — 그때만 이 requestId 로 이용권 사용을 직접 확정한다.
+    if (proof?.proven === false && accessMethod === "pass") proof = await verifyPerUsePayment(env, proofInput);
+  } catch {
+    return degraded();
+  }
+  logPerUsePaymentProof(featureKey, proof);
+  if (proof?.proven !== true && proof?.proven !== false) return degraded();
+  if (proof.proven !== true) {
+    const { pricing } = getBillingFeaturePricing({ featureKey });
+    return json({
+      ok: false, reason: "PAYMENT_REQUIRED", featureKey,
+      message: "이번 궁합 결제 기록을 찾지 못했어요. 결제한 뒤 다시 열어 주세요.",
+      amountKRW: pricing.amountKRW, coinPrice: pricing.coinPrice,
+    }, { status: 402 });
+  }
+  if (proof.source !== "admin") {
+    const evidenceId = proof.transactionId || `${proof.source || "per-use"}-use:${userId}:${featureKey}:${requestId}`;
+    const pair = createHash("sha256")
+      .update(JSON.stringify({ my: report.myMansionIdx, partner: report.partnerMansionIdx, partnerGender: partner.gender, userGender }))
+      .digest("hex").slice(0, 32);
+    const claim = await claimRequestBillingEvidence(env, {
+      userId, requestId: `${requestId}|${pair}`, evidenceIds: [evidenceId], featureKey, kind: "sukuyo-compat",
+    });
+    if (!claim.ok) return json(evidenceClaimErrorBody(claim), { status: claim.status });
+  }
+  if (featureKey === "premium-sukuyo-compat-extra") {
+    return json({ ok: true, unlocked: true, featureKey, precisionHtml: report.precisionHtml });
+  }
+  return json({
+    ok: true, unlocked: true, featureKey, html: report.html, lastCompat: report.lastCompat,
+    glowColor: report.glowColor, temperature: report.temperature, relationLabel: report.relationLabel,
+  });
+}
+
 // 사주 종합(section_summary)·대운 풀이(section_daewun)·퀀텀 명리 엔진(rpt_quantumCard)·극T 관계 회로(sukuyo-extreme-t-relationship)·
 // 숙요 인연 도감(sukuyo-relationship-encyclopedia)·숙요 본성 심화 해석(sukuyo-nature-deep-dive)·에너지 원정 리포트(rpt_energyCoordCard)
 // ·요주의 빌런 블랙리스트(rpt_villainCard)·명리 헬스 리포트(rpt_healthReportCard)·나의 매력 클래스(rpt_specialCharmCard)
-// ·인생 스킬 트리(rpt_skillTreeCard) 본문 읽기. 결제·해금 쓰기는 하지 않는다.
+// ·인생 스킬 트리(rpt_skillTreeCard)·숙요 기본/정밀 궁합(회당 결제, 위 handleSukuyoCompat) 본문 읽기. 결제·해금 쓰기는 하지 않는다
+// (궁합의 이용권 결제 확정·증빙 claim 은 정본 verifyPerUsePayment·claimRequestBillingEvidence 가 한다).
 // 저장 프로필이 있으면 그 카드의 출생 정보로만 계산하고, 없으면 계정 단위 옛 해금(USER 행)만 인정한다.
 export async function handleSajuSection(request, env = {}) {
   if (request.method !== "POST") return methodNotAllowed();
@@ -48,6 +162,7 @@ export async function handleSajuSection(request, env = {}) {
     if (!SAJU_SECTION_FEATURE_KEYS.includes(featureKey)) return json({
       ok: false, code: "SAJU_INVALID_FEATURE", message: "지원하지 않는 항목입니다.",
     }, { status: 400 });
+    if (SUKUYO_COMPAT_FEATURE_KEYS.includes(featureKey)) return await handleSukuyoCompat(env, auth, body, featureKey);
 
     const profileId = String(body?.profileId || "").trim();
     const readBirth = (key) => (profileId
@@ -101,7 +216,7 @@ export async function handleSajuSection(request, env = {}) {
         sukuyo = await calculateSukuyoForMoment(env, moment);
       } catch (error) {
         console.error("[saju-section] sukuyo astronomy failed", error?.message || error);
-        return json({ ok: false, reason: "TEMPORARY_UNAVAILABLE", retryable: true, message: "풀이를 불러오지 못했어요. 잠시 후 다시 시도해 주세요." }, { status: 503 });
+        return astronomyFailed();
       }
     }
     const result = buildSajuSectionHtml({

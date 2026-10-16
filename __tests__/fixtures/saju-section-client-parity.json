@@ -1608,6 +1608,172 @@
   "idx5-en": "dc08e76df92e2e26699b6b25804ec078c83b2d8d717a42c097b50dbfb50235a2",
   "idx18-ja": "7112adf89a33ca2e9c1490c530ef2d1108fc00355662f0117cc31307289a5839"
  },
+ "compatCases": [
+  {
+   "id": "m0-p0-F-M-ko",
+   "lang": "ko",
+   "myMoonEclipticLongitude": 150,
+   "partnerMoonEclipticLongitude": 150,
+   "myMansionIdx": 0,
+   "partnerMansionIdx": 0,
+   "partnerGender": "F",
+   "gender": "M"
+  },
+  {
+   "id": "m0-p1-F-M-ko",
+   "lang": "ko",
+   "myMoonEclipticLongitude": 150,
+   "partnerMoonEclipticLongitude": 163,
+   "myMansionIdx": 0,
+   "partnerMansionIdx": 1,
+   "partnerGender": "F",
+   "gender": "M"
+  },
+  {
+   "id": "m3-p12-M-F-ko",
+   "lang": "ko",
+   "myMoonEclipticLongitude": 190,
+   "partnerMoonEclipticLongitude": 310,
+   "myMansionIdx": 3,
+   "partnerMansionIdx": 12,
+   "partnerGender": "M",
+   "gender": "F"
+  },
+  {
+   "id": "m10-p19-OTHER-M-ko",
+   "lang": "ko",
+   "myMoonEclipticLongitude": 283,
+   "partnerMoonEclipticLongitude": 43,
+   "myMansionIdx": 10,
+   "partnerMansionIdx": 19,
+   "partnerGender": "OTHER",
+   "gender": "M"
+  },
+  {
+   "id": "m15-p6-F-F-ko",
+   "lang": "ko",
+   "myMoonEclipticLongitude": 350,
+   "partnerMoonEclipticLongitude": 230,
+   "myMansionIdx": 15,
+   "partnerMansionIdx": 6,
+   "partnerGender": "F",
+   "gender": "F"
+  },
+  {
+   "id": "m21-p4-M-M-ko",
+   "lang": "ko",
+   "myMoonEclipticLongitude": 70,
+   "partnerMoonEclipticLongitude": 203,
+   "myMansionIdx": 21,
+   "partnerMansionIdx": 4,
+   "partnerGender": "M",
+   "gender": "M"
+  },
+  {
+   "id": "m26-p13-F-OTHER-ko",
+   "lang": "ko",
+   "myMoonEclipticLongitude": 136.5,
+   "partnerMoonEclipticLongitude": 323,
+   "myMansionIdx": 26,
+   "partnerMansionIdx": 13,
+   "partnerGender": "F",
+   "gender": "OTHER"
+  },
+  {
+   "id": "m5-p17-M-F-en",
+   "lang": "en",
+   "myMoonEclipticLongitude": 216.5,
+   "partnerMoonEclipticLongitude": 16.5,
+   "myMansionIdx": 5,
+   "partnerMansionIdx": 17,
+   "partnerGender": "M",
+   "gender": "F"
+  },
+  {
+   "id": "m18-p9-F-M-ja",
+   "lang": "ja",
+   "myMoonEclipticLongitude": 30,
+   "partnerMoonEclipticLongitude": 270,
+   "myMansionIdx": 18,
+   "partnerMansionIdx": 9,
+   "partnerGender": "F",
+   "gender": "M"
+  }
+ ],
+ "compat": {
+  "m0-p0-F-M-ko": {
+   "html": "434a99ab51decdb17c79759f31c1aa8111daaf38ef989249ec4727dd74f6b496",
+   "precisionHtml": "69baa031fe19d73d5e517e34122c83d011ea920fbd5c3e1310d05170f9f23406",
+   "lastCompat": "7b1896e5522368d2ff22043c01064fde6681ced62e57ab53e54d731335457ef6",
+   "temperature": 78,
+   "relationLabel": "命",
+   "glowColor": "#6c5ce7"
+  },
+  "m0-p1-F-M-ko": {
+   "html": "c741a909b20c6eb8bfbb5d098d9ba208a410a819f24e05316e19fae0752aba53",
+   "precisionHtml": "581c6fac2bdf98a0251c277ceed673e43488dd4a7e40edf4412c9f18e67e5ddd",
+   "lastCompat": "8d7af5f4b373c200f6de348ab83b65e1cbf129f7fa2b07237d97d5986555da7c",
+   "temperature": 88,
+   "relationLabel": "榮親",
+   "glowColor": "#00b894"
+  },
+  "m3-p12-M-F-ko": {
+   "html": "e0a41bf33c21fcab49935b688adcbd13b14160faedcdf78e11ea825fbdd4ed32",
+   "precisionHtml": "70fbcd55da5a6ac828b2c39ec146ef4b2b3959794acb22a80f5fefa9fda314dc",
+   "lastCompat": "f726eea3e6f382893f3c192e63594aab2b35820ef60a6f3b65c847184ffde710",
+   "temperature": 70,
+   "relationLabel": "業胎",
+   "glowColor": "#e17055"
+  },
+  "m10-p19-OTHER-M-ko": {
+   "html": "a652064876368e6d5e2d89295a8d66cd22740450b8a45112bc83f20aceeaa61c",
+   "precisionHtml": "32063f7c9a24a2118cf2589b19e9a463c9acd58489cffba81a26f91ea6d8edc0",
+   "lastCompat": "71872418ab729769333ae7df1c3e1b8ef3d8785745fd535c98c07a42d2ce871c",
+   "temperature": 70,
+   "relationLabel": "業胎",
+   "glowColor": "#e17055"
+  },
+  "m15-p6-F-F-ko": {
+   "html": "60b8b949eaa4a09d94d8632575ff0197cb2fec988f8d1c934385f0675e68a7ff",
+   "precisionHtml": "b27110ac85732ec7ed4666e111996691c4205c92b5fb3eb13f6398f0bb0d89d6",
+   "lastCompat": "66c7acd20e971213dda8d9c1f0841743a8bd829035e6245fe4ed76d07df5397f",
+   "temperature": 70,
+   "relationLabel": "業胎",
+   "glowColor": "#e17055"
+  },
+  "m21-p4-M-M-ko": {
+   "html": "cba4016b2053657c646b159ee30a3fc5c1ed394693759151c44d31cb39988164",
+   "precisionHtml": "4268a1d154ba3a16ea7ba82c12a35bd6ec0ced5c46a0e9dee79b1eab2ba026c6",
+   "lastCompat": "39dc21e81d58bcc0ba55be488d6a69f3bd287c35eede16f2c9e90ec0b7369099",
+   "temperature": 80,
+   "relationLabel": "榮親",
+   "glowColor": "#00b894"
+  },
+  "m26-p13-F-OTHER-ko": {
+   "html": "94e1df1ce11809c12907aa9e885a29ae0ace438f76420966719c5f30e8d7b203",
+   "precisionHtml": "607a85cdd76e03bfa706687c19628beb79c050d83f5cca63dd6f8d6f8049aa5b",
+   "lastCompat": "c12c709f6f21d2f24dda79b7a28874ac50f839ec0ee06ca68c88f29059ce69fe",
+   "temperature": 58,
+   "relationLabel": "成危",
+   "glowColor": "#0984e3"
+  },
+  "m5-p17-M-F-en": {
+   "html": "52c6929576792bb9974543bb493928b1f66146641658a6502162a87251feb927",
+   "precisionHtml": "c36b2d5b7793c8efd4b3679fe389d8f838a9ce416a261c63b28abe63195ae4e6",
+   "lastCompat": "3a50dad78821dbcc5eef8c290b492a20726ed25569a76edd839350c61f8cd4f9",
+   "temperature": 77,
+   "relationLabel": "安壞",
+   "glowColor": "#d63031"
+  },
+  "m18-p9-F-M-ja": {
+   "html": "2db471a1ef7d92ef9ab14d3de1097cc3d28dddd5c693e649932d6cfec751593a",
+   "precisionHtml": "ab89029d3a5626561f98e1b7ce58c20a04b36f40cd019545694b9735fea35a3e",
+   "lastCompat": "436a33768acb24818c09587828cd52270c41d93edd164ca20d6f54745c499e6f",
+   "temperature": 70,
+   "relationLabel": "業胎",
+   "glowColor": "#e17055"
+  }
+ },
  "energy": {
   "solar-m-1990": "980f75d1b5943f533ad778a4df5be4918d18bae6edd1c675777185d40b80e9fc",
   "solar-f-1985": "599ae4c6f81a739ab70a5e08780630ab9c6568c7147ee0e0ecc0947c1c272567",

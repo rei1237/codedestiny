@@ -27,6 +27,7 @@ import { makeFakePaymentDb, matches } from "../fixtures/fake-payment-db.mjs";
 import { ORACLE_CONSULTATION_TIERS } from "../../lib/tarot/oracle-consultation-pricing.mjs";
 
 import { getPaidFeaturePaymentPolicy } from "../../worker/lib/paid-feature-registry.js";
+import { SUKUYO_COMPAT_FEATURE_KEYS } from "../../worker/lib/saju-section/report.js";
 
 const USER_ID = "507f1f77bcf86cd799439011";
 const FUSION_FEATURE_KEY = "fusion-fortune-consultation";
@@ -294,6 +295,8 @@ function importedKeyConsts(source) {
 //    tarot 오라클 상담은 카드 수 구간마다 키가 갈리고 서버가 런타임에 역산한다(PR #1171).
 const DYNAMIC_ROUTE_KEYS = Object.freeze({
   tarot: () => ORACLE_CONSULTATION_TIERS.map((tier) => tier.featureKey),
+  // saju-section 은 해금 본문 라우트이고, 회당 결제 증빙을 읽는 것은 숙요 기본/정밀 궁합 두 키뿐이다(본문 렌더러 정본의 표).
+  "saju-section": () => [...SUKUYO_COMPAT_FEATURE_KEYS],
 });
 
 function readRouteFeatureKeys(routeName) {
