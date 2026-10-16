@@ -254,7 +254,7 @@ export default function SeoLandingTemplate({ page, hero = null }) {
         </nav>
 
         {landingHero || <header className="mt-[clamp(2.5rem,6vw,4rem)] border-b border-[var(--cd-border)] pb-[clamp(2.5rem,6vw,4rem)]">
-          <p className="flex items-center gap-2.5 text-[0.85rem] font-semibold text-[var(--cd-accent)]">
+          <p className="flex items-center gap-2.5 text-[0.85rem] font-semibold text-[var(--cd-text-muted)]">
             <MoonMark />
             <span className="font-[family-name:var(--font-serif)] tracking-[0.02em]">꿀꿀 운세</span>
           </p>
@@ -296,7 +296,7 @@ export default function SeoLandingTemplate({ page, hero = null }) {
             <Link
               href={page.ctaHref || "/"}
               data-cd-cross-sell={page?.path || ""}
-              className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[var(--cd-cta-primary-bg)] px-7 text-[0.94rem] font-semibold text-[var(--cd-cta-primary-ink)] transition-[background-color,box-shadow,transform] duration-200 ease-out hover:bg-[var(--cd-cta-primary-bg-2)] hover:shadow-[var(--cd-shadow)] motion-safe:hover:-translate-y-0.5 ${FOCUS_RING}`}
+              className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-[var(--cd-r-control,12px)] bg-[var(--cd-primary)] px-7 text-[0.94rem] font-semibold text-[var(--cd-primary-ink)] transition-[background-color,box-shadow,transform] duration-200 ease-out hover:bg-[var(--cd-primary-hover)] hover:shadow-[var(--cd-shadow)] motion-safe:hover:-translate-y-0.5 ${FOCUS_RING}`}
             >
               <Compass className="h-4 w-4" aria-hidden="true" />
               {page.ctaLabel || copy.defaultCta}
@@ -336,7 +336,7 @@ export default function SeoLandingTemplate({ page, hero = null }) {
                       className="absolute bottom-0 left-4 top-9 w-px -translate-x-1/2 bg-[var(--cd-border)]"
                     />
                   ) : null}
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full border border-[var(--cd-border)] font-[family-name:var(--font-serif)] text-[0.88rem] font-bold text-[var(--cd-accent)]">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full border border-[var(--cd-border)] font-[family-name:var(--font-serif)] text-[0.88rem] font-bold text-[var(--cd-text)]">
                     {index + 1}
                   </span>
                   <p className="min-w-0 break-keep pt-[0.3rem] text-[0.95rem] leading-[1.85] text-[var(--cd-text-muted)]">
@@ -498,7 +498,7 @@ export default function SeoLandingTemplate({ page, hero = null }) {
                   <span className="min-w-0 break-keep">{faq.question}</span>
                   <span
                     aria-hidden="true"
-                    className="mt-[0.1rem] shrink-0 text-[1.05rem] leading-none text-[var(--cd-accent)] transition-transform duration-200 ease-out group-open:rotate-45 motion-reduce:transition-none"
+                    className="mt-[0.1rem] shrink-0 text-[1.05rem] leading-none text-[var(--cd-text-muted)] transition-transform duration-200 ease-out group-open:rotate-45 motion-reduce:transition-none"
                   >
                     +
                   </span>

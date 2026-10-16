@@ -78,7 +78,7 @@ test('명반 FAQ 는 화면과 JSON-LD 를 한 배열에서 만들고, 본문 �
 
 test('공통 SEO 랜딩은 네오 토큰으로 배경·본문·초점·CTA 대비를 함께 전환한다',()=>{
   const template=readFileSync('app/components/SeoLandingTemplate.jsx','utf8');
-  for(const token of ['--cd-bg','--cd-text','--cd-text-muted','--cd-accent','--cd-border','--cd-focus-ring','--cd-cta-primary-bg','--cd-cta-primary-ink']) {
+  for(const token of ['--cd-bg','--cd-text','--cd-text-muted','--cd-accent','--cd-border','--cd-focus-ring','--cd-primary','--cd-primary-ink']) {
     assert.match(template,new RegExp(`var\\(${token.replace(/[-]/g,'\\-')}\\)`),token);
   }
   assert.doesNotMatch(template,/bg-\[#faf7f2\]|text-\[#292431\]|text-\[#51475c\]|text-\[#62556c\]/);
