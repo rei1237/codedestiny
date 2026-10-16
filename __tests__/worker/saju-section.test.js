@@ -59,12 +59,13 @@ jest.unstable_mockModule("../../worker/lib/billing-evidence-claim.js", () => ({
   evidenceClaimErrorBody: (result) => ({ ok: false, reason: result.code, code: result.code, message: result.message, error: { code: result.code, message: result.message } }),
 }));
 
-let handleSajuSection, buildSajuSectionHtml, resolvePaidContentUnlockTarget, getBillingFeaturePricing;
+let handleSajuSection, buildSajuSectionHtml, resolvePaidContentUnlockTarget, getBillingFeaturePricing, buildAnimalDestinyReading;
 beforeAll(async () => {
   ({ handleSajuSection } = await import("../../worker/routes/saju-section.js"));
   ({ buildSajuSectionHtml } = await import("../../worker/lib/saju-section/report.js"));
   ({ resolvePaidContentUnlockTarget } = await import("../../worker/lib/content-unlocks.js"));
   ({ getBillingFeaturePricing } = await import("../../worker/lib/billing-feature-registry.js"));
+  ({ buildAnimalDestinyReading } = await import("../../worker/lib/saju-section/animal-destiny.js"));
 });
 // HEAD 클라이언트 엔진(js/saju-engine.js)이 같은 입력으로 그린 HTML 의 sha256 — 서버 이전이 문구·계산을 바꾸지 않았다는 근거.
 const PARITY = JSON.parse(readFileSync("__tests__/fixtures/saju-section-client-parity.json", "utf8"));
@@ -140,7 +141,7 @@ test("only the saju section keys are served", async () => {
   expect(findOne).not.toHaveBeenCalled();
 });
 
-test.each(["section_summary", "section_daewun", "rpt_quantumCard", "sukuyo-extreme-t-relationship", "sukuyo-relationship-encyclopedia", "sukuyo-nature-deep-dive", "rpt_energyCoordCard", "rpt_villainCard", "rpt_healthReportCard", "rpt_specialCharmCard", "rpt_skillTreeCard", "rpt_secretHouseEntryCard"])("unowned %s returns registry pricing without HTML", async (featureKey) => {
+test.each(["section_summary", "section_daewun", "rpt_quantumCard", "sukuyo-extreme-t-relationship", "sukuyo-relationship-encyclopedia", "sukuyo-nature-deep-dive", "rpt_energyCoordCard", "rpt_villainCard", "rpt_healthReportCard", "rpt_specialCharmCard", "rpt_skillTreeCard", "rpt_secretHouseEntryCard", "animal-destiny-unlock"])("unowned %s returns registry pricing without HTML", async (featureKey) => {
   const result = await request({ ...INPUT, featureKey, daewun: DAEWUN, unlocked: true, passActive: true });
   const { pricing } = getBillingFeaturePricing({ featureKey });
   expect(result).toEqual({ status: 402, body: expect.objectContaining({ featureKey, amountKRW: pricing.amountKRW, coinPrice: pricing.coinPrice }) });
@@ -1132,5 +1133,69 @@ describe("rpt_secretHouseEntryCard", () => {
       result: { html: last.result.html, border: last.result.border, endingType: last.result.endingType, endingReason: last.result.endingReason, title: last.result.title },
     };
     expect(sha256(JSON.stringify(record))).toBe(c.sha256);
+  });
+});
+
+describe("animal-destiny-unlock", () => {
+  const ANIMAL = { profileId: "p1", featureKey: "animal-destiny-unlock", birth: { date: "2001-01-01", calType: "solar", timeKnown: true, hour: 3, minute: 0 } };
+  const expected = (birth) => buildSajuSectionHtml({ featureKey: "animal-destiny-unlock", birth }).animal;
+
+  test("a BIRTH grant reads the stored profile birth, not the body's; it opens nothing else", async () => {
+    grant({}, "animal-destiny-unlock");
+    const result = await request(ANIMAL);
+    expect(result.status).toBe(200);
+    expect(result.body).toMatchObject({ ok: true, unlocked: true, featureKey: "animal-destiny-unlock" });
+    expect(result.body.animal).toEqual(expected(CARD_BIRTH));
+    expect(result.body.animal.animalId).toBe(PARITY.animal["solar-m-1990"].animalId);
+    expect(result.body.animal.sections.length).toBeGreaterThanOrEqual(8);
+    expect(result.body.animal.dex).toHaveLength(12);
+    expect(result.body.html).toBeUndefined();
+    expect((await request({ ...ANIMAL, featureKey: "rpt_skillTreeCard" })).status).toBe(402);
+  });
+
+  test("a legacy account grant without a saved profile reads the page's birth", async () => {
+    grant({ scope: "USER", profileId: "__user__" }, "animal-destiny-unlock");
+    const { profileId: _omit, ...account } = ANIMAL;
+    const result = await request(account);
+    expect(result.status).toBe(200);
+    expect(result.body.animal).toEqual(expected({ calendarDate: "2001-01-01", calType: "solar", timeKnown: true, hour: 3, minute: 0 }));
+    const bad = await request({ ...account, birth: { date: "2001-13-45", calType: "solar", timeKnown: false } });
+    expect(bad.status).toBe(400);
+    expect(bad.body.animal).toBeUndefined();
+  });
+
+  test("another profile's or another birth's grant does not open the reading", async () => {
+    expect((await request(ANIMAL)).status).toBe(402);
+    grant({ scope: "PROFILE", profileId: "p2" }, "animal-destiny-unlock");
+    expect((await request(ANIMAL)).status).toBe(402);
+    grant({}, "animal-destiny-unlock");
+    const other = await request({ ...ANIMAL, profileId: "p3" });
+    expect(other.status).toBe(402);
+    expect(other.body).toMatchObject({ reason: "PAYMENT_REQUIRED", coinPrice: getBillingFeaturePricing({ featureKey: "animal-destiny-unlock" }).pricing.coinPrice });
+    expect(other.body.animal).toBeUndefined();
+  });
+
+  test("a DB failure stays retryable instead of prompting purchase", async () => {
+    grant({}, "animal-destiny-unlock");
+    connectDb.mockRejectedValue(new Error("private database connection information"));
+    const result = await request(ANIMAL);
+    expect(result.status).toBe(503);
+    expect(result.body).toMatchObject({ reason: "TEMPORARY_UNAVAILABLE", retryable: true });
+    expect(result.body.animal).toBeUndefined();
+  });
+
+  // PARITY.animal: HEAD 클라이언트(store.calculate → AnimalResultScreen 의 resolveTwelveGrowthAnimalResult·buildTwelveAnimalSections·
+  // buildDetailedInterpretation·도감)를 같은 출생으로 돌린 { animalId, stageKey, result, sections, detailed, dex } 의 sha256.
+  test.each(PARITY.cases.map((c) => [c.id, c]))("server reading equals the HEAD client output: %s", (id, c) => {
+    const animal = expected({ calendarDate: c.date, calType: c.calType, hour: c.hour, minute: c.minute, timeKnown: c.timeKnown !== false });
+    expect(animal.animalId).toBe(PARITY.animal[id].animalId);
+    expect(sha256(JSON.stringify(animal))).toBe(PARITY.animal[id].sha256);
+  });
+
+  // PARITY.animalStages: 일지만 바꾼 합성 원국으로 12운성(동물) 전부를 한 번씩 밟는다.
+  test.each(PARITY.animalStages.map((s) => [s.stageKey, s]))("every stage animal equals the HEAD client output: %s", (_key, s) => {
+    const reading = buildAnimalDestinyReading(s.pillars, false);
+    expect(reading).toMatchObject({ animalId: s.animalId, stageKey: s.stageKey });
+    expect(sha256(JSON.stringify(reading))).toBe(s.sha256);
   });
 });

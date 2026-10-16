@@ -6,16 +6,17 @@ import {
 import { createSajuSectionRuntime } from "./runtime.generated.mjs";
 import { buildSukuyoFromMoonLongitude } from "../sukuyo-coordinate.js";
 import { buildSecretHouseStep } from "./secret-house.js";
+import { buildAnimalDestinyReading } from "./animal-destiny.js";
 
 // 사주 종합(section_summary)·대운 풀이(section_daewun)·퀀텀 명리 엔진(rpt_quantumCard)·
 // 극T 관계 회로(sukuyo-extreme-t-relationship)·숙요 인연 도감(sukuyo-relationship-encyclopedia)·숙요 본성 심화 해석(sukuyo-nature-deep-dive)
 // ·숙요 기본 궁합(compat-sukuyo-compatibility)·정밀 궁합 확장(premium-sukuyo-compat-extra)·에너지 원정 리포트(rpt_energyCoordCard)
 // ·요주의 빌런 블랙리스트(rpt_villainCard)·명리 헬스 리포트(rpt_healthReportCard)·나의 매력 클래스(rpt_specialCharmCard)
-// ·인생 스킬 트리(rpt_skillTreeCard)·시크릿 하우스(rpt_secretHouseEntryCard) 본문을 서버에서 만든다.
+// ·인생 스킬 트리(rpt_skillTreeCard)·시크릿 하우스(rpt_secretHouseEntryCard)·십이운성 동물점(animal-destiny-unlock) 본문을 서버에서 만든다.
 // 계산 흐름은 js/saju-engine.js 의 사주 계산(원국 → 대운 브릿지 → 종격 판정 → 용신 정책)을 그대로 따른다.
 // 숙요 기본 궁합(compat-sukuyo-compatibility)·정밀 궁합 확장(premium-sukuyo-compat-extra)은 회당 결제다 — 라우트가 이번 결제 1건을 상대 조합 1건에 묶는다.
 export const SUKUYO_COMPAT_FEATURE_KEYS = Object.freeze(["compat-sukuyo-compatibility", "premium-sukuyo-compat-extra"]);
-export const SAJU_SECTION_FEATURE_KEYS = Object.freeze(["section_summary", "section_daewun", "rpt_quantumCard", "sukuyo-extreme-t-relationship", "sukuyo-relationship-encyclopedia", "sukuyo-nature-deep-dive", ...SUKUYO_COMPAT_FEATURE_KEYS, "rpt_energyCoordCard", "rpt_villainCard", "rpt_healthReportCard", "rpt_specialCharmCard", "rpt_skillTreeCard", "rpt_secretHouseEntryCard"]);
+export const SAJU_SECTION_FEATURE_KEYS = Object.freeze(["section_summary", "section_daewun", "rpt_quantumCard", "sukuyo-extreme-t-relationship", "sukuyo-relationship-encyclopedia", "sukuyo-nature-deep-dive", ...SUKUYO_COMPAT_FEATURE_KEYS, "rpt_energyCoordCard", "rpt_villainCard", "rpt_healthReportCard", "rpt_specialCharmCard", "rpt_skillTreeCard", "rpt_secretHouseEntryCard", "animal-destiny-unlock"]);
 // 클라이언트 출생지 선택의 기본 옵션(index.html #birthCountry 의 대한민국 서울).
 const DEFAULT_PLACE = Object.freeze({ name: "대한민국 (서울)", longitude: 127.0, latitude: 37.6, timezone: "Asia/Seoul", baseTzOffset: 9 });
 const JONG_DECISIONS = new Set(["confirmed", "rejected", "unverified"]);
@@ -197,6 +198,30 @@ function buildSecretHouseHtml(input) {
   };
 }
 
+// 십이운성 동물점은 출생지 입력이 없는 화면이다 — localSajuCalculator.calculateLocalSaju 처럼 출생지 없이(서울 기본) 원국을 세운다.
+// 시각을 모르면 시주 없이 계산한다(화면 parseBirthTime 이 빈 시각을 hasTime=false 로 넘기는 것과 같다).
+function buildAnimalDestinyHtml(input) {
+  const birth = input.birth || {};
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(birth.calendarDate || ""))) throw new SajuSectionInputError("생년월일을 확인해 주세요.", "SAJU_INVALID_BIRTH");
+  const calType = ["solar", "lunar", "lunar_leap"].includes(birth.calType) ? birth.calType : "solar";
+  const timeUnknown = birth.timeKnown === false;
+  const hour = timeUnknown ? 0 : Math.trunc(finite(birth.hour, NaN));
+  const minute = timeUnknown ? 0 : Math.trunc(finite(birth.minute, 0));
+  if (!(hour >= 0 && hour <= 23) || !(minute >= 0 && minute <= 59)) throw new SajuSectionInputError("출생 시각을 확인해 주세요.", "SAJU_INVALID_BIRTH");
+  let pillars;
+  try {
+    pillars = calculateNatalSaju({
+      birthDate: birth.calendarDate, birthTime: timeUnknown ? undefined : `${pad(hour, 2)}:${pad(minute, 2)}`,
+      calendarType: calType, isLeapMonth: calType === "lunar_leap", birthPlace: undefined,
+    }, { allowMissingLongitude: false }).pillars;
+  } catch {
+    throw new SajuSectionInputError("생년월일을 확인해 주세요.", "SAJU_INVALID_BIRTH");
+  }
+  const animal = buildAnimalDestinyReading(pillars, timeUnknown);
+  if (!animal) throw new SajuSectionInputError("생년월일을 확인해 주세요.", "SAJU_INVALID_BIRTH");
+  return { animal };
+}
+
 /**
  * @param {object} input
  * @param {"section_summary"|"section_daewun"|"rpt_quantumCard"|"sukuyo-extreme-t-relationship"|"sukuyo-relationship-encyclopedia"} input.featureKey
@@ -225,6 +250,7 @@ export function buildSajuSectionHtml(input) {
   if (featureKey === "sukuyo-nature-deep-dive") return buildNatureDeepDiveHtml(input);
   if (SUKUYO_COMPAT_FEATURE_KEYS.includes(featureKey)) return buildSukuyoCompatHtml(input);
   if (featureKey === "rpt_secretHouseEntryCard") return buildSecretHouseHtml(input);
+  if (featureKey === "animal-destiny-unlock") return buildAnimalDestinyHtml(input);
   const birth = input.birth || {};
   if (!/^\d{4}-\d{2}-\d{2}$/.test(String(birth.calendarDate || ""))) throw new SajuSectionInputError("생년월일을 확인해 주세요.", "SAJU_INVALID_BIRTH");
   const calType = ["solar", "lunar", "lunar_leap"].includes(birth.calType) ? birth.calType : "solar";

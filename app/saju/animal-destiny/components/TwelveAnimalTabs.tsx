@@ -1,19 +1,20 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import type { TwelveGrowthAnimalResult } from "../lib/types";
-import { buildTwelveAnimalSections } from "../lib/twelveGrowthAnimalResults";
+import { useState } from "react";
+import type { AnimalPaidSection } from "../lib/paidReading";
 import { useAnimalDestinyCopy } from "../_lib/copy";
 
+// 10개 상세 해석 문장은 서버(/api/saju/section, animal-destiny-unlock)가 해금 확인 뒤 내려준다.
 type Props = {
-  result: TwelveGrowthAnimalResult;
+  animalName: string;
+  sections: AnimalPaidSection[];
 };
 
-export default function TwelveAnimalTabs({ result }: Props) {
+export default function TwelveAnimalTabs({ animalName, sections }: Props) {
   const copy = useAnimalDestinyCopy();
-  const sections = useMemo(() => buildTwelveAnimalSections(result), [result]);
   const [active, setActive] = useState(sections[0]?.key || "core");
   const current = sections.find((item) => item.key === active) || sections[0];
+  if (!current) return null;
   const hint = copy.sectionHint[current.key as keyof typeof copy.sectionHint] || copy.sectionHint.core;
 
   return (
@@ -22,7 +23,7 @@ export default function TwelveAnimalTabs({ result }: Props) {
         <div>
           <h3 className="text-lg font-black text-[#27537a]">{copy.detailTitle}</h3>
           <p className="mt-1 text-xs font-semibold leading-relaxed text-[#5b7d9a]">
-            {copy.detailDesc(result.animalName)}
+            {copy.detailDesc(animalName)}
           </p>
         </div>
         <span className="rounded-full border border-[#c8dff1] bg-[#f4faff] px-3 py-1 text-xs font-black text-[#4b789c]">

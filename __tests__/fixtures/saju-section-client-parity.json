@@ -2752,5 +2752,193 @@
    "finalCharId": "gold",
    "sha256": "98840b5463ee7141b4d55948958e47ab804749349ad2589ca463dbf136f3d376"
   }
+ ],
+ "animal": {
+  "solar-m-1990": {
+   "animalId": "fawn",
+   "sha256": "a7a873adf98fa74b92868bd474a9e3bddaa25c53e1c904708d68828c3dfa9aa5"
+  },
+  "solar-f-1985": {
+   "animalId": "monkey",
+   "sha256": "c827eab7489120860dfd4d3932bde5a1a966f299a1e019ee87a95ce61e795dfa"
+  },
+  "unknown-f-1978": {
+   "animalId": "cheetah",
+   "sha256": "c743cbcd0a8887d018694e8bd22259a1ab7dd5ce5eae1fe8835b763490826e8a"
+  },
+  "lunar-m-1962": {
+   "animalId": "koala",
+   "sha256": "f3157d7e2c8bdf6cd90c1d62a91835af4e79a72a74f4be3b7698dd545464081c"
+  },
+  "leap-f-2020": {
+   "animalId": "elephant",
+   "sha256": "efd4b3fd86d2de623ac72e108bef6d49fa38f96e785f6f7cb634cc4f853fa217"
+  },
+  "newyear-m-2001": {
+   "animalId": "monkey",
+   "sha256": "72331fea842e5e22ce9b7001b973aa8b101bd1e9827c0081166391ee35dc90b0"
+  },
+  "ny-f-1995": {
+   "animalId": "tiger",
+   "sha256": "3c9bf99985193df431aa0a7816006750c747db72a24a2f3acd2cd6216a5283fa"
+  },
+  "old-m-1941": {
+   "animalId": "black-panther",
+   "sha256": "938e76d7b7c8c9e28c33822d097e6cb349f8a53e32389606ed7ad3c81fd197ce"
+  },
+  "young-f-2015": {
+   "animalId": "elephant",
+   "sha256": "ffe0db7ff44a9d7b9c178469ee1087e95a6e668aa7f778776c6871818321efbc"
+  },
+  "jong-confirmed": {
+   "animalId": "tiger",
+   "sha256": "a3468769a78345c7c61930420ed811283521556fa3bd57f10f713ee71e00cb55"
+  },
+  "jong-rejected": {
+   "animalId": "tiger",
+   "sha256": "a3468769a78345c7c61930420ed811283521556fa3bd57f10f713ee71e00cb55"
+  },
+  "jong-unverified": {
+   "animalId": "tiger",
+   "sha256": "a3468769a78345c7c61930420ed811283521556fa3bd57f10f713ee71e00cb55"
+  },
+  "hwa-confirmed": {
+   "animalId": "fawn",
+   "sha256": "741336af07427360893175c2322b42a03e967f8590cf889f36c80cee3bb6474e"
+  }
+ },
+ "animalStages": [
+  {
+   "pillars": {
+    "year": "庚午",
+    "month": "辛巳",
+    "day": "甲子",
+    "hour": "丙寅"
+   },
+   "animalId": "monkey",
+   "stageKey": "mogyok",
+   "sha256": "056360ea5b9a9302684e2eb944e520f4800ab5986227144ad9009cf399d70683"
+  },
+  {
+   "pillars": {
+    "year": "庚午",
+    "month": "辛巳",
+    "day": "甲丑",
+    "hour": "丙寅"
+   },
+   "animalId": "black-panther",
+   "stageKey": "gwandae",
+   "sha256": "84285b539d871c63357a154d93ee27141572598cf808b6514d34fed66f9f0241"
+  },
+  {
+   "pillars": {
+    "year": "庚午",
+    "month": "辛巳",
+    "day": "甲寅",
+    "hour": "丙寅"
+   },
+   "animalId": "koala",
+   "stageKey": "geonrok",
+   "sha256": "d2f3f3a18e52f8403f56b4b2faf952236178a2efa4bc7b260e496251247dec05"
+  },
+  {
+   "pillars": {
+    "year": "庚午",
+    "month": "辛巳",
+    "day": "甲卯",
+    "hour": "丙寅"
+   },
+   "animalId": "tiger",
+   "stageKey": "jewang",
+   "sha256": "5cdadef77f39c1b3e08dca68baf50de49aa7b14b4338524c769adec0da784c7a"
+  },
+  {
+   "pillars": {
+    "year": "庚午",
+    "month": "辛巳",
+    "day": "甲辰",
+    "hour": "丙寅"
+   },
+   "animalId": "raccoon",
+   "stageKey": "soe",
+   "sha256": "1dc8a977fd836c681f4eb59b4d05cabe8467bd4dc0cff85e2a886b505b61b4ec"
+  },
+  {
+   "pillars": {
+    "year": "庚午",
+    "month": "辛巳",
+    "day": "甲巳",
+    "hour": "丙寅"
+   },
+   "animalId": "rhino",
+   "stageKey": "byeong",
+   "sha256": "6fac00f5271f2917d2a71b5162caccce8cda1f8f2380bbb1059cad9a301f20f4"
+  },
+  {
+   "pillars": {
+    "year": "庚午",
+    "month": "辛巳",
+    "day": "甲午",
+    "hour": "丙寅"
+   },
+   "animalId": "elephant",
+   "stageKey": "sa",
+   "sha256": "60dfdfebaa051f02d7ec2d7ce2d83dc50cc747d328b94c562f3c67ce813aa39d"
+  },
+  {
+   "pillars": {
+    "year": "庚午",
+    "month": "辛巳",
+    "day": "甲未",
+    "hour": "丙寅"
+   },
+   "animalId": "sheep",
+   "stageKey": "myo",
+   "sha256": "f43c92965bbb2dcb42355434d2ebffdd07688f1ae000727ab9792e7f151db3ff"
+  },
+  {
+   "pillars": {
+    "year": "庚午",
+    "month": "辛巳",
+    "day": "甲申",
+    "hour": "丙寅"
+   },
+   "animalId": "pegasus",
+   "stageKey": "jeol",
+   "sha256": "6f3fc8d8c51179e14afc086032c108d4574c4fbbd97d5523124c8ee180495948"
+  },
+  {
+   "pillars": {
+    "year": "庚午",
+    "month": "辛巳",
+    "day": "甲酉",
+    "hour": "丙寅"
+   },
+   "animalId": "wolf",
+   "stageKey": "tae",
+   "sha256": "c1f0b6a037f27f246e295f9fe503e947d93f9ac7a213f0a6068bd23f1d2e0a01"
+  },
+  {
+   "pillars": {
+    "year": "庚午",
+    "month": "辛巳",
+    "day": "甲戌",
+    "hour": "丙寅"
+   },
+   "animalId": "fawn",
+   "stageKey": "yang",
+   "sha256": "8e1980a6af27f71d01a176a64b2332b5c67b1137854ccdfafc26a97d08c5e7d6"
+  },
+  {
+   "pillars": {
+    "year": "庚午",
+    "month": "辛巳",
+    "day": "甲亥",
+    "hour": "丙寅"
+   },
+   "animalId": "cheetah",
+   "stageKey": "jangsaeng",
+   "sha256": "5b4b9476987ce6fea0579a72c338691e82d0c79bc4d7d45a15cf889d690c7bfd"
+  }
  ]
 }

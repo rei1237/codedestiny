@@ -1,7 +1,8 @@
 import fs from 'node:fs';
 import ts from 'typescript';
 // Bundles the paid saju summary/daewun/quantum/extreme-T/sukuyo-encyclopedia/sukuyo-nature/sukuyo-compat/energy/villain/health/charm/skill-tree renderers (worker/lib/saju-section/*.src.js) with the
-// (secret-house episode engine and twelve-stage animal reading get their own factories below)
+// (secret-house episode engine and twelve-stage animal reading get their own factories below; the animal factory also
+// bundles the page's free stage tables, transpiled from TS at extract time)
 // shell helpers they call, copied verbatim from the browser sources. No formula is edited here:
 // --check fails when js/saju-engine.js, the tarot-chunk helpers, the entertain-engine helpers, the personas copy table
 // or the KASI service drift.
@@ -76,6 +77,28 @@ const skillSrc = read(skillPath); const skillAst = parse(skillPath, skillSrc);
 // 시크릿 하우스 에피소드 엔진: 페이지 메인 스크립트에서 옮긴 선언들. 셸 헬퍼를 쓰지 않으므로 별도 팩토리로 묶는다.
 const secretHousePath = 'worker/lib/saju-section/paid-secret-house.src.js';
 const secretHouseSrc = read(secretHousePath);
+// 십이운성 동물점: 무료 표(animalTwelveData)·운성 계산(twelveStages)·동물 매핑(animalMapping)은 화면과 같은 TS 를
+// 지금 그대로 타입만 지워 함께 묶는다(화면이 바뀌면 --check 가 걸린다). 유료 문장은 서버 사본(paid-animal.src.js)에만 있다.
+function tsBody(file) {
+  const out = ts.transpileModule(read(file), { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText;
+  const ast = parse(file, out);
+  return ast.statements.filter(n => !ts.isImportDeclaration(n) && !ts.isExportDeclaration(n)).map(n => {
+    const mod = (n.modifiers || []).find(m => m.kind === ts.SyntaxKind.ExportKeyword);
+    const t = n.getText(ast);
+    return mod ? t.slice(0, mod.getStart(ast) - n.getStart(ast)) + t.slice(mod.getEnd() - n.getStart(ast) + 1) : t;
+  });
+}
+const animalFree = ['components/fortune/animal-twelve/animalTwelveData.ts', 'app/saju/animal-destiny/lib/twelveStages.ts', 'app/saju/animal-destiny/lib/animalMapping.ts'].map(f => [f, tsBody(f)]);
+const animalPath = 'worker/lib/saju-section/paid-animal.src.js';
+const animalSrc = read(animalPath);
+const animalFreeText = animalFree.map(([f, body]) => `  // ── ${f} ──\n${body.join('\n')}`).join('\n');
+{
+  const seen = new Map();
+  for (const [f, body] of [...animalFree, [animalPath, [animalSrc]]]) for (const t of body) for (const k of declared(parse(f, t))) {
+    if (seen.has(k)) throw new Error(`Animal runtime name clash: ${k} (${seen.get(k)} / ${f})`);
+    seen.set(k, f);
+  }
+}
 const paidNames = declared(paidAst); const cycleNames = declared(cycleAst); const quantumNames = declared(quantumAst); const encyclopediaNames = declared(encyclopediaAst); const natureNames = declared(natureAst); const compatNames = declared(compatAst); const energyNames = declared(energyAst); const villainNames = declared(villainAst); const healthNames = declared(healthAst); const charmNames = declared(charmAst); const skillNames = declared(skillAst);
 
 // The quantum/energy cards' ganji/fortune/text helpers live in the tarot chunk. Its copy table is trimmed to
@@ -246,6 +269,23 @@ ${secretHouseSrc.trim()}
     STEMS: STEMS, CHARS: CHARS, SCENE_MAP: SCENE_MAP, SCENE_ORDER: SCENE_ORDER, CHAR_BY_ID: CHAR_BY_ID,
     calcBase: calcBase, getTotal: getTotal, getMaxTotal: getMaxTotal, getTopChar: getTopChar, calculateEnding: calculateEnding,
     resolveDynamicScene: resolveDynamicScene, buildSceneStoryArc: buildSceneStoryArc, handleChoice: handleChoice, buildResult: buildResult,
+  };
+}
+
+// 십이운성 동물점(animal-destiny-unlock). 관리자 CMS 오버라이드는 빌드 때 페이지에 굳는 값이라 서버에서는 기본 시드를 쓴다.
+export function createAnimalDestinyRuntime() {
+  const cmsRecordRow = function (ns, key, recordKey, fallback) { return fallback; };
+${animalFreeText}
+  // ── paid twelve-stage animal reading ──
+${animalSrc.trim()}
+
+  return {
+    STAGE_KEY_TO_LABEL: STAGE_KEY_TO_LABEL, ANIMAL_DESTINY_LIST: ANIMAL_DESTINY_LIST,
+    normalizeStem: normalizeStem, normalizeBranch: normalizeBranch,
+    getTwelveStagesForPillars: getTwelveStagesForPillars, getFourPillarStageItems: getFourPillarStageItems,
+    getAnimalBySajuResult: getAnimalBySajuResult, getAnimalDisplayData: getAnimalDisplayData,
+    resolveTwelveGrowthAnimalResult: resolveTwelveGrowthAnimalResult, buildTwelveAnimalSections: buildTwelveAnimalSections,
+    buildDetailedInterpretation: buildDetailedInterpretation,
   };
 }
 `;

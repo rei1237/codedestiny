@@ -188,3 +188,37 @@ test("시크릿 하우스 에피소드 엔진과 엔딩 문장이 브라우저 �
   assert.match(page, /const HOUSE_FEATURE='rpt_secretHouseEntryCard';/, "시크릿 하우스 해금 키가 다르다");
   assert.match(page, /history:G\.picks\.slice\(\)/, "시크릿 하우스는 고른 글자만 보내야 한다");
 });
+
+test("십이운성 동물점 결과 문장·상세 탭·심층 리포트가 브라우저 번들 경로에 없다", () => {
+  // 대표 동물·네 기둥 운성·도감 이름은 무료로 남고, 결과 카드 문장(STAGE_SEEDS)·10개 탭·심층 리포트는 서버만 만든다.
+  const FORBIDDEN = [
+    "STAGE_SEEDS", "ensureSummaryLength", "TWELVE_GROWTH_ANIMAL_RESULT_TEXT_TRANSLATIONS", "ANIMAL_INTERPRETATION_TEXT_TRANSLATIONS", "STAGE_KEYWORDS",
+    "function resolveTwelveGrowthAnimalResult(", "function buildTwelveAnimalSections(", "function buildDetailedInterpretation(",
+    "새벽의 싹을 여는 탐험형", "오늘은 과한 예측보다 작은 실행을 반복해 리듬을 확인하세요", "본능적으로 선택하는 방식과 가까운 관계에서 드러나는 결", "이별의 순간에는",
+  ];
+  const files = [...browserServedFiles()];
+  for (const rel of ["app", "components", "lib", "src"]) {
+    if (!fs.existsSync(path.join(root, rel))) continue;
+    (function walk(dir) {
+      for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+        const full = path.join(dir, entry.name);
+        if (entry.isDirectory()) walk(full);
+        else if (/\.(ts|tsx|js|mjs)$/.test(entry.name)) files.push(path.relative(root, full).split(path.sep).join("/"));
+      }
+    })(path.join(root, rel));
+  }
+  assert.ok(files.includes("app/saju/animal-destiny/components/AnimalResultScreen.tsx"), "동물점 결과 화면을 못 봤다");
+  const offenders = [];
+  for (const rel of files) {
+    const source = stripComments(read(rel));
+    for (const needle of FORBIDDEN) if (source.includes(needle)) offenders.push(`${rel} → ${needle}`);
+  }
+  assert.deepEqual(offenders, [], "브라우저 파일에 동물점 유료 문장이 남아 있다:\n  " + offenders.join("\n  "));
+  const paid = read("worker/lib/saju-section/paid-animal.src.js");
+  for (const name of ["resolveTwelveGrowthAnimalResult(", "buildTwelveAnimalSections(", "buildDetailedInterpretation("]) {
+    assert.ok(paid.includes("function " + name), `${name} 정본이 서버에 없다`);
+  }
+  const loader = read("app/saju/animal-destiny/lib/paidReading.ts");
+  assert.match(loader, /const FEATURE_KEY = "animal-destiny-unlock";/, "동물점 해금 키가 다르다");
+  assert.match(loader, /authFetch\("\/api\/saju\/section"/, "동물점이 서버 풀이를 요청하지 않는다");
+});
