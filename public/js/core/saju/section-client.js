@@ -1,4 +1,5 @@
-/* 사주 종합(section_summary)·대운 풀이(section_daewun)·퀀텀 명리 엔진(rpt_quantumCard) 본문 배달.
+/* 사주 종합(section_summary)·대운 풀이(section_daewun)·퀀텀 명리 엔진(rpt_quantumCard)·
+   극T 관계 회로(sukuyo-extreme-t-relationship) 본문 배달.
    본문은 서버(/api/saju/section)가 계정·프로필 해금을 확인한 뒤에만 만든다.
    이 파일은 요청과 표시만 한다 — 유료 문장·생성기·본문 캐시가 없다. */
 (function (root) {
@@ -11,6 +12,11 @@
   var summary = { key: '', state: '', seq: 0, failedAt: 0 };
   var daewun = { key: '', state: '', seq: 0, row: null };
   var quantum = { key: '', state: '', seq: 0, failedAt: 0, quiet: false };
+  var extremeT = { key: '', state: '', seq: 0, area: null, options: null, timer: 0 };
+  var EXTREME_T_KEY = 'sukuyo-extreme-t-relationship';
+  // 이용권 결제 직후에는 화면이 먼저 열리고 서버 기록은 뒤에서 쓴다(index.html _cdMembershipPassRecordDelays 와 같은 간격).
+  // 그 사이 402 가 오면 바로 '구매 기록 없음'을 띄우지 않고 이 간격으로 다시 묻는다.
+  var EXTREME_T_RETRY_MS = [4000, 12000, 30000];
 
   function byId(id) { return document.getElementById(id); }
   function profileId() {
@@ -213,6 +219,70 @@
     return false;
   }
 
+  // 극T 관계 회로: 무료 카드(renderTTest)가 비워 둔 자리 3곳(main·sajuBase·prescription)을 서버 본문으로 채운다.
+  // 해금 여부는 서버가 다시 확인한다 — 화면의 해금 표시만으로는 본문이 오지 않는다.
+  function extremeTStatus(text, retry) {
+    var node = statusNode(text, retry);
+    node.style.cssText = 'grid-column:1/-1;padding:18px 16px;border-radius:14px;background:rgba(15,23,42,0.55);border:1px solid rgba(148,163,184,0.35);color:#e2e8f0;font-size:14px;line-height:1.7;text-align:center;';
+    return node;
+  }
+  function recentPassGrant() {
+    try { return typeof root.syRecentPaidGateAccess === 'function' && !!root.syRecentPaidGateAccess(EXTREME_T_KEY); } catch (_) { return false; }
+  }
+  function loadExtremeT(area, options) {
+    var opts = options || {};
+    if (!area) return false;
+    var main = area.querySelector('[data-sy-extreme-t-slot="main"]');
+    if (!main) return false;
+    var body = requestBody(EXTREME_T_KEY);
+    clearTimeout(extremeT.timer);
+    var mine = ++seq;
+    extremeT = { key: keyOf(body), state: 'loading', seq: mine, area: area, options: opts, timer: 0 };
+    show(main, extremeTStatus('해금된 극T 풀이를 불러오고 있어요.'));
+    function current() { return extremeT.seq === mine && extremeT.area === area && area.isConnected !== false && area.contains(main); }
+    function fail(text) {
+      if (!current()) return;
+      extremeT.state = 'failed';
+      show(main, extremeTStatus(text, function () { loadExtremeT(area, opts); }));
+    }
+    function attempt(tries) {
+      request(body).then(function (result) {
+        if (!current()) return;
+        var data = result.payload || {};
+        if (result.ok && delivered(EXTREME_T_KEY, data)) {
+          extremeT.state = 'done';
+          main.innerHTML = data.html;
+          var sajuSlot = area.querySelector('[data-sy-extreme-t-slot="sajuBase"]');
+          if (sajuSlot) sajuSlot.outerHTML = typeof data.sajuBaseHtml === 'string' ? data.sajuBaseHtml : '';
+          var prescriptionSlot = area.querySelector('[data-sy-extreme-t-slot="prescription"]');
+          if (prescriptionSlot) prescriptionSlot.outerHTML = typeof data.prescriptionHtml === 'string' ? data.prescriptionHtml : '';
+          notify(EXTREME_T_KEY);
+          try { if (typeof opts.onDelivered === 'function') opts.onDelivered(); } catch (_) {}
+          return;
+        }
+        var status = result && result.status;
+        var retryable = (status === 402 && recentPassGrant()) || !status || status >= 500;
+        if (retryable && tries < EXTREME_T_RETRY_MS.length) {
+          extremeT.state = 'waiting';
+          extremeT.timer = setTimeout(function () { if (current()) attempt(tries + 1); }, EXTREME_T_RETRY_MS[tries]);
+          return;
+        }
+        fail(failureText(result));
+      }, function () {
+        if (!current()) return;
+        if (tries < EXTREME_T_RETRY_MS.length) {
+          extremeT.state = 'waiting';
+          extremeT.timer = setTimeout(function () { if (current()) attempt(tries + 1); }, EXTREME_T_RETRY_MS[tries]);
+          return;
+        }
+        fail(failureText(null));
+      });
+    }
+    if (!body) { fail(failureText(null)); return false; }
+    attempt(0);
+    return false;
+  }
+
   // 화면 모드(연냥이·네오) 전환: 펼친 대운을 새 모드로 다시 받는다.
   function refreshDaewun() {
     var detail = byId('dwDetail');
@@ -228,7 +298,9 @@
     }
     if (daewun.state === 'failed') refreshDaewun();
     if (quantum.state === 'failed') loadQuantum({ quiet: quantum.quiet, force: true });
+    // 결제 기록이 늦게 들어온 경우: 기다리던 극T 요청은 바로 다시 묻는다.
+    if ((extremeT.state === 'failed' || extremeT.state === 'waiting') && extremeT.area) loadExtremeT(extremeT.area, extremeT.options);
   });
 
-  root.CdSajuSectionClient = { loadSummary: loadSummary, showDaewun: showDaewun, refreshDaewun: refreshDaewun, loadQuantum: loadQuantum };
+  root.CdSajuSectionClient = { loadSummary: loadSummary, showDaewun: showDaewun, refreshDaewun: refreshDaewun, loadQuantum: loadQuantum, loadExtremeT: loadExtremeT };
 })(window);

@@ -110,7 +110,7 @@ test("only the saju section keys are served", async () => {
   expect(findOne).not.toHaveBeenCalled();
 });
 
-test.each(["section_summary", "section_daewun", "rpt_quantumCard"])("unowned %s returns registry pricing without HTML", async (featureKey) => {
+test.each(["section_summary", "section_daewun", "rpt_quantumCard", "sukuyo-extreme-t-relationship"])("unowned %s returns registry pricing without HTML", async (featureKey) => {
   const result = await request({ ...INPUT, featureKey, daewun: DAEWUN, unlocked: true, passActive: true });
   const { pricing } = getBillingFeaturePricing({ featureKey });
   expect(result).toEqual({ status: 402, body: expect.objectContaining({ featureKey, amountKRW: pricing.amountKRW, coinPrice: pricing.coinPrice }) });
@@ -327,5 +327,58 @@ describe("rpt_quantumCard", () => {
       gender: c.gender, name: c.name, mode: "pig", place: c.place, jongDecision: c.jong, now: new Date(PARITY.now),
     }).html;
     expect(sha256(html)).toBe(PARITY.quantum[id]);
+  });
+});
+
+describe("sukuyo-extreme-t-relationship", () => {
+  const KEY = "sukuyo-extreme-t-relationship";
+  const EXTREME_T = { ...INPUT, featureKey: KEY };
+  const expected = (birth, gender) => buildSajuSectionHtml({ featureKey: KEY, birth, gender, name: "테스트", mode: "pig", lang: "ko" });
+
+  test("a BIRTH grant renders the three paid panels from the stored birth; it opens nothing else", async () => {
+    grant({}, KEY);
+    const result = await request({ ...EXTREME_T, birth: { date: "2001-01-01", hour: 3, minute: 0 }, gender: "F" });
+    expect(result.status).toBe(200);
+    expect(result.body).toEqual({ ok: true, unlocked: true, featureKey: KEY, ...expected(CARD_BIRTH, "M") });
+    expect(result.body.html).toContain("[관계 회로]");
+    expect(result.body.sajuBaseHtml).toContain("[사주 기반 극T 해석]");
+    expect(result.body.prescriptionHtml).toContain("[디버깅 처방전]");
+    expect((await request()).status).toBe(402);
+  });
+
+  test("a legacy account grant without a saved profile renders the body birth", async () => {
+    grant({ scope: "USER", profileId: "__user__" }, KEY);
+    const { profileId: _omit, ...account } = EXTREME_T;
+    const result = await request({ ...account, birth: { date: "1985-11-02", calType: "solar", hour: 6, minute: 5 }, gender: "F" });
+    expect(result.status).toBe(200);
+    expect(result.body.html).toBe(expected({ calendarDate: "1985-11-02", calType: "solar", hour: 6, minute: 5, timeKnown: true }, "F").html);
+  });
+
+  test("another profile's grant or another product's grant does not open the panels", async () => {
+    grant({}, "rpt_quantumCard");
+    expect((await request(EXTREME_T)).status).toBe(402);
+    grant({}, KEY);
+    const other = await request({ ...EXTREME_T, profileId: "p3" });
+    expect(other.status).toBe(402);
+    expect(other.body.html).toBeUndefined();
+    expect(other.body.sajuBaseHtml).toBeUndefined();
+  });
+
+  test("a DB failure stays retryable instead of prompting purchase", async () => {
+    grant({}, KEY);
+    connectDb.mockRejectedValue(new Error("private database connection information"));
+    const result = await request(EXTREME_T);
+    expect(result.status).toBe(503);
+    expect(result.body).toMatchObject({ reason: "TEMPORARY_UNAVAILABLE", retryable: true });
+  });
+
+  // PARITY.extremeT: 56cc07e9a 의 클라이언트 renderTTest(해금 상태)가 같은 차트로 그린 패널 HTML 의 sha256.
+  // html = [관계 회로]+[연애 알고리즘]+[현실 처리 능력], 나머지 둘은 따로. 점수 구간 다섯(공감형~극T)이 모두 들어 있다.
+  test.each([...PARITY.cases, ...PARITY.extremeTCases].map((c) => [c.id, c]))("server panels equal the HEAD client output: %s", (id, c) => {
+    const result = buildSajuSectionHtml({
+      featureKey: KEY, birth: { calendarDate: c.date, calType: c.calType, hour: c.hour, minute: c.minute, timeKnown: c.timeKnown !== false },
+      gender: c.gender, name: c.name, mode: "pig", place: c.place, jongDecision: c.jong, now: new Date(PARITY.now),
+    });
+    expect({ html: sha256(result.html), sajuBaseHtml: sha256(result.sajuBaseHtml), prescriptionHtml: sha256(result.prescriptionHtml) }).toEqual(PARITY.extremeT[id]);
   });
 });

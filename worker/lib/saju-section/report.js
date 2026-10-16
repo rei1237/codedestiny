@@ -5,9 +5,10 @@ import {
 } from "../../yeongnyangi/fortune/saju-runtime.mjs";
 import { createSajuSectionRuntime } from "./runtime.generated.mjs";
 
-// 사주 종합(section_summary)·대운 풀이(section_daewun)·퀀텀 명리 엔진(rpt_quantumCard) 본문을 서버에서 만든다.
+// 사주 종합(section_summary)·대운 풀이(section_daewun)·퀀텀 명리 엔진(rpt_quantumCard)·
+// 극T 관계 회로(sukuyo-extreme-t-relationship) 본문을 서버에서 만든다.
 // 계산 흐름은 js/saju-engine.js 의 사주 계산(원국 → 대운 브릿지 → 종격 판정 → 용신 정책)을 그대로 따른다.
-export const SAJU_SECTION_FEATURE_KEYS = Object.freeze(["section_summary", "section_daewun", "rpt_quantumCard"]);
+export const SAJU_SECTION_FEATURE_KEYS = Object.freeze(["section_summary", "section_daewun", "rpt_quantumCard", "sukuyo-extreme-t-relationship"]);
 // 클라이언트 출생지 선택의 기본 옵션(index.html #birthCountry 의 대한민국 서울).
 const DEFAULT_PLACE = Object.freeze({ name: "대한민국 (서울)", longitude: 127.0, latitude: 37.6, timezone: "Asia/Seoul", baseTzOffset: 9 });
 const JONG_DECISIONS = new Set(["confirmed", "rejected", "unverified"]);
@@ -47,7 +48,7 @@ const memoryStorage = () => ({ getItem: () => null, setItem() {}, removeItem() {
 
 /**
  * @param {object} input
- * @param {"section_summary"|"section_daewun"|"rpt_quantumCard"} input.featureKey
+ * @param {"section_summary"|"section_daewun"|"rpt_quantumCard"|"sukuyo-extreme-t-relationship"} input.featureKey
  * @param {{calendarDate:string, calType:string, hour:number, minute:number, timeKnown:boolean}} input.birth 원래 달력 날짜와 입력 시각
  * @param {"M"|"F"} input.gender
  * @param {string} [input.name] 화면 이름(HTML 이스케이프한다)
@@ -57,7 +58,7 @@ const memoryStorage = () => ({ getItem: () => null, setItem() {}, removeItem() {
  * @param {"confirmed"|"rejected"|"unverified"} [input.jongDecision] 종격 검증 모달의 답
  * @param {{age:number, gan:string, zhi:string}} [input.daewun] section_daewun 에서 펼친 대운
  * @param {Date} [input.now] 현재 나이·퀀텀 카드의 오늘 간지 기준 시각
- * @returns {{html:string}}
+ * @returns {{html:string, sajuBaseHtml?:string, prescriptionHtml?:string}} 극T 는 관계·연애·현실 패널(html)과 사주 기반 해석·처방전 패널을 따로 돌려준다
  */
 export function buildSajuSectionHtml(input) {
   const featureKey = String(input?.featureKey || "");
@@ -132,6 +133,10 @@ export function buildSajuSectionHtml(input) {
   if (featureKey === "section_summary") {
     rt.renderSummary(p, johu, natal);
     return { html: captured.innerHTML };
+  }
+  if (featureKey === "sukuyo-extreme-t-relationship") {
+    // 화면(renderTTest)과 같은 p·natal·johu 를 넘긴다. 무료 점수·타입은 화면이 직접 그린다.
+    return rt.renderExtremeTPaidPanels(p, natal, johu);
   }
   if (featureKey === "rpt_quantumCard") {
     rt.renderQuantumStrategy(p, natal, bazi);

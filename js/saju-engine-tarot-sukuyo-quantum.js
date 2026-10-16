@@ -4834,72 +4834,6 @@ function renderTTest(p, natal, johu, pw) {
   if(!area || !card) return;
   card.style.display = 'block';
 
-  var tScore = 0;
-  var counts = natal.counts || {wood:0,fire:0,earth:0,metal:0,water:0};
-  var metalScore = counts.metal || 0;
-  tScore += metalScore * 10;
-
-  var baziArr = [p.y.g, p.y.j, p.m.g, p.m.j, p.d.j, p.h.g, p.h.j];
-  var dg = p.d.g;
-  var dayGanInfo = GAN[dg] || {};
-  var dayMasterName = dayGanInfo.n || dg || '일간';
-  var dayElement = dayGanInfo.e || 'earth';
-
-  // 기존 점수식은 유지하고, 이 값들만 조합해서 해석 층을 더 풍부하게 만든다.
-  var gwanCount = 0;
-  for(var i=0; i<baziArr.length; i++) {
-    var tg = getTenGod(dg, baziArr[i]);
-    if(tg==='정관' || tg==='편관') gwanCount++;
-  }
-  tScore += (gwanCount * 15);
-
-  var ssCount = 0;
-  var isMetalEarthSS = false;
-  for(var j=0; j<baziArr.length; j++) {
-    var ssTenGod = getTenGod(dg, baziArr[j]);
-    if(ssTenGod==='식신' || ssTenGod==='상관') {
-      ssCount++;
-      var charObj = GAN[baziArr[j]] || JI[baziArr[j]];
-      if(charObj && (charObj.e === 'metal' || charObj.e === 'earth')) {
-        isMetalEarthSS = true;
-      }
-    }
-  }
-  if(isMetalEarthSS) tScore += 20;
-
-  var isColdDry = false;
-  if(johu && (johu.temp==='Cold' || johu.wet==='Dry' || johu.temp==='Cool')) {
-    isColdDry = true;
-    tScore += 25;
-  }
-
-  var finalScore = Math.min(tScore, 100);
-  var tTier = finalScore >= 80
-    ? '[ WARNING: EMOTION MODULE OFFLINE ]'
-    : finalScore >= 50
-      ? '[ STATUS: COLD STEEL LOGIC ]'
-      : finalScore >= 20
-        ? '[ STATUS: HYBRID PROCESSING ]'
-        : '[ FATAL_ERROR: EXTREME EMPATHY DETECTED ]';
-
-  var EL_NAME_MAP = { wood:'목(木)', fire:'화(火)', earth:'토(土)', metal:'금(金)', water:'수(水)' };
-  var TEMP_LABEL_MAP = { Cold:'차갑게 식은 편', Cool:'차분하게 식어 있는 편', Warm:'따뜻하게 반응하는 편', Hot:'빠르게 달아오르는 편' };
-  var WET_LABEL_MAP = { Dry:'건조하고 단호한 결', Wet:'촉촉하고 감정 흡수가 빠른 결' };
-
-  function pickScoreBand(score) {
-    if(score >= 80) return 'extreme_t';
-    if(score >= 60) return 'logic_first';
-    if(score >= 40) return 'balanced_realist';
-    if(score >= 20) return 'hybrid';
-    return 'empathy_first';
-  }
-
-  function toLevel(value, strongCut, midCut) {
-    if(value >= strongCut) return '강함';
-    if(value >= midCut) return '보통';
-    return '낮음';
-  }
-
   function renderParagraphs(items) {
     return items.map(function(text){
       return '<p class="t-copy-paragraph">' + text + '</p>';
@@ -4992,7 +4926,6 @@ function renderTTest(p, natal, johu, pw) {
     if (builtResult) {
       var stats = builtResult.stats || {};
       var mission = builtResult.mission || { title: _sajuQuantumText("sq_4052_prop_title"), items: [] };
-      var sajuRows = Array.isArray(builtResult.sajuRows) ? builtResult.sajuRows : [];
 
       var missionHtmlFromBuilder = '<section class="t-mission-card">'
         + '<div class="t-mission-title">🧪 ' + mission.title + '</div>'
@@ -5011,45 +4944,15 @@ function renderTTest(p, natal, johu, pw) {
         + '<div class="t-catchphrase">"' + builtResult.catchphrase + '"</div>'
         + '</section>';
 
-      var sajuBaseHtmlFromBuilder = renderSection(
-        '[사주 기반 극T 해석] 논리 회로가 켜지는 이유',
-        '<div class="t-saju-stack">'
-          + sajuRows.map(function(row){
-            return '<div class="t-saju-row"><b>' + row.title + '</b><br>' + row.text + '</div>';
-          }).join('')
-          + '</div>',
-        'rgba(129,140,248,.28)'
-      );
-
       var detailedAnalysisHtmlFromBuilder = renderSection(
         '[장점 스캔] 지금의 당신을 만드는 회로',
         renderParagraphs(builtResult.detailParagraphs || []),
         'rgba(52,211,153,.28)'
       );
-      var relationshipHtmlFromBuilder = renderSection(
-        '[관계 회로] 가까운 사람에게 더 솔직해지는 타입',
-        renderInfoRows(builtResult.relationshipRows || []),
-        'rgba(96,165,250,.28)'
-      );
-      var loveHtmlFromBuilder = renderSection(
-        '[연애 알고리즘] 좋아할수록 더 현실적으로 계산하는 사람',
-        renderInfoRows(builtResult.loveRows || []),
-        'rgba(244,114,182,.28)'
-      );
-      var workMoneyHtmlFromBuilder = renderSection(
-        '[현실 처리 능력] 감정보다 구조를 먼저 보는 생산형 두뇌',
-        renderInfoRows(builtResult.workMoneyRows || []),
-        'rgba(250,204,21,.24)'
-      );
       var fatalBugHtmlFromBuilder = renderSection(
         '[치명적 버그] 가까워질수록 드러나는 오류 패턴',
         renderInfoRows(builtResult.bugRows || []),
         'rgba(248,113,113,.28)'
-      );
-      var prescriptionHtmlFromBuilder = renderSection(
-        '[디버깅 처방전] 바로 써먹는 관계 패치',
-        renderInfoRows(builtResult.prescriptionRows || []),
-        'rgba(251,191,36,.28)'
       );
 
       var summaryCardHtmlFromBuilder = '<section class="t-summary-card">'
@@ -5086,13 +4989,15 @@ function renderTTest(p, natal, johu, pw) {
       builderHtml += '<div class="t-test-item"><div class="t-stat-label">[조후] 냉각/건조 성궁 진법</div><div class="t-val">' + (stats.johuValue || '정지') + '</div></div>';
       builderHtml += '</div>';
       builderHtml += detailedAnalysisHtmlFromBuilder;
+      // 🔴 해금 본문([관계 회로]·[연애 알고리즘]·[현실 처리 능력]·[사주 기반 극T 해석]·[디버깅 처방전])은
+      //    서버(/api/saju/section)가 해금을 확인한 뒤 보낸다. 여기는 자리만 두고 CdSajuSectionClient.loadExtremeT 가 채운다.
       builderHtml += relationshipGateHtmlFromBuilder
         ? '<div class="t-panel-grid">' + relationshipGateHtmlFromBuilder + '</div>'
-        : '<div class="t-panel-grid">' + relationshipHtmlFromBuilder + loveHtmlFromBuilder + workMoneyHtmlFromBuilder + '</div>';
+        : '<div class="t-panel-grid" data-sy-extreme-t-slot="main"></div>';
       builderHtml += '<div class="t-panel-grid t-panel-grid--support">'
-        + (hasExtremeTRelationshipAccess ? sajuBaseHtmlFromBuilder : '')
+        + (hasExtremeTRelationshipAccess ? '<div data-sy-extreme-t-slot="sajuBase" hidden></div>' : '')
         + fatalBugHtmlFromBuilder
-        + (hasExtremeTRelationshipAccess ? prescriptionHtmlFromBuilder : '')
+        + (hasExtremeTRelationshipAccess ? '<div data-sy-extreme-t-slot="prescription" hidden></div>' : '')
         + '</div>';
       builderHtml += missionHtmlFromBuilder;
       builderHtml += summaryCardHtmlFromBuilder;
@@ -5100,9 +5005,19 @@ function renderTTest(p, natal, johu, pw) {
 
       area.innerHTML = builderHtml;
       bindExtremeTRelationshipUnlock(area, [p, natal, johu, pw]);
+      var syncExtremeTHeight = function() {
+        if (typeof syncReportHeightFromNode === 'function') {
+          syncReportHeightFromNode(card);
+          setTimeout(function(){ syncReportHeightFromNode(card); }, 200);
+        }
+      };
       // 결제(또는 결제 복귀) 직후 연 렌더만 보관함에 남긴다 — 평소 열람마다 저장하지 않는다.
-      if (hasExtremeTRelationshipAccess && window.__syExtremeTArchiveNext === true) {
-        window.__syExtremeTArchiveNext = false;
+      // 저장은 서버 본문이 자리에 들어온 뒤에 한다 — 보관함에 해금 패널의 글까지 담기도록.
+      var archiveAfterDelivery = hasExtremeTRelationshipAccess && window.__syExtremeTArchiveNext === true;
+      if (archiveAfterDelivery) window.__syExtremeTArchiveNext = false;
+      var saveExtremeTArchive = function() {
+        if (!archiveAfterDelivery) return;
+        archiveAfterDelivery = false;
         try {
           sySaveSukuyoResultArchive('extreme-t', {
             facts: {
@@ -5120,538 +5035,25 @@ function renderTTest(p, natal, johu, pw) {
             sections: syArchiveCardSections(area, '.t-hero-card, .t-panel, .t-mission-card, .t-summary-card', '.t-panel-title, .t-mission-title, .t-summary-title')
           });
         } catch (_syExtremeTArchiveError) {}
+      };
+      if (hasExtremeTRelationshipAccess) {
+        var sectionClient = window.CdSajuSectionClient;
+        var mainSlot = area.querySelector('[data-sy-extreme-t-slot="main"]');
+        if (sectionClient && typeof sectionClient.loadExtremeT === 'function') {
+          sectionClient.loadExtremeT(area, { onDelivered: function() { saveExtremeTArchive(); syncExtremeTHeight(); } });
+        } else if (mainSlot) {
+          mainSlot.innerHTML = '<p style="grid-column:1/-1;margin:0;color:#cbd5e1;font-size:0.86rem;line-height:1.6;">풀이를 불러오지 못했어요. 새로고침 후 다시 열어 주세요. 결제가 다시 진행되지는 않습니다.</p>';
+        }
       }
       card.style.display = 'block';
-      if (typeof syncReportHeightFromNode === 'function') {
-        syncReportHeightFromNode(card);
-        setTimeout(function(){ syncReportHeightFromNode(card); }, 200);
-      }
+      syncExtremeTHeight();
       return;
     }
   }
 
-  // 점수, 오행, 관성, 식상, 조후를 조합해 각 섹션 문장을 만든다.
-  // 먼저 점수 구간별로 톤 패키지를 분리하고, 그다음 사주 요소를 보정값처럼 얹는다.
-  var scoreBandKey = pickScoreBand(finalScore);
-  var metalLevel = toLevel(metalScore, 3, 1);
-  var gwanLevel = toLevel(gwanCount, 2, 1);
-  var ssLevel = isMetalEarthSS || ssCount >= 2 ? '강함' : (ssCount >= 1 ? '보통' : '낮음');
-  var johuTone = TEMP_LABEL_MAP[(johu && johu.temp) || ''] || (isColdDry ? '차갑고 건조한 편' : '중간 온도');
-  var johuTexture = WET_LABEL_MAP[(johu && johu.wet) || ''] || (isColdDry ? '건조하게 선을 긋는 결' : '과하게 메마르지 않은 결');
-  var metalDriven = metalScore >= 2;
-  var gwanDriven = gwanCount >= 2;
-  var expressiveDriven = isMetalEarthSS || ssCount >= 1;
-  var warmDriven = !isColdDry && finalScore < 60;
-  var dayElementLabel = EL_NAME_MAP[dayElement] || dayElement;
-  var toneRisk = finalScore >= 80 ? '상' : (finalScore >= 40 ? '중' : '중하');
-  var loveDifficulty = finalScore >= 80 ? '높음' : (finalScore >= 60 ? '중상' : (finalScore >= 20 ? '중간' : '낮음'));
-  var emotionSpeed = finalScore >= 60 ? '느리지만 단단한 편' : (finalScore >= 20 ? '상황 따라 다름' : '빠르고 따뜻한 편');
-  var logicTemperature = isColdDry ? '차갑고 선명한 편' : (finalScore >= 60 ? '차분한 냉정형' : '차분하지만 과냉각은 아님');
-  var tContext = {
-    finalScore: finalScore,
-    dayMasterName: dayMasterName,
-    dayElementLabel: dayElementLabel,
-    metalLevel: metalLevel,
-    gwanLevel: gwanLevel,
-    ssLevel: ssLevel,
-    johuTone: johuTone,
-    johuTexture: johuTexture,
-    metalDriven: metalDriven,
-    gwanDriven: gwanDriven,
-    expressiveDriven: expressiveDriven,
-    warmDriven: warmDriven,
-    isColdDry: isColdDry
-  };
-
-  var SCORE_BAND_CONTENT = {
-    empathy_first: {
-      typeName: '말랑공감형 감성 OS',
-      stateMessage: '공감 회로 우세 · 감정 수신 감도 높음',
-      headline: _sajuQuantumText("sq_4202_prop_headline"),
-      catchphrase: function(ctx) {
-        return ctx.isColdDry
-          ? '당신은 기본값이 다정한 사람입니다. 다만 마음을 오래 끌어안다가 지치면 갑자기 차가워질 만큼, 감정의 무게를 깊게 받아들이는 타입입니다.'
-          : '당신은 차갑지 않아서 약한 것이 아니라, 사람의 마음을 먼저 지키도록 설정된 감성형 운영체제에 가깝습니다.';
-      },
-      detailParagraphs: function(ctx) {
-        return [
-          '당신의 판단은 정답보다 먼저 사람의 표정과 분위기를 읽는 쪽에서 시작됩니다. "' + ctx.dayMasterName + '" 일간의 중심은 분명히 있지만, 지금 장면에서 누가 더 힘든지, 어떤 말이 덜 상처가 되는지부터 먼저 살핍니다. 그래서 극T 테스트 안에서도 당신은 냉정형보다 공감 회로가 훨씬 강하게 잡히는 결과로 읽힙니다.',
-          '말투는 직선적으로 꽂아 넣기보다, 상대가 받아들일 수 있는 온도를 먼저 맞추는 편입니다. 조후가 ' + ctx.johuTone + '로 잡혀 있어도 기본 반응은 부드럽고, 식상 흐름이 ' + ctx.ssLevel + '하더라도 표현을 세게 밀기보다 감정을 다치지 않게 전달하려는 경향이 큽니다. 그래서 주변에서는 당신을 "말을 예쁘게 하는 사람" 또는 "편하게 기대게 되는 사람"으로 기억하기 쉽습니다.',
-          '일을 처리할 때도 무조건 느린 것은 아닙니다. 다만 당신은 효율보다 납득, 속도보다 관계를 함께 보려는 사람입니다. 누군가를 도와줄 때도 정답을 툭 던지기보다, 그 사람이 지금 어떤 마음인지 먼저 정리해주려 합니다. 그래서 위로 능력은 뛰어나지만, 현실적으로 끊어야 할 순간까지 오래 안고 가는 일이 생기기도 합니다.',
-          '오해받기 쉬운 지점은 "착해서 판단이 약하다"는 식의 오판입니다. 실제로는 판단이 없는 것이 아니라, 상처를 최소화하는 쪽을 먼저 선택하는 것입니다. 다만 너무 오래 참으면 스스로가 지치고, 그 뒤에 갑자기 냉각되는 반응이 나와 상대도 본인도 놀라게 될 수 있습니다.'
-        ];
-      },
-      relationshipRows: function(ctx) {
-        return [
-          { title:_sajuQuantumText("sq_4218_prop_title"), text:'친구가 힘들다고 하면 원인보다 기분부터 받아줍니다. 그래서 사람들은 당신 앞에서 유난히 마음을 쉽게 풀지만, 정작 당신은 타인의 감정을 오래 떠안아 피곤해질 수 있습니다.' },
-          { title:_sajuQuantumText("sq_4219_prop_title"), text:'좋아하는 사람에게는 티를 크게 안 내도 분위기와 감정을 세심하게 챙깁니다. 다만 상대가 서운할까 봐 싫은 것을 늦게 말해, 오히려 마음이 쌓이는 패턴이 생길 수 있습니다.' },
-          { title:_sajuQuantumText("sq_4220_prop_title"), text:'가족에게는 내 감정보다 집안 분위기를 먼저 생각하는 경우가 많습니다. 그래서 속상해도 넘기다가 한 번 지치면 갑자기 거리를 두는 식의 반응이 나올 수 있습니다.' },
-          { title:_sajuQuantumText("sq_4221_prop_title"), text:'팀에서는 갈등 완충 장치 역할을 잘합니다. 다만 기준을 강하게 세우는 사람 옆에 있으면 본인 의견을 뒤로 미루는 일이 생길 수 있으니, 필요한 순간엔 선명한 말도 연습해야 합니다.' },
-          { title:_sajuQuantumText("sq_4222_prop_title"), text:'상대 기분을 생각해 괜찮다고 넘기지만, 그 말이 반복되면 당신 속마음은 아무도 모르게 됩니다. 따뜻함이 침묵으로 굳어지지 않게 주의할 필요가 있습니다.' },
-          { title:_sajuQuantumText("sq_4223_prop_title"), text:'공감은 이미 충분합니다. 이제는 "나는 이 부분이 힘들어"라는 자기 감정 문장을 한 줄 더하는 것이 관계를 더 건강하게 만듭니다.' }
-        ];
-      },
-      loveRows: function(ctx) {
-        return [
-          { title:_sajuQuantumText("sq_4228_prop_title"), text:'호감이 생기면 배려가 먼저 커집니다. 잘해주고 싶고 편하게 해주고 싶지만, 본인 마음을 선명하게 드러내는 데는 시간이 걸립니다.' },
-          { title:_sajuQuantumText("sq_4229_prop_title"), text:'연락은 성실하고 다정한 편입니다. 다만 상대 리듬에 맞추려다 본인 페이스를 잃으면, 나중에 혼자 지쳐버릴 수 있습니다.' },
-          { title:_sajuQuantumText("sq_4230_prop_title"), text:'서운해도 곧바로 따지기보다 스스로 정리하려고 합니다. 그 과정에서 "내가 예민한가?"를 먼저 의심해 감정을 늦게 꺼낼 가능성이 큽니다.' },
-          { title:_sajuQuantumText("sq_4231_prop_title"), text:'크게 몰아붙이기보다 속으로 오래 앓습니다. 겉으로는 괜찮아 보여도 마음속 로그는 계속 쌓이기 때문에, 나중에 한꺼번에 터질 수 있습니다.' },
-          { title:_sajuQuantumText("sq_4232_prop_title"), text:'함께 있으면 편안하고, 판단받는 느낌이 적습니다. 상대 감정을 세심하게 받아주는 힘이 커서 정서적 안정감을 주는 연애를 합니다.' },
-          { title:_sajuQuantumText("sq_4233_prop_title"), text:'좋고 싫음의 기준이 늦게 드러나서, 상대는 당신 속마음을 읽기 어렵다고 느낄 수 있습니다. 결국 문제는 차가움이 아니라 표현 지연입니다.' },
-          { title:_sajuQuantumText("sq_4234_prop_title"), text:'상대를 배려하는 마음만큼 자기 감정도 같은 비중으로 다뤄주세요. 당신이 솔직해질수록 연애는 더 편안하고 오래 갑니다.' }
-        ];
-      },
-      workMoneyRows: function(ctx) {
-        return [
-          { title:_sajuQuantumText("sq_4239_prop_title"), text:'일에서는 사람을 고려한 조율 능력이 강합니다. 다만 기준보다 분위기를 먼저 보면 본인 에너지가 예상보다 빨리 빠질 수 있습니다.' },
-          { title:_sajuQuantumText("sq_4240_prop_title"), text:'돈도 현실적으로 아예 못 보는 편은 아니지만, 사람 마음이나 상황을 고려하다 지출 기준이 흐려질 수 있습니다. 특히 부탁에 약해질 가능성을 봐야 합니다.' },
-          { title:_sajuQuantumText("sq_4241_prop_title"), text:'위기 때도 감정이 먼저 흔들리기보다, 주변 사람 상태를 먼저 챙기는 쪽으로 움직입니다. 그만큼 본인 회복은 뒤로 밀릴 수 있습니다.' },
-          { title:_sajuQuantumText("sq_4242_prop_title"), text:'결정은 가능하지만 충분히 납득될 때 더 잘 움직입니다. 루틴은 "나를 위한 규칙"보다 "지켜야 하는 약속"이 있을 때 더 강해집니다.' },
-          { title:_sajuQuantumText("sq_4243_prop_title"), text:'이 구간은 계산적으로 보이기보다 오히려 너무 양보하는 쪽이 문제입니다. 손해를 봐도 티를 늦게 내는 습관이 더 큰 리스크가 됩니다.' }
-        ];
-      },
-      bugRows: function(ctx) {
-        return [
-          { title:_sajuQuantumText("sq_4248_prop_title"), text:'남의 감정은 잘 읽는데 자기 감정은 늦게 번역합니다. 그래서 괜찮다고 넘긴 뒤 뒤늦게 지치는 일이 생깁니다.' },
-          { title:_sajuQuantumText("sq_4249_prop_title"), text:'평소엔 거의 없지만, 참을 만큼 참은 뒤에는 갑자기 말이 짧아지고 차가워질 수 있습니다. 상대는 온도차 때문에 더 놀라게 됩니다.' },
-          { title:_sajuQuantumText("sq_4250_prop_title"), text:'상대 입장까지 다 고려하느라 결정이 늦어질 수 있습니다. 모두를 덜 다치게 하려다 오히려 본인만 지치는 패턴입니다.' },
-          { title:_sajuQuantumText("sq_4251_prop_title"), text:'공감은 충분하지만 자기 감정을 설명하는 타이밍이 자주 누락됩니다. 당신 마음이 빠지면 관계는 한쪽만 편안해집니다.' },
-          { title:_sajuQuantumText("sq_4252_prop_title"), text:'상대를 배려하느라 "내가 그냥 참자"로 결론 내릴 수 있습니다. 이 결론은 조용하지만 오래 가는 피로를 남깁니다.' }
-        ];
-      },
-      prescriptionRows: function(ctx) {
-        return [
-          { title:_sajuQuantumText("sq_4257_prop_title"), text:'오늘 한 번만 "괜찮아" 대신 "나는 이 부분이 조금 걸려"라고 말해보세요. 당신의 감정도 같은 무게로 다뤄져야 합니다.' },
-          { title:_sajuQuantumText("sq_4258_prop_title"), text:'상대 입장만 정리하지 말고, 내 입장도 한 문장으로 붙이세요. 배려가 자기 소거로 이어지면 관계 균형이 무너집니다.' },
-          { title:_sajuQuantumText("sq_4259_prop_title"), text:'서운함이 생기면 참다가 식지 말고, "나는 이런 상황에서 불안해져"라고 감정 언어로 먼저 설명하세요.' },
-          { title:_sajuQuantumText("sq_4260_prop_title"), text:'도와주기 전에 내 시간과 에너지를 먼저 확인하세요. 당신의 친절은 기준이 있을 때 더 오래 갑니다.' },
-          { title:_sajuQuantumText("sq_4261_prop_title"), text:'감정이 과하게 쌓이면 바로 결정하지 말고, 지금 내 기분을 세 줄로 적어보세요. 당신은 감정을 글로 정리할 때 스스로를 더 잘 지킬 수 있습니다.' }
-        ];
-      },
-      mission: { title:_sajuQuantumText("sq_4264_prop_title"), items:['오늘 한 번은 괜찮다는 말 대신 내 기분을 정확히 말하기', '부탁 하나에는 바로 답하지 말고 생각할 시간을 두기', '감정 소모가 큰 대화 뒤에는 혼자 회복 시간 10분 확보'] },
-      summaryTip: '내 감정도 상대 감정만큼 같은 무게로 말하기.',
-      summaryMood: '따뜻하지만 쉽게 지치는 편'
-    },
-    hybrid: {
-      typeName: '듀얼 코어 해석자',
-      stateMessage: '이성/감성 병렬 처리 · 내부 회의 많음',
-      headline: _sajuQuantumText("sq_4271_prop_headline"),
-      catchphrase: function(ctx) {
-        return ctx.warmDriven
-          ? '당신은 공감도 하고 분석도 합니다. 다만 두 회로가 동시에 돌아가서, 남들은 모르게 속으로 더 많은 생각을 하는 사람입니다.'
-          : '당신은 겉으로는 유연해 보여도 중요한 순간에는 팩트를 놓치지 않는, 은근히 강한 듀얼 코어 타입입니다.';
-      },
-      detailParagraphs: function(ctx) {
-        return [
-          '이 구간의 당신은 극T라기보다 "공감과 판단이 같이 돌아가는 사람"에 가깝습니다. 누가 힘들다고 말하면 마음도 움직이지만, 동시에 왜 이런 일이 생겼는지 구조도 함께 봅니다. 그래서 반응이 얕은 것이 아니라 오히려 처리해야 할 정보가 많아 속이 더 바쁘게 돌아갑니다.',
-          '말투는 장면에 따라 꽤 달라집니다. 평소에는 부드럽고 유연한데, 기준이 필요한 순간에는 갑자기 핵심을 정확히 짚습니다. 식상 흐름이 ' + ctx.ssLevel + '하고 금 기운이 ' + ctx.metalLevel + '하게 작동하면 "생각보다 팩트형"이라는 말을 듣기 쉽고, 반대로 조후가 ' + ctx.johuTone + '이더라도 정이 없는 사람처럼 보이지는 않습니다.',
-          '일을 처리할 때는 사람과 현실을 둘 다 놓치고 싶지 않아 내부 회의가 길어지기도 합니다. 다만 한번 방향이 정리되면 실행력은 꽤 괜찮고, 누군가를 도와줄 때도 위로만 하지 않고 실질적인 기준을 곁들일 줄 압니다. 그래서 상대는 당신에게 안정감과 해설 둘 다를 기대하게 됩니다.',
-          '오해받는 포인트는 애매함입니다. 당신은 우유부단해서가 아니라, 이성과 감성 모두를 만족시키고 싶어서 판단이 늦어질 수 있습니다. 결국 이 구간의 핵심 과제는 "좋은 사람"과 "분명한 사람"을 동시에 가져가는 연습입니다.'
-        ];
-      },
-      relationshipRows: function(ctx) {
-        return [
-          { title:_sajuQuantumText("sq_4287_prop_title"), text:'친구 입장에서는 가장 만능형에 가깝습니다. 위로도 해주고, 필요할 때는 현실적인 조언도 주기 때문에 오래 찾게 되는 사람입니다.' },
-          { title:_sajuQuantumText("sq_4288_prop_title"), text:'감정이 커질수록 더 가볍게 굴지 않으려 합니다. 그래서 표현은 느려질 수 있지만, 함부로 대하지 않는다는 점에서 신뢰를 줍니다.' },
-          { title:_sajuQuantumText("sq_4289_prop_title"), text:'가족에게는 감정적으로 받아주다가도 생활 습관, 돈, 건강 문제에서는 의외로 현실적인 말을 꺼냅니다. 그래서 다정한데도 한마디는 세다는 인상을 줄 수 있습니다.' },
-          { title:_sajuQuantumText("sq_4290_prop_title"), text:'팀에서는 분위기를 깨지 않으면서도 기준을 세울 줄 압니다. 다만 모두를 만족시키려다 본인 판단을 늦추면 리더십이 흐려질 수 있습니다.' },
-          { title:_sajuQuantumText("sq_4291_prop_title"), text:'"이해는 하는데" 뒤에 현실 판단이 바로 붙으면 상대는 앞 문장을 거의 못 듣습니다. 순서를 조금만 바꾸면 훨씬 부드럽게 전달됩니다.' },
-          { title:_sajuQuantumText("sq_4292_prop_title"), text:'이성과 감성 둘 다 챙기려 할수록 답이 늦어질 수 있습니다. 지금 장면에서 먼저 필요한 것이 공감인지 판단인지 하나만 먼저 정하면 훨씬 매끄러워집니다.' }
-        ];
-      },
-      loveRows: function(ctx) {
-        return [
-          { title:_sajuQuantumText("sq_4297_prop_title"), text:'편안하게 대해주면서도 속으로는 상대 반응을 세심하게 살핍니다. 마음이 커질수록 감정도 보지만 현실성 체크도 같이 늘어납니다.' },
-          { title:_sajuQuantumText("sq_4298_prop_title"), text:'연락은 감정형처럼 완전히 흘러가지도, T형처럼 기능적이지도 않습니다. 다정함과 효율이 섞여 있어 답장 톤이 상황 따라 달라질 수 있습니다.' },
-          { title:_sajuQuantumText("sq_4299_prop_title"), text:'서운함이 생기면 바로 터뜨리기보다 해석을 먼저 합니다. 그래서 말을 꺼내는 데 시간이 걸리고, 그 사이 상대는 당신 마음을 헷갈릴 수 있습니다.' },
-          { title:_sajuQuantumText("sq_4300_prop_title"), text:'싸울 때도 감정만 밀어붙이지 않고 왜 이런 패턴이 반복되는지 보려 합니다. 다만 너무 중간 지점을 찾다 보면 결정적인 문제를 흐릴 수 있습니다.' },
-          { title:_sajuQuantumText("sq_4301_prop_title"), text:'함께 있으면 차갑지 않은데, 필요할 때는 똑똑하게 정리해주는 안정감이 있습니다. 관계를 가볍게 소비하지 않는다는 신뢰도 큽니다.' },
-          { title:_sajuQuantumText("sq_4302_prop_title"), text:'속으로 생각이 많아 반응이 늦을 수 있고, 뚜렷한 입장을 바로 안 보여 답답하게 느껴질 수 있습니다.' },
-          { title:_sajuQuantumText("sq_4303_prop_title"), text:'모든 걸 한 번에 맞추려 하지 말고, 지금은 공감 모드인지 판단 모드인지 먼저 정하세요. 그 구분만 있어도 연애 피로가 훨씬 줄어듭니다.' }
-        ];
-      },
-      workMoneyRows: function(ctx) {
-        return [
-          { title:_sajuQuantumText("sq_4308_prop_title"), text:'일에서는 해석력과 조율력이 같이 작동합니다. 문제를 풀면서도 사람 반응을 고려하기 때문에, 혼자 하는 일보다 협업에서 강점이 잘 드러납니다.' },
-          { title:_sajuQuantumText("sq_4309_prop_title"), text:'돈은 현실적으로 보려고 하지만, 완전 냉정하게만 굴지는 않습니다. 가치 있는 소비와 정서적 소비 사이에서 나름의 기준을 만들 필요가 있습니다.' },
-          { title:_sajuQuantumText("sq_4310_prop_title"), text:'위기 상황에서는 생각이 많아지지만 쉽게 무너지지는 않습니다. 상황 파악과 정서 조절을 동시에 하려 하기 때문에 초반 반응이 약간 느릴 수 있습니다.' },
-          { title:_sajuQuantumText("sq_4311_prop_title"), text:'결정은 늦을 수 있어도 한 번 정하면 꽤 단단히 갑니다. 루틴은 "왜 이걸 해야 하는지"가 납득될 때 더 오래 유지됩니다.' },
-          { title:_sajuQuantumText("sq_4312_prop_title"), text:'이 구간의 문제는 계산적임보다 애매함입니다. 모두를 반영하려다 명확한 메시지가 늦어지는 것이 더 큰 리스크입니다.' }
-        ];
-      },
-      bugRows: function(ctx) {
-        return [
-          { title:_sajuQuantumText("sq_4317_prop_title"), text:'상대 마음도 이해하고 문제도 보이는데, 어느 쪽부터 말해야 할지 망설이다 타이밍을 놓칠 수 있습니다.' },
-          { title:_sajuQuantumText("sq_4318_prop_title"), text:'평소엔 부드럽지만 기준을 세워야 할 순간에는 말이 갑자기 딱딱해질 수 있습니다. 이 온도차가 상대를 당황하게 만듭니다.' },
-          { title:_sajuQuantumText("sq_4319_prop_title"), text:'공감과 현실을 동시에 만족시키려다 내부 회의가 길어집니다. 그래서 결정 미루기가 반복되면 스스로도 피곤해집니다.' },
-          { title:_sajuQuantumText("sq_4320_prop_title"), text:'공감 능력은 있지만, 설명과 공감이 동시에 나오다 보니 상대가 감정을 충분히 받았다고 느끼지 못할 수 있습니다.' },
-          { title:_sajuQuantumText("sq_4321_prop_title"), text:'혼자 생각을 많이 정리한 뒤 말하기 때문에, 상대는 당신의 중간 과정을 몰라 갑자기 결론만 통보받는 느낌을 받을 수 있습니다.' }
-        ];
-      },
-      prescriptionRows: function(ctx) {
-        return [
-          { title:_sajuQuantumText("sq_4326_prop_title"), text:'오늘 미뤄둔 결정 하나에 마감 시간을 붙이세요. 생각의 품질보다 실행 시점을 정하는 것이 지금의 당신에게 더 큰 디버깅입니다.' },
-          { title:_sajuQuantumText("sq_4327_prop_title"), text:'공감과 판단을 한 문장에 같이 넣지 말고 순서를 분리하세요. 먼저 받아주고, 그다음 정리하면 훨씬 전달력이 좋아집니다.' },
-          { title:_sajuQuantumText("sq_4328_prop_title"), text:'서운함이 생기면 혼자 결론 내리기 전에 "나는 지금 생각이 많아졌어"라고 먼저 알려주세요. 상대는 당신의 침묵을 덜 불안하게 느낍니다.' },
-          { title:_sajuQuantumText("sq_4329_prop_title"), text:'회의나 협업에서는 내 기준을 한 줄로 먼저 말한 뒤 조율을 시작하세요. 당신의 장점은 조율력이지 자기 기준 소거가 아닙니다.' },
-          { title:_sajuQuantumText("sq_4330_prop_title"), text:'지금 장면에서 가장 중요한 한 가지를 적어보세요. 모든 요소를 한 번에 만족시키려는 압박을 줄이는 것이 핵심입니다.' }
-        ];
-      },
-      mission: { title:_sajuQuantumText("sq_4333_prop_title"), items:['감정/논리 중 오늘의 우선 모드 하나 고정', '결정 지연 과제 1건은 데드라인 설정', '좋은 판단 1건을 자기 피드백으로 기록'] },
-      summaryTip: '공감과 판단을 한 문장에 동시에 넣지 않기.',
-      summaryMood: '따뜻하지만 속으로 계산이 많은 편'
-    },
-    balanced_realist: {
-      typeName: '현실형 팩트 밸런서',
-      stateMessage: '공감과 현실 판단 균형 · 상황 적응형',
-      headline: _sajuQuantumText("sq_4340_prop_headline"),
-      catchphrase: function(ctx) {
-        return ctx.expressiveDriven
-          ? '당신은 부드럽게 웃고 있어도 속에서는 이미 사실, 우선순위, 손해 여부를 동시에 정리하고 있는 사람입니다.'
-          : '당신은 감정에 휩쓸리지 않으면서도 사람을 놓치지 않으려는, 현실 감각 있는 밸런서에 가깝습니다.';
-      },
-      detailParagraphs: function(ctx) {
-        return [
-          '이 구간의 당신은 T처럼 보일 때도 있고 F처럼 보일 때도 있습니다. 하지만 핵심은 둘 중 하나가 아니라, 장면에 따라 가장 필요한 쪽으로 회로를 옮길 줄 안다는 점입니다. 누군가 힘들어하면 공감부터 해줄 수 있고, 일이 꼬이면 빠르게 구조를 세울 수도 있습니다.',
-          '말투는 지나치게 차갑지도, 지나치게 감정적이지도 않은 편입니다. 금 기운이 ' + ctx.metalLevel + '하게 작동하면 정리력이 살아나고, 관성 기운이 ' + ctx.gwanLevel + '하면 기준을 세우는 힘도 분명해집니다. 그래서 사람들은 당신을 "선 넘지 않으면서도 현실적인 사람"으로 읽기 쉽습니다.',
-          '일 처리 방식도 안정적입니다. 공감에만 머무르지 않고 실제 해결로 연결하는 힘이 있고, 반대로 효율만 밀어붙이지도 않습니다. 가까운 사람을 도와줄 때도 무작정 감싸거나 무작정 잘라내기보다, 상황과 사람 둘 다 살리는 쪽을 택하려 합니다.',
-          '오해받기 쉬운 부분은 일관성보다 유연성입니다. 어떤 날은 따뜻하고 어떤 날은 딱 잘라 말할 수 있어, 상대는 가끔 "도대체 어느 쪽이 진짜지?"라고 느낄 수 있습니다. 하지만 그건 가면이 아니라 상황 판단력이 살아 있다는 뜻입니다.'
-        ];
-      },
-      relationshipRows: function(ctx) {
-        return [
-          { title:_sajuQuantumText("sq_4356_prop_title"), text:'친구들 사이에서는 정리자이자 중재자 역할을 자주 맡습니다. 한쪽 편만 들기보다 전체 그림을 보며 분위기를 정리하는 능력이 좋습니다.' },
-          { title:_sajuQuantumText("sq_4357_prop_title"), text:'좋아하는 사람에게는 다정하지만, 관계의 현실성도 함께 봅니다. 그래서 설렘만으로 달리지 않고 오래 갈 수 있는지를 같이 체크합니다.' },
-          { title:_sajuQuantumText("sq_4358_prop_title"), text:'가족에게도 마음은 따뜻하지만, 반복되는 문제는 그냥 넘기지 않습니다. 그래서 챙김과 잔소리 사이를 오가는 인상으로 읽힐 수 있습니다.' },
-          { title:_sajuQuantumText("sq_4359_prop_title"), text:'팀에서는 감정 정리와 실무 정리를 동시에 할 수 있어 유용한 사람으로 보입니다. 다만 모두를 잘 맞추려다 본인 피로가 누적될 수 있습니다.' },
-          { title:_sajuQuantumText("sq_4360_prop_title"), text:'완곡하게 말해도 결론이 분명한 편이라, 듣는 사람은 생각보다 세게 받아들일 수 있습니다. 톤보다 내용의 직선성을 점검할 필요가 있습니다.' },
-          { title:_sajuQuantumText("sq_4361_prop_title"), text:'당신은 이미 균형이 좋은 편입니다. 다만 상황 적응이 빠른 만큼, 내 기준을 한 번 더 말해줘야 상대가 당신을 더 안정적으로 이해합니다.' }
-        ];
-      },
-      loveRows: function(ctx) {
-        return [
-          { title:_sajuQuantumText("sq_4366_prop_title"), text:'호감이 생기면 감정 표현도 하지만, 관계가 현실적으로 건강한지도 함께 봅니다. 그래서 설레면서도 쉽게 무너지지 않는 연애를 지향합니다.' },
-          { title:_sajuQuantumText("sq_4367_prop_title"), text:'연락은 적당히 따뜻하고 적당히 실용적입니다. 필요한 때는 센스 있게 챙기고, 의미 없는 소모전에는 잘 안 빠집니다.' },
-          { title:_sajuQuantumText("sq_4368_prop_title"), text:'서운함이 생기면 바로 감정으로만 반응하지 않고, 왜 그런지 해석하려 합니다. 덕분에 대화는 비교적 성숙하지만 감정의 생생함은 살짝 늦게 나올 수 있습니다.' },
-          { title:_sajuQuantumText("sq_4369_prop_title"), text:'싸울 때도 문제 해결과 관계 유지 두 축을 같이 봅니다. 그래서 감정이 폭주하기보다, 무엇을 조정해야 하는지 찾는 방향으로 흘러가기 쉽습니다.' },
-          { title:_sajuQuantumText("sq_4370_prop_title"), text:'함께 있을 때 편안한데도 흐트러지지 않는 안정감이 있습니다. 감정만 있는 사람도 아니고, 차갑기만 한 사람도 아니라 오래 만날수록 신뢰가 커집니다.' },
-          { title:_sajuQuantumText("sq_4371_prop_title"), text:'생각보다 현실 감각이 분명해서, 마냥 로맨틱한 흐름만 기대한 상대에게는 "의외로 냉정하다"는 인상을 줄 수 있습니다.' },
-          { title:_sajuQuantumText("sq_4372_prop_title"), text:'지금처럼 균형감은 큰 장점입니다. 다만 관계가 애매해질 때는 너무 잘 조율하려 하기보다, 내 마음의 방향을 조금 더 선명하게 말해주는 편이 좋습니다.' }
-        ];
-      },
-      workMoneyRows: function(ctx) {
-        return [
-          { title:_sajuQuantumText("sq_4377_prop_title"), text:'현실 판단과 협업 감각이 모두 좋아 실무형 밸런서로 강합니다. 감정 소모 없이도 사람을 불편하게 만들지 않는 편이라 조직 적응력이 좋습니다.' },
-          { title:_sajuQuantumText("sq_4378_prop_title"), text:'돈은 감정 소비보다 기준을 세우는 편에 가깝습니다. 다만 너무 빡빡하게 조이지 않아, 필요한 곳에는 잘 쓰는 현실형 소비 패턴으로 읽힙니다.' },
-          { title:_sajuQuantumText("sq_4379_prop_title"), text:'위기가 오면 감정에 휩쓸리지 않고 우선순위를 세웁니다. 동시에 사람 상태도 보기 때문에, 수습 과정에서 신뢰를 얻기 쉽습니다.' },
-          { title:_sajuQuantumText("sq_4380_prop_title"), text:'결정은 무난하게 안정적이고, 루틴도 지나치게 경직되지 않게 유지합니다. 꾸준함과 유연함을 같이 가져갈 수 있는 편입니다.' },
-          { title:_sajuQuantumText("sq_4381_prop_title"), text:'균형이 좋을수록 때로는 계산적으로 보이기보다 "감정선이 분명하진 않다"는 인상을 줄 수 있습니다. 그래서 진심 표현을 살짝 더해주면 더 좋습니다.' }
-        ];
-      },
-      bugRows: function(ctx) {
-        return [
-          { title:_sajuQuantumText("sq_4386_prop_title"), text:'감정은 이해하지만, 때로는 너무 빠르게 정리하려 들어 상대가 "내 기분이 충분히 머물지 못했다"고 느낄 수 있습니다.' },
-          { title:_sajuQuantumText("sq_4387_prop_title"), text:'극단적으로 차갑진 않지만, 기준을 세워야 할 장면에서는 문장이 예상보다 딱 떨어질 수 있습니다.' },
-          { title:_sajuQuantumText("sq_4388_prop_title"), text:'기본적으로는 안정적이지만, 모두에게 무난한 답을 찾으려다 선택이 늦어질 수 있습니다.' },
-          { title:_sajuQuantumText("sq_4389_prop_title"), text:'공감은 있으나 짧게 지나가고 바로 정리 단계로 넘어갈 수 있습니다. 상대가 정서적으로는 덜 받아들여졌다고 느낄 수 있습니다.' },
-          { title:_sajuQuantumText("sq_4390_prop_title"), text:'상황 판단이 빠른 편이라, 속으로는 이미 방향을 정했는데 대화는 아직 그 단계에 못 온 경우가 있습니다.' }
-        ];
-      },
-      prescriptionRows: function(ctx) {
-        return [
-          { title:_sajuQuantumText("sq_4395_prop_title"), text:'오늘 한 번은 결론을 말하기 전에 "이 부분에서 네가 어떤 기분이었는지 알 것 같아"를 먼저 붙여보세요.' },
-          { title:_sajuQuantumText("sq_4396_prop_title"), text:'너무 빨리 정리해주려 하지 마세요. 당신의 해석력은 이미 충분하니, 감정이 머무를 틈을 조금만 더 주면 훨씬 좋습니다.' },
-          { title:_sajuQuantumText("sq_4397_prop_title"), text:'상대가 서운함을 말할 때 해결책보다 "그럴 만했어"를 먼저 주면, 당신의 현실 감각이 더 따뜻하게 받아들여집니다.' },
-          { title:_sajuQuantumText("sq_4398_prop_title"), text:'중간 조율을 잘하는 만큼, 최종 결론도 명확히 말해주는 연습이 필요합니다. 균형감이 리더십으로 이어지는 지점입니다.' },
-          { title:_sajuQuantumText("sq_4399_prop_title"), text:'사람과 현실을 동시에 챙기느라 피곤해지면, 지금 당장 내가 책임질 것과 아닌 것을 구분해서 적어보세요.' }
-        ];
-      },
-      mission: { title:_sajuQuantumText("sq_4402_prop_title"), items:['오늘 대화 1회는 공감 후 결론 순서로 말하기', '미뤄둔 현실 체크 1건을 오늘 안에 정리하기', '내 입장을 한 문장으로 먼저 말해보기'] },
-      summaryTip: '공감 뒤에 결론을 두는 순서 지키기.',
-      summaryMood: '차분하지만 과냉각은 아닌 편'
-    },
-    logic_first: {
-      typeName: '냉정한 문제 해결자',
-      stateMessage: '논리 우선형 · 효율/팩트 체크 강함',
-      headline: _sajuQuantumText("sq_4409_prop_headline"),
-      catchphrase: function(ctx) {
-        return ctx.gwanDriven
-          ? '당신은 아무 말 없이 지나치지 않습니다. 기준이 무너질 것 같으면, 관계가 어색해져도 현실적인 답을 먼저 꺼내는 사람입니다.'
-          : '당신은 따뜻함이 없는 사람이 아니라, 소중한 것을 망치지 않으려고 가장 안전한 결론부터 찾는 사람입니다.';
-      },
-      detailParagraphs: function(ctx) {
-        return [
-          '이 구간의 당신은 감정이 없는 사람이 아니라, 문제를 봤을 때 해결 회로가 먼저 켜지는 사람입니다. 누가 힘들다고 하면 왜 그런지, 어디서 끊을 수 있는지, 지금 제일 효율적인 길이 무엇인지부터 빠르게 스캔합니다. 그래서 위기 상황에서는 유난히 강한 쪽으로 드러납니다.',
-          '말투는 대체로 명확하고 군더더기가 적습니다. 금 기운이 ' + ctx.metalLevel + '하고 관성 흐름이 ' + ctx.gwanLevel + '하면 특히 더 그렇습니다. 당신은 말을 세게 하려는 것이 아니라, 애매한 상태를 오래 두지 않으려는 편입니다. 하지만 상대는 그 빠른 정리력을 차가움으로 느낄 수 있습니다.',
-          '일 처리 능력은 확실한 강점입니다. 문제의 핵심을 빨리 찾고, 해야 할 것과 버릴 것을 빠르게 나누며, 쓸데없는 감정 소모를 줄이는 데 능합니다. 누군가를 도와줄 때도 실질적인 기준과 해결책을 건네기 때문에, 곁에 있으면 믿음직하다는 평을 듣기 쉽습니다.',
-          '오해받는 지점은 "냉정함"보다 "순서"입니다. 당신은 상대를 무시해서 해결책을 먼저 말하는 것이 아니라, 빨리 수습해주고 싶은 마음이 논리 쪽으로 발현되는 것입니다. 다만 감정이 아직 한가운데 있는 사람에게는 그 선의가 바로 전달되지 않을 수 있습니다.'
-        ];
-      },
-      relationshipRows: function(ctx) {
-        return [
-          { title:_sajuQuantumText("sq_4425_prop_title"), text:'친구가 힘들다고 하면 위로만 하기보다 왜 반복되는지와 어디서 끊어야 하는지부터 짚어줍니다. 그래서 진짜 도움은 되지만, 타이밍이 어긋나면 차갑게 들릴 수 있습니다.' },
-          { title:_sajuQuantumText("sq_4426_prop_title"), text:'감정이 커질수록 더 신중해지고, 관계를 망치지 않으려 현실 체크를 많이 합니다. 그래서 표현은 느릴 수 있어도 관계를 가볍게 다루지는 않습니다.' },
-          { title:_sajuQuantumText("sq_4427_prop_title"), text:'가족에게는 책임감이 강해서 생활, 돈, 건강 문제를 그냥 지나치지 못합니다. 당신은 걱정이지만, 듣는 사람은 잔소리나 통제로 느낄 수 있습니다.' },
-          { title:_sajuQuantumText("sq_4428_prop_title"), text:'팀에서는 역할, 마감, 우선순위를 선명하게 보며 수습 능력도 좋습니다. 덕분에 신뢰를 얻지만, 속도가 빠를수록 상대 의견을 덜 들었다는 인상도 생길 수 있습니다.' },
-          { title:_sajuQuantumText("sq_4429_prop_title"), text:'"그래서 결론이 뭐야", "그건 비효율적이야", "애초에 그렇게 하면 안 됐어" 같은 문장은 당신에게는 정리지만, 상대에게는 감정 차단처럼 들릴 수 있습니다.' },
-          { title:_sajuQuantumText("sq_4430_prop_title"), text:'해결 능력은 이미 충분합니다. 이제는 결론 전에 감정 확인 한 문장만 붙이면, 같은 말도 훨씬 덜 차갑고 더 신뢰감 있게 전달됩니다.' }
-        ];
-      },
-      loveRows: function(ctx) {
-        return [
-          { title:_sajuQuantumText("sq_4435_prop_title"), text:'호감이 생길수록 더 가볍게 굴지 않습니다. 마음이 커질수록 말과 행동을 더 신중히 고르고, 괜한 기대를 주지 않으려 현실적인 태도를 유지합니다.' },
-          { title:_sajuQuantumText("sq_4436_prop_title"), text:'연락은 의미 없이 길게 끌기보다 내용이 분명한 쪽을 선호합니다. 필요한 순간 챙김은 분명하지만, 감정적인 잡담만 오래 이어가는 건 피로하게 느낄 수 있습니다.' },
-          { title:_sajuQuantumText("sq_4437_prop_title"), text:'서운하면 바로 울컥하기보다 왜 서운했는지 내부 정리부터 합니다. 그래서 말이 늦어지고, 그 사이 상대는 갑자기 차가워졌다고 느낄 수 있습니다.' },
-          { title:_sajuQuantumText("sq_4438_prop_title"), text:'말다툼이 시작되면 감정전보다 반복 패턴, 원인, 해결 조건을 먼저 찾습니다. 그래서 싸움이 보고서처럼 흘러가 상대가 심문받는 느낌을 받을 수 있습니다.' },
-          { title:_sajuQuantumText("sq_4439_prop_title"), text:'흔들리지 않고, 말한 것을 행동으로 옮기는 신뢰감이 큽니다. 연애를 운영의 문제로도 보기 때문에 막상 만나면 생각보다 든든하고 책임감 있다는 인상을 줍니다.' },
-          { title:_sajuQuantumText("sq_4440_prop_title"), text:'마음을 표현하기 전에 정리부터 해서 거리감 있게 보일 수 있습니다. 특히 과열된 감정을 바로 받아주지 않으면 "나보다 문제 해결이 더 중요하나?"라는 오해를 만들 수 있습니다.' },
-          { title:_sajuQuantumText("sq_4441_prop_title"), text:'당신의 논리는 충분히 매력적입니다. 다만 그 논리가 사랑으로 전달되려면, 먼저 "나는 네 편이야"라는 감정 문장이 앞에 와야 합니다.' }
-        ];
-      },
-      workMoneyRows: function(ctx) {
-        return [
-          { title:_sajuQuantumText("sq_4446_prop_title"), text:'일할 때는 감정보다 구조를 먼저 봅니다. 순서, 기준, 리스크, 반복 오류를 빨리 읽어내기 때문에 엉킨 일을 정리하는 역할에 강합니다.' },
-          { title:_sajuQuantumText("sq_4447_prop_title"), text:'돈은 기분보다 구조로 관리하려는 편입니다. "지금 좋다"보다 "지속 가능한가"를 먼저 따져, 소비에도 나름의 기준과 선이 분명합니다.' },
-          { title:_sajuQuantumText("sq_4448_prop_title"), text:'위기 상황일수록 오히려 더 또렷해집니다. 감정 소음을 줄이고 수습 순서를 짜는 능력이 강해, 남들이 흔들릴 때 중심축 역할을 하기 쉽습니다.' },
-          { title:_sajuQuantumText("sq_4449_prop_title"), text:'결정은 느려 보여도 기준이 잡히면 빠릅니다. 루틴과 계획도 한 번 설정하면 쉽게 무너지지 않아 장기전에서 강합니다.' },
-          { title:_sajuQuantumText("sq_4450_prop_title"), text:'당신은 계산만 하는 사람이 아니라 손해를 줄이는 사람에 가깝습니다. 다만 감정이 섞인 자리에서도 효율 언어를 그대로 쓰면, 배려보다 계산이 먼저인 사람처럼 보일 수 있습니다.' }
-        ];
-      },
-      bugRows: function(ctx) {
-        return [
-          { title:_sajuQuantumText("sq_4455_prop_title"), text:'상대의 "속상해"를 감정 신호보다 문제 제기로 받아들여, 공감보다 원인 분석 단계로 먼저 넘어갈 가능성이 큽니다.' },
-          { title:_sajuQuantumText("sq_4456_prop_title"), text:'금 기운이 살아 있고 논리 회로가 빨라질수록 문장은 짧고 선명해집니다. 문제는 그 선명함이 피곤한 날에는 칼날처럼 들릴 수 있다는 점입니다.' },
-          { title:_sajuQuantumText("sq_4457_prop_title"), text:'빠른 결론형처럼 보여도, 속에서는 이미 여러 경우의 수를 오래 돌렸을 수 있습니다. 그래서 확신 없는 장면에서는 오히려 더 깊게 파고듭니다.' },
-          { title:_sajuQuantumText("sq_4458_prop_title"), text:'공감 능력이 없는 것이 아니라, 말의 순서에서 밀리는 것입니다. 한마디만 먼저 붙였어도 덜 차가웠을 장면이 많습니다.' },
-          { title:_sajuQuantumText("sq_4459_prop_title"), text:'책임감과 기준 의식이 강할수록 "내가 정리해야 한다"는 압박으로 혼자 판단을 완료할 수 있습니다. 그 결과 상대는 대화에서 이미 배제됐다고 느낄 수 있습니다.' }
-        ];
-      },
-      prescriptionRows: function(ctx) {
-        return [
-          { title:_sajuQuantumText("sq_4464_prop_title"), text:'대화 한 번만이라도 해결책보다 "그때 많이 답답했겠다"를 먼저 붙이세요. 당신의 논리는 그 한 문장 뒤에 나올 때 훨씬 덜 차갑고 더 설득력 있어집니다.' },
-          { title:_sajuQuantumText("sq_4465_prop_title"), text:'"그래서", "근데", "현실적으로"를 문장 첫머리에 바로 올리지 마세요. 먼저 상대 감정이나 의도를 한 줄로 받아주면 같은 내용도 훨씬 부드럽게 전해집니다.' },
-          { title:_sajuQuantumText("sq_4466_prop_title"), text:'서운할 때는 분석을 시작하기 전에 "나는 지금 서운해서 말이 차가워질 수 있어"라고 먼저 알려주세요. 그 한마디가 상대를 방어 모드로 보내지 않게 해줍니다.' },
-          { title:_sajuQuantumText("sq_4467_prop_title"), text:'지적이나 수정 요청을 할 때는 기준만 말하지 말고, "이렇게 하면 더 좋아진다"는 방향까지 함께 주세요. 당신의 냉정함이 신뢰로 남는 방식입니다.' },
-          { title:_sajuQuantumText("sq_4468_prop_title"), text:'마음이 메마른 느낌이 들면 바로 결론 내리지 말고, 물 한 잔과 10분 호흡 뒤에 다시 판단하세요. 건조한 상태의 논리는 정확해 보여도 관계를 더 차갑게 만들 수 있습니다.' }
-        ];
-      },
-      mission: { title:_sajuQuantumText("sq_4471_prop_title"), items:['팩트 2개 + 배려 문장 1개 조합으로 말하기', '불필요한 논쟁 1건 스킵해 에너지 절약', '피로 누적 시 10분 산책 후 의사결정'] },
-      summaryTip: '결론보다 공감 한 문장을 먼저 두기.',
-      summaryMood: '차분한 냉정형'
-    },
-    extreme_t: {
-      typeName: '빙결 논리 절대자',
-      stateMessage: '극T 고농도 · 감정도 분석 대상으로 처리',
-      headline: _sajuQuantumText("sq_4478_prop_headline"),
-      catchphrase: function(ctx) {
-        return ctx.metalDriven
-          ? '당신은 차갑게 보이지만, 사실은 무너진 상황을 가장 빨리 복구하기 위해 감정보다 구조를 먼저 세우는 사람입니다.'
-          : '당신은 감정이 없어서 냉정한 것이 아니라, 감정이 번지기 전에 문제를 봉합하려고 머릿속 시뮬레이션을 먼저 끝내는 사람입니다.';
-      },
-      detailParagraphs: function(ctx) {
-        return [
-          '이 구간의 당신은 흔한 T형이 아니라 극T 고농도 타입에 가깝습니다. 중요한 장면에서 감정조차 하나의 데이터처럼 분해해 보고, 지금 무엇이 문제이며 어디를 고치면 되는지부터 생각합니다. 그래서 당황하거나 흔들리는 대신, 오히려 머리가 더 맑아지는 순간이 많습니다.',
-          '말투는 군더더기보다 핵심을 선호합니다. 금 기운이 ' + ctx.metalLevel + '하고 관성 흐름이 ' + ctx.gwanLevel + '하면 특히 더 기준 중심으로 움직이며, 상대가 느끼는 답답함을 빨리 끝내주고 싶어 합니다. 당신에게 중요한 것은 상처를 주는 것이 아니라, 시간 낭비와 구조 붕괴를 줄이는 것입니다.',
-          '일 처리 능력은 매우 강합니다. 복잡한 문제도 빠르게 정리하고, 무엇을 버리고 무엇을 살릴지 선명하게 나누며, 위기에서 오히려 침착함이 올라옵니다. 사람을 도와줄 때도 감정 위로보다 실행 가능한 기준을 건네기 때문에, 실제 현장에서는 큰 신뢰를 얻기 쉽습니다.',
-          '하지만 이 강점은 관계 안에서 오해를 부르기도 합니다. 당신은 감정을 무시하는 것이 아니라, 감정도 관리와 해석의 대상으로 보기 때문에 상대는 "내 마음이 검토 대상이 된 것 같다"고 느낄 수 있습니다. 결국 이 구간의 핵심 과제는 공감 능력 부족이 아니라, 공감 표현의 선행 배치입니다.'
-        ];
-      },
-      relationshipRows: function(ctx) {
-        return [
-          { title:_sajuQuantumText("sq_4494_prop_title"), text:'친구가 무너질 때 감정에 같이 휩쓸리기보다, 지금 뭘 해야 하는지부터 빠르게 정리합니다. 그래서 진짜 필요할 때 가장 찾게 되는 친구가 되지만, 위로가 필요한 날에는 너무 차갑게 느껴질 수 있습니다.' },
-          { title:_sajuQuantumText("sq_4495_prop_title"), text:'감정이 클수록 오히려 더 분석적으로 움직입니다. 관계가 오래 갈 수 있는지, 감정이 아니라 실제로 맞는 사람인지까지 같이 보려 하기 때문입니다.' },
-          { title:_sajuQuantumText("sq_4496_prop_title"), text:'가족 문제를 보면 그냥 지나치지 못합니다. 당신에게는 관리와 보호지만, 듣는 사람에게는 판단과 간섭으로 느껴질 가능성이 큽니다.' },
-          { title:_sajuQuantumText("sq_4497_prop_title"), text:'팀에서는 문제가 커질수록 더 강해집니다. 감정에 휘둘리지 않고 우선순위를 세우는 능력이 탁월해, 어려운 상황에서 중심축 역할을 맡기 쉽습니다.' },
-          { title:_sajuQuantumText("sq_4498_prop_title"), text:'당신의 말은 대체로 틀리지 않습니다. 다만 맞는 말이 곧바로 받아들여지는 것은 아니며, 상대는 내용보다 온도 때문에 먼저 다칠 수 있습니다.' },
-          { title:_sajuQuantumText("sq_4499_prop_title"), text:'정답을 바로 주는 능력은 큰 장점입니다. 하지만 관계에서는 정답보다 먼저 "나는 네 감정을 무시하지 않는다"는 신호가 필요합니다.' }
-        ];
-      },
-      loveRows: function(ctx) {
-        return [
-          { title:_sajuQuantumText("sq_4504_prop_title"), text:'감정이 커질수록 더 허술해지고 싶지 않아, 오히려 말과 행동을 더 조심합니다. 그래서 좋아하는데도 무심하거나 냉정해 보일 수 있습니다.' },
-          { title:_sajuQuantumText("sq_4505_prop_title"), text:'연락은 기능적이고 분명한 편입니다. 의미 없는 감정 소모를 줄이려 하고, 필요한 순간 챙김은 확실하지만 일상적인 감정 교류는 생략될 수 있습니다.' },
-          { title:_sajuQuantumText("sq_4506_prop_title"), text:'서운함이 생기면 감정에 잠기기보다 이유와 패턴을 먼저 찾습니다. 그래서 마음이 식은 게 아니라 분석 중인데, 상대는 이미 멀어졌다고 오해할 수 있습니다.' },
-          { title:_sajuQuantumText("sq_4507_prop_title"), text:'싸우면 감정전보다 구조 분석으로 들어갑니다. 무엇이 반복됐는지, 어느 부분이 비효율적인지 정리하다 보니 상대는 사랑싸움이 아니라 평가받는 느낌을 받을 수 있습니다.' },
-          { title:_sajuQuantumText("sq_4508_prop_title"), text:'불필요하게 흔들리지 않고, 문제를 실제로 해결해주는 힘이 큽니다. 감정이 지나간 뒤에도 관계를 운영할 수 있는 현실감이 강한 편입니다.' },
-          { title:_sajuQuantumText("sq_4509_prop_title"), text:'따뜻함이 없어서가 아니라, 따뜻함이 잘 보이지 않는 방식으로 표현됩니다. 상대는 "나를 좋아하는데 왜 이렇게 분석적이지?"라는 혼란을 느낄 수 있습니다.' },
-          { title:_sajuQuantumText("sq_4510_prop_title"), text:'당신의 사랑은 깊지만 표현 방식이 너무 구조적일 수 있습니다. 사랑하는 사람 앞에서는 해결보다 공감, 분석보다 안심을 먼저 주는 연습이 필요합니다.' }
-        ];
-      },
-      workMoneyRows: function(ctx) {
-        return [
-          { title:_sajuQuantumText("sq_4515_prop_title"), text:'문제 해결, 효율, 팩트 체크 능력이 매우 강합니다. 복잡한 일을 쪼개고 다시 묶는 능력이 뛰어나 실무나 리더 역할에서 강한 편입니다.' },
-          { title:_sajuQuantumText("sq_4516_prop_title"), text:'돈은 거의 감정보다 구조와 지속성으로 판단합니다. 손익 계산이 빠르고 낭비를 싫어해, 재정 관리에서는 상당히 안정적인 편입니다.' },
-          { title:_sajuQuantumText("sq_4517_prop_title"), text:'위기 상황일수록 감정이 아니라 시스템이 켜집니다. 그래서 혼란한 자리에서 가장 침착한 사람으로 보이기 쉽습니다.' },
-          { title:_sajuQuantumText("sq_4518_prop_title"), text:'기준이 명확해지면 결정이 빠르고, 계획도 크게 흔들리지 않습니다. 꾸준함과 통제력이 강해 장기 실행력에서도 장점이 큽니다.' },
-          { title:_sajuQuantumText("sq_4519_prop_title"), text:'당신은 계산적이라기보다 손실 관리가 빠른 사람입니다. 다만 감정의 장면에서도 같은 언어를 쓰면, 인간적인 결이 빠진 사람처럼 보일 수 있습니다.' }
-        ];
-      },
-      bugRows: function(ctx) {
-        return [
-          { title:_sajuQuantumText("sq_4524_prop_title"), text:'상대의 감정 신호를 곧바로 해결 과제로 바꿔 읽기 쉽습니다. 그래서 감정이 충분히 머물기 전에 수리 모드로 넘어갑니다.' },
-          { title:_sajuQuantumText("sq_4525_prop_title"), text:'문장이 짧고 선명해질수록 상대는 칼날을 먼저 느낍니다. 당신에게는 정리지만, 상대에게는 판정처럼 들릴 수 있습니다.' },
-          { title:_sajuQuantumText("sq_4526_prop_title"), text:'겉으로는 결론이 빨라 보여도, 속에서는 이미 많은 시뮬레이션을 돌립니다. 그래서 확신이 부족한 장면에서는 오히려 분석이 길어질 수 있습니다.' },
-          { title:_sajuQuantumText("sq_4527_prop_title"), text:'공감이 없는 것이 아니라 순서에서 밀립니다. 문제를 너무 빨리 봉합하려다, 관계 회복에 필요한 감정 확인이 생략될 수 있습니다.' },
-          { title:_sajuQuantumText("sq_4528_prop_title"), text:'내가 더 빨리 구조를 볼 수 있다는 자신감이 커질수록, 대화 없이 결론을 완료할 가능성도 커집니다. 상대는 이해받기보다 관리당한다고 느낄 수 있습니다.' }
-        ];
-      },
-      prescriptionRows: function(ctx) {
-        return [
-          { title:_sajuQuantumText("sq_4533_prop_title"), text:'오늘 대화 한 번만이라도 해결책보다 공감 한 줄을 먼저 출력하세요. "그랬구나" 한 문장이 당신의 논리를 차갑지 않게 만들어줍니다.' },
-          { title:_sajuQuantumText("sq_4534_prop_title"), text:'맞는 말을 바로 던지기 전에 상대 감정을 먼저 확인하세요. 정답은 이미 충분하니, 지금 필요한 건 전달 순서의 조정입니다.' },
-          { title:_sajuQuantumText("sq_4535_prop_title"), text:'서운할 때는 원인 분석 전에 "나는 지금 네 마음이 먼저 궁금해"라는 문장을 써보세요. 그 한 문장이 관계의 체감 온도를 바꿉니다.' },
-          { title:_sajuQuantumText("sq_4536_prop_title"), text:'기준을 제시할 때 상대가 따라올 이유도 같이 말해주세요. 냉정한 기준이 설명을 만나면 더 강한 리더십이 됩니다.' },
-          { title:_sajuQuantumText("sq_4537_prop_title"), text:'머릿속 시뮬레이션이 과열되면 결론을 잠시 보류하고, 사실/추측/감정을 나눠 적어보세요. 당신은 분리해서 볼 때 훨씬 안정됩니다.' }
-        ];
-      },
-      mission: { title:_sajuQuantumText("sq_4540_prop_title"), items:['대화 1회는 해결책 대신 공감 한 줄 먼저 출력', '피드백에 좋았던 점 1개를 먼저 제시', '결론 제시 전 상대 의도 확인 질문 1회'] },
-      summaryTip: '정답보다 먼저 감정 확인 한 줄 붙이기.',
-      summaryMood: '차갑고 선명한 편'
-    }
-  };
-
-  var scoreBand = SCORE_BAND_CONTENT[scoreBandKey] || SCORE_BAND_CONTENT.hybrid;
-  var catchphrase = scoreBand.catchphrase(tContext);
-  var detailParagraphs = scoreBand.detailParagraphs(tContext);
-  var relationshipRows = scoreBand.relationshipRows(tContext);
-  var loveRows = scoreBand.loveRows(tContext);
-  var workMoneyRows = scoreBand.workMoneyRows(tContext);
-  var bugRows = scoreBand.bugRows(tContext);
-  var prescriptionRows = scoreBand.prescriptionRows(tContext);
-
-  var metalInterpretation = metalLevel === '강함'
-    ? '기준과 정리력이 강해 판단의 칼날이 선명합니다. 말투도 직선적이기 쉬워 답답한 상황을 빨리 잘라내지만, 상대 마음까지 함께 잘리지 않도록 완충어가 필요합니다.'
-    : metalLevel === '보통'
-      ? '필요한 순간에는 선을 긋고 정리하지만 늘 차갑게 굴지는 않습니다. 상황 따라 유연하게 기준을 꺼낼 수 있어 밸런스가 괜찮은 편입니다.'
-      : '본래부터 차가운 사람이라기보다, 필요할 때만 기준 회로를 꺼내는 타입입니다. 그래서 오히려 감정적인 장면에서 더 따뜻하게 읽히기도 합니다.';
-
-  var gwanInterpretation = gwanLevel === '강함'
-    ? '책임감, 규칙 의식, 자기 통제가 강하게 작동합니다. 사회적 눈치도 없는 편이 아니라 "이 장면에서 내가 정리해야 한다"는 압박을 스스로 크게 느끼는 편입니다.'
-    : gwanLevel === '보통'
-      ? '필요한 상황에서는 책임을 잡아내고 선을 세웁니다. 기준은 있지만 숨 막히게 통제하지는 않아, 사람과 현실 사이를 비교적 잘 조율합니다.'
-      : '통제보다 분위기와 흐름을 더 많이 보는 편입니다. 그래서 관계는 부드럽지만, 확실히 끊어야 할 장면에서 망설일 수도 있습니다.';
-
-  var ssInterpretation = ssLevel === '강함'
-    ? '표현력이 살아 있고 말빨도 센 편입니다. 팩트 체크가 빠르고 농담이나 드립도 구조적으로 잘 던지지만, 예민한 순간엔 그 재치가 팩트폭행으로 들릴 수 있습니다.'
-    : ssLevel === '보통'
-      ? '할 말은 하는 편이지만, 늘 세게 밀어붙이지는 않습니다. 상황을 보고 표현 강도를 조절하는 능력이 있어 대화 체감이 너무 차갑지만은 않습니다.'
-      : '표현은 신중하고, 확신이 있을 때만 문장을 세게 꺼냅니다. 그래서 말수는 적어 보여도 한마디의 밀도는 의외로 높은 편입니다.';
-
-  var johuInterpretation = isColdDry
-    ? '감정 온도는 서늘하고 건조한 쪽에 가깝습니다. 인간관계에서는 깔끔하고 선명한 분위기로 읽히며, 논리와 감정의 온도차가 벌어질수록 상대는 "차갑다"보다 "쉽게 못 들어가겠다"는 느낌을 받을 수 있습니다.'
-    : '감정 온도는 과하게 메마르지 않고, 논리와 감정의 온도차도 비교적 완만합니다. 그래서 현실적인 말도 조금 더 부드럽게 들릴 여지가 있습니다.';
-
-  var tMission = scoreBand.mission;
-
-  var missionHtml = '<section class="t-mission-card">'
-    + '<div class="t-mission-title">🧪 ' + tMission.title + '</div>'
-    + renderBulletList(tMission.items, '#d1fae5')
-    + '</section>';
-
-  var topSummaryHtml = '<section class="t-hero-card">'
-    + '<div class="t-hero-grid">'
-    + '<div class="t-hero-copy"><div class="t-kicker">TYPE PROFILE</div>'
-    + '<div class="t-type-name">' + scoreBand.typeName + '</div>'
-    + '<div class="t-type-state">' + scoreBand.headline + ' · ' + scoreBand.stateMessage + '</div></div>'
-    + '<div class="t-score-box"><div class="t-score-label">T SCORE</div>'
-    + '<div class="t-score-value">' + finalScore + '<span class="t-score-unit">점</span></div></div>'
-    + '</div>'
-    + '<div class="t-score-gauge"><span class="t-score-gauge-fill" style="width:' + finalScore + '%;"></span></div>'
-    + '<div class="t-catchphrase">"' + catchphrase + '"</div>'
-    + '</section>';
-
-  var sajuBaseHtml = renderSection(
-    '[사주 기반 극T 해석] 논리 회로가 켜지는 이유',
-    '<div class="t-saju-stack">'
-      + '<div class="t-saju-row"><b>금 오행 · ' + metalLevel + '</b><br>' + metalInterpretation + '</div>'
-      + '<div class="t-saju-row"><b>관성 · ' + gwanLevel + '</b><br>' + gwanInterpretation + '</div>'
-      + '<div class="t-saju-row"><b>식상 · ' + ssLevel + '</b><br>' + ssInterpretation + '</div>'
-      + '<div class="t-saju-row"><b>조후 · ' + johuTone + ' / ' + johuTexture + '</b><br>' + johuInterpretation + '</div>'
-      + '</div>',
-    'rgba(129,140,248,.28)'
-  );
-
-  var detailedAnalysisHtml = renderSection('[장점 스캔] 지금의 당신을 만드는 회로', renderParagraphs(detailParagraphs), 'rgba(52,211,153,.28)');
-  var relationshipHtml = renderSection('[관계 회로] 가까운 사람에게 더 솔직해지는 타입', renderInfoRows(relationshipRows), 'rgba(96,165,250,.28)');
-  var loveHtml = renderSection('[연애 알고리즘] 좋아할수록 더 현실적으로 계산하는 사람', renderInfoRows(loveRows), 'rgba(244,114,182,.28)');
-  var workMoneyHtml = renderSection('[현실 처리 능력] 감정보다 구조를 먼저 보는 생산형 두뇌', renderInfoRows(workMoneyRows), 'rgba(250,204,21,.24)');
-  var fallbackExtremeTRelationshipFeature = (SY_PAID_FEATURES && SY_PAID_FEATURES.extremeTRelationshipCircuit)
-    ? SY_PAID_FEATURES.extremeTRelationshipCircuit
-    : { key: 'extreme-t-relationship-circuit', cost: 30, reason: '극T 관계 회로 잠금 해제' };
-  var hasFallbackExtremeTRelationshipAccess = syIsPaidSukuyoFeatureUnlocked(fallbackExtremeTRelationshipFeature.key);
-  var fallbackRelationshipGateHtml = '';
-  if (!hasFallbackExtremeTRelationshipAccess) {
-    fallbackRelationshipGateHtml = renderTTestPanelLockBundle(fallbackExtremeTRelationshipFeature);
-  }
-  var fatalBugHtml = renderSection('[치명적 버그] 가까워질수록 드러나는 오류 패턴', renderInfoRows(bugRows), 'rgba(248,113,113,.28)');
-  var prescriptionHtml = renderSection('[디버깅 처방전] 바로 써먹는 관계 패치', renderInfoRows(prescriptionRows), 'rgba(251,191,36,.28)');
-
-  var summaryCardHtml = '<section class="t-summary-card">'
-    + '<div class="t-summary-title">🧊 나의 극T 요약 카드</div>'
-    + '<div class="t-summary-grid">'
-    + '<div class="t-summary-chip"><div class="t-summary-chip-label">극T 타입</div><div class="t-summary-chip-value">' + scoreBand.typeName + '</div></div>'
-    + '<div class="t-summary-chip"><div class="t-summary-chip-label">T 점수</div><div class="t-summary-chip-value">' + finalScore + '점</div></div>'
-    + '<div class="t-summary-chip"><div class="t-summary-chip-label">논리 온도</div><div class="t-summary-chip-value">' + scoreBand.summaryMood + '</div></div>'
-    + '<div class="t-summary-chip"><div class="t-summary-chip-label">감정 표현</div><div class="t-summary-chip-value">' + emotionSpeed + '</div></div>'
-    + '<div class="t-summary-chip"><div class="t-summary-chip-label">말투 위험도</div><div class="t-summary-chip-value">' + toneRisk + '</div></div>'
-    + '<div class="t-summary-chip"><div class="t-summary-chip-label">연애 난이도</div><div class="t-summary-chip-value">' + loveDifficulty + '</div></div>'
-    + '</div><div class="t-summary-foot"><div class="t-summary-foot-label">인간관계 팁</div><div class="t-summary-foot-copy">' + scoreBand.summaryTip + '</div></div>'
-    + '<div class="t-summary-foot"><div class="t-summary-foot-label">오늘의 미션</div>' + renderBulletList([tMission.items[0]], '#d1fae5') + '</div>'
-    + '</section>';
-
-  var html = '<div class="t-test-wrapper">';
-  html += '<div class="t-scan-line">INITIATING T-BAL-NOM SCAN...</div>';
-  html += '<div class="t-test-score"><span class="t-test-val">' + finalScore + '</span><span class="t-test-pct">%</span></div>';
-  html += '<div class="t-test-tier">' + tTier + '</div>';
-  html += topSummaryHtml;
-  html += '<div class="t-test-grid">';
-  html += '<div class="t-test-item"><div class="t-stat-label">[金] 금속성 하드웨어</div><div class="t-val">' + (metalScore * 10) + '%</div></div>';
-  html += '<div class="t-test-item"><div class="t-stat-label">[관성] 강제 통제 수호 의식</div><div class="t-val">' + (gwanCount * 15) + '%</div></div>';
-  html += '<div class="t-test-item"><div class="t-stat-label">[식상] 팩트폭행 디버깅</div><div class="t-val">' + (isMetalEarthSS ? '활성(+20%)' : '비활성') + '</div></div>';
-  html += '<div class="t-test-item"><div class="t-stat-label">[조후] 냉각/건조 성궁 진법</div><div class="t-val">' + (isColdDry ? '가동(+25%)' : '정지') + '</div></div>';
-  html += '</div>';
-  html += detailedAnalysisHtml;
-  html += fallbackRelationshipGateHtml
-    ? '<div class="t-panel-grid">' + fallbackRelationshipGateHtml + '</div>'
-    : '<div class="t-panel-grid">' + relationshipHtml + loveHtml + workMoneyHtml + '</div>';
-  html += '<div class="t-panel-grid t-panel-grid--support">'
-    + (hasFallbackExtremeTRelationshipAccess ? sajuBaseHtml : '')
-    + fatalBugHtml
-    + (hasFallbackExtremeTRelationshipAccess ? prescriptionHtml : '')
-    + '</div>';
-  html += missionHtml;
-  html += summaryCardHtml;
-  html += '</div>';
-
-  area.innerHTML = html;
-  bindExtremeTRelationshipUnlock(area, [p, natal, johu, pw]);
-  // 빌더(extremeTResult.js)가 아직 안 실린 화면도 같은 결과를 그린다 — 빌더 경로와 같은 조건·형태로 보관함에 남긴다.
-  if (hasFallbackExtremeTRelationshipAccess && window.__syExtremeTArchiveNext === true) {
-    window.__syExtremeTArchiveNext = false;
-    try {
-      sySaveSukuyoResultArchive('extreme-t', {
-        facts: {
-          typeName: syArchiveFactText(scoreBand.typeName),
-          tTier: syArchiveFactText(tTier),
-          headline: syArchiveFactText(scoreBand.headline),
-          catchphrase: syArchiveFactText(catchphrase),
-          summaryMood: syArchiveFactText(scoreBand.summaryMood),
-          emotionSpeed: syArchiveFactText(emotionSpeed),
-          toneRisk: syArchiveFactText(toneRisk),
-          loveDifficulty: syArchiveFactText(loveDifficulty),
-          summaryTip: syArchiveFactText(scoreBand.summaryTip),
-          finalScore: Number(finalScore)
-        },
-        sections: syArchiveCardSections(area, '.t-hero-card, .t-panel, .t-mission-card, .t-summary-card', '.t-panel-title, .t-mission-title, .t-summary-title')
-      });
-    } catch (_syExtremeTFallbackArchiveError) {}
-  }
-  card.style.display = 'block';
-  if (typeof syncReportHeightFromNode === 'function') {
-    syncReportHeightFromNode(card);
-    setTimeout(function(){ syncReportHeightFromNode(card); }, 200);
-  }
+  // 빌더(js/core/saju/extremeTResult.js)는 로드 체인(js/core/index-inline-runtime.js)에서 이 파일보다 먼저 실린다.
+  // 예전 인라인 사본(점수·문장 전부)은 유료 문장까지 담고 있어 2026-10-17 에 지웠다 — 빌더가 없으면 카드를 그리지 않는다.
+  card.style.display = 'none';
 }
 
 /* ── renderHealthReport: 명리 헬스 리포트 ── */

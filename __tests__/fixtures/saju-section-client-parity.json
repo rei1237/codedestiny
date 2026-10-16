@@ -1397,5 +1397,87 @@
   "jong-rejected": "850a513d8e3847e80cb010140cfd3ae0e656b14796066873e659170fb5d4899e",
   "jong-unverified": "c62d2df2becbbb1111e0a5711c1d2ae2ac659f05d52453b2557a1a50a7d499cb",
   "hwa-confirmed": "d341a8592ae0880e5bd8921b0593d3b0edf7afa0280cb0b261bea170f4e71300"
+ },
+ "extremeTCases": [
+  {
+   "id": "extreme-m-1974",
+   "date": "1974-11-03",
+   "calType": "solar",
+   "hour": 4,
+   "minute": 0,
+   "gender": "M"
+  }
+ ],
+ "extremeT": {
+  "solar-m-1990": {
+   "html": "a49d654a24045a0a88607ede5bce30ab5e8e1742871c727e95129f74cb33cab5",
+   "sajuBaseHtml": "fb75023017b7770467a92a54840245d0b5e95148d43631232265fda6e00042d9",
+   "prescriptionHtml": "7dc8b3d9c227e35c562b335cde9e0a5aa0f4620a135bfae29afb1daae37bc642"
+  },
+  "solar-f-1985": {
+   "html": "2b67f99e6a70f196e9c113bf1cc5613e0b0323779095497cb62592d6fa5777ca",
+   "sajuBaseHtml": "1ec510be2fb32c1ef51c15be866cc8ad45046f520771e3cfb229490892ff9790",
+   "prescriptionHtml": "9365375f349802cb3fa2f48ed62a1ffed3455ea309af090c72954433635233e6"
+  },
+  "unknown-f-1978": {
+   "html": "56c0071a5c486cf395a79b432683e47ca692f301c144dac65c74577f07aabf2d",
+   "sajuBaseHtml": "5b90c42bb4d4850e7cf6bccea653ab798eaf09582cd342d1e2c1c9d2be223d8f",
+   "prescriptionHtml": "9bf5ee0ccd6475844b7c8a257669986beb1ee91d7ccae97f05a7b865a19f305e"
+  },
+  "lunar-m-1962": {
+   "html": "7bca000f9713775176f2df280c7418591b62cc38f8fe52a84ebfe6312234d30e",
+   "sajuBaseHtml": "d2eca2b8ba2c2087310623ae7914c62e6d28c9c95ccaa4fd47093ae446c1953f",
+   "prescriptionHtml": "69a93a9b046c410ef4322303eab1313ece02382c8e0d6b246ce3b00b7f8db904"
+  },
+  "leap-f-2020": {
+   "html": "56c0071a5c486cf395a79b432683e47ca692f301c144dac65c74577f07aabf2d",
+   "sajuBaseHtml": "36318651c69e1036d2ebfb60fb46bd0fa3f737bed087b321ff9908b538480c88",
+   "prescriptionHtml": "9bf5ee0ccd6475844b7c8a257669986beb1ee91d7ccae97f05a7b865a19f305e"
+  },
+  "newyear-m-2001": {
+   "html": "7bca000f9713775176f2df280c7418591b62cc38f8fe52a84ebfe6312234d30e",
+   "sajuBaseHtml": "fa1f6bf37e8195c4ba77cb348efa5e76433003c5c97ee90581b31b66bb079264",
+   "prescriptionHtml": "69a93a9b046c410ef4322303eab1313ece02382c8e0d6b246ce3b00b7f8db904"
+  },
+  "ny-f-1995": {
+   "html": "7bca000f9713775176f2df280c7418591b62cc38f8fe52a84ebfe6312234d30e",
+   "sajuBaseHtml": "77a6d1dfebedf0d0ea58ae0c1f579953d1ee36ec1dcfefc1d6b99dc2f4c152c4",
+   "prescriptionHtml": "69a93a9b046c410ef4322303eab1313ece02382c8e0d6b246ce3b00b7f8db904"
+  },
+  "old-m-1941": {
+   "html": "a49d654a24045a0a88607ede5bce30ab5e8e1742871c727e95129f74cb33cab5",
+   "sajuBaseHtml": "572044f86df44a9c99a4a0091cadeadcc90e920b1ca3ed99bc74146f2479f278",
+   "prescriptionHtml": "7dc8b3d9c227e35c562b335cde9e0a5aa0f4620a135bfae29afb1daae37bc642"
+  },
+  "young-f-2015": {
+   "html": "56c0071a5c486cf395a79b432683e47ca692f301c144dac65c74577f07aabf2d",
+   "sajuBaseHtml": "1ef0e51ef7891437f0a6e16b63d70a3a4f1b7445a31a0fbe486da3cee312b72e",
+   "prescriptionHtml": "9bf5ee0ccd6475844b7c8a257669986beb1ee91d7ccae97f05a7b865a19f305e"
+  },
+  "jong-confirmed": {
+   "html": "2b67f99e6a70f196e9c113bf1cc5613e0b0323779095497cb62592d6fa5777ca",
+   "sajuBaseHtml": "a56443db1ac914146081a79fffbbc01df2a24372eac494126977ee2e973a4373",
+   "prescriptionHtml": "9365375f349802cb3fa2f48ed62a1ffed3455ea309af090c72954433635233e6"
+  },
+  "jong-rejected": {
+   "html": "2b67f99e6a70f196e9c113bf1cc5613e0b0323779095497cb62592d6fa5777ca",
+   "sajuBaseHtml": "a56443db1ac914146081a79fffbbc01df2a24372eac494126977ee2e973a4373",
+   "prescriptionHtml": "9365375f349802cb3fa2f48ed62a1ffed3455ea309af090c72954433635233e6"
+  },
+  "jong-unverified": {
+   "html": "2b67f99e6a70f196e9c113bf1cc5613e0b0323779095497cb62592d6fa5777ca",
+   "sajuBaseHtml": "a56443db1ac914146081a79fffbbc01df2a24372eac494126977ee2e973a4373",
+   "prescriptionHtml": "9365375f349802cb3fa2f48ed62a1ffed3455ea309af090c72954433635233e6"
+  },
+  "hwa-confirmed": {
+   "html": "2b67f99e6a70f196e9c113bf1cc5613e0b0323779095497cb62592d6fa5777ca",
+   "sajuBaseHtml": "6bdebcf548a226d2cd51769bc4ca1805f1485524fbcddc87ae33df44cc885caf",
+   "prescriptionHtml": "9365375f349802cb3fa2f48ed62a1ffed3455ea309af090c72954433635233e6"
+  },
+  "extreme-m-1974": {
+   "html": "9e28c4c77c2a1092a8822570735489acf909c243da71433b8e868b8183b48561",
+   "sajuBaseHtml": "36318651c69e1036d2ebfb60fb46bd0fa3f737bed087b321ff9908b538480c88",
+   "prescriptionHtml": "13e3efafc1f540707195b3c9ebdadf4efce58c2bd39da0df351348859d1d0f93"
+  }
  }
 }

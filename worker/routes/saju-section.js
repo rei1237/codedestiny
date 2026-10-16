@@ -17,7 +17,8 @@ function bodyBirth(body) {
   };
 }
 
-// 사주 종합(section_summary)·대운 풀이(section_daewun)·퀀텀 명리 엔진(rpt_quantumCard) 본문 읽기. 결제·해금 쓰기는 하지 않는다.
+// 사주 종합(section_summary)·대운 풀이(section_daewun)·퀀텀 명리 엔진(rpt_quantumCard)·극T 관계 회로(sukuyo-extreme-t-relationship)
+// 본문 읽기. 결제·해금 쓰기는 하지 않는다.
 // 저장 프로필이 있으면 그 카드의 출생 정보로만 계산하고, 없으면 계정 단위 옛 해금(USER 행)만 인정한다.
 export async function handleSajuSection(request, env = {}) {
   if (request.method !== "POST") return methodNotAllowed();
