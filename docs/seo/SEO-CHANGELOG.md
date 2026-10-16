@@ -18,6 +18,11 @@ SEO 관련 변경(구조화 데이터·sitemap·메타·콘텐츠·인프라 등
 
 ## 로그 (역연대순)
 
+- 2026-10-16: 루트 `/` 를 두 브랜드 메인(낮·밤 두 문)으로 재디자인하고, 영냥이 상담의 대표 공개 이름을
+  "운세보는 영냥이"로 정함(`brand-facts` v2). `/` 에 Service 2개(꿀꿀 운세 → `/ggulggul/`, 운세보는 영냥이 →
+  `/yeongnyangi/`)를 더하고 `/yeongnyangi/` 의 title·H1·Service·Breadcrumb(홈 `/`)·FAQ·엔티티·llms.txt 에 이름을
+  넣음. 순위는 보장하지 않으며 D+7/14/30 관찰로 판정
+  ([진단 절](2026-10-15-brand-root/seo-audit.md#루트-재디자인과-영냥이-신호-2026-10-16))
 - 2026-10-15: 공식명을 "꿀꿀 운세"(별칭 "꿀꿀운세", 운영자 CODE DESTINY)로 정하고
   `lib/brand/brand-facts.mjs` 를 브랜드 단일 원본으로 둠. `/` 를 200 대표 홈(self canonical,
   사이트맵 포함)으로 바꾸고 기능 파라미터가 붙은 `/` 만 `/ggulggul/` 로 302. 헤더·푸터 홈 링크의

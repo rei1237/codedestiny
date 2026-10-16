@@ -4,6 +4,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { BRAND_FACTS, findFormerBrandNames } from '../../lib/brand/brand-facts.mjs';
+import { brandCopy } from '../../lib/seo/brand-copy.mjs';
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const read = file => readFileSync(join(ROOT, file), 'utf8');
@@ -43,6 +44,19 @@ test('brand facts keep the service, its alias and the operator apart', () => {
     assert.deepEqual(findFormerBrandNames(name), [], name);
   }
   assert.ok(Object.isFrozen(BRAND_FACTS) && Object.isFrozen(BRAND_FACTS.service));
+});
+
+test('운세보는 영냥이 names the yeongnyangi service on its landing without becoming a site alias', () => {
+  const yeongnyangi = BRAND_FACTS.characters.find(character => character.key === 'yeongnyangi');
+  assert.equal(yeongnyangi.serviceName, '운세보는 영냥이');
+  assert.ok(!service.alternateNames.includes(yeongnyangi.serviceName), 'service alias stays 꿀꿀운세 only');
+  assert.ok(brandCopy('yeongnyangiTitle').startsWith(yeongnyangi.serviceName));
+  const page = read('app/yeongnyangi/page.tsx');
+  assert.ok(page.includes('buildServiceJsonLd({name:YEONGNYANGI.serviceName,alternateName:'), 'Service name');
+  assert.ok(page.includes("buildBreadcrumbJsonLd([{name:BRAND_FACTS.service.name,path:'/'}"), 'breadcrumb home is /');
+  const hero = read('app/yeongnyangi/_components/NightHero.tsx');
+  const heading = hero.indexOf("brandCopy('yeongnyangiHeading')");
+  assert.ok(heading >= 0 && heading < hero.indexOf("brandCopy('yeongnyangiServiceName')"), 'H1 keeps 사주보는 고양이 and names 운세보는 영냥이');
 });
 
 test('former names are detected exactly and never inside protected feature names', () => {

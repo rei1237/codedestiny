@@ -277,14 +277,14 @@ export default function KkulKkulUnsePage() {
           <ul className={styles.sectionLead}>
             {characters.map((character) => (
               <li key={character.key}>
-                <strong>{character.name}</strong> — {character.role}
+                <strong>{character.serviceName ?? character.name}</strong> — {character.role}
                 {character.path ? <> (<Link href={character.path}>{service.siteUrl}{character.path}</Link>)</> : null}
               </li>
             ))}
           </ul>
           <p className={styles.sectionLead}>
-            꽃돼지 운세로 기억하셨다면 꽃돼지 연이가 안내하는 {service.name}가 맞습니다. 가볍게 시작하는 영냥이 상담은{" "}
-            <Link href="/yeongnyangi/1000-won-fortune/">천원사주 안내</Link>에서 볼 수 있습니다.
+            꽃돼지 운세로 기억하셨다면 꽃돼지 연이가 안내하는 {service.name}가 맞습니다. 영냥이 상담 가격은{" "}
+            <Link href="/yeongnyangi/#yn-prices">운세보는 영냥이 안내</Link>에서 볼 수 있습니다.
           </p>
         </div>
       </section>

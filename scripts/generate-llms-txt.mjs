@@ -88,11 +88,12 @@ lines.push(
 lines.push("");
 lines.push(`- 공식 홈페이지: ${service.homeUrl}`);
 lines.push(`- 상담 앱 입구(꽃돼지 연이·네오): ${siteBaseUrl}${service.appEntryPath}`);
-lines.push(`- 영냥이 상담 입구: ${siteBaseUrl}/yeongnyangi/`);
+const yeongnyangi = BRAND_FACTS.characters.find((character) => character.key === "yeongnyangi");
+lines.push(`- ${yeongnyangi.serviceName}(영냥이 상담) 입구: ${siteBaseUrl}${yeongnyangi.path}`);
 lines.push(`- 표기: 공식 서비스명은 "${service.name}"이고, 붙여 쓴 ${aliasLine}도 같은 서비스입니다.`);
 lines.push(`- 운영자: ${operator.name}(${operator.nameKo}). 대표 박병하(활동명 네오). 소개: ${siteBaseUrl}/about/#author`);
 lines.push(`- 공식 외부 채널: ${BRAND_FACTS.sameAs.map((profile) => profile.url).join(" · ")}`);
-lines.push(`- 캐릭터: ${BRAND_FACTS.characters.map((character) => `${character.name}(${character.role})`).join(", ")}`);
+lines.push(`- 캐릭터: ${BRAND_FACTS.characters.map((character) => `${character.serviceName ?? character.name}(${character.role})`).join(", ")}`);
 lines.push(`- 언어: 한국어(기본), 일본어 \`/ja/\`, 중국어 간체 \`/zh/\`, 중국어 번체 \`/zh-tw/\`, 영어 \`/en/\``);
 lines.push("");
 
