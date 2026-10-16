@@ -1,4 +1,5 @@
 /** @jest-environment node */
+import { withSettle } from "../fixtures/per-use-settle-mock.mjs";
 import { jest } from '@jest/globals';
 // Stress fixture: preserve multi-part storage/lease failures at the former batch width.
 // Production's one-part contract is covered by paid-llm-sequential.test.js.
@@ -44,7 +45,7 @@ beforeAll(async()=>{
  jest.unstable_mockModule('../../worker/lib/auth.js',()=>({...auth,requireAuth:async()=>({userId:owner}),getOptionalUserFromRequest:async()=>({userId:owner})}));
  jest.unstable_mockModule('../../worker/lib/security/index.js',()=>({enforceSensitiveEndpointSecurity:async input=>{security.push(input);return {ok:true};},enforceAiRouteSecurity:async()=>({ok:true}),writeSecurityLog:async()=>{},getSecuritySubjectHash:()=>''}));
  jest.unstable_mockModule('../../worker/lib/paid-feature-access.js',()=>({PAID_FEATURE_ACCESS_USER_PROJECTION:{},canAccessPaidFeature:async()=>({allowed:false,reason:'PAYMENT_REQUIRED'}),canAccessPaidFeaturesBatch:async()=>({})}));
- jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js',()=>({logPerUsePaymentProof:()=>{},verifyPerUsePayment:async(_env,input)=>{proofs.push(input);
+ jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js',()=>withSettle({logPerUsePaymentProof:()=>{},verifyPerUsePayment:async(_env,input)=>{proofs.push(input);
   return paid===null?{proven:null}:paid==='admin'?{proven:true,source:'admin',transactionId:''}:paid?{proven:true,source:'single',transactionId:'pay-1'}:{proven:false,reason:'NO_EXISTING_CONSUMPTION'};}}));
  jest.unstable_mockModule('../../worker/lib/cms-prompts.js',()=>({cmsPromptText:async(_env,_key,fallback)=>fallback,cmsPromptModelConfig:async()=>null,primePromptTemplateOverrides:async()=>{}}));
  jest.unstable_mockModule('../../worker/lib/models.js',()=>({...models,ServiceExecutionTransaction:model,PaidExecutionRecord:{findOne:()=>query(revoked?{}:null)},Payment:{findOne:()=>query(null)},PointHistory:{findOne:()=>query(null)},MonthlyCreditLedger:{findOne:()=>query(null)}}));

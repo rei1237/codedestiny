@@ -42,7 +42,7 @@ import { canUseByPass, normalizeHoneyPassEntitlement, resolvePremiumQuota } from
 import { resolveCanonicalEntitlement } from "../lib/entitlement-policy.js";
 // 🔴 이 라우트는 coin-gate 를 거치지 않는 자체 게이트라, 이용권 통과를 내주면서 누적 사용량을
 // 아무도 차감하지 않았다(한도가 존재하지 않았다). 판정·소비 정본은 worker/payments/passes.js.
-import { consumePassForFeature, hasConsumedPassFeature, passDenialCode, refundPassCoverage } from "../lib/pass-consumption.js";
+import { consumePassForFeature, hasConsumedPassFeature, refundPassCoverage } from "../lib/pass-consumption.js";
 // 🔴 코인·월정석·카드 환급은 결제 축의 정본 3종을 그대로 쓴다. 여기에 자체 환불기를 만들면
 // 멱등 마커가 갈라져(metadata.refundedForServiceExecution 등) 이중 환불이 열린다.
 import { runCoinRefund, runMonthlyCreditRefund, runPaymentCancel } from "../lib/service-execution-task.js";
@@ -1014,9 +1014,8 @@ async function handleEnsureAccess(request, env) {
           coinCost: pricing.coinPrice,
         })
         : null;
-      // 🔴 한도 위반만 결제로 인계한다. 정본이 이용권을 못 보는 상태(passDenialCode "")는
-      //    셀 예산이 없다는 뜻이라 예전 통과 판정을 그대로 존중한다.
-      if (consumed && (consumed.covered || !passDenialCode(consumed.reason))) {
+      // 🔴 차감이 된 건만 이용권으로 연다. 정본이 이용권을 못 보면(예전 "" 코드) 결제로 인계한다.
+      if (consumed?.covered) {
         return grant("pass", passRefundFor(consumed, pricing.coinPrice));
       }
     }
@@ -1083,7 +1082,7 @@ async function resolveStartAccess(request, env, auth, body, normalized, idempote
           coinCost: startCoinCost,
         })
         : null;
-      if (consumed && (consumed.covered || !passDenialCode(consumed.reason))) {
+      if (consumed?.covered) {
         return { ok: true, accessType: "pass", paymentId: "", billingRequestId: idempotencyKey, passRefund: passRefundFor(consumed, startCoinCost) || null };
       }
     }

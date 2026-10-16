@@ -1,3 +1,4 @@
+import { withSettle } from "../fixtures/per-use-settle-mock.mjs";
 import {jest} from '@jest/globals';
 import mongoose from 'mongoose';
 import {CHAPTER_DELIVERY_VERSION as deliveryVersion} from '../../worker/yeongnyangi/chapter-delivery-contract.js';
@@ -115,7 +116,7 @@ jest.unstable_mockModule('../../worker/lib/models.js',()=>({Payment,User,PointHi
 jest.unstable_mockModule('../../worker/lib/entitlement-policy.js',()=>({resolveCanonicalEntitlement:user=>user?.profileSubscription || {}}));
 jest.unstable_mockModule('../../worker/lib/pass-consumption.js',()=>({consumePassForFeature:consumePass,refundPassCoverage:refundPass,refundYeongnyangiMoonstone:refundMoonstone,
   consultationRefundDb:session=>{expect(activeOperations).toBeGreaterThan(0);expect(session.withTransaction).toEqual(expect.any(Function));return {session};}}));
-jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js',()=>({verifyPerUsePayment:verifyPerUse}));
+jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js',()=>withSettle({verifyPerUsePayment:verifyPerUse}));
 jest.unstable_mockModule('../../worker/payments/passes.js',()=>({passUsageEvidenceId:()=> '507f1f77bcf86cd799439099'}));
 let repo;
 beforeAll(async()=>{repo=await import('../../worker/yeongnyangi/repository.js');});

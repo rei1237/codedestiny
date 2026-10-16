@@ -1,4 +1,5 @@
 /** @jest-environment node */
+import { withSettle } from "../fixtures/per-use-settle-mock.mjs";
 import { jest } from '@jest/globals';
 let save, read, route, deep, vision, docs, fault, proof, revoked, userId, ai, visionReply, textCall, visionPrompt, sides, clientSide, textPrompt, visionParts, runWithAiLocale;
 const owner = '64b7f2a1c3d4e5f601234567';
@@ -9,7 +10,7 @@ beforeAll(async () => {
   const db = await import('../../worker/lib/db.js'), models = await import('../../worker/lib/models.js'), auth = await import('../../worker/lib/auth.js'), gemini = await import('../../worker/lib/gemini.js');
   jest.unstable_mockModule('../../worker/lib/db.js', () => ({ ...db, connectDb: async () => {} }));
   jest.unstable_mockModule('../../worker/lib/auth.js', () => ({ ...auth, requireAuth: async () => ({ userId }) }));
-  jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js', () => ({ verifyPerUsePayment: payment }));
+  jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js', () => withSettle({ verifyPerUsePayment: payment }));
   jest.unstable_mockModule('../../worker/lib/paid-result-revocation.js', () => ({ isPaidResultRevoked: async () => revoked }));
   jest.unstable_mockModule('../../worker/lib/gemini.js', () => ({ ...gemini, callGeminiText: async (_env, prompt, options) => { textCall = options; textPrompt = prompt; return ai; } }));
   jest.unstable_mockModule('../../worker/lib/structured-consultation.js', () => ({ callGeminiJsonWithRetry: async (_env, prompt, options) => { visionPrompt = prompt; visionParts = options?.geminiParts; return typeof visionReply === 'function' ? visionReply(prompt) : visionReply; } }));

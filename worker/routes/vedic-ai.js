@@ -36,6 +36,7 @@ import {
 import { buildVedicKnowledgeContext } from "../lib/vedic-ai-knowledge.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { resolveAiLocaleFromRequest } from "../lib/ai-locale-context.js";
+import { claimRequestBillingEvidence, evidenceClaimErrorBody, releaseRequestBillingEvidence } from "../lib/billing-evidence-claim.js";
 
 const SERVICE_KEY = "vedic-ai";
 const FEATURE_KEY = "vedic-ai-consultation";
@@ -1654,6 +1655,10 @@ async function generateConsultation({ request, env, auth, body, normalized, idem
   if (existing?.status === "generation_failed") return json({ ok: false, reason: "GENERATION_FAILED" }, { status: 409 });
   const access = await resolveStartAccess({ env, auth, body, normalized, idempotencyKey, pricing });
   if (!access) return paymentVerifyFailed();
+  // 결제 증빙 1건 = 상담 1건(2026-10-16). 이용권·관리자는 paymentId 가 없어 건너뛴다.
+  const evidenceIds = [access.paymentId];
+  const evidenceClaim = await claimRequestBillingEvidence(env, { userId: String(auth.userId), requestId: idempotencyKey, evidenceIds, featureKey: FEATURE_KEY });
+  if (!evidenceClaim.ok) return json(evidenceClaimErrorBody(evidenceClaim), { status: evidenceClaim.status });
   logVedicAi("LLM Payment Guard Passed", { ...context, accessCheckResult: access.source || access.accessType });
   const sessionId = existing?.id || `vedic-ai-${randomUUID()}`;
   const owner = { id: sessionId, userId: String(auth.userId) };
@@ -1707,6 +1712,7 @@ async function generateConsultation({ request, env, auth, body, normalized, idem
   } catch (error) {
     if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
     await saveVedicDelivery(locked, { status: "generation_failed", generationError: { code: error?.code || "LLM_FAILED", message: clean(error?.message, 500) } }, sessionId);
+    await releaseRequestBillingEvidence(env, { userId: String(auth.userId), requestId: idempotencyKey, evidenceIds });
     await restorePrepaidAccessOnFailure({ userId: auth.userId, access, idempotencyKey, pricing, error, env });
     await refundCardPaymentOnFailure(env, auth, access, error);
     return serverError(MESSAGES.llmFailed, 503, "LLM_FAILED");

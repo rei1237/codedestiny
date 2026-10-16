@@ -178,6 +178,10 @@ beforeAll(async () => {
     canAccessPaidFeature: jest.fn(async () => ({ allowed: true, accessSource: "pass" })),
     PAID_FEATURE_ACCESS_USER_PROJECTION: "role",
   }));
+  // 이용권 허용은 이번 키로 정산(차감)해야 열린다 — 정산이 같은 판정을 따르게 둔다.
+  jest.unstable_mockModule("../../worker/lib/nakshatra-paid-access.js", () => ({
+    settlePerUseAccessDecision: jest.fn(async (_env, args) => ({ allowed: args?.decision?.allowed === true, source: "pass", reason: "" })),
+  }));
 
   jest.unstable_mockModule("../../worker/lib/models.js", () => ({
     SukuyoCompatibilityAiConsultation: store.model,

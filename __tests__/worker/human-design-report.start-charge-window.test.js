@@ -18,6 +18,7 @@
  * 🔴 확정표 조립 함수(buildHumanDesignFactSnapshot/buildAllowedIds)는 **대역하지 않는다**.
  *    start-revive 스위트가 그 둘을 덮기 때문에 fail-closed 경로가 거기서는 증명되지 않는다.
  */
+import { withSettle } from "../fixtures/per-use-settle-mock.mjs";
 import { jest } from "@jest/globals";
 
 const USER_ID = "64b7f2a1c3d4e5f601234567";
@@ -129,7 +130,7 @@ beforeAll(async () => {
     source: "coin",
     transactionId: "tx-charged",
   }));
-  jest.unstable_mockModule("../../worker/lib/nakshatra-paid-access.js", () => ({
+  jest.unstable_mockModule("../../worker/lib/nakshatra-paid-access.js", () => withSettle({
     verifyPerUsePayment: verifyPerUsePaymentMock,
     logPerUsePaymentProof: jest.fn(() => {}),
   }));

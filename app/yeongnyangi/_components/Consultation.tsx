@@ -297,7 +297,6 @@ export default function Consultation(){
    onLegacy={()=>setQuestionMode(false)} preparation={prep.map(item=>({...item,pending:item.pending||Boolean(restoredDraft.current)}))}
    review={<><h2>상담 내용 확인</h2><p>{question}</p><p>{systemNames[intake.domain]} · {tarotOnly?tarotSpreadView?.title:selectedProfile?.name}{partnerProfile?' · '+partnerProfile.name:''}</p><p>기본 상담 + 추가 질문 {FOLLOWUP_LIMITS[product.fishId as QuestionFish]}회</p><div className={styles.checkoutSection}><div className={styles.checkoutTotal}><span>{tierLabel(product)} · {ui.payment}</span><strong><LaunchPlannedPrice className={styles.totalPlanned} amount={plannedTotal}/>{plannedTotal!==null&&<span className={styles.srOnly}>, 체험가 </span>}{price(product.priceKRW)}</strong></div>
    <p>{ui.afterPayment}</p><p>{askCopy.language}: <b lang={locale}>{readingLanguageNames[locale]}</b> · {ui.languageHint}</p><p>{ui.priceHint}</p>
-   <a href={`/yeongnyangi/library/?lang=${siteLocale}`}>{ui.library}</a>
    <p>{ui.about} {ui.limits}</p>
    {missing.length>0&&<ul className={styles.inputHints}>{missing.map(message=><li key={message}>{message}</li>)}</ul>}
    <button className={styles.checkoutButton} disabled={busy||(!guest&&(!ready||missing.length>0||!available.some(p=>p.id===productId)))} onClick={()=>void prepare()}>{busy?inputCopy.busy:guest?inputCopy.loginContinue:inputCopy.checkout}<ArrowRight size={18} aria-hidden="true"/></button>
@@ -305,6 +304,7 @@ export default function Consultation(){
    {catalogError&&<p role="alert">{siteLocale==='ko'?catalogError:inputCopy.unavailable}</p>}
    {ready&&!catalogError&&!available.some(p=>p.id===productId)&&<p>{inputCopy.unavailable}</p>}
    {error&&<p role="alert">{error}</p>}
+   <a className={styles.libraryLink} href={`/yeongnyangi/library/?lang=${siteLocale}`}>{ui.library}</a>
    </div></>}/>;
  }
 
@@ -373,7 +373,6 @@ export default function Consultation(){
    {siteLocale==='ko'&&product.readingKind!=='single'&&<CraftedProductDisclosure featureKey={product.cdFeatureKey}/>}
    <div className={styles.checkoutSection}><div className={styles.checkoutTotal}><span>{tierLabel(product)} · {ui.payment}</span><strong><LaunchPlannedPrice className={styles.totalPlanned} amount={plannedTotal}/>{plannedTotal!==null&&<span className={styles.srOnly}>, 체험가 </span>}{price(product.priceKRW)}</strong></div>
    <p>{ui.afterPayment}</p><p>{askCopy.language}: <b lang={locale}>{readingLanguageNames[locale]}</b> · {ui.languageHint}</p><p>{ui.priceHint}</p>
-   <a href={`/yeongnyangi/library/?lang=${siteLocale}`}>{ui.library}</a>
    <p>{ui.about} {ui.limits}</p>
    {missing.length>0&&<ul className={styles.inputHints}>{missing.map(message=><li key={message}>{message}</li>)}</ul>}
    <button className={styles.checkoutButton} disabled={busy||(!guest&&(!ready||missing.length>0||!available.some(p=>p.id===productId)))} onClick={()=>void prepare()}>{busy?inputCopy.busy:guest?inputCopy.loginContinue:inputCopy.checkout}<ArrowRight size={18} aria-hidden="true"/></button>
@@ -381,6 +380,7 @@ export default function Consultation(){
    {catalogError&&<p role="alert">{siteLocale==='ko'?catalogError:inputCopy.unavailable}</p>}
    {ready&&!catalogError&&!available.some(p=>p.id===productId)&&<p>{inputCopy.unavailable}</p>}
    {error&&<p role="alert">{error}</p>}
+   <a className={styles.libraryLink} href={`/yeongnyangi/library/?lang=${siteLocale}`}>{ui.library}</a>
    </div>
    </div>
   </div>

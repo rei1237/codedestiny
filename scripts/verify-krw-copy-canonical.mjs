@@ -50,6 +50,7 @@ import {
 import { PASS_MONTHLY_WON } from "../lib/payment/pass-pricing.js";
 import { CURRENT_PASS_PLANS } from "../lib/payment/pass-policy.js";
 import { MUSIC_TRACK_UNLOCK_PRICE_KRW } from "../lib/music-access-policy.js";
+import { SERVICE_PACK_PLANS } from "../worker/payments/service-pack-policy.js";
 import { PASS_LIMITS_KRW, MONTHLY_PASS_LIMITS_KRW } from "../worker/lib/profile-limits.js";
 import { KRW_PER_COIN as COIN_TO_KRW, MEMBERSHIP_CREDIT_PER_COIN } from "../worker/lib/billing-policy.js";
 import { gateCovers as gateCoversAny, readGatePatterns } from "./lib/gate-trigger-coverage.mjs";
@@ -74,6 +75,8 @@ for (const won of Object.values(PASS_MONTHLY_WON)) add(won);
 for (const plan of Object.values(CURRENT_PASS_PLANS)) {
   add(plan.wonPrice); add(plan.maxCoveredCoin * 100); add(plan.monthlyLimitCoin * 100);
 }
+// 2026-10-16: 홈 이용권 배너가 영냥이 세트 가격을 보여 준다. 세트 가격 정본은 이 표 하나다.
+for (const plan of Object.values(SERVICE_PACK_PLANS)) add(plan.priceKRW);
 for (const won of Object.values(PASS_LIMITS_KRW)) add(won);
 for (const won of Object.values(MONTHLY_PASS_LIMITS_KRW)) add(won);
 
@@ -298,6 +301,7 @@ const READ_PATHS = [
   "lib/payment/coin-pricing.ts",
   "lib/music-access-policy.js",
   "worker/lib/profile-limits.js",
+  "worker/payments/service-pack-policy.js",
   "scripts/verify-krw-copy-canonical.mjs",
   ...readdirSync(resolve(root, "public/i18n")).filter((f) => f.endsWith(".json")).map((f) => `public/i18n/${f}`),
 ];

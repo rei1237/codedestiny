@@ -15,7 +15,7 @@ function ensureFeatureDetailStyles() {
     style.rel = 'stylesheet';
     // /styles/*.css 는 1년 immutable 로 나간다(_headers). 무버전 URL 이면 9/14 전 옛 시트가 굳어
     // 새 상세창 버튼이 회색 네이티브 버튼으로 보였다. ?v= 는 sync:public 이 내용 해시로 다시 쓴다.
-    style.href = '/styles/feature-visual-detail.css?v=build-1d69e272e3d7';
+    style.href = '/styles/feature-visual-detail.css?v=build-5225a2069fd5';
     style.addEventListener('load', resolve, { once: true });
     style.addEventListener('error', () => {
       stylePromise = undefined;
@@ -72,6 +72,15 @@ export async function mountFeatureDetailPreview(overlay, keys, inlineDetail) {
     const price = overlay.querySelector('#tilePvwCost');
     const status = overlay.querySelector('#tilePvwCtaMeta');
     const slot = host.querySelector('[data-fortune-hero-action]');
+    const footer = overlay.querySelector('.tile-pvw-cta-sticky');
+    // 닫힘 감지와 가격·버튼 동기화를 옵저버 하나로 받고, 닫히거나 다시 열 때 IntersectionObserver 까지 함께 끊는다.
+    // (예전에는 다시 열기 정리에서 IntersectionObserver 가 빠져 열 때마다 하나씩 쌓였다.)
+    let sync = () => {};
+    let visibility = null;
+    const observer = new MutationObserver(() => { if (overlay.classList.contains('pvw-open')) sync(); else cleanup(); });
+    const cleanup = () => { observer.disconnect(); visibility?.disconnect(); footer?.classList.remove('fortuneCtaAtTop'); document.documentElement.classList.remove('cd-detail-open'); };
+    observer.observe(overlay, { attributes: true, attributeFilter: ['class'] });
+    actionCleanups.set(overlay, cleanup);
     if (source && slot) {
       const action = document.createElement('div'); action.className = 'fortuneAction';
       const label = document.createElement('p');
@@ -79,19 +88,14 @@ export async function mountFeatureDetailPreview(overlay, keys, inlineDetail) {
       button.addEventListener('click', () => source.click());
       const statusLabel = document.createElement('p'); statusLabel.className = 'fortuneSampleNote'; statusLabel.setAttribute('role', 'status');
       action.append(label, button, statusLabel); slot.replaceChildren(action);
-      const footer = overlay.querySelector('.tile-pvw-cta-sticky');
       const root = overlay.querySelector('.tile-pvw-scroll');
-      const visibility = typeof IntersectionObserver === 'function' && footer ? new IntersectionObserver(entries => { footer.classList.toggle('fortuneCtaAtTop', entries[0].boundingClientRect.bottom > (entries[0].rootBounds?.top ?? 0)); }, { root }) : null;
+      visibility = typeof IntersectionObserver === 'function' && footer ? new IntersectionObserver(entries => { footer.classList.toggle('fortuneCtaAtTop', entries[0].boundingClientRect.bottom > (entries[0].rootBounds?.top ?? 0)); }, { root }) : null;
       visibility?.observe(action);
-      const sync = () => { label.textContent = price?.textContent?.trim() || (detail.accessType === 'free' ? '무료' : '시작 화면에서 이용 조건 확인'); button.textContent = source.textContent.trim(); button.disabled = source.disabled || source.getAttribute('aria-disabled') === 'true'; statusLabel.textContent = status?.textContent?.trim() || ''; statusLabel.hidden = !statusLabel.textContent; };
+      sync = () => { label.textContent = price?.textContent?.trim() || (detail.accessType === 'free' ? '무료' : '시작 화면에서 이용 조건 확인'); button.textContent = source.textContent.trim(); button.disabled = source.disabled || source.getAttribute('aria-disabled') === 'true'; statusLabel.textContent = status?.textContent?.trim() || ''; statusLabel.hidden = !statusLabel.textContent; };
       sync();
-      const observer = new MutationObserver(sync);
       observer.observe(source, { childList: true, subtree: true, attributes: true, attributeFilter: ['disabled','aria-disabled'] });
       if (price) observer.observe(price, { childList: true, subtree: true, characterData: true });
       if (status) observer.observe(status, { childList: true, subtree: true, characterData: true });
-      const closing = new MutationObserver(() => { if (!overlay.classList.contains('pvw-open')) { observer.disconnect(); closing.disconnect(); visibility?.disconnect(); footer?.classList.remove('fortuneCtaAtTop'); } });
-      closing.observe(overlay, { attributes: true, attributeFilter: ['class'] });
-      actionCleanups.set(overlay, () => { observer.disconnect(); closing.disconnect(); });
     }
     host.addEventListener('click', event => {
       const shareButton = event.target.closest('[data-feature-share]');
@@ -105,6 +109,8 @@ export async function mountFeatureDetailPreview(overlay, keys, inlineDetail) {
     });
     overlay.classList.toggle('pvw-journey-trust', Boolean(detail.journey?.trustNotes?.length));
     overlay.classList.add('pvw-visual');
+    // 문서 스크롤 잠금 — 전역 html:has(…) 대신 열린 동안만 클래스 하나를 둔다(닫힘은 위 cleanup 이 지운다).
+    document.documentElement.classList.add('cd-detail-open');
   } catch {
     if (revisions.get(overlay) !== revision || !overlay.classList.contains('pvw-open')) return;
     const retry = document.createElement('button');

@@ -1,5 +1,6 @@
 "use client";
 import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
+import { reportAdviceTopics } from "@/js/recommendations-context.mjs";
 import PaidResultImageGuide from "@/components/fortune/PaidResultImageGuide";
 
 import Link from "next/link";
@@ -822,13 +823,13 @@ export default function AstrologyAiResultClient() {
             </aside>
           </div>
         )}
-        {!loading && consultation && <PaidResultImageGuide domain="astrology" status={consultation.status} content={assistantContent} basis={consultation.analysisBasis} />}
         {!loading && shareChoices.length > 0 && (
           <div className="mt-6 max-w-3xl">
             <ConsultationShare brand="astrology" choices={shareChoices} />
           </div>
         )}
-        {!loading && consultation?.status === "completed" && !error && <RecommendationResult service="astrology-ai-consultation"/>}
+        {!loading && consultation && <PaidResultImageGuide domain="astrology" status={consultation.status} content={assistantContent} basis={consultation.analysisBasis} />}
+        {!loading && consultation?.status === "completed" && !error && <RecommendationResult service="astrology-ai-consultation" practiceTags={reportAdviceTopics(assistantContent)}/>}
       </section>
     </main>
   );

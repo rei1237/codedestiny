@@ -1,4 +1,5 @@
 /** @jest-environment node */
+import { withSettle } from "../fixtures/per-use-settle-mock.mjs";
 import { jest } from '@jest/globals';
 // Multi-part stress fixture; the default one-part contract has separate coverage.
 const timeoutPolicy = jest.requireActual('../../worker/lib/sync-llm-timeout.js');
@@ -24,7 +25,7 @@ beforeAll(async()=>{
  jest.unstable_mockModule('../../worker/lib/db.js',()=>({...db,connectDb:async()=>{},withMongoRetry:async(_env,fn)=>fn()}));
  jest.unstable_mockModule('../../worker/lib/auth.js',()=>({...auth,getOptionalUserFromRequest:async()=>({userId})}));
  jest.unstable_mockModule('../../worker/lib/paid-feature-access.js',()=>({PAID_FEATURE_ACCESS_USER_PROJECTION:{},canAccessPaidFeature:async()=>({allowed:false,reason:'PAYMENT_REQUIRED'})}));
- jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js',()=>({verifyPerUsePayment:async(_env,input)=>{proofs.push(input);return {proven:mode==='denied'?false:true,source:mode};}}));
+ jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js',()=>withSettle({verifyPerUsePayment:async(_env,input)=>{proofs.push(input);return {proven:mode==='denied'?false:true,source:mode};}}));
  jest.unstable_mockModule('../../worker/lib/models.js',()=>({...models,ServiceExecutionTransaction:model,PaidExecutionRecord:{findOne:()=>query(revoked?{}:null)},Payment:{findOne:()=>query(null)},PointHistory:{findOne:()=>query(null)},MonthlyCreditLedger:{findOne:()=>query(null)}}));
  jest.unstable_mockModule('../../worker/lib/gemini.js',()=>({callGeminiText:(...args)=>provider(...args)}));
  ({handleDreamRoutes:route}=await import('../../worker/routes/dream.js'));

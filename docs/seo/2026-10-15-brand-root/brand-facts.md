@@ -1,6 +1,6 @@
 # 꿀꿀 운세 브랜드 사실 원본
 
-원본 모듈: `lib/brand/brand-facts.mjs` (version 1, reviewedAt 2026-10-15)
+원본 모듈: `lib/brand/brand-facts.mjs` (version 2, reviewedAt 2026-10-16)
 
 서비스 이름·운영자·캐릭터·공식 외부 프로필·과거 이름은 이 모듈에서만 정한다.
 2026-10-15 운영자 결정으로 공식 서비스명은 **꿀꿀 운세**다. 붙여 쓴 **꿀꿀운세**는 같은 서비스의 별칭이다.
@@ -16,6 +16,7 @@
 | `operator.name` | CODE DESTINY | Organization.name |
 | `operator.nameKo`·`alternateNames` | 코드 데스티니 외 | Organization.alternateName |
 | `characters` | 꽃돼지 연이 · 네오 · 영냥이 | 공식 안내 본문, llms.txt |
+| `characters.yeongnyangi.serviceName` | 운세보는 영냥이 (별칭: 사주보는 고양이 영냥이 · 운세 보는 영냥이) | /yeongnyangi/ title·H1 둘째 줄·Service.name·Breadcrumb, 루트 영냥이 문, llms.txt. 2026-10-16 사용자 결정. 사이트 별칭(`service.alternateNames`)에는 넣지 않는다 |
 | `sameAs` | YouTube · Threads · Instagram · 네이버 블로그 neosaju · X | Organization.sameAs, 푸터 SNS |
 | `formerNames` | 사주 달빛 정원 · 사주 달빛정원 · 꿀꿀 사주 · 꿀꿀사주 | 이력 문단에서만 허용. 검색 신호에 나오면 테스트 실패 |
 | `protectedNames` | 나의 달빛 정원 | 현재 기능명. 과거명 검사에서 제외 |

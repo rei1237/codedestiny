@@ -51,6 +51,7 @@
 .offer .facts li::before { content: ""; position: absolute; top: 0.7em; left: 0; width: 6px; height: 6px; border-radius: 50%; background: var(--yn-gold); }
 .offer .facts li:first-child { color: var(--yn-ivory); font-weight: 700; }
 .offer .actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 16px; margin: 20px 0 0; }
+/* 홈의 금 채움 Primary 는 히어로(night-hero .primary) 하나다. 여기는 Secondary 라인 버튼. */
 .offer .primary {
   display: inline-flex;
   gap: 8px;
@@ -58,14 +59,15 @@
   justify-content: center;
   min-height: 48px;
   padding: 0 22px;
-  border-radius: 999px;
-  background: var(--yn-gold);
-  color: var(--yn-deep);
+  border: 1px solid var(--yn-line);
+  border-radius: var(--yn-btn-radius);
+  background: var(--yn-night);
+  color: var(--yn-ivory);
   font-size: 15px;
   font-weight: 700;
   text-decoration: none;
 }
-.offer .primary:hover { background: var(--yn-ivory); }
+.offer .primary:hover { background: var(--yn-raised); }
 .offer .secondary { display: inline-flex; align-items: center; min-height: 44px; color: var(--yn-ivory); font-size: 14px; text-underline-offset: 4px; }
 .offer .fine { max-width: 52ch; margin: 14px auto 0; color: var(--yn-muted); font-size: 12.5px; line-height: 1.6; }
 .offer a:focus-visible { outline: 2px solid var(--yn-gold); outline-offset: 3px; }

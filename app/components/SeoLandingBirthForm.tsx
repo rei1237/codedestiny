@@ -321,7 +321,7 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
         <button
           type="submit"
           aria-label={submitLabel}
-          className="inline-flex min-h-12 items-center justify-center rounded-full bg-[#6f3fa6] px-7 text-[0.94rem] font-semibold text-white transition-colors duration-200 ease-out hover:bg-[#593184]"
+          className="inline-flex min-h-12 items-center justify-center rounded-[var(--cd-r-control,12px)] bg-[var(--cd-primary)] px-7 text-[0.94rem] font-semibold text-[var(--cd-primary-ink)] transition-colors duration-200 ease-out hover:bg-[var(--cd-primary-hover)]"
         >
           {submitLabel}
         </button>

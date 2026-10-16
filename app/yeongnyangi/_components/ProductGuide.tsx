@@ -56,7 +56,7 @@ export default function ProductGuide({domain,offers,surface='home_catalog'}:{dom
   <details className={styles.legacyReport}>
   <summary>질문 없이 전체 성향 리포트 고르기</summary>
   <p>내 질문의 답을 찾는 상담과 달리, 정해진 목차에 따라 성향과 삶의 여러 분야를 읽는 리포트예요.</p>
-  <div className={styles.offer}><p className={styles.offerHook}>{copy.hook}</p><p>{copy.description}</p><p><LaunchPlannedPrice amount={planned}/><strong>{offer.price.toLocaleString('ko-KR')}원</strong> · {offer.fishName} · {offer.chapters.length}개 챕터</p><a className={styles.cta} href={`#${sampleId}`} onClick={()=>trackProductStep('product_sample_open',domain,offer.itemId,surface)}>결과 예시 먼저 읽기</a><a href={`#${optionsId}`}>상담 구성과 결제 조건 확인하기</a></div>
+  <div className={styles.offer}><p className={styles.offerHook}>{copy.hook}</p><p>{copy.description}</p><p><LaunchPlannedPrice amount={planned}/><strong>{offer.price.toLocaleString('ko-KR')}원</strong> · {offer.fishName} · {offer.chapters.length}개 챕터</p><a className={styles.ctaSecondary} href={`#${sampleId}`} onClick={()=>trackProductStep('product_sample_open',domain,offer.itemId,surface)}>결과 예시 먼저 읽기</a><a href={`#${optionsId}`}>상담 구성과 결제 조건 확인하기</a></div>
   <Heading>이런 상황에 잘 맞아요</Heading><p>나의 성향이나 반복되는 선택을 이해하고, 다음 행동의 기준을 정리하고 싶을 때 살펴보세요.</p>
   <Heading>확인할 수 있는 내용</Heading><ul>{offer.chapters.slice(0,3).map(title=><li key={title}>{title}</li>)}</ul>
   <Heading>이런 답을 찾는다면 맞지 않아요</Heading><p>상대의 속마음, 특정 사건의 날짜, 합격·재회·수익을 확정하는 답은 제공하지 않아요.</p>
@@ -76,7 +76,7 @@ export default function ProductGuide({domain,offers,surface='home_catalog'}:{dom
   <a href="/yeongnyangi/library/">이미 구매한 상담 확인하기 →</a>
   {[...questionGuides,...contextualQuestionGuides].filter(q=>q.productId.startsWith(domain+'_')).slice(0,2).map(q=><a key={q.id} href={questionGuideHref(q.id)}>{q.question} — 이 고민에 맞는 상담 보기 →</a>)}
   <a href="/today/">오늘의 무료 흐름 먼저 살펴보기 →</a>
-  <div className={styles.offer}><p><LaunchPlannedPrice amount={planned}/><strong>{offer.price.toLocaleString('ko-KR')}원</strong> · {offer.fishName} · {offer.chapters.length}개 챕터</p><p>{offer.paymentLabel}. 다음 화면에서 상담 종류와 프로필을 고르고, 로그인 후 결제창에서 적용 수단과 총액을 확인해요.</p><a className={styles.cta} href={`/yeongnyangi/fortune/?flow=legacy&domain=${domain}&fish=${offer.fish}`} onClick={()=>trackProductStep('product_start_click',domain,offer.itemId,surface)}>이 구성으로 상담 준비하기 →</a></div>
+  <div className={styles.offer}><p><LaunchPlannedPrice amount={planned}/><strong>{offer.price.toLocaleString('ko-KR')}원</strong> · {offer.fishName} · {offer.chapters.length}개 챕터</p><p>{offer.paymentLabel}. 다음 화면에서 상담 종류와 프로필을 고르고, 로그인 후 결제창에서 적용 수단과 총액을 확인해요.</p><a href={`/yeongnyangi/fortune/?flow=legacy&domain=${domain}&fish=${offer.fish}`} onClick={()=>trackProductStep('product_start_click',domain,offer.itemId,surface)}>이 구성으로 상담 준비하기 →</a></div>
   </details>
   {domain==='saju'&&<a href="/yeongnyangi/#founder-records">네오 1:1 상담 실제 후기 보기 →</a>}
   {surface==='home_catalog'&&<a href={`/yeongnyangi/readings/${domain}/`}>공유할 수 있는 상품 안내 열기 →</a>}

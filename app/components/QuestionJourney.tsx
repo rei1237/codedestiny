@@ -34,7 +34,8 @@ export default function QuestionJourney({source='home'}:{source?:string}){
  return <section id="questions" className={styles.journey} aria-label="고민으로 시작하기">
   <div className={styles.intro}><div><h2>지금 마음에 걸리는 질문은?</h2><p>가까운 질문을 고르거나 직접 적어주세요. 상담에서 다룰 범위와 가격을 먼저 확인해요.</p></div><img className={styles.mascot} src="/assets/yeongnyangi/original/hero-480.webp" srcSet="/assets/yeongnyangi/original/hero-480.webp 480w, /assets/yeongnyangi/original/hero-800.webp 800w" sizes="(max-width: 560px) 112px, 176px" width="800" height="800" alt="달빛 모자를 쓰고 상담을 기다리는 흰 고양이 영냥이" loading="lazy" decoding="async"/></div>
   <Exposure event="question_topics_view" source={source}/>
-  <a className={styles.primary} href="/yeongnyangi/fortune/">내 고민 직접 적기</a>
+  {/* 질문을 고르면 아래 상담 안내의 금 채움 버튼이 주 행동이 된다 — 여기는 보조(라인). */}
+  <a className={styles.secondary} href="/yeongnyangi/fortune/">내 고민 직접 적기</a>
   <div className={styles.choices}>{buttons(questionGuides)}</div>
   <details><summary>다른 고민 더 찾아보기 · {concernGuides.length}가지 질문</summary>
    <div className={styles.finder}>

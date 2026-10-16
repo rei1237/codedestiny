@@ -10,6 +10,7 @@
  * 🔴 게이트를 mock 으로 건너뛰지 말 것 — 여기서 mock 하는 것은 증빙 조회와 인증뿐이고,
  *    분기 판정은 실제 라우트가 돌린다.
  */
+import { withSettle } from "../fixtures/per-use-settle-mock.mjs";
 import { jest } from "@jest/globals";
 // 🔴 실제 requireAuth 는 HttpError 를 던진다. 평범한 Error 는 handleRouteError 가 상태를 못 읽어
 //    500 이 되고, 그러면 테스트가 제품이 아니라 픽스처를 재게 된다.
@@ -44,7 +45,7 @@ beforeAll(async () => {
       getOptionalUserFromRequest: async () => null,
       PAID_FEATURE_ACCESS_USER_PROJECTION: "",
     })),
-    jest.unstable_mockModule("../../worker/lib/nakshatra-paid-access.js", () => ({
+    jest.unstable_mockModule("../../worker/lib/nakshatra-paid-access.js", () => withSettle({
       verifyPerUsePayment: async (env, input) => {
         verifyCalls.push(input);
         return proofResult;
@@ -129,14 +130,20 @@ test("증빙된 사용자에게는 판정·리딩·프롬프트를 내려준다"
   expect(data.aiPrompt.length).toBeGreaterThan(500);
 });
 
-test("이용권 커버는 차감 기록 없이도 통과한다", async () => {
+// 🔴 2026-10-16: 이용권 허용 판정(읽기 전용)만으로 열면 차감 없이 무료였다. 이번 requestId 로 차감 증빙을 거쳐야 연다.
+test("이용권 허용 판정만으로는 열리지 않는다 — 차감 증빙이 없으면 402", async () => {
   accessDecision = { allowed: true, accessSource: "pass" };
   const res = await handleTarotRoutes(post({ cards: CARDS, requestId: REQUEST_ID }), {});
+  expect(res.status).toBe(402);
+  expect(verifyCalls).toEqual([expect.objectContaining({ requestId: REQUEST_ID })]);
+});
+
+test("이용권 차감이 이번 requestId 로 확인되면 통과한다", async () => {
+  accessDecision = { allowed: true, accessSource: "pass" };
+  proofResult = { proven: true, source: "pass", reason: "" };
+  const res = await handleTarotRoutes(post({ cards: CARDS, requestId: REQUEST_ID }), {});
   expect(res.status).toBe(200);
-  const data = await res.json();
-  expect(data.accessSource).toBe("pass");
-  // 지름길로 통과했으므로 증빙 조회는 돌지 않는다.
-  expect(verifyCalls).toHaveLength(0);
+  expect(verifyCalls).toEqual([expect.objectContaining({ requestId: REQUEST_ID })]);
 });
 
 test("카드가 7장이 아니면 400 이고 결제 확인 뒤에 걸린다", async () => {

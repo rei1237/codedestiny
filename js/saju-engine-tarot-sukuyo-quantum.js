@@ -8302,7 +8302,8 @@ var SY_PAID_FEATURES = Object.freeze({
   extremeTRelationshipCircuit: { key: 'sukuyo-extreme-t-relationship', cost: 30, reason: '극T 관계 회로 확장' },
   relationshipEncyclopedia: { key: 'sukuyo-relationship-encyclopedia', cost: 30, reason: '숙요 인연 도감' },
   natureDeepDive: { key: 'sukuyo-nature-deep-dive', cost: 30, reason: '본성 심화 해석' },
-  pastLifeReading: { key: 'sukuyo-past-life-reading', cost: 50, reason: '숙요 인연 레이더' },
+  // 전생 인연 리딩도 상대마다 회당 결제다 — 서버가 결제 1건을 상대 조합 1건에 묶는다(worker/routes/sukuyo.js).
+  pastLifeReading: { key: 'sukuyo-past-life-reading', cost: 50, reason: '숙요 인연 레이더', perPayment: true },
   monthlyFortune: { key: 'sukuyo-monthly-fortune', cost: 30, reason: '월별 숙요 운세 확장' },
   // perPayment: 상대가 매번 바뀌는 회당 결제 — 결제마다 새 requestId 를 쓴다(syOpenPaidSukuyoFeature).
   compatibility: { key: 'compat-sukuyo-compatibility', cost: 30, reason: '숙요점 궁합 분석', perPayment: true },
@@ -8355,7 +8356,7 @@ function syIsPaidGateGranted(result) {
 var _sySukuyoPaidGateInFlight = Object.create(null);
 var SY_SUKUYO_PAID_GATE_TTL_MS = 45000;
 
-/* 🔴 회당 결제(perPayment — 기본·정밀 궁합)는 결제마다 새 requestId 를 쓴다. 카드에 고정하면 다른 상대를
+/* 🔴 회당 결제(perPayment — 기본·정밀 궁합·전생 인연 리딩)는 결제마다 새 requestId 를 쓴다. 카드에 고정하면 다른 상대를
    볼 때 월정석 원장(purchaseId)·이용권 멱등 마커가 같은 값이라 서버가 첫 결제의 재생으로 처리해 두 번째
    결제가 일어나지 않았다. 연타는 위 인플라이트 맵(45초)이 게이트 진입 자체를 막으므로 값이 달라도 한 번만
    열린다. 앞부분(기능|카드)은 보관함 저장 때 서버가 이 카드·이 기능의 결제인지 확인하는 데 쓴다
@@ -13813,7 +13814,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     var payload = response && response.payload ? response.payload : {};
     if (response && response.ok && payload && payload.ok && payload.data) return payload.data;
     var error = payload.error && typeof payload.error === 'object' ? payload.error : payload;
-    throw new Error(String(error.message || payload.message || '숙요 전생 인연 리딩을 열지 못했습니다.'));
+    var failure = new Error(String(error.message || payload.message || '숙요 전생 인연 리딩을 열지 못했습니다.'));
+    failure.status = Number(response && response.status || 0);
+    throw failure;
   }
 
   // 이미 결제한 조합(같은 상대·같은 목적)인지 서버 아카이브로만 판정한다.
@@ -13966,7 +13969,16 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
               if (status) status.textContent = '인연 레이더 리포트를 저장하고 있습니다...';
               await syRequestSukuyoPastLifeReading(inputPayload, gateResult);
             } catch (serverError) {
-              if (status) status.textContent = (serverError && serverError.message) ? String(serverError.message) : '서버 저장은 잠시 지연되고 있습니다. 리포트는 이 자리에서 열립니다.';
+              // 🔴 2026-10-16: 서버가 결제를 거절(4xx)하면 전체 리포트를 열지 않는다 — 예전에는 실패해도
+              // reveal(true) 라서, 복귀 경로(skipGate)를 증빙 없이 타기만 하면 결제 없이 열렸다.
+              // 일시 장애(5xx·네트워크)는 이 화면에서 게이트를 막 통과한 결제(gateResult)가 있을 때만 연다.
+              var rejectStatus = Number(serverError && serverError.status || 0);
+              var paymentRejected = rejectStatus >= 400 && rejectStatus < 500;
+              if (paymentRejected || !gateResult) {
+                if (status) status.textContent = (serverError && serverError.message) ? String(serverError.message) : '결제 확인이 끝나지 않아 전체 리포트를 열지 못했습니다. 잠시 후 다시 시도해 주세요.';
+                return;
+              }
+              if (status) status.textContent = '서버 저장은 잠시 지연되고 있습니다. 리포트는 이 자리에서 열립니다.';
             }
             reveal(true);
           };

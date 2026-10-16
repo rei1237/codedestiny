@@ -18,6 +18,7 @@
  * 🔴 updateOne 대역이 "$setOnInsert 는 기존 문서에 아무것도 쓰지 않는다" 를 그대로 흉내낸다 —
  *    그 의미를 무르게 하면 이 테스트는 옛 코드도 통과시킨다(가드가 아니게 된다).
  */
+import { withSettle } from "../fixtures/per-use-settle-mock.mjs";
 import { jest } from "@jest/globals";
 
 const USER_ID = "64b7f2a1c3d4e5f601234567";
@@ -112,7 +113,7 @@ beforeAll(async () => {
     source: "coin",
     transactionId: "tx-1",
   }));
-  jest.unstable_mockModule("../../worker/lib/nakshatra-paid-access.js", () => ({
+  jest.unstable_mockModule("../../worker/lib/nakshatra-paid-access.js", () => withSettle({
     verifyPerUsePayment: verifyPerUsePaymentMock,
     logPerUsePaymentProof: jest.fn(() => {}),
   }));

@@ -186,9 +186,12 @@ test("the free reading closes with the product the server picked for that topic"
   assert.doesNotMatch(client, /targetPath: "/);
   // 계측은 기존 앵커 위임에 얹는다 — 같은 노드에 리스너를 겹치지 않는다(코딩 원칙 6).
   assert.match(client, /data-cd-cross-sell="\/fortune-chat"/);
-  // 앵커가 primary 스타일을 받도록 CSS 가 열려 있어야 한다. 안 열면 링크가 맨몸 텍스트로 나온다.
+  // 앵커도 버튼 모양을 받도록 CSS 가 열려 있어야 한다. 안 열면 링크가 맨몸 텍스트로 나온다.
   assert.match(css, /\.actions button,\.actions a,\.input button\{/);
-  assert.match(css, /\.actions a\+button\{/);
+  // 2026-10-16 Button Tiers: 채움(Primary)은 데이터와 무관하게 초융합 버튼 하나로 고정한다.
+  // 예전 `.actions a+button` 규칙은 앵커가 있으면 앵커가, 없으면 초융합이 채움을 받아 서버 응답에 따라 주 버튼이 바뀌었다.
+  assert.match(css, /\.actions a\{[^}]*border:1px solid var\(--line\);background:transparent;color:var\(--ink\)\}/);
+  assert.doesNotMatch(css, /\.actions a\+button\{/);
 });
 
 test("guests open the new room from the public flag and keep their question through login", () => {

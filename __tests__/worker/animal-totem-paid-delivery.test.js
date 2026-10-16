@@ -1,4 +1,5 @@
 /** @jest-environment node */
+import { withSettle } from "../fixtures/per-use-settle-mock.mjs";
 import { jest } from '@jest/globals';
 let route,docs,provider,revoked,userId,fault,lost,external,kind,mode;
 let serial=0;let owner='64b7f2a1c3d4e5f601234567',clone=value=>structuredClone(value);
@@ -19,7 +20,7 @@ beforeAll(async()=>{
  const db=await import('../../worker/lib/db.js'),auth=await import('../../worker/lib/auth.js'),models=await import('../../worker/lib/models.js'),structured=await import('../../worker/lib/structured-consultation.js');
  jest.unstable_mockModule('../../worker/lib/db.js',()=>({...db,connectDb:async()=>{},withMongoRetry:async(_env,fn)=>fn()}));
  jest.unstable_mockModule('../../worker/lib/auth.js',()=>({...auth,requireAuth:async()=>({userId})}));
- jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js',()=>({verifyPerUsePayment:async(_env,input)=>{proofs.push(input);return {proven:mode==='denied'?false:true,source:mode};},logPerUsePaymentProof:()=>{}}));
+ jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js',()=>withSettle({verifyPerUsePayment:async(_env,input)=>{proofs.push(input);return {proven:mode==='denied'?false:true,source:mode};},logPerUsePaymentProof:()=>{}}));
  jest.unstable_mockModule('../../worker/lib/cms-prompts.js',()=>({cmsPromptText:async(_env,_key,fallback)=>fallback}));
  jest.unstable_mockModule('../../worker/lib/models.js',()=>({...models,ServiceExecutionTransaction:model,PaidExecutionRecord:{findOne:()=>query(revoked?{}:null)},Payment:{findOne:()=>query(null)},PointHistory:{findOne:()=>query(null)},MonthlyCreditLedger:{findOne:()=>query(null)}}));
  jest.unstable_mockModule('../../worker/lib/structured-consultation.js',()=>({...structured,callGeminiJsonWithRetry:(...args)=>provider(...args)}));

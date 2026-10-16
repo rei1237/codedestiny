@@ -3288,7 +3288,7 @@ export default function KarmaDestinyAiPage() {
           border: 0;
           border-radius: 8px;
           color: #17120a;
-          background: linear-gradient(135deg, #ffe7a6, #d9a441 52%, #be123c);
+          background: #d9a441;
           font-weight: 900;
           cursor: pointer;
           box-shadow: 0 14px 30px rgba(0, 0, 0, .28), 0 0 0 1px rgba(255, 244, 205, .18);

@@ -21,6 +21,7 @@ const SYSTEMS=DOMAINS.map(domain=>systemNames[domain]).join(', ');
 
 export const YEONGNYANGI_FAQS=[
  {question:'사주 보는 고양이 영냥이는 어떤 서비스인가요?',answer:`영냥이는 꿀꿀운세(CODE DESTINY)가 운영하는 유료 운세 상담 캐릭터예요. ${SYSTEMS} 중 하나를 골라 한 가지 고민을 챕터로 나눠 읽어 줘요. "사주보는고양이"처럼 붙여 써서 찾아도 같은 서비스예요.`},
+ {question:'운세보는 영냥이와 꿀꿀 운세는 어떤 관계인가요?',answer:'운세보는 영냥이는 꿀꿀 운세 안의 사주보는 고양이 상담 서비스예요. 운영자는 CODE DESTINY(코드 데스티니)로 같고, 공식 홈페이지는 https://code-destiny.com/, 영냥이 상담 입구는 https://code-destiny.com/yeongnyangi/예요.'},
  {question:'가장 저렴한 상담은 얼마인가요?',answer:`고등어 상담이 ${LOWEST_PRICE}이고, 여섯 체계 모두 같은 가격이에요. 결제창에서 총액과 적용 수단을 한 번 더 확인한 뒤에 결제돼요.`},
  {question:'결제하고 나면 결과는 언제, 어디서 보나요?',answer:'결제가 확인되면 영냥이가 상담을 쓰기 시작해요. 보통 몇 분 안에 완성되고, 화면을 닫아도 같은 계정의 내 상담에서 이어서 확인하고 다시 열 수 있어요.'},
  {question:'상담이 만들어지지 않으면 어떻게 되나요?',answer:'내 상담 화면에서 진행 상태를 확인할 수 있어요. 문제가 계속되면 결제 내역과 함께 문의하기로 알려 주세요. 환불 기준은 환불 정책을 따라요.'},
@@ -91,7 +92,7 @@ export default function YeongnyangiGuide(){
   <section id="yn-faq" aria-labelledby="yn-faq-title">
    <h2 id="yn-faq-title">영냥이 자주 묻는 질문</h2>
    <div className={styles.faq}>{YEONGNYANGI_FAQS.map(item=><section key={item.question}><h3>{item.question}</h3><p>{item.answer}</p></section>)}</div>
-   <p className={styles.note}>함께 보기: <a href="/ggulggul/">꿀꿀운세 홈</a> · <a href="/yeongnyangi/1000-won-fortune/">천원 운세·천원사주</a> · <a href="/yeongnyangi/library/">내 상담</a> · <a href="/privacy-policy/">개인정보 처리방침</a></p>
+   <p className={styles.note}>함께 보기: <a href="/ggulggul/">꿀꿀운세 홈</a> · <a href="/yeongnyangi/1000-won-fortune/">천원 재미 사주 콘텐츠</a> · <a href="/yeongnyangi/library/">내 상담</a> · <a href="/privacy-policy/">개인정보 처리방침</a></p>
   </section>
  </article>;
 }

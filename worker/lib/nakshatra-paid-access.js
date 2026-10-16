@@ -206,9 +206,8 @@ export async function verifyPerUsePayment(env, { userId, featureKey, coinPrice =
           coinCost: cost,
           profileId: clean(profileId, 120),
         });
-        // 🔴 코드가 빈 문자열이면 막지 않는다(passDenialCode 주석) — 예전 통과 판정을 존중한다.
-        const denial = consumed.covered ? "" : passDenialCode(consumed.reason);
-        if (denial) return { proven: false, source: "", reason: denial };
+        // 🔴 차감이 안 됐으면 사유와 무관하게 결제 미확인이다 — 빈 코드를 통과로 읽으면 차감 없이 열린다.
+        if (!consumed.covered) return { proven: false, source: "", reason: passDenialCode(consumed.reason) || "NO_RECORD" };
         // 🔴 monthlySpendCoin 차감분을 되돌릴 정보다 — 이걸 안 실어 보내면 뒤에서 결제(생성)가
         //    실패해도 이 월간 사용한도가 영원히 복구되지 않는다(2026-09-12 실사고 수정).
         const cycleKey = consumed.coverage?.cycleKey;
@@ -225,6 +224,38 @@ export async function verifyPerUsePayment(env, { userId, featureKey, coinPrice =
     }
     throw error;
   }
+}
+
+/**
+ * canAccessPaidFeature 의 "허용"을 회당 상품에서 실제 정산으로 바꾼다(2026-10-16 찻집 사건).
+ *
+ * canAccessPaidFeature 의 license/pass/family/monthly/paidFeatures 허용은 **읽기 전용 판정**이다.
+ * 회당 상품이 그 판정만 믿고 본문을 주면 이용권이 깎이지 않고, 라이선스·월구독·paidFeatures 만으로
+ * 회당 상담이 무한히 열린다. 그래서 허용 판정은 여기서 정본 verifyPerUsePayment 로 다시 확정한다 —
+ * 이번 requestId 의 결제·코인·월정석 증빙이 먼저이고, 없으면 이용권을 **실제로 차감**한다.
+ * 라이선스·월구독·paidFeatures 는 회당 증빙이 아니므로 그것만으로는 통과하지 못한다.
+ *
+ * acceptSettled: 판정이 거부여도 이번 requestId 가 이미 정산됐으면(앞 단계에서 차감해 한도가 소진된 경우)
+ *   새로 차감하지 않고 인정한다. 시작→생성처럼 같은 주문을 두 번 확인하는 라우트의 뒤 단계용이다.
+ *
+ * @returns {Promise<{allowed:(boolean|null), source:string, reason:string, transactionId?:string, passRefund?:{cycleKey:string, cost:number}}>}
+ *   allowed === null : DB 일시 장애. 402 가 아니라 503 으로 돌려야 한다.
+ */
+export async function settlePerUseAccessDecision(env, { decision, userId, featureKey, coinPrice = 0, requestId = "", profileId = "", acceptSettled = false } = {}) {
+  const denied = { allowed: false, source: "", reason: clean(decision?.reason, 80) || "PAYMENT_REQUIRED" };
+  if (!decision?.allowed && !acceptSettled) return denied;
+  if (!clean(requestId)) return { allowed: false, source: "", reason: "NO_REQUEST_ID" };
+  const proof = await verifyPerUsePayment(env, { userId, featureKey, coinPrice, requestId, profileId, requireExisting: !decision?.allowed });
+  if (!decision?.allowed && proof.proven === false) return denied;
+  if (proof.proven === null) return { allowed: null, source: "", reason: proof.reason || "DB_DEGRADED" };
+  if (!proof.proven) return { allowed: false, source: "", reason: proof.reason || "PAYMENT_REQUIRED" };
+  return {
+    allowed: true,
+    source: proof.source,
+    reason: "",
+    ...(proof.transactionId ? { transactionId: proof.transactionId } : {}),
+    ...(proof.passRefund ? { passRefund: proof.passRefund } : {}),
+  };
 }
 
 /**

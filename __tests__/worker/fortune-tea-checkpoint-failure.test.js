@@ -26,7 +26,7 @@ async function fixture({attempts = 1, checkpoint = true, token = 'held'} = {}) {
     teaNarrativeText:value=>JSON.stringify(value), json:(body,options)=>({body,status:options.status}),
     assertSajuCalculationBasis:()=>{}, assertSukuyoCalculationBasis:()=>{}, hasGeminiKey:()=>true,
     generateTeaCheckpoint:async()=>{throw Object.assign(new Error('temporary interruption'),{code:'FORTUNE_TEA_HOUSE_LLM_RETRYABLE'});},
-    callFortuneTeaDeferredUsageRoute:cancel,
+    callFortuneTeaDeferredUsageRoute:cancel, refundFortuneTeaHousePassSettlement:async()=>({}), releaseRequestBillingEvidence:async()=>({released:0}), evidenceIds:[],
   };
   vm.createContext(context);
   vm.runInContext(['teaCheckpointProgress','markFortuneTeaHouseGenerationFailed'].map(name=>declaration(name).getText(ast)).join('\n'),context);

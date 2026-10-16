@@ -163,9 +163,8 @@ describe("출생 기반 키의 프리미엄 접근 판정 (userId + birthKey + c
     });
   }
 
-  const sibyl = (body = {}) => requirePremiumReportAccess({}, TEST_USER_ID, "sibylDominator", {
-    _userDoc: { _id: TEST_USER_ID, unlockedFeatures: [] },
-    ...body,
+  const sibyl = (body = {}) => requirePremiumReportAccess({}, TEST_USER_ID, "sibylDominator", body, {
+    preloadedUserDoc: { _id: TEST_USER_ID, unlockedFeatures: [] },
   });
 
   beforeEach(() => {
@@ -225,18 +224,24 @@ describe("출생 기반 키의 프리미엄 접근 판정 (userId + birthKey + c
   });
 
   test("User.unlockedFeatures 계정 배열은 출생 기반 키의 근거가 아니다", async () => {
-    const access = await requirePremiumReportAccess({}, TEST_USER_ID, "fptiPremium", {
-      _userDoc: { _id: TEST_USER_ID, unlockedFeatures: ["premium-fpti-report"] },
-      profileId: "p1",
+    const access = await requirePremiumReportAccess({}, TEST_USER_ID, "fptiPremium", { profileId: "p1" }, {
+      preloadedUserDoc: { _id: TEST_USER_ID, unlockedFeatures: ["premium-fpti-report"] },
     });
     expect(access).toMatchObject({ ok: false, status: 402 });
   });
 
   test("계정 기반 키는 종전대로 계정 배열로 열린다", async () => {
-    const access = await requirePremiumReportAccess({}, TEST_USER_ID, "sukuyoPastLifeReading", {
-      _userDoc: { _id: TEST_USER_ID, unlockedFeatures: ["premiumDivinationPack"] },
+    const access = await requirePremiumReportAccess({}, TEST_USER_ID, "sukuyoPastLifeReading", {}, {
+      preloadedUserDoc: { _id: TEST_USER_ID, unlockedFeatures: ["premiumDivinationPack"] },
     });
     expect(access).toMatchObject({ ok: true, accessType: "unlock", entitlementId: "premiumDivinationPack" });
+  });
+
+  test("요청 본문의 _userDoc 은 사용자 문서로 채택하지 않는다(위조 차단)", async () => {
+    const access = await requirePremiumReportAccess({}, TEST_USER_ID, "sukuyoPastLifeReading", {
+      _userDoc: { _id: TEST_USER_ID, unlockedFeatures: ["premiumDivinationPack"], role: "admin" },
+    });
+    expect(access.ok).toBe(false);
   });
 
   test("요청 profileId 추출은 계정 표식·합성 출생 id 를 프로필로 받지 않는다", () => {

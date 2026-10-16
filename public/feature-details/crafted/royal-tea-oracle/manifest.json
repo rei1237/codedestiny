@@ -11,7 +11,13 @@
       "src": "/feature-details/crafted/royal-tea-oracle/01-a-question-in-your-cup.webp",
       "width": 1080,
       "height": 1440,
-      "text": "생각이 맴도는 날,\n찻잔을 들여다보세요.\n\n사랑, 일, 돈, 가족, 그리고 선택.\n하나를 마음에 두고 시작하면\n찻잎 형상으로 감정서를 펼쳐요.\n\n영국 홍차점 · 이미지는 분위기 연출"
+      "text": "생각이 맴도는 날,\n찻잔을 들여다보세요.\n\n사랑, 일, 돈, 가족, 그리고 선택.\n하나를 마음에 두고 시작하면\n찻잎 형상으로 감정서를 펼쳐요.\n\n영국 홍차점 · 이미지는 분위기 연출",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/royal-tea-oracle/01-a-question-in-your-cup-540.webp",
+          "width": 540
+        }
+      ]
     },
     {
       "id": "02-choose-the-subject",
@@ -20,7 +26,13 @@
       "src": "/feature-details/crafted/royal-tea-oracle/02-choose-the-subject.webp",
       "width": 1080,
       "height": 1440,
-      "text": "긴 사연 대신,\n오늘의 영역을 골라요.\n\n생년이나 질문 문장을 입력하지 않고\n다섯 영역 중 하나를 선택해요.\n\n연애 · 마음과 관계\n\n일 · 역할과 방향\n\n돈 · 재물과 선택\n\n가족 · 가까운 사람들\n\n선택 · 갈림길의 고민\n\n선택한 영역에 맞는 관점이\n각 형상의 해석에 함께 담겨요."
+      "text": "긴 사연 대신,\n오늘의 영역을 골라요.\n\n생년이나 질문 문장을 입력하지 않고\n다섯 영역 중 하나를 선택해요.\n\n연애 · 마음과 관계\n\n일 · 역할과 방향\n\n돈 · 재물과 선택\n\n가족 · 가까운 사람들\n\n선택 · 갈림길의 고민\n\n선택한 영역에 맞는 관점이\n각 형상의 해석에 함께 담겨요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/royal-tea-oracle/02-choose-the-subject-540.webp",
+          "width": 540
+        }
+      ]
     },
     {
       "id": "03-three-places-in-the-cup",
@@ -29,7 +41,13 @@
       "src": "/feature-details/crafted/royal-tea-oracle/03-three-places-in-the-cup.webp",
       "width": 1080,
       "height": 1440,
-      "text": "잔의 세 자리를 따라,\n시선을 옮겨보세요.\n테두리 · 가까운 흐름\n\n지금부터 2주를 상징하는 자리\n\n잔벽 · 이어지는 과정\n\n2주부터 3개월을 상징하는 자리\n\n바닥 · 오래 남는 뿌리\n\n3개월 이후와 바탕을 읽는 자리\n\n기간은 상징을 나누는 틀이에요.\n사건이 일어날 날짜는 아니에요."
+      "text": "잔의 세 자리를 따라,\n시선을 옮겨보세요.\n테두리 · 가까운 흐름\n\n지금부터 2주를 상징하는 자리\n\n잔벽 · 이어지는 과정\n\n2주부터 3개월을 상징하는 자리\n\n바닥 · 오래 남는 뿌리\n\n3개월 이후와 바탕을 읽는 자리\n\n기간은 상징을 나누는 틀이에요.\n사건이 일어날 날짜는 아니에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/royal-tea-oracle/03-three-places-in-the-cup-540.webp",
+          "width": 540
+        }
+      ]
     },
     {
       "id": "04-an-eight-part-certificate",
@@ -38,7 +56,13 @@
       "src": "/feature-details/crafted/royal-tea-oracle/04-an-eight-part-certificate.webp",
       "width": 1080,
       "height": 1440,
-      "text": "세 형상에서 시작해,\n행동까지 이어지는 감정서.\n\nⅠ–Ⅲ   테두리 · 잔벽 · 바닥\n\nⅣ   형상의 만남\n\nⅤ   잔에 남은 부가 사인\n\nⅥ   노신사의 경고\n\nⅦ   오늘의 처방\n\nⅧ   찻잎 어휘록\n\n주의점과 행동 제안까지 읽어요.\n‘처방’은 상징적인 조언이에요."
+      "text": "세 형상에서 시작해,\n행동까지 이어지는 감정서.\n\nⅠ–Ⅲ   테두리 · 잔벽 · 바닥\n\nⅣ   형상의 만남\n\nⅤ   잔에 남은 부가 사인\n\nⅥ   노신사의 경고\n\nⅦ   오늘의 처방\n\nⅧ   찻잎 어휘록\n\n주의점과 행동 제안까지 읽어요.\n‘처방’은 상징적인 조언이에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/royal-tea-oracle/04-an-eight-part-certificate-540.webp",
+          "width": 540
+        }
+      ]
     },
     {
       "id": "05-the-way-symbols-meet",
@@ -47,7 +71,13 @@
       "src": "/feature-details/crafted/royal-tea-oracle/05-the-way-symbols-meet.webp",
       "width": 1080,
       "height": 1440,
-      "text": "형상 하나보다,\n서로 이어지는 뜻을 읽어요.\n형상과 자리\n\n각 상징의 뜻에 방향·선명도와\n선택한 영역의 관점을 더해요.\n\n두 번의 연결\n\n테두리에서 잔벽으로,\n잔벽에서 바닥으로 이어 읽어요.\n\n상징의 바탕\n\n마지막 어휘록에서 세 형상의\n이름과 배경 이야기를 살펴요.\n\n선명도는 적중 확률이 아니에요."
+      "text": "형상 하나보다,\n서로 이어지는 뜻을 읽어요.\n형상과 자리\n\n각 상징의 뜻에 방향·선명도와\n선택한 영역의 관점을 더해요.\n\n두 번의 연결\n\n테두리에서 잔벽으로,\n잔벽에서 바닥으로 이어 읽어요.\n\n상징의 바탕\n\n마지막 어휘록에서 세 형상의\n이름과 배경 이야기를 살펴요.\n\n선명도는 적중 확률이 아니에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/royal-tea-oracle/05-the-way-symbols-meet-540.webp",
+          "width": 540
+        }
+      ]
     },
     {
       "id": "06-read-it-as-a-pause",
@@ -56,7 +86,13 @@
       "src": "/feature-details/crafted/royal-tea-oracle/06-read-it-as-a-pause.webp",
       "width": 1080,
       "height": 1440,
-      "text": "답을 서두르기 전에,\n내 선택을 돌아보는 시간.\n\n가상 편집 예시 · 실제 결과·후기 아님\n\n“일의 방향을 고르려는데,\n무엇부터 생각해야 할까요?”\n\n가까운 흐름에서는\n당장 정리할 일을 찾고,\n이어지는 과정에서는\n유지할 습관을 돌아보세요.\n\n이런 관점으로 감정서를 읽으며\n오늘 할 작은 행동을 골라보세요."
+      "text": "답을 서두르기 전에,\n내 선택을 돌아보는 시간.\n\n가상 편집 예시 · 실제 결과·후기 아님\n\n“일의 방향을 고르려는데,\n무엇부터 생각해야 할까요?”\n\n가까운 흐름에서는\n당장 정리할 일을 찾고,\n이어지는 과정에서는\n유지할 습관을 돌아보세요.\n\n이런 관점으로 감정서를 읽으며\n오늘 할 작은 행동을 골라보세요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/royal-tea-oracle/06-read-it-as-a-pause-540.webp",
+          "width": 540
+        }
+      ]
     },
     {
       "id": "07-the-same-day-same-cup",
@@ -65,7 +101,13 @@
       "src": "/feature-details/crafted/royal-tea-oracle/07-the-same-day-same-cup.webp",
       "width": 1080,
       "height": 1440,
-      "text": "같은 날 같은 영역에는,\n같은 잔이 나와요.\n\n같은 사용자와 한국 날짜,\n선택 영역을 기준으로\n잔의 구성이 정해져요.\n\n다시 시작할 때마다\n새로운 답이 나오는\n리딩은 아니에요.\n\n실제 찻잎 사진을 분석하거나\nAI가 새 답변을 쓰지 않고,\n준비된 해석을 조합해요.\n\n새 리딩의 이용 조건은\n시작 전 결제창에서 확인하세요."
+      "text": "같은 날 같은 영역에는,\n같은 잔이 나와요.\n\n같은 사용자와 한국 날짜,\n선택 영역을 기준으로\n잔의 구성이 정해져요.\n\n다시 시작할 때마다\n새로운 답이 나오는\n리딩은 아니에요.\n\n실제 찻잎 사진을 분석하거나\nAI가 새 답변을 쓰지 않고,\n준비된 해석을 조합해요.\n\n새 리딩의 이용 조건은\n시작 전 결제창에서 확인하세요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/royal-tea-oracle/07-the-same-day-same-cup-540.webp",
+          "width": 540
+        }
+      ]
     },
     {
       "id": "08-what-sharing-keeps",
@@ -74,7 +116,13 @@
       "src": "/feature-details/crafted/royal-tea-oracle/08-what-sharing-keeps.webp",
       "width": 1080,
       "height": 1440,
-      "text": "잔의 여운은 나누되,\n저장 범위를 확인하세요.\n화면의 이전 잔 목록\n\n현재 페이지에서 최대 여덟 잔.\n계정 보관함은 아니에요.\n\n공유\n\n기기에 따라 잔의 요약이나\n페이지 링크를 나눌 수 있어요.\n\n전체 감정서\n\n공유에 전문이 담기지 않으며\nPDF 저장은 제공하지 않아요.\n\n필요한 내용은 화면에서 확인하세요."
+      "text": "잔의 여운은 나누되,\n저장 범위를 확인하세요.\n화면의 이전 잔 목록\n\n현재 페이지에서 최대 여덟 잔.\n계정 보관함은 아니에요.\n\n공유\n\n기기에 따라 잔의 요약이나\n페이지 링크를 나눌 수 있어요.\n\n전체 감정서\n\n공유에 전문이 담기지 않으며\nPDF 저장은 제공하지 않아요.\n\n필요한 내용은 화면에서 확인하세요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/royal-tea-oracle/08-what-sharing-keeps-540.webp",
+          "width": 540
+        }
+      ]
     },
     {
       "id": "09-before-the-clock-turns",
@@ -83,7 +131,13 @@
       "src": "/feature-details/crafted/royal-tea-oracle/09-before-the-clock-turns.webp",
       "width": 1080,
       "height": 1440,
-      "text": "오늘의 물음을 고르고,\n잔 앞에 잠시 머물러요.\n\n선택한 영역을 확인한 뒤\n기존 시계 버튼으로 시작하세요.\n\n이용 조건\n\n이용권·월정석·단건 결제는\n현재 결제창을 기준으로 해요.\n\n읽는 마음\n\n미래를 보장하는 답보다\n선택을 돌아보는 참고로 읽어요."
+      "text": "오늘의 물음을 고르고,\n잔 앞에 잠시 머물러요.\n\n선택한 영역을 확인한 뒤\n기존 시계 버튼으로 시작하세요.\n\n이용 조건\n\n이용권·월정석·단건 결제는\n현재 결제창을 기준으로 해요.\n\n읽는 마음\n\n미래를 보장하는 답보다\n선택을 돌아보는 참고로 읽어요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/royal-tea-oracle/09-before-the-clock-turns-540.webp",
+          "width": 540
+        }
+      ]
     }
   ]
 }

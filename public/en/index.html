@@ -5749,6 +5749,13 @@ html.neo-mode .cdh-kakao__quote:before,body.neo-mode .cdh-kakao__quote:before{ba
 #cdHomeFunnel .cd-sig--curated .cd-sig-card__price{align-self:flex-start;color:var(--cdh-ink);background:transparent;border:0;padding:0;font-size:var(--cd-t-card);font-variant-numeric:tabular-nums}
 #cdHomeFunnel .cd-sig--curated .cd-sig-card__meta{color:var(--cdh-muted);font-size:var(--cd-t-caption)}
 #cdHomeFunnel .cd-sig--curated .cd-sig-card__cta{display:flex;align-items:center;justify-content:space-between;min-height:48px;margin-top:var(--cd-sp-sm);padding:var(--cd-sp-sm) var(--cd-sp-md);border-radius:var(--cd-r-control);background:var(--cd-cta-primary-bg);color:var(--cd-cta-primary-ink);font:700 var(--cd-t-body)/1.5 var(--font-body)}
+/* 마스터 칩 — 아바타만 사진과 본문 경계(금색 이중선)에 반쯤 걸치고, 이름은 경계 6px 아래에서 시작해 줄바꿈되면 아래로 자란다. margin-top = -(본문 위 여백 + 20px). */
+#cdHomeFunnel .cd-sig--curated .cd-sig-card__masters{position:relative;z-index:1;display:flex;align-items:flex-start;gap:var(--cd-sp-sm);min-width:0;margin-top:calc(-1 * var(--cd-sp-lg) - 20px)}
+#cdHomeFunnel .cd-sig-card__avatars{display:flex;flex:none}
+#cdHomeFunnel .cd-sig-card__avatars img{display:block;width:48px;height:48px;border:2px solid var(--cdh-card);border-radius:50%;background:var(--cdh-surface);box-shadow:0 0 0 1px color-mix(in srgb,var(--cdh-gold) 70%,transparent)}
+#cdHomeFunnel .cd-sig-card__avatars img+img{margin-left:-12px}
+#cdHomeFunnel .cd-sig-card__master{min-width:0;padding-top:26px;color:var(--cdh-muted);font-size:var(--cd-t-caption);line-height:1.4;word-break:keep-all}
+#cdHomeFunnel .cd-sig-card__master b{color:var(--cdh-ink);font:700 var(--cd-t-body)/1.4 var(--font-serif);white-space:nowrap}
 @media(min-width:768px) and (max-width:1199px){#cdHomeFunnel .cd-sig--curated .cd-sig__grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 #cdHomeFunnel .cd-sig__samples-link{display:flex;align-items:center;justify-content:space-between;gap:20px;width:min(100%,420px);min-height:52px;margin:clamp(22px,3vw,34px) auto 0;padding:12px 18px 12px 22px;border:1px solid rgba(235,198,160,.34);border-radius:14px;background:#3a0e28;color:#fff8ee!important;font-weight:800;text-decoration:none;box-shadow:0 18px 36px -26px rgba(58,14,40,.82);transition:transform .18s ease,background-color .18s ease,box-shadow .18s ease}
 #cdHomeFunnel .cd-sig__samples-link:hover{background:#4a1433;box-shadow:0 22px 40px -25px rgba(58,14,40,.95);transform:translateY(-1px)}
@@ -6319,6 +6326,18 @@ html.neo-mode #cdHomeFunnel{--cdh-moon-art:url('/images/home/illustrated/moon-fl
 .cdh .cdh-neo-letter small{display:block;font-size:12px;color:var(--cd-neo-letter-silver);line-height:1.7}.cdh .cdh-neo-letter figure{position:relative;margin:0;align-self:center;width:100%;max-width:260px;justify-self:center}.cdh .cdh-neo-letter figure img{display:block;width:100%;height:auto;aspect-ratio:5/6;object-fit:cover;border:1px solid var(--cd-neo-letter-gold);padding:7px;background:var(--cd-neo-letter-night);border-radius:48% 48% 8px 8px}.cdh .cdh-neo-letter figcaption{text-align:center;margin-top:12px;font-size:12px;color:var(--cd-neo-letter-silver)}
 @media(max-width:640px){.cdh .cdh-neo-letter{grid-template-columns:1fr;gap:24px;padding:30px 22px;border-radius:var(--cd-r-card)}.cdh .cdh-neo-letter__art img{object-position:65% top}.cdh .cdh-neo-letter figure{max-width:220px}.cdh .cdh-neo-letter a{display:flex;width:100%}}
 @media(prefers-reduced-motion:reduce){.cdh .cdh-neo-letter a{transition:none;transform:none}}
+/* 로그인 사용자의 "내 이용권" 줄 — 표시 전용. 상담 한 건의 차감 판정은 서버가 한다. */
+.cdh-mypass{margin:14px 40px 0;padding:16px 20px;border:1px solid var(--cdh-line);border-radius:var(--cd-r-card,20px);background:var(--cdh-card);color:var(--cdh-ink)}
+.cdh-mypass[hidden]{display:none}
+.cdh .cdh-mypass__title{margin:0 0 10px;color:var(--cdh-ink);font-size:1rem;font-weight:800}
+.cdh-mypass__list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:10px;margin:0;padding:0;list-style:none}
+.cdh-mypass__item{display:grid;align-content:start;gap:2px;padding:12px 14px;border:1px solid var(--cdh-line);border-radius:14px;background:color-mix(in srgb,var(--cdh-surface) 40%,var(--cdh-card))}
+.cdh-mypass__kind{color:var(--cdh-muted);font-size:.74rem;font-weight:800}
+.cdh-mypass__name{color:var(--cdh-accent);font-size:.98rem;font-weight:850;word-break:keep-all}
+.cdh-mypass__line{color:var(--cdh-ink);font-size:.84rem;line-height:1.5;word-break:keep-all}
+.cdh-mypass__line--muted{color:var(--cdh-muted)}
+.cdh .cdh-pass__group{margin:4px 0 0;color:var(--cdh-ink);font-size:1rem;font-weight:800}
+@media(max-width:640px){.cdh-mypass{margin:10px 12px 0;padding:14px 16px}}
 </style>
 <link rel="stylesheet" href="/styles/concern-first-home.css?v=build-8d8d4826e2f9">
 <link rel="stylesheet" href="/styles/my-garden.css?v=build-db1f20b10cff">
@@ -10131,6 +10150,8 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
     </div>
   </section>
 
+  <section class="cdh-mypass" id="cdhMyPass" aria-labelledby="cdhMyPassTitle" hidden><h2 class="cdh-mypass__title" id="cdhMyPassTitle" data-cd-trans="home.passCopy.myTitle">내 이용권</h2><ul class="cdh-mypass__list" id="cdhMyPassList" role="list"></ul></section>
+
   <div id="cdhCookieSlot"></div>
   <div class="cdh-flow">
 <section class="cdh-all-fortunes" id="cdhAllFortunes" aria-labelledby="cdhAllFortunesTitle">
@@ -10248,7 +10269,7 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
 <section class="cdh-neo-letter" aria-labelledby="cdhNeoLetterTitle" lang="ko"><picture class="cdh-neo-letter__art" aria-hidden="true"><source media="(max-width:640px)" srcset="/images/neo-consultation/moonlight-garden-768.webp"><img src="/images/neo-consultation/moonlight-garden-1536.webp" width="1536" height="1024" alt="" loading="lazy" decoding="async"></picture><div class="cdh-neo-letter__copy"><h2 id="cdhNeoLetterTitle">네오에게 물어봐</h2><p class="cdh-neo-letter__lead">마음은 깊게 읽고,<br>선택은 선명하게.</p><p>질문 하나씩, 네오가 직접 검수해 이메일로 답합니다.</p><p class="cdh-neo-letter__price">질문당 10,000원 · 단건 결제</p><a href="/neo-consultation/">질문 작성하기 <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6"/></svg></a><small>보통 24시간, 접수가 몰리면 3일 이내 이메일 답변 · 하루 질문 30개</small></div><figure><img src="/images/master-profiles/neo-strategy-portrait.webp" width="600" height="720" loading="lazy" decoding="async" alt="은빛 머리의 인간형 네오 캐릭터"><figcaption>네오가 직접 읽고 검수하는 이메일 상담</figcaption></figure></section>
 <div class="cdh-slot" id="cdhFeatured"><div id="cdhSignatureSlot"><section data-cd-funnel-section="signature_consult" class="cd-sig cd-sig--curated" id="cdSignatureConsult" data-marker="cd-signature-consult-v20261015" aria-labelledby="cdSignatureTitle" lang="ko">
   <div class="cd-sig__head"><h2 class="cd-sig__title" id="cdSignatureTitle">대표 운명 상담</h2><p class="cd-sig__sub">고민의 깊이와 필요한 리포트 구성을 먼저 확인하고, 지금의 나에게 맞는 상담을 골라보세요.</p></div>
-  <div class="cd-sig__viewport" id="cdSigViewport"><div class="cd-sig__grid" id="cdSigGrid"><a class="cd-sig-card cd-sig-card--neo" data-cd-service-id="neo-operation-room" href="/neo-operation-room/" aria-label="네오의 팩폭 전략실 상담 알아보기" data-pvw-paid="true"><span class="cd-yehwa-seal" aria-hidden="true"></span><span class="cd-sig-card__media"><img class="cd-sig-card__img" width="1200" height="675" loading="lazy" decoding="async" src="/images/feature-details/neo-operation-room-hero-v1.webp" sizes="(max-width: 767px) calc(100vw - 64px), (max-width: 1199px) 42vw, 360px" alt="달빛 전략실에서 선택의 판세를 정리하는 네오"></span><span class="cd-sig-card__body"><span class="cd-sig-card__title">네오의 팩폭 전략실</span><span class="cd-sig-card__q">고민은 충분히 했다. 이제 무엇부터 바꿀까?</span><span class="cd-sig-card__desc">선택한 운세 체계의 근거로 반복되는 선택의 빈틈을 짚고, 오늘 실행할 현실적인 작전을 정리합니다.</span><span class="cd-sig-card__report"><b>리포트 구성</b><span>선택한 운세 체계 1종</span><span>초기 브리핑 · 현실 점검</span><span>정제 리포트 · 다음 작전</span></span><span class="cd-sig-card__price" data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars="{&quot;amount&quot;:&quot;30,000&quot;}">30,000원</span><span class="cd-sig-card__meta"><span>이용권 · 월정석 · 단건 결제</span></span><span class="cd-sig-card__cta"><span>상담 알아보기</span> <i aria-hidden="true">→</i></span></span></a><a class="cd-sig-card cd-sig-card--tea" data-cd-service-id="fortune-tea-house" href="/en/fortune-tea-house/" aria-label="연이의 운명 찻집 상담 알아보기" data-pvw-paid="true"><span class="cd-yehwa-seal" aria-hidden="true"></span><span class="cd-sig-card__media"><img class="cd-sig-card__img" width="1200" height="675" loading="lazy" decoding="async" src="/images/home/yeoni-tea-together-v1-1200.webp" sizes="(max-width: 767px) calc(100vw - 64px), (max-width: 1199px) 42vw, 360px" alt="한복 입은 연이와 꽃돼지가 함께 차를 건네는 운명의 찻집"></span><span class="cd-sig-card__body"><span class="cd-sig-card__title">연이의 운명 찻집</span><span class="cd-sig-card__q">재회부터 사업까지, 어떤 선택이 고민인가요?</span><span class="cd-sig-card__desc">연애·재회, 진로·사업, 금전과 인간관계까지. 연이와 찻잔을 고르고, 내 고민에 맞는 흐름과 다음 선택을 함께 살펴봅니다.</span><span class="cd-sig-card__report"><b>리포트 구성</b><span>선택한 찻잔과 질문</span><span>고민별 흐름과 선택지</span><span>오늘의 기준 · 행동 제안</span></span><span class="cd-sig-card__price" data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars="{&quot;amount&quot;:&quot;10,000&quot;}">10,000원</span><span class="cd-sig-card__meta"><span>이용권 · 월정석 · 단건 결제</span></span><span class="cd-sig-card__cta"><span>상담 알아보기</span> <i aria-hidden="true">→</i></span></span></a><a class="cd-sig-card cd-sig-card--master" data-cd-service-id="master-love-codex" href="/master-love-codex/" aria-label="마스터 인연의 서 상담 알아보기" data-pvw-paid="true"><span class="cd-yehwa-seal" aria-hidden="true"></span><span class="cd-sig-card__media"><img class="cd-sig-card__img" width="1200" height="675" loading="lazy" decoding="async" src="/images/feature-details/master-love-codex-hero-v3.webp" sizes="(max-width: 767px) calc(100vw - 64px), (max-width: 1199px) 42vw, 360px" alt="달빛 아래 인연의 지도를 펼쳐 보는 마스터 인연의 서"></span><span class="cd-sig-card__body"><span class="cd-sig-card__title">마스터 인연의 서</span><span class="cd-sig-card__q">내 다음 연애는 언제 시작될까?</span><span class="cd-sig-card__desc">사주와 자미두수를 함께 읽어 관계의 반복 패턴과 만남의 방향을 살펴봅니다.</span><span class="cd-sig-card__report"><b>리포트 구성</b><span>20장 연애 리포트</span><span>사주 · 자미두수 교차 해석</span><span>PDF 저장</span></span><span class="cd-sig-card__price">30,000원~</span><span class="cd-sig-card__meta"><span>이용권 · 월정석 · 단건 결제</span></span><span class="cd-sig-card__cta"><span>상담 알아보기</span> <i aria-hidden="true">→</i></span></span></a><a class="cd-sig-card cd-sig-card--love" data-cd-service-id="love-secret-ai" href="/love-secret-ai/" aria-label="연애 비책 상담 알아보기" data-pvw-paid="true"><span class="cd-yehwa-seal" aria-hidden="true"></span><span class="cd-sig-card__media"><img class="cd-sig-card__img" width="1200" height="675" loading="lazy" decoding="async" src="/images/feature-details/love-secret-ai-hero-v2.webp" sizes="(max-width: 767px) calc(100vw - 64px), (max-width: 1199px) 42vw, 360px" alt="달빛과 봉인된 편지로 그린 연애 비책"></span><span class="cd-sig-card__body"><span class="cd-sig-card__title">연애 비책</span><span class="cd-sig-card__q">지금 이 관계에서 어떤 말을 건네야 할까?</span><span class="cd-sig-card__desc">내 연애 성향부터 상대와의 거리, 갈등과 시기, 다음 대화까지 항목별로 읽습니다.</span><span class="cd-sig-card__report"><b>리포트 구성</b><span>6부 28개 섹션</span><span>관계 · 궁합 · 시기 분석</span><span>7일 실천 가이드 · PDF</span></span><span class="cd-sig-card__price" data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars="{&quot;amount&quot;:&quot;30,000&quot;}">30,000원</span><span class="cd-sig-card__meta"><span>이용권 · 월정석 · 단건 결제</span></span><span class="cd-sig-card__cta"><span>상담 알아보기</span> <i aria-hidden="true">→</i></span></span></a><a class="cd-sig-card cd-sig-card--year" data-cd-service-id="new-year-ai" href="/new-year-ai-consultation/" aria-label="신년운세 상담 알아보기" data-pvw-paid="true"><span class="cd-yehwa-seal" aria-hidden="true"></span><span class="cd-sig-card__media"><img class="cd-sig-card__img" width="1200" height="675" loading="lazy" decoding="async" src="/images/feature-details/new-year-ai-hero-v3.webp" sizes="(max-width: 767px) calc(100vw - 64px), (max-width: 1199px) 42vw, 360px" alt="사계절과 달빛이 흐르는 신년운세 두루마리"></span><span class="cd-sig-card__body"><span class="cd-sig-card__title">신년운세</span><span class="cd-sig-card__q">올해는 무엇을 밀고, 언제 속도를 늦춰야 할까?</span><span class="cd-sig-card__desc">선택한 해의 세운을 명식과 대조해 일·재물·관계와 열두 달의 변화를 나눠 봅니다.</span><span class="cd-sig-card__report"><b>리포트 구성</b><span>5개 세운 섹션</span><span>1월~12월 월별 흐름</span><span>질문 답변 · PDF</span></span><span class="cd-sig-card__price" data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars="{&quot;amount&quot;:&quot;30,000&quot;}">30,000원</span><span class="cd-sig-card__meta"><span>이용권 · 월정석 · 단건 결제</span></span><span class="cd-sig-card__cta"><span>상담 알아보기</span> <i aria-hidden="true">→</i></span></span></a><a class="cd-sig-card cd-sig-card--life" data-cd-service-id="life-book-ai" href="/life-book-ai/" aria-label="인생의 책 상담 알아보기" data-pvw-paid="true"><span class="cd-yehwa-seal" aria-hidden="true"></span><span class="cd-sig-card__media"><img class="cd-sig-card__img" width="1200" height="675" loading="lazy" decoding="async" src="/feature-details/assets/life-book-entry-20260929-960.webp" sizes="(max-width: 767px) calc(100vw - 64px), (max-width: 1199px) 42vw, 360px" alt="달빛 아래 펼쳐진 녹색 인생의 책"></span><span class="cd-sig-card__body"><span class="cd-sig-card__title">인생의 책</span><span class="cd-sig-card__q">내 삶의 큰 흐름과 반복되는 장면은 어디에서 올까?</span><span class="cd-sig-card__desc">타고난 기질부터 일·사랑·재물, 대운과 가까운 세운까지 한 권의 서사로 엮습니다.</span><span class="cd-sig-card__report"><b>리포트 구성</b><span>10개 장의 인생 서사</span><span>대운 · 세운 흐름</span><span>핵심 판독 4편 · PDF</span></span><span class="cd-sig-card__price" data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars="{&quot;amount&quot;:&quot;30,000&quot;}">30,000원</span><span class="cd-sig-card__meta"><span>이용권 · 월정석 · 단건 결제</span></span><span class="cd-sig-card__cta"><span>상담 알아보기</span> <i aria-hidden="true">→</i></span></span></a></div></div>
+  <div class="cd-sig__viewport" id="cdSigViewport"><div class="cd-sig__grid" id="cdSigGrid"><a class="cd-sig-card cd-sig-card--neo" data-cd-service-id="neo-operation-room" href="/neo-operation-room/" aria-label="네오의 팩폭 전략실 상담 알아보기" data-pvw-paid="true"><span class="cd-yehwa-seal" aria-hidden="true"></span><span class="cd-sig-card__media"><img class="cd-sig-card__img" width="1200" height="675" loading="lazy" decoding="async" src="/images/feature-details/neo-operation-room-hero-v1.webp" sizes="(max-width: 767px) calc(100vw - 64px), (max-width: 1199px) 42vw, 360px" alt="달빛 전략실에서 선택의 판세를 정리하는 네오"></span><span class="cd-sig-card__body"><span class="cd-sig-card__masters"><span class="cd-sig-card__avatars" aria-hidden="true"><img src="/images/master-profiles/avatars/neo.webp" width="48" height="48" alt="" loading="lazy" decoding="async"></span><span class="cd-sig-card__master">마스터 <b>네오</b></span></span><span class="cd-sig-card__title">네오의 팩폭 전략실</span><span class="cd-sig-card__q">고민은 충분히 했다. 이제 무엇부터 바꿀까?</span><span class="cd-sig-card__desc">선택한 운세 체계의 근거로 반복되는 선택의 빈틈을 짚고, 오늘 실행할 현실적인 작전을 정리합니다.</span><span class="cd-sig-card__report"><b>리포트 구성</b><span>선택한 운세 체계 1종</span><span>초기 브리핑 · 현실 점검</span><span>정제 리포트 · 다음 작전</span></span><span class="cd-sig-card__price" data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars="{&quot;amount&quot;:&quot;30,000&quot;}">30,000원</span><span class="cd-sig-card__meta"><span>이용권 · 월정석 · 단건 결제</span></span><span class="cd-sig-card__cta"><span>상담 알아보기</span> <i aria-hidden="true">→</i></span></span></a><a class="cd-sig-card cd-sig-card--tea" data-cd-service-id="fortune-tea-house" href="/en/fortune-tea-house/" aria-label="연이의 운명 찻집 상담 알아보기" data-pvw-paid="true"><span class="cd-yehwa-seal" aria-hidden="true"></span><span class="cd-sig-card__media"><img class="cd-sig-card__img" width="1200" height="675" loading="lazy" decoding="async" src="/images/home/yeoni-tea-together-v1-1200.webp" sizes="(max-width: 767px) calc(100vw - 64px), (max-width: 1199px) 42vw, 360px" alt="한복 입은 연이와 꽃돼지가 함께 차를 건네는 운명의 찻집"></span><span class="cd-sig-card__body"><span class="cd-sig-card__masters"><span class="cd-sig-card__avatars" aria-hidden="true"><img src="/images/master-profiles/avatars/yeoni.webp" width="48" height="48" alt="" loading="lazy" decoding="async"></span><span class="cd-sig-card__master">마스터 <b>연이</b></span></span><span class="cd-sig-card__title">연이의 운명 찻집</span><span class="cd-sig-card__q">재회부터 사업까지, 어떤 선택이 고민인가요?</span><span class="cd-sig-card__desc">연애·재회, 진로·사업, 금전과 인간관계까지. 연이와 찻잔을 고르고, 내 고민에 맞는 흐름과 다음 선택을 함께 살펴봅니다.</span><span class="cd-sig-card__report"><b>리포트 구성</b><span>선택한 찻잔과 질문</span><span>고민별 흐름과 선택지</span><span>오늘의 기준 · 행동 제안</span></span><span class="cd-sig-card__price" data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars="{&quot;amount&quot;:&quot;10,000&quot;}">10,000원</span><span class="cd-sig-card__meta"><span>이용권 · 월정석 · 단건 결제</span></span><span class="cd-sig-card__cta"><span>상담 알아보기</span> <i aria-hidden="true">→</i></span></span></a><a class="cd-sig-card cd-sig-card--master" data-cd-service-id="master-love-codex" href="/master-love-codex/" aria-label="마스터 인연의 서 상담 알아보기" data-pvw-paid="true"><span class="cd-yehwa-seal" aria-hidden="true"></span><span class="cd-sig-card__media"><img class="cd-sig-card__img" width="1200" height="675" loading="lazy" decoding="async" src="/images/feature-details/master-love-codex-hero-v3.webp" sizes="(max-width: 767px) calc(100vw - 64px), (max-width: 1199px) 42vw, 360px" alt="달빛 아래 인연의 지도를 펼쳐 보는 마스터 인연의 서"></span><span class="cd-sig-card__body"><span class="cd-sig-card__masters"><span class="cd-sig-card__avatars" aria-hidden="true"><img src="/images/master-profiles/avatars/master.webp" width="48" height="48" alt="" loading="lazy" decoding="async"></span><span class="cd-sig-card__master">인연의 서 <b>마스터</b></span></span><span class="cd-sig-card__title">마스터 인연의 서</span><span class="cd-sig-card__q">내 다음 연애는 언제 시작될까?</span><span class="cd-sig-card__desc">사주와 자미두수를 함께 읽어 관계의 반복 패턴과 만남의 방향을 살펴봅니다.</span><span class="cd-sig-card__report"><b>리포트 구성</b><span>20장 연애 리포트</span><span>사주 · 자미두수 교차 해석</span><span>PDF 저장</span></span><span class="cd-sig-card__price">30,000원~</span><span class="cd-sig-card__meta"><span>이용권 · 월정석 · 단건 결제</span></span><span class="cd-sig-card__cta"><span>상담 알아보기</span> <i aria-hidden="true">→</i></span></span></a><a class="cd-sig-card cd-sig-card--love" data-cd-service-id="love-secret-ai" href="/love-secret-ai/" aria-label="연애 비책 상담 알아보기" data-pvw-paid="true"><span class="cd-yehwa-seal" aria-hidden="true"></span><span class="cd-sig-card__media"><img class="cd-sig-card__img" width="1200" height="675" loading="lazy" decoding="async" src="/images/home/love-secret-masters-v1-1200.webp" srcset="/images/home/love-secret-masters-v1-600.webp 600w, /images/home/love-secret-masters-v1-1200.webp 1200w" sizes="(max-width: 767px) calc(100vw - 64px), (max-width: 1199px) 42vw, 360px" alt="달빛 찻집에서 찻잔을 든 연이와 관계 장부를 곁에 둔 서한비"></span><span class="cd-sig-card__body"><span class="cd-sig-card__masters"><span class="cd-sig-card__avatars" aria-hidden="true"><img src="/images/master-profiles/avatars/yeoni-love.webp" width="48" height="48" alt="" loading="lazy" decoding="async"><img src="/images/master-profiles/avatars/hanbi-love.webp" width="48" height="48" alt="" loading="lazy" decoding="async"></span><span class="cd-sig-card__master">공동 마스터 <b>연이 · 서한비</b></span></span><span class="cd-sig-card__title">연애 비책</span><span class="cd-sig-card__q">마음부터 들려주세요. 두 분 사이의 거리는 서한비가 재어 드릴게요.</span><span class="cd-sig-card__desc">연이가 내 연애 성향과 마음을, 서한비가 상대와의 거리·갈등·다가갈 때를 읽어요. 다음 대화와 7일 실천까지 항목별로 정리해 드려요.</span><span class="cd-sig-card__report"><b>리포트 구성</b><span>6부 28개 섹션</span><span>관계 · 궁합 · 시기 분석</span><span>7일 실천 가이드 · PDF</span></span><span class="cd-sig-card__price" data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars="{&quot;amount&quot;:&quot;30,000&quot;}">30,000원</span><span class="cd-sig-card__meta"><span>이용권 · 월정석 · 단건 결제</span></span><span class="cd-sig-card__cta"><span>상담 알아보기</span> <i aria-hidden="true">→</i></span></span></a><a class="cd-sig-card cd-sig-card--year" data-cd-service-id="new-year-ai" href="/new-year-ai-consultation/" aria-label="신년운세 상담 알아보기" data-pvw-paid="true"><span class="cd-yehwa-seal" aria-hidden="true"></span><span class="cd-sig-card__media"><img class="cd-sig-card__img" width="1200" height="675" loading="lazy" decoding="async" src="/images/home/new-year-neo-v1-1200.webp" srcset="/images/home/new-year-neo-v1-600.webp 600w, /images/home/new-year-neo-v1-1200.webp 1200w" sizes="(max-width: 767px) calc(100vw - 64px), (max-width: 1199px) 42vw, 360px" alt="새해 첫 해가 드는 작전실에서 열두 달 작전판을 짚는 네오와 백사자"></span><span class="cd-sig-card__body"><span class="cd-sig-card__masters"><span class="cd-sig-card__avatars" aria-hidden="true"><img src="/images/master-profiles/avatars/neo-new-year.webp" width="48" height="48" alt="" loading="lazy" decoding="async"></span><span class="cd-sig-card__master">마스터 <b>네오</b></span></span><span class="cd-sig-card__title">신년운세</span><span class="cd-sig-card__q">올해 판세는 내가 먼저 읽는다. 어디서 밀고, 언제 멈출까?</span><span class="cd-sig-card__desc">선택한 해의 세운을 네 명식과 맞대어, 일·재물·관계와 열두 달의 작전을 나눠 정리한다.</span><span class="cd-sig-card__report"><b>리포트 구성</b><span>5개 세운 섹션</span><span>1월~12월 월별 흐름</span><span>질문 답변 · PDF</span></span><span class="cd-sig-card__price" data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars="{&quot;amount&quot;:&quot;30,000&quot;}">30,000원</span><span class="cd-sig-card__meta"><span>이용권 · 월정석 · 단건 결제</span></span><span class="cd-sig-card__cta"><span>상담 알아보기</span> <i aria-hidden="true">→</i></span></span></a><a class="cd-sig-card cd-sig-card--life" data-cd-service-id="life-book-ai" href="/life-book-ai/" aria-label="인생의 책 상담 알아보기" data-pvw-paid="true"><span class="cd-yehwa-seal" aria-hidden="true"></span><span class="cd-sig-card__media"><img class="cd-sig-card__img" width="1200" height="675" loading="lazy" decoding="async" src="/images/home/life-book-yun-v2-1200.webp" srcset="/images/home/life-book-yun-v2-600.webp 600w, /images/home/life-book-yun-v2-1200.webp 1200w" sizes="(max-width: 767px) calc(100vw - 64px), (max-width: 1199px) 42vw, 360px" alt="달빛 서고에서 빛이 오르는 녹색 인생의 책을 펼친 윤달과 흰 고양이"></span><span class="cd-sig-card__body"><span class="cd-sig-card__masters"><span class="cd-sig-card__avatars" aria-hidden="true"><img src="/images/master-profiles/avatars/yun-life-book.webp" width="48" height="48" alt="" loading="lazy" decoding="async"></span><span class="cd-sig-card__master">마스터 <b>윤달</b></span></span><span class="cd-sig-card__title">인생의 책</span><span class="cd-sig-card__q">당신의 인생, 첫 장부터 읽어 드릴게요.</span><span class="cd-sig-card__desc">타고난 기질부터 일·사랑·재물, 대운과 가까운 세운까지. 반복되는 장면이 어디서 오는지 한 권의 서사로 엮어 드려요.</span><span class="cd-sig-card__report"><b>리포트 구성</b><span>10개 장의 인생 서사</span><span>대운 · 세운 흐름</span><span>핵심 판독 4편 · PDF</span></span><span class="cd-sig-card__price" data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars="{&quot;amount&quot;:&quot;30,000&quot;}">30,000원</span><span class="cd-sig-card__meta"><span>이용권 · 월정석 · 단건 결제</span></span><span class="cd-sig-card__cta"><span>상담 알아보기</span> <i aria-hidden="true">→</i></span></span></a></div></div>
   <a class="cd-sig__samples-link" href="/consultation-samples/"><span>상담 결과 전체 미리보기</span><span class="cd-yehwa-spray cd-sig__samples-motif" aria-hidden="true"></span></a>
 </section></div></div>
 <section class="cdh-moonstone-guide" aria-labelledby="cdhMoonstoneTitle">
@@ -10690,6 +10711,34 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
     </a></li>
   </ul>
   <p class="cdh-pass__note" data-cd-trans="home.gardenCopy.passNote">작은·중간·큰 꿀단지는 꽃돼지 운세에, 패밀리 꿀단지는 꽃돼지와 영냥이 유료 리딩에 적용됩니다. 기존에 구매한 이용권은 구매 당시 조건을 유지합니다.</p>
+  <h3 class="cdh-pass__group" data-cd-trans="home.passCopy.packTitle">영냥이 전용 이용권</h3>
+  <ul class="cdh-pass__tiers cdh-pass__tiers--packs" role="list">
+    <li class="cdh-pass__tier cdh-pass__tier--pack" data-pack-plan="yeongnyangi-pack-mackerel-small-v4"><a class="cdh-pass__tier-link" href="/points/#fish-packs">
+      <span class="cdh-pass__tier-name" data-cd-trans="home.passCopy.packName" data-cd-vars='{"fish":"@home.passCopy.fishMackerel","total":"5"}'>고등어 세트 5회</span>
+      <strong class="cdh-pass__tier-price"><span data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"20,000"}'>20,000원</span></strong>
+      <span class="cdh-pass__tier-line" data-cd-trans="home.passCopy.packPerUse" data-cd-vars='{"amount":"5,000"}'>회당 5,000원 상담</span>
+      <span class="cdh-pass__tier-line" data-cd-trans="home.passCopy.packScope" data-cd-vars='{"fish":"@home.passCopy.fishMackerel","days":"30","total":"5"}'>고등어 상담 전용 · 30일 · 총 5회</span>
+    </a></li>
+    <li class="cdh-pass__tier cdh-pass__tier--pack" data-pack-plan="yeongnyangi-pack-salmon-small-v4"><a class="cdh-pass__tier-link" href="/points/#fish-packs">
+      <span class="cdh-pass__tier-name" data-cd-trans="home.passCopy.packName" data-cd-vars='{"fish":"@home.passCopy.fishSalmon","total":"5"}'>연어 세트 5회</span>
+      <strong class="cdh-pass__tier-price"><span data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"40,000"}'>40,000원</span></strong>
+      <span class="cdh-pass__tier-line" data-cd-trans="home.passCopy.packPerUse" data-cd-vars='{"amount":"10,000"}'>회당 10,000원 상담</span>
+      <span class="cdh-pass__tier-line" data-cd-trans="home.passCopy.packScope" data-cd-vars='{"fish":"@home.passCopy.fishSalmon","days":"30","total":"5"}'>연어 상담 전용 · 30일 · 총 5회</span>
+    </a></li>
+    <li class="cdh-pass__tier cdh-pass__tier--pack" data-pack-plan="yeongnyangi-pack-flounder-small-v4"><a class="cdh-pass__tier-link" href="/points/#fish-packs">
+      <span class="cdh-pass__tier-name" data-cd-trans="home.passCopy.packName" data-cd-vars='{"fish":"@home.passCopy.fishFlounder","total":"5"}'>광어 세트 5회</span>
+      <strong class="cdh-pass__tier-price"><span data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"60,000"}'>60,000원</span></strong>
+      <span class="cdh-pass__tier-line" data-cd-trans="home.passCopy.packPerUse" data-cd-vars='{"amount":"15,000"}'>회당 15,000원 상담</span>
+      <span class="cdh-pass__tier-line" data-cd-trans="home.passCopy.packScope" data-cd-vars='{"fish":"@home.passCopy.fishFlounder","days":"30","total":"5"}'>광어 상담 전용 · 30일 · 총 5회</span>
+    </a></li>
+    <li class="cdh-pass__tier cdh-pass__tier--pack" data-pack-plan="yeongnyangi-pack-tuna-small-v4"><a class="cdh-pass__tier-link" href="/points/#fish-packs">
+      <span class="cdh-pass__tier-name" data-cd-trans="home.passCopy.packName" data-cd-vars='{"fish":"@home.passCopy.fishTuna","total":"5"}'>참치 세트 5회</span>
+      <strong class="cdh-pass__tier-price"><span data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"120,000"}'>120,000원</span></strong>
+      <span class="cdh-pass__tier-line" data-cd-trans="home.passCopy.packPerUse" data-cd-vars='{"amount":"30,000"}'>회당 30,000원 상담</span>
+      <span class="cdh-pass__tier-line" data-cd-trans="home.passCopy.packScope" data-cd-vars='{"fish":"@home.passCopy.fishTuna","days":"30","total":"5"}'>참치 상담 전용 · 30일 · 총 5회</span>
+    </a></li>
+  </ul>
+  <p class="cdh-pass__note" data-cd-trans="home.passCopy.packNote">영냥이 세트는 같은 생선 상담에만 1회씩 사용돼요. 꽃돼지 이용권과 따로 적용돼요.</p>
   <a class="cdh-pass__btn" href="/points/?source=flower-membership" data-cd-trans="home.gardenCopy.passCta">나에게 맞는 이용권 확인하기</a>
 </section></div></div>
 
@@ -13789,8 +13838,10 @@ html[data-cd-lang]:not([data-cd-lang="ko"]) #cdPickWhyJosa{display:none}
                         var statusActiveUntil = new Date(status.expiresAt);
                         if (!Number.isNaN(statusActiveUntil.getTime()) && statusActiveUntil.getTime() > Date.now()) statusActive = true;
                       }
-                      // 한도표 정본은 js/core/pass-verdict.js 하나다(사본을 두면 30/50/100 처럼 낡는다). 모듈이 없으면 0 → 서버 값이 이긴다.
-                      var policyPassLimit = (window.__cdPassVerdict && typeof window.__cdPassVerdict.passLimitForTier === 'function') ? window.__cdPassVerdict.passLimitForTier(statusTier) : 0;
+                      // 서버가 정책 버전에 맞춰 계산한 passLimit 이 정본이다(worker/routes/fortune.js handleSubscriptionStatus).
+                      // 표(js/core/pass-verdict.js)는 서버 값이 없을 때만 쓴다 — 표가 이기면 현행 큰 꿀단지(30,000원)가 legacy 20,000원으로 보인다.
+                      var serverPassLimit = Math.floor(Number(status && (status.passLimit || status.maxCoveredCoin || status.freeLimit) || 0));
+                      var policyPassLimit = serverPassLimit > 0 ? serverPassLimit : ((window.__cdPassVerdict && typeof window.__cdPassVerdict.passLimitForPolicy === 'function') ? window.__cdPassVerdict.passLimitForPolicy(statusTier, status && status.passPolicyVersion) : 0);
                       user.profileSubscription = {
                         tier: statusTier,
                         passTier: status && (status.passTier || statusTier || ''),
@@ -13803,9 +13854,9 @@ html[data-cd-lang]:not([data-cd-lang="ko"]) #cdPickWhyJosa{display:none}
                         subscriptionStatus: status && (status.subscriptionStatus || status.status || ''),
                         membershipStatus: status && (status.membershipStatus || ''),
                         source: status && (status.source || 'subscription_status'),
-                        freeLimit: policyPassLimit || Number(status && status.freeLimit || 0),
-                        passLimit: policyPassLimit || Number(status && status.passLimit || status.freeLimit || 0),
-                        maxCoveredCoin: policyPassLimit || Number(status && status.maxCoveredCoin || status.freeLimit || 0),
+                        freeLimit: policyPassLimit,
+                        passLimit: policyPassLimit,
+                        maxCoveredCoin: policyPassLimit,
                         refreshedAt: Date.now(),
                       };
                       __cdWriteAuthUserCache(user);
@@ -15752,7 +15803,7 @@ html[data-cd-lang]:not([data-cd-lang="ko"]) #cdPickWhyJosa{display:none}
             var dt = new Date(sub.expiresAt);
             if (!Number.isNaN(dt.getTime()) && dt.getTime() > Date.now()) isActive = true;
           }
-          return { isActive:isActive && !!tier, tier:tier, expiresAt:sub.expiresAt || null };
+          return { isActive:isActive && !!tier, tier:tier, expiresAt:sub.expiresAt || null, passLimit:Math.max(0, Math.floor(Number(sub.passLimit || sub.maxCoveredCoin || 0))) || 0, passPolicyVersion:sub.passPolicyVersion ? String(sub.passPolicyVersion) : '' };
         }
 
         function buildPointsUrl(plan){
@@ -15825,7 +15876,10 @@ html[data-cd-lang]:not([data-cd-lang="ko"]) #cdPickWhyJosa{display:none}
           // 대조 가드: scripts/verify-pass-tier-policy.mjs
           var freeLimits = { standard:50, premium:100, vvip:200, family:999999999 };
           var label = labels[current.tier] || '달빛 이용권';
-          var freeLimit = freeLimits[current.tier] || 50;
+          // 서버 passLimit(정책 버전 반영)가 먼저, 없으면 정책 버전 표, 그것도 없으면 이 사본.
+          var _cdMiniVerdict = window.__cdPassVerdict;
+          var _cdMiniPolicyLimit = _cdMiniVerdict && typeof _cdMiniVerdict.passLimitForPolicy === 'function' ? _cdMiniVerdict.passLimitForPolicy(current.tier, current.passPolicyVersion) : 0;
+          var freeLimit = current.passLimit > 0 ? current.passLimit : (_cdMiniPolicyLimit || freeLimits[current.tier] || 50);
           var freeLimitCopy = current.tier === 'family' ? '이용권 대상 전체' : (formatMembershipCoinValue(freeLimit) + ' 이하 서비스');
           var exp = '';
           if (current.expiresAt) {
@@ -27792,16 +27846,18 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
       };
       var _passLimit = Number(user.profileSubscription.passLimit || user.profileSubscription.freeLimit || user.profileSubscription.maxFreeCoinLimit || user.profileSubscription.maxCoveredCoin);
       var _policyPassLimitApi = _cdPassVerdict();
-      var _policyPassLimit = _policyPassLimitApi ? _policyPassLimitApi.passLimitForTier(_subTier) : 0;
-      if (_policyPassLimit > 0) {
-        safe.profileSubscription.passLimit = _policyPassLimit;
-        safe.profileSubscription.freeLimit = _policyPassLimit;
-        safe.profileSubscription.maxCoveredCoin = _policyPassLimit;
-      } else if (Number.isFinite(_passLimit) && _passLimit > 0) {
+      // 서버 값(정책 버전 반영)이 먼저다. 표는 서버 값이 없을 때만 정책 버전으로 읽는다.
+      var _policyPassLimit = _policyPassLimitApi && typeof _policyPassLimitApi.passLimitForPolicy === 'function' ? _policyPassLimitApi.passLimitForPolicy(_subTier, user.profileSubscription.passPolicyVersion) : 0;
+      if (Number.isFinite(_passLimit) && _passLimit > 0) {
         safe.profileSubscription.passLimit = Math.floor(_passLimit);
         safe.profileSubscription.freeLimit = Math.floor(_passLimit);
         safe.profileSubscription.maxCoveredCoin = Math.floor(_passLimit);
+      } else if (_policyPassLimit > 0) {
+        safe.profileSubscription.passLimit = _policyPassLimit;
+        safe.profileSubscription.freeLimit = _policyPassLimit;
+        safe.profileSubscription.maxCoveredCoin = _policyPassLimit;
       }
+      if (user.profileSubscription.passPolicyVersion) safe.profileSubscription.passPolicyVersion = String(user.profileSubscription.passPolicyVersion);
       if (user.profileSubscription.passTier) safe.profileSubscription.passTier = String(user.profileSubscription.passTier);
       if (user.profileSubscription.subscriptionStatus) safe.profileSubscription.subscriptionStatus = String(user.profileSubscription.subscriptionStatus);
       if (user.profileSubscription.membershipStatus) safe.profileSubscription.membershipStatus = String(user.profileSubscription.membershipStatus);
@@ -28037,13 +28093,14 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
       sub.expiresAt = status.expiresAt || sub.expiresAt || null;
       if (status.passTier) sub.passTier = _cdNormalizePassTier(status.passTier);
       var policyPassLimitApi = _cdPassVerdict();
-      var policyPassLimit = policyPassLimitApi ? policyPassLimitApi.passLimitForTier(tier) : 0;
+      // 서버 값(정책 버전 반영)이 먼저다. 표는 서버 값이 없을 때만 정책 버전으로 읽는다.
+      var serverPassLimit = Math.floor(Number(status.passLimit || status.maxCoveredCoin || status.freeLimit || 0));
+      var policyPassLimit = serverPassLimit > 0 ? serverPassLimit
+        : (policyPassLimitApi && typeof policyPassLimitApi.passLimitForPolicy === 'function' ? policyPassLimitApi.passLimitForPolicy(tier, status.passPolicyVersion || sub.passPolicyVersion) : 0);
       if (policyPassLimit > 0) {
         sub.passLimit = policyPassLimit;
         sub.freeLimit = policyPassLimit;
         sub.maxCoveredCoin = policyPassLimit;
-      } else if (Number.isFinite(Number(status.passLimit || status.freeLimit))) {
-        sub.passLimit = Math.floor(Number(status.passLimit || status.freeLimit));
       }
       if (status.source) sub.source = String(status.source);
       if (status.status) sub.status = String(status.status);
@@ -28699,7 +28756,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
           if (_cdDeniedSnapshot && _cdDeniedVerdictApi
             && _cdDeniedSnapshot.state === 'active'
             && _cdDeniedSnapshot.tier !== 'family'
-            && Math.max(0, Math.floor(Number(coinCost || 0))) > _cdDeniedVerdictApi.passLimitForTier(_cdDeniedSnapshot.tier)) return;
+            && Math.max(0, Math.floor(Number(coinCost || 0))) > ((typeof _cdDeniedVerdictApi.passLimitForPolicy === 'function' && _cdDeniedVerdictApi.passLimitForPolicy(_cdDeniedSnapshot.tier, _cdDeniedSnapshot.passPolicyVersion)) || _cdDeniedVerdictApi.passLimitForTier(_cdDeniedSnapshot.tier))) return;
           // 스냅샷이 낡아 실제로는 미커버였다 = 자기수정. 낙관을 60초 끄고 프리체크 캐시를 버린다.
           // 스냅샷은 삭제하지 않는다 — _cdHandleSubscriptionSnapshotServerSignal 이 재검증만 예약한다.
           _cdDisableOptimisticPassBriefly();
@@ -28731,7 +28788,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
         // 이기던 역전(passLimit = defaultLimit || rawLimit)도 함께 지운다 — 서버가 준 값이 이긴다.
         var _cdFastLimitApi = _cdPassVerdict();
         if (!_cdFastLimitApi) return null;
-        var defaultLimit = _cdFastLimitApi.passLimitForTier(tier);
+        var defaultLimit = (typeof _cdFastLimitApi.passLimitForPolicy === 'function' && source.passPolicyVersion ? _cdFastLimitApi.passLimitForPolicy(tier, source.passPolicyVersion) : 0) || _cdFastLimitApi.passLimitForTier(tier);
         var passLimit = Math.max(0, Math.floor(Number(source.passLimit || source.freeLimit || source.maxFreeCoinLimit || source.maxFreeCoins || source.maxCoinLimit || defaultLimit)));
         var canUseByPass = passLimit > 0 && requiredCoins <= passLimit;
         var passDiscount = source.passDiscount && typeof source.passDiscount === 'object' ? source.passDiscount : null;

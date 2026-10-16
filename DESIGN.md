@@ -228,6 +228,25 @@ Glow 는 **상태 변화**의 언어다. 그런데 평상시 표면도 종이 �
 
 ## 5. Components
 
+### Button Tiers (2026-10-16 신설) — 강약은 등급으로 낸다
+
+외부 피드백 "강약 조절이 안 되어 있고 CTA 가 이상하게 달려 있다"를 전수 조사로 확인한 뒤 정한 계약이다. 화면마다 그라디언트 주 버튼을 따로 만들던 것(약 30종)을 4등급으로 묶었다. 공용 클래스는 `styles/theme-tokens.css` 의 `.cd-btn` + `--brand/--primary/--secondary/--tertiary` 다.
+
+| 등급 | 꿀꿀·App Router | 영냥이 (`--yn-*`) | 자리 |
+|---|---|---|---|
+| Brand | `--cd-cta` 골드, pill, `--cd-btn-h-lg` 56 | — | 꿀꿀 홈 히어로 한 곳 |
+| Primary | `--cd-primary` 단색, `--cd-r-control`, `--cd-btn-h` 48, `--cd-shade-3` | `--yn-gold` 채움, `--yn-btn-h` 52 | 화면·섹션당 하나 |
+| Secondary | `--cd-surface` + `--cd-line-strong` + `--cd-text` | `--yn-night` + `--yn-line` + `--yn-ivory` | 대안 행동 |
+| Tertiary | 텍스트 링크, 탭 영역 44px | 금·뮤트 텍스트 링크 | 둘러보기·이동·약관 |
+
+- **첫 뷰포트·섹션마다 채움 CTA 는 하나다.** 둘째 행동부터는 Secondary 나 Tertiary 로 내린다.
+- **라벨은 동사 + 대상이다.** "상담 알아보기"를 카드 6장에 반복하지 않고 "연애 비책 상담 보기"처럼 상품을 넣는다. 결제 CTA 는 가격을 라벨에 넣는다("5,000원으로 상담 열기").
+- **선택 상태는 채움이 아니다.** 테두리(accent) + 한 단 띄운 표면으로 표시한다(`app/checkout` `.purchaseChoices label:has(input:checked)` 패턴). 채움은 CTA 만 쓴다 — 선택된 칩이 버튼처럼 보이면 사용자가 "눌러야 하는 것"을 잃는다.
+- **고정(sticky) CTA 는 조건부다.** 같은 행동의 본문 버튼이 화면 밖일 때만 보이고, 라벨은 본문 버튼과 같다. 하단 내비·다른 고정 요소와 겹치지 않는다.
+- **결제 안내는 가치 다음에 온다.** 무료로 볼 수 있는 것을 먼저 보여 주고, 가격·가입은 그 뒤다.
+- **딥 플럼 `--cd-cta-primary-bg` 는 계정·셸 CTA 전용이다**(가입·로그인, `cd-auth-cta-v20260831`). 본문 주 버튼에 쓰지 않는다.
+- **영냥이는 금이 강, 라인이 약이다.** 금 채움은 결제·상담 시작에만 쓴다. 공유·재시도·전송은 라인 버튼이고, 보라 채움 버튼은 쓰지 않는다.
+
 ### Buttons
 
 두 계열이 공존한다. **골드 CTA** 는 브랜드 관문(히어로 등 "여기서 시작한다"는 자리)이고, **Solid Primary** 는 본문 안에서 다음 행동 하나를 가리키는 자리다. 한 섹션에 둘을 같이 두지 않는다.
@@ -267,6 +286,7 @@ Glow 는 **상태 변화**의 언어다. 그런데 평상시 표면도 종이 �
 ### Do:
 - **Do** 연이/네오 전환 시 bg·surface·text·accent·gold를 한 세트로 같이 바꾼다(Two Covers Rule).
 - **Do** 섹션마다 accent 예산을 센다 — 선택 상태·Primary CTA·지표 1개(Accent Budget Rule).
+- **Do** 새 버튼은 §5 Button Tiers 의 `.cd-btn--*` 등급에서 고른다. 화면 전용 그라디언트 버튼을 새로 만들지 않는다.
 - **Do** 평상시 깊이는 shade(뉴트럴 플럼) 로, 상태 변화의 깊이만 glow(브랜드 색) 로 낸다.
 - **Do** 인터랙티브 소형 요소(토글/칩)는 pill(999px)로 통일한다.
 - **Do** 본문 텍스트는 명암비 4.5:1 이상을 유지한다(연이의 옅은 로즈/네오의 라벤더 뮤트 텍스트 모두 해당).
@@ -299,6 +319,8 @@ Glow 는 **상태 변화**의 언어다. 그런데 평상시 표면도 종이 �
 | 폭 | `--cd-w-prose` / `grid` / `wide` | 760 / 1280 / 1440px | `theme-tokens.css:35-37` |
 | 버튼 | `--cd-btn-h` / `--cd-btn-pad` | 48px / `12px 24px` | `theme-tokens.css:201-202` |
 | 버튼 | `--cd-btn-h-lg` / `--cd-btn-pad-lg` | 56px / `16px 38px` | `theme-tokens.css:203-204` |
+| 버튼 등급 | `.cd-btn` + `--brand` / `--primary` / `--secondary` / `--tertiary` / `--block` | §5 Button Tiers | `theme-tokens.css` `cd-btn-v20261016` |
+| 영냥이 버튼·타이포 | `--yn-btn-h` / `-sm`, `--yn-t-display` … `--yn-t-caption` | 52 / 44px, 캡션 0.78rem | `app/yeongnyangi/night-tokens.css` |
 
 **데스크톱 폭은 위 3단이 전부다.** 코드 곳곳의 `var(--cd-w-wide, 960px)` 는 토큰이 없던 시절의 **폴백 피연산자**일 뿐이며 960px 은 정본 스케일이 아니다. 새 화면에 960px 을 고정폭으로 새로 박지 않는다.
 

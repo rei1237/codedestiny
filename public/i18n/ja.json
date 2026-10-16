@@ -1971,6 +1971,25 @@
       "ch5": "本当のtiming",
       "lyrics": "歌詞字幕",
       "more": "月明かりの音楽をもっと聴く"
+    },
+    "passCopy": {
+      "myTitle": "マイ利用券",
+      "flowerPass": "🌸 花豚の月光利用券",
+      "packPass": "ヨンニャンイ専用利用券",
+      "packTitle": "ヨンニャンイ専用利用券",
+      "packName": "{fish}セット {total}回",
+      "packScope": "{fish}の相談専用 · {days}日 · 全{total}回",
+      "packRemaining": "全{total}回中、残り{remaining}回",
+      "packExpires": "{date}まで",
+      "packOthers": "ほか{count}セット保有",
+      "packBrowse": "ヨンニャンイのセットを見る",
+      "fishMackerel": "サバ",
+      "fishSalmon": "サーモン",
+      "fishFlounder": "ヒラメ",
+      "fishTuna": "マグロ",
+      "packPerUse": "1回あたり{amount} KRWの鑑定",
+      "budgetLeft": "残り{amount} KRW",
+      "packNote": "ヨンニャンイのセットは同じ魚の相談に1回ずつ使え、花豚の利用券とは別に適用されます。"
     }
   },
   "terms": {

@@ -17,6 +17,9 @@ import {
 import intro from "@/app/components/expert-consulting/PremiumConsultationIntro.module.css";
 import { PriceBadge } from "@/app/components/PriceBadge";
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
+import ProductMasterStrip from "@/app/components/ProductMasterStrip";
+import MasterProfile from "@/components/fortune/MasterProfile";
+import { masterProfiles, productMasters } from "@/components/fortune/master-profiles";
 import { ExpertStickyCta, ExpertValueCards } from "@/app/components/expert-consulting/ExpertConsultationFrame";
 import { toDisplayText } from "@/lib/llm-text";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
@@ -1758,6 +1761,7 @@ export default function LifeBookAiClient() {
           </div>
           <div className={intro.heroCopy}>
             <h2>{copy.heroTitle}</h2>
+            {copy === LIFE_BOOK_CLIENT_COPY.ko && <ProductMasterStrip label="인생의 책 마스터" masters={productMasters.lifeBook} profileHref={!isBusy && !resultUrl ? "#life-book-master" : undefined} />}
             <p className={intro.description}>{copy.heroDescription}</p>
             <ul className={intro.topics}>
               {copy.heroBadges.map((badge) => <li key={badge}>{badge}</li>)}
@@ -1894,7 +1898,7 @@ export default function LifeBookAiClient() {
               <div className="mt-4 flex items-center justify-end">
                 <PriceBadge featureKey={MODE_FEATURE_KEY[form.mode || "lifeBook"]} prefix={copy.priceLabelPrefix} />
               </div>
-              <button type="submit" disabled={isBusy} className="mt-2 flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#c68d31] via-[#f2d07a] to-[#b47b25] px-5 font-semibold text-[#171007] shadow-lg shadow-[#f0c66a22] transition hover:-translate-y-0.5 hover:shadow-[#f0c66a40] disabled:cursor-not-allowed disabled:opacity-60">
+              <button type="submit" disabled={isBusy} className="mt-2 flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[#f2d07a] px-5 font-semibold text-[#171007] shadow-lg shadow-[#f0c66a22] transition hover:-translate-y-0.5 hover:bg-[#f6dc95] hover:shadow-[#f0c66a40] disabled:cursor-not-allowed disabled:opacity-60">
                 {isBusy ? <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" /> : <WalletCards className="h-5 w-5" aria-hidden="true" />}
                 {isBusy ? copy.openingCta : copy.openCta(form.mode || "lifeBook")}
               </button>
@@ -2026,6 +2030,8 @@ export default function LifeBookAiClient() {
           </section>
         </div>
       </section>
+      {/* 소개용 마스터 프로필 — 상담 진행·결과 안내 중에는 내리고, 사전이 없는 다른 로케일에는 띄우지 않는다. */}
+      {copy === LIFE_BOOK_CLIENT_COPY.ko && !isBusy && !resultUrl && <MasterProfile id="life-book-master" palette="page" profile={masterProfiles.yunLifeBook} />}
     </main>
   );
 }

@@ -5,7 +5,7 @@
 .tab{display:flex;flex-direction:column;align-items:stretch;gap:0;min-width:0;border-radius:12px;overflow:hidden;border:1px solid #d6a68b40;background:#321c2a;color:#dfc0ce;padding:0;cursor:pointer;transition:border-color .18s ease,background .18s ease}
 .tab img{width:100%;height:auto;aspect-ratio:3/2;object-fit:cover}
 .tab>span{padding:12px 4px;font-size:14px;font-weight:600}
-.tab[aria-selected="true"]{border-color:#f4bed1;background:#f4bed1;color:#482335}
+.tab[aria-selected="true"]{border-color:#f4bed1;background:#43263a;color:#fff3f7;box-shadow:0 0 0 1px #f4bed1,0 6px 16px rgba(0,0,0,.35)}
 .tab:hover{border-color:#f4bed1}
 .tab:focus-visible{outline:3px solid #f4bed1;outline-offset:4px}
 .result{overflow:hidden;border:1px solid #d6a68b40;border-radius:20px;background:#2d1925}

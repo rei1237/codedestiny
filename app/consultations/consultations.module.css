@@ -59,7 +59,6 @@
 .expert[data-service="life-book"] .art img { object-position: center 70%; }
 .featured .cardBody { padding: 24px; }
 .featured[data-service='neo'] { background: var(--hub-lilac-soft); }
-.featured[data-service='neo'] .button { background: var(--hub-lilac); }
 .actions { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 16px; margin-top: 20px; }
 .prices { font-size: .8rem; color: var(--hub-muted); font-variant-numeric: tabular-nums; }
 .prices > span { display: block; margin-bottom: 2px; }

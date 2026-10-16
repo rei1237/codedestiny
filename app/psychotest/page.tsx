@@ -118,7 +118,7 @@ export default function PsychotestHubPage() {
         {PSYCHOTESTS.map((test) => (
           <article
             key={test.id}
-            className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)]"
+            className="relative rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] transition-colors hover:border-slate-400 focus-within:border-slate-400"
           >
             <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-violet-600">
               <span className="rounded-full bg-violet-50 px-2 py-1">{test.category}</span>
@@ -131,13 +131,13 @@ export default function PsychotestHubPage() {
             <div className="mt-4 flex gap-2">
               <Link
                 href={`/psychotest/${test.slug}`}
-                className="inline-flex flex-1 items-center justify-center rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                className="inline-flex min-h-11 flex-1 items-center justify-center px-1 text-sm font-semibold text-slate-700 underline decoration-slate-300 underline-offset-4 hover:decoration-current after:absolute after:inset-0 after:rounded-2xl after:content-['']"
               >
                 상세 가이드
               </Link>
               <PaidPsychotestLink
                 href={buildPsychotestExternalUrl(test.id)}
-                className="inline-flex flex-1 items-center justify-center rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:opacity-90"
+                className="relative z-10 inline-flex min-h-11 w-full flex-1 items-center justify-center rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 hover:border-violet-600 disabled:opacity-50"
               >
                 3,000원으로 시작
               </PaidPsychotestLink>

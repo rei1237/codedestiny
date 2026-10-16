@@ -1,3 +1,4 @@
+import { withSettle } from "../fixtures/per-use-settle-mock.mjs";
 import { jest } from "@jest/globals";
 import { readFileSync } from "node:fs";
 
@@ -55,7 +56,7 @@ jest.unstable_mockModule("../../worker/lib/db.js", () => ({
 jest.unstable_mockModule("../../worker/lib/db-scope-connection.js", () => ({ scopeConnection: () => null }));
 jest.unstable_mockModule("../../worker/lib/auth.js", () => ({ requireUserFromRequest: async () => ({ userId: owner }) }));
 jest.unstable_mockModule("../../worker/lib/security/index.js", () => ({ enforceSensitiveEndpointSecurity: async () => ({ ok: true }) }));
-jest.unstable_mockModule("../../worker/lib/nakshatra-paid-access.js", () => ({ verifyPerUsePayment }));
+jest.unstable_mockModule("../../worker/lib/nakshatra-paid-access.js", () => withSettle({ verifyPerUsePayment }));
 
 let attendHoney, honeyAttendanceStatus, handlePromptHubRoutes, PROMPT_HUB_TOOLS;
 beforeAll(async () => {

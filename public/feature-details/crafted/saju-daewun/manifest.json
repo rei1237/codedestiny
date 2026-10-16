@@ -11,7 +11,13 @@
       "src": "/feature-details/crafted/saju-daewun/01-season.webp",
       "width": 1080,
       "height": 1440,
-      "text": "지금은 넓힐 때일까요,\n다질 때일까요?\n\n같은 노력도 시기마다\n다르게 느껴지는 이유를 읽습니다.\n\n사주 대운 풀이\n열 해의 배경에서, 올해의 선택까지."
+      "text": "지금은 넓힐 때일까요,\n다질 때일까요?\n\n같은 노력도 시기마다\n다르게 느껴지는 이유를 읽습니다.\n\n사주 대운 풀이\n열 해의 배경에서, 올해의 선택까지.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/saju-daewun/01-season-540.webp",
+          "width": 540
+        }
+      ]
     },
     {
       "id": "02-question",
@@ -20,7 +26,13 @@
       "src": "/feature-details/crafted/saju-daewun/02-question.webp",
       "width": 1080,
       "height": 1440,
-      "text": "계획을 바꾸기 전에,\n내 힘이 향하는 곳부터.\n더 해볼까, 잠깐 멈출까.\n\n새 일을 시작하고 싶지만,\n지금 감당할 여력이 궁금할 때.\n\n왜 익숙한 방식이 버거울까.\n\n역할과 관계가 달라지는 시기에,\n내가 조절할 지점을 찾고 싶을 때."
+      "text": "계획을 바꾸기 전에,\n내 힘이 향하는 곳부터.\n더 해볼까, 잠깐 멈출까.\n\n새 일을 시작하고 싶지만,\n지금 감당할 여력이 궁금할 때.\n\n왜 익숙한 방식이 버거울까.\n\n역할과 관계가 달라지는 시기에,\n내가 조절할 지점을 찾고 싶을 때.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/saju-daewun/02-question-540.webp",
+          "width": 540
+        }
+      ]
     },
     {
       "id": "03-scale",
@@ -29,7 +41,13 @@
       "src": "/feature-details/crafted/saju-daewun/03-scale.webp",
       "width": 1080,
       "height": 1440,
-      "text": "큰 계절을 보고,\n그 안의 한 해를 읽습니다.\n원국\n\n태어난 순간의 바탕\n기질과 힘의 배분\n\n대운\n\n약 10년의 큰 배경\n새롭게 강조되는 역할\n\n세운\n\n그 안에서 달라지는 한 해\n큰 흐름과 만나는 요구\n\n시간의 단위를 설명한 도해입니다.\n좋은 점수를 더해 사건을 정하지 않습니다."
+      "text": "큰 계절을 보고,\n그 안의 한 해를 읽습니다.\n원국\n\n태어난 순간의 바탕\n기질과 힘의 배분\n\n대운\n\n약 10년의 큰 배경\n새롭게 강조되는 역할\n\n세운\n\n그 안에서 달라지는 한 해\n큰 흐름과 만나는 요구\n\n시간의 단위를 설명한 도해입니다.\n좋은 점수를 더해 사건을 정하지 않습니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/saju-daewun/03-scale-540.webp",
+          "width": 540
+        }
+      ]
     },
     {
       "id": "04-outline",
@@ -38,7 +56,13 @@
       "src": "/feature-details/crafted/saju-daewun/04-outline.webp",
       "width": 1080,
       "height": 1440,
-      "text": "열 해를 한 단어로\n끝내지 않도록.\n내 명식과 이번 대운\n\n원래 가진 기질에 어떤 힘이 더해지는지\n\n겉으로 펼칠 일 · 생활의 바탕\n\n천간의 표현과 지지의 일상을 구분해요.\n\n도움과 부담이 함께 있다면\n\n힘의 균형, 계절, 원국과의 관계를 살펴요.\n\n일과 돈 · 가까운 관계\n\n기회를 쓰는 방식과 반복되는 기대\n\n실행 순서 · 다음 시기\n\n지금 할 일과 이후의 점검 기준"
+      "text": "열 해를 한 단어로\n끝내지 않도록.\n내 명식과 이번 대운\n\n원래 가진 기질에 어떤 힘이 더해지는지\n\n겉으로 펼칠 일 · 생활의 바탕\n\n천간의 표현과 지지의 일상을 구분해요.\n\n도움과 부담이 함께 있다면\n\n힘의 균형, 계절, 원국과의 관계를 살펴요.\n\n일과 돈 · 가까운 관계\n\n기회를 쓰는 방식과 반복되는 기대\n\n실행 순서 · 다음 시기\n\n지금 할 일과 이후의 점검 기준",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/saju-daewun/04-outline-540.webp",
+          "width": 540
+        }
+      ]
     },
     {
       "id": "05-year",
@@ -47,7 +71,13 @@
       "src": "/feature-details/crafted/saju-daewun/05-year.webp",
       "width": 1080,
       "height": 1440,
-      "text": "올해만 보지 않고,\n앞뒤의 흐름까지.\n대운 하나를 펼치면\n\n그 구간의 해마다 다른\n세운 해설로 이어집니다.\n\n어떤 내용을 읽나요?\n\n대운과 세운의 연결\n감당할 힘과 계절의 균형\n일 · 재물 · 관계\n생활 리듬과 실천"
+      "text": "올해만 보지 않고,\n앞뒤의 흐름까지.\n대운 하나를 펼치면\n\n그 구간의 해마다 다른\n세운 해설로 이어집니다.\n\n어떤 내용을 읽나요?\n\n대운과 세운의 연결\n감당할 힘과 계절의 균형\n일 · 재물 · 관계\n생활 리듬과 실천",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/saju-daewun/05-year-540.webp",
+          "width": 540
+        }
+      ]
     },
     {
       "id": "06-example",
@@ -56,7 +86,13 @@
       "src": "/feature-details/crafted/saju-daewun/06-example.webp",
       "width": 1080,
       "height": 1440,
-      "text": "좋은 흐름이라면,\n더 많이 해야 할까요?\n\n이해를 돕기 위한 예시\n실제 고객 결과가 아닙니다.\n\n“도움과 부담의 방향이\n서로 다릅니다. 좋은 기회를\n활용하더라도 소모되는 부분을\n함께 보완해야 합니다.”\n\n도움과 부담이 함께 나타날 때의 해설\n\n생활의 선택으로 옮기면\n\n새 계획을 한 번에 크게 펼치기보다,\n작은 범위에서 먼저 시험해 보세요."
+      "text": "좋은 흐름이라면,\n더 많이 해야 할까요?\n\n이해를 돕기 위한 예시\n실제 고객 결과가 아닙니다.\n\n“도움과 부담의 방향이\n서로 다릅니다. 좋은 기회를\n활용하더라도 소모되는 부분을\n함께 보완해야 합니다.”\n\n도움과 부담이 함께 나타날 때의 해설\n\n생활의 선택으로 옮기면\n\n새 계획을 한 번에 크게 펼치기보다,\n작은 범위에서 먼저 시험해 보세요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/saju-daewun/06-example-540.webp",
+          "width": 540
+        }
+      ]
     },
     {
       "id": "07-prepare",
@@ -65,7 +101,13 @@
       "src": "/feature-details/crafted/saju-daewun/07-prepare.webp",
       "width": 1080,
       "height": 1440,
-      "text": "시간을 확인할수록,\n범위가 분명해집니다.\n출생 정보를 먼저 확인해요.\n\n생년월일, 양력·음력, 출생 시간,\n성별과 장소를 확인해 주세요.\n\n시간을 모른다면\n\n대운 시작 시점과 연령별 흐름을\n확정하지 않습니다.\n\n이번 선택의 범위\n\n대운표·세운·해설·흐름 그래프.\n종합 사주·궁합은 별도입니다."
+      "text": "시간을 확인할수록,\n범위가 분명해집니다.\n출생 정보를 먼저 확인해요.\n\n생년월일, 양력·음력, 출생 시간,\n성별과 장소를 확인해 주세요.\n\n시간을 모른다면\n\n대운 시작 시점과 연령별 흐름을\n확정하지 않습니다.\n\n이번 선택의 범위\n\n대운표·세운·해설·흐름 그래프.\n종합 사주·궁합은 별도입니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/saju-daewun/07-prepare-540.webp",
+          "width": 540
+        }
+      ]
     },
     {
       "id": "08-compare",
@@ -74,7 +116,13 @@
       "src": "/feature-details/crafted/saju-daewun/08-compare.webp",
       "width": 1080,
       "height": 1440,
-      "text": "그래프에서 읽을 것은\n변화의 맥락입니다.\n\n흐름 읽기 개념도 · 개인 결과 아님\n\n이전 시기\n쌓아 온 힘\n선택한 시기\n새로운 요구\n다음 시기\n점검할 방향\n앞뒤 시기를 함께 보세요.\n\n대운표에서 한 시기를 선택하고,\n그때의 해설을 그래프와 대조해요.\n\n점수는 흐름의 참고값입니다.\n성공 확률·수익률이 아닙니다.\n\n계산과 해설을 엮은 디지털 풀이로,\n사람의 개별 상담과는 다릅니다."
+      "text": "그래프에서 읽을 것은\n변화의 맥락입니다.\n\n흐름 읽기 개념도 · 개인 결과 아님\n\n이전 시기\n쌓아 온 힘\n선택한 시기\n새로운 요구\n다음 시기\n점검할 방향\n앞뒤 시기를 함께 보세요.\n\n대운표에서 한 시기를 선택하고,\n그때의 해설을 그래프와 대조해요.\n\n점수는 흐름의 참고값입니다.\n성공 확률·수익률이 아닙니다.\n\n계산과 해설을 엮은 디지털 풀이로,\n사람의 개별 상담과는 다릅니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/saju-daewun/08-compare-540.webp",
+          "width": 540
+        }
+      ]
     },
     {
       "id": "09-close",
@@ -83,7 +131,13 @@
       "src": "/feature-details/crafted/saju-daewun/09-close.webp",
       "width": 1080,
       "height": 1440,
-      "text": "다음 열 해를\n기다리기보다,\n오늘의 속도를 정해요.\n\n무엇을 더할지,\n어디서 힘을 덜 쓸지.\n\n큰 흐름을 읽고 나면\n지금 점검할 질문이 달라질 수 있어요.\n\n출생 정보를 확인하고,\n대운 풀이를 펼쳐 보세요."
+      "text": "다음 열 해를\n기다리기보다,\n오늘의 속도를 정해요.\n\n무엇을 더할지,\n어디서 힘을 덜 쓸지.\n\n큰 흐름을 읽고 나면\n지금 점검할 질문이 달라질 수 있어요.\n\n출생 정보를 확인하고,\n대운 풀이를 펼쳐 보세요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/saju-daewun/09-close-540.webp",
+          "width": 540
+        }
+      ]
     }
   ]
 }

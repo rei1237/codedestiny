@@ -1,4 +1,5 @@
 /** @jest-environment node */
+import { withSettle } from "../fixtures/per-use-settle-mock.mjs";
 import { jest } from '@jest/globals';
 
 const payment = jest.fn();
@@ -10,7 +11,7 @@ let deliver;
 beforeAll(async () => {
   const db = await import('../../worker/lib/db.js'), models = await import('../../worker/lib/models.js');
   jest.unstable_mockModule('../../worker/lib/db.js', () => ({ ...db, connectDb: async () => {}, withMongoRetry: async (_env, fn) => fn() }));
-  jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js', () => ({ verifyPerUsePayment: payment }));
+  jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js', () => withSettle({ verifyPerUsePayment: payment }));
   jest.unstable_mockModule('../../worker/lib/paid-result-revocation.js', () => ({ isPaidResultRevoked: async () => false }));
   jest.unstable_mockModule('../../worker/lib/models.js', () => ({ ...models, ServiceExecutionTransaction: {
     findOne: filter => query(docs.find(row => match(row, filter)) || null),

@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { ArrowDown, Sparkles } from "lucide-react";
 import styles from "./ExpertConsultationFrame.module.css";
 
@@ -63,7 +63,23 @@ export function ExpertValueCards({ points, theme }: ExpertValueCardsProps) {
   );
 }
 
+/**
+ * 폼이 아직 아래에 있을 때만 뜨는 고정 CTA(DESIGN.md §5 Button Tiers — 고정 CTA 는 조건부).
+ * 예전에는 항상 떠 있어서 폼 제출 버튼과 같은 화면에 채움 CTA 가 둘 보였고,
+ * 하단 내비(.cd-mnav)에 겹쳤다. 폼이 화면에 들어오거나 지나가면 숨긴다.
+ */
 export function ExpertStickyCta({ label, targetId, price, theme }: ExpertStickyCtaProps) {
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const target = document.getElementById(targetId);
+    if (!target || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(([entry]) => {
+      setVisible(!entry.isIntersecting && entry.boundingClientRect.top > 0);
+    });
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [targetId]);
+  if (!visible) return null;
   return (
     <a className={`${styles.stickyCta} ${styles[theme]}`} href={`#${targetId}`}>
       <span>{price}</span>

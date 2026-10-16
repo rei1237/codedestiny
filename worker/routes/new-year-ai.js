@@ -21,10 +21,12 @@ import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { normalizeConsultAccessType, resolveCanonicalEntitlement, resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
 import { consumePassForFeature, passDenialCode } from "../lib/pass-consumption.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { appendExpertPersona, expertPersonaText } from "../lib/expert-character-personas.js";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { handleBillingRoutes, BILLING_SNAPSHOT_USER_PROJECTION } from "./billing.js";
+import { claimRequestBillingEvidence, evidenceClaimErrorBody, releaseRequestBillingEvidence } from "../lib/billing-evidence-claim.js";
 
 // 🔴 년주·월주는 **절기 프레임**이고 그 경계는 코어의 KST 절기표에서만 나온다.
 // 예전에는 월주를 lunar-javascript `getMonthInGanZhi()` 로 잡았는데, 그 라이브러리의 절기 시각은
@@ -1163,6 +1165,7 @@ async function resolveBillingGateAccess({ env, auth, user, body, pricing, idempo
         ok: true,
         accessType: normalizeBillingAccessType(pointHistory?.metadata?.accessType || signal),
         paymentId: clean(pointHistory._id, 160),
+        evidenceRequestId: clean(pointHistory?.metadata?.requestId, 180),
         prepaid: true,
       };
     }
@@ -1178,7 +1181,7 @@ async function resolveBillingGateAccess({ env, auth, user, body, pricing, idempo
     tokens,
   });
   if (monthlyEvidence) {
-    return { ok: true, accessType: "subscription", paymentId: clean(monthlyEvidence.ledgerId, 160), prepaid: true };
+    return { ok: true, accessType: "subscription", paymentId: clean(monthlyEvidence.ledgerId, 160), evidenceRequestId: clean(monthlyEvidence.sourceId, 180), prepaid: true };
   }
 
   const deferredClauses = deferredTokenClauses(tokens);
@@ -1321,7 +1324,7 @@ export function buildAdminLabPrompt(body = {}, options = {}) {
   const fortuneData = calculateNewYearFortuneData(normalized.input);
 
   return {
-    systemPrompt: buildSystemPrompt(section),
+    systemPrompt: [buildSystemPrompt(section), expertPersonaText("neoNewYear")].filter(Boolean).join("\n\n"),
     prompt: buildFirstPrompt(normalized.input, fortuneData, section),
   };
 }
@@ -1878,7 +1881,7 @@ async function generateConsultationSection(env, options) {
   if (!(timeoutMs > 0)) return { ...base, text: previousText, ok: false, reason: "BUDGET_EXHAUSTED" };
   try {
     const ai = await callGeminiText(env, buildSectionPrompt(input, fortuneData, section, repairLines, previousText, priorSections), {
-      systemPrompt: buildSystemPrompt(section),
+      systemPrompt: await appendExpertPersona(env, "neoNewYear", buildSystemPrompt(section)),
       taskType: "fortune",
       temperature: repairLines.length ? 0.62 : 0.72,
       maxOutputTokens: NEW_YEAR_AI_SECTION_MAX_OUTPUT_TOKENS,
@@ -2017,7 +2020,7 @@ async function generateConsultationText(env, input, fortuneData, options = {}) {
     const overflow = quality.totalChars - maxTotalChars;
     const targetMaxChars = Math.max(longest.section.minChars, countConsultationChars(longest.text) - overflow - 200);
     const compressed = await callGeminiText(env, buildConsultationCompressionPrompt(longest.text, longest.section.minChars, targetMaxChars), {
-      systemPrompt: buildSystemPrompt(longest.section),
+      systemPrompt: await appendExpertPersona(env, "neoNewYear", buildSystemPrompt(longest.section)),
       taskType: "fortune",
       temperature: 0.52,
       maxOutputTokens: NEW_YEAR_AI_SECTION_MAX_OUTPUT_TOKENS,
@@ -2312,6 +2315,13 @@ async function handleEnsureAccess(request, env) {
   }, { status: 402 });
 }
 
+// 결제 증빙 1건 = 상담 1건(2026-10-16). 같은 구매를 차감 행·실행 기록·결제 행 어느 쪽 ID 로 내밀어도
+// 같은 claim 에 걸리도록 원 결제 요청 키도 함께 묶는다. 이용권·관리자는 ID 가 없어 건너뛴다.
+function startEvidenceIds(access = {}) {
+  const paymentId = clean(access.paymentId, 160);
+  return paymentId ? [paymentId, clean(access.evidenceRequestId || access.billingRequestId, 180)] : [];
+}
+
 async function resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey }) {
   const token = clean(body?.accessToken || request.headers.get("x-new-year-ai-access-token"));
   if (token) {
@@ -2490,6 +2500,9 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
   const pricing = getPricing();
   const access = await resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey });
   if (!access.ok) return access.reason === 'LOGIN_REQUIRED' ? loginRequired() : paymentVerifyFailed();
+  const evidenceIds = startEvidenceIds(access);
+  const evidenceClaim = await claimRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds, featureKey: FEATURE_KEY });
+  if (!evidenceClaim.ok) return json(evidenceClaimErrorBody(evidenceClaim), { status: evidenceClaim.status });
   const sessionId = existing?.id || `nyai_${clean(auth.userId).slice(-8)}_${Date.now().toString(36)}_${randomToken(8)}`;
   if (existing?.status === 'delivery_pending') return json(publicSession(await finishNewYearDelivery({ request, env, auth, access, pending: existing })));
   if (existing?.status === 'generating' && existing.llmMeta?.lockedAt && Date.now() - new Date(existing.llmMeta.lockedAt).getTime() < NEW_YEAR_AI_GENERATING_FRESH_MS) {
@@ -2498,6 +2511,7 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
   let fortuneData;
   try { fortuneData = existing?.llmMeta?.fortuneData || calculateNewYearFortuneData(normalized.input); }
   catch (error) {
+    if (!existing) await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds });
     if (!existing && access.deferredUsage) await callDeferredUsageRoute({ request, env, auth, path: 'cancel', idempotencyKey, sessionId,
       code: clean(error?.code || 'FORTUNE_DATA_FAILED', 80), message: clean(error?.message, 500) }).catch(() => {});
     return serverError(SERVER_ERROR_MESSAGE, 500);
@@ -2560,6 +2574,7 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
     await saveNewYearState({ id: sessionId, userId: auth.userId, lockToken, values: { status: 'generation_failed', generationError: {
       code: clean(error?.code || 'LLM_GENERATION_FAILED', 80), message: clean(error?.message, 500), at: new Date().toISOString(),
     } } });
+    await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds });
     if (access.deferredUsage) await callDeferredUsageRoute({ request, env, auth, path: 'cancel', idempotencyKey, sessionId,
       code: clean(error?.code || 'LLM_GENERATION_FAILED', 80), message: clean(error?.message, 500) }).catch(() => {});
     return json({ ok: false, reason: 'LLM_ERROR', message: LLM_ERROR_MESSAGE }, { status: 503 });

@@ -3,7 +3,7 @@ import { isAuthDbInfraError, requireAuth } from "../lib/auth.js";
 import { connectDb, withMongoRetry } from "../lib/db.js";
 import { PaidExecutionRecord } from "../lib/models.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
-import { logPerUsePaymentProof, verifyPerUsePayment } from "../lib/nakshatra-paid-access.js";
+import { logPerUsePaymentProof, settlePerUseAccessDecision, verifyPerUsePayment } from "../lib/nakshatra-paid-access.js";
 import { FEATURE_KEY_PRICE_TABLE } from "../lib/paid-feature-registry.js";
 import { buildImageCandidates, getTarotCardByAnyId, TAROT_CARDS } from "../../lib/tarot/tarot-cards.mjs";
 import {
@@ -147,7 +147,15 @@ async function requireYearTarotAccess(request, env, requestId) {
     // requestId 를 쓰고(sessionStorage 보존), 리딩을 마치면 지운다 — 다음 리딩은 새 키다.
     requestId,
   });
-  if (!decision?.allowed) {
+  // 🔴 이용권·라이선스·월구독 허용은 읽기 전용이다(2026-10-16). 이번 requestId 의 결제가 확인되거나
+  //    이용권이 실제로 차감된 경우만 연다.
+  const settled = await settlePerUseAccessDecision(env, { decision, userId: auth.userId, featureKey: YEAR_TAROT_FEATURE_KEY,
+    coinPrice: Number(FEATURE_KEY_PRICE_TABLE[YEAR_TAROT_FEATURE_KEY]?.cost) || 0, requestId });
+  if (settled.allowed === null) {
+    return { ok: false, response: json({ ok: false, code: "TAROT_YEAR_PAYMENT_VERIFY_UNAVAILABLE", retryable: true,
+      message: "결제 확인이 잠시 지연되고 있어요. 추가 결제 없이 다시 시도해 주세요." }, { status: 503 }) };
+  }
+  if (!settled.allowed) {
     return {
       ok: false,
       response: json({
@@ -271,7 +279,9 @@ async function verifyNumerologyReadingAccess(request, env, body = {}) {
         message: String(error?.message || "").slice(0, 200),
       }));
     }
-    if (accessDecision?.allowed) {
+    // 🔴 지름길은 이번 요청의 결제 행(paidFeatures)만 받는다(2026-10-16). 이용권·라이선스·월구독 허용은
+    //    읽기 전용이라 그대로 열면 차감이 없다 — 아래 verifyPerUsePayment 가 결제를 찾거나 이용권을 차감한다.
+    if (accessDecision?.allowed && accessDecision.accessSource === "paidFeatures") {
       return { ok: true, auth, evidence: { source: accessDecision.accessSource || accessDecision.reason || "paid_feature_access" } };
     }
   }
@@ -392,7 +402,9 @@ async function verifyOracleConsultationAccess(request, env, body = {}, verifiedA
         message: String(error?.message || "").slice(0, 200),
       }));
     }
-    if (accessDecision?.allowed) {
+    // 🔴 지름길은 이번 요청의 결제 행(paidFeatures)만 받는다(2026-10-16). 이용권·라이선스·월구독 허용은
+    //    읽기 전용이라 그대로 열면 차감이 없다 — 아래 verifyPerUsePayment 가 결제를 찾거나 이용권을 차감한다.
+    if (accessDecision?.allowed && accessDecision.accessSource === "paidFeatures") {
       return { ok: true, auth, evidence: { source: accessDecision.accessSource || accessDecision.reason || "paid_feature_access" } };
     }
   }
@@ -501,7 +513,9 @@ async function verifyTarotPerUseAccess(request, env, body, spec, verifiedAuth = 
         message: String(error?.message || "").slice(0, 200),
       }));
     }
-    if (accessDecision?.allowed) {
+    // 🔴 지름길은 이번 요청의 결제 행(paidFeatures)만 받는다(2026-10-16). 이용권·라이선스·월구독 허용은
+    //    읽기 전용이라 그대로 열면 차감이 없다 — 아래 verifyPerUsePayment 가 결제를 찾거나 이용권을 차감한다.
+    if (accessDecision?.allowed && accessDecision.accessSource === "paidFeatures") {
       return { ok: true, auth, evidence: { source: accessDecision.accessSource || accessDecision.reason || "paid_feature_access" } };
     }
   }

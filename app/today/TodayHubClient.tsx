@@ -1186,17 +1186,11 @@ export default function TodayHubClient({ children, dailyTarotCards, weeklyConten
         </header>
 
         {locale === "ko" && weeklyContent && <div className="mt-7 grid grid-cols-3 gap-2" aria-label={tomorrowCopy.periodLabel}>
-          {([['today', tomorrowCopy.today], ['tomorrow', tomorrowCopy.tomorrow], ['weekly', tomorrowCopy.weekly]] as const).map(([value, label]) => <button key={value} type="button" aria-pressed={period === value} onClick={() => setPeriod(value)} className={`min-h-12 rounded-full border px-2 py-3 text-sm font-bold focus-visible:outline focus-visible:outline-2 focus-visible:outline-rose-200 ${period === value ? 'border-rose-200 bg-rose-200 text-rose-950' : 'border-rose-200/40 text-rose-100 hover:bg-rose-200/10'}`}>{label}</button>)}
+          {([['today', tomorrowCopy.today], ['tomorrow', tomorrowCopy.tomorrow], ['weekly', tomorrowCopy.weekly]] as const).map(([value, label]) => <button key={value} type="button" aria-pressed={period === value} onClick={() => setPeriod(value)} className={`min-h-12 rounded-full border px-2 py-3 text-sm font-bold focus-visible:outline focus-visible:outline-2 focus-visible:outline-rose-200 ${period === value ? 'border-rose-200 bg-white/[0.08] text-rose-50 shadow-[0_6px_16px_rgba(0,0,0,0.35)]' : 'border-rose-200/40 text-rose-100 hover:border-rose-200/70'}`}>{label}</button>)}
         </div>}
         {accessGranted && locale === "ko" && period === "weekly" && weeklyContent}
         <div hidden={accessGranted && locale === "ko" && period === "weekly"}>
-        {!accessGranted ? <section className="mt-8 rounded-3xl border border-amber-300/30 bg-amber-300/10 p-6 text-center">
-          <h2 className="text-xl font-black text-amber-100">오늘의 네 가지 흐름</h2>
-          <p className="mt-3 break-keep text-sm leading-7 text-slate-200">사주 일진·숙요 27수·베다 판창가·수비학에서 오늘의 핵심 신호를 한 번에 확인합니다.</p>
-          <button type="button" onClick={() => void unlockToday()} disabled={isPaying || !TODAY_PRICING} className="mt-5 min-h-12 rounded-full bg-amber-200 px-6 font-black text-amber-950 disabled:opacity-60">
-            {isPaying ? "이용권 확인 중" : "3,000원으로 오늘의 운세 보기"}
-          </button>
-        </section> : <>
+        {accessGranted && <>
         {/* 탭 */}
         <div role="tablist" aria-label={copy.tabsAriaLabel} className={locale === "ko" ? styles.tabs : "mt-8 grid grid-cols-2 gap-2 rounded-2xl sm:grid-cols-4 border border-white/10 bg-white/[0.04] p-1.5"}>
           {TAB_KEYS.map((tab) => {
@@ -1215,8 +1209,8 @@ export default function TodayHubClient({ children, dailyTarotCards, weeklyConten
                 tabIndex={selected ? 0 : -1}
                 onClick={() => setActive(tab.key)}
                 onKeyDown={moveTab}
-                className={locale === "ko" ? styles.tab : `inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl px-2 text-sm font-bold transition-colors ${
-                  selected ? "bg-amber-400/20 text-amber-100" : "text-slate-300 hover:bg-white/[0.06]"
+                className={locale === "ko" ? styles.tab : `inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl border px-2 text-sm font-bold transition-colors ${
+                  selected ? "border-amber-300 bg-white/[0.08] text-amber-100 shadow-[0_6px_16px_rgba(0,0,0,0.35)]" : "border-transparent text-slate-300 hover:border-white/20"
                 }`}
               >
                 {locale === "ko" ? <Image src={SYSTEM_ART[tab.key].src} alt="" width={160} height={107} sizes="(max-width:600px) 22vw, 170px"/> : <span aria-hidden="true">{tab.emoji}</span>}
@@ -1329,6 +1323,14 @@ export default function TodayHubClient({ children, dailyTarotCards, weeklyConten
           <Link href="/fortune/tomorrow/" className="mt-4 inline-flex min-h-12 items-center font-bold text-rose-100 underline underline-offset-4">{tomorrowCopy.zodiacLink}</Link>
         </section>}
         {children}
+        {/* 결제 안내는 가치 다음에 온다(DESIGN.md §5 Button Tiers) — 무료 설명을 먼저 보여 준다. */}
+        {!accessGranted && <section className="mt-8 rounded-3xl border border-rose-200/30 bg-rose-200/10 p-6 text-center">
+          <h2 className="text-xl font-black text-rose-50">오늘의 네 가지 흐름</h2>
+          <p className="mt-3 break-keep text-sm leading-7 text-slate-200">사주 일진·숙요 27수·베다 판창가·수비학에서 오늘의 핵심 신호를 한 번에 확인합니다.</p>
+          <button type="button" onClick={() => void unlockToday()} disabled={isPaying || !TODAY_PRICING} className="mt-5 min-h-12 rounded-full bg-rose-200 px-6 font-black text-rose-950 hover:bg-rose-100 disabled:opacity-60">
+            {isPaying ? "이용권 확인 중" : "3,000원으로 오늘의 운세 보기"}
+          </button>
+        </section>}
 
         <h2 className="mt-16 break-keep text-lg font-extrabold text-white">{copy.deeperHeading}</h2>
         <p className="mt-1 break-keep text-sm leading-7 text-slate-400">

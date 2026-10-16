@@ -11,5 +11,18 @@
   --yn-line: #52677e;
   --yn-radius: 16px;
   --yn-reading-width: 68ch;
+  /* 버튼 등급 (2026-10-16) — 금 채움 = 화면당 핵심 행동 하나(결제·상담 시작).
+     공유·재시도·전송은 라인, 둘러보기는 텍스트. 선택 상태는 금 테두리이지 금 채움이 아니다.
+     기준 구현은 _components/night-hero.module.css 의 .primary/.secondary. */
+  --yn-btn-h: 52px;
+  --yn-btn-h-sm: 44px;
+  --yn-btn-radius: 12px;
+  --yn-gold-hover: #f4d9ab;
+  /* 타이포 5단 — 캡션 하한 12px. */
+  --yn-t-display: clamp(1.7rem, 3.6vw, 3.3rem);
+  --yn-t-section: clamp(1.3rem, 2.6vw, 1.75rem);
+  --yn-t-card: 1.08rem;
+  --yn-t-body: 0.95rem;
+  --yn-t-caption: 0.78rem;
   color-scheme: dark;
 }

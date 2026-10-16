@@ -76,6 +76,8 @@ const SUITE = [
   { run: "npm run verify:paid-feature-billing-policy", why: "유료 기능 과금 정책." },
   { run: "npm run verify:per-use-cleanup-selection", why: "잔존 해금 정리 스크립트가 **무엇을 지울지** 고르는 규칙. DB 없이 돈다. 영구 해금 키가 삭제 대상에 섞이면 돈 낸 사용자의 콘텐츠를 지우게 되므로, 그 선별을 레지스트리와 대조해 실행으로 확인한다." },
   { run: "npm run verify:per-use-never-unlocks", why: "🔴 회당 결제가 영구 해금으로 기록되는 것을 막는다. 이집트 신탁이 '한 번 결제하면 새로고침 전까지 계속 무료'였고, 원인은 두 곳이었다 — 클라이언트가 서버가 주지 않은 unlockMap 을 합성했고, 단건 KRW 확정 경로에만 billingType 경계가 빠져 있었다. 위 과금 정책 가드는 '레지스트리 분류가 맞는가'만 보고 '그 분류가 실제로 지켜지는가'는 보지 않는다." },
+  { run: "npm run verify:paid-access-integrity", why: "🔴 유료 상담이 결제·차감 없이 열리는 모양을 막는다(2026-10-16 찻집 사건 후속). 본문 _userDoc 신뢰, PER_USE_ENFORCE=false, canAccessPaidFeature 판정만 믿고 이용권을 차감하지 않는 라우트, 리포트 이용권 분기의 무차감 허용을 잡는다." },
+  { run: "npm run verify:paid-access-integrity -- --self-test", why: "위 가드의 규칙이 나쁜 예를 실제로 무는지." },
   { run: "npm run verify:ai-prompt-billing-policy", why: "AI 프롬프트 과금 정책." },
   { run: "npm run verify:palm-flow", why: "손금: 프로덕션 빌드가 output:'export' 라 app/api 라우트가 통째로 빠진다는 사실 때문에 Gemini Vision 이 로컬에서만 돌고 실제 사용자는 정적 템플릿을 받고 있었다(2026-07 발견)." },
   { run: "npm run verify:payment-choice-parity", why: "결제창 렌더러 3종의 정합성 — TTL 이 5분/15분으로 갈라진 채 배포된 흉터가 이 가드의 출발점이다." },

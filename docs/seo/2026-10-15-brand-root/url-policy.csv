@@ -6,7 +6,7 @@ path,role,status,canonical,index,hreflang,sitemap,query_handling,notes
 /kkul-kkul-unse/,공식 주소·표기·이력 안내(FAQ 10),200,self,index,없음,포함,-,
 /about/,운영자 CODE DESTINY 소개,200,self,index,없음,포함,-,
 /faq/,이용 안내 FAQ,200,self,index,없음,포함,-,
-/yeongnyangi/,영냥이 상담 입구,200,self,index,없음,포함,question(질문 가이드 ID) 처리,
+/yeongnyangi/,운세보는 영냥이 상담 입구(대표 이름 2026-10-16),200,self,index,없음,포함,question(질문 가이드 ID) 처리,
 /saju/ /tarot/ /ziwei/ /insights/ 등 공개 허브,주제 허브,200,self,index,경로별,포함,-,
 /login /signup /auth/*,인증,200,-,noindex,-,제외,"code·state 등 인증 키. robots Disallow /auth/",
 /records/*,나의 기록 보관함,200(로그인 필요),-,"noindex, nofollow",-,제외,-,개인 상담 결과

@@ -1935,15 +1935,17 @@ body:has(main.moon-shop) [role="note"] {
 	animation: moonLoadingPulse 1.8s ease-in-out infinite;
 }
 
+/* Primary 등급(cd-btn-v20261016): 달빛 상점은 고정 다크 팔레트라 --cd-primary 대신 같은 자리의 단색을 쓴다. 그라디언트 금지. */
 .btn-moonlight {
-	background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+	background: #4F46E5;
 	border: 1px solid #A78BFA44;
 	box-shadow: 0 0 12px #7C3AED44;
 	color: white;
-	transition: box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+	transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
 }
 
 .btn-moonlight:hover:not(:disabled) {
+	background: #4338CA;
 	box-shadow: 0 0 24px #7C3AED88;
 	transform: translateY(-1px);
 }

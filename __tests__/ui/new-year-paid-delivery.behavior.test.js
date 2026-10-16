@@ -49,6 +49,8 @@ function fixture(accessType = 'pass', currentSections = null) {
   };
   const plan = currentSections || ['overview', 'wealth', 'romance', 'monthly', 'health'].map(key => ({ key, label: key, minChars: 4000, maxChars: 5000 }));
   const ctx = vm.createContext({ Request, Response, Headers, Date, JSON, Map, crypto: webcrypto, console: { error() {} },
+    // 증빙 claim 은 billing-evidence-claim.test.js 가 따로 검증한다 — 여기서는 통과로 둔다.
+    claimRequestBillingEvidence: async () => ({ ok: true, skipped: true }), releaseRequestBillingEvidence: async () => ({ released: 0 }), evidenceClaimErrorBody: result => result, FEATURE_KEY: 'new-year-ai-consultation',
     fetch: async () => { throw new Error('EXTERNAL_FETCH_BLOCKED'); },
     clean: (v, max = 100000) => String(v || '').trim().slice(0, max), cleanForbiddenResult: v => v,
     randomToken: () => String(++tick), readJson: request => request.json(), json: (body, init) => new Response(JSON.stringify(body), init),
@@ -85,7 +87,7 @@ function fixture(accessType = 'pass', currentSections = null) {
   load(ctx, 'worker/lib/paid-report-quality.js', ['paidReportBody', 'countPaidReportBodyChars', 'reportSentenceKey', 'hasRepeatedReportPassage']);
   load(ctx, 'worker/lib/master-love-codex-quality.js', ['dedupeCodexBody']);
   load(ctx, 'worker/lib/paid-report-length.js', ['trimPaidReportText', 'lastSentenceBoundary']);
-  load(ctx, 'worker/routes/new-year-ai.js', ['handleNewYearAiRoutes', 'handleStart', 'generateNewYearWave', 'assembleConsultationSections', 'trimToLastCompleteSentence', 'saveNewYearState', 'finishNewYearDelivery']);
+  load(ctx, 'worker/routes/new-year-ai.js', ['handleNewYearAiRoutes', 'handleStart', 'generateNewYearWave', 'assembleConsultationSections', 'trimToLastCompleteSentence', 'saveNewYearState', 'finishNewYearDelivery', 'startEvidenceIds']);
   ctx.generateConsultationText = ctx.generateNewYearWave;
   const post = (body = {}) => ctx.handleNewYearAiRoutes(new Request('https://mock.test/api/new-year-ai/start', {
     method: 'POST', headers: { 'Content-Type': 'application/json', 'idempotency-key': 'original-paid-request' }, body: JSON.stringify(body),
@@ -217,7 +219,7 @@ test('P2 initial and repair calls retain expanded token budget and timeout', asy
   const calls = [];
   const ctx = vm.createContext({ console, Math,
     clean: value => String(value || '').trim(), isStagingLlmMockEnabled: () => false,
-    buildSectionPrompt: () => 'mock prompt', buildSystemPrompt: () => 'mock system',
+    buildSectionPrompt: () => 'mock prompt', buildSystemPrompt: () => 'mock system', appendExpertPersona: async (_env, _key, base) => base,
     callGeminiText: async (_env, _prompt, options) => { calls.push(options); return { ok: true, provider: 'gemini', text: '본문'.repeat(300) }; },
   });
   for (const name of ['NEW_YEAR_AI_SECTIONS', 'NEW_YEAR_AI_SECTION_MAX_OUTPUT_TOKENS', 'NEW_YEAR_AI_SECTION_MIN_LENGTH', 'NEW_YEAR_AI_SECTION_TIMEOUT_MS']) {

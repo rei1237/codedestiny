@@ -1,4 +1,5 @@
 /** @jest-environment node */
+import { withSettle } from "../fixtures/per-use-settle-mock.mjs";
 import { jest } from '@jest/globals';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
@@ -65,7 +66,7 @@ beforeAll(async()=>{
  jest.unstable_mockModule('../../worker/lib/db.js',()=>({...db,connectDb:async()=>{},withMongoRetry:async(_env,run)=>run()}));
  jest.unstable_mockModule('../../worker/lib/auth.js',()=>({...auth,requireUserFromRequest:async()=>({userId:uid}),getOptionalUserFromRequest:async()=>({userId:uid})}));
  jest.unstable_mockModule('../../worker/lib/paid-result-revocation.js',()=>({isPaidResultRevoked:async()=>revoked}));
- jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js',()=>({verifyPerUsePayment:async(_env,args)=>{paymentChecks.push({...args,accessType});return {proven:!(missingEvidence&&args.requireExisting)}},logPerUsePaymentProof:()=>{}}));
+ jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js',()=>withSettle({verifyPerUsePayment:async(_env,args)=>{paymentChecks.push({...args,accessType});return {proven:!(missingEvidence&&args.requireExisting)}},logPerUsePaymentProof:()=>{}}));
  jest.unstable_mockModule('../../worker/lib/fusion-fortune.js',()=>({...fusion,createMongoFusionFortuneStore:()=>store,
    generateFusionFortuneRequest:args=>fusion.generateFusionFortuneRequest({...args,
      contextBuilder:async()=>({ok:true,context:{version:1,locale:'ko',systems:{saju:{dayMaster:'갑'}},tarotSpread:{cards:[]}}}),

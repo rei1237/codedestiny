@@ -1,4 +1,6 @@
 "use client";
+import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
+import { cleanTopics, reportAdviceTopics } from "@/js/recommendations-context.mjs";
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import PaidResultImageGuide from "@/components/fortune/PaidResultImageGuide";
 
@@ -3540,6 +3542,7 @@ export default function VedicAiClient() {
           )}
         </section>
       </section>
+      {consultation?.status === "completed" && !busy && <RecommendationResult service="vedic-ai-consultation" practiceTags={cleanTopics(consultation.messages.filter(message => message.role === "assistant").flatMap(message => reportAdviceTopics(message.content)))}/>}
       {!consultation && (
         <ExpertStickyCta
           theme="vedic"

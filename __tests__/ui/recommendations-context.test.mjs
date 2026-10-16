@@ -50,6 +50,15 @@ test('malformed optional advice rows never break consultation rendering',()=>{
   assert.deepEqual(neoAdviceTopics(null,{actionAlternatives:[null,{}]}),[]);
 });
 
+test('saved report adapters use explicit action sections without transmitting private prose',async()=>{
+ const {reportAdviceTopics}=await import('../../js/recommendations-context.mjs');
+ assert.deepEqual(reportAdviceTopics(JSON.stringify({question:'일기를 기록하세요.',sections:{health:{body:'휴식 시간을 확보하세요.'},action_plan:{body:'집중 시간을 확보하세요.\n하루의 생각을 기록하세요.'}}})),['focus','journaling']);
+ assert.deepEqual(reportAdviceTopics('## 현재 흐름\n일기를 기록하세요.\n## 추천 행동\n지출 내역을 정리하세요.\n## 건강\n휴식 시간을 확보하세요.'),['budgeting']);
+ assert.deepEqual(adviceTopics(['바쁜 일상 속에서도 혼자만의 휴식 시간이 필요합니다.']),['rest']);
+ assert.deepEqual(reportAdviceTopics('추천 행동\n지출 내역을 정리하세요.\n건강\n휴식 시간을 확보하세요.'),['budgeting']);
+ for(const text of ['일기를 기록하세요.','{"sections":','## 추천 행동\n상대방은 일기를 기록하세요.','## 추천 행동\n일기를 기록하지 마세요.']) assert.deepEqual(reportAdviceTopics(text),[]);
+});
+
 test('fusion and human design inspect only explicit action fields', async()=>{
  const {fusionAdviceTopics,humanDesignAdviceTopics}=await import('../../js/recommendations-context.mjs');
  assert.deepEqual(fusionAdviceTopics({finalVerdict:{doNow:['예산을 세워 보세요.']},executiveSummary:'일기를 기록하세요.'}),['budgeting']);
@@ -70,6 +79,21 @@ test('result pair adds action coverage or a practical companion without changing
  assert.deepEqual(selectProducts([book,timer],{...c,practiceTags:[]},now),[]);
  const multi=product('multi-journal','focus',{kind:'journal',practiceTags:['focus','journaling'],topicReasons:{focus:'집중 메모',journaling:'하루 회고 기록'}});
  assert.equal(selectProducts([book,multi],{...c,practiceTags:['focus','journaling']},now)[1].reason,'하루 회고 기록');
+});
+
+test('symbol accessories can match an explicit browsing purpose without invented colours',()=>{
+ const accessory=product('uncoloured-accessory','symbolism',{category:'daily-life',kind:'symbol-accessory',book:null,interests:['collecting'],colors:[],motifs:[]});
+ const c={service:'recommendations',source:'browse',practiceTags:['symbolism'],interests:['collecting']};
+ assert.deepEqual(selectProducts([accessory],c,now).map(p=>p.id),['uncoloured-accessory']);
+ for(const patch of [{interests:[]},{interests:['reading']},{practiceTags:[]},{color:'gold'},{motif:'flower'},{source:'result'},{source:'article'}]) {
+   assert.deepEqual(selectProducts([accessory],{...c,...patch},now),[],JSON.stringify(patch));
+ }
+ const gold=product('gold-accessory','symbolism',{category:'daily-life',kind:'bracelet',book:null,interests:['collecting'],colors:['gold']});
+ assert.equal(selectProducts([gold],{...c,color:'gold'},now).length,1);
+ assert.deepEqual(selectProducts([gold],{...c,color:'green'},now),[]);
+ for(const patch of [{status:'draft'},{stock:'sold-out'},{accountVerified:false},{expiresAt:new Date(now-1).toISOString()}]) {
+   assert.deepEqual(selectProducts([{...accessory,...patch}],c,now),[]);
+ }
 });
 
 test('expanded editorial catalogue matches advice and keeps publication gates closed',()=>{

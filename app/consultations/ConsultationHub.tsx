@@ -44,8 +44,8 @@ export default function ConsultationHub({ children }: { children?: ReactNode }) 
             <p>{id === 'codex' && `${copy.personal} `}<PriceBadge featureKey={service.featureKey} className={styles.price} /></p>
             {id === 'codex' && <p>{copy.compatibility} <PriceBadge featureKey="master-love-codex-compat" className={styles.price} /></p>}
           </div>
-          <a className={styles.button} href={service.href} aria-label={`${name} · ${id === 'legacy-naming' ? copy.namingAction : copy.action}`}>
-            {id === 'legacy-naming' ? copy.namingAction : copy.action}<ArrowUpRight size={17} aria-hidden="true" />
+          <a className={styles.button} href={service.href} aria-label={id === 'legacy-naming' ? `${name} · ${copy.namingAction}` : undefined}>
+            {id === 'legacy-naming' ? copy.namingAction : copy.action.replace('{name}', name)}<ArrowUpRight size={17} aria-hidden="true" />
           </a>
         </div>
       </div>

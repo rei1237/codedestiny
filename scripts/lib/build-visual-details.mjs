@@ -98,6 +98,29 @@ const SHARED_ASSET_PREFIX = 'shared-';
 const sharedAssetStem = imagePath => `${SHARED_ASSET_PREFIX}${crypto.createHash('sha1').update(imagePath).digest('hex').slice(0, 8)}`;
 const GENERATED_ASSET_PATTERN = /^(.+)-(?:\d+|og)\.webp$/;
 
+/**
+ * Crafted panels (public/feature-details/crafted/{id}/) are written once by
+ * render-crafted-detail as 1080×1440 q76, so a 72px edition cover and a 540px
+ * column both downloaded the full original. Every crafted panel gets a 540w
+ * sibling (recorded as `variants` in its public manifest, which the popup and
+ * product pages fetch), and editions shown as a card a 144px (2x) cover. These
+ * suffixes belong to this generator and are pruned here; a variant newer than
+ * its source is kept so sync:public does not re-encode hundreds of panels.
+ */
+const CRAFTED_DIRECTORY = path.join(root, 'public/feature-details/crafted');
+const CRAFTED_PANEL_SOURCE = /^\/feature-details\/crafted\/[a-z0-9-]+\/[^/]+\.webp$/;
+const CRAFTED_VARIANT_PATTERN = /-(?:540|144)\.webp$/;
+async function craftedVariant(src, width, written) {
+  const source = path.resolve(root, 'public', decodeURIComponent(src.slice(1)));
+  if (!source.startsWith(CRAFTED_DIRECTORY + path.sep)) throw new Error('Crafted image outside its directory');
+  const output = source.replace(/\.webp$/, `-${width}.webp`);
+  written.add(output);
+  if (!fs.existsSync(output) || fs.statSync(output).mtimeMs < fs.statSync(source).mtimeMs) {
+    await sharp(source).resize({ width, withoutEnlargement: true }).webp({ quality: 78 }).toFile(output);
+  }
+  return src.replace(/\.webp$/, `-${width}.webp`);
+}
+
 /** Derived from the existing shell/React registries; never a second authored copy. */
 export function buildVisualDetails(html, book) {
   const legacy = extractObjectLiteral(html, 'D');
@@ -212,6 +235,7 @@ export async function writeVisualDetails(html, book) {
   }
   const knownSlugs = new Set(Object.keys(data.items));
   const writtenAssets = new Set();
+  const writtenCrafted = new Set();
   for (const [slug, item] of Object.entries(data.items)) {
     const destination = path.join(directory, `${slug}.json`);
     if (item.verification === 'verified') {
@@ -274,6 +298,17 @@ export async function writeVisualDetails(html, book) {
         panel.verifiedCapture.width = meta.width;
         panel.verifiedCapture.height = meta.height;
       }
+      for (const essay of item.crafted || []) {
+        const panels = (essay.panels || []).filter(panel => panel.src && panel.text);
+        for (const panel of panels) {
+          if (CRAFTED_PANEL_SOURCE.test(panel.src) && Number(panel.width) > 540) panel.variants = [{ src: await craftedVariant(panel.src, 540, writtenCrafted), width: 540 }];
+        }
+        // A single edition renders open without a card, so it needs no cover.
+        const cover = panels[0];
+        if (item.crafted.length > 1 && cover && CRAFTED_PANEL_SOURCE.test(cover.src)) {
+          essay.cover = { src: await craftedVariant(cover.src, 144, writtenCrafted), width: 144, height: Math.round(144 * (Number(cover.height) || 1440) / (Number(cover.width) || 1080)) };
+        }
+      }
       writeJsonAtomic(destination, item);
     }
     else if (fs.existsSync(destination)) fs.unlinkSync(destination);
@@ -286,6 +321,23 @@ export async function writeVisualDetails(html, book) {
     const catalogStem = stem?.endsWith('-catalog') ? stem.slice(0, -'-catalog'.length) : '';
     if (!stem || !(knownSlugs.has(stem) || knownSlugs.has(catalogStem) || stem.startsWith(SHARED_ASSET_PREFIX))) continue;
     fs.unlinkSync(path.join(directory, 'assets', name));
+  }
+  // The public manifests are what the disclosure panels fetch; content/product-details keeps the authored copy.
+  for (const id of fs.existsSync(CRAFTED_DIRECTORY) ? fs.readdirSync(CRAFTED_DIRECTORY) : []) {
+    const file = path.join(CRAFTED_DIRECTORY, id, 'manifest.json');
+    if (!fs.existsSync(file)) continue;
+    const manifest = JSON.parse(fs.readFileSync(file, 'utf8'));
+    for (const panel of manifest.panels || []) {
+      if (CRAFTED_PANEL_SOURCE.test(panel.src || '') && Number(panel.width) > 540) panel.variants = [{ src: await craftedVariant(panel.src, 540, writtenCrafted), width: 540 }];
+    }
+    writeJsonAtomic(file, manifest, 2);
+  }
+  for (const id of fs.existsSync(CRAFTED_DIRECTORY) ? fs.readdirSync(CRAFTED_DIRECTORY) : []) {
+    const folder = path.join(CRAFTED_DIRECTORY, id);
+    if (!fs.statSync(folder).isDirectory()) continue;
+    for (const name of fs.readdirSync(folder)) {
+      if (CRAFTED_VARIANT_PATTERN.test(name) && !writtenCrafted.has(path.join(folder, name))) fs.unlinkSync(path.join(folder, name));
+    }
   }
   const published = [...new Map(data.index.filter(item => item.verification === 'verified').map(item => [item.slug, item])).values()];
   for (const item of Object.values(data.items)) {

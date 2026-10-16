@@ -1,6 +1,7 @@
 /** @jest-environment node */
 // 장별 근거·점수 계산 보존 대조: 저장될 본문이 실제로 계산된 확정 점수를 지키는지 검사한다.
 // 계산기(calculateLoveSecretAiSaju·scoreBoundary)를 대역하지 않고 실제 명식을 태운다.
+import { withSettle } from "../fixtures/per-use-settle-mock.mjs";
 import { jest } from '@jest/globals';
 // Multi-part stress fixture; the default one-part contract has separate coverage.
 const timeoutPolicy = jest.requireActual('../../worker/lib/sync-llm-timeout.js');
@@ -33,7 +34,7 @@ beforeAll(async()=>{
  const db=await import('../../worker/lib/db.js'),auth=await import('../../worker/lib/auth.js'),models=await import('../../worker/lib/models.js'),structured=await import('../../worker/lib/structured-consultation.js');
  jest.unstable_mockModule('../../worker/lib/db.js',()=>({...db,connectDb:async()=>{}}));
  jest.unstable_mockModule('../../worker/lib/auth.js',()=>({...auth,getOptionalUserFromRequest:async()=>({userId})}));
- jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js',()=>({verifyPerUsePayment:async()=>({proven:true,source:'single',transactionId:'original-single'})}));
+ jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js',()=>withSettle({verifyPerUsePayment:async()=>({proven:true,source:'single',transactionId:'original-single'})}));
  jest.unstable_mockModule('../../worker/lib/models.js',()=>({...models,RelationshipBoundaryTest:model,
   PaidExecutionRecord:{findOne:()=>query(null)},Payment:{findOne:()=>query(null)},PointHistory:{findOne:()=>query(null)},MonthlyCreditLedger:{findOne:()=>query(null)},
  }));

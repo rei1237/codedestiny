@@ -1820,6 +1820,25 @@
       "ch5": "진짜 timing",
       "lyrics": "가사 자막",
       "more": "달빛 음악 더 듣기"
+    },
+    "passCopy": {
+      "myTitle": "내 이용권",
+      "flowerPass": "🌸 꽃돼지 달빛 이용권",
+      "packPass": "영냥이 전용 이용권",
+      "packTitle": "영냥이 전용 이용권",
+      "packName": "{fish} 세트 {total}회",
+      "packScope": "{fish} 상담 전용 · {days}일 · 총 {total}회",
+      "packRemaining": "{total}회 중 {remaining}회 남음",
+      "packExpires": "{date}까지",
+      "packOthers": "외 {count}개 세트 보유",
+      "packBrowse": "영냥이 세트 보기",
+      "fishMackerel": "고등어",
+      "fishSalmon": "연어",
+      "fishFlounder": "광어",
+      "fishTuna": "참치",
+      "packPerUse": "회당 {amount}원 상담",
+      "budgetLeft": "남은 한도 {amount}원",
+      "packNote": "영냥이 세트는 같은 생선 상담에만 1회씩 사용돼요. 꽃돼지 이용권과 따로 적용돼요."
     }
   },
   "footer": {
