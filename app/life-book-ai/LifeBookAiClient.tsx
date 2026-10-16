@@ -1894,7 +1894,7 @@ export default function LifeBookAiClient() {
               <div className="mt-4 flex items-center justify-end">
                 <PriceBadge featureKey={MODE_FEATURE_KEY[form.mode || "lifeBook"]} prefix={copy.priceLabelPrefix} />
               </div>
-              <button type="submit" disabled={isBusy} className="mt-2 flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#c68d31] via-[#f2d07a] to-[#b47b25] px-5 font-semibold text-[#171007] shadow-lg shadow-[#f0c66a22] transition hover:-translate-y-0.5 hover:shadow-[#f0c66a40] disabled:cursor-not-allowed disabled:opacity-60">
+              <button type="submit" disabled={isBusy} className="mt-2 flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[#f2d07a] px-5 font-semibold text-[#171007] shadow-lg shadow-[#f0c66a22] transition hover:-translate-y-0.5 hover:bg-[#f6dc95] hover:shadow-[#f0c66a40] disabled:cursor-not-allowed disabled:opacity-60">
                 {isBusy ? <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" /> : <WalletCards className="h-5 w-5" aria-hidden="true" />}
                 {isBusy ? copy.openingCta : copy.openCta(form.mode || "lifeBook")}
               </button>

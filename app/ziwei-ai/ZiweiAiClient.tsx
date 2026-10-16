@@ -1534,8 +1534,8 @@ export default function ZiweiAiPage() {
         .toggles{display:flex;gap:10px;flex-wrap:wrap}
         .check{display:inline-flex;grid-template-columns:auto 1fr;align-items:center;min-height:44px;gap:9px;border:1px solid rgba(224,210,255,.20);border-radius:8px;background:rgba(255,255,255,.055);padding:10px 11px}
         .check input{width:17px;min-width:17px;height:17px;min-height:17px;padding:0;accent-color:#f5d991}
-        .primaryBtn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:50px;border:0;border-radius:8px;background:linear-gradient(135deg,#fff0b8,#d9c7ff 47%,#8fa7ff);color:#0c1024;font-family:var(--font-display);font-weight:950;cursor:pointer;box-shadow:0 18px 36px rgba(105,88,198,.30),0 0 30px rgba(244,214,148,.16);transition:transform .18s ease,box-shadow .18s ease,filter .18s ease}
-        .primaryBtn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 22px 44px rgba(105,88,198,.38),0 0 36px rgba(244,214,148,.22);filter:saturate(1.05)}
+        .primaryBtn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:50px;border:0;border-radius:8px;background:#d9c7ff;color:#0c1024;font-family:var(--font-display);font-weight:950;cursor:pointer;box-shadow:0 18px 36px rgba(105,88,198,.30),0 0 30px rgba(244,214,148,.16);transition:transform .18s ease,box-shadow .18s ease,filter .18s ease}
+        .primaryBtn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 22px 44px rgba(105,88,198,.38),0 0 36px rgba(244,214,148,.22);background:#e6daff}
         .primaryBtn:disabled{cursor:not-allowed;opacity:.68}
         .notice,.error{display:flex;align-items:center;gap:7px;margin:0;border-radius:8px;padding:10px 11px;font-size:13px;line-height:1.5}
         .notice{border:1px solid rgba(245,217,145,.30);background:rgba(245,217,145,.10);color:#fff0b8}

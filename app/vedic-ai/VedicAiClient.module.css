@@ -445,7 +445,7 @@
   min-height: 3.25rem;
   border: 0;
   border-radius: 8px;
-  background: linear-gradient(135deg, var(--vd-saffron-lit) 0%, var(--vd-saffron) 47%, var(--vd-moon) 100%);
+  background: var(--vd-saffron-lit);
   color: var(--vd-bg-deep);
   font-weight: 800;
   cursor: pointer;
