@@ -6,9 +6,10 @@ import {
 import { createSajuSectionRuntime } from "./runtime.generated.mjs";
 
 // 사주 종합(section_summary)·대운 풀이(section_daewun)·퀀텀 명리 엔진(rpt_quantumCard)·
-// 극T 관계 회로(sukuyo-extreme-t-relationship)·숙요 인연 도감(sukuyo-relationship-encyclopedia) 본문을 서버에서 만든다.
+// 극T 관계 회로(sukuyo-extreme-t-relationship)·숙요 인연 도감(sukuyo-relationship-encyclopedia)·에너지 원정 리포트(rpt_energyCoordCard)
+// 본문을 서버에서 만든다.
 // 계산 흐름은 js/saju-engine.js 의 사주 계산(원국 → 대운 브릿지 → 종격 판정 → 용신 정책)을 그대로 따른다.
-export const SAJU_SECTION_FEATURE_KEYS = Object.freeze(["section_summary", "section_daewun", "rpt_quantumCard", "sukuyo-extreme-t-relationship", "sukuyo-relationship-encyclopedia"]);
+export const SAJU_SECTION_FEATURE_KEYS = Object.freeze(["section_summary", "section_daewun", "rpt_quantumCard", "sukuyo-extreme-t-relationship", "sukuyo-relationship-encyclopedia", "rpt_energyCoordCard"]);
 // 클라이언트 출생지 선택의 기본 옵션(index.html #birthCountry 의 대한민국 서울).
 const DEFAULT_PLACE = Object.freeze({ name: "대한민국 (서울)", longitude: 127.0, latitude: 37.6, timezone: "Asia/Seoul", baseTzOffset: 9 });
 const JONG_DECISIONS = new Set(["confirmed", "rejected", "unverified"]);
@@ -34,13 +35,16 @@ function normalizePlace(place) {
   return { name, longitude, latitude, timezone, baseTzOffset };
 }
 
-function documentShim(neo, captured, quantum) {
+function documentShim(neo, captured, quantum, energy) {
   const classList = { contains: (name) => neo && name === "neo-mode" };
   return {
     cookie: "",
     body: { classList },
     documentElement: { classList },
-    getElementById: (id) => (id === "summaryArea" ? captured : id === "quantumSection" ? quantum.area : id === "quantumCard" ? quantum.card : null),
+    // 에너지 카드의 룰렛 스타일은 <head> 에 붙는다 — 그 CSS 를 받아 응답으로 돌려준다.
+    head: { appendChild: (node) => { energy.css = String(node?.textContent || ""); } },
+    createElement: () => ({ id: "", textContent: "" }),
+    getElementById: (id) => (id === "summaryArea" ? captured : id === "quantumSection" ? quantum.area : id === "quantumCard" ? quantum.card : energy.byId[id] || null),
   };
 }
 
@@ -56,13 +60,50 @@ function buildEncyclopediaHtml(input) {
   if (typeof idx !== "number" || !Number.isInteger(idx) || idx < 0 || idx > 26) throw new SajuSectionInputError("본명숙을 확인해 주세요.", "SAJU_INVALID_MANSION");
   const lang = input.lang || "ko";
   const window = { location: { search: "", pathname: "/", hostname: "" }, localStorage: memoryStorage(), cdGetCurrentLanguage: () => lang };
-  const rt = createSajuSectionRuntime({ window, document: documentShim(false, { innerHTML: "" }, { area: { innerHTML: "" }, card: { style: {} } }), localStorage: window.localStorage, neo: false, lang, now: input.now instanceof Date ? input.now : new Date() });
+  const rt = createSajuSectionRuntime({ window, document: documentShim(false, { innerHTML: "" }, { area: { innerHTML: "" }, card: { style: {} } }, { css: "", byId: {} }), localStorage: window.localStorage, neo: false, lang, now: input.now instanceof Date ? input.now : new Date() });
   return {
     html: rt.renderSukuyoEncyclopediaPaid({
       userName: String(raw.userName || "").slice(0, 40),
       userMansionIdx: idx,
       userMansion: String(raw.userMansion || "").slice(0, 20),
     }),
+  };
+}
+
+// 에너지 원정 리포트는 브라우저 localStorage 의 두 목록을 읽고 쓴다 — 최근에 보여 준 여행지(화면 중복 방지)와
+// 프로필별 룰렛 당첨 기록. 서버는 요청 본문의 목록을 그 자리에 넣고, 본문이 쓴 목록을 응답으로 돌려준다.
+const ENERGY_RECENT_KEY = "energyCoordRecentDestinationsV1";
+const ENERGY_ROULETTE_PREFIX = "code-destiny-energy-roulette-";
+const ENERGY_ROULETTE_MODES = new Set(["domestic", "global", "monthly", "mixed"]);
+const ENERGY_MAX_SPIN = 100;
+const DAY_MS = 24 * 60 * 60 * 1000;
+const idList = (value, max) => (Array.isArray(value) ? value.filter((id) => typeof id === "string" && id.length <= 120).slice(0, max) : []);
+
+function energyStorage(recent, roulette) {
+  const slot = (key) => (String(key).startsWith(ENERGY_ROULETTE_PREFIX) ? "roulette" : String(key));
+  const values = new Map([[ENERGY_RECENT_KEY, JSON.stringify(recent)], ["roulette", JSON.stringify(roulette)]]);
+  return {
+    getItem: (key) => (values.has(slot(key)) ? values.get(slot(key)) : null),
+    setItem: (key, value) => { values.set(slot(key), String(value)); },
+    removeItem: (key) => { values.delete(slot(key)); },
+    list: (key) => { try { return idList(JSON.parse(values.get(key) || "[]"), 60); } catch { return []; } },
+  };
+}
+
+// 룰렛 버튼·원판·결과 칸 대역. 버튼 클릭 리스너를 받아 두었다가 요청한 회차만큼 누른다.
+function energyRouletteElements() {
+  const classList = { add() {}, remove() {} };
+  const listeners = {};
+  const buttons = [...ENERGY_ROULETTE_MODES].map((mode) => ({
+    disabled: false, style: {}, getAttribute: () => mode,
+    addEventListener: (type, fn) => { if (type === "click") listeners[mode] = fn; },
+  }));
+  return {
+    listeners,
+    wheel: { classList, style: {} },
+    result: { innerHTML: "", querySelector: () => null },
+    card: { querySelectorAll: () => buttons },
+    deck: { classList },
   };
 }
 
@@ -77,8 +118,10 @@ function buildEncyclopediaHtml(input) {
  * @param {object} [input.place] {name, longitude, latitude, timezone, baseTzOffset}
  * @param {"confirmed"|"rejected"|"unverified"} [input.jongDecision] 종격 검증 모달의 답
  * @param {{age:number, gan:string, zhi:string}} [input.daewun] section_daewun 에서 펼친 대운
- * @param {Date} [input.now] 현재 나이·퀀텀 카드의 오늘 간지 기준 시각
+ * @param {Date} [input.now] 현재 나이·퀀텀 카드의 오늘 간지·에너지 카드의 오늘 날짜 기준 시각
  * @param {{userName:string, userMansionIdx:number, userMansion:string}} [input.encyclopedia] 숙요 인연 도감의 화면 입력(출생 정보는 쓰지 않는다)
+ * @param {{recent?:string[], renderedAt?:string, roulette?:{mode:string, spin:number, recent?:string[]}}} [input.energy]
+ *   rpt_energyCoordCard 의 브라우저 저장 목록과 룰렛 회차(mode·몇 번째 돌림·카드를 그린 시각)
  * @returns {{html:string, sajuBaseHtml?:string, prescriptionHtml?:string}} 극T 는 관계·연애·현실 패널(html)과 사주 기반 해석·처방전 패널을 따로 돌려준다
  */
 export function buildSajuSectionHtml(input) {
@@ -115,9 +158,31 @@ export function buildSajuSectionHtml(input) {
 
   const captured = { innerHTML: "" };
   const quantum = { area: { innerHTML: "" }, card: { style: {} } };
-  const now = input.now instanceof Date ? input.now : new Date();
-  const window = { location: { search: "", pathname: "/", hostname: "" }, localStorage: memoryStorage(), cdGetCurrentLanguage: () => input.lang || "ko" };
-  const rt = createSajuSectionRuntime({ window, document: documentShim(neo, captured, quantum), localStorage: window.localStorage, neo, lang: input.lang || "ko", now });
+  const requestNow = input.now instanceof Date ? input.now : new Date();
+  // 에너지 룰렛 회차 요청은 카드를 그린 시각(renderedAt)으로 다시 그린다 — 오늘 날짜·추첨 시드가 그 화면과 같아야 한다.
+  const energyInput = featureKey === "rpt_energyCoordCard" && input.energy && typeof input.energy === "object" ? input.energy : {};
+  const roulette = energyInput.roulette && typeof energyInput.roulette === "object" ? energyInput.roulette : null;
+  if (roulette && (!ENERGY_ROULETTE_MODES.has(roulette.mode) || !Number.isInteger(roulette.spin) || roulette.spin < 1 || roulette.spin > ENERGY_MAX_SPIN)) {
+    throw new SajuSectionInputError("룰렛을 다시 돌려 주세요.", "SAJU_INVALID_ROULETTE");
+  }
+  const renderedAt = new Date(typeof energyInput.renderedAt === "string" ? energyInput.renderedAt : NaN);
+  const now = roulette && Math.abs(renderedAt.getTime() - requestNow.getTime()) <= DAY_MS ? renderedAt : requestNow;
+  const storage = featureKey === "rpt_energyCoordCard" ? energyStorage(idList(energyInput.recent, 60), idList(roulette?.recent, 7)) : memoryStorage();
+  const rouletteEls = roulette ? energyRouletteElements() : null;
+  const energy = {
+    css: "",
+    byId: {
+      energyCoordSection: { innerHTML: "" }, energyCoordCard: { style: {}, dataset: {} },
+      ...(rouletteEls ? { energyRouletteCard: rouletteEls.card, energyRouletteWheel: rouletteEls.wheel, energyRouletteDeck: rouletteEls.deck, energyRouletteResult: rouletteEls.result } : {}),
+    },
+  };
+  // 룰렛 결과는 원본에서 520ms 뒤에 그려진다. 서버는 마지막 회차의 그 단계만 바로 돌린다.
+  let pendingSpin = null;
+  const window = { location: { search: "", pathname: "/", hostname: "" }, localStorage: storage, cdGetCurrentLanguage: () => input.lang || "ko" };
+  const rt = createSajuSectionRuntime({
+    window, document: documentShim(neo, captured, quantum, energy), localStorage: storage, neo, lang: input.lang || "ko", now,
+    ...(roulette ? { setTimeout: (fn) => { pendingSpin = fn; } } : {}),
+  });
 
   const zwClock = meta.corrected || { year: correction.correctedYear, month: correction.correctedMonth, day: correction.correctedDay, hour: correction.correctedHour, minute: correction.correctedMinute };
   window.__cdSajuTimeUnknown = timeUnknown;
@@ -163,6 +228,19 @@ export function buildSajuSectionHtml(input) {
   if (featureKey === "rpt_quantumCard") {
     rt.renderQuantumStrategy(p, natal, bazi);
     return { html: quantum.area.innerHTML };
+  }
+  if (featureKey === "rpt_energyCoordCard") {
+    // 본문을 그리면 최근 여행지 목록이 갱신된다. 룰렛 회차 요청에서는 그 갱신 전 목록(요청 값)으로 같은 화면을 다시 만든다.
+    rt.renderEnergyCoord(natal);
+    if (!roulette) {
+      return { html: energy.byId.energyCoordSection.innerHTML, css: energy.css, energy: { recent: storage.list(ENERGY_RECENT_KEY), renderedAt: now.toISOString() } };
+    }
+    for (let spin = 1; spin <= roulette.spin; spin += 1) {
+      pendingSpin = null;
+      rouletteEls.listeners[roulette.mode]?.();
+    }
+    if (pendingSpin) pendingSpin();
+    return { html: rouletteEls.result.innerHTML, energy: { transform: String(rouletteEls.wheel.style.transform || ""), roulette: storage.list("roulette").slice(0, 7) } };
   }
   const dw = input.daewun || {};
   const row = rows.find((r) => r.age === Number(dw.age) && r.g === dw.gan && r.j === dw.zhi);

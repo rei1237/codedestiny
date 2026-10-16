@@ -43,6 +43,27 @@ export async function hasPurchasedAccountContentAccess(env, { userId, featureKey
   });
 }
 
+/**
+ * 레지스트리에 없는 옛 묶음 상품 키(allPaidSaju 등)의 계정 단위 구매 기록.
+ * /api/fortune/balance 는 같은 근거(계정 해금 배열·코인 차감 기록·USER 권리 행)로 묶음 안의 카드를 화면에 연다.
+ * 이용권 판정·해금 생성은 하지 않는다. DB 오류는 호출자에게 전달한다(미구매 402 로 바뀌지 않게).
+ */
+export async function hasLegacyBundlePurchase(env, { userId, bundleKeys }) {
+  const uid = String(userId || "").trim();
+  const keys = (bundleKeys || []).map((key) => String(key || "").trim()).filter(Boolean);
+  if (!uid || !keys.length) return false;
+  return withMongoRetry(env, async () => {
+    await connectDb(env);
+    if (!mongoose.isValidObjectId(uid)) return false;
+    const [user, history, ...entitlements] = await Promise.all([
+      models.User.exists({ _id: uid, $or: [{ unlockedFeatures: { $in: keys } }, { paidFeatures: { $in: keys } }] }),
+      models.PointHistory.exists({ userId: uid, kind: "deduct", featureKey: { $in: keys } }),
+      ...keys.map((key) => findActivePaidContentUnlock({ userId: uid, featureKey: key })),
+    ]);
+    return Boolean(user || history || entitlements.some(Boolean));
+  });
+}
+
 function pad(value, width) {
   return String(value).padStart(width, "0");
 }

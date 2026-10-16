@@ -5778,11 +5778,13 @@ async function calculate(run){
     // 기존 해금은 계산보다 먼저 복원될 수 있다. 본문 준비가 끝난 시점에 같은 게이트
     // 판정으로 숨김 상태도 동기화한다(해금 버튼을 다시 누를 필요가 없어야 한다).
     window.dispatchEvent(new CustomEvent('cd:saju-summary-ready',{detail:{p:p,johu:johu,natal:natal}}));
+    // 에너지 원정 리포트 본문은 서버(/api/saju/section, rpt_energyCoordCard)가 해금을 확인한 뒤 카드를 열 때 배달한다.
+    // 여기서는 무료 스텁만 깐다(js/saju-engine-tarot-sukuyo-quantum.js renderEnergyCoordStub).
     try {
-      if (!invokeOptionalGlobalRenderer('renderEnergyCoord', [natal])) {
-        runDeferredSajuTasks([function(){ try { invokeOptionalGlobalRenderer('renderEnergyCoord', [natal]); } catch(_){ } }]);
+      if (!invokeOptionalGlobalRenderer('renderEnergyCoordStub', [])) {
+        runDeferredSajuTasks([function(){ try { invokeOptionalGlobalRenderer('renderEnergyCoordStub', []); } catch(_){ } }]);
       }
-    } catch(e) { console.error('EnergyCoord 에러:', e); }
+    } catch(e) { console.error('EnergyCoordStub 에러:', e); }
     try {
       invokeOptionalGlobalRendererWithRetry('renderHealthReport', [p, natal, johu, G_POWER, G_JONG], {
         targetId: 'healthReportCard',

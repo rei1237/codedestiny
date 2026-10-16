@@ -1,5 +1,6 @@
 /* 사주 종합(section_summary)·대운 풀이(section_daewun)·퀀텀 명리 엔진(rpt_quantumCard)·
-   극T 관계 회로(sukuyo-extreme-t-relationship)·숙요 인연 도감(sukuyo-relationship-encyclopedia) 본문 배달.
+   극T 관계 회로(sukuyo-extreme-t-relationship)·숙요 인연 도감(sukuyo-relationship-encyclopedia)·
+   리포트 대시보드 유료 카드(CARDS) 본문 배달.
    본문은 서버(/api/saju/section)가 계정·프로필 해금을 확인한 뒤에만 만든다.
    이 파일은 요청과 표시만 한다 — 유료 문장·생성기·본문 캐시가 없다. */
 (function (root) {
@@ -354,6 +355,186 @@
     return false;
   }
 
+  // ── 리포트 대시보드 유료 카드 ──
+  // 카드를 열 때 받는다. 받기 전에는 무료 스텁(data-cd-summary-fallback 표시)이 그대로 남는다.
+  // area·card: 본문 칸과 카드 id. loading: 받는 동안의 안내. extra·delivered: 카드별 요청 보탬과 배달 뒤 처리.
+  var CARDS = {
+    rpt_energyCoordCard: {
+      area: 'energyCoordSection', card: 'energyCoordCard', styleId: 'energyRouletteStyles',
+      loading: '에너지 원정 리포트를 불러오고 있어요.',
+      extra: function (body) { body.energy = { recent: readIds(ENERGY_RECENT_KEY, 60) }; },
+      delivered: function (area, data, body) { energyDelivered(area, data, body); }
+    }
+  };
+  var cards = {};
+  function readIds(key, max) {
+    try {
+      var parsed = JSON.parse(root.localStorage.getItem(key) || '[]');
+      return Array.isArray(parsed) ? parsed.filter(function (id) { return typeof id === 'string'; }).slice(0, max) : [];
+    } catch (_) { return []; }
+  }
+  function writeIds(key, ids) {
+    try { if (Array.isArray(ids)) root.localStorage.setItem(key, JSON.stringify(ids)); } catch (_) {}
+  }
+  function ensureStyle(id, css) {
+    if (!id || !css || byId(id)) return;
+    var style = document.createElement('style');
+    style.id = id;
+    style.textContent = css;
+    document.head.appendChild(style);
+  }
+  function loadCard(featureKey, options) {
+    var spec = CARDS[featureKey];
+    if (!spec) return false;
+    var opts = options || {};
+    var area = byId(spec.area);
+    var card = byId(spec.card);
+    if (!area || !card) return false;
+    // 같은 사람·같은 화면 설정이면 같은 요청이다(카드별 보탬은 배달 뒤 바뀌므로 키에 넣지 않는다).
+    var key = keyOf(requestBody(featureKey));
+    if (!key) return false;
+    var st = cards[featureKey];
+    if (!opts.force && st && st.key === key) {
+      if (st.state === 'done' && hasBody(area)) return true;
+      if (st.state === 'loading') return false;
+      if (st.state === 'failed' && opts.quiet && Date.now() - st.failedAt < FAILED_QUIET_MS) return false;
+    }
+    var body = requestBody(featureKey);
+    if (spec.extra) spec.extra(body);
+    var mine = ++seq;
+    cards[featureKey] = st = { key: key, state: 'loading', seq: mine, failedAt: 0, quiet: !!opts.quiet };
+    // 모바일 지연 하이드레이션(js/mobile-performance-bootstrap.js)이 캐시해 둔 스텁으로 본문을 되덮지 않게 한다.
+    if (card.dataset) card.dataset.lazyHydrated = '1';
+    if (!opts.quiet) {
+      show(area, statusNode(spec.loading));
+      card.style.display = 'block';
+    }
+    function current() { return cards[featureKey] === st && keyOf(requestBody(featureKey)) === key; }
+    function fail(text) {
+      if (!current()) return;
+      st.state = 'failed';
+      st.failedAt = Date.now();
+      if (!opts.quiet) show(area, statusNode(text, function () { loadCard(featureKey, { force: true }); }));
+    }
+    request(body).then(function (result) {
+      if (!current()) return;
+      var data = result.payload || {};
+      if (result.ok && delivered(featureKey, data)) {
+        st.state = 'done';
+        ensureStyle(spec.styleId, data.css);
+        area.innerHTML = data.html;
+        card.style.display = 'block';
+        if (card.dataset) card.dataset.lazyHydrated = '1';
+        if (spec.delivered) spec.delivered(area, data, body);
+        notify(featureKey);
+        return;
+      }
+      fail(failureText(result));
+    }, function () { fail(failureText(null)); });
+    return false;
+  }
+
+  // 에너지 원정 리포트: 최근에 보여 준 여행지(화면 중복 방지)와 프로필별 룰렛 당첨 기록은 이 브라우저에 둔다.
+  // 룰렛 추첨은 서버가 같은 화면(같은 요청 본문·같은 renderedAt)을 다시 만들어 회차만큼 돌린다 — 회전 각도가 회차에 달려 있다.
+  // 당첨은 원본처럼 Math.random 이고, 당첨 기록은 마지막 회차만 이 브라우저의 기록(요청 값)에 더해 돌려준다.
+  var ENERGY_RECENT_KEY = 'energyCoordRecentDestinationsV1';
+  var energy = null;
+  function hashEnergyRouletteKey(raw){
+    var str=String(raw||'anonymous');
+    var h=2166136261;
+    for(var idx=0;idx<str.length;idx++){
+      h^=str.charCodeAt(idx);
+      h+=(h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24);
+    }
+    return (h>>>0).toString(36);
+  }
+  // 원본(renderEnergyCoord)의 저장 키 그대로 — 서버 이전 전에 쌓인 룰렛 기록을 이어 쓴다.
+  function getEnergyRouletteStorageKey(){
+    var raw='';
+    try{
+      var manager=root.DestinyProfileManager&&root.DestinyProfileManager.storage;
+      var current=manager&&typeof manager.current==='function'?manager.current():null;
+      if(current&&current.id)raw='profile|'+current.id;
+    }catch(_e){}
+    if(!raw){
+      try{
+        var active=root.__cdActiveBirthProfile||{};
+        var b=active.birth||{};
+        var activeGender=(typeof GENDER!=='undefined'?GENDER:'')||((typeof root!=='undefined'&&root._gender)||'');
+        raw=['birth',b.year||'',b.month||'',b.day||'',b.hour||'',b.minute||'',active.gender||activeGender].join('|');
+      }catch(_e2){}
+    }
+    if(!raw){
+      var birthDate=(byId('birthDate')||{}).value||'';
+      var birthHour=(byId('birthHour')||{}).value||'';
+      var birthMinute=(byId('birthMinute')||{}).value||'';
+      var safeGender=(typeof GENDER!=='undefined'?GENDER:'')||((typeof root!=='undefined'&&root._gender)||'');
+      raw=['form',birthDate,birthHour,birthMinute,safeGender].join('|');
+    }
+    return 'code-destiny-energy-roulette-'+hashEnergyRouletteKey(raw);
+  }
+  function energyDelivered(area, data, body) {
+    var info = data.energy || {};
+    writeIds(ENERGY_RECENT_KEY, info.recent);
+    energy = { area: area, body: body, renderedAt: String(info.renderedAt || ''), spin: 0, busy: false, storageKey: getEnergyRouletteStorageKey() };
+    if (area.__cdEnergyRouletteBound) return;
+    area.__cdEnergyRouletteBound = true;
+    area.addEventListener('click', function (event) {
+      var target = event.target && event.target.closest ? event.target.closest('[data-energy-roulette-mode],[data-energy-roulette-reroll]') : null;
+      if (!target || !area.contains(target)) return;
+      spinEnergyRoulette(target.getAttribute('data-energy-roulette-mode') || target.getAttribute('data-energy-roulette-reroll') || 'mixed');
+    });
+  }
+  function spinEnergyRoulette(mode) {
+    var s = energy;
+    if (!s || s.busy || !s.area.contains(byId('energyRouletteCard'))) return;
+    var roulette = byId('energyRouletteCard');
+    var wheel = byId('energyRouletteWheel');
+    var deck = byId('energyRouletteDeck');
+    var result = byId('energyRouletteResult');
+    var buttons = roulette.querySelectorAll('[data-energy-roulette-mode]');
+    var spin = s.spin + 1;
+    function setButtons(disabled) {
+      Array.prototype.forEach.call(buttons, function (row) { row.disabled = disabled; row.style.opacity = disabled ? '.72' : '1'; });
+    }
+    function finish() {
+      s.busy = false;
+      if (wheel) wheel.classList.remove('is-spinning');
+      if (deck) deck.classList.remove('is-shuffling');
+      setButtons(false);
+    }
+    s.busy = true;
+    if (wheel) wheel.classList.add('is-spinning');
+    if (deck) deck.classList.add('is-shuffling');
+    setButtons(true);
+    var body = JSON.parse(JSON.stringify(s.body));
+    body.energy.renderedAt = s.renderedAt;
+    body.energy.roulette = { mode: mode, spin: spin, recent: readIds(s.storageKey, 7) };
+    request(body).then(function (res) {
+      if (energy !== s) return;
+      var data = res.payload || {};
+      if (!(res.ok && delivered('rpt_energyCoordCard', data))) {
+        finish();
+        if (result) show(result, statusNode(failureText(res)));
+        return;
+      }
+      s.spin = spin;
+      var info = data.energy || {};
+      if (wheel && info.transform) wheel.style.transform = info.transform;
+      // 원본처럼 원판이 도는 520ms 뒤에 결과를 연다.
+      setTimeout(function () {
+        if (energy !== s) return;
+        if (result) result.innerHTML = data.html;
+        writeIds(s.storageKey, info.roulette);
+        finish();
+      }, 520);
+    }, function () {
+      if (energy !== s) return;
+      finish();
+      if (result) show(result, statusNode(failureText(null)));
+    });
+  }
+
   // 화면 모드(연냥이·네오) 전환: 펼친 대운을 새 모드로 다시 받는다.
   function refreshDaewun() {
     var detail = byId('dwDetail');
@@ -374,7 +555,10 @@
     if ((encyclopedia.state === 'failed' || encyclopedia.state === 'waiting') && encyclopedia.host) {
       loadEncyclopedia(encyclopedia.host, encyclopedia.input, Object.assign({}, encyclopedia.options, { force: true }));
     }
+    Object.keys(cards).forEach(function (featureKey) {
+      if (cards[featureKey].state === 'failed') loadCard(featureKey, { quiet: cards[featureKey].quiet, force: true });
+    });
   });
 
-  root.CdSajuSectionClient = { loadSummary: loadSummary, showDaewun: showDaewun, refreshDaewun: refreshDaewun, loadQuantum: loadQuantum, loadExtremeT: loadExtremeT, loadEncyclopedia: loadEncyclopedia };
+  root.CdSajuSectionClient = { loadSummary: loadSummary, showDaewun: showDaewun, refreshDaewun: refreshDaewun, loadQuantum: loadQuantum, loadExtremeT: loadExtremeT, loadEncyclopedia: loadEncyclopedia, loadCard: loadCard };
 })(window);

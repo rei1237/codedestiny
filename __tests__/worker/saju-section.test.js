@@ -7,6 +7,7 @@ import { computeBirthKey, toBirthEntitlementProfileId } from "../../worker/lib/b
 
 const auth = jest.fn();
 const exists = jest.fn();
+const historyExists = jest.fn();
 const findOne = jest.fn();
 const write = jest.fn(() => { throw new Error("Read route attempted a write"); });
 const connectDb = jest.fn();
@@ -29,6 +30,7 @@ jest.unstable_mockModule("../../worker/lib/models.js", () => ({
   SAJU_LOCKED_CONTENT_KEYS: { DAEUN_ANALYSIS: "saju.daeunAnalysis", FULL_READING: "saju.fullReading", COMPATIBILITY: "saju.compatibility" },
   ContentEntitlement: { findOne, findOneAndUpdate: write, create: write, updateOne: write },
   User: { exists, updateOne: write, findOneAndUpdate: write },
+  PointHistory: { exists: historyExists, create: write, updateOne: write },
   ProfileCard: { modelName: "ProfileCard", findOne: (...args) => profileCards.findOne(...args) },
 }));
 jest.unstable_mockModule("../../worker/lib/cms-records.js", () => ({ primeCmsRecords: jest.fn() }));
@@ -56,6 +58,7 @@ const mapRows = (html) => [...html.matchAll(/<b>(\d+)세 · (\d+)–(\d+)년 · 
 const withoutExtensions = (html) => html.replace(/<!--saju-ext-->[\s\S]*?<!--\/saju-ext-->/g, "");
 let grants;
 let users;
+let histories;
 
 function matches(doc, query) {
   return Object.entries(query).every(([key, value]) => {
@@ -90,11 +93,12 @@ async function request(body = INPUT, method = "POST") {
 
 beforeEach(() => {
   jest.clearAllMocks();
-  grants = []; users = [];
+  grants = []; users = []; histories = [];
   cards.splice(0, cards.length, ...initialCards.map((card) => ({ ...card, birth: { ...card.birth } })));
   auth.mockReset().mockResolvedValue({ userId: TEST_USER_ID });
   connectDb.mockReset().mockResolvedValue(undefined);
   exists.mockImplementation(async (query) => users.find((user) => matches(user, query)) || null);
+  historyExists.mockImplementation(async (query) => histories.find((row) => matches(row, query)) || null);
   findOne.mockImplementation((query) => ({ lean: async () => grants.find((row) => matches(row, query)) || null }));
 });
 
@@ -110,7 +114,7 @@ test("only the saju section keys are served", async () => {
   expect(findOne).not.toHaveBeenCalled();
 });
 
-test.each(["section_summary", "section_daewun", "rpt_quantumCard", "sukuyo-extreme-t-relationship", "sukuyo-relationship-encyclopedia"])("unowned %s returns registry pricing without HTML", async (featureKey) => {
+test.each(["section_summary", "section_daewun", "rpt_quantumCard", "sukuyo-extreme-t-relationship", "sukuyo-relationship-encyclopedia", "rpt_energyCoordCard"])("unowned %s returns registry pricing without HTML", async (featureKey) => {
   const result = await request({ ...INPUT, featureKey, daewun: DAEWUN, unlocked: true, passActive: true });
   const { pricing } = getBillingFeaturePricing({ featureKey });
   expect(result).toEqual({ status: 402, body: expect.objectContaining({ featureKey, amountKRW: pricing.amountKRW, coinPrice: pricing.coinPrice }) });
@@ -434,5 +438,107 @@ describe("sukuyo-relationship-encyclopedia", () => {
   test.each(PARITY.encyclopediaCases.map((c) => [c.id, c]))("server encyclopedia equals the HEAD client output: %s", (id, c) => {
     const { html } = buildSajuSectionHtml({ featureKey: KEY, lang: c.lang, encyclopedia: { userName: c.userName, userMansionIdx: c.userMansionIdx, userMansion: c.userMansion } });
     expect(sha256(html)).toBe(PARITY.encyclopedia[id]);
+  });
+});
+
+describe("rpt_energyCoordCard", () => {
+  const ENERGY = { ...INPUT, featureKey: "rpt_energyCoordCard" };
+  // 같은 시각(renderedAt)으로 다시 그린 HTML — 오늘 날짜·추천 시드가 그 시각에 달려 있다.
+  const expected = (result, birth, gender) => buildSajuSectionHtml({
+    featureKey: "rpt_energyCoordCard", birth, gender, name: "테스트", mode: "pig", lang: "ko", now: new Date(result.body.energy.renderedAt),
+  }).html;
+
+  test("a BIRTH grant renders the card from the stored birth; it opens nothing else", async () => {
+    grant({}, "rpt_energyCoordCard");
+    const result = await request({ ...ENERGY, birth: { date: "2001-01-01", hour: 3, minute: 0 }, gender: "F" });
+    expect(result.status).toBe(200);
+    expect(result.body).toMatchObject({ ok: true, unlocked: true, featureKey: "rpt_energyCoordCard" });
+    expect(result.body.html).toBe(expected(result, CARD_BIRTH, "M"));
+    expect(result.body.html).toContain("에너지 원정 리포트");
+    expect(result.body.css).toContain("energyRoulette");
+    expect(result.body.energy.recent.length).toBeGreaterThan(0);
+    expect((await request()).status).toBe(402);
+  });
+
+  test("a legacy account grant without a saved profile renders the body birth", async () => {
+    grant({ scope: "USER", profileId: "__user__" }, "rpt_energyCoordCard");
+    const { profileId: _omit, ...account } = ENERGY;
+    const result = await request({ ...account, birth: { date: "1985-11-02", calType: "solar", hour: 6, minute: 5 }, gender: "F" });
+    expect(result.status).toBe(200);
+    expect(result.body.html).toBe(expected(result, { calendarDate: "1985-11-02", calType: "solar", hour: 6, minute: 5, timeKnown: true }, "F"));
+  });
+
+  test("another profile's or another birth's grant does not open this card", async () => {
+    grant({ scope: "PROFILE", profileId: "p2" }, "rpt_energyCoordCard");
+    expect((await request(ENERGY)).status).toBe(402);
+    grant({}, "rpt_energyCoordCard");
+    const other = await request({ ...ENERGY, profileId: "p3" });
+    expect(other.status).toBe(402);
+    expect(other.body.html).toBeUndefined();
+  });
+
+  // /api/fortune/balance 가 이 카드를 여는 옛 상품: travelDestiny(같은 출생), allPaidSaju(계정 묶음).
+  test("a travelDestiny grant for the same birth opens the card; another birth's does not", async () => {
+    grant({}, "travelDestiny");
+    expect((await request(ENERGY)).status).toBe(200);
+    expect((await request({ ...ENERGY, profileId: "p3" })).status).toBe(402);
+  });
+
+  test.each([
+    ["unlockedFeatures array", () => users.push({ _id: TEST_USER_ID, unlockedFeatures: ["allPaidSaju"] })],
+    ["paidFeatures array", () => users.push({ _id: TEST_USER_ID, paidFeatures: ["allPaidSaju"] })],
+    ["coin deduct history", () => histories.push({ userId: TEST_USER_ID, kind: "deduct", featureKey: "allPaidSaju" })],
+  ])("an allPaidSaju bundle purchase (%s) opens the card", async (_label, seed) => {
+    seed();
+    expect((await request(ENERGY)).status).toBe(200);
+    const { profileId: _omit, ...account } = ENERGY;
+    expect((await request({ ...account, birth: { date: "1985-11-02", calType: "solar", hour: 6, minute: 5 } })).status).toBe(200);
+  });
+
+  test("other bundles or refunds are not allPaidSaju evidence", async () => {
+    users.push({ _id: TEST_USER_ID, unlockedFeatures: ["rpgCharacter", "healthReport"] });
+    histories.push({ userId: TEST_USER_ID, kind: "refund", featureKey: "allPaidSaju" });
+    histories.push({ userId: OTHER_USER_ID, kind: "deduct", featureKey: "allPaidSaju" });
+    expect((await request(ENERGY)).status).toBe(402);
+  });
+
+  // 당첨은 원본처럼 Math.random — 회차는 원판 각도(720+회차×137°…)만 정하고, 당첨 기록은 요청 값에 이번 당첨 하나를 더한다.
+  test("a roulette spin redraws the delivered screen and returns only the result", async () => {
+    grant({}, "rpt_energyCoordCard");
+    const card = await request(ENERGY);
+    const spin = (n, mode = "mixed", recent = []) => request({ ...ENERGY, energy: { recent: [], renderedAt: card.body.energy.renderedAt, roulette: { mode, spin: n, recent } } });
+    const first = await spin(1);
+    expect(first.status).toBe(200);
+    expect(first.body.html).toContain('data-energy-roulette-reroll="mixed"');
+    expect(first.body.energy.transform).toMatch(/^rotate\(\d+deg\)$/);
+    expect(first.body.energy.roulette).toHaveLength(1);
+    expect(first.body.css).toBeUndefined();
+    const second = await spin(2, "domestic", first.body.energy.roulette);
+    expect(second.body.energy.roulette).toHaveLength(2);
+    expect(second.body.energy.roulette[1]).toBe(first.body.energy.roulette[0]);
+    expect(second.body.html).toContain("data-energy-roulette-reroll=\"domestic\"");
+    expect(second.body.energy.transform).toMatch(/^rotate\(\d+deg\)$/);
+    expect((await spin(1, "jackpot")).body).toMatchObject({ code: "SAJU_INVALID_ROULETTE" });
+    expect((await spin(0)).body).toMatchObject({ code: "SAJU_INVALID_ROULETTE" });
+    grants[0].status = "REFUNDED";
+    expect((await spin(1)).status).toBe(402);
+  });
+
+  test("a DB failure stays retryable instead of prompting purchase", async () => {
+    grant({}, "rpt_energyCoordCard");
+    connectDb.mockRejectedValue(new Error("private database connection information"));
+    const result = await request(ENERGY);
+    expect(result.status).toBe(503);
+    expect(result.body).toMatchObject({ reason: "TEMPORARY_UNAVAILABLE", retryable: true });
+  });
+
+  // PARITY.energy: 56cc07e9a 의 클라이언트 renderEnergyCoord(js/saju-engine-tarot-sukuyo-quantum.js)를 vm 에서
+  // 같은 차트·같은 now(PARITY.now)·빈 최근 여행지 목록으로 돌려 얻은 #energyCoordSection HTML 의 sha256.
+  test.each(PARITY.cases.map((c) => [c.id, c]))("server card equals the HEAD client engine output: %s", (id, c) => {
+    const html = buildSajuSectionHtml({
+      featureKey: "rpt_energyCoordCard", birth: { calendarDate: c.date, calType: c.calType, hour: c.hour, minute: c.minute, timeKnown: c.timeKnown !== false },
+      gender: c.gender, name: c.name, mode: "pig", place: c.place, jongDecision: c.jong, now: new Date(PARITY.now),
+    }).html;
+    expect(sha256(html)).toBe(PARITY.energy[id]);
   });
 });

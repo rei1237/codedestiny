@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import ts from 'typescript';
-// Bundles the paid saju summary/daewun/quantum/extreme-T/sukuyo-encyclopedia renderers (worker/lib/saju-section/*.src.js) with the
+// Bundles the paid saju summary/daewun/quantum/extreme-T/sukuyo-encyclopedia/energy renderers (worker/lib/saju-section/*.src.js) with the
 // shell helpers they call, copied verbatim from the browser sources. No formula is edited here:
 // --check fails when js/saju-engine.js, the tarot-chunk helpers, the personas copy table or the KASI service drift.
 const OUT = 'worker/lib/saju-section/runtime.generated.mjs';
@@ -20,15 +20,22 @@ function refs(node) {
   })(node);
   return out;
 }
+// Top-level `NAME = ...` statements (ENERGY_COORD_DB is rebuilt from the destination table after its declaration).
+function assignedName(n) {
+  return ts.isExpressionStatement(n) && ts.isBinaryExpression(n.expression) && n.expression.operatorToken.kind === ts.SyntaxKind.EqualsToken && ts.isIdentifier(n.expression.left) ? n.expression.left.text : '';
+}
 // Returns the statements (source order, verbatim) that `startRefs` need from `statements`.
 function closure(ast, statements, startRefs, stop) {
-  const byName = new Map();
-  for (const n of statements) for (const k of ownNames(n)) byName.set(k, n);
+  const byName = new Map(); const reassigned = new Map();
+  for (const n of statements) {
+    for (const k of ownNames(n)) byName.set(k, n);
+    const k = assignedName(n); if (k) reassigned.set(k, [...(reassigned.get(k) || []), n]);
+  }
   const picked = new Set(); const queue = [...startRefs];
   while (queue.length) {
     const k = queue.pop(); const n = byName.get(k);
     if (!n || stop.has(k) || picked.has(n)) continue;
-    picked.add(n); for (const r of refs(n)) queue.push(r);
+    for (const m of [n, ...(reassigned.get(k) || [])]) { picked.add(m); for (const r of refs(m)) queue.push(r); }
   }
   return statements.filter(n => picked.has(n)).map(n => n.getText(ast));
 }
@@ -48,15 +55,17 @@ const extremeTI18n = JSON.parse(read('worker/lib/saju-section/paid-extreme-t.i18
 // 숙요 인연 도감 27숙 전체: 타로 파일의 숙요 헬퍼(27숙 표·관계 엔진)를 아래 tarot 클로저로 함께 가져온다.
 const encyclopediaPath = 'worker/lib/saju-section/paid-encyclopedia.src.js';
 const encyclopediaSrc = read(encyclopediaPath); const encyclopediaAst = parse(encyclopediaPath, encyclopediaSrc);
-const paidNames = declared(paidAst); const cycleNames = declared(cycleAst); const quantumNames = declared(quantumAst); const encyclopediaNames = declared(encyclopediaAst);
+const energyPath = 'worker/lib/saju-section/paid-energy.src.js';
+const energySrc = read(energyPath); const energyAst = parse(energyPath, energySrc);
+const paidNames = declared(paidAst); const cycleNames = declared(cycleAst); const quantumNames = declared(quantumAst); const encyclopediaNames = declared(encyclopediaAst); const energyNames = declared(energyAst);
 
-// The quantum card's ganji/fortune/text helpers live in the tarot chunk. Its copy table is trimmed to
-// the keys the card uses (the rest is other cards' copy); every other statement is verbatim.
+// The quantum/energy cards' ganji/fortune/text helpers live in the tarot chunk. Its copy table is trimmed to
+// the keys the cards use (the rest is other cards' copy); every other statement is verbatim.
 const tarotAst = parse('saju-engine-tarot-sukuyo-quantum.js', read('js/saju-engine-tarot-sukuyo-quantum.js'));
 const Q_TEXT = 'SAJU_QUANTUM_TEXT_TRANSLATIONS';
-const tarotPicked = closure(tarotAst, tarotAst.statements, [...refs(quantumAst), ...refs(encyclopediaAst)], new Set([...quantumNames, ...encyclopediaNames, Q_TEXT]));
+const tarotPicked = closure(tarotAst, tarotAst.statements, [...refs(quantumAst), ...refs(encyclopediaAst), ...refs(energyAst)], new Set([...quantumNames, ...encyclopediaNames, ...energyNames, Q_TEXT]));
 const tarotNames = new Set(tarotPicked.flatMap(t => [...declared(parse('t.js', t))]));
-const Q_KEYS = [...new Set([quantumSrc, encyclopediaSrc, ...tarotPicked].join('\n').match(/_sajuQuantumText\("([^"]+)"\)/g).map(m => m.slice(18, -2)))].sort();
+const Q_KEYS = [...new Set([quantumSrc, encyclopediaSrc, energySrc, ...tarotPicked].join('\n').match(/_sajuQuantumText\("([^"]+)"\)/g).map(m => m.slice(18, -2)))].sort();
 const qTextNode = tarotAst.statements.find(n => ownNames(n).includes(Q_TEXT));
 const qTextKo = new Function(`return (${qTextNode.declarationList.declarations[0].initializer.getText(tarotAst)});`)().ko;
 for (const k of Q_KEYS) if (!qTextKo[k]) throw new Error(`Missing quantum text: ${k}`);
@@ -66,8 +75,8 @@ const qText = `var ${Q_TEXT} = ${JSON.stringify({ ko: Object.fromEntries(Q_KEYS.
 const engineAst = parse('saju-engine.js', read('js/saju-engine.js'));
 const SEEDS = ['GENDER', 'USER_NAME', 'BIRTH_YEAR', 'DAY_GAN', 'JOHU_TYPE', 'JOHU_SCORE', 'CURRENT_AGE', 'G_POWER', 'G_JONG', 'G_JOHU', 'G_PILLARS', 'G_NATAL', 'G_BAZI'];
 const SERVER_ROOTS = ['attachKasiDaewunBridge', '_sajuDaewunRowsFromList', '_sajuApplyJongDecision', 'resetEvalDaewunMemo', 'parseKasiGanjiPair', 'GAN', 'JI', 'getTenGod', ...SEEDS];
-const shellRoots = [...refs(paidAst), ...refs(quantumAst), ...tarotPicked.flatMap(t => [...refs(parse('t.js', t))]), ...SERVER_ROOTS];
-const shared = closure(engineAst, engineAst.statements, shellRoots, new Set([...paidNames, ...quantumNames, ...encyclopediaNames, ...tarotNames]));
+const shellRoots = [...refs(paidAst), ...refs(quantumAst), ...refs(energyAst), ...tarotPicked.flatMap(t => [...refs(parse('t.js', t))]), ...SERVER_ROOTS];
+const shared = closure(engineAst, engineAst.statements, shellRoots, new Set([...paidNames, ...quantumNames, ...encyclopediaNames, ...energyNames, ...tarotNames]));
 const sharedNames = new Set(shared.flatMap(t => [...declared(parse('s.js', t))]));
 for (const k of SERVER_ROOTS) if (!sharedNames.has(k)) throw new Error(`Missing shell declaration: ${k}`);
 
@@ -77,7 +86,7 @@ const kasiAst = parse('kasi-calendar-service.js', read('js/core/kasi-calendar-se
 const kasi = closure(kasiAst, iifeBody(kasiAst), ['_computeGanjiFromParts', '_clone'], new Set());
 
 // Every bundled body may call _sajuEngineText (the quantum card's daewun notes come from shell helpers).
-const I18N_KEYS = [...new Set([paidSrc, quantumSrc, ...shared, ...tarotPicked].join('\n').match(/_sajuEngineText\("([^"]+)"\)/g).map(m => m.slice(17, -2)))].sort();
+const I18N_KEYS = [...new Set([paidSrc, quantumSrc, energySrc, ...shared, ...tarotPicked].join('\n').match(/_sajuEngineText\("([^"]+)"\)/g).map(m => m.slice(17, -2)))].sort();
 const i18n = {};
 for (const file of fs.readdirSync('public/i18n').filter(f => f.endsWith('.json')).sort()) {
   const json = JSON.parse(fs.readFileSync(`public/i18n/${file}`, 'utf8'));
@@ -87,7 +96,8 @@ for (const file of fs.readdirSync('public/i18n').filter(f => f.endsWith('.json')
 // Bodies are pasted unindented: re-indenting would change multi-line string literals.
 const text = `// Generated by scripts/extract-saju-section-runtime.mjs — do not edit. Paid renderers live in
 // worker/lib/saju-section/paid-*.src.js; shell helpers are copied verbatim from the browser sources.
-// ctx.now (a Date) is the request time the quantum card reads instead of Date.now().
+// ctx.now (a Date) is the request time the quantum/energy cards read instead of Date.now().
+// ctx.setTimeout lets the server run the energy roulette's 520ms result step synchronously.
 import * as KoreanCalendar from '../../../lib/korean-calendar/index.js';
 import * as SajuReadingDepth from '../../../lib/saju/reading-depth.mjs';
 
@@ -96,6 +106,7 @@ const I18N = ${JSON.stringify(i18n)};
 // Every call builds fresh shell globals, so no request sees another request's chart.
 export function createSajuSectionRuntime(ctx) {
   const window = ctx.window, document = ctx.document, localStorage = ctx.localStorage;
+  const setTimeout = ctx.setTimeout || globalThis.setTimeout;
   var NEO_MODE = !!ctx.neo;
   window.KoreanCalendar = KoreanCalendar;
   window.SajuReadingDepth = SajuReadingDepth;
@@ -118,7 +129,7 @@ ${cycleSrc.trim()}
   // ── js/saju-engine.js shell helpers ──
 ${shared.join('\n')}
 
-  // ── js/saju-engine-tarot-sukuyo-quantum.js helpers (quantum copy table trimmed to the card's keys) ──
+  // ── js/saju-engine-tarot-sukuyo-quantum.js helpers (quantum copy table trimmed to the cards' keys) ──
 ${qText}
 ${tarotPicked.join('\n')}
 
@@ -135,12 +146,16 @@ ${extremeTSrc.trim()}
   // ── paid sukuyo relationship encyclopedia ──
 ${encyclopediaSrc.trim()}
 
+  // ── paid energy card ──
+${energySrc.trim()}
+
   return {
     renderSummary: renderSummary,
     buildDaewunDetailHtml: buildDaewunDetailHtml,
     renderQuantumStrategy: renderQuantumStrategy,
     renderExtremeTPaidPanels: window.renderExtremeTPaidPanels,
     renderSukuyoEncyclopediaPaid: renderSukuyoEncyclopediaPaid,
+    renderEnergyCoord: renderEnergyCoord,
     attachKasiDaewunBridge: attachKasiDaewunBridge,
     daewunRows: _sajuDaewunRowsFromList,
     applyJongDecision: _sajuApplyJongDecision,
@@ -157,7 +172,7 @@ ${SEEDS.map(k => `      if ('${k}' in state) ${k} = state.${k};`).join('\n')}
 `;
 if (process.argv.includes('--write')) {
   fs.writeFileSync(OUT, text);
-  console.log(`Wrote ${OUT}: ${shared.length} shell + ${tarotPicked.length} tarot + ${kasi.length} KASI + ${personas.length} personas statements, ${paidNames.size + quantumNames.size + encyclopediaNames.size} paid declarations.`);
+  console.log(`Wrote ${OUT}: ${shared.length} shell + ${tarotPicked.length} tarot + ${kasi.length} KASI + ${personas.length} personas statements, ${paidNames.size + quantumNames.size + encyclopediaNames.size + energyNames.size} paid declarations.`);
 } else {
   if (read(OUT) !== text) throw new Error('Saju section runtime drift: run node scripts/extract-saju-section-runtime.mjs --write');
   console.log(`PASS saju section runtime matches its sources (${shared.length} shell statements).`);

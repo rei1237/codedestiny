@@ -1,6 +1,6 @@
 import { getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
 import { isDbUnavailableError, HttpError, json, methodNotAllowed, readJson } from "../lib/http.js";
-import { readAccountLegacyUnlock, readProfileBirthUnlock } from "../lib/paid-content-read-access.js";
+import { hasLegacyBundlePurchase, readAccountLegacyUnlock, readProfileBirthUnlock } from "../lib/paid-content-read-access.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { SAJU_SECTION_FEATURE_KEYS, SajuSectionInputError, buildSajuSectionHtml } from "../lib/saju-section/report.js";
 
@@ -8,6 +8,12 @@ const degraded = () => json({
   ok: false, reason: "TEMPORARY_UNAVAILABLE", retryable: true,
   message: "구매 권한을 확인하지 못했어요. 잠시 후 다시 시도해 주세요.",
 }, { status: 503 });
+
+// 묶음·옛 상품으로 산 사람도 이 카드를 연다 — /api/fortune/balance 가 화면 해금에 쓰는 별칭
+// (worker/routes/fortune.js PERSISTENT_UNLOCK_ALIAS_MAP)을 거꾸로 읽은 것이다.
+// 출생 기반 별칭은 같은 출생 정보(또는 옛 계정 단위 행)로만, 옛 묶음 키는 계정 단위 구매 기록으로 인정한다.
+const BIRTH_ALIAS_KEYS = Object.freeze({ rpt_energyCoordCard: ["travelDestiny"] });
+const BUNDLE_ALIAS_KEYS = Object.freeze({ rpt_energyCoordCard: ["allPaidSaju"] });
 
 function bodyBirth(body) {
   const birth = body?.birth && typeof body.birth === "object" ? body.birth : {};
@@ -18,7 +24,7 @@ function bodyBirth(body) {
 }
 
 // 사주 종합(section_summary)·대운 풀이(section_daewun)·퀀텀 명리 엔진(rpt_quantumCard)·극T 관계 회로(sukuyo-extreme-t-relationship)·
-// 숙요 인연 도감(sukuyo-relationship-encyclopedia)
+// 숙요 인연 도감(sukuyo-relationship-encyclopedia)·에너지 원정 리포트(rpt_energyCoordCard)
 // 본문 읽기. 결제·해금 쓰기는 하지 않는다.
 // 저장 프로필이 있으면 그 카드의 출생 정보로만 계산하고, 없으면 계정 단위 옛 해금(USER 행)만 인정한다.
 export async function handleSajuSection(request, env = {}) {
@@ -42,11 +48,21 @@ export async function handleSajuSection(request, env = {}) {
     }, { status: 400 });
 
     const profileId = String(body?.profileId || "").trim();
+    const readBirth = (key) => (profileId
+      ? readProfileBirthUnlock(env, { userId: auth.userId, profileId, featureKey: key })
+      : readAccountLegacyUnlock(env, { userId: auth.userId, featureKey: key }));
     let access;
     try {
-      access = profileId
-        ? await readProfileBirthUnlock(env, { userId: auth.userId, profileId, featureKey })
-        : await readAccountLegacyUnlock(env, { userId: auth.userId, featureKey });
+      access = await readBirth(featureKey);
+      for (const alias of BIRTH_ALIAS_KEYS[featureKey] || []) {
+        if (!access.ok || access.unlocked) break;
+        const viaAlias = await readBirth(alias);
+        if (viaAlias.ok && viaAlias.unlocked) access = viaAlias;
+      }
+      const bundleKeys = BUNDLE_ALIAS_KEYS[featureKey] || [];
+      if (access.ok && !access.unlocked && bundleKeys.length && await hasLegacyBundlePurchase(env, { userId: auth.userId, bundleKeys })) {
+        access = { ...access, unlocked: true };
+      }
     } catch {
       return degraded();
     }
@@ -78,7 +94,7 @@ export async function handleSajuSection(request, env = {}) {
     const result = buildSajuSectionHtml({
       featureKey, birth, gender: gender === "M" ? "M" : "F",
       name: body?.name, mode: body?.mode === "neo" ? "neo" : "pig", lang: typeof body?.lang === "string" ? body.lang.slice(0, 8) : "ko",
-      place: body?.place, jongDecision: body?.jongDecision, daewun: body?.daewun, encyclopedia: body?.encyclopedia,
+      place: body?.place, jongDecision: body?.jongDecision, daewun: body?.daewun, encyclopedia: body?.encyclopedia, energy: body?.energy,
     });
     return json({ ok: true, unlocked: true, featureKey, ...result });
   } catch (error) {
