@@ -159,9 +159,19 @@ body.cd-mnav-mounted .cd-feature-nav {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-/* 좁은 폭에서 "재밌는 운세" 같은 긴 라벨이 말줄임되지 않게 자간만 좁힌다. */
+/* 좁은 폭에서 "재밌는 운세" 같은 긴 라벨이 말줄임되지 않게 한다 — 바 높이는 그대로 두고
+   칸 사이 간격·좌우 여백만 줄이고(400 이하), 자간(360 이하)과 글자 크기(340 이하)를 단계로 낮춘다.
+   실측(11px/800): "재밌는 운세" 59px, 칸 안쪽 폭 320=49 · 360=56 · 390=59. */
+@media (max-width: 400px) {
+  .cd-mnav__list { gap: 2px; }
+  .cd-mnav__link { padding-inline: 0; }
+}
 @media (max-width: 360px) {
   .cd-mnav__label { letter-spacing: -0.04em; }
+}
+@media (max-width: 340px) {
+  .cd-mnav__link { font-size: 0.625rem; }
+  .cd-mnav__label { letter-spacing: -0.08em; }
 }
 .cd-mnav__link[aria-current="page"],
 .cd-mnav__link.is-active {
