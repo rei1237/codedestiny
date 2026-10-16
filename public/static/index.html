@@ -6256,6 +6256,18 @@ html.neo-mode #cdHomeFunnel{--cdh-moon-art:url('/images/home/illustrated/moon-fl
 .cdh .cdh-neo-letter small{display:block;font-size:12px;color:var(--cd-neo-letter-silver);line-height:1.7}.cdh .cdh-neo-letter figure{position:relative;margin:0;align-self:center;width:100%;max-width:260px;justify-self:center}.cdh .cdh-neo-letter figure img{display:block;width:100%;height:auto;aspect-ratio:5/6;object-fit:cover;border:1px solid var(--cd-neo-letter-gold);padding:7px;background:var(--cd-neo-letter-night);border-radius:48% 48% 8px 8px}.cdh .cdh-neo-letter figcaption{text-align:center;margin-top:12px;font-size:12px;color:var(--cd-neo-letter-silver)}
 @media(max-width:640px){.cdh .cdh-neo-letter{grid-template-columns:1fr;gap:24px;padding:30px 22px;border-radius:var(--cd-r-card)}.cdh .cdh-neo-letter__art img{object-position:65% top}.cdh .cdh-neo-letter figure{max-width:220px}.cdh .cdh-neo-letter a{display:flex;width:100%}}
 @media(prefers-reduced-motion:reduce){.cdh .cdh-neo-letter a{transition:none;transform:none}}
+/* 로그인 사용자의 "내 이용권" 줄 — 표시 전용. 상담 한 건의 차감 판정은 서버가 한다. */
+.cdh-mypass{margin:14px 40px 0;padding:16px 20px;border:1px solid var(--cdh-line);border-radius:var(--cd-r-card,20px);background:var(--cdh-card);color:var(--cdh-ink)}
+.cdh-mypass[hidden]{display:none}
+.cdh .cdh-mypass__title{margin:0 0 10px;color:var(--cdh-ink);font-size:1rem;font-weight:800}
+.cdh-mypass__list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:10px;margin:0;padding:0;list-style:none}
+.cdh-mypass__item{display:grid;align-content:start;gap:2px;padding:12px 14px;border:1px solid var(--cdh-line);border-radius:14px;background:color-mix(in srgb,var(--cdh-surface) 40%,var(--cdh-card))}
+.cdh-mypass__kind{color:var(--cdh-muted);font-size:.74rem;font-weight:800}
+.cdh-mypass__name{color:var(--cdh-accent);font-size:.98rem;font-weight:850;word-break:keep-all}
+.cdh-mypass__line{color:var(--cdh-ink);font-size:.84rem;line-height:1.5;word-break:keep-all}
+.cdh-mypass__line--muted{color:var(--cdh-muted)}
+.cdh .cdh-pass__group{margin:4px 0 0;color:var(--cdh-ink);font-size:1rem;font-weight:800}
+@media(max-width:640px){.cdh-mypass{margin:10px 12px 0;padding:14px 16px}}
 </style>
 <link rel="stylesheet" href="/styles/concern-first-home.css?v=build-8d8d4826e2f9">
 <link rel="stylesheet" href="/styles/my-garden.css?v=build-db1f20b10cff">
@@ -10068,6 +10080,8 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
     </div>
   </section>
 
+  <section class="cdh-mypass" id="cdhMyPass" aria-labelledby="cdhMyPassTitle" hidden><h2 class="cdh-mypass__title" id="cdhMyPassTitle" data-cd-trans="home.passCopy.myTitle">내 이용권</h2><ul class="cdh-mypass__list" id="cdhMyPassList" role="list"></ul></section>
+
   <div id="cdhCookieSlot"></div>
   <div class="cdh-flow">
 <section class="cdh-all-fortunes" id="cdhAllFortunes" aria-labelledby="cdhAllFortunesTitle">
@@ -10627,6 +10641,34 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
     </a></li>
   </ul>
   <p class="cdh-pass__note" data-cd-trans="home.gardenCopy.passNote">작은·중간·큰 꿀단지는 꽃돼지 운세에, 패밀리 꿀단지는 꽃돼지와 영냥이 유료 리딩에 적용됩니다. 기존에 구매한 이용권은 구매 당시 조건을 유지합니다.</p>
+  <h3 class="cdh-pass__group" data-cd-trans="home.passCopy.packTitle">영냥이 전용 이용권</h3>
+  <ul class="cdh-pass__tiers cdh-pass__tiers--packs" role="list">
+    <li class="cdh-pass__tier cdh-pass__tier--pack" data-pack-plan="yeongnyangi-pack-mackerel-small-v4"><a class="cdh-pass__tier-link" href="/points/#fish-packs">
+      <span class="cdh-pass__tier-name" data-cd-trans="home.passCopy.packName" data-cd-vars='{"fish":"@home.passCopy.fishMackerel","total":"5"}'>고등어 세트 5회</span>
+      <strong class="cdh-pass__tier-price"><span data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"20,000"}'>20,000원</span></strong>
+      <span class="cdh-pass__tier-line" data-cd-trans="home.passCopy.packPerUse" data-cd-vars='{"amount":"5,000"}'>회당 5,000원 상담</span>
+      <span class="cdh-pass__tier-line" data-cd-trans="home.passCopy.packScope" data-cd-vars='{"fish":"@home.passCopy.fishMackerel","days":"30","total":"5"}'>고등어 상담 전용 · 30일 · 총 5회</span>
+    </a></li>
+    <li class="cdh-pass__tier cdh-pass__tier--pack" data-pack-plan="yeongnyangi-pack-salmon-small-v4"><a class="cdh-pass__tier-link" href="/points/#fish-packs">
+      <span class="cdh-pass__tier-name" data-cd-trans="home.passCopy.packName" data-cd-vars='{"fish":"@home.passCopy.fishSalmon","total":"5"}'>연어 세트 5회</span>
+      <strong class="cdh-pass__tier-price"><span data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"40,000"}'>40,000원</span></strong>
+      <span class="cdh-pass__tier-line" data-cd-trans="home.passCopy.packPerUse" data-cd-vars='{"amount":"10,000"}'>회당 10,000원 상담</span>
+      <span class="cdh-pass__tier-line" data-cd-trans="home.passCopy.packScope" data-cd-vars='{"fish":"@home.passCopy.fishSalmon","days":"30","total":"5"}'>연어 상담 전용 · 30일 · 총 5회</span>
+    </a></li>
+    <li class="cdh-pass__tier cdh-pass__tier--pack" data-pack-plan="yeongnyangi-pack-flounder-small-v4"><a class="cdh-pass__tier-link" href="/points/#fish-packs">
+      <span class="cdh-pass__tier-name" data-cd-trans="home.passCopy.packName" data-cd-vars='{"fish":"@home.passCopy.fishFlounder","total":"5"}'>광어 세트 5회</span>
+      <strong class="cdh-pass__tier-price"><span data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"60,000"}'>60,000원</span></strong>
+      <span class="cdh-pass__tier-line" data-cd-trans="home.passCopy.packPerUse" data-cd-vars='{"amount":"15,000"}'>회당 15,000원 상담</span>
+      <span class="cdh-pass__tier-line" data-cd-trans="home.passCopy.packScope" data-cd-vars='{"fish":"@home.passCopy.fishFlounder","days":"30","total":"5"}'>광어 상담 전용 · 30일 · 총 5회</span>
+    </a></li>
+    <li class="cdh-pass__tier cdh-pass__tier--pack" data-pack-plan="yeongnyangi-pack-tuna-small-v4"><a class="cdh-pass__tier-link" href="/points/#fish-packs">
+      <span class="cdh-pass__tier-name" data-cd-trans="home.passCopy.packName" data-cd-vars='{"fish":"@home.passCopy.fishTuna","total":"5"}'>참치 세트 5회</span>
+      <strong class="cdh-pass__tier-price"><span data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"120,000"}'>120,000원</span></strong>
+      <span class="cdh-pass__tier-line" data-cd-trans="home.passCopy.packPerUse" data-cd-vars='{"amount":"30,000"}'>회당 30,000원 상담</span>
+      <span class="cdh-pass__tier-line" data-cd-trans="home.passCopy.packScope" data-cd-vars='{"fish":"@home.passCopy.fishTuna","days":"30","total":"5"}'>참치 상담 전용 · 30일 · 총 5회</span>
+    </a></li>
+  </ul>
+  <p class="cdh-pass__note" data-cd-trans="home.passCopy.packNote">영냥이 세트는 같은 생선 상담에만 1회씩 사용돼요. 꽃돼지 이용권과 따로 적용돼요.</p>
   <a class="cdh-pass__btn" href="/points/?source=flower-membership" data-cd-trans="home.gardenCopy.passCta">나에게 맞는 이용권 확인하기</a>
 </section></div></div>
 
@@ -13726,8 +13768,10 @@ html[data-cd-lang]:not([data-cd-lang="ko"]) #cdPickWhyJosa{display:none}
                         var statusActiveUntil = new Date(status.expiresAt);
                         if (!Number.isNaN(statusActiveUntil.getTime()) && statusActiveUntil.getTime() > Date.now()) statusActive = true;
                       }
-                      // 한도표 정본은 js/core/pass-verdict.js 하나다(사본을 두면 30/50/100 처럼 낡는다). 모듈이 없으면 0 → 서버 값이 이긴다.
-                      var policyPassLimit = (window.__cdPassVerdict && typeof window.__cdPassVerdict.passLimitForTier === 'function') ? window.__cdPassVerdict.passLimitForTier(statusTier) : 0;
+                      // 서버가 정책 버전에 맞춰 계산한 passLimit 이 정본이다(worker/routes/fortune.js handleSubscriptionStatus).
+                      // 표(js/core/pass-verdict.js)는 서버 값이 없을 때만 쓴다 — 표가 이기면 현행 큰 꿀단지(30,000원)가 legacy 20,000원으로 보인다.
+                      var serverPassLimit = Math.floor(Number(status && (status.passLimit || status.maxCoveredCoin || status.freeLimit) || 0));
+                      var policyPassLimit = serverPassLimit > 0 ? serverPassLimit : ((window.__cdPassVerdict && typeof window.__cdPassVerdict.passLimitForPolicy === 'function') ? window.__cdPassVerdict.passLimitForPolicy(statusTier, status && status.passPolicyVersion) : 0);
                       user.profileSubscription = {
                         tier: statusTier,
                         passTier: status && (status.passTier || statusTier || ''),
@@ -13740,9 +13784,9 @@ html[data-cd-lang]:not([data-cd-lang="ko"]) #cdPickWhyJosa{display:none}
                         subscriptionStatus: status && (status.subscriptionStatus || status.status || ''),
                         membershipStatus: status && (status.membershipStatus || ''),
                         source: status && (status.source || 'subscription_status'),
-                        freeLimit: policyPassLimit || Number(status && status.freeLimit || 0),
-                        passLimit: policyPassLimit || Number(status && status.passLimit || status.freeLimit || 0),
-                        maxCoveredCoin: policyPassLimit || Number(status && status.maxCoveredCoin || status.freeLimit || 0),
+                        freeLimit: policyPassLimit,
+                        passLimit: policyPassLimit,
+                        maxCoveredCoin: policyPassLimit,
                         refreshedAt: Date.now(),
                       };
                       __cdWriteAuthUserCache(user);
@@ -15689,7 +15733,7 @@ html[data-cd-lang]:not([data-cd-lang="ko"]) #cdPickWhyJosa{display:none}
             var dt = new Date(sub.expiresAt);
             if (!Number.isNaN(dt.getTime()) && dt.getTime() > Date.now()) isActive = true;
           }
-          return { isActive:isActive && !!tier, tier:tier, expiresAt:sub.expiresAt || null };
+          return { isActive:isActive && !!tier, tier:tier, expiresAt:sub.expiresAt || null, passLimit:Math.max(0, Math.floor(Number(sub.passLimit || sub.maxCoveredCoin || 0))) || 0, passPolicyVersion:sub.passPolicyVersion ? String(sub.passPolicyVersion) : '' };
         }
 
         function buildPointsUrl(plan){
@@ -15762,7 +15806,10 @@ html[data-cd-lang]:not([data-cd-lang="ko"]) #cdPickWhyJosa{display:none}
           // 대조 가드: scripts/verify-pass-tier-policy.mjs
           var freeLimits = { standard:50, premium:100, vvip:200, family:999999999 };
           var label = labels[current.tier] || '달빛 이용권';
-          var freeLimit = freeLimits[current.tier] || 50;
+          // 서버 passLimit(정책 버전 반영)가 먼저, 없으면 정책 버전 표, 그것도 없으면 이 사본.
+          var _cdMiniVerdict = window.__cdPassVerdict;
+          var _cdMiniPolicyLimit = _cdMiniVerdict && typeof _cdMiniVerdict.passLimitForPolicy === 'function' ? _cdMiniVerdict.passLimitForPolicy(current.tier, current.passPolicyVersion) : 0;
+          var freeLimit = current.passLimit > 0 ? current.passLimit : (_cdMiniPolicyLimit || freeLimits[current.tier] || 50);
           var freeLimitCopy = current.tier === 'family' ? '이용권 대상 전체' : (formatMembershipCoinValue(freeLimit) + ' 이하 서비스');
           var exp = '';
           if (current.expiresAt) {
@@ -27729,16 +27776,18 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
       };
       var _passLimit = Number(user.profileSubscription.passLimit || user.profileSubscription.freeLimit || user.profileSubscription.maxFreeCoinLimit || user.profileSubscription.maxCoveredCoin);
       var _policyPassLimitApi = _cdPassVerdict();
-      var _policyPassLimit = _policyPassLimitApi ? _policyPassLimitApi.passLimitForTier(_subTier) : 0;
-      if (_policyPassLimit > 0) {
-        safe.profileSubscription.passLimit = _policyPassLimit;
-        safe.profileSubscription.freeLimit = _policyPassLimit;
-        safe.profileSubscription.maxCoveredCoin = _policyPassLimit;
-      } else if (Number.isFinite(_passLimit) && _passLimit > 0) {
+      // 서버 값(정책 버전 반영)이 먼저다. 표는 서버 값이 없을 때만 정책 버전으로 읽는다.
+      var _policyPassLimit = _policyPassLimitApi && typeof _policyPassLimitApi.passLimitForPolicy === 'function' ? _policyPassLimitApi.passLimitForPolicy(_subTier, user.profileSubscription.passPolicyVersion) : 0;
+      if (Number.isFinite(_passLimit) && _passLimit > 0) {
         safe.profileSubscription.passLimit = Math.floor(_passLimit);
         safe.profileSubscription.freeLimit = Math.floor(_passLimit);
         safe.profileSubscription.maxCoveredCoin = Math.floor(_passLimit);
+      } else if (_policyPassLimit > 0) {
+        safe.profileSubscription.passLimit = _policyPassLimit;
+        safe.profileSubscription.freeLimit = _policyPassLimit;
+        safe.profileSubscription.maxCoveredCoin = _policyPassLimit;
       }
+      if (user.profileSubscription.passPolicyVersion) safe.profileSubscription.passPolicyVersion = String(user.profileSubscription.passPolicyVersion);
       if (user.profileSubscription.passTier) safe.profileSubscription.passTier = String(user.profileSubscription.passTier);
       if (user.profileSubscription.subscriptionStatus) safe.profileSubscription.subscriptionStatus = String(user.profileSubscription.subscriptionStatus);
       if (user.profileSubscription.membershipStatus) safe.profileSubscription.membershipStatus = String(user.profileSubscription.membershipStatus);
@@ -27974,13 +28023,14 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
       sub.expiresAt = status.expiresAt || sub.expiresAt || null;
       if (status.passTier) sub.passTier = _cdNormalizePassTier(status.passTier);
       var policyPassLimitApi = _cdPassVerdict();
-      var policyPassLimit = policyPassLimitApi ? policyPassLimitApi.passLimitForTier(tier) : 0;
+      // 서버 값(정책 버전 반영)이 먼저다. 표는 서버 값이 없을 때만 정책 버전으로 읽는다.
+      var serverPassLimit = Math.floor(Number(status.passLimit || status.maxCoveredCoin || status.freeLimit || 0));
+      var policyPassLimit = serverPassLimit > 0 ? serverPassLimit
+        : (policyPassLimitApi && typeof policyPassLimitApi.passLimitForPolicy === 'function' ? policyPassLimitApi.passLimitForPolicy(tier, status.passPolicyVersion || sub.passPolicyVersion) : 0);
       if (policyPassLimit > 0) {
         sub.passLimit = policyPassLimit;
         sub.freeLimit = policyPassLimit;
         sub.maxCoveredCoin = policyPassLimit;
-      } else if (Number.isFinite(Number(status.passLimit || status.freeLimit))) {
-        sub.passLimit = Math.floor(Number(status.passLimit || status.freeLimit));
       }
       if (status.source) sub.source = String(status.source);
       if (status.status) sub.status = String(status.status);
@@ -28636,7 +28686,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
           if (_cdDeniedSnapshot && _cdDeniedVerdictApi
             && _cdDeniedSnapshot.state === 'active'
             && _cdDeniedSnapshot.tier !== 'family'
-            && Math.max(0, Math.floor(Number(coinCost || 0))) > _cdDeniedVerdictApi.passLimitForTier(_cdDeniedSnapshot.tier)) return;
+            && Math.max(0, Math.floor(Number(coinCost || 0))) > ((typeof _cdDeniedVerdictApi.passLimitForPolicy === 'function' && _cdDeniedVerdictApi.passLimitForPolicy(_cdDeniedSnapshot.tier, _cdDeniedSnapshot.passPolicyVersion)) || _cdDeniedVerdictApi.passLimitForTier(_cdDeniedSnapshot.tier))) return;
           // 스냅샷이 낡아 실제로는 미커버였다 = 자기수정. 낙관을 60초 끄고 프리체크 캐시를 버린다.
           // 스냅샷은 삭제하지 않는다 — _cdHandleSubscriptionSnapshotServerSignal 이 재검증만 예약한다.
           _cdDisableOptimisticPassBriefly();
@@ -28668,7 +28718,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
         // 이기던 역전(passLimit = defaultLimit || rawLimit)도 함께 지운다 — 서버가 준 값이 이긴다.
         var _cdFastLimitApi = _cdPassVerdict();
         if (!_cdFastLimitApi) return null;
-        var defaultLimit = _cdFastLimitApi.passLimitForTier(tier);
+        var defaultLimit = (typeof _cdFastLimitApi.passLimitForPolicy === 'function' && source.passPolicyVersion ? _cdFastLimitApi.passLimitForPolicy(tier, source.passPolicyVersion) : 0) || _cdFastLimitApi.passLimitForTier(tier);
         var passLimit = Math.max(0, Math.floor(Number(source.passLimit || source.freeLimit || source.maxFreeCoinLimit || source.maxFreeCoins || source.maxCoinLimit || defaultLimit)));
         var canUseByPass = passLimit > 0 && requiredCoins <= passLimit;
         var passDiscount = source.passDiscount && typeof source.passDiscount === 'object' ? source.passDiscount : null;

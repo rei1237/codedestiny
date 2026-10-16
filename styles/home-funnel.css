@@ -885,3 +885,15 @@ html.neo-mode #cdHomeFunnel{--cdh-moon-art:url('/images/home/illustrated/moon-fl
 .cdh .cdh-neo-letter small{display:block;font-size:12px;color:var(--cd-neo-letter-silver);line-height:1.7}.cdh .cdh-neo-letter figure{position:relative;margin:0;align-self:center;width:100%;max-width:260px;justify-self:center}.cdh .cdh-neo-letter figure img{display:block;width:100%;height:auto;aspect-ratio:5/6;object-fit:cover;border:1px solid var(--cd-neo-letter-gold);padding:7px;background:var(--cd-neo-letter-night);border-radius:48% 48% 8px 8px}.cdh .cdh-neo-letter figcaption{text-align:center;margin-top:12px;font-size:12px;color:var(--cd-neo-letter-silver)}
 @media(max-width:640px){.cdh .cdh-neo-letter{grid-template-columns:1fr;gap:24px;padding:30px 22px;border-radius:var(--cd-r-card)}.cdh .cdh-neo-letter__art img{object-position:65% top}.cdh .cdh-neo-letter figure{max-width:220px}.cdh .cdh-neo-letter a{display:flex;width:100%}}
 @media(prefers-reduced-motion:reduce){.cdh .cdh-neo-letter a{transition:none;transform:none}}
+/* 로그인 사용자의 "내 이용권" 줄 — 표시 전용. 상담 한 건의 차감 판정은 서버가 한다. */
+.cdh-mypass{margin:14px 40px 0;padding:16px 20px;border:1px solid var(--cdh-line);border-radius:var(--cd-r-card,20px);background:var(--cdh-card);color:var(--cdh-ink)}
+.cdh-mypass[hidden]{display:none}
+.cdh .cdh-mypass__title{margin:0 0 10px;color:var(--cdh-ink);font-size:1rem;font-weight:800}
+.cdh-mypass__list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:10px;margin:0;padding:0;list-style:none}
+.cdh-mypass__item{display:grid;align-content:start;gap:2px;padding:12px 14px;border:1px solid var(--cdh-line);border-radius:14px;background:color-mix(in srgb,var(--cdh-surface) 40%,var(--cdh-card))}
+.cdh-mypass__kind{color:var(--cdh-muted);font-size:.74rem;font-weight:800}
+.cdh-mypass__name{color:var(--cdh-accent);font-size:.98rem;font-weight:850;word-break:keep-all}
+.cdh-mypass__line{color:var(--cdh-ink);font-size:.84rem;line-height:1.5;word-break:keep-all}
+.cdh-mypass__line--muted{color:var(--cdh-muted)}
+.cdh .cdh-pass__group{margin:4px 0 0;color:var(--cdh-ink);font-size:1rem;font-weight:800}
+@media(max-width:640px){.cdh-mypass{margin:10px 12px 0;padding:14px 16px}}

@@ -58,7 +58,9 @@ function collectMarkers() {
       const vars = JSON.parse(node.getAttribute('data-cd-vars'));
       const source = lookup(ko, key);
       if (typeof source === 'string') {
-        const rendered = source.replace(/\{(\w+)\}/g, (token, name) => String(vars[name] ?? token));
+        // 런타임(cd-lang-native.js resolveVars)처럼 "@키" 변수는 사전 값으로 푼다.
+        const resolveVar = (raw) => (typeof raw === 'string' && raw.length > 1 && raw[0] === '@' ? lookup(ko, raw.slice(1)) ?? raw : raw);
+        const rendered = source.replace(/\{(\w+)\}/g, (token, name) => String(resolveVar(vars[name]) ?? token));
         if (!interpolations.has(key)) interpolations.set(key, new Map());
         interpolations.get(key).set(norm(node.textContent || ''), norm(rendered));
       }

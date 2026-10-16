@@ -4,6 +4,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { parse } from 'parse5';
 import { runInNewContext } from 'node:vm';
 import { CURRENT_PASS_PLANS } from '../../lib/payment/pass-policy.js';
+import { listServicePackPlans } from '../../worker/payments/service-pack-policy.js';
 import { FEATURE_KEY_PRICE_TABLE } from '../../worker/lib/paid-feature-registry.js';
 import { splitReviews, postedMonth } from '../../lib/brand/customer-reviews.mjs';
 import { EXPERTISE_FACTS } from '../../lib/brand/expertise-facts.mjs';
@@ -203,6 +204,20 @@ vars.pass = `<section class="cdh-pass" aria-labelledby="cdhPassTitle" data-desig
     </a></li>`).join('')}
   </ul>
   <p class="cdh-pass__note" data-cd-trans="home.gardenCopy.passNote">작은·중간·큰 꿀단지는 꽃돼지 운세에, 패밀리 꿀단지는 꽃돼지와 영냥이 유료 리딩에 적용됩니다. 기존에 구매한 이용권은 구매 당시 조건을 유지합니다.</p>
+  <h3 class="cdh-pass__group" data-cd-trans="home.passCopy.packTitle">영냥이 전용 이용권</h3>
+  <ul class="cdh-pass__tiers cdh-pass__tiers--packs" role="list">${listServicePackPlans().map(plan => {
+    const fishKey = '@home.passCopy.fish' + plan.fishId[0].toUpperCase() + plan.fishId.slice(1);
+    const fishKo = plan.label.split(' ')[0];
+    return `
+    <li class="cdh-pass__tier cdh-pass__tier--pack" data-pack-plan="${plan.planId}"><a class="cdh-pass__tier-link" href="/points/#fish-packs">
+      <span class="cdh-pass__tier-name" data-cd-trans="home.passCopy.packName" data-cd-vars='{"fish":"${fishKey}","total":"${plan.totalUses}"}'>${plan.label}</span>
+      <strong class="cdh-pass__tier-price"><span data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"${Number(plan.priceKRW).toLocaleString('en-US')}"}'>${won(plan.priceKRW)}</span></strong>
+      <span class="cdh-pass__tier-line" data-cd-trans="home.passCopy.packPerUse" data-cd-vars='{"amount":"${Number(plan.unitPriceKRW).toLocaleString('en-US')}"}'>회당 ${won(plan.unitPriceKRW)} 상담</span>
+      <span class="cdh-pass__tier-line" data-cd-trans="home.passCopy.packScope" data-cd-vars='{"fish":"${fishKey}","days":"${plan.validityDays}","total":"${plan.totalUses}"}'>${fishKo} 상담 전용 · ${plan.validityDays}일 · 총 ${plan.totalUses}회</span>
+    </a></li>`;
+  }).join('')}
+  </ul>
+  <p class="cdh-pass__note" data-cd-trans="home.passCopy.packNote">영냥이 세트는 같은 생선 상담에만 1회씩 사용돼요. 꽃돼지 이용권과 따로 적용돼요.</p>
   <a class="cdh-pass__btn" href="/points/?source=flower-membership" data-cd-trans="home.gardenCopy.passCta">나에게 맞는 이용권 확인하기</a>
 </section>`;
 vars.representativePrice = Number(FEATURE_KEY_PRICE_TABLE['yeongnyangi-saju-mackerel'].amountKRW).toLocaleString('ko-KR') + '원';

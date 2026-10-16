@@ -1971,6 +1971,25 @@
       "ch5": "सही timing",
       "lyrics": "गीत के बोल",
       "more": "और चाँदनी संगीत सुनें"
+    },
+    "passCopy": {
+      "myTitle": "मेरे पास",
+      "flowerPass": "🌸 फ्लावर पिग मूनलाइट पास",
+      "packPass": "योंगन्यांगी पास",
+      "packTitle": "योंगन्यांगी के परामर्श पास",
+      "packName": "{fish} सेट ({total} उपयोग)",
+      "packScope": "केवल {fish} परामर्श · {days} दिन · {total} उपयोग",
+      "packRemaining": "{total} में से {remaining} उपयोग शेष",
+      "packExpires": "{date} तक",
+      "packOthers": "+{count} और पैक",
+      "packBrowse": "योंगन्यांगी पैक देखें",
+      "fishMackerel": "मैकेरल",
+      "fishSalmon": "सैल्मन",
+      "fishFlounder": "फ्लाउंडर",
+      "fishTuna": "टूना",
+      "packPerUse": "प्रति उपयोग KRW {amount} की रीडिंग",
+      "budgetLeft": "KRW {amount} शेष",
+      "packNote": "योंगन्यांगी पैक का हर उपयोग उसी मछली स्तर का एक परामर्श खोलता है, फ्लावर पिग पास से अलग।"
     }
   },
   "terms": {

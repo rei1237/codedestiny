@@ -1971,6 +1971,25 @@
       "ch5": "真正的timing",
       "lyrics": "歌詞字幕",
       "more": "收聽更多月光音樂"
+    },
+    "passCopy": {
+      "myTitle": "我的使用券",
+      "flowerPass": "🌸 花豬月光通行證",
+      "packPass": "靈貓專用諮詢券",
+      "packTitle": "靈貓專用諮詢券",
+      "packName": "{fish}套餐 {total}次",
+      "packScope": "僅限{fish}諮詢 · {days}天 · 共{total}次",
+      "packRemaining": "共{total}次，剩餘{remaining}次",
+      "packExpires": "有效至{date}",
+      "packOthers": "另有{count}個套組",
+      "packBrowse": "查看靈貓套組",
+      "fishMackerel": "鯖魚",
+      "fishSalmon": "鮭魚",
+      "fishFlounder": "比目魚",
+      "fishTuna": "鮪魚",
+      "packPerUse": "每次可用於{amount}韓元的諮詢",
+      "budgetLeft": "剩餘額度{amount}韓元",
+      "packNote": "靈貓套組每次用於同一魚種的一次諮詢，與花豬使用券分別適用。"
     }
   },
   "terms": {

@@ -1971,6 +1971,25 @@
       "ch5": "Đúng thời điểm",
       "lyrics": "Phụ đề lời",
       "more": "Nghe thêm nhạc ánh trăng"
+    },
+    "passCopy": {
+      "myTitle": "Vé của tôi",
+      "flowerPass": "🌸 Moonlight Pass Heo Hoa",
+      "packPass": "Vé Yeongnyangi",
+      "packTitle": "Vé tư vấn riêng Yeongnyangi",
+      "packName": "Bộ {fish} {total} lượt",
+      "packScope": "Chỉ tư vấn {fish} · {days} ngày · {total} lượt",
+      "packRemaining": "Còn {remaining}/{total} lượt",
+      "packExpires": "Đến {date}",
+      "packOthers": "và {count} gói khác",
+      "packBrowse": "Xem gói Yeongnyangi",
+      "fishMackerel": "Cá thu",
+      "fishSalmon": "Cá hồi",
+      "fishFlounder": "Cá bơn",
+      "fishTuna": "Cá ngừ",
+      "packPerUse": "Mỗi lượt cho buổi tư vấn KRW {amount}",
+      "budgetLeft": "Còn lại KRW {amount}",
+      "packNote": "Mỗi lượt của gói Yeongnyangi mở một buổi tư vấn cùng loại cá, áp dụng riêng với vé Heo Hoa."
     }
   },
   "terms": {

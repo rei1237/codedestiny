@@ -894,7 +894,8 @@ assertContains(indexSource, "_cdShouldForceFreshPaidPassCheck(content, cached.re
 assertContains(indexSource, "_cdShouldForceFreshPaidPassCheck(content, result)", "paid precheck does not store stale pass payment-required results");
 // 2026-09-03: 셸의 등급 한도 삼항표(family 999999999 / vvip 100 …)는 정본 pass-verdict 위임으로 바뀌었다.
 // 리터럴이 돌아오면 verify:pass-tier-policy 의 0건 단언이 잡는다.
-assertContains(indexSource, "_policyPassLimitApi.passLimitForTier(_subTier)", "main shell policy pass limit delegates to pass-verdict");
+// 2026-10-16: 서버 passLimit 가 없을 때만 표를 읽고, 그때도 이용권 정책 버전으로 읽는다(구 표 덮어쓰기 금지).
+assertContains(indexSource, "_policyPassLimitApi.passLimitForPolicy(_subTier, user.profileSubscription.passPolicyVersion)", "main shell policy pass limit delegates to pass-verdict");
 assertNotContains(indexSource, "_subTier === 'family' ? 999999999", "main shell no longer carries a literal family pass limit ladder");
 // 2026-10-11: 이용권에 기간이 없어져 상품명에서 "30일"을 뺐고, 표시 이름을 '꿀단지 크기'(작은·중간·큰·패밀리 꿀단지)로 바꿨다.
 assertContains(indexSource, "family:'패밀리 꿀단지'", "main shell family payment modal copy");
