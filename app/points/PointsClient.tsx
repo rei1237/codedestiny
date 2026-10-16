@@ -2471,7 +2471,7 @@ function MoonlightShopPlans({
                     type="button"
                     onClick={() => onSubscribe(plan)}
                     disabled={ctaDisabled}
-                    className="btn-moonlight inline-flex min-h-11 w-full items-center justify-center rounded-xl px-4 text-sm font-black disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+                    className={`${plan.badge === "recommended" ? "btn-moonlight" : "btn-moonlight-ghost"} inline-flex min-h-11 w-full items-center justify-center rounded-xl px-4 text-sm font-black disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto`}
                   >
                     {!saleReady[plan.tier] ? "판매 준비 중" : isCurrentActive ? "연장하기 →" : lowerTierBlocked ? copy.lowerTierBlocked : "구매하기 →"}
                   </button>
@@ -4714,7 +4714,7 @@ export default function PointsPage() {
         />
         </details>
         <ServicePackShop locale={lang} overseasCharge={overseasCharge} onWalletChange={setOwnedPacks} context={consultationContext} contextual={consultationShop}/>
-        {!consultationShop&&<section aria-label={lang==='ko'?'꿀꿀운세 이용권':'Ggulggul passes'}><h2 className="mb-4 text-2xl font-black">{lang==='ko'?'꿀꿀운세 이용권':'Ggulggul passes'}</h2>
+        {!consultationShop&&<section aria-label={lang==='ko'?'꿀꿀운세 이용권':'Ggulggul passes'}>
         <MoonlightShopPlans
           subscription={subscription}
           onSubscribe={openSelfPurchase}
