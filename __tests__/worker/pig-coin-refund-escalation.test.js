@@ -402,6 +402,27 @@ describe("pig-coin refund — 전달된 결제는 자동 환불하지 않는다"
     expect(userPoints).toBe(30);
   });
 
+  // requirePremiumReportAccess 의 claim 은 생성이 실패해도 풀리지 않는다 — 저장·전달 기록이 있을 때만 거절한다.
+  const reportClaim = () => __billingEvidenceClaims().set(claimId(REAL_SPEND_ID), {
+    userId: TEST_USER_ID, requestId: "report-req-1|pair-sig", featureKey: FEATURE_KEY, kind: "premium-report",
+  });
+
+  test("회당 리포트 생성이 실패해 저장본이 없으면 claim 이 남아 있어도 클라이언트 자동 환불이 된다", async () => {
+    reportClaim();
+    const response = await handlePigCoinRefund(spend(), auth, {});
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({ refundedCoins: 30 });
+    expect(userPoints).toBe(30);
+  });
+
+  test("회당 리포트가 그 claim 요청으로 저장·전달됐으면 409", async () => {
+    reportClaim();
+    // 차감 행 id 가 아니라 claim 의 원요청 id("|" 앞)로만 걸리는 저장본 — 전달 근거로 본다.
+    const storedForReportRequest = (query) => (JSON.stringify(query).includes('"report-req-1"') ? { _id: "report-1" } : null);
+    deliveryLookup.ServiceExecutionTransaction = storedForReportRequest;
+    await expectRefused(await handlePigCoinRefund(spend(), auth, {}), 409, "REFUND_NOT_ELIGIBLE");
+  });
+
   test("전달 근거 조회가 DB 오류면 503 이고 환불하지 않는다", async () => {
     deliveryLookup.error = Object.assign(new Error("connection reset"), { name: "MongoNetworkError" });
     await expectRefused(await handlePigCoinRefund(spend(), auth, {}), 503, "REFUND_VERIFY_UNAVAILABLE");

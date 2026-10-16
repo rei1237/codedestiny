@@ -12,6 +12,8 @@ import { findBillingEvidenceClaim } from "./billing-evidence-claim-store.js";
  * 전달 근거(하나라도 있으면 409 REFUND_NOT_ELIGIBLE, 잔액 변화 없음):
  *  1. billing_evidence_claims — 증빙을 쓴 요청이 있다. 생성이 최종 실패하면 그 요청이 claim 을 푼다.
  *     단, 서버 라우트가 자기 실패를 환불할 때는 failedRequestId 로 자기 claim 만 제외한다(본문 값 아님).
+ *     회당 리포트 claim(kind "premium-report")은 실패해도 풀리지 않으므로 그 자체로는 거절하지 않고,
+ *     그 claim 요청(requestId, "|" 앞 원요청 포함)의 2·3 기록이 있을 때만 전달로 본다.
  *  2. ServiceExecutionTransaction — success / delivered / completed 로 끝난 실행, 또는 확정 파트가 이미
  *     화면에 나간 진행 중 paid-narrative(서버 onExhausted 환불의 자기 기록은 제외).
  *  3. PaidExecutionRecord — completed / partial / delivery_pending(본문이 이미 나간 상태).
@@ -46,10 +48,25 @@ export async function assertDeductionRefundable(env, { userId, deduction, failed
   const ownRequestId = clean(failedRequestId, 200);
   if (!uid || !ids.length) return notEligible("NO_DEDUCTION");
   try {
+    const reportRequestIds = [];
     for (const id of ids) {
       const claim = await findBillingEvidenceClaim(env, billingEvidenceClaimId(id));
-      if (claim && !(ownRequestId && claim.userId === uid && claim.requestId === ownRequestId)) return notEligible("EVIDENCE_CLAIMED");
+      if (!claim || (ownRequestId && claim.userId === uid && claim.requestId === ownRequestId)) continue;
+      // 회당 리포트(requirePremiumReportAccess) claim 은 생성이 실패해도 풀리지 않는다 — 실패를 409 로 막지 않도록
+      // claim 만으로는 전달로 보지 않고, 그 요청의 저장·전달 기록(아래 2·3)이 있을 때만 거절한다.
+      if (claim.kind === "premium-report" && claim.userId === uid) {
+        const claimRequestId = clean(claim.requestId, 200);
+        reportRequestIds.push(claimRequestId, claimRequestId.split("|")[0]); // sukuyo 처럼 "요청|조합" 으로 묶인 claim
+        continue;
+      }
+      return notEligible("EVIDENCE_CLAIMED");
     }
+    const deliveryIds = [...new Set([...ids, ...reportRequestIds.filter(Boolean)])];
+    const startedParts = (path) => ({ $and: [
+      { [path]: { $exists: true } },
+      { [path]: { $ne: {} } },
+      ...(ownRequestId ? [{ idempotencyKey: { $ne: ownRequestId } }] : []),
+    ] });
 
     const executed = await ServiceExecutionTransaction.findOne({
       userId: uid,
@@ -58,23 +75,20 @@ export async function assertDeductionRefundable(env, { userId, deduction, failed
           { status: "success" },
           { deliveryStatus: "delivered" },
           { premiumStatus: "completed" },
-          // 진행 중 paid-narrative 도 확정된 파트는 202 응답으로 이미 화면에 나간다(respond 의 render).
+          // 진행 중 paid-narrative·celestial 도 확정된 파트는 202 응답으로 이미 화면에 나간다(respond 의 render).
           // 서버가 자기 실패를 환불할 때(onExhausted)는 그 요청 자신의 기록만 제외한다.
-          { $and: [
-            { "metadata.paidNarrative.parts": { $exists: true } },
-            { "metadata.paidNarrative.parts": { $ne: {} } },
-            ...(ownRequestId ? [{ idempotencyKey: { $ne: ownRequestId } }] : []),
-          ] },
+          startedParts("metadata.paidNarrative.parts"),
+          startedParts("metadata.celestialDelivery.delivery.parts"),
         ] },
         { $or: [
-          { coinTransactionId: { $in: ids } },
-          { sourceTransactionId: { $in: ids } },
-          { paymentId: { $in: ids } },
-          { orderId: { $in: ids } },
-          { idempotencyKey: { $in: ids } },
-          { "metadata.paidNarrative.body.sourceTransactionId": { $in: ids } },
-          { "metadata.paidNarrative.body.transactionId": { $in: ids } },
-          { "metadata.paidNarrative.paymentProof.sourceTransactionId": { $in: ids } },
+          { coinTransactionId: { $in: deliveryIds } },
+          { sourceTransactionId: { $in: deliveryIds } },
+          { paymentId: { $in: deliveryIds } },
+          { orderId: { $in: deliveryIds } },
+          { idempotencyKey: { $in: deliveryIds } },
+          { "metadata.paidNarrative.body.sourceTransactionId": { $in: deliveryIds } },
+          { "metadata.paidNarrative.body.transactionId": { $in: deliveryIds } },
+          { "metadata.paidNarrative.paymentProof.sourceTransactionId": { $in: deliveryIds } },
         ] },
       ],
     }).select({ _id: 1 }).lean();
@@ -83,7 +97,7 @@ export async function assertDeductionRefundable(env, { userId, deduction, failed
     const record = await PaidExecutionRecord.findOne({
       userId: uid,
       status: { $in: ["completed", "partial", "delivery_pending"] },
-      $or: [{ paymentId: { $in: ids } }, { requestId: { $in: ids } }, { idempotencyKey: { $in: ids } }, { orderId: { $in: ids } }],
+      $or: [{ paymentId: { $in: deliveryIds } }, { requestId: { $in: deliveryIds } }, { idempotencyKey: { $in: deliveryIds } }, { orderId: { $in: deliveryIds } }],
     }).select({ _id: 1 }).lean();
     if (record) return notEligible("EXECUTION_DELIVERED");
 
