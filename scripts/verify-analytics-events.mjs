@@ -428,8 +428,9 @@ const eventNames = (calls) => events(calls).map((c) => c[1]);
   const outsideHome = stripComments(SHELL_SOURCE.slice(0, homeStart) + SHELL_SOURCE.slice(resultStart));
   const marks = [...home.matchAll(/data-cd-funnel-section="([^"]*)"/g)].map((m) => m[1]);
 
+  // 2026-10-17 "직관성" 단순화로 홈 면을 hero·대표 상담·무료 3종·서비스 목록 위주로 줄였다(8 → 5).
   assert.ok(
-    marks.length >= 8,
+    marks.length >= 5,
     `홈의 data-cd-funnel-section 표식이 ${marks.length}개다 — 면이 통째로 빠지면 그 면의 클릭이 어디에도 안 잡힌다`,
   );
   assert.equal(
