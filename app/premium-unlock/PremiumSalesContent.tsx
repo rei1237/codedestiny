@@ -1922,7 +1922,7 @@ export default function PremiumSalesContent() {
                     key={value}
                     type="button"
                     onClick={() => updateForm("gender", value as GenderType)}
-                    className={`min-h-11 border px-2 text-sm font-black transition ${form.gender === value ? "border-[#f2cf82] bg-[#f2cf82] text-[#171007]" : "border-[#d8b56d]/25 bg-black/20 text-[#f4dfb7] hover:border-[#f2cf82]/60"}`}
+                    className={`min-h-11 border px-2 text-sm font-black transition ${form.gender === value ? "border-[#f2cf82] bg-[#2a2113] text-[#fff3d6] shadow-[0_0_0_1px_#f2cf82,0_6px_16px_rgba(0,0,0,0.45)]" : "border-[#d8b56d]/25 bg-black/20 text-[#f4dfb7] hover:border-[#f2cf82]/60"}`}
                   >
                     {label}
                   </button>
@@ -1956,7 +1956,7 @@ export default function PremiumSalesContent() {
                   key={value}
                   type="button"
                   onClick={() => updateForm("calendarType", value as CalendarType)}
-                  className={`min-h-11 border px-3 text-sm font-black transition ${form.calendarType === value ? "border-[#a7f3d0] bg-[#a7f3d0] text-[#06251b]" : "border-[#d8b56d]/25 bg-black/20 text-[#f4dfb7] hover:border-[#a7f3d0]/60"}`}
+                  className={`min-h-11 border px-3 text-sm font-black transition ${form.calendarType === value ? "border-[#f2cf82] bg-[#2a2113] text-[#fff3d6] shadow-[0_0_0_1px_#f2cf82,0_6px_16px_rgba(0,0,0,0.45)]" : "border-[#d8b56d]/25 bg-black/20 text-[#f4dfb7] hover:border-[#f2cf82]/60"}`}
                 >
                   {label}
                 </button>
@@ -1981,9 +1981,8 @@ export default function PremiumSalesContent() {
             <button
               type="submit"
               disabled={isBusy}
-              className="group relative inline-flex min-h-12 items-center justify-center gap-2 overflow-hidden border border-[#ffe0a3] bg-gradient-to-r from-[#f2cf82] via-[#ffd98a] to-[#b88933] px-4 text-sm font-black text-[#171007] shadow-[0_0_28px_rgba(242,207,130,0.24)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-65 sm:text-base"
+              className="inline-flex min-h-12 items-center justify-center gap-2 border border-[#f2cf82] bg-[#f2cf82] px-4 text-sm font-black text-[#171007] shadow-[0_8px_20px_rgba(0,0,0,0.35)] transition-colors hover:bg-[#ffd98a] disabled:cursor-not-allowed disabled:opacity-65 sm:text-base"
             >
-              <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.36),transparent_34%)] opacity-0 transition duration-500 group-hover:opacity-40" aria-hidden="true" />
               {isBusy ? <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" /> : <BookOpen className="h-5 w-5" aria-hidden="true" />}
               <span>{isChecking ? copy.submitCheckingLabel : isGenerating ? copy.submitGeneratingLabel : copy.submitIdleLabel}</span>
             </button>
