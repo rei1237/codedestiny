@@ -419,7 +419,7 @@ export const PAID_NON_LLM_DELIVERY_FIXTURES = Object.freeze([
     featureKey: "rpt_quantumCard",
     billingType: "unlock",
     cta: { file: "js/core/saju/reportDashboard.js", marker: "lockKey:'rpt_quantumCard'" },
-    consumer: { file: "js/saju-engine-tarot-sukuyo-quantum.js", marker: "function renderQuantumStrategy(p, natal, bazi)" },
+    consumer: { file: "worker/lib/saju-section/paid-quantum.src.js", marker: "function renderQuantumStrategy(p, natal, bazi)" },
   },
   {
     featureKey: "rpt_healthReportCard",

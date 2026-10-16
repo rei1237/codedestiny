@@ -5,9 +5,9 @@ import {
 } from "../../yeongnyangi/fortune/saju-runtime.mjs";
 import { createSajuSectionRuntime } from "./runtime.generated.mjs";
 
-// 사주 종합(section_summary)·대운 풀이(section_daewun) 본문을 서버에서 만든다.
+// 사주 종합(section_summary)·대운 풀이(section_daewun)·퀀텀 명리 엔진(rpt_quantumCard) 본문을 서버에서 만든다.
 // 계산 흐름은 js/saju-engine.js 의 사주 계산(원국 → 대운 브릿지 → 종격 판정 → 용신 정책)을 그대로 따른다.
-export const SAJU_SECTION_FEATURE_KEYS = Object.freeze(["section_summary", "section_daewun"]);
+export const SAJU_SECTION_FEATURE_KEYS = Object.freeze(["section_summary", "section_daewun", "rpt_quantumCard"]);
 // 클라이언트 출생지 선택의 기본 옵션(index.html #birthCountry 의 대한민국 서울).
 const DEFAULT_PLACE = Object.freeze({ name: "대한민국 (서울)", longitude: 127.0, latitude: 37.6, timezone: "Asia/Seoul", baseTzOffset: 9 });
 const JONG_DECISIONS = new Set(["confirmed", "rejected", "unverified"]);
@@ -33,13 +33,13 @@ function normalizePlace(place) {
   return { name, longitude, latitude, timezone, baseTzOffset };
 }
 
-function documentShim(neo, captured) {
+function documentShim(neo, captured, quantum) {
   const classList = { contains: (name) => neo && name === "neo-mode" };
   return {
     cookie: "",
     body: { classList },
     documentElement: { classList },
-    getElementById: (id) => (id === "summaryArea" ? captured : null),
+    getElementById: (id) => (id === "summaryArea" ? captured : id === "quantumSection" ? quantum.area : id === "quantumCard" ? quantum.card : null),
   };
 }
 
@@ -47,7 +47,7 @@ const memoryStorage = () => ({ getItem: () => null, setItem() {}, removeItem() {
 
 /**
  * @param {object} input
- * @param {"section_summary"|"section_daewun"} input.featureKey
+ * @param {"section_summary"|"section_daewun"|"rpt_quantumCard"} input.featureKey
  * @param {{calendarDate:string, calType:string, hour:number, minute:number, timeKnown:boolean}} input.birth 원래 달력 날짜와 입력 시각
  * @param {"M"|"F"} input.gender
  * @param {string} [input.name] 화면 이름(HTML 이스케이프한다)
@@ -56,7 +56,7 @@ const memoryStorage = () => ({ getItem: () => null, setItem() {}, removeItem() {
  * @param {object} [input.place] {name, longitude, latitude, timezone, baseTzOffset}
  * @param {"confirmed"|"rejected"|"unverified"} [input.jongDecision] 종격 검증 모달의 답
  * @param {{age:number, gan:string, zhi:string}} [input.daewun] section_daewun 에서 펼친 대운
- * @param {Date} [input.now]
+ * @param {Date} [input.now] 현재 나이·퀀텀 카드의 오늘 간지 기준 시각
  * @returns {{html:string}}
  */
 export function buildSajuSectionHtml(input) {
@@ -91,14 +91,15 @@ export function buildSajuSectionHtml(input) {
   if (!correction) throw new SajuSectionInputError("출생 시각을 확인해 주세요.", "SAJU_INVALID_BIRTH");
 
   const captured = { innerHTML: "" };
+  const quantum = { area: { innerHTML: "" }, card: { style: {} } };
+  const now = input.now instanceof Date ? input.now : new Date();
   const window = { location: { search: "", pathname: "/", hostname: "" }, localStorage: memoryStorage(), cdGetCurrentLanguage: () => input.lang || "ko" };
-  const rt = createSajuSectionRuntime({ window, document: documentShim(neo, captured), localStorage: window.localStorage, neo, lang: input.lang || "ko" });
+  const rt = createSajuSectionRuntime({ window, document: documentShim(neo, captured, quantum), localStorage: window.localStorage, neo, lang: input.lang || "ko", now });
 
   const zwClock = meta.corrected || { year: correction.correctedYear, month: correction.correctedMonth, day: correction.correctedDay, hour: correction.correctedHour, minute: correction.correctedMinute };
   window.__cdSajuTimeUnknown = timeUnknown;
   window._ziweiBirth = { year: zwClock.year, month: zwClock.month, day: zwClock.day, hour: zwClock.hour, minute: zwClock.minute, lat: place.latitude, lon: place.longitude, tz: tzResolved.tzOffsetHours, unknownHour: timeUnknown, timeDefault: timeUnknown };
   const birthYear = meta.civil.year;
-  const now = input.now instanceof Date ? input.now : new Date();
   const currentAge = new Date(now.getTime() + 9 * 60 * 60 * 1000).getUTCFullYear() - birthYear + 1;
 
   const pair = (key) => (natalChart.pillars[key] ? rt.parsePillar(natalChart.pillars[key]) : { g: "", j: "" });
@@ -125,10 +126,16 @@ export function buildSajuSectionHtml(input) {
   });
   const rows = timeUnknown ? [] : rt.daewunRows(bazi.getYun(gender === "M" ? 1 : 0).getDaYun());
   window.G_DAEWUN = rows;
+  // 브라우저에서는 셸 전역 var 가 곧 window 속성이다. 타로 파일의 analyzeFortuneGZ 가 window.G_JONG 으로 읽는다.
+  window.G_JONG = jong;
 
   if (featureKey === "section_summary") {
     rt.renderSummary(p, johu, natal);
     return { html: captured.innerHTML };
+  }
+  if (featureKey === "rpt_quantumCard") {
+    rt.renderQuantumStrategy(p, natal, bazi);
+    return { html: quantum.area.innerHTML };
   }
   const dw = input.daewun || {};
   const row = rows.find((r) => r.age === Number(dw.age) && r.g === dw.gan && r.j === dw.zhi);

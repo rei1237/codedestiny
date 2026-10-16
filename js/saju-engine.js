@@ -7100,18 +7100,16 @@ function _sajuPromptReadRenderedFeatureText(id, label, limit) {
   }
 }
 
-/* 퀀텀 명리 엔진은 지연 렌더라 카드를 열기 전에는 스텁만 있다.
-   해금한 사용자는 카드를 열지 않았어도 프롬프트에 반영되도록 여기서 한 번 계산하고,
-   미해금 사용자는 스텁 문구가 프롬프트로 새지 않도록 아예 제외한다. */
+/* 퀀텀 명리 엔진 본문은 서버(/api/saju/section, rpt_quantumCard)가 배달한다. 카드를 열기 전에는 스텁만 있다.
+   배달된 본문이 있을 때만 프롬프트에 넣고(브라우저에서 다시 계산하지 않는다),
+   해금했지만 아직 받지 않았다면 다음 프롬프트를 위해 조용히 받아 둔다. 미해금이면 스텁 문구가 새지 않게 제외한다. */
 function _sajuPromptPrepareQuantumDigest() {
   try {
     if (window.__cdQuantumRendered) return true;
     var unlocked = (typeof window.isTileKeyUnlocked === 'function') && window.isTileKeyUnlocked('rpt_quantumCard');
     if (!unlocked) return false;
-    if (typeof renderQuantumStrategy !== 'function') return false;
-    if (!G_PILLARS || !G_NATAL) return false;
-    renderQuantumStrategy(G_PILLARS, G_NATAL, G_BAZI);
-    return !!window.__cdQuantumRendered;
+    if (window.CdSajuSectionClient) window.CdSajuSectionClient.loadQuantum({ quiet: true });
+    return false;
   } catch (e) {
     console.warn('[SajuPrompt] 퀀텀 다이제스트 준비 실패:', e);
     return false;

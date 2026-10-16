@@ -1011,7 +1011,6 @@ function extractFunctionSource(source, name) {
     { key: "js/saju-engine.js:_shiftDatePartsByDays", why: "날짜 축만 미는 시프트(시·분 없음)" },
     { key: "js/saju-engine.js:_cdCivilDayPillar", why: "일진 60갑자 — UTC 일련번호" },
     { key: "js/luck-sync-diary.js:_addDaysToParts", why: "부품 시프트(시·분 보존)" },
-    { key: "js/saju-engine-tarot-sukuyo-quantum.js:renderQuantumStrategy", why: "현재 순간을 KST 부품으로 변환해 세운·월운을 조회한다(출생 시각 정규화 아님)" },
   ]);
 
   const MARKERS = Object.freeze(["Date.UTC(", "getUTCFullYear()", "getUTCMonth()+1"]);

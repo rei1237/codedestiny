@@ -1,5 +1,5 @@
 /**
- * 사주 종합(section_summary)·대운 풀이(section_daewun) 본문이 브라우저로 되돌아오지 않게 막는 가드.
+ * 사주 종합(section_summary)·대운 풀이(section_daewun)·퀀텀 명리 엔진(rpt_quantumCard) 본문이 브라우저로 되돌아오지 않게 막는 가드.
  *
  * 2026-10-12 이전: renderSummary·대운 풀이 생성기가 js/saju-engine.js 에 통째로 실려 있어
  * 콘솔에서 함수 하나만 부르면 결제 없이 본문이 나왔다. 이제 본문은 /api/saju/section 이
@@ -48,6 +48,9 @@ test("종합·대운 유료 렌더러와 문장이 브라우저 경로에 없다
     "보유 십성 랭킹", "내면과 겉모습의 간격", "관계에서 반드시 기억할 것", "대운과 세운, 다음 시기를 함께 읽기",
     // 서버 이전 뒤 덧붙인 장(올해·내년 처방, 전체 대운 지도, 전환기 체크리스트).
     "_sajuSeunYearReading", "_sajuDaewunMapHtml", "_sajuDaewunTransitionHtml", "올해·내년 처방", "전체 대운 지도", "전환기 체크리스트",
+    // 퀀텀 명리 엔진(rpt_quantumCard) 본문. 장 제목은 마케팅 문구에도 있어 코드 이름과 본문에만 있는 문장을 본다.
+    "function renderQuantumStrategy(", "QUANTUM_MYEONGRI_ENGINE_V3", "qProfessionalSummary", "qNatalRelations", "qFlowAdvice", "qEvidenceHtml",
+    "원국과 운의 계산 상태가 일치하지 않아 합·충 해석을 보류했습니다",
   ];
   const offenders = [];
   for (const rel of browserServedFiles()) {
@@ -60,6 +63,7 @@ test("종합·대운 유료 렌더러와 문장이 브라우저 경로에 없다
   for (const name of ["generateDetailedAdvice", "getDaewunBranchEvidence", "buildDaewunDetailHtml"]) {
     assert.ok(paid.includes("function " + name + "("), `${name} 정본이 서버에 없다`);
   }
+  assert.ok(read("worker/lib/saju-section/paid-quantum.src.js").includes("function renderQuantumStrategy(p, natal, bazi){"), "퀀텀 명리 엔진 정본이 서버에 없다");
 });
 
 test("브라우저는 본문을 서버에만 묻는다", () => {
@@ -68,6 +72,8 @@ test("브라우저는 본문을 서버에만 묻는다", () => {
   const engine = stripComments(read("js/saju-engine.js"));
   assert.match(engine, /function renderSummary\(\)\{[^}]*CdSajuSectionClient\.loadSummary\(\)/, "renderSummary 가 서버 로더를 거치지 않는다");
   assert.match(engine, /function showDwDetail\([^)]*\)\{[^}]*CdSajuSectionClient\.showDaewun\(/, "showDwDetail 이 서버 로더를 거치지 않는다");
+  assert.match(client, /requestBody\('rpt_quantumCard'\)/, "퀀텀 카드가 서버 본문을 요청하지 않는다");
+  assert.match(read("js/core/saju/reportDashboard.js"), /case 'quantumCard':[\s\S]{0,200}CdSajuSectionClient\.loadQuantum\(\)/, "퀀텀 카드 열기가 서버 로더를 거치지 않는다");
   assert.match(read("index.html"), /<script defer src="\/js\/core\/saju\/section-client\.js"><\/script>/, "index.html 이 본문 로더를 싣지 않는다");
 });
 

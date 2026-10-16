@@ -1228,7 +1228,8 @@ function _sajuFunTryRecoverTargetCard(targetId) {
         if (typeof renderLottoNumbers === 'function' && natal) renderLottoNumbers(natal, bazi);
         break;
       case 'quantumCard':
-        if (typeof renderQuantumStrategy === 'function' && p && natal) renderQuantumStrategy(p, natal, bazi);
+        // 본문은 서버(/api/saju/section, rpt_quantumCard)가 해금을 확인한 뒤 배달한다.
+        if (window.CdSajuSectionClient && p && natal) window.CdSajuSectionClient.loadQuantum();
         break;
       case 'specialCharmCard':
         if (typeof renderSpecialCharm === 'function' && p && natal) renderSpecialCharm(p, natal);
@@ -1284,7 +1285,7 @@ function _sajuFunEnsureHealthReportRendered(targetEl) {
 }
 
 /* 퀀텀 명리 엔진은 결과 계산 직후에는 스텁만 깔려 있다.
-   카드를 실제로 여는 시점(= 잠금 게이트를 통과한 시점)에만 전체 판별을 돌린다. */
+   카드를 실제로 여는 시점(= 잠금 게이트를 통과한 시점)에만 서버에 본문을 요청한다(비동기 배달). */
 function _sajuFunEnsureQuantumBlockReady(block) {
   if (!block || block.id !== 'rpt-v2-section-quantumCard') return false;
   if (window.__cdQuantumRendered) return true;

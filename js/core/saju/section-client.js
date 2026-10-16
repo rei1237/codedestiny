@@ -1,4 +1,4 @@
-/* 사주 종합(section_summary)·대운 풀이(section_daewun) 본문 배달.
+/* 사주 종합(section_summary)·대운 풀이(section_daewun)·퀀텀 명리 엔진(rpt_quantumCard) 본문 배달.
    본문은 서버(/api/saju/section)가 계정·프로필 해금을 확인한 뒤에만 만든다.
    이 파일은 요청과 표시만 한다 — 유료 문장·생성기·본문 캐시가 없다. */
 (function (root) {
@@ -10,6 +10,7 @@
   var seq = 0;
   var summary = { key: '', state: '', seq: 0, failedAt: 0 };
   var daewun = { key: '', state: '', seq: 0, row: null };
+  var quantum = { key: '', state: '', seq: 0, failedAt: 0, quiet: false };
 
   function byId(id) { return document.getElementById(id); }
   function profileId() {
@@ -168,6 +169,50 @@
       fail(failureText(result));
     }, function () { fail(failureText(null)); });
   }
+  // 퀀텀 명리 엔진: 카드를 열 때(또는 AI 프롬프트가 해금 본문을 찾을 때) 받는다.
+  // 받기 전에는 무료 스텁(renderQuantumStrategyStub)이 그대로 남는다. quiet 요청은 스텁을 덮지 않는다.
+  function loadQuantum(options) {
+    var opts = options || {};
+    var area = byId('quantumSection');
+    var card = byId('quantumCard');
+    if (!area || !card) return false;
+    var body = requestBody('rpt_quantumCard');
+    if (!body) return false;
+    var key = keyOf(body);
+    if (!opts.force && quantum.key === key) {
+      if (quantum.state === 'done' && hasBody(area)) return true;
+      if (quantum.state === 'loading') return false;
+      if (quantum.state === 'failed' && opts.quiet && Date.now() - quantum.failedAt < FAILED_QUIET_MS) return false;
+    }
+    var mine = ++seq;
+    quantum = { key: key, state: 'loading', seq: mine, failedAt: 0, quiet: !!opts.quiet };
+    if (!opts.quiet) {
+      show(area, statusNode('퀀텀 명리 엔진을 불러오고 있어요.'));
+      card.style.display = 'block';
+    }
+    function current() { return quantum.seq === mine && keyOf(requestBody('rpt_quantumCard')) === key; }
+    function fail(text) {
+      if (!current()) return;
+      quantum.state = 'failed';
+      quantum.failedAt = Date.now();
+      if (!opts.quiet) show(area, statusNode(text, function () { loadQuantum({ force: true }); }));
+    }
+    request(body).then(function (result) {
+      if (!current()) return;
+      var data = result.payload || {};
+      if (result.ok && delivered('rpt_quantumCard', data)) {
+        quantum.state = 'done';
+        area.innerHTML = data.html;
+        card.style.display = 'block';
+        root.__cdQuantumRendered = true;
+        notify('rpt_quantumCard');
+        return;
+      }
+      fail(failureText(result));
+    }, function () { fail(failureText(null)); });
+    return false;
+  }
+
   // 화면 모드(연냥이·네오) 전환: 펼친 대운을 새 모드로 다시 받는다.
   function refreshDaewun() {
     var detail = byId('dwDetail');
@@ -182,7 +227,8 @@
       try { if (typeof root._cdSajuGateUnlocked !== 'function' || root._cdSajuGateUnlocked('section_summary')) loadSummary(); } catch (_) {}
     }
     if (daewun.state === 'failed') refreshDaewun();
+    if (quantum.state === 'failed') loadQuantum({ quiet: quantum.quiet, force: true });
   });
 
-  root.CdSajuSectionClient = { loadSummary: loadSummary, showDaewun: showDaewun, refreshDaewun: refreshDaewun };
+  root.CdSajuSectionClient = { loadSummary: loadSummary, showDaewun: showDaewun, refreshDaewun: refreshDaewun, loadQuantum: loadQuantum };
 })(window);
