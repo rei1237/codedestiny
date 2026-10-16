@@ -4,11 +4,11 @@
 
 - 공식 홈페이지: https://code-destiny.com/
 - 상담 앱 입구(꽃돼지 연이·네오): https://code-destiny.com/ggulggul/
-- 영냥이 상담 입구: https://code-destiny.com/yeongnyangi/
+- 운세보는 영냥이(영냥이 상담) 입구: https://code-destiny.com/yeongnyangi/
 - 표기: 공식 서비스명은 "꿀꿀 운세"이고, 붙여 쓴 "꿀꿀운세"도 같은 서비스입니다.
 - 운영자: CODE DESTINY(코드 데스티니). 대표 박병하(활동명 네오). 소개: https://code-destiny.com/about/#author
 - 공식 외부 채널: https://www.youtube.com/@CodeDestiny_Official · https://www.threads.com/@codedestiny_official · https://www.instagram.com/codedestiny_official/ · https://blog.naver.com/neosaju · https://x.com/sajuseongj97497
-- 캐릭터: 꽃돼지 연이(꿀꿀 운세의 안내 캐릭터), 네오(대표 명리학자 박병하의 활동명), 영냥이(같은 플랫폼의 사주보는 고양이 상담 서비스)
+- 캐릭터: 꽃돼지 연이(꿀꿀 운세의 안내 캐릭터), 네오(대표 명리학자 박병하의 활동명), 운세보는 영냥이(꿀꿀 운세의 사주보는 고양이 상담 서비스)
 - 언어: 한국어(기본), 일본어 `/ja/`, 중국어 간체 `/zh/`, 중국어 번체 `/zh-tw/`, 영어 `/en/`
 
 ## 이름 이력
@@ -43,7 +43,7 @@
 
 ## 통합 리포트
 
-- [천원 운세·천원사주와 영냥이 상담 안내](https://code-destiny.com/yeongnyangi/1000-won-fortune/): 꿀꿀 운세의 천원 운세 안내. 1,000원 재미 사주 콘텐츠 3종과, 사주·타로·자미두수·숙요점·베다점·서양 점성술 중 한 체계의 영냥이 고등어 상담을 고르고, AI 해설 방식·단건 결제·상품별 가격·결과 예시·재열람 방법을 확인합니다.
+- [천원 운세·천원사주 — 1,000원 재미 사주 콘텐츠](https://code-destiny.com/yeongnyangi/1000-won-fortune/): 꿀꿀 운세의 천원 운세 안내. 무료 사주 결과 화면에서 나의 매력 클래스·인생 스킬 트리·달빛 럭키 리추얼 3종을 각각 1,000원에 엽니다. 영냥이 상담은 별도 유료(고등어 등급부터)입니다.
 - [초융합 운세](https://code-destiny.com/fusion-fortune/): 사주, 자미두수, 숙요점, 베다 점성술, 서양 점성술, 타로를 각 체계의 기준으로 읽고 AI가 공통점과 차이를 한 리포트로 정리합니다.
 - [휴먼 디자인 이용 안내](https://code-destiny.com/human-design/guide/): 무료 바디그래프의 타입·권위·센터를 읽는 순서와 필요한 입력, 유료 리포트의 범위를 안내합니다.
 

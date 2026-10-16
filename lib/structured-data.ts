@@ -208,6 +208,8 @@ const SERVICE_AUDIENCE: Record<string, ServiceAudience> = {
 
 export function buildServiceJsonLd(input: {
   name: string;
+  /** 같은 서비스를 가리키는 다른 표기. 비어 있으면 내보내지 않는다. */
+  alternateName?: string[];
   description: string;
   path: string;
   serviceType?: string;
@@ -225,6 +227,7 @@ export function buildServiceJsonLd(input: {
     "@context": "https://schema.org",
     "@type": "Service",
     name: input.name,
+    ...(input.alternateName?.length ? { alternateName: input.alternateName } : {}),
     serviceType: input.serviceType || audience.serviceType,
     description: input.description,
     inLanguage: toInLanguage(input.locale),

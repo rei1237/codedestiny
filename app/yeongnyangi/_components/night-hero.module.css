@@ -4,7 +4,7 @@
 .hero::before{content:"";position:absolute;top:0;right:0;z-index:-1;width:160px;height:120px;background:var(--yn-gold);opacity:.35;pointer-events:none;-webkit-mask:var(--yn-yehwa-mask-branch-spray) top right/contain no-repeat;mask:var(--yn-yehwa-mask-branch-spray) top right/contain no-repeat}
 @media(max-width:699px){.hero::before{width:110px;height:84px}}
 .copy{min-width:0}.copy h1{font-family:"Yeongnyangi Myeongjo",serif;font-size:clamp(2rem,3.6vw,3.3rem);line-height:1.45;letter-spacing:-.035em;margin:0 0 22px;color:var(--yn-ivory);text-wrap:balance}.copy h1 span{color:var(--yn-gold)}
-.copy>p{font-size:17px;line-height:1.85;color:var(--yn-muted);margin:0 0 28px;overflow-wrap:anywhere}
+.copy>p{font-size:17px;line-height:1.85;color:var(--yn-muted);margin:0 0 28px;overflow-wrap:anywhere;word-break:keep-all}
 .actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center}.actions a{display:inline-flex;gap:10px;align-items:center;justify-content:center;min-height:52px;padding:12px 18px;border-radius:12px;font-size:15px;font-weight:700;text-decoration:none;line-height:1.55;text-align:center}
 .actions .primary{background:var(--yn-gold);color:var(--yn-deep);border:1px solid var(--yn-gold)}.actions .primary:hover{background:#f4d9ab}.actions .secondary{color:var(--yn-ivory);border:1px solid var(--yn-line);background:var(--yn-night)}.actions .secondary:hover{background:var(--yn-raised)}.actions svg{flex-shrink:0}
 .copy .price{font-size:14px;margin:16px 0 0;font-variant-numeric:tabular-nums}.keep{white-space:nowrap}.copy .example{display:inline-flex;align-items:center;min-height:44px;font-size:14px;color:var(--yn-ivory);text-decoration:underline;text-underline-offset:5px}

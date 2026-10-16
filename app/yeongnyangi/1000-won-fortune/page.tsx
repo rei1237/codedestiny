@@ -62,7 +62,7 @@ const sukuyoPair=readingManifest(single('sukuyo','mackerel'),'general','compatib
 
 const FAQS=[
  {question:'천원 운세로 무엇을 볼 수 있나요?',answer:`${FUN.map(item=>item.name).join(', ')} ${FUN.length}가지 재미 사주 콘텐츠를 각각 ${FUN_PRICE}에 열 수 있어요. 무료 사주 결과 화면의 리포트 카드에서 고르면 돼요. 달빛 럭키 리추얼은 로또 번호와 번호별 해석, 금전 루틴을 한 리포트에 담아요. 내 질문을 AI가 챕터로 길게 풀어 주는 영냥이 상담은 고등어 ${PRICE}부터예요.`},
- {question:'천원사주는 정말 1,000원인가요?',answer:`네. 이 페이지에 소개한 재미 사주 콘텐츠 다섯 가지는 각각 ${FUN_PRICE}이에요. 결제창에서 금액과 적용 수단을 한 번 더 확인해요. 앱(Google Play) 결제는 아직 준비 중이라 웹에서 이용해 주세요.`},
+ {question:'천원사주는 정말 1,000원인가요?',answer:`네. 이 페이지에 소개한 재미 사주 콘텐츠 ${FUN.length}가지는 각각 ${FUN_PRICE}이에요. 결제창에서 금액과 적용 수단을 한 번 더 확인해요. 앱(Google Play) 결제는 아직 준비 중이라 웹에서 이용해 주세요.`},
  {question:'영냥이 상담도 천원인가요?',answer:`아니요. 2026년 10월 12일부터 영냥이 고등어 상담은 사주, 자미두수, 숙요점, 베다점, 점성술, 타로 여섯 가지 모두 ${PRICE}이에요. 더 깊은 상담은 ${TIERS.slice(1).map(fish=>`${packages[fish].name} ${won(single('saju',fish).priceKRW)}`).join(', ')}으로 구성되며, 초융합 상담도 별도 가격이에요. 선택한 상품의 가격과 이용권 적용 여부는 결제창에서 확인해 주세요.`},
  {question:'이용권이나 월정석으로도 볼 수 있나요?',answer:'패밀리 꿀단지 이용권은 적용됩니다. 다른 이용권 등급과 월정석은 적용되지 않으며, 패밀리 꿀단지가 없다면 카드·카카오페이 등의 단건 결제로 이용할 수 있어요.'},
  {question:'출생시간을 모르면 상담할 수 없나요?',answer:'고등어 사주 상담은 출생시간 없이도 상담할 수 있어요. 자미두수, 숙요점, 베다점, 점성술은 출생시간으로 계산이 달라지므로 시간이 필요하고, 타로는 출생정보 없이 질문만으로 상담해요.'},
@@ -73,7 +73,7 @@ const FAQS=[
  {question:'입력한 생년월일과 질문은 어떻게 쓰이나요?',answer:'입력한 출생정보와 질문은 상담을 계산하고 결과를 기록해 다시 보여 주는 데 쓰여요. 보관과 처리 방식은 개인정보 처리방침에서 확인할 수 있어요.'},
 ];
 
-const TITLE=`천원 운세·천원사주 | ${FUN_PRICE} 재미 사주와 영냥이 상담`;
+const TITLE=`천원 운세·천원사주 | ${FUN_PRICE} 재미 사주 콘텐츠 ${FUN.length}종`;
 const DESCRIPTION=`매력 클래스·인생 스킬 트리 등 재미 사주 ${FUN.length}종을 ${FUN_PRICE}에 여는 천원 운세 안내예요. 영냥이 고등어 상담(${PRICE}) 예시와 가격도 확인하세요.`;
 const OG_TITLE=TITLE;
 
@@ -81,7 +81,7 @@ export const metadata:Metadata={
  metadataBase:new URL('https://code-destiny.com'),
  title:{absolute:TITLE},
  description:DESCRIPTION,
- keywords:['천원 운세','천원운세','1000원 운세','1,000원 운세','천원사주','천원 사주풀이','1000원 사주','사주보는 고양이','영냥이'],
+ keywords:['천원 운세','천원운세','1000원 운세','1,000원 운세','천원사주','천원 사주풀이','1000원 사주','재미 사주'],
  alternates:{canonical:PAGE_URL},
  robots:{index:true,follow:true,googleBot:{index:true,follow:true,'max-image-preview':'large','max-snippet':-1,'max-video-preview':-1}},
  openGraph:{type:'website',locale:'ko_KR',url:PAGE_URL,siteName:siteSeo.brandName,title:OG_TITLE,description:DESCRIPTION,images:[yeongnyangiOgImage]},
@@ -90,19 +90,19 @@ export const metadata:Metadata={
 
 const jsonLd=[
  buildWebPageJsonLd({title:TITLE,description:DESCRIPTION,path:PATH}),
- buildBreadcrumbJsonLd([{name:siteSeo.brandName,path:'/ggulggul/'},{name:'사주보는 고양이 영냥이',path:'/yeongnyangi/'},{name:'천원 운세·천원사주',path:PATH}]),
- buildServiceJsonLd({name:'천원 운세·영냥이 상담',description:`재미 사주 콘텐츠 ${FUN.length}종을 ${FUN_PRICE}에 열고, 사주·타로·자미두수·숙요점·베다점·서양 점성술 중 한 체계의 고등어 상담을 ${PRICE}에 이용하며, 계산이나 카드 상징을 바탕으로 AI가 ${chapterRange(mackerels)} 챕터로 해설하는 서비스`,path:PATH}),
+ buildBreadcrumbJsonLd([{name:'꿀꿀 운세',path:'/'},{name:'천원 운세·천원사주',path:PATH}]),
+ buildServiceJsonLd({name:'천원 재미 사주 콘텐츠',description:`무료 사주 결과 화면에서 ${FUN.map(item=>item.name).join('·')} ${FUN.length}종을 각각 ${FUN_PRICE}에 여는 재미 사주 콘텐츠. 영냥이 상담은 별도 가격(고등어 ${PRICE}부터)이에요.`,path:PATH}),
  buildFaqPageJsonLd(FAQS),
 ];
 const serialize=(value:unknown)=>JSON.stringify(value).replace(/</g,'\\u003c');
 
 export default function Page(){
  return <LocalizedGuideScreen><article className={styles.hub}>
-  <nav className={styles.crumbs} aria-label="현재 위치"><a href="/ggulggul/">{siteSeo.brandName}</a><span aria-hidden="true">›</span><a href="/yeongnyangi/">사주보는 고양이 영냥이</a><span aria-hidden="true">›</span><span aria-current="page">천원 운세·천원사주</span></nav>
+  <nav className={styles.crumbs} aria-label="현재 위치"><a href="/">꿀꿀 운세</a><span aria-hidden="true">›</span><span aria-current="page">천원 운세·천원사주</span></nav>
 
   <section className={styles.intro}>
    <div>
-    <p className={styles.kicker}>꿀꿀운세 · 사주보는 고양이 영냥이</p>
+    <p className={styles.kicker}>꿀꿀 운세 · 재미 사주 콘텐츠</p>
     <h1><span className={styles.h1Line}>천원 운세·천원사주,</span> <span className={styles.h1Line}>{FUN_PRICE} 재미 사주 콘텐츠</span></h1>
     <p>천원 운세는 무료 사주 결과에 이어 {FUN_PRICE}으로 여는 재미 사주 콘텐츠예요. 나의 매력 클래스, 인생 스킬 트리, 달빛 럭키 리추얼처럼 가볍게 보고 즐기는 콘텐츠를 계산 결과로 바로 만들어요.</p>
     <p>한 가지 고민을 근거와 함께 길게 읽고 싶다면 영냥이 고등어 상담({PRICE})이 맞아요. 사주 고등어 상담은 {mackerels[0].chapterCount}개 챕터에서 내 기질과 고민의 흐름을 읽고, 왜 그렇게 해석했는지와 생활 속에서 해볼 행동을 함께 살펴요.</p>
