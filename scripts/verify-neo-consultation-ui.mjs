@@ -68,6 +68,9 @@ try {
     await page.setViewportSize({width,height:900});
     await page.goto(base+'/neo-consultation/');
     await page.getByText('MOCK 미리보기',{exact:false}).waitFor();
+    const background = page.locator('picture img');
+    await background.evaluate(img=>img.decode());
+    assert.ok((await background.evaluate(img=>img.currentSrc)).endsWith('moonlight-garden-'+(width<=760?'768':'1536')+'.webp'));
     const contrast = await page.evaluate(() => {
       const luminance = color => {
         const values = color.match(/[\d.]+/g).slice(0,3).map(Number).map(v => { v /= 255; return v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; });

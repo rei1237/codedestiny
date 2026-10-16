@@ -114,7 +114,7 @@ export default function NeoConsultationClient() {
   return <LazyMotion features={domAnimation}><main className={styles.page}>
     <nav className={styles.nav}><Link href="/">Code Destiny</Link><a href="#neo-form">질문 작성하기</a></nav>
     <header className={styles.hero}>
-      <picture className={styles.heroArt} aria-hidden="true"><source media="(max-width:760px)" srcSet="/images/neo-consultation/moonlight-garden-768.webp" /><Image src="/images/neo-consultation/moonlight-garden-1536.webp" width={1536} height={1024} alt="" priority /></picture>
+      <picture className={styles.heroArt} aria-hidden="true"><source media="(max-width:760px)" srcSet="/images/neo-consultation/moonlight-garden-768.webp" /><Image src="/images/neo-consultation/moonlight-garden-1536.webp" width={1536} height={1024} alt="" loading="eager" /></picture>
       <m.div className={styles.heroCopy} initial={{ y: reducedMotion ? 0 : 16 }} animate={{ y: 0 }} transition={{ duration: .85, ease: [.16,1,.3,1] }}>
         <h1>네오에게<br /><span>물어봐</span></h1>
         <p className={styles.lead}>마음은 깊게 읽고,<br />선택은 선명하게.</p>
