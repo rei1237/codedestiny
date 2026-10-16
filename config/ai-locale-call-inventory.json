@@ -383,12 +383,12 @@
         "symbol": "./gemini.js"
       },
       {
-        "line": 503,
+        "line": 535,
         "kind": "call",
         "symbol": "callGeminiJsonWithRetry"
       },
       {
-        "line": 674,
+        "line": 766,
         "kind": "call",
         "symbol": "callGeminiText"
       }
@@ -533,22 +533,22 @@
         "symbol": "../lib/gemini.js"
       },
       {
-        "line": 1209,
+        "line": 1211,
         "kind": "call",
         "symbol": "callGeminiText"
       },
       {
-        "line": 1370,
+        "line": 1372,
         "kind": "call",
         "symbol": "callGeminiText"
       },
       {
-        "line": 1399,
+        "line": 1401,
         "kind": "call",
         "symbol": "callGeminiText"
       },
       {
-        "line": 1428,
+        "line": 1430,
         "kind": "call",
         "symbol": "callGeminiText"
       }
@@ -618,17 +618,22 @@
     "file": "worker/routes/fortune-tea-house.js",
     "matches": [
       {
-        "line": 7,
+        "line": 23,
         "kind": "import-or-injected-call",
         "symbol": "../lib/gemini.js"
       },
       {
-        "line": 4194,
+        "line": 4330,
         "kind": "call",
         "symbol": "callGeminiText"
       },
       {
-        "line": 5304,
+        "line": 5444,
+        "kind": "call",
+        "symbol": "callGeminiText"
+      },
+      {
+        "line": 5741,
         "kind": "call",
         "symbol": "callGeminiText"
       }
@@ -863,27 +868,27 @@
         "symbol": "../lib/gemini.js"
       },
       {
-        "line": 24,
+        "line": 25,
         "kind": "import-or-injected-call",
         "symbol": "../lib/structured-consultation.js"
       },
       {
-        "line": 1485,
+        "line": 1487,
         "kind": "call",
         "symbol": "callGeminiJsonWithRetry"
       },
       {
-        "line": 1533,
+        "line": 1535,
         "kind": "call",
         "symbol": "callGeminiJsonWithRetry"
       },
       {
-        "line": 1625,
+        "line": 1627,
         "kind": "call",
         "symbol": "callGeminiText"
       },
       {
-        "line": 2183,
+        "line": 2185,
         "kind": "call",
         "symbol": "callGeminiText"
       }
@@ -923,37 +928,37 @@
     "file": "worker/routes/ziwei-ai.js",
     "matches": [
       {
-        "line": 27,
+        "line": 28,
         "kind": "import-or-injected-call",
         "symbol": "../lib/gemini.js"
       },
       {
-        "line": 29,
+        "line": 30,
         "kind": "import-or-injected-call",
         "symbol": "../lib/structured-consultation.js"
       },
       {
-        "line": 1680,
+        "line": 1682,
         "kind": "call",
         "symbol": "callGeminiJsonWithRetry"
       },
       {
-        "line": 1691,
+        "line": 1693,
         "kind": "call",
         "symbol": "callGeminiText"
       },
       {
-        "line": 1725,
+        "line": 1727,
         "kind": "call",
         "symbol": "callGeminiText"
       },
       {
-        "line": 1869,
+        "line": 1871,
         "kind": "call",
         "symbol": "callGeminiJsonWithRetry"
       },
       {
-        "line": 1919,
+        "line": 1921,
         "kind": "call",
         "symbol": "callGeminiJsonWithRetry"
       }
