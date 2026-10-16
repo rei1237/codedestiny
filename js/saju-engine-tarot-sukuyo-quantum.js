@@ -8302,7 +8302,8 @@ var SY_PAID_FEATURES = Object.freeze({
   extremeTRelationshipCircuit: { key: 'sukuyo-extreme-t-relationship', cost: 30, reason: '극T 관계 회로 확장' },
   relationshipEncyclopedia: { key: 'sukuyo-relationship-encyclopedia', cost: 30, reason: '숙요 인연 도감' },
   natureDeepDive: { key: 'sukuyo-nature-deep-dive', cost: 30, reason: '본성 심화 해석' },
-  pastLifeReading: { key: 'sukuyo-past-life-reading', cost: 50, reason: '숙요 인연 레이더' },
+  // 전생 인연 리딩도 상대마다 회당 결제다 — 서버가 결제 1건을 상대 조합 1건에 묶는다(worker/routes/sukuyo.js).
+  pastLifeReading: { key: 'sukuyo-past-life-reading', cost: 50, reason: '숙요 인연 레이더', perPayment: true },
   monthlyFortune: { key: 'sukuyo-monthly-fortune', cost: 30, reason: '월별 숙요 운세 확장' },
   // perPayment: 상대가 매번 바뀌는 회당 결제 — 결제마다 새 requestId 를 쓴다(syOpenPaidSukuyoFeature).
   compatibility: { key: 'compat-sukuyo-compatibility', cost: 30, reason: '숙요점 궁합 분석', perPayment: true },
@@ -8355,7 +8356,7 @@ function syIsPaidGateGranted(result) {
 var _sySukuyoPaidGateInFlight = Object.create(null);
 var SY_SUKUYO_PAID_GATE_TTL_MS = 45000;
 
-/* 🔴 회당 결제(perPayment — 기본·정밀 궁합)는 결제마다 새 requestId 를 쓴다. 카드에 고정하면 다른 상대를
+/* 🔴 회당 결제(perPayment — 기본·정밀 궁합·전생 인연 리딩)는 결제마다 새 requestId 를 쓴다. 카드에 고정하면 다른 상대를
    볼 때 월정석 원장(purchaseId)·이용권 멱등 마커가 같은 값이라 서버가 첫 결제의 재생으로 처리해 두 번째
    결제가 일어나지 않았다. 연타는 위 인플라이트 맵(45초)이 게이트 진입 자체를 막으므로 값이 달라도 한 번만
    열린다. 앞부분(기능|카드)은 보관함 저장 때 서버가 이 카드·이 기능의 결제인지 확인하는 데 쓴다

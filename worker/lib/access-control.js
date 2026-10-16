@@ -4,7 +4,8 @@ import {
   findActivePaidContentUnlock,
   upsertPaidContentUnlock,
 } from "./content-unlocks.js";
-import { FEATURE_KEY_PRICE_TABLE, PAID_FEATURE_BILLING_TYPES, getPaidFeatureBillingType, isBirthScopedUnlockFeatureKey, normalizePaidFeatureKey } from "./paid-feature-registry.js";
+import { FEATURE_KEY_PRICE_TABLE, PAID_FEATURE_BILLING_TYPES, getPaidFeatureBillingType, isBirthScopedUnlockFeatureKey, isPerUsePaidFeatureKey, normalizePaidFeatureKey } from "./paid-feature-registry.js";
+import { claimBillingEvidence } from "./billing-evidence-claim.js";
 import { verifyPremiumAccessToken } from "./premium-access-token.js";
 import { normalizeHoneyPassEntitlement } from "./profile-limits.js";
 
@@ -207,6 +208,42 @@ async function settlePremiumPassReportAccess(env, { userId, profileId, normalize
   return { ...base, ...settled };
 }
 
+const RECENT_WINDOW_CLAIM_CANDIDATES = 5;
+
+function premiumReportRequestId(requestBody = {}) {
+  const nested = ["payment", "consume", "_paymentContext", "accessGrant"].map((key) => (requestBody && typeof requestBody[key] === "object" ? requestBody[key] : {}));
+  return String([requestBody?.requestId, ...nested.map((item) => item?.requestId)].find((value) => String(value || "").trim()) || "").trim();
+}
+
+/**
+ * 🔴 회당 리포트: 결제·차감 증빙 1건은 요청 1건에만 쓴다(billing-evidence-claim.js, 2026-10-16).
+ * 예전에는 같은 차감 행을 requestId 만 바꿔 몇 번이든 내밀 수 있었다(본문 증빙·최근 결제 창).
+ * 이미 다른 요청이 쓴 증빙이면 "used" — 호출부는 그 경로를 건너뛰고 다음 경로를 본다(끝까지 없으면 평소의 402).
+ * 영구 해금형(FPTI 등)은 대상이 아니다(perUse=false). DB 오류는 "unavailable" → 503(결제한 사람을 402로 막지 않는다).
+ */
+async function claimPremiumReportEvidence(env, { perUse, userId, claimRequestId, featureKey = "", evidenceId }) {
+  if (!perUse) return "ok";
+  const id = String(evidenceId || "").trim();
+  if (!id) return "used";
+  try {
+    const claimed = await claimBillingEvidence(env, { userId: String(userId || ""), featureKey, requestId: claimRequestId, evidenceIds: [id], kind: "premium-report" });
+    return claimed.ok ? "ok" : "used";
+  } catch (error) {
+    console.warn("[premium-access] evidence claim unavailable", { featureKey, message: String(error?.message || error) });
+    return "unavailable";
+  }
+}
+
+function premiumEvidenceUnavailableResult(reportType) {
+  return {
+    ok: false,
+    status: 503,
+    code: "PAYMENT_VERIFY_UNAVAILABLE",
+    message: "결제 확인이 잠시 지연되고 있어요. 잠시 후 다시 시도해 주세요.",
+    reportType,
+  };
+}
+
 export function buildAlternativePaymentRules(reportType, requestBody = {}) {
   if (reportType === "celestialHarmony") {
     return [
@@ -384,7 +421,8 @@ export function buildRequiredPaymentRules(reportType, requestBody = {}) {
   return [];
 }
 
-async function findRecentDeductionEvidence(userId, rule) {
+// excludeIds: 이미 다른 요청이 쓴 차감 행 — 창 안의 다음(더 오래된) 행을 본다.
+async function findRecentDeductionEvidence(userId, rule, { excludeIds = [] } = {}) {
   const minutes = Number(rule?.windowMinutes || 30);
   const minCost = Number(rule?.minCost || 0);
   const createdAtMin = new Date(Date.now() - minutes * 60 * 1000);
@@ -399,6 +437,7 @@ async function findRecentDeductionEvidence(userId, rule) {
     featureKey: featureKeys.length > 1 ? { $in: featureKeys } : String(rule?.featureKey || "").trim(),
     createdAt: { $gte: createdAtMin },
   };
+  if (excludeIds.length) baseQuery._id = { $nin: excludeIds };
 
   if (minCost > 0) {
     baseQuery.delta = { $lte: -Math.floor(minCost) };
@@ -858,6 +897,13 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
     || "",
   ).trim();
   const logSajuAccessResolved = () => {};
+  // 증빙 claim(1건 = 요청 1건)은 회당 리포트에만 건다. options.claimBindingKey 는 같은 requestId 안에서도
+  // 결과가 달라지는 리포트(숙요 전생 리딩 = 상대 조합)가 그 조합까지 묶을 때 쓴다.
+  const perUseReport = alternativeRules.some((rule) => isPerUsePaidFeatureKey(rule?.featureKey));
+  const baseClaimRequestId = premiumReportRequestId(requestBody);
+  const claimBindingKey = String(options?.claimBindingKey || "").trim();
+  const claimRequestId = baseClaimRequestId && claimBindingKey ? `${baseClaimRequestId}|${claimBindingKey}` : baseClaimRequestId;
+  const claimEvidence = (evidenceId, featureKey) => claimPremiumReportEvidence(env, { perUse: perUseReport, userId, claimRequestId, featureKey, evidenceId });
   const premiumAccessToken = String(
     requestBody?.premiumAccessToken
     || requestBody?._premiumAccessToken
@@ -879,16 +925,20 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
       const tokenTransactionId = String(tokenPayload.transactionId || requestBody?.sourceTransactionId || requestBody?.transactionId || "").trim();
       const tokenFeatureKey = String(tokenPayload.featureKey || requestBody?.featureKey || "").trim();
       const tokenChargedCoins = Math.max(0, Math.abs(Number(tokenPayload.chargedCoins || requestBody?.chargedCoins || 0)));
-      const allowed = {
-        ok: true,
-        accessType: "signed-payment-token",
-        reportType: normalizedReportType,
-        matchedTransactionId: tokenTransactionId,
-        featureKey: tokenFeatureKey,
-        chargedCoins: tokenChargedCoins,
-      };
-      logSajuAccessResolved(allowed);
-      return allowed;
+      const tokenClaim = await claimEvidence(tokenTransactionId, tokenFeatureKey);
+      if (tokenClaim === "unavailable") return premiumEvidenceUnavailableResult(normalizedReportType);
+      if (tokenClaim === "ok") {
+        const allowed = {
+          ok: true,
+          accessType: "signed-payment-token",
+          reportType: normalizedReportType,
+          matchedTransactionId: tokenTransactionId,
+          featureKey: tokenFeatureKey,
+          chargedCoins: tokenChargedCoins,
+        };
+        logSajuAccessResolved(allowed);
+        return allowed;
+      }
     }
 
     // 결제 토큰은 유효하지만 cost/feature 정규화가 맞지 않는 경우, DB 증빙으로 최종 확인한다.
@@ -905,7 +955,9 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
       };
 
       const tokenBoundEvidence = await findEvidenceByPaymentTokens(userId, tokenEvidenceRequest, alternativeRules);
-      if (tokenBoundEvidence) {
+      const tokenBoundClaim = tokenBoundEvidence ? await claimEvidence(tokenBoundEvidence._id, tokenBoundEvidence.featureKey) : "used";
+      if (tokenBoundClaim === "unavailable") return premiumEvidenceUnavailableResult(normalizedReportType);
+      if (tokenBoundEvidence && tokenBoundClaim === "ok") {
         logPremiumAccessDecision({
           route: requestBody?._accessRoute,
           userId,
@@ -1093,7 +1145,9 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
   }
 
   const tokenEvidence = await findEvidenceByPaymentTokens(user._id, requestBody, alternativeRules);
-  if (tokenEvidence) {
+  const tokenEvidenceClaim = tokenEvidence ? await claimEvidence(tokenEvidence._id, tokenEvidence.featureKey) : "used";
+  if (tokenEvidenceClaim === "unavailable") return premiumEvidenceUnavailableResult(normalizedReportType);
+  if (tokenEvidence && tokenEvidenceClaim === "ok") {
     if (!isPerUsePdfReportType) {
       await upsertPremiumContentEntitlementFromEvidence({
         userId: user._id,
@@ -1150,7 +1204,13 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
       logSajuAccessResolved(degraded);
       return degraded;
     }
-    if (settled.allowed) {
+    // 이용권 차감은 (기능 키, requestId)별이라 그 자체로 1회다. 바인딩 키가 있으면 같은 requestId 로
+    // 다른 조합을 여는 재생까지 막는다(차감 1건 = 조합 1건).
+    const passClaim = settled.allowed && claimBindingKey
+      ? await claimEvidence(`pass-use:${String(user._id)}:${settled.featureKey}:${baseClaimRequestId}`, settled.featureKey)
+      : "ok";
+    if (passClaim === "unavailable") return premiumEvidenceUnavailableResult(normalizedReportType);
+    if (settled.allowed && passClaim === "ok") {
       const allowed = { ...passAccess, featureKey: settled.featureKey, chargedCoins: settled.coinPrice, settledSource: settled.source };
       logPremiumAccessDecision({
         route: requestBody?._accessRoute,
@@ -1175,7 +1235,17 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
 
   if (["celestialHarmony", "geomancyOracle", "yogaGuruCourse", "sajuCompatBasic", "petSajuReport", "petCompatReport", "destinyCompassDeepReport"].includes(normalizedReportType) && alternativeRules.length) {
     for (let i = 0; i < alternativeRules.length; i += 1) {
-      const evidence = await findRecentDeductionEvidence(user._id, alternativeRules[i]);
+      // 창 안의 차감이 이미 다른 요청에 쓰였으면 다음(더 오래된) 차감을 본다 — 최대 5건.
+      const tried = [];
+      let evidence = null;
+      while (tried.length < RECENT_WINDOW_CLAIM_CANDIDATES) {
+        const candidate = await findRecentDeductionEvidence(user._id, alternativeRules[i], { excludeIds: tried });
+        if (!candidate?._id) break;
+        const claim = await claimEvidence(candidate._id, candidate.featureKey);
+        if (claim === "unavailable") return premiumEvidenceUnavailableResult(normalizedReportType);
+        if (claim === "ok") { evidence = candidate; break; }
+        tried.push(candidate._id);
+      }
       if (!evidence) continue;
       logPremiumAccessDecision({
         route: requestBody?._accessRoute,
