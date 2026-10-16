@@ -408,6 +408,8 @@ export const REVIEW_PRODUCTS = Object.freeze([
 // 테스트(__tests__/worker/review-catalog-moderation.test.js)가 "미분류"를 잡아내므로,
 // 의도적으로 뺀 키는 반드시 여기에 사유와 함께 등록한다.
 export const REVIEW_EXCLUDED_FEATURE_KEYS = Object.freeze([
+  // 판매 차단 mock 상품. 실제 상담 완료·후기 정책은 출시 전에 연결한다.
+  "neo-email-consultation",
   // 레거시 호환 전용 — Fortune Planner가 이 키를 읽거나 과금하지 않는다(paid-feature-registry.js 주석).
   "sajuDiary",
   // 프로필 카드 추가/수정/삭제라는 UI 조작 과금이라 "상담·리포트 후기" 성격과 맞지 않는다.
