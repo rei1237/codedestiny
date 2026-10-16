@@ -21,6 +21,7 @@ import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { normalizeConsultAccessType, resolveCanonicalEntitlement, resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
 import { consumePassForFeature, passDenialCode } from "../lib/pass-consumption.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { appendExpertPersona, expertPersonaText } from "../lib/expert-character-personas.js";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
@@ -1321,7 +1322,7 @@ export function buildAdminLabPrompt(body = {}, options = {}) {
   const fortuneData = calculateNewYearFortuneData(normalized.input);
 
   return {
-    systemPrompt: buildSystemPrompt(section),
+    systemPrompt: [buildSystemPrompt(section), expertPersonaText("neoNewYear")].filter(Boolean).join("\n\n"),
     prompt: buildFirstPrompt(normalized.input, fortuneData, section),
   };
 }
@@ -1878,7 +1879,7 @@ async function generateConsultationSection(env, options) {
   if (!(timeoutMs > 0)) return { ...base, text: previousText, ok: false, reason: "BUDGET_EXHAUSTED" };
   try {
     const ai = await callGeminiText(env, buildSectionPrompt(input, fortuneData, section, repairLines, previousText, priorSections), {
-      systemPrompt: buildSystemPrompt(section),
+      systemPrompt: await appendExpertPersona(env, "neoNewYear", buildSystemPrompt(section)),
       taskType: "fortune",
       temperature: repairLines.length ? 0.62 : 0.72,
       maxOutputTokens: NEW_YEAR_AI_SECTION_MAX_OUTPUT_TOKENS,
@@ -2017,7 +2018,7 @@ async function generateConsultationText(env, input, fortuneData, options = {}) {
     const overflow = quality.totalChars - maxTotalChars;
     const targetMaxChars = Math.max(longest.section.minChars, countConsultationChars(longest.text) - overflow - 200);
     const compressed = await callGeminiText(env, buildConsultationCompressionPrompt(longest.text, longest.section.minChars, targetMaxChars), {
-      systemPrompt: buildSystemPrompt(longest.section),
+      systemPrompt: await appendExpertPersona(env, "neoNewYear", buildSystemPrompt(longest.section)),
       taskType: "fortune",
       temperature: 0.52,
       maxOutputTokens: NEW_YEAR_AI_SECTION_MAX_OUTPUT_TOKENS,

@@ -88,6 +88,7 @@ const signatureProducts = [
     image: '/images/feature-details/neo-operation-room-hero-v1.webp',
     imageAlt: '달빛 전략실에서 선택의 판세를 정리하는 네오',
     featureKey: 'neo-operation-room-consultation',
+    master: { caption: '마스터', names: '네오', avatars: ['neo'] },
     report: ['선택한 운세 체계 1종', '초기 브리핑 · 현실 점검', '정제 리포트 · 다음 작전'],
     cta: '전략실 입장하기',
   },
@@ -101,6 +102,7 @@ const signatureProducts = [
     image: '/images/home/yeoni-tea-together-v1-1200.webp',
     imageAlt: '한복 입은 연이와 꽃돼지가 함께 차를 건네는 운명의 찻집',
     featureKey: 'fortune-tea-house-tarot-consultation',
+    master: { caption: '마스터', names: '연이', avatars: ['yeoni'] },
     report: ['선택한 찻잔과 질문', '고민별 흐름과 선택지', '오늘의 기준 · 행동 제안'],
     cta: '운명 찻집 들어가기',
   },
@@ -114,6 +116,7 @@ const signatureProducts = [
     image: '/images/feature-details/master-love-codex-hero-v3.webp',
     imageAlt: '달빛 아래 인연의 지도를 펼쳐 보는 마스터 인연의 서',
     featureKey: 'master-love-codex',
+    master: { caption: '인연의 서', names: '마스터', avatars: ['master'] },
     priceSuffix: '~',
     report: ['20장 연애 리포트', '사주 · 자미두수 교차 해석', 'PDF 저장'],
     cta: '인연의 서 펼치기',
@@ -123,11 +126,13 @@ const signatureProducts = [
     className: 'love',
     href: '/love-secret-ai/',
     title: '연애 비책',
-    question: '지금 이 관계에서 어떤 말을 건네야 할까?',
-    description: '내 연애 성향부터 상대와의 거리, 갈등과 시기, 다음 대화까지 항목별로 읽습니다.',
-    image: '/images/feature-details/love-secret-ai-hero-v2.webp',
-    imageAlt: '달빛과 봉인된 편지로 그린 연애 비책',
+    question: '마음부터 들려주세요. 두 분 사이의 거리는 서한비가 재어 드릴게요.',
+    description: '연이가 내 연애 성향과 마음을, 서한비가 상대와의 거리·갈등·다가갈 때를 읽어요. 다음 대화와 7일 실천까지 항목별로 정리해 드려요.',
+    image: '/images/home/love-secret-masters-v1-1200.webp',
+    imageSrcset: '/images/home/love-secret-masters-v1-600.webp 600w, /images/home/love-secret-masters-v1-1200.webp 1200w',
+    imageAlt: '달빛 찻집에서 찻잔을 든 연이와 관계 장부를 곁에 둔 서한비',
     featureKey: 'love-secret-ai-consultation',
+    master: { caption: '공동 마스터', names: '연이 · 서한비', avatars: ['yeoni-love', 'hanbi-love'] },
     report: ['6부 28개 섹션', '관계 · 궁합 · 시기 분석', '7일 실천 가이드 · PDF'],
     cta: '연애 비책 시작하기',
   },
@@ -136,11 +141,13 @@ const signatureProducts = [
     className: 'year',
     href: '/new-year-ai-consultation/',
     title: '신년운세',
-    question: '올해는 무엇을 밀고, 언제 속도를 늦춰야 할까?',
-    description: '선택한 해의 세운을 명식과 대조해 일·재물·관계와 열두 달의 변화를 나눠 봅니다.',
-    image: '/images/feature-details/new-year-ai-hero-v3.webp',
-    imageAlt: '사계절과 달빛이 흐르는 신년운세 두루마리',
+    question: '올해 판세는 내가 먼저 읽는다. 어디서 밀고, 언제 멈출까?',
+    description: '선택한 해의 세운을 네 명식과 맞대어, 일·재물·관계와 열두 달의 작전을 나눠 정리한다.',
+    image: '/images/home/new-year-neo-v1-1200.webp',
+    imageSrcset: '/images/home/new-year-neo-v1-600.webp 600w, /images/home/new-year-neo-v1-1200.webp 1200w',
+    imageAlt: '새해 첫 해가 드는 작전실에서 열두 달 작전판을 짚는 네오와 백사자',
     featureKey: 'new-year-ai-consultation',
+    master: { caption: '마스터', names: '네오', avatars: ['neo-new-year'] },
     report: ['5개 세운 섹션', '1월~12월 월별 흐름', '질문 답변 · PDF'],
     cta: '신년운세 받기',
   },
@@ -149,11 +156,13 @@ const signatureProducts = [
     className: 'life',
     href: '/life-book-ai/',
     title: '인생의 책',
-    question: '내 삶의 큰 흐름과 반복되는 장면은 어디에서 올까?',
-    description: '타고난 기질부터 일·사랑·재물, 대운과 가까운 세운까지 한 권의 서사로 엮습니다.',
-    image: '/feature-details/assets/life-book-entry-20260929-960.webp',
-    imageAlt: '달빛 아래 펼쳐진 녹색 인생의 책',
+    question: '당신의 인생, 첫 장부터 읽어 드릴게요.',
+    description: '타고난 기질부터 일·사랑·재물, 대운과 가까운 세운까지. 반복되는 장면이 어디서 오는지 한 권의 서사로 엮어 드려요.',
+    image: '/images/home/life-book-yun-v2-1200.webp',
+    imageSrcset: '/images/home/life-book-yun-v2-600.webp 600w, /images/home/life-book-yun-v2-1200.webp 1200w',
+    imageAlt: '달빛 서고에서 빛이 오르는 녹색 인생의 책을 펼친 윤달과 흰 고양이',
     featureKey: 'life-book-ai-consultation',
+    master: { caption: '마스터', names: '윤달', avatars: ['yun-life-book'] },
     report: ['10개 장의 인생 서사', '대운 · 세운 흐름', '핵심 판독 4편 · PDF'],
     cta: '인생의 책 펼치기',
   },
@@ -163,9 +172,11 @@ const signaturePrice = (featureKey, suffix = '') => {
   if (!Number.isSafeInteger(amount) || amount <= 0) throw new Error(`Missing signature consultation price: ${featureKey}`);
   return `${amount.toLocaleString('ko-KR')}원${suffix}`;
 };
+// 마스터 칩 — 아바타는 build-master-avatars.mjs 가 만든 128px 한 장. 이름이 옆에 있으니 이미지는 장식(alt="").
+const signatureMaster = ({ caption, names, avatars }) => `<span class="cd-sig-card__masters"><span class="cd-sig-card__avatars" aria-hidden="true">${avatars.map((key) => `<img src="/images/master-profiles/avatars/${key}.webp" width="48" height="48" alt="" loading="lazy" decoding="async">`).join('')}</span><span class="cd-sig-card__master">${caption} <b>${names}</b></span></span>`;
 vars.signature = `<section data-cd-funnel-section="signature_consult" class="cd-sig cd-sig--curated" id="cdSignatureConsult" data-marker="cd-signature-consult-v20261015" aria-labelledby="cdSignatureTitle" lang="ko">
   <div class="cd-sig__head"><h2 class="cd-sig__title" id="cdSignatureTitle">대표 운명 상담</h2><p class="cd-sig__sub">고민의 깊이와 필요한 리포트 구성을 먼저 확인하고, 지금의 나에게 맞는 상담을 골라보세요.</p></div>
-  <div class="cd-sig__viewport" id="cdSigViewport"><div class="cd-sig__grid" id="cdSigGrid">${signatureProducts.map((product) => `<a class="cd-sig-card cd-sig-card--${product.className}" data-cd-service-id="${product.id}" href="${product.href}" aria-label="${product.title} 상담 알아보기" data-pvw-paid="true"><span class="cd-yehwa-seal" aria-hidden="true"></span><span class="cd-sig-card__media"><img class="cd-sig-card__img" width="1200" height="675" loading="lazy" decoding="async" src="${product.image}" sizes="(max-width: 767px) calc(100vw - 64px), (max-width: 1199px) 42vw, 360px" alt="${product.imageAlt}"></span><span class="cd-sig-card__body"><span class="cd-sig-card__title">${product.title}</span><span class="cd-sig-card__q">${product.question}</span><span class="cd-sig-card__desc">${product.description}</span><span class="cd-sig-card__report"><b>리포트 구성</b>${product.report.map((item) => `<span>${item}</span>`).join('')}</span><span class="cd-sig-card__price">${signaturePrice(product.featureKey, product.priceSuffix)}</span><span class="cd-sig-card__meta"><span>이용권 · 월정석 · 단건 결제</span></span><span class="cd-sig-card__cta"><span>상담 알아보기</span> <i aria-hidden="true">→</i></span></span></a>`).join('')}</div></div>
+  <div class="cd-sig__viewport" id="cdSigViewport"><div class="cd-sig__grid" id="cdSigGrid">${signatureProducts.map((product) => `<a class="cd-sig-card cd-sig-card--${product.className}" data-cd-service-id="${product.id}" href="${product.href}" aria-label="${product.title} 상담 알아보기" data-pvw-paid="true"><span class="cd-yehwa-seal" aria-hidden="true"></span><span class="cd-sig-card__media"><img class="cd-sig-card__img" width="1200" height="675" loading="lazy" decoding="async" src="${product.image}"${product.imageSrcset ? ` srcset="${product.imageSrcset}"` : ''} sizes="(max-width: 767px) calc(100vw - 64px), (max-width: 1199px) 42vw, 360px" alt="${product.imageAlt}"></span><span class="cd-sig-card__body">${signatureMaster(product.master)}<span class="cd-sig-card__title">${product.title}</span><span class="cd-sig-card__q">${product.question}</span><span class="cd-sig-card__desc">${product.description}</span><span class="cd-sig-card__report"><b>리포트 구성</b>${product.report.map((item) => `<span>${item}</span>`).join('')}</span><span class="cd-sig-card__price">${signaturePrice(product.featureKey, product.priceSuffix)}</span><span class="cd-sig-card__meta"><span>이용권 · 월정석 · 단건 결제</span></span><span class="cd-sig-card__cta"><span>상담 알아보기</span> <i aria-hidden="true">→</i></span></span></a>`).join('')}</div></div>
   <a class="cd-sig__samples-link" href="/consultation-samples/"><span>상담 결과 전체 미리보기</span><span class="cd-yehwa-spray cd-sig__samples-motif" aria-hidden="true"></span></a>
 </section>`;
 vars.pressCoverage = renderPressCoverageHtml();

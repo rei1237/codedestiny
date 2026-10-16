@@ -39,6 +39,9 @@ import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-see
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { PriceBadge } from "@/app/components/PriceBadge";
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
+import ProductMasterStrip from "@/app/components/ProductMasterStrip";
+import { MasterProfileGroup } from "@/components/fortune/MasterProfile";
+import { masterProfiles, productMasters } from "@/components/fortune/master-profiles";
 import { ExpertStickyCta, ExpertValueCards } from "@/app/components/expert-consulting/ExpertConsultationFrame";
 import {
   getActivePaidAttemptSession,
@@ -2298,7 +2301,7 @@ export default function LoveSecretAiPage() {
       <div className={`pointer-events-none fixed inset-0 ${theme.pageBg}`} aria-hidden="true" />
 
       <section className={`${intro.shell} flex flex-col gap-6`}>
-        <LoveSecretHero onStart={focusFirstStepField} busy={busy} />
+        <LoveSecretHero onStart={focusFirstStepField} busy={busy} mastersHref={!busy && !resultUrl ? `#${LOVE_MASTERS_ANCHOR_ID}` : undefined} />
         {copy === LOVE_SECRET_CLIENT_COPY.ko && <CraftedProductDisclosure featureKey="love-secret-ai-consultation" />}
 
         <LoveSecretProgressRail
@@ -2482,11 +2485,19 @@ export default function LoveSecretAiPage() {
         </div>
           <ExpertStickyCta theme="love" targetId={FORM_ANCHOR_ID} label="연애 비책 펼치기" price={<PriceBadge featureKey="love-secret-ai-consultation" prefix="상담 이용 가격 " />} />
       </section>
+      {/* 소개용 공동 마스터 프로필 — 상담 진행·결과 안내 중에는 내리고, 사전이 없는 다른 로케일에는 띄우지 않는다. */}
+      {copy === LOVE_SECRET_CLIENT_COPY.ko && !busy && !resultUrl && <MasterProfileGroup id={LOVE_MASTERS_ANCHOR_ID}
+        title="연애 비책을 함께 쓰는 두 마스터"
+        lead="연이가 당신의 마음과 다가가는 방법을, 서한비가 상대와 두 사람 사이의 거리·갈등·시기를 맡아 여섯 부를 나눠 씁니다."
+        profiles={LOVE_MASTERS} />}
     </main>
   );
 }
 
-function LoveSecretHero({ onStart, busy }: { onStart: () => void; busy: boolean }) {
+const LOVE_MASTERS_ANCHOR_ID = "love-secret-masters";
+const LOVE_MASTERS = [masterProfiles.yeoniLove, masterProfiles.hanbiLove];
+
+function LoveSecretHero({ onStart, busy, mastersHref }: { onStart: () => void; busy: boolean; mastersHref?: string }) {
   const copy = useLoveSecretClientCopy();
   return (
     <header className={intro.hero}>
@@ -2496,6 +2507,7 @@ function LoveSecretHero({ onStart, busy }: { onStart: () => void; busy: boolean 
       </div>
       <div className={intro.heroCopy}>
         <h2>{copy.heroTitle}</h2>
+        {copy === LOVE_SECRET_CLIENT_COPY.ko && <ProductMasterStrip label="연애 비책 공동 마스터" masters={productMasters.love} profileHref={mastersHref} />}
         <p className={intro.description}>{copy.heroDescription}</p>
         <ul className={intro.topics}>
           {copy.heroPromises.map((item) => <li key={item}>{item}</li>)}

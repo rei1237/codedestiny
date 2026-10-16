@@ -19,11 +19,13 @@ import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { cmsPromptText } from "../lib/cms-prompts.js";
+import { appendExpertPersona, resolveExpertPersona } from "../lib/expert-character-personas.js";
 import { calculateLoveSecretAiSaju, normalizeLoveSecretAiInput } from "../lib/love-secret-ai-calculation.js";
 import {
   LOVE_SECRET_AI_GROUPS,
   LOVE_SECRET_AI_GROUP_MIN_CHARS,
   LOVE_SECRET_AI_SYSTEM_PROMPT,
+  LOVE_SPEAKER_BY_GROUP,
   assembleLoveSecretConsultation,
   buildFollowUpConsultationPrompt,
   buildLoveSecretGroundingTerms,
@@ -784,8 +786,10 @@ async function generateLoveSecretGroup(env, {
       repairLines,
       previousText: previousResult?.sections?.map((section) => `${section.title}\n${section.body}`).join("\n\n") || "",
     });
+    // 공동 마스터 — 이 그룹의 화자 페르소나만 붙인다. CMS 오버라이드는 메모 캐시에서 읽으므로 그룹마다 읽어도 싸다.
+    const persona = await resolveExpertPersona(env, LOVE_SPEAKER_BY_GROUP[group.key] === "hanbi" ? "hanbiLove" : "yeoniLove");
     const call = callGeminiJsonWithRetry(env, prompt, {
-      systemPrompt: buildLoveSecretGroupSystemPrompt(systemPromptBase, group),
+      systemPrompt: buildLoveSecretGroupSystemPrompt(systemPromptBase, group, persona),
       responseSchema: buildLoveSecretGroupResponseSchema(group),
       temperature: 0.72,
       // 내부 잘림 재시도는 데드라인을 모른 채 벽시계를 2배로 만든다 — 수리는 wave 2가 예산을 알고 한다.
@@ -984,7 +988,7 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
 
 async function generateFollowUp(env, consultation, message) {
   const ai = await callGeminiText(env, buildFollowUpConsultationPrompt(consultation, message), {
-    systemPrompt: await cmsPromptText(env, "love-secret-ai", LOVE_SECRET_AI_SYSTEM_PROMPT),
+    systemPrompt: await appendExpertPersona(env, "yeoniLove", await cmsPromptText(env, "love-secret-ai", LOVE_SECRET_AI_SYSTEM_PROMPT)),
     temperature: 0.7,
     maxOutputTokens: 5000,
     taskType: "fortune",

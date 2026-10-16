@@ -217,7 +217,7 @@ test('P2 initial and repair calls retain expanded token budget and timeout', asy
   const calls = [];
   const ctx = vm.createContext({ console, Math,
     clean: value => String(value || '').trim(), isStagingLlmMockEnabled: () => false,
-    buildSectionPrompt: () => 'mock prompt', buildSystemPrompt: () => 'mock system',
+    buildSectionPrompt: () => 'mock prompt', buildSystemPrompt: () => 'mock system', appendExpertPersona: async (_env, _key, base) => base,
     callGeminiText: async (_env, _prompt, options) => { calls.push(options); return { ok: true, provider: 'gemini', text: '본문'.repeat(300) }; },
   });
   for (const name of ['NEW_YEAR_AI_SECTIONS', 'NEW_YEAR_AI_SECTION_MAX_OUTPUT_TOKENS', 'NEW_YEAR_AI_SECTION_MIN_LENGTH', 'NEW_YEAR_AI_SECTION_TIMEOUT_MS']) {

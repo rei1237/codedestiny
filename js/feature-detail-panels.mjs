@@ -31,11 +31,19 @@ function renderChapters(detail) {
   return `<section class="craftedChapters"><p class="craftedChaptersTitle">${escape(detail.chaptersLabel || '받게 될 상담지 목차')}<span>${chapters.length}개</span></p><ol>${chapters.map(item => `<li><strong>${escape(item.title)}</strong>${item.detail ? `<span>${escape(item.detail)}</span>` : ''}</li>`).join('')}</ol></section>`;
 }
 
+// 소개 생성기가 남긴 540w 변형이 있으면 원본(1080w)과 함께 내려, 540px 칸을 1x 로 보는 화면은 절반 크기만 받는다.
+function panelSources(panel) {
+  const variants = (Array.isArray(panel.variants) ? panel.variants : []).filter(variant => safeImage(variant?.src) && Number(variant.width) > 0);
+  if (!variants.length) return '';
+  const srcset = [...variants.map(variant => `${safeImage(variant.src)} ${Number(variant.width)}w`), `${safeImage(panel.src)} ${Number(panel.width) || 1080}w`].join(', ');
+  return ` srcset="${escape(srcset)}" sizes="(max-width: 560px) 100vw, 540px"`;
+}
+
 /** Keep the full essay available as text, without duplicate image-alt narration. */
 export function renderCraftedDetail(detail, { eager = true } = {}) {
   const panels = craftedPanels(detail);
   if (!panels.length) return '';
-  return `<div class="craftedDetail">${renderChapters(detail)}<div aria-hidden="true">${panels.map((panel, index) => `<img src="${escape(safeImage(panel.src))}" alt="" width="${Number(panel.width) || 1080}" height="${Number(panel.height) || 1440}" loading="${index || !eager ? 'lazy' : 'eager'}" decoding="async"${index || !eager ? '' : ' fetchpriority="high" data-lcp-candidate="1"'}>`).join('')}</div><p class="craftedDetailNotice">${escape(detail.notice)}</p><details class="craftedDetailTranscript"><summary>상세 안내를 글로 읽기</summary>${panels.map(panel => `<section><h3>${escape(panel.title)}</h3><p>${escape(transcriptBody(panel))}</p></section>`).join('')}</details></div>`;
+  return `<div class="craftedDetail">${renderChapters(detail)}<div aria-hidden="true">${panels.map((panel, index) => `<img src="${escape(safeImage(panel.src))}"${panelSources(panel)} alt="" width="${Number(panel.width) || 1080}" height="${Number(panel.height) || 1440}" loading="${index || !eager ? 'lazy' : 'eager'}" decoding="async"${index || !eager ? '' : ' fetchpriority="high" data-lcp-candidate="1"'}>`).join('')}</div><p class="craftedDetailNotice">${escape(detail.notice)}</p><details class="craftedDetailTranscript"><summary>상세 안내를 글로 읽기</summary>${panels.map(panel => `<section><h3>${escape(panel.title)}</h3><p>${escape(transcriptBody(panel))}</p></section>`).join('')}</details></div>`;
 }
 
 export function revealCraftedTranscript(event) {
@@ -85,8 +93,10 @@ function renderCraftedEditions(items, heading, sharedBadge) {
   const shared = prefix && items.every(item => item.title.startsWith(prefix));
   const cards = items.map(item => {
     const cover = craftedPanels(item)[0];
+    // 72px 표지에 1080×1440 원본 대신 생성기의 144px 썸네일(2x)을 쓴다. 없으면 첫 그림 그대로.
+    const thumb = safeImage(item.cover?.src) && Number(item.cover.width) > 0 ? item.cover : cover;
     const badge = item.badge && item.badge !== sharedBadge ? `<span class="craftedCardBadge">${escape(item.badge)}</span>` : '';
-    return `<details class="craftedEdition" data-crafted-card><summary><img class="craftedCardCover" src="${escape(safeImage(cover.src))}" alt="" width="${Number(cover.width) || 1080}" height="${Number(cover.height) || 1440}" loading="lazy" decoding="async"><span class="craftedCardText"><strong>${escape(item.cardTitle || (shared ? item.title.slice(prefix.length) : item.title))}</strong><span class="craftedCardHook">${escape(item.hook || cover.title)}</span><span class="craftedCardMeta">${escape(craftedMeta(item))}</span>${badge}</span>${chevron}</summary><div class="craftedEditionBody">${renderCraftedDetail(item, { eager: false })}</div></details>`;
+    return `<details class="craftedEdition" data-crafted-card><summary><img class="craftedCardCover" src="${escape(safeImage(thumb.src))}" alt="" width="${Number(thumb.width) || 1080}" height="${Number(thumb.height) || 1440}" loading="lazy" decoding="async"><span class="craftedCardText"><strong>${escape(item.cardTitle || (shared ? item.title.slice(prefix.length) : item.title))}</strong><span class="craftedCardHook">${escape(item.hook || cover.title)}</span><span class="craftedCardMeta">${escape(craftedMeta(item))}</span>${badge}</span>${chevron}</summary><div class="craftedEditionBody">${renderCraftedDetail(item, { eager: false })}</div></details>`;
   }).join('');
   return `<section class="featureDetailPanel craftedEditions" data-purchase-stage="interest"><${heading}>${items.length}가지 상담 중에서 골라 보세요</${heading}><p class="craftedEditionsLead">상담을 펼치면 실제 목차와 그림 안내를 차례로 볼 수 있어요.</p>${cards}</section>`;
 }

@@ -16,6 +16,13 @@ export default function FeatureVisualDetail({ keys, enabled, onReady, onRequestC
   const hostRef = useRef<HTMLDivElement>(null);
   const [actionSlot, setActionSlot] = useState<Element | null>(null);
   useEffect(() => { setActionSlot(hostRef.current?.querySelector('[data-fortune-hero-action]') || null); onReady?.(Boolean(detail)); }, [detail, onReady]);
+  // 상세 모달이 열린 동안만 문서 스크롤을 잠근다 — 전역 html:has(…) 선택자 대신 클래스 하나.
+  useEffect(() => {
+    if (!enabled || !detail || !hostRef.current?.closest(".cd-detail-overlay")) return;
+    const root = document.documentElement;
+    root.classList.add("cd-detail-open");
+    return () => root.classList.remove("cd-detail-open");
+  }, [detail, enabled]);
   useEffect(() => {
     if (!enabled) return;
     let alive = true;

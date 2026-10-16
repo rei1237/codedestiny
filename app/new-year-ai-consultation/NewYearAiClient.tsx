@@ -1,5 +1,8 @@
 "use client";
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
+import ProductMasterStrip from "@/app/components/ProductMasterStrip";
+import MasterProfile from "@/components/fortune/MasterProfile";
+import { masterProfiles, productMasters } from "@/components/fortune/master-profiles";
 import ReviewRewardBanner from "@/app/components/ReviewRewardBanner";
 import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 
@@ -2106,6 +2109,7 @@ export default function NewYearAiConsultationPage() {
         <div className="nyai-intro-copy">
           <span className="nyai-eyebrow">서비스 소개</span>
           <h2><Moon size={20} aria-hidden="true" /> 신년운세 전문가 상담</h2>
+          {copy === NEW_YEAR_AI_COPY.ko && <ProductMasterStrip label="신년운세 마스터" masters={productMasters.newYear} profileHref={!isBusy && messages.length === 0 ? "#new-year-master" : undefined} />}
           <p>새해의 기운이 당신에게 건네는 첫 번째 조언을 명식과 세운의 흐름으로 차분히 살펴드립니다.</p>
           <div className="nyai-hero-badges" aria-label={copy.heroBadgesAria}>
             <span>사주 원국</span>
@@ -2364,6 +2368,8 @@ export default function NewYearAiConsultationPage() {
       </section>
 
       {status === "ready" && assistantMessages.length > 0 && <ReviewRewardBanner afterResult/>}
+      {/* 소개용 마스터 프로필 — 상담 진행·결과 화면에서는 내리고, 사전이 없는 다른 로케일에는 띄우지 않는다. */}
+      {copy === NEW_YEAR_AI_COPY.ko && !isBusy && messages.length === 0 && <MasterProfile id="new-year-master" palette="page" profile={masterProfiles.neoNewYear} />}
       <style>{NYAI_SEASON_CSS}</style>
       <style>{NYAI_READING_ROOM_CSS}</style>
       <style>{`
@@ -2388,6 +2394,12 @@ export default function NewYearAiConsultationPage() {
           --nyai-radius-pill: 999px;
           --nyai-label-size: 0.78rem;
           --nyai-serif: var(--font-serif, "Nanum Myeongjo", "Gowun Batang", "Noto Serif KR", Georgia, serif);
+          /* 마스터 띠·프로필이 읽는 페이지 토큰 */
+          --pe-ink: var(--nyai-text);
+          --pe-muted: var(--nyai-text-dim);
+          --pe-accent: var(--nyai-gold-bright);
+          --pe-line: var(--nyai-gold-dim);
+          --pe-accent-ink: var(--nyai-ink-0);
           min-height: 100vh;
           padding: clamp(18px, 3vw, 42px);
           color: var(--nyai-text);
@@ -2796,7 +2808,7 @@ export default function NewYearAiConsultationPage() {
           height: 0.6em;
         }
 
-        .nyai-intro-copy p {
+        .nyai-intro-copy > p {
           max-width: 62ch;
           margin: 0;
           color: var(--nyai-text-dim);

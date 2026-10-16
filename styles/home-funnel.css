@@ -308,6 +308,13 @@ html.neo-mode .cdh-kakao__quote:before,body.neo-mode .cdh-kakao__quote:before{ba
 #cdHomeFunnel .cd-sig--curated .cd-sig-card__price{align-self:flex-start;color:var(--cdh-ink);background:transparent;border:0;padding:0;font-size:var(--cd-t-card);font-variant-numeric:tabular-nums}
 #cdHomeFunnel .cd-sig--curated .cd-sig-card__meta{color:var(--cdh-muted);font-size:var(--cd-t-caption)}
 #cdHomeFunnel .cd-sig--curated .cd-sig-card__cta{display:flex;align-items:center;justify-content:space-between;min-height:48px;margin-top:var(--cd-sp-sm);padding:var(--cd-sp-sm) var(--cd-sp-md);border-radius:var(--cd-r-control);background:var(--cd-cta-primary-bg);color:var(--cd-cta-primary-ink);font:700 var(--cd-t-body)/1.5 var(--font-body)}
+/* 마스터 칩 — 아바타만 사진과 본문 경계(금색 이중선)에 반쯤 걸치고, 이름은 경계 6px 아래에서 시작해 줄바꿈되면 아래로 자란다. margin-top = -(본문 위 여백 + 20px). */
+#cdHomeFunnel .cd-sig--curated .cd-sig-card__masters{position:relative;z-index:1;display:flex;align-items:flex-start;gap:var(--cd-sp-sm);min-width:0;margin-top:calc(-1 * var(--cd-sp-lg) - 20px)}
+#cdHomeFunnel .cd-sig-card__avatars{display:flex;flex:none}
+#cdHomeFunnel .cd-sig-card__avatars img{display:block;width:48px;height:48px;border:2px solid var(--cdh-card);border-radius:50%;background:var(--cdh-surface);box-shadow:0 0 0 1px color-mix(in srgb,var(--cdh-gold) 70%,transparent)}
+#cdHomeFunnel .cd-sig-card__avatars img+img{margin-left:-12px}
+#cdHomeFunnel .cd-sig-card__master{min-width:0;padding-top:26px;color:var(--cdh-muted);font-size:var(--cd-t-caption);line-height:1.4;word-break:keep-all}
+#cdHomeFunnel .cd-sig-card__master b{color:var(--cdh-ink);font:700 var(--cd-t-body)/1.4 var(--font-serif);white-space:nowrap}
 @media(min-width:768px) and (max-width:1199px){#cdHomeFunnel .cd-sig--curated .cd-sig__grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 #cdHomeFunnel .cd-sig__samples-link{display:flex;align-items:center;justify-content:space-between;gap:20px;width:min(100%,420px);min-height:52px;margin:clamp(22px,3vw,34px) auto 0;padding:12px 18px 12px 22px;border:1px solid rgba(235,198,160,.34);border-radius:14px;background:#3a0e28;color:#fff8ee!important;font-weight:800;text-decoration:none;box-shadow:0 18px 36px -26px rgba(58,14,40,.82);transition:transform .18s ease,background-color .18s ease,box-shadow .18s ease}
 #cdHomeFunnel .cd-sig__samples-link:hover{background:#4a1433;box-shadow:0 22px 40px -25px rgba(58,14,40,.95);transform:translateY(-1px)}

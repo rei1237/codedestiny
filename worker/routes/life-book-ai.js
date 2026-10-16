@@ -18,6 +18,7 @@ import { normalizeConsultAccessType, resolveCanonicalEntitlement, resolveFeature
 import { consumePassForFeature, passDenialCode } from "../lib/pass-consumption.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { appendExpertPersona, expertPersonaText } from "../lib/expert-character-personas.js";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { calculateLifeBookAiSaju } from "../lib/life-book-ai-saju.js";
@@ -1085,7 +1086,7 @@ export function buildAdminLabPrompt(body = {}, options = {}) {
   const consultationType = isLifeFortuneInput(normalized.input) ? "lifeFortune" : "lifeBook";
 
   return {
-    systemPrompt: buildSystemPrompt(consultationType),
+    systemPrompt: [buildSystemPrompt(consultationType), expertPersonaText("yunLifeBook")].filter(Boolean).join("\n\n"),
     prompt: buildSectionPrompt(normalized.input, pickSajuSlice(sajuResult, section.evidenceRefs), section, ""),
     variantKey: section.id,
     variants: plan.map((item) => ({ key: item.id, label: item.title || item.id })),
@@ -1469,7 +1470,7 @@ async function generateSectionOnce(env, section, prompt, options = {}) {
   };
   try {
     const ai = await callGeminiText(env, prompt, {
-      systemPrompt: buildSystemPrompt(options.consultationType || "lifeBook"),
+      systemPrompt: await appendExpertPersona(env, "yunLifeBook", buildSystemPrompt(options.consultationType || "lifeBook")),
       responseMimeType: "application/json",
       responseSchema: jsonSchemaFromExample(buildSectionSchema(section, isLifeFortuneInput(options))),
       taskType: "fortune",

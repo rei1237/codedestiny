@@ -1597,7 +1597,13 @@
               "src": "/feature-details/crafted/master-love-codex/01-return-to-me.webp",
               "width": 1080,
               "height": 1440,
-              "text": "사람은 달라졌는데,\n사랑의 고민은 비슷하다면.\n\n다음 인연을 묻기 전에,\n사랑하는 나를 먼저 읽어 보세요.\n\n마스터 인연의 서 · 개인\n나의 연애를 읽는 스무 장."
+              "text": "사람은 달라졌는데,\n사랑의 고민은 비슷하다면.\n\n다음 인연을 묻기 전에,\n사랑하는 나를 먼저 읽어 보세요.\n\n마스터 인연의 서 · 개인\n나의 연애를 읽는 스무 장.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/master-love-codex/01-return-to-me-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "02-familiar-distance",
@@ -1606,7 +1612,13 @@
               "src": "/feature-details/crafted/master-love-codex/02-familiar-distance.webp",
               "width": 1080,
               "height": 1440,
-              "text": "가까워지고 싶은데,\n어느 순간 먼저 물러나요.\n\n마음이 열리고\n\n↓\n\n확신을 기다리다가\n\n↓\n\n상처받기 전에 멀어지고\n\n이런 장면이 익숙하다면,\n누가 잘못했는지보다\n내가 자신을 지키는 방식을 살펴요.\n\n개인판은 본인의 관계 습관을 읽습니다.\n특정 상대와의 비교는 궁합판의 범위예요."
+              "text": "가까워지고 싶은데,\n어느 순간 먼저 물러나요.\n\n마음이 열리고\n\n↓\n\n확신을 기다리다가\n\n↓\n\n상처받기 전에 멀어지고\n\n이런 장면이 익숙하다면,\n누가 잘못했는지보다\n내가 자신을 지키는 방식을 살펴요.\n\n개인판은 본인의 관계 습관을 읽습니다.\n특정 상대와의 비교는 궁합판의 범위예요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/master-love-codex/02-familiar-distance-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "03-two-lenses",
@@ -1615,7 +1627,13 @@
               "src": "/feature-details/crafted/master-love-codex/03-two-lenses.webp",
               "width": 1080,
               "height": 1440,
-              "text": "한 사람의 사랑을,\n두 해석으로 비춰 봅니다.\n사주 · 마음을 쓰는 방식\n\n일간과 십성, 오행과 조후로\n표현·기대·방어의 결을 읽어요.\n\n자미두수 · 관계가 놓인 자리\n\n명궁은 나의 바탕,\n부부궁은 동행의 모습을 살펴요.\n\n같이 가리키는 흐름은 연결하고,\n다르게 보이는 부분은 구분합니다.\n\n조후는 태어난 계절의 차고 더운 기운.\n두 체계를 하나의 공식으로 섞지 않아요."
+              "text": "한 사람의 사랑을,\n두 해석으로 비춰 봅니다.\n사주 · 마음을 쓰는 방식\n\n일간과 십성, 오행과 조후로\n표현·기대·방어의 결을 읽어요.\n\n자미두수 · 관계가 놓인 자리\n\n명궁은 나의 바탕,\n부부궁은 동행의 모습을 살펴요.\n\n같이 가리키는 흐름은 연결하고,\n다르게 보이는 부분은 구분합니다.\n\n조후는 태어난 계절의 차고 더운 기운.\n두 체계를 하나의 공식으로 섞지 않아요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/master-love-codex/03-two-lenses-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "04-opening-chapters",
@@ -1624,7 +1642,13 @@
               "src": "/feature-details/crafted/master-love-codex/04-opening-chapters.webp",
               "width": 1080,
               "height": 1440,
-              "text": "사랑의 출발점부터,\n나의 표현 방식까지.\n\n개인판 실제 목차 · 1–5장\n\n운명의 문 — 당신이라는 사람\n타고난 연애 기질\n일간과 십성이 말하는 것\n부부궁이 말하는 배우자상\n끌림의 원리 — 오행과 조후\n애착과 표현 방식\n\n어떤 사람에게 끌리는지와\n애정을 확인하는 방식을 나눠 읽어요."
+              "text": "사랑의 출발점부터,\n나의 표현 방식까지.\n\n개인판 실제 목차 · 1–5장\n\n운명의 문 — 당신이라는 사람\n타고난 연애 기질\n일간과 십성이 말하는 것\n부부궁이 말하는 배우자상\n끌림의 원리 — 오행과 조후\n애착과 표현 방식\n\n어떤 사람에게 끌리는지와\n애정을 확인하는 방식을 나눠 읽어요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/master-love-codex/04-opening-chapters-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "05-opening-door",
@@ -1633,7 +1657,13 @@
               "src": "/feature-details/crafted/master-love-codex/05-opening-door.webp",
               "width": 1080,
               "height": 1440,
-              "text": "마음을 지키는 습관과,\n인연이 열리는 조건.\n\n개인판 실제 목차 · 6–10장\n\n6\n\n마음의 방어기제\n\n7\n\n인연이 열리는 자리\n천이궁의 지도\n\n8\n\n썸에서 연애로 넘어가는 조건\n\n9\n\n고백과 타이밍\n\n10\n\n관계의 온도 곡선\n\n천이궁은 바깥 활동과 이동의 자리.\n인연을 만나는 환경으로 풀어봅니다."
+              "text": "마음을 지키는 습관과,\n인연이 열리는 조건.\n\n개인판 실제 목차 · 6–10장\n\n6\n\n마음의 방어기제\n\n7\n\n인연이 열리는 자리\n천이궁의 지도\n\n8\n\n썸에서 연애로 넘어가는 조건\n\n9\n\n고백과 타이밍\n\n10\n\n관계의 온도 곡선\n\n천이궁은 바깥 활동과 이동의 자리.\n인연을 만나는 환경으로 풀어봅니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/master-love-codex/05-opening-door-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "06-repair-chapters",
@@ -1642,7 +1672,13 @@
               "src": "/feature-details/crafted/master-love-codex/06-repair-chapters.webp",
               "width": 1080,
               "height": 1440,
-              "text": "부딪치는 순간에도,\n관계를 읽을 말이 있도록.\n\n개인판 실제 목차 · 11–15장\n\n갈등의 뿌리\n형충파해가 건드리는 자리\n화해와 회복의 언어\n질투·집착·거리두기\n친밀감과 두 사람의 리듬\n이별의 패턴과 재회의 문\n\n형충파해는 지지 사이의 관계입니다.\n갈등의 확정이 아닌 반복 조건으로 읽어요."
+              "text": "부딪치는 순간에도,\n관계를 읽을 말이 있도록.\n\n개인판 실제 목차 · 11–15장\n\n갈등의 뿌리\n형충파해가 건드리는 자리\n화해와 회복의 언어\n질투·집착·거리두기\n친밀감과 두 사람의 리듬\n이별의 패턴과 재회의 문\n\n형충파해는 지지 사이의 관계입니다.\n갈등의 확정이 아닌 반복 조건으로 읽어요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/master-love-codex/06-repair-chapters-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "07-future-chapters",
@@ -1651,7 +1687,13 @@
               "src": "/feature-details/crafted/master-love-codex/07-future-chapters.webp",
               "width": 1080,
               "height": 1440,
-              "text": "오래 함께하는 조건과,\n앞으로의 선택.\n\n개인판 실제 목차 · 16–20장\n\n결혼운과 장기 동행\n사주 × 자미두수 교차검증\n연애 DNA 프로필\n앞으로 3년, 인연의 흐름\n연애 고수의 마지막 편지\n\n교차검증은 두 해석의 대조를 뜻해요.\n미래의 사실을 검증했다는 의미는 아닙니다."
+              "text": "오래 함께하는 조건과,\n앞으로의 선택.\n\n개인판 실제 목차 · 16–20장\n\n결혼운과 장기 동행\n사주 × 자미두수 교차검증\n연애 DNA 프로필\n앞으로 3년, 인연의 흐름\n연애 고수의 마지막 편지\n\n교차검증은 두 해석의 대조를 뜻해요.\n미래의 사실을 검증했다는 의미는 아닙니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/master-love-codex/07-future-chapters-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "08-one-sentence",
@@ -1660,7 +1702,13 @@
               "src": "/feature-details/crafted/master-love-codex/08-one-sentence.webp",
               "width": 1080,
               "height": 1440,
-              "text": "침묵이 습관이었다면,\n한 문장부터 바꿔 보세요.\n\n실제 AI 결과 원문 발췌 · 가상 예시 프로필\n\n갈등이 발생했을 때, 너무 오랫동안 혼자 감정을 정리하려 하기보다는, 적절한 시점에 대화를 시도하는 용기가 필요합니다. 예를 들어, '지금은 마음이 좀 복잡해서 잠시 생각할 시간이 필요해. 조금 후에 다시 이야기할 수 있을까?'라고 솔직하게 자신의 상태를 전달하는 것이 좋습니다.\n\n가상 프로필로 생성한 실제 결과 중\n「화해와 회복의 언어」 장.\n고객 결과나 후기가 아닙니다."
+              "text": "침묵이 습관이었다면,\n한 문장부터 바꿔 보세요.\n\n실제 AI 결과 원문 발췌 · 가상 예시 프로필\n\n갈등이 발생했을 때, 너무 오랫동안 혼자 감정을 정리하려 하기보다는, 적절한 시점에 대화를 시도하는 용기가 필요합니다. 예를 들어, '지금은 마음이 좀 복잡해서 잠시 생각할 시간이 필요해. 조금 후에 다시 이야기할 수 있을까?'라고 솔직하게 자신의 상태를 전달하는 것이 좋습니다.\n\n가상 프로필로 생성한 실제 결과 중\n「화해와 회복의 언어」 장.\n고객 결과나 후기가 아닙니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/master-love-codex/08-one-sentence-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "09-reading-profile",
@@ -1669,7 +1717,13 @@
               "src": "/feature-details/crafted/master-love-codex/09-reading-profile.webp",
               "width": 1080,
               "height": 1440,
-              "text": "열 가지 표현을,\n나의 언어로 다시 읽어요.\n\n개인판 연애 DNA에 쓰이는 지표\n\n신뢰\n배려\n주도성\n표현력\n질투\n집착\n감성\n이성\n설렘\n헌신\n\n지표가 있다면 본문과 함께 읽고,\n내 경험과 다른 부분도 살펴보세요.\n\n심리검사나 연애 성공 확률이 아닌,\n해석을 정리한 표현입니다."
+              "text": "열 가지 표현을,\n나의 언어로 다시 읽어요.\n\n개인판 연애 DNA에 쓰이는 지표\n\n신뢰\n배려\n주도성\n표현력\n질투\n집착\n감성\n이성\n설렘\n헌신\n\n지표가 있다면 본문과 함께 읽고,\n내 경험과 다른 부분도 살펴보세요.\n\n심리검사나 연애 성공 확률이 아닌,\n해석을 정리한 표현입니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/master-love-codex/09-reading-profile-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "10-own-pace",
@@ -1678,10 +1732,21 @@
               "src": "/feature-details/crafted/master-love-codex/10-own-pace.webp",
               "width": 1080,
               "height": 1440,
-              "text": "다음 관계의 속도는,\n내가 정할 수 있도록.\n\n본인의 생년월일·성별·달력 기준을\n준비해 주세요. 모르는 출생 시간은\n모름으로 선택할 수 있어요.\n\n20장이 모두 완성되면 PDF로 저장해요.\n10년 경력 상담사·명리학자가 만든\n서비스이며, 결과 문장은 AI가 씁니다.\n\n마스터 인연의 서 · 개인\n나를 알고, 사랑의 방식을 고르는 시간."
+              "text": "다음 관계의 속도는,\n내가 정할 수 있도록.\n\n본인의 생년월일·성별·달력 기준을\n준비해 주세요. 모르는 출생 시간은\n모름으로 선택할 수 있어요.\n\n20장이 모두 완성되면 PDF로 저장해요.\n10년 경력 상담사·명리학자가 만든\n서비스이며, 결과 문장은 AI가 씁니다.\n\n마스터 인연의 서 · 개인\n나를 알고, 사랑의 방식을 고르는 시간.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/master-love-codex/10-own-pace-540.webp",
+                  "width": 540
+                }
+              ]
             }
           ],
-          "priceKRW": 30000
+          "priceKRW": 30000,
+          "cover": {
+            "src": "/feature-details/crafted/master-love-codex/01-return-to-me-144.webp",
+            "width": 144,
+            "height": 192
+          }
         },
         {
           "id": "master-love-codex-compat",
@@ -1781,7 +1846,13 @@
               "src": "/feature-details/crafted/master-love-codex-compat/01-two-speeds.webp",
               "width": 1080,
               "height": 1440,
-              "text": "같은 마음이라도,\n속도는 다를 수 있으니까.\n\n더 사랑하는 사람을 가리기보다,\n두 사람이 만나는 방식을 읽어요.\n\n마스터 인연의 서 · 궁합\n함께 있는 우리를 위한 스무 장."
+              "text": "같은 마음이라도,\n속도는 다를 수 있으니까.\n\n더 사랑하는 사람을 가리기보다,\n두 사람이 만나는 방식을 읽어요.\n\n마스터 인연의 서 · 궁합\n함께 있는 우리를 위한 스무 장.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/master-love-codex-compat/01-two-speeds-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "02-different-meaning",
@@ -1790,7 +1861,13 @@
               "src": "/feature-details/crafted/master-love-codex-compat/02-different-meaning.webp",
               "width": 1080,
               "height": 1440,
-              "text": "같은 침묵을,\n다르게 받아들이고 있나요.\n한 사람에게는\n\n지금 말하지 않으면\n더 멀어질 것 같아.\n\n다른 사람에게는\n\n지금 말하면\n상처 줄 것 같아.\n\n성격의 차이만 찾는 데서 멈추지 않고,\n그 차이가 만났을 때 생기는\n기대와 오해를 함께 살펴봅니다.\n\n두 사람의 속마음을 확정하거나\n잘잘못을 판정하는 상담은 아닙니다."
+              "text": "같은 침묵을,\n다르게 받아들이고 있나요.\n한 사람에게는\n\n지금 말하지 않으면\n더 멀어질 것 같아.\n\n다른 사람에게는\n\n지금 말하면\n상처 줄 것 같아.\n\n성격의 차이만 찾는 데서 멈추지 않고,\n그 차이가 만났을 때 생기는\n기대와 오해를 함께 살펴봅니다.\n\n두 사람의 속마음을 확정하거나\n잘잘못을 판정하는 상담은 아닙니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/master-love-codex-compat/02-different-meaning-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "03-four-charts",
@@ -1799,7 +1876,13 @@
               "src": "/feature-details/crafted/master-love-codex-compat/03-four-charts.webp",
               "width": 1080,
               "height": 1440,
-              "text": "각자의 바탕을 읽고,\n만나는 지점을 살펴요.\n나의 바탕\n\n사주 명식\n자미두수 명반\n\n상대의 바탕\n\n사주 명식\n자미두수 명반\n\n서로 맡는 역할 · 채워 주는 부분\n부딪치는 리듬 · 회복의 언어\n\n두 체계가 비슷하게 보는 점과\n다르게 읽는 점을 구분해 전합니다.\n\n상대 정보 없이 본인만 읽는 개인판과\n입력·목차·가격이 다른 상품입니다."
+              "text": "각자의 바탕을 읽고,\n만나는 지점을 살펴요.\n나의 바탕\n\n사주 명식\n자미두수 명반\n\n상대의 바탕\n\n사주 명식\n자미두수 명반\n\n서로 맡는 역할 · 채워 주는 부분\n부딪치는 리듬 · 회복의 언어\n\n두 체계가 비슷하게 보는 점과\n다르게 읽는 점을 구분해 전합니다.\n\n상대 정보 없이 본인만 읽는 개인판과\n입력·목차·가격이 다른 상품입니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/master-love-codex-compat/03-four-charts-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "04-meet",
@@ -1808,7 +1891,13 @@
               "src": "/feature-details/crafted/master-love-codex-compat/04-meet.webp",
               "width": 1080,
               "height": 1440,
-              "text": "처음의 끌림에도,\n두 사람의 바탕이 있어요.\n\n궁합판 실제 목차 · 1–5장\n\n마주 선 두 사람\n첫인상의 궁합\n당신이라는 사람 — 관계 속의 나\n상대라는 사람 — 그 사람의 결\n무엇이 서로를 끌었나\n일간의 관계\n두 기둥이 만나는 방식\n\n일간은 사주에서 나를 나타내는 기운.\n두 사람의 기본 태도를 대조합니다."
+              "text": "처음의 끌림에도,\n두 사람의 바탕이 있어요.\n\n궁합판 실제 목차 · 1–5장\n\n마주 선 두 사람\n첫인상의 궁합\n당신이라는 사람 — 관계 속의 나\n상대라는 사람 — 그 사람의 결\n무엇이 서로를 끌었나\n일간의 관계\n두 기둥이 만나는 방식\n\n일간은 사주에서 나를 나타내는 기운.\n두 사람의 기본 태도를 대조합니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/master-love-codex-compat/04-meet-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "05-complement",
@@ -1817,7 +1906,13 @@
               "src": "/feature-details/crafted/master-love-codex-compat/05-complement.webp",
               "width": 1080,
               "height": 1440,
-              "text": "닮은 점보다,\n서로에게 하는 작용을.\n\n궁합판 실제 목차 · 6–10장\n\n십성 상호작용 — 서로가 맡는 역할\n서로를 채우는 자리 — 용신과 보완\n지지의 합충형파해\n리듬이 부딪치는 지점\n두 명반의 상호 배치\n부처궁 교차 비교\n서로가 그리는 배우자상\n\n용신은 균형을 돕는 기운,\n부처궁은 배우자 관계를 보는 자리예요."
+              "text": "닮은 점보다,\n서로에게 하는 작용을.\n\n궁합판 실제 목차 · 6–10장\n\n십성 상호작용 — 서로가 맡는 역할\n서로를 채우는 자리 — 용신과 보완\n지지의 합충형파해\n리듬이 부딪치는 지점\n두 명반의 상호 배치\n부처궁 교차 비교\n서로가 그리는 배우자상\n\n용신은 균형을 돕는 기운,\n부처궁은 배우자 관계를 보는 자리예요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/master-love-codex-compat/05-complement-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "06-reconcile",
@@ -1826,7 +1921,13 @@
               "src": "/feature-details/crafted/master-love-codex-compat/06-reconcile.webp",
               "width": 1080,
               "height": 1440,
-              "text": "반복되는 다툼을,\n함께 고칠 수 있는 말로.\n\n궁합판 실제 목차 · 11–15장\n\n살성이 앉는 자리\n어디서 서로를 긁는가\n사화의 교환\n어디서 서로를 키우는가\n관계의 온도 곡선 — 두 사람의 시간축\n갈등의 뿌리 — 같은 다툼이 반복되는 이유\n상대에게 닿는 말 — 화해의 언어\n\n살성은 긴장, 사화는 변화의 작용을 봐요.\n불행이나 이별을 확정하는 말이 아닙니다."
+              "text": "반복되는 다툼을,\n함께 고칠 수 있는 말로.\n\n궁합판 실제 목차 · 11–15장\n\n살성이 앉는 자리\n어디서 서로를 긁는가\n사화의 교환\n어디서 서로를 키우는가\n관계의 온도 곡선 — 두 사람의 시간축\n갈등의 뿌리 — 같은 다툼이 반복되는 이유\n상대에게 닿는 말 — 화해의 언어\n\n살성은 긴장, 사화는 변화의 작용을 봐요.\n불행이나 이별을 확정하는 말이 아닙니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/master-love-codex-compat/06-reconcile-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "07-together",
@@ -1835,7 +1936,13 @@
               "src": "/feature-details/crafted/master-love-codex-compat/07-together.webp",
               "width": 1080,
               "height": 1440,
-              "text": "앞으로 함께하려면,\n어떤 조건이 필요할까요.\n\n궁합판 실제 목차 · 16–20장\n\n지속 가능성과 결혼운\n사주와 자미두수 — 합치점과 차이점\n관계 DNA 프로필\n앞으로 3년의 관계 흐름\n두 사람에게 보내는 마지막 편지\n\n가능성을 읽은 뒤에는\n지금의 관계에서 확인할 행동과\n합의할 기준을 남겨 보세요."
+              "text": "앞으로 함께하려면,\n어떤 조건이 필요할까요.\n\n궁합판 실제 목차 · 16–20장\n\n지속 가능성과 결혼운\n사주와 자미두수 — 합치점과 차이점\n관계 DNA 프로필\n앞으로 3년의 관계 흐름\n두 사람에게 보내는 마지막 편지\n\n가능성을 읽은 뒤에는\n지금의 관계에서 확인할 행동과\n합의할 기준을 남겨 보세요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/master-love-codex-compat/07-together-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "08-agreement",
@@ -1844,7 +1951,13 @@
               "src": "/feature-details/crafted/master-love-codex-compat/08-agreement.webp",
               "width": 1080,
               "height": 1440,
-              "text": "서로의 속도를 아는 것,\n약속을 바꾸는 첫걸음.\n\n실제 AI 결과 원문 발췌 · 가상 예시 프로필\n\n예를 들어, 어떤 문제에 대해 상담자님은 신중하게 여러 가능성을 고려하며 시간을 들이고 싶어 할 수 있습니다. 반면 상대방은 빠르고 명확한 결정을 선호하며 즉각적인 행동을 요구할 수 있습니다. 이러한 속도와 방식의 차이가 다툼으로 이어질 수 있습니다.\n\n가상 프로필로 생성한 실제 결과 중\n「갈등의 뿌리 — 같은 다툼이\n반복되는 이유」 장.\n고객 결과나 후기가 아닙니다."
+              "text": "서로의 속도를 아는 것,\n약속을 바꾸는 첫걸음.\n\n실제 AI 결과 원문 발췌 · 가상 예시 프로필\n\n예를 들어, 어떤 문제에 대해 상담자님은 신중하게 여러 가능성을 고려하며 시간을 들이고 싶어 할 수 있습니다. 반면 상대방은 빠르고 명확한 결정을 선호하며 즉각적인 행동을 요구할 수 있습니다. 이러한 속도와 방식의 차이가 다툼으로 이어질 수 있습니다.\n\n가상 프로필로 생성한 실제 결과 중\n「갈등의 뿌리 — 같은 다툼이\n반복되는 이유」 장.\n고객 결과나 후기가 아닙니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/master-love-codex-compat/08-agreement-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "09-relationship-profile",
@@ -1853,7 +1966,13 @@
               "src": "/feature-details/crafted/master-love-codex-compat/09-relationship-profile.webp",
               "width": 1080,
               "height": 1440,
-              "text": "점수 하나로,\n우리를 단정하지 않도록.\n\n궁합판 관계 DNA에 쓰이는 지표\n\n친화 · 소통 · 신뢰\n\n열정 · 속도합 · 갈등내구\n\n현실합 · 성장 · 자립 · 지속\n\n속도합은 관계를 움직이는 박자,\n갈등내구는 부딪친 뒤 회복하는 힘을\n살펴보는 표현입니다.\n\n관계의 성공 확률이 아니니,\n결과에 표시되면 본문과 함께 읽어요."
+              "text": "점수 하나로,\n우리를 단정하지 않도록.\n\n궁합판 관계 DNA에 쓰이는 지표\n\n친화 · 소통 · 신뢰\n\n열정 · 속도합 · 갈등내구\n\n현실합 · 성장 · 자립 · 지속\n\n속도합은 관계를 움직이는 박자,\n갈등내구는 부딪친 뒤 회복하는 힘을\n살펴보는 표현입니다.\n\n관계의 성공 확률이 아니니,\n결과에 표시되면 본문과 함께 읽어요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/master-love-codex-compat/09-relationship-profile-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "10-shared-page",
@@ -1862,10 +1981,21 @@
               "src": "/feature-details/crafted/master-love-codex-compat/10-shared-page.webp",
               "width": 1080,
               "height": 1440,
-              "text": "두 사람의 다음 장은,\n함께 정하는 약속으로.\n\n두 사람의 생년월일·성별·달력 기준과\n출생 시간을 준비해 주세요.\n모르는 시간은 모름으로 선택해요.\n\n20장 완성 후 PDF 저장이 가능합니다.\n10년 경력 상담사·명리학자가 만든\n서비스이며, 결과 문장은 AI가 씁니다.\n\n마스터 인연의 서 · 궁합\n차이를 이해하고, 동행의 방법을 찾는 시간."
+              "text": "두 사람의 다음 장은,\n함께 정하는 약속으로.\n\n두 사람의 생년월일·성별·달력 기준과\n출생 시간을 준비해 주세요.\n모르는 시간은 모름으로 선택해요.\n\n20장 완성 후 PDF 저장이 가능합니다.\n10년 경력 상담사·명리학자가 만든\n서비스이며, 결과 문장은 AI가 씁니다.\n\n마스터 인연의 서 · 궁합\n차이를 이해하고, 동행의 방법을 찾는 시간.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/master-love-codex-compat/10-shared-page-540.webp",
+                  "width": 540
+                }
+              ]
             }
           ],
-          "priceKRW": 50000
+          "priceKRW": 50000,
+          "cover": {
+            "src": "/feature-details/crafted/master-love-codex-compat/01-two-speeds-144.webp",
+            "width": 144,
+            "height": 192
+          }
         }
       ],
       "imageWidth": 1200,
@@ -2028,7 +2158,13 @@
               "src": "/feature-details/crafted/tea-saju/01-a-question-at-the-table.webp",
               "width": 1080,
               "height": 1440,
-              "text": "애쓰는 나에게,\n왜 자꾸 같은\n고민이 올까요.\n\n내가 타고난 결과 지금의 흐름을,\n오늘의 질문에 맞춰 읽어드려요.\n\n운명의 찻집 · 사주 상담"
+              "text": "애쓰는 나에게,\n왜 자꾸 같은\n고민이 올까요.\n\n내가 타고난 결과 지금의 흐름을,\n오늘의 질문에 맞춰 읽어드려요.\n\n운명의 찻집 · 사주 상담",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/tea-saju/01-a-question-at-the-table-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "02-begin-with-your-situation",
@@ -2037,7 +2173,13 @@
               "src": "/feature-details/crafted/tea-saju/02-begin-with-your-situation.webp",
               "width": 1080,
               "height": 1440,
-              "text": "“이직해야 할까요?”\n그 뒤의 이야기도\n들려주세요.\n요즘 가장 버거운 일\n\n업무의 양인지, 역할의 불확실함인지.\n\n마음을 붙잡는 조건\n\n생활비와 준비 기간, 남아 있는 일.\n\n이번에 바라는 변화\n\n다음 자리에서 지키고 싶은 기준.\n\n분야를 고르고 고민을 구체적으로 적으면,\n그 질문을 중심으로 사주를 풀어요."
+              "text": "“이직해야 할까요?”\n그 뒤의 이야기도\n들려주세요.\n요즘 가장 버거운 일\n\n업무의 양인지, 역할의 불확실함인지.\n\n마음을 붙잡는 조건\n\n생활비와 준비 기간, 남아 있는 일.\n\n이번에 바라는 변화\n\n다음 자리에서 지키고 싶은 기준.\n\n분야를 고르고 고민을 구체적으로 적으면,\n그 질문을 중심으로 사주를 풀어요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/tea-saju/02-begin-with-your-situation-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "03-the-basis-of-the-reading",
@@ -2046,7 +2188,13 @@
               "src": "/feature-details/crafted/tea-saju/03-the-basis-of-the-reading.webp",
               "width": 1080,
               "height": 1440,
-              "text": "어려운 명리 용어를,\n내가 겪는 장면으로.\n일간\n나를 읽는 중심.\n낯선 일에 어떤 방식으로 반응하는지.\n월지와 계절\n태어난 때의 바탕.\n내 힘이 어떤 환경에서 쓰이는지.\n오행\n시작·표현·정리·회복의 균형.\n강한 힘의 장점과 부담을 함께.\n십성\n표현·책임·자원·관계의 역할.\n반복되는 선택을 이해하는 단서."
+              "text": "어려운 명리 용어를,\n내가 겪는 장면으로.\n일간\n나를 읽는 중심.\n낯선 일에 어떤 방식으로 반응하는지.\n월지와 계절\n태어난 때의 바탕.\n내 힘이 어떤 환경에서 쓰이는지.\n오행\n시작·표현·정리·회복의 균형.\n강한 힘의 장점과 부담을 함께.\n십성\n표현·책임·자원·관계의 역할.\n반복되는 선택을 이해하는 단서.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/tea-saju/03-the-basis-of-the-reading-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "04-guests-and-seasons",
@@ -2055,7 +2203,13 @@
               "src": "/feature-details/crafted/tea-saju/04-guests-and-seasons.webp",
               "width": 1080,
               "height": 1440,
-              "text": "늘 머무는 손님과,\n이 시기에 찾아온 손님.\n원국 · 익숙한 자리\n\n태어난 명식에 놓인 성향과 역할.\n내가 자주 쓰는 방식이에요.\n\n대운 · 오래 머무는 바람\n\n긴 시기의 환경이 달라질 때,\n내 힘을 쓰는 조건도 살펴봐요.\n\n세운 · 올해의 방문\n\n한 해의 흐름과 질문이 만나는 곳.\n원래의 성향과 구분해서 읽어요.\n\n손님은 십성을 쉽게 설명하는 비유예요.\n확인된 운 자료 안에서 시기를 다룹니다."
+              "text": "늘 머무는 손님과,\n이 시기에 찾아온 손님.\n원국 · 익숙한 자리\n\n태어난 명식에 놓인 성향과 역할.\n내가 자주 쓰는 방식이에요.\n\n대운 · 오래 머무는 바람\n\n긴 시기의 환경이 달라질 때,\n내 힘을 쓰는 조건도 살펴봐요.\n\n세운 · 올해의 방문\n\n한 해의 흐름과 질문이 만나는 곳.\n원래의 성향과 구분해서 읽어요.\n\n손님은 십성을 쉽게 설명하는 비유예요.\n확인된 운 자료 안에서 시기를 다룹니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/tea-saju/04-guests-and-seasons-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "05-your-report-map",
@@ -2064,7 +2218,13 @@
               "src": "/feature-details/crafted/tea-saju/05-your-report-map.webp",
               "width": 1080,
               "height": 1440,
-              "text": "내 명식을 보고,\n내 질문으로 들어가요.\n질문에 대한 핵심 답변\n출생 정보 · 일간 · 사주 기둥\n오행 균형과 십성 해석\n질문 분야에 맞춘 상세 상담지\n종합 해석과 연이의 조언\n선택지 · 실천 · 마지막 메시지\n\n십성 손님·선택 시나리오 등은\n해당 자료와 내용이 있을 때 표시돼요.\n모든 분야의 리포트를 한 번에 주는\n상품은 아니에요."
+              "text": "내 명식을 보고,\n내 질문으로 들어가요.\n질문에 대한 핵심 답변\n출생 정보 · 일간 · 사주 기둥\n오행 균형과 십성 해석\n질문 분야에 맞춘 상세 상담지\n종합 해석과 연이의 조언\n선택지 · 실천 · 마지막 메시지\n\n십성 손님·선택 시나리오 등은\n해당 자료와 내용이 있을 때 표시돼요.\n모든 분야의 리포트를 한 번에 주는\n상품은 아니에요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/tea-saju/05-your-report-map-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "06-career-contents",
@@ -2073,7 +2233,13 @@
               "src": "/feature-details/crafted/tea-saju/06-career-contents.webp",
               "width": 1080,
               "height": 1440,
-              "text": "일이 고민인 날에는,\n이런 순서로 펼쳐져요.\n\n진로 질문의 상세 목차 예\n\n타고난 결 · 내 명식이 일하는 방식\n\n첫 잔 · 막막함이 찾아온 이유\n\n마음의 물길 · 일의 구조\n\n잘 풀리는 결 · 강하게 쓸 재능\n\n삐걱대는 결 · 확장을 막는 패턴\n\n지금 이 시기 · 움직임의 신호\n\n리스크 체크리스트\n\n찻집의 처방 · 14일 실행 플랜\n\n월별 흐름 · 석 달 동안 일의 바람\n\n관계 처방 · 함께 일하는 사람과의 거리\n\n실행 체크리스트 · 결정 전에 확인할 것\n\n연이의 한마디\n\n상세 상담지는 공백 제외 18,000자 이상.\n다른 분야를 고르면 제목도 달라져요."
+              "text": "일이 고민인 날에는,\n이런 순서로 펼쳐져요.\n\n진로 질문의 상세 목차 예\n\n타고난 결 · 내 명식이 일하는 방식\n\n첫 잔 · 막막함이 찾아온 이유\n\n마음의 물길 · 일의 구조\n\n잘 풀리는 결 · 강하게 쓸 재능\n\n삐걱대는 결 · 확장을 막는 패턴\n\n지금 이 시기 · 움직임의 신호\n\n리스크 체크리스트\n\n찻집의 처방 · 14일 실행 플랜\n\n월별 흐름 · 석 달 동안 일의 바람\n\n관계 처방 · 함께 일하는 사람과의 거리\n\n실행 체크리스트 · 결정 전에 확인할 것\n\n연이의 한마디\n\n상세 상담지는 공백 제외 18,000자 이상.\n다른 분야를 고르면 제목도 달라져요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/tea-saju/06-career-contents-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "07-a-different-way-to-use-strength",
@@ -2082,7 +2248,13 @@
               "src": "/feature-details/crafted/tea-saju/07-a-different-way-to-use-strength.webp",
               "width": 1080,
               "height": 1440,
-              "text": "책임감이 강할수록,\n혼자 감당하기 쉬워요.\n\n이해를 돕기 위한 편집 예시\n\n끝까지 해내려는 마음은\n당신의 힘이 될 수 있어요.\n하지만 부탁을 거절하지 못한다면,\n일을 잘하는 것과\n모두 맡는 것을 나눠 보세요.\n이번 주의 작은 실천\n\n새 일을 받기 전에,\n먼저 맡은 일의 순서를 함께 정해요.\n\n실제 명식이나 고객 결과가 아닌\n강점과 부담을 함께 읽는 예시입니다."
+              "text": "책임감이 강할수록,\n혼자 감당하기 쉬워요.\n\n이해를 돕기 위한 편집 예시\n\n끝까지 해내려는 마음은\n당신의 힘이 될 수 있어요.\n하지만 부탁을 거절하지 못한다면,\n일을 잘하는 것과\n모두 맡는 것을 나눠 보세요.\n이번 주의 작은 실천\n\n새 일을 받기 전에,\n먼저 맡은 일의 순서를 함께 정해요.\n\n실제 명식이나 고객 결과가 아닌\n강점과 부담을 함께 읽는 예시입니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/tea-saju/07-a-different-way-to-use-strength-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "08-prepare-your-birth",
@@ -2091,7 +2263,13 @@
               "src": "/feature-details/crafted/tea-saju/08-prepare-your-birth.webp",
               "width": 1080,
               "height": 1440,
-              "text": "알고 있는 출생 정보를,\n정확한 만큼만.\n생년월일과 달력 기준\n양력·음력을 확인해 주세요.\n음력이라면 윤달 여부도 살펴요.\n태어난 시간\n모르면 ‘출생시간 미상’을 선택해요.\n모르는 시간을 임의로 채우지 않아요.\n출생지와 시간대\n해외 출생 등 시간 기준이 다르면\n입력한 지역·시간대도 확인해요.\n오늘의 질문\n분야와 구체적인 상황을 적어요.\n상대 명식 비교는 사주 궁합에서."
+              "text": "알고 있는 출생 정보를,\n정확한 만큼만.\n생년월일과 달력 기준\n양력·음력을 확인해 주세요.\n음력이라면 윤달 여부도 살펴요.\n태어난 시간\n모르면 ‘출생시간 미상’을 선택해요.\n모르는 시간을 임의로 채우지 않아요.\n출생지와 시간대\n해외 출생 등 시간 기준이 다르면\n입력한 지역·시간대도 확인해요.\n오늘의 질문\n분야와 구체적인 상황을 적어요.\n상대 명식 비교는 사주 궁합에서.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/tea-saju/08-prepare-your-birth-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "09-a-note-for-tomorrow",
@@ -2100,7 +2278,13 @@
               "src": "/feature-details/crafted/tea-saju/09-a-note-for-tomorrow.webp",
               "width": 1080,
               "height": 1440,
-              "text": "상담이 끝난 자리에서,\n생활로 이어지는 한 줄.\n\n내가 계속 살리고 싶은 강점\n\n이번에는 다르게 해볼 선택\n\n해본 뒤 돌아볼 날짜\n\n완성된 결과는 텍스트와 PDF로\n저장해 천천히 다시 읽을 수 있어요.\n\n꿀편지는 별도 조건의 추가 기능입니다.\n타로·두 사람 궁합은 별도 상품이며,\n이번 사주 상담에 자동 포함되지 않아요."
+              "text": "상담이 끝난 자리에서,\n생활로 이어지는 한 줄.\n\n내가 계속 살리고 싶은 강점\n\n이번에는 다르게 해볼 선택\n\n해본 뒤 돌아볼 날짜\n\n완성된 결과는 텍스트와 PDF로\n저장해 천천히 다시 읽을 수 있어요.\n\n꿀편지는 별도 조건의 추가 기능입니다.\n타로·두 사람 궁합은 별도 상품이며,\n이번 사주 상담에 자동 포함되지 않아요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/tea-saju/09-a-note-for-tomorrow-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "10-a-warm-ending",
@@ -2109,10 +2293,21 @@
               "src": "/feature-details/crafted/tea-saju/10-a-warm-ending.webp",
               "width": 1080,
               "height": 1440,
-              "text": "나를 몰아붙이기보다,\n내 결을 이해하는 시간.\n\n맞고 틀린 사람으로 나누지 않고,\n같은 힘이 언제 도움이 되고\n언제 부담이 되는지 살펴봐요.\n\n연이는 서비스 캐릭터예요.\n상담 문장은 AI가 작성하며,\n사람이 직접 답하는 상담은 아닙니다.\n\n운명의 찻집 · 사주 상담"
+              "text": "나를 몰아붙이기보다,\n내 결을 이해하는 시간.\n\n맞고 틀린 사람으로 나누지 않고,\n같은 힘이 언제 도움이 되고\n언제 부담이 되는지 살펴봐요.\n\n연이는 서비스 캐릭터예요.\n상담 문장은 AI가 작성하며,\n사람이 직접 답하는 상담은 아닙니다.\n\n운명의 찻집 · 사주 상담",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/tea-saju/10-a-warm-ending-540.webp",
+                  "width": 540
+                }
+              ]
             }
           ],
-          "priceKRW": 10000
+          "priceKRW": 10000,
+          "cover": {
+            "src": "/feature-details/crafted/tea-saju/01-a-question-at-the-table-144.webp",
+            "width": 144,
+            "height": 192
+          }
         },
         {
           "id": "tea-saju-compat",
@@ -2179,7 +2374,13 @@
               "src": "/feature-details/crafted/tea-saju-compat/01-two-seats.webp",
               "width": 1080,
               "height": 1440,
-              "text": "같이 잘 지내고 싶은데,\n왜 같은 자리에서\n부딪힐까요.\n\n“바로 이야기하고 싶어요.”\n\n“생각할 시간이 필요해요.”\n\n두 명식을 각각 읽고,\n함께 있을 때 생기는 결을 살펴요.\n\n운명의 찻집 · 두 사람 사주 궁합"
+              "text": "같이 잘 지내고 싶은데,\n왜 같은 자리에서\n부딪힐까요.\n\n“바로 이야기하고 싶어요.”\n\n“생각할 시간이 필요해요.”\n\n두 명식을 각각 읽고,\n함께 있을 때 생기는 결을 살펴요.\n\n운명의 찻집 · 두 사람 사주 궁합",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/tea-saju-compat/01-two-seats-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "02-equal-attention",
@@ -2188,7 +2389,13 @@
               "src": "/feature-details/crafted/tea-saju-compat/02-equal-attention.webp",
               "width": 1080,
               "height": 1440,
-              "text": "한 사람만 설명하면,\n관계의 반만 보이니까요.\n먼저, 나의 사주\n\n일간과 오행, 십성이 보여주는\n표현과 책임의 방식.\n\n그리고, 상대의 사주\n\n상대가 힘을 쓰는 방식과\n편안함을 느끼는 조건.\n\n그다음, 함께 있을 때\n\n두 일간의 관계와 오행의 조화,\n관계 자리인 일지를 대조해요.\n\n개인 사주 상담에 상대 이름만 더하는\n구성이 아니라 두 명식을 비교합니다."
+              "text": "한 사람만 설명하면,\n관계의 반만 보이니까요.\n먼저, 나의 사주\n\n일간과 오행, 십성이 보여주는\n표현과 책임의 방식.\n\n그리고, 상대의 사주\n\n상대가 힘을 쓰는 방식과\n편안함을 느끼는 조건.\n\n그다음, 함께 있을 때\n\n두 일간의 관계와 오행의 조화,\n관계 자리인 일지를 대조해요.\n\n개인 사주 상담에 상대 이름만 더하는\n구성이 아니라 두 명식을 비교합니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/tea-saju-compat/02-equal-attention-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "03-what-a-pair-reveals",
@@ -2197,7 +2404,13 @@
               "src": "/feature-details/crafted/tea-saju-compat/03-what-a-pair-reveals.webp",
               "width": 1080,
               "height": 1440,
-              "text": "잘 맞는다는 말보다,\n어떻게 맞춰 갈지를.\n서로의 힘이 만나는 곳\n비슷해서 편한 점과,\n다르기에 도울 수 있는 점.\n역할이 쏠리는 곳\n누가 먼저 표현하고 책임지는지,\n기대가 한쪽에 몰리지는 않는지.\n익숙하게 부딪히는 곳\n가까운 관계에서 반복되는 습관과\n서로 불편해지는 조건.\n지금 조율할 수 있는 곳\n확인된 대운·세운과 현실 상황을\n함께 놓고 대화의 기준을 찾아요."
+              "text": "잘 맞는다는 말보다,\n어떻게 맞춰 갈지를.\n서로의 힘이 만나는 곳\n비슷해서 편한 점과,\n다르기에 도울 수 있는 점.\n역할이 쏠리는 곳\n누가 먼저 표현하고 책임지는지,\n기대가 한쪽에 몰리지는 않는지.\n익숙하게 부딪히는 곳\n가까운 관계에서 반복되는 습관과\n서로 불편해지는 조건.\n지금 조율할 수 있는 곳\n확인된 대운·세운과 현실 상황을\n함께 놓고 대화의 기준을 찾아요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/tea-saju-compat/03-what-a-pair-reveals-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "04-nine-chapters",
@@ -2206,7 +2419,13 @@
               "src": "/feature-details/crafted/tea-saju-compat/04-nine-chapters.webp",
               "width": 1080,
               "height": 1440,
-              "text": "당신과 상대,\n그리고 우리를 읽는\n열두 장.\n당신의 사주\n상대방의 사주\n두 사람의 궁합\n질문에 대한 답\n함께일 때의 강점\n미리 알아둘 주의점\n지금 이 시기 관계의 운\n찻집의 처방\n월별 흐름 · 두 사람의 석 달\n관계 처방 · 서로에게 건네는 말\n실행 체크리스트 · 함께 확인할 것\n연이의 한마디\n\n상담지는 공백 제외 18,000자 이상이에요."
+              "text": "당신과 상대,\n그리고 우리를 읽는\n열두 장.\n당신의 사주\n상대방의 사주\n두 사람의 궁합\n질문에 대한 답\n함께일 때의 강점\n미리 알아둘 주의점\n지금 이 시기 관계의 운\n찻집의 처방\n월별 흐름 · 두 사람의 석 달\n관계 처방 · 서로에게 건네는 말\n실행 체크리스트 · 함께 확인할 것\n연이의 한마디\n\n상담지는 공백 제외 18,000자 이상이에요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/tea-saju-compat/04-nine-chapters-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "05-around-the-chapters",
@@ -2215,7 +2434,13 @@
               "src": "/feature-details/crafted/tea-saju-compat/05-around-the-chapters.webp",
               "width": 1080,
               "height": 1440,
-              "text": "목차 앞에는 두 사람의\n정보, 뒤에는 오늘의 선택.\n누구와 누구의 관계인지\n\n두 사람의 출생 정보와 일간,\n일간의 관계와 오행 조화를 확인해요.\n\n어떤 질문을 읽었는지\n\n상담지에서 관계의 강점·주의점과\n지금의 질문에 대한 답을 읽어요.\n\n무엇을 바꿔볼 것인지\n\n종합 해석과 조언을 읽고,\n선택지와 행동을 생활에 옮겨요.\n\n비교 요약·선택 시나리오·행동 항목은\n그 내용이 결과에 있을 때 펼쳐져요."
+              "text": "목차 앞에는 두 사람의\n정보, 뒤에는 오늘의 선택.\n누구와 누구의 관계인지\n\n두 사람의 출생 정보와 일간,\n일간의 관계와 오행 조화를 확인해요.\n\n어떤 질문을 읽었는지\n\n상담지에서 관계의 강점·주의점과\n지금의 질문에 대한 답을 읽어요.\n\n무엇을 바꿔볼 것인지\n\n종합 해석과 조언을 읽고,\n선택지와 행동을 생활에 옮겨요.\n\n비교 요약·선택 시나리오·행동 항목은\n그 내용이 결과에 있을 때 펼쳐져요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/tea-saju-compat/05-around-the-chapters-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "06-a-conversation-example",
@@ -2224,7 +2449,13 @@
               "src": "/feature-details/crafted/tea-saju-compat/06-a-conversation-example.webp",
               "width": 1080,
               "height": 1440,
-              "text": "다그치기보다,\n대화 시간을 정한다면.\n\n이해를 돕기 위한 편집 예시\n\n“지금은 정리가 필요해.\n오늘 저녁에 다시 이야기할까?”\n\n“좋아. 그때까지는\n답을 재촉하지 않을게.”\n\n한쪽은 거절당했다 느끼지 않도록,\n다른 쪽은 쫓기지 않도록.\n기다림에도 작은 약속을 둬요.\n\n실제 두 명식이나 고객 결과가 아닌\n관계 조율 방식을 보여주는 예시입니다."
+              "text": "다그치기보다,\n대화 시간을 정한다면.\n\n이해를 돕기 위한 편집 예시\n\n“지금은 정리가 필요해.\n오늘 저녁에 다시 이야기할까?”\n\n“좋아. 그때까지는\n답을 재촉하지 않을게.”\n\n한쪽은 거절당했다 느끼지 않도록,\n다른 쪽은 쫓기지 않도록.\n기다림에도 작은 약속을 둬요.\n\n실제 두 명식이나 고객 결과가 아닌\n관계 조율 방식을 보여주는 예시입니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/tea-saju-compat/06-a-conversation-example-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "07-prepare-two-profiles",
@@ -2233,7 +2464,13 @@
               "src": "/feature-details/crafted/tea-saju-compat/07-prepare-two-profiles.webp",
               "width": 1080,
               "height": 1440,
-              "text": "두 사람의 정보와,\n함께 풀고 싶은 질문.\n두 사람 모두의 생년월일\n각자의 양력·음력 기준을 확인해요.\n음력이면 윤달 여부도 살펴요.\n각자의 출생시간\n아는 시간만 입력하고,\n모르면 각각 ‘시간 미상’을 선택해요.\n관계와 궁금한 방향\n현재 관계, 상담의 초점,\n지금 겪는 상황을 남겨 주세요.\n\n질문을 직접 적지 않으면\n입력한 관계 정보로 질문을 준비해요.\n확인 화면에서 읽어보고 시작하세요."
+              "text": "두 사람의 정보와,\n함께 풀고 싶은 질문.\n두 사람 모두의 생년월일\n각자의 양력·음력 기준을 확인해요.\n음력이면 윤달 여부도 살펴요.\n각자의 출생시간\n아는 시간만 입력하고,\n모르면 각각 ‘시간 미상’을 선택해요.\n관계와 궁금한 방향\n현재 관계, 상담의 초점,\n지금 겪는 상황을 남겨 주세요.\n\n질문을 직접 적지 않으면\n입력한 관계 정보로 질문을 준비해요.\n확인 화면에서 읽어보고 시작하세요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/tea-saju-compat/07-prepare-two-profiles-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "08-save-your-agreement",
@@ -2242,7 +2479,13 @@
               "src": "/feature-details/crafted/tea-saju-compat/08-save-your-agreement.webp",
               "width": 1080,
               "height": 1440,
-              "text": "“우리가 해볼 일”\n한 가지를 남겨보세요.\n\n결과는 텍스트와 PDF로 저장하고,\n다음 대화에서 지킬 약속 하나를\n나의 말로 다시 적어 보세요.\n\n꿀편지는 별도 조건의 추가 기능이에요.\n숙요 궁합과 타로 상담은\n이번 상품에 자동 포함되지 않습니다."
+              "text": "“우리가 해볼 일”\n한 가지를 남겨보세요.\n\n결과는 텍스트와 PDF로 저장하고,\n다음 대화에서 지킬 약속 하나를\n나의 말로 다시 적어 보세요.\n\n꿀편지는 별도 조건의 추가 기능이에요.\n숙요 궁합과 타로 상담은\n이번 상품에 자동 포함되지 않습니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/tea-saju-compat/08-save-your-agreement-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "09-our-next-conversation",
@@ -2251,10 +2494,21 @@
               "src": "/feature-details/crafted/tea-saju-compat/09-our-next-conversation.webp",
               "width": 1080,
               "height": 1440,
-              "text": "관계의 결론보다,\n다음 대화의 실마리를.\n\n어떤 명식도 상대의 마음을\n대신 대답해 주지는 않아요.\n\n서로의 말을 듣고 조율할 때\n참고할 관점으로 받아들여 주세요.\n\n연이는 서비스 캐릭터예요.\n상담 문장은 AI가 작성하며,\n사람이 직접 답하는 상담은 아닙니다.\n\n운명의 찻집 · 두 사람 사주 궁합"
+              "text": "관계의 결론보다,\n다음 대화의 실마리를.\n\n어떤 명식도 상대의 마음을\n대신 대답해 주지는 않아요.\n\n서로의 말을 듣고 조율할 때\n참고할 관점으로 받아들여 주세요.\n\n연이는 서비스 캐릭터예요.\n상담 문장은 AI가 작성하며,\n사람이 직접 답하는 상담은 아닙니다.\n\n운명의 찻집 · 두 사람 사주 궁합",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/tea-saju-compat/09-our-next-conversation-540.webp",
+                  "width": 540
+                }
+              ]
             }
           ],
-          "priceKRW": 10000
+          "priceKRW": 10000,
+          "cover": {
+            "src": "/feature-details/crafted/tea-saju-compat/01-two-seats-144.webp",
+            "width": 144,
+            "height": 192
+          }
         },
         {
           "id": "tea-sukuyo",
@@ -2313,7 +2567,13 @@
               "src": "/feature-details/crafted/tea-sukuyo/01-near-and-far.webp",
               "width": 1080,
               "height": 1440,
-              "text": "분명 가까운데,\n마음의 속도는\n왜 다를까요.\n\n두 사람의 본명숙과 관계의 방향에서\n서로 다른 리듬을 읽어봐요.\n\n운명의 찻집 · 숙요 궁합"
+              "text": "분명 가까운데,\n마음의 속도는\n왜 다를까요.\n\n두 사람의 본명숙과 관계의 방향에서\n서로 다른 리듬을 읽어봐요.\n\n운명의 찻집 · 숙요 궁합",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/tea-sukuyo/01-near-and-far-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "02-two-natal-mansions",
@@ -2322,7 +2582,13 @@
               "src": "/feature-details/crafted/tea-sukuyo/02-two-natal-mansions.webp",
               "width": 1080,
               "height": 1440,
-              "text": "두 사람의 생일에서,\n두 개의 본명숙으로.\n나의 생일\n\n나의 본명숙\n\n상대의 생일\n\n상대의 본명숙\n\n본명숙은 태어난 날을 바탕으로\n숙요 체계에서 살피는 나의 자리예요.\n\n27숙 안에서 두 자리를 비교하고,\n관계 유형과 거리·방향을 읽습니다.\n\n서양 별자리의 태양궁이나\n사주 두 명식의 비교와는 다른 체계예요."
+              "text": "두 사람의 생일에서,\n두 개의 본명숙으로.\n나의 생일\n\n나의 본명숙\n\n상대의 생일\n\n상대의 본명숙\n\n본명숙은 태어난 날을 바탕으로\n숙요 체계에서 살피는 나의 자리예요.\n\n27숙 안에서 두 자리를 비교하고,\n관계 유형과 거리·방향을 읽습니다.\n\n서양 별자리의 태양궁이나\n사주 두 명식의 비교와는 다른 체계예요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/tea-sukuyo/02-two-natal-mansions-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "03-distance-is-not-a-score",
@@ -2331,7 +2597,13 @@
               "src": "/feature-details/crafted/tea-sukuyo/03-distance-is-not-a-score.webp",
               "width": 1080,
               "height": 1440,
-              "text": "얼마나 좋은 사이보다,\n어떤 거리의 사이인지.\n관계 유형\n두 본명숙이 만났을 때의 관계 틀.\n끌림과 부담을 함께 살펴요.\n관계의 거리\n숙요 체계에서 두 숙 사이의 간격.\n실제 사는 곳의 거리가 아니에요.\n관계의 방향\n내가 상대에게 느끼는 역할과\n상대가 나에게 느끼는 역할을 구분해요.\n\n관계 이름은 좋고 나쁜 사람의 판정이나\n재회·결혼의 성공 확률이 아닙니다."
+              "text": "얼마나 좋은 사이보다,\n어떤 거리의 사이인지.\n관계 유형\n두 본명숙이 만났을 때의 관계 틀.\n끌림과 부담을 함께 살펴요.\n관계의 거리\n숙요 체계에서 두 숙 사이의 간격.\n실제 사는 곳의 거리가 아니에요.\n관계의 방향\n내가 상대에게 느끼는 역할과\n상대가 나에게 느끼는 역할을 구분해요.\n\n관계 이름은 좋고 나쁜 사람의 판정이나\n재회·결혼의 성공 확률이 아닙니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/tea-sukuyo/03-distance-is-not-a-score-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "04-both-directions",
@@ -2340,7 +2612,13 @@
               "src": "/feature-details/crafted/tea-sukuyo/04-both-directions.webp",
               "width": 1080,
               "height": 1440,
-              "text": "같은 관계에서도,\n서로 다른 자리에\n서 있어요.\n나 → 상대\n\n내가 어떤 역할로 다가가는지,\n어떤 반응을 기대하기 쉬운지.\n\n상대 → 나\n\n상대에게 나는 어떤 자리가 되는지,\n내 기대와 어디서 어긋나는지.\n\n한 방향의 설명만으로\n두 사람의 마음을 같다고 보지 않아요.\n\n방향별 관계 설명이 있는 결과에서\n각자의 의미를 나란히 읽을 수 있어요."
+              "text": "같은 관계에서도,\n서로 다른 자리에\n서 있어요.\n나 → 상대\n\n내가 어떤 역할로 다가가는지,\n어떤 반응을 기대하기 쉬운지.\n\n상대 → 나\n\n상대에게 나는 어떤 자리가 되는지,\n내 기대와 어디서 어긋나는지.\n\n한 방향의 설명만으로\n두 사람의 마음을 같다고 보지 않아요.\n\n방향별 관계 설명이 있는 결과에서\n각자의 의미를 나란히 읽을 수 있어요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/tea-sukuyo/04-both-directions-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "05-what-you-read",
@@ -2349,7 +2627,13 @@
               "src": "/feature-details/crafted/tea-sukuyo/05-what-you-read.webp",
               "width": 1080,
               "height": 1440,
-              "text": "본명숙에서 시작해,\n함께 지낼 태도까지.\n질문에 대한 핵심 답변\n나와 상대의 본명숙 · 출생 정보\n관계 유형 · 숙요 거리 · 방향\n서로에게 향하는 관계의 의미\n살아나는 힘과 조심할 결\n서로에게 건넬 수 있는 태도\n월별 흐름 · 두 별의 석 달\n관계 처방 · 서로에게 맞는 거리와 말\n실행 체크리스트 · 함께 확인할 것\n종합 해석 · 선택지 · 행동 조언\n연이의 마지막 메시지\n\n본문은 공백 제외 14,000자 이상이에요.\n방향별 설명·선택지는 내용이 있을 때 펼쳐져요."
+              "text": "본명숙에서 시작해,\n함께 지낼 태도까지.\n질문에 대한 핵심 답변\n나와 상대의 본명숙 · 출생 정보\n관계 유형 · 숙요 거리 · 방향\n서로에게 향하는 관계의 의미\n살아나는 힘과 조심할 결\n서로에게 건넬 수 있는 태도\n월별 흐름 · 두 별의 석 달\n관계 처방 · 서로에게 맞는 거리와 말\n실행 체크리스트 · 함께 확인할 것\n종합 해석 · 선택지 · 행동 조언\n연이의 마지막 메시지\n\n본문은 공백 제외 14,000자 이상이에요.\n방향별 설명·선택지는 내용이 있을 때 펼쳐져요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/tea-sukuyo/05-what-you-read-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "06-a-different-rhythm",
@@ -2358,7 +2642,13 @@
               "src": "/feature-details/crafted/tea-sukuyo/06-a-different-rhythm.webp",
               "width": 1080,
               "height": 1440,
-              "text": "“왜 답이 늦지?”에서\n“언제 이야기할까?”로.\n\n이해를 돕기 위한 편집 예시\n\n연락의 간격을 곧바로\n마음의 크기로 읽지 않아도 돼요.\n\n내가 편한 리듬을 말하고,\n상대가 가능한 시간을 물어보세요.\n가볍게 건네볼 말\n\n“나는 저녁에 이야기하면 편해.\n너는 어느 때가 괜찮아?”\n\n실제 본명숙 조합이나 고객 결과가 아닌\n관계의 속도를 조율하는 예시입니다."
+              "text": "“왜 답이 늦지?”에서\n“언제 이야기할까?”로.\n\n이해를 돕기 위한 편집 예시\n\n연락의 간격을 곧바로\n마음의 크기로 읽지 않아도 돼요.\n\n내가 편한 리듬을 말하고,\n상대가 가능한 시간을 물어보세요.\n가볍게 건네볼 말\n\n“나는 저녁에 이야기하면 편해.\n너는 어느 때가 괜찮아?”\n\n실제 본명숙 조합이나 고객 결과가 아닌\n관계의 속도를 조율하는 예시입니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/tea-sukuyo/06-a-different-rhythm-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "07-before-you-begin",
@@ -2367,7 +2657,13 @@
               "src": "/feature-details/crafted/tea-sukuyo/07-before-you-begin.webp",
               "width": 1080,
               "height": 1440,
-              "text": "두 생일, 달력 기준,\n지금의 관계를 준비해요.\n각자의 생년월일\n양력·음력과 윤달 여부를 확인해요.\n이 상담은 출생시간을 묻지 않아요.\n관계와 상담의 초점\n지금 어떤 사이인지,\n무엇이 궁금한지 선택해요.\n조금 더 들려주고 싶은 상황\n관계에서 반복되는 장면을 적으면\n질문의 맥락을 함께 전달할 수 있어요.\n\n질문을 직접 적지 않아도\n입력한 관계 정보로 질문을 준비합니다.\n확인 화면에서 내용을 살펴주세요."
+              "text": "두 생일, 달력 기준,\n지금의 관계를 준비해요.\n각자의 생년월일\n양력·음력과 윤달 여부를 확인해요.\n이 상담은 출생시간을 묻지 않아요.\n관계와 상담의 초점\n지금 어떤 사이인지,\n무엇이 궁금한지 선택해요.\n조금 더 들려주고 싶은 상황\n관계에서 반복되는 장면을 적으면\n질문의 맥락을 함께 전달할 수 있어요.\n\n질문을 직접 적지 않아도\n입력한 관계 정보로 질문을 준비합니다.\n확인 화면에서 내용을 살펴주세요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/tea-sukuyo/07-before-you-begin-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "08-a-gentle-distance",
@@ -2376,10 +2672,21 @@
               "src": "/feature-details/crafted/tea-sukuyo/08-a-gentle-distance.webp",
               "width": 1080,
               "height": 1440,
-              "text": "가까워지는 방법도,\n서로에게 맞게.\n\n완성된 결과는 텍스트와 PDF로\n저장해 다시 읽을 수 있어요.\n\n사주 궁합·타로는 별도 상품이에요.\n꿀편지는 별도 조건의 추가 기능입니다.\n\n연이는 서비스 캐릭터예요.\n상담 문장은 AI가 작성하며,\n사람이 직접 답하는 상담은 아닙니다.\n\n운명의 찻집 · 숙요 궁합"
+              "text": "가까워지는 방법도,\n서로에게 맞게.\n\n완성된 결과는 텍스트와 PDF로\n저장해 다시 읽을 수 있어요.\n\n사주 궁합·타로는 별도 상품이에요.\n꿀편지는 별도 조건의 추가 기능입니다.\n\n연이는 서비스 캐릭터예요.\n상담 문장은 AI가 작성하며,\n사람이 직접 답하는 상담은 아닙니다.\n\n운명의 찻집 · 숙요 궁합",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/tea-sukuyo/08-a-gentle-distance-540.webp",
+                  "width": 540
+                }
+              ]
             }
           ],
-          "priceKRW": 10000
+          "priceKRW": 10000,
+          "cover": {
+            "src": "/feature-details/crafted/tea-sukuyo/01-near-and-far-144.webp",
+            "width": 144,
+            "height": 192
+          }
         },
         {
           "id": "tea-tarot-three",
@@ -2434,7 +2741,13 @@
               "src": "/feature-details/crafted/tea-tarot-three/01-a-knot-and-a-cup.webp",
               "width": 1080,
               "height": 1440,
-              "text": "마음이 엉킨 날,\n세 장의 실마리.\n\n큰 결론을 서두르지 말고,\n지금 할 수 있는 일부터 찾아봐요.\n\n운명의 찻집 · 타로 3장\n달빛 아래, 질문 하나를 천천히."
+              "text": "마음이 엉킨 날,\n세 장의 실마리.\n\n큰 결론을 서두르지 말고,\n지금 할 수 있는 일부터 찾아봐요.\n\n운명의 찻집 · 타로 3장\n달빛 아래, 질문 하나를 천천히.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/tea-tarot-three/01-a-knot-and-a-cup-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "02-three-questions",
@@ -2443,7 +2756,13 @@
               "src": "/feature-details/crafted/tea-tarot-three/02-three-questions.webp",
               "width": 1080,
               "height": 1440,
-              "text": "어디서 막혔는지,\n무엇을 쓸 수 있는지.\n\n3장 배열 · 막힌 상황을 푸는 실마리\n\n1\n현재의 매듭\n\n지금 마음이 걸리는 자리를 봐요.\n\n2\n활용할 자원\n\n이미 가진 힘과 도움을 찾아요.\n\n3\n다음 행동\n\n한 번에 해볼 작은 일을 골라요.\n\n시간 흐름을 보고 싶다면\n‘과거·현재·미래’ 배열도 선택할 수 있어요."
+              "text": "어디서 막혔는지,\n무엇을 쓸 수 있는지.\n\n3장 배열 · 막힌 상황을 푸는 실마리\n\n1\n현재의 매듭\n\n지금 마음이 걸리는 자리를 봐요.\n\n2\n활용할 자원\n\n이미 가진 힘과 도움을 찾아요.\n\n3\n다음 행동\n\n한 번에 해볼 작은 일을 골라요.\n\n시간 흐름을 보고 싶다면\n‘과거·현재·미래’ 배열도 선택할 수 있어요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/tea-tarot-three/02-three-questions-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "03-before-the-draw",
@@ -2452,7 +2771,13 @@
               "src": "/feature-details/crafted/tea-tarot-three/03-before-the-draw.webp",
               "width": 1080,
               "height": 1440,
-              "text": "카드를 고르기 전,\n내 질문을 남겨요.\n\n찻잔과 고민을 고르고\n지금 가장 궁금한 질문을 적어요.\n\n3장 배열을 확인한 뒤\n로그인하고 카드를 준비해요.\n\n세 자리를 직접 고르거나\n자동 선택으로 카드를 확정해요.\n\n5장 배열로 바꾸면 다른 상품입니다.\n확정 전 카드 수와 표시 가격을 확인해요."
+              "text": "카드를 고르기 전,\n내 질문을 남겨요.\n\n찻잔과 고민을 고르고\n지금 가장 궁금한 질문을 적어요.\n\n3장 배열을 확인한 뒤\n로그인하고 카드를 준비해요.\n\n세 자리를 직접 고르거나\n자동 선택으로 카드를 확정해요.\n\n5장 배열로 바꾸면 다른 상품입니다.\n확정 전 카드 수와 표시 가격을 확인해요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/tea-tarot-three/03-before-the-draw-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "04-read-each-card",
@@ -2461,7 +2786,13 @@
               "src": "/feature-details/crafted/tea-tarot-three/04-read-each-card.webp",
               "width": 1080,
               "height": 1440,
-              "text": "한 장마다,\n내 질문까지 연결해요.\n\n이름과 뜻을 읽고 끝내지 않아요.\n카드마다 다섯 갈래로 풀어 봅니다.\n\n핵심 의미\n카드의 상징과 정·역방향.\n현재 상황\n지금 어떤 장면을 비추는지.\n질문과의 연결\n내가 물은 고민과 닿는 지점.\n조언\n내가 선택해 볼 행동.\n주의할 점\n조금 천천히 살펴야 할 조건."
+              "text": "한 장마다,\n내 질문까지 연결해요.\n\n이름과 뜻을 읽고 끝내지 않아요.\n카드마다 다섯 갈래로 풀어 봅니다.\n\n핵심 의미\n카드의 상징과 정·역방향.\n현재 상황\n지금 어떤 장면을 비추는지.\n질문과의 연결\n내가 물은 고민과 닿는 지점.\n조언\n내가 선택해 볼 행동.\n주의할 점\n조금 천천히 살펴야 할 조건.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/tea-tarot-three/04-read-each-card-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "05-the-reading-you-receive",
@@ -2470,7 +2801,13 @@
               "src": "/feature-details/crafted/tea-tarot-three/05-the-reading-you-receive.webp",
               "width": 1080,
               "height": 1440,
-              "text": "흩어진 상징을,\n한 편의 상담으로.\n\n현재 결과 화면의 읽기 순서\n\n질문의 핵심과 우선할 조언\n세 장의 카드별 해석\n카드 사이의 연결\n종합 해석과 연이가 건넨 말\n지금 선택할 수 있는 길\n앞으로 한 달의 흐름\n관계 처방\n실행 체크리스트\n행동 조언과 마지막 메시지\n\n본문은 공백 제외 10,000자 이상이에요.\n연결·선택은 내용이 있을 때 펼쳐져요.\n타로 상담에 사주 해석을 섞지 않아요."
+              "text": "흩어진 상징을,\n한 편의 상담으로.\n\n현재 결과 화면의 읽기 순서\n\n질문의 핵심과 우선할 조언\n세 장의 카드별 해석\n카드 사이의 연결\n종합 해석과 연이가 건넨 말\n지금 선택할 수 있는 길\n앞으로 한 달의 흐름\n관계 처방\n실행 체크리스트\n행동 조언과 마지막 메시지\n\n본문은 공백 제외 10,000자 이상이에요.\n연결·선택은 내용이 있을 때 펼쳐져요.\n타로 상담에 사주 해석을 섞지 않아요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/tea-tarot-three/05-the-reading-you-receive-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "06-a-small-beginning",
@@ -2479,7 +2816,13 @@
               "src": "/feature-details/crafted/tea-tarot-three/06-a-small-beginning.webp",
               "width": 1080,
               "height": 1440,
-              "text": "잘해야 한다는 마음이,\n시작을 막고 있다면.\n\n이해를 돕기 위한 편집 예시\n\n매듭을 알아차리고\n\n완성도를 먼저 따지느라\n첫 문장을 쓰기 어려울 수 있어요.\n\n가진 자원을 꺼내고\n\n이미 적어 둔 짧은 메모 한 줄.\n\n다음 행동을 작게\n\n오늘은 10분만,\n초안을 써 보는 건 어떨까요?\n\n실제 카드나 고객 결과가 아닌\n상담의 읽는 방식을 보여주는 예시예요."
+              "text": "잘해야 한다는 마음이,\n시작을 막고 있다면.\n\n이해를 돕기 위한 편집 예시\n\n매듭을 알아차리고\n\n완성도를 먼저 따지느라\n첫 문장을 쓰기 어려울 수 있어요.\n\n가진 자원을 꺼내고\n\n이미 적어 둔 짧은 메모 한 줄.\n\n다음 행동을 작게\n\n오늘은 10분만,\n초안을 써 보는 건 어떨까요?\n\n실제 카드나 고객 결과가 아닌\n상담의 읽는 방식을 보여주는 예시예요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/tea-tarot-three/06-a-small-beginning-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "07-keep-one-sentence",
@@ -2488,7 +2831,13 @@
               "src": "/feature-details/crafted/tea-tarot-three/07-keep-one-sentence.webp",
               "width": 1080,
               "height": 1440,
-              "text": "다 읽은 뒤에는,\n한 문장만 곁에 두어요.\n\n오늘 나에게 필요한 말\n\n지금 해볼 수 있는 행동 하나\n\n잠시 멈춰 살펴볼 조건\n\n결과를 텍스트 파일로 저장하고,\n실제로 해본 일을 덧붙여 보세요.\n\n상담의 마무리와 추가 ‘꿀편지’는 달라요.\n꿀편지는 화면의 별도 조건을 확인한 뒤\n요청하는 기능이며 자동 제공되지 않아요."
+              "text": "다 읽은 뒤에는,\n한 문장만 곁에 두어요.\n\n오늘 나에게 필요한 말\n\n지금 해볼 수 있는 행동 하나\n\n잠시 멈춰 살펴볼 조건\n\n결과를 텍스트 파일로 저장하고,\n실제로 해본 일을 덧붙여 보세요.\n\n상담의 마무리와 추가 ‘꿀편지’는 달라요.\n꿀편지는 화면의 별도 조건을 확인한 뒤\n요청하는 기능이며 자동 제공되지 않아요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/tea-tarot-three/07-keep-one-sentence-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "08-under-the-moon",
@@ -2497,10 +2846,21 @@
               "src": "/feature-details/crafted/tea-tarot-three/08-under-the-moon.webp",
               "width": 1080,
               "height": 1440,
-              "text": "오늘의 답을,\n조금 다정하게 찾아요.\n\n반드시 그렇게 될 미래보다,\n지금의 나에게 가능한 선택을.\n\n사주 정보 대신,\n지금 겪는 상황과 질문을 준비해요.\n\n연이는 서비스 캐릭터예요.\n상담 문장은 AI가 작성하며,\n사람이 직접 답하는 상담은 아닙니다.\n\n운명의 찻집 · 타로 3장"
+              "text": "오늘의 답을,\n조금 다정하게 찾아요.\n\n반드시 그렇게 될 미래보다,\n지금의 나에게 가능한 선택을.\n\n사주 정보 대신,\n지금 겪는 상황과 질문을 준비해요.\n\n연이는 서비스 캐릭터예요.\n상담 문장은 AI가 작성하며,\n사람이 직접 답하는 상담은 아닙니다.\n\n운명의 찻집 · 타로 3장",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/tea-tarot-three/08-under-the-moon-540.webp",
+                  "width": 540
+                }
+              ]
             }
           ],
-          "priceKRW": 10000
+          "priceKRW": 10000,
+          "cover": {
+            "src": "/feature-details/crafted/tea-tarot-three/01-a-knot-and-a-cup-144.webp",
+            "width": 144,
+            "height": 192
+          }
         },
         {
           "id": "tea-tarot-five",
@@ -2555,7 +2915,13 @@
               "src": "/feature-details/crafted/tea-tarot-five/01-before-contact.webp",
               "width": 1080,
               "height": 1440,
-              "text": "먼저 연락할까요?\n그 전에 살펴볼 마음.\n\n하고 싶은 말, 망설이는 이유,\n지켜야 할 선을 나누어 읽어요.\n\n운명의 찻집 · 타로 5장\n복잡한 마음에, 다섯 개의 질문."
+              "text": "먼저 연락할까요?\n그 전에 살펴볼 마음.\n\n하고 싶은 말, 망설이는 이유,\n지켜야 할 선을 나누어 읽어요.\n\n운명의 찻집 · 타로 5장\n복잡한 마음에, 다섯 개의 질문.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/tea-tarot-five/01-before-contact-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "02-five-pauses",
@@ -2564,7 +2930,13 @@
               "src": "/feature-details/crafted/tea-tarot-five/02-five-pauses.webp",
               "width": 1080,
               "height": 1440,
-              "text": "연락하기 전,\n다섯 번의 작은 멈춤.\n\n5장 배열 · 먼저 연락해도 괜찮을까?\n\n내가 바라는 것\n\n정말 전하고 싶은 마음은 무엇인지.\n\n현재 소통 양상\n\n지금 두 사람의 대화는 어떤지.\n\n접근의 걸림돌\n\n다가가기 어렵게 하는 조건은.\n\n존중할 경계\n\n넘지 말아야 할 선은 어디인지.\n\n연락을 선택했을 때의 흐름\n\n내가 고른 행동을 어떻게 이어갈지."
+              "text": "연락하기 전,\n다섯 번의 작은 멈춤.\n\n5장 배열 · 먼저 연락해도 괜찮을까?\n\n내가 바라는 것\n\n정말 전하고 싶은 마음은 무엇인지.\n\n현재 소통 양상\n\n지금 두 사람의 대화는 어떤지.\n\n접근의 걸림돌\n\n다가가기 어렵게 하는 조건은.\n\n존중할 경계\n\n넘지 말아야 할 선은 어디인지.\n\n연락을 선택했을 때의 흐름\n\n내가 고른 행동을 어떻게 이어갈지.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/tea-tarot-five/02-five-pauses-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "03-other-five-card-questions",
@@ -2573,7 +2945,13 @@
               "src": "/feature-details/crafted/tea-tarot-five/03-other-five-card-questions.webp",
               "width": 1080,
               "height": 1440,
-              "text": "새 인연과 돈의 습관도,\n다른 자리로 읽어요.\n새로운 인연을 맞이하는 문\n\n준비 상태 · 드러낼 매력\n내려놓을 패턴 · 만남을 넓힐 행동\n관계를 시작할 때의 조언\n\n돈을 대하는 내 패턴\n\n현재 태도 · 자원 활용\n소모 패턴 · 놓친 관리 과제\n실천할 습관\n\n상담 한 번에 배열 하나를 선택해요.\n세 배열을 모두 받는 묶음이 아닙니다.\n돈 배열은 수익을 예측·보장하지 않아요."
+              "text": "새 인연과 돈의 습관도,\n다른 자리로 읽어요.\n새로운 인연을 맞이하는 문\n\n준비 상태 · 드러낼 매력\n내려놓을 패턴 · 만남을 넓힐 행동\n관계를 시작할 때의 조언\n\n돈을 대하는 내 패턴\n\n현재 태도 · 자원 활용\n소모 패턴 · 놓친 관리 과제\n실천할 습관\n\n상담 한 번에 배열 하나를 선택해요.\n세 배열을 모두 받는 묶음이 아닙니다.\n돈 배열은 수익을 예측·보장하지 않아요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/tea-tarot-five/03-other-five-card-questions-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "04-five-is-not-a-score",
@@ -2582,7 +2960,13 @@
               "src": "/feature-details/crafted/tea-tarot-five/04-five-is-not-a-score.webp",
               "width": 1080,
               "height": 1440,
-              "text": "더 정확한 등급보다,\n더 나누어 볼 질문.\n3장은 매듭과 한 걸음을.\n5장은 선택의 조건을 더 나누어.\n\n각 카드에는 같은 읽기 원칙이 있어요.\n\n상징과 정·역방향의 핵심 의미\n\n지금 상황에 비추어 본 모습\n\n내 질문과 연결되는 지점\n\n선택할 행동과 조심할 조건\n\n5장이라고 상대의 마음을\n더 확실하게 알아내는 것은 아니에요."
+              "text": "더 정확한 등급보다,\n더 나누어 볼 질문.\n3장은 매듭과 한 걸음을.\n5장은 선택의 조건을 더 나누어.\n\n각 카드에는 같은 읽기 원칙이 있어요.\n\n상징과 정·역방향의 핵심 의미\n\n지금 상황에 비추어 본 모습\n\n내 질문과 연결되는 지점\n\n선택할 행동과 조심할 조건\n\n5장이라고 상대의 마음을\n더 확실하게 알아내는 것은 아니에요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/tea-tarot-five/04-five-is-not-a-score-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "05-a-boundary-in-the-message",
@@ -2591,7 +2975,13 @@
               "src": "/feature-details/crafted/tea-tarot-five/05-a-boundary-in-the-message.webp",
               "width": 1080,
               "height": 1440,
-              "text": "마음을 전하는 말에도,\n쉴 틈을 남겨요.\n\n대화와 경계를 연결한 편집 예시\n\n다음 주에 차 한 잔 어때요?\n요즘 여유가 없다면 괜찮아요.\n편할 때 알려 주세요.\n\n내 마음은 분명하게\n\n만나고 싶다는 뜻을 숨기지 않아요.\n\n상대의 선택은 열어 두고\n\n거절과 침묵을 재촉하지 않아요.\n\n가상의 대화 예시예요. 상대가 연락을\n원하지 않으면 그 의사를 존중해요."
+              "text": "마음을 전하는 말에도,\n쉴 틈을 남겨요.\n\n대화와 경계를 연결한 편집 예시\n\n다음 주에 차 한 잔 어때요?\n요즘 여유가 없다면 괜찮아요.\n편할 때 알려 주세요.\n\n내 마음은 분명하게\n\n만나고 싶다는 뜻을 숨기지 않아요.\n\n상대의 선택은 열어 두고\n\n거절과 침묵을 재촉하지 않아요.\n\n가상의 대화 예시예요. 상대가 연락을\n원하지 않으면 그 의사를 존중해요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/tea-tarot-five/05-a-boundary-in-the-message-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "06-what-the-pages-hold",
@@ -2600,7 +2990,13 @@
               "src": "/feature-details/crafted/tea-tarot-five/06-what-the-pages-hold.webp",
               "width": 1080,
               "height": 1440,
-              "text": "다섯 장을 지나,\n하나의 이야기로.\n질문\n\n핵심 답변과 우선할 조언.\n\n카드\n\n다섯 장의 개별 해석,\n카드 사이에서 이어지는 의미.\n\n상담\n\n종합 해석과 연이가 건넨 말.\n가능한 선택과 행동 조언.\n\n이후\n\n앞으로 한 달의 흐름, 관계 처방,\n실행 체크리스트.\n\n마무리\n\n지금의 나에게 남기는 메시지.\n\n본문은 공백 제외 11,200자 이상이에요.\n연결·선택은 내용이 있을 때 표시돼요.\n사주 해석은 포함하지 않아요."
+              "text": "다섯 장을 지나,\n하나의 이야기로.\n질문\n\n핵심 답변과 우선할 조언.\n\n카드\n\n다섯 장의 개별 해석,\n카드 사이에서 이어지는 의미.\n\n상담\n\n종합 해석과 연이가 건넨 말.\n가능한 선택과 행동 조언.\n\n이후\n\n앞으로 한 달의 흐름, 관계 처방,\n실행 체크리스트.\n\n마무리\n\n지금의 나에게 남기는 메시지.\n\n본문은 공백 제외 11,200자 이상이에요.\n연결·선택은 내용이 있을 때 표시돼요.\n사주 해석은 포함하지 않아요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/tea-tarot-five/06-what-the-pages-hold-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "07-choose-and-return",
@@ -2609,7 +3005,13 @@
               "src": "/feature-details/crafted/tea-tarot-five/07-choose-and-return.webp",
               "width": 1080,
               "height": 1440,
-              "text": "질문을 적고,\n다섯 자리를 골라요.\n상황과 질문을 적어요\n\n관계 단계나 실제로 겪는 일을\n아는 만큼만 알려 주세요.\n\n맞는 5장 배열을 확인해요\n\n로그인 후 직접 다섯 자리를 고르거나\n자동 선택으로 확정할 수 있어요.\n\n카드를 확인하고 상담을 시작해요\n\n결제 후 돌아오거나 다시 시도해도\n확정한 같은 카드를 읽어요.\n\n3장 배열로 바꾸면 다른 상품입니다.\n카드 수와 화면의 가격을 먼저 확인해요."
+              "text": "질문을 적고,\n다섯 자리를 골라요.\n상황과 질문을 적어요\n\n관계 단계나 실제로 겪는 일을\n아는 만큼만 알려 주세요.\n\n맞는 5장 배열을 확인해요\n\n로그인 후 직접 다섯 자리를 고르거나\n자동 선택으로 확정할 수 있어요.\n\n카드를 확인하고 상담을 시작해요\n\n결제 후 돌아오거나 다시 시도해도\n확정한 같은 카드를 읽어요.\n\n3장 배열로 바꾸면 다른 상품입니다.\n카드 수와 화면의 가격을 먼저 확인해요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/tea-tarot-five/07-choose-and-return-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "08-one-action-to-keep",
@@ -2618,7 +3020,13 @@
               "src": "/feature-details/crafted/tea-tarot-five/08-one-action-to-keep.webp",
               "width": 1080,
               "height": 1440,
-              "text": "길게 읽었어도,\n실천은 하나부터.\n이번 주에 해볼 일\n\n___________________\n\n내가 지키고 싶은 선\n\n___________________\n\n다시 확인할 현실의 정보\n\n___________________\n\n상담을 텍스트 파일로 저장하고,\n실제로 달라진 점을 적어 보세요.\n\n꿀편지는 별도 조건으로 요청해요.\n기본 상담에 자동 포함되지 않습니다."
+              "text": "길게 읽었어도,\n실천은 하나부터.\n이번 주에 해볼 일\n\n___________________\n\n내가 지키고 싶은 선\n\n___________________\n\n다시 확인할 현실의 정보\n\n___________________\n\n상담을 텍스트 파일로 저장하고,\n실제로 달라진 점을 적어 보세요.\n\n꿀편지는 별도 조건으로 요청해요.\n기본 상담에 자동 포함되지 않습니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/tea-tarot-five/08-one-action-to-keep-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "09-leave-with-your-answer",
@@ -2627,10 +3035,21 @@
               "src": "/feature-details/crafted/tea-tarot-five/09-leave-with-your-answer.webp",
               "width": 1080,
               "height": 1440,
-              "text": "정답을 기다리기보다,\n내 마음을 알아가요.\n\n다가갈 때와 쉬어 갈 때,\n나의 바람과 상대의 경계를 함께.\n\n연이는 서비스 캐릭터이며\n상담 문장은 AI가 작성합니다.\n사람이 직접 답하는 상담은 아닙니다.\n\n운명의 찻집 · 타로 5장\n선택의 여지를 남기는 다정한 상담."
+              "text": "정답을 기다리기보다,\n내 마음을 알아가요.\n\n다가갈 때와 쉬어 갈 때,\n나의 바람과 상대의 경계를 함께.\n\n연이는 서비스 캐릭터이며\n상담 문장은 AI가 작성합니다.\n사람이 직접 답하는 상담은 아닙니다.\n\n운명의 찻집 · 타로 5장\n선택의 여지를 남기는 다정한 상담.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/tea-tarot-five/09-leave-with-your-answer-540.webp",
+                  "width": 540
+                }
+              ]
             }
           ],
-          "priceKRW": 10000
+          "priceKRW": 10000,
+          "cover": {
+            "src": "/feature-details/crafted/tea-tarot-five/01-before-contact-144.webp",
+            "width": 144,
+            "height": 192
+          }
         }
       ],
       "theme": "navy",
@@ -2894,7 +3313,13 @@
               "src": "/feature-details/crafted/love-secret/01-unsent-letter.webp",
               "width": 1080,
               "height": 1440,
-              "text": "보낼까, 말까.\n그 문장 앞에서 오래 멈췄다면.\n\n상대의 답을 상상하기 전에,\n지금 관계와 내 마음부터 정리해요.\n\n연애 비책\n마음을 읽고, 다음 말을 고르는 상담."
+              "text": "보낼까, 말까.\n그 문장 앞에서 오래 멈췄다면.\n\n상대의 답을 상상하기 전에,\n지금 관계와 내 마음부터 정리해요.\n\n연애 비책\n마음을 읽고, 다음 말을 고르는 상담.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/love-secret/01-unsent-letter-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "02-your-question",
@@ -2903,7 +3328,13 @@
               "src": "/feature-details/crafted/love-secret/02-your-question.webp",
               "width": 1080,
               "height": 1440,
-              "text": "연애운이 어떤지보다,\n지금 무엇이 고민인지.\n연락은 이어지는데,\n나만 가까워지고 싶은 걸까요?\n지금의 상황과 질문\n\n관계 단계와 마음의 거리를 적어요.\n\n사주에서 읽는 반복\n\n기질·표현 방식·시기의 배경을 봐요.\n\n내가 선택할 다음 행동\n\n대화·간격·지켜야 할 선을 정리해요.\n\n오행은 기운의 분포, 조후는 계절의 균형.\n용어보다 일상에서 체감하는 모습으로."
+              "text": "연애운이 어떤지보다,\n지금 무엇이 고민인지.\n연락은 이어지는데,\n나만 가까워지고 싶은 걸까요?\n지금의 상황과 질문\n\n관계 단계와 마음의 거리를 적어요.\n\n사주에서 읽는 반복\n\n기질·표현 방식·시기의 배경을 봐요.\n\n내가 선택할 다음 행동\n\n대화·간격·지켜야 할 선을 정리해요.\n\n오행은 기운의 분포, 조후는 계절의 균형.\n용어보다 일상에서 체감하는 모습으로.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/love-secret/02-your-question-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "03-my-love-pattern",
@@ -2912,7 +3343,13 @@
               "src": "/feature-details/crafted/love-secret/03-my-love-pattern.webp",
               "width": 1080,
               "height": 1440,
-              "text": "먼저 나를 읽어요.\n사랑에서 반복되는 방식.\n\n리포트 주제를 짧게 풀어 쓴 안내 · 1–8\n\n현재 관계의 자리와 질문의 핵심\n명식이 그리는 핵심 연애운\n오행·조후로 보는 감정의 온도\n사랑에서 반복하는 나의 방식\n십성으로 보는 애착과 표현\n상대가 알아보는 나의 장점\n반복해서 걸리는 연애의 약점\n애정 표현 스타일과 연애 심리\n\n십성은 관계에서 맡는 역할을 보는 관점.\n장점과 조정할 습관을 함께 읽습니다."
+              "text": "먼저 나를 읽어요.\n사랑에서 반복되는 방식.\n\n리포트 주제를 짧게 풀어 쓴 안내 · 1–8\n\n현재 관계의 자리와 질문의 핵심\n명식이 그리는 핵심 연애운\n오행·조후로 보는 감정의 온도\n사랑에서 반복하는 나의 방식\n십성으로 보는 애착과 표현\n상대가 알아보는 나의 장점\n반복해서 걸리는 연애의 약점\n애정 표현 스타일과 연애 심리\n\n십성은 관계에서 맡는 역할을 보는 관점.\n장점과 조정할 습관을 함께 읽습니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/love-secret/03-my-love-pattern-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "04-the-other-person",
@@ -2921,7 +3358,13 @@
               "src": "/feature-details/crafted/love-secret/04-the-other-person.webp",
               "width": 1080,
               "height": 1440,
-              "text": "상대의 마음이 궁금해도,\n확인할 수 있는 것부터.\n\n상대·궁합·이상형 · 주제 9–13\n\n상대의 기운과 감정 거리감\n두 사람 사이 끌림이 살아나는 조건\n속궁합과 친밀감 리듬\n내 명식이 끌리는 이상형\n상대가 원하는 연애 스타일\n\n상대 정보가 있으면 두 명식을 함께.\n없으면 본인 명식과 관찰한 신호를.\n\n속궁합은 친밀감의 속도와 정서적 리듬.\n상대의 마음을 사실로 확정하지 않아요."
+              "text": "상대의 마음이 궁금해도,\n확인할 수 있는 것부터.\n\n상대·궁합·이상형 · 주제 9–13\n\n상대의 기운과 감정 거리감\n두 사람 사이 끌림이 살아나는 조건\n속궁합과 친밀감 리듬\n내 명식이 끌리는 이상형\n상대가 원하는 연애 스타일\n\n상대 정보가 있으면 두 명식을 함께.\n없으면 본인 명식과 관찰한 신호를.\n\n속궁합은 친밀감의 속도와 정서적 리듬.\n상대의 마음을 사실로 확정하지 않아요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/love-secret/04-the-other-person-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "05-protect-my-heart",
@@ -2930,7 +3373,13 @@
               "src": "/feature-details/crafted/love-secret/05-protect-my-heart.webp",
               "width": 1080,
               "height": 1440,
-              "text": "붙잡는 방법만큼,\n나를 지키는 기준도.\n\n갈등과 회복 · 주제 14–17\n\n갈등의 뿌리와 회복 방식\n\n반복되는 다툼의 조건을 살펴요.\n\n바람기와 마음이 흩어지는 조건\n\n누군가를 낙인찍는 해석은 피해요.\n\n재회 가능성과 그 조건\n\n돌아올 확률보다 필요한 변화를.\n\n피해야 할 선택과 자기 보호\n\n지켜야 할 선과 물러설 지점을.\n\n반복 연락이나 감시로 답을 얻기보다,\n상대가 밝힌 의사와 경계를 존중해요."
+              "text": "붙잡는 방법만큼,\n나를 지키는 기준도.\n\n갈등과 회복 · 주제 14–17\n\n갈등의 뿌리와 회복 방식\n\n반복되는 다툼의 조건을 살펴요.\n\n바람기와 마음이 흩어지는 조건\n\n누군가를 낙인찍는 해석은 피해요.\n\n재회 가능성과 그 조건\n\n돌아올 확률보다 필요한 변화를.\n\n피해야 할 선택과 자기 보호\n\n지켜야 할 선과 물러설 지점을.\n\n반복 연락이나 감시로 답을 얻기보다,\n상대가 밝힌 의사와 경계를 존중해요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/love-secret/05-protect-my-heart-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "06-time-to-talk",
@@ -2939,7 +3388,13 @@
               "src": "/feature-details/crafted/love-secret/06-time-to-talk.webp",
               "width": 1080,
               "height": 1440,
-              "text": "언제 다가갈지,\n어떤 마음으로 말할지.\n\n시간의 흐름 · 주제 18–22\n\n연락·고백·재회·관계 진전 타이밍\n\n올해 연애운 — 좋은 달과 조심할 달\n\n좋은 날짜 — 계산된 일진으로 고른 날\n\n결혼운과 인연이 굳어지는 시기\n\n30일 관계 흐름 처방\n\n일진은 날짜마다 달라지는 기운.\n다가갈 때와 태도를 살피는 참고예요.\n\n좋은 날짜가 상대의 동의나\n관계의 성공을 대신하지는 않습니다."
+              "text": "언제 다가갈지,\n어떤 마음으로 말할지.\n\n시간의 흐름 · 주제 18–22\n\n연락·고백·재회·관계 진전 타이밍\n\n올해 연애운 — 좋은 달과 조심할 달\n\n좋은 날짜 — 계산된 일진으로 고른 날\n\n결혼운과 인연이 굳어지는 시기\n\n30일 관계 흐름 처방\n\n일진은 날짜마다 달라지는 기운.\n다가갈 때와 태도를 살피는 참고예요.\n\n좋은 날짜가 상대의 동의나\n관계의 성공을 대신하지는 않습니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/love-secret/06-time-to-talk-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "07-small-actions",
@@ -2948,7 +3403,13 @@
               "src": "/feature-details/crafted/love-secret/07-small-actions.webp",
               "width": 1080,
               "height": 1440,
-              "text": "막연한 조언에서,\n오늘 할 수 있는 행동으로.\n\n전략과 실천 · 주제 23–28\n\n썸에서 확신으로 가는 전략\n관계 단계별 실행 비책\n상대에게 다가가는 대화 문장\n매력적으로 보이는 방법\n이미지·말투·스타일\n7일 실천 가이드\n마지막 상담사의 한마디\n\n모든 단계를 한꺼번에 밀어붙이기보다,\n지금 관계에 맞는 행동부터 골라요."
+              "text": "막연한 조언에서,\n오늘 할 수 있는 행동으로.\n\n전략과 실천 · 주제 23–28\n\n썸에서 확신으로 가는 전략\n관계 단계별 실행 비책\n상대에게 다가가는 대화 문장\n매력적으로 보이는 방법\n이미지·말투·스타일\n7일 실천 가이드\n마지막 상담사의 한마디\n\n모든 단계를 한꺼번에 밀어붙이기보다,\n지금 관계에 맞는 행동부터 골라요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/love-secret/07-small-actions-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "08-draft-message",
@@ -2957,7 +3418,13 @@
               "src": "/feature-details/crafted/love-secret/08-draft-message.webp",
               "width": 1080,
               "height": 1440,
-              "text": "답을 재촉하기 전에,\n내 뜻부터 선명하게.\n\n실제 AI 결과 원문 발췌 · 가상 예시 프로필\n\n상대에게 다가가는 대화 문장:\n\n\"너랑 같이 있으면 시간이 정말 빨리 가는 것 같아. 다음 주말에도 같이 맛있는 거 먹으러 갈까?\"\n\n…\n\n피해야 할 대화 문장:\n\n\"우리 관계는 대체 뭐야? 언제쯤 사귈 수 있는 거야?\"\n\n가상 프로필로 생성한 실제 결과 중\n「상대에게 다가가는 대화 문장」 장.\n고객 결과나 후기가 아닙니다."
+              "text": "답을 재촉하기 전에,\n내 뜻부터 선명하게.\n\n실제 AI 결과 원문 발췌 · 가상 예시 프로필\n\n상대에게 다가가는 대화 문장:\n\n\"너랑 같이 있으면 시간이 정말 빨리 가는 것 같아. 다음 주말에도 같이 맛있는 거 먹으러 갈까?\"\n\n…\n\n피해야 할 대화 문장:\n\n\"우리 관계는 대체 뭐야? 언제쯤 사귈 수 있는 거야?\"\n\n가상 프로필로 생성한 실제 결과 중\n「상대에게 다가가는 대화 문장」 장.\n고객 결과나 후기가 아닙니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/love-secret/08-draft-message-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "09-use-the-report",
@@ -2966,7 +3433,13 @@
               "src": "/feature-details/crafted/love-secret/09-use-the-report.webp",
               "width": 1080,
               "height": 1440,
-              "text": "읽고 끝내지 않도록,\n작은 실천을 눈앞에.\n한눈에\n\n한 줄 진단과 핵심 키워드.\n\n깊이\n\n기질과 관계 전략을 한 장씩 읽기.\n\n일상에서\n\n실천 체크리스트와 7일 가이드.\n\nPDF로 저장해 다시 읽어요.\n\n날짜 카드와 체크리스트는\n해당 내용이 결과에 있을 때 표시됩니다."
+              "text": "읽고 끝내지 않도록,\n작은 실천을 눈앞에.\n한눈에\n\n한 줄 진단과 핵심 키워드.\n\n깊이\n\n기질과 관계 전략을 한 장씩 읽기.\n\n일상에서\n\n실천 체크리스트와 7일 가이드.\n\nPDF로 저장해 다시 읽어요.\n\n날짜 카드와 체크리스트는\n해당 내용이 결과에 있을 때 표시됩니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/love-secret/09-use-the-report-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "10-start-with-now",
@@ -2975,7 +3448,13 @@
               "src": "/feature-details/crafted/love-secret/10-start-with-now.webp",
               "width": 1080,
               "height": 1440,
-              "text": "누군가의 정답보다,\n지금의 나에게 필요한 말.\n\n지금의 관계 단계와 고민,\n궁금한 질문을 먼저 적어 주세요.\n\n본인의 출생 정보를 준비하고,\n상대 정보는 아는 만큼 입력해요.\n모르는 시간은 모름으로 선택해요.\n\n10년 경력 상담사·명리학자가 만든\n서비스이며, 결과 문장은 AI가 씁니다.\n\n연애 비책\n다음 대화가 조금 더 나다울 수 있도록."
+              "text": "누군가의 정답보다,\n지금의 나에게 필요한 말.\n\n지금의 관계 단계와 고민,\n궁금한 질문을 먼저 적어 주세요.\n\n본인의 출생 정보를 준비하고,\n상대 정보는 아는 만큼 입력해요.\n모르는 시간은 모름으로 선택해요.\n\n10년 경력 상담사·명리학자가 만든\n서비스이며, 결과 문장은 AI가 씁니다.\n\n연애 비책\n다음 대화가 조금 더 나다울 수 있도록.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/love-secret/10-start-with-now-540.webp",
+                  "width": 540
+                }
+              ]
             }
           ],
           "priceKRW": 30000
@@ -3078,7 +3557,13 @@
               "src": "/feature-details/crafted/chat-engine-yeoni/01-a-question-at-the-table.webp",
               "width": 1080,
               "height": 1440,
-              "text": "오늘의 마음을,\n질문 하나로 놓아주세요.\n\n새 상담실에서 만나는 연이.\n마음에 걸린 장면을 한 번의 상담으로\n차분하게 풀어 읽어요."
+              "text": "오늘의 마음을,\n질문 하나로 놓아주세요.\n\n새 상담실에서 만나는 연이.\n마음에 걸린 장면을 한 번의 상담으로\n차분하게 풀어 읽어요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/chat-engine-yeoni/01-a-question-at-the-table-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "02-a-moment-not-a-verdict",
@@ -3086,7 +3571,13 @@
               "src": "/feature-details/crafted/chat-engine-yeoni/02-a-moment-not-a-verdict.webp",
               "width": 1080,
               "height": 1440,
-              "text": "괜찮다는 말 다음에,\n이유도 듣고 싶을 때.\n“늘 내가 먼저 연락해요.\n잠시 기다려도 괜찮을까요?”\n\n상대의 마음을 확정하기보다\n관계에서 반복되는 내 모습과\n지금 확인할 수 있는 선택을 살펴요.\n\n상담 질문의 가상 예시예요.\n실제 고객 후기나 생성 결과가 아닙니다."
+              "text": "괜찮다는 말 다음에,\n이유도 듣고 싶을 때.\n“늘 내가 먼저 연락해요.\n잠시 기다려도 괜찮을까요?”\n\n상대의 마음을 확정하기보다\n관계에서 반복되는 내 모습과\n지금 확인할 수 있는 선택을 살펴요.\n\n상담 질문의 가상 예시예요.\n실제 고객 후기나 생성 결과가 아닙니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/chat-engine-yeoni/02-a-moment-not-a-verdict-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "03-the-order-of-care",
@@ -3094,7 +3585,13 @@
               "src": "/feature-details/crafted/chat-engine-yeoni/03-the-order-of-care.webp",
               "width": 1080,
               "height": 1440,
-              "text": "먼저 마음을 짚고,\n근거를 함께 살펴요.\n핵심 답변\n장별 요약 카드\n해석의 근거와 명식 자료\n현재 흐름과 시기\n행동 조언과 마무리\n\n저장된 챕터를 이 순서로 모아 보여줘요.\n세부 목차와 자료는 선택한 체계와\n질문에 따라 달라집니다."
+              "text": "먼저 마음을 짚고,\n근거를 함께 살펴요.\n핵심 답변\n장별 요약 카드\n해석의 근거와 명식 자료\n현재 흐름과 시기\n행동 조언과 마무리\n\n저장된 챕터를 이 순서로 모아 보여줘요.\n세부 목차와 자료는 선택한 체계와\n질문에 따라 달라집니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/chat-engine-yeoni/03-the-order-of-care-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "04-choose-one-language",
@@ -3102,7 +3599,13 @@
               "src": "/feature-details/crafted/chat-engine-yeoni/04-choose-one-language.webp",
               "width": 1080,
               "height": 1440,
-              "text": "여섯 체계 중,\n한 가지로 읽어요.\n\n사주 · 자미두수 · 숙요\n베다점 · 서양 점성술 · 타로\n\n상담을 준비할 때 체계를 골라요.\n각 체계의 근거를 사용하며,\n여섯 체계를 한 번에 합치는\n융합 리포트는 아닙니다.\n\n명식을 쓰는 상담은 프로필을 선택해요.\n출생시간·지역 등 필요한 정보는\n선택한 체계의 안내를 따라주세요."
+              "text": "여섯 체계 중,\n한 가지로 읽어요.\n\n사주 · 자미두수 · 숙요\n베다점 · 서양 점성술 · 타로\n\n상담을 준비할 때 체계를 골라요.\n각 체계의 근거를 사용하며,\n여섯 체계를 한 번에 합치는\n융합 리포트는 아닙니다.\n\n명식을 쓰는 상담은 프로필을 선택해요.\n출생시간·지역 등 필요한 정보는\n선택한 체계의 안내를 따라주세요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/chat-engine-yeoni/04-choose-one-language-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "05-tarot-starts-here",
@@ -3110,7 +3613,13 @@
               "src": "/feature-details/crafted/chat-engine-yeoni/05-tarot-starts-here.webp",
               "width": 1080,
               "height": 1440,
-              "text": "생일 없이도,\n카드에 물을 수 있어요.\n상황\n마음\n선택\n\n타로는 생년 프로필 대신\n지금의 고민과 카드를 바탕으로 읽어요.\n선택, 사랑, 연락, 재회, 일 등\n화면에서 고민 종류를 먼저 골라요.\n\n카드 도식은 구성 설명용입니다.\n상대의 속마음이나 관계의 결말을\n확정하는 상담은 아니에요."
+              "text": "생일 없이도,\n카드에 물을 수 있어요.\n상황\n마음\n선택\n\n타로는 생년 프로필 대신\n지금의 고민과 카드를 바탕으로 읽어요.\n선택, 사랑, 연락, 재회, 일 등\n화면에서 고민 종류를 먼저 골라요.\n\n카드 도식은 구성 설명용입니다.\n상대의 속마음이나 관계의 결말을\n확정하는 상담은 아니에요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/chat-engine-yeoni/05-tarot-starts-here-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "06-an-example-of-voice",
@@ -3118,7 +3627,13 @@
               "src": "/feature-details/crafted/chat-engine-yeoni/06-an-example-of-voice.webp",
               "width": 1080,
               "height": 1440,
-              "text": "배려하는 마음에도,\n내 자리가 필요해요.\n\n연이의 말투를 보여주는 편집 예시\n\n“상대의 속도를 기다리는 일과\n내 마음을 계속 미루는 일은\n조금 달라요.\n\n오늘은 가능한 만큼을 말하고,\n그다음 반응을 살펴봐도 좋아요.”\n\n실제 명식이나 생성 결과 원문이 아니에요.\n개인별 답변은 입력과 근거에 따라 달라집니다."
+              "text": "배려하는 마음에도,\n내 자리가 필요해요.\n\n연이의 말투를 보여주는 편집 예시\n\n“상대의 속도를 기다리는 일과\n내 마음을 계속 미루는 일은\n조금 달라요.\n\n오늘은 가능한 만큼을 말하고,\n그다음 반응을 살펴봐도 좋아요.”\n\n실제 명식이나 생성 결과 원문이 아니에요.\n개인별 답변은 입력과 근거에 따라 달라집니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/chat-engine-yeoni/06-an-example-of-voice-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "07-read-again",
@@ -3126,7 +3641,13 @@
               "src": "/feature-details/crafted/chat-engine-yeoni/07-read-again.webp",
               "width": 1080,
               "height": 1440,
-              "text": "도착한 이야기부터,\n천천히 읽어주세요.\n차례로 도착하는 답변\n\n완성된 챕터부터 읽고,\n남은 이야기는 화면에서 이어 받아요.\n\n상담자별 기록\n\n연이와 나눈 상담은 연이의 기록에서,\n네오의 상담은 네오의 기록에서\n저장된 답변을 다시 열 수 있어요.\n\n새 질문은 새 상담으로 준비해요.\n현재 화면은 무제한 후속 채팅이나\nPDF 저장을 제공하지 않습니다."
+              "text": "도착한 이야기부터,\n천천히 읽어주세요.\n차례로 도착하는 답변\n\n완성된 챕터부터 읽고,\n남은 이야기는 화면에서 이어 받아요.\n\n상담자별 기록\n\n연이와 나눈 상담은 연이의 기록에서,\n네오의 상담은 네오의 기록에서\n저장된 답변을 다시 열 수 있어요.\n\n새 질문은 새 상담으로 준비해요.\n현재 화면은 무제한 후속 채팅이나\nPDF 저장을 제공하지 않습니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/chat-engine-yeoni/07-read-again-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "08-before-we-begin",
@@ -3134,10 +3655,21 @@
               "src": "/feature-details/crafted/chat-engine-yeoni/08-before-we-begin.webp",
               "width": 1080,
               "height": 1440,
-              "text": "한 가지 고민이면,\n시작할 수 있어요.\n\n질문은 300자 안에서 적어주세요.\n상담을 시작하려면 로그인이 필요해요.\n준비된 상담의 가격과 이용 조건을\n기존 결제 화면에서 확인해주세요.\n\n연이와 네오는 같은 결제 상품의\n상담자 선택이에요.\n답변의 말투와 읽는 순서가 달라져요.\n\n연이는 AI 상담 캐릭터입니다.\n이용권·월정석·단건 결제는\n현재 화면에 표시된 기준을 따릅니다."
+              "text": "한 가지 고민이면,\n시작할 수 있어요.\n\n질문은 300자 안에서 적어주세요.\n상담을 시작하려면 로그인이 필요해요.\n준비된 상담의 가격과 이용 조건을\n기존 결제 화면에서 확인해주세요.\n\n연이와 네오는 같은 결제 상품의\n상담자 선택이에요.\n답변의 말투와 읽는 순서가 달라져요.\n\n연이는 AI 상담 캐릭터입니다.\n이용권·월정석·단건 결제는\n현재 화면에 표시된 기준을 따릅니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/chat-engine-yeoni/08-before-we-begin-540.webp",
+                  "width": 540
+                }
+              ]
             }
           ],
-          "priceKRW": 5000
+          "priceKRW": 5000,
+          "cover": {
+            "src": "/feature-details/crafted/chat-engine-yeoni/01-a-question-at-the-table-144.webp",
+            "width": 144,
+            "height": 192
+          }
         },
         {
           "id": "chat-engine-neo",
@@ -3151,7 +3683,13 @@
               "src": "/feature-details/crafted/chat-engine-neo/01-name-the-decision.webp",
               "width": 1080,
               "height": 1440,
-              "text": "고민이 길어졌다면,\n정할 것부터 짚자.\n\n새 상담실 · 네오의 별빛 전략실.\n선택한 운세의 근거를 읽고,\n지금 할 일의 순서를 정리합니다."
+              "text": "고민이 길어졌다면,\n정할 것부터 짚자.\n\n새 상담실 · 네오의 별빛 전략실.\n선택한 운세의 근거를 읽고,\n지금 할 일의 순서를 정리합니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/chat-engine-neo/01-name-the-decision-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "02-one-concrete-choice",
@@ -3159,7 +3697,13 @@
               "src": "/feature-details/crafted/chat-engine-neo/02-one-concrete-choice.webp",
               "width": 1080,
               "height": 1440,
-              "text": "“뭘 해야 하지?”\n한 장면으로 좁혀보자.\n\n막연한 고민\n\n지금 일을 계속할까?\n\n구체적인 질문\n\n새 제안을 받았는데,\n무엇부터 비교해야 할까?\n\n상황과 결정할 일을 300자 안에 적어라.\n질문이 선명해야 조언을\n내 조건에 대입하기도 쉬워진다.\n\n이 질문은 설명을 위한 가상 예시입니다."
+              "text": "“뭘 해야 하지?”\n한 장면으로 좁혀보자.\n\n막연한 고민\n\n지금 일을 계속할까?\n\n구체적인 질문\n\n새 제안을 받았는데,\n무엇부터 비교해야 할까?\n\n상황과 결정할 일을 300자 안에 적어라.\n질문이 선명해야 조언을\n내 조건에 대입하기도 쉬워진다.\n\n이 질문은 설명을 위한 가상 예시입니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/chat-engine-neo/02-one-concrete-choice-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "03-the-briefing-order",
@@ -3167,7 +3711,13 @@
               "src": "/feature-details/crafted/chat-engine-neo/03-the-briefing-order.webp",
               "width": 1080,
               "height": 1440,
-              "text": "판단을 먼저.\n근거는 그다음에.\n핵심 판단\n지금 할 일\n시기와 판단 근거\n판세와 장별 브리핑\n마무리\n\n저장된 챕터를 전략실의 순서로 보여줍니다.\n세부 내용은 선택한 체계와\n질문에 따라 달라집니다."
+              "text": "판단을 먼저.\n근거는 그다음에.\n핵심 판단\n지금 할 일\n시기와 판단 근거\n판세와 장별 브리핑\n마무리\n\n저장된 챕터를 전략실의 순서로 보여줍니다.\n세부 내용은 선택한 체계와\n질문에 따라 달라집니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/chat-engine-neo/03-the-briefing-order-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "04-show-your-basis",
@@ -3175,7 +3725,13 @@
               "src": "/feature-details/crafted/chat-engine-neo/04-show-your-basis.webp",
               "width": 1080,
               "height": 1440,
-              "text": "근거 없이 세게\n말하는 것은,\n전략이 아니다.\n\n사주·자미두수·숙요·베다점·\n서양 점성술·타로 중 한 가지를 고른다.\n선택한 체계의 자료로 질문을 읽는다.\n\n판단 이유를 읽고,\n명식 자료나 펼친 카드를 다시 확인해라.\n제약이 있는 해석은 그 범위도 살펴라.\n\n여섯 체계를 함께 분석하는 상품은 아닙니다.\n직설적인 조언도 미래를 확정하지는 않습니다."
+              "text": "근거 없이 세게\n말하는 것은,\n전략이 아니다.\n\n사주·자미두수·숙요·베다점·\n서양 점성술·타로 중 한 가지를 고른다.\n선택한 체계의 자료로 질문을 읽는다.\n\n판단 이유를 읽고,\n명식 자료나 펼친 카드를 다시 확인해라.\n제약이 있는 해석은 그 범위도 살펴라.\n\n여섯 체계를 함께 분석하는 상품은 아닙니다.\n직설적인 조언도 미래를 확정하지는 않습니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/chat-engine-neo/04-show-your-basis-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "05-prepare-the-material",
@@ -3183,7 +3739,13 @@
               "src": "/feature-details/crafted/chat-engine-neo/05-prepare-the-material.webp",
               "width": 1080,
               "height": 1440,
-              "text": "판단에 필요한\n재료부터 준비해라.\n명식으로 보는 상담\n\n내 프로필을 고르고 시간·지역 등\n선택한 체계가 요구하는 정보를 확인한다.\n\n타로로 보는 상담\n\n생년 정보 없이 고민 종류와 질문으로\n카드의 상황·감정·선택지를 읽는다.\n\n상담 시작에는 로그인이 필요합니다.\n자료가 부족하면 화면의 안내를 따라주세요."
+              "text": "판단에 필요한\n재료부터 준비해라.\n명식으로 보는 상담\n\n내 프로필을 고르고 시간·지역 등\n선택한 체계가 요구하는 정보를 확인한다.\n\n타로로 보는 상담\n\n생년 정보 없이 고민 종류와 질문으로\n카드의 상황·감정·선택지를 읽는다.\n\n상담 시작에는 로그인이 필요합니다.\n자료가 부족하면 화면의 안내를 따라주세요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/chat-engine-neo/05-prepare-the-material-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "06-a-strategists-voice",
@@ -3191,7 +3753,13 @@
               "src": "/feature-details/crafted/chat-engine-neo/06-a-strategists-voice.webp",
               "width": 1080,
               "height": 1440,
-              "text": "기분과 조건을,\n같은 칸에 넣지 마라.\n\n네오의 설명 방식을 보여주는 편집 예시\n\n“그만두고 싶은 마음은 알겠다.\n하지만 떠날 이유와\n다음 자리의 조건은 따로 적어라.\n\n오늘은 수입, 역할, 생활을 비교해라.\n불편함만으로 결론내리지 마라.”\n\n실제 고객 결과나 명식 해석 원문이 아닙니다.\n개인별 답변은 입력과 근거에 따라 달라집니다."
+              "text": "기분과 조건을,\n같은 칸에 넣지 마라.\n\n네오의 설명 방식을 보여주는 편집 예시\n\n“그만두고 싶은 마음은 알겠다.\n하지만 떠날 이유와\n다음 자리의 조건은 따로 적어라.\n\n오늘은 수입, 역할, 생활을 비교해라.\n불편함만으로 결론내리지 마라.”\n\n실제 고객 결과나 명식 해석 원문이 아닙니다.\n개인별 답변은 입력과 근거에 따라 달라집니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/chat-engine-neo/06-a-strategists-voice-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "07-keep-your-briefing",
@@ -3199,7 +3767,13 @@
               "src": "/feature-details/crafted/chat-engine-neo/07-keep-your-briefing.webp",
               "width": 1080,
               "height": 1440,
-              "text": "한 번 읽고 흘리지 말고,\n기록으로 돌아와라.\n도착한 챕터부터 읽기\n\n남은 이야기는 이어서 받아봅니다.\n\n네오의 상담 기록\n\n저장된 답변을 다시 열어\n그때의 판단과 행동을 돌아봅니다.\n\n연이와 네오의 기록은 상담자별로 보여줍니다.\n새 질문은 새 상담으로 준비합니다.\n현재 화면은 후속 무제한 채팅이나\nPDF 저장을 제공하지 않습니다."
+              "text": "한 번 읽고 흘리지 말고,\n기록으로 돌아와라.\n도착한 챕터부터 읽기\n\n남은 이야기는 이어서 받아봅니다.\n\n네오의 상담 기록\n\n저장된 답변을 다시 열어\n그때의 판단과 행동을 돌아봅니다.\n\n연이와 네오의 기록은 상담자별로 보여줍니다.\n새 질문은 새 상담으로 준비합니다.\n현재 화면은 후속 무제한 채팅이나\nPDF 저장을 제공하지 않습니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/chat-engine-neo/07-keep-your-briefing-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "08-open-the-room",
@@ -3207,10 +3781,21 @@
               "src": "/feature-details/crafted/chat-engine-neo/08-open-the-room.webp",
               "width": 1080,
               "height": 1440,
-              "text": "결정은 네 몫.\n읽을 근거는 여기서.\n\n상담을 준비한 뒤 기존 화면에서\n가격과 이용 조건을 확인해라.\n중요한 선택은 현실의 정보와\n리포트의 조언을 함께 놓고 판단해라.\n\n연이로 바꾸면 말투와 읽는 순서가\n달라진다. 같은 결제 상품 안의\n상담자 선택이다.\n\n네오는 AI 상담 캐릭터입니다.\n이용권·월정석·단건 결제는\n현재 화면의 기준을 따릅니다."
+              "text": "결정은 네 몫.\n읽을 근거는 여기서.\n\n상담을 준비한 뒤 기존 화면에서\n가격과 이용 조건을 확인해라.\n중요한 선택은 현실의 정보와\n리포트의 조언을 함께 놓고 판단해라.\n\n연이로 바꾸면 말투와 읽는 순서가\n달라진다. 같은 결제 상품 안의\n상담자 선택이다.\n\n네오는 AI 상담 캐릭터입니다.\n이용권·월정석·단건 결제는\n현재 화면의 기준을 따릅니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/chat-engine-neo/08-open-the-room-540.webp",
+                  "width": 540
+                }
+              ]
             }
           ],
-          "priceKRW": 5000
+          "priceKRW": 5000,
+          "cover": {
+            "src": "/feature-details/crafted/chat-engine-neo/01-name-the-decision-144.webp",
+            "width": 144,
+            "height": 192
+          }
         }
       ],
       "theme": "navy",
@@ -3823,7 +4408,13 @@
               "src": "/feature-details/crafted/neo-operation-room/01-stop-circling.webp",
               "width": 1080,
               "height": 1440,
-              "text": "생각은 충분히 했다.\n이제 무엇부터 바꿀까.\n\n반복한 선택과 그 근거를 짚고,\n지금 실행할 한 가지를 정한다.\n\n네오의 팩폭 작전실"
+              "text": "생각은 충분히 했다.\n이제 무엇부터 바꿀까.\n\n반복한 선택과 그 근거를 짚고,\n지금 실행할 한 가지를 정한다.\n\n네오의 팩폭 작전실",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/neo-operation-room/01-stop-circling-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "02-name-the-frontline",
@@ -3832,7 +4423,13 @@
               "src": "/feature-details/crafted/neo-operation-room/02-name-the-frontline.webp",
               "width": 1080,
               "height": 1440,
-              "text": "“어떻게 될까” 앞에,\n지금의 상황부터 놓아라.\n결정할 일\n\n지금 직장을 떠날지,\n준비를 더 하며 남아 있을지.\n\n반복해서 멈춘 이유\n\n정보가 부족한지,\n다른 사람의 평가가 두려운지.\n\n지켜야 할 현실\n\n생활비, 준비 시간, 이미 맡은 일.\n이번 선택의 조건을 적어라.\n\n구체적인 질문에서 시작해\n판단의 근거와 행동을 함께 읽는다."
+              "text": "“어떻게 될까” 앞에,\n지금의 상황부터 놓아라.\n결정할 일\n\n지금 직장을 떠날지,\n준비를 더 하며 남아 있을지.\n\n반복해서 멈춘 이유\n\n정보가 부족한지,\n다른 사람의 평가가 두려운지.\n\n지켜야 할 현실\n\n생활비, 준비 시간, 이미 맡은 일.\n이번 선택의 조건을 적어라.\n\n구체적인 질문에서 시작해\n판단의 근거와 행동을 함께 읽는다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/neo-operation-room/02-name-the-frontline-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "03-choose-one-map",
@@ -3841,7 +4438,13 @@
               "src": "/feature-details/crafted/neo-operation-room/03-choose-one-map.webp",
               "width": 1080,
               "height": 1440,
-              "text": "네 가지 지도 중,\n하나를 골라 읽는다.\n사주\n일간·오행·십성, 대운과 세운.\n기질과 시기의 관계를 살핀다.\n자미두수\n명궁·신궁과 열두 궁의 별 배치.\n삶의 영역별 힘과 흐름을 읽는다.\n베다점\n라그나·달·행성과 다샤.\n출생의 배치와 시기 주기를 살핀다.\n서양 점성술\n태양·달·상승궁과 행성의 각도.\n감정과 선택의 패턴을 읽는다."
+              "text": "네 가지 지도 중,\n하나를 골라 읽는다.\n사주\n일간·오행·십성, 대운과 세운.\n기질과 시기의 관계를 살핀다.\n자미두수\n명궁·신궁과 열두 궁의 별 배치.\n삶의 영역별 힘과 흐름을 읽는다.\n베다점\n라그나·달·행성과 다샤.\n출생의 배치와 시기 주기를 살핀다.\n서양 점성술\n태양·달·상승궁과 행성의 각도.\n감정과 선택의 패턴을 읽는다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/neo-operation-room/03-choose-one-map-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "04-first-briefing",
@@ -3850,7 +4453,13 @@
               "src": "/feature-details/crafted/neo-operation-room/04-first-briefing.webp",
               "width": 1080,
               "height": 1440,
-              "text": "첫 브리핑에는,\n판단만 적혀 있지 않다.\n전선 진단\n긴급 작전\n네오의 판단\n타고난 성향\n주제 분석\n시기와 전략\n어긋난 자리와 근거\n금지와 7일 작전\n현실 점검 질문\n사자 휘장과 마무리\n\n내용이 있는 챕터만 표시된다.\n관계 전용 목차는 선택 조건에 따라 추가."
+              "text": "첫 브리핑에는,\n판단만 적혀 있지 않다.\n전선 진단\n긴급 작전\n네오의 판단\n타고난 성향\n주제 분석\n시기와 전략\n어긋난 자리와 근거\n금지와 7일 작전\n현실 점검 질문\n사자 휘장과 마무리\n\n내용이 있는 챕터만 표시된다.\n관계 전용 목차는 선택 조건에 따라 추가.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/neo-operation-room/04-first-briefing-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "05-answer-back",
@@ -3859,7 +4468,13 @@
               "src": "/feature-details/crafted/neo-operation-room/05-answer-back.webp",
               "width": 1080,
               "height": 1440,
-              "text": "네 사정이 다르다면,\n네오에게 다시 말해라.\n\n현실 점검 질문에 답하거나\n지금의 상황을 더해 수정 작전을 요청한다.\n\n전황 재판단 · 무엇이 달라졌는지\n\n판정과 근거 · 왜 그렇게 읽었는지\n\n전선 조정 · 다른 행동과 그 이유\n\n만나면 좋을 사람 · 보완할 역할\n\n30일 전략 · 이번 주 첫걸음\n\n금지와 휘장 · 마지막 한마디\n\n처음 브리핑과 수정 명령서는 구분된다.\n화면의 남은 이용 범위 안에서 요청하며,\n수정 결과에 있는 항목만 펼쳐진다."
+              "text": "네 사정이 다르다면,\n네오에게 다시 말해라.\n\n현실 점검 질문에 답하거나\n지금의 상황을 더해 수정 작전을 요청한다.\n\n전황 재판단 · 무엇이 달라졌는지\n\n판정과 근거 · 왜 그렇게 읽었는지\n\n전선 조정 · 다른 행동과 그 이유\n\n만나면 좋을 사람 · 보완할 역할\n\n30일 전략 · 이번 주 첫걸음\n\n금지와 휘장 · 마지막 한마디\n\n처음 브리핑과 수정 명령서는 구분된다.\n화면의 남은 이용 범위 안에서 요청하며,\n수정 결과에 있는 항목만 펼쳐진다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/neo-operation-room/05-answer-back-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "06-two-people-at-the-table",
@@ -3868,7 +4483,13 @@
               "src": "/feature-details/crafted/neo-operation-room/06-two-people-at-the-table.webp",
               "width": 1080,
               "height": 1440,
-              "text": "연애가 질문이라면,\n두 사람의 근거를 함께.\n\n연애·재회 주제에서 상대 정보를 더하면,\n선택한 체계의 두 사람 자료를 대조한다.\n\n서로를 보는 눈\n\n나의 관점과 상대의 관점을 나눈다.\n\n갈등 패턴\n\n어디서 시작해 어떻게 커지는지.\n\n관계 작전\n\n지금의 관계 단계에서 할 일과 멈출 일.\n\n궁 교차는 자미두수처럼 해당 근거가\n있는 경우에만 읽는다. 점수와 표시 축도\n체계마다 다르며 성공 확률이 아니다."
+              "text": "연애가 질문이라면,\n두 사람의 근거를 함께.\n\n연애·재회 주제에서 상대 정보를 더하면,\n선택한 체계의 두 사람 자료를 대조한다.\n\n서로를 보는 눈\n\n나의 관점과 상대의 관점을 나눈다.\n\n갈등 패턴\n\n어디서 시작해 어떻게 커지는지.\n\n관계 작전\n\n지금의 관계 단계에서 할 일과 멈출 일.\n\n궁 교차는 자미두수처럼 해당 근거가\n있는 경우에만 읽는다. 점수와 표시 축도\n체계마다 다르며 성공 확률이 아니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/neo-operation-room/06-two-people-at-the-table-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "07-make-the-next-step-small",
@@ -3877,7 +4498,13 @@
               "src": "/feature-details/crafted/neo-operation-room/07-make-the-next-step-small.webp",
               "width": 1080,
               "height": 1440,
-              "text": "“준비가 끝나면”을,\n확인할 수 있는 행동으로.\n\n이해를 돕기 위한 편집 예시\n\n“준비가 덜 됐다”는 말만으로는\n언제 움직일지 정할 수 없다.\n\n지원할 곳 한 군데를 골라라.\n요구하는 역량과 네 경험을 대조하고,\n빈칸 하나를 이번 주 과제로 정해.\n\n기준을 적는다 → 작은 실행 → 다시 판단\n\n실제 출생 자료나 고객 결과가 아닌\n구체적인 행동 조언의 편집 예시다."
+              "text": "“준비가 끝나면”을,\n확인할 수 있는 행동으로.\n\n이해를 돕기 위한 편집 예시\n\n“준비가 덜 됐다”는 말만으로는\n언제 움직일지 정할 수 없다.\n\n지원할 곳 한 군데를 골라라.\n요구하는 역량과 네 경험을 대조하고,\n빈칸 하나를 이번 주 과제로 정해.\n\n기준을 적는다 → 작은 실행 → 다시 판단\n\n실제 출생 자료나 고객 결과가 아닌\n구체적인 행동 조언의 편집 예시다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/neo-operation-room/07-make-the-next-step-small-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "08-your-coordinates",
@@ -3886,7 +4513,13 @@
               "src": "/feature-details/crafted/neo-operation-room/08-your-coordinates.webp",
               "width": 1080,
               "height": 1440,
-              "text": "질문, 출생 정보,\n듣고 싶은 말의 강도.\n지금의 고민과 분석 방식\n주제와 질문을 적고,\n읽을 체계를 하나 고른다.\n생년월일 · 성별 · 출생시간\n시간을 모르면 미상으로 표시한다.\n확인할 수 없는 범위는 한계로 남긴다.\n시간대와 선택 상대 정보\n베다점·점성술은 시간대가 필요하다.\n궁합을 선택했다면 상대 정보도 확인.\n팩폭 강도\n편하게 듣거나 더 직설적으로.\n말투의 강도가 정확도 순위는 아니다."
+              "text": "질문, 출생 정보,\n듣고 싶은 말의 강도.\n지금의 고민과 분석 방식\n주제와 질문을 적고,\n읽을 체계를 하나 고른다.\n생년월일 · 성별 · 출생시간\n시간을 모르면 미상으로 표시한다.\n확인할 수 없는 범위는 한계로 남긴다.\n시간대와 선택 상대 정보\n베다점·점성술은 시간대가 필요하다.\n궁합을 선택했다면 상대 정보도 확인.\n팩폭 강도\n편하게 듣거나 더 직설적으로.\n말투의 강도가 정확도 순위는 아니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/neo-operation-room/08-your-coordinates-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "09-what-is-separate",
@@ -3895,7 +4528,13 @@
               "src": "/feature-details/crafted/neo-operation-room/09-what-is-separate.webp",
               "width": 1080,
               "height": 1440,
-              "text": "상담 기록과 특전은,\n제공 범위를 나눠\n확인해라.\n상담에서 이어지는 일\n\n저장된 브리핑을 다시 읽고,\n남은 범위 안에서 현실 점검을 반영한다.\n\n별도 조건을 확인할 일\n\nPDF와 네오의 편지, 전략서는\n각 화면의 해금 조건을 먼저 확인한다.\n\n상담 한 번으로 모든 특전이\n자동으로 열리는 것은 아니다.\n\n다른 체계로 새로 분석하는 상담은\n다시 이용 조건을 확인한다."
+              "text": "상담 기록과 특전은,\n제공 범위를 나눠\n확인해라.\n상담에서 이어지는 일\n\n저장된 브리핑을 다시 읽고,\n남은 범위 안에서 현실 점검을 반영한다.\n\n별도 조건을 확인할 일\n\nPDF와 네오의 편지, 전략서는\n각 화면의 해금 조건을 먼저 확인한다.\n\n상담 한 번으로 모든 특전이\n자동으로 열리는 것은 아니다.\n\n다른 체계로 새로 분석하는 상담은\n다시 이용 조건을 확인한다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/neo-operation-room/09-what-is-separate-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "10-one-clear-action",
@@ -3904,7 +4543,13 @@
               "src": "/feature-details/crafted/neo-operation-room/10-one-clear-action.webp",
               "width": 1080,
               "height": 1440,
-              "text": "네 편에서 짚겠다.\n선택은 네 손에 남겨두고.\n\n가능성을 사실처럼 단정하지 않고,\n지금 고칠 수 있는 행동부터.\n\n네오는 서비스 캐릭터다.\n상담 문장은 AI가 작성하며,\n사람이 직접 답하는 상담은 아니다.\n\n네오의 팩폭 작전실"
+              "text": "네 편에서 짚겠다.\n선택은 네 손에 남겨두고.\n\n가능성을 사실처럼 단정하지 않고,\n지금 고칠 수 있는 행동부터.\n\n네오는 서비스 캐릭터다.\n상담 문장은 AI가 작성하며,\n사람이 직접 답하는 상담은 아니다.\n\n네오의 팩폭 작전실",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/neo-operation-room/10-one-clear-action-540.webp",
+                  "width": 540
+                }
+              ]
             }
           ],
           "priceKRW": 30000
@@ -4509,7 +5154,13 @@
               "src": "/feature-details/crafted/life-book/01-my-story.webp",
               "width": 1080,
               "height": 1440,
-              "text": "열심히 살아왔는데,\n내 이야기는 잘 모르겠다면.\n\n흩어진 고민을 잠시 내려놓고,\n한 사람의 삶으로 이어 읽는 시간.\n\n인생의 책\n사주를 바탕으로 쓰는 디지털 리포트."
+              "text": "열심히 살아왔는데,\n내 이야기는 잘 모르겠다면.\n\n흩어진 고민을 잠시 내려놓고,\n한 사람의 삶으로 이어 읽는 시간.\n\n인생의 책\n사주를 바탕으로 쓰는 디지털 리포트.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/life-book/01-my-story-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "02-repeated-scene",
@@ -4518,7 +5169,13 @@
               "src": "/feature-details/crafted/life-book/02-repeated-scene.webp",
               "width": 1080,
               "height": 1440,
-              "text": "다른 사람을 만나도,\n비슷한 역할을 맡고 있나요.\n또 내가 먼저\n괜찮다고 말했네.\n\n일에서는 책임을 떠안고,\n관계에서는 마음을 뒤로 미루고.\n장면은 달라도 익숙한 내가 있어요.\n\n인생의 책은 그런 반복을\n기질·관계·생활의 흐름으로 엮어,\n다음 장면에서 바꿀 선택을 살펴봅니다."
+              "text": "다른 사람을 만나도,\n비슷한 역할을 맡고 있나요.\n또 내가 먼저\n괜찮다고 말했네.\n\n일에서는 책임을 떠안고,\n관계에서는 마음을 뒤로 미루고.\n장면은 달라도 익숙한 내가 있어요.\n\n인생의 책은 그런 반복을\n기질·관계·생활의 흐름으로 엮어,\n다음 장면에서 바꿀 선택을 살펴봅니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/life-book/02-repeated-scene-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "03-grounded-story",
@@ -4527,7 +5184,13 @@
               "src": "/feature-details/crafted/life-book/03-grounded-story.webp",
               "width": 1080,
               "height": 1440,
-              "text": "그럴듯한 이야기보다,\n나를 읽는 근거부터.\n일간과 월지 · 타고난 바탕\n\n나의 중심과 태어난 계절을 읽어요.\n\n오행과 십성 · 생활의 방식\n\n힘을 쓰는 방향, 역할과 관계를 봐요.\n\n대운과 세운 · 시기의 배경\n\n긴 흐름과 가까운 변화를 나눠요.\n\n용어를 나열하는 데서 멈추지 않고,\n마음을 지키는 방식과\n일상에서 체감하는 장면으로 풉니다.\n\n미래의 사건을 확정하는 이야기가\n아니라 선택을 돌아보는 해석입니다."
+              "text": "그럴듯한 이야기보다,\n나를 읽는 근거부터.\n일간과 월지 · 타고난 바탕\n\n나의 중심과 태어난 계절을 읽어요.\n\n오행과 십성 · 생활의 방식\n\n힘을 쓰는 방향, 역할과 관계를 봐요.\n\n대운과 세운 · 시기의 배경\n\n긴 흐름과 가까운 변화를 나눠요.\n\n용어를 나열하는 데서 멈추지 않고,\n마음을 지키는 방식과\n일상에서 체감하는 장면으로 풉니다.\n\n미래의 사건을 확정하는 이야기가\n아니라 선택을 돌아보는 해석입니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/life-book/03-grounded-story-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "04-first-chapters",
@@ -4536,7 +5199,13 @@
               "src": "/feature-details/crafted/life-book/04-first-chapters.webp",
               "width": 1080,
               "height": 1440,
-              "text": "첫 다섯 장은,\n나의 중심에서 생활로.\n\n현재 인생의 책 기본 목차 · 앞부분\n\n타고난 사주의 원형\n성격과 내면의 작동 방식\n재능과 일의 방향\n사랑과 인연\n재물과 현실 기반\n\n강점이 살아나는 순간과,\n그 강점이 부담으로 바뀌는 순간을\n함께 읽어 보세요."
+              "text": "첫 다섯 장은,\n나의 중심에서 생활로.\n\n현재 인생의 책 기본 목차 · 앞부분\n\n타고난 사주의 원형\n성격과 내면의 작동 방식\n재능과 일의 방향\n사랑과 인연\n재물과 현실 기반\n\n강점이 살아나는 순간과,\n그 강점이 부담으로 바뀌는 순간을\n함께 읽어 보세요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/life-book/04-first-chapters-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "05-next-chapters",
@@ -4545,7 +5214,13 @@
               "src": "/feature-details/crafted/life-book/05-next-chapters.webp",
               "width": 1080,
               "height": 1440,
-              "text": "다음 다섯 장은,\n관계와 시간의 연결.\n\n현재 인생의 책 기본 목차 · 뒷부분\n\n인간관계와 가족의 장\n건강과 조후의 균형\n대운으로 보는 인생의 큰 장면\n가까운 시기의 세운 조언\n인생의 책 마지막 문장\n\n조후는 태어난 계절의 차고 더운\n기운을 살피는 관점입니다.\n건강 이야기는 의료적 진단이 아닙니다."
+              "text": "다음 다섯 장은,\n관계와 시간의 연결.\n\n현재 인생의 책 기본 목차 · 뒷부분\n\n인간관계와 가족의 장\n건강과 조후의 균형\n대운으로 보는 인생의 큰 장면\n가까운 시기의 세운 조언\n인생의 책 마지막 문장\n\n조후는 태어난 계절의 차고 더운\n기운을 살피는 관점입니다.\n건강 이야기는 의료적 진단이 아닙니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/life-book/05-next-chapters-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "06-deeper-reading",
@@ -4554,7 +5229,13 @@
               "src": "/feature-details/crafted/life-book/06-deeper-reading.webp",
               "width": 1080,
               "height": 1440,
-              "text": "이야기의 밑줄을 따라,\n명식의 근거를 더 깊게.\n\n명식 심화 해석의 네 주제\n\n일간과 월지가 여는 중심 기질\n\n나의 중심과 계절의 만남.\n\n오행과 조후가 청하는 보완\n\n많고 적은 기운의 균형.\n\n십성으로 읽는 관계와 일의 방식\n\n책임·표현·배움·자원의 연결.\n\n대운과 세운이 비추는 선택의 시기\n\n지금의 배경과 가까운 변화.\n\n심화 해석은 결과가 있을 때 표시돼요.\n집필 중에는 완성된 장부터 나타납니다."
+              "text": "이야기의 밑줄을 따라,\n명식의 근거를 더 깊게.\n\n명식 심화 해석의 네 주제\n\n일간과 월지가 여는 중심 기질\n\n나의 중심과 계절의 만남.\n\n오행과 조후가 청하는 보완\n\n많고 적은 기운의 균형.\n\n십성으로 읽는 관계와 일의 방식\n\n책임·표현·배움·자원의 연결.\n\n대운과 세운이 비추는 선택의 시기\n\n지금의 배경과 가까운 변화.\n\n심화 해석은 결과가 있을 때 표시돼요.\n집필 중에는 완성된 장부터 나타납니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/life-book/06-deeper-reading-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "07-paragraph",
@@ -4563,7 +5244,13 @@
               "src": "/feature-details/crafted/life-book/07-paragraph.webp",
               "width": 1080,
               "height": 1440,
-              "text": "당신을 설명하는 문장이,\n선택의 여지가 되도록.\n\n실제 AI 결과 원문 발췌 · 가상 예시 프로필\n\n이는 타인에게 의존하기보다는 스스로의 판단과 능력을 믿고 나아가려는 경향이 강하다는 것을 의미합니다. 하지만 때로는 이러한 강한 자아가 고집으로 비춰질 수도 있습니다. 자신을 지키는 힘이 강한 만큼, 타인의 의견을 수용하는 데 시간이 걸릴 수 있습니다.\n\n가상 프로필로 생성한 실제 결과 중\n「성격과 내면의 작동 방식」 장.\n고객 결과나 후기가 아닙니다."
+              "text": "당신을 설명하는 문장이,\n선택의 여지가 되도록.\n\n실제 AI 결과 원문 발췌 · 가상 예시 프로필\n\n이는 타인에게 의존하기보다는 스스로의 판단과 능력을 믿고 나아가려는 경향이 강하다는 것을 의미합니다. 하지만 때로는 이러한 강한 자아가 고집으로 비춰질 수도 있습니다. 자신을 지키는 힘이 강한 만큼, 타인의 의견을 수용하는 데 시간이 걸릴 수 있습니다.\n\n가상 프로필로 생성한 실제 결과 중\n「성격과 내면의 작동 방식」 장.\n고객 결과나 후기가 아닙니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/life-book/07-paragraph-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "08-digital-book",
@@ -4572,7 +5259,13 @@
               "src": "/feature-details/crafted/life-book/08-digital-book.webp",
               "width": 1080,
               "height": 1440,
-              "text": "마음에 남는 장은,\n천천히 다시 펼쳐 보세요.\n\n목차에서 궁금한 장으로\n\n↓\n\n한 장씩 또는 전체 보기로\n\n↓\n\n마음에 남는 장에 책갈피\n\n완성된 내용을 PDF로 저장해\n내 속도에 맞춰 다시 읽을 수 있어요.\n\n웹에서 읽는 디지털 결과입니다.\n책이 집으로 배송되는 상품은 아닙니다."
+              "text": "마음에 남는 장은,\n천천히 다시 펼쳐 보세요.\n\n목차에서 궁금한 장으로\n\n↓\n\n한 장씩 또는 전체 보기로\n\n↓\n\n마음에 남는 장에 책갈피\n\n완성된 내용을 PDF로 저장해\n내 속도에 맞춰 다시 읽을 수 있어요.\n\n웹에서 읽는 디지털 결과입니다.\n책이 집으로 배송되는 상품은 아닙니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/life-book/08-digital-book-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "09-author",
@@ -4581,7 +5274,13 @@
               "src": "/feature-details/crafted/life-book/09-author.webp",
               "width": 1080,
               "height": 1440,
-              "text": "해석을 듣고,\n나를 이해하는 시간이 되도록.\n\n10년 경력 운세 상담사·명리학자가\n만든 서비스입니다.\n\n사주특성에 대해 설명해주신 걸\n쭉 읽어보니 신기하고\n시원한 기분입니다\n\n공개 동의된 과거 직접 1:1 상담 후기.\n인생의 책 구매 후기가 아닙니다.\n\n이 상품은 계산에 바탕을 둔 AI 해설로,\n사람이 결과마다 직접 쓰거나\n감수하는 상담이 아닙니다."
+              "text": "해석을 듣고,\n나를 이해하는 시간이 되도록.\n\n10년 경력 운세 상담사·명리학자가\n만든 서비스입니다.\n\n사주특성에 대해 설명해주신 걸\n쭉 읽어보니 신기하고\n시원한 기분입니다\n\n공개 동의된 과거 직접 1:1 상담 후기.\n인생의 책 구매 후기가 아닙니다.\n\n이 상품은 계산에 바탕을 둔 AI 해설로,\n사람이 결과마다 직접 쓰거나\n감수하는 상담이 아닙니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/life-book/09-author-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "10-next-page",
@@ -4590,7 +5289,13 @@
               "src": "/feature-details/crafted/life-book/10-next-page.webp",
               "width": 1080,
               "height": 1440,
-              "text": "아직 쓰이지 않은 장은,\n오늘의 선택으로.\n\n생년월일과 달력 기준,\n출생 시간을 확인해 주세요.\n모르는 시간은 모름으로 선택해요.\n\n전체 흐름 또는 더 읽고 싶은 영역을\n고르고, 지금의 나를 펼쳐 보세요.\n\n인생의 책\n당신의 시간을 한 권의 이야기로."
+              "text": "아직 쓰이지 않은 장은,\n오늘의 선택으로.\n\n생년월일과 달력 기준,\n출생 시간을 확인해 주세요.\n모르는 시간은 모름으로 선택해요.\n\n전체 흐름 또는 더 읽고 싶은 영역을\n고르고, 지금의 나를 펼쳐 보세요.\n\n인생의 책\n당신의 시간을 한 권의 이야기로.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/life-book/10-next-page-540.webp",
+                  "width": 540
+                }
+              ]
             }
           ],
           "priceKRW": 30000
@@ -4995,7 +5700,13 @@
               "src": "/feature-details/crafted/fusion-fortune/01-crossroads.webp",
               "width": 1080,
               "height": 1440,
-              "text": "옮겨야 할까,\n조금 더 버텨야 할까.\n\n한 가지 해석만으로는\n정리되지 않는 질문이 있습니다.\n\n초융합 운세\n여섯 관점을 지나, 나의 선택으로."
+              "text": "옮겨야 할까,\n조금 더 버텨야 할까.\n\n한 가지 해석만으로는\n정리되지 않는 질문이 있습니다.\n\n초융합 운세\n여섯 관점을 지나, 나의 선택으로.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/fusion-fortune/01-crossroads-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "02-one-question",
@@ -5004,7 +5715,13 @@
               "src": "/feature-details/crafted/fusion-fortune/02-one-question.webp",
               "width": 1080,
               "height": 1440,
-              "text": "답을 모으기 전에,\n질문의 초점을 맞춥니다.\n이직이 좋을까요?\n조금 더 구체적으로 물어보면.\n지금의 상황\n\n일은 익숙하지만, 역할이 좁아졌어요.\n\n결정할 선택\n\n남아서 협의할지, 다른 곳을 볼지.\n\n확인할 조건\n\n성장·생활 리듬·준비할 시간을.\n\n질문을 정리하는 편집 예시입니다.\n나의 실제 상황으로 바꾸어 적어 주세요."
+              "text": "답을 모으기 전에,\n질문의 초점을 맞춥니다.\n이직이 좋을까요?\n조금 더 구체적으로 물어보면.\n지금의 상황\n\n일은 익숙하지만, 역할이 좁아졌어요.\n\n결정할 선택\n\n남아서 협의할지, 다른 곳을 볼지.\n\n확인할 조건\n\n성장·생활 리듬·준비할 시간을.\n\n질문을 정리하는 편집 예시입니다.\n나의 실제 상황으로 바꾸어 적어 주세요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/fusion-fortune/02-one-question-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "03-different-lenses",
@@ -5013,7 +5730,13 @@
               "src": "/feature-details/crafted/fusion-fortune/03-different-lenses.webp",
               "width": 1080,
               "height": 1440,
-              "text": "여섯 관점,\n서로 다른 근거.\n사주\n기질과 큰 시기 흐름\n자미두수\n명반의 궁과 삶의 영역\n베다점성술\n행성과 주기로 읽는 시기\n숙요점\n본명숙으로 보는 관계의 리듬\n서양점성술\n출생 차트와 심리·선택의 패턴\n타로\n지금 질문을 비추는 여섯 자리"
+              "text": "여섯 관점,\n서로 다른 근거.\n사주\n기질과 큰 시기 흐름\n자미두수\n명반의 궁과 삶의 영역\n베다점성술\n행성과 주기로 읽는 시기\n숙요점\n본명숙으로 보는 관계의 리듬\n서양점성술\n출생 차트와 심리·선택의 패턴\n타로\n지금 질문을 비추는 여섯 자리",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/fusion-fortune/03-different-lenses-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "04-reading-order",
@@ -5022,7 +5745,13 @@
               "src": "/feature-details/crafted/fusion-fortune/04-reading-order.webp",
               "width": 1080,
               "height": 1440,
-              "text": "먼저 각각 읽고,\n그다음 함께 생각합니다.\n\n실제 결과의 읽기 순서 · 앞부분\n\n01\n도입과 핵심 요약\n\n질문의 자리와 주요 흐름을 먼저.\n\n02\n여섯 체계의 개별 해석\n\n사주 · 자미두수 · 베다점\n숙요점 · 서양점성술 · 타로\n\n03\n종합 해석\n\n각 관점의 뜻을 질문에 맞춰 연결.\n\n본문과 핵심 포인트를 읽고,\n궁금한 체계의 장으로 다시 돌아갑니다."
+              "text": "먼저 각각 읽고,\n그다음 함께 생각합니다.\n\n실제 결과의 읽기 순서 · 앞부분\n\n01\n도입과 핵심 요약\n\n질문의 자리와 주요 흐름을 먼저.\n\n02\n여섯 체계의 개별 해석\n\n사주 · 자미두수 · 베다점\n숙요점 · 서양점성술 · 타로\n\n03\n종합 해석\n\n각 관점의 뜻을 질문에 맞춰 연결.\n\n본문과 핵심 포인트를 읽고,\n궁금한 체계의 장으로 다시 돌아갑니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/fusion-fortune/04-reading-order-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "05-from-reading-to-action",
@@ -5031,7 +5760,13 @@
               "src": "/feature-details/crafted/fusion-fortune/05-from-reading-to-action.webp",
               "width": 1080,
               "height": 1440,
-              "text": "읽은 뒤에는,\n행동이 남도록.\n\n실제 결과의 읽기 순서 · 뒷부분\n\n시기와 행동\n\n실천할 일과 주의할 반복 패턴.\n\n함께 가리키는 흐름과 차이\n\n같은 주제·시기의 근거를 비교.\n\n최종 판단\n\n판단 이유와 할 일, 피할 선택.\n\n마지막 메시지\n\n다시 일상으로 가져갈 관점.\n\n생성 중이거나 이전 저장본이면\n아직 없는 항목은 표시되지 않습니다."
+              "text": "읽은 뒤에는,\n행동이 남도록.\n\n실제 결과의 읽기 순서 · 뒷부분\n\n시기와 행동\n\n실천할 일과 주의할 반복 패턴.\n\n함께 가리키는 흐름과 차이\n\n같은 주제·시기의 근거를 비교.\n\n최종 판단\n\n판단 이유와 할 일, 피할 선택.\n\n마지막 메시지\n\n다시 일상으로 가져갈 관점.\n\n생성 중이거나 이전 저장본이면\n아직 없는 항목은 표시되지 않습니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/fusion-fortune/05-from-reading-to-action-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "06-difference-is-information",
@@ -5040,7 +5775,13 @@
               "src": "/feature-details/crafted/fusion-fortune/06-difference-is-information.webp",
               "width": 1080,
               "height": 1440,
-              "text": "다른 해석에도,\n살펴볼 이유가.\n\n근거를 비교하는 편집 예시\n\n한 관점은 확장을\n\n새 역할을 탐색할 여지가 보입니다.\n\n다른 관점은 준비를\n\n생활 기반을 먼저 점검해 보세요.\n\n질문에 맞춰 연결하면\n\n당장 떠날지 단정하기보다,\n지원 준비와 현재 조건 협상을\n함께 진행해 볼 수 있습니다.\n\n가상 해석으로 만든 예시입니다.\n일치 개수가 성공 확률은 아닙니다."
+              "text": "다른 해석에도,\n살펴볼 이유가.\n\n근거를 비교하는 편집 예시\n\n한 관점은 확장을\n\n새 역할을 탐색할 여지가 보입니다.\n\n다른 관점은 준비를\n\n생활 기반을 먼저 점검해 보세요.\n\n질문에 맞춰 연결하면\n\n당장 떠날지 단정하기보다,\n지원 준비와 현재 조건 협상을\n함께 진행해 볼 수 있습니다.\n\n가상 해석으로 만든 예시입니다.\n일치 개수가 성공 확률은 아닙니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/fusion-fortune/06-difference-is-information-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "07-six-positions",
@@ -5049,7 +5790,13 @@
               "src": "/feature-details/crafted/fusion-fortune/07-six-positions.webp",
               "width": 1080,
               "height": 1440,
-              "text": "카드 이름보다,\n그 자리가 묻는 것을.\n\n이번 상담에 펼쳐진 여섯 장을\n각 자리의 의미와 함께 읽습니다.\n\n현재 상황\n어디에 서 있나\n내면\n무엇을 바라나\n장애물\n무엇이 걸리나\n외부 영향\n어떤 조건인가\n선택\n무엇을 고르나\n다음 행동\n무엇부터 하나\n\n실제 카드가 아닌 자리 안내 도식입니다.\n6장 자료가 있는 결과에서 뒤집어 봐요."
+              "text": "카드 이름보다,\n그 자리가 묻는 것을.\n\n이번 상담에 펼쳐진 여섯 장을\n각 자리의 의미와 함께 읽습니다.\n\n현재 상황\n어디에 서 있나\n내면\n무엇을 바라나\n장애물\n무엇이 걸리나\n외부 영향\n어떤 조건인가\n선택\n무엇을 고르나\n다음 행동\n무엇부터 하나\n\n실제 카드가 아닌 자리 안내 도식입니다.\n6장 자료가 있는 결과에서 뒤집어 봐요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/fusion-fortune/07-six-positions-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "08-prepare-your-story",
@@ -5058,7 +5805,13 @@
               "src": "/feature-details/crafted/fusion-fortune/08-prepare-your-story.webp",
               "width": 1080,
               "height": 1440,
-              "text": "출생 정보와\n지금의 이야기.\n먼저 확인할 정보\n\n생년월일 · 정확한 출생 시각\n출생지 · 양력 또는 음력\n\n지금 살펴볼 주제\n\n삶의 전반 · 연애와 관계\n일과 돈 · 마음과 회복\n\n더해 줄 나의 이야기\n\n고민과 질문 · 별칭 · 성별.\n모두 선택해서 더할 수 있어요.\n\n새 상담에는 정확한 생시·출생지가 필요해요.\n짐작해서 채우기보다 기록을 확인해요."
+              "text": "출생 정보와\n지금의 이야기.\n먼저 확인할 정보\n\n생년월일 · 정확한 출생 시각\n출생지 · 양력 또는 음력\n\n지금 살펴볼 주제\n\n삶의 전반 · 연애와 관계\n일과 돈 · 마음과 회복\n\n더해 줄 나의 이야기\n\n고민과 질문 · 별칭 · 성별.\n모두 선택해서 더할 수 있어요.\n\n새 상담에는 정확한 생시·출생지가 필요해요.\n짐작해서 채우기보다 기록을 확인해요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/fusion-fortune/08-prepare-your-story-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "09-return-to-the-evidence",
@@ -5067,7 +5820,13 @@
               "src": "/feature-details/crafted/fusion-fortune/09-return-to-the-evidence.webp",
               "width": 1080,
               "height": 1440,
-              "text": "결정이 흔들릴 때,\n근거부터 다시 펼쳐요.\n1\n질문의 핵심으로\n\n차례에서 필요한 장으로 이동해요.\n\n2\n판단의 이유로\n\n체계별 해석과 다른 관점을 대조해요.\n\n3\n작은 실행으로\n\n지금 할 일 하나를 골라 기록해요.\n\n완성된 상담을 다시 열거나,\nPDF로 저장해 읽을 수 있습니다.\n\n생성 중에는 완성된 부분부터 보입니다."
+              "text": "결정이 흔들릴 때,\n근거부터 다시 펼쳐요.\n1\n질문의 핵심으로\n\n차례에서 필요한 장으로 이동해요.\n\n2\n판단의 이유로\n\n체계별 해석과 다른 관점을 대조해요.\n\n3\n작은 실행으로\n\n지금 할 일 하나를 골라 기록해요.\n\n완성된 상담을 다시 열거나,\nPDF로 저장해 읽을 수 있습니다.\n\n생성 중에는 완성된 부분부터 보입니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/fusion-fortune/09-return-to-the-evidence-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "10-your-own-choice",
@@ -5076,7 +5835,13 @@
               "src": "/feature-details/crafted/fusion-fortune/10-your-own-choice.webp",
               "width": 1080,
               "height": 1440,
-              "text": "선택의 이유를,\n나의 말로 정리해요.\n\n같은 흐름에는 근거를 더하고,\n다른 해석에는 조건을 살펴요.\n\n결정은 지금의 정보와 현실을 함께.\n상담은 그 선택을 정리하는 도구입니다.\n\n사주 엔진은 10년 경력 명리학자가\n설계·자문했습니다. 결과 문장은 AI가\n작성하며, 사람 6명의 직접 상담은 아닙니다.\n\n초융합 운세\n나를 이해하는 관점에서, 다음 한 걸음까지."
+              "text": "선택의 이유를,\n나의 말로 정리해요.\n\n같은 흐름에는 근거를 더하고,\n다른 해석에는 조건을 살펴요.\n\n결정은 지금의 정보와 현실을 함께.\n상담은 그 선택을 정리하는 도구입니다.\n\n사주 엔진은 10년 경력 명리학자가\n설계·자문했습니다. 결과 문장은 AI가\n작성하며, 사람 6명의 직접 상담은 아닙니다.\n\n초융합 운세\n나를 이해하는 관점에서, 다음 한 걸음까지.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/fusion-fortune/10-your-own-choice-540.webp",
+                  "width": 540
+                }
+              ]
             }
           ],
           "priceKRW": 50000
@@ -5364,7 +6129,13 @@
               "src": "/feature-details/crafted/nakshatra-muhurta/01-choose-a-day.webp",
               "width": 1080,
               "height": 1440,
-              "text": "시작할 일을 정했다면,\n날짜를 살펴볼 차례.\n목적\n시작일\n후보일\n나크샤트라 택일\n\n무후르타는 목적에 맞는 날을 살피는\n전통의 해석 방법입니다.\n내 별자리와 조회할 날짜의 흐름을\n나란히 비교해봅니다."
+              "text": "시작할 일을 정했다면,\n날짜를 살펴볼 차례.\n목적\n시작일\n후보일\n나크샤트라 택일\n\n무후르타는 목적에 맞는 날을 살피는\n전통의 해석 방법입니다.\n내 별자리와 조회할 날짜의 흐름을\n나란히 비교해봅니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/nakshatra-muhurta/01-choose-a-day-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "02-what-are-you-starting",
@@ -5372,7 +6143,13 @@
               "src": "/feature-details/crafted/nakshatra-muhurta/02-what-are-you-starting.webp",
               "width": 1080,
               "height": 1440,
-              "text": "같은 날이라도,\n목적에 따라 다르게 읽어요.\n\n결혼·약속   /   개업·창업\n\n계약·거래   /   이사·이동\n\n시작·착수   /   치유·회복\n\n화면의 여섯 목적 중 하나와\n조회 시작일을 선택합니다.\n기본 60일 범위에서 후보를 살펴봅니다.\n\n치유·회복 항목도 전통 해석입니다.\n치료나 수술 일정은 의료진의 판단을 따릅니다."
+              "text": "같은 날이라도,\n목적에 따라 다르게 읽어요.\n\n결혼·약속   /   개업·창업\n\n계약·거래   /   이사·이동\n\n시작·착수   /   치유·회복\n\n화면의 여섯 목적 중 하나와\n조회 시작일을 선택합니다.\n기본 60일 범위에서 후보를 살펴봅니다.\n\n치유·회복 항목도 전통 해석입니다.\n치료나 수술 일정은 의료진의 판단을 따릅니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/nakshatra-muhurta/02-what-are-you-starting-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "03-two-readings-of-a-day",
@@ -5380,7 +6157,13 @@
               "src": "/feature-details/crafted/nakshatra-muhurta/03-two-readings-of-a-day.webp",
               "width": 1080,
               "height": 1440,
-              "text": "두 체계가,\n같은 날을 어떻게 읽는지.\n동양 숙요의 관계\n\n나의 숙과 그날의 숙을 비교합니다.\n\n인도 나크샤트라의 조건\n\n나의 별과 그날의 달 구간,\n활동 분류와 요일을 함께 살펴봅니다.\n\n점수는 이 계산 규칙을 조합한 지수입니다.\n좋은 결과가 생길 확률은 아닙니다."
+              "text": "두 체계가,\n같은 날을 어떻게 읽는지.\n동양 숙요의 관계\n\n나의 숙과 그날의 숙을 비교합니다.\n\n인도 나크샤트라의 조건\n\n나의 별과 그날의 달 구간,\n활동 분류와 요일을 함께 살펴봅니다.\n\n점수는 이 계산 규칙을 조합한 지수입니다.\n좋은 결과가 생길 확률은 아닙니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/nakshatra-muhurta/03-two-readings-of-a-day-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "04-the-shortlist",
@@ -5388,7 +6171,13 @@
               "src": "/feature-details/crafted/nakshatra-muhurta/04-the-shortlist.webp",
               "width": 1080,
               "height": 1440,
-              "text": "먼저 후보를 읽고,\n전체 날짜를 비교합니다.\n추천 후보 · 최대 7일\n\n날짜와 등급, 선택 이유\n\n주의 후보 · 최대 4일\n\n조건에 해당할 때 표시\n\n해석 가이드를 읽은 다음\n조회 범위 전체 날짜의\n숙·나크샤트라·점수도 확인합니다.\n\n조건에 따라 후보 수가 줄거나\n주의 후보가 없을 수 있습니다."
+              "text": "먼저 후보를 읽고,\n전체 날짜를 비교합니다.\n추천 후보 · 최대 7일\n\n날짜와 등급, 선택 이유\n\n주의 후보 · 최대 4일\n\n조건에 해당할 때 표시\n\n해석 가이드를 읽은 다음\n조회 범위 전체 날짜의\n숙·나크샤트라·점수도 확인합니다.\n\n조건에 따라 후보 수가 줄거나\n주의 후보가 없을 수 있습니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/nakshatra-muhurta/04-the-shortlist-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "05-open-a-date",
@@ -5396,7 +6185,13 @@
               "src": "/feature-details/crafted/nakshatra-muhurta/05-open-a-date.webp",
               "width": 1080,
               "height": 1440,
-              "text": "한 날짜의 숫자 뒤에,\n이유를 놓았습니다.\n후보 날짜 · 요일\n\n등급과 점수\n\n숙요 관계 · 나크샤트라\n\n목적에 맞는 이유\n\n두 체계의 평가가 겹치는 날과\n다르게 읽히는 날을 구분해 살펴보세요.\n\n도식은 화면 구성을 설명한 예시입니다.\n실제 개인의 추천 날짜가 아닙니다."
+              "text": "한 날짜의 숫자 뒤에,\n이유를 놓았습니다.\n후보 날짜 · 요일\n\n등급과 점수\n\n숙요 관계 · 나크샤트라\n\n목적에 맞는 이유\n\n두 체계의 평가가 겹치는 날과\n다르게 읽히는 날을 구분해 살펴보세요.\n\n도식은 화면 구성을 설명한 예시입니다.\n실제 개인의 추천 날짜가 아닙니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/nakshatra-muhurta/05-open-a-date-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "06-real-life-first",
@@ -5404,7 +6199,13 @@
               "src": "/feature-details/crafted/nakshatra-muhurta/06-real-life-first.webp",
               "width": 1080,
               "height": 1440,
-              "text": "가능한 일정부터,\n후보와 나란히 놓으세요.\n“장소가 비는 날,\n함께할 사람이 가능한 날,\n준비를 마칠 수 있는 날.”\n\n현실적으로 가능한 날짜를 먼저 정하고\n후보의 해석을 참고해보세요.\n점수 하나로 중요한 약속을\n바꾸어야 하는 것은 아닙니다.\n\n사용 방식의 가상 편집 예시입니다.\n성과·안전·건강·관계 지속을\n보장하지 않습니다."
+              "text": "가능한 일정부터,\n후보와 나란히 놓으세요.\n“장소가 비는 날,\n함께할 사람이 가능한 날,\n준비를 마칠 수 있는 날.”\n\n현실적으로 가능한 날짜를 먼저 정하고\n후보의 해석을 참고해보세요.\n점수 하나로 중요한 약속을\n바꾸어야 하는 것은 아닙니다.\n\n사용 방식의 가상 편집 예시입니다.\n성과·안전·건강·관계 지속을\n보장하지 않습니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/nakshatra-muhurta/06-real-life-first-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "07-your-inputs",
@@ -5412,7 +6213,13 @@
               "src": "/feature-details/crafted/nakshatra-muhurta/07-your-inputs.webp",
               "width": 1080,
               "height": 1440,
-              "text": "내 정보와 목적,\n시작일을 확인해주세요.\n\n저장된 프로필의 출생 정보를 확인하고\n원하는 목적과 시작 날짜를 골라주세요.\n\n새 조건으로 조회하기 전에는\n기존 화면의 이용 조건을 확인합니다.\n날짜 예약이나 일정 알림,\n자유 질문 AI 답변은 제공하지 않습니다.\n\n현재 화면에는 PDF 내보내기나\n별도 결과 보관함이 없습니다."
+              "text": "내 정보와 목적,\n시작일을 확인해주세요.\n\n저장된 프로필의 출생 정보를 확인하고\n원하는 목적과 시작 날짜를 골라주세요.\n\n새 조건으로 조회하기 전에는\n기존 화면의 이용 조건을 확인합니다.\n날짜 예약이나 일정 알림,\n자유 질문 AI 답변은 제공하지 않습니다.\n\n현재 화면에는 PDF 내보내기나\n별도 결과 보관함이 없습니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/nakshatra-muhurta/07-your-inputs-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "08-before-searching",
@@ -5420,7 +6227,13 @@
               "src": "/feature-details/crafted/nakshatra-muhurta/08-before-searching.webp",
               "width": 1080,
               "height": 1440,
-              "text": "날짜를 고르는,\n하나의 참고표로.\n\n기존 날짜 찾기 버튼에서\n가격과 이용 조건을 확인합니다.\n이용권·월정석·단건 결제는\n현재 화면의 기준을 따릅니다.\n\n택일은 계산과 준비된 해석을 조합합니다.\nVVIP 통합서나 AI 심화 상담,\n두 사람 궁합은 각각 별도 상품입니다.\n\n결제 후 본문을 받지 못했다면\n같은 결제의 다시 받기 안내를 이용해주세요."
+              "text": "날짜를 고르는,\n하나의 참고표로.\n\n기존 날짜 찾기 버튼에서\n가격과 이용 조건을 확인합니다.\n이용권·월정석·단건 결제는\n현재 화면의 기준을 따릅니다.\n\n택일은 계산과 준비된 해석을 조합합니다.\nVVIP 통합서나 AI 심화 상담,\n두 사람 궁합은 각각 별도 상품입니다.\n\n결제 후 본문을 받지 못했다면\n같은 결제의 다시 받기 안내를 이용해주세요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/nakshatra-muhurta/08-before-searching-540.webp",
+                  "width": 540
+                }
+              ]
             }
           ],
           "priceKRW": 7000
@@ -6664,7 +7477,13 @@
               "src": "/feature-details/crafted/animal-destiny/01-your-own-pace.webp",
               "width": 1080,
               "height": 1440,
-              "text": "남의 속도를 따라가다,\n내 강점을 놓쳤다면.\n\n사주의 십이운성을 동물의 언어로 풀어\n나답게 힘을 쓰는 방식을 살펴보세요.\n\n십이운성 동물점 · 운명의 동물 도감"
+              "text": "남의 속도를 따라가다,\n내 강점을 놓쳤다면.\n\n사주의 십이운성을 동물의 언어로 풀어\n나답게 힘을 쓰는 방식을 살펴보세요.\n\n십이운성 동물점 · 운명의 동물 도감",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/animal-destiny/01-your-own-pace-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "02-energy-not-rank",
@@ -6673,7 +7492,13 @@
               "src": "/feature-details/crafted/animal-destiny/02-energy-not-rank.webp",
               "width": 1080,
               "height": 1440,
-              "text": "누가 더 센지보다,\n어떻게 힘을 쓰는지.\n펼치는 힘\n\n시작하고 역할을 넓히는 방향\n\n다듬는 힘\n\n속도를 낮추고 안쪽을 정리하는 방향\n\n다시 준비하는 힘\n\n자원을 모아 다음 변화를 맞는 방향\n\n십이운성은 기운의 열두 단계를 뜻해요.\n좋은 동물·나쁜 동물로 순위를 매기지 않아요."
+              "text": "누가 더 센지보다,\n어떻게 힘을 쓰는지.\n펼치는 힘\n\n시작하고 역할을 넓히는 방향\n\n다듬는 힘\n\n속도를 낮추고 안쪽을 정리하는 방향\n\n다시 준비하는 힘\n\n자원을 모아 다음 변화를 맞는 방향\n\n십이운성은 기운의 열두 단계를 뜻해요.\n좋은 동물·나쁜 동물로 순위를 매기지 않아요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/animal-destiny/02-energy-not-rank-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "03-four-pillar-map",
@@ -6682,7 +7507,13 @@
               "src": "/feature-details/crafted/animal-destiny/03-four-pillar-map.webp",
               "width": 1080,
               "height": 1440,
-              "text": "하나의 동물 뒤에는,\n네 기둥의 근거가 있어요.\n대표 동물\n\n일주의 십이운성을 중심으로\n나의 대표 캐릭터를 만나요.\n\n년·월·일·시의 네 기둥\n\n각 기둥의 운성과 동물을 비교하며\n어느 리듬이 드러나는지 살펴요.\n\n띠만 보고 정하는 동물점이 아니에요.\n사주에서 읽은 기세를 캐릭터로 풀어요.\n\n출생시간을 모르면 시주 설명은 제한돼요."
+              "text": "하나의 동물 뒤에는,\n네 기둥의 근거가 있어요.\n대표 동물\n\n일주의 십이운성을 중심으로\n나의 대표 캐릭터를 만나요.\n\n년·월·일·시의 네 기둥\n\n각 기둥의 운성과 동물을 비교하며\n어느 리듬이 드러나는지 살펴요.\n\n띠만 보고 정하는 동물점이 아니에요.\n사주에서 읽은 기세를 캐릭터로 풀어요.\n\n출생시간을 모르면 시주 설명은 제한돼요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/animal-destiny/03-four-pillar-map-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "04-ten-reading-doors",
@@ -6691,7 +7522,13 @@
               "src": "/feature-details/crafted/animal-destiny/04-ten-reading-doors.webp",
               "width": 1080,
               "height": 1440,
-              "text": "캐릭터 소개에서,\n내 생활의 패턴까지.\n나를 이해하는 다섯 갈래\n\n핵심 성향 · 강점과 약점\n연애와 인간관계 · 일과 재물 감각\n반복 패턴\n\n생활로 옮기는 다섯 갈래\n\n자주 생기는 오해 · 스트레스 패턴\n오늘의 실전 조언 · 동반 에너지\n성장 미션\n\n결과의 열 가지 상세 해석 탭을 따라 읽어요."
+              "text": "캐릭터 소개에서,\n내 생활의 패턴까지.\n나를 이해하는 다섯 갈래\n\n핵심 성향 · 강점과 약점\n연애와 인간관계 · 일과 재물 감각\n반복 패턴\n\n생활로 옮기는 다섯 갈래\n\n자주 생기는 오해 · 스트레스 패턴\n오늘의 실전 조언 · 동반 에너지\n성장 미션\n\n결과의 열 가지 상세 해석 탭을 따라 읽어요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/animal-destiny/04-ten-reading-doors-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "05-from-pattern-to-practice",
@@ -6700,7 +7537,13 @@
               "src": "/feature-details/crafted/animal-destiny/05-from-pattern-to-practice.webp",
               "width": 1080,
               "height": 1440,
-              "text": "일할 때와 사랑할 때,\n다른 모습도 연결해요.\n사주 근거를 곁들인 설명\n\n성격 · 연애 · 직업 · 재물\n인간관계 · 오늘의 조언\n\n작은 성장 루틴\n\n일상에서 시도할 미션과\n오늘의 조언을 남겨요.\n\n동물 도감\n\n다른 동물의 성향을 함께 보며\n내 리듬을 비교해봐요.\n\n오늘의 조언은 특정 사건을 보장하지 않아요."
+              "text": "일할 때와 사랑할 때,\n다른 모습도 연결해요.\n사주 근거를 곁들인 설명\n\n성격 · 연애 · 직업 · 재물\n인간관계 · 오늘의 조언\n\n작은 성장 루틴\n\n일상에서 시도할 미션과\n오늘의 조언을 남겨요.\n\n동물 도감\n\n다른 동물의 성향을 함께 보며\n내 리듬을 비교해봐요.\n\n오늘의 조언은 특정 사건을 보장하지 않아요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/animal-destiny/05-from-pattern-to-practice-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "06-when-there-is-a-partner",
@@ -6709,7 +7552,13 @@
               "src": "/feature-details/crafted/animal-destiny/06-when-there-is-a-partner.webp",
               "width": 1080,
               "height": 1440,
-              "text": "잘 맞는 유형과,\n두 사람의 비교는 달라요.\n동반 에너지 안내\n\n나와 어울리는 유형을 살펴요.\n특정 상대의 마음을 뜻하지 않아요.\n\n상대 정보 입력 후\n\n두 사람의 동물과 관계 흐름을\n비교하는 결과를 확인해요.\n\n다름을 점수로만 받아들이기보다,\n서로 맞출 생활의 조건을 찾아보세요.\n\n상대 정보 없이 궁합을 확정하지 않아요."
+              "text": "잘 맞는 유형과,\n두 사람의 비교는 달라요.\n동반 에너지 안내\n\n나와 어울리는 유형을 살펴요.\n특정 상대의 마음을 뜻하지 않아요.\n\n상대 정보 입력 후\n\n두 사람의 동물과 관계 흐름을\n비교하는 결과를 확인해요.\n\n다름을 점수로만 받아들이기보다,\n서로 맞출 생활의 조건을 찾아보세요.\n\n상대 정보 없이 궁합을 확정하지 않아요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/animal-destiny/06-when-there-is-a-partner-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "07-fictional-hamster",
@@ -6718,7 +7567,13 @@
               "src": "/feature-details/crafted/animal-destiny/07-fictional-hamster.webp",
               "width": 1080,
               "height": 1440,
-              "text": "모으는 힘이 있다면,\n쌓아둔 것을 써보세요.\n\n가상 편집 예시 · 실제 개인 결과가 아닙니다\n\n“준비를 잘하는 사람은\n작게 쌓아둔 자원도 많아요.\n새 자료를 하나 더 찾기 전에,\n이미 정리한 것에서 한 가지를 써보세요.\n준비가 행동으로 이어지는 순간을\n오늘의 작은 기록으로 남겨보세요.”\n\n보물 햄스터의 축적 성향을 풀어 쓴 예시예요."
+              "text": "모으는 힘이 있다면,\n쌓아둔 것을 써보세요.\n\n가상 편집 예시 · 실제 개인 결과가 아닙니다\n\n“준비를 잘하는 사람은\n작게 쌓아둔 자원도 많아요.\n새 자료를 하나 더 찾기 전에,\n이미 정리한 것에서 한 가지를 써보세요.\n준비가 행동으로 이어지는 순간을\n오늘의 작은 기록으로 남겨보세요.”\n\n보물 햄스터의 축적 성향을 풀어 쓴 예시예요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/animal-destiny/07-fictional-hamster-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "08-a-card-to-remember",
@@ -6727,7 +7582,13 @@
               "src": "/feature-details/crafted/animal-destiny/08-a-card-to-remember.webp",
               "width": 1080,
               "height": 1440,
-              "text": "나를 설명할 한 장을,\n생활 가까이에 남겨요.\n\n생년월일과 달력 종류를 확인해요.\n출생시간을 모르면 비워도 괜찮아요.\n\n결과 요약 카드를 이미지로 저장·공유해요.\n전체 리포트 PDF를 뜻하지는 않아요.\n기존 화면의 이용 조건과 버튼을 따라 시작해요."
+              "text": "나를 설명할 한 장을,\n생활 가까이에 남겨요.\n\n생년월일과 달력 종류를 확인해요.\n출생시간을 모르면 비워도 괜찮아요.\n\n결과 요약 카드를 이미지로 저장·공유해요.\n전체 리포트 PDF를 뜻하지는 않아요.\n기존 화면의 이용 조건과 버튼을 따라 시작해요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/animal-destiny/08-a-card-to-remember-540.webp",
+                  "width": 540
+                }
+              ]
             }
           ],
           "priceKRW": 7000
@@ -7450,7 +8311,13 @@
               "src": "/feature-details/crafted/animal-totem-basic/01-a-place-for-your-mood.webp",
               "width": 1080,
               "height": 1440,
-              "text": "무슨 일인지 몰라도,\n마음은 먼저 무거울 때.\n\n수호 동물의 상징을 빌려\n지금의 마음에 말을 붙여보세요.\n\n애니멀 토템 · 기본 리딩"
+              "text": "무슨 일인지 몰라도,\n마음은 먼저 무거울 때.\n\n수호 동물의 상징을 빌려\n지금의 마음에 말을 붙여보세요.\n\n애니멀 토템 · 기본 리딩",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/animal-totem-basic/01-a-place-for-your-mood-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "02-one-or-three",
@@ -7459,7 +8326,13 @@
               "src": "/feature-details/crafted/animal-totem-basic/02-one-or-three.webp",
               "width": 1080,
               "height": 1440,
-              "text": "한 마음을 깊게,\n또는 흐름을 차례로.\n달빛 한 장\n\n한 동물의 메시지를 천천히 읽어요.\n오늘 붙잡을 한 가지에 집중해요.\n\n숲의 세 길\n\n과거 상처 → 현재 에너지 → 통합 방향\n세 자리의 이야기를 연결해요.\n\n둘 중 하나의 모드를 선택해 진행해요.\n두 상담이 한 번에 묶여 제공되지는 않아요."
+              "text": "한 마음을 깊게,\n또는 흐름을 차례로.\n달빛 한 장\n\n한 동물의 메시지를 천천히 읽어요.\n오늘 붙잡을 한 가지에 집중해요.\n\n숲의 세 길\n\n과거 상처 → 현재 에너지 → 통합 방향\n세 자리의 이야기를 연결해요.\n\n둘 중 하나의 모드를 선택해 진행해요.\n두 상담이 한 번에 묶여 제공되지는 않아요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/animal-totem-basic/02-one-or-three-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "03-let-the-question-arrive",
@@ -7468,7 +8341,13 @@
               "src": "/feature-details/crafted/animal-totem-basic/03-let-the-question-arrive.webp",
               "width": 1080,
               "height": 1440,
-              "text": "정리된 고민이 아니어도,\n한 문장부터 적어보세요.\n떠오르는 질문이 있다면\n\n“사소한 부탁에도 지치는 이유가 뭘까요?”\n지금의 상황을 짧게 적어보세요.\n\n말이 잘 나오지 않는다면\n\n‘지금 마음 상태로 봐 주세요’를 골라\n질문을 건너뛸 수도 있어요.\n\n질문은 최대 300자예요.\n위 문장은 입력을 돕는 가상 예시입니다."
+              "text": "정리된 고민이 아니어도,\n한 문장부터 적어보세요.\n떠오르는 질문이 있다면\n\n“사소한 부탁에도 지치는 이유가 뭘까요?”\n지금의 상황을 짧게 적어보세요.\n\n말이 잘 나오지 않는다면\n\n‘지금 마음 상태로 봐 주세요’를 골라\n질문을 건너뛸 수도 있어요.\n\n질문은 최대 300자예요.\n위 문장은 입력을 돕는 가상 예시입니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/animal-totem-basic/03-let-the-question-arrive-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "04-one-animal-seven-layers",
@@ -7477,7 +8356,13 @@
               "src": "/feature-details/crafted/animal-totem-basic/04-one-animal-seven-layers.webp",
               "width": 1080,
               "height": 1440,
-              "text": "한 동물의 메시지를,\n일곱 갈래로 읽어요.\n마음을 이해하는 글\n\n동물의 본질 · 내게 건네는 속삭임\n\n생활로 이어지는 안내\n\n오늘의 실천 · 짧은 리추얼\n저널링 질문\n\n균형을 잡는 마무리\n\n주의할 그림자 · 나를 위한 확언\n\n한 장 모드는 실천 다섯 가지를 보여줘요.\n리추얼은 일상에서 해볼 짧은 활동이에요."
+              "text": "한 동물의 메시지를,\n일곱 갈래로 읽어요.\n마음을 이해하는 글\n\n동물의 본질 · 내게 건네는 속삭임\n\n생활로 이어지는 안내\n\n오늘의 실천 · 짧은 리추얼\n저널링 질문\n\n균형을 잡는 마무리\n\n주의할 그림자 · 나를 위한 확언\n\n한 장 모드는 실천 다섯 가지를 보여줘요.\n리추얼은 일상에서 해볼 짧은 활동이에요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/animal-totem-basic/04-one-animal-seven-layers-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "05-three-paths-one-question",
@@ -7486,7 +8371,13 @@
               "src": "/feature-details/crafted/animal-totem-basic/05-three-paths-one-question.webp",
               "width": 1080,
               "height": 1440,
-              "text": "지나온 마음에서,\n다음 방향으로 이어져요.\n과거 상처\n\n되풀이되는 반응의 배경을 돌아봐요.\n\n현재 에너지\n\n지금 눈여겨볼 마음과 조건을 살펴요.\n\n통합 방향\n\n앞선 이야기를 다음 행동으로 연결해요.\n\n세 장 모드는 카드별 실천 세 가지와\n질문을 잇는 해설을 함께 읽어요."
+              "text": "지나온 마음에서,\n다음 방향으로 이어져요.\n과거 상처\n\n되풀이되는 반응의 배경을 돌아봐요.\n\n현재 에너지\n\n지금 눈여겨볼 마음과 조건을 살펴요.\n\n통합 방향\n\n앞선 이야기를 다음 행동으로 연결해요.\n\n세 장 모드는 카드별 실천 세 가지와\n질문을 잇는 해설을 함께 읽어요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/animal-totem-basic/05-three-paths-one-question-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "06-a-letter-and-card-tabs",
@@ -7495,7 +8386,13 @@
               "src": "/feature-details/crafted/animal-totem-basic/06-a-letter-and-card-tabs.webp",
               "width": 1080,
               "height": 1440,
-              "text": "전체 이야기와,\n카드별 안내를 오가요.\n전체 해설\n\n여는 말 · 질문에 대한 답\n실천 계획 · 마무리\n\n카드별 안내\n\n각 동물의 일곱 갈래 해석과\n내 질문을 잇는 문장\n\n전체 흐름을 먼저 읽은 뒤,\n마음에 남은 동물의 탭을 열어보세요.\n\n질문 연결 글은 AI가 작성해요.\n동물별 기본 안내는 준비된 콘텐츠예요."
+              "text": "전체 이야기와,\n카드별 안내를 오가요.\n전체 해설\n\n여는 말 · 질문에 대한 답\n실천 계획 · 마무리\n\n카드별 안내\n\n각 동물의 일곱 갈래 해석과\n내 질문을 잇는 문장\n\n전체 흐름을 먼저 읽은 뒤,\n마음에 남은 동물의 탭을 열어보세요.\n\n질문 연결 글은 AI가 작성해요.\n동물별 기본 안내는 준비된 콘텐츠예요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/animal-totem-basic/06-a-letter-and-card-tabs-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "07-fictional-boundary",
@@ -7504,7 +8401,13 @@
               "src": "/feature-details/crafted/animal-totem-basic/07-fictional-boundary.webp",
               "width": 1080,
               "height": 1440,
-              "text": "부탁을 거절하기 전에,\n내 여유부터 물어봐요.\n\n가상 편집 예시 · 실제 카드 결과가 아닙니다\n\n“도와주고 싶은 마음과\n쉬고 싶은 마음이 함께 있네요.\n바로 답하기보다\n오늘 남은 시간을 먼저 살펴보세요.\n가능한 만큼만 제안하는 것도\n관계를 지키는 방법이에요.”\n\n카드가 결정을 대신하기보다,\n내가 확인할 작은 질문을 남겨요."
+              "text": "부탁을 거절하기 전에,\n내 여유부터 물어봐요.\n\n가상 편집 예시 · 실제 카드 결과가 아닙니다\n\n“도와주고 싶은 마음과\n쉬고 싶은 마음이 함께 있네요.\n바로 답하기보다\n오늘 남은 시간을 먼저 살펴보세요.\n가능한 만큼만 제안하는 것도\n관계를 지키는 방법이에요.”\n\n카드가 결정을 대신하기보다,\n내가 확인할 작은 질문을 남겨요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/animal-totem-basic/07-fictional-boundary-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "08-your-ritual",
@@ -7513,10 +8416,21 @@
               "src": "/feature-details/crafted/animal-totem-basic/08-your-ritual.webp",
               "width": 1080,
               "height": 1440,
-              "text": "지금의 마음에 맞는\n읽는 방식을 골라요.\n\n질문 입력 → 한 장 또는 세 장 선택\n기존 결제 확인 → 카드 공개 → 결과\n\n실제 카드는 성좌 문양으로 표시돼요.\n위 일러스트는 분위기를 담은 이미지예요.\n가격과 이용 조건은 기존 선택 화면을 따릅니다."
+              "text": "지금의 마음에 맞는\n읽는 방식을 골라요.\n\n질문 입력 → 한 장 또는 세 장 선택\n기존 결제 확인 → 카드 공개 → 결과\n\n실제 카드는 성좌 문양으로 표시돼요.\n위 일러스트는 분위기를 담은 이미지예요.\n가격과 이용 조건은 기존 선택 화면을 따릅니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/animal-totem-basic/08-your-ritual-540.webp",
+                  "width": 540
+                }
+              ]
             }
           ],
-          "priceKRW": 5000
+          "priceKRW": 5000,
+          "cover": {
+            "src": "/feature-details/crafted/animal-totem-basic/01-a-place-for-your-mood-144.webp",
+            "width": 144,
+            "height": 192
+          }
         },
         {
           "id": "animal-totem-deep",
@@ -7531,7 +8445,13 @@
               "src": "/feature-details/crafted/animal-totem-deep/01-a-divided-heart.webp",
               "width": 1080,
               "height": 1440,
-              "text": "머리로는 아는데,\n마음은 따라오지 않을 때.\n\n다섯 동물의 자리에서\n나를 당기는 서로 다른 마음을 읽어요.\n\n애니멀 토템 · 별자리 다섯 동물"
+              "text": "머리로는 아는데,\n마음은 따라오지 않을 때.\n\n다섯 동물의 자리에서\n나를 당기는 서로 다른 마음을 읽어요.\n\n애니멀 토템 · 별자리 다섯 동물",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/animal-totem-deep/01-a-divided-heart-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "02-two-voices",
@@ -7540,7 +8460,13 @@
               "src": "/feature-details/crafted/animal-totem-deep/02-two-voices.webp",
               "width": 1080,
               "height": 1440,
-              "text": "옳은 답을 찾기 전에,\n두 목소리를 들어봐요.\n이성 · 사고\n\n지금 머리가 붙잡은 기준과 판단\n\n감정 · 욕구\n\n그 판단 아래 마음이 바라는 것\n\n“쉬어야 한다”는 생각과\n“뒤처질까 걱정된다”는 마음을\n하나의 모순으로 몰아가지 않아요.\n\n상황을 설명하기 위한 가상 예시입니다."
+              "text": "옳은 답을 찾기 전에,\n두 목소리를 들어봐요.\n이성 · 사고\n\n지금 머리가 붙잡은 기준과 판단\n\n감정 · 욕구\n\n그 판단 아래 마음이 바라는 것\n\n“쉬어야 한다”는 생각과\n“뒤처질까 걱정된다”는 마음을\n하나의 모순으로 몰아가지 않아요.\n\n상황을 설명하기 위한 가상 예시입니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/animal-totem-deep/02-two-voices-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "03-shadow-and-gift",
@@ -7549,7 +8475,13 @@
               "src": "/feature-details/crafted/animal-totem-deep/03-shadow-and-gift.webp",
               "width": 1080,
               "height": 1440,
-              "text": "숨기고 싶은 모습에도,\n쓰임을 바꿀 힘이 있어요.\n그림자\n\n아직 바라보지 못한 반응과 부담\n\n잠재 선물\n\n이미 지녔지만 덜 쓰고 있는 자원\n\n그림자를 나쁜 성격으로 정하지 않아요.\n부담이 된 습관과 도움이 되는 힘을\n같은 이야기 안에서 살펴봐요.\n\n그림자와 선물을 연결하는 통합 해설이 있어요."
+              "text": "숨기고 싶은 모습에도,\n쓰임을 바꿀 힘이 있어요.\n그림자\n\n아직 바라보지 못한 반응과 부담\n\n잠재 선물\n\n이미 지녔지만 덜 쓰고 있는 자원\n\n그림자를 나쁜 성격으로 정하지 않아요.\n부담이 된 습관과 도움이 되는 힘을\n같은 이야기 안에서 살펴봐요.\n\n그림자와 선물을 연결하는 통합 해설이 있어요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/animal-totem-deep/03-shadow-and-gift-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "04-the-fifth-place",
@@ -7558,7 +8490,13 @@
               "src": "/feature-details/crafted/animal-totem-deep/04-the-fifth-place.webp",
               "width": 1080,
               "height": 1440,
-              "text": "마지막 자리는,\n다음 한 걸음에 남겨요.\n다섯 번째 · 다음 행동\n\n앞선 네 자리의 이야기를\n오늘 해볼 일로 연결해요.\n\n전체 해설의 실천 계획\n\n읽고 넘기는 조언에서 한발 더 나아가\n생활에서 확인할 행동을 정리해요.\n\n마음이 완전히 정리될 때까지 기다리기보다,\n작게 해보고 다시 느껴볼 일을 찾는 거예요."
+              "text": "마지막 자리는,\n다음 한 걸음에 남겨요.\n다섯 번째 · 다음 행동\n\n앞선 네 자리의 이야기를\n오늘 해볼 일로 연결해요.\n\n전체 해설의 실천 계획\n\n읽고 넘기는 조언에서 한발 더 나아가\n생활에서 확인할 행동을 정리해요.\n\n마음이 완전히 정리될 때까지 기다리기보다,\n작게 해보고 다시 느껴볼 일을 찾는 거예요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/animal-totem-deep/04-the-fifth-place-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "05-what-the-result-includes",
@@ -7567,7 +8505,13 @@
               "src": "/feature-details/crafted/animal-totem-deep/05-what-the-result-includes.webp",
               "width": 1080,
               "height": 1440,
-              "text": "다섯 장의 나열에서,\n하나의 해설로 이어져요.\n전체 이야기\n\n여는 말 · 질문에 대한 답\n카드별 연결 문장 · 마무리\n\n심화의 중심\n\n그림자와 선물의 통합 해설\n\n생활로 가져갈 것\n\n실천 계획과 다음 행동\n\n질문 연결 해설은 AI가 작성해요.\n모든 반응을 심리 진단으로 받아들이지 않아요."
+              "text": "다섯 장의 나열에서,\n하나의 해설로 이어져요.\n전체 이야기\n\n여는 말 · 질문에 대한 답\n카드별 연결 문장 · 마무리\n\n심화의 중심\n\n그림자와 선물의 통합 해설\n\n생활로 가져갈 것\n\n실천 계획과 다음 행동\n\n질문 연결 해설은 AI가 작성해요.\n모든 반응을 심리 진단으로 받아들이지 않아요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/animal-totem-deep/05-what-the-result-includes-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "06-five-card-library",
@@ -7576,7 +8520,13 @@
               "src": "/feature-details/crafted/animal-totem-deep/06-five-card-library.webp",
               "width": 1080,
               "height": 1440,
-              "text": "마음에 남은 카드는,\n한 번 더 펼쳐 읽어요.\n동물마다 읽는 일곱 갈래\n\n본질 · 속삭임 · 오늘의 실천\n짧은 리추얼 · 저널링\n그림자 · 확언\n\n결과 안의 카드별 탭\n\n다섯 동물의 안내를\n각각 다시 살펴볼 수 있어요.\n\n카드별 실천은 세 가지씩 표시돼요.\n기본 한 장·세 장은 별도의 선택 모드예요."
+              "text": "마음에 남은 카드는,\n한 번 더 펼쳐 읽어요.\n동물마다 읽는 일곱 갈래\n\n본질 · 속삭임 · 오늘의 실천\n짧은 리추얼 · 저널링\n그림자 · 확언\n\n결과 안의 카드별 탭\n\n다섯 동물의 안내를\n각각 다시 살펴볼 수 있어요.\n\n카드별 실천은 세 가지씩 표시돼요.\n기본 한 장·세 장은 별도의 선택 모드예요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/animal-totem-deep/06-five-card-library-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "07-fictional-rest",
@@ -7585,7 +8535,13 @@
               "src": "/feature-details/crafted/animal-totem-deep/07-fictional-rest.webp",
               "width": 1080,
               "height": 1440,
-              "text": "계속 잘하고 싶은 마음에,\n쉴 자리도 남겨주세요.\n\n가상 편집 예시 · 실제 카드 결과가 아닙니다\n\n“끝까지 해내려는 힘이\n쉬는 시간까지 밀어냈을 수 있어요.\n오늘은 끝내야 할 일 하나와\n내일로 미룰 일 하나를 나눠보세요.\n성실함을 버리는 대신,\n쓸 수 있는 힘을 지키는 연습이에요.”\n\n나를 몰아붙이는 말보다,\n다르게 해볼 행동을 남겨요."
+              "text": "계속 잘하고 싶은 마음에,\n쉴 자리도 남겨주세요.\n\n가상 편집 예시 · 실제 카드 결과가 아닙니다\n\n“끝까지 해내려는 힘이\n쉬는 시간까지 밀어냈을 수 있어요.\n오늘은 끝내야 할 일 하나와\n내일로 미룰 일 하나를 나눠보세요.\n성실함을 버리는 대신,\n쓸 수 있는 힘을 지키는 연습이에요.”\n\n나를 몰아붙이는 말보다,\n다르게 해볼 행동을 남겨요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/animal-totem-deep/07-fictional-rest-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "08-before-five-animals",
@@ -7594,10 +8550,21 @@
               "src": "/feature-details/crafted/animal-totem-deep/08-before-five-animals.webp",
               "width": 1080,
               "height": 1440,
-              "text": "다섯 자리 앞에,\n지금의 질문을 놓아봐요.\n\n최대 300자의 질문을 적거나 건너뛰고,\n‘별자리 다섯 동물’을 선택해요.\n\n기존 결제 확인 후 카드를 공개해요.\n실제 카드는 성좌 문양으로 표시됩니다.\n가격·이용 조건은 현재 선택 화면을 따릅니다."
+              "text": "다섯 자리 앞에,\n지금의 질문을 놓아봐요.\n\n최대 300자의 질문을 적거나 건너뛰고,\n‘별자리 다섯 동물’을 선택해요.\n\n기존 결제 확인 후 카드를 공개해요.\n실제 카드는 성좌 문양으로 표시됩니다.\n가격·이용 조건은 현재 선택 화면을 따릅니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/animal-totem-deep/08-before-five-animals-540.webp",
+                  "width": 540
+                }
+              ]
             }
           ],
-          "priceKRW": 5000
+          "priceKRW": 5000,
+          "cover": {
+            "src": "/feature-details/crafted/animal-totem-deep/01-a-divided-heart-144.webp",
+            "width": 144,
+            "height": 192
+          }
         }
       ],
       "theme": "emerald",
@@ -9322,7 +10289,13 @@
               "src": "/feature-details/crafted/olympus-oracle/01-your-myth.webp",
               "width": 1080,
               "height": 1440,
-              "text": "내 안의 여러 모습,\n어떤 신화를 닮았을까?\n\n올림푸스 신탁\n\n겉으로 드러나는 나와 혼자 있을 때의 나.\n별자리와 신화의 언어로\n서로 다른 모습을 만나보세요."
+              "text": "내 안의 여러 모습,\n어떤 신화를 닮았을까?\n\n올림푸스 신탁\n\n겉으로 드러나는 나와 혼자 있을 때의 나.\n별자리와 신화의 언어로\n서로 다른 모습을 만나보세요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/olympus-oracle/01-your-myth-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "02-eight-placements",
@@ -9330,7 +10303,13 @@
               "src": "/feature-details/crafted/olympus-oracle/02-eight-placements.webp",
               "width": 1080,
               "height": 1440,
-              "text": "태양 하나로,\n나를 다 설명할 수 없으니까.\n태양 · 달\n본질과 감정의 리듬\n상승궁 · 수성\n첫인상과 표현 방식\n금성 · 화성\n끌림과 움직이는 힘\n목성 · 토성\n확장과 지켜야 할 기준\n\n여덟 배치를 각각 선택해\n별자리 성향과 신화의 해석을 읽어요.\n\n상승궁까지 포함한 여덟 배치입니다.\n여덟 개의 행성을 뜻하지는 않아요."
+              "text": "태양 하나로,\n나를 다 설명할 수 없으니까.\n태양 · 달\n본질과 감정의 리듬\n상승궁 · 수성\n첫인상과 표현 방식\n금성 · 화성\n끌림과 움직이는 힘\n목성 · 토성\n확장과 지켜야 할 기준\n\n여덟 배치를 각각 선택해\n별자리 성향과 신화의 해석을 읽어요.\n\n상승궁까지 포함한 여덟 배치입니다.\n여덟 개의 행성을 뜻하지는 않아요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/olympus-oracle/02-eight-placements-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "03-balance-and-aspects",
@@ -9338,7 +10317,13 @@
               "src": "/feature-details/crafted/olympus-oracle/03-balance-and-aspects.webp",
               "width": 1080,
               "height": 1440,
-              "text": "기질의 균형과,\n배치 사이의 관계.\n원소 · 네 가지 기질\n\n불·흙·공기·물의 비중을 읽어요.\n동양 명리의 오행과는 다른 틀입니다.\n\n양상 · 움직이는 방식\n\n시작하고, 유지하고, 바꾸는 성향을\n활동·고정·변통으로 나누어 봅니다.\n\n각도 · 배치 사이의 연결\n\n실제 각도 자료가 있을 때 표시돼요.\n간이 계산에서는 범위가 달라집니다."
+              "text": "기질의 균형과,\n배치 사이의 관계.\n원소 · 네 가지 기질\n\n불·흙·공기·물의 비중을 읽어요.\n동양 명리의 오행과는 다른 틀입니다.\n\n양상 · 움직이는 방식\n\n시작하고, 유지하고, 바꾸는 성향을\n활동·고정·변통으로 나누어 봅니다.\n\n각도 · 배치 사이의 연결\n\n실제 각도 자료가 있을 때 표시돼요.\n간이 계산에서는 범위가 달라집니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/olympus-oracle/03-balance-and-aspects-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "04-your-profile",
@@ -9346,7 +10331,13 @@
               "src": "/feature-details/crafted/olympus-oracle/04-your-profile.webp",
               "width": 1080,
               "height": 1440,
-              "text": "밖으로 보이는 나,\n안에서 느끼는 나.\n태양 심층\n\n내가 향하는 방향과 표현\n\n달 심층\n\n감정을 다루고 회복하는 방식\n\n상승궁 심층\n\n사람들에게 다가가는 모습\n\n종합 해석\n\n여러 배치를 함께 놓고 읽는 이야기\n\n준비된 규칙과 문장을 조합합니다.\n사람이 직접 상담하거나 AI가\n새 본문을 작성하는 방식은 아닙니다."
+              "text": "밖으로 보이는 나,\n안에서 느끼는 나.\n태양 심층\n\n내가 향하는 방향과 표현\n\n달 심층\n\n감정을 다루고 회복하는 방식\n\n상승궁 심층\n\n사람들에게 다가가는 모습\n\n종합 해석\n\n여러 배치를 함께 놓고 읽는 이야기\n\n준비된 규칙과 문장을 조합합니다.\n사람이 직접 상담하거나 AI가\n새 본문을 작성하는 방식은 아닙니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/olympus-oracle/04-your-profile-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "05-a-playful-mirror",
@@ -9354,7 +10345,13 @@
               "src": "/feature-details/crafted/olympus-oracle/05-a-playful-mirror.webp",
               "width": 1080,
               "height": 1440,
-              "text": "조금 웃고,\n조금 돌아보는 이야기.\n팩폭 주의보와 성향 이야기\n아프로디테의 관계 취향\n승부 습관과 빠지기 쉬운 함정\n오피스에서의 나와 대화 방식\n신화로 엮은 세계 여행 스팟\n관계의 수레바퀴와 행동 제안\n\n신들의 목소리를 빌린 과장과 유머를\n가볍게 읽어보세요. 이름 붙은 성향이\n나의 가치나 가능성을 정하지 않아요."
+              "text": "조금 웃고,\n조금 돌아보는 이야기.\n팩폭 주의보와 성향 이야기\n아프로디테의 관계 취향\n승부 습관과 빠지기 쉬운 함정\n오피스에서의 나와 대화 방식\n신화로 엮은 세계 여행 스팟\n관계의 수레바퀴와 행동 제안\n\n신들의 목소리를 빌린 과장과 유머를\n가볍게 읽어보세요. 이름 붙은 성향이\n나의 가치나 가능성을 정하지 않아요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/olympus-oracle/05-a-playful-mirror-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "06-two-people",
@@ -9362,7 +10359,13 @@
               "src": "/feature-details/crafted/olympus-oracle/06-two-people.webp",
               "width": 1080,
               "height": 1440,
-              "text": "둘이 만났을 때,\n무엇이 다르게 움직일까?\n파트너 궁합\n\n상대의 생년월일을 넣고,\n이름과 출생시간을 선택 입력해요.\n\n나란히 읽는 두 사람\n\n관계 조합과 행성별 케미,\n태양·달·연애 방식과 주의점을\n신화의 문장으로 비교합니다.\n\n파트너 배치는 간이 계산입니다.\n점수는 상징적 분류값으로,\n사랑의 깊이나 성공 확률이 아니에요."
+              "text": "둘이 만났을 때,\n무엇이 다르게 움직일까?\n파트너 궁합\n\n상대의 생년월일을 넣고,\n이름과 출생시간을 선택 입력해요.\n\n나란히 읽는 두 사람\n\n관계 조합과 행성별 케미,\n태양·달·연애 방식과 주의점을\n신화의 문장으로 비교합니다.\n\n파트너 배치는 간이 계산입니다.\n점수는 상징적 분류값으로,\n사랑의 깊이나 성공 확률이 아니에요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/olympus-oracle/06-two-people-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "07-todays-oracle",
@@ -9370,7 +10373,13 @@
               "src": "/feature-details/crafted/olympus-oracle/07-todays-oracle.webp",
               "width": 1080,
               "height": 1440,
-              "text": "오늘의 신탁은,\n어떤 방식으로 열릴까요?\n생일로 여는 짧은 신탁\n\n별자리와 날짜 규칙으로\n준비된 메시지 중 하나를 읽어요.\n\n프로필 결과의 신탁 탭\n\n오늘의 메시지·행동·행운 상징과\n조건부 달 위치 해석을 함께 봐요.\n\n매일 새로운 AI 상담문을\n생성하는 기능은 아닙니다.\n같은 문장이 다시 나타날 수 있어요."
+              "text": "오늘의 신탁은,\n어떤 방식으로 열릴까요?\n생일로 여는 짧은 신탁\n\n별자리와 날짜 규칙으로\n준비된 메시지 중 하나를 읽어요.\n\n프로필 결과의 신탁 탭\n\n오늘의 메시지·행동·행운 상징과\n조건부 달 위치 해석을 함께 봐요.\n\n매일 새로운 AI 상담문을\n생성하는 기능은 아닙니다.\n같은 문장이 다시 나타날 수 있어요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/olympus-oracle/07-todays-oracle-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "08-a-real-world-question",
@@ -9378,7 +10387,13 @@
               "src": "/feature-details/crafted/olympus-oracle/08-a-real-world-question.webp",
               "width": 1080,
               "height": 1440,
-              "text": "신화 속 이야기를,\n내 일상의 질문으로.\n\n이해를 돕기 위한 가상 편집 예시\n\n“확장하는 힘”을 읽었다면,\n더 벌일 일을 찾기 전에\n지킬 기준부터 정해보세요.\n\n추진력이 도움이 된 순간은?\n너무 서둘렀던 순간은?\n\n웃음 뒤에 남은 질문을 통해\n내 선택 습관을 돌아보는 시간입니다."
+              "text": "신화 속 이야기를,\n내 일상의 질문으로.\n\n이해를 돕기 위한 가상 편집 예시\n\n“확장하는 힘”을 읽었다면,\n더 벌일 일을 찾기 전에\n지킬 기준부터 정해보세요.\n\n추진력이 도움이 된 순간은?\n너무 서둘렀던 순간은?\n\n웃음 뒤에 남은 질문을 통해\n내 선택 습관을 돌아보는 시간입니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/olympus-oracle/08-a-real-world-question-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "09-know-the-basis",
@@ -9386,7 +10401,13 @@
               "src": "/feature-details/crafted/olympus-oracle/09-know-the-basis.webp",
               "width": 1080,
               "height": 1440,
-              "text": "출생 정보와,\n계산 범위를 확인해요.\n프로필 분석 준비\n\n생년월일이 필요합니다.\n이름과 출생시간은 선택 입력이에요.\n\n직접 입력은 서울 · 한국 시간\n\n정밀 계산을 시도하고 실패하면\n간이 계산으로 보여줍니다.\n시간 미상 등의 상승궁은 근사값이에요.\n\n계산 모드와 상승궁 안내를 확인하세요.\n모든 결과가 같은 정밀도로 계산되지는\n않습니다. 전문 출생 차트와 구분해요."
+              "text": "출생 정보와,\n계산 범위를 확인해요.\n프로필 분석 준비\n\n생년월일이 필요합니다.\n이름과 출생시간은 선택 입력이에요.\n\n직접 입력은 서울 · 한국 시간\n\n정밀 계산을 시도하고 실패하면\n간이 계산으로 보여줍니다.\n시간 미상 등의 상승궁은 근사값이에요.\n\n계산 모드와 상승궁 안내를 확인하세요.\n모든 결과가 같은 정밀도로 계산되지는\n않습니다. 전문 출생 차트와 구분해요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/olympus-oracle/09-know-the-basis-540.webp",
+                  "width": 540
+                }
+              ]
             },
             {
               "id": "10-your-own-direction",
@@ -9394,7 +10415,13 @@
               "src": "/feature-details/crafted/olympus-oracle/10-your-own-direction.webp",
               "width": 1080,
               "height": 1440,
-              "text": "신탁은 하나의 이야기,\n방향은 나의 선택.\n익숙한 나를\n낯선 신화의 언어로\n다시 만나보세요.\n\n기존 화면에서 이용 조건을 확인하고\n프로필과 궁합, 신탁을 펼쳐보세요.\n\n재미있게 읽되, 중요한 결정은\n실제 정보와 내 판단을 함께 놓고 해요.\n\n수익·관계·시기·행운을 보장하지 않아요.\nAI 자유상담이나 PDF는 포함하지 않아요.\n예시는 실제 고객 결과·후기가 아닙니다."
+              "text": "신탁은 하나의 이야기,\n방향은 나의 선택.\n익숙한 나를\n낯선 신화의 언어로\n다시 만나보세요.\n\n기존 화면에서 이용 조건을 확인하고\n프로필과 궁합, 신탁을 펼쳐보세요.\n\n재미있게 읽되, 중요한 결정은\n실제 정보와 내 판단을 함께 놓고 해요.\n\n수익·관계·시기·행운을 보장하지 않아요.\nAI 자유상담이나 PDF는 포함하지 않아요.\n예시는 실제 고객 결과·후기가 아닙니다.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/olympus-oracle/10-your-own-direction-540.webp",
+                  "width": 540
+                }
+              ]
             }
           ],
           "priceKRW": 5000
