@@ -7,9 +7,10 @@ import { createSajuSectionRuntime } from "./runtime.generated.mjs";
 
 // 사주 종합(section_summary)·대운 풀이(section_daewun)·퀀텀 명리 엔진(rpt_quantumCard)·
 // 극T 관계 회로(sukuyo-extreme-t-relationship)·숙요 인연 도감(sukuyo-relationship-encyclopedia)·에너지 원정 리포트(rpt_energyCoordCard)
-// ·요주의 빌런 블랙리스트(rpt_villainCard)·명리 헬스 리포트(rpt_healthReportCard) 본문을 서버에서 만든다.
+// ·요주의 빌런 블랙리스트(rpt_villainCard)·명리 헬스 리포트(rpt_healthReportCard)·나의 매력 클래스(rpt_specialCharmCard)
+// 본문을 서버에서 만든다.
 // 계산 흐름은 js/saju-engine.js 의 사주 계산(원국 → 대운 브릿지 → 종격 판정 → 용신 정책)을 그대로 따른다.
-export const SAJU_SECTION_FEATURE_KEYS = Object.freeze(["section_summary", "section_daewun", "rpt_quantumCard", "sukuyo-extreme-t-relationship", "sukuyo-relationship-encyclopedia", "rpt_energyCoordCard", "rpt_villainCard", "rpt_healthReportCard"]);
+export const SAJU_SECTION_FEATURE_KEYS = Object.freeze(["section_summary", "section_daewun", "rpt_quantumCard", "sukuyo-extreme-t-relationship", "sukuyo-relationship-encyclopedia", "rpt_energyCoordCard", "rpt_villainCard", "rpt_healthReportCard", "rpt_specialCharmCard"]);
 // 클라이언트 출생지 선택의 기본 옵션(index.html #birthCountry 의 대한민국 서울).
 const DEFAULT_PLACE = Object.freeze({ name: "대한민국 (서울)", longitude: 127.0, latitude: 37.6, timezone: "Asia/Seoul", baseTzOffset: 9 });
 const JONG_DECISIONS = new Set(["confirmed", "rejected", "unverified"]);
@@ -256,6 +257,14 @@ export function buildSajuSectionHtml(input) {
     Object.assign(window, { G_BAZI: bazi, SHENG: rt.SHENG, document: doc });
     rt.renderHealthReport(p, natal, johu, power, jong);
     return { html: cardDom.byId.healthReportSection.innerHTML, css: cardDom.css };
+  }
+  if (featureKey === "rpt_specialCharmCard") {
+    // 원본은 카드 틀(#specialCharmCard)째 HTML 을 만들어 결과 화면에 끼운다. 브라우저에는 그 틀이 무료 스텁으로 이미 있으므로
+    // 틀 안쪽 본문만 보낸다(본문 칸 #specialCharmBody 에 들어간다).
+    const full = rt.renderSpecialCharm(p, natal);
+    const open = '<div id="specialCharmCard" style="margin-top:15px">';
+    if (!full.startsWith(open) || !full.endsWith("</div>")) throw new Error("special charm card wrapper changed");
+    return { html: full.slice(open.length, -"</div>".length) };
   }
   const dw = input.daewun || {};
   const row = rows.find((r) => r.age === Number(dw.age) && r.g === dw.gan && r.j === dw.zhi);

@@ -1,7 +1,8 @@
 /**
  * 사주 종합(section_summary)·대운 풀이(section_daewun)·퀀텀 명리 엔진(rpt_quantumCard)·
  * 극T 관계 회로(sukuyo-extreme-t-relationship)·숙요 인연 도감(sukuyo-relationship-encyclopedia)·에너지 원정 리포트(rpt_energyCoordCard)
- * ·요주의 빌런 블랙리스트(rpt_villainCard)·명리 헬스 리포트(rpt_healthReportCard) 본문이 브라우저로 되돌아오지 않게 막는 가드.
+ * ·요주의 빌런 블랙리스트(rpt_villainCard)·명리 헬스 리포트(rpt_healthReportCard)
+ * ·나의 매력 클래스(rpt_specialCharmCard) 본문이 브라우저로 되돌아오지 않게 막는 가드.
  *
  * 2026-10-12 이전: renderSummary·대운 풀이 생성기가 js/saju-engine.js 에 통째로 실려 있어
  * 콘솔에서 함수 하나만 부르면 결제 없이 본문이 나왔다. 이제 본문은 /api/saju/section 이
@@ -68,6 +69,9 @@ test("종합·대운 유료 렌더러와 문장이 브라우저 경로에 없다
     // 명리 헬스 리포트(rpt_healthReportCard) 본문. 무료 스텁은 renderHealthReportStub, 접기 높이 연결은 section-client.js 에 남는다.
     "function buildWellnessHealthReport(", "HEALTH_ELEMENT_KNOWLEDGE", "renderHealthWellnessStyle", "HEALTH_FOOD_PLAN", "HEALTH_FOOD_DB",
     "getHealthSignalGuideV2", "오늘은 몸을 설득하려 애쓰지 않아도 됩니다",
+    // 나의 매력 클래스(rpt_specialCharmCard) 본문. renderSpecialCharm 이름은 무료 카드 틀·AI 프롬프트 카드를 까는 함수로 남는다.
+    "MOONLIGHT RPG CHARM CARD", "axisFactPack", "sinsalDetailRows", "stylePrescription", "situationTone",
+    "조용한 눈빛과 말 사이의 여백이 상대를 오래 머물게 만듭니다",
   ];
   const offenders = [];
   for (const rel of browserServedFiles()) {
@@ -86,6 +90,7 @@ test("종합·대운 유료 렌더러와 문장이 브라우저 경로에 없다
   assert.ok(read("worker/lib/saju-section/paid-energy.src.js").includes("function renderEnergyCoord(natal){"), "에너지 원정 리포트 정본이 서버에 없다");
   assert.ok(read("worker/lib/saju-section/paid-villain.src.js").includes("function renderVillain(p, power) {"), "빌런 블랙리스트 정본이 서버에 없다");
   assert.ok(read("worker/lib/saju-section/paid-health.src.js").includes("function buildWellnessHealthReport(p, natal, johu, pw, jg) {"), "명리 헬스 리포트 정본이 서버에 없다");
+  assert.ok(read("worker/lib/saju-section/paid-charm.src.js").includes("function renderSpecialCharm(p, natal) {"), "나의 매력 클래스 정본이 서버에 없다");
 });
 
 test("극T 해금 패널 문장의 번역은 공개 사전(public/i18n)에 없다", () => {
@@ -120,6 +125,8 @@ test("브라우저는 본문을 서버에만 묻는다", () => {
   assert.match(read("js/core/saju/reportDashboard.js"), /case 'villainCard':[\s\S]{0,200}CdSajuSectionClient\.loadCard\('rpt_villainCard'\)/, "빌런 블랙리스트 열기가 서버 로더를 거치지 않는다");
   assert.match(client, /rpt_healthReportCard: \{[\s\S]{0,120}area: 'healthReportSection'/, "명리 헬스 리포트가 서버 본문을 요청하지 않는다");
   assert.match(read("js/core/saju/reportDashboard.js"), /case 'healthReportCard':[\s\S]{0,200}CdSajuSectionClient\.loadCard\('rpt_healthReportCard'\)/, "명리 헬스 리포트 열기가 서버 로더를 거치지 않는다");
+  assert.match(client, /rpt_specialCharmCard: \{[\s\S]{0,120}area: 'specialCharmBody'/, "나의 매력 클래스가 서버 본문을 요청하지 않는다");
+  assert.match(read("js/core/saju/reportDashboard.js"), /case 'specialCharmCard':[\s\S]{0,400}CdSajuSectionClient\.loadCard\('rpt_specialCharmCard'\)/, "나의 매력 클래스 열기가 서버 로더를 거치지 않는다");
   assert.match(read("index.html"), /<script defer src="\/js\/core\/saju\/section-client\.js"><\/script>/, "index.html 이 본문 로더를 싣지 않는다");
 });
 

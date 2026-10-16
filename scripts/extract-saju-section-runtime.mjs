@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import ts from 'typescript';
-// Bundles the paid saju summary/daewun/quantum/extreme-T/sukuyo-encyclopedia/energy/villain/health renderers (worker/lib/saju-section/*.src.js) with the
+// Bundles the paid saju summary/daewun/quantum/extreme-T/sukuyo-encyclopedia/energy/villain/health/charm renderers (worker/lib/saju-section/*.src.js) with the
 // shell helpers they call, copied verbatim from the browser sources. No formula is edited here:
 // --check fails when js/saju-engine.js, the tarot-chunk helpers, the entertain-engine helpers, the personas copy table
 // or the KASI service drift.
@@ -62,7 +62,9 @@ const villainPath = 'worker/lib/saju-section/paid-villain.src.js';
 const villainSrc = read(villainPath); const villainAst = parse(villainPath, villainSrc);
 const healthPath = 'worker/lib/saju-section/paid-health.src.js';
 const healthSrc = read(healthPath); const healthAst = parse(healthPath, healthSrc);
-const paidNames = declared(paidAst); const cycleNames = declared(cycleAst); const quantumNames = declared(quantumAst); const encyclopediaNames = declared(encyclopediaAst); const energyNames = declared(energyAst); const villainNames = declared(villainAst); const healthNames = declared(healthAst);
+const charmPath = 'worker/lib/saju-section/paid-charm.src.js';
+const charmSrc = read(charmPath); const charmAst = parse(charmPath, charmSrc);
+const paidNames = declared(paidAst); const cycleNames = declared(cycleAst); const quantumNames = declared(quantumAst); const encyclopediaNames = declared(encyclopediaAst); const energyNames = declared(energyAst); const villainNames = declared(villainAst); const healthNames = declared(healthAst); const charmNames = declared(charmAst);
 
 // The quantum/energy cards' ganji/fortune/text helpers live in the tarot chunk. Its copy table is trimmed to
 // the keys the cards use (the rest is other cards' copy); every other statement is verbatim.
@@ -80,8 +82,8 @@ const qText = `var ${Q_TEXT} = ${JSON.stringify({ ko: Object.fromEntries(Q_KEYS.
 const engineAst = parse('saju-engine.js', read('js/saju-engine.js'));
 const SEEDS = ['GENDER', 'USER_NAME', 'BIRTH_YEAR', 'DAY_GAN', 'JOHU_TYPE', 'JOHU_SCORE', 'CURRENT_AGE', 'G_POWER', 'G_JONG', 'G_JOHU', 'G_PILLARS', 'G_NATAL', 'G_BAZI'];
 const SERVER_ROOTS = ['attachKasiDaewunBridge', '_sajuDaewunRowsFromList', '_sajuApplyJongDecision', 'resetEvalDaewunMemo', 'parseKasiGanjiPair', 'GAN', 'JI', 'getTenGod', 'SHENG', ...SEEDS];
-const shellRoots = [...refs(paidAst), ...refs(quantumAst), ...refs(energyAst), ...refs(villainAst), ...tarotPicked.flatMap(t => [...refs(parse('t.js', t))]), ...SERVER_ROOTS];
-const shared = closure(engineAst, engineAst.statements, shellRoots, new Set([...paidNames, ...quantumNames, ...encyclopediaNames, ...energyNames, ...villainNames, ...tarotNames]));
+const shellRoots = [...refs(paidAst), ...refs(quantumAst), ...refs(energyAst), ...refs(villainAst), ...refs(charmAst), ...tarotPicked.flatMap(t => [...refs(parse('t.js', t))]), ...SERVER_ROOTS];
+const shared = closure(engineAst, engineAst.statements, shellRoots, new Set([...paidNames, ...quantumNames, ...encyclopediaNames, ...energyNames, ...villainNames, ...charmNames, ...tarotNames]));
 const sharedNames = new Set(shared.flatMap(t => [...declared(parse('s.js', t))]));
 for (const k of SERVER_ROOTS) if (!sharedNames.has(k)) throw new Error(`Missing shell declaration: ${k}`);
 
@@ -101,7 +103,7 @@ for (const k of EE_KEYS) if (!eeTextKo[k]) throw new Error(`Missing entertain te
 const eeText = `var ${EE_TEXT} = ${JSON.stringify({ ko: Object.fromEntries(EE_KEYS.map(k => [k, eeTextKo[k]])) })};`;
 
 // Every bundled body may call _sajuEngineText (the quantum card's daewun notes come from shell helpers).
-const I18N_KEYS = [...new Set([paidSrc, quantumSrc, energySrc, villainSrc, ...shared, ...tarotPicked].join('\n').match(/_sajuEngineText\("([^"]+)"\)/g).map(m => m.slice(17, -2)))].sort();
+const I18N_KEYS = [...new Set([paidSrc, quantumSrc, energySrc, villainSrc, charmSrc, ...shared, ...tarotPicked].join('\n').match(/_sajuEngineText\("([^"]+)"\)/g).map(m => m.slice(17, -2)))].sort();
 const i18n = {};
 for (const file of fs.readdirSync('public/i18n').filter(f => f.endsWith('.json')).sort()) {
   const json = JSON.parse(fs.readFileSync(`public/i18n/${file}`, 'utf8'));
@@ -167,6 +169,9 @@ ${energySrc.trim()}
   // ── paid villain card ──
 ${villainSrc.trim()}
 
+  // ── paid charm card ──
+${charmSrc.trim()}
+
   // ── paid health card: js/entertain-engine.js IIFE helpers (copy table trimmed) + the health block ──
   (function (w) {
     'use strict';
@@ -183,6 +188,7 @@ ${healthSrc.trim()}
     renderSukuyoEncyclopediaPaid: renderSukuyoEncyclopediaPaid,
     renderEnergyCoord: renderEnergyCoord,
     renderVillain: renderVillain,
+    renderSpecialCharm: renderSpecialCharm,
     renderHealthReport: window.renderHealthReport,
     attachKasiDaewunBridge: attachKasiDaewunBridge,
     daewunRows: _sajuDaewunRowsFromList,
@@ -201,7 +207,7 @@ ${SEEDS.map(k => `      if ('${k}' in state) ${k} = state.${k};`).join('\n')}
 `;
 if (process.argv.includes('--write')) {
   fs.writeFileSync(OUT, text);
-  console.log(`Wrote ${OUT}: ${shared.length} shell + ${tarotPicked.length} tarot + ${entPicked.length} entertain + ${kasi.length} KASI + ${personas.length} personas statements, ${paidNames.size + quantumNames.size + encyclopediaNames.size + energyNames.size + villainNames.size + healthNames.size} paid declarations.`);
+  console.log(`Wrote ${OUT}: ${shared.length} shell + ${tarotPicked.length} tarot + ${entPicked.length} entertain + ${kasi.length} KASI + ${personas.length} personas statements, ${paidNames.size + quantumNames.size + encyclopediaNames.size + energyNames.size + villainNames.size + healthNames.size + charmNames.size} paid declarations.`);
 } else {
   if (read(OUT) !== text) throw new Error('Saju section runtime drift: run node scripts/extract-saju-section-runtime.mjs --write');
   console.log(`PASS saju section runtime matches its sources (${shared.length} shell statements).`);

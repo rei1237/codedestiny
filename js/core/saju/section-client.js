@@ -374,6 +374,11 @@
       area: 'healthReportSection', card: 'healthReportCard', styleId: 'cd-health-r2-fonts',
       loading: '명리 헬스 리포트를 불러오고 있어요.',
       delivered: function (area) { healthDelivered(area); }
+    },
+    // 나의 매력 클래스: 카드 틀(#specialCharmCard)은 js/saju-engine.js renderSpecialCharm 이 깔고, 본문은 그 안 칸에 들어간다.
+    rpt_specialCharmCard: {
+      area: 'specialCharmBody', card: 'specialCharmCard',
+      loading: '나의 매력 클래스를 불러오고 있어요.'
     }
   };
   var cards = {};

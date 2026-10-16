@@ -413,7 +413,7 @@ export const PAID_NON_LLM_DELIVERY_FIXTURES = Object.freeze([
     featureKey: "rpt_specialCharmCard",
     billingType: "unlock",
     cta: { file: "js/core/saju/reportDashboard.js", marker: "target:'specialCharmCard'" },
-    consumer: { file: "js/saju-engine.js", marker: "function renderSpecialCharm(p, natal)" },
+    consumer: { file: "worker/lib/saju-section/paid-charm.src.js", marker: "function renderSpecialCharm(p, natal)" },
   },
   {
     featureKey: "rpt_quantumCard",
