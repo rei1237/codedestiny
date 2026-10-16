@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-10-16
-next: "1단계 — 운영 DB 읽기 전용 조회(승인됨) 결과를 4장에 기록한 뒤 A단계 핫픽스로 진행한다."
+next: "A단계 — 즉시 차단 핫픽스(A1 _userDoc 본문 신뢰 제거, A2 낙샤트라 PER_USE_ENFORCE, A3 fortune.js 본문 이용권 주장, A4 VPU 빈 거부 코드)."
 ---
 
 # 운명 찻집 10,000원: 이용권 차감 누락과 결제 증빙 재사용 구멍
@@ -210,3 +210,19 @@ next: "1단계 — 운영 DB 읽기 전용 조회(승인됨) 결과를 4장에 �
   - 코드 분석을 완료했다(이 문서).
   - 코드 변경, 운영 조회, 커밋은 하지 않았다.
   - 이 문서는 아직 커밋되지 않았다.
+- 2026-10-16 (이어받은 세션) — **1단계 운영 DB 읽기 전용 조회 완료** (DB `code_destiny`, find/aggregate/countDocuments만 사용, 임시 스크립트는 실행 후 삭제)
+  - **10-15 찻집 상담은 운영 DB에 없다.**
+    - `fortune_tea_house_results`는 전체 35건뿐이다. 마지막 생성은 2026-09-07이고, 모두 1~2개 계정(개발·테스트로 보임)이며 `deliveryAccessKey` 필드가 있는 문서는 0건이다.
+    - 찻집 `featureKey`(`^fortune-tea-house-`)의 Payment는 전 기간 0건이다.
+    - 따라서 "reusable" 행 특정, 결함 2 흔적 집계(같은 accessKey 2건 이상)는 모두 0건이다.
+  - **10-14~10-16(KST) 실제 유료 사용 내역** (이메일 마스킹)
+    - `ju******@naver.com`: 수동 부여 가족 이용권(`lastPassOrderId: manual-grant:2026-10-13:…`, `source: event`, 이용권 구매 Payment 없음)으로 10-14 03:30 KST에 **융합 운세 50,000원(500코인)** 상담을 열었다. 이용권 차감은 기록됐다(`monthlySpendUsed 500`). 판정 기준상 "수동 부여 이용권으로 연 상담"이다. 이 계정은 조회 시점에 이미 `status: withdrawn`, 이용권 종료(`expiresAt 2026-10-16T05:01Z`) 상태였다 — 다른 세션이 회수 스크립트를 적용한 것으로 보인다.
+    - `na*******@gmail.com`: 10-15 20:40 KST 영냥이 대화 5,000원 결제를 `pending`으로 두고, 20:41에 스탠다드 이용권 9,900원을 **실결제**한 뒤 대화 상담 3회를 이용권으로 썼다. 회당 50코인 차감이 정상 기록됐다(150/200). 정상 이용이다.
+    - 그 밖의 결제(융합 50,000원 2건, 미래 시뮬 7,000원, 영냥이 5,000원 2건)는 모두 `paid`다.
+  - **권한 규모 (B단계 판단용)**
+    - `licenses.{vvip,premium,standard} > 0`: 0명 → 결함 3은 현재 악용 대상 계정이 없다.
+    - `monthlySubscription.active`: 0명, `role: admin`: 0명
+    - 활성 이용권 10명(source: pass 7, coin 1, event 2), **cycleKey 없음 0명** → 결함 4를 fail-closed로 바꿔도 영향받는 계정이 없다.
+  - **`_userDoc`·낙샤트라 경로 10-01 이후 실행 대비 결제:** pet-saju·destiny-compass·geomancy·yoga·celestial·낙샤트라 무후르타·VVIP 코덱스는 실행 0건. `compat-saju-compatibility`는 실행 2건(완료 2) / 결제 1 / 코인 차감 3 → 결제 없는 실행 흔적 없음.
+  - **결론:** 운영 데이터에서 "결제 없이 열린 찻집 상담"은 확인되지 않는다. 10-15 무렵 결제 없이 열린 고액 상담은 수동 부여 가족 이용권으로 연 융합 운세 1건이 유일하다. 코드상 구멍(결함 1~4, 0.1절 유형 1~5)은 실재하므로 수정은 계획대로 진행한다.
+  - 후속 확인 거리(이번 범위 밖): 10-14 결제 완료된 융합 운세 2건(`dh*****@naver.com`, `hs********@naver.com`)의 상담 문서가 `status: partial`로 남아 있다.
