@@ -1,7 +1,7 @@
 ---
-status: active
+status: done
 updated: 2026-10-16
-next: "1번(neo 모드 하이드레이션 경고)부터 처리한다. 한 줄 수정이고 dev 콘솔의 '1 Issue' 배지를 없앤다."
+next: "없음. 남은 것은 사용자 동의 대기인 유료 LLM 생성(상품당 1회)과 '후속 과제' 목록뿐이다."
 ---
 
 # 대표 상담 마스터·예화 상세: 후속 과제
@@ -21,7 +21,7 @@ next: "1번(neo 모드 하이드레이션 경고)부터 처리한다. 한 줄 �
 
 - 워크트리: `D:\Development\codedestiny-worktrees\masters-yehwa-20261016`
 - 브랜치: `wt/masters-yehwa-20261016`
-- 커밋 `98fe8adcc`는 아직 main에 병합되지 않았다.
+- 커밋 `98fe8adcc`와 아래 후속 처리는 main에 병합·push됐다(main `04d61def4`). 스테이징까지만 나갔고 프로덕션 승격은 하지 않았다.
 - 검증 결과:
   - jest 6144/6144, node 3286/0 fail, tsc/eslint OK.
   - `verify-feature-popup-journey` 74상품 × 4폭 PASS.
@@ -47,7 +47,30 @@ next: "1번(neo 모드 하이드레이션 경고)부터 처리한다. 한 줄 �
   - 🔴 반드시 사용자 동의를 받은 뒤 상품당 1회만 실행한다.
   - 분량 기준은 목표일 뿐이다. 결제 후 결과 전달 성공이 최우선이다.
 
-## 남은 작업 (우선순위 순)
+## 처리 결과 (2026-10-16)
+
+| # | 결과 | 커밋 |
+|---|---|---|
+| 1 | `<html suppressHydrationWarning>`. dev에서 localStorage를 neo로 두고 전후 실측: 수정 전 hydration mismatch와 "1 Issue", 수정 후 0 | `18fa224a9` |
+| 2 | `scripts/design/build-hero-variants.mjs`로 변형 생성(원본 유지). 인생의 책 표지는 CSS `image-set` 600w(66KB)/800w(129KB). 원본 폭 재압축은 410→354KB로 이득이 작아 800w를 상한으로 했다. 상담 샘플은 신년운세 600/1200w, 연애 비책 600w `visualSrcset`. 실측: 모바일 LCP 66KB(목표 ≤80KB), 데스크톱 1x 샘플 38/36KB | `84fc8b1ac` |
+| 3 | 판정: 중복이 아니라 생성물이다. `index.html`이 정본이고 JSON은 `sync:public`(`scripts/lib/build-visual-details.mjs`)이 만든다. 코드 변경 없음 | — |
+| 4 | 원본 1355장 q93→q76(125→65MB, 평균 93→49KB, 크기 동일, 글자 크롭 비교 차이 없음). `sync:visual-details`가 모든 crafted 공개 매니페스트에 540w `variants`를 기록(신규 1190장, 평균 25KB). `render-crafted-detail`도 q76. 실측: 1x 화면은 540w, 2x 이상은 원본. dist 11244파일(<20k). 렌더러는 이미 `panelSources`로 srcset을 만들므로 TSX 변경 불필요 | `981b3ce51` |
+| 5 | 판정: CI는 `build:cf`(→`prebuild:cf`가 운세 데이터 생성)를 쓴다. `lib/fortune/daily-data.ts`의 실패 메시지가 이미 우회를 안내한다. 코드 변경 없음 | — |
+| 6 | 판정: `sitemap-lastmod.json`은 서명 기반 원장(테스트·indexnow가 읽음)이라 gitignore할 수 없다. rss·aliases 노이즈는 후속 과제 | — |
+| 7 | 판정: 대표 카드 섹션 전체(제목·설명·CTA)가 `lang="ko"` 한국어다. alt만 번역하면 섹션 언어와 어긋나므로 섹션 현지화 별도 과제로 넘긴다 | — |
+| 8 | jest 열린 핸들 경고는 전체 jest 2회에서 재현되지 않았다. 폰트 CORS는 localhost 전용으로 확인하고 닫았다. 윤달 책 색과 이미지 예산은 재생성 없이 보고만 | — |
+
+- 병합: `a84b424a6`, `842672689`, `47617d0c0`. 충돌은 `config/sitemap-lastmod.json`뿐이었고 재생성으로 풀었다. 미러 캐시 해시: `d0c0e2b9a`, `91e7a78d1`, `04d61def4`.
+- 검증: check:fast(critical) — 게이트 88/88, lint, sitemap, typecheck, test:node, npm test(jest 포함) 통과. 두 번째 jest 실행에서 `db.payment-admission-separation` 시간 단언(<100ms인데 165ms)이 부하로 1회 실패했고 단독 재실행은 PASS. `build:cf`·`build:worker`, `verify-feature-popup-journey` 74×4, `check:pre-push` 통과.
+
+### 후속 과제 (이 문서 범위 밖)
+- 홈 인라인 `FEATURE_VISUAL_DETAILS`(148KB, gzip 33KB)를 지연 로드하면 첫 화면 바이트가 준다.
+- `lib/marketing/result-samples.json`의 `fusion-fortune-hero-v2`·`master-love-codex-hero-v3`에도 srcset이 없다.
+- en/ja/zh 홈 대표 카드 섹션 현지화(7번).
+- 빌드 노이즈(6번): rss·aliases를 내용 비교 후에만 쓰게 하기.
+- 윤달 초상 책 색 불일치(8번). 재생성할 때 원본 에셋을 참조로 첨부한다.
+
+## 남은 작업 (원래 목록 — 위 결과로 처리됨)
 
 ### 1. neo 모드 하이드레이션 경고
 - 위치: `app/layout.js:179` `<html lang="ko" dir="ltr" className={notoSansKRVariable}>`
