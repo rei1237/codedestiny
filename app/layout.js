@@ -176,7 +176,8 @@ const jsonLdGraph = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="ko" dir="ltr" className={notoSansKRVariable}>
+    // 프리페인트 스크립트가 하이드레이션 전에 data-cd-theme 를 찍는다. 이 요소의 속성 불일치만 허용한다(자식에는 번지지 않음).
+    <html lang="ko" dir="ltr" className={notoSansKRVariable} suppressHydrationWarning>
       <head>
         <script src="/js/pwa-lifecycle.js?v=moon-library-1" defer />
         <Script src="/js/core/pass-verdict.js?v=build-f0d657bab4e4" strategy="beforeInteractive" />
