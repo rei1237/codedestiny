@@ -10,6 +10,28 @@ import "@/styles/review-reward.css";
 
 export type ReviewRewardPolicy = { amount: number; currency: string; trigger: string };
 
+// 결과 뒤 후기 배너는 화면에 하나만 둔다(DESIGN.md §5). 공유·이미지 안내 컴포넌트가
+// 각자 배너를 붙여 한 결과 화면에 두 번 뜨던 것을, 먼저 마운트된 하나만 보이게 한다.
+const resultBannerOwners: symbol[] = [];
+const resultBannerListeners = new Set<() => void>();
+function useResultBannerOwner(enabled: boolean) {
+  const [owner, setOwner] = useState(!enabled);
+  useEffect(() => {
+    if (!enabled) return;
+    const token = Symbol("review-banner");
+    const update = () => setOwner(resultBannerOwners[0] === token);
+    resultBannerOwners.push(token);
+    resultBannerListeners.add(update);
+    resultBannerListeners.forEach((listener) => listener());
+    return () => {
+      resultBannerOwners.splice(resultBannerOwners.indexOf(token), 1);
+      resultBannerListeners.delete(update);
+      resultBannerListeners.forEach((listener) => listener());
+    };
+  }, [enabled]);
+  return owner;
+}
+
 export default function ReviewRewardBanner({ policy, onWrite, brand = 'ggulggul', afterResult = false, locale = 'ko' }: {
   policy?: ReviewRewardPolicy | null;
   onWrite?: () => void;
@@ -18,6 +40,7 @@ export default function ReviewRewardBanner({ policy, onWrite, brand = 'ggulggul'
   locale?: string;
 }) {
   const [loadedPolicy, setLoadedPolicy] = useState<ReviewRewardPolicy | null>(null);
+  const owner = useResultBannerOwner(afterResult);
   useEffect(() => {
     if (policy !== undefined) return;
     const controller = new AbortController();
@@ -32,6 +55,7 @@ export default function ReviewRewardBanner({ policy, onWrite, brand = 'ggulggul'
   const resolvedPolicy = policy === undefined ? loadedPolicy : policy;
   const worth = afterResult ? reviewRewardWorthLabel(resolvedPolicy, KRW_PER_MONTHLY_CREDIT, locale) : '';
   const reward = afterResult && locale !== 'ko' ? resolvedPolicy?.currency === 'moonstone' && resolvedPolicy.trigger === 'approved' && Number.isSafeInteger(resolvedPolicy.amount) && resolvedPolicy.amount > 0 ? `${resolvedPolicy.amount} moonstones after publication approval` : 'Moonstones after publication approval' : reviewRewardLabel(resolvedPolicy);
+  if (!owner) return null;
   return (
     <section className={`cd-review-invite${afterResult ? ' cd-review-invite--result' : ''}`} data-review-character={afterResult ? brand : undefined} aria-label={locale === 'ko' ? "후기 작성과 월정석 보상 안내" : 'Review and moonstone reward'}>
       <div className="cd-review-invite__copy">

@@ -236,19 +236,19 @@ export default function VedicAiResultClient() {
           })}
         </div>
 
-        <PaidResultImageGuide domain="vedic" status={consultation.status} content={consultation.messages.filter(message=>message.role==="assistant").map(message=>message.content)} basis={consultation.analysisBasis} />
-
         {shareChoices.length > 0 && (
           <div className={styles.resultShare}>
             <ConsultationShare brand="vedic" choices={shareChoices} />
           </div>
         )}
 
+        <PaidResultImageGuide domain="vedic" status={consultation.status} content={consultation.messages.filter(message=>message.role==="assistant").map(message=>message.content)} basis={consultation.analysisBasis} />
+
         <footer className={styles.resultFooter}>
           <span className={styles.resultFooterRule} aria-hidden="true" />
           <p className={styles.resultFooterNote}>{COPY.footerNote}</p>
           <div className={styles.resultFooterActions}>
-            <Link href="/vedic-ai/" className={styles.resultFooterPrimary}>
+            <Link href="/vedic-ai/" className={styles.resultFooterSecondary}>
               <ArrowLeft size={16} aria-hidden="true" />
               <span>{COPY.backToConsult}</span>
             </Link>
