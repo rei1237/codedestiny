@@ -81,3 +81,7 @@ Cloudflare Workers는 런타임에 파일을 읽을 수 없으므로, 이 문서
 | 상품 | featureKey | 가격(KRW) | cost(코인) | 비고 |
 |------|-----------|-----------|-----------|------|
 | 운세 프롬프트 1회 생성 | `fortune-prompt-hub-generate` | 3,000원 | 30 | 단건 · 꿀방울 대체 · Play `cd_content_tier_01` |
+
+## 접근 무결성 (2026-10-16)
+
+운명 찻집 상담도 [결제 플로우 문서](docs/payment-policy-flow.md)의 "유료 접근 무결성 원칙"을 따른다. 결제 증빙 1건은 상담 1건(claim 주인 `fortune-tea-house:<attemptId>`)에만 쓰이고, 이용권은 이번 요청에서 실제로 차감된 경우에만 상담을 연다. 최종 생성 실패 시 이용권 차감은 `refundPassCoverage`로 되돌린다.
