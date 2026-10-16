@@ -1461,7 +1461,9 @@ async function handleSukuyoPastLifeReading(request, env) {
     mode: "past-life-reading",
     purpose,
     _accessRoute: "/api/sukuyo/past-life-reading",
-  }, { preloadedUserDoc: auth.authUserDoc || null });
+    // 🔴 결제 1건 = 상대 조합 1건. 예전 클라이언트는 requestId 를 카드마다 고정해, 같은 차감으로 상대만 바꿔
+    // 몇 번이든 새 리딩을 열 수 있었다 — 조합(signature)까지 claim 에 묶는다(2026-10-16).
+  }, { preloadedUserDoc: auth.authUserDoc || null, claimBindingKey: signature });
   if (!access?.ok) {
     return json({
       ok: false,

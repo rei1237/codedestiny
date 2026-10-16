@@ -30,6 +30,8 @@ function fixture(accessType = 'pass') {
   let doc = null, providerCalls = 0, refunds = 0, usage = 0, fault = null, permitted = true, owner = 'owner';
   const chain = value => ({ lean: async () => clone(value), select: () => chain(value) });
   const ctx = vm.createContext({ Request, Response, Headers, Date, JSON, Map, crypto: webcrypto,
+    // 증빙 claim 은 billing-evidence-claim.test.js 가 따로 검증한다 — 여기서는 통과로 둔다.
+    claimRequestBillingEvidence: async () => ({ ok: true, skipped: true }), releaseRequestBillingEvidence: async () => ({ released: 0 }), evidenceClaimErrorBody: result => result, FEATURE_KEY: 'love-secret-ai-consultation',
     console: { warn() {}, error() {} },
     fetch: async () => { throw new Error('EXTERNAL_FETCH_BLOCKED'); },
     clean: (v, max = 100000) => String(v || '').trim().slice(0, max), objectOf: v => v || {}, randomToken: () => 'fixture',

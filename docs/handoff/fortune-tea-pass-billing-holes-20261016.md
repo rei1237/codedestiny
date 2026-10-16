@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-16
-next: "C단계(billing-evidence-claim: 증빙 1건 = 요청 1건) → D(브라우저 계산 리포트 서버 이전) → E → 정책 문서."
+next: "D단계 상품 이전(퀀텀 → 리포트 카드 → 숙요 → 자미 → 점성 → 동물점·비밀의 집)·화면 가격 정본 일치 → E → 정책 문서."
 ---
 
 # 운명 찻집 10,000원: 이용권 차감 누락과 결제 증빙 재사용 구멍
@@ -251,3 +251,52 @@ next: "C단계(billing-evidence-claim: 증빙 1건 = 요청 1건) → D(브라�
   - 가드 `verify:paid-access-integrity` 추가(유료 게이트 스위트 등록): 본문 `_userDoc` 읽기, `PER_USE_ENFORCE = false`, `canAccessPaidFeature` 판정만 쓰고 정산을 안 거치는 파일, 리포트 이용권 분기의 무차감 허용을 잡는다. base `e64ad7ba2` 코드에 돌리면 네 유형을 모두 잡는다.
   - 테스트: `premium-pass-settlement`(6), `fortune-tea-house-pass-settlement`(6), `consultation-per-use-payment` 보강. 옛 구멍을 단언하던 테스트(numerology·직감 타로·마인드스캔·dream 월구독)는 "증빙 없으면 402"로 바꿨다.
   - 남은 위험(후속): dream·tarot·ziwei·sukuyo·neo·naming은 생성 실패 시 이용권 환불이 없다. `findRecentDeductionEvidence` 최근 결제 창은 C단계에서 없앤다. 엔티틀먼트가 생기기 전에 이용권으로 본 옛 FPTI 사용자는 게이트를 한 번 거쳐야 한다.
+- 2026-10-16 — **C단계: 결제 증빙 1건 = 유료 요청 1건** (C1 `6a49a75d0`, C2 `015ad2c12`)
+  - 공용 모듈 `worker/lib/billing-evidence-claim.js`
+    - 컬렉션 `billing_evidence_claims`, `_id = sha256("evidence:"+증빙ID)`다. `_id`가 원래 유일해서 인덱스 마이그레이션이 없다(운영 쓰기 없음).
+    - 같은 계정·같은 requestId면 재생 통과, 다르면 409 `EVIDENCE_ALREADY_USED`, 저장소 장애면 503 `PAYMENT_VERIFY_UNAVAILABLE`다. 결제한 사람이 402로 막히지 않게 장애는 402로 바꾸지 않는다.
+    - 생성이 최종 실패해 본문을 주지 못했을 때만 풀고(release), 새 시도가 같은 결제로 다시 받을 수 있다. 남의 claim은 풀지 않는다.
+  - C1 `requirePremiumReportAccess`(8개 리포트): 본문·토큰 증빙과 최근 결제 창 모두 claim을 거친다. 최근 결제 창은 아직 안 쓴 차감만 연다(차감 2건이면 새 요청 2건까지).
+    - 숙요 전생 인연 리딩: 클라이언트가 requestId를 카드마다 고정해서, 같은 차감으로 상대만 바꿔 리딩을 몇 번이든 열 수 있었다. 서버는 조합(signature)까지 claim에 묶고(`claimBindingKey`), 클라이언트는 회당 결제(`perPayment`)로 바꿨다.
+  - C2 라우트 13곳: karma·new-year·vedic·astrology·neo-operation-room·nakshatra-ai·sukuyo-compatibility·life-book·love-secret·ziwei-ai·ziwei-island·찻집·fortune.js AI 프롬프트(`requireExistingPaidAccess`).
+    - claim 위치는 "중복 제거·조기 반환 뒤, 실제 시작 직전" 한 곳이다. ensure-access·재확인(fresh)·배치 재해석에는 걸지 않는다(같은 요청의 재시도가 409로 막히지 않게).
+    - 본문 토큰이 아니라 서버 문서의 정본 ID(Payment `_id`, PointHistory `_id`, 월정석 ledgerId, 실행 기록 `_id`)와 원래 결제 요청 키(record.requestId·metadata.requestId·sourceId)를 함께 claim한다. 그래서 같은 결제를 실행 기록·차감 행·결제 행 중 어느 경로로 내밀어도 같은 claim에 부딪힌다.
+    - life-book은 claim featureKey로 `getConsultationFeatureKey`(상담 종류별 키)를 쓴다.
+    - 이용권 경로는 claim하지 않는다(차감이 이미 requestId별이다). life-book `resolveBillingGateAccess`·ziwei `verifyPaymentForStart`는 이미 요청 키에 묶여 있어 그대로 둔다.
+    - 찻집의 claim 주인은 `fortune-tea-house:<attemptId>`다. 클라이언트가 같은 결제의 재시도에 같은 attemptId를 쓰므로 거짓 409가 없다.
+  - billing `deferred/register`는 `resolveExecutionRegistration`이 이미 실행 기록 1건에 묶는다. 1회용 토큰은 FPTI·dream만 쓴다(확인만).
+  - 가드 `verify:paid-access-integrity`에 claim 규칙을 추가했다: `claimEvidenceId(s)`를 고르는 파일은 claim을 호출한다 / claim 결과를 변수로 받는다 / `.ok`가 false면 바로 return한다. 호출 파일은 전수 발견하고 10곳 미만이면 실패다.
+  - 테스트: `billing-evidence-claim`(헬퍼 9), `premium-report-evidence-claim`(4), karma 라우트 "같은 결제·다른 요청 키 → 409, 계산 재실행 없음"(paid·monthly·deferred). karma의 claim을 끄면 3건 모두 실패하는 것을 확인했다.
+  - 검증: check:fast 통과(jest 410 스위트 / 6,186 테스트).
+  - 남은 위험·후속
+    - 배포 전에 이미 쓰인 증빙은 claim 기록이 없어서 배포 뒤 한 번은 더 쓰일 수 있다. 소급 차단은 하지 않는다.
+    - fortune.js AI 프롬프트는 자동 환불이 실패한 경우 claim을 풀지 않는다(환불된 증빙은 조회에서 빠지므로 정상 경로는 문제없다).
+    - 찻집 `FORTUNE_TEA_HOUSE_BILLING_STATUSES`에 아직 `generation_failed`가 있다.
+    - ziwei-ai `resolveServerAccess`의 월구독·이용권 분기는 ensure-access에서만 쓰여 start에서 악용할 수 없다(apply가 선결제 없는 구독을 거부하고 이용권은 apply에서 차감).
+    - `requirePremiumReportAccess`의 Payment 출처 공백, 바인딩 전용 대체 조회의 과잉 일치, karma `generation_failed` 409, 숙요 전생 리딩 일부가 클라이언트 렌더라는 점, neo `settled` 줄 들여쓰기.
+- 2026-10-16 — **D단계 착수: 브라우저 계산 유료 본문**
+  - 사용자 결정(2026-10-16)
+    - 범위: 공용 구멍을 먼저 막고, 그다음 상품을 높은 가격 순서로 서버로 옮긴다. 남은 상품은 이 문서에 목록으로 남긴다.
+    - 가격 불일치: 화면 가격 표시를 서버 정본(`worker/lib/paid-feature-registry.js`)에 맞춘다. 서버 가격은 바꾸지 않는다.
+  - 공용 구멍 점검 결과
+    - ① `cd_verified_unlock_grants_v1` 원장이 서버 스냅샷 뒤에 다시 얹힌다(`index.html` `mergeAccessStoreUnlocksIntoLegacyMap`). React 쪽(`app/_lib/optimistic-unlock-ledger.ts`)의 `mode:'confirmed'`는 만료되지 않는다.
+      - 결론: 원장만 조여서는 막을 수 없다. `unlockedFeatureMap` 전역과 access-store 캐시(localStorage)도 콘솔에서 고칠 수 있어서, 클라이언트 판정은 원래 위조할 수 있다.
+      - 원장을 조이면 위험도 생긴다. 회당 상품은 서버가 영구 해금으로 남기지 않아서, 원장이 72시간 다시보기의 근거다. 조이면 결제한 사람이 재잠금된다(전달 최우선 원칙과 충돌).
+      - 그래서 원장은 화면 힌트로 둔다. 해결책은 상품별 서버 이전(유료 본문을 서버만 만들고 클라이언트 번들에서 뺀다)이다.
+    - ② `_cdPendingGateBodies`(`js/saju-engine.js`): 잠긴 본문을 DOM 대신 전역에 보관한다. 본문 계산 엔진이 번들에 있어서 콘솔로 직접 부를 수 있다. ①과 같은 이유로 상품 이전으로 푼다(자미두수 5칸·대한 10년운·점성술 심화).
+    - ③ 숙요 인연 레이더 전체 리포트: 서버(`/api/sukuyo/past-life-reading`)가 실패해도 `reveal(true)` 했다. 복귀 경로(skipGate)를 증빙 없이 타면 결제 없이 열렸다. → **수정**(`eaf477d8f`)
+      - 4xx(결제 거절)면 열지 않는다.
+      - 5xx·네트워크 장애는 이 화면에서 게이트를 막 통과한 결제가 있을 때만 연다(결제한 사람의 전달 보장).
+    - ④ 십이운성 동물점(`/saju/animal-destiny`, 정본 70코인)·비밀의 집(`secret-house_real.html`, 50코인): 페이지 자체에 게이트가 없고 계산이 전부 브라우저에서 돈다. 결제는 리포트 대시보드 카드 클릭에서만 받는다. 페이지 전체를 서버 본문으로 바꾸는 상품 이전 대상이다.
+  - 가격 표시 불일치(점검 중 발견): 2026-10-12 가격 재조정(`dbecc8bf2`)이 서버 정본만 올리고 화면 가격을 고치지 않았다. 37곳에서 화면이 서버 청구액보다 낮게 보인다(결제 모달 `opts.coinPrice`·본문 "N원" 문구). 서버는 featureKey로 정본 가격을 청구하므로 사용자는 본 가격보다 더 낸다.
+    - 대상 예: 테토겐 심화 1,000→5,000원, 주역·케메트 1,000→3,000원, 숙요 연간운 5,000→7,000원, 동물점·만남의 장소·러브코드 5,000→7,000원, 베다 기본 1,000→5,000원, 홈 타일 배지 3,000→5,000원.
+    - 기존 가드가 못 잡았다: `verify-paid-gate-price-coverage`는 `app/src/components`만, `verify-krw-copy-canonical`은 금액 집합만 본다.
+    - 수정은 별도 커밋(화면을 정본에 맞춤 + featureKey별 화면 가격 = 정본 가드).
+    - 후속: 클라이언트 롤백 환불(`rollbackCoinBestEffort`)이 클라이언트 가격을 쓴다. `js/core/feature-pricing-store.js`는 쓰이지 않는다.
+  - 상품 이전 목록(높은 가격 순서, 정본 가격 기준)
+    - 퀀텀 명리 전략 `rpt_quantumCard`(100): `renderQuantumStrategy`가 전역이라 콘솔로 전체 본문을 그릴 수 있다. `/api/saju/section` 템플릿으로 이전 중.
+    - 리포트 카드: 에너지 좌표(70)·건강(50)·악연(50)·매력(10)·재능(10). 본문을 미리 DOM에 그려 두고 `reportDashboard.js`가 숨긴다. 빠른 처방은 해금 뒤에만 렌더.
+    - 숙요 유료 6종(50)·전생 리딩(100)·연간운(70)·AI 프롬프트(100).
+    - 자미두수 5칸·대한 10년운(50): `renderZiwei` 한 함수 안이라 분리 리팩터가 먼저다(규모 큼).
+    - 점성술 심화·시나스트리.
+    - 십이운성 동물점·비밀의 집: 페이지 재설계가 필요하다.

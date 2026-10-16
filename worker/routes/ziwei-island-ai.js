@@ -30,6 +30,7 @@ import { buildSystemPrompt, getPalaceConfig, isValidPalace } from "../lib/island
 import { palaceParts, palaceEvidence, palaceAnchorStars, palacePartPrompt, validPalacePart, palaceResult } from "../lib/island/consult/palace-delivery.js";
 import { isPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { autoRefundSinglePaymentDeliveryFailure } from "../lib/payment-refund.js";
+import { claimRequestBillingEvidence, evidenceClaimErrorBody, releaseRequestBillingEvidence } from "../lib/billing-evidence-claim.js";
 
 // ── 상품 상수(ziwei-ai와 유일하게 다른 부분) ──
 const SERVICE_KEY = "ziwei-island-ai";
@@ -288,7 +289,8 @@ async function resolveBillingGateAccess({ env, auth, user, body, pricing, idempo
       userId: auth.userId, paymentType: "digital_content", featureKey: { $in: featureKeys },
       status: { $in: ["paid", "success", "fulfilled"] }, $or: paymentClauses,
     }).sort({ updatedAt: -1, paidAt: -1, createdAt: -1 }).lean();
-    if (payment) return { ok: true, accessType: "paid", paymentId: clean(payment.merchantUid || payment.impUid || payment._id, 160), prepaid: true, evidenceType: "direct_payment", evidenceId: clean(payment._id, 160) };
+    if (payment) return { ok: true, accessType: "paid", paymentId: clean(payment.merchantUid || payment.impUid || payment._id, 160), prepaid: true, evidenceType: "direct_payment", evidenceId: clean(payment._id, 160),
+      claimEvidenceIds: [clean(payment._id, 160), clean(payment.requestId || payment.idempotencyKey, 180)] };
   }
   const pointClauses = pointHistoryTokenClauses(tokens);
   if (pointClauses.length) {
@@ -300,6 +302,7 @@ async function resolveBillingGateAccess({ env, auth, user, body, pricing, idempo
       ok: true, accessType: "paid", paymentId: clean(pointHistory._id, 160), prepaid: true, evidenceType: "coin", evidenceId: clean(pointHistory._id, 160),
       amount: Math.max(0, Math.floor(Math.abs(Number(pointHistory.delta || pointHistory?.metadata?.chargedCoins || pricing.coinPrice || 0)))),
       purchaseId: clean(pointHistory?.metadata?.purchaseId || pointHistory?.metadata?.idempotencyKey || pointHistory?.metadata?.orderId || "", 180),
+      claimEvidenceIds: [clean(pointHistory._id, 160), clean(pointHistory?.metadata?.requestId, 180)],
     };
   }
   // 월정석 증빙 정본은 worker/lib/moonstone-spend-proof.js 하나다(미정산 예약행 배제·구 원장 호환 포함).
@@ -311,6 +314,7 @@ async function resolveBillingGateAccess({ env, auth, user, body, pricing, idempo
     evidenceType: "monthly_credit", evidenceId: clean(monthlyEvidence.ledgerId, 160),
     amount: Math.max(0, Math.floor(Number(monthlyEvidence.amount || pricing.membershipCreditCost || 0))),
     purchaseId: clean(monthlyEvidence.sourceId, 180),
+    claimEvidenceIds: [clean(monthlyEvidence.ledgerId, 160), clean(monthlyEvidence.sourceId, 180)],
   };
   return null;
 }
@@ -454,7 +458,9 @@ async function refundCardPaymentOnFailure(env, auth, access, error) {
     return { refunded: false, refundFailed: true, reason: clean(refundError?.message || refundError, 300) };
   }
 }
-async function restorePrepaidAccessOnFailure({ userId, access = {}, idempotencyKey = "", pricing = getPricing(), error = null }) {
+async function restorePrepaidAccessOnFailure({ env = {}, userId, access = {}, idempotencyKey = "", pricing = getPricing(), error = null }) {
+  // 본문을 못 받은 최종 실패다 — 증빙 claim 을 풀어 결제한 사용자가 새 시도로 다시 받게 한다.
+  await releaseRequestBillingEvidence(env, { userId: clean(userId), requestId: idempotencyKey, evidenceIds: access.claimEvidenceIds }).catch(() => null);
   if (!access?.prepaid) return false;
   const evidenceType = clean(access.evidenceType, 80);
   const evidenceId = clean(access.evidenceId || access.paymentId, 160);
@@ -707,18 +713,21 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
         if (access.reason === "INVALID_INPUT") return invalidInput(access.message, 409);
         return paymentVerifyFailed();
       }
+      // 결제창 증빙 1건 = 상담 1건. 카드 직접 결제는 이미 이번 키에 묶여 있고, 이용권은 전달 때 이번 키로 차감한다.
+      const evidenceClaim = await claimRequestBillingEvidence(env, { userId, requestId: idempotencyKey, evidenceIds: access.claimEvidenceIds, featureKey: FEATURE_KEY });
+      if (!evidenceClaim.ok) return json(evidenceClaimErrorBody(evidenceClaim), { status: evidenceClaim.status });
     }
     const input = doc?.llmMeta?.input || normalized.input;
     let chart = doc?.llmMeta?.chart || doc?.ziweiChart;
     if (!chart) {
       try { chart = calculateZiweiAiChart(input, { year: new Date().getFullYear() }); }
-      catch (error) { await restorePrepaidAccessOnFailure({ userId, access, idempotencyKey, pricing, error }); return calculationFailed(); }
+      catch (error) { await restorePrepaidAccessOnFailure({ env, userId, access, idempotencyKey, pricing, error }); return calculationFailed(); }
     }
     // 대조 기준은 요청이 신고한 값이 아니라 계산된(또는 저장된) 명반이다. 인용할 주성도 삼방사정 주성도
     // 없으면 품질 게이트가 확정값을 한 줄도 대조할 수 없으므로, 제공자를 부르기 전에 닫고 선차감을 되돌린다.
     const anchors = palaceAnchorStars(input.palaceKey, chart);
     if (!anchors.length) {
-      await restorePrepaidAccessOnFailure({ userId, access, idempotencyKey, pricing, error: new Error("palace basis incomplete") });
+      await restorePrepaidAccessOnFailure({ env, userId, access, idempotencyKey, pricing, error: new Error("palace basis incomplete") });
       return calculationIncomplete();
     }
     const owner = { id: resultId, userId, serviceType: FEATURE_KEY };
@@ -794,7 +803,7 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
       if (meta.exhausted && !Object.keys(meta.parts).length && Object.entries(meta.attempts).every(([key, count]) => meta.invalidAttempts[key] === count)) {
         doc = await saveIsland(filter, { status: "generation_failed", generationLease: "", llmMeta: meta });
         const qualityError = new Error("LLM quality failed");
-        const restored = await restorePrepaidAccessOnFailure({ userId, access, idempotencyKey, pricing, error: qualityError });
+        const restored = await restorePrepaidAccessOnFailure({ env, userId, access, idempotencyKey, pricing, error: qualityError });
         const refund = await refundCardPaymentOnFailure(env, auth, access, qualityError);
         logZiweiIsland("Refund Or Restore", { requestId: idempotencyKey, restored, refunded: refund.refunded === true });
         return json({ ok: false, retryable: false, reason: "LLM_ERROR", resultId, message: MESSAGES.llmFailed }, { status: 503 });

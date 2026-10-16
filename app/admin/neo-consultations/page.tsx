@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import { adminFetch } from "../_lib/admin-api";
-import { NEO_STATUS_LABELS, neoMoney } from "@/lib/neo-consultation/contract";
+import { NEO_EMAIL_SALE_ENABLED, NEO_STATUS_LABELS, neoMoney } from "@/lib/neo-consultation/contract";
 import type { NeoOrder } from "@/app/neo-consultation/types";
 import styles from "./review.module.css";
 
@@ -32,16 +32,16 @@ export default function NeoConsultationAdmin() {
       setOrder(result.order); await load();
     } catch (e) { setError((e as Error).message); } finally { setBusy(false); }
   };
-  const paid = order?.payment?.status === "paid";
+  const paid = order?.payment?.status === "paid" && !order?.cancellationRequestedAt && !order?.contentDeletedAt;
   const dirty = order?.questions.some(q => answers[q.id] !== undefined && answers[q.id] !== (q.answer || ""));
   const ready = paid && !dirty && order?.questions.every(q => q.answer && q.review?.answerVersion === q.answerVersion && !q.correction);
   return <main className={styles.page}>
     <h1>네오 이메일 상담</h1><p>질문을 직접 확인하고, 준비한 답변을 붙여 넣어 검수해 주세요. 자동 AI 호출은 없습니다.</p>
-    <p className={styles.notice}>판매·실제 발송 차단 상태입니다. 로컬 mock에서만 주문 흐름을 검증합니다.</p>
+    <p className={styles.notice}>{NEO_EMAIL_SALE_ENABLED ? '보통 24시간 이내, 늦어도 결제 후 3일 이내 답변을 보내 주세요. 최초 발송 후 7일이 지나면 본문은 삭제됩니다.' : '판매·실제 발송 차단 상태입니다. 로컬 mock에서만 주문 흐름을 검증합니다.'}</p>
     {error && <p role="alert" className={styles.error}>{error}</p>}
     <button disabled={busy} onClick={load}>접수 목록 새로고침</button>
     <div className={styles.layout}><aside aria-label="접수 목록">{orders.length === 0 && <p>접수된 상담이 없습니다.</p>}{orders.map(row => <button key={row.id} onClick={() => select(row.id)} disabled={busy} aria-pressed={row.id === order?.id}>{row.questions[0].text}<small>{label(row.state)} · 질문 {row.questions.length}개</small></button>)}</aside>
-      {order && <article><h2>{label(order.state)}</h2><p>주문번호 {order.id}</p><dl><dt>회신 이메일</dt><dd>{order.email}</dd><dt>결제</dt><dd>{order.payment?.status || "미결제"} · {neoMoney(order.quote?.totalKRW || 0)}</dd><dt>상황</dt><dd>{order.context || "없음"}</dd><dt>출생정보</dt><dd>{order.birth ? [order.birth.date, order.birth.calendar === "lunar" ? "음력" : "양력", order.birth.leapMonth ? "윤달" : "평달", order.birth.timeUnknown ? "시간 모름" : order.birth.time].join(" / ") : "입력하지 않음"}</dd></dl>
+      {order && <article><h2>{label(order.state)}</h2><p>주문번호 {order.id}</p><p>결제 주문번호 {order.payment?.id || '미발급'}</p>{order.cancellationRequestedAt && <p className={styles.notice}>취소·전액 환불 요청이 접수되었습니다. 답변 발송은 중지됩니다. <a href="/admin/orders/">결제 주문 관리</a>에서 위 결제 주문번호로 확인하고 환불 처리해 주세요.</p>}<dl><dt>회신 이메일</dt><dd>{order.email}</dd><dt>결제</dt><dd>{order.payment?.status || "미결제"} · {neoMoney(order.quote?.totalKRW || 0)}</dd><dt>상황</dt><dd>{order.context || "없음"}</dd><dt>출생정보</dt><dd>{order.birth ? [order.birth.date, order.birth.calendar === "lunar" ? "음력" : "양력", order.birth.leapMonth ? "윤달" : "평달", order.birth.timeUnknown ? "시간 모름" : order.birth.time].join(" / ") : "입력하지 않음"}</dd></dl>
         {order.questions.map((q,i) => <section key={q.id} className={styles.question}><h3>질문 {i+1}. {q.text}</h3>
           {q.correction && <p className={styles.notice}>정정 요청: {q.correction}</p>}
           <label htmlFor={"answer-" + q.id}>질문 {i+1} 답변</label><textarea id={"answer-" + q.id} rows={12} maxLength={30000} value={answers[q.id] ?? q.answer ?? ""} onChange={e => setAnswers({ ...answers, [q.id]: e.target.value })} disabled={busy || !paid} />
@@ -51,7 +51,7 @@ export default function NeoConsultationAdmin() {
         </section>)}
         <section className={styles.preview}><h3>통합 이메일 미리보기</h3>{order.questions.map((q,i) => <div key={q.id}><h4>질문 {i+1}. {q.text}</h4><p>{q.answer || "아직 저장된 답변이 없습니다."}</p></div>)}</section>
         <div className={styles.actions}><button disabled={busy || !ready} onClick={() => action("send", {})}>검수한 답변 발송 예약</button><button disabled={busy || !ready || !order.deliveries.length} onClick={() => action("send", { resend: true })}>같은 답변 재발송 예약</button></div>
-        <h3>메일 전달 상태</h3>{order.mailJobs?.map(job => <div className={styles.mail} key={job.key}><p>{job.kind === "receipt" ? "운영자 접수 메일" : "고객 답변"} · {mailLabel(job.state)} · 시도 {job.attempt}회</p>{["pending","retry"].includes(job.state) && <button disabled={busy || !paid} onClick={() => action("deliver", { jobKey: job.key })}>예약 메일 전달하기</button>}{["sending","unknown"].includes(job.state) && <><p>메일 제공자의 전달 기록을 확인한 후에만 결과를 지정하세요.</p><button disabled={busy || !paid} onClick={() => action("resolve-delivery", { jobKey: job.key, resolution: "sent" })}>전달 완료 확인</button><button disabled={busy || !paid} onClick={() => action("resolve-delivery", { jobKey: job.key, resolution: "not_sent" })}>미전달 확인 · 재시도 허용</button></>}</div>)}
+        <h3>메일 전달 상태</h3>{order.mailJobs?.map(job => <div className={styles.mail} key={job.key}><p>{job.kind === "receipt" ? "운영자 접수 메일" : job.kind === "cancellation" ? "운영자 취소 요청 메일" : "고객 답변"} · {mailLabel(job.state)} · 시도 {job.attempt}회</p>{["pending","retry"].includes(job.state) && <button disabled={busy || !paid} onClick={() => action("deliver", { jobKey: job.key })}>예약 메일 전달하기</button>}{["sending","unknown"].includes(job.state) && <><p>메일 제공자의 전달 기록을 확인한 후에만 결과를 지정하세요.</p><button disabled={busy || !paid} onClick={() => action("resolve-delivery", { jobKey: job.key, resolution: "sent" })}>전달 완료 확인</button><button disabled={busy || !paid} onClick={() => action("resolve-delivery", { jobKey: job.key, resolution: "not_sent" })}>미전달 확인 · 재시도 허용</button></>}</div>)}
       </article>}
     </div>
   </main>;

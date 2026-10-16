@@ -4929,9 +4929,9 @@ export async function handleAdminRoutes(request, env) {
     const path = getRoutePath(request, "/api/admin");
 
     if (path === "/neo-consultations" || path.startsWith("/neo-consultations/")) {
-      await authorizeAdminRequest(request, env);
-      const { handleNeoConsultations } = await import("./neo-consultations.js");
-      return handleNeoConsultations(request);
+      const actor = await authorizeAdminRequest(request, env);
+      const { handleNeoRuntimeRequest } = await import("./neo-consultations.js");
+      return handleNeoRuntimeRequest(request, env, { id:actor.userId });
     }
 
     if (method === "POST" && path === "/entry/password") {

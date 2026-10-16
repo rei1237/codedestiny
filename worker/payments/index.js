@@ -1294,12 +1294,10 @@ const ROUTES = {
       const unitProduct = resolveProduct({
         productId: body.productId, featureKey: body.featureKey, reason: body.reason,
       });
+      if (unitProduct.featureKey === 'neo-email-consultation') throw paymentError('INVALID_REQUEST','상담 화면에서 결제를 준비해 주세요.');
       const availability = assertFeatureEnabled(unitProduct);
       if (!availability.ok) throw paymentError(availability.code, availability.message);
-      const pricedProduct = unitProduct.featureKey === 'neo-email-consultation'
-        ? await withDb(env, ctx, db => resolveNeoOrderProduct(db, unitProduct, userId, body.requestId, body.idempotencyKey))
-        : unitProduct;
-      const product = withChargeAmount(env, pricedProduct);
+      const product = withChargeAmount(env, unitProduct);
       ctx.productId = product.productId;
       const paymentMethod = String(body.paymentMethod || "card_general");
       assertRegionalPaymentMethod(request, paymentMethod);
@@ -1337,7 +1335,7 @@ const ROUTES = {
    */
   "POST /prepare": {
     auth: "required",
-    async handle({ request, env, ctx, userId, body, withDb, legacyEnvelope, pgDeps, preparedProduct, preparedPurchaseType='SELF', preparedGiftDraft=null }) {
+    async handle({ request, env, ctx, userId, body, withDb, legacyEnvelope, pgDeps, neoPreparation, preparedProduct, preparedPurchaseType='SELF', preparedGiftDraft=null }) {
       // 이용권형 바디는 이용권 경로로 위임 — 구 billing.js handleCheckout 의 isSubscription 분기 승계.
       // 구 코드도 이때 billing-checkout 래퍼 없이 subscription prepare 봉투를 그대로 돌려줬다.
       if (isPassLikeBody(body)) return handlePassPrepare({ request, env, ctx, userId, body, withDb });
@@ -1348,6 +1346,7 @@ const ROUTES = {
       const availability = assertFeatureEnabled(listedProduct);
       if (!availability.ok) throw paymentError(availability.code, availability.message);
       if (listedProduct.featureKey === 'neo-email-consultation') {
+        if (neoPreparation !== true) throw paymentError('INVALID_REQUEST','상담 화면에서 질문과 금액을 확인한 뒤 결제해 주세요.');
         listedProduct = await withDb(env, ctx, db => resolveNeoOrderProduct(db, listedProduct, userId, body.requestId, body.idempotencyKey));
       }
       ctx.productId = listedProduct.productId;
@@ -2081,6 +2080,7 @@ export async function handlePaymentsContext(request, env, options = {}) {
     const response = await matched.route.handle({
       request, env, ctx, userId, body, rawBody, params: matched.params, withDb, legacyShape, legacyEnvelope,
       pgDeps: options.pgDeps || {},
+      neoPreparation:options.neoPreparation === true,
     });
     status = response.status;
     /* 🔴 정상 응답에도 서버 시간을 실어 보낸다. 예전엔 Server-Timing 이 오류 경로에만 붙어서

@@ -170,6 +170,7 @@ function resolveProductCoinPrice(pricing, body = {}) {
  */
 function resolveProduct(pricing, env, body = {}) {
   const featureKey = cleanText(pricing?.featureKey || body.featureKey);
+  if (featureKey === 'neo-email-consultation') throw Object.assign(new Error('이 상담은 앱 내 결제를 지원하지 않습니다.'), {status:409,code:'APP_PRODUCT_UNAVAILABLE'});
   const billingType = getPaidFeatureBillingType(featureKey);
   const coinPrice = resolveProductCoinPrice(pricing, body);
 
