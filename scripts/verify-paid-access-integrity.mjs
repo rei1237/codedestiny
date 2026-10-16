@@ -9,6 +9,8 @@
  *   ③ `canAccessPaidFeature` 의 이용권·라이선스·월구독 허용은 읽기 전용 판정인데, 이것만 믿고
  *      차감 없이 연 회당 라우트가 있었다(이용권만 있으면 몇 번이든 무료).
  *   ④ `requirePremiumReportAccess` 의 이용권 분기도 차감 없이 열었다.
+ *   ⑤ 라우트가 본문의 결제·차감 ID 를 userId+featureKey 로만 대조해, 결제 1건으로 요청 키만 바꿔
+ *      리포트를 몇 번이든 새로 열 수 있었다(billing-evidence-claim 으로 증빙 1건 = 요청 1건).
  * 고친 뒤에도 같은 모양이 다시 들어오면 막는다. 판정 규칙은 정본 함수에 있고, 이 가드는
  * "판정만 하고 정산을 안 거치는" 모양만 본다.
  *
@@ -52,6 +54,30 @@ const READ_ONLY_ALLOWED = new Map([
   ["worker/lib/review-eligibility.js", "후기 작성 자격 표시용. 유료 본문을 주지 않는다"],
   ["worker/routes/billing.js", "결제 상태 조회 엔드포인트. 유료 본문을 주지 않는다"],
 ]);
+
+const CLAIM_CALL = /\bclaimRequestBillingEvidence\s*\(/g;
+const CLAIM_ASSIGN = /\b(?:const|let)\s+(\w+)\s*=\s*await\s+claimRequestBillingEvidence\s*\(/g;
+const CLAIM_SOURCE = /\bclaimEvidenceIds?\s*:/;
+
+/** 라우트가 고른 증빙은 반드시 이번 요청에 묶고, claim 이 실패하면 본문을 주지 않는다. */
+export function findClaimViolations(files) {
+  const violations = [];
+  const claimCallers = [];
+  for (const [file, source] of files) {
+    if (file === "worker/lib/billing-evidence-claim.js") continue;
+    const code = codeLines(source).map(({ line }) => line).join("\n");
+    const calls = [...code.matchAll(CLAIM_CALL)].length;
+    if (CLAIM_SOURCE.test(code) && !calls) violations.push(`${file} claimEvidenceId(s) 를 고르고 claimRequestBillingEvidence 로 묶지 않는다 — 같은 결제로 요청 키만 바꿔 다시 열린다`);
+    if (!calls) continue;
+    claimCallers.push(file);
+    const assigned = [...code.matchAll(CLAIM_ASSIGN)].map((match) => match[1]);
+    if (assigned.length !== calls) violations.push(`${file} claimRequestBillingEvidence 결과를 변수로 받지 않는 호출이 있다 — 409·503 을 무시하면 재사용이 열린다`);
+    for (const name of assigned) {
+      if (!new RegExp(`if\\s*\\(\\s*!\\s*${name}\\.ok\\s*\\)\\s*return\\b`).test(code)) violations.push(`${file} ${name}.ok 가 false 일 때 바로 return 하지 않는다`);
+    }
+  }
+  return { violations, claimCallers };
+}
 
 export function findViolations(files) {
   const violations = [];
@@ -111,6 +137,14 @@ function selfTest() {
     ["worker/routes/d.js", "// 예전에는 requestBody._userDoc 를 믿었다\nconst access = await canAccessPaidFeature(env, user, key, cost);\nconst settled = await settlePerUseAccessDecision(env, { decision: access });"],
   ]);
   assert.deepEqual(findViolations(good).violations, [], "자체 시험: 주석과 정산을 거친 호출은 통과해야 한다");
+  const badClaims = new Map([
+    ["worker/routes/e.js", "return { allowed: true, claimEvidenceIds: [payment._id] };"],
+    ["worker/routes/f.js", "await claimRequestBillingEvidence(env, { evidenceIds });"],
+    ["worker/routes/g.js", "const claim = await claimRequestBillingEvidence(env, { evidenceIds });\nif (claim.ok) log();"],
+  ]);
+  assert.equal(findClaimViolations(badClaims).violations.length, 3, "자체 시험: 묶지 않음·결과 무시·실패 시 진행을 모두 잡아야 한다");
+  const goodClaims = new Map([["worker/routes/h.js", "return { claimEvidenceIds: [id] };\nconst claim = await claimRequestBillingEvidence(env, { evidenceIds });\nif (!claim.ok) return json(evidenceClaimErrorBody(claim), { status: claim.status });"]]);
+  assert.deepEqual(findClaimViolations(goodClaims).violations, [], "자체 시험: 묶고 실패 시 돌려주는 호출은 통과해야 한다");
   assert.ok(checkPremiumPassSettlement("const passAccess = resolvePremiumPassReportAccess(user);\nif (passAccess.ok) return passAccess;").length > 0, "자체 시험: 정산 없는 이용권 허용을 잡아야 한다");
   console.log("[verify-paid-access-integrity] self-test OK");
 }
@@ -124,13 +158,16 @@ function main() {
   for (const file of READ_ONLY_ALLOWED.keys()) {
     if (!files.has(file)) violations.push(`${file} 허용 목록 파일이 없다 — 목록을 정리할 것`);
   }
+  const claimCheck = findClaimViolations(files);
+  violations.push(...claimCheck.violations);
+  assert.ok(claimCheck.claimCallers.length >= 10, `claimRequestBillingEvidence 호출 파일을 ${claimCheck.claimCallers.length}개밖에 못 찾았다 — 이름이 바뀌었으면 이 가드도 따라가야 한다`);
   violations.push(...checkPremiumPassSettlement(read("worker/lib/access-control.js")).map((item) => `worker/lib/access-control.js ${item}`));
   violations.push(...checkSettleFunction(read("worker/lib/nakshatra-paid-access.js")).map((item) => `worker/lib/nakshatra-paid-access.js ${item}`));
   if (violations.length) {
     console.error(`[verify-paid-access-integrity] FAIL ${violations.length}건\n  - ${violations.join("\n  - ")}`);
     process.exit(1);
   }
-  console.log(`[verify-paid-access-integrity] OK — worker ${files.size}개 파일 · 판정 호출 ${readOnlyCallers.length}곳(정산 ${readOnlyCallers.length - READ_ONLY_ALLOWED.size} · 비결제 용도 ${READ_ONLY_ALLOWED.size}) · 이용권 리포트 정산 · 공용 정산 함수`);
+  console.log(`[verify-paid-access-integrity] OK — worker ${files.size}개 파일 · 판정 호출 ${readOnlyCallers.length}곳(정산 ${readOnlyCallers.length - READ_ONLY_ALLOWED.size} · 비결제 용도 ${READ_ONLY_ALLOWED.size}) · 증빙 claim ${claimCheck.claimCallers.length}곳 · 이용권 리포트 정산 · 공용 정산 함수`);
 }
 
 main();

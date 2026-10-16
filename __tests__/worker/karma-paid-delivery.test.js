@@ -168,3 +168,12 @@ it('karma accepts a structurally valid short final attempt without changing tota
   expect((await batch()).status).toBe(200); expect(provider).toHaveBeenCalledTimes(1);
   expect(docs[0].llmMeta.attempts['chapter-01']).toBe(2); expect(refund).not.toHaveBeenCalled();
 });
+
+// 2026-10-16: 결제 1건 = 리포트 1건. 같은 결제를 요청 키만 바꿔 다시 내밀면 409, 계산도 다시 돌지 않는다.
+for (const paid of ["paid", "monthly", "deferred"]) it(`${paid}: the same billing evidence cannot open a second report under a new key`, async () => {
+  mode = paid; expect((await start()).status).toBe(202); expect(chart).toHaveBeenCalledTimes(1);
+  const reused = await route(new Request("https://mock.test/api/karma-destiny-ai/start", { method: "POST", headers: { "Content-Type": "application/json", "idempotency-key": "another-request" }, body: JSON.stringify(body) }), {});
+  expect(reused.status).toBe(409); expect(await reused.json()).toMatchObject({ code: "EVIDENCE_ALREADY_USED" });
+  expect(chart).toHaveBeenCalledTimes(1); expect(docs).toHaveLength(1);
+  expect((await start()).status).not.toBe(409);
+});

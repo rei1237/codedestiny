@@ -39,6 +39,7 @@ import {
   computeLensContribution,
 } from "../lib/karma-destiny-ai-calculations.js";
 import { handleBillingRoutes, BILLING_SNAPSHOT_USER_PROJECTION } from "./billing.js";
+import { claimRequestBillingEvidence, evidenceClaimErrorBody, releaseRequestBillingEvidence } from "../lib/billing-evidence-claim.js";
 
 const SERVICE_KEY = "karma-destiny-ai";
 const FEATURE_KEY = "karma-destiny-ai-consultation";
@@ -2405,6 +2406,13 @@ async function handleEnsureAccess(request, env) {
   }, { status: 402 });
 }
 
+// 결제 증빙 1건 = 상담 1건(2026-10-16). 같은 구매를 차감 행·실행 기록·결제 행 어느 쪽 ID 로 내밀어도
+// 같은 claim 에 걸리도록 원 결제 요청 키(billingRequestId)도 함께 묶는다. 이용권·관리자는 ID 가 없어 건너뛴다.
+function startEvidenceIds(source = {}) {
+  const paymentId = clean(source.paymentId, 160);
+  return paymentId ? [paymentId, clean(source.billingRequestId, 180)] : [];
+}
+
 async function resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey }) {
   if (!mongoose.Types.ObjectId.isValid(String(auth.userId || ""))) return { ok: false, reason: "PAYMENT_REQUIRED", code: "START_ACCESS_CONFIRMATION_REQUIRED" };
   const token = clean(body?.accessToken || request.headers.get("x-karma-destiny-ai-access-token"));
@@ -2501,6 +2509,9 @@ async function handleStart(request, env, recoveryAuth = null) {
     if (access.reason === "INVALID_INPUT") return invalidInput(access.message, 409);
     return paymentVerifyFailed();
   }
+  const evidenceIds = startEvidenceIds(access);
+  const evidenceClaim = await claimRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds, featureKey: FEATURE_KEY });
+  if (!evidenceClaim.ok) return json(evidenceClaimErrorBody(evidenceClaim), { status: evidenceClaim.status });
   logKarmaAi("LLM Access Check Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
   logKarmaAi("LLM Payment Guard Passed", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
 
@@ -2615,6 +2626,7 @@ async function handleStart(request, env, recoveryAuth = null) {
         },
       },
     ).catch(() => {});
+    await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds });
     logKarmaAi("LLM Error", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env, error }), "error");
     if (access.deferredUsage) {
       await cancelDeferredUsageIfNeeded({
@@ -2756,6 +2768,7 @@ async function handleGenerateBatch(request, env, recoveryAuth = null) {
   } catch (error) {
     if (error?.code === "RESULT_STORAGE_UNAVAILABLE" || consultation.status === "delivery_pending") return json(resultStorageFailurePayload(resultStorageUnavailable(consultation.id)), { status: 503 });
     consultation = await saveKarmaDelivery(filter, { status: "generation_failed", generationError: { code: clean(error?.code || "LLM_FAILED", 80), message: clean(error?.message, 500) } }, consultation.id);
+    await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: clean(consultation.idempotencyKey || consultation.attemptId, 180), evidenceIds: startEvidenceIds(consultation) });
     await cancelDeferredUsageIfNeeded({ request, env, auth, consultation, error });
     return json({ ok: false, reason: "LLM_ERROR", message: LLM_ERROR_MESSAGE }, { status: 503 });
   } finally {

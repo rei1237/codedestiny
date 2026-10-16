@@ -86,3 +86,36 @@ export async function releaseBillingEvidenceClaim(env, { userId, requestId, evid
     return { released: 0 };
   }
 }
+
+export const EVIDENCE_CLAIM_UNAVAILABLE = "PAYMENT_VERIFY_UNAVAILABLE";
+const EVIDENCE_CLAIM_UNAVAILABLE_MESSAGE = "결제 확인이 잠시 지연되고 있어요. 잠시 후 다시 시도해 주세요.";
+
+/**
+ * 라우트용 — 시작 리졸버가 서버 문서에서 고른 정본 증빙 ID(결제 merchantUid·차감 _id·원장 ID 등)를
+ * 이번 요청에 묶는다. 🔴 본문 토큰을 그대로 넘기지 않는다(바꿔 내밀면 다른 claim 이 된다).
+ * 이용권·관리자처럼 증빙 ID 가 없으면 건너뛴다(이용권 차감은 이미 requestId 별이다).
+ * 저장소 장애는 던지지 않고 503 결과로 돌린다 — 402·409 로 바꾸면 결제한 사람이 막힌다.
+ * @returns {Promise<{ok:true, skipped?:boolean, claimed?:number, replayed?:number} | {ok:false, status:number, code:string, message:string}>}
+ */
+export async function claimRequestBillingEvidence(env, { userId, requestId, evidenceIds, featureKey = "", kind = "" } = {}) {
+  if (!claimIds(evidenceIds).length) return { ok: true, skipped: true };
+  try {
+    return await claimBillingEvidence(env, { userId, requestId, evidenceIds, featureKey, kind });
+  } catch (error) {
+    console.warn("[billing-evidence-claim] claim unavailable", clean(featureKey, 80), clean(error?.message, 160));
+    return { ok: false, status: 503, code: EVIDENCE_CLAIM_UNAVAILABLE, message: EVIDENCE_CLAIM_UNAVAILABLE_MESSAGE };
+  }
+}
+
+/** claimRequestBillingEvidence 의 짝. 생성이 최종 실패했을 때만 부른다. */
+export async function releaseRequestBillingEvidence(env, { userId, requestId, evidenceIds } = {}) {
+  if (!claimIds(evidenceIds).length) return { released: 0 };
+  return releaseBillingEvidenceClaim(env, { userId, requestId, evidenceIds });
+}
+
+/** claim 실패 결과를 라우트 JSON 본문으로. 상태 코드는 result.status 를 쓴다. */
+export function evidenceClaimErrorBody(result = {}) {
+  const code = clean(result.code, 80) || EVIDENCE_ALREADY_USED;
+  const message = clean(result.message, 300) || EVIDENCE_ALREADY_USED_MESSAGE;
+  return { ok: false, reason: code, code, message, error: { code, message } };
+}

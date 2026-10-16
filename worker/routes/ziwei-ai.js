@@ -21,6 +21,7 @@ import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { autoRefundSinglePaymentDeliveryFailure } from "../lib/payment-refund.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
+import { claimRequestBillingEvidence, evidenceClaimErrorBody, releaseRequestBillingEvidence } from "../lib/billing-evidence-claim.js";
 import { isAllowedConsultTokenAccessType, normalizeConsultAccessType, resolveCanonicalEntitlement, resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
 import { consumePassForFeature, passDenialCode } from "../lib/pass-consumption.js";
 import { getPortOnePublicConfig } from "../lib/portone.js";
@@ -753,6 +754,7 @@ async function resolveBillingGateAccess({ env, auth, user, body, pricing, idempo
         prepaid: true,
         evidenceType: "direct_payment",
         evidenceId: clean(payment._id, 160),
+        claimEvidenceIds: [clean(payment._id, 160), clean(payment.requestId || payment.idempotencyKey, 180)],
       };
     }
   }
@@ -777,6 +779,7 @@ async function resolveBillingGateAccess({ env, auth, user, body, pricing, idempo
         evidenceId: clean(pointHistory._id, 160),
         amount: Math.max(0, Math.floor(Math.abs(Number(pointHistory.delta || pointHistory?.metadata?.chargedCoins || pricing.coinPrice || 0)))),
         purchaseId: clean(pointHistory?.metadata?.purchaseId || pointHistory?.metadata?.idempotencyKey || pointHistory?.metadata?.orderId || "", 180),
+        claimEvidenceIds: [clean(pointHistory._id, 160), clean(pointHistory?.metadata?.requestId, 180)],
       };
     }
   }
@@ -798,6 +801,7 @@ async function resolveBillingGateAccess({ env, auth, user, body, pricing, idempo
       evidenceId: clean(monthlyEvidence.ledgerId, 160),
       amount: Math.max(0, Math.floor(Number(monthlyEvidence.amount || pricing.membershipCreditCost || 0))),
       purchaseId: clean(monthlyEvidence.sourceId, 180),
+      claimEvidenceIds: [clean(monthlyEvidence.ledgerId, 160), clean(monthlyEvidence.sourceId, 180)],
     };
   }
 
@@ -2594,6 +2598,10 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate", recov
   const now = new Date();
   const pending = doc => json({ ...publicConsultation(doc), status: doc.status, retryable: true }, { status: 202 });
   if (existing?.status === "generating" && !existing.llmMeta?.resumeBody && Date.now() - new Date(existing.updatedAt || existing.createdAt).getTime() < GENERATING_FRESHNESS_MS) return pending(existing);
+  // 결제창 증빙 1건 = 상담 1건. 카드 직접 결제(verifyPaymentForStart)는 이미 이번 키에 묶여 있고, 이용권은 전달 때 이번 키로 차감한다.
+  const evidenceIds = access.claimEvidenceIds;
+  const evidenceClaim = await claimRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds, featureKey: FEATURE_KEY });
+  if (!evidenceClaim.ok) return json(evidenceClaimErrorBody(evidenceClaim), { status: evidenceClaim.status });
   let doc;
   try {
     if (existing) {
@@ -2640,6 +2648,7 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate", recov
     if (doc.status === "delivery_pending") return json(resultStorageFailurePayload(resultStorageUnavailable(sessionId)), { status: 503 });
     await saveZiweiDelivery(locked, { status: "generation_failed", generationError: { code: clean(error?.code || "LLM_GENERATION_FAILED", 80), message: clean(error?.message, 500) } }, sessionId);
     const restored = await restorePrepaidAccessOnFailure({ userId: auth.userId, access, idempotencyKey, pricing, error });
+    await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds }).catch(() => null);
     const refund = await refundCardPaymentOnFailure(env, auth, access, error);
     logZiweiAi("Refund Or Restore", { route, requestId: idempotencyKey, restored, refunded: refund.refunded === true });
     return json({ ok: false, reason: "LLM_ERROR", message: MESSAGES.llmFailed }, { status: 503 });

@@ -41,6 +41,7 @@ import {
   startServiceExecution,
 } from "../lib/service-execution-task.js";
 import { autoRefundSinglePaymentDeliveryFailure } from "../lib/payment-refund.js";
+import { claimRequestBillingEvidence, evidenceClaimErrorBody, releaseRequestBillingEvidence } from "../lib/billing-evidence-claim.js";
 
 const SERVICE_KEY = "astrology-ai";
 const FEATURE_KEY = "astrology-ai-consultation";
@@ -565,7 +566,8 @@ async function hasMonthlyConsume(env, auth, ctx, idempotencyKey) {
     featureKeys: [FEATURE_KEY, SERVICE_KEY],
     tokens: [idempotencyKey, ctx.requestId, ctx.ledgerId, ctx.transactionId, ctx.paymentId],
   });
-  return Boolean(evidence);
+  // 정본 원장 행을 돌려준다 — 결제 증빙 claim 은 본문 토큰이 아니라 이 ledgerId 로 잡는다.
+  return evidence || null;
 }
 
 async function resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey }) {
@@ -609,11 +611,13 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
   }
 
   {
-    if (await withMongoRetry(env, () => hasMonthlyConsume(env, auth, ctx, idempotencyKey))) {
+    const monthlyEvidence = await withMongoRetry(env, () => hasMonthlyConsume(env, auth, ctx, idempotencyKey));
+    if (monthlyEvidence) {
       return {
         ok: true,
         accessType: "subscription",
         paymentId: ctx.transactionId || ctx.ledgerId || idempotencyKey,
+        claimEvidenceId: clean(monthlyEvidence.ledgerId, 160),
         source: "billing-gate",
         executionSourceTransactionId: ctx.transactionId,
         executionPayment: body.payment,
@@ -1829,6 +1833,10 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
   const pricing = getPricing();
   const access = await resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey });
   if (!access.ok) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED", message: PAYMENT_VERIFY_FAILED_MESSAGE }, { status: 402 });
+  // 결제 증빙 1건 = 상담 1건(2026-10-16). 서버가 찾은 결제 문서·월정석 원장 ID 만 묶는다(이용권·관리자는 건너뜀).
+  const evidenceIds = [access.paymentDocId, access.claimEvidenceId];
+  const evidenceClaim = await claimRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds, featureKey: FEATURE_KEY });
+  if (!evidenceClaim.ok) return json(evidenceClaimErrorBody(evidenceClaim), { status: evidenceClaim.status });
   const sessionId = existing?.id || `astroai_${randomUUID()}`;
   const lease = randomUUID();
   const now = new Date();
@@ -1889,6 +1897,7 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
   } catch (error) {
     if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
     await saveAstrologyDelivery(locked, { status: "generation_failed", generationError: { code: clean(error?.code || "GENERATION_FAILED", 80) } }, sessionId);
+    await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds });
     await failRefundableExecution(env, auth, idempotencyKey, sessionId, error);
     const refund = await refundCardPaymentOnFailure(env, auth, access, error);
     const calculationError = clean(error?.code).startsWith("ASTRO_") || Number(error?.status) === 400;

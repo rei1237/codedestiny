@@ -123,6 +123,7 @@ import { consumePassForFeature, hasConsumedPassFeature, passDenialCode, refundPa
 import { calculateKrwAmountFromCoins, calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { autoRefundSinglePaymentDeliveryFailure } from "../lib/payment-refund.js";
 import { EDGE_RESPONSE_DEADLINE_MS, clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
+import { claimRequestBillingEvidence, evidenceClaimErrorBody } from "../lib/billing-evidence-claim.js";
 
 const PIG_COIN_DEFAULT_UNLOCK_COST = 10;
 const PIG_COIN_MAX_COST = 100000;
@@ -3032,6 +3033,15 @@ async function handlePigCoinConsume(request, auth, options = {}) {
       consume: true,
     });
     if (verifiedAccess && verifiedAccess.source !== "pass_denied") {
+      // 결제 증빙 1건 = 상담 1건. 이용권은 위에서 이번 requestId 로 차감했으므로 claim 할 ID 가 없다.
+      // 생성이 실패하면 라우트가 코인·카드를 자동 환불하고, 환불된 증빙은 위 조회에서 빠진다.
+      const record = verifiedAccess.record || {};
+      const evidenceIds = verifiedAccess.source === "pass_payload" ? [] : [
+        String(record._id || ""),
+        String(record.metadata?.requestId || record.requestId || record.idempotencyKey || record.sourceId || "").slice(0, 180),
+      ];
+      const evidenceClaim = await claimRequestBillingEvidence(env, { userId: String(auth.userId || ""), requestId, evidenceIds, featureKey });
+      if (!evidenceClaim.ok) return json(evidenceClaimErrorBody(evidenceClaim), { status: evidenceClaim.status });
       return json(buildAIPromptVerifiedConsumePayload({
         auth,
         featureKey,

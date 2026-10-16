@@ -53,6 +53,7 @@ import {
 } from "../../lib/fortune-tea-house/heart-scents.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { handleBillingRoutes, BILLING_SNAPSHOT_USER_PROJECTION } from "./billing.js";
+import { claimRequestBillingEvidence, evidenceClaimErrorBody, releaseRequestBillingEvidence } from "../lib/billing-evidence-claim.js";
 import { PaidExecutionRecord, Payment, PointHistory } from "../lib/models.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
@@ -1350,6 +1351,7 @@ async function resolveFortuneTeaBillingEvidenceAccess({ env, auth, body, feature
         accessMethod: deferredUsage.paymentMethod || deferredRecord.accessMethod,
       }),
       paymentId: cleanText(deferredRecord.paymentId || deferredRecord.executionId || deferredRecord._id, 180),
+      claimEvidenceIds: [cleanText(deferredRecord._id, 180), cleanText(deferredRecord.requestId, 180)],
       pricing: null,
     };
   }
@@ -1374,6 +1376,7 @@ async function resolveFortuneTeaBillingEvidenceAccess({ env, auth, body, feature
       accessSource: "billing_gate",
       licenseType: normalizeFortuneTeaBillingAccessType(pointHistory.metadata || {}),
       paymentId: cleanText(pointHistory._id, 180),
+      claimEvidenceIds: [cleanText(pointHistory._id, 180), cleanText(pointHistory?.metadata?.requestId, 180)],
       pricing: null,
     };
   }
@@ -1394,6 +1397,7 @@ async function resolveFortuneTeaBillingEvidenceAccess({ env, auth, body, feature
       accessSource: "billing_gate",
       licenseType: "subscription",
       paymentId: cleanText(monthlyEvidence.ledgerId || monthlyEvidence.sourceId, 180),
+      claimEvidenceIds: [cleanText(monthlyEvidence.ledgerId, 180), cleanText(monthlyEvidence.sourceId, 180)],
       pricing: null,
     };
   }
@@ -1420,6 +1424,7 @@ async function resolveFortuneTeaBillingEvidenceAccess({ env, auth, body, feature
       accessSource: "billing_gate",
       licenseType: "single_purchase",
       paymentId: cleanText(payment.merchantUid || payment.impUid || payment.requestId || payment._id, 180),
+      claimEvidenceIds: [cleanText(payment._id, 180), cleanText(payment.requestId, 180)],
       pricing: null,
     };
   }
@@ -6159,7 +6164,11 @@ async function handleConsult(request, env, ctx = null, recoveryAuth = null) {
   const resultId = buildHoneyResultId(body, consultRequest);
   const requestId = readFortuneTeaRequestId(body, consultRequest);
   let generation;
+  // 결제 증빙 1건 = 상담 결과 1건(resultId). 이용권은 아래 settle 이 이번 결과로 차감하므로 claim 할 ID 가 없다.
+  const evidenceIds = access.accessDecision?.claimEvidenceIds;
   if (access.auth?.userId) {
+    const evidenceClaim = await claimRequestBillingEvidence(env, { userId: cleanText(access.auth.userId, 120), requestId: resultId, evidenceIds, featureKey: access.featureKey });
+    if (!evidenceClaim.ok) return json(evidenceClaimErrorBody(evidenceClaim), { status: evidenceClaim.status });
     try {
       await connectDb(env);
       generation = await beginFortuneTeaHouseGeneration({
@@ -6246,6 +6255,7 @@ async function handleConsult(request, env, ctx = null, recoveryAuth = null) {
       await refundFortuneTeaHousePassSettlement({ auth: access.auth, resultId }).catch((refundError) => {
         console.warn("[fortune-tea-house/pass] refund after failed generation unavailable", { name: refundError?.name });
       });
+      await releaseRequestBillingEvidence(env, { userId: cleanText(access.auth.userId, 120), requestId: resultId, evidenceIds }).catch(() => null);
     }
     if (access.deferredUsage && failedCurrentGeneration.marked) {
       await callFortuneTeaDeferredUsageRoute({

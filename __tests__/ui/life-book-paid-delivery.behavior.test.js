@@ -58,6 +58,8 @@ function fixture(accessType = 'pass') {
     getOptionalUserFromRequest: async () => ({ userId: owner }), connectDb: async () => {},
     PAID_FEATURE_ACCESS_USER_PROJECTION: {}, BILLING_SNAPSHOT_USER_PROJECTION: {},
     readIdempotencyKey: (request, body) => body.idempotencyKey || request.headers.get('idempotency-key'),
+    // 증빙 claim 은 billing-evidence-claim.test.js 가 따로 검증한다 — 여기서는 통과로 둔다.
+    claimRequestBillingEvidence: async () => ({ ok: true, skipped: true }), releaseRequestBillingEvidence: async () => ({ released: 0 }), evidenceClaimErrorBody: result => result,
     normalizeConsultationInput: body => ({ ok: true, inputHash: body.inputHash || 'same-input', input: { birthInfo: { name: 'mock' }, consultationType: 'lifeBook', topic: '일생' } }),
     resolveStartAccess: async () => ({ ok: permitted, accessType, paymentId: 'original-receipt' }),
     calculateLifeBookAiSaju: () => ({ dayMaster: '壬' }), isLifeFortuneInput: () => false,

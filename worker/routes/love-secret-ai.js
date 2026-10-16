@@ -39,6 +39,7 @@ import {
   validateLoveSecretConsultation,
 } from "../lib/love-secret-ai-prompt.js";
 import { buildLoveSecretGroundingFacts } from "../lib/love-secret-ai-facts.js";
+import { claimRequestBillingEvidence, evidenceClaimErrorBody, releaseRequestBillingEvidence } from "../lib/billing-evidence-claim.js";
 
 const SERVICE_KEY = "love-secret-ai";
 const FEATURE_KEY = "love-secret-ai-consultation";
@@ -445,7 +446,7 @@ async function resolveServerAccess({ auth, user, pricing, idempotencyKey, inputH
     if (storedHash && storedHash !== inputHash) {
       return { ok: false, reason: "INVALID_INPUT", message: "같은 요청 키로 다른 상담 정보를 사용할 수 없습니다." };
     }
-    return { ok: true, accessType: "paid", paymentId: clean(paidPayment.merchantUid || paidPayment.impUid || paymentId, 160) };
+    return { ok: true, accessType: "paid", paymentId: clean(paidPayment.merchantUid || paidPayment.impUid || paymentId, 160), claimEvidenceIds: [String(paidPayment._id || ""), clean(paidPayment.requestId || paidPayment.idempotencyKey, 180)] };
   }
 
   const featureAccess = resolveFeatureAccessPolicy({ user: user || {}, pricing, coinCost: pricing.coinPrice });
@@ -646,6 +647,7 @@ async function resolveBillingUsageEvidence(env, auth, body = {}) {
       accessType,
       accessSource: accessType === "subscription" ? "billing_gate_membership_credit" : accessType === "pass" ? "billing_gate_pass" : "billing_gate_paid",
       paymentId: clean(deferredRecord.paymentId || deferredRecord.executionId || deferredRecord._id, 160),
+      claimEvidenceIds: [String(deferredRecord._id || ""), clean(deferredRecord.requestId, 180)],
       billingEvidence: {
         executionId: clean(deferredRecord.executionId, 160),
         requestId: clean(deferredRecord.requestId, 180),
@@ -688,6 +690,7 @@ async function resolveBillingUsageEvidence(env, auth, body = {}) {
       accessType,
       accessSource: accessType === "subscription" ? "billing_gate_membership_credit" : accessType === "pass" ? "billing_gate_pass" : "billing_gate_paid",
       paymentId: String(pointHistory._id || body.paymentId || ""),
+      claimEvidenceIds: [String(pointHistory._id || ""), clean(pointHistory?.metadata?.requestId, 180)],
       billingEvidence: {
         pointHistoryId: String(pointHistory._id || ""),
         ledgerId: clean(pointHistory?.metadata?.ledgerId, 160),
@@ -712,6 +715,7 @@ async function resolveBillingUsageEvidence(env, auth, body = {}) {
       accessType: "subscription",
       accessSource: "billing_gate_membership_credit",
       paymentId: String(monthlyEvidence.ledgerId || body.paymentId || ""),
+      claimEvidenceIds: [clean(monthlyEvidence.ledgerId, 160), clean(monthlyEvidence.sourceId, 180)],
       billingEvidence: {
         ledgerId: String(monthlyEvidence.ledgerId || ""),
         pointHistoryId: "",
@@ -738,6 +742,7 @@ async function resolveBillingUsageEvidence(env, auth, body = {}) {
       accessType: "paid",
       accessSource: "billing_gate_paid",
       paymentId: clean(payment.merchantUid || payment.impUid || payment.requestId || payment.idempotencyKey || payment._id, 160),
+      claimEvidenceIds: [String(payment._id || ""), clean(payment.requestId || payment.idempotencyKey, 180)],
       billingEvidence: {
         paymentId: clean(payment._id, 160),
         merchantUid: clean(payment.merchantUid, 160),
@@ -1101,7 +1106,9 @@ async function refundBillingGateMonthlyCredit({ userId, evidence = {}, reason = 
   return { refunded: true };
 }
 
-async function restoreBillingGateAccessOnFailure({ userId, access = {}, idempotencyKey = "", pricing = getPricing(), error = null }) {
+async function restoreBillingGateAccessOnFailure({ env = {}, userId, access = {}, idempotencyKey = "", pricing = getPricing(), error = null }) {
+  // 본문을 못 받은 최종 실패다 — 증빙 claim 을 풀어 결제한 사용자가 새 시도로 다시 받게 한다.
+  await releaseRequestBillingEvidence(env, { userId: clean(userId), requestId: idempotencyKey, evidenceIds: access.claimEvidenceIds }).catch(() => null);
   const evidence = objectOf(access.billingEvidence);
   const failureMessage = clean(error?.message || error || "love secret ai generation failed", 500);
   const now = new Date();
@@ -1499,6 +1506,9 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
   if (existing?.status === "generating" && Date.now() - new Date(existing.updatedAt || existing.createdAt).getTime() < LOVE_SECRET_AI_GENERATING_FRESH_MS) {
     return json({ ok: true, sessionId: existing.id, status: "generating", message: "연애 비책 상담을 준비하고 있습니다" }, { status: 202 });
   }
+  // 결제 증빙 1건 = 상담 1건. 이용권은 정산 때 이번 키로 차감하므로 claim 할 ID 가 없다.
+  const evidenceClaim = await claimRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds: access.claimEvidenceIds, featureKey: FEATURE_KEY });
+  if (!evidenceClaim.ok) return json(evidenceClaimErrorBody(evidenceClaim), { status: evidenceClaim.status });
 
   let sajuResult;
   try {
@@ -1509,7 +1519,7 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
     logLoveSecretAi("Fortune Data Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
   } catch (error) {
     logLoveSecretAi("LLM Error", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "fortune_data_failed", access: access.accessType, env, error }), "error");
-    const restored = await restoreBillingGateAccessOnFailure({ userId: auth.userId, access, idempotencyKey, pricing, error }).catch((restoreError) => ({ restored: false, error: clean(restoreError?.message || restoreError, 300) }));
+    const restored = await restoreBillingGateAccessOnFailure({ env, userId: auth.userId, access, idempotencyKey, pricing, error }).catch((restoreError) => ({ restored: false, error: clean(restoreError?.message || restoreError, 300) }));
     logLoveSecretAi("LLM Refund Or Restore", {
       ...safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }),
       restored,
@@ -1657,7 +1667,7 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
     logLoveSecretAi("LLM Error", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env, error }), "error");
     const owned = await LoveSecretAiConsultation.findOne({ id: sessionId, userId: clean(auth.userId), status: "generating", "llmMeta.delivery.lease": seed.llmMeta.delivery.lease }).lean();
     if (!owned) return json(resultStorageFailurePayload(resultStorageUnavailable(sessionId)), { status: 503 });
-    const restored = await restoreBillingGateAccessOnFailure({ userId: auth.userId, access, idempotencyKey, pricing, error }).catch((restoreError) => ({ restored: false, error: clean(restoreError?.message || restoreError, 300) }));
+    const restored = await restoreBillingGateAccessOnFailure({ env, userId: auth.userId, access, idempotencyKey, pricing, error }).catch((restoreError) => ({ restored: false, error: clean(restoreError?.message || restoreError, 300) }));
     logLoveSecretAi("LLM Refund Or Restore", {
       ...safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }),
       restored,

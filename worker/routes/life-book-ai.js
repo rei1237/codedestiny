@@ -25,6 +25,7 @@ import { calculateLifeBookAiSaju } from "../lib/life-book-ai-saju.js";
 import { canStripForbiddenText } from "../lib/llm-leak-guard.js";
 import {clampSyncLlmTimeoutMs, PAID_LLM_PARTS_PER_REQUEST } from "../lib/sync-llm-timeout.js";
 import { handleBillingRoutes, BILLING_SNAPSHOT_USER_PROJECTION } from "./billing.js";
+import { claimRequestBillingEvidence, evidenceClaimErrorBody, releaseRequestBillingEvidence } from "../lib/billing-evidence-claim.js";
 
 const SERVICE_KEY = "life-book-ai";
 const FEATURE_KEY = "life-book-ai-consultation";
@@ -637,7 +638,7 @@ async function resolveServerAccess({ auth, user, pricing, idempotencyKey, inputH
     const storedHash = clean(paidPayment?.pricingSnapshot?.inputHash);
     if (storedHash && storedHash !== inputHash) return { ok: false, reason: "INVALID_INPUT", message: MESSAGES.invalidInput };
     // 🔴 실제로 결제된 SKU 를 그대로 들고 간다(구 SKU 결제 세션이 신규 키로 정산되면 대사가 어긋난다).
-    return { ok: true, accessType: "paid", accessSource: "single_purchase", paymentId: clean(paidPayment.merchantUid || paidPayment.impUid || paymentId, 160), featureKey: clean(paidPayment.featureKey, 80) || featureKey };
+    return { ok: true, accessType: "paid", accessSource: "single_purchase", paymentId: clean(paidPayment.merchantUid || paidPayment.impUid || paymentId, 160), claimEvidenceId: String(paidPayment._id || ""), featureKey: clean(paidPayment.featureKey, 80) || featureKey };
   }
 
   const featureAccess = resolveFeatureAccessPolicy({ user: user || {}, pricing, coinCost: pricing.coinPrice });
@@ -971,6 +972,7 @@ async function resolveBillingGateAccess({ env, auth, body, idempotencyKey = "", 
       accessSource: "billing_gate_deferred",
       executionId: clean(deferredRecord.executionId, 160),
       paymentId: String(deferredRecord._id || deferredRecord.paymentId || ""),
+      claimEvidenceId: String(deferredRecord._id || ""),
       featureKey: clean(deferredRecord.featureId, 80) || fallbackFeatureKey,
     };
   }
@@ -996,6 +998,7 @@ async function resolveBillingGateAccess({ env, auth, body, idempotencyKey = "", 
       paymentId: String(pointHistory._id || ""),
       evidenceType: "coin",
       evidenceId: String(pointHistory._id || ""),
+      claimEvidenceId: String(pointHistory._id || ""),
       amount: Math.max(0, Math.floor(Math.abs(Number(pointHistory.delta || pointHistory?.metadata?.chargedCoins || 0)))),
       featureKey: clean(pointHistory.featureKey, 80) || fallbackFeatureKey,
     };
@@ -1018,6 +1021,7 @@ async function resolveBillingGateAccess({ env, auth, body, idempotencyKey = "", 
       paymentId: String(monthlyEvidence.ledgerId || ""),
       evidenceType: "monthly_credit",
       evidenceId: String(monthlyEvidence.ledgerId || ""),
+      claimEvidenceId: clean(monthlyEvidence.ledgerId, 160),
       amount: Math.max(0, Math.floor(Number(monthlyEvidence.amount || 0))),
       featureKey: acceptedFeatureKeys.includes(clean(monthlyEvidence.serviceKey, 80)) ? clean(monthlyEvidence.serviceKey, 80) : fallbackFeatureKey,
     };
@@ -1050,6 +1054,7 @@ async function resolveBillingGateAccess({ env, auth, body, idempotencyKey = "", 
       paymentId: clean(payment.merchantUid || payment.impUid || payment.requestId || payment._id, 160),
       evidenceType: "payment",
       evidenceId: String(payment._id || ""),
+      claimEvidenceId: String(payment._id || ""),
       featureKey: clean(payment.featureKey, 80) || fallbackFeatureKey,
     };
   }
@@ -2138,6 +2143,8 @@ function hasRequiredLifeFortuneSaju(sajuResult, birthInfo = {}) {
 }
 
 async function restoreAccessBeforeGenerationFailure({ request, env, auth, userId, access, idempotencyKey, sessionId, error, orderName, reason = MESSAGES.llmFailed }) {
+  // 본문을 못 받은 최종 실패다 — 증빙 claim 을 풀어 결제한 사용자가 새 시도로 다시 받게 한다.
+  await releaseRequestBillingEvidence(env, { userId: clean(userId), requestId: idempotencyKey, evidenceIds: [clean(access?.claimEvidenceId, 160)] }).catch(() => null);
   const deferredCanceled = await cancelDeferredBillingUsage({
     request,
     env,
@@ -2459,6 +2466,9 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
       const completed = await finishLifeBookDelivery({ request, env, auth, access, pending: existing, pricing, orderName });
       return json(publicSession(completed));
     }
+    // 결제 증빙 1건 = 상담 1건. 이용권은 정산 때 이번 키로 차감하므로 claim 할 ID 가 없다.
+    const evidenceClaim = await claimRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds: [clean(access.claimEvidenceId, 160)], featureKey: clean(access.featureKey, 80) || getConsultationFeatureKey(normalized.input) });
+    if (!evidenceClaim.ok) return json(evidenceClaimErrorBody(evidenceClaim), { status: evidenceClaim.status });
 
     let sajuResult = null;
     try {
