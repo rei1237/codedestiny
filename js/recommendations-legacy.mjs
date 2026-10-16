@@ -1,10 +1,10 @@
 export { adviceTopics } from './recommendations-context.mjs';
-import { RECOMMENDATIONS_RELEASED, normalizeContext, validateAffiliateUrl, validImageUrl, serviceRule, INTERESTS } from './recommendations-core.mjs';
+import { RECOMMENDATIONS_RELEASED, RESULT_PRODUCT_LIMIT, normalizeContext, validateAffiliateUrl, validImageUrl, serviceRule, INTERESTS } from './recommendations-core.mjs';
 import { affiliateCopy } from './affiliate-presentation.mjs';
 import { bookPerspectiveLabel } from './recommendations-context.mjs';
 const mounted = new WeakMap();
 export async function mountRecommendation(host, input, anchor = null) {
-  if (!RECOMMENDATIONS_RELEASED || !host?.isConnected) return;
+  if (!RECOMMENDATIONS_RELEASED || !host?.isConnected || input?.source === 'article') return;
   mounted.get(host)?.();
   let cancelled = false;
   mounted.set(host, () => { cancelled = true; });
@@ -22,7 +22,9 @@ export async function mountRecommendation(host, input, anchor = null) {
     current?.abort(); current = new AbortController();
     try {
       const response = await fetch((window.CODE_DESTINY_API_BASE_URL || '') + '/api/recommendations?' + browser.recommendationQuery(context), { signal: current.signal, credentials: 'omit', referrerPolicy: 'no-referrer', cache: 'no-store' });
+      if (!response.ok) throw new Error('Catalogue unavailable');
       const data = await response.json();
+      if (cancelled) return;
       if (closed || !host.isConnected || !data.enabled) { section.remove(); top.remove(); return; }
       const choose = serviceRule(context.service)?.explicitInterest || (context.service.startsWith('pet-') && !context.species);
       if (!data.products?.length && !choose) { section.remove(); top.remove(); return; }
@@ -39,8 +41,13 @@ export async function mountRecommendation(host, input, anchor = null) {
         select.value = context.species || context.interests[0] || '';
         select.addEventListener('change', () => { context = normalizeContext({ ...context, ...(context.service.startsWith('pet-') ? { species: select.value } : { interests: [select.value] }) }); track('filter'); void render(); });
       }
+      if (context.service === 'rpt_healthReportCard') {
+        const healthBrowse = node('a', (document.documentElement.lang || 'ko') === 'ko' ? '건강기능식품 정보 따로 살펴보기' : 'Explore supplement information separately', section);
+        healthBrowse.href = '/recommendations/?brand=ggulggul';
+        healthBrowse.addEventListener('click', () => browser.rememberRecommendationContext({ service: 'recommendations', source: 'browse', practiceTags: ['supplement-information'] }));
+      }
       const grid = node('div', '', section); grid.className = 'cd-recommendations-products';
-      data.products.slice(0, 3).forEach(p => {
+      data.products.slice(0, RESULT_PRODUCT_LIMIT).forEach(p => {
         const merchantCopy = value => p.providerId === 'aliexpress' ? value.replace(/쿠팡|Coupang|coupang/g, 'AliExpress') : value;
         const article = node('article', '', grid);
         if (validImageUrl(p.imageUrl)) { const image = node('img', '', article); image.referrerPolicy = 'no-referrer'; image.loading = 'lazy'; image.alt = p.title; image.src = p.imageUrl; image.width = 240; image.height = 180; image.onerror = () => { image.remove(); node('p', copy.image, article); }; }
@@ -69,6 +76,6 @@ export async function mountRecommendation(host, input, anchor = null) {
   }
   const timer = setInterval(() => { if (!host.isConnected) cleanup(); else void render(); }, 60000);
   function cleanup() { closed = true; current?.abort(); clearInterval(timer); cleanupObserver(); section.remove(); top.remove(); mounted.delete(host); }
-  mounted.set(host, cleanup);
+  mounted.set(host, () => { cancelled = true; cleanup(); });
   await render();
 }

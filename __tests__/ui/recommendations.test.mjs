@@ -100,3 +100,42 @@ test('direct anchors remain independent of analytics and existing mobile router 
   assert.ok(start>0); const block=route.slice(start,start+550);
   assert.ok(block.indexOf('authorizeAdminRequest')<block.indexOf('handleAdminRecommendationRoutes'));
 });
+
+test('initial release suppresses articles and result symbolism', () => {
+ const p=active({affiliateUrl:'https://link.coupang.com/a/FixtureOnly'});
+ assert.equal(selectProducts([p],{source:'article'},NOW).length,0);
+ const symbol=active({affiliateUrl:'https://link.coupang.com/a/FixtureOnly',category:'daily-life',kind:'bracelet',practiceTags:['symbolism'],topicReasons:{symbolism:'색상 선택'},colors:['purple']});
+ assert.equal(selectProducts([symbol],{source:'result',practiceTags:['symbolism'],color:'purple'},NOW).length,0);
+ assert.equal(selectProducts([symbol],{source:'browse',practiceTags:['symbolism'],color:'purple'},NOW).length,1);
+});
+test('supplements require product evidence and explicit browsing, never element inference',()=>{
+ const base={affiliateUrl:'https://link.coupang.com/a/FixtureOnly',providerId:'coupang',category:'daily-life',kind:'health-supplement',practiceTags:['supplement-information'],topicReasons:{'supplement-information':'표시 정보 확인'}};
+ assert.throws(()=>active(base));
+ const p=active({...base,evidence:'fixture https://www.foodsafetykorea.go.kr/ product record',attributes:['인정 정보: 검증용 제품 번호','기능성: 검증용 표시 정보','섭취 주의사항: 검증용 주의 정보']});
+ assert.equal(selectProducts([p],{source:'browse',practiceTags:['supplement-information']},NOW).length,1);
+ for(const c of [{source:'result',practiceTags:['supplement-information']},{source:'browse',element:'wood',practiceTags:[]},{service:'rpt_healthReportCard',interests:['rest']}])assert.equal(selectProducts([p],c,NOW).length,0);
+});
+
+test('legacy results cap cards, retain result actions and hide failed requests', async () => {
+ const { JSDOM } = await import('jsdom');
+ const dom = new JSDOM('<html lang="ko"><body><main><p>결과 본문</p><button id="save">결과 저장</button></main></body></html>', {url:'http://localhost/'});
+ const names=['window','document','sessionStorage','location','fetch','setInterval','clearInterval'];
+ const saved=Object.fromEntries(names.map(k=>[k,globalThis[k]]));
+ try {
+  for(const k of ['window','document','sessionStorage','location'])globalThis[k]=k==='window'?dom.window:dom.window[k];
+  globalThis.setInterval=()=>0;globalThis.clearInterval=()=>{};
+  const products=Array.from({length:3},(_,i)=>({id:String(i),category:'books',title:'검증 도서 '+i,reason:'기록 실천',affiliateUrl:'https://link.coupang.com/a/FixtureOnly',price:null}));
+  globalThis.fetch=async()=>({ok:true,json:async()=>({enabled:true,products})});
+  const { mountRecommendation }=await import('../../js/recommendations-legacy.mjs');
+  const host=document.querySelector('main'),save=document.querySelector('#save');
+  await mountRecommendation(host,{service:'rpt_healthReportCard',source:'result',interests:['rest']},save);
+  assert.equal(host.querySelectorAll('article').length,2);
+  assert.equal(save.nextElementSibling?.dataset.recommendationBlock,'true');
+  assert.ok(host.firstElementChild.classList.contains('cd-recommendations-disclosure'));
+  assert.ok(host.textContent.includes('건강기능식품 정보 따로 살펴보기'));
+  globalThis.fetch=async()=>({ok:false,json:async()=>({enabled:true,products})});
+  await mountRecommendation(host,{source:'result'},save);
+  assert.equal(host.querySelectorAll('[data-recommendation-block]').length,0);
+  assert.equal(save.textContent,'결과 저장');
+ } finally {for(const k of names){if(saved[k]===undefined)delete globalThis[k];else globalThis[k]=saved[k];}dom.window.close();}
+});

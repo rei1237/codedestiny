@@ -1,4 +1,5 @@
 "use client";
+import { fusionAdviceTopics } from '@/js/recommendations-context.mjs';
 import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
 import ReviewRewardBanner from "@/app/components/ReviewRewardBanner";
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
@@ -3117,7 +3118,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
             </div>
           </>}
       </footer>}
-      {result && !loading && !stageTwoFailed && result.expertMeta?.complete !== false && <RecommendationResult service="fusion-fortune-consultation" brand="neo"/>}
+      {result && !loading && !stageTwoFailed && result.expertMeta?.complete !== false && <RecommendationResult service="fusion-fortune-consultation" practiceTags={fusionAdviceTopics(result)} brand="neo"/>}
     </section>}
     {/* 생성 중이거나 결과가 떠 있으면 띄우지 않는다 — 그때 화면 아래는 결과 도킹 바의 자리다. */}
     {!loading && !result && !failure && <div className={styles.orderBar} data-visible={orderBarVisible ? "true" : "false"}>

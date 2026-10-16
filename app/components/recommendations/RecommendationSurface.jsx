@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { RECOMMENDATIONS_RELEASED, normalizeContext, validateAffiliateUrl, validImageUrl } from '@/js/recommendations-core.mjs';
+import { RECOMMENDATIONS_RELEASED, RESULT_PRODUCT_LIMIT, normalizeContext, validateAffiliateUrl, validImageUrl } from '@/js/recommendations-core.mjs';
 import { recommendationCopy } from '@/js/recommendations-copy.mjs';
 import { observeRecommendation, trackRecommendation, rememberRecommendationContext, recommendationQuery } from '@/js/recommendations-browser.mjs';
 import { detectLocale, normalizeLocale } from '@/lib/i18n/dictionary';
@@ -77,7 +77,7 @@ export function RecommendationResult({ service, species = '', groupId = '', loca
   const host = useRef(null);
   const [top, setTop] = useState(null);
   const [dismissed, setDismissed] = useState(false);
-  const shown = completed && !dismissed && data.enabled && data.products.length > 0;
+  const shown = source !== 'article' && completed && !dismissed && data.enabled && data.products.length > 0;
   useEffect(() => {
     if (!shown || !host.current) return;
     const parent = host.current.parentElement;
@@ -94,7 +94,7 @@ export function RecommendationResult({ service, species = '', groupId = '', loca
   return <section ref={host} className={styles.surface} data-brand={brand} data-affiliate-brand={uiBrand} data-yn-night aria-label={title} data-recommendation-block>
     {top && createPortal(<p className={styles.disclosure} data-affiliate-brand={uiBrand} data-yn-night>{preview || data.products.some(p => p.providerId === 'aliexpress') ? c.genericDisclosure + (data.products.some(p => !p.providerId || p.providerId === 'coupang') ? ' ' + c.disclosure : '') : c.disclosure}</p>, top)}
     <h2>{title}</h2><p className={styles.disclosure}>{preview || data.products.some(p => p.providerId === 'aliexpress') ? c.genericDisclosure + (data.products.some(p => !p.providerId || p.providerId === 'coupang') ? ' ' + c.disclosure : '') : c.disclosure}</p>
-    <div className={styles.products}>{data.products.slice(0, 3).map(p => <ProductCard key={p.id} product={p} copy={c} preview={preview} onClick={() => { if (!preview) trackRecommendation('click', context, 'result', p.id, getApiBaseUrl()); }}/>)}</div>
+    <div className={styles.products}>{data.products.slice(0, RESULT_PRODUCT_LIMIT).map(p => <ProductCard key={p.id} product={p} copy={c} preview={preview} onClick={() => { if (!preview) trackRecommendation('click', context, 'result', p.id, getApiBaseUrl()); }}/>)}</div>
     <div className={styles.actions}>{!preview && <a href={affiliateBrowsePath(brand)} onClick={() => { rememberRecommendationContext(context); trackRecommendation('more', context, 'result', '', getApiBaseUrl()); }}>{c.more}</a>}<button onClick={() => { setDismissed(true); if (!preview) trackRecommendation('dismiss', context, 'result', '', getApiBaseUrl()); }}>{c.dismiss}</button></div>
   </section>;
 }
