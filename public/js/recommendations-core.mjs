@@ -156,7 +156,7 @@ export function currentPrice(p, now = Date.now()) {
   return Number.isFinite(p.price) && p.price > 0 && at <= now && now - at <= DAY ? p.price : null;
 }
 export function publicProduct(p, now = Date.now()) {
-  return { id: p.id, providerId: p.providerId || 'coupang', currency: p.currency || 'KRW', category: p.category, title: p.title, reason: p.reason, book: p.book ? Object.fromEntries(['author','publisher','edition','language','format','isbn','perspective'].map(k => [k,p.book[k]])) : null, attributes: p.attributes || [], affiliateUrl: p.affiliateUrl, linkType: p.linkType, imageUrl: p.imageUrl, price: currentPrice(p, now), priceVerifiedAt: currentPrice(p, now) === null ? null : p.priceVerifiedAt, genericCollection: p.category === 'fandom' && !p.groupId };
+  return { id: p.id, providerId: p.providerId || 'coupang', currency: p.currency || 'KRW', category: p.category, title: p.title, reason: p.reason, book: p.kind === 'book' && p.book ? Object.fromEntries(['author','publisher','edition','language','format','isbn','perspective'].map(k => [k,p.book[k]])) : null, attributes: p.attributes || [], affiliateUrl: p.affiliateUrl, linkType: p.linkType, imageUrl: p.imageUrl, price: currentPrice(p, now), priceVerifiedAt: currentPrice(p, now) === null ? null : p.priceVerifiedAt, genericCollection: p.category === 'fandom' && !p.groupId };
 }
 export function selectProducts(products, input = {}, now = Date.now()) {
   const c = normalizeContext(input), rule = serviceRule(c.service);

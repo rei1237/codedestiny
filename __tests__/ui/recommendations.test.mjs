@@ -25,6 +25,17 @@ test('malicious schemes, spoofed hosts, credentials, ports and encoded control b
   const bad = ['javascript:alert(1)','data:text/html,a','file:///tmp/a','intent://link.coupang.com/a/x','//link.coupang.com/a/x','https://link.coupang.com.evil.invalid/a/x','https://evilcoupang.com/a/x','https://link.coupang.com@evil.invalid/a/x','https://user@link.coupang.com/a/x','https://link.coupang.com:444/a/x','https://link.coupang.com/a/x\r\nX: y','https://link.coupang.com/a/x?x=%0D%0A','https://link.coupang.com/a/x?x=%250a','https://link.coupang.com/a/../x','https://link.coupang.com/a/x#fragment',' https://link.coupang.com/a/x','https://link.coupang.com/a/x?x=%5c'];
   for (const url of bad) assert.equal(validateAffiliateUrl(url), false, url);
 });
+
+test('non-book products do not expose inherited admin book defaults', () => {
+  const journal = active({ id: 'fixture-journal', kind: 'journal' });
+  const timer = active({ id: 'fixture-timer', category: 'daily-life', kind: 'timer' });
+  for (const product of [journal, timer]) {
+    const rows = selectProducts([product], { service: 'recommendations', source: 'browse' }, NOW);
+    assert.equal(rows.length, 1);
+    assert.equal(rows[0].book, null);
+  }
+  assert.equal(selectProducts([active()], {}, NOW)[0].book.perspective, 'practical');
+});
 test('all edits require renewed review and unverified links stay drafts', () => {
   const p = active(); const edited = cleanProduct({ ...p, title: '수정 fixture' });
   assert.equal(edited.status, 'draft'); assert.equal(edited.verifiedAt, null); assert.equal(edited.accountVerified, false);
