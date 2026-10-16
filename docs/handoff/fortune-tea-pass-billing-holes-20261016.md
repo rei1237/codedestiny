@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-17
-next: "D단계 남은 상품 이전(리포트 카드 → 숙요 → 자미 → 점성 → 동물점·비밀의 집). 사용자 결정 대기: 애니멀 토템 MODE_SPEC 30 vs 정본 50, 마야 홈 타일 1회 표기."
+next: "D단계 남은 상품 이전: 숙요 본성 심층(서버 본명숙 재계산)·궁합 2종 → 자미두수 5칸·대한 10년운(L) → 점성술 심화·시나스트리 → 십이운성 동물점(70)·비밀의 집(50). 사용자 결정 대기: 애니멀 토템 MODE_SPEC 30 vs 정본 50, 마야 홈 타일 1회 표기, 계정 묶음 구매의 프로필 무관 인정."
 ---
 
 # 운명 찻집 10,000원: 이용권 차감 누락과 결제 증빙 재사용 구멍
@@ -338,3 +338,23 @@ next: "D단계 남은 상품 이전(리포트 카드 → 숙요 → 자미 → �
     - 브라우저 QA 스크립트 `scripts/verify-saju-daewun-quality-browser.mjs`·`scripts/verify-crafted-quantum-saju.cjs`가 아직 클라이언트 함수를 부른다(check에 연결돼 있지 않음).
     - AI 프롬프트 다이제스트가 비동기가 되어, 해금 직후 첫 프롬프트에는 퀀텀 본문이 빠질 수 있다.
   - 남은 이전 대상(높은 가격 순서): 리포트 카드(energyCoord 70 → health·villain 50 → charm·skill 10), 숙요 극T·본성·관계 백과, 자미두수 5칸·대한 10년운(L), 점성술 심화, 십이운성 동물점(70)·비밀의 집(50).
+- 2026-10-17 — **D단계 상품 이전 2: 숙요 극T 관계 회로·인연 도감(각 50코인)** (`dd49743f9`, `eee12f66d`, 미러 `0c095e5c3`, 사이트맵 원장 `38f5701b5`, llms.txt `085b5d2f0`·`8d157c304`)
+  - 극T 관계 회로(`sukuyo-extreme-t-relationship`)와 27숙 인연 도감(`sukuyo-relationship-encyclopedia`)의 해금 본문을 클라이언트 번들에서 지우고 `/api/saju/section`이 만든다. 판정은 퀀텀과 같다(해금 없음 402, DB 장애 503).
+  - 본성 심층(`sukuyo-nature-deep-dive`)은 옮기지 않았다. 서버가 출생 정보로 본명숙을 다시 계산해야 한다. 클라이언트가 보낸 숙 값으로 만들면 결제 1건으로 27숙 본문을 모두 받을 수 있기 때문이다.
+  - 사고: `085b5d2f0`을 push할 때 `check:pre-push` 실패(`.ignore`에 `/public/llms.txt` 누락)를 `;` 체인이 무시하고 push했다. 곧바로 `8d157c304`로 고쳤다. 이후 push는 `check:pre-push && … && git push`로만 한다.
+  - 후속
+    - 극T는 화면 프로필이 아니라 계정 프로필의 생년월일을 쓴다.
+    - 인연 도감 필터의 경계값 버그(원래 있던 문제).
+    - 클라이언트에 본문 캐시가 없어 다시 그릴 때마다 서버를 왕복한다.
+- 2026-10-17 — **D단계 상품 이전 3: 리포트 카드 5종** (에너지 좌표 `ce80879ab`, 악연 `be096b3a8`, 건강 `9587cc5cd`, 매력 `9a72f32fe`, 재능 `e3ed63fca`, 미러·사이트맵 `04cc0a046`·`96b24bad5`)
+  - 에너지 좌표(70)·악연(50)·건강(50)·매력(10)·재능(10)의 유료 본문(약 6천 줄)을 `js/saju-engine.js`·`js/entertain-engine.js`·`js/saju-engine-tarot-sukuyo-quantum.js`와 공개 미러에서 지우고 `worker/lib/saju-section/paid-{energy,villain,health,charm,skill}.src.js`로 옮겼다. 무료 스텁은 남겼다.
+  - 해금 판정: 퀀텀과 같은 경로(단건·이용권·가족 이용권). 예전에 산 사람이 열람권을 잃지 않게 다음도 인정한다.
+    - 출생 기반 옛 키: 에너지 → `travelDestiny`, 건강 → `healthReport`
+    - 계정 묶음(`hasLegacyBundlePurchase`, `worker/lib/paid-content-read-access.js`): `allPaidSaju` → 에너지·건강·재능, `rpgCharacter` → 재능. 읽기 전용이고 DB 오류는 503이다.
+    - 악연·매력은 자기 키로만 연다.
+  - 검증: 패리티 해시 픽스처, FORBIDDEN 정적 가드, worker 테스트(402/200/503), check:fast exit 0.
+  - 후속
+    - 계정 묶음은 프로필과 상관없이 인정된다. 정책 확인이 필요하다.
+    - `ENERGY_COORD_DB` 데이터와 재능 카드의 퀘스트 섹션은 아직 클라이언트에 있다.
+    - 매력 영어 출력에 한국어가 섞인다. 응답마다 CSS를 다시 보낸다. 건강 카드의 브라우저 대체 경로 정리.
+  - 남은 이전 대상: 숙요 본성 심층(서버 본명숙 재계산 필요)·궁합 2종, 자미두수 5칸·대한 10년운(L), 점성술 심화·시나스트리, 십이운성 동물점(70)·비밀의 집(50).
