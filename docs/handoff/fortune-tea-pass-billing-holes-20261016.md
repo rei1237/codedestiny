@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-10-16
-next: "D단계 상품 이전(퀀텀 → 리포트 카드 → 숙요 → 자미 → 점성 → 동물점·비밀의 집)·화면 가격 정본 일치 → E → 정책 문서."
+updated: 2026-10-17
+next: "D단계 남은 상품 이전(리포트 카드 → 숙요 → 자미 → 점성 → 동물점·비밀의 집). 사용자 결정 대기: 애니멀 토템 MODE_SPEC 30 vs 정본 50, 마야 홈 타일 1회 표기."
 ---
 
 # 운명 찻집 10,000원: 이용권 차감 누락과 결제 증빙 재사용 구멍
@@ -300,3 +300,41 @@ next: "D단계 상품 이전(퀀텀 → 리포트 카드 → 숙요 → 자미 �
     - 자미두수 5칸·대한 10년운(50): `renderZiwei` 한 함수 안이라 분리 리팩터가 먼저다(규모 큼).
     - 점성술 심화·시나스트리.
     - 십이운성 동물점·비밀의 집: 페이지 재설계가 필요하다.
+- 2026-10-16 — **D단계 화면 가격 정본 일치** (`6eb36d31d`, `c3acd6f22`, `aeeb86c22`)
+  - 회당 화면 26곳(i18n·공개 미러 포함)의 가격 표시를 `worker/lib/paid-feature-registry.js`에 맞췄다. 2026-10-12 재가격(dbecc8bf2) 뒤 화면이 따라오지 않은 것이 원인이다. 서버 가격은 바꾸지 않았다.
+    - 화면 coinPrice가 서버와 다르면 결제가 400 `CLIENT_COIN_PRICE_MISMATCH`로 막힌다(`worker/routes/payments.js`). 그래서 이 수정은 결제한 사람이 막히는 일도 함께 없앤다.
+    - 자미 기본 게이트 10→50, 관상 30→50, 전생 얼굴 궁합 30→50, 숙요 회당 6종 30→50(전생 인연 리딩 50→100), 마야 홈 타일, 전생 얼굴 페이지의 숙요 링크 3,000원→10,000원.
+  - 가드 `__tests__/ui/per-use-price-registry-parity.test.mjs`(60행): 화면 가격 상수가 레지스트리와 다르면 실패한다.
+  - 사용자 결정이 필요한 것
+    - 애니멀 토템 `worker/routes/animal-totem.js` `MODE_SPEC` one/three의 coinPrice가 30이고 레지스트리는 50이다. 게이트를 거치지 않는 직접 호출의 이용권 분기에서만 쓰여서 이용권 예산이 30만 차감된다. 서버 값이라 바꾸지 않았다(`verify-animal-totem-reading.mjs`가 30을 고정한다).
+    - 마야 홈 타일이 "1회"로 표시되지만 마야 리딩 자체는 무료다. 기획 판단이 필요하다.
+- 2026-10-16 — **E단계: 낮은 위험 정리** (`79de243c8`, 환불 `3e7c89e8e`·`e547fadb1`, 문서 `117ae0d5e`·`75c8cdf4e`)
+  - app-store: Google Play 상품 가격을 서버 정본(`pricing`)으로만 정한다. `resolveProductCoinPrice`가 요청 본문의 `coinPrice`/`cost`로 대체하던 분기를 없앴다.
+  - 꿀코인(pig-coin) 환불: "결제 → 열람 → 환불" 구멍을 막았다.
+    - 새 모듈 `worker/lib/coin-refund-eligibility.js`가 환불 전에 이 차감으로 전달된 증거를 찾는다. 증거는 success/delivered/completed 상태의 결과, 비어 있지 않은 본문, completed/partial/delivery_pending 실행 기록이다.
+    - 전달됐으면 409 `REFUND_NOT_ELIGIBLE`, 확인 저장소 장애면 503 `REFUND_VERIFY_UNAVAILABLE`다. 영구 해금은 회수하지 않는다.
+    - 실패한 프리미엄 리포트는 claim만 있고 전달 증거가 없으면 환불된다(결제한 사람 보호).
+  - 개발용 결제 테스터: 이미 명시적 비운영 표식(`DEV_PAYMENT_TESTER_ENVS`)을 요구한다. 수정 없음.
+  - 받아들인 위험(수정하지 않음)
+    - moonstone "부여 → 차감 → 실패 시 부여 되돌림" 순서: 순서를 바꾸면 결제했는데 전달되지 않는 경우가 생긴다.
+    - Google Play `obfuscatedExternalAccountId`가 빈 구매: 예전 구매 복원을 위해 통과시킨다.
+  - 정책 문서: `PAYMENT_POLICY.md`와 `docs/payment-policy-flow.md`에 원칙 3줄(증빙 1건 = 요청 1건, 이용권 허용 = 차감, 유료 본문은 서버만 생성)과 환불 규칙을 적었다.
+  - 후속
+    - 생성 중에 환불하면 여전히 전달될 수 있다(`isPaidResultRevoked`가 pig-coin 환불 표식을 보지 않는다).
+    - 서버 전달 기록이 없는 라우트는 "열람 후 환불"을 막을 수 없다: destiny-compass 저장 실패, tarot-ijik, mindscan, crystal-soul, 재회 `/api/tarot/reading`. 재회 리딩은 서버 게이트도 없다.
+    - moonstone 차감은 레거시 포인트로 환불된다.
+    - 클라이언트 롤백 환불은 클라이언트가 보낸 cost를 쓴다.
+    - `docs/context/payment-gating.md`가 현행과 다르다.
+- 2026-10-16 — **D단계 상품 이전 1: 퀀텀 명리 엔진 카드(`rpt_quantumCard`, 100코인)** (`245ce5a6e`, 미러 `0b929332e`, 사이트맵 원장 `e78e5ff19`)
+  - 유료 본문 `renderQuantumStrategy`(약 1,126줄)를 클라이언트 번들에서 지우고 서버 `worker/lib/saju-section/paid-quantum.src.js`로 옮겼다. `/api/saju/section`이 해금을 확인한 뒤에만 본문을 만든다.
+    - 무료 스텁(`renderQuantumStrategyStub`)과 `analyzeFortuneGZ`는 클라이언트에 남겼다.
+    - 정적 가드 FORBIDDEN 목록에 본문 표식 7개를 넣었다. js/·public/·index.html에 다시 들어오면 실패한다.
+  - 해금 판정: 해금 없음 402, 같은 출생 BIRTH 해금·레거시 USER 해금 200, 다른 프로필·다른 출생 402, DB 장애 503(재시도).
+    - 이용권·가족 구매도 같은 ContentEntitlement 행을 쓰므로 열람권을 잃지 않는다.
+  - 패리티: 원본 클라이언트와 서버 출력이 13개 사례에서 해시가 같다(`__tests__/fixtures/saju-section-client-parity.json`).
+  - 의도 밖의 변화: 추출기 I18N_KEYS 범위 버그(`slice(16)`→`slice(17)`)를 고쳐서, 서버의 비한국어 종합·대운 본문이 "Translation pending" 대신 실제 번역으로 나온다.
+  - 후속
+    - `__cdQuantumRendered`가 차트를 바꿔도 초기화되지 않는다(원래 있던 문제).
+    - 브라우저 QA 스크립트 `scripts/verify-saju-daewun-quality-browser.mjs`·`scripts/verify-crafted-quantum-saju.cjs`가 아직 클라이언트 함수를 부른다(check에 연결돼 있지 않음).
+    - AI 프롬프트 다이제스트가 비동기가 되어, 해금 직후 첫 프롬프트에는 퀀텀 본문이 빠질 수 있다.
+  - 남은 이전 대상(높은 가격 순서): 리포트 카드(energyCoord 70 → health·villain 50 → charm·skill 10), 숙요 극T·본성·관계 백과, 자미두수 5칸·대한 10년운(L), 점성술 심화, 십이운성 동물점(70)·비밀의 집(50).
