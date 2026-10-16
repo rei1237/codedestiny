@@ -7,6 +7,7 @@
  * POST /api/result-archive/<destiny-compass-*> 도 같은 처리기로 운명의 나침반 심화 3종을 남긴다.
  */
 
+import { withSettle } from "../fixtures/per-use-settle-mock.mjs";
 import { jest } from "@jest/globals";
 
 const USER_ID = "507f1f77bcf86cd799439011";
@@ -51,7 +52,7 @@ beforeAll(async () => {
     },
     ServiceExecutionTransaction: { findOneAndUpdate },
   }));
-  await jest.unstable_mockModule("../../worker/lib/nakshatra-paid-access.js", () => ({
+  await jest.unstable_mockModule("../../worker/lib/nakshatra-paid-access.js", () => withSettle({
     verifyPerUsePayment,
     logPerUsePaymentProof: () => {},
   }));

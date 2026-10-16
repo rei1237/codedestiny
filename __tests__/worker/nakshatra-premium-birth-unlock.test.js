@@ -1,5 +1,6 @@
 /** @jest-environment node */
 // 나크샤트라 영구 해금 리포트 2종(지배성·다샤 인생지도) — 출생 기반(userId + birthKey + contentKey) 해금 배달 계약.
+import { withSettle } from "../fixtures/per-use-settle-mock.mjs";
 import { jest } from "@jest/globals";
 import { TEST_USER_ID, OTHER_USER_ID, testCard, profileCardModel } from "../fixtures/profile-card-model.mjs";
 import { computeBirthKey, toBirthEntitlementProfileId } from "../../worker/lib/birth-key.js";
@@ -39,7 +40,7 @@ beforeAll(async () => {
     getSwissVedicPlanets: swiss, getSwissMoonLongitudes: jest.fn(async (_env, moments) => moments.map(() => 100)),
   }));
   // 회당 결제 증빙(관측 전용)은 이 계약 밖이다 — DB 에 닿지 않게 대역한다.
-  jest.unstable_mockModule("../../worker/lib/nakshatra-paid-access.js", () => ({
+  jest.unstable_mockModule("../../worker/lib/nakshatra-paid-access.js", () => withSettle({
     verifyPerUsePayment: async () => ({ proven: true, source: "test" }), logPerUsePaymentProof: () => {},
   }));
   ({ handleNakshatraPremiumRoutes: route, __nakshatraPremiumTestUtils: utils } = await import("../../worker/routes/nakshatra-premium.js"));

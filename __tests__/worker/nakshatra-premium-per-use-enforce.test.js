@@ -1,5 +1,6 @@
 /** @jest-environment node */
 // 나크샤트라 회당 상품(무후르타·VVIP 코덱스)은 결제 증빙이 없으면 본문을 주지 않는다.
+import { withSettle } from "../fixtures/per-use-settle-mock.mjs";
 import { jest } from "@jest/globals";
 
 const verifyPerUsePayment = jest.fn();
@@ -14,7 +15,7 @@ beforeAll(async () => {
   jest.unstable_mockModule("../../worker/lib/swiss-ephemeris.js", () => ({
     getSwissVedicPlanets: jest.fn(async () => null), getSwissMoonLongitudes: jest.fn(async (_env, moments) => moments.map(() => 100)),
   }));
-  jest.unstable_mockModule("../../worker/lib/nakshatra-paid-access.js", () => ({ verifyPerUsePayment, logPerUsePaymentProof: () => {} }));
+  jest.unstable_mockModule("../../worker/lib/nakshatra-paid-access.js", () => withSettle({ verifyPerUsePayment, logPerUsePaymentProof: () => {} }));
   ({ handleNakshatraPremiumRoutes: route } = await import("../../worker/routes/nakshatra-premium.js"));
 });
 beforeEach(() => {

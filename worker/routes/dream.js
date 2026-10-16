@@ -2,7 +2,7 @@ import { parseNarrativeResponse, stripNarrativeHeadings, narrativePriorDigest, N
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson, HttpError } from "../lib/http.js";
 import { getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
 import { runPaidNarrativeDelivery } from "../lib/paid-narrative-delivery.js";
-import { verifyPerUsePayment } from "../lib/nakshatra-paid-access.js";
+import { settlePerUseAccessDecision, verifyPerUsePayment } from "../lib/nakshatra-paid-access.js";
 import { FEATURE_KEY_PRICE_TABLE } from "../lib/paid-feature-registry.js";
 import { countPaidReportBodyChars } from "../lib/paid-report-quality.js";
 import { callGeminiText } from "../lib/gemini.js";
@@ -76,12 +76,19 @@ export async function verifyPsychoDreamAccess(request, env = {}, body = {}, know
     userDoc: auth.authUserDoc,
   });
   if (decision?.allowed) {
-    return {
-      ok: true,
-      auth,
-      accessType: String(decision.licenseType || decision.accessSource || "paid").trim(),
-      accessSource: String(decision.accessSource || decision.reason || "").trim(),
-    };
+    // 🔴 이용권·라이선스·월구독 허용은 읽기 전용 판정이다(2026-10-16). 이번 requestId 로 결제가 확인되거나
+    //    이용권이 실제로 차감된 경우만 연다. 거부면 아래 토큰·증빙 경로로 넘어간다.
+    const settled = await settlePerUseAccessDecision(env, { decision, userId: auth.userId, featureKey: DREAM_PSYCHO_FEATURE_KEY,
+      coinPrice: FEATURE_KEY_PRICE_TABLE[DREAM_PSYCHO_FEATURE_KEY].cost, requestId: typeof body.requestId === "string" ? body.requestId : "" });
+    if (settled.allowed === null) return { ok: false, status: 503, code: "PAYMENT_VERIFY_UNAVAILABLE", message: "결제 확인이 지연되고 있어요. 같은 요청을 다시 확인해 주세요." };
+    if (settled.allowed) {
+      return {
+        ok: true,
+        auth,
+        accessType: settled.source,
+        accessSource: String(decision.accessSource || decision.reason || "").trim(),
+      };
+    }
   }
 
   // canAccessPaidFeature는 회당 결제(월정석 차감 등)를 판정하지 않고 항상 PAYMENT_REQUIRED를 준다

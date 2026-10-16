@@ -1,4 +1,5 @@
 /** @jest-environment node */
+import { withSettle } from "../fixtures/per-use-settle-mock.mjs";
 import { jest } from '@jest/globals';
 // Stress fixture: preserve multi-part storage/lease failures at the former batch width.
 // Production's one-part contract is covered by paid-llm-sequential.test.js.
@@ -34,7 +35,7 @@ beforeAll(async()=>{
  const db=await import('../../worker/lib/db.js'),auth=await import('../../worker/lib/auth.js'),models=await import('../../worker/lib/models.js'),structured=await import('../../worker/lib/structured-consultation.js');
  jest.unstable_mockModule('../../worker/lib/db.js',()=>({...db,connectDb:async()=>{}}));
  jest.unstable_mockModule('../../worker/lib/auth.js',()=>({...auth,getOptionalUserFromRequest:async()=>({userId})}));
- jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js',()=>({verifyPerUsePayment:async()=>({proven:true,source:accessMode,...(accessMode==='pass'?{passRefund:docs.length?undefined:{cycleKey:'2026-10-01',cost:300}}:{transactionId:'original-'+accessMode})})}));
+ jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js',()=>withSettle({verifyPerUsePayment:async()=>({proven:true,source:accessMode,...(accessMode==='pass'?{passRefund:docs.length?undefined:{cycleKey:'2026-10-01',cost:300}}:{transactionId:'original-'+accessMode})})}));
  jest.unstable_mockModule('../../worker/lib/models.js',()=>({...models,RelationshipBoundaryTest:model,
   PaidExecutionRecord:{findOne:()=>query(revoked?{}:null)},Payment:{findOne:()=>query(null)},PointHistory:{findOne:()=>query(null)},MonthlyCreditLedger:{findOne:()=>query(null)},
  }));

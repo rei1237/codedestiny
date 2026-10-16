@@ -12,6 +12,8 @@ import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { clampSyncLlmTimeoutMs, EDGE_RESPONSE_DEADLINE_MS } from "../lib/sync-llm-timeout.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
+// 이용권 정산 모듈은 db 트랜잭션 옵션까지 끌고 와 쓸 때만 불러온다(이 라우트를 db 대역으로 띄우는 테스트 보호).
+const loadPerUsePaidAccess = () => import("../lib/nakshatra-paid-access.js");
 import { MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory, SukuyoCompatibilityAiConsultation, User } from "../lib/models.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
@@ -1284,7 +1286,13 @@ async function resolveStartAccess(request, env, auth, body, normalized, accessHa
   const billingEvidence = await withMongoRetry(env, () => resolveBillingUsageEvidence(env, auth, { ...body, idempotencyKey }));
   if (billingEvidence?.ok) return billingEvidence;
   const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE, userDoc: auth.authUserDoc, requestId: idempotencyKey });
-  if (decision.allowed) return { ok: true, accessType: mapAccessType(decision, user || {}), paymentId: paymentIdFromBody(body) };
+  // 🔴 이용권·라이선스·월구독 허용은 읽기 전용이다(2026-10-16). 이번 키로 결제를 찾거나 이용권을 실제로 차감해야 연다.
+  //    재확인·재개는 같은 키라 이미 차감한 기록을 인정한다(acceptSettled).
+  const { settlePerUseAccessDecision } = await loadPerUsePaidAccess();
+  const settled = await settlePerUseAccessDecision(env, { decision, userId: auth.userId, featureKey: FEATURE_KEY,
+    coinPrice: COIN_PRICE, requestId: idempotencyKey, acceptSettled: true });
+  if (settled.allowed === null) throw resultStorageUnavailable(idempotencyKey);
+  if (settled.allowed) return { ok: true, accessType: mapAccessType(decision, user || {}), paymentId: paymentIdFromBody(body) };
   const paidPaymentId = paymentIdFromBody(body);
   if (await hasPaidPayment(env, auth, paidPaymentId)) return { ok: true, accessType: "paid", paymentId: paidPaymentId };
   return { ok: false };

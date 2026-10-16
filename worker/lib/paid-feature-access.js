@@ -11,7 +11,7 @@ import {
 import { Payment, User } from "./models.js";
 import { getUnlockedContentSnapshot } from "./content-unlocks.js";
 import { PermissionService } from "./permission-service.js";
-import { normalizeHoneyPassEntitlement } from "./profile-limits.js";
+import { canUseByPass, normalizeHoneyPassEntitlement } from "./profile-limits.js";
 import { resolveFeatureAccessPolicy } from "./entitlement-policy.js";
 
 const SINGLE_PAYMENT_STATUSES = Object.freeze(["paid", "success", "fulfilled"]);
@@ -255,7 +255,8 @@ function resolveDecisionFromUserDoc(userId, user, spec, hasPurchase) {
   const familyPassOnly = featureCandidates.some((key) => isDirectOrFamilyPaidFeatureKey(key));
   const activeTier = cleanText(directLicense.tier || pass.passTier || pass.tier).toLowerCase();
   const passExcluded = isPassExcluded(featureCandidates) || (familyPassOnly && activeTier !== "family");
-  if (!passExcluded && directLicense.active) {
+  // 🔴 라이선스도 이용권과 같은 건당 상한을 따른다(2026-10-16). 예전에는 licenses[tier]>0 이면 가격을 보지 않았다.
+  if (!passExcluded && directLicense.active && canUseByPass({ isActive: true, passTier: directLicense.tier }, coinCost)) {
     return buildDecision({
       allowed: true,
       reason: resolveLicenseReason(directLicense.tier),

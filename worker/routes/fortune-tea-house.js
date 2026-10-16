@@ -1443,9 +1443,17 @@ function readFortuneTeaRequestId(body = {}, consultRequest = {}) {
   );
 }
 
+// 회당 정산 정본은 이용권 허용 경로에서만 쓴다. 정적 import 하면 라우트 로드가 결제 트랜잭션 계층까지 끌어온다.
+const loadPerUsePaidAccess = () => import("../lib/nakshatra-paid-access.js");
+const loadPassConsumption = () => import("../lib/pass-consumption.js");
+
+function fortuneTeaCoinPrice(pricing = {}) {
+  return Math.max(0, Math.floor(Number(pricing?.coinPrice ?? pricing?.cost ?? 0)));
+}
+
 function buildFortuneTeaPaymentPayload({ featureKey, pricing = {}, consultRequest = {}, requestId = "" }) {
   const reason = cleanText(pricing.reason, 120) || "운명 찻집 상담";
-  const cost = Math.max(0, Math.floor(Number(pricing.coinPrice ?? pricing.cost ?? 0)));
+  const cost = fortuneTeaCoinPrice(pricing);
   const amountKRW = Math.max(0, Math.floor(Number(pricing.amountKRW ?? pricing.amountKrw ?? pricing.paymentAmount ?? 0)));
   const membershipCreditCost = Math.max(0, Math.floor(Number(pricing.membershipCreditCost ?? 0)));
   const idempotencyKey = cleanText(requestId || consultRequest.attemptId || consultRequest.resultId || consultRequest.jobId, 180);
@@ -1637,12 +1645,44 @@ async function verifyFortuneTeaHouseConsultAccess(request, env, body, consultReq
   }
 
   if (isReusableFortuneTeaAccessDecision(accessDecision)) {
+    // 🔴 이 판정은 읽기 전용이다(2026-10-16 사건). 본문은 생성 claim 직후
+    // settlePerUseAccessDecision 이 이용권을 실제로 차감한 뒤에만 만든다.
     return {
       ok: true,
       auth,
       featureKey,
       pricing: accessDecision.pricing || pricingResult.pricing,
       accessDecision,
+      deferredUsage: false,
+      requiresPerUseSettlement: true,
+    };
+  }
+
+  // 이 상담이 이미 정산됐는데(이용권 차감) 그 차감으로 한도가 소진돼 판정이 거부로 바뀐 경우다.
+  // 같은 결과의 기존 정산만 인정하고 새로 차감하지 않는다 — 재시도와 전달 직전 재확인용.
+  let settledProof = { proven: false };
+  try {
+    const { verifyPerUsePayment } = await loadPerUsePaidAccess();
+    settledProof = await verifyPerUsePayment(env, {
+      userId: auth.userId,
+      featureKey,
+      coinPrice: fortuneTeaCoinPrice(pricingResult.pricing),
+      requestId: buildHoneyResultId(body, consultRequest),
+      requireExisting: true,
+    });
+  } catch (error) {
+    // 확인하지 못한 정산은 인정하지 않는다 — 아래 402 로 떨어진다.
+    console.warn("[fortune-tea-house] settled pass replay check unavailable", { name: error?.name });
+  }
+  if (settledProof.proven === null) return { ok: false, response: buildFortuneTeaAccessDegradedResponse() };
+  if (settledProof.proven) {
+    return {
+      ok: true,
+      auth,
+      featureKey,
+      pricing: pricingResult.pricing,
+      accessDecision: { allowed: true, reason: "PER_USE_SETTLED", userId: auth.userId, featureKey,
+        accessSource: settledProof.source, pricing: pricingResult.pricing },
       deferredUsage: false,
     };
   }
@@ -4824,7 +4864,70 @@ async function beginFortuneTeaHouseGeneration({ auth, resultId, consultRequest, 
     if (Number(error?.code) === 11000) return { ok: false, inProgress: true };
     throw error;
   }
-  return { ok: true, lockToken, checkpoint: existing?.generationCheckpoint, pending: pending ? { result: pending, generationMeta: existing.generationMeta || {} } : null };
+  return { ok: true, lockToken, created: !existing, passRefundedAt: existing?.passRefund?.refundedAt || null,
+    checkpoint: existing?.generationCheckpoint, pending: pending ? { result: pending, generationMeta: existing.generationMeta || {} } : null };
+}
+
+// 이용권 정산은 결과 1건에 1번이다. 키를 resultId 로 두므로 같은 결과의 재시도는 멱등이고,
+// requestId 를 고정한 채 resultId 만 바꿔도 새 상담은 새로 차감된다.
+async function settleFortuneTeaHouseGeneration({ env, access, resultId, generation, consultRequest }) {
+  const { results } = honeyCollections();
+  const userId = String(access.auth.userId);
+  const releaseClaim = async () => {
+    // 이번 요청이 만든 빈 문서는 지운다. 남겨 두면 결제 후 재시도가 accessKey 불일치(409)로 막힌다.
+    if (generation.created) {
+      await results.deleteOne({ userId, resultId, status: "generating", "generationLock.token": generation.lockToken }).catch(() => {});
+    } else {
+      await releaseFortuneTeaDelivery({ auth: access.auth, resultId, lockToken: generation.lockToken });
+    }
+  };
+  const { settlePerUseAccessDecision } = await loadPerUsePaidAccess();
+  const settled = await settlePerUseAccessDecision(env, {
+    decision: access.accessDecision,
+    userId,
+    featureKey: access.featureKey,
+    coinPrice: fortuneTeaCoinPrice(access.pricing),
+    requestId: resultId,
+    profileId: cleanText(consultRequest.profileId, 120),
+  });
+  if (settled.allowed === null) {
+    await releaseClaim();
+    return { ok: false, response: buildFortuneTeaAccessDegradedResponse() };
+  }
+  if (!settled.allowed) {
+    await releaseClaim();
+    return {
+      ok: false,
+      response: buildFortuneTeaPaymentRequiredResponse({
+        featureKey: access.featureKey,
+        pricing: access.pricing,
+        accessDecision: { ...access.accessDecision, allowed: false, reason: settled.reason || "REQUEST_PAYMENT_REQUIRED" },
+        consultRequest,
+        status: 402,
+      }),
+    };
+  }
+  if (settled.passRefund) {
+    // 재시도의 멱등 재생은 passRefund 를 돌려주지 않으므로, 최종 실패 환불은 문서에 남긴 값을 쓴다.
+    await results.updateOne(
+      { userId, resultId, "generationLock.token": generation.lockToken },
+      { $set: { passSettlement: { source: settled.source, cycleKey: settled.passRefund.cycleKey, cost: settled.passRefund.cost, at: new Date() } } },
+    );
+  }
+  return { ok: true };
+}
+
+// 재시도할 수 없는 최종 실패에서만 부른다. 본문을 받지 못했으니 이번 차감을 되돌린다.
+async function refundFortuneTeaHousePassSettlement({ auth, resultId }) {
+  const { results } = honeyCollections();
+  const userId = String(auth.userId);
+  const doc = await results.findOne({ userId, resultId }, { projection: { passSettlement: 1, passRefund: 1 } });
+  const settlement = doc?.passSettlement;
+  if (!settlement?.cycleKey || doc?.passRefund?.refundedAt) return;
+  const { refundPassCoverage } = await loadPassConsumption();
+  const refunded = await refundPassCoverage({ userId, cycleKey: settlement.cycleKey, cost: settlement.cost, refundId: resultId });
+  // 차감 마커는 환불 뒤에도 남는다. refundedAt 이 없으면 같은 결과의 재시도가 무료로 다시 생성된다.
+  await results.updateOne({ userId, resultId }, { $set: { passRefund: { refundedAt: new Date(), refunded: Boolean(refunded?.refunded), reason: refunded?.reason || "" } } });
 }
 
 async function markFortuneTeaHouseGenerationFailed({ env, auth, resultId, code, message, lockToken }) {
@@ -6099,6 +6202,22 @@ async function handleConsult(request, env, ctx = null, recoveryAuth = null) {
         message: "결제는 확인되었고 상담문은 아직 생성 중입니다. 잠시 뒤 같은 요청으로 다시 확인해 주세요.",
       }, { status: 202 });
     }
+    if (generation.passRefundedAt) {
+      await releaseFortuneTeaDelivery({ auth: access.auth, resultId, lockToken: generation.lockToken });
+      return json({ ok: false, reason: "PASS_ALREADY_REFUNDED", resultId,
+        message: "이 상담은 생성에 실패해 이용권 한도를 돌려드렸어요. 새 상담으로 다시 신청해 주세요." }, { status: 409 });
+    }
+    if (access.requiresPerUseSettlement) {
+      let settlement;
+      try {
+        settlement = await settleFortuneTeaHouseGeneration({ env, access, resultId, generation, consultRequest });
+      } catch (error) {
+        await releaseFortuneTeaDelivery({ auth: access.auth, resultId, lockToken: generation.lockToken });
+        if (Number(error?.status) === 409 || Number(error?.status) === 422) throw error;
+        return buildFortuneTeaAccessDegradedResponse();
+      }
+      if (!settlement.ok) return settlement.response;
+    }
   }
   // 생성 결과 보존 → 기존 증빙 apply → 완료 저장 → 리워드 순서로 전달한다.
   const runGeneration = async () => {
@@ -6122,6 +6241,11 @@ async function handleConsult(request, env, ctx = null, recoveryAuth = null) {
     });
     if (failedCurrentGeneration.marked && failedCurrentGeneration.retryable) {
       return json({ ...failedCurrentGeneration.progress, status: "partial" }, { status: 202 });
+    }
+    if (failedCurrentGeneration.marked && access.auth?.userId) {
+      await refundFortuneTeaHousePassSettlement({ auth: access.auth, resultId }).catch((refundError) => {
+        console.warn("[fortune-tea-house/pass] refund after failed generation unavailable", { name: refundError?.name });
+      });
     }
     if (access.deferredUsage && failedCurrentGeneration.marked) {
       await callFortuneTeaDeferredUsageRoute({

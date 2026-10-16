@@ -17,6 +17,7 @@ let billingMock;
 let billingCalls;
 let appliedKeys;
 let loseApplyResponse;
+let settleCalls = [];
 
 function clone(value) {
   return value == null ? value : JSON.parse(JSON.stringify(value));
@@ -271,6 +272,12 @@ beforeAll(async () => {
       pricing: null,
     })),
   }));
+  // 이용권 허용(license_active)은 읽기 전용 판정이라 생성 claim 직후 정산을 거친다(2026-10-16).
+  // 정산 계약은 consultation-per-use-payment·fortune-tea-house-pass-settlement 가 지키고, 여기서는 통과만 세운다.
+  jest.unstable_mockModule("../../worker/lib/nakshatra-paid-access.js", () => ({
+    settlePerUseAccessDecision: jest.fn(async (_env, args) => { settleCalls.push(args); return { allowed: true, source: "pass", reason: "" }; }),
+    verifyPerUsePayment: jest.fn(async () => ({ proven: false, source: "", reason: "NO_RECORD" })),
+  }));
   jest.unstable_mockModule("../../worker/lib/models.js", () => ({
     PaidExecutionRecord: modelForCollection("paid_execution_records"),
     PointHistory: modelForCollection("point_histories"),
@@ -318,6 +325,7 @@ beforeEach(() => {
   billingCalls = [];
   appliedKeys = new Set();
   loseApplyResponse = false;
+  settleCalls = [];
   fakeDb.reset();
   authState = { userId: USER_ID, email: "tea@example.com", role: "user" };
   paidAccessAllowed = true;
@@ -612,6 +620,8 @@ describe("fortune tea house honey drops", () => {
 
     expect(firstPayload.honeyDrops.earnedThisResult).toBe(true);
     expect(secondPayload.honeyDrops.duplicateResult).toBe(true);
+    // 이용권은 결과 1건에 한 번만 정산한다. 완료된 결과의 재요청은 정산 없이 저장본을 준다.
+    expect(settleCalls).toEqual([expect.objectContaining({ requestId: "fortune-tea-house:same-result" })]);
     expect(callGeminiTextMock.mock.calls.length).toBe(callCountAfterFirst);
     expect(wallet.balance).toBe(1);
     expect(ledgers).toHaveLength(1);
