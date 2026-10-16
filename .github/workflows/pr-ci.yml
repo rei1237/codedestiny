@@ -220,6 +220,7 @@ jobs:
       - name: Run the static UI guards the release runs
         run: |
           npm run test:node
+          npm run verify:neo-consultation-ui
           npm run verify:quantum-card-cascade
           # 종합 사주 풀이 해금 본문이 모바일·데스크탑 두 셸에서 실제로 보이는지 확인한다.
           # 이 잡만 Chromium 을 설치하므로 브라우저 검증기의 제자리는 여기다.

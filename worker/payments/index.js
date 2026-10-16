@@ -44,6 +44,8 @@ import { PaymentError, classify, contractFor, paymentError, responseHeadersFor }
 import { createPaymentContext, toObjectId, withPaymentDb } from "./db.js";
 import { logPayment } from "./log.js";
 import { listProducts, resolveProduct } from "./catalog.js";
+import { assertFeatureEnabled } from "../lib/billing-feature-registry.js";
+import { resolveNeoOrderProduct } from "../neo-consultation/payment.js";
 import { createServicePackRoutes } from "./service-pack-routes.js";
 import { verifyPgPayment } from "./pg.js";
 import { isLegacySingleOrderId } from "./order-id.js";
@@ -994,6 +996,10 @@ async function grantOrderEntitlement(db, order, { rethrow = false } = {}) {
     // 회당 구매권은 주문·요청에 묶인다. 서비스별 실행 기록을 미리 만들거나
     // 기능 전체를 영구 해금하지 않아 기존 실행 신원과 새 회차의 과금 정책을 보존한다.
     if (String(product.billingType || "per_use") === "per_use") {
+      if (product.featureKey === "neo-email-consultation") {
+        const { acceptNeoConfirmedPayment } = await import("../neo-consultation/payment.js");
+        await acceptNeoConfirmedPayment(db, order);
+      }
       if (/^yn-[a-f0-9]{64}$/.test(order.requestId || '')) {
         const {claimFortunePayment}=await import('../yeongnyangi/payment-intent.js');
         if(!await claimFortunePayment(db,order))return false;
@@ -1285,9 +1291,15 @@ const ROUTES = {
   "POST /orders": {
     auth: "required",
     async handle({ request, env, ctx, userId, body, withDb }) {
-      const product = withChargeAmount(env, resolveProduct({
+      const unitProduct = resolveProduct({
         productId: body.productId, featureKey: body.featureKey, reason: body.reason,
-      }));
+      });
+      const availability = assertFeatureEnabled(unitProduct);
+      if (!availability.ok) throw paymentError(availability.code, availability.message);
+      const pricedProduct = unitProduct.featureKey === 'neo-email-consultation'
+        ? await withDb(env, ctx, db => resolveNeoOrderProduct(db, unitProduct, userId, body.requestId, body.idempotencyKey))
+        : unitProduct;
+      const product = withChargeAmount(env, pricedProduct);
       ctx.productId = product.productId;
       const paymentMethod = String(body.paymentMethod || "card_general");
       assertRegionalPaymentMethod(request, paymentMethod);
@@ -1332,7 +1344,12 @@ const ROUTES = {
       // 🔴 가격 해석은 구 정본(billing-feature-registry) 체인을 그대로 탄다(legacy-pricing.js).
       // 첫 배선은 catalog(resolveProduct)를 썼는데, mode/reportMode/categoryKey 변형 가격을 잃어
       // 해당 기능의 단건 결제가 400(금액 불일치)으로 막히는 라이브 결함이었다(2026-08-12 수정).
-      const listedProduct = preparedProduct || resolveLegacyProduct(body);
+      let listedProduct = preparedProduct || resolveLegacyProduct(body);
+      const availability = assertFeatureEnabled(listedProduct);
+      if (!availability.ok) throw paymentError(availability.code, availability.message);
+      if (listedProduct.featureKey === 'neo-email-consultation') {
+        listedProduct = await withDb(env, ctx, db => resolveNeoOrderProduct(db, listedProduct, userId, body.requestId, body.idempotencyKey));
+      }
       ctx.productId = listedProduct.productId;
 
       /* 🔴 트립와이어는 **정가** 기준이다. 클라이언트가 낡은 가격으로 결제창을 여는 것을 막는 장치라
