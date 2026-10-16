@@ -1,6 +1,6 @@
 # 네오에게 물어봐 — mock 구현 계약
 
-status: in-progress
+status: done
 
 ## 승인 범위
 
@@ -27,3 +27,10 @@ status: in-progress
 필수 CI node suite가 __tests__/ui/neo-consultation.test.mjs를 자동 실행한다. UI mock 검증기는 scripts/verify-neo-consultation-ui.mjs이며 고객·관리자 실제 React 컴포넌트에 인증·API mock만 주입한다.
 
 출시 전 답변 기한, 환불·취소, 개인정보 보존, 일일 접수 한도를 확정해야 한다. 런타임 어댑터 연결·지속 outbox 실행·실메일 제공자 상태 대조는 출시 작업이다. 이번 산출물은 판매 차단 mock 구현이며 운영 준비 완료를 의미하지 않는다.
+
+## 구현 검증 기록 (2026-10-16)
+
+- 고객 360·390·430·1280px, 관리자 390·1280px, 홈 390·1280px mock 브라우저 검증 통과. 외부 요청 차단, mock 결제 1건·메일 1건으로 통합 답변 재열람까지 확인.
+- 상담·홈 Node 검사 19개 및 실제 결제 코어·전달 분류·후기 제외 계약 Jest 검사 23개 통과. 타입 검사, Worker dry-run 빌드, guard-wiring 통과.
+- check:fast의 결제 가드 87개 통과. 전체 Jest 6,132개 중 신규 상품 분류 누락 2개 실패를 확인했고 해당 목록을 수정한 뒤 관련 23개를 재검증했다. 전체 Jest 재실행은 CI에서 수행한다.
+- 원래 main 작업 폴더의 미커밋 홈 변경 때문에 로컬 fast-forward가 차단됐다. 해당 변경을 보존하며 최신 origin/main을 병합한 작업본을 원격 main으로 전달한다. 로컬 main은 해당 세션 변경 정리 후 동기화해야 한다.
