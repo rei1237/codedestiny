@@ -135,6 +135,11 @@ export async function createOrder(db, {
   if (!uid) throw paymentError("UNAUTHORIZED", "로그인이 필요합니다.");
   const enabled = assertFeatureEnabled(product);
   if (!enabled.ok) throw paymentError(enabled.code, enabled.message);
+  if (product.featureKey === 'neo-email-consultation') {
+    if (!product.consultationSnapshot) throw paymentError('INVALID_REQUEST','서버 상담 견적이 필요합니다.');
+    const { resolveNeoOrderProduct } = await import('../neo-consultation/payment.js');
+    product = await resolveNeoOrderProduct(db,product,userId,requestId,idempotencyKey);
+  }
   /* 🔴 출생 기반 영구 해금은 **결제창을 열기 전에** 저장된 내 프로필인지 확인하고 그 생년월일을 주문에 박는다.
      profileId 가 없거나 남의 것이면 MISSING_PROFILE_ID / INVALID_PROFILE — 돈을 받은 뒤에 거절하지 않는다. */
   const birth = isBirthScopedProduct(product)

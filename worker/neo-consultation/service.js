@@ -4,12 +4,13 @@ import { buildNeoEmail } from './mail.js';
 const copy = value => structuredClone(value);
 const fail = (code, message, status = 409) => { throw neoError(code, message, status); };
 const paid = row => row.payment?.status === 'paid';
-const requirePaid = row => { if (!paid(row)) fail('PAYMENT_REQUIRED', '결제 상태를 먼저 확인해 주세요.'); };
+const requirePaid = row => { if (!paid(row) || row.payment.blocked || row.cancellationRequestedAt) fail('PAYMENT_REQUIRED', '결제 또는 취소 요청 상태를 먼저 확인해 주세요.'); };
 const requireAdmin = admin => { if (!admin?.id) fail('ADMIN_REQUIRED', '관리자 로그인이 필요합니다.', 403); };
 const publicRow = row => {
   const result = copy(row);
   delete result.userId;
   delete result.mailJobs;
+  delete result.checkout;
   result.deliveryStatus = Object.fromEntries(['receipt','answer'].map(kind => [kind, row.mailJobs.filter(job => job.kind === kind).at(-1)?.state || 'none']));
   result.questions = result.questions.map(q => ({ id: q.id, text: q.text, correction: q.correction || '', state: q.correction ? 'correction' : q.review ? 'reviewed' : 'received' }));
   result.deliveries = result.deliveries.map(delivery => ({
@@ -20,7 +21,7 @@ const publicRow = row => {
 };
 
 /** 외부 효과는 어댑터로 주입. 런타임 라우트는 출시 전 이 서비스를 생성하지 않는다. */
-export function createNeoService({ repository, payments, sendMail, operatorEmail, now = () => new Date().toISOString(), id = () => crypto.randomUUID(), sendTimeoutMs = 8000 }) {
+export function createNeoService({ repository, payments, sendMail, operatorEmail, reserveCapacity = async () => {}, now = () => new Date().toISOString(), id = () => crypto.randomUUID(), sendTimeoutMs = 8000 }) {
   async function read(orderId) {
     const row = await repository.get(orderId);
     if (!row) fail('NOT_FOUND', '상담을 찾지 못했어요.', 404);
@@ -48,12 +49,35 @@ export function createNeoService({ repository, payments, sendMail, operatorEmail
   async function syncPayment(row) {
     if (!row.payment?.id) return row;
     const payment = await payments.read(row.payment.id);
+    row.payment.blocked = payment.blocked === true;
+    if (payment.status === 'failed' && row.state === 'pending') {
+      return save({...row,state:'payment_failed'},row.version);
+    }
     if (['cancelled','refunded'].includes(payment.status) && row.payment.status !== payment.status) {
-      return save({ ...row, payment: { ...row.payment, status: payment.status }, state: payment.status }, row.version);
+      return save({ ...row, payment: { ...row.payment, status: payment.status }, state: payment.status,
+        contentDeleteAfter:row.contentDeleteAfter || new Date(Date.parse(now())+7*86400000).toISOString() }, row.version);
     }
     return row;
   }
   return {
+    async maintenance(orderId) {
+      const row=await syncPayment(await read(orderId));
+      return save({...row,maintenanceAt:now()},row.version);
+    },
+    async purgeExpiredContent(orderId) {
+      const row = await read(orderId);
+      const expiredDraft = row.state === 'draft' && Date.parse(now())-Date.parse(row.createdAt)>=7*86400000;
+      if (row.contentDeletedAt || (!expiredDraft && (!row.contentDeleteAfter || row.contentDeleteAfter>now()))) return;
+      if (row.mailJobs.some(j => j.state === 'sending' && Date.parse(now())-Date.parse(j.claimedAt)<15*60000)) return;
+      row.email=''; row.context=''; row.birth=null;
+      delete row.checkout;
+      row.questions=row.questions.map(q => ({id:q.id,text:'',answerVersion:q.answerVersion,review:q.review}));
+      if (row.quote) row.quote.questions=row.quote.questions.map(q=>({id:q.id}));
+      row.deliveries=[];
+      row.mailJobs=row.mailJobs.map(({snapshot,...job})=>({...job,state:['pending','retry'].includes(job.state)?'expired':job.state}));
+      row.contentDeletedAt=now();
+      await save(row,row.version);
+    },
     async create(userId, input) {
       if (!userId) fail('UNAUTHORIZED', '로그인이 필요합니다.', 401);
       const valid = validateNeoInput(input);
@@ -82,9 +106,23 @@ export function createNeoService({ repository, payments, sendMail, operatorEmail
       if (!row.quote || row.quote.id !== quoteId) fail('QUOTE_CHANGED', '질문과 가격을 다시 확인해 주세요.');
       if (row.payment) return publicRow(row);
       if (!['draft','preparing'].includes(row.state)) fail('ORDER_LOCKED', '결제 준비할 수 없는 상태입니다.');
-      if (row.state === 'draft') row = await save({ ...row, state: 'preparing' }, row.version);
+      if (row.state === 'draft') row = await save({ ...row, state: 'preparing',
+        capacityDay: new Date(Date.parse(now()) + 9 * 3600000).toISOString().slice(0,10) }, row.version);
+      try { await reserveCapacity(row); }
+      catch (error) {
+        if (error.code === 'DAILY_CAPACITY_FULL') await save({...row,state:'draft',capacityDay:null},row.version);
+        throw error;
+      }
       const payment = await payments.prepare({ userId, featureKey: NEO_EMAIL_FEATURE, requestId: row.id, idempotencyKey: row.quote.id, amountKRW: row.quote.totalKRW, consultation: copy(row.quote) });
-      return publicRow(await save({ ...row, payment: { id: payment.id, status: 'pending' }, state: 'pending' }, row.version));
+      // 같은 견적의 느린 재시도가 먼저 저장한 결제 연결을 덮어쓰지 않는다.
+      const latest = await own(orderId, userId);
+      if (latest.payment) {
+        if (latest.payment.id !== payment.id) fail('PAYMENT_MISMATCH', '기존 결제 주문을 다시 확인해 주세요.');
+        return publicRow(latest);
+      }
+      row = latest;
+      if (row.state !== 'preparing' || row.quote?.id !== quoteId) fail('QUOTE_CHANGED', '질문과 가격을 다시 확인해 주세요.');
+      return publicRow(await save({ ...row, ...(payment.checkout ? {checkout:payment.checkout} : {}), payment: { id: payment.id, status: 'pending' }, state: 'pending' }, row.version));
     },
     async acceptPayment(orderId) {
       let row = await read(orderId);
@@ -94,12 +132,24 @@ export function createNeoService({ repository, payments, sendMail, operatorEmail
       if (payment.userId !== row.userId || payment.featureKey !== NEO_EMAIL_FEATURE || payment.amountKRW !== row.quote.totalKRW
         || payment.requestId !== row.id || payment.quoteId !== row.quote.id) fail('PAYMENT_MISMATCH', '주문과 결제 정보가 일치하지 않습니다.');
       if (paid(row)) return publicRow(row);
-      if (row.state !== 'pending') fail('ORDER_LOCKED', '접수 가능한 주문 상태가 아닙니다.');
+      if (!['pending','payment_failed'].includes(row.state)) fail('ORDER_LOCKED', '접수 가능한 주문 상태가 아닙니다.');
       row = await save({ ...row, payment: { ...row.payment, status: 'paid' }, state: 'received',
         mailJobs: [{ key: row.id + ':receipt', kind: 'receipt', state: 'pending', attempt: 0 }] }, row.version);
       return publicRow(row);
     },
     async get(userId, orderId) { return publicRow(await syncPayment(await own(orderId, userId))); },
+    async requestCancellation(userId, orderId, version) {
+      const row = await syncPayment(await own(orderId,userId));
+      assertVersion(row,version);
+      if (row.cancellationRequestedAt) return publicRow(row);
+      requirePaid(row);
+      if (row.mailJobs.some(j => j.kind === 'answer' && ['sending','unknown','sent'].includes(j.state)))
+        fail('DELIVERY_CHECK_REQUIRED','발송 여부 확인이 필요합니다. 고객센터에 주문번호로 취소·환불을 요청해 주세요.');
+      row.cancellationRequestedAt = now();
+      row.state = 'cancellation_requested';
+      row.mailJobs.push({key:row.id+':cancellation',kind:'cancellation',state:'pending',attempt:0});
+      return publicRow(await save(row,row.version));
+    },
     async list(userId) {
       if (!userId) fail('UNAUTHORIZED', '로그인이 필요합니다.', 401);
       return (await repository.list(userId)).map(publicRow);
@@ -164,10 +214,11 @@ export function createNeoService({ repository, payments, sendMail, operatorEmail
     },
     async deliver(orderId, jobKey) {
       let row = await syncPayment(await read(orderId));
-      requirePaid(row);
       const job = row.mailJobs.find(j => j.key === jobKey);
+      if (job?.kind !== 'cancellation') requirePaid(row);
+      else if (!row.cancellationRequestedAt) fail('CANCELLATION_REQUIRED','취소 요청을 확인해 주세요.');
       if (!job || !['pending','retry'].includes(job.state)) return row;
-      job.state = 'sending'; job.attempt++; job.claimedAt = now();
+      job.state = 'sending'; job.attempt++; job.claimedAt = now(); job.lastAttemptAt = now();
       row = await save(row, row.version);
       let outcome;
       let timer;
@@ -181,12 +232,14 @@ export function createNeoService({ repository, payments, sendMail, operatorEmail
       finally { clearTimeout(timer); }
       const current = await read(orderId);
       const currentJob = current.mailJobs.find(j => j.key === jobKey);
+      if (currentJob?.state !== 'sending') return current;
       currentJob.state = outcome?.state === 'sent' ? 'sent' : outcome?.state === 'failed' ? 'retry' : 'unknown';
       currentJob.providerId = outcome?.providerId || null;
       if (currentJob.state === 'sent') {
         currentJob.sentAt = now();
         if (currentJob.kind === 'answer') {
           current.deliveries.push({ key: job.key, ...copy(currentJob.snapshot), sentAt: now() });
+          current.contentDeleteAfter ||= new Date(Date.parse(now())+7*86400000).toISOString();
           if (paid(current)) current.state = 'sent';
         }
       }
@@ -201,8 +254,9 @@ export function createNeoService({ repository, payments, sendMail, operatorEmail
       if (job.state === 'sending' && Date.parse(now()) - Date.parse(job.claimedAt) < 15 * 60 * 1000) fail('DELIVERY_IN_PROGRESS', '메일 전달 처리 중입니다. 결과 확인 후 다시 시도해 주세요.');
       job.resolvedBy = admin.id; job.resolvedAt = now();
       job.state = resolution === 'sent' ? 'sent' : 'retry';
-      if (resolution === 'sent' && job.kind === 'answer' && !row.deliveries.some(d => d.key === job.key)) {
+      if (resolution === 'sent' && job.kind === 'answer' && !row.contentDeletedAt && !row.deliveries.some(d => d.key === job.key)) {
         row.deliveries.push({ key: job.key, ...copy(job.snapshot), sentAt: now() }); row.state = 'sent';
+        row.contentDeleteAfter ||= new Date(Date.parse(now())+7*86400000).toISOString();
       }
       return save(row, row.version);
     },

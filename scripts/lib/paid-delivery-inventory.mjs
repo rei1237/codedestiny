@@ -74,7 +74,7 @@ function deliveryCandidates(featureKey){
   }));
   const fixture=deterministic.get(featureKey), past=historical.get(featureKey), action=nonResult.get(featureKey);
   return [...llm,
-    featureKey === 'neo-email-consultation' && {deliveryKind:'human-reviewed-email',generation:'worker/neo-consultation/service.js',serverRecovery:null,evidence:{saleEnabled:false,automaticLlm:false}},
+    featureKey === 'neo-email-consultation' && {deliveryKind:'human-reviewed-email',generation:'worker/neo-consultation/service.js',serverRecovery:'worker/neo-consultation/tasks.js',evidence:{saleEnabled:true,automaticLlm:false}},
     fixture && {deliveryKind:'deterministic',generation:fixture.consumer.file,evidence:{cta:fixture.cta,consumer:fixture.consumer}},
     past && {deliveryKind:'historical',generation:null,evidence:{retained:past.retained,replacement:past.replacement}},
     REGISTRY_ONLY_NON_LLM_KEYS.includes(featureKey) && {deliveryKind:'registry-only',generation:null,evidence:null},

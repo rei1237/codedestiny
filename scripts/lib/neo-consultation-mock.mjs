@@ -6,7 +6,7 @@ import { NEO_EMAIL_FEATURE } from '../../lib/neo-consultation/contract.js';
 
 export function createNeoMock() {
   const repository = createNeoMemoryRepository(), paymentRows = new Map(), mails = [];
-  let sequence = 0, mailOutcome = 'sent';
+  let sequence = 0, mailOutcome = 'sent', currentTime = '2026-10-16T04:00:00.000Z';
   const payments = {
     async prepare(input) {
       const row = await repository.get(input.requestId);
@@ -23,7 +23,7 @@ export function createNeoMock() {
     },
   };
   const service = createNeoService({ repository, payments, operatorEmail: 'operator@example.invalid',
-    id: () => 'mock-neo-' + (++sequence), now: () => '2026-10-16T04:00:00.000Z',
+    id: () => 'mock-neo-' + (++sequence), now: () => currentTime,
     sendMail: async (message, meta) => {
       mails.push({ message, ...meta });
       return { state: mailOutcome, providerId: mailOutcome === 'sent' ? 'mock-mail-' + mails.length : undefined };
@@ -31,6 +31,7 @@ export function createNeoMock() {
   });
   return { service, repository, payments, paymentRows, mails,
     setMailOutcome(value) { mailOutcome = value; },
+    setNow(value) { currentTime = value; },
     async pay(id) {
       const row = await repository.get(id);
       const payment = paymentRows.get(row.payment.id);

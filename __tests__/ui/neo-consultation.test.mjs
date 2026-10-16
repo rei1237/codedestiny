@@ -5,7 +5,7 @@ import { createNeoMock } from '../../scripts/lib/neo-consultation-mock.mjs';
 import { NEO_EMAIL_FEATURE, validateNeoInput } from '../../lib/neo-consultation/contract.js';
 import { resolveProduct } from '../../worker/payments/catalog.js';
 import { assertFeatureEnabled } from '../../worker/lib/billing-feature-registry.js';
-import { handleNeoConsultations } from '../../worker/routes/neo-consultations.js';
+import { handleNeoConsultations, handleNeoRuntimeRequest } from '../../worker/routes/neo-consultations.js';
 import { priceNeoOrder } from '../../worker/neo-consultation/payment.js';
 import { neoMailAdapter } from '../../worker/neo-consultation/mail.js';
 import { renderNeoEmailHomeEntry } from '../../lib/brand/neo-email-home-entry.mjs';
@@ -29,10 +29,53 @@ async function reviewed(mock, count = 1) {
 }
 const rejects = (promise, code) => assert.rejects(promise, e => e.code === code);
 
-test('질문 1/2/3개는 서버 견적으로 10000/20000/30000원, 단건 전용·판매 차단', async () => {
+test('메일·PG 설정이 없으면 판매 정본이 활성화되어도 운영 접수는 닫힌다',async()=>{
+  const response=await handleNeoRuntimeRequest(new Request('https://example.invalid/api/neo-consultations/status'),{});
+  expectDisabled(await response.json());
+});
+function expectDisabled(data){ assert.equal(data.enabled,false); assert.equal(data.unitKRW,10000); }
+
+test('결제 실패 뒤 같은 주문의 지연 승인은 새 결제 없이 복구한다',async()=>{
+  const m=createNeoMock();const row=await pending(m);
+  m.paymentRows.get(row.payment.id).status='failed';
+  assert.equal((await m.service.get(user,row.id)).state,'payment_failed');
+  m.paymentRows.get(row.payment.id).status='paid';
+  const received=await m.service.acceptPayment(row.id);
+  assert.equal(received.state,'received');assert.equal(m.paymentRows.size,1);
+});
+
+test('발송 전 취소는 답변 발송을 잠그고 운영자에게 본문 없는 알림만 보낸다',async()=>{
+  const m=createNeoMock(); let row=await reviewed(m);
+  row=await m.service.enqueueAnswer(admin,row.id,row.version);
+  const answer=row.mailJobs.find(j=>j.kind==='answer');
+  row=await m.service.requestCancellation(user,row.id,row.version);
+  await rejects(m.service.deliver(row.id,answer.key),'PAYMENT_REQUIRED');
+  await m.service.deliver(row.id,row.id+':cancellation');
+  assert.equal(m.mails.length,1);
+  assert.match(m.mails[0].message.text,/취소·전액 환불/);
+  assert.doesNotMatch(m.mails[0].message.text,/customer@example|현재 상황|이번 선택/);
+});
+
+test('최초 발송 7일 뒤 상담 본문·이메일·출생정보와 복제 스냅샷을 삭제한다',async()=>{
+  const m=createNeoMock(); let row=await reviewed(m);
+  row=await m.service.enqueueAnswer(admin,row.id,row.version);
+  await m.service.deliver(row.id,row.mailJobs.find(j=>j.kind==='answer').key);
+  m.setNow('2026-10-22T04:00:00.000Z');
+  await m.service.purgeExpiredContent(row.id);
+  assert.equal((await m.service.get(user,row.id)).deliveries.length,1);
+  m.setNow('2026-10-23T04:00:00.000Z');
+  await m.service.purgeExpiredContent(row.id);
+  const stored=await m.repository.get(row.id);
+  assert.equal(stored.email,''); assert.equal(stored.context,''); assert.equal(stored.birth,null);
+  assert.equal(stored.deliveries.length,0); assert.equal(stored.quote.totalKRW,10000);
+  assert.doesNotMatch(JSON.stringify(stored),/customer@example|이번 선택|작은 행동/);
+  await rejects(m.service.enqueueAnswer(admin,row.id,stored.version,true),'REVIEW_REQUIRED');
+});
+
+test('질문 1/2/3개는 서버 견적으로 10000/20000/30000원, 단건 전용', async () => {
   const product = resolveProduct({featureKey:NEO_EMAIL_FEATURE});
   assert.equal(product.directOnly,true); assert.equal(product.billingType,'per_use');
-  assert.equal(assertFeatureEnabled(product).ok,false);
+  assert.equal(assertFeatureEnabled(product).ok,true);
   for (const n of [1,2,3,10]) {
     const m = createNeoMock(), row = await pending(m,n);
     assert.equal(row.quote.totalKRW,n*10000);
@@ -160,12 +203,12 @@ test('CI node suite discovers this test; runtime cannot import mock or open sale
   const config = readFileSync(new URL('../../scripts/lib/mock-test-config.mjs',import.meta.url),'utf8');
   assert.ok(config.includes('__tests__/ui/*.test.mjs'));
 });
-test('홈은 기존 인간형 네오와 서버 가격을 쓰며 판매 준비 상태로 안내한다', () => {
+test('홈은 기존 인간형 네오와 서버 가격·답변 기한을 안내한다', () => {
   const html = renderNeoEmailHomeEntry();
   assert.match(html,/href="\/neo-consultation\/"/);
   assert.match(html,/neo-strategy-portrait\.webp/);
   assert.match(html,/질문당 10,000원/);
-  assert.match(html,/판매 준비 중/);
+  assert.match(html,/3일 이내/);
   assert.match(html,/질문 작성하기/);
   assert.doesNotMatch(html,/BLUE MOON/);
   const template=readFileSync(new URL('../../templates/home-funnel.html',import.meta.url),'utf8');

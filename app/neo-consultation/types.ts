@@ -6,6 +6,8 @@ export type NeoOrder = {
   quote: null | { id: string; quantity: number; unitKRW: number; totalKRW: number };
   payment: null | { id: string; status: string };
   deliveryStatus?: { receipt: string; answer: string };
+  cancellationRequestedAt?: string;
+  contentDeletedAt?: string;
   deliveries: { key: string; questions: NeoQuestion[]; sentAt: string }[];
   mailJobs?: { key: string; kind: string; state: string; attempt: number }[];
 };

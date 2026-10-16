@@ -19,6 +19,8 @@ const shims = {
   'next/link': 'import React from "react"; export default function Link({children,...p}){return React.createElement("a",p,children)}',
   '@/app/_lib/auth-store': 'export const useAuthStore=()=>({isAuthenticated:true});',
   '@/app/_lib/auth-client': 'export const authFetch=(path,options)=>fetch(path,options);',
+  './checkout': 'export const openNeoCheckout=()=>{throw new Error("REAL_CHECKOUT_BLOCKED_IN_MOCK")};',
+  '@/lib/site-policy-config': 'export const SUPPORT_MAILTO="mailto:operator@example.invalid";',
   '../_lib/admin-api': 'export async function adminFetch(path,options){const r=await fetch(path,options);const b=await r.json();if(!r.ok)throw new Error(b.message);return b}',
 };
 await build({

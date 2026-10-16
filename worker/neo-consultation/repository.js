@@ -10,7 +10,7 @@ export function createNeoRepository(db) {
   return {
     async get(id) { return (await db.findOne(NeoEmailConsultation, { _id: id }))?.data || null; },
     async list(userId) {
-      return (await db.find(NeoEmailConsultation, userId ? { userId } : {}, { limit: 100, sort: { _id: -1 } })).map(row => row.data);
+      return (await db.find(NeoEmailConsultation, userId ? { userId } : {'data.payment.status':{$in:['paid','refunded','cancelled']}}, { limit: 200, sort: { 'data.createdAt': -1 } })).map(row => row.data);
     },
     async insert(row) {
       const result = unwrap(await db.findOneAndUpdate(NeoEmailConsultation, { _id: row.id },

@@ -1729,8 +1729,8 @@ const app = {
       }
 
       if (url.pathname === "/api/neo-consultations" || url.pathname.startsWith("/api/neo-consultations/")) {
-        const { handleNeoConsultations } = await import("./routes/neo-consultations.js");
-        return handleNeoConsultations(request);
+        const { handleNeoRuntimeRequest } = await import("./routes/neo-consultations.js");
+        return withCorsHeaders(request, env, await handleNeoRuntimeRequest(request, env));
       }
       if (url.pathname === "/api/neo-operation-room" || url.pathname.startsWith("/api/neo-operation-room/")) {
         return runAiRouteWithSecurity(request, env, "neo-operation-room", handleNeoOperationRoomRoutes, ctx);
@@ -2004,6 +2004,9 @@ const app = {
       // 구 태스크는 레거시 상태 주문만 본다 — 같은 주문의 이중 처리가 구조적으로 없다.
       // 한쪽 실패가 다른 쪽을 죽이지 않도록 각자 waitUntil·catch 로 격리한다.
       const { runPaymentsV2Reconcile } = await import("./payments/index.js");
+      ctx.waitUntil(import("./neo-consultation/tasks.js").then(({runNeoConsultationTasks}) => runNeoConsultationTasks(env)).catch(() => {
+        console.error("[neo-consultation] outbox unavailable");
+      }));
       ctx.waitUntil(runPaymentsV2Reconcile(env).catch((error) => {
         console.error("[payments-v2-reconcile] task failed:", error?.message || error);
       }));
