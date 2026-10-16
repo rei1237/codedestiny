@@ -21,6 +21,8 @@ import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
+// 이용권 정산 모듈은 db 트랜잭션 옵션까지 끌고 와 쓸 때만 불러온다(이 라우트를 db 대역으로 띄우는 테스트 보호).
+const loadPerUsePaidAccess = () => import("../lib/nakshatra-paid-access.js");
 import { callGeminiText } from "../lib/gemini.js";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import {SYNC_LLM_TIMEOUT_CEILING_MS, PAID_LLM_PARTS_PER_REQUEST } from "../lib/sync-llm-timeout.js";
@@ -567,6 +569,13 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
   const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE, userDoc: user });
   if (isReusablePaidFeatureAccess(decision) && mapPaidFeatureAccessType(decision) === "pass") {
     if ((!ctx.featureKey || ctx.featureKey === FEATURE_KEY) && (!ctx.requestId || ctx.requestId === idempotencyKey)) {
+      // 🔴 이용권 허용 판정은 읽기 전용이다(2026-10-16). 이번 키로 이용권을 실제로 차감해야 연다.
+      //    재개·재확인은 같은 키라 이미 차감한 기록을 인정한다(acceptSettled).
+      const { settlePerUseAccessDecision } = await loadPerUsePaidAccess();
+  const settled = await settlePerUseAccessDecision(env, { decision, userId: auth.userId, featureKey: FEATURE_KEY,
+        coinPrice: pricing.coinPrice, requestId: idempotencyKey, acceptSettled: true });
+      if (settled.allowed === null) throw resultStorageUnavailable(idempotencyKey);
+      if (!settled.allowed) return { ok: false, reason: "PAYMENT_REQUIRED" };
       return {
         ok: true,
         accessType: "pass",

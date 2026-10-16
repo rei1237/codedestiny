@@ -4,10 +4,14 @@
 import { cmsPromptText } from "./cms-prompts.js";
 import {
   EXPERT_PERSONA_ENABLED,
+  HANBI_LOVE_PERSONA_KO,
   HANBI_PERSONA_KO,
   MUSUNG_PERSONA_EN,
   MUSUNG_PERSONA_KO,
+  NEO_NEW_YEAR_PERSONA_KO,
+  YEONI_LOVE_PERSONA_KO,
   YEONI_PERSONA_KO,
+  YUN_LIFE_BOOK_PERSONA_KO,
   YUN_PERSONA_KO,
   isKoreanLocale,
 } from "./expert-character-persona-text.js";
@@ -20,16 +24,25 @@ const PERSONA_RESOLVERS = {
   musung: (env) => cmsPromptText(env, "expert-persona-musung", MUSUNG_PERSONA_KO),
   hanbi: (env) => cmsPromptText(env, "expert-persona-hanbi", HANBI_PERSONA_KO),
   yeoni: (env) => cmsPromptText(env, "expert-persona-yeoni", YEONI_PERSONA_KO),
+  yeoniLove: (env) => cmsPromptText(env, "expert-persona-yeoni-love", YEONI_LOVE_PERSONA_KO),
+  hanbiLove: (env) => cmsPromptText(env, "expert-persona-hanbi-love", HANBI_LOVE_PERSONA_KO),
+  neoNewYear: (env) => cmsPromptText(env, "expert-persona-neo-new-year", NEO_NEW_YEAR_PERSONA_KO),
+  yunLifeBook: (env) => cmsPromptText(env, "expert-persona-yun-life-book", YUN_LIFE_BOOK_PERSONA_KO),
 };
 
 /**
- * base 시스템 프롬프트 뒤에 캐릭터 페르소나를 붙인다.
+ * 페르소나 원문만 돌려준다(CMS 오버라이드 반영). 꺼져 있거나 없는 키는 빈 문자열.
+ * 연애 비책처럼 base 와 범위 지시 사이에 끼워야 하는 경로가 쓴다.
  * CMS 오버라이드는 한국어 페르소나에만 적용한다(비한국어 로케일은 코드 메모).
  */
+export async function resolveExpertPersona(env, key, { locale = "ko" } = {}) {
+  if (!EXPERT_PERSONA_ENABLED[key] || !PERSONA_RESOLVERS[key]) return "";
+  if (key === "musung" && !isKoreanLocale(locale)) return MUSUNG_PERSONA_EN;
+  return (await PERSONA_RESOLVERS[key](env)) || "";
+}
+
+/** base 시스템 프롬프트 뒤에 캐릭터 페르소나를 붙인다. */
 export async function appendExpertPersona(env, key, base, { locale = "ko" } = {}) {
-  if (!EXPERT_PERSONA_ENABLED[key] || !PERSONA_RESOLVERS[key]) return base;
-  const persona = key === "musung" && !isKoreanLocale(locale)
-    ? MUSUNG_PERSONA_EN
-    : await PERSONA_RESOLVERS[key](env);
+  const persona = await resolveExpertPersona(env, key, { locale });
   return persona ? `${base}\n\n${persona}` : base;
 }

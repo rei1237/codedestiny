@@ -6133,6 +6133,8 @@ async function handleSubscriptionStatus(request, env, auth) {
   const monthlyQuota = isActive ? resolveMonthlySpendQuota(sub, canonicalEntitlement, 0) : null;
   const monthlyPassLimit = monthlyQuota && monthlyQuota.applies ? monthlyQuota.limitCoin : null;
   const monthlySpendRemaining = monthlyQuota && monthlyQuota.applies ? monthlyQuota.remainingCoin : null;
+  // 클라이언트 한도표(js/core/pass-verdict.js PASS_LIMIT_BY_POLICY)가 구 표로 떨어지지 않게 정책 버전을 싣는다.
+  const passPolicyVersion = isActive ? String(canonicalEntitlement.passPolicyVersion || "legacy") : null;
 
   return json({
     ok: true,
@@ -6147,6 +6149,7 @@ async function handleSubscriptionStatus(request, env, auth) {
       freeLimit: passLimit,
       passLimit,
       maxCoveredCoin: passLimit,
+      passPolicyVersion,
       membershipCreditBalance,
     },
     isSubscribed: Boolean(isActive),
@@ -6169,6 +6172,7 @@ async function handleSubscriptionStatus(request, env, auth) {
     freeLimit: passLimit,
     passLimit,
     maxCoveredCoin: passLimit,
+    passPolicyVersion,
     membershipCreditBalance,
     monthlyPassLimit,
     monthlySpendRemaining,

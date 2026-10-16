@@ -11,7 +11,13 @@
       "src": "/feature-details/crafted/astrology-expert/01-a-longer-view-of-your-question.webp",
       "width": 1080,
       "height": 1440,
-      "text": "생시부터 묻는 점성술사,\n윤달이 차트를 읽어요.\n\n분까지 맞춘 생시로 상승궁과\n열두 하우스를 또렷하게 세우고,\n기질·생활·관계·시기를 함께 살펴요.\n\n서양 점성술 전문가 AI 상담 · 윤달"
+      "text": "생시부터 묻는 점성술사,\n윤달이 차트를 읽어요.\n\n분까지 맞춘 생시로 상승궁과\n열두 하우스를 또렷하게 세우고,\n기질·생활·관계·시기를 함께 살펴요.\n\n서양 점성술 전문가 AI 상담 · 윤달",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/astrology-expert/01-a-longer-view-of-your-question-540.webp",
+          "width": 540
+        }
+      ]
     },
     {
       "id": "02-name-the-turning-point",
@@ -20,7 +26,13 @@
       "src": "/feature-details/crafted/astrology-expert/02-name-the-turning-point.webp",
       "width": 1080,
       "height": 1440,
-      "text": "변화 앞의 망설임을,\n구체적인 말로 남겨주세요.\n지금의 고민\n\n지키고 싶은 것과 바꾸고 싶은 것\n\n상담 주제\n\n성향·일·관계·전환기 등 현재의 초점\n\n확인할 정보\n\n생년월일·출생시간·출생지역\n\n성별과 지역·시간대도 입력해요.\n시간을 모르면 ‘출생시간 미상’을 선택해요."
+      "text": "변화 앞의 망설임을,\n구체적인 말로 남겨주세요.\n지금의 고민\n\n지키고 싶은 것과 바꾸고 싶은 것\n\n상담 주제\n\n성향·일·관계·전환기 등 현재의 초점\n\n확인할 정보\n\n생년월일·출생시간·출생지역\n\n성별과 지역·시간대도 입력해요.\n시간을 모르면 ‘출생시간 미상’을 선택해요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/astrology-expert/02-name-the-turning-point-540.webp",
+          "width": 540
+        }
+      ]
     },
     {
       "id": "03-the-first-two-parts",
@@ -29,7 +41,13 @@
       "src": "/feature-details/crafted/astrology-expert/03-the-first-two-parts.webp",
       "width": 1080,
       "height": 1440,
-      "text": "겉으로 사는 나와,\n안에서 움직이는 나.\n1부 · 질문과 중심축\n\n질문에 대한 답과\n태양·달·상승궁의 중심축\n\n2부 · 생활 패턴과 성장\n\n수성·금성·화성의 방식,\n목성·토성이 보여주는 성장 과제\n\n상승궁은 출생시간 미상일 때 제한돼요."
+      "text": "겉으로 사는 나와,\n안에서 움직이는 나.\n1부 · 질문과 중심축\n\n질문에 대한 답과\n태양·달·상승궁의 중심축\n\n2부 · 생활 패턴과 성장\n\n수성·금성·화성의 방식,\n목성·토성이 보여주는 성장 과제\n\n상승궁은 출생시간 미상일 때 제한돼요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/astrology-expert/03-the-first-two-parts-540.webp",
+          "width": 540
+        }
+      ]
     },
     {
       "id": "04-the-middle-two-parts",
@@ -38,7 +56,13 @@
       "src": "/feature-details/crafted/astrology-expert/04-the-middle-two-parts.webp",
       "width": 1080,
       "height": 1440,
-      "text": "근거를 연결하고,\n실천의 크기로 좁혀요.\n3부 · 균형과 분야별 해석\n\n행성 사이의 각도,\n원소·모드 균형을 생활에 연결해요.\n\n4부 · 시기감과 실천 처방\n\n하우스·현재 트랜짓의 근거에서\n선택 기준과 점검할 행동을 읽어요.\n\n각은 행성 사이의 관계, 모드는\n시작·유지·조정하는 방식의 분류예요."
+      "text": "근거를 연결하고,\n실천의 크기로 좁혀요.\n3부 · 균형과 분야별 해석\n\n행성 사이의 각도,\n원소·모드 균형을 생활에 연결해요.\n\n4부 · 시기감과 실천 처방\n\n하우스·현재 트랜짓의 근거에서\n선택 기준과 점검할 행동을 읽어요.\n\n각은 행성 사이의 관계, 모드는\n시작·유지·조정하는 방식의 분류예요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/astrology-expert/04-the-middle-two-parts-540.webp",
+          "width": 540
+        }
+      ]
     },
     {
       "id": "05-a-role-inside-relationships",
@@ -47,7 +71,13 @@
       "src": "/feature-details/crafted/astrology-expert/05-a-role-inside-relationships.webp",
       "width": 1080,
       "height": 1440,
-      "text": "사람을 만날 때마다,\n내가 맡게 되는 역할은.\n5부 · 관계의 반복 패턴\n\n끌리는 유형과 가까워질 때의 습관,\n멀어질 때 흔들리는 지점을 살펴요.\n\n사용하는 근거\n\n금성·화성·달과\n시간이 확인되면 7하우스를 읽어요.\n\n내 관계 패턴을 읽는 부분이에요.\n특정 상대의 속마음을 확정하지 않아요."
+      "text": "사람을 만날 때마다,\n내가 맡게 되는 역할은.\n5부 · 관계의 반복 패턴\n\n끌리는 유형과 가까워질 때의 습관,\n멀어질 때 흔들리는 지점을 살펴요.\n\n사용하는 근거\n\n금성·화성·달과\n시간이 확인되면 7하우스를 읽어요.\n\n내 관계 패턴을 읽는 부분이에요.\n특정 상대의 속마음을 확정하지 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/astrology-expert/05-a-role-inside-relationships-540.webp",
+          "width": 540
+        }
+      ]
     },
     {
       "id": "06-four-quarters-ahead",
@@ -56,7 +86,13 @@
       "src": "/feature-details/crafted/astrology-expert/06-four-quarters-ahead.webp",
       "width": 1080,
       "height": 1440,
-      "text": "앞으로의 순서를,\n네 분기로 나눠 살펴요.\n6부 · 앞으로 1년의 흐름\n\n분기마다 집중할 일과\n미뤄볼 일을 구분해 읽어요.\n\n시기 해석의 경계\n\n현재 트랜짓 근거가 없으면\n출생차트의 리듬을 참고해요.\n\n미래 날짜별 트랜짓 계산표와는 달라요.\n특정 분기의 성공이나 변화를 보장하지 않아요."
+      "text": "앞으로의 순서를,\n네 분기로 나눠 살펴요.\n6부 · 앞으로 1년의 흐름\n\n분기마다 집중할 일과\n미뤄볼 일을 구분해 읽어요.\n\n시기 해석의 경계\n\n현재 트랜짓 근거가 없으면\n출생차트의 리듬을 참고해요.\n\n미래 날짜별 트랜짓 계산표와는 달라요.\n특정 분기의 성공이나 변화를 보장하지 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/astrology-expert/06-four-quarters-ahead-540.webp",
+          "width": 540
+        }
+      ]
     },
     {
       "id": "07-a-report-and-its-basis",
@@ -65,7 +101,13 @@
       "src": "/feature-details/crafted/astrology-expert/07-a-report-and-its-basis.webp",
       "width": 1080,
       "height": 1440,
-      "text": "상담을 읽고,\n그 근거도 펼쳐보세요.\n상담 전문\n\n부분별로 넘기거나 전체를 읽어요.\n\n계산 근거\n\n저장된 행성·각·차트 자료를 확인해요.\n\nPDF 저장\n\n결과 화면의 다운로드로\n다시 읽을 문서를 남겨요.\n\nAI가 작성한 해석이며\n실제 사람과의 실시간 상담은 아니에요."
+      "text": "상담을 읽고,\n그 근거도 펼쳐보세요.\n상담 전문\n\n부분별로 넘기거나 전체를 읽어요.\n\n계산 근거\n\n저장된 행성·각·차트 자료를 확인해요.\n\nPDF 저장\n\n결과 화면의 다운로드로\n다시 읽을 문서를 남겨요.\n\nAI가 작성한 해석이며\n실제 사람과의 실시간 상담은 아니에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/astrology-expert/07-a-report-and-its-basis-540.webp",
+          "width": 540
+        }
+      ]
     },
     {
       "id": "08-when-time-is-uncertain",
@@ -74,7 +116,13 @@
       "src": "/feature-details/crafted/astrology-expert/08-when-time-is-uncertain.webp",
       "width": 1080,
       "height": 1440,
-      "text": "모르는 정보는,\n빈자리를 인정하며 읽어요.\n시간 미상\n\n상승궁·하우스를 확정하지 않고\n확인되는 행성 근거를 중심으로 읽어요.\n\n차트의 근거가 제한될 때\n\n계산되지 않은 각이나 시기를\n있는 것처럼 약속하지 않아요.\n\n건강·재물 조언은 선택을 돕는 해석이에요.\n진단이나 투자 수익을 보장하지 않아요."
+      "text": "모르는 정보는,\n빈자리를 인정하며 읽어요.\n시간 미상\n\n상승궁·하우스를 확정하지 않고\n확인되는 행성 근거를 중심으로 읽어요.\n\n차트의 근거가 제한될 때\n\n계산되지 않은 각이나 시기를\n있는 것처럼 약속하지 않아요.\n\n건강·재물 조언은 선택을 돕는 해석이에요.\n진단이나 투자 수익을 보장하지 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/astrology-expert/08-when-time-is-uncertain-540.webp",
+          "width": 540
+        }
+      ]
     },
     {
       "id": "09-fictional-a-career-turn",
@@ -83,7 +131,13 @@
       "src": "/feature-details/crafted/astrology-expert/09-fictional-a-career-turn.webp",
       "width": 1080,
       "height": 1440,
-      "text": "전환의 크기보다,\n변화의 조건을 나눠봐요.\n\n가상 편집 예시 · 실제 AI 결과가 아닙니다\n\n“독립하고 싶은 마음과\n안정적인 생활을 지키고 싶은 마음은\n함께 있을 수 있어요.\n지금 바로 일을 그만둘지보다,\n작게 시험할 일과 남겨둘 기반을 나눠봐요.\n다음 점검 때 무엇을 확인할지도\n미리 정해두세요.”"
+      "text": "전환의 크기보다,\n변화의 조건을 나눠봐요.\n\n가상 편집 예시 · 실제 AI 결과가 아닙니다\n\n“독립하고 싶은 마음과\n안정적인 생활을 지키고 싶은 마음은\n함께 있을 수 있어요.\n지금 바로 일을 그만둘지보다,\n작게 시험할 일과 남겨둘 기반을 나눠봐요.\n다음 점검 때 무엇을 확인할지도\n미리 정해두세요.”",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/astrology-expert/09-fictional-a-career-turn-540.webp",
+          "width": 540
+        }
+      ]
     },
     {
       "id": "10-a-question-with-room-to-grow",
@@ -92,7 +146,13 @@
       "src": "/feature-details/crafted/astrology-expert/10-a-question-with-room-to-grow.webp",
       "width": 1080,
       "height": 1440,
-      "text": "차트를 단서로,\n내 선택의 기준을 남겨요.\n\n출생정보와 상담 주제를 확인한 뒤,\n지금의 고민을 구체적으로 적어주세요.\n\n기본 결과 안의 질문 상담과는 별도예요.\n차트 패키지·개별 해금도 포함하지 않아요.\n현재 화면의 가격·결제 조건을 따릅니다."
+      "text": "차트를 단서로,\n내 선택의 기준을 남겨요.\n\n출생정보와 상담 주제를 확인한 뒤,\n지금의 고민을 구체적으로 적어주세요.\n\n기본 결과 안의 질문 상담과는 별도예요.\n차트 패키지·개별 해금도 포함하지 않아요.\n현재 화면의 가격·결제 조건을 따릅니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/astrology-expert/10-a-question-with-room-to-grow-540.webp",
+          "width": 540
+        }
+      ]
     }
   ]
 }

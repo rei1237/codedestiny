@@ -1,6 +1,17 @@
+import type { ProductMaster } from "@/app/components/ProductMasterStrip";
 import type { MasterProfileData } from "./MasterProfile";
 
 const base = "/images/master-profiles";
+
+/** 대표 상담 전용 초상(600·360w)·시트(1536·1024w) — scripts/design/build-master-dedicated.mjs 가 만든다. */
+const dedicated = (key: string) => ({
+  portrait: `${base}/${key}-portrait.webp`,
+  portraitSrcSet: `${base}/${key}-portrait-360.webp 360w, ${base}/${key}-portrait.webp 600w`,
+  sheet: `${base}/${key}-profile.webp`,
+  sheetSrcSet: `${base}/${key}-profile-1024.webp 1024w, ${base}/${key}-profile.webp 1536w`,
+  sheetWidth: 1536,
+  sheetHeight: 1024,
+});
 
 export const masterProfiles = {
   master: {
@@ -53,4 +64,83 @@ export const masterProfiles = {
     portrait: `${base}/hanbi-sukuyo-portrait.webp`, portraitAlt: "빗빛 인디고 코트 드레스를 입고 덮인 장부를 든 숙요점 상담가 서한비",
     sheet: `${base}/hanbi-sukuyo-profile.webp`, sheetWidth: 1536, sheetHeight: 1024, theme: "hanbi",
   },
+  // 대표 상담 마스터 — 정본 의상은 그대로, 장면·소품만 상품 전용으로 새로 그린 초상·시트(provenance.json).
+  // 소개장의 "읽는 근거"와 "맡는 부분"은 실제 생성 프롬프트(worker/lib/love-secret-ai-prompt.js,
+  // worker/routes/new-year-ai.js, worker/routes/life-book-ai.js)와 같아야 한다. 경력·건수 같은 꾸민 이력은 쓰지 않는다.
+  yeoniLove: {
+    name: "연이", epithet: "연애 비책 공동 마스터 · 마음의 장", role: "마음부터 듣는 연애 상담가",
+    signature: "어떤 마음이든 먼저 들려주세요. 끝까지 듣고, 오늘 해 볼 한 걸음까지 같이 찾아 드릴게요.",
+    description: "연애 비책의 첫 장과 마지막 장을 쓰는 상담가예요. 당신이 왜 그 사람에게 끌리는지, 어디서 마음이 서운해지는지를 명식에 비춰 읽고, 그 마음을 지키면서 다가가는 방법으로 상담을 맺어요.",
+    dossier: [
+      { label: "전문 영역", text: "당신이 사랑하는 방식 — 끌림과 애착, 마음을 표현하는 습관, 다가가는 순서" },
+      { label: "읽는 근거", text: "일간과 오행 분포, 조후로 본 감정의 온도, 십성으로 본 애착과 표현 방식" },
+      { label: "이 상담에서 맡는 부분", text: "핵심 연애운과 질문의 답 · 나의 연애 성향 — 장점·약점·심리 · 썸 전략·대화·매력·실천" },
+    ],
+    principles: ["마음을 먼저 듣고, 판단은 그다음에 해요", "누구를 탓하는 말로 위로하지 않아요", "그대로 보낼 수 있는 문장과 이번 주의 한 걸음으로 맺어요"],
+    ...dedicated("yeoni-love"), portraitAlt: "분홍빛 한복을 입고 달빛 찻집의 연서 책상에서 찻잔을 건네는 연애 비책 공동 마스터 연이", theme: "yeoni",
+  },
+  hanbiLove: {
+    name: "서한비", epithet: "연애 비책 공동 마스터 · 관계의 장", role: "두 사람 사이의 거리를 재는 사람",
+    signature: "엇갈림은 누구의 잘못이 아니라 관계에 쌓인 빚입니다. 언제, 어떻게 갚을지 정확히 셈해 드리겠습니다.",
+    description: "연애 비책의 가운데 장들을 맡습니다. 상대의 기운과 두 분 사이의 거리, 반복되는 다툼과 재회의 조건, 그리고 다가갈 때를 차례로 재어 드립니다. 서두르지 않되, 흐려 두지도 않겠습니다.",
+    dossier: [
+      { label: "전문 영역", text: "상대와 궁합, 갈등과 재회의 조건, 연락·고백·관계 진전의 시기" },
+      { label: "읽는 근거", text: "일지 관계와 배우자궁, 실제로 성립한 합·충·형·파·해, 계산된 대운·세운·일진. 상대 명식이 있으면 두 분을 나란히 놓고 읽습니다." },
+      { label: "이 상담에서 맡는 부분", text: "상대·궁합·이상형 · 갈등·바람기·재회·자기 보호 · 대운·올해·좋은 날짜·결혼운" },
+    ],
+    principles: ["상대의 마음을 단정하지 않고, 조건으로 말씀드립니다", "계산되지 않은 날짜는 쓰지 않습니다", "지켜야 할 선과 물러설 자리를 먼저 정해 드립니다"],
+    ...dedicated("hanbi-love"), portraitAlt: "빗빛 인디고 코트 드레스 차림으로 비 내리는 달밤의 돌다리에서 관계 장부를 펼친 연애 비책 공동 마스터 서한비", theme: "hanbi",
+  },
+  neoNewYear: {
+    name: "네오", epithet: "신년운세 마스터", role: "한 해의 판세를 짜는 운명 사령관",
+    signature: "올해 판세, 내가 먼저 읽어 주지. 넌 움직이기만 하면 된다.",
+    description: "새해 작전 회의는 내가 연다. 네 명식과 올해의 흐름을 맞대어 밀어붙일 달과 숨 고를 달을 가르고, 일·재물·관계·건강을 장마다 바로 쓸 수 있는 작전으로 정리해 넘긴다.",
+    dossier: [
+      { label: "전문 영역", text: "한 해의 총운과 열두 달의 판세, 일·재물·관계·건강의 작전" },
+      { label: "읽는 근거", text: "네 명식의 격국·용신·조후, 대운 위에 올해 세운이 닿는 자리, 달마다 바뀌는 월별 흐름" },
+      { label: "이 상담에서 맡는 부분", text: "질문과 타고난 성향 · 올해의 총운 · 재물과 직업 · 애정과 대인관계 · 1월~12월 월별 흐름 · 건강과 개운법 — 여섯 장 전부" },
+    ],
+    principles: ["듣기 좋은 말보다 쓸 수 있는 말", "단정 대신 조건으로 말한다", "깎아내리지 않는다"],
+    ...dedicated("neo-new-year"), portraitAlt: "새해 첫 해가 드는 작전실에서 열두 달 작전 지도에 손을 얹은 신년운세 마스터 네오", theme: "neo",
+  },
+  yunLifeBook: {
+    name: "윤달", epithet: "인생의 책 화자", role: "인생 소설을 읽어 주는 화자",
+    signature: "어디 보자, 첫 장부터 이야깃거리가 많은 분이네요. 근거 하나하나 짚으면서 읽어 드릴게요.",
+    description: "누구의 삶에나 한 권의 소설이 있어요. 타고난 원형이 적힌 첫 장부터 지금 펼쳐진 페이지까지, 사주에 적힌 근거를 짚어 가며 당신의 이야기를 차근차근 읽어 드려요.",
+    dossier: [
+      { label: "전문 영역", text: "한 사람의 삶을 한 권의 이야기로 읽는 일 — 성격과 재능, 사랑, 재물, 관계, 건강, 인생의 큰 장면" },
+      { label: "읽는 근거", text: "일간과 월지·지장간, 오행 분포와 조후, 십성의 연결, 대운의 흐름과 가까운 세운" },
+      { label: "이 상담에서 맡는 부분", text: "타고난 사주의 원형부터 대운으로 보는 인생의 큰 장면, 인생의 책 마지막 문장까지 열 개의 장 전부" },
+    ],
+    principles: ["근거 없는 문장은 쓰지 않아요", "결말을 단정하지 않아요", "다음 장의 첫 문장은 당신 몫으로 남겨요"],
+    ...dedicated("yun-life-book"), portraitAlt: "달빛 서고에서 빛이 오르는 큰 책을 펼쳐 든 인생의 책 화자 윤달과 흰 고양이", theme: "yun",
+  },
 } satisfies Record<string, MasterProfileData>;
+
+/** 128px 원형 아바타 — scripts/design/build-master-avatars.mjs 가 초상에서 잘라 만든다. */
+export const masterAvatars = {
+  yeoni: `${base}/avatars/yeoni.webp`,
+  hanbi: `${base}/avatars/hanbi.webp`,
+  neo: `${base}/avatars/neo.webp`,
+  yun: `${base}/avatars/yun.webp`,
+  master: `${base}/avatars/master.webp`,
+  // 대표 상담 전용 초상에서 자른 아바타 — 홈 대표 카드·제품 마스터 띠·연애 결과 화자 칩이 같은 얼굴을 쓴다.
+  yeoniLove: `${base}/avatars/yeoni-love.webp`,
+  hanbiLove: `${base}/avatars/hanbi-love.webp`,
+  neoNewYear: `${base}/avatars/neo-new-year.webp`,
+  yunLifeBook: `${base}/avatars/yun-life-book.webp`,
+} as const;
+
+/** 대표 상담 히어로 마스터 띠 — 짧은 역할과 캐릭터 말투 한 줄. 긴 소개는 위 masterProfiles 가 맡는다. */
+export const productMasters = {
+  love: [
+    { name: "연이", role: "마음을 먼저 듣는 연애 상담가", avatar: masterAvatars.yeoniLove, line: "설레는 마음도, 서운한 마음도 먼저 들려주세요. 끝까지 들을게요." },
+    { name: "서한비", role: "두 사람 사이의 거리를 재는 사람", avatar: masterAvatars.hanbiLove, line: "두 분 사이의 거리는 제가 재어 드릴게요. 서두르지 않되, 흐려 두지도 않겠습니다." },
+  ],
+  newYear: [
+    { name: "네오", role: "한 해의 판세를 짜는 운명 사령관", avatar: masterAvatars.neoNewYear, line: "올해 판세는 내가 먼저 읽는다. 너는 밀 때와 멈출 때만 기억하면 된다." },
+  ],
+  lifeBook: [
+    { name: "윤달", role: "인생 소설을 읽어 주는 화자", avatar: masterAvatars.yunLifeBook, line: "당신의 인생, 첫 장부터 읽어 드릴게요. 다음 장은 같이 써 보고요." },
+  ],
+} satisfies Record<string, ProductMaster[]>;

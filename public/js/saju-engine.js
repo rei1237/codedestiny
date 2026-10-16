@@ -5826,7 +5826,7 @@ async function calculate(run){
       }
     ]);
     var ss=document.getElementById('shareSection');if(ss)ss.style.display='block';
-    import('/js/recommendations-legacy.mjs').then(function(m){return m.mountRecommendation(document.getElementById('resultPage'),{service:'legacy-saju'},ss);}).catch(function(){});
+    import('/js/recommendations-legacy.mjs').then(function(m){return m.mountSajuRecommendation(document.getElementById('resultPage'),ss);}).catch(function(){});
     document.getElementById('dwDetail').innerHTML='';
     document.getElementById('dwDetail').classList.remove('show');
 

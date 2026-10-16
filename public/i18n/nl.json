@@ -1971,6 +1971,25 @@
       "ch5": "De echte timing",
       "lyrics": "Songtekst",
       "more": "Meer maanlichtmuziek luisteren"
+    },
+    "passCopy": {
+      "myTitle": "Mijn passen",
+      "flowerPass": "🌸 Moonlight Pass Bloemvarken",
+      "packPass": "Yeongnyangi-pas",
+      "packTitle": "Yeongnyangi-consultatiepassen",
+      "packName": "{fish}-set van {total} keer",
+      "packScope": "Alleen {fish}-consulten · {days} dagen · {total} keer",
+      "packRemaining": "{remaining} van {total} beurten over",
+      "packExpires": "Tot {date}",
+      "packOthers": "+{count} pakketten meer",
+      "packBrowse": "Yeongnyangi-pakketten bekijken",
+      "fishMackerel": "Makreel",
+      "fishSalmon": "Zalm",
+      "fishFlounder": "Schol",
+      "fishTuna": "Tonijn",
+      "packPerUse": "Eén consult van KRW {amount} per keer",
+      "budgetLeft": "Nog KRW {amount} over",
+      "packNote": "Elke beurt van een Yeongnyangi-pakket opent één consult van dezelfde vissoort, los van de Bloemvarken-passen."
     }
   },
   "terms": {

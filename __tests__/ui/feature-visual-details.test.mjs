@@ -182,9 +182,10 @@ test('restored hero artwork, catalog reuse, and collection previews stay in sync
     'neo-operation-room': '/images/feature-details/neo-operation-room-hero-v1.webp',
     'fortune-tea-house': '/images/home/yeoni-tea-together-v1-1200.webp',
     'master-love-codex': '/images/feature-details/master-love-codex-hero-v3.webp',
-    'love-secret-ai': '/images/feature-details/love-secret-ai-hero-v2.webp',
-    'new-year-ai': '/images/feature-details/new-year-ai-hero-v3.webp',
-    'life-book-ai': '/feature-details/assets/life-book-entry-20260929-960.webp',
+    // 대표 상담 3종은 상품 마스터(연이·서한비 / 네오 / 윤달)가 등장하는 전용 키 아트다.
+    'love-secret-ai': '/images/home/love-secret-masters-v1-1200.webp',
+    'new-year-ai': '/images/home/new-year-neo-v1-1200.webp',
+    'life-book-ai': '/images/home/life-book-yun-v2-1200.webp',
   };
   assert.deepEqual(signatureSources, signatureArtwork);
   for (const [id, source] of Object.entries(signatureArtwork)) {

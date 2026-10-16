@@ -14,6 +14,7 @@
  *
  * 🔴 게이트를 mock 으로 건너뛰지 말 것. 여기서 가는 것은 인증·증빙 조회뿐이고 분기는 실제 라우트가 돈다.
  */
+import { withSettle } from "../fixtures/per-use-settle-mock.mjs";
 import { jest } from "@jest/globals";
 // 🔴 실제 requireAuth 는 HttpError 를 던진다. 평범한 Error 는 handleRouteError 가 상태를 못 읽어
 //    500 이 되고, 그러면 테스트가 제품이 아니라 픽스처를 재게 된다.
@@ -54,7 +55,7 @@ beforeAll(async () => {
       getOptionalUserFromRequest: async () => null,
       PAID_FEATURE_ACCESS_USER_PROJECTION: "",
     })),
-    jest.unstable_mockModule("../../worker/lib/nakshatra-paid-access.js", () => ({
+    jest.unstable_mockModule("../../worker/lib/nakshatra-paid-access.js", () => withSettle({
       verifyPerUsePayment: async (env, input) => {
         verifyCalls.push(input);
         return proofResult;
@@ -189,11 +190,13 @@ describe("/mindscan", () => {
     expect(mindscanBuilt).toBe(0);
   });
 
-  test("이용권 커버는 차감 기록 없이 통과한다", async () => {
+  // 🔴 2026-10-16: 이용권 허용 판정(읽기 전용)만으로는 열지 않는다 — 차감 증빙을 거친다.
+  test("이용권 허용 판정만으로는 차감 증빙 없이 열리지 않는다", async () => {
     accessDecision = { allowed: true, accessSource: "pass" };
+    proofResult = { proven: false, source: "", reason: "NO_RECORD" };
     const res = await handleTarotRoutes(post("/mindscan", MINDSCAN_BODY), {});
-    expect(res.status).toBe(200);
-    expect(verifyCalls).toHaveLength(0);
-    expect(mindscanBuilt).toBe(1);
+    expect(res.status).toBe(402);
+    expect(verifyCalls).toHaveLength(1);
+    expect(mindscanBuilt).toBe(0);
   });
 });

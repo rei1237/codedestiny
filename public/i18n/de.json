@@ -1971,6 +1971,25 @@
       "ch5": "Das wahre Timing",
       "lyrics": "Liedtext",
       "more": "Mehr Mondlichtmusik hören"
+    },
+    "passCopy": {
+      "myTitle": "Meine Pässe",
+      "flowerPass": "🌸 Moonlight Pass Blumenschwein",
+      "packPass": "Yeongnyangi-Pass",
+      "packTitle": "Yeongnyangi-Beratungspässe",
+      "packName": "{fish}-Set mit {total} Nutzungen",
+      "packScope": "Nur {fish}-Beratungen · {days} Tage · {total} Nutzungen",
+      "packRemaining": "{remaining} von {total} Nutzungen übrig",
+      "packExpires": "Bis {date}",
+      "packOthers": "+{count} weitere Pakete",
+      "packBrowse": "Yeongnyangi-Pakete ansehen",
+      "fishMackerel": "Makrele",
+      "fishSalmon": "Lachs",
+      "fishFlounder": "Flunder",
+      "fishTuna": "Thunfisch",
+      "packPerUse": "Eine Deutung zu KRW {amount} pro Nutzung",
+      "budgetLeft": "Noch KRW {amount} verfügbar",
+      "packNote": "Jede Nutzung eines Yeongnyangi-Pakets öffnet eine Beratung derselben Fischstufe, getrennt von den Blumenschwein-Pässen."
     }
   },
   "terms": {

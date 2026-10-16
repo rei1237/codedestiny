@@ -1,0 +1,42 @@
+/* 대표 상담 마스터 띠 — 히어로 안의 금선 이중 프레임 카드. 페이지 토큰(--pe-*)이 없으면 글자색에서 파생한다. */
+.strip {
+  --pms-ink: var(--pe-ink, currentColor);
+  --pms-muted: var(--pe-muted, color-mix(in srgb, currentColor 78%, transparent));
+  --pms-accent: var(--pe-accent, #c9a46a);
+  --pms-line: color-mix(in srgb, var(--pms-accent) 45%, transparent);
+  position: relative;
+  max-width: 640px;
+  margin: 20px 0 0;
+  padding: 16px 18px;
+  border: 1px solid var(--pms-line);
+  border-radius: var(--cd-r-card);
+  color: var(--pms-ink);
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+.strip::before {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border: 1px solid color-mix(in srgb, var(--pms-accent) 22%, transparent);
+  border-radius: calc(var(--cd-r-card) - 4px);
+  pointer-events: none;
+}
+.label { margin: 0 0 10px; color: var(--pms-accent); font-size: .78rem; font-weight: 700; letter-spacing: .12em; }
+.list { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; }
+.strip[data-count="2"] .list { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.master { display: flex; align-items: flex-start; gap: 12px; min-width: 0; }
+.avatar {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--pms-accent) 14%, transparent);
+  box-shadow: 0 0 0 1px var(--pms-line);
+}
+.copy { min-width: 0; }
+.name { margin: 0; color: var(--pms-ink); font: 700 1.05rem/1.4 var(--font-serif, var(--font-body)); }
+.name span { display: block; margin-top: 2px; color: var(--pms-muted); font: 500 .8rem/1.5 var(--font-body); }
+.line { margin: 6px 0 0; color: var(--pms-ink); font-size: .95rem; line-height: 1.7; }
+.more { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; margin-top: 4px; color: var(--pms-accent); font-size: .9rem; font-weight: 600; text-underline-offset: 4px; }
+.more:focus-visible { outline: 2px solid var(--pms-accent); outline-offset: 2px; border-radius: 4px; }

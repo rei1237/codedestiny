@@ -4,7 +4,7 @@ import {
   findActivePaidContentUnlock,
   upsertPaidContentUnlock,
 } from "./content-unlocks.js";
-import { FEATURE_KEY_PRICE_TABLE, isBirthScopedUnlockFeatureKey, normalizePaidFeatureKey } from "./paid-feature-registry.js";
+import { FEATURE_KEY_PRICE_TABLE, PAID_FEATURE_BILLING_TYPES, getPaidFeatureBillingType, isBirthScopedUnlockFeatureKey, normalizePaidFeatureKey } from "./paid-feature-registry.js";
 import { verifyPremiumAccessToken } from "./premium-access-token.js";
 import { normalizeHoneyPassEntitlement } from "./profile-limits.js";
 
@@ -165,6 +165,46 @@ function resolvePremiumPassReportAccess(user = {}, {
     coveredCoinLimit: maxCoveredCoin,
     requestedCoinCost,
   };
+}
+
+// 결제 게이트(/coin-gate/pass-check)가 라우트와 다른 키로 이용권을 차감하는 기능. 정산은 게이트 키로 해야 재생이 맞는다.
+const PREMIUM_PASS_GATE_FEATURE_KEYS = Object.freeze({ geomancy: "openGeomancyOracle" });
+
+/**
+ * 이용권 허용 판정을 실제 차감으로 정산한다(이용권 허용 = 차감 완료).
+ * 프론트 결제 게이트가 이미 같은 (기능 키, requestId)로 차감했으면 그 차감을 재생하고(이중 차감 없음),
+ * 게이트를 건너뛴 직접 호출이면 여기서 차감한다. 재열람·폴링도 저장된 같은 requestId 로 와서 재생된다.
+ * 기능 키·가격은 서버 규칙에서만 정한다(본문 값 미사용). requestId 가 없으면 거부한다(fail-closed).
+ * 영구 해금형(FPTI 등)은 여기서 차감하지 않는다 — 게이트가 출생 신원 해금 행을 남기고 위쪽 해금 분기가 그 행으로 연다.
+ */
+async function settlePremiumPassReportAccess(env, { userId, profileId, normalizedReportType, requestBody = {}, alternativeRules = [], unlockPolicy = [] } = {}) {
+  const ruleKeys = uniqueStrings(alternativeRules.map((item) => String(item?.featureKey || "").trim()));
+  const routeKey = ruleKeys.find((key) => key !== "coin-gate-per-use") || String(unlockPolicy[0] || normalizedReportType || "").trim();
+  const featureKey = PREMIUM_PASS_GATE_FEATURE_KEYS[routeKey] || routeKey;
+  const coinPrice = Math.max(
+    0,
+    ...alternativeRules.map((item) => Number(item?.minCost || 0)),
+    Number(FEATURE_KEY_PRICE_TABLE[featureKey]?.cost || 0),
+    Number(FEATURE_KEY_PRICE_TABLE[routeKey]?.cost || 0),
+  );
+  const nested = ["payment", "consume", "_paymentContext", "accessGrant"].map((key) => (requestBody && typeof requestBody[key] === "object" ? requestBody[key] : {}));
+  const requestId = String([requestBody?.requestId, ...nested.map((item) => item?.requestId)].find((value) => String(value || "").trim()) || "").trim();
+  const base = { featureKey, coinPrice, requestId };
+  if (getPaidFeatureBillingType(routeKey) === PAID_FEATURE_BILLING_TYPES.UNLOCK) return { ...base, allowed: false, reason: "UNLOCK_REQUIRES_GATE" };
+  if (!featureKey || coinPrice <= 0) return { ...base, allowed: false, reason: "PRICE_UNRESOLVED" };
+  if (!requestId) return { ...base, allowed: false, reason: "NO_REQUEST_ID" };
+
+  // nakshatra-paid-access 는 db·auth 를 끌고 온다. 이 모듈을 모킹하는 테스트가 깨지지 않도록 쓸 때만 불러온다.
+  const { settlePerUseAccessDecision } = await import("./nakshatra-paid-access.js");
+  const common = { userId: String(userId || ""), coinPrice, requestId, profileId };
+  // 게이트가 다른 규칙 키로 차감했을 수 있다 — 차감 없이 재생만 먼저 확인한다.
+  for (const replayKey of uniqueStrings([featureKey, ...ruleKeys]).filter((key) => key !== featureKey)) {
+    const replay = await settlePerUseAccessDecision(env, { ...common, featureKey: replayKey, decision: { allowed: false }, acceptSettled: true });
+    if (replay.allowed === null) return { ...base, ...replay };
+    if (replay.allowed) return { ...base, ...replay, featureKey: replayKey };
+  }
+  const settled = await settlePerUseAccessDecision(env, { ...common, featureKey, decision: { allowed: true, accessSource: "license_pass" } });
+  return { ...base, ...settled };
 }
 
 export function buildAlternativePaymentRules(reportType, requestBody = {}) {
@@ -938,26 +978,8 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
     return denied;
   }
 
-  const passAccess = resolvePremiumPassReportAccess(user, {
-    normalizedReportType,
-    requestBody,
-    requiredRules,
-    alternativeRules,
-    unlockPolicy,
-    receivedFeatureKey,
-  });
-  if (passAccess?.ok) {
-    logPremiumAccessDecision({
-      route: requestBody?._accessRoute,
-      userId,
-      reportType: normalizedReportType,
-      featureKey: passAccess.featureKey,
-      accessSource: passAccess.accessType,
-      entitlementId: passAccess.passTier,
-    });
-    logSajuAccessResolved(passAccess);
-    return passAccess;
-  }
+  // 🔴 이용권 허용은 해금·결제 증빙을 모두 본 뒤 맨 끝(아래 settlePremiumPassReportAccess)에서 실제 차감과 함께만 준다.
+  // 예전에는 여기서 차감 없이 바로 열어, 이용권만 있으면 8개 리포트가 몇 번이든 무료였다(2026-10-16).
 
   // 🔴 User.unlockedFeatures 는 계정 배열이라 출생 기반 키의 근거가 아니다(같은 계정의 다른 생년월일까지 열린다).
   // 계정 기반 키만 이 배열로 판정하고, 출생 기반 키는 아래 findPremiumContentEntitlement(BIRTH 행 + 레거시 USER/PROFILE 행)로만 연다.
@@ -1098,6 +1120,57 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
     };
     logSajuAccessResolved(allowed);
     return allowed;
+  }
+
+  const passAccess = resolvePremiumPassReportAccess(user, {
+    normalizedReportType,
+    requestBody,
+    requiredRules,
+    alternativeRules,
+    unlockPolicy,
+    receivedFeatureKey,
+  });
+  if (passAccess?.ok) {
+    const settled = await settlePremiumPassReportAccess(env, {
+      userId: user._id,
+      profileId,
+      normalizedReportType,
+      requestBody,
+      alternativeRules,
+      unlockPolicy,
+    });
+    if (settled.allowed === null) {
+      const degraded = {
+        ok: false,
+        status: 503,
+        code: "PAYMENT_VERIFY_UNAVAILABLE",
+        message: "결제 확인이 잠시 지연되고 있어요. 잠시 후 다시 시도해 주세요.",
+        reportType: normalizedReportType,
+      };
+      logSajuAccessResolved(degraded);
+      return degraded;
+    }
+    if (settled.allowed) {
+      const allowed = { ...passAccess, featureKey: settled.featureKey, chargedCoins: settled.coinPrice, settledSource: settled.source };
+      logPremiumAccessDecision({
+        route: requestBody?._accessRoute,
+        userId,
+        reportType: normalizedReportType,
+        featureKey: settled.featureKey,
+        accessSource: passAccess.accessType,
+        entitlementId: passAccess.passTier,
+      });
+      logSajuAccessResolved(allowed);
+      return allowed;
+    }
+    logPremiumAccessDecision({
+      route: requestBody?._accessRoute,
+      userId,
+      reportType: normalizedReportType,
+      featureKey: settled.featureKey,
+      accessSource: "denied",
+      deniedReason: `PASS_NOT_SETTLED:${settled.reason || "PAYMENT_REQUIRED"}`,
+    });
   }
 
   if (["celestialHarmony", "geomancyOracle", "yogaGuruCourse", "sajuCompatBasic", "petSajuReport", "petCompatReport", "destinyCompassDeepReport"].includes(normalizedReportType) && alternativeRules.length) {

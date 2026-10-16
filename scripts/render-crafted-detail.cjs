@@ -49,7 +49,7 @@ catch {
         await panel.evaluate(el => el.scrollIntoView({block: 'start', behavior: 'instant'}));
         await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
         await panel.screenshot({ path: png });
-        await sharp(png).webp({ quality: 93 }).toFile(path.join(output, book.panels[i].id + '.webp'));
+        await sharp(png).webp({ quality: 76, effort: 6, smartSubsample: true }).toFile(path.join(output, book.panels[i].id + '.webp'));
     }
     const panels = book.panels.map((p, i) => ({ id: p.id, title: titles[i] || p.title, alt: p.alt, src: `/feature-details/crafted/${id}/${p.id}.webp`, ...sizes[i], text: texts[i] }));
     // Card copy and the real report contents are authored next to the panels and travel with them.

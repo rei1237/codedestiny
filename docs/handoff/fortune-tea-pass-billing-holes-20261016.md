@@ -1,7 +1,7 @@
 ---
-status: in-progress
+status: active
 updated: 2026-10-16
-next: "A단계 push 뒤 F단계(홈 화면 이용권 커버 금액·영냥이 세트 표시) → B단계(settlePerUseAccessDecision)."
+next: "C단계(billing-evidence-claim: 증빙 1건 = 요청 1건) → D(브라우저 계산 리포트 서버 이전) → E → 정책 문서."
 ---
 
 # 운명 찻집 10,000원: 이용권 차감 누락과 결제 증빙 재사용 구멍
@@ -236,3 +236,18 @@ next: "A단계 push 뒤 F단계(홈 화면 이용권 커버 금액·영냥이 �
   - "들어보니까 이용권 9900원 짜리로 뚫린것으로 보여진다." → 실측 결과 위 `na*******` 계정의 **연이 운명 상담(`fortune-chat-consultation`, 5,000원)** 이용권 3건이다. standard 건당 상한(5,000원) 안이라 정상 차감이다. 사용자 결정: **standard가 연이 상담을 커버하는 규칙은 유지**.
   - "운명 찻집 가격이 현재 5천원 맞아? 그렇다면 그냥 유지하도록해" → 찻집 5종은 모두 10,000원이다. 사용자 결정: **10,000원 유지**.
   - "이용권마다 커버 가능한 금액이 메인 화면 UI에 표시가 안 되고, 영냥이 상담 이용권은 아예 표시가 안 된다" → F단계로 추가(홈 "내 이용권" 줄, 판매 배너 영냥이 세트 카드, 구 한도표 덮어쓰기 수정, 가드).
+- 2026-10-16 — **F단계 홈 이용권 표시 push** (`76e048f9f`, `b15e57aa2` → main)
+  - 홈 "내 이용권" 줄: 꽃돼지 이용권은 건당 커버 금액·남은 한도를, 영냥이 세트는 남은 횟수·기한을 보여 준다. 조회 실패·미보유면 숨긴다(표시용, 판정 근거 아님).
+  - 판매 배너에 영냥이 세트 카드를 추가했다. 서버 passLimit를 구 한도표(vvip 20,000원)로 덮어쓰던 두 곳을 고쳤다.
+  - 가드: 이용권 정책 단언에 홈 건당 문구·세트 가격 정본 일치를 추가했다.
+- 2026-10-16 — **B단계: 이용권·라이선스·월구독 허용 = 실제 차감** (`be008c6a9`)
+  - 공용 함수 `settlePerUseAccessDecision`(계획의 `pass-consumption.js`가 아니라 `worker/lib/nakshatra-paid-access.js`에 뒀다 — 정본 `verifyPerUsePayment` 바로 옆).
+    - 결제 행(paidFeatures) 허용 외의 허용은 모두 VPU로 넘긴다. VPU가 이번 requestId의 결제를 먼저 찾고, 없으면 이용권을 실제로 차감한다. 그래서 이중 차감이 없고, 라이선스·월구독만으로는 열리지 않는다.
+    - requestId가 없으면 거부한다. DB 일시 장애는 503(allowed:null)이다.
+  - 연결: 찻집(차감 + 최종 실패 시 환불), dream, tarot 지름길 3곳(+올해 타로), ziwei-deep-report, sukuyo-compatibility-ai, neo-operation-room, naming-prompt. 지름길은 결제 행일 때만 받는다.
+  - `requirePremiumReportAccess`의 이용권 분기(8개 리포트): 해금·결제 증빙을 모두 본 뒤 맨 끝에서만 차감과 함께 연다. 게이트(`coin-gate/pass-check`)가 이미 같은 featureKey+requestId로 차감했으면 재생만 한다(지오맨시는 게이트 키 `openGeomancyOracle`). 영구 해금형(FPTI·시빌)은 게이트가 남긴 해금 행으로만 열린다.
+  - 라이선스 분기에 건당 상한(`canUseByPass`) 검사를 추가했다(운영 영향 0명).
+  - 확인만: astrology·nakshatra-ai·life-book은 완료 직전 차감이라 이미 안전하다.
+  - 가드 `verify:paid-access-integrity` 추가(유료 게이트 스위트 등록): 본문 `_userDoc` 읽기, `PER_USE_ENFORCE = false`, `canAccessPaidFeature` 판정만 쓰고 정산을 안 거치는 파일, 리포트 이용권 분기의 무차감 허용을 잡는다. base `e64ad7ba2` 코드에 돌리면 네 유형을 모두 잡는다.
+  - 테스트: `premium-pass-settlement`(6), `fortune-tea-house-pass-settlement`(6), `consultation-per-use-payment` 보강. 옛 구멍을 단언하던 테스트(numerology·직감 타로·마인드스캔·dream 월구독)는 "증빙 없으면 402"로 바꿨다.
+  - 남은 위험(후속): dream·tarot·ziwei·sukuyo·neo·naming은 생성 실패 시 이용권 환불이 없다. `findRecentDeductionEvidence` 최근 결제 창은 C단계에서 없앤다. 엔티틀먼트가 생기기 전에 이용권으로 본 옛 FPTI 사용자는 게이트를 한 번 거쳐야 한다.

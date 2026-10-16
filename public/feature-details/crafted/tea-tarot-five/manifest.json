@@ -51,7 +51,13 @@
       "src": "/feature-details/crafted/tea-tarot-five/01-before-contact.webp",
       "width": 1080,
       "height": 1440,
-      "text": "먼저 연락할까요?\n그 전에 살펴볼 마음.\n\n하고 싶은 말, 망설이는 이유,\n지켜야 할 선을 나누어 읽어요.\n\n운명의 찻집 · 타로 5장\n복잡한 마음에, 다섯 개의 질문."
+      "text": "먼저 연락할까요?\n그 전에 살펴볼 마음.\n\n하고 싶은 말, 망설이는 이유,\n지켜야 할 선을 나누어 읽어요.\n\n운명의 찻집 · 타로 5장\n복잡한 마음에, 다섯 개의 질문.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/tea-tarot-five/01-before-contact-540.webp",
+          "width": 540
+        }
+      ]
     },
     {
       "id": "02-five-pauses",
@@ -60,7 +66,13 @@
       "src": "/feature-details/crafted/tea-tarot-five/02-five-pauses.webp",
       "width": 1080,
       "height": 1440,
-      "text": "연락하기 전,\n다섯 번의 작은 멈춤.\n\n5장 배열 · 먼저 연락해도 괜찮을까?\n\n내가 바라는 것\n\n정말 전하고 싶은 마음은 무엇인지.\n\n현재 소통 양상\n\n지금 두 사람의 대화는 어떤지.\n\n접근의 걸림돌\n\n다가가기 어렵게 하는 조건은.\n\n존중할 경계\n\n넘지 말아야 할 선은 어디인지.\n\n연락을 선택했을 때의 흐름\n\n내가 고른 행동을 어떻게 이어갈지."
+      "text": "연락하기 전,\n다섯 번의 작은 멈춤.\n\n5장 배열 · 먼저 연락해도 괜찮을까?\n\n내가 바라는 것\n\n정말 전하고 싶은 마음은 무엇인지.\n\n현재 소통 양상\n\n지금 두 사람의 대화는 어떤지.\n\n접근의 걸림돌\n\n다가가기 어렵게 하는 조건은.\n\n존중할 경계\n\n넘지 말아야 할 선은 어디인지.\n\n연락을 선택했을 때의 흐름\n\n내가 고른 행동을 어떻게 이어갈지.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/tea-tarot-five/02-five-pauses-540.webp",
+          "width": 540
+        }
+      ]
     },
     {
       "id": "03-other-five-card-questions",
@@ -69,7 +81,13 @@
       "src": "/feature-details/crafted/tea-tarot-five/03-other-five-card-questions.webp",
       "width": 1080,
       "height": 1440,
-      "text": "새 인연과 돈의 습관도,\n다른 자리로 읽어요.\n새로운 인연을 맞이하는 문\n\n준비 상태 · 드러낼 매력\n내려놓을 패턴 · 만남을 넓힐 행동\n관계를 시작할 때의 조언\n\n돈을 대하는 내 패턴\n\n현재 태도 · 자원 활용\n소모 패턴 · 놓친 관리 과제\n실천할 습관\n\n상담 한 번에 배열 하나를 선택해요.\n세 배열을 모두 받는 묶음이 아닙니다.\n돈 배열은 수익을 예측·보장하지 않아요."
+      "text": "새 인연과 돈의 습관도,\n다른 자리로 읽어요.\n새로운 인연을 맞이하는 문\n\n준비 상태 · 드러낼 매력\n내려놓을 패턴 · 만남을 넓힐 행동\n관계를 시작할 때의 조언\n\n돈을 대하는 내 패턴\n\n현재 태도 · 자원 활용\n소모 패턴 · 놓친 관리 과제\n실천할 습관\n\n상담 한 번에 배열 하나를 선택해요.\n세 배열을 모두 받는 묶음이 아닙니다.\n돈 배열은 수익을 예측·보장하지 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/tea-tarot-five/03-other-five-card-questions-540.webp",
+          "width": 540
+        }
+      ]
     },
     {
       "id": "04-five-is-not-a-score",
@@ -78,7 +96,13 @@
       "src": "/feature-details/crafted/tea-tarot-five/04-five-is-not-a-score.webp",
       "width": 1080,
       "height": 1440,
-      "text": "더 정확한 등급보다,\n더 나누어 볼 질문.\n3장은 매듭과 한 걸음을.\n5장은 선택의 조건을 더 나누어.\n\n각 카드에는 같은 읽기 원칙이 있어요.\n\n상징과 정·역방향의 핵심 의미\n\n지금 상황에 비추어 본 모습\n\n내 질문과 연결되는 지점\n\n선택할 행동과 조심할 조건\n\n5장이라고 상대의 마음을\n더 확실하게 알아내는 것은 아니에요."
+      "text": "더 정확한 등급보다,\n더 나누어 볼 질문.\n3장은 매듭과 한 걸음을.\n5장은 선택의 조건을 더 나누어.\n\n각 카드에는 같은 읽기 원칙이 있어요.\n\n상징과 정·역방향의 핵심 의미\n\n지금 상황에 비추어 본 모습\n\n내 질문과 연결되는 지점\n\n선택할 행동과 조심할 조건\n\n5장이라고 상대의 마음을\n더 확실하게 알아내는 것은 아니에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/tea-tarot-five/04-five-is-not-a-score-540.webp",
+          "width": 540
+        }
+      ]
     },
     {
       "id": "05-a-boundary-in-the-message",
@@ -87,7 +111,13 @@
       "src": "/feature-details/crafted/tea-tarot-five/05-a-boundary-in-the-message.webp",
       "width": 1080,
       "height": 1440,
-      "text": "마음을 전하는 말에도,\n쉴 틈을 남겨요.\n\n대화와 경계를 연결한 편집 예시\n\n다음 주에 차 한 잔 어때요?\n요즘 여유가 없다면 괜찮아요.\n편할 때 알려 주세요.\n\n내 마음은 분명하게\n\n만나고 싶다는 뜻을 숨기지 않아요.\n\n상대의 선택은 열어 두고\n\n거절과 침묵을 재촉하지 않아요.\n\n가상의 대화 예시예요. 상대가 연락을\n원하지 않으면 그 의사를 존중해요."
+      "text": "마음을 전하는 말에도,\n쉴 틈을 남겨요.\n\n대화와 경계를 연결한 편집 예시\n\n다음 주에 차 한 잔 어때요?\n요즘 여유가 없다면 괜찮아요.\n편할 때 알려 주세요.\n\n내 마음은 분명하게\n\n만나고 싶다는 뜻을 숨기지 않아요.\n\n상대의 선택은 열어 두고\n\n거절과 침묵을 재촉하지 않아요.\n\n가상의 대화 예시예요. 상대가 연락을\n원하지 않으면 그 의사를 존중해요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/tea-tarot-five/05-a-boundary-in-the-message-540.webp",
+          "width": 540
+        }
+      ]
     },
     {
       "id": "06-what-the-pages-hold",
@@ -96,7 +126,13 @@
       "src": "/feature-details/crafted/tea-tarot-five/06-what-the-pages-hold.webp",
       "width": 1080,
       "height": 1440,
-      "text": "다섯 장을 지나,\n하나의 이야기로.\n질문\n\n핵심 답변과 우선할 조언.\n\n카드\n\n다섯 장의 개별 해석,\n카드 사이에서 이어지는 의미.\n\n상담\n\n종합 해석과 연이가 건넨 말.\n가능한 선택과 행동 조언.\n\n이후\n\n앞으로 한 달의 흐름, 관계 처방,\n실행 체크리스트.\n\n마무리\n\n지금의 나에게 남기는 메시지.\n\n본문은 공백 제외 11,200자 이상이에요.\n연결·선택은 내용이 있을 때 표시돼요.\n사주 해석은 포함하지 않아요."
+      "text": "다섯 장을 지나,\n하나의 이야기로.\n질문\n\n핵심 답변과 우선할 조언.\n\n카드\n\n다섯 장의 개별 해석,\n카드 사이에서 이어지는 의미.\n\n상담\n\n종합 해석과 연이가 건넨 말.\n가능한 선택과 행동 조언.\n\n이후\n\n앞으로 한 달의 흐름, 관계 처방,\n실행 체크리스트.\n\n마무리\n\n지금의 나에게 남기는 메시지.\n\n본문은 공백 제외 11,200자 이상이에요.\n연결·선택은 내용이 있을 때 표시돼요.\n사주 해석은 포함하지 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/tea-tarot-five/06-what-the-pages-hold-540.webp",
+          "width": 540
+        }
+      ]
     },
     {
       "id": "07-choose-and-return",
@@ -105,7 +141,13 @@
       "src": "/feature-details/crafted/tea-tarot-five/07-choose-and-return.webp",
       "width": 1080,
       "height": 1440,
-      "text": "질문을 적고,\n다섯 자리를 골라요.\n상황과 질문을 적어요\n\n관계 단계나 실제로 겪는 일을\n아는 만큼만 알려 주세요.\n\n맞는 5장 배열을 확인해요\n\n로그인 후 직접 다섯 자리를 고르거나\n자동 선택으로 확정할 수 있어요.\n\n카드를 확인하고 상담을 시작해요\n\n결제 후 돌아오거나 다시 시도해도\n확정한 같은 카드를 읽어요.\n\n3장 배열로 바꾸면 다른 상품입니다.\n카드 수와 화면의 가격을 먼저 확인해요."
+      "text": "질문을 적고,\n다섯 자리를 골라요.\n상황과 질문을 적어요\n\n관계 단계나 실제로 겪는 일을\n아는 만큼만 알려 주세요.\n\n맞는 5장 배열을 확인해요\n\n로그인 후 직접 다섯 자리를 고르거나\n자동 선택으로 확정할 수 있어요.\n\n카드를 확인하고 상담을 시작해요\n\n결제 후 돌아오거나 다시 시도해도\n확정한 같은 카드를 읽어요.\n\n3장 배열로 바꾸면 다른 상품입니다.\n카드 수와 화면의 가격을 먼저 확인해요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/tea-tarot-five/07-choose-and-return-540.webp",
+          "width": 540
+        }
+      ]
     },
     {
       "id": "08-one-action-to-keep",
@@ -114,7 +156,13 @@
       "src": "/feature-details/crafted/tea-tarot-five/08-one-action-to-keep.webp",
       "width": 1080,
       "height": 1440,
-      "text": "길게 읽었어도,\n실천은 하나부터.\n이번 주에 해볼 일\n\n___________________\n\n내가 지키고 싶은 선\n\n___________________\n\n다시 확인할 현실의 정보\n\n___________________\n\n상담을 텍스트 파일로 저장하고,\n실제로 달라진 점을 적어 보세요.\n\n꿀편지는 별도 조건으로 요청해요.\n기본 상담에 자동 포함되지 않습니다."
+      "text": "길게 읽었어도,\n실천은 하나부터.\n이번 주에 해볼 일\n\n___________________\n\n내가 지키고 싶은 선\n\n___________________\n\n다시 확인할 현실의 정보\n\n___________________\n\n상담을 텍스트 파일로 저장하고,\n실제로 달라진 점을 적어 보세요.\n\n꿀편지는 별도 조건으로 요청해요.\n기본 상담에 자동 포함되지 않습니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/tea-tarot-five/08-one-action-to-keep-540.webp",
+          "width": 540
+        }
+      ]
     },
     {
       "id": "09-leave-with-your-answer",
@@ -123,7 +171,13 @@
       "src": "/feature-details/crafted/tea-tarot-five/09-leave-with-your-answer.webp",
       "width": 1080,
       "height": 1440,
-      "text": "정답을 기다리기보다,\n내 마음을 알아가요.\n\n다가갈 때와 쉬어 갈 때,\n나의 바람과 상대의 경계를 함께.\n\n연이는 서비스 캐릭터이며\n상담 문장은 AI가 작성합니다.\n사람이 직접 답하는 상담은 아닙니다.\n\n운명의 찻집 · 타로 5장\n선택의 여지를 남기는 다정한 상담."
+      "text": "정답을 기다리기보다,\n내 마음을 알아가요.\n\n다가갈 때와 쉬어 갈 때,\n나의 바람과 상대의 경계를 함께.\n\n연이는 서비스 캐릭터이며\n상담 문장은 AI가 작성합니다.\n사람이 직접 답하는 상담은 아닙니다.\n\n운명의 찻집 · 타로 5장\n선택의 여지를 남기는 다정한 상담.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/tea-tarot-five/09-leave-with-your-answer-540.webp",
+          "width": 540
+        }
+      ]
     }
   ]
 }

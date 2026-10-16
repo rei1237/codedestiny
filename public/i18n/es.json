@@ -1971,6 +1971,25 @@
       "ch5": "El momento justo",
       "lyrics": "Letra",
       "more": "Escuchar más música de luna"
+    },
+    "passCopy": {
+      "myTitle": "Mis pases",
+      "flowerPass": "🌸 Moonlight Pass de Cerdita Flor",
+      "packPass": "Pase de Yeongnyangi",
+      "packTitle": "Pases de consulta de Yeongnyangi",
+      "packName": "Lote {fish} de {total} usos",
+      "packScope": "Solo consultas {fish} · {days} días · {total} usos",
+      "packRemaining": "Quedan {remaining} de {total} usos",
+      "packExpires": "Hasta {date}",
+      "packOthers": "+{count} packs más",
+      "packBrowse": "Ver packs de Yeongnyangi",
+      "fishMackerel": "Caballa",
+      "fishSalmon": "Salmón",
+      "fishFlounder": "Lenguado",
+      "fishTuna": "Atún",
+      "packPerUse": "Una lectura de KRW {amount} por uso",
+      "budgetLeft": "Quedan KRW {amount}",
+      "packNote": "Cada uso de un pack de Yeongnyangi abre una consulta del mismo pescado, aparte de los pases de Cerdita Flor."
     }
   },
   "terms": {

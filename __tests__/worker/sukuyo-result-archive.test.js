@@ -7,6 +7,7 @@
  * 이 기능·이 카드일 때만 받는다. 보내지 않으면(배포 전 JS) 예전 고정값 'sukuyo-paid:<featureKey>|<profileId>' 를 쓴다.
  */
 
+import { withSettle } from "../fixtures/per-use-settle-mock.mjs";
 import { jest } from "@jest/globals";
 import { computeBirthKey } from "../../worker/lib/birth-key.js";
 
@@ -53,7 +54,7 @@ beforeAll(async () => {
     },
     ServiceExecutionTransaction: { findOneAndUpdate },
   }));
-  await jest.unstable_mockModule("../../worker/lib/nakshatra-paid-access.js", () => ({
+  await jest.unstable_mockModule("../../worker/lib/nakshatra-paid-access.js", () => withSettle({
     verifyPerUsePayment,
     logPerUsePaymentProof: () => {},
   }));

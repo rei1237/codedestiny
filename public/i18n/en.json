@@ -1971,6 +1971,25 @@
       "ch5": "True timing",
       "lyrics": "Lyrics",
       "more": "More moonlight music"
+    },
+    "passCopy": {
+      "myTitle": "My passes",
+      "flowerPass": "🌸 Flower Pig Moonlight Pass",
+      "packPass": "Yeongnyangi pass",
+      "packTitle": "Yeongnyangi consultation passes",
+      "packName": "{total}-use {fish} set",
+      "packScope": "{fish} consultations only · {days} days · {total} uses",
+      "packRemaining": "{remaining} of {total} uses left",
+      "packExpires": "Until {date}",
+      "packOthers": "+{count} more packs",
+      "packBrowse": "See Yeongnyangi packs",
+      "fishMackerel": "Mackerel",
+      "fishSalmon": "Salmon",
+      "fishFlounder": "Flounder",
+      "fishTuna": "Tuna",
+      "packPerUse": "KRW {amount} reading per use",
+      "budgetLeft": "KRW {amount} allowance left",
+      "packNote": "Yeongnyangi packs open one consultation of the same fish tier per use, separately from Flower Pig passes."
     }
   },
   "terms": {

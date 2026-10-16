@@ -227,6 +227,38 @@ export async function verifyPerUsePayment(env, { userId, featureKey, coinPrice =
 }
 
 /**
+ * canAccessPaidFeature 의 "허용"을 회당 상품에서 실제 정산으로 바꾼다(2026-10-16 찻집 사건).
+ *
+ * canAccessPaidFeature 의 license/pass/family/monthly/paidFeatures 허용은 **읽기 전용 판정**이다.
+ * 회당 상품이 그 판정만 믿고 본문을 주면 이용권이 깎이지 않고, 라이선스·월구독·paidFeatures 만으로
+ * 회당 상담이 무한히 열린다. 그래서 허용 판정은 여기서 정본 verifyPerUsePayment 로 다시 확정한다 —
+ * 이번 requestId 의 결제·코인·월정석 증빙이 먼저이고, 없으면 이용권을 **실제로 차감**한다.
+ * 라이선스·월구독·paidFeatures 는 회당 증빙이 아니므로 그것만으로는 통과하지 못한다.
+ *
+ * acceptSettled: 판정이 거부여도 이번 requestId 가 이미 정산됐으면(앞 단계에서 차감해 한도가 소진된 경우)
+ *   새로 차감하지 않고 인정한다. 시작→생성처럼 같은 주문을 두 번 확인하는 라우트의 뒤 단계용이다.
+ *
+ * @returns {Promise<{allowed:(boolean|null), source:string, reason:string, transactionId?:string, passRefund?:{cycleKey:string, cost:number}}>}
+ *   allowed === null : DB 일시 장애. 402 가 아니라 503 으로 돌려야 한다.
+ */
+export async function settlePerUseAccessDecision(env, { decision, userId, featureKey, coinPrice = 0, requestId = "", profileId = "", acceptSettled = false } = {}) {
+  const denied = { allowed: false, source: "", reason: clean(decision?.reason, 80) || "PAYMENT_REQUIRED" };
+  if (!decision?.allowed && !acceptSettled) return denied;
+  if (!clean(requestId)) return { allowed: false, source: "", reason: "NO_REQUEST_ID" };
+  const proof = await verifyPerUsePayment(env, { userId, featureKey, coinPrice, requestId, profileId, requireExisting: !decision?.allowed });
+  if (!decision?.allowed && proof.proven === false) return denied;
+  if (proof.proven === null) return { allowed: null, source: "", reason: proof.reason || "DB_DEGRADED" };
+  if (!proof.proven) return { allowed: false, source: "", reason: proof.reason || "PAYMENT_REQUIRED" };
+  return {
+    allowed: true,
+    source: proof.source,
+    reason: "",
+    ...(proof.transactionId ? { transactionId: proof.transactionId } : {}),
+    ...(proof.passRefund ? { passRefund: proof.passRefund } : {}),
+  };
+}
+
+/**
  * 증빙 판정 결과를 관측용으로 남긴다. 나크샤트라 3종은 이 로그만 쓰고 차단하지 않으며,
  * 연이·초융합 두 상담은 같은 판정으로 실제 차단까지 한다 — 로그는 양쪽 공통이다.
  * 개인정보를 남기지 않는다(userId·결제 식별자 제외, featureKey/source/proven 만).

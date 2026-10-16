@@ -1,8 +1,14 @@
 export { adviceTopics } from './recommendations-context.mjs';
+import { adviceTopics } from './recommendations-context.mjs';
 import { RECOMMENDATIONS_RELEASED, RESULT_PRODUCT_LIMIT, normalizeContext, validateAffiliateUrl, validImageUrl, serviceRule, INTERESTS } from './recommendations-core.mjs';
 import { affiliateCopy } from './affiliate-presentation.mjs';
 import { bookPerspectiveLabel } from './recommendations-context.mjs';
 const mounted = new WeakMap();
+export function mountSajuRecommendation(host, anchor) {
+  // Only the rendered practical-advice list: no chart, birth data or report text.
+  const advice = Array.from(host?.querySelectorAll('#iljuAdviceList li') || []).map(el => el.textContent);
+  return mountRecommendation(host, { service: 'legacy-saju', practiceTags: adviceTopics(advice) }, anchor);
+}
 export async function mountRecommendation(host, input, anchor = null) {
   if (!RECOMMENDATIONS_RELEASED || !host?.isConnected || input?.source === 'article') return;
   mounted.get(host)?.();
