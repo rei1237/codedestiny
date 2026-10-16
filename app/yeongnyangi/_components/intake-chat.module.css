@@ -13,7 +13,7 @@
 .chat button:disabled { opacity: .5; cursor: not-allowed; }
 .chat :is(button,a,input,select,textarea):focus-visible { outline: 2px solid var(--yn-gold); outline-offset: 3px; }
 .chat .header { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--yn-line); background: var(--yn-deep); flex-shrink: 0; }
-.chat .header h1 { font: inherit; font-weight: 700; margin: 0; }
+.chat .header h1 { font: inherit; font-size: var(--yn-t-section); font-weight: 700; line-height: 1.35; margin: 0; }
 .chat .header p { margin: 0; color: var(--yn-muted); font-size: 13px; }
 .chat .header > :is(button,a) { display: grid; place-items: center; min-width: 44px; background: none; border: 0; color: var(--yn-ivory); }
 .chat .header img, .chat .current img, .chat .cat img { object-fit: contain; flex-shrink: 0; border-radius: 30%; }
@@ -84,8 +84,9 @@
 .chat button.sendIcon:not([aria-pressed]):not(.retryButton):hover:not(:disabled) { background: none; border-color: transparent; transform: none; }
 .chat .sendIcon:hover:not(:disabled) span { background: var(--yn-ivory); }
 .chat .sendIcon:disabled span { background: var(--yn-raised); color: var(--yn-muted); }
-.chat .send { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 48px; border: 0; border-radius: 24px; background: var(--yn-gold); color: var(--yn-deep); padding: 10px 16px; font-weight: 700 !important; }
-.chat .send:hover:not(:disabled) { background: var(--yn-ivory); }
+/* 단계 전송은 핵심 행동(결제)이 아니라 Secondary 다. 금 채움은 결제 버튼(.checkoutButton)에만. */
+.chat .send { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 48px; border: 1px solid var(--yn-line); border-radius: var(--yn-btn-radius); background: var(--yn-night); color: var(--yn-ivory); padding: 10px 16px; font-weight: 700 !important; }
+.chat .send:hover:not(:disabled) { background: var(--yn-raised); }
 .chat .legacy { display: block; margin: 6px auto 0; padding: 4px 8px; color: var(--yn-muted); border: 0; background: none; font-size: 13px !important; }
 .chat .summary, .chat .preparation { margin: 20px 0 0 46px; min-width: 0; }
 .chat .summary h2 { font-size: 18px; }
@@ -106,7 +107,6 @@
 @media (max-width: 600px) {
  .chat { border-radius: 0; border-left: 0; border-right: 0; }
  .chat .header { gap: 6px; padding: 10px 8px; }
- .chat .header h1 { font-size: 15px; }
  .chat .header img { width: 36px; height: 36px; }
  .chat .transcript { padding: 16px 12px 24px; }
  .chat .composer { padding-inline: 12px; }
