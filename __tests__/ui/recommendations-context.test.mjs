@@ -48,3 +48,10 @@ test('malformed optional advice rows never break consultation rendering',()=>{
   assert.deepEqual(chapterAdviceTopics([null,{questionAnswers:[null,{},'ignored']}]),[]);
   assert.deepEqual(neoAdviceTopics(null,{actionAlternatives:[null,{}]}),[]);
 });
+
+test('fusion and human design inspect only explicit action fields', async()=>{
+ const {fusionAdviceTopics,humanDesignAdviceTopics}=await import('../../js/recommendations-context.mjs');
+ assert.deepEqual(fusionAdviceTopics({finalVerdict:{doNow:['예산을 세워 보세요.']},executiveSummary:'일기를 기록하세요.'}),['budgeting']);
+ assert.deepEqual(humanDesignAdviceTopics([{key:'practicalGuide',blocks:[{kind:'steps',items:[{text:'집중 시간을 확보하세요.'}]}]},{key:'health',blocks:[{kind:'steps',items:[{text:'일기를 기록하세요.'}]}]}]),['focus']);
+ assert.deepEqual(fusionAdviceTopics({finalVerdict:{doNow:'invalid'}}),[]);
+});

@@ -1,0 +1,469 @@
+{
+  "status": "drafts-only-not-published",
+  "date": "2026-10-16",
+  "settings": {
+    "enabled": false,
+    "approved": false,
+    "mediaRegistered": false
+  },
+  "liveObserved": {
+    "drafts": 9,
+    "reviewed": 0,
+    "enabled": false
+  },
+  "products": [
+    {
+      "id": "atomic-habits-ko",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "books",
+      "kind": "book",
+      "title": "아주 작은 습관의 힘 (50만 부 기념 스페셜 에디션)",
+      "reason": "작은 행동을 꾸준히 반복하라는 조언에 맞춰, 시작하기 쉬운 환경과 습관을 만드는 방법을 살펴볼 수 있어요.",
+      "practiceTags": [
+        "habit-building"
+      ],
+      "topicReasons": {
+        "habit-building": "작은 행동을 꾸준히 반복하라는 조언에 맞춰, 시작하기 쉬운 환경과 습관을 만드는 방법을 살펴볼 수 있어요."
+      },
+      "colors": [],
+      "motifs": [],
+      "book": {
+        "author": "제임스 클리어 / 이한이 옮김",
+        "publisher": "비즈니스북스",
+        "edition": "50만 부 기념 스페셜 에디션",
+        "language": "한국어",
+        "format": "종이책",
+        "isbn": "9791162540640",
+        "editionEvidence": "https://www.yes24.com/product/goods/69655504",
+        "contentsEvidence": "작은 행동을 시작하기 쉽게 만드는 환경과 반복 습관을 다룬다.",
+        "audience": "작은 실천을 꾸준히 이어가고 싶은 독자",
+        "perspective": "practical"
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "reading"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hS1OQsOAge",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "2026-10-16 로그인한 쿠팡 공식 포털에서 판매 목록과 선택 상품 확인 및 링크 발급: 아주 작은 습관의 힘 (50만 부 기념 스페셜 에디션), 상품명. 가격 미표시. https://www.yes24.com/product/goods/69655504 2026-10-16 실제 연결 상품 9766996432 / 29233265751 제목·옵션 및 구매 가능 버튼 확인. 실제 구매 미실행.",
+      "attributes": [
+        "판매자 구성: 쁘띠수첩+책갈피 포함"
+      ],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 100,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "saying-no-ko",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "books",
+      "kind": "book",
+      "title": "거절 잘 하는 법",
+      "reason": "자신의 기준을 지키라는 조언에 맞춰, 부탁을 받았을 때 자신의 의사를 분명하게 표현하는 방법을 살펴볼 수 있어요.",
+      "practiceTags": [
+        "boundaries",
+        "relationship-patterns"
+      ],
+      "topicReasons": {
+        "boundaries": "자신의 기준을 지키라는 조언에 맞춰, 부탁을 받았을 때 자신의 의사를 분명하게 표현하는 방법을 살펴볼 수 있어요.",
+        "relationship-patterns": "반복해서 원치 않는 부탁을 수락하는 선택을 돌아볼 때, 나만의 거절 기준을 정하는 부분을 참고할 수 있어요."
+      },
+      "colors": [],
+      "motifs": [],
+      "book": {
+        "author": "이하늘",
+        "publisher": "카시오페아",
+        "edition": "ISBN 9791188674299 종이책",
+        "language": "한국어",
+        "format": "종이책",
+        "isbn": "9791188674299",
+        "editionEvidence": "https://www.yes24.com/product/goods/64611915",
+        "contentsEvidence": "자신의 감정과 요청을 구분하고 거절 기준과 표현을 연습하는 관계 실용서.",
+        "audience": "부탁에 응하기 전에 자신의 기준을 확인하고 싶은 독자",
+        "perspective": "practical"
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "reading"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hS1SfXXGeG",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "2026-10-16 로그인한 쿠팡 공식 포털에서 판매 목록과 선택 상품 확인 및 링크 발급: 거절 잘 하는 법, 카시오페아, 이하늘. 가격 미표시. https://www.yes24.com/product/goods/64611915 2026-10-16 실제 연결 상품 1766979093 / 3008780280 제목·옵션 및 구매 가능 버튼 확인. 실제 구매 미실행.",
+      "attributes": [],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 100,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "psychology-money-2026-ko",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "books",
+      "kind": "book",
+      "title": "돈의 심리학 (50만 부 기념 뉴 에디션)",
+      "reason": "지출을 점검하라는 조언과 연결해, 소비 욕망과 저축을 다루는 장을 읽으며 돈을 쓰는 기준을 돌아볼 수 있어요. 가계부 작성법 자체를 설명하는 책은 아니에요.",
+      "practiceTags": [
+        "budgeting"
+      ],
+      "topicReasons": {
+        "budgeting": "지출을 점검하라는 조언과 연결해, 소비 욕망과 저축을 다루는 장을 읽으며 돈을 쓰는 기준을 돌아볼 수 있어요. 가계부 작성법 자체를 설명하는 책은 아니에요."
+      },
+      "colors": [],
+      "motifs": [],
+      "book": {
+        "author": "모건 하우절 / 이지연 옮김",
+        "publisher": "인플루엔셜",
+        "edition": "2026년 1월 14일 · 50만 부 기념 뉴 에디션",
+        "language": "한국어",
+        "format": "종이책",
+        "isbn": "9791168343443",
+        "editionEvidence": "https://www.yes24.com/Product/Goods/172574653",
+        "contentsEvidence": "소비 욕망과 저축, 돈을 대하는 태도를 다룬다. 예산표 작성 교재나 수익 보장 자료가 아니다.",
+        "audience": "소비와 저축의 기준을 돌아보고 싶은 독자",
+        "perspective": "practical"
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "reading"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hS10EiZvHg",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "2026-10-16 로그인한 쿠팡 공식 포털에서 판매 목록과 선택 상품 확인 및 링크 발급: [인플루엔셜] 돈의 심리학 50만 부 기념 뉴 에디션, 1개. 가격 미표시. https://www.yes24.com/Product/Goods/172574653 2026-10-16 실제 연결 상품 9652378259 / 28850929527 제목·옵션 및 구매 가능 버튼 확인. 실제 구매 미실행.",
+      "attributes": [],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 100,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "deep-work-ko",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "books",
+      "kind": "book",
+      "title": "딥 워크",
+      "reason": "집중 시간을 정하고 방해 요소를 줄이라는 조언에 맞춰, 몰입할 환경과 일정 관리 방법을 구체적으로 살펴볼 수 있어요.",
+      "practiceTags": [
+        "focus"
+      ],
+      "topicReasons": {
+        "focus": "집중 시간을 정하고 방해 요소를 줄이라는 조언에 맞춰, 몰입할 환경과 일정 관리 방법을 구체적으로 살펴볼 수 있어요."
+      },
+      "colors": [],
+      "motifs": [],
+      "book": {
+        "author": "칼 뉴포트 / 김태훈 옮김",
+        "publisher": "민음사",
+        "edition": "2017년 4월 1일 종이책",
+        "language": "한국어",
+        "format": "종이책",
+        "isbn": "9788937434082",
+        "editionEvidence": "https://www.yes24.com/product/goods/38286918",
+        "contentsEvidence": "집중할 시간을 확보하고 산만함과 피상적인 작업을 줄이는 구체적인 업무 습관을 다룬다.",
+        "audience": "공부나 업무의 방해 요소를 줄이고 집중 시간을 확보하고 싶은 독자",
+        "perspective": "practical"
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "reading"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hS15pZCqw8",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "2026-10-16 로그인한 쿠팡 공식 포털에서 판매 목록과 선택 상품 확인 및 링크 발급: 딥 워크 : 강렬한 몰입 최고의 성과, 민음사, 칼 뉴포트. 가격 미표시. https://www.yes24.com/product/goods/38286918 2026-10-16 실제 연결 상품 19531919 / 78211032 제목·옵션 및 구매 가능 버튼 확인. 실제 구매 미실행.",
+      "attributes": [],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 100,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "reflection-notebook-pair",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "books",
+      "kind": "journal",
+      "title": "모닝글로리 3500 비움 연습장 좌철, 랜덤발송, 2개",
+      "reason": "조언에서 권한 기록과 회고를 이어가고 싶다면, 하루의 생각이나 작은 실천을 짧게 적는 용도로 활용할 수 있어요. 이미 쓰는 노트가 있다면 새로 살 필요는 없어요.",
+      "practiceTags": [
+        "journaling",
+        "self-reflection"
+      ],
+      "topicReasons": {
+        "journaling": "조언에서 권한 기록과 회고를 이어가고 싶다면, 하루의 생각이나 작은 실천을 짧게 적는 용도로 활용할 수 있어요. 이미 쓰는 노트가 있다면 새로 살 필요는 없어요.",
+        "self-reflection": "자신의 선택과 반응을 돌아보라는 조언에 맞춰, 오늘의 선택과 다음에 바꿔볼 행동을 적는 공간으로 활용할 수 있어요."
+      },
+      "colors": [],
+      "motifs": [],
+      "book": {
+        "author": "",
+        "publisher": "",
+        "edition": "",
+        "language": "",
+        "format": "",
+        "isbn": "",
+        "editionEvidence": "",
+        "contentsEvidence": "",
+        "audience": "",
+        "perspective": ""
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "journaling"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hS2aPLVrLo",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "2026-10-16 로그인한 쿠팡 공식 포털에서 판매 목록과 선택 상품 확인 및 링크 발급: 모닝글로리 3500 비움 연습장 좌철, 랜덤발송, 2개. 가격 미표시.  2026-10-16 실제 연결 상품 7578855357 / 20397108448 제목·옵션 및 구매 가능 버튼 확인. 실제 구매 미실행.",
+      "attributes": [
+        "2개 구성",
+        "표지 랜덤발송 · 행운색 매칭 대상 아님"
+      ],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 100,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "dotline-amethyst-ch06",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "daily-life",
+      "kind": "bracelet",
+      "title": "도트라인 CH06 자수정 팔찌 6mm",
+      "reason": "보라색 소품을 직접 선택했다면 일상에서 다짐을 떠올리는 장식으로 살펴보세요.",
+      "practiceTags": [
+        "symbolism"
+      ],
+      "topicReasons": {
+        "symbolism": "보라색 취향에 맞춰 고른 팔찌입니다. 운세 개선 효과를 뜻하지 않아요."
+      },
+      "colors": [
+        "purple"
+      ],
+      "motifs": [],
+      "book": {
+        "author": "",
+        "publisher": "",
+        "edition": "",
+        "language": "",
+        "format": "",
+        "isbn": "",
+        "editionEvidence": "",
+        "contentsEvidence": "",
+        "audience": "",
+        "perspective": ""
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "collecting"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hS0Skh2NGK",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "2026-10-16 로그인된 쿠팡 파트너스 상품검색에서 도트라인 CH06 천연자수정6mm팔찌 확인 후 공식 단축 링크 발급. 검색 가격 16900원은 변동 가능하여 미표시. 재질 진위는 독립 검증하지 않음. 2026-10-16 실제 연결 상품 24597231 / 95732138 제목·옵션 및 구매 가능 버튼 확인. 실제 구매 미실행.",
+      "attributes": [
+        "판매처 표기: 천연자수정 6mm",
+        "보석 진위·감정서·손목 둘레는 구매 전 판매처에서 확인"
+      ],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 100,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "lactofit-gold-50",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "daily-life",
+      "kind": "health-supplement",
+      "title": "종근당건강 락토핏 골드 100g (2g × 50포), 1개",
+      "reason": "건강기능식품 정보를 직접 살펴보려는 분을 위한 제품 비교 후보예요. 표시 성분과 섭취 주의사항을 확인해 주세요.",
+      "practiceTags": [
+        "supplement-information"
+      ],
+      "topicReasons": {
+        "supplement-information": "건강기능식품 정보를 직접 살펴보려는 분을 위한 제품 비교 후보예요. 표시 성분과 섭취 주의사항을 확인해 주세요."
+      },
+      "colors": [],
+      "motifs": [],
+      "book": {
+        "author": "",
+        "publisher": "",
+        "edition": "",
+        "language": "",
+        "format": "",
+        "isbn": "",
+        "editionEvidence": "",
+        "contentsEvidence": "",
+        "audience": "",
+        "perspective": ""
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "rest"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hS2jw54gNM",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "2026-10-16 로그인 공식 포털 발급. 판매 상세 9750789038 / 29196897566, 100g 1개, 종근당건강 제조, 40억 CFU 및 아연 2.55mg 대조. https://www.foodsafetykorea.go.kr/portal/healthyfoodlife/searchHomeHFDetail.do?prdlstReportLedgNo=2022021000248804",
+      "attributes": [
+        "인정 정보: 식품안전나라 품목신고 20040020016643 (락토핏 골드). 오행·운세에 따른 맞춤 처방 아님",
+        "기능성: 프로바이오틱스는 장 건강·배변활동 등에 도움을 줄 수 있음. 아연은 정상 면역기능·세포분열에 필요",
+        "섭취 주의사항: 질환·복용약이 있으면 전문가와 상담. 알레르기 반응과 이상 증상 시 섭취 중단 후 상담. 어린이는 섭취량 지도 필요",
+        "우유·대두 함유. 임신·수유 중에는 전문가와 상담. 의약품이 아니며 구매 전 판매처의 최신 표시사항 확인",
+        "2g × 50포, 1개. 1포당 프로바이오틱스 40억 CFU·아연 2.55mg. 20억 CFU 제품과 구분"
+      ],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 100,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    }
+  ],
+  "aliSource": "docs/operations/affiliate-aliexpress-20261009.json",
+  "supplements": {
+    "status": "draft-candidate-matched-to-official-record",
+    "policy": "명시적 제품 정보 탐색만 허용. 오행·증상·질환 기반 추천 금지. 운영 검수·활성화 미실행.",
+    "record": "20040020016643",
+    "excludedRecord": "20040020016655 (20억 CFU, 다른 제품)"
+  },
+  "accountEvidence": {
+    "observedAt": "2026-10-16",
+    "coupang": {
+      "linkGeneration": "confirmed-in-signed-in-official-portal",
+      "registeredMedia": [
+        "https://code-destiny.com",
+        "https://code-destiny.com/ggulggul/",
+        "https://code-destiny.com/yeongnyangi/"
+      ],
+      "finalApproval": "not-confirmed; activity screenshot submission guidance visible"
+    },
+    "aliexpress": {
+      "source": "2026-10-09 operator confirmation",
+      "directPortalRead": "blocked-by-browser-site-safety-policy"
+    }
+  },
+  "proposedPublication": {
+    "requiresSeparateApproval": true,
+    "productIds": [
+      "atomic-habits-ko",
+      "saying-no-ko",
+      "psychology-money-2026-ko",
+      "deep-work-ko",
+      "reflection-notebook-pair",
+      "dotline-amethyst-ch06",
+      "lactofit-gold-50",
+      "ali-tassel-bookmark",
+      "ali-cat-savings-box",
+      "ali-green-donut-bracelet",
+      "ali-green-clover-earrings",
+      "ali-gold-cat-decoration",
+      "ali-green-bead-bracelet"
+    ],
+    "settings": {
+      "enabled": true,
+      "approved": true,
+      "mediaRegistered": true,
+      "disabledServices": [],
+      "providers": {
+        "coupang": {
+          "enabled": true,
+          "approved": true,
+          "mediaRegistered": true,
+          "trackingId": "AF7837486",
+          "evidence": "2026-10-16 로그인 공식 포털 링크 발급 및 code-destiny.com, /ggulggul/, /yeongnyangi/ 등록 확인. 광고 활동 가능 확인이며 최종 승인·정산·API 승인 완료를 의미하지 않음."
+        },
+        "aliexpress": {
+          "enabled": true,
+          "approved": true,
+          "mediaRegistered": true,
+          "trackingId": "NEO2277",
+          "evidence": "2026-10-09 사용자가 NEO2277 발급, code-destiny.com 활동 웹사이트 등록, 제휴 계정 홍보 가능 상태를 확인함. 계정 화면을 에이전트가 직접 열람한 것은 아님. 2026-10-16 포털 직접 접근은 사이트 보안 정책으로 차단되어 재확인하지 못함."
+        }
+      }
+    },
+    "conditions": [
+      "운영 코드 승격 및 버전 확인 후 등록",
+      "상품별 기존 검수 조건과 30일 유효기간 적용",
+      "운영 API와 실제 결과·서가에서 공개 확인",
+      "계정/상품 검수 미통과 항목은 OFF 유지"
+    ]
+  }
+}

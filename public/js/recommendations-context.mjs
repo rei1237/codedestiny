@@ -15,6 +15,7 @@ export const TOPIC_RULES = Object.freeze({
   focus: ['집중과 학습', '집중 시간·방해 요소·학습 방법을 정하는 권고', '산만하다는 성격 판단', '집중·학습 실용서'],
   budgeting: ['예산과 소비 점검', '지출·소비·예산을 점검하는 권고', '재물운이 좋다는 해석·수익 보장', '가계부·소비 습관'],
   rest: ['휴식과 속도 조절', '일상 속 휴식 시간을 확보하는 권고', '질병 치료·불면 진단', '일상 에세이·휴식 실천'],
+  'supplement-information': ['건강기능식품 정보', '사용자가 직접 선택한 제품 정보 탐색', '오행·증상·질환으로 추정 금지', '인정 기능성·섭취 주의사항 확인'],
   symbolism: ['색상과 다짐', '확인한 색·모티프와 명시적으로 선택한 상징', '운세 개선·액막이 효능', '색상·상징 소품'],
   ...Object.fromEntries([['saju','사주'],['ziwei','자미두수'],['sukuyo','숙요점'],['vedic','베다 점성술'],['astrology','서양 점성술'],['tarot','타로']].map(([id,label]) => [`${id}-study`, [label + ' 공부', '해당 체계 학습을 다루는 검수 콘텐츠 또는 명시적 관심', '같은 체계의 개인 풀이를 봤다는 사실만으로 추천', label + ' 입문서']])),
 });
@@ -68,4 +69,12 @@ export function teaAdviceTopics(result) {
 }
 export function neoAdviceTopics(briefing, refined) {
   return adviceTopics([...(Array.isArray(briefing?.actionOrders) ? briefing.actionOrders : []), ...(Array.isArray(refined?.actionAlternatives) ? refined.actionAlternatives.map(x => x?.action) : []), ...(Array.isArray(refined?.thirtyDayStrategy) ? refined.thirtyDayStrategy : [])]);
+}
+
+export function fusionAdviceTopics(result) {
+  return adviceTopics([...(Array.isArray(result?.finalVerdict?.doNow) ? result.finalVerdict.doNow : []), ...(Array.isArray(result?.timingAndAction?.luckyActions) ? result.timingAndAction.luckyActions : [])]);
+}
+export function humanDesignAdviceTopics(chapters) {
+  if (!Array.isArray(chapters)) return [];
+  return adviceTopics(chapters.filter(c => c?.key === 'practicalGuide').flatMap(c => (Array.isArray(c.blocks) ? c.blocks : []).filter(b => b?.kind === 'steps').flatMap(b => (Array.isArray(b.items) ? b.items : []).map(i => i?.text))));
 }

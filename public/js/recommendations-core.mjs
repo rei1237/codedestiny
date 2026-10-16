@@ -4,7 +4,7 @@ export const PARTNER_ACCOUNT = 'AF7837486';
 // Deliberate release lock: account/media approval is a separate, reviewed release.
 export const RECOMMENDATIONS_RELEASED = true;
 export const CATEGORIES = ['books', 'daily-life', 'pets', 'fandom'];
-export const PRODUCT_KINDS = { books: ['book', 'journal', 'stationery'], 'daily-life': ['food', 'decaf-tea', 'bottle', 'lunchbox', 'timer', 'bookstand', 'rest-accessory', 'bracelet', 'symbol-accessory', 'plant', 'planter', 'led-fireplace', 'lamp'], pets: ['scratcher', 'toy', 'hideaway', 'brush', 'bowl', 'leash', 'harness', 'toilet-supply', 'pet-book'], fandom: ['album', 'binder', 'sleeve', 'collecting-accessory'] };
+export const PRODUCT_KINDS = { books: ['book', 'journal', 'stationery'], 'daily-life': ['food', 'decaf-tea', 'bottle', 'lunchbox', 'timer', 'bookstand', 'rest-accessory', 'bracelet', 'symbol-accessory', 'plant', 'planter', 'led-fireplace', 'lamp', 'health-supplement'], pets: ['scratcher', 'toy', 'hideaway', 'brush', 'bowl', 'leash', 'harness', 'toilet-supply', 'pet-book'], fandom: ['album', 'binder', 'sleeve', 'collecting-accessory'] };
 export const INTERESTS = ['reading', 'journaling', 'planning', 'meal-prep', 'hydration', 'rest', 'conversation', 'study', 'budgeting', 'play', 'grooming', 'walking', 'collecting', 'music'];
 export const DEFAULT_SETTINGS = Object.freeze({ enabled: false, approved: false, mediaRegistered: false, disabledServices: [] });
 export const PROVIDERS = ['coupang', 'aliexpress'];
@@ -19,6 +19,7 @@ export function providerEnabled(settings, id = 'coupang') {
   const p = settings?.providers?.[id];
   return PROVIDERS.includes(id) && p?.enabled === true && p.approved === true && p.mediaRegistered === true && !!p.evidence && (id === 'coupang' ? p.trackingId === PARTNER_ACCOUNT : !!p.trackingId);
 }
+export const RESULT_PRODUCT_LIMIT = 2;
 export const VALID_DAYS = 30;
 const DAY = 86400000;
 const systems = ['saju', 'ziwei', 'sukuyo', 'vedic', 'astrology', 'tarot'];
@@ -122,6 +123,10 @@ export function reviewErrors(p) {
     if (p.practiceTags?.includes('karma-philosophy') && p.book?.perspective !== 'buddhist-philosophy') errors.push('업 철학 태그는 불교 철학 도서로 구분해 주세요.');
     if (p.practiceTags?.includes('modern-spirituality') && p.book?.perspective !== 'modern-spirituality') errors.push('현대 영성 도서의 관점을 구분해 주세요.');
   }
+  if (p.kind === 'health-supplement') {
+    if (p.providerId !== 'coupang' || !p.practiceTags?.includes('supplement-information')) errors.push('건강기능식품은 쿠팡의 명시적 제품 정보 탐색으로만 등록해 주세요.');
+    if (!p.evidence?.includes('https://www.foodsafetykorea.go.kr/') || !['인정 정보:', '기능성:', '섭취 주의사항:'].every(prefix => p.attributes?.some(value => value.startsWith(prefix) && value.length > prefix.length + 2))) errors.push('식품안전나라 제품 근거와 인정 정보·기능성·섭취 주의사항을 기록해 주세요.');
+  }
   if (['sold-out', 'ended'].includes(p.stock)) errors.push('품절·판매 종료 상품은 활성화할 수 없습니다.');
   return errors;
 }
@@ -155,7 +160,7 @@ export function publicProduct(p, now = Date.now()) {
 }
 export function selectProducts(products, input = {}, now = Date.now()) {
   const c = normalizeContext(input), rule = serviceRule(c.service);
-  if (!rule) return [];
+  if (!rule || c.source === 'article') return [];
   if (rule.explicitInterest) {
     c.interests = c.interests.filter(x => ['meal-prep', 'hydration', 'rest'].includes(x));
     if (!c.interests.length) return [];
@@ -163,6 +168,9 @@ export function selectProducts(products, input = {}, now = Date.now()) {
   const matches = products.filter(p => {
     const expires = new Date(p.expiresAt || 0).getTime(), verified = new Date(p.verifiedAt || 0).getTime();
     if (p.status !== 'active' || !p.accountVerified || reviewErrors(p).length || !Number.isFinite(expires) || !Number.isFinite(verified) || expires <= now || verified <= 0 || verified > now || now - verified > VALID_DAYS * DAY) return false;
+    // Symbols and supplements are explicit browsing choices, never fortune prescriptions.
+    if ((p.practiceTags?.includes('symbolism') || p.kind === 'health-supplement') && c.source !== 'browse') return false;
+    if (p.kind === 'health-supplement' && !c.practiceTags.includes('supplement-information')) return false;
     if (!rule.categories.includes(p.category) || (c.category && c.category !== p.category) || c.exclude.includes(p.id)) return false;
     if (p.serviceTags?.length && !p.serviceTags.includes(c.service) && c.service !== 'recommendations') return false;
     if (p.category === 'pets' && (!c.species || !p.species.includes(c.species))) return false;
