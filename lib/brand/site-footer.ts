@@ -14,8 +14,8 @@ export const FOOTER_LINKS = [
   { href: '/about/', text: '운영자 소개', trans: 'footer.links.operator' },
 ] as const;
 
-// 사이트 공용 푸터(정적 셸·SiteFooterHub·LocaleFooterHub)의 작은 둘째 줄. 정적 셸에서는
-// scripts/verify-adsense-readiness.mjs 의 신뢰 링크 검사가 요구한다. 루트 `/` 는 다섯 개만 둔다.
+// 사이트 공용 푸터(정적 셸·SiteFooterHub·LocaleFooterHub)의 작은 둘째 줄. 정적 셸과 루트 `/`(dist/index.html)
+// 모두 scripts/verify-adsense-readiness.mjs 의 신뢰 링크 검사가 요구한다.
 export const FOOTER_TRUST_LINKS = [
   { href: '/faq/', text: '자주 묻는 질문', trans: 'footer.links.faq' },
   { href: '/disclaimer/', text: '면책 고지', trans: 'footer.links.disclaimer' },

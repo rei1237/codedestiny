@@ -223,6 +223,8 @@
 .footerNav { display: flex; flex-wrap: wrap; justify-content: center; gap: 0 16px; }
 .footerNav a { display: inline-flex; align-items: center; min-height: 44px; font-size: 0.8125rem; color: var(--cd-text); text-decoration: none; }
 .footerNav .footerStrong { font-weight: 800; }
+.footerQuiet { margin-top: -8px; }
+.footerQuiet a { min-height: 32px; font-size: 0.75rem; color: var(--cd-text-muted); }
 .business { display: flex; flex-wrap: wrap; justify-content: center; gap: 0 12px; max-width: 72ch; }
 .notice { max-width: 60ch; text-wrap: balance; }
 @media (hover: hover) { .footerNav a:hover { text-decoration: underline; } }

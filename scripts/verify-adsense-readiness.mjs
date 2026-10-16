@@ -872,7 +872,7 @@ function verifyPublicFeatureMetadataSource() {
         'canonical: "/yeon-star-hug"',
         "openGraph",
         "\uC5F0\uC774 \uBCC4\uBE5B \uC0C1\uB2F4",
-        "\uC5D4\uD130\uD14C\uC778\uBA3C\uD2B8",
+        "\uCC38\uACE0 \uC790\uB8CC",
       ],
     },
   ];

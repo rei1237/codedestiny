@@ -4,7 +4,7 @@ import { buildServiceJsonLd, buildWebPageJsonLd } from "../lib/structured-data";
 import { serializeJsonLd } from "../lib/seo/json-ld.mjs";
 import { brandCopy } from "../lib/seo/brand-copy.mjs";
 import { BRAND_FACTS } from "../lib/brand/brand-facts.mjs";
-import { FOOTER_BYLINE, FOOTER_LINKS, FOOTER_NOTICE } from "../lib/brand/site-footer";
+import { FOOTER_BYLINE, FOOTER_LINKS, FOOTER_NOTICE, FOOTER_TRUST_LINKS } from "../lib/brand/site-footer";
 import { BUSINESS_IDENTITY } from "../lib/site-policy-config";
 import LegacyHomeEntry from "./components/LegacyHomeEntry";
 import LocalizedServiceSummary from "./components/LocalizedServiceSummary";
@@ -114,6 +114,10 @@ export default function HomePage() {
       <footer className={styles.footer}>
         <nav className={styles.footerNav} aria-label="정책과 문의">
           {FOOTER_LINKS.map(link => <Link key={link.href} href={link.href} className={link.strong ? styles.footerStrong : undefined}>{link.text}</Link>)}
+        </nav>
+        {/* 둘째 줄(작게): dist/index.html 도 scripts/verify-adsense-readiness.mjs 의 신뢰 링크 8종 검사 대상이다. */}
+        <nav className={`${styles.footerNav} ${styles.footerQuiet}`} aria-label="안내 페이지">
+          {FOOTER_TRUST_LINKS.map(link => <Link key={link.href} href={link.href}>{link.text}</Link>)}
         </nav>
         <p className={styles.business}>
           <span>상호 {BUSINESS_IDENTITY.companyName}</span><span>대표 {BUSINESS_IDENTITY.representative}</span><span>사업자등록번호 {BUSINESS_IDENTITY.registrationNumber}</span>
