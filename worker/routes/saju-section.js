@@ -12,8 +12,8 @@ const degraded = () => json({
 // 묶음·옛 상품으로 산 사람도 이 카드를 연다 — /api/fortune/balance 가 화면 해금에 쓰는 별칭
 // (worker/routes/fortune.js PERSISTENT_UNLOCK_ALIAS_MAP)을 거꾸로 읽은 것이다.
 // 출생 기반 별칭은 같은 출생 정보(또는 옛 계정 단위 행)로만, 옛 묶음 키는 계정 단위 구매 기록으로 인정한다.
-const BIRTH_ALIAS_KEYS = Object.freeze({ rpt_energyCoordCard: ["travelDestiny"] });
-const BUNDLE_ALIAS_KEYS = Object.freeze({ rpt_energyCoordCard: ["allPaidSaju"] });
+const BIRTH_ALIAS_KEYS = Object.freeze({ rpt_energyCoordCard: ["travelDestiny"], rpt_healthReportCard: ["healthReport"] });
+const BUNDLE_ALIAS_KEYS = Object.freeze({ rpt_energyCoordCard: ["allPaidSaju"], rpt_healthReportCard: ["allPaidSaju"] });
 
 function bodyBirth(body) {
   const birth = body?.birth && typeof body.birth === "object" ? body.birth : {};
@@ -25,7 +25,7 @@ function bodyBirth(body) {
 
 // 사주 종합(section_summary)·대운 풀이(section_daewun)·퀀텀 명리 엔진(rpt_quantumCard)·극T 관계 회로(sukuyo-extreme-t-relationship)·
 // 숙요 인연 도감(sukuyo-relationship-encyclopedia)·에너지 원정 리포트(rpt_energyCoordCard)
-// ·요주의 빌런 블랙리스트(rpt_villainCard)
+// ·요주의 빌런 블랙리스트(rpt_villainCard)·명리 헬스 리포트(rpt_healthReportCard)
 // 본문 읽기. 결제·해금 쓰기는 하지 않는다.
 // 저장 프로필이 있으면 그 카드의 출생 정보로만 계산하고, 없으면 계정 단위 옛 해금(USER 행)만 인정한다.
 export async function handleSajuSection(request, env = {}) {

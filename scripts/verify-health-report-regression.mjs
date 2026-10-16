@@ -1,11 +1,16 @@
 import fs from 'node:fs';
 import vm from 'node:vm';
 
-const source = fs.readFileSync('js/entertain-engine.js', 'utf8');
+// 건강 블록 본문은 서버(worker/lib/saju-section/paid-health.src.js)로 옮겼다. 그 정본을 원래 자리(entertain-engine IIFE 의
+// ① 표식 앞)에 되돌려 넣어 같은 검사를 한다 — 서버 번들(scripts/extract-saju-section-runtime.mjs)도 같은 헬퍼와 묶는다.
+const engineSource = fs.readFileSync('js/entertain-engine.js', 'utf8');
+const HEALTH_MARK = '  // ① 명리 헬스 리포트(rpt_healthReportCard) 본문은 서버로 옮겼다';
+const source = engineSource.replace(HEALTH_MARK, () => fs.readFileSync('worker/lib/saju-section/paid-health.src.js', 'utf8') + '\n' + HEALTH_MARK);
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
+assert(source !== engineSource, 'entertain-engine.js 에서 건강 블록 자리 표식을 찾지 못했다');
 
 function createNode() {
   return {
@@ -63,6 +68,8 @@ function createRuntime({ dayGan = '甲', noDay = false, customSource = source } 
   }
 
   const sandbox = {
+    // paid-health.src.js 의 _healthToday() 가 읽는 요청 시각 자리. 비워 두면 지금 시각을 쓴다.
+    ctx: {},
     window,
     document,
     console,

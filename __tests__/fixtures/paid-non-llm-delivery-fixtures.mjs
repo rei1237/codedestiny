@@ -425,7 +425,7 @@ export const PAID_NON_LLM_DELIVERY_FIXTURES = Object.freeze([
     featureKey: "rpt_healthReportCard",
     billingType: "unlock",
     cta: { file: "js/core/saju/reportDashboard.js", marker: "target:'healthReportCard'" },
-    consumer: { file: "js/entertain-engine.js", marker: "w.renderHealthReport = function" },
+    consumer: { file: "worker/lib/saju-section/paid-health.src.js", marker: "w.renderHealthReport = function" },
   },
   {
     featureKey: "rpt_skillTreeCard",

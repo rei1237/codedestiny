@@ -369,6 +369,11 @@
       area: 'villainResult', card: 'villainCard', styleId: 'villainDossierStyleV20260612',
       loading: '요주의 빌런 블랙리스트를 불러오고 있어요.',
       delivered: function (area) { bindVillainResult(area); }
+    },
+    rpt_healthReportCard: {
+      area: 'healthReportSection', card: 'healthReportCard', styleId: 'cd-health-r2-fonts',
+      loading: '명리 헬스 리포트를 불러오고 있어요.',
+      delivered: function (area) { healthDelivered(area); }
     }
   };
   var cards = {};
@@ -437,6 +442,31 @@
       fail(failureText(result));
     }, function () { fail(failureText(null)); });
     return false;
+  }
+
+  // 명리 헬스 리포트: 장(<details>)을 펼칠 때 대시보드 카드 높이를 다시 맞춘다.
+  // 원본(js/entertain-engine.js renderHealthReport 오버라이드·bindHealthChapterHeightSync)의 연결 코드 그대로다(w → root).
+  function healthDelivered(area) {
+    var card = byId('healthReportCard');
+    bindHealthChapterHeightSync(area, card);
+    if (typeof root.syncReportHeightFromNode === 'function') {
+      root.syncReportHeightFromNode(card);
+      setTimeout(function () { root.syncReportHeightFromNode(card); }, 240);
+    }
+  }
+  // reportDashboard 의 MutationObserver 는 attributeFilter 가 ['style','class'] 라 <details> 의
+  // open 속성 변경을 보지 못하고, ResizeObserver 하나만 안전망으로 남는다. 그 사각지대를 직접 메운다.
+  function bindHealthChapterHeightSync(area, card) {
+    if (!area || !card || typeof area.querySelectorAll !== 'function') return;
+    var chapters = area.querySelectorAll('details.cd-health-chapter');
+    if (!chapters || !chapters.length) return;
+    Array.prototype.forEach.call(chapters, function (chapter) {
+      chapter.addEventListener('toggle', function () {
+        if (typeof root.syncReportHeightFromNode !== 'function') return;
+        root.syncReportHeightFromNode(card);
+        setTimeout(function () { root.syncReportHeightFromNode(card); }, 240);
+      });
+    });
   }
 
   // 요주의 빌런 블랙리스트: 긴급 차단 멘트 복사·관계 방어 자가진단 버튼. 원본(renderVillain)의 연결 코드 그대로다.

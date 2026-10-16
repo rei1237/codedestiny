@@ -1235,7 +1235,8 @@ function _sajuFunTryRecoverTargetCard(targetId) {
         if (typeof renderSpecialCharm === 'function' && p && natal) renderSpecialCharm(p, natal);
         break;
       case 'healthReportCard':
-        if (typeof renderHealthReport === 'function' && p && natal) renderHealthReport(p, natal, johu, power, jong);
+        // 본문은 서버(/api/saju/section, rpt_healthReportCard)가 해금을 확인한 뒤 배달한다.
+        if (window.CdSajuSectionClient && p && natal) window.CdSajuSectionClient.loadCard('rpt_healthReportCard');
         break;
       case 'skillTreeCard':
         if (typeof renderSkillTree === 'function' && p && natal) renderSkillTree(p, natal);
@@ -1297,7 +1298,7 @@ function _sajuFunEnsureQuantumBlockReady(block) {
 
 /* 서버가 배달하는 유료 카드(에너지 원정 리포트 등)도 결과 계산 직후에는 무료 스텁만 있다.
    카드를 여는 시점에만 서버에 본문을 요청한다(비동기 배달). 키: 대시보드 블록 target → featureKey. */
-var _SAJU_FUN_SERVER_CARDS = { energyCoordCard: 'rpt_energyCoordCard', villainCard: 'rpt_villainCard' };
+var _SAJU_FUN_SERVER_CARDS = { energyCoordCard: 'rpt_energyCoordCard', villainCard: 'rpt_villainCard', healthReportCard: 'rpt_healthReportCard' };
 function _sajuFunEnsureServerCardReady(block) {
   var target = block && String(block.id || '').replace(/^rpt-v2-section-/, '');
   var featureKey = target && _SAJU_FUN_SERVER_CARDS[target];

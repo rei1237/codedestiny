@@ -2331,156 +2331,8 @@ ENERGY_COORD_DB=(function(meta,destinations){
   return grouped;
 })(ENERGY_COORD_DB,ENERGY_TRAVEL_DESTINATIONS);
 
-var HEALTH_FOOD_DB = {
-  wood: [
-    {name:'부추무침', ingredients:'부추, 식초', reason:'간의 해독을 돕고 신맛이 목(木) 기운을 깨웁니다.'},
-    {name:'매실차', ingredients:'매실, 꿀', reason:'신맛이 간담을 튼튼하게 하고 피로를 풀어줍니다.'},
-    {name:'닭가슴살 샐러드', ingredients:'닭가슴살, 양상추', reason:'푸른 채소가 목(木) 에너지를 직접적으로 공급합니다.'},
-    {name:'미나리 삼겹살', ingredients:'미나리, 돼지고기', reason:'미나리의 해독 작용이 간 기능을 극대화합니다.'},
-    {name:'키위 스무디', ingredients:'키위, 사과', reason:'상큼한 신맛과 푸른색이 목(木) 기운을 보충합니다.'},
-    {name:'시금치 나물', ingredients:'시금치, 참기름', reason:'철분과 푸른 에너지가 피를 맑게 하고 간을 돕습니다.'},
-    {name:'브로콜리 스프', ingredients:'브로콜리, 우유', reason:'항산화 성분이 간의 부담을 덜어줍니다.'},
-    {name:'쑥떡', ingredients:'쑥, 찹쌀', reason:'봄의 생명력을 담은 쑥이 목(木) 기운을 강하게 채웁니다.'},
-    {name:'포도즙', ingredients:'포도', reason:'신맛과 단맛의 조화가 간의 피로를 회복시킵니다.'},
-    {name:'녹즙', ingredients:'케일, 샐러리', reason:'응축된 엽록소가 목(木) 에너지의 정수를 제공합니다.'},
-    {name:'오미자차', ingredients:'오미자', reason:'다섯 가지 맛 중 신맛이 간을 보강하는 데 탁월합니다.'},
-    {name:'냉이 된장국', ingredients:'냉이, 된장', reason:'봄나물의 쌉싸름한 맛이 목(木) 기운을 소생시킵니다.'},
-    {name:'똠얌꿍', ingredients:'새우, 레몬그라스, 라임', reason:'강렬한 신맛(목)과 허브가 정체된 기운을 뚫어줍니다.'},
-    {name:'과카몰리', ingredients:'아보카도, 고수, 라임즙', reason:'아보카도의 푸른 에너지와 라임의 신맛이 훌륭한 목(木) 보충제입니다.'},
-    {name:'바질 페스토 파스타', ingredients:'바질, 잣, 올리브유', reason:'푸른 허브의 짙은 향이 간담을 깨우고 활력을 줍니다.'},
-    {name:'세비체', ingredients:'해산물, 레몬/라임즙', reason:'날것의 생생한 기운과 강한 신맛이 목(木) 에너지를 직접 주입합니다.'},
-    {name:'그린 커리', ingredients:'청양고추, 코코넛밀크', reason:'푸른 향신료의 에너지가 우울감을 날려버립니다.'},
-    {name:'청사과 에이드', ingredients:'청사과, 무탄산/탄산수', reason:'청량한 신맛이 뇌를 깨우고 간의 기운을 원활하게 합니다.'},
-    {name:'샐러리 스틱과 후무스', ingredients:'샐러리, 병아리콩', reason:'위로 뻗는 샐러리의 에너지가 목(木) 기운을 채워줍니다.'},
-    {name:'시금치 두부무침', ingredients:'시금치, 두부, 깨', reason:'푸른 잎채소와 담백한 단백질이 목(木)의 회복 리듬을 부담 없이 돕습니다.'},
-    {name:'오이 미나리무침', ingredients:'오이, 미나리, 식초 소량', reason:'아삭한 푸른 채소와 가벼운 신맛이 목(木)의 긴장을 부드럽게 풀어줍니다.'}
-  ],
-  fire: [
-    {name:'토마토 스튜', ingredients:'토마토, 올리브유', reason:'붉은색 라이코펜이 심장 혈관을 튼튼하게 합니다.'},
-    {name:'홍삼 달인 물', ingredients:'홍삼', reason:'따뜻한 성질과 쓴맛이 심장(火)에 활력을 불어넣습니다.'},
-    {name:'구기자차', ingredients:'구기자', reason:'붉은 열매가 혈액 순환을 돕고 심장 열을 다스립니다.'},
-    {name:'파프리카 닭가슴살찜', ingredients:'파프리카, 닭가슴살', reason:'붉은 채소의 화(火) 기운을 자극적인 향신료 없이 담백하게 보완합니다.'},
-    {name:'수박 화채', ingredients:'수박, 얼음', reason:'붉은색이 심장을 돕고 수분이 과도한 열을 식혀줍니다.'},
-    {name:'자몽 에이드', ingredients:'자몽, 탄산수', reason:'특유의 쓴맛이 심장(火) 기운을 안정시킵니다.'},
-    {name:'소고기 육회', ingredients:'소고기, 배', reason:'붉은 살코기가 심장과 혈액에 직접적인 에너지를 줍니다.'},
-    {name:'석류 주스', ingredients:'석류', reason:'붉은 빛깔과 새콤달콤함이 심장 혈관에 생기를 줍니다.'},
-    {name:'체리 토마토 샐러드', ingredients:'체리, 방울토마토, 잎채소', reason:'붉은 식재료가 화(火)의 활력을 가볍게 돕고 당류 디저트로 흐르지 않습니다.'},
-    {name:'토마토 달걀국', ingredients:'토마토, 달걀', reason:'따뜻한 붉은 국물이 화(火)의 순환감을 부드럽게 깨우고 소화 부담을 낮춥니다.'},
-    {name:'팥죽', ingredients:'붉은 팥, 새알심', reason:'붉은 팥이 심장의 열을 내리고 부기를 빼줍니다.'},
-    {name:'영지버섯 즙', ingredients:'영지버섯', reason:'쓴맛이 심장을 편안하게 하고 정신을 맑게 합니다.'},
-    {name:'렌틸콩 토마토수프', ingredients:'렌틸콩, 토마토, 채소', reason:'붉은 수프와 콩 단백질이 화(火)의 활력을 자극적이지 않게 보완합니다.'},
-    {name:'볼로네제 파스타', ingredients:'소고기 다짐육, 토마토 소스', reason:'붉은 소스가 심혈관계를 부드럽게 돕습니다.'},
-    {name:'구운 파프리카 닭안심', ingredients:'파프리카, 닭안심, 올리브유 소량', reason:'붉은 채소와 담백한 단백질이 화(火)의 활력을 무리 없이 돕습니다.'},
-    {name:'토마토 현미리조토', ingredients:'토마토, 현미, 양파', reason:'붉은 토마토와 곡물이 화(火)의 순환감과 식사 안정감을 함께 보완합니다.'},
-    {name:'카카오 85% 다크초콜릿', ingredients:'카카오 매스', reason:'진한 쓴맛이 심장을 안정시키고 집중력을 높여줍니다.'},
-    {name:'따뜻한 보리차', ingredients:'보리차', reason:'쓴맛과 따뜻한 수분감이 화(火)의 리듬을 차분하게 정돈합니다.'},
-    {name:'석류 알갱이', ingredients:'석류', reason:'붉은 과실이 화(火)의 생기를 가볍게 더하되 음주 없이 실천하기 좋습니다.'},
-    {name:'토마토 닭가슴살구이', ingredients:'닭가슴살, 토마토', reason:'담백한 단백질과 붉은 채소가 화(火)의 활력 리듬을 무리 없이 받쳐줍니다.'},
-    {name:'가스파초 (냉토마토스프)', ingredients:'토마토, 양파, 식초', reason:'시원한 붉은색 채소가 화(火)의 긍정적인 면만 흡수하게 돕습니다.'}
-  ],
-  earth: [
-    {name:'단호박죽', ingredients:'단호박, 찹쌀', reason:'노란색과 단맛이 비위(土)를 편안하게 감싸줍니다.'},
-    {name:'고구마 찜', ingredients:'고구마', reason:'정제당 없이 토(土)의 단맛을 채우며 포만감과 식이섬유를 함께 줍니다.'},
-    {name:'청국장 찌개', ingredients:'청국장, 두부', reason:'발효된 콩의 흙(土) 기운이 장내 환경을 안정시킵니다.'},
-    {name:'카레라이스', ingredients:'강황, 감자', reason:'노란 강황이 위장을 따뜻하게 하고 소화를 돕습니다.'},
-    {name:'바나나 스무디', ingredients:'바나나, 우유', reason:'부드러운 단맛이 비위(土)의 긴장을 풀어줍니다.'},
-    {name:'찐 옥수수', ingredients:'옥수수', reason:'노란 곡물의 토(土) 기운을 과한 버터 없이 담백하게 보완합니다.'},
-    {name:'감자전', ingredients:'감자, 식용유', reason:'땅속에서 자란 감자가 비위를 보강하는 훌륭한 식재료입니다.'},
-    {name:'소고기 뭇국', ingredients:'소고기, 무', reason:'소고기의 단맛이 위장을 튼튼하게 하고 기력을 올립니다.'},
-    {name:'마즙', ingredients:'마, 꿀', reason:'끈적한 뮤신 성분이 위벽을 보호하고 토(土) 기운을 생장시킵니다.'},
-    {name:'된장찌개', ingredients:'된장, 애호박', reason:'전통 발효 식품이 흙의 기운을 몸속 깊이 전달합니다.'},
-    {name:'율무차', ingredients:'율무', reason:'비위를 튼튼하게 하고 몸의 습기를 제거하는 데 탁월합니다.'},
-    {name:'꿀물', ingredients:'천연 꿀', reason:'순수한 단맛이 소화기에 즉각적인 에너지를 공급합니다.'},
-    {name:'바나나 귀리죽', ingredients:'바나나, 귀리', reason:'부드러운 식감과 곡물의 안정감이 토(土)의 식사 리듬을 편안하게 돕습니다.'},
-    {name:'단호박찜', ingredients:'단호박', reason:'노란 단호박이 토(土)의 중심감을 채우고 디저트보다 부담이 적습니다.'},
-    {name:'닭고기 감자국', ingredients:'닭고기, 감자, 양파', reason:'담백한 단백질과 뿌리채소가 토(土)의 회복 기반을 따뜻하게 받쳐줍니다.'},
-    {name:'오므라이스', ingredients:'계란, 볶음밥', reason:'노란 계란 이불이 소화기를 부드럽게 코팅해줍니다.'},
-    {name:'파에야', ingredients:'새우, 사프란, 쌀', reason:'노란 사프란과 쌀(土)이 위장을 든든하게 채웁니다.'},
-    {name:'현미 누룽지죽', ingredients:'현미 누룽지, 물', reason:'따뜻하고 담백한 곡물죽이 토(土)의 중심 리듬을 편안하게 회복시킵니다.'},
-    {name:'파인애플 볶음밥', ingredients:'파인애플, 밥', reason:'소화를 돕는 파인애플과 탄수화물의 이상적인 토(土) 조합입니다.'},
-    {name:'계란찜', ingredients:'계란, 물, 파 소량', reason:'따뜻하고 부드러운 단백질이 토(土)의 회복 기반을 부담 없이 보완합니다.'},
-    {name:'두부 계란찜', ingredients:'두부, 계란', reason:'부드러운 단백질과 따뜻한 조리법이 비위 리듬을 안정시키는 데 좋습니다.'}
-  ],
-  metal: [
-    {name:'도라지 무침', ingredients:'도라지, 고추장', reason:'흰색과 매운맛이 폐(金)와 기관지를 튼튼하게 합니다.'},
-    {name:'배숙', ingredients:'배, 꿀', reason:'흰 과육이 폐의 열을 내리고 기침을 멎게 합니다.'},
-    {name:'양파 볶음', ingredients:'양파, 간장', reason:'매운맛이 땀을 내어 폐(金) 기운을 순환시킵니다.'},
-    {name:'마늘 통구이', ingredients:'마늘, 올리브유', reason:'강력한 매운맛이 금(金) 에너지를 응축시켜 면역력을 높입니다.'},
-    {name:'닭백숙', ingredients:'닭고기, 인삼', reason:'흰 고기가 폐를 보하고 기력을 끌어올립니다.'},
-    {name:'백김치', ingredients:'배추, 소금', reason:'자극적이지 않은 흰 채소가 대장(金) 환경을 개선합니다.'},
-    {name:'치즈 샐러드', ingredients:'치즈, 토마토', reason:'흰 유제품이 금(金) 기운을 부드럽게 보충합니다.'},
-    {name:'생강차', ingredients:'생강, 대추', reason:'알싸한 매운맛이 폐를 따뜻하게 하고 감기를 예방합니다.'},
-    {name:'무생채', ingredients:'무, 파', reason:'흰색 채소가 소화를 돕고 폐의 기운을 맑게 합니다.'},
-    {name:'우유 한 잔', ingredients:'우유', reason:'순백의 에너지가 금(金) 기운을 차분하게 채워줍니다.'},
-    {name:'더덕구이', ingredients:'더덕, 참기름', reason:'기관지 점막을 튼튼하게 하여 폐(金)를 보호합니다.'},
-    {name:'연근 무침', ingredients:'연근, 흑임자', reason:'흰 뿌리채소가 폐의 진액을 보충해줍니다.'},
-    {name:'크램 차우더', ingredients:'조개스프, 크림, 감자', reason:'흰 진액이 폐와 대장의 건조함을 막아줍니다.'},
-    {name:'알리오 올리오 파스타', ingredients:'마늘 듬뿍, 올리브유', reason:'마늘의 매운맛(金)이 호흡기에 활력을 줍니다.'},
-    {name:'콜리플라워 두부무침', ingredients:'콜리플라워, 두부', reason:'흰색 채소와 담백한 단백질이 금(金)의 건조 신호를 부담 없이 보완합니다.'},
-    {name:'까르보나라 파스타', ingredients:'치즈, 베이컨', reason:'흰 소스의 진한 에너지가 금(金)의 에너지를 다집니다.'},
-    {name:'새우 무국', ingredients:'새우, 무', reason:'흰 뿌리채소와 담백한 단백질이 금(金)의 호흡 리듬을 부드럽게 돕습니다.'},
-    {name:'배 무 샐러드', ingredients:'배, 무', reason:'수분감 있는 흰색 식재료가 금(金)의 건조 신호를 가볍게 완화합니다.'},
-    {name:'대구 오븐 구이', ingredients:'흰살 생선, 레몬', reason:'기름기 없는 흰 살(金)이 맑은 에너지를 공급합니다.'},
-    {name:'잣죽', ingredients:'잣, 쌀', reason:'폐를 윤택하게 하는 잣(金)과 흰빛이 호흡기 최고 보약입니다.'},
-    {name:'두부 버섯볶음', ingredients:'두부, 버섯, 양파', reason:'흰색 식재료와 식이섬유가 금(金)의 정리 리듬을 담백하게 보완합니다.'}
-  ],
-  water: [
-    {name:'미역국', ingredients:'미역, 소고기', reason:'검은 해조류와 짠맛이 신장(水) 기운을 강하게 보충합니다.'},
-    {name:'검은콩 밥', ingredients:'검은콩, 쌀', reason:'블랙푸드의 대명사로 신장과 방광을 튼튼하게 합니다.'},
-    {name:'장어 구이', ingredients:'장어, 생강', reason:'물속의 강한 스태미나가 수(水) 에너지를 폭발시킵니다.'},
-    {name:'흑임자죽', ingredients:'검은깨, 쌀', reason:'검은깨가 신장의 정수(精水)를 채워 노화를 방지합니다.'},
-    {name:'해물탕', ingredients:'오징어, 새우', reason:'바다의 짠맛과 에너지가 수(水) 기운을 직접적으로 공급합니다.'},
-    {name:'굴 국밥', ingredients:'굴, 부추', reason:'바다의 우유라 불리며 신장의 음기를 보충하는 최고 식재료입니다.'},
-    {name:'전복 미역국', ingredients:'전복, 미역', reason:'해조류와 담백한 해산물이 수(水)의 회복 리듬을 따뜻하게 보완합니다.'},
-    {name:'다시마 쌈', ingredients:'다시마, 초장', reason:'해조류의 미네랄이 신장(水) 기능을 원활하게 합니다.'},
-    {name:'김부각', ingredients:'김, 찹쌀', reason:'가볍게 즐길 수 있는 블랙푸드로 수(水) 기운을 돕습니다.'},
-    {name:'오징어 먹물 파스타', ingredients:'오징어 먹물, 면', reason:'검은 먹물이 신장(水) 에너지를 시각적, 미각적으로 채웁니다.'},
-    {name:'돼지고기 수육', ingredients:'돼지고기, 된장', reason:'돼지고기는 수(水)에 배속되어 신장의 진액을 보충합니다.'},
-    {name:'우엉차', ingredients:'우엉', reason:'신장 기능을 도와 이뇨 작용을 원활하게 합니다.'},
-    {name:'다시마 두부무침', ingredients:'다시마, 두부', reason:'해조류와 담백한 단백질이 수(水)의 촉촉한 회복감을 실천하기 쉽게 돕습니다.'},
-    {name:'메밀 소바', ingredients:'메밀면, 쯔유', reason:'쯔유의 짭짤함과 차가운 성질이 끓어오르는 열을 잠재웁니다.'},
-    {name:'연어 스테이크', ingredients:'연어, 딜(허브)', reason:'깊은 물속을 헤엄치는 연어의 기름기가 수(水)를 채웁니다.'},
-    {name:'바지락 미역국', ingredients:'바지락, 미역', reason:'바다 식재료와 따뜻한 국물이 수(水)의 회복 리듬을 부담 없이 채워줍니다.'},
-    {name:'참치 포케', ingredients:'생참치, 간장소스, 해조류', reason:'심해의 생명력과 간장의 짠맛이 아주 좋은 조화를 이룹니다.'},
-    {name:'블랙 올리브 타페나드', ingredients:'블랙 올리브, 케이퍼', reason:'짭조름한 검은 올리브 페이스트가 수(水) 에너지를 돋웁니다.'},
-    {name:'아사이볼', ingredients:'아사이베리, 견과류', reason:'보랏빛/검은색 항산화 베리가 신장과 혈관을 청소해줍니다.'},
-    {name:'간장 게장', ingredients:'꽃게, 간장', reason:'전통 짠맛의 최강자로 잃어버린 수(水) 기운의 입맛을 되찾습니다.'},
-    {name:'프레첼', ingredients:'밀가루, 굵은 소금', reason:'표면의 소금(수) 알갱이가 즉각적으로 짠맛을 전달하여 갈증을 풉니다.'}
-  ]
-};
-
-var HEALTH_EXERCISE_DB = {
-  wood: {
-    name: '유연성 & 스트레칭',
-    desc: '목(木) 기운은 뻗어나가는 성질이 있습니다. 근육과 인대를 길게 늘려주는 운동이 좋습니다.',
-    types: ['요가', '필라테스', '맨몸 스트레칭', '가벼운 등산', '숲속 산책'],
-    stretch: '양팔을 위로 쭉 뻗고 옆구리를 길게 늘려주는 "반달 자세"로 간/담 경락을 자극하세요.'
-  },
-  fire: {
-    name: '심박수 UP 유산소',
-    desc: '화(火) 기운은 폭발하고 땀을 내는 성질입니다. 심장을 뛰게 하는 동적인 운동이 좋습니다.',
-    types: ['러닝', '에어로빅', '줌바 댄스', '테니스', '배드민턴'],
-    stretch: '가슴을 활짝 펴고 등 뒤로 깍지를 끼는 "가슴 열기 스트레칭"으로 심장 경락을 열어주세요.'
-  },
-  earth: {
-    name: '코어 & 그라운딩',
-    desc: '토(土) 기운은 중심을 잡고 안정시키는 성질입니다. 코어를 단련하고 땅과 접지하는 운동이 좋습니다.',
-    types: ['플랭크', '맨발 걷기(어싱)', '클라이밍', '웨이트 트레이닝', '코어 밸런스'],
-    stretch: '바닥에 누워 무릎을 가슴으로 당기는 "바람 빼기 자세"로 비위(소화기)를 편안하게 마사지하세요.'
-  },
-  metal: {
-    name: '호흡 & 집중력',
-    desc: '금(金) 기운은 수렴하고 규칙적인 성질입니다. 호흡을 통제하고 집중력을 요하는 운동이 좋습니다.',
-    types: ['명상 호흡', '검도', '복싱', '자전거 타기', '기공/태극권'],
-    stretch: '양팔을 뒤로 뻗어 가슴과 어깨 앞쪽을 늘려주는 동작으로 폐활량을 극대화하세요.'
-  },
-  water: {
-    name: '수중 운동 & 이완',
-    desc: '수(水) 기운은 흐르고 유연한 성질입니다. 물과 함께하거나 관절에 무리가 없는 운동이 좋습니다.',
-    types: ['수영', '아쿠아로빅', '서핑', '반신욕 후 스트레칭', '태극권'],
-    stretch: '앉아서 발끝을 향해 상체를 숙이는 "전굴 자세"로 허리와 신장(방광) 경락을 이완시키세요.'
-  }
-};
+/* 명리 헬스 리포트의 음식·운동 표(HEALTH_FOOD_DB·HEALTH_EXERCISE_DB)는 쓰던 렌더러와 함께 걷어냈다 —
+   본문은 서버(worker/lib/saju-section/paid-health.src.js)가 만든다. */
 
 var GAEUN_DB={
   "fire": {
@@ -5786,7 +5638,9 @@ async function calculate(run){
       }
     } catch(e) { console.error('EnergyCoordStub 에러:', e); }
     try {
-      invokeOptionalGlobalRendererWithRetry('renderHealthReport', [p, natal, johu, G_POWER, G_JONG], {
+      // 명리 헬스 리포트 본문은 서버(/api/saju/section, rpt_healthReportCard)가 해금을 확인한 뒤 카드를 열 때 배달한다.
+      // 여기서는 무료 스텁만 깐다(js/saju-engine-tarot-sukuyo-quantum.js renderHealthReportStub).
+      invokeOptionalGlobalRendererWithRetry('renderHealthReportStub', [], {
         targetId: 'healthReportCard',
         delayMs: 180,
         maxAttempts: 24
@@ -7120,7 +6974,7 @@ function _sajuPromptPrepareQuantumDigest() {
 
 /* 서버가 배달하는 대시보드 카드(요주의 빌런 블랙리스트 등)도 카드를 열기 전에는 무료 스텁만 있다.
    퀀텀 카드처럼 배달된 본문이 있을 때만 프롬프트에 넣고, 해금했지만 아직 받지 않았다면 조용히 받아 둔다. */
-var _SAJU_PROMPT_SERVER_CARDS = { villainCard: ['villainResult', 'rpt_villainCard'] };
+var _SAJU_PROMPT_SERVER_CARDS = { villainCard: ['villainResult', 'rpt_villainCard'], healthReportCard: ['healthReportSection', 'rpt_healthReportCard'] };
 function _sajuPromptPrepareServerCardDigest(cardId) {
   var spec = _SAJU_PROMPT_SERVER_CARDS[cardId];
   if (!spec) return true;

@@ -114,7 +114,7 @@ test("only the saju section keys are served", async () => {
   expect(findOne).not.toHaveBeenCalled();
 });
 
-test.each(["section_summary", "section_daewun", "rpt_quantumCard", "sukuyo-extreme-t-relationship", "sukuyo-relationship-encyclopedia", "rpt_energyCoordCard", "rpt_villainCard"])("unowned %s returns registry pricing without HTML", async (featureKey) => {
+test.each(["section_summary", "section_daewun", "rpt_quantumCard", "sukuyo-extreme-t-relationship", "sukuyo-relationship-encyclopedia", "rpt_energyCoordCard", "rpt_villainCard", "rpt_healthReportCard"])("unowned %s returns registry pricing without HTML", async (featureKey) => {
   const result = await request({ ...INPUT, featureKey, daewun: DAEWUN, unlocked: true, passActive: true });
   const { pricing } = getBillingFeaturePricing({ featureKey });
   expect(result).toEqual({ status: 402, body: expect.objectContaining({ featureKey, amountKRW: pricing.amountKRW, coinPrice: pricing.coinPrice }) });
@@ -598,5 +598,84 @@ describe("rpt_villainCard", () => {
       gender: c.gender, name: c.name, mode: "pig", place: c.place, jongDecision: c.jong, now: new Date(PARITY.now),
     }).html;
     expect(sha256(html)).toBe(PARITY.villain[id]);
+  });
+});
+
+describe("rpt_healthReportCard", () => {
+  const HEALTH = { ...INPUT, featureKey: "rpt_healthReportCard" };
+  // 오늘 날짜(KST)가 본문의 날짜 줄·계절에 들어간다. 요청 시각을 넘기지 않으므로 지금 시각으로 다시 그려 비교한다.
+  const expected = (birth, gender) => buildSajuSectionHtml({ featureKey: "rpt_healthReportCard", birth, gender, name: "테스트", mode: "pig", lang: "ko" }).html;
+
+  test("a BIRTH grant renders the card from the stored birth; it opens nothing else", async () => {
+    grant({}, "rpt_healthReportCard");
+    const result = await request({ ...HEALTH, birth: { date: "2001-01-01", hour: 3, minute: 0 }, gender: "F" });
+    expect(result.status).toBe(200);
+    expect(result.body).toMatchObject({ ok: true, unlocked: true, featureKey: "rpt_healthReportCard" });
+    expect(result.body.html).toBe(expected(CARD_BIRTH, "M"));
+    expect(result.body.html).toContain("명리 헬스 리포트");
+    expect(result.body.html).toContain("달빛 웰니스 클리닉");
+    expect(result.body.css).toContain("@font-face");
+    expect((await request()).status).toBe(402);
+    expect((await request({ ...INPUT, featureKey: "rpt_villainCard" })).status).toBe(402);
+  });
+
+  test("a legacy account grant without a saved profile renders the body birth", async () => {
+    grant({ scope: "USER", profileId: "__user__" }, "rpt_healthReportCard");
+    const { profileId: _omit, ...account } = HEALTH;
+    const result = await request({ ...account, birth: { date: "1985-11-02", calType: "solar", hour: 6, minute: 5 }, gender: "F" });
+    expect(result.status).toBe(200);
+    expect(result.body.html).toBe(expected({ calendarDate: "1985-11-02", calType: "solar", hour: 6, minute: 5, timeKnown: true }, "F"));
+  });
+
+  test("another profile's or another birth's grant does not open this card", async () => {
+    grant({ scope: "PROFILE", profileId: "p2" }, "rpt_healthReportCard");
+    expect((await request(HEALTH)).status).toBe(402);
+    grant({}, "rpt_healthReportCard");
+    const other = await request({ ...HEALTH, profileId: "p3" });
+    expect(other.status).toBe(402);
+    expect(other.body.html).toBeUndefined();
+  });
+
+  // /api/fortune/balance 가 이 카드를 여는 옛 상품: healthReport(같은 출생), allPaidSaju(계정 묶음).
+  test("a healthReport grant for the same birth opens the card; another birth's does not", async () => {
+    grant({}, "healthReport");
+    expect((await request(HEALTH)).status).toBe(200);
+    expect((await request({ ...HEALTH, profileId: "p3" })).status).toBe(402);
+  });
+
+  test.each([
+    ["unlockedFeatures array", () => users.push({ _id: TEST_USER_ID, unlockedFeatures: ["allPaidSaju"] })],
+    ["paidFeatures array", () => users.push({ _id: TEST_USER_ID, paidFeatures: ["allPaidSaju"] })],
+    ["coin deduct history", () => histories.push({ userId: TEST_USER_ID, kind: "deduct", featureKey: "allPaidSaju" })],
+  ])("an allPaidSaju bundle purchase (%s) opens the card", async (_label, seed) => {
+    seed();
+    expect((await request(HEALTH)).status).toBe(200);
+    const { profileId: _omit, ...account } = HEALTH;
+    expect((await request({ ...account, birth: { date: "1985-11-02", calType: "solar", hour: 6, minute: 5 } })).status).toBe(200);
+  });
+
+  test("other bundles or refunds are not allPaidSaju evidence", async () => {
+    users.push({ _id: TEST_USER_ID, unlockedFeatures: ["rpgCharacter", "travelDestiny"] });
+    histories.push({ userId: TEST_USER_ID, kind: "refund", featureKey: "allPaidSaju" });
+    histories.push({ userId: OTHER_USER_ID, kind: "deduct", featureKey: "allPaidSaju" });
+    expect((await request(HEALTH)).status).toBe(402);
+  });
+
+  test("a DB failure stays retryable instead of prompting purchase", async () => {
+    grant({}, "rpt_healthReportCard");
+    connectDb.mockRejectedValue(new Error("private database connection information"));
+    const result = await request(HEALTH);
+    expect(result.status).toBe(503);
+    expect(result.body).toMatchObject({ reason: "TEMPORARY_UNAVAILABLE", retryable: true });
+  });
+
+  // PARITY.health: 56cc07e9a 의 클라이언트 renderHealthReport(js/entertain-engine.js 덮어쓰기)를 vm 에서
+  // 같은 차트·같은 now(PARITY.now)·pig·ko 로 돌려 얻은 #healthReportSection HTML 의 sha256.
+  test.each(PARITY.cases.map((c) => [c.id, c]))("server card equals the HEAD client engine output: %s", (id, c) => {
+    const html = buildSajuSectionHtml({
+      featureKey: "rpt_healthReportCard", birth: { calendarDate: c.date, calType: c.calType, hour: c.hour, minute: c.minute, timeKnown: c.timeKnown !== false },
+      gender: c.gender, name: c.name, mode: "pig", place: c.place, jongDecision: c.jong, now: new Date(PARITY.now),
+    }).html;
+    expect(sha256(html)).toBe(PARITY.health[id]);
   });
 });

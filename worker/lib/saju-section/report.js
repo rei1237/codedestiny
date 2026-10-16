@@ -7,9 +7,9 @@ import { createSajuSectionRuntime } from "./runtime.generated.mjs";
 
 // 사주 종합(section_summary)·대운 풀이(section_daewun)·퀀텀 명리 엔진(rpt_quantumCard)·
 // 극T 관계 회로(sukuyo-extreme-t-relationship)·숙요 인연 도감(sukuyo-relationship-encyclopedia)·에너지 원정 리포트(rpt_energyCoordCard)
-// ·요주의 빌런 블랙리스트(rpt_villainCard) 본문을 서버에서 만든다.
+// ·요주의 빌런 블랙리스트(rpt_villainCard)·명리 헬스 리포트(rpt_healthReportCard) 본문을 서버에서 만든다.
 // 계산 흐름은 js/saju-engine.js 의 사주 계산(원국 → 대운 브릿지 → 종격 판정 → 용신 정책)을 그대로 따른다.
-export const SAJU_SECTION_FEATURE_KEYS = Object.freeze(["section_summary", "section_daewun", "rpt_quantumCard", "sukuyo-extreme-t-relationship", "sukuyo-relationship-encyclopedia", "rpt_energyCoordCard", "rpt_villainCard"]);
+export const SAJU_SECTION_FEATURE_KEYS = Object.freeze(["section_summary", "section_daewun", "rpt_quantumCard", "sukuyo-extreme-t-relationship", "sukuyo-relationship-encyclopedia", "rpt_energyCoordCard", "rpt_villainCard", "rpt_healthReportCard"]);
 // 클라이언트 출생지 선택의 기본 옵션(index.html #birthCountry 의 대한민국 서울).
 const DEFAULT_PLACE = Object.freeze({ name: "대한민국 (서울)", longitude: 127.0, latitude: 37.6, timezone: "Asia/Seoul", baseTzOffset: 9 });
 const JONG_DECISIONS = new Set(["confirmed", "rejected", "unverified"]);
@@ -41,7 +41,7 @@ function documentShim(neo, captured, quantum, cardDom) {
     cookie: "",
     body: { classList },
     documentElement: { classList },
-    // 에너지 카드의 룰렛 스타일·빌런 카드의 도시에 스타일은 <head> 에 붙는다 — 그 CSS 를 받아 응답으로 돌려준다.
+    // 에너지 카드의 룰렛 스타일·빌런 카드의 도시에 스타일·헬스 리포트의 글꼴 선언은 <head> 에 붙는다 — 그 CSS 를 받아 응답으로 돌려준다.
     head: { appendChild: (node) => { cardDom.css = String(node?.textContent || ""); } },
     createElement: () => ({ id: "", textContent: "" }),
     getElementById: (id) => (id === "summaryArea" ? captured : id === "quantumSection" ? quantum.area : id === "quantumCard" ? quantum.card : cardDom.byId[id] || null),
@@ -169,20 +169,23 @@ export function buildSajuSectionHtml(input) {
   const now = roulette && Math.abs(renderedAt.getTime() - requestNow.getTime()) <= DAY_MS ? renderedAt : requestNow;
   const storage = featureKey === "rpt_energyCoordCard" ? energyStorage(idList(energyInput.recent, 60), idList(roulette?.recent, 7)) : memoryStorage();
   const rouletteEls = roulette ? energyRouletteElements() : null;
-  // 리포트 대시보드 카드가 그리는 칸. 빌런 카드의 복사·자가진단 버튼 연결은 브라우저(section-client.js)가 맡는다.
+  // 리포트 대시보드 카드가 그리는 칸. 빌런 카드의 복사·자가진단 버튼 연결과 헬스 리포트의 장 펼침 높이 맞춤은
+  // 브라우저(section-client.js)가 맡는다.
   const cardDom = {
     css: "",
     byId: {
       energyCoordSection: { innerHTML: "" }, energyCoordCard: { style: {}, dataset: {} },
       villainResult: { innerHTML: "", querySelectorAll: () => [] }, villainCard: { style: {} },
+      healthReportSection: { innerHTML: "", querySelectorAll: () => [] }, healthReportCard: { style: {} },
       ...(rouletteEls ? { energyRouletteCard: rouletteEls.card, energyRouletteWheel: rouletteEls.wheel, energyRouletteDeck: rouletteEls.deck, energyRouletteResult: rouletteEls.result } : {}),
     },
   };
   // 룰렛 결과는 원본에서 520ms 뒤에 그려진다. 서버는 마지막 회차의 그 단계만 바로 돌린다.
   let pendingSpin = null;
   const window = { location: { search: "", pathname: "/", hostname: "" }, localStorage: storage, cdGetCurrentLanguage: () => input.lang || "ko" };
+  const doc = documentShim(neo, captured, quantum, cardDom);
   const rt = createSajuSectionRuntime({
-    window, document: documentShim(neo, captured, quantum, cardDom), localStorage: storage, neo, lang: input.lang || "ko", now,
+    window, document: doc, localStorage: storage, neo, lang: input.lang || "ko", now,
     ...(roulette ? { setTimeout: (fn) => { pendingSpin = fn; } } : {}),
   });
 
@@ -247,6 +250,12 @@ export function buildSajuSectionHtml(input) {
   if (featureKey === "rpt_villainCard") {
     rt.renderVillain(p, power);
     return { html: cardDom.byId.villainResult.innerHTML, css: cardDom.css };
+  }
+  if (featureKey === "rpt_healthReportCard") {
+    // 브라우저에서는 셸 전역(G_BAZI·SHENG)과 document 가 곧 window 속성이다. 건강 블록은 w.G_BAZI·w.SHENG·w.document 로 읽는다.
+    Object.assign(window, { G_BAZI: bazi, SHENG: rt.SHENG, document: doc });
+    rt.renderHealthReport(p, natal, johu, power, jong);
+    return { html: cardDom.byId.healthReportSection.innerHTML, css: cardDom.css };
   }
   const dw = input.daewun || {};
   const row = rows.find((r) => r.age === Number(dw.age) && r.g === dw.gan && r.j === dw.zhi);
