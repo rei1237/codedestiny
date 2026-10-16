@@ -26,7 +26,7 @@ test('paid introductions keep an honest sample in the authored essay or before t
       detail.crafted.forEach((essay, index) => {
         assert.ok(essay.panels.some(panel => /(?:편집 예시|가상(?: 활용)? 예시)/.test(panel.text)), `${essay.id}: illustrative sample is labeled`);
         assert.match(essays[index].querySelector('.craftedDetailNotice').textContent, /예시/);
-        assert.equal(essays[index].querySelectorAll('img').length, essay.panels.length);
+        assert.equal(essays[index].querySelectorAll(':scope > div[aria-hidden] img').length, essay.panels.length);
         assert.ok([...essays[index].querySelectorAll('img')].every(image => image.getAttribute('alt') === ''), 'full transcript avoids duplicate alt narration');
         for (const panel of essay.panels) assert.ok(essays[index].querySelector('.craftedDetailTranscript').textContent.includes(panel.title));
       });
@@ -297,7 +297,7 @@ test('authored premium introductions retain founder provenance and complete port
     assert.equal(detail.material, material);
     assert.deepEqual(detail.founder, { credential: founder.credential, method: founder.method });
     const fragment = JSDOM.fragment(renderFeatureDetailPanels(detail));
-    const portraits = [...fragment.querySelectorAll('.craftedDetail img')];
+    const portraits = [...fragment.querySelectorAll('.craftedDetail > div[aria-hidden] img')];
     assert.equal(portraits.length,10);
     assert.ok(portraits.every(image => Number(image.getAttribute('height')) > Number(image.getAttribute('width'))));
     assert.match(fragment.querySelector('.craftedDetailTranscript').textContent, /10년 경력/);
