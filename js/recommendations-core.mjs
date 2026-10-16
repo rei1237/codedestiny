@@ -186,7 +186,18 @@ export function selectProducts(products, input = {}, now = Date.now()) {
   });
   const score = p => (p.kind === 'book' ? 1000 : 0) + (p.practiceTags || []).filter(t => c.practiceTags.includes(t)).length * 100 + (p.serviceTags?.includes(c.service) ? 20 : 0) + p.interests.filter(x => c.interests.includes(x)).length * 10;
   matches.sort((a, b) => score(b) - score(a) || Number(b.featured) - Number(a.featured) || a.order - b.order || a.id.localeCompare(b.id));
-  return matches.map(p => ({ ...publicProduct(p, now), reason: p.topicReasons?.[c.practiceTags.find(t => p.practiceTags?.includes(t))] || p.reason }));
+  const topicFor = (p, covered = '') => c.practiceTags.find(t => t !== covered && p.practiceTags?.includes(t));
+  let selected = matches;
+  let covered = '';
+  if (c.source === 'result' && matches.length) {
+    const first = matches[0];
+    covered = topicFor(first);
+    // The second card adds another actual action, or a different way to practise it.
+    // All candidates have already passed relevance, expiry and provider-independent checks.
+    const rest = matches.slice(1).sort((a, b) => Number(!!topicFor(b, covered)) - Number(!!topicFor(a, covered)) || Number(b.kind !== first.kind) - Number(a.kind !== first.kind));
+    selected = [first, ...rest].slice(0, RESULT_PRODUCT_LIMIT);
+  }
+  return selected.map((p, index) => ({ ...publicProduct(p, now), reason: p.topicReasons?.[topicFor(p, index ? covered : '') || topicFor(p)] || p.reason }));
 }
 export function isEnabled(settings, service, released = RECOMMENDATIONS_RELEASED) {
   return released && !!serviceRule(service) && settings?.enabled === true && settings?.approved === true && settings?.mediaRegistered === true && !settings.disabledServices?.includes(service);

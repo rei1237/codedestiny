@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { adviceTopics, chapterAdviceTopics, teaAdviceTopics, neoAdviceTopics } from '../../js/recommendations-context.mjs';
 import { cleanProduct, reviewProduct, selectProducts, normalizeContext, validateAffiliateUrl, cleanSettings, providerEnabled } from '../../js/recommendations-core.mjs';
 const now = Date.parse('2026-10-09T00:00:00Z');
@@ -54,4 +55,45 @@ test('fusion and human design inspect only explicit action fields', async()=>{
  assert.deepEqual(fusionAdviceTopics({finalVerdict:{doNow:['예산을 세워 보세요.']},executiveSummary:'일기를 기록하세요.'}),['budgeting']);
  assert.deepEqual(humanDesignAdviceTopics([{key:'practicalGuide',blocks:[{kind:'steps',items:[{text:'집중 시간을 확보하세요.'}]}]},{key:'health',blocks:[{kind:'steps',items:[{text:'일기를 기록하세요.'}]}]}]),['focus']);
  assert.deepEqual(fusionAdviceTopics({finalVerdict:{doNow:'invalid'}}),[]);
+});
+
+test('result pair adds action coverage or a practical companion without changing browse order',()=>{
+ const book=product('focus-book','focus');
+ const duplicate=product('focus-book-two','focus',{order:101});
+ const timer=product('focus-timer','focus',{category:'daily-life',kind:'timer',order:102});
+ const diary=product('daily-journal','journaling',{kind:'journal',order:103});
+ const c={service:'fortune-chat',source:'result',practiceTags:['focus']};
+ assert.deepEqual(selectProducts([book,duplicate,timer,diary],c,now).map(p=>p.id),['focus-book','focus-timer']);
+ assert.deepEqual(selectProducts([book,duplicate,timer,diary],{...c,practiceTags:['focus','journaling']},now).map(p=>p.id),['focus-book','daily-journal']);
+ assert.deepEqual(selectProducts([book,duplicate,timer,diary],{...c,source:'browse'},now).map(p=>p.id),['focus-book','focus-book-two','focus-timer']);
+ assert.deepEqual(selectProducts([book,diary],c,now).map(p=>p.id),['focus-book']);
+ assert.deepEqual(selectProducts([book,timer],{...c,practiceTags:[]},now),[]);
+ const multi=product('multi-journal','focus',{kind:'journal',practiceTags:['focus','journaling'],topicReasons:{focus:'집중 메모',journaling:'하루 회고 기록'}});
+ assert.equal(selectProducts([book,multi],{...c,practiceTags:['focus','journaling']},now)[1].reason,'하루 회고 기록');
+});
+
+test('expanded editorial catalogue matches advice and keeps publication gates closed',()=>{
+ const release=JSON.parse(readFileSync(new URL('../../docs/operations/affiliate-release-20261016.json',import.meta.url),'utf8'));
+ const ali=JSON.parse(readFileSync(new URL('../../docs/operations/affiliate-aliexpress-20261009.json',import.meta.url),'utf8'));
+ const drafts=[...release.products,...ali.products];
+ assert.equal(release.settings.enabled,false);
+ assert.equal(release.proposedPublication.requiresSeparateApproval,true);
+ assert.equal(new Set(drafts.map(p=>p.id)).size,drafts.length);
+ assert.ok(drafts.every(p=>p.status==='draft' && !p.accountVerified));
+ const catalogue=drafts.map(p=>reviewProduct(cleanProduct(p),{account:true,facts:true,image:true,allowedCategory:true},now));
+ const choose=tags=>selectProducts(catalogue,{service:'fortune-chat',source:'result',practiceTags:tags},now);
+ for(const [tag,expected] of [
+  ['focus',['deep-work-ko','tamsa-focus-timer']],
+  ['budgeting',['psychology-money-2026-ko','indigo-budget-cream']],
+  ['rest',['mindfulness-poems-ko','bigtree-rest-mask']],
+  ['self-compassion',['live-as-me-ko']],
+  ['meaning-purpose',['mans-search-meaning-ko']],
+ ]) assert.deepEqual(choose([tag]).map(p=>p.id),expected,tag);
+ assert.equal(choose(['focus','journaling'])[1].id,'reflection-notebook-pair');
+ assert.deepEqual(choose([]),[]);
+ assert.deepEqual(choose(['symbolism','supplement-information']),[]);
+ for(const tag of release.selectionStrategy.coverage) assert.ok(choose([tag]).length>0 && choose([tag]).length<=2,tag);
+ assert.equal(selectProducts(catalogue,{service:'recommendations',source:'browse',practiceTags:['symbolism'],color:'pink'},now)[0].id,'rosequartz-pink-6mm');
+ assert.deepEqual(selectProducts(catalogue.map(p=>({...p,stock:'sold-out'})),{service:'fortune-chat',practiceTags:['focus']},now),[]);
+ assert.deepEqual(selectProducts(catalogue,{service:'fortune-chat',practiceTags:['focus']},now+31*86400000),[]);
 });
