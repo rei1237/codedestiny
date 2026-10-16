@@ -7121,13 +7121,13 @@
         "kwp0s": "My",
         "kxro3": "Consult",
         "kxvio": "Four Pillars",
-        "k16cq4to": "Readings",
+        "k16cq4to": "Fun",
         "ku6gdz": "Pass",
         "kb86wy0": {
           "ariaLabel": "Read my Four Pillars with my profile"
         },
         "k1mpcz5w": {
-          "ariaLabel": "Browse all readings"
+          "ariaLabel": "Browse fun readings"
         },
         "k16eawmw": {
           "ariaLabel": "Pass store"
@@ -7137,12 +7137,12 @@
         },
         "library": "Library",
         "consultTab": {
-          "ariaLabel": "Choose a fortune consultation"
+          "ariaLabel": "Choose a signature reading"
         },
         "libraryTab": {
           "ariaLabel": "My library"
         },
-        "consult": "Chat"
+        "consult": "Signature"
       },
       "cdMobileBottomNavQuick": {
         "k10ios": "Tarot",

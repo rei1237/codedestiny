@@ -159,6 +159,10 @@ body.cd-mnav-mounted .cd-feature-nav {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* 좁은 폭에서 "재밌는 운세" 같은 긴 라벨이 말줄임되지 않게 자간만 좁힌다. */
+@media (max-width: 360px) {
+  .cd-mnav__label { letter-spacing: -0.04em; }
+}
 .cd-mnav__link[aria-current="page"],
 .cd-mnav__link.is-active {
   transform: none;

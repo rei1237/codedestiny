@@ -7121,13 +7121,13 @@
         "kwp0s": "Mein",
         "kxro3": "Beratung",
         "kxvio": "Vier Säulen",
-        "k16cq4to": "Alle",
+        "k16cq4to": "Spaß",
         "ku6gdz": "Pass",
         "kb86wy0": {
           "ariaLabel": "Meine Vier Säulen mit meinem Profil ansehen"
         },
         "k1mpcz5w": {
-          "ariaLabel": "Alle Deutungen durchsehen"
+          "ariaLabel": "Unterhaltsame Deutungen ansehen"
         },
         "k16eawmw": {
           "ariaLabel": "Pass-Shop"
@@ -7137,12 +7137,12 @@
         },
         "library": "Library",
         "consultTab": {
-          "ariaLabel": "Choose a fortune consultation"
+          "ariaLabel": "Signature-Deutung wählen"
         },
         "libraryTab": {
           "ariaLabel": "My library"
         },
-        "consult": "Chat"
+        "consult": "Signature"
       },
       "cdMobileBottomNavQuick": {
         "k10ios": "Tarot",

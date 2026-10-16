@@ -7121,13 +7121,13 @@
         "kwp0s": "Của tôi",
         "kxro3": "Tư vấn",
         "kxvio": "Tứ Trụ",
-        "k16cq4to": "Tất cả",
+        "k16cq4to": "Thú vị",
         "ku6gdz": "Thẻ Pass",
         "kb86wy0": {
           "ariaLabel": "Xem Tứ Trụ bằng hồ sơ của tôi"
         },
         "k1mpcz5w": {
-          "ariaLabel": "Xem tất cả các bản luận"
+          "ariaLabel": "Xem luận giải thú vị"
         },
         "k16eawmw": {
           "ariaLabel": "Cửa hàng Thẻ Pass"
@@ -7137,12 +7137,12 @@
         },
         "library": "Library",
         "consultTab": {
-          "ariaLabel": "Choose a fortune consultation"
+          "ariaLabel": "Chọn buổi tư vấn tiêu biểu"
         },
         "libraryTab": {
           "ariaLabel": "My library"
         },
-        "consult": "Chat"
+        "consult": "Tiêu biểu"
       },
       "cdMobileBottomNavQuick": {
         "k10ios": "Tarot",

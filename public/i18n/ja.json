@@ -7121,13 +7121,13 @@
         "kwp0s": "マイ",
         "kxro3": "相談",
         "kxvio": "四柱推命",
-        "k16cq4to": "占い一覧",
+        "k16cq4to": "楽しい占い",
         "ku6gdz": "パス",
         "kb86wy0": {
           "ariaLabel": "自分のプロフィールで四柱推命を見る"
         },
         "k1mpcz5w": {
-          "ariaLabel": "すべての占いを見る"
+          "ariaLabel": "楽しい占いを見る"
         },
         "k16eawmw": {
           "ariaLabel": "パスストア"
@@ -7137,12 +7137,12 @@
         },
         "library": "保管箱",
         "consultTab": {
-          "ariaLabel": "運命相談を選ぶ"
+          "ariaLabel": "代表相談を選ぶ"
         },
         "libraryTab": {
           "ariaLabel": "マイ保管箱"
         },
-        "consult": "相談"
+        "consult": "代表相談"
       },
       "cdMobileBottomNavQuick": {
         "k10ios": "タロット",

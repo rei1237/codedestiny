@@ -7121,13 +7121,13 @@
         "kwp0s": "我的",
         "kxro3": "咨询",
         "kxvio": "四柱八字",
-        "k16cq4to": "全部运势",
+        "k16cq4to": "趣味运势",
         "ku6gdz": "通行证",
         "kb86wy0": {
           "ariaLabel": "以我的资料查看四柱八字"
         },
         "k1mpcz5w": {
-          "ariaLabel": "浏览全部运势"
+          "ariaLabel": "浏览趣味运势"
         },
         "k16eawmw": {
           "ariaLabel": "通行证商店"
@@ -7137,12 +7137,12 @@
         },
         "library": "收藏夹",
         "consultTab": {
-          "ariaLabel": "选择命运咨询"
+          "ariaLabel": "选择代表咨询"
         },
         "libraryTab": {
           "ariaLabel": "我的收藏夹"
         },
-        "consult": "咨询"
+        "consult": "代表咨询"
       },
       "cdMobileBottomNavQuick": {
         "k10ios": "塔罗",

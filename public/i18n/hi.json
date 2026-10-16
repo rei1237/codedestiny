@@ -7638,13 +7638,13 @@
         "kwp0s": "मेरा",
         "kxro3": "परामर्श",
         "kxvio": "फोर पिलर्स",
-        "k16cq4to": "सभी पाठ",
+        "k16cq4to": "मज़ेदार",
         "ku6gdz": "पास",
         "kb86wy0": {
           "ariaLabel": "मेरी प्रोफ़ाइल से फोर पिलर्स देखें"
         },
         "k1mpcz5w": {
-          "ariaLabel": "सभी पाठ देखें"
+          "ariaLabel": "मज़ेदार फलादेश देखें"
         },
         "k16eawmw": {
           "ariaLabel": "पास स्टोर"
@@ -7654,12 +7654,12 @@
         },
         "library": "Library",
         "consultTab": {
-          "ariaLabel": "Choose a fortune consultation"
+          "ariaLabel": "मुख्य परामर्श चुनें"
         },
         "libraryTab": {
           "ariaLabel": "My library"
         },
-        "consult": "Chat"
+        "consult": "मुख्य"
       },
       "cdMobileBottomNavQuick": {
         "k10ios": "टैरो",

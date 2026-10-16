@@ -7121,13 +7121,13 @@
         "kwp0s": "Saya",
         "kxro3": "Konsultasi",
         "kxvio": "4 Tiang",
-        "k16cq4to": "Semua",
+        "k16cq4to": "Seronok",
         "ku6gdz": "Pas",
         "kb86wy0": {
           "ariaLabel": "Lihat Empat Tiang saya dengan profil saya"
         },
         "k1mpcz5w": {
-          "ariaLabel": "Lihat semua bacaan"
+          "ariaLabel": "Lihat bacaan menyeronokkan"
         },
         "k16eawmw": {
           "ariaLabel": "Kedai Pas"
@@ -7137,12 +7137,12 @@
         },
         "library": "Library",
         "consultTab": {
-          "ariaLabel": "Choose a fortune consultation"
+          "ariaLabel": "Pilih konsultasi utama"
         },
         "libraryTab": {
           "ariaLabel": "My library"
         },
-        "consult": "Chat"
+        "consult": "Utama"
       },
       "cdMobileBottomNavQuick": {
         "k10ios": "Tarot",

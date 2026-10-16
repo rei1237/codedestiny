@@ -64,15 +64,15 @@ export const MOBILE_TABS: readonly MobileTab[] = [
   { key: "home", label: "홈", href: "/ggulggul/", ariaLabel: "홈", glyph: "⌂", transKey: "home.nav.home", ariaTransKey: "home.nav.home" },
   {
     key: "fortunes",
-    label: "모든 운세",
+    label: "재밌는 운세",
     href: `/?action=${ALL_FORTUNES_ACTION}`,
-    ariaLabel: "모든 운세 둘러보기",
+    ariaLabel: "재밌는 운세 둘러보기",
     transKey: "shell.cdMobileBottomNav.cdMobileBottomNavMain.k16cq4to",
     ariaTransKey: "shell.cdMobileBottomNav.cdMobileBottomNavMain.k1mpcz5w.ariaLabel",
     glyph: "✦",
     shellAction: ALL_FORTUNES_ACTION,
   },
-  { key: "consult", label: "상담", href: "/consultations/", ariaLabel: "운명 상담 고르기", glyph: "✿",
+  { key: "consult", label: "대표 상담", href: "/consultations/", ariaLabel: "대표 상담 고르기", glyph: "✿",
     transKey: "shell.cdMobileBottomNav.cdMobileBottomNavMain.consult",
     ariaTransKey: "shell.cdMobileBottomNav.cdMobileBottomNavMain.consultTab.ariaLabel" },
   {

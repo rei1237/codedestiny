@@ -7121,13 +7121,13 @@
         "kwp0s": "Mi",
         "kxro3": "Consulta",
         "kxvio": "4 Pilares",
-        "k16cq4to": "Todas",
+        "k16cq4to": "Divertidas",
         "ku6gdz": "Pase",
         "kb86wy0": {
           "ariaLabel": "Ver mis Cuatro Pilares con mi perfil"
         },
         "k1mpcz5w": {
-          "ariaLabel": "Explorar todas las lecturas"
+          "ariaLabel": "Explorar lecturas divertidas"
         },
         "k16eawmw": {
           "ariaLabel": "Tienda de pases"
@@ -7137,12 +7137,12 @@
         },
         "library": "Library",
         "consultTab": {
-          "ariaLabel": "Choose a fortune consultation"
+          "ariaLabel": "Elegir una consulta destacada"
         },
         "libraryTab": {
           "ariaLabel": "My library"
         },
-        "consult": "Chat"
+        "consult": "Destacadas"
       },
       "cdMobileBottomNavQuick": {
         "k10ios": "Tarot",

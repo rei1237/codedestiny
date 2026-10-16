@@ -7121,13 +7121,13 @@
         "kwp0s": "Mijn",
         "kxro3": "Consult",
         "kxvio": "Vier Pijlers",
-        "k16cq4to": "Alle",
+        "k16cq4to": "Leuk",
         "ku6gdz": "Pas",
         "kb86wy0": {
           "ariaLabel": "Mijn Vier Pijlers bekijken met mijn profiel"
         },
         "k1mpcz5w": {
-          "ariaLabel": "Alle readings bekijken"
+          "ariaLabel": "Leuke lezingen bekijken"
         },
         "k16eawmw": {
           "ariaLabel": "Pas-winkel"
@@ -7137,12 +7137,12 @@
         },
         "library": "Library",
         "consultTab": {
-          "ariaLabel": "Choose a fortune consultation"
+          "ariaLabel": "Kies een vast consult"
         },
         "libraryTab": {
           "ariaLabel": "My library"
         },
-        "consult": "Chat"
+        "consult": "Uitgelicht"
       },
       "cdMobileBottomNavQuick": {
         "k10ios": "Tarot",

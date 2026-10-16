@@ -4154,13 +4154,13 @@
         "kwp0s": "마이",
         "kxro3": "상담",
         "kxvio": "사주",
-        "k16cq4to": "모든 운세",
+        "k16cq4to": "재밌는 운세",
         "ku6gdz": "이용권",
         "kb86wy0": {
           "ariaLabel": "내 프로필로 사주 보기"
         },
         "k1mpcz5w": {
-          "ariaLabel": "모든 운세 둘러보기"
+          "ariaLabel": "재밌는 운세 둘러보기"
         },
         "k16eawmw": {
           "ariaLabel": "이용권 상점"
@@ -4170,12 +4170,12 @@
         },
         "library": "보관함",
         "consultTab": {
-          "ariaLabel": "운명 상담 고르기"
+          "ariaLabel": "대표 상담 고르기"
         },
         "libraryTab": {
           "ariaLabel": "내 보관함"
         },
-        "consult": "상담"
+        "consult": "대표 상담"
       },
       "cdMobileBottomNavQuick": {
         "k10ios": "타로",
