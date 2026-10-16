@@ -1352,7 +1352,7 @@
     ],
     openPastLifeFaceApp: [
       'AnalysisEngine.js?v=h96b7981840e2',
-      'PastLifeFaceUI.js?v=hb682ccd2968d'
+      'PastLifeFaceUI.js?v=he6a7b41ecbbb'
     ],
     openMbtiModal: ['js/astral-soul.js'],
     openAnimalTotemModal: [
