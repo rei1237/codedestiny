@@ -1,7 +1,7 @@
 // Resize the approved root home illustrations (docs/design/root-home-art.json) into web variants.
 // The generated originals stay outside the repository; pass them with --source.
 //   hero:  node scripts/build-root-home-assets.mjs --source <1536x1024 png>
-//   cards: node scripts/build-root-home-assets.mjs --card yeoni|yeongnyangi --source <1024x1536 png>
+//   cards: node scripts/build-root-home-assets.mjs --card yeoni|yeongnyangi --source <1024x1536 or 3:4 png>
 // Never generate art here and never touch the character originals.
 import sharp from 'sharp';
 import { stat } from 'node:fs/promises';
@@ -17,18 +17,20 @@ if (!source) throw new Error('usage: node scripts/build-root-home-assets.mjs [--
 const dir = 'public/images/home/illustrated';
 // 4:3 mobile crop keeps both characters, the tea table and the cat's tail inside the frame.
 const MOBILE_CROP = { left: 330, top: 176, width: 1024, height: 768 };
-// 3:4 tarot card windows. Each crop keeps the whole character and its one prop set (yeongnyangi: card, candle, letter).
+// 3:4 tarot card windows for 1024x1536 originals (v2 "I 해 · II 달", 2026-10-16). A 3:4 original is used whole.
+// The yeongnyangi window keeps the moon's top edge, the hat tassel, the paws and the first ring of the water reflection.
 const CARD_CROPS = {
-  yeoni: { left: 40, top: 120, width: 880, height: 1173 },
-  yeongnyangi: { left: 32, top: 150, width: 960, height: 1280 },
+  yeoni: { left: 0, top: 85, width: 1024, height: 1365 },
+  yeongnyangi: { left: 0, top: 60, width: 1024, height: 1365 },
 };
 
 let jobs;
 const meta = await sharp(source).metadata();
 if (card) {
-  const crop = CARD_CROPS[card];
-  if (!crop) throw new Error(`unknown card: ${card}`);
-  if (meta.width !== 1024 || meta.height !== 1536) throw new Error(`expected 1024x1536, got ${meta.width}x${meta.height}`);
+  if (!CARD_CROPS[card]) throw new Error(`unknown card: ${card}`);
+  const isThreeByFour = Math.abs(meta.width * 4 - meta.height * 3) <= 4;
+  if (!isThreeByFour && (meta.width !== 1024 || meta.height !== 1536)) throw new Error(`expected 1024x1536 or 3:4, got ${meta.width}x${meta.height}`);
+  const crop = isThreeByFour ? null : CARD_CROPS[card];
   jobs = [360, 600].map(width => ({ output: `${dir}/root-card-${card}-${width}`, width, crop }));
 } else {
   if (meta.width !== 1536 || meta.height !== 1024) throw new Error(`expected 1536x1024, got ${meta.width}x${meta.height}`);
