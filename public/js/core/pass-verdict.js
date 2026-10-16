@@ -112,6 +112,27 @@
     return Number.isFinite(limit) ? limit : 0;
   }
 
+  // 정책 버전별 건당 상한(coin). 서버 정본은 lib/payment/pass-policy.js 의 *_PASS_PLANS.maxCoveredCoin.
+  // 대조 가드: scripts/verify-pass-tier-policy.mjs. PASS_LIMIT_BY_TIER 는 legacy 정책 전용이다 —
+  // 현행 큰 꿀단지(300)를 legacy 표(200)로 읽으면 홈·결제 화면이 실제 차감보다 좁게 보인다.
+  var PASS_LIMIT_BY_POLICY = {
+    "flower-20260930": { standard: 50, premium: 100, vvip: 300, family: 999999999 },
+    "flower-cost-20260921": { standard: 50, premium: 100, vvip: 300, family: 999999999 },
+    "flower-20260921": { standard: 50, premium: 100, vvip: 300 }
+  };
+
+  // 모르는 정책 버전이면 0 — 추측하지 않고 서버 값으로 넘긴다.
+  function positiveCoinOrNull(value) {
+    var n = Math.floor(Number(value));
+    return Number.isFinite(n) && n > 0 ? n : null;
+  }
+    function passLimitForPolicy(tier, policyVersion) {
+    var table = PASS_LIMIT_BY_POLICY[policyVersion];
+    if (table) return table[normalizeTier(tier)] || 0;
+    if (policyVersion && policyVersion !== "legacy") return 0;
+    return passLimitForTier(tier);
+  }
+
   function monthlyLimitForTier(tier) {
     var limit = MONTHLY_PASS_LIMIT_BY_TIER[normalizeTier(tier)];
     return Number.isFinite(limit) ? limit : 0;
@@ -229,6 +250,7 @@
         state: state,
         tier: state === "active" ? tier : "free",
         passPolicyVersion: text(parsed.passPolicyVersion) || "legacy",
+        passLimitCoin: state === "active" ? positiveCoinOrNull(parsed.passLimitCoin) : null,
         expiresAt: state === "active" ? expiresAt : null,
         checkedAt: checkedAt,
         purchaseVersion: text(parsed.purchaseVersion),
@@ -356,6 +378,8 @@
       state: state,
       tier: state === "active" ? tier : "free",
       passPolicyVersion: text(data.passPolicyVersion || (data.profileSubscription || {}).passPolicyVersion || nested.passPolicyVersion || membership.passPolicyVersion) || "legacy",
+      // 서버가 계산한 건당 상한(정책 버전 반영). 있으면 판정은 이 값을 먼저 쓴다.
+      passLimitCoin: state === "active" ? positiveCoinOrNull(data.passLimit ?? data.maxCoveredCoin ?? nested.passLimit ?? nested.maxCoveredCoin ?? (data.profileSubscription || {}).passLimit) : null,
       expiresAt: state === "active" ? expiresAt : null,
       checkedAt: Date.now(),
       purchaseVersion: text(
@@ -406,6 +430,7 @@
         state: snapshot.state,
         tier: snapshot.tier,
         passPolicyVersion: snapshot.passPolicyVersion || "legacy",
+        passLimitCoin: positiveCoinOrNull(snapshot.passLimitCoin),
         expiresAt: snapshot.expiresAt || null,
         checkedAt: Number(snapshot.checkedAt) || Date.now(),
         purchaseVersion: text(snapshot.purchaseVersion),
@@ -488,13 +513,7 @@
       return result;
     }
     if (snapshot.state !== "active") return result;
-    var policyCoverageLimits = {
-      "flower-20260930": { standard: 50, premium: 100, vvip: 300, family: 999999999 },
-      "flower-cost-20260921": { standard: 50, premium: 100, vvip: 300, family: 999999999 },
-      "flower-20260921": { standard: 50, premium: 100, vvip: 300 }
-    };
-    var policyCoverageLimit = policyCoverageLimits[snapshot.passPolicyVersion];
-    var limit = policyCoverageLimit ? (policyCoverageLimit[snapshot.tier] || 0) : snapshot.passPolicyVersion && snapshot.passPolicyVersion !== "legacy" ? 0 : passLimitForTier(snapshot.tier);
+    var limit = positiveCoinOrNull(snapshot.passLimitCoin) || passLimitForPolicy(snapshot.tier, snapshot.passPolicyVersion);
     result.passLimit = limit;
     result.hasActivePass = true;
     if (!(limit > 0)) return result;
@@ -655,6 +674,7 @@
     REASON_NONE: REASON_NONE,
     normalizeTier: normalizeTier,
     passLimitForTier: passLimitForTier,
+    passLimitForPolicy: passLimitForPolicy,
     monthlyLimitForTier: monthlyLimitForTier,
     normalizeUserId: normalizeUserId,
     snapshotKey: snapshotKey,

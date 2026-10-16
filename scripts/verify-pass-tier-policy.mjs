@@ -42,6 +42,7 @@ import { evaluatePassCoverage, describePassEligibility } from "../worker/payment
 import { listAppPassProducts } from "../worker/lib/app-store-pricing.js";
 import { listProducts } from "../worker/payments/catalog.js";
 import { PASS_MONTHLY_WON } from "../lib/payment/pass-pricing.js";
+import { listServicePackPlans } from "../worker/payments/service-pack-policy.js";
 import {
   PREVIOUS_PASS_PLANS, PREVIOUS_PASS_POLICY_VERSION, CURRENT_PASS_PLANS,
   CURRENT_PASS_POLICY_VERSION,
@@ -528,6 +529,40 @@ for (const [rel, floor] of [[path.join("public", "i18n"), 200000], [path.join("i
   );
 }
 for (const hit of resetHits) failures.push(`리셋 문구: ${hit}`);
+
+/* ── ⑨ 정책 버전별 건당 상한과 홈 화면 표시 (2026-10-16) ─────────────────────
+   서버는 정책 버전(flower-*)별 상한을 쓰는데 셸이 구 표(vvip 200)로 덮어써서 VVIP 가 2만원으로 보였다.
+   홈 판매 배너에는 등급별 건당 금액과 영냥이 세트가 빠져 있었다. 셋 다 여기서 막는다. */
+const POLICY_TABLES = [
+  [CURRENT_PASS_POLICY_VERSION, CURRENT_PASS_PLANS],
+  [PREVIOUS_PASS_POLICY_VERSION, PREVIOUS_PASS_PLANS],
+  [PRIOR_PASS_POLICY_VERSION, PRIOR_PASS_PLANS],
+];
+const policyBlock = verdict.match(/PASS_LIMIT_BY_POLICY\s*=\s*\{([\s\S]*?)\n\s*\};/);
+check("pass-verdict PASS_LIMIT_BY_POLICY 표가 있다", Boolean(policyBlock));
+for (const [version, plans] of POLICY_TABLES) {
+  const row = policyBlock && policyBlock[1].match(new RegExp(`"${version}"\\s*:\\s*\\{([^}]*)\\}`));
+  check(`pass-verdict PASS_LIMIT_BY_POLICY["${version}"] 행`, Boolean(row));
+  if (!row) continue;
+  for (const [tier, plan] of Object.entries(plans)) {
+    const got = Number((row[1].match(new RegExp(`\\b${tier}\\s*:\\s*(\\d+)`)) || [])[1]);
+    check(`pass-verdict PASS_LIMIT_BY_POLICY["${version}"].${tier}`, got === Number(plan.maxCoveredCoin), `실제=${got} 정본=${plan.maxCoveredCoin}`);
+  }
+}
+const homeBanner = (shell.match(/<section class="cdh-pass"[\s\S]*?<\/section>/) || [""])[0];
+check("index.html 홈 이용권 배너(.cdh-pass)가 있다", Boolean(homeBanner));
+for (const plan of Object.values(CURRENT_PASS_PLANS)) {
+  if (plan.tier === "family") {
+    check("홈 배너 family '건당 한도 없음'", homeBanner.includes("home.overseasCopy.passNoLimit"));
+    continue;
+  }
+  const amount = Number(plan.maxCoveredCoin * KRW_PER_COIN).toLocaleString("en-US");
+  check(`홈 배너 ${plan.tier} 건당 ${amount}원`, homeBanner.includes(`data-cd-trans="home.overseasCopy.passPerLimit" data-cd-vars='{"amount":"${amount}"}'`));
+}
+for (const plan of listServicePackPlans()) {
+  check(`홈 배너 영냥이 세트 카드 ${plan.planId}`, homeBanner.includes(`data-pack-plan="${plan.planId}"`));
+}
+check("홈 '내 이용권' 줄(#cdhMyPass)이 있다", shell.includes('id="cdhMyPass"'));
 
 if (failures.length) {
   console.error(`\n[실패] 이용권 등급 정책 검증 ${failures.length}건`);

@@ -278,6 +278,120 @@
     }
   }, true);
 
+  // "내 이용권" 줄 — 표시 전용이다. 상담 한 건을 무엇으로 차감할지는 서버(consumePassForFeature·영냥이 funding claim)가 정한다.
+  // 꽃돼지 이용권은 /api/me/access-state 의 passUsage(서버 계산 건당 한도·남은 한도), 영냥이 세트는 지갑 API 값을 그대로 보여 준다.
+  // 구 한도표(vvip 20,000원 등)로 다시 계산하지 않는다 — 정책 버전마다 건당 한도가 달라서 화면이 실제 차감과 어긋난다.
+  var myPass = document.getElementById('cdhMyPass');
+  var myPassList = document.getElementById('cdhMyPassList');
+  var PASS_TIER_COPY = { standard: ['passStandard', '작은 꿀단지'], premium: ['passPremium', '중간 꿀단지'], vvip: ['passVvip', '큰 꿀단지'], family: ['passFamily', '패밀리 꿀단지'] };
+  var FISH_COPY = { mackerel: ['fishMackerel', '고등어'], salmon: ['fishSalmon', '연어'], flounder: ['fishFlounder', '광어'], tuna: ['fishTuna', '참치'] };
+  var myPassUserId = '';
+  var myPassFlower = null;
+  var myPassPacks = [];
+  var myPassWalletFor = '';
+  var myPassSignature = '';
+  function wonText(value) { return Number(value || 0).toLocaleString('en-US'); }
+  function myPassNode(tag, className, key, vars, ko) {
+    var node = document.createElement(tag);
+    node.className = className;
+    node.setAttribute('data-cd-trans', key);
+    if (vars) node.setAttribute('data-cd-vars', JSON.stringify(vars));
+    node.textContent = typeof window.cdTranslate === 'function' ? window.cdTranslate(key, vars || {}, ko) : ko;
+    return node;
+  }
+  function myPassDate(value) {
+    var time = Date.parse(value);
+    if (!Number.isFinite(time)) return '';
+    var lang = typeof window.cdGetCurrentLanguage === 'function' ? window.cdGetCurrentLanguage() : 'ko';
+    try { return new Intl.DateTimeFormat(lang || 'ko', { dateStyle: 'medium' }).format(new Date(time)); } catch (_) { return new Date(time).toISOString().slice(0, 10); }
+  }
+  function flowerFromSnapshot(snapshot) {
+    var ent = snapshot && snapshot.entitlementSnapshot;
+    var tier = ent && String(ent.tier || '').toLowerCase();
+    if (!ent || !PASS_TIER_COPY[tier] || !Array.isArray(ent.activePasses) || !ent.activePasses.length) return null;
+    var usage = ent.passUsage && ent.passUsage.tier === tier ? ent.passUsage : null;
+    return { tier: tier, usage: usage };
+  }
+  function renderMyPass() {
+    if (!myPass || !myPassList) return;
+    var packs = myPassPacks.filter(function (pack) { return pack && pack.available && Number(pack.remainingUses) > 0; })
+      .sort(function (a, b) { return Date.parse(a.expiresAt) - Date.parse(b.expiresAt); });
+    var signature = JSON.stringify([myPassFlower, packs, typeof window.cdGetCurrentLanguage === 'function' ? window.cdGetCurrentLanguage() : 'ko']);
+    if (signature === myPassSignature) return;
+    myPassSignature = signature;
+    myPassList.textContent = '';
+    if (myPassFlower) {
+      var item = document.createElement('li');
+      item.className = 'cdh-mypass__item';
+      item.setAttribute('data-my-pass', 'flower');
+      item.setAttribute('data-pass-tier', myPassFlower.tier);
+      var tierCopy = PASS_TIER_COPY[myPassFlower.tier];
+      var usage = myPassFlower.usage;
+      item.appendChild(myPassNode('span', 'cdh-mypass__kind', 'home.passCopy.flowerPass', null, '🌸 꽃돼지 달빛 이용권'));
+      item.appendChild(myPassNode('strong', 'cdh-mypass__name', 'home.overseasCopy.' + tierCopy[0], null, tierCopy[1]));
+      if (usage) {
+        if (usage.perItemLimitKRW === null) item.appendChild(myPassNode('span', 'cdh-mypass__line', 'home.overseasCopy.passNoLimit', null, '유료 리딩 건당 한도 없음'));
+        else item.appendChild(myPassNode('span', 'cdh-mypass__line', 'home.overseasCopy.passPerLimit', { amount: wonText(usage.perItemLimitKRW) }, '건당 ' + wonText(usage.perItemLimitKRW) + '원 이하'));
+        item.appendChild(myPassNode('span', 'cdh-mypass__line cdh-mypass__line--muted', 'home.passCopy.budgetLeft', { amount: wonText(usage.remainingKRW) }, '남은 한도 ' + wonText(usage.remainingKRW) + '원'));
+      }
+      myPassList.appendChild(item);
+    }
+    if (packs.length) {
+      var first = packs[0];
+      var fish = FISH_COPY[first.fishId];
+      var packItem = document.createElement('li');
+      packItem.className = 'cdh-mypass__item';
+      packItem.setAttribute('data-my-pass', 'yeongnyangi');
+      packItem.setAttribute('data-pack-fish', String(first.fishId || ''));
+      packItem.appendChild(myPassNode('span', 'cdh-mypass__kind', 'home.passCopy.packPass', null, '영냥이 전용 이용권'));
+      if (fish) packItem.appendChild(myPassNode('strong', 'cdh-mypass__name', 'home.passCopy.packName', { fish: '@home.passCopy.' + fish[0], total: String(first.totalUses) }, fish[1] + ' 세트 ' + first.totalUses + '회'));
+      else {
+        var name = document.createElement('strong');
+        name.className = 'cdh-mypass__name';
+        name.textContent = String(first.label || '');
+        packItem.appendChild(name);
+      }
+      packItem.appendChild(myPassNode('span', 'cdh-mypass__line', 'home.passCopy.packRemaining', { total: String(first.totalUses), remaining: String(first.remainingUses) }, first.totalUses + '회 중 ' + first.remainingUses + '회 남음'));
+      var until = myPassDate(first.expiresAt);
+      if (until) packItem.appendChild(myPassNode('span', 'cdh-mypass__line cdh-mypass__line--muted', 'home.passCopy.packExpires', { date: until }, until + '까지'));
+      if (packs.length > 1) packItem.appendChild(myPassNode('span', 'cdh-mypass__line cdh-mypass__line--muted', 'home.passCopy.packOthers', { count: String(packs.length - 1) }, '외 ' + (packs.length - 1) + '개 세트 보유'));
+      myPassList.appendChild(packItem);
+    }
+    myPass.hidden = !myPassList.children.length;
+  }
+  function loadPackWallet(userId) {
+    myPassWalletFor = userId;
+    fetch('/api/payments/service-packs/wallet', { credentials: 'include', cache: 'no-store' }).then(function (response) {
+      return response.ok ? response.json() : null;
+    }).then(function (payload) {
+      if (myPassUserId !== userId) return;
+      myPassPacks = payload && payload.ok && Array.isArray(payload.packs) ? payload.packs : [];
+      renderMyPass();
+    }).catch(function () {
+      if (myPassUserId !== userId) return;
+      myPassPacks = [];
+      renderMyPass();
+    });
+  }
+  function syncMyPass(snapshot) {
+    var userId = snapshot && String(snapshot.userId || '');
+    if (userId !== myPassUserId) {
+      myPassUserId = userId;
+      myPassPacks = [];
+      myPassWalletFor = '';
+    }
+    myPassFlower = userId ? flowerFromSnapshot(snapshot) : null;
+    if (userId && myPassWalletFor !== userId) loadPackWallet(userId);
+    renderMyPass();
+  }
+  if (myPass && window.CodeDestinyAccessStore && typeof window.CodeDestinyAccessStore.subscribe === 'function') {
+    window.CodeDestinyAccessStore.subscribe(syncMyPass);
+    // 상담에서 돌아오면(bfcache) 영냥이 세트 잔여 횟수가 바뀌었을 수 있다.
+    window.addEventListener('pageshow', function (event) {
+      if (event.persisted && myPassUserId) loadPackWallet(myPassUserId);
+    });
+  }
+
   window.addEventListener('hashchange', route);
   window.addEventListener('pageshow', clearPortalOverlay);
   if (new URLSearchParams(location.search).get('action') === 'cdOneStepFreeSajuEntry') revealInput();
