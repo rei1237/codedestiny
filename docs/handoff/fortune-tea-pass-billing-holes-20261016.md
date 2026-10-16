@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-10-16
-next: "A단계 — 즉시 차단 핫픽스(A1 _userDoc 본문 신뢰 제거, A2 낙샤트라 PER_USE_ENFORCE, A3 fortune.js 본문 이용권 주장, A4 VPU 빈 거부 코드)."
+next: "A단계 push 뒤 F단계(홈 화면 이용권 커버 금액·영냥이 세트 표시) → B단계(settlePerUseAccessDecision)."
 ---
 
 # 운명 찻집 10,000원: 이용권 차감 누락과 결제 증빙 재사용 구멍
@@ -226,3 +226,13 @@ next: "A단계 — 즉시 차단 핫픽스(A1 _userDoc 본문 신뢰 제거, A2 
   - **`_userDoc`·낙샤트라 경로 10-01 이후 실행 대비 결제:** pet-saju·destiny-compass·geomancy·yoga·celestial·낙샤트라 무후르타·VVIP 코덱스는 실행 0건. `compat-saju-compatibility`는 실행 2건(완료 2) / 결제 1 / 코인 차감 3 → 결제 없는 실행 흔적 없음.
   - **결론:** 운영 데이터에서 "결제 없이 열린 찻집 상담"은 확인되지 않는다. 10-15 무렵 결제 없이 열린 고액 상담은 수동 부여 가족 이용권으로 연 융합 운세 1건이 유일하다. 코드상 구멍(결함 1~4, 0.1절 유형 1~5)은 실재하므로 수정은 계획대로 진행한다.
   - 후속 확인 거리(이번 범위 밖): 10-14 결제 완료된 융합 운세 2건(`dh*****@naver.com`, `hs********@naver.com`)의 상담 문서가 `status: partial`로 남아 있다.
+- 2026-10-16 — **A단계 즉시 차단 핫픽스 커밋** (origin/main `588ebc59a` 위로 rebase)
+  - `7c49b5fbf` A1: `requirePremiumReportAccess`가 요청 본문의 `_userDoc`를 믿지 않는다. 서버가 읽은 문서는 `options.preloadedUserDoc`로만 받는다.
+  - `3c6d85013` A2: 낙샤트라 무후르타·VVIP 코덱스 `PER_USE_ENFORCE = true`. 가드 `verify-nakshatra-premium.mjs` 단언을 2단계로 바꿨다.
+  - `b5bdf1588` A3: fortune.js AI 프롬프트 증빙 조회가 본문의 이용권 주장을 무시한다.
+  - `984462140` A4: 차감되지 않은 이용권은 거부 코드가 비어도 항상 `PAYMENT_REQUIRED`다.
+  - 기존 실패: `fortune-today-hub.route`(8건)는 rebase 전 루트 main에서도 같은 실패다. 이번 변경과 무관하다.
+- 2026-10-16 — **사용자 추가 지시와 결정**
+  - "들어보니까 이용권 9900원 짜리로 뚫린것으로 보여진다." → 실측 결과 위 `na*******` 계정의 **연이 운명 상담(`fortune-chat-consultation`, 5,000원)** 이용권 3건이다. standard 건당 상한(5,000원) 안이라 정상 차감이다. 사용자 결정: **standard가 연이 상담을 커버하는 규칙은 유지**.
+  - "운명 찻집 가격이 현재 5천원 맞아? 그렇다면 그냥 유지하도록해" → 찻집 5종은 모두 10,000원이다. 사용자 결정: **10,000원 유지**.
+  - "이용권마다 커버 가능한 금액이 메인 화면 UI에 표시가 안 되고, 영냥이 상담 이용권은 아예 표시가 안 된다" → F단계로 추가(홈 "내 이용권" 줄, 판매 배너 영냥이 세트 카드, 구 한도표 덮어쓰기 수정, 가드).
