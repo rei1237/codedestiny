@@ -701,6 +701,10 @@ function extractFunctionSource(source, name) {
   // PR-E 가 `_parseDateKeyToDate` 를 UTC 왕복으로 옮겼다(`_makeLocalNoonDate` 자체는 유지).
   const ALLOWED = Object.freeze([
     { file: "js/saju-engine-tarot-sukuyo-quantum.js", args: "d.getFullYear(),0,1", why: "lottoWeekKey — ISO 주차 표시" },
+    // 스트리퍼가 정규식 속 따옴표에 어긋나 그동안 못 보던 자리(2026-10-17 발견). 24절기 카드의 표시용 비교이고
+    // 간지를 만들지 않는다. 벽시계 부품으로 옮기는 것은 후속 과제다.
+    { file: "js/saju-engine.js", args: "parseInt(year,10),month-1,day,parseInt(term.hour,10)||0,parseInt(term.minute,10)||0,0,0", why: "_t24TermDate — 24절기 카드 표시" },
+    { file: "js/saju-engine.js", args: "y,m-1,d,isNaN(h)?12:h,isNaN(mi)?0:mi,0,0", why: "_t24BirthDate — 24절기 카드 표시" },
     { file: "js/luck-sync-diary.js", args: "Number(year),Number(monthIndex),Number(day),12,0,0,0", why: "_makeLocalNoonDate — 달력 표시 축" },
     { file: "js/luck-sync-diary.js", args: "year,month,1", why: "월 그리드 첫 칸" },
     { file: "js/luck-sync-diary.js", args: "year,month+1,0", why: "월 그리드 말일" },
@@ -729,11 +733,14 @@ function extractFunctionSource(source, name) {
         continue;
       }
       const ch = text[i];
+      // 🔴 `'`·`"` 문자열은 줄을 넘지 못한다. 정규식 리터럴 속 따옴표(/"/g 등)로 짝이 어긋나도
+      // 줄 끝에서 끊어야, 그 뒤 코드 전체가 "문자열"로 사라지지 않는다(2026-10-17 lottoWeekKey 도달 실패).
       if (ch === '"' || ch === "'" || ch === "`") {
         let j = i + 1;
         while (j < text.length) {
           if (text[j] === String.fromCharCode(92)) { j += 2; continue; }
           if (text[j] === ch) { j += 1; break; }
+          if (ch !== "`" && text[j] === String.fromCharCode(10)) break;
           j += 1;
         }
         out += " ".repeat(j - i);
