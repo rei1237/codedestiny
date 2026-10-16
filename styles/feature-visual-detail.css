@@ -261,4 +261,4 @@ body:not(.neo-mode) #tilePvwOverlay.pvw-visual .tile-pvw-sheet{background:#fff9f
 body:not(.neo-mode) #tilePvwOverlay.pvw-visual #tilePvwTitle{color:#402a38}
 body:not(.neo-mode) #tilePvwOverlay.pvw-visual .tile-pvw-close{background:#fff9f4;color:#402a38}
 body:not(.neo-mode) #tilePvwOverlay.pvw-visual .tile-pvw-cta-sticky{background:#fff9f4!important;border-top-color:#ebd9df!important;--cd-detail-muted:#6b4d5e}
-body:not(.neo-mode) #tilePvwOverlay.pvw-visual :is(.tile-pvw-cta-btn,.fortuneAction a,.fortuneAction button){--fortune-accent:#b53660;background-color:#b53660;background-image:linear-gradient(135deg,rgba(255,255,255,.12) 0%,rgba(255,255,255,0) 50%,rgba(64,42,56,.12) 100%)}
+body:not(.neo-mode) #tilePvwOverlay.pvw-visual :is(.tile-pvw-cta-btn,.fortuneAction a,.fortuneAction button){--fortune-accent:#b53660;background-color:#b53660;color:#fffaf0;background-image:linear-gradient(135deg,rgba(255,255,255,.12) 0%,rgba(255,255,255,0) 50%,rgba(64,42,56,.12) 100%)}
