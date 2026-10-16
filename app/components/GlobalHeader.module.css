@@ -76,8 +76,7 @@
   overflow-x: auto;
 }
 
-.navLink,
-.policyLink {
+.navLink {
   display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
@@ -95,8 +94,7 @@
   padding: 0 14px;
 }
 
-.navLink:hover,
-.policyLink:hover {
+.navLink:hover {
   background: color-mix(in srgb, var(--gh-accent) 10%, transparent);
   color: var(--gh-accent);
 }
@@ -179,25 +177,6 @@
   stroke-width: 1.8;
 }
 
-.policyBar {
-  border-top: 1px solid color-mix(in srgb, var(--gh-line) 60%, transparent);
-}
-
-.policyNav {
-  display: flex;
-  width: min(1240px, calc(100% - 24px));
-  margin-inline: auto;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 2px 12px;
-}
-
-.policyLink {
-  min-height: 36px;
-  padding-inline: 4px;
-  font-size: 0.7rem;
-}
-
 .mobilePanel {
   display: none;
 }
@@ -209,8 +188,7 @@
 }
 
 @media (max-width: 1279px) {
-  .mainNav,
-  .policyBar {
+  .mainNav {
     display: none;
   }
 }
@@ -257,16 +235,14 @@
     background: var(--gh-surface);
   }
 
-  .mobileTools > span,
-  .mobilePolicyLabel {
+  .mobileTools > span {
     color: var(--gh-muted);
     font-size: 0.72rem;
     font-weight: 800;
   }
 
   .mobileTools > div,
-  .mobileLinks,
-  .mobilePolicyLinks {
+  .mobileLinks {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -274,22 +250,17 @@
 
   .mobileLinks {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .mobileLinks .navLink {
     border: 1px solid var(--gh-line);
     background: var(--gh-surface);
   }
-
-  .mobilePolicyLinks {
-    flex-wrap: wrap;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .navLink,
-  .policyLink {
+  .navLink {
     transition: none;
   }
 }
