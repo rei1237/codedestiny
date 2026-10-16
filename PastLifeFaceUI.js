@@ -3341,7 +3341,7 @@
     { href: '/love-secret-ai', emoji: '💕', title: '전생의 사랑', desc: '전생부터 이어진 사랑의 방식이 궁금하다면', price: '30,000원' },
     { href: '/karma-destiny-ai', emoji: '⚖️', title: '전생의 업(業)', desc: '이번 생으로 넘어온 숙제를 깊게 풀어보기', price: '30,000원' },
     { href: '/destiny-island.html', emoji: '🏝️', title: '전생의 장소', desc: '내 운명의 지도 위에서 내 자리를 찾기', price: '무료' },
-    { href: '/?action=openSukuyoModal', emoji: '🔮', title: '전생의 인연도', desc: '생년월일로 보는 숙요 인연 레이더', price: '3,000원' }
+    { href: '/?action=openSukuyoModal', emoji: '🔮', title: '전생의 인연도', desc: '생년월일로 보는 숙요 인연 레이더', price: '10,000원' }
   ];
 
   function plfDeeperHtml() {
