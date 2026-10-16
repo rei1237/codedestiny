@@ -1728,6 +1728,10 @@ const app = {
         return runAiRouteWithSecurity(request, env, "vedic-ai", handleVedicAiRoutes);
       }
 
+      if (url.pathname === "/api/neo-consultations" || url.pathname.startsWith("/api/neo-consultations/")) {
+        const { handleNeoConsultations } = await import("./routes/neo-consultations.js");
+        return handleNeoConsultations(request);
+      }
       if (url.pathname === "/api/neo-operation-room" || url.pathname.startsWith("/api/neo-operation-room/")) {
         return runAiRouteWithSecurity(request, env, "neo-operation-room", handleNeoOperationRoomRoutes, ctx);
       }

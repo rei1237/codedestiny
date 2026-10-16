@@ -121,7 +121,9 @@ const ROWS = [
   ["결제금액 / Amount", (order) => `${Number(order.paymentAmount || 0).toLocaleString("ko-KR")}원 (KRW)`],
   // 🔴 영수증은 법정 통지라 내부 코드가 그대로 나가면 안 된다(예전엔 order.paymentMethod 원문이었다).
   ["결제수단 / Method", (order) => resolvePaymentMethodLabel(order)],
-  ["제공시점 / Delivered", () => "결제 승인 직후 디지털 콘텐츠로 제공 / Digital content, delivered immediately after approval"],
+  ["제공시점 / Delivered", (order) => order.featureKey === "neo-email-consultation"
+    ? "네오 직접 검수 후 이메일 답변 / Email reply after human review"
+    : "결제 승인 직후 디지털 콘텐츠로 제공 / Digital content, delivered immediately after approval"],
 ];
 
 const SELLER_ROWS = [

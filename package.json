@@ -557,6 +557,7 @@
     "verify:payment-reconcile": "node scripts/verify-payment-reconcile.mjs",
     "tarot:assets:build": "node scripts/build-yeongnyangi-tarot-assets.mjs",
     "verify:yeongnyangi-tarot-assets": "node scripts/verify-yeongnyangi-tarot-assets.mjs --full",
+    "verify:neo-consultation-ui": "node scripts/verify-neo-consultation-ui.mjs",
     "check:fast": "node scripts/check-changed.mjs --profile=fast --skip-build",
     "check:pre-push": "npm run verify:home-service-registry && npm run verify:public-mirror-fresh && npm run verify:sitemap-drift && node scripts/generate-llms-txt.mjs --check && npm run verify:seo-entity-registry",
     "check:ui": "node scripts/check-changed.mjs --profile=ui --skip-build",

@@ -390,6 +390,9 @@ export function getBillingFeaturePricing(input = {}) {
 }
 
 export function assertFeatureEnabled(pricing) {
+  if (FEATURE_KEY_PRICE_TABLE[normalizePaidFeatureKey(pricing?.featureKey || pricing?.productId)]?.saleEnabled === false) {
+    return { ok: false, code: "PRODUCT_SALE_DISABLED", message: "상담을 준비하고 있어요. 아직 결제는 진행되지 않아요." };
+  }
   if (!pricing) {
     return {
       ok: false,

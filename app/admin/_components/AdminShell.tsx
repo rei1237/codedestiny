@@ -80,6 +80,7 @@ export const ADMIN_NAV: AdminNavItem[] = [
   { href: "/admin/prompts", label: "프롬프트 랩", Icon: Sparkles, hint: "운세별 프롬프트를 결제 없이 확인", group: "library" },
   { href: "/admin/cms", label: "콘텐츠 관리", Icon: LayoutList, hint: "AI 프롬프트·운세 해설·문구 편집", group: "library" },
   { href: "/admin/orders", label: "주문 · 환불", Icon: Receipt, hint: "결제 조회와 환불", group: "vault" },
+  { href: "/admin/neo-consultations", label: "네오 이메일 상담", Icon: Mail, hint: "질문별 답변 검수·통합 이메일", group: "parlor" },
   { href: "/admin/reviews", label: "리뷰", Icon: MessageSquare, hint: "리뷰 승인과 관리", group: "parlor" },
   { href: "/admin/feedback", label: "버그 제보", Icon: MessageSquare, hint: "제보 확인과 보상 지급", group: "parlor" },
   { href: "/admin/monthly-credits", label: "월정석 지급", Icon: Gem, hint: "마케팅 월정석 지급", group: "workshop" },

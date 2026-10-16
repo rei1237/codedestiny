@@ -4928,6 +4928,12 @@ export async function handleAdminRoutes(request, env) {
     const method = request.method.toUpperCase();
     const path = getRoutePath(request, "/api/admin");
 
+    if (path === "/neo-consultations" || path.startsWith("/neo-consultations/")) {
+      await authorizeAdminRequest(request, env);
+      const { handleNeoConsultations } = await import("./neo-consultations.js");
+      return handleNeoConsultations(request);
+    }
+
     if (method === "POST" && path === "/entry/password") {
       return await handleEntryPassword(request, env);
     }

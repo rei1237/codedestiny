@@ -201,6 +201,7 @@ export async function createOrder(db, {
           confirmAttempts: 0,
           // 가격을 주문 시점에 박아 둔다. 나중에 가격표가 바뀌어도 이 주문의 대조 기준은 흔들리지 않는다.
           pricingSnapshot: {
+            ...(product.consultationSnapshot ? { consultation: product.consultationSnapshot } : {}),
             priceKRW: moonstoneDiscount?.payableKRW ?? product.priceKRW,
             ...(moonstoneDiscount ? {moonstoneDiscount} : {}),
             priceCoins: product.priceCoins,

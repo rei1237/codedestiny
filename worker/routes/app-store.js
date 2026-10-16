@@ -4,7 +4,7 @@ import { getEnv } from "../lib/env.js";
 import { CONTENT_ENTITLEMENT_SOURCES, CONTENT_ENTITLEMENT_STATUSES, Payment, User } from "../lib/models.js";
 import { requireAuth } from "../lib/auth.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
-import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
+import { getBillingFeaturePricing, assertFeatureEnabled } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import {
   getPaidFeatureBillingType,
@@ -532,7 +532,11 @@ export async function obfuscatedAccountIdForUser(userId) {
 
 function resolvePricing(input = {}) {
   const result = getBillingFeaturePricing(input);
-  if (result?.ok && result.pricing) return result.pricing;
+  if (result?.ok && result.pricing) {
+    const enabled = assertFeatureEnabled(result.pricing);
+    if (!enabled.ok) throw Object.assign(new Error(enabled.message), { code: enabled.code, status: 409 });
+    return result.pricing;
+  }
   const error = new Error("Paid product pricing was not found.");
   error.code = "APP_STORE_PRODUCT_NOT_FOUND";
   error.status = 404;

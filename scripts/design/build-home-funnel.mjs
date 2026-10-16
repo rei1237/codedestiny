@@ -9,6 +9,7 @@ import { splitReviews, postedMonth } from '../../lib/brand/customer-reviews.mjs'
 import { EXPERTISE_FACTS } from '../../lib/brand/expertise-facts.mjs';
 import { renderTrustStoriesHtml } from '../../lib/brand/trust-stories.mjs';
 import { renderNeoHomeIntroduction } from '../../lib/brand/neo-home-introduction.mjs';
+import { renderNeoEmailHomeEntry } from '../../lib/brand/neo-email-home-entry.mjs';
 import { KRW_PER_COIN, MEMBERSHIP_CREDIT_PER_COIN } from '../../worker/lib/billing-policy.js';
 import signupBenefitPolicy from '../../js/core/signup-benefit-policy.mjs';
 
@@ -220,6 +221,7 @@ const { lead: leadReviews } = splitReviews(3);
 vars.customerReviews = leadReviews.length ? `<p id="cdhReviewsTitle" class="cdh-kakao-lead" data-cd-trans="home.funnelCopy.reviewsLead">네오가 1:1로 상담할 때 받은 실제 카카오톡 후기예요. 고객이 쓴 문장 그대로 옮겼고, 생략한 곳은 …로 표시했어요.</p><ul class="cdh-kakao">${leadReviews.map(reviewCard).join('')}</ul><p class="cdh-kakao-fine" data-cd-trans="home.funnelCopy.reviewsFine">개인 경험에 따른 후기이며 결과를 보장하지 않습니다. 사주 풀이는 참고용 정보입니다.</p>` : '';
 vars.expertiseFacts = EXPERTISE_FACTS.map(fact => `<li data-cd-trans="home.funnelCopy.expertise.${fact.key}">${escapeHtml(fact.ko)}</li>`).join('');
 const template = readFileSync('templates/home-funnel.html', 'utf8');
+vars.neoEmailConsultation = renderNeoEmailHomeEntry();
 let homeHtml = template.replace(/\{\{(\w+)\}\}/g, (_token, key) => {
   if (!(key in vars)) throw new Error(`Unknown home funnel template token: ${key}`);
   return vars[key];
