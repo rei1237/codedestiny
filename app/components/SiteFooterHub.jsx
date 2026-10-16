@@ -55,9 +55,13 @@ const POLICY_LINKS = [
 
 export { POLICY_LINKS };
 
+// 2026-10-16 "길잡이가 빈 상자 네 개로 보인다" 피드백: 그룹마다 한 줄 설명과 대표 링크 4개(featured)를
+// 늘 펼쳐 두고, 나머지만 "더 보기" 안에 둔다. 링크는 한 번씩만 렌더하고 전부 DOM 에 있어 크롤 신호는 그대로다.
 export const SEO_LINK_GROUPS = [
   {
     title: siteFooterHubText("siteFooter.001"),
+    description: "사주·만세력·오늘의 운세처럼 매일 찾는 기본 풀이",
+    featured: ["/saju/", "/today/", "/manse/", "/compatibility/"],
     links: [
       { href: "/kkul-kkul-unse/", text: "꿀꿀 운세 브랜드 안내" },
       { href: "/saju/", text: "무료 사주풀이 보기" },
@@ -91,6 +95,8 @@ export const SEO_LINK_GROUPS = [
   },
   {
     title: siteFooterHubText("siteFooter.002"),
+    description: "연애·재회·속마음까지 카드로 묻는 리딩",
+    featured: ["/tarot/", "/tarot/love/", "/tarot/reunion/", "/tarot/mindscan/"],
     links: [
       { href: "/tarot/", text: "명리학 타로 시작하기" },
       { href: "/physiognomy/", text: "동물관상 분석하기" },
@@ -108,6 +114,8 @@ export const SEO_LINK_GROUPS = [
   },
   {
     title: siteFooterHubText("siteFooter.003"),
+    description: "자미두수·점성술·꿈해몽과 찻집·전문가 상담",
+    featured: ["/ziwei/", "/astrology/", "/dream/", "/fortune-tea-house/"],
     links: [
       // 색인 가능한 정본 허브로 보낸다. 예전에는 /ziwei/chart·/oracle/sukuyo 처럼
       // noindex,nofollow 인 인터랙티브 라우트만 가리켜서, 전 페이지 푸터의 링크 자산이
@@ -141,6 +149,8 @@ export const SEO_LINK_GROUPS = [
   },
   {
     title: siteFooterHubText("siteFooter.004"),
+    description: "처음이라면 읽어볼 가이드·이야기·후기",
+    featured: ["/guides/complete-guide-to-saju/", "/stories/", "/reviews/", "/faq/"],
     links: [
       { href: "/insights/", text: "운명 인사이트 허브" },
       { href: "/guides/", text: "하이밸류 아카이브" },
@@ -201,25 +211,45 @@ export default function SiteFooterHub() {
               전자상거래법상 앱 안에 접근 경로가 있어야 한다. 같이 지우지 말 것. */}
           {!IS_APP_BUILD && (
             <>
-              <p className={styles.sfhKicker}>꿀꿀 운세 길잡이</p>
-              <p className={styles.sfhTitle}>서비스 링크 허브</p>
+              <p className={styles.sfhKicker}>주제별 바로가기</p>
+              <p className={styles.sfhTitle}>서비스 길잡이</p>
               <p className={styles.sfhSubtitle}>
-                사주·타로·자미두수부터 상담과 콘텐츠 안내까지, 꽃돼지가 필요한 길을 차분히 안내합니다.
+                자주 찾는 곳을 먼저 보여드려요. 나머지는 묶음마다 ‘더 보기’에 담아 두었어요.
               </p>
 
               <div className={styles.sfhGroupGrid}>
-                {SEO_LINK_GROUPS.map((group) => (
-                  <details key={group.title} className={styles.sfhCard}>
-                    <summary className={styles.sfhGroupTitle} style={{ cursor: "pointer", paddingBlock: "0.75rem" }}>{group.title}</summary>
-                    <nav className={styles.sfhLinkNav} aria-label={`${group.title} 링크`}>
-                      {group.links.map((link) => (
-                        <a key={link.href} href={link.href} className={styles.sfhLink}>
-                          {link.text}
-                        </a>
-                      ))}
-                    </nav>
-                  </details>
-                ))}
+                {SEO_LINK_GROUPS.map((group) => {
+                  const featured = group.links.filter((link) => group.featured.includes(link.href));
+                  const rest = group.links.filter((link) => !group.featured.includes(link.href));
+                  return (
+                    <section key={group.title} className={styles.sfhCard} aria-label={group.title}>
+                      <div className={styles.sfhGroupHead}>
+                        <h2 className={styles.sfhGroupTitle}>{group.title}</h2>
+                        <span className={styles.sfhGroupCount}>{group.links.length}곳</span>
+                      </div>
+                      <p className={styles.sfhGroupDesc}>{group.description}</p>
+                      <nav className={styles.sfhLinkNav} aria-label={`${group.title} 대표 링크`}>
+                        {featured.map((link) => (
+                          <a key={link.href} href={link.href} className={styles.sfhLink}>
+                            {link.text}
+                          </a>
+                        ))}
+                      </nav>
+                      {rest.length > 0 && (
+                        <details className={styles.sfhMore}>
+                          <summary className={styles.sfhMoreToggle}>나머지 {rest.length}곳 더 보기</summary>
+                          <nav className={styles.sfhLinkNav} aria-label={`${group.title} 링크 더 보기`}>
+                            {rest.map((link) => (
+                              <a key={link.href} href={link.href} className={styles.sfhLink}>
+                                {link.text}
+                              </a>
+                            ))}
+                          </nav>
+                        </details>
+                      )}
+                    </section>
+                  );
+                })}
               </div>
             </>
           )}

@@ -136,7 +136,7 @@
 
 .sfhKicker {
   margin: 0;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -145,7 +145,7 @@
 
 .sfhTitle {
   margin: 7px 0 0;
-  font-size: clamp(1rem, 1.8vw, 1.18rem);
+  font-size: clamp(1.25rem, 2.2vw, 1.5rem);
   line-height: 1.3;
   color: var(--sfh-text);
   font-weight: 700;
@@ -155,15 +155,17 @@
 .sfhSubtitle {
   margin: 7px 0 0;
   color: var(--sfh-body);
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.65;
   max-width: 880px;
 }
 
 .sfhGroupGrid {
-  margin-top: 14px;
+  margin-top: 16px;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  /* 4열이면 칩이 한 줄에 하나씩 떨어진다 — 2×2 로 두고 780px 이하는 아래에서 1열이다. */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
   gap: 14px;
 }
 
@@ -172,7 +174,7 @@
   border-radius: 14px;
   background: var(--sfh-surface);
   backdrop-filter: blur(6px);
-  padding: 12px 12px 10px;
+  padding: 16px 16px 8px;
   box-shadow: var(--sfh-shade);
   opacity: 0;
   transform: translateY(10px);
@@ -191,17 +193,110 @@
   animation-delay: 0.24s;
 }
 
-.sfhCard:hover {
-  border-color: rgba(179, 25, 85, 0.46);
-  transform: translateY(-3px);
-  transition: transform 0.24s ease, border-color 0.24s ease;
+/* 카드 자체는 링크가 아니다 — 들뜨는 hover 는 눌리는 것처럼 보여서 뺐다(2026-10-16). */
+
+.sfhGroupHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .sfhGroupTitle {
-  margin: 0 0 8px;
+  margin: 0;
   color: var(--sfh-text);
-  font-size: 12.5px;
+  font-size: 16px;
+  line-height: 1.35;
   font-weight: 700;
+  font-family: "Noto Serif KR", "Iowan Old Style", "Times New Roman", serif;
+}
+
+.sfhGroupCount {
+  flex: none;
+  color: var(--sfh-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.sfhGroupDesc {
+  margin: 4px 0 12px;
+  color: var(--sfh-body);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+/* LocaleFooterHub 는 머리 줄·설명 없이 제목 바로 아래 링크를 둔다. */
+.sfhCard > .sfhGroupTitle + .sfhLinkNav {
+  margin-top: 10px;
+}
+
+/* 묶음 안 링크는 칩으로 — 본문 속 인라인 .sfhLink(환불 정책 전문 등)는 그대로 둔다. */
+.sfhCard .sfhLinkNav {
+  gap: 6px;
+}
+
+.sfhCard .sfhLink {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 6px 12px;
+  border: 1px solid var(--sfh-line);
+  border-radius: 999px;
+  background: var(--sfh-bg);
+  color: var(--sfh-text);
+  font-size: 13px;
+  line-height: 1.35;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.sfhCard .sfhLink:hover,
+.sfhCard .sfhLink:focus-visible {
+  border-color: var(--sfh-gold);
+  color: var(--sfh-gold);
+}
+
+.sfhCard .sfhLink:focus-visible,
+.sfhMoreToggle:focus-visible {
+  outline: 3px solid var(--sfh-accent);
+  outline-offset: 2px;
+}
+
+.sfhMore {
+  margin-top: 8px;
+  border-top: 1px solid var(--sfh-line);
+}
+
+.sfhMoreToggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 44px;
+  list-style: none;
+  cursor: pointer;
+  color: var(--sfh-text);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.sfhMoreToggle::-webkit-details-marker {
+  display: none;
+}
+
+.sfhMoreToggle::after {
+  content: "+";
+  color: var(--sfh-gold);
+  font-size: 18px;
+  line-height: 1;
+}
+
+.sfhMore[open] > .sfhMoreToggle::after {
+  content: "−";
+}
+
+.sfhMore > .sfhLinkNav {
+  padding-bottom: 8px;
 }
 
 .sfhLinkNav {
@@ -525,10 +620,6 @@
     animation: none;
     transform: none;
     opacity: 1;
-  }
-
-  .sfhCard:hover {
-    transform: none;
   }
 
   .sfhSocialLink {
