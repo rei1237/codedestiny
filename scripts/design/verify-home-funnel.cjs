@@ -78,8 +78,11 @@ async function assertEssentials(page, label) {
       assert.ok(await page.evaluate(() => Boolean(document.getElementById('cdhAllFortunes').compareDocumentPosition(document.getElementById('cdSignatureConsult')) & Node.DOCUMENT_POSITION_FOLLOWING)), 'chooser precedes signature in DOM');
       assert.equal(await page.locator('.cdh-moonstone-guide').count(), 1, 'one moonstone card');
       assert.equal(await page.locator('#cdhSignupBenefit').count(), 1, 'one signup offer');
-      const grid = await page.locator('#cdSigGrid').evaluate(node => getComputedStyle(node).gridTemplateColumns.split(' ').length);
-      assert.equal(grid, width < 768 ? 1 : width < 1200 ? 2 : 3, 'responsive consultation columns');
+      // 대표 상담 덱: 1024 미만은 가로 한 줄 scroll-snap(카드 6장), 이상은 3열 두 줄. 카드는 2:3 이상으로 세로가 길다.
+      const grid = await page.locator('#cdSigGrid').evaluate((node) => { const cs = getComputedStyle(node); const card = node.querySelector('.cd-sig-card').getBoundingClientRect(); return { flow: cs.gridAutoFlow, snap: cs.scrollSnapType, cols: cs.gridTemplateColumns.split(' ').length, ratio: card.height / card.width }; });
+      if (width < 1024) assert.ok(grid.flow.startsWith('column') && grid.snap.startsWith('x'), `${width}px deck is one snapping row (${grid.flow}, ${grid.snap})`);
+      else assert.equal(grid.cols, 3, `${width}px deck shows three columns`);
+      assert.ok(grid.ratio >= 1.49, `${width}px deck card keeps a tarot (2:3) silhouette (${grid.ratio.toFixed(2)})`);
       const methods = await page.locator('.cdh-methods-grid').first().evaluate(node => getComputedStyle(node).gridTemplateColumns.split(' ').length);
       assert.equal(methods, width <= 640 ? 3 : 6, 'six systems in compact rows');
       const chooserBox = await page.locator('#cdhAllFortunes').boundingBox();

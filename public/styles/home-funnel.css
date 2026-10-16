@@ -897,3 +897,83 @@ html.neo-mode #cdHomeFunnel{--cdh-moon-art:url('/images/home/illustrated/moon-fl
 .cdh-mypass__line--muted{color:var(--cdh-muted)}
 .cdh .cdh-pass__group{margin:4px 0 0;color:var(--cdh-ink);font-size:1rem;font-weight:800}
 @media(max-width:640px){.cdh-mypass{margin:10px 12px 0;padding:14px 16px}}
+/* 2026-10-16 대표 상담 = 타로 카드 덱(DESIGN.md "Tarot Card"). 세로 2:3 카드 틀의 창에 기존 16:9 그림을 자르지 않고 넣는다.
+ * 카드 전체가 링크 하나이고 안의 라벨은 3차(텍스트)다 — 이 단의 채움 CTA 는 히어로 "대표 상담 고르기" 하나뿐이다.
+ * 유리: 기본은 불투명에 가까운 92% 표면, blur 는 데스크톱 hover 기기에서만(.cd-mobile-lite 제외). 대비는 합성색으로 잰다. */
+.cdh{--cdh-glass-bg:color-mix(in srgb,var(--cdh-card) 92%,transparent);--cdh-glass-line:color-mix(in srgb,var(--cdh-gold) 55%,transparent);--cdh-glass-blur:14px;--cdh-serif:"CodeDestinySerifKR",var(--font-premium,"Nanum Myeongjo","Gowun Batang",serif)}
+html.neo-mode .cdh,body.neo-mode .cdh{--cdh-glass-line:color-mix(in srgb,var(--cdh-gold) 42%,transparent)}
+#cdHomeFunnel .cd-sig-card--neo{--tarot-hue:#5d5299}
+#cdHomeFunnel .cd-sig-card--tea{--tarot-hue:#b53660}
+#cdHomeFunnel .cd-sig-card--master{--tarot-hue:#8a5a22}
+#cdHomeFunnel .cd-sig-card--love{--tarot-hue:#b0476c}
+#cdHomeFunnel .cd-sig-card--year{--tarot-hue:#2e6f62}
+#cdHomeFunnel .cd-sig-card--life{--tarot-hue:#2f6a44}
+:is(html,body).neo-mode #cdHomeFunnel .cd-sig--deck .cd-sig-card{--tarot-ink:color-mix(in srgb,var(--tarot-hue) 45%,var(--cdh-ink))}
+#cdHomeFunnel .cd-sig--deck .cd-sig__realm{display:block;margin-bottom:4px;color:var(--cdh-muted);font:700 var(--cd-t-caption)/1.4 var(--font-body);letter-spacing:.24em}
+#cdHomeFunnel .cd-sig--deck .cd-sig__title{font-family:var(--cdh-serif)}
+#cdHomeFunnel .cd-sig--deck .cd-sig__grid{display:grid;grid-auto-flow:column;grid-template-columns:none;grid-auto-columns:min(72vw,280px);gap:14px;width:100%;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;padding:6px 2px 16px;scrollbar-width:thin}
+#cdHomeFunnel .cd-sig--deck .cd-sig-card{position:relative;overflow:hidden;overflow:clip;display:flex;flex-direction:column;aspect-ratio:2/3;width:100%;min-width:0;padding:10px;border:1px solid var(--cdh-glass-line);border-radius:18px;background:var(--cdh-glass-bg);color:var(--cdh-ink);box-shadow:inset 0 0 0 5px var(--cdh-glass-bg),inset 0 0 0 6px color-mix(in srgb,var(--tarot-hue) 55%,transparent),0 18px 34px -26px color-mix(in srgb,var(--tarot-hue) 70%,var(--cdh-ink));scroll-snap-align:start;transform:none}
+#cdHomeFunnel .cd-sig--deck .cd-sig-card:hover{border-color:var(--cdh-gold)}
+#cdHomeFunnel .cd-sig--deck .cd-sig-card:focus-visible{outline:3px solid var(--cdh-accent);outline-offset:4px}
+#cdHomeFunnel .cd-sig--deck .cd-sig-card__top{display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:6px 8px 8px}
+#cdHomeFunnel .cd-sig--deck .cd-sig-card__numeral{color:var(--tarot-ink,var(--tarot-hue));font:700 1.375rem/1 var(--cdh-serif);letter-spacing:.04em}
+#cdHomeFunnel .cd-sig--deck .cd-sig-card__chapter{color:var(--cdh-muted);font-size:var(--cd-t-caption);letter-spacing:.12em}
+#cdHomeFunnel .cd-sig--deck .cd-sig-card__media{flex:none;align-self:stretch;aspect-ratio:16/9;min-height:0;overflow:hidden;border:1px solid var(--cdh-glass-line);border-radius:12px 12px 4px 4px;background:var(--cdh-surface)}
+#cdHomeFunnel .cd-sig--deck .cd-sig-card__img{width:100%;height:100%;object-fit:contain}
+#cdHomeFunnel .cd-sig--deck .cd-sig-card__body{display:flex;flex:1;flex-direction:column;gap:6px;padding:12px 6px 0;text-align:center}
+#cdHomeFunnel .cd-sig--deck .cd-sig-card__title{color:var(--cdh-ink);font:700 var(--cd-t-card)/1.4 var(--cdh-serif);letter-spacing:-.01em}
+#cdHomeFunnel .cd-sig--deck .cd-sig-card__q{color:var(--cdh-ink);font-size:var(--cd-t-body);line-height:1.55}
+#cdHomeFunnel .cd-sig--deck .cd-sig-card__desc{display:none}
+#cdHomeFunnel .cd-sig--deck .cd-sig-card__report{margin-top:auto;padding-block:8px;border-block:1px solid var(--cdh-glass-line);font-size:var(--cd-t-caption);line-height:1.5;gap:1px}
+#cdHomeFunnel .cd-sig--deck .cd-sig-card__price{align-self:center;margin-top:2px;font-size:var(--cd-t-body);font-weight:700}
+#cdHomeFunnel .cd-sig--deck .cd-sig-card__meta{justify-content:center;text-align:center;font-size:var(--cd-t-caption)}
+#cdHomeFunnel .cd-sig--deck .cd-sig-card__cta{display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;margin-top:2px;padding:6px 8px;border:0;border-radius:0;background:transparent;box-shadow:none;color:var(--cdh-ink);font:700 var(--cd-t-body)/1.4 var(--font-body)}
+#cdHomeFunnel .cd-sig--deck .cd-sig-card__cta::before{content:none}
+#cdHomeFunnel .cd-sig--deck .cd-sig-card__cta>span{flex:0 1 auto;text-decoration:underline;text-decoration-color:var(--cdh-glass-line);text-underline-offset:4px}
+#cdHomeFunnel .cd-sig--deck .cd-sig-card__cta i{color:var(--tarot-ink,var(--tarot-hue));font-style:normal}
+/* 덱 안 마스터 칩 — 사진 경계에 걸치던 음수 여백을 풀고, 카드 가운데 한 줄로 작게 둔다. */
+#cdHomeFunnel .cd-sig--deck .cd-sig-card__masters{justify-content:center;align-items:center;margin-top:0}
+#cdHomeFunnel .cd-sig--deck .cd-sig-card__avatars img{width:32px;height:32px}
+#cdHomeFunnel .cd-sig--deck .cd-sig-card__avatars img+img{margin-left:-8px}
+#cdHomeFunnel .cd-sig--deck .cd-sig-card__master{padding-top:0}
+#cdHomeFunnel .cd-sig--deck .cd-sig-card__master b{font-size:var(--cd-t-caption)}
+/* 모바일 카드는 2:3 에 가깝게 — 결제 수단 줄을 숨기고 리포트 구성은 한 흐름으로 잇는다. 정보는 상품 페이지가 다시 말한다. */
+@media(max-width:1023px){
+  #cdHomeFunnel .cd-sig--deck .cd-sig-card__meta,#cdHomeFunnel .cd-sig--deck .cd-sig-card__report b,#cdHomeFunnel .cd-sig--deck .cd-sig-card__avatars{display:none}
+  #cdHomeFunnel .cd-sig--deck .cd-sig-card__report{display:block;padding-block:6px}
+  #cdHomeFunnel .cd-sig--deck .cd-sig-card__report span{display:inline}
+  #cdHomeFunnel .cd-sig--deck .cd-sig-card__report span+span::before{content:" · "}
+  #cdHomeFunnel .cd-sig--deck .cd-sig-card__body{gap:4px;padding-top:8px}
+}
+/* 결과 미리보기는 덱 아래 Secondary(라인) — 채움을 덱 밖으로 빼지 않는다. */
+#cdHomeFunnel .cd-sig--deck .cd-sig__samples-link{border-color:var(--cdh-glass-line);background:var(--cdh-glass-bg);color:var(--cdh-ink)!important;box-shadow:none}
+#cdHomeFunnel .cd-sig--deck .cd-sig__samples-link:hover{background:var(--cdh-surface);box-shadow:none;transform:none}
+#cdHomeFunnel .cd-sig--deck .cd-sig__samples-motif{background:var(--cdh-gold)}
+/* 라이트노벨 안내 대사 — 커버의 화자 한 명만 보인다. 숨은 쪽 초상은 lazy 라 내려받지 않는다. */
+.cdh-guide-line{margin-top:14px}
+.cdh-guide-line__voice{display:flex;align-items:flex-end;gap:10px;margin:0}
+.cdh-guide-line__voice--neo,:is(html,body).neo-mode .cdh-guide-line__voice--yeoni{display:none}
+:is(html,body).neo-mode .cdh-guide-line__voice--neo{display:flex}
+.cdh-guide-line__portrait{flex:0 0 48px;width:48px;height:48px;border:1px solid var(--cdh-glass-line);border-radius:50%;object-fit:cover;object-position:center top;background:var(--cdh-surface)}
+.cdh-guide-line__bubble{display:grid;gap:2px;max-width:34rem;padding:10px 14px;border:1px solid var(--cdh-glass-line);border-radius:14px 14px 14px 4px;background:var(--cdh-glass-bg);color:var(--cdh-ink);font:500 var(--cd-t-body)/1.6 var(--cdh-serif)}
+.cdh-guide-line__name{color:var(--cdh-muted);font:700 var(--cd-t-caption)/1.3 var(--font-body);letter-spacing:.06em}
+@media(min-width:1024px){
+  #cdHomeFunnel .cd-sig--deck .cd-sig__head{position:relative;padding-right:180px}
+  #cdHomeFunnel .cd-sig--deck .cd-sig__sub{margin-inline:0;text-align:left}
+  /* "운명의 서고" 무대 — 기존 카드 뒷면 두 장을 겹쳐 머리 오른쪽에 둔다. 장식이라 데스크톱에서만 그린다. */
+  #cdHomeFunnel .cd-sig--deck .cd-sig__head::before,#cdHomeFunnel .cd-sig--deck .cd-sig__head::after{content:'';position:absolute;top:-6px;right:24px;width:86px;height:129px;border:1px solid var(--cdh-glass-line);border-radius:8px;background:#482335 url('/images/fortune-tea-house/moonlight-tarot-card-back.webp') center/cover no-repeat;box-shadow:0 12px 24px -16px var(--cdh-ink);pointer-events:none}
+  #cdHomeFunnel .cd-sig--deck .cd-sig__head::before{transform:rotate(-9deg) translateX(-34px)}
+  #cdHomeFunnel .cd-sig--deck .cd-sig__head::after{transform:rotate(6deg)}
+  #cdHomeFunnel .cd-sig--deck .cd-sig__grid{grid-auto-flow:row;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-columns:auto;gap:clamp(20px,2.4vw,32px);overflow:visible;scroll-snap-type:none;padding:10px 4px 4px}
+  #cdHomeFunnel .cd-sig--deck .cd-sig-card{padding:12px}
+  #cdHomeFunnel .cd-sig--deck .cd-sig-card__desc{display:block;color:var(--cdh-muted);font-size:var(--cd-t-caption);line-height:1.6}
+  #cdHomeFunnel .cd-sig--deck .cd-sig-card:nth-child(3n+1){--tilt:-1.5deg}
+  #cdHomeFunnel .cd-sig--deck .cd-sig-card:nth-child(3n){--tilt:1.5deg}
+}
+@media(min-width:1024px) and (prefers-reduced-motion:no-preference){
+  #cdHomeFunnel .cd-sig--deck .cd-sig-card{transform:rotate(var(--tilt,0deg));transition:transform .24s cubic-bezier(.16,1,.3,1),border-color .24s ease}
+  #cdHomeFunnel .cd-sig--deck .cd-sig-card:is(:hover,:focus-visible){z-index:1;transform:translateY(-8px) rotate(0deg)}
+}
+@media(min-width:900px) and (hover:hover){
+  html:not(.cd-mobile-lite) #cdHomeFunnel .cd-sig--deck .cd-sig-card{background:color-mix(in srgb,var(--cdh-card) 80%,transparent);-webkit-backdrop-filter:blur(var(--cdh-glass-blur)) saturate(1.08);backdrop-filter:blur(var(--cdh-glass-blur)) saturate(1.08)}
+}
