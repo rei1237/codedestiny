@@ -395,6 +395,498 @@
       "verifiedAt": null,
       "expiresAt": null,
       "accountVerified": false
+    },
+    {
+      "id": "mindfulness-poems-ko",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "books",
+      "kind": "book",
+      "title": "마음챙김의 시",
+      "reason": "지난 일에서 한 걸음 물러나라는 조언과 함께, 내려놓음을 다루는 시를 천천히 읽고 자신의 생각을 적어볼 수 있어요.",
+      "practiceTags": [
+        "letting-go",
+        "mindfulness",
+        "rest"
+      ],
+      "topicReasons": {
+        "letting-go": "지난 일에서 한 걸음 물러나라는 조언과 함께, 내려놓음을 다루는 시를 천천히 읽고 자신의 생각을 적어볼 수 있어요.",
+        "mindfulness": "현재의 순간을 살피라는 조언에 맞춰, 일상의 감각을 새롭게 바라보는 시를 한 편씩 읽어보세요.",
+        "rest": "일상의 속도를 늦추라는 조언과 함께, 잠시 멈춰 짧은 시를 읽는 시간을 가져볼 수 있어요."
+      },
+      "colors": [],
+      "motifs": [],
+      "book": {
+        "author": "류시화 엮음",
+        "publisher": "수오서재",
+        "edition": "2020년 9월 17일 발행",
+        "language": "한국어",
+        "format": "종이책",
+        "isbn": "9791190382267",
+        "editionEvidence": "https://www.yes24.com/product/goods/92462696",
+        "contentsEvidence": "내려놓음, 현재의 순간, 삶의 속도를 돌아보는 시를 엮은 시집. 명상 실습 교재는 아니다.",
+        "audience": "시를 천천히 읽으며 자신의 일상을 돌아보고 싶은 독자",
+        "perspective": "poetry"
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "reading"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/re/AFFSDP?lptag=AF7837486&pageKey=2122569341&itemId=3601969503&traceid=V0-101-e30928d795f88d0f",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "기존 공식 계정 링크 및 판본 자료 재사용. 2026-10-16 실제 연결 상품 2122569341 / 3601969503 제목·판본·구매 가능 버튼 확인. https://www.yes24.com/product/goods/92462696 가격 미표시. 실제 구매 미실행.",
+      "attributes": [],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 110,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "karma-counselling-ko",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "books",
+      "kind": "book",
+      "title": "카르마 상담소",
+      "reason": "불교의 업과 선택에 관심을 두고 읽을 때, 의지와 인과를 다루는 저자의 철학적 관점을 살펴볼 수 있어요. 현재의 어려움이 전생 때문이라는 판단 근거로 사용하지 않아요.",
+      "practiceTags": [
+        "karma-philosophy"
+      ],
+      "topicReasons": {
+        "karma-philosophy": "불교의 업과 선택에 관심을 두고 읽을 때, 의지와 인과를 다루는 저자의 철학적 관점을 살펴볼 수 있어요. 현재의 어려움이 전생 때문이라는 판단 근거로 사용하지 않아요."
+      },
+      "colors": [],
+      "motifs": [],
+      "book": {
+        "author": "이충현",
+        "publisher": "담앤북스",
+        "edition": "2023년 11월 22일 발행",
+        "language": "한국어",
+        "format": "종이책",
+        "isbn": "9791162014110",
+        "editionEvidence": "https://bookshop.yes24.com/goods/detail/123816746",
+        "contentsEvidence": "불교의 업과 의지, 인과를 설명하고 상담 사례를 담은 책. 저자의 종교철학적 관점으로 구분하며 치료 효능을 추천 근거로 사용하지 않는다.",
+        "audience": "불교의 업 사상과 선택의 의미를 명시적으로 탐구하고 싶은 독자",
+        "perspective": "buddhist-philosophy"
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "reading"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hGJHZ3BLRk",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "기존 공식 계정 링크 및 판본 자료 재사용. 2026-10-16 실제 연결 상품 7749266380 / 20869020265 제목·판본·구매 가능 버튼 확인. https://bookshop.yes24.com/goods/detail/123816746 가격 미표시. 실제 구매 미실행.",
+      "attributes": [],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 110,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "mans-search-meaning-ko",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "books",
+      "kind": "book",
+      "title": "빅터 프랭클의 죽음의 수용소에서 (20주년 기념보급판)",
+      "reason": "삶에서 소중한 가치와 방향을 돌아보라는 조언에 맞춰, 어려운 상황에서도 의미를 찾는 선택과 태도를 읽어볼 수 있어요.",
+      "practiceTags": [
+        "meaning-purpose"
+      ],
+      "topicReasons": {
+        "meaning-purpose": "삶에서 소중한 가치와 방향을 돌아보라는 조언에 맞춰, 어려운 상황에서도 의미를 찾는 선택과 태도를 읽어볼 수 있어요."
+      },
+      "colors": [],
+      "motifs": [],
+      "book": {
+        "author": "빅터 프랭클 / 이시형 옮김",
+        "publisher": "청아출판사",
+        "edition": "한국어판 발매 20주년 기념보급판",
+        "language": "한국어",
+        "format": "종이책",
+        "isbn": "9788936812621",
+        "editionEvidence": "https://www.yes24.com/product/goods/170736476",
+        "contentsEvidence": "강제 수용소의 체험과 삶의 의미, 선택의 태도를 다룬 자전적 에세이. 치료 효과를 추천 근거로 사용하지 않는다.",
+        "audience": "삶의 가치와 방향을 성찰하고 싶은 독자",
+        "perspective": "essay"
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "reading"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hGKapkCGgS",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "기존 공식 계정 링크 및 판본 자료 재사용. 2026-10-16 실제 연결 상품 9264843538 / 27415888103 제목·판본·구매 가능 버튼 확인. https://www.yes24.com/product/goods/170736476 가격 미표시. 실제 구매 미실행.",
+      "attributes": [],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 110,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "live-as-me-ko",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "books",
+      "kind": "book",
+      "title": "나는 나로 살기로 했다 (영미권 출간기념 특별판)",
+      "reason": "다른 사람과의 비교와 자책을 줄이라는 조언에 맞춰, 자신의 삶을 존중하는 태도를 일상의 사례로 돌아볼 수 있어요.",
+      "practiceTags": [
+        "self-compassion",
+        "acceptance"
+      ],
+      "topicReasons": {
+        "self-compassion": "다른 사람과의 비교와 자책을 줄이라는 조언에 맞춰, 자신의 삶을 존중하는 태도를 일상의 사례로 돌아볼 수 있어요.",
+        "acceptance": "자신을 있는 그대로 받아들이라는 조언과 함께, 완벽함을 기준으로 삼기보다 자신의 삶을 존중하는 관점을 살펴볼 수 있어요."
+      },
+      "colors": [],
+      "motifs": [],
+      "book": {
+        "author": "김수현 글그림",
+        "publisher": "클레이하우스",
+        "edition": "개정증보판 / 2022년 2월 4일",
+        "language": "한국어",
+        "format": "종이책",
+        "isbn": "9791197377150",
+        "editionEvidence": "https://www.yes24.com/product/goods/106540460",
+        "contentsEvidence": "자신의 삶을 존중하고, 타인의 평가와 비교에서 거리를 두며 자신을 이해하는 에세이.",
+        "audience": "비교와 자책을 줄이고 자신의 삶을 존중하고 싶은 독자",
+        "perspective": "essay"
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "reading"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hGKUZ48e2C",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "기존 공식 계정 링크 및 판본 자료 재사용. 2026-10-16 실제 연결 상품 8181054442 / 23389319636 제목·판본·구매 가능 버튼 확인. https://www.yes24.com/product/goods/106540460 가격 미표시. 실제 구매 미실행.",
+      "attributes": [],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 110,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "tamsa-focus-timer",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "daily-life",
+      "kind": "timer",
+      "title": "탐사 다용도 시간관리 무소음 타이머, 블랙계열, 1개",
+      "reason": "집중 시간을 확보하라는 조언을 실천할 때, 시작과 끝을 정해 한 가지 일에 머무는 용도로 사용할 수 있어요. 휴대전화 타이머로도 시작할 수 있어요.",
+      "practiceTags": [
+        "focus",
+        "habit-building"
+      ],
+      "topicReasons": {
+        "focus": "집중 시간을 확보하라는 조언을 실천할 때, 시작과 끝을 정해 한 가지 일에 머무는 용도로 사용할 수 있어요. 휴대전화 타이머로도 시작할 수 있어요.",
+        "habit-building": "작은 행동을 반복하라는 조언에 맞춰, 매일 짧은 실천 시간을 정해볼 수 있어요. 타이머가 습관 형성을 보장하지는 않아요."
+      },
+      "colors": [],
+      "motifs": [],
+      "book": {
+        "author": "",
+        "publisher": "",
+        "edition": "",
+        "language": "",
+        "format": "",
+        "isbn": "",
+        "editionEvidence": "",
+        "contentsEvidence": "",
+        "audience": "",
+        "perspective": ""
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "study",
+        "planning"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hS3EvbDO5k",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "2026-10-16 로그인한 쿠팡 공식 포털에서 링크 발급. 실제 연결 상품 7959143727 / 22001894396 제목·옵션 및 구매 가능 버튼 확인. 가격 미표시. 실제 구매 미실행.",
+      "attributes": [
+        "블랙계열 · 1개"
+      ],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": true,
+      "order": 90,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "nice-bookstand-o101",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "daily-life",
+      "kind": "bookstand",
+      "title": "나이스 독서대 O.101",
+      "reason": "방해 요소를 줄이고 집중할 환경을 만들라는 조언에 맞춰, 읽을 책을 한곳에 펼쳐 두는 보조 도구로 활용할 수 있어요.",
+      "practiceTags": [
+        "focus"
+      ],
+      "topicReasons": {
+        "focus": "방해 요소를 줄이고 집중할 환경을 만들라는 조언에 맞춰, 읽을 책을 한곳에 펼쳐 두는 보조 도구로 활용할 수 있어요."
+      },
+      "colors": [],
+      "motifs": [],
+      "book": {
+        "author": "",
+        "publisher": "",
+        "edition": "",
+        "language": "",
+        "format": "",
+        "isbn": "",
+        "editionEvidence": "",
+        "contentsEvidence": "",
+        "audience": "",
+        "perspective": ""
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "reading",
+        "study"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hS3XlsmAVw",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "2026-10-16 로그인한 쿠팡 공식 포털에서 링크 발급. 실제 연결 상품 5244361519 / 7415916688 제목·옵션 및 구매 가능 버튼 확인. 가격 미표시. 실제 구매 미실행.",
+      "attributes": [
+        "O.101 모델 · 자세 교정 효능을 주장하지 않음"
+      ],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 130,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "indigo-budget-cream",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "books",
+      "kind": "journal",
+      "title": "인디고 생활의 온도 만년형 가계부, 크림, 1개",
+      "reason": "지출을 점검하라는 조언에 맞춰, 쓴 돈과 다음 주의 소비 기준을 기록해 보세요. 이미 쓰는 가계부나 앱이 있다면 그대로 활용해도 좋아요.",
+      "practiceTags": [
+        "budgeting"
+      ],
+      "topicReasons": {
+        "budgeting": "지출을 점검하라는 조언에 맞춰, 쓴 돈과 다음 주의 소비 기준을 기록해 보세요. 이미 쓰는 가계부나 앱이 있다면 그대로 활용해도 좋아요."
+      },
+      "colors": [],
+      "motifs": [],
+      "book": {
+        "author": "",
+        "publisher": "",
+        "edition": "",
+        "language": "",
+        "format": "",
+        "isbn": "",
+        "editionEvidence": "",
+        "contentsEvidence": "",
+        "audience": "",
+        "perspective": ""
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "budgeting",
+        "planning"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hS30EbGXwy",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "2026-10-16 로그인한 쿠팡 공식 포털에서 링크 발급. 실제 연결 상품 1198912576 / 2183242509 제목·옵션 및 구매 가능 버튼 확인. 가격 미표시. 실제 구매 미실행.",
+      "attributes": [
+        "만년형 · 크림 · 1개"
+      ],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": true,
+      "order": 90,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "bigtree-rest-mask",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "daily-life",
+      "kind": "rest-accessory",
+      "title": "빅트리 프리미엄 3D 암막 수면안대",
+      "reason": "휴식 시간을 확보하라는 조언에 맞춰, 잠시 눈을 감고 쉴 때 주변 빛을 가리는 소품으로 사용할 수 있어요. 수면장애 치료용 제품은 아니에요.",
+      "practiceTags": [
+        "rest"
+      ],
+      "topicReasons": {
+        "rest": "휴식 시간을 확보하라는 조언에 맞춰, 잠시 눈을 감고 쉴 때 주변 빛을 가리는 소품으로 사용할 수 있어요. 수면장애 치료용 제품은 아니에요."
+      },
+      "colors": [],
+      "motifs": [],
+      "book": {
+        "author": "",
+        "publisher": "",
+        "edition": "",
+        "language": "",
+        "format": "",
+        "isbn": "",
+        "editionEvidence": "",
+        "contentsEvidence": "",
+        "audience": "",
+        "perspective": ""
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "rest"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hS35FgB30K",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "2026-10-16 로그인한 쿠팡 공식 포털에서 링크 발급. 실제 연결 상품 9670246858 / 28913015985 제목·옵션 및 구매 가능 버튼 확인. 가격 미표시. 실제 구매 미실행.",
+      "attributes": [
+        "비온열 안대 · 착용감과 크기는 판매처에서 확인"
+      ],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": true,
+      "order": 90,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "rosequartz-pink-6mm",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "daily-life",
+      "kind": "bracelet",
+      "title": "로즈쿼츠 장미석 비즈 팔찌 6mm (판매자 표기)",
+      "reason": "직접 선택한 분홍색을 일상에서 즐기고 싶을 때 참고할 장식품이에요. 연애운·건강·행운에 영향을 준다는 의미는 아니에요.",
+      "practiceTags": [
+        "symbolism"
+      ],
+      "topicReasons": {
+        "symbolism": "직접 선택한 분홍색을 일상에서 즐기고 싶을 때 참고할 장식품이에요. 연애운·건강·행운에 영향을 준다는 의미는 아니에요."
+      },
+      "colors": [
+        "pink"
+      ],
+      "motifs": [],
+      "book": {
+        "author": "",
+        "publisher": "",
+        "edition": "",
+        "language": "",
+        "format": "",
+        "isbn": "",
+        "editionEvidence": "",
+        "contentsEvidence": "",
+        "audience": "",
+        "perspective": ""
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "collecting"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hS4dpsvQ1Q",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "2026-10-16 로그인한 쿠팡 공식 포털에서 링크 발급. 실제 연결 상품 9340315934 / 27699591293 제목·옵션 및 구매 가능 버튼 확인. 가격 미표시. 실제 구매 미실행.",
+      "attributes": [
+        "판매자 천연원석 표기 · 독립 감정 미확인",
+        "6mm 비즈 · 크기와 소재는 판매처에서 확인"
+      ],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 120,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
     }
   ],
   "aliSource": "docs/operations/affiliate-aliexpress-20261009.json",
@@ -435,7 +927,16 @@
       "ali-green-donut-bracelet",
       "ali-green-clover-earrings",
       "ali-gold-cat-decoration",
-      "ali-green-bead-bracelet"
+      "ali-green-bead-bracelet",
+      "mindfulness-poems-ko",
+      "karma-counselling-ko",
+      "mans-search-meaning-ko",
+      "live-as-me-ko",
+      "tamsa-focus-timer",
+      "nice-bookstand-o101",
+      "indigo-budget-cream",
+      "bigtree-rest-mask",
+      "rosequartz-pink-6mm"
     ],
     "settings": {
       "enabled": true,
@@ -464,6 +965,40 @@
       "상품별 기존 검수 조건과 30일 유효기간 적용",
       "운영 API와 실제 결과·서가에서 공개 확인",
       "계정/상품 검수 미통과 항목은 OFF 유지"
+    ]
+  },
+  "selectionStrategy": {
+    "resultLimit": 2,
+    "first": "실제 조언과 맞는 도서 우선",
+    "second": "다른 실천 조언을 보완하고, 같으면 다른 종류의 실천 도구 우선",
+    "fallback": "무관한 상품으로 채우지 않음",
+    "symbolism": "서가에서 직접 선택한 색상 또는 모티프",
+    "health": "오행·증상으로 추천하지 않으며 명시적 제품 정보 탐색만 허용",
+    "coverage": [
+      "habit-building",
+      "boundaries",
+      "relationship-patterns",
+      "budgeting",
+      "focus",
+      "journaling",
+      "self-reflection",
+      "letting-go",
+      "mindfulness",
+      "rest",
+      "meaning-purpose",
+      "self-compassion",
+      "acceptance"
+    ],
+    "newCandidates": [
+      "mindfulness-poems-ko",
+      "karma-counselling-ko",
+      "mans-search-meaning-ko",
+      "live-as-me-ko",
+      "tamsa-focus-timer",
+      "nice-bookstand-o101",
+      "indigo-budget-cream",
+      "bigtree-rest-mask",
+      "rosequartz-pink-6mm"
     ]
   }
 }

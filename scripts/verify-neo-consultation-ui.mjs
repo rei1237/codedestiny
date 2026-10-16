@@ -12,7 +12,10 @@ import { NEO_EMAIL_PORTRAIT } from '../lib/neo-consultation/contract.js';
 const root = process.cwd(), out = resolve(root,'build-cache/neo-consultation-ui');
 await mkdir(out,{recursive:true});
 const mock = createNeoMock();
+let createRequests = 0;
+const tokens = await readFile(resolve(root,'styles/theme-tokens.css'),'utf8');
 const shims = {
+  'next/image': 'import React from "react"; export default function Image({priority,...p}){return React.createElement("img",p)}',
   'next/link': 'import React from "react"; export default function Link({children,...p}){return React.createElement("a",p,children)}',
   '@/app/_lib/auth-store': 'export const useAuthStore=()=>({isAuthenticated:true});',
   '@/app/_lib/auth-client': 'export const authFetch=(path,options)=>fetch(path,options);',
@@ -33,23 +36,24 @@ const server = createServer(async(req,res)=>{
   try {
     const origin='http://127.0.0.1:'+server.address().port;
     const path=new URL(req.url,origin).pathname;
-    if(path===NEO_EMAIL_PORTRAIT){res.setHeader('content-type','image/webp');res.end(await readFile(resolve(root,'public',path.slice(1))));return;}
+    if(path===NEO_EMAIL_PORTRAIT || /^\/images\/neo-consultation\/moonlight-garden-(768|1536)\.webp$/.test(path)){res.setHeader('content-type','image/webp');res.end(await readFile(resolve(root,'public',path.slice(1))));return;}
     if(path==='/home-preview/'){
       res.setHeader('content-type','text/html');
-      res.end('<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>body{margin:0;padding:20px;background:#f6eff5}.cdh{max-width:1000px;margin:auto}*{box-sizing:border-box}</style><style>'+await readFile(resolve(root,'styles/home-funnel.css'),'utf8')+'</style><div class="cdh">'+renderNeoEmailHomeEntry()+'</div></html>');return;
+      res.end('<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>body{margin:0;padding:20px;background:#f6eff5}.cdh{max-width:1000px;margin:auto}*{box-sizing:border-box}</style><style>'+tokens+await readFile(resolve(root,'styles/home-funnel.css'),'utf8')+'</style><div class="cdh">'+renderNeoEmailHomeEntry()+'</div></html>');return;
     }
     if(path==='/__neo_mock__/status'){res.setHeader('content-type','application/json');res.end('{"mock":true}');return;}
     if(path.startsWith('/__neo_mock__/pay/')){
       const order=await mock.pay(path.split('/').at(-1));res.setHeader('content-type','application/json');res.end(JSON.stringify({order}));return;
     }
     if(path.startsWith('/api/')){
+      if(path==='/api/neo-consultations' && req.method==='POST') createRequests++;
       const chunks=[];for await(const chunk of req)chunks.push(chunk);
       const response=await handleNeoConsultations(new Request(origin+req.url,{method:req.method,...(req.method!=='GET'?{body:Buffer.concat(chunks).toString()}: {})}),
         {service:mock.service,userId:'mock-browser-owner',admin:path.startsWith('/api/admin/')?{id:'mock-neo-admin'}:undefined});
       res.statusCode=response.status;res.setHeader('content-type','application/json');res.end(await response.text());return;
     }
     if(path==='/app.js'||path==='/app.css'){res.setHeader('content-type',path.endsWith('css')?'text/css':'text/javascript');res.end(await readFile(resolve(out,path.slice(1))));return;}
-    res.setHeader('content-type','text/html');res.end('<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="/app.css"><style>body{margin:0}button,input,textarea,select{font-family:inherit}</style><div id="root"></div><script src="/app.js"></script></html>');
+    res.setHeader('content-type','text/html');res.end('<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="/app.css"><style>'+tokens+'body{margin:0}button,input,textarea,select{font-family:inherit}</style><div id="root"></div><script src="/app.js"></script></html>');
   }catch(error){res.statusCode=500;res.end(JSON.stringify({message:error.message}));}
 });
 await new Promise(resolveListen=>server.listen(0,'127.0.0.1',resolveListen));
@@ -64,8 +68,25 @@ try {
     await page.setViewportSize({width,height:900});
     await page.goto(base+'/neo-consultation/');
     await page.getByText('MOCK 미리보기',{exact:false}).waitFor();
+    const background = page.locator('picture img');
+    await background.evaluate(img=>img.decode());
+    assert.ok((await background.evaluate(img=>img.currentSrc)).endsWith('moonlight-garden-'+(width<=760?'768':'1536')+'.webp'));
+    const contrast = await page.evaluate(() => {
+      const luminance = color => {
+        const values = color.match(/[\d.]+/g).slice(0,3).map(Number).map(v => { v /= 255; return v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; });
+        return values[0] * .2126 + values[1] * .7152 + values[2] * .0722;
+      };
+      const ratio = (a,b) => (Math.max(a,b)+.05)/(Math.min(a,b)+.05);
+      const form = getComputedStyle(document.querySelector('#neo-form'));
+      const input = getComputedStyle(document.querySelector('#neo-q-0'));
+      const hint = getComputedStyle(document.querySelector('#neo-q-hint-0'));
+      const button = getComputedStyle(document.querySelector('#neo-form button:last-child'));
+      return [ratio(luminance(form.color),luminance(form.backgroundColor)),ratio(luminance(input.color),luminance(input.backgroundColor)),ratio(luminance(hint.color),luminance(form.backgroundColor)),ratio(luminance(button.color),luminance(button.backgroundColor))];
+    });
+    assert.ok(contrast.every(value => value >= 4.5), 'form and primary button text contrast must be at least 4.5:1');
     await expect(page.locator('img[src="'+NEO_EMAIL_PORTRAIT+'"]')).toBeVisible();
     assert.equal(await page.locator('img[src="'+NEO_EMAIL_PORTRAIT+'"]').evaluate(img=>img.naturalWidth),600);
+    assert.equal(await page.getByText('BLUE MOON',{exact:true}).count(),0);
     await page.getByLabel('질문 1',{exact:true}).fill('직장을 옮기기 전에 고려할 점은 무엇인가요?');
     await page.getByRole('button',{name:'질문 추가하기',exact:false}).click();
     await page.getByLabel('질문 2',{exact:true}).fill('관계에서 반복되는 패턴을 어떻게 바꾸면 좋을까요?');
@@ -85,7 +106,37 @@ try {
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
     const path=resolve(out,'customer-'+width+'.png');await page.screenshot({path,fullPage:true});captures.push(path);
     if(width===390) {
-      await page.getByRole('button',{name:'모의 결제로 상담 신청하기'}).click();
+      let attempts=0;
+      await page.route('**/__neo_mock__/pay/*',async route=>{
+        attempts++;
+        if(attempts===1) return route.fulfill({status:409,contentType:'application/json',body:JSON.stringify({message:'결제를 취소했어요. 같은 주문에서 다시 확인해 주세요.'})});
+        if(attempts===2) return route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({message:'결제를 확인하지 못했어요. 같은 주문에서 다시 확인해 주세요.'})});
+        await route.fetch();
+        return route.abort(); // 서버 확정 후 모바일 연결이 끊어진 경우
+      });
+      await page.getByRole('button',{name:'모의 결제로 상담 신청하기'}).evaluate(button=>{button.click();button.click();});
+      await expect(page.getByRole('alert')).toContainText('취소');
+      const resumeUrl=page.url();
+      assert.match(resumeUrl,/order=mock-neo-/);assert.ok(!resumeUrl.includes('browser'));
+      assert.equal(createRequests,1);assert.equal(mock.paymentRows.size,1);
+      await Promise.all([
+        page.waitForResponse(response => response.request().method()==='GET' && response.url().includes('/api/neo-consultations/mock-neo-')),
+        page.evaluate(()=>{const url=new URL(location.href);url.searchParams.set('payment','success');history.replaceState(null,'',url);dispatchEvent(new PopStateEvent('popstate'));}),
+      ]);
+      await expect(page.getByRole('heading',{name:'결제 대기',exact:true})).toBeVisible();
+      await page.evaluate(url=>history.replaceState(null,'',url),resumeUrl);
+      await page.getByRole('button',{name:'같은 주문 이어서 확인하기'}).click();
+      await expect(page.getByRole('alert')).toContainText('확인하지 못했어요');
+      await page.getByRole('button',{name:'같은 주문 이어서 확인하기'}).click();
+      await expect(page.getByRole('alert')).toBeVisible();
+      await page.unroute('**/__neo_mock__/pay/*');
+      await page.reload();
+      await page.getByRole('heading',{name:'접수 완료',exact:true}).waitFor();
+      assert.equal(page.url(),resumeUrl);assert.equal(createRequests,1);assert.equal(mock.paymentRows.size,1);
+      await page.evaluate(()=>{history.pushState(null,'',location.href+'&returned=1');history.back();});
+      await page.getByRole('heading',{name:'접수 완료',exact:true}).waitFor();
+      assert.equal(attempts,3);
+      await page.evaluate(()=>window.dispatchEvent(new PageTransitionEvent('pageshow',{persisted:true})));
       await page.getByRole('heading',{name:'접수 완료',exact:true}).waitFor();
     }
   }
@@ -112,14 +163,26 @@ try {
   await page.getByRole('button',{name:/직장을 옮기기.*답변 발송 완료/}).click();
   await page.getByRole('heading',{name:'네오 검수 완료 · 나의 답변'}).waitFor();
   await page.goto(base+'/home-preview/');
-  for(const width of [390,1280]){
+  for(const width of [360,390,430,1280]){
     await page.setViewportSize({width,height:900});
-    await page.locator('img').waitFor();
+    await page.locator('figure img').waitFor();
+    await page.evaluate(async()=>{await Promise.all([...document.images].map(img=>img.decode()));});
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
     const path=resolve(out,'home-'+width+'.png');await page.screenshot({path,fullPage:true});captures.push(path);
   }
-  await page.getByRole('link',{name:'질문 작성 화면 보기'}).click();
+  await page.getByRole('link',{name:'질문 작성하기'}).click();
   await page.getByRole('heading',{name:/네오에게.*물어봐/}).waitFor();
+  await page.setViewportSize({width:390,height:380});
+  await page.getByLabel('질문 1',{exact:true}).fill('작은 화면에서도 질문이 보존되나요?');
+  await page.getByLabel('질문 1',{exact:true}).focus();
+  await page.setViewportSize({width:844,height:390});
+  await expect(page.getByLabel('질문 1',{exact:true})).toHaveValue('작은 화면에서도 질문이 보존되나요?');
+  await page.evaluate(()=>document.documentElement.style.fontSize='200%');
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+  await page.evaluate(()=>document.documentElement.style.fontSize='');
+  await page.emulateMedia({reducedMotion:'reduce'});
+  await page.getByRole('button',{name:'다음',exact:true}).focus();
+  assert.ok(await page.getByRole('button',{name:'다음',exact:true}).evaluate(el=>el===document.activeElement && parseFloat(getComputedStyle(el).minHeight)>=48));
   assert.equal(mock.paymentRows.size,1);assert.equal(mock.mails.length,1);
   assert.deepEqual(errors,[]);
   await writeFile(resolve(out,'result.json'),JSON.stringify({passed:true,captures,externalRequestsAllowed:false,paymentCount:mock.paymentRows.size,mailCount:mock.mails.length},null,2));

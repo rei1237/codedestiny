@@ -1,0 +1,1792 @@
+{
+  "status": "registered-reviewed-and-published",
+  "date": "2026-10-16",
+  "authorization": "사용자가 이번 대화에서 상품 확대와 쿠팡 운영 등록·광고 공개를 명시적으로 승인함. 알리 공개는 이번 적용에서 제외.",
+  "counts": {
+    "coupang": 32,
+    "existingAliCandidates": 6,
+    "totalCandidates": 38
+  },
+  "selectionPolicy": "결과 최대 2개. 도서 우선과 실제 조언 관련성 유지. 색상·모티프 및 고가 인테리어 소품은 사용자가 직접 선택한 서가에서만. 가격으로 순위 가중하지 않음.",
+  "products": [
+    {
+      "id": "atomic-habits-ko",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "books",
+      "kind": "book",
+      "title": "아주 작은 습관의 힘 (50만 부 기념 스페셜 에디션)",
+      "reason": "작은 행동을 꾸준히 반복하라는 조언에 맞춰, 시작하기 쉬운 환경과 습관을 만드는 방법을 살펴볼 수 있어요.",
+      "practiceTags": [
+        "habit-building"
+      ],
+      "topicReasons": {
+        "habit-building": "작은 행동을 꾸준히 반복하라는 조언에 맞춰, 시작하기 쉬운 환경과 습관을 만드는 방법을 살펴볼 수 있어요."
+      },
+      "colors": [],
+      "motifs": [],
+      "book": {
+        "author": "제임스 클리어 / 이한이 옮김",
+        "publisher": "비즈니스북스",
+        "edition": "50만 부 기념 스페셜 에디션",
+        "language": "한국어",
+        "format": "종이책",
+        "isbn": "9791162540640",
+        "editionEvidence": "https://www.yes24.com/product/goods/69655504",
+        "contentsEvidence": "작은 행동을 시작하기 쉽게 만드는 환경과 반복 습관을 다룬다.",
+        "audience": "작은 실천을 꾸준히 이어가고 싶은 독자",
+        "perspective": "practical"
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "reading"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hS1OQsOAge",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "2026-10-16 로그인한 쿠팡 공식 포털에서 판매 목록과 선택 상품 확인 및 링크 발급: 아주 작은 습관의 힘 (50만 부 기념 스페셜 에디션), 상품명. 가격 미표시. https://www.yes24.com/product/goods/69655504 2026-10-16 실제 연결 상품 9766996432 / 29233265751 제목·옵션 및 구매 가능 버튼 확인. 실제 구매 미실행.",
+      "attributes": [
+        "판매자 구성: 쁘띠수첩+책갈피 포함"
+      ],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 100,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "saying-no-ko",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "books",
+      "kind": "book",
+      "title": "거절 잘 하는 법",
+      "reason": "자신의 기준을 지키라는 조언에 맞춰, 부탁을 받았을 때 자신의 의사를 분명하게 표현하는 방법을 살펴볼 수 있어요.",
+      "practiceTags": [
+        "boundaries",
+        "relationship-patterns"
+      ],
+      "topicReasons": {
+        "boundaries": "자신의 기준을 지키라는 조언에 맞춰, 부탁을 받았을 때 자신의 의사를 분명하게 표현하는 방법을 살펴볼 수 있어요.",
+        "relationship-patterns": "반복해서 원치 않는 부탁을 수락하는 선택을 돌아볼 때, 나만의 거절 기준을 정하는 부분을 참고할 수 있어요."
+      },
+      "colors": [],
+      "motifs": [],
+      "book": {
+        "author": "이하늘",
+        "publisher": "카시오페아",
+        "edition": "ISBN 9791188674299 종이책",
+        "language": "한국어",
+        "format": "종이책",
+        "isbn": "9791188674299",
+        "editionEvidence": "https://www.yes24.com/product/goods/64611915",
+        "contentsEvidence": "자신의 감정과 요청을 구분하고 거절 기준과 표현을 연습하는 관계 실용서.",
+        "audience": "부탁에 응하기 전에 자신의 기준을 확인하고 싶은 독자",
+        "perspective": "practical"
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "reading"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hS1SfXXGeG",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "2026-10-16 로그인한 쿠팡 공식 포털에서 판매 목록과 선택 상품 확인 및 링크 발급: 거절 잘 하는 법, 카시오페아, 이하늘. 가격 미표시. https://www.yes24.com/product/goods/64611915 2026-10-16 실제 연결 상품 1766979093 / 3008780280 제목·옵션 및 구매 가능 버튼 확인. 실제 구매 미실행.",
+      "attributes": [],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 100,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "psychology-money-2026-ko",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "books",
+      "kind": "book",
+      "title": "돈의 심리학 (50만 부 기념 뉴 에디션)",
+      "reason": "지출을 점검하라는 조언과 연결해, 소비 욕망과 저축을 다루는 장을 읽으며 돈을 쓰는 기준을 돌아볼 수 있어요. 가계부 작성법 자체를 설명하는 책은 아니에요.",
+      "practiceTags": [
+        "budgeting"
+      ],
+      "topicReasons": {
+        "budgeting": "지출을 점검하라는 조언과 연결해, 소비 욕망과 저축을 다루는 장을 읽으며 돈을 쓰는 기준을 돌아볼 수 있어요. 가계부 작성법 자체를 설명하는 책은 아니에요."
+      },
+      "colors": [],
+      "motifs": [],
+      "book": {
+        "author": "모건 하우절 / 이지연 옮김",
+        "publisher": "인플루엔셜",
+        "edition": "2026년 1월 14일 · 50만 부 기념 뉴 에디션",
+        "language": "한국어",
+        "format": "종이책",
+        "isbn": "9791168343443",
+        "editionEvidence": "https://www.yes24.com/Product/Goods/172574653",
+        "contentsEvidence": "소비 욕망과 저축, 돈을 대하는 태도를 다룬다. 예산표 작성 교재나 수익 보장 자료가 아니다.",
+        "audience": "소비와 저축의 기준을 돌아보고 싶은 독자",
+        "perspective": "practical"
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "reading"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hS10EiZvHg",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "2026-10-16 로그인한 쿠팡 공식 포털에서 판매 목록과 선택 상품 확인 및 링크 발급: [인플루엔셜] 돈의 심리학 50만 부 기념 뉴 에디션, 1개. 가격 미표시. https://www.yes24.com/Product/Goods/172574653 2026-10-16 실제 연결 상품 9652378259 / 28850929527 제목·옵션 및 구매 가능 버튼 확인. 실제 구매 미실행.",
+      "attributes": [],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 100,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "deep-work-ko",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "books",
+      "kind": "book",
+      "title": "딥 워크",
+      "reason": "집중 시간을 정하고 방해 요소를 줄이라는 조언에 맞춰, 몰입할 환경과 일정 관리 방법을 구체적으로 살펴볼 수 있어요.",
+      "practiceTags": [
+        "focus"
+      ],
+      "topicReasons": {
+        "focus": "집중 시간을 정하고 방해 요소를 줄이라는 조언에 맞춰, 몰입할 환경과 일정 관리 방법을 구체적으로 살펴볼 수 있어요."
+      },
+      "colors": [],
+      "motifs": [],
+      "book": {
+        "author": "칼 뉴포트 / 김태훈 옮김",
+        "publisher": "민음사",
+        "edition": "2017년 4월 1일 종이책",
+        "language": "한국어",
+        "format": "종이책",
+        "isbn": "9788937434082",
+        "editionEvidence": "https://www.yes24.com/product/goods/38286918",
+        "contentsEvidence": "집중할 시간을 확보하고 산만함과 피상적인 작업을 줄이는 구체적인 업무 습관을 다룬다.",
+        "audience": "공부나 업무의 방해 요소를 줄이고 집중 시간을 확보하고 싶은 독자",
+        "perspective": "practical"
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "reading"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hS15pZCqw8",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "2026-10-16 로그인한 쿠팡 공식 포털에서 판매 목록과 선택 상품 확인 및 링크 발급: 딥 워크 : 강렬한 몰입 최고의 성과, 민음사, 칼 뉴포트. 가격 미표시. https://www.yes24.com/product/goods/38286918 2026-10-16 실제 연결 상품 19531919 / 78211032 제목·옵션 및 구매 가능 버튼 확인. 실제 구매 미실행.",
+      "attributes": [],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 100,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "reflection-notebook-pair",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "books",
+      "kind": "journal",
+      "title": "모닝글로리 3500 비움 연습장 좌철, 랜덤발송, 2개",
+      "reason": "조언에서 권한 기록과 회고를 이어가고 싶다면, 하루의 생각이나 작은 실천을 짧게 적는 용도로 활용할 수 있어요. 이미 쓰는 노트가 있다면 새로 살 필요는 없어요.",
+      "practiceTags": [
+        "journaling",
+        "self-reflection"
+      ],
+      "topicReasons": {
+        "journaling": "조언에서 권한 기록과 회고를 이어가고 싶다면, 하루의 생각이나 작은 실천을 짧게 적는 용도로 활용할 수 있어요. 이미 쓰는 노트가 있다면 새로 살 필요는 없어요.",
+        "self-reflection": "자신의 선택과 반응을 돌아보라는 조언에 맞춰, 오늘의 선택과 다음에 바꿔볼 행동을 적는 공간으로 활용할 수 있어요."
+      },
+      "colors": [],
+      "motifs": [],
+      "book": {
+        "author": "",
+        "publisher": "",
+        "edition": "",
+        "language": "",
+        "format": "",
+        "isbn": "",
+        "editionEvidence": "",
+        "contentsEvidence": "",
+        "audience": "",
+        "perspective": ""
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "journaling"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hS2aPLVrLo",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "2026-10-16 로그인한 쿠팡 공식 포털에서 판매 목록과 선택 상품 확인 및 링크 발급: 모닝글로리 3500 비움 연습장 좌철, 랜덤발송, 2개. 가격 미표시.  2026-10-16 실제 연결 상품 7578855357 / 20397108448 제목·옵션 및 구매 가능 버튼 확인. 실제 구매 미실행.",
+      "attributes": [
+        "2개 구성",
+        "표지 랜덤발송 · 행운색 매칭 대상 아님"
+      ],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 100,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "dotline-amethyst-ch06",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "daily-life",
+      "kind": "bracelet",
+      "title": "도트라인 CH06 자수정 팔찌 6mm",
+      "reason": "보라색 소품을 직접 선택했다면 일상에서 다짐을 떠올리는 장식으로 살펴보세요.",
+      "practiceTags": [
+        "symbolism"
+      ],
+      "topicReasons": {
+        "symbolism": "보라색 취향에 맞춰 고른 팔찌입니다. 운세 개선 효과를 뜻하지 않아요."
+      },
+      "colors": [
+        "purple"
+      ],
+      "motifs": [],
+      "book": {
+        "author": "",
+        "publisher": "",
+        "edition": "",
+        "language": "",
+        "format": "",
+        "isbn": "",
+        "editionEvidence": "",
+        "contentsEvidence": "",
+        "audience": "",
+        "perspective": ""
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "collecting"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hS0Skh2NGK",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "2026-10-16 로그인된 쿠팡 파트너스 상품검색에서 도트라인 CH06 천연자수정6mm팔찌 확인 후 공식 단축 링크 발급. 검색 가격 16900원은 변동 가능하여 미표시. 재질 진위는 독립 검증하지 않음. 2026-10-16 실제 연결 상품 24597231 / 95732138 제목·옵션 및 구매 가능 버튼 확인. 실제 구매 미실행.",
+      "attributes": [
+        "판매처 표기: 천연자수정 6mm",
+        "보석 진위·감정서·손목 둘레는 구매 전 판매처에서 확인"
+      ],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 100,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "lactofit-gold-50",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "daily-life",
+      "kind": "health-supplement",
+      "title": "종근당건강 락토핏 골드 100g (2g × 50포), 1개",
+      "reason": "건강기능식품 정보를 직접 살펴보려는 분을 위한 제품 비교 후보예요. 표시 성분과 섭취 주의사항을 확인해 주세요.",
+      "practiceTags": [
+        "supplement-information"
+      ],
+      "topicReasons": {
+        "supplement-information": "건강기능식품 정보를 직접 살펴보려는 분을 위한 제품 비교 후보예요. 표시 성분과 섭취 주의사항을 확인해 주세요."
+      },
+      "colors": [],
+      "motifs": [],
+      "book": {
+        "author": "",
+        "publisher": "",
+        "edition": "",
+        "language": "",
+        "format": "",
+        "isbn": "",
+        "editionEvidence": "",
+        "contentsEvidence": "",
+        "audience": "",
+        "perspective": ""
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "rest"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hS2jw54gNM",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "2026-10-16 로그인 공식 포털 발급. 판매 상세 9750789038 / 29196897566, 100g 1개, 종근당건강 제조, 40억 CFU 및 아연 2.55mg 대조. https://www.foodsafetykorea.go.kr/portal/healthyfoodlife/searchHomeHFDetail.do?prdlstReportLedgNo=2022021000248804",
+      "attributes": [
+        "인정 정보: 식품안전나라 품목신고 20040020016643 (락토핏 골드). 오행·운세에 따른 맞춤 처방 아님",
+        "기능성: 프로바이오틱스는 장 건강·배변활동 등에 도움을 줄 수 있음. 아연은 정상 면역기능·세포분열에 필요",
+        "섭취 주의사항: 질환·복용약이 있으면 전문가와 상담. 알레르기 반응과 이상 증상 시 섭취 중단 후 상담. 어린이는 섭취량 지도 필요",
+        "우유·대두 함유. 임신·수유 중에는 전문가와 상담. 의약품이 아니며 구매 전 판매처의 최신 표시사항 확인",
+        "2g × 50포, 1개. 1포당 프로바이오틱스 40억 CFU·아연 2.55mg. 20억 CFU 제품과 구분"
+      ],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 100,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "mindfulness-poems-ko",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "books",
+      "kind": "book",
+      "title": "마음챙김의 시",
+      "reason": "지난 일에서 한 걸음 물러나라는 조언과 함께, 내려놓음을 다루는 시를 천천히 읽고 자신의 생각을 적어볼 수 있어요.",
+      "practiceTags": [
+        "letting-go",
+        "mindfulness",
+        "rest"
+      ],
+      "topicReasons": {
+        "letting-go": "지난 일에서 한 걸음 물러나라는 조언과 함께, 내려놓음을 다루는 시를 천천히 읽고 자신의 생각을 적어볼 수 있어요.",
+        "mindfulness": "현재의 순간을 살피라는 조언에 맞춰, 일상의 감각을 새롭게 바라보는 시를 한 편씩 읽어보세요.",
+        "rest": "일상의 속도를 늦추라는 조언과 함께, 잠시 멈춰 짧은 시를 읽는 시간을 가져볼 수 있어요."
+      },
+      "colors": [],
+      "motifs": [],
+      "book": {
+        "author": "류시화 엮음",
+        "publisher": "수오서재",
+        "edition": "2020년 9월 17일 발행",
+        "language": "한국어",
+        "format": "종이책",
+        "isbn": "9791190382267",
+        "editionEvidence": "https://www.yes24.com/product/goods/92462696",
+        "contentsEvidence": "내려놓음, 현재의 순간, 삶의 속도를 돌아보는 시를 엮은 시집. 명상 실습 교재는 아니다.",
+        "audience": "시를 천천히 읽으며 자신의 일상을 돌아보고 싶은 독자",
+        "perspective": "poetry"
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "reading"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/re/AFFSDP?lptag=AF7837486&pageKey=2122569341&itemId=3601969503&traceid=V0-101-e30928d795f88d0f",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "기존 공식 계정 링크 및 판본 자료 재사용. 2026-10-16 실제 연결 상품 2122569341 / 3601969503 제목·판본·구매 가능 버튼 확인. https://www.yes24.com/product/goods/92462696 가격 미표시. 실제 구매 미실행.",
+      "attributes": [],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 110,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "karma-counselling-ko",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "books",
+      "kind": "book",
+      "title": "카르마 상담소",
+      "reason": "불교의 업과 선택에 관심을 두고 읽을 때, 의지와 인과를 다루는 저자의 철학적 관점을 살펴볼 수 있어요. 현재의 어려움이 전생 때문이라는 판단 근거로 사용하지 않아요.",
+      "practiceTags": [
+        "karma-philosophy"
+      ],
+      "topicReasons": {
+        "karma-philosophy": "불교의 업과 선택에 관심을 두고 읽을 때, 의지와 인과를 다루는 저자의 철학적 관점을 살펴볼 수 있어요. 현재의 어려움이 전생 때문이라는 판단 근거로 사용하지 않아요."
+      },
+      "colors": [],
+      "motifs": [],
+      "book": {
+        "author": "이충현",
+        "publisher": "담앤북스",
+        "edition": "2023년 11월 22일 발행",
+        "language": "한국어",
+        "format": "종이책",
+        "isbn": "9791162014110",
+        "editionEvidence": "https://bookshop.yes24.com/goods/detail/123816746",
+        "contentsEvidence": "불교의 업과 의지, 인과를 설명하고 상담 사례를 담은 책. 저자의 종교철학적 관점으로 구분하며 치료 효능을 추천 근거로 사용하지 않는다.",
+        "audience": "불교의 업 사상과 선택의 의미를 명시적으로 탐구하고 싶은 독자",
+        "perspective": "buddhist-philosophy"
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "reading"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hGJHZ3BLRk",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "기존 공식 계정 링크 및 판본 자료 재사용. 2026-10-16 실제 연결 상품 7749266380 / 20869020265 제목·판본·구매 가능 버튼 확인. https://bookshop.yes24.com/goods/detail/123816746 가격 미표시. 실제 구매 미실행.",
+      "attributes": [],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 110,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "mans-search-meaning-ko",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "books",
+      "kind": "book",
+      "title": "빅터 프랭클의 죽음의 수용소에서 (20주년 기념보급판)",
+      "reason": "삶에서 소중한 가치와 방향을 돌아보라는 조언에 맞춰, 어려운 상황에서도 의미를 찾는 선택과 태도를 읽어볼 수 있어요.",
+      "practiceTags": [
+        "meaning-purpose"
+      ],
+      "topicReasons": {
+        "meaning-purpose": "삶에서 소중한 가치와 방향을 돌아보라는 조언에 맞춰, 어려운 상황에서도 의미를 찾는 선택과 태도를 읽어볼 수 있어요."
+      },
+      "colors": [],
+      "motifs": [],
+      "book": {
+        "author": "빅터 프랭클 / 이시형 옮김",
+        "publisher": "청아출판사",
+        "edition": "한국어판 발매 20주년 기념보급판",
+        "language": "한국어",
+        "format": "종이책",
+        "isbn": "9788936812621",
+        "editionEvidence": "https://www.yes24.com/product/goods/170736476",
+        "contentsEvidence": "강제 수용소의 체험과 삶의 의미, 선택의 태도를 다룬 자전적 에세이. 치료 효과를 추천 근거로 사용하지 않는다.",
+        "audience": "삶의 가치와 방향을 성찰하고 싶은 독자",
+        "perspective": "essay"
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "reading"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hGKapkCGgS",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "기존 공식 계정 링크 및 판본 자료 재사용. 2026-10-16 실제 연결 상품 9264843538 / 27415888103 제목·판본·구매 가능 버튼 확인. https://www.yes24.com/product/goods/170736476 가격 미표시. 실제 구매 미실행.",
+      "attributes": [],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 110,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "live-as-me-ko",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "books",
+      "kind": "book",
+      "title": "나는 나로 살기로 했다 (영미권 출간기념 특별판)",
+      "reason": "다른 사람과의 비교와 자책을 줄이라는 조언에 맞춰, 자신의 삶을 존중하는 태도를 일상의 사례로 돌아볼 수 있어요.",
+      "practiceTags": [
+        "self-compassion",
+        "acceptance"
+      ],
+      "topicReasons": {
+        "self-compassion": "다른 사람과의 비교와 자책을 줄이라는 조언에 맞춰, 자신의 삶을 존중하는 태도를 일상의 사례로 돌아볼 수 있어요.",
+        "acceptance": "자신을 있는 그대로 받아들이라는 조언과 함께, 완벽함을 기준으로 삼기보다 자신의 삶을 존중하는 관점을 살펴볼 수 있어요."
+      },
+      "colors": [],
+      "motifs": [],
+      "book": {
+        "author": "김수현 글그림",
+        "publisher": "클레이하우스",
+        "edition": "개정증보판 / 2022년 2월 4일",
+        "language": "한국어",
+        "format": "종이책",
+        "isbn": "9791197377150",
+        "editionEvidence": "https://www.yes24.com/product/goods/106540460",
+        "contentsEvidence": "자신의 삶을 존중하고, 타인의 평가와 비교에서 거리를 두며 자신을 이해하는 에세이.",
+        "audience": "비교와 자책을 줄이고 자신의 삶을 존중하고 싶은 독자",
+        "perspective": "essay"
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "reading"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hGKUZ48e2C",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "기존 공식 계정 링크 및 판본 자료 재사용. 2026-10-16 실제 연결 상품 8181054442 / 23389319636 제목·판본·구매 가능 버튼 확인. https://www.yes24.com/product/goods/106540460 가격 미표시. 실제 구매 미실행.",
+      "attributes": [],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 110,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "tamsa-focus-timer",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "daily-life",
+      "kind": "timer",
+      "title": "탐사 다용도 시간관리 무소음 타이머, 블랙계열, 1개",
+      "reason": "집중 시간을 확보하라는 조언을 실천할 때, 시작과 끝을 정해 한 가지 일에 머무는 용도로 사용할 수 있어요. 휴대전화 타이머로도 시작할 수 있어요.",
+      "practiceTags": [
+        "focus",
+        "habit-building"
+      ],
+      "topicReasons": {
+        "focus": "집중 시간을 확보하라는 조언을 실천할 때, 시작과 끝을 정해 한 가지 일에 머무는 용도로 사용할 수 있어요. 휴대전화 타이머로도 시작할 수 있어요.",
+        "habit-building": "작은 행동을 반복하라는 조언에 맞춰, 매일 짧은 실천 시간을 정해볼 수 있어요. 타이머가 습관 형성을 보장하지는 않아요."
+      },
+      "colors": [],
+      "motifs": [],
+      "book": {
+        "author": "",
+        "publisher": "",
+        "edition": "",
+        "language": "",
+        "format": "",
+        "isbn": "",
+        "editionEvidence": "",
+        "contentsEvidence": "",
+        "audience": "",
+        "perspective": ""
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "study",
+        "planning"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hS3EvbDO5k",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "2026-10-16 로그인한 쿠팡 공식 포털에서 링크 발급. 실제 연결 상품 7959143727 / 22001894396 제목·옵션 및 구매 가능 버튼 확인. 가격 미표시. 실제 구매 미실행.",
+      "attributes": [
+        "블랙계열 · 1개"
+      ],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": true,
+      "order": 90,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "nice-bookstand-o101",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "daily-life",
+      "kind": "bookstand",
+      "title": "나이스 독서대 O.101",
+      "reason": "방해 요소를 줄이고 집중할 환경을 만들라는 조언에 맞춰, 읽을 책을 한곳에 펼쳐 두는 보조 도구로 활용할 수 있어요.",
+      "practiceTags": [
+        "focus"
+      ],
+      "topicReasons": {
+        "focus": "방해 요소를 줄이고 집중할 환경을 만들라는 조언에 맞춰, 읽을 책을 한곳에 펼쳐 두는 보조 도구로 활용할 수 있어요."
+      },
+      "colors": [],
+      "motifs": [],
+      "book": {
+        "author": "",
+        "publisher": "",
+        "edition": "",
+        "language": "",
+        "format": "",
+        "isbn": "",
+        "editionEvidence": "",
+        "contentsEvidence": "",
+        "audience": "",
+        "perspective": ""
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "reading",
+        "study"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hS3XlsmAVw",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "2026-10-16 로그인한 쿠팡 공식 포털에서 링크 발급. 실제 연결 상품 5244361519 / 7415916688 제목·옵션 및 구매 가능 버튼 확인. 가격 미표시. 실제 구매 미실행.",
+      "attributes": [
+        "O.101 모델 · 자세 교정 효능을 주장하지 않음"
+      ],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 130,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "indigo-budget-cream",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "books",
+      "kind": "journal",
+      "title": "인디고 생활의 온도 만년형 가계부, 크림, 1개",
+      "reason": "지출을 점검하라는 조언에 맞춰, 쓴 돈과 다음 주의 소비 기준을 기록해 보세요. 이미 쓰는 가계부나 앱이 있다면 그대로 활용해도 좋아요.",
+      "practiceTags": [
+        "budgeting"
+      ],
+      "topicReasons": {
+        "budgeting": "지출을 점검하라는 조언에 맞춰, 쓴 돈과 다음 주의 소비 기준을 기록해 보세요. 이미 쓰는 가계부나 앱이 있다면 그대로 활용해도 좋아요."
+      },
+      "colors": [],
+      "motifs": [],
+      "book": {
+        "author": "",
+        "publisher": "",
+        "edition": "",
+        "language": "",
+        "format": "",
+        "isbn": "",
+        "editionEvidence": "",
+        "contentsEvidence": "",
+        "audience": "",
+        "perspective": ""
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "budgeting",
+        "planning"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hS30EbGXwy",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "2026-10-16 로그인한 쿠팡 공식 포털에서 링크 발급. 실제 연결 상품 1198912576 / 2183242509 제목·옵션 및 구매 가능 버튼 확인. 가격 미표시. 실제 구매 미실행.",
+      "attributes": [
+        "만년형 · 크림 · 1개"
+      ],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": true,
+      "order": 90,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "bigtree-rest-mask",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "daily-life",
+      "kind": "rest-accessory",
+      "title": "빅트리 프리미엄 3D 암막 수면안대",
+      "reason": "휴식 시간을 확보하라는 조언에 맞춰, 잠시 눈을 감고 쉴 때 주변 빛을 가리는 소품으로 사용할 수 있어요. 수면장애 치료용 제품은 아니에요.",
+      "practiceTags": [
+        "rest"
+      ],
+      "topicReasons": {
+        "rest": "휴식 시간을 확보하라는 조언에 맞춰, 잠시 눈을 감고 쉴 때 주변 빛을 가리는 소품으로 사용할 수 있어요. 수면장애 치료용 제품은 아니에요."
+      },
+      "colors": [],
+      "motifs": [],
+      "book": {
+        "author": "",
+        "publisher": "",
+        "edition": "",
+        "language": "",
+        "format": "",
+        "isbn": "",
+        "editionEvidence": "",
+        "contentsEvidence": "",
+        "audience": "",
+        "perspective": ""
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "rest"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hS35FgB30K",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "2026-10-16 로그인한 쿠팡 공식 포털에서 링크 발급. 실제 연결 상품 9670246858 / 28913015985 제목·옵션 및 구매 가능 버튼 확인. 가격 미표시. 실제 구매 미실행.",
+      "attributes": [
+        "비온열 안대 · 착용감과 크기는 판매처에서 확인"
+      ],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": true,
+      "order": 90,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "rosequartz-pink-6mm",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "daily-life",
+      "kind": "bracelet",
+      "title": "로즈쿼츠 장미석 비즈 팔찌 6mm (판매자 표기)",
+      "reason": "직접 선택한 분홍색을 일상에서 즐기고 싶을 때 참고할 장식품이에요. 연애운·건강·행운에 영향을 준다는 의미는 아니에요.",
+      "practiceTags": [
+        "symbolism"
+      ],
+      "topicReasons": {
+        "symbolism": "직접 선택한 분홍색을 일상에서 즐기고 싶을 때 참고할 장식품이에요. 연애운·건강·행운에 영향을 준다는 의미는 아니에요."
+      },
+      "colors": [
+        "pink"
+      ],
+      "motifs": [],
+      "book": {
+        "author": "",
+        "publisher": "",
+        "edition": "",
+        "language": "",
+        "format": "",
+        "isbn": "",
+        "editionEvidence": "",
+        "contentsEvidence": "",
+        "audience": "",
+        "perspective": ""
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "collecting"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hS4dpsvQ1Q",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "2026-10-16 로그인한 쿠팡 공식 포털에서 링크 발급. 실제 연결 상품 9340315934 / 27699591293 제목·옵션 및 구매 가능 버튼 확인. 가격 미표시. 실제 구매 미실행.",
+      "attributes": [
+        "판매자 천연원석 표기 · 독립 감정 미확인",
+        "6mm 비즈 · 크기와 소재는 판매처에서 확인"
+      ],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 120,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "tamsa-weekly-planner",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "books",
+      "kind": "journal",
+      "title": "탐사 튼튼한 크래프트 스탠딩 위클리 플래너, 2개",
+      "reason": "작은 실천을 꾸준히 반복하라는 조언에 맞춰, 이번 주에 할 행동과 시간을 눈에 보이는 곳에 적어둘 수 있어요.",
+      "practiceTags": [
+        "habit-building",
+        "focus"
+      ],
+      "topicReasons": {
+        "habit-building": "작은 실천을 꾸준히 반복하라는 조언에 맞춰, 이번 주에 할 행동과 시간을 눈에 보이는 곳에 적어둘 수 있어요.",
+        "focus": "작은 실천을 꾸준히 반복하라는 조언에 맞춰, 이번 주에 할 행동과 시간을 눈에 보이는 곳에 적어둘 수 있어요."
+      },
+      "colors": [],
+      "motifs": [],
+      "book": {
+        "author": "",
+        "publisher": "",
+        "edition": "",
+        "language": "",
+        "format": "",
+        "isbn": "",
+        "editionEvidence": "",
+        "contentsEvidence": "",
+        "audience": "",
+        "perspective": ""
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "planning"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hTaGWzn8O4",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "2026-10-16 로그인한 쿠팡 공식 포털 발급. 실제 연결 상품 8301593698 / 23949222174, lptag AF7837486, 상품명·선택 옵션 및 구매 가능 버튼 확인. 구매 미실행. 이미지 사용 없음. 가격 미표시. 천연석 진위·효능 독립 검증 없음.",
+      "attributes": [
+        "2개 구성"
+      ],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 140,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "indigo-gratitude-pink",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "books",
+      "kind": "journal",
+      "title": "인디고 자문자답 세가지 감사 일기 노트 6개월, 핑크, 1개",
+      "reason": "기록과 회고를 권한 조언에 맞춰, 하루의 감사한 일과 자신의 반응을 짧게 돌아보는 노트로 활용할 수 있어요.",
+      "practiceTags": [
+        "journaling",
+        "self-reflection"
+      ],
+      "topicReasons": {
+        "journaling": "기록과 회고를 권한 조언에 맞춰, 하루의 감사한 일과 자신의 반응을 짧게 돌아보는 노트로 활용할 수 있어요.",
+        "self-reflection": "기록과 회고를 권한 조언에 맞춰, 하루의 감사한 일과 자신의 반응을 짧게 돌아보는 노트로 활용할 수 있어요."
+      },
+      "colors": [],
+      "motifs": [],
+      "book": {
+        "author": "",
+        "publisher": "",
+        "edition": "",
+        "language": "",
+        "format": "",
+        "isbn": "",
+        "editionEvidence": "",
+        "contentsEvidence": "",
+        "audience": "",
+        "perspective": ""
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "journaling"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hTaK3hfHX2",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "2026-10-16 로그인한 쿠팡 공식 포털 발급. 실제 연결 상품 8414901680 / 24333650022, lptag AF7837486, 상품명·선택 옵션 및 구매 가능 버튼 확인. 구매 미실행. 이미지 사용 없음. 가격 미표시. 천연석 진위·효능 독립 검증 없음.",
+      "attributes": [
+        "6개월용 · 핑크 · 1개"
+      ],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 141,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "jetstream-three-colour",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "books",
+      "kind": "stationery",
+      "title": "제트스트림 3색 볼펜 0.5mm SXE3-404-05, 블랙, 2개",
+      "reason": "하루의 생각을 기록하라는 조언에 맞춰, 사실과 감정, 다음 행동을 색으로 나누어 적는 필기구로 사용할 수 있어요.",
+      "practiceTags": [
+        "journaling"
+      ],
+      "topicReasons": {
+        "journaling": "하루의 생각을 기록하라는 조언에 맞춰, 사실과 감정, 다음 행동을 색으로 나누어 적는 필기구로 사용할 수 있어요."
+      },
+      "colors": [],
+      "motifs": [],
+      "book": {
+        "author": "",
+        "publisher": "",
+        "edition": "",
+        "language": "",
+        "format": "",
+        "isbn": "",
+        "editionEvidence": "",
+        "contentsEvidence": "",
+        "audience": "",
+        "perspective": ""
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "journaling"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hTaMZPFinc",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "2026-10-16 로그인한 쿠팡 공식 포털 발급. 실제 연결 상품 6787529255 / 25019343448, lptag AF7837486, 상품명·선택 옵션 및 구매 가능 버튼 확인. 구매 미실행. 이미지 사용 없음. 가격 미표시. 천연석 진위·효능 독립 검증 없음.",
+      "attributes": [
+        "0.5mm · 블랙 몸체 · 2개"
+      ],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 142,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "postit-reading-index",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "books",
+      "kind": "stationery",
+      "title": "포스트잇 플래그 인덱스 스티커 683-9KN, 90매, 1개",
+      "reason": "학습 방법을 정리하라는 조언에 맞춰, 다시 읽을 부분을 표시하고 다음 공부 범위를 정하는 데 사용할 수 있어요.",
+      "practiceTags": [
+        "focus"
+      ],
+      "topicReasons": {
+        "focus": "학습 방법을 정리하라는 조언에 맞춰, 다시 읽을 부분을 표시하고 다음 공부 범위를 정하는 데 사용할 수 있어요."
+      },
+      "colors": [],
+      "motifs": [],
+      "book": {
+        "author": "",
+        "publisher": "",
+        "edition": "",
+        "language": "",
+        "format": "",
+        "isbn": "",
+        "editionEvidence": "",
+        "contentsEvidence": "",
+        "audience": "",
+        "perspective": ""
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "reading",
+        "study"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hTaPcvePi8",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "2026-10-16 로그인한 쿠팡 공식 포털 발급. 실제 연결 상품 9742938168 / 29126472461, lptag AF7837486, 상품명·선택 옵션 및 구매 가능 버튼 확인. 구매 미실행. 이미지 사용 없음. 가격 미표시. 천연석 진위·효능 독립 검증 없음.",
+      "attributes": [
+        "683-9KN · 90매 · 1개"
+      ],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 143,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "popofancy-five-minute",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "daily-life",
+      "kind": "timer",
+      "title": "포포팬시 미니 모래시계, 퍼플 5분",
+      "reason": "잠시 쉬거나 현재의 감각을 살피라는 조언에 맞춰, 화면을 내려놓고 짧게 머무는 시간을 정할 수 있어요. 정밀 계측용 제품은 아니에요.",
+      "practiceTags": [
+        "rest",
+        "mindfulness"
+      ],
+      "topicReasons": {
+        "rest": "잠시 쉬거나 현재의 감각을 살피라는 조언에 맞춰, 화면을 내려놓고 짧게 머무는 시간을 정할 수 있어요. 정밀 계측용 제품은 아니에요.",
+        "mindfulness": "잠시 쉬거나 현재의 감각을 살피라는 조언에 맞춰, 화면을 내려놓고 짧게 머무는 시간을 정할 수 있어요. 정밀 계측용 제품은 아니에요."
+      },
+      "colors": [],
+      "motifs": [],
+      "book": {
+        "author": "",
+        "publisher": "",
+        "edition": "",
+        "language": "",
+        "format": "",
+        "isbn": "",
+        "editionEvidence": "",
+        "contentsEvidence": "",
+        "audience": "",
+        "perspective": ""
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "rest"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hTaRIaetMG",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "2026-10-16 로그인한 쿠팡 공식 포털 발급. 실제 연결 상품 8492608053 / 24030161388, lptag AF7837486, 상품명·선택 옵션 및 구매 가능 버튼 확인. 구매 미실행. 이미지 사용 없음. 가격 미표시. 천연석 진위·효능 독립 검증 없음.",
+      "attributes": [
+        "판매자 표기 5분 · 퍼플 · 유리 제품 취급 주의"
+      ],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 144,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "sunjin-moon-lamp",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "daily-life",
+      "kind": "lamp",
+      "title": "SUNJIN 감성 달 무드등 + 리모컨, 혼합색상",
+      "reason": "달 모티프를 직접 선택한 분이 공간의 분위기를 꾸밀 때 비교할 수 있는 장식 조명이에요. 운세 개선 효과를 뜻하지 않아요.",
+      "practiceTags": [
+        "symbolism"
+      ],
+      "topicReasons": {
+        "symbolism": "달 모티프를 직접 선택한 분이 공간의 분위기를 꾸밀 때 비교할 수 있는 장식 조명이에요. 운세 개선 효과를 뜻하지 않아요."
+      },
+      "colors": [],
+      "motifs": [
+        "moon"
+      ],
+      "book": {
+        "author": "",
+        "publisher": "",
+        "edition": "",
+        "language": "",
+        "format": "",
+        "isbn": "",
+        "editionEvidence": "",
+        "contentsEvidence": "",
+        "audience": "",
+        "perspective": ""
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "rest"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hTaTqdGgAS",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "2026-10-16 로그인한 쿠팡 공식 포털 발급. 실제 연결 상품 8391949317 / 24258696724, lptag AF7837486, 상품명·선택 옵션 및 구매 가능 버튼 확인. 구매 미실행. 이미지 사용 없음. 가격 미표시. 천연석 진위·효능 독립 검증 없음.",
+      "attributes": [
+        "혼합색상 · 리모컨 포함 · 전원과 크기 확인"
+      ],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 145,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "klar-white-quartz",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "daily-life",
+      "kind": "bracelet",
+      "title": "클라 백수정 심플 원석팔찌 4mm (판매자 표기)",
+      "reason": "흰색 계열의 장식을 직접 선택했다면, 가벼운 포인트로 착용할 팔찌를 살펴보세요. 재질과 손목 둘레는 판매처에서 확인해 주세요.",
+      "practiceTags": [
+        "symbolism"
+      ],
+      "topicReasons": {
+        "symbolism": "흰색 계열의 장식을 직접 선택했다면, 가벼운 포인트로 착용할 팔찌를 살펴보세요. 재질과 손목 둘레는 판매처에서 확인해 주세요."
+      },
+      "colors": [
+        "white"
+      ],
+      "motifs": [],
+      "book": {
+        "author": "",
+        "publisher": "",
+        "edition": "",
+        "language": "",
+        "format": "",
+        "isbn": "",
+        "editionEvidence": "",
+        "contentsEvidence": "",
+        "audience": "",
+        "perspective": ""
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "collecting"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hTaVZ0qvgy",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "2026-10-16 로그인한 쿠팡 공식 포털 발급. 실제 연결 상품 9009337788 / 26406460501, lptag AF7837486, 상품명·선택 옵션 및 구매 가능 버튼 확인. 구매 미실행. 이미지 사용 없음. 가격 미표시. 천연석 진위·효능 독립 검증 없음.",
+      "attributes": [
+        "판매자 천연 백수정 표기 · 독립 감정 미확인 · 4mm"
+      ],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 146,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "elitno-black-onyx",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "daily-life",
+      "kind": "bracelet",
+      "title": "엘릿노 써지컬스틸 모노 오닉스 팔찌 (판매자 표기)",
+      "reason": "검정색 장식을 직접 고른 분이 평소 옷차림에 맞춰 비교할 수 있는 팔찌예요. 액막이나 건강 효능을 의미하지 않아요.",
+      "practiceTags": [
+        "symbolism"
+      ],
+      "topicReasons": {
+        "symbolism": "검정색 장식을 직접 고른 분이 평소 옷차림에 맞춰 비교할 수 있는 팔찌예요. 액막이나 건강 효능을 의미하지 않아요."
+      },
+      "colors": [
+        "black"
+      ],
+      "motifs": [],
+      "book": {
+        "author": "",
+        "publisher": "",
+        "edition": "",
+        "language": "",
+        "format": "",
+        "isbn": "",
+        "editionEvidence": "",
+        "contentsEvidence": "",
+        "audience": "",
+        "perspective": ""
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "collecting"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hTaXTSu9rU",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "2026-10-16 로그인한 쿠팡 공식 포털 발급. 실제 연결 상품 9643841312 / 28818299476, lptag AF7837486, 상품명·선택 옵션 및 구매 가능 버튼 확인. 구매 미실행. 이미지 사용 없음. 가격 미표시. 천연석 진위·효능 독립 검증 없음.",
+      "attributes": [
+        "판매자 오닉스·써지컬스틸 표기 · 독립 감정 미확인"
+      ],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 147,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "kitsch-green-aventurine",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "daily-life",
+      "kind": "bracelet",
+      "title": "키치쥬얼리 그린어벤츄린 칩스 원석팔찌 (판매자 표기)",
+      "reason": "초록색을 직접 선택한 분이 일상의 장식으로 비교할 수 있는 팔찌예요. 원석의 무늬와 크기는 개체마다 다를 수 있어요.",
+      "practiceTags": [
+        "symbolism"
+      ],
+      "topicReasons": {
+        "symbolism": "초록색을 직접 선택한 분이 일상의 장식으로 비교할 수 있는 팔찌예요. 원석의 무늬와 크기는 개체마다 다를 수 있어요."
+      },
+      "colors": [
+        "green"
+      ],
+      "motifs": [],
+      "book": {
+        "author": "",
+        "publisher": "",
+        "edition": "",
+        "language": "",
+        "format": "",
+        "isbn": "",
+        "editionEvidence": "",
+        "contentsEvidence": "",
+        "audience": "",
+        "perspective": ""
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "collecting"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hTaZlxtsNo",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "2026-10-16 로그인한 쿠팡 공식 포털 발급. 실제 연결 상품 7238537633 / 18386098905, lptag AF7837486, 상품명·선택 옵션 및 구매 가능 버튼 확인. 구매 미실행. 이미지 사용 없음. 가격 미표시. 천연석 진위·효능 독립 검증 없음.",
+      "attributes": [
+        "판매자 그린어벤츄린 표기 · 독립 감정 미확인"
+      ],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 148,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "rimarin-yellow-citrine",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "daily-life",
+      "kind": "bracelet",
+      "title": "리마린 황수정·블랙 스피넬 팔찌 (판매자 표기)",
+      "reason": "노란색 계열 장식을 직접 선택한 분을 위한 비교 후보예요. 재물운 상승이나 투자 성과를 뜻하지 않아요.",
+      "practiceTags": [
+        "symbolism"
+      ],
+      "topicReasons": {
+        "symbolism": "노란색 계열 장식을 직접 선택한 분을 위한 비교 후보예요. 재물운 상승이나 투자 성과를 뜻하지 않아요."
+      },
+      "colors": [
+        "yellow"
+      ],
+      "motifs": [],
+      "book": {
+        "author": "",
+        "publisher": "",
+        "edition": "",
+        "language": "",
+        "format": "",
+        "isbn": "",
+        "editionEvidence": "",
+        "contentsEvidence": "",
+        "audience": "",
+        "perspective": ""
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "collecting"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hTa1UG4qLk",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "2026-10-16 로그인한 쿠팡 공식 포털 발급. 실제 연결 상품 9356619013 / 27759689571, lptag AF7837486, 상품명·선택 옵션 및 구매 가능 버튼 확인. 구매 미실행. 이미지 사용 없음. 가격 미표시. 천연석 진위·효능 독립 검증 없음.",
+      "attributes": [
+        "판매자 황수정·블랙 스피넬 표기 · 독립 감정 미확인"
+      ],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 149,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "dune-blue-lapis",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "daily-life",
+      "kind": "bracelet",
+      "title": "둔 라피스라줄리 팔찌 (판매자 표기: 925실버)",
+      "reason": "파란색 장식을 직접 선택한 분이 평소 취향과 옷차림에 맞춰 살펴볼 팔찌예요. 소재와 크기는 판매처에서 확인해 주세요.",
+      "practiceTags": [
+        "symbolism"
+      ],
+      "topicReasons": {
+        "symbolism": "파란색 장식을 직접 선택한 분이 평소 취향과 옷차림에 맞춰 살펴볼 팔찌예요. 소재와 크기는 판매처에서 확인해 주세요."
+      },
+      "colors": [
+        "blue"
+      ],
+      "motifs": [],
+      "book": {
+        "author": "",
+        "publisher": "",
+        "edition": "",
+        "language": "",
+        "format": "",
+        "isbn": "",
+        "editionEvidence": "",
+        "contentsEvidence": "",
+        "audience": "",
+        "perspective": ""
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "collecting"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hTa3nq0HyS",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "2026-10-16 로그인한 쿠팡 공식 포털 발급. 실제 연결 상품 9740460703 / 29153609487, lptag AF7837486, 상품명·선택 옵션 및 구매 가능 버튼 확인. 구매 미실행. 이미지 사용 없음. 가격 미표시. 천연석 진위·효능 독립 검증 없음.",
+      "attributes": [
+        "판매자 라피스라줄리·925실버 표기 · 독립 감정 미확인"
+      ],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 150,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "gayoung-moon-bookmark",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "books",
+      "kind": "stationery",
+      "title": "가영 달 별 독서 금속 책갈피 북마크, 1개, 실버",
+      "reason": "달이나 별 모티프를 직접 선택한 분이 독서 중 읽던 위치를 표시할 때 사용할 수 있는 장식 책갈피예요.",
+      "practiceTags": [
+        "symbolism"
+      ],
+      "topicReasons": {
+        "symbolism": "달이나 별 모티프를 직접 선택한 분이 독서 중 읽던 위치를 표시할 때 사용할 수 있는 장식 책갈피예요."
+      },
+      "colors": [
+        "silver"
+      ],
+      "motifs": [
+        "moon",
+        "star"
+      ],
+      "book": {
+        "author": "",
+        "publisher": "",
+        "edition": "",
+        "language": "",
+        "format": "",
+        "isbn": "",
+        "editionEvidence": "",
+        "contentsEvidence": "",
+        "audience": "",
+        "perspective": ""
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "reading"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hTa4D3TD6y",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "2026-10-16 로그인한 쿠팡 공식 포털 발급. 실제 연결 상품 8631941048 / 25043173847, lptag AF7837486, 상품명·선택 옵션 및 구매 가능 버튼 확인. 구매 미실행. 이미지 사용 없음. 가격 미표시. 천연석 진위·효능 독립 검증 없음.",
+      "attributes": [
+        "실버색 · 1개 · 은 소재를 뜻하지 않음"
+      ],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 151,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "warmon-steam-fireplace",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "daily-life",
+      "kind": "led-fireplace",
+      "title": "웜앤온 4D 가습 LED 벽난로 수증기 조명, WnO 0.6M",
+      "reason": "검정색 장식을 직접 선택하고 공간 조명을 비교할 때 살펴볼 수 있어요. 설치 공간, 물 관리, 배송·반품 비용을 먼저 확인해 주세요.",
+      "practiceTags": [
+        "symbolism"
+      ],
+      "topicReasons": {
+        "symbolism": "검정색 장식을 직접 선택하고 공간 조명을 비교할 때 살펴볼 수 있어요. 설치 공간, 물 관리, 배송·반품 비용을 먼저 확인해 주세요."
+      },
+      "colors": [
+        "black"
+      ],
+      "motifs": [],
+      "book": {
+        "author": "",
+        "publisher": "",
+        "edition": "",
+        "language": "",
+        "format": "",
+        "isbn": "",
+        "editionEvidence": "",
+        "contentsEvidence": "",
+        "audience": "",
+        "perspective": ""
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "rest"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hTbd5cPTAi",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "2026-10-16 로그인한 쿠팡 공식 포털 발급. 실제 연결 상품 9164960738 / 27020491534, lptag AF7837486, 상품명·선택 옵션 및 구매 가능 버튼 확인. 구매 미실행. 이미지 사용 없음. 가격 미표시. 천연석 진위·효능 독립 검증 없음.",
+      "attributes": [
+        "WnO 0.6M · 수증기 LED 조명 · 검정색 본체",
+        "2026-10-16 판매 상세 반품비 130,000원 표시. 최신 배송·반품 조건 확인",
+        "난방 성능·공기 정화·운세 개선을 추천 근거로 사용하지 않음"
+      ],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 152,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "sunflower-owl-large-frame",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "daily-life",
+      "kind": "symbol-accessory",
+      "title": "인테리어 마블액자 해바라기부엉이 특대, 골드",
+      "reason": "꽃 모티프나 금색을 직접 선택한 분이 벽면의 포인트 장식으로 비교할 수 있어요. 설치할 벽의 크기와 고정 방식을 확인해 주세요.",
+      "practiceTags": [
+        "symbolism"
+      ],
+      "topicReasons": {
+        "symbolism": "꽃 모티프나 금색을 직접 선택한 분이 벽면의 포인트 장식으로 비교할 수 있어요. 설치할 벽의 크기와 고정 방식을 확인해 주세요."
+      },
+      "colors": [
+        "gold"
+      ],
+      "motifs": [
+        "flower"
+      ],
+      "book": {
+        "author": "",
+        "publisher": "",
+        "edition": "",
+        "language": "",
+        "format": "",
+        "isbn": "",
+        "editionEvidence": "",
+        "contentsEvidence": "",
+        "audience": "",
+        "perspective": ""
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "collecting"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hTbgeuW900",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "2026-10-16 로그인한 쿠팡 공식 포털 발급. 실제 연결 상품 76690086 / 248930110, lptag AF7837486, 상품명·선택 옵션 및 구매 가능 버튼 확인. 구매 미실행. 이미지 사용 없음. 가격 미표시. 천연석 진위·효능 독립 검증 없음.",
+      "attributes": [
+        "특대 · 골드색 · 금 소재나 재물운 효과를 뜻하지 않음"
+      ],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 153,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "zz-plant-large-120",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "daily-life",
+      "kind": "plant",
+      "title": "금전수 대형 화분 120cm, 1개 (판매자 표기)",
+      "reason": "초록색 공간 장식을 직접 선택한 분이 실내 식물로 비교할 수 있어요. 놓을 공간과 빛, 물 관리 조건을 먼저 확인해 주세요.",
+      "practiceTags": [
+        "symbolism"
+      ],
+      "topicReasons": {
+        "symbolism": "초록색 공간 장식을 직접 선택한 분이 실내 식물로 비교할 수 있어요. 놓을 공간과 빛, 물 관리 조건을 먼저 확인해 주세요."
+      },
+      "colors": [
+        "green"
+      ],
+      "motifs": [],
+      "book": {
+        "author": "",
+        "publisher": "",
+        "edition": "",
+        "language": "",
+        "format": "",
+        "isbn": "",
+        "editionEvidence": "",
+        "contentsEvidence": "",
+        "audience": "",
+        "perspective": ""
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "rest"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hTbin52evA",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "2026-10-16 로그인한 쿠팡 공식 포털 발급. 실제 연결 상품 8933476789 / 26828194278, lptag AF7837486, 상품명·선택 옵션 및 구매 가능 버튼 확인. 구매 미실행. 이미지 사용 없음. 가격 미표시. 천연석 진위·효능 독립 검증 없음.",
+      "attributes": [
+        "판매자 표기 120cm · 1개 · 실제 수형과 높이는 개체별 차이",
+        "금전수는 상품명이며 재물운 효과를 뜻하지 않음",
+        "어린이·반려동물이 접근하는 공간은 식물의 취급 조건 확인"
+      ],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 154,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    },
+    {
+      "id": "dodam-moon-jar-36",
+      "providerId": "coupang",
+      "currency": "KRW",
+      "category": "daily-life",
+      "kind": "symbol-accessory",
+      "title": "박수재 도담 달항아리 특4호 화병 36cm, 무광화이트",
+      "reason": "흰색 장식을 직접 선택한 분이 차분한 공간을 꾸밀 때 비교할 수 있는 도자기 화병이에요. 받침 면적과 파손·반품 조건을 확인해 주세요.",
+      "practiceTags": [
+        "symbolism"
+      ],
+      "topicReasons": {
+        "symbolism": "흰색 장식을 직접 선택한 분이 차분한 공간을 꾸밀 때 비교할 수 있는 도자기 화병이에요. 받침 면적과 파손·반품 조건을 확인해 주세요."
+      },
+      "colors": [
+        "white"
+      ],
+      "motifs": [],
+      "book": {
+        "author": "",
+        "publisher": "",
+        "edition": "",
+        "language": "",
+        "format": "",
+        "isbn": "",
+        "editionEvidence": "",
+        "contentsEvidence": "",
+        "audience": "",
+        "perspective": ""
+      },
+      "serviceTags": [],
+      "topicTags": [],
+      "interests": [
+        "collecting"
+      ],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://link.coupang.com/a/hTbklt6DVQ",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "",
+      "evidence": "2026-10-16 로그인한 쿠팡 공식 포털 발급. 실제 연결 상품 9234942124 / 27302472463, lptag AF7837486, 상품명·선택 옵션 및 구매 가능 버튼 확인. 구매 미실행. 이미지 사용 없음. 가격 미표시. 천연석 진위·효능 독립 검증 없음.",
+      "attributes": [
+        "판매자 표기 36cm · 무광화이트 · 도자기",
+        "달항아리는 형태를 가리키는 상품명 · 액막이 효능 주장 없음"
+      ],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 155,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false
+    }
+  ]
+}
