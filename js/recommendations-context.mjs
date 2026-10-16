@@ -97,7 +97,7 @@ export function reportAdviceTopics(content) {
     const title = line.trim().replace(/^#{1,6}\s*/, '').replace(/^\d{1,2}[.)]\s*/, '').replace(/\*\*/g, '').trim();
     if (/^(?:(?:오늘의|현실적인|추천|구체적인)\s*)?(?:실천 조언|행동 계획|행동 조언|추천 행동|실천 가이드|실행 계획)$/.test(title)) {
       selected = true;
-    } else if (/^\s*(?:#{1,6}\s|\d{1,2}[.)]\s*[^.!?]{2,44}$)/.test(line) || /^\*\*[^*]+\*\*$/.test(line.trim()) || (title.length > 0 && title.length <= 44 && !/[.!?]|^[-*]/.test(title) && !recommendations.test(title))) {
+    } else if (/^\s*#{1,6}\s/.test(line) || (/^\s*\d{1,2}[.)]\s*[^.!?]{2,44}$/.test(line) && !recommendations.test(title)) || /^\*\*[^*]+\*\*$/.test(line.trim()) || (title.length > 0 && title.length <= 44 && !/[.!?]|^[-*]/.test(title) && !recommendations.test(title))) {
       selected = false;
     } else if (selected && line.trim()) advice.push(line);
   }
