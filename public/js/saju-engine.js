@@ -25337,13 +25337,13 @@ function renderZiwei(p, natal, targetId) {
           +'<p style="font-size:0.8rem;color:#c4b5fd;line-height:1.65;margin:0 0 12px;">유년 '+zwFlowEsc(flowGanji || String(flowYear))+'의 사화와 12궁 흐름을 월별로 펼친 운세입니다.</p>'
           +monthlySummaryHtml
           +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:9px;margin-bottom:14px;">'+monthlyFlowHtml+'</div>'
-          +'<div class="cd-section-gate zw-basic-paid-gate fr-report-gate" id="ziweiDecadeLuckGate" data-cd-marker="ziwei-basic-paid-gate-v20260617-daehan" data-unlock-key="ziwei_decade_luck" data-locked-title="' + _sajuEngineText("se_21090_attr_title") + '" data-locked-desc="현재 대한의 10년 흐름과 연도별 기회·주의 신호를 열람하려면 1,000원 결제가 필요합니다." style="border-radius:12px;margin-top:14px;">'
+          +'<div class="cd-section-gate zw-basic-paid-gate fr-report-gate" id="ziweiDecadeLuckGate" data-cd-marker="ziwei-basic-paid-gate-v20260617-daehan" data-unlock-key="ziwei_decade_luck" data-locked-title="' + _sajuEngineText("se_21090_attr_title") + '" data-locked-desc="현재 대한의 10년 흐름과 연도별 기회·주의 신호를 열람하려면 5,000원 결제가 필요합니다." style="border-radius:12px;margin-top:14px;">'
             +'<div class="cd-section-gate__overlay">'
               +'<div class="cd-section-gate__icon">🔐</div>'
               +'<p class="cd-section-gate__title">자미두수 10년운 — 프리미엄 콘텐츠</p>'
               +'<p class="cd-section-gate__desc">대한(大限)을 기준으로 앞으로의 10년을 연도별로 풀어드립니다.</p>'
-              +'<span class="cd-section-gate__badge">1,000원으로 영구 해금</span>'
-              +'<button type="button" class="cd-section-gate__btn" data-action="unlockPremiumFeature" data-unlock-key="ziwei_decade_luck" data-content-key="ziwei.decadeLuck" data-service-key="ziwei" data-unlock-cost="10">1,000원으로 10년운 열기</button>'
+              +'<span class="cd-section-gate__badge">5,000원으로 영구 해금</span>'
+              +'<button type="button" class="cd-section-gate__btn" data-action="unlockPremiumFeature" data-unlock-key="ziwei_decade_luck" data-content-key="ziwei.decadeLuck" data-service-key="ziwei" data-unlock-cost="50">5,000원으로 10년운 열기</button>'
               +'<div data-zw-paid-gate-message style="min-height:14px;color:#a78bfa;font-size:0.68rem;font-weight:900;"></div>'
             +'</div>'
             +'<div class="cd-section-gate__body">'
@@ -25784,7 +25784,7 @@ function renderZiwei(p, natal, targetId) {
             +'</details>';
         }
         function zwDahanPremiumShellHtml(bodyHtml) {
-          return zwBasicPaidGateHtml('ziwei_decade_luck', 10, '대한(大限) 인생 타임라인', '현재 대한과 다음 대한, 전체 12단계 흐름을 엽니다.', bodyHtml, '#a78bfa', 'ziwei.decadeLuck')
+          return zwBasicPaidGateHtml('ziwei_decade_luck', 50, '대한(大限) 인생 타임라인', '현재 대한과 다음 대한, 전체 12단계 흐름을 엽니다.', bodyHtml, '#a78bfa', 'ziwei.decadeLuck')
             .replace('data-cd-marker="ziwei-basic-paid-gate-v20260615"', 'data-cd-marker="ziwei-basic-paid-gate-v20260615" data-zw-daehan-gate="ziwei-daehan-common-paid-gate-v20260629"');
         }
         var sec_dahan = '<div data-cd-marker="'+ZW_DAHAN_TIMELINE_MARKER+'" style="background:rgba(15,15,30,0.8);padding:18px;border-radius:10px;margin-bottom:20px;border:1px solid rgba(139,92,246,0.25);">'
@@ -26294,11 +26294,11 @@ function renderZiwei(p, natal, targetId) {
         +'</section>'
         +'<section data-cd-marker="ziwei-extension-stack-v20260615-step2" style="margin-bottom:20px;opacity:0.96;">'
           +'<div style="margin:4px 0 9px;padding:10px 12px;border:1px solid rgba(196,181,253,0.2);border-radius:10px;background:rgba(30,27,75,0.18);color:#ddd6fe;font-size:0.77rem;line-height:1.6;"><b style="color:#f5d0fe;">더 깊이 볼 때</b><br>기본 해석 3장을 읽은 뒤, 더 궁금한 주제를 선택해 보세요. 이용권·월정석·단건 결제의 적용 여부와 금액은 각 장의 안내에서 확인할 수 있어요.</div>'
-          +zwReadingPanel('부부궁 심화 상담', '유료 관계 · 1,000원', zwBasicPaidGateHtml('ziwei_love_deep', 10, '부부궁 심화 상담', '반복 패턴·공식화 시기·관계 조언을 엽니다.', sec_love_deep_reading, '#f9a8d4', 'ziwei.loveDeep'), false, '#f9a8d4', '관계 그림, 반복 패턴, 공식화 시기를 상담형으로 봅니다.')
-          +zwReadingPanel('12궁 정밀 해설', '유료 궁위 · 1,000원', zwBasicPaidGateHtml('ziwei_twelve_palaces', 10, '12궁 정밀 해설', '명궁부터 복덕궁까지 세부 근거를 엽니다.', sec2, '#6ee7b7', 'ziwei.twelvePalaces'), false, '#6ee7b7', '세부 궁위를 모두 펼쳐 기본 결론의 근거를 확인합니다.')
+          +zwReadingPanel('부부궁 심화 상담', '유료 관계 · 5,000원', zwBasicPaidGateHtml('ziwei_love_deep', 50, '부부궁 심화 상담', '반복 패턴·공식화 시기·관계 조언을 엽니다.', sec_love_deep_reading, '#f9a8d4', 'ziwei.loveDeep'), false, '#f9a8d4', '관계 그림, 반복 패턴, 공식화 시기를 상담형으로 봅니다.')
+          +zwReadingPanel('12궁 정밀 해설', '유료 궁위 · 5,000원', zwBasicPaidGateHtml('ziwei_twelve_palaces', 50, '12궁 정밀 해설', '명궁부터 복덕궁까지 세부 근거를 엽니다.', sec2, '#6ee7b7', 'ziwei.twelvePalaces'), false, '#6ee7b7', '세부 궁위를 모두 펼쳐 기본 결론의 근거를 확인합니다.')
           +zwReadingPanel('대한·변곡점 요약', '흐름 장', sec_dahan + sec_pivot, false, '#a78bfa', '시기별 변화와 전환점을 참고용으로 봅니다.')
-          +zwReadingPanel('상징 보조층', '유료 상징 · 1,000원', zwBasicPaidGateHtml('ziwei_symbolic_layer', 10, '상징 보조층', '명궁·신궁·사화의 상징 인장을 엽니다.', sec_olympus_ziwei, '#c084fc', 'ziwei.symbolicLayer'), false, '#c084fc', '정통 명반 해석 뒤에 덧붙이는 선택형 상징 해설입니다.')
-          +zwReadingPanel('생애 총론과 연간 흐름', '보조 흐름 · 1,000원', zwBasicPaidGateHtml('ziwei_life_yearly_flow', 10, '생애 총론과 연간 흐름', '장기 성향과 연간 흐름을 함께 엽니다.', buildZwGrandLifeDeepHtml(pd) + sec_grand + sec_ziwei_flow + buildZwYearlyFlowDeepHtml(pd), '#c084fc', 'ziwei.lifeYearlyFlow'), false, '#c084fc', '장기 성향과 연간 흐름을 기존 방식으로 확인합니다.')
+          +zwReadingPanel('상징 보조층', '유료 상징 · 5,000원', zwBasicPaidGateHtml('ziwei_symbolic_layer', 50, '상징 보조층', '명궁·신궁·사화의 상징 인장을 엽니다.', sec_olympus_ziwei, '#c084fc', 'ziwei.symbolicLayer'), false, '#c084fc', '정통 명반 해석 뒤에 덧붙이는 선택형 상징 해설입니다.')
+          +zwReadingPanel('생애 총론과 연간 흐름', '보조 흐름 · 5,000원', zwBasicPaidGateHtml('ziwei_life_yearly_flow', 50, '생애 총론과 연간 흐름', '장기 성향과 연간 흐름을 함께 엽니다.', buildZwGrandLifeDeepHtml(pd) + sec_grand + sec_ziwei_flow + buildZwYearlyFlowDeepHtml(pd), '#c084fc', 'ziwei.lifeYearlyFlow'), false, '#c084fc', '장기 성향과 연간 흐름을 기존 방식으로 확인합니다.')
         +'</section>';
 
         var contentHtml = '';

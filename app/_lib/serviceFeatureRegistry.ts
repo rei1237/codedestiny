@@ -267,7 +267,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "description": "태양궁, 달궁, 상승궁과 하우스 구조를 중심으로 성향과 시기 흐름을 읽는 서양 점성술 분석 서비스입니다.",
       "heroImageAlt": "서양 점성술 차트 분석 대표 이미지",
       "tags": ["점성술", "태양궁", "달궁", "상승궁", "하우스"],
-      "highlights": ["기본 차트 무료", "궁합 3,000원", "심화 해석 가능"],
+      "highlights": ["기본 차트 무료", "궁합 5,000원", "심화 해석 가능"],
       "howItWorks": [
         {
           "title": "출생 정보 입력",
@@ -351,7 +351,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "description": "사용자의 질문을 카테고리로 분석하고 상황에 맞는 스프레드를 추천한 뒤, 직접 뽑은 카드를 바탕으로 AI가 실제 상담 결과를 작성합니다. 상담에 쓰인 Oracle Prompt 원문도 함께 열람할 수 있습니다.",
       "heroImageAlt": "타로 오라클 상담 대표 이미지",
       "tags": ["타로", "AI 상담", "스프레드", "전문가 리딩"],
-      "highlights": ["질문 자동 분류", "77개 스프레드 라이브러리", "카드 수에 따라 회당 3,000~5,000원 · 실제 AI 상담"],
+      "highlights": ["질문 자동 분류", "77개 스프레드 라이브러리", "카드 수에 따라 회당 5,000~10,000원 · 실제 AI 상담"],
       "howItWorks": [
         {
           "title": "질문 입력",
@@ -380,7 +380,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
           "description": "포지션별 해석과 행동 조언을 담은 실제 상담 결과, 그리고 상담에 쓰인 Oracle Prompt 원문"
         }
       ],
-      "priceLabel": "3,000원~5,000원",
+      "priceLabel": "5,000원~10,000원",
       "seo": {
         "title": "타로 오라클 상담 | 꿀꿀 운세",
         "description": "질문 기반 스프레드 선택과 카드 드로우로 실제 AI 타로 상담을 받는 타로 오라클 상담 소개 페이지입니다.",
@@ -847,7 +847,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
           "description": "오늘 시도하면 좋은 루틴"
         }
       ],
-      "priceLabel": "3,000원",
+      "priceLabel": "5,000원",
       "seo": {
         "title": "애니멀 토템 소개 | 꿀꿀 운세",
         "description": "수호 동물 상징으로 현재 흐름을 읽는 애니멀 토템 서비스 소개 페이지입니다.",

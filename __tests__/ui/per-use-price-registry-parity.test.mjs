@@ -55,6 +55,22 @@ const ROWS = [
   ["tarot-ijik", "tarot-ijik.html", /const IJIK_COIN_COST = (\d+);/g],
   ["neville-meditation", "neville-meditation.html", /var cost = (\d+);\s*\/\/[^\n]*\n\s*var paid = await _consumeMeditationCoin/g],
   ["yoga-guru-per-use", "yoga-guru.html", /const sessionCost = (\d+);/g],
+  ["maya-prompt-generator", "index.html", /href="\/maya\/"[\s\S]*?data-key="home\.tiles\.price\d+">1회 ([\d,]+)원/g, "krw"],
+  ["ziwei_decade_luck", "js/saju-engine.js", /zwBasicPaidGateHtml\('ziwei_decade_luck', (\d+),/g],
+  ["ziwei_love_deep", "js/saju-engine.js", /zwBasicPaidGateHtml\('ziwei_love_deep', (\d+),/g],
+  ["ziwei_twelve_palaces", "js/saju-engine.js", /zwBasicPaidGateHtml\('ziwei_twelve_palaces', (\d+),/g],
+  ["ziwei_symbolic_layer", "js/saju-engine.js", /zwBasicPaidGateHtml\('ziwei_symbolic_layer', (\d+),/g],
+  ["ziwei_life_yearly_flow", "js/saju-engine.js", /zwBasicPaidGateHtml\('ziwei_life_yearly_flow', (\d+),/g],
+  ["ziwei_decade_luck", "js/saju-engine.js", /data-unlock-key="ziwei_decade_luck"[^>]*data-unlock-cost="(\d+)"/g],
+  ["physiognomy-compatibility", "PhysiognomyUI.js", /_cdCoinGatePerUse\((\d+), '관상 궁합 분석'/g],
+  ["physiognomy-ogwan-mole-deep", "PhysiognomyUI.js", /_cdCoinGatePerUse\((\d+), '오관·점 정밀 분석'/g],
+  ["physiognomy-ogwan-mole-deep", "PhysiognomyUI.js", /정밀 분석을 ([\d,]+)원에 열람/g, "krw"],
+  ["physiognomy-pastlife-compatibility", "PastLifeFaceUI.js", /PLF_COMPAT_COIN_COST = (\d+);/g],
+  ["physiognomy-pastlife-compatibility", "PastLifeFaceUI.js", /mode: 'compat',[^}]*price: '([\d,]+)원'/g, "krw"],
+  ["compat-astro-synastry", "app/_lib/serviceFeatureRegistry.ts", /"기본 차트 무료", "궁합 ([\d,]+)원"/g, "krw"],
+  ["tarot-prompt-maker", "app/_lib/serviceFeatureRegistry.ts", /"priceLabel": "([\d,]+)원~[\d,]+원",\s*"seo": \{\s*"title": "타로 오라클 상담/g, "krw"],
+  ["tarot-prompt-maker-master", "app/_lib/serviceFeatureRegistry.ts", /"priceLabel": "[\d,]+원~([\d,]+)원",\s*"seo": \{\s*"title": "타로 오라클 상담/g, "krw"],
+  ["animal-totem-basic", "app/_lib/serviceFeatureRegistry.ts", /"priceLabel": "([\d,]+)원",\s*"seo": \{\s*"title": "애니멀 토템 소개/g, "krw"],
 ];
 
 test("per-use screen prices match the server registry", () => {
@@ -63,7 +79,7 @@ test("per-use screen prices match the server registry", () => {
     const entry = FEATURE_KEY_PRICE_TABLE[featureKey];
     assert.ok(entry, `${featureKey} missing from registry`);
     if (!cache.has(file)) cache.set(file, readFileSync(file, "utf8"));
-    const found = [...cache.get(file).matchAll(pattern)].map((m) => Number(m[1]));
+    const found = [...cache.get(file).matchAll(pattern)].map((m) => Number(m[1].replace(/,/g, "")));
     assert.ok(found.length > 0, `${featureKey}: pattern ${pattern} not found in ${file}`);
     const expected = unit === "krw" ? entry.amountKRW : entry.cost;
     for (const value of found) assert.equal(value, expected, `${featureKey} (${unit}) in ${file}`);
