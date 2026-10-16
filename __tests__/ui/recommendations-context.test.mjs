@@ -72,6 +72,21 @@ test('result pair adds action coverage or a practical companion without changing
  assert.equal(selectProducts([book,multi],{...c,practiceTags:['focus','journaling']},now)[1].reason,'하루 회고 기록');
 });
 
+test('symbol accessories can match an explicit browsing purpose without invented colours',()=>{
+ const accessory=product('uncoloured-accessory','symbolism',{category:'daily-life',kind:'symbol-accessory',book:null,interests:['collecting'],colors:[],motifs:[]});
+ const c={service:'recommendations',source:'browse',practiceTags:['symbolism'],interests:['collecting']};
+ assert.deepEqual(selectProducts([accessory],c,now).map(p=>p.id),['uncoloured-accessory']);
+ for(const patch of [{interests:[]},{interests:['reading']},{practiceTags:[]},{color:'gold'},{motif:'flower'},{source:'result'},{source:'article'}]) {
+   assert.deepEqual(selectProducts([accessory],{...c,...patch},now),[],JSON.stringify(patch));
+ }
+ const gold=product('gold-accessory','symbolism',{category:'daily-life',kind:'bracelet',book:null,interests:['collecting'],colors:['gold']});
+ assert.equal(selectProducts([gold],{...c,color:'gold'},now).length,1);
+ assert.deepEqual(selectProducts([gold],{...c,color:'green'},now),[]);
+ for(const patch of [{status:'draft'},{stock:'sold-out'},{accountVerified:false},{expiresAt:new Date(now-1).toISOString()}]) {
+   assert.deepEqual(selectProducts([{...accessory,...patch}],c,now),[]);
+ }
+});
+
 test('expanded editorial catalogue matches advice and keeps publication gates closed',()=>{
  const release=JSON.parse(readFileSync(new URL('../../docs/operations/affiliate-release-20261016.json',import.meta.url),'utf8'));
  const ali=JSON.parse(readFileSync(new URL('../../docs/operations/affiliate-aliexpress-20261009.json',import.meta.url),'utf8'));

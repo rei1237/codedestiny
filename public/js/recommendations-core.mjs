@@ -178,7 +178,12 @@ export function selectProducts(products, input = {}, now = Date.now()) {
     if (['books','daily-life'].includes(p.category) && !rule.explicitInterest) {
       if (!c.practiceTags.length || !p.practiceTags?.some(t => c.practiceTags.includes(t))) return false;
       if (p.book?.perspective === 'divination-study' && !p.practiceTags.some(t => t.endsWith('-study') && c.practiceTags.includes(t))) return false;
-      if (p.practiceTags?.includes('symbolism') && (!c.color && !c.motif || c.color && !p.colors?.includes(c.color) || c.motif && !p.motifs?.includes(c.motif))) return false;
+      if (p.practiceTags?.includes('symbolism')) {
+        // Browsing may follow an explicit purpose instead of a colour or motif.
+        // Selected visual filters still require verified matching attributes.
+        if (!c.color && !c.motif && !c.interests.some(t => p.interests.includes(t))) return false;
+        if (c.color && !p.colors?.includes(c.color) || c.motif && !p.motifs?.includes(c.motif)) return false;
+      }
     }
     if (c.interests.length && !p.interests.some(t => c.interests.includes(t))) return false;
     if (c.maxPrice !== null && ((p.currency || 'KRW') !== c.currency || currentPrice(p, now) === null || currentPrice(p, now) > c.maxPrice)) return false;
