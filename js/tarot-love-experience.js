@@ -21,7 +21,7 @@
   var state = { cards: [], revealedCount: 0, reading: null, hasAccess: false, paymentInFlight: false, readingPromise: null, readingResult: null };
   // 리셋/모달 닫힘 이후 도착하는 늦은 draw·프리페치 응답이 새 세션을 덮지 않도록 하는 세대 카운터.
   var flowSeq = 0;
-  var LOVE_COIN_COST = 30;
+  var LOVE_COIN_COST = 50;
   var LOVE_REASON = "우리는 무슨 사이? 타로 리딩";
   var LOVE_FEATURE_KEY = "tarot-love-relationship";
   // The server's final refusals of paid cards that are not its held draw (worker/lib/paid-tarot-draw.js).

@@ -1271,13 +1271,13 @@ button,input,select,textarea{font-family:var(--font-body)!important}
             <div class="deity">🐘</div>
             <div class="time">30분</div>
             <div class="name">Ganesha's Awakening</div>
-            <div class="desc">가네샤의 상징을 담은 30분 수련 구성 · 이용료 3,000원</div>
+            <div class="desc">가네샤의 상징을 담은 30분 수련 구성 · 이용료 5,000원</div>
           </button>
           <button class="duration-btn" data-duration="60" onclick="selectDuration(this, 60)">
             <div class="deity">🔱</div>
             <div class="time">60분</div>
             <div class="name">Shiva's Transformation</div>
-            <div class="desc">시바의 상징을 담은 60분 수련 구성 · 이용료 3,000원</div>
+            <div class="desc">시바의 상징을 담은 60분 수련 구성 · 이용료 5,000원</div>
           </button>
         </div>
       </div>
@@ -2106,7 +2106,7 @@ async function invokeGuru() {
   const pickedDuration=selectedDuration;
   yogaSaved={requestId:'yoga:'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,9)};
   const billingEpoch=yogaEpoch;
-  const sessionCost = 30;
+  const sessionCost = 50;
   yogaPaying=true;if(invokeBtn)invokeBtn.disabled=true;
   try{
     const paid=await _consumeMeditationCoin(sessionCost,'openYogaGuru '+pickedDuration+'분 코스',buildYogaResumeDescriptor(mood,pickedDuration));

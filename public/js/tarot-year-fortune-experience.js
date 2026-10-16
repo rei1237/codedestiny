@@ -28,7 +28,7 @@
     requestId: "",
     resultId: ""
   };
-  var YEAR_COIN_COST = 50;
+  var YEAR_COIN_COST = 100;
   var YEAR_REASON = "십이지신 천운 타로";
   var YEAR_FEATURE_KEY = "tarot-year-fortune";
   // 워커의 Mongo 단일 시도 상한은 최소 11.5초다(worker/lib/db.js — serverSelection 8000 + 3500).

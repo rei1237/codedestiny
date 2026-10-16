@@ -746,7 +746,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
       <div class="card-corner"></div>
       <div class="card-dur">30<span>분</span></div>
       <div class="card-title">에센셜 명상<br>한 장면에 머무는 시간</div>
-      <div class="card-desc">몸을 이완하고 원하는 장면을<br>차분히 떠올리는 네 단계<br>이용료: 3,000원</div>
+      <div class="card-desc">몸을 이완하고 원하는 장면을<br>차분히 떠올리는 네 단계<br>이용료: 5,000원</div>
       <div class="phase-dots">
         <div class="phase-dot" style="background:#4A7C9E"></div>
         <div class="phase-dot" style="background:#7B5EA7"></div>
@@ -759,7 +759,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
       <div class="card-corner"></div>
       <div class="card-dur">60<span>분</span></div>
       <div class="card-title">마스터 명상<br>여유를 두고 이어가는 실습</div>
-      <div class="card-desc">이완과 상상에 시간을 더 두고<br>일상으로 돌아오는 다섯 단계<br>이용료: 3,000원</div>
+      <div class="card-desc">이완과 상상에 시간을 더 두고<br>일상으로 돌아오는 다섯 단계<br>이용료: 5,000원</div>
       <div class="phase-dots">
         <div class="phase-dot" style="background:#4A7C9E"></div>
         <div class="phase-dot" style="background:#7B5EA7;flex:3"></div>
@@ -1594,7 +1594,7 @@ async function startCourse(mins) {
   _sessionBootInFlight = true;
   _sessionBootStartedAt = Date.now();
   try {
-    var cost = 30;
+    var cost = 50;
     // 결제 전에 고른 코스를 서술자로 굳혀 둔다 — 복귀 문서는 이 값 없이는 어느 코스였는지 모른다.
     var paid = await _consumeMeditationCoin(cost, 'openNevilleMeditationPage ' + mins + '분 코스', buildNevilleResumeDescriptor(mins));
     if (!paid) return;
