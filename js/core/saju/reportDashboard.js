@@ -1692,7 +1692,6 @@ function toggleReportFeatureCard(btn) {
     detail.setAttribute('aria-hidden', open ? 'false' : 'true');
     if (open) {
       _sajuFunEnsureHealthReportBlockReady(block);
-      if (block.querySelector('#healthReportSection')) import('/js/recommendations-legacy.mjs').then(function(m){return m.mountRecommendation(document.getElementById('resultPage'),{service:'rpt_healthReportCard'},document.getElementById('shareSection'));}).catch(function(){});
       _sajuFunEnsureQuantumBlockReady(block);
       _sajuFunForceRevealFateScroll(block);
       _bindReportHeightWatcher(block);

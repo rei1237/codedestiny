@@ -27,7 +27,7 @@ export const SYMBOL_MOTIFS = ['star','moon','flower','tree','heart'];
 export const cleanTopics = values => Array.isArray(values) ? [...new Set(values.filter(x => Object.hasOwn(TOPIC_RULES, x)))].slice(0, 8) : [];
 
 // Only bounded, explicitly selected advice fields are read. Ambiguity means no tag.
-const recommendations = /(?:하세요|해\s?보세요|해봐|해라|보자|보세요|권해|권합니다|추천해|추천합니다|좋겠|좋아요|좋습니다|도움이|우선|필요해|정리하|기록하|확보하|연습하|줄여|줄이|세워)/;
+const recommendations = /(?:하세요|해\s?보세요|해봐|해라|보자|보세요|권해|권합니다|추천해|추천합니다|좋겠|좋아요|좋습니다|도움이|우선|필요해|필요합니다|정리하|기록하|확보하|연습하|줄여|줄이|세워)/;
 const excluded = /(?:뜻은?\s*아니|단정할?\s*수\s*없|때문[이가]?\s*아니|않[다아는을]|아니[다라고라는]|하지\s*마|필요(?:는|가)?\s*없|예를\s*들|예시|가정|가령|만약|한다면|상대(?:가|는|방)|그(?:가|녀가)|친구(?:가|는)|질환|진단|치료|우울증|공황|자해)/;
 const patterns = {
   mindfulness: /(?:호흡|마음챙김|현재의?\s*(?:감각|순간)|지금\s*이\s*순간)/,
@@ -38,7 +38,7 @@ const patterns = {
   'self-compassion': /(?:자책|자기연민|자기돌봄|비교를?\s*줄|자신을\s*(?:돌보|다정))/,
   acceptance: /(?:수용|감정을?\s*인정|있는\s*그대로\s*받아)/,
   'habit-building': /(?:작은\s*(?:행동|습관|실천)|습관을|꾸준히\s*반복)/,
-  journaling: /(?:일기|회고|감사\s*기록|기록장|노트에\s*적)/,
+  journaling: /(?:일기|회고|감사\s*기록|기록장|노트에\s*적|(?:감정|하루|생각|선택|루틴)[^.!?\n]{0,24}기록)/,
   'meaning-purpose': /(?:삶의\s*(?:의미|가치|방향)|소중한\s*가치)/,
   focus: /(?:집중\s*시간|방해\s*요소|학습\s*방법|한\s*가지에\s*집중)/,
   budgeting: /(?:가계부|지출|소비\s*(?:습관|내역)|예산)/,
@@ -77,4 +77,29 @@ export function fusionAdviceTopics(result) {
 export function humanDesignAdviceTopics(chapters) {
   if (!Array.isArray(chapters)) return [];
   return adviceTopics(chapters.filter(c => c?.key === 'practicalGuide').flatMap(c => (Array.isArray(c.blocks) ? c.blocks : []).filter(b => b?.kind === 'steps').flatMap(b => (Array.isArray(b.items) ? b.items : []).map(i => i?.text))));
+}
+
+// Read only an explicitly labelled action section, never inferred paragraph titles
+// or the user's message. Old prose and structured saved reports share this adapter.
+export function reportAdviceTopics(content) {
+  if (typeof content !== 'string') return [];
+  const text = content.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+  if (text.startsWith('{')) {
+    try {
+      const report = JSON.parse(text);
+      const action = report?.sections?.action_plan;
+      return adviceTopics([typeof action === 'string' ? action : action?.body]);
+    } catch { return []; }
+  }
+  const advice = [];
+  let selected = false;
+  for (const line of text.split(/\r?\n/)) {
+    const title = line.trim().replace(/^#{1,6}\s*/, '').replace(/^\d{1,2}[.)]\s*/, '').replace(/\*\*/g, '').trim();
+    if (/^(?:(?:오늘의|현실적인|추천|구체적인)\s*)?(?:실천 조언|행동 계획|행동 조언|추천 행동|실천 가이드|실행 계획)$/.test(title)) {
+      selected = true;
+    } else if (/^\s*(?:#{1,6}\s|\d{1,2}[.)]\s*[^.!?]{2,44}$)/.test(line) || /^\*\*[^*]+\*\*$/.test(line.trim()) || (title.length > 0 && title.length <= 44 && !/[.!?]|^[-*]/.test(title) && !recommendations.test(title))) {
+      selected = false;
+    } else if (selected && line.trim()) advice.push(line);
+  }
+  return adviceTopics(advice);
 }

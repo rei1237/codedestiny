@@ -1,5 +1,6 @@
 "use client";
 import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
+import { cleanTopics, reportAdviceTopics } from "@/js/recommendations-context.mjs";
 import PaidResultImageGuide from "@/components/fortune/PaidResultImageGuide";
 
 import { useEffect, useState } from "react";
@@ -258,7 +259,7 @@ export default function VedicAiResultClient() {
             </Link>
           </div>
         </footer>
-        {consultation.status === "completed" && <RecommendationResult service="vedic-ai-consultation"/>}
+        {consultation.status === "completed" && <RecommendationResult service="vedic-ai-consultation" practiceTags={cleanTopics(consultation.messages.filter(message => message.role === "assistant").flatMap(message => reportAdviceTopics(message.content)))}/>}
       </section>
     </main>
   );

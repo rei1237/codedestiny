@@ -50,6 +50,15 @@ test('malformed optional advice rows never break consultation rendering',()=>{
   assert.deepEqual(neoAdviceTopics(null,{actionAlternatives:[null,{}]}),[]);
 });
 
+test('saved report adapters use explicit action sections without transmitting private prose',async()=>{
+ const {reportAdviceTopics}=await import('../../js/recommendations-context.mjs');
+ assert.deepEqual(reportAdviceTopics(JSON.stringify({question:'일기를 기록하세요.',sections:{health:{body:'휴식 시간을 확보하세요.'},action_plan:{body:'집중 시간을 확보하세요.\n하루의 생각을 기록하세요.'}}})),['focus','journaling']);
+ assert.deepEqual(reportAdviceTopics('## 현재 흐름\n일기를 기록하세요.\n## 추천 행동\n지출 내역을 정리하세요.\n## 건강\n휴식 시간을 확보하세요.'),['budgeting']);
+ assert.deepEqual(adviceTopics(['바쁜 일상 속에서도 혼자만의 휴식 시간이 필요합니다.']),['rest']);
+ assert.deepEqual(reportAdviceTopics('추천 행동\n지출 내역을 정리하세요.\n건강\n휴식 시간을 확보하세요.'),['budgeting']);
+ for(const text of ['일기를 기록하세요.','{"sections":','## 추천 행동\n상대방은 일기를 기록하세요.','## 추천 행동\n일기를 기록하지 마세요.']) assert.deepEqual(reportAdviceTopics(text),[]);
+});
+
 test('fusion and human design inspect only explicit action fields', async()=>{
  const {fusionAdviceTopics,humanDesignAdviceTopics}=await import('../../js/recommendations-context.mjs');
  assert.deepEqual(fusionAdviceTopics({finalVerdict:{doNow:['예산을 세워 보세요.']},executiveSummary:'일기를 기록하세요.'}),['budgeting']);
