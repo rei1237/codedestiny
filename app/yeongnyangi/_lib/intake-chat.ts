@@ -3,11 +3,12 @@ import {systemNames} from '@/worker/yeongnyangi/payments/catalog';
 import type {DomainId} from '@/worker/yeongnyangi/fortune/shared/contracts';
 
 export const emptyIntakeDecision=():QuestionDecision=>({version:QUESTION_POLICY_VERSION,category:'self',target:'self',horizon:'current',situation:'',options:'',period:'',constraints:'',confirmed:false});
-export type IntakeValue={domain:DomainId;question:string;decision:QuestionDecision;fish?:QuestionFish};
+// domainFixed: ?domain=·?product= 로 체계를 정하고 들어온 상담은 체계 단계를 건너뛴다(2026-10-17).
+export type IntakeValue={domain:DomainId;question:string;decision:QuestionDecision;fish?:QuestionFish;domainFixed?:boolean};
 export const intakeFish=(value:IntakeValue)=>value.fish||recommendQuestion(value.domain,value.decision,value.question).fish;
 export type IntakeStep='question'|'category'|'target'|'horizon'|'situation'|'relationshipType'|'options'|'constraints'|'period'|'domain'|'scope';
 export function intakeSteps(value:IntakeValue):IntakeStep[]{
- return ['question','category','target','horizon','situation',...(value.decision.target==='pair'?['relationshipType' as const]:[]),...(questionNeedsDecisionDetails(value.decision)?['options' as const,'constraints' as const]:[]),'period','domain','scope'];
+ return ['question','category','target','horizon','situation',...(value.decision.target==='pair'?['relationshipType' as const]:[]),...(questionNeedsDecisionDetails(value.decision)?['options' as const,'constraints' as const]:[]),'period',...(value.domainFixed?[]:['domain' as const]),'scope'];
 }
 export function intakeAnswer(step:IntakeStep,value:IntakeValue):string{
  const d=value.decision;

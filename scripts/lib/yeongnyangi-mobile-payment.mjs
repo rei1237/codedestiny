@@ -204,8 +204,8 @@ export async function fixtures(browser,base,product,width=390,{monthlyBalance=0}
 
 async function openCheckout(f,base,method='CARD'){
  await f.page.goto(f.checkoutUrl||base+checkoutPath(f.row),{waitUntil:'domcontentloaded'});
- await f.page.getByRole('button',{name:/결제 방식 선택하기/}).waitFor();
- const pay=f.page.getByRole('button',{name:/결제 방식 선택하기/});
+ await f.page.getByRole('button',{name:/원 결제하기|결제 방식 선택하기/}).waitFor();
+ const pay=f.page.getByRole('button',{name:/원 결제하기|결제 방식 선택하기/});
  if(f.state.doubleClicks){await pay.click({trial:true});await pay.evaluate(b=>{b.click();b.click();b.click();});}else await pay.click();
  // The real payment choice UI must open; never call its runner from a test.
  const consent=f.page.locator('[data-refund-consent-input]'),direct=f.page.locator('[data-mode="direct"]');
@@ -381,7 +381,7 @@ export async function verifyMobilePayments({base,products,systemNames}){
      await f.page.getByRole('button',{name:'선택 확인하고 계속하기',exact:true}).click();
      await f.page.getByRole('button',{name:'선택 확인하고 계속하기',exact:true}).click();
      await f.page.getByRole('button',{name:'결제 내용 확인하기',exact:true}).click();
-     await f.page.waitForURL('**/checkout/**');await f.page.getByRole('button',{name:/결제 방식 선택하기/}).waitFor();
+     await f.page.waitForURL('**/checkout/**');await f.page.getByRole('button',{name:/원 결제하기|결제 방식 선택하기/}).waitFor();
      assert.equal(f.state.requestInput.questionDecision.version,'question-consultation-20261007');
      assert.equal(f.state.requestInput.questionDecision.confirmed,true);assert.equal(f.state.requestInput.questionDecision.category,'self');
      assert.equal(f.state.requestInput.productId,'saju_mackerel');assert.equal(f.state.creates,1);assert.equal(f.state.sdk.length,0);
@@ -410,7 +410,7 @@ export async function verifyMobilePayments({base,products,systemNames}){
      await f.page.getByLabel('영냥이에게 궁금한 이야기').fill('올해의 흐름이 궁금해요.');await f.page.getByRole('button',{name:'결제 내용 확인하기',exact:true}).click();
      await f.page.waitForURL('**/checkout/**');assert.equal(new URL(f.page.url()).searchParams.get('requestId'),f.row.id);assert.equal(f.state.creates,1);
      // WebKit can report the checkout URL before that document commits; leaving early interrupts the next goto.
-     await f.page.getByRole('button',{name:/결제 방식 선택하기/}).waitFor();
+     await f.page.getByRole('button',{name:/원 결제하기|결제 방식 선택하기/}).waitFor();
      await f.page.waitForLoadState('load');
      await f.page.goto(base+'/yeongnyangi/room/#story');await f.page.getByRole('dialog',{name:'영냥이의 프롤로그'}).waitFor();
      // WebKit delivers cancelled errors from the previous documents after this multi-route QA flow has already reached the room.
@@ -450,7 +450,7 @@ export async function verifyMobilePayments({base,products,systemNames}){
          await f.page.getByText(`1 / ${f.row.manifest.length}개 챕터 저장됨`,{exact:true}).waitFor();
          assert.equal(await f.page.getByText('네 이야기를 모두 펼쳐두었어. 천천히 읽어봐.',{exact:true}).count(),0);
         }
-        assert.equal(await f.page.getByRole('button',{name:/기존 상담 복구하기|상담 시작하기|상담 이어가기|결제 방식 선택하기|결제 상태 다시 확인하기/}).count(),0);
+        assert.equal(await f.page.getByRole('button',{name:/기존 상담 복구하기|상담 시작하기|상담 이어가기|원 결제하기|결제 방식 선택하기|결제 상태 다시 확인하기/}).count(),0);
         assert.equal(await f.page.locator('a[href*="/checkout/"]').count(),0);
         await f.page.waitForLoadState('load');await settleApiFixture(f);
         assert.equal(JSON.stringify(f.row.chapters),persisted,'Readonly reopening must preserve the stored partial chapter');
@@ -474,7 +474,7 @@ export async function verifyMobilePayments({base,products,systemNames}){
       }
       if(scenario==='external-return'){
        const target=new URL(base+checkoutPath(f.row));target.searchParams.set('returnTo','https://outside.example.invalid/');
-       await f.page.goto(target.href);await f.page.getByRole('button',{name:/결제 방식 선택하기/}).waitFor();
+       await f.page.goto(target.href);await f.page.getByRole('button',{name:/원 결제하기|결제 방식 선택하기/}).waitFor();
        // 결제를 그만두는 링크는 결제 "성공" 뒤 주소(미결제 결과 화면)가 아니라 영냥이 방·생선 고르기로 간다.
        assert.equal(await f.page.locator('a').filter({hasText:'← 영냥이 방'}).getAttribute('href'),'/yeongnyangi/');
        assert.equal(await f.page.locator('a').filter({hasText:'질문 조건 수정하기'}).getAttribute('href'),'/yeongnyangi/fortune/');
@@ -489,7 +489,7 @@ export async function verifyMobilePayments({base,products,systemNames}){
        await f.page.getByRole('group',{name:'상담 종류'}).getByRole('button',{name:/무엇이든 물어보기/}).click();
        await f.page.getByLabel('영냥이에게 궁금한 이야기').fill('올해의 흐름이 궁금해요.');
        await f.page.getByRole('button',{name:'결제 내용 확인하기',exact:true}).click();
-       await f.page.waitForURL('**/checkout/**');await f.page.getByRole('button',{name:/결제 방식 선택하기/}).waitFor();
+       await f.page.waitForURL('**/checkout/**');await f.page.getByRole('button',{name:/원 결제하기|결제 방식 선택하기/}).waitFor();
        assert.equal(f.state.creates,1);
        await f.page.locator('a').filter({hasText:'← 영냥이 방'}).click();
        await f.page.waitForURL(url=>url.pathname==='/yeongnyangi/fortune/');
@@ -505,7 +505,7 @@ export async function verifyMobilePayments({base,products,systemNames}){
        assert.equal(await f.page.getByText(/개 챕터 저장됨/).count(),0,'Unpaid result must not draw chapter progress');
        assert.equal(await f.page.getByRole('navigation',{name:'상담 목차'}).count(),0,'Unpaid result must not draw the table of contents');
        await f.page.getByRole('link',{name:'결제 내용 확인하기'}).click();
-       await f.page.waitForURL('**/checkout/**');await f.page.getByRole('button',{name:/결제 방식 선택하기/}).waitFor();
+       await f.page.waitForURL('**/checkout/**');await f.page.getByRole('button',{name:/원 결제하기|결제 방식 선택하기/}).waitFor();
        await f.page.locator('a').filter({hasText:'← 영냥이 방'}).click();
        await f.page.waitForURL(url=>url.pathname==='/yeongnyangi/');
        assert.equal(f.state.sdk.length,0);
@@ -525,7 +525,7 @@ export async function verifyMobilePayments({base,products,systemNames}){
        const foreignId='fixture-pg-foreign-owner';
        await redirectBack(f,{noStorage:true,approved:false,paymentId:foreignId});
        await waitFixture(()=>f.state.http.some(r=>r.path===`/api/payments/orders/${foreignId}/resume`&&r.status===404));
-       await f.page.getByRole('button',{name:/결제 방식 선택하기/}).waitFor();
+       await f.page.getByRole('button',{name:/원 결제하기|결제 방식 선택하기/}).waitFor();
        assert.equal(new URL(f.page.url()).pathname,'/checkout/');assert.equal(new URL(f.page.url()).searchParams.get('requestId'),f.row.id);
        assert.equal(f.row.paid,false);assert.equal(f.state.generates,0);assert.equal(f.state.sdk.length,1);assert.equal(f.state.orders.size,1);return;
       }
@@ -540,7 +540,7 @@ export async function verifyMobilePayments({base,products,systemNames}){
       }
       if(scenario==='inline-cancel'||scenario==='inline-failure'){
        await f.page.locator('p[role="alert"]').or(f.page.getByText('결제를 취소했어요. 준비되면 다시 눌러 주세요.')).first().waitFor();
-       assert.equal(await f.page.getByRole('button',{name:/결제 방식 선택하기/}).isEnabled(),true);
+       assert.equal(await f.page.getByRole('button',{name:/원 결제하기|결제 방식 선택하기/}).isEnabled(),true);
        await waitFixture(()=>f.state.sdk.length===1);
        assert.equal(f.state.confirm,0);assert.equal(f.row.paid,false);assert.equal(f.state.generates,0);return;
       }
@@ -551,7 +551,7 @@ export async function verifyMobilePayments({base,products,systemNames}){
       }else if(scenario==='pg-cancel-return'||scenario==='pg-failed-return'){
        f.page.on('dialog',d=>d.dismiss());
        await redirectBack(f,{approved:false,code:scenario==='pg-cancel-return'?'PAYMENT_CANCELLED':'FAILURE_TYPE_PG_PROVIDER'});
-       await f.page.getByRole('button',{name:/결제 방식 선택하기/}).waitFor();
+       await f.page.getByRole('button',{name:/원 결제하기|결제 방식 선택하기/}).waitFor();
        assert.equal(f.state.confirm,0);assert.equal(f.row.paid,false);assert.equal(f.state.generates,0);
        // PG 를 다녀온 뒤에는 직전 문서가 PG(또는 빈 값)라 뒤로가기 대신 영냥이 방으로 간다 — 미결제 결과 화면을 거치지 않는다.
        await f.page.locator('a').filter({hasText:'← 영냥이 방'}).click();await f.page.waitForURL(url=>url.pathname==='/yeongnyangi/');

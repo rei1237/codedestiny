@@ -80,12 +80,12 @@ export default function YeongnyangiGuide(){
   </section>
 
   <section id="yn-prices" aria-labelledby="yn-prices-title">
-   <h2 id="yn-prices-title">생선별 상담 가격</h2>
+   <h2 id="yn-prices-title">상담 가격</h2>
    <p>새 질문 상담은 질문의 주제·판단 대상·계산 근거에 맞춰 생선을 안내해요. 기본 답변의 품질은 같아요. 참치의 장기 흐름은 사주·자미두수·베다에서 제공하며, 기존 해석 메뉴와 구매 결과는 원래 계약을 유지해요.</p>
    <div className={styles.tableWrap}><table>
     <caption>영냥이 단일 체계 상담 가격과 구성</caption>
-    <thead><tr><th scope="col">생선</th><th scope="col">가격</th><th scope="col">추가 질문</th><th scope="col">질문 상담 범위</th></tr></thead>
-    <tbody>{tierRows.map(row=><tr key={row.tier}><th scope="row">{row.name}</th><td>{won(row.price)}</td><td>{row.followups}회</td><td>{row.depth}</td></tr>)}</tbody>
+    <thead><tr><th scope="col">가격</th><th scope="col">추가 질문</th><th scope="col">질문 상담 범위</th></tr></thead>
+    <tbody>{tierRows.map(row=><tr key={row.tier}><th scope="row">{won(row.price)}<span className={styles.tierName}>{row.name}</span></th><td>{row.followups}회</td><td>{row.depth}</td></tr>)}</tbody>
    </table></div>
   </section>
 

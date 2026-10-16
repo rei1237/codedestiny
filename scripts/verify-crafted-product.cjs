@@ -44,7 +44,7 @@ const fish = process.argv[2] || 'mackerel', domain = process.argv[3] || 'saju', 
                 }
                 await page.getByRole('button', { name: '기간은 정하지 않을게', exact: true }).click();
             }
-            await page.getByRole('button', { name: '선택 확인하고 계속하기', exact: true }).click();
+            // ?domain= 으로 들어오면 체계 단계는 건너뛴다(2026-10-17).
         }
         await page.getByText('이 상담을 글과 그림으로 자세히 보기', { exact: true }).click();
         const detail = page.locator('.craftedDetail');

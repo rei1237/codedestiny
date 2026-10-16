@@ -1,10 +1,11 @@
 'use client';
 import {brandCopy} from '@/lib/seo/brand-copy.mjs';
 import {useEffect,useRef,useState} from 'react';
-import {ArrowRight,BookOpen,PawPrint} from 'lucide-react';
+import {ArrowRight,PawPrint} from 'lucide-react';
 import {products} from '@/worker/yeongnyangi/payments/catalog';
 import LaunchPlannedPrice from '@/app/components/LaunchPlannedPrice';
 import {launchOffer,plannedPriceFor} from '@/lib/brand/launch-offer';
+import {founder} from '@/lib/brand/founder';
 import styles from './night-hero.module.css';
 
 const starter=products.find(product=>product.id==='saju_mackerel')!;
@@ -17,11 +18,11 @@ export default function NightHero(){
  return <section className={styles.hero} aria-labelledby="hero-title">
   <picture className={styles.room}><source media="(max-width: 699px)" srcSet="/assets/yeongnyangi/night/consultation-room-mobile.webp"/><img src="/assets/yeongnyangi/night/consultation-room.webp" width={1440} height={960} alt="" fetchPriority="high"/></picture>
   <div className={styles.copy}>
+   <p className={styles.founder}>{founder.credential}</p>
    <h1 id="hero-title">{brandCopy('yeongnyangiHeading')}<br/><span>{brandCopy('yeongnyangiServiceName')}에게 물어봐.</span></h1>
    <p>꿀꿀 운세의 기본 상담, {brandCopy('yeongnyangiServiceName')}. 궁금한 것 하나부터 물어보세요.</p>
    <div className={styles.actions}>
     <a className={styles.primary} href="#questions" data-cd-business-entry="question"><PawPrint size={20} aria-hidden="true"/>지금 궁금한 질문 고르기<ArrowRight size={19} aria-hidden="true"/></a>
-    <a className={styles.secondary} href="#readings"><BookOpen size={18} aria-hidden="true"/>상담 종류 살펴보기</a>
    </div>
    <p className={styles.price}>{planned!==null?<>선착순 {launchOffer.limit.toLocaleString('ko-KR')}명 체험가 · <LaunchPlannedPrice amount={planned}/></>:null}<span className={styles.keep}>질문 상담 {starter.priceKRW.toLocaleString('ko-KR')}원부터</span> · 질문 범위에 따라 안내</p>
    <a className={styles.example} href="#yn-example">결제 전 상담 예시 읽기 →</a>

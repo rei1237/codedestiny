@@ -3141,7 +3141,7 @@
   bottom: 0;
   z-index: 20;
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   background: var(--yn-night);
   border-top: 1px solid #a57c573d;
   padding: 5px max(10px, env(safe-area-inset-right))

@@ -346,8 +346,9 @@ export default function CheckoutClient() {
 
               </dl>}
               <p data-reading-output-locale={reading?.locale||lang}>{askPhase5Copy(lang).input.language}: <b lang={reading?.locale||lang}>{readingLanguageNames[reading?.locale||lang]}</b></p>
-              <section className={styles.benefits} aria-labelledby="owned-benefits-title">
-                <h2 id="owned-benefits-title">{lang==='ko'?'보유 이용권 · 월정석으로 상담하기':'Use existing benefits'}</h2>
+              {/* 2026-10-17 "직관성": 기본 화면은 결제 버튼 하나. 보유 이용권·월정석과 5회 이용권은 이 접힘 영역 하나에 둔다(결제 로직은 그대로). */}
+              <details className={styles.benefits}>
+                <summary>{lang==='ko'?'이용권 · 월정석으로 결제하기':'Use existing benefits'}</summary>
                 <p>{lang==='ko'?'직접 선택한 혜택만 사용해요. 적용 가능 여부는 서버에서 확인해요.':'Benefits are used only when you select them. Eligibility is verified by the server.'}</p>
               {!isSoulCatMode && checked && signedIn && available && <ServicePackCheckout requestId={params.requestId} featureKey={pricing.featureKey} locale={lang}
                 disabled={gate.phase === "paying" || gate.phase === "paid"}
@@ -367,18 +368,17 @@ export default function CheckoutClient() {
                 {validDiscount && <p aria-live="polite">선택한 월정석 {Number(moonstoneInput).toLocaleString('ko-KR')}개 · 할인 후 단건 결제 <strong>{formatKrw(pricing.amountKRW-Number(moonstoneInput)*(pricing.amountKRW/pricing.membershipCreditCost))}</strong></p>}
                 <p>단건 결제 잔액은 1,000원 이상이어야 해요. 선택한 수량의 사용 가능 여부는 결제 전에 확인해요.</p>
               </fieldset>}
-
-              </section>
               {!isSoulCatMode&&<fieldset className={styles.purchaseChoices} disabled={gate.phase==='paying'||gate.phase==='paid'||packBusy}>
                 <legend>{lang==='ko'?'이용 방법':'Purchase option'}</legend>
                 <label><input type="radio" name="consultation-purchase" checked={purchase==='single'} onChange={()=>setPurchase('single')}/><span><strong>{lang==='ko'?'이번 상담 1회':'This consultation'}</strong><span>{nativePrice===null?formatKrw(pricing.amountKRW):nativePrice||'Google Play'}</span></span></label>
                 {packOffer.loading?<p role="status">{lang==='ko'?'5회 이용권 확인 중':'Checking passes…'}</p>:packOffer.error?<p role="alert">{lang==='ko'?'이용권을 확인하지 못했어요. 단건 상담은 계속 이용할 수 있어요.':'Pass details are unavailable. You can continue with a single consultation.'}</p>:packOffer.plan&&shopContext&&nativePrice===null&&<label><input type="radio" name="consultation-purchase" checked={purchase==='pack'} onChange={()=>setPurchase('pack')}/><span><strong>{lang==='ko'?'같은 범위 5회 이용권':'5 consultations in the same scope'}</strong><span>{formatKrw(packOffer.plan.priceKRW)} · {packOffer.plan.validityDays}{lang==='ko'?'일':' days'}</span><small>{lang==='ko'?'같은 등급의 지원 상담에만 적용돼요.':'Only supported consultations in this tier.'}</small></span></label>}
               </fieldset>}
+              </details>
               <button type="button" onClick={() => { if(purchase==='pack'&&shopContext&&nativePrice===null)window.location.assign(consultationShopPath(shopContext));else void startPayment(); }}
                 disabled={!authSettled || !signedIn || !checked || !available || packBusy || gate.phase === "paying" || gate.phase === "paid"}
                 className={styles.pay}>
                 {!authSettled ? copy.payAuthChecking : !checked ? copy.payOrderChecking : !available ? copy.payUnavailable : gate.phase === "paying" ? copy.payOpening
-                  : gate.phase === "paid" ? copy.payReturning : gate.phase === "confirming" ? copy.payOrderChecking : purchase==='pack'?(lang==='ko'?'5회 이용권 구매하기':'Get 5-use pass'): copy.payAction(nativePrice === null ? formatKrw(validDiscount ? discountedAmount : pricing.amountKRW) : nativePrice || 'Google Play')}
+                  : gate.phase === "paid" ? copy.payReturning : gate.phase === "confirming" ? copy.payOrderChecking : purchase==='pack'?(lang==='ko'?'5회 이용권 구매하기':'Get 5-use pass'): lang==='ko'&&!isSoulCatMode&&nativePrice===null ? `${formatKrw(validDiscount ? discountedAmount : pricing.amountKRW)} 결제하기` : copy.payAction(nativePrice === null ? formatKrw(validDiscount ? discountedAmount : pricing.amountKRW) : nativePrice || 'Google Play')}
               </button>
 
               <p className={styles.security}>{copy.methodNote}</p>

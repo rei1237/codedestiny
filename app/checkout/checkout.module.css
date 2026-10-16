@@ -44,8 +44,8 @@
 .purchaseChoices label:has(input:checked){border-color:var(--yn-gold);background:var(--yn-raised)}
 .purchaseChoices input{margin:4px 0 0;accent-color:var(--yn-gold);width:18px;height:18px;flex-shrink:0}
 .purchaseChoices label>span{display:grid;gap:6px;min-width:0}.purchaseChoices small{line-height:1.6;color:var(--yn-muted)}
-.benefits{border-top:1px solid var(--yn-line);margin-top:24px;padding-top:12px}
-.benefits h2{margin:8px 0;font-size:1.1rem;font-weight:700;line-height:1.5}
+.benefits{border-top:1px solid var(--yn-line);margin:24px 0 20px;padding-top:12px}
+.benefits>summary{display:flex;align-items:center;min-height:44px;font-size:1rem;font-weight:700;line-height:1.5;cursor:pointer}.benefits>summary:focus-visible{outline:3px solid var(--yn-gold);outline-offset:4px}.benefits>summary{list-style:none;gap:12px}.benefits>summary::-webkit-details-marker{display:none}.benefits>summary::after{content:"＋";margin-left:auto;color:var(--yn-gold);font-weight:400}.benefits[open]>summary::after{content:"－"}
 .benefits>p{font-size:14px;color:var(--yn-muted);line-height:1.7}
 .benefits>button{display:inline-flex;align-items:center;width:auto;min-height:44px;margin:4px 20px 4px 0;padding:8px 0;border:0;background:none;color:var(--yn-ivory);font:inherit;font-size:14px;text-decoration:underline;text-underline-offset:4px;text-align:left;cursor:pointer}
 .benefits>button:hover:not(:disabled){color:var(--yn-gold)}

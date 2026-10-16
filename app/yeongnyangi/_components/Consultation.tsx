@@ -36,7 +36,7 @@ import {plannedPriceFor} from '@/lib/brand/launch-offer';
 import {trackEvent} from '@/lib/analytics';
 import {readingLocale,readingLocales,readingLanguageNames} from '@/worker/yeongnyangi/fortune/reading-locale';
 import ReadingLanguageSelect from './ReadingLanguageSelect';
-import {voiceStyleCopy,type VoiceStyle} from '../_lib/voice-style-copy';
+import type {VoiceStyle} from '../_lib/voice-style-copy';
 import TarotConsultationGuide from './TarotConsultationGuide';
 import AskPeriodPicker from './AskPeriodPicker';
 import {useReadingLanguage,browserReadingContext,readingPrice} from '../_lib/use-reading-language';
@@ -81,7 +81,9 @@ export default function Consultation(){
  const [partnerId,setPartnerId]=useState(''),[timeUnknown,setTimeUnknown]=useState(false);
  const [topicId,setTopicId]=useState('general'),[question,setQuestion]=useState(''),[error,setError]=useState('');
  const [busy,setBusy]=useState(false),[ready,setReady]=useState(false);
- const [voiceStyle,setVoiceStyle]=useState<VoiceStyle>('banmal');
+ // 2026-10-17 "직관성": 말투 선택을 없애고 존댓말로 고정한다.
+ const [voiceStyle,setVoiceStyle]=useState<VoiceStyle>('honorific');
+ const [domainFixed,setDomainFixed]=useState(false);
  const [currentLocation,setCurrentLocation]=useState<CurrentLocation|null>(null);
  const [extraTime,setExtraTime]=useState(''),[extraPlace,setExtraPlace]=useState('');
  const [jong,setJong]=useState<{key:string;loading:boolean;check:JongCheck|null}>({key:'',loading:false,check:null});
@@ -163,6 +165,7 @@ export default function Consultation(){
  useEffect(()=>{if(!profileState.loading&&partnerId&&(partnerId===profileId||!profiles.some(p=>profileKey(p)===partnerId)))setPartnerId('');},[profileId,profiles,partnerId,profileState.loading]);
  useEffect(()=>{
   const params=new URLSearchParams(window.location.search),requested=params.get('domain')||'saju';
+  setDomainFixed(params.has('domain')||params.has('product'));
   if(params.get('flow')==='legacy'||params.has('consultationKind')||params.get('domain')==='fusion')setQuestionMode(false);
   if(params.get('flow')==='relationship')setRelationshipStage('question');
   const selected=products.find(p=>p.id===params.get('product'))||(requested==='fusion'?products.find(p=>p.readingKind==='pair'):undefined)||products.find(p=>p.domain===requested&&p.fishId===params.get('fish')&&p.readingKind==='single')||products.find(p=>p.domain===requested&&p.readingKind==='single')||products[0];
@@ -264,7 +267,7 @@ export default function Consultation(){
  function chooseRelationshipEngine(next:DomainId){const tarotKind=relationshipQuestionId==='contact'?'contact':relationshipQuestionId==='reunion'?'reunion':['feelings','flirting'].includes(relationshipQuestionId)?'feelings':'compatibility';setDomain(next);setKindId(next==='tarot'?tarotKind:'compatibility');setProductId(next+'_mackerel');setTopicId('relationship');setRelationshipStage('consultation');setError('');}
 
  if(ready&&questionMode&&siteLocale==='ko'&&domain!=='fusion'){
-  const intake:IntakeValue={domain:domain as DomainId,question,decision:decision||scopeDraft||emptyIntakeDecision(),fish:questionFish};
+  const intake:IntakeValue={domain:domain as DomainId,question,decision:decision||scopeDraft||emptyIntakeDecision(),fish:questionFish,domainFixed};
   const prep:PreparationStep[]=[];
   if(!tarotOnly){
    prep.push({id:'profile',pending:profileState.loading,prompt:voiceStyle==='honorific'?'누구의 흐름을 살펴볼까요? 저장된 프로필을 확인해 주세요.':'누구의 흐름을 살펴볼까? 저장된 프로필이 있으면 다시 적지 않아도 돼.',answer:selectedProfile?.name||'프로필 확인',valid:!guest&&!profileState.loading&&Boolean(selectedProfile),content:<ProfilePicker state={profileState} locale={siteLocale} conversational voice={voiceStyle} onLogin={loginWithDraft}/>});
@@ -290,7 +293,7 @@ export default function Consultation(){
    if(relationship)prep.push({id:'participants',prompt:voiceStyle==='honorific'?'두 사람을 어떻게 불러드릴까요?':'두 사람을 어떻게 부르면 될까?',answer:participants.self+' · '+participants.partner,valid:Boolean(participants.self.trim()&&participants.partner.trim()),content:<div className={styles.form}><label>{relationshipCopy.self}<input maxLength={40} value={participants.self} onChange={e=>setParticipants({...participants,self:e.target.value})}/></label><label>{relationshipCopy.partner}<input maxLength={40} value={participants.partner} onChange={e=>setParticipants({...participants,partner:e.target.value})}/></label><p>{relationshipCopy.symbolism}</p></div>});
   }
   prep.push({id:'language',prompt:voiceStyle==='honorific'?'결과를 어떤 언어로 읽으시겠어요?':'결과는 어떤 언어로 읽고 싶어?',answer:readingLanguageNames[locale],valid:true,content:<ReadingLanguageSelect locale={locale} siteLocale={siteLocale} fallback={fallback} disabled={busy||kind.koOnly} onChange={value=>{setLocale(value);setError('');}}/>});
-  return <IntakeChat value={intake} confirmed={Boolean(decision)} step={chatStep} onStep={step=>{setChatStep(step);if(step!=='review')consultationAttemptId.current='';}} voice={voiceStyle} onVoice={setVoiceStyle} busy={busy}
+  return <IntakeChat value={intake} confirmed={Boolean(decision)} step={chatStep} onStep={step=>{setChatStep(step);if(step!=='review')consultationAttemptId.current='';}} voice={voiceStyle} busy={busy}
    onChange={next=>{setQuestionFish(next.fish);if(next.fish)setProductId(next.domain+'_'+next.fish);setDomain(next.domain);setQuestion(next.question);setScopeDraft({...next.decision,confirmed:false});setDecision(undefined);setError('');}}
    onEdit={()=>{setScopeDraft(intake.decision);setDecision(undefined);consultationAttemptId.current='';setError('');}}
    onConfirm={()=>{const d={...intake.decision,confirmed:true};setDecision(d);setScopeDraft(d);const fish=intakeFish(intake);setQuestionFish(fish);setProductId(intake.domain+'_'+fish);setKindId(intake.domain==='tarot'?TAROT_SPREAD_KIND:d.target==='pair'?'compatibility':'ask');setTopicId(d.category);setRelationshipStage('');consultationAttemptId.current='';}}
@@ -313,10 +316,9 @@ export default function Consultation(){
   {relationshipStage&&<button onClick={()=>setRelationshipStage('question')}>{relationshipCopy.change}</button>}
   <header className={styles.consultationHeader}><div><h1>{ui.title}</h1><p>{ui.intro}</p></div><Moon size={36} strokeWidth={1} aria-hidden="true"/></header>
   {questionActive&&<div className={styles.systemDescription}><h2>{questionScopes[product.fishId as QuestionFish]}</h2><p>{question}</p><p>기본 상담 + 추가 질문 {FOLLOWUP_LIMITS[product.fishId as QuestionFish]}회 · {price(product.priceKRW)}</p><button onClick={()=>{setScopeDraft(decision);setDecision(undefined);}}>질문 범위 다시 선택하기</button></div>}
-  {(()=>{const settings=<><ReadingLanguageSelect locale={locale} siteLocale={siteLocale} fallback={fallback} disabled={busy||kind.koOnly} onChange={value=>{setLocale(value);setError('');}}/>
-  {locale==='ko'&&<div className={styles.kindChoices} role="group" aria-label={voiceStyleCopy.heading}>{(['banmal','honorific'] as const).map(value=><button key={value} type="button" aria-pressed={voiceStyle===value} disabled={busy} onClick={()=>setVoiceStyle(value)}><strong>{voiceStyleCopy[value]}</strong><span>{voiceStyleCopy[value==='banmal'?'banmalNote':'honorificNote']}</span></button>)}</div>}</>;
-  // 한국어 화면은 결과 언어·말투를 기본값으로 접어 두고, 상담 종류와 생선 선택을 먼저 보인다.
-  return siteLocale==='ko'?<details className={styles.readingSettings}><summary>세부 설정 · {readingLanguageNames[locale]}{locale==='ko'&&` · ${voiceStyleCopy[voiceStyle]}`}</summary>{settings}</details>:settings;})()}
+  {(()=>{const settings=<><ReadingLanguageSelect locale={locale} siteLocale={siteLocale} fallback={fallback} disabled={busy||kind.koOnly} onChange={value=>{setLocale(value);setError('');}}/></>;
+  // 한국어 화면은 결과 언어를 기본값으로 접어 두고, 상담 종류와 생선 선택을 먼저 보인다.
+  return siteLocale==='ko'?<details className={styles.readingSettings}><summary>세부 설정 · {readingLanguageNames[locale]}</summary>{settings}</details>:settings;})()}
   {!questionActive&&<a className={styles.spiritEntry} href={`/yeongnyangi/fortune/?mode=spirit&lang=${siteLocale}`}><img src="/assets/yeongnyangi/spirit/eastern-oracle.webp" width={64} height={68} alt=""/><span><strong>{spiritEntryCopy.title}</strong><br/>{spiritEntryCopy.description}</span></a>}
   {!questionActive&&<><div className={styles.tabs} role="group" aria-label={siteLocale==='ko'?'운세 종류':ui.methodTitle}>{[...Object.entries(systemNames),['fusion','복합 운세']].map(([id,label])=><button key={id} aria-pressed={domain===id} onClick={()=>chooseDomain(id)}>{siteLocale==='ko'?label:localizedSystem(id,siteLocale)}</button>)}</div>
   <div className={styles.kindChoices} role="group" aria-label={siteLocale==='ko'?'상담 종류':ui.summary}>{consultationKinds[domain].filter(item=>!item.koOnly||siteLocale==='ko').sort((a,b)=>Number(b.id===TAROT_SPREAD_KIND)-Number(a.id===TAROT_SPREAD_KIND)).map(item=><button key={item.id} aria-pressed={kind.id===item.id} onClick={()=>chooseKind(item.id)}><strong>{kindLabel(item.id)}</strong>{(siteLocale==='ko'||additionalKindDescription(item.id,siteLocale))&&<span>{siteLocale==='ko'?item.description:additionalKindDescription(item.id,siteLocale)}</span>}</button>)}</div>

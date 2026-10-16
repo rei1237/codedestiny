@@ -13,8 +13,8 @@ import CraftedProductDisclosure from '@/app/components/CraftedProductDisclosure'
 // 질문 단계마다 영냥이가 짓는 전신 포즈(360×300, 흰 바탕 WebP). 글자가 없는 moods 에셋만 쓴다.
 const poseByStep:Record<string,string>={question:'ponder',situation:'side-sit',options:'abacus',constraints:'blanket',period:'wink',category:'sparkle',target:'sparkle',horizon:'sparkle',relationshipType:'sparkle',domain:'sparkle',scope:'heart',review:'beam'};
 export type PreparationStep={id:string;prompt:string;answer:string;content:ReactNode;valid:boolean;pending?:boolean};
-type Props={value:IntakeValue;onChange:(next:IntakeValue)=>void;confirmed:boolean;onConfirm:()=>void;onEdit:()=>void;step:string;onStep:(step:string)=>void;voice:VoiceStyle;onVoice:(voice:VoiceStyle)=>void;onLegacy:()=>void;preparation:PreparationStep[];review:ReactNode;busy:boolean};
-export default function IntakeChat({value,onChange,confirmed,onConfirm,onEdit,step,onStep,voice,onVoice,onLegacy,preparation,review,busy}:Props){
+type Props={value:IntakeValue;onChange:(next:IntakeValue)=>void;confirmed:boolean;onConfirm:()=>void;onEdit:()=>void;step:string;onStep:(step:string)=>void;voice:VoiceStyle;onLegacy:()=>void;preparation:PreparationStep[];review:ReactNode;busy:boolean};
+export default function IntakeChat({value,onChange,confirmed,onConfirm,onEdit,step,onStep,voice,onLegacy,preparation,review,busy}:Props){
  const root=useRef<HTMLElement>(null),scroll=useRef<HTMLDivElement>(null),follow=useRef(true),composer=useRef<HTMLDivElement>(null),field=useRef<HTMLTextAreaElement>(null),focusNext=useRef(false);
  const [touch,setTouch]=useState(false),[atBottom,setAtBottom]=useState(true),[typing,setTyping]=useState(false);
  const [slot,setSlot]=useState<HTMLDivElement|null>(null),[claims,setClaims]=useState(0),[moreExamples,setMoreExamples]=useState(false);
@@ -78,7 +78,6 @@ export default function IntakeChat({value,onChange,confirmed,onConfirm,onEdit,st
    {index>0?<button type="button" aria-label="이전 답변으로 돌아가기" disabled={busy} onClick={()=>edit(steps[index-1])}><ArrowLeft size={20}/></button>:<a href="/yeongnyangi/" aria-label="영냥이 홈으로"><ArrowLeft size={20}/></a>}
    <img src="/assets/yeongnyangi/profiles/welcome.webp" alt="" width={44} height={44}/>
    <div><h1>영냥이와 상담 준비</h1><p>{confirmed?'상담 정보 확인':'고민을 들려주세요'}</p></div>
-   <label className={styles.voice}><span className={styles.srOnly}>영냥이 말투</span><select value={voice} disabled={busy} onChange={e=>onVoice(e.target.value as VoiceStyle)}><option value="banmal">편한 말투</option><option value="honorific">존댓말</option></select></label>
   </header>
   <div className={styles.stage}>
   <div className={styles.transcript} ref={scroll} onScroll={e=>{const el=e.currentTarget;follow.current=el.scrollHeight-el.scrollTop-el.clientHeight<90;setAtBottom(follow.current);}}>

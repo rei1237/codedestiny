@@ -115,6 +115,13 @@
   text-align: left;
   vertical-align: top;
 }
+.tierName {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--yn-muted);
+}
 .faq {
   display: grid;
   gap: 18px;
