@@ -8,7 +8,9 @@
  * 임의 금액의 레거시 코인을 발행할 수 있었다. 그 잔액은 월정석으로 1:10 전환된다.
  */
 
+const crypto = require("node:crypto");
 const mongoose = require("mongoose");
+const { __billingEvidenceClaims } = require("../__mocks__/billing-evidence-claim-store.js");
 const { createSajuAIPromptModuleMock } = require("../fixtures/saju-ai-prompt-mock.js");
 
 const TEST_USER_ID = "64f0a1b2c3d4e5f678901234";
@@ -63,6 +65,22 @@ const PointHistoryMock = {
   }),
 };
 
+// 전달 근거 조회(coin-refund-eligibility.js). 테스트가 모델별로 결과·오류를 정한다.
+let deliveryLookup;
+const deliveryModel = (name) => ({
+  findOne: jest.fn((query) => {
+    const resolve = async () => {
+      if (deliveryLookup.error) throw deliveryLookup.error;
+      return deliveryLookup[name] ? deliveryLookup[name](query) : null;
+    };
+    return { select: () => ({ lean: resolve }), lean: resolve };
+  }),
+});
+const ServiceExecutionTransactionMock = deliveryModel("ServiceExecutionTransaction");
+const PaidExecutionRecordMock = deliveryModel("PaidExecutionRecord");
+const ContentEntitlementMock = deliveryModel("ContentEntitlement");
+const claimId = (id) => crypto.createHash("sha256").update(`evidence:${id}`).digest("hex");
+
 const UserMock = {
   findById: jest.fn(() => ({ select: () => ({ lean: async () => ({ points: userPoints }) }) })),
   findByIdAndUpdate: jest.fn((_id, update) => ({
@@ -101,7 +119,7 @@ jest.unstable_mockModule("../../worker/lib/models.js", () => ({
   ProfileCard: {},
   Payment: {},
   MonthlyCreditLedger: {},
-  ContentEntitlement: {},
+  ContentEntitlement: ContentEntitlementMock,
   PaymentFailureLog: {},
   PaymentWebhookEvent: {},
   SecurityEvent: {},
@@ -109,8 +127,8 @@ jest.unstable_mockModule("../../worker/lib/models.js", () => ({
   AbuseScore: {},
   LlmResponseCache: {},
   RefreshTokenSession: {},
-  ServiceExecutionTransaction: {},
-  PaidExecutionRecord: {},
+  ServiceExecutionTransaction: ServiceExecutionTransactionMock,
+  PaidExecutionRecord: PaidExecutionRecordMock,
   NewYearAiConsultation: {},
   KarmaDestinyAiConsultation: {},
   ZiweiAiConsultation: {},
@@ -190,6 +208,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   autoId = 0;
   userPoints = 0;
+  deliveryLookup = {};
   const now = Date.now();
   pointHistoryStore = [
     {
@@ -333,5 +352,58 @@ describe("pig-coin refund 권한 상승 차단", () => {
 
     await expect(second.json()).resolves.toMatchObject({ code: "REFUND_ALREADY_PROCESSED" });
     expect(userPoints).toBe(30);
+  });
+});
+
+describe("pig-coin refund — 전달된 결제는 자동 환불하지 않는다", () => {
+  const spend = (extra = {}) => refundRequest({ cost: 30, featureKey: FEATURE_KEY, sourceTransactionId: REAL_SPEND_ID, ...extra });
+  const mentionsSpend = (query) => (JSON.stringify(query).includes(REAL_SPEND_ID) ? { _id: "delivered-1" } : null);
+  const expectRefused = async (response, status, code) => {
+    expect(response.status).toBe(status);
+    await expect(response.json()).resolves.toMatchObject({ code });
+    expect(userPoints).toBe(0);
+    expect(UserMock.findByIdAndUpdate).not.toHaveBeenCalled();
+    expect(PointHistoryMock.create).not.toHaveBeenCalled();
+  };
+
+  test("풀리지 않은 증빙 claim 이 있으면 409 REFUND_NOT_ELIGIBLE", async () => {
+    __billingEvidenceClaims().set(claimId(REAL_SPEND_ID), { userId: TEST_USER_ID, requestId: "paid-req-1" });
+    const response = await handlePigCoinRefund(spend(), auth, {});
+    expect(response.status).toBe(409);
+    await expect(response.json()).resolves.toMatchObject({
+      code: "REFUND_NOT_ELIGIBLE",
+      message: "이미 전달된 결제는 자동 환불할 수 없습니다. 고객센터로 문의해 주세요.",
+    });
+    expect(UserMock.findByIdAndUpdate).not.toHaveBeenCalled();
+    expect(userPoints).toBe(0);
+  });
+
+  test.each(["ServiceExecutionTransaction", "PaidExecutionRecord"])("전달 완료된 %s 가 있으면 409", async (model) => {
+    deliveryLookup[model] = mentionsSpend;
+    await expectRefused(await handlePigCoinRefund(spend(), auth, {}), 409, "REFUND_NOT_ELIGIBLE");
+  });
+
+  test("영구 해금(ContentEntitlement ACTIVE 또는 해금 키 차감 행)은 해지하지 않고 409", async () => {
+    deliveryLookup.ContentEntitlement = mentionsSpend;
+    await expectRefused(await handlePigCoinRefund(spend(), auth, {}), 409, "REFUND_NOT_ELIGIBLE");
+
+    deliveryLookup = {};
+    pointHistoryStore.push({ _id: "64f0a1b2c3d4e5f678900005", userId: TEST_USER_ID, kind: "deduct", delta: -30, featureKey: "love-code", createdAt: new Date() });
+    await expectRefused(await handlePigCoinRefund(
+      refundRequest({ cost: 30, featureKey: "love-code", sourceTransactionId: "64f0a1b2c3d4e5f678900005" }), auth, {},
+    ), 409, "REFUND_NOT_ELIGIBLE");
+  });
+
+  test("실패한 요청 자신의 claim(서버 라우트의 failedRequestId)만 남은 결제는 그대로 환불된다", async () => {
+    __billingEvidenceClaims().set(claimId(REAL_SPEND_ID), { userId: TEST_USER_ID, requestId: "failed-req-1" });
+    const response = await handlePigCoinRefund(spend(), auth, { failedRequestId: "failed-req-1" });
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({ refundedCoins: 30 });
+    expect(userPoints).toBe(30);
+  });
+
+  test("전달 근거 조회가 DB 오류면 503 이고 환불하지 않는다", async () => {
+    deliveryLookup.error = Object.assign(new Error("connection reset"), { name: "MongoNetworkError" });
+    await expectRefused(await handlePigCoinRefund(spend(), auth, {}), 503, "REFUND_VERIFY_UNAVAILABLE");
   });
 });

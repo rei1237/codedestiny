@@ -11,6 +11,8 @@
  *   ④ `requirePremiumReportAccess` 의 이용권 분기도 차감 없이 열었다.
  *   ⑤ 라우트가 본문의 결제·차감 ID 를 userId+featureKey 로만 대조해, 결제 1건으로 요청 키만 바꿔
  *      리포트를 몇 번이든 새로 열 수 있었다(billing-evidence-claim 으로 증빙 1건 = 요청 1건).
+ *   ⑥ 코인 자동 환불이 전달 여부를 보지 않아, 결과를 받은 뒤 환불을 불러 코인만 돌려받을 수 있었다
+ *      (coin-refund-eligibility.js 의 assertDeductionRefundable 을 적립 전에 거친다).
  * 고친 뒤에도 같은 모양이 다시 들어오면 막는다. 판정 규칙은 정본 함수에 있고, 이 가드는
  * "판정만 하고 정산을 안 거치는" 모양만 본다.
  *
@@ -125,6 +127,22 @@ export function checkSettleFunction(source) {
   return problems;
 }
 
+/** 코인 자동 환불은 잔액을 올리기 전에 전달 여부(assertDeductionRefundable)를 확인하고, 거절이면 바로 돌려준다. */
+export function checkRefundEligibility(source) {
+  const code = codeLines(source).map(({ line }) => line).join("\n");
+  const at = code.search(/async function handlePigCoinRefund\s*\(/);
+  if (at < 0) return ["handlePigCoinRefund 정의를 찾지 못했다"];
+  const next = code.slice(at + 1).search(/\n(?:async\s+)?function\s/);
+  const body = code.slice(at, next < 0 ? undefined : at + 1 + next);
+  const check = body.search(/\bawait\s+assertDeductionRefundable\s*\(/);
+  const credit = body.search(/\$inc\s*:\s*\{\s*points\b/);
+  const problems = [];
+  if (check < 0) problems.push("handlePigCoinRefund 가 assertDeductionRefundable 을 부르지 않는다 — 전달된 결제도 코인을 돌려준다");
+  else if (credit >= 0 && credit < check) problems.push("handlePigCoinRefund 가 assertDeductionRefundable 전에 잔액을 올린다");
+  else if (!/if\s*\(\s*!\s*\w+\.ok\s*\)\s*(?:return\b|\{[^\n]*\n(?:[^\n]*\n){0,3}?\s*return\b)/.test(body.slice(check))) problems.push("handlePigCoinRefund 가 환불 거절(ok:false)일 때 바로 return 하지 않는다");
+  return problems;
+}
+
 function selfTest() {
   const bad = new Map([
     ["worker/routes/a.js", "const user = requestBody?._userDoc || null;"],
@@ -146,6 +164,8 @@ function selfTest() {
   const goodClaims = new Map([["worker/routes/h.js", "return { claimEvidenceIds: [id] };\nconst claim = await claimRequestBillingEvidence(env, { evidenceIds });\nif (!claim.ok) return json(evidenceClaimErrorBody(claim), { status: claim.status });"]]);
   assert.deepEqual(findClaimViolations(goodClaims).violations, [], "자체 시험: 묶고 실패 시 돌려주는 호출은 통과해야 한다");
   assert.ok(checkPremiumPassSettlement("const passAccess = resolvePremiumPassReportAccess(user);\nif (passAccess.ok) return passAccess;").length > 0, "자체 시험: 정산 없는 이용권 허용을 잡아야 한다");
+  assert.ok(checkRefundEligibility("async function handlePigCoinRefund(request, auth) {\n  await User.findByIdAndUpdate(id, { $inc: { points: 30 } });\n}").length > 0, "자체 시험: 전달 확인 없는 환불을 잡아야 한다");
+  assert.deepEqual(checkRefundEligibility("async function handlePigCoinRefund(request, auth) {\n  const e = await assertDeductionRefundable(env, {});\n  if (!e.ok) {\n    return json(e, { status: e.status });\n  }\n  await User.findByIdAndUpdate(id, { $inc: { points: 30 } });\n}"), [], "자체 시험: 확인 뒤 적립하는 환불은 통과해야 한다");
   console.log("[verify-paid-access-integrity] self-test OK");
 }
 
@@ -163,11 +183,12 @@ function main() {
   assert.ok(claimCheck.claimCallers.length >= 10, `claimRequestBillingEvidence 호출 파일을 ${claimCheck.claimCallers.length}개밖에 못 찾았다 — 이름이 바뀌었으면 이 가드도 따라가야 한다`);
   violations.push(...checkPremiumPassSettlement(read("worker/lib/access-control.js")).map((item) => `worker/lib/access-control.js ${item}`));
   violations.push(...checkSettleFunction(read("worker/lib/nakshatra-paid-access.js")).map((item) => `worker/lib/nakshatra-paid-access.js ${item}`));
+  violations.push(...checkRefundEligibility(read("worker/routes/fortune.js")).map((item) => `worker/routes/fortune.js ${item}`));
   if (violations.length) {
     console.error(`[verify-paid-access-integrity] FAIL ${violations.length}건\n  - ${violations.join("\n  - ")}`);
     process.exit(1);
   }
-  console.log(`[verify-paid-access-integrity] OK — worker ${files.size}개 파일 · 판정 호출 ${readOnlyCallers.length}곳(정산 ${readOnlyCallers.length - READ_ONLY_ALLOWED.size} · 비결제 용도 ${READ_ONLY_ALLOWED.size}) · 증빙 claim ${claimCheck.claimCallers.length}곳 · 이용권 리포트 정산 · 공용 정산 함수`);
+  console.log(`[verify-paid-access-integrity] OK — worker ${files.size}개 파일 · 판정 호출 ${readOnlyCallers.length}곳(정산 ${readOnlyCallers.length - READ_ONLY_ALLOWED.size} · 비결제 용도 ${READ_ONLY_ALLOWED.size}) · 증빙 claim ${claimCheck.claimCallers.length}곳 · 이용권 리포트 정산 · 공용 정산 함수 · 환불 전달 확인`);
 }
 
 main();

@@ -5998,7 +5998,7 @@ async function handleLegacyRefund(request, env) {
   }
 
   if (!delegatedResponse.ok) {
-    const mapped = mapCoinGateFailure(delegatedResponse.status, payload);
+    const mapped = /^REFUND_(?:NOT_ELIGIBLE|VERIFY_UNAVAILABLE)$/.test(String(payload?.code || "")) ? { status: delegatedResponse.status, code: payload.code, message: String(payload.message || "") } : mapCoinGateFailure(delegatedResponse.status, payload); // 전달 완료 409·확인 불가 503 은 접지 않는다(409→400·503→500 방지)
     return failure(mapped.status, mapped.code, mapped.message, mapped.debugMessage);
   }
 

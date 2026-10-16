@@ -124,6 +124,7 @@ import { calculateKrwAmountFromCoins, calculateMembershipCreditCost } from "../l
 import { autoRefundSinglePaymentDeliveryFailure } from "../lib/payment-refund.js";
 import { EDGE_RESPONSE_DEADLINE_MS, clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 import { claimRequestBillingEvidence, evidenceClaimErrorBody } from "../lib/billing-evidence-claim.js";
+import { assertDeductionRefundable } from "../lib/coin-refund-eligibility.js";
 
 const PIG_COIN_DEFAULT_UNLOCK_COST = 10;
 const PIG_COIN_MAX_COST = 100000;
@@ -3251,7 +3252,8 @@ function buildPigCoinRefundDeductQueries({ userId, cost, featureKey, sourceTrans
   };
 }
 
-async function handlePigCoinRefund(request, auth) {
+// options.failedRequestId 는 서버 라우트만 넘긴다(자기 실패 요청이 잡은 증빙 claim 만 제외). 본문 값으로 받지 않는다.
+async function handlePigCoinRefund(request, auth, options = {}) {
   const body = await readJson(request);
   const requestedCost = Number(body?.cost);
   const cost = Number.isFinite(requestedCost) && requestedCost > 0
@@ -3351,6 +3353,19 @@ async function handlePigCoinRefund(request, auth) {
       refundTransactionId: String(alreadyRefunded._id || ""),
       user: userPayload(auth, Number(user?.points || 0)),
     });
+  }
+
+  // 🔴 전달·해금이 끝난 결제는 자동 환불하지 않는다 — 결과를 받은 뒤 환불을 불러 코인만 돌려받는 구멍
+  //    (coin-refund-eligibility.js). 해금은 해지하지 않고 거절한다. 확인 실패는 503(코인 미지급).
+  const eligibility = await assertDeductionRefundable(options.env || {}, {
+    userId: auth.userId,
+    deduction: deducted,
+    failedRequestId: options.failedRequestId,
+    isPermanentUnlockKey: (key) => isPersistentUnlockFeatureKey(key) && !isBirthScopedUnlockFeatureKey(key),
+  });
+  if (!eligibility.ok) {
+    const { status, ...payload } = eligibility;
+    return json(payload, { status });
   }
 
   // 🔴 환불 금액의 정본은 클라이언트가 보낸 cost 가 아니라 실제 차감 행의 delta 다.
@@ -3983,7 +3998,7 @@ async function handleVedicPrashnaGenerate(request, auth, env) {
             reason: "Prashna prompt generation failed auto-refund",
           }),
         });
-        const refundResponse = await handlePigCoinRefund(refundRequest, auth);
+        const refundResponse = await handlePigCoinRefund(refundRequest, auth, { env, failedRequestId: requestId });
         refundOk = refundResponse.ok;
       } catch (refundError) {
         console.error("[fortune][vedic-prashna] refund failed:", refundError);
@@ -4517,7 +4532,7 @@ async function handleAstrologyAIPrompt(request, auth, env) {
             reason: "Astrology AI consultation generation failed auto-refund",
           }),
         });
-        const refundResponse = await handlePigCoinRefund(refundRequest, auth);
+        const refundResponse = await handlePigCoinRefund(refundRequest, auth, { env, failedRequestId: requestId });
         refundOk = Boolean(refundResponse?.ok);
       } catch (refundError) {
         console.error("[fortune][astrology-ai-prompt] refund failed:", refundError);
@@ -4682,7 +4697,7 @@ async function handleVedicAIPrompt(request, auth, env) {
             reason: "Vedic AI consultation generation failed auto-refund",
           }),
         });
-        const refundResponse = await handlePigCoinRefund(refundRequest, auth);
+        const refundResponse = await handlePigCoinRefund(refundRequest, auth, { env, failedRequestId: requestId });
         refundOk = Boolean(refundResponse?.ok);
       } catch (refundError) {
         console.error("[fortune][vedic-ai-prompt] refund failed:", refundError);
@@ -5175,7 +5190,7 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
             reason: "Saju AI prompt generation failed auto-refund",
           }),
         });
-        const refundResponse = await handlePigCoinRefund(refundRequest, auth);
+        const refundResponse = await handlePigCoinRefund(refundRequest, auth, { env, failedRequestId: requestId });
         pointRefund.refundOk = refundResponse.ok;
       } catch (refundError) {
         console.error("[fortune][saju-ai-prompt] point refund failed:", refundError);
@@ -5674,7 +5689,7 @@ async function handleZiweiAIPrompt(request, auth, env) {
             reason: "Ziwei AI consultation generation failed auto-refund",
           }),
         });
-        const refundResponse = await handlePigCoinRefund(refundRequest, auth);
+        const refundResponse = await handlePigCoinRefund(refundRequest, auth, { env, failedRequestId: requestId });
         refundOk = Boolean(refundResponse?.ok);
       } catch (refundError) {
         console.error("[fortune][ziwei-ai-prompt] refund failed:", refundError);
@@ -5929,7 +5944,7 @@ async function handleSukuyoAIPrompt(request, auth, env) {
             reason: "Sukuyo AI consultation generation failed auto-refund",
           }),
         });
-        const refundResponse = await handlePigCoinRefund(refundRequest, auth);
+        const refundResponse = await handlePigCoinRefund(refundRequest, auth, { env, failedRequestId: requestId });
         refundOk = Boolean(refundResponse?.ok);
       } catch (refundError) {
         console.error("[fortune][sukuyo-ai-prompt] refund failed:", refundError);
@@ -7113,7 +7128,7 @@ export async function handleFortuneRoutes(request, env, ctx = null) {
     await connectDb(env);
     trace.dbConnected = true;
 
-    if (method === "POST" && path === "/pig-coin/refund") return await handlePigCoinRefund(request, auth);
+    if (method === "POST" && path === "/pig-coin/refund") return await handlePigCoinRefund(request, auth, { env });
     if (method === "POST" && path === "/pig-coin/charge-simulate") return await handleChargeSimulate(request, env, auth);
     if (method === "POST" && path === "/pig-coin/profile-subscription/start-service") return await handleStartService(request, auth);
     if (method === "POST" && path === "/pig-coin/share-reward") return await handleShareReward(request, auth);
