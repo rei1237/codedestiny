@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: active
 updated: 2026-10-16
 next: "C단계(billing-evidence-claim: 증빙 1건 = 요청 1건) → D(브라우저 계산 리포트 서버 이전) → E → 정책 문서."
 ---
