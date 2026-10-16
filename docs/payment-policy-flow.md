@@ -96,6 +96,7 @@
 2. **이용권 허용 = 실제 차감.** 이용권·Family·라이선스·월구독 판정만으로는 회당 상품을 열지 않는다. `settlePerUseAccessDecision`(`worker/lib/nakshatra-paid-access.js`)이 정본 `verifyPerUsePayment`로 넘겨 이번 requestId로 차감한 뒤에만 연다.
 3. **유료 본문은 서버만 만든다.** 클라이언트가 보낸 사용자 문서·accessType·가격·플래그·localStorage(`unlockedFeatureMap`, `cd_verified_unlock_grants_v1`, access-store 캐시)는 권한 근거가 아니라 화면 힌트다. 브라우저에서 계산되는 유료 본문은 서버 엔드포인트로 옮기고 번들에서 뺀다(예: `/api/saju/section`). 남은 상품 목록은 인수인계 문서 D단계에 있다.
 
+- 코인 자동 환불(`/api/billing/refund` → `/api/fortune/pig-coin/refund`)은 전달되지 않은 결제만 돌려준다. 정본은 `worker/lib/coin-refund-eligibility.js`다. 풀리지 않은 증빙 claim, 완료·부분 전달 실행 기록, 영구 해금이 있으면 409 `REFUND_NOT_ELIGIBLE`(고객센터 안내)이고, 확인 실패는 503이다. 해금은 해지하지 않는다.
 - 장애는 결제 거절로 바꾸지 않는다. 저장소·DB 일시 장애는 503이고, 402는 증빙이 정말 없을 때만 낸다(결제한 사람의 전달이 최우선).
 - 화면 가격은 서버 정본(`worker/lib/paid-feature-registry.js`)과 같아야 한다. 서버는 featureKey로 정본 가격을 청구하고 클라이언트가 보낸 가격을 무시한다.
 - 가드: `verify:paid-access-integrity`(본문 `_userDoc` 읽기, `PER_USE_ENFORCE = false`, 차감 없는 이용권 허용, claim 없는 증빙 사용을 잡는다).
