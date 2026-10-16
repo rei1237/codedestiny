@@ -121,7 +121,8 @@ const SEP = "[.,\\u00a0\\u202f\\u2009 ]";
 const NUM = `\\d{1,3}(?:${SEP}\\d{3})+|\\d{4,}`;
 const SUFFIX_UNIT = "원|KRW|won|ウォン|韩元|韓元|वॉन";
 const PREFIX_UNIT = "₩|KRW";
-const MONEY = new RegExp(`(?:${NUM})\\s*(?:${SUFFIX_UNIT})|(?:${PREFIX_UNIT})\\s*(?:${NUM})`, "gi");
+// 🔴 접두 단위 앞이 영문·숫자·base64 문자면 단어가 아니다 — 인라인 이미지의 "…okRw3560…" 이 3,560원으로 잡혔다(2026-10-17 비밀의 집).
+const MONEY = new RegExp(`(?:${NUM})\\s*(?:${SUFFIX_UNIT})|(?<![A-Za-z0-9+/])(?:${PREFIX_UNIT})\\s*(?:${NUM})`, "gi");
 const MIN_AMOUNT = 1000; // 그 미만은 코인 수·개수 표기라 원화 금액이 아니다.
 
 // "3만원"·"5천원"·"5万ウォン" 처럼 자릿수 단위를 낀 표기를 숫자로 편다.
@@ -145,6 +146,8 @@ function amountsIn(raw) {
 // 추출기 self-test — 정규식이 죽어서 "미분류 0건"이 되는 것을 막는다.
 assert.deepStrictEqual(amountsIn("월 9,900원부터"), [9900], "추출기가 '9,900원' 을 못 잡습니다.");
 assert.deepStrictEqual(amountsIn("3만원 상당"), [30000], "추출기가 '3만원' 을 못 잡습니다.");
+assert.deepStrictEqual(amountsIn("Nxxo+kRw3560IM1Ct"), [], "추출기가 base64 조각 'kRw3560' 을 원화로 오인합니다.");
+assert.deepStrictEqual(amountsIn("가격 krw 3,560"), [3560], "추출기가 소문자 'krw 3,560' 을 못 잡습니다.");
 assert.deepStrictEqual(amountsIn("KRW 29,900 / month"), [29900], "추출기가 'KRW 29,900' 을 못 잡습니다.");
 assert.deepStrictEqual(amountsIn("5万ウォンの相談"), [50000], "추출기가 '5万ウォン' 을 못 잡습니다.");
 assert.deepStrictEqual(amountsIn("지원 1900~2100"), [], "추출기가 '지원 1900' 을 금액으로 오인합니다.");
