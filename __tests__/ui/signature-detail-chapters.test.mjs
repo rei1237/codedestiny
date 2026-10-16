@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
+import { JSDOM } from 'jsdom';
+import { renderCraftedDetail } from '../../js/feature-detail-panels.mjs';
 import { LOVE_SECRET_AI_GROUPS, LOVE_SPEAKER_BY_GROUP } from '../../worker/lib/love-secret-ai-prompt.js';
 import { __newYearAiTestUtils } from '../../worker/routes/new-year-ai.js';
 import { __lifeBookAiTestUtils } from '../../worker/routes/life-book-ai.js';
@@ -70,4 +72,65 @@ test('대표 상담 상세의 마스터는 master-profiles 에서 읽어 붙이�
   assert.throws(() => craftedMasters({ masters: ['nobodyLove'] }), /Unknown crafted master/);
   assert.throws(() => craftedMasters({ masters: ['master'] }), /Unknown crafted master/, '대표 상담 전용 프로필만 쓴다');
   assert.throws(() => craftedMasters({ masters: ['yeoniLove'], chapters: [{ title: 't', master: 'hanbiLove' }] }), /Chapter master/);
+});
+
+const craftedOf = slug => JSON.parse(fs.readFileSync(`public/feature-details/${slug}.json`, 'utf8')).crafted[0];
+const render = detail => JSDOM.fragment(renderCraftedDetail(detail, { eager: false })).querySelector('.craftedDetail');
+
+test('마스터 섹션은 목차 앞에 서고, 연애 비책은 두 마스터를 나란히 둔다', () => {
+  const love = render(craftedOf('love-secret-ai'));
+  assert.ok(love.firstElementChild.matches('.craftedMasters.craftedMastersPair'));
+  assert.equal(love.querySelector('.craftedMastersLead').textContent, '두 마스터가 부를 나눠 씁니다');
+  assert.deepEqual([...love.querySelectorAll('.craftedMaster strong')].map(node => node.textContent), ['연이', '서한비']);
+  for (const image of love.querySelectorAll('.craftedMaster img')) {
+    assert.deepEqual([image.getAttribute('width'), image.getAttribute('height'), image.getAttribute('loading'), image.getAttribute('alt')], ['128', '128', 'eager', '']);
+    assert.equal(image.hasAttribute('fetchpriority'), false, '아바타는 상세 그림의 LCP 자리를 뺏지 않는다');
+  }
+  const neo = render(craftedOf('new-year-ai'));
+  assert.equal(neo.querySelectorAll('.craftedMaster').length, 1);
+  assert.equal(neo.querySelector('.craftedMastersLead'), null);
+  assert.match(neo.querySelector('.craftedMasterPart').textContent, /여섯 장 전부/);
+});
+
+test('묶음 목차는 번호를 이어 가고, 28장 목록은 첫 묶음만 펼친 채 전부 글로 남긴다', () => {
+  const detail = craftedOf('love-secret-ai');
+  const love = render(detail);
+  const groups = [...love.querySelectorAll('.craftedChapterGroup')];
+  assert.deepEqual(groups.map(group => group.querySelector('.craftedChapterGroupTitle > span').textContent), LOVE_SECRET_AI_GROUPS.map(group => group.label));
+  assert.deepEqual(groups.map(group => group.querySelector('.craftedChapterMaster').textContent), LOVE_SECRET_AI_GROUPS.map(group => ({ yeoni: '연이', hanbi: '서한비' })[LOVE_SPEAKER_BY_GROUP[group.key]]));
+  let next = 1;
+  for (const group of groups) {
+    assert.equal(Number(group.querySelector('ol').getAttribute('start') || 1), next);
+    next += group.querySelectorAll('li').length;
+  }
+  assert.equal(next - 1, detail.chapters.length);
+  const more = love.querySelector('details.craftedChaptersMore');
+  assert.ok(more && !more.open && !more.contains(groups[0]) && groups.slice(1).every(group => more.contains(group)));
+  assert.equal(more.querySelector('summary').textContent, `나머지 ${detail.chapters.length - groups[0].querySelectorAll('li').length}개 장 펼쳐 보기`);
+  assert.deepEqual([...love.querySelectorAll('.craftedChapters li strong')].map(node => node.textContent), detail.chapters.map(chapter => chapter.title));
+  assert.equal(render(craftedOf('new-year-ai')).querySelector('.craftedChaptersMore'), null, '18장은 접지 않는다');
+});
+
+test('원본 manifest 의 마스터 키는 그리지 않고, 산출물 카드는 이스케이프해 목차 뒤에 둔다', () => {
+  const raw = render(JSON.parse(fs.readFileSync('public/feature-details/crafted/love-secret/manifest.json', 'utf8')));
+  assert.equal(raw.querySelector('.craftedMasters'), null);
+  assert.equal(raw.querySelector('.craftedChapterMaster'), null);
+  assert.ok(raw.querySelector('.craftedChaptersGrouped'));
+  const detail = render({ notice: '예시', chapters: [{ title: '첫 장', gain: '<b>얻는 것</b>' }], outcomes: [{ title: '<i>체크리스트</i>', text: '이번 주 할 일', evidence: 'x.tsx' }, { title: '빈 카드' }], panels: [{ title: 'p', text: 'p', src: '/p.webp' }] });
+  assert.ok(detail.querySelector('.craftedChapters + .craftedOutcomes'));
+  assert.equal(detail.querySelector('.craftedOutcomesTitle').textContent, '받고 나면 손에 남는 것');
+  assert.deepEqual([...detail.querySelectorAll('.craftedOutcomes strong')].map(node => node.textContent), ['<i>체크리스트</i>']);
+  assert.equal(detail.querySelector('.craftedChapters li > span').textContent, '<b>얻는 것</b>');
+  assert.equal(detail.querySelector('b, i'), null);
+});
+
+test('새 섹션 스타일은 아바타 크기를 고정하고 움직임·토큰 재선언·이미지 자르기를 쓰지 않는다', () => {
+  const popup = fs.readFileSync('styles/feature-visual-detail.css', 'utf8');
+  const page = fs.readFileSync('app/components/crafted-product-detail.module.css', 'utf8');
+  for (const [name, css] of [['popup', popup], ['page', page]]) {
+    const rules = css.split(/\r?\n/).filter(line => /craftedMaster|craftedChapterGroup|craftedChapterMaster|craftedChaptersGrouped|craftedChaptersMore|craftedOutcomes/.test(line));
+    assert.ok(rules.some(rule => /craftedMaster img\s*\)?\s*\{[^}]*width:\s*72px;\s*height:\s*72px/.test(rule)), `${name}: 아바타 72px`);
+    assert.ok(rules.some(rule => /craftedChapterMaster img\s*\)?\s*\{[^}]*width:\s*24px;\s*height:\s*24px/.test(rule)), `${name}: 칩 24px`);
+    assert.ok(rules.every(rule => !/aspect-ratio|object-fit|animation|transition|--cd-[\w-]+\s*:/.test(rule)), `${name}: 금지 속성`);
+  }
 });

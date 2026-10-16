@@ -114,6 +114,34 @@ html.neo-mode,body.neo-mode,html[data-cd-theme="neo"]{--fd-paper:#0d1325;--fd-ra
 .featureVisualDetail[data-crafted-introduction] .craftedChapters li:before{content:counter(chapter,decimal-leading-zero);grid-row:span 2;align-self:start;display:grid;place-items:center;width:1.75rem;height:1.75rem;border:1px solid var(--fd-ring);border-radius:50%;color:var(--fortune-gold);font:600 .72rem/1 var(--font-serif,Georgia,serif);font-variant-numeric:tabular-nums}
 .featureVisualDetail[data-crafted-introduction] .craftedChapters strong{font-size:16px;line-height:1.55;word-break:keep-all}
 .featureVisualDetail[data-crafted-introduction] .craftedChapters li>span{grid-column:2;color:var(--fortune-muted);font-size:14px;line-height:1.7;word-break:keep-all}
+/* 대표 상담 마스터·묶음 목차·산출물 — 새 필드가 있는 상품만 이 마크업을 받는다. 아바타는 128px 원본을 작게 그려 선명하게 둔다. */
+.featureVisualDetail[data-crafted-introduction] .craftedMasters{container-type:inline-size;margin:0 16px 20px}
+.featureVisualDetail[data-crafted-introduction] .craftedMasters .craftedMastersLead{margin:0 0 10px;color:var(--fortune-quiet);font-size:14px;line-height:1.6}
+.featureVisualDetail[data-crafted-introduction] .craftedMasters ul{display:grid;gap:12px;margin:0;padding:0;list-style:none}
+.featureVisualDetail[data-crafted-introduction] .craftedMaster{display:grid;grid-template-columns:72px minmax(0,1fr);gap:14px;align-items:start;padding:16px;border:1px solid var(--fortune-line);border-radius:16px;background:var(--fortune-raised)}
+.featureVisualDetail[data-crafted-introduction] .craftedMaster img{width:72px;height:72px;border-radius:50%}
+.featureVisualDetail[data-crafted-introduction] .craftedMaster p{margin:0}
+.featureVisualDetail[data-crafted-introduction] .craftedMaster .craftedMasterEpithet{color:var(--fortune-gold);font:700 12px/1.5 var(--font-body,system-ui);letter-spacing:.08em}
+.featureVisualDetail[data-crafted-introduction] .craftedMaster .craftedMasterName{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;margin-top:2px}
+.featureVisualDetail[data-crafted-introduction] .craftedMaster .craftedMasterName strong{font:700 1.2rem/1.45 var(--font-serif,Georgia,serif)}
+.featureVisualDetail[data-crafted-introduction] .craftedMaster .craftedMasterName span{color:var(--fortune-muted);font-size:14px;line-height:1.6;word-break:keep-all}
+.featureVisualDetail[data-crafted-introduction] .craftedMaster blockquote{margin:10px 0 0;padding-left:12px;border-left:2px solid var(--fd-ring);color:var(--fortune-ink);font:500 15px/1.75 var(--font-serif,Georgia,serif);word-break:keep-all}
+.featureVisualDetail[data-crafted-introduction] .craftedMaster .craftedMasterPart{margin-top:10px;color:var(--fortune-muted);font-size:14px;line-height:1.7;word-break:keep-all}
+.featureVisualDetail[data-crafted-introduction] .craftedMaster .craftedMasterPart span{display:block;color:var(--fortune-gold);font-weight:700;font-size:12px;letter-spacing:.04em}
+@container (min-width:500px){.featureVisualDetail[data-crafted-introduction] .craftedMastersPair ul{grid-template-columns:repeat(2,minmax(0,1fr))}.featureVisualDetail[data-crafted-introduction] .craftedMastersPair .craftedMaster{grid-template-columns:minmax(0,1fr)}}
+.featureVisualDetail[data-crafted-introduction] .craftedChaptersGrouped{counter-reset:chapter}
+.featureVisualDetail[data-crafted-introduction] .craftedChaptersGrouped ol{counter-reset:none}
+.featureVisualDetail[data-crafted-introduction] .craftedChapterGroupTitle{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 10px;margin:8px 0 0;padding-top:14px;border-top:1px solid var(--fd-line-soft);color:var(--fortune-gold);font:700 13px/1.5 var(--font-body,system-ui);letter-spacing:.02em;word-break:keep-all}
+.featureVisualDetail[data-crafted-introduction] .craftedChaptersTitle+.craftedChapterGroup .craftedChapterGroupTitle{margin-top:0;padding-top:4px;border-top:0}
+.featureVisualDetail[data-crafted-introduction] .craftedChapterMaster{display:inline-flex;align-items:center;gap:6px;padding:2px 10px 2px 2px;border:1px solid var(--fortune-line);border-radius:999px;color:var(--fortune-ink);font:600 12px/1.5 var(--font-body,system-ui);letter-spacing:0}
+.featureVisualDetail[data-crafted-introduction] .craftedChapterMaster img{width:24px;height:24px;border-radius:50%}
+.featureVisualDetail[data-crafted-introduction] .craftedChaptersMore>summary{display:flex;align-items:center;min-height:44px;padding:10px 0;border-top:1px solid var(--fd-line-soft);cursor:pointer;color:var(--fortune-gold);font:700 15px/1.5 var(--font-body,system-ui)}
+.featureVisualDetail[data-crafted-introduction] .craftedOutcomes{margin:0 16px 20px}
+.featureVisualDetail[data-crafted-introduction] .craftedOutcomes .craftedOutcomesTitle{margin:0 0 10px;color:var(--fortune-ink);font:700 15px/1.5 var(--font-body,system-ui)}
+.featureVisualDetail[data-crafted-introduction] .craftedOutcomes ul{display:grid;gap:10px;margin:0;padding:0;list-style:none}
+.featureVisualDetail[data-crafted-introduction] .craftedOutcomes li{padding:14px 16px;border:1px solid var(--fortune-line);border-radius:14px;background:var(--fortune-raised)}
+.featureVisualDetail[data-crafted-introduction] .craftedOutcomes strong{display:block;font:700 1.02rem/1.55 var(--font-serif,Georgia,serif);word-break:keep-all}
+.featureVisualDetail[data-crafted-introduction] .craftedOutcomes li p{margin:4px 0 0;color:var(--fortune-muted);font-size:15px;line-height:1.7}
 .fortuneStory>img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;border-radius:var(--cd-r-card,20px)}
 .fortuneStory>div{padding:22px 0 0}
 .fortuneFounder a{display:block;min-height:44px;padding:12px 0;color:var(--fortune-ink);font-weight:600;text-decoration:underline;text-decoration-color:var(--fd-ring);text-underline-offset:4px}
