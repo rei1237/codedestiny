@@ -258,6 +258,11 @@ vars.customerReviews = leadReviews.length ? `<p id="cdhReviewsTitle" class="cdh-
 vars.expertiseFacts = EXPERTISE_FACTS.map(fact => `<li data-cd-trans="home.funnelCopy.expertise.${fact.key}">${escapeHtml(fact.ko)}</li>`).join('');
 const template = readFileSync('templates/home-funnel.html', 'utf8');
 vars.neoEmailConsultation = renderNeoEmailHomeEntry();
+// "다른 재밌는 운세" 안의 블록은 그 h2 아래에 있다 — 기존 섹션의 제목 수준만 내린다(다시 빌드해도 같은 결과).
+const demoteHeading = (html, id, tag) => html.replace(new RegExp(`<h[2-4]( [^>]*id="${id}"[^>]*)>(.*?)</h[2-4]>`, 's'), `<${tag}$1>$2</${tag}>`);
+vars.concern = demoteHeading(vars.concern, 'cdConcernPickTitle', 'h3');
+vars.today = demoteHeading(vars.today, 'cdTodayHubTitle', 'h4');
+vars.neoEmailConsultation = demoteHeading(vars.neoEmailConsultation, 'cdhNeoLetterTitle', 'h4');
 let homeHtml = template.replace(/\{\{(\w+)\}\}/g, (_token, key) => {
   if (!(key in vars)) throw new Error(`Unknown home funnel template token: ${key}`);
   return vars[key];

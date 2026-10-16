@@ -169,7 +169,10 @@ test('홈은 기존 인간형 네오와 서버 가격을 쓰며 판매 준비 �
   assert.match(html,/질문 작성하기/);
   assert.doesNotMatch(html,/BLUE MOON/);
   const template=readFileSync(new URL('../../templates/home-funnel.html',import.meta.url),'utf8');
-  assert.ok(template.indexOf('{{neoEmailConsultation}}')<template.indexOf('id="cdhFeatured"'));
+  // 네오 편지는 대표 상담 덱 뒤, "다른 재밌는 운세"의 더 깊이 묶음 안에 둔다.
+  assert.ok(template.indexOf('id="cdhFeatured"')<template.indexOf('id="cdhOtherFortunes"'));
+  assert.ok(template.indexOf('id="cdhOtherFortunes"')<template.indexOf('{{neoEmailConsultation}}'));
+  assert.ok(template.indexOf('{{neoEmailConsultation}}')<template.indexOf('class="cdh-pass-block"'));
 });
 
 test('동시에 결제 준비를 요청해도 같은 견적의 결제는 한 건이며 재시도로 복구한다', async () => {

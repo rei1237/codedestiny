@@ -73,5 +73,13 @@ for (const entry of [
 console.log("[home-direct-feature-links] PASS");
 
 assert.ok(template.indexOf('id="cdhFeatured"') < template.indexOf('id="cdhMore"'), 'signature readings are visible before optional exploration');
+// 강약: 대표 상담 덱이 먼저, 나머지 입구는 모두 "다른 재밌는 운세" 한 섹션 안에 모은다.
+const otherStart = template.indexOf('id="cdhOtherFortunes"');
+const otherEnd = template.indexOf('class="cdh-pass-block"');
+assert.ok(template.indexOf('id="cdhFeatured"') < otherStart && otherStart < otherEnd, 'signature deck precedes other fortunes');
+for (const marker of ['id="cdhQuickSlot"', 'id="cdhServices"', 'id="cdhConcern"', 'id="cdhTodaySlot"', 'id="cdhFlowerTitle"', 'data-cdh-chemi', '{{fusionRecommendation}}']) {
+  const at = template.indexOf(marker);
+  assert.ok(at > otherStart && at < otherEnd, `${marker} belongs to other fortunes`);
+}
 
 assert.doesNotMatch(template, /\{\{lightRecommendations\}\}/, "the complete fortune chooser replaces the incomplete shortcut group");

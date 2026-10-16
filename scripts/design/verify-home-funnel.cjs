@@ -75,7 +75,9 @@ async function assertEssentials(page, label) {
       await page.waitForTimeout(250);
       // 여섯 운세 체계·고민별 입구·검색은 첫 화면에서 바로 쓰고, 보조 콘텐츠만 요청할 때 연다.
       await assertEssentials(page, `${width}px first visit`);
-      assert.ok(await page.evaluate(() => Boolean(document.getElementById('cdhAllFortunes').compareDocumentPosition(document.getElementById('cdSignatureConsult')) & Node.DOCUMENT_POSITION_FOLLOWING)), 'chooser precedes signature in DOM');
+      // 강약: 대표 상담 덱이 먼저, 고민·방식·오늘 입구는 "다른 재밌는 운세" 한 섹션 안에 있다.
+      assert.ok(await page.evaluate(() => Boolean(document.getElementById('cdSignatureConsult').compareDocumentPosition(document.getElementById('cdhOtherFortunes')) & Node.DOCUMENT_POSITION_FOLLOWING)), 'signature precedes other fortunes in DOM');
+      assert.ok(await page.evaluate(() => ['cdhAllFortunes', 'cdConcernPick', 'cdTodayHub'].every((id) => document.getElementById('cdhOtherFortunes').contains(document.getElementById(id)))), 'choosers live inside other fortunes');
       assert.equal(await page.locator('.cdh-moonstone-guide').count(), 1, 'one moonstone card');
       assert.equal(await page.locator('#cdhSignupBenefit').count(), 1, 'one signup offer');
       // 대표 상담 덱: 1024 미만은 가로 한 줄 scroll-snap(카드 6장), 이상은 3열 두 줄. 카드는 2:3 이상으로 세로가 길다.
@@ -85,9 +87,27 @@ async function assertEssentials(page, label) {
       assert.ok(grid.ratio >= 1.49, `${width}px deck card keeps a tarot (2:3) silhouette (${grid.ratio.toFixed(2)})`);
       const methods = await page.locator('.cdh-methods-grid').first().evaluate(node => getComputedStyle(node).gridTemplateColumns.split(' ').length);
       assert.equal(methods, width <= 640 ? 3 : 6, 'six systems in compact rows');
-      const chooserBox = await page.locator('#cdhAllFortunes').boundingBox();
+      const otherBox = await page.locator('#cdhOtherFortunes').boundingBox();
       const signatureBox = await page.locator('#cdSignatureConsult').boundingBox();
-      assert.ok(chooserBox.y + chooserBox.height <= signatureBox.y, 'chooser visually precedes signature');
+      assert.ok(signatureBox.y + signatureBox.height <= otherBox.y, 'signature visually precedes other fortunes');
+      // 채움 CTA = 배경과 대비 1.5 이상인 불투명 채움이나 그라디언트를 가진 버튼 크기(72px 이하) 요소.
+      const fills = await page.evaluate(() => {
+        const parse = (c) => { const n = (c.match(/-?[0-9.]+/g) || []).map(Number); if (n.length < 3) return { r: 0, g: 0, b: 0, a: 0 }; const k = c.startsWith('color(') ? 255 : 1; return { r: n[0] * k, g: n[1] * k, b: n[2] * k, a: n.length > 3 ? n[3] : 1 }; };
+        const lum = ({ r, g, b }) => [r, g, b].map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }).reduce((sum, v, i) => sum + v * [0.2126, 0.7152, 0.0722][i], 0);
+        const backdrop = (node) => { for (let el = node; el; el = el.parentElement) { const c = parse(getComputedStyle(el).backgroundColor); if (c.a >= 0.5) return c; } return { r: 255, g: 255, b: 255, a: 1 }; };
+        const filled = (el) => { const cs = getComputedStyle(el); if (/gradient/.test(cs.backgroundImage)) return true; const c = parse(cs.backgroundColor); if (c.a < 0.5) return false; const [hi, lo] = [lum(c), lum(backdrop(el.parentElement))].sort((x, y) => y - x); return (hi + 0.05) / (lo + 0.05) >= 1.5; };
+        // 상단 바·고정 유틸리티(언어 선택 등)는 콘텐츠 CTA가 아니다.
+        const fixedAncestor = (node) => { if (node.closest('.cdh-top')) return true; for (let el = node; el; el = el.parentElement) { if (/fixed|sticky/.test(getComputedStyle(el).position)) return true; } return false; };
+        const ctas = (root) => [...root.querySelectorAll('a,button')].filter((el) => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 && r.height <= 72 && getComputedStyle(el).visibility !== 'hidden' && !fixedAncestor(el); });
+        const label = (el) => el.className || el.textContent.trim().slice(0, 20);
+        return {
+          other: ctas(document.getElementById('cdhOtherFortunes')).filter(filled).map(label),
+          firstViewport: ctas(document.getElementById('cdHomeFunnel')).filter((el) => { const r = el.getBoundingClientRect(); return r.top + scrollY < innerHeight && r.bottom + scrollY > 0; }).filter(filled).map(label),
+        };
+      });
+      assert.deepEqual(fills.other, [], `${width}px other fortunes carry no filled CTA`);
+      assert.equal(fills.firstViewport.length, 1, `${width}px first viewport has one filled CTA (${fills.firstViewport.join(', ')})`);
+      assert.match(fills.firstViewport[0], /cdh-primary/, `${width}px the one fill is the hero brand CTA`);
       await page.evaluate(() => { localStorage.removeItem('cd_signup_benefit_exit_hide_until_v1'); document.getElementById('authQuickLinks').dataset.authState = 'guest'; });
       await page.waitForFunction(() => !document.getElementById('cdhSignupBenefit').hidden);
       assert.ok(await page.locator('#cdhSignupBenefit a').isVisible(), 'guest sees signup CTA');

@@ -22,9 +22,9 @@ for (const channel of ['chrome', 'msedge']) {
       await page.evaluate(() => document.fonts.ready);
       const main = page.locator('#cdHomeFunnel');
       assert.equal(await main.locator('.cdh-primary').getAttribute('href'), '#cdSignatureConsult');
-      assert.equal(await main.locator('.cdh-light a').count(), 4);
+      assert.equal(await main.locator('.cdh-scene-link').getAttribute('href'), '#cdhOtherFortunes');
       assert.equal(await main.locator('#cdhMore').evaluate(e => e.open), false);
-      const order = await page.evaluate(() => ['cdSignatureConsult','cdFusionRecommendation','cdhMvTitle','cd-soulcat-title','cdhLightTitle','cdhPass'].map(id => document.getElementById(id).getBoundingClientRect().top + scrollY));
+      const order = await page.evaluate(() => ['cdSignatureConsult','cdhOtherFortunes','cdFusionRecommendation','cd-soulcat-title','cdhPass','cdhMvTitle'].map(id => document.getElementById(id).getBoundingClientRect().top + scrollY));
       assert(order.every((top,i) => i===0 || top>order[i-1]), JSON.stringify(order));
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
       assert(overflow <= 0, 'home overflow: '+width+' / '+overflow);
@@ -32,7 +32,7 @@ for (const channel of ['chrome', 'msedge']) {
       await page.locator('#cdFusionRecommendation').scrollIntoViewIfNeeded();
       await page.screenshot({ path: output + '/' + channel + '-recommendation-' + width + '.png' });
       await page.evaluate(() => { location.hash = 'cdFinder'; });
-      await page.waitForFunction(() => document.getElementById('cdhMore').open);
+      await page.locator('#fortuneGatewaySearch').waitFor({ state: 'visible' });
       await page.locator('#fortuneGatewaySearch').fill('타로');
       await page.screenshot({ path: output + '/' + channel + '-search-' + width + '.png' });
       // Auth presentation contract: pending hides benefits; confirmed guest sees
