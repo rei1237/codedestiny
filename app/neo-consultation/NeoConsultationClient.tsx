@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { LazyMotion, domAnimation, m, useReducedMotion } from "framer-motion";
 import { useAuthStore } from "@/app/_lib/auth-store";
 import { NEO_EMAIL_PORTRAIT, NEO_EMAIL_SALE_ENABLED, NEO_LIMITS, NEO_STATUS_LABELS, hasMultipleQuestions, neoMoney, neoTotal, neoUnitPrice, validateNeoInput } from "@/lib/neo-consultation/contract";
@@ -31,6 +32,7 @@ export default function NeoConsultationClient() {
   const [correction, setCorrection] = useState<Record<string,string>>({});
   const [mock, setMock] = useState(false);
   const heading = useRef<HTMLHeadingElement>(null);
+  const inFlight = useRef(false);
   useEffect(() => {
     // 로컬 테스트 서버의 별도 endpoint만 인식. 운영 URL·query·env로 켤 수 없다.
     if (!["localhost","127.0.0.1"].includes(location.hostname)) return;
@@ -43,16 +45,27 @@ export default function NeoConsultationClient() {
   useEffect(() => {
     if (!canSubmit || !signedIn) return;
     let active = true;
-    const id = new URLSearchParams(location.search).get("order");
-    if (id && /^[a-zA-Z0-9-]{1,80}$/.test(id)) {
-      neoCall("/" + id).then(data => { if (active) { setOrder(data.order); setStep(2); } }).catch(e => { if (active) setError(e.message); });
-    }
-    return () => { active = false; };
+    let latest = 0;
+    const refresh = () => {
+      if (document.visibilityState === "hidden") return;
+      const id = new URLSearchParams(location.search).get("order");
+      const request = ++latest;
+      if (id && /^[a-zA-Z0-9-]{1,80}$/.test(id)) {
+        neoCall("/" + id).then(data => { if (active && request === latest) { setOrder(data.order); setStep(2); } }).catch(e => { if (active && request === latest) setError(e.message); });
+      }
+    };
+    refresh();
+    window.addEventListener("pageshow", refresh);
+    window.addEventListener("popstate", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    return () => { active = false; window.removeEventListener("pageshow", refresh); window.removeEventListener("popstate", refresh); document.removeEventListener("visibilitychange", refresh); };
   }, [canSubmit, signedIn, ownerKey]);
   const input = (): NeoInput => ({ questions, context, email, consent, birth: date ? { date, calendar, leapMonth, timeUnknown, time: timeUnknown ? null : time } : null });
   const run = async (task: () => Promise<void>) => {
+    if (inFlight.current) return;
+    inFlight.current = true;
     setBusy(true); setError("");
-    try { await task(); } catch (e) { setError(e instanceof Error ? e.message : "잠시 후 다시 시도해 주세요."); } finally { setBusy(false); }
+    try { await task(); } catch (e) { setError(e instanceof Error ? e.message : "잠시 후 다시 시도해 주세요."); } finally { inFlight.current = false; setBusy(false); }
   };
   const next = () => {
     setError("");
@@ -86,6 +99,8 @@ export default function NeoConsultationClient() {
   const resume = () => run(async () => {
     if (!order) return;
     let current = (await neoCall("/" + order.id)).order;
+    setOrder(current);
+    if (!["draft","preparing","pending"].includes(current.state)) return;
     if (!current.quote) current = (await neoCall("/" + current.id + "/quote", { version: current.version })).order;
     current = (await neoCall("/" + current.id + "/prepare", { quoteId: current.quote!.id })).order;
     setOrder(current);
@@ -99,6 +114,7 @@ export default function NeoConsultationClient() {
   return <LazyMotion features={domAnimation}><main className={styles.page}>
     <nav className={styles.nav}><Link href="/">Code Destiny</Link><a href="#neo-form">질문 작성하기</a></nav>
     <header className={styles.hero}>
+      <picture className={styles.heroArt} aria-hidden="true"><source media="(max-width:760px)" srcSet="/images/neo-consultation/moonlight-garden-768.webp" /><Image src="/images/neo-consultation/moonlight-garden-1536.webp" width={1536} height={1024} alt="" priority /></picture>
       <m.div className={styles.heroCopy} initial={{ y: reducedMotion ? 0 : 16 }} animate={{ y: 0 }} transition={{ duration: .85, ease: [.16,1,.3,1] }}>
         <h1>네오에게<br /><span>물어봐</span></h1>
         <p className={styles.lead}>마음은 깊게 읽고,<br />선택은 선명하게.</p>
@@ -107,9 +123,8 @@ export default function NeoConsultationClient() {
         <p className={styles.notice}>{mock ? "MOCK 미리보기 · 실제 결제와 이메일 발송이 없습니다." : "판매 준비 중 · 질문 작성 화면을 먼저 살펴보세요."}</p>
       </m.div>
       <m.figure className={styles.portrait} initial={{ y: reducedMotion ? 0 : 24 }} animate={{ y: 0 }} transition={{ duration: 1.1, ease: [.16,1,.3,1] }}>
-        <svg className={styles.blueMoon} viewBox="0 0 360 360" aria-hidden="true"><defs><radialGradient id="neo-blue-moon"><stop stopColor="#dceeff" /><stop offset=".65" stopColor="#93b9e0" /><stop offset="1" stopColor="#365c89" /></radialGradient></defs><circle cx="180" cy="180" r="145" fill="url(#neo-blue-moon)" /><g fill="#446c99" opacity=".2"><ellipse cx="137" cy="122" rx="38" ry="26" /><ellipse cx="210" cy="218" rx="48" ry="41" /><circle cx="245" cy="113" r="24" /><circle cx="117" cy="232" r="18" /></g><circle cx="180" cy="180" r="166" fill="none" stroke="#8baacb" strokeWidth=".6" /></svg>
-        <div className={styles.portraitFrame}><img src={NEO_EMAIL_PORTRAIT} width={600} height={720} alt="은빛 머리와 푸른 눈의 인간형 네오 캐릭터" fetchPriority="high" /></div>
-        <figcaption><span>BLUE MOON</span><p>고민을 읽는 깊이,<br />다음 한 걸음의 명료함.</p><small>네오를 표현한 캐릭터 일러스트</small></figcaption>
+        <div className={styles.portraitFrame}><Image src={NEO_EMAIL_PORTRAIT} width={600} height={720} alt="은빛 머리와 푸른 눈의 인간형 네오 캐릭터" priority /></div>
+        <figcaption><p>고민을 읽는 깊이,<br />다음 한 걸음의 명료함.</p><small>네오를 표현한 캐릭터 일러스트</small></figcaption>
       </m.figure>
     </header>
     <div className={styles.serviceLine}><p>질문 하나에 집중하는 상담</p><p>네오 직접 검수</p><p>질문당 {neoMoney(neoUnitPrice())} · 이메일 답변</p></div>
@@ -121,7 +136,7 @@ export default function NeoConsultationClient() {
     </section>
     <section className={styles.formSection} id="neo-form" aria-labelledby="neo-form-title">
       <div className={styles.formIntro}><h2 id="neo-form-title" ref={heading} tabIndex={-1}>{["질문을 하나씩 적어 주세요","답변받을 정보를 알려 주세요","질문과 금액을 확인해 주세요"][step]}</h2><p>질문 1개 {neoMoney(neoUnitPrice())} · 단건 결제<br />한 가지 선택이나 고민을 질문 하나에 담아 주세요.</p><ol className={styles.steps}>{["질문 작성","정보 입력","최종 확인"].map((s,i) => <li key={s} aria-current={step === i ? "step" : undefined}>{s}</li>)}</ol></div>
-      <div className={styles.form}>
+      <div className={styles.form} aria-busy={busy}>
         {error && <p className={styles.error} role="alert">{error}</p>}
         {!order && <>
           {step === 0 && <>
@@ -150,15 +165,17 @@ export default function NeoConsultationClient() {
           </>}
           {step === 2 && <><ol className={styles.summary}>{questions.map((q,i) => <li key={i}><p>{q}</p><span>{neoMoney(neoUnitPrice())}</span></li>)}</ol><p>회신 이메일: {email}</p><p>네오가 직접 검수한 질문별 답변을 한 통의 이메일로 전합니다.</p><p className={styles.small}>한 질문에 여러 독립 질문이 포함되면 정정을 요청할 수 있습니다. 추가 과금은 자동으로 진행하지 않습니다.</p></>}
           <div className={styles.total} aria-live="polite"><span>질문 {questions.length}개</span><strong>{neoMoney(neoTotal(questions.length))}</strong></div>
-          <div className={styles.actions}>{step > 0 && <button className={styles.secondary} onClick={() => setStep(step-1)}>이전</button>}{step < 2 ? <button className={styles.primary} onClick={next}>다음</button> : <button className={styles.primary} disabled={busy || !canSubmit || !signedIn} onClick={prepare}>{busy ? "주문 확인 중" : mock ? "모의 결제로 상담 신청하기" : "판매 준비 중"}</button>}</div>
+          <div className={styles.actions}>{step > 0 && <button className={styles.secondary} disabled={busy} onClick={() => setStep(step-1)}>이전</button>}{step < 2 ? <button className={styles.primary} onClick={next}>다음</button> : <button className={styles.primary} disabled={busy || !canSubmit || !signedIn} onClick={prepare}>{busy ? "주문 확인 중" : mock ? "모의 결제로 상담 신청하기" : "판매 준비 중"}</button>}</div>
           {!signedIn && step === 2 && <p>상담 신청에는 로그인이 필요합니다.</p>}
         </>}
         {order && <><h3>{statusLabel(order.state)}</h3><p>주문번호 {order.id}</p><p>질문 {order.questions.length}개 · {neoMoney(order.quote?.totalKRW || neoTotal(order.questions.length))}</p>
           {order.payment?.status === "paid" && ["retry","unknown"].includes(order.deliveryStatus?.receipt || "") && <p role="status">결제는 완료됐어요. 접수 메일 전달을 확인하고 있어요. 다시 결제하지 않아도 됩니다.</p>}
           {order.payment?.status === "paid" && ["retry","unknown"].includes(order.deliveryStatus?.answer || "") && <p role="status">답변 메일 전달을 확인하고 있어요. 주문과 검수한 답변은 안전하게 보관됩니다.</p>}
+          {order.state === "pending" && <p role="status">결제 완료 여부를 확인하고 있어요. 새 주문을 만들지 말고 같은 주문에서 확인해 주세요.</p>}
+          {["cancelled","refunded"].includes(order.state) && <p role="status">이 주문의 결제는 종료됐어요. 추가 결제나 답변 발송은 진행하지 않습니다.</p>}
           {["draft","preparing","pending"].includes(order.state) && <button className={styles.primary} disabled={busy || !canSubmit} onClick={resume}>같은 주문 이어서 확인하기</button>}
           <button disabled={busy} className={styles.secondary} onClick={() => run(async () => setOrder((await neoCall("/" + order.id)).order))}>접수 상태 확인하기</button>
-          {order.questions.filter(q => q.correction).map(q => <div className={styles.question} key={q.id}><p>{q.correction}</p><label htmlFor={"correct-" + q.id}>질문 정정</label><textarea id={"correct-" + q.id} maxLength={1000} value={correction[q.id] ?? q.text} onChange={e => setCorrection({ ...correction, [q.id]: e.target.value })} /><button disabled={busy} onClick={() => run(async () => setOrder((await neoCall("/" + order.id + "/correction", { version: order.version, questionId: q.id, text: correction[q.id] ?? q.text })).order))}>정정한 질문 보내기</button></div>)}
+          {order.questions.filter(q => q.correction).map(q => <div className={styles.question} key={q.id}><p>{q.correction}</p><label htmlFor={"correct-" + q.id}>질문 정정</label><textarea id={"correct-" + q.id} maxLength={1000} value={correction[q.id] ?? q.text} onChange={e => setCorrection({ ...correction, [q.id]: e.target.value })} /><button className={styles.primary} disabled={busy} onClick={() => run(async () => setOrder((await neoCall("/" + order.id + "/correction", { version: order.version, questionId: q.id, text: correction[q.id] ?? q.text })).order))}>정정한 질문 보내기</button></div>)}
           {order.deliveries.length > 0 && <article className={styles.answer}><h3>네오 검수 완료 · 나의 답변</h3>{order.deliveries[order.deliveries.length-1].questions.map(q => <section key={q.id}><h4>{q.text}</h4><p>{q.answer}</p></section>)}</article>}
         </>}
       </div>

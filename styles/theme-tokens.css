@@ -7,6 +7,21 @@
  */
 
 :root {
+  /* 네오 이메일 상담 전용. 다른 서비스의 페르소나 색은 바꾸지 않는다. */
+  --cd-neo-letter-night: #101f34;
+  --cd-neo-letter-blue: #193d60;
+  --cd-neo-letter-blue-hover: #244e73;
+  --cd-neo-letter-paper: #fbf7ef;
+  --cd-neo-letter-field: #fffdf8;
+  --cd-neo-letter-ink: #20364d;
+  --cd-neo-letter-muted: #52647a;
+  --cd-neo-letter-silver: #bdcde0;
+  --cd-neo-letter-gold: #dfc391;
+  --cd-neo-letter-line: #b19b74;
+  --cd-neo-letter-rule: #d4c9b6;
+  --cd-neo-letter-error: #842f39;
+  --cd-neo-letter-error-bg: #fae9e5;
+  --cd-neo-letter-shadow: #06122538;
   --cd-welcome-paper: #fff7f3;
   --cd-welcome-ink: #4b263b;
   --cd-welcome-muted: #715064;
