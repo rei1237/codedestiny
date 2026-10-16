@@ -440,7 +440,7 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
                 <p>{rowDomain === "tarot" ? "질문에 맞춰 카드를 펼쳐 두었어요." : "질문과 명식을 확인했어요."} 상담을 열면 {personaName}가 바로 답을 쓰기 시작해요.</p>
                 <div className={styles.actions}>
                   <button type="button" data-consultation-pay disabled={busy || isPaying} onClick={() => void pay()}>
-                    {isPaying ? "결제창을 여는 중…" : "상담 열기"}
+                    {isPaying ? "결제창을 여는 중…" : `${AMOUNT_KRW.toLocaleString("ko-KR")}원으로 상담 열기`}
                   </button>
                 </div>
                 {/* 가격표 키는 서비스 등록 키다 — 상담별 결제 키(fc-<id>)는 가격표에 없어 "가격 확인 필요"가 뜬다. */}
