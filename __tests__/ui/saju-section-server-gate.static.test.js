@@ -1,6 +1,7 @@
 /**
  * 사주 종합(section_summary)·대운 풀이(section_daewun)·퀀텀 명리 엔진(rpt_quantumCard)·
- * 극T 관계 회로(sukuyo-extreme-t-relationship)·숙요 인연 도감(sukuyo-relationship-encyclopedia)·에너지 원정 리포트(rpt_energyCoordCard)
+ * 극T 관계 회로(sukuyo-extreme-t-relationship)·숙요 인연 도감(sukuyo-relationship-encyclopedia)·숙요 본성 심화 해석(sukuyo-nature-deep-dive)
+ * ·에너지 원정 리포트(rpt_energyCoordCard)
  * ·요주의 빌런 블랙리스트(rpt_villainCard)·명리 헬스 리포트(rpt_healthReportCard)
  * ·나의 매력 클래스(rpt_specialCharmCard)·인생 스킬 트리(rpt_skillTreeCard) 본문이 브라우저로 되돌아오지 않게 막는 가드.
  *
@@ -60,6 +61,10 @@ test("종합·대운 유료 렌더러와 문장이 브라우저 경로에 없다
     // 숙요 인연 도감(sukuyo-relationship-encyclopedia) 27숙 숙별 풀이. 관계 제목·키워드는 무료 미리보기에도 있어 풀이 필드와 문장을 본다.
     "renderSukuyoEncyclopediaPaid", "loveReading", "marriageReading", "friendshipReading", "businessReading", "<b>오래 가기 위한 전략</b>",
     "이 숙은 당신에게 거울처럼", "이 숙은 설명하기 어려운 익숙", "닮은 지점은 인정하고",
+    // 숙요 본성 심화 해석(sukuyo-nature-deep-dive) 6종 카드·달빛 성향·연애·돈과 일·감정 리듬. 잠금 카드·탭 연결·무료 기본 해석은 브라우저에 남는다.
+    "syBuildSukuyoNatureDeepDiveHtml", "renderSukuyoNatureDeepDivePaid", "syComputeReadingMetrics", "syBuildLoveAttractionType",
+    "syBuildCollaborationTipText", "syDedupeReadingTexts", "아침 참고 구간", "<h5>관계가 깊어지는 순간</h5>", "<h5>피하면 좋은 패턴</h5>",
+    "새로운 일을 발견하면 쉬는 시간까지 계획으로 채우기 쉽습니다", "무언가를 처음 시작하는 착수기와 환절기에",
     // 에너지 원정 리포트(rpt_energyCoordCard) 본문·룰렛 추첨. 무료 스텁은 renderEnergyCoordStub 이다.
     "function renderEnergyCoord(", "setupEnergyRoulette", "energyTravelStory", "pickRouletteDestination", "scoreRouletteDestination",
     "나무가 많은 곳을 걷는 여행은 몸의 호흡을 위로 열고",
@@ -90,6 +95,7 @@ test("종합·대운 유료 렌더러와 문장이 브라우저 경로에 없다
   assert.ok(read("worker/lib/saju-section/paid-quantum.src.js").includes("function renderQuantumStrategy(p, natal, bazi){"), "퀀텀 명리 엔진 정본이 서버에 없다");
   assert.ok(read("worker/lib/saju-section/paid-extreme-t.src.js").includes("function renderExtremeTPaidPanels(p, natal, johu) {"), "극T 해금 패널 정본이 서버에 없다");
   assert.ok(read("worker/lib/saju-section/paid-encyclopedia.src.js").includes("function renderSukuyoEncyclopediaPaid(input) {"), "숙요 인연 도감 정본이 서버에 없다");
+  assert.ok(read("worker/lib/saju-section/paid-nature-deep-dive.src.js").includes("function renderSukuyoNatureDeepDivePaid(lunarObj) {"), "숙요 본성 심화 해석 정본이 서버에 없다");
   assert.ok(read("worker/lib/saju-section/paid-energy.src.js").includes("function renderEnergyCoord(natal){"), "에너지 원정 리포트 정본이 서버에 없다");
   assert.ok(read("worker/lib/saju-section/paid-villain.src.js").includes("function renderVillain(p, power) {"), "빌런 블랙리스트 정본이 서버에 없다");
   assert.ok(read("worker/lib/saju-section/paid-health.src.js").includes("function buildWellnessHealthReport(p, natal, johu, pw, jg) {"), "명리 헬스 리포트 정본이 서버에 없다");
@@ -122,6 +128,8 @@ test("브라우저는 본문을 서버에만 묻는다", () => {
   assert.match(stripComments(read("js/saju-engine-tarot-sukuyo-quantum.js")), /sectionClient\.loadExtremeT\(area,/, "극T 해금 화면이 서버 로더를 거치지 않는다");
   assert.match(client, /var ENCYCLOPEDIA_KEY = 'sukuyo-relationship-encyclopedia';[\s\S]*featureKey: ENCYCLOPEDIA_KEY/, "인연 도감이 서버 본문을 요청하지 않는다");
   assert.match(stripComments(read("js/saju-engine-tarot-sukuyo-quantum.js")), /sectionClient\.loadEncyclopedia\(resultHost, input,/, "인연 도감 해금 화면이 서버 로더를 거치지 않는다");
+  assert.match(client, /var NATURE_KEY = 'sukuyo-nature-deep-dive';[\s\S]*featureKey: NATURE_KEY/, "본성 심화 해석이 서버 본문을 요청하지 않는다");
+  assert.match(stripComments(read("js/saju-engine-tarot-sukuyo-quantum.js")), /client\.loadNatureDeepDive\(host, \{/, "본성 심화 해석 해금 화면이 서버 로더를 거치지 않는다");
   assert.match(read("js/core/saju/reportDashboard.js"), /case 'quantumCard':[\s\S]{0,200}CdSajuSectionClient\.loadQuantum\(\)/, "퀀텀 카드 열기가 서버 로더를 거치지 않는다");
   assert.match(client, /rpt_energyCoordCard: \{[\s\S]{0,120}area: 'energyCoordSection'/, "에너지 원정 리포트가 서버 본문을 요청하지 않는다");
   assert.match(read("js/core/saju/reportDashboard.js"), /case 'energyCoordCard':[\s\S]{0,200}CdSajuSectionClient\.loadCard\('rpt_energyCoordCard'\)/, "에너지 원정 리포트 열기가 서버 로더를 거치지 않는다");

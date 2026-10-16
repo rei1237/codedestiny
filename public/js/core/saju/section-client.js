@@ -1,5 +1,6 @@
 /* 사주 종합(section_summary)·대운 풀이(section_daewun)·퀀텀 명리 엔진(rpt_quantumCard)·
    극T 관계 회로(sukuyo-extreme-t-relationship)·숙요 인연 도감(sukuyo-relationship-encyclopedia)·
+   숙요 본성 심화 해석(sukuyo-nature-deep-dive)·
    리포트 대시보드 유료 카드(CARDS) 본문 배달.
    본문은 서버(/api/saju/section)가 계정·프로필 해금을 확인한 뒤에만 만든다.
    이 파일은 요청과 표시만 한다 — 유료 문장·생성기·본문 캐시가 없다. */
@@ -17,6 +18,8 @@
   var EXTREME_T_KEY = 'sukuyo-extreme-t-relationship';
   var encyclopedia = { key: '', state: '', seq: 0, host: null, input: null, options: null, timer: 0, node: null, notice: null };
   var ENCYCLOPEDIA_KEY = 'sukuyo-relationship-encyclopedia';
+  var nature = { key: '', state: '', seq: 0, host: null, options: null, timer: 0, node: null, notice: null };
+  var NATURE_KEY = 'sukuyo-nature-deep-dive';
   // 이용권 결제 직후에는 화면이 먼저 열리고 서버 기록은 뒤에서 쓴다(index.html _cdMembershipPassRecordDelays 와 같은 간격).
   // 그 사이 402 가 오면 바로 '구매 기록 없음'을 띄우지 않고 이 간격으로 다시 묻는다(극T·인연 도감).
   var PASS_RECORD_RETRY_MS = [4000, 12000, 30000];
@@ -343,6 +346,74 @@
         }
         var status = result && result.status;
         var retryable = (status === 402 && recentPassGrant(ENCYCLOPEDIA_KEY)) || !status || status >= 500;
+        if (retryable && tries < PASS_RECORD_RETRY_MS.length) { later(tries); return; }
+        fail(failureText(result));
+      }, function () {
+        if (!current()) return;
+        if (tries < PASS_RECORD_RETRY_MS.length) { later(tries); return; }
+        fail(failureText(null));
+      });
+    }
+    attempt(0);
+    return false;
+  }
+
+  // 숙요 본성 심화 해석: 본명숙은 서버가 출생 정보로 다시 계산한다 — 화면의 본명숙·달 황경은 보내지 않는다.
+  // 출생 정보는 사주 계산 스냅샷(__cdSajuSectionInput)을, 없으면 숙요 화면이 넘긴 출생 순간(options.birth·place)을 쓴다.
+  // 프로필이 있으면 서버는 그 카드의 생년월일만 쓴다.
+  function natureBody(opts) {
+    var input = root.__cdSajuSectionInput;
+    var body = { featureKey: NATURE_KEY, lang: lang() };
+    if (input && input.birth) { body.birth = input.birth; body.place = input.place; body.gender = input.gender; }
+    else { if (opts.birth) body.birth = opts.birth; if (opts.place) body.place = opts.place; }
+    var pid = profileId();
+    if (pid) body.profileId = pid;
+    return body;
+  }
+  function loadNatureDeepDive(host, options) {
+    var opts = options || {};
+    if (!host) return false;
+    var body = natureBody(opts);
+    var key = keyOf(body);
+    if (!opts.force && nature.key === key && nature.host === host) {
+      if (nature.state === 'loading' || nature.state === 'waiting') {
+        if (nature.notice && !host.contains(nature.notice)) show(host, nature.notice);
+        return false;
+      }
+      if (nature.state === 'done' && nature.node && host.contains(nature.node)) return true;
+    }
+    clearTimeout(nature.timer);
+    var mine = ++seq;
+    var notice = extremeTStatus('해금된 본성 심화 해석을 불러오고 있어요.');
+    nature = { key: key, state: 'loading', seq: mine, host: host, options: opts, timer: 0, node: null, notice: notice };
+    show(host, notice);
+    function current() { return nature.seq === mine && host.isConnected !== false; }
+    function fail(text) {
+      if (!current()) return;
+      nature.state = 'failed';
+      nature.notice = null;
+      show(host, extremeTStatus(text, function () { loadNatureDeepDive(host, Object.assign({}, opts, { force: true })); }));
+      try { if (typeof opts.onFailed === 'function') opts.onFailed(text); } catch (_) {}
+    }
+    function later(tries) {
+      nature.state = 'waiting';
+      nature.timer = setTimeout(function () { if (current()) attempt(tries + 1); }, PASS_RECORD_RETRY_MS[tries]);
+    }
+    function attempt(tries) {
+      request(body).then(function (result) {
+        if (!current()) return;
+        var data = result.payload || {};
+        if (result.ok && delivered(NATURE_KEY, data)) {
+          nature.state = 'done';
+          nature.notice = null;
+          host.innerHTML = data.html;
+          nature.node = host.firstElementChild;
+          notify(NATURE_KEY);
+          try { if (typeof opts.onDelivered === 'function') opts.onDelivered(data); } catch (_) {}
+          return;
+        }
+        var status = result && result.status;
+        var retryable = (status === 402 && recentPassGrant(NATURE_KEY)) || !status || status >= 500;
         if (retryable && tries < PASS_RECORD_RETRY_MS.length) { later(tries); return; }
         fail(failureText(result));
       }, function () {
@@ -691,10 +762,13 @@
     if ((encyclopedia.state === 'failed' || encyclopedia.state === 'waiting') && encyclopedia.host) {
       loadEncyclopedia(encyclopedia.host, encyclopedia.input, Object.assign({}, encyclopedia.options, { force: true }));
     }
+    if ((nature.state === 'failed' || nature.state === 'waiting') && nature.host) {
+      loadNatureDeepDive(nature.host, Object.assign({}, nature.options, { force: true }));
+    }
     Object.keys(cards).forEach(function (featureKey) {
       if (cards[featureKey].state === 'failed') loadCard(featureKey, { quiet: cards[featureKey].quiet, force: true });
     });
   });
 
-  root.CdSajuSectionClient = { loadSummary: loadSummary, showDaewun: showDaewun, refreshDaewun: refreshDaewun, loadQuantum: loadQuantum, loadExtremeT: loadExtremeT, loadEncyclopedia: loadEncyclopedia, loadCard: loadCard };
+  root.CdSajuSectionClient = { loadSummary: loadSummary, showDaewun: showDaewun, refreshDaewun: refreshDaewun, loadQuantum: loadQuantum, loadExtremeT: loadExtremeT, loadEncyclopedia: loadEncyclopedia, loadNatureDeepDive: loadNatureDeepDive, loadCard: loadCard };
 })(window);

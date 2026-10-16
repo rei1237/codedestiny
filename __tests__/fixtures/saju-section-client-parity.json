@@ -1548,6 +1548,66 @@
   "idx5-en": "1bd47161d7a209724ee8ff6430edd5b086f35347ae53a31bfebe497f0140529a",
   "idx5-ja": "815600be1ad1229b3face73c3203e92aad0fa91da1504985fdfb8b3eaf82e3fc"
  },
+ "natureCases": [
+  {
+   "id": "idx0-ko",
+   "lang": "ko",
+   "moonEclipticLongitude": 150,
+   "mansionIdx": 0
+  },
+  {
+   "id": "idx3-ko",
+   "lang": "ko",
+   "moonEclipticLongitude": 190,
+   "mansionIdx": 3
+  },
+  {
+   "id": "idx10-ko",
+   "lang": "ko",
+   "moonEclipticLongitude": 283,
+   "mansionIdx": 10
+  },
+  {
+   "id": "idx15-ko",
+   "lang": "ko",
+   "moonEclipticLongitude": 350,
+   "mansionIdx": 15
+  },
+  {
+   "id": "idx21-ko",
+   "lang": "ko",
+   "moonEclipticLongitude": 70,
+   "mansionIdx": 21
+  },
+  {
+   "id": "idx26-ko",
+   "lang": "ko",
+   "moonEclipticLongitude": 136.5,
+   "mansionIdx": 26
+  },
+  {
+   "id": "idx5-en",
+   "lang": "en",
+   "moonEclipticLongitude": 216.5,
+   "mansionIdx": 5
+  },
+  {
+   "id": "idx18-ja",
+   "lang": "ja",
+   "moonEclipticLongitude": 30,
+   "mansionIdx": 18
+  }
+ ],
+ "nature": {
+  "idx0-ko": "ae94ee6d7f6945cc9985c341ff9330406e1cf6ce23f36416bcca8e0a4876a3dd",
+  "idx3-ko": "a91fcb6b342869619c7146b028b783bbd596e159c851f0b5a3bbf5b9f1508934",
+  "idx10-ko": "d8febe7e88e06162f2de02d27d60f64bbdc56fc4f0323f69d723efbdeceec92e",
+  "idx15-ko": "3b2b5f1e1cd8e3438a2e5d9e12e4a30b15ca93103e914f0c107b9911a443ee06",
+  "idx21-ko": "468803b873ca5f3f74153fc6bb709a45928a1f8686a308a1d4d64c18869f615f",
+  "idx26-ko": "55262a8e9c13ca9cf0276111c58adb2548adbebd59ff72c89e60e3a628b77ab3",
+  "idx5-en": "dc08e76df92e2e26699b6b25804ec078c83b2d8d717a42c097b50dbfb50235a2",
+  "idx18-ja": "7112adf89a33ca2e9c1490c530ef2d1108fc00355662f0117cc31307289a5839"
+ },
  "energy": {
   "solar-m-1990": "980f75d1b5943f533ad778a4df5be4918d18bae6edd1c675777185d40b80e9fc",
   "solar-f-1985": "599ae4c6f81a739ab70a5e08780630ab9c6568c7147ee0e0ecc0947c1c272567",

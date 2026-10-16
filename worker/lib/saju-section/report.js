@@ -4,13 +4,14 @@ import {
   resolveBirthTimezoneOffset,
 } from "../../yeongnyangi/fortune/saju-runtime.mjs";
 import { createSajuSectionRuntime } from "./runtime.generated.mjs";
+import { buildSukuyoFromMoonLongitude } from "../sukuyo-coordinate.js";
 
 // 사주 종합(section_summary)·대운 풀이(section_daewun)·퀀텀 명리 엔진(rpt_quantumCard)·
-// 극T 관계 회로(sukuyo-extreme-t-relationship)·숙요 인연 도감(sukuyo-relationship-encyclopedia)·에너지 원정 리포트(rpt_energyCoordCard)
+// 극T 관계 회로(sukuyo-extreme-t-relationship)·숙요 인연 도감(sukuyo-relationship-encyclopedia)·숙요 본성 심화 해석(sukuyo-nature-deep-dive)·에너지 원정 리포트(rpt_energyCoordCard)
 // ·요주의 빌런 블랙리스트(rpt_villainCard)·명리 헬스 리포트(rpt_healthReportCard)·나의 매력 클래스(rpt_specialCharmCard)
 // ·인생 스킬 트리(rpt_skillTreeCard) 본문을 서버에서 만든다.
 // 계산 흐름은 js/saju-engine.js 의 사주 계산(원국 → 대운 브릿지 → 종격 판정 → 용신 정책)을 그대로 따른다.
-export const SAJU_SECTION_FEATURE_KEYS = Object.freeze(["section_summary", "section_daewun", "rpt_quantumCard", "sukuyo-extreme-t-relationship", "sukuyo-relationship-encyclopedia", "rpt_energyCoordCard", "rpt_villainCard", "rpt_healthReportCard", "rpt_specialCharmCard", "rpt_skillTreeCard"]);
+export const SAJU_SECTION_FEATURE_KEYS = Object.freeze(["section_summary", "section_daewun", "rpt_quantumCard", "sukuyo-extreme-t-relationship", "sukuyo-relationship-encyclopedia", "sukuyo-nature-deep-dive", "rpt_energyCoordCard", "rpt_villainCard", "rpt_healthReportCard", "rpt_specialCharmCard", "rpt_skillTreeCard"]);
 // 클라이언트 출생지 선택의 기본 옵션(index.html #birthCountry 의 대한민국 서울).
 const DEFAULT_PLACE = Object.freeze({ name: "대한민국 (서울)", longitude: 127.0, latitude: 37.6, timezone: "Asia/Seoul", baseTzOffset: 9 });
 const JONG_DECISIONS = new Set(["confirmed", "rejected", "unverified"]);
@@ -71,6 +72,39 @@ function buildEncyclopediaHtml(input) {
   };
 }
 
+// 숙요 본성 심화 해석의 천문 계산 입력. 생년월일·시각은 해금을 확인한 출생 정보(프로필 카드)에서,
+// 출생지(경도·위도·IANA 시간대)는 요청 값에서 가져온다 — 화면이 보낸 본명숙·달 황경은 받지 않는다.
+export function sukuyoNatureMoment(birth = {}, place) {
+  const date = String(birth.calendarDate || "");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new SajuSectionInputError("생년월일을 확인해 주세요.", "SAJU_INVALID_BIRTH");
+  const calendarType = ["solar", "lunar", "lunar_leap"].includes(birth.calType) ? birth.calType : "solar";
+  const timeUnknown = birth.timeKnown === false;
+  const hour = timeUnknown ? 12 : Math.trunc(finite(birth.hour, NaN));
+  const minute = timeUnknown ? 0 : Math.trunc(finite(birth.minute, 0));
+  if (!(hour >= 0 && hour <= 23) || !(minute >= 0 && minute <= 59)) throw new SajuSectionInputError("출생 시각을 확인해 주세요.", "SAJU_INVALID_BIRTH");
+  const where = normalizePlace(place);
+  const [year, month, day] = date.split("-").map(Number);
+  return {
+    calendarType, year, month, day, hour, minute, timezone: where.timezone,
+    latitude: where.latitude, longitude: where.longitude, birthTimeKnown: !timeUnknown,
+  };
+}
+
+// 숙요 본성 심화 해석은 서버가 출생 순간의 달 황경(input.sukuyo, calculateSukuyoForMoment 결과)으로 본명숙을 다시 정해 그린다.
+function buildNatureDeepDiveHtml(input) {
+  const longitude = Number(input.sukuyo?.moonEclipticLongitude);
+  if (!Number.isFinite(longitude)) throw new Error("SUKUYO_NATURE_MOON_LONGITUDE_MISSING");
+  const lang = input.lang || "ko";
+  const window = {
+    location: { search: "", pathname: "/", hostname: "" }, localStorage: memoryStorage(), cdGetCurrentLanguage: () => lang,
+    __cdBuildSukuyoFromMoonLongitude: buildSukuyoFromMoonLongitude,
+  };
+  const rt = createSajuSectionRuntime({ window, document: documentShim(false, { innerHTML: "" }, { area: { innerHTML: "" }, card: { style: {} } }, { css: "", byId: {} }), localStorage: window.localStorage, neo: false, lang, now: input.now instanceof Date ? input.now : new Date() });
+  const result = rt.renderSukuyoNatureDeepDivePaid({ moonEclipticLongitude: longitude });
+  if (!result || !result.html) throw new Error("SUKUYO_NATURE_RENDER_FAILED");
+  return { html: result.html, mansion: result.mansion, mansionIdx: result.mansionIdx };
+}
+
 // 에너지 원정 리포트는 브라우저 localStorage 의 두 목록을 읽고 쓴다 — 최근에 보여 준 여행지(화면 중복 방지)와
 // 프로필별 룰렛 당첨 기록. 서버는 요청 본문의 목록을 그 자리에 넣고, 본문이 쓴 목록을 응답으로 돌려준다.
 const ENERGY_RECENT_KEY = "energyCoordRecentDestinationsV1";
@@ -121,6 +155,7 @@ function energyRouletteElements() {
  * @param {{age:number, gan:string, zhi:string}} [input.daewun] section_daewun 에서 펼친 대운
  * @param {Date} [input.now] 현재 나이·퀀텀 카드의 오늘 간지·에너지 카드의 오늘 날짜 기준 시각
  * @param {{userName:string, userMansionIdx:number, userMansion:string}} [input.encyclopedia] 숙요 인연 도감의 화면 입력(출생 정보는 쓰지 않는다)
+ * @param {{moonEclipticLongitude:number}} [input.sukuyo] 숙요 본성 심화 해석의 서버 천문 계산 결과(calculateSukuyoForMoment)
  * @param {{recent?:string[], renderedAt?:string, roulette?:{mode:string, spin:number, recent?:string[]}}} [input.energy]
  *   rpt_energyCoordCard 의 브라우저 저장 목록과 룰렛 회차(mode·몇 번째 돌림·카드를 그린 시각)
  * @returns {{html:string, sajuBaseHtml?:string, prescriptionHtml?:string}} 극T 는 관계·연애·현실 패널(html)과 사주 기반 해석·처방전 패널을 따로 돌려준다
@@ -129,6 +164,7 @@ export function buildSajuSectionHtml(input) {
   const featureKey = String(input?.featureKey || "");
   if (!SAJU_SECTION_FEATURE_KEYS.includes(featureKey)) throw new SajuSectionInputError("지원하지 않는 항목입니다.", "SAJU_INVALID_FEATURE");
   if (featureKey === "sukuyo-relationship-encyclopedia") return buildEncyclopediaHtml(input);
+  if (featureKey === "sukuyo-nature-deep-dive") return buildNatureDeepDiveHtml(input);
   const birth = input.birth || {};
   if (!/^\d{4}-\d{2}-\d{2}$/.test(String(birth.calendarDate || ""))) throw new SajuSectionInputError("생년월일을 확인해 주세요.", "SAJU_INVALID_BIRTH");
   const calType = ["solar", "lunar", "lunar_leap"].includes(birth.calType) ? birth.calType : "solar";

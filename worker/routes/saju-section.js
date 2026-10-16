@@ -2,7 +2,8 @@ import { getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
 import { isDbUnavailableError, HttpError, json, methodNotAllowed, readJson } from "../lib/http.js";
 import { hasLegacyBundlePurchase, readAccountLegacyUnlock, readProfileBirthUnlock } from "../lib/paid-content-read-access.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
-import { SAJU_SECTION_FEATURE_KEYS, SajuSectionInputError, buildSajuSectionHtml } from "../lib/saju-section/report.js";
+import { SAJU_SECTION_FEATURE_KEYS, SajuSectionInputError, buildSajuSectionHtml, sukuyoNatureMoment } from "../lib/saju-section/report.js";
+import { calculateSukuyoForMoment } from "../lib/sukuyo-astronomy.js";
 
 const degraded = () => json({
   ok: false, reason: "TEMPORARY_UNAVAILABLE", retryable: true,
@@ -24,7 +25,7 @@ function bodyBirth(body) {
 }
 
 // 사주 종합(section_summary)·대운 풀이(section_daewun)·퀀텀 명리 엔진(rpt_quantumCard)·극T 관계 회로(sukuyo-extreme-t-relationship)·
-// 숙요 인연 도감(sukuyo-relationship-encyclopedia)·에너지 원정 리포트(rpt_energyCoordCard)
+// 숙요 인연 도감(sukuyo-relationship-encyclopedia)·숙요 본성 심화 해석(sukuyo-nature-deep-dive)·에너지 원정 리포트(rpt_energyCoordCard)
 // ·요주의 빌런 블랙리스트(rpt_villainCard)·명리 헬스 리포트(rpt_healthReportCard)·나의 매력 클래스(rpt_specialCharmCard)
 // ·인생 스킬 트리(rpt_skillTreeCard) 본문 읽기. 결제·해금 쓰기는 하지 않는다.
 // 저장 프로필이 있으면 그 카드의 출생 정보로만 계산하고, 없으면 계정 단위 옛 해금(USER 행)만 인정한다.
@@ -92,10 +93,21 @@ export async function handleSajuSection(request, env = {}) {
       ? { calendarDate: access.birth.calendarDate, calType: access.birth.calType, timeKnown: access.birth.timeKnown, hour: access.birth.hour, minute: access.birth.minute }
       : bodyBirth(body);
     const gender = profileId ? access.card?.gender : body?.gender;
+    // 숙요 본성 심화 해석은 해금을 확인한 출생 정보로 서버가 달 황경을 계산해 본명숙을 정한다 — 화면의 본명숙 값은 받지 않는다.
+    let sukuyo = null;
+    if (featureKey === "sukuyo-nature-deep-dive") {
+      const moment = sukuyoNatureMoment(birth, body?.place);
+      try {
+        sukuyo = await calculateSukuyoForMoment(env, moment);
+      } catch (error) {
+        console.error("[saju-section] sukuyo astronomy failed", error?.message || error);
+        return json({ ok: false, reason: "TEMPORARY_UNAVAILABLE", retryable: true, message: "풀이를 불러오지 못했어요. 잠시 후 다시 시도해 주세요." }, { status: 503 });
+      }
+    }
     const result = buildSajuSectionHtml({
       featureKey, birth, gender: gender === "M" ? "M" : "F",
       name: body?.name, mode: body?.mode === "neo" ? "neo" : "pig", lang: typeof body?.lang === "string" ? body.lang.slice(0, 8) : "ko",
-      place: body?.place, jongDecision: body?.jongDecision, daewun: body?.daewun, encyclopedia: body?.encyclopedia, energy: body?.energy,
+      place: body?.place, jongDecision: body?.jongDecision, daewun: body?.daewun, encyclopedia: body?.encyclopedia, energy: body?.energy, sukuyo,
     });
     return json({ ok: true, unlocked: true, featureKey, ...result });
   } catch (error) {

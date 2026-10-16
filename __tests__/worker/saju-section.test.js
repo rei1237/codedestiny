@@ -11,6 +11,8 @@ const historyExists = jest.fn();
 const findOne = jest.fn();
 const write = jest.fn(() => { throw new Error("Read route attempted a write"); });
 const connectDb = jest.fn();
+// 숙요 본성 심화 해석의 서버 천문 계산: 출생일로 달 황경을 정한다(15일 → 150°, 16일 → 190°).
+const moonLongitudes = jest.fn(async (_env, moments) => moments.map((moment) => (moment.day === 16 ? 190 : 150)));
 // 패리티 픽스처 첫 사례와 같은 출생(1990-05-15 14:30 남) — 그 대운 행으로 section_daewun 을 연다.
 const BIRTH = { year: 1990, month: 5, day: 15, hour: 14, minute: 30, gender: "M" };
 const cards = [testCard("p1", BIRTH), testCard("p2", BIRTH), testCard("p3", { ...BIRTH, day: 16 }), testCard("x1", { ...BIRTH, userId: OTHER_USER_ID })];
@@ -34,6 +36,10 @@ jest.unstable_mockModule("../../worker/lib/models.js", () => ({
   ProfileCard: { modelName: "ProfileCard", findOne: (...args) => profileCards.findOne(...args) },
 }));
 jest.unstable_mockModule("../../worker/lib/cms-records.js", () => ({ primeCmsRecords: jest.fn() }));
+jest.unstable_mockModule("../../worker/lib/swiss-ephemeris.js", () => ({
+  getSwissMoonLongitudes: moonLongitudes, getSwissWesternChart: jest.fn(), getSwissVedicPlanets: jest.fn(), getSwissTropicalLongitudes: jest.fn(),
+  aspectBetween: jest.fn(), locateHouseByCusps: jest.fn(), julianDayFromUtcMillis: jest.fn(), utcMillisFromJulianDay: jest.fn(), __swissEphemerisTestUtils: {},
+}));
 
 let handleSajuSection, buildSajuSectionHtml, resolvePaidContentUnlockTarget, getBillingFeaturePricing;
 beforeAll(async () => {
@@ -114,7 +120,7 @@ test("only the saju section keys are served", async () => {
   expect(findOne).not.toHaveBeenCalled();
 });
 
-test.each(["section_summary", "section_daewun", "rpt_quantumCard", "sukuyo-extreme-t-relationship", "sukuyo-relationship-encyclopedia", "rpt_energyCoordCard", "rpt_villainCard", "rpt_healthReportCard", "rpt_specialCharmCard", "rpt_skillTreeCard"])("unowned %s returns registry pricing without HTML", async (featureKey) => {
+test.each(["section_summary", "section_daewun", "rpt_quantumCard", "sukuyo-extreme-t-relationship", "sukuyo-relationship-encyclopedia", "sukuyo-nature-deep-dive", "rpt_energyCoordCard", "rpt_villainCard", "rpt_healthReportCard", "rpt_specialCharmCard", "rpt_skillTreeCard"])("unowned %s returns registry pricing without HTML", async (featureKey) => {
   const result = await request({ ...INPUT, featureKey, daewun: DAEWUN, unlocked: true, passActive: true });
   const { pricing } = getBillingFeaturePricing({ featureKey });
   expect(result).toEqual({ status: 402, body: expect.objectContaining({ featureKey, amountKRW: pricing.amountKRW, coinPrice: pricing.coinPrice }) });
@@ -438,6 +444,66 @@ describe("sukuyo-relationship-encyclopedia", () => {
   test.each(PARITY.encyclopediaCases.map((c) => [c.id, c]))("server encyclopedia equals the HEAD client output: %s", (id, c) => {
     const { html } = buildSajuSectionHtml({ featureKey: KEY, lang: c.lang, encyclopedia: { userName: c.userName, userMansionIdx: c.userMansionIdx, userMansion: c.userMansion } });
     expect(sha256(html)).toBe(PARITY.encyclopedia[id]);
+  });
+});
+
+describe("sukuyo-nature-deep-dive", () => {
+  const KEY = "sukuyo-nature-deep-dive";
+  const NATURE = { profileId: "p1", featureKey: KEY, lang: "ko" };
+  const expected = (moonEclipticLongitude) => buildSajuSectionHtml({ featureKey: KEY, lang: "ko", sukuyo: { moonEclipticLongitude } });
+
+  test("a BIRTH grant renders the mansion the server computes from the stored birth; client mansion values are ignored", async () => {
+    grant({}, KEY);
+    const result = await request({
+      ...NATURE, birth: { date: "2001-01-16", hour: 3, minute: 0 },
+      sukuyo: { moonEclipticLongitude: 70, mansionIdx: 21 }, encyclopedia: { userMansionIdx: 21 }, mansionIdx: 21,
+    });
+    expect(result.status).toBe(200);
+    const { html, mansion, mansionIdx } = expected(150);
+    expect(result.body).toEqual({ ok: true, unlocked: true, featureKey: KEY, html, mansion, mansionIdx });
+    expect(mansionIdx).toBe(0);
+    expect(result.body.html).toContain("sy-rel-tab");
+    expect(moonLongitudes).toHaveBeenCalledWith(expect.anything(), [expect.objectContaining({ year: 1990, month: 5, day: 15, hour: 14, minute: 30, timezone: 9 })], expect.anything());
+    expect((await request()).status).toBe(402);
+  });
+
+  test("a legacy account grant without a saved profile computes the mansion from the body birth", async () => {
+    grant({ scope: "USER", profileId: "__user__" }, KEY);
+    const { profileId: _omit, ...account } = NATURE;
+    const result = await request({ ...account, birth: { date: "1990-05-16", calType: "solar", hour: 9, minute: 0 }, sukuyo: { moonEclipticLongitude: 150 } });
+    expect(result.status).toBe(200);
+    expect(result.body.html).toBe(expected(190).html);
+  });
+
+  test("another profile's grant or another product's grant does not open the deep dive", async () => {
+    grant({}, "sukuyo-relationship-encyclopedia");
+    expect((await request(NATURE)).status).toBe(402);
+    grant({}, KEY);
+    const other = await request({ ...NATURE, profileId: "p3" });
+    expect(other.status).toBe(402);
+    expect(other.body.html).toBeUndefined();
+    expect(moonLongitudes).not.toHaveBeenCalled();
+  });
+
+  test("a DB failure or an astronomy failure stays retryable instead of prompting purchase", async () => {
+    grant({}, KEY);
+    moonLongitudes.mockRejectedValueOnce(new Error("ephemeris unavailable"));
+    const astro = await request(NATURE);
+    expect(astro.status).toBe(503);
+    expect(astro.body).toMatchObject({ reason: "TEMPORARY_UNAVAILABLE", retryable: true });
+    expect(astro.body.html).toBeUndefined();
+    connectDb.mockRejectedValue(new Error("private database connection information"));
+    const result = await request(NATURE);
+    expect(result.status).toBe(503);
+    expect(result.body).toMatchObject({ reason: "TEMPORARY_UNAVAILABLE", retryable: true });
+  });
+
+  // PARITY.nature: 1030ca817 의 클라이언트 syBuildSukuyoNatureDeepDiveHtml(renderSukuyo 의 해금 화면 경로:
+  // calcSukuyoData → getDailyKarmicGuidance → syBuildLocalCanonicalData → syBuildBasicReading)을 같은 달 황경·같은 now(PARITY.now, KST 벽시계)로 돌린 HTML 의 sha256.
+  test.each(PARITY.natureCases.map((c) => [c.id, c]))("server deep dive equals the HEAD client output: %s", (id, c) => {
+    const result = buildSajuSectionHtml({ featureKey: KEY, lang: c.lang, sukuyo: { moonEclipticLongitude: c.moonEclipticLongitude }, now: new Date(PARITY.now) });
+    expect(result.mansionIdx).toBe(c.mansionIdx);
+    expect(sha256(result.html)).toBe(PARITY.nature[id]);
   });
 });
 
