@@ -77,9 +77,9 @@ test('representative introductions open as product cards with real chapters, unc
   assert.deepEqual([...single.querySelectorAll('.craftedChapters li strong')].map(node => node.textContent), ['첫 장', '둘째 장']);
   assert.equal(single.querySelector('.craftedChapters b'), null);
   assert.equal(single.querySelector('.craftedEditionsLead').textContent, '목차 2개 · 그림 안내 1장');
-  const newYear = JSON.parse(fs.readFileSync('public/feature-details/new-year-ai.json', 'utf8'));
-  const art = JSDOM.fragment(renderFeatureDetailPanels(newYear)).querySelector('.featureDetailHero .featureDetailArt');
-  assert.equal(`${art.getAttribute('width')}x${art.getAttribute('height')}`, `${newYear.imageWidth}x${newYear.imageHeight}`);
+  const plain = JSON.parse(fs.readFileSync('public/feature-details/astrology-ai.json', 'utf8'));
+  const art = JSDOM.fragment(renderFeatureDetailPanels(plain)).querySelector('.featureDetailHero .featureDetailArt');
+  assert.equal(`${art.getAttribute('width')}x${art.getAttribute('height')}`, `${plain.imageWidth}x${plain.imageHeight}`);
   const artRules = fs.readFileSync('styles/feature-visual-detail.css', 'utf8').match(/\.featureDetailArt\{[^}]*\}/g);
   assert.ok(artRules.every(rule => !/aspect-ratio|object-fit|object-position|height:100%/.test(rule)), 'non-authored hero keeps its own ratio');
 });
