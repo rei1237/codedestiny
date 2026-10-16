@@ -156,8 +156,9 @@ function readProductMap(env) {
   }
 }
 
-function resolveProductCoinPrice(pricing, body = {}) {
-  const coinPrice = Math.floor(Number(pricing?.coinPrice ?? pricing?.cost ?? body?.coinPrice ?? body?.cost ?? 0));
+// 가격은 서버 정본(pricing)만 쓴다 — 클라이언트 body.coinPrice/cost 는 상품 선택 근거가 아니다.
+function resolveProductCoinPrice(pricing) {
+  const coinPrice = Math.floor(Number(pricing?.coinPrice ?? pricing?.cost ?? 0));
   return Number.isFinite(coinPrice) && coinPrice > 0 ? coinPrice : 0;
 }
 
@@ -172,7 +173,7 @@ function resolveProduct(pricing, env, body = {}) {
   const featureKey = cleanText(pricing?.featureKey || body.featureKey);
   if (featureKey === 'neo-email-consultation') throw Object.assign(new Error('이 상담은 앱 내 결제를 지원하지 않습니다.'), {status:409,code:'APP_PRODUCT_UNAVAILABLE'});
   const billingType = getPaidFeatureBillingType(featureKey);
-  const coinPrice = resolveProductCoinPrice(pricing, body);
+  const coinPrice = resolveProductCoinPrice(pricing);
 
   // 웹 ₩500 이하 기능은 인상해도 Play KRW 최저 판매가를 밑돌 수 있어 SKU를 만들지 않고
   // 앱에서만 무료로 통과시킨다(웹은 유료 그대로). 영냥이·천원 사주 콘텐츠는 예외(isAppFreeFeature).
