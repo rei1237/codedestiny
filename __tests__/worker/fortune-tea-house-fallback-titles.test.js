@@ -50,3 +50,13 @@ test.each([
   const titles = fallback.saju.deepSections.map((section) => section.title);
   expect(utils.getSajuRequiredSectionTitles(fallback).filter((title) => !titles.includes(title))).toEqual([]);
 });
+
+test("사주 궁합 상세 안내의 목차는 실제 상담지 섹션 제목과 같다", () => {
+  const fs = require("node:fs");
+  const required = utils.getSajuRequiredSectionTitles(CASES.at(-1)[1]);
+  const sources = [
+    require("../../content/product-details/tea-saju-compat/panels.cjs"),
+    ...["content/product-details", "public/feature-details/crafted"].map((dir) => JSON.parse(fs.readFileSync(`${dir}/tea-saju-compat/manifest.json`, "utf8"))),
+  ];
+  for (const source of sources) expect(source.chapters.map((chapter) => chapter.title)).toEqual(required);
+});

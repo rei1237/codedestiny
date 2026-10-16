@@ -17279,7 +17279,8 @@
       "resume": "Continue from saved sections",
       "pendingHelp": "Your question and access will be checked to resume the same reading.",
       "login": "Sign in to open My readings",
-      "openError": "The reading could not be opened. Please select it again."
+      "openError": "The reading could not be opened. Please select it again.",
+      "followUpRemaining": "Preguntas adicionales restantes: {count}"
     },
     "teaCupSelection": {
       "eyebrow": "Six cups that answer the scent of a heart",
@@ -18005,7 +18006,9 @@
       "pdfFileName": "destiny-tea-house-{title}-{date}.pdf",
       "honeyLetterResume": "Volver a consultar la misma carta",
       "safeShareLabel": "Tea house invitation without personal details",
-      "safeShareText": "A cup of tea with Yeoni, and time to quietly reflect on my feelings and choices."
+      "safeShareText": "A cup of tea with Yeoni, and time to quietly reflect on my feelings and choices.",
+      "followUpTextQuestion": "Pregunta: {question}",
+      "followUpTextTitle": "Pregunta adicional a Yeoni"
     },
     "fortuneTeaHouseDebugPanel": {
       "k1lcnd8v": "Yes",
@@ -20393,7 +20396,7 @@
       "sukuyoLine": "The space between two people",
       "sukuyoInfo": "Use both people's birth details to explore lunar mansions and relationship direction, including attraction, misunderstandings, and conversation.",
       "compat": "Saju compatibility readings are also available",
-      "priceNote": "Single-reading price. Pass and Moonstone eligibility is checked when you confirm the reading.",
+      "priceNote": "Precio por consulta · incluye 1 pregunta adicional. La aplicación de Pass y Moonstone se indica al confirmar la consulta.",
       "previewTitle": "A reading you can return to",
       "example": "Format example — not a real customer's reading",
       "exampleQuestion": "Should I continue this work?",
@@ -20403,7 +20406,8 @@
         "0": "A direct answer to your question",
         "1": "Interpretation grounds and limitations",
         "2": "Actions you can take now",
-        "3": "A closing letter from Yeoni"
+        "3": "A closing letter from Yeoni",
+        "4": "1 pregunta adicional a Yeoni tras recibir tu consulta"
       },
       "historyTitle": "Past thoughts, continuing conversations",
       "historyBody": "Revisit saved readings and continue readings still being generated or needing recovery.",
@@ -20421,8 +20425,8 @@
       "titleKo": "Review your reading",
       "question": "My question",
       "price": "Single-reading price",
-      "scope": "Core answer · interpretation grounds · actions · Yeoni's letter",
-      "policy": "Pass and Moonstone eligibility is checked next. Follow-up questions are available only when included in your current entitlement.",
+      "scope": "Respuesta central · fundamentos de la interpretación · acciones · carta de Yeoni · 1 pregunta adicional",
+      "policy": "La aplicación de Pass y Moonstone se comprueba en el siguiente paso. Cuando recibas tu consulta, podrás hacer 1 pregunta adicional sin coste extra, con la misma base (carta natal, cartas o mansión lunar natal).",
       "edit": "Edit question",
       "continue": "Check access and start",
       "prepare": "Prepare cards for this question",
@@ -20571,6 +20575,39 @@
       "downloadNote": "Once unlocked, the album can be saved as a PDF without spending more honey drops.",
       "chapter": "Yeoni’s moonlit library",
       "humanAlt": "Human-form Yeoni sharing tarot stories in the moonlight"
+    },
+    "followUpCard": {
+      "eyebrow": "Incluye 1 pregunta adicional",
+      "title": "Pregúntale una vez más a Yeoni",
+      "remaining": "Preguntas adicionales restantes: {count}",
+      "usedUp": "Ya usaste la pregunta adicional",
+      "intro": "Después de leer tu consulta, escribe una sola cosa que quieras saber mejor. Yeoni responderá centrándose en esa pregunta, con la misma base de tu consulta original. No tiene coste adicional.",
+      "basis": {
+        "tarot": "Con las mismas cartas · no se vuelven a sacar",
+        "saju": "Con la misma carta natal",
+        "sajuCompatibility": "Con las mismas cartas natales de ambos",
+        "sukuyo": "Con las mismas mansiones lunares natales de ambos"
+      },
+      "label": "Tu pregunta para Yeoni",
+      "placeholder": "Ej.: Con esta tendencia, ¿cuándo convendría escribirle primero?",
+      "counter": "{count}/{max} caracteres",
+      "tooShort": "Escribe tu pregunta con un poco más de detalle: al menos 4 caracteres sin contar espacios.",
+      "tooLong": "La pregunta puede tener hasta 600 caracteres sin contar espacios.",
+      "submit": "Preguntar a Yeoni",
+      "resume": "Volver a enviar la misma pregunta",
+      "sending": "Yeoni está volviendo a abrir tu consulta original para escribir la respuesta. Puede tardar alrededor de un minuto.",
+      "waiting": "Estamos terminando la respuesta a la pregunta que enviaste antes. Espera un momento.",
+      "arrived": "Ha llegado la respuesta adicional de Yeoni.",
+      "reopened": "Se abrió de nuevo la respuesta adicional guardada.",
+      "limitReached": "La pregunta adicional de esta consulta ya se ha usado.",
+      "failed": "No pudimos entregar la respuesta. Tu pregunta adicional sigue disponible; vuelve a enviar la misma pregunta.",
+      "login": "Inicia sesión para hacer una pregunta adicional.",
+      "revoked": "Esta consulta fue cancelada o reembolsada, así que no admite preguntas adicionales.",
+      "questionLabel": "Tu pregunta",
+      "evidenceTitle": "En qué se basa Yeoni",
+      "directTitle": "La respuesta de Yeoni",
+      "guidanceTitle": "Qué puedes hacer",
+      "cautionTitle": "Qué tener en cuenta"
     }
   },
   "fortuneVar": {

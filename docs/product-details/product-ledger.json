@@ -1813,7 +1813,7 @@
         "/features/fortune-tea-house/"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
-      "priceSnapshotKRW": 5000,
+      "priceSnapshotKRW": 10000,
       "inputRequirements": [
         "두 사람 생년월일·양음력·윤달",
         "각자 출생시간 또는 미상",
@@ -1835,12 +1835,16 @@
         "미리 알아둘 주의점",
         "지금 이 시기 관계의 운",
         "찻집의 처방",
+        "월별 흐름 — 두 사람의 석 달",
+        "관계 처방 — 서로에게 건네는 말",
+        "실행 체크리스트 — 함께 확인할 것",
         "연이의 한마디",
+        "추가 질문 1회 포함: 결과당 1회·같은 명식/카드/본명숙 근거·카드 재추첨 없음·생성 실패 시 횟수 미사용",
         "공통 종합해석·선택·행동·텍스트/PDF저장"
       ],
       "conditionalItems": [
         "두명식 비교요약 조건부",
-        "개인사주상세패널을 공유하되 궁합용9개 목차",
+        "개인사주상세패널을 공유하되 궁합용12개 목차",
         "출생시간 미상·현재운 자료범위 제한"
       ],
       "separatePurchase": [
@@ -1881,7 +1885,7 @@
         "/features/fortune-tea-house/"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
-      "priceSnapshotKRW": 5000,
+      "priceSnapshotKRW": 10000,
       "inputRequirements": [
         "본인 생년월일·양음력·윤달",
         "출생시간 또는 미상",
@@ -1899,6 +1903,7 @@
         "질문분야별 상세상담: 일반8개/진로·연애·재물9개",
         "진로 예: 타고난 결, 첫 잔, 마음의 물길, 잘 풀리는 결, 삐걱대는 결, 지금 이 시기, 리스크 체크리스트, 14일 실행 플랜, 연이의 한마디",
         "종합해석·연이조언·선택·행동·마무리",
+        "추가 질문 1회 포함: 결과당 1회·같은 명식/카드/본명숙 근거·카드 재추첨 없음·생성 실패 시 횟수 미사용",
         "텍스트·PDF 저장"
       ],
       "conditionalItems": [
@@ -1944,7 +1949,7 @@
         "/features/fortune-tea-house/"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
-      "priceSnapshotKRW": 5000,
+      "priceSnapshotKRW": 10000,
       "inputRequirements": [
         "두 사람 생년월일·양음력·윤달",
         "출생시간 필드 없음",
@@ -1963,6 +1968,7 @@
         "A→B/B→A 관계설명",
         "살아나는 힘·조심할 결·관계태도",
         "종합해석·선택·행동·마무리",
+        "추가 질문 1회 포함: 결과당 1회·같은 명식/카드/본명숙 근거·카드 재추첨 없음·생성 실패 시 횟수 미사용",
         "텍스트·PDF 저장"
       ],
       "conditionalItems": [
@@ -2007,7 +2013,7 @@
         "/fortune-tea-house/ → 타로 → 질문 → 상담 확인 → 배열 선택"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
-      "priceSnapshotKRW": 5000,
+      "priceSnapshotKRW": 10000,
       "inputRequirements": [
         "상황과 질문; 출생정보 불필요",
         "찻잔 주제 선택 또는 진입에서 기본찻잔 적용",
@@ -2024,7 +2030,8 @@
         "연이 해설",
         "선택 시나리오",
         "행동 조언",
-        "마지막 메시지"
+        "마지막 메시지",
+        "추가 질문 1회 포함: 결과당 1회·같은 명식/카드/본명숙 근거·카드 재추첨 없음·생성 실패 시 횟수 미사용"
       ],
       "conditionalItems": [
         "카드 연결/선택 시나리오/행동은 해당 내용 존재시",
@@ -2089,7 +2096,7 @@
         "/fortune-tea-house/ → 타로 → 질문 → 상담 확인 → 배열 선택"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
-      "priceSnapshotKRW": 5000,
+      "priceSnapshotKRW": 10000,
       "inputRequirements": [
         "상황과 질문; 출생정보 불필요",
         "찻잔 주제 선택 또는 진입에서 기본찻잔 적용",
@@ -2106,7 +2113,8 @@
         "연이 해설",
         "선택 시나리오",
         "행동 조언",
-        "마지막 메시지"
+        "마지막 메시지",
+        "추가 질문 1회 포함: 결과당 1회·같은 명식/카드/본명숙 근거·카드 재추첨 없음·생성 실패 시 횟수 미사용"
       ],
       "conditionalItems": [
         "카드 연결/선택 시나리오/행동은 해당 내용 존재시",

@@ -1503,6 +1503,91 @@
           "id": "master-love-codex",
           "featureKey": "master-love-codex",
           "title": "마스터 인연의 서 · 개인",
+          "cardTitle": "개인판",
+          "hook": "사주와 자미두수로 나의 사랑을 다섯 막 스무 장에 읽는 상담",
+          "chaptersLabel": "다섯 막 스무 장 목차",
+          "chapters": [
+            {
+              "title": "운명의 문 — 당신이라는 사람",
+              "detail": "Ⅰ막 타고난 결"
+            },
+            {
+              "title": "타고난 연애 기질 — 일간과 십성이 말하는 것",
+              "detail": "Ⅰ막 타고난 결"
+            },
+            {
+              "title": "부부궁이 말하는 배우자상",
+              "detail": "Ⅰ막 타고난 결"
+            },
+            {
+              "title": "끌림의 원리 — 오행과 조후",
+              "detail": "Ⅰ막 타고난 결"
+            },
+            {
+              "title": "애착과 표현 방식",
+              "detail": "Ⅱ막 마음의 구조"
+            },
+            {
+              "title": "마음의 방어기제",
+              "detail": "Ⅱ막 마음의 구조"
+            },
+            {
+              "title": "인연이 열리는 자리 — 천이궁의 지도",
+              "detail": "Ⅱ막 마음의 구조"
+            },
+            {
+              "title": "썸에서 연애로 넘어가는 조건",
+              "detail": "Ⅱ막 마음의 구조"
+            },
+            {
+              "title": "고백과 타이밍",
+              "detail": "Ⅲ막 관계의 온도"
+            },
+            {
+              "title": "관계의 온도 곡선",
+              "detail": "Ⅲ막 관계의 온도"
+            },
+            {
+              "title": "갈등의 뿌리 — 형충파해가 건드리는 자리",
+              "detail": "Ⅲ막 관계의 온도"
+            },
+            {
+              "title": "화해와 회복의 언어",
+              "detail": "Ⅲ막 관계의 온도"
+            },
+            {
+              "title": "질투·집착·거리두기",
+              "detail": "Ⅳ막 깊어지는 자리"
+            },
+            {
+              "title": "친밀감과 두 사람의 리듬",
+              "detail": "Ⅳ막 깊어지는 자리"
+            },
+            {
+              "title": "이별의 패턴과 재회의 문",
+              "detail": "Ⅳ막 깊어지는 자리"
+            },
+            {
+              "title": "결혼운과 장기 동행",
+              "detail": "Ⅳ막 깊어지는 자리"
+            },
+            {
+              "title": "사주 × 자미두수 교차검증",
+              "detail": "Ⅴ막 해독과 봉인"
+            },
+            {
+              "title": "연애 DNA 프로필",
+              "detail": "Ⅴ막 · 신뢰·배려·주도성·표현력·질투·집착·감성·이성·설렘·헌신"
+            },
+            {
+              "title": "앞으로 3년, 인연의 흐름",
+              "detail": "Ⅴ막 해독과 봉인"
+            },
+            {
+              "title": "연애 고수의 마지막 편지",
+              "detail": "Ⅴ막 해독과 봉인"
+            }
+          ],
           "notice": "개인판은 본인의 사주와 자미두수 명반을 읽는 별도 상품입니다. 예시 문장은 가상 예시 프로필로 생성한 실제 AI 결과를 고치지 않고 발췌한 것으로 고객 결과·후기가 아니며, 결과는 입력에 따라 달라집니다. DNA 지표는 해석을 정리한 표현으로 심리검사 점수나 성공 확률이 아닙니다. AI 해설이며 사람이 결과마다 직접 집필·감수하는 상담이 아닙니다. 도서 이미지는 디지털 리포트 삽화이며 실물 배송 상품이 아닙니다.",
           "panels": [
             {
@@ -1595,12 +1680,98 @@
               "height": 1440,
               "text": "다음 관계의 속도는,\n내가 정할 수 있도록.\n\n본인의 생년월일·성별·달력 기준을\n준비해 주세요. 모르는 출생 시간은\n모름으로 선택할 수 있어요.\n\n20장이 모두 완성되면 PDF로 저장해요.\n10년 경력 상담사·명리학자가 만든\n서비스이며, 결과 문장은 AI가 씁니다.\n\n마스터 인연의 서 · 개인\n나를 알고, 사랑의 방식을 고르는 시간."
             }
-          ]
+          ],
+          "priceKRW": 30000
         },
         {
           "id": "master-love-codex-compat",
           "featureKey": "master-love-codex-compat",
           "title": "마스터 인연의 서 · 궁합",
+          "cardTitle": "궁합판",
+          "hook": "두 사람의 사주와 명반을 맞대어 관계를 스무 장에 읽는 궁합",
+          "chaptersLabel": "다섯 막 스무 장 목차",
+          "chapters": [
+            {
+              "title": "마주 선 두 사람 — 첫인상의 궁합",
+              "detail": "Ⅰ막 두 사람의 결"
+            },
+            {
+              "title": "당신이라는 사람 — 관계 속의 나",
+              "detail": "Ⅰ막 두 사람의 결"
+            },
+            {
+              "title": "상대라는 사람 — 그 사람의 결",
+              "detail": "Ⅰ막 두 사람의 결"
+            },
+            {
+              "title": "무엇이 서로를 끌었나",
+              "detail": "Ⅰ막 두 사람의 결"
+            },
+            {
+              "title": "일간의 관계 — 두 기둥이 만나는 방식",
+              "detail": "Ⅱ막 사주가 보는 궁합"
+            },
+            {
+              "title": "십성 상호작용 — 서로가 맡는 역할",
+              "detail": "Ⅱ막 사주가 보는 궁합"
+            },
+            {
+              "title": "서로를 채우는 자리 — 용신과 보완",
+              "detail": "Ⅱ막 사주가 보는 궁합"
+            },
+            {
+              "title": "지지의 합충형파해 — 리듬이 부딪치는 지점",
+              "detail": "Ⅱ막 사주가 보는 궁합"
+            },
+            {
+              "title": "두 명반의 상호 배치",
+              "detail": "Ⅲ막 명반이 보는 궁합"
+            },
+            {
+              "title": "부처궁 교차 비교 — 서로가 그리는 배우자상",
+              "detail": "Ⅲ막 명반이 보는 궁합"
+            },
+            {
+              "title": "살성이 앉는 자리 — 어디서 서로를 긁는가",
+              "detail": "Ⅲ막 명반이 보는 궁합"
+            },
+            {
+              "title": "사화의 교환 — 어디서 서로를 키우는가",
+              "detail": "Ⅲ막 명반이 보는 궁합"
+            },
+            {
+              "title": "관계의 온도 곡선 — 두 사람의 시간축",
+              "detail": "Ⅳ막 관계의 현실"
+            },
+            {
+              "title": "갈등의 뿌리 — 같은 다툼이 반복되는 이유",
+              "detail": "Ⅳ막 관계의 현실"
+            },
+            {
+              "title": "상대에게 닿는 말 — 화해의 언어",
+              "detail": "Ⅳ막 관계의 현실"
+            },
+            {
+              "title": "지속 가능성과 결혼운",
+              "detail": "Ⅳ막 관계의 현실"
+            },
+            {
+              "title": "사주와 자미두수 — 합치점과 차이점",
+              "detail": "Ⅴ막 종합과 봉인"
+            },
+            {
+              "title": "관계 DNA 프로필",
+              "detail": "Ⅴ막 · 친화·소통·신뢰·열정·속도합·갈등내구·현실합·성장·자립·지속"
+            },
+            {
+              "title": "앞으로 3년의 관계 흐름",
+              "detail": "Ⅴ막 종합과 봉인"
+            },
+            {
+              "title": "두 사람에게 보내는 마지막 편지",
+              "detail": "Ⅴ막 종합과 봉인"
+            }
+          ],
           "notice": "궁합판은 본인과 상대의 출생 정보를 함께 읽는 별도 상품입니다. 20장은 개인판 20장과 다른 구성으로 합산되지 않습니다. 예시 문장은 가상 예시 프로필 두 사람으로 생성한 실제 AI 결과를 고치지 않고 발췌한 것으로 고객 결과·후기가 아니며, 결과는 입력에 따라 달라집니다. 관계 DNA는 해석 지표로 두 사람의 가치나 관계 성공 확률을 측정하지 않습니다. AI 해설이며 개별 결과의 사람 집필·감수를 뜻하지 않습니다. 삽화의 책은 디지털 결과를 표현한 것으로 실물 배송되지 않습니다.",
           "panels": [
             {
@@ -1693,9 +1864,12 @@
               "height": 1440,
               "text": "두 사람의 다음 장은,\n함께 정하는 약속으로.\n\n두 사람의 생년월일·성별·달력 기준과\n출생 시간을 준비해 주세요.\n모르는 시간은 모름으로 선택해요.\n\n20장 완성 후 PDF 저장이 가능합니다.\n10년 경력 상담사·명리학자가 만든\n서비스이며, 결과 문장은 AI가 씁니다.\n\n마스터 인연의 서 · 궁합\n차이를 이해하고, 동행의 방법을 찾는 시간."
             }
-          ]
+          ],
+          "priceKRW": 50000
         }
       ],
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/master-love-codex-480.webp",
@@ -1753,7 +1927,8 @@
         "질문에 맞춘 카드 해설",
         "감정과 상황의 연결",
         "다음 대화의 실마리",
-        "마음을 돌보는 조언"
+        "마음을 돌보는 조언",
+        "결과를 받은 뒤 추가 질문 1회 포함"
       ],
       "contents": [
         {
@@ -1796,6 +1971,54 @@
           "id": "tea-saju",
           "featureKey": "fortune-tea-house-saju-consultation",
           "title": "운명의 찻집 · 사주 상담",
+          "hook": "한 사람의 명식으로 지금의 고민에 깊게 답하는 사주 상담",
+          "badge": "추가 질문 1회 포함",
+          "chapters": [
+            {
+              "title": "질문에 대한 핵심 답변",
+              "detail": "명식의 핵심 근거와 한 줄 조언을 먼저 드려요."
+            },
+            {
+              "title": "출생 정보 · 일간 · 사주 기둥",
+              "detail": "입춘·절기와 출생 시각으로 네 기둥을 세워요. 시간을 모르면 미상으로 둬요."
+            },
+            {
+              "title": "오행 균형과 십성 해석",
+              "detail": "넘치고 모자란 기운과 십성이 고민에 닿는 자리."
+            },
+            {
+              "title": "타고난 결 · 첫 잔 · 마음의 물길",
+              "detail": "일간이 고민에 반응하는 방식과 질문이 찾아온 이유."
+            },
+            {
+              "title": "잘 풀리는 결 · 삐걱대는 결",
+              "detail": "살려 쓸 강점과 미리 알아 둘 반복 패턴."
+            },
+            {
+              "title": "지금 이 시기",
+              "detail": "지금의 대운과 입춘 기준 올해 세운이 부는 방향."
+            },
+            {
+              "title": "고민 분야의 현실 기준",
+              "detail": "고른 분야에 맞춰 연락 판단·리스크·돈을 지키는 기준 같은 한 장이 더해져요."
+            },
+            {
+              "title": "찻집의 처방",
+              "detail": "분야에 따라 72시간·7일·14일·30일 실천 플랜으로 정리해요."
+            },
+            {
+              "title": "월별 흐름 · 앞으로 석 달",
+              "detail": "다가올 세 절기월의 간지와 십성을 내 명식에 대조해요."
+            },
+            {
+              "title": "관계 처방 · 실행 체크리스트",
+              "detail": "곁의 사람과 맞추는 법, 오늘부터 확인할 것."
+            },
+            {
+              "title": "종합 해석 · 선택지 · 연이의 한마디",
+              "detail": "선택할 수 있는 길과 실천, 마지막 메시지."
+            }
+          ],
           "notice": "본인의 명식과 질문을 바탕으로 읽는 사주 상담입니다. 목차는 질문 분야에 따라 달라지며, 명식·운 자료 및 결과에 있는 항목만 펼쳐집니다. 타로와 두 사람 궁합은 별도 선택 상품입니다. 안내 속 상담 문장은 이해를 돕기 위한 편집 예시로 실제 고객 결과가 아닙니다. 연이는 서비스 캐릭터이며 상담 문장은 AI가 작성합니다. 꿀편지는 별도 조건이 있는 추가 기능입니다.",
           "panels": [
             {
@@ -1888,12 +2111,65 @@
               "height": 1440,
               "text": "나를 몰아붙이기보다,\n내 결을 이해하는 시간.\n\n맞고 틀린 사람으로 나누지 않고,\n같은 힘이 언제 도움이 되고\n언제 부담이 되는지 살펴봐요.\n\n연이는 서비스 캐릭터예요.\n상담 문장은 AI가 작성하며,\n사람이 직접 답하는 상담은 아닙니다.\n\n운명의 찻집 · 사주 상담"
             }
-          ]
+          ],
+          "priceKRW": 10000
         },
         {
           "id": "tea-saju-compat",
           "featureKey": "fortune-tea-house-saju-compatibility-consultation",
           "title": "운명의 찻집 · 두 사람 사주 궁합",
+          "hook": "두 사람의 명식을 각각 세우고 대조하는 사주 궁합",
+          "badge": "추가 질문 1회 포함",
+          "chapters": [
+            {
+              "title": "당신의 사주",
+              "detail": "내 일간·오행·십성을 따로 세워 읽어요."
+            },
+            {
+              "title": "상대방의 사주",
+              "detail": "상대의 명식도 같은 깊이로 읽어요."
+            },
+            {
+              "title": "두 사람의 궁합",
+              "detail": "두 일간의 관계, 같은 자리 지지끼리의 합·충·형·파·해, 오행의 보완."
+            },
+            {
+              "title": "질문에 대한 답",
+              "detail": "함께 풀고 싶은 질문에 두 사람의 관점으로 답해요."
+            },
+            {
+              "title": "함께일 때의 강점",
+              "detail": "서로 채워 주는 기운이 관계에서 쓰이는 자리."
+            },
+            {
+              "title": "미리 알아둘 주의점",
+              "detail": "부딪히기 쉬운 관계와 각자의 원국에서 반복되는 결."
+            },
+            {
+              "title": "지금 이 시기 관계의 운",
+              "detail": "두 사람의 지금 대운·세운이 관계에 부는 순풍과 역풍."
+            },
+            {
+              "title": "찻집의 처방",
+              "detail": "두 사람이 함께 해 볼 구체적인 실천."
+            },
+            {
+              "title": "월별 흐름 — 두 사람의 석 달",
+              "detail": "다가올 세 절기월을 각자의 명식에 대조해요."
+            },
+            {
+              "title": "관계 처방 — 서로에게 건네는 말",
+              "detail": "서로의 방식에 맞춘 말과 거리."
+            },
+            {
+              "title": "실행 체크리스트 — 함께 확인할 것",
+              "detail": "다음 대화 전에 같이 살펴볼 것."
+            },
+            {
+              "title": "연이의 한마디",
+              "detail": "두 사람에게 남기는 마지막 메시지."
+            }
+          ],
           "notice": "두 사람의 생년월일과 명식을 대조하는 별도 사주 궁합 상품입니다. 안내 속 도해와 대화는 이해를 돕기 위한 편집 예시이며 실제 고객 결과가 아닙니다. 출생시간 미상은 미상으로 처리하고, 시기 해석은 확인된 운 자료 범위에서 제공합니다. 강점·주의점·선택지 등은 결과에 내용이 있을 때 표시됩니다. 숙요 궁합과 타로는 별도 상품입니다. 연이는 서비스 캐릭터이며 AI가 상담 문장을 작성합니다.",
           "panels": [
             {
@@ -1977,12 +2253,57 @@
               "height": 1440,
               "text": "관계의 결론보다,\n다음 대화의 실마리를.\n\n어떤 명식도 상대의 마음을\n대신 대답해 주지는 않아요.\n\n서로의 말을 듣고 조율할 때\n참고할 관점으로 받아들여 주세요.\n\n연이는 서비스 캐릭터예요.\n상담 문장은 AI가 작성하며,\n사람이 직접 답하는 상담은 아닙니다.\n\n운명의 찻집 · 두 사람 사주 궁합"
             }
-          ]
+          ],
+          "priceKRW": 10000
         },
         {
           "id": "tea-sukuyo",
           "featureKey": "fortune-tea-house-sukuyo-compatibility-consultation",
           "title": "운명의 찻집 · 숙요 궁합",
+          "hook": "두 생일의 본명숙으로 읽는 관계의 거리와 속도",
+          "badge": "추가 질문 1회 포함",
+          "chapters": [
+            {
+              "title": "질문에 대한 핵심 답변",
+              "detail": "두 본명숙 관계에서 나온 답을 먼저 드려요."
+            },
+            {
+              "title": "나와 상대의 본명숙 · 출생 정보",
+              "detail": "생일과 달력 기준, 알고 있다면 출생 시각까지 반영해 계산해요."
+            },
+            {
+              "title": "관계 유형 · 숙요 거리 · 방향",
+              "detail": "27숙 관계표의 관계 유형과 거리, 서로에게 향하는 방향."
+            },
+            {
+              "title": "관계의 강점과 반대 조건",
+              "detail": "살아나는 힘과 그 힘이 약해지는 조건."
+            },
+            {
+              "title": "관계의 주의점과 실천",
+              "detail": "조심할 결과 서로에게 건넬 수 있는 태도."
+            },
+            {
+              "title": "월별 흐름 — 두 별의 석 달",
+              "detail": "앞으로 석 달의 일숙을 계산해 두 사람에게 함께 좋은 날과 조심할 날을 짚어요."
+            },
+            {
+              "title": "관계 처방 — 서로에게 맞는 거리와 말",
+              "detail": "가까워지는 속도와 회복에 필요한 간격."
+            },
+            {
+              "title": "실행 체크리스트 — 함께 확인할 것",
+              "detail": "이번 주에 맞춰 볼 연락 간격과 약속."
+            },
+            {
+              "title": "종합 해석 · 선택지 · 행동 조언",
+              "detail": "관계를 운영하는 선택지와 생활 속 실천."
+            },
+            {
+              "title": "연이의 마지막 메시지",
+              "detail": "두 사람에게 남기는 맺음말."
+            }
+          ],
           "notice": "두 사람의 생년월일과 달력 기준으로 본명숙과 27숙 관계를 읽는 숙요 궁합입니다. 본명숙·관계 유형·거리·방향을 중심으로 안내하며 성공 확률이나 상대의 속마음을 확정하지 않습니다. 도해와 문장은 이해를 돕기 위한 편집 예시이고 실제 고객 결과가 아닙니다. 방향별 설명·강점·주의점·선택지 등은 결과에 있는 내용만 표시됩니다. 사주 궁합과 타로는 별도 상품이며 꿀편지는 별도 조건의 추가 기능입니다. 연이는 서비스 캐릭터이고 상담 문장은 AI가 작성합니다.",
           "panels": [
             {
@@ -2057,12 +2378,53 @@
               "height": 1440,
               "text": "가까워지는 방법도,\n서로에게 맞게.\n\n완성된 결과는 텍스트와 PDF로\n저장해 다시 읽을 수 있어요.\n\n사주 궁합·타로는 별도 상품이에요.\n꿀편지는 별도 조건의 추가 기능입니다.\n\n연이는 서비스 캐릭터예요.\n상담 문장은 AI가 작성하며,\n사람이 직접 답하는 상담은 아닙니다.\n\n운명의 찻집 · 숙요 궁합"
             }
-          ]
+          ],
+          "priceKRW": 10000
         },
         {
           "id": "tea-tarot-three",
           "featureKey": "fortune-tea-house-tarot-consultation",
           "title": "운명의 찻집 · 타로 3장",
+          "hook": "78장 중 세 장으로 막힌 고민의 실마리를 찾는 타로",
+          "badge": "추가 질문 1회 포함",
+          "chapters": [
+            {
+              "title": "질문의 핵심과 우선할 조언",
+              "detail": "세 장이 함께 가리키는 답을 먼저 드려요."
+            },
+            {
+              "title": "세 장의 카드별 해석",
+              "detail": "자리마다 핵심 의미·현재 상황·질문과의 연결·조언·주의할 점."
+            },
+            {
+              "title": "카드 사이의 연결과 마음의 향",
+              "detail": "카드끼리 이어지는 의미와 지금의 감정."
+            },
+            {
+              "title": "고민 분야의 깊은 풀이",
+              "detail": "연락 판단·리스크·회복처럼 고른 분야에 맞춘 상세 장과 7일·14일·30일 플랜."
+            },
+            {
+              "title": "종합 해석과 연이가 건넨 말",
+              "detail": "흐름을 한 편의 이야기로 묶어요."
+            },
+            {
+              "title": "지금 선택할 수 있는 길",
+              "detail": "가능한 선택지를 나란히 비교해요."
+            },
+            {
+              "title": "앞으로 한 달의 흐름",
+              "detail": "오늘 날짜부터 이어지는 한 달의 결."
+            },
+            {
+              "title": "관계 처방 · 실행 체크리스트",
+              "detail": "곁의 사람과의 거리, 행동 전에 확인할 것."
+            },
+            {
+              "title": "행동 조언과 마지막 메시지",
+              "detail": "오늘 해 볼 한 가지와 맺음말."
+            }
+          ],
           "notice": "찻집의 3장 배열과 상담 구성을 안내합니다. 카드 도식은 자리 설명이며 실제 뽑힌 카드가 아닙니다. 상담 예시는 편집 예시로 실제 고객 결과가 아닙니다. 카드 간 연결·선택 시나리오·행동 항목은 받은 내용이 있을 때 표시됩니다. 사주·사주 궁합·숙요 궁합은 별도 선택 상품입니다. 꿀편지는 별도 조건이 있는 추가 기능이며 기본 상담에 자동 포함되지 않습니다. 연이는 서비스 캐릭터이고 상담 문장은 AI가 작성합니다.",
           "panels": [
             {
@@ -2137,12 +2499,53 @@
               "height": 1440,
               "text": "오늘의 답을,\n조금 다정하게 찾아요.\n\n반드시 그렇게 될 미래보다,\n지금의 나에게 가능한 선택을.\n\n사주 정보 대신,\n지금 겪는 상황과 질문을 준비해요.\n\n연이는 서비스 캐릭터예요.\n상담 문장은 AI가 작성하며,\n사람이 직접 답하는 상담은 아닙니다.\n\n운명의 찻집 · 타로 3장"
             }
-          ]
+          ],
+          "priceKRW": 10000
         },
         {
           "id": "tea-tarot-five",
           "featureKey": "fortune-tea-house-tarot-five-consultation",
           "title": "운명의 찻집 · 타로 5장",
+          "hook": "다섯 장으로 상대·장애·가능성까지 나눠 읽는 타로",
+          "badge": "추가 질문 1회 포함",
+          "chapters": [
+            {
+              "title": "질문의 핵심과 우선할 조언",
+              "detail": "다섯 장이 함께 가리키는 답을 먼저 드려요."
+            },
+            {
+              "title": "다섯 장의 카드별 해석",
+              "detail": "현재·상대/상황·장애·가능성·조언 자리마다 다섯 갈래로 풀어요."
+            },
+            {
+              "title": "카드 사이의 연결과 마음의 향",
+              "detail": "카드끼리 이어지는 의미와 지금의 감정."
+            },
+            {
+              "title": "고민 분야의 깊은 풀이",
+              "detail": "연락 판단·리스크·회복처럼 고른 분야에 맞춘 상세 장과 7일·14일·30일 플랜."
+            },
+            {
+              "title": "종합 해석과 연이가 건넨 말",
+              "detail": "다섯 장을 한 편의 이야기로 묶어요."
+            },
+            {
+              "title": "가능한 선택과 행동 조언",
+              "detail": "선택지를 나란히 놓고 고를 기준을 드려요."
+            },
+            {
+              "title": "앞으로 한 달의 흐름",
+              "detail": "오늘 날짜부터 이어지는 한 달의 결."
+            },
+            {
+              "title": "관계 처방 · 실행 체크리스트",
+              "detail": "곁의 사람과의 거리, 행동 전에 확인할 것."
+            },
+            {
+              "title": "지금의 나에게 남기는 메시지",
+              "detail": "연이의 맺음말."
+            }
+          ],
           "notice": "찻집의 5장 배열과 상담 구성을 안내합니다. 자리 도식과 대화는 편집 예시이며 실제 뽑힌 카드나 고객 결과가 아닙니다. 선택한 배열에 따라 다루는 자리가 달라지고, 카드 사이 연결·선택 시나리오·행동 항목은 받은 내용이 있을 때 표시됩니다. 카드 수는 정확도 등급이 아닙니다. 사주·궁합은 별도 선택 상품이며, 추가 꿀편지에는 별도 조건이 있습니다. 연이는 서비스 캐릭터이고 결과 문장은 AI가 작성합니다.",
           "panels": [
             {
@@ -2226,10 +2629,13 @@
               "height": 1440,
               "text": "정답을 기다리기보다,\n내 마음을 알아가요.\n\n다가갈 때와 쉬어 갈 때,\n나의 바람과 상대의 경계를 함께.\n\n연이는 서비스 캐릭터이며\n상담 문장은 AI가 작성합니다.\n사람이 직접 답하는 상담은 아닙니다.\n\n운명의 찻집 · 타로 5장\n선택의 여지를 남기는 다정한 상담."
             }
-          ]
+          ],
+          "priceKRW": 10000
         }
       ],
       "theme": "navy",
+      "imageWidth": 1920,
+      "imageHeight": 1080,
       "heroVariants": [
         {
           "src": "/feature-details/assets/fortune-tea-house-480.webp",
@@ -2364,6 +2770,121 @@
           "id": "love-secret",
           "featureKey": "love-secret-ai-consultation",
           "title": "연애 비책",
+          "hook": "명식으로 나의 연애 방식부터 상대·타이밍·실천까지 읽는 28개 주제",
+          "chapters": [
+            {
+              "title": "현재 관계의 자리와 질문의 핵심",
+              "detail": "핵심 연애운과 질문의 답"
+            },
+            {
+              "title": "핵심 연애운 — 명식이 사랑에서 그리는 큰 결",
+              "detail": "핵심 연애운과 질문의 답"
+            },
+            {
+              "title": "오행과 조후로 보는 감정의 온도",
+              "detail": "핵심 연애운과 질문의 답"
+            },
+            {
+              "title": "나의 명식이 사랑에서 반복하는 방식",
+              "detail": "나의 연애 성향"
+            },
+            {
+              "title": "십성으로 보는 애착과 표현 방식",
+              "detail": "나의 연애 성향"
+            },
+            {
+              "title": "연애 장점 — 상대가 먼저 알아보는 힘",
+              "detail": "나의 연애 성향"
+            },
+            {
+              "title": "연애 약점 — 반복해서 걸려 넘어지는 자리",
+              "detail": "나의 연애 성향"
+            },
+            {
+              "title": "애정 표현 스타일과 연애 심리",
+              "detail": "나의 연애 성향"
+            },
+            {
+              "title": "상대의 기운과 감정 거리감",
+              "detail": "상대·궁합·이상형"
+            },
+            {
+              "title": "두 사람 사이 끌림이 살아나는 조건",
+              "detail": "상대·궁합·이상형"
+            },
+            {
+              "title": "속궁합과 친밀감 리듬",
+              "detail": "상대·궁합·이상형"
+            },
+            {
+              "title": "이상형 분석 — 내 명식이 끌리는 사람",
+              "detail": "상대·궁합·이상형"
+            },
+            {
+              "title": "상대가 원하는 연애 스타일",
+              "detail": "상대·궁합·이상형"
+            },
+            {
+              "title": "갈등의 뿌리와 회복 방식",
+              "detail": "갈등·바람기·재회·자기 보호"
+            },
+            {
+              "title": "바람기와 마음이 흩어지는 조건",
+              "detail": "갈등·바람기·재회·자기 보호"
+            },
+            {
+              "title": "재회 가능성과 그 조건",
+              "detail": "갈등·바람기·재회·자기 보호"
+            },
+            {
+              "title": "피해야 할 선택과 자기 보호",
+              "detail": "갈등·바람기·재회·자기 보호"
+            },
+            {
+              "title": "연락/고백/재회/관계 진전 타이밍",
+              "detail": "대운·올해·좋은 날짜·결혼운"
+            },
+            {
+              "title": "올해 연애운 — 좋은 달과 조심할 달",
+              "detail": "대운·올해·좋은 날짜·결혼운"
+            },
+            {
+              "title": "좋은 날짜 — 계산된 일진으로 고른 날",
+              "detail": "대운·올해·좋은 날짜·결혼운"
+            },
+            {
+              "title": "결혼운과 인연이 굳어지는 시기",
+              "detail": "대운·올해·좋은 날짜·결혼운"
+            },
+            {
+              "title": "30일 관계 흐름 처방",
+              "detail": "대운·올해·좋은 날짜·결혼운"
+            },
+            {
+              "title": "썸에서 확신으로 가는 전략",
+              "detail": "썸 전략·대화·매력·실천"
+            },
+            {
+              "title": "관계 단계별 실행 비책",
+              "detail": "썸 전략·대화·매력·실천"
+            },
+            {
+              "title": "상대에게 다가가는 대화 문장",
+              "detail": "썸 전략·대화·매력·실천"
+            },
+            {
+              "title": "매력적으로 보이는 방법 — 이미지·말투·스타일",
+              "detail": "썸 전략·대화·매력·실천"
+            },
+            {
+              "title": "7일 실천 가이드",
+              "detail": "썸 전략·대화·매력·실천"
+            },
+            {
+              "title": "마지막 상담사의 한마디",
+              "detail": "썸 전략·대화·매력·실천"
+            }
+          ],
           "notice": "이 안내의 목차는 현재 상담이 다루는 28개 주제를 읽기 쉽게 줄여 쓴 것입니다. 실제 화면은 받은 내용을 주제별로 묶어 표시합니다. 예시 대화는 가상 예시 프로필로 생성한 실제 AI 결과를 고치지 않고 발췌한 것으로 고객 결과·후기가 아니며, 결과는 입력에 따라 달라집니다. 상대 정보가 없으면 상대 명식을 계산한 궁합으로 해석하지 않습니다. 날짜 안내는 관계의 성공을 보장하지 않습니다. 10년 경력 상담사·명리학자가 만든 AI 해설 서비스이며, 사람이 결과마다 직접 집필·감수하는 상담이 아닙니다.",
           "panels": [
             {
@@ -2456,7 +2977,8 @@
               "height": 1440,
               "text": "누군가의 정답보다,\n지금의 나에게 필요한 말.\n\n지금의 관계 단계와 고민,\n궁금한 질문을 먼저 적어 주세요.\n\n본인의 출생 정보를 준비하고,\n상대 정보는 아는 만큼 입력해요.\n모르는 시간은 모름으로 선택해요.\n\n10년 경력 상담사·명리학자가 만든\n서비스이며, 결과 문장은 AI가 씁니다.\n\n연애 비책\n다음 대화가 조금 더 나다울 수 있도록."
             }
-          ]
+          ],
+          "priceKRW": 30000
         }
       ],
       "founder": {
@@ -2614,7 +3136,8 @@
               "height": 1440,
               "text": "한 가지 고민이면,\n시작할 수 있어요.\n\n질문은 300자 안에서 적어주세요.\n상담을 시작하려면 로그인이 필요해요.\n준비된 상담의 가격과 이용 조건을\n기존 결제 화면에서 확인해주세요.\n\n연이와 네오는 같은 결제 상품의\n상담자 선택이에요.\n답변의 말투와 읽는 순서가 달라져요.\n\n연이는 AI 상담 캐릭터입니다.\n이용권·월정석·단건 결제는\n현재 화면에 표시된 기준을 따릅니다."
             }
-          ]
+          ],
+          "priceKRW": 5000
         },
         {
           "id": "chat-engine-neo",
@@ -2686,10 +3209,13 @@
               "height": 1440,
               "text": "결정은 네 몫.\n읽을 근거는 여기서.\n\n상담을 준비한 뒤 기존 화면에서\n가격과 이용 조건을 확인해라.\n중요한 선택은 현실의 정보와\n리포트의 조언을 함께 놓고 판단해라.\n\n연이로 바꾸면 말투와 읽는 순서가\n달라진다. 같은 결제 상품 안의\n상담자 선택이다.\n\n네오는 AI 상담 캐릭터입니다.\n이용권·월정석·단건 결제는\n현재 화면의 기준을 따릅니다."
             }
-          ]
+          ],
+          "priceKRW": 5000
         }
       ],
       "theme": "navy",
+      "imageWidth": 1024,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/fortune-chat-480.webp",
@@ -2769,6 +3295,8 @@
         "note": "풀이의 문체와 구성을 보여주는 예시입니다. 실제 카드·입력 정보에 따라 내용이 달라집니다."
       },
       "theme": "burgundy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/tarot-love-relationship-480.webp",
@@ -2858,6 +3386,8 @@
         ]
       },
       "theme": "burgundy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/tarot-reunion-480.webp",
@@ -2945,6 +3475,8 @@
         ]
       },
       "theme": "burgundy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/tarot-mindscan-480.webp",
@@ -3042,6 +3574,8 @@
         ]
       },
       "theme": "rose",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/love-simulation-480.webp",
@@ -3127,6 +3661,8 @@
         ]
       },
       "theme": "rose",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/nakshatra-compat-480.webp",
@@ -3225,6 +3761,59 @@
           "id": "neo-operation-room",
           "featureKey": "neo-operation-room-consultation",
           "title": "네오의 팩폭 작전실",
+          "hook": "네 가지 지도 중 하나로 지금의 전선을 읽고 7일 작전까지 세우는 상담",
+          "badge": "현실 점검 질문 2회 포함",
+          "chaptersLabel": "받게 될 작전 브리핑 목차",
+          "chapters": [
+            {
+              "title": "전선 진단",
+              "detail": "지금 흐름의 요약과 네오의 첫 팩폭"
+            },
+            {
+              "title": "긴급 작전",
+              "detail": "바로 실행할 작전 명령"
+            },
+            {
+              "title": "네오의 판단",
+              "detail": "첫 진단과 되풀이하는 선택"
+            },
+            {
+              "title": "타고난 성향",
+              "detail": "성향의 핵 · 타고난 강점과 약점"
+            },
+            {
+              "title": "주제 분석",
+              "detail": "질문한 영역에서의 방식과 자리마다 다른 결"
+            },
+            {
+              "title": "시기와 전략",
+              "detail": "언제 열리고 닫히는지 · 본래 무기 체계"
+            },
+            {
+              "title": "어긋난 자리와 근거",
+              "detail": "흐름이 밀리는 자리와 선택한 체계의 계산 근거"
+            },
+            {
+              "title": "금지와 7일 작전",
+              "detail": "오늘의 금지 행동과 7일 전투 계획"
+            },
+            {
+              "title": "현실 점검",
+              "detail": "네오가 되묻는 현실 점검 질문"
+            },
+            {
+              "title": "사자 휘장",
+              "detail": "이번 작전의 휘장과 마무리 한마디"
+            },
+            {
+              "title": "연애·재회 주제에 상대 정보를 더하면",
+              "detail": "궁합 계기판 · 서로를 보는 눈 · 교차 판독 · 갈등 패턴 · 관계 작전 (근거가 있는 항목만)"
+            },
+            {
+              "title": "2차 수정 작전 명령서 · 현실 점검 답변 뒤 최대 2회",
+              "detail": "전황 재판단 · 판정과 근거 · 전선 조정 · 만나야 할 사람 · 30일 전략과 이번 주 첫 걸음 · 금지와 휘장"
+            }
+          ],
           "notice": "사주·자미두수·베다점·서양 점성술 중 하나를 선택해 질문을 읽는 상담입니다. 여러 체계를 한 번에 합치는 상품이 아닙니다. 목차는 결과에 있는 내용만 표시되며, 관계 전용 항목은 연애/재회 주제와 상대 정보 등 조건을 충족할 때 열립니다. 수정 명령서는 현실 점검 답변과 남은 이용 범위에 따라 요청합니다. PDF·편지·전략서는 별도 해금 조건이 있어 기본 상담에 자동 포함되지 않습니다. 안내 속 대화는 이해를 돕기 위한 편집 예시이며 실제 고객 결과가 아닙니다. 네오는 서비스 캐릭터이며 상담 문장은 AI가 작성합니다.",
           "panels": [
             {
@@ -3317,10 +3906,13 @@
               "height": 1440,
               "text": "네 편에서 짚겠다.\n선택은 네 손에 남겨두고.\n\n가능성을 사실처럼 단정하지 않고,\n지금 고칠 수 있는 행동부터.\n\n네오는 서비스 캐릭터다.\n상담 문장은 AI가 작성하며,\n사람이 직접 답하는 상담은 아니다.\n\n네오의 팩폭 작전실"
             }
-          ]
+          ],
+          "priceKRW": 30000
         }
       ],
       "theme": "navy",
+      "imageWidth": 1672,
+      "imageHeight": 941,
       "heroVariants": [
         {
           "src": "/feature-details/assets/neo-operation-room-480.webp",
@@ -3403,6 +3995,8 @@
         "faq": []
       },
       "theme": "navy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/destiny-compass-480.webp",
@@ -3482,6 +4076,8 @@
         "faq": []
       },
       "theme": "navy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/saju-sibyl-480.webp",
@@ -3608,6 +4204,8 @@
           "궁금한 주제"
         ]
       },
+      "imageWidth": 1672,
+      "imageHeight": 941,
       "heroVariants": [
         {
           "src": "/feature-details/assets/new-year-ai-480.webp",
@@ -3695,6 +4293,8 @@
         ]
       },
       "theme": "burgundy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/tarot-ijik-480.webp",
@@ -3828,6 +4428,78 @@
           "id": "life-book",
           "featureKey": "life-book-ai-consultation",
           "title": "인생의 책",
+          "hook": "명식의 근거로 나의 이야기를 열 장의 책으로 엮는 상담",
+          "chaptersLabel": "받게 될 인생의 책 목차",
+          "chapters": [
+            {
+              "title": "명식과 오행·십성 분포",
+              "detail": "책을 펼치기 전 나의 기본 명식"
+            },
+            {
+              "title": "핵심 요약",
+              "detail": "한 줄 요약 · 인생의 주제 · 가장 강한 기운 · 보완점"
+            },
+            {
+              "title": "타고난 사주의 원형",
+              "detail": "1장"
+            },
+            {
+              "title": "성격과 내면의 작동 방식",
+              "detail": "2장"
+            },
+            {
+              "title": "재능과 일의 방향",
+              "detail": "3장"
+            },
+            {
+              "title": "사랑과 인연",
+              "detail": "4장"
+            },
+            {
+              "title": "재물과 현실 기반",
+              "detail": "5장"
+            },
+            {
+              "title": "인간관계와 가족의 장",
+              "detail": "6장"
+            },
+            {
+              "title": "건강과 조후의 균형",
+              "detail": "7장"
+            },
+            {
+              "title": "대운으로 보는 인생의 큰 장면",
+              "detail": "8장"
+            },
+            {
+              "title": "가까운 시기의 세운 조언",
+              "detail": "9장"
+            },
+            {
+              "title": "인생의 책 마지막 문장",
+              "detail": "10장"
+            },
+            {
+              "title": "일간과 월지가 여는 중심 기질",
+              "detail": "명식의 깊은 판독 1"
+            },
+            {
+              "title": "오행과 조후가 청하는 보완",
+              "detail": "명식의 깊은 판독 2"
+            },
+            {
+              "title": "십성으로 읽는 관계와 일의 방식",
+              "detail": "명식의 깊은 판독 3"
+            },
+            {
+              "title": "대운과 세운이 비추는 선택의 시기",
+              "detail": "명식의 깊은 판독 4"
+            },
+            {
+              "title": "마지막 문장",
+              "detail": "책을 덮으며 건네는 마무리 메시지"
+            }
+          ],
           "notice": "책과 서재 이미지는 디지털 리포트를 표현한 삽화이며 실물 배송 상품이 아닙니다. 예시 문장은 가상 예시 프로필로 생성한 실제 AI 결과를 고치지 않고 발췌한 것으로 고객 결과·후기가 아니며, 결과는 입력에 따라 달라집니다. 요약·조언·심화 해석은 결과에 포함된 경우 표시됩니다. 제작자의 과거 직접 1:1 상담 후기는 이 디지털 상품의 구매 후기가 아닙니다. 가격과 결제 조건은 기존 화면에서 확인해 주세요.",
           "panels": [
             {
@@ -3920,7 +4592,8 @@
               "height": 1440,
               "text": "아직 쓰이지 않은 장은,\n오늘의 선택으로.\n\n생년월일과 달력 기준,\n출생 시간을 확인해 주세요.\n모르는 시간은 모름으로 선택해요.\n\n전체 흐름 또는 더 읽고 싶은 영역을\n고르고, 지금의 나를 펼쳐 보세요.\n\n인생의 책\n당신의 시간을 한 권의 이야기로."
             }
-          ]
+          ],
+          "priceKRW": 30000
         }
       ],
       "founder": {
@@ -4021,6 +4694,8 @@
         ]
       },
       "theme": "navy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/karma-destiny-ai-480.webp",
@@ -4111,6 +4786,8 @@
         ]
       },
       "theme": "navy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/saju-guardian-480.webp",
@@ -4207,6 +4884,8 @@
         ]
       },
       "theme": "navy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/naming-ai-480.webp",
@@ -4399,10 +5078,13 @@
               "height": 1440,
               "text": "선택의 이유를,\n나의 말로 정리해요.\n\n같은 흐름에는 근거를 더하고,\n다른 해석에는 조건을 살펴요.\n\n결정은 지금의 정보와 현실을 함께.\n상담은 그 선택을 정리하는 도구입니다.\n\n사주 엔진은 10년 경력 명리학자가\n설계·자문했습니다. 결과 문장은 AI가\n작성하며, 사람 6명의 직접 상담은 아닙니다.\n\n초융합 운세\n나를 이해하는 관점에서, 다음 한 걸음까지."
             }
-          ]
+          ],
+          "priceKRW": 50000
         }
       ],
       "theme": "navy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/fusion-fortune-480.webp",
@@ -4491,6 +5173,8 @@
         ]
       },
       "theme": "burgundy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/tarot-year-fortune-480.webp",
@@ -4579,6 +5263,8 @@
         ]
       },
       "theme": "burgundy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/tarot-celestial-harmony-480.webp",
@@ -4736,10 +5422,13 @@
               "height": 1440,
               "text": "날짜를 고르는,\n하나의 참고표로.\n\n기존 날짜 찾기 버튼에서\n가격과 이용 조건을 확인합니다.\n이용권·월정석·단건 결제는\n현재 화면의 기준을 따릅니다.\n\n택일은 계산과 준비된 해석을 조합합니다.\nVVIP 통합서나 AI 심화 상담,\n두 사람 궁합은 각각 별도 상품입니다.\n\n결제 후 본문을 받지 못했다면\n같은 결제의 다시 받기 안내를 이용해주세요."
             }
-          ]
+          ],
+          "priceKRW": 7000
         }
       ],
       "theme": "indigo",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/nakshatra-muhurta-480.webp",
@@ -4798,6 +5487,8 @@
       "contents": [],
       "imageAlt": "사주 정밀 분석의 주제를 담은 오리지널 일러스트",
       "theme": "navy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/saju-480.webp",
@@ -4858,6 +5549,8 @@
       "contents": [],
       "imageAlt": "타로의 주제를 담은 오리지널 일러스트",
       "theme": "burgundy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/tarot-480.webp",
@@ -4917,6 +5610,8 @@
       "contents": [],
       "imageAlt": "심화 자미두수 12궁 상담의 주제를 담은 오리지널 일러스트",
       "theme": "navy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/ziwei-480.webp",
@@ -5014,6 +5709,8 @@
         ]
       },
       "theme": "navy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/sukuyo-480.webp",
@@ -5073,6 +5770,8 @@
       "contents": [],
       "imageAlt": "베다 점성술 분석의 주제를 담은 오리지널 일러스트",
       "theme": "indigo",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/vedic-480.webp",
@@ -5132,6 +5831,8 @@
       "contents": [],
       "imageAlt": "서양 점성술 차트 분석의 주제를 담은 오리지널 일러스트",
       "theme": "indigo",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/astrology-480.webp",
@@ -5214,6 +5915,8 @@
         "faq": []
       },
       "theme": "indigo",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/human-design-480.webp",
@@ -5277,6 +5980,8 @@
         "note": "풀이의 문체와 구성을 보여주는 가상의 편집 예시입니다. 실제 입력 정보에 따라 내용이 달라집니다."
       },
       "theme": "indigo",
+      "imageWidth": 1672,
+      "imageHeight": 941,
       "heroVariants": [
         {
           "src": "/feature-details/assets/nakshatra-480.webp",
@@ -5333,6 +6038,8 @@
         "faq": []
       },
       "theme": "indigo",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/maya-480.webp",
@@ -5396,6 +6103,8 @@
         "faq": []
       },
       "theme": "saffron",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/daily-fortune-480.webp",
@@ -5459,6 +6168,8 @@
         "faq": []
       },
       "theme": "saffron",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/today-hub-480.webp",
@@ -5550,6 +6261,8 @@
         ]
       },
       "theme": "emerald",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/palm-reading-480.webp",
@@ -5607,6 +6320,8 @@
         "faq": []
       },
       "theme": "emerald",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/physiognomy-480.webp",
@@ -5671,6 +6386,8 @@
         "faq": []
       },
       "theme": "emerald",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/dream-480.webp",
@@ -5734,6 +6451,8 @@
         "faq": []
       },
       "theme": "emerald",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/psychotest-480.webp",
@@ -5790,6 +6509,8 @@
         "faq": []
       },
       "theme": "navy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/manse-480.webp",
@@ -5846,6 +6567,8 @@
         "faq": []
       },
       "theme": "navy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/famous-saju-480.webp",
@@ -6006,10 +6729,13 @@
               "height": 1440,
               "text": "나를 설명할 한 장을,\n생활 가까이에 남겨요.\n\n생년월일과 달력 종류를 확인해요.\n출생시간을 모르면 비워도 괜찮아요.\n\n결과 요약 카드를 이미지로 저장·공유해요.\n전체 리포트 PDF를 뜻하지는 않아요.\n기존 화면의 이용 조건과 버튼을 따라 시작해요."
             }
-          ]
+          ],
+          "priceKRW": 7000
         }
       ],
       "theme": "emerald",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/animal-destiny-480.webp",
@@ -6098,6 +6824,8 @@
         ]
       },
       "theme": "burgundy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/kemet-oracle-480.webp",
@@ -6186,6 +6914,8 @@
         ]
       },
       "theme": "burgundy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/ifa-oracle-480.webp",
@@ -6274,6 +7004,8 @@
         ]
       },
       "theme": "burgundy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/juyuk-turtle-480.webp",
@@ -6366,6 +7098,8 @@
         ]
       },
       "theme": "navy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/neville-meditation-480.webp",
@@ -6459,6 +7193,8 @@
         ]
       },
       "theme": "navy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/yoga-guru-480.webp",
@@ -6538,6 +7274,8 @@
         "faq": []
       },
       "theme": "burgundy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/tarot-numerology-480.webp",
@@ -6617,6 +7355,8 @@
         "note": "풀이의 문체와 구성을 보여주는 예시입니다. 실제 카드·입력 정보에 따라 내용이 달라집니다."
       },
       "theme": "emerald",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/dream-psycho-analysis-480.webp",
@@ -6775,7 +7515,8 @@
               "height": 1440,
               "text": "지금의 마음에 맞는\n읽는 방식을 골라요.\n\n질문 입력 → 한 장 또는 세 장 선택\n기존 결제 확인 → 카드 공개 → 결과\n\n실제 카드는 성좌 문양으로 표시돼요.\n위 일러스트는 분위기를 담은 이미지예요.\n가격과 이용 조건은 기존 선택 화면을 따릅니다."
             }
-          ]
+          ],
+          "priceKRW": 5000
         },
         {
           "id": "animal-totem-deep",
@@ -6855,10 +7596,13 @@
               "height": 1440,
               "text": "다섯 자리 앞에,\n지금의 질문을 놓아봐요.\n\n최대 300자의 질문을 적거나 건너뛰고,\n‘별자리 다섯 동물’을 선택해요.\n\n기존 결제 확인 후 카드를 공개해요.\n실제 카드는 성좌 문양으로 표시됩니다.\n가격·이용 조건은 현재 선택 화면을 따릅니다."
             }
-          ]
+          ],
+          "priceKRW": 5000
         }
       ],
       "theme": "emerald",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/animal-totem-480.webp",
@@ -6922,6 +7666,8 @@
         "faq": []
       },
       "theme": "rose",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/mbti-animal-compat-480.webp",
@@ -7010,6 +7756,8 @@
         ]
       },
       "theme": "burgundy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/tarot-crystal-soul-480.webp",
@@ -7098,6 +7846,8 @@
         ]
       },
       "theme": "burgundy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/royal-tea-oracle-480.webp",
@@ -7186,6 +7936,8 @@
         ]
       },
       "theme": "burgundy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/geomancy-oracle-480.webp",
@@ -7275,6 +8027,8 @@
         ]
       },
       "theme": "burgundy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/stonehenge-runes-480.webp",
@@ -7332,6 +8086,8 @@
         "faq": []
       },
       "theme": "saffron",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/luck-sync-diary-480.webp",
@@ -7388,6 +8144,8 @@
         "faq": []
       },
       "theme": "navy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/music-480.webp",
@@ -7444,6 +8202,8 @@
         "faq": []
       },
       "theme": "navy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/novel-480.webp",
@@ -7599,6 +8359,8 @@
       ],
       "imageAlt": "숙요 인연 레이더의 주제를 담은 오리지널 일러스트",
       "theme": "navy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/sukyo-480.webp",
@@ -7686,6 +8448,8 @@
         ]
       },
       "theme": "burgundy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/tarot-prompt-maker-480.webp",
@@ -7738,6 +8502,8 @@
         "faq": []
       },
       "theme": "navy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/face-reading-480.webp",
@@ -7814,6 +8580,8 @@
         ]
       },
       "theme": "navy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/bias-destiny-480.webp",
@@ -7871,6 +8639,8 @@
       "catalogImage": "/feature-details/assets/omikuji-catalog-320.webp",
       "imageAlt": "이모이 오미쿠지의 주제를 담은 오리지널 일러스트",
       "theme": "burgundy",
+      "imageWidth": 1672,
+      "imageHeight": 941,
       "heroVariants": [
         {
           "src": "/feature-details/assets/omikuji-480.webp",
@@ -7996,6 +8766,8 @@
         ]
       },
       "theme": "rose",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/destiny-meeting-place-480.webp",
@@ -8089,6 +8861,8 @@
         ]
       },
       "theme": "navy",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/ziwei-ai-480.webp",
@@ -8161,6 +8935,8 @@
       },
       "imageAlt": "운명의 꽃 아틀리에의 주제를 담은 오리지널 판타지 일러스트",
       "theme": "emerald",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/destiny-flower-480.webp",
@@ -8233,6 +9009,8 @@
       },
       "imageAlt": "점성술 꽃의 주제를 담은 오리지널 판타지 일러스트",
       "theme": "emerald",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/astrology-flower-480.webp",
@@ -8305,6 +9083,8 @@
       },
       "imageAlt": "자미두수 꽃의 주제를 담은 오리지널 판타지 일러스트",
       "theme": "emerald",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/ziwei-flower-480.webp",
@@ -8377,6 +9157,8 @@
       },
       "imageAlt": "숙요 꽃의 주제를 담은 오리지널 판타지 일러스트",
       "theme": "emerald",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/sukuyo-flower-480.webp",
@@ -8453,6 +9235,8 @@
       },
       "imageAlt": "코스믹 소울 명상의 주제를 담은 오리지널 판타지 일러스트",
       "theme": "indigo",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/cosmic-soul-meditation-480.webp",
@@ -8612,9 +9396,12 @@
               "height": 1440,
               "text": "신탁은 하나의 이야기,\n방향은 나의 선택.\n익숙한 나를\n낯선 신화의 언어로\n다시 만나보세요.\n\n기존 화면에서 이용 조건을 확인하고\n프로필과 궁합, 신탁을 펼쳐보세요.\n\n재미있게 읽되, 중요한 결정은\n실제 정보와 내 판단을 함께 놓고 해요.\n\n수익·관계·시기·행운을 보장하지 않아요.\nAI 자유상담이나 PDF는 포함하지 않아요.\n예시는 실제 고객 결과·후기가 아닙니다."
             }
-          ]
+          ],
+          "priceKRW": 5000
         }
       ],
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/olympus-oracle-480.webp",
@@ -8691,6 +9478,8 @@
       },
       "imageAlt": "등불 두 개가 놓인 달밤의 다리 앞에서 덮인 장부를 든 숙요점 상담가 서한비의 오리지널 일러스트",
       "theme": "indigo",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/sukuyo-compatibility-ai-480.webp",
@@ -8770,6 +9559,8 @@
       },
       "imageAlt": "밤하늘 천문대 하늘배 갑판에서 열두 하우스 차트 휠과 겹친 접부채를 든 점성술사 윤달과 흰 고양이의 오리지널 일러스트",
       "theme": "indigo",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/astrology-ai-480.webp",
@@ -8849,6 +9640,8 @@
       },
       "imageAlt": "베다점 전문가 상담의 천문 관측 장면을 담은 오리지널 일러스트",
       "theme": "saffron",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/vedic-ai-480.webp",
@@ -8928,6 +9721,8 @@
       },
       "imageAlt": "숙요·나크샤트라 통합 상담의 천문 관측 장면을 담은 오리지널 일러스트",
       "theme": "indigo",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/nakshatra-ai-480.webp",
@@ -9006,6 +9801,8 @@
       },
       "imageAlt": "나크샤트라 VVIP 코덱스의 천문 관측 장면을 담은 오리지널 일러스트",
       "theme": "indigo",
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/nakshatra-vvip-codex-480.webp",

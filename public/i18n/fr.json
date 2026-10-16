@@ -17279,7 +17279,8 @@
       "resume": "Continue from saved sections",
       "pendingHelp": "Your question and access will be checked to resume the same reading.",
       "login": "Sign in to open My readings",
-      "openError": "The reading could not be opened. Please select it again."
+      "openError": "The reading could not be opened. Please select it again.",
+      "followUpRemaining": "Questions complémentaires restantes : {count}"
     },
     "teaCupSelection": {
       "eyebrow": "Six cups that answer the scent of a heart",
@@ -18005,7 +18006,9 @@
       "pdfFileName": "destiny-tea-house-{title}-{date}.pdf",
       "honeyLetterResume": "Consulter à nouveau cette lettre",
       "safeShareLabel": "Tea house invitation without personal details",
-      "safeShareText": "A cup of tea with Yeoni, and time to quietly reflect on my feelings and choices."
+      "safeShareText": "A cup of tea with Yeoni, and time to quietly reflect on my feelings and choices.",
+      "followUpTextQuestion": "Question : {question}",
+      "followUpTextTitle": "Question complémentaire posée à Yeoni"
     },
     "fortuneTeaHouseDebugPanel": {
       "k1lcnd8v": "Yes",
@@ -20393,7 +20396,7 @@
       "sukuyoLine": "The space between two people",
       "sukuyoInfo": "Use both people's birth details to explore lunar mansions and relationship direction, including attraction, misunderstandings, and conversation.",
       "compat": "Saju compatibility readings are also available",
-      "priceNote": "Single-reading price. Pass and Moonstone eligibility is checked when you confirm the reading.",
+      "priceNote": "Prix pour une consultation · 1 question complémentaire incluse. L'éligibilité Pass et Moonstone est indiquée lors de la confirmation.",
       "previewTitle": "A reading you can return to",
       "example": "Format example — not a real customer's reading",
       "exampleQuestion": "Should I continue this work?",
@@ -20403,7 +20406,8 @@
         "0": "A direct answer to your question",
         "1": "Interpretation grounds and limitations",
         "2": "Actions you can take now",
-        "3": "A closing letter from Yeoni"
+        "3": "A closing letter from Yeoni",
+        "4": "1 question complémentaire à Yeoni après réception de votre consultation"
       },
       "historyTitle": "Past thoughts, continuing conversations",
       "historyBody": "Revisit saved readings and continue readings still being generated or needing recovery.",
@@ -20421,8 +20425,8 @@
       "titleKo": "Review your reading",
       "question": "My question",
       "price": "Single-reading price",
-      "scope": "Core answer · interpretation grounds · actions · Yeoni's letter",
-      "policy": "Pass and Moonstone eligibility is checked next. Follow-up questions are available only when included in your current entitlement.",
+      "scope": "Réponse essentielle · fondements de l'interprétation · actions · lettre de Yeoni · 1 question complémentaire",
+      "policy": "L'éligibilité Pass et Moonstone est vérifiée à l'étape suivante. Une fois votre consultation reçue, vous pouvez poser 1 question complémentaire sans frais supplémentaires, sur la même base (thème de naissance, cartes ou demeure lunaire natale).",
       "edit": "Edit question",
       "continue": "Check access and start",
       "prepare": "Prepare cards for this question",
@@ -20571,6 +20575,39 @@
       "downloadNote": "Once unlocked, the album can be saved as a PDF without spending more honey drops.",
       "chapter": "Yeoni’s moonlit library",
       "humanAlt": "Human-form Yeoni sharing tarot stories in the moonlight"
+    },
+    "followUpCard": {
+      "eyebrow": "1 question complémentaire incluse",
+      "title": "Poser une question de plus à Yeoni",
+      "remaining": "Questions complémentaires restantes : {count}",
+      "usedUp": "Question complémentaire déjà utilisée",
+      "intro": "Après avoir lu votre consultation, écrivez une chose que vous aimeriez approfondir. Yeoni répondra en se concentrant sur cette seule question, à partir des mêmes éléments que votre consultation initiale. Sans frais supplémentaires.",
+      "basis": {
+        "tarot": "Avec les mêmes cartes · aucun nouveau tirage",
+        "saju": "À partir du même thème de naissance",
+        "sajuCompatibility": "À partir des mêmes thèmes de naissance de vous deux",
+        "sukuyo": "À partir des mêmes demeures lunaires natales de vous deux"
+      },
+      "label": "Votre question pour Yeoni",
+      "placeholder": "Ex. : Avec cette tendance, quand vaut-il mieux faire le premier pas ?",
+      "counter": "{count}/{max} caractères",
+      "tooShort": "Précisez un peu votre question : au moins 4 caractères, espaces non compris.",
+      "tooLong": "La question peut compter jusqu'à 600 caractères, espaces non compris.",
+      "submit": "Demander à Yeoni",
+      "resume": "Renvoyer la même question",
+      "sending": "Yeoni rouvre votre consultation initiale pour rédiger sa réponse. Cela peut prendre environ une minute.",
+      "waiting": "La réponse à la question envoyée plus tôt est en cours de finalisation. Merci de patienter un instant.",
+      "arrived": "La réponse complémentaire de Yeoni est arrivée.",
+      "reopened": "La réponse complémentaire enregistrée a été rouverte.",
+      "limitReached": "La question complémentaire de cette consultation a déjà été utilisée.",
+      "failed": "La réponse n'a pas pu être transmise. Votre question complémentaire reste disponible : renvoyez la même question.",
+      "login": "Connectez-vous pour poser une question complémentaire.",
+      "revoked": "Cette consultation a été annulée ou remboursée : les questions complémentaires ne sont pas disponibles.",
+      "questionLabel": "Votre question",
+      "evidenceTitle": "Les repères de Yeoni",
+      "directTitle": "La réponse de Yeoni",
+      "guidanceTitle": "À essayer",
+      "cautionTitle": "Points de vigilance"
     }
   },
   "fortuneVar": {

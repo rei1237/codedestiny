@@ -17279,7 +17279,8 @@
       "resume": "Continue from saved sections",
       "pendingHelp": "Your question and access will be checked to resume the same reading.",
       "login": "Sign in to open My readings",
-      "openError": "The reading could not be opened. Please select it again."
+      "openError": "The reading could not be opened. Please select it again.",
+      "followUpRemaining": "Resterende vervolgvragen: {count}"
     },
     "teaCupSelection": {
       "eyebrow": "Six cups that answer the scent of a heart",
@@ -18005,7 +18006,9 @@
       "pdfFileName": "destiny-tea-house-{title}-{date}.pdf",
       "honeyLetterResume": "Dezelfde brief opnieuw bekijken",
       "safeShareLabel": "Tea house invitation without personal details",
-      "safeShareText": "A cup of tea with Yeoni, and time to quietly reflect on my feelings and choices."
+      "safeShareText": "A cup of tea with Yeoni, and time to quietly reflect on my feelings and choices.",
+      "followUpTextQuestion": "Vraag: {question}",
+      "followUpTextTitle": "Vervolgvraag aan Yeoni"
     },
     "fortuneTeaHouseDebugPanel": {
       "k1lcnd8v": "Yes",
@@ -20393,7 +20396,7 @@
       "sukuyoLine": "The space between two people",
       "sukuyoInfo": "Use both people's birth details to explore lunar mansions and relationship direction, including attraction, misunderstandings, and conversation.",
       "compat": "Saju compatibility readings are also available",
-      "priceNote": "Single-reading price. Pass and Moonstone eligibility is checked when you confirm the reading.",
+      "priceNote": "Prijs per consult · inclusief 1 vervolgvraag. Of Pass en Moonstone gelden, zie je bij het bevestigen van het consult.",
       "previewTitle": "A reading you can return to",
       "example": "Format example — not a real customer's reading",
       "exampleQuestion": "Should I continue this work?",
@@ -20403,7 +20406,8 @@
         "0": "A direct answer to your question",
         "1": "Interpretation grounds and limitations",
         "2": "Actions you can take now",
-        "3": "A closing letter from Yeoni"
+        "3": "A closing letter from Yeoni",
+        "4": "1 vervolgvraag aan Yeoni nadat je consult binnen is"
       },
       "historyTitle": "Past thoughts, continuing conversations",
       "historyBody": "Revisit saved readings and continue readings still being generated or needing recovery.",
@@ -20421,8 +20425,8 @@
       "titleKo": "Review your reading",
       "question": "My question",
       "price": "Single-reading price",
-      "scope": "Core answer · interpretation grounds · actions · Yeoni's letter",
-      "policy": "Pass and Moonstone eligibility is checked next. Follow-up questions are available only when included in your current entitlement.",
+      "scope": "Kernantwoord · onderbouwing van de duiding · acties · brief van Yeoni · 1 vervolgvraag",
+      "policy": "Of Pass en Moonstone gelden, wordt in de volgende stap gecontroleerd. Na ontvangst van je consult kun je zonder extra kosten 1 vervolgvraag stellen op dezelfde basis (geboortekaart, kaarten of geboortemaanhuis).",
       "edit": "Edit question",
       "continue": "Check access and start",
       "prepare": "Prepare cards for this question",
@@ -20571,6 +20575,39 @@
       "downloadNote": "Once unlocked, the album can be saved as a PDF without spending more honey drops.",
       "chapter": "Yeoni’s moonlit library",
       "humanAlt": "Human-form Yeoni sharing tarot stories in the moonlight"
+    },
+    "followUpCard": {
+      "eyebrow": "Inclusief 1 vervolgvraag",
+      "title": "Yeoni nog één vraag stellen",
+      "remaining": "Resterende vervolgvragen: {count}",
+      "usedUp": "Vervolgvraag al gebruikt",
+      "intro": "Schrijf na het lezen van je consult één ding op waar je meer over wilt weten. Yeoni beantwoordt die ene vraag gericht, op basis van hetzelfde fundament als je oorspronkelijke consult. Er zijn geen extra kosten.",
+      "basis": {
+        "tarot": "Met dezelfde kaarten · er wordt niet opnieuw getrokken",
+        "saju": "Op basis van dezelfde geboortekaart",
+        "sajuCompatibility": "Op basis van dezelfde geboortekaarten van jullie beiden",
+        "sukuyo": "Op basis van dezelfde geboortemaanhuizen van jullie beiden"
+      },
+      "label": "Je vraag aan Yeoni",
+      "placeholder": "Bijv.: Wanneer kan ik bij deze ontwikkeling het beste als eerste contact opnemen?",
+      "counter": "{count}/{max} tekens",
+      "tooShort": "Maak je vraag iets specifieker: minimaal 4 tekens, spaties niet meegeteld.",
+      "tooLong": "Een vraag mag maximaal 600 tekens zijn, spaties niet meegeteld.",
+      "submit": "Vraag het Yeoni",
+      "resume": "Dezelfde vraag opnieuw versturen",
+      "sending": "Yeoni slaat je oorspronkelijke consult opnieuw open en schrijft een antwoord. Dit kan ongeveer een minuut duren.",
+      "waiting": "Het antwoord op je eerder verstuurde vraag wordt afgerond. Een ogenblik geduld.",
+      "arrived": "Het vervolgantwoord van Yeoni is binnen.",
+      "reopened": "Het opgeslagen vervolgantwoord is opnieuw geopend.",
+      "limitReached": "De vervolgvraag bij dit consult is al gebruikt.",
+      "failed": "Het antwoord kon niet worden afgeleverd. Je vervolgvraag blijft beschikbaar, dus verstuur dezelfde vraag opnieuw.",
+      "login": "Log in om een vervolgvraag te stellen.",
+      "revoked": "Dit consult is geannuleerd of terugbetaald, dus vervolgvragen zijn niet mogelijk.",
+      "questionLabel": "Je vraag",
+      "evidenceTitle": "Waar Yeoni op steunt",
+      "directTitle": "Het antwoord van Yeoni",
+      "guidanceTitle": "Wat je kunt doen",
+      "cautionTitle": "Waar je op moet letten"
     }
   },
   "fortuneVar": {

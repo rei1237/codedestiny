@@ -6,3 +6,11 @@
 .detail :global(.craftedDetailTranscript section) { margin-block: 24px; }
 .detail :global(.craftedDetailTranscript h3) { font-size: 20px; line-height: 1.5; }
 .detail :global(.craftedDetailTranscript p) { white-space: pre-line; }
+.detail :global(.craftedChapters) { margin: 0 16px 20px; padding: 16px 18px 6px; border-radius: 12px; background: rgba(127, 127, 127, .1); }
+.detail :global(.craftedChaptersTitle) { display: flex; justify-content: space-between; gap: 12px; margin: 0 0 6px; font-weight: 700; font-size: 15px; line-height: 1.5; }
+.detail :global(.craftedChapters ol) { margin: 0; padding: 0; list-style: none; counter-reset: chapter; }
+.detail :global(.craftedChapters li) { display: grid; grid-template-columns: 2.2em minmax(0, 1fr); column-gap: 10px; padding: 10px 0; border-top: 1px solid rgba(127, 127, 127, .3); counter-increment: chapter; word-break: keep-all; }
+.detail :global(.craftedChapters li:first-child) { border-top: 0; }
+.detail :global(.craftedChapters li::before) { content: counter(chapter, decimal-leading-zero); grid-row: span 2; font-size: 18px; line-height: 1.4; font-variant-numeric: tabular-nums; }
+.detail :global(.craftedChapters strong) { font-size: 16px; line-height: 1.55; }
+.detail :global(.craftedChapters li > span) { grid-column: 2; font-size: 14px; line-height: 1.65; }

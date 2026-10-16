@@ -11,6 +11,9 @@ export type FortuneTeaTarotSpread = "three" | "five";
 export type FortuneTeaHouseSukuyoPersonInput = {
   name?: string;
   birthDate?: string;
+  /** 선택. 비우거나 미상이면 서버가 그날 정오로 본명숙을 계산한다. */
+  birthTime?: string;
+  birthTimeUnknown?: boolean;
   calendarType?: FortuneTeaHouseCalendarType;
   isLeapMonth?: boolean;
   timezone?: string;
@@ -508,5 +511,27 @@ export type FortuneTeaHouseConsultResponse = {
   luckyKeywords: string[];
   honeyLetter?: FortuneTeaHouseHoneyLetter;
   honeyLetterPending?: boolean;
+  /** 저장된 결과를 다시 열 때(GET 상세·목록)만 온다. 상담 응답에는 없다. */
+  followUps?: FortuneTeaHouseFollowUp[];
+  followUpAllowance?: FortuneTeaHouseFollowUpAllowance;
   closingLine: string;
 };
+
+export type FortuneTeaHouseFollowUpAnswer = {
+  answerTitle: string;
+  directAnswer: string;
+  evidence: string[];
+  guidance: string;
+  caution: string;
+  closing: string;
+};
+
+export type FortuneTeaHouseFollowUp = {
+  id: string;
+  clientQuestionId?: string;
+  question: string;
+  answer: FortuneTeaHouseFollowUpAnswer;
+  createdAt?: string;
+};
+
+export type FortuneTeaHouseFollowUpAllowance = { limit: number; used: number; remaining: number };

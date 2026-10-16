@@ -17279,7 +17279,8 @@
       "resume": "從已儲存的部分繼續",
       "pendingHelp": "確認問題與權益後繼續同一諮詢。",
       "login": "登入並開啟我的諮詢",
-      "openError": "未能開啟諮詢，請再次選擇。"
+      "openError": "未能開啟諮詢，請再次選擇。",
+      "followUpRemaining": "剩餘追問 {count} 次"
     },
     "teaCupSelection": {
       "eyebrow": "回應心之香氣的六隻茶杯",
@@ -18005,7 +18006,9 @@
       "pdfFileName": "運命茶館-{title}-{date}.pdf",
       "honeyLetterResume": "再次查看同一封信",
       "safeShareLabel": "不含個人資訊的茶館邀請",
-      "safeShareText": "與妍妮喝杯茶，靜靜回顧心情與選擇。"
+      "safeShareText": "與妍妮喝杯茶，靜靜回顧心情與選擇。",
+      "followUpTextQuestion": "問題：{question}",
+      "followUpTextTitle": "向 Yeoni 的追問"
     },
     "fortuneTeaHouseDebugPanel": {
       "k1lcnd8v": "有",
@@ -20393,7 +20396,7 @@
       "sukuyoLine": "兩個人的關係與距離",
       "sukuyoInfo": "根據雙方出生資訊查看本命宿與關係方向，探討吸引、誤解及溝通方式。",
       "compat": "也可以查看雙方的四柱合盤",
-      "priceNote": "此為單次價格，諮詢確認階段會檢查通行證與月晶石資格。",
+      "priceNote": "此為單次價格，含 1 次追問。諮詢確認階段會檢查通行證與月晶石資格。",
       "previewTitle": "可以重讀的諮詢記錄",
       "example": "內容結構範例，非真實客戶諮詢",
       "exampleQuestion": "我應該繼續這份工作嗎？",
@@ -20403,7 +20406,8 @@
         "0": "問題的核心回答",
         "1": "解讀依據與局限",
         "2": "現在可以採取的行動",
-        "3": "妍妮的結語信箋"
+        "3": "妍妮的結語信箋",
+        "4": "收到結果後，可再向妍妮追問 1 次"
       },
       "historyTitle": "過去的心情，延續的故事",
       "historyBody": "重讀已儲存的諮詢，繼續產生中或需要復原的諮詢。",
@@ -20421,8 +20425,8 @@
       "titleKo": "請確認諮詢內容",
       "question": "我的問題",
       "price": "單次價格",
-      "scope": "核心回答 · 解讀依據 · 行動建議 · 妍妮的信",
-      "policy": "下一步檢查通行證與月晶石資格。只有目前權益包含時才可追加提問。",
+      "scope": "核心回答 · 解讀依據 · 行動建議 · 妍妮的信 · 1 次追問",
+      "policy": "下一步檢查通行證與月晶石資格。收到結果後，可依據同一份諮詢依據（命盤、牌面或本命宿）免費追問 1 次。",
       "edit": "修改問題",
       "continue": "檢查權益並開始諮詢",
       "prepare": "為這個問題準備牌組",
@@ -20571,6 +20575,39 @@
       "downloadNote": "畫冊解鎖後，儲存PDF無需再次使用蜜滴。",
       "chapter": "緣兒的月光書閣",
       "humanAlt": "在月光下講述塔羅故事的人形緣兒"
+    },
+    "followUpCard": {
+      "eyebrow": "含 1 次追問",
+      "title": "再問 Yeoni 一次",
+      "remaining": "剩餘追問 {count} 次",
+      "usedUp": "追問次數已用完",
+      "intro": "讀完這次諮詢後，寫下一個你還想深入了解的問題。Yeoni 會依據原諮詢的同一份依據，專注回答這一個問題。不另收費。",
+      "basis": {
+        "tarot": "沿用同一組牌作答 · 不會重新抽牌",
+        "saju": "依據同一份命盤作答",
+        "sajuCompatibility": "依據兩人的同一份命盤作答",
+        "sukuyo": "依據兩人的同一本命宿作答"
+      },
+      "label": "想問 Yeoni 的問題",
+      "placeholder": "例如：照這個走勢，什麼時候主動聯絡比較好？",
+      "counter": "{count}/{max} 字",
+      "tooShort": "請把問題寫得再具體一點，不計空格至少 4 個字。",
+      "tooLong": "問題不計空格最多 600 字。",
+      "submit": "問 Yeoni",
+      "resume": "重新傳送同一個問題",
+      "sending": "Yeoni 正重新翻開原來的諮詢，為你寫答覆，大約需要 1 分鐘。",
+      "waiting": "正在完成你先前送出的問題的答覆，請稍候。",
+      "arrived": "Yeoni 的追問答覆送到了。",
+      "reopened": "已重新打開儲存的追問答覆。",
+      "limitReached": "這次諮詢的追問已經用過了。",
+      "failed": "答覆未能送達。追問次數仍然保留，請再次傳送同一個問題。",
+      "login": "登入後即可追問。",
+      "revoked": "此諮詢已取消或退款，無法追問。",
+      "questionLabel": "你的問題",
+      "evidenceTitle": "Yeoni 指出的依據",
+      "directTitle": "Yeoni 的答覆",
+      "guidanceTitle": "可以嘗試的事",
+      "cautionTitle": "需要留意的地方"
     }
   },
   "fortuneVar": {

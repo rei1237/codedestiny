@@ -421,6 +421,8 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
     user: {
       name: initialInput?.sukuyo?.user?.name || initialInput?.nickname || "",
       birthDate: initialInput?.sukuyo?.user?.birthDate || "",
+      birthTime: initialInput?.sukuyo?.user?.birthTime || "",
+      birthTimeUnknown: Boolean(initialInput?.sukuyo?.user?.birthTimeUnknown),
       calendarType: initialInput?.sukuyo?.user?.calendarType || "solar",
       isLeapMonth: Boolean(initialInput?.sukuyo?.user?.isLeapMonth),
       gender: initialInput?.sukuyo?.user?.gender || "",
@@ -428,6 +430,8 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
     partner: {
       name: initialInput?.sukuyo?.partner?.name || "",
       birthDate: initialInput?.sukuyo?.partner?.birthDate || "",
+      birthTime: initialInput?.sukuyo?.partner?.birthTime || "",
+      birthTimeUnknown: Boolean(initialInput?.sukuyo?.partner?.birthTimeUnknown),
       calendarType: initialInput?.sukuyo?.partner?.calendarType || "solar",
       isLeapMonth: Boolean(initialInput?.sukuyo?.partner?.isLeapMonth),
       gender: initialInput?.sukuyo?.partner?.gender || "",
@@ -498,6 +502,8 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
         ...current.user,
         name: option.name || current.user.name,
         birthDate: option.birthDate || current.user.birthDate,
+        birthTime: option.birthTimeUnknown ? "" : option.birthTime || current.user.birthTime,
+        birthTimeUnknown: option.birthTimeUnknown,
         calendarType: option.calendarType || current.user.calendarType,
         gender: option.gender || current.user.gender,
       },
@@ -604,6 +610,8 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
       user: {
         name: sukuyoInput.user.name?.trim(),
         birthDate: sukuyoInput.user.birthDate,
+        birthTime: sukuyoInput.user.birthTimeUnknown ? "" : sukuyoInput.user.birthTime,
+        birthTimeUnknown: Boolean(sukuyoInput.user.birthTimeUnknown),
         calendarType: sukuyoInput.user.calendarType || "solar",
         isLeapMonth: sukuyoInput.user.calendarType === "lunar" && Boolean(sukuyoInput.user.isLeapMonth),
         gender: sukuyoInput.user.gender,
@@ -611,6 +619,8 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
       partner: {
         name: sukuyoInput.partner.name?.trim(),
         birthDate: sukuyoInput.partner.birthDate,
+        birthTime: sukuyoInput.partner.birthTimeUnknown ? "" : sukuyoInput.partner.birthTime,
+        birthTimeUnknown: Boolean(sukuyoInput.partner.birthTimeUnknown),
         calendarType: sukuyoInput.partner.calendarType || "solar",
         isLeapMonth: sukuyoInput.partner.calendarType === "lunar" && Boolean(sukuyoInput.partner.isLeapMonth),
         gender: sukuyoInput.partner.gender,
@@ -1349,6 +1359,27 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
                     {copy.kmfvupic}
                     <input id="fortuneTeaSukuyoUserBirthDate" className={`${styles.questionInput}`} {...birthDateTextInputProps(sukuyoInput.user.birthDate || "", (nextBirthDate) => updateSukuyoPerson("user", { birthDate: nextBirthDate }))} disabled={isSubmitting} />
                   </label>
+                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSukuyoUserBirthTime">
+                    {copy.kcmffks2}
+                    <input
+                      id="fortuneTeaSukuyoUserBirthTime"
+                      className={`${styles.questionInput}`}
+                      type="time"
+                      value={sukuyoInput.user.birthTime || ""}
+                      onChange={(event) => updateSukuyoPerson("user", { birthTime: event.target.value, birthTimeUnknown: event.target.value ? false : sukuyoInput.user.birthTimeUnknown })}
+                      disabled={isSubmitting || sukuyoInput.user.birthTimeUnknown}
+                    />
+                  </label>
+                  <label className={styles.birthTimeUnknownToggle} htmlFor="fortuneTeaSukuyoUserTimeUnknown">
+                    <input
+                      id="fortuneTeaSukuyoUserTimeUnknown"
+                      type="checkbox"
+                      checked={Boolean(sukuyoInput.user.birthTimeUnknown)}
+                      onChange={(event) => updateSukuyoPerson("user", { birthTimeUnknown: event.target.checked, birthTime: event.target.checked ? "" : sukuyoInput.user.birthTime })}
+                      disabled={isSubmitting}
+                    />
+                    <span>{copy.k4te8nd5}</span>
+                  </label>
                   <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSukuyoUserCalendar">
                     
                     {copy.ksxyz0up}
@@ -1402,6 +1433,27 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
                     
                     {copy.kmfvupic}
                     <input id="fortuneTeaSukuyoPartnerBirthDate" className={`${styles.questionInput}`} {...birthDateTextInputProps(sukuyoInput.partner.birthDate || "", (nextBirthDate) => updateSukuyoPerson("partner", { birthDate: nextBirthDate }))} disabled={isSubmitting} />
+                  </label>
+                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSukuyoPartnerBirthTime">
+                    {copy.kcmffks2}
+                    <input
+                      id="fortuneTeaSukuyoPartnerBirthTime"
+                      className={`${styles.questionInput}`}
+                      type="time"
+                      value={sukuyoInput.partner.birthTime || ""}
+                      onChange={(event) => updateSukuyoPerson("partner", { birthTime: event.target.value, birthTimeUnknown: event.target.value ? false : sukuyoInput.partner.birthTimeUnknown })}
+                      disabled={isSubmitting || sukuyoInput.partner.birthTimeUnknown}
+                    />
+                  </label>
+                  <label className={styles.birthTimeUnknownToggle} htmlFor="fortuneTeaSukuyoPartnerTimeUnknown">
+                    <input
+                      id="fortuneTeaSukuyoPartnerTimeUnknown"
+                      type="checkbox"
+                      checked={Boolean(sukuyoInput.partner.birthTimeUnknown)}
+                      onChange={(event) => updateSukuyoPerson("partner", { birthTimeUnknown: event.target.checked, birthTime: event.target.checked ? "" : sukuyoInput.partner.birthTime })}
+                      disabled={isSubmitting}
+                    />
+                    <span>{copy.k4te8nd5}</span>
                   </label>
                   <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSukuyoPartnerCalendar">
                     

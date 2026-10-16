@@ -33,15 +33,15 @@ Cloudflare Workers는 런타임에 파일을 읽을 수 없으므로, 이 문서
 
 ## 운명 찻집 상담 가격표 (정본)
 
-2026-09-21 사용자 승인으로 운명 찻집 5종을 5,000원으로 통일했고, 2026-10-11 프리미엄 가격 개편 승인으로 5종 모두 10,000원으로 조정한다. 기존 주문의 결제액·환불 기준은 변경하지 않는다. 상세 변경 정책은 [프리미엄 가격 개편 인수인계](docs/handoff/premium-repricing-20261011.md)를 따른다.
+2026-09-21 사용자 승인으로 운명 찻집 5종을 5,000원으로 통일했고, 2026-10-11 프리미엄 가격 개편 승인으로 5종 모두 10,000원으로 조정한다. 기존 주문의 결제액·환불 기준은 변경하지 않는다. 상세 변경 정책은 [프리미엄 가격 개편 인수인계](docs/handoff/premium-repricing-20261011.md)를 따른다. 2026-10-16부터 5종 모두 결과 1건당 추가 질문 1회(같은 명식·카드·본명숙 근거, 카드 재추첨 없음)를 가격 변경 없이 포함한다. 횟수는 `worker/lib/fortune-tea-follow-up-contract.js`의 `TEA_FOLLOW_UP_LIMIT`가 정하고, 답변 생성에 실패하면 횟수를 쓰지 않는다.
 
 | 상담 | featureKey | 가격(KRW) | cost(코인) | 비고 |
 |------|-----------|-----------|-----------|------|
-| 타로 상담 (3카드) | `fortune-tea-house-tarot-consultation` | 10,000원 | 100 | 단건 · 3카드 스프레드 |
-| 타로 프리미엄 상담 (5카드) | `fortune-tea-house-tarot-five-consultation` | 10,000원 | 100 | 단건 · 5카드 스프레드 |
-| 단독 사주 상담 | `fortune-tea-house-saju-consultation` | 10,000원 | 100 | 단건 |
-| 사주 궁합 상담 | `fortune-tea-house-saju-compatibility-consultation` | 10,000원 | 100 | 단건 · 본인+상대 두 명식 |
-| 숙요점 궁합 상담 | `fortune-tea-house-sukuyo-compatibility-consultation` | 10,000원 | 100 | 단건 |
+| 타로 상담 (3카드) | `fortune-tea-house-tarot-consultation` | 10,000원 | 100 | 단건 · 3카드 스프레드 · 추가 질문 1회 포함 |
+| 타로 프리미엄 상담 (5카드) | `fortune-tea-house-tarot-five-consultation` | 10,000원 | 100 | 단건 · 5카드 스프레드 · 추가 질문 1회 포함 |
+| 단독 사주 상담 | `fortune-tea-house-saju-consultation` | 10,000원 | 100 | 단건 · 추가 질문 1회 포함 |
+| 사주 궁합 상담 | `fortune-tea-house-saju-compatibility-consultation` | 10,000원 | 100 | 단건 · 본인+상대 두 명식 · 추가 질문 1회 포함 |
+| 숙요점 궁합 상담 | `fortune-tea-house-sukuyo-compatibility-consultation` | 10,000원 | 100 | 단건 · 추가 질문 1회 포함 |
 
 ## 분리 원칙
 

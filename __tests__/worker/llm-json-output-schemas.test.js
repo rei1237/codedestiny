@@ -5,6 +5,7 @@ import ts from 'typescript';
 import { jsonSchemaFromExample, repairJsonFieldLocations } from '../../worker/lib/json-text-repair.js';
 import { LOVE_SECRET_AI_GROUPS, buildLoveSecretGroupResponseSchema } from '../../worker/lib/love-secret-ai-prompt.js';
 import { PALM_VISION_RESPONSE_SCHEMA } from '../../worker/lib/palm-vision.js';
+import { TEA_FOLLOW_UP_ANSWER_EXAMPLE } from '../../worker/lib/fortune-tea-follow-up-contract.js';
 
 function teaSchema(group) {
   const source = fs.readFileSync('worker/routes/fortune-tea-house.js', 'utf8');
@@ -25,6 +26,14 @@ test('tea chapters constrain only their purchased paths and preserve object-arra
   const original = { saju: { deepSections: [{ title: '해석', result: { body: '저장할 해설' } }] } };
   expect(repairJsonFieldLocations(original, schema).saju.deepSections[0]).toEqual({ title: '해석', body: '저장할 해설' });
   expect(teaSchema({ fields: ['emotionAnalysis'] }).properties.emotionAnalysis.items.properties.value.type).toBe('NUMBER');
+});
+
+test('tea follow-up answers keep evidence as a string array and unwrap a misplaced result', () => {
+  const schema = jsonSchemaFromExample(TEA_FOLLOW_UP_ANSWER_EXAMPLE);
+  expect(schema.required).toEqual(['answerTitle', 'directAnswer', 'evidence', 'guidance', 'caution', 'closing']);
+  expect(schema.properties.evidence).toEqual({ type: 'ARRAY', items: { type: 'STRING' } });
+  const misplaced = { result: { directAnswer: '답', evidence: ['일간', '대운'], guidance: '해볼 일' } };
+  expect(repairJsonFieldLocations(misplaced, schema)).toEqual(misplaced.result);
 });
 
 test('love-secret schemas share the prompt example and keep section items as objects', () => {

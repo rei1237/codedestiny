@@ -17,6 +17,6 @@ export type VisualDetail = {
 };
 export function renderFeatureDetailPanels(detail: VisualDetail, options?: {headingLevel?: number; conversionPrompt?: boolean; startPriceLabel?: string}): string;
 export function loadFeatureDetail(keys: (string | undefined)[]): Promise<VisualDetail | null>;
-export type CraftedDetail = { title?: string; panels: { src: string; text: string; title: string; width?: number; height?: number }[]; notice: string };
-export function renderCraftedDetail(detail: CraftedDetail): string;
+export type CraftedDetail = { id?: string; featureKey?: string | null; title?: string; cardTitle?: string; hook?: string; badge?: string; priceKRW?: number; chaptersLabel?: string; chapters?: { title: string; detail?: string }[]; panels: { src: string; text: string; title: string; width?: number; height?: number }[]; notice: string };
+export function renderCraftedDetail(detail: CraftedDetail, options?: {eager?: boolean}): string;
 export function revealCraftedTranscript(event: {target: EventTarget | null}): void;

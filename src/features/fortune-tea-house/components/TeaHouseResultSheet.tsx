@@ -26,6 +26,7 @@ import TarotAssetCard from "./TarotAssetCard";
 import TeaCupVisual from "./TeaCupVisual";
 import TeaHouseButton from "./TeaHouseButton";
 import TeaHouseDialogueBox from "./TeaHouseDialogueBox";
+import TeaHouseFollowUpCard, { type TeaHouseFollowUpPatch } from "./TeaHouseFollowUpCard";
 import TeaHouseSajuResultPanel from "./TeaHouseSajuResultPanel";
 import TeaHouseSajuCompatResultPanel from "./TeaHouseSajuCompatResultPanel";
 import TeaHouseSukuyoResultPanel from "./TeaHouseSukuyoResultPanel";
@@ -197,6 +198,11 @@ function buildFortuneTeaHouseResultText(result: FortuneTeaHouseConsultResponse, 
   appendTextBlock(lines, copy.ksfdsbyx, result.actionPrescription);
   appendListBlock(lines, copy.k38h08or, result.luckyKeywords);
   if (result.honeyLetter) appendTextBlock(lines, result.honeyLetter.title || copy.kykvjtg8, result.honeyLetter.body);
+  for (const item of result.followUps || []) {
+    const answer = item.answer;
+    const body = [copy.followUpTextQuestion.replace("{question}", item.question), answer.directAnswer, ...answer.evidence, answer.guidance, answer.caution, answer.closing];
+    appendTextBlock(lines, copy.followUpTextTitle, body.filter(Boolean).join("\n\n"));
+  }
   appendTextBlock(lines, copy.kqhu9dwn, result.closingLine);
 
   return lines.join("\n").replace(/\n{3,}/g, "\n\n").trimEnd();
@@ -221,6 +227,8 @@ const KO = {
   cupLensSukuyo: "{cup}은 {topic}의 관점에서 두 사람의 질문을 바라보게 합니다. 연이는 그 향 위에 타로와 사주를 올리지 않고, 27숙 인연의 흐름만 차분히 펼쳤습니다.",
   cupLensTarot: "{cup}은 {topic}의 관점에서 질문을 바라보게 합니다. 연이는 그 향 위에 사주를 올리지 않고, 타로의 현재 상징만 깊게 읽었습니다.",
   downloadFileName: "운명의-찻집-{title}-{date}.txt",
+  followUpTextQuestion: "질문: {question}",
+  followUpTextTitle: "연이에게 한 번 더 물은 질문",
   honeyBalanceLine: "보유 꿀방울: {count}개",
   honeyCount: "{count}개",
   k18rmff7: "대표 카드",
@@ -601,6 +609,13 @@ export default function TeaHouseResultSheet({
       if (honeyMountedRef.current) setHoneyLetterLoading(false);
     }
   }, [result, honeyOwner, copy, onHoneyDropsChange, onResultUpdate]);
+  const latestRawResultRef = useRef(rawResult);
+  latestRawResultRef.current = rawResult;
+  // 추가 질문 상태는 원본 payload 에 붙인다 — 화면용 로컬라이즈 결과를 부모에 되돌려 쓰지 않는다.
+  const applyFollowUpPatch = useCallback(
+    (patch: TeaHouseFollowUpPatch) => onResultUpdate({ ...latestRawResultRef.current, ...patch }),
+    [onResultUpdate],
+  );
   const honeyResumeRef = useRef(requestHoneyLetter);
   honeyResumeRef.current = requestHoneyLetter;
 
@@ -1001,6 +1016,8 @@ export default function TeaHouseResultSheet({
           ) : null}
         </section>
         ) : null}
+
+        <TeaHouseFollowUpCard result={rawResult} readOnly={readOnly} onChange={applyFollowUpPatch} />
 
         <section className={`${styles.resultBlock} ${styles.honeyLetterBlock}`} aria-labelledby="honeyLetterTitle">
           <div className={styles.honeyLetterLayout}>

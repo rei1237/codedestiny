@@ -17,13 +17,42 @@
 .featureVisualDetail[data-crafted-introduction] .craftedDetailTranscript p{white-space:pre-line}
 .featureVisualDetail[data-crafted-introduction] .craftedDetailTranscript h3{font-size:20px;line-height:1.5}
 .featureVisualDetail[data-crafted-introduction] .craftedDetailTranscript section{margin-block:24px}
-.featureVisualDetail[data-crafted-introduction] :is(.craftedEdition>summary,.craftedDetailTranscript>summary){min-height:44px;padding:12px 16px;cursor:pointer;font-size:18px;line-height:1.6}
+.featureVisualDetail[data-crafted-introduction] .craftedDetailTranscript>summary{min-height:44px;padding:12px 16px;cursor:pointer;font-size:18px;line-height:1.6;color:var(--fortune-accent);font-weight:600;text-underline-offset:4px}
+/* 대표 상담: 원본 비율 히어로 → 상담별 카드(실제 목차 + 그림 안내). 이미지는 어느 폭에서도 자르지 않는다. */
+.featureVisualDetail .craftedHero .craftedHeroArt{display:block;width:100%;height:auto}
+.featureVisualDetail .craftedBadge{display:inline-flex;align-items:center;gap:8px;margin:4px 0 0;padding:8px 14px;border:1px solid var(--fortune-line);border-radius:999px;background:var(--fortune-tint);color:var(--fortune-accent);font:700 14px/1.5 var(--font-body,system-ui)}
+.featureVisualDetail .craftedBadge svg{flex:0 0 auto}
+.featureVisualDetail .craftedEditionsLead{margin-top:-8px}
+.featureVisualDetail[data-crafted-introduction] .craftedEdition{margin-top:16px;border:1px solid var(--fortune-line);border-radius:16px;background:#fffdf8;box-shadow:0 12px 28px -24px #202b3e66}
+.featureVisualDetail[data-crafted-introduction] .craftedEdition>summary{display:grid;grid-template-columns:72px minmax(0,1fr) 20px;gap:14px;align-items:center;min-height:44px;padding:14px 16px;list-style:none;cursor:pointer;color:var(--fortune-ink)}
+.featureVisualDetail[data-crafted-introduction] .craftedEdition>summary::-webkit-details-marker{display:none}
+.featureVisualDetail[data-crafted-introduction] .craftedEdition[open]>summary{border-bottom:1px solid var(--fortune-line)}
+.featureVisualDetail[data-crafted-introduction] .craftedCardCover{display:block;width:72px;height:auto;border:1px solid var(--fortune-line);border-radius:8px}
+.featureVisualDetail[data-crafted-introduction] .craftedCardText{display:grid;gap:4px;min-width:0}
+.featureVisualDetail[data-crafted-introduction] .craftedCardText strong{font:600 19px/1.45 var(--font-serif,Georgia,serif);word-break:keep-all}
+.featureVisualDetail[data-crafted-introduction] .craftedCardHook{color:var(--fortune-muted);font-size:15px;line-height:1.6;word-break:keep-all}
+.featureVisualDetail[data-crafted-introduction] .craftedCardMeta{color:var(--fortune-accent);font:600 13px/1.5 var(--font-body,system-ui)}
+.featureVisualDetail[data-crafted-introduction] .craftedCardBadge{justify-self:start;margin-top:4px;padding:3px 10px;border-radius:999px;background:var(--fortune-tint);color:var(--fortune-accent);font:700 12px/1.5 var(--font-body,system-ui)}
+.featureVisualDetail[data-crafted-introduction] .craftedCardChevron{color:var(--fortune-accent);transition:transform 180ms ease-out}
+.featureVisualDetail[data-crafted-introduction] .craftedEdition[open] .craftedCardChevron{transform:rotate(90deg)}
+.featureVisualDetail[data-crafted-introduction] .craftedEdition .craftedDetail{margin:0 auto;padding:18px 0 20px;background:transparent}
+.featureVisualDetail[data-crafted-introduction] .craftedChapters{margin:0 16px 20px;padding:16px 18px 6px;border-radius:12px;background:var(--fortune-tint)}
+.featureVisualDetail[data-crafted-introduction] .craftedChaptersTitle{display:flex;justify-content:space-between;gap:12px;margin:0 0 6px;color:var(--fortune-ink);font:700 15px/1.5 var(--font-body,system-ui)}
+.featureVisualDetail[data-crafted-introduction] .craftedChaptersTitle span{color:var(--fortune-accent)}
+.featureVisualDetail[data-crafted-introduction] .craftedChapters ol{margin:0;padding:0;list-style:none;counter-reset:chapter}
+.featureVisualDetail[data-crafted-introduction] .craftedChapters li{display:grid;grid-template-columns:2.2em minmax(0,1fr);column-gap:10px;padding:10px 0;border-top:1px solid var(--fortune-line);counter-increment:chapter}
+.featureVisualDetail[data-crafted-introduction] .craftedChapters li:first-child{border-top:0}
+.featureVisualDetail[data-crafted-introduction] .craftedChapters li:before{content:counter(chapter,decimal-leading-zero);grid-row:span 2;color:var(--fortune-accent);font:400 18px/1.4 var(--font-serif,Georgia,serif);font-variant-numeric:tabular-nums}
+.featureVisualDetail[data-crafted-introduction] .craftedChapters strong{font-size:16px;line-height:1.55;word-break:keep-all}
+.featureVisualDetail[data-crafted-introduction] .craftedChapters li>span{grid-column:2;color:var(--fortune-muted);font-size:14px;line-height:1.65;word-break:keep-all}
+@media(max-width:699px){.featureVisualDetail section.featureDetailPanel.craftedEditions{padding:32px 16px}}
+@media(min-width:860px){.featureVisualDetail:not([data-fortune-material]) .craftedHero{display:block;min-height:0}}
+@media(prefers-reduced-motion:reduce){.featureVisualDetail[data-crafted-introduction] .craftedCardChevron{transition:none}}
 /* The two bound/paper products continue the same material as their actual reports. */
 .featureVisualDetail[data-fortune-material=book]{--fortune-paper:#f6f1e6;--fortune-ink:#20362a;--fortune-muted:#52624d;--fortune-accent:#285640;--fortune-tint:#e5e9dc;--fortune-line:#c9cbb7}
 .featureVisualDetail[data-fortune-material=letter]{--fortune-paper:#f6f2ed;--fortune-ink:#35262c;--fortune-muted:#71545f;--fortune-accent:#763d53;--fortune-tint:#efe5e1;--fortune-line:#e0d3cc}
 .featureVisualDetail[data-fortune-material] .featureDetailHero{display:grid;grid-template-columns:minmax(190px,280px) minmax(0,1fr);gap:28px;align-items:center;padding:36px 28px}
 .featureVisualDetail[data-fortune-material] .featureDetailHero .featureDetailBody{padding:0;background:transparent}
-.featureVisualDetail[data-fortune-material] .featureDetailHero .featureDetailBody:before{display:none}
 .featureVisualDetail[data-fortune-material=book] .featureDetailHero{background:#152721;--fortune-ink:#f6ecd7;--fortune-muted:#d3c7aa;--fortune-accent:#eddbaf;--fortune-price:#eddbaf}
 .featureVisualDetail[data-fortune-material] :is(.fortuneAction a,.fortuneAction button,.featureDetailConversion){background-image:none;box-shadow:none;border-radius:6px}
 .featureVisualDetail[data-fortune-material=book] .featureDetailHero :is(.fortuneAction a,.fortuneAction button,.featureDetailConversion){background:#eddbaf;color:#20362a}
@@ -53,9 +82,8 @@
 .featureVisualDetail .featureDetailPanel{margin:0;border:0;border-radius:0;background:transparent}
 .featureVisualDetail section.featureDetailPanel{padding:42px 28px;border-top:1px solid var(--fortune-line)}
 .featureVisualDetail .featureDetailHero{position:relative;overflow:hidden;background:var(--fortune-paper)}
-.featureVisualDetail .featureDetailArt{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover}
+.featureVisualDetail .featureDetailArt{display:block;width:100%;height:auto}
 .featureVisualDetail .featureDetailHero .featureDetailBody{position:relative;padding:32px 28px 36px;background:var(--fortune-paper)}
-.featureVisualDetail .featureDetailHero .featureDetailBody:before{content:'';position:absolute;left:0;right:0;top:-55px;height:56px;background:linear-gradient(transparent,var(--fortune-paper));pointer-events:none}
 .featureVisualDetail .featureDetailHero :is(h2,h3){font-size:clamp(28px,4vw,34px);line-height:1.4;max-width:24ch;margin-bottom:18px}
 .featureVisualDetail .fortuneCategory{font:600 13px/1.5 var(--font-body,system-ui);color:var(--fortune-accent);margin-bottom:12px}
 .featureVisualDetail .fortuneEdition{font-size:13px;line-height:1.65}
@@ -147,7 +175,6 @@
  .featureIntroductionNav,.featureIntroductionTitle{margin-left:20px;margin-right:20px}
  .featureVisualDetail section.featureDetailPanel{padding:36px 22px}
  .featureVisualDetail .featureDetailHero .featureDetailBody{padding:24px 22px 30px}
- .featureVisualDetail .featureDetailArt{aspect-ratio:4/3;object-position:45% center}
  .fortuneStory>div{padding:28px 22px 36px}
  .cd-detail-overlay:has(.featureVisualDetail),#tilePvwOverlay.pvw-visual{padding:0}
  .cd-detail-overlay:has(.featureVisualDetail) .cd-detail-panel,#tilePvwOverlay.pvw-visual .tile-pvw-sheet{width:100%;height:100dvh;max-height:100dvh;min-height:100dvh;border:0;border-radius:0}
@@ -192,8 +219,8 @@
 .fortunePlanChoices .fortuneAction p{margin:10px 0;font-size:18px;color:#8b3e59}
 .fortuneReplay,.featureIntroductionNav button{min-height:44px;padding:10px 0;background:transparent;border:0;font:inherit;color:#495770;cursor:pointer}
 .fortuneSticky button{flex:1}
-@media(max-width:699px){.featureVisualDetail .featureDetailArt{aspect-ratio:16/10}.featureIntroductionTitle{margin-top:8px;margin-bottom:12px}.fortunePlanChoices{grid-template-columns:1fr;gap:0}.fortunePlanChoices .fortuneAction{margin-top:12px}.fortunePlanChoices button{min-height:48px}}
-@media(min-width:860px){.featureVisualDetail .featureDetailHero{display:grid;grid-template-columns:1fr 1fr;min-height:500px}.featureVisualDetail .featureDetailArt{height:100%;min-height:500px;aspect-ratio:auto;object-position:42% center}.featureVisualDetail .featureDetailHero .featureDetailBody{padding:36px 32px;align-self:center}.featureVisualDetail .featureDetailHero .featureDetailBody:before{top:0;bottom:0;left:-50px;width:51px;height:auto;right:auto;background:linear-gradient(90deg,transparent,var(--fortune-paper))}.featureVisualDetail .featureDetailHero :is(h2,h3){font-size:30px}}
+@media(max-width:699px){.featureIntroductionTitle{margin-top:8px;margin-bottom:12px}.fortunePlanChoices{grid-template-columns:1fr;gap:0}.fortunePlanChoices .fortuneAction{margin-top:12px}.fortunePlanChoices button{min-height:48px}}
+@media(min-width:860px){.featureVisualDetail .featureDetailHero{display:grid;grid-template-columns:1fr 1fr;min-height:500px}.featureVisualDetail .featureDetailArt{align-self:center}.featureVisualDetail .featureDetailHero .featureDetailBody{padding:36px 32px;align-self:center}.featureVisualDetail .featureDetailHero :is(h2,h3){font-size:30px}}
 #tilePvwOverlay.pvw-visual .tile-pvw-column{display:flex;flex-direction:column;height:92dvh;max-height:inherit}
 #tilePvwOverlay.pvw-visual .tile-pvw-scroll{display:block;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain}
 @media(max-width:699px){#tilePvwOverlay.pvw-visual .tile-pvw-column{height:100dvh}}
@@ -234,4 +261,4 @@ body:not(.neo-mode) #tilePvwOverlay.pvw-visual .tile-pvw-sheet{background:#fff9f
 body:not(.neo-mode) #tilePvwOverlay.pvw-visual #tilePvwTitle{color:#402a38}
 body:not(.neo-mode) #tilePvwOverlay.pvw-visual .tile-pvw-close{background:#fff9f4;color:#402a38}
 body:not(.neo-mode) #tilePvwOverlay.pvw-visual .tile-pvw-cta-sticky{background:#fff9f4!important;border-top-color:#ebd9df!important;--cd-detail-muted:#6b4d5e}
-body:not(.neo-mode) #tilePvwOverlay.pvw-visual :is(.tile-pvw-cta-btn,.fortuneAction a,.fortuneAction button){--fortune-accent:#b53660;background-color:#b53660;background-image:linear-gradient(135deg,rgba(255,255,255,.12) 0%,rgba(255,255,255,0) 50%,rgba(64,42,56,.12) 100%)}
+body:not(.neo-mode) #tilePvwOverlay.pvw-visual :is(.tile-pvw-cta-btn,.fortuneAction a,.fortuneAction button){--fortune-accent:#b53660;background-color:#b53660;color:#fffaf0;background-image:linear-gradient(135deg,rgba(255,255,255,.12) 0%,rgba(255,255,255,0) 50%,rgba(64,42,56,.12) 100%)}
