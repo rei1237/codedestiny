@@ -134,3 +134,18 @@ test('새 섹션 스타일은 아바타 크기를 고정하고 움직임·토큰
     assert.ok(rules.every(rule => !/aspect-ratio|object-fit|animation|transition|--cd-[\w-]+\s*:/.test(rule)), `${name}: 금지 속성`);
   }
 });
+
+test('대표 상담 3종은 모든 장에 얻는 것을 쓰고, 산출물 카드는 결과 화면 코드를 근거로 3~5개 둔다', () => {
+  for (const id of ['love-secret', 'new-year-expert', 'life-book']) {
+    for (const [name, source] of sources(id)) {
+      for (const chapter of source.chapters) assert.ok(chapter.gain?.trim(), `${name}: ${chapter.title}`);
+      assert.ok(source.outcomes.length >= 3 && source.outcomes.length <= 5, `${name}: 산출물 ${source.outcomes.length}개`);
+      for (const outcome of source.outcomes) {
+        assert.ok(outcome.title && outcome.text, `${name}: ${outcome.title}`);
+        assert.ok(fs.existsSync(outcome.evidence), `${name}: ${outcome.evidence}`);
+      }
+      const copy = JSON.stringify([source.chapters.map(chapter => chapter.gain), source.outcomes.map(({ title, text }) => [title, text])]);
+      assert.doesNotMatch(copy, /경력|년차|보장|반드시|확실히|치료/, `${name}: 금지어`);
+    }
+  }
+});
