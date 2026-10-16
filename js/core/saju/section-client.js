@@ -364,6 +364,11 @@
       loading: '에너지 원정 리포트를 불러오고 있어요.',
       extra: function (body) { body.energy = { recent: readIds(ENERGY_RECENT_KEY, 60) }; },
       delivered: function (area, data, body) { energyDelivered(area, data, body); }
+    },
+    rpt_villainCard: {
+      area: 'villainResult', card: 'villainCard', styleId: 'villainDossierStyleV20260612',
+      loading: '요주의 빌런 블랙리스트를 불러오고 있어요.',
+      delivered: function (area) { bindVillainResult(area); }
     }
   };
   var cards = {};
@@ -432,6 +437,85 @@
       fail(failureText(result));
     }, function () { fail(failureText(null)); });
     return false;
+  }
+
+  // 요주의 빌런 블랙리스트: 긴급 차단 멘트 복사·관계 방어 자가진단 버튼. 원본(renderVillain)의 연결 코드 그대로다.
+  function bindVillainResult(resultArea) {
+    resultArea.querySelectorAll('[data-villain-copy]').forEach(function(copyBtn) {
+      copyBtn.onclick = function() {
+        var text = copyBtn.getAttribute('data-copy-text') || '';
+        var done = function() {
+          var prev = copyBtn.textContent;
+          copyBtn.textContent = '복사 완료';
+          copyBtn.classList.add('is-copied');
+          setTimeout(function() {
+            copyBtn.textContent = prev;
+            copyBtn.classList.remove('is-copied');
+          }, 1300);
+        };
+        if (typeof window.copyToClipboard === 'function') {
+          window.copyToClipboard(text, '긴급 차단 멘트를 복사했어요.');
+          done();
+          return;
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(done).catch(function() {
+            var ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy'); done(); } catch (_e) {}
+            document.body.removeChild(ta);
+          });
+          return;
+        }
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); done(); } catch (_e) {}
+        document.body.removeChild(ta);
+      };
+    });
+
+    resultArea.querySelectorAll('.villain-submit-btn').forEach(function(submitBtn) {
+      submitBtn.onclick = function() {
+        var wrap = submitBtn.closest ? submitBtn.closest('.villain-checklist-wrap') : null;
+        var feedbackEl = wrap ? wrap.querySelector('.villain-feedback') : null;
+        if (!wrap || !feedbackEl) return;
+        var checks = wrap.querySelectorAll('.villain-check-input');
+        var checked = 0;
+        checks.forEach(function(chk) { if (chk.checked) checked += 1; });
+
+        var msg = '';
+        var gradeCls = 'mid';
+        if (checked >= 4) {
+          gradeCls = 'good';
+          msg = '방어선이 꽤 안정적입니다. (' + checked + '/5) 지금처럼 기준을 문자와 행동으로 남기면 관계 피로를 크게 줄일 수 있어요.';
+        } else if (checked >= 2) {
+          gradeCls = 'mid';
+          msg = '경계선이 흔들릴 수 있는 구간입니다. (' + checked + '/5) 즉답을 줄이고, 부탁·돈·감정 요구는 하루 뒤 다시 판단하세요.';
+        } else {
+          gradeCls = 'danger';
+          msg = '지금은 관계 방어 매뉴얼을 먼저 켜야 합니다. (' + checked + '/5) 연락 빈도를 낮추고, 돈·시간·감정 노동의 한도를 다시 세우세요.';
+        }
+
+        feedbackEl.classList.remove('is-show', 'is-good', 'is-mid', 'is-danger');
+        feedbackEl.innerHTML = '<strong>자가진단 결과</strong><br>' + msg;
+        feedbackEl.classList.add('is-show', 'is-' + gradeCls);
+
+        // 모바일에서 피드백 박스 하단이 가려지지 않도록 안전하게 스크롤 보정
+        setTimeout(async function() {
+          try {
+            feedbackEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          } catch (_e) {}
+        }, 30);
+      };
+    });
   }
 
   // 에너지 원정 리포트: 최근에 보여 준 여행지(화면 중복 방지)와 프로필별 룰렛 당첨 기록은 이 브라우저에 둔다.

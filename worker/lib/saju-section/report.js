@@ -7,9 +7,9 @@ import { createSajuSectionRuntime } from "./runtime.generated.mjs";
 
 // 사주 종합(section_summary)·대운 풀이(section_daewun)·퀀텀 명리 엔진(rpt_quantumCard)·
 // 극T 관계 회로(sukuyo-extreme-t-relationship)·숙요 인연 도감(sukuyo-relationship-encyclopedia)·에너지 원정 리포트(rpt_energyCoordCard)
-// 본문을 서버에서 만든다.
+// ·요주의 빌런 블랙리스트(rpt_villainCard) 본문을 서버에서 만든다.
 // 계산 흐름은 js/saju-engine.js 의 사주 계산(원국 → 대운 브릿지 → 종격 판정 → 용신 정책)을 그대로 따른다.
-export const SAJU_SECTION_FEATURE_KEYS = Object.freeze(["section_summary", "section_daewun", "rpt_quantumCard", "sukuyo-extreme-t-relationship", "sukuyo-relationship-encyclopedia", "rpt_energyCoordCard"]);
+export const SAJU_SECTION_FEATURE_KEYS = Object.freeze(["section_summary", "section_daewun", "rpt_quantumCard", "sukuyo-extreme-t-relationship", "sukuyo-relationship-encyclopedia", "rpt_energyCoordCard", "rpt_villainCard"]);
 // 클라이언트 출생지 선택의 기본 옵션(index.html #birthCountry 의 대한민국 서울).
 const DEFAULT_PLACE = Object.freeze({ name: "대한민국 (서울)", longitude: 127.0, latitude: 37.6, timezone: "Asia/Seoul", baseTzOffset: 9 });
 const JONG_DECISIONS = new Set(["confirmed", "rejected", "unverified"]);
@@ -35,16 +35,16 @@ function normalizePlace(place) {
   return { name, longitude, latitude, timezone, baseTzOffset };
 }
 
-function documentShim(neo, captured, quantum, energy) {
+function documentShim(neo, captured, quantum, cardDom) {
   const classList = { contains: (name) => neo && name === "neo-mode" };
   return {
     cookie: "",
     body: { classList },
     documentElement: { classList },
-    // 에너지 카드의 룰렛 스타일은 <head> 에 붙는다 — 그 CSS 를 받아 응답으로 돌려준다.
-    head: { appendChild: (node) => { energy.css = String(node?.textContent || ""); } },
+    // 에너지 카드의 룰렛 스타일·빌런 카드의 도시에 스타일은 <head> 에 붙는다 — 그 CSS 를 받아 응답으로 돌려준다.
+    head: { appendChild: (node) => { cardDom.css = String(node?.textContent || ""); } },
     createElement: () => ({ id: "", textContent: "" }),
-    getElementById: (id) => (id === "summaryArea" ? captured : id === "quantumSection" ? quantum.area : id === "quantumCard" ? quantum.card : energy.byId[id] || null),
+    getElementById: (id) => (id === "summaryArea" ? captured : id === "quantumSection" ? quantum.area : id === "quantumCard" ? quantum.card : cardDom.byId[id] || null),
   };
 }
 
@@ -169,10 +169,12 @@ export function buildSajuSectionHtml(input) {
   const now = roulette && Math.abs(renderedAt.getTime() - requestNow.getTime()) <= DAY_MS ? renderedAt : requestNow;
   const storage = featureKey === "rpt_energyCoordCard" ? energyStorage(idList(energyInput.recent, 60), idList(roulette?.recent, 7)) : memoryStorage();
   const rouletteEls = roulette ? energyRouletteElements() : null;
-  const energy = {
+  // 리포트 대시보드 카드가 그리는 칸. 빌런 카드의 복사·자가진단 버튼 연결은 브라우저(section-client.js)가 맡는다.
+  const cardDom = {
     css: "",
     byId: {
       energyCoordSection: { innerHTML: "" }, energyCoordCard: { style: {}, dataset: {} },
+      villainResult: { innerHTML: "", querySelectorAll: () => [] }, villainCard: { style: {} },
       ...(rouletteEls ? { energyRouletteCard: rouletteEls.card, energyRouletteWheel: rouletteEls.wheel, energyRouletteDeck: rouletteEls.deck, energyRouletteResult: rouletteEls.result } : {}),
     },
   };
@@ -180,7 +182,7 @@ export function buildSajuSectionHtml(input) {
   let pendingSpin = null;
   const window = { location: { search: "", pathname: "/", hostname: "" }, localStorage: storage, cdGetCurrentLanguage: () => input.lang || "ko" };
   const rt = createSajuSectionRuntime({
-    window, document: documentShim(neo, captured, quantum, energy), localStorage: storage, neo, lang: input.lang || "ko", now,
+    window, document: documentShim(neo, captured, quantum, cardDom), localStorage: storage, neo, lang: input.lang || "ko", now,
     ...(roulette ? { setTimeout: (fn) => { pendingSpin = fn; } } : {}),
   });
 
@@ -233,7 +235,7 @@ export function buildSajuSectionHtml(input) {
     // 본문을 그리면 최근 여행지 목록이 갱신된다. 룰렛 회차 요청에서는 그 갱신 전 목록(요청 값)으로 같은 화면을 다시 만든다.
     rt.renderEnergyCoord(natal);
     if (!roulette) {
-      return { html: energy.byId.energyCoordSection.innerHTML, css: energy.css, energy: { recent: storage.list(ENERGY_RECENT_KEY), renderedAt: now.toISOString() } };
+      return { html: cardDom.byId.energyCoordSection.innerHTML, css: cardDom.css, energy: { recent: storage.list(ENERGY_RECENT_KEY), renderedAt: now.toISOString() } };
     }
     for (let spin = 1; spin <= roulette.spin; spin += 1) {
       pendingSpin = null;
@@ -241,6 +243,10 @@ export function buildSajuSectionHtml(input) {
     }
     if (pendingSpin) pendingSpin();
     return { html: rouletteEls.result.innerHTML, energy: { transform: String(rouletteEls.wheel.style.transform || ""), roulette: storage.list("roulette").slice(0, 7) } };
+  }
+  if (featureKey === "rpt_villainCard") {
+    rt.renderVillain(p, power);
+    return { html: cardDom.byId.villainResult.innerHTML, css: cardDom.css };
   }
   const dw = input.daewun || {};
   const row = rows.find((r) => r.age === Number(dw.age) && r.g === dw.gan && r.j === dw.zhi);

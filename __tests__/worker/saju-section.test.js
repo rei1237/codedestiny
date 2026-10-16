@@ -114,7 +114,7 @@ test("only the saju section keys are served", async () => {
   expect(findOne).not.toHaveBeenCalled();
 });
 
-test.each(["section_summary", "section_daewun", "rpt_quantumCard", "sukuyo-extreme-t-relationship", "sukuyo-relationship-encyclopedia", "rpt_energyCoordCard"])("unowned %s returns registry pricing without HTML", async (featureKey) => {
+test.each(["section_summary", "section_daewun", "rpt_quantumCard", "sukuyo-extreme-t-relationship", "sukuyo-relationship-encyclopedia", "rpt_energyCoordCard", "rpt_villainCard"])("unowned %s returns registry pricing without HTML", async (featureKey) => {
   const result = await request({ ...INPUT, featureKey, daewun: DAEWUN, unlocked: true, passActive: true });
   const { pricing } = getBillingFeaturePricing({ featureKey });
   expect(result).toEqual({ status: 402, body: expect.objectContaining({ featureKey, amountKRW: pricing.amountKRW, coinPrice: pricing.coinPrice }) });
@@ -540,5 +540,63 @@ describe("rpt_energyCoordCard", () => {
       gender: c.gender, name: c.name, mode: "pig", place: c.place, jongDecision: c.jong, now: new Date(PARITY.now),
     }).html;
     expect(sha256(html)).toBe(PARITY.energy[id]);
+  });
+});
+
+describe("rpt_villainCard", () => {
+  const VILLAIN = { ...INPUT, featureKey: "rpt_villainCard" };
+  const expected = (birth, gender) => buildSajuSectionHtml({ featureKey: "rpt_villainCard", birth, gender, name: "테스트", mode: "pig", lang: "ko" }).html;
+
+  test("a BIRTH grant renders the card from the stored birth; it opens nothing else", async () => {
+    grant({}, "rpt_villainCard");
+    const result = await request({ ...VILLAIN, birth: { date: "2001-01-01", hour: 3, minute: 0 }, gender: "F" });
+    expect(result.status).toBe(200);
+    expect(result.body).toMatchObject({ ok: true, unlocked: true, featureKey: "rpt_villainCard" });
+    expect(result.body.html).toBe(expected(CARD_BIRTH, "M"));
+    expect(result.body.html).toContain("villain-blacklist-v2");
+    expect(result.body.css).toContain("villain-blacklist-v2");
+    expect((await request()).status).toBe(402);
+    expect((await request({ ...INPUT, featureKey: "rpt_energyCoordCard" })).status).toBe(402);
+  });
+
+  test("a legacy account grant without a saved profile renders the body birth", async () => {
+    grant({ scope: "USER", profileId: "__user__" }, "rpt_villainCard");
+    const { profileId: _omit, ...account } = VILLAIN;
+    const result = await request({ ...account, birth: { date: "1985-11-02", calType: "solar", hour: 6, minute: 5 }, gender: "F" });
+    expect(result.status).toBe(200);
+    expect(result.body.html).toBe(expected({ calendarDate: "1985-11-02", calType: "solar", hour: 6, minute: 5, timeKnown: true }, "F"));
+  });
+
+  test("another profile's or another birth's grant does not open this card", async () => {
+    grant({ scope: "PROFILE", profileId: "p2" }, "rpt_villainCard");
+    expect((await request(VILLAIN)).status).toBe(402);
+    grant({}, "rpt_villainCard");
+    const other = await request({ ...VILLAIN, profileId: "p3" });
+    expect(other.status).toBe(402);
+    expect(other.body.html).toBeUndefined();
+  });
+
+  // 빌런 카드에는 옛 묶음 별칭이 없다(PERSISTENT_UNLOCK_ALIAS_MAP) — allPaidSaju 로는 열리지 않는다.
+  test("an allPaidSaju bundle does not open the villain card", async () => {
+    users.push({ _id: TEST_USER_ID, unlockedFeatures: ["allPaidSaju"] });
+    expect((await request(VILLAIN)).status).toBe(402);
+  });
+
+  test("a DB failure stays retryable instead of prompting purchase", async () => {
+    grant({}, "rpt_villainCard");
+    connectDb.mockRejectedValue(new Error("private database connection information"));
+    const result = await request(VILLAIN);
+    expect(result.status).toBe(503);
+    expect(result.body).toMatchObject({ reason: "TEMPORARY_UNAVAILABLE", retryable: true });
+  });
+
+  // PARITY.villain: 56cc07e9a 의 클라이언트 renderVillain(js/saju-engine.js)을 vm 에서
+  // 같은 차트·같은 now(PARITY.now)·pig·ko 로 돌려 얻은 #villainResult HTML 의 sha256.
+  test.each(PARITY.cases.map((c) => [c.id, c]))("server card equals the HEAD client engine output: %s", (id, c) => {
+    const html = buildSajuSectionHtml({
+      featureKey: "rpt_villainCard", birth: { calendarDate: c.date, calType: c.calType, hour: c.hour, minute: c.minute, timeKnown: c.timeKnown !== false },
+      gender: c.gender, name: c.name, mode: "pig", place: c.place, jongDecision: c.jong, now: new Date(PARITY.now),
+    }).html;
+    expect(sha256(html)).toBe(PARITY.villain[id]);
   });
 });

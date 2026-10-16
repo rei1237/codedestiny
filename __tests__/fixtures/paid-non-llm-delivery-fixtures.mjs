@@ -443,7 +443,7 @@ export const PAID_NON_LLM_DELIVERY_FIXTURES = Object.freeze([
     featureKey: "rpt_villainCard",
     billingType: "unlock",
     cta: { file: "js/core/saju/reportDashboard.js", marker: "target:'villainCard'" },
-    consumer: { file: "js/saju-engine.js", marker: "function renderVillain(p, power)" },
+    consumer: { file: "worker/lib/saju-section/paid-villain.src.js", marker: "function renderVillain(p, power)" },
   },
   sameSurface(
     "rpt_secretHouseEntryCard",
