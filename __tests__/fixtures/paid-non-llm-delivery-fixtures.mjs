@@ -431,7 +431,7 @@ export const PAID_NON_LLM_DELIVERY_FIXTURES = Object.freeze([
     featureKey: "rpt_skillTreeCard",
     billingType: "unlock",
     cta: { file: "js/core/saju/reportDashboard.js", marker: "target:'skillTreeCard'" },
-    consumer: { file: "js/entertain-engine.js", marker: "w.renderSkillTree = function" },
+    consumer: { file: "worker/lib/saju-section/paid-skill.src.js", marker: "function renderSkillTree(p, natal){" },
   },
   {
     featureKey: "rpt_energyCoordCard",

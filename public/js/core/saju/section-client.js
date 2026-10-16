@@ -379,6 +379,13 @@
     rpt_specialCharmCard: {
       area: 'specialCharmBody', card: 'specialCharmCard',
       loading: '나의 매력 클래스를 불러오고 있어요.'
+    },
+    // 인생 스킬 트리: 시트 스타일과 무료 스텁(#skillTreeBody)은 js/saju-engine.js renderSkillTree 가 깔고, 그 아래 퀘스트 칸은
+    // js/entertain-engine.js 오버라이드가 붙인다. 서버 본문(클래스 시트)은 스텁 칸에만 들어가 퀘스트 칸을 지우지 않는다.
+    rpt_skillTreeCard: {
+      area: 'skillTreeBody', card: 'skillTreeCard', styleId: 'cd-skilltree-rpg-style-v20260613',
+      loading: '인생 스킬 트리를 불러오고 있어요.',
+      delivered: function () { skillTreeDelivered(); }
     }
   };
   var cards = {};
@@ -447,6 +454,16 @@
       fail(failureText(result));
     }, function () { fail(failureText(null)); });
     return false;
+  }
+
+  // 인생 스킬 트리: 시트가 들어와 카드 길이가 바뀌었으니 대시보드 카드 높이를 다시 맞춘다
+  // (원본 js/entertain-engine.js syncRpgLayoutHeight 와 같은 시점 — 바로, 120ms, 420ms 뒤).
+  function skillTreeDelivered() {
+    var card = byId('skillTreeCard');
+    if (!card || typeof root.syncReportHeightFromNode !== 'function') return;
+    root.syncReportHeightFromNode(card);
+    setTimeout(function () { root.syncReportHeightFromNode(card); }, 120);
+    setTimeout(function () { root.syncReportHeightFromNode(card); }, 420);
   }
 
   // 명리 헬스 리포트: 장(<details>)을 펼칠 때 대시보드 카드 높이를 다시 맞춘다.

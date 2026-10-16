@@ -114,7 +114,7 @@ test("only the saju section keys are served", async () => {
   expect(findOne).not.toHaveBeenCalled();
 });
 
-test.each(["section_summary", "section_daewun", "rpt_quantumCard", "sukuyo-extreme-t-relationship", "sukuyo-relationship-encyclopedia", "rpt_energyCoordCard", "rpt_villainCard", "rpt_healthReportCard", "rpt_specialCharmCard"])("unowned %s returns registry pricing without HTML", async (featureKey) => {
+test.each(["section_summary", "section_daewun", "rpt_quantumCard", "sukuyo-extreme-t-relationship", "sukuyo-relationship-encyclopedia", "rpt_energyCoordCard", "rpt_villainCard", "rpt_healthReportCard", "rpt_specialCharmCard", "rpt_skillTreeCard"])("unowned %s returns registry pricing without HTML", async (featureKey) => {
   const result = await request({ ...INPUT, featureKey, daewun: DAEWUN, unlocked: true, passActive: true });
   const { pricing } = getBillingFeaturePricing({ featureKey });
   expect(result).toEqual({ status: 402, body: expect.objectContaining({ featureKey, amountKRW: pricing.amountKRW, coinPrice: pricing.coinPrice }) });
@@ -736,5 +736,84 @@ describe("rpt_specialCharmCard", () => {
       gender: c.gender, name: c.name, mode: "pig", place: c.place, jongDecision: c.jong, now: new Date(PARITY.now),
     }).html;
     expect(sha256(html)).toBe(PARITY.charm[id]);
+  });
+});
+
+describe("rpt_skillTreeCard", () => {
+  const SKILL = { ...INPUT, featureKey: "rpt_skillTreeCard" };
+  // 올해 세운·현재 나이(KST)가 시트에 들어간다. 요청 시각을 넘기지 않으므로 지금 시각으로 다시 그려 비교한다.
+  const expected = (birth, gender) => buildSajuSectionHtml({ featureKey: "rpt_skillTreeCard", birth, gender, name: "테스트", mode: "pig", lang: "ko" }).html;
+
+  test("a BIRTH grant renders the class sheet from the stored birth; it opens nothing else", async () => {
+    grant({}, "rpt_skillTreeCard");
+    const result = await request({ ...SKILL, birth: { date: "2001-01-01", hour: 3, minute: 0 }, gender: "F" });
+    expect(result.status).toBe(200);
+    expect(result.body).toMatchObject({ ok: true, unlocked: true, featureKey: "rpt_skillTreeCard" });
+    expect(result.body.html).toBe(expected(CARD_BIRTH, "M"));
+    // 클래스 시트만 온다. 그 아래 퀘스트 칸은 브라우저가 붙인다.
+    expect(result.body.html.startsWith('<div class="skill-wrap" data-skilltree-ui-marker="skilltree-rpg-v20260613">')).toBe(true);
+    expect(result.body.html).not.toContain("entRpgSection");
+    expect(result.body.css).toContain("skilltree-rpg-v20260613");
+    expect((await request()).status).toBe(402);
+    expect((await request({ ...INPUT, featureKey: "rpt_specialCharmCard" })).status).toBe(402);
+  });
+
+  test("a legacy account grant without a saved profile renders the body birth", async () => {
+    grant({ scope: "USER", profileId: "__user__" }, "rpt_skillTreeCard");
+    const { profileId: _omit, ...account } = SKILL;
+    const result = await request({ ...account, birth: { date: "1985-11-02", calType: "solar", hour: 6, minute: 5 }, gender: "F" });
+    expect(result.status).toBe(200);
+    expect(result.body.html).toBe(expected({ calendarDate: "1985-11-02", calType: "solar", hour: 6, minute: 5, timeKnown: true }, "F"));
+  });
+
+  test("another profile's or another birth's grant does not open this card", async () => {
+    grant({ scope: "PROFILE", profileId: "p2" }, "rpt_skillTreeCard");
+    expect((await request(SKILL)).status).toBe(402);
+    grant({}, "rpt_skillTreeCard");
+    const other = await request({ ...SKILL, profileId: "p3" });
+    expect(other.status).toBe(402);
+    expect(other.body.html).toBeUndefined();
+  });
+
+  // /api/fortune/balance 가 이 카드를 여는 옛 상품: allPaidSaju(계정 묶음), rpgCharacter(계정 단위 키 — 출생과 무관하게 연다).
+  test.each([
+    ["unlockedFeatures array", () => users.push({ _id: TEST_USER_ID, unlockedFeatures: ["allPaidSaju"] })],
+    ["paidFeatures array", () => users.push({ _id: TEST_USER_ID, paidFeatures: ["allPaidSaju"] })],
+    ["coin deduct history", () => histories.push({ userId: TEST_USER_ID, kind: "deduct", featureKey: "allPaidSaju" })],
+    ["rpgCharacter unlockedFeatures", () => users.push({ _id: TEST_USER_ID, unlockedFeatures: ["rpgCharacter"] })],
+    ["rpgCharacter deduct history", () => histories.push({ userId: TEST_USER_ID, kind: "deduct", featureKey: "rpgCharacter" })],
+    ["rpgCharacter account entitlement", () => grant({ scope: "USER", profileId: "__user__" }, "rpgCharacter")],
+  ])("a legacy bundle or account purchase (%s) opens the card", async (_label, seed) => {
+    seed();
+    expect((await request(SKILL)).status).toBe(200);
+    const { profileId: _omit, ...account } = SKILL;
+    expect((await request({ ...account, birth: { date: "1985-11-02", calType: "solar", hour: 6, minute: 5 } })).status).toBe(200);
+  });
+
+  test("other bundles or refunds are not allPaidSaju evidence", async () => {
+    users.push({ _id: TEST_USER_ID, unlockedFeatures: ["healthReport", "travelDestiny"] });
+    histories.push({ userId: TEST_USER_ID, kind: "refund", featureKey: "allPaidSaju" });
+    histories.push({ userId: TEST_USER_ID, kind: "refund", featureKey: "rpgCharacter" });
+    histories.push({ userId: OTHER_USER_ID, kind: "deduct", featureKey: "allPaidSaju" });
+    histories.push({ userId: OTHER_USER_ID, kind: "deduct", featureKey: "rpgCharacter" });
+    expect((await request(SKILL)).status).toBe(402);
+  });
+
+  test("a DB failure stays retryable instead of prompting purchase", async () => {
+    grant({}, "rpt_skillTreeCard");
+    connectDb.mockRejectedValue(new Error("private database connection information"));
+    const result = await request(SKILL);
+    expect(result.status).toBe(503);
+    expect(result.body).toMatchObject({ reason: "TEMPORARY_UNAVAILABLE", retryable: true });
+  });
+
+  // PARITY.skill: 56cc07e9a 의 클라이언트 renderSkillTree(js/saju-engine.js 원본, 퀘스트 칸을 붙이는 entertain 덮어쓰기 전)를
+  // vm 에서 같은 차트·같은 now(PARITY.now)로 돌려 얻은 #skillTreeSection HTML 의 sha256.
+  test.each(PARITY.cases.map((c) => [c.id, c]))("server card equals the HEAD client engine output: %s", (id, c) => {
+    const html = buildSajuSectionHtml({
+      featureKey: "rpt_skillTreeCard", birth: { calendarDate: c.date, calType: c.calType, hour: c.hour, minute: c.minute, timeKnown: c.timeKnown !== false },
+      gender: c.gender, name: c.name, mode: "pig", place: c.place, jongDecision: c.jong, now: new Date(PARITY.now),
+    }).html;
+    expect(sha256(html)).toBe(PARITY.skill[id]);
   });
 });

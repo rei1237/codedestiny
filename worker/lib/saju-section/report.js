@@ -8,9 +8,9 @@ import { createSajuSectionRuntime } from "./runtime.generated.mjs";
 // 사주 종합(section_summary)·대운 풀이(section_daewun)·퀀텀 명리 엔진(rpt_quantumCard)·
 // 극T 관계 회로(sukuyo-extreme-t-relationship)·숙요 인연 도감(sukuyo-relationship-encyclopedia)·에너지 원정 리포트(rpt_energyCoordCard)
 // ·요주의 빌런 블랙리스트(rpt_villainCard)·명리 헬스 리포트(rpt_healthReportCard)·나의 매력 클래스(rpt_specialCharmCard)
-// 본문을 서버에서 만든다.
+// ·인생 스킬 트리(rpt_skillTreeCard) 본문을 서버에서 만든다.
 // 계산 흐름은 js/saju-engine.js 의 사주 계산(원국 → 대운 브릿지 → 종격 판정 → 용신 정책)을 그대로 따른다.
-export const SAJU_SECTION_FEATURE_KEYS = Object.freeze(["section_summary", "section_daewun", "rpt_quantumCard", "sukuyo-extreme-t-relationship", "sukuyo-relationship-encyclopedia", "rpt_energyCoordCard", "rpt_villainCard", "rpt_healthReportCard", "rpt_specialCharmCard"]);
+export const SAJU_SECTION_FEATURE_KEYS = Object.freeze(["section_summary", "section_daewun", "rpt_quantumCard", "sukuyo-extreme-t-relationship", "sukuyo-relationship-encyclopedia", "rpt_energyCoordCard", "rpt_villainCard", "rpt_healthReportCard", "rpt_specialCharmCard", "rpt_skillTreeCard"]);
 // 클라이언트 출생지 선택의 기본 옵션(index.html #birthCountry 의 대한민국 서울).
 const DEFAULT_PLACE = Object.freeze({ name: "대한민국 (서울)", longitude: 127.0, latitude: 37.6, timezone: "Asia/Seoul", baseTzOffset: 9 });
 const JONG_DECISIONS = new Set(["confirmed", "rejected", "unverified"]);
@@ -178,6 +178,7 @@ export function buildSajuSectionHtml(input) {
       energyCoordSection: { innerHTML: "" }, energyCoordCard: { style: {}, dataset: {} },
       villainResult: { innerHTML: "", querySelectorAll: () => [] }, villainCard: { style: {} },
       healthReportSection: { innerHTML: "", querySelectorAll: () => [] }, healthReportCard: { style: {} },
+      skillTreeSection: { innerHTML: "", setAttribute() {} }, skillTreeCard: { style: {}, setAttribute() {} },
       ...(rouletteEls ? { energyRouletteCard: rouletteEls.card, energyRouletteWheel: rouletteEls.wheel, energyRouletteDeck: rouletteEls.deck, energyRouletteResult: rouletteEls.result } : {}),
     },
   };
@@ -265,6 +266,12 @@ export function buildSajuSectionHtml(input) {
     const open = '<div id="specialCharmCard" style="margin-top:15px">';
     if (!full.startsWith(open) || !full.endsWith("</div>")) throw new Error("special charm card wrapper changed");
     return { html: full.slice(open.length, -"</div>".length) };
+  }
+  if (featureKey === "rpt_skillTreeCard") {
+    // 클래스 시트만 보낸다(본문 칸 #skillTreeBody 에 들어간다). 시트 스타일은 브라우저 스텁이 먼저 깔고, 그 아래 퀘스트 칸은
+    // 브라우저(js/entertain-engine.js renderSkillTree 오버라이드)가 붙인다.
+    rt.renderSkillTree(p, natal);
+    return { html: cardDom.byId.skillTreeSection.innerHTML, css: cardDom.css };
   }
   const dw = input.daewun || {};
   const row = rows.find((r) => r.age === Number(dw.age) && r.g === dw.gan && r.j === dw.zhi);
