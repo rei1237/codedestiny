@@ -59,6 +59,39 @@ test('saved report adapters use explicit action sections without transmitting pr
  for(const text of ['일기를 기록하세요.','{"sections":','## 추천 행동\n상대방은 일기를 기록하세요.','## 추천 행동\n일기를 기록하지 마세요.']) assert.deepEqual(reportAdviceTopics(text),[]);
 });
 
+test('numbered advice without terminal punctuation remains advice, numbered headings end it', async () => {
+ const {reportAdviceTopics}=await import('../../js/recommendations-context.mjs');
+ for (const marker of ['1.', '1)']) {
+  assert.deepEqual(reportAdviceTopics(`## 실천 조언\n${marker} 집중 시간을 확보하세요\n2. 하루의 생각을 기록하세요\n3. 건강\n휴식 시간을 확보하세요`), ['focus','journaling']);
+ }
+ assert.deepEqual(reportAdviceTopics('## 실천 조언\n1. 상대방은 일기를 기록하세요\n2. 지출을 정리하지 마세요'), []);
+});
+
+test('saved result route projects only completed advice and keeps one bottom mount', async () => {
+ const {savedRecommendation}=await import('../../lib/records/recommendations.mjs');
+ const content={messages:[{role:'user',content:'## 실천 조언\n지출을 정리하세요'},{role:'assistant',content:'## 실천 조언\n1. 집중 시간을 확보하세요'}],question:'일기를 기록하세요',health:'휴식 시간을 확보하세요'};
+ for(const source of ['astrology','vedic']) {
+  const result=savedRecommendation({source,status:'completed'},content);
+  assert.deepEqual(result.practiceTags,['focus']);
+  assert.equal(result.service,source+'-ai-consultation');
+  assert.deepEqual(Object.keys(result).sort(),['brand','practiceTags','service']);
+ }
+ for(const status of ['generating','partial','failed','revoked','refund_pending','conversation']) assert.equal(savedRecommendation({source:'astrology',status},content),null);
+ for(const value of [null,{}, {messages:[{role:'user',content:'## 실천 조언\n집중 시간을 확보하세요'}]}]) assert.equal(savedRecommendation({source:'astrology',status:'completed'},value),null);
+ assert.equal(savedRecommendation({source:'tea',status:'completed'},content),null);
+ assert.equal(savedRecommendation({source:'unknown',status:'completed'},content),null);
+ const chapter={advice:'하루의 생각을 기록하세요',summary:'지출을 정리하세요'};
+ for(const source of ['chat-consultation','codex']) assert.deepEqual(savedRecommendation({source,status:'completed'},{chapters:[chapter]}).practiceTags,['journaling']);
+ assert.deepEqual(savedRecommendation({source:'life-book',status:'saved'},{reportJson:{chapters:[chapter]}}).practiceTags,['journaling']);
+ assert.deepEqual(savedRecommendation({source:'neo',status:'completed'},{initialBriefing:{actionOrders:['지출을 정리하세요']}}).practiceTags,['budgeting']);
+ assert.deepEqual(savedRecommendation({source:'fusion',status:'completed'},{result:{finalVerdict:{doNow:['집중 시간을 확보하세요']}}}).practiceTags,['focus']);
+ assert.deepEqual(savedRecommendation({source:'human-design',status:'completed'},{sections:[{key:'health',keyPoints:['일기를 기록하세요']},{key:'practicalGuide',keyPoints:['집중 시간을 확보하세요']}]}).practiceTags,['focus']);
+ const page=readFileSync(new URL('../../app/records/view/SavedRecordClient.tsx',import.meta.url),'utf8');
+ assert.equal((page.match(/<RecommendationResult\b/g)||[]).length,1);
+ assert.ok(page.indexOf('<RecommendationResult')>page.indexOf('className={styles.readingActions}'));
+ assert.match(page,/key=\{`\$\{source\}:\$\{id\}`\}/);
+});
+
 test('fusion and human design inspect only explicit action fields', async()=>{
  const {fusionAdviceTopics,humanDesignAdviceTopics}=await import('../../js/recommendations-context.mjs');
  assert.deepEqual(fusionAdviceTopics({finalVerdict:{doNow:['예산을 세워 보세요.']},executiveSummary:'일기를 기록하세요.'}),['budgeting']);
