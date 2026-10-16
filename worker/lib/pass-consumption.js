@@ -143,17 +143,17 @@ export async function refundYeongnyangiMoonstone(input) {
    같아야 한다 — 클라이언트 판정기 pass-verdict.isMonthlyLimitPayload 가 이 문자열만 보고 "한도 초과"와
    "이용권 없음"을 가르며, 어긋나면 한도 초과가 이용권 상점으로 튕긴다.
 
-   🔴 빈 문자열("")은 **차단하지 말라**는 뜻이다. no_active_pass·invalid_price 는 정본이 이 사용자의
-   이용권을 아예 못 보는(= 사이클 키가 없어 예산을 셀 수 없는) 상태라 강제할 한도 자체가 없다.
-   이때 호출부는 예전 통과 판정을 그대로 존중하고 차감만 건너뛴다 — 여기서 막으면 정본과
-   호출부의 활성 판정이 어긋나는 사용자(예: 취소했지만 만료 전)의 접근을 조용히 뺏는다. */
+   🔴 차감이 안 된(covered:false) 건은 사유와 무관하게 **항상 막는다**(2026-10-16). 예전에는
+   no_active_pass·invalid_price·family_pass_required 에 빈 문자열을 돌려 "막지 말라"는 뜻으로 썼고,
+   호출부가 그 빈 값을 통과로 읽어 차감 없이 유료 본문이 열렸다. 정본이 이용권을 못 보면 이용권으로
+   연 것이 아니다 — 결제로 인계한다. 운영 실측(2026-10-16) 활성 이용권 중 cycleKey 없는 계정 0명. */
 export function passDenialCode(reason) {
   const key = String(reason || "");
   if (key === "monthly_pass_limit_exceeded") return "MONTHLY_PASS_LIMIT_EXCEEDED";
   if (key === "price_exceeds_pass_limit") return "PRICE_EXCEEDS_PASS_LIMIT";
   // CAS 패배 = 그 사이 예산이 소진됐거나 이용권이 바뀌었다. 커버를 단정하지 않고 결제로 인계한다.
   if (key === "pass_access_conflict") return "PAYMENT_REQUIRED";
-  return "";
+  return "PAYMENT_REQUIRED";
 }
 
 export async function hasConsumedPassFeature(user, featureKey, requestId, db = nativeDb) {

@@ -206,9 +206,8 @@ export async function verifyPerUsePayment(env, { userId, featureKey, coinPrice =
           coinCost: cost,
           profileId: clean(profileId, 120),
         });
-        // 🔴 코드가 빈 문자열이면 막지 않는다(passDenialCode 주석) — 예전 통과 판정을 존중한다.
-        const denial = consumed.covered ? "" : passDenialCode(consumed.reason);
-        if (denial) return { proven: false, source: "", reason: denial };
+        // 🔴 차감이 안 됐으면 사유와 무관하게 결제 미확인이다 — 빈 코드를 통과로 읽으면 차감 없이 열린다.
+        if (!consumed.covered) return { proven: false, source: "", reason: passDenialCode(consumed.reason) || "NO_RECORD" };
         // 🔴 monthlySpendCoin 차감분을 되돌릴 정보다 — 이걸 안 실어 보내면 뒤에서 결제(생성)가
         //    실패해도 이 월간 사용한도가 영원히 복구되지 않는다(2026-09-12 실사고 수정).
         const cycleKey = consumed.coverage?.cycleKey;

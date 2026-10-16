@@ -410,8 +410,8 @@ async function applyUsageOnce({ userId, sessionId, accessType, paymentId, pricin
       requestId,
       coinCost: pricing.coinPrice,
     });
-    const denial = consumed.covered ? "" : passDenialCode(consumed.reason);
-    if (denial) {
+    const denial = consumed.covered ? "" : (passDenialCode(consumed.reason) || "PAYMENT_REQUIRED");
+    if (!consumed.covered) {
       const error = new Error(denial);
       error.code = denial;
       throw error;
