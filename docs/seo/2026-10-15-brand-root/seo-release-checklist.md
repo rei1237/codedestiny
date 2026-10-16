@@ -41,16 +41,18 @@
 
 | 요청 | 기대 | 결과 |
 |---|---|---|
-| `/` (기본 · Googlebot UA · 한국어 사람) | 200, canonical 1개 `https://code-destiny.com/`, WebSite·Organization·WebPage 각 1개, title "꿀꿀 운세 공식 사이트 …" | |
-| `/` + 영어 명시 쿠키 사람 | 302 → `/en/` | |
-| `/?utm_source=x` | 200 | |
-| `/?paymentId=x&portone_redirect=1` · `/?code=x&state=y` · `/?ref=abc` | 302 → `/ggulggul/?<원래 쿼리>` | |
-| `/?question=x` | 302 → `/yeongnyangi/?question=x` | |
-| `/index.html` | 301 → `/` | |
-| `/ggulggul/` `/kkul-kkul-unse/` `/about/` `/faq/` `/saju/` `/insights/` | 200, self canonical, title·og:site_name "꿀꿀 운세", 과거명 0건 | |
-| `http://code-destiny.com/` · `https://www.code-destiny.com/` | https 루트로 이동 후 200 (홉 수 기록) | |
-| `/robots.txt` | 승격 전과 diff 0 | |
-| `/sitemap.xml` | `<loc>https://code-destiny.com/</loc>` 1개 | |
+| `/` (기본 · Googlebot UA · 한국어 사람) | 200, canonical 1개 `https://code-destiny.com/`, WebSite·Organization·WebPage 각 1개, title "꿀꿀 운세 공식 사이트 …" | 통과(2026-10-16) |
+| `/` + 영어 명시 쿠키 사람 | 302 → `/en/` | 통과 |
+| `/?utm_source=x` | 200 | 통과 |
+| `/?paymentId=x&portone_redirect=1` · `/?code=x&state=y` · `/?ref=abc` | 302 → `/ggulggul/?<원래 쿼리>` | 통과(쿼리 보존) |
+| `/?question=x` | 302 → `/yeongnyangi/?question=x` | 통과 |
+| `/index.html` | 301 → `/` | 통과 |
+| `/ggulggul/` `/kkul-kkul-unse/` `/about/` `/faq/` `/saju/` `/insights/` | 200, self canonical, title·og:site_name "꿀꿀 운세", 과거명 0건 | 통과. 6개 모두 "꿀꿀 운세". 과거명은 `/kkul-kkul-unse/` FAQ 이력 문답에만 |
+| `http://code-destiny.com/` · `https://www.code-destiny.com/` | https 루트로 이동 후 200 (홉 수 기록) | 통과(301 1홉 뒤 200) |
+| `/robots.txt` | 승격 전과 diff 0 | 통과(sha256 앞 16자리 07be6d947cb14a75) |
+| `/sitemap.xml` | `<loc>https://code-destiny.com/</loc>` 1개 | 통과(1개) |
+
+운영 결과 기록: 2026-10-16 run 38839146392(f801a1c8d). 전후 비교는 `seo-audit.md` "운영 승격 전후 실측".
 
 ## 6. 롤백
 

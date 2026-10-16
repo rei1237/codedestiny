@@ -60,6 +60,43 @@ A(수집 불가)에 해당하는 경로는 없었다.
   - 재발 방지: postbuild `scripts/verify-sitemap-canonical.mjs` 가 위 세 가지를 빌드마다 검사한다.
 - 남겨 둔 것: 콘텐츠 페이지의 `/index.html?action=open…Modal` 기능 링크 약 20개. 워커가 302 로 `/ggulggul/?action=…` 에 넘긴다. 기능 진입이라 이번 범위에서 바꾸지 않았다.
 
+## 운영 승격 전후 실측
+
+- 승격: 2026-10-16 02:33Z, 워크플로 run 38839146392(mode=production), 커밋 f801a1c8d.
+  - Pages·Worker 모두 f801a1c8d04b 를 서빙한다(`verify-deployed-sha` PASS).
+  - 배포 후 헬스체크 통과, deploy-smoke PASS. 결제 다이얼로그 검사는 게스트 진입 버튼이 보이지 않아 건너뛰었다.
+  - 같은 배포에 main 의 다른 작업(포춘 찻집·상품 상세 개편, 홈 MV 위치)도 함께 나갔다. 관찰 때 함께 고려한다.
+  - 워크플로가 기록한 롤백 대상: Pages deployment `b7e36345-bd93-44c6-8841-da05e709b07f`, Worker version `ef31c278-20a5-4c66-bc21-0fa7a753c2f1`.
+- 측정: 승격 전 2026-10-15 12:38Z, 승격 후 2026-10-16 02:33Z. 같은 스크립트로 같은 요청을 보냈다(로그인 없음, UA·로케일 쿠키별).
+
+| 요청 | 승격 전 | 승격 후 |
+|---|---|---|
+| `/` (한국어 사람 · Googlebot · 쿠키 없음) | 302(봇은 301) → `/ggulggul/` | 200. title "꿀꿀 운세 공식 사이트 \| 사주·타로·자미두수", canonical `https://code-destiny.com/` 1개, WebSite·Organization·WebPage 각 1개, hreflang 0 |
+| `/` + 영어 명시 쿠키 | 302 → `/en/` | 같음 |
+| `/?utm_source=x` | 302 → `/ggulggul/?utm_source=x` | 200 |
+| `/?paymentId=x&portone_redirect=1` · `/?code=x&state=y` · `/?ref=abc` | 302 → `/ggulggul/?<원래 쿼리>` | 같음 |
+| `/?question=x` | 302 → `/yeongnyangi/?question=x` | 같음 |
+| `/index.html` | 302 → `/ggulggul/` | 301 → `/` |
+| `http://code-destiny.com/` · `https://www.code-destiny.com/` | 301 → `https://code-destiny.com/` | 같음(1홉 뒤 200) |
+| `/robots.txt` | sha256 앞 16자리 `07be6d947cb14a75`, CCBot `Disallow: /` | 같음(diff 0) |
+| `/sitemap.xml` 의 `<loc>https://code-destiny.com/</loc>` | 0개 | 1개 |
+
+대표 페이지 6개(`/ggulggul/` `/kkul-kkul-unse/` `/about/` `/faq/` `/saju/` `/insights/`)의 이름 신호:
+
+| 항목 | 승격 전 | 승격 후 |
+|---|---|---|
+| title 의 서비스명 | 꿀꿀운세 | 꿀꿀 운세 |
+| og:site_name | 꿀꿀운세(`/about/` `/faq/` 는 없음) | 꿀꿀 운세(6개 모두) |
+| WebSite.name | 꿀꿀운세 | 꿀꿀 운세 |
+| WebSite.alternateName | 꿀꿀 운세, 꿀꿀 사주, 꿀꿀사주, Ggulggul Fortune, CODE DESTINY, CodeDestiny, 코드데스티니, 코드 데스티니 | 꿀꿀운세 |
+| Organization.name | 꿀꿀운세 | CODE DESTINY |
+| `/about/` Organization 노드 | 2개 | 1개 |
+| meta·JSON-LD 의 과거명 | 6개 페이지 모두 꿀꿀 사주·꿀꿀사주 | 5개 페이지 0건. `/kkul-kkul-unse/` 는 FAQ "사주 달빛 정원이나 꿀꿀 사주가 이름을 바꾼 서비스인가요?" 문답에만 있다(이력 안내, 의도한 것) |
+| self canonical · 상태 | 200, self canonical | 같음 |
+
+- IndexNow: 워크플로 "Notify IndexNow of changed URLs" 단계가 사이트맵 1,026개 중 변경 893건을 1회 배치로 보냈고 `200 OK` 를 받았다(재시도 없음). 수동 추가 제출은 하지 않았다.
+- 판정: 코드·배포 계층의 기대값은 모두 맞았다. 검색 결과의 사이트 이름·대표 URL·과거명 노출과 AI 답변이 바뀌었는지는 아직 모른다. `seo-release-checklist.md` 7절 콘솔 작업과 8절 D+7/14/30 관찰 뒤에 판정한다.
+
 ## 크롤러 4분류
 
 | 분류 | 예 | robots.txt 현재 정책 | 운영 응답(UA 기준, 2026-10-15) |
