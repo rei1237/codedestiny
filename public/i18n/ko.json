@@ -1433,6 +1433,7 @@
     },
     "svcFinder": {
       "go": "보러 가기 →",
+      "sajuAll": "사주 서비스 전체 보기 →",
       "profileHeading": "마이 데스티니",
       "recommendations": "찾으시는 운세를 골랐어요"
     },

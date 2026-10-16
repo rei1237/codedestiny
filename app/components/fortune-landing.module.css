@@ -67,6 +67,11 @@
 :global(body.cd-mnav-collapsed):has(.page) :global(.cd-mnav) { display: flex; justify-content: center; width: 88px; padding: 0 0 env(safe-area-inset-bottom, 0px); border: 0; background: var(--cd-bg); }
 :global(body.cd-mnav-collapsed):has(.page) :global(.cd-mnav__list) { display: none; }
 :global(body.cd-mnav-collapsed):has(.page) :global(.cd-mnav__chevron) { top: 20px; }
+/* 이 스킨은 손잡이(44px)가 탭과 한 줄이라 좁은 폭에서 칸이 50px 아래로 줄어 "재밌는 운세"가 말줄임된다.
+   400 이하에서는 띠를 화면 끝까지 붙이고 좌우 여백을 줄여 칸을 되찾는다(320 → 52px, 라벨 49px). */
+@media (max-width: 400px) {
+  :global(body:not(.cd-mnav-collapsed)):has(.page) :global(.cd-mnav) { left: 0; right: 0; padding-inline: max(4px, env(safe-area-inset-left, 0px)) max(4px, env(safe-area-inset-right, 0px)); }
+}
 @media (min-width: 768px) {
   :global(body):has(.page) { --cd-mnav-bar-h: 90px; }
   :global(body):has(.page) :global(.cd-mnav) { width: min(600px, calc(100% - 48px)); margin-inline: auto; bottom: 18px; border: 1px solid var(--cd-border); border-radius: var(--cd-r-sm); pointer-events: auto; }

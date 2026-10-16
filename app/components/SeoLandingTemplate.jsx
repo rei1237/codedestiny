@@ -172,7 +172,7 @@ function SectionHead({ id, title, label }) {
   );
 }
 
-export default function SeoLandingTemplate({ page, hero = null }) {
+export default function SeoLandingTemplate({ page, hero = null, services = null }) {
   const fortuneLanding = hasFortuneLanding(page.path);
   const EditorialSection = fortuneLanding ? "details" : "section";
   const ReadingGuide = fortuneLanding ? "details" : "div";
@@ -311,6 +311,9 @@ export default function SeoLandingTemplate({ page, hero = null }) {
           </div>
           )}
         </header>}
+
+        {/* 히어로 바로 아래의 서비스 목록(선택). /saju/ 의 사주 서비스 모아보기가 쓴다. */}
+        {services}
 
         <ReadingGuide id={fortuneLanding ? "landing-guide" : undefined} className={fortuneLanding ? landingStyles.guide : undefined}>
         {fortuneLanding && <summary>이용 방법과 제공 범위<span aria-hidden="true">+</span></summary>}

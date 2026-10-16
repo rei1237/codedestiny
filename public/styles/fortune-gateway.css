@@ -838,6 +838,18 @@ html.neo-mode body .fortune-gateway__door:focus-visible { outline-color: #e8d5a3
   font-weight: 900;
   letter-spacing: 0.08em;
 }
+/* 사주 의도일 때 결과 위 한 줄 링크(3차) — 사주 모아보기 /saju/#services. */
+.fortune-gateway__saju-all {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: #9f1c52;
+  font-size: 14px;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+html.neo-mode body .fortune-gateway__saju-all { color: #c9a84c; }
 .fortune-gateway__recs-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));

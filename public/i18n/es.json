@@ -1584,6 +1584,7 @@
     },
     "svcFinder": {
       "go": "Ver →",
+      "sajuAll": "Ver todos los servicios de saju →",
       "profileHeading": "Mi destino",
       "recommendations": "Explora lecturas según tus intereses"
     },

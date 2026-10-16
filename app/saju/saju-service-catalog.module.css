@@ -1,0 +1,54 @@
+/* /saju/#services. 히어로(saju-landing.module.css)와 같은 밝은 보라 지면을 쓴다. */
+.catalog { --saju-ink: #292431; --saju-muted: #62556c; --saju-accent: #6f3fa6; --saju-gold: #7e6028; --saju-line: #d5c8df; margin-top: 40px; color: var(--saju-ink); scroll-margin-top: 24px; }
+.catalog :is(h2, h3, h4, p) { margin: 0; }
+.catalog :is(h2, h3, h4) { word-break: keep-all; text-wrap: balance; }
+.catalog ul { margin: 0; padding: 0; list-style: none; }
+.catalog a { color: inherit; text-decoration: none; touch-action: manipulation; }
+.catalog a:focus-visible { outline: 2px solid var(--saju-accent); outline-offset: 3px; }
+.head h2 { font-family: var(--font-serif); font-size: clamp(1.5rem, 3.4vw, 2rem); font-weight: 700; line-height: 1.35; letter-spacing: -.02em; }
+.head p { max-width: 62ch; margin-top: 8px; color: var(--saju-muted); font-size: .95rem; line-height: 1.75; word-break: keep-all; }
+.chips { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 16px; margin-top: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--saju-line); }
+.chips a { display: inline-flex; align-items: center; min-height: 44px; color: var(--saju-accent); font-size: .875rem; font-weight: 700; white-space: nowrap; }
+.chips a:hover { text-decoration: underline; text-underline-offset: 6px; }
+.group { margin-top: 32px; scroll-margin-top: 24px; }
+.group h3 { font-family: var(--font-serif); font-size: 1.25rem; font-weight: 700; line-height: 1.4; }
+.lead { margin-top: 4px !important; color: var(--saju-muted); font-size: .875rem; line-height: 1.7; word-break: keep-all; }
+.price { color: var(--saju-accent); font-size: .85rem; font-weight: 750; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.free { color: var(--saju-muted); font-size: .8rem; font-weight: 700; white-space: nowrap; }
+.line { color: var(--saju-muted); font-size: .84rem; line-height: 1.55; word-break: keep-all; }
+/* ① 대표 상담 = 미니 타로 카드(DESIGN.md "Tarot Card"). 카드 전체가 링크 하나. */
+.deck { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 14px !important; }
+/* 2:3 은 최소 비율이다 — 내용이 넘치면 카드가 늘어나고, 같은 줄 카드는 li 높이에 맞춰 같이 늘어난다. */
+.tarot { display: flex; flex-direction: column; min-width: 0; }
+.tarot > a { display: flex; flex: 1 0 auto; flex-direction: column; aspect-ratio: 2 / 3; padding: 7px; border: 1px solid color-mix(in srgb, var(--saju-gold) 55%, transparent); border-radius: 16px; background: #fff; box-shadow: inset 0 0 0 4px #fff, inset 0 0 0 5px color-mix(in srgb, var(--tarot-hue) 55%, transparent), 0 16px 30px -24px var(--tarot-hue); transition: border-color .18s ease, transform .18s ease; }
+.tarot > a:hover { border-color: var(--saju-gold); transform: translateY(-2px); }
+.numeral { align-self: center; padding: 4px 0 6px; color: var(--tarot-hue); font: 700 1.1rem/1 var(--font-serif); letter-spacing: .04em; }
+.tarot img { display: block; width: 100%; aspect-ratio: 16 / 9; height: auto; object-fit: cover; border-radius: 10px 10px 4px 4px; background: #f1eaf8; }
+.tarotBody { display: flex; flex: 1; flex-direction: column; align-items: center; gap: 4px; padding: 10px 2px 2px; text-align: center; }
+.tarot h4 { font-family: var(--font-serif); font-size: .98rem; font-weight: 700; line-height: 1.4; }
+.tarot .line { font-size: .8rem; }
+.tarot .price { margin-top: auto; padding-top: 4px; }
+/* ②~④ = 압축 행. 행 전체가 링크, 행동 표시는 화살표뿐(3차). */
+.rows { display: grid; column-gap: 32px; margin-top: 8px !important; border-top: 1px solid var(--saju-line); }
+.rows li { border-bottom: 1px solid var(--saju-line); }
+.rows a { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 4px 12px; min-height: 56px; padding-block: 10px; }
+.rows a:hover h4 { color: var(--saju-accent); text-decoration: underline; text-underline-offset: 4px; }
+.rowBody { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.rows h4 { font-size: .98rem; font-weight: 700; line-height: 1.45; }
+.arrow { color: var(--saju-accent); }
+@media (min-width: 700px) {
+  .catalog { margin-top: 56px; }
+  .chips { display: flex; flex-wrap: wrap; }
+  .deck { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+  .rows { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 1024px) {
+  .deck { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+}
+@media (max-width: 359px) {
+  .tarot .line { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tarot > a { transition: none; }
+  .tarot > a:hover { transform: none; }
+}

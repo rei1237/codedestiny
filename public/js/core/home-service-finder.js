@@ -432,6 +432,13 @@
     }
   }
 
+  var SAJU_WORDS = SYNONYM_GROUPS.filter(function (group) { return group[0] === norm("사주"); })[0];
+  function isSajuIntent(state) {
+    var query = norm(state && state.query);
+    if (((state && state.methods) || []).indexOf("saju") !== -1) return true;
+    return !!query && SAJU_WORDS.some(function (word) { return query.indexOf(word) !== -1; });
+  }
+
   /* 운명의 문 디스커버용 — 이름/설명/가격 3단 카드 */
   function renderRichResults(panel, list, state, opts) {
     opts = opts || {};
@@ -457,6 +464,19 @@
     head.textContent = (single ? single.emoji + " " : "")
       + translate("home.svcFinder.recommendations", "찾으시는 운세를 골랐어요");
     if (!opts.showAll) panel.appendChild(head);
+    /* 사주로 고르거나 찾으면 결과 위에 사주 모아보기(/saju/#services)를 한 줄 띄운다 — 사주 기능은
+       30개가 넘어 결과 카드만으로는 한눈에 안 들어온다(정본: lib/saju/saju-service-catalog.mjs). */
+    if (isSajuIntent(state)) {
+      var sajuAll = document.createElement("a");
+      sajuAll.className = "fortune-gateway__saju-all";
+      sajuAll.href = "/saju/#services";
+      sajuAll.setAttribute("data-cd-trans", "");
+      sajuAll.setAttribute("data-key", "home.svcFinder.sajuAll");
+      sajuAll.setAttribute("data-cd-origin-text", "사주 서비스 전체 보기 →");
+      sajuAll.classList.add("notranslate");
+      sajuAll.textContent = translate("home.svcFinder.sajuAll", "사주 서비스 전체 보기 →");
+      panel.appendChild(sajuAll);
+    }
 
     var grid = document.createElement("div");
     grid.className = "fortune-gateway__recs-grid";

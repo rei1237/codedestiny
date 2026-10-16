@@ -1139,3 +1139,8 @@ html.neo-mode .cdh,body.neo-mode .cdh{--cdh-glass-line:color-mix(in srgb,var(--c
 /* 히어로 Brand CTA는 한 줄로 둔다. 모바일은 화살표가 숨으므로 그 몫의 오른쪽 여백을 거둔다. 320px대만 줄바꿈 허용. */
 @media(max-width:640px){#cdHomeFunnel .cdh-scene-actions .cdh-primary.cdh-scene-button{gap:8px;padding:12px 16px 12px 14px;white-space:nowrap}}
 @media(max-width:359px){#cdHomeFunnel .cdh-scene-actions .cdh-primary.cdh-scene-button{white-space:normal}}
+/* 사주 타일은 무료 사주를 바로 시작한다. 사주 기능 전체는 이 3차 링크로 /saju/#services 에 모은다. */
+#cdHomeFunnel .cdh-saju-all{margin:4px 40px 0}
+#cdHomeFunnel .cdh-saju-all a{display:inline-flex;align-items:center;gap:6px;min-height:44px;color:var(--cdh-accent);font-size:14px;font-weight:700;text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--cdh-accent) 30%,transparent);text-underline-offset:4px}
+#cdHomeFunnel .cdh-saju-all svg{width:16px;height:16px;flex:none}
+@media(max-width:640px){#cdHomeFunnel .cdh-saju-all{margin:2px 16px 0}}
