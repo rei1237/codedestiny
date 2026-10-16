@@ -48,3 +48,26 @@ test('인생의 책 1~10장과 깊은 판독은 생성 계획의 제목과 같�
     assert.deepEqual(contiguous(titles, expert), expert, `${name}: 깊은 판독`);
   }
 });
+
+test('대표 상담 상세의 마스터는 master-profiles 에서 읽어 붙이고, 모르는 키는 빌드를 멈춘다', async () => {
+  const { loadTsModule } = await import('../../scripts/lib/load-ts-module.mjs');
+  const { craftedMasters } = await import('../../scripts/lib/build-visual-details.mjs');
+  const { masterProfiles, masterAvatars } = loadTsModule('components/fortune/master-profiles.ts');
+  const expected = { 'love-secret-ai': ['yeoniLove', 'hanbiLove'], 'new-year-ai': ['neoNewYear'], 'life-book-ai': ['yunLifeBook'] };
+  for (const [slug, keys] of Object.entries(expected)) {
+    const [crafted] = JSON.parse(fs.readFileSync(`public/feature-details/${slug}.json`, 'utf8')).crafted;
+    assert.deepEqual(crafted.masters.map(master => master.key), keys, slug);
+    for (const master of crafted.masters) {
+      const profile = masterProfiles[master.key];
+      assert.deepEqual(master, {
+        key: master.key, name: profile.name, epithet: profile.epithet, signature: profile.signature, role: profile.role,
+        part: profile.dossier.find(row => row.label === '이 상담에서 맡는 부분').text,
+        avatar: masterAvatars[master.key], portrait: profile.portrait, portraitSrcSet: profile.portraitSrcSet,
+      }, `${slug}: ${master.key}`);
+      assert.ok(fs.existsSync(`public${master.avatar}`), master.avatar);
+    }
+  }
+  assert.throws(() => craftedMasters({ masters: ['nobodyLove'] }), /Unknown crafted master/);
+  assert.throws(() => craftedMasters({ masters: ['master'] }), /Unknown crafted master/, '대표 상담 전용 프로필만 쓴다');
+  assert.throws(() => craftedMasters({ masters: ['yeoniLove'], chapters: [{ title: 't', master: 'hanbiLove' }] }), /Chapter master/);
+});

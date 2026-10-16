@@ -4,6 +4,9 @@
   "title": "신년운세 전문가 상담",
   "hook": "명식 위에 올해의 세운을 겹쳐, 열두 달 어디에 힘을 쓸지 짚어 주는 작전 브리핑",
   "chaptersLabel": "네오의 신년 작전 브리핑 목차",
+  "masters": [
+    "neoNewYear"
+  ],
   "chapters": [
     {
       "title": "질문과 타고난 성향",

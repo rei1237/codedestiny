@@ -4,6 +4,9 @@
   "title": "인생의 책",
   "hook": "명식의 근거로 나의 이야기를 열 장의 책으로 엮는 상담",
   "chaptersLabel": "받게 될 인생의 책 목차",
+  "masters": [
+    "yunLifeBook"
+  ],
   "chapters": [
     {
       "title": "명식과 오행·십성 분포",
