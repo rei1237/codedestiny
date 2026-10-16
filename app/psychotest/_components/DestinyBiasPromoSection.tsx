@@ -177,7 +177,7 @@ export default function DestinyBiasPromoSection() {
           </div>
           <Link
             href="/saju/destiny-bias"
-            className="mt-5 inline-flex items-center rounded-xl border border-fuchsia-200/60 bg-gradient-to-r from-fuchsia-500 via-violet-500 to-cyan-400 px-4 py-2.5 text-sm font-black text-white transition hover:brightness-110"
+            className="mt-5 inline-flex min-h-11 items-center rounded-xl border border-white/40 bg-white/10 px-4 py-2.5 text-sm font-black text-white transition-colors hover:border-fuchsia-200"
           >
             {copy.cta}
           </Link>
