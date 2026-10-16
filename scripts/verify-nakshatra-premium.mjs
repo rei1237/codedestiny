@@ -570,8 +570,9 @@ console.log("\n[10] 회당결제 서버 검증 — 결제 증빙을 DB 로 확�
     && /featureKey: "nakshatra-vvip-codex", coinPrice: 300/.test(premium)
     && /FEATURE_KEY_PRICE_TABLE\[FEATURE\]\.cost/.test(compatDelivery));
 
-  // 1단계는 관측 전용 — 차단 스위치가 꺼져 있어야 한다. 2단계에서 true 로 바꾸면서 이 단언도 뒤집는다.
-  check("🔴 1단계: 차단 스위치가 꺼져 있다(PER_USE_ENFORCE = false)", /PER_USE_ENFORCE = false/.test(premium));
+  // 2단계(2026-10-16) — 관측 전용 동안 무후르타·VVIP 가 결제 없이 열렸다. 차단 스위치는 켜져 있어야 한다.
+  check("🔴 2단계: 차단 스위치가 켜져 있다(PER_USE_ENFORCE = true)",
+    /PER_USE_ENFORCE = true/.test(premium) && !/PER_USE_ENFORCE = false/.test(premium));
   check("차단을 켰을 때 DB 블립은 402 가 아니라 503 이다",
     /proof\.proven === null\) return degraded\(\)/.test(premium));
   // 🔴 증빙 확인이 예외를 던져도 결제한 사용자의 본문을 막으면 안 된다 —

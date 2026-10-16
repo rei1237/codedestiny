@@ -1910,7 +1910,14 @@ async function findAIPromptPaymentEvidence({ auth, featureKey, body, requestId, 
     $or: clauses,
   };
   const minCost = Math.floor(Number(cost || 0));
-  if (minCost > 0 && !isAIPromptPassAccessPayload(body)) query.delta = { $lte: -minCost };
+  // 🔴 본문이 이용권이라고 주장해도 하한을 빼지 않는다 — 조작 본문 하나로 0원 행(다른 무료 차감)이
+  //    결제 증거가 됐다. delta 0 이용권 차감행은 서버가 쓴 accessMethod·coinCost 로만 인정한다.
+  if (minCost > 0) {
+    query.$and = [{ $or: [
+      { delta: { $lte: -minCost } },
+      { delta: 0, "metadata.accessMethod": { $in: ["PASS", "FAMILY"] }, "metadata.coinCost": { $gte: minCost } },
+    ] }];
+  }
 
   const deducted = await PointHistory.findOne(query)
     .select("_id delta balanceAfter featureKey reason metadata")
@@ -1956,9 +1963,8 @@ async function findAIPromptMonthlyCreditEvidence({ env, auth, featureKey, body, 
   // 🔴 단위 주의: 원장의 amount 는 월정석, 인자 cost 는 코인이다. 하한은 반드시 정본 변환기를 거친다
   // (하드코딩 환산은 틀리는 순간 정상 결제가 402 로 떨어진다). billing 이 원장에 쓰는 amount 도
   // 같은 calculateMembershipCreditCost 결과라 이 하한은 근사치가 아니라 정확히 일치한다.
-  const minCredit = isAIPromptPassAccessPayload(body)
-    ? 0
-    : Math.floor(Number(calculateMembershipCreditCost(cost) || 0));
+  // 본문의 이용권 주장은 월정석 하한을 낮추지 않는다(위조 가능).
+  const minCredit = Math.floor(Number(calculateMembershipCreditCost(cost) || 0));
   if (minCredit > 0 ? !(evidence.amount >= minCredit) : !(evidence.amount > 0)) return null;
 
   // 호출부(buildAIPromptVerifiedConsumePayload)가 읽는 record 모양으로 맞춘다.
@@ -2143,8 +2149,8 @@ async function findAIPromptPaidAccessEvidence({ auth, featureKey, body, requestI
           requestId,
           coinCost: cost,
         });
-        const denial = consumed.covered ? "" : passDenialCode(consumed.reason);
-        if (denial) return { source: "pass_denied", reason: denial, record: null };
+        // 🔴 차감이 안 됐으면 코드가 비어 있어도 열지 않는다 — 빈 코드를 통과로 보면 차감 없이 열렸다.
+        if (!consumed.covered) return { source: "pass_denied", reason: passDenialCode(consumed.reason) || "PAYMENT_REQUIRED", record: null };
         passRefund = consumed.covered && !consumed.replayed && consumed.coverage?.budgetApplies && cost > 0
           ? { cycleKey: consumed.coverage.cycleKey, cost }
           : null;
@@ -3040,7 +3046,7 @@ async function handlePigCoinConsume(request, auth, options = {}) {
 
     // 이용권 한도 초과는 "결제 확인 실패"와 다른 상태다 — 코드를 구분하지 않으면 클라이언트가
     // 한도 초과 사용자를 이용권 상점으로 튕긴다(pass-verdict.isMonthlyLimitPayload).
-    const passDenied = verifiedAccess?.source === "pass_denied";
+    const passDenied = verifiedAccess?.source === "pass_denied" && verifiedAccess.reason !== "PAYMENT_REQUIRED";
     const krwEquivalent = cost * 100;
     return json({
       ok: false,
@@ -3074,8 +3080,8 @@ async function handlePigCoinConsume(request, auth, options = {}) {
       requestId,
       coinCost: cost,
     });
-    const passDenial = passConsumed.covered ? "" : passDenialCode(passConsumed.reason);
-    if (passDenial) {
+    const passDenial = passConsumed.covered ? "" : (passDenialCode(passConsumed.reason) || "PAYMENT_REQUIRED");
+    if (!passConsumed.covered) {
       return json({
         ok: false,
         message: "이용권 사용 한도를 모두 사용했어요. 단건 결제 또는 이용권 재구매 후 이용할 수 있습니다.",

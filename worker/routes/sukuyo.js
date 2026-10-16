@@ -1459,10 +1459,9 @@ async function handleSukuyoPastLifeReading(request, env) {
     featureKey: SUKYO_PAST_LIFE_FEATURE_KEY,
     reportType: SUKYO_PAST_LIFE_REPORT_TYPE,
     mode: "past-life-reading",
-    _userDoc: auth.authUserDoc || null,
     purpose,
     _accessRoute: "/api/sukuyo/past-life-reading",
-  });
+  }, { preloadedUserDoc: auth.authUserDoc || null });
   if (!access?.ok) {
     return json({
       ok: false,

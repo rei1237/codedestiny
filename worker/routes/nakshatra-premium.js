@@ -288,10 +288,10 @@ const PER_USE_PRODUCTS = Object.freeze({
   "vvip-codex": Object.freeze({ featureKey: "nakshatra-vvip-codex", coinPrice: 300 }),
 });
 
-// 🔴 1단계는 관측 전용이다 — 증빙 결과를 로그로만 남기고 아무것도 막지 않는다.
-//    차단(402)은 실사용 로그에서 정상 결제 경로가 전부 proven:true 로 찍히는 것을 확인한 뒤 켠다.
-//    이 순서를 지키는 이유: 검증이 과하면 이미 결제한 사용자가 402 를 맞아 돈만 나간다.
-const PER_USE_ENFORCE = false;
+// 🔴 차단 켜짐(2026-10-16) — 결제 증빙이 없으면 402, 확인 불가면 503. 관측 전용으로 두는 동안
+//    무후르타·VVIP 코덱스가 결제 없이 열렸다. 클라이언트는 결제에 쓴 requestId 를 그대로 보내므로
+//    정상 결제자는 proven:true 로 통과한다. false 로 되돌리지 않는다(verify:paid-access-integrity 가 막는다).
+const PER_USE_ENFORCE = true;
 
 async function observePerUsePayment(env, auth, kind, body) {
   const product = PER_USE_PRODUCTS[kind];
