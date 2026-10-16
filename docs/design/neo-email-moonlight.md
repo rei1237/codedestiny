@@ -30,3 +30,7 @@ status: done
 verify:neo-consultation-ui는 실제 고객·관리자 컴포넌트를 인증/API/Next Image 어댑터 mock으로 렌더한다. 외부 요청은 차단한다. 360·390·430·1280px, 낮은 화면 높이, 회전, 텍스트 확대, reduced motion, 포커스를 확인한다. 실제 iOS/Android 키보드, 결제사 앱 전환과 실결제는 검증하지 않았다.
 
 검증 결과: 상담 계약 15개 통과. 브라우저에서 중복 탭·취소·확인 실패·결제 확정 뒤 연결 끊김·새로고침·뒤로 가기·pageshow 복귀 후에도 주문/결제 1건 유지. 성공 query 위조는 완료로 처리하지 않는다. 입력 영역·입력값·보조 문구·주요 버튼 대비 4.5:1 이상. 시각 검토는 중복 SVG 달을 제거하고 이미지 로딩 완료 후 모바일/데스크톱 캡처를 재검토하여 통과했다. 전체 검사·전달 CI 결과는 최종 작업 보고에서 구분한다.
+
+전달 검사: check:fast -- --plan 실행 후 check:fast의 결제 가드 88개(전체 npm test 포함), 변경 lint, 공통 lint, sitemap, typecheck 통과. 이후 이미 통과한 Node/Jest를 다시 실행하는 중복 구간은 저장소의 반복 검사 금지 규칙에 따라 중단했다. 남은 고유 가드 13개(환경·휴대전화·이용권 스냅샷·mock·분석 이벤트·재시도·Worker·Mongo·관리자 오류·인코딩 및 Worker dry-run)는 별도로 모두 통과했다. check:pre-push도 통과했다. 따라서 check:fast 단일 프로세스의 정상 종료를 주장하지 않는다.
+
+이전 main ea14dde54의 CI 실패는 .ignore의 public/styles/home-funnel.css 항목 누락이었다. 커밋된 소스·미러 바이트가 같음을 확인했으며, 이번 생성 결과에 해당 항목을 포함했다. 원래 main 폴더의 다른 세션 미커밋 변경은 그대로 보존한다.
