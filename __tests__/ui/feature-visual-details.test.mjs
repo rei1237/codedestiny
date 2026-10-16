@@ -26,7 +26,7 @@ test('paid introductions keep an honest sample in the authored essay or before t
       detail.crafted.forEach((essay, index) => {
         assert.ok(essay.panels.some(panel => /(?:편집 예시|가상(?: 활용)? 예시)/.test(panel.text)), `${essay.id}: illustrative sample is labeled`);
         assert.match(essays[index].querySelector('.craftedDetailNotice').textContent, /예시/);
-        assert.equal(essays[index].querySelectorAll('img').length, essay.panels.length);
+        assert.equal(essays[index].querySelectorAll(':scope > div[aria-hidden] img').length, essay.panels.length);
         assert.ok([...essays[index].querySelectorAll('img')].every(image => image.getAttribute('alt') === ''), 'full transcript avoids duplicate alt narration');
         for (const panel of essay.panels) assert.ok(essays[index].querySelector('.craftedDetailTranscript').textContent.includes(panel.title));
       });
@@ -77,9 +77,9 @@ test('representative introductions open as product cards with real chapters, unc
   assert.deepEqual([...single.querySelectorAll('.craftedChapters li strong')].map(node => node.textContent), ['첫 장', '둘째 장']);
   assert.equal(single.querySelector('.craftedChapters b'), null);
   assert.equal(single.querySelector('.craftedEditionsLead').textContent, '목차 2개 · 그림 안내 1장');
-  const newYear = JSON.parse(fs.readFileSync('public/feature-details/new-year-ai.json', 'utf8'));
-  const art = JSDOM.fragment(renderFeatureDetailPanels(newYear)).querySelector('.featureDetailHero .featureDetailArt');
-  assert.equal(`${art.getAttribute('width')}x${art.getAttribute('height')}`, `${newYear.imageWidth}x${newYear.imageHeight}`);
+  const plain = JSON.parse(fs.readFileSync('public/feature-details/astrology-ai.json', 'utf8'));
+  const art = JSDOM.fragment(renderFeatureDetailPanels(plain)).querySelector('.featureDetailHero .featureDetailArt');
+  assert.equal(`${art.getAttribute('width')}x${art.getAttribute('height')}`, `${plain.imageWidth}x${plain.imageHeight}`);
   const artRules = fs.readFileSync('styles/feature-visual-detail.css', 'utf8').match(/\.featureDetailArt\{[^}]*\}/g);
   assert.ok(artRules.every(rule => !/aspect-ratio|object-fit|object-position|height:100%/.test(rule)), 'non-authored hero keeps its own ratio');
 });
@@ -296,7 +296,7 @@ test('authored premium introductions retain founder provenance and complete port
     assert.equal(detail.material, material);
     assert.deepEqual(detail.founder, { credential: founder.credential, method: founder.method });
     const fragment = JSDOM.fragment(renderFeatureDetailPanels(detail));
-    const portraits = [...fragment.querySelectorAll('.craftedDetail img')];
+    const portraits = [...fragment.querySelectorAll('.craftedDetail > div[aria-hidden] img')];
     assert.equal(portraits.length,10);
     assert.ok(portraits.every(image => Number(image.getAttribute('height')) > Number(image.getAttribute('width'))));
     assert.match(fragment.querySelector('.craftedDetailTranscript').textContent, /10년 경력/);

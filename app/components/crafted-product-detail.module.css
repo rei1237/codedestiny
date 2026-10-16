@@ -16,3 +16,34 @@
 .detail :global(.craftedChapters li::before) { content: counter(chapter, decimal-leading-zero); grid-row: span 2; align-self: start; display: grid; place-items: center; width: 1.75rem; height: 1.75rem; border: 1px solid var(--cd-yehwa-line, #c9a46a); border-radius: 50%; font: 600 .72rem/1 var(--font-serif, Georgia, serif); font-variant-numeric: tabular-nums; }
 .detail :global(.craftedChapters strong) { font-size: 16px; line-height: 1.55; }
 .detail :global(.craftedChapters li > span) { grid-column: 2; font-size: 14px; line-height: 1.7; }
+/* 대표 상담 마스터·묶음 목차·산출물 — 글자색은 호스트 그대로 두고 금 hairline 만 얹는다. 아바타는 위 100% 규칙보다 뒤에서 크기를 고정한다. */
+.detail :global(.craftedMasters) { container-type: inline-size; margin: 0 16px 20px; }
+.detail :global(.craftedMastersLead) { margin: 0 0 10px; font-size: 14px; line-height: 1.6; }
+.detail :global(.craftedMasters ul) { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.detail :global(.craftedMaster) { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 14px; align-items: start; padding: 16px; border: 1px solid rgba(201, 164, 106, .45); border-radius: 16px; background: rgba(201, 164, 106, .06); word-break: keep-all; }
+.detail :global(.craftedDetail .craftedMaster img) { width: 72px; height: 72px; border-radius: 50%; }
+.detail :global(.craftedMaster p) { margin: 0; }
+.detail :global(.craftedMasterEpithet) { font-size: 12px; font-weight: 700; line-height: 1.5; letter-spacing: .08em; }
+.detail :global(.craftedMasterName) { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; margin-top: 2px; }
+.detail :global(.craftedMasterName strong) { font: 700 1.2rem/1.45 var(--font-serif, Georgia, serif); }
+.detail :global(.craftedMasterName span) { font-size: 14px; line-height: 1.6; }
+.detail :global(.craftedMaster blockquote) { margin: 10px 0 0; padding-left: 12px; border-left: 2px solid var(--cd-yehwa-line, #c9a46a); font: 500 15px/1.75 var(--font-serif, Georgia, serif); }
+.detail :global(.craftedMaster .craftedMasterPart) { margin-top: 10px; font-size: 14px; line-height: 1.7; }
+.detail :global(.craftedMasterPart span) { display: block; font-size: 12px; font-weight: 700; letter-spacing: .04em; }
+@container (min-width: 500px) {
+  .detail :global(.craftedMastersPair ul) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .detail :global(.craftedMastersPair .craftedMaster) { grid-template-columns: minmax(0, 1fr); }
+}
+.detail :global(.craftedChaptersGrouped) { counter-reset: chapter; }
+.detail :global(.craftedChaptersGrouped ol) { counter-reset: none; }
+.detail :global(.craftedChapterGroupTitle) { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 10px; margin: 8px 0 0; padding-top: 14px; border-top: 1px solid rgba(201, 164, 106, .45); font-size: 13px; font-weight: 700; line-height: 1.5; word-break: keep-all; }
+.detail :global(.craftedChaptersTitle + .craftedChapterGroup .craftedChapterGroupTitle) { margin-top: 0; padding-top: 4px; border-top: 0; }
+.detail :global(.craftedChapterMaster) { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px 2px 2px; border: 1px solid rgba(201, 164, 106, .45); border-radius: 999px; font-size: 12px; font-weight: 600; line-height: 1.5; }
+.detail :global(.craftedDetail .craftedChapterMaster img) { width: 24px; height: 24px; border-radius: 50%; }
+.detail :global(.craftedChaptersMore > summary) { display: flex; align-items: center; min-height: 44px; padding-block: 10px; border-top: 1px solid rgba(201, 164, 106, .45); cursor: pointer; font-size: 15px; font-weight: 700; text-decoration: underline; text-decoration-color: var(--cd-yehwa-line, #c9a46a); text-underline-offset: 5px; }
+.detail :global(.craftedOutcomes) { margin: 0 16px 20px; }
+.detail :global(.craftedOutcomesTitle) { margin: 0 0 10px; font-size: 15px; font-weight: 700; line-height: 1.5; }
+.detail :global(.craftedOutcomes ul) { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.detail :global(.craftedOutcomes li) { padding: 14px 16px; border: 1px solid rgba(201, 164, 106, .45); border-radius: 14px; background: rgba(201, 164, 106, .06); word-break: keep-all; }
+.detail :global(.craftedOutcomes strong) { display: block; font: 700 1.02rem/1.55 var(--font-serif, Georgia, serif); }
+.detail :global(.craftedOutcomes li p) { margin: 4px 0 0; font-size: 15px; line-height: 1.7; }
