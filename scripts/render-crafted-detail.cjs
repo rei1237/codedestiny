@@ -53,7 +53,7 @@ catch {
     }
     const panels = book.panels.map((p, i) => ({ id: p.id, title: titles[i] || p.title, alt: p.alt, src: `/feature-details/crafted/${id}/${p.id}.webp`, ...sizes[i], text: texts[i] }));
     // Card copy and the real report contents are authored next to the panels and travel with them.
-    const card = Object.fromEntries(['cardTitle', 'hook', 'badge', 'chaptersLabel', 'chapters'].filter(key => book[key] !== undefined).map(key => [key, book[key]]));
+    const card = Object.fromEntries(['cardTitle', 'hook', 'badge', 'chaptersLabel', 'masters', 'chapters', 'outcomes'].filter(key => book[key] !== undefined).map(key => [key, book[key]]));
     const manifest = { id, featureKey: book.featureKey, title: book.title, ...card, notice: book.notice, panels };
     for (const dir of [source, output])
         fs.writeFileSync(path.join(dir, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n');

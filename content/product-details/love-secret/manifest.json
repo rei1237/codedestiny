@@ -3,118 +3,150 @@
   "featureKey": "love-secret-ai-consultation",
   "title": "연애 비책",
   "hook": "명식으로 나의 연애 방식부터 상대·타이밍·실천까지 읽는 28개 주제",
+  "masters": [
+    "yeoniLove",
+    "hanbiLove"
+  ],
   "chapters": [
     {
       "title": "현재 관계의 자리와 질문의 핵심",
-      "detail": "핵심 연애운과 질문의 답"
+      "detail": "핵심 연애운과 질문의 답",
+      "master": "yeoniLove"
     },
     {
       "title": "핵심 연애운 — 명식이 사랑에서 그리는 큰 결",
-      "detail": "핵심 연애운과 질문의 답"
+      "detail": "핵심 연애운과 질문의 답",
+      "master": "yeoniLove"
     },
     {
       "title": "오행과 조후로 보는 감정의 온도",
-      "detail": "핵심 연애운과 질문의 답"
+      "detail": "핵심 연애운과 질문의 답",
+      "master": "yeoniLove"
     },
     {
       "title": "나의 명식이 사랑에서 반복하는 방식",
-      "detail": "나의 연애 성향 — 장점·약점·심리"
+      "detail": "나의 연애 성향 — 장점·약점·심리",
+      "master": "yeoniLove"
     },
     {
       "title": "십성으로 보는 애착과 표현 방식",
-      "detail": "나의 연애 성향 — 장점·약점·심리"
+      "detail": "나의 연애 성향 — 장점·약점·심리",
+      "master": "yeoniLove"
     },
     {
       "title": "연애 장점 — 상대가 먼저 알아보는 힘",
-      "detail": "나의 연애 성향 — 장점·약점·심리"
+      "detail": "나의 연애 성향 — 장점·약점·심리",
+      "master": "yeoniLove"
     },
     {
       "title": "연애 약점 — 반복해서 걸려 넘어지는 자리",
-      "detail": "나의 연애 성향 — 장점·약점·심리"
+      "detail": "나의 연애 성향 — 장점·약점·심리",
+      "master": "yeoniLove"
     },
     {
       "title": "애정 표현 스타일과 연애 심리",
-      "detail": "나의 연애 성향 — 장점·약점·심리"
+      "detail": "나의 연애 성향 — 장점·약점·심리",
+      "master": "yeoniLove"
     },
     {
       "title": "상대의 기운과 감정 거리감",
-      "detail": "상대·궁합·이상형"
+      "detail": "상대·궁합·이상형",
+      "master": "hanbiLove"
     },
     {
       "title": "두 사람 사이 끌림이 살아나는 조건",
-      "detail": "상대·궁합·이상형"
+      "detail": "상대·궁합·이상형",
+      "master": "hanbiLove"
     },
     {
       "title": "속궁합과 친밀감 리듬",
-      "detail": "상대·궁합·이상형"
+      "detail": "상대·궁합·이상형",
+      "master": "hanbiLove"
     },
     {
       "title": "이상형 분석 — 내 명식이 끌리는 사람",
-      "detail": "상대·궁합·이상형"
+      "detail": "상대·궁합·이상형",
+      "master": "hanbiLove"
     },
     {
       "title": "상대가 원하는 연애 스타일",
-      "detail": "상대·궁합·이상형"
+      "detail": "상대·궁합·이상형",
+      "master": "hanbiLove"
     },
     {
       "title": "갈등의 뿌리와 회복 방식",
-      "detail": "갈등·바람기·재회·자기 보호"
+      "detail": "갈등·바람기·재회·자기 보호",
+      "master": "hanbiLove"
     },
     {
       "title": "바람기와 마음이 흩어지는 조건",
-      "detail": "갈등·바람기·재회·자기 보호"
+      "detail": "갈등·바람기·재회·자기 보호",
+      "master": "hanbiLove"
     },
     {
       "title": "재회 가능성과 그 조건",
-      "detail": "갈등·바람기·재회·자기 보호"
+      "detail": "갈등·바람기·재회·자기 보호",
+      "master": "hanbiLove"
     },
     {
       "title": "피해야 할 선택과 자기 보호",
-      "detail": "갈등·바람기·재회·자기 보호"
+      "detail": "갈등·바람기·재회·자기 보호",
+      "master": "hanbiLove"
     },
     {
       "title": "연락/고백/재회/관계 진전 타이밍",
-      "detail": "대운·올해·좋은 날짜·결혼운"
+      "detail": "대운·올해·좋은 날짜·결혼운",
+      "master": "hanbiLove"
     },
     {
       "title": "올해 연애운 — 좋은 달과 조심할 달",
-      "detail": "대운·올해·좋은 날짜·결혼운"
+      "detail": "대운·올해·좋은 날짜·결혼운",
+      "master": "hanbiLove"
     },
     {
       "title": "좋은 날짜 — 계산된 일진으로 고른 날",
-      "detail": "대운·올해·좋은 날짜·결혼운"
+      "detail": "대운·올해·좋은 날짜·결혼운",
+      "master": "hanbiLove"
     },
     {
       "title": "결혼운과 인연이 굳어지는 시기",
-      "detail": "대운·올해·좋은 날짜·결혼운"
+      "detail": "대운·올해·좋은 날짜·결혼운",
+      "master": "hanbiLove"
     },
     {
       "title": "30일 관계 흐름 처방",
-      "detail": "대운·올해·좋은 날짜·결혼운"
+      "detail": "대운·올해·좋은 날짜·결혼운",
+      "master": "hanbiLove"
     },
     {
       "title": "썸에서 확신으로 가는 전략",
-      "detail": "썸 전략·대화·매력·실천"
+      "detail": "썸 전략·대화·매력·실천",
+      "master": "yeoniLove"
     },
     {
       "title": "관계 단계별 실행 비책",
-      "detail": "썸 전략·대화·매력·실천"
+      "detail": "썸 전략·대화·매력·실천",
+      "master": "yeoniLove"
     },
     {
       "title": "상대에게 다가가는 대화 문장",
-      "detail": "썸 전략·대화·매력·실천"
+      "detail": "썸 전략·대화·매력·실천",
+      "master": "yeoniLove"
     },
     {
       "title": "매력적으로 보이는 방법 — 이미지·말투·스타일",
-      "detail": "썸 전략·대화·매력·실천"
+      "detail": "썸 전략·대화·매력·실천",
+      "master": "yeoniLove"
     },
     {
       "title": "7일 실천 가이드",
-      "detail": "썸 전략·대화·매력·실천"
+      "detail": "썸 전략·대화·매력·실천",
+      "master": "yeoniLove"
     },
     {
       "title": "마지막 상담사의 한마디",
-      "detail": "썸 전략·대화·매력·실천"
+      "detail": "썸 전략·대화·매력·실천",
+      "master": "yeoniLove"
     }
   ],
   "notice": "이 안내의 목차는 현재 상담이 다루는 28개 주제를 읽기 쉽게 줄여 쓴 것입니다. 실제 화면은 받은 내용을 주제별로 묶어 표시합니다. 예시 대화는 가상 예시 프로필로 생성한 실제 AI 결과를 고치지 않고 발췌한 것으로 고객 결과·후기가 아니며, 결과는 입력에 따라 달라집니다. 상대 정보가 없으면 상대 명식을 계산한 궁합으로 해석하지 않습니다. 날짜 안내는 관계의 성공을 보장하지 않습니다. 10년 경력 상담사·명리학자가 만든 AI 해설 서비스이며, 사람이 결과마다 직접 집필·감수하는 상담이 아닙니다.",
