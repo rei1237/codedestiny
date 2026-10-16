@@ -800,7 +800,7 @@ function markMissingBirthProfile(denied, { profileId = "", candidateKeys = [] } 
   };
 }
 
-export async function requirePremiumReportAccess(env, userId, reportType, requestBody = {}) {
+export async function requirePremiumReportAccess(env, userId, reportType, requestBody = {}, options = {}) {
   const normalizedReportType = String(reportType || "").trim();
   const isPerUsePdfReportType = normalizedReportType === "ziweiPremium";
   const unlockPolicy = uniqueStrings(PREMIUM_UNLOCK_POLICY[normalizedReportType] || []);
@@ -909,10 +909,10 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
 
   await connectDb(env);
 
-  // requestBody._userDoc: 호출부가 인증 단계에서 이미 이 필드셋(또는 상위집합)으로 읽어 둔 User
-  // 문서. _id가 판정 대상 userId와 정확히 같을 때만 채택해 아래 조회를 건너뛴다(RC-13) — 다른
-  // 사용자의 문서로 프리미엄 접근이 열리는 일이 구조적으로 불가능하도록 한다.
-  const preloadedUserDoc = requestBody && typeof requestBody._userDoc === "object" ? requestBody._userDoc : null;
+  // options.preloadedUserDoc: 호출부가 인증 단계에서 서버에서 직접 읽어 둔 User 문서. _id가 판정
+  // 대상 userId와 같을 때만 채택해 아래 조회를 건너뛴다(RC-13). 요청 본문(requestBody._userDoc)은
+  // 클라이언트가 위조할 수 있으므로 절대 읽지 않는다 — 위조 문서 하나로 유료 리포트가 열렸다.
+  const preloadedUserDoc = options && typeof options.preloadedUserDoc === "object" ? options.preloadedUserDoc : null;
   const user = (preloadedUserDoc && String(preloadedUserDoc._id || "") === String(userId || ""))
     ? preloadedUserDoc
     : await User.findById(userId)
