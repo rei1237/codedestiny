@@ -13421,78 +13421,38 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       '안괴': { attraction:[80,98], stability:[25,55], exhaustion:[70,95], longevity:[30,65], growth:[75,95], businessFit:[35,65], loveFit:[65,90], marriageFit:[25,55] },
       '성위': { attraction:[60,85], stability:[45,70], exhaustion:[50,75], longevity:[50,75], growth:[70,92], businessFit:[70,92], loveFit:[55,78], marriageFit:[50,72] }
     };
+    // 🔴 관계 6종의 숙별 풀이 문장(핵심 판정·연애·결혼·친구·비즈니스·주의·전략)은 서버 정본
+    //    (worker/lib/saju-section/paid-encyclopedia.src.js)에만 둔다. 여기에는 미리보기 카드가 쓰는 제목·키워드만 남긴다.
     var RELATION_META = {
       '명': {
         title: _sajuQuantumText("sq_10638_prop_title"),
         subtitle: _sajuQuantumText("sq_10639_prop_subtitle"),
-        keywords: ['거울', '동질감', '반복 패턴'],
-        summary: '이 숙은 당신에게 거울처럼 다가오는 인연입니다. 비슷한 감각으로 빠르게 가까워질 수 있지만, 서로의 약점도 비슷하게 반복될 수 있습니다. 오래 가려면 닮은 점에 기대기보다 반복되는 패턴을 함께 관리해야 합니다.',
-        love: '연애에서는 익숙함이 설렘을 빠르게 열어 줍니다. 다만 같은 불안이 동시에 올라오면 확인과 서운함이 반복될 수 있으니 감정의 이름을 천천히 나누는 편이 좋습니다.',
-        marriage: '결혼으로 이어질 때는 생활 취향이 닮아 안정될 수 있습니다. 돈, 가족, 휴식 방식처럼 반복되는 장면은 미리 합의해야 오래 부드럽습니다.',
-        friendship: '친구나 동료로 만나면 말하지 않아도 통하는 감각이 큽니다. 서로를 너무 동일시하지 않을 때 편안함이 오래 남습니다.',
-        business: '비즈니스에서는 판단 속도가 닮아 진행이 빠를 수 있습니다. 같은 blind spot이 생기지 않도록 역할 검토와 기록을 따로 두는 편이 좋습니다.',
-        caution: '상대의 단점이 곧 내 반응을 건드릴 수 있습니다. 지적보다 패턴 인식이 먼저입니다.',
-        strategy: '닮은 지점은 인정하고, 결정권과 회복 시간은 따로 남겨 두세요.'
+        keywords: ['거울', '동질감', '반복 패턴']
       },
       '업태': {
         title: _sajuQuantumText("sq_10650_prop_title"),
         subtitle: _sajuQuantumText("sq_10651_prop_subtitle"),
-        keywords: ['잔상', '미완', '의미감'],
-        summary: '이 숙은 설명하기 어려운 익숙함과 여운을 남기는 인연입니다. 처음부터 오래 알던 사람처럼 느껴질 수 있지만, 관계가 불분명하면 감정의 잔상이 길어질 수 있습니다. 의미에 빠지기보다 현실에서 약속과 태도가 이어지는지를 봐야 합니다.',
-        love: '연애에서는 마음의 깊이가 빠르게 커질 수 있습니다. 기다림만 길어지지 않도록 관계의 이름과 만남의 리듬을 현실에 세워야 합니다.',
-        marriage: '결혼에서는 의미감보다 책임 분담이 핵심입니다. 경제 기준과 가족 경계가 분명할수록 오래된 인연감이 안정으로 내려옵니다.',
-        friendship: '친구나 동료로 만나도 오래 기억에 남는 숙입니다. 부탁과 기대의 선을 정하면 여운이 부담으로 굳지 않습니다.',
-        business: '비즈니스에서는 비전의 공명이 강하지만 정산과 권한이 흐려질 수 있습니다. 숫자와 계약을 먼저 세우면 인연의 무게가 균형을 찾습니다.',
-        caution: '미련과 책임감이 뒤섞이면 정리가 늦어질 수 있습니다. 태도와 약속을 기준으로 삼으세요.',
-        strategy: '감정의 깊이를 확인하기보다 실제로 지켜지는 약속을 천천히 보세요.'
+        keywords: ['잔상', '미완', '의미감']
       },
       '영친': {
         title: _sajuQuantumText("sq_10662_prop_title"),
         subtitle: _sajuQuantumText("sq_10663_prop_subtitle"),
-        keywords: ['안정', '보호', '생활 궁합'],
-        summary: '이 숙은 당신에게 편안함과 안정감을 주기 쉬운 인연입니다. 함께 있을수록 생활 리듬이 맞고, 감정적으로 기대기 쉬운 구조입니다. 다만 너무 익숙해지면 표현이 줄어들 수 있으니 고마움과 애정을 의식적으로 표현해야 합니다.',
-        love: '연애에서는 자극보다 신뢰가 먼저 자랍니다. 큰 이벤트보다 꾸준한 안부와 다정한 표현이 관계의 온도를 살립니다.',
-        marriage: '결혼 안정성이 강하게 떠오르는 숙입니다. 역할을 부드럽게 나누고 감사 표현을 남기면 생활의 힘이 오래 갑니다.',
-        friendship: '친구나 동료로 만나면 기대기 쉬운 안정감이 있습니다. 정서적 쉼터가 되되, 한쪽만 돌보는 구조로 굳지 않게 살피세요.',
-        business: '비즈니스에서는 신뢰와 운영 안정감이 장점입니다. 마감, 책임, 수익 기준을 정하면 오래 가는 협업으로 열립니다.',
-        caution: '너무 편안해 표현이 줄어들면 관계가 당연한 것으로 굳을 수 있습니다.',
-        strategy: '작은 감사, 정해진 연락, 생활 배려를 의식적으로 반복하세요.'
+        keywords: ['안정', '보호', '생활 궁합']
       },
       '우쇠': {
         title: _sajuQuantumText("sq_10674_prop_title"),
         subtitle: _sajuQuantumText("sq_10675_prop_subtitle"),
-        keywords: ['온도차', '보완', '거리감'],
-        summary: '이 숙은 서로의 속도와 감정 온도가 다르게 느껴질 수 있는 인연입니다. 한쪽은 더 가까워지고 싶고, 다른 한쪽은 거리를 두고 싶어질 수 있습니다. 같은 방식의 애정을 요구하기보다 서로의 표현 차이를 이해하는 것이 중요합니다.',
-        love: '연애에서는 애정 표현의 방식이 다르게 나타날 수 있습니다. 늦은 반응을 애정 없음으로 단정하지 말고 원하는 표현을 구체적으로 나누세요.',
-        marriage: '결혼에서는 역할과 속도 조율이 중요합니다. 양보가 한쪽으로만 쌓이지 않도록 가사, 돈, 가족 경계를 명확히 두는 편이 좋습니다.',
-        friendship: '친구나 동료로 만나면 서로 다른 리듬이 배움이 됩니다. 자주 보지 않아도 신뢰가 남을 수 있습니다.',
-        business: '비즈니스에서는 서로의 부족한 영역을 보완합니다. 책임, 비용, 보상 기준이 선명해야 서운함이 줄어듭니다.',
-        caution: '한쪽이 맞춰준다는 느낌이 누적되면 늦게 서운함이 올라옵니다.',
-        strategy: '연락, 만남, 돈, 시간의 기준을 말로 합의하세요.'
+        keywords: ['온도차', '보완', '거리감']
       },
       '안괴': {
         title: _sajuQuantumText("sq_10686_prop_title"),
         subtitle: _sajuQuantumText("sq_10687_prop_subtitle"),
-        keywords: ['강한 끌림', '경계', '감정 소모'],
-        summary: '이 숙은 강하게 끌리지만 서로의 약한 부분을 건드리기 쉬운 인연입니다. 끌림은 빠르게 올라가지만 안정감은 천천히 만들어야 합니다. 감정 확인을 반복하거나 상대를 시험하는 방식으로 가면 소모도가 커지므로, 경계와 약속을 분명히 해야 합니다.',
-        love: '연애에서는 설렘과 불안이 함께 커질 수 있습니다. 시험, 잠수, 통제로 마음을 확인하려는 흐름은 멈추고 약속과 경계를 먼저 세워야 합니다.',
-        marriage: '결혼에서는 감정 과열과 통제 욕구를 조심해야 합니다. 갈등이 커질 때는 둘만 버티기보다 상담 구조나 제3의 조율 장치를 두는 편이 안전합니다.',
-        friendship: '친구나 동료로 만나도 비교심과 자극이 강하게 떠오를 수 있습니다. 경쟁, 소유, 소문으로 흐르면 거리를 조절하세요.',
-        business: '비즈니스에서는 추진력과 충돌이 동시에 뜹니다. 권한, 돈, 책임을 문서로 남기고 위험 신호가 보이면 분리 가능한 구조를 두세요.',
-        caution: '통제, 불안, 자존심 싸움이 잦아지면 관계보다 안전이 먼저입니다. 위협이나 폭력이 있다면 거리 두기와 도움 요청이 필요합니다.',
-        strategy: '경계, 회복 시간, 연락 규칙, 돈의 기준을 처음부터 분명히 두세요.'
+        keywords: ['강한 끌림', '경계', '감정 소모']
       },
       '성위': {
         title: _sajuQuantumText("sq_10698_prop_title"),
         subtitle: _sajuQuantumText("sq_10699_prop_subtitle"),
-        keywords: ['성장', '목표', '동기부여'],
-        summary: '이 숙은 당신을 성장시키고 자극하는 인연입니다. 함께 있으면 목표 의식이 강해지고 현실적인 동기부여가 생길 수 있습니다. 다만 관계가 평가나 경쟁처럼 느껴지면 피로해질 수 있으니, 성과보다 감정의 안전감을 먼저 챙겨야 합니다.',
-        love: '연애에서는 서로의 목표를 응원할 때 빛납니다. 조언이 평가처럼 들리지 않도록 다정한 확인을 먼저 두세요.',
-        marriage: '결혼에서는 공동 목표가 큰 힘이 됩니다. 집, 일, 돈의 목표와 별개로 둘만의 휴식 시간을 남겨야 관계가 과제처럼 굳지 않습니다.',
-        friendship: '친구나 동료로 만나면 함께 배우고 커지는 힘이 있습니다. 조언과 피드백 사이에 칭찬과 여백을 함께 두세요.',
-        business: '비즈니스 적합도가 높게 흐르기 쉬운 숙입니다. 공동 목표, 최종 결정권, 실패 처리 규칙을 정하면 성과가 안정됩니다.',
-        caution: '목표가 감정보다 앞서면 관계가 평가처럼 느껴질 수 있습니다.',
-        strategy: '성과의 언어와 마음의 언어를 나누어 쓰세요.'
+        keywords: ['성장', '목표', '동기부여']
       }
     };
     var FILTER_LABELS = [
@@ -13567,14 +13527,6 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       var scores = buildScores(relationType, distance, seed);
       var meta = RELATION_META[relationType] || RELATION_META['명'];
       var categories = categoriesFor(relationType, scores);
-      // 상대 수(target)의 관계 정체성을 관계유형 6종 서술과 직조한다(있을 때만; 없으면 폴백).
-      var relNature = syCompatOverrideByIndex(targetIdx, 'relationalNature');
-      var loveAsPartner = syCompatOverrideByIndex(targetIdx, 'loveAsPartner');
-      var conflictStyle = syCompatOverrideByIndex(targetIdx, 'conflictStyle');
-      var bondAdvice = syCompatOverrideByIndex(targetIdx, 'bondAdvice');
-      var summaryText = relNature
-        ? targetMansion + '은 ' + relNature + ' ' + meta.summary
-        : targetMansion + '을 가진 사람들은 대체로 ' + meta.summary;
       return {
         'target宿': targetMansion,
         relationType: relationType,
@@ -13585,14 +13537,6 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         subtitle: meta.subtitle,
         keywords: meta.keywords.slice(0, 3),
         scores: scores,
-        summary: summaryText,
-        loveReading: loveAsPartner ? loveAsPartner + ' ' + meta.love : meta.love,
-        marriageReading: meta.marriage,
-        friendshipReading: meta.friendship,
-        businessReading: meta.business,
-        caution: conflictStyle ? conflictStyle + ' ' + meta.caution : meta.caution,
-        strategy: bondAdvice ? bondAdvice + ' ' + meta.strategy : meta.strategy,
-        oneLine: targetMansion + ' 인연은 ' + meta.title + '으로 들어오니, ' + meta.strategy,
         _sortSeed: SukuyoRadarEngine.hash(seed)
       };
     }
@@ -13659,21 +13603,11 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         + '<span>소모 ' + s.exhaustion + '<i style="transform:scaleX(' + Math.max(0.08, Math.min(1, s.exhaustion / 100)) + ')"></i></span>'
       + '</div>';
     }
-    function entryHtml(entry, locked) {
+    // 무료 미리보기 카드. 해금된 27숙 전체(숙별 풀이 포함)는 서버가 그린다.
+    function entryHtml(entry) {
       var cats = entry.categories.join(' ');
       var tagHtml = entry.keywords.map(function(keyword) { return '<span>' + syCanonicalEsc(keyword) + '</span>'; }).join('');
-      var detail = locked
-        ? '<div class="sy-dogam-detail">'
-          + '<p><b>핵심 판정</b><br>' + syCanonicalEsc(entry.summary) + '</p>'
-          + '<p><b>연애로 만났을 때</b><br>' + syCanonicalEsc(entry.loveReading) + '</p>'
-          + '<p><b>결혼으로 이어질 때</b><br>' + syCanonicalEsc(entry.marriageReading) + '</p>'
-          + '<p><b>친구/동료로 만났을 때</b><br>' + syCanonicalEsc(entry.friendshipReading) + '</p>'
-          + '<p><b>비즈니스로 엮일 때</b><br>' + syCanonicalEsc(entry.businessReading) + '</p>'
-          + '<p><b>조심해야 할 패턴</b><br>' + syCanonicalEsc(entry.caution) + '</p>'
-          + '<p><b>오래 가기 위한 전략</b><br>' + syCanonicalEsc(entry.strategy) + '</p>'
-          + '<p><b>한 문장</b><br>' + syCanonicalEsc(entry.oneLine) + '</p>'
-        + '</div>'
-        : '<div class="sy-dogam-detail"><p>전체 도감 해금 후 연애, 결혼, 친구, 비즈니스, 경계 전략이 모두 열립니다.</p></div>';
+      var detail = '<div class="sy-dogam-detail"><p>전체 도감 해금 후 연애, 결혼, 친구, 비즈니스, 경계 전략이 모두 열립니다.</p></div>';
       return '<article class="sy-dogam-entry" data-relation="' + syCanonicalEsc(entry.relationType) + '" data-categories="' + syCanonicalEsc(cats) + '">'
         + '<div class="sy-dogam-entry-head"><h6>' + syCanonicalEsc(entry.title) + '</h6><span class="sy-dogam-entry-meta">' + syCanonicalEsc(entry.relationType) + '</span></div>'
         + '<p>' + syCanonicalEsc((entry.distance !== '해당없음' ? entry.distance + ' · ' : '') + entry.direction) + '</p>'
@@ -13685,8 +13619,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     function highlightHtml(title, entries) {
       return '<article class="sy-dogam-highlight"><p><b>' + syCanonicalEsc(title) + '</b><br>' + syCanonicalEsc(listNames(entries) || '해당 숙 없음') + '</p></article>';
     }
-    function render(result, unlocked) {
-      var entries = unlocked ? result.entries : result.entries.slice(0, 5);
+    function render(result) {
+      var entries = result.entries.slice(0, 5);
       var distribution = ['명','업태','영친','우쇠','안괴','성위'].map(function(type) {
         return '<span class="sy-dogam-dist">' + syCanonicalEsc(type) + ' ' + (result.distribution[type] || 0) + '</span>';
       }).join('');
@@ -13695,7 +13629,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       }).join('');
       return '<div class="sy-dogam-hero">'
         + '<h5>' + syCanonicalEsc(result.userName) + '님의 숙요 인연 도감</h5>'
-        + '<div class="sy-dogam-meta"><span class="sy-dogam-pill">내 숙 ' + syCanonicalEsc(result['user宿']) + '</span><span class="sy-dogam-pill">도감 완성도 ' + (unlocked ? '27/27' : '5/27') + '</span><span class="sy-dogam-pill">' + syCanonicalEsc(result.logicVersion) + '</span></div>'
+        + '<div class="sy-dogam-meta"><span class="sy-dogam-pill">내 숙 ' + syCanonicalEsc(result['user宿']) + '</span><span class="sy-dogam-pill">도감 완성도 5/27</span><span class="sy-dogam-pill">' + syCanonicalEsc(result.logicVersion) + '</span></div>'
         + '<p>' + syCanonicalEsc(result.summary) + '</p><p>' + syCanonicalEsc(result.userPattern) + '</p><p>' + syCanonicalEsc(result.recommendedUse) + '</p>'
       + '</div>'
       + '<div class="sy-dogam-distribution">' + distribution + '</div>'
@@ -13709,7 +13643,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         + highlightHtml('결혼 안정성이 높은 숙 TOP 3', result.highlights.marriageCandidates)
       + '</div>'
       + '<div class="sy-dogam-filters" role="tablist">' + filters + '</div>'
-      + '<div class="sy-dogam-grid">' + entries.map(function(entry) { return entryHtml(entry, unlocked); }).join('') + '</div>';
+      + '<div class="sy-dogam-grid">' + entries.map(function(entry) { return entryHtml(entry); }).join('') + '</div>';
     }
     return { build: build, render: render };
   })();
@@ -13742,30 +13676,54 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       statusPill.textContent = '해금 완료';
       statusPill.classList.add('is-unlocked');
     }
-    function buildResult() {
+    // 미리보기와 서버 본문이 같은 입력을 쓴다(서버 build 도 이 값을 그대로 받는다).
+    function buildInput() {
       var userIdx = syWheelNormalizeIndex(myIdx != null ? myIdx : button.getAttribute('data-my-idx'));
       var userMansion = myMansionName || button.getAttribute('data-my-mansion') || '';
       if (!userMansion && userIdx != null) {
         var fallbackMansion = syWheelMansion(userIdx);
         userMansion = fallbackMansion ? fallbackMansion.ko + '숙' : '';
       }
-      return SukuyoEncyclopediaEngine.build({
+      return {
         userName: button.getAttribute('data-user-name') || '당신',
         userMansionIdx: userIdx,
         userMansion: String(userMansion || '').replace(/숙$/,'') + '숙'
-      });
+      };
     }
+    // 🔴 해금된 27숙 전체(숙별 풀이)는 서버(/api/saju/section)가 해금을 다시 확인한 뒤 그린다.
+    //    브라우저에는 무료 미리보기(5숙) 생성기만 있다 — 화면의 해금 표시만으로는 본문이 오지 않는다.
     function renderResult(unlocked) {
-      var result = buildResult();
-      if (resultHost) {
-        resultHost.innerHTML = SukuyoEncyclopediaEngine.render(result, unlocked);
-        syBindSukuyoEncyclopediaFilters(resultHost);
+      if (!unlocked) {
+        var result = SukuyoEncyclopediaEngine.build(buildInput());
+        if (resultHost) {
+          resultHost.innerHTML = SukuyoEncyclopediaEngine.render(result);
+          syBindSukuyoEncyclopediaFilters(resultHost);
+        }
+        if (status) status.textContent = '무료 미리보기 5개가 열렸습니다. 전체 27숙 도감은 해금 후 펼쳐집니다.';
+        return;
       }
-      if (status) status.textContent = unlocked ? '숙요 인연 도감이 열렸습니다.' : '무료 미리보기 5개가 열렸습니다. 전체 27숙 도감은 해금 후 펼쳐집니다.';
-      if (statusPill && unlocked) {
+      var input = buildInput();
+      if (input.userMansionIdx == null) throw new Error('본명숙 기준값이 필요합니다.');
+      if (statusPill) {
         statusPill.textContent = '해금 완료';
         statusPill.classList.add('is-unlocked');
       }
+      if (!resultHost) return;
+      var sectionClient = window.CdSajuSectionClient;
+      if (!sectionClient || typeof sectionClient.loadEncyclopedia !== 'function') {
+        if (status) status.textContent = '도감을 불러오지 못했어요. 새로고침 후 다시 열어 주세요. 결제가 다시 진행되지는 않습니다.';
+        return;
+      }
+      if (status) status.textContent = '해금된 숙요 인연 도감을 불러오고 있어요.';
+      sectionClient.loadEncyclopedia(resultHost, input, {
+        onDelivered: function() {
+          syBindSukuyoEncyclopediaFilters(resultHost);
+          if (status) status.textContent = '숙요 인연 도감이 열렸습니다.';
+        },
+        onFailed: function() {
+          if (status) status.textContent = '도감을 불러오지 못했어요. 아래 버튼으로 다시 불러와 주세요.';
+        }
+      });
     }
     // 결제 후 리다이렉트 복귀는 이 클로저를 잃으므로, 렌더할 때마다 최신 것을 전역에 걸어 둔다.
     // 🔴 아래 중복 바인딩 가드 앞에 둔다 — 뒤에 두면 같은 버튼 노드가 살아남은 렌더에서 코어가 낡는다.

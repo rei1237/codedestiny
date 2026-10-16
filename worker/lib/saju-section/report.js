@@ -6,9 +6,9 @@ import {
 import { createSajuSectionRuntime } from "./runtime.generated.mjs";
 
 // 사주 종합(section_summary)·대운 풀이(section_daewun)·퀀텀 명리 엔진(rpt_quantumCard)·
-// 극T 관계 회로(sukuyo-extreme-t-relationship) 본문을 서버에서 만든다.
+// 극T 관계 회로(sukuyo-extreme-t-relationship)·숙요 인연 도감(sukuyo-relationship-encyclopedia) 본문을 서버에서 만든다.
 // 계산 흐름은 js/saju-engine.js 의 사주 계산(원국 → 대운 브릿지 → 종격 판정 → 용신 정책)을 그대로 따른다.
-export const SAJU_SECTION_FEATURE_KEYS = Object.freeze(["section_summary", "section_daewun", "rpt_quantumCard", "sukuyo-extreme-t-relationship"]);
+export const SAJU_SECTION_FEATURE_KEYS = Object.freeze(["section_summary", "section_daewun", "rpt_quantumCard", "sukuyo-extreme-t-relationship", "sukuyo-relationship-encyclopedia"]);
 // 클라이언트 출생지 선택의 기본 옵션(index.html #birthCountry 의 대한민국 서울).
 const DEFAULT_PLACE = Object.freeze({ name: "대한민국 (서울)", longitude: 127.0, latitude: 37.6, timezone: "Asia/Seoul", baseTzOffset: 9 });
 const JONG_DECISIONS = new Set(["confirmed", "rejected", "unverified"]);
@@ -46,9 +46,29 @@ function documentShim(neo, captured, quantum) {
 
 const memoryStorage = () => ({ getItem: () => null, setItem() {}, removeItem() {} });
 
+// 숙요 인연 도감은 사주 원국을 쓰지 않는다 — 본명숙 하나로 27숙과의 관계를 펼친다.
+// 본명숙은 화면이 그린 값(syBindSukuyoEncyclopedia 의 buildInput)을 그대로 받는다. 어느 숙을 넣어도
+// 27숙 전체·관계 6종 풀이가 다 나오므로(순서·점수만 다르다) 본명숙을 받아도 더 열리는 본문이 없다.
+function buildEncyclopediaHtml(input) {
+  const raw = input.encyclopedia && typeof input.encyclopedia === "object" ? input.encyclopedia : {};
+  // 화면은 syWheelNormalizeIndex 로 0~26 정수만 보낸다. null·문자열을 0번 숙으로 바꿔 그리지 않는다.
+  const idx = raw.userMansionIdx;
+  if (typeof idx !== "number" || !Number.isInteger(idx) || idx < 0 || idx > 26) throw new SajuSectionInputError("본명숙을 확인해 주세요.", "SAJU_INVALID_MANSION");
+  const lang = input.lang || "ko";
+  const window = { location: { search: "", pathname: "/", hostname: "" }, localStorage: memoryStorage(), cdGetCurrentLanguage: () => lang };
+  const rt = createSajuSectionRuntime({ window, document: documentShim(false, { innerHTML: "" }, { area: { innerHTML: "" }, card: { style: {} } }), localStorage: window.localStorage, neo: false, lang, now: input.now instanceof Date ? input.now : new Date() });
+  return {
+    html: rt.renderSukuyoEncyclopediaPaid({
+      userName: String(raw.userName || "").slice(0, 40),
+      userMansionIdx: idx,
+      userMansion: String(raw.userMansion || "").slice(0, 20),
+    }),
+  };
+}
+
 /**
  * @param {object} input
- * @param {"section_summary"|"section_daewun"|"rpt_quantumCard"|"sukuyo-extreme-t-relationship"} input.featureKey
+ * @param {"section_summary"|"section_daewun"|"rpt_quantumCard"|"sukuyo-extreme-t-relationship"|"sukuyo-relationship-encyclopedia"} input.featureKey
  * @param {{calendarDate:string, calType:string, hour:number, minute:number, timeKnown:boolean}} input.birth 원래 달력 날짜와 입력 시각
  * @param {"M"|"F"} input.gender
  * @param {string} [input.name] 화면 이름(HTML 이스케이프한다)
@@ -58,11 +78,13 @@ const memoryStorage = () => ({ getItem: () => null, setItem() {}, removeItem() {
  * @param {"confirmed"|"rejected"|"unverified"} [input.jongDecision] 종격 검증 모달의 답
  * @param {{age:number, gan:string, zhi:string}} [input.daewun] section_daewun 에서 펼친 대운
  * @param {Date} [input.now] 현재 나이·퀀텀 카드의 오늘 간지 기준 시각
+ * @param {{userName:string, userMansionIdx:number, userMansion:string}} [input.encyclopedia] 숙요 인연 도감의 화면 입력(출생 정보는 쓰지 않는다)
  * @returns {{html:string, sajuBaseHtml?:string, prescriptionHtml?:string}} 극T 는 관계·연애·현실 패널(html)과 사주 기반 해석·처방전 패널을 따로 돌려준다
  */
 export function buildSajuSectionHtml(input) {
   const featureKey = String(input?.featureKey || "");
   if (!SAJU_SECTION_FEATURE_KEYS.includes(featureKey)) throw new SajuSectionInputError("지원하지 않는 항목입니다.", "SAJU_INVALID_FEATURE");
+  if (featureKey === "sukuyo-relationship-encyclopedia") return buildEncyclopediaHtml(input);
   const birth = input.birth || {};
   if (!/^\d{4}-\d{2}-\d{2}$/.test(String(birth.calendarDate || ""))) throw new SajuSectionInputError("생년월일을 확인해 주세요.", "SAJU_INVALID_BIRTH");
   const calType = ["solar", "lunar", "lunar_leap"].includes(birth.calType) ? birth.calType : "solar";

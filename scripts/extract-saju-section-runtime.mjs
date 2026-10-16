@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import ts from 'typescript';
-// Bundles the paid saju summary/daewun/quantum/extreme-T renderers (worker/lib/saju-section/*.src.js) with the
+// Bundles the paid saju summary/daewun/quantum/extreme-T/sukuyo-encyclopedia renderers (worker/lib/saju-section/*.src.js) with the
 // shell helpers they call, copied verbatim from the browser sources. No formula is edited here:
 // --check fails when js/saju-engine.js, the tarot-chunk helpers, the personas copy table or the KASI service drift.
 const OUT = 'worker/lib/saju-section/runtime.generated.mjs';
@@ -45,15 +45,18 @@ const extremeTPath = 'worker/lib/saju-section/paid-extreme-t.src.js';
 const extremeTSrc = read(extremeTPath);
 // 유료 문장의 다국어 번역은 public/i18n 에 두지 않는다(정적 파일은 누구나 받는다) — 서버 전용 사본에서 읽는다.
 const extremeTI18n = JSON.parse(read('worker/lib/saju-section/paid-extreme-t.i18n.json'));
-const paidNames = declared(paidAst); const cycleNames = declared(cycleAst); const quantumNames = declared(quantumAst);
+// 숙요 인연 도감 27숙 전체: 타로 파일의 숙요 헬퍼(27숙 표·관계 엔진)를 아래 tarot 클로저로 함께 가져온다.
+const encyclopediaPath = 'worker/lib/saju-section/paid-encyclopedia.src.js';
+const encyclopediaSrc = read(encyclopediaPath); const encyclopediaAst = parse(encyclopediaPath, encyclopediaSrc);
+const paidNames = declared(paidAst); const cycleNames = declared(cycleAst); const quantumNames = declared(quantumAst); const encyclopediaNames = declared(encyclopediaAst);
 
 // The quantum card's ganji/fortune/text helpers live in the tarot chunk. Its copy table is trimmed to
 // the keys the card uses (the rest is other cards' copy); every other statement is verbatim.
 const tarotAst = parse('saju-engine-tarot-sukuyo-quantum.js', read('js/saju-engine-tarot-sukuyo-quantum.js'));
 const Q_TEXT = 'SAJU_QUANTUM_TEXT_TRANSLATIONS';
-const tarotPicked = closure(tarotAst, tarotAst.statements, refs(quantumAst), new Set([...quantumNames, Q_TEXT]));
+const tarotPicked = closure(tarotAst, tarotAst.statements, [...refs(quantumAst), ...refs(encyclopediaAst)], new Set([...quantumNames, ...encyclopediaNames, Q_TEXT]));
 const tarotNames = new Set(tarotPicked.flatMap(t => [...declared(parse('t.js', t))]));
-const Q_KEYS = [...new Set([quantumSrc, ...tarotPicked].join('\n').match(/_sajuQuantumText\("([^"]+)"\)/g).map(m => m.slice(18, -2)))].sort();
+const Q_KEYS = [...new Set([quantumSrc, encyclopediaSrc, ...tarotPicked].join('\n').match(/_sajuQuantumText\("([^"]+)"\)/g).map(m => m.slice(18, -2)))].sort();
 const qTextNode = tarotAst.statements.find(n => ownNames(n).includes(Q_TEXT));
 const qTextKo = new Function(`return (${qTextNode.declarationList.declarations[0].initializer.getText(tarotAst)});`)().ko;
 for (const k of Q_KEYS) if (!qTextKo[k]) throw new Error(`Missing quantum text: ${k}`);
@@ -64,7 +67,7 @@ const engineAst = parse('saju-engine.js', read('js/saju-engine.js'));
 const SEEDS = ['GENDER', 'USER_NAME', 'BIRTH_YEAR', 'DAY_GAN', 'JOHU_TYPE', 'JOHU_SCORE', 'CURRENT_AGE', 'G_POWER', 'G_JONG', 'G_JOHU', 'G_PILLARS', 'G_NATAL', 'G_BAZI'];
 const SERVER_ROOTS = ['attachKasiDaewunBridge', '_sajuDaewunRowsFromList', '_sajuApplyJongDecision', 'resetEvalDaewunMemo', 'parseKasiGanjiPair', 'GAN', 'JI', 'getTenGod', ...SEEDS];
 const shellRoots = [...refs(paidAst), ...refs(quantumAst), ...tarotPicked.flatMap(t => [...refs(parse('t.js', t))]), ...SERVER_ROOTS];
-const shared = closure(engineAst, engineAst.statements, shellRoots, new Set([...paidNames, ...quantumNames, ...tarotNames]));
+const shared = closure(engineAst, engineAst.statements, shellRoots, new Set([...paidNames, ...quantumNames, ...encyclopediaNames, ...tarotNames]));
 const sharedNames = new Set(shared.flatMap(t => [...declared(parse('s.js', t))]));
 for (const k of SERVER_ROOTS) if (!sharedNames.has(k)) throw new Error(`Missing shell declaration: ${k}`);
 
@@ -129,11 +132,15 @@ ${quantumSrc.trim()}
   window.GAN = GAN; window.JI = JI; window.getTenGod = getTenGod;
 ${extremeTSrc.trim()}
 
+  // ── paid sukuyo relationship encyclopedia ──
+${encyclopediaSrc.trim()}
+
   return {
     renderSummary: renderSummary,
     buildDaewunDetailHtml: buildDaewunDetailHtml,
     renderQuantumStrategy: renderQuantumStrategy,
     renderExtremeTPaidPanels: window.renderExtremeTPaidPanels,
+    renderSukuyoEncyclopediaPaid: renderSukuyoEncyclopediaPaid,
     attachKasiDaewunBridge: attachKasiDaewunBridge,
     daewunRows: _sajuDaewunRowsFromList,
     applyJongDecision: _sajuApplyJongDecision,
@@ -150,7 +157,7 @@ ${SEEDS.map(k => `      if ('${k}' in state) ${k} = state.${k};`).join('\n')}
 `;
 if (process.argv.includes('--write')) {
   fs.writeFileSync(OUT, text);
-  console.log(`Wrote ${OUT}: ${shared.length} shell + ${tarotPicked.length} tarot + ${kasi.length} KASI + ${personas.length} personas statements, ${paidNames.size + quantumNames.size} paid declarations.`);
+  console.log(`Wrote ${OUT}: ${shared.length} shell + ${tarotPicked.length} tarot + ${kasi.length} KASI + ${personas.length} personas statements, ${paidNames.size + quantumNames.size + encyclopediaNames.size} paid declarations.`);
 } else {
   if (read(OUT) !== text) throw new Error('Saju section runtime drift: run node scripts/extract-saju-section-runtime.mjs --write');
   console.log(`PASS saju section runtime matches its sources (${shared.length} shell statements).`);

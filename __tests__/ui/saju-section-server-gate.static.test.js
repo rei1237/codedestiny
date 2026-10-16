@@ -1,6 +1,7 @@
 /**
  * 사주 종합(section_summary)·대운 풀이(section_daewun)·퀀텀 명리 엔진(rpt_quantumCard)·
- * 극T 관계 회로(sukuyo-extreme-t-relationship) 본문이 브라우저로 되돌아오지 않게 막는 가드.
+ * 극T 관계 회로(sukuyo-extreme-t-relationship)·숙요 인연 도감(sukuyo-relationship-encyclopedia)
+ * 본문이 브라우저로 되돌아오지 않게 막는 가드.
  *
  * 2026-10-12 이전: renderSummary·대운 풀이 생성기가 js/saju-engine.js 에 통째로 실려 있어
  * 콘솔에서 함수 하나만 부르면 결제 없이 본문이 나왔다. 이제 본문은 /api/saju/section 이
@@ -55,6 +56,9 @@ test("종합·대운 유료 렌더러와 문장이 브라우저 경로에 없다
     // 극T 관계 회로(sukuyo-extreme-t-relationship) 해금 패널. 장 제목은 무료 잠금 안내에도 있어 생성기 이름과 본문 문장을 본다.
     "getPaidBandRowsMap", "buildSajuRows", "relationshipRows", "workMoneyRows", "prescriptionRows", "renderExtremeTPaidPanels",
     "친구가 힘들다고 하면 원인보다 기분부터 받아줍니다", "싸우면 감정전보다 구조 분석으로 들어갑니다", "기준과 정리력이 강해 판단의 칼날이 선명합니다",
+    // 숙요 인연 도감(sukuyo-relationship-encyclopedia) 27숙 숙별 풀이. 관계 제목·키워드는 무료 미리보기에도 있어 풀이 필드와 문장을 본다.
+    "renderSukuyoEncyclopediaPaid", "loveReading", "marriageReading", "friendshipReading", "businessReading", "<b>오래 가기 위한 전략</b>",
+    "이 숙은 당신에게 거울처럼", "이 숙은 설명하기 어려운 익숙", "닮은 지점은 인정하고",
   ];
   const offenders = [];
   for (const rel of browserServedFiles()) {
@@ -69,6 +73,7 @@ test("종합·대운 유료 렌더러와 문장이 브라우저 경로에 없다
   }
   assert.ok(read("worker/lib/saju-section/paid-quantum.src.js").includes("function renderQuantumStrategy(p, natal, bazi){"), "퀀텀 명리 엔진 정본이 서버에 없다");
   assert.ok(read("worker/lib/saju-section/paid-extreme-t.src.js").includes("function renderExtremeTPaidPanels(p, natal, johu) {"), "극T 해금 패널 정본이 서버에 없다");
+  assert.ok(read("worker/lib/saju-section/paid-encyclopedia.src.js").includes("function renderSukuyoEncyclopediaPaid(input) {"), "숙요 인연 도감 정본이 서버에 없다");
 });
 
 test("극T 해금 패널 문장의 번역은 공개 사전(public/i18n)에 없다", () => {
@@ -94,6 +99,8 @@ test("브라우저는 본문을 서버에만 묻는다", () => {
   assert.match(client, /requestBody\('rpt_quantumCard'\)/, "퀀텀 카드가 서버 본문을 요청하지 않는다");
   assert.match(client, /var EXTREME_T_KEY = 'sukuyo-extreme-t-relationship';[\s\S]*requestBody\(EXTREME_T_KEY\)/, "극T 패널이 서버 본문을 요청하지 않는다");
   assert.match(stripComments(read("js/saju-engine-tarot-sukuyo-quantum.js")), /sectionClient\.loadExtremeT\(area,/, "극T 해금 화면이 서버 로더를 거치지 않는다");
+  assert.match(client, /var ENCYCLOPEDIA_KEY = 'sukuyo-relationship-encyclopedia';[\s\S]*featureKey: ENCYCLOPEDIA_KEY/, "인연 도감이 서버 본문을 요청하지 않는다");
+  assert.match(stripComments(read("js/saju-engine-tarot-sukuyo-quantum.js")), /sectionClient\.loadEncyclopedia\(resultHost, input,/, "인연 도감 해금 화면이 서버 로더를 거치지 않는다");
   assert.match(read("js/core/saju/reportDashboard.js"), /case 'quantumCard':[\s\S]{0,200}CdSajuSectionClient\.loadQuantum\(\)/, "퀀텀 카드 열기가 서버 로더를 거치지 않는다");
   assert.match(read("index.html"), /<script defer src="\/js\/core\/saju\/section-client\.js"><\/script>/, "index.html 이 본문 로더를 싣지 않는다");
 });

@@ -1,5 +1,5 @@
 /* 사주 종합(section_summary)·대운 풀이(section_daewun)·퀀텀 명리 엔진(rpt_quantumCard)·
-   극T 관계 회로(sukuyo-extreme-t-relationship) 본문 배달.
+   극T 관계 회로(sukuyo-extreme-t-relationship)·숙요 인연 도감(sukuyo-relationship-encyclopedia) 본문 배달.
    본문은 서버(/api/saju/section)가 계정·프로필 해금을 확인한 뒤에만 만든다.
    이 파일은 요청과 표시만 한다 — 유료 문장·생성기·본문 캐시가 없다. */
 (function (root) {
@@ -14,9 +14,11 @@
   var quantum = { key: '', state: '', seq: 0, failedAt: 0, quiet: false };
   var extremeT = { key: '', state: '', seq: 0, area: null, options: null, timer: 0 };
   var EXTREME_T_KEY = 'sukuyo-extreme-t-relationship';
+  var encyclopedia = { key: '', state: '', seq: 0, host: null, input: null, options: null, timer: 0, node: null, notice: null };
+  var ENCYCLOPEDIA_KEY = 'sukuyo-relationship-encyclopedia';
   // 이용권 결제 직후에는 화면이 먼저 열리고 서버 기록은 뒤에서 쓴다(index.html _cdMembershipPassRecordDelays 와 같은 간격).
-  // 그 사이 402 가 오면 바로 '구매 기록 없음'을 띄우지 않고 이 간격으로 다시 묻는다.
-  var EXTREME_T_RETRY_MS = [4000, 12000, 30000];
+  // 그 사이 402 가 오면 바로 '구매 기록 없음'을 띄우지 않고 이 간격으로 다시 묻는다(극T·인연 도감).
+  var PASS_RECORD_RETRY_MS = [4000, 12000, 30000];
 
   function byId(id) { return document.getElementById(id); }
   function profileId() {
@@ -221,13 +223,14 @@
 
   // 극T 관계 회로: 무료 카드(renderTTest)가 비워 둔 자리 3곳(main·sajuBase·prescription)을 서버 본문으로 채운다.
   // 해금 여부는 서버가 다시 확인한다 — 화면의 해금 표시만으로는 본문이 오지 않는다.
+  // 안내 칸은 어두운 숙요 화면용이다(극T·인연 도감).
   function extremeTStatus(text, retry) {
     var node = statusNode(text, retry);
     node.style.cssText = 'grid-column:1/-1;padding:18px 16px;border-radius:14px;background:rgba(15,23,42,0.55);border:1px solid rgba(148,163,184,0.35);color:#e2e8f0;font-size:14px;line-height:1.7;text-align:center;';
     return node;
   }
-  function recentPassGrant() {
-    try { return typeof root.syRecentPaidGateAccess === 'function' && !!root.syRecentPaidGateAccess(EXTREME_T_KEY); } catch (_) { return false; }
+  function recentPassGrant(featureKey) {
+    try { return typeof root.syRecentPaidGateAccess === 'function' && !!root.syRecentPaidGateAccess(featureKey); } catch (_) { return false; }
   }
   function loadExtremeT(area, options) {
     var opts = options || {};
@@ -261,24 +264,92 @@
           return;
         }
         var status = result && result.status;
-        var retryable = (status === 402 && recentPassGrant()) || !status || status >= 500;
-        if (retryable && tries < EXTREME_T_RETRY_MS.length) {
+        var retryable = (status === 402 && recentPassGrant(EXTREME_T_KEY)) || !status || status >= 500;
+        if (retryable && tries < PASS_RECORD_RETRY_MS.length) {
           extremeT.state = 'waiting';
-          extremeT.timer = setTimeout(function () { if (current()) attempt(tries + 1); }, EXTREME_T_RETRY_MS[tries]);
+          extremeT.timer = setTimeout(function () { if (current()) attempt(tries + 1); }, PASS_RECORD_RETRY_MS[tries]);
           return;
         }
         fail(failureText(result));
       }, function () {
         if (!current()) return;
-        if (tries < EXTREME_T_RETRY_MS.length) {
+        if (tries < PASS_RECORD_RETRY_MS.length) {
           extremeT.state = 'waiting';
-          extremeT.timer = setTimeout(function () { if (current()) attempt(tries + 1); }, EXTREME_T_RETRY_MS[tries]);
+          extremeT.timer = setTimeout(function () { if (current()) attempt(tries + 1); }, PASS_RECORD_RETRY_MS[tries]);
           return;
         }
         fail(failureText(null));
       });
     }
     if (!body) { fail(failureText(null)); return false; }
+    attempt(0);
+    return false;
+  }
+
+  // 숙요 인연 도감: 해금 화면의 27숙 전체를 서버 본문으로 채운다. 무료 미리보기(5숙)는 화면이 직접 그린다.
+  // 도감은 사주 원국을 쓰지 않는다 — 화면이 그린 본명숙·이름만 보낸다(input = syBindSukuyoEncyclopedia 의 buildInput()).
+  function encyclopediaBody(input) {
+    var body = {
+      featureKey: ENCYCLOPEDIA_KEY, lang: lang(),
+      encyclopedia: { userName: String(input.userName || ''), userMansionIdx: Number(input.userMansionIdx), userMansion: String(input.userMansion || '') }
+    };
+    var pid = profileId();
+    if (pid) body.profileId = pid;
+    return body;
+  }
+  function loadEncyclopedia(host, input, options) {
+    var opts = options || {};
+    if (!host || !input) return false;
+    var body = encyclopediaBody(input);
+    var key = keyOf(body);
+    // 같은 요청이 진행 중이거나 이미 배달한 본문이 그대로 있으면 다시 묻지 않는다(잠금 해제 이벤트가 여러 번 올 수 있다).
+    if (!opts.force && encyclopedia.key === key && encyclopedia.host === host) {
+      if (encyclopedia.state === 'loading' || encyclopedia.state === 'waiting') {
+        if (encyclopedia.notice && !host.contains(encyclopedia.notice)) show(host, encyclopedia.notice);
+        return false;
+      }
+      if (encyclopedia.state === 'done' && encyclopedia.node && host.contains(encyclopedia.node)) return true;
+    }
+    clearTimeout(encyclopedia.timer);
+    var mine = ++seq;
+    var notice = extremeTStatus('해금된 숙요 인연 도감을 불러오고 있어요.');
+    encyclopedia = { key: key, state: 'loading', seq: mine, host: host, input: input, options: opts, timer: 0, node: null, notice: notice };
+    show(host, notice);
+    function current() { return encyclopedia.seq === mine && host.isConnected !== false; }
+    function fail(text) {
+      if (!current()) return;
+      encyclopedia.state = 'failed';
+      encyclopedia.notice = null;
+      show(host, extremeTStatus(text, function () { loadEncyclopedia(host, input, Object.assign({}, opts, { force: true })); }));
+      try { if (typeof opts.onFailed === 'function') opts.onFailed(text); } catch (_) {}
+    }
+    function later(tries) {
+      encyclopedia.state = 'waiting';
+      encyclopedia.timer = setTimeout(function () { if (current()) attempt(tries + 1); }, PASS_RECORD_RETRY_MS[tries]);
+    }
+    function attempt(tries) {
+      request(body).then(function (result) {
+        if (!current()) return;
+        var data = result.payload || {};
+        if (result.ok && delivered(ENCYCLOPEDIA_KEY, data)) {
+          encyclopedia.state = 'done';
+          encyclopedia.notice = null;
+          host.innerHTML = data.html;
+          encyclopedia.node = host.firstElementChild;
+          notify(ENCYCLOPEDIA_KEY);
+          try { if (typeof opts.onDelivered === 'function') opts.onDelivered(); } catch (_) {}
+          return;
+        }
+        var status = result && result.status;
+        var retryable = (status === 402 && recentPassGrant(ENCYCLOPEDIA_KEY)) || !status || status >= 500;
+        if (retryable && tries < PASS_RECORD_RETRY_MS.length) { later(tries); return; }
+        fail(failureText(result));
+      }, function () {
+        if (!current()) return;
+        if (tries < PASS_RECORD_RETRY_MS.length) { later(tries); return; }
+        fail(failureText(null));
+      });
+    }
     attempt(0);
     return false;
   }
@@ -300,7 +371,10 @@
     if (quantum.state === 'failed') loadQuantum({ quiet: quantum.quiet, force: true });
     // 결제 기록이 늦게 들어온 경우: 기다리던 극T 요청은 바로 다시 묻는다.
     if ((extremeT.state === 'failed' || extremeT.state === 'waiting') && extremeT.area) loadExtremeT(extremeT.area, extremeT.options);
+    if ((encyclopedia.state === 'failed' || encyclopedia.state === 'waiting') && encyclopedia.host) {
+      loadEncyclopedia(encyclopedia.host, encyclopedia.input, Object.assign({}, encyclopedia.options, { force: true }));
+    }
   });
 
-  root.CdSajuSectionClient = { loadSummary: loadSummary, showDaewun: showDaewun, refreshDaewun: refreshDaewun, loadQuantum: loadQuantum, loadExtremeT: loadExtremeT };
+  root.CdSajuSectionClient = { loadSummary: loadSummary, showDaewun: showDaewun, refreshDaewun: refreshDaewun, loadQuantum: loadQuantum, loadExtremeT: loadExtremeT, loadEncyclopedia: loadEncyclopedia };
 })(window);

@@ -1479,5 +1479,73 @@
    "sajuBaseHtml": "36318651c69e1036d2ebfb60fb46bd0fa3f737bed087b321ff9908b538480c88",
    "prescriptionHtml": "13e3efafc1f540707195b3c9ebdadf4efce58c2bd39da0df351348859d1d0f93"
   }
+ },
+ "encyclopediaCases": [
+  {
+   "id": "idx0-default",
+   "lang": "ko",
+   "userName": "당신",
+   "userMansionIdx": 0,
+   "userMansion": "각숙"
+  },
+  {
+   "id": "idx1-name",
+   "lang": "ko",
+   "userName": "민수",
+   "userMansionIdx": 1,
+   "userMansion": "항숙"
+  },
+  {
+   "id": "idx7-escape",
+   "lang": "ko",
+   "userName": "<b>지&연</b>",
+   "userMansionIdx": 7,
+   "userMansion": "두숙"
+  },
+  {
+   "id": "idx13",
+   "lang": "ko",
+   "userName": "서연",
+   "userMansionIdx": 13,
+   "userMansion": "규숙"
+  },
+  {
+   "id": "idx20-raw-mansion",
+   "lang": "ko",
+   "userName": "하준",
+   "userMansionIdx": 20,
+   "userMansion": "심숙"
+  },
+  {
+   "id": "idx26",
+   "lang": "ko",
+   "userName": "당신",
+   "userMansionIdx": 26,
+   "userMansion": "진숙"
+  },
+  {
+   "id": "idx5-en",
+   "lang": "en",
+   "userName": "Alex",
+   "userMansionIdx": 5,
+   "userMansion": "미숙"
+  },
+  {
+   "id": "idx5-ja",
+   "lang": "ja",
+   "userName": "Alex",
+   "userMansionIdx": 5,
+   "userMansion": "미숙"
+  }
+ ],
+ "encyclopedia": {
+  "idx0-default": "3c04a498f67327fb3669166a6ab69b03bfbc1351fbf40b87a24dc538fc64c72c",
+  "idx1-name": "ead8a162ab0a50070fb7a715c1adedf50868dbd0fe9b3197a4c5a82d5a417da4",
+  "idx7-escape": "13782fcb4103a6279ea5313208902226ba585fdaef63f4e123280a99345cd03c",
+  "idx13": "e8314b115903c51c7503573fe3c5e46c2d52327c57e64a5f8c37542b17fba6bc",
+  "idx20-raw-mansion": "6bb453e451729d447e0ee1b60c3d8c648f54a6fdb0a3c3bd5a0efacaf9377218",
+  "idx26": "fd60cda0a26d14df06421d76d818f83266fcea931a10adcb4f450710f1d077b7",
+  "idx5-en": "1bd47161d7a209724ee8ff6430edd5b086f35347ae53a31bfebe497f0140529a",
+  "idx5-ja": "815600be1ad1229b3face73c3203e92aad0fa91da1504985fdfb8b3eaf82e3fc"
  }
 }

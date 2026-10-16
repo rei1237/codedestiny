@@ -110,7 +110,7 @@ test("only the saju section keys are served", async () => {
   expect(findOne).not.toHaveBeenCalled();
 });
 
-test.each(["section_summary", "section_daewun", "rpt_quantumCard", "sukuyo-extreme-t-relationship"])("unowned %s returns registry pricing without HTML", async (featureKey) => {
+test.each(["section_summary", "section_daewun", "rpt_quantumCard", "sukuyo-extreme-t-relationship", "sukuyo-relationship-encyclopedia"])("unowned %s returns registry pricing without HTML", async (featureKey) => {
   const result = await request({ ...INPUT, featureKey, daewun: DAEWUN, unlocked: true, passActive: true });
   const { pricing } = getBillingFeaturePricing({ featureKey });
   expect(result).toEqual({ status: 402, body: expect.objectContaining({ featureKey, amountKRW: pricing.amountKRW, coinPrice: pricing.coinPrice }) });
@@ -380,5 +380,59 @@ describe("sukuyo-extreme-t-relationship", () => {
       gender: c.gender, name: c.name, mode: "pig", place: c.place, jongDecision: c.jong, now: new Date(PARITY.now),
     });
     expect({ html: sha256(result.html), sajuBaseHtml: sha256(result.sajuBaseHtml), prescriptionHtml: sha256(result.prescriptionHtml) }).toEqual(PARITY.extremeT[id]);
+  });
+});
+
+describe("sukuyo-relationship-encyclopedia", () => {
+  const KEY = "sukuyo-relationship-encyclopedia";
+  const SCREEN = { userName: "민수", userMansionIdx: 3, userMansion: "방숙" };
+  const ENCYCLOPEDIA = { profileId: "p1", featureKey: KEY, lang: "ko", encyclopedia: SCREEN };
+  const expected = (screen = SCREEN) => buildSajuSectionHtml({ featureKey: KEY, lang: "ko", encyclopedia: screen }).html;
+  const entries = (html) => (html.match(/class="sy-dogam-entry"/g) || []).length;
+
+  test("a BIRTH grant renders all 27 mansions with their readings; it opens nothing else", async () => {
+    grant({}, KEY);
+    const result = await request(ENCYCLOPEDIA);
+    expect(result.status).toBe(200);
+    expect(result.body).toEqual({ ok: true, unlocked: true, featureKey: KEY, html: expected() });
+    expect(entries(result.body.html)).toBe(27);
+    expect(result.body.html).toContain("도감 완성도 27/27");
+    expect(result.body.html).toContain("<b>연애로 만났을 때</b>");
+    expect((await request()).status).toBe(402);
+  });
+
+  test("a legacy account grant without a saved profile renders without any birth", async () => {
+    grant({ scope: "USER", profileId: "__user__" }, KEY);
+    const { profileId: _omit, ...account } = ENCYCLOPEDIA;
+    const result = await request(account);
+    expect(result.status).toBe(200);
+    expect(result.body.html).toBe(expected());
+  });
+
+  test("another profile's grant or another product's grant does not open the encyclopedia", async () => {
+    grant({}, "sukuyo-extreme-t-relationship");
+    expect((await request(ENCYCLOPEDIA)).status).toBe(402);
+    grant({}, KEY);
+    const other = await request({ ...ENCYCLOPEDIA, profileId: "p3" });
+    expect(other.status).toBe(402);
+    expect(other.body.html).toBeUndefined();
+  });
+
+  test("an out-of-range mansion is rejected, and a DB failure stays retryable", async () => {
+    grant({}, KEY);
+    for (const userMansionIdx of [27, -1, 2.5, "x", null]) {
+      expect((await request({ ...ENCYCLOPEDIA, encyclopedia: { ...SCREEN, userMansionIdx } }))).toEqual({ status: 400, body: expect.objectContaining({ code: "SAJU_INVALID_MANSION" }) });
+    }
+    connectDb.mockRejectedValue(new Error("private database connection information"));
+    const result = await request(ENCYCLOPEDIA);
+    expect(result.status).toBe(503);
+    expect(result.body).toMatchObject({ reason: "TEMPORARY_UNAVAILABLE", retryable: true });
+  });
+
+  // PARITY.encyclopedia: 39c49f8b9 의 클라이언트 SukuyoEncyclopediaEngine.render(build(input), true)(해금 화면)가
+  // 같은 입력으로 그린 27숙 HTML 의 sha256. en·ja 는 그 언어로 처음부터 불러온 페이지 기준(관계 제목이 로드 때 정해진다).
+  test.each(PARITY.encyclopediaCases.map((c) => [c.id, c]))("server encyclopedia equals the HEAD client output: %s", (id, c) => {
+    const { html } = buildSajuSectionHtml({ featureKey: KEY, lang: c.lang, encyclopedia: { userName: c.userName, userMansionIdx: c.userMansionIdx, userMansion: c.userMansion } });
+    expect(sha256(html)).toBe(PARITY.encyclopedia[id]);
   });
 });
