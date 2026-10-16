@@ -115,6 +115,15 @@
 | 테토 vs 에겐 테스트 | 사주 결과 특수 테스트 | `hormone-vibe-section`, `hormoneVibeResult` | 무료/결과 기반 | 결과 후반에 묻힘 | 결과 DOM | 테스트 묶음 접힘 |
 | 극T 테스트 | 사주 결과 특수 테스트 | 인페이지 `tTestTitle`, extremeT script | 무료/결과 기반 | 결과 후반에 묻힘 | `extremeTResult.js` | 테스트 묶음 접힘 |
 
+## 진입 계층 (2026-10-16)
+위 표의 "개선 방식" 열보다 이 절이 우선한다.
+
+- **하단 내비 라벨:** "재밌는 운세"(aria "재밌는 운세 둘러보기")와 "대표 상담"(aria "대표 상담 고르기")을 쓴다. 정본은 `app/_lib/mobile-tabs.ts`, 정적 셸은 `index.html` `#cdMobileBottomNav` 수기 미러다. key·href·순서는 바꾸지 않았다.
+- **`/consultations/` 2단 구성:** 대표 상담 6장(`#signature`, Tarot Card)과 다른 상담 7개(`#others`, 압축 행)로 나눈다. `#experts` 는 하위 호환 앵커다.
+- **사주 모아보기:** `/saju/#services` 에 사주 기능 30종을 모았다. 순서는 대표 상담 → 무료로 바로 보기 → 사주 리포트 더 보기 → 사주 공부하기다. 정본은 `lib/saju/saju-service-catalog.mjs` 다.
+  - 입구는 세 곳이다. 홈 여섯 방식 아래의 텍스트 링크, 모든 운세 검색 결과 맨 위의 "사주 서비스 전체 보기"("사주" 칩을 고르거나 사주·명리·팔자·만세력을 검색할 때), 그리고 `/saju/` 히어로 바로 아래다.
+  - 레지스트리 `methods:"saju"` 항목을 더하면 카탈로그에도 더해야 한다. 이는 `__tests__/ui/saju-service-catalog.static.test.mjs` 가드로 검사한다.
+
 ## 누락 방지 체크
 - 필수 사용자 목록의 모든 기능군을 위 표에 포함함.
 - 홈 카드 자동 추출 결과 68개 기능 entry와 Next route/정적 route 검색 결과를 병합함.
