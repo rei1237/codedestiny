@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import ts from 'typescript';
 // Bundles the paid saju summary/daewun/quantum/extreme-T/sukuyo-encyclopedia/sukuyo-nature/sukuyo-compat/energy/villain/health/charm/skill-tree renderers (worker/lib/saju-section/*.src.js) with the
+// (secret-house episode engine and twelve-stage animal reading get their own factories below)
 // shell helpers they call, copied verbatim from the browser sources. No formula is edited here:
 // --check fails when js/saju-engine.js, the tarot-chunk helpers, the entertain-engine helpers, the personas copy table
 // or the KASI service drift.
@@ -72,6 +73,9 @@ const charmPath = 'worker/lib/saju-section/paid-charm.src.js';
 const charmSrc = read(charmPath); const charmAst = parse(charmPath, charmSrc);
 const skillPath = 'worker/lib/saju-section/paid-skill.src.js';
 const skillSrc = read(skillPath); const skillAst = parse(skillPath, skillSrc);
+// 시크릿 하우스 에피소드 엔진: 페이지 메인 스크립트에서 옮긴 선언들. 셸 헬퍼를 쓰지 않으므로 별도 팩토리로 묶는다.
+const secretHousePath = 'worker/lib/saju-section/paid-secret-house.src.js';
+const secretHouseSrc = read(secretHousePath);
 const paidNames = declared(paidAst); const cycleNames = declared(cycleAst); const quantumNames = declared(quantumAst); const encyclopediaNames = declared(encyclopediaAst); const natureNames = declared(natureAst); const compatNames = declared(compatAst); const energyNames = declared(energyAst); const villainNames = declared(villainAst); const healthNames = declared(healthAst); const charmNames = declared(charmAst); const skillNames = declared(skillAst);
 
 // The quantum/energy cards' ganji/fortune/text helpers live in the tarot chunk. Its copy table is trimmed to
@@ -222,6 +226,26 @@ ${healthSrc.trim()}
 ${SEEDS.map(k => `      if ('${k}' in state) ${k} = state.${k};`).join('\n')}
       resetEvalDaewunMemo();
     }
+  };
+}
+
+// secret-house_real.html 에피소드 엔진(rpt_secretHouseEntryCard). ctx.document 는 반응·결과 HTML 을 받아 두는 껍데기다.
+// 타자 효과·장면 효과·저장소의 일지 읽기는 페이지 몫이라 빈 함수로 둔다(일지는 secret-house.js 가 G.userDayBranch 에 넣는다).
+export function createSecretHouseRuntime(ctx) {
+  const document = ctx.document;
+  const setTimeout = function () {};
+  const IMG = { tree: 'sh-img:tree', fire: 'sh-img:fire', soil: 'sh-img:soil', gold: 'sh-img:gold', water: 'sh-img:water' };
+  function stopSceneTyping() {}
+  function playSceneEffect() {}
+  function resolveAutoBranchFromSaju() { return ''; }
+${secretHouseSrc.trim()}
+
+  return {
+    get G() { return G; }, set G(value) { G = value; },
+    get rxnPending() { return rxnPending; }, set rxnPending(value) { rxnPending = value; },
+    STEMS: STEMS, CHARS: CHARS, SCENE_MAP: SCENE_MAP, SCENE_ORDER: SCENE_ORDER, CHAR_BY_ID: CHAR_BY_ID,
+    calcBase: calcBase, getTotal: getTotal, getMaxTotal: getMaxTotal, getTopChar: getTopChar, calculateEnding: calculateEnding,
+    resolveDynamicScene: resolveDynamicScene, buildSceneStoryArc: buildSceneStoryArc, handleChoice: handleChoice, buildResult: buildResult,
   };
 }
 `;

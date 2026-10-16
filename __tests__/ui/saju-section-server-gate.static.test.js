@@ -163,3 +163,28 @@ test("영냥이 귀인 문구와 현실 체크는 문장 역할·테마 토큰�
   const realityCheck = paid.slice(paid.indexOf("function generateNeoFactPunch("), paid.indexOf("function getDaewunBranchEvidence("));
   assert.doesNotMatch(realityCheck, /#e53935|#FF6B6B|#ff9800|#FFA726|#9c27b0|#CE93D8|#e65100|#FF8A65/);
 });
+
+test("시크릿 하우스 에피소드 엔진과 엔딩 문장이 브라우저 경로에 없다", () => {
+  // 장면 표·호감 가중치·반응 대사·엔딩 판정과 결과 카드 문장. 출연진 프로필과 첫 케미(calcBase)는 무료로 남는다.
+  const FORBIDDEN = [
+    "const ED=", "SCENE_DATA", "soloDelta", "RXN_BY_EL", "SAJU_MENT", "ENDING_COPY", "calculateEnding", "CHARACTER_STORY_VOICE",
+    "resolveDynamicScene", "getCompatDynamics",
+    "한강 새벽 피크닉", "봄비가 내리던 날처럼", "박하늘은 감정 카드를 오래 쥐고", "과합(달콤하지만 부담)", "최상위 호감 + 고궁합",
+  ];
+  const files = [...new Set(["secret-house_real.html", ...browserServedFiles()])];
+  assert.ok(files.includes("public/secret-house_real.html"), "시크릿 하우스 미러를 못 봤다");
+  const offenders = [];
+  for (const rel of files) {
+    const source = stripComments(read(rel));
+    for (const needle of FORBIDDEN) if (source.includes(needle)) offenders.push(`${rel} → ${needle}`);
+  }
+  assert.deepEqual(offenders, [], "브라우저 파일에 시크릿 하우스 유료 엔진이 남아 있다:\n  " + offenders.join("\n  "));
+  const paid = read("worker/lib/saju-section/paid-secret-house.src.js");
+  for (const name of ["handleChoice(choice,btn,scene)", "buildResult()", "calculateEnding(targetChar)"]) {
+    assert.ok(paid.includes("function " + name + "{"), `${name} 정본이 서버에 없다`);
+  }
+  const page = stripComments(read("secret-house_real.html"));
+  assert.match(page, /const HOUSE_ENDPOINT='\/api\/saju\/section';/, "시크릿 하우스가 서버 걸음을 요청하지 않는다");
+  assert.match(page, /const HOUSE_FEATURE='rpt_secretHouseEntryCard';/, "시크릿 하우스 해금 키가 다르다");
+  assert.match(page, /history:G\.picks\.slice\(\)/, "시크릿 하우스는 고른 글자만 보내야 한다");
+});

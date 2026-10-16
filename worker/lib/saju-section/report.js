@@ -5,16 +5,17 @@ import {
 } from "../../yeongnyangi/fortune/saju-runtime.mjs";
 import { createSajuSectionRuntime } from "./runtime.generated.mjs";
 import { buildSukuyoFromMoonLongitude } from "../sukuyo-coordinate.js";
+import { buildSecretHouseStep } from "./secret-house.js";
 
 // 사주 종합(section_summary)·대운 풀이(section_daewun)·퀀텀 명리 엔진(rpt_quantumCard)·
 // 극T 관계 회로(sukuyo-extreme-t-relationship)·숙요 인연 도감(sukuyo-relationship-encyclopedia)·숙요 본성 심화 해석(sukuyo-nature-deep-dive)
 // ·숙요 기본 궁합(compat-sukuyo-compatibility)·정밀 궁합 확장(premium-sukuyo-compat-extra)·에너지 원정 리포트(rpt_energyCoordCard)
 // ·요주의 빌런 블랙리스트(rpt_villainCard)·명리 헬스 리포트(rpt_healthReportCard)·나의 매력 클래스(rpt_specialCharmCard)
-// ·인생 스킬 트리(rpt_skillTreeCard) 본문을 서버에서 만든다.
+// ·인생 스킬 트리(rpt_skillTreeCard)·시크릿 하우스(rpt_secretHouseEntryCard) 본문을 서버에서 만든다.
 // 계산 흐름은 js/saju-engine.js 의 사주 계산(원국 → 대운 브릿지 → 종격 판정 → 용신 정책)을 그대로 따른다.
 // 숙요 기본 궁합(compat-sukuyo-compatibility)·정밀 궁합 확장(premium-sukuyo-compat-extra)은 회당 결제다 — 라우트가 이번 결제 1건을 상대 조합 1건에 묶는다.
 export const SUKUYO_COMPAT_FEATURE_KEYS = Object.freeze(["compat-sukuyo-compatibility", "premium-sukuyo-compat-extra"]);
-export const SAJU_SECTION_FEATURE_KEYS = Object.freeze(["section_summary", "section_daewun", "rpt_quantumCard", "sukuyo-extreme-t-relationship", "sukuyo-relationship-encyclopedia", "sukuyo-nature-deep-dive", ...SUKUYO_COMPAT_FEATURE_KEYS, "rpt_energyCoordCard", "rpt_villainCard", "rpt_healthReportCard", "rpt_specialCharmCard", "rpt_skillTreeCard"]);
+export const SAJU_SECTION_FEATURE_KEYS = Object.freeze(["section_summary", "section_daewun", "rpt_quantumCard", "sukuyo-extreme-t-relationship", "sukuyo-relationship-encyclopedia", "sukuyo-nature-deep-dive", ...SUKUYO_COMPAT_FEATURE_KEYS, "rpt_energyCoordCard", "rpt_villainCard", "rpt_healthReportCard", "rpt_specialCharmCard", "rpt_skillTreeCard", "rpt_secretHouseEntryCard"]);
 // 클라이언트 출생지 선택의 기본 옵션(index.html #birthCountry 의 대한민국 서울).
 const DEFAULT_PLACE = Object.freeze({ name: "대한민국 (서울)", longitude: 127.0, latitude: 37.6, timezone: "Asia/Seoul", baseTzOffset: 9 });
 const JONG_DECISIONS = new Set(["confirmed", "rejected", "unverified"]);
@@ -163,6 +164,39 @@ function energyRouletteElements() {
   };
 }
 
+// 시크릿 하우스는 사주 셸을 쓰지 않는다 — 일간(게임 시작 때 고른 스타일)·일지와 선택 기록으로 에피소드를 다시 밟는다.
+// 일간은 원본 페이지처럼 고른 값을 받는다(어느 일간이든 같은 대본이 열린다. 처음 고를 때 내 일간이 미리 선택된다).
+// 일지는 출생 정보가 있으면(프로필 해금이면 그 카드의 출생) 그 원국의 일지를 쓰고, 출생 없이 연 옛 계정 해금만 화면 값을 받는다.
+function buildSecretHouseHtml(input) {
+  const house = input.house && typeof input.house === "object" ? input.house : {};
+  const birth = input.birth || {};
+  let natalDay = "";
+  if (String(birth.calendarDate || "")) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(birth.calendarDate))) throw new SajuSectionInputError("생년월일을 확인해 주세요.", "SAJU_INVALID_BIRTH");
+    const timeUnknown = birth.timeKnown === false;
+    const hour = timeUnknown ? 12 : Math.trunc(finite(birth.hour, NaN));
+    const minute = timeUnknown ? 0 : Math.trunc(finite(birth.minute, 0));
+    if (!(hour >= 0 && hour <= 23) || !(minute >= 0 && minute <= 59)) throw new SajuSectionInputError("출생 시각을 확인해 주세요.", "SAJU_INVALID_BIRTH");
+    const place = normalizePlace(input.place);
+    try {
+      natalDay = String(calculateNatalSaju({
+        birthDate: birth.calendarDate, calendarType: ["solar", "lunar", "lunar_leap"].includes(birth.calType) ? birth.calType : "solar", birthTimeUnknown: timeUnknown,
+        birthTime: `${pad(hour, 2)}:${pad(minute, 2)}`,
+        birthPlace: { name: place.name, longitude: place.longitude, latitude: place.latitude, timezone: place.timezone },
+      }).pillars.day || "");
+    } catch {
+      throw new SajuSectionInputError("생년월일을 확인해 주세요.", "SAJU_INVALID_BIRTH");
+    }
+  }
+  const fail = (message, code) => { throw new SajuSectionInputError(message, code); };
+  return {
+    house: buildSecretHouseStep({
+      stem: house.stem || natalDay.charAt(0), branch: natalDay ? natalDay.charAt(1) : house.branch,
+      history: house.history, finalCharId: house.finalCharId,
+    }, fail),
+  };
+}
+
 /**
  * @param {object} input
  * @param {"section_summary"|"section_daewun"|"rpt_quantumCard"|"sukuyo-extreme-t-relationship"|"sukuyo-relationship-encyclopedia"} input.featureKey
@@ -181,6 +215,7 @@ function energyRouletteElements() {
  * @param {"M"|"F"|"OTHER"} [input.partnerGender] 숙요 궁합 상대 성별
  * @param {{recent?:string[], renderedAt?:string, roulette?:{mode:string, spin:number, recent?:string[]}}} [input.energy]
  *   rpt_energyCoordCard 의 브라우저 저장 목록과 룰렛 회차(mode·몇 번째 돌림·카드를 그린 시각)
+ * @param {{stem?:string, branch?:string, history?:string[], finalCharId?:string}} [input.house] rpt_secretHouseEntryCard 의 고른 일간·선택 기록·최종 선택
  * @returns {{html:string, sajuBaseHtml?:string, prescriptionHtml?:string}} 극T 는 관계·연애·현실 패널(html)과 사주 기반 해석·처방전 패널을 따로 돌려준다
  */
 export function buildSajuSectionHtml(input) {
@@ -189,6 +224,7 @@ export function buildSajuSectionHtml(input) {
   if (featureKey === "sukuyo-relationship-encyclopedia") return buildEncyclopediaHtml(input);
   if (featureKey === "sukuyo-nature-deep-dive") return buildNatureDeepDiveHtml(input);
   if (SUKUYO_COMPAT_FEATURE_KEYS.includes(featureKey)) return buildSukuyoCompatHtml(input);
+  if (featureKey === "rpt_secretHouseEntryCard") return buildSecretHouseHtml(input);
   const birth = input.birth || {};
   if (!/^\d{4}-\d{2}-\d{2}$/.test(String(birth.calendarDate || ""))) throw new SajuSectionInputError("생년월일을 확인해 주세요.", "SAJU_INVALID_BIRTH");
   const calType = ["solar", "lunar", "lunar_leap"].includes(birth.calType) ? birth.calType : "solar";
