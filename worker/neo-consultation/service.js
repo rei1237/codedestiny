@@ -20,7 +20,7 @@ const publicRow = row => {
   return result;
 };
 
-/** 외부 효과는 어댑터로 주입. 런타임 라우트는 출시 전 이 서비스를 생성하지 않는다. */
+/** 외부 효과는 어댑터로 주입하고 결제 확정과 메일 발송을 분리한다. */
 export function createNeoService({ repository, payments, sendMail, operatorEmail, reserveCapacity = async () => {}, now = () => new Date().toISOString(), id = () => crypto.randomUUID(), sendTimeoutMs = 8000 }) {
   async function read(orderId) {
     const row = await repository.get(orderId);

@@ -13,7 +13,7 @@ export function priceNeoOrder(product, row, userId, quoteId) {
     monthlyCost: 0, consultationSnapshot: { consultationId: row.id, quoteId: quote.id, quantity: quote.quantity, unitKRW: quote.unitKRW, totalKRW: quote.totalKRW } };
 }
 
-/** 운영 판매는 레지스트리에서 차단. 출시 시에도 결제 코어의 동일 준비 경로를 사용한다. */
+/** 판매 여부는 레지스트리에서 판정하고 기존 결제 코어의 준비 경로를 사용한다. */
 export async function resolveNeoOrderProduct(db, product, userId, requestId, quoteId) {
   if (product.featureKey !== NEO_EMAIL_FEATURE) return product;
   const { createNeoRepository } = await import('./repository.js');
