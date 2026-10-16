@@ -166,6 +166,25 @@ test('홈은 기존 인간형 네오와 서버 가격을 쓰며 판매 준비 �
   assert.match(html,/neo-strategy-portrait\.webp/);
   assert.match(html,/질문당 10,000원/);
   assert.match(html,/판매 준비 중/);
+  assert.match(html,/질문 작성하기/);
+  assert.doesNotMatch(html,/BLUE MOON/);
   const template=readFileSync(new URL('../../templates/home-funnel.html',import.meta.url),'utf8');
   assert.ok(template.indexOf('{{neoEmailConsultation}}')<template.indexOf('id="cdhFeatured"'));
+});
+
+test('동시에 결제 준비를 요청해도 같은 견적의 결제는 한 건이며 재시도로 복구한다', async () => {
+  const m = createNeoMock();
+  let row = await m.service.create(user,input(2));
+  row = await m.service.quote(user,row.id,row.version);
+  const results = await Promise.allSettled([
+    m.service.prepare(user,row.id,row.quote.id),
+    m.service.prepare(user,row.id,row.quote.id),
+  ]);
+  assert.ok(results.some(result => result.status === 'fulfilled'));
+  const resumed = await m.service.prepare(user,row.id,row.quote.id);
+  assert.equal(m.paymentRows.size,1);
+  assert.equal(resumed.quote.totalKRW,20000);
+  assert.equal((await m.pay(resumed.id)).state,'received');
+  assert.equal((await m.service.acceptPayment(resumed.id)).state,'received');
+  assert.equal((await m.repository.get(resumed.id)).mailJobs.length,1);
 });
