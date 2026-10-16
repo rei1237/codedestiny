@@ -1,7 +1,7 @@
 ---
-status: active
+status: done
 updated: 2026-10-16
-next: "단계 1: 3종의 목차를 코드 정의와 대조하는 테스트를 먼저 쓴다(신년운세는 목차가 없으므로 실패해야 정상이다)."
+next: "완료. push·PR은 사용자 확인 뒤에 한다."
 ---
 
 # 대표 상담 상세: 마스터 캐릭터·챕터·얻는 효과
@@ -215,4 +215,27 @@ sed -n 1,60p js/feature-detail-panels.mjs              # 렌더러 구조
 
 ## 결과 기록
 
-(진행하면서 단계별 SHA를 적는다)
+| 단계 | 커밋 | 내용 |
+|---|---|---|
+| 1+2 | `8fce28a6f` | 목차-코드 정합 테스트, 신년운세 연결(`catalog.json`)과 hook·chaptersLabel·18장·안내문 정리. 1단계 RED를 확인한 뒤 2단계와 한 커밋으로 묶었다(실패하는 테스트만 든 커밋을 남기지 않으려고). |
+| 3 | `2be2bcc3a` | `masters` 계약. 생성기 `craftedMasters()`가 master-profiles에서 붙이고, 모르는 키·상품에 없는 장 화자는 throw한다. 연애 장마다 `master`를 둔다. |
+| 4 (선행) | `c746b22bd` | 새 필드가 없는 상품 출력 고정: 상세 JSON 74개 × 렌더 3종, crafted manifest 154개 × eager 2종을 입력·출력 해시로 기록했다. 렌더러를 바꾸기 전에 기록했다. |
+| 4 | `8218c0473` | 렌더러: 마스터 섹션, 묶음 목차(화자 칩·gain·번호 이어 가기), 28장 이상이면 첫 묶음 뒤를 `<details>`로 접기, outcomes 카드. 팝업·페이지 CSS와 `.d.mts`. |
+| 5 | `ecbe9c724` | 3종 전체 장의 `gain`, `outcomes` 4~5개(evidence = 결과 화면 코드 경로), 연애 chaptersLabel, 인생의 책 목차 4묶음. 금지어 검사 테스트 포함. |
+
+검증 (2026-10-16)
+- `npm run test:node` 3311/3311, `npm run test:jest` 6186/6186, `tsc --noEmit` 통과.
+- `npm run check:fast`: 그 안의 `npm test`에서 `__tests__/worker/secret-fail-closed.test.js` 1건이 5초 타임아웃으로 실패했다. 같은 시간에 Next 개발 서버와 Playwright가 함께 돌았다. 단독 재실행은 15/15였고, 이어 돌린 `test:jest` 전체에서도 통과했다. 그 밖의 항목은 모두 ok였다.
+- `node scripts/verify-feature-popup-journey.mjs`: 74개 상품 × 4개 폭 PASS.
+- Playwright 360/768/1280 × 연이·네오 모드: 홈 팝업 3종(실제 팝업 템플릿 fixture)과 `/features/{love-secret,new-year,life-book}-ai/`(Next dev). 새 섹션 글자의 AA 대비 실패 0, 가로 넘침 0. 신년운세 팝업에 목차 18장이 뜬다.
+  - 첫 화면에 새로 붙는 이미지는 아바타뿐이다(yeoni-love 5.4KB, hanbi-love 4.6KB, neo-new-year 5.6KB, yun-life-book 4.7KB).
+  - 신년운세는 2단계에서 상세를 연결해 패널 01(40KB)이 새로 뜬다. 이것은 상세가 없던 빈틈을 메운 결과다.
+  - 네오 모드 `/features` 페이지 9건(3폭 × 3상품) 중 4건에서 "Invalid or unexpected token" pageerror가 한 번씩 잡혔다. 부하가 빠진 뒤 같은 페이지를 8번 다시 열었을 때는 0건이었다. dev 서버의 청크 타이밍 문제로 보이지만, 운영 빌드로 한 번 더 확인할 만하다.
+  - 스크린샷: `D:\Development\codedestiny-worktrees\sd-shots\`
+
+판단과 남은 결정
+- "28장이 넘는 목록은 접는다"는 `>= 28`로 구현했다. 연애가 정확히 28장이라 `> 28`이면 아무 상품에도 적용되지 않는다.
+- 인생의 책 번호는 목차 전체에 이어지는 번호(01~17)다. 그래서 "1장 타고난 사주의 원형"은 03으로 보인다. 제목은 생성 계획과 같아야 해서 "N장"을 제목에 넣지 않았다.
+- 초상(`portrait`)은 데이터에만 싣고 그리지 않는다. 설계 C의 구성 요소가 아바타뿐이다.
+- 연애 상세의 기존 안내문에 "10년 경력 상담사·명리학자가 만든"이 있다. 캐릭터가 아니라 제작자에 대한 기존 문구라서 이번에는 고치지 않았다. 이 표현을 유지할지는 사용자가 정한다.
+- push와 PR은 사용자 확인을 기다린다.
