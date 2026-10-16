@@ -62,16 +62,19 @@ const MOBILE_UA =
  *    `a.tarot-tile--mindscan` 1,224ms)이라, 못 잰다는 것은 **가장 중요한 것을 못 잰다**는 뜻이었다.
  */
 const TARGETS = [
-  /* 검색 입력은 홈에 늘 펼쳐져 있다(2026-10-01 — 검색 디스클로저 제거). 화면 안으로만 가져온다. */
+  /* 2026-10-17 단순화부터 홈에 검색 입력이 없다. 사용자가 밟는 길 그대로 '모든 운세 보기' 버튼으로
+     목록을 연 뒤, 그 목록의 검색 입력을 잰다. */
   {
     name: "서비스 검색 입력",
-    selector: "#fortuneGatewaySearch",
+    selector: "#cdAllFortunesSearch",
     type: "type",
     text: "사주",
     setup: async (page) => {
-      await scrollIntoView(page, "#fortuneGatewaySearch");
-      await page.waitForSelector("#fortuneGatewaySearch", { state: "visible" });
+      await scrollIntoView(page, ".cdh-all-cta__btn");
+      await page.click(".cdh-all-cta__btn");
+      await page.waitForSelector("#cdAllFortunesSearch", { state: "visible" });
     },
+    teardown: closeOverlays,
   },
 
   /* 🔴 '탑바 드롭다운'(`.cd-nav-group__toggle`)은 뺐다. **모바일 DOM 에 0개다**(실측 2026-08-16 —
@@ -81,10 +84,16 @@ const TARGETS = [
   /* 🔴 이 헤더는 y≈9,574 로 폴드 한참 아래다. 자동 스크롤이 CPU 4배 스로틀에서 1,200ms 안에
      못 끝나 그동안 **매 회차 "클릭 타임아웃"으로 조용히 빠지고 있었다.** 스크롤은 측정 대상이
      아니므로 setup 에서 미리 끝내고, 클릭만 잰다. */
+  /* 2026-10-17 단순화부터 컬렉션 영역(#cdhCollectionsWrap)은 홈에 숨어 있고, 컬렉션 딥링크·진입점이
+     부르는 __cdOpenGarden 으로만 열린다. 같은 함수로 연 뒤 잰다.
+     첫 헤더(명상 컬렉션)는 /tarot/prompt-maker/ 로 가는 링크라, 펼치는 버튼 헤더만 고른다. */
   {
     name: "컬렉션 펼치기",
-    selector: ".tarot-collection__header",
-    setup: (page) => scrollIntoView(page, ".tarot-collection__header"),
+    selector: "button.tarot-collection__header",
+    setup: async (page) => {
+      await page.evaluate(() => window.__cdOpenGarden && window.__cdOpenGarden());
+      await scrollIntoView(page, "button.tarot-collection__header");
+    },
     /* 🔴 이 대상만 타임아웃을 올린다. UI 가 느려서가 아니다 — 스크롤 뒤 상태를 실측하면
        rect 는 4프레임 내내 [41, 383.6, 308, 91.8] 로 **완전히 불변**이고, 중앙 좌표의 최상단은
        자기 자식(`p.tarot-collection__subtitle`)이며 pointer-events 도 auto 다. 즉 가려짐도
@@ -106,18 +115,8 @@ const TARGETS = [
     teardown: closeOverlays,
   },
 
-  /* 🔴 타임아웃의 원인은 느려서가 아니라 **프로필 카드가 없으면 #cdTodayHubBody 가 hidden** 이라
-     playwright 의 actionability 대기가 끝내 만족되지 않기 때문이다(render() 의 게이트 분기).
-     그래서 --profile=1 로 카드를 심었을 때만 잰다. */
-  { name: "오늘의 운세 탭", selector: "#cdTodayTabVedic", needsProfile: true },
-
-  /* 폴드 아래라 앞 대상이 레이아웃을 바꾸면 화면 밖으로 밀린다 — 재기 전에 화면 안으로 가져온다. */
-  {
-    name: "푸터 아코디언",
-    selector: ".cd-footer-accordion__toggle, .cd-footer-col__title",
-    setup: (page) => scrollIntoView(page, ".cd-footer-accordion__toggle, .cd-footer-col__title"),
-    clickTimeout: 4000,
-  },
+  /* '오늘의 운세 탭'(#cdTodayTabVedic)은 홈의 오늘 허브와 함께, '푸터 아코디언'은 최소 푸터로 바꾸며
+     2026-10-17 에 화면에서 없어졌다. 없는 요소를 매 회차 "요소 없음"으로 남기지 않도록 목록에서 뺐다. */
 
   /* 필드 INP 1,592ms · 1,224ms. 이동하므로 문서 요청을 취소하고 잰다.
      🔴 navigates 대상은 **입력 대기·처리만 신뢰하고 렌더 성분은 신뢰하지 않는다** —

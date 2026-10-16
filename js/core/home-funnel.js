@@ -3,44 +3,28 @@
   'use strict';
   var home = document.getElementById('cdHomeFunnel');
   if (!home) return;
-  var services = document.getElementById('cdhServices');
   var formPanel = document.getElementById('dpDestinyPanel');
   var form = document.getElementById('destinyCardForm');
   var doc = document.documentElement;
-  var lastFilter = null;
-  var more = document.getElementById('cdhMore');
-  // 홈의 유일한 접기는 "연이의 정원"(<details id="cdhMore">)이다. 상태는 details.open 하나뿐이고
-  // 저장하지 않는다 — 재방문은 늘 닫힌 채 시작한다. 정원을 여닫는 다른 코드는 이 두 함수를 부른다.
-  var gardenSummary = more ? more.querySelector(':scope > summary') : null;
-  function syncGarden() {
-    if (!gardenSummary) return;
-    gardenSummary.setAttribute('aria-expanded', more.open ? 'true' : 'false');
-  }
+  // 운세 컬렉션(#cdhCollections)은 홈에 펼치지 않는다. 컬렉션으로 가는 진입점(체계 카드·하단 탭 등)이
+  // __cdOpenGarden 으로 열고, '접기'가 닫는다. 상태는 hidden 하나뿐이고 저장하지 않는다.
+  var more = document.getElementById('cdhCollectionsWrap');
   function openGarden() {
-    if (!more) return;
-    if (!more.open) more.open = true;
-    syncGarden();
+    if (more) more.hidden = false;
   }
   function closeGarden() {
-    if (!more || !more.open) return;
-    var focusInside = more.contains(document.activeElement) && document.activeElement !== gardenSummary;
-    more.open = false;
-    syncGarden();
-    if (!gardenSummary) return;
-    // 닫힌 정원 안에 포커스를 남기지 않는다. 내용이 접혀 문서가 줄어든 뒤 요약 줄이 화면 밖이면
-    // 가장 가까운 가장자리로만 맞춘다(맨 위로 튀지 않게).
-    if (focusInside) {
-      try { gardenSummary.focus({ preventScroll: true }); } catch (_) { gardenSummary.focus(); }
+    if (!more || more.hidden) return;
+    var focusInside = more.contains(document.activeElement);
+    more.hidden = true;
+    // 닫힌 영역 안에 포커스를 남기지 않는다 — 같은 자리의 '모든 운세 보기' 버튼으로 돌려준다.
+    var fallback = home.querySelector('.cdh-all-cta__btn');
+    if (focusInside && fallback) {
+      try { fallback.focus({ preventScroll: true }); } catch (_) { fallback.focus(); }
     }
-    var rect = gardenSummary.getBoundingClientRect();
-    if (rect.top < 0 || rect.bottom > window.innerHeight) gardenSummary.scrollIntoView({ block: 'nearest' });
   }
   window.__cdOpenGarden = openGarden;
   window.__cdCloseGarden = closeGarden;
   if (more) {
-    if (gardenSummary) gardenSummary.setAttribute('aria-controls', 'cdhGardenBody');
-    syncGarden();
-    more.addEventListener('toggle', syncGarden);
     more.addEventListener('click', function (event) {
       if (event.target instanceof Element && event.target.closest('[data-cdh-garden-close]')) closeGarden();
     });
@@ -117,12 +101,9 @@
   syncGardenProfile();
   move('#langWrap', 'cdhLanguageSlot');
   move('#cdMobileHeader .theme-switch-wrapper--appbar', 'cdhThemeSlot');
-  move('#dpKakaoReferralShareBtn', 'cdhShareControls');
-  move('#dpKakaoReferralNote', 'cdhShareControls');
 
   function revealInput() {
     doc.classList.add('cdh-input-open');
-    services.hidden = true;
     if (window.__cdOpenDestinyForm) window.__cdOpenDestinyForm();
     requestAnimationFrame(function () {
       if (form && form.getBoundingClientRect().height) form.scrollIntoView({ block: 'start' });
@@ -138,40 +119,36 @@
     }).observe(formPanel, { attributes: true, attributeFilter: ['class'] });
   }
 
+  // 예전 검색 섹션 해시(#services, #services/love, #cdFinder …)는 모든 운세 시트로 연다.
+  // 시트 함수(cdOpenAllFortunes)는 셸 하단 스크립트가 정의하므로, 아직 없으면 load 뒤에 한 번 더 시도한다.
+  function openAllFortunes(filter) {
+    if (typeof window.cdOpenAllFortunes !== 'function') {
+      if (document.readyState !== 'complete') window.addEventListener('load', function () { openAllFortunes(filter); }, { once: true });
+      return;
+    }
+    window.cdOpenAllFortunes();
+    var sheet = document.getElementById('cdAllFortunes');
+    if (!filter || !sheet || !sheet.open) return;
+    var chip = sheet.querySelector(filter === 'tarot' ? '[data-method="tarot"]' : '[data-purpose="' + filter.replace(/[^a-z]/g, '') + '"]');
+    if (chip && chip.getAttribute('aria-pressed') !== 'true') chip.click();
+  }
+
   function route() {
     var hash = location.hash.slice(1);
     var isFinder = hash === 'services' || hash.indexOf('services/') === 0 || hash === 'cdServiceIndex' || hash === 'cdFinder';
-    // 검색 섹션(#cdFinder)은 홈 안에 있다. 홈을 숨기면 해시 진입이 빈 화면이 된다.
     home.hidden = false;
-    var folded = document.getElementById(isFinder ? 'cdFinder' : hash);
-    // 정원 안의 앵커(#cdhPass 등)로 들어오면 정원만 열고 대상으로 이동한다. 검색은 정원 밖이다.
-    if (more && folded && more.contains(folded) && !more.open) {
+    // 컬렉션 안의 앵커(#tarotCollection 등)로 들어오면 컬렉션 영역만 열고 대상으로 이동한다.
+    var folded = hash && !isFinder ? document.getElementById(hash) : null;
+    if (more && folded && more.contains(folded) && more.hidden) {
       openGarden();
-      if (!isFinder) requestAnimationFrame(function () { folded.scrollIntoView({ block: 'start' }); });
+      requestAnimationFrame(function () { folded.scrollIntoView({ block: 'start' }); });
     }
     if (isFinder) {
       doc.classList.remove('cdh-input-open');
-      services.hidden = false;
-      var filter = hash.split('/')[1] || '';
-      if (filter !== lastFilter) {
-        services.querySelectorAll('[aria-pressed="true"]').forEach(function (chip) { chip.click(); });
-        var chip = services.querySelector(filter === 'tarot'
-          ? '[data-method="tarot"]'
-          : '[data-purpose="' + filter.replace(/[^a-z]/g, '') + '"]');
-        // 필터 패널 안의 칩(가족·인생 등)은 패널을 열어 눌린 상태가 보이게 한다.
-        if (chip && chip.closest('.fortune-gateway__filter-panel')) chip.closest('.fortune-gateway__filter-panel').open = true;
-        if (chip) chip.click();
-        lastFilter = filter;
-      }
-      requestAnimationFrame(function () {
-        var finder = document.getElementById('cdFinder');
-        var input = document.getElementById('fortuneGatewaySearch');
-        if (finder) finder.scrollIntoView({ block: 'start' });
-        try { if (input) input.focus({ preventScroll: true }); } catch (_) {}
-      });
+      history.replaceState(null, '', location.pathname + location.search);
+      openAllFortunes(hash.split('/')[1] || '');
     } else if (hash === 'home') {
       doc.classList.remove('cdh-input-open');
-      services.hidden = false;
       window.scrollTo(0, 0);
     } else if (hash === 'destinyCardForm') {
       revealInput();
@@ -228,18 +205,20 @@
     window.setTimeout(clearPortalOverlay, 2500);
   }
 
-  // 최애 케미 카드가 절반 이상 보였을 때 한 번만 노출을 센다. 개인정보는 싣지 않는다.
-  (function trackChemiCardImpression() {
-    var card = document.querySelector('[data-cdh-chemi]');
-    if (!card || typeof window.IntersectionObserver !== 'function') return;
+  // 대표 상담 덱의 위치 점 — 모바일 가로 스크롤에서 가장 많이 보이는 카드의 점을 켠다. 격자(데스크톱)에서는 CSS 가 점을 숨긴다.
+  (function syncDeckDots() {
+    var viewport = document.getElementById('cdSigViewport');
+    var dots = home.querySelectorAll('[data-cd-sig-dot]');
+    if (!viewport || !dots.length || typeof window.IntersectionObserver !== 'function') return;
+    var cards = Array.prototype.slice.call(viewport.querySelectorAll('.cd-sig-card'));
+    var ratios = cards.map(function () { return 0; });
     var observer = new window.IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (!entry.isIntersecting || entry.intersectionRatio < 0.5) return;
-        observer.disconnect();
-        if (typeof window.cdTrack === 'function') window.cdTrack('home_card_impression', { card: 'destiny_bias_chemi', placement: 'home_top' });
-      });
-    }, { threshold: [0.5] });
-    observer.observe(card);
+      entries.forEach(function (entry) { ratios[cards.indexOf(entry.target)] = entry.intersectionRatio; });
+      var best = 0;
+      for (var i = 1; i < ratios.length; i += 1) if (ratios[i] > ratios[best]) best = i;
+      for (var j = 0; j < dots.length; j += 1) dots[j].classList.toggle('is-active', j === best);
+    }, { root: viewport, threshold: [0, 0.25, 0.5, 0.75, 1] });
+    cards.forEach(function (card) { observer.observe(card); });
   })();
 
   document.addEventListener('click', function (event) {
@@ -269,12 +248,7 @@
     if (target.closest('#cdMobileBottomNav [data-nav-key="home"]')) {
       doc.classList.remove('cdh-input-open');
       home.hidden = false;
-      services.hidden = false;
       if (location.hash.indexOf('services') !== -1) history.replaceState(null, '', location.pathname + location.search);
-    }
-    if (target.closest('[data-cd-service-index-jump]')) {
-      event.preventDefault();
-      location.hash = 'cdFinder';
     }
   }, true);
 

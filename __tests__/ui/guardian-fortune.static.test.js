@@ -11,7 +11,8 @@ test('the destiny gate stands on its own after the inline home widget was retire
   const gateway = read('js/fortune-gateway.js');
   const css = read('styles/fortune-gateway.css');
 
-  assert.match(html, /id="fortuneGatewayEntry"/);
+  // 2026-10-17 "직관성": 홈의 운명의 문 카드는 걷어냈다. 연이 상담(/fortune-chat/)은 모든 운세 시트가 service-registry 로 연다.
+  assert.doesNotMatch(html, /id="fortuneGatewayEntry"/);
   assert.match(html, /flower-pig-honey-hug\.webp/);
   // 🔴 초융합으로 가는 길은 홈에 남아 있어야 한다(히어로 CTA · #cdConcernPick · #cdSignatureConsult).
   //    2026-09-02 에 뺀 것은 "운명의 문 안의 네 번째 중복 진입" 하나뿐이다.
@@ -56,45 +57,14 @@ test('the destiny gate stands on its own after the inline home widget was retire
   assert.match(css, /\.cd-reduced-motion \.fortune-gateway__door--chat \.fortune-gateway__door-art-yeon/);
 });
 
-// 🔴 단언을 셸 전체가 아니라 이 섹션 안으로 좁힌다. 예전 단언은 홈 어디에든 문자열이 있으면
-//    통과해서, 카드가 사라져도 다른 섹션의 같은 문구에 걸려 초록불이 날 수 있었다.
-const sliceDestinyGate = (html, shell) => {
-  const start = html.indexOf('id="fortuneGatewayEntry"');
-  assert.ok(start > 0, `${shell}: id="fortuneGatewayEntry" 를 못 찾았다`);
-  const end = html.indexOf('</section>', start);
-  assert.ok(end > start, `${shell}: 게이트웨이 섹션의 끝을 못 찾았다`);
-  return html.slice(start, end);
-};
-
-test('the destiny gate leads to the conversational reading in every shell', () => {
+// 2026-10-17 "직관성": 운명의 문 카드는 홈에서 빠졌다. 연이 상담은 모든 운세 시트(service-registry)에서 열고,
+// 상담 화면이 결제 정본 가격(1회 5,000원)을 직접 보여 준다(fusion-fortune.static.test.js).
+test('the destiny gate left every home shell; the conversational reading stays in the catalogue', () => {
   const shells = ['index.html', 'public/index.html', 'public/static/index.html', 'public/en/index.html', 'public/ja/index.html', 'public/zh/index.html'];
+  assert.match(read('js/core/service-registry.js'), /id: "fortune-chat",[\s\S]{0,200}href: "\/fortune-chat\/"/);
   for (const shell of shells) {
     const html = read(shell);
-    const gate = sliceDestinyGate(html, shell);
-    // 카드 전체가 링크라 탭 타깃이 넉넉하다.
-    // 🔴 2026-10-13: 상담 캐릭터는 연이 하나다 — 네오 상담 카드를 걷어 냈다(다크 모드도 연이).
-    //    캐릭터는 카드에 고정이라 홈 테마 동기화(js/core/home-funnel.js)가 href 를 바꾸지 않는다.
-    assert.match(gate, /class="fortune-gateway__door fortune-gateway__door--chat" href="\/fortune-chat\/\?character=yeoni" data-chat-character="yeoni"/, shell);
-    assert.doesNotMatch(gate, /fortune-gateway__door--neo|character=neo|data-chat-character="neo"/, shell);
-    // 🔴 2026-09-02: 홈에 초융합 진입이 이미 세 곳(히어로 CTA · #cdConcernPick · #cdSignatureConsult)
-    //    있어서 이 자리의 네 번째 중복을 뺐다. 되살리려면 그 중복부터 정리할 것.
-    assert.doesNotMatch(gate, /fortune-gateway__door--fusion|href="\/fusion-fortune\/"/, shell);
-    // --duo 가 가로형 카드 레이아웃을 켜는 유일한 스위치다(styles/fortune-gateway.css). 카드가 하나라 --solo 로 한 줄을 다 쓴다.
-    assert.match(gate, /class="fortune-gateway__doors fortune-gateway__doors--duo fortune-gateway__doors--solo"/, shell);
-    // 카드는 연이 한 명만 그린다.
-    assert.match(gate, /fortune-gateway__door-art-yeon/, shell);
-    assert.doesNotMatch(gate, /fortune-gateway__door-art-neo|neo-greet\.webp/, shell);
-    // 🔴 2026-09-15 사용자 결정: "오늘의 한마디"는 연이·네오의 말이므로 작약 화관 꽃돼지 연이를 노출한다.
-    //    컬렉션·상세 서비스 일러스트 동기화가 이 마스코트 슬롯까지 확장되면 안 된다.
-    assert.match(gate, /src="\/images\/fortune-tea-house\/yeon-peony-crown\.webp(?:\?v=[^"]+)?"/, shell);
-    assert.doesNotMatch(gate, /feature-details\/assets\/fortune-chat-/i, shell);
-    assert.doesNotMatch(gate, /\/icons\/neo-130\.webp/, shell);
-    // 장식 라인아트는 텍스트 없는 빈 span 하나로 두고 그림은 CSS mask 가 그린다.
-    assert.match(gate, /<span class="fortune-gateway__flora" aria-hidden="true"><\/span>/, shell);
-    // 가격을 카드에서 바로 읽을 수 있어야 하고, 없어진 무료 혜택은 보이면 안 된다.
-    // 태그에 속성을 허용한다 — i18n 마커(data-cd-trans)가 붙어도 계약은 그대로다.
-    assert.match(gate, /<b[^>]*>1회 5,000원<\/b>/, shell);
-    assert.doesNotMatch(gate, /무료 1회|이후 1회/, shell);
+    assert.doesNotMatch(html, /id="fortuneGatewayEntry"/, shell);
     // 계정 무료 3회는 총량이라 "매일" 로 약속하면 안 된다.
     assert.doesNotMatch(html, /매일 무료|하루 무료/, shell);
     // 다이얼로그를 열지 않으면서 aria-haspopup 을 달아 두면 스크린리더에 거짓말을 하게 된다.

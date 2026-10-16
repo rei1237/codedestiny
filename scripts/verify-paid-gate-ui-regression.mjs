@@ -9,6 +9,7 @@ const indexSource = readFileSync(resolve(root, "index.html"), "utf8");
 // pass-store/direct 카드의 CSS 선언 순서 검사는 이 파일을 봐야 한다.
 const checkoutEntrySource = readFileSync(resolve(root, "js/core/checkout-entry.js"), "utf8");
 const staticIndexSource = readFileSync(resolve(root, "public/static/index.html"), "utf8");
+const homeFunnelCssSource = readFileSync(resolve(root, "styles/home-funnel.css"), "utf8");
 const billingClientSource = readFileSync(resolve(root, "app/_lib/billing-client.ts"), "utf8");
 const paymentProcessingContextSource = readFileSync(resolve(root, "app/components/PaymentProcessingContext.tsx"), "utf8");
 const paymentLoadingSource = readFileSync(resolve(root, "app/components/common/PaymentLoading.tsx"), "utf8");
@@ -542,9 +543,14 @@ for (const source of [indexSource, staticIndexSource]) {
       source.includes('href="/styles/home-funnel.css') || source.includes('data-cd-home-funnel-critical="1"'),
       "replacement home critical stylesheet",
     );
+    // 퍼널 홈의 모바일 배치는 차단 시트 home-funnel.css 가 맡는다. 셸 안의 860px 마커는 2026-10-17
+    // 홈 단순화로 지운 후기(.cd-reviews) 블록에만 있던 우연한 일치였다.
+    assertContains(homeFunnelCssSource, "@media (max-width:640px)", "mobile critical layout");
   }
-  else assertContains(source, ".moon-hero{grid-template-columns", "desktop critical layout");
-  assertContains(source, "@media (max-width:860px)", "mobile critical layout");
+  else {
+    assertContains(source, ".moon-hero{grid-template-columns", "desktop critical layout");
+    assertContains(source, "@media (max-width:860px)", "mobile critical layout");
+  }
   assertContains(source, ".cd-fortune-pick__grid{grid-template-columns:1fr", "mobile card layout fallback");
   assertContains(source, '<link rel="stylesheet" href="/styles/core-ui.css', "core CSS blocking stylesheet");
   // 🔴 fortune-ui 는 a8565083a(2026-08-15) 부터 두 갈래로 나간다 — 홈이 실제로 매칭하는 부분집합

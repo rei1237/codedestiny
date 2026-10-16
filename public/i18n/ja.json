@@ -262,7 +262,7 @@
         "title": "神託・占術コレクション",
         "subtitle": "古代の知恵が今日のあなたに語りかける",
         "lede": "ひとつの問いを置くと、東西の象徴解釈を重ねて今日の答えを明確に整えます。",
-        "featureline": "花札占い · エジプト神託 · IFÀ · 易経64卦 · ルーン · ジオマンシー · 紅茶占い · デスティニーポーカー",
+        "featureline": "花札占い · エジプト神託 · IFÀ · 易経64卦 · ルーン · ジオマンシー · 紅茶占い",
         "aria": "オープンオラクルと占いコレクション"
       },
       "cosmic": {
@@ -288,9 +288,9 @@
       },
       "misc": {
         "title": "その他の占術コレクション",
-        "subtitle": "心理テストから四柱FPTIまで一度に探索",
-        "lede": "心理テスト、AIおみくじ、血液型テスト、推し運命、四柱FPTIをカードコレクションとして自然につなぎます。",
-        "featureline": "心理テストハブ · AIおみくじ · 血液型テスト · 推し運命 · 四柱FPTI",
+        "subtitle": "心理テストからミニ占いゲームまで一度に探索",
+        "lede": "心理テスト、ペット四柱推命、恋愛シミュレーション、推し運命、そしてミニ占いゲーム10種をひとつのコレクションにまとめました。",
+        "featureline": "ミニ占いゲーム · 心理テストハブ · AIペット四柱推命 · LOVE CODE · 推し運命",
         "aria": "その他の占いコレクションを開く"
       },
       "openHint": "タップして開く"
@@ -1710,7 +1710,7 @@
       "chatNeoDesc": "白獅子のネオが情勢から整理します。核心と次の一手を率直に示します。",
       "chatYeoniGo": "ヨニと相談する",
       "chatNeoGo": "ネオと相談する",
-      "allTitle": "楽しい占いをすべて見る",
+      "allTitle": "すべての占い",
       "allSignatureLink": "代表相談6枚を見る",
       "allSearchLabel": "すべての占いを検索",
       "allSearchPlaceholder": "転職・復縁・相性などで探してみて",
@@ -1992,6 +1992,23 @@
       "packPerUse": "1回あたり{amount} KRWの鑑定",
       "budgetLeft": "残り{amount} KRW",
       "packNote": "ヨンニャンイのセットは同じ魚の相談に1回ずつ使え、花豚の利用券とは別に適用されます。"
+    },
+    "simpleHome": {
+      "tagline": "命理学にもとづく運勢相談",
+      "byline": "命理学者パク・ビョンハ（ネオ）について",
+      "title": "経験10年の命理学者が設計した代表相談",
+      "freeTitle": "まずは無料で",
+      "miniGames": "ミニ占いゲーム",
+      "freeSaju": "無料四柱推命",
+      "freeSajuNote": "生年月日ですぐに見る",
+      "freeToday": "今日の運勢",
+      "freeTodayNote": "毎日新しく開く一日の運",
+      "freeTarot": "タロット",
+      "freeTarotNote": "カード1枚で気軽に",
+      "directoryTitle": "占いコンテンツ一覧",
+      "miniGamesDesc": "ポーカー・おみくじ・FPTIなど10種",
+      "miniGamesAria": "ミニ占いゲーム一覧を見る",
+      "miniGamesAlt": "ミニ占いゲームの代表画像"
     }
   },
   "terms": {
@@ -7006,13 +7023,13 @@
         "kwp0s": "マイ",
         "kxro3": "相談",
         "kxvio": "四柱推命",
-        "k16cq4to": "楽しい占い",
+        "k16cq4to": "占い一覧",
         "ku6gdz": "パス",
         "kb86wy0": {
           "ariaLabel": "自分のプロフィールで四柱推命を見る"
         },
         "k1mpcz5w": {
-          "ariaLabel": "楽しい占いを見る"
+          "ariaLabel": "すべての占いを見る"
         },
         "k16eawmw": {
           "ariaLabel": "パスストア"

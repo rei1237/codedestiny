@@ -262,7 +262,7 @@
         "title": "神諭與佔術合集",
         "subtitle": "古老智慧今日向你發聲",
         "lede": "放下一個問題，讓東西方象徵解讀交織，為今日整理清晰結論。",
-        "featureline": "花牌佔 · 埃及神諭 · IFÀ · 易經64卦 · 符文 · 土佔 · 茶葉佔 · 命運撲克",
+        "featureline": "花牌佔 · 埃及神諭 · IFÀ · 易經64卦 · 符文 · 土佔 · 茶葉佔",
         "aria": "開放式甲骨文與占卜寶典"
       },
       "cosmic": {
@@ -288,9 +288,9 @@
       },
       "misc": {
         "title": "其他佔術合集",
-        "subtitle": "從心理測驗到八字FPTI，一次探索",
-        "lede": "心理測驗、AI禦神簽、血型測驗、本命推運與八字FPTI，自然連結成一組卡片合集。",
-        "featureline": "心理測驗中心 · AI禦神簽 · 血型測驗 · 本命推運 · 八字FPTI",
+        "subtitle": "從心理測驗到迷你運勢遊戲，一次探索",
+        "lede": "心理測驗、寵物八字、戀愛模擬、本命推運，以及10款迷你運勢遊戲，匯集在同一個合集中。",
+        "featureline": "迷你運勢遊戲 · 心理測驗中心 · AI寵物八字 · LOVE CODE · 本命推運",
         "aria": "開啟其他占卜收藏"
       },
       "openHint": "點擊開啟"
@@ -1710,7 +1710,7 @@
       "chatNeoDesc": "白獅子 Neo 先理清整體局勢，直截了當地點出關鍵與下一步。",
       "chatYeoniGo": "和妍伊聊聊",
       "chatNeoGo": "和 Neo 聊聊",
-      "allTitle": "查看全部有趣運勢",
+      "allTitle": "全部運勢",
       "allSignatureLink": "查看六張代表諮詢",
       "allSearchLabel": "搜尋全部運勢",
       "allSearchPlaceholder": "試試搜尋「跳槽」「復合」「合盤」",
@@ -1992,6 +1992,23 @@
       "packPerUse": "每次可用於{amount}韓元的諮詢",
       "budgetLeft": "剩餘額度{amount}韓元",
       "packNote": "靈貓套組每次用於同一魚種的一次諮詢，與花豬使用券分別適用。"
+    },
+    "simpleHome": {
+      "tagline": "基於命理學的運勢諮詢",
+      "byline": "命理學者 Park Byeong-ha（Neo）簡介",
+      "title": "由擁有十年經驗的命理學者設計的代表諮詢",
+      "freeTitle": "先免費看看",
+      "miniGames": "迷你運勢遊戲",
+      "freeSaju": "免費八字",
+      "freeSajuNote": "輸入出生日期立即查看",
+      "freeToday": "今日運勢",
+      "freeTodayNote": "每天更新的當日運勢",
+      "freeTarot": "塔羅",
+      "freeTarotNote": "抽一張牌輕鬆看看",
+      "directoryTitle": "瀏覽運勢內容",
+      "miniGamesDesc": "撲克、御神籤、FPTI 等 10 種",
+      "miniGamesAria": "查看迷你運勢遊戲合集",
+      "miniGamesAlt": "迷你運勢遊戲封面圖"
     }
   },
   "terms": {
@@ -7006,13 +7023,13 @@
         "kwp0s": "我的",
         "kxro3": "諮詢",
         "kxvio": "四柱八字",
-        "k16cq4to": "趣味運勢",
+        "k16cq4to": "全部運勢",
         "ku6gdz": "通行證",
         "kb86wy0": {
           "ariaLabel": "以我的資料查看四柱八字"
         },
         "k1mpcz5w": {
-          "ariaLabel": "瀏覽趣味運勢"
+          "ariaLabel": "瀏覽全部運勢"
         },
         "k16eawmw": {
           "ariaLabel": "通行證商店"

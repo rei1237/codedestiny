@@ -85,7 +85,8 @@ const { texts, attrs, interpolations } = collectMarkers();
 
 test("셸 텍스트 마커를 전수 발견한다", () => {
   assert.ok(
-    texts.size >= 1000,
+    // 2026-10-17 "직관성": 홈 섹션을 걷어내며 마커가 1000개 아래(989)로 줄었다. 바닥은 파서 유실을 잡는 용도라 950 으로 둔다.
+    texts.size >= 950,
     `index.html 의 data-cd-trans 마커가 ${texts.size}개뿐이다 — 마커가 유실됐거나 셀렉터가 셸 구조를 못 따라가고 있다`,
   );
 });

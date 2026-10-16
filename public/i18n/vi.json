@@ -262,7 +262,7 @@
         "title": "Bộ sưu tập Oracle & Bói toán",
         "subtitle": "Trí tuệ cổ xưa nói với bạn hôm nay",
         "lede": "Đưa ra một câu hỏi, sau đó nhận được kết luận rõ ràng thông qua cách đọc biểu tượng phương Đông và phương Tây.",
-        "featureline": "Hwatu · Nhà tiên tri Ai Cập · IFA · Kinh Dịch 64 quẻ · Runes · Phong thủy · Lá trà · Poker định mệnh",
+        "featureline": "Hwatu · Nhà tiên tri Ai Cập · IFA · Kinh Dịch 64 quẻ · Runes · Phong thủy · Lá trà",
         "aria": "Mở Bộ sưu tập Oracle và Bói toán"
       },
       "cosmic": {
@@ -288,9 +288,9 @@
       },
       "misc": {
         "title": "Bộ sưu tập bói toán khác",
-        "subtitle": "Khám phá mọi thứ từ bài kiểm tra tâm lý đến Tứ trụ FPTI",
-        "lede": "Các bài kiểm tra tâm lý, AI omikuji, bài kiểm tra nhóm máu, số phận người được yêu thích và Tứ trụ FPTI kết hợp với nhau thành một bộ sưu tập thẻ.",
-        "featureline": "Trung tâm tâm lý học · AI Omikuji · Kiểm tra nhóm máu · Vận mệnh người được yêu thích · Tứ trụ FPTI",
+        "subtitle": "Khám phá mọi thứ từ bài kiểm tra tâm lý đến trò chơi vận mệnh mini",
+        "lede": "Bài kiểm tra tâm lý, tứ trụ thú cưng, mô phỏng tình yêu, vận mệnh người được yêu thích và 10 trò chơi vận mệnh mini trong một bộ sưu tập.",
+        "featureline": "Trò chơi vận mệnh mini · Trung tâm tâm lý học · Tứ trụ thú cưng AI · LOVE CODE · Vận mệnh người được yêu thích",
         "aria": "Mở Bộ sưu tập bói toán khác"
       },
       "openHint": "Nhấn để mở"
@@ -1710,7 +1710,7 @@
       "chatNeoDesc": "White lion Neo maps the whole board first, then points out the key issue and your next move directly.",
       "chatYeoniGo": "Talk with Yeoni",
       "chatNeoGo": "Talk with Neo",
-      "allTitle": "Xem tất cả luận giải thú vị",
+      "allTitle": "Tất cả luận giải",
       "allSignatureLink": "Xem sáu buổi tư vấn tiêu biểu",
       "allSearchLabel": "Search all readings",
       "allSearchPlaceholder": "Try “job change”, “reunion”, “compatibility”",
@@ -1992,6 +1992,23 @@
       "packPerUse": "Mỗi lượt cho buổi tư vấn KRW {amount}",
       "budgetLeft": "Còn lại KRW {amount}",
       "packNote": "Mỗi lượt của gói Yeongnyangi mở một buổi tư vấn cùng loại cá, áp dụng riêng với vé Heo Hoa."
+    },
+    "simpleHome": {
+      "tagline": "Tư vấn vận mệnh dựa trên Myeongri",
+      "byline": "Giới thiệu chuyên gia Myeongri Park Byeong-ha (Neo)",
+      "title": "Tư vấn tiêu biểu do chuyên gia Myeongri 10 năm kinh nghiệm thiết kế",
+      "freeTitle": "Bắt đầu miễn phí",
+      "miniGames": "Trò chơi vận mệnh mini",
+      "freeSaju": "Saju miễn phí",
+      "freeSajuNote": "Xem ngay theo ngày sinh",
+      "freeToday": "Vận hôm nay",
+      "freeTodayNote": "Luận giải mới mỗi ngày",
+      "freeTarot": "Tarot",
+      "freeTarotNote": "Rút một lá bài nhẹ nhàng",
+      "directoryTitle": "Xem các nội dung vận mệnh",
+      "miniGamesDesc": "10 trò: poker, omikuji, FPTI…",
+      "miniGamesAria": "Xem tất cả trò chơi vận mệnh mini",
+      "miniGamesAlt": "Ảnh đại diện trò chơi vận mệnh mini"
     }
   },
   "terms": {
@@ -7006,13 +7023,13 @@
         "kwp0s": "Của tôi",
         "kxro3": "Tư vấn",
         "kxvio": "Tứ Trụ",
-        "k16cq4to": "Thú vị",
+        "k16cq4to": "Tất cả",
         "ku6gdz": "Thẻ Pass",
         "kb86wy0": {
           "ariaLabel": "Xem Tứ Trụ bằng hồ sơ của tôi"
         },
         "k1mpcz5w": {
-          "ariaLabel": "Xem luận giải thú vị"
+          "ariaLabel": "Xem tất cả các bản luận"
         },
         "k16eawmw": {
           "ariaLabel": "Cửa hàng Thẻ Pass"

@@ -262,7 +262,7 @@
         "title": "Colección de oráculos y adivinación",
         "subtitle": "La sabiduría antigua te habla hoy",
         "lede": "Entrega una pregunta y recibe una conclusión clara cruzando símbolos orientales y occidentales.",
-        "featureline": "Hwatu · Oráculo egipcio · IFÀ · I Ching 64 hexagramas · Runas · Geomancia · Té · Destiny Poker",
+        "featureline": "Hwatu · Oráculo egipcio · IFÀ · I Ching 64 hexagramas · Runas · Geomancia · Té",
         "aria": "Colección abierta de oráculos y adivinación"
       },
       "cosmic": {
@@ -288,9 +288,9 @@
       },
       "misc": {
         "title": "Colección de otras adivinaciones",
-        "subtitle": "Explora desde tests psicológicos hasta Saju FPTI",
-        "lede": "Tests psicológicos, AI omikuji, sangre, destino de tu persona favorita y Saju FPTI se reúnen como una colección de cartas.",
-        "featureline": "Hub psicológico · AI Omikuji · Test de sangre · Destino favorito · Saju FPTI",
+        "subtitle": "Explora desde tests psicológicos hasta minijuegos de fortuna",
+        "lede": "Tests psicológicos, saju de mascotas, una simulación romántica, el destino favorito y diez minijuegos de fortuna reunidos en una colección.",
+        "featureline": "Minijuegos de fortuna · Hub psicológico · Saju de mascotas IA · LOVE CODE · Destino favorito",
         "aria": "Abrir otra colección de adivinación"
       },
       "openHint": "Toque para abrir"
@@ -1710,7 +1710,7 @@
       "chatNeoDesc": "White lion Neo maps the whole board first, then points out the key issue and your next move directly.",
       "chatYeoniGo": "Talk with Yeoni",
       "chatNeoGo": "Talk with Neo",
-      "allTitle": "Todas las lecturas divertidas",
+      "allTitle": "Todas las lecturas",
       "allSignatureLink": "Ver las seis consultas destacadas",
       "allSearchLabel": "Search all readings",
       "allSearchPlaceholder": "Try “job change”, “reunion”, “compatibility”",
@@ -1992,6 +1992,23 @@
       "packPerUse": "Una lectura de KRW {amount} por uso",
       "budgetLeft": "Quedan KRW {amount}",
       "packNote": "Cada uso de un pack de Yeongnyangi abre una consulta del mismo pescado, aparte de los pases de Cerdita Flor."
+    },
+    "simpleHome": {
+      "tagline": "Consultas basadas en el Myeongri",
+      "byline": "Sobre Park Byeong-ha (Neo), especialista en Myeongri",
+      "title": "Consultas destacadas diseñadas por un especialista en Myeongri con 10 años de experiencia",
+      "freeTitle": "Empieza gratis",
+      "miniGames": "Minijuegos de fortuna",
+      "freeSaju": "Saju gratis",
+      "freeSajuNote": "Al instante con tu fecha de nacimiento",
+      "freeToday": "Horóscopo diario",
+      "freeTodayNote": "Una lectura nueva cada día",
+      "freeTarot": "Tarot",
+      "freeTarotNote": "Una lectura rápida de una carta",
+      "directoryTitle": "Explorar todas las lecturas",
+      "miniGamesDesc": "10 juegos: póker, omikuji, FPTI…",
+      "miniGamesAria": "Ver todos los minijuegos de fortuna",
+      "miniGamesAlt": "Imagen de portada de los minijuegos de fortuna"
     }
   },
   "terms": {
@@ -7006,13 +7023,13 @@
         "kwp0s": "Mi",
         "kxro3": "Consulta",
         "kxvio": "4 Pilares",
-        "k16cq4to": "Divertidas",
+        "k16cq4to": "Todas",
         "ku6gdz": "Pase",
         "kb86wy0": {
           "ariaLabel": "Ver mis Cuatro Pilares con mi perfil"
         },
         "k1mpcz5w": {
-          "ariaLabel": "Explorar lecturas divertidas"
+          "ariaLabel": "Explorar todas las lecturas"
         },
         "k16eawmw": {
           "ariaLabel": "Tienda de pases"

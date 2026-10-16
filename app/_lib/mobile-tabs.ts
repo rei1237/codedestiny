@@ -64,9 +64,9 @@ export const MOBILE_TABS: readonly MobileTab[] = [
   { key: "home", label: "홈", href: "/ggulggul/", ariaLabel: "홈", glyph: "⌂", transKey: "home.nav.home", ariaTransKey: "home.nav.home" },
   {
     key: "fortunes",
-    label: "재밌는 운세",
+    label: "모든 운세",
     href: `/?action=${ALL_FORTUNES_ACTION}`,
-    ariaLabel: "재밌는 운세 둘러보기",
+    ariaLabel: "모든 운세 둘러보기",
     transKey: "shell.cdMobileBottomNav.cdMobileBottomNavMain.k16cq4to",
     ariaTransKey: "shell.cdMobileBottomNav.cdMobileBottomNavMain.k1mpcz5w.ariaLabel",
     glyph: "✦",

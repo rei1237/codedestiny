@@ -100,7 +100,7 @@ test('restored hero artwork, catalog reuse, and collection previews stay in sync
   const wrappers = [...fragment.querySelectorAll('.tarot-tile__img-wrap')];
   let mappedCards = 0;
 
-  assert.equal(wrappers.length, 62);
+  assert.equal(wrappers.length, 57);
   for (const wrapper of wrappers) {
     const tile = wrapper.closest('.tarot-tile');
     const attr = name => tile?.getAttribute(name);
@@ -138,8 +138,8 @@ test('restored hero artwork, catalog reuse, and collection previews stay in sync
     const staticImage = wrapper.querySelector('img');
     if (staticImage) assert.equal(staticImage.getAttribute('src'), expected, `${slug}: static and deferred previews differ`);
   }
-  assert.equal(mappedCards, 48);
-  assert.equal(wrappers.length - mappedCards, 14);
+  assert.equal(mappedCards, 47);
+  assert.equal(wrappers.length - mappedCards, 10);
 
   const restored = {
     'fortune-tea-house': '/images/fortune-tea-house/premium-tea-house-desktop.webp',
@@ -195,8 +195,9 @@ test('restored hero artwork, catalog reuse, and collection previews stay in sync
   assert.match(masterAssets, /humanHero:\s*"\/images\/feature-details\/master-love-codex-hero-v3\.webp"/);
   assert.match(masterAssets, /cover:\s*"\/feature-details\/assets\/master-love-codex-960\.webp"/);
   assert.ok(fs.existsSync('public/feature-details/assets/master-love-codex-960.webp'));
-  assert.match(fragment.querySelector('.moon-story-entry__poster img')?.getAttribute('src') || '', /CodeDestinyNovel\/%EB%9D%BC%EC%9D%B4%ED%8A%B8%20%EB%85%B8%EB%B2%A8\.webp$/);
-  assert.match(fragment.querySelector('.moon-music-entry__cover-stack img')?.getAttribute('src') || '', /CodeDestinyNovel\/%EC%9D%8C%EC%95%85%20%ED%94%8C%EB%A0%88%EC%9D%B4%EC%96%B4\.webp$/);
+  // 2026-10-17 "직관성": 라이트 노벨·음악 포스터 카드는 홈 맨 아래 텍스트 링크 한 줄로 바뀌었다.
+  assert.ok(fragment.querySelector('.cdh-links a[href="/codedestiny-novel.html"]'), 'light novel link stays on the home');
+  assert.ok(fragment.querySelector('.cdh-links a[href="/music/"]'), 'music link stays on the home');
 });
 
 test('music entry responds to its card width without clipping actions', () => {

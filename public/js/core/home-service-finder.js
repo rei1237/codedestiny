@@ -147,7 +147,7 @@
      서 있고 그 뒤로 타일 62개를 사용자가 직접 훑어야 했다.
 
      🔴 기본으로 깔 것은 **바로 위 두 섹션이 이미 보여 주지 않는 것**이어야 한다 —
-        #cdSignatureConsult(roles:"recommended" 4개) · #cdQuickServices(roles:"quick" 6개)가
+        #cdSignatureConsult(roles:"recommended" 6개) · #cdQuickServices(roles:"quick" 2개)가
         탐색기 **바로 위**에 붙어 있어서(index.html 11334 / 11451 / 11493), roles 를 가진 항목을
         여기 다시 깔면 같은 카드가 한 화면에 두 번 나오고 인터랙티브 요소만 늘어난다.
      그래서 roles 가 없고(= 상단 미노출) 무료로 시작할 수 있는 앞쪽 6개를 쓴다.
@@ -248,10 +248,12 @@
       (imageHrefKey(item.href) && featureImageIndex["h:" + imageHrefKey(item.href)]) || "";
   }
 
-  /* 체계 허브(roles:quick — 사주·타로·자미두수·숙요점·점성술·베다점)는 홈 #cdQuickServices 타일 그림을 빌렸다.
-     그 타일을 지운 뒤(2026-10-03) 같은 파일을 id 로 직접 가리킨다 — 레지스트리에 값을 저장하지 않는다. */
+  /* 체계 허브(사주·타로·자미두수·숙요점·점성술·베다점)는 홈 #cdQuickServices 타일 그림을 빌렸다.
+     그 타일을 지운 뒤(2026-10-03) 같은 파일을 id 로 직접 가리킨다 — 레지스트리에 값을 저장하지 않는다.
+     2026-10-17 홈 무료 카드가 사주·타로만 남아 roles:quick 이 둘뿐이므로 id 목록으로 고정한다. */
+  var METHOD_HUB_IDS = ["saju", "tarot", "ziwei", "sukuyo", "vedic", "astrology"];
   function methodHubImage(item) {
-    return item.roles && item.roles.indexOf("quick") !== -1 && /^[a-z]+$/.test(item.id || "") ? "/feature-details/assets/" + item.id + "-320.webp" : "";
+    return METHOD_HUB_IDS.indexOf(item.id) !== -1 ? "/feature-details/assets/" + item.id + "-320.webp" : "";
   }
 
   /* 이미지 판정용 href 키는 쿼리를 남긴다 — normHref 처럼 떼면 /index.html?action=… 항목이
@@ -925,7 +927,8 @@
     if (home && finder && home.contains(finder)) {
       finder.addEventListener("focusin", warmCatalogue, { once: true });
       finder.addEventListener("pointerdown", warmCatalogue, { once: true });
-    } else {
+    } else if (!home) {
+      /* 2026-10-17 단순화 홈에는 검색 영역이 없다 — 카탈로그는 모든 운세 시트를 열 때(filterServices) 만든다. */
       warmCatalogue();
     }
 

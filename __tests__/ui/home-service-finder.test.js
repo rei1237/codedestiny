@@ -15,6 +15,9 @@ const { JSDOM } = require("jsdom");
 
 const root = path.resolve(__dirname, "../..");
 const shell = fs.readFileSync(path.join(root, "index.html"), "utf8");
+const discover = fs.readFileSync(path.join(root, "__tests__/fixtures/home-finder-discover.html"), "utf8");
+// 체계 허브 6종 — home-service-finder.js METHOD_HUB_IDS 와 같다. 홈 무료 칸(quick)에는 사주·타로만 남았다.
+const METHOD_HUB_IDS = ["saju", "tarot", "ziwei", "sukuyo", "vedic", "astrology"];
 
 /** id 로 요소를 찾아 여는 태그부터 짝이 맞는 닫는 태그까지 잘라 낸다. */
 function sliceById(html, id) {
@@ -40,8 +43,8 @@ async function boot(extraTiles = [], { home = false } = {}) {
     '<main id="inputPage">',
     // 홈(꿀꿀운세) 안에 마운트되면 입력 전에는 결과를 그리지 않는다.
     ...(home ? ['<div id="cdHomeFunnel">'] : []),
-    sliceById(shell, "fortuneGatewayDiscover"),
-    sliceById(shell, "cdServiceIndex"),
+    // 2026-10-17 홈에서 디스커버가 빠졌다. 엔진은 모든 운세 시트가 계속 쓰므로 고정 마크업으로 시험한다.
+    discover,
     // 컬렉션 타일 한 장 — 레지스트리에 없는 항목이 검색으로만 잡히는지 보기 위해서다.
     '<a class="tarot-tile" href="/tarot/healing/" data-action="openTarotHealingModal">',
     '<span class="tarot-tile__title">따뜻한 태양 회복 타로</span>',
@@ -326,7 +329,9 @@ test("결과 카드 이미지는 같은 기능의 홈 타일에서 빌리고, �
     return card.querySelector(".fortune-gateway__rec-media img").getAttribute("src");
   };
   assert.equal(srcOf(target.name), "/fuctionassets/feature-test.webp", "같은 기능 타일의 이미지를 빌리지 않았다");
-  assert.equal(srcOf(shown[1]), "/images/home/finder-moon.svg", "타일이 없는 항목이 달 이미지로 떨어지지 않았다");
+  const plain = shown.slice(1).find((name) => !METHOD_HUB_IDS.includes(first.window.__cdServiceRegistry.find((i) => i.name === name)?.id));
+  assert.ok(plain, "체계 허브가 아닌 대조 항목이 없다(fail-open)");
+  assert.equal(srcOf(plain), "/images/home/finder-moon.svg", "타일이 없는 항목이 달 이미지로 떨어지지 않았다");
 
   // R2 에만 있는 자산: 로컬 경로 404 → R2 원본 → 그래도 실패하면 달.
   const img = doc.querySelector(`#fortuneGatewayRecs img[src="/fuctionassets/feature-test.webp"]`);
@@ -336,10 +341,10 @@ test("결과 카드 이미지는 같은 기능의 홈 타일에서 빌리고, �
   assert.equal(img.getAttribute("src"), "/images/home/finder-moon.svg", "R2 도 실패했는데 달 이미지로 떨어지지 않았다");
 });
 
-test("체계 허브(roles:quick)는 홈 타일이 없어도 체계 그림을 쓴다", async () => {
+test("체계 허브 6종은 홈 타일이 없어도 체계 그림을 쓴다", async () => {
   const { doc, window } = await boot();
-  const hubs = window.__cdServiceRegistry.filter((i) => (i.roles || []).includes("quick"));
-  assert.ok(hubs.length >= 6, "체계 허브가 레지스트리에 없다(fail-open)");
+  const hubs = window.__cdServiceRegistry.filter((i) => METHOD_HUB_IDS.includes(i.id));
+  assert.equal(hubs.length, METHOD_HUB_IDS.length, "체계 허브가 레지스트리에 없다(fail-open)");
   for (const hub of hubs) {
     assert.ok((await search(window, doc, hub.name)).includes(hub.name), `${hub.name}: 검색 결과가 없다`);
     const card = Array.from(doc.querySelectorAll("#fortuneGatewayRecs .fortune-gateway__rec"))

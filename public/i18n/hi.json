@@ -262,7 +262,7 @@
         "title": "ओरैकल और दिव्य संकेत संग्रह",
         "subtitle": "प्राचीन ज्ञान आज आपसे बात करता है",
         "lede": "एक प्रश्न रखें, फिर पूर्वी और पश्चिमी प्रतीकों के मेल से आज का स्पष्ट निष्कर्ष पाएँ।",
-        "featureline": "ह्वातू · मिस्री ओरैकल · IFÀ · I Ching 64 हेक्साग्राम · रून्स · जियोमेंसी · चाय-पत्ती · डेस्टिनी पोकर",
+        "featureline": "ह्वातू · मिस्री ओरैकल · IFÀ · I Ching 64 हेक्साग्राम · रून्स · जियोमेंसी · चाय-पत्ती",
         "aria": "Oracle और अटकल संग्रह खोलें"
       },
       "cosmic": {
@@ -288,9 +288,9 @@
       },
       "misc": {
         "title": "अन्य दिव्य संकेत संग्रह",
-        "subtitle": "मनोवैज्ञानिक टेस्ट से साजू FPTI तक एक साथ खोजें",
-        "lede": "मनोवैज्ञानिक टेस्ट, AI ओमिकुजी, रक्त-समूह टेस्ट, प्रिय-व्यक्ति भाग्य और साजू FPTI एक कार्ड संग्रह में जुड़ते हैं।",
-        "featureline": "मनोविज्ञान हब · AI ओमिकुजी · रक्त-समूह टेस्ट · प्रिय-व्यक्ति भाग्य · साजू FPTI",
+        "subtitle": "मनोवैज्ञानिक टेस्ट से मिनी भाग्य खेलों तक एक साथ खोजें",
+        "lede": "मनोवैज्ञानिक टेस्ट, पेट साजू, लव सिमुलेशन, प्रिय-व्यक्ति भाग्य और 10 मिनी भाग्य खेल एक ही संग्रह में।",
+        "featureline": "मिनी भाग्य खेल · मनोविज्ञान हब · एआई पेट साजू · LOVE CODE · प्रिय-व्यक्ति भाग्य",
         "aria": "अन्य अटकल संग्रह खोलें"
       },
       "openHint": "खोलने के लिए टैप करें"
@@ -1710,7 +1710,7 @@
       "chatNeoDesc": "White lion Neo maps the whole board first, then points out the key issue and your next move directly.",
       "chatYeoniGo": "Talk with Yeoni",
       "chatNeoGo": "Talk with Neo",
-      "allTitle": "सभी मज़ेदार फलादेश देखें",
+      "allTitle": "सभी फलादेश",
       "allSignatureLink": "छह मुख्य परामर्श देखें",
       "allSearchLabel": "Search all readings",
       "allSearchPlaceholder": "Try “job change”, “reunion”, “compatibility”",
@@ -1992,6 +1992,23 @@
       "packPerUse": "प्रति उपयोग KRW {amount} की रीडिंग",
       "budgetLeft": "KRW {amount} शेष",
       "packNote": "योंगन्यांगी पैक का हर उपयोग उसी मछली स्तर का एक परामर्श खोलता है, फ्लावर पिग पास से अलग।"
+    },
+    "simpleHome": {
+      "tagline": "Myeongri पर आधारित परामर्श",
+      "byline": "Myeongri विशेषज्ञ Park Byeong-ha (Neo) का परिचय",
+      "title": "10 वर्षों के अनुभव वाले Myeongri विशेषज्ञ द्वारा तैयार प्रमुख परामर्श",
+      "freeTitle": "पहले मुफ़्त में",
+      "miniGames": "मिनी भाग्य खेल",
+      "freeSaju": "मुफ़्त साजू",
+      "freeSajuNote": "जन्मतिथि से तुरंत देखें",
+      "freeToday": "आज का राशिफल",
+      "freeTodayNote": "हर दिन नया फलादेश",
+      "freeTarot": "टैरो",
+      "freeTarotNote": "एक कार्ड से झटपट",
+      "directoryTitle": "सभी भाग्य सामग्री देखें",
+      "miniGamesDesc": "पोकर, ओमिकुजी, FPTI सहित 10 खेल",
+      "miniGamesAria": "सभी मिनी भाग्य खेल देखें",
+      "miniGamesAlt": "मिनी भाग्य खेल का मुख्य चित्र"
     }
   },
   "terms": {
@@ -7523,13 +7540,13 @@
         "kwp0s": "मेरा",
         "kxro3": "परामर्श",
         "kxvio": "फोर पिलर्स",
-        "k16cq4to": "मज़ेदार",
+        "k16cq4to": "सभी पाठ",
         "ku6gdz": "पास",
         "kb86wy0": {
           "ariaLabel": "मेरी प्रोफ़ाइल से फोर पिलर्स देखें"
         },
         "k1mpcz5w": {
-          "ariaLabel": "मज़ेदार फलादेश देखें"
+          "ariaLabel": "सभी पाठ देखें"
         },
         "k16eawmw": {
           "ariaLabel": "पास स्टोर"

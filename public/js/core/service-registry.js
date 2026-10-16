@@ -304,7 +304,6 @@ window.__cdServiceRegistry = [
     methods: ["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"],
     keys: "초융합 교차검증 종합 심층 여섯 체계 2만자",
     badge: "최종 판정",
-    roles: ["recommended"],
   },
 
   {
@@ -388,7 +387,6 @@ window.__cdServiceRegistry = [
     purposes: ["money", "career", "life"],
     methods: ["ziwei"],
     keys: "자미두수 명반 12궁",
-    roles: ["quick"],
   },
   {
     id: "sukuyo",
@@ -404,7 +402,6 @@ window.__cdServiceRegistry = [
     purposes: ["life", "self"],
     methods: ["sukuyo"],
     keys: "숙요 27수 숙요점 달",
-    roles: ["quick"],
   },
   {
     id: "vedic",
@@ -419,7 +416,6 @@ window.__cdServiceRegistry = [
     purposes: ["life", "self"],
     methods: ["vedic"],
     keys: "베다 조티시 인도 점성",
-    roles: ["quick"],
   },
   {
     id: "astrology",
@@ -434,7 +430,6 @@ window.__cdServiceRegistry = [
     purposes: ["life", "self", "career", "money"],
     methods: ["astrology"],
     keys: "점성술 별자리 호로스코프 차트",
-    roles: ["quick"],
   },
   {
     id: "human-design",

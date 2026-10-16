@@ -106,6 +106,7 @@ const ROUTE_CANDIDATES: SitemapRouteEntry[] = [
   { path: "/tarot/self-esteem", changeFrequency: "weekly", priority: 0.90 },
   { path: "/tarot/year",       changeFrequency: "weekly", priority: 0.90 },
   { path: "/oracle/hwatu-life",      changeFrequency: "weekly", priority: 0.88 },
+  { path: "/mini-games",             changeFrequency: "weekly", priority: 0.85 },
   { path: "/dream/tarot",            changeFrequency: "weekly", priority: 0.88 },
   { path: "/dream/psycho",           changeFrequency: "weekly", priority: 0.88 },
   { path: "/animal/mbti",            changeFrequency: "weekly", priority: 0.87 },

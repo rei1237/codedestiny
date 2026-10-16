@@ -241,6 +241,8 @@ const coreRoutes = [
   //    /tarot/healing 등 2026-08-24 의 5개와 같은 모양이다. page.tsx 에 서버 렌더
   //    안내 섹션을 넣어 1,900자대로 올린 뒤 되돌렸다.
   { path: "/saju-fpti", changefreq: "weekly", priority: 0.86 },
+  // 체험형 게임 10종 모음(2026-10-17). 홈·컬렉션에서 빠진 게임 타일의 진입점이다.
+  { path: "/mini-games", changefreq: "weekly", priority: 0.84 },
   // 🔴 coreRoutes 는 손으로 유지하는 목록이라, noindexPathPrefixes 에서 빼는 것만으로는
   //    사이트맵에 들어오지 않는다. 2026-08-24 에 색인으로 되돌린 5개 중 /tarot/healing 과
   //    /saju/love-simulation 은 이미(각각 여기와 정적 canonical 목록에) 등재돼 있었고,

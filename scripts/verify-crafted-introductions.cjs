@@ -50,7 +50,7 @@ async function capture(page,id,surface,detail,cta){
   const p=await setup(browser);await p.goto(origin+'/ggulggul/'+(resultPage?'?action=cdOneStepFreeSajuEntry':'?lang=ko'),{timeout:120000});
   if(resultPage){await p.locator('#nameInput').fill('검수');await p.locator('#birthDate').fill('1990-01-15');await p.locator('#btnF').click();await p.locator('#run-btn').click();await p.getByRole('button',{name:'동의하고 결과 보기',exact:true}).click();}
   await p.waitForFunction(()=>typeof window._cdOpenTilePreview==='function');
-  if(id==='life-fortune'){await p.locator('#cdhMore>summary').click();await p.locator('[data-target="premiumVvipCollection"]').click();}
+  if(id==='life-fortune'){await p.evaluate(()=>window.__cdOpenGarden());await p.locator('[data-target="premiumVvipCollection"]').click();}
   console.log('opening popup',id);
   const tile=p.locator(selector).first();await tile.waitFor({state:'attached',timeout:60000});await tile.scrollIntoViewIfNeeded();await p.waitForTimeout(500);
   // The isolated result-page mock click did not open this popup. Exercise the

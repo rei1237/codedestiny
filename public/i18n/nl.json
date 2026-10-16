@@ -262,7 +262,7 @@
         "title": "Orakel- en waarzegcollectie",
         "subtitle": "Oude wijsheid spreekt vandaag tot jou",
         "lede": "Leg één vraag neer en ontvang een heldere conclusie via oosterse en westerse symbolen.",
-        "featureline": "Hwatu · Egyptisch orakel · IFÀ · I Tjing 64 hexagrammen · Runen · Geomantie · Theebladeren · Destiny Poker",
+        "featureline": "Hwatu · Egyptisch orakel · IFÀ · I Tjing 64 hexagrammen · Runen · Geomantie · Theebladeren",
         "aria": "Open de verzameling Orakel en Waarzeggerij"
       },
       "cosmic": {
@@ -288,9 +288,9 @@
       },
       "misc": {
         "title": "Andere waarzegcollectie",
-        "subtitle": "Ontdek alles van psychotests tot Saju FPTI",
-        "lede": "Psychotests, AI omikuji, bloedgroeptests, favoriete-persoon lot en Saju FPTI komen samen als kaartcollectie.",
-        "featureline": "Psychologiehub · AI Omikuji · Bloedgroeptest · Favoriet lot · Saju FPTI",
+        "subtitle": "Ontdek alles van psychologische tests tot mini-waarzegspellen",
+        "lede": "Psychologische tests, huisdier-saju, een liefdessimulatie, favoriet lot en tien mini-waarzegspellen in één collectie.",
+        "featureline": "Mini-waarzegspellen · Psychologiehub · AI-huisdier-saju · LOVE CODE · Favoriet lot",
         "aria": "Open een andere waarzeggerijcollectie"
       },
       "openHint": "Tik om te openen"
@@ -1710,7 +1710,7 @@
       "chatNeoDesc": "White lion Neo maps the whole board first, then points out the key issue and your next move directly.",
       "chatYeoniGo": "Talk with Yeoni",
       "chatNeoGo": "Talk with Neo",
-      "allTitle": "Alle leuke lezingen",
+      "allTitle": "Alle lezingen",
       "allSignatureLink": "Bekijk de zes vaste consulten",
       "allSearchLabel": "Search all readings",
       "allSearchPlaceholder": "Try “job change”, “reunion”, “compatibility”",
@@ -1992,6 +1992,23 @@
       "packPerUse": "Eén consult van KRW {amount} per keer",
       "budgetLeft": "Nog KRW {amount} over",
       "packNote": "Elke beurt van een Yeongnyangi-pakket opent één consult van dezelfde vissoort, los van de Bloemvarken-passen."
+    },
+    "simpleHome": {
+      "tagline": "Consulten gebaseerd op Myeongri",
+      "byline": "Over Park Byeong-ha (Neo), Myeongri-specialist",
+      "title": "Uitgelichte consulten, ontworpen door een Myeongri-specialist met 10 jaar ervaring",
+      "freeTitle": "Eerst gratis",
+      "miniGames": "Mini-waarzegspellen",
+      "freeSaju": "Gratis Saju",
+      "freeSajuNote": "Direct met je geboortedatum",
+      "freeToday": "Daghoroscoop",
+      "freeTodayNote": "Elke dag een nieuwe lezing",
+      "freeTarot": "Tarot",
+      "freeTarotNote": "Snel met één kaart",
+      "directoryTitle": "Alle lezingen bekijken",
+      "miniGamesDesc": "10 spellen: poker, omikuji, FPTI…",
+      "miniGamesAria": "Alle mini-waarzegspellen bekijken",
+      "miniGamesAlt": "Omslagafbeelding van de mini-waarzegspellen"
     }
   },
   "terms": {
@@ -7006,13 +7023,13 @@
         "kwp0s": "Mijn",
         "kxro3": "Consult",
         "kxvio": "Vier Pijlers",
-        "k16cq4to": "Leuk",
+        "k16cq4to": "Alle",
         "ku6gdz": "Pas",
         "kb86wy0": {
           "ariaLabel": "Mijn Vier Pijlers bekijken met mijn profiel"
         },
         "k1mpcz5w": {
-          "ariaLabel": "Leuke lezingen bekijken"
+          "ariaLabel": "Alle readings bekijken"
         },
         "k16eawmw": {
           "ariaLabel": "Pas-winkel"

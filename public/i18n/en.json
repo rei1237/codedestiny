@@ -262,7 +262,7 @@
         "title": "Oracle & Divination Collection",
         "subtitle": "Ancient wisdom speaks to you today",
         "lede": "Offer one question, then receive a clear conclusion through crossed Eastern and Western symbolic readings.",
-        "featureline": "Hwatu · Egyptian oracle · IFA · I Ching 64 hexagrams · Runes · Geomancy · Tea leaves · Destiny Poker",
+        "featureline": "Hwatu · Egyptian oracle · IFA · I Ching 64 hexagrams · Runes · Geomancy · Tea leaves",
         "aria": "Open Oracle and Divination Collection"
       },
       "cosmic": {
@@ -288,9 +288,9 @@
       },
       "misc": {
         "title": "Other Divination Collection",
-        "subtitle": "Explore everything from psychology tests to Saju FPTI",
-        "lede": "Psychology tests, AI omikuji, blood type tests, favorite-person destiny, and Saju FPTI flow together as one card collection.",
-        "featureline": "Psychology hub · AI Omikuji · Blood type test · Favorite-person destiny · Saju FPTI",
+        "subtitle": "Explore everything from psychology tests to mini fortune games",
+        "lede": "Psychology tests, pet saju, a love simulation, favorite-person destiny, and ten mini fortune games gathered in one collection.",
+        "featureline": "Mini fortune games · Psychology hub · AI Pet Saju · LOVE CODE · Favorite-person destiny",
         "aria": "Open Other Divination Collection"
       },
       "openHint": "Tap to open"
@@ -1710,7 +1710,7 @@
       "chatNeoDesc": "White lion Neo maps the whole board first, then points out the key issue and your next move directly.",
       "chatYeoniGo": "Talk with Yeoni",
       "chatNeoGo": "Talk with Neo",
-      "allTitle": "All fun readings",
+      "allTitle": "All readings",
       "allSignatureLink": "See the six signature readings",
       "allSearchLabel": "Search all readings",
       "allSearchPlaceholder": "Try “job change”, “reunion”, “compatibility”",
@@ -1992,6 +1992,23 @@
       "packPerUse": "KRW {amount} reading per use",
       "budgetLeft": "KRW {amount} allowance left",
       "packNote": "Yeongnyangi packs open one consultation of the same fish tier per use, separately from Flower Pig passes."
+    },
+    "simpleHome": {
+      "tagline": "Readings grounded in Myeongri",
+      "byline": "About Park Byeong-ha (Neo), Myeongri scholar",
+      "title": "Signature readings designed by a Myeongri scholar with 10 years of experience",
+      "freeTitle": "Start for free",
+      "miniGames": "Mini fortune games",
+      "freeSaju": "Free Saju",
+      "freeSajuNote": "Right away from your birth date",
+      "freeToday": "Today's Fortune",
+      "freeTodayNote": "A new reading every day",
+      "freeTarot": "Tarot",
+      "freeTarotNote": "A quick one-card reading",
+      "directoryTitle": "Browse all readings",
+      "miniGamesDesc": "10 games incl. poker, omikuji, FPTI",
+      "miniGamesAria": "View all mini fortune games",
+      "miniGamesAlt": "Mini fortune games cover image"
     }
   },
   "terms": {
@@ -7006,13 +7023,13 @@
         "kwp0s": "My",
         "kxro3": "Consult",
         "kxvio": "Four Pillars",
-        "k16cq4to": "Fun",
+        "k16cq4to": "Readings",
         "ku6gdz": "Pass",
         "kb86wy0": {
           "ariaLabel": "Read my Four Pillars with my profile"
         },
         "k1mpcz5w": {
-          "ariaLabel": "Browse fun readings"
+          "ariaLabel": "Browse all readings"
         },
         "k16eawmw": {
           "ariaLabel": "Pass store"

@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
 const base = process.argv[2] || 'http://127.0.0.1:13240';
 const output = process.argv[3] || 'build-cache/consultation-home';
 assert.equal(new URL(base).hostname, '127.0.0.1');
 await mkdir(output, { recursive: true });
 const rows = [];
+const listOpen = () => Boolean(document.getElementById('cdAllFortunes')?.open || document.getElementById('cdMobileFortuneOverview')?.classList.contains('is-open'));
 for (const channel of ['chrome', 'msedge']) {
   const browser = await chromium.launch({ channel, headless: true });
   try {
@@ -21,29 +22,28 @@ for (const channel of ['chrome', 'msedge']) {
       await page.waitForFunction(() => typeof window.__cdOpenGarden === 'function', { timeout: 60000 });
       await page.evaluate(() => document.fonts.ready);
       const main = page.locator('#cdHomeFunnel');
+      // 단순화한 홈: 히어로 버튼 하나 → 대표 상담 덱 → 무료로 먼저 → 이용권 → 모든 운세 보기 → 링크 한 줄.
       assert.equal(await main.locator('.cdh-primary').getAttribute('href'), '#cdSignatureConsult');
-      assert.equal(await main.locator('.cdh-scene-link').getAttribute('href'), '#cdhOtherFortunes');
-      assert.equal(await main.locator('#cdhMore').evaluate(e => e.open), false);
-      const order = await page.evaluate(() => ['cdSignatureConsult','cdhOtherFortunes','cdFusionRecommendation','cd-soulcat-title','cdhPass','cdhMvTitle'].map(id => document.getElementById(id).getBoundingClientRect().top + scrollY));
+      assert.equal(await page.locator('#cdhMore, #cdhOtherFortunes').count(), 0, 'no folded catalog on home');
+      const order = await page.evaluate(() => ['#cdSignatureConsult','#cdQuickServices','#cdhPass','.cdh-all-cta','.cdh-links'].map(sel => document.querySelector(sel).getBoundingClientRect().top + scrollY));
       assert(order.every((top,i) => i===0 || top>order[i-1]), JSON.stringify(order));
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
       assert(overflow <= 0, 'home overflow: '+width+' / '+overflow);
       await page.screenshot({ path: output + '/' + channel + '-home-' + width + '.png' });
-      await page.locator('#cdFusionRecommendation').scrollIntoViewIfNeeded();
-      await page.screenshot({ path: output + '/' + channel + '-recommendation-' + width + '.png' });
-      await page.evaluate(() => { location.hash = 'cdFinder'; });
-      await page.locator('#fortuneGatewaySearch').waitFor({ state: 'visible' });
-      await page.locator('#fortuneGatewaySearch').fill('타로');
+      await page.locator('#cdSignatureConsult').scrollIntoViewIfNeeded();
+      await page.screenshot({ path: output + '/' + channel + '-signature-' + width + '.png' });
+      await main.locator('.cdh-all-cta__btn').click();
+      await page.waitForFunction(listOpen, null, { timeout: 5000 });
+      await page.locator('#cdAllFortunesSearch').waitFor({ state: 'visible' });
+      await page.locator('#cdAllFortunesSearch').fill('타로');
+      await page.waitForTimeout(250);
+      assert(await page.locator('#cdAllFortunesResults a, #cdAllFortunesResults button').count() > 0, 'search finds tarot: ' + width);
       await page.screenshot({ path: output + '/' + channel + '-search-' + width + '.png' });
-      // Auth presentation contract: pending hides benefits; confirmed guest sees
-      // them; member sees no acquisition prompt. No fake balance is synthesized.
-      await page.evaluate(() => { document.getElementById('authQuickLinks').dataset.authState = 'pending'; });
-      await page.waitForFunction(() => document.getElementById('cdhSignupBenefit').hidden);
-      await page.evaluate(() => { document.getElementById('authQuickLinks').dataset.authState = 'guest'; });
-      await page.waitForFunction(() => !document.getElementById('cdhSignupBenefit').hidden);
-      await page.evaluate(() => { document.getElementById('authQuickLinks').dataset.authState = 'member'; });
-      await page.waitForFunction(() => document.getElementById('cdhSignupBenefit').hidden);
-      assert.equal(await page.locator('#cdhMemberBenefit').count(), 0, 'no duplicate balance section on home');
+      await page.locator('#cdAllFortunesSearch').fill('');
+      if (width <= 900) await page.keyboard.press('Escape');
+      else await page.locator('#cdAllFortunes [data-cd-sheet-close]').click();
+      await page.waitForFunction(() => !(document.getElementById('cdAllFortunes')?.open || document.getElementById('cdMobileFortuneOverview')?.classList.contains('is-open')), null, { timeout: 5000 });
+      assert.equal(await page.locator('#cdhMemberBenefit, #cdhSignupBenefit').count(), 0, 'no balance or signup band on home');
       if (width === 390) {
         await page.evaluate(() => { document.getElementById('authQuickLinks').dataset.authState = 'guest'; const modal = document.createElement('div'); modal.id = 'mockDialog'; modal.setAttribute('aria-modal','true'); modal.textContent = 'Mock payment'; document.body.appendChild(modal); });
         assert.equal(await page.evaluate(() => window.__cdSignupBenefitExit.open()), false, 'no signup popup over payment');
@@ -57,7 +57,7 @@ for (const channel of ['chrome', 'msedge']) {
       const primary = main.locator('.cdh-primary');
       await primary.focus();
       assert(await primary.evaluate(el => el === document.activeElement && el.getBoundingClientRect().height >= 44));
-      rows.push({ channel, width, dpr, overflow, order, search: true, authStates: true });
+      rows.push({ channel, width, dpr, overflow, order, search: true });
       await context.close();
     }
   } finally { await browser.close(); }

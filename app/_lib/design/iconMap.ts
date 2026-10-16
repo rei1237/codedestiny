@@ -52,6 +52,7 @@ export const ROUTE_ICON_MAP: Record<string, DestinyIconName> = {
   "/guides": "crystal",
   "/olympus": "stageLight",
   "/psychotest": "seal",
+  "/mini-games": "tarot",
   "/tarot/mingri": "tarot",
   "/tarot/love": "heartGlow",
   "/tarot/healing": "sun",

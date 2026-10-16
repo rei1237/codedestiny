@@ -50,8 +50,8 @@ test("paid catalog items price from the payment registry, never from a hardcoded
   }
 });
 
-test("home and finder link to the saju catalog", () => {
-  assert.match(read("templates/home-funnel.html"), /<a href="\/saju\/#services"/);
+test("the finder links to the saju catalog", () => {
+  // 2026-10-17 "직관성": 홈 본문의 사주 카탈로그 링크는 걷어냈다. 모든 운세 시트(파인더)가 카탈로그로 간다.
   assert.match(read("js/core/home-service-finder.js"), /"\/saju\/#services"/);
   assert.match(read("app/saju/page.js"), /services=\{<SajuServiceCatalog \/>\}/);
 });

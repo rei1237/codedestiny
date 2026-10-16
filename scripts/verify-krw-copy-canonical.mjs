@@ -158,7 +158,6 @@ assert.deepStrictEqual(amountsIn("a $35 consultation"), [], "추출기가 달러
 //    낡은 가격을 덮는 데 쓰지 말 것. 아래 ④ 단언이 더는 등장하지 않는 예외를 실패시킨다.
 const ALLOWED_NON_CANONICAL = [
   // ["app/_lib/serviceSections.js", 40000, "단품 30,000 + 궁합 10,000 합계"],
-  ["index.html", 300000, "네오 1:1 사람 상담 1회 실제 판매가(앱 상품 아님) — 신뢰 헤드라인 home.funnelCopy.offerTitle, 사용자 지정 2026-10-01"],
   ["i18n/authored/shellCopy-11.json", 300000, "네오 1:1 사람 상담 1회 실제 판매가(앱 상품 아님) — 신뢰 헤드라인 home.funnelCopy.offerTitle, 사용자 지정 2026-10-01"],
   ["public/i18n/de.json", 300000, "네오 1:1 사람 상담 1회 실제 판매가(앱 상품 아님) — 신뢰 헤드라인 home.funnelCopy.offerTitle, 사용자 지정 2026-10-01"],
   ["public/i18n/en.json", 300000, "네오 1:1 사람 상담 1회 실제 판매가(앱 상품 아님) — 신뢰 헤드라인 home.funnelCopy.offerTitle, 사용자 지정 2026-10-01"],

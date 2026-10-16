@@ -262,7 +262,7 @@
         "title": "Orakel- und Divinationskollektion",
         "subtitle": "Altes Wissen spricht heute zu dir",
         "lede": "Stelle eine Frage und erhalte eine klare Antwort aus östlichen und westlichen Symboldeutungen.",
-        "featureline": "Hwatu · Ägyptisches Orakel · IFÀ · I Ging 64 Hexagramme · Runen · Geomantie · Teeblätter · Destiny Poker",
+        "featureline": "Hwatu · Ägyptisches Orakel · IFÀ · I Ging 64 Hexagramme · Runen · Geomantie · Teeblätter",
         "aria": "Öffnen Sie die Oracle and Divination Collection"
       },
       "cosmic": {
@@ -288,9 +288,9 @@
       },
       "misc": {
         "title": "Weitere Divinationskollektion",
-        "subtitle": "Von Psychotests bis Saju FPTI alles erkunden",
-        "lede": "Psychotests, AI Omikuji, Blutgruppentests, Lieblingsmensch-Schicksal und Saju FPTI fließen als Kartenkollektion zusammen.",
-        "featureline": "Psychologie-Hub · AI Omikuji · Blutgruppentest · Lieblingsmensch-Schicksal · Saju FPTI",
+        "subtitle": "Von Psychotests bis zu Mini-Orakelspielen auf einen Blick",
+        "lede": "Psychotests, Haustier-Saju, eine Liebessimulation, Lieblingsmensch-Schicksal und zehn Mini-Orakelspiele in einer Sammlung.",
+        "featureline": "Mini-Orakelspiele · Psychologie-Hub · KI-Haustier-Saju · LOVE CODE · Lieblingsmensch-Schicksal",
         "aria": "Andere Wahrsagungssammlung öffnen"
       },
       "openHint": "Zum Öffnen tippen"
@@ -1710,7 +1710,7 @@
       "chatNeoDesc": "White lion Neo maps the whole board first, then points out the key issue and your next move directly.",
       "chatYeoniGo": "Talk with Yeoni",
       "chatNeoGo": "Talk with Neo",
-      "allTitle": "Alle unterhaltsamen Deutungen",
+      "allTitle": "Alle Deutungen",
       "allSignatureLink": "Die sechs Signature-Deutungen ansehen",
       "allSearchLabel": "Search all readings",
       "allSearchPlaceholder": "Try “job change”, “reunion”, “compatibility”",
@@ -1992,6 +1992,23 @@
       "packPerUse": "Eine Deutung zu KRW {amount} pro Nutzung",
       "budgetLeft": "Noch KRW {amount} verfügbar",
       "packNote": "Jede Nutzung eines Yeongnyangi-Pakets öffnet eine Beratung derselben Fischstufe, getrennt von den Blumenschwein-Pässen."
+    },
+    "simpleHome": {
+      "tagline": "Beratung auf Grundlage des Myeongri",
+      "byline": "Über Park Byeong-ha (Neo), Myeongri-Fachmann",
+      "title": "Ausgewählte Beratungen, gestaltet von einem Myeongri-Fachmann mit 10 Jahren Erfahrung",
+      "freeTitle": "Erst kostenlos",
+      "miniGames": "Mini-Orakelspiele",
+      "freeSaju": "Kostenloses Saju",
+      "freeSajuNote": "Sofort mit deinem Geburtsdatum",
+      "freeToday": "Tageshoroskop",
+      "freeTodayNote": "Jeden Tag eine neue Deutung",
+      "freeTarot": "Tarot",
+      "freeTarotNote": "Schnell mit einer Karte",
+      "directoryTitle": "Alle Deutungen ansehen",
+      "miniGamesDesc": "10 Spiele: Poker, Omikuji, FPTI …",
+      "miniGamesAria": "Alle Mini-Orakelspiele ansehen",
+      "miniGamesAlt": "Titelbild der Mini-Orakelspiele"
     }
   },
   "terms": {
@@ -7006,13 +7023,13 @@
         "kwp0s": "Mein",
         "kxro3": "Beratung",
         "kxvio": "Vier Säulen",
-        "k16cq4to": "Spaß",
+        "k16cq4to": "Alle",
         "ku6gdz": "Pass",
         "kb86wy0": {
           "ariaLabel": "Meine Vier Säulen mit meinem Profil ansehen"
         },
         "k1mpcz5w": {
-          "ariaLabel": "Unterhaltsame Deutungen ansehen"
+          "ariaLabel": "Alle Deutungen durchsehen"
         },
         "k16eawmw": {
           "ariaLabel": "Pass-Shop"

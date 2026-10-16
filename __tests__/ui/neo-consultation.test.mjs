@@ -203,7 +203,7 @@ test('CI node suite discovers this test; runtime cannot import mock or open sale
   const config = readFileSync(new URL('../../scripts/lib/mock-test-config.mjs',import.meta.url),'utf8');
   assert.ok(config.includes('__tests__/ui/*.test.mjs'));
 });
-test('홈은 기존 인간형 네오와 서버 가격·답변 기한을 안내한다', () => {
+test('네오 편지 안내는 기존 인간형 네오와 서버 가격·답변 기한을 안내한다', () => {
   const html = renderNeoEmailHomeEntry();
   assert.match(html,/href="\/neo-consultation\/"/);
   assert.match(html,/neo-strategy-portrait\.webp/);
@@ -212,10 +212,8 @@ test('홈은 기존 인간형 네오와 서버 가격·답변 기한을 안내�
   assert.match(html,/질문 작성하기/);
   assert.doesNotMatch(html,/BLUE MOON/);
   const template=readFileSync(new URL('../../templates/home-funnel.html',import.meta.url),'utf8');
-  // 네오 편지는 대표 상담 덱 뒤, "다른 재밌는 운세"의 더 깊이 묶음 안에 둔다.
-  assert.ok(template.indexOf('id="cdhFeatured"')<template.indexOf('id="cdhOtherFortunes"'));
-  assert.ok(template.indexOf('id="cdhOtherFortunes"')<template.indexOf('{{neoEmailConsultation}}'));
-  assert.ok(template.indexOf('{{neoEmailConsultation}}')<template.indexOf('class="cdh-pass-block"'));
+  // 2026-10-17 "직관성": 네오 편지 블록은 홈에서 빠졌다. /neo-consultation/ 화면과 결제는 그대로다.
+  assert.ok(!template.includes('{{neoEmailConsultation}}'));
 });
 
 test('동시에 결제 준비를 요청해도 같은 견적의 결제는 한 건이며 재시도로 복구한다', async () => {

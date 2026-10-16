@@ -116,7 +116,6 @@
     "verify:access-state-cache-order": "node scripts/verify-access-state-cache-order.mjs",
     "verify:public-mirror-fresh": "node scripts/verify-public-mirror-fresh.mjs",
     "verify:js-module-graph": "node scripts/verify-js-module-graph.mjs",
-    "verify:today-hub-gate": "node scripts/verify-today-hub-gate.mjs",
     "verify:auth-event-loop": "node scripts/verify-auth-event-loop-guard.mjs",
     "verify:auth-changed-coverage": "node scripts/verify-auth-changed-listener-coverage.mjs",
     "verify:auth-session-stability": "node scripts/verify-auth-session-stability.mjs",

@@ -198,12 +198,11 @@ test("family shop copy states the real fusion coverage", () => {
   assert.doesNotMatch(html, /기능 무제한|월 누적/);
 });
 
-test("the destiny gate states the per-session price with no free quota", () => {
+test("the conversational reading states the per-session price with no free quota", () => {
   const html = read("index.html");
-  // 연이·네오 상담은 무료 횟수 없이 1회 5,000원이다. 무료 문구가 되살아나면 없는 혜택을 약속하게 된다.
-  // 태그에 속성을 허용한다 — i18n 마커(data-cd-trans)가 붙어도 계약은 그대로다.
-  // 텍스트만 어디 있어도 통과하는 형태로 풀지는 않는다: 굵게 표시되는지까지가 계약이다.
-  assert.match(html, /<b[^>]*>1회 5,000원<\/b>/);
+  // 연이 상담은 무료 횟수 없이 1회 5,000원이다. 무료 문구가 되살아나면 없는 혜택을 약속하게 된다.
+  // 2026-10-17 "직관성": 가격을 적던 홈의 운명의 문 카드는 걷어냈다. 1회 가격은 상담 화면이 결제 정본에서 읽는다.
+  assert.match(read("app/fortune-chat/ConsultationRoom.tsx"), /<PriceBadge featureKey="fortune-chat-consultation" fallbackLabel="5,000원" prefix="1회 "/);
   assert.doesNotMatch(html, /회원가입 무료 1회|이후 1회 5,000원|매일 무료|하루 무료|매일 3회/);
 });
 

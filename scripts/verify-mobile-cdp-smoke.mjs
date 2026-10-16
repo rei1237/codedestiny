@@ -70,9 +70,8 @@ try {
     // 08-20(9f7648605) 홈 재구성부터 하단 탭은 데스크탑에도 상시 노출한다(좌상단 홈 버튼 대신). 브리지 격리는 위 단언이 지킨다.
     assert(desktopState.bottomNavDisplay !== "none", "desktop shows the bottom nav since the 08-20 home rebuild", desktopState);
 
-    // 08-20(467d0cc53)부터 카테고리 컬렉션은 데스크탑에서도 "모두 펼치기" 뒤에, 09-24부터는 정원 접힘 안에 있다.
-    // 접힘은 의도된 설계이므로 먼저 마우스 클릭으로 연다(터치 탭은 데스크탑 계약을 흐린다).
-    await expandHomeFolds(cdp, clickSelector);
+    // 카테고리 컬렉션은 홈에 펼치지 않는다(10-17 단순화). 컬렉션 진입점과 같은 함수로 영역을 연 뒤 토글은 마우스 클릭으로 잰다.
+    await expandHomeFolds(cdp);
     const selector = '.fc-toggle-btn[data-target="tarotCollection"]';
     const probeReady = await evaluate(cdp, `(() => {
       const target = document.querySelector(${JSON.stringify(selector)});
@@ -317,20 +316,21 @@ try {
 
   if (!focusAllFortunes) {
   // 🔴 주 CTA 의 목적지는 홈 개편마다 바뀐다(#cdConcernPick → #cdTodayHub, 6c605edd4 →
-  // 꽃정원 개편 2026-09-24 에서 /today/#daily-tarot). 셀렉터에 목적지를 박아 두면 가드가
-  // "존재하지 않음"으로 죽는다 — 실제 href 를 읽어서 잰다.
+  // 꽃정원 개편 2026-09-24 에서 /today/#daily-tarot, 단순화 2026-10-17 에서 같은 페이지의 대표 상담 덱
+  // #cdSignatureConsult). 셀렉터에 목적지를 박아 두면 가드가 "존재하지 않음"으로 죽는다 — 실제 href 를 읽어서 잰다.
   const heroCtaTarget = await evaluate(cdp, `(() => {
-    const el = document.querySelector('.cdh-copy .cdh-primary, .moon-hero__cta--primary');
+    const el = document.querySelector('#cdHomeFunnel .cdh-primary, .moon-hero__cta--primary');
     if (!el) return { exists: false };
     const url = new URL(el.getAttribute('href') || '', location.href);
-    return { exists: true, sameOrigin: url.origin === location.origin, pathname: url.pathname, hash: url.hash };
+    const samePage = url.pathname === location.pathname;
+    return { exists: true, sameOrigin: url.origin === location.origin, pathname: url.pathname, hash: url.hash, samePage, anchorExists: samePage && !!url.hash && !!document.getElementById(url.hash.slice(1)) };
   })()`, "hero primary CTA target");
   assert(
-    heroCtaTarget.exists && heroCtaTarget.sameOrigin && heroCtaTarget.pathname !== "/index.html",
-    "the hero primary CTA links to a same-origin route",
+    heroCtaTarget.exists && heroCtaTarget.sameOrigin && (heroCtaTarget.samePage ? heroCtaTarget.anchorExists : heroCtaTarget.pathname !== "/index.html"),
+    "the hero primary CTA links to a same-origin route or an existing home section",
     heroCtaTarget,
   );
-  await tapSelector(cdp, ".cdh-copy .cdh-primary, .moon-hero__cta--primary");
+  await tapSelector(cdp, "#cdHomeFunnel .cdh-primary, .moon-hero__cta--primary");
   // 목적지가 App Router 라우트라 정적 소스 트리에는 문서가 없을 수 있다(404). 그래서 목적지
   // 블록이 보이는지가 아니라 **탭이 그 경로로 이동했는지**로 잰다 — 가로챈 스크립트가
   // preventDefault 로 이동을 삼키는 회귀를 잡는 것이 이 단언의 목적이다.
@@ -342,7 +342,7 @@ try {
     } catch (_) {
       continue; // 문서 전환 중에는 실행 컨텍스트가 잠깐 사라진다
     }
-    if (afterPrimaryTap.pathname === heroCtaTarget.pathname) break;
+    if (afterPrimaryTap.pathname === heroCtaTarget.pathname && afterPrimaryTap.hash === heroCtaTarget.hash) break;
   }
   assert(
     afterPrimaryTap.pathname === heroCtaTarget.pathname && afterPrimaryTap.hash === heroCtaTarget.hash,
@@ -694,14 +694,8 @@ try {
   if (!focusAllFortunes) {
   await navigate(cdp, `http://127.0.0.1:${server.port}/index.html`);
   await navigate(cdp, `http://127.0.0.1:${server.port}/index.html`);
-  // 이용권 섹션은 연이의 정원 안이다. 가드를 낮추지 않고, 사용자와 같은 경로(정원 열기)로 연 뒤에 잰다.
-  await expandHomeFolds(cdp);
-  const homeExpandedState = await evaluate(
-    cdp,
-    "(() => { const d = document.getElementById('cdhMore'); return { expanded: !!d && d.open, label: d && d.querySelector(':scope > summary') ? d.querySelector(':scope > summary').getAttribute('aria-expanded') : null }; })()",
-    "garden open after summary tap",
-  );
-  assert(homeExpandedState.expanded === true && homeExpandedState.label === "true", "garden summary reveals the folded sections", homeExpandedState);
+  // 2026-10-17 단순화부터 이용권 섹션(#cdhPass)은 접기 없이 홈에 바로 보인다.
+  await dismissCookieConsent(cdp);
 
   // 🔴 계약은 "모바일에서 눌리는 이용권 안내 CTA 가 하나는 있고, 결제가 아니라 안내로 간다"이다.
   // 2026-09-08 홈 재조립부터 옛 #honeyMembershipMini 는 홈에서 통째로 숨고
@@ -1329,20 +1323,18 @@ async function dismissCookieConsent(cdp) {
   return state;
 }
 
-// 🔴 홈의 접기는 연이의 정원(<details id="cdhMore">) 하나뿐이다(2026-10-01, "모두 펼치기" 제거).
-// 닫힌 details 안은 좌표 히트 테스트에 걸리지 않아 tapSelector 가 가림으로 실패한다(실측).
-// 가드를 낮추지 않고 사용자와 같은 경로 — 정원 summary 탭 — 로 연다.
-async function expandHomeFolds(cdp, press = tapSelector) {
+// 🔴 2026-10-17 "직관성" 단순화부터 홈에는 접기(연이의 정원 #cdhMore)가 없다. 운세 컬렉션(#cdhCollectionsWrap)은
+// 홈에 펼치지 않고, 컬렉션 딥링크(#tarotCollection 등)·체계 진입점이 부르는 __cdOpenGarden 으로만 열린다.
+// 숨은 영역 안은 좌표 히트 테스트에 걸리지 않으므로, 가드를 낮추지 않고 그 진입점들과 같은 함수로 연다.
+async function expandHomeFolds(cdp) {
   await dismissCookieConsent(cdp);
-  const gardenClosed = await evaluate(
+  const opened = await evaluate(
     cdp,
-    "(() => { const d = document.getElementById('cdhMore'); return !!d && !d.open; })()",
-    "garden fold state",
+    "(() => { const wrap = document.getElementById('cdhCollectionsWrap'); if (!wrap) return true; if (wrap.hidden && typeof window.__cdOpenGarden === 'function') window.__cdOpenGarden(); return !wrap.hidden; })()",
+    "collections area state",
   );
-  if (gardenClosed) {
-    await press(cdp, "#cdhMore > summary");
-    await delay(400);
-  }
+  assert(opened, "the collections area opens through the collection entry function", { opened });
+  await delay(400);
 }
 
 async function tapSelector(cdp, selector) {
@@ -1557,7 +1549,7 @@ function mobileStateExpression() {
     const nav = document.querySelector('#cdMobileBottomNav');
     // 🔴 목적지를 셀렉터에 박지 않는다 — 앵커가 바뀌면 cta 가 null 이 되어 이 단언이
     // "첫 화면에 없다"로 조용히 뒤집힌다(2026-09-01 실측: #cdConcernPick 하드코드 탓에 실패 중이었다).
-    const cta = document.querySelector('.cdh-copy .cdh-primary, .moon-hero__cta--primary');
+    const cta = document.querySelector('#cdHomeFunnel .cdh-primary, .moon-hero__cta--primary');
     const quickRail = document.querySelector('#cdMobileBottomNav .cd-mobile-bottom-nav__quick');
     const mainNavItems = Array.from(document.querySelectorAll('#cdMobileBottomNav .cd-mobile-bottom-nav__main [data-nav-key]'));
     const langDropdown = document.querySelector('#langDropdown');

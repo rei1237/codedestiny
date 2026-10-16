@@ -2,23 +2,6 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { getBillingFeaturePricing } from '../../worker/lib/billing-feature-registry.js';
 
-// The static home fish list shares the consultation catalog's billing source.
-export function syncYeongnyangiFishPrices(root) {
-  const file = join(root, 'index.html');
-  const source = readFileSync(file, 'utf8');
-  let html = source;
-  for (const fish of ['mackerel', 'salmon', 'flounder', 'tuna']) {
-    const featureKey = `yeongnyangi-saju-${fish}`;
-    const result = getBillingFeaturePricing({ featureKey });
-    if (!result.ok || !Number.isSafeInteger(result.pricing.amountKRW)) throw new Error(`Missing price: ${featureKey}`);
-    const pattern = new RegExp(`<b data-yeongnyangi-price="${fish}"[^>]*>[^<]*</b>`, 'g');
-    if ([...html.matchAll(pattern)].length !== 1) throw new Error(`Missing or duplicate home fish price: ${fish}`);
-    const amount = result.pricing.amountKRW.toLocaleString('en-US');
-    html = html.replace(pattern, `<b data-yeongnyangi-price="${fish}" data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"${amount}"}'>${amount}원</b>`);
-  }
-  if (html !== source) writeFileSync(file, html);
-}
-
 // Presentation seeds use the same resolver as billing; no second price table.
 export function syncSajuReadingPrices(root) {
   const dashboard = join(root, 'js/core/saju/reportDashboard.js');

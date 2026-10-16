@@ -262,7 +262,7 @@
         "title": "Koleksi Orakel & Ramalan",
         "subtitle": "Kebijaksanaan purba berbicara kepada anda hari ini",
         "lede": "Letakkan satu soalan, lalu terima kesimpulan jelas melalui simbol Timur dan Barat.",
-        "featureline": "Hwatu · Orakel Mesir · IFÀ · I Ching 64 heksagram · Rune · Geomansi · Daun teh · Destiny Poker",
+        "featureline": "Hwatu · Orakel Mesir · IFÀ · I Ching 64 heksagram · Rune · Geomansi · Daun teh",
         "aria": "Buka Koleksi Oracle dan Ramalan"
       },
       "cosmic": {
@@ -288,9 +288,9 @@
       },
       "misc": {
         "title": "Koleksi Ramalan Lain",
-        "subtitle": "Terokai semuanya daripada ujian psikologi hingga Saju FPTI",
-        "lede": "Ujian psikologi, AI omikuji, ujian jenis darah, takdir orang kegemaran dan Saju FPTI dihimpunkan sebagai koleksi kad.",
-        "featureline": "Hab psikologi · AI Omikuji · Ujian darah · Takdir kegemaran · Saju FPTI",
+        "subtitle": "Terokai segalanya daripada ujian psikologi hingga permainan tilikan mini",
+        "lede": "Ujian psikologi, saju haiwan, simulasi cinta, takdir kegemaran dan sepuluh permainan tilikan mini dalam satu koleksi.",
+        "featureline": "Permainan tilikan mini · Hab psikologi · Saju Haiwan AI · LOVE CODE · Takdir kegemaran",
         "aria": "Buka Koleksi Ramalan Lain"
       },
       "openHint": "Ketik untuk membuka"
@@ -1710,7 +1710,7 @@
       "chatNeoDesc": "White lion Neo maps the whole board first, then points out the key issue and your next move directly.",
       "chatYeoniGo": "Talk with Yeoni",
       "chatNeoGo": "Talk with Neo",
-      "allTitle": "Semua bacaan menyeronokkan",
+      "allTitle": "Semua bacaan",
       "allSignatureLink": "Lihat enam konsultasi utama",
       "allSearchLabel": "Search all readings",
       "allSearchPlaceholder": "Try “job change”, “reunion”, “compatibility”",
@@ -1992,6 +1992,23 @@
       "packPerUse": "Satu bacaan KRW {amount} setiap penggunaan",
       "budgetLeft": "Baki KRW {amount}",
       "packNote": "Setiap penggunaan pek Yeongnyangi membuka satu konsultasi ikan yang sama, berasingan daripada pas Babi Bunga."
+    },
+    "simpleHome": {
+      "tagline": "Perundingan berasaskan Myeongri",
+      "byline": "Tentang Park Byeong-ha (Neo), pakar Myeongri",
+      "title": "Perundingan utama yang direka oleh pakar Myeongri dengan 10 tahun pengalaman",
+      "freeTitle": "Mula secara percuma",
+      "miniGames": "Permainan tilikan mini",
+      "freeSaju": "Saju percuma",
+      "freeSajuNote": "Terus dengan tarikh lahir anda",
+      "freeToday": "Tilikan harian",
+      "freeTodayNote": "Bacaan baharu setiap hari",
+      "freeTarot": "Tarot",
+      "freeTarotNote": "Bacaan pantas satu kad",
+      "directoryTitle": "Lihat semua bacaan",
+      "miniGamesDesc": "10 permainan: poker, omikuji, FPTI…",
+      "miniGamesAria": "Lihat semua permainan tilikan mini",
+      "miniGamesAlt": "Imej utama permainan tilikan mini"
     }
   },
   "terms": {
@@ -7006,13 +7023,13 @@
         "kwp0s": "Saya",
         "kxro3": "Konsultasi",
         "kxvio": "4 Tiang",
-        "k16cq4to": "Seronok",
+        "k16cq4to": "Semua",
         "ku6gdz": "Pas",
         "kb86wy0": {
           "ariaLabel": "Lihat Empat Tiang saya dengan profil saya"
         },
         "k1mpcz5w": {
-          "ariaLabel": "Lihat bacaan menyeronokkan"
+          "ariaLabel": "Lihat semua bacaan"
         },
         "k16eawmw": {
           "ariaLabel": "Kedai Pas"
