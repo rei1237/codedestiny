@@ -150,7 +150,8 @@
     position: fixed;
     z-index: 70;
     right: 12px;
-    bottom: max(12px, env(safe-area-inset-bottom));
+    /* 하단 내비 위로 띄운다 — --cd-mnav-offset 은 safe-area 를 이미 포함한다. */
+    bottom: calc(var(--cd-mnav-offset, env(safe-area-inset-bottom, 0px)) + 8px);
     left: 12px;
     display: flex;
     min-height: 56px;
