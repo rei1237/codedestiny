@@ -4,7 +4,8 @@ import Link from "next/link";
 import { LazyMotion, domAnimation, m, useReducedMotion } from "framer-motion";
 import { useAuthStore } from "@/app/_lib/auth-store";
 import { NEO_EMAIL_PORTRAIT, NEO_EMAIL_SALE_ENABLED, NEO_LIMITS, NEO_STATUS_LABELS, hasMultipleQuestions, neoMoney, neoTotal, neoUnitPrice, validateNeoInput } from "@/lib/neo-consultation/contract";
-import { PRESIDENTIAL_RECORDS } from "@/lib/brand/trust-stories.mjs";
+import { PUBLIC_RECORD_PATH } from "@/lib/seo/public-record-copy.mjs";
+import { maskBirthDateInput } from "@/lib/birthDateInput";
 import { neoCall } from "./api";
 import type { NeoInput, NeoOrder } from "./types";
 import styles from "./neo.module.css";
@@ -114,8 +115,8 @@ export default function NeoConsultationClient() {
     <div className={styles.serviceLine}><p>질문 하나에 집중하는 상담</p><p>네오 직접 검수</p><p>질문당 {neoMoney(neoUnitPrice())} · 이메일 답변</p></div>
     <section className={styles.evidence} aria-labelledby="neo-evidence">
       <h2 id="neo-evidence">기록은 원문으로 확인하세요</h2>
-      <p>2024년에 공개한 2025년 탄핵 가능성 분석과 대통령 가능 시기 기록입니다. 당시 해석과 이후 사건을 구분해 읽어 주세요.</p>
-      <ul>{PRESIDENTIAL_RECORDS.map((record: { date: string; title: string; url: string }) => <li key={record.url}><time>{record.date}</time><a href={record.url} target="_blank" rel="noopener noreferrer">{record.title} · 원문 보기</a></li>)}</ul>
+      <p>공개한 분석과 이후의 기록을 함께 확인하세요. 당시 해석과 실제 결과를 구분해 읽을 수 있습니다.</p>
+      <Link href={PUBLIC_RECORD_PATH}>공개 분석 기록과 원문 보기</Link>
       <p className={styles.small}>과거 분석 사례이며, 특정 사건의 예측이나 같은 결과를 보장하지 않습니다.</p>
     </section>
     <section className={styles.formSection} id="neo-form" aria-labelledby="neo-form-title">
@@ -137,7 +138,7 @@ export default function NeoConsultationClient() {
           {step === 1 && <>
             <label htmlFor="neo-email">회신 이메일</label><input id="neo-email" type="email" autoComplete="email" maxLength={254} value={email} onChange={e => setEmail(e.target.value)} required />
             <fieldset><legend>출생정보 <span>선택</span></legend><p className={styles.small}>고민 해석에 필요한 경우에만 적어 주세요. 시간 모름은 그대로 전달합니다.</p>
-              <label htmlFor="neo-birth">생년월일</label><input id="neo-birth" type="date" value={date} onChange={e => setDate(e.target.value)} />
+              <label htmlFor="neo-birth">생년월일</label><input id="neo-birth" type="text" inputMode="numeric" placeholder="YYYY-MM-DD" maxLength={10} value={date} onChange={e => setDate(maskBirthDateInput(e.target.value))} />
               {date && <><label htmlFor="neo-calendar">달력 구분</label><select id="neo-calendar" value={calendar} onChange={e => setCalendar(e.target.value)}><option value="solar">양력</option><option value="lunar">음력</option></select>
                 {calendar === "lunar" && <label className={styles.check}><input type="checkbox" checked={leapMonth} onChange={e => setLeapMonth(e.target.checked)} />윤달이에요</label>}
                 <label className={styles.check}><input type="checkbox" checked={timeUnknown} onChange={e => setTimeUnknown(e.target.checked)} />출생시간을 몰라요</label>
