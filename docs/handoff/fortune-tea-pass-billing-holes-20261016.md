@@ -251,7 +251,7 @@ next: "D단계 상품 이전(퀀텀 → 리포트 카드 → 숙요 → 자미 �
   - 가드 `verify:paid-access-integrity` 추가(유료 게이트 스위트 등록): 본문 `_userDoc` 읽기, `PER_USE_ENFORCE = false`, `canAccessPaidFeature` 판정만 쓰고 정산을 안 거치는 파일, 리포트 이용권 분기의 무차감 허용을 잡는다. base `e64ad7ba2` 코드에 돌리면 네 유형을 모두 잡는다.
   - 테스트: `premium-pass-settlement`(6), `fortune-tea-house-pass-settlement`(6), `consultation-per-use-payment` 보강. 옛 구멍을 단언하던 테스트(numerology·직감 타로·마인드스캔·dream 월구독)는 "증빙 없으면 402"로 바꿨다.
   - 남은 위험(후속): dream·tarot·ziwei·sukuyo·neo·naming은 생성 실패 시 이용권 환불이 없다. `findRecentDeductionEvidence` 최근 결제 창은 C단계에서 없앤다. 엔티틀먼트가 생기기 전에 이용권으로 본 옛 FPTI 사용자는 게이트를 한 번 거쳐야 한다.
-- 2026-10-16 — **C단계: 결제 증빙 1건 = 유료 요청 1건** (C1 `34d3b2960`, C2 `8fa881a02`)
+- 2026-10-16 — **C단계: 결제 증빙 1건 = 유료 요청 1건** (C1 `6a49a75d0`, C2 `015ad2c12`)
   - 공용 모듈 `worker/lib/billing-evidence-claim.js`
     - 컬렉션 `billing_evidence_claims`, `_id = sha256("evidence:"+증빙ID)`다. `_id`가 원래 유일해서 인덱스 마이그레이션이 없다(운영 쓰기 없음).
     - 같은 계정·같은 requestId면 재생 통과, 다르면 409 `EVIDENCE_ALREADY_USED`, 저장소 장애면 503 `PAYMENT_VERIFY_UNAVAILABLE`다. 결제한 사람이 402로 막히지 않게 장애는 402로 바꾸지 않는다.
@@ -284,7 +284,7 @@ next: "D단계 상품 이전(퀀텀 → 리포트 카드 → 숙요 → 자미 �
       - 원장을 조이면 위험도 생긴다. 회당 상품은 서버가 영구 해금으로 남기지 않아서, 원장이 72시간 다시보기의 근거다. 조이면 결제한 사람이 재잠금된다(전달 최우선 원칙과 충돌).
       - 그래서 원장은 화면 힌트로 둔다. 해결책은 상품별 서버 이전(유료 본문을 서버만 만들고 클라이언트 번들에서 뺀다)이다.
     - ② `_cdPendingGateBodies`(`js/saju-engine.js`): 잠긴 본문을 DOM 대신 전역에 보관한다. 본문 계산 엔진이 번들에 있어서 콘솔로 직접 부를 수 있다. ①과 같은 이유로 상품 이전으로 푼다(자미두수 5칸·대한 10년운·점성술 심화).
-    - ③ 숙요 인연 레이더 전체 리포트: 서버(`/api/sukuyo/past-life-reading`)가 실패해도 `reveal(true)` 했다. 복귀 경로(skipGate)를 증빙 없이 타면 결제 없이 열렸다. → **수정**(`74985a14f`)
+    - ③ 숙요 인연 레이더 전체 리포트: 서버(`/api/sukuyo/past-life-reading`)가 실패해도 `reveal(true)` 했다. 복귀 경로(skipGate)를 증빙 없이 타면 결제 없이 열렸다. → **수정**(`eaf477d8f`)
       - 4xx(결제 거절)면 열지 않는다.
       - 5xx·네트워크 장애는 이 화면에서 게이트를 막 통과한 결제가 있을 때만 연다(결제한 사람의 전달 보장).
     - ④ 십이운성 동물점(`/saju/animal-destiny`, 정본 70코인)·비밀의 집(`secret-house_real.html`, 50코인): 페이지 자체에 게이트가 없고 계산이 전부 브라우저에서 돈다. 결제는 리포트 대시보드 카드 클릭에서만 받는다. 페이지 전체를 서버 본문으로 바꾸는 상품 이전 대상이다.
