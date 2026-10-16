@@ -634,17 +634,6 @@ ${mask('peony')}
   transform: translateY(-50%);
 }
 
-.cd-footer-shell {
-  position: relative;
-}
-
-.cd-footer-shell > .cd-yehwa-peony {
-  right: 32px;
-  bottom: 20px;
-  width: 220px;
-  height: 220px;
-}
-
 /* ── 네오: 같은 선, 샴페인 골드로 재도색(바이올렛은 그라데이션 끝 15% 만 — One Accent) ── */
 html.neo-mode body .moon-hero__yehwa {
   background: linear-gradient(160deg, #e8d5a3 0%, #e8d5a3 85%, #c4b5fd 100%);

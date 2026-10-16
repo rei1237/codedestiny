@@ -35,7 +35,7 @@ function siteSeoText(key: keyof typeof SITE_SEO_TEXT_TRANSLATIONS.ko) {
 }
 /**
  * 공식 외부 채널. 정본은 lib/brand/brand-facts.mjs 의 sameAs 이고, 여기는 그 값을 다시 내보낸다.
- * 🔴 schema.org Organization 의 `sameAs` 와 푸터 SNS 링크가 이 목록에서 파생된다.
+ * 🔴 schema.org Organization 의 `sameAs` 가 이 목록에서 파생된다.
  *
  * 2026-08-16 이전에는 두 목록이 갈라져 있었고, `sameAs` 쪽이 타인의 블로그
  * (blog.naver.com/codedestiny = "수고했어 오늘도.")와 존재하지 않는 인스타 계정
@@ -43,8 +43,6 @@ function siteSeoText(key: keyof typeof SITE_SEO_TEXT_TRANSLATIONS.ko) {
  * Google 이 브랜드 엔티티를 통합하지 못해 실채널의 신호가 스키마에 실리지 않는다.
  *
  * 🔴 `sameAs` 는 **외부 프로필 전용**이다 — 자기 사이트 URL(/about, /insights)을 넣지 말 것.
- * 표시용 라벨·아이콘은 app/_components/SocialFooter.js 가 key 로 매핑한다.
- * 순서는 푸터 렌더 순서다.
  */
 export const SOCIAL_PROFILES: ReadonlyArray<{ key: string; url: string }> = BRAND_FACTS.sameAs;
 
@@ -151,7 +149,7 @@ export const publicSeoPages: Record<string, PublicSeoPage> = {
     path: "/methodology",
     title: siteSeoText("siteSeo.004"),
     description:
-      "꿀꿀운세의 운세 콘텐츠 작성 원칙, 검수 방식, 업데이트 기준, 오락 및 자기성찰 목적의 면책 고지를 안내합니다.",
+      "꿀꿀운세의 운세 콘텐츠 작성 원칙, 검수 방식, 업데이트 기준, 참고 해석의 한계를 밝힌 면책 고지를 안내합니다.",
     h1: "운세 콘텐츠 방법론과 면책 고지",
     changeFrequency: "monthly",
     priority: 0.78,

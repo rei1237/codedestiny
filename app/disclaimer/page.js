@@ -61,7 +61,7 @@ export default function DisclaimerPage() {
             <section className="policy-embed-section">
               <h2 className="policy-embed-heading">2. 콘텐츠의 성격</h2>
               <p>
-                Code Destiny의 해석은 전통 상징 체계와 현대적 상담 언어를 바탕으로 한 엔터테인먼트 및 자기 성찰용 참고 정보입니다. 결과 문구는 미래의 확정된 사실이나 특정 사건의 보장을 뜻하지 않으며, 개인의 현실 조건에 따라 다르게 받아들여질 수 있습니다.
+                Code Destiny의 해석은 전통 상징 체계와 현대적 상담 언어를 바탕으로 한 자기 성찰용 참고 정보입니다. 결과 문구는 미래의 확정된 사실이나 특정 사건의 보장을 뜻하지 않으며, 개인의 현실 조건에 따라 다르게 받아들여질 수 있습니다.
               </p>
             </section>
 

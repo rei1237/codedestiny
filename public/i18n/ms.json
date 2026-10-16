@@ -2097,7 +2097,8 @@
       "disclaimer": "Penafian",
       "editorial": "Dasar Editorial",
       "methodology": "Metodologi Kandungan",
-      "advertising": "Dasar Pengiklanan"
+      "advertising": "Dasar Pengiklanan",
+      "operator": "Tentang Pengendali"
     },
     "copyright": "© 2025 Code Destiny. Hak cipta terpelihara. Untuk hiburan dan refleksi diri sahaja, bukan pengganti nasihat profesional.",
     "sections": {
@@ -2152,7 +2153,9 @@
       "health": "Myeongri Health Report",
       "music": "Fortune & Meditation Music"
     },
-    "disclaimerNote": "Semua kandungan tilikan di Code Destiny, termasuk Saju, tarot dan astrologi, disediakan untuk hiburan dan renungan diri sahaja; ia tidak meramalkan masa depan yang pasti dan ketepatannya tidak dijamin. Untuk keputusan penting berkaitan perubatan, undang-undang, kewangan atau kesihatan mental, sentiasa rujuk profesional yang berkelayakan."
+    "disclaimerNote": "Analisis ialah tafsiran berdasarkan teori Myeongri. Untuk keputusan penting berkaitan perubatan, undang-undang atau pelaburan, sila buat keputusan bersama pakar dalam bidang tersebut.",
+    "byline": "Perundingan Saju yang direka oleh Park Byeong-ha, pakar Myeongri dengan 10 tahun pengalaman",
+    "allServices": "Semua perkhidmatan"
   },
   "branches": {
     "자수": {

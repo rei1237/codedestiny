@@ -19,7 +19,11 @@ for (const route of STATIC_POLICY_ROUTES) test(`${route.canonical} is complete s
   assert.match(html, /class="policy-site-header"/);
   assert.match(html, /class="policy-site-footer"/);
   assert.match(html, /class="policy-main-nav"/);
-  assert.match(html, /class="policy-footer-grid"/);
+  // 2026-10-16 "직관성": 푸터는 React 푸터와 같은 최소 규격(전문성 한 줄·정책 링크·안내·사업자 정보)이다.
+  assert.match(html, /class="policy-footer-byline"><a href="\/about\/#author"/);
+  assert.match(html, /<a href="\/privacy\/" class="is-strong">개인정보처리방침<\/a>/);
+  assert.match(html, /class="policy-business"/);
+  assert.doesNotMatch(html.split('<footer')[1], /policy-footer-grid|오락/);
   assert.match(html, /src="\/icons\/app-logo-512\.webp"/);
   if (route.key === 'about') {
     assert.match(html, /class="cd-service-intro"/);

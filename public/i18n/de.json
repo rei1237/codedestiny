@@ -2097,7 +2097,8 @@
       "disclaimer": "Haftungsausschluss",
       "editorial": "Redaktionelle Richtlinien",
       "methodology": "Inhaltsmethodik",
-      "advertising": "Werberichtlinie"
+      "advertising": "Werberichtlinie",
+      "operator": "Über den Betreiber"
     },
     "copyright": "© 2025 Code Destiny. Alle Rechte vorbehalten. Nur zur Unterhaltung und Selbstreflexion, kein Ersatz für professionelle Beratung.",
     "sections": {
@@ -2152,7 +2153,9 @@
       "health": "Myeongri Health Report",
       "music": "Fortune & Meditation Music"
     },
-    "disclaimerNote": "Alle Inhalte von Code Destiny, einschließlich Saju, Tarot und Astrologie, dienen ausschließlich der Unterhaltung und Selbstreflexion; sie sagen keine feststehende Zukunft voraus, und ihre Richtigkeit wird nicht garantiert. Bei wichtigen medizinischen, rechtlichen, finanziellen oder psychischen Entscheidungen wenden Sie sich stets an qualifizierte Fachleute."
+    "disclaimerNote": "Die Analysen sind Deutungen auf Grundlage der Myeongri-Theorie. Wichtige medizinische, rechtliche oder finanzielle Entscheidungen treffen Sie bitte gemeinsam mit einer Fachkraft des jeweiligen Gebiets.",
+    "byline": "Saju-Beratung, gestaltet von Park Byeong-ha, Myeongri-Fachmann mit 10 Jahren Erfahrung",
+    "allServices": "Alle Dienste"
   },
   "branches": {
     "자수": {

@@ -9,7 +9,7 @@ export const FAQS_DEFAULT = [
   },
   {
     question: "운세 결과는 확정된 미래를 의미하나요?",
-    answer: "아닙니다. 모든 해석은 오락과 자기성찰을 위한 참고 자료이며, 법률, 의료, 투자, 금융 판단을 대신하지 않습니다.",
+    answer: "아닙니다. 모든 해석은 명리학 이론에 근거한 참고 자료이며, 법률, 의료, 투자, 금융 판단을 대신하지 않습니다.",
   },
   {
     question: "생년월일과 개인정보는 어떻게 다루나요?",
@@ -45,7 +45,7 @@ export const FAQS_DEFAULT = [
   },
   {
     question: "사람이 상담하나요, AI가 답하나요?",
-    answer: `${founder.method} 결과는 오락과 자기성찰을 위한 참고 자료입니다.`,
+    answer: `${founder.method} 결과는 자기 이해를 돕는 참고 해석입니다.`,
   },
   {
     question: "공식 사이트와 표기는 어디에서 확인하나요?",

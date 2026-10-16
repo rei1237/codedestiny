@@ -181,7 +181,7 @@ export default function SajuFiveElementsPage() {
       <section className="cd-card">
         <h2>{fiveElementsGuideText("section.caution")}</h2>
         <p>
-          오행 해석은 엔터테인먼트와 자기 점검을 위한 참고 자료이며 의료 진단이나 치료 지침이 아닙니다. 건강, 투자, 법률, 결혼, 이혼, 소송, 진로처럼 중대한 결정은 실제 정보와 자격 있는 전문가의 조언을 함께 확인해야 합니다.
+          오행 해석은 자기 점검을 위한 참고 자료이며 의료 진단이나 치료 지침이 아닙니다. 건강, 투자, 법률, 결혼, 이혼, 소송, 진로처럼 중대한 결정은 실제 정보와 자격 있는 전문가의 조언을 함께 확인해야 합니다.
         </p>
       </section>
 

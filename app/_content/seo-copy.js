@@ -61,7 +61,7 @@ export const FAQ_PAGE_ITEMS = [
   },
   {
     q: "운세·타로 결과는 과학적·법적 효력이 있나요? / Are results legally or scientifically binding?",
-    a: "모든 결과는 참고용 엔터테인먼트·성찰 목적이며, 의학·법률·투자 등 전문 의사결정의 대체가 되지 않습니다. / All results are for entertainment and reflection only. They do not replace medical, legal, financial, or other professional advice.",
+    a: "모든 결과는 성찰을 돕는 참고용 해석이며, 의학·법률·투자 등 전문 의사결정의 대체가 되지 않습니다. / All results are interpretive reference material for reflection. They do not replace medical, legal, financial, or other professional advice.",
   },
   {
     q: "모바일·다양한 브라우저에서도 이용할 수 있나요? / Can I use it on mobile browsers?",

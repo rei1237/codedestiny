@@ -2199,7 +2199,8 @@
       "disclaimer": "Tuyên bố miễn trừ trách nhiệm",
       "editorial": "Chính sách biên tập",
       "methodology": "Phương pháp nội dung",
-      "advertising": "Chính sách quảng cáo"
+      "advertising": "Chính sách quảng cáo",
+      "operator": "Giới thiệu đơn vị vận hành"
     },
     "copyright": "© 2025 Code Destiny. Mọi quyền được bảo lưu. Chỉ nhằm mục đích giải trí và tự suy ngẫm - không thay thế cho lời khuyên chuyên môn.",
     "privacyNotice": "Dịch vụ này chỉ thu thập và sử dụng ngày sinh, giờ sinh và giới tính trong phạm vi cần thiết để cung cấp kết quả saju/bói và hỗ trợ khách hàng liên quan. Khi mục đích thu thập đã đạt được hoặc dịch vụ kết thúc, thông tin sẽ bị hủy ngay lập tức trừ khi pháp luật yêu cầu lưu giữ.",
@@ -2248,7 +2249,9 @@
       "health": "Myeongri Health Report",
       "music": "Fortune & Meditation Music"
     },
-    "disclaimerNote": "Toàn bộ nội dung bói toán trên Code Destiny, gồm Tứ trụ, tarot và chiêm tinh, chỉ mang tính giải trí và tự chiêm nghiệm; không tiên đoán một tương lai cố định và không bảo đảm độ chính xác. Với các quyết định quan trọng về y tế, pháp lý, tài chính hay sức khỏe tinh thần, hãy luôn tham khảo chuyên gia có chuyên môn."
+    "disclaimerNote": "Phân tích là cách diễn giải dựa trên lý thuyết Myeongri. Với các quyết định quan trọng về y tế, pháp lý hay đầu tư, hãy cân nhắc cùng chuyên gia trong lĩnh vực đó.",
+    "byline": "Tư vấn Saju do Park Byeong-ha, chuyên gia Myeongri với 10 năm kinh nghiệm, thiết kế",
+    "allServices": "Tất cả dịch vụ"
   },
   "common": {
     "cancel": "Hủy",

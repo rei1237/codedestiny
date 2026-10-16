@@ -94,7 +94,7 @@ export const ABOUT_PAGE_TEXT_TRANSLATIONS = {
   },
   en: {
     "title": "About 꿀꿀운세",
-    "intro": "꿀꿀운세 is a Korean fortune platform where you can explore free Saju, Manseryeok, tarot, today's fortune, compatibility, Zi Wei Dou Shu, astrology, and Sukuyo in one place. Every reading is provided as a reference for entertainment and self-reflection.",
+    "intro": "꿀꿀운세 is a Korean fortune platform where you can explore free Saju, Manseryeok, tarot, today's fortune, compatibility, Zi Wei Dou Shu, astrology, and Sukuyo in one place. Every reading is provided as a reference for self-reflection.",
     "services.title": "Services",
     "services.saju": "Saju calendar, five elements, ten gods, and luck-cycle interpretation",
     "services.tarot": "Tarot readings for love, reunion, and emotional insight",

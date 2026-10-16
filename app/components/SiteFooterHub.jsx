@@ -1,10 +1,12 @@
 import Image from "next/image";
-import { TRUST_DOCUMENT_COPY } from "../../lib/i18n/public-trust-copy.mjs";
 import styles from "./SiteFooterHub.module.css";
-import SocialFooter from "../_components/SocialFooter";
 import { BUSINESS_IDENTITY } from "../../lib/site-policy-config";
 import { IS_APP_BUILD } from "../../lib/app-build-target";
+import { FOOTER_BYLINE, FOOTER_LINKS, FOOTER_NOTICE, FOOTER_TRUST_LINKS } from "../../lib/brand/site-footer";
 
+// 2026-10-16 "직관성": 모든 푸터가 같은 최소 규격이다(lib/brand/site-footer.ts) —
+// 전문성 한 줄 → 정책 링크 → 안내 한 줄 → 사업자 정보. 환불·면책 요약 문단, SNS, 펼쳐 둔 길잡이 카드는 걷어냈다.
+// 환불·면책 전문은 /refund-policy/·/disclaimer/ 에 있다(전문을 푸터에 싣지 않는 이유는 아래 SEO_LINK_GROUPS 위 주석과 같다).
 const SITE_FOOTER_HUB_TEXT_TRANSLATIONS = {
   ko: {
     "siteFooter.001": "핵심 운세",
@@ -19,7 +21,6 @@ const SITE_FOOTER_HUB_TEXT_TRANSLATIONS = {
     "siteFooter.010": "이메일",
     "siteFooter.011": "사업장 주소",
     "siteFooter.012": "랜딩 페이지 내부 링크 허브",
-    "siteFooter.013": "코드 데스티니(Code Destiny)",
   },
 };
 
@@ -27,41 +28,13 @@ function siteFooterHubText(key) {
   return SITE_FOOTER_HUB_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
 }
 
-// SocialFooter 의 한국어 카피. 🔴 lib/i18n/siteFooterHubCopy 에서 가져오지 말 것 — 이 파일은
-// AppChrome("use client") 이 import 해 **클라이언트 번들에 들어간다.** 5개 로케일 표를 끌어오면
-// layout 청크가 41KB → 63KB 로 커진다(2026-08-16 실측). 로케일 카피는 서버 전용
-// LocaleFooterHub 가 넘기고, 여기에는 ko 문자열만 둔다.
-const KO_SOCIAL_COPY = {
-  sectionAriaLabel: "꿀꿀 운세 공식 SNS 채널",
-  kicker: "Official Channels",
-  title: "꿀꿀 운세 공식 채널",
-  navAriaLabel: "꿀꿀 운세 SNS 바로가기",
-  linkAriaTemplate: "꿀꿀 운세 공식 {channel} 새 창으로 열기",
-  labels: { youtube: "유튜브", threads: "쓰레드", instagram: "인스타그램", naverBlog: "블로그", x: "X" },
-};
-const POLICY_LINKS = [
-  { href: "/privacy/", text: "개인정보처리방침 / Privacy" },
-  { href: "/terms/", text: "이용약관 / Terms" },
-  { href: "/contact/", text: "문의하기 / Contact" },
-  { href: "/about/", text: "서비스 소개 / About" },
-  { href: "/disclaimer/", text: "면책 고지 / Disclaimer" },
-  { href: "/advertising-policy/", text: "광고 운영정책 / Advertising Policy" },
-  { href: "/refund-policy/", text: "교환/환불 정책" },
-  { href: "/faq/", text: "FAQ" },
-  { href: "/methodology/", text: "콘텐츠 방법론" },
-  { href: "/editorial-policy/", text: TRUST_DOCUMENT_COPY.ko.editorial },
-  { href: "/insights/", text: "인사이트 아카이브" },
-];
-
-export { POLICY_LINKS };
-
-// 2026-10-16 "길잡이가 빈 상자 네 개로 보인다" 피드백: 그룹마다 한 줄 설명과 대표 링크 4개(featured)를
-// 늘 펼쳐 두고, 나머지만 "더 보기" 안에 둔다. 링크는 한 번씩만 렌더하고 전부 DOM 에 있어 크롤 신호는 그대로다.
+// 🔴 이 링크 묶음은 "전체 서비스 보기" 한 줄 안에 접어 둘 뿐 지우지 않는다. 사이트맵 라우트 상당수가 유입 내부
+// 링크를 이 푸터에서만 받는다(아래 그룹 주석의 실측). 접힌 <details> 안의 링크도 DOM 에 있어 크롤 신호는 같다.
+// 🔴 환불정책·면책 고지 전문도 다시 싣지 않는다 — 푸터는 모든 페이지에 붙으므로 전문을 담으면 색인 페이지가
+// 같은 본문을 공유한다(2026-08-24 out/ 실측: 사이트맵 371개 중 279개가 같은 1,013자를 본문으로 가졌다).
 export const SEO_LINK_GROUPS = [
   {
     title: siteFooterHubText("siteFooter.001"),
-    description: "사주·만세력·오늘의 운세처럼 매일 찾는 기본 풀이",
-    featured: ["/saju/", "/today/", "/manse/", "/compatibility/"],
     links: [
       { href: "/kkul-kkul-unse/", text: "꿀꿀 운세 브랜드 안내" },
       { href: "/saju/", text: "무료 사주풀이 보기" },
@@ -95,8 +68,6 @@ export const SEO_LINK_GROUPS = [
   },
   {
     title: siteFooterHubText("siteFooter.002"),
-    description: "연애·재회·속마음까지 카드로 묻는 리딩",
-    featured: ["/tarot/", "/tarot/love/", "/tarot/reunion/", "/tarot/mindscan/"],
     links: [
       { href: "/tarot/", text: "명리학 타로 시작하기" },
       { href: "/physiognomy/", text: "동물관상 분석하기" },
@@ -114,8 +85,6 @@ export const SEO_LINK_GROUPS = [
   },
   {
     title: siteFooterHubText("siteFooter.003"),
-    description: "자미두수·점성술·꿈해몽과 찻집·전문가 상담",
-    featured: ["/ziwei/", "/astrology/", "/dream/", "/fortune-tea-house/"],
     links: [
       // 색인 가능한 정본 허브로 보낸다. 예전에는 /ziwei/chart·/oracle/sukuyo 처럼
       // noindex,nofollow 인 인터랙티브 라우트만 가리켜서, 전 페이지 푸터의 링크 자산이
@@ -149,8 +118,6 @@ export const SEO_LINK_GROUPS = [
   },
   {
     title: siteFooterHubText("siteFooter.004"),
-    description: "처음이라면 읽어볼 가이드·이야기·후기",
-    featured: ["/guides/complete-guide-to-saju/", "/stories/", "/reviews/", "/faq/"],
     links: [
       { href: "/insights/", text: "운명 인사이트 허브" },
       { href: "/guides/", text: "하이밸류 아카이브" },
@@ -164,6 +131,8 @@ export const SEO_LINK_GROUPS = [
       { href: "/world/", text: "캐릭터와 세계관 — 연이·네오 소개" },
       { href: "/reviews/", text: "실시간 사용자 후기" },
       { href: "/faq/", text: "자주 묻는 질문" },
+      // 2026-10-16: 정책 줄을 다섯 개로 줄이면서 옮겼다. 다른 유입 링크가 없다.
+      { href: "/methodology/", text: "콘텐츠 방법론" },
       { href: "/insights/sukuyo-basics/", text: "숙요점 기초 가이드" },
       { href: "/insights/ziwei-basics/", text: "자미두수 기초 가이드" },
       { href: "/fortune/prompt-hub/", text: "운세 프롬프트 허브" },
@@ -183,143 +152,67 @@ const BUSINESS_INFO_ROWS = [
   { key: "siteFooter.011", value: BUSINESS_IDENTITY.address },
 ];
 
-
 export default function SiteFooterHub() {
   return (
-    <footer className={styles.sfhRoot} aria-label="서비스 하단 정책 정보">
-      <div className={`${styles.sfhNebula} ${styles.sfhNebulaLeft}`} aria-hidden />
-      <div className={`${styles.sfhNebula} ${styles.sfhNebulaRight}`} aria-hidden />
-      <div className={`${styles.sfhStars} ${styles.sfhStarsNear}`} aria-hidden />
-      <div className={`${styles.sfhStars} ${styles.sfhStarsFar}`} aria-hidden />
-
+    <footer className={styles.sfhRoot} aria-label="사이트 정보">
       <div className={styles.sfhShell}>
-        {/* 대표 홈 / 으로 문서 이동한다(워커가 로케일을 판정). */}
-        {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-        <a href="/" className={styles.sfhBrand} aria-label="꿀꿀 운세 홈">
-          <Image src="/icons/moonlight-garden-v1-512.webp" alt="" width={512} height={512} sizes="56px" />
-          <span>
-            <strong>꿀꿀 운세</strong>
-            <small>오늘의 마음이 조금 가벼워지는 곳</small>
-          </span>
-        </a>
-        <section aria-label={siteFooterHubText("siteFooter.012")}>
-          {/* 🔴 링크 허브와 SNS 채널은 **검색 신호 전용**이라 앱 번들에서는 렌더하지 않는다
-              (2026-09-03 사용자 결정). 앱에는 하단 탭바와 홈 IA 가 같은 진입을 이미 갖고 있고,
-              크롤러가 없으니 내부 링크 51개는 순수 비용이다. 셸(index.html)의 cd-footer-shell 을
-              build-mobile-app.mjs 가 걷어내는 것과 같은 규칙이다.
-              🔴 아래 환불 안내·사업자 정보·정책 링크는 **앱에서도 남긴다** — Play 정책과
-              전자상거래법상 앱 안에 접근 경로가 있어야 한다. 같이 지우지 말 것. */}
-          {!IS_APP_BUILD && (
-            <>
-              <p className={styles.sfhKicker}>주제별 바로가기</p>
-              <p className={styles.sfhTitle}>서비스 길잡이</p>
-              <p className={styles.sfhSubtitle}>
-                자주 찾는 곳을 먼저 보여드려요. 나머지는 묶음마다 ‘더 보기’에 담아 두었어요.
-              </p>
+        <p className={styles.sfhByline}>
+          <a href="/about/#author">
+            <Image src="/icons/moonlight-garden-v1-512.webp" alt="" width={512} height={512} sizes="28px" />
+            <span><strong>꿀꿀 운세</strong> — <span data-cd-trans="footer.byline">{FOOTER_BYLINE}</span></span>
+          </a>
+        </p>
 
-              <div className={styles.sfhGroupGrid}>
-                {SEO_LINK_GROUPS.map((group) => {
-                  const featured = group.links.filter((link) => group.featured.includes(link.href));
-                  const rest = group.links.filter((link) => !group.featured.includes(link.href));
-                  return (
-                    <section key={group.title} className={styles.sfhCard} aria-label={group.title}>
-                      <div className={styles.sfhGroupHead}>
-                        <h2 className={styles.sfhGroupTitle}>{group.title}</h2>
-                        <span className={styles.sfhGroupCount}>{group.links.length}곳</span>
-                      </div>
-                      <p className={styles.sfhGroupDesc}>{group.description}</p>
-                      <nav className={styles.sfhLinkNav} aria-label={`${group.title} 대표 링크`}>
-                        {featured.map((link) => (
-                          <a key={link.href} href={link.href} className={styles.sfhLink}>
-                            {link.text}
-                          </a>
-                        ))}
-                      </nav>
-                      {rest.length > 0 && (
-                        <details className={styles.sfhMore}>
-                          <summary className={styles.sfhMoreToggle}>나머지 {rest.length}곳 더 보기</summary>
-                          <nav className={styles.sfhLinkNav} aria-label={`${group.title} 링크 더 보기`}>
-                            {rest.map((link) => (
-                              <a key={link.href} href={link.href} className={styles.sfhLink}>
-                                {link.text}
-                              </a>
-                            ))}
-                          </nav>
-                        </details>
-                      )}
-                    </section>
-                  );
-                })}
-              </div>
-            </>
-          )}
-
-          <section aria-label="환불 정책 안내">
-            <h2 style={{ fontSize: '1.25rem', marginTop: '2rem', marginBottom: '1rem', fontWeight: 600 }}>디지털 운세 서비스 환불 안내</h2>
-            <p style={{ marginBottom: '1.5rem', lineHeight: 1.6 }}>
-              유료 결제 상품은 이용권과 상품별 원화 단건 결제이며, 월정석은 별도 구매·충전 상품이 아닙니다.
-            </p>
-            {/* 🔴 환불정책 전문을 여기에 렌더하지 않는다.
-                푸터는 모든 페이지에 붙으므로, 전문을 담으면 색인 페이지가 같은 본문을 공유한다.
-                2026-08-24 out/ 실측: 사이트맵 371개 중 279개(75%)가 같은 1,013자를 본문으로 갖고 있었고,
-                이는 near-duplicate 신호이자 AdSense "가치 없는 콘텐츠" 판정의 재료가 된다.
-                전문의 정본은 /refund-policy 이며 8개 조항 전부를 담고 있다(같은 날 out/ 대조 확인).
-                🔴 되살리지 말 것 — 되살리면 279개 페이지의 고유 본문 비율이 다시 무너진다. */}
-            <p style={{ marginBottom: '1.5rem', lineHeight: 1.6 }}>
-              청약철회 기간, 환급 절차, 월정석 유효기간을 포함한 조항 전문은{' '}
-              <a href="/refund-policy/" className={styles.sfhLink}>환불 정책 전문</a>
-              에서 확인하실 수 있습니다.
-            </p>
-            <p style={{ fontSize: '0.95rem', color: 'var(--sfh-muted)', lineHeight: 1.6, marginBottom: '0.5rem' }}>
-              본 안내는 이용약관 및 결제대행사 정책과 함께 적용되며, 강행규정과 충돌하는 경우 관계 법령을 우선합니다. 환불 접수는 문의하기 또는 고객지원 이메일을 통해 진행하시기 바랍니다.
-            </p>
-            <p style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--sfh-text)' }}>
-              환불 처리는 결제 수단(카드)으로만 가능합니다.
-            </p>
-          </section>
-
-          <section aria-label="면책 고지">
-            <h2 style={{ fontSize: '1.25rem', marginTop: '2rem', marginBottom: '1rem', fontWeight: 600 }}>면책 고지</h2>
-            {/* 🔴 면책 고지 전문을 여기에 렌더하지 않는다 — 위 환불 안내와 같은 이유(near-duplicate).
-                정본은 /disclaimer 이며, 푸터는 크롤러가 서버 렌더 본문에서 읽을 두 문장과 링크만 둔다
-                (DisclaimerBanner 는 클라이언트 전용이라 정적 HTML 에 남지 않는다). */}
-            <p style={{ marginBottom: '0.5rem', lineHeight: 1.6 }}>
-              꿀꿀 운세의 사주·타로·점성술 등 모든 운세 콘텐츠는 오락 및 자기 성찰 목적의 참고 정보이며, 확정된 미래를 예언하거나 결과의 정확성을 보장하지 않습니다. 의료·법률·투자·정신건강 등 중요한 결정은 반드시 해당 분야 전문가와 상담하시기 바랍니다.
-            </p>
-            <p style={{ fontSize: '0.95rem', lineHeight: 1.6 }}>
-              <a href="/disclaimer/" className={styles.sfhLink}>면책 고지 전문 보기</a>
-            </p>
-          </section>
-        </section>
-
-        {!IS_APP_BUILD && <SocialFooter copy={KO_SOCIAL_COPY} />}
-
-        <section aria-label="사업자 정보" style={{ marginTop: '1.5rem', fontSize: '0.8rem', lineHeight: 1.7, opacity: 0.85 }}>
-          <h2 style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.5rem' }}>사업자 정보</h2>
-          <p style={{ margin: 0 }}>
-            {BUSINESS_INFO_ROWS.map((row, index) => (
-              <span key={row.key}>
-                {index > 0 ? " | " : null}
-                <strong>{siteFooterHubText(row.key)}</strong>:{" "}
-                {/* 법인 상호·대표자명·신고번호·사업장 주소는 **등록된 그대로가 법적 형식**이라
-                    번역하지 않는다. data-cd-no-trans 로 런타임 번역 대상에서 명시적으로 제외한다. */}
-                <span data-cd-no-trans>{row.value}</span>
-              </span>
-            ))}
-          </p>
-        </section>
-
-        <nav aria-label="정책 및 안내 링크" className={styles.sfhPolicyNav}>
-          {POLICY_LINKS.map((link) => (
-            <a key={link.href} href={link.href} className={styles.sfhPolicyLink}>
+        {/* 🔴 정책 링크·안내·사업자 정보는 **앱에서도 남긴다** — Play 정책과 전자상거래법상 앱 안에 접근 경로가 있어야 한다. */}
+        <nav aria-label="회사 및 정책 링크" className={styles.sfhPolicyNav}>
+          {FOOTER_LINKS.map((link) => (
+            <a key={link.href} href={link.href} data-cd-trans={link.trans} className={link.strong ? `${styles.sfhPolicyLink} ${styles.sfhPolicyLinkStrong}` : styles.sfhPolicyLink}>
+              {link.text}
+            </a>
+          ))}
+          <span className={styles.sfhBreak} aria-hidden="true" />
+          {FOOTER_TRUST_LINKS.map((link) => (
+            <a key={link.href} href={link.href} data-cd-trans={link.trans} className={`${styles.sfhPolicyLink} ${styles.sfhPolicyLinkQuiet}`}>
               {link.text}
             </a>
           ))}
         </nav>
 
-        <p className={styles.sfhCopyright}>
-          © 2026 Code Destiny. 코드 데스티니 · 꿀꿀 운세
-        </p>
+        <p className={styles.sfhNotice} data-cd-trans="footer.disclaimerNote">{FOOTER_NOTICE}</p>
+
+        <section aria-label="사업자 정보" className={styles.sfhBusiness}>
+          {BUSINESS_INFO_ROWS.map((row) => (
+            <span key={row.key}>
+              {siteFooterHubText(row.key)}{" "}
+              {/* 법인 상호·대표자명·신고번호·사업장 주소는 **등록된 그대로가 법적 형식**이라
+                  번역하지 않는다. data-cd-no-trans 로 런타임 번역 대상에서 명시적으로 제외한다. */}
+              <span data-cd-no-trans>{row.value}</span>
+            </span>
+          ))}
+        </section>
+
+        {/* 서비스 링크는 검색 신호 전용이라 앱 번들에서는 렌더하지 않는다(2026-09-03 사용자 결정 — 앱에는 하단 탭바와 홈 IA 가 있다). */}
+        {!IS_APP_BUILD && (
+          <details className={styles.sfhAll}>
+            <summary className={styles.sfhAllToggle} data-cd-trans="footer.allServices">전체 서비스 보기</summary>
+            <nav className={styles.sfhAllGrid} aria-label={siteFooterHubText("siteFooter.012")}>
+              {SEO_LINK_GROUPS.map((group) => (
+                <section key={group.title} aria-label={group.title}>
+                  <h2 className={styles.sfhGroupTitle}>{group.title}</h2>
+                  <ul className={styles.sfhLinkList}>
+                    {group.links.map((link) => (
+                      <li key={link.href}>
+                        <a href={link.href} className={styles.sfhLink}>{link.text}</a>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ))}
+            </nav>
+          </details>
+        )}
+
+        <p className={styles.sfhCopyright}>© 2026 꿀꿀 운세 · CODE DESTINY</p>
       </div>
     </footer>
   );

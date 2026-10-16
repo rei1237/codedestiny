@@ -2199,7 +2199,8 @@
       "disclaimer": "Disclaimer",
       "editorial": "Editorial Policy",
       "methodology": "Content Methodology",
-      "advertising": "Advertising Policy"
+      "advertising": "Advertising Policy",
+      "operator": "About the Operator"
     },
     "copyright": "© 2025 Code Destiny. All rights reserved. For entertainment & self-reflection purposes only — not a substitute for professional advice.",
     "privacyNotice": "This service collects and uses birth date, birth time, and gender only within the scope necessary to provide saju/fortune results and related customer support. When the purpose of collection is achieved or the service ends, the information is destroyed without delay unless retention is required by law.",
@@ -2248,7 +2249,9 @@
       "health": "Myeongri Health Report",
       "music": "Fortune & Meditation Music"
     },
-    "disclaimerNote": "All fortune content on Code Destiny, including Saju, tarot, and astrology, is provided for entertainment and self-reflection only; it does not predict a fixed future and its accuracy is not guaranteed. For important medical, legal, financial, or mental-health decisions, always consult a qualified professional."
+    "disclaimerNote": "Readings are interpretations grounded in Myeongri theory. For important medical, legal, or investment decisions, please decide together with a qualified professional in that field.",
+    "byline": "Saju readings designed by Park Byeong-ha, a Myeongri scholar with 10 years of experience",
+    "allServices": "All services"
   },
   "common": {
     "cancel": "Cancel",

@@ -6,6 +6,7 @@ import { runInNewContext } from "node:vm";
 import { build, transformSync } from "esbuild";
 import { legacyHomeTarget } from "../../lib/navigation/legacy-home-target.mjs";
 import {RUNTIME_LOCALES} from '../../lib/i18n/locale-normalize.js';
+import { BRAND_FACTS } from "../../lib/brand/brand-facts.mjs";
 
 test('language selection stays on Yeongnyangi, while paid legacy returns keep their target',()=>{
  for(const locale of RUNTIME_LOCALES){
@@ -74,7 +75,7 @@ function homeRedirects(search = "", hash = "", { anchors = [], standalone = fals
 test("brand home stays put for plain visits, campaign links and its own anchors", () => {
   assert.deepEqual(homeRedirects(), []);
   assert.deepEqual(homeRedirects("?utm_source=google&utm_campaign=free-fortune"), []);
-  assert.deepEqual(homeRedirects("", "#brandHistoryTitle", { anchors: ["brandHistoryTitle"] }), []);
+  assert.deepEqual(homeRedirects("", "#homeCardTitle", { anchors: ["homeCardTitle"] }), []);
 });
 
 test("app anchors and installs that still start at / move on to the app home", () => {
@@ -103,9 +104,9 @@ test("home component prioritizes legacy payment returns over question guides", (
 });
 
 test("static shell entries use document navigation instead of Next RSC prefetch", () => {
-  const entries = [...homeSource.matchAll(/<(a|Link)\b[^>]*\bhref="(\/ggulggul\/[^"]*)"[^>]*>/g)];
-  assert.deepEqual(entries.map(([, , href]) => href), ["/ggulggul/", "/ggulggul/#premiumVvipCollection"]);
-  for (const [, tag, href] of entries) {
-    assert.equal(tag, "a", `${href} has no Next RSC payload; it needs a full document navigation`);
-  }
+  // 2026-10-16: the only /ggulggul/ entry is card I, which renders <a> through its `external` flag.
+  assert.equal(BRAND_FACTS.service.appEntryPath, "/ggulggul/");
+  assert.match(homeSource, /href: service\.appEntryPath, external: true\b/);
+  assert.match(homeSource, /card\.external \? <a \{\.\.\.linkProps\}>/);
+  assert.doesNotMatch(homeSource, /<Link\b[^>]*\bhref="\/ggulggul\//, "/ggulggul/ has no Next RSC payload; it needs a full document navigation");
 });

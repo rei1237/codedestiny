@@ -341,17 +341,6 @@
   transform: translateY(-50%);
 }
 
-.cd-footer-shell {
-  position: relative;
-}
-
-.cd-footer-shell > .cd-yehwa-peony {
-  right: 32px;
-  bottom: 20px;
-  width: 220px;
-  height: 220px;
-}
-
 /* ── 네오: 같은 선, 샴페인 골드로 재도색(바이올렛은 그라데이션 끝 15% 만 — One Accent) ── */
 
 /* 인장·스파클은 히어로 문양(.16)보다 높다 — 320px 문양과 달리 88px 이하라 선 길이가 짧고,

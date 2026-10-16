@@ -220,7 +220,7 @@ export default function CalendarGuidePage() {
       <section className="cd-card">
         <h2>{calendarGuideText("section.caution")}</h2>
         <p>
-          운세 달력은 엔터테인먼트와 자기 점검을 위한 참고 자료입니다. 의료, 법률, 투자, 결혼, 이혼, 소송, 진로 결정은 달력 결과만으로 정하지 말고 실제 자료와 자격 있는 전문가의 조언을 함께 확인해야 합니다.
+          운세 달력은 자기 점검을 위한 참고 자료입니다. 의료, 법률, 투자, 결혼, 이혼, 소송, 진로 결정은 달력 결과만으로 정하지 말고 실제 자료와 자격 있는 전문가의 조언을 함께 확인해야 합니다.
         </p>
       </section>
 

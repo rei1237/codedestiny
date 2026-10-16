@@ -220,7 +220,7 @@ export default function MayanCalendarGuidePage() {
       <section className="cd-card">
         <h2>{mayanCalendarGuideText("section.caution")}</h2>
         <p>
-          마야 달력 리딩은 엔터테인먼트와 자기 성찰을 위한 참고 자료입니다. 건강, 법률, 투자, 결혼, 이혼, 소송, 진로처럼 삶에 큰 영향을 주는 결정은 결과만으로 정하지 말고 현실 정보와 자격 있는 전문가의 조언을 함께 확인해야 합니다.
+          마야 달력 리딩은 자기 성찰을 위한 참고 자료입니다. 건강, 법률, 투자, 결혼, 이혼, 소송, 진로처럼 삶에 큰 영향을 주는 결정은 결과만으로 정하지 말고 현실 정보와 자격 있는 전문가의 조언을 함께 확인해야 합니다.
         </p>
       </section>
 

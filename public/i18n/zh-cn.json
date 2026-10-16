@@ -2097,7 +2097,8 @@
       "disclaimer": "免责声明",
       "editorial": "编辑政策",
       "methodology": "内容方法论",
-      "advertising": "广告政策"
+      "advertising": "广告政策",
+      "operator": "运营者介绍"
     },
     "copyright": "© 2025 Code Destiny. 保留所有权利。本服务仅供娱乐与自我反思之用，不构成专业建议。",
     "sections": {
@@ -2152,7 +2153,9 @@
       "health": "命理健康报告",
       "music": "运势与冥想音乐"
     },
-    "disclaimerNote": "Code Destiny 的四柱、塔罗、占星等全部运势内容仅供娱乐与自我反思参考，不预言既定的未来，也不保证结果的准确性。涉及医疗、法律、投资、心理健康等重要决定，请务必咨询相关领域的专业人士。"
+    "disclaimerNote": "分析是基于命理学理论的解读。医疗、法律、投资等重要决定，请与相关领域的专业人士共同判断。",
+    "byline": "由拥有十年经验的命理学者 Park Byeong-ha 设计的八字咨询",
+    "allServices": "查看全部服务"
   },
   "branches": {
     "자수": {

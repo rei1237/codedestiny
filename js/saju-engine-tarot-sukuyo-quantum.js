@@ -349,7 +349,7 @@ var SAJU_QUANTUM_TEXT_TRANSLATIONS = {
     "sq_5221_prop_title": "달빛 럭키 리추얼 리포트",
     "sq_5224_prop_title": "이번 주 금전운 컨디션",
     "sq_5242_prop_title": "나의 이번 주 수리 파동",
-    "sq_5243_prop_subtitle": "사주 오행과 수리 상징으로 보는 재미용 행운 루틴",
+    "sq_5243_prop_subtitle": "사주 오행과 수리 상징으로 보는 행운 루틴",
     "sq_5265_attr_aria_label": "달빛 럭키 리추얼 리포트",
     "sq_5400_prop_title": "Code Destiny 달빛 럭키 리추얼",
     "sq_6315_prop_label": "보름달",

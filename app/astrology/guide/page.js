@@ -248,7 +248,7 @@ export default function AstrologyGuidePage() {
       <section className="cd-card">
         <h2>{astrologyGuideText("section.caution")}</h2>
         <p>
-          점성술은 엔터테인먼트와 자기 성찰을 위한 참고 자료입니다. 건강, 법률, 투자, 결혼, 이혼, 소송, 진로처럼 중대한 결정은 차트 결과만으로 정하지 말고, 현실 정보와 자격 있는 전문가의 조언을 함께 확인해야 합니다.
+          점성술은 자기 성찰을 위한 참고 자료입니다. 건강, 법률, 투자, 결혼, 이혼, 소송, 진로처럼 중대한 결정은 차트 결과만으로 정하지 말고, 현실 정보와 자격 있는 전문가의 조언을 함께 확인해야 합니다.
         </p>
       </section>
 

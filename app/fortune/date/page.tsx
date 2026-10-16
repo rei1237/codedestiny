@@ -137,7 +137,7 @@ export default function DateFortuneArchivePage() {
         <GuideCta target={GUIDE_CTA_TARGETS["/fortune/date"]} />
 
         <p className="mt-10 break-keep text-xs leading-6 text-[rgba(244,238,255,0.55)]">
-          운세 콘텐츠는 오락과 자기성찰을 위한 참고 정보입니다. 건강·법률·재무처럼 중요한 결정은 실제 조건과 해당 분야 전문가의 조언을 함께 확인하세요.
+          운세 콘텐츠는 자기성찰을 위한 참고 정보입니다. 건강·법률·재무처럼 중요한 결정은 실제 조건과 해당 분야 전문가의 조언을 함께 확인하세요.
         </p>
       </main>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageJsonLd) }} />

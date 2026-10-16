@@ -1,29 +1,36 @@
 /*
- * 루트 `/` 두 브랜드 메인(2026-10-16). 첫 화면은 "두 장의 타로 카드 중 한 장 뽑기"로 서비스를 고른다.
- * - I 꿀꿀 운세(꽃돼지 연이의 종합 운세 백화점)는 --cd-* 토큰을 그대로 읽어 연이/네오 테마를 따른다.
- * - II 운세보는 영냥이(질문 특화 상담)는 [data-yn-night] 범위의 --yn-* 토큰(app/yeongnyangi/night-tokens.css)만 쓴다.
+ * 루트 `/` (2026-10-16 "직관성"). 화면에는 워드마크 → 질문 한 줄 → 전문성 한 줄 → 타로 카드 두 장 → 최소 푸터만 있다.
+ * 카드를 누르면 바로 그 서비스로 간다(안내 패널 없음).
+ * - I 꿀꿀 운세(연이)는 --cd-* 토큰을 그대로 읽어 연이/네오 테마를 따른다.
+ * - II 운세보는 영냥이는 [data-yn-night] 범위의 --yn-* 토큰(app/yeongnyangi/night-tokens.css)만 쓴다.
  * - 모듈 사설 변수는 --hm-* 이다. --cd-*·--yn-* 를 여기서 다시 선언하지 않는다.
- * - Tailwind 리셋이 h2·dl·ul 을 맨글자로 만들므로 제목·목록·링크를 명시적으로 스타일한다.
+ * - 카드 그림(Ⅰ 해 · Ⅱ 달)에는 테두리가 없다. 금색 이중 테두리와 로마 숫자는 여기서 그린다.
  * - 비한국어 LocalizedServiceSummary 는 home-guide.module.css 를 그대로 쓴다.
  */
 
 .page {
   --hm-gutter: 16px;
-  --hm-section-gap: clamp(48px, 7vw, 88px);
   --hm-gold-line: color-mix(in oklab, var(--cd-yehwa-line) 72%, transparent);
-  /* 금색 글자: --cd-yehwa-line-deep 만으로는 연이 테마 흰 바탕에서 3.8:1 이라 본문색을 섞어 4.5:1 을 넘긴다(라이트 5.8:1, 네오 13.7:1). */
+  /* 금색 글자: --cd-yehwa-line-deep 만으로는 연이 테마 흰 바탕에서 3.8:1 이라 본문색을 섞어 4.5:1 을 넘긴다. */
   --hm-gold-ink: color-mix(in oklab, var(--cd-yehwa-line-deep) 70%, var(--cd-text));
+  display: grid;
+  grid-template-rows: auto 1fr auto;
   min-height: 100vh;
-  background: var(--cd-bg);
+  min-height: 100svh;
+  padding-inline: var(--hm-gutter);
+  box-sizing: border-box;
+  background:
+    radial-gradient(70% 45% at 50% 42%, color-mix(in oklab, var(--cd-yehwa-line) 14%, transparent), transparent 72%),
+    var(--cd-bg);
   color: var(--cd-text);
   font-family: var(--font-body);
   font-size: 16px;
-  line-height: 1.75;
+  line-height: 1.7;
   word-break: keep-all;
   overflow-wrap: anywhere;
   overflow-x: clip;
 }
-.page :where(h1, h2, h3) {
+.page :where(h1, h2) {
   margin: 0;
   font-family: var(--font-serif);
   font-weight: 700;
@@ -31,155 +38,89 @@
   letter-spacing: -0.01em;
   text-wrap: balance;
 }
-.page :where(p, dl, dd) { margin: 0; }
+.page :where(p) { margin: 0; }
 .page :where(ul) { list-style: none; margin: 0; padding: 0; }
 .page :where(a) { color: inherit; text-underline-offset: 0.25em; }
-.page :where(a, summary):focus-visible {
+.page :where(a):focus-visible {
   outline: 2px solid var(--cd-focus-ring);
   outline-offset: 3px;
   border-radius: var(--cd-r-sm);
 }
-.inner {
-  width: min(100% - var(--hm-gutter) * 2, var(--cd-w-grid));
-  margin-inline: auto;
-}
 
-/* 1. 브랜드 줄 — 가운데 연이 마크와 넓은 자간 워드마크, 양끝이 흐려지는 금색 헤어라인(immersive, 전역 헤더 없음). */
-.brandRow { padding-top: 12px; }
-.brandRow .inner {
+/* 1. 워드마크 — 가운데 연이 마크와 넓은 자간, 양끝이 흐려지는 금색 헤어라인. */
+.brandRow {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
   min-height: 44px;
-  padding-bottom: 10px;
+  padding-block: 12px 10px;
 }
-.brandRow .inner::after {
+.brandRow::after {
   content: "";
   position: absolute;
-  inset: auto 8% 0;
+  inset: auto 18% 0;
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--hm-gold-line) 30%, var(--cd-yehwa-line) 50%, var(--hm-gold-line) 70%, transparent);
 }
-.brandMark { width: 34px; height: 34px; flex: none; }
+.brandMark { width: 30px; height: 30px; flex: none; }
 .wordmark { font-family: var(--font-serif); font-size: 1rem; font-weight: 800; letter-spacing: 0.22em; margin-inline-end: -0.22em; }
 
-/* 2~3. 첫 무대 — 980px 이하는 한 열(제목 → 카드·안내 → 그림), ≥981 은 [제목·그림 | 카드·안내] 두 열. */
-.stage { display: grid; gap: 22px; padding-block: 18px 4px; }
-
-/* 2. 히어로 — 가운데 정렬 세리프 타이포. H1 은 하나다. 액자 그림(.heroArt)은 무대의 셋째 칸이다. */
-.hero { display: grid; gap: 16px; align-content: start; }
-.heroCopy { display: grid; justify-items: center; text-align: center; }
-.eyebrow {
-  display: flex;
+/* 2. 무대 — 질문과 카드 두 장을 세로 가운데에 둔다. */
+.stage {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 22px;
+  padding-block: 22px 28px;
+}
+.head { display: grid; justify-items: center; gap: 8px; text-align: center; }
+.page .title { font-size: clamp(1.625rem, 7vw, 2.5rem); line-height: 1.25; letter-spacing: -0.02em; }
+.byline { font-size: 0.875rem; font-weight: 600; line-height: 1.5; color: var(--hm-gold-ink); }
+.byline a {
+  display: inline-flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 10px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  line-height: 1.4;
-  letter-spacing: 0.24em;
-  color: var(--cd-text-muted);
-}
-.eyebrow::before,
-.eyebrow::after { content: ""; width: 22px; height: 1px; background: var(--cd-yehwa-line); }
-.eyebrow::after { margin-inline-start: -0.24em; }
-.hero h1 { display: grid; justify-items: center; gap: 6px; }
-.h1Main { font-size: clamp(2.5rem, 11.5vw, 3.5rem); line-height: 1.1; letter-spacing: -0.02em; }
-.h1Sub {
-  font-family: var(--font-body);
-  font-size: 0.8125rem;
-  font-weight: 700;
-  line-height: 1.4;
-  letter-spacing: 0.34em;
-  margin-inline-end: -0.34em;
-  color: var(--cd-text-muted);
-}
-.lead { margin-top: 14px; max-width: 32ch; font-size: clamp(1rem, 1.6vw, 1.125rem); font-weight: 600; line-height: 1.65; text-wrap: balance; }
-/* 980px 이하는 바로 아래 카드가 같은 말을 하므로 보조문을 접어 첫 화면에 두 카드와 시작 버튼을 올린다. */
-.heroNote { display: none; margin-top: 8px; max-width: 40ch; font-size: 0.9375rem; color: var(--cd-text-muted); text-wrap: balance; }
-/* 액자: 바깥 금색 헤어라인 → 6px 매트 → 안쪽 헤어라인. */
-.heroArt {
-  position: relative;
-  display: block;
-  padding: 6px;
-  border: 1px solid var(--hm-gold-line);
-  border-radius: var(--cd-r-section);
-  background: var(--cd-surface);
-}
-.heroArt::after {
-  content: "";
-  position: absolute;
-  inset: 6px;
-  border: 1px solid color-mix(in oklab, var(--cd-yehwa-line) 45%, transparent);
-  border-radius: calc(var(--cd-r-section) - 6px);
-  pointer-events: none;
-}
-.heroArt img {
-  display: block;
-  width: 100%;
-  height: auto;
-  aspect-ratio: 16 / 10;
-  object-fit: cover;
-  object-position: 50% 62%;
-  border-radius: calc(var(--cd-r-section) - 6px);
+  min-height: 44px;
+  margin-block: -12px;
+  text-decoration: underline;
+  text-decoration-color: var(--hm-gold-line);
+  text-decoration-thickness: 1px;
 }
 
-/*
- * 3. 서비스 고르기 — 두 장의 타로 카드(라디오)와 고른 카드의 안내 패널.
- * 선택 표시는 형제 선택자(:checked ~)라 모든 브라우저에서 보이고, 패널 전환만 :has 로 한다.
- * 카드 전체가 클릭 영역이다(h2 안 label::after 를 카드 크기로 늘린다).
- */
-.modes { display: grid; gap: 12px; align-content: start; }
-.modesHead { display: grid; justify-items: center; gap: 2px; text-align: center; }
-.modePrompt { font-family: var(--font-serif); font-size: 1.125rem; font-weight: 700; line-height: 1.4; }
-.modeHint { font-size: 0.8125rem; line-height: 1.5; color: var(--cd-text-muted); }
+/* 3. 카드 두 장. 카드 전체가 링크 하나다(제목 링크의 ::after 를 카드 크기로 늘린다). */
 .deck {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
   width: 100%;
   max-width: 460px;
-  justify-self: center;
-  box-sizing: border-box;
-  padding: 12px 4px 4px;
+  padding-top: 12px;
 }
-.card { position: relative; min-width: 0; }
-/* 라디오는 보이지 않게 두고 카드 자리에 남긴다(가상 커서·방향키). 클릭은 label 이 받는다. */
-.modeInput {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 1px;
-  height: 1px;
-  margin: 0;
-  opacity: 0;
-  pointer-events: none;
-}
-.cardFrame {
+.card {
   --hm-card-ink: var(--cd-text);
   --hm-card-muted: var(--cd-text-muted);
   --hm-card-gold: var(--cd-yehwa-line);
   --hm-card-gold-ink: var(--hm-gold-ink);
+  --hm-card-bg: var(--cd-surface);
   --hm-tilt: 0deg;
   position: relative;
   display: grid;
   justify-items: center;
   align-content: start;
-  gap: 4px;
-  height: 100%;
-  box-sizing: border-box;
-  padding: 10px 10px 14px;
+  min-width: 0;
+  padding: 8px 8px 14px;
   border: 1px solid var(--hm-card-gold);
   border-radius: var(--cd-r-md);
+  background: var(--hm-card-bg);
   color: var(--hm-card-ink);
   text-align: center;
+  box-shadow: 0 10px 28px color-mix(in oklab, var(--cd-text) 10%, transparent);
   transform: rotate(var(--hm-tilt));
   transform-origin: 50% 100%;
 }
 /* 안쪽 헤어라인과 네 모서리 금점(이중 테두리). */
-.cardFrame::before {
+.card::before {
   content: "";
   position: absolute;
   inset: 4px;
@@ -192,378 +133,108 @@
     radial-gradient(circle, var(--hm-card-gold) 1.5px, transparent 2px) bottom 3px right 3px / 6px 6px no-repeat;
   pointer-events: none;
 }
-/* 고르는 순간 한 번 지나가는 빛(키프레임 없이 배경 위치 전환). */
-.cardFrame::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: linear-gradient(115deg, transparent 40%, color-mix(in oklab, var(--cd-gold-soft) 50%, transparent) 50%, transparent 60%) no-repeat;
-  background-size: 250% 100%;
-  background-position: 120% 0;
-  pointer-events: none;
+.yeoniCard {
+  --hm-tilt: -2deg;
+  --hm-card-bg: linear-gradient(180deg, color-mix(in oklab, var(--cd-yehwa-line) 10%, var(--cd-surface)), var(--cd-surface));
 }
-.yeoniCard .cardFrame {
-  --hm-tilt: -3deg;
-  background: linear-gradient(180deg, color-mix(in oklab, var(--cd-accent-soft) 32%, transparent), transparent 46%), var(--cd-surface);
-}
-.ynCard .cardFrame {
+.ynCard {
   --hm-card-ink: var(--yn-ivory);
   --hm-card-muted: var(--yn-muted);
   --hm-card-gold: var(--yn-gold);
   --hm-card-gold-ink: var(--yn-gold);
-  --hm-tilt: 3deg;
-  background: radial-gradient(120% 55% at 50% 0%, color-mix(in oklab, var(--yn-gold) 12%, transparent), transparent 70%), var(--yn-night);
+  --hm-card-bg: var(--yn-night);
+  --hm-tilt: 2deg;
+  box-shadow: 0 10px 28px color-mix(in oklab, var(--yn-deep) 40%, transparent);
 }
-.cardNumeral { font-family: var(--font-serif); font-size: 0.8125rem; font-weight: 700; line-height: 1.2; letter-spacing: 0.24em; margin-inline-end: -0.24em; color: var(--hm-card-gold-ink); }
-/* 아치형 그림 창(3:4). 윗변이 반원이 되도록 세로 반지름을 폭의 절반(=높이의 37.5%)으로 둔다. */
+/* 로마 숫자 — 윗변에 걸친 작은 명판. */
+.cardNumeral {
+  position: absolute;
+  top: -11px;
+  left: 50%;
+  z-index: 1;
+  min-width: 34px;
+  padding: 1px 10px;
+  border: 1px solid var(--hm-card-gold);
+  border-radius: var(--cd-r-pill);
+  background: var(--hm-card-bg);
+  font-family: var(--font-serif);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.5;
+  letter-spacing: 0.18em;
+  color: var(--hm-card-gold-ink);
+  transform: translateX(-50%);
+}
+.ynCard .cardNumeral { background: var(--yn-night); }
+/* 그림 창(3:4) — 안쪽 금색 헤어라인 하나. */
 .cardArt {
+  position: relative;
   display: block;
   width: 100%;
   aspect-ratio: 3 / 4;
   overflow: hidden;
-  border: 1px solid color-mix(in oklab, var(--hm-card-gold) 70%, transparent);
-  border-radius: 50% 50% var(--cd-r-sm) var(--cd-r-sm) / 37.5% 37.5% var(--cd-r-sm) var(--cd-r-sm);
+  border-radius: calc(var(--cd-r-md) - 6px);
 }
-.cardArt img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.page .cardName { margin-top: 6px; font-size: clamp(1.0625rem, 4.6vw, 1.375rem); line-height: 1.3; letter-spacing: 0; color: var(--hm-card-ink); }
-.cardName::before { content: ""; display: block; width: 28px; height: 1px; margin: 0 auto 8px; background: var(--hm-card-gold); }
-.cardName label { cursor: pointer; }
-.cardName label::after { content: ""; position: absolute; inset: 0; z-index: 1; border-radius: var(--cd-r-md); }
-.cardTag { font-size: 0.8125rem; font-weight: 700; line-height: 1.4; letter-spacing: 0.04em; color: var(--hm-card-ink); }
-.cardHint { font-size: 0.75rem; line-height: 1.4; color: var(--hm-card-muted); }
-/* "선택" 인장 — 고른 카드에만 붙는다. */
-.cardSeal {
+.cardArt::after {
+  content: "";
   position: absolute;
-  top: -12px;
-  right: -8px;
-  z-index: 2;
-  display: grid;
-  place-items: center;
-  width: 42px;
-  height: 42px;
-  border: 1px solid var(--hm-card-gold);
-  border-radius: var(--cd-r-pill);
-  background: var(--cd-cta-primary-bg);
-  color: var(--cd-cta-primary-ink);
-  font-size: 0.6875rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  opacity: 0;
-  transform: rotate(-12deg) scale(0.6);
+  inset: 5px;
+  border: 1px solid color-mix(in oklab, #fff 55%, var(--hm-card-gold));
+  border-radius: calc(var(--cd-r-md) - 9px);
+  opacity: 0.7;
   pointer-events: none;
 }
-.ynCard .cardSeal { background: var(--yn-gold); color: var(--yn-deep); border-color: var(--yn-ivory); }
+.cardArt img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.page .cardName { margin-top: 12px; font-size: clamp(1rem, 4.4vw, 1.375rem); line-height: 1.3; letter-spacing: 0; color: var(--hm-card-ink); }
+.cardName::before { content: ""; display: block; width: 28px; height: 1px; margin: 0 auto 8px; background: var(--hm-card-gold); }
+.cardLink { text-decoration: none; }
+.cardLink::after { content: ""; position: absolute; inset: 0; z-index: 2; border-radius: var(--cd-r-md); }
+.page .cardLink:focus-visible { outline: none; }
+.cardTag { margin-top: 2px; font-size: 0.8125rem; font-weight: 700; line-height: 1.45; color: var(--hm-card-ink); }
+.cardHint { font-size: 0.75rem; line-height: 1.45; color: var(--hm-card-muted); }
 
-/* 고른 카드: 바로 서서 떠오르고, 금빛이 돌고, 인장이 붙는다. 고르지 않은 카드는 조금 물러나고 그림이 한 톤 가라앉는다. */
-.modeInput:checked ~ .cardFrame { --hm-tilt: 0deg; transform: translateY(-12px); box-shadow: var(--cd-glow); }
-.ynCard .modeInput:checked ~ .cardFrame { box-shadow: 0 0 0 1px var(--yn-gold), 0 12px 30px color-mix(in oklab, var(--yn-gold) 30%, transparent); }
-.modeInput:checked ~ .cardFrame::after { background-position: -20% 0; }
-.modeInput:checked ~ .cardFrame .cardSeal { opacity: 1; transform: rotate(-12deg) scale(1); }
-.modeInput:not(:checked) ~ .cardFrame { transform: rotate(var(--hm-tilt)) scale(0.95); }
-.modeInput:not(:checked) ~ .cardFrame .cardArt { opacity: 0.88; filter: saturate(0.65) brightness(0.82); }
-.modeInput:focus-visible ~ .cardFrame { outline: 2px solid var(--cd-focus-ring); outline-offset: 4px; }
-.ynCard .modeInput:focus-visible ~ .cardFrame { outline-color: var(--yn-gold); }
+/* 고르는 손길: 카드가 바로 서서 떠오르고 금빛이 돈다. 키보드 포커스는 같은 모양에 포커스 링을 더한다. */
+.card:focus-within { --hm-tilt: 0deg; transform: translateY(-8px); box-shadow: 0 0 0 1px var(--hm-card-gold), 0 16px 36px color-mix(in oklab, var(--cd-yehwa-line) 34%, transparent); }
+.card:has(.cardLink:focus-visible) { outline: 2px solid var(--cd-focus-ring); outline-offset: 5px; }
+.ynCard:has(.cardLink:focus-visible) { outline-color: var(--yn-gold); }
 @media (hover: hover) {
-  .card:hover .modeInput:not(:checked) ~ .cardFrame { border-color: var(--hm-card-gold-ink); }
-  .card:hover .modeInput:not(:checked) ~ .cardFrame .cardArt { opacity: 1; filter: none; }
+  .card:hover { --hm-tilt: 0deg; transform: translateY(-8px); box-shadow: 0 0 0 1px var(--hm-card-gold), 0 16px 36px color-mix(in oklab, var(--cd-yehwa-line) 34%, transparent); }
+  .ynCard:hover { box-shadow: 0 0 0 1px var(--yn-gold), 0 16px 36px color-mix(in oklab, var(--yn-gold) 30%, transparent); }
 }
-
-/* 안내 패널 — CSS Modules 가 #id 를 해시하므로 value 속성으로 고른다. :has 를 아는 브라우저는 고른 카드의 안내만 보인다. 모르면 둘 다 보인다(링크를 잃지 않는다). */
-.panels { display: grid; gap: 12px; }
-@supports selector(:has(*)) {
-  .modes:has(input[value="yn"]:checked) [data-panel="yeoni"],
-  .modes:has(input[value="yeoni"]:checked) [data-panel="yn"] { display: none; }
-}
-.panel {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 16px 16px 4px;
-  border-radius: var(--cd-r-card);
-}
-.yeoniPanel { border: 1px solid var(--hm-gold-line); background: var(--cd-surface); }
-.ynPanel { border: 1px solid var(--yn-line); background: var(--yn-night); color: var(--yn-muted); }
-.panelKicker { order: 0; font-size: 0.75rem; font-weight: 700; line-height: 1.4; letter-spacing: 0.16em; color: var(--hm-gold-ink); }
-.ynPanel .panelKicker { color: var(--yn-gold); }
-/* 모바일은 시작 버튼을 먼저 보여 첫 화면에 걸치게 한다(order). 읽기 순서(DOM)는 설명 → 버튼이다. */
-.panelLead { order: 2; font-size: 0.9375rem; line-height: 1.7; text-wrap: pretty; }
-.ynPanel .panelLead { color: var(--yn-ivory); }
-.panel .panelCta,
-.ynCta { order: 1; width: 100%; min-height: 50px; padding: 10px 16px; font-size: 0.9375rem; }
-/* .page :where(a) 의 color: inherit 가 같은 특이도의 전역 버튼 글자색을 덮지 않게 다시 지정한다. */
-.panel .panelCta { color: var(--cd-cta-primary-ink); }
-.panel .panelCta::after { display: none; }
-/* 네오 테마의 primary 채움(--cd-cta-primary-bg)은 패널 바탕과 거의 같아 테두리만 보인다. 연이 패널에서는 금 채움으로 뒤집는다(글자 12.6:1). */
-:global(html[data-cd-theme="neo"]) .yeoniPanel .panelCta { background: var(--cd-gold); border-color: var(--cd-gold); color: var(--cd-cta-primary-bg); }
-@media (hover: hover) {
-  :global(html[data-cd-theme="neo"]) .yeoniPanel .panelCta:hover { background: var(--cd-gold-soft); border-color: var(--cd-gold-soft); }
-}
-.ynCta {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  border: 1px solid var(--yn-gold);
-  border-radius: var(--cd-r-control);
-  background: var(--yn-gold);
-  color: var(--yn-deep);
-  font-weight: 700;
-  line-height: 1.4;
-  text-align: center;
-  text-decoration: none;
-}
-.panelLinks { order: 3; display: grid; }
-.panelLinks a {
-  display: flex;
-  align-items: center;
-  min-height: 44px;
-  padding-block: 4px;
-  border-top: 1px solid var(--cd-line);
-  font-size: 0.875rem;
-  font-weight: 600;
-  line-height: 1.45;
-  text-decoration: none;
-  text-wrap: balance;
-}
-.panelLinks a::after {
-  content: "›";
-  content: "›" / "";
-  margin-inline-start: auto;
-  padding-inline-start: 4px;
-  font-size: 1.125rem;
-  line-height: 1;
-  color: var(--cd-yehwa-line-deep);
-}
-.ynPanel .panelLinks a { border-top-color: var(--yn-line); color: var(--yn-ivory); }
-.ynPanel .panelLinks a::after { color: var(--yn-gold); }
-.ynPanel :where(a):focus-visible { outline-color: var(--yn-gold); }
-@media (hover: hover) {
-  .panelLinks a:hover { text-decoration: underline; }
-  .ynCta:hover { background: var(--yn-ivory); border-color: var(--yn-ivory); }
-}
-
-/* 4~9. 공통 섹션 */
-.section { padding-top: var(--hm-section-gap); }
-.sectionHead { display: grid; gap: 8px; max-width: 68ch; margin-bottom: 20px; }
-.sectionHead h2,
-.prose h2,
-.factsCard h2 { font-size: clamp(1.375rem, 3.2vw, 2rem); line-height: 1.35; letter-spacing: -0.02em; }
-.sectionHead p { color: var(--cd-text-muted); text-wrap: pretty; }
-
-/* 4. 무료 운세 — 카드 전체가 링크 하나(제목 링크를 카드 크기로 늘린다). */
-.tools { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
-.tool {
-  position: relative;
-  display: grid;
-  grid-template-columns: 56px minmax(0, 1fr);
-  align-content: start;
-  gap: 2px 14px;
-  padding: 16px;
-  border: 1px solid var(--cd-border);
-  border-radius: var(--cd-r-card);
-  background: var(--cd-surface);
-}
-.tool img { grid-row: 1 / span 3; width: 56px; height: 56px; }
-.tool h3 { font-size: 1.0625rem; line-height: 1.45; }
-.tool h3 a { text-decoration: none; }
-.tool h3 a::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
-.page .tool h3 a:focus-visible { outline: none; }
-.tool:focus-within { outline: 2px solid var(--cd-focus-ring); outline-offset: 3px; }
-.toolQuestion { font-size: 0.9375rem; line-height: 1.6; }
-.toolScope { margin-top: 2px; font-size: 0.8125rem; line-height: 1.6; color: var(--cd-text-muted); }
-@media (hover: hover) {
-  .tool:hover { border-color: var(--cd-yehwa-line-deep); }
-  .tool:hover h3 a { text-decoration: underline; }
-}
-
-/* 5. 무료 운세와 영냥이 상담 비교 */
-.compare { display: grid; gap: 10px; }
-.compareCard { display: grid; align-content: start; gap: 10px; padding: 20px; border-radius: var(--cd-r-card); }
-.compareCard h3 { font-size: 1.125rem; line-height: 1.4; }
-.compareFree { background: var(--cd-surface); border: 1px solid var(--cd-border); }
-.compareNight { background: var(--yn-night); color: var(--yn-muted); border: 1px solid var(--yn-line); }
-.compareNight h3 { color: var(--yn-ivory); }
-/* 단독 링크라 문장 안 링크 예외가 아니다. 보이는 줄 높이는 그대로 두고 탭 영역만 44px로 넓힌다. */
-.compareNight a { display: inline-block; padding-block: 11px; margin-block: -11px; color: var(--yn-gold); font-weight: 600; }
-.compareCard p { text-wrap: pretty; }
-.compareNote { max-width: 68ch; margin-top: 14px; font-size: 0.9375rem; color: var(--cd-text-muted); }
-
-/* 6. 캐릭터 */
-.characters { display: grid; gap: 10px; }
-.character {
-  display: grid;
-  grid-template-columns: 72px minmax(0, 1fr);
-  align-items: center;
-  gap: 14px;
-  padding: 14px 16px;
-  border: 1px solid var(--cd-border);
-  border-radius: var(--cd-r-card);
-  background: var(--cd-surface);
-}
-.avatar { display: grid; place-items: center; width: 72px; height: 72px; overflow: hidden; border-radius: var(--cd-r-pill); background: var(--cd-surface-2); }
-.avatar[data-yn-night] { background: var(--yn-night); }
-.avatar img { width: 88%; height: 88%; object-fit: contain; }
-.characterText { display: grid; gap: 2px; }
-.characterText strong { font-family: var(--font-serif); font-size: 1.0625rem; line-height: 1.4; }
-.characterText span { font-size: 0.9375rem; line-height: 1.6; color: var(--cd-text-muted); text-wrap: balance; }
-
-/* 8. 서비스 사실 */
-.factsCard {
-  display: grid;
-  gap: 12px;
-  padding: clamp(20px, 3vw, 32px);
-  border: 1px solid var(--cd-border);
-  border-radius: var(--cd-r-section);
-  background: var(--cd-surface);
-}
-.facts { display: grid; }
-.facts div {
-  display: grid;
-  grid-template-columns: minmax(0, 7.5em) minmax(0, 1fr);
-  gap: 12px;
-  padding-block: 10px;
-  border-bottom: 1px solid var(--cd-line);
-}
-.facts dt { font-size: 0.875rem; color: var(--cd-text-muted); }
-.facts dd { font-size: 0.9375rem; }
-.nowrap { white-space: nowrap; }
-.factsLinks { display: flex; flex-wrap: wrap; gap: 0 22px; }
-.factsLinks a { display: inline-flex; align-items: center; min-height: 44px; font-size: 0.9375rem; font-weight: 600; color: var(--cd-text); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.2em; }
-
-/* 9. 이용 안내 */
-.prose { display: grid; gap: 12px; }
-.prose p { max-width: 68ch; }
-.prose a { font-weight: 600; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.2em; white-space: nowrap; }
-
-/* 10. 이전 이름 안내 — 작고 차분하게. 과거 이름은 이 블록 안에만 있다. */
-.history {
-  display: grid;
-  gap: 4px;
-  margin-top: 28px;
-  padding: 16px 20px;
-  border-radius: var(--cd-r-card);
-  background: var(--cd-surface-2);
-  border: 1px solid var(--cd-border);
-  font-size: 0.875rem;
-  color: var(--cd-text-muted);
-}
-.page .history h2 { font-family: var(--font-body); font-size: 0.9375rem; color: var(--cd-text); }
-
-/* 11. 자료실 */
-.directory { border: 1px solid var(--cd-border); border-radius: var(--cd-r-card); background: var(--cd-surface); }
-.directory summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  min-height: 56px;
-  padding-inline: 20px;
-  font-family: var(--font-serif);
-  font-weight: 700;
-  list-style: none;
-  cursor: pointer;
-}
-.directory summary::-webkit-details-marker { display: none; }
-.directory summary::after { content: "+"; font-family: var(--font-body); font-size: 1.25rem; font-weight: 400; color: var(--cd-text-muted); }
-.directory[open] summary::after { content: "−"; }
-.directoryGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
-  gap: 4px 28px;
-  padding: 0 20px 16px;
-}
-.directoryGrid h3 { margin: 12px 0 2px; font-family: var(--font-body); font-size: 0.875rem; color: var(--cd-text-muted); }
-.directoryGrid a { display: flex; align-items: center; min-height: 44px; font-size: 0.9375rem; text-decoration: none; }
-@media (hover: hover) { .directoryGrid a:hover { text-decoration: underline; } }
-
-/* 12. 자체 푸터 — 운영자 이름은 여기와 서비스 사실에만 쓴다. */
-.footer {
-  margin-top: var(--hm-section-gap);
-  padding-block: 32px 48px;
-  border-top: 1px solid var(--cd-border);
-  background: var(--cd-surface-2);
-  font-size: 0.875rem;
-  line-height: 1.7;
-  color: var(--cd-text-muted);
-}
-.footerBrand { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
-.footerBrand strong { font-family: var(--font-serif); font-size: 1.0625rem; color: var(--cd-text); }
-.footerNav { display: flex; flex-wrap: wrap; gap: 0 18px; margin-block: 12px 8px; }
-.footerNav a,
-.channels a { display: inline-flex; align-items: center; min-height: 44px; color: var(--cd-text); text-decoration: none; }
-.page .footer h2 { margin: 16px 0 2px; font-family: var(--font-body); font-size: 0.875rem; }
-.channels { display: flex; flex-wrap: wrap; gap: 0 18px; }
-.business { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 2px 24px; }
-.business div { display: flex; gap: 8px; }
-.business dt { flex: none; }
-.business dd { color: var(--cd-text); }
-@media (hover: hover) { .footerNav a:hover, .channels a:hover { text-decoration: underline; } }
-
-/* 카드는 --cd-dur-emph 로 움직인다(동작 줄이기면 토큰이 0.01ms 가 된다). 빛은 고를 때만 지나가고 돌아올 때는 바로 사라진다. */
-.cardFrame { transition: transform var(--cd-dur-emph) var(--cd-ease-out), box-shadow var(--cd-dur-emph) var(--cd-ease-out), border-color var(--cd-dur-base) var(--cd-ease-out); }
-.cardArt { transition: opacity var(--cd-dur-emph) var(--cd-ease-out), filter var(--cd-dur-emph) var(--cd-ease-out); }
-.cardSeal { transition: opacity var(--cd-dur-base) var(--cd-ease-out), transform var(--cd-dur-emph) var(--cd-ease-snap); }
-.modeInput:checked ~ .cardFrame::after { transition: background-position calc(var(--cd-dur-emph) * 2.4) var(--cd-ease-out); }
-/* 동작 줄이기: 기울기·떠오름 없이 테두리·금빛·인장으로만 고른 카드를 보인다. */
+.card { transition: transform var(--cd-dur-emph) var(--cd-ease-out), box-shadow var(--cd-dur-emph) var(--cd-ease-out); }
 @media (prefers-reduced-motion: reduce) {
-  .cardFrame,
-  .modeInput:checked ~ .cardFrame,
-  .modeInput:not(:checked) ~ .cardFrame { transform: none; }
-  .cardSeal,
-  .modeInput:checked ~ .cardFrame .cardSeal { transform: rotate(-12deg); }
+  .card,
+  .card:hover,
+  .card:focus-within { transform: none; }
 }
-/* 390 폭에서 기울어진 카드 모서리가 화면 끝에 닿지 않게(≥12px) 기울기를 줄인다. */
-@media (max-width: 480px) {
-  .yeoniCard .cardFrame { --hm-tilt: -2deg; }
-  .ynCard .cardFrame { --hm-tilt: 2deg; }
+
+/* 4. 최소 푸터 — 정책 링크 다섯 개, 사업자 정보, 안내 한 줄. */
+.footer {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding-block: 18px 28px;
+  border-top: 1px solid var(--cd-line);
+  font-size: 0.75rem;
+  line-height: 1.65;
+  color: var(--cd-text-muted);
+  text-align: center;
 }
-/* 무료 운세 카드는 미세 이동만. 동작 줄이기 설정이면 끈다. */
-@media (prefers-reduced-motion: no-preference) and (hover: hover) {
-  .tool { transition: transform 180ms ease, border-color 180ms ease; }
-  .tool:hover { transform: translateY(-2px); }
-}
+.footerNav { display: flex; flex-wrap: wrap; justify-content: center; gap: 0 16px; }
+.footerNav a { display: inline-flex; align-items: center; min-height: 44px; font-size: 0.8125rem; color: var(--cd-text); text-decoration: none; }
+.footerNav .footerStrong { font-weight: 800; }
+.business { display: flex; flex-wrap: wrap; justify-content: center; gap: 0 12px; max-width: 72ch; }
+.notice { max-width: 60ch; text-wrap: balance; }
+@media (hover: hover) { .footerNav a:hover { text-decoration: underline; } }
 
 @media (min-width: 641px) {
   .page { --hm-gutter: 24px; }
-  .stage { gap: 28px; padding-top: 24px; }
-  .heroArt img { aspect-ratio: 3 / 2; object-position: 50% 50%; }
-  .deck { gap: 22px; }
-  .panels { width: 100%; max-width: 620px; justify-self: center; }
-  .panel { padding: 22px 24px 8px; }
-  .panelLead, .panelLinks, .panelKicker { order: 0; }
-  .panel .panelCta, .ynCta { order: 0; width: auto; align-self: flex-start; padding-inline: 28px; }
-  .cardTag { font-size: 0.875rem; }
+  .stage { gap: 30px; }
+  .deck { max-width: 620px; gap: 36px; }
+  .card { padding: 10px 10px 18px; }
+  .cardNumeral { top: -12px; font-size: 0.8125rem; }
+  .cardTag { font-size: 0.9375rem; }
   .cardHint { font-size: 0.8125rem; }
-  .tools { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-  .compare { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-  .characters { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
-  .character { grid-template-columns: minmax(0, 1fr); align-content: start; justify-items: center; padding: 22px 18px; text-align: center; }
-  .avatar { width: 112px; height: 112px; }
-  .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 32px; }
-}
-
-/* ≥981: [히어로(타이포 + 액자) | 카드 두 장 + 안내] 두 열. 1366×900 첫 화면에 카드와 시작 버튼이 함께 든다. */
-@media (min-width: 981px) {
-  .page { --hm-gutter: 32px; }
-  .brandRow { padding-top: 16px; }
-  .stage {
-    grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
-    grid-template-rows: auto 1fr;
-    grid-template-areas: "hero modes" "art modes";
-    column-gap: clamp(40px, 4.5vw, 72px);
-    row-gap: 20px;
-    padding-top: 28px;
-  }
-  .hero { grid-area: hero; }
-  .modes { grid-area: modes; }
-  .heroArt { grid-area: art; align-self: start; }
-  .h1Main { font-size: clamp(3.25rem, 4.2vw, 4rem); }
-  .lead { max-width: 30ch; }
-  .heroNote { display: block; }
-  .modes { padding-top: 4px; }
-  .modePrompt { font-size: 1.25rem; }
-  .deck { max-width: 440px; }
-  .panels { max-width: none; }
-  .tools { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .yeoniCard { --hm-tilt: -3deg; }
+  .ynCard { --hm-tilt: 3deg; }
 }

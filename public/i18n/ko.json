@@ -1849,11 +1849,13 @@
       "terms": "이용약관",
       "about": "서비스 소개",
       "faq": "자주 묻는 질문",
-      "contact": "문의하기",
-      "disclaimer": "Disclaimer",
-      "editorial": "Editorial Policy",
+      "contact": "문의",
+      "disclaimer": "면책 고지",
+      "editorial": "편집 원칙",
       "methodology": "콘텐츠 방법론",
-      "advertising": "Advertising Policy"
+      "advertising": "광고 정책",
+      "refund": "환불정책",
+      "operator": "운영자 소개"
     },
     "privacyNotice": "본 서비스는 사주·운세 결과 제공 및 관련 고객지원에 필요한 범위에서만 이용자의 생년월일, 출생시간, 성별 정보를 수집·이용합니다. 수집 목적이 달성되거나 서비스가 종료된 경우 지체 없이 파기하며, 관계 법령에 따라 보존이 필요한 경우 해당 법령에서 정한 기간 동안 별도 보관 후 파기합니다.",
     "policyLinksAria": "회사 및 정책 링크",
@@ -1898,7 +1900,9 @@
       "health": "명리 헬스 리포트",
       "music": "운세·명상 음악"
     },
-    "disclaimerNote": "Code Destiny의 사주·타로·점성술 등 모든 운세 콘텐츠는 오락 및 자기 성찰 목적의 참고 정보이며, 확정된 미래를 예언하거나 결과의 정확성을 보장하지 않습니다. 의료·법률·투자·정신건강 등 중요한 결정은 반드시 해당 분야 전문가와 상담하시기 바랍니다."
+    "disclaimerNote": "분석은 명리학 이론에 근거한 해석이며, 의료·법률·투자 등 중요한 결정은 해당 분야 전문가와 함께 판단하시기 바랍니다.",
+    "byline": "10년 경력 명리학자 박병하가 설계한 사주 상담",
+    "allServices": "전체 서비스 보기"
   },
   "common": {
     "cancel": "취소",
@@ -3993,7 +3997,7 @@
     "sq_5221_prop_title": "달빛 럭키 리추얼 리포트",
     "sq_5224_prop_title": "이번 주 금전운 컨디션",
     "sq_5242_prop_title": "나의 이번 주 수리 파동",
-    "sq_5243_prop_subtitle": "사주 오행과 수리 상징으로 보는 재미용 행운 루틴",
+    "sq_5243_prop_subtitle": "사주 오행과 수리 상징으로 보는 행운 루틴",
     "sq_5265_attr_aria_label": "달빛 럭키 리추얼 리포트",
     "sq_5400_prop_title": "Code Destiny 달빛 럭키 리추얼",
     "sq_6315_prop_label": "보름달",

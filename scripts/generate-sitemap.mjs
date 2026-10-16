@@ -183,7 +183,7 @@ const coreRoutes = [
   { path: "/", changefreq: "daily", priority: 1.0 },
   // 공식 주소·표기 안내 페이지. 대표 홈보다 우선순위를 낮춰 브랜드 쿼리에서 자기잠식하지 않게 한다.
   { path: "/kkul-kkul-unse", changefreq: "weekly", priority: 0.85 },
-  // 천원사주 허브. 무료 키워드는 /saju/ 등 무료 랜딩의 몫이고, 이 페이지는 1,000원 재미 사주 콘텐츠와 영냥이 고등어 상담 안내를 맡는다.
+  // 천원사주 허브. 무료 키워드는 /saju/ 등 무료 랜딩의 몫이고, 이 페이지는 1,000원 사주 리포트와 영냥이 고등어 상담 안내를 맡는다.
   { path: "/yeongnyangi/1000-won-fortune", changefreq: "weekly", priority: 0.8 },
   { path: "/saju/destiny-anatomy", changefreq: "monthly", priority: 0.76 },
   { path: "/human-design/guide", changefreq: "monthly", priority: 0.7 },

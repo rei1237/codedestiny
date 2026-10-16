@@ -198,7 +198,7 @@ export default function IlganMonthlyDetailPage({ params }: { params: PageParams 
         <GuideCta target={GUIDE_CTA_TARGETS["/saju/monthly/[month]/[stem]"]} />
 
         <p className="mt-10 break-keep text-xs leading-6 text-[rgba(244,238,255,0.55)]">
-          운세 콘텐츠는 오락과 자기성찰을 위한 참고 정보이며, 사주 전체 명식이나 현실의 조건을 대신하지 않습니다. 건강·법률·재무 등 중요한 판단은 전문가의 조언을 함께 확인하세요.
+          운세 콘텐츠는 자기성찰을 위한 참고 정보이며, 사주 전체 명식이나 현실의 조건을 대신하지 않습니다. 건강·법률·재무 등 중요한 판단은 전문가의 조언을 함께 확인하세요.
         </p>
       </main>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageJsonLd) }} />

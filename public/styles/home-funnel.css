@@ -747,22 +747,12 @@ html body #cdFinalCtaBand{padding:24px 16px;margin:8px auto 28px;border:0;backgr
 :is(#emailSubBoxHome,#emailSubBox) .btn-subscribe{flex:none;min-height:50px;padding:12px 20px;border:1px solid var(--home-gold);border-radius:12px;background:var(--home-ink)!important;color:var(--home-paper)!important;box-shadow:none;white-space:nowrap}
 :is(#emailSubBoxHome,#emailSubBox) :is(input,button):focus-visible{outline:2px solid var(--home-gold);outline-offset:3px}
 #cdSiteFooter{background:var(--home-paper);color:var(--home-ink)}
-#cdSiteFooter .cd-footer-shell{gap:28px 28px;padding:34px 28px 28px;border-top:1px solid var(--home-line)}
-#cdSiteFooter .cd-footer-brandcol__mark{font-family:'CodeDestinySerifKR',serif;letter-spacing:.12em;font-size:20px;color:var(--home-gold)}
-#cdSiteFooter .cd-footer-brandcol__tagline{font-size:13px;line-height:1.8;color:var(--home-muted)}
-#cdSiteFooter .cd-footer-col{gap:2px}
-#cdSiteFooter .cd-footer-col__title{font-family:'CodeDestinySerifKR',serif;font-size:16px;letter-spacing:0;margin:0 0 8px;color:var(--home-ink)}
-#cdSiteFooter .cd-footer-shell .cd-footer-link{min-height:44px;align-content:center}
-#cdSiteFooter .cd-footer-shell>.cd-yehwa-peony{display:none}
-#cdSiteFooter .cd-footer-legal{border-color:var(--home-line);padding:24px 28px;gap:16px}
-@media(min-width:901px){
-  #cdSiteFooter .cd-footer-col--guides{display:grid;grid-column:1/-1;grid-template-columns:repeat(4,minmax(0,1fr));gap:0 24px;padding-top:22px;border-top:1px solid var(--home-line)}
-  #cdSiteFooter .cd-footer-col--guides .cd-footer-col__title{grid-column:1/-1;margin-bottom:12px}
-}
+#cdSiteFooter .cd-footer-byline{padding-top:28px;border-top:1px solid var(--home-line)}
+#cdSiteFooter .cd-footer-byline strong{font-family:'CodeDestinySerifKR',serif;color:var(--home-gold)}
+#cdSiteFooter .cd-footer-legal{padding:8px 28px 24px;gap:12px 16px}
 @media(max-width:640px){
   :is(#emailSubBoxHome,#emailSubBox) .sub-form{flex-direction:column}
   :is(#emailSubBoxHome,#emailSubBox) .btn-subscribe{width:100%}
-  #cdSiteFooter .cd-footer-brandcol{padding-bottom:20px}
 }
 /* 공개 분석 기록 — 달빛 예화 표면 */
 #cdHomeFunnel .cdh-public-bridges{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--cd-sp-md);margin:var(--cd-sp-lg) clamp(16px,3vw,40px)}

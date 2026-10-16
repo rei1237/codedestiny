@@ -73,7 +73,7 @@ const METHODOLOGY_TEXT_TRANSLATIONS = {
       },
       {
         title: "면책 고지",
-        body: "운세 콘텐츠는 오락과 자기성찰 목적의 참고 자료입니다. 의료, 법률, 금융, 투자, 진로 계약처럼 중대한 결정은 해당 분야의 전문가와 상담해야 합니다.",
+        body: "운세 콘텐츠는 각 체계의 이론에 근거한 참고 해석입니다. 의료, 법률, 금융, 투자, 진로 계약처럼 중대한 결정은 해당 분야의 전문가와 상담해야 합니다.",
       },
       {
         title: "사용자 보호 원칙",
@@ -96,7 +96,7 @@ const METHODOLOGY_TEXT_TRANSLATIONS = {
       { title: "Content Standards", body: "Saju, tarot, Zi Wei Dou Shu, astrology, and Sukuyo use different symbolic systems. 꿀꿀운세 explains the basic concepts separately and writes result text so users can review real choices." },
       { title: "Review and Updates", body: "Public guides and FAQs are checked so broken copy, exaggerated wording, and internal work notes are not exposed. When policies or features change, related documents and internal links are updated together." },
       { title: "What the engine computes and what AI writes", body: "The underlying values — birth chart, planetary positions, the 27 lunar mansions — come from deterministic calculation engines, not from AI. The same birth data always produces the same values. Generative AI is used at the next step, turning those values into readable explanations, and published documents are checked against our standards for exaggeration, anxiety-inducing wording, and phrasing that could be mistaken for medical, legal, or financial advice. Full production and review standards are set out in our content and AI disclosure." },
-      { title: "Disclaimer", body: "Fortune content is reference material for entertainment and self-reflection. Important decisions such as medical, legal, financial, investment, or career contracts should be discussed with qualified professionals." },
+      { title: "Disclaimer", body: "Fortune content is interpretive reference material grounded in each system's theory. Important decisions such as medical, legal, financial, investment, or career contracts should be discussed with qualified professionals." },
       { title: "User Protection Principles", body: "We avoid wording that stirs anxiety or pressures a specific action. Results guide possibilities and observation points, while making clear that final choices and responsibility remain with the user." },
     ],
   },
