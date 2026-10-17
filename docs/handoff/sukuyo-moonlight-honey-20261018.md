@@ -1,10 +1,17 @@
 ---
-status: blocked
+status: done
 updated: 2026-10-18
-next: "공유 main 소유 세션의 미커밋 변경 정리 후 최신 main CI 확인, 이 워크트리를 main에 통합·push하고 최종 CI 확인"
+next: "코드 전달 차단 해소 및 원격 main 반영 완료. 사용자 승인 운영 릴리스의 최종 상태는 이 대화에서 확인한다."
 ---
 
 # 숙요 달빛 UI·무료 궁합·꿀방울 범위 제한
+
+## 2026-10-18 전달 차단 해소
+- 원격 main에 40a2b6600778f7d5fd854783514789b376e5e796 push 완료. 공유 main 체크아웃은 다른 세션이 사용 중이므로 파일·인덱스·로컬 main ref를 변경하지 않고 격리 워크트리에서 HEAD:main으로 정상 fast-forward 전송했다. force push 없음.
+- 결제 동결 원인: 0c7e96a7d에서 billing-client.ts의 PAID_SERVICE_RUNTIME_SRC 캐시 키만 변경하고 manifest 갱신 누락. b46531856 이후 파일 diff가 이 한 줄뿐임을 확인했다. worker/payments의 결제 정책 대응 변경은 필요 없다. config/payment-freeze.json의 해당 해시 한 개만 정식 --update로 갱신했다.
+- verify:payment-freeze PASS (region4/file3/ceiling2), verify:payment-choice-parity PASS, check:pre-push PASS. 출석 UI7개, 숙요 관계 방향·천문검사,4폭 mock 재검증 PASS.
+- CI: https://github.com/rei1237/codedestiny/actions/runs/39044937817 . 운영 배포는 사용자가 이 대화에서 명시적으로 요청했다. 최종 CI·배포·실서비스 SHA 증거는 대화 최종 보고에 남긴다.
+- 아래 차단 상태와 다음 순서는 재개 전의 역사적 기록이다. 공유 로컬 main은 동시 작업을 보호하기 위해 자동 갱신하지 않는다.
 
 ## 재개 위치와 전달 상태
 - 작업 디렉터리: D:\Development\codedestiny-worktrees\sukuyo-moonlight-free-20261017-230113
