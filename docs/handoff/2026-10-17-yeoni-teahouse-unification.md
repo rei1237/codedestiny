@@ -60,4 +60,21 @@ next: "작업 브랜치 CI 결과 확인 후 사용자가 별도로 승인하면
 
 ## 재개 지시
 
+## 2026-10-17 후속: 꽃돼지 연이 대화 상담 안내
+
+- 사용자 지정 마지막 SHA `aede52ada719774807fbc7417c148dc11bce2246` 확인 후 clean 작업 트리에서 이어서 수정했다. main 병합은 여전히 별도 승인 대상이다.
+- `FortuneTeaHouseLanding.tsx`의 대화 상담에 기존 `public/images/fortune-tea-house/flower-pig-welcome.webp`를 재사용하고, “간단한 질문에는 꽃돼지 연이에게 물어봐!”를 HTML 말풍선으로 표시했다. 신규 이미지 생성 없이 기존 꽃돼지 정체성을 유지한다.
+- `tea-house-home.module.css`에 해당 영역 전용 반응형 배치를 추가했다. 기존 상담 링크, 결제·가격·인증·API·DB는 수정하지 않았다.
+- 번역 정본 `i18n/authored/fortuneTeaHouse-51.json` → `node scripts/i18n-merge-authored.mjs --namespace fortuneTeaHouse --core`로 12개 코어 사전을 생성했다. `npm run sitemap:generate`로 원장을 갱신했다(공유 번역 사전을 참조하는 경로들의 signature 포함). URL 1,027개 유지.
+- `node --test __tests__/ui/yeoni-teahouse-entry.test.js __tests__/ui/fortune-tea-house-i18n.static.test.js`: 7/7 통과. `npm run verify:sitemap-drift`, `node scripts/verify-i18n-public-parity.mjs --all`, `git diff --check` 통과. 변경 TSX ESLint 오류 0 / 기존 `/records/` a 링크 경고 4건.
+- `npm run check:fast -- --plan` 이후 `npm run check:fast` 실행: 새 저작 파일이 미분류로 critical 승격되어 90개 paid-gate suite에 진입했다. 전체 로컬 검사 중복을 피하려고 첫 대규모 테스트 단계에서 중단했다. **전체 check:fast 통과 아님**. 최종 전체 게이트는 새 커밋 CI에서 확인해야 한다.
+- 실제 Next 화면을 외부/API 요청 차단한 mock 브라우저로 360/390/430/1440px에서 확인: 이미지 로딩 정상, 요청 문구 표시, 기존 `/fortune-tea-house/?counsel=letter` 링크 유지, 가로 넘침 없음. 별도 시각 검토도 차단 결함 없음. 로컬 서버는 종료했다.
+- 화면 증거: `C:\Users\user\.codex\visualizations\2026\10\17\01a14901-0f12-7520-bb5a-4546a1cef607\yeoni-chat-{360,390,430,1440}.png`.
+- 후속 확인 당시 기존 구현 CI `39017651452`는 진행 중. 원격 main `79d01e63302fb18230b0ce1516721175ffdb330b`의 CI `39016747491`는 실패(Static guards 내 사주 요약 mobile-restored assertion, CI required failure). 이번 UI 수정의 원인으로 단정하지 않으며 main에 push하지 않는다.
+- 다음: 새 작업 커밋 CI 확인 → 사용자의 별도 병합 승인 후 동시 작업 충돌 점검 및 main CI 복구 여부 확인 → 통합. 승인 전에는 워크트리를 배수하거나 status를 done으로 바꾸지 않는다.
+
+## 이전 통합 재개 명령 참고
+
 `D:\Development\codedestiny-worktrees\yeoni-teahouse-unify-20261017-171455`에서 이 문서와 `git status --short`를 읽고, 구현 SHA `fc2074a144c6c439824906f2d2f10f0a64974f59` 및 CI 실행 `39017651452`를 확인한다. 사용자의 main 병합 승인 여부부터 확인한 뒤 최신 main/동시 연이 소개 UI의 변경과 충돌 여부를 확인한다.
+
+- 후속 타입 검증: npm run typecheck 통과(exit 0).
