@@ -14,7 +14,7 @@ status: blocked
 ## 보존 위치와 커밋
 - 작업 디렉터리: D:\Development\codedestiny-worktrees\fortune-fish-20261017-200624
 - 브랜치: wt/fortune-fish-20261017-200624
-- 마지막 구현 커밋: e1d3690cd63da0b755431c37242d33e96e9e53b5
+- 마지막 구현 커밋: 4680a54e687cf5ce1405b7e3d1fef664388dcf9b
 - 구현: f370ed16d9c9b12d7a279459e47b9a7fd40b1e49
 - 생성기 원장: 15482c1418ceebe031907b749d96cafce5287e1e
 - main 통합/push: 보류. 다른 세션 작업은 건드리지 않음. 미통합이라 워크트리 보존.
@@ -34,3 +34,10 @@ status: blocked
 https://github.com/rei1237/codedestiny/actions/runs/39026685632
 저장소 규칙에 따라 실패한 main 위에 push하지 않음. 첫 행동: 현재 origin/main SHA와 CI 복구 여부 확인. 기존 실패를 임의 수정하지 않는다.
 복구 후 동시 세션과 파일 소유를 확인하고 main에 직접 통합. index/public 셸은 다른 세션 변경을 보존하고 소스 합친 뒤 sync:public, sitemap:generate로 생성. 원장은 손으로 병합하지 않는다. 필요한 검증, check:pre-push, push, CI 1회 확인. 이후 이 문서 done 처리, node_modules 정션 해제 후 자기 워크트리/머지된 wt 브랜치 배수.
+
+## 후속 요청: 해석 분량 확대
+- 네 움직임 해석을 각 713~746자, 5개 문단으로 확장. 관계/일/공부/행동 조언을 연결하고 확정적 예언은 배제.
+- 소스와 public 미러 수정. 결제/인증/API/DB 변경 없음.
+- 관련 테스트 13개 PASS. 브라우저 390/1280px에서 5문단 출력과 가로 넘침 없음 확인.
+- check:pre-push 결과: fish-expanded-pre-push.log. 원격 main CI는 같은 실패 상태로 push 보류.
+
