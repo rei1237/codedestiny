@@ -1,7 +1,7 @@
 ---
-status: blocked
+status: done
 updated: 2026-10-17
-blocker: existing-main-ci-failure
+delivery: main-pushed-production-authorized
 ---
 
 # 무료 심리테스트 복원·몰입형 UI 전달
@@ -48,3 +48,11 @@ https://github.com/rei1237/codedestiny/actions/runs/39016747491
 - D:/Development/psychotest-result-mobile.png
 
 재개: 이 디렉터리에서 본 문서와 검증 SHA를 확인한 뒤 origin/main CI 상태 확인부터 진행한다.
+
+## 후속 완료 기록
+2026-10-17 사용자 요청으로 22종 SVG를 귀여운 연이/영냥이와 개별 소품으로 교체. 390/1440 실제 렌더 및 시각 검토 통과, ESLint/정적2/호환6/Impeccable detector 통과.
+기존 CI 실패는 origin/main의 사주 검증 수정과 함께 통합했다. 원격 0488bb40b까지 병합했고, 기존 유료 이력 fixture는 양쪽 무료 전환 항목을 모두 보존하고 sitemap 원장은 재생성했다.
+코드 c96a3db52를 main에 push 완료. 이 SHA에서 check:pre-push 전체 통과. 이전 'push 미실시/기존 CI 차단' 기록은 과거 상태다.
+사용자는 이번 운영 반영을 명시적으로 승인했다. 공식 Release Cloudflare Pages and Worker workflow의 mode=production으로 요청한다. 배포 결과는 최종 채팅의 실행 링크가 정본이며, dispatch 접수와 운영 적용 완료는 구분한다. 저장소 규칙에 따라 CI/운영 런을 반복 폴링하지 않는다.
+새 캡처: D:/Development/psychotest-cute-390.png, D:/Development/psychotest-cute-1440.png.
+주 체크아웃의 타 세션 변경은 유지했으며, 이 작업은 원격 main에 fast-forward로 전달했다.
