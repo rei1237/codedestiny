@@ -8,6 +8,7 @@ status: blocked
 
 - 작업 디렉터리: D:/Development/codedestiny-worktrees/saju-tea-specialist-20261017-161924
 - 기준: bc4ba149471ac99f24c1117a35197a9bfa0ccca5
+- 구현 커밋: a2bb092867e02678f65c5446f3fca50629996272
 - 기존 main CI 실패: 39008934591, sitemap drift / Static guards. 타 작업 위 push 금지, 전달 전 재확인.
 - main 미커밋 home/index/public/test 변경과 미추적 운영 스크립트는 타 세션 소유, 변경하지 않음.
 - [x] 지시/디자인/결제 계약 확인, 안전 워크트리 생성
@@ -16,7 +17,8 @@ status: blocked
 - [x] 가격/6그룹/기존 장+생활영역5장/목차/건강 품질 규칙
 - [x] 대운 통합·해설
 - [x] targeted 검사·실제 브라우저 mock·리뷰
-- [ ] 커밋·pre-push·main 전달/CI·정리
+- [x] 구현 커밋·pre-push
+- [ ] main 전달/CI·워크트리 배수 — 기존 main 실패와 타 세션 편집으로 차단
 
 현재 원격은 계획 탐색 때보다 진전됨: 찻집은 저장된 checkpoint 그룹 단위 생성/복구를 사용. 기존 checkpoint.request/groups는 그대로 재개하고 새 개인 사주만 새 6그룹 계약으로 시작해야 함.
 
@@ -41,8 +43,12 @@ status: blocked
 - 캡처: C:/Users/user/.codex/visualizations/2026/10/17/01a148af-428c-7bf1-9693-dbf05254b47d/saju-joint/
 - impeccable detect(변경 UI 3파일): exit0/출력0. 읽기전용 시각 리뷰가 요청한 정상가격 캡처를 보완.
 - 최초 check:fast: 411/414 Jest suites 통과, 구가격 기대값2개와 VM 검사 의존성1개 실패. 세 항목 수정 후 관련52 tests 통과.
-- 두 번째 check:fast: 414/415 suites, 6611/6635 tests 통과. 대운 기존 HTML parity 24건 실패를 수정: 기존 장을 대체하지 않고 기존 서버 확장장 계약으로 새 두 장을 추가. 관련 saju-section 413 tests 통과. 추가 장의 실제 노출·건강 표현을 확인하는 pig/neo 2건을 보강한 최종 check:fast 실행 중.
+- 두 번째 check:fast: 414/415 suites, 6611/6635 tests 통과. 대운 기존 HTML parity 24건 실패를 수정: 기존 장을 대체하지 않고 기존 서버 확장장 계약으로 새 두 장을 추가. 관련 saju-section 413 tests 통과. 추가 장의 실제 노출·건강 표현을 확인하는 pig/neo 2건을 보강.
+- 마지막 check:fast: Jest 415 suites / 6638 tests 전부 통과. 이어진 node 검사 3332 중 3328 통과, 구가격·기존 대운 장 수·구 사주 신규 진입 전제 4건 실패로 명령 exit1. 실패한 3파일의 기대값·진입 검사를 수정하고 관련34 tests 전부 통과. 원래 결제 복귀 검증은 다른 점술에서 유지하고 신규 사주 이동/기존 유료 사주 재개를 추가 확인. 전체 check:fast 재통과라고 보고하지 않음.
+- 최종 소스 lint, typecheck, build:worker(dry-run), verify:worker-no-undef 전부 exit0. 구현 커밋에서 check:pre-push exit0(홈 등록소·정적 미러·사이트맵·llms·SEO 등록소). 최종 테스트/문서 커밋 뒤 pre-push를 다시 실행할 것.
 
 ## 전달 차단
 
 원격 main은 bc4ba149471ac99f24c1117a35197a9bfa0ccca5 그대로이며 CI run39008934591 failure. main에 다른 세션 index/home/public 변경이 남아 있음. 저장소 지침상 이 상태 위 push 금지. 로컬 구현·검증·커밋을 보존한 뒤 main 복구/병행 작업 종료 후 통합해야 한다. 이 파일은 운영 반영 증명이 아니다.
+
+2026-10-17 17시대 최종 원격 조회도 같은 SHA/실패 런. 구현에는 기존 sitemap drift 원장 재생성이 포함되지만 타 세션의 main 변경을 함께 커밋하거나 실패한 main 위로 push하지 않았다. 병행 작업 정리 후 소스 충돌을 해결하고 정적 미러/사이트맵을 재생성하여 main에 병합·커밋·pre-push·push, 최신 CI 결과를 확인해야 한다. 이 작업 워크트리는 미병합 결과를 보존하기 위해 남긴다. 실 생성문 검수/운영 승격은 별도다.

@@ -11,7 +11,7 @@ test('redirect ticket carries the pre-question turns so the resumed body equals 
  (function visit(node){if(ts.isVariableDeclaration(node)&&['send','requestReading','buildResume'].includes(node.name.getText(ast)))found[node.name.getText(ast)]=node.initializer;ts.forEachChild(node,visit);})(ast);
  const js=text=>ts.transpileModule(text,{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText,recovery={exports:{}};vm.runInNewContext(source,recovery);
  const question='다음 달에 이사해도 될까요?',posts=[],gates=[],messagesRef={current:[{id:'a0',speaker:'assistant',text:'어서 와요.'},{id:'u1',speaker:'user',text:'올해 이직해도 될까요?'},{id:'a1',speaker:'assistant',text:'흐름은 열려 있어요.',detail:'하반기가 더 좋아요.'}]};
- const context=vm.createContext({...recovery.exports,messagesRef,AbortController,window:{setTimeout:()=>1,clearTimeout(){}},busy:false,isPaying:false,sessionId:'owned-session',question,topic:'',CONCERN_MAX_LENGTH:300,birth:{birthDate:'1990-05-17',birthTime:'07:30',calendarType:'solar',gender:'female'},activeCategory:'saju',topicKey:'decision',character:'yeoni',needsPayment:true,apiBase:'',AI_LOCALE_HEADER:'X-Locale',localeRequestEpochRef:{current:0},activeReadingRef:{current:null},toAiLocale:locale=>locale,detectLocale:()=>'ko',makeRequestId:()=>'paid-turn-1',id:()=>'m-new',append(){},persist(){},setMessages(){},setBusy(){},setError(){},setNotice(){},setShareDraftToken(){},setBirthOpen(){},presentAttempt:()=>true,friendlyError:(_e,message)=>message,
+ const context=vm.createContext({...recovery.exports,messagesRef,AbortController,window:{setTimeout:()=>1,clearTimeout(){}},busy:false,isPaying:false,sessionId:'owned-session',question,topic:'',CONCERN_MAX_LENGTH:300,birth:{birthDate:'1990-05-17',birthTime:'07:30',calendarType:'solar',gender:'female'},activeCategory:'tarot',topicKey:'decision',character:'yeoni',needsPayment:true,apiBase:'',AI_LOCALE_HEADER:'X-Locale',localeRequestEpochRef:{current:0},activeReadingRef:{current:null},toAiLocale:locale=>locale,detectLocale:()=>'ko',makeRequestId:()=>'paid-turn-1',id:()=>'m-new',append(){},persist(){},setMessages(){},setBusy(){},setError(){},setNotice(){},setShareDraftToken(){},setBirthOpen(){},presentAttempt:()=>true,friendlyError:(_e,message)=>message,
   readPendingTurn:()=>null,requestGuardianTurn:async options=>{posts.push(JSON.parse(JSON.stringify(options.body)));return {status:200,ok:true,payload:{}};},buildResume:args=>({kind:'fortune-chat-consultation',action:'',args}),
   // append 는 참조를 바로 바꾸지 않지만, 결제창을 기다리는 동안 다시 그려져 참조에 이 질문이 들어온다.
   openPaymentGate:async(_requestId,resume)=>{gates.push(resume);messagesRef.current=[...messagesRef.current,{id:'m-new',speaker:'user',text:question}];return {ok:true};}});
@@ -26,4 +26,15 @@ test('redirect ticket carries the pre-question turns so the resumed body equals 
  assert.equal(await entry.runPaidResume(ticket,{requestId:'paid-turn-1',merchantUid:'paid-id',payload:{}}),true);
  assert.deepEqual(posts[0],inPage);
  assert.deepEqual(inPage.recentTurns,[{speaker:'assistant',text:'어서 와요.'},{speaker:'user',text:'올해 이직해도 될까요?'},{speaker:'assistant',text:'흐름은 열려 있어요. 하반기가 더 좋아요.'}]);
+ // New personal saju forwards to tea; already-paid saju still resumes here.
+ posts.length=0;const navigations=[],drafts=[];
+ context.activeCategory='saju';context.getAuthState=()=>({user:{id:'owner-a'}});
+ context.sessionStorage={};context.writeSajuTeaDraft=(_storage,draft)=>drafts.push(draft);
+ context.TEA_SAJU_URL='/fortune-tea-house/?mode=saju&entry=saju-analysis';
+ context.window.location={assign:url=>navigations.push(url)};
+ await send();assert.equal(posts.length,0);assert.equal(gates.length,1);
+ assert.equal(navigations[0],context.TEA_SAJU_URL);assert.equal(drafts[0].question,question);
+ context.readPendingTurn=()=>({body:{...inPage,category:'saju'},completed:false});
+ await send();assert.equal(navigations.length,1);assert.equal(gates.length,1);
+ assert.equal(posts[0].category,'saju');assert.equal(posts[0].requestId,inPage.requestId);
  dom.window.close();});

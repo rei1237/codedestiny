@@ -99,8 +99,9 @@ test('cycle consultation changes with natal facts and selected cycle without mut
   other.stem={char:'壬',element:'water',god:'편인',balance:'bad'};
   assert.notEqual(cycleApi.buildCycle(other,'pig').sections[5].text,second.sections[5].text);
   assert.equal(JSON.stringify(cycleFixture),original);
-  // 서버 런타임에는 운영 페이지처럼 SajuReadingDepth 가 있어 실천 장 2개가 더 붙는다(9+2).
-  assert.equal(first.sections.length,11);
+  // 기존 9장 + SajuReadingDepth 실천 2장 + 선택지 비교·건강과 회복 2장.
+  assert.equal(first.sections.length,13);
+  assert.deepEqual(Array.from(first.sections.slice(-2),section=>section.title),['선택지 비교 — 넓힐 것과 남겨둘 것','건강과 회복 — 감당할 수 있는 생활 리듬']);
 });
 test('cycle voices share evidence, honor uncertainty and escape rendered facts',()=>{
   const yeon=cycleApi.buildCycle(cycleFixture,'pig'),neo=cycleApi.buildCycle(cycleFixture,'neo');
@@ -156,7 +157,7 @@ test('cycle retains traditional interpretation with different support and burden
   assert.match(supportive,/지원/);
   assert.match(demanding,/동업.*마찰/);
   assert.match(demanding,/재성이 감당할.*식상.*관성/);
-  assert.equal(cycleApi.buildCycle(input,'pig').sections.length,11);
+  assert.equal(cycleApi.buildCycle(input,'pig').sections.length,13);
   assert.doesNotMatch(JSON.stringify(cycleApi.buildCycle(input,'pig')),/제련발복|보석용해|치명적 흉운/);
 });
 
