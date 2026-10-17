@@ -2,6 +2,7 @@
 status: done
 updated: 2026-10-17
 delivery: main-pushed-production-authorized
+next: "원격 main에 통합된 심리테스트와 운명의 섬의 최종 CI 결과를 확인한다."
 ---
 
 # 무료 심리테스트 복원·몰입형 UI 전달

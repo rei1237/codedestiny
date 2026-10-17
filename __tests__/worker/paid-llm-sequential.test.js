@@ -90,13 +90,19 @@ test('structured repairs share one deadline and never retry a timed out provider
 test('all durable multi-part dispatchers use the shared one-part policy',()=>{
  const files=['lib/paid-narrative-delivery.js','lib/celestial-report-delivery.js','lib/relationship-report-delivery.js',
   'lib/naming-report-delivery.js','lib/human-design-report-contract.js','routes/astrology-ai.js','routes/neo-operation-room.js',
-  'routes/destiny-compass-ai.js','routes/ziwei-island-ai.js','routes/fortune-tea-house.js','routes/life-book-ai.js',
+  'routes/destiny-compass-ai.js','routes/fortune-tea-house.js','routes/life-book-ai.js',
   'routes/nakshatra-ai.js','routes/ziwei-deep-report.js','routes/master-love-codex.js','routes/karma-destiny-ai.js'];
  for(const file of files){
   const source=readFileSync(new URL('../../worker/'+file,import.meta.url),'utf8');
   expect(source).toMatch(/import\s*\{[^}]*PAID_LLM_PARTS_PER_REQUEST[^}]*\}\s*from/);
   expect(source).toMatch(/(?:slice\(0,\s*PAID_LLM_PARTS_PER_REQUEST\)|(?:BATCH_SIZE|CONCURRENCY)\s*=\s*PAID_LLM_PARTS_PER_REQUEST)/);
  }
+});
+
+test('retired island consultation cannot dispatch another paid LLM part',()=>{
+ const source=readFileSync(new URL('../../worker/routes/ziwei-island-ai.js',import.meta.url),'utf8');
+ expect(source).toContain('ISLAND_NOW_FREE');
+ expect(source).not.toMatch(/callGemini|PAID_LLM_PARTS_PER_REQUEST|applyUsageOnce/);
 });
 
  test('structured helper never multiplies durable attempts and caps standalone failures at two',async()=>{
