@@ -1,5 +1,7 @@
 ---
 status: done
+updated: 2026-10-17
+next: 구현과 main 통합 완료. 후속 이미지 릴리스의 CI 및 운영 배포 근거는 현재 작업의 최종 보고에서 확인한다.
 ---
 # Fortune Fish sprite redesign — 2026-10-17
 
