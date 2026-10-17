@@ -1,6 +1,43 @@
-.cd-moon-install,.cd-moon-letter{font-family:Pretendard,sans-serif;color:#242139;background:#fffdf8;border:1px solid #b3935b;box-shadow:0 12px 36px #24213926;font-size:16px;line-height:1.75}
-.cd-moon-install{position:fixed;bottom:calc(var(--cd-mobile-nav-h, env(safe-area-inset-bottom, 0px)) + 12px);left:16px;right:16px;max-width:650px;margin:auto;z-index:1000;border-radius:18px;padding:12px;display:flex;align-items:center;gap:10px}.cd-moon-install img{object-fit:contain;border-radius:12px}.cd-moon-install strong{font-size:15px}.cd-moon-install p{font-size:13px;margin:0}.cd-moon-install div{flex:1;min-width:0}
-.cd-moon-install button,.cd-moon-letter button{font:inherit;min-height:44px;padding:8px 12px;border:1px solid #b9afc6;border-radius:12px;background:#ede7f5;color:#242139;cursor:pointer}.cd-moon-install button:focus-visible,.cd-moon-letter :focus-visible{outline:3px solid #635080;outline-offset:3px}
-.cd-moon-letter{width:min(440px,calc(100% - 32px));max-height:calc(100dvh - 40px);border-radius:24px;padding:24px;overflow:auto}.cd-moon-letter::backdrop{background:#24213988}.cd-moon-letter__art{display:flex;align-items:center;justify-content:center;gap:16px;background:#242139;color:#faf7f1;border-radius:16px;padding:10px}.cd-moon-letter__art img{object-fit:contain}.cd-moon-letter h2{font-size:24px;line-height:1.4;margin:22px 0 12px}.cd-moon-letter button{display:block;width:100%;margin-top:10px}.cd-moon-letter details{margin-top:16px;font-size:13px;overflow-wrap:anywhere}
-@media(max-width:600px){.cd-moon-letter{margin:auto auto max(16px,env(safe-area-inset-bottom));padding:20px}.cd-moon-install{flex-wrap:wrap}.cd-moon-install div{flex-basis:calc(100% - 65px)}.cd-moon-install button{flex:1}}
-@media(prefers-reduced-motion:no-preference){.cd-moon-letter[open]{animation:moon-letter-in .2s ease-out}@keyframes moon-letter-in{from{transform:translateY(12px);opacity:.5}to{transform:translateY(0);opacity:1}}}
+/* Installation banner keeps its existing presentation. */
+.cd-moon-install{font-family:Pretendard,sans-serif;color:#242139;background:#fffdf8;border:1px solid #b3935b;box-shadow:0 12px 36px #24213926;font-size:16px;line-height:1.75;position:fixed;bottom:calc(var(--cd-mobile-nav-h, env(safe-area-inset-bottom, 0px)) + 12px);left:16px;right:16px;max-width:650px;margin:auto;z-index:1000;border-radius:18px;padding:12px;display:flex;align-items:center;gap:10px}
+.cd-moon-install img{object-fit:contain;border-radius:12px}.cd-moon-install strong{font-size:15px}.cd-moon-install p{font-size:13px;margin:0}.cd-moon-install div{flex:1;min-width:0}
+.cd-moon-install button{font:inherit;min-height:44px;padding:8px 12px;border:1px solid #b9afc6;border-radius:12px;background:#ede7f5;color:#242139;cursor:pointer}.cd-moon-install button:focus-visible{outline:3px solid #635080;outline-offset:3px}
+
+/* A self-contained paper palette: this dialog also opens outside themed routes. */
+.cd-moon-letter{
+  --letter-paper:#fffdf8;
+  --letter-fold:#faf7f1;
+  --letter-ink:#242139;
+  --letter-muted:#635080;
+  --letter-gold:#b3935b;
+  --letter-seal:#ead089;
+  --letter-line:color-mix(in srgb,var(--letter-gold) 38%,var(--letter-paper));
+  box-sizing:border-box;width:min(460px,calc(100% - 32px));max-height:calc(100dvh - 32px);
+  margin:auto;padding:28px 32px 24px;overflow:auto;
+  border:1px solid var(--letter-gold);border-radius:8px;
+  background:var(--letter-paper);color:var(--letter-ink);
+  box-shadow:0 24px 72px color-mix(in srgb,var(--letter-ink) 25%,transparent),inset 0 0 0 6px var(--letter-fold);
+  font-family:Pretendard,sans-serif;font-size:16px;line-height:1.75;
+  scrollbar-color:var(--letter-gold) var(--letter-paper);
+}
+.cd-moon-letter::backdrop{background:color-mix(in srgb,var(--letter-ink) 58%,transparent)}
+.cd-moon-letter__art{position:relative;display:flex;align-items:center;gap:20px;padding:0 0 24px;border-bottom:1px solid var(--letter-line)}
+.cd-moon-letter__art::after{content:"";position:absolute;bottom:-9px;left:calc(50% - 9px);width:16px;height:16px;border:1px solid var(--letter-gold);border-radius:50%;background:var(--letter-seal);box-shadow:inset 0 0 0 3px var(--letter-paper)}
+.cd-moon-letter__art img{box-sizing:border-box;flex:none;width:76px;height:88px;object-fit:contain;padding:4px;border:1px solid var(--letter-line);outline:1px dashed var(--letter-gold);outline-offset:3px;background:var(--letter-fold)}
+.cd-moon-letter__art p{margin:0;color:var(--letter-muted);font-family:var(--font-display, 'Noto Serif KR', serif);font-size:17px;word-break:keep-all}
+.cd-moon-letter h2{margin:32px 0 18px;color:var(--letter-ink);font-family:var(--font-display, 'Noto Serif KR', serif);font-size:26px;font-weight:600;line-height:1.5;letter-spacing:-.025em;word-break:keep-all;text-wrap:balance}
+.cd-moon-letter>p{margin:16px 0;overflow-wrap:anywhere}
+.cd-moon-letter>ul{margin:0 0 24px;padding-left:20px;list-style:disc}
+.cd-moon-letter li{padding-left:4px;margin:12px 0;overflow-wrap:anywhere}
+.cd-moon-letter li::marker{color:var(--letter-gold);font-size:.75em}
+.cd-moon-letter [role="status"]:empty{display:none}
+.cd-moon-letter button{display:block;width:100%;min-height:48px;margin-top:10px;padding:10px 16px;border:1px solid var(--letter-line);border-radius:8px;background:transparent;color:var(--letter-muted);font:inherit;cursor:pointer}
+.cd-moon-letter>button:first-of-type{background:var(--letter-ink);border-color:var(--letter-ink);color:var(--letter-paper)}
+.cd-moon-letter button:hover{background:var(--letter-fold);color:var(--letter-ink)}
+.cd-moon-letter>button:first-of-type:hover{background:var(--letter-muted);border-color:var(--letter-muted);color:var(--letter-paper)}
+.cd-moon-letter:focus-visible,.cd-moon-letter :focus-visible{outline:3px solid var(--letter-muted);outline-offset:3px}
+.cd-moon-letter details{margin-top:20px;padding-top:12px;border-top:1px solid var(--letter-line);color:var(--letter-muted);font-size:13px;overflow-wrap:anywhere}
+.cd-moon-letter summary{min-height:44px;display:list-item;align-content:center;cursor:pointer}
+.cd-moon-letter::selection,.cd-moon-letter ::selection{background:var(--letter-seal);color:var(--letter-ink)}
+@media(max-width:600px){.cd-moon-letter{padding:24px;margin:auto;max-height:calc(100dvh - 32px - env(safe-area-inset-bottom))}.cd-moon-letter h2{font-size:24px}.cd-moon-install{flex-wrap:wrap}.cd-moon-install div{flex-basis:calc(100% - 65px)}.cd-moon-install button{flex:1}}
+@media(prefers-reduced-motion:no-preference){.cd-moon-letter[open]{animation:moon-letter-in .25s ease-out}@keyframes moon-letter-in{from{transform:translateY(12px);opacity:.5}to{transform:translateY(0);opacity:1}}}
