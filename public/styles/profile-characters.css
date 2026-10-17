@@ -1,0 +1,86 @@
+#dpMasterCard .pc-avatar.dp-mc-avatar{width:80px;height:80px;flex:0 0 80px;background:transparent;border:0;box-shadow:none;overflow:hidden}
+.pc-sprite{display:inline-block;width:80px;height:80px;flex-shrink:0;background-size:400% 100%;background-repeat:no-repeat;background-position:0 0;animation:pc-idle 4.8s step-end infinite;vertical-align:middle}
+@keyframes pc-idle{0%,62%,100%{background-position:0 0}68%{background-position:33.333333% 0}76%{background-position:66.666667% 0}84%{background-position:100% 0}}
+.pc-sprite--still{animation:none}
+.pc-panel{color:var(--cd-text);font-size:.875rem;line-height:1.6;min-width:0;margin-block:16px}
+.pc-panel p{margin:6px 0 12px;overflow-wrap:anywhere}
+.pc-summary strong{font-size:1rem}
+.pc-summary p,.pc-bonus{color:var(--cd-text-muted)}
+.pc-today{padding-block:12px;border-block:1px solid var(--cd-border)}
+.pc-panel a{color:var(--cd-accent);text-underline-offset:3px;display:inline-flex;align-items:center;min-height:44px}
+.pc-panel button,.pc-panel summary{min-height:44px;font:inherit;cursor:pointer;touch-action:manipulation}
+.pc-panel button{padding:8px 12px;border:1px solid var(--cd-border);border-radius:var(--cd-r-control);color:var(--cd-text);background:var(--cd-surface)}
+.pc-panel button:hover:not(:disabled){background:var(--cd-surface-2)}
+.pc-panel button:disabled{cursor:default;color:var(--cd-text-muted)}
+.pc-panel :is(button,summary,a):focus-visible{outline:2px solid var(--cd-accent);outline-offset:3px}
+.pc-details summary{padding-block:10px;color:var(--cd-accent);font-weight:700}
+.pc-description h4,.pc-panel section h4{margin:20px 0 4px;font-size:.95rem}
+.pc-collection{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 10px;margin-block:16px}
+.pc-specimen{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;min-width:0}
+.pc-specimen strong{font-size:.875rem;overflow-wrap:anywhere}
+.pc-specimen>span:not(.pc-sprite){font-size:.75rem;color:var(--cd-text-muted)}
+.pc-specimen button{font-size:.8rem;width:100%}
+@media(min-width:600px){.pc-collection{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:380px){#dpMasterCard .pc-avatar.dp-mc-avatar,.pc-avatar .pc-sprite{width:64px;height:64px;flex-basis:64px}}
+@media(prefers-reduced-motion:reduce){.pc-sprite{animation:none}}
+
+/* A single game profile surface. Existing account growth controls keep their events. */
+#dpMasterCard.pc-game-card,#dpListSheet #dpMasterCard.pc-game-card{
+  --pc-ink:#fff5e6;--pc-muted:#d8bfce;--pc-gold:#ebcd91;--pc-line:#725265;--pc-night:#352235;
+  --cd-text:var(--pc-ink);--cd-text-muted:var(--pc-muted);--cd-accent:var(--pc-gold);--cd-border:var(--pc-line);--cd-surface:#493047;--cd-surface-2:#58384f;
+  width:100%;max-width:none;margin:0;background:var(--pc-night);color:var(--pc-ink);border:1px solid #a68561;border-radius:24px;overflow:visible;
+  box-shadow:0 16px 34px #29152726,inset 0 1px 0 #efd4a333;font-family:var(--font-sans,"Gowun Dodum",sans-serif);
+}
+#dpMasterCard.pc-game-card:before,#dpMasterCard.pc-game-card:after{display:none}
+.pc-game-inner{padding:24px;min-width:0}
+.pc-game-hero{display:grid;grid-template-columns:88px minmax(0,1fr) 44px;gap:14px;align-items:center;padding-bottom:20px;border-bottom:1px solid var(--pc-line)}
+.pc-portrait{display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fff1de;border:1px solid var(--pc-gold);border-radius:24px 24px 16px 16px;padding:4px 0 8px;color:#62422e}
+.pc-portrait>[data-pc-equipment]{font-size:10px;font-weight:700;letter-spacing:.04em}
+.pc-game-identity{min-width:0}
+#dpListSheet #dpMasterCard.pc-game-card .pc-game-identity h2{font:700 22px/1.35 var(--font-serif,"Gowun Batang",serif);margin:0 0 8px;color:var(--pc-ink);overflow-wrap:anywhere;word-break:keep-all;letter-spacing:-.025em}
+.pc-game-identity p{font-size:12px;line-height:1.65;color:var(--pc-gold);margin:0}
+.pc-profile-gender{display:block;color:var(--pc-muted);font-size:11px;margin-top:7px}
+.pc-element-badge{display:inline-flex;align-items:center;gap:6px;margin-top:10px;color:var(--pc-element);vertical-align:middle}
+.pc-element-seal{display:block;flex:none;width:36px;height:36px;filter:drop-shadow(0 2px 2px #160e1640)}
+.pc-element-rim{fill:#b78d52;stroke:#f1d6a2;stroke-width:1}
+.pc-element-enamel{fill:var(--pc-element-shade);stroke:var(--pc-element);stroke-width:.7}
+.pc-element-symbol{fill:none;stroke:var(--pc-element);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.pc-element-glint{fill:none;stroke:#fff0ca;stroke-width:1.2;stroke-linecap:round}
+.pc-element-caption{display:block;color:var(--pc-muted);font-size:10px;line-height:1.4}
+.pc-element-badge strong{display:block;font-size:12px;line-height:1.5;font-weight:700;white-space:nowrap}
+#dpMasterCard.pc-game-card .dp-mc-action-wrap{align-self:start;position:relative}
+#dpMasterCard.pc-game-card .dp-mc-menu-btn{display:grid;place-items:center;width:44px;height:44px;min-height:44px;border:1px solid var(--pc-line);border-radius:12px;background:transparent;color:var(--pc-gold);padding:0;box-shadow:none}
+#dpMasterCard.pc-game-card .dp-mc-action-menu{color:#3c1830}
+#dpListSheet #dpMasterCard.pc-game-card .dp-lvl,#dpMasterCard.pc-game-card .dp-lvl{position:relative;padding:18px 0 0;margin:0;border:0;border-radius:0;background:none;box-shadow:none;color:var(--pc-ink)}
+#dpMasterCard.pc-game-card .dp-lvl__bloom{display:none}
+#dpMasterCard.pc-game-card .pc-growth-feedback{font-size:12px;line-height:1.6;color:var(--pc-muted);margin:0 0 12px;min-height:0}
+#dpListSheet #dpMasterCard.pc-game-card .dp-lvl__badge{font:700 24px/1.2 var(--font-serif,"Gowun Batang",serif);color:var(--pc-gold)}
+#dpListSheet #dpMasterCard.pc-game-card :is(.dp-lvl__streak,.dp-lvl__meta,.dp-lvl__note){color:var(--pc-muted);font-size:11px;line-height:1.6}
+#dpListSheet #dpMasterCard.pc-game-card .dp-lvl__bar{height:8px;margin:10px 0;background:#66495e;border:1px solid #826178;border-radius:3px}
+#dpListSheet #dpMasterCard.pc-game-card .dp-lvl__fill{background:var(--pc-gold);border-radius:2px}
+#dpListSheet #dpMasterCard.pc-game-card .dp-lvl__toggle{margin-top:16px;min-height:48px;padding:10px 0;border-block:1px solid var(--pc-line);border-inline:0;border-radius:0;background:none;color:var(--pc-ink);font-size:13px}
+#dpListSheet #dpMasterCard.pc-game-card .dp-lvl__toggle b{color:var(--pc-gold);margin-left:8px;font-variant-numeric:tabular-nums}
+#dpListSheet #dpMasterCard.pc-game-card .dp-lvl__quest{background:none;border:0;border-bottom:1px solid var(--pc-line);border-radius:0;color:var(--pc-ink);min-height:52px;font-size:12px}
+#dpListSheet #dpMasterCard.pc-game-card :is(.dp-lvl__quest-exp,.dp-lvl__quest-mark){color:var(--pc-gold);border-color:var(--pc-gold)}
+#dpListSheet #dpMasterCard.pc-game-card .dp-lvl__reward{margin:6px 0 0;padding:6px 0;min-height:44px;border:0;border-radius:0;background:none;color:var(--pc-muted);font-size:12px}
+#dpListSheet #dpMasterCard.pc-game-card :is(.dp-lvl__reward-amt,.dp-lvl__reward-arrow){color:var(--pc-gold)}
+.pc-game-card .pc-panel{margin:12px 0 0;font-size:13px;line-height:1.7}
+.pc-game-card .pc-today{border-top:1px solid var(--pc-line);border-bottom:0;padding:10px 0 0}
+.pc-section-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.pc-section-heading strong{font:700 16px/1.5 var(--font-serif,"Gowun Batang",serif);color:var(--pc-ink)}
+.pc-section-heading a{font-size:11px;color:var(--pc-gold)}
+.pc-game-card .pc-fortune-headline{font-weight:700;color:var(--pc-gold);margin-top:2px}
+.pc-game-card .pc-today>p:last-child{color:var(--pc-muted);margin-bottom:0}
+.pc-game-card .pc-bonus{font-size:11px;color:var(--pc-muted);padding:12px 0 6px;margin:0}
+.pc-game-card .pc-details{border-bottom:1px solid var(--pc-line);margin-bottom:18px}
+.pc-game-card .pc-details>summary{color:var(--pc-gold);font-size:13px;padding-block:12px}
+.pc-game-card .pc-description{color:var(--pc-muted)}
+.pc-game-card .pc-panel button{border-radius:10px}
+#dpListSheet #dpMasterCard.pc-game-card .pc-fortune-action,#dpMasterCard.pc-game-card .pc-fortune-action{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;padding:12px 16px;width:100%;border:1px solid #f4dcac;border-radius:12px;background:var(--pc-gold);color:#352235;box-shadow:0 4px 10px #150b1720;font-size:14px;font-weight:700;letter-spacing:0}
+.pc-game-card .pc-fortune-action:before{display:none}
+.pc-birth-details{color:var(--pc-muted);font-size:11px;margin-top:10px}
+.pc-birth-details summary{display:flex;align-items:center;justify-content:center;min-height:44px;cursor:pointer;text-decoration:underline;text-underline-offset:4px}
+.pc-birth-details p{margin:4px 0;text-align:center;line-height:1.6}
+.pc-game-card :is(button,a,summary):focus-visible{outline:2px solid var(--pc-gold);outline-offset:3px}
+.pc-game-card ::selection{background:var(--pc-gold);color:var(--pc-night)}
+@media(max-width:430px){.pc-game-inner{padding:20px 16px}.pc-game-hero{grid-template-columns:80px minmax(0,1fr) 44px;gap:10px}#dpListSheet #dpMasterCard.pc-game-card .pc-game-identity h2{font-size:19px}.pc-portrait{border-radius:20px 20px 12px 12px}}

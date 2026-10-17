@@ -1,0 +1,105 @@
+{
+  "style": "2D animal animation, four frames, transparent background",
+  "generator": "OpenAI imagegen",
+  "date": "2026-10-17",
+  "displaySize": "64–80px",
+  "derivative": "512x128 WebP via scripts/build-profile-sprites.mjs",
+  "assets": [
+    {
+      "id": "animal-mouse",
+      "sourceFile": "exec-ee65b91c-c7ab-47fc-af7e-d2a11176f02b.png"
+    },
+    {
+      "id": "animal-ox",
+      "sourceFile": "exec-5eb6cdc9-5a16-42aa-b0d0-6e192c3f43e9.png"
+    },
+    {
+      "id": "animal-tiger",
+      "sourceFile": "exec-caa211e0-479a-47a0-b466-956249ac9abc.png"
+    },
+    {
+      "id": "animal-rabbit",
+      "sourceFile": "exec-7c81b6bb-2596-4d02-8fa5-9166240d61b5.png"
+    },
+    {
+      "id": "animal-dragon",
+      "sourceFile": "exec-72fc90be-07c3-45c2-af8f-e7b43faa4c8a.png"
+    },
+    {
+      "id": "animal-snake",
+      "sourceFile": "exec-59ed7ffc-b865-4cf6-bc2d-3557a31c8375.png"
+    },
+    {
+      "id": "animal-horse",
+      "sourceFile": "exec-fce116a8-3cbc-4441-a4a5-9445174f570c.png"
+    },
+    {
+      "id": "animal-sheep",
+      "sourceFile": "exec-f024414c-540f-4671-a36d-3f0addf5ea4c.png"
+    },
+    {
+      "id": "animal-monkey",
+      "sourceFile": "exec-33a2497c-a408-4f4a-98d7-993204e8f89d.png"
+    },
+    {
+      "id": "animal-rooster",
+      "sourceFile": "exec-364d8396-e595-422d-b4a1-b31dd214348c.png"
+    },
+    {
+      "id": "animal-dog",
+      "sourceFile": "exec-b7aa2c38-7d77-425c-b897-2aa66461430b.png"
+    },
+    {
+      "id": "animal-pig",
+      "sourceFile": "exec-fea605ff-1624-43ae-aa9a-716a61d3b306.png"
+    },
+    {
+      "id": "spirit-00",
+      "sourceFile": "exec-d30c7dbf-c93c-45f6-a08d-9fc9fb2b8a70.png"
+    },
+    {
+      "id": "spirit-01",
+      "sourceFile": "exec-08409121-e953-4e4e-8dfa-fe8b5fd53483.png"
+    },
+    {
+      "id": "spirit-02",
+      "sourceFile": "exec-a8acf001-22bb-451e-808f-7d8a229f494c.png"
+    },
+    {
+      "id": "spirit-03",
+      "sourceFile": "exec-8c46225e-56fb-4b72-b2b2-2f5074a138de.png"
+    },
+    {
+      "id": "spirit-04",
+      "sourceFile": "exec-131475dd-6123-457e-ac51-11c8122ebbc4.png"
+    },
+    {
+      "id": "spirit-05",
+      "sourceFile": "exec-0b7bab7f-908b-4ff1-b09a-7f9c7820ce0b.png"
+    },
+    {
+      "id": "spirit-06",
+      "sourceFile": "exec-cf36ca2b-1653-4a82-9d7f-ffe8623bfce2.png"
+    },
+    {
+      "id": "spirit-07",
+      "sourceFile": "exec-b211a521-4267-48f3-8610-a688e5adf427.png"
+    },
+    {
+      "id": "spirit-08",
+      "sourceFile": "exec-d6832942-bbe1-46a6-a6ec-2a51107a6312.png"
+    },
+    {
+      "id": "spirit-09",
+      "sourceFile": "exec-e2c32261-7e90-43a2-ad36-3c6cc54c91fa.png"
+    },
+    {
+      "id": "spirit-10",
+      "sourceFile": "exec-334d17b1-a109-4a6c-a34f-96c48f473904.png"
+    },
+    {
+      "id": "spirit-11",
+      "sourceFile": "exec-84fbc1d6-a090-4c43-bea4-93b252363c59.png"
+    }
+  ]
+}
