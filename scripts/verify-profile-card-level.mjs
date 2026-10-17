@@ -421,7 +421,7 @@ assert.ok(
 );
 assert.ok(stripHtml.indexOf("data-dp-level-reward") > stripHtml.indexOf('role="progressbar"'), "보상 줄이 경험치 바 아래가 아닙니다");
 assert.ok(stripHtml.indexOf("data-dp-level-reward") > stripHtml.indexOf('id="dpLvlQuests"'), "성장 실천 뒤에 별도로 보상 안내를 배치해야 합니다");
-assert.ok(stripHtml.includes('aria-expanded="true"'), "오늘의 실천은 처음부터 펼쳐 보여야 합니다");
+assert.ok(stripHtml.includes('aria-expanded="false"'), "작은 프로필 카드의 실천 목록은 접힌 상태로 시작해야 합니다");
 assert.ok(stripHtml.includes('계정 공통 성장'), "프로필별 성장으로 오해하지 않도록 안내해야 합니다");
 
 assert.equal(typeof CDLevel.openRewardSheet, "function", "보상 시트 진입점이 노출되지 않았습니다");

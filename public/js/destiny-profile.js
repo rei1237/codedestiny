@@ -8052,7 +8052,7 @@
 
   /* ── 프로필 카드 레벨 스트립 UI ── */
   var DP_LEVEL_MARKER = 'profile-card-level-v20260721';
-  var _dpLevelQuestsOpen = true;
+  var _dpLevelQuestsOpen = false;
   var _dpLevelBootDone = false;
 
   function _dpEnsureLevelStyles() {
@@ -8141,6 +8141,9 @@
 
   function _dpBuildLevelStrip() {
     var snap = _cdLevelSnapshot();
+    var characterCard = document.getElementById('dpMasterCard');
+    var gameCard = characterCard && characterCard.classList.contains('pc-game-card');
+    var questExp = characterCard && characterCard.dataset.profileQuestExp === '18' ? 18 : CD_LEVEL_AWARD.quest.exp;
     var pct = snap.currentLevel >= CD_LEVEL_MAX ? 100 : snap.nextLevelExp > 0
       ? Math.min(100, Math.round((snap.currentLevelExp / snap.nextLevelExp) * 100))
       : 0;
@@ -8179,18 +8182,18 @@
         + ' aria-pressed="' + (done ? 'true' : 'false') + '"' + (done ? ' disabled' : '') + '>'
         + '<span class="dp-lvl__quest-mark" aria-hidden="true">' + (done ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4 10-10"/></svg>' : '') + '</span>'
         + '<span>' + _esc(quest.text) + '</span>'
-        + '<span class="dp-lvl__quest-exp">' + (done ? _esc(_dpGardenText('done', '완료')) : '+' + CD_LEVEL_AWARD.quest.exp + ' EXP') + '</span>'
+        + '<span class="dp-lvl__quest-exp">' + (done ? _esc(_dpGardenText('done', '완료')) : '+' + questExp + ' EXP') + '</span>'
         + '</button>';
     }).join('');
 
     return '<div class="dp-lvl" data-cd-level-marker="' + DP_LEVEL_MARKER + '">'
       + '<span class="dp-lvl__bloom" aria-hidden="true" style="--garden-bloom:' + (0.10 + Math.min(snap.currentLevel, CD_LEVEL_MAX) / CD_LEVEL_MAX * 0.18).toFixed(2) + '"></span>'
-      + '<h3 class="dp-lvl__garden-title">' + _esc(_dpGardenText('growth', '나의 성장')) + '</h3>'
+      + (gameCard ? '<p class="dp-lvl__feedback pc-growth-feedback" role="status" aria-live="polite">작은 실천으로 오늘도 한 단계 가까이.</p>' : '<h3 class="dp-lvl__garden-title">' + _esc(_dpGardenText('growth', '나의 성장')) + '</h3>'
       + '<div class="dp-lvl__companion">'
         + '<img class="dp-lvl__yeoni" src="/images/yeoni/welcome/yeoni-welcome-v1-320.webp" width="320" height="480" alt="' + _esc(_dpGardenText('mascotAlt', '연꽃을 건네며 응원하는 꽃돼지 연이')) + '" decoding="async">'
         + '<p class="dp-lvl__feedback" role="status" aria-live="polite">' + _esc(_dpGardenText('cheer', '오늘도 한 걸음, 제가 곁에서 응원할게요.')) + '</p>'
       + '</div>'
-      + '<p class="dp-lvl__garden-description">' + _esc(_dpGardenText('intro', '작은 실천을 쌓아, 좋은 흐름을 맞이할 준비를 해요.')) + '</p>'
+      + '<p class="dp-lvl__garden-description">' + _esc(_dpGardenText('intro', '작은 실천을 쌓아, 좋은 흐름을 맞이할 준비를 해요.')) + '</p>')
       + '<div class="dp-lvl__top">'
         + '<span class="dp-lvl__badge">Lv.' + snap.currentLevel + '</span>'
         + (snap.streakDays > 0 ? '<span class="dp-lvl__streak">' + _esc(_dpGardenText('streak', '{days}일 함께했어요', { days: snap.streakDays })) + '</span>' : '')
@@ -8633,117 +8636,53 @@
   function renderMasterCard(profile) {
     var el = document.getElementById('dpMasterCard');
     if (!el) return;
+    el.__profileCharacterProfile = profile;
     var restoreGrowthView = _dpPreserveGrowthView(el);
     _dpEnsureProfileActionMenuStyles();
     _dpEnsureLevelStyles();
     _dpBootLevelDaily();
-
     if (!profile) {
-      /* 카드가 없어도 레벨은 계정에 쌓인다. 첫 방문자도 여기서 성장 훅을 만난다. */
-      el.innerHTML = _emptyCard() + _dpBuildLevelStrip();
       el.className = 'dp-master-card dp-master-card--empty';
-      _dpBindLevelEvents(el);
-      restoreGrowthView(el);
-      return;
+      el.innerHTML = _emptyCard() + _dpBuildLevelStrip();
+      _dpBindLevelEvents(el); restoreGrowthView(el); return;
     }
-
-    var b = profile.birth;
+    var b = profile.birth || {};
     var l = profile.location || {};
-    var locationLabel = String(
-      l.label
-      || l.name
-      || profile.locationLabel
-      || [profile.countryName || profile.country, profile.cityName || profile.city].filter(Boolean).join(' · ')
-      || '\uB300\uD55C\uBBFC\uAD6D \u00B7 \uC11C\uC6B8'
-    );
-    var genderKey = String(profile.gender || profile.sex || '').trim().toLowerCase();
-    var isMale = genderKey === 'm' || genderKey === 'male' || genderKey === '\uB0A8\uC131';
-    var profileLng = (l.lng !== undefined && l.lng !== null && !isNaN(Number(l.lng)))
-      ? Number(l.lng)
-      : ((l.lon !== undefined && l.lon !== null && !isNaN(Number(l.lon))) ? Number(l.lon) : null);
-    var tzResolved = resolveTimezoneOffset(b, l);
-    var safeLng = (profileLng !== null) ? profileLng : 127.0;
-    var tso = calcTrueSolarOffset(safeLng, tzResolved.tzOffsetHours);
-    var corrected = applyTrueSolarOffset(b.hour, b.minute, tso);
-    var trueSolarStr = String(corrected.h).padStart(2,'0') + ':' + String(corrected.m).padStart(2,'0');
-    var dir = tso > 0 ? '−' : '+';
-    var absMin = Math.abs(tso);
-    var zodiacEmoji = _zodiacEmoji(b.year);
-    var calLabel = b.calType === 'solar' ? '양력' : (b.calType === 'lunar_leap' ? '음력(윤)' : '음력');
-
-    el.className = 'dp-master-card dp-master-card--active';
-    el.innerHTML =
-      '<div class="dp-mc-glow"></div>'
-      + '<div class="dp-mc-stars" aria-hidden="true"></div>'
-      /* width/height 는 CSS(.dp-mc-flower 150px)와 같은 값이지만 속성으로도 박아 둔다 — 속성이 없으면
-         규칙이 도착하기 전까지 셸의 `svg{max-width:100%;height:auto}` 가 먹어 390px 뷰포트에서
-         358px 인플로 블록이 되고 카드 내용을 통째로 아래로 민다. */
-      + '<svg class="dp-mc-flower" width="150" height="150" viewBox="0 0 120 120" fill="none" aria-hidden="true" style="color:#FFD700">'
-        + '<circle cx="60" cy="60" r="52" stroke="currentColor" stroke-width="0.5"/>'
-        + '<circle cx="60" cy="60" r="32" stroke="currentColor" stroke-width="0.4"/>'
-        + '<ellipse cx="60" cy="60" rx="52" ry="13" stroke="currentColor" stroke-width="0.4"/>'
-        + '<ellipse cx="60" cy="60" rx="52" ry="13" stroke="currentColor" stroke-width="0.4" transform="rotate(30 60 60)"/>'
-        + '<ellipse cx="60" cy="60" rx="52" ry="13" stroke="currentColor" stroke-width="0.4" transform="rotate(60 60 60)"/>'
-        + '<ellipse cx="60" cy="60" rx="52" ry="13" stroke="currentColor" stroke-width="0.4" transform="rotate(90 60 60)"/>'
-        + '<ellipse cx="60" cy="60" rx="52" ry="13" stroke="currentColor" stroke-width="0.4" transform="rotate(120 60 60)"/>'
-        + '<ellipse cx="60" cy="60" rx="52" ry="13" stroke="currentColor" stroke-width="0.4" transform="rotate(150 60 60)"/>'
-        + '<circle cx="60" cy="60" r="4" fill="currentColor" opacity="0.6"/>'
-      + '</svg>'
-      + '<div class="dp-mc-inner">'
-        + '<div class="dp-mc-header">'
-          + '<div class="dp-mc-avatar">' + zodiacEmoji + '</div>'
-          + '<div class="dp-mc-identity">'
-            + '<div class="dp-mc-label">' + _esc(_dpGardenText('profileTitle', '내 프로필 카드')) + '</div>'
-            + '<div class="dp-mc-name">' + _esc(profile.name) + '</div>'
-            + '<div class="dp-mc-birth">' + calLabel + ' '
-              + b.year + '년 ' + b.month + '월 ' + b.day + '일 '
-              + String(b.hour).padStart(2,'0') + ':' + String(b.minute).padStart(2,'0')
-            + '</div>'
-            + '<div style="margin-top:4px;">'
-              + (isMale
-                ? '<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(96,165,250,0.18);border:1px solid rgba(96,165,250,0.45);color:#93c5fd;font-size:0.72rem;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:0.5px;">&#9794; 남성</span>'
-                : '<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(244,114,182,0.18);border:1px solid rgba(244,114,182,0.45);color:#f9a8d4;font-size:0.72rem;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:0.5px;">&#9792; 여성</span>')
-            + '</div>'
-          + '</div>'
-          + '<div class="dp-mc-action-wrap">'
-            + '<button type="button" class="dp-mc-list-btn dp-mc-menu-btn" aria-label="' + _esc(_dpText('openProfileList')) + '" aria-expanded="false" aria-controls="dpListSheet" data-profile-menu-marker="profile-card-hamburger-list-delete-v20260611" style="touch-action:manipulation">'
-              + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>'
-            + '</button>'
-          + '</div>'
-        + '</div>'
-        + '<div class="dp-mc-divider"></div>'
-        + '<div class="dp-mc-info">'
-          + '<div class="dp-mc-info-item dp-mc-info-item--wide">'
-            + '<span class="dp-mc-info-label">'
-              + '<svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>'
-              + '출생지'
-            + '</span>'
-            + '<span class="dp-mc-info-val">' + _esc(locationLabel) + '</span>'
-          + '</div>'
-          + '<div class="dp-mc-info-item">'
-            + '<span class="dp-mc-info-label">'
-              + '<svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><circle cx="12" cy="12" r="4"/><path fill="none" stroke="currentColor" stroke-width="2" d="M12 2v2M12 20v2M2 12h2M20 12h2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M17.66 6.34l1.41-1.41M4.93 19.07l1.41-1.41"/></svg>'
-              + '진태양시'
-            + '</span>'
-            + '<span class="dp-mc-info-val dp-mc-solar">'
-              + trueSolarStr
-              + '<span class="dp-mc-correction">' + dir + absMin + '분</span>'
-            + '</span>'
-          + '</div>'
-          + '<div class="dp-mc-info-item">'
-            + '<span class="dp-mc-info-label">'
-              + '<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><line x1="2" y1="12" x2="22" y2="12"/></svg>'
-              + '경도'
-            + '</span>'
-            + '<span class="dp-mc-info-val">' + safeLng.toFixed(1) + '°</span>'
-          + '</div>'
-        + '</div>'
-        + _dpBuildLevelStrip()
-        + '<button class="dp-mc-load-btn" style="touch-action:manipulation">✦ 이 프로필로 운세 보기</button>'
+    var gender = String(profile.gender || '').toLowerCase();
+    var genderLabel = ['m','male','남성'].indexOf(gender) >= 0 ? '남성' : ['f','female','여성'].indexOf(gender) >= 0 ? '여성' : '성별 미입력';
+    var calendar = b.calType === 'solar' ? '양력' : b.calType === 'lunar_leap' ? '음력 · 윤달' : '음력';
+    var birthLabel = b.year && b.month && b.day ? calendar + ' ' + b.year + '.' + b.month + '.' + b.day : '생년월일 미입력';
+    var timeLabel = b.timeUnknown ? '생시 모름' : b.hour != null && b.minute != null ? String(b.hour).padStart(2,'0') + ':' + String(b.minute).padStart(2,'0') : '생시 미입력';
+    el.className = 'dp-master-card dp-master-card--active pc-game-card';
+    el.innerHTML = '<div class="pc-game-inner">'
+      + '<header class="pc-game-hero">'
+        + '<div class="pc-portrait"><div class="dp-mc-avatar pc-avatar" aria-label="캐릭터 확인 중"></div><span data-pc-equipment>나의 일주</span></div>'
+        + '<div class="pc-game-identity"><h2 class="dp-mc-name">' + _esc(profile.name) + '</h2><p data-pc-title>일주 캐릭터를 확인하고 있어요.</p><div data-pc-element></div><span class="pc-profile-gender">' + _esc(genderLabel) + '</span></div>'
+        + '<div class="dp-mc-action-wrap"><button type="button" class="dp-mc-list-btn dp-mc-menu-btn" aria-label="' + _esc(_dpText('openProfileList')) + '" aria-expanded="false" aria-controls="dpListSheet"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 7h14M5 12h14M5 17h14"/></svg></button></div>'
+      + '</header>'
+      + _dpBuildLevelStrip()
+      + '<div class="pc-panel" data-profile-character></div>'
+      + '<button type="button" class="dp-mc-load-btn pc-fortune-action">이 프로필로 운세 보기<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m9 5 7 7-7 7"/></svg></button>'
+      + '<details class="pc-birth-details"><summary>출생 정보</summary><p>' + _esc(birthLabel + ' · ' + timeLabel) + '</p><p>' + _esc(l.label || l.name || '출생지 미입력') + '</p></details>'
       + '</div>';
-    _dpBindMasterCardMenuEvents(el);
-    _dpBindLevelEvents(el);
-    restoreGrowthView(el);
+    _dpBindMasterCardMenuEvents(el); _dpBindLevelEvents(el); restoreGrowthView(el);
+    import('/js/core/profile-character-card.mjs').then(function(module) {
+      if (!el.isConnected || el.__profileCharacterProfile !== profile || !el.querySelector('[data-profile-character]')) return;
+      module.mountCharacterCard(el, profile, {
+        onQuestExp: function(exp) {
+          if (el.dataset.profileQuestExp === String(exp)) return;
+          el.dataset.profileQuestExp = String(exp); _dpRefreshLevelStrip();
+        },
+        owner: function() { return _dpIsLoggedInScope() ? _dpSubSnapshotUserId() : ''; },
+        request: function(path, init) {
+          init.headers = _dpBuildAuthHeaders(init.headers || {}); init.credentials = 'include';
+          return _dpFetchJsonWithFallback(path, init, { timeoutMs: 10000, allowWorkerFallback: false });
+        }
+      });
+    }).catch(function() {
+      var panel = el.querySelector('[data-profile-character]');
+      if (panel) panel.textContent = '캐릭터를 불러오지 못했어요. 잠시 후 다시 확인해 주세요.';
+    });
   }
 
   function _emptyCard() {
@@ -11996,6 +11935,13 @@
     _cdBindBirthCountryCombo();
     _dpBootstrapAccessStore();
   }
+
+  function _dpOpenCharacterDeepLink() {
+    if (window.location.hash === '#dpMasterCard') window.dpOpenList();
+  }
+  window.addEventListener('hashchange', _dpOpenCharacterDeepLink);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', _dpOpenCharacterDeepLink, { once: true });
+  else _dpOpenCharacterDeepLink();
 
   /* 외부 노출 */
   window.DestinyProfileManager = {
