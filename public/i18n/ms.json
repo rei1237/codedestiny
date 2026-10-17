@@ -20355,7 +20355,8 @@
       "guideTitle": "Before your reading",
       "guide": "After checking your question and required details, you can review the scope and price. Readings support your choices; they do not establish the future or another person's feelings as fact.",
       "resume": "Continue reading",
-      "restart": "Read from the beginning"
+      "restart": "Read from the beginning",
+      "chatInvitation": "Ada soalan ringkas? Tanya Yeoni, si babi bunga!"
     },
     "confirmation": {
       "titleKo": "Review your reading",

@@ -102,14 +102,12 @@ it("ziwei: the K#1 purchase starts, polls, completes and reopens past the expire
   expect((await read(ziwei, "/api/ziwei-ai/result", docs[0].id)).status).toBe(200);
   expect(payments.map(row => row.status)).toEqual(["cancelled", "fulfilled"]); expect(refund).not.toHaveBeenCalled();
 });
-it("island: the K#1 purchase starts, polls, completes and reopens past the expired K order", async () => {
-  provider.mockImplementation(islandText); chart = { palaces: [{ name: "명궁", mainStars: ["자미"], majorLuck: { range: "23-32" } }], fourTransformations: {}, chartSummary: "fixture" };
+it("island: expired never-paid orders do not hide a saved paid result after retirement", async () => {
   payments = orders(ISLAND);
-  expect((await islandStart()).status).toBe(202);
-  expect((await read(island, "/api/ziwei-island-ai/result", docs[0].id)).status).toBe(202);
-  expect((await islandStart()).status).toBe(200);
-  expect((await read(island, "/api/ziwei-island-ai/result", docs[0].id)).status).toBe(200);
-  expect(payments.map(row => row.status)).toEqual(["cancelled", "fulfilled"]); expect(refund).not.toHaveBeenCalled();
+  docs.push(saved("zwisl_saved", ISLAND));
+  expect((await islandStart()).status).toBe(410);
+  expect((await read(island, "/api/ziwei-island-ai/result", "zwisl_saved")).status).toBe(200);
+  expect(provider).not.toHaveBeenCalled(); expect(refund).not.toHaveBeenCalled();
 });
 for (const [label, patch] of Object.entries(REVOKED)) it(`${label} on the same key still blocks start and reopen for both products`, async () => {
   payments = orders(ZIWEI, patch);
@@ -117,7 +115,7 @@ for (const [label, patch] of Object.entries(REVOKED)) it(`${label} on the same k
   docs.push(saved("zwai_saved", utils.SERVICE_KEY));
   expect((await read(ziwei, "/api/ziwei-ai/result", "zwai_saved")).status).toBe(403);
   payments = orders(ISLAND, patch);
-  expect((await islandStart()).status).toBe(403);
+  expect((await islandStart()).status).toBe(410);
   docs.push(saved("zwisl_saved", ISLAND));
   expect((await read(island, "/api/ziwei-island-ai/result", "zwisl_saved")).status).toBe(403);
   expect(provider).not.toHaveBeenCalled();

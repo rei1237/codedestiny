@@ -72,9 +72,14 @@ for (const file of [
   "worker/routes/nakshatra-ai.js",
   "worker/routes/neo-operation-room.js",
   "worker/routes/ziwei-ai.js",
-  "worker/routes/ziwei-island-ai.js",
 ]) {
   assert.match(read(file), /PAYMENT_ACCESS_GRANT_REQUIRED/, `${file} must fail closed without a Payment Service grant`);
 }
+
+// 무료 전환된 섬은 결제 증빙 소비 대신 새 생성 자체를 닫는다. 기존 GET 재열람은 유지.
+const retiredIsland = read("worker/routes/ziwei-island-ai.js");
+assert.match(retiredIsland, /reason: "ISLAND_NOW_FREE"/);
+assert.match(retiredIsland, /status: 410/);
+assert.doesNotMatch(retiredIsland, /callGemini|consumePassForFeature|verifyPgPayment|applyUsageOnce/);
 
 console.log(`[verify-payment-service-boundary] PASS (${clientFiles.length} client files, ${routeFiles.length} Worker routes)`);

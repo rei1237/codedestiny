@@ -14,3 +14,9 @@
 .home .secondary{border:1px solid var(--tea-green);border-radius:var(--cd-r-control,12px);padding:12px 20px;background:var(--home-bg);color:var(--tea-ink)}
 .heroCopy p { max-width: 40ch; word-break: keep-all; overflow-wrap: anywhere; }
 .hero h1 { word-break: keep-all; }
+.chatInvitation{display:flex;align-items:center;gap:32px}
+.chatCharacter{width:240px;height:auto;flex-shrink:0}
+.chatContent{min-width:0}
+.section .chatSpeech{position:relative;margin:20px 0 0;padding:20px 24px;border-radius:var(--cd-r-card);background:var(--home-panel);color:var(--tea-ink);font-size:clamp(1.1rem,2vw,1.4rem);font-weight:600;word-break:keep-all;overflow-wrap:anywhere}
+.chatSpeech::before{content:"";position:absolute;left:-12px;top:24px;border-top:12px solid transparent;border-bottom:12px solid transparent;border-right:12px solid var(--home-panel)}
+@media(max-width:700px){.chatInvitation{flex-direction:column;align-items:flex-start;gap:20px}.chatCharacter{width:160px;align-self:center}.chatContent{width:100%}.chatSpeech::before{left:calc(50% - 12px);top:-12px;border-left:12px solid transparent;border-right:12px solid transparent;border-top:0;border-bottom:12px solid var(--home-panel)}}

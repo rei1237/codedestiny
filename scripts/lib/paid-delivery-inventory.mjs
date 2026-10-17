@@ -46,7 +46,6 @@ export const LLM_DELIVERY_ADAPTERS=Object.freeze([
   [/^love-secret-ai-consultation$/, 'worker/routes/love-secret-ai.js',null,'route-delivery'],
   [/^relationship-boundary-test$/, 'worker/routes/relationship-boundary-test.js',null,'route-delivery'],
   [/^karma-destiny-ai-consultation$/, 'worker/routes/karma-destiny-ai.js',null,'route-delivery'],
-  [/^ziwei-island-palace-consult$/, 'worker/routes/ziwei-island-ai.js',null,'route-delivery'],
   [/^palm-reading-general$/, 'worker/routes/palm.js',null,'route-delivery'],
   [/^fortune-chat-consultation$/, 'worker/routes/fortune-chat.js',null,'route-delivery'],
 ]);

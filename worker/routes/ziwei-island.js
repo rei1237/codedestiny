@@ -5,6 +5,7 @@
 import { getRoutePath, json, methodNotAllowed, notFound, readJson, HttpError } from "../lib/http.js";
 import { calculateZiweiAiChart } from "../lib/ziwei-ai-chart.js";
 import { buildIslandBlueprint } from "../lib/island/island-blueprint.js";
+import { buildIslandDeepReport } from "../lib/island/island-report.js";
 import { invalidIslandInput, normalizeIslandBirthInput } from "../lib/island/island-input.js";
 import { fnv1a32 } from "../lib/island/island-weights.js";
 
@@ -55,6 +56,14 @@ async function handleBlueprint(request) {
   ).toString(16);
 
   const blueprint = buildIslandBlueprint(chart, { userKey, date, currentYear, birthYear });
+  // 무료 탐험: 계산된 명반으로 미리 작성된 해석을 조합한다. DB·LLM·결제 없음.
+  blueprint.reading = buildIslandDeepReport(blueprint, chart);
+  blueprint.timing = {
+    year: currentYear,
+    yearly: chart.yearlyLuck,
+    decades: chart.majorLuck.slice().sort((a, b) => a.startAge - b.startAge),
+    timeUnknown: chartInput.birthTimeUnknown,
+  };
   return json({ ok: true, blueprint });
 }
 
