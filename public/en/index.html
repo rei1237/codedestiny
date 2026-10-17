@@ -6513,82 +6513,55 @@ html.neo-mode .cdh,body.neo-mode .cdh{--cdh-glass-line:color-mix(in srgb,var(--c
 #cdHomeFunnel .cdh-pass__packs>summary::after{content:"+";color:var(--cdh-gold);font-size:1.25rem;line-height:1}
 #cdHomeFunnel .cdh-pass__packs[open]>summary::after{content:"−"}
 #cdHomeFunnel .cdh-pass__packs>summary:focus-visible{outline:3px solid var(--cdh-accent);outline-offset:2px;border-radius:6px}
-/* 모든 운세 보기 — 달빛 예화 이중 틀 버튼: 바깥 로즈골드 선 + 안쪽 4px 금빛 선, 양옆 잔가지, 위에 Cinzel eyebrow.
- * hover 에 금빛 빛줄기가 한 번 지나가고 화살표가 4px 나간다. 전체 운세 시트(cdOpenAllFortunes)를 연다. */
-#cdHomeFunnel .cdh-all-cta{margin:clamp(32px,4vw,48px) 40px 0;text-align:center}
-#cdHomeFunnel .cdh-all-cta__btn{position:relative;isolation:isolate;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;gap:14px;min-width:min(100%,340px);min-height:66px;padding:10px 26px;border:1px solid var(--cd-yehwa-line,#c9a46a);border-radius:999px;background:transparent;color:var(--cdh-ink);text-decoration:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 14px 30px -22px color-mix(in srgb,var(--cdh-accent) 70%,transparent);transition:box-shadow .25s ease,color .2s ease}
-/* 아이보리 결은 안쪽 틀에만 — 버튼 본체는 외곽선 버튼으로 남아 히어로 CTA 하나만 채움이 된다(verify-home-funnel). */
-#cdHomeFunnel .cdh-all-cta__btn:before{content:"";position:absolute;inset:4px;z-index:-1;border:1px solid color-mix(in srgb,var(--cd-yehwa-line,#c9a46a) 50%,transparent);border-radius:inherit;background:linear-gradient(180deg,var(--cd-yehwa-ivory,#fdf6f0),var(--cdh-surface));pointer-events:none}
-#cdHomeFunnel .cdh-all-cta__btn:after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(105deg,transparent 30%,rgba(255,232,180,.6) 48%,transparent 66%);transform:translateX(-120%);pointer-events:none}
-#cdHomeFunnel .cdh-all-cta__btn:hover:after{transform:translateX(120%);transition:transform .9s ease}
-#cdHomeFunnel .cdh-all-cta__copy{display:grid;gap:2px;line-height:1.2}
-#cdHomeFunnel .cdh-all-cta__eyebrow{color:var(--cdh-gold);font:600 10.5px/1.3 "CodeDestinySerifLatin","Cinzel",serif;letter-spacing:.32em;white-space:nowrap}
-#cdHomeFunnel .cdh-all-cta__label{font:700 17px/1.35 var(--cdh-serif);letter-spacing:.01em}
-#cdHomeFunnel .cdh-all-cta__arrow{flex:none;width:18px;height:18px;color:var(--cdh-accent);transition:transform .2s ease}
-#cdHomeFunnel .cdh-all-cta__sprig{flex:none;width:28px;height:28px;background:color-mix(in srgb,var(--cdh-gold) 70%,transparent);-webkit-mask:var(--cd-yehwa-mask-branch-spray) center/contain no-repeat;mask:var(--cd-yehwa-mask-branch-spray) center/contain no-repeat}
+/* 둘러보기 — 넉넉한 터치 영역과 금박 테두리, 같은 폭의 세 진입점. */
+#cdHomeFunnel .cdh-all-cta{margin:40px 24px 0;text-align:center}
+#cdHomeFunnel .cdh-all-cta__btn{position:relative;isolation:isolate;display:inline-flex;align-items:center;justify-content:center;gap:20px;width:min(100%,440px);min-height:88px;padding:20px 28px;border:1px solid var(--cd-yehwa-line,#c9a46a);border-radius:20px;background:transparent;color:var(--cdh-ink);text-decoration:none;box-shadow:0 12px 28px -22px color-mix(in srgb,var(--cdh-ink) 45%,transparent);transition:border-color .2s ease,box-shadow .2s ease}
+#cdHomeFunnel .cdh-all-cta__btn:before{content:"";position:absolute;inset:5px;z-index:-1;border:1px solid color-mix(in srgb,var(--cdh-gold) 28%,transparent);border-radius:15px;pointer-events:none}
+#cdHomeFunnel .cdh-all-cta__copy{display:grid;gap:3px;line-height:1.4}
+#cdHomeFunnel .cdh-all-cta__label{font:700 21px/1.4 var(--cdh-serif);letter-spacing:-.02em}
+#cdHomeFunnel .cdh-all-cta__arrow{flex:none;width:22px;height:22px;color:var(--cdh-accent);transition:transform .2s ease}
+#cdHomeFunnel .cdh-all-cta__sprig{flex:none;width:30px;height:30px;background:var(--cdh-gold);-webkit-mask:var(--cd-yehwa-mask-branch-spray) center/contain no-repeat;mask:var(--cd-yehwa-mask-branch-spray) center/contain no-repeat}
 #cdHomeFunnel .cdh-all-cta__sprig--end{transform:scaleX(-1)}
-#cdHomeFunnel .cdh-all-cta__btn:hover{color:var(--cdh-accent);box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 0 0 4px color-mix(in srgb,var(--cdh-gold) 12%,transparent),0 18px 34px -20px color-mix(in srgb,var(--cdh-accent) 75%,transparent)}
+#cdHomeFunnel .cdh-all-cta__btn:hover{border-color:var(--cdh-accent);box-shadow:0 16px 32px -22px color-mix(in srgb,var(--cdh-accent) 40%,transparent)}
 #cdHomeFunnel .cdh-all-cta__btn:hover .cdh-all-cta__arrow{transform:translateX(4px)}
-#cdHomeFunnel .cdh-all-cta__btn:focus-visible{outline:3px solid var(--cdh-accent);outline-offset:3px}
-:is(html,body).neo-mode #cdHomeFunnel .cdh-all-cta__btn{border-color:rgba(232,213,163,.55);background:transparent;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 14px 30px -22px rgba(0,0,0,.9)}
-:is(html,body).neo-mode #cdHomeFunnel .cdh-all-cta__btn:before{border-color:rgba(232,213,163,.28);background:linear-gradient(180deg,#1f1838,#17122c)}
-:is(html,body).neo-mode #cdHomeFunnel .cdh-all-cta__btn:after{background:linear-gradient(105deg,transparent 30%,rgba(232,213,163,.22) 48%,transparent 66%)}
-:is(html,body).neo-mode #cdHomeFunnel .cdh-all-cta__btn:hover{color:#f3e4b9}
-@media(prefers-reduced-motion:reduce){#cdHomeFunnel .cdh-all-cta__btn:after{display:none}#cdHomeFunnel .cdh-all-cta__arrow{transition:none}#cdHomeFunnel .cdh-all-cta__btn:hover .cdh-all-cta__arrow{transform:none}}
-/* 맨 아래: 미니 운세 게임 링크 + 달빛 이야기(라이트 노벨·달빛 음악) 묶음 */
-#cdHomeFunnel .cdh-links{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:0 4px;margin:12px 40px 0}
-#cdHomeFunnel .cdh-links a{display:inline-flex;align-items:center;min-height:44px;padding:0 10px;color:var(--cdh-muted);font-size:15px;text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--cdh-gold) 40%,transparent);text-underline-offset:4px}
-#cdHomeFunnel .cdh-links a:hover{color:var(--cdh-accent)}
-#cdHomeFunnel .cdh-links a:focus-visible{outline:3px solid var(--cdh-accent);outline-offset:2px;border-radius:4px}
-/* 미니 운세 게임 — 금박 이중 테두리 알약. 첫 화면 위계를 지키려고 바탕은 채우지 않는다(verify-home-funnel "closing link row stays text"). */
-#cdHomeFunnel .cdh-links a.cdh-links__game{position:relative;gap:12px;min-height:52px;padding:6px 20px 6px 7px;border:1px solid color-mix(in srgb,var(--cd-yehwa-line) 80%,transparent);border-radius:999px;color:var(--cdh-ink);font:600 15.5px/1.3 var(--cdh-serif);letter-spacing:.02em;text-decoration:none;box-shadow:0 12px 26px -22px color-mix(in srgb,var(--cdh-accent) 70%,transparent);transition:color .2s,box-shadow .2s}
-#cdHomeFunnel .cdh-links a.cdh-links__game::before{content:'';position:absolute;inset:3px;border:1px solid color-mix(in srgb,var(--cd-yehwa-line) 38%,transparent);border-radius:inherit;pointer-events:none}
+#cdHomeFunnel .cdh-all-cta__btn:focus-visible{outline:3px solid var(--cdh-accent);outline-offset:4px}
+#cdHomeFunnel .cdh-links{display:flex;justify-content:center;margin:16px 24px 0}
+#cdHomeFunnel .cdh-links a{display:inline-flex;align-items:center;min-height:44px;color:var(--cdh-ink);text-decoration:none}
+#cdHomeFunnel .cdh-links a.cdh-links__game{position:relative;gap:20px;width:min(100%,440px);min-height:84px;padding:16px 26px;border:1px solid color-mix(in srgb,var(--cd-yehwa-line,#c9a46a) 65%,transparent);border-radius:20px;font:600 20px/1.4 var(--cdh-serif);transition:border-color .2s ease,box-shadow .2s ease}
 #cdHomeFunnel .cdh-links a.cdh-links__game>span{font-family:inherit}
-#cdHomeFunnel .cdh-links__icon{display:inline-grid;place-items:center;flex:none;width:38px;height:38px;border:1px solid color-mix(in srgb,var(--cdh-gold) 55%,transparent);border-radius:50%;color:var(--cdh-gold)}
-#cdHomeFunnel .cdh-links__icon svg{width:20px;height:20px}
-#cdHomeFunnel .cdh-links__arrow{flex:none;width:16px;height:16px;color:var(--cdh-accent);transition:transform .2s}
-#cdHomeFunnel .cdh-links a.cdh-links__game:hover{color:var(--cdh-accent);box-shadow:0 0 0 4px color-mix(in srgb,var(--cdh-gold) 12%,transparent),0 16px 30px -20px color-mix(in srgb,var(--cdh-accent) 75%,transparent)}
-#cdHomeFunnel .cdh-links a.cdh-links__game:hover .cdh-links__arrow{transform:translateX(3px)}
-#cdHomeFunnel .cdh-links a.cdh-links__game:focus-visible{outline-offset:3px;border-radius:999px}
-@media(prefers-reduced-motion:reduce){#cdHomeFunnel .cdh-links a.cdh-links__game,#cdHomeFunnel .cdh-links__arrow{transition:none}#cdHomeFunnel .cdh-links a.cdh-links__game:hover .cdh-links__arrow{transform:none}}
-/* 달빛 이야기 — 닫힌 상태는 카드 뒷면 두 장이 겹친 작은 예화 버튼, 열면 타로 카드 Ⅰ·Ⅱ 가 뒷면에서 뒤집히며 펼쳐진다(JS 없음).
- * 카드 틀은 대표 상담 덱의 금빛 glass + inset 링을 그대로 쓴다. */
-#cdHomeFunnel .cdh-story{margin:4px 40px 0;text-align:center}
-#cdHomeFunnel .cdh-story__toggle{display:inline-flex;align-items:center;gap:12px;min-height:54px;padding:6px 22px 6px 12px;border:1px solid color-mix(in srgb,var(--cd-yehwa-line,#c9a46a) 75%,transparent);border-radius:999px;background:linear-gradient(180deg,var(--cdh-card),color-mix(in srgb,var(--cdh-gold-soft) 55%,var(--cdh-card)));color:var(--cdh-ink);cursor:pointer;list-style:none;box-shadow:inset 0 0 0 3px var(--cdh-card),inset 0 0 0 4px color-mix(in srgb,var(--cdh-gold) 22%,transparent);transition:border-color .2s ease}
+#cdHomeFunnel .cdh-links__icon{display:inline-grid;place-items:center;flex:none;width:46px;height:46px;border:1px solid color-mix(in srgb,var(--cdh-gold) 45%,transparent);border-radius:14px;color:var(--cdh-gold)}
+#cdHomeFunnel .cdh-links__icon svg{width:26px;height:26px}
+#cdHomeFunnel .cdh-links__arrow{flex:none;width:22px;height:22px;margin-left:auto;color:var(--cdh-accent);transition:transform .2s ease}
+#cdHomeFunnel .cdh-links a.cdh-links__game:hover{border-color:var(--cdh-gold);box-shadow:0 12px 28px -22px color-mix(in srgb,var(--cdh-ink) 45%,transparent)}
+#cdHomeFunnel .cdh-links a.cdh-links__game:hover .cdh-links__arrow{transform:translateX(4px)}
+#cdHomeFunnel .cdh-links a:focus-visible{outline:3px solid var(--cdh-accent);outline-offset:4px}
+/* 달빛 서재 — 표지를 자르지 않는 가로 판형과 읽기 편한 제목. */
+#cdHomeFunnel .cdh-story{margin:16px 24px 0;text-align:center}
+#cdHomeFunnel .cdh-story__toggle{display:flex;align-items:center;gap:20px;width:min(100%,440px);min-height:88px;margin-inline:auto;padding:16px 26px;border:1px solid color-mix(in srgb,var(--cd-yehwa-line,#c9a46a) 65%,transparent);border-radius:20px;background:transparent;color:var(--cdh-ink);cursor:pointer;list-style:none;transition:border-color .2s ease,box-shadow .2s ease}
 #cdHomeFunnel .cdh-story__toggle::-webkit-details-marker{display:none}
-#cdHomeFunnel .cdh-story__toggle:hover{border-color:var(--cdh-gold)}
-#cdHomeFunnel .cdh-story__toggle:focus-visible{outline:3px solid var(--cdh-accent);outline-offset:3px}
-#cdHomeFunnel .cdh-story__backs{position:relative;flex:none;width:46px;height:42px}
-#cdHomeFunnel .cdh-story__backs img{position:absolute;top:3px;left:11px;width:24px;height:36px;border-radius:3px;object-fit:cover;background:none;box-shadow:0 0 0 1px color-mix(in srgb,var(--cdh-gold) 55%,transparent),0 2px 6px -2px rgba(64,42,56,.45);transform-origin:50% 100%;transition:transform .3s ease}
-#cdHomeFunnel .cdh-story__backs img:first-child{transform:translateX(-5px) rotate(-12deg)}
-#cdHomeFunnel .cdh-story__backs img:last-child{transform:translateX(5px) rotate(10deg)}
-#cdHomeFunnel .cdh-story__toggle:hover .cdh-story__backs img:first-child,#cdHomeFunnel .cdh-story[open] .cdh-story__backs img:first-child{transform:translateX(-8px) rotate(-20deg)}
-#cdHomeFunnel .cdh-story__toggle:hover .cdh-story__backs img:last-child,#cdHomeFunnel .cdh-story[open] .cdh-story__backs img:last-child{transform:translateX(8px) rotate(18deg)}
-#cdHomeFunnel .cdh-story__label{display:grid;line-height:1.3;text-align:left}
-#cdHomeFunnel .cdh-story__label strong{font:700 16px/1.35 var(--cdh-serif)}
-#cdHomeFunnel .cdh-story__label small{color:var(--cdh-muted);font-size:12.5px}
-#cdHomeFunnel .cdh-story__chev{flex:none;width:9px;height:9px;margin:0 0 4px 4px;border-right:1.5px solid var(--cdh-gold);border-bottom:1.5px solid var(--cdh-gold);transform:rotate(45deg);transition:transform .25s ease}
-#cdHomeFunnel .cdh-story[open] .cdh-story__chev{margin:4px 0 0 4px;transform:rotate(225deg)}
-#cdHomeFunnel .cdh-story__spread{display:flex;justify-content:center;gap:clamp(14px,3vw,28px);padding:24px 0 8px;perspective:1100px}
-#cdHomeFunnel .cdh-story__card{--fan:-4deg;--tarot-hue:#5d5299;position:relative;display:flex;flex-direction:column;align-items:center;width:min(42vw,200px);aspect-ratio:2/3;padding:12px 12px 14px;border:1px solid var(--cdh-glass-line);border-radius:16px;background:var(--cdh-glass-bg);color:var(--cdh-ink);text-decoration:none;box-shadow:inset 0 0 0 5px var(--cdh-glass-bg),inset 0 0 0 6px color-mix(in srgb,var(--tarot-hue) 55%,transparent),0 18px 34px -24px color-mix(in srgb,var(--tarot-hue) 70%,var(--cdh-ink));transform:rotate(var(--fan));transform-origin:50% 90%;transition:transform .25s ease,border-color .2s ease}
-#cdHomeFunnel .cdh-story__card--music{--fan:4deg;--tarot-hue:#b53660}
-#cdHomeFunnel .cdh-story__card:after{content:"";position:absolute;inset:0;border-radius:inherit;background:url("/images/fortune-tea-house/moonlight-tarot-card-back.webp") center/cover;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--cdh-gold) 60%,transparent);opacity:0;pointer-events:none}
-#cdHomeFunnel .cdh-story__card:hover{border-color:var(--cdh-gold);transform:translateY(-6px) rotate(0)}
+#cdHomeFunnel .cdh-story__toggle:hover,#cdHomeFunnel .cdh-story[open] .cdh-story__toggle{border-color:var(--cdh-gold);box-shadow:0 12px 28px -22px color-mix(in srgb,var(--cdh-ink) 45%,transparent)}
+#cdHomeFunnel .cdh-story__toggle:focus-visible{outline:3px solid var(--cdh-accent);outline-offset:4px}
+#cdHomeFunnel .cdh-story__backs{position:relative;flex:none;width:46px;height:46px}
+#cdHomeFunnel .cdh-story__backs img{position:absolute;top:2px;left:10px;width:27px;height:41px;border-radius:4px;object-fit:cover;background:none;box-shadow:0 3px 7px -3px rgba(64,42,56,.4)}
+#cdHomeFunnel .cdh-story__backs img:first-child{transform:translateX(-5px) rotate(-10deg)}
+#cdHomeFunnel .cdh-story__backs img:last-child{transform:translateX(5px) rotate(8deg)}
+#cdHomeFunnel .cdh-story__label{display:grid;gap:3px;text-align:left}
+#cdHomeFunnel .cdh-story__label strong{font:600 20px/1.4 var(--cdh-serif)}
+#cdHomeFunnel .cdh-story__label small{color:var(--cdh-muted);font-size:13px;line-height:1.5}
+#cdHomeFunnel .cdh-story__chev{flex:none;width:10px;height:10px;margin:0 3px 4px auto;border-right:1.5px solid var(--cdh-gold);border-bottom:1.5px solid var(--cdh-gold);transform:rotate(45deg);transition:transform .2s ease}
+#cdHomeFunnel .cdh-story[open] .cdh-story__chev{transform:rotate(225deg)}
+#cdHomeFunnel .cdh-story__spread{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;max-width:820px;margin-inline:auto;padding:28px 0 12px}
+#cdHomeFunnel .cdh-story__card{display:flex;flex-direction:column;align-items:flex-start;min-width:0;overflow:hidden;border:1px solid color-mix(in srgb,var(--cdh-gold) 45%,transparent);border-radius:18px;background:var(--cdh-card);color:var(--cdh-ink);text-align:left;text-decoration:none;box-shadow:0 12px 26px -20px color-mix(in srgb,var(--cdh-ink) 35%,transparent);transition:border-color .2s ease,box-shadow .2s ease}
+#cdHomeFunnel .cdh-story__card:hover{border-color:var(--cdh-gold);box-shadow:0 18px 34px -22px color-mix(in srgb,var(--cdh-ink) 45%,transparent)}
 #cdHomeFunnel .cdh-story__card:focus-visible{outline:3px solid var(--cdh-accent);outline-offset:4px}
-#cdHomeFunnel .cdh-story__num{margin:2px 0 8px;color:color-mix(in srgb,var(--tarot-hue) 70%,var(--cdh-ink));font:600 13px/1 "CodeDestinySerifLatin","Cinzel",serif;letter-spacing:.12em}
-#cdHomeFunnel .cdh-story__window{flex:1;width:100%;min-height:0;overflow:hidden;border-radius:10px;box-shadow:0 0 0 1px color-mix(in srgb,var(--cdh-gold) 40%,transparent)}
-#cdHomeFunnel .cdh-story__window img{display:block;width:100%;height:100%;object-fit:cover;background:none}
-#cdHomeFunnel .cdh-story__card--novel .cdh-story__window img{object-fit:contain}
-#cdHomeFunnel .cdh-story__crest{display:block;width:62px;height:auto;margin:8px 0 2px;background:none}
-#cdHomeFunnel .cdh-story__name{font:700 15px/1.35 var(--cdh-serif)}
-#cdHomeFunnel .cdh-story__note{color:var(--cdh-muted);font:600 9.5px/1.5 "CodeDestinySerifLatin","Cinzel",serif;letter-spacing:.18em}
-#cdHomeFunnel .cdh-story[open] .cdh-story__card{animation:cdh-story-deal .72s cubic-bezier(.25,.8,.25,1) backwards}
-#cdHomeFunnel .cdh-story[open] .cdh-story__card:after{animation:cdh-story-back .72s linear backwards}
-#cdHomeFunnel .cdh-story[open] .cdh-story__card--music,#cdHomeFunnel .cdh-story[open] .cdh-story__card--music:after{animation-delay:.12s}
-@keyframes cdh-story-deal{0%{opacity:0;transform:translateY(-26px) rotate(0) rotateY(180deg) scale(.92)}30%{opacity:1}100%{opacity:1;transform:translateY(0) rotate(var(--fan)) rotateY(0) scale(1)}}
-@keyframes cdh-story-back{0%,49%{opacity:1}50%,100%{opacity:0}}
-@media(max-width:640px){#cdHomeFunnel .cdh-story{margin:4px 0 0}#cdHomeFunnel .cdh-story__spread{gap:12px}#cdHomeFunnel .cdh-story__card{width:calc((100% - 24px) / 2);min-width:0;max-width:180px;padding:10px 10px 12px}#cdHomeFunnel .cdh-story__crest{width:52px}}
-@media(prefers-reduced-motion:reduce){#cdHomeFunnel .cdh-story[open] .cdh-story__card,#cdHomeFunnel .cdh-story[open] .cdh-story__card:after{animation:none}#cdHomeFunnel :is(.cdh-story__card,.cdh-story__backs img,.cdh-story__chev,.cdh-story__toggle){transition:none}}
+#cdHomeFunnel .cdh-story__window{display:block;width:100%;aspect-ratio:3/2;overflow:hidden;background:#111321}
+#cdHomeFunnel .cdh-story__window img{display:block;width:100%;height:100%;object-fit:contain;background:none}
+#cdHomeFunnel .cdh-story__card--music .cdh-story__window{aspect-ratio:3/2}
+#cdHomeFunnel .cdh-story__card--music .cdh-story__window img{object-fit:cover}
+#cdHomeFunnel .cdh-story__name{display:block;width:100%;padding:22px 24px 0;font:700 22px/1.4 var(--cdh-serif);letter-spacing:-.02em}
+#cdHomeFunnel .cdh-story__note{padding:8px 24px 24px;color:var(--cdh-muted);font-size:14px;line-height:1.65;word-break:keep-all}
+@media(max-width:640px){#cdHomeFunnel .cdh-story__spread{grid-template-columns:1fr;gap:20px;max-width:440px}#cdHomeFunnel .cdh-all-cta__btn{gap:12px;padding-inline:18px}#cdHomeFunnel .cdh-all-cta__sprig{width:20px}#cdHomeFunnel .cdh-links a.cdh-links__game,#cdHomeFunnel .cdh-story__toggle{padding-inline:20px;gap:16px}#cdHomeFunnel .cdh-story__name{padding:20px 20px 0}#cdHomeFunnel .cdh-story__note{padding:7px 20px 22px}}
+@media(prefers-reduced-motion:reduce){#cdHomeFunnel :is(.cdh-all-cta__btn,.cdh-all-cta__arrow,.cdh-links__game,.cdh-links__arrow,.cdh-story__toggle,.cdh-story__chev,.cdh-story__card){transition:none}#cdHomeFunnel .cdh-all-cta__btn:hover .cdh-all-cta__arrow,#cdHomeFunnel .cdh-links a.cdh-links__game:hover .cdh-links__arrow{transform:none}}
 /* 허브 색인: 대표 상담과 경쟁하지 않도록 작고 흐리게, 푸터 바로 위에 둔다. */
 #cdHomeFunnel .cdh-directory{display:flex;flex-wrap:wrap;justify-content:center;gap:0 14px;max-width:640px;margin:28px auto 0;padding:18px 16px 0;border-top:1px solid color-mix(in srgb,var(--cdh-gold) 28%,transparent)}
 #cdHomeFunnel .cdh-directory__title{flex-basis:100%;margin:0 0 4px;color:var(--cdh-muted);font-size:12px;font-weight:700;letter-spacing:.08em;text-align:center}
@@ -6605,8 +6578,8 @@ html body:has(#cdHomeFunnel) #inputPage{padding-bottom:0!important}
 #cdHomeFunnel .cdh-collections__close{min-height:44px;padding:0 16px;border:1px solid var(--cdh-line);border-radius:999px;background:transparent;color:var(--cdh-ink);font:inherit;font-weight:700;cursor:pointer}
 #cdHomeFunnel .cdh-collections__close:focus-visible{outline:3px solid var(--cdh-accent);outline-offset:2px}
 @media(max-width:640px){
-  #cdHomeFunnel .cdh-all-cta{margin:28px 16px 0}
-  #cdHomeFunnel .cdh-links{margin:8px 0 0}
+  #cdHomeFunnel .cdh-all-cta{margin:28px 24px 0}
+  #cdHomeFunnel .cdh-links{margin:16px 24px 0}
   #cdHomeFunnel .cdh-links a{padding:0 6px;font-size:14px}
   #cdHomeFunnel .cdh-collections{margin:0 12px 28px}
 }
@@ -10724,27 +10697,23 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
   </div>
 </section>
 <!-- 모든 운세 보기 — 달빛 예화 이중 틀 버튼. 전체 운세 시트(cdOpenAllFortunes)를 연다. -->
-<p class="cdh-all-cta"><a class="cdh-all-cta__btn" href="/?action=cdOpenAllFortunes" data-action="cdOpenAllFortunes"><span class="cdh-all-cta__sprig cdh-all-cta__sprig--start" aria-hidden="true"></span><span class="cdh-all-cta__copy"><small class="cdh-all-cta__eyebrow" data-cd-trans="home.simpleHome.allEyebrow">ALL FORTUNES</small><span class="cdh-all-cta__label" data-cd-trans="home.gardenCopy.allFortunes">모든 운세 보기</span></span><svg class="cdh-all-cta__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg><span class="cdh-all-cta__sprig cdh-all-cta__sprig--end" aria-hidden="true"></span></a></p>
+<p class="cdh-all-cta"><a class="cdh-all-cta__btn" href="/?action=cdOpenAllFortunes" data-action="cdOpenAllFortunes"><span class="cdh-all-cta__sprig cdh-all-cta__sprig--start" aria-hidden="true"></span><span class="cdh-all-cta__copy"><span class="cdh-all-cta__label" data-cd-trans="home.gardenCopy.allFortunes">모든 운세 보기</span></span><svg class="cdh-all-cta__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg><span class="cdh-all-cta__sprig cdh-all-cta__sprig--end" aria-hidden="true"></span></a></p>
 <nav class="cdh-links" aria-label="더 둘러보기" data-cd-trans-attr="aria-label:home.funnelCopy.explore">
   <a class="cdh-links__game" href="/mini-games/"><span class="cdh-links__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><rect x="4.2" y="5.4" width="8.6" height="12.6" rx="1.6" transform="rotate(-14 8.5 11.7)"/><rect x="10.6" y="5" width="8.6" height="12.6" rx="1.6" transform="rotate(9 14.9 11.3)"/><path d="M15.9 9.2a2.3 2.3 0 1 0 1.3 3.6 1.9 1.9 0 1 1-1.3-3.6z"/></svg></span><span data-cd-trans="home.simpleHome.miniGames">미니 운세 게임</span><svg class="cdh-links__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
 </nav>
-<!-- 달빛 이야기 — 라이트 노벨·달빛 음악을 한 묶음으로. 열면 타로 카드 두 장이 뒷면에서 뒤집히며 펼쳐진다(JS 없음). -->
+<!-- 달빛 이야기 — 라이트 노벨·달빛 음악을 한 묶음으로. 열면 표지와 소개가 담긴 두 장의 서재 카드가 펼쳐진다(JS 없음). -->
 <details class="cdh-story">
   <summary class="cdh-story__toggle"><span class="cdh-story__backs" aria-hidden="true"><img src="/images/fortune-tea-house/moonlight-tarot-card-back.webp" width="120" height="180" alt="" loading="lazy" decoding="async"><img src="/images/fortune-tea-house/moonlight-tarot-card-back.webp" width="120" height="180" alt="" loading="lazy" decoding="async"></span><span class="cdh-story__label"><strong data-cd-trans="home.simpleHome.storyTitle">달빛 이야기</strong><small data-cd-trans="home.simpleHome.storyNote">노벨과 음악</small></span><span class="cdh-story__chev" aria-hidden="true"></span></summary>
   <div class="cdh-story__spread">
     <a class="cdh-story__card cdh-story__card--novel" href="/codedestiny-novel.html">
-      <span class="cdh-story__num" aria-hidden="true">Ⅰ</span>
-      <span class="cdh-story__window"><img src="/images/novel/yeongnyangi-cover-640.webp" srcset="/images/novel/yeongnyangi-cover-640.webp 640w, /images/novel/yeongnyangi-cover-960.webp 960w" sizes="(max-width:640px) 42vw, 240px" width="640" height="427" alt="인간형 연이와 영냥이, 모카, 윤달, 서한비가 등장하는 운명 모험 표지" loading="lazy" decoding="async"></span>
-      <img class="cdh-story__crest" src="/images/home/mv/ornament-lotus-crest-160.webp" width="160" height="58" alt="" loading="lazy" decoding="async">
+      <span class="cdh-story__window"><img src="/images/novel/yeongnyangi-cover-640.webp" srcset="/images/novel/yeongnyangi-cover-640.webp 640w, /images/novel/yeongnyangi-cover-960.webp 960w" sizes="(max-width:640px) calc(100vw - 48px), 400px" width="640" height="427" alt="인간형 연이와 영냥이, 모카, 윤달, 서한비가 등장하는 운명 모험 표지" loading="lazy" decoding="async"></span>
       <strong class="cdh-story__name" data-cd-trans="footer.story.novel">라이트 노벨</strong>
-      <small class="cdh-story__note">LIGHT NOVEL</small>
+      <small class="cdh-story__note">영냥이와 연이, 잃어버린 운명을 찾는 여행</small>
     </a>
     <a class="cdh-story__card cdh-story__card--music" href="/music/">
-      <span class="cdh-story__num" aria-hidden="true">Ⅱ</span>
       <span class="cdh-story__window"><img src="/images/home/mv/moonlight-destiny-poster-640.webp" width="640" height="360" alt="" loading="lazy" decoding="async"></span>
-      <img class="cdh-story__crest" src="/images/home/mv/ornament-lotus-crest-160.webp" width="160" height="58" alt="" loading="lazy" decoding="async">
       <strong class="cdh-story__name" data-cd-trans="footer.story.music">달빛 음악</strong>
-      <small class="cdh-story__note">MOONLIGHT MUSIC</small>
+      <small class="cdh-story__note">이야기의 여운을 이어가는 달빛 선율</small>
     </a>
   </div>
 </details>
