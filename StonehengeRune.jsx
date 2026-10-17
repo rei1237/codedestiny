@@ -4,6 +4,7 @@ import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure"
 import { useState, useCallback, useEffect } from "react";
 import { useCoinGate } from "@/app/hooks/useCoinGate";
 import { formatKrwFromCoins } from "@/lib/payment/coin-pricing";
+import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
 import { getCurrentLoadingLocale } from "@/constants/loadingMessages";
 import { getStonehengeRuneCopy } from "@/lib/stonehenge-rune-copy";
 
@@ -2076,7 +2077,7 @@ export default function StonehengeRune() {
                 <span className="sr-spread-btn-rune">{option.rune}</span>
                 <span className="sr-spread-btn-name">{copy[`spreadName${option.count}`] || option.name}</span>
                 <span className="sr-spread-btn-desc">{copy[`spreadDesc${option.count}`] || option.desc}</span>
-                <span className="sr-spread-btn-desc">{formatKrwFromCoins(option.costCoins)}</span>
+                <span className="sr-spread-btn-desc">{formatKrwFromCoins(lookupServerCoinPrice(RUNE_FALLBACK_FEATURE_BY_SPREAD[option.count]))}</span>
               </button>
             ))}
           </div>
