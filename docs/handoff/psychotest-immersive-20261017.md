@@ -59,3 +59,6 @@ https://github.com/rei1237/codedestiny/actions/runs/39016747491
 주 체크아웃의 타 세션 변경은 유지했으며, 이 작업은 원격 main에 fast-forward로 전달했다.
 ## 최종 사용자 정정 반영
 캐릭터 SVG는 사용자가 거부하여 22종 개별 의미를 나타내는 상징으로 다시 교체했다. 최종 시각 자료는 D:/Development/psychotest-symbols-390.png 및 D:/Development/psychotest-symbols-1440.png. 위 cute 캡처와 귀여운 SVG 설명은 폐기된 중간 시안이다. 이번 상징 수정본으로 운영 배포를 진행한다. verify:release 전체는 exit 0 통과했으며 마지막 SVG의 타입/린트/정적 검사를 추가 실시한다.
+
+## 최종 B급 이미지로 대체
+사용자가 단순 SVG도 거부하고 병맛/B급 감성을 요청했다. 내장 imagegen으로 22종 각기 다른 상황의 실제 만화 일러스트를 생성하여 public/images/psychotest/bmovie-v1에 480/960 WebP로 적용했다. 이전 상징 SVG 및 cute 캡처는 폐기 시안이다. prompts: docs/design/psychotest-bmovie-art.json. 운영 dispatch는 아직 실행 전이며 이 최종 이미지 버전을 대상으로 한다.
