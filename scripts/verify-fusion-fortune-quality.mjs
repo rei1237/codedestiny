@@ -630,3 +630,4 @@ console.log("\n[verify-fusion-fortune-quality] PASS (mock only — 실제 모델
 
 // Premium report contract shares this existing CI gate.
 await import("./verify-fusion-fortune-premium.mjs");
+await import("./verify-fusion-fortune-premium-v2.mjs");

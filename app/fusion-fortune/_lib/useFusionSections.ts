@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useState } from "react";
-import { SECTION_KEYS } from "../fusion-thread";
-const allKeys = [...SECTION_KEYS, "timing"];
+import { DOMAIN_SECTION_KEYS, SECTION_KEYS } from "../fusion-thread";
+const allKeys = [...SECTION_KEYS, ...DOMAIN_SECTION_KEYS, "timing"];
 export function useFusionSections() {
   const [openSections, setOpenSections] = useState<Set<string>>(() => new Set(allKeys));
   const openSection = useCallback((key: string) => setOpenSections(current => new Set([...current, key])), []);

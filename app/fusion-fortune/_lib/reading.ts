@@ -6,7 +6,7 @@
  * 언제나 손에 든 결과에서 직접 센다.
  */
 
-import { SECTION_KEYS, type Result, type Section } from "../fusion-thread";
+import { DOMAIN_SECTION_KEYS, SECTION_KEYS, type Result, type Section } from "../fusion-thread";
 
 const joinedLength = (parts: (string | undefined)[]) => parts.filter(Boolean).join(" ").length;
 
@@ -27,7 +27,7 @@ export function countVerdictChars(verdict: Result["finalVerdict"]) {
 
 export function countResultChars(result: Result) {
   return joinedLength([result.title, result.openingMessage, result.executiveSummary, result.closingMessage])
-    + SECTION_KEYS.reduce((sum, key) => sum + countSectionChars(result[key]), 0)
+    + [...SECTION_KEYS, ...DOMAIN_SECTION_KEYS].reduce((sum, key) => sum + countSectionChars(result[key]), 0)
     + countTimingChars(result.timingAndAction)
     + countVerdictChars(result.finalVerdict);
 }

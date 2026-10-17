@@ -376,7 +376,7 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   // 전용 "대화권" 재화를 폐지하고 표준 회당 결제로 옮긴 자리다(2026-08-07).
   "fortune-chat-consultation": { cost: 50, amountKRW: 5000, reason: "연이 운명 상담 1회" },
   ...CHAT_QUESTION_PRICES,
-  // 초융합 운세 — 여섯 체계를 한 번에 엮는 2만자 이상 리딩. 500코인이라 건당 상한
+  // 초융합 운세 — 여섯 체계 6장 + 영역별 8장을 다섯 마스터가 엮는 장편 리딩. 500코인이라 건당 상한
   // (PASS_LIMITS: standard 50 · premium 100 · vvip 200)을 넘어 **family 등급만** 커버한다.
   // family 는 건당 상한이 없고 월 누적 한도(MONTHLY_PASS_LIMITS.family = 5,000코인 = 500,000원)
   // 만 적용된다. 횟수 제한은 없다 — FAMILY_PREMIUM_MIN_COIN_COST 와 "이용권 기간당 10회"는

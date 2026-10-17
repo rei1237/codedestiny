@@ -10,9 +10,11 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
-import { SECTION_KEYS, SECTION_SYSTEM_KEYS, type Result } from "../fusion-thread";
+import { DOMAIN_SECTION_KEYS, SECTION_KEYS, SECTION_SYSTEM_KEYS, type Result } from "../fusion-thread";
+import { isDomainFusion } from "@/lib/fusion-premium-report";
 import { countResultChars, countSectionChars, countTimingChars, countVerdictChars } from "./reading";
 import { useFusionSharedCopy } from "./copy";
+import { useFusionPremiumCopy } from "./premium-copy";
 
 /** collapsible: 접히는 섹션은 차례에서 누르면 먼저 펼친다 — 접힌 채 스크롤만 옮기면 제목 한 줄에 도착한다. */
 export type TocItem = { key: string; label: string; chars: number; systemKey: (typeof SECTION_SYSTEM_KEYS)[number]; collapsible: boolean };
@@ -32,6 +34,7 @@ export type FusionToc = {
 
 export function useFusionToc(result: Result, scopeRef: RefObject<HTMLElement | null>, onOpenSection: (key: string) => void, storageKey = ""): FusionToc {
   const copy = useFusionSharedCopy();
+  const premiumCopy = useFusionPremiumCopy();
   const [activeKey, setActiveKey] = useState("");
   const restoredKey = useRef("");
 
@@ -44,17 +47,21 @@ export function useFusionToc(result: Result, scopeRef: RefObject<HTMLElement | n
       const systemKey = SECTION_SYSTEM_KEYS[index];
       list.push({ key, label: systemKey === "fusion" ? copy.integratedShortLabel : copy.systemLabels[systemKey], chars: countSectionChars(result[key]), systemKey, collapsible: true });
     });
+    DOMAIN_SECTION_KEYS.forEach((key, index) => {
+      if (result[key]?.content) list.push({ key, label: premiumCopy.domainLabels[index], chars: countSectionChars(result[key]), systemKey: "fusion", collapsible: true });
+    });
     if (result.timingAndAction?.content) list.push({ key: "timing", label: copy.whenWhatSpeaker, chars: countTimingChars(result.timingAndAction), systemKey: "fusion", collapsible: true });
     if (result.finalVerdict) list.push({ key: "verdict", label: copy.verdictShortLabel, chars: countVerdictChars(result.finalVerdict), systemKey: "fusion", collapsible: false });
     if (result.closingMessage) list.push({ key: "closing", label: copy.closingShortLabel, chars: result.closingMessage.length, systemKey: "fusion", collapsible: false });
     return list;
-  }, [result, copy]);
+  }, [result, copy, premiumCopy]);
 
   const pending = useMemo<PendingTocItem[]>(() => [
     !result.executiveSummary && { key: "summary", label: copy.summaryShortLabel },
     !result.timingAndAction?.content && { key: "timing", label: copy.whenWhatSpeaker },
+    isDomainFusion(result) && !result.finalVerdict && !DOMAIN_SECTION_KEYS.some((key) => result[key]?.content) && { key: "domains", label: premiumCopy.domainHeading },
     !result.finalVerdict && { key: "verdict", label: copy.verdictShortLabel },
-  ].filter((item): item is PendingTocItem => Boolean(item)), [result, copy]);
+  ].filter((item): item is PendingTocItem => Boolean(item)), [result, copy, premiumCopy]);
 
   const totalChars = useMemo(() => countResultChars(result), [result]);
   const activeIndex = Math.max(0, items.findIndex((item) => item.key === activeKey));

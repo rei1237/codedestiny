@@ -1158,3 +1158,86 @@ html body:has(#cdHomeFunnel) #inputPage{padding-bottom:0!important}
   #cdHomeFunnel .cdh-links a{padding:0 6px;font-size:14px}
   #cdHomeFunnel .cdh-collections{margin:0 12px 28px}
 }
+
+/* 초융합 운세 시그니처 띠(2026-10-17) — 히어로 뒤 첫 블록. 이중 금빛 프레임 + 다섯 마스터 장면. CTA는 외곽선(첫 화면의 채움 버튼은 히어로 하나). */
+#cdHomeFunnel .cdh-fusion-sig{position:relative;isolation:isolate;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);align-items:center;gap:clamp(20px,3vw,40px);margin:clamp(28px,4vw,48px) 40px 0;padding:clamp(18px,2.4vw,28px);border:1px solid color-mix(in srgb,var(--cdh-gold) 45%,var(--cdh-line));border-radius:var(--cd-r-card,20px);background:radial-gradient(120% 90% at 0% 0%,color-mix(in srgb,var(--cdh-gold-soft) 70%,transparent),transparent 60%),var(--cdh-card);box-shadow:0 22px 48px -36px color-mix(in srgb,var(--cdh-gold) 70%,transparent)}
+#cdHomeFunnel .cdh-fusion-sig::before{content:"";position:absolute;inset:6px;z-index:-1;border:1px solid color-mix(in srgb,var(--cdh-gold) 22%,transparent);border-radius:calc(var(--cd-r-card,20px) - 6px);pointer-events:none}
+#cdHomeFunnel .cdh-fusion-sig__art{display:block;overflow:hidden;border-radius:calc(var(--cd-r-card,20px) - 8px);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--cdh-gold) 40%,transparent)}
+#cdHomeFunnel .cdh-fusion-sig__art img{display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:cover;background:none;transition:transform .6s ease}
+#cdHomeFunnel .cdh-fusion-sig__art:hover img{transform:scale(1.03)}
+#cdHomeFunnel .cdh-fusion-sig__body{display:grid;gap:14px;min-width:0}
+#cdHomeFunnel .cdh-fusion-sig__eyebrow{color:var(--cdh-gold);font-family:CodeDestinySerifLatin,Georgia,serif;font-size:.72rem;font-weight:800;letter-spacing:.22em}
+#cdHomeFunnel .cdh-fusion-sig__title{font-family:"CodeDestinySerifKR",var(--font-premium,serif);font-size:clamp(1.8rem,3.2vw,2.6rem)}
+#cdHomeFunnel .cdh-fusion-sig__lead{color:var(--cdh-muted);line-height:1.75}
+#cdHomeFunnel .cdh-fusion-sig__masters{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:0;padding:0;list-style:none}
+#cdHomeFunnel .cdh-fusion-sig__masters li{display:grid;justify-items:center;gap:6px;min-width:0;text-align:center}
+#cdHomeFunnel .cdh-fusion-sig__masters img{width:44px;height:44px;border-radius:50%;object-fit:cover;background:var(--cdh-gold-soft);box-shadow:0 0 0 1px color-mix(in srgb,var(--cdh-gold) 55%,transparent),0 0 0 4px color-mix(in srgb,var(--cdh-gold-soft) 80%,transparent)}
+#cdHomeFunnel .cdh-fusion-sig__masters span{display:grid;gap:2px;min-width:0}
+#cdHomeFunnel .cdh-fusion-sig__masters b{font-family:"CodeDestinySerifKR",serif;font-size:.9rem}
+#cdHomeFunnel .cdh-fusion-sig__masters small{color:var(--cdh-muted);font-size:.7rem;line-height:1.4;word-break:keep-all}
+#cdHomeFunnel .cdh-fusion-sig__chips{display:grid;gap:8px}
+#cdHomeFunnel .cdh-fusion-sig__chips p{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+#cdHomeFunnel .cdh-fusion-sig__chip-label{margin-right:4px;color:var(--cdh-gold);font-size:.74rem;font-weight:800}
+#cdHomeFunnel .cdh-fusion-sig__chip{padding:3px 10px;border:1px solid color-mix(in srgb,var(--cdh-gold) 32%,transparent);border-radius:999px;color:var(--cdh-ink);font-size:.76rem;line-height:1.5}
+#cdHomeFunnel .cdh-fusion-sig__chip--area{background:color-mix(in srgb,var(--cdh-gold-soft) 55%,transparent)}
+#cdHomeFunnel .cdh-fusion-sig__cta{position:relative;display:flex;align-items:center;gap:10px;justify-self:start;min-height:52px;margin-top:4px;padding:0 22px;border:1px solid var(--cdh-gold);border-radius:999px;background:transparent;color:var(--cdh-ink);font-weight:800;box-shadow:inset 0 0 0 3px transparent,inset 0 0 0 4px color-mix(in srgb,var(--cdh-gold) 35%,transparent);transition:box-shadow .2s ease}
+#cdHomeFunnel .cdh-fusion-sig__cta:hover{box-shadow:inset 0 0 0 3px transparent,inset 0 0 0 4px color-mix(in srgb,var(--cdh-gold) 70%,transparent),0 10px 24px -18px var(--cdh-gold)}
+#cdHomeFunnel .cdh-fusion-sig__cta b{color:var(--cdh-accent,var(--cdh-gold))}
+#cdHomeFunnel .cdh-fusion-sig__cta i{font-style:normal;transition:transform .2s ease}
+#cdHomeFunnel .cdh-fusion-sig__cta:hover i{transform:translateX(4px)}
+html.neo-mode #cdHomeFunnel .cdh-fusion-sig__cta b,body.neo-mode #cdHomeFunnel .cdh-fusion-sig__cta b{color:#e8d5a3}
+@media(max-width:860px){#cdHomeFunnel .cdh-fusion-sig{grid-template-columns:minmax(0,1fr);margin:28px 16px 0}}
+@media(max-width:420px){#cdHomeFunnel .cdh-fusion-sig__masters{grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}#cdHomeFunnel .cdh-fusion-sig__masters img{width:38px;height:38px}#cdHomeFunnel .cdh-fusion-sig__masters small{font-size:.64rem}#cdHomeFunnel .cdh-fusion-sig__cta{justify-self:stretch;justify-content:center}}
+@media(prefers-reduced-motion:reduce){#cdHomeFunnel .cdh-fusion-sig__art img,#cdHomeFunnel .cdh-fusion-sig__cta,#cdHomeFunnel .cdh-fusion-sig__cta i{transition:none}}
+
+/* 다른 재밌는 운세 — 질문 카테고리(2026-10-17). index.html 의 cd-concern-pick-v20260824 기본 스타일 위에 예화 톤만 덧입힌다.
+   #cdHomeFunnel 로 특이도를 올렸으므로 [hidden] 패널도 여기서 다시 닫는다. */
+#cdHomeFunnel .cdh-other{margin:clamp(32px,4vw,52px) 40px 0}
+#cdHomeFunnel .cdh-qcat{max-width:none;margin:0;padding:0}
+#cdHomeFunnel .cdh-qcat__head{display:grid;justify-items:center;gap:12px;margin:0 0 18px;text-align:center}
+#cdHomeFunnel .cdh-qcat__title{font-family:"CodeDestinySerifKR",var(--font-premium,serif);font-size:clamp(1.4rem,2.4vw,1.9rem)}
+#cdHomeFunnel .cdh-qcat__voice{display:inline-flex;align-items:center;gap:10px;margin:0;text-align:left}
+#cdHomeFunnel .cdh-qcat__voice img{width:40px;height:40px;border-radius:50%;object-fit:cover;background:var(--cdh-gold-soft);box-shadow:0 0 0 1px color-mix(in srgb,var(--cdh-gold) 55%,transparent)}
+#cdHomeFunnel .cdh-qcat__voice>span{position:relative;display:grid;gap:1px;padding:8px 14px;border:1px solid color-mix(in srgb,var(--cdh-gold) 30%,var(--cdh-line));border-radius:4px 16px 16px 16px;background:var(--cdh-card);font-size:.92rem;line-height:1.45}
+#cdHomeFunnel .cdh-qcat__voice b{color:var(--cdh-gold);font-size:.72rem;letter-spacing:.08em}
+#cdHomeFunnel .cd-concern__cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;max-width:none;margin:0 0 14px}
+#cdHomeFunnel .cd-concern__card{position:relative;display:grid;grid-template-rows:auto auto auto;gap:3px;padding:0 0 12px;overflow:hidden;border:1px solid color-mix(in srgb,var(--cdh-gold) 26%,var(--cdh-line));border-radius:16px;background:var(--cdh-card);color:var(--cdh-ink);box-shadow:none;transform:none;transition:border-color .2s ease,box-shadow .2s ease}
+#cdHomeFunnel .cd-concern__card-media{aspect-ratio:16/9;background:var(--cdh-gold-soft)}
+#cdHomeFunnel .cd-concern__card-media img{background:none}
+#cdHomeFunnel .cd-concern__card-label{margin:6px 14px 0;font-family:"CodeDestinySerifKR",serif;font-size:1rem;font-weight:700}
+#cdHomeFunnel .cd-concern__card-desc{margin:0 14px;color:var(--cdh-muted);font-size:.76rem}
+#cdHomeFunnel .cd-concern__card[aria-expanded="true"]{background:var(--cdh-card);color:var(--cdh-ink);border-color:var(--cdh-gold);box-shadow:inset 0 0 0 1px var(--cdh-gold),0 14px 30px -24px color-mix(in srgb,var(--cdh-gold) 80%,transparent);transform:none}
+#cdHomeFunnel .cd-concern__card[aria-expanded="true"] .cd-concern__card-desc{color:var(--cdh-muted)}
+#cdHomeFunnel .cd-concern__card[aria-expanded="true"]::after{content:"";position:absolute;top:10px;right:10px;width:10px;height:10px;border-radius:50%;background:var(--cdh-gold);box-shadow:0 0 0 3px color-mix(in srgb,var(--cdh-gold) 25%,transparent)}
+#cdHomeFunnel .cd-concern__panel{display:block;max-width:none;margin:0;padding:clamp(14px,2.4vw,22px);border:1px solid color-mix(in srgb,var(--cdh-gold) 30%,var(--cdh-line));border-radius:18px;background:var(--cdh-card);box-shadow:none}
+#cdHomeFunnel .cd-concern__panel[hidden]{display:none}
+#cdHomeFunnel .cd-concern__panel::before{background:var(--cdh-card);border-color:color-mix(in srgb,var(--cdh-gold) 30%,var(--cdh-line))}
+#cdHomeFunnel .cd-concern__qs{display:grid;grid-template-columns:minmax(0,1fr);gap:0}
+#cdHomeFunnel .cd-concern__q{display:grid;gap:4px;padding:0}
+#cdHomeFunnel .cd-concern__q+.cd-concern__q{border-top:1px solid color-mix(in srgb,var(--cdh-gold) 20%,var(--cdh-line))}
+#cdHomeFunnel .cd-concern__q-link{display:grid;grid-template-columns:28px minmax(0,1fr) auto;align-items:center;gap:12px;min-height:56px;padding:12px 6px;border:0;border-radius:10px;background:none;box-shadow:none;color:var(--cdh-ink);transform:none}
+#cdHomeFunnel .cd-concern__q-master{width:28px;height:28px;border-radius:50%;object-fit:cover;background:var(--cdh-gold-soft);box-shadow:0 0 0 1px color-mix(in srgb,var(--cdh-gold) 50%,transparent)}
+#cdHomeFunnel .cd-concern__q-text{display:grid;gap:2px;min-width:0}
+#cdHomeFunnel .cd-concern__q-title{font-size:.98rem;font-weight:700}
+#cdHomeFunnel .cd-concern__q-badge{display:block;margin:0;padding:0;color:var(--cdh-muted);font-size:.76rem}
+#cdHomeFunnel .cd-concern__q-link>.cd-concern__q-price{color:var(--cdh-ink);font-size:.86rem;font-weight:800;white-space:nowrap}
+#cdHomeFunnel .cd-concern__q-link--fusion{margin:6px 0;padding:12px;border:1px solid var(--cdh-gold);background:color-mix(in srgb,var(--cdh-gold-soft) 60%,transparent)}
+#cdHomeFunnel .cd-concern__q-link--fusion>.cd-concern__q-price{color:var(--cdh-gold)}
+#cdHomeFunnel .cd-concern__q-alt{min-height:36px;margin:0 0 8px 46px;padding:4px 10px;border:1px dashed color-mix(in srgb,var(--cdh-gold) 35%,transparent);border-radius:999px;justify-self:start;width:auto;background:none;color:var(--cdh-muted);font-size:.76rem}
+#cdHomeFunnel .cd-concern__actions{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:14px}
+#cdHomeFunnel .cd-concern__free{border:1px solid var(--cdh-gold);border-radius:999px;background:linear-gradient(135deg,#3a2a4a,#1d1530);color:#fbf1dc;box-shadow:none}
+#cdHomeFunnel .cd-concern__ask{border:1px solid color-mix(in srgb,var(--cdh-gold) 45%,var(--cdh-line));border-radius:999px;background:var(--cdh-card);color:var(--cdh-ink)}
+#cdHomeFunnel .cd-concern__ask .cd-concern__q-price{color:var(--cdh-gold)}
+html.neo-mode #cdHomeFunnel .cd-concern__free,body.neo-mode #cdHomeFunnel .cd-concern__free{background:linear-gradient(135deg,#e8d5a3,#c9a96a);color:#1d1530}
+@media(hover:hover) and (pointer:fine){#cdHomeFunnel .cd-concern__card:hover{border-color:var(--cdh-gold);transform:none}#cdHomeFunnel .cd-concern__q-link:hover{background:color-mix(in srgb,var(--cdh-gold-soft) 50%,transparent);transform:none;box-shadow:none}#cdHomeFunnel .cd-concern__free:hover{background:linear-gradient(135deg,#46335a,#241a3a)}}
+@media(max-width:860px){#cdHomeFunnel .cdh-other{margin:28px 16px 0}}
+@media(max-width:599px){
+  #cdHomeFunnel .cd-concern__cards{display:flex;gap:10px;margin:0 -16px 12px;padding:2px 16px 6px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding:0 16px;scrollbar-width:none}
+  #cdHomeFunnel .cd-concern__cards::-webkit-scrollbar{display:none}
+  #cdHomeFunnel .cd-concern__card{flex:0 0 132px;scroll-snap-align:start}
+  #cdHomeFunnel .cd-concern__card-desc{display:none}
+  #cdHomeFunnel .cd-concern__actions{display:grid;grid-template-columns:minmax(0,1fr)}
+}
+@media(prefers-reduced-motion:reduce){#cdHomeFunnel .cd-concern__card{transition:none}}
+/* 예전 concern 기본 스타일의 점·노치·달 장식은 새 질문 카테고리에서 끈다(가격 옆 원이 겹쳐 보였다). */
+#cdHomeFunnel .cdh-qcat .cd-concern__q-link::before,#cdHomeFunnel .cdh-qcat .cd-concern__panel::before,#cdHomeFunnel .cdh-qcat .cd-concern__panel::after{content:none}

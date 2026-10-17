@@ -76,19 +76,19 @@ async function assertEssentials(page, label) {
       await page.waitForTimeout(250);
       await assertEssentials(page, `${width}px first visit`);
 
-      // 강약: 대표 상담 → 무료로 먼저 → 1:1 상담 → 이용권 → 뮤직비디오 → 모든 운세 버튼 → 링크 → 달빛 이야기. DOM 순서와 화면 순서가 같다.
+      // 강약: 초융합 시그니처 → 대표 상담 → 무료로 먼저 → 1:1 상담 → 질문 카테고리 → 이용권 → 뮤직비디오 → 모든 운세 버튼 → 링크 → 달빛 이야기. DOM 순서와 화면 순서가 같다.
       const order = await page.evaluate(() => {
-        const nodes = [document.getElementById('cdSignatureConsult'), document.getElementById('cdQuickServices'), document.querySelector('.cdh-consult'), document.getElementById('cdhPass'), document.getElementById('cdhMoonlightMv'), document.querySelector('.cdh-all-cta'), document.querySelector('.cdh-links'), document.querySelector('.cdh-story')];
+        const nodes = [document.getElementById('cdhFusionSignature'), document.getElementById('cdSignatureConsult'), document.getElementById('cdQuickServices'), document.querySelector('.cdh-consult'), document.getElementById('cdConcernPick'), document.getElementById('cdhPass'), document.getElementById('cdhMoonlightMv'), document.querySelector('.cdh-all-cta'), document.querySelector('.cdh-links'), document.querySelector('.cdh-story')];
         return {
           dom: nodes.every((node, index) => index === 0 || Boolean(nodes[index - 1].compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING)),
           visual: nodes.map((node) => node.getBoundingClientRect().top + scrollY),
         };
       });
-      assert.ok(order.dom, `${width}px home flow keeps signature → free → consult → pass → MV → all fortunes → links → story in DOM`);
+      assert.ok(order.dom, `${width}px home flow keeps fusion → signature → free → consult → questions → pass → MV → all fortunes → links → story in DOM`);
       assert.ok(order.visual.every((top, index) => index === 0 || top > order.visual[index - 1]), `${width}px home flow keeps the same visual order (${order.visual.map(Math.round).join(' < ')})`);
 
       // 걷어낸 블록은 홈 마크업에 다시 생기지 않는다. 기능 페이지와 URL은 그대로다.
-      for (const selector of ['#cdhMore', '#cdhOtherFortunes', '#cdhServices', '#cdTodayHub', '#cdConcernPick', '#cdhFlowerTitle', '[data-cdh-chemi]', '#cdhFeedbackSlot', '#cdhSignupBenefit', '.cdh-moonstone-guide', '#cdhSamples', '.cdh-portals']) {
+      for (const selector of ['#cdhMore', '#cdhServices', '#cdTodayHub', '#cdhFlowerTitle', '[data-cdh-chemi]', '#cdhFeedbackSlot', '#cdhSignupBenefit', '.cdh-moonstone-guide', '#cdhSamples', '.cdh-portals']) {
         assert.equal(await page.locator(selector).count(), 0, `${width}px ${selector} is gone from home`);
       }
       // 홈 밖 셸 블록은 화면에서만 숨긴다(마크업과 기능은 다른 화면이 쓴다).
@@ -100,6 +100,19 @@ async function assertEssentials(page, label) {
       assert.equal(await page.locator('.cdh-primary').getAttribute('href'), '#cdSignatureConsult', `${width}px hero CTA leads to the deck`);
       assert.equal(await page.locator('#cdQuickServices .cdh-free-card').count(), 6, `${width}px free first offers the six methods`);
       assert.equal(await page.locator('#cdQuickServices .cdh-free-card').first().getAttribute('data-cdh-free'), '', `${width}px the first free card opens the one-step saju`);
+      // 초융합 시그니처 띠: 다섯 마스터 · 50,000원 · 초융합 페이지로.
+      assert.equal(await page.locator('#cdhFusionSignature .cdh-fusion-sig__masters li').count(), 5, `${width}px fusion band shows the five masters`);
+      assert.equal(await page.locator('#cdhFusionSignature .cdh-fusion-sig__cta').getAttribute('href'), '/fusion-fortune/?from=home_signature', `${width}px fusion band CTA opens fusion fortune`);
+      assert.match(await page.locator('#cdhFusionSignature .cdh-fusion-sig__cta').textContent(), /50,000원/, `${width}px fusion band states 50,000원`);
+      // 다른 재밌는 운세: 질문 카테고리 8개, 패널은 한 번에 하나('사랑'이 기본으로 열림), 카테고리를 누르면 그 패널만 남는다.
+      assert.equal(await page.locator('#cdConcernPick .cd-concern__card').count(), 8, `${width}px eight question categories`);
+      assert.equal(await page.locator('#cdConcernPick .cd-concern__panel:not([hidden])').count(), 1, `${width}px one question panel open`);
+      assert.equal(await page.locator('#cdConcernPanelLove').isVisible(), true, `${width}px love panel opens first`);
+      await page.locator('#cdConcernPick [data-cd-concern="future"]').click();
+      assert.equal(await page.locator('#cdConcernPanelFuture').isVisible(), true, `${width}px future panel opens on tap`);
+      assert.equal(await page.locator('#cdConcernPanelLove').isVisible(), false, `${width}px previous panel closes`);
+      assert.equal(await page.locator('#cdConcernPanelFuture [data-cd-question="futureCross"]').getAttribute('data-cd-price-key'), 'fusion-fortune-consultation', `${width}px cross-check question leads to fusion fortune`);
+      assert.equal(await page.locator('#cdConcernPick .cd-concern__q-link img').first().evaluate((img) => getComputedStyle(img).backgroundColor) !== 'rgb(229, 229, 229)', true, `${width}px question avatar has no grey box`);
       assert.equal(await page.locator('.cdh-links a').count(), 1, `${width}px the closing link row keeps only mini games`);
       assert.equal(await page.locator('#fortuneGatewayEntry').count(), 1, `${width}px one Yeoni consultation door`);
       assert.match(await page.locator('#fortuneGatewayEntry').textContent(), /5,000원/, `${width}px Yeoni door states 5,000원`);

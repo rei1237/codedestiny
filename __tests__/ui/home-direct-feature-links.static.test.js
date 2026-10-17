@@ -9,17 +9,34 @@ const home = read("index.html");
 const registry = read("js/core/service-registry.js");
 const template = read("templates/home-funnel.html");
 
-// 2026-10-17 "직관성" + 같은 날 고급화: 대표 상담 덱 → 무료로 먼저(여섯 장) → 1:1 상담(연이·네오) → 이용권 → 뮤직비디오 → 모든 운세 버튼 → 미니 게임 링크 → 달빛 이야기.
-const flow = ['id="cdhFeatured"', 'id="cdhQuickSlot"', 'class="cdh-consult"', 'id="cdhPass"', 'id="cdhMoonlightMv"', 'data-action="cdOpenAllFortunes"', 'class="cdh-links"', 'class="cdh-story"'];
+// 2026-10-17 "직관성" + 같은 날 고급화: 초융합 시그니처 띠 → 대표 상담 덱 → 무료로 먼저(여섯 장) → 1:1 상담(연이·네오) → 질문 카테고리 → 이용권 → 뮤직비디오 → 모든 운세 버튼 → 미니 게임 링크 → 달빛 이야기.
+const flow = ['id="cdhFusionSignatureSlot"', 'id="cdhFeatured"', 'id="cdhQuickSlot"', 'class="cdh-consult"', 'id="cdhQuestionSlot"', 'id="cdhPass"', 'id="cdhMoonlightMv"', 'data-action="cdOpenAllFortunes"', 'class="cdh-links"', 'class="cdh-story"'];
 for (let i = 1; i < flow.length; i += 1) {
   const prev = template.indexOf(flow[i - 1]);
   const next = template.indexOf(flow[i]);
   assert.ok(prev >= 0 && next > prev, `${flow[i - 1]} 가 ${flow[i]} 보다 먼저 와야 합니다`);
 }
 // 나머지 입구는 홈에 펼치지 않고 모든 운세 시트 하나로 연다.
-for (const gone of ['id="cdhMore"', 'id="cdhOtherFortunes"', 'id="cdhServices"', 'id="cdhConcern"', 'id="cdhTodaySlot"', 'id="cdhFlowerTitle"', 'data-cdh-chemi', '{{fusionRecommendation}}', '{{lightRecommendations}}']) {
+for (const gone of ['id="cdhMore"', 'id="cdhServices"', 'id="cdhConcern"', 'id="cdhTodaySlot"', 'id="cdhFlowerTitle"', 'data-cdh-chemi', '{{fusionRecommendation}}', '{{lightRecommendations}}']) {
   assert.ok(!template.includes(gone), `${gone} 는 홈 흐름에서 빠졌습니다`);
 }
+
+// 질문 카테고리: 예전 #cdConcernPick DOM 계약(토글 스크립트·계측이 그대로 읽는다)과 가격 키를 지킨다.
+const concernSection = home.match(/<section data-cd-funnel-section="concern_pick"[\s\S]*?<\/section>/)?.[0] || "";
+assert.ok(concernSection.includes('id="cdConcernPick"'), "홈 질문 카테고리를 찾지 못했습니다");
+assert.deepEqual([...concernSection.matchAll(/data-cd-concern="([^"]+)"/g)].map(m => m[1]), ['love', 'reunion', 'marriage', 'money', 'career', 'future', 'self', 'people']);
+assert.equal([...concernSection.matchAll(/data-cd-concern-panel="/g)].length, 8, "카테고리마다 패널 하나");
+assert.equal([...concernSection.matchAll(/class="cd-concern__panel"[^>]*hidden/g)].length, 7, "처음엔 '사랑' 패널만 열려 있습니다");
+for (const link of concernSection.match(/<a class="cd-concern__q-link[^>]*>/g) || []) {
+  assert.match(link, /data-cd-question="\w+"/, `질문 키 없음: ${link}`);
+  assert.match(link, /data-cd-price-key="[\w-]+"|data-cd-price-free/, `가격 표지 없음: ${link}`);
+}
+assert.match(concernSection, /href="\/fusion-fortune\/\?from=home_question" data-cd-question="futureCross" data-cd-price-key="fusion-fortune-consultation"/);
+assert.ok(home.includes('data-marker="cd-concern-pick-v20260824">'), "질문 카테고리 토글 스크립트가 남아 있어야 합니다");
+
+const fusionBand = home.match(/<section class="cdh-fusion-sig"[\s\S]*?<\/section>/)?.[0] || "";
+assert.match(fusionBand, /href="\/fusion-fortune\/\?from=home_signature"/, "초융합 시그니처 띠는 초융합 페이지로 갑니다");
+assert.equal([...fusionBand.matchAll(/\/images\/master-profiles\/avatars\/(\w+)\.webp/g)].map(m => m[1]).join(','), 'neo,yeoni,hanbi,yun,musung');
 
 const quickSection = home.match(/id="cdQuickServices"[\s\S]*?<\/section>/)?.[0] || "";
 assert.ok(quickSection, "홈 무료 바로 시작 섹션을 찾지 못했습니다");

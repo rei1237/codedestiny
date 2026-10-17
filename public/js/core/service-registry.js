@@ -302,7 +302,7 @@ window.__cdServiceRegistry = [
     price: "50,000원",
     purposes: ["life", "self", "career", "love"],
     methods: ["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"],
-    keys: "초융합 교차검증 종합 심층 여섯 체계 2만자",
+    keys: "초융합 교차검증 종합 심층 여섯 체계 다섯 마스터 성향 시기 연애 결혼 재물 직업 건강 인간관계",
     badge: "최종 판정",
   },
 

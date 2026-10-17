@@ -62,7 +62,7 @@ test("승인된 v2 가치 섹션은 로케일 키를 공유하고 한국어 마�
   assert.match(guide, /shared.systemLabels/);
   assert.doesNotMatch(guide, /feature-marketing-copy.generated/);
   const labels = readFileSync(path.resolve(ROOT, "app/fusion-fortune/_lib/expert-labels.ts"), "utf8");
-  assert.match(labels, /독립 해석 6개 · 근거 비교 · 실행 조언/);
+  assert.match(labels, /체계별 6장 · 영역별 8장 · 다섯 마스터의 목소리/);
   assert.match(labels, /실제 경력 10년차 명리학자 설계·자문/);
 });
 

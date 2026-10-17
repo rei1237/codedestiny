@@ -81,7 +81,9 @@ export async function runFusionFortuneRecovery(env, options = {}) {
     if (!requestId || !userId || !candidate.generationSnapshot?.input) continue;
     const stage = candidate.nextStage === 1 || !hasFusionStageOneResult(candidate.result) ? 1 : 2;
     const options = { ...fusionValidationOptions(candidate.generationSnapshot.context, candidate.generationSnapshot.input), ignoreLength: true };
-    const groups = fusionGroupsForStage(stage).filter(group => !validateFusionFortuneGroup(candidate.result, group, options).ok);
+    // v2 분야 장(optional)은 시도를 다 쓰면 배달을 막지 않는다 — 검토 대상으로 세지 않는다.
+    const groups = fusionGroupsForStage(stage, candidate.generationSnapshot.context).filter(group => !validateFusionFortuneGroup(candidate.result, group, options).ok)
+      .filter(group => !(group.optional && Number(candidate.generationSnapshot.attempts?.[group.id] || 0) >= fusionGroupAttemptLimit(candidate.generationSnapshot)));
     // Provider reservations belong to the saved purchase and include browser attempts.
     if (groups.length && groups.every(group => Number(candidate.generationSnapshot.attempts?.[group.id] || 0) >= fusionGroupAttemptLimit(candidate.generationSnapshot))) {
       await withMongoRetry(env, () => FusionFortuneConsultation.updateOne({ userId, idempotencyKey: requestId, ...buildAbandonedFusionFilter(now) },

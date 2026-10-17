@@ -13,6 +13,7 @@ const AVATARS = {
   hanbi: ['hanbi-sukuyo-portrait.webp', [60, 30, 420]],
   neo: ['neo-strategy-portrait.webp', [90, 0, 420]],
   yun: ['yun-astrology-portrait.webp', [160, 30, 420]],
+  musung: ['musung-ziwei-portrait.webp', [130, 80, 360]],
   master: ['master-love-portrait.webp', [120, 120, 400]],
   // 대표 상담 전용 초상(build-master-dedicated.mjs) — 얼굴이 프레임에서 작아 더 좁게 자른다.
   'yeoni-love': ['yeoni-love-portrait.webp', [115, 45, 280]],

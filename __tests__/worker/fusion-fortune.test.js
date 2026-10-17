@@ -1008,3 +1008,27 @@ it("keeps both total floors independently", () => {
  expect(fusionReportMeetsTotalFloor({openingMessage:"가 ".repeat(16000)})).toBe(false);
  expect(fusionReportMeetsTotalFloor({openingMessage:"가".repeat(30000)})).toBe(true);
 });
+
+describe("fusion premium v2 (domain chapters)", () => {
+  const v2 = { ...input, reportVersion: "fusion-premium.v2" };
+  const capture = () => jest.fn(async () => ({ result: { sajuSection: { content: "saved" } }, deliverable: false, generationSource: "gemini_partial" }));
+  it("passes v2 through and rolls new requests back to v1 only when the env switch is off", async () => {
+    const on = capture(), off = capture();
+    await generateFusionFortuneRequest({ input: v2, userId: "user", requestId: "v2-on", store: emptyStore(), resolvePaidAccess: paidAccess, contextBuilder, generator: on });
+    await generateFusionFortuneRequest({ input: v2, userId: "user", requestId: "v2-off", store: emptyStore(), resolvePaidAccess: paidAccess, contextBuilder, generator: off, env: { FUSION_PREMIUM_V2_ENABLED: "false" } });
+    expect(on.mock.calls[0][0].input.reportVersion).toBe("fusion-premium.v2");
+    expect(off.mock.calls[0][0].input.reportVersion).toBe("fusion-premium.v1");
+  });
+  it("keeps the saved version when a started v2 request resumes under rollback", async () => {
+    const store = emptyStore(); let snapshot;
+    await generateFusionFortuneRequest({ input: v2, userId: "user", requestId: "v2-resume", store, resolvePaidAccess: paidAccess, contextBuilder, onSnapshot: async value => { snapshot = value; }, generator: capture() });
+    const resumed = capture();
+    await generateFusionFortuneRequest({ input: v2, userId: "user", requestId: "v2-resume", store, resolvePaidAccess: paidAccess, contextBuilder, priorSnapshot: snapshot, generator: resumed, env: { FUSION_PREMIUM_V2_ENABLED: "false" } });
+    expect(resumed.mock.calls[0][0].input.reportVersion).toBe("fusion-premium.v2");
+  });
+  it("v1 reports ignore the domain chapter specs", async () => {
+    const v1 = await generateFusionFortuneWithMockLLM({ context: { birthTimeKnown: true, birthPlaceKnown: true, reportVersion: "fusion-premium.v1" } });
+    expect(v1.loveSection).toBeUndefined();
+    expect(validateFusionFortuneResult({ ...v1, reportVersion: "fusion-premium.v1" }, { ignoreLength: true }).issues || []).not.toContain("domain_chapter_missing");
+  });
+});

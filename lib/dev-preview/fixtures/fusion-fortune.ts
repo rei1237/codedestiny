@@ -1,4 +1,4 @@
-import { FUSION_PREMIUM_VERSION, FUSION_PREMIUM_TARGETS, normalizeFusionSubchapters } from "@/lib/fusion-premium-report";
+import { FUSION_PREMIUM_VERSION, FUSION_PREMIUM_V2, FUSION_PREMIUM_TARGETS_V2 as FUSION_PREMIUM_TARGETS, FUSION_DOMAIN_CHAPTERS, normalizeFusionSubchapters } from "@/lib/fusion-premium-report";
 import type { DevPreviewState } from "@/lib/dev-preview/core";
 
 /**
@@ -162,5 +162,10 @@ export function buildFusionPreviewResult(state: DevPreviewState) {
   });
   first.openingMessage = body(0, FUSION_PREMIUM_TARGETS.openingMessage);
   first.closingMessage = body(3, FUSION_PREMIUM_TARGETS.closingMessage);
-  return { ok: true as const, stageTwoPending: false, result: { ...first, ...second, ...expert } };
+  // v2 영역별 8장 — 마지막 장(인간관계)은 비워 "보강 중" 줄을 함께 확인한다.
+  const domains = Object.fromEntries(FUSION_DOMAIN_CHAPTERS.slice(0, -1).map((chapter, index) => [chapter.key, normalizeFusionSubchapters({
+    ...section(`${chapter.label} — 여섯 체계가 겹치는 자리`, 12 + index, chapter.target), content: body(12 + index, chapter.target),
+    subchapters: ["타고난 결", "반복되는 장면", "시기와 조건", "지금 할 한 가지"].map((title, sub) => ({ title, start: 0, end: 0, questionIds: [`q${sub % 3 + 1}`], evidenceKeys: [], artKey: chapter.id })),
+  })]));
+  return { ok: true as const, stageTwoPending: false, result: { ...first, ...second, ...expert, ...domains, reportVersion: FUSION_PREMIUM_V2 } };
 }

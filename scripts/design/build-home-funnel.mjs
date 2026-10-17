@@ -31,6 +31,107 @@ vars.quick = `<section id="cdQuickServices" class="cdh-free__grid" aria-labelled
 const chatPrice = Number(FEATURE_KEY_PRICE_TABLE['fortune-chat-consultation']?.amountKRW);
 if (chatPrice !== 5000) throw new Error('Yeoni chat home door copy says 1회 5,000원; registry amount changed: ' + chatPrice);
 vars.neoEmailConsultation = renderNeoEmailHomeEntry();
+
+// 초융합 운세 시그니처 띠 — 히어로 바로 뒤. 다섯 마스터 · 여섯 체계 · 영역별 8장을 한 장면으로 보여 준다.
+// 마스터 배정은 components/fortune/master-profiles.ts productMasters.fusion(결과 화면 화자)과 같다.
+const fusionPrice = Number(FEATURE_KEY_PRICE_TABLE['fusion-fortune-consultation']?.amountKRW);
+if (fusionPrice !== 50000) throw new Error('Fusion signature band copy says 50,000원; registry amount changed: ' + fusionPrice);
+const won = value => Number(value).toLocaleString('ko-KR') + '원';
+const FUSION_MASTERS = [
+  { avatar: 'neo', name: '네오', role: '사주 · 재물 · 일' },
+  { avatar: 'yeoni', name: '연이', role: '타로 · 연애' },
+  { avatar: 'hanbi', name: '서한비', role: '숙요 · 결혼 · 관계' },
+  { avatar: 'yun', name: '윤달', role: '점성술 · 시기 · 건강' },
+  { avatar: 'musung', name: '무성', role: '자미두수 · 성향' },
+];
+const FUSION_SYSTEMS = ['사주', '자미두수', '숙요', '베다', '점성술', '타로'];
+const FUSION_AREAS = ['타고난 성향', '인생의 시기', '연애', '결혼', '재물', '직업', '건강', '인간관계'];
+vars.fusionSignature = `<section class="cdh-fusion-sig" id="cdhFusionSignature" data-cd-funnel-section="fusion_signature" data-marker="cdh-fusion-signature-v20261017" aria-labelledby="cdhFusionSigTitle" lang="ko">
+  <a class="cdh-fusion-sig__art" href="/fusion-fortune/?from=home_signature" tabindex="-1" aria-hidden="true" data-cd-service-id="fusion-fortune"><img src="/images/home/fusion-signature-masters-1200.webp" srcset="/images/home/fusion-signature-masters-600.webp 600w, /images/home/fusion-signature-masters-1200.webp 1200w" sizes="(max-width: 860px) calc(100vw - 32px), 640px" width="1200" height="800" loading="lazy" decoding="async" alt=""></a>
+  <div class="cdh-fusion-sig__body">
+    <p class="cdh-fusion-sig__eyebrow">CODE DESTINY SIGNATURE</p>
+    <h2 class="cdh-fusion-sig__title" id="cdhFusionSigTitle">초융합 운세</h2>
+    <p class="cdh-fusion-sig__lead">다섯 마스터가 여섯 체계로 교차해 읽는 한 권. 타고난 성향부터 시기·연애·결혼·재물까지 영역별로 짚어 드려요.</p>
+    <ul class="cdh-fusion-sig__masters" role="list">${FUSION_MASTERS.map(master => `<li><img src="/images/master-profiles/avatars/${master.avatar}.webp" width="44" height="44" alt="" loading="lazy" decoding="async"><span><b>${master.name}</b><small>${master.role}</small></span></li>`).join('')}</ul>
+    <div class="cdh-fusion-sig__chips"><p><span class="cdh-fusion-sig__chip-label">여섯 체계</span>${FUSION_SYSTEMS.map(name => `<span class="cdh-fusion-sig__chip">${name}</span>`).join('')}</p><p><span class="cdh-fusion-sig__chip-label">영역별 8장</span>${FUSION_AREAS.map(name => `<span class="cdh-fusion-sig__chip cdh-fusion-sig__chip--area">${name}</span>`).join('')}</p></div>
+    <a class="cdh-fusion-sig__cta" href="/fusion-fortune/?from=home_signature" data-cd-service-id="fusion-fortune" data-pvw-paid="true"><span>초융합 운세 받기</span><b>${won(fusionPrice)}</b><i aria-hidden="true">→</i></a>
+  </div>
+</section>`;
+// 다른 재밌는 운세 — 질문 카테고리(2026-10-17 복구). e76391603 에서 빠진 #cdConcernPick 을 데이터로 다시 그린다.
+// DOM 계약(카드·패널·질문 링크 속성)과 home.concernPick.* i18n 키는 예전 그대로 — index.html 의 토글 스크립트·계측(analytics.js)을 재사용한다.
+// 카테고리마다 핵심 질문 셋, 보조 링크는 무료인 것만 남긴다. price 는 i18n 가격 키(w5000 / from5000 / free)이고 레지스트리 금액과 대조한다.
+const QUESTION_MASTER = {
+  yeoni: '/images/master-profiles/avatars/yeoni.webp', neo: '/images/master-profiles/avatars/neo.webp', yun: '/images/master-profiles/avatars/yun.webp',
+  hanbi: '/images/master-profiles/avatars/hanbi.webp', musung: '/images/master-profiles/avatars/musung.webp', master: '/images/master-profiles/avatars/master.webp',
+  yeongnyangi: '/assets/yeongnyangi/original/avatar.webp',
+};
+const QUESTION_CATEGORIES = [
+  { id: 'love', label: '사랑', chip: '그 사람의 마음 · 내 다음 연애', img: '/images/home-questions/love', questions: [
+    { id: 'loveMind', href: '/tarot/mindscan/', key: 'tarot-mindscan', master: 'yeoni', t: '그 사람의 말과 행동, 왜 다를까?', b: '말과 행동 사이 타로', price: 'w5000' },
+    { id: 'loveStatus', href: '/tarot/love/', key: 'tarot-love-relationship', master: 'yeoni', t: '우리는 지금 어떤 사이일까?', b: '타로 · 우리는 무슨 사이?', price: 'w5000' },
+    { id: 'loveNext', href: '/master-love-codex/', key: 'master-love-codex', master: 'master', t: '내 다음 연애는 언제 시작될까?', b: '사주 · 마스터 인연의 서', price: 'from30000' },
+  ] },
+  { id: 'reunion', label: '재회', chip: '다시 만날 가능성', img: '/images/home-questions/reunion', questions: [
+    { id: 'reunionAgain', href: '/tarot/reunion/', key: 'tarot-reunion-reading', master: 'yeoni', t: '우리, 다시 만날 수 있을까?', b: '재회운 타로', price: 'w5000' },
+    { id: 'reunionContact', href: '/yeongnyangi/?question=reconnect#questions', key: 'yeongnyangi-tarot-mackerel', master: 'yeongnyangi', t: '다시 연락해도 될까, 기다려야 할까?', b: '영냥이 · 타로', price: 'from5000' },
+    { id: 'reunionClosure', href: '/fortune-tea-house/', key: 'fortune-tea-house-tarot-consultation', master: 'yeoni', t: '이 마음, 어떻게 정리하면 좋을까?', b: '타로·사주 · 운명의 찻집', price: 'w10000' },
+  ] },
+  { id: 'marriage', label: '결혼', chip: '결혼할 사람', img: '/images/home-questions/marriage', questions: [
+    { id: 'marriagePartner', href: '/yeongnyangi/?question=partner#questions', key: 'yeongnyangi-saju-mackerel', master: 'yeongnyangi', t: '나는 어떤 사람과 결혼하게 될까?', b: '영냥이 · 사주', price: 'from5000' },
+    { id: 'marriageClash', href: '/saju/love-simulation/', key: 'love-code', master: 'neo', t: '우리 둘, 어디서 자꾸 부딪힐까?', b: '사주 · LOVE CODE 연애 시뮬레이션', price: 'w7000' },
+    { id: 'marriageDate', href: '/nakshatra/muhurta/', key: 'nakshatra-muhurta', master: 'yun', t: '이 일, 언제 하면 좋을까?', b: '인도 점성술 · 택일 무후르타', price: 'w7000' },
+  ] },
+  { id: 'money', label: '돈', chip: '돈이 풀리는 때', img: '/assets/yeongnyangi/scenes/wealth', questions: [
+    { id: 'moneyWhen', href: '/yeongnyangi/?question=money#questions', key: 'yeongnyangi-saju-salmon', master: 'yeongnyangi', t: '내 돈은 언제부터 풀릴까?', b: '영냥이 · 사주', price: 'from10000' },
+    { id: 'moneyWay', href: '/ziwei/chart/', master: 'musung', t: '나에게 맞는 돈 버는 방식은 뭘까?', b: '자미두수 명반', price: 'free' },
+    { id: 'moneyMonth', href: '/tarot/year/', key: 'tarot-year-fortune', master: 'yeoni', t: '돈이 모이는 달을 미리 알 수 있을까?', b: '타로 · 십이지신 천운 타로', price: 'w10000' },
+  ] },
+  { id: 'career', label: '일', chip: '이직해도 될까', img: '/assets/yeongnyangi/scenes/work', questions: [
+    { id: 'careerMove', href: '/tarot-ijik.html', key: 'tarot-ijik', master: 'yeoni', t: '지금 이직해도 괜찮을까?', b: '타로 · 이직 운명의 카드', price: 'w5000' },
+    { id: 'careerFit', href: '/yeongnyangi/?question=career-astrology#questions', key: 'yeongnyangi-astrology-salmon', master: 'yeongnyangi', t: '나에게 맞는 일은 따로 있을까?', b: '영냥이 · 점성술', price: 'from10000' },
+    { id: 'careerTurn', href: '/destiny-compass/', key: 'destiny-compass-life-voyage', master: 'neo', t: '지금 방향을 바꿔도 될까?', b: '4체계 · 운명의 나침반', price: 'w7000' },
+  ] },
+  { id: 'future', label: '미래', chip: '내 인생의 황금기 · 올해 가장 중요한 일', img: '/assets/yeongnyangi/scenes/journey', questions: [
+    { id: 'futurePrime', href: '/life-book-ai/', key: 'life-book-ai-consultation', master: 'yun', t: '내 인생의 황금기는 언제일까?', b: '사주 대운 · 인생의 책', price: 'w30000' },
+    { id: 'futureYear', href: '/new-year-ai-consultation/', key: 'new-year-ai-consultation', master: 'neo', t: '올해 나에게 가장 중요한 일은 뭘까?', b: '사주 · 신년운세', price: 'w30000' },
+    { id: 'futureCross', href: '/fusion-fortune/?from=home_question', key: 'fusion-fortune-consultation', master: 'musung', fusion: true, t: '운세마다 말이 다를 때, 무엇을 따를까?', b: '6체계 교차 · 초융합 심층 리딩', price: 'w50000' },
+  ] },
+  { id: 'self', label: '나 자신', chip: '나는 왜 같은 선택을 반복할까?', img: '/assets/yeongnyangi/scenes/self', questions: [
+    { id: 'selfRepeat', href: '/yeongnyangi/readings/saju/', key: 'yeongnyangi-saju-mackerel', master: 'yeongnyangi', t: '나는 왜 같은 선택을 반복할까?', b: '영냥이 · 사주', price: 'from5000' },
+    { id: 'selfStrength', href: '/saju/animal-destiny/', key: 'animal-destiny-unlock', master: 'neo', t: '남들이 모르는 내 강점은 뭘까?', b: '사주 · 십이운성 동물점', price: 'w7000', alt: { href: '/human-design/', name: '휴먼 디자인' } },
+    { id: 'selfGrain', href: '/?action=cdOneStepFreeSajuEntry', master: 'neo', t: '나는 어떤 결의 사람일까?', b: '사주팔자', price: 'free' },
+  ] },
+  { id: 'people', label: '인간관계', chip: '가까워질수록 왜 지칠까?', img: '/images/home-questions/people', questions: [
+    { id: 'peopleTired', href: '/yeongnyangi/readings/sukuyo/', key: 'yeongnyangi-sukuyo-mackerel', master: 'yeongnyangi', t: '가까워질수록 왜 지칠까?', b: '영냥이 · 숙요', price: 'from5000', alt: { href: '/index.html?action=openSukuyoModal', name: '숙요점' } },
+    { id: 'peopleMatch', href: '/nakshatra/compat/', key: 'nakshatra-compat', master: 'hanbi', t: '그 사람과 나, 어떤 궁합일까?', b: '인도 점성술·숙요 · 동서 통합 궁합', price: 'w20000' },
+    { id: 'peopleDistance', href: '/fortune-chat/', key: 'fortune-chat-consultation', master: 'yeoni', t: '이 관계, 거리를 둬야 할까?', b: '대화형 운명 상담', price: 'w5000' },
+  ] },
+];
+const questionPriceLabel = price => {
+  if (price === 'free') return '무료';
+  const [, from, amount] = price.match(/^(w|from)(\d+)$/);
+  return won(amount) + (from === 'from' ? '부터' : '');
+};
+for (const question of QUESTION_CATEGORIES.flatMap(category => category.questions)) {
+  if (!QUESTION_MASTER[question.master]) throw new Error('Unknown question master: ' + question.id);
+  if (question.price === 'free') { if (question.key) throw new Error('Free home question must not carry a paid feature key: ' + question.id); continue; }
+  const amount = Number(FEATURE_KEY_PRICE_TABLE[question.key]?.amountKRW);
+  if (amount !== Number(question.price.replace(/\D/g, ''))) throw new Error(`Home question ${question.id} says ${question.price}; registry amount for ${question.key} is ${amount}`);
+}
+const capitalize = value => value[0].toUpperCase() + value.slice(1);
+const questionLink = question => `<li class="cd-concern__q"><a class="cd-concern__q-link${question.fusion ? ' cd-concern__q-link--fusion' : ''}" href="${question.href}" data-cd-question="${question.id}"${question.key ? ` data-cd-price-key="${question.key}"` : ' data-cd-price-free'}><img class="cd-concern__q-master" src="${QUESTION_MASTER[question.master]}" width="28" height="28" alt="" loading="lazy" decoding="async"><span class="cd-concern__q-text"><strong class="cd-concern__q-title" data-cd-trans="home.concernPick.q.${question.id}.t">${question.t}</strong><span class="cd-concern__q-badge" data-cd-trans="home.concernPick.q.${question.id}.b">${question.b}</span></span><span class="cd-concern__q-price" data-cd-trans="home.concernPick.price.${question.price}">${questionPriceLabel(question.price)}</span></a>${question.alt ? `<a class="cd-concern__q-alt" href="${question.alt.href}" data-cd-question="${question.id}" data-cd-question-alt data-cd-price-free><span data-cd-trans="home.concernPick.altLabel">다른 방식으로</span> <span class="cd-concern__q-alt-name" data-cd-trans="home.concernPick.q.${question.id}.alt">${question.alt.name}</span> <span class="cd-concern__q-price" data-cd-trans="home.concernPick.price.free">무료</span></a>` : ''}</li>`;
+vars.questionCategories = `<section class="cdh-other" id="cdhOtherFortunes" aria-labelledby="cdhOtherFortunesTitle" data-marker="cdh-other-fortunes-v20261017">
+  <section data-cd-funnel-section="concern_pick" class="cd-concern cdh-qcat" id="cdConcernPick" aria-labelledby="cdhOtherFortunesTitle" data-marker="cd-concern-pick-v20260824">
+    <header class="cdh-qcat__head">
+      <h2 class="cdh-qcat__title" id="cdhOtherFortunesTitle" data-cd-trans="home.simpleHome.otherTitle">다른 재밌는 운세</h2>
+      <p class="cdh-qcat__voice"><img src="/images/master-profiles/avatars/yeoni.webp" width="40" height="40" alt="" loading="lazy" decoding="async"><span><b>연이</b><span data-cd-trans="home.concernPick.title">지금 가장 궁금한 건 무엇인가요?</span></span></p>
+    </header>
+    <div class="cd-concern__cards" role="group" aria-labelledby="cdhOtherFortunesTitle">${QUESTION_CATEGORIES.map((category, index) => `<button type="button" class="cd-concern__card" data-cd-concern="${category.id}" aria-expanded="${index === 0}" aria-controls="cdConcernPanel${capitalize(category.id)}"><span class="cd-concern__card-media" aria-hidden="true"><img src="${category.img}-240.webp" srcset="${category.img}-240.webp 240w, ${category.img}-400.webp 400w" sizes="(max-width: 599px) 132px, 240px" alt="" width="960" height="640" loading="lazy" decoding="async"></span><span class="cd-concern__card-label" data-cd-trans="home.concernPick.${category.id}">${category.label}</span><span class="cd-concern__card-desc" data-cd-trans="home.concernPick.chip.${category.id}">${category.chip}</span></button>`).join('')}</div>
+${QUESTION_CATEGORIES.map((category, index) => `    <div class="cd-concern__panel" id="cdConcernPanel${capitalize(category.id)}" data-cd-concern-panel="${category.id}"${index === 0 ? '' : ' hidden'}><ul class="cd-concern__qs">${category.questions.map(questionLink).join('')}</ul></div>`).join('\n')}
+    <div class="cd-concern__actions"><a class="cd-concern__free" href="#destinyCardForm" data-cd-trans="home.concernPick.freeCta">무료로 먼저 확인하기</a><a class="cd-concern__ask" href="/fortune-chat/?character=yeoni" data-cd-price-key="fortune-chat-consultation"><span data-cd-trans="home.concernPick.ask">직접 물어보기</span> <em class="cd-concern__q-price" data-cd-trans="home.concernPick.price.w5000">${won(chatPrice)}</em></a></div>
+  </section>
+</section>`;
+
 const signatureProducts = [
   {
     id: 'neo-operation-room',
@@ -126,7 +227,6 @@ vars.signature = `<section data-cd-funnel-section="signature_consult" class="cd-
   <a class="cd-sig__samples-link" href="/consultation-samples/"><span>결과 예시 먼저 보기</span><span class="cd-yehwa-spray cd-sig__samples-motif" aria-hidden="true"></span></a>
 </section>`;
 
-const won = value => Number(value).toLocaleString('ko-KR') + '원';
 vars.pass = `<section class="cdh-pass" aria-labelledby="cdhPassTitle" data-design-marker="moonlight-pass-banner-v20260626">
   <div class="cdh-pass__intro">
     <img class="cdh-pass__mascot" src="/images/home/yeoni-pass-mascot-240.webp" srcset="/images/home/yeoni-pass-mascot-240.webp 240w, /images/home/yeoni-pass-mascot-480.webp 480w" sizes="(max-width: 640px) 104px, 168px" alt="이용권 카드를 들고 웃는 꽃돼지 연이" data-cd-trans-attr="alt:home.gardenCopy.passMascotAlt" width="240" height="240" loading="lazy" decoding="async">

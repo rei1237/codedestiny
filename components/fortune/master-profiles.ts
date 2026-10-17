@@ -123,6 +123,7 @@ export const masterAvatars = {
   hanbi: `${base}/avatars/hanbi.webp`,
   neo: `${base}/avatars/neo.webp`,
   yun: `${base}/avatars/yun.webp`,
+  musung: `${base}/avatars/musung.webp`,
   master: `${base}/avatars/master.webp`,
   // 대표 상담 전용 초상에서 자른 아바타 — 홈 대표 카드·제품 마스터 띠·연애 결과 화자 칩이 같은 얼굴을 쓴다.
   yeoniLove: `${base}/avatars/yeoni-love.webp`,
@@ -143,4 +144,21 @@ export const productMasters = {
   lifeBook: [
     { name: "윤달", role: "인생 소설을 읽어 주는 화자", avatar: masterAvatars.yunLifeBook, line: "당신의 인생, 첫 장부터 읽어 드릴게요. 다음 장은 같이 써 보고요." },
   ],
+  // 초융합 v2 — 체계 장과 영역별 장을 나눠 맡는 다섯 화자(lib/fusion-premium-report.js FUSION_NARRATOR_BY_KEY).
+  fusion: [
+    { name: "네오", role: "사주 · 재물 · 일", avatar: masterAvatars.neo, line: "판은 내가 읽는다. 너는 밀 때와 멈출 때만 정하면 돼." },
+    { name: "연이", role: "타로 · 연애", avatar: masterAvatars.yeoni, line: "마음이 먼저 움직이는 자리부터 같이 볼게요." },
+    { name: "서한비", role: "숙요 · 결혼 · 인간관계", avatar: masterAvatars.hanbi, line: "사람 사이에 쌓이는 것과 갚는 법을 차분히 짚어 드리겠습니다." },
+    { name: "윤달", role: "베다 · 점성술 · 시기 · 생활 리듬", avatar: masterAvatars.yun, line: "별길이 바뀌는 계절을 같이 짚어 볼게요." },
+    { name: "무성", role: "자미두수 · 타고난 성향", avatar: masterAvatars.musung, line: "명반이 말하는 대로 판결합니다. 꾸미지 않을게요." },
+  ],
 } satisfies Record<string, ProductMaster[]>;
+
+/** 초융합 결과의 화자 이름표 — FUSION_NARRATOR_BY_KEY 의 값(neo·yeoni…)을 이름·아바타로 바꾼다. */
+export const fusionNarrators = {
+  neo: { name: "네오", avatar: masterAvatars.neo },
+  yeoni: { name: "연이", avatar: masterAvatars.yeoni },
+  hanbi: { name: "서한비", avatar: masterAvatars.hanbi },
+  yun: { name: "윤달", avatar: masterAvatars.yun },
+  musung: { name: "무성", avatar: masterAvatars.musung },
+} as const;

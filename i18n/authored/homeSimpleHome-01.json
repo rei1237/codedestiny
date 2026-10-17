@@ -390,5 +390,19 @@
     "de": "Alle Deutungen ansehen",
     "nl": "Alle lezingen bekijken",
     "ms": "Lihat semua bacaan"
+  },
+  "home.simpleHome.otherTitle": {
+    "ko": "다른 재밌는 운세",
+    "en": "More fun readings",
+    "ja": "ほかの楽しい占い",
+    "zh-CN": "更多有趣的运势",
+    "zh-TW": "更多有趣的運勢",
+    "vi": "Thêm quẻ bói thú vị",
+    "hi": "और मज़ेदार भविष्यफल",
+    "es": "Más lecturas divertidas",
+    "fr": "Autres lectures amusantes",
+    "de": "Weitere unterhaltsame Deutungen",
+    "nl": "Meer leuke lezingen",
+    "ms": "Lebih banyak bacaan menarik"
   }
 }

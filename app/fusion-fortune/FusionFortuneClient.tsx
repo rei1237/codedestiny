@@ -3,7 +3,7 @@ import { fusionAdviceTopics } from '@/js/recommendations-context.mjs';
 import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
 import ReviewRewardBanner from "@/app/components/ReviewRewardBanner";
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
-import { FUSION_PREMIUM_VERSION } from "@/lib/fusion-premium-report";
+import { FUSION_PREMIUM_V2 } from "@/lib/fusion-premium-report";
 import { useFusionSections } from "./_lib/useFusionSections";
 import { PaymentPigVisual } from "../components/common/PaymentPigVisual";
 import { useFusionExpertCopy } from "./ExpertEvidence";
@@ -34,6 +34,8 @@ import { FusionResultRail } from "./FusionResultRail";
 import { FusionResultThread } from "./FusionResultThread";
 import { FusionConvergence } from "./FusionConvergence";
 import SavedRecordLink from "@/components/fortune/SavedRecordLink";
+import ProductMasterStrip from "@/app/components/ProductMasterStrip";
+import { productMasters } from "@/components/fortune/master-profiles";
 import {
   buildFusionStages,
   initialStageStates,
@@ -429,7 +431,7 @@ const FUSION_FORTUNE_EN: FusionFortuneCopy = {
   heroFirstCome: "Six-system cross reading",
   heroPriceFallback: "₩50,000",
   heroPricePrefix: "per reading ",
-  heroWordCount: "Six independent readings",
+  heroWordCount: "Six systems · eight life areas",
   heroSaveNote: "Saved · Reopenable · PDF",
   chatLead: "Fusion AI tells you, right on this screen, as each of the six systems finishes.",
   heroFormCta: "Start my reading",
@@ -566,7 +568,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     heroFirstCome: "여섯 체계 교차 판정",
     heroPriceFallback: "50,000원",
     heroPricePrefix: "1회 ",
-    heroWordCount: "여섯 체계의 독립 해석",
+    heroWordCount: "체계별 6장 · 영역별 8장",
     heroSaveNote: "저장 · 재열람 · PDF",
     chatLead: "Fusion AI가 여섯 체계의 완료 흐름을 이 화면에서 차례로 알려드려요.",
     heroFormCta: "나의 초융합 리딩 시작하기",
@@ -2468,7 +2470,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
     // 결제 전에 한 번 만들어 둔다 — 재개 서술자가 이 입력을 그대로 싣고 리다이렉트를 건너간다.
     const formRequestBody: FusionRequestBody = {
       contextVersion: 2,
-      reportVersion: FUSION_PREMIUM_VERSION,
+      reportVersion: FUSION_PREMIUM_V2,
       locale: getCurrentLoadingLocale(),
       birthDate: form.birthDate,
       birthTime: form.birthTimeUnknown ? "" : form.birthTime,
@@ -2552,7 +2554,8 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
       rememberPaidRequest(requestId, requestBody);
       let payload: Record<string, unknown> = {};
       let stage: 1 | 2 = startStage;
-      for (let wave = 0; wave < 12; wave += 1) {
+      // v2 는 분야 8장이 더해져 2단계만 4물결이다 — 1단계 4물결 + 보완을 합쳐 20 안에서 끝난다.
+      for (let wave = 0; wave < 20; wave += 1) {
         if (document.visibilityState === "hidden" || navigator.onLine === false) {
           setStageTwoFailed(true); return false;
         }
@@ -2875,6 +2878,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
         </div>
         {/* reviewFlow("분석이 완료되면 이 화면에서 확인") 는 결과 대기 안내라 구매 전 히어로에
             맥락이 없다. 신뢰 한 줄(10년차 명리학자 설계)을 CTA 바로 위로 올린다. */}
+        {copy === FUSION_FORTUNE_COPY.ko && <ProductMasterStrip label="초융합 운세 마스터" masters={productMasters.fusion} />}
         <p className={styles.expertTrust}>{splitTrustLine(expertCopy.trust).map((part, index) => part && <span key={index} className={index === 0 ? styles.expertTrustLabel : undefined}>{part}</span>)}</p>
         <a className={styles.heroCta} href="#fusion-form">{copy.heroFormCta}</a>
       </div>
