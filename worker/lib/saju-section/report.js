@@ -18,7 +18,9 @@ import { buildAnimalDestinyReading } from "./animal-destiny.js";
 export const SUKUYO_COMPAT_FEATURE_KEYS = Object.freeze(["compat-sukuyo-compatibility", "premium-sukuyo-compat-extra"]);
 // 자미두수 명반 상세(_renderZwPanel)의 출생 해금 유료 장. 한 번에 모든 장을 계산하고 요청한 장만 돌려준다.
 export const ZIWEI_SECTION_FEATURE_KEYS = Object.freeze(["ziwei_decade_luck", "ziwei_twelve_palaces", "ziwei_love_deep", "ziwei_symbolic_layer"]);
-export const SAJU_SECTION_FEATURE_KEYS = Object.freeze(["section_summary", "section_daewun", "rpt_quantumCard", "sukuyo-extreme-t-relationship", "sukuyo-relationship-encyclopedia", "sukuyo-nature-deep-dive", ...SUKUYO_COMPAT_FEATURE_KEYS, "rpt_energyCoordCard", "rpt_villainCard", "rpt_healthReportCard", "rpt_specialCharmCard", "rpt_skillTreeCard", "rpt_secretHouseEntryCard", "animal-destiny-unlock", ...ZIWEI_SECTION_FEATURE_KEYS]);
+// 자미두수 궁합(회당 결제). 내 명반은 위 자미 장과 같은 명반(window._ziweiBirth·GENDER), 상대는 요청의 생년월일·시각·도시로 계산한다.
+export const ZIWEI_COMPAT_FEATURE_KEYS = Object.freeze(["compat-ziwei-compatibility"]);
+export const SAJU_SECTION_FEATURE_KEYS = Object.freeze(["section_summary", "section_daewun", "rpt_quantumCard", "sukuyo-extreme-t-relationship", "sukuyo-relationship-encyclopedia", "sukuyo-nature-deep-dive", ...SUKUYO_COMPAT_FEATURE_KEYS, "rpt_energyCoordCard", "rpt_villainCard", "rpt_healthReportCard", "rpt_specialCharmCard", "rpt_skillTreeCard", "rpt_secretHouseEntryCard", "animal-destiny-unlock", ...ZIWEI_SECTION_FEATURE_KEYS, ...ZIWEI_COMPAT_FEATURE_KEYS]);
 // 클라이언트 출생지 선택의 기본 옵션(index.html #birthCountry 의 대한민국 서울).
 const DEFAULT_PLACE = Object.freeze({ name: "대한민국 (서울)", longitude: 127.0, latitude: 37.6, timezone: "Asia/Seoul", baseTzOffset: 9 });
 const JONG_DECISIONS = new Set(["confirmed", "rejected", "unverified"]);
@@ -42,6 +44,29 @@ function normalizePlace(place) {
   const timezone = typeof raw.timezone === "string" && /^[A-Za-z_/+-]{1,64}$/.test(raw.timezone) ? raw.timezone : DEFAULT_PLACE.timezone;
   const name = typeof raw.name === "string" && raw.name.trim() ? raw.name.trim().slice(0, 80) : DEFAULT_PLACE.name;
   return { name, longitude, latitude, timezone, baseTzOffset };
+}
+
+// 자미두수 궁합 상대 입력: 화면이 보낸 생년월일(YYYY-MM-DD, 양력)·시각(HH:MM)·출생 도시(선택 옵션의 값·경위도·기준 시간대·이름).
+// 도시 이름은 리포트 참고 기록의 글자로 그대로 들어가므로 <·>·& 를 받지 않는다. 상대 성별은 본문 계산에 쓰이지 않는다(화면 안내 문구 전용).
+function normalizeZiweiPartner(raw) {
+  const partner = raw && typeof raw === "object" ? raw : {};
+  const city = partner.city && typeof partner.city === "object" ? partner.city : {};
+  const invalid = () => new SajuSectionInputError("상대방 생년월일, 태어난 시간, 태어난 도시를 확인해 주세요.", "SAJU_INVALID_PARTNER");
+  const num = (value) => (typeof value === "number" && Number.isFinite(value) ? value : NaN);
+  const date = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(partner.date || ""));
+  const time = /^(\d{2}):(\d{2})$/.exec(String(partner.time || ""));
+  if (!date || !time) throw invalid();
+  const [year, month, day] = [Number(date[1]), Number(date[2]), Number(date[3])];
+  const check = new Date(Date.UTC(year, month - 1, day));
+  if (year < 1900 || year > 2100 || check.getUTCMonth() !== month - 1 || check.getUTCDate() !== day || Number(time[1]) > 23 || Number(time[2]) > 59) throw invalid();
+  const name = typeof city.name === "string" ? city.name.trim() : "";
+  const timezone = typeof city.timezone === "string" ? city.timezone : "";
+  const longitude = num(city.longitude);
+  const latitude = num(city.latitude);
+  const baseTzOffset = num(city.baseTzOffset);
+  if (!name || name.length > 80 || /[<>&]/.test(name) || !/^[A-Za-z_/+-]{1,64}$/.test(timezone)
+    || !(Math.abs(longitude) <= 180) || !(Math.abs(latitude) <= 90) || !(Math.abs(baseTzOffset) <= 14)) throw invalid();
+  return { bDate: date[0], bTime: time[0], city: { name, timezone, longitude, latitude, baseTzOffset } };
 }
 
 function documentShim(neo, captured, quantum, cardDom) {
@@ -263,6 +288,7 @@ export function buildSajuSectionHtml(input) {
   const gender = input.gender === "M" ? "M" : "F";
   const neo = input.mode === "neo";
   const place = normalizePlace(input.place);
+  const ziweiPartner = ZIWEI_COMPAT_FEATURE_KEYS.includes(featureKey) ? normalizeZiweiPartner(input.partner) : null;
   const jongDecision = JONG_DECISIONS.has(input.jongDecision) ? input.jongDecision : "unverified";
 
   let natalChart;
@@ -348,6 +374,12 @@ export function buildSajuSectionHtml(input) {
   // 브라우저에서는 셸 전역 var 가 곧 window 속성이다. 타로 파일의 analyzeFortuneGZ 가 window.G_JONG 으로 읽는다.
   window.G_JONG = jong;
 
+  if (ziweiPartner) {
+    // 화면(renderZiwei 안 window._runZwCompatibilityCore)과 같은 내 명반·같은 상대 보정 시각. pair 는 라우트가 결제 1건을 묶는 두 사람의 입력이다.
+    const compat = rt.renderZiweiCompatPaid(ziweiPartner);
+    if (!compat || !compat.html) throw new SajuSectionInputError("상대 정보 계산 중 오류가 발생했습니다. 입력값을 확인해 주세요.", "SAJU_INVALID_PARTNER");
+    return { ...compat, pair: { birth: { calendarDate: birth.calendarDate, calType, timeUnknown, hour, minute }, gender, place, partner: ziweiPartner } };
+  }
   if (ZIWEI_SECTION_FEATURE_KEYS.includes(featureKey)) {
     // 화면(computeProfileForModal → renderZiwei)과 같은 명반: 진태양시 보정 시각(window._ziweiBirth)·GENDER·CURRENT_AGE.
     const bodies = rt.renderZiweiPaidSections();

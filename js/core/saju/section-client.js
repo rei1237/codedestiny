@@ -446,6 +446,11 @@
     if (pid) body.profileId = pid;
     if (access && access.requestId) body.requestId = String(access.requestId);
     if (access && access.accessMethod) body.accessMethod = String(access.accessMethod);
+    return requestPerUse(body, featureKey, field);
+  }
+
+  // 회당 결제 본문 요청. 이용권 기록이 늦게 붙는 402·5xx·네트워크 오류는 같은 결제로 몇 번 다시 묻는다(재결제 없음).
+  function requestPerUse(body, featureKey, field) {
     return new Promise(function (resolve, reject) {
       // status: 0 = 네트워크·시간 초과. 화면은 5xx·0 이면 같은 결제로 다시 묻게 한다(재결제 없음).
       function failWith(text, status) { var error = new Error(text); error.status = status || 0; reject(error); }
@@ -470,6 +475,30 @@
       }
       attempt(0);
     });
+  }
+
+  // 자미두수 궁합(회당 결제). 서버가 이번 결제(게이트 requestId)를 확인하고 내 명반(자미 모달 입력)과 상대 입력으로
+  // 리포트를 만든다 — 결제 1건 = 내 출생·상대 조합 1건(서버가 조합까지 묶는다).
+  // opts: { access(게이트 기록: profileId·requestId·accessMethod), partner{date,time,gender,city{name,timezone,longitude,latitude,baseTzOffset}} }.
+  // 받은 payload(html·correctionMsg·correctedTime·archive·llm …)로 resolve, 실패 문구(error.status)로 reject.
+  function loadZiweiCompat(options) {
+    var opts = options || {};
+    var featureKey = 'compat-ziwei-compatibility';
+    var body = ziweiBody(featureKey);
+    if (!body) {
+      var missing = new Error('내 명반 정보가 없어 궁합 계산을 진행할 수 없습니다.');
+      missing.status = 400;
+      return Promise.reject(missing);
+    }
+    delete body.mode;
+    body.partner = opts.partner || {};
+    var access = opts.access && typeof opts.access === 'object' ? opts.access : null;
+    if (access && access.requestId) {
+      if (access.profileId) body.profileId = String(access.profileId); else delete body.profileId;
+      body.requestId = String(access.requestId);
+      if (access.accessMethod) body.accessMethod = String(access.accessMethod);
+    }
+    return requestPerUse(body, featureKey, 'html');
   }
 
   // ── 리포트 대시보드 유료 카드 ──
@@ -862,5 +891,5 @@
     } catch (_) {}
   });
 
-  root.CdSajuSectionClient = { loadSummary: loadSummary, showDaewun: showDaewun, refreshDaewun: refreshDaewun, loadQuantum: loadQuantum, loadExtremeT: loadExtremeT, loadEncyclopedia: loadEncyclopedia, loadNatureDeepDive: loadNatureDeepDive, loadSukuyoCompat: loadSukuyoCompat, loadCard: loadCard, loadZiwei: loadZiwei };
+  root.CdSajuSectionClient = { loadSummary: loadSummary, showDaewun: showDaewun, refreshDaewun: refreshDaewun, loadQuantum: loadQuantum, loadExtremeT: loadExtremeT, loadEncyclopedia: loadEncyclopedia, loadNatureDeepDive: loadNatureDeepDive, loadSukuyoCompat: loadSukuyoCompat, loadZiweiCompat: loadZiweiCompat, loadCard: loadCard, loadZiwei: loadZiwei };
 })(window);

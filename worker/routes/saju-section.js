@@ -6,7 +6,7 @@ import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { FEATURE_KEY_PRICE_TABLE } from "../lib/paid-feature-registry.js";
 import { logPerUsePaymentProof, verifyPerUsePayment } from "../lib/nakshatra-paid-access.js";
 import { claimRequestBillingEvidence, evidenceClaimErrorBody } from "../lib/billing-evidence-claim.js";
-import { SAJU_SECTION_FEATURE_KEYS, SUKUYO_COMPAT_FEATURE_KEYS, SajuSectionInputError, buildSajuSectionHtml, sukuyoNatureMoment } from "../lib/saju-section/report.js";
+import { SAJU_SECTION_FEATURE_KEYS, SUKUYO_COMPAT_FEATURE_KEYS, ZIWEI_COMPAT_FEATURE_KEYS, SajuSectionInputError, buildSajuSectionHtml, sukuyoNatureMoment } from "../lib/saju-section/report.js";
 import { calculateSukuyoForMoment } from "../lib/sukuyo-astronomy.js";
 
 const degraded = () => json({
@@ -57,6 +57,55 @@ function compatPartnerBirth(body) {
   };
 }
 
+// 회당 결제 궁합의 결제 확인과 증빙 claim. 문제가 없으면 null, 아니면 그대로 돌려줄 응답(402·409·503)이다.
+// pair 는 이번 결제로 여는 두 사람의 입력 — 같은 결제로 pair 만 바꾸면 claim 이 409 를 낸다.
+async function provePerUseCompat(env, { userId, featureKey, requestId, profileId, accessMethod, kind, pair }) {
+  const method = String(accessMethod || "").trim().toLowerCase();
+  const proofInput = { userId, featureKey, coinPrice: Number(FEATURE_KEY_PRICE_TABLE[featureKey]?.cost) || 0, requestId, profileId };
+  let proof;
+  try {
+    proof = await verifyPerUsePayment(env, { ...proofInput, requireExisting: true });
+    // 이용권으로 연 결제는 화면이 먼저 열리고 기록이 뒤에 온다 — 그때만 이 requestId 로 이용권 사용을 직접 확정한다.
+    if (proof?.proven === false && method === "pass") proof = await verifyPerUsePayment(env, proofInput);
+  } catch {
+    return degraded();
+  }
+  logPerUsePaymentProof(featureKey, proof);
+  if (proof?.proven !== true && proof?.proven !== false) return degraded();
+  if (proof.proven !== true) {
+    const { pricing } = getBillingFeaturePricing({ featureKey });
+    return json({
+      ok: false, reason: "PAYMENT_REQUIRED", featureKey,
+      message: "이번 궁합 결제 기록을 찾지 못했어요. 결제한 뒤 다시 열어 주세요.",
+      amountKRW: pricing.amountKRW, coinPrice: pricing.coinPrice,
+    }, { status: 402 });
+  }
+  if (proof.source !== "admin") {
+    const evidenceId = proof.transactionId || `${proof.source || "per-use"}-use:${userId}:${featureKey}:${requestId}`;
+    const pairHash = createHash("sha256").update(JSON.stringify(pair)).digest("hex").slice(0, 32);
+    const claim = await claimRequestBillingEvidence(env, {
+      userId, requestId: `${requestId}|${pairHash}`, evidenceIds: [evidenceId], featureKey, kind,
+    });
+    if (!claim.ok) return json(evidenceClaimErrorBody(claim), { status: claim.status });
+  }
+  return null;
+}
+
+// 저장 카드가 있으면 그 카드의 출생 정보·성별, 없으면(로컬 프로필·비저장) 요청 값. 회당 결제는 카드 해금이 아니라
+// 이번 결제·이번 조합에 묶이므로 카드가 없어도 막지 않는다. DB 오류는 그대로 던진다(호출한 곳이 503).
+async function perUseBirth(env, userId, profileId, featureKey, body) {
+  let birth = bodyBirth(body);
+  let gender = body?.gender;
+  if (profileId) {
+    const card = await readProfileBirthUnlock(env, { userId, profileId, featureKey });
+    if (card?.ok && card.birth) {
+      birth = { calendarDate: card.birth.calendarDate, calType: card.birth.calType, timeKnown: card.birth.timeKnown, hour: card.birth.hour, minute: card.birth.minute };
+      gender = card.card?.gender;
+    }
+  }
+  return { birth, gender };
+}
+
 async function handleSukuyoCompat(env, auth, body, featureKey) {
   const userId = auth.userId;
   const profileId = String(body?.profileId || "").trim().slice(0, 80);
@@ -65,21 +114,13 @@ async function handleSukuyoCompat(env, auth, body, featureKey) {
     ok: false, code: "REQUEST_ID_INVALID", message: "결제 요청 번호가 이 카드의 결제가 아닙니다.",
   }, { status: 400 });
 
-  // 내 출생 정보: 저장 카드가 있으면 그 카드, 없으면(로컬 프로필·비저장) 요청 값. 회당 결제는 카드 해금이 아니라
-  // 이번 결제·이번 조합에 묶이므로 카드가 없어도 막지 않는다.
-  let birth = bodyBirth(body);
-  let gender = body?.gender;
-  if (profileId) {
-    let card;
-    try {
-      card = await readProfileBirthUnlock(env, { userId, profileId, featureKey });
-    } catch {
-      return degraded();
-    }
-    if (card?.ok && card.birth) {
-      birth = { calendarDate: card.birth.calendarDate, calType: card.birth.calType, timeKnown: card.birth.timeKnown, hour: card.birth.hour, minute: card.birth.minute };
-      gender = card.card?.gender;
-    }
+  // 내 출생 정보: 저장 카드가 있으면 그 카드, 없으면 요청 값(perUseBirth).
+  let birth;
+  let gender;
+  try {
+    ({ birth, gender } = await perUseBirth(env, userId, profileId, featureKey, body));
+  } catch {
+    return degraded();
   }
   const userGender = gender === "M" || gender === "F" ? gender : "OTHER";
   const partner = compatPartnerBirth(body);
@@ -98,36 +139,11 @@ async function handleSukuyoCompat(env, auth, body, featureKey) {
   const lang = typeof body?.lang === "string" ? body.lang.slice(0, 8) : "ko";
   const report = buildSajuSectionHtml({ featureKey, birth, gender: userGender, partnerGender: partner.gender, lang, place: body?.place, sukuyo });
 
-  const accessMethod = String(body?.accessMethod || "").trim().toLowerCase();
-  const proofInput = { userId, featureKey, coinPrice: Number(FEATURE_KEY_PRICE_TABLE[featureKey]?.cost) || 0, requestId, profileId };
-  let proof;
-  try {
-    proof = await verifyPerUsePayment(env, { ...proofInput, requireExisting: true });
-    // 이용권으로 연 결제는 화면이 먼저 열리고 기록이 뒤에 온다 — 그때만 이 requestId 로 이용권 사용을 직접 확정한다.
-    if (proof?.proven === false && accessMethod === "pass") proof = await verifyPerUsePayment(env, proofInput);
-  } catch {
-    return degraded();
-  }
-  logPerUsePaymentProof(featureKey, proof);
-  if (proof?.proven !== true && proof?.proven !== false) return degraded();
-  if (proof.proven !== true) {
-    const { pricing } = getBillingFeaturePricing({ featureKey });
-    return json({
-      ok: false, reason: "PAYMENT_REQUIRED", featureKey,
-      message: "이번 궁합 결제 기록을 찾지 못했어요. 결제한 뒤 다시 열어 주세요.",
-      amountKRW: pricing.amountKRW, coinPrice: pricing.coinPrice,
-    }, { status: 402 });
-  }
-  if (proof.source !== "admin") {
-    const evidenceId = proof.transactionId || `${proof.source || "per-use"}-use:${userId}:${featureKey}:${requestId}`;
-    const pair = createHash("sha256")
-      .update(JSON.stringify({ my: report.myMansionIdx, partner: report.partnerMansionIdx, partnerGender: partner.gender, userGender }))
-      .digest("hex").slice(0, 32);
-    const claim = await claimRequestBillingEvidence(env, {
-      userId, requestId: `${requestId}|${pair}`, evidenceIds: [evidenceId], featureKey, kind: "sukuyo-compat",
-    });
-    if (!claim.ok) return json(evidenceClaimErrorBody(claim), { status: claim.status });
-  }
+  const denied = await provePerUseCompat(env, {
+    userId, featureKey, requestId, profileId, accessMethod: body?.accessMethod, kind: "sukuyo-compat",
+    pair: { my: report.myMansionIdx, partner: report.partnerMansionIdx, partnerGender: partner.gender, userGender },
+  });
+  if (denied) return denied;
   if (featureKey === "premium-sukuyo-compat-extra") {
     return json({ ok: true, unlocked: true, featureKey, precisionHtml: report.precisionHtml });
   }
@@ -137,10 +153,49 @@ async function handleSukuyoCompat(env, auth, body, featureKey) {
   });
 }
 
+// ── 자미두수 궁합(compat-ziwei-compatibility) — 회당 결제 ──
+// 게이트가 결제에 쓴 requestId(compat-archive:compat-ziwei-compatibility:<꼬리>, 궁합 보관함과 같은 값)로 이번 결제를 찾고,
+// 그 증빙을 (requestId, 내 출생·성별·출생지 + 상대 생년월일·시각·도시)에 claim 한다. 내 명반 입력이 claim 에 들어가므로
+// 같은 결제로 다른 카드(다른 내 출생)나 다른 상대를 열면 409 다. 같은 두 사람을 다시 열면(새로고침·재시도) 같은 claim 이다.
+// 본문은 결제를 확인하기 전에 먼저 그린다 — 입력 오류는 400, 계산 실패는 503 이고 둘 다 결제·claim 을 건드리지 않는다.
+const ZIWEI_COMPAT_REQUEST_PREFIX = "compat-archive:compat-ziwei-compatibility:";
+
+async function handleZiweiCompat(env, auth, body, featureKey) {
+  const userId = auth.userId;
+  const profileId = String(body?.profileId || "").trim().slice(0, 80);
+  const rawRequestId = typeof body?.requestId === "string" ? body.requestId.trim() : "";
+  const tail = rawRequestId.startsWith(ZIWEI_COMPAT_REQUEST_PREFIX) ? rawRequestId.slice(ZIWEI_COMPAT_REQUEST_PREFIX.length) : "";
+  if (!COMPAT_TAIL_PATTERN.test(tail)) return json({
+    ok: false, code: "REQUEST_ID_INVALID", message: "결제 요청 번호가 이 카드의 결제가 아닙니다.",
+  }, { status: 400 });
+  const requestId = rawRequestId;
+
+  let birth;
+  let gender;
+  try {
+    ({ birth, gender } = await perUseBirth(env, userId, profileId, featureKey, body));
+  } catch {
+    return degraded();
+  }
+  const lang = typeof body?.lang === "string" ? body.lang.slice(0, 8) : "ko";
+  const report = buildSajuSectionHtml({
+    featureKey, birth, gender: gender === "M" ? "M" : "F", name: body?.name, lang, place: body?.place, partner: body?.partner,
+  });
+
+  const denied = await provePerUseCompat(env, {
+    userId, featureKey, requestId, profileId, accessMethod: body?.accessMethod, kind: "ziwei-compat", pair: report.pair,
+  });
+  if (denied) return denied;
+  return json({
+    ok: true, unlocked: true, featureKey, html: report.html, correctionMsg: report.correctionMsg, correctedTime: report.correctedTime,
+    userLabel: report.userLabel, partnerLabel: report.partnerLabel, archive: report.archive, llm: report.llm,
+  });
+}
+
 // 사주 종합(section_summary)·대운 풀이(section_daewun)·퀀텀 명리 엔진(rpt_quantumCard)·극T 관계 회로(sukuyo-extreme-t-relationship)·
 // 숙요 인연 도감(sukuyo-relationship-encyclopedia)·숙요 본성 심화 해석(sukuyo-nature-deep-dive)·에너지 원정 리포트(rpt_energyCoordCard)
 // ·요주의 빌런 블랙리스트(rpt_villainCard)·명리 헬스 리포트(rpt_healthReportCard)·나의 매력 클래스(rpt_specialCharmCard)
-// ·인생 스킬 트리(rpt_skillTreeCard)·시크릿 하우스 에피소드(rpt_secretHouseEntryCard)·숙요 기본/정밀 궁합(회당 결제, 위 handleSukuyoCompat) 본문 읽기. 결제·해금 쓰기는 하지 않는다
+// ·인생 스킬 트리(rpt_skillTreeCard)·시크릿 하우스 에피소드(rpt_secretHouseEntryCard)·숙요 기본/정밀 궁합·자미두수 궁합(회당 결제, 위 handleSukuyoCompat·handleZiweiCompat) 본문 읽기. 결제·해금 쓰기는 하지 않는다
 // (궁합의 이용권 결제 확정·증빙 claim 은 정본 verifyPerUsePayment·claimRequestBillingEvidence 가 한다).
 // 저장 프로필이 있으면 그 카드의 출생 정보로만 계산하고, 없으면 계정 단위 옛 해금(USER 행)만 인정한다.
 export async function handleSajuSection(request, env = {}) {
@@ -163,6 +218,7 @@ export async function handleSajuSection(request, env = {}) {
       ok: false, code: "SAJU_INVALID_FEATURE", message: "지원하지 않는 항목입니다.",
     }, { status: 400 });
     if (SUKUYO_COMPAT_FEATURE_KEYS.includes(featureKey)) return await handleSukuyoCompat(env, auth, body, featureKey);
+    if (ZIWEI_COMPAT_FEATURE_KEYS.includes(featureKey)) return await handleZiweiCompat(env, auth, body, featureKey);
 
     const profileId = String(body?.profileId || "").trim();
     const readBirth = (key) => (profileId

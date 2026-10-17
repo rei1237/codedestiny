@@ -3046,5 +3046,626 @@
    "ziwei_symbolic_layer": "11f6115341ee96f6d7b3c48b47d3b57933114775227ee71d163dd3e0f378cb44",
    "ziwei_life_yearly_flow": "57b214f23440a5f50d80698b8fd0eb714343d83af216395c7302147ad7756472"
   }
+ },
+ "ziweiCompatCases": [
+  {
+   "id": "m1990-seoul-f",
+   "me": "solar-m-1990",
+   "partner": {
+    "date": "1992-05-18",
+    "time": "09:30",
+    "gender": "F",
+    "city": {
+     "name": "대한민국 · 서울",
+     "timezone": "Asia/Seoul",
+     "longitude": 126.978,
+     "latitude": 37.5665,
+     "baseTzOffset": 9
+    }
+   }
+  },
+  {
+   "id": "f1985-seoul-midnight-m",
+   "me": "solar-f-1985",
+   "partner": {
+    "date": "2001-01-01",
+    "time": "00:15",
+    "gender": "M",
+    "city": {
+     "name": "대한민국 · 서울",
+     "timezone": "Asia/Seoul",
+     "longitude": 126.978,
+     "latitude": 37.5665,
+     "baseTzOffset": 9
+    }
+   }
+  },
+  {
+   "id": "unknown1978-ny-m",
+   "me": "unknown-f-1978",
+   "partner": {
+    "date": "1987-07-04",
+    "time": "23:50",
+    "gender": "M",
+    "city": {
+     "name": "미국 · 뉴욕주 · 뉴욕",
+     "timezone": "America/New_York",
+     "longitude": -74.006,
+     "latitude": 40.7128,
+     "baseTzOffset": -5
+    }
+   }
+  },
+  {
+   "id": "lunar1962-busan-other",
+   "me": "lunar-m-1962",
+   "partner": {
+    "date": "1960-03-10",
+    "time": "14:00",
+    "gender": "OTHER",
+    "city": {
+     "name": "대한민국 · 부산",
+     "timezone": "Asia/Seoul",
+     "longitude": 129.0756,
+     "latitude": 35.1796,
+     "baseTzOffset": 9
+    }
+   }
+  },
+  {
+   "id": "ny1995-seoul-dst-f",
+   "me": "ny-f-1995",
+   "partner": {
+    "date": "1988-05-15",
+    "time": "01:10",
+    "gender": "F",
+    "city": {
+     "name": "대한민국 · 서울",
+     "timezone": "Asia/Seoul",
+     "longitude": 126.978,
+     "latitude": 37.5665,
+     "baseTzOffset": 9
+    }
+   }
+  },
+  {
+   "id": "leap2020-seoul-m",
+   "me": "leap-f-2020",
+   "partner": {
+    "date": "2019-12-31",
+    "time": "23:40",
+    "gender": "M",
+    "city": {
+     "name": "대한민국 · 서울",
+     "timezone": "Asia/Seoul",
+     "longitude": 126.978,
+     "latitude": 37.5665,
+     "baseTzOffset": 9
+    }
+   }
+  }
+ ],
+ "ziweiCompat": {
+  "m1990-seoul-f": {
+   "html": "2808bac19df222c1895ce03fb85110f26df61f7d07e7eab35057ce3a6a7e15cd",
+   "correctionMsg": "진태양시 보정 적용: 09:30 → 08:58 (경도 -32분, DST 0분, UTC+9)",
+   "correctedTime": "08:58",
+   "userLabel": "민수",
+   "partnerLabel": "상대방",
+   "archive": {
+    "myMingPalace": "자미 · 천상",
+    "partnerMingPalace": "염정 · 칠살",
+    "mySpousePalace": "탐랑",
+    "partnerSpousePalace": "천상",
+    "score": 89,
+    "loveScore": 50,
+    "marriageScore": 50,
+    "friendScore": 47,
+    "workScore": 49,
+    "businessScore": 48,
+    "pastLifeScore": 48
+   },
+   "llm": {
+    "overallScore": 89,
+    "categoryScores": [
+     {
+      "key": "연애 궁합",
+      "val": 85
+     },
+     {
+      "key": "결혼 궁합",
+      "val": 84
+     },
+     {
+      "key": "친구 궁합",
+      "val": 78
+     },
+     {
+      "key": "직장 궁합",
+      "val": 82
+     },
+     {
+      "key": "사업 궁합",
+      "val": 81
+     }
+    ],
+    "mingPalace": {
+     "me": {
+      "main": [
+       "자미",
+       "천상"
+      ],
+      "aux": []
+     },
+     "partner": {
+      "main": [
+       "염정",
+       "칠살"
+      ],
+      "aux": []
+     }
+    },
+    "spousePalace": {
+     "me": {
+      "main": [
+       "탐랑"
+      ],
+      "aux": [
+       "천마",
+       "녹존"
+      ]
+     },
+     "partner": {
+      "main": [
+       "천상"
+      ],
+      "aux": [
+       "녹존"
+      ]
+     }
+    },
+    "scores": {
+     "love": 50,
+     "marriage": 50,
+     "friend": 47,
+     "work": 49,
+     "business": 48,
+     "pastLife": 48
+    }
+   }
+  },
+  "f1985-seoul-midnight-m": {
+   "html": "ed0248cadbcb798eda144d6441e3499ed7b43cf600abe6b6b53766d9a13799db",
+   "correctionMsg": "진태양시 보정 적용: 00:15 → 2000-12-31 23:43 (경도 -32분, DST 0분, UTC+9)",
+   "correctedTime": "23:43",
+   "userLabel": "지은",
+   "partnerLabel": "상대방",
+   "archive": {
+    "myMingPalace": "자미 · 파군",
+    "partnerMingPalace": "태양 · 태음",
+    "mySpousePalace": "염정 · 탐랑",
+    "partnerSpousePalace": "천량",
+    "score": 87,
+    "loveScore": 46,
+    "marriageScore": 47,
+    "friendScore": 47,
+    "workScore": 48,
+    "businessScore": 48,
+    "pastLifeScore": 46
+   },
+   "llm": {
+    "overallScore": 87,
+    "categoryScores": [
+     {
+      "key": "연애 궁합",
+      "val": 81
+     },
+     {
+      "key": "결혼 궁합",
+      "val": 81
+     },
+     {
+      "key": "친구 궁합",
+      "val": 78
+     },
+     {
+      "key": "직장 궁합",
+      "val": 81
+     },
+     {
+      "key": "사업 궁합",
+      "val": 81
+     }
+    ],
+    "mingPalace": {
+     "me": {
+      "main": [
+       "자미",
+       "파군"
+      ],
+      "aux": [
+       "문창",
+       "문곡"
+      ]
+     },
+     "partner": {
+      "main": [
+       "태양",
+       "태음"
+      ],
+      "aux": [
+       "천괴"
+      ]
+     }
+    },
+    "spousePalace": {
+     "me": {
+      "main": [
+       "염정",
+       "탐랑"
+      ],
+      "aux": []
+     },
+     "partner": {
+      "main": [
+       "천량"
+      ],
+      "aux": [
+       "우필"
+      ]
+     }
+    },
+    "scores": {
+     "love": 46,
+     "marriage": 47,
+     "friend": 47,
+     "work": 48,
+     "business": 48,
+     "pastLife": 46
+    }
+   }
+  },
+  "unknown1978-ny-m": {
+   "html": "66e309a72468e4ba578ed2d7c0d5474751b866f184064dacf9d29ce90f4899c5",
+   "correctionMsg": "진태양시 보정 적용: 23:50 → 22:54 (경도 4분, DST 60분, UTC-4)",
+   "correctedTime": "22:54",
+   "userLabel": "사용자",
+   "partnerLabel": "상대방",
+   "archive": {
+    "myMingPalace": "천량",
+    "partnerMingPalace": "칠살",
+    "mySpousePalace": "거문",
+    "partnerSpousePalace": "염정 · 천상",
+    "score": 87,
+    "loveScore": 45,
+    "marriageScore": 48,
+    "friendScore": 47,
+    "workScore": 47,
+    "businessScore": 49,
+    "pastLifeScore": 48
+   },
+   "llm": {
+    "overallScore": 87,
+    "categoryScores": [
+     {
+      "key": "연애 궁합",
+      "val": 80
+     },
+     {
+      "key": "결혼 궁합",
+      "val": 82
+     },
+     {
+      "key": "친구 궁합",
+      "val": 78
+     },
+     {
+      "key": "직장 궁합",
+      "val": 80
+     },
+     {
+      "key": "사업 궁합",
+      "val": 82
+     }
+    ],
+    "mingPalace": {
+     "me": {
+      "main": [
+       "천량"
+      ],
+      "aux": []
+     },
+     "partner": {
+      "main": [
+       "칠살"
+      ],
+      "aux": []
+     }
+    },
+    "spousePalace": {
+     "me": {
+      "main": [
+       "거문"
+      ],
+      "aux": []
+     },
+     "partner": {
+      "main": [
+       "염정",
+       "천상"
+      ],
+      "aux": [
+       "녹존"
+      ]
+     }
+    },
+    "scores": {
+     "love": 45,
+     "marriage": 48,
+     "friend": 47,
+     "work": 47,
+     "business": 49,
+     "pastLife": 48
+    }
+   }
+  },
+  "lunar1962-busan-other": {
+   "html": "4aaf2c9b9902fc1706c67264759fa3e4b0ccb863a0bbaeb59edf492416f8a4f3",
+   "correctionMsg": "진태양시 보정 적용: 14:00 → 14:06 (경도 6분, DST 0분, UTC+8.5)",
+   "correctedTime": "14:06",
+   "userLabel": "Lee",
+   "partnerLabel": "상대방",
+   "archive": {
+    "myMingPalace": "자미 · 탐랑",
+    "partnerMingPalace": "천동 · 천량",
+    "mySpousePalace": "천부",
+    "partnerSpousePalace": "천기",
+    "score": 82,
+    "loveScore": 48,
+    "marriageScore": 49,
+    "friendScore": 47,
+    "workScore": 47,
+    "businessScore": 47,
+    "pastLifeScore": 47
+   },
+   "llm": {
+    "overallScore": 82,
+    "categoryScores": [
+     {
+      "key": "연애 궁합",
+      "val": 77
+     },
+     {
+      "key": "결혼 궁합",
+      "val": 78
+     },
+     {
+      "key": "친구 궁합",
+      "val": 74
+     },
+     {
+      "key": "직장 궁합",
+      "val": 75
+     },
+     {
+      "key": "사업 궁합",
+      "val": 75
+     }
+    ],
+    "mingPalace": {
+     "me": {
+      "main": [
+       "자미",
+       "탐랑"
+      ],
+      "aux": []
+     },
+     "partner": {
+      "main": [
+       "천동",
+       "천량"
+      ],
+      "aux": [
+       "녹존"
+      ]
+     }
+    },
+    "spousePalace": {
+     "me": {
+      "main": [
+       "천부"
+      ],
+      "aux": []
+     },
+     "partner": {
+      "main": [
+       "천기"
+      ],
+      "aux": []
+     }
+    },
+    "scores": {
+     "love": 48,
+     "marriage": 49,
+     "friend": 47,
+     "work": 47,
+     "business": 47,
+     "pastLife": 47
+    }
+   }
+  },
+  "ny1995-seoul-dst-f": {
+   "html": "3a5a8c29fcb71c5d7073896f8ae61716f7eddf6cb4dab0d4ae4a419ac8cacec0",
+   "correctionMsg": "진태양시 보정 적용: 01:10 → 1988-05-14 23:38 (경도 -32분, DST 60분, UTC+10)",
+   "correctedTime": "23:38",
+   "userLabel": "사용자",
+   "partnerLabel": "상대방",
+   "archive": {
+    "myMingPalace": "천동",
+    "partnerMingPalace": "태양",
+    "mySpousePalace": "천량",
+    "partnerSpousePalace": "천동 · 천량",
+    "score": 95,
+    "loveScore": 53,
+    "marriageScore": 58,
+    "friendScore": 48,
+    "workScore": 45,
+    "businessScore": 55,
+    "pastLifeScore": 54
+   },
+   "llm": {
+    "overallScore": 95,
+    "categoryScores": [
+     {
+      "key": "연애 궁합",
+      "val": 90
+     },
+     {
+      "key": "결혼 궁합",
+      "val": 94
+     },
+     {
+      "key": "친구 궁합",
+      "val": 82
+     },
+     {
+      "key": "직장 궁합",
+      "val": 80
+     },
+     {
+      "key": "사업 궁합",
+      "val": 90
+     }
+    ],
+    "mingPalace": {
+     "me": {
+      "main": [
+       "천동"
+      ],
+      "aux": [
+       "녹존"
+      ]
+     },
+     "partner": {
+      "main": [
+       "태양"
+      ],
+      "aux": [
+       "문곡"
+      ]
+     }
+    },
+    "spousePalace": {
+     "me": {
+      "main": [
+       "천량"
+      ],
+      "aux": []
+     },
+     "partner": {
+      "main": [
+       "천동",
+       "천량"
+      ],
+      "aux": [
+       "천마"
+      ]
+     }
+    },
+    "scores": {
+     "love": 53,
+     "marriage": 58,
+     "friend": 48,
+     "work": 45,
+     "business": 55,
+     "pastLife": 54
+    }
+   }
+  },
+  "leap2020-seoul-m": {
+   "html": "61702fa44d03eb9b4bcf6ec15ba2efeffa5eeddc0a922fe022ff071ec7b3c4e0",
+   "correctionMsg": "진태양시 보정 적용: 23:40 → 23:08 (경도 -32분, DST 0분, UTC+9)",
+   "correctedTime": "23:08",
+   "userLabel": "사용자",
+   "partnerLabel": "상대방",
+   "archive": {
+    "myMingPalace": "천기",
+    "partnerMingPalace": "태양 · 태음",
+    "mySpousePalace": "태양 · 천량",
+    "partnerSpousePalace": "천동",
+    "score": 95,
+    "loveScore": 50,
+    "marriageScore": 51,
+    "friendScore": 55,
+    "workScore": 52,
+    "businessScore": 54,
+    "pastLifeScore": 53
+   },
+   "llm": {
+    "overallScore": 95,
+    "categoryScores": [
+     {
+      "key": "연애 궁합",
+      "val": 87
+     },
+     {
+      "key": "결혼 궁합",
+      "val": 87
+     },
+     {
+      "key": "친구 궁합",
+      "val": 89
+     },
+     {
+      "key": "직장 궁합",
+      "val": 87
+     },
+     {
+      "key": "사업 궁합",
+      "val": 89
+     }
+    ],
+    "mingPalace": {
+     "me": {
+      "main": [
+       "천기"
+      ],
+      "aux": []
+     },
+     "partner": {
+      "main": [
+       "태양",
+       "태음"
+      ],
+      "aux": []
+     }
+    },
+    "spousePalace": {
+     "me": {
+      "main": [
+       "태양",
+       "천량"
+      ],
+      "aux": []
+     },
+     "partner": {
+      "main": [
+       "천동"
+      ],
+      "aux": [
+       "우필"
+      ]
+     }
+    },
+    "scores": {
+     "love": 50,
+     "marriage": 51,
+     "friend": 55,
+     "work": 52,
+     "business": 54,
+     "pastLife": 53
+    }
+   }
+  }
  }
 }

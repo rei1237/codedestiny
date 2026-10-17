@@ -243,6 +243,7 @@ ${healthSrc.trim()}
     renderSpecialCharm: renderSpecialCharm,
     renderSkillTree: renderSkillTree,
     renderZiweiPaidSections: renderZiweiPaidSections,
+    renderZiweiCompatPaid: renderZiweiCompatPaid,
     renderHealthReport: window.renderHealthReport,
     attachKasiDaewunBridge: attachKasiDaewunBridge,
     daewunRows: _sajuDaewunRowsFromList,

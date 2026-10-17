@@ -292,3 +292,25 @@ test("자미두수 유료 장은 서버 본문 칸으로만 열린다", () => {
   assert.ok(engine.includes("window.__cdZwServerBodyDelivered=_cdZwServerBodyDelivered;"), "서버 본문 배달 훅이 없다");
   assert.match(client, /root\.__cdZwServerBodyDelivered\(slot, featureKey, data\)/, "서버 로더가 배달 훅을 부르지 않는다");
 });
+
+// 자미두수 궁합(compat-ziwei-compatibility, 회당 결제). 입력 폼·결제 게이트·보관함 저장·AI 상담 카드는 브라우저에 남고,
+// 진태양시 보정·두 명반·리포트 생성기는 서버(paid-ziwei.src.js renderZiweiCompatPaid)로 옮겼다.
+test("자미두수 궁합 리포트 생성기가 브라우저 경로에 없다", () => {
+  const FORBIDDEN = [
+    "bizSharedWealth", "weakestCategory", "layer1Bonus", "pastLifeHtml", "periodOverlap", "conflictTrigger",
+    "두 명반의 근거를 따라 읽는 관계 종합 리포트", "점수 구성과 입력 기준", "기대 하나씩 나누기", "보정 항목: 주성 성향",
+  ];
+  const offenders = [];
+  for (const rel of browserServedFiles()) {
+    const source = stripComments(read(rel));
+    for (const needle of FORBIDDEN) if (source.includes(needle)) offenders.push(`${rel} → ${needle}`);
+  }
+  assert.deepEqual(offenders, [], "브라우저 파일에 자미두수 궁합 생성기가 남아 있다:\n  " + offenders.join("\n  "));
+  const paid = read("worker/lib/saju-section/paid-ziwei.src.js");
+  assert.ok(paid.includes("function renderZiweiCompatPaid(input) {"), "자미두수 궁합 정본이 서버에 없다");
+  for (const needle of FORBIDDEN) assert.ok(paid.includes(needle), `${needle} 정본이 서버에 없다`);
+  const engine = stripComments(read("js/saju-engine.js"));
+  const client = stripComments(read("js/core/saju/section-client.js"));
+  assert.match(client, /function loadZiweiCompat\(options\) \{[\s\S]*?ziweiBody\(featureKey\)[\s\S]*?requestPerUse\(body, featureKey, 'html'\)/, "자미두수 궁합이 서버 본문을 요청하지 않는다");
+  assert.match(engine, /window\._runZwCompatibilityCore = function\(\) \{[\s\S]*?window\.CdSajuSectionClient\.loadZiweiCompat\(\{[\s\S]*?access: archiveContext/, "자미두수 궁합이 결제 기록과 함께 서버 로더를 부르지 않는다");
+});
