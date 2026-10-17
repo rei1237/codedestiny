@@ -706,8 +706,12 @@ export default function TeaHouseResultSheet({
       >
         <header className={`${styles.resultHeader} `} data-tea-pdf-section>
           {result.consultationVersion !== "tea-v2" && <p className={styles.sceneEyebrow}>{selectedCup?.eyebrow || copy.kdaff0ix}</p>}
+          {result.sajuReportVersion === 'saju-specialist-v2' && <figure className={styles.jointResultHero}>
+            <img src="/images/consultation/saju-yeoni-neo-joint-v1-640.webp" width="640" height="427" alt="명식을 펼치고 함께 이야기를 나누는 연이와 네오" />
+            <figcaption>연이는 마음의 패턴을, 네오는 선택의 조건을 짚어요.</figcaption>
+          </figure>}
           <h2 id="teaResultTitle">{result.sessionTitle}</h2>
-          {result.sajuReportVersion === 'saju-specialist-v1' && <>
+          {(result.sajuReportVersion === 'saju-specialist-v1' || result.sajuReportVersion === 'saju-specialist-v2') && <>
             <h3>내 질문에 대한 핵심 답</h3>
             <LlmParagraphs text={result.questionSummary} />
             <details className={styles.sajuContentsDisclosure}>
