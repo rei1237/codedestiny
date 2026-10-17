@@ -2079,6 +2079,11 @@ const app = {
       ctx.waitUntil(checkProviderRecovery(env).catch(() => {
         console.error('[provider-outage] recovery check failed');
       }));
+      // Gemini 추정 지출이 월 예산(GEMINI_MONTHLY_BUDGET_USD)의 50·80·95%를 넘으면 1회씩 알린다.
+      const { checkLlmBudget } = await import("./lib/llm-usage-meter.js");
+      ctx.waitUntil(checkLlmBudget(env).catch(() => {
+        console.error('[llm-budget] check failed');
+      }));
       return;
     }
 

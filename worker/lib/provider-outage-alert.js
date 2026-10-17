@@ -1,5 +1,5 @@
-import { getEnv } from './env.js';
 import { GEMINI_OUTAGE_CODES } from '../../lib/gemini-provider-errors.mjs';
+import { hasMongoUri, kstMinute, resolveOpsDeps, sendOperatorAlert, settleWithin } from './ops-alert.js';
 
 // Gemini spend-cap/billing outages reject every call until an operator acts.
 // 2026-10-17: two paid orders were refunded and no operator alert went out.
@@ -11,7 +11,6 @@ const PROVIDER_ID = 'gemini';
 const REPORT_THROTTLE_MS = 60_000;
 // Caller-side bound: a generation request never waits longer than this.
 const REPORT_WAIT_MS = 3_000;
-const ALERT_TIMEOUT_MS = 5_000;
 // A still-failing outage is announced again at most hourly.
 const ALERT_REPEAT_MS = 60 * 60_000;
 // A claim left by a request cut off mid-send expires so the cron can resend.
@@ -25,19 +24,13 @@ const OUTAGE_LABEL = {
 
 let lastReportAt = 0;
 
-function hasMongoUri(env) {
-  return ['MONGO_URI', 'MONGODB_URI', 'MONGO_URL', 'DATABASE_URL'].some(key => getEnv(env, key));
-}
-
-function kst(date) {
-  return `${new Date(new Date(date).getTime() + 9 * 3600_000).toISOString().slice(0, 16).replace('T', ' ')} KST`;
-}
+const loadModel = async () => (await import('./provider-health-model.js')).ProviderHealth;
 
 // Codes and times only: no customer, order or prompt data.
 export function outageAlertMessage(code, now) {
   return { subject: `[긴급] Gemini ${OUTAGE_LABEL[code] || code} — 유료 생성 중단`, text: [
     `원인 코드: ${code}`,
-    `감지 시각: ${kst(now)}`,
+    `감지 시각: ${kstMinute(now)}`,
     code === 'GEMINI_BILLING_DISABLED'
       ? 'Google Cloud Billing에서 Gemini API 키의 결제 계정 상태를 확인하세요.'
       : 'Google AI Studio / Cloud Billing에서 월 지출 한도를 올리세요.',
@@ -50,38 +43,10 @@ export function outageAlertMessage(code, now) {
 export function recoveryAlertMessage(row, now) {
   return { subject: '[복구 추정] Gemini 한도 오류가 최근 20분간 없음', text: [
     `원인 코드: ${row.code || '-'}`,
-    `마지막 오류: ${kst(row.lastSeenAt)}`,
-    `확인 시각: ${kst(now)}`,
+    `마지막 오류: ${kstMinute(row.lastSeenAt)}`,
+    `확인 시각: ${kstMinute(now)}`,
     '최근 20분간 같은 오류가 기록되지 않았습니다. 유료 상담이 정상 생성되는지 확인하세요.',
   ].join('\n') };
-}
-
-async function notifyOperatorsLazily(env, message) {
-  const { notifyOperators } = await import('./feedback-notify.js');
-  return notifyOperators(env, message);
-}
-
-// Same contract as the yeongnyangi hold alert: bounded, and delivered only when
-// at least one configured channel accepted it.
-async function sendAlert(env, send, message) {
-  let timer;
-  try {
-    const outcome = await Promise.race([Promise.resolve().then(() => send(env, message)),
-      new Promise((_resolve, reject) => { timer = setTimeout(() => reject(new Error('alert_timeout')), ALERT_TIMEOUT_MS); })]);
-    return Array.isArray(outcome?.results) && outcome.results.some(entry => entry?.ok === true && !entry?.skipped);
-  } catch { return false; }
-  finally { clearTimeout(timer); }
-}
-
-async function resolveDeps(options) {
-  const db = options.connectDb && options.withMongoRetry ? {} : await import('./db.js');
-  return {
-    connect: options.connectDb || db.connectDb,
-    retry: options.withMongoRetry || db.withMongoRetry,
-    model: options.model || (await import('./provider-health-model.js')).ProviderHealth,
-    notify: options.notify || notifyOperatorsLazily,
-    now: options.now ? new Date(options.now) : new Date(),
-  };
 }
 
 function openClaimFilter(now) {
@@ -99,7 +64,7 @@ async function claimAndSendOutageAlert(env, deps, code) {
     ],
   }, { $set: { alertClaimedAt: now } }).lean());
   if (!claimed) return false;
-  const delivered = await sendAlert(env, notify, outageAlertMessage(claimed.code || code, now));
+  const delivered = await sendOperatorAlert(env, notify, outageAlertMessage(claimed.code || code, now));
   await retry(env, () => model.updateOne({ _id: PROVIDER_ID, alertClaimedAt: now }, delivered
     ? { $set: { alertClaimedAt: null, alertedAt: now, recoveredAt: null } }
     : { $set: { alertClaimedAt: null } }));
@@ -107,7 +72,7 @@ async function claimAndSendOutageAlert(env, deps, code) {
 }
 
 async function recordOutage(env, code, options) {
-  const deps = await resolveDeps(options);
+  const deps = await resolveOpsDeps(options, loadModel);
   await deps.connect(env);
   const seen = () => deps.retry(env, () => deps.model.updateOne({ _id: PROVIDER_ID },
     { $set: { code, lastSeenAt: deps.now } }, { upsert: true }));
@@ -126,20 +91,13 @@ export async function reportProviderOutage(env, code, options = {}) {
   const nowMs = options.now ? new Date(options.now).getTime() : Date.now();
   if (nowMs - lastReportAt < REPORT_THROTTLE_MS) return { skipped: 'throttled' };
   lastReportAt = nowMs;
-  let timer;
-  try {
-    return await Promise.race([recordOutage(env, code, options),
-      new Promise(resolve => { timer = setTimeout(() => resolve({ skipped: 'timeout' }), options.waitMs ?? REPORT_WAIT_MS); })]);
-  } catch (error) {
-    console.warn('[provider-outage] report failed', String(error?.message || error).slice(0, 200));
-    return { skipped: 'error' };
-  } finally { clearTimeout(timer); }
+  return settleWithin('provider-outage', () => recordOutage(env, code, options), options.waitMs ?? REPORT_WAIT_MS);
 }
 
 // Ten-minute cron: resend an outage alert the request path could not deliver,
 // then announce recovery once no outage was seen for RECOVERY_QUIET_MS.
 export async function checkProviderRecovery(env, options = {}) {
-  const deps = await resolveDeps(options);
+  const deps = await resolveOpsDeps(options, loadModel);
   await deps.connect(env);
   const { model, retry, notify, now } = deps;
   const row = await retry(env, () => model.findById(PROVIDER_ID).lean());
@@ -153,7 +111,7 @@ export async function checkProviderRecovery(env, options = {}) {
     lastSeenAt: { $lte: new Date(now.getTime() - RECOVERY_QUIET_MS) }, ...openClaimFilter(now),
   }, { $set: { alertedAt: null, recoveredAt: now } }));
   if (claimed.modifiedCount !== 1) return { state: 'idle' };
-  const delivered = await sendAlert(env, notify, recoveryAlertMessage(row, now));
+  const delivered = await sendOperatorAlert(env, notify, recoveryAlertMessage(row, now));
   // Undelivered: restore the alert marker so the next tick tries again.
   if (!delivered) {
     await retry(env, () => model.updateOne({ _id: PROVIDER_ID, alertedAt: null, recoveredAt: now },

@@ -12,6 +12,7 @@ import {
 } from "./workers-ai-input-token-limit.mjs";
 import { classifyGeminiHttpError, geminiOutageCode } from "./gemini-provider-errors.mjs";
 import { reportProviderOutage } from "../worker/lib/provider-outage-alert.js";
+import { recordGeminiUsage } from "../worker/lib/llm-usage-meter.js";
 
 export interface LLMRequest {
   /** Total generation attempts across Gemini, cache recovery and Workers AI. */
@@ -958,6 +959,14 @@ async function callGeminiPrimary(
     const usage = extractGeminiUsage(payload)
       || { inputTokens: estimateTokens(normalized.prompt), outputTokens: estimateTokens(text), estimated: true };
     emitTokenUsageLog("gemini", model, normalized, usage, env);
+    // 월 지출 한도 사전 경보용 추정 집계. 1.5초 상한, 실패는 삼킨다(llm-usage-meter.js).
+    const usageContext = normalized.logContext || {};
+    await recordGeminiUsage(env, {
+      model,
+      service: usageContext.serviceId || usageContext.serviceType || usageContext.featureKey || usageContext.route
+        || normalized.taskType,
+      usage,
+    });
 
     return {
       text,
