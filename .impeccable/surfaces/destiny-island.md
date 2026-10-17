@@ -37,5 +37,5 @@ status: blocked-main-ci
 ## 전달 상태
 - ESLint 변경 파일 검사와 npm run typecheck 통과. Worker 2스위트 14개 및 기존 결제/보존 호환 5스위트 28개 통과. Node UI 입력·PDF·탐험 14개 통과.
 - check:fast는 정책 변경 때문에 전체 90개 스위트로 확장됨. 기존 main CI 실패 확인 후 광범위 로컬 반복을 중단했으므로 전체 통과로 표시하지 않는다.
-- upstream 79d01e63302fb18230b0ce1516721175ffdb330b, run 39016747491 Static guards 실패: verify-saju-summary-browser.mjs:335, 14 !== 12. 사용자 지침에 따라 위에 push하지 않음.
+- 최초 upstream 79d01e633의 Static guards 실패(대운 14 !== 12)는 후속 요청으로 해결했다. 다른 세션의 0e4b85d38 검사를 보존하여 bc1d7efab에 병합·main push했다. 로컬 사주 브라우저 검사 및 병합 후 check:pre-push 통과. 통합 CI는 run 39019552707에서 확인한다.
 - 소스·미러 일치 확인. 운영 API·LLM·결제·DB 쓰기는 실행하지 않았다.

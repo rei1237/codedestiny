@@ -1,14 +1,17 @@
-# 운명의 섬 무료 탐험 전환 인수인계
-
-status: blocked-main-ci
+---
+status: done
 updated: 2026-10-17
+next: "원격 main 통합 완료. 최종 CI 결과를 확인하고 자동 승인 검토로 차단된 워크트리 정리는 보존 상태를 유지한다."
+---
+
+# 운명의 섬 무료 탐험 전환 인수인계
 
 ## 작업 위치
 - 디렉터리: D:\Development\codedestiny-worktrees\island-free-20261017-172151
 - 브랜치: wt/island-free-20261017-172151
 - 구현 커밋: c70354de968c982177f9bdf56b7dd4627985010c
 - 기반 origin/main: 79d01e63302fb18230b0ce1516721175ffdb330b
-- 통합·push·운영 승격: 실행하지 않음.
+- 원격 main 통합·push: bc1d7efab242234cd1cc37340627cb86d23b658f. 운영 승격은 실행하지 않음.
 
 ## 요청과 구현
 - 사용자 요청: LLM 상담 제거, 모든 궁 정적 결과 무료화, 궁·시기 중심 개편, 새 섬 이미지, 캐릭터 이동과 게임형 탐험.
@@ -32,18 +35,20 @@ updated: 2026-10-17
 - check:pre-push 첫 실행 lastmod drift → sitemap:generate → 구현 커밋 amend → 재실행 exit 0. home-service-registry, public-mirror-fresh, sitemap-drift, llms, seo-entity-registry 통과.
 - 신규 커밋 CI·실 LLM·실결제·운영 DB·배포 검증은 미실행.
 
-## 외부 차단
+## 최초 차단과 해결
 - 기존 main CI: https://github.com/rei1237/codedestiny/actions/runs/39016747491
 - Static guards 실패: scripts/verify-saju-summary-browser.mjs:335, 실제 14 !== 기대 12. CI required도 failure. 이번 변경 이전의 실패다.
-- 사용자 규칙에 따라 실패한 main 위로 push하지 않는다.
+- 2026-10-17 후속 요청으로 기존 실패 수정을 진행했다. 14개 장과 추가된 선택지 비교·건강과 회복 장을 검증하는 dfd2527ab를 로컬 브라우저 전체 시나리오에서 확인했다.
+- push 직전 다른 세션이 같은 실패를 고친 0e4b85d38을 올렸다. 상대의 더 엄격한 전체 제목 검사를 유지하여 bc1d7efab에 병합했고, pre-push 통과 후 원격 main에 fast-forward push했다.
+- 통합 CI: https://github.com/rei1237/codedestiny/actions/runs/39019552707
 - 주 체크아웃 D:\Development\code-destiny의 index.html, templates/home-funnel.html, 홈 테스트·미러에 다른 세션 미커밋 변경이 있음. reset/stash/덮어쓰기 금지.
 
-## 다음 작업
-1. 인수인계·정확한 SHA·현재 origin/main CI부터 확인한다.
-2. 기존 실패가 해소되면 동시 작업을 보존하며 main에 직접 통합한다. 새 브랜치/PR은 만들지 않는다.
-3. index.html과 생성물 충돌은 정본 병합 후 sync:public·sitemap:generate로 해결한다. 관련 검사·committed-tree pre-push 후 main push와 CI 확인.
-4. 운영 승격과 기존 미완료 구매의 운영 환불/처리는 별도 승인 영역이다.
-5. 완료 후 이 문서를 status: done으로 닫고 node_modules 정션 먼저 해제 → 자기 워크트리 제거 → 병합된 wt 브랜치 삭제. 현재는 미통합 작업 보존을 위해 유지한다.
+## 전달·보존 확인
+- 공유 체크아웃 main은 3be4b029d에 있고 최초 원격 main보다 218개 커밋 뒤처져 있다. 미커밋 홈 변경은 최신 홈 개편과 충돌하므로 해당 체크아웃·인덱스·브랜치 포인터를 변경하지 않았다.
+- 미커밋 10개 파일과 미추적 스크립트 2개의 작업 전후 SHA-256 일치를 확인했다. 미추적 스킬 디렉터리도 유지했다.
+- 기존 섬 구현의 56개 테스트·타입/린트 검증에 더해, 사주 브라우저 검사의 모바일/데스크톱 × 복원/기존 해금 × 4개 폭 시나리오가 exit 0으로 통과했다.
+- verify-payment-service-boundary, verify-paid-feature-billing-policy 및 병합 커밋 check:pre-push 통과.
+- 운영 승격과 기존 미완료 구매의 운영 환불/처리는 별도 승인 영역이다.
 
 ## 임시 파일
-.tmp/island-preview에는 mock 캡처와 검사 로그가 있다. 문서 작성·커밋·폴더 삭제를 묶은 명령이 자동 승인 검토에서 blocked by policy로 거절되어 삭제를 보류했다. 그 외 다른 세션 파일은 수정·삭제하지 않았다.
+.tmp/island-preview에는 mock 캡처와 검사 로그가 있다. 후속 작업에서도 정확한 절대 경로·재분석 지점 검사를 포함한 별도 삭제 명령이 자동 승인 검토에서 blocked by policy로 거절되었다. 삭제를 우회하지 않고 워크트리와 임시 파일을 보존한다. .tmp/island-ci-watch.log는 이번 CI 확인 로그다. 다른 세션 파일은 수정·삭제하지 않았다.
