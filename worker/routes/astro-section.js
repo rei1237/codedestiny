@@ -4,6 +4,7 @@ import { readAccountLegacyUnlock, readProfileBirthUnlock } from "../lib/paid-con
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { validateBasicDeepInput } from "../lib/astro-basic-deep-report.js";
 import { ASTRO_SECTION_FEATURE_KEYS, buildAstroSectionHtml } from "../lib/astro-section/report.js";
+import { ASTRO_YEARLY_TRANSIT_KEY, buildAstroYearlyHtml } from "../lib/astro-section/yearly.js";
 import { calculateBasicAstrologyChart, normalizeBasicAstrologyInput } from "./astro.js";
 
 const degraded = () => json({
@@ -30,7 +31,8 @@ export async function handleAstroSection(request, env = {}) {
 
     const body = await readJson(request);
     const featureKey = String(body?.featureKey || "");
-    if (!ASTRO_SECTION_FEATURE_KEYS.includes(featureKey)) return json({
+    const yearly = featureKey === ASTRO_YEARLY_TRANSIT_KEY;
+    if (!yearly && !ASTRO_SECTION_FEATURE_KEYS.includes(featureKey)) return json({
       ok: false, code: "ASTRO_INVALID_FEATURE", message: "지원하지 않는 항목입니다.",
     }, { status: 400 });
 
@@ -70,7 +72,11 @@ export async function handleAstroSection(request, env = {}) {
     if (!normalized.ok) throw new HttpError(400, "출생 정보와 시간대를 확인해 주세요.", { code: "ASTRO_INVALID_BIRTH_INPUT" });
     const chart = await calculateBasicAstrologyChart(normalized.value, request, env);
     const lang = typeof body?.lang === "string" ? body.lang.slice(0, 8) : "ko";
-    const { html } = buildAstroSectionHtml({ featureKey, chart, lang });
+    // 12개월 흐름: 오늘은 서버 시계 + 화면 기기 시간대(transitTz, 시간 단위)로만 정한다. 범위 밖이면 한국 시간.
+    const transitTz = Number(body?.transitTz);
+    const { html } = yearly
+      ? await buildAstroYearlyHtml({ env, request, chart, input, tz: Number.isFinite(transitTz) && transitTz >= -14 && transitTz <= 14 ? transitTz : 9 })
+      : buildAstroSectionHtml({ featureKey, chart, lang });
     return json({ ok: true, unlocked: true, featureKey, html });
   } catch (error) {
     if (error instanceof HttpError) return json({

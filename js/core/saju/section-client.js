@@ -1,7 +1,7 @@
 /* 사주 종합(section_summary)·대운 풀이(section_daewun)·퀀텀 명리 엔진(rpt_quantumCard)·
    극T 관계 회로(sukuyo-extreme-t-relationship)·숙요 인연 도감(sukuyo-relationship-encyclopedia)·
    숙요 본성 심화 해석(sukuyo-nature-deep-dive)·숙요 기본/정밀 궁합(compat-sukuyo-compatibility·premium-sukuyo-compat-extra, 회당 결제)·
-   리포트 대시보드 유료 카드(CARDS) 본문 배달.
+   리포트 대시보드 유료 카드(CARDS)·자미두수 명반 상세 유료 장(loadZiwei) 본문 배달.
    본문은 서버(/api/saju/section)가 계정·프로필 해금을 확인한 뒤에만 만든다.
    이 파일은 요청과 표시만 한다 — 유료 문장·생성기·본문 캐시가 없다. */
 (function (root) {
@@ -446,6 +446,11 @@
     if (pid) body.profileId = pid;
     if (access && access.requestId) body.requestId = String(access.requestId);
     if (access && access.accessMethod) body.accessMethod = String(access.accessMethod);
+    return requestPerUse(body, featureKey, field);
+  }
+
+  // 회당 결제 본문 요청. 이용권 기록이 늦게 붙는 402·5xx·네트워크 오류는 같은 결제로 몇 번 다시 묻는다(재결제 없음).
+  function requestPerUse(body, featureKey, field) {
     return new Promise(function (resolve, reject) {
       // status: 0 = 네트워크·시간 초과. 화면은 5xx·0 이면 같은 결제로 다시 묻게 한다(재결제 없음).
       function failWith(text, status) { var error = new Error(text); error.status = status || 0; reject(error); }
@@ -470,6 +475,30 @@
       }
       attempt(0);
     });
+  }
+
+  // 자미두수 궁합(회당 결제). 서버가 이번 결제(게이트 requestId)를 확인하고 내 명반(자미 모달 입력)과 상대 입력으로
+  // 리포트를 만든다 — 결제 1건 = 내 출생·상대 조합 1건(서버가 조합까지 묶는다).
+  // opts: { access(게이트 기록: profileId·requestId·accessMethod), partner{date,time,gender,city{name,timezone,longitude,latitude,baseTzOffset}} }.
+  // 받은 payload(html·correctionMsg·correctedTime·archive·llm …)로 resolve, 실패 문구(error.status)로 reject.
+  function loadZiweiCompat(options) {
+    var opts = options || {};
+    var featureKey = 'compat-ziwei-compatibility';
+    var body = ziweiBody(featureKey);
+    if (!body) {
+      var missing = new Error('내 명반 정보가 없어 궁합 계산을 진행할 수 없습니다.');
+      missing.status = 400;
+      return Promise.reject(missing);
+    }
+    delete body.mode;
+    body.partner = opts.partner || {};
+    var access = opts.access && typeof opts.access === 'object' ? opts.access : null;
+    if (access && access.requestId) {
+      if (access.profileId) body.profileId = String(access.profileId); else delete body.profileId;
+      body.requestId = String(access.requestId);
+      if (access.accessMethod) body.accessMethod = String(access.accessMethod);
+    }
+    return requestPerUse(body, featureKey, 'html');
   }
 
   // ── 리포트 대시보드 유료 카드 ──
@@ -788,6 +817,49 @@
     });
   }
 
+  // 자미두수 명반 상세 유료 장(js/saju-engine.js _cdZwServerSlot 칸). 입력은 명반 모달 계산(computeProfileForModal)의 스냅샷이다.
+  // 같은 요청은 동시에 한 번만 보내고 칸마다 제 몫을 넣는다 — 1년운 안쪽 10년운 칸(#ziweiDecadeLuckGate)은 decadeHtml,
+  // 나머지는 html. 응답은 들고 있지 않는다(모달을 다시 열면 다시 받는다).
+  var ziweiInFlight = Object.create(null);
+  function ziweiBody(featureKey) {
+    var input = root.__cdZiweiSectionInput;
+    if (!input || !input.birth) return null;
+    var body = { featureKey: featureKey, birth: input.birth, gender: input.gender, name: input.name, place: input.place, mode: mode(), lang: lang() };
+    var pid = profileId();
+    if (pid) body.profileId = pid;
+    return body;
+  }
+  function loadZiwei(slot) {
+    if (!slot || !slot.getAttribute) return false;
+    var featureKey = String(slot.getAttribute('data-cd-zw-server-body') || '');
+    var body = ziweiBody(featureKey);
+    function fail(result) {
+      slot.setAttribute('data-cd-zw-state', 'failed');
+      show(slot, statusNode(failureText(result), function () { slot.removeAttribute('data-cd-zw-state'); loadZiwei(slot); }));
+    }
+    if (!body) { fail(null); return false; }
+    var key = keyOf(body);
+    var pending = ziweiInFlight[key];
+    if (!pending) {
+      pending = ziweiInFlight[key] = request(body).then(function (result) {
+        delete ziweiInFlight[key];
+        if (result.ok && delivered(featureKey, result.payload || {})) return result.payload;
+        throw result;
+      }, function () { delete ziweiInFlight[key]; throw null; });
+    }
+    slot.setAttribute('data-cd-zw-state', 'loading');
+    show(slot, statusNode('풀이를 불러오고 있어요.'));
+    pending.then(function (data) {
+      var part = slot.closest && slot.closest('#ziweiDecadeLuckGate') ? data.decadeHtml : data.html;
+      if (typeof part !== 'string') { fail(null); return; }
+      slot.innerHTML = part;
+      slot.setAttribute('data-cd-zw-state', 'done');
+      try { if (typeof root.__cdZwServerBodyDelivered === 'function') root.__cdZwServerBodyDelivered(slot, featureKey, data); } catch (_) {}
+      notify(featureKey);
+    }, fail);
+    return false;
+  }
+
   // 화면 모드(연냥이·네오) 전환: 펼친 대운을 새 모드로 다시 받는다.
   function refreshDaewun() {
     var detail = byId('dwDetail');
@@ -814,7 +886,10 @@
     Object.keys(cards).forEach(function (featureKey) {
       if (cards[featureKey].state === 'failed') loadCard(featureKey, { quiet: cards[featureKey].quiet, force: true });
     });
+    try {
+      document.querySelectorAll('[data-cd-zw-server-body][data-cd-zw-state="failed"]').forEach(function (slot) { loadZiwei(slot); });
+    } catch (_) {}
   });
 
-  root.CdSajuSectionClient = { loadSummary: loadSummary, showDaewun: showDaewun, refreshDaewun: refreshDaewun, loadQuantum: loadQuantum, loadExtremeT: loadExtremeT, loadEncyclopedia: loadEncyclopedia, loadNatureDeepDive: loadNatureDeepDive, loadSukuyoCompat: loadSukuyoCompat, loadCard: loadCard };
+  root.CdSajuSectionClient = { loadSummary: loadSummary, showDaewun: showDaewun, refreshDaewun: refreshDaewun, loadQuantum: loadQuantum, loadExtremeT: loadExtremeT, loadEncyclopedia: loadEncyclopedia, loadNatureDeepDive: loadNatureDeepDive, loadSukuyoCompat: loadSukuyoCompat, loadZiweiCompat: loadZiweiCompat, loadCard: loadCard, loadZiwei: loadZiwei };
 })(window);

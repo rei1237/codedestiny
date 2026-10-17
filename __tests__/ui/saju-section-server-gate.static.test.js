@@ -248,3 +248,110 @@ test("점성술 상담 심화 분석 4종과 봉인된 별의 방 4종 생성기
   assert.match(loader, /var ENDPOINT = '\/api\/astro\/section';/, "점성술 심화 분석이 서버 본문을 요청하지 않는다");
   assert.match(read("index.html"), /<script defer src="\/js\/core\/astro\/section-client\.js"><\/script>/, "점성술 본문 배달 스크립트가 빠졌다");
 });
+
+// 자미두수 명반 상세 유료 장(출생 단위 해금). 명반 계산·무료 미리보기·잠금 카드는 브라우저에 남고, 유료 본문 생성기는 서버(paid-ziwei.src.js)로 옮겼다.
+const ZIWEI_SERVER_KEYS = ["ziwei_decade_luck", "ziwei_twelve_palaces", "ziwei_love_deep", "ziwei_symbolic_layer"];
+test("자미두수 유료 장 생성기와 본문 문장이 브라우저 경로에 없다", () => {
+  const FORBIDDEN = [
+    // 대한 운세(ziwei_decade_luck): 12대한 타임라인과 1년운 안쪽 10년 대한 표.
+    "PALACE_DAHAN_THEME", "zwDahanBuildSections", "zwDahanSambangSajeong", "zwFlowDecadeSummary",
+    "동료·협력자의 조력이 운명을 바꾸는 시기", "의 주제를 3년 단위 목표로 나누고",
+    // 12궁 정밀 해설(ziwei_twelve_palaces): 12궁 핵심 지도 표와 궁별 정밀 카드.
+    "buildZwSummaryTableHtml", "buildZwTwelvePalaceDeepHtml", "ZW_PALACE_DEEP_FRAME", "ZW_BR_DEEP_PHRASE", "zwDeepPalaceBranchIdx",
+    "가장 가까운 사람들과 어떻게 협력하는가", "이 자리에서 별의 성질이 힘 있게 드러납니다",
+    // 부부궁 심화 상담(ziwei_love_deep): 인연 별 그림 장, 연애 상담 장, 부부궁 정밀 카드.
+    "buildZwSpouseDeepHtml", "ZW_BAD_STAR_EFFECT", "zwDeepBrTag", "loveDeepOracle", "healingAffirmation", "redFlagScenario", "marriageTimingCounselHtml",
+    "ziwei-love-counsel-summary-v20260615-step2", "경계선 3종(연락·약속·사적 거리)을 문장으로 합의하고", "갈등 유형별 대화 스크립트",
+    // 상징 보조층(ziwei_symbolic_layer): 본명·현실축·사화·그림자 인장 장과 인장 서사.
+    "buildZwSymbolicDeepHtml", "olympusSealMergedHtml", "zwFlowSealCard", "zwFlowSealSummaryChip", "natalShadowSeal",
+    "ziwei-olympus-guardian-v20260606", "인장 서사 — 상징을 생활 언어로 풀기", "에서 길어 올린 상징입니다.",
+  ];
+  const offenders = [];
+  for (const rel of browserServedFiles()) {
+    const source = stripComments(read(rel));
+    for (const needle of FORBIDDEN) if (source.includes(needle)) offenders.push(`${rel} → ${needle}`);
+  }
+  assert.deepEqual(offenders, [], "브라우저 파일에 자미두수 유료 본문 생성기가 남아 있다:\n  " + offenders.join("\n  "));
+  const paid = read("worker/lib/saju-section/paid-ziwei.src.js");
+  assert.ok(paid.includes("function renderZiweiPaidBodies(idx, pName, stars, pd, opts) {"), "자미두수 유료 장 정본이 서버에 없다");
+  for (const needle of FORBIDDEN) assert.ok(paid.includes(needle), `${needle} 정본이 서버에 없다`);
+});
+
+test("자미두수 유료 장은 서버 본문 칸으로만 열린다", () => {
+  const engine = stripComments(read("js/saju-engine.js"));
+  const client = stripComments(read("js/core/saju/section-client.js"));
+  assert.match(client, /function loadZiwei\(slot\) \{[\s\S]*?ziweiBody\(featureKey\)[\s\S]*?request\(body\)/, "자미두수 칸이 서버 본문을 요청하지 않는다");
+  assert.match(engine, /var CD_ZW_SERVER_KEYS = \[([^\]]*)\];/, "서버 본문 키 목록이 없다");
+  const listed = engine.match(/var CD_ZW_SERVER_KEYS = \[([^\]]*)\];/)[1].split(",").map((s) => s.trim().replace(/'/g, ""));
+  assert.deepEqual(listed, ZIWEI_SERVER_KEYS, "브라우저 서버 본문 키와 이전 목록이 다르다");
+  assert.match(engine, /var client=window\.CdSajuSectionClient;[\s\S]{0,400}client\.loadZiwei\(slots\[i\]\)/,"자미두수 칸이 서버 로더를 거치지 않는다");
+  for (const key of ZIWEI_SERVER_KEYS) assert.ok(engine.includes(`_cdZwServerSlot('${key}')`), `${key} 본문 자리에 서버 칸이 없다`);
+  assert.match(engine, /window\.__cdZiweiSectionInput = \{/, "명반 모달이 서버 입력 스냅샷을 남기지 않는다");
+  // 부부궁 심화 장의 별 그림은 서버 본문이 배달된 뒤에 그린다.
+  assert.ok(engine.includes("window.__cdZwDrawLoveStar = function(scope){"), "부부궁 별 그림 훅이 없다");
+  assert.ok(engine.includes("window.__cdZwServerBodyDelivered=_cdZwServerBodyDelivered;"), "서버 본문 배달 훅이 없다");
+  assert.match(client, /root\.__cdZwServerBodyDelivered\(slot, featureKey, data\)/, "서버 로더가 배달 훅을 부르지 않는다");
+});
+
+// 자미두수 궁합(compat-ziwei-compatibility, 회당 결제). 입력 폼·결제 게이트·보관함 저장·AI 상담 카드는 브라우저에 남고,
+// 진태양시 보정·두 명반·리포트 생성기는 서버(paid-ziwei.src.js renderZiweiCompatPaid)로 옮겼다.
+test("자미두수 궁합 리포트 생성기가 브라우저 경로에 없다", () => {
+  const FORBIDDEN = [
+    "bizSharedWealth", "weakestCategory", "layer1Bonus", "pastLifeHtml", "periodOverlap", "conflictTrigger",
+    "두 명반의 근거를 따라 읽는 관계 종합 리포트", "점수 구성과 입력 기준", "기대 하나씩 나누기", "보정 항목: 주성 성향",
+  ];
+  const offenders = [];
+  for (const rel of browserServedFiles()) {
+    const source = stripComments(read(rel));
+    for (const needle of FORBIDDEN) if (source.includes(needle)) offenders.push(`${rel} → ${needle}`);
+  }
+  assert.deepEqual(offenders, [], "브라우저 파일에 자미두수 궁합 생성기가 남아 있다:\n  " + offenders.join("\n  "));
+  const paid = read("worker/lib/saju-section/paid-ziwei.src.js");
+  assert.ok(paid.includes("function renderZiweiCompatPaid(input) {"), "자미두수 궁합 정본이 서버에 없다");
+  for (const needle of FORBIDDEN) assert.ok(paid.includes(needle), `${needle} 정본이 서버에 없다`);
+  const engine = stripComments(read("js/saju-engine.js"));
+  const client = stripComments(read("js/core/saju/section-client.js"));
+  assert.match(client, /function loadZiweiCompat\(options\) \{[\s\S]*?ziweiBody\(featureKey\)[\s\S]*?requestPerUse\(body, featureKey, 'html'\)/, "자미두수 궁합이 서버 본문을 요청하지 않는다");
+  assert.match(engine, /window\._runZwCompatibilityCore = function\(\) \{[\s\S]*?window\.CdSajuSectionClient\.loadZiweiCompat\(\{[\s\S]*?access: archiveContext/, "자미두수 궁합이 결제 기록과 함께 서버 로더를 부르지 않는다");
+});
+
+test("점성술 시나스트리 궁합(유명인·직접 입력) 생성기가 브라우저 경로에 없다", () => {
+  // 무료 유명인 목록·입력 칸·결제 게이트만 남고, 본문·점수·AI 프롬프트는 /api/astro/synastry 가 회당 결제를 확인한 뒤 만든다.
+  const FORBIDDEN = [
+    "_syScore(", "_syBuildNarrative", "_syOverlayTuning", "_syPairWeight", "_syAspect(", "_syTopAspect", "_syWsHouseOf",
+    "_astroBuildIncludedSynastryPrompt", "_SY_OV_TUNE", "조화형 인연 - 마음, 가치관, 행동 템포가", "과제가 많은 인연 - 경계 설정과 합의가",
+    "감정 정리 루틴 + 갈등 복기 규칙",
+  ];
+  const offenders = [];
+  for (const rel of browserServedFiles()) {
+    const source = stripComments(read(rel));
+    for (const needle of FORBIDDEN) if (source.includes(needle)) offenders.push(`${rel} → ${needle}`);
+  }
+  assert.deepEqual(offenders, [], "브라우저 파일에 시나스트리 궁합 생성기가 남아 있다:\n  " + offenders.join("\n  "));
+  const paid = read("worker/lib/astro-section/paid-synastry.src.js");
+  for (const name of ["_syScore(", "_syBuildNarrative(", "_astroBuildIncludedSynastryPrompt(", "_astroSynastryCelebBodies(", "_astroSynastryDirectBodies("]) {
+    assert.ok(paid.includes("function " + name), `${name} 정본이 서버에 없다`);
+  }
+  const engine = read("js/saju-engine.js");
+  assert.match(engine, /_cdAIPromptRequestJson\('\/api\/astro\/synastry'/, "시나스트리 궁합이 서버 본문을 요청하지 않는다");
+});
+
+test("점성술 앞으로 12개월(astro_yearly_transit) 본문 생성기가 브라우저 경로에 없다", () => {
+  // 무료 머리("가장 큰 변화의 달")만 남고, 기간·날짜·분야별 본문은 /api/astro/section 이 출생 단위 해금을 확인한 뒤 만든다.
+  const FORBIDDEN = [
+    "function renderYear(", "renderYear:", "function year(", "LORD_YEAR", "LORD_ERA", "FIELD_TONE", "RETRO_FIELD", "RETRO_TIP",
+    "NATAL_FIELDS", "ECLIPSE_TYPE", "themeLines", "eventSentence", "배움과 기회로 무대가 넓어지는 해예요",
+    "지난 인연이 떠오르기 쉬워요. 새 고백보다", "큰 구매나 투자는 이 기간 뒤로 미루세요",
+  ];
+  const offenders = [];
+  for (const rel of browserServedFiles()) {
+    const source = stripComments(read(rel));
+    for (const needle of FORBIDDEN) if (source.includes(needle)) offenders.push(`${rel} → ${needle}`);
+  }
+  assert.deepEqual(offenders, [], "브라우저 파일에 12개월 본문 생성기가 남아 있다:\n  " + offenders.join("\n  "));
+  const paid = read("worker/lib/astro-section/paid-yearly.cjs");
+  for (const name of ["year(", "renderYear(", "themeLines(", "eventSentence("]) assert.ok(paid.includes("function " + name), `${name} 정본이 서버에 없다`);
+  const engine = read("js/saju-engine.js");
+  assert.match(engine, /_astroCounselPaidGate\('astro_yearly_transit', 50, [^)]*, ''\)\)/, "12개월 게이트가 브라우저 본문을 싣는다");
+  assert.match(read("js/core/astro/section-client.js"), /astro_yearly_transit: true/, "12개월 본문이 서버를 요청하지 않는다");
+});

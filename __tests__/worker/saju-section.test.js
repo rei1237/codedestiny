@@ -649,6 +649,134 @@ describe("sukuyo compatibility (per use)", () => {
   });
 });
 
+// 자미두수 궁합(회당 결제, 50코인). 게이트가 결제에 쓴 requestId(compat-archive:compat-ziwei-compatibility:<꼬리>)로 이번 결제를 찾고,
+// 내 명반(저장 카드가 있으면 그 출생)과 상대 입력으로 서버가 보정·두 명반·리포트를 만든다. 결제 1건 = 내 출생·상대 조합 1건.
+describe("ziwei compatibility (per use)", () => {
+  const KEY = "compat-ziwei-compatibility";
+  const rid = (tail = "lz9k2abcd") => `compat-archive:${KEY}:${tail}`;
+  const SEOUL = { name: "대한민국 · 서울", timezone: "Asia/Seoul", longitude: 126.978, latitude: 37.5665, baseTzOffset: 9 };
+  const PARTNER = { date: "1992-05-18", time: "09:30", gender: "F", city: SEOUL };
+  const compat = (extra = {}) => ({ featureKey: KEY, profileId: "p1", requestId: rid(), partner: PARTNER, name: "테스트", lang: "ko", ...extra });
+  const expected = (birth = CARD_BIRTH, gender = "M", partner = PARTNER) => {
+    const { pair: _pair, ...report } = buildSajuSectionHtml({ featureKey: KEY, birth, gender, name: "테스트", lang: "ko", partner });
+    return { ok: true, unlocked: true, featureKey: KEY, ...report };
+  };
+  const paidBy = (transactionId) => verifyPerUsePayment.mockResolvedValue({ proven: true, source: "coin", reason: "", transactionId });
+
+  test("without this request's payment there is no body, only registry pricing", async () => {
+    const result = await request(compat({ unlocked: true, passActive: true }));
+    const { pricing } = getBillingFeaturePricing({ featureKey: KEY });
+    expect(result).toEqual({ status: 402, body: expect.objectContaining({ reason: "PAYMENT_REQUIRED", featureKey: KEY, amountKRW: pricing.amountKRW, coinPrice: pricing.coinPrice }) });
+    expect(pricing.coinPrice).toBe(50);
+    expect(result.body.html).toBeUndefined();
+    expect(result.body.archive).toBeUndefined();
+    expect(claimRequestBillingEvidence).not.toHaveBeenCalled();
+  });
+
+  test("a proven payment renders from the saved card's birth, ignoring the body's, and claims the evidence for this pair", async () => {
+    paidBy("zwc-1");
+    const result = await request(compat({ birth: { date: "2001-01-16", calType: "solar", hour: 3, minute: 0 }, gender: "F" }));
+    expect(result.status).toBe(200);
+    expect(result.body).toEqual(expected());
+    expect(result.body.html.length).toBeGreaterThan(2000);
+    expect(verifyPerUsePayment).toHaveBeenCalledWith(expect.anything(), { userId: TEST_USER_ID, featureKey: KEY, coinPrice: 50, requestId: rid(), profileId: "p1", requireExisting: true });
+    expect(claimRequestBillingEvidence).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      userId: TEST_USER_ID, evidenceIds: ["zwc-1"], featureKey: KEY, kind: "ziwei-compat", requestId: expect.stringMatching(new RegExp(`^${rid()}\\|[0-9a-f]{32}$`)),
+    }));
+  });
+
+  test("one payment opens one pair: a retry of the same pair is served, another partner or another card is 409", async () => {
+    paidBy("zwc-2");
+    expect((await request(compat())).status).toBe(200);
+    expect((await request(compat())).status).toBe(200);
+    const otherPartner = await request(compat({ partner: { ...PARTNER, time: "10:30" } }));
+    expect(otherPartner.status).toBe(409);
+    expect(otherPartner.body).toMatchObject({ code: "EVIDENCE_ALREADY_USED" });
+    expect(otherPartner.body.html).toBeUndefined();
+    const otherCard = await request(compat({ profileId: "p3" }));
+    expect(otherCard.status).toBe(409);
+    expect(otherCard.body.html).toBeUndefined();
+  });
+
+  test("a request id of another product or a malformed one is rejected before any payment lookup", async () => {
+    for (const requestId of ["", `sukuyo-paid:${KEY}|p1|lz9k2abcd`, "compat-archive:compat-sukuyo-compatibility:lz9k2abcd", rid("LZ9K2ABCD"), rid("ab"), `${rid()}|x`]) {
+      const result = await request(compat({ requestId }));
+      expect(result.status).toBe(400);
+      expect(result.body).toMatchObject({ code: "REQUEST_ID_INVALID" });
+    }
+    expect(verifyPerUsePayment).not.toHaveBeenCalled();
+  });
+
+  test("an invalid partner input is 400 before any payment lookup", async () => {
+    for (const partner of [
+      undefined, { ...PARTNER, date: "1992-02-30" }, { ...PARTNER, date: "1850-01-01" }, { ...PARTNER, time: "24:00" },
+      { ...PARTNER, city: { ...SEOUL, name: "<b>서울</b>" } }, { ...PARTNER, city: { ...SEOUL, longitude: 999 } }, { ...PARTNER, city: { ...SEOUL, timezone: "Asia/Seoul;x" } },
+    ]) {
+      const result = await request(compat({ partner }));
+      expect(result.status).toBe(400);
+      expect(result.body).toMatchObject({ code: "SAJU_INVALID_PARTNER" });
+      expect(result.body.html).toBeUndefined();
+    }
+    expect(verifyPerUsePayment).not.toHaveBeenCalled();
+  });
+
+  test("a pass opened in the shell is settled on this request id only when the shell says it used a pass", async () => {
+    expect((await request(compat())).status).toBe(402);
+    verifyPerUsePayment.mockReset()
+      .mockResolvedValueOnce({ proven: false, source: "", reason: "NO_EXISTING_CONSUMPTION" })
+      .mockResolvedValueOnce({ proven: true, source: "pass", reason: "" });
+    const result = await request(compat({ accessMethod: "pass" }));
+    expect(result.status).toBe(200);
+    expect(verifyPerUsePayment).toHaveBeenNthCalledWith(2, expect.anything(), { userId: TEST_USER_ID, featureKey: KEY, coinPrice: 50, requestId: rid(), profileId: "p1" });
+    expect(claimRequestBillingEvidence).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ evidenceIds: [`pass-use:${TEST_USER_ID}:${KEY}:${rid()}`] }));
+  });
+
+  test("an admin is served without a claim; without a saved card the body birth is used", async () => {
+    verifyPerUsePayment.mockResolvedValue({ proven: true, source: "admin", reason: "" });
+    const birth = { date: "1985-11-02", calType: "solar", hour: 6, minute: 5 };
+    const result = await request(compat({ profileId: "", birth, gender: "F" }));
+    expect(result.status).toBe(200);
+    expect(result.body).toEqual(expected({ calendarDate: "1985-11-02", calType: "solar", hour: 6, minute: 5, timeKnown: true }, "F"));
+    expect(verifyPerUsePayment).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ requestId: rid(), profileId: "" }));
+    expect(claimRequestBillingEvidence).not.toHaveBeenCalled();
+  });
+
+  test("payment DB doubt, claim store failure or a card read failure stays retryable instead of prompting purchase", async () => {
+    verifyPerUsePayment.mockResolvedValue({ proven: null, source: "", reason: "DB_DEGRADED" });
+    const doubt = await request(compat());
+    expect(doubt.status).toBe(503);
+    expect(doubt.body).toMatchObject({ reason: "TEMPORARY_UNAVAILABLE", retryable: true });
+    expect(doubt.body.html).toBeUndefined();
+    verifyPerUsePayment.mockRejectedValueOnce(new Error("private database connection information"));
+    expect((await request(compat())).status).toBe(503);
+    paidBy("zwc-3");
+    claimRequestBillingEvidence.mockResolvedValueOnce({ ok: false, status: 503, code: "PAYMENT_VERIFY_UNAVAILABLE", message: "결제 확인이 잠시 지연되고 있어요." });
+    const store = await request(compat());
+    expect(store.status).toBe(503);
+    expect(store.body.html).toBeUndefined();
+    verifyPerUsePayment.mockClear();
+    connectDb.mockRejectedValue(new Error("private database connection information"));
+    const card = await request(compat());
+    expect(card.status).toBe(503);
+    expect(card.body.html).toBeUndefined();
+    // 카드를 읽지 못하면 그리기 전이라 결제를 확인(이용권 차감)하지 않는다.
+    expect(verifyPerUsePayment).not.toHaveBeenCalled();
+  });
+
+  // PARITY.ziweiCompat: HEAD 클라이언트 window._runZwCompatibilityCore(renderZiwei 안)를 vm 에서 같은 내 출생(PARITY.cases)과
+  // 상대 입력으로 돌려 얻은 리포트 HTML 의 sha256·보정 문구·보정 시각·보관 사실·AI 상담 입력. KASI 날짜 보정은 양력 입력에서 항등이다.
+  test.each(PARITY.ziweiCompatCases.map((c) => [c.id, c]))("server compatibility equals the HEAD client output: %s", (id, c) => {
+    const me = PARITY.cases.find((entry) => entry.id === c.me);
+    const result = buildSajuSectionHtml({
+      featureKey: KEY, birth: { calendarDate: me.date, calType: me.calType, hour: me.hour, minute: me.minute, timeKnown: me.timeKnown !== false },
+      gender: me.gender, name: me.name, place: me.place, now: new Date(PARITY.now), partner: c.partner,
+    });
+    const { html, ...rest } = PARITY.ziweiCompat[id];
+    expect(sha256(result.html)).toBe(html);
+    expect({ correctionMsg: result.correctionMsg, correctedTime: result.correctedTime, userLabel: result.userLabel, partnerLabel: result.partnerLabel, archive: result.archive, llm: result.llm }).toEqual(rest);
+  });
+});
+
 describe("rpt_energyCoordCard", () => {
   const ENERGY = { ...INPUT, featureKey: "rpt_energyCoordCard" };
   // 같은 시각(renderedAt)으로 다시 그린 HTML — 오늘 날짜·추천 시드가 그 시각에 달려 있다.
@@ -1197,5 +1325,72 @@ describe("animal-destiny-unlock", () => {
     const reading = buildAnimalDestinyReading(s.pillars, false);
     expect(reading).toMatchObject({ animalId: s.animalId, stageKey: s.stageKey });
     expect(sha256(JSON.stringify(reading))).toBe(s.sha256);
+  });
+});
+
+// 자미두수 차트 상세 해금(출생 단위, 50코인). 서버가 해금된 프로필의 출생으로 명반을 다시 세워 본문을 그린다 —
+// 화면이 보낸 명반·궁 번호는 받지 않는다. 대한 운세는 대한 타임라인(html)과 운세 흐름 안쪽 대한 표(decadeHtml) 두 칸이다.
+const ZIWEI_KEYS = ["ziwei_decade_luck", "ziwei_twelve_palaces", "ziwei_love_deep", "ziwei_symbolic_layer"];
+const ziweiBody = (result) => ({ html: result.html, decadeHtml: result.decadeHtml });
+describe.each(ZIWEI_KEYS)("%s", (featureKey) => {
+  const ZW = { ...INPUT, featureKey };
+  // 올해(KST) 유년이 본문에 들어간다. 요청 시각을 넘기지 않으므로 지금 시각으로 다시 그려 비교한다.
+  const expected = (birth, gender) => ziweiBody(buildSajuSectionHtml({ featureKey, birth, gender, name: "테스트", mode: "pig", lang: "ko" }));
+
+  test("unowned returns registry pricing without a body", async () => {
+    const result = await request(ZW);
+    const { pricing } = getBillingFeaturePricing({ featureKey });
+    expect(result).toEqual({ status: 402, body: expect.objectContaining({ featureKey, coinPrice: pricing.coinPrice }) });
+    expect(result.body.html).toBeUndefined();
+    expect(result.body.decadeHtml).toBeUndefined();
+  });
+
+  test("a BIRTH grant renders from the stored birth, ignoring the body's; it opens nothing else", async () => {
+    grant({}, featureKey);
+    const result = await request({ ...ZW, birth: { date: "2001-01-01", hour: 3, minute: 0 }, gender: "F" });
+    expect(result.status).toBe(200);
+    expect(result.body).toMatchObject({ ok: true, unlocked: true, featureKey });
+    expect(ziweiBody(result.body)).toEqual(expected(CARD_BIRTH, "M"));
+    expect(result.body.html.length).toBeGreaterThan(200);
+    expect((await request(INPUT)).status).toBe(402);
+    expect((await request({ ...INPUT, featureKey: "rpt_skillTreeCard" })).status).toBe(402);
+  });
+
+  test("a legacy account grant without a saved profile renders the body birth", async () => {
+    grant({ scope: "USER", profileId: "__user__" }, featureKey);
+    const { profileId: _omit, ...account } = ZW;
+    const result = await request({ ...account, birth: { date: "1985-11-02", calType: "solar", hour: 6, minute: 5 }, gender: "F" });
+    expect(result.status).toBe(200);
+    expect(ziweiBody(result.body)).toEqual(expected({ calendarDate: "1985-11-02", calType: "solar", hour: 6, minute: 5, timeKnown: true }, "F"));
+  });
+
+  test("another profile's or another birth's grant does not open it", async () => {
+    grant({ scope: "PROFILE", profileId: "p2" }, featureKey);
+    expect((await request(ZW)).status).toBe(402);
+    grant({}, featureKey);
+    const other = await request({ ...ZW, profileId: "p3" });
+    expect(other.status).toBe(402);
+    expect(other.body.html).toBeUndefined();
+  });
+
+  test("a DB failure stays retryable instead of prompting purchase", async () => {
+    grant({}, featureKey);
+    connectDb.mockRejectedValue(new Error("private database connection information"));
+    const result = await request(ZW);
+    expect(result.status).toBe(503);
+    expect(result.body).toMatchObject({ reason: "TEMPORARY_UNAVAILABLE", retryable: true });
+    expect(result.body.html).toBeUndefined();
+  });
+
+  // PARITY[id].ziwei: HEAD 클라이언트 computeProfileForModal → renderZiwei(명궁 기본 패널)를 vm 에서 같은 출생·같은 now(PARITY.now)로
+  // 돌려 얻은 유료 본문 HTML 의 sha256. 대한 운세는 타임라인(ziwei_decade_luck)과 안쪽 대한 표(ziwei_decade_luck_inner)를 따로 잰다.
+  test.each(PARITY.cases.map((c) => [c.id, c]))("server body equals the HEAD client engine output: %s", (id, c) => {
+    const result = buildSajuSectionHtml({
+      featureKey, birth: { calendarDate: c.date, calType: c.calType, hour: c.hour, minute: c.minute, timeKnown: c.timeKnown !== false },
+      gender: c.gender, name: c.name, mode: "pig", place: c.place, jongDecision: c.jong, now: new Date(PARITY.now),
+    });
+    expect(sha256(result.html)).toBe(PARITY.ziwei[id][featureKey]);
+    if (featureKey === "ziwei_decade_luck") expect(sha256(result.decadeHtml)).toBe(PARITY.ziwei[id].ziwei_decade_luck_inner);
+    else expect(result.decadeHtml).toBeUndefined();
   });
 });

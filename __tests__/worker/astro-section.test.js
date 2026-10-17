@@ -2,12 +2,14 @@
 import { jest } from "@jest/globals";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { TEST_USER_ID, OTHER_USER_ID, testCard, profileCardModel } from "../fixtures/profile-card-model.mjs";
 import { computeBirthKey, toBirthEntitlementProfileId } from "../../worker/lib/birth-key.js";
 
 // 점성술 상담 심화 분석 4종·봉인된 별의 방 4종 유료 본문(/api/astro/section): 출생 단위 해금을 서버가 확인한 뒤에만 본문을 만든다.
 const auth = jest.fn();
 const swiss = jest.fn();
+const transitLons = jest.fn();
 const exists = jest.fn();
 const findOne = jest.fn();
 const write = jest.fn(() => { throw new Error("Read route attempted a write"); });
@@ -34,7 +36,7 @@ jest.unstable_mockModule("../../worker/lib/models.js", () => ({
   ProfileCard: { modelName: "ProfileCard", findOne: (...args) => profileCards.findOne(...args) },
 }));
 jest.unstable_mockModule("../../worker/lib/swiss-ephemeris.js", () => ({
-  getSwissWesternChart: swiss, getSwissVedicPlanets: jest.fn(),
+  getSwissWesternChart: swiss, getSwissVedicPlanets: jest.fn(), createSwissTransitLonsAt: transitLons,
 }));
 jest.unstable_mockModule("../../worker/lib/cms-records.js", () => ({ primeCmsRecords: jest.fn() }));
 
@@ -42,12 +44,13 @@ const ASTRO_SECTION_FEATURE_KEYS = [
   "astro_career_talent_deep", "astro_talent_attraction_deep", "astro_relationship_deep", "astro_growth_shadow_deep",
   "astro_stellar_career_room", "astro_stellar_talent_room", "astro_stellar_relationship_room", "astro_stellar_growth_room",
 ];
-let handleAstroRoutes, resolvePaidContentUnlockTarget, getBillingFeaturePricing, buildAstroSectionHtml, SERVER_KEYS;
+let handleAstroRoutes, resolvePaidContentUnlockTarget, getBillingFeaturePricing, buildAstroSectionHtml, SERVER_KEYS, buildAstroYearlyReading;
 beforeAll(async () => {
   ({ handleAstroRoutes } = await import("../../worker/routes/astro.js"));
   ({ resolvePaidContentUnlockTarget } = await import("../../worker/lib/content-unlocks.js"));
   ({ getBillingFeaturePricing } = await import("../../worker/lib/billing-feature-registry.js"));
   ({ buildAstroSectionHtml, ASTRO_SECTION_FEATURE_KEYS: SERVER_KEYS } = await import("../../worker/lib/astro-section/report.js"));
+  ({ buildAstroYearlyReading } = await import("../../worker/lib/astro-section/yearly.js"));
 });
 const FIXTURES = JSON.parse(readFileSync("__tests__/fixtures/astro-natal-charts.json", "utf8"));
 // 브라우저가 74ed86b26 에서 같은 차트로 만들던 유료 본문의 sha256 (scratch vm 으로 HEAD 생성기를 돌려 얻었다).
@@ -81,6 +84,18 @@ function grant(overrides = {}, featureKey = KEY) {
   });
 }
 
+// 앞으로 12개월(astro_yearly_transit): 행성 위치는 서버 Swiss 대신 astronomy-engine 으로 같은 값을 준다(브라우저 해시와 같은 출처).
+const Astronomy = createRequire(import.meta.url)("astronomy-engine");
+const BODIES = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"];
+const lonsAt = (ms) => {
+  const t = Astronomy.MakeTime(new Date(ms)), out = {};
+  for (const body of BODIES) out[body] = Astronomy.Ecliptic(Astronomy.GeoVector(body, t, true)).elon;
+  return out;
+};
+// 브라우저가 c5952bc88 에서 같은 차트·같은 오늘로 만들던 12개월 본문(renderYear + year 결과)의 sha256.
+const YEARLY_PARITY = JSON.parse(readFileSync("__tests__/fixtures/astro-yearly-client-parity.json", "utf8")).hashes;
+const YEARLY = "astro_yearly_transit";
+
 function swissChart(chart = FIXTURES.b1.chart) {
   const lon = (p) => p.idx * 30 + p.deg;
   return {
@@ -107,6 +122,7 @@ beforeEach(() => {
   cards.splice(0, cards.length, ...initialCards.map((card) => ({ ...card, birth: { ...card.birth } })));
   auth.mockReset().mockResolvedValue({ userId: TEST_USER_ID });
   swiss.mockReset().mockResolvedValue(swissChart());
+  transitLons.mockReset().mockResolvedValue(lonsAt);
   connectDb.mockReset().mockResolvedValue(undefined);
   exists.mockImplementation(async (query) => users.find((user) => matches(user, query)) || null);
   findOne.mockImplementation((query) => ({ lean: async () => grants.find((row) => matches(row, query)) || null }));
@@ -228,7 +244,7 @@ test("calculation failure is a retryable 503 without a body or leaked internals"
   expect(JSON.stringify(result)).not.toContain("internal wasm");
 });
 
-test.each(["astro_basic_deep_pack", "astro_yearly_transit", "", "__proto__"])("unsupported feature %j is rejected before reading rights", async (featureKey) => {
+test.each(["astro_basic_deep_pack", "astro_yearly_transit_x", "", "__proto__"])("unsupported feature %j is rejected before reading rights", async (featureKey) => {
   expect((await request({ ...INPUT, featureKey })).status).toBe(400);
   expect(findOne).not.toHaveBeenCalled();
 });
@@ -242,4 +258,55 @@ test("invalid birth place input is rejected before calculation", async () => {
 test("GET never reads rights or generates a body", async () => {
   expect((await request(null, "GET")).status).toBe(405);
   expect(auth).not.toHaveBeenCalled();
+});
+
+describe("astro_yearly_transit (앞으로 12개월)", () => {
+  const yearlyHtml = (chartId, variant, today, tz) => buildAstroYearlyReading({
+    chart: swissChart(FIXTURES[chartId][variant]), timeKnown: variant === "chart", birth: FIXTURES[chartId].birth, today, tz, lonsAt,
+  });
+  afterEach(() => jest.restoreAllMocks());
+
+  test("the server body matches the browser generator it replaced", () => {
+    const entries = Object.entries(YEARLY_PARITY);
+    expect(entries.length).toBeGreaterThanOrEqual(12);
+    for (const [id, hash] of entries) {
+      const [chartId, mode, day, tz] = id.split("|");
+      const { reading, html } = yearlyHtml(chartId, mode === "timed" ? "chart" : "noon", day, Number(tz));
+      expect(`${id} ${sha(html + "\n" + JSON.stringify(reading))}`).toBe(`${id} ${hash.body}`);
+    }
+  });
+
+  test("without a purchase returns registry pricing and no body", async () => {
+    grant();
+    const result = await request({ ...INPUT, featureKey: YEARLY, unlocked: true, transitTz: 9 });
+    const { pricing } = getBillingFeaturePricing({ featureKey: YEARLY });
+    expect(result).toEqual({ status: 402, body: expect.objectContaining({ reason: "PAYMENT_REQUIRED", featureKey: YEARLY, amountKRW: pricing.amountKRW, coinPrice: pricing.coinPrice }) });
+    expect(swiss).not.toHaveBeenCalled();
+    expect(transitLons).not.toHaveBeenCalled();
+  });
+
+  test("a BIRTH grant delivers the profile birth's 12 months from the server's today in the device time zone", async () => {
+    grant({}, YEARLY);
+    jest.spyOn(Date, "now").mockReturnValue(Date.parse("2026-10-04T03:00:00Z"));
+    const seoul = await request({ ...INPUT, featureKey: YEARLY, transitTz: 9, date: "2001-01-01", time: "03:00", today: "2030-01-01" });
+    expect(seoul.status).toBe(200);
+    expect(seoul.body).toMatchObject({ ok: true, unlocked: true, featureKey: YEARLY });
+    expect(seoul.body.html).toBe(yearlyHtml("b1", "chart", "2026-10-04", 9).html);
+    expect(swiss.mock.calls[0][1]).toMatchObject({ year: 1990, month: 10, day: 14, hour: 14, minute: 30 });
+    expect(transitLons.mock.calls[0][1]).toMatchObject({ requestUrl: "https://example.test/api/astro/section" });
+    Date.now.mockReturnValue(Date.parse("2026-12-28T20:00:00Z"));
+    const newYork = await request({ ...INPUT, featureKey: YEARLY, transitTz: -5 });
+    expect(newYork.body.html).toBe(yearlyHtml("b1", "chart", "2026-12-28", -5).html);
+    const outOfRange = await request({ ...INPUT, featureKey: YEARLY, transitTz: 99 });
+    expect(outOfRange.body.html).toBe(yearlyHtml("b1", "chart", "2026-12-29", 9).html);
+  });
+
+  test("a transit calculation failure is a retryable 503 without a body", async () => {
+    grant({}, YEARLY);
+    transitLons.mockRejectedValue(new Error("internal wasm path"));
+    const result = await request({ ...INPUT, featureKey: YEARLY, transitTz: 9 });
+    expect(result.status).toBe(503);
+    expect(result.body.html).toBeUndefined();
+    expect(JSON.stringify(result)).not.toContain("internal wasm");
+  });
 });

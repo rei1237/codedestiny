@@ -2940,5 +2940,732 @@
    "stageKey": "jangsaeng",
    "sha256": "5b4b9476987ce6fea0579a72c338691e82d0c79bc4d7d45a15cf889d690c7bfd"
   }
- ]
+ ],
+ "ziwei": {
+  "solar-m-1990": {
+   "ziwei_decade_luck": "72f16b3ecb5612d6d16b6f36cd9bca4ee5afd1b2fdebf06c86f09d0913b1c12e",
+   "ziwei_decade_luck_inner": "970e5e7596461f2150b74b05545c4d44b5d146421be68bc4f6ce22ada5a8d63d",
+   "ziwei_twelve_palaces": "64e4cbe3456bde83d55dc21636782e95f1bb4bd0c8e32abaad6dce86e057eead",
+   "ziwei_love_deep": "3434cf22478d1ce9d2066ca8b5844f98b4abf803fadc2ef8cfad527a5e866067",
+   "ziwei_symbolic_layer": "1194ca99f3933f323490fd3bfa2cf4fe4825c9accdcffb6a098e10a3501d4aa7",
+   "ziwei_life_yearly_flow": "a58110086801a3e8afe62e8000ab15823c6b5f4c18d5aac3c4f4c335e71ee5fe"
+  },
+  "solar-f-1985": {
+   "ziwei_decade_luck": "1428265df0dc37c154d467bea0c0db79474d92119cf653cf14e918bc9ebe94c1",
+   "ziwei_decade_luck_inner": "c1308cd24493110411db2820ef0205b01872e84cebf8273b44cd10347b8d6576",
+   "ziwei_twelve_palaces": "2441c1a895670f4555497189af78494e40f1c252ea3736b3c14ddcdd8edc3ba4",
+   "ziwei_love_deep": "b87aa1df17b0b216438e323f0504a08bdf1f01c80fe2a13e62664138736826c0",
+   "ziwei_symbolic_layer": "eabc8a2a92b35347a5fbe7c5c72562e5c9024999cbe1d124d7e149adb460300e",
+   "ziwei_life_yearly_flow": "0c66fedc2d77f0b329a7b623465c7c2937903ad816bb28c113fefddb509f0d43"
+  },
+  "unknown-f-1978": {
+   "ziwei_decade_luck": "6e914cfcd7c9ea5d9b040336cf3702c55e96a97fef1fc228fdcaea5221eb8086",
+   "ziwei_decade_luck_inner": "f2da58c9edca7c2fac106f43bb4017e4e133ce51a0949a632d8a345fe4693993",
+   "ziwei_twelve_palaces": "655313cde02f543d91b39ce3c16a50ab25a12fb450406b2616fdd87f676959c1",
+   "ziwei_love_deep": "205f88d952233435fc3724d02653d45f03202d844013a7761dd1189ca67b5efa",
+   "ziwei_symbolic_layer": "2553725ef973ba561499cd2c4c4ae61ea982e5439c556aaa0c0de76a14534943",
+   "ziwei_life_yearly_flow": "b8dbe016f56e3636c0723599a4eaf9cb1bfd8acd0e7660917c556aee4bbfca2a"
+  },
+  "lunar-m-1962": {
+   "ziwei_decade_luck": "2f72d42618edb083f87f3cf9e5c5824abca0c0c55b0142d02d69f8a053fac4ad",
+   "ziwei_decade_luck_inner": "b32ac16a59cb3f9428361eedff3185100a65fde0af6dd3b00a976bde8bcee507",
+   "ziwei_twelve_palaces": "0972767fe70cc400ade20fd74313dee9e79af68b78c357863ae395f0d0c37e6d",
+   "ziwei_love_deep": "2fa3d29bcf27edceceebb4bb66c802305682e4a69605ee05d069068981feeae1",
+   "ziwei_symbolic_layer": "3c9b391555850378c5da3302b8f182129ed9f3e486b52e7b4d2d7665fbab1025",
+   "ziwei_life_yearly_flow": "188963902cab0755f6341690520a3dadd72520c25981a82140df956af2510ad0"
+  },
+  "leap-f-2020": {
+   "ziwei_decade_luck": "fc4ada6142b415858969de29926b5055fcd505f7c441b177f2698869c5db8a27",
+   "ziwei_decade_luck_inner": "a2f36f96e6f976f77b6f3b3e4633e3416a99eb55f5e8f06bd445dbb9e54cb0e1",
+   "ziwei_twelve_palaces": "5d6426b4ffa8ac5bf0cb07f0daae0de7976c6d4b507a5251191f142eefc3cf20",
+   "ziwei_love_deep": "c33db796543b74bf1576358f3f1bbb9e170acf68f1d8d5f08db8541be0636835",
+   "ziwei_symbolic_layer": "357d46f3ec119fa4fbdecd7be08e991f3e9690899e2cd7b546f9d08ad19a78fc",
+   "ziwei_life_yearly_flow": "073a1849094ea7033418f065bb3118fbb66d42f4f7549719e31a5150314ca3c4"
+  },
+  "newyear-m-2001": {
+   "ziwei_decade_luck": "eb2cd8f0d4e91f3b1d79d3e2dcf92e95923741e17df46a16ddee088272569737",
+   "ziwei_decade_luck_inner": "b7c29a7ef97f3d3e51f41f69d0d1fefc092c7a7b25d0875bf750c21799ce9e97",
+   "ziwei_twelve_palaces": "9b85c295960e057449cd4b95be953e5d6b024d998d798303a8ac80e26169bd2d",
+   "ziwei_love_deep": "875ceb30165449ff2aabd7199ab5e49ba4fe27e9514996a17909eb9a7db8f249",
+   "ziwei_symbolic_layer": "8ec302831ec1f0e4735c95c290292f0e74e7129228936ae54ae303516b20f5e2",
+   "ziwei_life_yearly_flow": "fff7e9373d6b177f5953c52e5ebc379f20762e5c0948ae8f9da45f1d21f1f467"
+  },
+  "ny-f-1995": {
+   "ziwei_decade_luck": "3d6cc74b5a1a239ec595aeb807f37cfaa3dca4cda1eab83349910b0c421924c6",
+   "ziwei_decade_luck_inner": "e55c0d779820dadbbbb077c8f9e52661b75286af313149c9b5f2126993b38de0",
+   "ziwei_twelve_palaces": "fda0599b29044bf66d22045fe510073892eeec6a4e6816a7941bcde184668709",
+   "ziwei_love_deep": "7ed619e3c034244b9556bdfa4bb2e10e07b08f0c48bce4b2eab9a1d9588045cf",
+   "ziwei_symbolic_layer": "daf6dd73e26f94c17f0807f49fc92568b461454344af777fa7a94174ce5cf051",
+   "ziwei_life_yearly_flow": "0dbdc921c67e7d3f9b6259e3e13c5ea6a9f5c72b99f40feeaeffc1b77903938c"
+  },
+  "old-m-1941": {
+   "ziwei_decade_luck": "6be409f6b832af41337bcbacf061974db6e7160bf8fbc118df4ec3abca6df402",
+   "ziwei_decade_luck_inner": "56cf268fbaad88721f03bbf57f6e8d12af3ca6e928fa73967c179564e8b305f2",
+   "ziwei_twelve_palaces": "95a914112fbbbf2e4094466568a81016abc768c1fcfdec5f739e33216f95fccc",
+   "ziwei_love_deep": "4b4ee65e1c460c959e31d3051de8d451401a45ca35807e64b8f110aad9068465",
+   "ziwei_symbolic_layer": "4a5d74c381fbe85b4c972f014f47021c5c631b9746e7a06497b1bb89d9bfd32a",
+   "ziwei_life_yearly_flow": "aac005abc70f6ccb8bc18184bd7a7ec4efa5152099329f64fcbba51cd05820ab"
+  },
+  "young-f-2015": {
+   "ziwei_decade_luck": "40ebfd4a03708d52a3fb71c5de5426a25c1fd379bee8d5527816578578853d7a",
+   "ziwei_decade_luck_inner": "c3c68faff5456b472f5eae60dcc0f68290e3a7064ab57160a6cc1149787436ad",
+   "ziwei_twelve_palaces": "d93fc84f8a197449a8326892f4b3016426517dcee3fcebecd923189f3ed65c41",
+   "ziwei_love_deep": "66255d5d27cc7bcc9b21f46fa23e4bca2064bf86956737cac484194842f0be13",
+   "ziwei_symbolic_layer": "0b7db4c1914cdbd6e13f0377ad0c73bb2e532e9c058050125c83a5697349c79c",
+   "ziwei_life_yearly_flow": "40e966ac21f4f8909c868a2d71aab367cccd0d104c0a6a8fa69ef11ccc472bc5"
+  },
+  "jong-confirmed": {
+   "ziwei_decade_luck": "9dce55792c7fff58b6905f927d497a8200cbe3d1f489b49ff4da27671d3eedbe",
+   "ziwei_decade_luck_inner": "97465a0e534421e32714e0feef3d664272e4a566977ddd7b0a49ea309d1adcfd",
+   "ziwei_twelve_palaces": "9c1fa30916a965ffcf8e1149c29d758a5f3844dd05abcfdd25b7175cf9054ba5",
+   "ziwei_love_deep": "384115aa9c1ccc8003f21e3415ebd4f1316605ff18efb735d0ef14afd6c30a64",
+   "ziwei_symbolic_layer": "c2cf73b259f467fa6d5898c6aa040be15a4940e991d0a05e854e05c20ea1ae87",
+   "ziwei_life_yearly_flow": "16c726950a7da61c82cb6fbb6201980aa3a0edf0284d150e146fde5645402b87"
+  },
+  "jong-rejected": {
+   "ziwei_decade_luck": "9dce55792c7fff58b6905f927d497a8200cbe3d1f489b49ff4da27671d3eedbe",
+   "ziwei_decade_luck_inner": "97465a0e534421e32714e0feef3d664272e4a566977ddd7b0a49ea309d1adcfd",
+   "ziwei_twelve_palaces": "9c1fa30916a965ffcf8e1149c29d758a5f3844dd05abcfdd25b7175cf9054ba5",
+   "ziwei_love_deep": "384115aa9c1ccc8003f21e3415ebd4f1316605ff18efb735d0ef14afd6c30a64",
+   "ziwei_symbolic_layer": "c2cf73b259f467fa6d5898c6aa040be15a4940e991d0a05e854e05c20ea1ae87",
+   "ziwei_life_yearly_flow": "16c726950a7da61c82cb6fbb6201980aa3a0edf0284d150e146fde5645402b87"
+  },
+  "jong-unverified": {
+   "ziwei_decade_luck": "9dce55792c7fff58b6905f927d497a8200cbe3d1f489b49ff4da27671d3eedbe",
+   "ziwei_decade_luck_inner": "97465a0e534421e32714e0feef3d664272e4a566977ddd7b0a49ea309d1adcfd",
+   "ziwei_twelve_palaces": "9c1fa30916a965ffcf8e1149c29d758a5f3844dd05abcfdd25b7175cf9054ba5",
+   "ziwei_love_deep": "384115aa9c1ccc8003f21e3415ebd4f1316605ff18efb735d0ef14afd6c30a64",
+   "ziwei_symbolic_layer": "c2cf73b259f467fa6d5898c6aa040be15a4940e991d0a05e854e05c20ea1ae87",
+   "ziwei_life_yearly_flow": "16c726950a7da61c82cb6fbb6201980aa3a0edf0284d150e146fde5645402b87"
+  },
+  "hwa-confirmed": {
+   "ziwei_decade_luck": "0be02a11c89c06bd523f5cd02b82d7ff76a6c0fcae7e5eb34bb72e3776b2b600",
+   "ziwei_decade_luck_inner": "409d472b830c6ba40466443a6af1ce148859ba257cbf81d02fd9f90d53111726",
+   "ziwei_twelve_palaces": "45a149286718b4e8fcaf1c936441135c9f9daa61aa172a35b2aa2e31f097d97c",
+   "ziwei_love_deep": "5b78d582ecaaaf7a5b2014f82a02464e4d426223edc822e69ba7fe3eecb3f0a7",
+   "ziwei_symbolic_layer": "11f6115341ee96f6d7b3c48b47d3b57933114775227ee71d163dd3e0f378cb44",
+   "ziwei_life_yearly_flow": "57b214f23440a5f50d80698b8fd0eb714343d83af216395c7302147ad7756472"
+  }
+ },
+ "ziweiCompatCases": [
+  {
+   "id": "m1990-seoul-f",
+   "me": "solar-m-1990",
+   "partner": {
+    "date": "1992-05-18",
+    "time": "09:30",
+    "gender": "F",
+    "city": {
+     "name": "대한민국 · 서울",
+     "timezone": "Asia/Seoul",
+     "longitude": 126.978,
+     "latitude": 37.5665,
+     "baseTzOffset": 9
+    }
+   }
+  },
+  {
+   "id": "f1985-seoul-midnight-m",
+   "me": "solar-f-1985",
+   "partner": {
+    "date": "2001-01-01",
+    "time": "00:15",
+    "gender": "M",
+    "city": {
+     "name": "대한민국 · 서울",
+     "timezone": "Asia/Seoul",
+     "longitude": 126.978,
+     "latitude": 37.5665,
+     "baseTzOffset": 9
+    }
+   }
+  },
+  {
+   "id": "unknown1978-ny-m",
+   "me": "unknown-f-1978",
+   "partner": {
+    "date": "1987-07-04",
+    "time": "23:50",
+    "gender": "M",
+    "city": {
+     "name": "미국 · 뉴욕주 · 뉴욕",
+     "timezone": "America/New_York",
+     "longitude": -74.006,
+     "latitude": 40.7128,
+     "baseTzOffset": -5
+    }
+   }
+  },
+  {
+   "id": "lunar1962-busan-other",
+   "me": "lunar-m-1962",
+   "partner": {
+    "date": "1960-03-10",
+    "time": "14:00",
+    "gender": "OTHER",
+    "city": {
+     "name": "대한민국 · 부산",
+     "timezone": "Asia/Seoul",
+     "longitude": 129.0756,
+     "latitude": 35.1796,
+     "baseTzOffset": 9
+    }
+   }
+  },
+  {
+   "id": "ny1995-seoul-dst-f",
+   "me": "ny-f-1995",
+   "partner": {
+    "date": "1988-05-15",
+    "time": "01:10",
+    "gender": "F",
+    "city": {
+     "name": "대한민국 · 서울",
+     "timezone": "Asia/Seoul",
+     "longitude": 126.978,
+     "latitude": 37.5665,
+     "baseTzOffset": 9
+    }
+   }
+  },
+  {
+   "id": "leap2020-seoul-m",
+   "me": "leap-f-2020",
+   "partner": {
+    "date": "2019-12-31",
+    "time": "23:40",
+    "gender": "M",
+    "city": {
+     "name": "대한민국 · 서울",
+     "timezone": "Asia/Seoul",
+     "longitude": 126.978,
+     "latitude": 37.5665,
+     "baseTzOffset": 9
+    }
+   }
+  }
+ ],
+ "ziweiCompat": {
+  "m1990-seoul-f": {
+   "html": "2808bac19df222c1895ce03fb85110f26df61f7d07e7eab35057ce3a6a7e15cd",
+   "correctionMsg": "진태양시 보정 적용: 09:30 → 08:58 (경도 -32분, DST 0분, UTC+9)",
+   "correctedTime": "08:58",
+   "userLabel": "민수",
+   "partnerLabel": "상대방",
+   "archive": {
+    "myMingPalace": "자미 · 천상",
+    "partnerMingPalace": "염정 · 칠살",
+    "mySpousePalace": "탐랑",
+    "partnerSpousePalace": "천상",
+    "score": 89,
+    "loveScore": 50,
+    "marriageScore": 50,
+    "friendScore": 47,
+    "workScore": 49,
+    "businessScore": 48,
+    "pastLifeScore": 48
+   },
+   "llm": {
+    "overallScore": 89,
+    "categoryScores": [
+     {
+      "key": "연애 궁합",
+      "val": 85
+     },
+     {
+      "key": "결혼 궁합",
+      "val": 84
+     },
+     {
+      "key": "친구 궁합",
+      "val": 78
+     },
+     {
+      "key": "직장 궁합",
+      "val": 82
+     },
+     {
+      "key": "사업 궁합",
+      "val": 81
+     }
+    ],
+    "mingPalace": {
+     "me": {
+      "main": [
+       "자미",
+       "천상"
+      ],
+      "aux": []
+     },
+     "partner": {
+      "main": [
+       "염정",
+       "칠살"
+      ],
+      "aux": []
+     }
+    },
+    "spousePalace": {
+     "me": {
+      "main": [
+       "탐랑"
+      ],
+      "aux": [
+       "천마",
+       "녹존"
+      ]
+     },
+     "partner": {
+      "main": [
+       "천상"
+      ],
+      "aux": [
+       "녹존"
+      ]
+     }
+    },
+    "scores": {
+     "love": 50,
+     "marriage": 50,
+     "friend": 47,
+     "work": 49,
+     "business": 48,
+     "pastLife": 48
+    }
+   }
+  },
+  "f1985-seoul-midnight-m": {
+   "html": "ed0248cadbcb798eda144d6441e3499ed7b43cf600abe6b6b53766d9a13799db",
+   "correctionMsg": "진태양시 보정 적용: 00:15 → 2000-12-31 23:43 (경도 -32분, DST 0분, UTC+9)",
+   "correctedTime": "23:43",
+   "userLabel": "지은",
+   "partnerLabel": "상대방",
+   "archive": {
+    "myMingPalace": "자미 · 파군",
+    "partnerMingPalace": "태양 · 태음",
+    "mySpousePalace": "염정 · 탐랑",
+    "partnerSpousePalace": "천량",
+    "score": 87,
+    "loveScore": 46,
+    "marriageScore": 47,
+    "friendScore": 47,
+    "workScore": 48,
+    "businessScore": 48,
+    "pastLifeScore": 46
+   },
+   "llm": {
+    "overallScore": 87,
+    "categoryScores": [
+     {
+      "key": "연애 궁합",
+      "val": 81
+     },
+     {
+      "key": "결혼 궁합",
+      "val": 81
+     },
+     {
+      "key": "친구 궁합",
+      "val": 78
+     },
+     {
+      "key": "직장 궁합",
+      "val": 81
+     },
+     {
+      "key": "사업 궁합",
+      "val": 81
+     }
+    ],
+    "mingPalace": {
+     "me": {
+      "main": [
+       "자미",
+       "파군"
+      ],
+      "aux": [
+       "문창",
+       "문곡"
+      ]
+     },
+     "partner": {
+      "main": [
+       "태양",
+       "태음"
+      ],
+      "aux": [
+       "천괴"
+      ]
+     }
+    },
+    "spousePalace": {
+     "me": {
+      "main": [
+       "염정",
+       "탐랑"
+      ],
+      "aux": []
+     },
+     "partner": {
+      "main": [
+       "천량"
+      ],
+      "aux": [
+       "우필"
+      ]
+     }
+    },
+    "scores": {
+     "love": 46,
+     "marriage": 47,
+     "friend": 47,
+     "work": 48,
+     "business": 48,
+     "pastLife": 46
+    }
+   }
+  },
+  "unknown1978-ny-m": {
+   "html": "66e309a72468e4ba578ed2d7c0d5474751b866f184064dacf9d29ce90f4899c5",
+   "correctionMsg": "진태양시 보정 적용: 23:50 → 22:54 (경도 4분, DST 60분, UTC-4)",
+   "correctedTime": "22:54",
+   "userLabel": "사용자",
+   "partnerLabel": "상대방",
+   "archive": {
+    "myMingPalace": "천량",
+    "partnerMingPalace": "칠살",
+    "mySpousePalace": "거문",
+    "partnerSpousePalace": "염정 · 천상",
+    "score": 87,
+    "loveScore": 45,
+    "marriageScore": 48,
+    "friendScore": 47,
+    "workScore": 47,
+    "businessScore": 49,
+    "pastLifeScore": 48
+   },
+   "llm": {
+    "overallScore": 87,
+    "categoryScores": [
+     {
+      "key": "연애 궁합",
+      "val": 80
+     },
+     {
+      "key": "결혼 궁합",
+      "val": 82
+     },
+     {
+      "key": "친구 궁합",
+      "val": 78
+     },
+     {
+      "key": "직장 궁합",
+      "val": 80
+     },
+     {
+      "key": "사업 궁합",
+      "val": 82
+     }
+    ],
+    "mingPalace": {
+     "me": {
+      "main": [
+       "천량"
+      ],
+      "aux": []
+     },
+     "partner": {
+      "main": [
+       "칠살"
+      ],
+      "aux": []
+     }
+    },
+    "spousePalace": {
+     "me": {
+      "main": [
+       "거문"
+      ],
+      "aux": []
+     },
+     "partner": {
+      "main": [
+       "염정",
+       "천상"
+      ],
+      "aux": [
+       "녹존"
+      ]
+     }
+    },
+    "scores": {
+     "love": 45,
+     "marriage": 48,
+     "friend": 47,
+     "work": 47,
+     "business": 49,
+     "pastLife": 48
+    }
+   }
+  },
+  "lunar1962-busan-other": {
+   "html": "4aaf2c9b9902fc1706c67264759fa3e4b0ccb863a0bbaeb59edf492416f8a4f3",
+   "correctionMsg": "진태양시 보정 적용: 14:00 → 14:06 (경도 6분, DST 0분, UTC+8.5)",
+   "correctedTime": "14:06",
+   "userLabel": "Lee",
+   "partnerLabel": "상대방",
+   "archive": {
+    "myMingPalace": "자미 · 탐랑",
+    "partnerMingPalace": "천동 · 천량",
+    "mySpousePalace": "천부",
+    "partnerSpousePalace": "천기",
+    "score": 82,
+    "loveScore": 48,
+    "marriageScore": 49,
+    "friendScore": 47,
+    "workScore": 47,
+    "businessScore": 47,
+    "pastLifeScore": 47
+   },
+   "llm": {
+    "overallScore": 82,
+    "categoryScores": [
+     {
+      "key": "연애 궁합",
+      "val": 77
+     },
+     {
+      "key": "결혼 궁합",
+      "val": 78
+     },
+     {
+      "key": "친구 궁합",
+      "val": 74
+     },
+     {
+      "key": "직장 궁합",
+      "val": 75
+     },
+     {
+      "key": "사업 궁합",
+      "val": 75
+     }
+    ],
+    "mingPalace": {
+     "me": {
+      "main": [
+       "자미",
+       "탐랑"
+      ],
+      "aux": []
+     },
+     "partner": {
+      "main": [
+       "천동",
+       "천량"
+      ],
+      "aux": [
+       "녹존"
+      ]
+     }
+    },
+    "spousePalace": {
+     "me": {
+      "main": [
+       "천부"
+      ],
+      "aux": []
+     },
+     "partner": {
+      "main": [
+       "천기"
+      ],
+      "aux": []
+     }
+    },
+    "scores": {
+     "love": 48,
+     "marriage": 49,
+     "friend": 47,
+     "work": 47,
+     "business": 47,
+     "pastLife": 47
+    }
+   }
+  },
+  "ny1995-seoul-dst-f": {
+   "html": "3a5a8c29fcb71c5d7073896f8ae61716f7eddf6cb4dab0d4ae4a419ac8cacec0",
+   "correctionMsg": "진태양시 보정 적용: 01:10 → 1988-05-14 23:38 (경도 -32분, DST 60분, UTC+10)",
+   "correctedTime": "23:38",
+   "userLabel": "사용자",
+   "partnerLabel": "상대방",
+   "archive": {
+    "myMingPalace": "천동",
+    "partnerMingPalace": "태양",
+    "mySpousePalace": "천량",
+    "partnerSpousePalace": "천동 · 천량",
+    "score": 95,
+    "loveScore": 53,
+    "marriageScore": 58,
+    "friendScore": 48,
+    "workScore": 45,
+    "businessScore": 55,
+    "pastLifeScore": 54
+   },
+   "llm": {
+    "overallScore": 95,
+    "categoryScores": [
+     {
+      "key": "연애 궁합",
+      "val": 90
+     },
+     {
+      "key": "결혼 궁합",
+      "val": 94
+     },
+     {
+      "key": "친구 궁합",
+      "val": 82
+     },
+     {
+      "key": "직장 궁합",
+      "val": 80
+     },
+     {
+      "key": "사업 궁합",
+      "val": 90
+     }
+    ],
+    "mingPalace": {
+     "me": {
+      "main": [
+       "천동"
+      ],
+      "aux": [
+       "녹존"
+      ]
+     },
+     "partner": {
+      "main": [
+       "태양"
+      ],
+      "aux": [
+       "문곡"
+      ]
+     }
+    },
+    "spousePalace": {
+     "me": {
+      "main": [
+       "천량"
+      ],
+      "aux": []
+     },
+     "partner": {
+      "main": [
+       "천동",
+       "천량"
+      ],
+      "aux": [
+       "천마"
+      ]
+     }
+    },
+    "scores": {
+     "love": 53,
+     "marriage": 58,
+     "friend": 48,
+     "work": 45,
+     "business": 55,
+     "pastLife": 54
+    }
+   }
+  },
+  "leap2020-seoul-m": {
+   "html": "61702fa44d03eb9b4bcf6ec15ba2efeffa5eeddc0a922fe022ff071ec7b3c4e0",
+   "correctionMsg": "진태양시 보정 적용: 23:40 → 23:08 (경도 -32분, DST 0분, UTC+9)",
+   "correctedTime": "23:08",
+   "userLabel": "사용자",
+   "partnerLabel": "상대방",
+   "archive": {
+    "myMingPalace": "천기",
+    "partnerMingPalace": "태양 · 태음",
+    "mySpousePalace": "태양 · 천량",
+    "partnerSpousePalace": "천동",
+    "score": 95,
+    "loveScore": 50,
+    "marriageScore": 51,
+    "friendScore": 55,
+    "workScore": 52,
+    "businessScore": 54,
+    "pastLifeScore": 53
+   },
+   "llm": {
+    "overallScore": 95,
+    "categoryScores": [
+     {
+      "key": "연애 궁합",
+      "val": 87
+     },
+     {
+      "key": "결혼 궁합",
+      "val": 87
+     },
+     {
+      "key": "친구 궁합",
+      "val": 89
+     },
+     {
+      "key": "직장 궁합",
+      "val": 87
+     },
+     {
+      "key": "사업 궁합",
+      "val": 89
+     }
+    ],
+    "mingPalace": {
+     "me": {
+      "main": [
+       "천기"
+      ],
+      "aux": []
+     },
+     "partner": {
+      "main": [
+       "태양",
+       "태음"
+      ],
+      "aux": []
+     }
+    },
+    "spousePalace": {
+     "me": {
+      "main": [
+       "태양",
+       "천량"
+      ],
+      "aux": []
+     },
+     "partner": {
+      "main": [
+       "천동"
+      ],
+      "aux": [
+       "우필"
+      ]
+     }
+    },
+    "scores": {
+     "love": 50,
+     "marriage": 51,
+     "friend": 55,
+     "work": 52,
+     "business": 54,
+     "pastLife": 53
+    }
+   }
+  }
+ }
 }

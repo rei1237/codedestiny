@@ -1219,6 +1219,28 @@ export async function getSwissTropicalLongitudes(env, julianDays, bodies, option
   });
 }
 
+/**
+ * 트랜싯 타임라인용: WASM 인스턴스를 한 번 얻어, 순간(UTC ms) → 행성 10개 트로피컬 황경(0~360°)을
+ * 동기로 돌려주는 함수를 만든다(js/core/astro/transits.js 의 opts.lonsAt 모양, 브라우저 AstroEngine.lonsAtMs 와 같은 플래그).
+ * @param {object} env
+ * @param {object} [options] getSwiss 옵션
+ * @returns {Promise<(ms:number) => Record<string, number>>}
+ */
+export async function createSwissTransitLonsAt(env, options = {}) {
+  const swe = await getSwiss(env, options);
+  const iflag = swe.SEFLG_SWIEPH | swe.SEFLG_SPEED;
+  const bodies = Object.keys(TROPICAL_BODY_CONSTANTS);
+  return (ms) => {
+    const jd = julianDayFromUtcMillis(ms);
+    const out = {};
+    for (const body of bodies) {
+      const lon = readLongitudeFromResult(swe.swe_calc_ut(jd, swe[TROPICAL_BODY_CONSTANTS[body]], iflag), body);
+      out[body] = ((lon % 360) + 360) % 360;
+    }
+    return out;
+  };
+}
+
 export const __swissEphemerisTestUtils = {
   extractHouseCusps,
   sanitizeUrlLikeEnvValue,

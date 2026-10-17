@@ -14,7 +14,8 @@
     astro_stellar_career_room: true,
     astro_stellar_talent_room: true,
     astro_stellar_relationship_room: true,
-    astro_stellar_growth_room: true
+    astro_stellar_growth_room: true,
+    astro_yearly_transit: true
   };
   var states = Object.create(null);
 
@@ -41,6 +42,8 @@
     var body = Object.assign({ featureKey: key }, birthInput(), { lang: lang() });
     var id = profileId();
     if (id) body.profileId = id;
+    /* 앞으로 12개월은 기기 시간대의 오늘부터 센다 — 날짜는 서버 시계로 정하고 시간대만 넘긴다. */
+    if (key === 'astro_yearly_transit') body.transitTz = -new Date().getTimezoneOffset() / 60;
     return body;
   }
   function notice(body, text, retry) {
