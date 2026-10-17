@@ -129,8 +129,11 @@
   </section>
 
   <section class="cdh-honey" data-cd-honey-widget aria-labelledby="cdHoneyTitle">
-    <div class="cdh-honey__intro"><p class="cdh-intro">하루 한 번, 나를 알아가는 시간</p><h2 id="cdHoneyTitle">매일 모으는 꿀방울</h2><p>하루 한 번 출석하고, 재미 운세와 기본 해석을 열어보세요.</p></div>
-    <div class="cdh-honey__actions"><p class="cdh-honey__balance">내 꿀방울 <strong data-cd-honey-balance>확인 중</strong></p><button type="button" class="cdh-primary" data-cd-honey-attend disabled>출석 확인 중</button><button type="button" class="cdh-honey__uses" data-cd-sheet-open="cdHoneySheet" aria-haspopup="dialog" aria-controls="cdHoneySheet">꿀방울 사용처 보기</button></div>
+    <div class="cdh-honey__story">
+      <img class="cdh-honey__yeoni" src="/images/fortune-tea-house/flower-pig-honey-hug.webp" width="361" height="411" loading="lazy" decoding="async" alt="꿀방울을 품에 안고 웃는 꽃돼지 연이">
+      <div class="cdh-honey__intro"><h2 id="cdHoneyTitle">연이에게 모아주는 꿀방울</h2><p class="cdh-honey__storyline">꽃돼지 연이는 달콤한 꿀을 맛보는 걸 좋아해요. <br>꿀방울을 모아다 주면, 꽃처럼 환하게 웃는답니다.</p><p class="cdh-honey__hint">하루 한 번 출석하고, 모은 꿀방울로 재미 운세와 기본 해석을 열어보세요.</p></div>
+    </div>
+    <div class="cdh-honey__actions"><div class="cdh-honey__wallet"><img src="/images/fortune-tea-house/honey-drop-counter.webp" width="320" height="320" loading="lazy" decoding="async" alt=""><p class="cdh-honey__balance"><span>내가 모은 꿀방울</span><strong data-cd-honey-balance>확인 중</strong></p></div><button type="button" class="cdh-primary" data-cd-honey-attend disabled>출석 확인 중</button><button type="button" class="cdh-honey__uses" data-cd-sheet-open="cdHoneySheet" aria-haspopup="dialog" aria-controls="cdHoneySheet">꿀방울 사용처 보기</button></div>
     <p data-cd-honey-status role="status" aria-live="polite"></p><button type="button" data-cd-honey-retry hidden>다시 확인하기</button>
   </section>
   <dialog class="cd-sheet" id="cdHoneySheet" data-cd-sheet aria-labelledby="cdHoneySheetTitle"><div class="cd-sheet__panel"><div class="cd-sheet__head"><h2 id="cdHoneySheetTitle">꿀방울로 여는 나의 이야기</h2><button type="button" class="cd-sheet__close" data-cd-sheet-close aria-label="닫기">×</button></div><div class="cd-sheet__body"><p>콘텐츠마다 필요한 개수가 달라요. 기본 해석은 저장된 프로필의 출생정보를 기준으로 열립니다.</p><p data-cd-honey-sheet-state role="status"></p><div data-cd-honey-uses></div></div></div></dialog>
@@ -223,7 +226,7 @@
   </div>
 </section>
 <!-- 모든 운세 보기 — 달빛 예화 이중 틀 버튼. 전체 운세 시트(cdOpenAllFortunes)를 연다. -->
-<p class="cdh-all-cta"><a class="cdh-all-cta__btn" href="/?action=cdOpenAllFortunes" data-action="cdOpenAllFortunes"><span class="cdh-all-cta__sprig cdh-all-cta__sprig--start" aria-hidden="true"></span><span class="cdh-all-cta__copy"><span class="cdh-all-cta__label" data-cd-trans="home.gardenCopy.allFortunes">모든 운세 보기</span></span><svg class="cdh-all-cta__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg><span class="cdh-all-cta__sprig cdh-all-cta__sprig--end" aria-hidden="true"></span></a></p>
+<p class="cdh-all-cta"><a class="cdh-all-cta__btn" href="/?action=cdOpenAllFortunes" data-action="cdOpenAllFortunes"><span class="cdh-links__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M12 6.5C9.6 5 6.8 4.7 4 5.5v12c2.8-.8 5.6-.5 8 1 2.4-1.5 5.2-1.8 8-1v-12c-2.8-.8-5.6-.5-8 1Zm0 0v12"/></svg></span><span class="cdh-all-cta__copy"><span class="cdh-all-cta__label" data-cd-trans="home.gardenCopy.allFortunes">모든 운세 보기</span></span><svg class="cdh-all-cta__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a></p>
 <nav class="cdh-links" aria-label="더 둘러보기" data-cd-trans-attr="aria-label:home.funnelCopy.explore">
   <a class="cdh-links__game" href="/mini-games/"><span class="cdh-links__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><rect x="4.2" y="5.4" width="8.6" height="12.6" rx="1.6" transform="rotate(-14 8.5 11.7)"/><rect x="10.6" y="5" width="8.6" height="12.6" rx="1.6" transform="rotate(9 14.9 11.3)"/><path d="M15.9 9.2a2.3 2.3 0 1 0 1.3 3.6 1.9 1.9 0 1 1-1.3-3.6z"/></svg></span><span data-cd-trans="home.simpleHome.miniGames">미니 운세 게임</span><svg class="cdh-links__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
 </nav>
