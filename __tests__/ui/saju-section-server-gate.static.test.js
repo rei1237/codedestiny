@@ -250,12 +250,15 @@ test("점성술 상담 심화 분석 4종과 봉인된 별의 방 4종 생성기
 });
 
 // 자미두수 명반 상세 유료 장(출생 단위 해금). 명반 계산·무료 미리보기·잠금 카드는 브라우저에 남고, 유료 본문 생성기는 서버(paid-ziwei.src.js)로 옮겼다.
-const ZIWEI_SERVER_KEYS = ["ziwei_decade_luck"];
+const ZIWEI_SERVER_KEYS = ["ziwei_decade_luck", "ziwei_twelve_palaces"];
 test("자미두수 유료 장 생성기와 본문 문장이 브라우저 경로에 없다", () => {
   const FORBIDDEN = [
     // 대한 운세(ziwei_decade_luck): 12대한 타임라인과 1년운 안쪽 10년 대한 표.
     "PALACE_DAHAN_THEME", "zwDahanBuildSections", "zwDahanSambangSajeong", "zwFlowDecadeSummary",
     "동료·협력자의 조력이 운명을 바꾸는 시기", "의 주제를 3년 단위 목표로 나누고",
+    // 12궁 정밀 해설(ziwei_twelve_palaces): 12궁 핵심 지도 표와 궁별 정밀 카드.
+    "buildZwSummaryTableHtml", "buildZwTwelvePalaceDeepHtml", "ZW_PALACE_DEEP_FRAME", "ZW_BR_DEEP_PHRASE", "zwDeepPalaceBranchIdx",
+    "가장 가까운 사람들과 어떻게 협력하는가", "이 자리에서 별의 성질이 힘 있게 드러납니다",
   ];
   const offenders = [];
   for (const rel of browserServedFiles()) {

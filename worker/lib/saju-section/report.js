@@ -17,7 +17,7 @@ import { buildAnimalDestinyReading } from "./animal-destiny.js";
 // 숙요 기본 궁합(compat-sukuyo-compatibility)·정밀 궁합 확장(premium-sukuyo-compat-extra)은 회당 결제다 — 라우트가 이번 결제 1건을 상대 조합 1건에 묶는다.
 export const SUKUYO_COMPAT_FEATURE_KEYS = Object.freeze(["compat-sukuyo-compatibility", "premium-sukuyo-compat-extra"]);
 // 자미두수 명반 상세(_renderZwPanel)의 출생 해금 유료 장. 한 번에 모든 장을 계산하고 요청한 장만 돌려준다.
-export const ZIWEI_SECTION_FEATURE_KEYS = Object.freeze(["ziwei_decade_luck"]);
+export const ZIWEI_SECTION_FEATURE_KEYS = Object.freeze(["ziwei_decade_luck", "ziwei_twelve_palaces"]);
 export const SAJU_SECTION_FEATURE_KEYS = Object.freeze(["section_summary", "section_daewun", "rpt_quantumCard", "sukuyo-extreme-t-relationship", "sukuyo-relationship-encyclopedia", "sukuyo-nature-deep-dive", ...SUKUYO_COMPAT_FEATURE_KEYS, "rpt_energyCoordCard", "rpt_villainCard", "rpt_healthReportCard", "rpt_specialCharmCard", "rpt_skillTreeCard", "rpt_secretHouseEntryCard", "animal-destiny-unlock", ...ZIWEI_SECTION_FEATURE_KEYS]);
 // 클라이언트 출생지 선택의 기본 옵션(index.html #birthCountry 의 대한민국 서울).
 const DEFAULT_PLACE = Object.freeze({ name: "대한민국 (서울)", longitude: 127.0, latitude: 37.6, timezone: "Asia/Seoul", baseTzOffset: 9 });
