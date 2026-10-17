@@ -145,7 +145,7 @@ test('restored hero artwork, catalog reuse, and collection previews stay in sync
   const restored = {
     'fortune-tea-house': '/images/fortune-tea-house/premium-tea-house-desktop.webp',
     'master-love-codex': '/images/feature-details/master-love-codex-hero-v1.webp',
-    'neo-operation-room': '/images/feature-details/neo-operation-room-hero-v1.webp',
+    'neo-operation-room': '/images/feature-details/neo-operation-room-hero-v2-textless.webp',
     omikuji: '/fuctionassets/오미쿠지.webp',
   };
   for (const [slug, image] of Object.entries(restored)) {
@@ -180,7 +180,7 @@ test('restored hero artwork, catalog reuse, and collection previews stay in sync
 
   const signatureSources = Object.fromEntries([...fragment.querySelectorAll('#cdSignatureConsult [data-cd-service-id]')].map(card => [card.getAttribute('data-cd-service-id'), card.querySelector('img')?.getAttribute('src') || '']));
   const signatureArtwork = {
-    'neo-operation-room': '/images/feature-details/neo-operation-room-hero-v1.webp',
+    'neo-operation-room': '/images/feature-details/neo-operation-room-hero-v2-textless.webp',
     'fortune-tea-house': '/images/home/yeoni-tea-together-v1-1200.webp',
     'master-love-codex': '/images/feature-details/master-love-codex-hero-v3.webp',
     // 대표 상담 3종은 상품 마스터(연이·서한비 / 네오 / 윤달)가 등장하는 전용 키 아트다.
