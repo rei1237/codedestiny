@@ -592,7 +592,7 @@ html.neo-mode .cd-af,body.neo-mode .cd-af{--cd-af-ink:#f4eeff;--cd-af-muted:#d8c
 .cd-af__empty .cd-af__empty-title{color:var(--cd-af-ink);font-size:1.05rem;font-weight:800}
 /* Approved illustrated home. Scene art stays separate from readable controls. */
 .cdh-hero {
-  --cdh-scene-image: url('/images/home/illustrated/yeoni-room-1280.webp');
+  --cdh-scene-image: url('/images/home/illustrated/yeoni-moon-garden-1280.webp');
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr);
@@ -606,8 +606,8 @@ html.neo-mode .cd-af,body.neo-mode .cd-af{--cd-af-ink:#f4eeff;--cd-af-muted:#d8c
   border-radius: var(--cd-r-section, 26px);
   background: var(--cdh-bg) var(--cdh-scene-image) center / cover no-repeat;
 }
-/* 다크 모드도 연이 방이다 — 같은 구도의 밤 버전. */
-html.neo-mode .cdh-hero { --cdh-scene-image: url('/images/home/illustrated/yeoni-room-night-1280.webp'); }
+/* 다크 모드도 같은 달빛 꽃정원이다 — 자두·와인빛 밤 버전. */
+html.neo-mode .cdh-hero { --cdh-scene-image: url('/images/home/illustrated/yeoni-moon-garden-night-1280.webp'); }
 #cdHomeFunnel .cdh-scene-copy { position: relative; z-index: 2; }
 #cdHomeFunnel .cdh-scene-copy h1 { font-family: "CodeDestinySerifKR", "Batang", serif; font-size: clamp(30px, 3.6vw, 52px); font-weight: 700; line-height: 1.5; letter-spacing: -.025em; color: var(--cdh-ink); word-break: keep-all; }
 #cdHomeFunnel .cdh-scene-copy h1 span { font-family: inherit; font-weight: inherit; }
@@ -649,8 +649,8 @@ html.neo-mode #cdHomeFunnel .cdh-scene-copy .cdh-primary { background: var(--cd-
 #cdHomeFunnel .cdh-search .fortune-gateway__discover { display: block; }
 #cdHomeFunnel .cdh-search .fortune-gateway__search { width: 100%; min-width: 0; }
 @media (max-width: 640px) {
-  .cdh-hero { --cdh-scene-image: url('/images/home/illustrated/yeoni-room-640.webp'); grid-template-columns: minmax(0,1fr); min-height: 440px; margin: 8px 12px 0; padding: 28px 22px 0; border-radius: var(--cd-r-card, 20px); background-position:left center; }
-  html.neo-mode .cdh-hero { --cdh-scene-image: url('/images/home/illustrated/yeoni-room-night-640.webp'); }
+  .cdh-hero { --cdh-scene-image: url('/images/home/illustrated/yeoni-moon-garden-640.webp'); grid-template-columns: minmax(0,1fr); min-height: 440px; margin: 8px 12px 0; padding: 28px 22px 0; border-radius: var(--cd-r-card, 20px); background-position:left center; }
+  html.neo-mode .cdh-hero { --cdh-scene-image: url('/images/home/illustrated/yeoni-moon-garden-night-640.webp'); }
   #cdHomeFunnel .cdh-scene-copy h1 { font-size: clamp(27px, 7vw, 32px); line-height: 1.5; letter-spacing: -.035em; }
   #cdHomeFunnel .cdh-scene-inscription { margin-bottom:18px; font-size:12px; letter-spacing:.1em; gap:10px; }
   .cdh-scene-inscription::after { width:28px; }
@@ -674,7 +674,7 @@ html.neo-mode #cdHomeFunnel .cdh-scene-copy .cdh-primary { background: var(--cd-
 @media(max-width: 640px) { .cdh-mode-row { margin: 0 12px 8px; } #cdHomeFunnel .cdh-method img { width: 52px; height: 52px; } }
 /* Moonlight floral endpaper: one compressed raster, no fixed paint layer. */
 #cdHomeFunnel { position: relative; --cdh-page-art: url('/images/home/illustrated/moon-floral-light-1280.webp'); background-color:var(--cdh-bg);background-image:radial-gradient(circle at 7% 30%,color-mix(in srgb,var(--cdh-surface) 44%,transparent),transparent 18%),radial-gradient(circle at 94% 70%,color-mix(in srgb,var(--cdh-gold-soft) 62%,transparent),transparent 20%); }
-#cdHomeFunnel::before { content: ''; position: absolute; inset: 0 0 auto; z-index: -1; aspect-ratio: 2 / 3; background: var(--cdh-page-art) center top / 100% auto no-repeat; opacity: .32; pointer-events: none; }
+#cdHomeFunnel::before { content: ''; position: absolute; inset: 0 0 auto; z-index: -1; aspect-ratio: 2 / 3; background: var(--cdh-page-art) center top / 100% auto no-repeat; opacity: .5; -webkit-mask-image: linear-gradient(#000 50%, transparent 96%); mask-image: linear-gradient(#000 50%, transparent 96%); pointer-events: none; }
 html.neo-mode #cdHomeFunnel { --cdh-page-art: url('/images/home/illustrated/moon-floral-dark-1280.webp'); }
 /* 최애 케미 진입 카드: 밤 무대 그림 위에 문구. 색은 카드 안에서만 쓰는 사설 값이다. */
 #cdHomeFunnel .cdh-chemi { position: relative; display: block; min-height: 168px; margin: 18px 40px 0; overflow: hidden; border: 1px solid #5a4a86; border-radius: 18px; background: #120b26; color: #fff; text-decoration: none; isolation: isolate; }
@@ -1100,6 +1100,17 @@ html.neo-mode .cdh,body.neo-mode .cdh{--cdh-glass-line:color-mix(in srgb,var(--c
 #cdHomeFunnel .cdh-links a{display:inline-flex;align-items:center;min-height:44px;padding:0 10px;color:var(--cdh-muted);font-size:15px;text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--cdh-gold) 40%,transparent);text-underline-offset:4px}
 #cdHomeFunnel .cdh-links a:hover{color:var(--cdh-accent)}
 #cdHomeFunnel .cdh-links a:focus-visible{outline:3px solid var(--cdh-accent);outline-offset:2px;border-radius:4px}
+/* 미니 운세 게임 — 금박 이중 테두리 알약. 첫 화면 위계를 지키려고 바탕은 채우지 않는다(verify-home-funnel "closing link row stays text"). */
+#cdHomeFunnel .cdh-links a.cdh-links__game{position:relative;gap:12px;min-height:52px;padding:6px 20px 6px 7px;border:1px solid color-mix(in srgb,var(--cd-yehwa-line) 80%,transparent);border-radius:999px;color:var(--cdh-ink);font:600 15.5px/1.3 var(--cdh-serif);letter-spacing:.02em;text-decoration:none;box-shadow:0 12px 26px -22px color-mix(in srgb,var(--cdh-accent) 70%,transparent);transition:color .2s,box-shadow .2s}
+#cdHomeFunnel .cdh-links a.cdh-links__game::before{content:'';position:absolute;inset:3px;border:1px solid color-mix(in srgb,var(--cd-yehwa-line) 38%,transparent);border-radius:inherit;pointer-events:none}
+#cdHomeFunnel .cdh-links a.cdh-links__game>span{font-family:inherit}
+#cdHomeFunnel .cdh-links__icon{display:inline-grid;place-items:center;flex:none;width:38px;height:38px;border:1px solid color-mix(in srgb,var(--cdh-gold) 55%,transparent);border-radius:50%;color:var(--cdh-gold)}
+#cdHomeFunnel .cdh-links__icon svg{width:20px;height:20px}
+#cdHomeFunnel .cdh-links__arrow{flex:none;width:16px;height:16px;color:var(--cdh-accent);transition:transform .2s}
+#cdHomeFunnel .cdh-links a.cdh-links__game:hover{color:var(--cdh-accent);box-shadow:0 0 0 4px color-mix(in srgb,var(--cdh-gold) 12%,transparent),0 16px 30px -20px color-mix(in srgb,var(--cdh-accent) 75%,transparent)}
+#cdHomeFunnel .cdh-links a.cdh-links__game:hover .cdh-links__arrow{transform:translateX(3px)}
+#cdHomeFunnel .cdh-links a.cdh-links__game:focus-visible{outline-offset:3px;border-radius:999px}
+@media(prefers-reduced-motion:reduce){#cdHomeFunnel .cdh-links a.cdh-links__game,#cdHomeFunnel .cdh-links__arrow{transition:none}#cdHomeFunnel .cdh-links a.cdh-links__game:hover .cdh-links__arrow{transform:none}}
 /* 달빛 이야기 — 닫힌 상태는 카드 뒷면 두 장이 겹친 작은 예화 버튼, 열면 타로 카드 Ⅰ·Ⅱ 가 뒷면에서 뒤집히며 펼쳐진다(JS 없음).
  * 카드 틀은 대표 상담 덱의 금빛 glass + inset 링을 그대로 쓴다. */
 #cdHomeFunnel .cdh-story{margin:4px 40px 0;text-align:center}
@@ -1241,3 +1252,36 @@ html.neo-mode #cdHomeFunnel .cd-concern__free,body.neo-mode #cdHomeFunnel .cd-co
 @media(prefers-reduced-motion:reduce){#cdHomeFunnel .cd-concern__card{transition:none}}
 /* 예전 concern 기본 스타일의 점·노치·달 장식은 새 질문 카테고리에서 끈다(가격 옆 원이 겹쳐 보였다). */
 #cdHomeFunnel .cdh-qcat .cd-concern__q-link::before,#cdHomeFunnel .cdh-qcat .cd-concern__panel::before,#cdHomeFunnel .cdh-qcat .cd-concern__panel::after{content:none}
+
+/* 2026-10-17 달빛 꽃정원 히어로: 황혼(라이트)·자두빛 밤(다크) 보름달 정원 그림 위에
+ * 문구 베일(왼쪽) + 달무리(오른쪽 위) + 금박 이중 테두리 + 데스크톱에서만 느리게 흐르는 꽃잎.
+ * 베일이 꽃잎보다 위 레이어라 문구 자리에서는 꽃잎이 거의 보이지 않는다. 달 위치(그림 76%·27%)에 맞춰 배경을 위로 올린다. */
+#cdHomeFunnel .cdh-hero{
+  --cdh-hero-petals:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22280%22%20height%3D%22280%22%3E%3Cg%20fill%3D%22%23f4c3cf%22%20fill-opacity%3D%22.8%22%3E%3Cpath%20d%3D%22M60%2040c5-8%2015-8%2018%200-3%208-13%2010-18%200Z%22%2F%3E%3Cpath%20d%3D%22M205%20150c4-7%2013-7%2015%200-2%207-11%209-15%200Z%22%20transform%3D%22rotate(35%20212%20150)%22%2F%3E%3C%2Fg%3E%3Cpath%20d%3D%22M130%20235c4-6%2011-6%2013%200-2%206-9%207-13%200Z%22%20fill%3D%22%23e8cf9a%22%20fill-opacity%3D%22.75%22%20transform%3D%22rotate(-25%20136%20235)%22%2F%3E%3C%2Fsvg%3E");
+  background-position:center 24%;
+  border-color:color-mix(in srgb,var(--cdh-gold) 45%,var(--cdh-line));
+  box-shadow:0 28px 56px -40px color-mix(in srgb,var(--cdh-accent) 55%,transparent);
+}
+#cdHomeFunnel .cdh-hero::before{
+  content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:
+    linear-gradient(90deg,color-mix(in srgb,var(--cdh-bg) 72%,transparent) 0%,color-mix(in srgb,var(--cdh-bg) 46%,transparent) 40%,transparent 64%),
+    radial-gradient(circle at 76% 30%,color-mix(in srgb,var(--cd-yehwa-line) 30%,transparent),transparent 22%),
+    var(--cdh-hero-petals) 0 0 / 280px 280px repeat;
+}
+#cdHomeFunnel .cdh-hero::after{
+  content:'';position:absolute;inset:8px;z-index:1;pointer-events:none;
+  border:1px solid color-mix(in srgb,var(--cd-yehwa-line) 70%,transparent);
+  border-radius:calc(var(--cd-r-section,26px) - 8px);
+  box-shadow:inset 0 0 0 3px transparent,inset 0 0 0 4px color-mix(in srgb,var(--cd-yehwa-line) 28%,transparent);
+}
+/* 셸의 네오 로고 광채(index.html, !important)는 밤 정원 위에서 캐릭터 뒤 어두운 상자로 보인다 — 히어로 안에서만 끈다. */
+html.neo-mode #cdHomeFunnel .cdh-scene-art #honeypigLogo{box-shadow:none!important}
+#cdHomeFunnel .cdh-hero--compact h1::after{content:'';display:block;width:72px;height:1px;margin-top:12px;background:linear-gradient(90deg,var(--cd-yehwa-line),transparent)}
+@keyframes cdhPetalDrift{from{background-position:0 0,0 0,0 0}to{background-position:0 0,0 0,-280px 280px}}
+@media(min-width:641px) and (prefers-reduced-motion:no-preference){#cdHomeFunnel .cdh-hero::before{animation:cdhPetalDrift 48s linear infinite}}
+@media(max-width:640px){
+  #cdHomeFunnel .cdh-hero{background-position:76% 22%}
+  #cdHomeFunnel .cdh-hero::before{background:linear-gradient(90deg,color-mix(in srgb,var(--cdh-bg) 80%,transparent) 0%,color-mix(in srgb,var(--cdh-bg) 62%,transparent) 58%,color-mix(in srgb,var(--cdh-bg) 30%,transparent) 100%)}
+  #cdHomeFunnel .cdh-hero::after{inset:6px;border-radius:calc(var(--cd-r-card,20px) - 6px)}
+}

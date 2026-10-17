@@ -59,7 +59,7 @@ test('yehwa-motifs.css is generated, paired for Safari, quiet, and repainted for
   // 라인아트는 텍스트 뒤의 배경 장식 — 실측(2026-09-03) 연이 히어로 일러스트 위에서 .5 가 선 대비 1.3:1(은은),
   // 그 위로 올리면 일러스트를 덮는다. 상한 .5 를 넘기면 장식이 아니라 그림이 된다.
   assert.doesNotMatch(css, /\.moon-hero__yehwa/);
-  assert.match(read('styles/home-funnel.css'), /yeoni-room-640\.webp/);
+  assert.match(read('styles/home-funnel.css'), /yeoni-moon-garden-640\.webp/);
 });
 
 // ── PR-2 (2026-09-03) — 카드 인장·스파클 ───────────────────────────────────────
