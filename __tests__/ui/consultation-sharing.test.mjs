@@ -10,7 +10,7 @@ const neo = { sessionId: 'PRIVATE_ID', status: 'completed', question: 'PRIVATE_Q
 test('every canonical tea product shares only saved excerpts, without private fields', async () => {
   const pricing = await build({ entryPoints: ['src/features/fortune-tea-house/data/consultPricing.ts'], bundle: true, platform: 'node', format: 'esm', write: false });
   const { fortuneTeaHouseConsultPricing } = await import('data:text/javascript;base64,' + Buffer.from(pricing.outputFiles[0].text).toString('base64'));
-  assert.equal(Object.keys(fortuneTeaHouseConsultPricing).length, 5);
+  assert.equal(Object.keys(fortuneTeaHouseConsultPricing).length, 6);
   for (const [consultationMode, { featureKey }] of Object.entries(fortuneTeaHouseConsultPricing)) {
     const choices = teaHouseShareChoices({ ...tea, consultationMode, featureKey });
     assert.equal(choices.length, 3);

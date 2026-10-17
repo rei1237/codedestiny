@@ -68,7 +68,7 @@ test('representative introductions open as product cards with real chapters, unc
   assert.equal(cards.length, detail.crafted.length);
   cards.forEach((card, index) => {
     assert.equal(card.querySelector('summary strong').textContent, detail.crafted[index].title.split(' · ')[1]);
-    const price = detail.crafted[index].id === 'tea-saju' ? '15,000원' : '10,000원';
+    const price = getBillingFeaturePricing({featureKey:detail.crafted[index].featureKey}).pricing.amountKRW.toLocaleString('ko-KR') + '원';
     assert.match(card.querySelector('.craftedCardMeta').textContent, new RegExp(`그림 안내 \\d+장 · ${price}$`));
     assert.ok([...card.querySelectorAll('.craftedDetail img')].every(image => image.getAttribute('loading') === 'lazy'));
   });

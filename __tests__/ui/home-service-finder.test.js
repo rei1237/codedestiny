@@ -213,9 +213,9 @@ test("범위 가격 항목은 걸치는 가격대 칩에 모두 나온다", asyn
   assert.ok(inChip("vvip", "마스터 인연의 서"), "30,000원~50,000원 항목이 프리미엄에서 빠졌다");
   assert.ok(!inChip("premium", "마스터 인연의 서"), "범위 밖의 1만원대에 섞였다");
   assert.ok(!inChip("mid", "마스터 인연의 서"), "범위 밖의 3천원대에 섞였다");
-  // 찻집은 전 상품 10,000원 단일 가격이므로 1만원대에만 남는다.
-  assert.ok(!inChip("high", "운명의 찻집"));
-  assert.ok(inChip("premium", "운명의 찻집"));
+  // 찻집 대표 상품인 3카드 타로의 시작 가격 5,000원으로 분류한다.
+  assert.ok(inChip("high", "운명의 찻집"));
+  assert.ok(!inChip("premium", "운명의 찻집"));
   assert.ok(!inChip("vvip", "운명의 찻집"));
   assert.ok(!inChip("mid", "애니멀 토템"));
   assert.ok(inChip("high", "애니멀 토템"));
