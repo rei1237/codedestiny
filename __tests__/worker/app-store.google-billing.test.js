@@ -698,7 +698,18 @@ describe("intent — 결제 의도 기록", () => {
 
   // 2026-10-11 앱의 모든 현행 가격대는 검증된 SKU를 쓰고, 1,000원 유료 기능만 무료 판정에서 제외한다.
   const APP_LOW_PRICE_KEYS = ["rpt_specialCharmCard", "rpt_skillTreeCard", "fun.quantumLotto.ritualReport", "profile-card-manage"];
-  const APP_REGISTERED_KEYS = [...STATIC_READING_PRICE_KEYS, ...APP_LOW_PRICE_KEYS];
+  const RETIRED_ISLAND_KEYS = ["ziwei-island-deep-report", "ziwei-island-palace-consult"];
+  const APP_REGISTERED_KEYS = [...STATIC_READING_PRICE_KEYS, ...APP_LOW_PRICE_KEYS].filter(key => !RETIRED_ISLAND_KEYS.includes(key));
+  test.each(RETIRED_ISLAND_KEYS)("판매 종료된 %s 는 앱 구매 의도와 무료 해금을 생성하지 않는다", async (featureKey) => {
+    expect(registry.FEATURE_KEY_PRICE_TABLE[featureKey].saleEnabled).toBe(false);
+    for (const path of ["/free-grant", "/google/intent"]) {
+      const { status, payload } = await callRoute(postJson(path, { featureKey, profileId: "me", requestId: "retired-island" }));
+      expect(status).toBe(409);
+      expect(payload.code).toBe("PRODUCT_SALE_DISABLED");
+    }
+    expect(mockIntentCreate).not.toHaveBeenCalled();
+    expect(mockPaymentCreate).not.toHaveBeenCalled();
+  });
   test("음악은 10코인 무료, 천원 운세와 프로필 관리는 tier_15 유료", () => {
     expect(appPricing.isAppFreeFeature("music-track-fixture", 10)).toBe(true);
     expect([...appPricing.APP_PAID_LOW_PRICE_FEATURE_KEYS].sort()).toEqual([...APP_LOW_PRICE_KEYS].sort());
