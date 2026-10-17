@@ -400,3 +400,5 @@ ce80879ab5ab8a7efcc5dc4307802037eaa0a8f0:worker/lib/saju-section/runtime.generat
 eee12f66d2aec1a1668cb50c70f6336cabe83255:worker/lib/saju-section/runtime.generated.mjs:generic-api-key:7
 89826021afb87d4ab57dcabc149183eebe54174b:worker/lib/saju-section/runtime.generated.mjs:generic-api-key:8
 0cf3fc7d40a3c9381112f6a54149e0e54dd5cf22:worker/lib/saju-section/runtime.generated.mjs:generic-api-key:8
+# 2026-10-17 오탐: 자미두수 서버 이전으로 runtime.generated.mjs 재생성 — 8행 i18n 값 "Api Karma"(비밀값 아님).
+c2d3fec8b507a9a8a554f112a3ffceeb2fc00554:worker/lib/saju-section/runtime.generated.mjs:generic-api-key:8

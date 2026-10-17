@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-17
-next: "D단계 남은 상품 이전: 자미두수 생애·부부궁·상징·자미 궁합(대한·12궁은 진행 중 브랜치) → 점성술 시나스트리 2종·12개월 흐름(astro_yearly_transit). 사용자 결정 대기: 마야 홈 타일 1회 표기, 계정 묶음 구매의 프로필 무관 인정."
+next: "D단계 남은 상품 이전: 자미두수 생애·연간 흐름(ziwei_life_yearly_flow, 가드 수정이 자동 모드에 막혀 사용자 처리 대기) · 점성술 시나스트리 2종·12개월 흐름(통합 중). 사용자 결정 대기: 마야 홈 타일 1회 표기, 계정 묶음 구매의 프로필 무관 인정."
 ---
 
 # 운명 찻집 10,000원: 이용권 차감 누락과 결제 증빙 재사용 구멍
@@ -388,3 +388,9 @@ next: "D단계 남은 상품 이전: 자미두수 생애·부부궁·상징·자
   - 검증: 서버 사본과 HEAD 생성기 sha256 480건 일치(`astro-section-client-parity.json`), check:fast 31단계·pre-push 통과, gitleaks 유출 없음. `verify:doc-freshness`만 실패 — `CURRENT_DEV_BASELINE.md` 정리일 10-02가 15일을 넘겼다(origin/main도 동일). 사용자 결정: 그대로 push, 문서 정리는 따로.
   - 건너뜀: `astro_basic_deep_pack`(이미 서버), `astro_monthly_transit`(유료 본문 없음). 남음: `astro_yearly_transit`(트랜짓 엔진 전체 필요), 시나스트리 2종(회당).
   - 후속: 직접 입력 시나스트리 결과에 이름이 이스케이프 없이 들어간다(self-XSS), product-ledger 문서 갱신.
+- 2026-10-17 — **D단계 상품 이전 7: 자미두수 5종** (대한 `c2d3fec8b`, 12궁 `2e9d0e1d0`, 미러 `b2e52bc2d`, 부부궁 `289529d76`, 상징 `5ecc693f8`, 궁합 `5b219ba24`, 미러 `f35a34ea5`)
+  - 출생 해금(각 50코인): `ziwei_decade_luck`·`ziwei_twelve_palaces`·`ziwei_love_deep`·`ziwei_symbolic_layer`. 본문은 `worker/lib/saju-section/paid-ziwei.src.js` 원문 사본(현재 시각만 `ctx.now`)으로 옮기고 화면 생성기를 지웠다. 해금된 카드의 출생으로만 계산, 해금 없음·다른 프로필 402, DB 장애 503, 옛 계정 해금 인정. `daehan_purchases`는 해금으로 인정하지 않는다.
+  - 자미 궁합(`compat-ziwei-compatibility`, 회당 50): requestId `compat-archive:compat-ziwei-compatibility:<꼬리>`만 받고, 그린 뒤 `verifyPerUsePayment(requireExisting)` → `claimRequestBillingEvidence(requestId|sha256(내 출생·성별·출생지 + 상대 입력))`. 같은 조합 재요청 200, 같은 결제로 다른 상대·카드 409, 결제·claim 장애 503. 숙요 궁합의 결제 확인을 공용 `provePerUseCompat`·`perUseBirth`로 뺐다(동작 동일).
+  - 검증: 출생 해금 13건·궁합 6조합(날짜 넘김·뉴욕 서머타임·1988 한국 서머타임·시각 모름) HEAD와 sha256 일치, jest 411/6594, check:fast 31단계(doc-freshness 제외)·pre-push 통과. gitleaks "Api Karma" 오탐 지문 1개 추가.
+  - 남음: `ziwei_life_yearly_flow` — 장 안의 10년운 칸 생산 줄이 서버로 옮겨져 `verify-saju-unlock-entitlement-regression`(브라우저 파일만 검사)이 실패한다. 사용자는 가드가 `paid-ziwei.src.js`도 검사하도록 넓히는 안을 승인했으나 그 수정이 자동 모드 분류기에 막혔다. WIP: `D:\Development\codedestiny-worktrees\ziwei-life-yearly-flow-wip-20261017.patch`.
+  - 후속: `verify-ziwei-report-browser`의 가격 30이 낡음, 결제 뒤 서버 호출 실패 시 재시도가 결제 게이트를 다시 거침(같은 requestId 재사용 검토), USER_NAME 이중 escape(기존), 서버 로딩 상태 스타일.
