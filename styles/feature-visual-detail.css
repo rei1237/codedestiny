@@ -1,3 +1,4 @@
+@import './consultation-sample-guide.css';
 /* 달빛 예화 상세 표면 — 정적 팝업(#tilePvwOverlay)·SSG(/features/[slug]/)·React(.cd-detail-overlay)가 같은 시트를 쓴다.
    표시 전용: 결제 컨트롤러는 각 호스트에 남는다. 모드 토큰(--fd-*) 한 벌만 바뀌고(연이=아이보리 달빛 종이, 네오=밤하늘),
    --fortune-* 는 그 토큰을 가리키므로 테마·소재 규칙과 특이성 싸움이 없다. 금선(--cd-yehwa-line*)은 장식 전용. */

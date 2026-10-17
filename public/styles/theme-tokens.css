@@ -7,6 +7,15 @@
  */
 
 :root {
+  /* Consultation introductions keep the bright Ggulggul palette in every host. */
+  --cd-samples-paper: #fff9f4;
+  --cd-samples-sheet: #ffffff;
+  --cd-samples-ink: #402a38;
+  --cd-samples-muted: #6b4d5e;
+  --cd-samples-rose: #a52e54;
+  --cd-samples-line: #e4d2d8;
+  --cd-samples-blush: #f8e4ea;
+  --cd-samples-lilac: #f1eaf8;
   /* 네오 이메일 상담 전용. 다른 서비스의 페르소나 색은 바꾸지 않는다. */
   --cd-neo-letter-night: #101f34;
   --cd-neo-letter-blue: #193d60;

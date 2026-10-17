@@ -1,4 +1,5 @@
 export type VisualDetail = {
+  consultationGuide?: import('./consultation-sample-guide.mjs').ConsultationSampleGuide;
   crafted?: CraftedDetail[];
   slug: string; title: string; href: string; featureKey: string; featureKeyTo?: string; accessType: string;
   image: string; headline: string; description: string; ctaLabel: string; verification: string; category?: string;

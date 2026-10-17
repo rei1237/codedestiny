@@ -114,6 +114,8 @@
 /public/js/chunks/extra-fortune.chunk.js
 /public/js/chunks/saju-analysis.chunk.js
 /public/js/compat-llm-prompts.js
+/public/js/consultation-sample-guide.d.mts
+/public/js/consultation-sample-guide.mjs
 /public/js/core/access-store.js
 /public/js/core/analytics.js
 /public/js/core/app-context.d.ts
@@ -286,6 +288,7 @@
 /public/styles/astro-reading.css
 /public/styles/basic-fortune-library.css
 /public/styles/concern-first-home.css
+/public/styles/consultation-sample-guide.css
 /public/styles/core-ui.css
 /public/styles/cosmic-main.css
 /public/styles/destiny-anatomy.css
@@ -308,7 +311,6 @@
 /public/styles/press-coverage.css
 /public/styles/pwa-lifecycle.css
 /public/styles/recommendations.css
-/public/styles/result-samples.css
 /public/styles/review-reward.css
 /public/styles/saju-entry-flow.css
 /public/styles/saju-reading.css

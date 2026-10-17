@@ -10,6 +10,7 @@ import { extractObjectLiteral } from './feature-marketing-extract.mjs';
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const cleanPath = value => String(value || '').replace(/\/+$/, '');
 const craftedCatalog = JSON.parse(fs.readFileSync(path.join(root, 'content/product-details/catalog.json'), 'utf8'));
+const consultationSamples = JSON.parse(fs.readFileSync(path.join(root, 'lib/marketing/result-samples.json'), 'utf8'));
 let resolvePricing;
 // Same resolver as the page's start price, so a card never disagrees with the checkout.
 const priceKRWFor = featureKey => (resolvePricing ||= loadTsModule('lib/payment/server-feature-pricing.ts').resolveServerFeaturePricing)({ featureKey })?.amountKRW;
@@ -206,6 +207,8 @@ export function buildVisualDetails(html, book) {
       ...verified[record.slug],
     };
     const final = items[record.slug];
+    const consultation = consultationSamples.find(item => item.slug === record.slug && item.guide);
+    if (consultation) final.consultationGuide = consultation.guide;
     const crafted = craftedIntroductions(record.slug);
     if (crafted.length) final.crafted = crafted;
     if (['book', 'letter'].includes(final.material)) {

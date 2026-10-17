@@ -1,3 +1,4 @@
+import ResultSamples from '@/app/components/ResultSamples';
 import LifeBookAiRouteClient from "./LifeBookAiRouteClient";
 import ServiceIntroSection from "../components/ServiceIntroSection";
 import ImmersiveRelatedLinks from "../components/ImmersiveRelatedLinks";
@@ -22,6 +23,7 @@ export default function LifeBookAiPage() {
   return (
     <>
       <LifeBookAiRouteClient />
+      <ResultSamples ids={['life-book']}/>
       <ServiceIntroSection label="인생의 책 전문가 상담 안내">
         <h1><span>인생 총운 — 사주로 보는 평생 운세 리포트</span>내 인생의 황금기는 언제일까?</h1>
         <p>

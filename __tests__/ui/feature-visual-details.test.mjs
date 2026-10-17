@@ -72,7 +72,8 @@ test('representative introductions open as product cards with real chapters, unc
     assert.match(card.querySelector('.craftedCardMeta').textContent, new RegExp(`그림 안내 \\d+장 · ${price}$`));
     assert.ok([...card.querySelectorAll('.craftedDetail img')].every(image => image.getAttribute('loading') === 'lazy'));
   });
-  assert.ok(fragment.querySelector('.fortuneSample') && fragment.querySelector('.fortuneBenefits'), 'sample and benefits follow the cards');
+  assert.ok(fragment.querySelector('.consultation-guide') && fragment.querySelector('.fortuneBenefits'), 'shared readable guide and existing benefits remain available');
+  assert.equal(fragment.querySelector('.fortuneSample'), null, 'shared guide replaces the duplicate short sample');
   const single = JSDOM.fragment(renderFeatureDetailPanels({verification:'verified',title:'t',crafted:[{title:'t',notice:'예시',badge:'추가 질문 1회 포함',chapters:[{title:'첫 장',detail:'<b>근거</b>'},{title:'둘째 장'}],panels:[{title:'p',text:'p',src:'/p.webp'}]}]}));
   assert.equal(single.querySelector('.craftedBadge').textContent, '추가 질문 1회 포함');
   assert.deepEqual([...single.querySelectorAll('.craftedChapters li strong')].map(node => node.textContent), ['첫 장', '둘째 장']);
@@ -280,6 +281,7 @@ test('popup journey preserves image previews and escapes FAQ without adding chec
     assert.doesNotMatch(html, /onclick=|href="(?:javascript:|\/checkout|\/payment)/);
     const founderLinks = new Set(detail.founder ? ['/about/#author', '/yeongnyangi/#founder-records'] : []);
     for (const link of html.matchAll(/href="([^"]+)"/g)) {
+      if (detail.consultationGuide && link[1] === 'https://claude.ai/artifact/PtPUfhaiHM37ebpxtr4nQV') continue;
       if (!founderLinks.has(link[1])) assert.match(link[1], /^\/features\/[a-z0-9-]+\/$/);
     }
     assert.doesNotMatch(renderFeatureDetailPanels(detail), /data-feature-conversion-request/);

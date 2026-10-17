@@ -1,3 +1,4 @@
+import ResultSamples from '@/app/components/ResultSamples';
 import type { Metadata } from "next";
 import NeoOperationRoomClient from "./NeoOperationRoomClient";
 import ImmersiveRelatedLinks from "../components/ImmersiveRelatedLinks";
@@ -26,6 +27,7 @@ export default function NeoOperationRoomRoute() {
           🔴 이 섹션에 H1 을 두지 말 것 — 페이지의 H1 은 클라이언트가 이미 소유하고 있다.
           2026-08-30: sr-only 였던 본문을 ServiceIntroSection 으로 가시화했다(성장 계획 1-D) — 본문 전체를
           숨긴 형태는 Google 의 Hidden text 정책 소지가 있고 AdSense 검수자에게도 보이지 않는다. 배치는 앱 아래. */}
+      <ResultSamples ids={['neo']}/>
       <ServiceIntroSection label="네오의 팩폭 작전실 안내">
         <h2>네오의 팩폭 작전실 — 위로 대신 진단으로 여는 상담</h2>
         <p>

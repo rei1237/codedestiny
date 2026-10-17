@@ -1,0 +1,33 @@
+.consultation-guide {
+  color: var(--cd-samples-ink);
+  background: var(--cd-samples-paper);
+  padding: clamp(20px, 4vw, 40px);
+  border-radius: var(--cd-r-section);
+  font-family: var(--font-body, sans-serif);
+  font-size: 1rem;
+  line-height: 1.85;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+.consultation-guide *, .consultation-guide *::before, .consultation-guide *::after { box-sizing: border-box; }
+.consultation-guide :is(h2,h3,h4,h5,h6) { color: var(--cd-samples-ink); margin: 0 0 16px; line-height: 1.5; font-weight: 700; }
+.consultation-guide > :is(h2,h3) { font-family: var(--font-serif,serif); font-size: var(--cd-t-section); }
+.consultation-guide p { max-width: 70ch; margin: 0 0 16px; color: inherit; }
+.consultation-guide__outline { margin: 28px 0; }
+.consultation-guide__outline > div { padding: 18px 0; border-top: 1px solid var(--cd-samples-line); }
+.consultation-guide__outline dt { font-weight: 700; }
+.consultation-guide__outline dd { margin: 6px 0 0; color: var(--cd-samples-muted); }
+.consultation-guide__prepare { margin: 28px 0 36px; }
+.consultation-guide__reading { padding-block: 24px 8px; border-block: 1px solid var(--cd-samples-line); }
+.consultation-guide__example { padding-bottom: 20px; }
+.consultation-guide__example blockquote { margin: 20px 0; padding: 0; border: 0; font-family: var(--font-serif,serif); font-size: 1.05rem; line-height: 1.9; color: var(--cd-samples-ink); }
+.consultation-guide .consultation-guide__note { font-size: .85rem; color: var(--cd-samples-muted); }
+.consultation-guide a { display: inline-flex; align-items: center; min-height: 44px; color: var(--cd-samples-rose); text-underline-offset: 4px; font-size: .85rem; }
+.consultation-guide__more { border-top: 1px solid var(--cd-samples-line); }
+.consultation-guide__more summary { min-height: 52px; padding: 14px 0; cursor: pointer; font-weight: 700; color: var(--cd-samples-rose); }
+.consultation-guide__more summary span { margin-left: 12px; font-size: .85rem; font-weight: 400; color: var(--cd-samples-muted); }
+.consultation-guide__more[open] summary { margin-bottom: 24px; }
+.consultation-guide .consultation-guide__delivery { margin: 24px 0 0; color: var(--cd-samples-muted); font-size: .9rem; }
+.consultation-guide :is(a,summary):focus-visible { outline: 2px solid var(--cd-samples-rose); outline-offset: 4px; }
+.consultation-guide ::selection { background: var(--cd-samples-blush); color: var(--cd-samples-ink); }
