@@ -68,15 +68,17 @@
     var signature = JSON.stringify(request);
     var state = states[key] || (states[key] = { signature: '', status: '', failedAt: 0, seq: 0 });
     if (!force && state.signature === signature && body.getAttribute('data-astro-section') === 'ready') return;
-    if (state.status === 'loading' && state.signature === signature) return;
-    if (!force && state.status === 'failed' && state.signature === signature && Date.now() - state.failedAt < FAILED_QUIET_MS) return;
+    // A rerender replaces the body while the request/state can still be alive.
+    // Only suppress repeat work for the same DOM destination, never a new empty gate.
+    if (state.body === body && state.status === 'loading' && state.signature === signature) return;
+    if (state.body === body && !force && state.status === 'failed' && state.signature === signature && Date.now() - state.failedAt < FAILED_QUIET_MS) return;
     var seq = state.seq += 1;
-    state.signature = signature; state.status = 'loading';
+    state.signature = signature; state.status = 'loading'; state.body = body;
     body.setAttribute('data-astro-section', 'loading');
     body.setAttribute('aria-busy', 'true');
     notice(body, '구매 권한과 심화 분석을 확인하고 있어요.');
     var timer;
-    var fresh = function () { return state.seq === seq && gate.isConnected && JSON.stringify(requestOf(key)) === signature; };
+    var fresh = function () { return states[key] === state && state.seq === seq && gate.isConnected && JSON.stringify(requestOf(key)) === signature; };
     try {
       if (typeof root._cdAIPromptRequestJson !== 'function') throw new Error('requester unavailable');
       var result = await Promise.race([
