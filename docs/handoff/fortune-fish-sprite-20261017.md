@@ -1,0 +1,36 @@
+---
+status: blocked
+---
+# Fortune Fish sprite redesign — 2026-10-17
+
+## 요청과 구현
+한 종류의 귀여운 스프라이트 물고기가 변하는 움직임만으로 운세를 보고, 부가 기능을 없애며 미국 감성 UI로 개선.
+- 4행 x 4열 투명 PNG, 동일 금붕어의 유영/고개 들기/몸 말기/쉬기.
+- 크림·코랄·청록의 미국 빈티지 해변 포스터 방향. 한국어 UI, 네 움직임과 연결된 짧은 해석/행동 조언.
+- 어종/카테고리/친밀도/수집/가챠 화면 제거. 기존 ftf_v3 저장 데이터는 삭제하지 않음.
+- 홈페이지 상세 설명과 12개 언어 진입 설명 갱신. 생성 미러는 sync 스크립트로 갱신.
+- 결제 정책/가격/이용권/월정석/단건 결제, 인증/API/DB 공통 코드 변경 없음. 실호출/운영 배포 없음.
+
+## 보존 위치와 커밋
+- 작업 디렉터리: D:\Development\codedestiny-worktrees\fortune-fish-20261017-200624
+- 브랜치: wt/fortune-fish-20261017-200624
+- 마지막 구현 커밋: e1d3690cd63da0b755431c37242d33e96e9e53b5
+- 구현: f370ed16d9c9b12d7a279459e47b9a7fd40b1e49
+- 생성기 원장: 15482c1418ceebe031907b749d96cafce5287e1e
+- main 통합/push: 보류. 다른 세션 작업은 건드리지 않음. 미통합이라 워크트리 보존.
+
+## 검증 근거
+- node --require ./scripts/lib/mock-network-guard.cjs --test __tests__/ui/fortune-fish.test.js __tests__/ui/payment-service.static.test.js: 13/13 PASS (최종 소스).
+- Playwright local-only: 360/390/430/1280px 가로 넘침 없음, 네 결과/반복/일시정지/reduced motion/이전 저장값 유지, JS 오류 없음.
+- 화면 검수: 390/1280/결과 화면 중대 결함 없음. 대비 최저 5.37:1.
+- sync:public 및 후속 정본 생성 스크립트 실행. git diff --check PASS.
+- npm run check:pre-push: 사이트맵 원장 생성기 갱신 후 PASS. 마지막 재실행 결과는 아래 fish-pre-push.log 확인.
+- npm run check:fast -- --plan 실행. check:fast는 critical로 자동 승격되어 90개 paid gate 실행 중 npm test FAIL(388.4s) 기록. 상세 실패 로그는 runner가 아직 출력하지 않아 원인 미확정. 병행 pre-push에서 esbuild Worker EINVAL 발생 후 본 세션 check:fast 프로세스 트리만 중단함. 전체 검사 통과로 간주하지 않는다.
+- impeccable detect 경고: 지역 타이포/글자 크기, 짧은 영문 브랜드 자간, 도형 안 여백 자동 판정. 별도 화면 검수에서 잘림·가독성 문제 없음.
+- 캡처/로그: C:\Users\user\.codex\visualizations\2026\10\17\01a14989-d40e-7450-9bdb-2320b0bcd4e9 (fish-390.png, fish-1280.png, fish-result.png, fish-check-fast.log, fish-pre-push.log).
+
+## 외부 차단과 다음 단계
+원격 main 08e321aae2dcc19fb6239261ad902f45a5a0d882 CI 실패: 홈 모드 토글의 두 칸 세그먼트 정적 검사. 본 작업과 무관.
+https://github.com/rei1237/codedestiny/actions/runs/39026685632
+저장소 규칙에 따라 실패한 main 위에 push하지 않음. 첫 행동: 현재 origin/main SHA와 CI 복구 여부 확인. 기존 실패를 임의 수정하지 않는다.
+복구 후 동시 세션과 파일 소유를 확인하고 main에 직접 통합. index/public 셸은 다른 세션 변경을 보존하고 소스 합친 뒤 sync:public, sitemap:generate로 생성. 원장은 손으로 병합하지 않는다. 필요한 검증, check:pre-push, push, CI 1회 확인. 이후 이 문서 done 처리, node_modules 정션 해제 후 자기 워크트리/머지된 wt 브랜치 배수.
