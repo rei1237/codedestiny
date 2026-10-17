@@ -6578,6 +6578,7 @@ html.neo-mode .cdh,body.neo-mode .cdh{--cdh-glass-line:color-mix(in srgb,var(--c
 #cdHomeFunnel .cdh-story__num{margin:2px 0 8px;color:color-mix(in srgb,var(--tarot-hue) 70%,var(--cdh-ink));font:600 13px/1 "CodeDestinySerifLatin","Cinzel",serif;letter-spacing:.12em}
 #cdHomeFunnel .cdh-story__window{flex:1;width:100%;min-height:0;overflow:hidden;border-radius:10px;box-shadow:0 0 0 1px color-mix(in srgb,var(--cdh-gold) 40%,transparent)}
 #cdHomeFunnel .cdh-story__window img{display:block;width:100%;height:100%;object-fit:cover;background:none}
+#cdHomeFunnel .cdh-story__card--novel .cdh-story__window img{object-fit:contain}
 #cdHomeFunnel .cdh-story__crest{display:block;width:62px;height:auto;margin:8px 0 2px;background:none}
 #cdHomeFunnel .cdh-story__name{font:700 15px/1.35 var(--cdh-serif)}
 #cdHomeFunnel .cdh-story__note{color:var(--cdh-muted);font:600 9.5px/1.5 "CodeDestinySerifLatin","Cinzel",serif;letter-spacing:.18em}
@@ -10733,7 +10734,7 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
   <div class="cdh-story__spread">
     <a class="cdh-story__card cdh-story__card--novel" href="/codedestiny-novel.html">
       <span class="cdh-story__num" aria-hidden="true">Ⅰ</span>
-      <span class="cdh-story__window"><img src="https://assets.code-destiny.com/cdn-cgi/image/width=760,quality=82,format=auto/CodeDestinyNovel/%EB%9D%BC%EC%9D%B4%ED%8A%B8%20%EB%85%B8%EB%B2%A8.webp" width="640" height="360" alt="" loading="lazy" decoding="async"></span>
+      <span class="cdh-story__window"><img src="/images/novel/yeongnyangi-cover-640.webp" srcset="/images/novel/yeongnyangi-cover-640.webp 640w, /images/novel/yeongnyangi-cover-960.webp 960w" sizes="(max-width:640px) 42vw, 240px" width="640" height="427" alt="인간형 연이와 영냥이, 모카, 윤달, 서한비가 등장하는 운명 모험 표지" loading="lazy" decoding="async"></span>
       <img class="cdh-story__crest" src="/images/home/mv/ornament-lotus-crest-160.webp" width="160" height="58" alt="" loading="lazy" decoding="async">
       <strong class="cdh-story__name" data-cd-trans="footer.story.novel">라이트 노벨</strong>
       <small class="cdh-story__note">LIGHT NOVEL</small>
@@ -11343,9 +11344,8 @@ html.neo-mode body .cd-ai-feats__card strong{color:#f4eeff}
 html.neo-mode body .cd-ai-feats__card p{color:rgba(228,214,255,.86)}
 
 /* ── 운명의 서재 = 라이트 노벨 히어로 (novel-hero-v20260731) ────────────
-   표지 자산(CodeDestinyNovel/라이트 노벨.webp)은 배경 플레이트가 아니라 금색 액자·"운명의 지도"
-   제목·상하단 명판이 그림 안에 박힌 완성 포스터다. 배경으로 크롭하면 액자와 좌우 캐릭터가 잘리고
-   그림 속 제목과 오버레이 제목이 겹치므로, 3:2 원본을 온전히 두고 카피 패널을 옆(모바일은 아래)에 세운다.
+   표지는 영냥이·연이·모카·윤달의 모험을 담은 3:2 일러스트다.
+   좌우 동료까지 잘리지 않도록 원본을 온전히 두고 카피 패널을 옆(모바일은 아래)에 세운다.
    앞쪽 .moon-story-entry 규칙들이 연이=흰 그라디언트 / 네오=퍼플 다크로 배경·글자색을 !important 로
    고정하므로, --novel 모디파이어에서 표면·텍스트·강조를 '한 세트로' 덮는다(반쪽 오버라이드 금지).
    연이=딥 플럼(핑크 다크), 네오=미드나잇 잉크(퍼플), 골드는 두 모드 공용이며 짙은 표면 위에서만 쓴다. */
