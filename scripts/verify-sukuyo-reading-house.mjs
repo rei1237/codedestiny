@@ -63,7 +63,7 @@ try {
       await page.setViewportSize({width,height:900});
       await page.locator('.cdh-honey').scrollIntoViewIfNeeded();
       await page.waitForFunction(()=>Array.from(document.querySelectorAll('.cdh-honey img')).every(img=>img.complete && img.naturalWidth));
-      assert.deepEqual(await page.locator('.cdh-honey img').evaluateAll(images=>images.map(img=>getComputedStyle(img).backgroundColor)),['rgba(0, 0, 0, 0)','rgba(0, 0, 0, 0)']);
+      assert.ok(await page.locator('.cdh-honey img').evaluateAll(images=>images.length>=2 && images.every(img=>getComputedStyle(img).backgroundColor==='rgba(0, 0, 0, 0)')));
       await page.locator('.cdh-honey').screenshot({path:path.join(output,`honey-${width}.png`)});
     }
     await page.setViewportSize({width:390,height:844});

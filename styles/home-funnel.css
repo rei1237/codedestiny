@@ -1300,4 +1300,4 @@ html.neo-mode #cdHomeFunnel .cdh-scene-art #honeypigLogo{box-shadow:none!importa
 
 /* Bounded, non-interactive collection layer; motion is started only after a credit. */
 .cdh-honey__collection{position:absolute;inset:0;z-index:2;overflow:hidden;border-radius:inherit;pointer-events:none}
-.cdh-honey__collection>img{position:absolute;top:0;left:0;width:32px;height:32px;object-fit:contain}
+.cdh-honey__collection>img{background-color:transparent!important;position:absolute;top:0;left:0;width:32px;height:32px;object-fit:contain}
