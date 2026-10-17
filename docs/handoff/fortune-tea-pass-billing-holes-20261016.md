@@ -399,3 +399,4 @@ next: "D단계 남은 상품 이전은 자미두수 생애·연간 흐름(ziwei_
   - 12개월 흐름(`astro_yearly_transit`, 출생 해금 50): `year()`·`renderYear()`와 사전을 `worker/lib/astro-section/paid-yearly.cjs`로 원문 이전. `/api/astro/section`이 출생 해금을 확인하고 서버 Swiss로 출생 차트·통과 위치를 만들며, "오늘"은 서버 시계 + 기기 시간대(`transitTz`, 없으면 KST)다. 페이지에는 오늘 카드와 무료 머리("가장 큰 변화의 달")만 남는다.
   - 검증: 시나스트리 c5952bc88 대비 469 비교 0 불일치, 12개월 HEAD 해시 90/90(12건 fixture). 자미두수 이전 위로 rebase하며 `saju-section-server-gate.static.test.js` 충돌은 두 테스트 블록을 모두 살려 풀었다. check:fast 단계(doc-freshness 제외)·pre-push 통과, gitleaks 누출 없음.
   - 후속: `scripts/verify-crafted-astro-unlocks.cjs`는 로컬 서버가 필요하고 npm 스크립트에 연결돼 있지 않다. docs/product-details·docs/payments가 아직 클라이언트 `year/renderYear`를 언급한다.
+- 2026-10-17 — **후속 과제 분리**: 이 문서의 단계별 "후속"·"남은 위험"을 origin/main에서 다시 확인해 우선순위대로 `docs/handoff/paid-access-followups-20261017.md`에 모았다. 이 문서는 `ziwei_life_yearly_flow` 이전만 남는다.
