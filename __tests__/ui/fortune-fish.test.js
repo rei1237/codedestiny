@@ -14,7 +14,7 @@ function setup({ random = 0, reduced = false } = {}) {
     beforeParse(window) {
       window.matchMedia = () => ({ matches: reduced, addEventListener() {} });
       window.Math.random = () => random;
-      window.Image = class { constructor() { image = this; } };
+      window.Image = function MockImage() { image = {}; return image; };
       window.setTimeout = callback => { finish = callback; return 1; };
       window.localStorage.setItem('ftf_v3', '{"intimacy":42,"gachaHistory":["saved"]}');
     },

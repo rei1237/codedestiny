@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import assert from 'node:assert/strict';
+import { HONEY_UNLOCK_PRODUCTS } from '../worker/lib/honey-unlock-catalog.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const expectedArticles = JSON.parse(await fs.readFile(path.join(root, 'public/data/sukuyo-reading/index.json'), 'utf8'));
@@ -21,6 +22,9 @@ try {
     // Fail closed: no test traffic ever reaches a live API, analytics or asset host.
     if (url.pathname.startsWith('/api/')) {
       requests.push({ path: url.pathname, method: route.request().method() });
+      if (url.pathname === '/api/honey/catalog') {
+        return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, products: HONEY_UNLOCK_PRODUCTS, otherUses: [] }) });
+      }
       return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, authenticated: false, profiles: [], unlocked: false, data: [] }) });
     }
     if (url.hostname !== '127.0.0.1') return route.abort();
