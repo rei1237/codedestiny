@@ -160,7 +160,15 @@ h1 span{display:block;color:var(--coral)}
       busy = false;
     }, reducedMotion.matches ? 150 : 2400);
   });
-  window.addEventListener('pagehide', () => { window.clearTimeout(timer); busy = false; button.disabled = !assetReady; });
+  window.addEventListener('pagehide', () => {
+    window.clearTimeout(timer);
+    if (busy) {
+      busy = false;
+      button.disabled = false;
+      button.textContent = '물고기의 움직임 읽기';
+      status.textContent = '준비되면 물고기를 다시 바라보세요.';
+    }
+  });
   loadSprite();
 })();
 </script>

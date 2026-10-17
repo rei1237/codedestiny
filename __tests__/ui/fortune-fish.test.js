@@ -76,3 +76,18 @@ test('motion can pause; reduced motion preserves a readable static experience', 
     assert.equal(reduced.get('reading').hidden, false);
   } finally { app.dom.window.close(); reduced.dom.window.close(); }
 });
+
+test('leaving during observation restores an actionable state for browser back', () => {
+  const app = setup();
+  try {
+    app.image().onload();
+    app.get('read-button').click();
+    app.dom.window.dispatchEvent(new app.dom.window.Event('pagehide'));
+    assert.equal(app.get('read-button').disabled, false);
+    assert.equal(app.get('read-button').textContent, '물고기의 움직임 읽기');
+    assert.match(app.get('status').textContent, /다시 바라보세요/);
+    app.get('read-button').click();
+    app.finish();
+    assert.equal(app.get('reading').hidden, false);
+  } finally { app.dom.window.close(); }
+});
