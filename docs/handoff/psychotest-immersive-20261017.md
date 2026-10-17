@@ -1,8 +1,8 @@
 ---
-status: blocked
+status: done
 updated: 2026-10-17
+delivery: main-pushed-production-authorized
 next: "원격 main에 통합된 심리테스트와 운명의 섬의 최종 CI 결과를 확인한다."
-blocker: existing-main-ci-failure
 ---
 
 # 무료 심리테스트 복원·몰입형 UI 전달
@@ -49,3 +49,16 @@ https://github.com/rei1237/codedestiny/actions/runs/39016747491
 - D:/Development/psychotest-result-mobile.png
 
 재개: 이 디렉터리에서 본 문서와 검증 SHA를 확인한 뒤 origin/main CI 상태 확인부터 진행한다.
+
+## 후속 완료 기록
+2026-10-17 사용자 요청으로 22종 SVG를 귀여운 연이/영냥이와 개별 소품으로 교체. 390/1440 실제 렌더 및 시각 검토 통과, ESLint/정적2/호환6/Impeccable detector 통과.
+기존 CI 실패는 origin/main의 사주 검증 수정과 함께 통합했다. 원격 0488bb40b까지 병합했고, 기존 유료 이력 fixture는 양쪽 무료 전환 항목을 모두 보존하고 sitemap 원장은 재생성했다.
+코드 c96a3db52를 main에 push 완료. 이 SHA에서 check:pre-push 전체 통과. 이전 'push 미실시/기존 CI 차단' 기록은 과거 상태다.
+사용자는 이번 운영 반영을 명시적으로 승인했다. 공식 Release Cloudflare Pages and Worker workflow의 mode=production으로 요청한다. 배포 결과는 최종 채팅의 실행 링크가 정본이며, dispatch 접수와 운영 적용 완료는 구분한다. 저장소 규칙에 따라 CI/운영 런을 반복 폴링하지 않는다.
+새 캡처: D:/Development/psychotest-cute-390.png, D:/Development/psychotest-cute-1440.png.
+주 체크아웃의 타 세션 변경은 유지했으며, 이 작업은 원격 main에 fast-forward로 전달했다.
+## 최종 사용자 정정 반영
+캐릭터 SVG는 사용자가 거부하여 22종 개별 의미를 나타내는 상징으로 다시 교체했다. 최종 시각 자료는 D:/Development/psychotest-symbols-390.png 및 D:/Development/psychotest-symbols-1440.png. 위 cute 캡처와 귀여운 SVG 설명은 폐기된 중간 시안이다. 이번 상징 수정본으로 운영 배포를 진행한다. verify:release 전체는 exit 0 통과했으며 마지막 SVG의 타입/린트/정적 검사를 추가 실시한다.
+
+## 최종 B급 이미지로 대체
+사용자가 단순 SVG도 거부하고 병맛/B급 감성을 요청했다. 내장 imagegen으로 22종 각기 다른 상황의 실제 만화 일러스트를 생성하여 public/images/psychotest/bmovie-v1에 480/960 WebP로 적용했다. 이전 상징 SVG 및 cute 캡처는 폐기 시안이다. prompts: docs/design/psychotest-bmovie-art.json. 운영 dispatch는 아직 실행 전이며 이 최종 이미지 버전을 대상으로 한다.
