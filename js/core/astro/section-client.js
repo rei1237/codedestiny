@@ -1,4 +1,4 @@
-/* 점성술 상담 유료 본문(커리어·재능·관계·과제 심화 분석) 배달.
+/* 점성술 상담 유료 본문(커리어·재능·관계·과제 심화 분석, 봉인된 별의 방 네 방) 배달.
    본문은 서버(/api/astro/section)가 출생 단위 해금을 확인하고 서버 차트로 만든다.
    이 파일은 요청과 표시만 한다 — 유료 문장·생성기·본문 캐시가 없다. localStorage 해금 표시는 요청할지 고르는 힌트일 뿐이다. */
 (function (root) {
@@ -10,7 +10,11 @@
     astro_career_talent_deep: true,
     astro_talent_attraction_deep: true,
     astro_relationship_deep: true,
-    astro_growth_shadow_deep: true
+    astro_growth_shadow_deep: true,
+    astro_stellar_career_room: true,
+    astro_stellar_talent_room: true,
+    astro_stellar_relationship_room: true,
+    astro_stellar_growth_room: true
   };
   var states = Object.create(null);
 

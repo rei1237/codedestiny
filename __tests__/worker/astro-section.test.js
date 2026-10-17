@@ -5,7 +5,7 @@ import { readFileSync } from "node:fs";
 import { TEST_USER_ID, OTHER_USER_ID, testCard, profileCardModel } from "../fixtures/profile-card-model.mjs";
 import { computeBirthKey, toBirthEntitlementProfileId } from "../../worker/lib/birth-key.js";
 
-// 점성술 상담 유료 본문(/api/astro/section): 출생 단위 해금을 서버가 확인한 뒤에만 본문을 만든다.
+// 점성술 상담 심화 분석 4종·봉인된 별의 방 4종 유료 본문(/api/astro/section): 출생 단위 해금을 서버가 확인한 뒤에만 본문을 만든다.
 const auth = jest.fn();
 const swiss = jest.fn();
 const exists = jest.fn();
@@ -38,7 +38,10 @@ jest.unstable_mockModule("../../worker/lib/swiss-ephemeris.js", () => ({
 }));
 jest.unstable_mockModule("../../worker/lib/cms-records.js", () => ({ primeCmsRecords: jest.fn() }));
 
-const ASTRO_SECTION_FEATURE_KEYS = ["astro_career_talent_deep", "astro_talent_attraction_deep", "astro_relationship_deep", "astro_growth_shadow_deep"];
+const ASTRO_SECTION_FEATURE_KEYS = [
+  "astro_career_talent_deep", "astro_talent_attraction_deep", "astro_relationship_deep", "astro_growth_shadow_deep",
+  "astro_stellar_career_room", "astro_stellar_talent_room", "astro_stellar_relationship_room", "astro_stellar_growth_room",
+];
 let handleAstroRoutes, resolvePaidContentUnlockTarget, getBillingFeaturePricing, buildAstroSectionHtml, SERVER_KEYS;
 beforeAll(async () => {
   ({ handleAstroRoutes } = await import("../../worker/routes/astro.js"));

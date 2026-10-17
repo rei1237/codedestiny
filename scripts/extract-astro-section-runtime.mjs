@@ -5,7 +5,7 @@ import ts from 'typescript';
 // and the top-level text helpers. No formula is edited here: --check fails when js/saju-engine.js, the paid sources
 // or the public sajuEngine translations drift.
 const OUT = 'worker/lib/astro-section/runtime.generated.mjs';
-const SOURCES = ['worker/lib/astro-section/paid-counsel.src.js'];
+const SOURCES = ['worker/lib/astro-section/paid-counsel.src.js', 'worker/lib/astro-section/paid-stellar.src.js'];
 const read = (file) => fs.readFileSync(file, 'utf8').replace(/\r\n/g, '\n');
 const parse = (file, text) => ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
 function ownNames(n) {

@@ -223,11 +223,12 @@ test("십이운성 동물점 결과 문장·상세 탭·심층 리포트가 브�
   assert.match(loader, /authFetch\("\/api\/saju\/section"/, "동물점이 서버 풀이를 요청하지 않는다");
 });
 
-test("점성술 상담 심화 분석 4종(커리어·재능·관계·과제) 생성기가 브라우저 경로에 없다", () => {
+test("점성술 상담 심화 분석 4종과 봉인된 별의 방 4종 생성기가 브라우저 경로에 없다", () => {
   // 무료 차트·요약과 잠금 게이트는 남고, 네 심화 본문은 /api/astro/section 이 출생 단위 해금을 확인한 뒤 만든다.
   const FORBIDDEN = [
     "_astroCounselJobScores", "_astroCounselCareer(", "_astroCounselPlanetRow", "_astroCounselRelationship(", "roleLens",
     "차트의 직업 신호가 이 역할에서 비교적 안정적으로", "astro-counsel-job-list\">", "관계는 혼자 완성한 성향을 비추는 거울입니다",
+    "_astroCounselDeepPanel", "_astroCounselChip(", "_astroCounselPlacementLine", "일과 역할: 사회에 남길 별의 이름", "커리어가 흘러가는 통로", "7하우스 룰러의 생활화",
   ];
   const offenders = [];
   for (const rel of browserServedFiles()) {
@@ -238,6 +239,10 @@ test("점성술 상담 심화 분석 4종(커리어·재능·관계·과제) 생
   const paid = read("worker/lib/astro-section/paid-counsel.src.js");
   for (const name of ["_astroCounselJobScores(", "_astroCounselCareer(", "_astroCounselPlanetRow(", "_astroCounselRelationship(", "_astroCounselDeepBodies("]) {
     assert.ok(paid.includes("function " + name), `${name} 정본이 서버에 없다`);
+  }
+  const stellar = read("worker/lib/astro-section/paid-stellar.src.js");
+  for (const name of ["_astroCounselDeepPanel(", "_astroCounselChip(", "_astroCounselPlacementLine(", "_astroCounselStellarBodies("]) {
+    assert.ok(stellar.includes("function " + name), `${name} 정본이 서버에 없다`);
   }
   const loader = read("js/core/astro/section-client.js");
   assert.match(loader, /var ENDPOINT = '\/api\/astro\/section';/, "점성술 심화 분석이 서버 본문을 요청하지 않는다");

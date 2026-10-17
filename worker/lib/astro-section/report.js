@@ -7,7 +7,14 @@ export const ASTRO_COUNSEL_DEEP_KEYS = Object.freeze([
   "astro_relationship_deep",
   "astro_growth_shadow_deep",
 ]);
-export const ASTRO_SECTION_FEATURE_KEYS = Object.freeze([...ASTRO_COUNSEL_DEEP_KEYS]);
+// '봉인된 별의 방' 네 방 — 같은 차트로 서버가 만든다.
+export const ASTRO_STELLAR_ROOM_KEYS = Object.freeze([
+  "astro_stellar_career_room",
+  "astro_stellar_talent_room",
+  "astro_stellar_relationship_room",
+  "astro_stellar_growth_room",
+]);
+export const ASTRO_SECTION_FEATURE_KEYS = Object.freeze([...ASTRO_COUNSEL_DEEP_KEYS, ...ASTRO_STELLAR_ROOM_KEYS]);
 
 const PLANETS = ["Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"];
 
@@ -44,7 +51,10 @@ export function buildAstroSectionHtml({ featureKey, chart, lang = "ko" }) {
   if (!ASTRO_SECTION_FEATURE_KEYS.includes(featureKey)) throw new Error(`Unsupported astro section: ${featureKey}`);
   const runtime = createAstroSectionRuntime({ lang });
   const counselChart = toCounselChart(chart);
-  const html = runtime._astroCounselDeepBodies(counselChart)[featureKey];
+  const bodies = ASTRO_STELLAR_ROOM_KEYS.includes(featureKey)
+    ? runtime._astroCounselStellarBodies({ chart: counselChart })
+    : runtime._astroCounselDeepBodies(counselChart);
+  const html = bodies[featureKey];
   if (typeof html !== "string" || !html.trim()) throw new Error(`Empty astro section: ${featureKey}`);
   return { html };
 }
