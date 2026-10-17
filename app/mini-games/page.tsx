@@ -21,7 +21,6 @@ type MiniGame = {
 const GAMES: ReadonlyArray<MiniGame> = [
   { slug: "destiny-poker", name: "데스티니 포커", href: "/destiny-poker", desc: "신들과 벌이는 운명의 카드 대결", badge: "무료" },
   { slug: "fortune-fish", name: "포춘텔러 물고기", href: "/fortune-teller-fish", desc: "물고기 리딩과 행운 부적 보관함", badge: "무료" },
-  { slug: "fortune-tama", name: "운세 다마고치", href: "/tadagochi", desc: "운명의 알에서 깨어난 운세 캐릭터 키우기", badge: "무료" },
   { slug: "omikuji", name: "이모이 오미쿠지", href: "/emoi_omikuji_v2", desc: "오늘의 마음을 읽는 감성 신탁", badge: "무료" },
   { slug: "blood-type", name: "혈액형 테스트", href: "/blood-type-app", desc: "혈액형별 성향·궁합·코칭", badge: "무료" },
   { slug: "destiny-island", name: "운명의 섬", href: "/destiny-island", desc: "자미두수 명반이 섬이 되는 인터랙티브 맵", badge: "무료" },

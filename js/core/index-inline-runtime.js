@@ -1912,7 +1912,7 @@ var __cdLazyActionLoaders = {
   openJuyukModal: function() { return __cdLoadScriptOnce('/js/iching-engine.js?v=build-1bd57ce11c0e').then(function() { return __cdLoadScriptOnce('/js/iching-modal.js?v=build-ceb2b1b1a0eb'); }); },
   openRuneOracle: function() { window.location.assign('/oracle/rune/'); return Promise.resolve(true); },
   openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-b7d07cb6850b').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-4cb9efbdfb11'); }); },
-  openDestinyEggPage: function() { return Promise.resolve(window.location.assign('/tadagochi.html')); },
+  openDestinyEggPage: function() { return Promise.resolve(window.location.assign('/ggulggul/#dpMasterCard')); },
   openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=build-b43826e23353'); },
   openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=build-8e57ec2d8607'); },
   openTarotHealingModal: function() { return Promise.resolve(window.location.assign('/tarot/healing/')); },
@@ -1980,10 +1980,10 @@ var __cdLazyActionLoaders = {
   // 탭/45초 타임아웃/백그라운드 전환 중 하나가 있어야 로드)로만 실려서, 결과 화면
   // 도달 후 첫 공유 탭이 아직 로드 전이면 조용히 아무 반응 없이 죽었다(setGender와
   // 같은 계열의 버그 — 위 주석 참고).
-  shareKakao: function() { return __cdLoadScriptOnce('/js/share.js?v=build-9ff5ad86e459'); },
-  shareInstagram: function() { return __cdLoadScriptOnce('/js/share.js?v=build-9ff5ad86e459'); },
-  shareAstroKakao: function() { return __cdLoadScriptOnce('/js/share.js?v=build-9ff5ad86e459'); },
-  shareSajuResultImage: function() { return __cdLoadScriptOnce('/js/share.js?v=build-9ff5ad86e459'); },
+  shareKakao: function() { return __cdLoadScriptOnce('/js/share.js?v=build-461a86198405'); },
+  shareInstagram: function() { return __cdLoadScriptOnce('/js/share.js?v=build-461a86198405'); },
+  shareAstroKakao: function() { return __cdLoadScriptOnce('/js/share.js?v=build-461a86198405'); },
+  shareSajuResultImage: function() { return __cdLoadScriptOnce('/js/share.js?v=build-461a86198405'); },
   openSajuCompatArchive: function() { return __cdLoadScriptOnce('/js/saju-compat-archive.js?v=build-b1d1aa1db384'); }
 };
 window.__cdLazyActionLoaders = __cdLazyActionLoaders;
@@ -2317,7 +2317,7 @@ function __cdEnsureDestinyProfileLoaded() {
   if (window.DestinyProfileManager) return Promise.resolve(true);
   if (__cdDestinyProfileLoadPromise) return __cdDestinyProfileLoadPromise;
 
-  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-3ba66cbbe23d')
+  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-64d10352de32')
     .then(function() { return true; })
     .catch(function(err) {
       __cdDestinyProfileLoadPromise = null;
@@ -2678,7 +2678,7 @@ window.openYogaGuru = function() {
 };
 window.openDestinyEggPage = function() {
   try {
-    window.location.href = '/tadagochi.html';
+    window.location.href = '/ggulggul/#dpMasterCard';
   } catch (err) {
     console.error('[index-inline-runtime] openDestinyEggPage failed:', err);
   }
@@ -8428,7 +8428,7 @@ function _dfEnsureShareScript(done) {
     done();
     return;
   }
-  window.__cdLoadScriptOnce('/js/share.js?v=build-9ff5ad86e459').then(function() { done(); }, function() { done(); });
+  window.__cdLoadScriptOnce('/js/share.js?v=build-461a86198405').then(function() { done(); }, function() { done(); });
 }
 
 function _dfOnShareCard(st) {

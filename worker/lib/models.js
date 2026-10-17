@@ -119,7 +119,7 @@ const userSchema = new mongoose.Schema({
   destinyProfilesCurrentIdUpdatedAt: { type: Date, default: null },
   destinyProfilesLockedCurrentId: { type: String, default: "" },
   destinyProfilesLockedAt: { type: Date, default: null },
-  tamagotchi: { type: mongoose.Schema.Types.Mixed, default: null },
+
   twoFA: {
     enabled: { type: Boolean, default: false, index: true },
     totpSecret: { type: String, default: "" },

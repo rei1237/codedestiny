@@ -117,8 +117,7 @@ self.addEventListener('fetch', (event) => {
     pathname === '/version.json' ||
     pathname === '/status.json' ||
     pathname === '/manifest.json' ||
-    pathname === '/manifest-neo.json' ||
-    pathname === '/manifest-tadagochi.json'
+    pathname === '/manifest-neo.json'
   ) {
     event.respondWith(
       fetch(event.request, { cache: 'no-store' }).catch(() =>

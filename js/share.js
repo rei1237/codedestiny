@@ -54,7 +54,7 @@ var SW_CACHE_PREFIXES = [
   'workbox',
   'code-destiny',
   'next',
-  'tadagochi',
+
   'legacy'
 ];
 
