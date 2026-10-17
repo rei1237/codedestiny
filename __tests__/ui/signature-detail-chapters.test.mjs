@@ -64,9 +64,11 @@ test('대표 상담 상세의 마스터는 master-profiles 에서 읽어 붙이�
       assert.deepEqual(master, {
         key: master.key, name: profile.name, epithet: profile.epithet, signature: profile.signature, role: profile.role,
         part: profile.dossier.find(row => row.label === '이 상담에서 맡는 부분').text,
+        basis: profile.dossier.find(row => row.label === '읽는 근거').text, principles: profile.principles,
         avatar: masterAvatars[master.key], portrait: profile.portrait, portraitSrcSet: profile.portraitSrcSet,
       }, `${slug}: ${master.key}`);
       assert.ok(fs.existsSync(`public${master.avatar}`), master.avatar);
+      assert.ok(fs.existsSync(`public${master.portrait}`), master.portrait);
     }
   }
   assert.throws(() => craftedMasters({ masters: ['nobodyLove'] }), /Unknown crafted master/);
@@ -88,8 +90,31 @@ test('마스터 섹션은 목차 앞에 서고, 연애 비책은 두 마스터�
   }
   const neo = render(craftedOf('new-year-ai'));
   assert.equal(neo.querySelectorAll('.craftedMaster').length, 1);
-  assert.equal(neo.querySelector('.craftedMastersLead'), null);
+  assert.equal(neo.querySelector('.craftedMastersLead').textContent, '이 상담을 쓰는 마스터');
   assert.match(neo.querySelector('.craftedMasterPart').textContent, /여섯 장 전부/);
+  assert.deepEqual([...neo.querySelectorAll('.craftedMasterDossier dt')].map(node => node.textContent), ['읽는 근거', '맡는 부분']);
+});
+
+test('마스터마다 포인트 색 자리를 달고, 원칙과 초상은 산출물 뒤에서만 lazy 로 그린다', () => {
+  const love = render(craftedOf('love-secret-ai'));
+  assert.deepEqual([...love.querySelectorAll('.craftedMaster')].map(node => node.dataset.master), ['yeoniLove', 'hanbiLove']);
+  assert.deepEqual([...love.querySelectorAll('.craftedChapterGroup')].map(node => node.dataset.master), LOVE_SECRET_AI_GROUPS.map(group => `${LOVE_SPEAKER_BY_GROUP[group.key]}Love`));
+  for (const slug of ['love-secret-ai', 'new-year-ai', 'life-book-ai']) {
+    const detail = craftedOf(slug);
+    const node = render(detail);
+    const principles = node.querySelector('.craftedOutcomes + .craftedPrinciples');
+    assert.ok(principles, `${slug}: 원칙은 산출물 바로 뒤`);
+    assert.deepEqual([...principles.querySelectorAll('.craftedPrinciple')].map(item => item.dataset.master), detail.masters.map(master => master.key));
+    assert.deepEqual([...principles.querySelectorAll('.craftedPrinciple li')].map(item => item.textContent), detail.masters.flatMap(master => master.principles));
+    for (const image of principles.querySelectorAll('img')) {
+      assert.deepEqual([image.getAttribute('loading'), image.getAttribute('sizes'), image.getAttribute('alt')], ['lazy', '96px', ''], slug);
+      assert.equal(image.hasAttribute('fetchpriority'), false);
+    }
+    const eager = [...new Set([...node.querySelectorAll('img[loading="eager"]')].map(image => image.getAttribute('src')))];
+    assert.deepEqual(eager, detail.masters.map(master => master.avatar), `${slug}: 첫 화면에 새로 붙는 이미지는 아바타뿐`);
+  }
+  const forged = render({ notice: 'n', masters: [{ key: 'x" onmouseover="y', name: 'n', avatar: '/a.webp' }], panels: [{ title: 'p', text: 'p', src: '/p.webp' }] });
+  assert.equal(forged.querySelector('.craftedMasters'), null, '영문자 키만 data-master 로 나간다');
 });
 
 test('묶음 목차는 번호를 이어 가고, 28장 목록은 첫 묶음만 펼친 채 전부 글로 남긴다', () => {
@@ -128,8 +153,8 @@ test('새 섹션 스타일은 아바타 크기를 고정하고 움직임·토큰
   const popup = fs.readFileSync('styles/feature-visual-detail.css', 'utf8');
   const page = fs.readFileSync('app/components/crafted-product-detail.module.css', 'utf8');
   for (const [name, css] of [['popup', popup], ['page', page]]) {
-    const rules = css.split(/\r?\n/).filter(line => /craftedMaster|craftedChapterGroup|craftedChapterMaster|craftedChaptersGrouped|craftedChaptersMore|craftedOutcomes/.test(line));
-    assert.ok(rules.some(rule => /craftedMaster img\s*\)?\s*\{[^}]*width:\s*72px;\s*height:\s*72px/.test(rule)), `${name}: 아바타 72px`);
+    const rules = css.split(/\r?\n/).filter(line => /craftedMaster|craftedChapterGroup|craftedChapterMaster|craftedChaptersGrouped|craftedChaptersMore|craftedOutcomes|craftedPrinciple|data-master/.test(line));
+    assert.ok(rules.some(rule => /craftedMaster img\s*\)?\s*\{[^}]*width:\s*80px;\s*height:\s*80px/.test(rule)), `${name}: 아바타 80px`);
     assert.ok(rules.some(rule => /craftedChapterMaster img\s*\)?\s*\{[^}]*width:\s*24px;\s*height:\s*24px/.test(rule)), `${name}: 칩 24px`);
     assert.ok(rules.every(rule => !/aspect-ratio|object-fit|animation|transition|--cd-[\w-]+\s*:/.test(rule)), `${name}: 금지 속성`);
   }

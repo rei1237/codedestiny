@@ -20,10 +20,11 @@ export function craftedMasters(manifest) {
   const { masterProfiles, masterAvatars } = (masterSource ||= loadTsModule('components/fortune/master-profiles.ts'));
   const masters = manifest.masters.map(key => {
     const profile = Object.hasOwn(masterProfiles, key) ? masterProfiles[key] : undefined;
-    const part = profile?.dossier?.find(row => row.label === '이 상담에서 맡는 부분')?.text;
+    const row = label => profile?.dossier?.find(item => item.label === label)?.text;
+    const part = row('이 상담에서 맡는 부분');
     if (!profile?.epithet || !profile.signature || !part || !Object.hasOwn(masterAvatars, key)) throw new Error(`Unknown crafted master: ${key}`);
-    const { name, epithet, signature, role, portrait, portraitSrcSet } = profile;
-    return { key, name, epithet, signature, role, part, avatar: masterAvatars[key], portrait, portraitSrcSet };
+    const { name, epithet, signature, role, principles, portrait, portraitSrcSet } = profile;
+    return { key, name, epithet, signature, role, part, basis: row('읽는 근거'), principles, avatar: masterAvatars[key], portrait, portraitSrcSet };
   });
   for (const chapter of manifest.chapters || []) {
     if (chapter.master !== undefined && !manifest.masters.includes(chapter.master)) throw new Error(`Chapter master is not a product master: ${chapter.master}`);
