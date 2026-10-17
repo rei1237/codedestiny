@@ -41,8 +41,13 @@ function renderEntry(query) {
     'react/jsx-runtime': { jsx: (type, props, key) => ({ type, props, key }) },
     'next/navigation': { useSearchParams: () => params },
     '@/app/_lib/auth-store': { useAuthStore: () => auth, getAuthState: () => ({ authReady: true }) },
-    './FortuneChatClient': { default: 'legacy' },
-    './ConsultationRoom': { default: 'engine' },
+    'next/dynamic': { default: loader => {
+      const source = loader.toString();
+      if (source.includes('./FortuneChatClient')) return 'legacy';
+      assert.ok(source.includes('./ConsultationRoom'), 'Only known consultation leaves are deferred');
+      return 'engine';
+    } },
+    './ConsultationEntrance': { default: 'entrance' },
     './consultation-api': { isConsultationId: value => /^[a-f0-9]{64}$/.test(value), consultationApi: {
       status: () => { calls.push('status'); return Promise.resolve(true); },
     } },
