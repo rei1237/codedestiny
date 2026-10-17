@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-17
-next: "D단계 남은 상품 이전: 자미두수 5칸·대한 10년운(L) → 점성술 심화·시나스트리. 사용자 결정 대기: 마야 홈 타일 1회 표기, 계정 묶음 구매의 프로필 무관 인정."
+next: "D단계 남은 상품 이전: 자미두수 생애·부부궁·상징·자미 궁합(대한·12궁은 진행 중 브랜치) → 점성술 시나스트리 2종·12개월 흐름(astro_yearly_transit). 사용자 결정 대기: 마야 홈 타일 1회 표기, 계정 묶음 구매의 프로필 무관 인정."
 ---
 
 # 운명 찻집 10,000원: 이용권 차감 누락과 결제 증빙 재사용 구멍
@@ -381,3 +381,10 @@ next: "D단계 남은 상품 이전: 자미두수 5칸·대한 10년운(L) → �
   - 애니멀 토템: 화면은 등록소대로 1·3·5장 모두 50코인을 청구하는데 서버 `MODE_SPEC`은 1·3장을 30으로 확인했다. 서버와 `verify-animal-totem-render`를 정본 50으로 맞췄다.
   - `verify-krw-copy-canonical`: 접두 `KRW` 앞이 영문·숫자·base64 문자면 금액으로 읽지 않는다. 비밀의 집 인라인 이미지 조각 `kRw3560`이 3,560원으로 잡힌 오탐이다. 진짜 `KRW 3,560`·소문자 `krw 3,560`은 계속 잡는다(self-test 추가).
   - 남은 이전 대상: 자미두수 5칸·대한 10년운(L), 점성술 심화·시나스트리.
+- 2026-10-17 — **D단계 상품 이전 6: 점성술 상담 심화 4종·봉인된 별의 방 4종** (심화 `feb722584`, 별의 방 `3e9d3fc77`, 미러 `737cecff5`, 사이트맵 `0bb0528d5`, 게이트 가격 `da9d69260`, 미러 `2d984a5fc`)
+  - 대상(출생 해금, 각 50코인): `astro_career_talent_deep`·`astro_talent_attraction_deep`·`astro_relationship_deep`·`astro_growth_shadow_deep`, `astro_stellar_career_room`·`_talent_room`·`_relationship_room`·`_growth_room`. 본문은 `worker/lib/astro-section/paid-*.src.js` 원문 사본으로 옮기고 `scripts/extract-astro-section-runtime.mjs`가 런타임을 만든다. 화면 생성기는 지웠다.
+  - `POST /api/astro/section`: 비로그인 401, 해금 없음·다른 프로필 402(coinPrice·amountKRW만), DB 장애 503, 계산 실패 503. 차트는 서버 Swiss 계산으로만 만들고, 프로필이 있으면 그 카드의 생년월일·시각만 쓴다(출생지·시간대는 birthKey 밖이라 요청 값). 프로필 없으면 계정 단위 옛 해금만 인정.
+  - 게이트 가격: 화면은 1,000원(12개월 흐름 3,000원)·`data-unlock-cost` 10/30이었는데 서버는 레지스트리 50코인을 차감했다. 9개 게이트를 50으로 맞추고 `per-use-price-registry-parity`에 묶었다(사용자 결정 "화면을 서버 가격에 맞춤").
+  - 검증: 서버 사본과 HEAD 생성기 sha256 480건 일치(`astro-section-client-parity.json`), check:fast 31단계·pre-push 통과, gitleaks 유출 없음. `verify:doc-freshness`만 실패 — `CURRENT_DEV_BASELINE.md` 정리일 10-02가 15일을 넘겼다(origin/main도 동일). 사용자 결정: 그대로 push, 문서 정리는 따로.
+  - 건너뜀: `astro_basic_deep_pack`(이미 서버), `astro_monthly_transit`(유료 본문 없음). 남음: `astro_yearly_transit`(트랜짓 엔진 전체 필요), 시나스트리 2종(회당).
+  - 후속: 직접 입력 시나스트리 결과에 이름이 이스케이프 없이 들어간다(self-XSS), product-ledger 문서 갱신.
