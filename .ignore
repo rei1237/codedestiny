@@ -155,6 +155,9 @@
 /public/js/core/payment-service.js
 /public/js/core/pet/crafted-details.mjs
 /public/js/core/premium-chapter-orchestrator.js
+/public/js/core/profile-character-card.mjs
+/public/js/core/profile-characters.mjs
+/public/js/core/profile-element-badge.mjs
 /public/js/core/saju/basicFortunePresentation.js
 /public/js/core/saju/crafted-product-details.mjs
 /public/js/core/saju/destiny-anatomy/boot.js
@@ -310,6 +313,7 @@
 /public/styles/mobile-totem-flower-fix.css
 /public/styles/my-garden.css
 /public/styles/press-coverage.css
+/public/styles/profile-characters.css
 /public/styles/pwa-lifecycle.css
 /public/styles/recommendations.css
 /public/styles/result-samples.css

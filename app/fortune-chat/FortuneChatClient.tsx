@@ -1,14 +1,12 @@
 "use client";
-import { TEA_SAJU_URL, writeSajuTeaDraft } from "@/js/core/saju/tea-entry.mjs";
-import { getAuthState } from "@/app/_lib/auth-store";
 
 import { readPendingTurn, readRecentTurns, recentTurnsOf, requestGuardianTurn, type RecentTurn } from "./paid-turn-recovery";
 
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
-import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { PriceBadge } from "@/app/components/PriceBadge";
+import { resolveServerFeaturePricing } from "@/lib/payment/server-feature-pricing";
 import { PersonaAvatar } from "./PersonaAvatar";
 import { GuardianShareButton } from "./GuardianShareButton";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
@@ -207,8 +205,9 @@ type Birth = { birthDate: string; birthTime: string; calendarType: "solar" | "lu
 
 /** 무료 소진 이후의 회당 결제. 가격 정본은 worker/lib/paid-feature-registry.js. */
 const PAID_FEATURE_KEY = "fortune-chat-consultation";
-const PAID_COIN_PRICE = 30;
-const PAID_AMOUNT_KRW = 3000;
+const PAID_PRICE = resolveServerFeaturePricing({ featureKey: PAID_FEATURE_KEY });
+const PAID_COIN_PRICE = PAID_PRICE?.cost;
+const PAID_AMOUNT_KRW = PAID_PRICE?.amountKRW;
 /** 서버 검증 상한과 같은 값 — 넘겨 보내면 400 으로 되돌아온다. */
 const CONCERN_MAX_LENGTH = 120;
 
@@ -388,7 +387,6 @@ export default function FortuneChatClient() {
 
   const topicKey = TOPIC_MAP[topic] || "decision";
   const activeCategory: Category = category || CATEGORY_BY_TOPIC[topicKey] || "saju";
-  const opensTeaSaju = activeCategory === 'saju' && !readPendingTurn(sessionId);
   const freeRemaining = usage ? (usage.isLoggedIn ? usage.dailyFreeRemaining : usage.guestFreeRemaining) : 0;
   const needsPayment = Boolean(usage?.isLoggedIn) && freeRemaining <= 0;
 
@@ -596,12 +594,6 @@ export default function FortuneChatClient() {
       return;
     }
     const concern = question.trim().slice(0, CONCERN_MAX_LENGTH);
-    if (activeCategory === 'saju') {
-      const user = getAuthState().user;
-      try { writeSajuTeaDraft(sessionStorage, { owner: String(user?.id || user?.userId || user?._id || user?.uid || ''), question: concern }); } catch { /* Optional handoff. */ }
-      window.location.assign(TEA_SAJU_URL);
-      return;
-    }
     if (!topic && !concern) { setError("궁금한 분야를 고르거나, 직접 질문을 적어 주세요."); return; }
     if (!birth.birthDate) {
       setBirthOpen(true);
@@ -718,13 +710,18 @@ export default function FortuneChatClient() {
     <div className={styles.timeline} ref={timelineRef} aria-live="polite" aria-relevant="additions">
       <section className={styles.welcomeCard} aria-labelledby="fortuneChatWelcomeTitle">
         <div>
-          <p>달빛 찻집의 편지함</p>
+          <PriceBadge featureKey={PAID_FEATURE_KEY} prefix="연이 단독 상담 · 1회 " className={styles.priceBadge} />
           <h1 id="fortuneChatWelcomeTitle">{character === "neo" ? "무엇을 정하지 못하고 있나요?" : "오늘, 무엇이 가장 마음에 남나요?"}</h1>
           <span>한 가지 질문으로 시작해 현재의 흐름과 다음 선택을 함께 정리해요.</span>
         </div>
         <PersonaAvatar persona={character} mood="greet" size="lg" decorative />
       </section>
-      {getCurrentLoadingLocale() === "ko" && !opensTeaSaju && <CraftedProductDisclosure featureKey={PAID_FEATURE_KEY} variant={character} />}
+      {getCurrentLoadingLocale() === "ko" && <details className={styles.birthPanel}>
+        <summary>상담 구성과 이용 방법 자세히 보기</summary>
+        <p>질문 하나를 중심으로 현재 흐름, 반복되는 패턴과 지금 해볼 일을 정리해요. 출생정보를 입력하고 질문을 보내면 상담과 결제 안내를 이어갈 수 있어요.</p>
+        <p>사주를 선택해도 연이 단독 상담으로 진행해요. 연이·네오 공동 사주 상담은 별도 상품이에요.</p>
+        <p>AI가 작성하는 상담으로, 미래나 상대의 마음을 확정하지 않아요.</p>
+      </details>}
       {messages.map((message) => <article key={message.id} className={`${styles.message} ${styles[message.speaker]} ${message.kind ? styles[message.kind] : ""}`}>
         {message.speaker === "assistant" ? <PersonaAvatar persona={character} mood={message.kind === "reading" ? "read" : "listen"} size="sm" decorative /> : null}
         <div className={styles.bubble}><p>{message.text}</p>{message.detail && <details><summary>자세히 보기</summary><p>{message.detail}</p></details>}
@@ -740,8 +737,8 @@ export default function FortuneChatClient() {
 
     <section className={styles.composer} aria-label={copy.composerAria}>
       <div className={styles.policyRow}>
-        <p className={styles.policy}>{opensTeaSaju ? '사주 상담은 운명의 찻집 · 사주 전문 AI 상담에서 이어가요. 연이와 네오가 안내하고, 상담문은 연이가 전해드려요.' : usageLabel}</p>
-        {(usage || opensTeaSaju) && <PriceBadge featureKey={opensTeaSaju ? 'fortune-tea-house-saju-consultation' : PAID_FEATURE_KEY} prefix="단건 " className={styles.priceBadge} />}
+        <p className={styles.policy}>{usageLabel}</p>
+        {usage && <PriceBadge featureKey={PAID_FEATURE_KEY} prefix="단건 " className={styles.priceBadge} />}
       </div>
 
       <details className={styles.birthPanel} open={birthOpen} onToggle={(event) => setBirthOpen((event.currentTarget as HTMLDetailsElement).open)}>
@@ -764,7 +761,7 @@ export default function FortuneChatClient() {
       <div className={styles.chips} aria-label={copy.categoryChipsAria}>{(Object.keys(CATEGORY_LABEL) as Category[]).map((item) => <button key={item} type="button" aria-pressed={activeCategory === item} onClick={() => setCategory(item)}>{CATEGORY_LABEL[item]}</button>)}</div>
       <div className={styles.input}>
         <input ref={inputRef} value={question} maxLength={CONCERN_MAX_LENGTH} onChange={(event) => setQuestion(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !event.nativeEvent.isComposing) void send(); }} placeholder="마음에 남은 질문을 적어 주세요" aria-label={copy.questionInputAria} disabled={busy || isPaying} />
-        <button type="button" onClick={() => void send()} disabled={busy || isPaying}>{busy || isPaying ? "정리 중" : opensTeaSaju ? "찻집으로" : "보내기"}</button>
+        <button type="button" onClick={() => void send()} disabled={busy || isPaying}>{busy || isPaying ? "정리 중" : "보내기"}</button>
       </div>
       {error && <p className={styles.error} role="alert">{error}</p>}
     </section>

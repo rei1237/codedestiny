@@ -867,6 +867,7 @@ jobs:
           npm run verify:profile-client-first
           npm run verify:profile-new-user
           npm run verify:profile-card-level
+          node scripts/verify-profile-characters.mjs
           npm run verify:auth-card-theme
           npm run verify:hero-contrast
           npm run verify:rpt-preview-cta

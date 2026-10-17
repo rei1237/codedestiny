@@ -342,6 +342,14 @@ body.neo-mode #modalBody .saju-reading > h3 {padding-right:44px;}
 #resultPage #dwDetail.saju-nature-report {background:var(--reading-card);color:var(--reading-ink);border:1px solid var(--reading-line);padding:clamp(16px,3vw,32px);}
 #resultPage .saju-nature-report .saju-cycle-guide {color:var(--reading-ink);}
 #resultPage .saju-nature-insert {padding:0;margin:36px 0;background:transparent;}
+#resultPage .saju-summary-art .saju-nature {display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);border:0;background:var(--reading-card);}
+#resultPage .saju-summary-art .saju-nature img {height:100%;min-height:220px;}
+#resultPage .saju-summary-art .saju-nature figcaption {align-content:center;background:var(--reading-card);padding:clamp(20px,4vw,36px);}
+@media (max-width:600px) {
+  #resultPage .saju-summary-art .saju-nature {grid-template-columns:minmax(0,1fr);}
+  #resultPage .saju-summary-art .saju-nature img {height:auto;min-height:0;}
+  #resultPage .saju-summary-art .saju-nature figcaption {padding:20px 4px 8px;}
+}
 #resultPage .saju-nature-report .saju-cycle-guide {max-width:72ch;margin-inline:auto;}
 #resultPage .saju-nature-report .saju-cycle-guide > h3 {font-family:var(--font-serif);font-size:clamp(1.35rem,3.5vw,1.8rem);line-height:1.5;margin-bottom:16px;}
 #resultPage .saju-nature-report .saju-cycle-guide > p {line-height:1.85;}

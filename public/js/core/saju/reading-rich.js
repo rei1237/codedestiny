@@ -111,7 +111,33 @@
     var cover = document.createElement('div');
     cover.className = 'saju-nature-cover saju-reading';
     cover.innerHTML = stemArt(stem, cycle || row ? '선택한 대운 천간의 물상' : '일간의 물상')+elementKey();
-    host.prepend(cover);
+    var previousCover = host.querySelector('.saju-nature-cover');
+    if (previousCover) previousCover.replaceWith(cover);
+    else host.prepend(cover);
+    var report = host.querySelector('.saju-summary-report');
+    if (report) {
+      // Stable chapter IDs also work with saved reports. Pictures illustrate the
+      // topic, never infer another element, verdict, or future event.
+      report.querySelectorAll('[data-summary-art]').forEach(function(node){ node.remove(); });
+      var pictures = [
+        ['johu', seasonArt(pillars && pillars.m && pillars.m.j)],
+        ['jinro', natureFigure('gap', 'wood', '나의 방향을 세우는 일', '곧게 자라는 나무처럼, 강점을 펼칠 환경을 살펴보세요. 진로를 이해하기 위한 상징 이미지입니다.')],
+        ['yeonae', natureFigure('eul', 'wood', '서로의 속도를 존중하는 관계', '서로 다른 방향으로 피어나는 꽃처럼, 가까운 사이에도 각자의 리듬이 있습니다. 관계를 표현한 상징 이미지입니다.')],
+        ['jaemul', natureFigure('gi', 'earth', '차곡차곡 가꾸는 삶의 기반', '흙을 돌보듯 수입과 지출의 습관을 살펴보세요. 재물의 축적을 표현한 상징 이미지입니다.')],
+        ['jeollyak', natureFigure('mu', 'earth', '멀리 바라보고, 한 걸음씩', '산길을 걷듯 지금 실천할 수 있는 작은 선택부터 정리해 보세요. 삶의 방향을 표현한 상징 이미지입니다.')]
+      ];
+      pictures.forEach(function(item){
+        var chapter = report.querySelector('#sajuSummaryChapter-'+item[0]);
+        if (!chapter || !item[1]) return;
+        var art = document.createElement('div');
+        art.className = 'saju-reading saju-nature-insert saju-summary-art';
+        art.setAttribute('data-summary-art', item[0]);
+        art.innerHTML = item[1];
+        chapter.before(art);
+      });
+      report.querySelectorAll('.saju-summary-illustration').forEach(function(node){ node.remove(); });
+      return;
+    }
     host.querySelectorAll('.saju-summary-illustration').forEach(function(node,i){
       var branch = pillars && pillars.m && pillars.m.j;
       if (i === 0 && branch) node.outerHTML = '<div class="saju-reading saju-nature-insert">'+seasonArt(branch)+'</div>';

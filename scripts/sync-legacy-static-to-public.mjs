@@ -104,8 +104,7 @@ const staticTargets = [
 ];
 
 const staleTadagochiPwaTargets = [
-  "manifest-tadagochi.json",
-  "tadagochi-sw.js",
+
 ];
 
 const staleLifeBookPdfTargets = [

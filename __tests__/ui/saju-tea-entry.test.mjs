@@ -24,7 +24,7 @@ test('expired, corrupt and guest profile references cannot restore another accou
 test('joint scene has one purchase entry and the current-year preview is outside the gate',()=>{
  const html=teaSajuEntryMarkup();
  assert.equal((html.match(/data-tea-saju-open/g)||[]).length,1);
- assert.match(html,/상담문은 연이가 전해드려요/);
+ assert.match(html,/연이의 해석과 네오의 전략/);
  assert.doesNotMatch(html,/15,000|10000|15000/);
  const index=fs.readFileSync('index.html','utf8');
  const section=index.slice(index.indexOf('id="daewunCard"'));

@@ -42,7 +42,6 @@ export const ROUTE_ICON_MAP: Record<string, DestinyIconName> = {
   "/geomancy-oracle-v4.html": "compass",
   "/destiny-poker.html": "tarot",
   "/fortune-teller-fish.html": "moon",
-  "/tadagochi": "crystal",
   "/neville-meditation.html": "lotus",
   "/yoga-guru.html": "lotus",
   "/cosmic-soul-meditation.html": "sparkleLine",

@@ -12,6 +12,27 @@ const context=vm.createContext({});
 vm.runInContext(tables+tenGod+readFileSync('js/core/saju/reading-rich.js','utf8'),context);
 const rich=context.SajuReadingRich;
 
+test('delivered summary art preserves chapters and stays unique on repeat decoration', async()=>{
+  const {JSDOM}=await import('jsdom');
+  const {buildSajuSectionHtml}=await import('../../worker/lib/saju-section/report.js');
+  const {html}=buildSajuSectionHtml({featureKey:'section_summary',birth:{calendarDate:'1990-05-15',calType:'solar',hour:14,minute:30,timeKnown:true},gender:'M',name:'검증',mode:'pig',lang:'ko'});
+  const dom=new JSDOM('<div id="host">'+html+'</div>',{runScripts:'outside-only'});
+  dom.window.eval(readFileSync('js/core/saju/reading-rich.js','utf8'));
+  const host=dom.window.document.getElementById('host');
+  const chapters=[...host.querySelectorAll('.saju-summary-chapter')].map(node=>node.outerHTML);
+  const pillars={d:{g:'甲'},m:{j:'巳'}};
+  const decorate=()=>dom.window.SajuReadingRich.decorateDelivered(host,null,pillars);
+  decorate(); decorate();
+  assert.equal(host.querySelectorAll('.saju-nature-cover').length,1);
+  assert.equal(host.querySelectorAll('[data-summary-art]').length,5);
+  assert.match(host.querySelector('[data-summary-art="johu"] img').src,/summer-960/);
+  assert.deepEqual([...host.querySelectorAll('.saju-summary-chapter')].map(node=>node.outerHTML),chapters);
+  host.innerHTML='<div data-cd-summary-fallback="1">불러오는 중</div>';
+  decorate();
+  assert.equal(host.querySelectorAll('img').length,0);
+  dom.window.close();
+});
+
 const stems=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'], branches=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
 let seed=7;const next=n=>(seed=(seed*1103515245+12345)%2147483648)%n;
 const pillar=()=>({g:stems[next(10)],j:branches[next(12)]});

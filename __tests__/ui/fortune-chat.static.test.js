@@ -215,3 +215,14 @@ test("guests open the new room from the public flag and keep their question thro
   assert.ok(create.includes("sessionStorage.removeItem(DRAFT_KEY)"));
   assert.doesNotMatch(room, /onClick={loginForCurrentPage}/);
 });
+
+
+test("personal saju keeps the solo product and joint consultation is an explicit link", () => {
+  const room = read("app/fortune-chat/ConsultationRoom.tsx");
+  const create = room.slice(room.indexOf("const create = async"), room.indexOf("const pay ="));
+  assert.doesNotMatch(create, /location\.assign|writeSajuTeaDraft/);
+  assert.match(create, /consultationApi\.create/);
+  const client = read("app/fortune-chat/FortuneChatClient.tsx");
+  assert.doesNotMatch(client, /opensTeaSaju|fortune-tea-house-saju-consultation/);
+  assert.match(room, /href=\{TEA_SAJU_URL\}/);
+});

@@ -105,7 +105,6 @@ const noindexPathPrefixes = [
   // docs/context/seo-and-adsense.md 참고.
   "/oracle/juyuk",
   "/oracle/hwatu",
-  "/tadagochi",
   "/blog",
   "/famous",
   "/fortune/sikojen-povailu",

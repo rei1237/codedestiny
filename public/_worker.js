@@ -648,6 +648,9 @@ async function serveGuardianShareCard(request, env, ctx, url, shareId) {
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    if (/^\/tadagochi(?:\.html)?\/?$/.test(url.pathname)) {
+      return Response.redirect(new URL('/ggulggul/#dpMasterCard', url), 301);
+    }
     const consolidatedPath = url.pathname.replace(/\/$/, '');
     const consolidatedTarget = Object.hasOwn(CONSOLIDATED_PAGE_REDIRECTS, consolidatedPath) ? CONSOLIDATED_PAGE_REDIRECTS[consolidatedPath] : null;
     if (consolidatedTarget) {

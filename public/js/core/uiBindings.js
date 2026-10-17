@@ -14,7 +14,7 @@ if (typeof window !== 'undefined' && typeof window.openSajuAnimalPage !== 'funct
 
 if (typeof window !== 'undefined' && typeof window.openDestinyEggPage !== 'function') {
   window.openDestinyEggPage = function openDestinyEggPage() {
-    window.location.assign('/tadagochi');
+    window.location.assign('/ggulggul/#dpMasterCard');
   };
 }
 
@@ -69,7 +69,7 @@ const __lazyActionLoaders = {
       __loadScriptOnce('/js/animal-totem-experience.js?v=build-4cb9efbdfb11')
     ),
   openSajuAnimalPage: () => Promise.resolve(window.location.assign('/saju-guardian')),
-  openDestinyEggPage: () => Promise.resolve(window.location.assign('/tadagochi')),
+  openDestinyEggPage: () => Promise.resolve(window.location.assign('/ggulggul/#dpMasterCard')),
   openFortuneTellerFishPage: () => Promise.resolve(window.location.assign('/fortune-teller-fish.html')),
   openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=build-b43826e23353'),
   openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=build-8e57ec2d8607'),
@@ -113,7 +113,7 @@ const __lazyActionLoaders = {
 };
 
 function __ensureSajuCoreScripts() {
-  return __loadScriptOnce('/js/destiny-profile.js?v=build-3ba66cbbe23d')
+  return __loadScriptOnce('/js/destiny-profile.js?v=build-64d10352de32')
     .then(() => __loadScriptOnce('/js/services/sajuService.js'))
     .then(() => __loadScriptOnce('/js/core/saju/basicFortunePresentation.js?v=build-058fc601fa33'))
     .then(() => __loadScriptOnce('/js/core/saju/modalProfileState.js'))

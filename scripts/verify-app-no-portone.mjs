@@ -479,15 +479,7 @@ if (DIST) {
       check(`웹 전용 산출물 제거됨: /${name}`, !(await exists(path.join(DIST, name))));
     }
 
-    // 참조되는 자산은 살아남아야 한다 — 프루닝이 실사용 자산을 먹으면 앱에서 이미지가 깨진다.
-    // (다마고치는 index.html이 /tadagochi로 링크하는 실제 기능이고, tadagochi.html이
-    //  fuctionassets/tadagochi* 이미지를 쓴다. 한때 이걸 '참조 0건'으로 오판했다.)
-    check(
-      "실사용 자산 존치: fuctionassets/tadagochi (다마고치)",
-      await exists(path.join(DIST, "fuctionassets", "tadagochi")),
-      "tadagochi.html이 쓰는 이미지가 사라졌다",
-    );
-    check("실사용 페이지 존치: /tadagochi", await exists(path.join(DIST, "tadagochi.html")));
+    check("프로필 캐릭터 시트 존치", await exists(path.join(DIST, "assets", "profile-characters", "animal-mouse.webp")));
 
     // 죽은 PNG 원본(webp 쌍 존재 + 참조 0건)이 남아있지 않은가.
     // 빌드와 같은 판정 함수를 쓴다 — 규칙을 두 번 쓰면 갈라진다.

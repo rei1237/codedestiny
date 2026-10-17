@@ -32,7 +32,7 @@ export function teaSajuEntryMarkup() {
       <dl class="saju-tea-entry__roles"><div><dt>연이</dt><dd>마음의 결과 반복되는 패턴을 살펴봐요.</dd></div><div><dt>네오</dt><dd>중요한 선택과 실행할 순서를 짚어드립니다.</dd></div></dl>
       <a class="saju-tea-entry__cta" data-tea-saju-open href="${TEA_SAJU_URL}">내 고민, 사주로 깊이 상담하기 <span aria-hidden="true">→</span></a>
       <p class="saju-tea-entry__price">단건 결제 <strong data-tea-saju-price>가격 확인 중</strong> · 이용권·월정석은 결제창에서 확인</p>
-      <p class="saju-tea-entry__note">두 사람이 안내하고, 상담문은 연이가 전해드려요. AI 생성 상담입니다.</p>
+      <p class="saju-tea-entry__note">연이의 해석과 네오의 전략, 함께 정리하는 30일 계획을 담은 AI 생성 상담입니다.</p>
       <details class="saju-tea-entry__details"><summary>상담에서 무엇을 볼 수 있나요?</summary><p>질문에 대한 핵심 답부터 명식의 근거, 직업·재물·연애·가족·건강과 회복 리듬, 질문에 관련된 대운·세운, 선택지와 실행 조언까지 읽어보세요. 전체 시기별 표를 읽는 대운 분석 리포트와는 별도 상담이에요.</p></details>
     </div></section>`;
 }

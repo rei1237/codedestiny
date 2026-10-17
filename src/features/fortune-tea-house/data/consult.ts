@@ -51,7 +51,7 @@ export type FortuneTeaHouseSajuCompatInput = {
 };
 
 export type FortuneTeaHouseConsultRequest = {
-  sajuReportVersion?: "saju-specialist-v1";
+  sajuReportVersion?: "saju-specialist-v1" | "saju-specialist-v2";
   questionCategory?: string;
   consultationMode?: FortuneTeaHouseConsultMode;
   attemptId?: string;
@@ -82,7 +82,7 @@ export type FortuneTeaHouseConsultRequest = {
 };
 
 export type FortuneTeaHouseQuestionInput = {
-  sajuReportVersion?: "saju-specialist-v1";
+  sajuReportVersion?: "saju-specialist-v1" | "saju-specialist-v2";
   attemptId?: string;
   questionCategory?: string;
   consultationMode: FortuneTeaHouseConsultMode;
@@ -418,7 +418,7 @@ export type FortuneTeaSajuCompatibilitySnapshot = {
 };
 
 export type FortuneTeaHouseConsultResponse = {
-  sajuReportVersion?: "saju-specialist-v1";
+  sajuReportVersion?: "saju-specialist-v1" | "saju-specialist-v2";
   createdAt?: string;
   promptVersion?: string;
   calculationSnapshot?: {engine:string;version?:string;policy?:Record<string,unknown>;source?:string;basis?:unknown};

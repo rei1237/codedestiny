@@ -1,4 +1,5 @@
 "use client";
+import { PriceBadge } from "@/app/components/PriceBadge";
 import TeaConsultConfirmation from "./TeaConsultConfirmation";
 import { SAJU_CATEGORIES, resolveQuestionCategory } from "@/lib/fortune-tea-house/saju-category";
 
@@ -821,9 +822,10 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
       <div className={styles.questionActor}>
         <img className={styles.yeoniPortrait} src={consultationMode === "saju" ? "/images/consultation/saju-yeoni-neo-joint-v1-640.webp" : "/images/fortune-tea-house/yeoni-moonlight-novel.webp"} alt={consultationMode === "saju" ? "명식을 함께 살펴보는 연이와 네오" : ""} width="1536" height="1024" />
         <div className={styles.questionInvitation}>
+          {consultationMode === "saju" && <PriceBadge featureKey="fortune-tea-house-saju-consultation" prefix="공동 상담 · 단건 " className="inline-flex rounded-full border border-[var(--cd-border)] bg-[var(--cd-surface)] px-3 py-2 text-sm font-bold text-[var(--cd-text)]" />}
           <p className={styles.chosenTea}>{selectedCup.name} · {selectedCup.topic}</p>
-          <h2 id="teaQuestionTitle">{consultationMode === "saju" ? "운명의 찻집 · 사주 전문 AI 상담" : copy.questionTitle}</h2>
-          <p>{consultationMode === "saju" ? "연이와 네오가 함께 안내하고, 상담문은 연이가 전해드려요. 내 질문을 중심으로 직업·재물·연애·가족·건강과 회복 리듬을 깊이 읽습니다." : copy.welcomeNote}</p>
+          <h2 id="teaQuestionTitle">{consultationMode === "saju" ? "연이·네오 공동 사주 상담" : copy.questionTitle}</h2>
+          <p>{consultationMode === "saju" ? "연이는 마음과 반복 패턴을, 네오는 선택의 이득과 부담을 짚어요. 내 질문과 명식의 근거를 연결해 직업·재물·관계·회복 리듬부터 30일 실행 계획까지 함께 정리합니다." : copy.welcomeNote}</p>
         </div>
       </div>
       <form id="tea-question-form" className={`${styles.questionPanel}`} onSubmit={handleSubmit}>

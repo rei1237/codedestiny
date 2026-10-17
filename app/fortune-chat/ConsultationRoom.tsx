@@ -1,12 +1,12 @@
 "use client";
-import { TEA_SAJU_URL, writeSajuTeaDraft } from "@/js/core/saju/tea-entry.mjs";
-import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
+import { TEA_SAJU_URL } from "@/js/core/saju/tea-entry.mjs";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import Image from "next/image";
 import { PriceBadge } from "@/app/components/PriceBadge";
+import { resolveServerFeaturePricing } from "@/lib/payment/server-feature-pricing";
 import { useCoinGate } from "@/app/hooks/useCoinGate";
 import { usePaidResume } from "@/app/hooks/usePaidResume";
-import { getAuthState, useAuthStore } from "@/app/_lib/auth-store";
+import { useAuthStore } from "@/app/_lib/auth-store";
 import { loginForCurrentPage } from "@/app/yeongnyangi/_lib/api";
 import { profileKey, useProfiles } from "@/app/yeongnyangi/_lib/use-profiles";
 import ProfileForm from "@/app/yeongnyangi/_components/ProfileForm";
@@ -21,10 +21,10 @@ import { PersonaAvatar } from "./PersonaAvatar";
 import base from "./fortune-chat.module.css";
 import styles from "./consultation.module.css";
 
-// 가격 정본은 서버 레지스트리(fortune-chat-consultation)다. 아래 두 값은 결제창의 표시·스냅샷 선검사용으로,
-// 기존 대화형 상담(FortuneChatClient)과 같은 값을 쓴다.
-const COIN_PRICE = 50;
-const AMOUNT_KRW = 5000;
+// 표시와 결제 선검사는 서버와 동일한 가격 등록소를 사용한다.
+const PRICE = resolveServerFeaturePricing({ featureKey: "fortune-chat-consultation" });
+const COIN_PRICE = PRICE?.cost;
+const AMOUNT_KRW = PRICE?.amountKRW;
 const RESUME_KIND = "fortune-chat-consultation:engine";
 const QUESTION_MAX = 300;
 const POLL_MS = 1500;
@@ -281,12 +281,6 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
 
   const create = async () => {
     const text = question.trim();
-    if (domain === 'saju') {
-      const user = getAuthState().user;
-      try { writeSajuTeaDraft(sessionStorage, { owner: String(user?.id || user?.userId || user?._id || user?.uid || ''), profileId, question: text }); } catch { /* Optional handoff. */ }
-      window.location.assign(TEA_SAJU_URL);
-      return;
-    }
     if (busy || !text) return;
     // 게스트는 프로필이 없다 — 프로필 검사보다 먼저 로그인으로 보내야 버튼이 아무 일 없이 끝나지 않는다.
     if (guest) { toLogin(); return; }
@@ -385,7 +379,20 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
       </header>
 
       <div className={base.timeline}>
-        {!row && <div style={{width:"100%",maxWidth:540,minWidth:0,margin:"0 auto",background:"#eee7dc",color:"#463a31",borderRadius:12}}><CraftedProductDisclosure featureKey="fortune-chat-consultation" variant={`engine-${persona}`} summaryLabel={`${personaName} 상담 구성 자세히 보기`} /></div>}
+        {!row && <section className={styles.introduction} aria-labelledby="yeoni-consultation-title">
+          <PersonaAvatar persona="yeoni" mood="greet" size="lg" decorative />
+          <div><h1 id="yeoni-consultation-title">마음에 걸린 질문 하나,<br />연이와 차근차근 풀어요</h1>
+            <p>궁금한 이야기를 적고, 해석에 사용할 운세와 프로필을 골라 주세요. 연이가 근거와 함께 지금 해볼 일을 정리해 드려요.</p>
+            <PriceBadge featureKey="fortune-chat-consultation" fallbackLabel="5,000원" prefix="연이 단독 상담 · 1회 " className={base.priceBadge} />
+            <p className={styles.muted}>상담 준비 후 결제 내용을 확인해요. AI가 작성하는 상담입니다.</p>
+          </div>
+          <details className={styles.methodDetails}>
+            <summary>상담 구성과 이용 방법 자세히 보기</summary>
+            <p>사주·자미두수·숙요·베다점·서양 점성술·타로 중 하나를 선택해요. 각 체계의 근거를 섞지 않고, 질문에 맞는 흐름과 선택을 살펴봐요.</p>
+            <ol><li>궁금한 질문 하나와 사용할 프로필을 골라요. 타로는 출생정보가 필요하지 않아요.</li><li>준비된 상담과 가격을 확인한 뒤 결제 수단을 선택해요.</li><li>완성된 상담은 지난 상담에서 다시 읽을 수 있어요.</li></ol>
+            <p>연이·네오 공동 사주 상담은 별도 상품으로, 이 상담에서 자동으로 전환되지 않아요.</p>
+          </details>
+        </section>}
         {!row && (
           <>
             <section className={styles.panel} aria-labelledby="consultation-domain">
@@ -393,8 +400,7 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
               <div className={`${base.chips} ${styles.chipWrap}`}>
                 {DOMAINS.map((d) => <button key={d.id} type="button" aria-pressed={domain === d.id} onClick={() => setDomain(d.id)}>{d.label}</button>)}
               </div>
-              <DomainArt persona={persona} domain={domain} />
-              {domain === 'saju' && <p className={styles.muted}>사주 상담은 운명의 찻집 · 사주 전문 AI 상담으로 모았어요. 연이와 네오가 안내하고, 연이가 질문과 명식의 근거를 깊이 풀어드려요. <PriceBadge featureKey="fortune-tea-house-saju-consultation" prefix="단건 " /></p>}
+              <details className={styles.methodDetails}><summary>선택한 상담의 분위기 보기</summary><DomainArt persona={persona} domain={domain} /></details>
               {tarot && <p className={styles.muted}>타로는 생년월일 없이 지금의 고민과 카드로 읽어요.</p>}
             </section>
 
@@ -428,11 +434,11 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
               <textarea className={styles.textarea} rows={3} maxLength={QUESTION_MAX} value={question} onChange={(e) => setQuestion(e.target.value)}
                 placeholder={tarot ? kind.prompt : world.placeholder} aria-labelledby="consultation-question" />
               <div className={styles.actions}>
-                <button type="button" disabled={busy || (domain !== 'saju' && (!question.trim() || (!guest && !tarot && !profileId) || enabled === false))} onClick={() => void create()}>
-                  {domain === 'saju' ? '찻집에서 사주 전문 상담하기' : busy ? "상담을 준비하는 중…" : guest ? "로그인하고 상담 시작하기" : "상담 준비하기"}
+                <button type="button" disabled={busy || !question.trim() || (!guest && !tarot && !profileId) || enabled === false} onClick={() => void create()}>
+                  {busy ? "상담을 준비하는 중…" : guest ? "로그인하고 상담 시작하기" : "상담 준비하기"}
                 </button>
               </div>
-              {enabled === false && domain !== 'saju' && <p className={styles.muted}>새 상담 열기가 잠시 멈췄어요. 이미 시작한 상담은 아래 기록에서 이어 볼 수 있어요.</p>}
+              {enabled === false && <p className={styles.muted}>새 상담 열기가 잠시 멈췄어요. 이미 시작한 상담은 아래 기록에서 이어 볼 수 있어요.</p>}
             </section>
           </>
         )}
@@ -448,7 +454,7 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
                 <p>{rowDomain === "tarot" ? "질문에 맞춰 카드를 펼쳐 두었어요." : "질문과 명식을 확인했어요."} 상담을 열면 {personaName}가 바로 답을 쓰기 시작해요.</p>
                 <div className={styles.actions}>
                   <button type="button" data-consultation-pay disabled={busy || isPaying} onClick={() => void pay()}>
-                    {isPaying ? "결제창을 여는 중…" : `${AMOUNT_KRW.toLocaleString("ko-KR")}원으로 상담 열기`}
+                    {isPaying ? "결제창을 여는 중…" : "결제 내용 확인하기"}
                   </button>
                 </div>
                 {/* 가격표 키는 서비스 등록 키다 — 상담별 결제 키(fc-<id>)는 가격표에 없어 "가격 확인 필요"가 뜬다. */}
@@ -479,6 +485,13 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
             <p className={base.error} role="alert">{error}</p>
           </Moment>
         )}
+
+        {!row && <aside className={styles.jointOffer}>
+          <h2>내 사주를 더 깊이 함께 읽고 싶다면</h2>
+          <p>연이·네오 공동 사주 상담은 별도 상품이에요. 기질과 생활 패턴부터 선택의 조건과 실행 계획까지 살펴봐요.</p>
+          <PriceBadge featureKey="fortune-tea-house-saju-consultation" prefix="공동 상담 · " className={base.priceBadge} />
+          <a href={TEA_SAJU_URL}>연이·네오 공동 상담 자세히 보기</a>
+        </aside>}
 
         {!row && !guest && historyFor === persona && history.length === 0 && (
           <section className={styles.panel} aria-labelledby="consultation-history-empty">

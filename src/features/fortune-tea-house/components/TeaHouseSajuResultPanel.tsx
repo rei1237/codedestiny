@@ -1,5 +1,6 @@
 "use client";
 
+import JointSajuDialogue from "./JointSajuDialogue";
 import type { CSSProperties } from "react";
 import type { FortuneTeaHouseConsultResponse } from "../data/consult";
 import { fortuneTeaHouseAssets } from "../data/assets";
@@ -256,8 +257,9 @@ export default function TeaHouseSajuResultPanel({ result, onShowTarot, onEditBir
           <div className={styles.sajuDeepResultGrid}>
             {deepSections.map((section, index) => (
               <article id={`tea-saju-chapter-${index}`} className={styles.sajuDeepResultCard} data-tone={section.tone || "summary"} key={section.id || section.title}>
-                <h4>{section.title}</h4>
-                <LlmParagraphs text={section.body} />
+                {result.sajuReportVersion === 'saju-specialist-v2'
+                  ? <JointSajuDialogue title={section.title} body={section.body} />
+                  : <><h4>{section.title}</h4><LlmParagraphs text={section.body} /></>}
               </article>
             ))}
           </div>

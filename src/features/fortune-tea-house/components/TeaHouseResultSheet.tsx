@@ -706,8 +706,12 @@ export default function TeaHouseResultSheet({
       >
         <header className={`${styles.resultHeader} `} data-tea-pdf-section>
           {result.consultationVersion !== "tea-v2" && <p className={styles.sceneEyebrow}>{selectedCup?.eyebrow || copy.kdaff0ix}</p>}
+          {result.sajuReportVersion === 'saju-specialist-v2' && <figure className={styles.jointResultHero}>
+            <img src="/images/consultation/saju-yeoni-neo-joint-v1-640.webp" width="640" height="427" alt="명식을 펼치고 함께 이야기를 나누는 연이와 네오" />
+            <figcaption>연이는 마음의 패턴을, 네오는 선택의 조건을 짚어요.</figcaption>
+          </figure>}
           <h2 id="teaResultTitle">{result.sessionTitle}</h2>
-          {result.sajuReportVersion === 'saju-specialist-v1' && <>
+          {(result.sajuReportVersion === 'saju-specialist-v1' || result.sajuReportVersion === 'saju-specialist-v2') && <>
             <h3>내 질문에 대한 핵심 답</h3>
             <LlmParagraphs text={result.questionSummary} />
             <details className={styles.sajuContentsDisclosure}>
@@ -1014,7 +1018,7 @@ export default function TeaHouseResultSheet({
           <h3 id="actionPrescriptionTitle">{copy.kedjmzci}</h3>
           {result.actionPrescription ? (
             <div className={styles.actionDialogue}>
-              <img src="/images/fortune-tea-house/renewal/pig-advice.webp" width="72" height="84" alt="" loading="lazy" />
+              <img src={result.sajuReportVersion === "saju-specialist-v2" ? "/images/home/illustrated/neo-human-480.webp" : "/images/fortune-tea-house/renewal/pig-advice.webp"} width="72" height="84" alt="" loading="lazy" />
               <div className={styles.yeoniReadingItem}><LlmParagraphs text={result.actionPrescription} /></div>
             </div>
           ) : null}
@@ -1033,7 +1037,7 @@ export default function TeaHouseResultSheet({
         <section className={`${styles.resultBlock} ${styles.honeyLetterBlock}`} aria-labelledby="honeyLetterTitle">
           <div className={styles.honeyLetterLayout}>
             <div className={styles.honeyLetterMascotWrap} aria-hidden>
-              <AssetImage className={styles.honeyLetterMascot} src="/images/fortune-tea-house/renewal/pig-cheer.webp" alt="" />
+              <AssetImage className={styles.honeyLetterMascot} src={result.sajuReportVersion === "saju-specialist-v2" ? "/images/master-profiles/yeoni-teahouse-portrait.webp" : "/images/fortune-tea-house/renewal/pig-cheer.webp"} alt="" />
               <span className={styles.honeyLetterBalance}>
                 <AssetImage className={styles.honeyLetterIcon} src={fortuneTeaHouseAssets.rewards.honeyDrop} fallbackSrc={fortuneTeaHouseAssets.rewards.honeyDrop2} alt="" />
                 {copy.honeyCount.replace("{count}", String(honeyBalance))}

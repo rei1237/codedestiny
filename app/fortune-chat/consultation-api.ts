@@ -82,12 +82,16 @@ export const consultationApi = {
    * 토큰 갱신 실패 → logout 이벤트로 번지지 않게. 실패는 false(기존 상담방)로 닫는다.
    */
   status: async () => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 8000);
     try {
-      const response = await fetch(`${getApiBaseUrl()}/api/fortune-chat/consultations/status`, { cache: "no-store" });
+      const response = await fetch(`${getApiBaseUrl()}/api/fortune-chat/consultations/status`, { cache: "no-store", signal: controller.signal });
       const payload = response.ok ? await response.json() : null;
       return payload?.enabled === true;
     } catch {
       return false;
+    } finally {
+      clearTimeout(timer);
     }
   },
   list: (persona: ChatPersona) => call<{ ok: true; enabled?: boolean; consultations: ChatConsultationSummary[] }>(`?persona=${persona}`),

@@ -1,16 +1,18 @@
 "use client";
 
-import FortuneTeaHousePage from "@/src/features/fortune-tea-house/FortuneTeaHousePage";
+import ConsultationEntrance from "@/app/fortune-chat/ConsultationEntrance";
 import { Suspense, useEffect, useState, type ReactNode } from "react";
 import dynamic from "next/dynamic";
 import { teaHouseSurface, YEONI_TEA_HOUSE } from "@/lib/fortune/yeoni-entry";
 import { useLocale } from "@/lib/i18n/useT";
 import { recordsCopy } from "@/lib/records/copy";
 import styles from "@/src/features/fortune-tea-house/styles/tea-house-home.module.css";
-import SavedTeaReading from "./SavedTeaReading";
 import { recordService } from "@/lib/records/service-registry";
 
-const FortuneChatEntry = dynamic(() => import("@/app/fortune-chat/FortuneChatEntry"));
+const FortuneTeaHousePage = dynamic(() => import("@/src/features/fortune-tea-house/FortuneTeaHousePage"), { loading: () => <ConsultationEntrance /> });
+const SavedTeaReading = dynamic(() => import("./SavedTeaReading"), { loading: () => <ConsultationEntrance /> });
+
+const FortuneChatEntry = dynamic(() => import("@/app/fortune-chat/FortuneChatEntry"), { loading: () => <ConsultationEntrance /> });
 
 type Props = { children?: ReactNode; legacyChat?: boolean };
 
@@ -19,7 +21,7 @@ export default function FortuneTeaHouseClient({ children, legacyChat = false }: 
   useEffect(() => { setSearch(window.location.search); }, []);
   const copy = recordsCopy(useLocale());
   // Keep the existing SSR boundary: never mount a new consultation before resolving a saved URL.
-  if (search === null) return <><div aria-busy="true" className="mx-auto max-w-3xl px-4 py-6"><h1 className="text-2xl font-semibold text-[var(--cd-text)]">{recordService('tea')?.name}</h1></div>{children}</>;
+  if (search === null) return <><ConsultationEntrance />{children}</>;
   const params = new URLSearchParams(search);
   const surface = teaHouseSurface(params, legacyChat);
   if (surface === "saved-tea") return <SavedTeaReading resultId={params.get("resultId")!} />;
