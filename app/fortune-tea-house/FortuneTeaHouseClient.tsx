@@ -1,15 +1,16 @@
 "use client";
 
 import ConsultationEntrance from "@/app/fortune-chat/ConsultationEntrance";
-import FortuneTeaHousePage from "@/src/features/fortune-tea-house/FortuneTeaHousePage";
 import { Suspense, useEffect, useState, type ReactNode } from "react";
 import dynamic from "next/dynamic";
 import { teaHouseSurface, YEONI_TEA_HOUSE } from "@/lib/fortune/yeoni-entry";
 import { useLocale } from "@/lib/i18n/useT";
 import { recordsCopy } from "@/lib/records/copy";
 import styles from "@/src/features/fortune-tea-house/styles/tea-house-home.module.css";
-import SavedTeaReading from "./SavedTeaReading";
 import { recordService } from "@/lib/records/service-registry";
+
+const FortuneTeaHousePage = dynamic(() => import("@/src/features/fortune-tea-house/FortuneTeaHousePage"), { loading: () => <ConsultationEntrance /> });
+const SavedTeaReading = dynamic(() => import("./SavedTeaReading"), { loading: () => <ConsultationEntrance /> });
 
 const FortuneChatEntry = dynamic(() => import("@/app/fortune-chat/FortuneChatEntry"), { loading: () => <ConsultationEntrance /> });
 
