@@ -553,7 +553,7 @@ window.__cdServiceRegistry = [
 
     price: "무료",
     purposes: ["self", "etc"],
-    methods: [],
+    methods: ["ai"],
     keys: "심리 테스트 성격 유형",
     badge: "무료",
   },
