@@ -3346,14 +3346,6 @@ function zwCmsRow(recordName, recordKey, base) {
 function zwGungDef(name) { return zwCmsText('palace-def', name, ZW_GUNG_DEF[name] || ''); }
 function zwGungBrief(name) { return zwCmsText('palace-brief', name, ZW_GUNG_BRIEF[name] || ''); }
 function zwStarProfile(name) { return zwCmsRow('star', name, ZW_STAR_CORE_PROFILE[name]); }
-var ZW_BAD_STAR_EFFECT = {
-  '경양': '날카로운 칼끝 — 서두른 말과 결정이 상처를 냅니다. 한 템포 늦추세요',
-  '타라': '바퀴에 걸린 돌 — 일이 늘어지고 반복됩니다. 마감을 두 번 확인하세요',
-  '화성': '갑자기 붙는 불 — 돌발 변수와 욱하는 감정을 조심하세요',
-  '영성': '속에서 타는 불 — 겉은 조용해도 스트레스가 쌓입니다. 배출구를 만드세요',
-  '지공': '허공에 뜬 생각 — 이상은 높지만 현실 회수가 약해집니다. 계획에 숫자를 넣으세요',
-  '지겁': '빠져나가는 구멍 — 예상 밖 지출과 손실 경로를 점검하세요'
-};
 var ZW_DEEP_GAN_LIST = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
 var ZW_DEEP_GAN_KO = { '甲':'갑','乙':'을','丙':'병','丁':'정','戊':'무','己':'기','庚':'경','辛':'신','壬':'임','癸':'계' };
 var ZW_DEEP_ZHI_LIST = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
@@ -3389,11 +3381,6 @@ function zwDeepPalaceEntry(pd, pName) {
 function zwDeepMainStars(entry) {
   return (entry && Array.isArray(entry.stars)) ? entry.stars.filter(function(s){ return s && s.name && zwStarProfile(s.name); }) : [];
 }
-function zwDeepBrTag(strength) {
-  var glyph = zwStrengthToSymbol(strength);
-  if (!glyph) return '';
-  return '<span title="'+zwStrengthShortMeaning(strength)+'" style="color:#fde68a;border:1px solid rgba(253,230,138,0.35);border-radius:999px;padding:1px 7px;font-size:0.72rem;font-weight:800;">'+glyph+'</span>';
-}
 function zwDeepCardShell(icon, title, sub, bodyHtml, accent, open) {
   var color = accent || '#c4b5fd';
   return '<details '+(open ? 'open ' : '')+'style="background:rgba(15,23,42,0.5);border:1px solid '+color+'33;border-radius:11px;margin-bottom:9px;overflow:hidden;">'
@@ -3412,115 +3399,6 @@ function zwDeepSectionHead(title, desc, accent) {
     +'<div style="color:'+color+';font-size:0.95rem;font-weight:900;">'+zwDeepEsc(title)+'</div>'
     +'<div style="color:#94a3b8;font-size:0.74rem;line-height:1.6;margin-top:3px;">'+zwDeepEsc(desc)+'</div>'
   +'</div>';
-}
-function buildZwSpouseDeepHtml(pd) {
-  try {
-    var entry = zwDeepPalaceEntry(pd, '부부궁');
-    var mingEntry = zwDeepPalaceEntry(pd, '명궁');
-    if (!entry) return '';
-    var mains = zwDeepMainStars(entry);
-    var mingMains = zwDeepMainStars(mingEntry);
-    var badNames = (entry.badStars || []).map(function(s){ return s.name; }).filter(function(n){ return ZW_BAD_STAR_EFFECT[n]; });
-    var hasGi = ['stars','auxStars'].some(function(k){ return (entry[k] || []).some(function(s){ return s && s.sihua === '화기'; }); });
-    var risk = (hasGi || badNames.length >= 2) ? 'high' : (badNames.length === 1 ? 'mid' : 'low');
-    var html = '<div data-cd-marker="ziwei-spouse-deep-v20260711" style="margin-top:12px;">';
-    html += zwDeepSectionHead('전문가 심층 상담 — 배우자의 얼굴, 관계의 시간표', '부부궁의 별 배치와 대한 흐름을 근거로, 상담실에서 드리는 수준의 관계 해설을 이어갑니다.', '#f9a8d4');
-
-    var spouseBody = '';
-    if (mains.length) {
-      mains.slice(0, 2).forEach(function(st){
-        var prof = zwStarProfile(st.name);
-        spouseBody += '<div style="margin-bottom:8px;">'
-          +'<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:4px;"><b style="color:#fecdd3;font-size:0.87rem;">'+zwDeepEsc(st.name)+'</b>'+zwDeepBrTag(st.strength)
-          +(st.borrowed ? '<span style="color:#facc15;font-size:0.68rem;font-weight:800;">차성 — 대궁(관록궁)에서 빌려 읽음</span>' : '')+'</div>'
-          +'<div style="margin-bottom:3px;"><b style="color:#f9a8d4;">배우자의 결:</b> '+zwDeepEsc(prof.spouse)+'</div>'
-          +'<div style="color:#cbd5e1;font-size:0.8rem;"><b style="color:#fbcfe8;">만나는 길:</b> '+zwDeepEsc(prof.spousePath)+'</div>'
-        +'</div>';
-      });
-    } else {
-      spouseBody += '<div style="color:#cbd5e1;">부부궁이 공궁이라 배우자상이 하나로 고정되어 있지 않습니다. 이는 나쁜 신호가 아니라, 만나는 시기와 환경에 따라 인연의 얼굴이 크게 달라진다는 뜻입니다. 그래서 "어떤 사람을 고르느냐"보다 "어느 시기에, 어떤 상태의 나로 만나느냐"가 훨씬 중요합니다. 아래 시기 상담을 먼저 읽으세요.</div>';
-    }
-    html += zwDeepCardShell('💞', '배우자상 정밀 리딩', mains.length ? mains.map(function(s){ return zwDeepEsc(s.name); }).join('·') : '공궁 — 시기 중심 해석', spouseBody, '#f9a8d4', true);
-
-    if (mingMains.length && mains.length) {
-      var a = zwStarProfile(mingMains[0].name);
-      var b = zwStarProfile(mains[0].name);
-      var chemBody = '<div style="margin-bottom:5px;">나(명궁 <b style="color:#fde68a;">'+zwDeepEsc(mingMains[0].name)+'</b>)의 관계 언어는 <b style="color:#fef3c7;">"'+zwDeepEsc(a.loveNeed)+'"</b>이고, 배우자 자리(부부궁 <b style="color:#fecdd3;">'+zwDeepEsc(mains[0].name)+'</b>)의 약속 조건은 <b style="color:#ffe4e6;">"'+zwDeepEsc(b.loveNeed)+'"</b>입니다.</div>'
-        +'<div style="margin-bottom:5px;">이 두 언어가 서로 번역되는 동안 관계는 깊어지고, 번역을 멈추는 순간 각자 외로워집니다. 갈등의 불씨는 주로 <b style="color:#fda4af;">"'+zwDeepEsc(b.loveFriction)+'"</b>에서 시작되고, 나의 <b style="color:#fda4af;">"'+zwDeepEsc(a.loveFriction)+'"</b> 반응이 그 불을 키웁니다.</div>'
-        +'<div style="color:#d1fae5;background:rgba(110,231,183,0.08);border:1px solid rgba(110,231,183,0.22);border-radius:8px;padding:7px 9px;font-size:0.8rem;"><b>처방:</b> 싸움이 시작되면 누가 옳은지 정하지 말고, 지금 상대가 "'+zwDeepEsc(b.loveNeed)+'"의 결핍을 말하고 있는 건 아닌지 먼저 확인하세요. 결핍을 짚어주는 한 문장이 논쟁 열 마디를 이깁니다.</div>';
-      html += zwDeepCardShell('⚗️', '명궁 × 부부궁 케미', zwDeepEsc(mingMains[0].name)+' × '+zwDeepEsc(mains[0].name), chemBody, '#c084fc', false);
-    }
-
-    var stageMeet = mains.length
-      ? '이 인연은 '+zwDeepEsc(zwStarProfile(mains[0].name).spousePath)+' 시작 단계에서는 서로의 장점만 보이므로, 오히려 상대의 "'+zwDeepEsc(zwStarProfile(mains[0].name).loveFriction)+'" 신호를 한 번쯤 담담하게 관찰해 두세요. 콩깍지 시기의 메모가 훗날의 나침반이 됩니다.'
-      : '공궁 배치는 시작이 조용한 편입니다. 첫인상보다 세 번째 만남의 편안함을 기준으로 판단하세요.';
-    var stageConflict = risk === 'high'
-      ? '이 명반의 갈등기는 짧고 굵게 오는 유형입니다. '+(hasGi ? '부부궁에 화기(忌)가 걸려 있어 말과 정산(돈·집안일·시간) 문제가 얽히기 쉽습니다. ' : '')+(badNames.length ? '특히 '+zwDeepEsc(badNames.join('·'))+'의 긴장이 감정 폭발의 방아쇠가 됩니다. ' : '')+'규칙 하나만 지키세요 — 감정이 올라온 날은 결론을 내리지 않는다. 다음 날 같은 주제를 다시 꺼내면 대화의 절반은 이미 풀려 있습니다.'
-      : (risk === 'mid'
-        ? '갈등은 대체로 한 가지 패턴('+zwDeepEsc(badNames[0] || '')+' — '+zwDeepEsc(ZW_BAD_STAR_EFFECT[badNames[0]] || '작은 마찰')+')으로 반복됩니다. 패턴을 상대와 공유하는 것 자체가 절반의 해결입니다.'
-        : '큰 흉성 압박이 없는 배치라, 갈등기는 극적인 사건보다 "권태와 무심함"으로 옵니다. 문제가 없다는 것이 곧 관리가 필요 없다는 뜻은 아닙니다. 계절마다 한 번, 관계의 안부를 묻는 대화를 일부러 만드세요.');
-    var stageSettle = mains.length
-      ? '정착기의 핵심은 "'+zwDeepEsc(zwStarProfile(mains[0].name).loveNeed)+'"의 꾸준한 공급입니다. 이벤트보다 생활 속 반복(말투·역할 분담·기념 방식)으로 설계하세요. '+zwDeepEsc(zwStarProfile(mains[0].name).spouse)
-      : '정착기에는 두 사람만의 규칙 문서(돈·집안일·부모님·휴식)를 만들면 공궁의 유연함이 그대로 강점이 됩니다.';
-    var scenarioBody = '<div style="display:grid;gap:7px;">'
-      +'<div style="background:rgba(2,6,23,0.34);border-radius:9px;padding:8px 10px;"><b style="color:#fbcfe8;">1단계 · 만남기</b><br>'+stageMeet+'</div>'
-      +'<div style="background:rgba(2,6,23,0.34);border-radius:9px;padding:8px 10px;"><b style="color:#fda4af;">2단계 · 갈등기</b><br>'+stageConflict+'</div>'
-      +'<div style="background:rgba(2,6,23,0.34);border-radius:9px;padding:8px 10px;"><b style="color:#f9a8d4;">3단계 · 정착기</b><br>'+stageSettle+'</div>'
-    +'</div>';
-    html += zwDeepCardShell('🗺️', '연애 → 결혼 전개 시나리오', risk === 'high' ? '집중 관리형' : (risk === 'mid' ? '패턴 관리형' : '온도 유지형'), scenarioBody, '#fda4af', false);
-
-    var daList = Array.isArray(pd.daHanList) ? pd.daHanList : [];
-    var birthYear = 0;
-    try { birthYear = Number((window._ziweiBirth || {}).year) || 0; } catch (_by) {}
-    var nowYear = new Date().getFullYear();
-    var curAge = birthYear > 0 ? (nowYear - birthYear + 1) : 0;
-    var timingRows = '';
-    daList.forEach(function(dh){
-      if (!dh || (dh.palaceName !== '부부궁' && dh.palaceName !== '관록궁')) return;
-      var isSpouse = dh.palaceName === '부부궁';
-      var isNow = curAge > 0 && curAge >= dh.startAge && curAge <= dh.endAge;
-      timingRows += '<div style="display:flex;gap:9px;align-items:flex-start;background:rgba(2,6,23,0.3);border:1px solid '+(isNow ? 'rgba(253,224,71,0.5)' : 'rgba(244,114,182,0.18)')+';border-radius:9px;padding:8px 10px;margin-bottom:6px;">'
-        +'<b style="color:'+(isNow ? '#fde047' : '#f9a8d4')+';white-space:nowrap;font-size:0.82rem;">'+dh.startAge+'~'+dh.endAge+'세'+(isNow ? ' · 지금' : '')+'</b>'
-        +'<span style="font-size:0.8rem;color:#e2e8f0;">'
-        +(isSpouse
-          ? '대한이 <b>부부궁</b>을 지나는 10년 — 관계가 인생의 주제로 올라옵니다. 만남·결혼·관계 재정비 등 부부궁의 숙제가 실제 사건으로 나타나기 쉬운 구간이라, 공식화(결혼·동거·재약속)를 진지하게 검토하기 좋은 시기입니다.'
-          : '대한이 <b>관록궁</b>(부부궁의 대궁)을 지나는 10년 — 일과 관계가 정면으로 마주 봅니다. 커리어의 변화가 관계의 조건을 바꾸는 시기이니, 큰 결정(이직·개업)은 배우자와의 합의를 먼저 만드세요.')
-        +'</span>'
-      +'</div>';
-    });
-    if (timingRows) {
-      html += zwDeepCardShell('⏳', '공식화 시기 상담', curAge > 0 ? '현재 ' + curAge + '세 기준' : '대한 기준', '<div>'+timingRows+'<div style="color:#94a3b8;font-size:0.72rem;">대한(10년 운) 기준의 큰 흐름입니다. 특정 연도의 판단은 아래 연간 흐름 장과 겹쳐 읽으세요.</div></div>', '#fbcfe8', false);
-    }
-
-    var script1, script2, script3;
-    if (badNames.indexOf('경양') >= 0 || badNames.indexOf('타라') >= 0) {
-      script1 = '"방금 그 말은 나한테 좀 아프게 닿았어. 공격하려던 게 아니라는 건 알아."';
-      script2 = '"우리 이 얘기, 지금 결론 내지 말고 내일 저녁에 다시 하자. 도망가는 게 아니라 잘 매듭짓고 싶어서야."';
-      script3 = '"고마웠던 걸 말 안 하고 지나갔네. 지난주에 ○○해준 거, 나 진짜 좋았어."';
-    } else if (badNames.indexOf('화성') >= 0 || badNames.indexOf('영성') >= 0) {
-      script1 = '"나 지금 화가 올라와서 말이 세질 것 같아. 20분만 걷고 와서 다시 얘기할게."';
-      script2 = '"네가 갑자기 그렇게 하면 나는 놀라. 미리 한마디만 해주면 나는 다 맞출 수 있어."';
-      script3 = '"오늘은 아무 문제 없이 그냥 좋다. 이런 날이 있다는 걸 말해두고 싶었어."';
-    } else if (badNames.indexOf('지공') >= 0 || badNames.indexOf('지겁') >= 0) {
-      script1 = '"돈 얘기를 미루면 우리 둘 다 불안해지더라. 이번 주말에 30분만 가계 회의하자."';
-      script2 = '"현실이 빠듯해도 네 탓이 아니야. 우리가 구조를 같이 고치면 되는 문제야."';
-      script3 = '"막연히 걱정하지 말고, 딱 하나만 정하자 — 이번 달에 우리가 지킬 숫자 하나."';
-    } else {
-      script1 = '"요즘 우리 사이에 아무 일도 없는데, 그래서 오히려 네 마음이 궁금해."';
-      script2 = '"서운한 게 생기면 3일 안에 말하기로 하자. 나도 그렇게 할게."';
-      script3 = '"우리가 잘 지내는 이유를 하나씩 말해보자. 나부터 할게 — ○○."';
-    }
-    var scriptBody = '<div style="color:#cbd5e1;font-size:0.79rem;margin-bottom:7px;">이 명반의 갈등 유형에 맞춰 고른, 실제로 입 밖에 낼 수 있는 문장들입니다. 외우지 말고 당신의 말투로 바꿔 쓰세요.</div>'
-      +'<div style="display:grid;gap:6px;">'
-      +'<div style="background:rgba(2,6,23,0.34);border-radius:8px;padding:8px 10px;font-size:0.83rem;color:#ffe4e6;">'+zwDeepEsc(script1)+'</div>'
-      +'<div style="background:rgba(2,6,23,0.34);border-radius:8px;padding:8px 10px;font-size:0.83rem;color:#ffe4e6;">'+zwDeepEsc(script2)+'</div>'
-      +'<div style="background:rgba(2,6,23,0.34);border-radius:8px;padding:8px 10px;font-size:0.83rem;color:#ffe4e6;">'+zwDeepEsc(script3)+'</div>'
-      +'</div>';
-    html += zwDeepCardShell('💬', '갈등 유형별 대화 스크립트', badNames.length ? zwDeepEsc(badNames.join('·'))+' 대응' : '온도 유지 대화', scriptBody, '#fecdd3', false);
-
-    html += '</div>';
-    return html;
-  } catch (_spouseErr) { return ''; }
 }
 function buildZwGrandLifeDeepHtml(pd) {
   try {
@@ -3736,7 +3614,7 @@ function _cdGateBody(featureKey, bodyHtml){
   _cdPendingGateBodies[key]=bodyHtml;
   return '';
 }
-var CD_ZW_SERVER_KEYS = ['ziwei_decade_luck', 'ziwei_twelve_palaces'];
+var CD_ZW_SERVER_KEYS = ['ziwei_decade_luck', 'ziwei_twelve_palaces', 'ziwei_love_deep'];
 function _cdZwServerSlot(featureKey){
   return '<div data-cd-zw-server-body="'+String(featureKey||'').replace(/[^a-z_]/g,'')+'"></div>';
 }
@@ -17781,7 +17659,7 @@ function renderSkillTree(p, natal){
 //   ziwei_love_deep        — sec_love_compat_spread + sec_love + buildZwSpouseDeepHtml(pd)
 //   ziwei_symbolic_layer   — sec_olympus_ziwei
 //   ziwei_life_yearly_flow — buildZwGrandLifeDeepHtml(pd) + sec_grand + sec_ziwei_flow + buildZwYearlyFlowDeepHtml(pd)
-// 바뀐 곳은 현재 시각 한 줄뿐이다 — 원본의 new Date().getFullYear() 대신 _zwNowYear()(report.js 가 넘긴 요청 시각 ctx.now 의
+// 바뀐 곳은 현재 시각뿐이다(패널 flowYear, buildZwSpouseDeepHtml 의 nowYear) — 원본의 new Date().getFullYear() 대신 _zwNowYear()(report.js 가 넘긴 요청 시각 ctx.now 의
 // 한국 시각 연도. CURRENT_AGE 와 같은 기준이다)를 쓴다. 서버에서는 _cdGateBody 가 빈 문자열을 돌려주므로 1년운 장 안쪽의
 // 10년운 칸은 비어 있고, 그 본문은 decadeHtml 로 따로 돌려준다.
 function _zwNowYear(){ return new Date((ctx.now instanceof Date ? ctx.now.getTime() : Date.now()) + 9 * 60 * 60 * 1000).getUTCFullYear(); }
@@ -18143,6 +18021,134 @@ function buildZwTwelvePalaceDeepHtml(pd) {
       + '<div style="color:#64748b;font-size:0.7rem;line-height:1.55;margin:8px 2px 6px;">읽는 순서 팁: 명궁 → 관록궁 → 재백궁 → 부부궁을 먼저 읽고, 나머지 궁은 지금 고민과 닿는 곳부터 여세요. 같은 별도 궁과 밝기에 따라 전혀 다르게 작동합니다.</div>'
     +'</div>';
   } catch (_deepErr) { return ''; }
+}
+
+// ── 부부궁 심화 상담(ziwei_love_deep) 생성기 — js/saju-engine.js 최상위 선언 원문 ──
+/* ── 부부궁 심화 상담 (ziwei_love_deep) ── */
+function buildZwSpouseDeepHtml(pd) {
+  try {
+    var entry = zwDeepPalaceEntry(pd, '부부궁');
+    var mingEntry = zwDeepPalaceEntry(pd, '명궁');
+    if (!entry) return '';
+    var mains = zwDeepMainStars(entry);
+    var mingMains = zwDeepMainStars(mingEntry);
+    var badNames = (entry.badStars || []).map(function(s){ return s.name; }).filter(function(n){ return ZW_BAD_STAR_EFFECT[n]; });
+    var hasGi = ['stars','auxStars'].some(function(k){ return (entry[k] || []).some(function(s){ return s && s.sihua === '화기'; }); });
+    var risk = (hasGi || badNames.length >= 2) ? 'high' : (badNames.length === 1 ? 'mid' : 'low');
+    var html = '<div data-cd-marker="ziwei-spouse-deep-v20260711" style="margin-top:12px;">';
+    html += zwDeepSectionHead('전문가 심층 상담 — 배우자의 얼굴, 관계의 시간표', '부부궁의 별 배치와 대한 흐름을 근거로, 상담실에서 드리는 수준의 관계 해설을 이어갑니다.', '#f9a8d4');
+
+    var spouseBody = '';
+    if (mains.length) {
+      mains.slice(0, 2).forEach(function(st){
+        var prof = zwStarProfile(st.name);
+        spouseBody += '<div style="margin-bottom:8px;">'
+          +'<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:4px;"><b style="color:#fecdd3;font-size:0.87rem;">'+zwDeepEsc(st.name)+'</b>'+zwDeepBrTag(st.strength)
+          +(st.borrowed ? '<span style="color:#facc15;font-size:0.68rem;font-weight:800;">차성 — 대궁(관록궁)에서 빌려 읽음</span>' : '')+'</div>'
+          +'<div style="margin-bottom:3px;"><b style="color:#f9a8d4;">배우자의 결:</b> '+zwDeepEsc(prof.spouse)+'</div>'
+          +'<div style="color:#cbd5e1;font-size:0.8rem;"><b style="color:#fbcfe8;">만나는 길:</b> '+zwDeepEsc(prof.spousePath)+'</div>'
+        +'</div>';
+      });
+    } else {
+      spouseBody += '<div style="color:#cbd5e1;">부부궁이 공궁이라 배우자상이 하나로 고정되어 있지 않습니다. 이는 나쁜 신호가 아니라, 만나는 시기와 환경에 따라 인연의 얼굴이 크게 달라진다는 뜻입니다. 그래서 "어떤 사람을 고르느냐"보다 "어느 시기에, 어떤 상태의 나로 만나느냐"가 훨씬 중요합니다. 아래 시기 상담을 먼저 읽으세요.</div>';
+    }
+    html += zwDeepCardShell('💞', '배우자상 정밀 리딩', mains.length ? mains.map(function(s){ return zwDeepEsc(s.name); }).join('·') : '공궁 — 시기 중심 해석', spouseBody, '#f9a8d4', true);
+
+    if (mingMains.length && mains.length) {
+      var a = zwStarProfile(mingMains[0].name);
+      var b = zwStarProfile(mains[0].name);
+      var chemBody = '<div style="margin-bottom:5px;">나(명궁 <b style="color:#fde68a;">'+zwDeepEsc(mingMains[0].name)+'</b>)의 관계 언어는 <b style="color:#fef3c7;">"'+zwDeepEsc(a.loveNeed)+'"</b>이고, 배우자 자리(부부궁 <b style="color:#fecdd3;">'+zwDeepEsc(mains[0].name)+'</b>)의 약속 조건은 <b style="color:#ffe4e6;">"'+zwDeepEsc(b.loveNeed)+'"</b>입니다.</div>'
+        +'<div style="margin-bottom:5px;">이 두 언어가 서로 번역되는 동안 관계는 깊어지고, 번역을 멈추는 순간 각자 외로워집니다. 갈등의 불씨는 주로 <b style="color:#fda4af;">"'+zwDeepEsc(b.loveFriction)+'"</b>에서 시작되고, 나의 <b style="color:#fda4af;">"'+zwDeepEsc(a.loveFriction)+'"</b> 반응이 그 불을 키웁니다.</div>'
+        +'<div style="color:#d1fae5;background:rgba(110,231,183,0.08);border:1px solid rgba(110,231,183,0.22);border-radius:8px;padding:7px 9px;font-size:0.8rem;"><b>처방:</b> 싸움이 시작되면 누가 옳은지 정하지 말고, 지금 상대가 "'+zwDeepEsc(b.loveNeed)+'"의 결핍을 말하고 있는 건 아닌지 먼저 확인하세요. 결핍을 짚어주는 한 문장이 논쟁 열 마디를 이깁니다.</div>';
+      html += zwDeepCardShell('⚗️', '명궁 × 부부궁 케미', zwDeepEsc(mingMains[0].name)+' × '+zwDeepEsc(mains[0].name), chemBody, '#c084fc', false);
+    }
+
+    var stageMeet = mains.length
+      ? '이 인연은 '+zwDeepEsc(zwStarProfile(mains[0].name).spousePath)+' 시작 단계에서는 서로의 장점만 보이므로, 오히려 상대의 "'+zwDeepEsc(zwStarProfile(mains[0].name).loveFriction)+'" 신호를 한 번쯤 담담하게 관찰해 두세요. 콩깍지 시기의 메모가 훗날의 나침반이 됩니다.'
+      : '공궁 배치는 시작이 조용한 편입니다. 첫인상보다 세 번째 만남의 편안함을 기준으로 판단하세요.';
+    var stageConflict = risk === 'high'
+      ? '이 명반의 갈등기는 짧고 굵게 오는 유형입니다. '+(hasGi ? '부부궁에 화기(忌)가 걸려 있어 말과 정산(돈·집안일·시간) 문제가 얽히기 쉽습니다. ' : '')+(badNames.length ? '특히 '+zwDeepEsc(badNames.join('·'))+'의 긴장이 감정 폭발의 방아쇠가 됩니다. ' : '')+'규칙 하나만 지키세요 — 감정이 올라온 날은 결론을 내리지 않는다. 다음 날 같은 주제를 다시 꺼내면 대화의 절반은 이미 풀려 있습니다.'
+      : (risk === 'mid'
+        ? '갈등은 대체로 한 가지 패턴('+zwDeepEsc(badNames[0] || '')+' — '+zwDeepEsc(ZW_BAD_STAR_EFFECT[badNames[0]] || '작은 마찰')+')으로 반복됩니다. 패턴을 상대와 공유하는 것 자체가 절반의 해결입니다.'
+        : '큰 흉성 압박이 없는 배치라, 갈등기는 극적인 사건보다 "권태와 무심함"으로 옵니다. 문제가 없다는 것이 곧 관리가 필요 없다는 뜻은 아닙니다. 계절마다 한 번, 관계의 안부를 묻는 대화를 일부러 만드세요.');
+    var stageSettle = mains.length
+      ? '정착기의 핵심은 "'+zwDeepEsc(zwStarProfile(mains[0].name).loveNeed)+'"의 꾸준한 공급입니다. 이벤트보다 생활 속 반복(말투·역할 분담·기념 방식)으로 설계하세요. '+zwDeepEsc(zwStarProfile(mains[0].name).spouse)
+      : '정착기에는 두 사람만의 규칙 문서(돈·집안일·부모님·휴식)를 만들면 공궁의 유연함이 그대로 강점이 됩니다.';
+    var scenarioBody = '<div style="display:grid;gap:7px;">'
+      +'<div style="background:rgba(2,6,23,0.34);border-radius:9px;padding:8px 10px;"><b style="color:#fbcfe8;">1단계 · 만남기</b><br>'+stageMeet+'</div>'
+      +'<div style="background:rgba(2,6,23,0.34);border-radius:9px;padding:8px 10px;"><b style="color:#fda4af;">2단계 · 갈등기</b><br>'+stageConflict+'</div>'
+      +'<div style="background:rgba(2,6,23,0.34);border-radius:9px;padding:8px 10px;"><b style="color:#f9a8d4;">3단계 · 정착기</b><br>'+stageSettle+'</div>'
+    +'</div>';
+    html += zwDeepCardShell('🗺️', '연애 → 결혼 전개 시나리오', risk === 'high' ? '집중 관리형' : (risk === 'mid' ? '패턴 관리형' : '온도 유지형'), scenarioBody, '#fda4af', false);
+
+    var daList = Array.isArray(pd.daHanList) ? pd.daHanList : [];
+    var birthYear = 0;
+    try { birthYear = Number((window._ziweiBirth || {}).year) || 0; } catch (_by) {}
+    var nowYear = _zwNowYear();
+    var curAge = birthYear > 0 ? (nowYear - birthYear + 1) : 0;
+    var timingRows = '';
+    daList.forEach(function(dh){
+      if (!dh || (dh.palaceName !== '부부궁' && dh.palaceName !== '관록궁')) return;
+      var isSpouse = dh.palaceName === '부부궁';
+      var isNow = curAge > 0 && curAge >= dh.startAge && curAge <= dh.endAge;
+      timingRows += '<div style="display:flex;gap:9px;align-items:flex-start;background:rgba(2,6,23,0.3);border:1px solid '+(isNow ? 'rgba(253,224,71,0.5)' : 'rgba(244,114,182,0.18)')+';border-radius:9px;padding:8px 10px;margin-bottom:6px;">'
+        +'<b style="color:'+(isNow ? '#fde047' : '#f9a8d4')+';white-space:nowrap;font-size:0.82rem;">'+dh.startAge+'~'+dh.endAge+'세'+(isNow ? ' · 지금' : '')+'</b>'
+        +'<span style="font-size:0.8rem;color:#e2e8f0;">'
+        +(isSpouse
+          ? '대한이 <b>부부궁</b>을 지나는 10년 — 관계가 인생의 주제로 올라옵니다. 만남·결혼·관계 재정비 등 부부궁의 숙제가 실제 사건으로 나타나기 쉬운 구간이라, 공식화(결혼·동거·재약속)를 진지하게 검토하기 좋은 시기입니다.'
+          : '대한이 <b>관록궁</b>(부부궁의 대궁)을 지나는 10년 — 일과 관계가 정면으로 마주 봅니다. 커리어의 변화가 관계의 조건을 바꾸는 시기이니, 큰 결정(이직·개업)은 배우자와의 합의를 먼저 만드세요.')
+        +'</span>'
+      +'</div>';
+    });
+    if (timingRows) {
+      html += zwDeepCardShell('⏳', '공식화 시기 상담', curAge > 0 ? '현재 ' + curAge + '세 기준' : '대한 기준', '<div>'+timingRows+'<div style="color:#94a3b8;font-size:0.72rem;">대한(10년 운) 기준의 큰 흐름입니다. 특정 연도의 판단은 아래 연간 흐름 장과 겹쳐 읽으세요.</div></div>', '#fbcfe8', false);
+    }
+
+    var script1, script2, script3;
+    if (badNames.indexOf('경양') >= 0 || badNames.indexOf('타라') >= 0) {
+      script1 = '"방금 그 말은 나한테 좀 아프게 닿았어. 공격하려던 게 아니라는 건 알아."';
+      script2 = '"우리 이 얘기, 지금 결론 내지 말고 내일 저녁에 다시 하자. 도망가는 게 아니라 잘 매듭짓고 싶어서야."';
+      script3 = '"고마웠던 걸 말 안 하고 지나갔네. 지난주에 ○○해준 거, 나 진짜 좋았어."';
+    } else if (badNames.indexOf('화성') >= 0 || badNames.indexOf('영성') >= 0) {
+      script1 = '"나 지금 화가 올라와서 말이 세질 것 같아. 20분만 걷고 와서 다시 얘기할게."';
+      script2 = '"네가 갑자기 그렇게 하면 나는 놀라. 미리 한마디만 해주면 나는 다 맞출 수 있어."';
+      script3 = '"오늘은 아무 문제 없이 그냥 좋다. 이런 날이 있다는 걸 말해두고 싶었어."';
+    } else if (badNames.indexOf('지공') >= 0 || badNames.indexOf('지겁') >= 0) {
+      script1 = '"돈 얘기를 미루면 우리 둘 다 불안해지더라. 이번 주말에 30분만 가계 회의하자."';
+      script2 = '"현실이 빠듯해도 네 탓이 아니야. 우리가 구조를 같이 고치면 되는 문제야."';
+      script3 = '"막연히 걱정하지 말고, 딱 하나만 정하자 — 이번 달에 우리가 지킬 숫자 하나."';
+    } else {
+      script1 = '"요즘 우리 사이에 아무 일도 없는데, 그래서 오히려 네 마음이 궁금해."';
+      script2 = '"서운한 게 생기면 3일 안에 말하기로 하자. 나도 그렇게 할게."';
+      script3 = '"우리가 잘 지내는 이유를 하나씩 말해보자. 나부터 할게 — ○○."';
+    }
+    var scriptBody = '<div style="color:#cbd5e1;font-size:0.79rem;margin-bottom:7px;">이 명반의 갈등 유형에 맞춰 고른, 실제로 입 밖에 낼 수 있는 문장들입니다. 외우지 말고 당신의 말투로 바꿔 쓰세요.</div>'
+      +'<div style="display:grid;gap:6px;">'
+      +'<div style="background:rgba(2,6,23,0.34);border-radius:8px;padding:8px 10px;font-size:0.83rem;color:#ffe4e6;">'+zwDeepEsc(script1)+'</div>'
+      +'<div style="background:rgba(2,6,23,0.34);border-radius:8px;padding:8px 10px;font-size:0.83rem;color:#ffe4e6;">'+zwDeepEsc(script2)+'</div>'
+      +'<div style="background:rgba(2,6,23,0.34);border-radius:8px;padding:8px 10px;font-size:0.83rem;color:#ffe4e6;">'+zwDeepEsc(script3)+'</div>'
+      +'</div>';
+    html += zwDeepCardShell('💬', '갈등 유형별 대화 스크립트', badNames.length ? zwDeepEsc(badNames.join('·'))+' 대응' : '온도 유지 대화', scriptBody, '#fecdd3', false);
+
+    html += '</div>';
+    return html;
+  } catch (_spouseErr) { return ''; }
+}
+
+// ── 부부궁 심화 상담 생성기가 쓰는 표·보조 함수 — js/saju-engine.js 최상위 선언 원문 ──
+var ZW_BAD_STAR_EFFECT = {
+  '경양': '날카로운 칼끝 — 서두른 말과 결정이 상처를 냅니다. 한 템포 늦추세요',
+  '타라': '바퀴에 걸린 돌 — 일이 늘어지고 반복됩니다. 마감을 두 번 확인하세요',
+  '화성': '갑자기 붙는 불 — 돌발 변수와 욱하는 감정을 조심하세요',
+  '영성': '속에서 타는 불 — 겉은 조용해도 스트레스가 쌓입니다. 배출구를 만드세요',
+  '지공': '허공에 뜬 생각 — 이상은 높지만 현실 회수가 약해집니다. 계획에 숫자를 넣으세요',
+  '지겁': '빠져나가는 구멍 — 예상 밖 지출과 손실 경로를 점검하세요'
+};
+// 등급은 글자로만 구분한다(색으로 좋고 나쁨을 나타내지 않는다). 강약 없는 별은 표기 없음.
+function zwDeepBrTag(strength) {
+  var glyph = zwStrengthToSymbol(strength);
+  if (!glyph) return '';
+  return '<span title="'+zwStrengthShortMeaning(strength)+'" style="color:#fde68a;border:1px solid rgba(253,230,138,0.35);border-radius:999px;padding:1px 7px;font-size:0.72rem;font-weight:800;">'+glyph+'</span>';
 }
 
 function renderZiweiPaidBodies(idx, pName, stars, pd, opts) {

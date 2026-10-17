@@ -250,7 +250,7 @@ test("점성술 상담 심화 분석 4종과 봉인된 별의 방 4종 생성기
 });
 
 // 자미두수 명반 상세 유료 장(출생 단위 해금). 명반 계산·무료 미리보기·잠금 카드는 브라우저에 남고, 유료 본문 생성기는 서버(paid-ziwei.src.js)로 옮겼다.
-const ZIWEI_SERVER_KEYS = ["ziwei_decade_luck", "ziwei_twelve_palaces"];
+const ZIWEI_SERVER_KEYS = ["ziwei_decade_luck", "ziwei_twelve_palaces", "ziwei_love_deep"];
 test("자미두수 유료 장 생성기와 본문 문장이 브라우저 경로에 없다", () => {
   const FORBIDDEN = [
     // 대한 운세(ziwei_decade_luck): 12대한 타임라인과 1년운 안쪽 10년 대한 표.
@@ -259,6 +259,9 @@ test("자미두수 유료 장 생성기와 본문 문장이 브라우저 경로�
     // 12궁 정밀 해설(ziwei_twelve_palaces): 12궁 핵심 지도 표와 궁별 정밀 카드.
     "buildZwSummaryTableHtml", "buildZwTwelvePalaceDeepHtml", "ZW_PALACE_DEEP_FRAME", "ZW_BR_DEEP_PHRASE", "zwDeepPalaceBranchIdx",
     "가장 가까운 사람들과 어떻게 협력하는가", "이 자리에서 별의 성질이 힘 있게 드러납니다",
+    // 부부궁 심화 상담(ziwei_love_deep): 인연 별 그림 장, 연애 상담 장, 부부궁 정밀 카드.
+    "buildZwSpouseDeepHtml", "ZW_BAD_STAR_EFFECT", "zwDeepBrTag", "loveDeepOracle", "healingAffirmation", "redFlagScenario", "marriageTimingCounselHtml",
+    "ziwei-love-counsel-summary-v20260615-step2", "경계선 3종(연락·약속·사적 거리)을 문장으로 합의하고", "갈등 유형별 대화 스크립트",
   ];
   const offenders = [];
   for (const rel of browserServedFiles()) {
@@ -281,4 +284,8 @@ test("자미두수 유료 장은 서버 본문 칸으로만 열린다", () => {
   assert.match(engine, /var client=window\.CdSajuSectionClient;[\s\S]{0,400}client\.loadZiwei\(slots\[i\]\)/,"자미두수 칸이 서버 로더를 거치지 않는다");
   for (const key of ZIWEI_SERVER_KEYS) assert.ok(engine.includes(`_cdZwServerSlot('${key}')`), `${key} 본문 자리에 서버 칸이 없다`);
   assert.match(engine, /window\.__cdZiweiSectionInput = \{/, "명반 모달이 서버 입력 스냅샷을 남기지 않는다");
+  // 부부궁 심화 장의 별 그림은 서버 본문이 배달된 뒤에 그린다.
+  assert.ok(engine.includes("window.__cdZwDrawLoveStar = function(scope){"), "부부궁 별 그림 훅이 없다");
+  assert.ok(engine.includes("window.__cdZwServerBodyDelivered=_cdZwServerBodyDelivered;"), "서버 본문 배달 훅이 없다");
+  assert.match(client, /root\.__cdZwServerBodyDelivered\(slot, featureKey, data\)/, "서버 로더가 배달 훅을 부르지 않는다");
 });
