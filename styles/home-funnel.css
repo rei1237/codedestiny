@@ -1001,15 +1001,21 @@ html.neo-mode .cdh,body.neo-mode .cdh{--cdh-glass-line:color-mix(in srgb,var(--c
 
 /* 2026-10-17 "직관성" 단순 홈: 짧은 히어로 → 대표 상담 덱 → 무료 세 장 → 이용권 → 모든 운세 버튼 → 링크 한 줄.
  * 채움 버튼은 히어로 "대표 상담 고르기" 하나다. 나머지는 라인·텍스트로 위계를 낮춘다. */
-/* 헤더 한 줄: 모바일은 테마 이름을 숨기고 아이콘만, 로그인은 같은 줄에 둔다. */
+/* 헤더 한 줄: 모바일은 테마 이름을 숨기되, 2개의 선 아이콘과 선택 썸은 충분히 크게 유지한다. */
 @media(max-width:640px){
   #cdHomeFunnel .cdh-top{grid-template-columns:minmax(0,1fr) auto auto;align-items:center}
   #cdHomeFunnel .cdh-top .cdh-nav{grid-column:2;grid-row:1}
   #cdHomeFunnel .cdh-top .cdh-tools{grid-column:3;grid-row:1}
   #cdHomeFunnel .cdh-brand small{display:none}
+  #cdHomeFunnel #cdhThemeSlot{width:108px;min-width:108px;max-width:108px}
+  #cdHomeFunnel #cdhThemeSlot .theme-switch-wrapper--appbar{width:108px!important;min-width:108px!important}
+  #cdHomeFunnel #cdhThemeSlot .theme-switch-pill{grid-template-columns:repeat(2,minmax(0,1fr))!important;width:108px!important;height:48px!important;padding:2px!important;border-radius:15px!important;background:color-mix(in srgb,var(--cdh-card) 88%,var(--cdh-gold-soft))!important}
+  #cdHomeFunnel #cdhThemeSlot .theme-switch-pill:before{top:2px!important;bottom:2px!important;left:2px!important;width:calc(50% - 2px)!important;border-radius:11px!important;background:var(--cdh-surface)!important;box-shadow:inset 0 0 0 1.5px var(--cdh-accent),0 3px 9px -5px rgba(181,54,96,.5)!important}
   #cdHomeFunnel #cdhThemeSlot .tsp-name{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip-path:inset(50%)!important;white-space:nowrap!important}
-  /* 아이콘만 남는 폭에서는 칸 여백을 걷어 옛 42px 토글과 비슷한 폭을 지킨다 — 넓으면 브랜드 글자를 덮는다. */
-  #cdHomeFunnel #cdhThemeSlot .tsp-option{padding:0 2px!important}
+  #cdHomeFunnel #cdhThemeSlot .tsp-option{width:auto!important;min-width:0!important;min-height:44px!important;padding:0!important}
+  #cdHomeFunnel #cdhThemeSlot .tsp-icon{width:20px!important;height:20px!important}
+  :is(html,body).neo-mode #cdHomeFunnel #cdhThemeSlot .theme-switch-pill{background:#17122c!important}
+  :is(html,body).neo-mode #cdHomeFunnel #cdhThemeSlot .theme-switch-pill:before{background:#30264c!important;box-shadow:inset 0 0 0 1.5px #e8d5a3,0 3px 10px -5px rgba(232,213,163,.48)!important}
 }
 /* 짧은 히어로 — 덱의 첫 카드가 모바일 첫 화면에 걸리도록 높이를 줄인다. */
 #cdHomeFunnel .cdh-hero--compact{min-height:0;padding:28px clamp(22px,4vw,48px)}
