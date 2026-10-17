@@ -332,7 +332,11 @@ try {
   await page.locator('#dwGrid .dw-item').nth(1).click();
   await page.waitForFunction(() => Number(document.querySelector('.saju-cycle-guide')?.dataset.cycleAge) === Number(window.G_DAEWUN[1].age));
   assert.notEqual(await page.locator('.saju-cycle-guide').innerText(), firstCycle, 'another cycle has its own consultation');
-  assert.equal(await page.locator('.saju-cycle-guide dt').count(), 12);
+  assert.equal(await page.locator('.saju-cycle-guide dt').count(), 14);
+  assert.deepEqual((await page.locator('.saju-cycle-guide dt').allTextContents()).slice(-2), [
+    '13. 선택지 비교 — 넓힐 것과 남겨둘 것',
+    '14. 건강과 회복 — 감당할 수 있는 생활 리듬',
+  ]);
   assert.match(await page.locator('.saju-cycle-guide').innerText(), /시작할 조건과 신중히 할 선택/);
   assert.match(await page.locator('.saju-cycle-guide').innerText(), /일간.*월지/);
   for (const width of [360,390,430,1280]) {
