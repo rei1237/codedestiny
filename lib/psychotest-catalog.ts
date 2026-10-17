@@ -31,8 +31,6 @@ export type PsychotestEntry = {
   focusPoints: string[];
 };
 
-export const PSYCHOTEST_APP_BASE_URL =
-  "https://aesthetic-pig-design--youngchan1237.replit.app";
 
 export const PSYCHOTESTS: PsychotestEntry[] = [
   {
@@ -177,6 +175,145 @@ export const PSYCHOTESTS: PsychotestEntry[] = [
   },
 ];
 
+PSYCHOTESTS.push(...[
+  {
+    "id": "mbti",
+    "slug": "mbti",
+    "title": "MBTI 성격 경향",
+    "category": "성격",
+    "estimatedMinutes": 5,
+    "summary": "일상의 선택으로 나의 반응과 취향을 돌아보는 무료 심리테스트",
+    "keywords": [
+      "MBTI 성격 경향",
+      "무료 심리테스트"
+    ],
+    "focusPoints": [
+      "선택 습관",
+      "나의 취향",
+      "자기이해"
+    ]
+  },
+  {
+    "id": "lovelang",
+    "slug": "lovelang",
+    "title": "나의 연애 언어",
+    "category": "연애",
+    "estimatedMinutes": 4,
+    "summary": "일상의 선택으로 나의 반응과 취향을 돌아보는 무료 심리테스트",
+    "keywords": [
+      "나의 연애 언어",
+      "무료 심리테스트"
+    ],
+    "focusPoints": [
+      "선택 습관",
+      "나의 취향",
+      "자기이해"
+    ]
+  },
+  {
+    "id": "pastlife",
+    "slug": "pastlife",
+    "title": "전생 직업 테스트",
+    "category": "재미",
+    "estimatedMinutes": 3,
+    "summary": "일상의 선택으로 나의 반응과 취향을 돌아보는 무료 심리테스트",
+    "keywords": [
+      "전생 직업 테스트",
+      "무료 심리테스트"
+    ],
+    "focusPoints": [
+      "선택 습관",
+      "나의 취향",
+      "자기이해"
+    ]
+  },
+  {
+    "id": "dopamine",
+    "slug": "dopamine",
+    "title": "나의 도파민 유형",
+    "category": "성격",
+    "estimatedMinutes": 4,
+    "summary": "일상의 선택으로 나의 반응과 취향을 돌아보는 무료 심리테스트",
+    "keywords": [
+      "나의 도파민 유형",
+      "무료 심리테스트"
+    ],
+    "focusPoints": [
+      "선택 습관",
+      "나의 취향",
+      "자기이해"
+    ]
+  },
+  {
+    "id": "nunchi",
+    "slug": "nunchi",
+    "title": "눈치력 테스트",
+    "category": "성격",
+    "estimatedMinutes": 4,
+    "summary": "일상의 선택으로 나의 반응과 취향을 돌아보는 무료 심리테스트",
+    "keywords": [
+      "눈치력 테스트",
+      "무료 심리테스트"
+    ],
+    "focusPoints": [
+      "선택 습관",
+      "나의 취향",
+      "자기이해"
+    ]
+  },
+  {
+    "id": "mentalfit",
+    "slug": "mentalfit",
+    "title": "나의 멘탈 강도",
+    "category": "힐링",
+    "estimatedMinutes": 4,
+    "summary": "일상의 선택으로 나의 반응과 취향을 돌아보는 무료 심리테스트",
+    "keywords": [
+      "나의 멘탈 강도",
+      "무료 심리테스트"
+    ],
+    "focusPoints": [
+      "선택 습관",
+      "나의 취향",
+      "자기이해"
+    ]
+  },
+  {
+    "id": "villain",
+    "slug": "villain",
+    "title": "내 안의 빌런 유형",
+    "category": "재미",
+    "estimatedMinutes": 3,
+    "summary": "일상의 선택으로 나의 반응과 취향을 돌아보는 무료 심리테스트",
+    "keywords": [
+      "내 안의 빌런 유형",
+      "무료 심리테스트"
+    ],
+    "focusPoints": [
+      "선택 습관",
+      "나의 취향",
+      "자기이해"
+    ]
+  },
+  {
+    "id": "idealsignal",
+    "slug": "idealsignal",
+    "title": "나의 이상형 시그널",
+    "category": "연애",
+    "estimatedMinutes": 4,
+    "summary": "일상의 선택으로 나의 반응과 취향을 돌아보는 무료 심리테스트",
+    "keywords": [
+      "나의 이상형 시그널",
+      "무료 심리테스트"
+    ],
+    "focusPoints": [
+      "선택 습관",
+      "나의 취향",
+      "자기이해"
+    ]
+  }
+]);
+
 export const PSYCHOTEST_HUB_KEYWORDS = [
   "심리테스트 모음",
   "무료 심리테스트",
@@ -199,5 +336,5 @@ export function getPsychotestById(id: string) {
 
 export function buildPsychotestExternalUrl(id: string) {
   const safeId = encodeURIComponent(id);
-  return `${PSYCHOTEST_APP_BASE_URL}/?test=${safeId}&utm_source=code-destiny&utm_medium=seo&utm_campaign=psychotest_${safeId}`;
+  return `/psychotest/${safeId}/`;
 }

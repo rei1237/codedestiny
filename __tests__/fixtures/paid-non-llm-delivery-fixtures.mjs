@@ -66,13 +66,6 @@ export const PAID_NON_LLM_DELIVERY_FIXTURES = Object.freeze([
     "openDreamModalCore",
   ),
   sameSurface(
-    "psychotest-reading",
-    "per_use",
-    "app/psychotest/_components/PaidPsychotestLink.tsx",
-    "featureKey: FEATURE_KEY",
-    "window.location.assign(href)",
-  ),
-  sameSurface(
     "mbti-animal-compat",
     "per_use",
     "js/astral-soul.js",
@@ -452,6 +445,7 @@ export const PAID_NON_LLM_DELIVERY_FIXTURES = Object.freeze([
 ]);
 
 export const HISTORICAL_PAID_FEATURE_FIXTURES = Object.freeze([
+  { featureKey: "psychotest-reading", billingType: "per_use", retained: { file: "worker/lib/paid-feature-registry.js", marker: '"psychotest-reading": { cost: 30' }, replacement: { file: "app/psychotest/_components/PaidPsychotestLink.tsx", marker: "PSYCHOTEST_FREE_ENTRY" } },
   { featureKey: "ziwei-island-palace-consult", billingType: "per_use",
     retained: { file: "worker/routes/ziwei-island-ai.js", marker: "async function handleResult(" },
     replacement: { file: "worker/routes/ziwei-island.js", marker: "blueprint.reading = buildIslandDeepReport" } },

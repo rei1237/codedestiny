@@ -550,12 +550,12 @@ window.__cdServiceRegistry = [
     question: "나는 지금 어떤 상태일까?",
     desc: "나를 알아가는 가벼운 심리 탐구",
     href: "/psychotest/",
-    featureKey: "psychotest-reading",
-    price: "3,000원",
+
+    price: "무료",
     purposes: ["self", "etc"],
     methods: ["ai"],
     keys: "심리 테스트 성격 유형",
-    badge: "티저",
+    badge: "무료",
   },
   {
     id: "manse",

@@ -139,7 +139,7 @@ const signatureProducts = [
     href: '/neo-operation-room/',
     title: '네오의 팩폭 전략실',
     question: '고민은 충분히 했다. 이제 무엇부터 바꿀까?',
-    image: '/images/feature-details/neo-operation-room-hero-v1.webp',
+    image: '/images/feature-details/neo-operation-room-hero-v2-textless.webp',
     imageAlt: '달빛 전략실에서 선택의 판세를 정리하는 네오',
     featureKey: 'neo-operation-room-consultation',
     master: { caption: '마스터', names: '네오', avatars: ['neo'] },
