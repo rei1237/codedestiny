@@ -309,11 +309,11 @@
  },
  "crafted/astro-basic-deep": {
   "input": "ab5b3e64f2ec1fc1",
-  "output": "df4d48bc378ea442"
+  "output": "a16587b95e4a13ae"
  },
  "crafted/astro-career-talent": {
   "input": "06457d228c3b8f7d",
-  "output": "a59fc6d5464c903a"
+  "output": "395e356dbb799166"
  },
  "crafted/astro-celebrity-synastry": {
   "input": "7316cc789627ad64",
@@ -325,7 +325,7 @@
  },
  "crafted/astro-growth-shadow": {
   "input": "255ff17a6d985b1e",
-  "output": "27179ccb98d81417"
+  "output": "497a632e938d0894"
  },
  "crafted/astro-question-consultation": {
   "input": "188d1e97332507da",
@@ -333,27 +333,27 @@
  },
  "crafted/astro-relationship": {
   "input": "7b2eb05f9a00771c",
-  "output": "1266e875569c699c"
+  "output": "14edb18b44d33a20"
  },
  "crafted/astro-stellar-career": {
   "input": "5d4f18f854d571cd",
-  "output": "e9ae44d2cfae186c"
+  "output": "5db95557d96edbe0"
  },
  "crafted/astro-stellar-growth": {
   "input": "99abbb4a98c5c9f1",
-  "output": "90b4b949ffe993c2"
+  "output": "1b55901d5eea9eb3"
  },
  "crafted/astro-stellar-relationship": {
   "input": "79ccdf511974fe20",
-  "output": "095fa4841df0aed4"
+  "output": "d711c051e3e62111"
  },
  "crafted/astro-stellar-talent": {
   "input": "806a2afc78b9931f",
-  "output": "a934aff9c1275171"
+  "output": "f98a73198b2fc7f2"
  },
  "crafted/astro-talent-attraction": {
   "input": "351d6015c1d7408e",
-  "output": "af1ec40247ee0fbe"
+  "output": "de91daed3c7ab92c"
  },
  "crafted/astro-yearly-transit": {
   "input": "9f8d81bd5863f0ed",
@@ -637,7 +637,7 @@
  },
  "crafted/saju-daewun": {
   "input": "b85e38113bdc329a",
-  "output": "cf7c435553660a3a"
+  "output": "cb20956b031d25a9"
  },
  "crafted/saju-guardian": {
   "input": "0da07ee32e4aa7c5",
@@ -649,7 +649,7 @@
  },
  "crafted/saju-summary": {
   "input": "02da956b43db5950",
-  "output": "d14b1360eb9e01a5"
+  "output": "c2b7ab75c3d891a1"
  },
  "crafted/secret-house": {
   "input": "284e5ddb826fd4c7",
@@ -677,11 +677,11 @@
  },
  "crafted/sukuyo-encyclopedia": {
   "input": "dd5db3d9e62fa8bc",
-  "output": "82e83052ff7df5b2"
+  "output": "07af4c3b1d5f06b1"
  },
  "crafted/sukuyo-nature": {
   "input": "576b6b99fa5bede7",
-  "output": "f843c30fdf9b2434"
+  "output": "51383d02c8a98d7a"
  },
  "crafted/sukuyo-question-ai": {
   "input": "c101d78b2410b9f2",
@@ -733,7 +733,7 @@
  },
  "crafted/vedic-basic-reading": {
   "input": "93b62b8f9365bcbd",
-  "output": "90590d884b281a38"
+  "output": "1fb9173386c1ce27"
  },
  "crafted/vedic-compatibility": {
   "input": "79c51dfd8cfe0df6",
@@ -881,7 +881,7 @@
  },
  "crafted/ziwei-decade": {
   "input": "a1a59aa2c67e5af0",
-  "output": "e5feb65c6c9a3e27"
+  "output": "a715332116456df4"
  },
  "crafted/ziwei-deep-pdf": {
   "input": "73fc98161b7bdca9",
@@ -893,7 +893,7 @@
  },
  "crafted/ziwei-life-yearly": {
   "input": "d93602ba71dc2fef",
-  "output": "485baed1c6429c24"
+  "output": "12d95ca4c7c29ca1"
  },
  "crafted/ziwei-question-ai": {
   "input": "26931cbd5f0d64fb",
@@ -901,14 +901,14 @@
  },
  "crafted/ziwei-spouse": {
   "input": "d0c3bc33a5e8c2db",
-  "output": "d6c60e6db6d0ff78"
+  "output": "136bd41447039681"
  },
  "crafted/ziwei-symbolic": {
   "input": "45bd5f2d5ce58323",
-  "output": "558437b75aea9968"
+  "output": "95748c3bc3c208ed"
  },
  "crafted/ziwei-twelve-palaces": {
   "input": "b1fdb50abc5a7919",
-  "output": "c50f5d993163d6cb"
+  "output": "59be2bd2c997f7d3"
  }
 }
