@@ -35,6 +35,7 @@ import { isDbUnavailableError } from "../lib/http.js";
 export const PAYMENT_ERROR_TABLE = Object.freeze({
   // 400 — 요청 자체가 틀렸다. 재시도해도 같다.
   INVALID_REQUEST: { status: 400 },
+  PAYLOAD_TOO_LARGE: { status: 413 },
   // 출생 기반 영구 해금은 저장된 내 프로필로만 산다(worker/lib/birth-scoped-unlock-identity.js).
   MISSING_PROFILE_ID: { status: 400 },
   PAYPAL_NOT_CONFIGURED: { status: 409 },
@@ -173,6 +174,7 @@ function isDbBusyError(error) {
  */
 export function classify(error) {
   if (error instanceof PaymentError) return contractFor(error.code, error.meta);
+  if (error?.code === "REQUEST_BODY_TOO_LARGE") return contractFor("PAYLOAD_TOO_LARGE");
 
   // 붐빔이 먼저다 — isDbUnavailableError 가 이름 정규식(/^Mongo/)으로 둘 다 삼키기 때문에
   // 순서를 뒤집으면 DB_BUSY 가 영영 나오지 않는다.

@@ -1,4 +1,5 @@
 import { json, getRequestMeta } from "../lib/http.js";
+import { readBoundedText } from "../lib/request-body.js";
 import { peekAccessTokenUserId } from "../lib/auth.js";
 import { AbuseScore, Payment, User } from "../lib/models.js";
 import { Gift, GiftClaimContext } from "../lib/gift-models.js";
@@ -56,8 +57,7 @@ export async function handleGiftRoute({ request, env, ctx, path, withDb }) {
     if (method === "POST") {
       assertGiftOrigin(request, env);
       if (!request.headers.get("Content-Type")?.includes("application/json")) throw paymentError("INVALID_REQUEST", "JSON 요청이 필요합니다.");
-      const text = await request.text();
-      if (text.length > 4096) throw paymentError("INVALID_REQUEST", "요청이 너무 큽니다.");
+      const text = await readBoundedText(request, 4096);
       try { body = JSON.parse(text); } catch { throw paymentError("INVALID_REQUEST", "요청을 확인해 주세요."); }
       if (!body || typeof body !== "object" || Array.isArray(body)) throw paymentError("INVALID_REQUEST", "요청을 확인해 주세요.");
     }

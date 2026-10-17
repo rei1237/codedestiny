@@ -3,6 +3,7 @@ import { getEnv } from "./lib/env.js";
 // (라우터에 별칭 목록을 복제하지 않는다 — 그 복제가 신·구 구현이 갈리던 원인이었다).
 import { PAYMENT_METHODS, resolvePaymentCommandFromBody } from "./lib/payment-service.js";
 import { enforceAiRouteSecurity } from "./lib/security/index.js";
+import { readBoundedText } from "./lib/request-body.js";
 import { resolveAiLocaleForRequest, runWithAiLocale } from "./lib/ai-locale-context.js";
 import { withDbScopes } from "./lib/db-scope.js";
 // 지오코딩 좌표의 시간대 판정. 경도만 보면 서울이 "UTC+8" 로 나와 차트가 1시간 어긋난다.
@@ -1462,7 +1463,7 @@ const app = {
           let coinGateBodyText = "";
           let coinGateMethod = "";
           try {
-            coinGateBodyText = await request.clone().text();
+            coinGateBodyText = await readBoundedText(request.clone(), 256 * 1024);
             /* 🔴 판정은 **billing.js 와 같은 함수**로 한다(2026-08-13). 예전에는 여기서 `paymentMode` 를
                대문자 정확 일치로만 봤는데, 핸들러는 resolvePaymentCommand 의 별칭 집합(monthly ·
                monthly_credit · membership_credit · membership …)과 `accessMode` 필드까지 받는다.
@@ -1471,7 +1472,12 @@ const app = {
                단건 신호(forceDirectPayment·provider 조합 등)가 있으면 DIRECT_KRW 로 확정돼 여기서
                걸러진다 — 그 판정도 같은 함수 안에 있다. */
             coinGateMethod = resolvePaymentCommandFromBody(JSON.parse(coinGateBodyText || "{}")).method;
-          } catch { coinGateMethod = ""; }
+          } catch (error) {
+            if (error?.code === "REQUEST_BODY_TOO_LARGE") {
+              return jsonResponse(request, env, { ok: false, code: "PAYLOAD_TOO_LARGE" }, { status: 413 });
+            }
+            coinGateMethod = "";
+          }
           const coinGateV2Path = coinGateMethod === PAYMENT_METHODS.MONTHLY
             ? "/api/payments/coin-gate/moonstone"
             : coinGateMethod === PAYMENT_METHODS.MEMBERSHIP_PASS

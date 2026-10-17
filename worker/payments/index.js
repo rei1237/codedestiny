@@ -27,6 +27,7 @@ import {
   PRIOR_PASS_POLICY_VERSION,
 } from "../../lib/payment/pass-policy.js";
 import { getRequestMeta, json } from "../lib/http.js";
+import { readBoundedText } from "../lib/request-body.js";
 import { peekAccessTokenUserId } from "../lib/auth.js";
 import { CREDENTIAL_CACHE_PREFIXES, purgeCredentialCache } from "../lib/credential-scoped-cache.js";
 // 🔴 leaf 를 import 한다(../lib/access-state.js 가 아니라). 그쪽은 models.js·content-unlocks.js 를
@@ -2068,10 +2069,12 @@ export async function handlePaymentsContext(request, env, options = {}) {
       : "";
     ctx.userId = userId;
 
-    const rawBody = matched.route.rawBody ? await request.text() : "";
+    const maxBodyBytes = 256 * 1024;
+    const rawBody = matched.route.rawBody ? await readBoundedText(request, maxBodyBytes) : "";
     let body = {};
     if (!matched.route.rawBody && method !== "GET") {
-      const text = typeof options.bodyText === "string" ? options.bodyText : await request.text();
+      const text = typeof options.bodyText === "string" ? options.bodyText : await readBoundedText(request, maxBodyBytes);
+      if (new TextEncoder().encode(text).byteLength > maxBodyBytes) throw paymentError("PAYLOAD_TOO_LARGE", "요청이 너무 큽니다.");
       if (text.trim()) {
         try { body = JSON.parse(text); } catch { throw paymentError("INVALID_REQUEST", "요청 본문이 올바르지 않습니다."); }
       }
