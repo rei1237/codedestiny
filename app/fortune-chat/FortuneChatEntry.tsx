@@ -21,6 +21,7 @@ const HINT_KEY = "fortune-chat:consultation-room";
 export default function FortuneChatEntry() {
   const params = useSearchParams();
   const linked = params?.get("consultation") || "";
+  const legacySession = params?.get("session") || "";
   // 새 상담의 상담자는 연이 하나다. 예전 홈 링크의 ?character=neo 도 연이로 연다(지난 네오 상담은 ?consultation= 으로 그대로 열린다).
   const requested: ChatPersona = "yeoni";
   const auth = useAuthStore();
@@ -30,6 +31,7 @@ export default function FortuneChatEntry() {
   useEffect(() => { if (!getAuthState().authReady) void refreshAuth({ silent: true }).catch(() => {}); }, []);
 
   useEffect(() => {
+    if (legacySession && !isConsultationId(linked)) { setRoom(false); return undefined; }
     if (isConsultationId(linked)) { setRoom(true); return undefined; }
     let alive = true;
     try { if (sessionStorage.getItem(HINT_KEY) === "1") setRoom(true); } catch { /* 힌트는 깜빡임을 줄이는 보조 수단이다. */ }
@@ -39,8 +41,10 @@ export default function FortuneChatEntry() {
       try { sessionStorage.setItem(HINT_KEY, on ? "1" : "0"); } catch { /* 선택 사항 */ }
     });
     return () => { alive = false; };
-  }, [linked]);
+  }, [linked, legacySession]);
 
   // 계정이 바뀌면 상담실을 새로 연다 — 이전 계정의 기록·상담이 남지 않게.
-  return room ? <ConsultationRoom key={userKey} initialId={isConsultationId(linked) ? linked : ""} initialPersona={requested} /> : <FortuneChatClient />;
+  return isConsultationId(linked) || (!legacySession && room)
+    ? <ConsultationRoom key={userKey} initialId={isConsultationId(linked) ? linked : ""} initialPersona={requested} />
+    : <FortuneChatClient key={userKey} />;
 }

@@ -20355,7 +20355,8 @@
       "guideTitle": "諮詢前請了解",
       "guide": "確認問題與必要資訊後，會說明內容和價格。諮詢幫助你思考選擇，並不確定未來或對方的心意。",
       "resume": "繼續閱讀",
-      "restart": "從頭閱讀"
+      "restart": "從頭閱讀",
+      "chatInvitation": "有個小問題？來問花豬延伊吧！"
     },
     "confirmation": {
       "titleKo": "請確認諮詢內容",
