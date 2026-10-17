@@ -1,7 +1,7 @@
 ---
-status: waiting_ci
+status: done
 updated: 2026-10-17
-next: "main 복구 커밋 e6da3131c의 CI 성공 확인 후, 검증한 꿀방울 통합 커밋을 main에 push하고 최종 CI를 1회 확인한다."
+next: "구현·통합·로컬 검증 완료. 전달 커밋의 main CI 결과는 GitHub에서 확인하며 운영 승격은 별도 요청이다."
 ---
 
 # 기본 운세·출석 꿀방울 개편 인수인계
@@ -9,13 +9,13 @@ next: "main 복구 커밋 e6da3131c의 CI 성공 확인 후, 검증한 꿀방울
 ## 2026-10-17 재개 결과
 - 통합 구현 커밋: `e518f1dc6a560f7bf6aad6ac46b7b3e9b8b45e5e`. 워크트리와 브랜치는 아래와 같다.
 - 모바일 토글 복구 `e6da3131ce2c16525786c54c08351990936fc718`를 main에 push했다. 108×48px/44px 버튼을 유지하고 공통 CSS 규칙은 1벌로 정리했다.
-- 복구 CI: https://github.com/rei1237/codedestiny/actions/runs/39028951396 — 마지막 조회 시 진행 중. 성공 확인 전 꿀방울 push는 보류한다.
+- 복구 CI: https://github.com/rei1237/codedestiny/actions/runs/39028951396 — completed / success 확인. 꿀방울 전달 차단 해소.
 - 최신 origin/main을 통합했고 CSS 양쪽 변경 보존 후 sync:public 재생성 완료.
 - 통합 검증: mock Jest 7 suites/463 tests, Node UI 8 tests, billing policy 및 PortOne 가드, check:pre-push 모두 PASS. PortOne mock 실패 로그 모델 buffering 경고 2건은 기존과 동일하며 실제 연결 없음.
 - check:fast --plan 확인. CSS 복구에서 시작한 check:fast 전체 실행은 전체 Jest를 포함하므로 CI 복구 시 실패 검사만 재실행하는 규칙에 따라 중단했다. 전체 통과로 보고하지 않는다.
 - Chromium: 변경 전후 토글 computed style 4폭×2모드 동일. 통합 셸 360/390/430/1280px 가로 넘침 없음, 모바일 토글 108×48px와 버튼 44px 확인. 외부 통신/API 차단.
 - 화면 캡처: `C:/Users/user/.codex/visualizations/2026/10/17/01a14990-8394-7431-8452-abfe38b354dc/honey-integrated-mobile.png`. API 차단에 따른 잔액 조회 실패 상태이며 운영 결과가 아니다.
-- 다음: 복구 CI 성공 확인 → 이 문서 상태 정리/커밋 → clean 트리 check:pre-push → git push origin HEAD:main → 최종 main CI 1회 확인. 진행 중이면 URL과 상태 보고.
+- 전달 종료: 이 문서 종료 커밋을 포함해 clean 트리 check:pre-push 후 main으로 전달한다. 최종 main CI는 1회 확인하고, 진행 중이면 성공으로 간주하지 않고 상태와 URL을 보고한다. 원격 main에 포함된 자기 워크트리만 배수한다.
 - 공유 main의 다른 세션 미커밋 변경은 보존했다. 운영 승격/실결제/실 LLM 실행 없음.
 
 ## 이전 중단 시점 기록
