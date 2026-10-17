@@ -1,11 +1,11 @@
 # 애플리케이션 보안 조사 — 2026-10-18
 
-상태: 로컬 수정·회귀 검증 진행, main 전달 차단. 운영 안전성 인증 문서가 아니다.
+상태: 아래 범위의 로컬 수정·분할 회귀 검증 완료, main 전달 차단. 전수 동적 감사·운영 안전성 인증 문서가 아니다.
 
 - 기준 SHA: `f11871f4cf9e344ad5c9484e81cc32351b5ebc3c`
 - 격리: `wt/security-audit-20261018-20261018-015620`
 - 공유 main: 다른 세션 변경 86항목, 기준 원격보다 323커밋 이전. 수정·stash·reset·통합하지 않는다.
-- 전달 차단: 기준 SHA AI Locale Gate 39051090837 실패. `LLM call inventory changed` (audit-ai-locale-calls.mjs:59). 실패 위 push 금지.
+- 전달 차단: 기준 SHA AI Locale Gate39051090837 실패. 최종 조회 최신 main `2d55a5bd8e7d73487c7ff58f7f2a2a6c07e8fca3`도39053081824에서 같은 `LLM call inventory changed` 실패(audit-ai-locale-calls.mjs:59). 실패 위 push 금지.
 - 승인 범위: 로컬/mock 보안 조사·수정·검증·작은 커밋·안전한 main 전달. 운영 배포·DB·시크릿 변경·외부 발송 제외.
 
 ## 진행 기록
@@ -16,7 +16,7 @@
 - [x] A–G 조사 및 증거 분류(아래 한계 포함)
 - [x] 본문 크기·호출 제한 오류·로그 중첩 후보 재현
 - [x] OAuth 브라우저 바인딩 재현·수정, 확인된 경계 결함 수정
-- [ ] check:fast, check:pre-push, 커밋
+- [x] check:fast 실행 및 중단 기록, 계획의 개별 검사·전체 shard 수행, check:pre-push, 커밋
 - [ ] main 통합·push·정확한 SHA CI (현재 외부 차단)
 
 ## 변하지 않는 계약
@@ -167,13 +167,16 @@ PR CI/Secret Scan/AI Locale workflow의 permissions와 실행 조건을 읽었�
 | 변경 파일 ESLint / verify:payment-freeze | 통과; freeze region4/file3/상한2 유지 |
 | Gitleaks8.24.2 전체 Git 이력 | git malloc 실패로 미완료. 부분 보고서1건을 전체 스캔 결과로 취급하지 않음 |
 | Gitleaks 기준 HEAD 단일커밋 / 수정별 staged diff | 각각 exit0; 전체 이력/현재 운영 비밀의 부재를 의미하지 않음 |
-| 전체 Jest 분할 재실행 / check:pre-push | 실행 중, 최종 전달 기록에서 확정 |
+| `npm run test:jest -- --shard=N/4 --silent` (N=1,2,3,4 전부) | 총420suite6664개 통과. 각105suite:1864/1613/1414/1773개; 전체 범위를4분할했으며 테스트 제외 없음 |
+| `node scripts/run-paid-gate-suite.mjs --skip 'npm test' --jobs 1` (mock network guard 포함) | 나머지89개 전부 통과,411.3초. 제외한 npm test는 위 전체 Jest4shard와 Node3374개로 별도 수행. 이 실행 단독을 전체 paid suite 통과로 부르지 않음 |
+| npm run check:pre-push | exit0; home registry·public mirror·sitemap1027URL·llms.txt·SEO entity 통과 |
+| check:fast 계획 중 별도 실행한 잔여13개 | 모두 exit0: env-parity, phone-encryption, signup-phone-required, pass-snapshot, staging-llm-mock, analytics-events, no-nested-retry, worker-no-undef, mongo-reset-callers, cron-mongo-op-coverage, admin-route-error-context, build:worker(dry-run), entry-encoding(strict-core) |
 
 새 회귀 파일은 기존 Jest `__tests__/worker/*.test.js` 수집 대상이다. `worker/**` 변경은 CI critical로 분류되고 `.github/workflows/pr-ci.yml:1062` 부근의 Test에서 `npm run test:jest`를 실행한다(Node 테스트는 required guards lane). paid suite도 `npm test`를 포함한다. 독립 검증기를 추가해 CI 밖에 방치하지 않았다. 라우트 목록 스크립트는 수동 증거 생성기이며 통과 판정·운영 상태 검증은 하지 않는다.
 
 이력 부분 탐지: `06ee9a28ac44b36178a855bce4227fc13aaa9646:worker/lib/saju-section/runtime.generated.mjs:generic-api-key:8`. 생성 번들의 번역 지명 label 주변이어서 오탐 가능성이 있으나 스캔이 중단되어 확정하지 않았다. 실제 비밀값은 출력/보고/fixture에 넣지 않았다. ignore를 추가하지 않았으며 키 유출·폐기를 확정하지 않는다. 충분한 메모리가 있는 격리 환경에서 전체 이력을 재스캔하고 해당 fingerprint의 AST 원천 값 종류를 값 노출 없이 확인해야 한다.
 
-전체 검증에서 관측한 환경 제약: 16GiB 호스트의 가용 물리 메모리가 약107MiB까지 내려갔고 git malloc 실패·esbuild spawn UNKNOWN이 발생했다. 다른 세션의 프로세스는 중단하지 않았다. 자체 중복 Jest만 종료했고 검사 범위/기대값/ignore를 줄이지 않은 4개 shard 전체 재실행으로 검증을 분리한다. 종료 원인이 명시되지 않은 check:fast exit -1을 코드 통과나 확정된 코드 결함으로 해석하지 않는다.
+전체 검증에서 관측한 환경 제약: 16GiB 호스트의 가용 물리 메모리가 약107MiB까지 내려갔고 git malloc 실패·esbuild spawn UNKNOWN이 발생했다. 다른 세션의 프로세스는 중단하지 않았다. 자체 중복 Jest만 종료했고 검사 범위/기대값/ignore를 줄이지 않은4개 shard 전체 재실행으로 검증을 완료했다. 종료 원인이 명시되지 않은 check:fast exit -1을 명령 자체 통과나 확정된 코드 결함으로 해석하지 않는다. 이후 계획의 개별 검사는 통과했지만 공식 GitHub CI 완료와 구분한다.
 
 로컬 코드 커밋:
 
@@ -182,6 +185,15 @@ PR CI/Secret Scan/AI Locale workflow의 permissions와 실행 조건을 읽었�
 - `aee5d23dee1b71b965338dafbd243eda4d15321b` OAuth 브라우저 결합 및 회귀
 
 세 커밋 모두 아직 origin/main에 push하지 않았다.
+
+최종 원격 확인(2026-10-18 KST, 반복 polling 없음):
+
+- main `2d55a5bd8e7d73487c7ff58f7f2a2a6c07e8fca3`
+- [AI Locale Gate](https://github.com/rei1237/codedestiny/actions/runs/39053081824): **failure**, LLM call inventory mismatch.
+- [PR CI](https://github.com/rei1237/codedestiny/actions/runs/39053081775): **in_progress**. Risk tier/Typecheck and lint/Build Pages and Worker success, Static guards in_progress, Critical checks **skipped**. CI required 성공 확인 없음.
+- [Secret Scan](https://github.com/rei1237/codedestiny/actions/runs/39053081881): success. 이 사실을 로컬 전체 이력 완료/운영 키 폐기 증거로 확대하지 않는다.
+- 공유 main HEAD와 다른 변경86개는 시작 때와 동일. 원격의 후속3커밋을 작업 트리에 합치지 않았다. `git merge-tree --write-tree HEAD origin/main`은 충돌 없이 계산됐으나 실제 merge/push/통합 검증의 대체물이 아니다.
+- 로컬 보안 커밋은 미push이므로 해당 SHA의 GitHub CI 실행/통과 증거가 없다. 관측한 원격 배포 workflow는 다른 세션의 작업이며 이 보안 수정의 운영 적용이 아니다.
 
 ## 5. 운영 승인 대상 실행안
 
