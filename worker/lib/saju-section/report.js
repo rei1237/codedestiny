@@ -16,7 +16,9 @@ import { buildAnimalDestinyReading } from "./animal-destiny.js";
 // 계산 흐름은 js/saju-engine.js 의 사주 계산(원국 → 대운 브릿지 → 종격 판정 → 용신 정책)을 그대로 따른다.
 // 숙요 기본 궁합(compat-sukuyo-compatibility)·정밀 궁합 확장(premium-sukuyo-compat-extra)은 회당 결제다 — 라우트가 이번 결제 1건을 상대 조합 1건에 묶는다.
 export const SUKUYO_COMPAT_FEATURE_KEYS = Object.freeze(["compat-sukuyo-compatibility", "premium-sukuyo-compat-extra"]);
-export const SAJU_SECTION_FEATURE_KEYS = Object.freeze(["section_summary", "section_daewun", "rpt_quantumCard", "sukuyo-extreme-t-relationship", "sukuyo-relationship-encyclopedia", "sukuyo-nature-deep-dive", ...SUKUYO_COMPAT_FEATURE_KEYS, "rpt_energyCoordCard", "rpt_villainCard", "rpt_healthReportCard", "rpt_specialCharmCard", "rpt_skillTreeCard", "rpt_secretHouseEntryCard", "animal-destiny-unlock"]);
+// 자미두수 명반 상세(_renderZwPanel)의 출생 해금 유료 장. 한 번에 모든 장을 계산하고 요청한 장만 돌려준다.
+export const ZIWEI_SECTION_FEATURE_KEYS = Object.freeze(["ziwei_decade_luck"]);
+export const SAJU_SECTION_FEATURE_KEYS = Object.freeze(["section_summary", "section_daewun", "rpt_quantumCard", "sukuyo-extreme-t-relationship", "sukuyo-relationship-encyclopedia", "sukuyo-nature-deep-dive", ...SUKUYO_COMPAT_FEATURE_KEYS, "rpt_energyCoordCard", "rpt_villainCard", "rpt_healthReportCard", "rpt_specialCharmCard", "rpt_skillTreeCard", "rpt_secretHouseEntryCard", "animal-destiny-unlock", ...ZIWEI_SECTION_FEATURE_KEYS]);
 // 클라이언트 출생지 선택의 기본 옵션(index.html #birthCountry 의 대한민국 서울).
 const DEFAULT_PLACE = Object.freeze({ name: "대한민국 (서울)", longitude: 127.0, latitude: 37.6, timezone: "Asia/Seoul", baseTzOffset: 9 });
 const JONG_DECISIONS = new Set(["confirmed", "rejected", "unverified"]);
@@ -346,6 +348,12 @@ export function buildSajuSectionHtml(input) {
   // 브라우저에서는 셸 전역 var 가 곧 window 속성이다. 타로 파일의 analyzeFortuneGZ 가 window.G_JONG 으로 읽는다.
   window.G_JONG = jong;
 
+  if (ZIWEI_SECTION_FEATURE_KEYS.includes(featureKey)) {
+    // 화면(computeProfileForModal → renderZiwei)과 같은 명반: 진태양시 보정 시각(window._ziweiBirth)·GENDER·CURRENT_AGE.
+    const bodies = rt.renderZiweiPaidSections();
+    if (featureKey === "ziwei_decade_luck") return { html: bodies.ziwei_decade_luck.html, decadeHtml: bodies.ziwei_decade_luck.decadeHtml };
+    return { html: bodies[featureKey] };
+  }
   if (featureKey === "section_summary") {
     rt.renderSummary(p, johu, natal);
     return { html: captured.innerHTML };

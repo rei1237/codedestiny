@@ -1199,3 +1199,70 @@ describe("animal-destiny-unlock", () => {
     expect(sha256(JSON.stringify(reading))).toBe(s.sha256);
   });
 });
+
+// 자미두수 차트 상세 해금(출생 단위, 50코인). 서버가 해금된 프로필의 출생으로 명반을 다시 세워 본문을 그린다 —
+// 화면이 보낸 명반·궁 번호는 받지 않는다. 대한 운세는 대한 타임라인(html)과 운세 흐름 안쪽 대한 표(decadeHtml) 두 칸이다.
+const ZIWEI_KEYS = ["ziwei_decade_luck"];
+const ziweiBody = (result) => ({ html: result.html, decadeHtml: result.decadeHtml });
+describe.each(ZIWEI_KEYS)("%s", (featureKey) => {
+  const ZW = { ...INPUT, featureKey };
+  // 올해(KST) 유년이 본문에 들어간다. 요청 시각을 넘기지 않으므로 지금 시각으로 다시 그려 비교한다.
+  const expected = (birth, gender) => ziweiBody(buildSajuSectionHtml({ featureKey, birth, gender, name: "테스트", mode: "pig", lang: "ko" }));
+
+  test("unowned returns registry pricing without a body", async () => {
+    const result = await request(ZW);
+    const { pricing } = getBillingFeaturePricing({ featureKey });
+    expect(result).toEqual({ status: 402, body: expect.objectContaining({ featureKey, coinPrice: pricing.coinPrice }) });
+    expect(result.body.html).toBeUndefined();
+    expect(result.body.decadeHtml).toBeUndefined();
+  });
+
+  test("a BIRTH grant renders from the stored birth, ignoring the body's; it opens nothing else", async () => {
+    grant({}, featureKey);
+    const result = await request({ ...ZW, birth: { date: "2001-01-01", hour: 3, minute: 0 }, gender: "F" });
+    expect(result.status).toBe(200);
+    expect(result.body).toMatchObject({ ok: true, unlocked: true, featureKey });
+    expect(ziweiBody(result.body)).toEqual(expected(CARD_BIRTH, "M"));
+    expect(result.body.html.length).toBeGreaterThan(200);
+    expect((await request(INPUT)).status).toBe(402);
+    expect((await request({ ...INPUT, featureKey: "rpt_skillTreeCard" })).status).toBe(402);
+  });
+
+  test("a legacy account grant without a saved profile renders the body birth", async () => {
+    grant({ scope: "USER", profileId: "__user__" }, featureKey);
+    const { profileId: _omit, ...account } = ZW;
+    const result = await request({ ...account, birth: { date: "1985-11-02", calType: "solar", hour: 6, minute: 5 }, gender: "F" });
+    expect(result.status).toBe(200);
+    expect(ziweiBody(result.body)).toEqual(expected({ calendarDate: "1985-11-02", calType: "solar", hour: 6, minute: 5, timeKnown: true }, "F"));
+  });
+
+  test("another profile's or another birth's grant does not open it", async () => {
+    grant({ scope: "PROFILE", profileId: "p2" }, featureKey);
+    expect((await request(ZW)).status).toBe(402);
+    grant({}, featureKey);
+    const other = await request({ ...ZW, profileId: "p3" });
+    expect(other.status).toBe(402);
+    expect(other.body.html).toBeUndefined();
+  });
+
+  test("a DB failure stays retryable instead of prompting purchase", async () => {
+    grant({}, featureKey);
+    connectDb.mockRejectedValue(new Error("private database connection information"));
+    const result = await request(ZW);
+    expect(result.status).toBe(503);
+    expect(result.body).toMatchObject({ reason: "TEMPORARY_UNAVAILABLE", retryable: true });
+    expect(result.body.html).toBeUndefined();
+  });
+
+  // PARITY[id].ziwei: HEAD 클라이언트 computeProfileForModal → renderZiwei(명궁 기본 패널)를 vm 에서 같은 출생·같은 now(PARITY.now)로
+  // 돌려 얻은 유료 본문 HTML 의 sha256. 대한 운세는 타임라인(ziwei_decade_luck)과 안쪽 대한 표(ziwei_decade_luck_inner)를 따로 잰다.
+  test.each(PARITY.cases.map((c) => [c.id, c]))("server body equals the HEAD client engine output: %s", (id, c) => {
+    const result = buildSajuSectionHtml({
+      featureKey, birth: { calendarDate: c.date, calType: c.calType, hour: c.hour, minute: c.minute, timeKnown: c.timeKnown !== false },
+      gender: c.gender, name: c.name, mode: "pig", place: c.place, jongDecision: c.jong, now: new Date(PARITY.now),
+    });
+    expect(sha256(result.html)).toBe(PARITY.ziwei[id][featureKey]);
+    if (featureKey === "ziwei_decade_luck") expect(sha256(result.decadeHtml)).toBe(PARITY.ziwei[id].ziwei_decade_luck_inner);
+    else expect(result.decadeHtml).toBeUndefined();
+  });
+});

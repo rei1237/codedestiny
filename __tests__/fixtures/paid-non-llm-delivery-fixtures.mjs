@@ -248,13 +248,12 @@ export const PAID_NON_LLM_DELIVERY_FIXTURES = Object.freeze([
     'featureKey: "destiny-compass-life-voyage",',
     "const phase = field.timeline[key];",
   ),
-  sameSurface(
-    "ziwei_decade_luck",
-    "unlock",
-    "js/saju-engine.js",
-    "zwBasicPaidGateHtml('ziwei_decade_luck', 50,",
-    "zwDahanPremiumShellHtml(dahanTimelineHtml)",
-  ),
+  {
+    featureKey: "ziwei_decade_luck",
+    billingType: "unlock",
+    cta: { file: "js/saju-engine.js", marker: "zwBasicPaidGateHtml('ziwei_decade_luck', 50," },
+    consumer: { file: "worker/lib/saju-section/paid-ziwei.src.js", marker: "html: dahanTimelineHtml," },
+  },
   sameSurface(
     "ziwei_love_deep",
     "unlock",

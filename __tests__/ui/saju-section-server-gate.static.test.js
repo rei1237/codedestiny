@@ -248,3 +248,34 @@ test("점성술 상담 심화 분석 4종과 봉인된 별의 방 4종 생성기
   assert.match(loader, /var ENDPOINT = '\/api\/astro\/section';/, "점성술 심화 분석이 서버 본문을 요청하지 않는다");
   assert.match(read("index.html"), /<script defer src="\/js\/core\/astro\/section-client\.js"><\/script>/, "점성술 본문 배달 스크립트가 빠졌다");
 });
+
+// 자미두수 명반 상세 유료 장(출생 단위 해금). 명반 계산·무료 미리보기·잠금 카드는 브라우저에 남고, 유료 본문 생성기는 서버(paid-ziwei.src.js)로 옮겼다.
+const ZIWEI_SERVER_KEYS = ["ziwei_decade_luck"];
+test("자미두수 유료 장 생성기와 본문 문장이 브라우저 경로에 없다", () => {
+  const FORBIDDEN = [
+    // 대한 운세(ziwei_decade_luck): 12대한 타임라인과 1년운 안쪽 10년 대한 표.
+    "PALACE_DAHAN_THEME", "zwDahanBuildSections", "zwDahanSambangSajeong", "zwFlowDecadeSummary",
+    "동료·협력자의 조력이 운명을 바꾸는 시기", "의 주제를 3년 단위 목표로 나누고",
+  ];
+  const offenders = [];
+  for (const rel of browserServedFiles()) {
+    const source = stripComments(read(rel));
+    for (const needle of FORBIDDEN) if (source.includes(needle)) offenders.push(`${rel} → ${needle}`);
+  }
+  assert.deepEqual(offenders, [], "브라우저 파일에 자미두수 유료 본문 생성기가 남아 있다:\n  " + offenders.join("\n  "));
+  const paid = read("worker/lib/saju-section/paid-ziwei.src.js");
+  assert.ok(paid.includes("function renderZiweiPaidBodies(idx, pName, stars, pd, opts) {"), "자미두수 유료 장 정본이 서버에 없다");
+  for (const needle of FORBIDDEN) assert.ok(paid.includes(needle), `${needle} 정본이 서버에 없다`);
+});
+
+test("자미두수 유료 장은 서버 본문 칸으로만 열린다", () => {
+  const engine = stripComments(read("js/saju-engine.js"));
+  const client = stripComments(read("js/core/saju/section-client.js"));
+  assert.match(client, /function loadZiwei\(slot\) \{[\s\S]*?ziweiBody\(featureKey\)[\s\S]*?request\(body\)/, "자미두수 칸이 서버 본문을 요청하지 않는다");
+  assert.match(engine, /var CD_ZW_SERVER_KEYS = \[([^\]]*)\];/, "서버 본문 키 목록이 없다");
+  const listed = engine.match(/var CD_ZW_SERVER_KEYS = \[([^\]]*)\];/)[1].split(",").map((s) => s.trim().replace(/'/g, ""));
+  assert.deepEqual(listed, ZIWEI_SERVER_KEYS, "브라우저 서버 본문 키와 이전 목록이 다르다");
+  assert.match(engine, /var client=window\.CdSajuSectionClient;[\s\S]{0,400}client\.loadZiwei\(slots\[i\]\)/,"자미두수 칸이 서버 로더를 거치지 않는다");
+  for (const key of ZIWEI_SERVER_KEYS) assert.ok(engine.includes(`_cdZwServerSlot('${key}')`), `${key} 본문 자리에 서버 칸이 없다`);
+  assert.match(engine, /window\.__cdZiweiSectionInput = \{/, "명반 모달이 서버 입력 스냅샷을 남기지 않는다");
+});
