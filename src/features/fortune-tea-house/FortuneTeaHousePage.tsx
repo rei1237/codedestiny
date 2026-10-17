@@ -1,4 +1,5 @@
 "use client";
+import { readSajuTeaDraft } from "@/js/core/saju/tea-entry.mjs";
 // These light styles are shared by lazy consultation scenes and must be available
 // before a saved result is restored directly (without mounting the question form).
 import "./styles/tea-report.module.css";
@@ -321,6 +322,7 @@ function buildFortuneTeaQuestionInputFromRequestPayload(payload: FortuneTeaConsu
     attemptId: payload.attemptId,
     tarotSpreadId: payload.tarotSpreadId,
     consultationVersion: payload.consultationVersion,
+    sajuReportVersion: payload.sajuReportVersion,
     isLeapMonth: payload.isLeapMonth,
     longitude: payload.longitude,
     sukuyo: payload.sukuyo,
@@ -581,6 +583,29 @@ export default function FortuneTeaHousePage() {
   useEffect(() => {
     if (!authState.authReady || draftRestored.current) return;
     draftRestored.current = true;
+    const entryParams = new URLSearchParams(window.location.search);
+    const openingStoredResult = ['resultId', 'recoverResultId', 'history'].some(key => entryParams.has(key));
+    if (openingStoredResult) return;
+    if (entryParams.get('mode') === 'saju') {
+      let entryDraft: Partial<FortuneTeaHouseQuestionInput> | null = null;
+      try {
+        entryDraft = readSajuTeaDraft(sessionStorage, recoveryOwner || '');
+        if (!entryDraft) {
+          const saved = JSON.parse(sessionStorage.getItem('cd_tea_question_draft') || 'null');
+          if ((saved?.owner === (recoveryOwner || 'guest') || saved?.owner === 'guest') && Date.now() >= saved.at && Date.now() - saved.at < 86400000 && saved.input?.consultationMode === 'saju') {
+            entryDraft = { ...saved.input, ...(saved.owner === 'guest' ? { profileId: undefined } : {}) };
+          }
+        }
+      } catch { /* Direct entry also works with storage disabled. */ }
+      const cup = getTeaHouseCupById('star-black-tea');
+      if (cup) {
+        setSelectedCup(cup);
+        setQuestionInput({ consultationMode: 'saju', concernTopic: cup.topic, question: '', ...entryDraft });
+        setStage('questionInput');
+        trackEvent('tea_input_started', { method: 'saju', entry: 'saju-analysis' });
+        return;
+      }
+    }
     try {
       const saved = JSON.parse(sessionStorage.getItem("cd_tea_question_draft") || "null");
       if (saved && (saved.owner === (recoveryOwner || "guest") || saved.owner === "guest") && Date.now() - saved.at < 86400000) {
@@ -690,6 +715,13 @@ export default function FortuneTeaHousePage() {
       setStage("questionInput");
     } else {
       if (!previousOwner) {
+        // The auth-ready entry effect has already restored the new saju draft.
+        // Only an existing paid recovery above may replace that initial entry.
+        const initialEntry = new URLSearchParams(window.location.search);
+        if (initialEntry.get('mode') === 'saju' && !['resultId', 'recoverResultId', 'history'].some(key => initialEntry.has(key))) {
+          if (recoveryOwner) void probeFortuneTeaPending(recoveryOwner);
+          return;
+        }
         try {
           const draft = JSON.parse(sessionStorage.getItem("cd_tea_question_draft") || "null");
           const cup = draft && getTeaHouseCupById(draft.cupId);
@@ -1159,6 +1191,7 @@ export default function FortuneTeaHousePage() {
         tarotSpread: nextQuestionInput.tarotSpread,
         tarotSpreadId: nextQuestionInput.tarotSpreadId,
         consultationVersion: nextQuestionInput.consultationVersion,
+        sajuReportVersion: nextQuestionInput.consultationMode === 'saju' ? 'saju-specialist-v1' : undefined,
         sukuyo: nextQuestionInput.sukuyo,
         sajuCompatibility: nextQuestionInput.sajuCompatibility,
         question: nextQuestionInput.question,
@@ -1207,6 +1240,7 @@ export default function FortuneTeaHousePage() {
         tarotSpread: nextQuestionInput.tarotSpread,
         tarotSpreadId: nextQuestionInput.tarotSpreadId,
         consultationVersion: nextQuestionInput.consultationVersion,
+        sajuReportVersion: nextQuestionInput.consultationMode === 'saju' ? 'saju-specialist-v1' : undefined,
         sukuyo: nextQuestionInput.sukuyo,
         sajuCompatibility: nextQuestionInput.sajuCompatibility,
         question: nextQuestionInput.question,

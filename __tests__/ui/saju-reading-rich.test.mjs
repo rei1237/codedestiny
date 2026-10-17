@@ -152,7 +152,7 @@ test('flow: the current cycle and year cards show the engine score, ten gods and
   assert.ok(yeon.includes('<td data-label="십성" role="cell">'+context.getTenGod(dg,'甲')+'</td>'));
   assert.ok(yeon.includes('<td data-label="12운성" role="cell">'+context.cdTwelveStage(dg,'午')+'</td>'));
   assert.match(yeon,/31~40세/);assert.match(yeon,/2026년/);assert.match(yeon,/지충\(地支\)/);
-  assert.match(yeon,/<b>대인관계<\/b><span>r<\/span>/);assert.match(yeon,/여기까지는 무료/);
+  assert.match(yeon,/<b>대인관계<\/b><span>r<\/span>/);assert.match(yeon,/여기까지는 기본 해설/);assert.match(yeon,/찻집 AI 상담은 별도 서비스/);
   assert.doesNotMatch(yeon+neo,/🌟|⚠️|🙂|냥|돼지/);
   assert.match(neo,/평가 근거: 충의 부담 · 평운\./);assert.match(neo,/평가 근거: 식상\./);assert.doesNotMatch(yeon+neo,/\[충의|엔진/);
   assert.notEqual(yeon.replace(/<[^>]+>/g,''),neo.replace(/<[^>]+>/g,''));

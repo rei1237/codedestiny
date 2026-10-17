@@ -37,7 +37,7 @@ describe("Paid feature registry integrity", () => {
     const expected = {
       "fortune-tea-house-tarot-consultation": { cost: 100, amountKRW: 10000 },
       "fortune-tea-house-tarot-five-consultation": { cost: 100, amountKRW: 10000 },
-      "fortune-tea-house-saju-consultation": { cost: 100, amountKRW: 10000 },
+      "fortune-tea-house-saju-consultation": { cost: 150, amountKRW: 15000 },
       "fortune-tea-house-saju-compatibility-consultation": { cost: 100, amountKRW: 10000 },
       "fortune-tea-house-sukuyo-compatibility-consultation": { cost: 100, amountKRW: 10000 },
       "neo-operation-room-consultation": { cost: 300, amountKRW: 30000 },

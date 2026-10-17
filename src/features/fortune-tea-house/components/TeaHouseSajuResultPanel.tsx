@@ -254,9 +254,9 @@ export default function TeaHouseSajuResultPanel({ result, onShowTarot, onEditBir
             <h4 id="sajuDeepResultTitle">{copy.deepTitle}</h4>
           </div>
           <div className={styles.sajuDeepResultGrid}>
-            {deepSections.map((section) => (
-              <article className={styles.sajuDeepResultCard} data-tone={section.tone || "summary"} key={section.id || section.title}>
-                <span>{section.title}</span>
+            {deepSections.map((section, index) => (
+              <article id={`tea-saju-chapter-${index}`} className={styles.sajuDeepResultCard} data-tone={section.tone || "summary"} key={section.id || section.title}>
+                <h4>{section.title}</h4>
                 <LlmParagraphs text={section.body} />
               </article>
             ))}

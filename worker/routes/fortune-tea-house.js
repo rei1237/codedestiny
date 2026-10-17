@@ -1,4 +1,5 @@
 import { canonicalTeaSaju, withTeaSajuLongitude } from "../lib/tea-saju-facts.js";
+import { TEA_SAJU_SPECIALIST_VERSION, TEA_SAJU_SPECIALIST_TARGET, TEA_SAJU_SPECIALIST_SECTIONS, TEA_SAJU_SPECIALIST_RULES, isTeaSajuSpecialist, specialistCheckpointGroups, hasSajuHealthPrediction } from "../lib/tea-saju-specialist.js";
 import { buildTeaSajuMonthlyRows } from "../lib/tea-saju-monthly.js";
 import { buildTeaSukuyoMonthlyRhythm } from "../lib/tea-sukuyo-monthly.js";
 import { buildTeaCompatRelations, buildTeaNatalRelations } from "../lib/tea-saju-relations.js";
@@ -1123,6 +1124,7 @@ function normalizeRequest(body) {
     tarotSpread: consultationMode === "tarot" ? normalizeTarotSpread(body?.tarotSpread) : undefined,
     tarotSpreadId: cleanText(body?.tarotSpreadId, 100) || undefined,
     consultationVersion: body?.consultationVersion === "tea-v2" ? "tea-v2" : undefined,
+    ...(consultationMode === 'saju' && body?.sajuReportVersion === TEA_SAJU_SPECIALIST_VERSION ? { sajuReportVersion: TEA_SAJU_SPECIALIST_VERSION } : {}),
     nickname: cleanText(body?.nickname, 40),
     concernTopic: cleanText(body?.concernTopic, 80),
     birthInfo: cleanText(body?.birthInfo, 160),
@@ -1352,7 +1354,7 @@ async function resolveFortuneTeaBillingEvidenceAccess({ env, auth, body, feature
       }),
       paymentId: cleanText(deferredRecord.paymentId || deferredRecord.executionId || deferredRecord._id, 180),
       claimEvidenceIds: [cleanText(deferredRecord._id, 180), cleanText(deferredRecord.requestId, 180)],
-      pricing: null,
+      pricing: deferredUsage.pricingSnapshot || null,
     };
   }
 
@@ -1412,7 +1414,7 @@ async function resolveFortuneTeaBillingEvidenceAccess({ env, auth, body, feature
         { $or: paymentClauses },
         { $or: [{ featureKey }, { "pricingSnapshot.featureKey": featureKey }, { "metadata.featureKey": featureKey }] },
       ],
-    }, { sort: { paidAt: -1, updatedAt: -1, createdAt: -1 }, select: "_id merchantUid impUid requestId" })
+    }, { sort: { paidAt: -1, updatedAt: -1, createdAt: -1 }, select: "_id merchantUid impUid requestId pricingSnapshot" })
     : null;
   if (payment) {
     return {
@@ -1425,7 +1427,7 @@ async function resolveFortuneTeaBillingEvidenceAccess({ env, auth, body, feature
       licenseType: "single_purchase",
       paymentId: cleanText(payment.merchantUid || payment.impUid || payment.requestId || payment._id, 180),
       claimEvidenceIds: [cleanText(payment._id, 180), cleanText(payment.requestId, 180)],
-      pricing: null,
+      pricing: payment.pricingSnapshot || null,
     };
   }
 
@@ -1640,10 +1642,10 @@ async function verifyFortuneTeaHouseConsultAccess(request, env, body, consultReq
       ok: true,
       auth,
       featureKey,
-      pricing: pricingResult.pricing,
+      pricing: billingEvidenceAccess.pricing || pricingResult.pricing,
       accessDecision: {
         ...billingEvidenceAccess,
-        pricing: pricingResult.pricing,
+        pricing: billingEvidenceAccess.pricing || pricingResult.pricing,
       },
       deferredUsage: billingEvidenceAccess.reason === "BILLING_GATE_DEFERRED",
     };
@@ -1818,7 +1820,8 @@ function resolveSajuCategoryRule(value = {}) {
 }
 
 function getSajuRequiredSectionTitles(value) {
-  return resolveSajuCategoryRule(value).requiredSections;
+  const titles = resolveSajuCategoryRule(value).requiredSections;
+  return isTeaSajuSpecialist(value) ? [...titles, ...TEA_SAJU_SPECIALIST_SECTIONS] : titles;
 }
 
 function getSajuMinResultChars(value) {
@@ -2050,7 +2053,7 @@ const FORTUNE_TEA_SEWOON_YEARS_AHEAD = 5;
 // r5: 숙요 점수·오행 조화 참조 제거, 타로·숙요 오늘 날짜, 카드 주제별 전통 해석, 사주 장 분량 규칙 정리.
 // r6: 해외 출생 경도 미입력 시 서울 경도 대신 그 시간대 표준 자오선.
 // r7: 분량 목표 +15%(하한 그대로).
-const FORTUNE_TEA_PROMPT_REV = 7;
+const FORTUNE_TEA_PROMPT_REV = 8;
 
 function buildFortuneTeaTimingFacts(saju, todayKst = kstDate()) {
   const dayGanji = fortuneTeaSajuPillarGanji(saju, "day");
@@ -2589,9 +2592,18 @@ function buildCategorySajuDeepSections(request, saju = {}, rule = resolveSajuCat
   });
 }
 
+function buildSajuSpecialistPlaceholders() {
+  return TEA_SAJU_SPECIALIST_SECTIONS.map((title, index) => ({
+    id: 'specialist-life-' + index, title, tone: 'summary',
+    body: title + '의 해설을 준비하고 있습니다. 제공된 명식과 질문의 근거를 바탕으로 작성하며, 입력하지 않은 개인의 생활 상황을 추정하지 않습니다.',
+  }));
+}
 function buildFallbackSajuDeepSections(request, saju = {}) {
   const categoryRule = resolveSajuCategoryRule(request);
-  if (categoryRule.id !== "general") return buildCategorySajuDeepSections(request, saju, categoryRule);
+  if (categoryRule.id !== "general") return [
+    ...buildCategorySajuDeepSections(request, saju, categoryRule),
+    ...(isTeaSajuSpecialist(request) ? buildSajuSpecialistPlaceholders() : []),
+  ];
 
   const nickname = cleanText(request.nickname, 40) || cleanText(saju.birthSummary?.nickname, 40) || "손님";
   const question = cleanMultiline(request.question, 700) || "오늘 내 마음이 향하는 곳은 어디인가요?";
@@ -2713,7 +2725,8 @@ function buildFallbackSajuDeepSections(request, saju = {}) {
     "one-line": "그 기준을 잊지 않으면, 답이 늦어지는 시간도 손님을 무너뜨리는 시간이 아니라 마음을 정돈하는 시간이 됩니다.",
   };
   // 검증기·병합은 필수 제목을 글자 그대로 찾는다. 제목은 필수 목록에서 가져오고 그 순서로 내보낸다(id·본문 확장은 그대로).
-  const order = (section) => SAJU_REQUIRED_SECTION_TITLES.indexOf(section.title);
+  if (isTeaSajuSpecialist(request)) sections.push(...buildSajuSpecialistPlaceholders());
+  const order = (section) => getSajuRequiredSectionTitles(request).indexOf(section.title);
   return sections.sort((left, right) => order(left) - order(right)).map((section) => ({
     ...section,
     body: `${section.body} ${expansions[section.id] || ""} ${detailExpansions[section.id] || ""} ${finalExpansions[section.id] || ""}`,
@@ -2973,6 +2986,7 @@ function normalizeDraftResult(candidate, request) {
     ...draft,
     consultationMode: request.consultationMode,
     // 검증기(assertSajuDeepQuality)는 이 객체로 카테고리 규칙을 고른다. 생성기와 같은 질문 정보를 실어 둔다.
+    sajuReportVersion: isTeaSajuSpecialist(request) ? TEA_SAJU_SPECIALIST_VERSION : undefined,
     questionCategory: request.questionCategory,
     question: request.question,
     teaCup: draft.teaCup && typeof draft.teaCup === "object" ? { ...fallback.teaCup, ...draft.teaCup } : fallback.teaCup,
@@ -3168,6 +3182,7 @@ function mergeLlmResult(fallback, parsed, options = {}) {
     ...safeParsed,
     consultationMode: fallback.consultationMode,
     consultationVersion: fallback.consultationVersion,
+    sajuReportVersion: fallback.sajuReportVersion,
     resultFormatVersion: fallback.resultFormatVersion,
     promptVersion: fallback.promptVersion,
     calculationSnapshot: fallback.calculationSnapshot,
@@ -3393,6 +3408,9 @@ function assertSajuDeepQuality(result, fallback, { lengthRepair = false, content
     }
   });
   const joined = collectConsultText(result);
+  if (isTeaSajuSpecialist(fallback) && hasSajuHealthPrediction(joined)) {
+    fail("fortune tea house quality failed: saju health prediction");
+  }
   const compactLength = joined.replace(/\s/g, "").length;
   if (!contentOnly && compactLength < getSajuMinResultChars(fallback || result)) {
     fail(`fortune tea house quality failed: saju length ${compactLength}`);
@@ -3900,6 +3918,7 @@ const FORTUNE_TEA_SECTION_GROUPS = Object.freeze({
 
 /** 모드 하한(카테고리 규칙·5카드 가산 반영)을 그룹별 몫으로 나눈다. */
 function resolveFortuneTeaGroups(request, fallback, consultationMode) {
+  if (isTeaSajuSpecialist(request)) return specialistCheckpointGroups(getSajuRequiredSectionTitles(request));
   const groups = FORTUNE_TEA_SECTION_GROUPS[consultationMode] || FORTUNE_TEA_SECTION_GROUPS.tarot;
   const modeMinChars = isSajuFamilyMode(consultationMode)
     ? getSajuMinResultChars(request)
@@ -3958,13 +3977,14 @@ function applyFortuneTeaGroupScope(prompt, group) {
       } : {}),
       lengthRule: `이번 호출이 담당한 필드의 텍스트 합계가 공백 제외 ${group.minChars}자 이상이 되도록 쓴다.`
         + (group.targetChars ? ` 목표는 ${group.targetChars}자 안팎이다.` : "")
-        + ` 상담 전체 목표는 ${fortuneTeaTargetChars(group.modeMinChars)}자이고 나머지는 다른 그룹이 같은 시각에 쓰고 있다.`,
+        + ` 상담 전체 목표는 ${group.totalTargetChars || fortuneTeaTargetChars(group.modeMinChars)}자이고 나머지는 다른 그룹이 담당한다.`,
       handledElsewhere: group.handledElsewhere,
       noOverlapRule: "다른 그룹이 담당하는 내용을 미리 요약하거나 반복하지 않는다."
         + " 같은 상담의 다른 장을 쓰는 중이라고 생각하고, 이 그룹의 각도로만 새 근거를 풀어 쓴다.",
     },
     sajuQualityRule: prompt.sajuQualityRule && {
       ...prompt.sajuQualityRule,
+      ...(group.sectionTitles ? { requiredDeepSections: group.sectionTitles } : {}),
       minimumKoreanChars: group.minChars,
       lengthRule: `이번 호출이 담당한 필드 합계가 공백 제외 ${group.minChars}자 이상이 되도록 쓴다.`
         + (group.targetChars ? ` 목표는 ${group.targetChars}자 안팎이다.` : "")
@@ -4034,7 +4054,7 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "", 
     isSajuCompat
       ? `사주 궁합 상담만 작성한다. sajuFactInput.selfProfile(본인)과 sajuFactInput.partnerProfile(상대 ${partnerName})의 두 명식을 각각 일간·오행·십성 근거로 해석하고 대조한다. 상대 명식(partnerProfile) 해석을 본인과 동등한 분량으로 반드시 포함하고, 타로·점성술·숙요점은 근거로 쓰지 않는다. 우선 해석 렌즈는 ${sajuRule.focus.join(", ")}과 두 일간의 상생·상극 관계다.`
       : consultationMode === "saju"
-        ? `사주 상담만 작성한다. ${sajuRule.category} 카테고리의 관점으로만 쓴다. 상담 컨셉은 "${sajuRule.concept}"이다. 기존 사주 초안, 일간, 월지/계절, 오행, 십성, 천간·지지 관계, 현재 운, 출생정보 안에서 확인되는 흐름만 말하고 타로 카드는 상담 근거로 쓰지 않는다. 우선 해석 렌즈는 ${sajuRule.focus.join(", ")}이다.`
+        ? `사주 상담만 작성한다. ${isTeaSajuSpecialist(request) ? '사용자의 질문 영역을 가장 깊게 다루고, 직업·재물·연애·가족·건강과 회복을 각각 독립 장으로 연결한다.' : `${sajuRule.category} 카테고리의 관점으로만 쓴다.`} 상담 컨셉은 "${sajuRule.concept}"이다. 기존 사주 초안, 일간, 월지/계절, 오행, 십성, 천간·지지 관계, 현재 운, 출생정보 안에서 확인되는 흐름만 말하고 타로 카드는 상담 근거로 쓰지 않는다. 우선 해석 렌즈는 ${sajuRule.focus.join(", ")}이다.`
       : consultationMode === "sukuyo"
         ? "숙요점 궁합 상담만 작성한다. sukuyoFactInput의 사용자 본명숙, 상대 본명숙, 관계 유형, 거리, 방향별 관계, 관계 카테고리, 석 달 일숙 리듬(monthlyRhythm)만 근거로 삼고 타로 카드와 사주 오행·십성은 상담 근거로 쓰지 않는다."
       : `타로 상담만 작성한다. ${tarotRule.category} 카테고리의 관점으로만 쓴다. 상담 컨셉은 "${tarotRule.concept}"이다. tarotFactInput의 카드명, 정방향/역방향, 전통 의미, 배열법, 위치 의미를 바꾸지 말고 질문 맥락과 연결해 실제 리딩처럼 쓴다. 우선 해석 렌즈는 ${tarotRule.focus.join(", ")}이다.`;
@@ -4064,8 +4084,9 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "", 
             category: sajuRule.category,
             resultKey: sajuRule.resultKey,
             minimumKoreanChars: getSajuMinResultChars(request),
-            targetKoreanChars: SAJU_TARGET_RESULT_CHARS,
-            lengthRule: `공백 제외 ${getSajuMinResultChars(request)}자 이상, 전체 ${SAJU_TARGET_RESULT_CHARS}자 안팎으로 쓴다. 챕터 구분은 requiredDeepSections의 부드러운 소제목으로 하고, 각 챕터는 호흡이 있는 문단으로 채운다.`,
+            targetKoreanChars: isTeaSajuSpecialist(request) ? TEA_SAJU_SPECIALIST_TARGET : SAJU_TARGET_RESULT_CHARS,
+            ...(isTeaSajuSpecialist(request) ? { specialistRules: TEA_SAJU_SPECIALIST_RULES } : {}),
+            lengthRule: `공백 제외 ${getSajuMinResultChars(request)}자 이상, 전체 ${isTeaSajuSpecialist(request) ? TEA_SAJU_SPECIALIST_TARGET : SAJU_TARGET_RESULT_CHARS}자 안팎으로 쓴다. 챕터 구분은 requiredDeepSections의 부드러운 소제목으로 하고, 각 챕터는 호흡이 있는 문단으로 채운다.`,
             requiredDeepSections: requiredSajuSections,
             categorySchema: isSajuCompat ? undefined : sajuResultSchemaByCategory[sajuRule.id],
             compatibilityRule: isSajuCompat
@@ -4434,6 +4455,16 @@ function teaNarrativeText(value) {
     return '';
 }
 function pickTeaCheckpointFields(parsed, group) {
+    if (group.sectionTitles) {
+        const sections = parsed.saju?.deepSections;
+        if (!Array.isArray(sections)) return null;
+        const selected = group.sectionTitles.map(title => sections.find(section => section?.title === title));
+        if (selected.some(section => typeof section?.body !== 'string' || !section.body.trim())) return null;
+        const rest = group.paths.filter(path => path !== 'saju.deepSections');
+        const picked = rest.length ? pickTeaCheckpointFields(parsed, { ...group, sectionTitles: undefined, paths: rest }) : {};
+        if (!picked) return null;
+        return { ...picked, saju: { ...picked.saju, deepSections: selected } };
+    }
     if (group.chapterTitle) {
         const chapter = parsed.sukuyoCompatibility?.chapters?.find(item => item?.title === group.chapterTitle);
         return typeof chapter?.body === 'string' && chapter.body.trim() ? { sukuyoCompatibility: { chapters: [chapter] } } : null;
@@ -4471,6 +4502,7 @@ function pickTeaCheckpointFields(parsed, group) {
     return picked;
 }
 function buildTeaCheckpointGroups(request, fallback) {
+    if (isTeaSajuSpecialist(request)) return specialistCheckpointGroups(getSajuRequiredSectionTitles(request));
     const groups = [];
     const modeMinChars = resolveFortuneTeaGroups(request, fallback, normalizeConsultationMode(request.consultationMode))[0].modeMinChars;
     // 0.8은 본문 외 필드·기호 몫이다. 목표만 올려 하한/목표 비율은 0.70이 된다.
@@ -4549,6 +4581,7 @@ async function generateTeaCheckpoint(request, fallback, env, { auth, resultId, l
             return;
         // Required provider fields must exist before the deterministic fallback is merged.
         if (!pickTeaCheckpointFields(output.parsed, group)) return;
+        if (isTeaSajuSpecialist(state.request) && hasSajuHealthPrediction(teaNarrativeText(output.parsed))) return;
         const rendered = mergeLlmResult(state.fallback, output.parsed, { lengthRepair: true });
             const normalized = group.positionId ? { tarotCardReadings: rendered.tarotSpreadCards.map((card, i) => i === group.cardIndex ? { positionId: group.positionId, ...card.detail } : null) } : pickTeaCheckpointFields(rendered, group);
             if (!normalized || !countPaidReportBodyChars(teaNarrativeText(normalized)) || hasRepeatedReportPassage(teaNarrativeText(normalized)))
@@ -4841,7 +4874,7 @@ async function beginFortuneTeaHouseGeneration({ auth, resultId, consultRequest, 
           serviceScope: FORTUNE_TEA_HOUSE_SCOPE,
           consultationMode: pending ? existing.consultationMode : normalizeConsultationMode(consultRequest.consultationMode),
           featureKey,
-          pricing: pending ? existing.pricing : pricing || {},
+          pricing: existing?.pricing || pricing || {},
           profileId: pending ? existing.profileId : cleanText(consultRequest.profileId, 120),
           status: pending ? "delivery_pending" : "generating",
           deliveryRequestId: requestId,
@@ -6457,6 +6490,8 @@ export async function deferUnchangedConsultation(env, doc, now) {
 }
 
 export const __fortuneTeaHouseTestUtils = {
+  pickTeaCheckpointFields,
+  assertSajuDeepQuality,
   applyFortuneTeaGroupScope,
   buildFallbackSajuDeepSections,
   buildTeaCheckpointGroups,

@@ -295,6 +295,17 @@ test("the summary adds this and next year's prescription from the same seun read
   expect(chapter).toContain(daewunRow.g + daewunRow.j + " 대운(" + daewunRow.startYear + "–" + daewunRow.endYear + "년)");
 });
 
+test.each(["pig", "neo"])("the daewun %s reading adds grounded choices and recovery without replacing existing chapters", (mode) => {
+  const html = buildSajuSectionHtml({ birth: CARD_BIRTH, gender: "M", name: "테스트", mode, now: new Date(PARITY.now), featureKey: "section_daewun", daewun: DAEWUN }).html;
+  const guide = html.match(/<section class="saju-cycle-guide"[\s\S]*?<\/section>/)?.[0] || "";
+  expect(guide).toContain("일과 재물에서 살펴볼 선택");
+  expect(guide).toContain("선택지 비교 — 넓힐 것과 남겨둘 것");
+  expect(guide).toContain("건강과 회복 — 감당할 수 있는 생활 리듬");
+  expect(guide).toMatch(/질병·장기 이상·발병 시기를 판단하지/);
+  expect(guide).not.toMatch(/undefined|NaN/);
+  expect(withoutExtensions(guide)).not.toContain("건강과 회복 —");
+});
+
 test("the daewun reading adds the full ten-year map and a transition checklist", () => {
   const base = { birth: CARD_BIRTH, gender: "M", name: "테스트", mode: "pig", now: new Date(PARITY.now) };
   const DAEWUN_ROWS = mapRows(buildSajuSectionHtml({ ...base, featureKey: "section_daewun", daewun: DAEWUN }).html);

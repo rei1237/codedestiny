@@ -47,7 +47,7 @@
       paidSummary: '일간·월령·오행·십성을 성격·일·관계 등 여러 주제로 이어 읽고 싶은 분께 맞습니다.',
       recovery: '기존 계정과 프로필로 사주 결과를 다시 열고 해당 풀이의 해금 상태를 확인하세요. 결제 후 열리지 않으면 새로 결제하지 말고 결제 내역과 함께 고객센터에 문의하세요.',
       inputs: '현재 사주에 입력한 생년 정보와 계산값을 사용합니다. 출생시간을 모르면 시간에 의존하는 해석은 참고 범위가 제한됩니다.',
-      pricePending: '가격 확인 중', priceUnavailable: '가격은 결제 안내에서 확인해 주세요', summaryTitle: '종합 사주 풀이', daeunTitle: '대운 · 삶의 계절을 읽다', graphTitle: '대운 흐름 비교', yeonIntro: '달빛 아래 한 장씩, 타고난 마음과 지금의 계절을 함께 읽어볼게요.', neoIntro: '흐름의 근거부터 짚어 줄게. 그다음 지금 해 볼 작은 걸음 하나를 같이 고르자.', paidRead: '풀이 확인하기',
+      pricePending: '가격 확인 중', priceUnavailable: '가격은 결제 안내에서 확인해 주세요', summaryTitle: '종합 사주 풀이', daeunTitle: '대운 분석 · 지금부터 다음 시기까지', graphTitle: '대운 흐름 비교', yeonIntro: '달빛 아래 한 장씩, 타고난 마음과 지금의 계절을 함께 읽어볼게요.', neoIntro: '흐름의 근거부터 짚어 줄게. 그다음 지금 해 볼 작은 걸음 하나를 같이 고르자.', paidRead: '풀이 확인하기',
       catTitle: '영냥이 상담', catPurpose: '명식의 흐름을 고양이 상담사와', catGo: '살펴보기', catPrice: '{price}부터',
       letterGreeting: '{name}님께,', letterGuest: '이 편지를 읽는 당신', letterSignature: '연이가 온 마음을 담아',
       letterOpening: '긴 풀이를 읽으며 어떤 문장에서는 고개를 끄덕이고, 어떤 대목에서는 잠시 마음이 멈췄을지도 모르겠어요. 오늘은 답을 서둘러 정하기보다 따뜻한 차 한 잔을 사이에 두고, 당신의 이야기를 조금 더 듣는 마음으로 이 편지를 남겨요.',

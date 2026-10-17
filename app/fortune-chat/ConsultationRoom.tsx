@@ -1,11 +1,12 @@
 "use client";
+import { TEA_SAJU_URL, writeSajuTeaDraft } from "@/js/core/saju/tea-entry.mjs";
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import Image from "next/image";
 import { PriceBadge } from "@/app/components/PriceBadge";
 import { useCoinGate } from "@/app/hooks/useCoinGate";
 import { usePaidResume } from "@/app/hooks/usePaidResume";
-import { useAuthStore } from "@/app/_lib/auth-store";
+import { getAuthState, useAuthStore } from "@/app/_lib/auth-store";
 import { loginForCurrentPage } from "@/app/yeongnyangi/_lib/api";
 import { profileKey, useProfiles } from "@/app/yeongnyangi/_lib/use-profiles";
 import ProfileForm from "@/app/yeongnyangi/_components/ProfileForm";
@@ -280,6 +281,12 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
 
   const create = async () => {
     const text = question.trim();
+    if (domain === 'saju') {
+      const user = getAuthState().user;
+      try { writeSajuTeaDraft(sessionStorage, { owner: String(user?.id || user?.userId || user?._id || user?.uid || ''), profileId, question: text }); } catch { /* Optional handoff. */ }
+      window.location.assign(TEA_SAJU_URL);
+      return;
+    }
     if (busy || !text) return;
     // 게스트는 프로필이 없다 — 프로필 검사보다 먼저 로그인으로 보내야 버튼이 아무 일 없이 끝나지 않는다.
     if (guest) { toLogin(); return; }
@@ -387,6 +394,7 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
                 {DOMAINS.map((d) => <button key={d.id} type="button" aria-pressed={domain === d.id} onClick={() => setDomain(d.id)}>{d.label}</button>)}
               </div>
               <DomainArt persona={persona} domain={domain} />
+              {domain === 'saju' && <p className={styles.muted}>사주 상담은 운명의 찻집 · 사주 전문 AI 상담으로 모았어요. 연이와 네오가 안내하고, 연이가 질문과 명식의 근거를 깊이 풀어드려요. <PriceBadge featureKey="fortune-tea-house-saju-consultation" prefix="단건 " /></p>}
               {tarot && <p className={styles.muted}>타로는 생년월일 없이 지금의 고민과 카드로 읽어요.</p>}
             </section>
 
@@ -420,11 +428,11 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
               <textarea className={styles.textarea} rows={3} maxLength={QUESTION_MAX} value={question} onChange={(e) => setQuestion(e.target.value)}
                 placeholder={tarot ? kind.prompt : world.placeholder} aria-labelledby="consultation-question" />
               <div className={styles.actions}>
-                <button type="button" disabled={busy || !question.trim() || (!guest && !tarot && !profileId) || enabled === false} onClick={() => void create()}>
-                  {busy ? "상담을 준비하는 중…" : guest ? "로그인하고 상담 시작하기" : "상담 준비하기"}
+                <button type="button" disabled={busy || (domain !== 'saju' && (!question.trim() || (!guest && !tarot && !profileId) || enabled === false))} onClick={() => void create()}>
+                  {domain === 'saju' ? '찻집에서 사주 전문 상담하기' : busy ? "상담을 준비하는 중…" : guest ? "로그인하고 상담 시작하기" : "상담 준비하기"}
                 </button>
               </div>
-              {enabled === false && <p className={styles.muted}>새 상담 열기가 잠시 멈췄어요. 이미 시작한 상담은 아래 기록에서 이어 볼 수 있어요.</p>}
+              {enabled === false && domain !== 'saju' && <p className={styles.muted}>새 상담 열기가 잠시 멈췄어요. 이미 시작한 상담은 아래 기록에서 이어 볼 수 있어요.</p>}
             </section>
           </>
         )}

@@ -645,7 +645,7 @@
         var depth=root.SajuReadingDepth;
         var balanceFor=function(el){var role=roleOf(facts,el);return /용신|희신/.test(role)?'good':/기신|구신/.test(role)?'bad':'neutral';};
         var action=depth.cycleActions({stem:{char:r.g,god:sg,balance:balanceFor(gd.e)},branch:{char:r.j,god:bg,balance:balanceFor(jd.e)},power:facts.power,jong:facts.jong,month:p.m.j,depth:facts.depth||depth.buildDepthFacts(facts)},neo?'neo':undefined);
-        if(action.length) body+=section(year?'올해 해볼 작은 실천':'지금 대운에서 먼저 해볼 일',para(action[0].text.replace(/대운/g,year?'세운':'대운')));
+        if(action.length) body+=section(year?'올해 해볼 작은 실천':'지금 대운에서 먼저 해볼 일',action.map(function(item){return '<h4>'+esc(item.title.replace(/대운/g,year?'세운':'대운'))+'</h4>'+para(item.text.replace(/대운/g,year?'세운':'대운'));}).join(''));
       }
       // 대운·세운이 같은 톤이면 같은 문단이 두 번 나오므로 처음 한 번만 붙인다.
       var tone = at >= 3 ? 'open' : at === 2 ? 'even' : 'care';
@@ -653,7 +653,7 @@
       return stemArt(r.g,year?'올해 세운 천간의 물상':'현재 대운 천간의 물상')+section(title, body, 'saju-rich__lead saju-flow saju-flow--' + (year ? 'year' : 'period'));
     }).join('');
     if (!html) return '';
-    return wrap(mode, html + '<p class="saju-rich__note">' + esc('※ 여기까지는 무료입니다. 10년 대운의 전체 흐름·연도별 세운 상세·종합 풀이는 아래 프리미엄에서 이어집니다.') + '</p>', facts);
+    return wrap(mode, '<p class="saju-rich__note">대운은 약 10년의 큰 배경, 세운은 그 안에서 해마다 달라지는 흐름이에요. 같은 시기라도 내 명식의 균형과 선택에 따라 체감은 달라질 수 있어요.</p>' + html + '<p class="saju-rich__note">' + esc('여기까지는 기본 해설입니다. 전체 대운표와 연도별 상세는 아래 대운 분석 리포트에서 이어집니다. 내 고민을 질문하는 찻집 AI 상담은 별도 서비스예요.') + '</p>', facts);
   }
 
   /* ── 오늘 · 이달 ── 엔진 analyzeFortuneGZ 결과(setDaily)를 그린다. 옛 TSADVICE 를 명령조 없이 다시 썼다. [연이, 영냥이] */

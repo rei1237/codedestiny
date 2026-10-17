@@ -8227,12 +8227,19 @@ function renderSajuQuestionPromptGenerator() {
 function _bindSajuQuestionPromptCard(rootEl) {
   if (!rootEl || rootEl.dataset.sajuAiPromptBound === '1') return;
   rootEl.dataset.sajuAiPromptBound = '1';
-  var sajuQuestionGuide = document.createElement('div');
-  sajuQuestionGuide.setAttribute('data-crafted-static-offer', 'saju_ai_question_prompt');
-  rootEl.prepend(sajuQuestionGuide);
-  import('/js/core/saju/crafted-product-details.mjs').then(function(module) {
-    if (sajuQuestionGuide.isConnected) module.mountCraftedStaticOffer(sajuQuestionGuide);
-  }).catch(function() { /* Keep the existing consultation available. */ });
+  rootEl.setAttribute('data-tea-consolidated', 'true');
+  var legacyTitle = rootEl.querySelector('[data-saju-ai-disclosure] summary > span:first-child');
+  if (legacyTitle) legacyTitle.textContent = '이전에 신청한 사주 상담';
+  import('/js/core/saju/tea-entry.mjs').then(function(module) {
+    if (rootEl.isConnected) module.mountTeaSajuEntry(rootEl, function() {
+      return { owner: _sajuPromptOwnerId(), profileId: _sajuPromptResolveProfileId(), question: (rootEl.querySelector('[data-saju-ai-question]') || {}).value || '' };
+    });
+  }).catch(function() {
+    var link = document.createElement('a');
+    link.href = '/fortune-tea-house/?mode=saju&entry=saju-analysis';
+    link.textContent = '운명의 찻집 · 사주 전문 AI 상담';
+    rootEl.prepend(link);
+  });
 
   _sajuPromptBindCalibrationSection(rootEl);
 
@@ -8813,6 +8820,12 @@ function _bindSajuQuestionPromptCard(rootEl) {
     _sajuPromptActiveCalibration = _sajuPromptCalibrationForRequest(calibrationInput);
     var key = requestKey(question, domain);
     var reusePaidEvidence = lastPaidEvidence && lastPaidEvidenceKey === key;
+    if (!reusePaidEvidence) {
+      var teaLink = rootEl.querySelector('[data-tea-saju-open]');
+      if (teaLink) teaLink.click();
+      else window.location.assign('/fortune-tea-house/?mode=saju&entry=saju-analysis');
+      return;
+    }
     if (!reusePaidEvidence && !_confirmSajuQuestionPromptPurchase(domain, privacyOptions, _sajuPromptActiveCalibration ? _sajuPromptActiveCalibration.periods.length : 0)) {
       _sajuPromptSetStatus(statusEl, '생성을 취소했습니다. 결제 전 설정을 다시 확인할 수 있습니다.', 'info');
       return;

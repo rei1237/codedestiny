@@ -368,7 +368,7 @@ function consultBodyForMode(mode, attemptId) {
   return body;
 }
 
-async function seedBillingEvidence({ featureKey, requestId, accessMethod = "single" }) {
+async function seedBillingEvidence({ featureKey, requestId, accessMethod = "single", pricingSnapshot }) {
   await collection("paid_execution_records").insertOne({
     _id: `paid:${requestId}`,
     userId: USER_ID,
@@ -380,7 +380,7 @@ async function seedBillingEvidence({ featureKey, requestId, accessMethod = "sing
     orderId: `order:${requestId}`,
     accessMethod,
     status: "paid_pending_generation",
-    result: { deferredUsage: { requestId, paymentId: `pay:${requestId}`, accessType: accessMethod } },
+    result: { deferredUsage: { requestId, paymentId: `pay:${requestId}`, accessType: accessMethod, pricingSnapshot } },
   });
 }
 
@@ -563,6 +563,26 @@ describe("fortune tea house honey drops", () => {
     expect(payload.ok).toBe(true);
     expect(payload.result.consultationMode).toBe(mode);
     expect(payload.result.featureKey).toBe(featureKey);
+  });
+
+  test("legacy personal saju retains its paid 10,000 snapshot after the new price", async () => {
+    paidAccessAllowed = false;
+    const requestId = 'legacy-saju-price', featureKey = FEATURE_KEYS.saju;
+    const pricingSnapshot = { featureKey, cost: 100, coinPrice: 100, amountKRW: 10000 };
+    await seedBillingEvidence({featureKey,requestId,pricingSnapshot});
+    const body = {...consultBodyForMode('saju',requestId),featureKey,billingGate:billingGatePayload(featureKey,requestId)};
+    const send = () => handleFortuneTeaHouseRoutes(new Request('https://example.com/api/fortune-tea-house/consult', {
+      method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body),
+    }), {NODE_ENV:'test'});
+    const first = await readJson(await send());
+    expect(first.status).toBe(200);
+    expect(first.payload.result.pricing).toMatchObject(pricingSnapshot);
+    expect(first.payload.result.sajuReportVersion).toBeUndefined();
+    const calls = callGeminiTextMock.mock.calls.length;
+    const reread = await readJson(await send());
+    expect(reread.status).toBe(200);
+    expect(reread.payload.result.pricing.amountKRW).toBe(10000);
+    expect(callGeminiTextMock.mock.calls.length).toBe(calls);
   });
 
   test("paid consult without evidence returns payment payload", async () => {
@@ -1041,6 +1061,56 @@ describe.each(["membership_pass", "monthly", "single"])("delivery recovery: %s",
   });
 });
 
+
+test('specialist saju rejects a health prediction, resumes only that group and rereads without generation', async () => {
+  const body = { ...consultBodyForMode('saju', 'specialist-health-resume'), sajuReportVersion: 'saju-specialist-v1' };
+  let rejectedHealth = false;
+  let sequence = 0;
+  const long = (label, minimum = 2200) => {
+    let text = '';
+    while (text.replace(/\s/g, '').length < minimum) {
+      const n = ++sequence;
+      text += `${label}의 ${n}번째 확인에서는 일간과 오행, 십성을 주어진 근거 안에서 읽고 대운과 세운을 생활의 선택에 연결합니다. ${label} 점검 ${n}에서는 금전과 소비, 30일의 투자 계획을 현실의 일정과 비교하며 회복할 시간과 협력할 조건을 구분합니다.\n`;
+    }
+    return text;
+  };
+  callGeminiTextMock.mockImplementation(async (_env, raw) => {
+    const prompt = JSON.parse(raw);
+    expect(prompt.focusRule).toContain('각각 독립 장');
+    const output = clone(collection('fortune_tea_house_results').all()[0].generationCheckpoint.fallback);
+    output.saju.deepSections = (prompt.groupRule.exactSectionTitles || []).map(title => ({ title, body: long(title) }));
+    output.questionSummary = long('질문의 답');
+    output.saju.summary = long('명식 요약');
+    output.emotionAnalysis = output.emotionAnalysis.map(item => ({ ...item, description: long(item.label, 500) }));
+    for (const key of Object.keys(output.yeoniReading)) output.yeoniReading[key] = long(key, 1200);
+    output.synthesis.summary = long('종합 선택', 1200);
+    output.choiceSimulation = output.choiceSimulation.map((item, i) => ({ ...item, result: long(`선택${i}`, 450), caution: long(`보류${i}`, 450) }));
+    output.actionPrescription = long('실행 순서', 1200);
+    output.closingLine = '실제 생활에서 확인한 변화와 회복의 시간을 함께 기록해 보세요.';
+    if (!rejectedHealth && prompt.groupRule.exactSectionTitles?.some(title => title.includes('건강과 생활 리듬'))) {
+      rejectedHealth = true;
+      output.saju.deepSections.at(-1).body += ' 내년에 심장병에 걸릴 가능성이 높습니다.';
+    }
+    return { ok: true, provider: 'gemini', text: JSON.stringify(output) };
+  });
+  const post = () => handleFortuneTeaHouseRoutes(new Request('https://example.com/api/fortune-tea-house/consult', {
+    method:'POST', headers:{'content-type':'application/json','cf-connecting-ip':'specialist-resume'}, body:JSON.stringify(body),
+  }), { NODE_ENV:'test', GEMINIF_API_KEY:'mock-key' }).then(readJson);
+  let response;
+  for (let wave = 0; wave < 5; wave += 1) {
+    response = await post();
+    if (response.status !== 202 || response.payload.retryable === false) break;
+  }
+  const saved = collection('fortune_tea_house_results').all()[0];
+  expect({status:response.status,quality:saved?.generationCheckpoint?.qualityError}).toEqual({status:200,quality:undefined});
+  expect(rejectedHealth).toBe(true);
+  expect(response.payload.result.sajuReportVersion).toBe('saju-specialist-v1');
+  expect(response.payload.result.saju.deepSections.some(section => section.title.includes('건강과 생활 리듬'))).toBe(true);
+  expect(JSON.stringify(response.payload.result)).not.toContain('심장병에 걸릴');
+  expect(callGeminiTextMock).toHaveBeenCalledTimes(7);
+  expect((await post()).payload.cached).toBe(true);
+  expect(callGeminiTextMock).toHaveBeenCalledTimes(7);
+});
 
 test('sukuyo completes saved groups while preserving calculated relationship facts', async () => {
   const body = consultBodyForMode('sukuyo', 'sukuyo-checkpoint-complete');

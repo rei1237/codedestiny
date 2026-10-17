@@ -266,7 +266,7 @@ var copy = {
       paidSummary: '일간·월령·오행·십성을 성격·일·관계 등 여러 주제로 이어 읽고 싶은 분께 맞습니다.',
       recovery: '기존 계정과 프로필로 사주 결과를 다시 열고 해당 풀이의 해금 상태를 확인하세요. 결제 후 열리지 않으면 새로 결제하지 말고 결제 내역과 함께 고객센터에 문의하세요.',
       inputs: '현재 사주에 입력한 생년 정보와 계산값을 사용합니다. 출생시간을 모르면 시간에 의존하는 해석은 참고 범위가 제한됩니다.',
-      pricePending: '가격 확인 중', priceUnavailable: '가격은 결제 안내에서 확인해 주세요', summaryTitle: '종합 사주 풀이', daeunTitle: '대운 · 삶의 계절을 읽다', graphTitle: '대운 흐름 비교', yeonIntro: '달빛 아래 한 장씩, 타고난 마음과 지금의 계절을 함께 읽어볼게요.', neoIntro: '흐름의 근거부터 짚어 줄게. 그다음 지금 해 볼 작은 걸음 하나를 같이 고르자.', paidRead: '풀이 확인하기',
+      pricePending: '가격 확인 중', priceUnavailable: '가격은 결제 안내에서 확인해 주세요', summaryTitle: '종합 사주 풀이', daeunTitle: '대운 분석 · 지금부터 다음 시기까지', graphTitle: '대운 흐름 비교', yeonIntro: '달빛 아래 한 장씩, 타고난 마음과 지금의 계절을 함께 읽어볼게요.', neoIntro: '흐름의 근거부터 짚어 줄게. 그다음 지금 해 볼 작은 걸음 하나를 같이 고르자.', paidRead: '풀이 확인하기',
       catTitle: '영냥이 상담', catPurpose: '명식의 흐름을 고양이 상담사와', catGo: '살펴보기', catPrice: '{price}부터',
       letterGreeting: '{name}님께,', letterGuest: '이 편지를 읽는 당신', letterSignature: '연이가 온 마음을 담아',
       letterOpening: '긴 풀이를 읽으며 어떤 문장에서는 고개를 끄덕이고, 어떤 대목에서는 잠시 마음이 멈췄을지도 모르겠어요. 오늘은 답을 서둘러 정하기보다 따뜻한 차 한 잔을 사이에 두고, 당신의 이야기를 조금 더 듣는 마음으로 이 편지를 남겨요.',
@@ -460,11 +460,19 @@ function buildCycle(input, selected) {
     if(seasonal) section.splice(1,0,{title:seasonal.title+'에서 맞는 대운',text:seasonal.sections[0].text+' '+seasonal.sections[1].text});
     root.SajuReadingDepth.cycleActions(input,selected).forEach(function(row){add(row.title,row.text);});
   }
+  var originalCount=section.length;
+  add('선택지 비교 — 넓힐 것과 남겨둘 것',neo
+    ? '밖으로 요구받는 '+a.name+'와 일상에서 다루는 '+b.name+'를 따로 적어 봐. 새로운 역할을 맡는 선택에서는 실제로 확보한 시간과 도움을, 현재 자리를 지키는 선택에서는 줄일 수 있는 반복 업무와 새로 배울 것을 비교해.\n\n'+(powerKnown&&!input.power.isStrong?'지원이 상대적으로 적게 읽히는 명식이니, 제안이 좋아 보여도 협력자와 준비 기간이 없으면 범위를 줄여서 시작하는 편이 좋아.':'명식의 강점이 있더라도 제안의 비용과 책임이 구체화되지 않았다면 결정할 근거가 아직 부족해.')+' 결정 뒤에는 일정·지출·피로 가운데 무엇이 달라졌는지 다시 점검해. 대운이 선택의 결과를 대신 정해 주지는 않아.'
+    : '밖으로 요구받는 '+a.name+'와 일상에서 다루는 '+b.name+'를 나눠 적어 보세요. 새로운 역할을 맡는 선택에서는 확보한 시간과 도움을, 현재 자리를 지키는 선택에서는 줄일 수 있는 반복 업무와 새로 배울 것을 비교하세요.\n\n'+(powerKnown&&!input.power.isStrong?'지원이 상대적으로 적게 읽히는 명식이므로, 제안이 좋아 보여도 협력자와 준비 기간이 없다면 범위를 줄여 시작하는 편이 좋습니다.':'명식의 강점이 있더라도 제안의 비용과 책임이 구체화되지 않았다면 결정의 근거는 아직 부족합니다.')+' 결정 뒤에는 일정·지출·피로 가운데 무엇이 달라졌는지 다시 점검하세요. 대운이 선택의 결과를 대신 정하지는 않습니다.');
+  add('건강과 회복 — 감당할 수 있는 생활 리듬',neo
+    ? '이 대운에서 '+a.name+(a===b?'':', '+b.name)+'의 역할을 해내는 데 드는 시간도 봐야 해. 업무나 관계의 약속을 늘린 뒤 잠과 휴식이 줄었는지 일주일 단위로 기록해 봐. 회복이 밀리면 의지로 버티기보다 맡은 일의 양부터 조정해.\n\n이건 생활 습관을 돌아보는 해설이야. 오행이나 십성으로 질병·장기 이상·발병 시기를 판단하지 않아.'
+    : '이 대운에서 '+a.name+(a===b?'':', '+b.name)+'의 역할을 해내는 데 드는 시간도 살펴보세요. 업무나 관계의 약속을 늘린 뒤 수면과 휴식이 줄었는지 일주일 단위로 기록해 보세요. 회복이 밀리면 맡은 일의 양과 도움받을 범위를 조정하세요.\n\n이 장은 생활 습관을 돌아보는 해설입니다. 오행이나 십성으로 질병·장기 이상·발병 시기를 판단하지 않습니다.');
+  section.slice(originalCount).forEach(function(row){row.extension=true;});
   return {title:input.stem.char+input.branch.char+' 대운 · '+input.startYear+'–'+end+'년',intro:(neo?'이번 대운에서 내가 짚는 핵심은 이거야 — ':'이번 열 해에는 ')+a.name+(a===b?'':', 그리고 '+b.name)+(neo?'. 근거부터 확인하고, 감당할 수 있는 행동 하나부터 정해 봐.':'의 주제를 함께 살펴볼게요. 익숙한 강점과 새롭게 필요한 태도를 구분해 보세요.'),sections:section,warning:neo?(input.unknown?'출생시간 미상이라서 시주를 뺀 자리만 관계 설명에 표시했어. 정오를 넣어 계산한 원국의 비율·강약과 대운 시작 시기는 참고용이고, 확정할 수는 없어.':'이 해석은 지금 명식의 상징적 흐름을 설명하는 거야. 실제 사건·수익·관계의 결말을 보장하지 않아.'):input.unknown?'출생시간 미상: 시주를 제외한 자리만 관계 설명에 표시했습니다. 정오를 대입한 원국의 비율·강약과 대운 시작 시기는 참고용이며 확정할 수 없습니다.':'해석은 현재 명식의 상징적 흐름을 설명하며 실제 사건·수익·관계의 결말을 보장하지 않습니다.'};
 }
 function cycleMarkup(input, selected) {
   var model=buildCycle(input,selected);if(!model)return '';
-  return '<section class="saju-cycle-guide" data-cycle-age="'+esc(input.age)+'" data-cycle-gan="'+esc(input.stem.char)+'" data-cycle-zhi="'+esc(input.branch.char)+'"><h3>'+esc(model.title)+'</h3><p>'+esc(model.intro)+'</p><p class="saju-reading__uncertain">'+esc(model.warning)+'</p><dl>'+model.sections.map(function(section,index){return '<dt><strong>'+String(index+1).padStart(2,'0')+'. '+esc(section.title)+'</strong></dt><dd>'+section.text.split('\n\n').map(function(p){return '<p>'+esc(p)+'</p>';}).join('')+'</dd>';}).join('')+'</dl></section>';
+  return '<section class="saju-cycle-guide" data-cycle-age="'+esc(input.age)+'" data-cycle-gan="'+esc(input.stem.char)+'" data-cycle-zhi="'+esc(input.branch.char)+'"><h3>'+esc(model.title)+'</h3><p>'+esc(model.intro)+'</p><p class="saju-reading__uncertain">'+esc(model.warning)+'</p><dl>'+model.sections.map(function(section,index){return (section.extension?'<!--saju-ext-->':'')+'<dt><strong>'+String(index+1).padStart(2,'0')+'. '+esc(section.title)+'</strong></dt><dd>'+section.text.split('\n\n').map(function(p){return '<p>'+esc(p)+'</p>';}).join('')+'</dd>'+(section.extension?'<!--/saju-ext-->':'');}).join('')+'</dl></section>';
 }
     return { buildCycle: buildCycle, cycleMarkup: cycleMarkup };
   })(window);

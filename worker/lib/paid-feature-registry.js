@@ -259,7 +259,7 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "yoga-guru-per-use": { cost: 50, reason: "요가 구루 30분 코스" },
   "fortune-tea-house-tarot-consultation": { cost: 100, amountKRW: 10000, reason: "운명 찻집 타로 상담 (3카드)" },
   "fortune-tea-house-tarot-five-consultation": { cost: 100, amountKRW: 10000, reason: "운명 찻집 타로 프리미엄 상담 (5카드)" },
-  "fortune-tea-house-saju-consultation": { cost: 100, amountKRW: 10000, reason: "운명 찻집 사주 상담" },
+  "fortune-tea-house-saju-consultation": { cost: 150, amountKRW: 15000, reason: "운명의 찻집 · 사주 전문 AI 상담" },
   "fortune-tea-house-saju-compatibility-consultation": { cost: 100, amountKRW: 10000, reason: "운명 찻집 사주 궁합 상담" },
   "fortune-tea-house-sukuyo-compatibility-consultation": { cost: 100, amountKRW: 10000, reason: "운명 찻집 숙요점 궁합 상담" },
   "sukuyo-symbolic-comparison": { cost: 50, reason: "숙요 인연 레이더" },

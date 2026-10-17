@@ -707,6 +707,17 @@ export default function TeaHouseResultSheet({
         <header className={`${styles.resultHeader} `} data-tea-pdf-section>
           {result.consultationVersion !== "tea-v2" && <p className={styles.sceneEyebrow}>{selectedCup?.eyebrow || copy.kdaff0ix}</p>}
           <h2 id="teaResultTitle">{result.sessionTitle}</h2>
+          {result.sajuReportVersion === 'saju-specialist-v1' && <>
+            <h3>내 질문에 대한 핵심 답</h3>
+            <LlmParagraphs text={result.questionSummary} />
+            <details className={styles.sajuContentsDisclosure}>
+              <summary>사주 상담 목차 · 원하는 장으로 이동하기</summary>
+              <nav className={styles.sajuReadingContents} aria-label="사주 상담 목차">
+                <a href="#sajuResultPanelTitle">내 명식의 근거</a>
+                {(result.saju.deepSections || []).map((section, index) => <a key={section.id || section.title} href={`#tea-saju-chapter-${index}`}>{section.title}</a>)}
+              </nav>
+            </details>
+          </>}
           {result.consultationVersion !== "tea-v2" && result.questionSummary ? <p>{result.questionSummary}</p> : null}
           {result.consultationVersion !== "tea-v2" && <strong className={styles.resultYeoniOpening}>{yeoniOpening}</strong>}
           {result.consultationVersion !== "tea-v2" && result.yeoniReading.intro ? (

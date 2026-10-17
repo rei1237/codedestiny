@@ -531,6 +531,12 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
     let alive = true;
 
     async function applyFallbackProfile() {
+      if (initialInput?.profileId) {
+        setProfileId('');
+        setSelectedProfileOptionId('');
+        setProfileNotice('현재 계정의 프로필을 확인한 뒤 직접 선택해 주세요.');
+        return;
+      }
       const fallback = readCurrentDestinyProfile();
       const option = fallback ? mapProfileToTeaHouseOption(fallback) : null;
       if (!alive) return;
@@ -562,9 +568,15 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
             .filter((option): option is TeaHouseProfileOption => Boolean(option));
           setProfileOptions(options);
           const currentOption = options.find((option) => option.profileId && option.profileId === currentId);
-          const nextOption = currentOption || (options.length === 1 ? options[0] : null);
+          const requestedId = initialInput?.profileId;
+          const requestedOption = requestedId ? options.find(option => option.profileId === requestedId) : null;
+          const nextOption = requestedId ? requestedOption : currentOption || (options.length === 1 ? options[0] : null);
           if (nextOption) {
             applyProfileOption(nextOption);
+          } else if (requestedId) {
+            setProfileId('');
+            setSelectedProfileOptionId('');
+            setProfileNotice('이 사주에서 사용한 프로필을 확인해 주세요. 현재 계정의 프로필을 직접 선택해 주세요.');
           } else if (options.length > 1) {
             setProfileNotice(copy.k0hw8pcd);
           } else {
@@ -807,11 +819,11 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
   return (
     <section className={`${styles.questionScene}`} aria-labelledby="teaQuestionTitle">
       <div className={styles.questionActor}>
-        <img className={styles.yeoniPortrait} src="/images/fortune-tea-house/yeoni-moonlight-novel.webp" alt="" width="1536" height="1024" />
+        <img className={styles.yeoniPortrait} src={consultationMode === "saju" ? "/images/consultation/saju-yeoni-neo-joint-v1-640.webp" : "/images/fortune-tea-house/yeoni-moonlight-novel.webp"} alt={consultationMode === "saju" ? "명식을 함께 살펴보는 연이와 네오" : ""} width="1536" height="1024" />
         <div className={styles.questionInvitation}>
           <p className={styles.chosenTea}>{selectedCup.name} · {selectedCup.topic}</p>
-          <h2 id="teaQuestionTitle">{copy.questionTitle}</h2>
-          <p>{copy.welcomeNote}</p>
+          <h2 id="teaQuestionTitle">{consultationMode === "saju" ? "운명의 찻집 · 사주 전문 AI 상담" : copy.questionTitle}</h2>
+          <p>{consultationMode === "saju" ? "연이와 네오가 함께 안내하고, 상담문은 연이가 전해드려요. 내 질문을 중심으로 직업·재물·연애·가족·건강과 회복 리듬을 깊이 읽습니다." : copy.welcomeNote}</p>
         </div>
       </div>
       <form id="tea-question-form" className={`${styles.questionPanel}`} onSubmit={handleSubmit}>

@@ -1,4 +1,6 @@
 "use client";
+import { TEA_SAJU_URL, writeSajuTeaDraft } from "@/js/core/saju/tea-entry.mjs";
+import { getAuthState } from "@/app/_lib/auth-store";
 
 import { readPendingTurn, readRecentTurns, recentTurnsOf, requestGuardianTurn, type RecentTurn } from "./paid-turn-recovery";
 
@@ -386,6 +388,7 @@ export default function FortuneChatClient() {
 
   const topicKey = TOPIC_MAP[topic] || "decision";
   const activeCategory: Category = category || CATEGORY_BY_TOPIC[topicKey] || "saju";
+  const opensTeaSaju = activeCategory === 'saju' && !readPendingTurn(sessionId);
   const freeRemaining = usage ? (usage.isLoggedIn ? usage.dailyFreeRemaining : usage.guestFreeRemaining) : 0;
   const needsPayment = Boolean(usage?.isLoggedIn) && freeRemaining <= 0;
 
@@ -593,6 +596,12 @@ export default function FortuneChatClient() {
       return;
     }
     const concern = question.trim().slice(0, CONCERN_MAX_LENGTH);
+    if (activeCategory === 'saju') {
+      const user = getAuthState().user;
+      try { writeSajuTeaDraft(sessionStorage, { owner: String(user?.id || user?.userId || user?._id || user?.uid || ''), question: concern }); } catch { /* Optional handoff. */ }
+      window.location.assign(TEA_SAJU_URL);
+      return;
+    }
     if (!topic && !concern) { setError("궁금한 분야를 고르거나, 직접 질문을 적어 주세요."); return; }
     if (!birth.birthDate) {
       setBirthOpen(true);
@@ -715,7 +724,7 @@ export default function FortuneChatClient() {
         </div>
         <PersonaAvatar persona={character} mood="greet" size="lg" decorative />
       </section>
-      {getCurrentLoadingLocale() === "ko" && <CraftedProductDisclosure featureKey={PAID_FEATURE_KEY} variant={character} />}
+      {getCurrentLoadingLocale() === "ko" && !opensTeaSaju && <CraftedProductDisclosure featureKey={PAID_FEATURE_KEY} variant={character} />}
       {messages.map((message) => <article key={message.id} className={`${styles.message} ${styles[message.speaker]} ${message.kind ? styles[message.kind] : ""}`}>
         {message.speaker === "assistant" ? <PersonaAvatar persona={character} mood={message.kind === "reading" ? "read" : "listen"} size="sm" decorative /> : null}
         <div className={styles.bubble}><p>{message.text}</p>{message.detail && <details><summary>자세히 보기</summary><p>{message.detail}</p></details>}
@@ -731,8 +740,8 @@ export default function FortuneChatClient() {
 
     <section className={styles.composer} aria-label={copy.composerAria}>
       <div className={styles.policyRow}>
-        <p className={styles.policy}>{usageLabel}</p>
-        {usage && <PriceBadge featureKey={PAID_FEATURE_KEY} fallbackLabel="3,000원" prefix="1회 " className={styles.priceBadge} />}
+        <p className={styles.policy}>{opensTeaSaju ? '사주 상담은 운명의 찻집 · 사주 전문 AI 상담에서 이어가요. 연이와 네오가 안내하고, 상담문은 연이가 전해드려요.' : usageLabel}</p>
+        {(usage || opensTeaSaju) && <PriceBadge featureKey={opensTeaSaju ? 'fortune-tea-house-saju-consultation' : PAID_FEATURE_KEY} prefix="단건 " className={styles.priceBadge} />}
       </div>
 
       <details className={styles.birthPanel} open={birthOpen} onToggle={(event) => setBirthOpen((event.currentTarget as HTMLDetailsElement).open)}>
@@ -755,7 +764,7 @@ export default function FortuneChatClient() {
       <div className={styles.chips} aria-label={copy.categoryChipsAria}>{(Object.keys(CATEGORY_LABEL) as Category[]).map((item) => <button key={item} type="button" aria-pressed={activeCategory === item} onClick={() => setCategory(item)}>{CATEGORY_LABEL[item]}</button>)}</div>
       <div className={styles.input}>
         <input ref={inputRef} value={question} maxLength={CONCERN_MAX_LENGTH} onChange={(event) => setQuestion(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !event.nativeEvent.isComposing) void send(); }} placeholder="마음에 남은 질문을 적어 주세요" aria-label={copy.questionInputAria} disabled={busy || isPaying} />
-        <button type="button" onClick={() => void send()} disabled={busy || isPaying}>{busy || isPaying ? "정리 중" : "보내기"}</button>
+        <button type="button" onClick={() => void send()} disabled={busy || isPaying}>{busy || isPaying ? "정리 중" : opensTeaSaju ? "찻집으로" : "보내기"}</button>
       </div>
       {error && <p className={styles.error} role="alert">{error}</p>}
     </section>
