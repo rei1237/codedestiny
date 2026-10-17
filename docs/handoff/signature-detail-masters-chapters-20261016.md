@@ -1,7 +1,7 @@
 ---
 status: done
-updated: 2026-10-16
-next: "완료. push·PR은 사용자 확인 뒤에 한다."
+updated: 2026-10-17
+next: "완료(6단계 마스터별 고급 상세 포함). push·PR은 사용자 확인 뒤에 한다."
 ---
 
 # 대표 상담 상세: 마스터 캐릭터·챕터·얻는 효과
@@ -222,6 +222,7 @@ sed -n 1,60p js/feature-detail-panels.mjs              # 렌더러 구조
 | 4 (선행) | `c746b22bd` | 새 필드가 없는 상품 출력 고정: 상세 JSON 74개 × 렌더 3종, crafted manifest 154개 × eager 2종을 입력·출력 해시로 기록했다. 렌더러를 바꾸기 전에 기록했다. |
 | 4 | `8218c0473` | 렌더러: 마스터 섹션, 묶음 목차(화자 칩·gain·번호 이어 가기), 28장 이상이면 첫 묶음 뒤를 `<details>`로 접기, outcomes 카드. 팝업·페이지 CSS와 `.d.mts`. |
 | 5 | `ecbe9c724` | 3종 전체 장의 `gain`, `outcomes` 4~5개(evidence = 결과 화면 코드 경로), 연애 chaptersLabel, 인생의 책 목차 4묶음. 금지어 검사 테스트 포함. |
+| 6 | `e73d9abbd` | 마스터별 고급 상세(2026-10-17 사용자 요청 "상세페이지도 고급스럽게 각 마스터 별로"). 마스터 카드에 읽는 근거·맡는 부분 행, `data-master`별 포인트 색(연이=장미·서한비=인디고·네오=남색·윤달=초록, 두 모드의 `--fd-*`), 목차 화자 칩·번호 고리 색, 산출물 로마 숫자 목록, 산출물 뒤 "마스터가 지키는 원칙"과 lazy 초상(좁은 폭 72px, 컨테이너 500px 이상 96px). 문구는 생성기가 master-profiles의 `dossier`·`principles`에서 읽는다. |
 
 검증 (2026-10-16)
 - `npm run test:node` 3311/3311, `npm run test:jest` 6186/6186, `tsc --noEmit` 통과.
@@ -233,9 +234,17 @@ sed -n 1,60p js/feature-detail-panels.mjs              # 렌더러 구조
   - 네오 모드 `/features` 페이지 9건(3폭 × 3상품) 중 4건에서 "Invalid or unexpected token" pageerror가 한 번씩 잡혔다. 부하가 빠진 뒤 같은 페이지를 8번 다시 열었을 때는 0건이었다. dev 서버의 청크 타이밍 문제로 보이지만, 운영 빌드로 한 번 더 확인할 만하다.
   - 스크린샷: `D:\Development\codedestiny-worktrees\sd-shots\`
 
+검증 (2026-10-17, 6단계)
+- `npm run test:node` 3317/3317, `npm run test:jest` 6355/6355, `tsc --noEmit`, `npm run lint`, 결제 게이트 90/90 통과. 새 필드가 없는 상품의 해시 고정 테스트도 그대로 통과한다.
+- `npm run check:fast`는 2번째 단계 `verify:doc-freshness`에서 막혔다. `docs/CURRENT_DEV_BASELINE.md`의 정리일이 15일 전(최대 14일)이라는 날짜 검사라 이번 변경과 무관하다. 그 뒤 단계(lint·typecheck·test:node·결제 게이트)는 위처럼 따로 돌렸다.
+- `verify-feature-popup-journey.mjs`: origin/main `e76391603`(꿀꿀 홈 단순화)이 홈에서 `#cdPublicSiteShare`를 빼서 스크립트가 시작부터 멈춘다(main에 이미 있는 고장). 그 직전 `index.html`의 공유 섹션을 끼운 임시 사본으로 74개 상품 × 4폭 PASS.
+- Playwright 360/768/1280 × 연이·네오, 팝업 3종과 `/features/*` 3종 36건: AA 대비 실패 0(새 글자 최소 대비 연이 6.23·네오 7.61), 가로 넘침 0, pageerror 0. 아바타 80px, 칩 24px.
+  - 연애 상세는 원칙 카드가 첫 화면과 가까워서 Chrome의 lazy 선읽기 거리 안에 들어온다. 그래서 초상 360w 2장(29KB·33KB)이 스크롤 전에 내려온다. 속성은 `loading=lazy`이고 우선순위는 낮다. 신년·인생의 책은 스크롤 전 0건이다.
+  - 스크린샷: `D:\Development\codedestiny-worktrees\sd-shots\` (`*-principles.png` 추가), 수치는 `report.json`.
+
 판단과 남은 결정
 - "28장이 넘는 목록은 접는다"는 `>= 28`로 구현했다. 연애가 정확히 28장이라 `> 28`이면 아무 상품에도 적용되지 않는다.
 - 인생의 책 번호는 목차 전체에 이어지는 번호(01~17)다. 그래서 "1장 타고난 사주의 원형"은 03으로 보인다. 제목은 생성 계획과 같아야 해서 "N장"을 제목에 넣지 않았다.
-- 초상(`portrait`)은 데이터에만 싣고 그리지 않는다. 설계 C의 구성 요소가 아바타뿐이다.
+- 초상(`portrait`)은 첫 화면에 그리지 않는다. 6단계에서 산출물 뒤 원칙 카드에만 lazy로 그린다.
 - 연애 상세의 기존 안내문에 "10년 경력 상담사·명리학자가 만든"이 있다. 캐릭터가 아니라 제작자에 대한 기존 문구라서 이번에는 고치지 않았다. 이 표현을 유지할지는 사용자가 정한다.
 - push와 PR은 사용자 확인을 기다린다.
