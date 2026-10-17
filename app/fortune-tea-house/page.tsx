@@ -63,8 +63,7 @@ const teaHouseFaqItems = [
 
 export default function Page() {
   return (
-    <>
-      <FortuneTeaHouseClient />
+    <FortuneTeaHouseClient>
       <div className={roomStyles.publicGuide}><ServiceIntroSection label="운명의 찻집 안내" tone="yeoni">
         <h2>연이의 운명 찻집 이용 안내</h2>
         <p>
@@ -126,6 +125,6 @@ export default function Page() {
           <Link href="/records/" className="inline-flex min-h-11 items-center underline">나의 기록 보관함</Link>
         </nav>
       </ServiceIntroSection></div>
-    </>
+    </FortuneTeaHouseClient>
   );
 }

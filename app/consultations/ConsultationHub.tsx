@@ -102,8 +102,8 @@ export default function ConsultationHub({ children }: { children?: ReactNode }) 
         <div id="experts" className={styles.rows}>{groups.others.map(renderRow)}</div>
         <div className={styles.chat}>
           <div><MessageCircleHeart size={20} aria-hidden="true" /><span>{c.characters}</span></div>
-          <a href="/fortune-chat/?character=yeoni">{c.yeoni}<ArrowUpRight size={16} aria-hidden="true" /></a>
-          <a href="/fortune-chat/?character=neo">{c.neo}<ArrowUpRight size={16} aria-hidden="true" /></a>
+          <a href="/fortune-tea-house/">{c.yeoni}<ArrowUpRight size={16} aria-hidden="true" /></a>
+          <a href="/neo-operation-room/">{c.neo}<ArrowUpRight size={16} aria-hidden="true" /></a>
         </div>
       </section>
       {children}
