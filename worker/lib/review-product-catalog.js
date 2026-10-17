@@ -275,6 +275,13 @@ export const REVIEW_PRODUCTS = Object.freeze([
     ]),
   },
   {
+    productId: "tea-saju-joint",
+    name: "연이·네오 공동 사주 상담",
+    summary: "명식과 질문을 두 사람의 관점으로 살펴보는 공동 상담",
+    href: "/fortune-tea-house/?mode=saju&reading=joint",
+    featureKeys: Object.freeze(["fortune-tea-house-saju-joint-consultation"]),
+  },
+  {
     productId: "oracle",
     name: "오라클·룬 리딩",
     summary: "주역·이집트 신탁·룬·지오맨시 등 고전 점술 리딩",

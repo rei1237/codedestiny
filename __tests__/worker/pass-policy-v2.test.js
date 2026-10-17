@@ -54,12 +54,19 @@ describe("versioned flower passes", () => {
     expect(isPassBudgetExhausted("family", 4991, 5000, family)).toBe(true);
     expect(isPassBudgetExhausted("family", 5000, 5000, family)).toBe(true);
   });
-  test("personal saju costs 15,000 while other teas retain 10,000", () => {
+  test("tea consultation prices match the approved separate products", () => {
     const tea = Object.entries(FEATURE_KEY_PRICE_TABLE).filter(([key]) => key.startsWith("fortune-tea-house-"));
-    expect(tea).toHaveLength(5);
+    const amounts = {
+      "fortune-tea-house-tarot-consultation": 5000,
+      "fortune-tea-house-tarot-five-consultation": 7000,
+      "fortune-tea-house-saju-consultation": 10000,
+      "fortune-tea-house-saju-joint-consultation": 15000,
+      "fortune-tea-house-saju-compatibility-consultation": 10000,
+      "fortune-tea-house-sukuyo-compatibility-consultation": 10000,
+    };
+    expect(tea).toHaveLength(Object.keys(amounts).length);
     for (const [key, value] of tea) {
-      const personalSaju = key === "fortune-tea-house-saju-consultation";
-      expect(value).toMatchObject({amountKRW: personalSaju ? 15000 : 10000, cost: personalSaju ? 150 : 100});
+      expect(value).toMatchObject({amountKRW: amounts[key], cost: amounts[key] / 100});
     }
     expect(FEATURE_KEY_PRICE_TABLE["fusion-fortune-consultation"]).toMatchObject({ cost: 500, amountKRW: 50000 });
     expect(FEATURE_KEY_PRICE_TABLE["yeongnyangi-saju-mackerel"].amountKRW).toBe(5000);
