@@ -69,6 +69,8 @@ const LEDGER_CHECK_LABEL = "config/sitemap-lastmod.json";
 // 확장자가 있는 경로는 normalizeSitemapPath 가 후행 슬래시를 붙이지 않아
 // noindexPathPrefixes(startsWith prefix + "/")로 걸러지지 않는다. 정확 일치로 제외한다.
 const excludedExactSitemapPaths = new Set([
+  // Retired presentations redirect to their canonical category or home.
+  "/kkul-kkul-unse/", "/saju/basic/", "/oracle/sukuyo/", "/vedic/jyotish/", "/astrology/cosmic/",
   "/ifa-oracle.html",
   "/account/delete/",
 ]);
@@ -181,7 +183,6 @@ const coreRoutes = [
   // 섞지 않도록 alternates 없이 둔다. 앱 입구 /ggulggul/ 은 아래에 그대로 남는다.
   { path: "/", changefreq: "daily", priority: 1.0 },
   // 공식 주소·표기 안내 페이지. 대표 홈보다 우선순위를 낮춰 브랜드 쿼리에서 자기잠식하지 않게 한다.
-  { path: "/kkul-kkul-unse", changefreq: "weekly", priority: 0.85 },
   // 천원사주 허브. 무료 키워드는 /saju/ 등 무료 랜딩의 몫이고, 이 페이지는 1,000원 사주 리포트와 영냥이 고등어 상담 안내를 맡는다.
   { path: "/yeongnyangi/1000-won-fortune", changefreq: "weekly", priority: 0.8 },
   { path: "/saju/destiny-anatomy", changefreq: "monthly", priority: 0.76 },
@@ -210,7 +211,6 @@ const coreRoutes = [
   { path: "/ziwei/chart", changefreq: "weekly", priority: 0.92 },
   { path: "/ziwei/animal-destiny", changefreq: "weekly", priority: 0.87 },
   { path: "/astrology", changefreq: "weekly", priority: 0.95 },
-  { path: "/astrology/cosmic", changefreq: "weekly", priority: 0.92 },
   { path: "/sukuyo", changefreq: "weekly", priority: 0.94 },
   { path: "/sukuyo/compatibility", changefreq: "weekly", priority: 0.93 },
   // 2026-08-30: /sukuyo/calendar 를 noindexPathPrefixes 에서 빼고 여기 등재했다 —
@@ -218,7 +218,6 @@ const coreRoutes = [
   // 서버 렌더 해설 섹션을 넣어 해결했다(위 2026-08-24 5건과 같은 처방).
   { path: "/sukuyo/calendar", changefreq: "daily", priority: 0.9 },
   { path: "/vedic", changefreq: "weekly", priority: 0.94 },
-  { path: "/vedic/jyotish", changefreq: "weekly", priority: 0.93 },
   { path: "/nakshatra", changefreq: "weekly", priority: 0.9 },
   // 27수 도감(0–26) — /nakshatra/calc·/result 는 색인 제외이므로 등록하지 않는다.
   ...Array.from({ length: 27 }, (_, i) => ({ path: `/nakshatra/codex/${i}`, changefreq: "monthly", priority: 0.72 })),
@@ -229,8 +228,6 @@ const coreRoutes = [
   { path: "/physiognomy", changefreq: "weekly", priority: 0.93 },
   { path: "/pdf/love-report", changefreq: "monthly", priority: 0.88 },
   { path: "/sukuyo-compatibility-ai", changefreq: "monthly", priority: 0.87 },
-  { path: "/saju/basic", changefreq: "weekly", priority: 0.95 },
-  { path: "/oracle/sukuyo", changefreq: "weekly", priority: 0.93 },
   { path: "/tarot/mingri", changefreq: "weekly", priority: 0.93 },
   { path: "/tarot/love", changefreq: "weekly", priority: 0.9 },
   { path: "/tarot/healing", changefreq: "weekly", priority: 0.9 },

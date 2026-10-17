@@ -206,7 +206,7 @@ export default function Page(){
   <section aria-labelledby="faq">
    <h2 id="faq">천원 운세·천원사주 자주 묻는 질문</h2>
    <div className={styles.faq}>{FAQS.map(item=><section key={item.question}><h3>{item.question}</h3><p>{item.answer}</p></section>)}</div>
-   <p className={styles.policy}>함께 보기: <a href="/compatibility/">꿀꿀운세 궁합</a> · <a href="/refund-policy/">환불 정책</a> · <a href="/privacy-policy/">개인정보 처리방침</a> · <a href="/contact/">문의하기</a></p>
+   <p className={styles.policy}>함께 보기: <a href="/compatibility/">꿀꿀운세 궁합</a> · <a href="/refund-policy/">환불 정책</a> · <a href="/privacy/">개인정보 처리방침</a> · <a href="/contact/">문의하기</a></p>
   </section>
 
   <section className={styles.closing} aria-labelledby="start">

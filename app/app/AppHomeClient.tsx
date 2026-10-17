@@ -52,9 +52,9 @@ function normalizeLaunchRoute(route: string) {
   if (!route) return SHELL_HOME_PATH;
   if (route.includes("action=cdOneStepFreeSajuEntry")) return "/?action=cdOneStepFreeSajuEntry";
   if (route.includes("action=openTarotModal")) return "/tarot/mingri";
-  if (route.includes("action=openSukuyoModal")) return "/oracle/sukuyo";
-  if (route.includes("action=navigateToVedic")) return "/vedic/jyotish";
-  if (route.includes("action=openAstroModal")) return "/astrology/cosmic";
+  if (route.includes("action=openSukuyoModal")) return "/sukuyo";
+  if (route.includes("action=navigateToVedic")) return "/vedic";
+  if (route.includes("action=openAstroModal")) return "/astrology";
   if (route.includes("action=openZiweiModal")) return "/ziwei/chart";
   if (route.startsWith("/index.html")) return SHELL_HOME_PATH;
   return route;

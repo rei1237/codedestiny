@@ -77,6 +77,8 @@ if (routes.length === 0) fail("사이트맵에서 라우트를 하나도 못 읽
 
 const missingArtifacts = [];
 const violations = [];
+const contentVersionLinks = [];
+const canonicalRoutes = new Set(routes);
 
 for (const route of routes) {
   const candidates = route === "/"
@@ -92,6 +94,19 @@ for (const route of routes) {
   const headings = [...html.matchAll(/<h1\b[^>]*>([\s\S]*?)<\/h1>/gi)]
     .map((match) => match[1].replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim());
 
+  // Inspect real anchors, not RSC/script strings or hashed asset URLs. Historical
+  // document ?v links create crawl variants even when canonical tags are correct.
+  const visibleHtml = html.replace(/<(script|style|template)\b[^>]*>[\s\S]*?<\/\1>/gi, "");
+  for (const [, , rawHref] of visibleHtml.matchAll(/<a\b[^>]*?\bhref\s*=\s*(["'])(.*?)\1/gi)) {
+    const href = rawHref.replace(/&amp;|&#0*38;|&#x0*26;/gi, "&");
+    let target;
+    try { target = new URL(href, `https://code-destiny.com${route === "/" ? "/" : `${route}/`}`); } catch { continue; }
+    const targetPath = target.pathname.replace(/\/+$/, "") || "/";
+    if (target.origin === "https://code-destiny.com" && canonicalRoutes.has(targetPath) && target.searchParams.has("v")) {
+      contentVersionLinks.push(`${route} -> ${href}`);
+    }
+  }
+
   const expected = DECLARED_EXCEPTIONS.get(route)?.count ?? 1;
   if (headings.length !== expected) {
     violations.push({ route, found: headings.length, expected, headings });
@@ -103,6 +118,10 @@ if (missingArtifacts.length > 0) {
     ...missingArtifacts.slice(0, 10).map((route) => `- ${route}`),
     "색인 대상으로 제출하는데 실제로 만들어지지 않는다면 사이트맵이나 라우트 중 하나가 틀렸다.",
   ]);
+}
+
+if (contentVersionLinks.length > 0) {
+  fail(`공개 콘텐츠에 버전 쿼리를 붙인 내부 링크 ${contentVersionLinks.length}개`, contentVersionLinks.slice(0, 30));
 }
 
 if (violations.length > 0) {
@@ -120,6 +139,6 @@ if (violations.length > 0) {
 }
 
 console.log(
-  `[verify-seo-heading-integrity] OK — 색인 라우트 ${routes.length}개 전부 H1 이 정확히 1개다`
+  `[verify-seo-heading-integrity] OK — 색인 라우트 ${routes.length}개 전부 H1 이 정확히 1개이고 콘텐츠 링크에 버전 쿼리가 없다`
   + (DECLARED_EXCEPTIONS.size > 0 ? ` (선언된 예외 ${DECLARED_EXCEPTIONS.size}개 제외)` : ""),
 );

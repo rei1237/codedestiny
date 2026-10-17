@@ -40,7 +40,7 @@ export function generateMetadata() {
   });
 }
 
-const ZIWEI_ANIMAL_FAQ_JSON_LD = JSON.stringify({
+const ZIWEI_ANIMAL_FAQ = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
   mainEntity: [
@@ -69,14 +69,20 @@ const ZIWEI_ANIMAL_FAQ_JSON_LD = JSON.stringify({
       },
     },
   ],
-});
+};
+const ZIWEI_ANIMAL_FAQ_JSON_LD = JSON.stringify(ZIWEI_ANIMAL_FAQ);
 
 export default function ZiweiAnimalDestinyPage() {
   return (
     <main className="relative min-h-[100dvh] bg-[#030712] text-slate-100">
       <RouteMetadataLocaleSync entries={ZIWEI_ANIMAL_METADATA_COPY} />
-      <h1 className="sr-only">내 영혼을 상징하는 자미두수 동물, 명궁으로 찾는 소울 캐릭터</h1>
-      <section className="sr-only" aria-label="자미두수 영혼 동물 안내">
+      <header className="mx-auto max-w-3xl px-4 pb-6 pt-20 md:px-6">
+        <h1 className="break-keep font-[family-name:var(--font-serif)] text-3xl leading-snug [text-wrap:balance] md:text-4xl">자미두수 동물, 명궁으로 찾는 나의 캐릭터</h1>
+        <p className="mt-4 max-w-[68ch] break-keep leading-8 text-slate-300">생년월일시와 달력 구분·성별을 입력해 명궁의 지지에 연결된 동물 캐릭터를 찾아보세요. 태어난 해의 띠와는 다른 기준으로 성향과 관계의 패턴을 읽습니다. 출생시간이 미상이면 참고 결과로 확인하세요.</p>
+        <a href="#ziwei-animal-input" data-cd-cross-sell="/ziwei/animal-destiny/" data-cd-cta-placement="primary" data-cd-target-service="ziwei" className="mt-4 inline-flex min-h-12 items-center rounded-[var(--cd-r-control)] border border-slate-400 px-5 font-semibold underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4">출생정보 입력하고 동물 찾기</a>
+      </header>
+      <details className="mx-auto mb-6 max-w-3xl space-y-4 break-keep px-4 leading-8 text-slate-300 md:px-6">
+        <summary className="min-h-11 cursor-pointer py-2 font-semibold text-slate-100 focus-visible:outline focus-visible:outline-2">명궁과 동물 캐릭터의 연결 기준</summary>
         <p>
           자미두수 명반에서 명궁(命宮)은 타고난 기질과 삶을 바라보는 기본 시선이 새겨지는 자리입니다.
           이 명궁이 열두 지지 중 어디에 놓이는지에 따라, 그 사람의 성격과 관계 맺는 방식, 일과 재물을 대하는 태도가 조금씩 다른 결을 띱니다.
@@ -117,9 +123,13 @@ export default function ZiweiAnimalDestinyPage() {
           <li>술(戌) — 새싹 사슴: 새로운 시작과 순수한 성장의 기운이 강한 자리입니다.</li>
           <li>해(亥) — 꿈알 병아리: 가능성을 품고 미래를 상상하며 준비하는 자리입니다.</li>
         </ul>
-      </section>
+      </details>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ZIWEI_ANIMAL_FAQ_JSON_LD }} />
-      <ZiweiAnimalDestinyClientLoader />
+      <div id="ziwei-animal-input" className="scroll-mt-20"><ZiweiAnimalDestinyClientLoader /></div>
+      <section aria-labelledby="ziwei-animal-faq" className="mx-auto max-w-3xl space-y-6 break-keep px-4 py-8 leading-8 text-slate-300 md:px-6">
+        <h2 id="ziwei-animal-faq" className="font-[family-name:var(--font-serif)] text-2xl text-slate-100">자미두수 동물, 자주 묻는 질문</h2>
+        {ZIWEI_ANIMAL_FAQ.mainEntity.map((item) => <div key={item.name}><h3 className="font-semibold text-slate-100">{item.name}</h3><p className="mt-2">{item.acceptedAnswer.text}</p></div>)}
+      </section>
       <ImmersiveRelatedLinks fromPath="/ziwei/animal-destiny" />
     </main>
   );

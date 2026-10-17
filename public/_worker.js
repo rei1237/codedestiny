@@ -18,7 +18,15 @@ const CONSOLIDATED_PAGE_REDIRECTS = {
   "/fortune-planner": "/diary/",
   "/luck-sync-diary": "/diary/",
   "/face-reading": "/physiognomy/",
-  "/sukyo": "/sukuyo/"
+  "/sukyo": "/sukuyo/",
+  "/kkul-kkul-unse": "/",
+  "/saju/basic": "/saju/",
+  "/oracle/sukuyo": "/sukuyo/",
+  "/vedic/jyotish": "/vedic/",
+  "/astrology/cosmic": "/astrology/",
+  "/contact-us": "/contact/",
+  "/privacy-policy": "/privacy/",
+  "/terms-of-service": "/terms/"
 };
 
 const DEFAULT_API_WORKER_ORIGIN = "https://code-destiny-web.bulegyung.workers.dev";
@@ -69,7 +77,7 @@ function visitorLocaleContext(request, url) {
   if (!["GET", "HEAD"].includes(request.method) || /^\/(?:api|app)(?:\/|$)/.test(url.pathname)) return null;
   if (/\.[a-z0-9]+$/i.test(url.pathname) && !/\.html$/i.test(url.pathname)) return null;
   // Keep canonical URLs and their hreflang alternatives independently crawlable.
-  if (/bot|crawler|spider|slurp|facebookexternalhit|kakaotalk-scrap/i.test(request.headers.get("User-Agent") || "")) return null;
+  if (/bot|crawler|spider|slurp|yeti|facebookexternalhit|kakaotalk-scrap/i.test(request.headers.get("User-Agent") || "")) return null;
   if (!request.headers.get("Accept")?.includes("text/html") && request.headers.get("Sec-Fetch-Dest") !== "document") return null;
   const country = String(request.cf?.country || "").toUpperCase();
   const countryLocale = Object.entries(COUNTRY_LANGUAGE_GROUPS).find(([, countries]) => countries.split(" ").includes(country))?.[0] || "en";
@@ -103,6 +111,28 @@ function localizedEntryPath(pathname, locale) {
 
 // Campaign attribution only. These never change what the home shows.
 const HOME_CAMPAIGN_KEY = /^(utm_.+|gclid|gbraid|wbraid|fbclid|msclkid)$/;
+// Historical document cache-busters are not content identifiers. Only public
+// reading routes are eligible; assets, APIs, payment/auth and saved results keep
+// their full URLs. Preserve every other query byte (including signed values).
+function removePublicContentVersion(request, url) {
+  if (!["GET", "HEAD"].includes(request.method) || !url.searchParams.has("v")) return false;
+  if ([...url.searchParams.keys()].some(key => /^(?:code|state|token|access_token|id_token|signature|sig|paymentId|payment_id|orderId|order_id|transactionId)$/i.test(key))) return false;
+  const path = url.pathname.replace(/^\/(?:en|ja|zh|zh-tw)(?=\/|$)/, "").replace(/\/$/, "") || "/";
+  const publicEntry = /^\/(?:saju|manse|ziwei|sukuyo|vedic|astrology|tarot|today|fortune|compatibility|love|dream|naming-ai|nakshatra|fusion-fortune|yeongnyangi|about|faq|contact|methodology|insights|guides)$/.test(path);
+  const publicReading = /^\/(?:insights|guides)\/[^.]+$/.test(path)
+    || /^\/(?:saju|ziwei|sukuyo|vedic|astrology)\/(?:guide|compatibility|five-elements|ten-gods)$/.test(path)
+    || /^\/fortune\/(?:today|tomorrow|weekly|monthly)(?:\/[a-z-]+)?$/.test(path)
+    || /^\/fortune\/date\/\d{4}-\d{2}-\d{2}\/[a-z-]+$/.test(path);
+  // Root functional inputs belong to the app/consultation compatibility router.
+  const publicHome = ["/", "/ggulggul", "/index.html"].includes(path) && [...url.searchParams.keys()].every(key => key === "v" || HOME_CAMPAIGN_KEY.test(key));
+  if (!publicHome && !publicEntry && !publicReading) return false;
+  if (publicHome && url.pathname === "/index.html") url.pathname = "/";
+  url.search = url.search.slice(1).split("&").filter(part => {
+    try { return decodeURIComponent(part.split("=")[0].replace(/\+/g, " ")) !== "v"; } catch { return true; }
+  }).join("&");
+  return true;
+}
+
 // Inputs that still keep a question guide on Yeongnyangi instead of the Ggulggul app.
 const HOME_GUIDE_KEY = /^(utm_.+|gclid|gbraid|wbraid|fbclid|msclkid|ref|question|lang)$/;
 
@@ -655,7 +685,11 @@ export default {
     const consolidatedTarget = Object.hasOwn(CONSOLIDATED_PAGE_REDIRECTS, consolidatedPath) ? CONSOLIDATED_PAGE_REDIRECTS[consolidatedPath] : null;
     if (consolidatedTarget) {
       url.pathname = consolidatedTarget;
+      removePublicContentVersion(request, url);
       return new Response(null, { status: 301, headers: { Location: url.toString(), 'Cache-Control': 'no-store' } });
+    }
+    if (removePublicContentVersion(request, url)) {
+      return new Response(null, { status: 301, headers: { Location: url.toString(), "Cache-Control": "no-store" } });
     }
     const visitorLocale = visitorLocaleContext(request, url);
     // Resolve app inputs before serving HTML: waiting for React's useEffect

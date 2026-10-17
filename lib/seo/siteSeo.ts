@@ -199,17 +199,6 @@ export const publicSeoPages: Record<string, PublicSeoPage> = {
     priority: 0.86,
     structuredData: ["CollectionPage", "WebPage", "BreadcrumbList", "FAQPage"],
   },
-  sajuBasic: {
-    path: "/saju/basic",
-    title: siteSeoText("siteSeo.007"),
-    description:
-      "사주 명식의 네 기둥, 오행 균형, 십성의 의미를 초보자도 이해할 수 있도록 단계별로 설명하고 현재 선택에 참고할 해석 포인트와 주의점을 정리합니다.",
-    h1: "사주 만세력 기본 해석",
-    keywords: ["사주 기본", "사주 명식", "오행 분석", "십성 해석"],
-    changeFrequency: "weekly",
-    priority: 0.95,
-    structuredData: ["WebPage", "BreadcrumbList", "FAQPage"],
-  },
   sajuCompatibility: {
     path: "/saju/compatibility",
     title: siteSeoText("siteSeo.008"),

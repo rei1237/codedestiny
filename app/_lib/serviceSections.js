@@ -3,7 +3,7 @@ const SERVICE_SECTION_DEFINITIONS = [
     id: "saju",
     fallbackTitle: "사주 & 명리",
     items: [
-      { href: "/saju/basic", fallbackTitle: "사주 만세력 기본 해석", fallbackDesc: "오행·십성 기반 명식 분석 · 무료", isStaticCanonical: true },
+      { href: "/saju", fallbackTitle: "사주 만세력 기본 해석", fallbackDesc: "오행·십성 기반 명식 분석 · 무료", isStaticCanonical: true },
       { href: "/saju/sibyl", fallbackTitle: "시빌라 시스템", fallbackDesc: "사주 기반 진로 적성 × 운명 위험 계수 · 기본 무료", isStaticCanonical: true },
       { href: "/life-book-ai", aliases: ["/saju/lifebook"], fallbackTitle: "인생의 책 전문가 상담", fallbackDesc: "삶의 흐름을 읽는 1:1 상담 · 30,000원 / 인생 총운 30,000원", isStaticCanonical: true },
       { href: "/love-secret-ai", fallbackTitle: "연애 비책 전문가 상담", fallbackDesc: "명리학 기반 1:1 연애 상담 · 30,000원" },
@@ -20,8 +20,8 @@ const SERVICE_SECTION_DEFINITIONS = [
     fallbackTitle: "동서양 명리",
     items: [
       { href: "/ziwei/chart", fallbackTitle: "자미두수 명반", fallbackDesc: "기본 서비스 무료 · 궁합 3,000원", isStaticCanonical: true },
-      { href: "/astrology/cosmic", fallbackTitle: "점성술 코즈믹", fallbackDesc: "기본 서비스 무료 · 궁합 3,000원", isStaticCanonical: true },
-      { href: "/vedic/jyotish", fallbackTitle: "베다 점성술", fallbackDesc: "명반 무료 · 해석 3,000원 · 궁합 3,000원", isStaticCanonical: true },
+      { href: "/astrology", fallbackTitle: "점성술 코즈믹", fallbackDesc: "기본 서비스 무료 · 궁합 3,000원", isStaticCanonical: true },
+      { href: "/vedic", fallbackTitle: "베다 점성술", fallbackDesc: "명반 무료 · 해석 3,000원 · 궁합 3,000원", isStaticCanonical: true },
     ],
   },
   {
@@ -56,7 +56,7 @@ const SERVICE_SECTION_DEFINITIONS = [
       { href: "/ifa-oracle.html", aliases: ["/oracle/ifa"], fallbackTitle: "IFA 오라클", fallbackDesc: "요루바 256 오두 신탁 · 3,000원", isStaticCanonical: true },
       { href: "/oracle/kemet", fallbackTitle: "고대 이집트 신탁", fallbackDesc: "케멧 오라클 리딩" },
       { href: "/oracle/juyuk", fallbackTitle: "주역 거북점", fallbackDesc: "64괘 상징 해석", isStaticCanonical: true },
-      { href: "/oracle/sukuyo", fallbackTitle: "숙요점", fallbackDesc: "기본 서비스 무료 · 궁합 3,000원", isStaticCanonical: true },
+      { href: "/sukuyo", fallbackTitle: "숙요점", fallbackDesc: "기본 서비스 무료 · 궁합 3,000원", isStaticCanonical: true },
       { href: "/oracle/rune", fallbackTitle: "스톤헨지 룬 오라클", fallbackDesc: "고대 룬 상징 리딩" },
       { href: "/geomancy-oracle-v4.html", fallbackTitle: "지오맨시 흙점", fallbackDesc: "대지의 징후 16행 신탁" },
       { href: "/royal-tea-oracle.html", fallbackTitle: "타세오그래피 찻잎 점", fallbackDesc: "런던 로열 컵 문양 리딩" },

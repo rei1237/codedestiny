@@ -92,7 +92,7 @@ export default function YeongnyangiGuide(){
   <section id="yn-faq" aria-labelledby="yn-faq-title">
    <h2 id="yn-faq-title">영냥이 자주 묻는 질문</h2>
    <div className={styles.faq}>{YEONGNYANGI_FAQS.map(item=><section key={item.question}><h3>{item.question}</h3><p>{item.answer}</p></section>)}</div>
-   <p className={styles.note}>함께 보기: <a href="/ggulggul/">꿀꿀운세 홈</a> · <a href="/yeongnyangi/1000-won-fortune/">천원 사주 리포트</a> · <a href="/yeongnyangi/library/">내 상담</a> · <a href="/privacy-policy/">개인정보 처리방침</a></p>
+   <p className={styles.note}>함께 보기: <a href="/ggulggul/">꿀꿀운세 홈</a> · <a href="/yeongnyangi/1000-won-fortune/">천원 사주 리포트</a> · <a href="/yeongnyangi/library/">내 상담</a> · <a href="/privacy/">개인정보 처리방침</a></p>
   </section>
  </article>;
 }

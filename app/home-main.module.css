@@ -1,5 +1,5 @@
 /*
- * 루트 `/` (2026-10-16 "직관성"). 화면에는 워드마크 → 질문 한 줄 → 전문성 한 줄 → 타로 카드 두 장 → 최소 푸터만 있다.
+ * 루트 `/`: 두 캐릭터 선택을 유지하고 분야·고민·결과 예시·이용 안내를 공개 HTML로 제공한다.
  * 카드를 누르면 바로 그 서비스로 간다(안내 패널 없음).
  * - I 꿀꿀 운세(연이)는 --cd-* 토큰을 그대로 읽어 연이/네오 테마를 따른다.
  * - II 운세보는 영냥이는 [data-yn-night] 범위의 --yn-* 토큰(app/yeongnyangi/night-tokens.css)만 쓴다.
@@ -76,6 +76,7 @@
   padding-block: 22px 28px;
 }
 .head { display: grid; justify-items: center; gap: 8px; text-align: center; }
+.lead { max-width: 52ch; color: var(--cd-text-muted); font-size: 0.9375rem; line-height: 1.75; }
 .page .title { font-size: clamp(1.625rem, 7vw, 2.5rem); line-height: 1.25; letter-spacing: -0.02em; }
 .byline { font-size: 0.875rem; font-weight: 600; line-height: 1.5; color: var(--hm-gold-ink); }
 .byline a {
@@ -93,7 +94,7 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
-  width: 100%;
+  width: calc(100% - 16px);
   max-width: 460px;
   padding-top: 12px;
 }
@@ -192,6 +193,38 @@
 .page .cardLink:focus-visible { outline: none; }
 .cardTag { margin-top: 2px; font-size: 0.8125rem; font-weight: 700; line-height: 1.45; color: var(--hm-card-ink); }
 .cardHint { font-size: 0.75rem; line-height: 1.45; color: var(--hm-card-muted); }
+.cardAction { display: block; margin-top: 12px; padding: 8px 4px; border-top: 1px solid var(--hm-card-gold); font-size: 0.8125rem; font-weight: 700; color: var(--hm-card-ink); }
+
+.discovery { width: 100%; max-width: 960px; margin-top: 48px; }
+.section { padding-block: 36px; border-top: 1px solid var(--cd-line); }
+.sectionHeading { max-width: 66ch; margin-bottom: 20px; }
+.sectionHeading h2 { font-size: clamp(1.375rem, 4.5vw, 1.875rem); line-height: 1.4; }
+.sectionHeading p { margin-top: 10px; color: var(--cd-text-muted); }
+.page h3 { margin: 0; font-size: 1.0625rem; line-height: 1.5; font-weight: 700; color: var(--cd-text); }
+.serviceList { display: grid; grid-template-columns: minmax(0, 1fr); column-gap: 36px; }
+.serviceList li { border-bottom: 1px solid var(--cd-line); }
+.serviceList a { position: relative; display: block; min-height: 44px; padding: 18px 32px 18px 0; text-decoration: none; }
+.serviceList p, .concernList p { margin-top: 4px; color: var(--cd-text-muted); font-size: 0.9375rem; line-height: 1.7; }
+.linkArrow { position: absolute; right: 4px; top: 22px; color: var(--hm-gold-ink); }
+.quickLinks { display: flex; flex-wrap: wrap; gap: 4px 24px; margin-top: 20px; }
+.quickLinks a, .readingExample > a { display: inline-flex; align-items: center; min-height: 44px; color: var(--cd-text); text-decoration-thickness: 1px; }
+.concernList { display: grid; gap: 12px; }
+.concernList a { display: block; padding-block: 10px; text-decoration: none; }
+.readingExample { margin: 0; padding: 24px; border: 1px solid var(--hm-gold-line); border-radius: var(--cd-r-md); background: var(--cd-surface); }
+.readingExample figcaption { font-size: 0.875rem; font-weight: 700; color: var(--hm-gold-ink); }
+.readingExample blockquote { margin: 16px 0; max-width: 65ch; font-family: var(--font-serif); font-size: 1.125rem; line-height: 1.9; }
+.readingExample blockquote p + p { margin-top: 12px; }
+.exampleNote { max-width: 65ch; color: var(--cd-text-muted); font-size: 0.875rem; }
+.methods { display: grid; gap: 24px; margin: 0; }
+.methods dt { font-weight: 700; }
+.methods dd { margin: 6px 0 0; max-width: 70ch; color: var(--cd-text-muted); }
+.methodLink { margin-top: 20px !important; }
+.faqList details, .history { border-bottom: 1px solid var(--cd-line); }
+.faqList summary, .history summary { padding-block: 16px; min-height: 44px; box-sizing: border-box; cursor: pointer; font-weight: 600; }
+.faqList details p, .history p { max-width: 70ch; padding: 0 0 20px; color: var(--cd-text-muted); }
+.faqList summary:focus-visible, .history summary:focus-visible { outline: 2px solid var(--cd-focus-ring); outline-offset: 3px; border-radius: var(--cd-r-sm); }
+.page ::selection { background: var(--cd-text); color: var(--cd-bg); }
+@media (hover: hover) { .serviceList a:hover h3, .concernList a:hover h3 { text-decoration: underline; text-underline-offset: 0.25em; } }
 
 /* 고르는 손길: 카드가 바로 서서 떠오르고 금빛이 돈다. 키보드 포커스는 같은 모양에 포커스 링을 더한다. */
 .card:focus-within { --hm-tilt: 0deg; transform: translateY(-8px); box-shadow: 0 0 0 1px var(--hm-card-gold), 0 16px 36px color-mix(in oklab, var(--cd-yehwa-line) 34%, transparent); }
@@ -239,4 +272,8 @@
   .cardHint { font-size: 0.8125rem; }
   .yeoniCard { --hm-tilt: -3deg; }
   .ynCard { --hm-tilt: 3deg; }
+  .serviceList, .concernList { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .concernList { column-gap: 36px; }
+  .section { padding-block: 48px; }
+  .readingSection { display: grid; grid-template-columns: 1fr 1.25fr; gap: 32px; align-items: start; }
 }

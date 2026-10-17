@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import AnimalDestinyRouteClient from "./AnimalDestinyRouteClient";
+import YehwaCard from "../../components/service-intro/YehwaCard";
 
 const ANIMAL_DESTINY_PAGE_TEXT_TRANSLATIONS = {
   ko: {
@@ -37,8 +38,12 @@ export const metadata: Metadata = {
 export default function Page() {
   return (
     <>
-      <section className="sr-only" aria-label="운명의 동물 도감 안내">
+      <section className="relative z-10 mx-auto w-full max-w-3xl px-4 py-6" aria-label="운명의 동물 도감 안내">
+        <YehwaCard ornament={false}>
         <h1>운명의 동물 도감</h1>
+        <p>생년월일로 세운 사주의 십이운성을 동물 상징으로 읽습니다. 나의 성향과 관계 습관, 성장 방향을 함께 살펴보세요.</p>
+        <details className="mt-4">
+          <summary className="min-h-11 cursor-pointer py-3 font-semibold text-[var(--si-heading)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-current">십이운성 동물점 해석 안내</summary>
         <p>
           태어난 사주의 십이운성 흐름은 한 사람의 기운이 어떤 속도로 피어나고, 어떤 방식으로 세상과 관계를 맺는지 조용히 드러냅니다.
           운명의 동물 도감은 그 흐름을 동물의 상징으로 옮겨, 당신 안에 오래 머문 생존 감각과 성장 방향, 관계에서 반복되는 움직임을 부드럽게 비춥니다.
@@ -78,6 +83,8 @@ export default function Page() {
           어디에서 조심스러워지고 어디에서 대담해지는지, 어떤 사람 곁에서 더 부드러워지고 어떤 일 앞에서 다시 힘을 얻는지를 읽으면
           삶의 리듬은 조금 더 선명하고 편안하게 돌아오기 시작합니다.
         </p>
+        </details>
+        </YehwaCard>
       </section>
       <AnimalDestinyRouteClient />
     </>

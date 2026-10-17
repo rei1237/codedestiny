@@ -22,7 +22,7 @@ export async function awaitPagesDeploymentReady(origin, expectedSha, {
       const version = await (await read('/version.json')).json();
       if ((version.gitSha || version.commit) !== expectedSha) throw new Error('Deployment SHA does not match the release');
       const documents = [];
-      for (const pathname of ['/', '/ggulggul/', '/points/', '/login/', '/music/', '/stories/', '/saju/basic/', '/fortune-tea-house/', '/app/', '/app/store/', '/lock-screen-fortune/']) {
+      for (const pathname of ['/', '/ggulggul/', '/points/', '/login/', '/music/', '/stories/', '/saju/', '/fortune-tea-house/', '/app/', '/app/store/', '/lock-screen-fortune/']) {
         documents.push(await (await read(pathname)).text());
       }
       const assets = new Set(documents.flatMap(html => [...html.matchAll(/(?:src|href)=["'](\/(?!\/)[^"']+\.(?:js|css)(?:\?[^"']*)?)["']/g)].map(match => match[1])));

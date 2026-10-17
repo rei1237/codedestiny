@@ -361,6 +361,28 @@
     }
   };
 
+  // Search-entry CTA values are public catalogue values, never link queries or input text.
+  var SEARCH_CTA_ROUTES = ["/", "/ggulggul/", "/yeongnyangi/", "/yeongnyangi/1000-won-fortune/", "/saju/", "/manse/", "/tarot/", "/tarot/reunion/", "/tarot/mindscan/", "/tarot/love/", "/ziwei/", "/sukuyo/", "/sukuyo/compatibility/", "/vedic/", "/astrology/", "/naming-ai/", "/fortune/", "/fortune/today/", "/fortune/tomorrow/", "/fortune/tomorrow/rat/", "/fortune/weekly/", "/fortune/monthly/", "/today/", "/compatibility/", "/love/", "/fortune-tea-house/", "/neo-operation-room/"];
+  var SEARCH_CTA_SERVICES = ["ggulggul", "yeongnyangi", "saju", "manse", "tarot", "ziwei", "sukuyo", "vedic", "astrology", "naming", "zodiac", "today", "compatibility", "tea", "neo", "love"];
+  SEARCH_CTA_ROUTES.push("/ziwei/chart/", "/ziwei/animal-destiny/", "/saju/guide/", "/saju/compatibility/", "/saju/monthly/2026-09/", "/tarot/guide/", "/ziwei/guide/", "/sukuyo/guide/", "/vedic/guide/", "/vedic-ai/", "/astrology/guide/", "/astrology-ai/");
+  function isSearchCtaRoute(path) {
+    return SEARCH_CTA_ROUTES.indexOf(path) >= 0
+      || /^\/fortune\/(?:today|tomorrow|weekly|monthly)\/(?:aries|taurus|gemini|cancer|leo|virgo|libra|scorpio|sagittarius|capricorn|aquarius|pisces|rat|ox|tiger|rabbit|dragon|snake|horse|goat|monkey|rooster|dog|pig)\/$/.test(path);
+  }
+  function searchCtaPayload(anchor, container) {
+    var placement = anchor.getAttribute("data-cd-cta-placement") || "";
+    var service = anchor.getAttribute("data-cd-target-service") || "";
+    var source = String(container.getAttribute("data-cd-cross-sell") || "");
+    if (source !== "/") source = source.replace(/\/$/, "") + "/";
+    var destination = new URL(anchor.getAttribute("href"), global.location.href);
+    var target = destination.pathname.replace(/\/$/, "") + "/";
+    if (destination.origin !== global.location.origin
+      || !isSearchCtaRoute(source) || !isSearchCtaRoute(target)
+      || ["primary", "related", "directory", "next_step"].indexOf(placement) < 0
+      || SEARCH_CTA_SERVICES.indexOf(service) < 0) return null;
+    return { from_service: source, to_service: target, placement: placement, target_service: service };
+  }
+
   /**
    * 앵커 클릭 위임 — 크로스셀과 홈 섹션 귀속을 한 리스너에서 받는다.
    *
@@ -400,10 +422,12 @@
     try {
       var container = anchor.closest("[data-cd-cross-sell]");
       if (container) {
-        global.cdTrack("cross_sell_click", {
+        var classifiedCta = anchor.hasAttribute("data-cd-cta-placement") || anchor.hasAttribute("data-cd-target-service");
+        var crossSellPayload = classifiedCta ? searchCtaPayload(anchor, container) : {
           from_service: String(container.getAttribute("data-cd-cross-sell") || ""),
           to_service: new URL(anchor.getAttribute("href"), global.location.href).pathname
-        });
+        };
+        if (crossSellPayload) global.cdTrack("cross_sell_click", crossSellPayload);
       }
     } catch (_crossSellError) {
       /* 계측 실패는 무시한다 */

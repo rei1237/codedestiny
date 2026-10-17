@@ -265,7 +265,7 @@ export default function AstrologyGuidePage() {
 
       <nav className="cd-chip-wrap" aria-label="점성술 가이드 관련 링크">
         <Link href="/astrology" className="cd-chip">점성술 서비스</Link>
-        <Link href="/astrology/cosmic" className="cd-chip">코즈믹 차트</Link>
+        <Link href="/astrology" className="cd-chip">코즈믹 차트</Link>
         <Link href="/insights/astrology" className="cd-chip">점성술 인사이트</Link>
         <Link href="/disclaimer" className="cd-chip">면책 고지</Link>
         <Link href="/editorial-policy" className="cd-chip">콘텐츠 제작 원칙</Link>

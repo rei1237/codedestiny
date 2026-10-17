@@ -55,7 +55,7 @@ export default function NotFound() {
       }
       actions={
         <>
-          <a className="policy-btn policy-btn--primary" href="/saju/basic/">
+          <a className="policy-btn policy-btn--primary" href="/saju/">
             <span data-cd-trans data-key="errors.notFound.freeSaju">{NOT_FOUND_I18N.ko.freeSaju}</span>
           </a>
           <a className="policy-btn policy-btn--ghost" href="/">

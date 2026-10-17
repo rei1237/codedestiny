@@ -7,6 +7,7 @@ import {
 } from "../../../lib/structured-data";
 import { siteSeo } from "../../../lib/seo/siteSeo";
 import ImmersiveRelatedLinks from "../../components/ImmersiveRelatedLinks";
+import YehwaCard from "../../components/service-intro/YehwaCard";
 
 const PAGE_PATH = "/oracle/rune/";
 const PAGE_TITLE = "무료 룬 점 보기 | 엘더 푸타르크 24룬 오라클 | 꿀꿀 운세";
@@ -96,8 +97,12 @@ export default function RunePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(runeJsonLd) }}
       />
-      <section className="sr-only" aria-label="룬 오라클 안내">
+      <section className="relative z-10 mx-auto w-full max-w-3xl px-4 py-6" aria-label="룬 오라클 안내">
+        <YehwaCard ornament={false}>
         <h1>무료 룬 점 — 엘더 푸타르크 24룬 오라클</h1>
+        <p>질문 하나를 정하고 룬을 뽑아 보세요. 24개 상징의 정방향·역방향 해석으로 관계와 선택의 흐름을 살펴봅니다.</p>
+        <details className="mt-4">
+          <summary className="min-h-11 cursor-pointer py-3 font-semibold text-[var(--si-heading)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-current">룬 점 이용 방법과 자주 묻는 질문</summary>
         <p>
           룬은 고대 북유럽 사람들이 문자이자 상징으로 새겨온 기호입니다. 꿀꿀운세의 룬 오라클은
           엘더 푸타르크 24개 룬 가운데 지금의 질문에 응답하는 룬을 뽑아, 사랑과 관계, 일과 선택,
@@ -141,6 +146,8 @@ export default function RunePage() {
             <p>{item.answer}</p>
           </div>
         ))}
+        </details>
+        </YehwaCard>
       </section>
       <RuneRouteClient />
       <ImmersiveRelatedLinks fromPath="/oracle/rune" />

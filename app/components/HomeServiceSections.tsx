@@ -37,14 +37,11 @@ function getCurrentHomeServiceLocale(): LoadingLocale {
 }
 
 const MAIN_ACTION_ROUTE_MAP: Record<string, string> = {
-  "/saju/basic": "/?action=cdOneStepFreeSajuEntry",
+  "/saju": "/?action=cdOneStepFreeSajuEntry",
   "/manse": "/index.html",
   "/compatibility": "/index.html?action=runCompat",
   "/tarot/mingri": "/tarot/mingri",
   "/ziwei/chart": "/ziwei/chart",
-  "/oracle/sukuyo": "/oracle/sukuyo",
-  "/astrology/cosmic": "/astrology/cosmic",
-  "/vedic/jyotish": "/vedic/jyotish",
   "/dream": "/index.html?action=openDreamModal",
   "/animal/physio": "/index.html?action=openPhysiognomyApp",
   "/premium": "/index.html",

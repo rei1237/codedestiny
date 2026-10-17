@@ -73,7 +73,7 @@ test('명반 FAQ 는 화면과 JSON-LD 를 한 배열에서 만들고, 본문 �
   assert.match(template,/\.\.\.\(dateModified \? \{ dateModified \} : \{\}\)/);
   for(const [from,to] of [['saju','manse'],['manse','today'],['ziwei','astrology']]) assert.match(landing(from,to),/dateModified: "\d{4}-\d{2}-\d{2}"/,from);
   // 도구 폼과 같은 높이의 자리를 서버 HTML 에 잡아 둬야 도구 아래 서버 본문이 붙을 때 밀리지 않는다.
-  assert.match(chartPage,/<div className="min-h-\[100dvh\]">\s*<ZiweiChartClientLoader \/>/);
+  assert.match(chartPage,/<div\b[^>]*className="[^"]*min-h-\[100dvh\][^"]*"[^>]*>\s*<ZiweiChartClientLoader \/>/);
 });
 
 test('공통 SEO 랜딩은 네오 토큰으로 배경·본문·초점·CTA 대비를 함께 전환한다',()=>{

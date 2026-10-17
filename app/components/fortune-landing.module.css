@@ -1,9 +1,12 @@
 /* Editorial landing: service artwork and quiet typography share one surface. */
 .page { --fl-rule: var(--cd-border); }
-.hero { display: grid; grid-template-areas: "title" "art" "copy"; gap: 22px; padding: 30px 0 42px; color: var(--cd-text); }
+.hero { display: grid; grid-template-areas: "title" "copy" "art"; gap: 22px; padding: 30px 0 42px; color: var(--cd-text); }
 .hero h1 { grid-area: title; margin: 0; font-family: var(--font-serif); font-size: clamp(30px, 3.8vw, 49px); font-weight: 500; line-height: 1.42; letter-spacing: -.035em; word-break: keep-all; text-wrap: balance; }
 .copy { grid-area: copy; min-width: 0; }
 .description { margin: 0 0 24px; max-width: 38ch; font-size: 16px; line-height: 1.9; color: var(--cd-text); word-break: keep-all; }
+.input { margin: 0 0 var(--cd-sp-lg); max-width: 65ch; color: var(--cd-text-muted); font-size: 14px; line-height: 1.8; word-break: keep-all; }
+.input strong { display: block; margin-bottom: var(--cd-sp-xs); color: var(--cd-text); font-weight: 600; }
+.entryScope { margin: var(--cd-sp-md) 0 0; max-width: 65ch; color: var(--cd-text-muted); font-size: 13px; line-height: 1.9; word-break: keep-all; }
 .start { display: inline-flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 52px; padding: 14px 22px; border-radius: var(--cd-r-sm); background: var(--cd-cta-primary-bg); color: var(--cd-cta-primary-ink); font-size: 15px; font-weight: 600; transition: background-color .18s ease; }
 .start:hover { background: var(--cd-cta-primary-bg-2); }
 .start svg { flex-shrink: 0; }

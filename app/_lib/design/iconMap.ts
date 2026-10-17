@@ -16,7 +16,7 @@ export const FEATURE_ICON_MAP: Record<string, DestinyIconName> = {
 };
 
 export const ROUTE_ICON_MAP: Record<string, DestinyIconName> = {
-  "/saju/basic": "yinYang",
+  "/saju": "yinYang",
   "/saju/basic/play": "compass",
   "/saju/sibyl": "seal",
   "/life-book-ai": "scroll",
@@ -29,9 +29,9 @@ export const ROUTE_ICON_MAP: Record<string, DestinyIconName> = {
   "/saju-guardian": "seal",
   "/animal/mbti": "animalPaw",
   "/ziwei/chart": "palace",
-  "/astrology/cosmic": "zodiac",
-  "/vedic/jyotish": "compass",
-  "/oracle/sukuyo": "moon",
+  "/astrology": "zodiac",
+  "/vedic": "compass",
+  "/sukuyo": "moon",
   "/oracle/rune": "rune",
   "/ifa-oracle.html": "seal",
   "/oracle/ifa": "seal",

@@ -21,7 +21,7 @@ const steps = [
   "scripts/fix-locale-html-lang.mjs",
   "scripts/prerender-locale-shell-translations.mjs",
   "scripts/verify-adsense-readiness.mjs",
-  // 대표 페이지 5개(/ /ggulggul/ /kkul-kkul-unse/ /about/ /faq/)의 title·canonical·JSON-LD 이름을
+  // 대표 페이지 4개(/ /ggulggul/ /about/ /faq/)의 title·canonical·JSON-LD 이름을
   // lib/brand/brand-facts.mjs 와 맞춰 본다. 가공 전 산출물을 읽어야 하므로 externalize·minify 앞에 둔다.
   "scripts/verify-home-identity.mjs",
   // 사이트맵 loc 의 dist 페이지가 self canonical·색인 가능이고, 내부 링크가 리다이렉트 원천을 가리키지

@@ -25,9 +25,9 @@ const actionCorpus = [sources.index, sources.mobilePatch, sources.featureLanding
 const routeCorpus = [sources.index, sources.homeSections, sources.featureLanding, sources.serviceSections].join("\n");
 
 const requiredRouteGroups = [
-  { id: "saju", routes: ["/saju/basic", "/saju/sibyl", "/life-book-ai", "/love-secret-ai", "/saju/love-simulation"] },
+  { id: "saju", routes: ["/saju", "/saju/sibyl", "/life-book-ai", "/love-secret-ai", "/saju/love-simulation"] },
   { id: "premium-saju", routes: ["/saju/destiny-bias", "/saju/animal-destiny", "/saju/destiny-meeting-place"] },
-  { id: "core-charts", routes: ["/ziwei/chart", "/astrology/cosmic", "/vedic/jyotish", "/oracle/sukuyo"] },
+  { id: "core-charts", routes: ["/ziwei/chart", "/astrology", "/vedic", "/sukuyo"] },
   { id: "tarot", routes: ["/tarot/mingri", "/tarot/love", "/tarot/healing", "/tarot/self-esteem", "/tarot/reunion", "/tarot/year"] },
   { id: "tarot-paid-static", routes: ["/tarot/crystal-soul/", "/tarot/mindscan/", "/tarot-ijik.html", "/celestial-harmony.html"] },
   { id: "oracle", routes: ["/oracle/hwatu", "/oracle/kemet", "/oracle/juyuk", "/oracle/rune", "/ifa-oracle.html", "/royal-tea-oracle.html"] },
