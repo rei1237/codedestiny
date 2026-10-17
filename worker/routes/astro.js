@@ -436,6 +436,10 @@ export async function handleAstroRoutes(request, env) {
       const { handleAstroSection } = await import("./astro-section.js");
       return await handleAstroSection(request, env);
     }
+    if (pathname === "/api/astro/synastry") {
+      const { handleAstroSynastry } = await import("./astro-synastry.js");
+      return await handleAstroSynastry(request, env);
+    }
     const isAIConsultationPost = method === "POST" && (
       pathname === "/api/astro/ai-consultation"
       || pathname === "/api/vedic/ai-consultation"

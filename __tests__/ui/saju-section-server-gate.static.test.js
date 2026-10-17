@@ -314,3 +314,24 @@ test("자미두수 궁합 리포트 생성기가 브라우저 경로에 없다",
   assert.match(client, /function loadZiweiCompat\(options\) \{[\s\S]*?ziweiBody\(featureKey\)[\s\S]*?requestPerUse\(body, featureKey, 'html'\)/, "자미두수 궁합이 서버 본문을 요청하지 않는다");
   assert.match(engine, /window\._runZwCompatibilityCore = function\(\) \{[\s\S]*?window\.CdSajuSectionClient\.loadZiweiCompat\(\{[\s\S]*?access: archiveContext/, "자미두수 궁합이 결제 기록과 함께 서버 로더를 부르지 않는다");
 });
+
+test("점성술 시나스트리 궁합(유명인·직접 입력) 생성기가 브라우저 경로에 없다", () => {
+  // 무료 유명인 목록·입력 칸·결제 게이트만 남고, 본문·점수·AI 프롬프트는 /api/astro/synastry 가 회당 결제를 확인한 뒤 만든다.
+  const FORBIDDEN = [
+    "_syScore(", "_syBuildNarrative", "_syOverlayTuning", "_syPairWeight", "_syAspect(", "_syTopAspect", "_syWsHouseOf",
+    "_astroBuildIncludedSynastryPrompt", "_SY_OV_TUNE", "조화형 인연 - 마음, 가치관, 행동 템포가", "과제가 많은 인연 - 경계 설정과 합의가",
+    "감정 정리 루틴 + 갈등 복기 규칙",
+  ];
+  const offenders = [];
+  for (const rel of browserServedFiles()) {
+    const source = stripComments(read(rel));
+    for (const needle of FORBIDDEN) if (source.includes(needle)) offenders.push(`${rel} → ${needle}`);
+  }
+  assert.deepEqual(offenders, [], "브라우저 파일에 시나스트리 궁합 생성기가 남아 있다:\n  " + offenders.join("\n  "));
+  const paid = read("worker/lib/astro-section/paid-synastry.src.js");
+  for (const name of ["_syScore(", "_syBuildNarrative(", "_astroBuildIncludedSynastryPrompt(", "_astroSynastryCelebBodies(", "_astroSynastryDirectBodies("]) {
+    assert.ok(paid.includes("function " + name), `${name} 정본이 서버에 없다`);
+  }
+  const engine = read("js/saju-engine.js");
+  assert.match(engine, /_cdAIPromptRequestJson\('\/api\/astro\/synastry'/, "시나스트리 궁합이 서버 본문을 요청하지 않는다");
+});
