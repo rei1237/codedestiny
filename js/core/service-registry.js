@@ -75,7 +75,7 @@ window.__cdServiceRegistry = [
     desc: "따뜻한 연이와 나누는 마음 상담",
     href: "/fortune-tea-house/",
     featureKey: "fortune-tea-house-tarot-consultation",
-    price: "10,000원",
+    price: "5,000원",
     purposes: ["love", "self", "life"],
     methods: ["tarot", "saju", "ai"],
     keys: "찻집 상담 연이 마음 고민",
