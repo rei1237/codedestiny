@@ -1,9 +1,9 @@
 import { createAstroSynastryRuntime } from "./synastry-runtime.generated.mjs";
 
 // 점성술 시나스트리 궁합 — 회당 결제(50코인) 본문. 본문·점수·프롬프트는 이 서버 사본으로만 만든다.
-export const ASTRO_CELEB_SYNASTRY_KEY = "compat-astro-synastry";
-export const ASTRO_DIRECT_SYNASTRY_KEY = "compat-astro-direct-synastry";
-export const ASTRO_SYNASTRY_FEATURE_KEYS = Object.freeze([ASTRO_CELEB_SYNASTRY_KEY, ASTRO_DIRECT_SYNASTRY_KEY]);
+export const ASTRO_CELEB_SYNASTRY_FEATURE_KEY = "compat-astro-synastry";
+export const ASTRO_DIRECT_SYNASTRY_FEATURE_KEY = "compat-astro-direct-synastry";
+export const ASTRO_SYNASTRY_FEATURE_KEYS = Object.freeze([ASTRO_CELEB_SYNASTRY_FEATURE_KEY, ASTRO_DIRECT_SYNASTRY_FEATURE_KEY]);
 
 const PLANETS = ["Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"];
 
@@ -61,7 +61,7 @@ export function buildAstroCelebSynastry({ chart, celebChart, celeb, lang = "ko" 
   const out = runtime._astroSynastryCelebBodies({
     chart: toSynastryChart(chart), celebChart: toSynastryChart(celebChart), name: celeb.name, birth: celeb.birth, hour: celeb.hour,
   });
-  return finish({ html: out.html, result: out.result }, ASTRO_CELEB_SYNASTRY_KEY);
+  return finish({ html: out.html, result: out.result }, ASTRO_CELEB_SYNASTRY_FEATURE_KEY);
 }
 
 export function buildAstroDirectSynastry({ chart, partnerChart, partner, lang = "ko" }) {
@@ -71,5 +71,5 @@ export function buildAstroDirectSynastry({ chart, partnerChart, partner, lang = 
     nameVal: partner.name, dateVal: partner.date, timeVal: partner.time, genderVal: partner.gender,
     tzVal: partner.tzOffsetHours, latVal: partner.latitude, lonVal: partner.longitude, cityLabelWest: partner.cityLabel,
   });
-  return finish({ html: out.html, result: out.result, llmPayload: out.llmPayload }, ASTRO_DIRECT_SYNASTRY_KEY);
+  return finish({ html: out.html, result: out.result, llmPayload: out.llmPayload }, ASTRO_DIRECT_SYNASTRY_FEATURE_KEY);
 }

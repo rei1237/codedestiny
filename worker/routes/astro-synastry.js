@@ -7,7 +7,7 @@ import { FEATURE_KEY_PRICE_TABLE } from "../lib/paid-feature-registry.js";
 import { logPerUsePaymentProof, verifyPerUsePayment } from "../lib/nakshatra-paid-access.js";
 import { claimRequestBillingEvidence, evidenceClaimErrorBody } from "../lib/billing-evidence-claim.js";
 import {
-  ASTRO_CELEB_SYNASTRY_KEY, ASTRO_SYNASTRY_FEATURE_KEYS, buildAstroCelebSynastry, buildAstroDirectSynastry, findAstroSynastryCeleb,
+  ASTRO_CELEB_SYNASTRY_FEATURE_KEY, ASTRO_DIRECT_SYNASTRY_FEATURE_KEY, buildAstroCelebSynastry, buildAstroDirectSynastry, findAstroSynastryCeleb,
 } from "../lib/astro-section/synastry.js";
 import { calculateBasicAstrologyChart } from "./astro.js";
 
@@ -119,14 +119,14 @@ export async function handleAstroSynastry(request, env = {}) {
 
     const body = await readJson(request);
     const featureKey = String(body?.featureKey || "");
-    if (!ASTRO_SYNASTRY_FEATURE_KEYS.includes(featureKey)) return badInput("ASTRO_INVALID_FEATURE", "지원하지 않는 항목입니다.");
+    if (featureKey !== ASTRO_CELEB_SYNASTRY_FEATURE_KEY && featureKey !== ASTRO_DIRECT_SYNASTRY_FEATURE_KEY) return badInput("ASTRO_INVALID_FEATURE", "지원하지 않는 항목입니다.");
     const requestId = synastryRequestId(featureKey, body?.requestId);
     if (!requestId) return badInput("REQUEST_ID_INVALID", "결제 요청 번호가 이 궁합의 결제가 아닙니다.");
 
     const mine = await resolveMyMoment(env, userId, featureKey, body);
     if (mine.error) return mine.error;
     const lang = typeof body?.lang === "string" ? body.lang.slice(0, 8) : "ko";
-    const isCeleb = featureKey === ASTRO_CELEB_SYNASTRY_KEY;
+    const isCeleb = featureKey === ASTRO_CELEB_SYNASTRY_FEATURE_KEY;
 
     let celeb = null;
     let partner = null;
@@ -190,14 +190,10 @@ export async function handleAstroSynastry(request, env = {}) {
           ? { celeb: celeb.name, birth: celeb.birth }
           : { name: partner.name, date: partner.date, time: partner.time, gender: partner.gender, tz: partner.tzOffsetHours, lat: partner.latitude, lon: partner.longitude },
       })).digest("hex").slice(0, 32);
-      let claim;
-      try {
-        claim = await claimRequestBillingEvidence(env, {
-          userId, requestId: `${requestId}|${pair}`, evidenceIds: [evidenceId], featureKey, kind: "astro-synastry",
-        });
-      } catch {
-        return degraded();
-      }
+      // claim 실패(중복 사용 409·DB 503)는 claimRequestBillingEvidence 가 결과로 돌려준다 — 본문 없이 그대로 돌려준다.
+      const claim = await claimRequestBillingEvidence(env, {
+        userId, requestId: `${requestId}|${pair}`, evidenceIds: [evidenceId], featureKey, kind: "astro-synastry",
+      });
       if (!claim.ok) return json(evidenceClaimErrorBody(claim), { status: claim.status });
     }
     return json({
