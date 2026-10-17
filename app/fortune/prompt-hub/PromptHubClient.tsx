@@ -1422,7 +1422,7 @@ const PROMPT_HUB_COPY_KO: PromptHubCopy = {
   advancedSettings: "고급 설정",
   generating: "산출 데이터 계산 중…",
   honeyBalance: "꿀방울 {count}개",
-  honeyRule: "3일 출석마다 꿀방울 1개 · 프롬프트 1회에 1개",
+  honeyRule: "하루 한 번 출석하면 꿀방울 1개 · 프롬프트 1회에 1개",
   honeyNextReward: "다음 꿀방울까지 출석 {count}번",
   honeyAttend: "오늘 출석하기",
   honeyAttended: "오늘 출석 완료",
@@ -1451,9 +1451,9 @@ const PROMPT_HUB_COPY_KO: PromptHubCopy = {
   heroMascotAlt: "연이 꽃돼지 마스코트 — 운세 프롬프트 허브",
   gate: {
     title: "로그인하고 프롬프트를 만들어 보세요",
-    lead: "회원은 꿀방울로 프롬프트를 만들어요. 3일 출석마다 꿀방울 1개가 쌓여요.",
+    lead: "회원은 꿀방울로 프롬프트를 만들어요. 하루 한 번 출석하면 꿀방울 1개가 쌓여요.",
     benefits: [
-      "3일 출석마다 꿀방울 1개",
+      "하루 한 번 출석하면 꿀방울 1개",
       "만든 프롬프트를 보관함에 저장",
       "모든 운세 도구 이용",
       "결제 없이 무료 가입",

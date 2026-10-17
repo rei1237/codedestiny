@@ -471,6 +471,7 @@ export const CONTENT_ENTITLEMENT_STATUSES = Object.freeze({
 });
 
 export const CONTENT_ENTITLEMENT_SOURCES = Object.freeze({
+  HONEY: "HONEY",
   COIN: "COIN",
   PAYMENT: "PAYMENT",
   PASS: "PASS",

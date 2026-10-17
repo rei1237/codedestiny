@@ -138,6 +138,15 @@
         summary.state = 'done';
         el.innerHTML = data.html;
         if (lang() === 'ko' && root.SajuReadingRich) root.SajuReadingRich.decorateDelivered(el, null, root.G_PILLARS);
+        if (lang() === 'ko') {
+          var next = document.createElement('aside'); next.className = 'cd-saju-expert-next';
+          next.innerHTML = '<h3>내 성향을 알았다면, 지금의 고민을 풀어볼 차례예요.</h3><p>이직할지 남을지, 관계에서 무엇을 바꿀지. 사주 전문가 AI 상담은 내 질문과 현재 상황을 바탕으로 판단 근거와 실천 방향을 더 구체적으로 짚어드려요.</p><p>질문에 대한 핵심 답변 · 현재 고민과 명식의 연결 · 선택 전략 · 30일 실천 가이드</p><a href="#sajuConsultationEntry">내 고민으로 전문가 상담하기</a>';
+          next.querySelector('a').addEventListener('click', function (event) {
+            var entry = document.querySelector('[data-consultation-open]');
+            if (entry) { event.preventDefault(); entry.click(); }
+          });
+          el.appendChild(next);
+        }
         notify('section_summary');
         return;
       }

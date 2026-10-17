@@ -1081,7 +1081,7 @@ function renderSummary(p,johu,natal){
   };
 
   var html='<div class="saju-summary-report">'+
-    '<nav class="saju-summary-nav" aria-label="종합 사주 풀이 목차">'+
+    '<nav class="saju-summary-nav" aria-label="기본 종합 사주 풀이 목차">'+
     '<a href="#sajuSummaryChapter-chongpyeong">기질과 계절</a>'+
     '<a href="#sajuSummaryChapter-ohaeng">오행과 십성</a>'+
     '<a href="#sajuSummaryChapter-seonggyeok">성격과 관계</a>'+

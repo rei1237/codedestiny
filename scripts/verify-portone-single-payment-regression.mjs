@@ -5,6 +5,9 @@ import { resolve } from "node:path";
 import { createRequire } from "node:module";
 import { sliceFunction, stripComments } from "./lib/js-source-slice.mjs";
 
+const { getBillingFeaturePricing } = await import("../worker/lib/billing-feature-registry.js");
+const { pricing: summaryPrice } = getBillingFeaturePricing({ featureKey: "section_summary" });
+
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const paymentsRouteSource = readFileSync(resolve(root, "worker/routes/payments.js"), "utf8");
 // 이용권(구독) 주문 발급의 정본은 V2 다 — worker/index.js 가 /api/payments/subscription/prepare 를
@@ -1272,7 +1275,7 @@ async function runServerTests() {
     contentId: "section_summary",
     contentType: "saju",
     productName: "Code Destiny 운세",
-    coinPrice: 300,
+    coinPrice: summaryPrice.cost,
   }), ENV, AUTH);
   let result = await jsonResponse(response);
   assert.equal(result.status, 200, "already unlocked start should succeed");
@@ -1286,13 +1289,13 @@ async function runServerTests() {
     contentId: "section_summary",
     contentType: "saju",
     productName: "Code Destiny 운세",
-    coinPrice: 300,
+    coinPrice: summaryPrice.cost,
     amount: 1,
   }), ENV, AUTH);
   result = await jsonResponse(response);
   assert.equal(result.status, 201, "single start should create order");
-  assert.equal(result.payload.order.totalAmount, 30000, "300 coins should become 30000 KRW");
-  assert.equal(state.createdPayments[0].paymentAmount, 30000, "server amount should ignore client amount");
+  assert.equal(result.payload.order.totalAmount, summaryPrice.amountKRW, "new orders use registry price");
+  assert.equal(state.createdPayments[0].paymentAmount, summaryPrice.amountKRW, "server amount should ignore client amount");
   assert.equal(JSON.stringify(result.payload).includes(ENV.PORTONE_API_SECRET), false, "client response should not include API secret");
   assert.equal(JSON.stringify(result.payload).includes(ENV.INIsignkey), false, "client response should not include Inicis signkey");
 
@@ -1305,7 +1308,7 @@ async function runServerTests() {
     contentId: "section_summary",
     contentType: "saju",
     productName: "Code Destiny 운세",
-    coinPrice: 300,
+    coinPrice: summaryPrice.cost,
     idempotencyKey: "single-race-key",
   };
 
@@ -1328,7 +1331,7 @@ async function runServerTests() {
   //    돌려주면 사용자가 존재하지 않는 주문으로 PG 창을 연다.
   resetState();
   const winnerOrder = {
-    ...makePayment({ paymentAmount: 30000, expectedChargedPoints: 300, coinPrice: 300, pricingSnapshot: { profileId: "profile-a", selectedProfileId: "profile-a", serviceId: "code-destiny", contentId: "section_summary", contentType: "saju", amountKRW: 30000 } }),
+    ...makePayment({ paymentAmount: summaryPrice.amountKRW, expectedChargedPoints: summaryPrice.cost, coinPrice: summaryPrice.cost, pricingSnapshot: { profileId: "profile-a", selectedProfileId: "profile-a", serviceId: "code-destiny", contentId: "section_summary", contentType: "saju", amountKRW: summaryPrice.amountKRW } }),
     _id: "pay_created_winner",
     merchantUid: "cd-single-winner-1710000000000-abcd1234",
     idempotencyKey: "single-race-key",

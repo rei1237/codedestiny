@@ -47,8 +47,7 @@ const CONTENT_TIER_TABLE = Object.freeze([
   // (docs/pricing/PLAY_CONSOLE_TASKS.md). 등록 전까지 앱에서 이 구간만 티어 미등록 503 이다.
   { productId: "cd_content_tier_14", amountKRW: 7000, webAmountKRW: 7000, coinPrices: Object.freeze([70]) },
   { productId: "cd_content_tier_06", amountKRW: 10000, webAmountKRW: 10000, coinPrices: Object.freeze([100]) },
-  // 2026-10-05: 200코인을 쓰던 영냥이 모둠이 50,000원으로 바뀌어 현행 상품이 없다. Play 에 등록된 ID 라
-  // 과거 영수증 복원용으로 보존한다(tier_14 와 같다).
+  // 기존 20,000원 티어: 사주 대운의 현행 가격에 대응하며 과거 영수증 복원도 유지한다.
   { productId: "cd_content_tier_09", amountKRW: 20000, webAmountKRW: 20000, coinPrices: Object.freeze([200]) },
   { productId: "cd_content_tier_10", amountKRW: 30000, webAmountKRW: 30000, coinPrices: Object.freeze([300]) },
   // 2026-10-11 프리미엄 개편 신규 티어. 기존·폐기 SKU의 가격과 ID는 재사용하지 않는다.

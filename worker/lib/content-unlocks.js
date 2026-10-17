@@ -66,7 +66,7 @@ function uniqueKeys(values = []) {
   return Array.from(new Set(values.map((value) => cleanKey(value)).filter(Boolean)));
 }
 
-function invalidateAccessReadCaches(userId) {
+export function invalidateAccessReadCaches(userId) {
   const normalizedUserId = cleanKey(userId, 120);
   if (!normalizedUserId) return;
   try { globalThis.__accessStateCache?.invalidateForUser?.(normalizedUserId); } catch {}
@@ -444,13 +444,15 @@ export async function findActivePaidContentUnlock(input = {}) {
 
   if (target.birthScoped) {
     const scopeClause = await birthScopedReadScopeClause(target, input);
-    const doc = await ContentEntitlement.findOne({
+    const query = ContentEntitlement.findOne({
       userId: target.userId,
       serviceKey: target.serviceKey,
       ...buildContentKeyClause(target.contentKey),
       status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE,
       $and: [activeExpiryClause(), scopeClause],
-    }).lean();
+    });
+    if (input.session) query.session(input.session);
+    const doc = await query.lean();
     return presentBirthScopedDoc(doc, target.profileId);
   }
 

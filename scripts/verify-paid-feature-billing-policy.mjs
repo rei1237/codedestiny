@@ -143,7 +143,8 @@ for (const featureKey of [
 }
 
 for (const [featureKey, expected] of Object.entries({
-  section_summary: { cost: 300, amountKRW: 30000, billingType: PAID_FEATURE_BILLING_TYPES.UNLOCK },
+  section_summary: { cost: 100, amountKRW: 10000, billingType: PAID_FEATURE_BILLING_TYPES.UNLOCK },
+  section_daewun: { cost: 200, amountKRW: 20000, billingType: PAID_FEATURE_BILLING_TYPES.UNLOCK },
   "relationship-boundary-test": { cost: 100, amountKRW: 10000, billingType: PAID_FEATURE_BILLING_TYPES.PER_USE },
   rpt_quantumCard: { cost: 100, amountKRW: 10000, billingType: PAID_FEATURE_BILLING_TYPES.UNLOCK },
   rpt_energyCoordCard: { cost: 70, amountKRW: 7000, billingType: PAID_FEATURE_BILLING_TYPES.UNLOCK },

@@ -22,16 +22,16 @@ const birthPid = (profileId) => toBirthEntitlementProfileId(computeBirthKey(CARD
 const makeDb = () => makeFakePaymentDb({ profileCards: CARDS });
 
 // The new sale price must agree at every resolver; no separate web/app/moonstone price table.
-test("대운 신규 해금은 30,000원·월정석 3,000이며 앱도 같은 가격이다", () => {
+test("대운 신규 해금은 20,000원·월정석 2,000이며 앱도 같은 가격이다", () => {
   expect(PRODUCT).toMatchObject({
     productId: "unlock.section_daewun", featureKey: "section_daewun", billingType: "unlock",
-    priceKRW: 30000, priceCoins: 300, monthlyCost: 3000,
+    priceKRW: 20000, priceCoins: 200, monthlyCost: 2000,
     allowedPaymentMethods: ["PASS", "DIRECT_KRW", "MOONLIGHT_STONE"],
   });
   expect(resolveProduct({ productId: "unlock.section_daewun" })).toEqual(PRODUCT);
-  expect(getBillingFeaturePricing({ featureKey: PRODUCT.featureKey }).pricing).toMatchObject({ amountKRW: 30000, cost: 300 });
-  expect(resolveAppContentTier(PRODUCT.priceCoins)).toMatchObject({ productId: "cd_content_tier_10", amountKRW: PRODUCT.priceKRW });
-  expect(resolveProduct({ featureKey: "section_summary" }).priceKRW).toBe(30000);
+  expect(getBillingFeaturePricing({ featureKey: PRODUCT.featureKey }).pricing).toMatchObject({ amountKRW: 20000, cost: 200 });
+  expect(resolveAppContentTier(PRODUCT.priceCoins)).toMatchObject({ productId: "cd_content_tier_09", amountKRW: PRODUCT.priceKRW });
+  expect(resolveProduct({ featureKey: "section_summary" }).priceKRW).toBe(10000);
   expect(resolveProduct({ featureKey: "rpt_quantumCard" }).priceKRW).toBe(10000);
 });
 
@@ -39,7 +39,7 @@ test("현재 큰 꿀단지는 대운을 커버하지만 작은 꿀단지는 건�
   const expiresAt = new Date(Date.now() + 86400000).toISOString();
   const user = { profileSubscription: { passPolicyVersion: CURRENT_PASS_POLICY_VERSION, premiumUseCycleKey: expiresAt, monthlySpendCoin: 899 } };
   expect(evaluatePassCoverage({ user, entitlement: { isActive: true, tier: "vvip", expiresAt }, coinCost: PRODUCT.priceCoins })).toMatchObject({
-    covered: true, coinCost: 300, perItemLimit: 300, remainingCoin: 1,
+    covered: true, coinCost: 200, perItemLimit: 300, remainingCoin: 101,
   });
   expect(evaluatePassCoverage({ user, entitlement: { isActive: true, tier: "standard", expiresAt }, coinCost: PRODUCT.priceCoins })).toMatchObject({
     covered: false, reason: "price_exceeds_pass_limit", perItemLimit: 50,
@@ -68,7 +68,7 @@ test("기존 5,000원 대운 구매권은 새 가격에도 같은 프로필에�
     orderId: "new-profile-purchase",
   });
   expect(otherProfile.alreadyOwned).toBe(false);
-  expect(db.rows.find((row) => row.profileId === birthPid("another-profile")).amountKRW).toBe(30000);
+  expect(db.rows.find((row) => row.profileId === birthPid("another-profile")).amountKRW).toBe(20000);
 });
 
 test("미결제 대운 주문은 재진입 시 새 가격으로 갱신된다", async () => {
@@ -77,8 +77,8 @@ test("미결제 대운 주문은 재진입 시 새 가격으로 갱신된다", a
   const old = await createOrder(db, { ...input, product: OLD_PRODUCT });
   const repriced = await createPayableOrder(db, { ...input, product: PRODUCT });
   expect(repriced.merchantUid).toBe(old.merchantUid);
-  expect(repriced.paymentAmount).toBe(30000);
-  expect(repriced.pricingSnapshot).toMatchObject({ priceKRW: 30000, priceCoins: 300, monthlyCost: 3000 });
+  expect(repriced.paymentAmount).toBe(20000);
+  expect(repriced.pricingSnapshot).toMatchObject({ priceKRW: 20000, priceCoins: 200, monthlyCost: 2000 });
   expect(db.rows).toHaveLength(1);
 });
 
@@ -92,7 +92,7 @@ test("이미 결제된 대운 주문의 5,000원 구매금액은 새 주문에 �
   } });
   const next = await createPayableOrder(db, { ...input, product: PRODUCT });
   expect(next.merchantUid).not.toBe(old.merchantUid);
-  expect(next.paymentAmount).toBe(30000);
+  expect(next.paymentAmount).toBe(20000);
   expect(db.rows.find((row) => row.merchantUid === old.merchantUid)).toMatchObject({
     status: "paid", paymentAmount: 5000, pricingSnapshot: { priceKRW: 5000, priceCoins: 50 },
   });
