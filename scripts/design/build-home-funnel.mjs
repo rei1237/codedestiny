@@ -74,7 +74,7 @@ const QUESTION_CATEGORIES = [
   { id: 'reunion', label: '재회', chip: '다시 만날 가능성', img: '/images/home-questions/reunion', questions: [
     { id: 'reunionAgain', href: '/tarot/reunion/', key: 'tarot-reunion-reading', master: 'yeoni', t: '우리, 다시 만날 수 있을까?', b: '재회운 타로', price: 'w5000' },
     { id: 'reunionContact', href: '/yeongnyangi/?question=reconnect#questions', key: 'yeongnyangi-tarot-mackerel', master: 'yeongnyangi', t: '다시 연락해도 될까, 기다려야 할까?', b: '영냥이 · 타로', price: 'from5000' },
-    { id: 'reunionClosure', href: '/fortune-tea-house/', key: 'fortune-tea-house-tarot-consultation', master: 'yeoni', t: '이 마음, 어떻게 정리하면 좋을까?', b: '타로·사주 · 운명의 찻집', price: 'w10000' },
+    { id: 'reunionClosure', href: '/fortune-tea-house/', key: 'fortune-tea-house-tarot-consultation', master: 'yeoni', t: '이 마음, 어떻게 정리하면 좋을까?', b: '타로·사주 · 운명의 찻집', price: 'w5000' },
   ] },
   { id: 'marriage', label: '결혼', chip: '결혼할 사람', img: '/images/home-questions/marriage', questions: [
     { id: 'marriagePartner', href: '/yeongnyangi/?question=partner#questions', key: 'yeongnyangi-saju-mackerel', master: 'yeongnyangi', t: '나는 어떤 사람과 결혼하게 될까?', b: '영냥이 · 사주', price: 'from5000' },

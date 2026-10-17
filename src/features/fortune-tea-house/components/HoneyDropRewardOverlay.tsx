@@ -63,23 +63,23 @@ const KO = {
   placeholder: "꽃돼지야~ 뭐든 물어봐요 ✨",
   sendAria: "꽃돼지에게 질문 보내기",
   albumOpen: "열림",
-  counterAria: "꿀방울 {count}개, 상담 혜택 보기",
+  counterAria: "꿀방울 {count}개, 사용 안내 보기",
   honeyLabel: "꿀방울",
   countValue: "{count}개",
   albumAriaUnlocked: "달빛 타로 앨범 보기",
-  albumAriaLocked: "달빛 타로 앨범 열기, 꿀방울 {progress}/10",
+  albumAriaLocked: "기존 달빛 타로 앨범 확인하기",
   albumText: "달빛 앨범",
   honeyModeClose: "꿀 모드 닫기",
   honeyModeOpen: "꿀 모드 활성화",
   albumTitleUnlocked: "달빛 타로 앨범이 손님 곁에 열려 있어요.",
-  albumTitleLocked: "꿀방울 10개면 연이의 비밀 카드첩을 열 수 있어요.",
+  albumTitleLocked: "꿀방울은 꿀꿀운세의 지정된 기본 해석에 사용해요.",
   albumDescUnlocked: "해금 완료 · 꿀방울이 0개여도 언제든 78장의 카드를 감상할 수 있어요.",
-  albumDescLocked: "보유 꿀방울 {count}개 / 해금 필요 10개. 운명의 찻집에서 상담을 마치면 꿀방울이 하나씩 모여요.",
+  albumDescLocked: "보유 꿀방울 {count}개. 꿀꿀운세의 꿀방울 사용처에서 필요한 개수를 확인해 주세요. 새 타로 앨범에는 사용할 수 없어요.",
   albumMeterAria: "달빛 타로 앨범 진행도 {progress}/10",
   albumBtnUnlocked: "앨범 감상하기",
   albumBtnLocked: "달빛 앨범 살펴보기",
   burstUnlocked: "꽃돼지의 꿀 모드도 함께 열려 있어요.",
-  burstLocked: "운명의 찻집에서 상담이 완성될 때마다 조용히 쌓이는 작은 보상이에요.",
+  burstLocked: "모은 꿀방울은 꿀꿀운세의 지정된 기본 해석에 사용할 수 있어요.",
 };
 
 // QUICK_QUESTIONS 는 KO.quickQuestions 로 옮겼다.
@@ -366,9 +366,6 @@ export default function HoneyDropRewardOverlay({ honeyDrops, burstKey, message, 
                 ? copy.albumDescUnlocked
                 : copy.albumDescLocked.replace("{count}", String(count))}
             </p>
-            <div className={styles.honeyAlbumMeter} aria-label={copy.albumMeterAria.replace("{progress}", String(albumProgress))}>
-              <span style={{ width: `${albumProgress * 10}%` }} />
-            </div>
             <button type="button" className={styles.honeyAlbumPanelButton} onClick={onOpenTarotAlbum}>
               {tarotAlbumUnlocked ? copy.albumBtnUnlocked : copy.albumBtnLocked}
             </button>

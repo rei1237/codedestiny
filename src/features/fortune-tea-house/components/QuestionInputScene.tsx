@@ -395,10 +395,11 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
   const copy = useTeaHouseCopy("questionInput", KO);
   const categories = useTeaHouseCopy("questionCategories", CATEGORY_KO);
   const [consultationMode, setConsultationMode] = useState<FortuneTeaHouseConsultMode>(initialInput?.consultationMode || "tarot");
+  const jointSaju = consultationMode === "saju" && initialInput?.sajuReportVersion === "saju-specialist-v2";
   const priceLabelForMode = useCallback(
     (mode: FortuneTeaHouseConsultMode, spread?: FortuneTeaTarotSpread) =>
-      priceLabels[mode] || getFortuneTeaHouseConsultPriceLabel(mode, spread),
-    [priceLabels],
+      priceLabels[mode] || getFortuneTeaHouseConsultPriceLabel(mode, spread, jointSaju ? "saju-specialist-v2" : undefined),
+    [priceLabels, jointSaju],
   );
   const [nickname, setNickname] = useState(initialInput?.nickname || "");
   const [profileId, setProfileId] = useState(initialInput?.profileId || "");
@@ -741,6 +742,7 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
       .join(" ");
     return {
       consultationMode,
+      sajuReportVersion: jointSaju ? "saju-specialist-v2" : undefined,
       attemptId: initialInput?.question === question ? initialInput?.attemptId : undefined,
       tarotSpreadId: initialInput?.question === question ? initialInput?.tarotSpreadId : undefined,
       nickname: consultationMode === "sukuyo" ? nextSukuyoInput.user.name || nickname.trim() : isCompat ? nextSajuCompatInput.user.name || nickname.trim() : nickname.trim(),
@@ -820,12 +822,12 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
   return (
     <section className={`${styles.questionScene}`} aria-labelledby="teaQuestionTitle">
       <div className={styles.questionActor}>
-        <img className={styles.yeoniPortrait} src={consultationMode === "saju" ? "/images/consultation/saju-yeoni-neo-joint-v1-640.webp" : "/images/fortune-tea-house/yeoni-moonlight-novel.webp"} alt={consultationMode === "saju" ? "명식을 함께 살펴보는 연이와 네오" : ""} width="1536" height="1024" />
+        <img className={styles.yeoniPortrait} src={jointSaju ? "/images/consultation/saju-yeoni-neo-joint-v1-640.webp" : "/images/fortune-tea-house/yeoni-moonlight-novel.webp"} alt={jointSaju ? "명식을 함께 살펴보는 연이와 네오" : ""} width="1536" height="1024" />
         <div className={styles.questionInvitation}>
-          {consultationMode === "saju" && <PriceBadge featureKey="fortune-tea-house-saju-consultation" prefix="공동 상담 · 단건 " className="inline-flex rounded-full border border-[var(--cd-border)] bg-[var(--cd-surface)] px-3 py-2 text-sm font-bold text-[var(--cd-text)]" />}
+          {consultationMode === "saju" && <PriceBadge featureKey={jointSaju ? "fortune-tea-house-saju-joint-consultation" : "fortune-tea-house-saju-consultation"} prefix={jointSaju ? "공동 상담 · 단건 " : "연이 사주 상담 · 단건 "} className="inline-flex rounded-full border border-[var(--cd-border)] bg-[var(--cd-surface)] px-3 py-2 text-sm font-bold text-[var(--cd-text)]" />}
           <p className={styles.chosenTea}>{selectedCup.name} · {selectedCup.topic}</p>
-          <h2 id="teaQuestionTitle">{consultationMode === "saju" ? "연이·네오 공동 사주 상담" : copy.questionTitle}</h2>
-          <p>{consultationMode === "saju" ? "연이는 마음과 반복 패턴을, 네오는 선택의 이득과 부담을 짚어요. 내 질문과 명식의 근거를 연결해 직업·재물·관계·회복 리듬부터 30일 실행 계획까지 함께 정리합니다." : copy.welcomeNote}</p>
+          <h2 id="teaQuestionTitle">{jointSaju ? "연이·네오 공동 사주 상담" : consultationMode === "saju" ? "연이의 사주 상담" : copy.questionTitle}</h2>
+          <p>{jointSaju ? "연이는 마음과 반복 패턴을, 네오는 선택의 이득과 부담을 짚어요. 내 질문과 명식의 근거를 연결해 직업·재물·관계·회복 리듬부터 30일 실행 계획까지 함께 정리합니다." : consultationMode === "saju" ? "연이가 내 질문과 명식의 근거를 연결해 현재의 흐름과 현실적인 선택을 함께 살펴봐요." : copy.welcomeNote}</p>
         </div>
       </div>
       <form id="tea-question-form" className={`${styles.questionPanel}`} onSubmit={handleSubmit}>
@@ -943,7 +945,7 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
             </div>
           </div>
           <div className={`${styles.consultModeGrid}`} role="radiogroup" aria-label={copy.kxzymxwz}>
-            {consultModeOptions.map((option) => {
+            {consultModeOptions.filter((option) => !jointSaju || option.id === "saju").map((option) => {
               const selected = consultationMode === option.id;
               return (
                 <button
@@ -964,7 +966,7 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
                     <AssetImage className={styles.consultModeImage} imageClassName={styles.consultModeArtwork} src={option.image} alt="" />
                   </span>
                   <span className={styles.consultModeCopy}>
-                    <strong>{copy[option.titleKey]}</strong>
+                    <strong>{jointSaju ? "연이·네오 공동 사주 상담" : copy[option.titleKey]}</strong>
                     <span className={styles.consultModeDescription}>{copy[option.descriptionKey]}</span>
                     <span className={styles.consultModeDetails}>
                       <span>

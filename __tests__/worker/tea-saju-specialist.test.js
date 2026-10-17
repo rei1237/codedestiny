@@ -44,7 +44,7 @@ test('new price resolves through app, monthly stones and existing pass ceilings'
  const {resolveAppContentTier}=await import('../../worker/lib/app-store-pricing.js');
  const {canUseByPass}=await import('../../worker/lib/profile-limits.js');
  const {currentPassPlan}=await import('../../lib/payment/pass-policy.js');
- const key='fortune-tea-house-saju-consultation', price=FEATURE_KEY_PRICE_TABLE[key];
+ const key='fortune-tea-house-saju-joint-consultation', price=FEATURE_KEY_PRICE_TABLE[key];
  expect(price).toMatchObject({cost:150,amountKRW:15000});
  expect(resolveAppContentTier(price.cost)).toMatchObject({productId:'cd_content_tier_16',amountKRW:15000});
  expect(calculatePaidFeatureMembershipCreditCost(key)).toBe(calculatePaidFeatureMembershipCreditCost(key,150));
@@ -66,3 +66,15 @@ test('joint v2 adds three distinct chapters without changing stored v1 checkpoin
  expect(groups.reduce((n,g)=>n+g.targetChars,0)).toBe(35000);
  expect(groups.find(g=>g.key==='specialist-joint').sectionTitles).toEqual(specialist.TEA_SAJU_JOINT_SECTIONS);
 });
+
+ test('tea prices and joint feature selection stay distinct', async()=>{
+ const {FEATURE_KEY_PRICE_TABLE:p}=await import('../../worker/lib/paid-feature-registry.js');
+ expect(p['fortune-tea-house-saju-consultation']).toMatchObject({cost:100,amountKRW:10000});
+ expect(p['fortune-tea-house-tarot-consultation']).toMatchObject({cost:50,amountKRW:5000});
+ expect(p['fortune-tea-house-tarot-five-consultation']).toMatchObject({cost:70,amountKRW:7000});
+ const joint={...base,sajuReportVersion:'saju-specialist-v2'};
+ expect(u.resolveFortuneTeaHouseFeatureKey({},base)).toBe('fortune-tea-house-saju-consultation');
+ expect(u.resolveFortuneTeaHouseFeatureKey({},joint)).toBe('fortune-tea-house-saju-joint-consultation');
+ expect(u.resolveFortuneTeaHouseFeatureKey({featureKey:'fortune-tea-house-saju-consultation'},joint)).toBe('');
+ expect(u.resolveFortuneTeaHouseFeatureKey({featureKey:'fortune-tea-house-tarot-consultation'},{consultationMode:'tarot',tarotSpread:'five'})).toBe('');
+ });

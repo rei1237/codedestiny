@@ -1,4 +1,4 @@
-export const TEA_SAJU_URL = '/fortune-tea-house/?mode=saju&entry=saju-analysis';
+export const TEA_SAJU_URL = '/fortune-tea-house/?mode=saju&reading=joint&entry=saju-analysis';
 export const TEA_SAJU_DRAFT_KEY = 'cd_tea_saju_entry_v1';
 const TTL = 30 * 60 * 1000;
 
@@ -27,7 +27,7 @@ export function teaSajuEntryMarkup() {
   return `<section class="saju-tea-entry" aria-labelledby="sajuTeaEntryTitle">
     <picture class="saju-tea-entry__art"><source media="(max-width: 600px)" srcset="/images/consultation/saju-yeoni-neo-joint-v1-640.webp"><img src="/images/consultation/saju-yeoni-neo-joint-v1-1280.webp" width="1280" height="853" loading="lazy" decoding="async" alt="연이가 펼친 명식을 인간형 네오가 함께 살펴보며 중요한 부분을 짚는 모습"></picture>
     <div class="saju-tea-entry__copy"><h3 id="sajuTeaEntryTitle">연이와 네오,<br>내 사주를 함께 펼치다</h3>
-      <p class="saju-tea-entry__product">운명의 찻집 · 사주 전문 AI 상담</p>
+      <p class="saju-tea-entry__product">연이·네오 공동 사주 상담 · 별도 상품</p>
       <p>명식만으로 풀리지 않는 고민이 있나요? 일과 돈, 관계와 건강·회복 리듬까지 내 질문과 연결해 깊이 살펴봐요.</p>
       <dl class="saju-tea-entry__roles"><div><dt>연이</dt><dd>마음의 결과 반복되는 패턴을 살펴봐요.</dd></div><div><dt>네오</dt><dd>중요한 선택과 실행할 순서를 짚어드립니다.</dd></div></dl>
       <a class="saju-tea-entry__cta" data-tea-saju-open href="${TEA_SAJU_URL}">내 고민, 사주로 깊이 상담하기 <span aria-hidden="true">→</span></a>
@@ -42,9 +42,9 @@ export function mountTeaSajuEntry(root, context) {
   root.insertAdjacentHTML('afterbegin', teaSajuEntryMarkup());
   root.querySelector('[data-tea-saju-open]').addEventListener('click', () => {
     try { writeSajuTeaDraft(window.sessionStorage, context()); } catch { /* Storage is optional. */ }
-    window.cdTrack?.('consultation_entry_click', { service_id: 'fortune-tea-house-saju-consultation', entry_location: 'saju-analysis', ux_version: 'joint-v1' });
+    window.cdTrack?.('consultation_entry_click', { service_id: 'fortune-tea-house-saju-joint-consultation', entry_location: 'saju-analysis', ux_version: 'joint-v1' });
   });
-  Promise.resolve(window.CodeDestinyFeaturePricingStore?.getOrLoad?.('fortune-tea-house-saju-consultation')).then(price => {
+  Promise.resolve(window.CodeDestinyFeaturePricingStore?.getOrLoad?.('fortune-tea-house-saju-joint-consultation')).then(price => {
     const amount = Number(price?.amountKRW);
     root.querySelector('[data-tea-saju-price]').textContent = price?.displayPrice || (Number.isFinite(amount) && amount > 0 ? new Intl.NumberFormat('ko-KR').format(amount) + '원' : '찻집에서 가격 확인');
   }).catch(() => { root.querySelector('[data-tea-saju-price]').textContent = '찻집에서 가격 확인'; });

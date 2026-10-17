@@ -155,12 +155,13 @@ type FortuneTeaConsultPostBody = FortuneTeaHouseConsultRequest & Record<string, 
 // 서버(worker/routes/fortune-tea-house.js)는 요청의 tarotSpread에서 키를 다시 유도하고
 // 불일치하면 거부하므로, 클라이언트도 같은 규칙으로 키를 만든다.
 type FortuneTeaFeatureKeySource = {
+  sajuReportVersion?: string;
   consultationMode: FortuneTeaHouseConsultMode;
   tarotSpread?: FortuneTeaTarotSpread;
 };
 
 function resolveFortuneTeaFeatureKey(source: FortuneTeaFeatureKeySource) {
-  return getFortuneTeaHouseConsultFeatureKey(source.consultationMode, source.tarotSpread);
+  return getFortuneTeaHouseConsultFeatureKey(source.consultationMode, source.tarotSpread, source.sajuReportVersion);
 }
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -199,7 +200,7 @@ function buildFortuneTeaBillingGateInput(payload: FortuneTeaHouseConsultApiRespo
   const featureKey = toText(runtimeGate.featureKey ?? payload.featureKey ?? pricing.featureKey) || resolveFortuneTeaFeatureKey(source);
   // 이용권 확인이 실패해 서버가 가격 payload 를 못 실어 준 경우에도 결제창은 떠야 한다.
   // 새 상수를 만들지 않고 클라이언트 가격표 정본(consultPricing)과 공용 환산 상수로 채운다.
-  const fallbackAmountKRW = fortuneTeaHouseConsultPricing[resolveFortuneTeaHousePriceKey(source.consultationMode, source.tarotSpread)]?.amountKRW ?? 0;
+  const fallbackAmountKRW = fortuneTeaHouseConsultPricing[resolveFortuneTeaHousePriceKey(source.consultationMode, source.tarotSpread, source.sajuReportVersion)]?.amountKRW ?? 0;
   const coinPrice = Math.floor(toNumber(runtimeGate.coinPrice ?? runtimeGate.cost ?? pricing.coinPrice ?? pricing.cost)) || Math.floor(fallbackAmountKRW / KRW_PER_COIN);
   const amountKRW = Math.floor(toNumber(runtimeGate.amountKRW ?? runtimeGate.amountKrw ?? runtimeGate.paymentAmount ?? pricing.amountKRW ?? pricing.paymentAmount)) || fallbackAmountKRW;
   const membershipCreditCost = Math.floor(toNumber(runtimeGate.membershipCreditCost ?? pricing.membershipCreditCost)) || Math.floor(fallbackAmountKRW / KRW_PER_MONTHLY_CREDIT);
@@ -600,7 +601,7 @@ export default function FortuneTeaHousePage() {
       const cup = getTeaHouseCupById('star-black-tea');
       if (cup) {
         setSelectedCup(cup);
-        setQuestionInput({ consultationMode: 'saju', concernTopic: cup.topic, question: '', ...entryDraft });
+        setQuestionInput({ consultationMode: 'saju', concernTopic: cup.topic, question: '', ...entryDraft, sajuReportVersion: entryParams.get('reading') === 'joint' ? 'saju-specialist-v2' : undefined });
         setStage('questionInput');
         trackEvent('tea_input_started', { method: 'saju', entry: 'saju-analysis' });
         return;
@@ -1191,7 +1192,7 @@ export default function FortuneTeaHousePage() {
         tarotSpread: nextQuestionInput.tarotSpread,
         tarotSpreadId: nextQuestionInput.tarotSpreadId,
         consultationVersion: nextQuestionInput.consultationVersion,
-        sajuReportVersion: nextQuestionInput.consultationMode === 'saju' ? 'saju-specialist-v2' : undefined,
+        sajuReportVersion: nextQuestionInput.consultationMode === 'saju' ? nextQuestionInput.sajuReportVersion : undefined,
         sukuyo: nextQuestionInput.sukuyo,
         sajuCompatibility: nextQuestionInput.sajuCompatibility,
         question: nextQuestionInput.question,
@@ -1240,7 +1241,7 @@ export default function FortuneTeaHousePage() {
         tarotSpread: nextQuestionInput.tarotSpread,
         tarotSpreadId: nextQuestionInput.tarotSpreadId,
         consultationVersion: nextQuestionInput.consultationVersion,
-        sajuReportVersion: nextQuestionInput.consultationMode === 'saju' ? 'saju-specialist-v2' : undefined,
+        sajuReportVersion: nextQuestionInput.consultationMode === 'saju' ? nextQuestionInput.sajuReportVersion : undefined,
         sukuyo: nextQuestionInput.sukuyo,
         sajuCompatibility: nextQuestionInput.sajuCompatibility,
         question: nextQuestionInput.question,

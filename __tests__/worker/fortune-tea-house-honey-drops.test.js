@@ -506,8 +506,8 @@ describe("fortune tea house honey drops", () => {
     expect(status).toBe(402);
     expect(payload.paymentRequired).toBe(true);
     expect(payload.paymentPayload.featureKey).toBe(FEATURE_KEYS.tarot);
-    expect(payload.paymentPayload.amountKRW).toBe(10000);
-    expect(payload.paymentPayload.runtimeGate.paymentAmount).toBe(10000);
+    expect(payload.paymentPayload.amountKRW).toBe(5000);
+    expect(payload.paymentPayload.runtimeGate.paymentAmount).toBe(5000);
   });
 
   test("billing evidence with another fortune tea feature key is rejected", async () => {

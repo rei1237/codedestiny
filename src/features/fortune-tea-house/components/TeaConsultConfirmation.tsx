@@ -59,8 +59,8 @@ export default function TeaConsultConfirmation({input,cupId,onConfirm,onBack,bus
  }
  return <section className={styles.confirm} aria-labelledby="tea-confirm-title">
   <h2 id="tea-confirm-title">{copy.titleKo}</h2><p>{copy.question}</p><blockquote>{input.question}</blockquote>
-  <p>{copy.scope}</p><p>{copy.price}: <strong>{getFortuneTeaHouseConsultPriceLabel(input.consultationMode,isTarot?size:undefined)}</strong></p><p>{copy.policy}</p>
-  {locale==="ko"&&<CraftedProductDisclosure featureKey={getFortuneTeaHouseConsultFeatureKey(input.consultationMode,isTarot?size:undefined)}/>}
+  <p>{copy.scope}</p><p>{copy.price}: <strong>{getFortuneTeaHouseConsultPriceLabel(input.consultationMode,isTarot?size:undefined,input.sajuReportVersion)}</strong></p><p>{copy.policy}</p>
+  {locale==="ko"&&<CraftedProductDisclosure featureKey={getFortuneTeaHouseConsultFeatureKey(input.consultationMode,isTarot?size:undefined,input.sajuReportVersion)}/>}
   {!isTarot&&<div><h3>{copy.information}</h3><ul>{people.map((person,index)=>person&&<li key={index}>{[
     "name" in person ? person.name : input.nickname,person.birthDate,
     person.calendarType==="lunar" ? copy.lunar : copy.solar,person.isLeapMonth ? copy.leap : "",

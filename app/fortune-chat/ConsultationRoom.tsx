@@ -489,7 +489,7 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
         {!row && <aside className={styles.jointOffer}>
           <h2>내 사주를 더 깊이 함께 읽고 싶다면</h2>
           <p>연이·네오 공동 사주 상담은 별도 상품이에요. 기질과 생활 패턴부터 선택의 조건과 실행 계획까지 살펴봐요.</p>
-          <PriceBadge featureKey="fortune-tea-house-saju-consultation" prefix="공동 상담 · " className={base.priceBadge} />
+          <PriceBadge featureKey="fortune-tea-house-saju-joint-consultation" prefix="공동 상담 · " className={base.priceBadge} />
           <a href={TEA_SAJU_URL}>연이·네오 공동 상담 자세히 보기</a>
         </aside>}
 

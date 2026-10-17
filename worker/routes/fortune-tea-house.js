@@ -101,6 +101,7 @@ const FORTUNE_TEA_HOUSE_FEATURE_KEYS = Object.freeze({
   tarot: "fortune-tea-house-tarot-consultation",
   tarotFive: "fortune-tea-house-tarot-five-consultation",
   saju: "fortune-tea-house-saju-consultation",
+  sajuJoint: "fortune-tea-house-saju-joint-consultation",
   sajuCompatibility: "fortune-tea-house-saju-compatibility-consultation",
   sukuyo: "fortune-tea-house-sukuyo-compatibility-consultation",
 });
@@ -1148,7 +1149,7 @@ function normalizeRequest(body) {
 function expectedFortuneTeaHouseFeatureKey(consultRequest = {}) {
   if (consultRequest.consultationMode === "sukuyo") return FORTUNE_TEA_HOUSE_FEATURE_KEYS.sukuyo;
   if (consultRequest.consultationMode === "sajuCompatibility") return FORTUNE_TEA_HOUSE_FEATURE_KEYS.sajuCompatibility;
-  if (consultRequest.consultationMode === "saju") return FORTUNE_TEA_HOUSE_FEATURE_KEYS.saju;
+  if (consultRequest.consultationMode === "saju") return consultRequest.sajuReportVersion === "saju-specialist-v2" ? FORTUNE_TEA_HOUSE_FEATURE_KEYS.sajuJoint : FORTUNE_TEA_HOUSE_FEATURE_KEYS.saju;
   return normalizeTarotSpread(consultRequest.tarotSpread) === "five"
     ? FORTUNE_TEA_HOUSE_FEATURE_KEYS.tarotFive
     : FORTUNE_TEA_HOUSE_FEATURE_KEYS.tarot;
@@ -1539,7 +1540,9 @@ function buildFortuneTeaAccessDegradedResponse() {
 }
 
 async function verifyFortuneTeaHouseConsultAccess(request, env, body, consultRequest, recoveryAuth = null) {
-  const featureKey = resolveFortuneTeaHouseFeatureKey(body, consultRequest);
+  // Only the server-owned recovery record may retain the former joint product key.
+  const legacyJointRecovery = recoveryAuth?.legacyFeatureKey === FORTUNE_TEA_HOUSE_FEATURE_KEYS.saju && consultRequest.sajuReportVersion === "saju-specialist-v2";
+  const featureKey = legacyJointRecovery ? FORTUNE_TEA_HOUSE_FEATURE_KEYS.saju : resolveFortuneTeaHouseFeatureKey(body, consultRequest);
   if (!featureKey) {
     return {
       ok: false,
@@ -6489,7 +6492,7 @@ export async function resumeConsultationOnServer(env, doc) {
   const stored = await withMongoRetry(env, () => honeyCollections().results.findOne({ userId: String(doc.userId), resultId: doc.resultId, serviceScope: FORTUNE_TEA_HOUSE_SCOPE }));
   if (!stored?.generationCheckpoint?.requestBody) return json({ ok: false, reason: 'RESULT_NOT_FOUND' }, { status: 404 });
   const request = new Request("https://internal.invalid/api/fortune-tea-house/consult", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(stored.generationCheckpoint.requestBody) });
-  return handleConsult(request, env, null, { userId: String(stored.userId) });
+  return handleConsult(request, env, null, { userId: String(stored.userId), legacyFeatureKey: stored.featureKey });
 }
 
 export async function deferUnchangedConsultation(env, doc, now) {
@@ -6500,6 +6503,7 @@ export async function deferUnchangedConsultation(env, doc, now) {
 }
 
 export const __fortuneTeaHouseTestUtils = {
+  resolveFortuneTeaHouseFeatureKey,
   pickTeaCheckpointFields,
   assertSajuDeepQuality,
   applyFortuneTeaGroupScope,

@@ -24,13 +24,14 @@
   }
   var confirmationPending = false;
   function confirmUnlock(item) {
-    if (root.isTileKeyUnlocked?.(item.featureKey)) return Promise.resolve(true);
+    if (item.billingType === 'birth_unlock' && root.isTileKeyUnlocked?.(item.featureKey)) return Promise.resolve(true);
     if (confirmationPending) return Promise.resolve(false);
     var dialog = document.getElementById('cdHoneyUnlockSheet');
     if (!dialog || !root.CodeDestinyShellSheet) return Promise.resolve(root.confirm(item.title + '을 꿀방울 ' + item.honeyCost + '개로 열까요?'));
     confirmationPending = true;
     text(dialog.querySelector('[data-honey-confirm-title]'), item.title);
     text(dialog.querySelector('[data-honey-confirm-cost]'), '꿀방울 ' + item.honeyCost + '개 · 현재 보유 ' + state.balance + '개');
+    text(dialog.querySelector('[data-honey-confirm-condition]'), item.billingType === 'per_use' ? '이번 요청에 꿀방울을 사용해요. 새 궁합이나 새 카드 해석에는 다시 필요해요.' : '선택한 프로필의 출생정보로 이 콘텐츠를 엽니다. 같은 계정·출생정보로 다시 볼 때는 추가로 쓰지 않아요.');
     var button = dialog.querySelector('[data-honey-confirm]');
     text(button, '꿀방울 ' + item.honeyCost + '개로 열기');
     return new Promise(function (resolve) {
@@ -117,6 +118,7 @@
     if (button.querySelector('[data-honey-label]')?.textContent === title && button.querySelector('[data-honey-value]')?.textContent === value) return;
     var heading = node('span', title), amount = node('strong', value);
     heading.dataset.honeyLabel = ''; amount.dataset.honeyValue = ''; button.replaceChildren(heading, amount);
+    if (button.hasAttribute('data-honey-open')) button.prepend(node('span', '꿀방울 사용 가능처', 'cd-honey-eligible'));
   }
   function refreshLabels() {
     if (!catalog) return;
@@ -204,17 +206,30 @@
       if (version !== revision) return;
       text(status, state?.guest ? '로그인하면 보유량을 확인할 수 있어요.' : state?.error || !state ? '보유량을 확인하지 못했어요. 출석 카드에서 다시 확인해 주세요.' : '보유 꿀방울 ' + state.balance + '개' + (pid ? ' · 선택한 프로필 기준' : ' · 프로필 선택 후 해금 상태 확인'));
       var groups = new Map();
-      data.products.concat(data.otherUses).forEach(function (item) {
-        var group = item.group === '재미 사주' ? '재미 콘텐츠' : item.featureKey ? '기본 운세 확장' : item.group;
-        if (!groups.has(group)) { var section = node('section', '', 'cd-honey-use-group'); section.append(node('h3', group)); host.append(section); groups.set(group, section); }
-        var row = node('article', '', 'cd-honey-use'), info = node('div');
-        info.append(node('h4', item.title), node('p', item.description));
-        var unlocked = item.featureKey && owned.includes(item.featureKey);
-        info.append(node('p', (unlocked ? '해금 완료' : (item.cashPriceKRW ? '바로 열기 ' + priceLabel(item) + ' · ' : '') + '꿀방울 ' + item.honeyCost + '개') + (item.featureKey && ownershipError ? ' · 해금 상태 조회 실패' : item.featureKey && !pid ? ' · 저장된 프로필 필요' : ''), 'cd-honey-use__meta'));
-        if (item.condition) info.append(node('p', item.condition, 'cd-honey-use__condition'));
-        var link = node('a', unlocked ? '결과 열기' : '바로가기');
-        link.href = item.href || '/?action=' + encodeURIComponent(item.action) + '&honeyContent=' + encodeURIComponent(item.featureKey);
-        row.append(info, link); groups.get(group).append(row);
+      data.products.forEach(function (item) {
+        var group = ['기본 사주', '재미 사주'].includes(item.group) ? '사주' : item.group;
+        if (!groups.has(group)) groups.set(group, []);
+        groups.get(group).push(item);
+      });
+      groups.forEach(function (items, group) {
+        var section = node('details', '', 'cd-honey-use-group'), summary = node('summary'), list = node('div', '', 'cd-honey-use-list');
+        var costs = items.map(function (item) { return item.honeyCost; }), min = Math.min.apply(null, costs), max = Math.max.apply(null, costs);
+        summary.append(node('strong', group), node('span', items.length + '종 · ' + (min === max ? min : min + '–' + max) + '개'));
+        section.append(summary, list); host.append(section);
+        items.forEach(function (item) {
+          var row = node('article', '', 'cd-honey-use'), info = node('div');
+          var perUse = item.billingType === 'per_use', unlocked = !perUse && owned.includes(item.featureKey);
+          info.append(node('span', '꿀방울 사용 가능처', 'cd-honey-eligible'), node('h4', item.title), node('p', item.description));
+          info.append(node('p', unlocked ? '해금 완료 · 추가 사용 없음' : '꿀방울 ' + item.honeyCost + '개', 'cd-honey-use__meta'));
+          info.append(node('p', perUse ? '새 궁합·새 카드 해석을 요청할 때마다 사용' : '같은 계정·출생정보로 다시 볼 때 추가 사용 없음', 'cd-honey-use__condition'));
+          if (!unlocked && state && !state.guest && !state.error && Number.isFinite(state.balance) && state.balance < item.honeyCost) info.append(node('p', (item.honeyCost - state.balance) + '개 더 모으면 열 수 있어요.', 'cd-honey-use__condition'));
+          if (ownershipError) info.append(node('p', '해금 상태는 운세 화면에서 다시 확인해 주세요.', 'cd-honey-use__condition'));
+          if (item.condition) info.append(node('p', item.condition, 'cd-honey-use__condition'));
+          var link = node('a', unlocked ? '해금한 해석 보기' : group + '에서 보기');
+          link.setAttribute('aria-label', item.title + ' · ' + link.textContent);
+          link.href = item.href || '/?action=' + encodeURIComponent(item.action) + '&honeyContent=' + encodeURIComponent(item.featureKey);
+          row.append(info, link); list.append(row);
+        });
       });
     } catch (_) { text(status, '사용처를 불러오지 못했어요.'); var retry = node('button', '다시 확인하기'); retry.type = 'button'; retry.onclick = showUses; host.append(retry); }
   }

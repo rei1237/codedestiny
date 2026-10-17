@@ -59,13 +59,26 @@ try {
     assert.equal(await attendance.textContent(),'출석 체크 하기');
     await attendance.click();
     await page.waitForFunction(()=>document.querySelector('[data-cd-honey-attend]').textContent==='오늘 출석 체크 완료');
-    for (const width of [390,1280]) {
+    for (const width of [360,390,430,1280]) {
       await page.setViewportSize({width,height:900});
       await page.locator('.cdh-honey').scrollIntoViewIfNeeded();
       await page.waitForFunction(()=>Array.from(document.querySelectorAll('.cdh-honey img')).every(img=>img.complete && img.naturalWidth));
       assert.ok(await page.locator('.cdh-honey img').evaluateAll(images=>images.length>=2 && images.every(img=>getComputedStyle(img).backgroundColor==='rgba(0, 0, 0, 0)')));
       await page.locator('.cdh-honey').screenshot({path:path.join(output,`honey-${width}.png`)});
     }
+    await page.locator('[data-cd-sheet-open="cdHoneySheet"]').click();
+    await page.waitForFunction(()=>document.querySelectorAll('#cdHoneySheet .cd-honey-use').length===24);
+    for (const width of [360,390,430,1280]) {
+      await page.setViewportSize({width,height:900});
+      const sheet=page.locator('#cdHoneySheet');
+      assert.equal(await sheet.locator('.cd-honey-use-group').count(),6);
+      assert.equal(await sheet.locator('.cd-honey-use .cd-honey-eligible').count(),24);
+      assert.ok(await sheet.evaluate(el=>el.scrollWidth<=el.clientWidth+1));
+      await sheet.screenshot({path:path.join(output,`honey-guide-${width}.png`)});
+    }
+    const firstGroup=page.locator('#cdHoneySheet .cd-honey-use-group').first();
+    await firstGroup.locator('summary').focus();await page.keyboard.press('Enter');assert.equal(await firstGroup.getAttribute('open'),'');
+    await page.locator('#cdHoneySheet [data-cd-sheet-close]').click();
     await page.setViewportSize({width:390,height:844});
   }
   await page.evaluate(async profile => {

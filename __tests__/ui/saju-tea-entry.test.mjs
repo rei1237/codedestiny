@@ -7,7 +7,7 @@ test('handoff is one-use, owner-bound and carries no birth information in the UR
  const s=storage(); writeSajuTeaDraft(s,{owner:'a',profileId:'p',question:'이직을 고민해요'},100);
  assert.deepEqual(readSajuTeaDraft(s,'a',101),{consultationMode:'saju',concernTopic:'사주 전문 상담',question:'이직을 고민해요',profileId:'p'});
  assert.equal(readSajuTeaDraft(s,'a',102),null);
- assert.deepEqual([...new URL(TEA_SAJU_URL,'https://example.test').searchParams.keys()],['mode','entry']);
+ assert.deepEqual([...new URL(TEA_SAJU_URL,'https://example.test').searchParams.keys()],['mode','reading','entry']);
  writeSajuTeaDraft(s,{owner:'a',profileId:'p',question:'private'},100);
  assert.equal(readSajuTeaDraft(s,'b',101),null);
  assert.equal(s.getItem(TEA_SAJU_DRAFT_KEY),undefined);
@@ -75,4 +75,10 @@ test('owner recovery keeps direct entry, resumes paid work, and clears an accoun
  assert.equal(restoreEntry({s,withOwnerEffect:true,paidRecovery}).input.question,'결제한 이전 질문');
  const switched=restoreEntry({s,owner:'b',previousOwner:'a',withOwnerEffect:true});
  assert.equal(switched.stage,'landing');assert.deepEqual(switched.input,{});
+});
+
+
+test('ordinary tea saju and joint consultation retain distinct entry versions',()=>{
+ assert.equal(restoreEntry({query:'?mode=saju'}).input.sajuReportVersion,undefined);
+ assert.equal(restoreEntry({query:'?mode=saju&reading=joint'}).input.sajuReportVersion,'saju-specialist-v2');
 });

@@ -204,6 +204,7 @@ const KO = {
   kftcqqfx: "오늘 당신에게 필요한 카드는 이미 마음속에 남아 있어요.",
   kfvqms0a: "다음 카드 보기",
   khjystua: "현재 꿀방울",
+  honeyCount: "{count}개",
   khux287z: "다음",
   kibbunuu: "달빛 아래에서 아직 맞는 카드를 찾지 못했어요. 이름이나 키워드를 조금 다르게 불러보세요.",
   kihtwum1: "운명찻집_달빛타로카드앨범_전체.pdf",
@@ -659,7 +660,7 @@ function TarotAlbumHero({ currentHoneyDrops, totalCards, selectedCount, pdfBusy,
     <div className={albumStyles.heroCopy}>
       <Image src="/images/fortune-tea-house/moonlight-lotus-ornament.webp" alt="" width={120} height={120} className={albumStyles.moonOrnament}/><span className={albumStyles.eyebrow}>{visit.chapter}</span>
       <h2 id="tarotAlbumTitle">{copy.k1yzt0ya}</h2><p>{copy.kampzo9z}</p>
-      <div className={albumStyles.meta}><span>{copy.kq8n5rri}</span><span>{copy.kfe3rgpe} {totalCards}{copy.kskfjn2j}</span><span>{copy.khjystua} {currentHoneyDrops}</span></div>
+      <div className={albumStyles.meta}><span>{copy.kq8n5rri}</span><span>{copy.kfe3rgpe} {totalCards}{copy.kskfjn2j}</span><span>{copy.khjystua} {copy.honeyCount.replace("{count}", String(currentHoneyDrops))}</span></div>
       <div className={albumStyles.actions}>
         <PdfActionButton onClick={onDownloadAll} disabled={pdfBusy} label={copy.kmzmv9si}/>
         <PdfActionButton onClick={onDownloadSelected} disabled={pdfBusy || selectedCount === 0} secondary label={selectedCount ? copy.selectedPdfLabel.replace("{count}", String(selectedCount)) : copy.kvgpq4qo}/>

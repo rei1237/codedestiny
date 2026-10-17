@@ -6657,6 +6657,7 @@ function syAttachHoneyUse(cashButton, featureKey, capture, deliver) {
     if (!item || item.serviceScope !== 'GGULGGUL' || item.billingType !== 'per_use') return;
     var button = document.createElement('button'); button.type = 'button'; button.className = 'cd-honey-option';
     button.textContent = '꿀방울 ' + item.honeyCost + '개로 열기';
+    var eligibility = document.createElement('span'); eligibility.className = 'cd-honey-eligible'; eligibility.textContent = '꿀방울 사용 가능처'; button.prepend(eligibility);
     button.setAttribute('data-honey-use', featureKey); cashButton.after(button);
     var pending = null;
     button.addEventListener('click', async function () {

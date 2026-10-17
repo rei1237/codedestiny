@@ -39,9 +39,10 @@ Cloudflare Workers는 런타임에 파일을 읽을 수 없으므로, 이 문서
 
 | 상담 | featureKey | 가격(KRW) | cost(코인) | 비고 |
 |------|-----------|-----------|-----------|------|
-| 타로 상담 (3카드) | `fortune-tea-house-tarot-consultation` | 10,000원 | 100 | 단건 · 3카드 스프레드 · 추가 질문 1회 포함 |
-| 타로 프리미엄 상담 (5카드) | `fortune-tea-house-tarot-five-consultation` | 10,000원 | 100 | 단건 · 5카드 스프레드 · 추가 질문 1회 포함 |
-| 단독 사주 상담 | `fortune-tea-house-saju-consultation` | 15,000원 | 150 | 단건 · 추가 질문 1회 포함 |
+| 타로 상담 (3카드) | `fortune-tea-house-tarot-consultation` | 5,000원 | 50 | 단건 · 3카드 스프레드 · 추가 질문 1회 포함 |
+| 타로 프리미엄 상담 (5카드) | `fortune-tea-house-tarot-five-consultation` | 7,000원 | 70 | 단건 · 5카드 스프레드 · 추가 질문 1회 포함 |
+| 단독 사주 상담 | `fortune-tea-house-saju-consultation` | 10,000원 | 100 | 단건 · 추가 질문 1회 포함 |
+| 연이·네오 공동 사주 상담 | `fortune-tea-house-saju-joint-consultation` | 15,000원 | 150 | 별도 상품 · 기존 공동 상담 가격 유지 |
 | 사주 궁합 상담 | `fortune-tea-house-saju-compatibility-consultation` | 10,000원 | 100 | 단건 · 본인+상대 두 명식 · 추가 질문 1회 포함 |
 | 숙요점 궁합 상담 | `fortune-tea-house-sukuyo-compatibility-consultation` | 10,000원 | 100 | 단건 · 추가 질문 1회 포함 |
 

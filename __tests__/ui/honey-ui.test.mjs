@@ -22,6 +22,7 @@ async function setup(mode = 'ok', options = {}) {
   win.cdBirthScopeCurrentProfileId = () => 'my-profile';
   win._cdAIPromptRequestJson = async (url, init) => {
     if (url.endsWith('/catalog')) return { ok: true, payload: { ok: true, products: HONEY_UNLOCK_PRODUCTS, otherUses: [] } };
+    if (url.includes('/unlocks?')) return {ok:true,payload:{ok:true,featureKeys:[]}};
     attendanceCalls++;
     if (status === 'pending') return new Promise(resolve => { finish = resolve; });
     if (status !== 'ok') return { ok: false, status: status === 'guest' ? 401 : 503, payload: {} };
@@ -125,3 +126,38 @@ test('attendance copy stays actionable until the server confirms today, then sho
     assert.equal(app.win.document.querySelector('.cdh-honey__collection'), null);
   } finally { app.close(); }
  });
+
+test('use guide groups catalog products and labels costs, eligibility and per-request terms', async()=>{
+ const app=await setup();try{
+ const d=app.win.document;d.body.insertAdjacentHTML('beforeend','<button data-cd-sheet-open="cdHoneySheet">사용처 보기</button><div id="cdHoneySheet"><p data-cd-honey-sheet-state></p><div data-cd-honey-uses></div></div>');
+ d.querySelector('[data-cd-sheet-open]').click();await tick();await tick();
+ assert.equal(d.querySelectorAll('.cd-honey-use-group').length,6);
+ assert.equal(d.querySelectorAll('.cd-honey-use').length,HONEY_UNLOCK_PRODUCTS.length);
+ assert.equal(d.querySelectorAll('.cd-honey-use .cd-honey-eligible').length,HONEY_UNLOCK_PRODUCTS.length);
+ for(const row of d.querySelectorAll('.cd-honey-use')){assert.match(row.querySelector('.cd-honey-use__meta').textContent,/꿀방울 \d+개/);assert.ok(row.querySelector('a').getAttribute('aria-label'));}
+ assert.match(d.querySelector('[data-cd-honey-uses]').textContent,/요청할 때마다 사용/);
+ assert.match(d.querySelector('[data-cd-honey-uses]').textContent,/추가 사용 없음/);
+ assert.match(d.querySelector('[data-cd-honey-sheet-state]').textContent,/7개/);
+ assert.equal(d.querySelectorAll('.cd-honey-use button').length,0,'discovery never charges');
+ }finally{app.close();}
+});
+
+
+test('per-use confirmation explains each request and cancellation never unlocks', async()=>{
+ const app=await setup();
+ try {
+  const item=HONEY_UNLOCK_PRODUCTS.find(p=>p.billingType==='per_use');
+  const doc=app.win.document;
+  doc.body.insertAdjacentHTML('beforeend','<dialog id="cdHoneyUnlockSheet"><p data-honey-confirm-title></p><p data-honey-confirm-cost></p><p data-honey-confirm-condition></p><button data-honey-confirm></button></dialog><button id="useHoney"></button>');
+  app.win.isTileKeyUnlocked=()=>true; // A legacy UI flag cannot skip a per-use confirmation.
+  app.win.CodeDestinyShellSheet={open(){},close(){}};
+  const before=app.calls();
+  const pending=app.win.CdHoney.unlockUse(doc.querySelector('#useHoney'),item.featureKey,{},'mock-request');
+  await tick();
+  assert.match(doc.querySelector('[data-honey-confirm-condition]').textContent,/이번 요청/);
+  assert.match(doc.querySelector('[data-honey-confirm-cost]').textContent,/개/);
+  doc.querySelector('dialog').dispatchEvent(new app.win.Event('cancel'));
+  assert.equal(await pending,false);
+  assert.equal(app.calls(),before+1); // Only the read-only balance refresh.
+ } finally { app.close(); }
+});
