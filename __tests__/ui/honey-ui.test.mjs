@@ -4,12 +4,19 @@ import fs from 'node:fs';
 import { JSDOM } from 'jsdom';
 import { HONEY_UNLOCK_PRODUCTS } from '../../worker/lib/honey-unlock-catalog.js';
 const source = fs.readFileSync(new URL('../../js/prompt-hub-honey.js', import.meta.url), 'utf8');
-const widget = '<section data-cd-honey-widget><strong data-cd-honey-balance></strong><button data-cd-honey-attend></button><p data-cd-honey-status></p><button data-cd-honey-retry hidden>retry</button></section>';
+const widget = '<section class="cdh-honey" data-cd-honey-widget><img class="cdh-honey__yeoni"><div class="cdh-honey__wallet"><img src="/images/fortune-tea-house/honey-drop-jewel-v1.webp"></div><strong data-cd-honey-balance></strong><button data-cd-honey-attend></button><p data-cd-honey-status></p><button data-cd-honey-retry hidden>retry</button></section>';
 const tick = () => new Promise(resolve => setTimeout(resolve, 40));
-async function setup(mode = 'ok') {
+async function setup(mode = 'ok', options = {}) {
   const dom = new JSDOM('<body>' + widget, { url: 'https://example.test/', runScripts: 'outside-only', pretendToBeVisual: true });
   let status = mode, attendanceCalls = 0, finish;
-  const win = dom.window, observers = [];
+  const win = dom.window, observers = [], animations = [];
+  win.matchMedia = () => ({ matches: Boolean(options.reducedMotion) });
+  win.HTMLElement.prototype.getBoundingClientRect = () => ({ left: 0, top: 0, width: 200, height: 160 });
+  win.HTMLElement.prototype.animate = function () {
+    if (options.animationError) throw new Error("Animation unavailable");
+    const entry = { cancelled: false }; animations.push(entry);
+    return { cancel: () => { entry.cancelled = true; } };
+  };
   const Observer = win.MutationObserver;
   win.MutationObserver = class extends Observer { constructor(callback) { super(callback); observers.push(this); } };
   win.cdBirthScopeCurrentProfileId = () => 'my-profile';
@@ -18,10 +25,10 @@ async function setup(mode = 'ok') {
     attendanceCalls++;
     if (status === 'pending') return new Promise(resolve => { finish = resolve; });
     if (status !== 'ok') return { ok: false, status: status === 'guest' ? 401 : 503, payload: {} };
-    return { ok: true, payload: { ok: true, balance: 7, attended: init.method === 'POST' } };
+    return { ok: true, payload: { ok: true, balance: init.method === 'POST' && !options.noCredit ? 8 : 7, attended: init.method === 'POST' } };
   };
   win.eval(source); await tick();
-  return { win, close: () => { observers.forEach(observer => observer.disconnect()); win.close(); }, status: value => { status = value; }, calls: () => attendanceCalls, finish: value => finish(value) };
+  return { win, animations, close: () => { observers.forEach(observer => observer.disconnect()); win.close(); }, status: value => { status = value; }, calls: () => attendanceCalls, finish: value => finish(value) };
 }
 test('guest attendance remains visible; failure is not a zero balance and retry recovers', async () => {
   const app = await setup('guest');
@@ -66,6 +73,7 @@ test('double clicks coalesce and stale account responses cannot overwrite the ne
     app.status('guest'); app.win.dispatchEvent(new app.win.Event('cd:auth-changed')); await tick();
     app.finish({ ok: true, payload: { ok: true, balance: 999, attended: true } }); await tick();
     assert.equal(app.win.document.querySelector('[data-cd-honey-balance]').textContent, '로그인 후 확인');
+    assert.equal(app.animations.length, 0);
   } finally { app.close(); }
 });
 
@@ -82,3 +90,38 @@ test('attendance copy stays actionable until the server confirms today, then sho
     assert.equal(button.disabled,true);
   } finally { app.close(); }
 });
+ test('collection plays only on a credited attendance and cancels on account change', async () => {
+  const app = await setup();
+  try {
+    assert.equal(app.animations.length, 0, 'initial balance lookup must not celebrate');
+    await app.win.CdHoney.refresh(true);
+    assert.equal(app.animations.length, 5);
+    assert.equal(app.win.document.querySelectorAll('.cdh-honey__collection img').length, 4);
+    assert.equal(app.win.document.querySelector('[data-cd-honey-balance]').textContent, '8개');
+    await app.win.CdHoney.refresh(true);
+    assert.equal(app.animations.length, 5, 'already credited responses must not replay');
+    app.win.dispatchEvent(new app.win.Event('cd:auth-changed'));
+    assert.equal(app.win.document.querySelector('.cdh-honey__collection'), null);
+    assert.ok(app.animations.every(animation => animation.cancelled));
+    await tick();
+  } finally { app.close(); }
+ });
+ test('reduced motion, zero credit and request failure never create collection particles', async () => {
+  for (const [mode, options] of [['ok', { reducedMotion: true }], ['ok', { noCredit: true }], ['error', {}]]) {
+    const app = await setup(mode, options);
+    try {
+      await app.win.CdHoney.refresh(true);
+      assert.equal(app.animations.length, 0);
+      assert.equal(app.win.document.querySelector('.cdh-honey__collection'), null);
+    } finally { app.close(); }
+  }
+ });
+ test('animation failure does not hide a successful credit or leave a decorative layer', async () => {
+  const app = await setup('ok', { animationError: true });
+  try {
+    await app.win.CdHoney.refresh(true);
+    assert.equal(app.win.document.querySelector('[data-cd-honey-balance]').textContent, '8개');
+    assert.equal(app.win.document.querySelector('[data-cd-honey-status]').textContent, '');
+    assert.equal(app.win.document.querySelector('.cdh-honey__collection'), null);
+  } finally { app.close(); }
+ });

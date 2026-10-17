@@ -2,9 +2,12 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { getAuthState, refreshAuth, useAuthStore } from "@/app/_lib/auth-store";
-import FortuneChatClient from "./FortuneChatClient";
-import ConsultationRoom from "./ConsultationRoom";
+import dynamic from "next/dynamic";
+import ConsultationEntrance from "./ConsultationEntrance";
 import { consultationApi, isConsultationId, type ChatPersona } from "./consultation-api";
+const entryLoading = () => <ConsultationEntrance />;
+const FortuneChatClient = dynamic(() => import("./FortuneChatClient"), { loading: entryLoading });
+const ConsultationRoom = dynamic(() => import("./ConsultationRoom"), { loading: entryLoading });
 
 const HINT_KEY = "fortune-chat:consultation-room";
 
@@ -26,7 +29,7 @@ export default function FortuneChatEntry() {
   const requested: ChatPersona = "yeoni";
   const auth = useAuthStore();
   const userKey = String(auth.user?.id || auth.user?.userId || "");
-  const [room, setRoom] = useState(() => isConsultationId(linked));
+  const [room, setRoom] = useState<boolean | null>(() => isConsultationId(linked) ? true : legacySession ? false : null);
 
   useEffect(() => { if (!getAuthState().authReady) void refreshAuth({ silent: true }).catch(() => {}); }, []);
 
@@ -42,6 +45,8 @@ export default function FortuneChatEntry() {
     });
     return () => { alive = false; };
   }, [linked, legacySession]);
+
+  if (room === null && !isConsultationId(linked) && !legacySession) return entryLoading();
 
   // 계정이 바뀌면 상담실을 새로 연다 — 이전 계정의 기록·상담이 남지 않게.
   return isConsultationId(linked) || (!legacySession && room)

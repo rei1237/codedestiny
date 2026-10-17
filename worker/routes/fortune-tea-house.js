@@ -1,6 +1,6 @@
 import { HONEY_LETTER_COST, TAROT_ALBUM_UNLOCK_COST, isHoneySpendProduct, HONEY_SCOPE_MESSAGE } from '../lib/honey-unlock-catalog.js';
 import { canonicalTeaSaju, withTeaSajuLongitude } from "../lib/tea-saju-facts.js";
-import { TEA_SAJU_SPECIALIST_VERSION, TEA_SAJU_SPECIALIST_TARGET, TEA_SAJU_SPECIALIST_SECTIONS, TEA_SAJU_SPECIALIST_RULES, isTeaSajuSpecialist, specialistCheckpointGroups, hasSajuHealthPrediction } from "../lib/tea-saju-specialist.js";
+import { specialistSections, specialistTarget, specialistRules, isTeaSajuSpecialist, specialistCheckpointGroups, hasSajuHealthPrediction } from "../lib/tea-saju-specialist.js";
 import { buildTeaSajuMonthlyRows } from "../lib/tea-saju-monthly.js";
 import { buildTeaSukuyoMonthlyRhythm } from "../lib/tea-sukuyo-monthly.js";
 import { buildTeaCompatRelations, buildTeaNatalRelations } from "../lib/tea-saju-relations.js";
@@ -1125,7 +1125,7 @@ function normalizeRequest(body) {
     tarotSpread: consultationMode === "tarot" ? normalizeTarotSpread(body?.tarotSpread) : undefined,
     tarotSpreadId: cleanText(body?.tarotSpreadId, 100) || undefined,
     consultationVersion: body?.consultationVersion === "tea-v2" ? "tea-v2" : undefined,
-    ...(consultationMode === 'saju' && body?.sajuReportVersion === TEA_SAJU_SPECIALIST_VERSION ? { sajuReportVersion: TEA_SAJU_SPECIALIST_VERSION } : {}),
+    ...(isTeaSajuSpecialist({ consultationMode, sajuReportVersion: body?.sajuReportVersion }) ? { sajuReportVersion: body.sajuReportVersion } : {}),
     nickname: cleanText(body?.nickname, 40),
     concernTopic: cleanText(body?.concernTopic, 80),
     birthInfo: cleanText(body?.birthInfo, 160),
@@ -1822,7 +1822,7 @@ function resolveSajuCategoryRule(value = {}) {
 
 function getSajuRequiredSectionTitles(value) {
   const titles = resolveSajuCategoryRule(value).requiredSections;
-  return isTeaSajuSpecialist(value) ? [...titles, ...TEA_SAJU_SPECIALIST_SECTIONS] : titles;
+  return isTeaSajuSpecialist(value) ? [...titles, ...specialistSections(value)] : titles;
 }
 
 function getSajuMinResultChars(value) {
@@ -2593,8 +2593,8 @@ function buildCategorySajuDeepSections(request, saju = {}, rule = resolveSajuCat
   });
 }
 
-function buildSajuSpecialistPlaceholders() {
-  return TEA_SAJU_SPECIALIST_SECTIONS.map((title, index) => ({
+function buildSajuSpecialistPlaceholders(request) {
+  return specialistSections(request).map((title, index) => ({
     id: 'specialist-life-' + index, title, tone: 'summary',
     body: title + '의 해설을 준비하고 있습니다. 제공된 명식과 질문의 근거를 바탕으로 작성하며, 입력하지 않은 개인의 생활 상황을 추정하지 않습니다.',
   }));
@@ -2603,7 +2603,7 @@ function buildFallbackSajuDeepSections(request, saju = {}) {
   const categoryRule = resolveSajuCategoryRule(request);
   if (categoryRule.id !== "general") return [
     ...buildCategorySajuDeepSections(request, saju, categoryRule),
-    ...(isTeaSajuSpecialist(request) ? buildSajuSpecialistPlaceholders() : []),
+    ...(isTeaSajuSpecialist(request) ? buildSajuSpecialistPlaceholders(request) : []),
   ];
 
   const nickname = cleanText(request.nickname, 40) || cleanText(saju.birthSummary?.nickname, 40) || "손님";
@@ -2726,7 +2726,7 @@ function buildFallbackSajuDeepSections(request, saju = {}) {
     "one-line": "그 기준을 잊지 않으면, 답이 늦어지는 시간도 손님을 무너뜨리는 시간이 아니라 마음을 정돈하는 시간이 됩니다.",
   };
   // 검증기·병합은 필수 제목을 글자 그대로 찾는다. 제목은 필수 목록에서 가져오고 그 순서로 내보낸다(id·본문 확장은 그대로).
-  if (isTeaSajuSpecialist(request)) sections.push(...buildSajuSpecialistPlaceholders());
+  if (isTeaSajuSpecialist(request)) sections.push(...buildSajuSpecialistPlaceholders(request));
   const order = (section) => getSajuRequiredSectionTitles(request).indexOf(section.title);
   return sections.sort((left, right) => order(left) - order(right)).map((section) => ({
     ...section,
@@ -2987,7 +2987,7 @@ function normalizeDraftResult(candidate, request) {
     ...draft,
     consultationMode: request.consultationMode,
     // 검증기(assertSajuDeepQuality)는 이 객체로 카테고리 규칙을 고른다. 생성기와 같은 질문 정보를 실어 둔다.
-    sajuReportVersion: isTeaSajuSpecialist(request) ? TEA_SAJU_SPECIALIST_VERSION : undefined,
+    sajuReportVersion: isTeaSajuSpecialist(request) ? request.sajuReportVersion : undefined,
     questionCategory: request.questionCategory,
     question: request.question,
     teaCup: draft.teaCup && typeof draft.teaCup === "object" ? { ...fallback.teaCup, ...draft.teaCup } : fallback.teaCup,
@@ -3919,7 +3919,7 @@ const FORTUNE_TEA_SECTION_GROUPS = Object.freeze({
 
 /** 모드 하한(카테고리 규칙·5카드 가산 반영)을 그룹별 몫으로 나눈다. */
 function resolveFortuneTeaGroups(request, fallback, consultationMode) {
-  if (isTeaSajuSpecialist(request)) return specialistCheckpointGroups(getSajuRequiredSectionTitles(request));
+  if (isTeaSajuSpecialist(request)) return specialistCheckpointGroups(getSajuRequiredSectionTitles(request), request);
   const groups = FORTUNE_TEA_SECTION_GROUPS[consultationMode] || FORTUNE_TEA_SECTION_GROUPS.tarot;
   const modeMinChars = isSajuFamilyMode(consultationMode)
     ? getSajuMinResultChars(request)
@@ -4085,9 +4085,9 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "", 
             category: sajuRule.category,
             resultKey: sajuRule.resultKey,
             minimumKoreanChars: getSajuMinResultChars(request),
-            targetKoreanChars: isTeaSajuSpecialist(request) ? TEA_SAJU_SPECIALIST_TARGET : SAJU_TARGET_RESULT_CHARS,
-            ...(isTeaSajuSpecialist(request) ? { specialistRules: TEA_SAJU_SPECIALIST_RULES } : {}),
-            lengthRule: `공백 제외 ${getSajuMinResultChars(request)}자 이상, 전체 ${isTeaSajuSpecialist(request) ? TEA_SAJU_SPECIALIST_TARGET : SAJU_TARGET_RESULT_CHARS}자 안팎으로 쓴다. 챕터 구분은 requiredDeepSections의 부드러운 소제목으로 하고, 각 챕터는 호흡이 있는 문단으로 채운다.`,
+            targetKoreanChars: isTeaSajuSpecialist(request) ? specialistTarget(request) : SAJU_TARGET_RESULT_CHARS,
+            ...(isTeaSajuSpecialist(request) ? { specialistRules: specialistRules(request) } : {}),
+            lengthRule: `공백 제외 ${getSajuMinResultChars(request)}자 이상, 전체 ${isTeaSajuSpecialist(request) ? specialistTarget(request) : SAJU_TARGET_RESULT_CHARS}자 안팎으로 쓴다. 챕터 구분은 requiredDeepSections의 부드러운 소제목으로 하고, 각 챕터는 호흡이 있는 문단으로 채운다.`,
             requiredDeepSections: requiredSajuSections,
             categorySchema: isSajuCompat ? undefined : sajuResultSchemaByCategory[sajuRule.id],
             compatibilityRule: isSajuCompat
@@ -4503,7 +4503,7 @@ function pickTeaCheckpointFields(parsed, group) {
     return picked;
 }
 function buildTeaCheckpointGroups(request, fallback) {
-    if (isTeaSajuSpecialist(request)) return specialistCheckpointGroups(getSajuRequiredSectionTitles(request));
+    if (isTeaSajuSpecialist(request)) return specialistCheckpointGroups(getSajuRequiredSectionTitles(request), request);
     const groups = [];
     const modeMinChars = resolveFortuneTeaGroups(request, fallback, normalizeConsultationMode(request.consultationMode))[0].modeMinChars;
     // 0.8은 본문 외 필드·기호 몫이다. 목표만 올려 하한/목표 비율은 0.70이 된다.

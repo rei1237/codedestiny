@@ -26,15 +26,10 @@ test('redirect ticket carries the pre-question turns so the resumed body equals 
  assert.equal(await entry.runPaidResume(ticket,{requestId:'paid-turn-1',merchantUid:'paid-id',payload:{}}),true);
  assert.deepEqual(posts[0],inPage);
  assert.deepEqual(inPage.recentTurns,[{speaker:'assistant',text:'어서 와요.'},{speaker:'user',text:'올해 이직해도 될까요?'},{speaker:'assistant',text:'흐름은 열려 있어요. 하반기가 더 좋아요.'}]);
- // New personal saju forwards to tea; already-paid saju still resumes here.
- posts.length=0;const navigations=[],drafts=[];
- context.activeCategory='saju';context.getAuthState=()=>({user:{id:'owner-a'}});
- context.sessionStorage={};context.writeSajuTeaDraft=(_storage,draft)=>drafts.push(draft);
- context.TEA_SAJU_URL='/fortune-tea-house/?mode=saju&entry=saju-analysis';
- context.window.location={assign:url=>navigations.push(url)};
- await send();assert.equal(posts.length,0);assert.equal(gates.length,1);
- assert.equal(navigations[0],context.TEA_SAJU_URL);assert.equal(drafts[0].question,question);
- context.readPendingTurn=()=>({body:{...inPage,category:'saju'},completed:false});
- await send();assert.equal(navigations.length,1);assert.equal(gates.length,1);
+ // Personal saju stays on this product; paid retries keep their original identity.
+ posts.length=0;context.activeCategory='saju';
+ await send();assert.equal(gates.length,2);assert.equal(posts[0].category,'saju');
+ posts.length=0;context.readPendingTurn=()=>({body:{...inPage,category:'saju'},completed:false});
+ await send();assert.equal(gates.length,2);
  assert.equal(posts[0].category,'saju');assert.equal(posts[0].requestId,inPage.requestId);
  dom.window.close();});

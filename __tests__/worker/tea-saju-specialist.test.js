@@ -51,3 +51,18 @@ test('new price resolves through app, monthly stones and existing pass ceilings'
  expect(canUseByPass({...currentPassPlan('premium'),isActive:true},price.cost)).toBe(false);
  expect(canUseByPass({...currentPassPlan('vvip'),isActive:true},price.cost)).toBe(true);
 });
+
+test('joint v2 adds three distinct chapters without changing stored v1 checkpoints',()=>{
+ const request={...base,sajuReportVersion:'saju-specialist-v2'};
+ const oldTitles=u.getSajuRequiredSectionTitles({...base,sajuReportVersion:'saju-specialist-v1'});
+ const titles=u.getSajuRequiredSectionTitles(request);
+ expect(titles).toEqual([...oldTitles,...specialist.TEA_SAJU_JOINT_SECTIONS]);
+ const result=u.normalizeDraftResult({},request);
+ expect(result.sajuReportVersion).toBe('saju-specialist-v2');
+ expect(result.saju.deepSections.map(s=>s.title)).toEqual(titles);
+ const groups=u.buildTeaCheckpointGroups(request,result);
+ expect(groups).toHaveLength(7);
+ expect(groups.flatMap(g=>g.sectionTitles||[])).toEqual(titles);
+ expect(groups.reduce((n,g)=>n+g.targetChars,0)).toBe(35000);
+ expect(groups.find(g=>g.key==='specialist-joint').sectionTitles).toEqual(specialist.TEA_SAJU_JOINT_SECTIONS);
+});

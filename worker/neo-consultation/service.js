@@ -1,4 +1,4 @@
-import { NEO_EMAIL_FEATURE, NEO_LIMITS, neoError, neoUnitPrice, validateNeoInput } from '../../lib/neo-consultation/contract.js';
+import { NEO_EMAIL_FEATURE, NEO_LIMITS, neoError, neoUnitPrice, neoTotal, neoQuoteItems, neoReadingMode, neoReviewReady, validateNeoInput } from '../../lib/neo-consultation/contract.js';
 import { buildNeoEmail } from './mail.js';
 
 const copy = value => structuredClone(value);
@@ -12,10 +12,10 @@ const publicRow = row => {
   delete result.mailJobs;
   delete result.checkout;
   result.deliveryStatus = Object.fromEntries(['receipt','answer'].map(kind => [kind, row.mailJobs.filter(job => job.kind === kind).at(-1)?.state || 'none']));
-  result.questions = result.questions.map(q => ({ id: q.id, text: q.text, correction: q.correction || '', state: q.correction ? 'correction' : q.review ? 'reviewed' : 'received' }));
+  result.questions = result.questions.map(q => ({ id: q.id, text: q.text, readingMode: neoReadingMode(q), correction: q.correction || '', state: q.correction ? 'correction' : q.review ? 'reviewed' : 'received' }));
   result.deliveries = result.deliveries.map(delivery => ({
     key: delivery.key, sentAt: delivery.sentAt,
-    questions: delivery.questions.map(q => ({ id: q.id, text: q.text, answer: q.answer, state: 'reviewed' })),
+    questions: delivery.questions.map(q => ({ id: q.id, text: q.text, readingMode: neoReadingMode(q), answer: q.answer, state: 'reviewed' })),
   }));
   return result;
 };
@@ -69,9 +69,9 @@ export function createNeoService({ repository, payments, sendMail, operatorEmail
       const expiredDraft = row.state === 'draft' && Date.parse(now())-Date.parse(row.createdAt)>=7*86400000;
       if (row.contentDeletedAt || (!expiredDraft && (!row.contentDeleteAfter || row.contentDeleteAfter>now()))) return;
       if (row.mailJobs.some(j => j.state === 'sending' && Date.parse(now())-Date.parse(j.claimedAt)<15*60000)) return;
-      row.email=''; row.context=''; row.birth=null;
+      row.email=''; row.context=''; row.goodPeriod=''; row.difficultPeriod=''; row.birth=null;
       delete row.checkout;
-      row.questions=row.questions.map(q => ({id:q.id,text:'',answerVersion:q.answerVersion,review:q.review}));
+      row.questions=row.questions.map(q => ({id:q.id,text:'',readingMode:neoReadingMode(q),answerVersion:q.answerVersion,review:q.review}));
       if (row.quote) row.quote.questions=row.quote.questions.map(q=>({id:q.id}));
       row.deliveries=[];
       row.mailJobs=row.mailJobs.map(({snapshot,...job})=>({...job,state:['pending','retry'].includes(job.state)?'expired':job.state}));
@@ -97,8 +97,9 @@ export function createNeoService({ repository, payments, sendMail, operatorEmail
       const row = await own(orderId, userId);
       assertVersion(row, version);
       if (row.state !== 'draft') fail('ORDER_LOCKED', '이미 준비한 주문입니다. 현재 주문을 확인해 주세요.');
+      validateNeoInput(row);
       const quantity = row.questions.length;
-      const quote = { id: id(), unitKRW: neoUnitPrice(), quantity, totalKRW: quantity * neoUnitPrice(), questions: copy(row.questions), createdAt: now() };
+      const quote = { id: id(), pricingVersion: 2, unitKRW: row.questions.every(q => neoReadingMode(q) === 'ziwei') ? neoUnitPrice() : null, items: neoQuoteItems(row.questions), quantity, totalKRW: neoTotal(row.questions), questions: copy(row.questions), createdAt: now() };
       return publicRow(await save({ ...row, quote }, row.version));
     },
     async prepare(userId, orderId, quoteId) {
@@ -182,27 +183,28 @@ export function createNeoService({ repository, payments, sendMail, operatorEmail
       requirePaid(row); assertVersion(row, version);
       const q = question(row, questionId);
       if (!q.correction) fail('CORRECTION_NOT_REQUESTED', '정정 요청된 질문만 수정할 수 있어요.');
-      const valid = validateNeoInput({ ...row, questions: [text] });
+      const valid = validateNeoInput({ ...row, questions: [{ text, readingMode: neoReadingMode(q) }] }, { requireBirth: false });
       q.text = valid.questions[0].text; q.correction = ''; q.answer = ''; q.review = null;
       q.answerVersion = (q.answerVersion || 0) + 1;
       row.state = row.questions.some(item => item.correction) ? 'correction' : 'received';
       return publicRow(await save(row, row.version));
     },
-    async review(admin, orderId, questionId, version) {
+    async review(admin, orderId, questionId, version, combinedReadingConfirmed = false) {
       requireAdmin(admin);
       const row = await syncPayment(await read(orderId));
       requirePaid(row); assertVersion(row, version);
       const q = question(row, questionId);
       if (!q.answer || q.correction) fail('ANSWER_REQUIRED', '정정 요청을 해결하고 답변을 입력해 주세요.');
-      q.review = { by: admin.id, at: now(), answerVersion: q.answerVersion };
-      row.state = row.questions.every(item => item.review && !item.correction) ? 'reviewed' : 'editing';
+      if (neoReadingMode(q) === 'ziwei_saju' && combinedReadingConfirmed !== true) fail('COMBINED_REVIEW_REQUIRED', '자미두수와 사주 풀이가 모두 포함됐는지 확인해 주세요.');
+      q.review = { by: admin.id, at: now(), answerVersion: q.answerVersion, combinedReadingConfirmed: combinedReadingConfirmed === true };
+      row.state = row.questions.every(neoReviewReady) ? 'reviewed' : 'editing';
       return save(row, row.version);
     },
     async enqueueAnswer(admin, orderId, version, resend = false) {
       requireAdmin(admin);
       const row = await syncPayment(await read(orderId));
       requirePaid(row); assertVersion(row, version);
-      if (!row.questions.every(q => q.answer && q.review?.answerVersion === q.answerVersion && !q.correction)) fail('REVIEW_REQUIRED', '모든 질문의 답변을 네오가 검수한 뒤 보낼 수 있어요.');
+      if (!row.questions.every(neoReviewReady)) fail('REVIEW_REQUIRED', '모든 질문의 답변을 네오가 검수한 뒤 보낼 수 있어요.');
       if (row.mailJobs.some(j => j.kind === 'answer' && ['pending','sending','unknown','retry'].includes(j.state))) fail('DELIVERY_PENDING', '이미 예약된 발송을 확인해 주세요.');
       const answerKey = row.questions.map(q => q.answerVersion).join('-');
       const previous = row.mailJobs.filter(j => j.kind === 'answer' && j.answerKey === answerKey);
@@ -218,6 +220,7 @@ export function createNeoService({ repository, payments, sendMail, operatorEmail
       if (job?.kind !== 'cancellation') requirePaid(row);
       else if (!row.cancellationRequestedAt) fail('CANCELLATION_REQUIRED','취소 요청을 확인해 주세요.');
       if (!job || !['pending','retry'].includes(job.state)) return row;
+      if (job.kind === 'answer' && (!row.questions.every(neoReviewReady) || !job.snapshot.questions.every(neoReviewReady))) fail('REVIEW_REQUIRED', '질문별 풀이와 최신 답변 검수를 확인해 주세요.');
       job.state = 'sending'; job.attempt++; job.claimedAt = now(); job.lastAttemptAt = now();
       row = await save(row, row.version);
       let outcome;

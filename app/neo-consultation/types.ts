@@ -1,9 +1,10 @@
-export type NeoQuestion = { id: string; text: string; answer?: string; answerVersion?: number; correction?: string; review?: { by: string; at: string; answerVersion: number }; state?: string };
-export type NeoInput = { questions: string[]; context: string; email: string; consent: boolean; birth: null | { date: string; calendar: string; leapMonth: boolean; timeUnknown: boolean; time: string | null } };
+export type NeoReadingMode = 'ziwei' | 'ziwei_saju';
+export type NeoQuestion = { id: string; text: string; readingMode?: NeoReadingMode; answer?: string; answerVersion?: number; correction?: string; review?: { by: string; at: string; answerVersion: number; combinedReadingConfirmed?: boolean }; state?: string };
+export type NeoInput = { questions: { text: string; readingMode: NeoReadingMode }[]; context: string; goodPeriod?: string; difficultPeriod?: string; email: string; consent: boolean; birth: null | { date: string; calendar: string; leapMonth: boolean; timeUnknown: boolean; time: string | null } };
 export type NeoOrder = {
-  id: string; version: number; state: string; email: string; context: string; birth: NeoInput['birth']; consent: boolean;
+  id: string; version: number; state: string; email: string; context: string; goodPeriod?: string; difficultPeriod?: string; birth: NeoInput['birth']; consent: boolean;
   questions: NeoQuestion[];
-  quote: null | { id: string; quantity: number; unitKRW: number; totalKRW: number };
+  quote: null | { id: string; quantity: number; unitKRW: number | null; totalKRW: number; pricingVersion?: number; items?: { questionId: string; readingMode: NeoReadingMode; unitKRW: number }[] };
   payment: null | { id: string; status: string };
   deliveryStatus?: { receipt: string; answer: string };
   cancellationRequestedAt?: string;

@@ -56,12 +56,54 @@
     text(widget.querySelector('[data-cd-honey-status]'), state?.error ? '꿀방울을 불러오지 못했어요. 다시 확인해 주세요.' : '');
     widget.querySelector('[data-cd-honey-retry]').hidden = !state?.error;
   }
+  var collectionAnimations = [], collectionLayer, collectionTimer;
+  function clearCollection() {
+    clearTimeout(collectionTimer);
+    collectionAnimations.forEach(function (animation) { animation.cancel(); });
+    collectionAnimations = [];
+    if (collectionLayer) collectionLayer.remove();
+    collectionLayer = null;
+  }
+  function celebrateCollection() {
+    clearCollection();
+    if (document.hidden || root.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+    var widget = document.querySelector('.cdh-honey');
+    var destination = widget?.querySelector('.cdh-honey__wallet > img');
+    var origin = widget?.querySelector('.cdh-honey__yeoni');
+    if (!origin || !destination || typeof destination.animate !== 'function') return;
+    var box = widget.getBoundingClientRect(), from = origin.getBoundingClientRect(), to = destination.getBoundingClientRect();
+    if (!box.width || !box.height) return;
+    var startX = from.left - box.left + from.width / 2 - 16;
+    var startY = from.top - box.top + from.height * .6 - 16;
+    var endX = to.left - box.left + to.width / 2 - 16;
+    var endY = to.top - box.top + to.height / 2 - 16;
+    collectionLayer = node('span', '', 'cdh-honey__collection');
+    collectionLayer.setAttribute('aria-hidden', 'true');
+    widget.append(collectionLayer);
+    // Decorative droplets indicate movement, not the quantity credited by the server.
+    for (var i = 0; i < 4; i++) {
+      var drop = document.createElement('img');
+      drop.src = destination.getAttribute('src'); drop.alt = ''; drop.width = 32; drop.height = 32;
+      collectionLayer.append(drop);
+      collectionAnimations.push(drop.animate([
+        { transform: 'translate(' + (startX + i * 5) + 'px,' + (startY - i * 7) + 'px) scale(.45)', opacity: 0 },
+        { transform: 'translate(' + (startX + (endX - startX) * .25) + 'px,' + (Math.min(startY, endY) - 24 - i * 9) + 'px) scale(1)', opacity: 1, offset: .35 },
+        { transform: 'translate(' + endX + 'px,' + endY + 'px) scale(.25)', opacity: 0 }
+      ], { duration: 700, delay: i * 55, easing: 'cubic-bezier(.16,1,.3,1)', fill: 'both' }));
+    }
+    collectionAnimations.push(destination.animate([
+      { transform: 'scale(1)' }, { transform: 'scale(1.12)', offset: .5 }, { transform: 'scale(1)' }
+    ], { duration: 320, delay: 550, easing: 'ease-out' }));
+    collectionTimer = setTimeout(clearCollection, 950);
+  }
   async function refresh(attend) {
     if (busy) return;
-    var version = revision; busy = true; render();
-    try { var data = await api('/api/honey/attendance', attend ? {} : null); if (version === revision) { state = data; if (attend) { try { localStorage.setItem('cd:honey-refresh', String(Date.now())); } catch (_) {} } } }
+    var version = revision, previousBalance = state?.balance, collected = false; busy = true; render();
+    try { var data = await api('/api/honey/attendance', attend ? {} : null); if (version === revision) { collected = Boolean(attend && data.attended && Number.isFinite(previousBalance) && data.balance > previousBalance); state = data; if (attend) { try { localStorage.setItem('cd:honey-refresh', String(Date.now())); } catch (_) {} } } }
     catch (error) { if (version === revision) state = error.status === 401 ? { guest: true } : { error: true }; }
     finally { if (version === revision) { busy = false; render(); scheduleMidnight(); } }
+    // Optional presentation must never turn a successful credit into an error state.
+    if (collected && version === revision) { try { celebrateCollection(); } catch (_) { clearCollection(); } }
   }
   function scheduleMidnight() {
     clearTimeout(midnightTimer);
@@ -208,7 +250,9 @@
     new MutationObserver(function () { if (!scheduled) { scheduled = true; requestAnimationFrame(function () { scheduled = false; refreshLabels(); }); } }).observe(document.body, { childList: true, subtree: true });
     void getCatalog().catch(function () {}); void refresh(false);
   }
-  function invalidate() { revision++; busy = false; state = null; requests.clear(); render(); void refresh(false); }
+  function invalidate() { clearCollection(); revision++; busy = false; state = null; requests.clear(); render(); void refresh(false); }
+  root.addEventListener('pagehide', clearCollection);
+  document.addEventListener('visibilitychange', function () { if (document.hidden) clearCollection(); });
   root.addEventListener('cd:auth-changed', invalidate);
   root.addEventListener('cd:profile-changed', invalidate);
   document.addEventListener('cd:profile-card-published', invalidate);
