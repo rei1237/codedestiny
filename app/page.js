@@ -24,6 +24,9 @@ const HOME_TITLE = `${service.name} 공식 사이트 | ${YEONGNYANGI.serviceName
 const HOME_DESCRIPTION = `${service.name} 공식 홈페이지입니다. 꽃돼지 연이의 무료 사주·타로·만세력 운세와 사주보는 고양이 ${YEONGNYANGI.serviceName}의 고민 상담을 한곳에서 만나보세요.`;
 const HOME_IMAGE = "https://code-destiny.com/icons/moonlight-garden-v1-512.png";
 const ART = "/images/home/illustrated";
+// 카드 그림은 같은 파일명으로 다시 그려 왔고 정적 이미지는 7일 캐시된다(public/_headers).
+// 그림을 바꾸면 이 값을 올려야 이미 방문한 브라우저도 새 그림을 받는다(10-17 운영에서 옛 그림이 남은 사고).
+const CARD_ART_REV = "?v=20261017";
 
 export const metadata = {
   metadataBase: new URL(service.siteUrl),
@@ -96,9 +99,9 @@ export default function HomePage() {
             return <li key={card.key} className={`${styles.card} ${styles[card.className]}`} data-yn-night={card.night ? "" : undefined}>
               <span className={styles.cardNumeral} aria-hidden="true">{card.numeral}</span>
               <picture className={styles.cardArt}>
-                <source type="image/avif" srcSet={`${ART}/root-card-${card.art}-360.avif 360w, ${ART}/root-card-${card.art}-600.avif 600w`} sizes={CARD_ART_SIZES} />
+                <source type="image/avif" srcSet={`${ART}/root-card-${card.art}-360.avif${CARD_ART_REV} 360w, ${ART}/root-card-${card.art}-600.avif${CARD_ART_REV} 600w`} sizes={CARD_ART_SIZES} />
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={`${ART}/root-card-${card.art}-360.webp`} srcSet={`${ART}/root-card-${card.art}-360.webp 360w, ${ART}/root-card-${card.art}-600.webp 600w`} sizes={CARD_ART_SIZES} width={360} height={480} alt="" decoding="async" fetchPriority={index === 0 ? "high" : undefined} />
+                <img src={`${ART}/root-card-${card.art}-360.webp${CARD_ART_REV}`} srcSet={`${ART}/root-card-${card.art}-360.webp${CARD_ART_REV} 360w, ${ART}/root-card-${card.art}-600.webp${CARD_ART_REV} 600w`} sizes={CARD_ART_SIZES} width={360} height={480} alt="" decoding="async" fetchPriority={index === 0 ? "high" : undefined} />
               </picture>
               <h2 className={styles.cardName}>
                 {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
