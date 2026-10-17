@@ -121,6 +121,7 @@
 /public/js/core/astro/basic-deep-client.js
 /public/js/core/astro/crafted-details.mjs
 /public/js/core/astro/natal-reading.js
+/public/js/core/astro/section-client.js
 /public/js/core/astro/transit-reading.js
 /public/js/core/astro/transits.js
 /public/js/core/auth-hint.d.ts
