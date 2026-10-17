@@ -335,3 +335,23 @@ test("점성술 시나스트리 궁합(유명인·직접 입력) 생성기가 �
   const engine = read("js/saju-engine.js");
   assert.match(engine, /_cdAIPromptRequestJson\('\/api\/astro\/synastry'/, "시나스트리 궁합이 서버 본문을 요청하지 않는다");
 });
+
+test("점성술 앞으로 12개월(astro_yearly_transit) 본문 생성기가 브라우저 경로에 없다", () => {
+  // 무료 머리("가장 큰 변화의 달")만 남고, 기간·날짜·분야별 본문은 /api/astro/section 이 출생 단위 해금을 확인한 뒤 만든다.
+  const FORBIDDEN = [
+    "function renderYear(", "renderYear:", "function year(", "LORD_YEAR", "LORD_ERA", "FIELD_TONE", "RETRO_FIELD", "RETRO_TIP",
+    "NATAL_FIELDS", "ECLIPSE_TYPE", "themeLines", "eventSentence", "배움과 기회로 무대가 넓어지는 해예요",
+    "지난 인연이 떠오르기 쉬워요. 새 고백보다", "큰 구매나 투자는 이 기간 뒤로 미루세요",
+  ];
+  const offenders = [];
+  for (const rel of browserServedFiles()) {
+    const source = stripComments(read(rel));
+    for (const needle of FORBIDDEN) if (source.includes(needle)) offenders.push(`${rel} → ${needle}`);
+  }
+  assert.deepEqual(offenders, [], "브라우저 파일에 12개월 본문 생성기가 남아 있다:\n  " + offenders.join("\n  "));
+  const paid = read("worker/lib/astro-section/paid-yearly.cjs");
+  for (const name of ["year(", "renderYear(", "themeLines(", "eventSentence("]) assert.ok(paid.includes("function " + name), `${name} 정본이 서버에 없다`);
+  const engine = read("js/saju-engine.js");
+  assert.match(engine, /_astroCounselPaidGate\('astro_yearly_transit', 50, [^)]*, ''\)\)/, "12개월 게이트가 브라우저 본문을 싣는다");
+  assert.match(read("js/core/astro/section-client.js"), /astro_yearly_transit: true/, "12개월 본문이 서버를 요청하지 않는다");
+});

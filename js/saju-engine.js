@@ -27162,20 +27162,19 @@ function showQuantumResult() {
   }
 
   /* 앞으로 12개월(유료 astro_yearly_transit): 무료 머리는 "가장 큰 변화의 달"만, 날짜·분야별 본문은 잠금.
-     js/core/astro/transits.js period() + transit-reading.js year(). LLM 없음. 실패하면 섹션을 그리지 않는다. */
+     js/core/astro/transits.js period() + transit-reading.js yearPreview(). 잠긴 본문은 서버(/api/astro/section)가
+     출생 단위 해금을 확인한 뒤 만든다(js/core/astro/section-client.js). LLM 없음. 실패하면 섹션을 그리지 않는다. */
   function _astroCounselYearlyHtml(pack) {
-    if (!window.AstroTransits || !window.AstroTransitReading || !window.AstroNatalReading) return '';
+    if (!window.AstroTransits || !window.AstroTransitReading) return '';
     try {
       var birth = pack.birth || {};
       var timeKnown = !(birth.unknownHour === true || birth.timeDefault === true);
       var now = new Date();
       var today = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
-      var birthParts = { year: Number(birth.year), month: Number(birth.month), day: Number(birth.day), hour: birth.hour != null ? Number(birth.hour) : 12, minute: birth.minute != null ? Number(birth.minute) : 0 };
-      var periods = window.AstroNatalReading.build(pack.chart, { timeKnown: timeKnown, today: today, birth: birthParts }).periods;
       var lonsAt = _astroTransitLonsAt(birth.lat || 37.6, birth.lon || 127.0, pack.houseSystem);
       var p = window.AstroTransits.period(window.AstroTransits.natalOf(pack.chart, timeKnown), { today: today, tz: -now.getTimezoneOffset() / 60, lonsAt: lonsAt });
-      var R = window.AstroTransitReading, y = R.year(p, { periods: periods, birth: birthParts });
-      return R.renderYearSection(y, _astroCounselPaidGate('astro_yearly_transit', 50, '앞으로 12개월의 흐름 살펴보기', '주요 흐름의 기간과 날짜, 달마다 볼 날, 일·연애·돈·관계·건강별로 참고할 시기를 열어 드려요.', R.renderYear(y)));
+      var R = window.AstroTransitReading, y = R.yearPreview(p);
+      return R.renderYearSection(y, _astroCounselPaidGate('astro_yearly_transit', 50, '앞으로 12개월의 흐름 살펴보기', '주요 흐름의 기간과 날짜, 달마다 볼 날, 일·연애·돈·관계·건강별로 참고할 시기를 열어 드려요.', ''));
     } catch (yearErr) {
       if (window.console && console.warn) console.warn('[astro-year] skipped:', yearErr && yearErr.message);
       return '';
