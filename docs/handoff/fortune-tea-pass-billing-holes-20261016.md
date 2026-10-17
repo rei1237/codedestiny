@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-17
-next: "D단계 남은 상품 이전: 숙요 본성 심층(서버 본명숙 재계산)·궁합 2종 → 자미두수 5칸·대한 10년운(L) → 점성술 심화·시나스트리 → 십이운성 동물점(70)·비밀의 집(50). 사용자 결정 대기: 애니멀 토템 MODE_SPEC 30 vs 정본 50, 마야 홈 타일 1회 표기, 계정 묶음 구매의 프로필 무관 인정."
+next: "D단계 남은 상품 이전: 자미두수 5칸·대한 10년운(L) → 점성술 심화·시나스트리. 사용자 결정 대기: 마야 홈 타일 1회 표기, 계정 묶음 구매의 프로필 무관 인정."
 ---
 
 # 운명 찻집 10,000원: 이용권 차감 누락과 결제 증빙 재사용 구멍
@@ -358,3 +358,26 @@ next: "D단계 남은 상품 이전: 숙요 본성 심층(서버 본명숙 재�
     - `ENERGY_COORD_DB` 데이터와 재능 카드의 퀘스트 섹션은 아직 클라이언트에 있다.
     - 매력 영어 출력에 한국어가 섞인다. 응답마다 CSS를 다시 보낸다. 건강 카드의 브라우저 대체 경로 정리.
   - 남은 이전 대상: 숙요 본성 심층(서버 본명숙 재계산 필요)·궁합 2종, 자미두수 5칸·대한 10년운(L), 점성술 심화·시나스트리, 십이운성 동물점(70)·비밀의 집(50).
+- 2026-10-17 — **CI 복구 1: 달력 가드** (`24b572760`)
+  - 리포트 카드 이전 뒤 PR CI "Static guards"의 `verify-shell-korean-calendar`가 실패했다. 문자열 제거기가 정규식 리터럴 속 따옴표(`/"/g`)로 짝이 어긋나 `lottoWeekKey`까지 "문자열"로 지웠다.
+  - 수정: `'`·`"` 문자열은 줄 끝에서 끊는다. 그 결과 새로 보인 24절기 카드 표시용 `new Date` 2건을 사유와 함께 허용 목록에 넣었다(후속: 벽시계 부품으로 바꾸기).
+- 2026-10-17 — **D단계 상품 이전 4: 숙요 본성 심층·궁합 2종** (본성 `0cf3fc7d4`, 궁합 `89826021a`, 미러 `3f4f3b741`, gitleaks `746b9fce0`)
+  - 본성 심층(`sukuyo-nature-deep-dive`, 출생 해금)은 서버가 해금된 카드의 출생 정보로 달 황경을 다시 계산해 본명숙을 정한다. 클라이언트가 보낸 숙 값은 쓰지 않는다.
+  - 기본 궁합(`compat-sukuyo-compatibility`)·정밀 확장(`premium-sukuyo-compat-extra`, 각 50코인)은 회당 결제다.
+    - requestId(`sukuyo-paid:<기능>|<카드>|<꼬리>`)가 다른 카드·기능이면 400.
+    - `verifyPerUsePayment(requireExisting:true)`로 이번 결제를 찾고, `claimRequestBillingEvidence`로 증빙을 `requestId|sha256(두 사람의 숙·성별)`에 묶는다. 같은 조합 재요청은 다시 주고, 같은 결제로 상대만 바꾸면 409.
+    - 그린 뒤에 결제를 확인하므로 계산 실패는 차감 없이 503. 결제 DB·claim 저장소 장애도 503(결제한 사람에게 402를 주지 않는다).
+  - 검증: worker 244개(궁합 18개, HEAD 생성기와 해시 패리티 9건), FORBIDDEN 정적 가드, `per-use-proof-roundtrip` 72개, check:fast·pre-push 통과.
+  - 후속: 서버 쪽 CMS 문구 덮어쓰기 미적용, 인연 도감·아카이브는 아직 클라이언트 숙 인덱스를 받는다, 상대 출생지는 내 출생지를 쓴다, 이용권 차감 뒤 claim 실패 시 환불 경로 없음(그리기 선행이라 위험 낮음), 예전 정밀 확장 복귀 서술자에 baseRequestId 없음, `verify-sukuyo-role-direction`이 check에 연결되지 않음.
+- 2026-10-17 — **CI 복구 2: gitleaks 오탐 지문 11개** (`746b9fce0`, 사용자 승인)
+  - 비밀값이 아니다. i18n 사전 줄의 인도네시아어 값 "Api Karma"(`sajuQuantum.sq_8978_prop_label`)와 localStorage 키 이름 `energyCoordRecentDestinationsV1`이 `generic-api-key`에 걸렸다.
+  - 주의: `runtime.generated.mjs` 8행(사전 전체가 한 줄)은 다시 생성할 때마다 새 커밋에서 다시 잡힌다. 이후 이 파일을 바꾸는 push 전에 로컬 gitleaks로 지문을 확인한다. 경로 단위 허용(.gitleaks.toml)은 규칙 변경이라 별도 승인이 필요하다.
+- 2026-10-17 — **D단계 상품 이전 5: 비밀의 집·십이운성 동물점** (비밀의 집 `8804c968c`, 동물점 `28e7768a8`, 미러 `76006792e`, 사이트맵 원장 `9826feae3`)
+  - 비밀의 집(`rpt_secretHouseEntryCard`): 에피소드 엔진을 페이지에서 지우고 `worker/lib/saju-section/paid-secret-house.src.js`·`secret-house.js`로 옮겼다. 일지는 해금된 카드의 출생으로 서버가 계산한다. 옛 계정 해금만 화면 값을 받는다. 묶음 키 `allPaidSaju`·`secretHouseEpisodes`도 인정한다.
+  - 동물점(`animal-destiny-unlock`, 70코인): 유료 풀이를 `paid-animal.src.js`로 옮기고 화면의 `twelveGrowthAnimalResults.ts`·`animalInterpretation.ts`를 지웠다. 무료 표는 화면 TS를 추출기가 타입만 지워 함께 묶는다. 해금 없음·다른 프로필 402, 비로그인 401, DB 장애 503.
+  - 검증: worker 297개(동물점 사례별·단계별 sha256 패리티), 추출기 `--check`, check:fast 통과.
+  - 후속: 서버 계산에 CMS 덮어쓰기 미반영(stage-result 관리자 항목 제거됨), 페이지 안 구매 버튼 없음, 동물점 페이지 제목에 "무료" 표기, `payment-p0-inventory.json` 갱신 필요.
+- 2026-10-17 — **가격 정합·가드 정밀화** (애니멀 토템 `a55672e6a`, KRW 가드 `66dadc2a9`, 사용자 결정)
+  - 애니멀 토템: 화면은 등록소대로 1·3·5장 모두 50코인을 청구하는데 서버 `MODE_SPEC`은 1·3장을 30으로 확인했다. 서버와 `verify-animal-totem-render`를 정본 50으로 맞췄다.
+  - `verify-krw-copy-canonical`: 접두 `KRW` 앞이 영문·숫자·base64 문자면 금액으로 읽지 않는다. 비밀의 집 인라인 이미지 조각 `kRw3560`이 3,560원으로 잡힌 오탐이다. 진짜 `KRW 3,560`·소문자 `krw 3,560`은 계속 잡는다(self-test 추가).
+  - 남은 이전 대상: 자미두수 5칸·대한 10년운(L), 점성술 심화·시나스트리.
