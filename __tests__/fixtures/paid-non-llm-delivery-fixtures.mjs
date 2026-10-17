@@ -66,13 +66,6 @@ export const PAID_NON_LLM_DELIVERY_FIXTURES = Object.freeze([
     "openDreamModalCore",
   ),
   sameSurface(
-    "psychotest-reading",
-    "per_use",
-    "app/psychotest/_components/PaidPsychotestLink.tsx",
-    "featureKey: FEATURE_KEY",
-    "window.location.assign(href)",
-  ),
-  sameSurface(
     "mbti-animal-compat",
     "per_use",
     "js/astral-soul.js",
@@ -458,6 +451,7 @@ export const PAID_NON_LLM_DELIVERY_FIXTURES = Object.freeze([
 ]);
 
 export const HISTORICAL_PAID_FEATURE_FIXTURES = Object.freeze([
+  { featureKey: "psychotest-reading", billingType: "per_use", retained: { file: "worker/lib/paid-feature-registry.js", marker: '"psychotest-reading": { cost: 30' }, replacement: { file: "app/psychotest/_components/PaidPsychotestLink.tsx", marker: "PSYCHOTEST_FREE_ENTRY" } },
   {
     // 2026-10-11: 프로필 카드 추가·수정·삭제가 무료가 되어 결제 CTA 가 사라졌다. 정책 변경 전 주문의
     // 모바일 복귀와 증빙 대조를 위해 가격 키만 남는다.

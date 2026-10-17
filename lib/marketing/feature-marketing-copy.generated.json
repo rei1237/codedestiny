@@ -3348,11 +3348,11 @@
           "지금 제 상태는 어떤가요?",
           "어떤 관계가 저와 맞나요?"
         ],
-        "badge": "1회 3,000원",
+        "badge": "무료",
         "category": "심리",
-        "ctaLabel": "심리테스트 하기 · 3,000원",
+        "ctaLabel": "무료 심리테스트 시작하기",
         "faq": [],
-        "featureId": "psychotest-reading",
+        "featureId": "",
         "headline": "가볍게 답하다 보면 나에 대해 몰랐던 문장이 남습니다.",
         "painPoints": [
           "운세는 부담스럽고 가볍게 보고 싶을 때",

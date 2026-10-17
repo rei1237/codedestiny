@@ -668,11 +668,10 @@
       "slug": "psychotest",
       "title": "심리테스트",
       "href": "/psychotest/",
-      "featureKey": "psychotest-reading",
-      "accessType": "unknown",
+      "featureKey": "",
+      "accessType": "free",
       "image": "/feature-details/assets/psychotest-960.webp",
       "aliases": [
-        "psychotest-reading",
         "psychotest",
         "/psychotest/",
         "/psychotest"
@@ -4676,8 +4675,8 @@
         }
       ],
       "theme": "navy",
-      "imageWidth": 1672,
-      "imageHeight": 941,
+      "imageWidth": 1200,
+      "imageHeight": 675,
       "heroVariants": [
         {
           "src": "/feature-details/assets/neo-operation-room-480.webp",
@@ -7693,12 +7692,11 @@
       "slug": "psychotest",
       "title": "심리테스트",
       "href": "/psychotest/",
-      "featureKey": "psychotest-reading",
+      "featureKey": "",
       "featureKeyTo": "",
-      "accessType": "unknown",
+      "accessType": "free",
       "image": "/feature-details/assets/psychotest-960.webp",
       "aliases": [
-        "psychotest-reading",
         "psychotest",
         "/psychotest/",
         "/psychotest"
@@ -7707,7 +7705,7 @@
       "headline": "무심코 고른 답에 내가 숨어 있을까요?",
       "description": "맞고 틀린 답을 찾지 않아도 됩니다. 마음이 먼저 향하는 선택을 따라가며, 평소 미처 말로 옮기지 못한 나를 만나보세요.",
       "panels": [],
-      "ctaLabel": "심리테스트 하기 · 3,000원",
+      "ctaLabel": "무료 심리테스트 시작하기",
       "evidence": [
         "app/psychotest/page.tsx",
         "index.html",
@@ -7739,7 +7737,7 @@
       },
       "theme": "emerald",
       "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageHeight": 800,
       "heroVariants": [
         {
           "src": "/feature-details/assets/psychotest-480.webp",
