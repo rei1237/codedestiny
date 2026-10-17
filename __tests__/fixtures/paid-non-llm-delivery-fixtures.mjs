@@ -93,13 +93,7 @@ export const PAID_NON_LLM_DELIVERY_FIXTURES = Object.freeze([
     "runPaidAccessGate({",
     "startSimulationScene(",
   ),
-  sameSurface(
-    "ziwei-island-deep-report",
-    "unlock",
-    "app/island-consult/IslandConsultClient.tsx",
-    "featureKey: REPORT_FEATURE_KEY",
-    "setReport(data.report)",
-  ),
+
   {
     featureKey: "vedic_basic_reading",
     billingType: "unlock",
@@ -458,6 +452,12 @@ export const PAID_NON_LLM_DELIVERY_FIXTURES = Object.freeze([
 ]);
 
 export const HISTORICAL_PAID_FEATURE_FIXTURES = Object.freeze([
+  { featureKey: "ziwei-island-palace-consult", billingType: "per_use",
+    retained: { file: "worker/routes/ziwei-island-ai.js", marker: "async function handleResult(" },
+    replacement: { file: "worker/routes/ziwei-island.js", marker: "blueprint.reading = buildIslandDeepReport" } },
+  { featureKey: "ziwei-island-deep-report", billingType: "unlock",
+    retained: { file: "worker/routes/ziwei-island-report.js", marker: "buildIslandDeepReport" },
+    replacement: { file: "worker/routes/ziwei-island.js", marker: "blueprint.reading = buildIslandDeepReport" } },
   {
     // 2026-10-11: 프로필 카드 추가·수정·삭제가 무료가 되어 결제 CTA 가 사라졌다. 정책 변경 전 주문의
     // 모바일 복귀와 증빙 대조를 위해 가격 키만 남는다.

@@ -18,7 +18,6 @@ const loadAdapters = {
   'love-secret-ai': () => import('../routes/love-secret-ai.js'),
   'neo-operation-room': () => import('../routes/neo-operation-room.js'),
   'nakshatra-ai': () => import('../routes/nakshatra-ai.js'),
-  'ziwei-island-ai': () => import('../routes/ziwei-island-ai.js'),
   'human-design-report': () => import('../routes/human-design-report.js'),
   'destiny-compass-ai': () => import('../routes/destiny-compass-ai.js'),
   'relationship-boundary-test': () => import('../routes/relationship-boundary-test.js'),
