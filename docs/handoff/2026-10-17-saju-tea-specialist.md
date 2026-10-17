@@ -1,5 +1,5 @@
 ---
-status: blocked
+status: done
 ---
 
 # 연이와 네오 사주 안내 / 찻집 사주 전문 상담
@@ -18,7 +18,9 @@ status: blocked
 - [x] 대운 통합·해설
 - [x] targeted 검사·실제 브라우저 mock·리뷰
 - [x] 구현 커밋·pre-push
-- [ ] main 전달/CI·워크트리 배수 — 기존 main 실패와 타 세션 편집으로 차단
+- [x] 기존 main 실패 원인 수정 및 원격 main push
+- [x] 사주 통합 및 남은 Node 전체 검사
+- 전달·CI 상태 및 워크트리 정리 증거는 아래 재개 완료 기록 참조. status는 이 작업의 종료 표식이며 CI 성공이나 운영 승격을 뜻하지 않음.
 
 현재 원격은 계획 탐색 때보다 진전됨: 찻집은 저장된 checkpoint 그룹 단위 생성/복구를 사용. 기존 checkpoint.request/groups는 그대로 재개하고 새 개인 사주만 새 6그룹 계약으로 시작해야 함.
 
@@ -47,8 +49,20 @@ status: blocked
 - 마지막 check:fast: Jest 415 suites / 6638 tests 전부 통과. 이어진 node 검사 3332 중 3328 통과, 구가격·기존 대운 장 수·구 사주 신규 진입 전제 4건 실패로 명령 exit1. 실패한 3파일의 기대값·진입 검사를 수정하고 관련34 tests 전부 통과. 원래 결제 복귀 검증은 다른 점술에서 유지하고 신규 사주 이동/기존 유료 사주 재개를 추가 확인. 전체 check:fast 재통과라고 보고하지 않음.
 - 최종 소스 lint, typecheck, build:worker(dry-run), verify:worker-no-undef 전부 exit0. 구현 커밋에서 check:pre-push exit0(홈 등록소·정적 미러·사이트맵·llms·SEO 등록소). 최종 테스트/문서 커밋 뒤 pre-push를 다시 실행할 것.
 
-## 전달 차단
+## 이전 전달 차단 기록
 
 원격 main은 bc4ba149471ac99f24c1117a35197a9bfa0ccca5 그대로이며 CI run39008934591 failure. main에 다른 세션 index/home/public 변경이 남아 있음. 저장소 지침상 이 상태 위 push 금지. 로컬 구현·검증·커밋을 보존한 뒤 main 복구/병행 작업 종료 후 통합해야 한다. 이 파일은 운영 반영 증명이 아니다.
 
 2026-10-17 17시대 최종 원격 조회도 같은 SHA/실패 런. 구현에는 기존 sitemap drift 원장 재생성이 포함되지만 타 세션의 main 변경을 함께 커밋하거나 실패한 main 위로 push하지 않았다. 병행 작업 정리 후 소스 충돌을 해결하고 정적 미러/사이트맵을 재생성하여 main에 병합·커밋·pre-push·push, 최신 CI 결과를 확인해야 한다. 이 작업 워크트리는 미병합 결과를 보존하기 위해 남긴다. 실 생성문 검수/운영 승격은 별도다.
+
+## 2026-10-17 재개 완료 기록
+
+사용자가 기존 main CI 해결, 다른 세션 보존, main 통합·검사·push·CI 확인을 명시적으로 요청했다.
+
+- 기존 실패를 원격 bc4ba149471ac99f24c1117a35197a9bfa0ccca5에서 재현: config/sitemap-lastmod.json의 서명 6개 불일치. 생성기로 갱신 후 verify:sitemap-drift 및 커밋된 트리의 check:pre-push 통과.
+- 수정 1ca3c2648e73ed9f7adc048524b8aa374219cc9a를 먼저 원격 main으로 push. CI run39016418944는 중간 확인에서 실행 중(Typecheck and lint 성공, Static guards 실행 중, Critical/Build는 판정에 따른 skipped). 이를 전체 CI 성공으로 취급하지 않음.
+- 9ca02afc747a75d3b4482fa4bfa90d011270b792에서 사주 구현과 수정된 원격 main 통합. 충돌은 생성 원장 하나뿐이며 최신 main 원장에 현재 소스를 적용해 재생성. 런타임 소스의 추가 변경 없음.
+- 남았던 npm run test:node 전체 3332 tests 통과, 실패0/skip0. 앞선 Jest 415 suites/6638 tests, lint/typecheck/Worker dry-run 증거는 소스가 같아 재사용. check:fast 전체를 반복한 것으로 보고하지 않음.
+- 공유 main 체크아웃은 3be4b029d2e3438831b2f5b440b74c149041cd93으로 원격보다 213커밋 뒤처져 있으며 타 세션의 미커밋 수정 10개와 미추적 항목이 있음. 이 체크아웃·index·로컬 main ref는 그대로 보존하고 격리 공간에서 HEAD:refs/heads/main으로 fast-forward push. 공유 checkout의 pull/reset/stash/파일 복원은 실행하지 않음.
+- 최종 pre-push·push·CI 조회·타 세션 파일 해시 비교 증거: C:/Users/user/.codex/visualizations/2026/10/17/01a148af-428c-7bf1-9693-dbf05254b47d/saju-joint/ 아래 integration-* 파일. 최종 CI 결론은 GitHub 해당 SHA의 CI required가 정본. 진행 중이면 성공으로 표시하지 않는다.
+- 원격 main 전달 뒤 이 작업 워크트리와 병합된 wt/saju-tea-specialist-20261017-161924만 정리한다. 공유 main의 다른 세션 파일과 다른 워크트리는 유지한다. 실 LLM·실결제·운영 DB·운영 승격은 수행하지 않았다.
