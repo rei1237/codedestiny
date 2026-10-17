@@ -88,3 +88,8 @@ next: "병합 승인에 따라 main 통합 완료. 최종 CI 결과는 이 채�
 `D:\Development\codedestiny-worktrees\yeoni-teahouse-unify-20261017-171455`에서 이 문서와 `git status --short`를 읽고, 구현 SHA `fc2074a144c6c439824906f2d2f10f0a64974f59` 및 CI 실행 `39017651452`를 확인한다. 사용자의 main 병합 승인 여부부터 확인한 뒤 최신 main/동시 연이 소개 UI의 변경과 충돌 여부를 확인한다.
 
 - 후속 타입 검증: npm run typecheck 통과(exit 0).
+
+## 최종 CI 후속 복구
+- f92218d4f CI: Pages/Worker build와 타입/lint 통과. 동시 운명섬 판매 종료 관련 3개 Jest 및 다른 문서 메타데이터 실패는 후속 main 6fb3ec71a에 이미 수정되어 이를 보존했다. 집중 Jest 125개와 handoff 문서 217개 검사 통과.
+- 6fb3ec71a CI의 후속 실패: 심리테스트 개편의 네오 이미지 기대값 2곳, 22종 무료 테스트 번역 사전 누락. feature-visual-details 검사 기대값 및 shellCopy-18 저작 원본/12개 사전을 수정하고 공식 sitemap 생성기로 갱신했다. 관련 Node 검사 21개 통과. 서비스 가격/결제 동작은 바꾸지 않았다.
+- 이 사이의 최신 main 4bc27458f(홈/소설 그림 변경)도 fast-forward로 보존했다.
