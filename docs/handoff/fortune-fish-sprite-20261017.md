@@ -1,5 +1,5 @@
 ---
-status: blocked
+status: done
 ---
 # Fortune Fish sprite redesign — 2026-10-17
 
@@ -41,3 +41,10 @@ https://github.com/rei1237/codedestiny/actions/runs/39026685632
 - 관련 테스트 13개 PASS. 브라우저 390/1280px에서 5문단 출력과 가로 넘침 없음 확인.
 - check:pre-push 결과: fish-expanded-pre-push.log. 원격 main CI는 같은 실패 상태로 push 보류.
 
+
+## 2026-10-17 main 통합
+- 사용자가 CI 원인 해결과 main 반영을 명시 요청. 확인 결과 e6da3131ce2c16525786c54c08351990936fc718에서 홈 테마 토글 중복 크기 규칙이 이미 수정되어 CI 39028951396 성공. 별도 중복 수정 없이 복구 커밋을 통합.
+- 최신 origin/main 병합 84ced4c9b3c5e8319ff9316d8e4dfe4c0140d7de, 이후 정적 미러 생성기로 동기화.
+- 포춘 피쉬/공통 결제 테스트 13개 및 기존 실패 홈 토글 포함 헤더 테스트 2개 통과. check:fast 계획 확인; 앞선 전체 검사 실패/자원 오류 이력으로 전체 로컬 반복 대신 targeted 검사와 공식 CI로 검증.
+- 기본 main 체크아웃의 다른 세션 미커밋/스테이징 변경은 그대로 보존. 이 워크트리 HEAD를 원격 main에 fast-forward push하는 전달 방식. 운영 승격은 요청 범위에 포함하지 않음.
+- 이 전달 문서는 닫음. 최종 push/CI 상태는 채팅 최종 보고를 참조.
