@@ -69,7 +69,7 @@ export function createNeoService({ repository, payments, sendMail, operatorEmail
       const expiredDraft = row.state === 'draft' && Date.parse(now())-Date.parse(row.createdAt)>=7*86400000;
       if (row.contentDeletedAt || (!expiredDraft && (!row.contentDeleteAfter || row.contentDeleteAfter>now()))) return;
       if (row.mailJobs.some(j => j.state === 'sending' && Date.parse(now())-Date.parse(j.claimedAt)<15*60000)) return;
-      row.email=''; row.context=''; row.birth=null;
+      row.email=''; row.context=''; row.goodPeriod=''; row.difficultPeriod=''; row.birth=null;
       delete row.checkout;
       row.questions=row.questions.map(q => ({id:q.id,text:'',readingMode:neoReadingMode(q),answerVersion:q.answerVersion,review:q.review}));
       if (row.quote) row.quote.questions=row.quote.questions.map(q=>({id:q.id}));

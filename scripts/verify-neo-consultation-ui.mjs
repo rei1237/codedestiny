@@ -89,6 +89,9 @@ try {
     await expect(page.locator('img[src="'+NEO_EMAIL_PORTRAIT+'"]')).toBeVisible();
     assert.equal(await page.locator('img[src="'+NEO_EMAIL_PORTRAIT+'"]').evaluate(img=>img.naturalWidth),600);
     assert.equal(await page.getByText('BLUE MOON',{exact:true}).count(),0);
+    await page.locator('details').filter({hasText:'지나온 시기도'}).locator('summary').click();
+    await page.locator('#neo-good-period').fill('2022년 봄, 일을 시작했어요.');
+    await page.locator('#neo-difficult-period').fill('서른 살 무렵, 이직이 힘들었어요.');
     await page.getByLabel('질문 1',{exact:true}).fill('직장을 옮기기 전에 고려할 점은 무엇인가요?');
     await page.getByRole('button',{name:'질문 추가하기',exact:false}).click();
     await page.getByLabel('질문 2',{exact:true}).fill('관계에서 반복되는 패턴을 어떻게 바꾸면 좋을까요?');
@@ -166,6 +169,8 @@ try {
   await page.getByRole('button',{name:'예약 메일 전달하기',exact:true}).first().click();
   await expect(page.getByRole('button',{name:'예약 메일 전달하기',exact:true})).toHaveCount(1);
   assert.match(mock.mails[0].message.text,/1990-04-20/);
+  assert.match(mock.mails[0].message.text,/2022년 봄/);
+  assert.match(mock.mails[0].message.text,/서른 살 무렵/);
   assert.match(mock.mails[0].message.text,/자미두수 \+ 사주/);
   await page.getByRole('button',{name:'예약 메일 전달하기',exact:true}).last().click();
   await page.getByRole('heading',{name:'답변 발송 완료',exact:true}).waitFor();

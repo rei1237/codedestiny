@@ -19,6 +19,8 @@ export default function NeoConsultationClient() {
   const auth = useAuthStore();
   const reducedMotion = useReducedMotion();
   const [questions, setQuestions] = useState<{text: string; readingMode: NeoReadingMode}[]>([{text: "", readingMode: "ziwei"}]);
+  const [goodPeriod, setGoodPeriod] = useState("");
+  const [difficultPeriod, setDifficultPeriod] = useState("");
   const [context, setContext] = useState("");
   const [email, setEmail] = useState("");
   const [date, setDate] = useState("");
@@ -69,7 +71,7 @@ export default function NeoConsultationClient() {
     document.addEventListener("visibilitychange", refresh);
     return () => { active = false; window.removeEventListener("pageshow", refresh); window.removeEventListener("popstate", refresh); document.removeEventListener("visibilitychange", refresh); };
   }, [canSubmit, signedIn, ownerKey]);
-  const input = (): NeoInput => ({ questions, context, email, consent, birth: date ? { date, calendar, leapMonth, timeUnknown: false, time } : null });
+  const input = (): NeoInput => ({ questions, context, goodPeriod, difficultPeriod, email, consent, birth: date ? { date, calendar, leapMonth, timeUnknown: false, time } : null });
   const run = async (task: () => Promise<void>) => {
     if (inFlight.current) return;
     inFlight.current = true;
@@ -144,13 +146,15 @@ export default function NeoConsultationClient() {
       <p className={styles.small}>과거 분석 사례이며, 특정 사건의 예측이나 같은 결과를 보장하지 않습니다.</p>
     </section>
     <section className={styles.formSection} id="neo-form" aria-labelledby="neo-form-title">
-      <div className={styles.formIntro}><h2 id="neo-form-title" ref={heading} tabIndex={-1}>{["질문을 하나씩 적어 주세요","답변받을 정보를 알려 주세요","질문과 금액을 확인해 주세요"][step]}</h2><p>자미두수 질문당 {neoMoney(neoUnitPrice())}<br />자미두수 + 사주 질문당 {neoMoney(neoQuestionPrice({readingMode: "ziwei_saju"}))}<br />사주 풀이 추가 시 질문당 {neoMoney(neoSajuAddonPrice())} 추가 · 단건 결제<br />한 가지 선택이나 고민을 질문 하나에 담아 주세요.</p><ol className={styles.steps}>{["질문 작성","정보 입력","최종 확인"].map((s,i) => <li key={s} aria-current={step === i ? "step" : undefined}>{s}</li>)}</ol></div>
+      <div className={styles.formIntro}><p className={styles.letterMark}>NEO · PRIVATE CORRESPONDENCE</p><h2 id="neo-form-title" ref={heading} tabIndex={-1}>{["질문을 하나씩 적어 주세요","답변받을 정보를 알려 주세요","질문과 금액을 확인해 주세요"][step]}</h2><p>자미두수 질문당 {neoMoney(neoUnitPrice())}<br />자미두수 + 사주 질문당 {neoMoney(neoQuestionPrice({readingMode: "ziwei_saju"}))}<br />사주 풀이 추가 시 질문당 {neoMoney(neoSajuAddonPrice())} 추가 · 단건 결제<br />한 가지 선택이나 고민을 질문 하나에 담아 주세요.</p><ol className={styles.steps}>{["질문 작성","정보 입력","최종 확인"].map((s,i) => <li key={s} aria-current={step === i ? "step" : undefined}>{s}</li>)}</ol></div>
       <div className={styles.form} aria-busy={busy}>
         {error && <p className={styles.error} role="alert">{error}</p>}
         {!order && <>
           {step === 0 && <>
+            <p className={styles.salutation}>네오에게,</p>
             <label htmlFor="neo-context">공통 상황 설명 <span>선택</span></label>
             <textarea id="neo-context" maxLength={NEO_LIMITS.context} value={context} onChange={e => setContext(e.target.value)} placeholder="지금 처한 상황과 고민의 배경을 알려 주세요." rows={4} />
+            <details className={styles.periods}><summary>지나온 시기도 함께 전할까요? <span>선택</span></summary><p className={styles.small}>특별히 좋았거나 힘들었던 때가 있다면 알려 주세요. 정확한 날짜 대신 연도나 나이로 적어도 괜찮습니다. 추가 질문으로 계산되지 않습니다.</p><label htmlFor="neo-good-period">특별히 좋았던 시기 <span>선택</span></label><textarea id="neo-good-period" rows={3} maxLength={NEO_LIMITS.period} value={goodPeriod} onChange={e => setGoodPeriod(e.target.value)} placeholder="예: 2022년 봄, 원하던 일을 시작하고 생활이 안정됐어요." /><label htmlFor="neo-difficult-period">힘들었던 시기 <span>선택</span></label><textarea id="neo-difficult-period" rows={3} maxLength={NEO_LIMITS.period} value={difficultPeriod} onChange={e => setDifficultPeriod(e.target.value)} placeholder="예: 서른 살 무렵, 이직과 이사가 겹쳐 방향을 잡기 어려웠어요." /></details>
             <p className={styles.small}>상황 설명은 해석을 돕는 배경입니다. 답변받을 질문은 아래에 따로 추가해 주세요.</p>
             {questions.map((q,i) => <div className={styles.question} key={i}>
               <div className={styles.questionHeading}><label htmlFor={"neo-q-" + i}>질문 {i+1}</label><span>{neoMoney(neoQuestionPrice(q))}</span>{questions.length > 1 && <button type="button" aria-label={"질문 " + (i+1) + " 삭제"} onClick={() => setQuestions(questions.filter((_,n) => n !== i))}>삭제</button>}</div>
@@ -174,7 +178,7 @@ export default function NeoConsultationClient() {
             <label className={styles.check}><input type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)} />답변 기한·취소 및 환불 안내를 확인하고, 상담과 회신을 위한 개인정보 수집·이용에 동의합니다.</label>
             <p className={styles.small}><Link href="/privacy/">개인정보처리방침</Link> · <a href={SUPPORT_MAILTO}>취소·환불 및 미수신 문의</a></p>
           </>}
-          {step === 2 && <><ol className={styles.summary}>{questions.map((q,i) => <li key={i}><p>{q.text}</p><span>{neoReadingLabel(q)} · {neoMoney(neoQuestionPrice(q))}</span></li>)}</ol><p>출생정보: {neoBirthLabel(input().birth)}</p><p>회신 이메일: {email}</p><p className={styles.small}>결제가 확인되면 자동으로 상담이 접수됩니다.</p><p>네오가 직접 검수한 질문별 답변을 한 통의 이메일로 전합니다.</p><p className={styles.small}>한 질문에 여러 독립 질문이 포함되면 정정을 요청할 수 있습니다. 추가 과금은 자동으로 진행하지 않습니다.</p></>}
+          {step === 2 && <>{goodPeriod && <p className={styles.periodSummary}>특별히 좋았던 시기: {goodPeriod}</p>}{difficultPeriod && <p className={styles.periodSummary}>힘들었던 시기: {difficultPeriod}</p>}<ol className={styles.summary}>{questions.map((q,i) => <li key={i}><p>{q.text}</p><span>{neoReadingLabel(q)} · {neoMoney(neoQuestionPrice(q))}</span></li>)}</ol><p>출생정보: {neoBirthLabel(input().birth)}</p><p>회신 이메일: {email}</p><p className={styles.small}>결제가 확인되면 자동으로 상담이 접수됩니다.</p><p>네오가 직접 검수한 질문별 답변을 한 통의 이메일로 전합니다.</p><p className={styles.small}>한 질문에 여러 독립 질문이 포함되면 정정을 요청할 수 있습니다. 추가 과금은 자동으로 진행하지 않습니다.</p></>}
           <div className={styles.total} aria-live="polite"><span>질문 {questions.length}개</span><strong>{neoMoney(neoTotal(questions))}</strong></div>
           <div className={styles.actions}>{step > 0 && <button className={styles.secondary} disabled={busy} onClick={() => setStep(step-1)}>이전</button>}{step < 2 ? <button className={styles.primary} onClick={next}>다음</button> : <button className={styles.primary} disabled={busy || !canSubmit || !signedIn} onClick={prepare}>{busy ? "주문 확인 중" : mock ? "모의 결제로 상담 신청하기" : canSubmit ? `총 ${neoMoney(neoTotal(questions))} 결제하고 상담 신청하기` : "판매 준비 중"}</button>}</div>
           {!signedIn && step === 2 && <p>상담 신청에는 <Link href="/login?next=%2Fneo-consultation%2F">로그인</Link>이 필요합니다.</p>}

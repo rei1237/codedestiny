@@ -66,6 +66,7 @@ test('최초 발송 7일 뒤 상담 본문·이메일·출생정보와 복제 �
   m.setNow('2026-10-23T04:00:00.000Z');
   await m.service.purgeExpiredContent(row.id);
   const stored=await m.repository.get(row.id);
+  assert.equal(stored.goodPeriod,''); assert.equal(stored.difficultPeriod,'');
   assert.equal(stored.email,''); assert.equal(stored.context,''); assert.equal(stored.birth,null);
   assert.equal(stored.deliveries.length,0); assert.equal(stored.quote.totalKRW,10000);
   assert.doesNotMatch(JSON.stringify(stored),/customer@example|이번 선택|작은 행동/);
@@ -304,4 +305,19 @@ test('회사 접수 메일에 결제된 질문·옵션·금액·출생정보를 
   m.setMailOutcome('sent');await m.service.deliver(row.id,row.mailJobs[0].key);
   await m.service.deliver(row.id,row.mailJobs[0].key);
   assert.equal(m.mails.length,2);assert.equal(m.mails[0].idempotencyKey,m.mails[1].idempotencyKey);assert.equal(m.paymentRows.size,1);
+});
+
+test('선택 시기 기록은 이전 입력과 호환되며 길이·타입을 검증하고 가격과 분리한다', async () => {
+  assert.equal(validateNeoInput(input()).goodPeriod, '');
+  assert.throws(() => validateNeoInput({...input(), goodPeriod: {year:2020}}), e => e.code === 'PERIOD_INVALID');
+  assert.throws(() => validateNeoInput({...input(), difficultPeriod:'가'.repeat(1001)}), e => e.code === 'PERIOD_LENGTH');
+  const mock=createNeoMock();
+  let row=await mock.service.create(user,{...input(),goodPeriod:'2022년 <봄>',difficultPeriod:'서른 살 무렵'});
+  row=await mock.service.quote(user,row.id,row.version);
+  assert.equal(row.quote.totalKRW,10000);
+  assert.equal((await mock.service.get(user,row.id)).goodPeriod,'2022년 <봄>');
+  const message=buildNeoEmail(row,{kind:'receipt'},'operator@example.invalid');
+  assert.match(message.text,/2022년 <봄>/);
+  assert.match(message.html,/&lt;봄&gt;/);
+  assert.doesNotMatch(message.subject,/2022|서른/);
 });
