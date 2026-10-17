@@ -1,5 +1,5 @@
 // Local-only visual and interaction verification for the simplified home (2026-10-17 "직관성").
-// 홈 흐름: 짧은 히어로 → 대표 상담 덱 Ⅰ–Ⅵ → 무료로 먼저(3장) → 이용권 → "모든 운세 보기" 버튼 → 링크 한 줄 → 푸터.
+// 홈 흐름: 짧은 히어로 → 대표 상담 덱 Ⅰ–Ⅵ → 무료로 먼저(6장) → 1:1 상담(연이·네오) → 이용권 → 뮤직비디오 → "모든 운세 보기" 버튼 → 미니 게임 링크 → 달빛 이야기(노벨·음악 카드) → 푸터.
 const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -32,13 +32,16 @@ async function assertEssentials(page, label) {
     ['pass', '#cdhPass .cdh-pass__btn'],
     ['all fortunes button', '.cdh-all-cta__btn'],
     ['mini games link', '.cdh-links a[href="/mini-games/"]'],
-    ['novel link', '.cdh-links a[href="/codedestiny-novel.html"]'],
-    ['music link', '.cdh-links a[href="/music/"]'],
+    ['yeoni consultation door', '#fortuneGatewayEntry'],
+    ['neo letter consultation', '#cdhNeoLetterSlot .cdh-neo-letter'],
+    ['music video', '#cdhMoonlightMv'],
+    ['moonlight story toggle', '.cdh-story__toggle'],
   ];
   for (const [name, selector] of essentials) {
     const node = page.locator(selector).first();
     assert.ok(await node.isVisible(), `${label}: ${name} is visible`);
-    assert.equal(await node.evaluate((el) => Boolean(el.closest('details:not([open])'))), false, `${label}: ${name} is outside any closed fold`);
+    // 닫힌 details 의 summary(접힘 버튼 자체)는 보이는 자리다 — 그 안쪽 내용만 접힌 곳으로 친다.
+    assert.equal(await node.evaluate((el) => { const fold = el.closest('details:not([open])'); return Boolean(fold && !fold.querySelector(':scope > summary')?.contains(el)); }), false, `${label}: ${name} is outside any closed fold`);
   }
 }
 
@@ -73,19 +76,19 @@ async function assertEssentials(page, label) {
       await page.waitForTimeout(250);
       await assertEssentials(page, `${width}px first visit`);
 
-      // 강약: 대표 상담 → 무료로 먼저 → 이용권 → 모든 운세 버튼 → 링크 한 줄. DOM 순서와 화면 순서가 같다.
+      // 강약: 대표 상담 → 무료로 먼저 → 1:1 상담 → 이용권 → 뮤직비디오 → 모든 운세 버튼 → 링크 → 달빛 이야기. DOM 순서와 화면 순서가 같다.
       const order = await page.evaluate(() => {
-        const nodes = [document.getElementById('cdSignatureConsult'), document.getElementById('cdQuickServices'), document.getElementById('cdhPass'), document.querySelector('.cdh-all-cta'), document.querySelector('.cdh-links')];
+        const nodes = [document.getElementById('cdSignatureConsult'), document.getElementById('cdQuickServices'), document.querySelector('.cdh-consult'), document.getElementById('cdhPass'), document.getElementById('cdhMoonlightMv'), document.querySelector('.cdh-all-cta'), document.querySelector('.cdh-links'), document.querySelector('.cdh-story')];
         return {
           dom: nodes.every((node, index) => index === 0 || Boolean(nodes[index - 1].compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING)),
           visual: nodes.map((node) => node.getBoundingClientRect().top + scrollY),
         };
       });
-      assert.ok(order.dom, `${width}px home flow keeps signature → free → pass → all fortunes → links in DOM`);
+      assert.ok(order.dom, `${width}px home flow keeps signature → free → consult → pass → MV → all fortunes → links → story in DOM`);
       assert.ok(order.visual.every((top, index) => index === 0 || top > order.visual[index - 1]), `${width}px home flow keeps the same visual order (${order.visual.map(Math.round).join(' < ')})`);
 
       // 걷어낸 블록은 홈 마크업에 다시 생기지 않는다. 기능 페이지와 URL은 그대로다.
-      for (const selector of ['#cdhMore', '#cdhOtherFortunes', '#cdhServices', '#fortuneGatewayEntry', '#cdTodayHub', '#cdConcernPick', '#cdhFlowerTitle', '[data-cdh-chemi]', '.cdh-mv', '#cdhFeedbackSlot', '#cdhSignupBenefit', '.cdh-moonstone-guide', '#cdhSamples', '.cdh-portals']) {
+      for (const selector of ['#cdhMore', '#cdhOtherFortunes', '#cdhServices', '#cdTodayHub', '#cdConcernPick', '#cdhFlowerTitle', '[data-cdh-chemi]', '#cdhFeedbackSlot', '#cdhSignupBenefit', '.cdh-moonstone-guide', '#cdhSamples', '.cdh-portals']) {
         assert.equal(await page.locator(selector).count(), 0, `${width}px ${selector} is gone from home`);
       }
       // 홈 밖 셸 블록은 화면에서만 숨긴다(마크업과 기능은 다른 화면이 쓴다).
@@ -95,9 +98,20 @@ async function assertEssentials(page, label) {
 
       assert.match(await page.locator('#cdhTitle').innerText(), /명리학자/, `${width}px hero states who designed the consultations`);
       assert.equal(await page.locator('.cdh-primary').getAttribute('href'), '#cdSignatureConsult', `${width}px hero CTA leads to the deck`);
-      assert.equal(await page.locator('#cdQuickServices .cdh-free-card').count(), 3, `${width}px free first keeps three small cards`);
+      assert.equal(await page.locator('#cdQuickServices .cdh-free-card').count(), 6, `${width}px free first offers the six methods`);
       assert.equal(await page.locator('#cdQuickServices .cdh-free-card').first().getAttribute('data-cdh-free'), '', `${width}px the first free card opens the one-step saju`);
-      assert.equal(await page.locator('.cdh-links a').count(), 3, `${width}px the closing link row has three links`);
+      assert.equal(await page.locator('.cdh-links a').count(), 1, `${width}px the closing link row keeps only mini games`);
+      assert.equal(await page.locator('#fortuneGatewayEntry').count(), 1, `${width}px one Yeoni consultation door`);
+      assert.match(await page.locator('#fortuneGatewayEntry').textContent(), /5,000원/, `${width}px Yeoni door states 5,000원`);
+      assert.deepEqual(await page.locator('#cdQuickServices .cdh-free-card').evaluateAll((cards) => cards.map((card) => card.dataset.cdServiceId)), ['saju', 'tarot', 'ziwei', 'sukuyo', 'vedic', 'astrology'], `${width}px free cards keep the method order`);
+      assert.equal(await page.locator('#cdQuickServices .cdh-free-card img').first().evaluate((img) => getComputedStyle(img).backgroundColor), 'rgba(0, 0, 0, 0)', `${width}px free card icon has no grey box`);
+      // 달빛 이야기: 접혀 있다가 열면 노벨·음악 카드 두 장이 한 줄로 펼쳐진다.
+      assert.equal(await page.locator('.cdh-story__card').first().isVisible(), false, `${width}px story cards start folded`);
+      await page.locator('.cdh-story__toggle').click();
+      const story = await page.locator('.cdh-story__card').evaluateAll((cards) => cards.map((card) => ({ href: card.getAttribute('href'), top: Math.round(card.getBoundingClientRect().top), visible: card.getBoundingClientRect().width > 0 })));
+      assert.deepEqual(story.map((card) => card.href), ['/codedestiny-novel.html', '/music/'], `${width}px story holds novel and music`);
+      assert.ok(story.every((card) => card.visible) && Math.abs(story[0].top - story[1].top) < 40, `${width}px story cards open side by side`);
+      await page.locator('.cdh-story__toggle').click();
 
       // 대표 상담 덱: 1024 미만은 가로 한 줄 scroll-snap(카드 6장)과 위치 점, 이상은 3열 두 줄. 카드는 2:3 이상으로 세로가 길다.
       assert.equal(await page.locator('#cdSigGrid .cd-sig-card').count(), 6, `${width}px deck has six cards`);
@@ -218,7 +232,7 @@ async function assertEssentials(page, label) {
           const parse = (c) => { const n = (c.match(/-?[0-9.]+/g) || []).map(Number); return { a: n.length > 3 ? n[3] : 1 }; };
           const backdrop = (node) => { for (let el = node; el; el = el.parentElement) { const bg = getComputedStyle(el).backgroundColor; if (parse(bg).a >= 0.5) return bg; } return 'rgb(255, 255, 255)'; };
           const pair = (selector) => { const node = document.querySelector(selector); return node ? { selector, color: getComputedStyle(node).color, background: backdrop(node) } : { selector, missing: true }; };
-          return ['#cdSignatureConsult h2', '.cdh-free h2', '.cdh-free-card', '.cdh-all-cta__btn', '.cdh-links a', '#cdhPass .cdh-pass__title', '#cdhPass .cdh-pass__tier-price', '#cdhPass .cdh-pass__tier-line', '#cdhPass .cdh-pass__btn'].map(pair);
+          return ['#cdSignatureConsult h2', '.cdh-free h2', '.cdh-free-card', '.cdh-all-cta__btn', '.cdh-all-cta__label', '.cdh-links a', '.cdh-free-card__copy strong', '.cdh-story__label strong', '#cdhPass .cdh-pass__title', '#cdhPass .cdh-pass__tier-price', '#cdhPass .cdh-pass__tier-line', '#cdhPass .cdh-pass__btn'].map(pair);
         });
         for (const item of pairs) {
           assert.ok(!item.missing, `${width}px ${mode} ${item.selector} exists`);

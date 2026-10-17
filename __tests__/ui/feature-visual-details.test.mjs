@@ -195,9 +195,9 @@ test('restored hero artwork, catalog reuse, and collection previews stay in sync
   assert.match(masterAssets, /humanHero:\s*"\/images\/feature-details\/master-love-codex-hero-v3\.webp"/);
   assert.match(masterAssets, /cover:\s*"\/feature-details\/assets\/master-love-codex-960\.webp"/);
   assert.ok(fs.existsSync('public/feature-details/assets/master-love-codex-960.webp'));
-  // 2026-10-17 "직관성": 라이트 노벨·음악 포스터 카드는 홈 맨 아래 텍스트 링크 한 줄로 바뀌었다.
-  assert.ok(fragment.querySelector('.cdh-links a[href="/codedestiny-novel.html"]'), 'light novel link stays on the home');
-  assert.ok(fragment.querySelector('.cdh-links a[href="/music/"]'), 'music link stays on the home');
+  // 2026-10-17: 라이트 노벨·달빛 음악은 '달빛 이야기' 한 묶음(details)에 타로 카드 두 장으로 들어갔다.
+  assert.ok(fragment.querySelector('.cdh-story .cdh-story__card[href="/codedestiny-novel.html"]'), 'light novel card stays on the home');
+  assert.ok(fragment.querySelector('.cdh-story .cdh-story__card[href="/music/"]'), 'music card stays on the home');
 });
 
 test('music entry responds to its card width without clipping actions', () => {

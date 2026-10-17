@@ -22,10 +22,10 @@ for (const channel of ['chrome', 'msedge']) {
       await page.waitForFunction(() => typeof window.__cdOpenGarden === 'function', { timeout: 60000 });
       await page.evaluate(() => document.fonts.ready);
       const main = page.locator('#cdHomeFunnel');
-      // 단순화한 홈: 히어로 버튼 하나 → 대표 상담 덱 → 무료로 먼저 → 이용권 → 모든 운세 보기 → 링크 한 줄.
+      // 홈: 히어로 버튼 하나 → 대표 상담 덱 → 무료로 먼저 → 1:1 상담 → 이용권 → 뮤직비디오 → 모든 운세 보기 → 링크 → 달빛 이야기.
       assert.equal(await main.locator('.cdh-primary').getAttribute('href'), '#cdSignatureConsult');
       assert.equal(await page.locator('#cdhMore, #cdhOtherFortunes').count(), 0, 'no folded catalog on home');
-      const order = await page.evaluate(() => ['#cdSignatureConsult','#cdQuickServices','#cdhPass','.cdh-all-cta','.cdh-links'].map(sel => document.querySelector(sel).getBoundingClientRect().top + scrollY));
+      const order = await page.evaluate(() => ['#cdSignatureConsult','#cdQuickServices','.cdh-consult','#cdhPass','#cdhMoonlightMv','.cdh-all-cta','.cdh-links','.cdh-story'].map(sel => document.querySelector(sel).getBoundingClientRect().top + scrollY));
       assert(order.every((top,i) => i===0 || top>order[i-1]), JSON.stringify(order));
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
       assert(overflow <= 0, 'home overflow: '+width+' / '+overflow);

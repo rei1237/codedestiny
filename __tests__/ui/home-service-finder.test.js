@@ -310,28 +310,33 @@ test("기본 목록은 홈 상단 두 섹션의 카드와 겹치지 않는다", 
   );
 });
 
-test("결과 카드 이미지는 같은 기능의 홈 타일에서 빌리고, 없으면 달 이미지를 쓴다", async () => {
+// 2026-10-17: 모든 운세 결과 카드는 실제 마스터 초상을 먼저 쓴다(전담 상품은 id, 나머지는 첫 체계).
+// 상담이 아닌 항목(포인트·음악·노벨)만 예전처럼 같은 기능의 홈 타일 그림을 빌린다.
+test("결과 카드는 마스터 초상을 쓰고, 상담이 아닌 항목만 홈 타일 그림을 빌린다", async () => {
   const first = await boot();
   const shown = names(first.doc.getElementById("fortuneGatewayRecs"));
-  const target = first.window.__cdServiceRegistry.find((i) => i.name === shown[0]);
-  assert.ok(target && shown.length > 1, "기본 목록이 비어 대조가 공회전한다(fail-open)");
+  assert.ok(shown.length > 0, "기본 목록이 비어 대조가 공회전한다(fail-open)");
+  for (const card of first.doc.querySelectorAll("#fortuneGatewayRecs .fortune-gateway__rec-media")) {
+    assert.match(card.querySelector("img").getAttribute("src"), /^\/images\/master-profiles\/[a-z-]+(?:-360)?\.webp$/, "기본 목록 카드가 마스터 초상이 아니다");
+    assert.ok(card.classList.contains("is-master"));
+  }
+  // 초상이 깨지면 달 이미지로 물러난다(R2 원본은 /fuctionassets/ 만 있다).
+  const portrait = first.doc.querySelector("#fortuneGatewayRecs .is-master img");
+  portrait.dispatchEvent(new first.doc.defaultView.Event("error"));
+  assert.equal(portrait.getAttribute("src"), "/images/home/finder-moon.svg", "깨진 초상이 달 이미지로 물러나지 않았다");
 
+  const target = first.window.__cdServiceRegistry.find((i) => i.id === "music");
+  assert.ok(target, "음악 항목이 레지스트리에 없다(fail-open)");
   const attr = target.action
     ? `data-action="${target.action}"`
     : target.featureKey ? `data-feature-key="${target.featureKey}"` : `href="${target.href}"`;
-  const { doc } = await boot([
+  const { doc, window } = await boot([
     `<a class="tarot-tile" ${attr}><span class="tarot-tile__img-wrap" data-img-src="/fuctionassets/feature-test.webp"></span></a>`,
   ]);
-  const srcOf = (name) => {
-    const card = Array.from(doc.querySelectorAll("#fortuneGatewayRecs .fortune-gateway__rec-media"))
-      .map((media) => media.parentElement)
-      .find((c) => c.querySelector(".fortune-gateway__rec-name").firstChild.textContent.trim() === name);
-    return card.querySelector(".fortune-gateway__rec-media img").getAttribute("src");
-  };
-  assert.equal(srcOf(target.name), "/fuctionassets/feature-test.webp", "같은 기능 타일의 이미지를 빌리지 않았다");
-  const plain = shown.slice(1).find((name) => !METHOD_HUB_IDS.includes(first.window.__cdServiceRegistry.find((i) => i.name === name)?.id));
-  assert.ok(plain, "체계 허브가 아닌 대조 항목이 없다(fail-open)");
-  assert.equal(srcOf(plain), "/images/home/finder-moon.svg", "타일이 없는 항목이 달 이미지로 떨어지지 않았다");
+  assert.ok((await search(window, doc, target.name)).includes(target.name), "음악 항목 검색 결과가 없다");
+  const card = Array.from(doc.querySelectorAll("#fortuneGatewayRecs .fortune-gateway__rec"))
+    .find((item) => item.querySelector(".fortune-gateway__rec-name").firstChild.textContent.trim() === target.name);
+  assert.equal(card?.querySelector(".fortune-gateway__rec-media img")?.getAttribute("src"), "/fuctionassets/feature-test.webp", "같은 기능 타일의 이미지를 빌리지 않았다");
 
   // R2 에만 있는 자산: 로컬 경로 404 → R2 원본 → 그래도 실패하면 달.
   const img = doc.querySelector(`#fortuneGatewayRecs img[src="/fuctionassets/feature-test.webp"]`);
@@ -341,7 +346,12 @@ test("결과 카드 이미지는 같은 기능의 홈 타일에서 빌리고, �
   assert.equal(img.getAttribute("src"), "/images/home/finder-moon.svg", "R2 도 실패했는데 달 이미지로 떨어지지 않았다");
 });
 
-test("체계 허브 6종은 홈 타일이 없어도 체계 그림을 쓴다", async () => {
+// 체계별 마스터: 사주 네오 · 타로 연이 · 자미두수 무성 · 숙요 서한비 · 베다·점성술 윤달.
+const METHOD_HUB_MASTERS = {
+  saju: "neo-strategy-portrait", tarot: "yeoni-teahouse-portrait", ziwei: "musung-ziwei-portrait",
+  sukuyo: "hanbi-sukuyo-portrait", vedic: "yun-astrology-portrait", astrology: "yun-astrology-portrait",
+};
+test("체계 허브 6종은 체계를 맡은 마스터 초상을 쓴다", async () => {
   const { doc, window } = await boot();
   const hubs = window.__cdServiceRegistry.filter((i) => METHOD_HUB_IDS.includes(i.id));
   assert.equal(hubs.length, METHOD_HUB_IDS.length, "체계 허브가 레지스트리에 없다(fail-open)");
@@ -349,8 +359,9 @@ test("체계 허브 6종은 홈 타일이 없어도 체계 그림을 쓴다", as
     assert.ok((await search(window, doc, hub.name)).includes(hub.name), `${hub.name}: 검색 결과가 없다`);
     const card = Array.from(doc.querySelectorAll("#fortuneGatewayRecs .fortune-gateway__rec"))
       .find((item) => item.querySelector(".fortune-gateway__rec-name").firstChild.textContent.trim() === hub.name);
-    assert.equal(card?.querySelector(".fortune-gateway__rec-media img")?.getAttribute("src"), `/feature-details/assets/${hub.id}-320.webp`, `${hub.name}: 달 이미지로 떨어졌다`);
-    assert.ok(fs.existsSync(path.join(root, "public/feature-details/assets", `${hub.id}-320.webp`)), `${hub.id}: 그림 파일이 없다`);
+    const key = METHOD_HUB_MASTERS[hub.id];
+    assert.equal(card?.querySelector(".fortune-gateway__rec-media img")?.getAttribute("src"), `/images/master-profiles/${key}.webp`, `${hub.name}: 체계 마스터 초상이 아니다`);
+    assert.ok(fs.existsSync(path.join(root, "public/images/master-profiles", `${key}.webp`)), `${key}: 초상 파일이 없다`);
   }
   window.close();
 });
@@ -368,33 +379,28 @@ test("상품명은 띄어쓰기와 관계없이 검색되며 고민·가격 필�
   window.close();
 });
 
-test("모바일의 분리된 결과 페이지에서도 원본 이미지를 읽고 마운트하지 않는다", async () => {
+test("모바일의 분리된 결과 페이지가 있어도 마운트하지 않고 마스터 초상을 쓴다", async () => {
   const { doc, window } = await boot();
   const result = doc.createElement("article");
   result.innerHTML = sliceById(shell, "resultPage");
   window.__cdMobileHomeLazyMount = { peek: (id) => id === "resultPage" ? result : null };
-  for (const [name, slug] of [["인생의 책", "life-book-entry-20260929"], ["연애 비책", "love-secret-entry-20260929"]]) {
+  for (const [name, key] of [["인생의 책", "yun-life-book-portrait-360"], ["연애 비책", "yeoni-love-portrait-360"]]) {
     assert.deepEqual(await search(window, doc, name), [name]);
-    assert.equal(doc.querySelector('#fortuneGatewayRecs img').getAttribute('src'), `/feature-details/assets/${slug}-320.webp`);
+    assert.equal(doc.querySelector('#fortuneGatewayRecs img').getAttribute('src'), `/images/master-profiles/${key}.webp`);
     assert.equal(result.isConnected, false);
   }
   window.close();
 });
 
-test("연애 비책·인생의 책·신년운세는 각 서비스 전용 이미지를 쓴다", async () => {
+test("연애 비책·인생의 책·신년운세는 각 상품의 전담 마스터 초상을 쓴다", async () => {
   const expected = new Map([
-    ["연애 비책", ["love-secret-ai-consultation", "/feature-details/assets/love-secret-entry-20260929-320.webp"]],
-    ["인생의 책", ["life-book-ai-consultation", "/feature-details/assets/life-book-entry-20260929-320.webp"]],
-    ["신년운세", ["new-year-ai-consultation", "/feature-details/assets/new-year-ai-320.webp"]],
+    ["연애 비책", "/images/master-profiles/yeoni-love-portrait-360.webp"],
+    ["인생의 책", "/images/master-profiles/yun-life-book-portrait-360.webp"],
+    ["신년운세", "/images/master-profiles/neo-new-year-portrait-360.webp"],
   ]);
 
-  for (const [name, [featureKey, image]] of expected) {
-    const sourceTag = Array.from(shell.matchAll(/<[^>]+>/g), (match) => match[0]).find((tag) =>
-      tag.includes(`data-feature-key="${featureKey}"`) && tag.includes(`data-img-src="${image}"`),
-    );
-    assert.ok(sourceTag, `${name}: 홈 원본 타일에 전용 이미지 참조가 없다`);
-    const tagName = /^<([a-z]+)/i.exec(sourceTag)?.[1];
-    const { doc, window } = await boot([`${sourceTag}</${tagName}>`]);
+  for (const [name, image] of expected) {
+    const { doc, window } = await boot();
     const hits = await search(window, doc, name);
     assert.ok(hits.includes(name), `${name}: 검색 결과가 없다`);
     const card = Array.from(doc.querySelectorAll("#fortuneGatewayRecs .fortune-gateway__rec"))

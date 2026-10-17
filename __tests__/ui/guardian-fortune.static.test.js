@@ -11,8 +11,8 @@ test('the destiny gate stands on its own after the inline home widget was retire
   const gateway = read('js/fortune-gateway.js');
   const css = read('styles/fortune-gateway.css');
 
-  // 2026-10-17 "직관성": 홈의 운명의 문 카드는 걷어냈다. 연이 상담(/fortune-chat/)은 모든 운세 시트가 service-registry 로 연다.
-  assert.doesNotMatch(html, /id="fortuneGatewayEntry"/);
+  // 2026-10-17: 연이 운명 상담(1회 5,000원) 문 카드를 홈 1:1 상담 줄에 되돌렸다. 한 번만 나온다.
+  assert.equal((html.match(/id="fortuneGatewayEntry"/g) || []).length, 1);
   assert.match(html, /flower-pig-honey-hug\.webp/);
   // 🔴 초융합으로 가는 길은 홈에 남아 있어야 한다(히어로 CTA · #cdConcernPick · #cdSignatureConsult).
   //    2026-09-02 에 뺀 것은 "운명의 문 안의 네 번째 중복 진입" 하나뿐이다.
@@ -57,14 +57,15 @@ test('the destiny gate stands on its own after the inline home widget was retire
   assert.match(css, /\.cd-reduced-motion \.fortune-gateway__door--chat \.fortune-gateway__door-art-yeon/);
 });
 
-// 2026-10-17 "직관성": 운명의 문 카드는 홈에서 빠졌다. 연이 상담은 모든 운세 시트(service-registry)에서 열고,
-// 상담 화면이 결제 정본 가격(1회 5,000원)을 직접 보여 준다(fusion-fortune.static.test.js).
-test('the destiny gate left every home shell; the conversational reading stays in the catalogue', () => {
+// 2026-10-17: 운명의 문(연이 상담 1회 5,000원)이 홈 1:1 상담 줄로 돌아왔다. 모든 셸 사본에 한 번씩 실리고,
+// 가격 문구는 빌더가 결제 정본(fortune-chat-consultation)과 대조한다.
+test('the destiny gate is back once in every home shell; the conversational reading stays in the catalogue', () => {
   const shells = ['index.html', 'public/index.html', 'public/static/index.html', 'public/en/index.html', 'public/ja/index.html', 'public/zh/index.html'];
   assert.match(read('js/core/service-registry.js'), /id: "fortune-chat",[\s\S]{0,200}href: "\/fortune-chat\/"/);
   for (const shell of shells) {
     const html = read(shell);
-    assert.doesNotMatch(html, /id="fortuneGatewayEntry"/, shell);
+    assert.equal((html.match(/id="fortuneGatewayEntry"/g) || []).length, 1, shell);
+    assert.match(html, /href="\/fortune-chat\/\?character=yeoni"/, shell);
     // 계정 무료 3회는 총량이라 "매일" 로 약속하면 안 된다.
     assert.doesNotMatch(html, /매일 무료|하루 무료/, shell);
     // 다이얼로그를 열지 않으면서 aria-haspopup 을 달아 두면 스크린리더에 거짓말을 하게 된다.

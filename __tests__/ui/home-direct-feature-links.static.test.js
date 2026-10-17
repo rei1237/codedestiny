@@ -9,8 +9,8 @@ const home = read("index.html");
 const registry = read("js/core/service-registry.js");
 const template = read("templates/home-funnel.html");
 
-// 2026-10-17 "직관성": 홈은 대표 상담 덱 → 무료로 먼저(세 장) → 이용권 → 모든 운세 버튼 → 링크 한 줄, 이 순서 하나다.
-const flow = ['id="cdhFeatured"', 'id="cdhQuickSlot"', 'id="cdhPass"', 'data-action="cdOpenAllFortunes"', 'class="cdh-links"'];
+// 2026-10-17 "직관성" + 같은 날 고급화: 대표 상담 덱 → 무료로 먼저(여섯 장) → 1:1 상담(연이·네오) → 이용권 → 뮤직비디오 → 모든 운세 버튼 → 미니 게임 링크 → 달빛 이야기.
+const flow = ['id="cdhFeatured"', 'id="cdhQuickSlot"', 'class="cdh-consult"', 'id="cdhPass"', 'id="cdhMoonlightMv"', 'data-action="cdOpenAllFortunes"', 'class="cdh-links"', 'class="cdh-story"'];
 for (let i = 1; i < flow.length; i += 1) {
   const prev = template.indexOf(flow[i - 1]);
   const next = template.indexOf(flow[i]);
@@ -26,11 +26,14 @@ assert.ok(quickSection, "홈 무료 바로 시작 섹션을 찾지 못했습니�
 for (const link of [
   'href="/?action=cdOneStepFreeSajuEntry" data-action="cdOneStepFreeSajuEntry"',
   'href="/?action=cdHomeTarotEntry" data-action="cdHomeTarotEntry"',
-  'href="/today/"',
+  'href="/?action=cdHomeZiweiEntry" data-action="cdHomeZiweiEntry"',
+  'href="/?action=cdHomeSukuyoEntry" data-action="cdHomeSukuyoEntry"',
+  'href="/?action=cdHomeVedicEntry" data-action="cdHomeVedicEntry"',
+  'href="/?action=cdHomeAstroEntry" data-action="cdHomeAstroEntry"',
 ]) assert.ok(quickSection.includes(link), `직접 기능 링크가 없습니다: ${link}`);
 assert.doesNotMatch(quickSection, /data-cd-open-collection/, 'home tiles open the selected fortune directly');
-assert.deepEqual([...quickSection.matchAll(/data-cd-service-id="([^"]+)"/g)].map(m => m[1]), ['saju', 'tarot']);
-assert.equal([...quickSection.matchAll(/href="\/\?action=([^"]+)" data-action="\1"/g)].length, 2, 'early clicks retain the selected action before JavaScript is ready');
+assert.deepEqual([...quickSection.matchAll(/data-cd-service-id="([^"]+)"/g)].map(m => m[1]), ['saju', 'tarot', 'ziwei', 'sukuyo', 'vedic', 'astrology']);
+assert.equal([...quickSection.matchAll(/href="\/\?action=([^"]+)" data-action="\1"/g)].length, 6, 'early clicks retain the selected action before JavaScript is ready');
 
 const signatureSection = home.match(/<section[^>]*id="cdSignatureConsult"[\s\S]*?<\/section>/)?.[0] || '';
 assert.ok(signatureSection, '대표 운명 상담 섹션을 찾지 못했습니다');

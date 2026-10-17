@@ -68,9 +68,9 @@ test('yehwa-motifs.css is generated, paired for Safari, quiet, and repainted for
 
 test('seals are child spans on the signature deck cards', () => {
   const html = read('index.html');
-  // 2026-10-17 "직관성": 운명의 문·초융합 카드가 홈에서 빠져 인장은 대표 상담 덱 6장에만 남는다.
-  assert.equal((html.match(/<span class="cd-yehwa-seal"/g) || []).length, 6, 'expected 6 seals (대표 상담 6)');
-  assert.equal((html.match(/class="cd-yehwa-seal" aria-hidden="true"/g) || []).length, 6, 'every seal must be aria-hidden');
+  // 2026-10-17: 대표 상담 덱 6장 + 홈으로 돌아온 운명의 문(연이 상담) 1장.
+  assert.equal((html.match(/<span class="cd-yehwa-seal"/g) || []).length, 7, 'expected 7 seals (대표 상담 6 + 운명의 문 1)');
+  assert.equal((html.match(/class="cd-yehwa-seal" aria-hidden="true"/g) || []).length, 7, 'every seal must be aria-hidden');
   // 🔴 ::before/::after 로 바꾸지 말 것 — .cd-sig-card 는 animation-fill-mode:backwards 인 cdSigRise 를 돌아
   // 의사요소가 시작 프레임 값에 붙들린다. 자식 span 이라야 카드와 함께 움직인다(hover/active 실측 동일 좌표).
   const sig = html.match(/<a class="cd-sig-card(?: cd-sig-card--[a-z]+)?"[^>]*>[^<]*<span class="cd-yehwa-seal"/g) || [];
@@ -79,8 +79,8 @@ test('seals are child spans on the signature deck cards', () => {
   // 72px 인장은 높이의 68% 이고, 그 크기에서는 꽃잎이 직선 방사살로 잘려 "시계 밴드"로 읽혔다.
   const quick = html.match(/<a class="cd-quick-card"[^>]*>[^<]*<span class="cd-yehwa-seal"/g) || [];
   assert.equal(quick.length, 0, `빠른 서비스 카드에는 인장이 없어야 한다 (현재 ${quick.length})`);
-  // 스파클은 운명의 문 아트 상자 안에만 있었다 — 카드와 함께 홈에서 빠졌다.
-  assert.equal((html.match(/cd-yehwa-sparkle--/g) || []).length, 0, '스파클은 운명의 문 카드와 함께 홈에서 빠졌다');
+  // 스파클은 운명의 문 아트 상자 안에만 있다 — 2026-10-17 문 카드와 함께 돌아왔다(a·b·c 세 개).
+  assert.equal((html.match(/cd-yehwa-sparkle--/g) || []).length, 3, '스파클은 운명의 문 아트 상자에만 세 개');
 });
 
 test('seal and sparkle placements are generated for every host and repainted for neo', () => {

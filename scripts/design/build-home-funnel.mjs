@@ -3,25 +3,34 @@ import { runInNewContext } from 'node:vm';
 import { CURRENT_PASS_PLANS } from '../../lib/payment/pass-policy.js';
 import { listServicePackPlans } from '../../worker/payments/service-pack-policy.js';
 import { FEATURE_KEY_PRICE_TABLE } from '../../worker/lib/paid-feature-registry.js';
+import { renderNeoEmailHomeEntry } from '../../lib/brand/neo-email-home-entry.mjs';
 
 const original = readFileSync('index.html', 'utf8');
 const vars = {};
 
-// 2026-10-17 "직관성": 홈은 대표 상담 덱·무료 세 장·이용권만 조립한다. 예전 홈 섹션(고민 칩·탐색기·오늘 허브·뮤직비디오 등)은
+// 2026-10-17 "직관성": 홈은 대표 상담 덱·무료 여섯 체계·1:1 상담·이용권·뮤직비디오를 조립한다. 예전 홈 섹션(고민 칩·탐색기·오늘 허브 등)은
 // 모두 생성 영역 안에만 있었으므로 영역을 갈아끼우면 함께 빠진다 — 기능 페이지와 URL 은 그대로다.
-// 무료로 먼저 — 세 장만. 사주·타로는 레지스트리의 '무료 시작' 항목이고, 오늘의 운세는 /today/ 페이지다.
+// 무료로 먼저 — 여섯 체계. 모두 레지스트리의 '무료 시작' 항목이고 액션도 레지스트리에서 읽는다(오늘의 운세는 전체 운세 시트에 남긴다).
 const registryWindow = {};
 runInNewContext(readFileSync('js/core/service-registry.js', 'utf8'), { window: registryWindow });
-for (const id of ['saju', 'tarot']) {
-  const service = registryWindow.__cdServiceRegistry.find(item => item.id === id);
-  if (service?.price !== '무료 시작') throw new Error('Free home card must retain its catalog free entry: ' + id);
-}
 const FREE_CARDS = [
-  { attrs: 'data-cdh-free href="/?action=cdOneStepFreeSajuEntry" data-action="cdOneStepFreeSajuEntry" data-cd-service-id="saju"', image: '/images/home/illustrated/method-saju-160.webp', key: 'freeSaju', title: '무료 사주', note: 'freeSajuNote', noteKo: '생년월일로 바로 보기' },
-  { attrs: 'href="/today/"', image: '/images/today/yeoni-daily-tea-320.webp', key: 'freeToday', title: '오늘의 운세', note: 'freeTodayNote', noteKo: '매일 새로 열리는 하루 운' },
-  { attrs: 'href="/?action=cdHomeTarotEntry" data-action="cdHomeTarotEntry" data-cd-service-id="tarot"', image: '/images/home/illustrated/method-tarot-160.webp', key: 'freeTarot', title: '타로', note: 'freeTarotNote', noteKo: '카드 한 장으로 가볍게' },
-];
-vars.quick = `<section id="cdQuickServices" class="cdh-free__grid" aria-labelledby="cdhFreeTitle" data-cd-funnel-section="quick_services" data-marker="cd-quick-services-free-v20261017">${FREE_CARDS.map(card => `<a class="cdh-free-card" ${card.attrs}><img src="${card.image}" width="160" height="160" alt="" loading="lazy" decoding="async"><span class="cdh-free-card__copy"><strong data-cd-trans="home.simpleHome.${card.key}">${card.title}</strong><small data-cd-trans="home.simpleHome.${card.note}">${card.noteKo}</small></span></a>`).join('')}</section>`;
+  { id: 'saju', key: 'freeSaju', title: '무료 사주', noteKo: '생년월일로 바로 보기', attrs: 'data-cdh-free ' },
+  { id: 'tarot', key: 'freeTarot', title: '타로', noteKo: '카드 한 장으로 가볍게' },
+  { id: 'ziwei', key: 'freeZiwei', title: '자미두수', noteKo: '12궁 명반 보기' },
+  { id: 'sukuyo', key: 'freeSukuyo', title: '숙요점', noteKo: '나의 본명숙 찾기' },
+  { id: 'vedic', key: 'freeVedic', title: '베다점', noteKo: '라그나·나크샤트라 보기' },
+  { id: 'astrology', key: 'freeAstro', title: '점성술', noteKo: '출생차트 행성 배치' },
+].map(card => {
+  const service = registryWindow.__cdServiceRegistry.find(item => item.id === card.id);
+  if (service?.price !== '무료 시작' || !service.action) throw new Error('Free home card must retain its catalog free entry: ' + card.id);
+  return { attrs: '', ...card, action: service.action };
+});
+vars.quick = `<section id="cdQuickServices" class="cdh-free__grid" aria-labelledby="cdhFreeTitle" data-cd-funnel-section="quick_services" data-marker="cd-quick-services-free-v20261017b">${FREE_CARDS.map(card => `<a class="cdh-free-card" ${card.attrs}href="/?action=${card.action}" data-action="${card.action}" data-cd-service-id="${card.id}"><span class="cdh-free-card__medal" aria-hidden="true"><img src="/images/home/illustrated/method-${card.id}-160.webp" width="160" height="160" alt="" loading="lazy" decoding="async"></span><span class="cdh-free-card__copy"><strong data-cd-trans="home.simpleHome.${card.key}">${card.title}</strong><small data-cd-trans="home.simpleHome.${card.key}Note">${card.noteKo}</small></span><span class="cdh-free-card__seal" data-cd-trans="home.simpleHome.freeBadge">무료</span></a>`).join('')}</section>`;
+
+// 1:1 상담 — 연이 대화 상담(1회 5,000원)과 네오 이메일 상담. e76391603 에서 홈에서 빠졌던 두 입구를 다시 둔다.
+const chatPrice = Number(FEATURE_KEY_PRICE_TABLE['fortune-chat-consultation']?.amountKRW);
+if (chatPrice !== 5000) throw new Error('Yeoni chat home door copy says 1회 5,000원; registry amount changed: ' + chatPrice);
+vars.neoEmailConsultation = renderNeoEmailHomeEntry();
 const signatureProducts = [
   {
     id: 'neo-operation-room',

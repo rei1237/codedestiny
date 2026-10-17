@@ -256,6 +256,29 @@
     return METHOD_HUB_IDS.indexOf(item.id) !== -1 ? "/feature-details/assets/" + item.id + "-320.webp" : "";
   }
 
+  /* 2026-10-17 모든 운세 검색 결과는 실제 마스터 초상을 먼저 쓴다(components/fortune/master-profiles.ts 와 같은 파일).
+     전담 마스터가 있는 상품은 id 로, 나머지는 첫 체계(methods)로 고른다. 레지스트리에는 이미지를 저장하지 않는다.
+     포인트·음악·노벨처럼 상담이 아닌 항목은 기존 그림을 그대로 둔다. */
+  var MASTER_PORTRAIT_BASE = "/images/master-profiles/";
+  var MASTER_BY_ID = {
+    "love-secret-ai": "yeoni-love-portrait-360", "new-year-ai": "neo-new-year-portrait-360", "life-book-ai": "yun-life-book-portrait-360",
+    "master-love-codex": "master-love-portrait", "neo-operation-room": "neo-strategy-portrait", "fortune-tea-house": "yeoni-teahouse-portrait",
+    "fortune-chat": "yeoni-teahouse-portrait", "palm-reading": "yeoni-palm-portrait", "ziwei": "musung-ziwei-portrait",
+    "sukuyo": "hanbi-sukuyo-portrait", "astrology": "yun-astrology-portrait", "vedic": "yun-astrology-portrait"
+  };
+  var MASTER_BY_METHOD = {
+    saju: "neo-strategy-portrait", tarot: "yeoni-teahouse-portrait", ziwei: "musung-ziwei-portrait",
+    sukuyo: "hanbi-sukuyo-portrait", astrology: "yun-astrology-portrait", vedic: "yun-astrology-portrait"
+  };
+  var MASTER_SKIP_IDS = ["points", "music", "novel"];
+  function masterImage(item) {
+    if (!item || !item.id || MASTER_SKIP_IDS.indexOf(item.id) !== -1) return "";
+    var key = MASTER_BY_ID[item.id];
+    var methods = item.methods || [];
+    for (var i = 0; !key && i < methods.length; i += 1) key = MASTER_BY_METHOD[methods[i]];
+    return MASTER_PORTRAIT_BASE + (key || "yeoni-teahouse-portrait") + ".webp";
+  }
+
   /* 이미지 판정용 href 키는 쿼리를 남긴다 — normHref 처럼 떼면 /index.html?action=… 항목이
      전부 "/index.html" 하나로 뭉쳐 남의 기능 이미지를 빌린다. */
   function imageHrefKey(href) {
@@ -405,8 +428,10 @@
     var media = document.createElement("span");
     media.className = className;
     var image = document.createElement("img");
-    image.src = item.image || featureTileImage(item) || methodHubImage(item) || DEFAULT_SERVICE_IMAGE;
+    var master = masterImage(item);
+    image.src = item.image || master || featureTileImage(item) || methodHubImage(item) || DEFAULT_SERVICE_IMAGE;
     image.alt = item.imageAlt || (item.name ? item.name + " 대표 이미지" : "운세 서비스 대표 이미지");
+    if (master && !item.image) media.className += " is-master";
     image.loading = "lazy";
     image.decoding = "async";
     image.width = 320;
