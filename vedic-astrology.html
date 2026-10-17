@@ -7,6 +7,8 @@
 <link rel="stylesheet" href="/styles/fortune-consultation-entry.css?v=build-000000000000">
 <script src="/js/core/feature-pricing-store.js"></script>
 <script src="/js/core/fortune-consultation-ui.js?v=build-000000000000"></script>
+<link rel="stylesheet" href="/styles/saju-reading.css">
+<script defer src="/js/prompt-hub-honey.js"></script>
 <title>베다 점성술 — 별들의 지도</title>
 <script src="/js/core/standalone-ai-locale.js?v=20260909-1"></script>
 <script src="/js/core/pass-verdict.js?v=build-5b64e839f591"></script>
@@ -296,7 +298,7 @@ button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
 .vedic-lock-teaser span:nth-child(3){width:72%}
 .vedic-lock-teaser span:nth-child(4){width:94%}
 .vedic-lock-teaser span:nth-child(5){width:64%}
-.vedic-lock-body{position:relative;margin-top:64px;text-align:center}
+.vedic-lock-body{position:relative;text-align:left}
 .vedic-lock-badge{display:inline-block;font-size:11px;letter-spacing:0.06em;padding:4px 10px;border-radius:999px;border:1px solid var(--bordergold);color:var(--gold2);background:rgba(212,175,55,0.1)}
 .vedic-lock-title{margin-top:10px;font-size:15px;font-weight:700;color:var(--text)}
 .vedic-lock-desc{margin-top:6px;font-size:13px;line-height:1.65;color:var(--text2)}
@@ -5520,6 +5522,9 @@ function profileToForm(profile){
 
 // ─── CALCULATE FROM PROFILE (로컬 Swiss 라이브러리 계산) ───────
 function doCalculateFromProfile(profile){
+  G.honeyProfileId=String(profile.profileId||profile.id||'');
+  _vedicBasicUnlocked=false;
+  window.dispatchEvent(new CustomEvent('cd:profile-changed'));
   const f=profileToForm(profile);
   if(isNaN(f.year)||isNaN(f.month)||isNaN(f.day)){alert('생년월일을 확인해 주세요. (연도:'+f.year+', 월:'+f.month+', 일:'+f.day+')');return;}
   if(isNaN(f.lat)||isNaN(f.lon)){alert('위도/경도를 확인해 주세요. 장소를 선택하거나 수동으로 입력해 주세요.');return;}
@@ -7678,6 +7683,11 @@ var VEDIC_BASIC_AMOUNT_KRW=5000;
 var VEDIC_BASIC_RESUME_KIND='vedic-basic-reading';
 var _vedicBasicUnlocked=false;
 var _vedicBasicGateBusy=false;
+window.cdHoneyCurrentProfileId=function(){return G.honeyProfileId||'';};
+window.addEventListener('cd:honey-updated',function(event){
+  if(event.detail?.featureKey===VEDIC_BASIC_FEATURE_KEY && event.detail.profileId===G.honeyProfileId) _vedicBasicApplyUnlock(G.vedicBasicDetailId||'');
+});
+window.addEventListener('cd:auth-changed',function(){_vedicBasicUnlocked=false;refreshVedicBasicUnlockStatus().then(function(){if(G.chart)renderResult();});});
 
 var VEDIC_BASIC_LOCK_LABELS={
   overview:'종합 해석 카드',
@@ -7702,13 +7712,12 @@ function _vedicBasicLockCard(sectionId){
   var label=VEDIC_BASIC_LOCK_LABELS[sectionId]||'심층 해석';
   return ''
     +'<div class="vedic-lock" data-vedic-lock="'+hEsc(sectionId)+'">'
-    +  '<div class="vedic-lock-teaser" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>'
     +  '<div class="vedic-lock-body">'
     +    '<div class="vedic-lock-badge">🔒 '+hEsc(label)+'</div>'
-    +    '<div class="vedic-lock-title">전체 해석은 한 번만 열면 계속 볼 수 있습니다</div>'
+    +    '<div class="vedic-lock-title">내 기질과 관계, 시기의 흐름을 한눈에</div>'
     +    '<div class="vedic-lock-desc">성향·관계·재물·다샤·에너지·심화 6개 탭의 해석 본문과 상세 8종이 함께 열립니다. 회당 결제가 아니라 이 기능의 영구 해금입니다.</div>'
     +    '<div class="vedic-lock-free">출생 차트·행성 배치표·라그나·낙샤트라·현재 대운은 계속 무료입니다.</div>'
-    +    '<button type="button" class="btn-primary vedic-lock-cta" onclick="openVedicBasicUnlock()">🔓 전체 해석 열기 · '+VEDIC_BASIC_AMOUNT_KRW.toLocaleString('ko-KR')+'원</button>'
+    +    '<button type="button" class="btn-primary vedic-lock-cta" data-honey-cash-key="vedic_basic_reading" onclick="openVedicBasicUnlock()">🔓 전체 해석 열기 · '+VEDIC_BASIC_AMOUNT_KRW.toLocaleString('ko-KR')+'원</button>'
     +    '<div class="vedic-lock-note">달빛 이용권을 가지고 있으면 추가 결제 없이 열립니다.</div>'
     +  '</div>'
     +'</div>';
@@ -7730,10 +7739,12 @@ function _vedicBasicAuthHeaders(){
 
 /** 서버에 영구 해금 보유 여부를 물어 상태만 갱신한다(결제 진입 판정이 아니다). */
 function refreshVedicBasicUnlockStatus(){
-  return fetch('/api/billing/unlock-status?featureKey='+encodeURIComponent(VEDIC_BASIC_FEATURE_KEY),{headers:_vedicBasicAuthHeaders(),credentials:'include'})
+  var requestedProfile=G.honeyProfileId||'';
+  return fetch('/api/billing/unlock-status?featureKey='+encodeURIComponent(VEDIC_BASIC_FEATURE_KEY)+'&profileId='+encodeURIComponent(requestedProfile),{headers:_vedicBasicAuthHeaders(),credentials:'include'})
     .then(function(res){ return res.ok?res.json().catch(function(){return null;}):null; })
     .then(function(payload){
       var data=(payload&&(payload.data||payload))||{};
+      if(requestedProfile!==(G.honeyProfileId||''))return false;
       if(data.unlocked===true||data.alreadyUnlocked===true||data.hasUnlock===true){ _vedicBasicUnlocked=true; }
       return _vedicBasicUnlocked;
     })

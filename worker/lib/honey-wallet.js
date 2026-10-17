@@ -6,7 +6,7 @@ import { createHttpError } from "./http.js";
 // 찻집 라우트(fortune-tea-house.js)는 LLM 의존이 무거워 여기서 import 하지 않고 이름만 맞춘다.
 export const HONEY_SCOPE = "FORTUNE_TEA_HOUSE";
 // 출석 N번마다 1방울. 출석 횟수는 누적이라 연속이 끊겨도 다음 지급까지 남은 수는 유지된다.
-export const HONEY_ATTENDANCE_EVERY = 3;
+export const HONEY_ATTENDANCE_EVERY = 1;
 export const PROMPT_HUB_HONEY_COST = 1;
 
 export const kstDay = (now = new Date()) => new Date(now.getTime() + 9 * 3600000).toISOString().slice(0, 10);
@@ -15,7 +15,7 @@ const isDuplicate = (error) => Number(error?.code) === 11000;
 const unwrap = (result) => (result && Object.prototype.hasOwnProperty.call(result, "value") ? result.value : result) || null;
 const count = (value) => Math.max(0, Math.floor(Number(value) || 0));
 
-function collections() {
+export function honeyCollections() {
   const db = (scopeConnection() || mongoose.connection).db;
   return {
     wallets: db.collection("fortune_tea_house_honey_wallets"),
@@ -23,7 +23,7 @@ function collections() {
   };
 }
 
-async function inTransaction(env, run) {
+export async function withHoneyTransaction(env, run) {
   return withMongoRetry(env, async () => {
     const session = await (scopeConnection() || mongoose).startSession();
     try {
@@ -35,6 +35,9 @@ async function inTransaction(env, run) {
     }
   });
 }
+
+const collections = honeyCollections;
+const inTransaction = withHoneyTransaction;
 
 function statePayload(wallet, day, attended) {
   const attendanceCount = count(wallet?.attendanceCount);
@@ -57,9 +60,10 @@ export async function honeyAttendanceStatus(env, userId, now = new Date()) {
   const { wallets, ledgers } = collections();
   const [wallet, attendance] = await withMongoRetry(env, () => Promise.all([
     wallets.findOne({ userId: uid, serviceScope: HONEY_SCOPE }),
-    ledgers.findOne({ _id: attendanceLedgerId(uid, day) }, { projection: { _id: 1 } }),
+    ledgers.findOne({ _id: attendanceLedgerId(uid, day) }, { projection: { _id: 1, amount: 1 } }),
   ]));
-  return statePayload(wallet, day, attendance);
+  // A legacy same-day attendance with zero reward can claim its one-time top-up.
+  return statePayload(wallet, day, attendance && count(attendance.amount) >= 1);
 }
 
 export async function attendHoney(env, userId, now = new Date()) {
@@ -69,7 +73,20 @@ export async function attendHoney(env, userId, now = new Date()) {
   try {
     await inTransaction(env, async (session) => {
       rewarded = 0; awarded = false;
-      if (await ledgers.findOne({ _id }, { session })) return;
+      const existing = await ledgers.findOne({ _id }, { session });
+      if (existing && count(existing.amount) >= 1) return;
+      if (existing) {
+        const toppedUp = await ledgers.updateOne({ _id, amount: 0 }, {
+          $set: { amount: 1, reason: 'HONEY_ATTENDANCE_REWARD', toppedUpAt: now },
+        }, { session });
+        if (!toppedUp.modifiedCount) return;
+        const credited = await wallets.updateOne({ userId: uid, serviceScope: HONEY_SCOPE }, {
+          $inc: { balance: 1, totalEarned: 1 }, $set: { lastEarnedAt: now, updatedAt: now },
+        }, { session });
+        if (!credited.modifiedCount) throw failure(409, "HONEY_WALLET_MISSING");
+        rewarded = 1; awarded = true;
+        return;
+      }
       const wallet = unwrap(await wallets.findOneAndUpdate(
         { userId: uid, serviceScope: HONEY_SCOPE },
         { $inc: { attendanceCount: 1 }, $set: { lastAttendedDay: day, updatedAt: now }, $setOnInsert: { createdAt: now } },

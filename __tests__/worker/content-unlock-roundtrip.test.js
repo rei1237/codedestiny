@@ -26,6 +26,7 @@ beforeAll(async () => {
     CONTENT_ENTITLEMENT_SCOPES: { PROFILE: "PROFILE", USER: "USER", BIRTH: "BIRTH" },
     CONTENT_ENTITLEMENT_SOURCES: {
       COIN: "COIN",
+      HONEY: "HONEY",
       PAYMENT: "PAYMENT",
       PASS: "PASS",
       MONTHLY: "MONTHLY",
@@ -149,4 +150,24 @@ test("레거시 serviceKey(ziwei/saju)로 남은 행도 계속 매칭된다", as
   await findActivePaidContentUnlockByServiceKeys(READ_INPUT);
 
   expect(matchesFilter(stored, capturedReadFilter())).toBe(true);
+});
+
+
+test("꿀방울 22종은 실제 영구 권리 쓰기와 기존 읽기가 같은 출생 행을 찾는다", async () => {
+  const { HONEY_UNLOCK_PRODUCTS } = await import('../../worker/lib/honey-unlock-catalog.js');
+  const { grantPermanentUnlock, findActivePaidContentUnlock } = await import('../../worker/lib/content-unlocks.js');
+  const session = {};
+  for (const product of HONEY_UNLOCK_PRODUCTS) {
+    findOneAndUpdate.mockClear(); findOne.mockClear();
+    const readQuery = { session: jest.fn(), lean: async () => null };
+    findOne.mockReturnValue(readQuery);
+    const target = { userId: TEST_USER_ID, profileId: 'profile-1', featureKey: product.featureKey, session };
+    await grantPermanentUnlock({ ...target, source: 'HONEY', evidenceId: 'honey-receipt' });
+    const stored = capturedDocument();
+    expect(stored).toMatchObject({ source: 'HONEY', grantType: 'permanent_unlock', scope: 'BIRTH', profileId: BIRTH_PROFILE_ID });
+    await findActivePaidContentUnlock(target);
+    expect(matchesFilter(stored, capturedReadFilter())).toBe(true);
+    expect(readQuery.session).toHaveBeenCalledWith(session);
+    expect(findOneAndUpdate.mock.results[0].value.session).toHaveBeenCalledWith(session);
+  }
 });

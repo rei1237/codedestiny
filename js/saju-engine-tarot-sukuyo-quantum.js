@@ -8111,7 +8111,7 @@ function syRenderSukuyoNatureDeepDiveLockCard(feature) {
           return '<span class="sy-moon-chip sy-nature-lock-chip"><span class="sy-moon-chip-dot"></span>' + syCanonicalEsc(label) + '</span>';
         }).join('')
     + '</div>'
-    + '<button type="button" class="sy-nature-lock-cta" data-sy-nature-deep-dive-unlock>본성 심화 해석 열기 · ' + priceLabel + '</button>'
+    + '<button type="button" class="sy-nature-lock-cta" data-honey-cash-key="sukuyo-nature-deep-dive" data-sy-nature-deep-dive-unlock>본성 심화 해석 열기 · ' + priceLabel + '</button>'
     + '</div>';
 }
 
@@ -9024,7 +9024,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           나의 본명숙을 기준으로 27숙과의 관계 지도를 살펴봅니다. 편안하게 통하는 지점과 조율이 필요한 차이를 함께 읽으며, 각 인연을 대하는 방식을 정리해 보세요.
         </p>
         <div data-crafted-static-offer="sukuyo-relationship-encyclopedia"></div>
-        <button type="button" class="sy-dogam-submit" data-sy-dogam-open data-my-idx="${sData ? sData.mansionIdx : ''}" data-my-mansion="${sData ? syCanonicalEsc(sData.mansion) : ''}" data-user-name="${_radarProfileName}">내 인연 도감 열기</button>
+        <button type="button" class="sy-dogam-submit" data-honey-cash-key="sukuyo-relationship-encyclopedia" data-sy-dogam-open data-my-idx="${sData ? sData.mansionIdx : ''}" data-my-mansion="${sData ? syCanonicalEsc(sData.mansion) : ''}" data-user-name="${_radarProfileName}">내 인연 도감 열기</button>
         <div class="sy-dogam-status" data-sy-dogam-status aria-live="polite"></div>
         <div class="sy-dogam-result" data-sy-dogam-result></div>
     </div>`;

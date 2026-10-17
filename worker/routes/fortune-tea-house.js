@@ -1,3 +1,4 @@
+import { HONEY_LETTER_COST, TAROT_ALBUM_UNLOCK_COST } from '../lib/honey-unlock-catalog.js';
 import { canonicalTeaSaju, withTeaSajuLongitude } from "../lib/tea-saju-facts.js";
 import { TEA_SAJU_SPECIALIST_VERSION, TEA_SAJU_SPECIALIST_TARGET, TEA_SAJU_SPECIALIST_SECTIONS, TEA_SAJU_SPECIALIST_RULES, isTeaSajuSpecialist, specialistCheckpointGroups, hasSajuHealthPrediction } from "../lib/tea-saju-specialist.js";
 import { buildTeaSajuMonthlyRows } from "../lib/tea-saju-monthly.js";
@@ -92,8 +93,8 @@ const SUKUYO_MIN_RESULT_CHARS = 14000;
 // 숙요 궁합의 필수 장 — strengths/cautions 목록만으로는 14,000자를 담지 못해 장 단위로 나눠 쓴다.
 const SUKUYO_CHAPTER_TITLES = Object.freeze(["월별 흐름 — 두 별의 석 달", "관계 처방 — 서로에게 맞는 거리와 말", "실행 체크리스트 — 함께 확인할 것"]);
 const FORTUNE_TEA_HOUSE_SCOPE = "FORTUNE_TEA_HOUSE";
-const HONEY_LETTER_COST = 10;
-const TAROT_ALBUM_UNLOCK_COST = 10;
+
+
 const VALID_HONEY_CONSULTATION_MODES = new Set(["tarot", "saju", "sajuCompatibility", "sukuyo"]);
 // 타로는 스프레드(3카드/5카드)로 상품이 갈린다 — 정본 가격은 PAYMENT_POLICY.md.
 const FORTUNE_TEA_HOUSE_FEATURE_KEYS = Object.freeze({

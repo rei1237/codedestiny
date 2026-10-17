@@ -3,7 +3,7 @@ import { jest } from "@jest/globals";
 import { readFileSync } from "node:fs";
 
 const owner = "507f1f77bcf86cd799439011";
-let wallets, ledgers;
+let wallets, ledgers, transactionTail = Promise.resolve();
 const clone = (value) => (value == null ? value : structuredClone(value));
 const matches = (row, filter) => Object.entries(filter).every(([key, want]) =>
   want && typeof want === "object" ? Number(row[key]) >= want.$gte : String(row[key]) === String(want));
@@ -24,6 +24,7 @@ function collection(source) {
     updateOne: async (filter, update) => {
       const row = source().find((item) => matches(item, filter));
       if (row) for (const [key, value] of Object.entries(update.$inc || {})) row[key] = (row[key] || 0) + value;
+      if (row) Object.assign(row, update.$set || {});
       return { modifiedCount: row ? 1 : 0 };
     },
     insertOne: async (doc) => {
@@ -41,8 +42,11 @@ const mongooseMock = {
   startSession: async () => ({
     endSession: async () => {},
     withTransaction: async (callback) => {
+      const previous = transactionTail;
+      let release; transactionTail = new Promise(resolve => { release = resolve; });
+      await previous;
       const backup = clone({ wallets, ledgers });
-      try { return await callback(); } catch (error) { ({ wallets, ledgers } = backup); throw error; }
+      try { return await callback(); } catch (error) { ({ wallets, ledgers } = backup); throw error; } finally { release(); }
     },
   }),
 };
@@ -83,6 +87,15 @@ beforeEach(() => {
 });
 
 describe("꿀방울 출석", () => {
+  test("동시 출석과 응답 유실 후 재요청도 당일 1개만 지급한다", async () => {
+    const day = new Date("2026-10-12T03:00:00Z");
+    await Promise.all(Array.from({ length: 5 }, () => attendHoney({}, owner, day)));
+    const retry = await attendHoney({}, owner, day);
+    expect(retry.balance).toBe(1);
+    expect(retry.attendanceCount).toBe(1);
+    expect(ledgers.filter(row => row.type === "attendance")).toHaveLength(1);
+    expect(retry.rewarded).toBe(0);
+  });
   test("같은 날 두 번 출석해도 한 번만 센다", async () => {
     const now = new Date("2026-10-12T03:00:00Z");
     expect((await attendHoney({}, owner, now)).awarded).toBe(true);
@@ -91,13 +104,13 @@ describe("꿀방울 출석", () => {
     expect(again.attendanceCount).toBe(1);
   });
 
-  test("세 번째 출석에 꿀방울 1개를 준다", async () => {
+  test("매일 출석에 꿀방울 1개를 준다", async () => {
     const days = ["2026-10-10", "2026-10-11", "2026-10-12"].map((day) => new Date(`${day}T03:00:00Z`));
     const results = [];
     for (const day of days) results.push(await attendHoney({}, owner, day));
-    expect(results.map((r) => r.rewarded)).toEqual([0, 0, 1]);
-    expect(results[2].balance).toBe(1);
-    expect(results[2].nextRewardIn).toBe(3);
+    expect(results.map((r) => r.rewarded)).toEqual([1, 1, 1]);
+    expect(results[2].balance).toBe(3);
+    expect(results[2].nextRewardIn).toBe(1);
   });
 
   test("하루 경계는 KST 자정이다", async () => {
@@ -106,6 +119,18 @@ describe("꿀방울 출석", () => {
     expect(next.awarded).toBe(true);
     expect(next.day).toBe("2026-10-13");
   });
+});
+
+test("당일 구정책 0개만 한 번 보충하고 과거 날짜는 그대로 둔다", async () => {
+  wallets.push({ userId: owner, serviceScope: "FORTUNE_TEA_HOUSE", balance: 4, attendanceCount: 2 });
+  for (const day of ["2026-10-16", "2026-10-17"]) ledgers.push({ _id: `attendance:${owner}:${day}`, amount: 0 });
+  const now = new Date("2026-10-17T03:00:00Z");
+  expect((await honeyAttendanceStatus({}, owner, now)).attended).toBe(false);
+  expect((await attendHoney({}, owner, now)).balance).toBe(5);
+  expect((await attendHoney({}, owner, now)).rewarded).toBe(0);
+  expect((await honeyAttendanceStatus({}, owner, now)).attended).toBe(true);
+  expect(wallets[0].attendanceCount).toBe(2);
+  expect(ledgers[0].amount).toBe(0);
 });
 
 describe("프롬프트 생성", () => {

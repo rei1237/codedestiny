@@ -128,6 +128,15 @@
     </div>
   </section>
 
+  <section class="cdh-honey" data-cd-honey-widget aria-labelledby="cdHoneyTitle">
+    <div class="cdh-honey__intro"><p class="cdh-intro">하루 한 번, 나를 알아가는 시간</p><h2 id="cdHoneyTitle">매일 모으는 꿀방울</h2><p>하루 한 번 출석하고, 재미 운세와 기본 해석을 열어보세요.</p></div>
+    <div class="cdh-honey__actions"><p class="cdh-honey__balance">내 꿀방울 <strong data-cd-honey-balance>확인 중</strong></p><button type="button" class="cdh-primary" data-cd-honey-attend disabled>출석 확인 중</button><button type="button" class="cdh-honey__uses" data-cd-sheet-open="cdHoneySheet" aria-haspopup="dialog" aria-controls="cdHoneySheet">꿀방울 사용처 보기</button></div>
+    <p data-cd-honey-status role="status" aria-live="polite"></p><button type="button" data-cd-honey-retry hidden>다시 확인하기</button>
+  </section>
+  <dialog class="cd-sheet" id="cdHoneySheet" data-cd-sheet aria-labelledby="cdHoneySheetTitle"><div class="cd-sheet__panel"><div class="cd-sheet__head"><h2 id="cdHoneySheetTitle">꿀방울로 여는 나의 이야기</h2><button type="button" class="cd-sheet__close" data-cd-sheet-close aria-label="닫기">×</button></div><div class="cd-sheet__body"><p>콘텐츠마다 필요한 개수가 달라요. 기본 해석은 저장된 프로필의 출생정보를 기준으로 열립니다.</p><p data-cd-honey-sheet-state role="status"></p><div data-cd-honey-uses></div></div></div></dialog>
+
+  <dialog class="cd-sheet" id="cdHoneyUnlockSheet" data-cd-sheet aria-labelledby="cdHoneyConfirmTitle"><div class="cd-sheet__panel"><div class="cd-sheet__head"><h2 id="cdHoneyConfirmTitle" data-honey-confirm-title>콘텐츠 열기</h2><button type="button" class="cd-sheet__close" data-cd-sheet-close aria-label="닫기">×</button></div><div class="cd-sheet__body"><p data-honey-confirm-cost></p><p>선택한 프로필의 출생정보로 이 콘텐츠를 엽니다. 같은 계정·출생정보로 다시 볼 때는 추가로 쓰지 않아요.</p><button type="button" class="cdh-primary" data-honey-confirm>열기</button></div></div></dialog>
+
   <section class="cdh-mypass" id="cdhMyPass" aria-labelledby="cdhMyPassTitle" hidden><h2 class="cdh-mypass__title" id="cdhMyPassTitle" data-cd-trans="home.passCopy.myTitle">내 이용권</h2><ul class="cdh-mypass__list" id="cdhMyPassList" role="list"></ul></section>
 
   <div id="cdhCookieSlot"></div>

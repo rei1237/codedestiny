@@ -1,4 +1,5 @@
 import { renderConsultationSampleGuide } from './consultation-sample-guide.mjs';
+import { renderBasicFortuneDetail } from './basic-fortune-detail.mjs';
 /** The static popup and React pages render the same escaped, display-only panels. */
 const escape = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
 const safeImage = value => {
@@ -96,6 +97,8 @@ function panelSources(panel) {
 
 /** Keep the full essay available as text, without duplicate image-alt narration. */
 export function renderCraftedDetail(detail, { eager = true } = {}) {
+  const basic = renderBasicFortuneDetail(detail);
+  if (basic) return basic;
   const panels = craftedPanels(detail);
   if (!panels.length) return '';
   const masters = craftedMasters(detail);
