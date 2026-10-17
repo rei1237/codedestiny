@@ -9,3 +9,5 @@
 - Motion: sprite frames plus gentle movement; visible pause control; reduced motion uses static pose with equivalent observation text.
 - QA: Playwright local-only network, 360/390/430/1280 widths, four outcomes, repeat, pause, reduced motion, prior local storage preserved, no JS errors. Read-only visual reviewer: no major defects in 390/1280/result captures.
 - Detector: uppercase brand tracking, intentionally padded-by-layout pond artwork, and page-local display/type scale flagged as warnings; no blocker. New local typography does not change the global design system.
+
+- Service cover (2026-10-17): fortune-fish-cover-v1.webp, generated with built-in ImageGen using the approved fish sprite as character reference. One orange goldfish, cream and sea-glass gouache water; 1280px WebP. Used by the home service introduction and standalone Open Graph image. Sprite and reading behavior unchanged.
