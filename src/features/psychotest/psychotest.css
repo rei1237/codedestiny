@@ -299,8 +299,9 @@
 .psy-count { display:flex; justify-content:space-between; color:#cbb5c2; font-size:14px; margin:12px 0 24px; }
 .psy-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:40px 24px; }
 .psy-test { display:block; color:inherit; text-decoration:none; min-width:0; }
-.psy-test svg { display:block; width:100%; height:auto; border-radius:4px; transition:filter .2s; }
-.psy-test:hover svg { filter:brightness(1.12); }
+.psy-artwork { display:block; width:100%; height:auto; border-radius:4px; transition:filter .2s; }
+.psy-test:hover .psy-artwork { filter:brightness(1.12); }
+.psy-artwork img { display:block; width:100%; height:auto; aspect-ratio:3/2; border-radius:inherit; }
 .psy-test-copy { padding:19px 0 0; }
 .psy-test-copy>p:first-child { display:flex; justify-content:space-between; gap:8px; font-size:12px; color:#d1b9c7; }
 .psy-test h2 { font-size:21px; line-height:1.4; font-weight:600; margin:12px 0 8px; word-break:keep-all; }
