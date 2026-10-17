@@ -2074,6 +2074,11 @@ const app = {
       ctx.waitUntil(monitorPaidNarratives(env).catch(() => {
         console.error('[paid-narrative-monitor] failed');
       }));
+      // Gemini 지출 한도 알림의 재발송 백스톱과 복구 추정 알림. 생성·환불 흐름은 건드리지 않는다.
+      const { checkProviderRecovery } = await import("./lib/provider-outage-alert.js");
+      ctx.waitUntil(checkProviderRecovery(env).catch(() => {
+        console.error('[provider-outage] recovery check failed');
+      }));
       return;
     }
 

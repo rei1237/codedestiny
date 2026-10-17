@@ -10,6 +10,8 @@ import {
 import {
   assertWorkersAiInputTokenLimit,
 } from "./workers-ai-input-token-limit.mjs";
+import { classifyGeminiHttpError, geminiOutageCode } from "./gemini-provider-errors.mjs";
+import { reportProviderOutage } from "../worker/lib/provider-outage-alert.js";
 
 export interface LLMRequest {
   /** Total generation attempts across Gemini, cache recovery and Workers AI. */
@@ -933,6 +935,8 @@ async function callGeminiPrimary(
     if (!response.ok) {
       const requestError = new Error(payload.error?.message || `Gemini request failed (${response.status}).`);
       (requestError as { status?: number }).status = response.status;
+      const code = classifyGeminiHttpError(response.status, payload.error?.message);
+      if (code) (requestError as { code?: string }).code = code;
       throw requestError;
     }
 
@@ -1109,8 +1113,10 @@ function generationTimeoutFailure(error: unknown): Error {
 // 일시적 장애(429/5xx/overloaded/빈 응답)만 재시도 대상. 타임아웃은 이미 시간
 // 예산을 소진했고 장문 생성은 재시도 시 런타임 한도를 넘길 수 있어 제외한다.
 // 키 미설정/400·403·404는 재시도해도 성공하지 않으므로 제외한다.
+// 월 지출 한도·결제 비활성은 429/403 이어도 계정 조치 전까지 계속 거절되므로 제외한다.
 function isTransientGeminiError(error: unknown): boolean {
   if (isGenerationTimeout(error)) return false;
+  if (geminiOutageCode(error)) return false;
   const status = Number((error as { status?: number })?.status || 0);
   if (status === 429 || (status >= 500 && status <= 599)) return true;
   const message = getErrorMessage(error).toLowerCase();
@@ -1217,6 +1223,11 @@ async function callLLMUncached(
       geminiError = error;
     }
   }
+
+  // 한도 장애는 폴백 성공 여부와 무관하게 운영자에게 알린다. 내부에서 시간 상한을 두고
+  // 예외를 삼키므로 생성 흐름(재시도·폴백·환불)은 바뀌지 않는다.
+  const outageCode = geminiOutageCode(geminiError);
+  if (outageCode) await reportProviderOutage(env, outageCode);
 
   if (budget.remaining <= 0 || request.fallbackToWorkersAI === false) {
     throw geminiError;
