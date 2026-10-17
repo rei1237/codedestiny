@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-17
-next: "D단계 남은 상품 이전: 자미두수 생애·연간 흐름(ziwei_life_yearly_flow, 가드 수정이 자동 모드에 막혀 사용자 처리 대기) · 점성술 시나스트리 2종·12개월 흐름(통합 중). 사용자 결정 대기: 마야 홈 타일 1회 표기, 계정 묶음 구매의 프로필 무관 인정."
+next: "D단계 남은 상품 이전은 자미두수 생애·연간 흐름(ziwei_life_yearly_flow) 하나 — 사용자가 승인한 가드 확장(verify-saju-unlock-entitlement-regression이 paid-ziwei.src.js도 검사)이 자동 모드에 막혀 사용자 처리 대기, WIP 패치 D:/Development/codedestiny-worktrees/ziwei-life-yearly-flow-wip-20261017.patch. 사용자 결정 대기: 마야 홈 타일 1회 표기, 계정 묶음 구매의 프로필 무관 인정, CURRENT_DEV_BASELINE 큐레이션."
 ---
 
 # 운명 찻집 10,000원: 이용권 차감 누락과 결제 증빙 재사용 구멍
@@ -394,3 +394,8 @@ next: "D단계 남은 상품 이전: 자미두수 생애·연간 흐름(ziwei_li
   - 검증: 출생 해금 13건·궁합 6조합(날짜 넘김·뉴욕 서머타임·1988 한국 서머타임·시각 모름) HEAD와 sha256 일치, jest 411/6594, check:fast 31단계(doc-freshness 제외)·pre-push 통과. gitleaks "Api Karma" 오탐 지문 1개 추가.
   - 남음: `ziwei_life_yearly_flow` — 장 안의 10년운 칸 생산 줄이 서버로 옮겨져 `verify-saju-unlock-entitlement-regression`(브라우저 파일만 검사)이 실패한다. 사용자는 가드가 `paid-ziwei.src.js`도 검사하도록 넓히는 안을 승인했으나 그 수정이 자동 모드 분류기에 막혔다. WIP: `D:\Development\codedestiny-worktrees\ziwei-life-yearly-flow-wip-20261017.patch`.
   - 후속: `verify-ziwei-report-browser`의 가격 30이 낡음, 결제 뒤 서버 호출 실패 시 재시도가 결제 게이트를 다시 거침(같은 requestId 재사용 검토), USER_NAME 이중 escape(기존), 서버 로딩 상태 스타일.
+- 2026-10-17 — **D단계 상품 이전 8: 점성술 시나스트리 2종·12개월 흐름** (시나스트리 `1a5885b63`, 12개월 `a4b444a38`, 미러 `799fe43f3`, 사이트맵 `56dac5077`, claim 결과 바인딩 `3bfa0d0ce`, 미러 `6ef9a3bcf`)
+  - 시나스트리(`compat-astro-synastry`·`compat-astro-direct-synastry`, 회당 50): 새 `/api/astro/synastry`(`worker/routes/astro-synastry.js`). 그린 뒤 `verifyPerUsePayment(requireExisting)`가 이번 requestId 결제를 찾고, `claimRequestBillingEvidence(requestId|sha256(내 출생 + 상대))`로 묶는다. 같은 조합 재요청 200, 다른 상대 409, 장애 503. 차트는 서버 Swiss, 유명인 출생은 서버 사본, profileId가 오면 내 출생은 저장 카드에서 읽는다. 브라우저에는 무료 유명인 목록·입력·게이트만 남는다. 직접 입력 머리글 이름은 이제 HTML escape.
+  - 12개월 흐름(`astro_yearly_transit`, 출생 해금 50): `year()`·`renderYear()`와 사전을 `worker/lib/astro-section/paid-yearly.cjs`로 원문 이전. `/api/astro/section`이 출생 해금을 확인하고 서버 Swiss로 출생 차트·통과 위치를 만들며, "오늘"은 서버 시계 + 기기 시간대(`transitTz`, 없으면 KST)다. 페이지에는 오늘 카드와 무료 머리("가장 큰 변화의 달")만 남는다.
+  - 검증: 시나스트리 c5952bc88 대비 469 비교 0 불일치, 12개월 HEAD 해시 90/90(12건 fixture). 자미두수 이전 위로 rebase하며 `saju-section-server-gate.static.test.js` 충돌은 두 테스트 블록을 모두 살려 풀었다. check:fast 단계(doc-freshness 제외)·pre-push 통과, gitleaks 누출 없음.
+  - 후속: `scripts/verify-crafted-astro-unlocks.cjs`는 로컬 서버가 필요하고 npm 스크립트에 연결돼 있지 않다. docs/product-details·docs/payments가 아직 클라이언트 `year/renderYear`를 언급한다.
