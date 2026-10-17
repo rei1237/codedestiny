@@ -8,8 +8,9 @@ export default function JointSajuDialogue({ title, body }: { title: string; body
   const name = together ? "연이와 네오" : neo ? "네오" : "연이";
   return <div className={styles.jointDialogue} data-speaker={together ? "together" : neo ? "neo" : "yeoni"}>
     <div className={styles.jointPortraits} aria-hidden="true">
-      {(!neo || together) && <img src="/images/fortune-chat/persona/yeoni-read.webp" alt="" width="96" height="96" loading="lazy" decoding="async" />}
-      {(neo || together) && <img src="/images/fortune-chat/persona/neo-think.webp" alt="" width="96" height="96" loading="lazy" decoding="async" />}
+      {together
+        ? <img src="/images/consultation/saju-yeoni-neo-joint-v1-640.webp" alt="" width="640" height="427" loading="lazy" decoding="async" />
+        : <img src={neo ? "/images/home/illustrated/neo-human-480.webp" : "/images/master-profiles/yeoni-teahouse-portrait.webp"} alt="" width={neo ? 480 : 600} height="720" loading="lazy" decoding="async" />}
     </div>
     <div className={styles.jointSpeech}>
       <p className={styles.jointSpeaker}>{name}</p>

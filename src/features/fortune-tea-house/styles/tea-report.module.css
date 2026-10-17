@@ -36,9 +36,13 @@
 .jointResultHero figcaption { margin-top: 12px; font-size: .9rem; line-height: 1.7; }
 .jointDialogue { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 18px; align-items: start; }
 .jointPortraits { display: grid; gap: 8px; position: sticky; top: 16px; }
-.jointPortraits img { width: 76px; height: 76px; object-fit: contain; }
+.jointPortraits img { width: 76px; height: 104px; object-fit: cover; object-position: center top; border-radius: var(--cd-r-control); }
 .jointSpeech { min-width: 0; padding: 16px 20px; background: var(--cd-surface); color: var(--cd-text); border: 1px solid var(--cd-border); border-radius: var(--cd-r-card); }
 .jointSpeech .jointSpeaker { margin: 0 0 6px; font-weight: 700; font-size: .85rem; }
 .jointSpeech h4 { margin-top: 0; }
 .jointSpeech p { line-height: 1.9; }
-@media (max-width: 600px) { .jointDialogue { grid-template-columns: 1fr; gap: 10px; } .jointPortraits { position: static; display: flex; } .jointPortraits img { width: 60px; height: 60px; } .jointSpeech { padding: 16px; } }
+@media (max-width: 600px) { .jointDialogue { grid-template-columns: 1fr; gap: 10px; } .jointPortraits { position: static; display: flex; } .jointPortraits img { width: 72px; height: 96px; } .jointSpeech { padding: 16px; } }
+
+.jointDialogue[data-speaker="together"] { grid-template-columns: 1fr; }
+.jointDialogue[data-speaker="together"] .jointPortraits { position: static; }
+.jointDialogue[data-speaker="together"] .jointPortraits img { width: min(100%, 320px); height: auto; }
