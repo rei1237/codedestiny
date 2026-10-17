@@ -2859,6 +2859,18 @@ window.computeProfileForModal = function(profile) {
 
   window._ziweiBirth = { year: corrYear, month: corrMonth, day: corrDay,
     hour: corrH, minute: corrM, lat: lat, lon: lng, tz: tzOff };
+  // 자미 명반 상세의 유료 장은 서버(/api/saju/section)가 만든다 — 그 요청 입력(원래 달력 날짜·시각·출생지).
+  // 저장 카드로 요청하면 서버는 카드의 생년월일·성별만 쓴다(js/core/saju/section-client.js loadZiwei).
+  window.__cdZiweiSectionInput = {
+    birth: {
+      date: String(b.year)+'-'+String(b.month).padStart(2,'0')+'-'+String(b.day).padStart(2,'0'),
+      calType: calType, hour: hour, minute: minute,
+      timeKnown: !(b.unknownHour === true || b.timeUnknown === true || !hasBirthHour)
+    },
+    gender: profile.gender === 'M' ? 'M' : 'F',
+    name: typeof USER_NAME === 'string' ? USER_NAME : '',
+    place: hasBirthLocation ? { name: typeof l.name === 'string' ? l.name : '', longitude: lng, latitude: lat, timezone: tzName, baseTzOffset: baseTzOff } : undefined
+  };
 
   if (typeof setGender === 'function') setGender(profile.gender || 'F');
   GENDER = profile.gender || 'F';
@@ -14785,209 +14797,7 @@ var ZW_STAR_KW={
   '탐랑':'매력·욕구','거문':'통찰·언변','천상':'조화·봉사','천량':'원칙·구원',
   '칠살':'돌파·독립','파군':'변혁·개척'
 };
-var ZW_SIHUA_LABEL={'화록':'화록(祿)▲','화권':'화권(權)▲','화과':'화과(科)▲','화기':'화기(忌)▼'};
-var ZW_SIHUA_COLOR={'화록':'#4ade80','화권':'#60a5fa','화과':'#c084fc','화기':'#f87171'};
-var ZW_PALACE_ORDER=['명궁','형제궁','부부궁','자녀궁','재백궁','질액궁','천이궁','노복궁','관록궁','전택궁','복덕궁','부모궁'];
-var ZW_PALACE_ICON={'명궁':'👤','형제궁':'🤝','부부궁':'💑','자녀궁':'🌱','재백궁':'💰','질액궁':'❤️‍🩹','천이궁':'✈️','노복궁':'🌐','관록궁':'🏆','전택궁':'🏠','복덕궁':'✨','부모궁':'🙏'};
 
-/* 12궁 요약 테이블 HTML 문자열 생성 (팝업·하단 패널 공용) */
-function buildZwSummaryTableHtml(palace) {
-  if(!palace) return '';
-  var ZHI_ORD=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
-  var isCompactView = (typeof window !== 'undefined' && window.matchMedia)
-    ? window.matchMedia('(max-width: 980px)').matches
-    : false;
-  function parseMainStar(rawStr){
-    var plain=(rawStr||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
-    var isBorrowed=/\(차성\)|\b차성\b/.test(plain);
-    var sihua=getSihua(plain);
-    var name=plain
-      .replace(/\(차성\)/g,'')
-      .replace(/화록|화권|화과|화기/g,'')
-      .replace(/◎|△|▲/g,'')
-      .replace(/(^|\s)[O○X](?=\s|$)/g,' ')
-      .trim()
-      .split(' ')[0];
-    return { name:name||'', isBorrowed:isBorrowed, sihua:sihua };
-  }
-  function getCleanStarName(rawStr){
-    return (rawStr||'')
-      .replace(/<[^>]*>/g,' ')
-      .replace(/\(차성\)/g,'')
-      .replace(/화록|화권|화과|화기/g,'')
-      .replace(/\s+/g,' ')
-      .trim()
-      .split(' ')[0];
-  }
-  function getSihua(rawStr){var m=(rawStr||'').match(/화록|화권|화과|화기/);return m?m[0]:null;}
-  function getEffectiveBr(sn,z,isBorrowed){
-    return zwComputeStarStrength(sn,z,isBorrowed);
-  }
-  // 등급은 글자(廟…陷)로 구분한다. 색으로 좋고 나쁨을 나타내지 않는다. 강약 없는 별은 표기 없음.
-  function getBrTag(b){
-    var label=zwStrengthToSymbol(b);
-    if(!label) return '';
-    return '<span title="'+zwStrengthShortMeaning(b)+'" style="color:#fde68a;background:rgba(253,230,138,0.12);padding:1px 5px;border-radius:3px;font-size:0.72rem;font-weight:700;margin-left:3px">'+label+'</span>';
-  }
-  // 궁의 강약은 첫 주성의 등급 그대로 읽는다. 여러 별을 평균하지 않는다(등급은 점수가 아니다).
-  function calcStrengthTier(mainMeta,zhi){
-    if(!mainMeta || !mainMeta.length) return '';
-    return getEffectiveBr(mainMeta[0].name,zhi,mainMeta[0].isBorrowed);
-  }
-  function genSummary(gungName,mainMeta,zhi,sh,auxStars){
-    var gungDef = zwGungDef(gungName) || gungName;
-    var goodAux=['천괴','천월','좌보','우필','문창','문곡','녹존','천마'];
-    var supportAux=[];
-    (auxStars || []).forEach(function(a){
-      if (goodAux.indexOf(a) >= 0 && supportAux.indexOf(a) < 0) supportAux.push(a);
-    });
-    if(!mainMeta.length) {
-      return '공궁(空宮)입니다. '+gungDef+' 축은 바깥 조건의 영향을 더 크게 받으니, 기준을 먼저 세우고 속도보다 정렬을 우선하세요.';
-    }
-    var star=mainMeta[0].name;
-    var kw=ZW_STAR_KW[star]||star;
-    var tier=calcStrengthTier(mainMeta,zhi);
-    var tierText={묘:'성질이 가장 또렷하게 드러나는 자리',왕:'성질이 힘 있게 드러나는 자리',득:'자리를 얻어 무난히 드러나는 자리',리:'힘이 한 단계 덜하게 드러나는 자리',평:'함께 앉은 별·사화의 영향을 크게 받는 중간 자리',불:'자리를 얻지 못해 힘이 약한 자리',함:'성질이 막히거나 비틀려 드러나기 쉬운 자리'}[tier]||'';
-    var isDual=(mainMeta.length>1);
-    var secondary=isDual ? (ZW_STAR_KW[mainMeta[1].name]||mainMeta[1].name) : '';
-    var mainLine = kw + (isDual ? (' · ' + secondary) : '') + '가 중심축이 됩니다.'
-      + (tierText ? (' 주성 ' + star + (((star.charCodeAt(star.length - 1) - 0xAC00) % 28) ? '은 ' : '는 ') + tierText + '(' + zwStrengthToSymbol(tier) + ')에 앉아 있습니다.') : '');
-    var supportLine = supportAux.length
-      ? ('보조성 ' + supportAux.slice(0, 2).join(' · ') + '가 완충막이 되어 흐름을 매끈하게 받쳐 줍니다.')
-      : '보조성 직접 후원은 약하지만, 주성의 방향을 분명히 세우면 결과가 흔들리지 않습니다.';
-    var contextText;
-    if (sh === '화기') contextText = '말·계약·속도에서 오차를 줄이는 쪽이 손실 방지에 유리합니다.';
-    else if (sh === '화록') contextText = '회수와 연결이 빠르게 붙는 시기라, 작은 기회도 기록해 두는 편이 좋습니다.';
-    else if (sh === '화권') contextText = '주도권과 실행력이 살아나지만, 독주보다 역할 분담이 더 큰 성과를 만듭니다.';
-    else if (sh === '화과') contextText = '평판·평가·정돈된 결과물에서 강점이 드러납니다.';
-    else if (tier === '묘' || tier === '왕' || tier === '득') contextText = '주성의 성질이 또렷하게 드러나는 자리라, 중요한 일은 주성의 방식대로 직접 풀어 갈 때 결과가 분명합니다.';
-    else if (tier === '불' || tier === '함') contextText = '주성의 성질이 그대로 드러나기 어려운 자리라, 함께 앉은 별·사화·맞은편 궁에서 보완 조건을 먼저 확인하는 편이 안전합니다.';
-    else if (tier === '평') contextText = '함께 앉은 별과 사화에 따라 드러나는 모습이 크게 달라지니, 같은 궁의 보조성과 맞은편 궁을 함께 보는 편이 정확합니다.';
-    else contextText = '현재 흐름을 안정적으로 유지하면서 다음 타이밍을 준비하는 것이 효율적입니다.';
-    var contextLine = '이 궁은 ' + gungDef + '의 규칙을 따르므로, ' + contextText;
-    return mainLine + ' ' + supportLine + ' ' + contextLine;
-  }
-
-  var rows='';
-  var cardRows=[];
-  for(var pi=0;pi<ZW_PALACE_ORDER.length;pi++){
-    var pName=ZW_PALACE_ORDER[pi];
-    var zhi=palace.palaces[pName]; if(!zhi) continue;
-    var zhiIdx=ZHI_ORD.indexOf(zhi);
-    var stObj=palace.stars[zhiIdx]||{main:[],aux:[],bad:[],borrowedMain:[]};
-    var mainList = (stObj.main && stObj.main.length) ? stObj.main : (stObj.borrowedMain || []);
-    var mainMeta=mainList.map(parseMainStar).filter(function(m){return !!m.name;});
-    var mainClean=mainMeta.map(function(m){return m.name;});
-    var mainSihua=null;
-    for(var k=0;k<mainMeta.length;k++){if(mainMeta[k].sihua){mainSihua=mainMeta[k].sihua;break;}}
-    for(var k=0;k<stObj.aux.length;k++){var sh2=getSihua(stObj.aux[k]);if(sh2&&!mainSihua){mainSihua=sh2;break;}}
-    var auxClean=stObj.aux.map(getCleanStarName).filter(function(s){return !!s;});
-    var badClean=stObj.bad.map(getCleanStarName).filter(function(s){return !!s;});
-    var starsDisp='';
-    if(mainMeta.length){
-      starsDisp=mainMeta.map(function(m){
-        var b2=getEffectiveBr(m.name,zhi,m.isBorrowed);
-        var text=m.name+getBrTag(b2);
-        if(m.isBorrowed) text+='<span style="color:#facc15;font-weight:800;font-size:0.67rem;margin-left:3px">차성</span>';
-        var sh3=m.sihua;
-        if(sh3) text+='<span style="color:'+ZW_SIHUA_COLOR[sh3]+';font-weight:900;font-size:0.68rem;margin-left:2px">'+ZW_SIHUA_LABEL[sh3]+'</span>';
-        return text;
-      }).join('<br>');
-    } else {
-      starsDisp='<span style="color:#64748b;font-style:italic">공궁</span>';
-    }
-    var auxDisp='';
-    if(auxClean.length) auxDisp+='<span style="color:#93c5fd;font-size:0.72rem">'+auxClean.slice(0,3).join(' ')+'</span>';
-    if(badClean.length) auxDisp+=(auxDisp?'<br>':'')+'<span style="color:#fca5a5;font-size:0.72rem">'+badClean.slice(0,2).join(' ')+'</span>';
-    var summaryText=genSummary(pName,mainMeta,zhi,mainSihua,auxClean);
-    var rowBg=pName==='명궁'?'rgba(196,181,253,0.12)':(pi%2===0?'rgba(255,255,255,0.03)':'rgba(0,0,0,0.2)');
-    var icon=ZW_PALACE_ICON[pName]||'◆';
-    var borderStyle=mainSihua==='화기'?'border-left:3px solid #f87171':(mainSihua?'border-left:3px solid #4ade80':'border-left:3px solid transparent');
-    rows+='<tr style="background:'+rowBg+';'+borderStyle+'">';
-    rows+='<td style="padding:9px 10px;white-space:nowrap;font-weight:800;color:#d8b4fe;font-size:0.82rem;vertical-align:top">'+icon+' '+zwDisplayPalaceName(pName)+'<br><span style="color:#64748b;font-size:0.67rem;font-weight:400">'+zwGungDef(pName)+'</span></td>';
-    rows+='<td style="padding:9px 10px;color:#fde68a;font-size:0.81rem;vertical-align:top;line-height:1.8">'+starsDisp+'</td>';
-    rows+='<td style="padding:9px 10px;font-size:0.73rem;color:#94a3b8;vertical-align:top">'+auxDisp+'</td>';
-    rows+='<td style="padding:9px 10px;font-size:0.78rem;color:#e2e8f0;line-height:1.6;vertical-align:top">'+summaryText+'</td>';
-    rows+='</tr>';
-
-    cardRows.push({
-      pName: pName,
-      pNameDisplay: zwDisplayPalaceName(pName),
-      icon: icon,
-      defn: zwGungDef(pName),
-      starsDisp: starsDisp,
-      auxDisp: auxDisp || '<span style="color:#64748b">없음</span>',
-      summaryText: summaryText,
-      rowBg: rowBg,
-      borderColor: mainSihua==='화기' ? '#f87171' : (mainSihua ? '#4ade80' : 'rgba(255,255,255,0.12)')
-    });
-  }
-
-  var legendHtml = '<div class="zw-summary-legend" style="padding:8px 12px 6px;font-size:0.71rem;color:#64748b;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;gap:14px;flex-wrap:wrap;word-break:keep-all">'
-    +'<span>강약: <b style="color:#fde68a;letter-spacing:.12em">廟 旺 得 利 平 不 陷</b> — 왼쪽일수록 별의 성질이 또렷한 자리 · 길흉 아님 · 글자 없는 별은 강약을 매기지 않음</span>'
-    +'<span>차성(借星)은 맞은편 궁에 실제로 앉은 자리의 강약을 그대로 적음</span>'
-    +'<span>사화: <b style="color:#4ade80">화록▲</b>=재물·인연 · <b style="color:#60a5fa">화권▲</b>=권위 · <b style="color:#c084fc">화과▲</b>=명성 · <b style="color:#f87171">화기▼</b>=주의</span>'
-    +'</div>';
-  var focusRows = ['명궁','관록궁','재백궁','부부궁'].map(function(name) {
-    return cardRows.filter(function(it) { return it.pName === name; })[0] || null;
-  }).filter(Boolean);
-  if (!focusRows.length) focusRows = cardRows.slice(0, 4);
-  var focusMapHtml = '<div data-cd-marker="ziwei-palace-map-collapsed-v20260614" style="padding:11px 12px 12px;background:linear-gradient(145deg,rgba(15,23,42,0.72),rgba(30,27,75,0.42));border-bottom:1px solid rgba(196,181,253,0.16);">'
-    +'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap;margin-bottom:9px;">'
-      +'<div><div style="color:#fde68a;font-size:0.78rem;font-weight:900;">12궁 핵심 지도</div><div style="color:#94a3b8;font-size:0.71rem;line-height:1.5;margin-top:2px;">명반에서 먼저 볼 4개 축만 압축했습니다.</div></div>'
-      +'<span style="color:#c4b5fd;border:1px solid rgba(196,181,253,0.28);border-radius:999px;padding:3px 8px;font-size:0.68rem;font-weight:900;">전체 상세 접힘</span>'
-    +'</div>'
-    +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:8px;">'
-      +focusRows.map(function(it) {
-        var oneLine = String(it.summaryText || '').split('.').slice(0, 1).join('.').trim();
-        if (oneLine && oneLine.charAt(oneLine.length - 1) !== '.') oneLine += '.';
-        return '<div style="background:rgba(2,6,23,0.38);border:1px solid rgba(255,255,255,0.1);border-left:4px solid '+it.borderColor+';border-radius:10px;padding:9px 10px;min-width:0;">'
-          +'<div style="color:#fef3c7;font-size:0.83rem;font-weight:900;line-height:1.35;">'+it.icon+' '+it.pNameDisplay+'</div>'
-          +'<div style="color:#64748b;font-size:0.68rem;margin-top:2px;">'+it.defn+'</div>'
-          +'<div style="color:#fde68a;font-size:0.76rem;line-height:1.55;margin-top:6px;">'+it.starsDisp+'</div>'
-          +'<div style="color:#cbd5e1;font-size:0.72rem;line-height:1.55;margin-top:6px;">'+oneLine+'</div>'
-        +'</div>';
-      }).join('')
-    +'</div>'
-  +'</div>';
-
-  if (isCompactView) {
-    var cardsHtml = cardRows.map(function(it) {
-      return '<div class="zw-summary-card" style="background:'+it.rowBg+';border:1px solid rgba(255,255,255,0.1);border-left:4px solid '+it.borderColor+';border-radius:10px;padding:10px 12px">'
-        +'<div class="zw-summary-card__title" style="font-weight:800;color:#d8b4fe;font-size:0.84rem;line-height:1.35">'+it.icon+' '+it.pNameDisplay+'</div>'
-        +'<div class="zw-summary-card__defn" style="color:#64748b;font-size:0.69rem;margin-top:2px">'+it.defn+'</div>'
-        +'<div class="zw-summary-card__label" style="margin-top:8px;font-size:0.78rem;color:#c084fc">주성</div>'
-        +'<div class="zw-summary-card__stars" style="margin-top:2px;color:#fde68a;font-size:0.8rem;line-height:1.75">'+it.starsDisp+'</div>'
-        +'<div class="zw-summary-card__label" style="margin-top:8px;font-size:0.78rem;color:#c084fc">보조성</div>'
-        +'<div class="zw-summary-card__aux" style="margin-top:2px;font-size:0.74rem;color:#94a3b8;line-height:1.55">'+it.auxDisp+'</div>'
-        +'<div class="zw-summary-card__label" style="margin-top:8px;font-size:0.78rem;color:#c084fc">핵심 해석</div>'
-        +'<div class="zw-summary-card__summary" style="margin-top:2px;font-size:0.79rem;color:#e2e8f0;line-height:1.6;word-break:keep-all">'+it.summaryText+'</div>'
-      +'</div>';
-    }).join('');
-
-    return focusMapHtml
-      +'<details style="border-top:1px solid rgba(255,255,255,0.06);">'
-        +'<summary style="list-style:none;cursor:pointer;padding:12px 13px;color:#c4b5fd;font-size:0.82rem;font-weight:900;">전체 12궁 상세 펼치기</summary>'
-        +legendHtml
-        +'<div class="zw-summary-cards" style="padding:10px 10px 12px;display:grid;grid-template-columns:1fr;gap:10px">'+cardsHtml+'</div>'
-      +'</details>';
-  }
-
-  return focusMapHtml
-    +'<details style="border-top:1px solid rgba(255,255,255,0.06);">'
-      +'<summary style="list-style:none;cursor:pointer;padding:12px 13px;color:#c4b5fd;font-size:0.82rem;font-weight:900;">전체 12궁 상세 펼치기</summary>'
-      +legendHtml
-      +'<div class="zw-summary-table-wrap" style="overflow-x:auto"><table class="zw-summary-table" style="width:100%;border-collapse:collapse;min-width:540px">'
-      +'<thead><tr style="background:rgba(88,28,220,0.3)">'
-      +'<th style="padding:8px 10px;text-align:left;color:#c084fc;font-size:0.74rem;white-space:nowrap">궁(宮) · 정의</th>'
-      +'<th style="padding:8px 10px;text-align:left;color:#c084fc;font-size:0.74rem">주성(강약)</th>'
-      +'<th style="padding:8px 10px;text-align:left;color:#c084fc;font-size:0.74rem;white-space:nowrap">보조성</th>'
-      +'<th style="padding:8px 10px;text-align:left;color:#c084fc;font-size:0.74rem">한줄 해석</th>'
-      +'</tr></thead>'
-      +'<tbody>'+rows+'</tbody>'
-      +'</table></div>'
-    +'</details>';
-}
 
 /* ═══════════════════════════════════════════════════════════════════════
    자미두수 심화 해설 콘텐츠 엔진 (유료 4개 섹션 확장 — ziwei-deep-content-v20260711)
@@ -15253,40 +15063,6 @@ function zwGungDef(name) { return zwCmsText('palace-def', name, ZW_GUNG_DEF[name
 function zwGungBrief(name) { return zwCmsText('palace-brief', name, ZW_GUNG_BRIEF[name] || ''); }
 function zwStarProfile(name) { return zwCmsRow('star', name, ZW_STAR_CORE_PROFILE[name]); }
 
-var ZW_PALACE_DEEP_FRAME = {
-  '명궁':   { q: '나는 어떤 사람이고, 인생의 기본 태도는 무엇인가', field: 'self',   label: '기질 발현' },
-  '형제궁': { q: '가장 가까운 사람들과 어떻게 협력하는가',          field: 'people', label: '관계 발현' },
-  '부부궁': { q: '배우자·파트너와 어떤 약속을 맺는가',              field: 'people', label: '관계 발현' },
-  '자녀궁': { q: '무엇을 낳고 기르는가 — 자녀·작품·후배',           field: 'people', label: '생산 발현' },
-  '재백궁': { q: '돈을 어떻게 벌고 어떻게 쓰는가',                  field: 'money',  label: '재물 발현' },
-  '질액궁': { q: '몸과 컨디션은 어떤 리듬으로 움직이는가',          field: 'self',   label: '컨디션 발현' },
-  '천이궁': { q: '바깥 무대에서 나는 어떻게 평가받는가',            field: 'work',   label: '대외 발현' },
-  '노복궁': { q: '동료·아랫사람 운은 어떻게 흐르는가',              field: 'people', label: '인맥 발현' },
-  '관록궁': { q: '커리어의 성취는 어떤 방식으로 오는가',            field: 'work',   label: '직업 발현' },
-  '전택궁': { q: '자산과 생활 기반은 어떻게 쌓이는가',              field: 'money',  label: '자산 발현' },
-  '복덕궁': { q: '내 마음은 무엇으로 채워지는가',                   field: 'self',   label: '내면 발현' },
-  '부모궁': { q: '윗사람·문서 인연은 어떻게 작동하는가',            field: 'people', label: '후원 발현' }
-};
-// 강약은 길흉이 아니라 그 별의 성질이 얼마나 또렷하게 드러나는가다. 7등급을 접지 않는다.
-var ZW_BR_DEEP_PHRASE = {
-  '묘': '이 자리에서 별의 성질이 가장 또렷하고 안정적으로 드러납니다(廟). 장점과 습관이 모두 선명하게 보입니다.',
-  '왕': '이 자리에서 별의 성질이 힘 있게 드러납니다(旺). 별이 가진 방식이 그대로 행동으로 이어지기 쉽습니다.',
-  '득': '자리를 얻어 별의 성질이 무난히 드러납니다(得). 장점이 안정적으로 발현됩니다.',
-  '리': '쓸 만하지만 힘이 한 단계 덜한 자리입니다(利). 방향만 맞추면 충분히 힘을 냅니다.',
-  '평': '중간 자리입니다(平). 함께 앉은 별·사화·맞은편 궁에 따라 드러나는 모습이 크게 달라집니다.',
-  '불': '자리를 얻지 못해 힘이 약합니다(不). 별의 장점이 저절로 드러나지 않으니 보완 조건을 함께 보세요.',
-  '함': '별의 성질이 막히거나 비틀려 드러나기 쉬운 자리입니다(陷). 장점보다 그림자가 먼저 나오기 쉬우니 주의점을 먼저 읽으세요.'
-};
-var ZW_AUX_STAR_EFFECT = {
-  '천괴': '어려울 때 손을 내미는 윗사람·남성 귀인의 도움이 붙습니다',
-  '천월': '실질적 도움을 주는 여성 귀인·실무 조력이 붙습니다',
-  '좌보': '묵묵히 곁을 지키는 조력자가 힘을 보탭니다',
-  '우필': '융통성 있는 지원군이 우회로를 열어줍니다',
-  '문창': '문서·시험·글 재능이 빛을 더합니다',
-  '문곡': '말과 예술 감각이 매력을 더합니다',
-  '녹존': '꾸준히 쌓이는 재록(財祿)이 바닥을 받쳐줍니다',
-  '천마': '이동과 변화가 기회로 연결되는 역마의 활력이 붙습니다'
-};
 var ZW_BAD_STAR_EFFECT = {
   '경양': '날카로운 칼끝 — 서두른 말과 결정이 상처를 냅니다. 한 템포 늦추세요',
   '타라': '바퀴에 걸린 돌 — 일이 늘어지고 반복됩니다. 마감을 두 번 확인하세요',
@@ -15294,12 +15070,6 @@ var ZW_BAD_STAR_EFFECT = {
   '영성': '속에서 타는 불 — 겉은 조용해도 스트레스가 쌓입니다. 배출구를 만드세요',
   '지공': '허공에 뜬 생각 — 이상은 높지만 현실 회수가 약해집니다. 계획에 숫자를 넣으세요',
   '지겁': '빠져나가는 구멍 — 예상 밖 지출과 손실 경로를 점검하세요'
-};
-var ZW_SIHUA_DEEP_PHRASE = {
-  '화록': '재물과 인연의 문이 이 궁에서 열립니다. 여기서 생기는 기회는 사소해 보여도 실익으로 연결될 확률이 높으니, 들어오는 제안을 기록하고 회수 구조(보수·지분·재방문)로 이어 두세요.',
-  '화권': '주도권의 깃발이 이 궁에 꽂혔습니다. 이 영역에서는 눈치 보지 말고 먼저 기준을 제시하세요. 다만 권한이 커지는 만큼 견제도 따라오니, 공을 나누는 말 한마디를 세트로 챙기세요.',
-  '화과': '이름과 평판이 쌓이는 자리입니다. 이 영역의 결과물은 반드시 기록·문서·공개 형태로 남기세요. 시험·자격·발표처럼 평가받는 일에 유리한 바람이 붑니다.',
-  '화기': '얽힘과 정산의 숙제가 걸린 자리입니다. 이 영역에서는 말·계약·돈 문제를 두 번 확인하고, 애매한 약속은 반드시 문장으로 남기세요. 잘 관리하면 오히려 가장 단단해지는 궁이 됩니다.'
 };
 var ZW_DEEP_GAN_LIST = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
 var ZW_DEEP_GAN_KO = { '甲':'갑','乙':'을','丙':'병','丁':'정','戊':'무','己':'기','庚':'경','辛':'신','壬':'임','癸':'계' };
@@ -15344,22 +15114,8 @@ function zwDeepPalaceEntry(pd, pName) {
   }
   return null;
 }
-function zwDeepPalaceBranchIdx(pd, pName) {
-  var zhi = pd && pd.palaces ? pd.palaces[pName] : '';
-  var idx = ZW_DEEP_ZHI_LIST.indexOf(zhi);
-  if (idx >= 0) return idx;
-  return pd && pd.palacesByIndex ? pd.palacesByIndex.indexOf(pName) : -1;
-}
 function zwDeepMainStars(entry) {
   return (entry && Array.isArray(entry.stars)) ? entry.stars.filter(function(s){ return s && s.name && zwStarProfile(s.name); }) : [];
-}
-function zwDeepStarNames(entry) {
-  var names = [];
-  if (!entry) return names;
-  ['stars','auxStars','badStars'].forEach(function(k){
-    (entry[k] || []).forEach(function(s){ if (s && s.name) names.push(s.name); });
-  });
-  return names;
 }
 // 등급은 글자로만 구분한다(색으로 좋고 나쁨을 나타내지 않는다). 강약 없는 별은 표기 없음.
 function zwDeepBrTag(strength) {
@@ -15387,108 +15143,6 @@ function zwDeepSectionHead(title, desc, accent) {
   +'</div>';
 }
 
-/* ── 12궁 정밀 해설 (ziwei_twelve_palaces) ── */
-function buildZwTwelvePalaceDeepHtml(pd) {
-  try {
-    if (!pd || !Array.isArray(pd.palaceStarData) || !pd.palaceStarData.length) return '';
-    var cards = '';
-    for (var pi = 0; pi < ZW_PALACE_ORDER.length; pi += 1) {
-      var pName = ZW_PALACE_ORDER[pi];
-      var frame = ZW_PALACE_DEEP_FRAME[pName];
-      var entry = zwDeepPalaceEntry(pd, pName);
-      if (!frame || !entry) continue;
-      var mains = zwDeepMainStars(entry);
-      var branchIdx = zwDeepPalaceBranchIdx(pd, pName);
-      var body = '';
-      body += '<div style="color:#c4b5fd;font-size:0.78rem;margin-bottom:8px;">이 궁이 답하는 질문 — <b style="color:#e9d5ff;">'+zwDeepEsc(frame.q)+'</b></div>';
-      body += '<div style="color:#cbd5e1;font-size:0.78rem;line-height:1.7;margin-bottom:10px;">'+zwDeepEsc(zwGungBrief(pName) || '')+'</div>';
-      if (mains.length) {
-        mains.slice(0, 2).forEach(function(st){
-          var prof = zwStarProfile(st.name);
-          var brPhrase = ZW_BR_DEEP_PHRASE[st.strength] || '';
-          body += '<div style="background:rgba(2,6,23,0.38);border:1px solid rgba(196,181,253,0.18);border-radius:10px;padding:10px 11px;margin-bottom:8px;">'
-            +'<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:5px;">'
-              +'<b style="color:#fde68a;font-size:0.88rem;">'+zwDeepEsc(st.name)+'</b>'
-              +zwDeepBrTag(st.strength)
-              +(st.borrowed ? '<span style="color:#facc15;font-size:0.68rem;font-weight:800;">차성(대궁 차용)</span>' : '')
-              +'<span style="color:#a5b4fc;font-size:0.72rem;">'+zwDeepEsc(prof.essence)+'</span>'
-            +'</div>'
-            +'<div style="margin-bottom:4px;"><b style="color:#c4b5fd;">'+zwDeepEsc(frame.label)+':</b> '+zwDeepEsc(prof[frame.field])+'</div>'
-            +'<div style="color:#94a3b8;font-size:0.78rem;">'+zwDeepEsc(brPhrase)
-            +(st.borrowed ? ' 차성은 맞은편 궁에 실제로 앉은 자리의 강약으로 읽습니다.' : '')+'</div>'
-            +(st.strength === '함' || st.strength === '불' || st.strength === '평'
-              ? '<div style="color:#fca5a5;font-size:0.78rem;margin-top:4px;"><b>그림자:</b> '+zwDeepEsc(prof.shadow)+'</div>'
-              : '')
-          +'</div>';
-        });
-      } else {
-        body += '<div style="background:rgba(2,6,23,0.38);border:1px solid rgba(148,163,184,0.2);border-radius:10px;padding:10px 11px;margin-bottom:8px;color:#cbd5e1;">'
-          +'이 궁은 <b style="color:#e2e8f0;">공궁(空宮)</b>입니다. 고정된 성향보다 환경과 상대에 따라 유연하게 반응하는 축이라, 기준을 스스로 세우는 것이 가장 중요한 개운법입니다. 판단할 때는 마주 보는 대궁의 별을 빌려(차성) 보수적으로 읽습니다.'
-        +'</div>';
-      }
-      var auxNames = (entry.auxStars || []).map(function(s){ return s.name; }).filter(function(n){ return ZW_AUX_STAR_EFFECT[n]; });
-      var badNames = (entry.badStars || []).map(function(s){ return s.name; }).filter(function(n){ return ZW_BAD_STAR_EFFECT[n]; });
-      if (auxNames.length) {
-        body += '<div style="margin-bottom:6px;"><b style="color:#93c5fd;">받쳐주는 별:</b> '
-          + auxNames.slice(0, 3).map(function(n){ return '<b>'+zwDeepEsc(n)+'</b> — '+zwDeepEsc(ZW_AUX_STAR_EFFECT[n]); }).join(' · ')
-        +'</div>';
-      }
-      if (badNames.length) {
-        body += '<div style="margin-bottom:6px;"><b style="color:#fca5a5;">긴장을 만드는 별:</b> '
-          + badNames.slice(0, 3).map(function(n){ return '<b>'+zwDeepEsc(n)+'</b> — '+zwDeepEsc(ZW_BAD_STAR_EFFECT[n]); }).join(' · ')
-        +'</div>';
-      }
-      var sihuaHits = [];
-      ['stars','auxStars'].forEach(function(k){
-        (entry[k] || []).forEach(function(s){ if (s && s.sihua && ZW_SIHUA_DEEP_PHRASE[s.sihua]) sihuaHits.push(s); });
-      });
-      sihuaHits.slice(0, 2).forEach(function(s){
-        var col = ZW_SIHUA_COLOR[s.sihua] || '#c4b5fd';
-        body += '<div style="background:rgba(2,6,23,0.3);border-left:none;border:1px solid '+col+'33;border-radius:9px;padding:8px 10px;margin-bottom:6px;font-size:0.8rem;">'
-          +'<b style="color:'+col+';">'+zwDeepEsc(s.name)+' '+zwDeepEsc(s.sihua)+'</b> — '+zwDeepEsc(ZW_SIHUA_DEEP_PHRASE[s.sihua])
-        +'</div>';
-      });
-      if (branchIdx >= 0 && pd.palacesByIndex) {
-        var _tri = zwTriadIndexes(branchIdx);
-        var oppIdx = _tri.opposite, triA = _tri.triA, triB = _tri.triB;
-        var relNames = [oppIdx, triA, triB].map(function(idx){
-          var rp = pd.palacesByIndex[idx] || '';
-          var re = zwDeepPalaceEntry(pd, rp);
-          var rs = zwDeepMainStars(re);
-          return zwDeepEsc(rp) + (rs.length ? '(' + zwDeepEsc(rs.map(function(s){ return s.name; }).slice(0, 2).join('·')) + ')' : '(공궁)');
-        });
-        var relStarsAll = [oppIdx, triA, triB].reduce(function(acc, idx){
-          return acc.concat(zwDeepStarNames(zwDeepPalaceEntry(pd, pd.palacesByIndex[idx] || '')));
-        }, zwDeepStarNames(entry));
-        var relHasGi = ['stars','auxStars'].some(function(k){
-          return [entry].concat([oppIdx, triA, triB].map(function(idx){ return zwDeepPalaceEntry(pd, pd.palacesByIndex[idx] || ''); }))
-            .some(function(e){ return e && (e[k] || []).some(function(s){ return s && s.sihua === '화기'; }); });
-        });
-        var relGoodCnt = relStarsAll.filter(function(n){ return ZW_AUX_STAR_EFFECT[n]; }).length;
-        var relSummary = relHasGi
-          ? '흐름에 제동 장치가 하나 걸려 있어, 속도 조절이 필요한 구조입니다.'
-          : (relGoodCnt >= 2
-            ? '받쳐주는 손이 많은 안정 구조입니다. 협력을 끌어들일수록 결과가 커집니다.'
-            : '스스로 균형을 만들어야 하는 자율 구조입니다. 기준과 루틴이 곧 귀인입니다.');
-        body += '<div style="margin-bottom:6px;color:#cbd5e1;font-size:0.79rem;"><b style="color:#a5b4fc;">삼방사정:</b> 이 궁은 홀로 작동하지 않습니다. 정면의 '+relNames[0]+' 기류가 마주 들어오고, '+relNames[1]+' · '+relNames[2]+' 두 궁이 삼합으로 힘을 보탭니다. 네 궁을 겹쳐 읽으면 — '+zwDeepEsc(relSummary)+'</div>';
-      }
-      var adviceProf = mains.length ? zwStarProfile(mains[0].name) : null;
-      body += '<div style="background:linear-gradient(120deg,rgba(110,231,183,0.1),rgba(2,6,23,0.2));border:1px solid rgba(110,231,183,0.24);border-radius:9px;padding:8px 10px;color:#d1fae5;font-size:0.8rem;">'
-        +'<b>실전 조언:</b> '+zwDeepEsc(adviceProf ? adviceProf.advice : '이 궁의 결정은 혼자 정하지 말고, 신뢰하는 한 사람의 의견을 거쳐 확정하세요. 공궁 축은 검증 절차가 곧 힘입니다.')
-      +'</div>';
-      var chipStars = mains.length
-        ? mains.map(function(s){ var g = zwStrengthToSymbol(s.strength); return zwDeepEsc(s.name)+(g ? '('+g+')' : ''); }).join(' · ')
-        : '공궁';
-      cards += zwDeepCardShell(ZW_PALACE_ICON[pName] || '◆', zwDisplayPalaceName(pName), chipStars, body, pName === '명궁' ? '#fde68a' : '#c4b5fd', pName === '명궁');
-    }
-    if (!cards) return '';
-    return '<div data-cd-marker="ziwei-12palace-deep-v20260711" style="padding:12px 12px 6px;border-top:1px solid rgba(139,92,246,0.25);">'
-      + zwDeepSectionHead('12궁 정밀 해설 — 궁별 심층 리딩', '위 요약 지도의 근거를 궁마다 펼쳐 설명합니다. 각 카드는 주성의 본질과 강약(廟·旺·得·利·平·不·陷), 보조성·흉성, 사화, 삼방사정을 겹쳐 읽은 결과입니다.', '#6ee7b7')
-      + cards
-      + '<div style="color:#64748b;font-size:0.7rem;line-height:1.55;margin:8px 2px 6px;">읽는 순서 팁: 명궁 → 관록궁 → 재백궁 → 부부궁을 먼저 읽고, 나머지 궁은 지금 고민과 닿는 곳부터 여세요. 같은 별도 궁과 밝기에 따라 전혀 다르게 작동합니다.</div>'
-    +'</div>';
-  } catch (_deepErr) { return ''; }
-}
 
 /* ── 부부궁 심화 상담 (ziwei_love_deep) ── */
 function buildZwSpouseDeepHtml(pd) {
@@ -22784,15 +22438,6 @@ function renderZiwei(p, natal, targetId) {
           '<div style="font-size:0.74rem;color:#a5b4fc;line-height:1.6;">별 하나로 결론 내리지 않고, 실제 주성·보조성과 함께 연결되는 궁을 살펴보세요. 타고난 성향과 대한·사화로 읽는 시기 변화는 구분해서 이해하는 것이 좋습니다.</div>' +
         '</div>';
 
-        var sec2 = '<div data-cd-marker="ziwei-12-palace-folded-map-v20260614" style="margin-bottom:20px;background:#0f0f1a;border:1px solid rgba(139,92,246,0.35);border-radius:10px;overflow:hidden">'
-          + '<div style="padding:10px 14px;background:linear-gradient(135deg,rgba(88,28,220,0.45),rgba(30,12,60,0.7))">'
-          + '<span style="color:#c084fc;font-weight:900;font-size:0.95rem">📊 자미두수 12궁 핵심 지도</span>'
-          + '<div style="color:#94a3b8;font-size:0.72rem;line-height:1.5;margin-top:3px;">명궁·관록궁·재백궁·부부궁을 먼저 보고, 전체 12궁은 펼쳐 확인합니다.</div>'
-          + '</div>'
-          + buildZwSummaryTableHtml(pd)
-          + buildZwTwelvePalaceDeepHtml(pd)
-          + '</div>';
-
         var curDaHan = (pd.daHan && pd.daHan[idx]) ? pd.daHan[idx] : "알 수 없음";
         var curSihua = [];
         if (pd.sihuaData) {
@@ -24136,14 +23781,6 @@ function renderZiwei(p, natal, targetId) {
             +'<div style="background:rgba(125,211,252,0.08);border:1px solid rgba(125,211,252,0.22);border-radius:11px;padding:11px;"><b style="color:#bae6fd;">올해의 수호신</b><div style="font-size:0.76rem;color:#e2e8f0;line-height:1.65;margin-top:5px;">'+zwFlowEsc(guardian.god)+' · '+zwFlowEsc(guardian.seal)+'<br>'+zwFlowEsc(guardian.tone)+'</div></div>'
           +'</div>';
         }
-        function zwFlowDecadeSummary(items, title) {
-          if (!items.length) return '';
-          return '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:9px;margin:10px 0 12px;">'
-            +'<div style="background:rgba(196,181,253,0.08);border:1px solid rgba(196,181,253,0.22);border-radius:10px;padding:10px;"><b style="color:#c4b5fd;">10년 총론</b><div style="font-size:0.76rem;color:#dbeafe;line-height:1.65;margin-top:5px;">'+zwFlowEsc(title)+'은 한 해 운보다 깊은 바닥 물결입니다. 같은 궁위와 사화가 반복되는 해를 중심으로 인생의 큰 선택을 배치하세요.</div></div>'
-            +'<div style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.22);border-radius:10px;padding:10px;"><b style="color:#86efac;">10년 황금기</b><div style="margin-top:5px;">'+zwFlowRankList(items, false)+'</div></div>'
-            +'<div style="background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.22);border-radius:10px;padding:10px;"><b style="color:#fca5a5;">10년 경계기</b><div style="margin-top:5px;">'+zwFlowRankList(items, true)+'</div></div>'
-          +'</div>';
-        }
         var flowYear = new Date().getFullYear();
         var flowGanji = zwFlowGanji(flowYear);
         var flowYearGan = flowGanji.charAt(0) || pd.yearGan || '';
@@ -24182,59 +23819,7 @@ function renderZiwei(p, natal, targetId) {
           +'</article>';
         }
         var monthlySummaryHtml = zwFlowAnnualSummary(monthlyFlowSignals, flowYear, flowGanji || String(flowYear));
-        var birthYearForFlow = Number((window._ziweiBirth && window._ziweiBirth.year) || 0);
-        var currentKoreanAge = birthYearForFlow > 0 ? (flowYear - birthYearForFlow + 1) : 0;
-        var currentDahan = null;
-        var currentDahanIndex = -1;
-        if (pd.daHanList && pd.daHanList.length) {
-          currentDahan = pd.daHanList.find(function(dh, dhIdx) {
-            var matched = currentKoreanAge > 0 && currentKoreanAge >= Number(dh.startAge) && currentKoreanAge <= Number(dh.endAge);
-            if (matched) currentDahanIndex = dhIdx;
-            return matched;
-          }) || pd.daHanList[0];
-          if (currentDahanIndex < 0) currentDahanIndex = 0;
-        }
-        var nextDahan = (pd.daHanList && currentDahanIndex >= 0) ? pd.daHanList[currentDahanIndex + 1] : null;
-        var dahanPreviewLabel = currentDahan
-          ? ('현재 '+currentDahan.startAge+'~'+currentDahan.endAge+'세 '+currentDahan.palaceName+' 대한')
-          : '현재 대한 정보 확인 중';
-        var dahanNextLabel = nextDahan
-          ? ('다음 '+nextDahan.startAge+'~'+nextDahan.endAge+'세 '+nextDahan.palaceName+' 대한')
-          : '다음 대한은 전체 보기에서 확인';
-        var decadeRowsHtml = '';
-        var decadeSummaryHtml = '';
-        var decadeFlowSignals = [];
-        var decadeTitle = '현재 대한 10년운';
-        if (currentDahan) {
-          decadeTitle = currentDahan.startAge + '~' + currentDahan.endAge + '세 · ' + currentDahan.palaceName + ' 대한';
-          for (var age = Number(currentDahan.startAge), rowNo = 0; age <= Number(currentDahan.endAge) && rowNo < 10; age += 1, rowNo += 1) {
-            var rowYear = birthYearForFlow > 0 ? (birthYearForFlow + age - 1) : (flowYear + rowNo);
-            var rowGanji = zwFlowGanji(rowYear);
-            var rowGan = rowGanji.charAt(0) || flowYearGan;
-            var rowIdx = (Number(currentDahan.idx) + rowNo * (pd.direction || 1) + 120) % 12;
-            var rowSignal = zwFlowPalaceSignal(rowIdx, rowGan);
-            decadeFlowSignals.push({ label:rowYear+'년', signal:rowSignal });
-            var rowOlympus = zwFlowOlympus(rowSignal);
-            var rowDeepHtml = zwFlowDeepReading(rowSignal, rowOlympus, rowYear+'년');
-            var rowCareful = rowSignal.counts['화기'] > 0 || rowSignal.bad.length >= 2;
-            var rowAdvice = rowCareful
-              ? '큰 결정보다 정리, 검토, 방어가 복을 지킵니다.'
-              : (rowSignal.score >= 76 ? '명예와 실익이 함께 움직이니 주도적으로 문을 여세요.' : '준비한 일을 작게 공개하며 흐름을 시험하세요.');
-            decadeRowsHtml += '<div style="display:grid;grid-template-columns:minmax(64px,86px) minmax(0,1fr);gap:10px;padding:10px 0;border-bottom:1px solid rgba(148,163,184,0.18);">'
-              +'<div style="color:#fde68a;font-weight:900;font-size:0.82rem;">'+rowYear+'<br><span style="color:#c4b5fd;font-size:0.72rem;">'+age+'세</span></div>'
-              +'<div style="font-size:0.8rem;color:#dbeafe;line-height:1.65;">'
-                +'<b style="color:#e9d5ff;">'+zwFlowEsc(rowSignal.palaceName)+'</b> · '+zwFlowEsc(rowGanji)+' · '+zwFlowEsc(rowSignal.grade)+' '+rowSignal.score+'점<br>'
-                +'<span style="color:#cbd5e1;">주성 '+zwFlowEsc(rowSignal.main[0] || '공궁')+'이 '+zwFlowEsc(rowSignal.theme.focus)+'을 밀어 올립니다. '+rowAdvice+'</span>'
-                +'<div style="margin-top:4px;color:#fde68a;"><b>신화 인장:</b> '+zwFlowEsc(rowOlympus.god)+' · '+zwFlowEsc(rowOlympus.seal)+'</div>'
-                +'<div style="margin-top:4px;">'+zwFlowSihuaTags(rowSignal.sihua)+'</div>'
-                +rowDeepHtml
-              +'</div>'
-            +'</div>';
-          }
-          decadeSummaryHtml = zwFlowDecadeSummary(decadeFlowSignals, decadeTitle);
-        } else {
-          decadeRowsHtml = '<p style="font-size:0.82rem;color:#cbd5e1;line-height:1.7;margin:0;">대한 데이터가 제한되어 10년운을 산출하지 못했습니다. 출생 시간과 프로필을 다시 확인해 주세요.</p>';
-        }
+        // 대한 10년운 행(연도별 기회·주의 신호)은 서버가 만든다(worker/lib/saju-section/paid-ziwei.src.js).
         var sec_ziwei_flow = '<div data-cd-marker="'+ZW_FLOW_MARKER+'" style="background:linear-gradient(145deg,rgba(17,24,39,0.92),rgba(49,22,83,0.68));padding:18px;border-radius:12px;margin-bottom:20px;border:1px solid rgba(216,180,254,0.28);box-shadow:0 12px 28px rgba(0,0,0,0.24);">'
           +'<h2 style="color:#fef3c7;font-size:1.18rem;margin:0 0 8px;border-bottom:1px solid rgba(250,204,21,0.24);padding-bottom:8px;">📅 자미두수 1년운 — '+flowYear+'년 월별 운기</h2>'
           +'<p style="font-size:0.8rem;color:#c4b5fd;line-height:1.65;margin:0 0 12px;">유년 '+zwFlowEsc(flowGanji || String(flowYear))+'의 사화와 12궁 흐름을 월별로 펼친 운세입니다.</p>'
@@ -24250,13 +23835,7 @@ function renderZiwei(p, natal, targetId) {
               +'<div data-zw-paid-gate-message style="min-height:14px;color:#a78bfa;font-size:0.68rem;font-weight:900;"></div>'
             +'</div>'
             +'<div class="cd-section-gate__body">'
-              +_cdGateBody('ziwei_decade_luck',
-                '<div style="background:rgba(15,23,42,0.62);border:1px solid rgba(125,211,252,0.22);border-radius:11px;padding:13px 14px;">'
-                +'<h3 style="margin:0 0 8px;color:#93c5fd;font-size:1rem;">⏳ '+zwFlowEsc(decadeTitle)+'</h3>'
-                +'<p style="font-size:0.78rem;color:#cbd5e1;line-height:1.65;margin:0 0 8px;">이 10년은 월운보다 깊게 작동하는 대한의 바닥 기류입니다. 기회는 반복되는 궁에서 열리고, 위험은 같은 사화가 겹칠 때 선명해집니다.</p>'
-                +decadeSummaryHtml
-                +decadeRowsHtml
-              +'</div>')
+              +_cdGateBody('ziwei_decade_luck', _cdZwServerSlot('ziwei_decade_luck'))
             +'</div>'
           +'</div>'
         +'</div>';
@@ -24473,219 +24052,8 @@ function renderZiwei(p, natal, targetId) {
           +'</div>'
         +'</div>';
 
-        // ── 12대한 타임라인 ──
-        var PALACE_DAHAN_THEME = {
-          '명궁':{icon:'🎭',kw:'자아 확립·독립 의지의 전성기'},
-          '형제궁':{icon:'🤝',kw:'동료·협력자의 조력이 운명을 바꾸는 시기'},
-          '부부궁':{icon:'💑',kw:'결혼·동반자·주요 파트너십의 핵심 분기점'},
-          '자녀궁':{icon:'🌱',kw:'창의적 성취와 후계·자녀 인연이 집중'},
-          '재백궁':{icon:'💰',kw:'수입·투자·자산 변동이 집약되는 국면'},
-          '질액궁':{icon:'⚕️',kw:'컨디션과 회복 리듬을 정돈하는 시기'},
-          '천이궁':{icon:'✈️',kw:'이직·이사·해외 확장의 큰 이동 개운 구간'},
-          '노복궁':{icon:'👥',kw:'부하·조직·핵심 인맥 수호가 성패를 가름'},
-          '관록궁':{icon:'💼',kw:'커리어·사업·사회적 명성이 집중 형성'},
-          '전택궁':{icon:'🏠',kw:'부동산·고정자산·저축 여력의 확충 구간'},
-          '복덕궁':{icon:'🍀',kw:'정신적 풍요·행복감·내면 성장의 시기'},
-          '부모궁':{icon:'👪',kw:'부모 덕·윗사람 후원·문서 운이 집중'}
-        };
+        // ── 12대한 타임라인 ── 본문(대한별 궁·사화·삼방사정 해설)은 서버가 만든다(worker/lib/saju-section/paid-ziwei.src.js).
         var ZW_DAHAN_TIMELINE_MARKER = 'ziwei-daehan-timeline-expanded-v20260612';
-        var ZW_DAHAN_GANS = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
-        var ZW_DAHAN_GAN_LABEL = {
-          '甲':'갑(甲)', '乙':'을(乙)', '丙':'병(丙)', '丁':'정(丁)', '戊':'무(戊)',
-          '己':'기(己)', '庚':'경(庚)', '辛':'신(辛)', '壬':'임(壬)', '癸':'계(癸)'
-        };
-        var ZW_DAHAN_GRADE_COLOR = { 'A+':'#F4C842', 'A':'#F4C842', 'B+':'#9CA3AF', 'B':'#9CA3AF', 'C+':'#A78BFA', 'C':'#A78BFA', 'D':'#F87171' };
-        var ZW_DAHAN_GILSEONG = ['천괴','천월','좌보','우필','문창','문곡','녹존','화록'];
-        var ZW_DAHAN_HYUNGSEONG = ['경양','타라','화성','영성','지공','지겁','화기'];
-        function zwDahanPalaceStars(idx) {
-          return (pd.stars && pd.stars[idx]) || { main:[], aux:[], bad:[] };
-        }
-        function zwDahanGan(dh) {
-          var base = ZW_DAHAN_GANS.indexOf(pd.yearGan);
-          if (base < 0) base = 0;
-          return ZW_DAHAN_GANS[(base + Number(dh.order || 0)) % 10];
-        }
-        function zwDahanStarSet(idx) {
-          var stars = zwDahanPalaceStars(idx);
-          return uniqueList(extractMains(stars).concat(extractAux(stars), extractBad(stars)));
-        }
-        function zwDahanFindStarPalace(starName) {
-          for (var i = 0; i < 12; i += 1) {
-            if (zwDahanStarSet(i).indexOf(starName) >= 0) {
-              return { idx:i, palaceName:zwFlowPalaceName(i) };
-            }
-          }
-          return { idx:-1, palaceName:'미배치 궁' };
-        }
-        function zwDahanBuildSihua(gan) {
-          var byStar = ZW_FLOW_SIHUA_BY_GAN[gan] || {};
-          var byType = { '화록':null, '화권':null, '화과':null, '화기':null };
-          Object.keys(byStar).forEach(function(starName) {
-            var type = byStar[starName];
-            var target = zwDahanFindStarPalace(starName);
-            byType[type] = { star:starName, type:type, palaceName:target.palaceName, palaceIdx:target.idx };
-          });
-          return byType;
-        }
-        function zwDahanSihuaText(entry) {
-          if (!entry) return '해당 별 미배치';
-          return entry.star + ' → ' + entry.palaceName;
-        }
-        function zwDahanSihuaTags(byType) {
-          return ['화록','화권','화과','화기'].map(function(type) {
-            var entry = byType[type];
-            var col = sihuaColors[type] || '#e5e7eb';
-            return '<span style="display:inline-flex;margin:2px 5px 2px 0;padding:4px 8px;border-radius:999px;border:1px solid '+col+'66;background:'+col+'18;color:'+col+';font-size:0.72rem;font-weight:900;">'+zwFlowEsc(type)+' → '+zwFlowEsc(entry ? entry.palaceName : '미배치')+'</span>';
-          }).join('');
-        }
-        function zwDahanSambangSajeong(idx, sihuaByType) {
-          var scanIdx = uniqueList([idx, (idx + 4) % 12, (idx + 8) % 12, (idx + 6) % 12, (idx + 10) % 12]);
-          var names = [];
-          scanIdx.forEach(function(pi) { names = names.concat(zwDahanStarSet(pi)); });
-          ['화록','화권','화과','화기'].forEach(function(type) {
-            var entry = sihuaByType[type];
-            if (entry && scanIdx.indexOf(entry.palaceIdx) >= 0) names.push(type);
-          });
-          var gil = names.filter(function(name) { return ZW_DAHAN_GILSEONG.indexOf(name) >= 0; }).length;
-          var hyung = names.filter(function(name) { return ZW_DAHAN_HYUNGSEONG.indexOf(name) >= 0; }).length;
-          var luck = gil >= hyung + 3 ? '상 (길성 우세)' : (gil >= hyung + 1 ? '중상 (길성 우세)' : (hyung >= gil + 2 ? '주의 (흉성 압박)' : '중립 (균형권)'));
-          var keyActivation = uniqueList(scanIdx.map(function(pi) { return zwFlowPalaceName(pi); })).slice(0, 4).join('·') + ' 활성화';
-          return { gil:gil, hyung:hyung, luck:luck, keyActivation:keyActivation };
-        }
-        function zwDahanGrade(score, hasHwagi, hyung) {
-          if (hasHwagi && hyung >= 3) return 'D';
-          if (score >= 8) return 'A+';
-          if (score >= 5) return 'A';
-          if (score >= 2) return 'B+';
-          if (score >= 0) return 'B';
-          if (score >= -2) return 'C+';
-          return 'C';
-        }
-        function zwDahanBar(grade) {
-          var fill = grade === 'A+' || grade === 'A' ? 5 : (grade === 'B+' || grade === 'B' ? 4 : (grade === 'D' ? 2 : 3));
-          return '<span style="letter-spacing:1px;color:#facc15;">'+('█████'.slice(0, fill))+'</span><span style="letter-spacing:1px;color:#475569;">'+('█████'.slice(0, 5 - fill))+'</span>';
-        }
-        function zwDahanListText(list, fallback) {
-          return (list && list.length) ? list.slice(0, 5).join('·') : fallback;
-        }
-        function zwDahanSectionCard(title, body) {
-          return '<div style="background:rgba(15,23,42,0.55);border:1px solid rgba(148,163,184,0.18);border-radius:9px;padding:10px 11px;min-width:0;">'
-            +'<div style="color:#fde68a;font-size:0.78rem;font-weight:900;margin-bottom:5px;">'+title+'</div>'
-            +'<div style="color:#dbeafe;font-size:0.77rem;line-height:1.66;">'+body+'</div>'
-          +'</div>';
-        }
-        function zwDahanBuildSections(ctx) {
-          var mainText = zwDahanListText(ctx.main, '공궁');
-          var auxText = zwDahanListText(ctx.aux, '보조성 약함');
-          var badText = zwDahanListText(ctx.bad, '강한 흉성 압박 약함');
-          var hwarok = ctx.sihua['화록'];
-          var hwagi = ctx.sihua['화기'];
-          var palaceFocus = (ZW_FLOW_PALACE_THEME[ctx.dh.palaceName] || {}).focus || ctx.theme.kw;
-          return {
-            overview: ctx.dh.startAge+'~'+ctx.dh.endAge+'세 '+ctx.dh.palaceName+' 대한은 '+mainText+' 주성이 '+ctx.theme.kw+' 흐름을 열어 주는 10년입니다. 궁간 '+ZW_DAHAN_GAN_LABEL[ctx.gan]+'의 사화는 화록 '+zwDahanSihuaText(hwarok)+', 화기 '+zwDahanSihuaText(hwagi)+'로 드러나며, '+ctx.sambang.keyActivation+'가 삶의 실제 무대를 강하게 움직입니다. 이 시기는 단순한 길흉보다 무엇을 확장하고 무엇을 보호할지 분명히 정할수록 운의 밀도가 깊어집니다.',
-            career_study: '직업·학업에서는 '+palaceFocus+'이 핵심 주제입니다. 주성 '+mainText+'은 역할의 방향을, 보조성 '+auxText+'은 귀인과 협업의 통로를 뜻합니다. 화권·화과가 닿은 궁은 발표, 시험, 직책, 평판 관리에 유리하므로 결과물을 기록으로 남기는 전략이 좋습니다.',
-            wealth: '재물 흐름은 화록의 도착 궁인 '+(hwarok ? hwarok.palaceName : '미배치 궁')+'을 중심으로 열립니다. 재백궁·관록궁·전택궁이 함께 자극되면 수입, 성과, 고정자산을 한 묶음으로 관리해야 복이 남습니다. 흉성 '+badText+'가 보이면 큰 지출보다 현금흐름 방어가 먼저입니다.',
-            relationship: '관계와 파트너십은 '+ctx.dh.palaceName+'의 성격을 통해 드러납니다. '+ctx.theme.kw+'가 강해지는 동안 약속, 역할, 감정 경계를 선명하게 정해야 합니다. 화기가 '+(hwagi ? hwagi.palaceName : '미배치 궁')+'으로 들어가므로 계약, 동업, 가까운 관계의 오해는 기록과 확인을 거쳐 풀어야 합니다.',
-            health: '컨디션은 흉성 '+badText+'와 화기의 위치를 함께 봅니다. 과로, 수면 부족, 감정 누적이 먼저 신호로 오기 쉽고, 질액궁이나 복덕궁이 압박되면 회복 루틴을 앞당겨야 합니다. 일정에 휴식 여백을 고정하면 대한의 부담이 크게 낮아집니다.',
-            turning_point: '전환점은 대한 중반과 후반에 강해집니다. '+ctx.keyYears[0].label+'에는 '+ctx.keyYears[0].event+' 흐름이 열리고, '+ctx.keyYears[1].label+'에는 '+ctx.keyYears[1].event+' 흐름이 누적됩니다. 이 두 시점은 확장과 정리를 동시에 판단해야 하는 분기점입니다.',
-            strategy: ['핵심 궁 '+ctx.dh.palaceName+'의 주제를 3년 단위 목표로 나누고 결과물을 숫자와 문서로 남기세요.', '화록이 닿은 '+(hwarok ? hwarok.palaceName : '궁')+' 영역은 반복 수익·평판·관계 자산으로 전환하세요.', '삼방사정에서 강한 궁을 우선순위로 두고 약한 궁은 지출·관계·회복 방어선부터 세우세요.'],
-            caution: ['화기가 닿은 '+(hwagi ? hwagi.palaceName : '궁')+' 문제를 감정적으로 밀어붙이면 손실이 커질 수 있습니다.', '흉성 '+badText+'가 강한 시기에는 무리한 확장, 불투명한 계약, 충동 지출을 피하세요.', '좋은 흐름이 와도 검증 없는 동업·보증·과속 투자로 복을 흩뜨리지 마세요.']
-          };
-        }
-        var dahanTimelineHtml = '';
-        var dahanTimelinePreviewHtml = '';
-        var dahanTimelineFullHtml = '';
-        if (pd.daHanList && pd.daHanList.length > 0) {
-          pd.daHanList.forEach(function(dh, dhIdx) {
-            var dhRawStars = pd.stars[dh.idx];
-            var dhMain = extractMains(dhRawStars);
-            var dhAux = extractAux(dhRawStars);
-            var dhBad  = extractBad(dhRawStars);
-            var dhTheme = PALACE_DAHAN_THEME[dh.palaceName] || {icon:'🔮',kw:'고유한 운명 흐름의 구간'};
-            var dahanGan = zwDahanGan(dh);
-            var dahanSihua = zwDahanBuildSihua(dahanGan);
-            var sambang = zwDahanSambangSajeong(dh.idx, dahanSihua);
-            var hasHwagi = !!(dahanSihua['화기'] && dahanSihua['화기'].palaceIdx >= 0);
-            var hasHwaroc = !!(dahanSihua['화록'] && dahanSihua['화록'].palaceIdx >= 0);
-            var momentumScore = (dhMain.length * 2) + (dhAux.length) + (hasHwaroc ? 3 : 0) + sambang.gil - (dhBad.length * 2) - (hasHwagi ? 3 : 0) - sambang.hyung;
-            var grade = zwDahanGrade(momentumScore, hasHwagi, dhBad.length + sambang.hyung);
-            var borderCol = ZW_DAHAN_GRADE_COLOR[grade] || '#A78BFA';
-            var bgCol = grade === 'D' ? 'rgba(248,113,113,0.08)' : (grade === 'A+' || grade === 'A' ? 'rgba(244,200,66,0.08)' : 'rgba(255,255,255,0.025)');
-            var isCurrentDahan = currentKoreanAge > 0 && currentKoreanAge >= Number(dh.startAge) && currentKoreanAge <= Number(dh.endAge);
-            var headline = dhTheme.icon+' '+dh.palaceName+' 대한, '+(dhMain[0] || '공궁')+'이 여는 '+dhTheme.kw;
-            var keyYears = [
-              { label:_sajuEngineText("se_20856_prop_label"), event:(dahanSihua['화록'] ? dahanSihua['화록'].palaceName+' 화록이 기회와 수입 채널을 여는 시점입니다.' : '초기 기반이 잡히며 방향을 선명하게 정하는 시점입니다.') },
-              { label:_sajuEngineText("se_20857_prop_label"), event:(dahanSihua['화기'] ? dahanSihua['화기'].palaceName+' 화기의 누적 과제를 정리해야 하는 시점입니다.' : '성과와 관계 구조를 재정렬해 다음 구간을 준비하는 시점입니다.') }
-            ];
-            var sections = zwDahanBuildSections({
-              dh:dh,
-              gan:dahanGan,
-              main:dhMain,
-              aux:dhAux,
-              bad:dhBad,
-              theme:dhTheme,
-              sihua:dahanSihua,
-              sambang:sambang,
-              keyYears:keyYears
-            });
-            var strategyHtml = sections.strategy.map(function(item){ return '<li>'+zwFlowEsc(item)+'</li>'; }).join('');
-            var cautionHtml = sections.caution.map(function(item){ return '<li>'+zwFlowEsc(item)+'</li>'; }).join('');
-            var dahanItemHtml =
-              '<details '+(isCurrentDahan ? 'open ' : '')+'style="padding:0;border-left:4px solid '+borderCol+';background:'+bgCol+';border-radius:0 10px 10px 0;margin-bottom:10px;overflow:hidden;box-shadow:0 10px 22px rgba(0,0,0,0.18);" data-daehan-index="'+(dhIdx + 1)+'" data-current="'+(isCurrentDahan ? 'true' : 'false')+'">'
-                +'<summary style="list-style:none;cursor:pointer;padding:13px 14px;">'
-                  +'<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap;">'
-                    +'<div style="min-width:0;">'
-                      +'<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:6px;">'
-                        +'<span style="display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;background:'+borderCol+'22;border:1px solid '+borderCol+'88;color:'+borderCol+';font-size:0.72rem;font-weight:900;">'+grade+'</span>'
-                        +'<span style="color:#fbbf24;font-size:0.84rem;font-weight:900;">'+(dhIdx + 1)+'대한 · '+dh.startAge+'~'+dh.endAge+'세</span>'
-                        +(isCurrentDahan ? '<span style="color:#86efac;font-size:0.72rem;font-weight:900;">현재 대한</span>' : '')
-                      +'</div>'
-                      +'<div style="color:#f8fafc;font-size:0.96rem;font-weight:900;line-height:1.45;">📌 '+zwFlowEsc(headline)+'</div>'
-                      +'<div style="color:#c4b5fd;font-size:0.76rem;line-height:1.65;margin-top:6px;">🔑 궁간: '+zwFlowEsc(ZW_DAHAN_GAN_LABEL[dahanGan] || dahanGan)+' · 주성: '+zwFlowEsc(zwDahanListText(dhMain, '공궁'))+' · 지지: '+zwFlowEsc(dh.zhi || '-')+'</div>'
-                      +'<div style="color:#dbeafe;font-size:0.76rem;line-height:1.65;margin-top:5px;">⭐ 길흉 지수: '+zwDahanBar(grade)+' '+zwFlowEsc(sambang.luck)+' · '+zwFlowEsc(sambang.keyActivation)+'</div>'
-                    +'</div>'
-                    +'<span style="color:#93c5fd;font-size:0.72rem;font-weight:900;padding-top:3px;">자세히 보기</span>'
-                  +'</div>'
-                +'</summary>'
-                +'<div style="padding:0 14px 14px;">'
-                  +'<div style="border-top:1px solid rgba(148,163,184,0.18);padding-top:11px;margin-top:-2px;">'
-                    +'<div style="color:#fde68a;font-size:0.8rem;font-weight:900;margin-bottom:6px;">사화 흐름</div>'
-                    +'<div style="margin-bottom:9px;">'+zwDahanSihuaTags(dahanSihua)+'</div>'
-                    +'<p style="font-size:0.79rem;color:#e2e8f0;line-height:1.72;margin:0 0 10px;">'+zwFlowEsc(sections.overview)+'</p>'
-                    +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:9px;margin-bottom:10px;">'
-                      +zwDahanSectionCard('💼 직업/학업', zwFlowEsc(sections.career_study))
-                      +zwDahanSectionCard('💰 재물', zwFlowEsc(sections.wealth))
-                      +zwDahanSectionCard('🤝 관계', zwFlowEsc(sections.relationship))
-                      +zwDahanSectionCard('❤️ 건강', zwFlowEsc(sections.health))
-                      +zwDahanSectionCard('🔀 전환점', zwFlowEsc(sections.turning_point))
-                      +zwDahanSectionCard('🎯 핵심 전략', '<ol style="margin:0;padding-left:17px;">'+strategyHtml+'</ol>')
-                      +zwDahanSectionCard('⚠️ 주의', '<ol style="margin:0;padding-left:17px;">'+cautionHtml+'</ol>')
-                    +'</div>'
-                    +'<div style="background:rgba(2,6,23,0.35);border:1px solid rgba(125,211,252,0.18);border-radius:9px;padding:10px 11px;">'
-                      +'<div style="color:#93c5fd;font-size:0.78rem;font-weight:900;margin-bottom:5px;">🗓 주목할 시점</div>'
-                      +'<div style="font-size:0.76rem;color:#dbeafe;line-height:1.66;">· '+zwFlowEsc(keyYears[0].label)+': '+zwFlowEsc(keyYears[0].event)+'<br>· '+zwFlowEsc(keyYears[1].label)+': '+zwFlowEsc(keyYears[1].event)+'</div>'
-                    +'</div>'
-                  +'</div>'
-                +'</div>'
-              +'</details>';
-            dahanTimelineFullHtml += dahanItemHtml;
-            if (dhIdx === currentDahanIndex || dhIdx === currentDahanIndex + 1) dahanTimelinePreviewHtml += dahanItemHtml;
-          });
-        }
-        if (dahanTimelineFullHtml) {
-          dahanTimelineHtml = '<div style="background:rgba(2,6,23,0.34);border:1px solid rgba(110,231,183,0.20);border-radius:10px;padding:10px 11px;margin-bottom:10px;">'
-              +'<div style="color:#6ee7b7;font-size:0.82rem;font-weight:900;margin-bottom:5px;">핵심 대한 요약</div>'
-              +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));gap:7px;color:#dbeafe;font-size:0.74rem;line-height:1.55;">'
-                +'<span>'+zwFlowEsc(dahanPreviewLabel)+'</span>'
-                +'<span>'+zwFlowEsc(dahanNextLabel)+'</span>'
-              +'</div>'
-            +'</div>'
-            +dahanTimelinePreviewHtml
-            +'<details style="background:rgba(15,23,42,0.48);border:1px solid rgba(148,163,184,0.18);border-radius:10px;padding:0;margin-top:10px;overflow:hidden;">'
-              +'<summary style="list-style:none;cursor:pointer;padding:12px 13px;color:#c4b5fd;font-size:0.82rem;font-weight:900;">전체 12단계 타임라인 펼치기</summary>'
-              +'<div style="padding:0 11px 11px;">'+dahanTimelineFullHtml+'</div>'
-            +'</details>';
-        }
         function zwDahanPremiumShellHtml(bodyHtml) {
           return zwBasicPaidGateHtml('ziwei_decade_luck', 50, '대한(大限) 인생 타임라인', '현재 대한과 다음 대한, 전체 12단계 흐름을 엽니다.', bodyHtml, '#a78bfa', 'ziwei.decadeLuck')
             .replace('data-cd-marker="ziwei-basic-paid-gate-v20260615"', 'data-cd-marker="ziwei-basic-paid-gate-v20260615" data-zw-daehan-gate="ziwei-daehan-common-paid-gate-v20260629"');
@@ -24693,7 +24061,7 @@ function renderZiwei(p, natal, targetId) {
         var sec_dahan = '<div data-cd-marker="'+ZW_DAHAN_TIMELINE_MARKER+'" style="background:rgba(15,15,30,0.8);padding:18px;border-radius:10px;margin-bottom:20px;border:1px solid rgba(139,92,246,0.25);">'
           +'<h2 style="color:#6EE7B7;font-size:1.2rem;margin-top:0;border-bottom:1px solid rgba(110,231,183,0.3);padding-bottom:8px;">⏳ 대한(大限) 12단계 타임라인</h2>'
           +'<p style="font-size:0.78rem;color:#94a3b8;margin:0 0 12px;line-height:1.65;">현재 대한과 다음 대한을 먼저 보여주고, 전체 12단계는 접어서 확인할 수 있습니다.</p>'
-          +zwDahanPremiumShellHtml(dahanTimelineHtml)
+          +zwDahanPremiumShellHtml(_cdZwServerSlot('ziwei_decade_luck'))
         +'</div>';
 
         // ── 인생의 3대 변곡점 (항상 3개 산출): 대한궁·성계·사화·차성을 함께 계량 ──
@@ -25198,7 +24566,7 @@ function renderZiwei(p, natal, targetId) {
         +'<section data-cd-marker="ziwei-extension-stack-v20260615-step2" style="margin-bottom:20px;opacity:0.96;">'
           +'<div style="margin:4px 0 9px;padding:10px 12px;border:1px solid rgba(196,181,253,0.2);border-radius:10px;background:rgba(30,27,75,0.18);color:#ddd6fe;font-size:0.77rem;line-height:1.6;"><b style="color:#f5d0fe;">더 깊이 볼 때</b><br>기본 해석 3장을 읽은 뒤, 더 궁금한 주제를 선택해 보세요. 이용권·월정석·단건 결제의 적용 여부와 금액은 각 장의 안내에서 확인할 수 있어요.</div>'
           +zwReadingPanel('부부궁 심화 상담', '유료 관계 · 5,000원', zwBasicPaidGateHtml('ziwei_love_deep', 50, '부부궁 심화 상담', '반복 패턴·공식화 시기·관계 조언을 엽니다.', sec_love_deep_reading, '#f9a8d4', 'ziwei.loveDeep'), false, '#f9a8d4', '관계 그림, 반복 패턴, 공식화 시기를 상담형으로 봅니다.')
-          +zwReadingPanel('12궁 정밀 해설', '유료 궁위 · 5,000원', zwBasicPaidGateHtml('ziwei_twelve_palaces', 50, '12궁 정밀 해설', '명궁부터 복덕궁까지 세부 근거를 엽니다.', sec2, '#6ee7b7', 'ziwei.twelvePalaces'), false, '#6ee7b7', '세부 궁위를 모두 펼쳐 기본 결론의 근거를 확인합니다.')
+          +zwReadingPanel('12궁 정밀 해설', '유료 궁위 · 5,000원', zwBasicPaidGateHtml('ziwei_twelve_palaces', 50, '12궁 정밀 해설', '명궁부터 복덕궁까지 세부 근거를 엽니다.', _cdZwServerSlot('ziwei_twelve_palaces'), '#6ee7b7', 'ziwei.twelvePalaces'), false, '#6ee7b7', '세부 궁위를 모두 펼쳐 기본 결론의 근거를 확인합니다.')
           +zwReadingPanel('대한·변곡점 요약', '흐름 장', sec_dahan + sec_pivot, false, '#a78bfa', '시기별 변화와 전환점을 참고용으로 봅니다.')
           +zwReadingPanel('상징 보조층', '유료 상징 · 5,000원', zwBasicPaidGateHtml('ziwei_symbolic_layer', 50, '상징 보조층', '명궁·신궁·사화의 상징 인장을 엽니다.', sec_olympus_ziwei, '#c084fc', 'ziwei.symbolicLayer'), false, '#c084fc', '정통 명반 해석 뒤에 덧붙이는 선택형 상징 해설입니다.')
           +zwReadingPanel('생애 총론과 연간 흐름', '보조 흐름 · 5,000원', zwBasicPaidGateHtml('ziwei_life_yearly_flow', 50, '생애 총론과 연간 흐름', '장기 성향과 연간 흐름을 함께 엽니다.', buildZwGrandLifeDeepHtml(pd) + sec_grand + sec_ziwei_flow + buildZwYearlyFlowDeepHtml(pd), '#c084fc', 'ziwei.lifeYearlyFlow'), false, '#c084fc', '장기 성향과 연간 흐름을 기존 방식으로 확인합니다.')
@@ -25752,15 +25120,33 @@ function _cdGateBody(featureKey, bodyHtml){
   _cdPendingGateBodies[key]=bodyHtml;
   return '';
 }
+// 🔴 서버 본문 장: 유료 본문을 브라우저에서 만들지 않는다(worker/lib/saju-section/paid-ziwei.src.js). 게이트에는 빈 칸만 두고,
+// 해금된 게이트를 채울 때 js/core/saju/section-client.js loadZiwei 가 /api/saju/section 에서 받아 넣는다.
+// 같은 키의 게이트가 둘이어도(자미 10년운: 1년운 안쪽 칸·대한 타임라인) 대기 본문 하나를 다투지 않고 각자 칸을 받는다.
+var CD_ZW_SERVER_KEYS = ['ziwei_decade_luck', 'ziwei_twelve_palaces'];
+function _cdZwServerSlot(featureKey){
+  return '<div data-cd-zw-server-body="'+String(featureKey||'').replace(/[^a-z_]/g,'')+'"></div>';
+}
+function _cdZwLoadServerBodies(host){
+  if(!host||!host.querySelectorAll)return;
+  var client=window.CdSajuSectionClient;
+  if(!client||typeof client.loadZiwei!=='function')return;
+  var slots=host.querySelectorAll('[data-cd-zw-server-body]');
+  for(var i=0;i<slots.length;i++){ if(!slots[i].getAttribute('data-cd-zw-state'))client.loadZiwei(slots[i]); }
+}
 function _cdFillGateBodyIfPending(gateEl, featureKey){
   if(!gateEl||!gateEl.querySelector)return;
   var body=gateEl.querySelector('.cd-section-gate__body');
-  if(!body||body.innerHTML)return;
-  var key=String(featureKey||'').trim();
-  var pending=_cdPendingGateBodies[key];
-  if(pending===undefined)return;
-  delete _cdPendingGateBodies[key];
-  body.innerHTML=pending;
+  if(!body)return;
+  if(!body.innerHTML){
+    var key=String(featureKey||'').trim();
+    var pending=_cdPendingGateBodies[key];
+    if(pending===undefined&&CD_ZW_SERVER_KEYS.indexOf(key)>=0)pending=_cdZwServerSlot(key);
+    if(pending===undefined)return;
+    delete _cdPendingGateBodies[key];
+    body.innerHTML=pending;
+  }
+  _cdZwLoadServerBodies(body);
 }
 try{ window.__cdFillGateBodyIfPending=_cdFillGateBodyIfPending; }catch(_){}
 
