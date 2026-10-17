@@ -29824,10 +29824,10 @@ function showQuantumResult() {
       + '<p>기본 차트에서 한 걸음 더 들어가, 일과 역할, 재능과 끌림, 관계의 문, 과제와 변화를 상담실의 언어로 천천히 펼칩니다. 별의 배치를 따로 나열하지 않고, 서로 이어지는 삶의 장면으로 읽습니다.</p>'
       + '</div>'
       + '<div class="astro-stellar-archive__grid">'
-      + _astroCounselPaidGate('astro_stellar_career_room', 10, '일과 역할 심화 리딩', 'MC·10하우스 룰러·6하우스·ASC 룰러·목성으로 사회적 이름, 일의 리듬, 수익화 방향을 함께 엽니다.', '')
-      + _astroCounselPaidGate('astro_stellar_talent_room', 10, '재능과 끌림 심화 리딩', '금성·화성·목성으로 좋아하는 것, 움직이게 하는 것, 사람에게 닿는 매력을 잇습니다.', '')
-      + _astroCounselPaidGate('astro_stellar_relationship_room', 10, '관계의 문 심화 리딩', '금성·화성·7하우스로 마음이 열리는 조건, 끌림의 속도, 오래 머무는 관계의 약속을 봅니다.', '')
-      + _astroCounselPaidGate('astro_stellar_growth_room', 10, '과제와 변화 심화 리딩', '토성·명왕성·해왕성으로 반복되는 과제, 깊은 전환, 현실로 돌아오는 회복 의식을 읽습니다.', '')
+      + _astroCounselPaidGate('astro_stellar_career_room', 50, '일과 역할 심화 리딩', 'MC·10하우스 룰러·6하우스·ASC 룰러·목성으로 사회적 이름, 일의 리듬, 수익화 방향을 함께 엽니다.', '')
+      + _astroCounselPaidGate('astro_stellar_talent_room', 50, '재능과 끌림 심화 리딩', '금성·화성·목성으로 좋아하는 것, 움직이게 하는 것, 사람에게 닿는 매력을 잇습니다.', '')
+      + _astroCounselPaidGate('astro_stellar_relationship_room', 50, '관계의 문 심화 리딩', '금성·화성·7하우스로 마음이 열리는 조건, 끌림의 속도, 오래 머무는 관계의 약속을 봅니다.', '')
+      + _astroCounselPaidGate('astro_stellar_growth_room', 50, '과제와 변화 심화 리딩', '토성·명왕성·해왕성으로 반복되는 과제, 깊은 전환, 현실로 돌아오는 회복 의식을 읽습니다.', '')
       + '</div>'
       + '</section>';
   }
@@ -29939,7 +29939,7 @@ function showQuantumResult() {
       var lonsAt = _astroTransitLonsAt(birth.lat || 37.6, birth.lon || 127.0, pack.houseSystem);
       var p = window.AstroTransits.period(window.AstroTransits.natalOf(pack.chart, timeKnown), { today: today, tz: -now.getTimezoneOffset() / 60, lonsAt: lonsAt });
       var R = window.AstroTransitReading, y = R.year(p, { periods: periods, birth: birthParts });
-      return R.renderYearSection(y, _astroCounselPaidGate('astro_yearly_transit', 30, '앞으로 12개월의 흐름 살펴보기', '주요 흐름의 기간과 날짜, 달마다 볼 날, 일·연애·돈·관계·건강별로 참고할 시기를 열어 드려요.', R.renderYear(y)));
+      return R.renderYearSection(y, _astroCounselPaidGate('astro_yearly_transit', 50, '앞으로 12개월의 흐름 살펴보기', '주요 흐름의 기간과 날짜, 달마다 볼 날, 일·연애·돈·관계·건강별로 참고할 시기를 열어 드려요.', R.renderYear(y)));
     } catch (yearErr) {
       if (window.console && console.warn) console.warn('[astro-year] skipped:', yearErr && yearErr.message);
       return '';
@@ -30151,10 +30151,10 @@ function showQuantumResult() {
       + '</section>'
       + (window.AstroNatalReading ? window.AstroNatalReading.render(freeModel) + window.AstroNatalReading.renderChart(freeModel) : '')
       + '<section class="as-reading" data-astro-server-detail></section>'
-      + _astroCounselSection('일과 역할: MC·10하우스 룰러·6하우스·ASC 룰러·목성', _astroCounselPaidGate('astro_career_talent_deep', 10, '커리어·재능 정밀 분석', 'MC·10하우스·6하우스·목성으로 일의 무대와 수익화 재능을 엽니다.', ''), '처리할 업무 하나를 “성과물”, “반복 루틴”, “사람에게 보이는 가치” 세 칸으로 나누어 정리해보세요.', 'astro-counsel-career')
-      + _astroCounselSection('재능과 끌림: 금성·화성·목성', _astroCounselPaidGate('astro_talent_attraction_deep', 10, '재능과 끌림 심화 분석', '금성·화성·목성으로 매력, 추진력, 확장 가능한 재능을 봅니다.', ''), '좋아하는 일, 바로 움직이고 싶은 일, 커질 수 있는 일을 각각 하나씩 적고 겹치는 지점을 찾아보세요.', 'astro-counsel-talents')
-      + _astroCounselSection('관계의 문: 금성·화성·7하우스', _astroCounselPaidGate('astro_relationship_deep', 10, '관계·끌림 심화 분석', '금성·화성·7하우스로 반복되는 관계 패턴과 끌림의 문을 엽니다.', ''), '관계에서 반복되는 끌림과 거리감을 금성, 화성, 7하우스 세 문장으로 나누어 보세요.', 'astro-counsel-relationship')
-      + _astroCounselSection('과제와 변화: 토성·명왕성·해왕성', _astroCounselPaidGate('astro_growth_shadow_deep', 10, '과제와 변화 심화 리딩', '토성·명왕성·해왕성으로 오래 반복되는 과제와 회복 방향을 봅니다.', ''), '반복해서 미뤄온 문제 하나를 고르고, 해결보다 먼저 15분 동안 관찰해보세요.', 'astro-counsel-growth')
+      + _astroCounselSection('일과 역할: MC·10하우스 룰러·6하우스·ASC 룰러·목성', _astroCounselPaidGate('astro_career_talent_deep', 50, '커리어·재능 정밀 분석', 'MC·10하우스·6하우스·목성으로 일의 무대와 수익화 재능을 엽니다.', ''), '처리할 업무 하나를 “성과물”, “반복 루틴”, “사람에게 보이는 가치” 세 칸으로 나누어 정리해보세요.', 'astro-counsel-career')
+      + _astroCounselSection('재능과 끌림: 금성·화성·목성', _astroCounselPaidGate('astro_talent_attraction_deep', 50, '재능과 끌림 심화 분석', '금성·화성·목성으로 매력, 추진력, 확장 가능한 재능을 봅니다.', ''), '좋아하는 일, 바로 움직이고 싶은 일, 커질 수 있는 일을 각각 하나씩 적고 겹치는 지점을 찾아보세요.', 'astro-counsel-talents')
+      + _astroCounselSection('관계의 문: 금성·화성·7하우스', _astroCounselPaidGate('astro_relationship_deep', 50, '관계·끌림 심화 분석', '금성·화성·7하우스로 반복되는 관계 패턴과 끌림의 문을 엽니다.', ''), '관계에서 반복되는 끌림과 거리감을 금성, 화성, 7하우스 세 문장으로 나누어 보세요.', 'astro-counsel-relationship')
+      + _astroCounselSection('과제와 변화: 토성·명왕성·해왕성', _astroCounselPaidGate('astro_growth_shadow_deep', 50, '과제와 변화 심화 리딩', '토성·명왕성·해왕성으로 오래 반복되는 과제와 회복 방향을 봅니다.', ''), '반복해서 미뤄온 문제 하나를 고르고, 해결보다 먼저 15분 동안 관찰해보세요.', 'astro-counsel-growth')
       + '</div>';
     if (window.AstroBasicDeep) window.AstroBasicDeep.mount(area, pack.birth);
     _astroCounselBindPaidGateObserver(area);
