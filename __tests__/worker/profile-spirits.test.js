@@ -90,32 +90,22 @@ test('60일주 해석은 동물 12종에 연결하고 성별별 외형을 만들
   expect(characterForPillar('甲丑', 'male')).toBeNull();
   expect(SPIRITS).toHaveLength(12);
 });
-test('중복·동시 해금은 한 번만 차감하며 계정 소유권에 남는다', async () => {
-  await Promise.all(Array.from({ length: 6 }, (_, i) => unlock('spirit-00', `request-${i}0000`)));
-  const state = await unlock();
-  expect(state.balance).toBe(15);
-  expect(state.ownedIds).toEqual(['spirit-00']);
-  expect(database.fortune_tea_house_honey_ledgers).toHaveLength(1);
+const seedOwned = (...ids) => { database.profile_spirits = [{ _id: owner, ownedIds: ids, equippedId: null }]; };
+test('신규 정령 해금은 잔액과 관계없이 막고 차감하지 않는다', async () => {
+  await expect(unlock()).rejects.toMatchObject({ status: 403, payload: { code: 'HONEY_GGULGGUL_ONLY' } });
+  expect((await spirits.getProfileSpirits({}, owner)).balance).toBe(20);
+  expect(database.fortune_tea_house_honey_ledgers || []).toHaveLength(0);
+  await expect(unlock('spirit-99')).rejects.toMatchObject({ status: 400 });
+  await expect(spirits.equipProfileSpirit({}, owner, 'spirit-00')).rejects.toMatchObject({ status: 403 });
+});
+test('기존 소유 정령은 차감 없이 유지하고 다른 계정에는 공개하지 않는다', async () => {
+  seedOwned('spirit-00');
+  expect((await unlock()).ownedIds).toEqual(['spirit-00']);
+  expect((await spirits.getProfileSpirits({}, owner)).balance).toBe(20);
   expect((await spirits.getProfileSpirits({}, 'other-user')).ownedIds).toEqual([]);
 });
-test('동일 요청 ID를 다른 정령에 사용할 수 없다', async () => {
-  await unlock();
-  await expect(unlock('spirit-01')).rejects.toMatchObject({ status: 409, payload: { code: 'SPIRIT_REQUEST_MISMATCH' } });
-  expect((await spirits.getProfileSpirits({}, owner)).balance).toBe(15);
-});
-test('잔액 부족·임의 ID·미보유 장착을 거절한다', async () => {
-  database.fortune_tea_house_honey_wallets[0].balance = 4;
-  await expect(unlock()).rejects.toMatchObject({ status: 402, payload: { code: 'INSUFFICIENT_HONEY_DROPS' } });
-  await expect(unlock('spirit-99')).rejects.toMatchObject({ status: 400, payload: { code: 'INVALID_SPIRIT' } });
-  await expect(spirits.equipProfileSpirit({}, owner, 'spirit-00')).rejects.toMatchObject({ status: 403, payload: { code: 'SPIRIT_NOT_OWNED' } });
-});
-test('차감 후 원장 쓰기에 실패하면 차감과 소유권 모두 롤백한다', async () => {
-  failLedger = true;
-  await expect(unlock()).rejects.toThrow('ledger failure');
-  expect(await spirits.getProfileSpirits({}, owner)).toMatchObject({ balance: 20, ownedIds: [], equippedId: null });
-});
 test('장착한 보유 정령만 출석·생활 미션에 20%를 주며 중첩·소급하지 않는다', async () => {
-  await unlock(); await unlock('spirit-01', 'request-0002');
+  seedOwned('spirit-00', 'spirit-01');
   expect(await spirits.profileSpiritExp({}, owner, 'checkin', 20)).toBe(20);
   await spirits.equipProfileSpirit({}, owner, 'spirit-00');
   expect(await spirits.profileSpiritExp({}, owner, 'checkin', 20)).toBe(24);
@@ -138,7 +128,7 @@ test('정령 상태·해금·장착은 미로그인을 거절한다', async () =
   expect((await route('characters/equip', { characterId:null })).status).toBe(401);
 });
 test('서버가 배율·하루 한도·중복을 판정하고 프로필 전환으로 추가 지급하지 않는다', async () => {
-  await unlock(); await spirits.equipProfileSpirit({}, owner, 'spirit-00');
+  seedOwned('spirit-00'); await spirits.equipProfileSpirit({}, owner, 'spirit-00');
   const results = await Promise.all(Array.from({ length: 8 }, (_, i) => route('award', { kind:'quest', key:`q-${i}`, profileId:`profile-${i}`, exp:9999, multiplier:99 })));
   expect(results.filter(result => result.data.granted)).toHaveLength(3);
   expect(database.UserRpgProgress[0].totalExp).toBe(54);
@@ -167,7 +157,7 @@ test('한국 날짜 전환 후에만 출석을 다시 지급하고 기존 경험
   jest.useFakeTimers({ doNotFake:['nextTick','setImmediate','setTimeout','clearTimeout','setInterval','clearInterval'] });
   jest.setSystemTime(new Date('2026-10-17T14:59:00Z'));
   database.UserRpgProgress[0].totalExp = 50;
-  await unlock(); await spirits.equipProfileSpirit({}, owner, 'spirit-00');
+  seedOwned('spirit-00'); await spirits.equipProfileSpirit({}, owner, 'spirit-00');
   expect((await route('award', {kind:'checkin',key:'day'})).data.gainedExp).toBe(24);
   expect((await route('award', {kind:'checkin',key:'other-profile'})).data.granted).toBe(false);
   jest.setSystemTime(new Date('2026-10-17T15:01:00Z'));

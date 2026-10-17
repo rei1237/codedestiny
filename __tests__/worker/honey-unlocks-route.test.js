@@ -11,15 +11,14 @@ let route;
 beforeAll(async () => { ({ handleHoneyUnlockRoutes: route } = await import('../../worker/routes/honey-unlocks.js')); });
 const request = body => new Request('https://example.test/api/honey/unlocks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
 beforeEach(() => { jest.clearAllMocks(); auth.mockResolvedValue({ userId: 'owner' }); security.mockResolvedValue({ ok: true }); spend.mockResolvedValue({ unlocked: true }); });
-test('public catalog exposes both prices and preserves conditional existing perks', async () => {
+test('public catalog exposes eligible Ggulggul prices without unrelated spending options', async () => {
   const response = await route(new Request('https://example.test/api/honey/catalog'), {});
   const data = await response.json();
   expect(auth).not.toHaveBeenCalled();
-  expect(data.products).toHaveLength(22);
+  expect(data.products).toHaveLength(24);
   expect(data.products.find(row => row.productId === 'section_summary')).toMatchObject({ cashPriceKRW: 10000, honeyCost: 60 });
   expect(data.products.find(row => row.productId === 'section_daewun')).toMatchObject({ cashPriceKRW: 20000, honeyCost: 120 });
-  expect(data.otherUses.map(row => row.honeyCost)).toEqual([1, 10, 10]);
-  expect(data.otherUses[1].condition).toContain('상담 결과');
+  expect(data.otherUses).toEqual([]);
   expect(response.headers.get('Cache-Control')).toContain('no-store');
 });
 test('only authenticated owner and three allowed input fields reach the atomic service', async () => {

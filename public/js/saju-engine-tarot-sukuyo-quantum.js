@@ -2962,7 +2962,14 @@ function flipTarotSpreadCard(index) {
   } else if (idx === 2) {
     if (guideEl) guideEl.textContent = '세 장의 카드가 모두 드러났습니다. 통합 리딩을 시작합니다.';
     var finalBtn = document.getElementById('tarotFinalBtn');
-    if (finalBtn) finalBtn.disabled = false;
+    if (finalBtn) {
+      finalBtn.disabled = false;
+      syAttachHoneyUse(finalBtn, MYEONGRI_TAROT_THREE_CARD_FEATURE_KEY, function () {
+        if (tarotSpreadMode !== 'three' || tarotThreeCardState.revealedIndex !== 2) return null;
+        var descriptor = buildMyeongriTarotResumeDescriptor();
+        return descriptor ? { descriptor: descriptor, input: descriptor.args } : null;
+      }, function (captured) { return runMyeongriTarotResume(captured.descriptor); });
+    }
   }
 }
 
@@ -4891,13 +4898,20 @@ function sySukuyoMomentFromInput(year, month, day, calendarType, hour, minute) {
 }
 
 /** 코어로 달 황경을 계산해 lunarObj 에 싣는다. 코어가 없거나 실패하면 reject — 호출부가 기존 실패 경로로 보낸다. */
+var syAstronomyPending = new Map();
 function syComputeSukuyoAstronomy(lunarObj, moment) {
     if (!moment || typeof window.__cdCalculateSukuyoAstronomy !== 'function') {
         return Promise.reject(new Error('SUKUYO_ASTRONOMY_CORE_UNAVAILABLE'));
     }
-    return Promise.resolve(window.__cdCalculateSukuyoAstronomy(moment)).then(function (astronomy) {
-        return Object.assign({}, lunarObj || {}, astronomy);
-    });
+    var key = JSON.stringify(moment);
+    var pending = syAstronomyPending.get(key);
+    if (!pending) {
+      var started = performance.now();
+      pending = Promise.resolve().then(function () { return window.__cdCalculateSukuyoAstronomy(moment); })
+        .finally(function () { performance.measure('sukuyo:astronomy', {start:started,end:performance.now()}); syAstronomyPending.delete(key); });
+      syAstronomyPending.set(key, pending);
+    }
+    return pending.then(function (astronomy) { return Object.assign({}, lunarObj || {}, astronomy); });
 }
 
 function calcSukuyoData(lunarObj, opt = { leapRule: 'current' }) {
@@ -6172,6 +6186,7 @@ var _syPaidGateAccess = Object.create(null);
 var SY_PAID_GATE_ACCESS_TTL_MS = 30 * 60 * 1000;
 
 function syPaidGateAccessMethod(result) {
+  if (result && result.accessGrant && result.accessGrant.accessMethod === 'HONEY') return 'honey';
   var gate = result && typeof result === 'object' ? result : {};
   var payload = gate.payload && typeof gate.payload === 'object' ? gate.payload : gate;
   var data = payload.data && typeof payload.data === 'object' ? payload.data : payload;
@@ -6303,17 +6318,19 @@ function sySaveSukuyoResultArchive(featureSlug, payload, attempt) {
     if (typeof fetch !== 'function' || !payload) return;
     var tries = Number(attempt || 0);
     // 게이트에서 기억한 카드·결제 방식을 첫 시도 때 굳힌다(재시도 사이에 카드를 바꿔도 결제한 카드로 보낸다).
-    if (!tries) {
+    if (!tries && !payload.archiveBound) {
       var gateAccess = syRecentPaidGateAccess(SY_ARCHIVE_FEATURE_KEYS[featureSlug]);
       payload = Object.assign({}, payload, {
         profileId: (gateAccess && gateAccess.profileId) || syResolveCurrentProfileIdForPaidGate(),
         accessMethod: (gateAccess && gateAccess.accessMethod) || '',
-        requestId: (gateAccess && gateAccess.requestId) || ''
+        requestId: (gateAccess && gateAccess.requestId) || '', archiveBound: true, ownerScope: syPaidFeatureUserScope()
       });
       // 결제 1건 = 기록 1건. 같은 결제(requestId·이용권 표시)로 다른 상대를 또 저장하지 않게 지운다.
       if (gateAccess && gateAccess.requestId) delete _syPaidGateAccess[SY_ARCHIVE_FEATURE_KEYS[featureSlug]];
     }
-    if (!payload.profileId) return;
+    if (payload.ownerScope !== syPaidFeatureUserScope()) return;
+    if (!payload.profileId) { if (payload.onState) payload.onState('failed'); return; }
+    if (payload.onState) payload.onState('saving');
     var headers = { 'Content-Type': 'application/json' };
     try {
       var token = localStorage.getItem('fortune_auth_token') || '';
@@ -6329,6 +6346,7 @@ function sySaveSukuyoResultArchive(featureSlug, payload, attempt) {
     });
     var retry = function(reason) {
       if (tries >= SY_ARCHIVE_RETRY_DELAYS_MS.length) {
+        if (payload.onState) payload.onState('failed', function () { sySaveSukuyoResultArchive(featureSlug, payload, 0); });
         try { console.warn('[sukuyo-archive] 보관함 저장 실패', featureSlug, reason); } catch (_) {}
         return;
       }
@@ -6336,7 +6354,10 @@ function sySaveSukuyoResultArchive(featureSlug, payload, attempt) {
     };
     fetch('/api/sukuyo/' + featureSlug + '/archive', { method: 'POST', headers: headers, credentials: 'include', body: body })
       .then(function(res) {
+        if (payload.ownerScope !== syPaidFeatureUserScope()) return;
         // 400·401·404·413 은 다시 보내도 같다. 403(기록이 아직 안 씀)·503·5xx 는 다시 본다.
+        if (res && res.ok && payload.onState) payload.onState('saved');
+        if (res && !res.ok && [400,401,404,413].indexOf(res.status) !== -1 && payload.onState) payload.onState('failed');
         if (!res || res.ok || res.status === 400 || res.status === 401 || res.status === 404 || res.status === 413) {
           if (res && !res.ok) { try { console.warn('[sukuyo-archive] 저장 거절', featureSlug, res.status); } catch (_) {} }
           return;
@@ -6626,7 +6647,39 @@ function syRunSukuyoAiPromptResume(descriptor, grant) {
   window.addEventListener('cd:tile-locks-updated', schedule);
 })();
 
+// Per-use honey keeps a receipt tied to the frozen input; it never grants a permanent unlock.
+function syAttachHoneyUse(cashButton, featureKey, capture, deliver) {
+  if (!cashButton || !window.CdHoney || cashButton.dataset.honeyUseAttached) return;
+  cashButton.dataset.honeyUseAttached = 'true';
+  window.CdHoney.getCatalog().then(function () {
+    if (!cashButton.isConnected) return;
+    var item = window.CdHoney.getProduct(featureKey);
+    if (!item || item.serviceScope !== 'GGULGGUL' || item.billingType !== 'per_use') return;
+    var button = document.createElement('button'); button.type = 'button'; button.className = 'cd-honey-option';
+    button.textContent = '꿀방울 ' + item.honeyCost + '개로 열기';
+    button.setAttribute('data-honey-use', featureKey); cashButton.after(button);
+    var pending = null;
+    button.addEventListener('click', async function () {
+      if (button.disabled || cashButton.disabled) return;
+      var captured = capture(); if (!captured) return;
+      var scope = syPaidFeatureUserScope() + '|' + syResolveCurrentProfileIdForPaidGate();
+      var signature = scope + JSON.stringify(captured.input);
+      if (!pending || pending.signature !== signature) {
+        var tail = 'hny' + Date.now().toString(36) + Math.random().toString(36).slice(2, 9);
+        pending = { signature: signature, requestId: featureKey === 'compat-sukuyo-compatibility'
+          ? 'sukuyo-paid:' + featureKey + '|' + syResolveCurrentProfileIdForPaidGate() + '|' + tail : featureKey + ':' + tail };
+      }
+      cashButton.disabled = true;
+      try {
+        var receipt = await window.CdHoney.unlockUse(button, featureKey, captured.input, pending.requestId);
+        if (receipt && button.isConnected && scope === syPaidFeatureUserScope() + '|' + syResolveCurrentProfileIdForPaidGate()) await deliver(captured, receipt);
+      } finally { cashButton.disabled = false; }
+    });
+  }).catch(function () { delete cashButton.dataset.honeyUseAttached; });
+}
 function syPaidPriceLabel(feature) {
+  var product = window.CdHoney && window.CdHoney.getProduct(feature && feature.key);
+  if (product && Number.isFinite(product.cashPriceKRW)) return product.cashPriceKRW.toLocaleString('ko-KR') + '원';
   var cost = Math.max(0, Math.floor(Number(feature && feature.cost ? feature.cost : 0)));
   return (cost * 100).toLocaleString('ko-KR') + '원';
 }
@@ -8228,6 +8281,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     var area = document.getElementById('sukuyoSection');
     var card = document.getElementById('sukuyoCard');
     if (!area || !card) return;
+    var renderStarted = performance.now();
+    performance.mark('sukuyo:entry');
     var _syRenderSeq = window.__sySukuyoRenderSeq = (window.__sySukuyoRenderSeq || 0) + 1;
 
     // CSS를 document.head에 주입 (모바일 WebKit innerHTML <style> 미적용 버그 방지 + iOS backdrop-filter 화이트스크린 수정)
@@ -8836,6 +8891,12 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
     if (!sData) {
       window._syWheelState = null;
+      area.innerHTML = '<div class="fr-state" role="alert"><p>숙요 계산을 마치지 못했어요. 입력은 유지되어 있어요.</p><button type="button" data-sy-astronomy-retry>같은 입력으로 다시 계산하기</button></div>';
+      area.querySelector('[data-sy-astronomy-retry]').addEventListener('click', function () {
+        var original = Object.assign({}, lunarObj); delete original.syAstronomyUnavailable;
+        renderSukuyo(p, natal, bazi, original, canonicalPayload, sourceProfile);
+      });
+      return;
     }
 
     if (sData) {
@@ -8929,7 +8990,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         <div class="sy-crest-band" aria-hidden="true">${syMoonlightArt('compat')}</div>
         <h4 class="sy-compat-title">인연의 끈 궁합</h4>
         <p class="sy-compat-lede">상대 생년월일을 입력하면 두 사람의 인연 리듬과 관계 유형을 확인할 수 있습니다.</p>
-        <div data-crafted-static-offer="compat-sukuyo-compatibility"></div>
+        <p class="fr-caption">관계 유형과 짧은 뜻은 무료예요. 구체적인 해석은 결과를 확인한 뒤 선택할 수 있어요.</p>
                               
 
           <div style="display: flex; flex-direction: column; gap: 10px;">
@@ -8954,7 +9015,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
                       <option value="lunar">음력</option>
                       <option value="lunar_leap">음력(윤달)</option>
                   </select>
-                  <input type="time" id="sy3BirthTime" class="sy-moon-field" value="12:00" style="flex: 0 0 auto; padding: 10px 8px; border-radius: 9px; background: rgba(13,18,36,0.92); color: #f8fbff; border: 1px solid rgba(216,180,254,0.72); color-scheme: dark; font-size: 16px; min-height: 44px;">
+                  <input type="time" id="sy3BirthTime" class="sy-moon-field" aria-label="상대 출생 시각 · 모르면 비워두세요" style="flex: 0 0 auto; padding: 10px 8px; border-radius: 9px; background: rgba(13,18,36,0.92); color: #f8fbff; border: 1px solid rgba(216,180,254,0.72); color-scheme: dark; font-size: 16px; min-height: 44px;">
                   <label style="display:flex;align-items:center;gap:6px;color:#f6d9ff;font-size:0.82rem;font-weight:700;text-shadow:0 1px 8px rgba(15,23,42,0.72);">
                     <span style="white-space:nowrap;">상대 성별</span>
                     <select id="sy3PartnerGender" class="sy-moon-field" style="flex: 0 0 auto; padding: 10px 8px; border-radius: 9px; background: rgba(13,18,36,0.92); color: #f8fbff; border: 1px solid rgba(216,180,254,0.72); font-size: 16px; min-height: 44px;">
@@ -8964,7 +9025,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
                     </select>
                   </label>
               </div>
-              <button id="sy3AnalyzeBtn" class="sy-moon-btn" data-my-idx="${sData ? sData.mansionIdx : 0}" data-my-mansion="${(sData ? sData.mansion : '').replace(/&/g,'&amp;').replace(/"/g,'&quot;')}" style="padding: 11px; cursor: pointer; font-weight: 900; width: 100%; touch-action: manipulation; -webkit-tap-highlight-color: transparent; min-height: 46px;">기본 궁합 보기 · ${syPaidPriceLabel(SY_PAID_FEATURES.compatibility)}</button>
+              <button id="sy3AnalyzeBtn" class="sy-moon-btn" data-my-idx="${sData ? sData.mansionIdx : 0}" data-my-mansion="${(sData ? sData.mansion : '').replace(/&/g,'&amp;').replace(/"/g,'&quot;')}" style="padding: 11px; cursor: pointer; font-weight: 900; width: 100%; touch-action: manipulation; -webkit-tap-highlight-color: transparent; min-height: 46px;">우리의 관계 무료로 보기</button>
           </div>
         <div id="sy3Loading" class="sy-loader">숙요 관계 데이터를 계산하는 중입니다...</div>
         <div id="sy3Result" style="margin-top: 15px; display: none;"></div>
@@ -9179,6 +9240,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       window.__cdRefreshSukuyoCalendarPanel(true);
     }
     if (window.BasicFortunePresentation) window.BasicFortunePresentation.sukuyo(area, window._syLastSukuyoBasicResult);
+    performance.measure('sukuyo:result-render', {start:renderStarted,end:performance.now()});
 
     // 게이지 + 유명인 UI 초기화 (DOM 삽입 후 실행)
     const _renderMIdx = sData ? sData.mansionIdx : 0;
@@ -13422,7 +13484,87 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     return true;
   }
 
+  // The free path calculates facts only. It never enters the paid section client or archive.
+  var syFreeCompatPending = null;
+  var syFreeCompatResult = null;
+  function syCompatPreviewKey(myIdx) {
+    return JSON.stringify([syPaidFeatureUserScope(), syResolveCurrentProfileIdForPaidGate(), myIdx,
+      syCompatFieldValue('sy3BirthY'), syCompatFieldValue('sy3BirthM'), syCompatFieldValue('sy3BirthD'),
+      syCompatFieldValue('sy3BirthTime'), syCompatFieldValue('sy3CalType'), syCompatFieldValue('sy3PartnerGender'), window._astroBirth]);
+  }
+  function syCompatPreviewInput() {
+    var y = Number(syCompatFieldValue('sy3BirthY')), m = Number(syCompatFieldValue('sy3BirthM')), d = Number(syCompatFieldValue('sy3BirthD'));
+    var cal = syCompatFieldValue('sy3CalType') || 'solar';
+    if (!Number.isInteger(y) || y < 1582 || y > 2400 || m < 1 || m > 12 || d < 1 || d > 31 || (cal !== 'solar' && d > 30)) throw new Error('상대방의 생년월일을 확인해 주세요.');
+    if (cal === 'solar' && new Date(Date.UTC(y, m - 1, d)).getUTCMonth() !== m - 1) throw new Error('해당 월에 없는 날짜예요. 생년월일을 확인해 주세요.');
+    var rawTime = syCompatFieldValue('sy3BirthTime');
+    var time = (rawTime || '12:00').split(':');
+    var hour = Number(time[0]), minute = Number(time[1]);
+    if (!Number.isInteger(hour) || hour < 0 || hour > 23 || !Number.isInteger(minute) || minute < 0 || minute > 59) throw new Error('출생 시각을 확인해 주세요.');
+    var moment = sySukuyoMomentFromInput(y, m, d, cal, hour, minute);
+    if (!moment) throw new Error('음력 날짜와 윤달 여부를 확인해 주세요.');
+    return { moment: moment, timeKnown: !!rawTime };
+  }
   window.triggerSynergyCheck = function(myIdx, myMansionName) {
+    var host = document.getElementById('sy3Result'), loader = document.getElementById('sy3Loading');
+    if (!host || !loader) return Promise.resolve();
+    var key = syCompatPreviewKey(myIdx);
+    if (syFreeCompatPending && syFreeCompatPending.key === key) return syFreeCompatPending.promise;
+    var input;
+    try { input = syCompatPreviewInput(); } catch (error) {
+      host.style.display = 'block'; host.textContent = error.message; return Promise.resolve();
+    }
+    performance.mark('sukuyo:preview-start');
+    loader.style.display = 'block'; host.style.display = 'none';
+    var calculate = syFreeCompatResult && syFreeCompatResult.key === key
+      ? Promise.resolve(syFreeCompatResult.value) : syComputeSukuyoAstronomy({}, input.moment);
+    var promise = calculate.then(function (astronomy) {
+      if (!host.isConnected || key !== syCompatPreviewKey(myIdx)) return;
+      syFreeCompatResult = { key: key, value: astronomy };
+      var partner = calcSukuyoData(astronomy);
+      if (!partner || !Number.isInteger(Number(myIdx))) throw new Error('달의 위치를 계산하지 못했어요. 다시 시도해 주세요.');
+      var relation = syBuildRelationDirection((partner.mansionIdx - Number(myIdx) + 27) % 27);
+      var summaries = {
+        '명': '익숙한 반응과 비슷한 감각을 발견하기 쉬운 관계예요. 닮은 점이 편안함과 부딪힘으로 함께 나타날 수 있어요.',
+        '업태': '서로에게 낯설지 않은 끌림과 배움의 주제를 느낄 수 있는 관계예요. 전생이나 정해진 운명을 뜻하는 사실은 아니에요.',
+        '영친': '서로를 응원하고 편안하게 기대는 흐름으로 읽어요. 친밀감이 자라는 속도는 각자의 경험과 선택에 따라 달라져요.',
+        '우쇠': '다가가는 마음과 받아들이는 속도에 차이가 생길 수 있는 관계예요. 주고받는 균형이 관계의 중요한 주제가 돼요.',
+        '안괴': '익숙한 균형을 흔드는 끌림과 변화가 함께 나타날 수 있어요. 나쁜 궁합이나 관계의 실패를 뜻하지는 않아요.',
+        '성위': '서로에게 성장의 자극을 주면서도 기대와 부담이 엇갈릴 수 있어요. 함께 이루려는 일과 감정의 속도가 주요 주제예요.'
+      };
+      host.innerHTML = '<section class="sy-free-compat" aria-live="polite"><p>' + syCanonicalEsc(myMansionName) + ' · ' + syCanonicalEsc(partner.mansion) + '</p>'
+        + '<h4>' + syCanonicalEsc(relation.relationType + ' · ' + relation.distance.label) + '</h4>'
+        + '<p>' + syCanonicalEsc(summaries[relation.relationType]) + '</p>'
+        + '<p>' + syCanonicalEsc(relation.roleBadge.replace(/[命業胎榮親友衰安壞成危]/g, function (role) { return ({命:'명',業:'업',胎:'태',榮:'영',親:'친',友:'우',衰:'쇠',安:'안',壞:'괴',成:'성',危:'위'})[role] + '(' + role + ')'; }) + ' · ' + relation.direction.label) + '</p>'
+        + '<p class="fr-caption">라히리 항성 달 황경을 27등분한 현재 서비스 기준이에요. 전통 음력 날짜표 방식과 결과가 다를 수 있어요.</p>'
+        + '<p class="fr-caption">' + (input.timeKnown ? '상대의 출생 시각을 반영했어요.' : '상대의 출생 시각은 정오 기준이에요. 숙의 경계일에는 실제 시각에 따라 결과가 달라질 수 있어요.') + ' 출생지·시간대는 현재 프로필 기준이에요.</p>'
+        + '<p>관계의 강점, 갈등 패턴과 구체적인 행동 조언은 상세 해석에서 이어집니다.</p>'
+        + '<div data-crafted-static-offer="compat-sukuyo-compatibility"></div>'
+        + '<button type="button" data-sy-detail-open>상세 궁합 열기 · ' + syPaidPriceLabel(SY_PAID_FEATURES.compatibility) + '</button></section>';
+      host.querySelector('[data-sy-detail-open]').addEventListener('click', function () {
+        if (key !== syCompatPreviewKey(myIdx)) { window.triggerSynergyCheck(myIdx, myMansionName); return; }
+        window.openSukuyoCompatDetail(myIdx, myMansionName);
+      });
+      syAttachHoneyUse(host.querySelector('[data-sy-detail-open]'), SY_PAID_FEATURES.compatibility.key, function () {
+        if (key !== syCompatPreviewKey(myIdx)) { window.triggerSynergyCheck(myIdx, myMansionName); return null; }
+        var descriptor = syBuildCompatResumeDescriptor(myIdx, myMansionName), args = descriptor.args;
+        var time = args.time.split(':');
+        return { descriptor: descriptor, input: { date: args.y + '-' + args.m.padStart(2,'0') + '-' + args.d.padStart(2,'0'),
+          calType: args.cal, hour: Number(time[0]), minute: Number(time[1]), gender: args.gender } };
+      }, function (captured, receipt) {
+        captured.descriptor.args.profileId = receipt.profileId; captured.descriptor.args.requestId = receipt.requestId;
+        return syRunCompatResume(captured.descriptor, receipt);
+      });
+      host.style.display = 'block'; performance.mark('sukuyo:preview-ready');
+    }).catch(function (error) {
+      if (!host.isConnected || key !== syCompatPreviewKey(myIdx)) return;
+      host.style.display = 'block'; host.textContent = (error && error.message) || '계산하지 못했어요. 입력을 유지했으니 다시 시도해 주세요.';
+    }).finally(function () {
+      if (syFreeCompatPending && syFreeCompatPending.key === key) { syFreeCompatPending = null; loader.style.display = 'none'; }
+    });
+    syFreeCompatPending = { key: key, promise: promise }; return promise;
+  };
+  window.openSukuyoCompatDetail = function(myIdx, myMansionName) {
       if (syCompatPendingRetry(SY_PAID_FEATURES.compatibility.key)) {
         window._triggerSynergyCheckCore(myIdx, myMansionName);
         return;
@@ -13430,7 +13572,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       // 결제 전에 폼 상태를 서술자로 굳혀 둔다 — 복귀 페이지는 이 값 없이는 재현할 수 없다.
       var resume = syBuildCompatResumeDescriptor(myIdx, myMansionName);
       if (syRequirePaidSukuyoFeature(SY_PAID_FEATURES.compatibility, function() {
-        window._triggerSynergyCheckCore(myIdx, myMansionName);
+        syRunCompatResume(resume, null);
       }, resume)) {
         return;
       }
@@ -13496,6 +13638,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           const compatSelf = syNatureDeepDiveFallbackBirth(null) || {};
           const compatSelfInput = { birth: compatSelf.birth, place: compatSelf.place, gender: window.GENDER };
           const sectionClient = window.CdSajuSectionClient;
+          const deliveryOwner = syPaidFeatureUserScope() + '|' + syResolveCurrentProfileIdForPaidGate();
           let data;
           try {
             if (!sectionClient || typeof sectionClient.loadSukuyoCompat !== 'function') throw new Error('궁합 풀이를 불러오지 못했어요. 새로고침 후 다시 열어 주세요.');
@@ -13511,6 +13654,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             return;
           }
 
+          if (!rd.isConnected || deliveryOwner !== syPaidFeatureUserScope() + '|' + syResolveCurrentProfileIdForPaidGate()) { window._sy3Running = false; clearTimeout(_sy3Guard); return; }
           window._syLastCompat = data.lastCompat;
           try {
             var _wheelState = window._syWheelState;
@@ -13556,7 +13700,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             '.sy-report::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 88% 4%,rgba(255,255,255,.12),transparent 18%),radial-gradient(circle at 12% 18%,rgba(125,211,252,.08),transparent 24%)}',
             '.sy-sec{margin-bottom:14px;padding:15px 16px;border-radius:14px;font-size:0.92rem;line-height:1.68;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}',
             '.sy-sec-title{font-weight:900;font-size:0.82rem;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:8px;text-shadow:0 0 12px rgba(196,181,253,.2)}',
-            '.sy-compat-moon-hero{display:grid;grid-template-columns:minmax(0,1fr) clamp(270px,28%,330px);gap:16px;align-items:center;background:linear-gradient(rgba(2,6,23,.52),rgba(2,6,23,.52)),radial-gradient(circle at 92% 8%,rgba(255,255,255,.26),transparent 18%),' + gradColor + ';padding:22px 20px 20px;position:relative;overflow:hidden}',
+            '.sy-compat-moon-hero{display:grid;grid-template-columns:minmax(0,1fr) clamp(270px,28%,330px);gap:16px;align-items:center;background:linear-gradient(rgba(2,6,23,.52),rgba(2,6,23,.52)),radial-gradient(circle at 92% 8%,rgba(255,255,255,.26),transparent 18%),' + 'var(--sy-compat-hero-background,linear-gradient(135deg,#18243a,#101723))' + ';padding:22px 20px 20px;position:relative;overflow:hidden}',
             '.sy-compat-moon-hero::before{content:"";position:absolute;right:-24px;top:-32px;width:142px;height:142px;border-radius:999px;background:radial-gradient(circle at 34% 30%,rgba(255,255,255,.78),rgba(226,232,255,.24) 44%,rgba(167,139,250,.08) 70%,transparent 73%);opacity:.76;pointer-events:none}',
             '.sy-compat-moon-copy{position:relative;min-width:0}',
             '.sy-compat-moon-kicker{font-size:.7rem;text-transform:uppercase;letter-spacing:2.5px;color:rgba(255,255,255,.92);margin-bottom:4px;font-weight:900}',
@@ -13741,10 +13885,17 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
           // 이 코어는 결제 게이트(또는 결제 복귀) 뒤에서만 불린다 — 그린 기본 궁합을 보관함에 남긴다.
           // 정밀 확장·AI 상담 카드는 각자 따로 결제하므로 여기서 빼고 저장한다.
+          var archiveStatus = document.createElement('div'); archiveStatus.className = 'sy-archive-status'; archiveStatus.setAttribute('role', 'status'); rd.appendChild(archiveStatus);
           sySaveSukuyoResultArchive('compat', {
+            onState: function (state, retry) {
+              if (!archiveStatus.isConnected) return;
+              archiveStatus.replaceChildren(document.createTextNode(state === 'saved' ? '보관함에 저장했어요. 추가 결제 없이 다시 읽을 수 있어요.' : state === 'saving' ? '보관함에 저장하고 있어요.' : '저장하지 못했어요. 이 화면의 결과는 그대로 읽을 수 있어요.'));
+              if (state === 'saved') { var link = document.createElement('a'); link.href = '/records/'; link.textContent = '보관함에서 다시 보기'; archiveStatus.appendChild(document.createElement('br')); archiveStatus.appendChild(link); }
+              if (state === 'failed' && retry) { var button = document.createElement('button'); button.type = 'button'; button.textContent = '추가 차감 없이 저장 재시도'; button.addEventListener('click', retry); archiveStatus.appendChild(button); }
+            },
             facts: syArchiveFactsFromCompat(window._syLastCompat, myMansionName),
             partner: compatArchivePartner,
-            sections: syArchiveSectionsFrom(rd, '#syCompatPrecisionGate, #syCompatAiPromptCard')
+            sections: syArchiveSectionsFrom(rd, '#syCompatPrecisionGate, #syCompatAiPromptCard, .sy-archive-status')
           });
 
           // 온도 바 애니메이션 (인라인 결과)

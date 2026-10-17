@@ -1,3 +1,4 @@
+import { unlockHoneyUse } from './honey-per-use.js';
 import { createHash } from 'node:crypto';
 import { ProfileCard } from './models.js';
 import { resolveBirthUnlockIdentity } from './birth-scoped-unlock-identity.js';
@@ -10,9 +11,10 @@ const fail = (status, code, message) => createHttpError(status, message, { code 
 const hash = value => createHash('sha256').update(value).digest('hex');
 
 // Injected storage keeps concurrency/rollback tests entirely offline.
-export async function unlockHoneyContent({ userId, productId, profileId, requestId }, store) {
+export async function unlockHoneyContent({ userId, productId, profileId, requestId, input }, store) {
   const product = getHoneyUnlockProduct(productId);
   if (!product || product.productId !== productId) throw fail(400, 'INVALID_HONEY_PRODUCT', '콘텐츠를 다시 선택해 주세요.');
+  if (product.billingType === 'per_use') return unlockHoneyUse({ userId, product, profileId, requestId, input }, store);
   if (!/^[\w:.-]{8,160}$/.test(String(requestId || ''))) throw fail(400, 'INVALID_REQUEST_ID', '요청을 다시 확인해 주세요.');
   const requestKey = `honey-unlock-request:${userId}:${requestId}`;
   const execute = () => store.transaction(async session => {

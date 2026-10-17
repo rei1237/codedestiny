@@ -157,7 +157,8 @@ test("꿀방울 22종은 실제 영구 권리 쓰기와 기존 읽기가 같은 
   const { HONEY_UNLOCK_PRODUCTS } = await import('../../worker/lib/honey-unlock-catalog.js');
   const { grantPermanentUnlock, findActivePaidContentUnlock } = await import('../../worker/lib/content-unlocks.js');
   const session = {};
-  for (const product of HONEY_UNLOCK_PRODUCTS) {
+  expect(HONEY_UNLOCK_PRODUCTS.filter(p => p.billingType === 'birth_unlock')).toHaveLength(22);
+  for (const product of HONEY_UNLOCK_PRODUCTS.filter(p => p.billingType === 'birth_unlock')) {
     findOneAndUpdate.mockClear(); findOne.mockClear();
     const readQuery = { session: jest.fn(), lean: async () => null };
     findOne.mockReturnValue(readQuery);

@@ -27,7 +27,7 @@ test('guest attendance remains visible; failure is not a zero balance and retry 
   const app = await setup('guest');
   try {
     const doc = app.win.document;
-    assert.equal(doc.querySelector('[data-cd-honey-attend]').textContent, '로그인하고 출석하기');
+    assert.equal(doc.querySelector('[data-cd-honey-attend]').textContent, '출석 체크 하기');
     assert.equal(doc.querySelector('[data-cd-honey-attend]').disabled, false);
     app.status('error'); await app.win.CdHoney.refresh();
     assert.equal(doc.querySelector('[data-cd-honey-balance]').textContent, '조회 실패');
@@ -40,14 +40,14 @@ test('all product button adapters preserve cash handlers and show server honey p
   const app = await setup();
   try {
     let cashClicks = 0;
-    for (const item of HONEY_UNLOCK_PRODUCTS) {
+    for (const item of HONEY_UNLOCK_PRODUCTS.filter(item => item.billingType === 'birth_unlock')) {
       const button = app.win.document.createElement('button');
       button.dataset.honeyCashKey = item.featureKey;
       button.addEventListener('click', () => cashClicks++);
       app.win.document.body.append(button);
     }
     app.win.CdHoney.refreshLabels();
-    for (const item of HONEY_UNLOCK_PRODUCTS) {
+    for (const item of HONEY_UNLOCK_PRODUCTS.filter(item => item.billingType === 'birth_unlock')) {
       const button = app.win.document.querySelector(`[data-honey-cash-key="${item.featureKey}"]`);
       assert.match(button.textContent, new RegExp(item.cashPriceKRW.toLocaleString('ko-KR')));
       assert.equal(button.nextElementSibling.querySelector('strong').textContent, `${item.honeyCost}개`);
@@ -66,5 +66,19 @@ test('double clicks coalesce and stale account responses cannot overwrite the ne
     app.status('guest'); app.win.dispatchEvent(new app.win.Event('cd:auth-changed')); await tick();
     app.finish({ ok: true, payload: { ok: true, balance: 999, attended: true } }); await tick();
     assert.equal(app.win.document.querySelector('[data-cd-honey-balance]').textContent, '로그인 후 확인');
+  } finally { app.close(); }
+});
+
+test('attendance copy stays actionable until the server confirms today, then shows completion', async () => {
+  const app=await setup();
+  try {
+    const button=app.win.document.querySelector('[data-cd-honey-attend]');
+    assert.equal(button.textContent,'출석 체크 하기');
+    app.status('pending'); button.click();
+    assert.equal(button.textContent,'출석 체크 하기');
+    assert.equal(button.getAttribute('aria-busy'),'true');
+    app.finish({ok:true,payload:{ok:true,balance:8,attended:true}}); await tick();
+    assert.equal(button.textContent,'오늘 출석 체크 완료');
+    assert.equal(button.disabled,true);
   } finally { app.close(); }
 });

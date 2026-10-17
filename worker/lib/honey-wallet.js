@@ -1,3 +1,4 @@
+import { isHoneySpendProduct, HONEY_SCOPE_MESSAGE } from './honey-unlock-catalog.js';
 import { mongoose, mongoTransactionOptions, withMongoRetry } from "./db.js";
 import { scopeConnection } from "./db-scope-connection.js";
 import { createHttpError } from "./http.js";
@@ -133,6 +134,7 @@ export async function spendPromptHubHoney(env, userId, { requestId, inputHash, t
         replayed = true;
         return;
       }
+      if (!isHoneySpendProduct('fortune-prompt-hub-generate')) throw createHttpError(403, HONEY_SCOPE_MESSAGE, { code: 'HONEY_GGULGGUL_ONLY' });
       const wallet = unwrap(await wallets.findOneAndUpdate(
         { userId: uid, serviceScope: HONEY_SCOPE, balance: { $gte: PROMPT_HUB_HONEY_COST } },
         { $inc: { balance: -PROMPT_HUB_HONEY_COST, totalSpent: PROMPT_HUB_HONEY_COST }, $set: { updatedAt: now } },

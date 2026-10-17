@@ -1,4 +1,4 @@
-import { SPIRITS, SPIRIT_HONEY_COST, SPIRIT_BONUS_PERCENT, spriteUrl, findSpirit, spiritExp } from './profile-characters.mjs';
+import { SPIRITS, SPIRIT_BONUS_PERCENT, spriteUrl, findSpirit, spiritExp } from './profile-characters.mjs';
 import { elementBadgeMarkup } from './profile-element-badge.mjs';
 
 const mounts = new WeakMap();
@@ -90,17 +90,17 @@ export async function mountCharacterCard(root, profile, options) {
   target.innerHTML = `<div class="pc-today"><div class="pc-section-heading"><strong>오늘의 흐름</strong><a href="/today/">자세히 보기</a></div><p class="pc-fortune-headline">${escape(fortune?.headline || '오늘의 흐름을 잠시 확인하지 못했어요.')}</p>${fortune ? `<p>${escape(fortune.advice)}</p>` : ''}</div>
     <p class="pc-bonus" data-pc-bonus></p>
     <details class="pc-details"><summary>캐릭터 소개 · 정령 도감</summary><div class="pc-description"><p>${escape(character.summary)}</p><h4>나의 강점</h4><p>${escape(character.strength)}</p><h4>마음에 둘 점</h4><p>${escape(character.caution)}</p><h4>오늘의 작은 실천</h4><p>${escape(character.advice)}</p></div>
-    <section aria-label="정령 도감"><h4>함께할 정령</h4><p>원하는 정령을 꿀방울 ${SPIRIT_HONEY_COST}개로 해금해요. 장착한 정령 한 마리만 성장 보너스를 줘요.</p><p data-pc-wallet role="status"></p><button type="button" data-pc-base>내 일주 캐릭터로 돌아가기</button><div class="pc-collection" data-pc-collection></div><p data-pc-status role="status" aria-live="polite"></p><button type="button" data-pc-reload>보유 정령 다시 확인하기</button></section></details>`;
+    <section aria-label="정령 도감"><h4>함께할 정령</h4><p>이미 보유한 정령과 함께할 수 있어요. 꿀방울은 꿀꿀운세 지정 상품에서 사용해요. 장착한 정령 한 마리만 성장 보너스를 줘요.</p><p data-pc-wallet role="status"></p><button type="button" data-pc-base>내 일주 캐릭터로 돌아가기</button><div class="pc-collection" data-pc-collection></div><p data-pc-status role="status" aria-live="polite"></p><button type="button" data-pc-reload>보유 정령 다시 확인하기</button></section></details>`;
   drawAvatar();
   const status = message => { if (current()) target.querySelector('[data-pc-status]').textContent = message; };
   function drawCollection() {
     if (!current()) return;
     const balance = target.querySelector('[data-pc-wallet]');
-    balance.textContent = state ? `보유 꿀방울 ${state.balance}개` : owner ? '보유 정령을 확인해 주세요.' : '로그인하면 정령을 해금하고 함께 성장할 수 있어요.';
+    balance.textContent = state ? `보유 꿀방울 ${state.balance}개` : owner ? '보유 정령을 확인해 주세요.' : '로그인하면 보유 정령을 확인할 수 있어요.';
     target.querySelector('[data-pc-base]').disabled = !state?.equippedId || pending;
     target.querySelector('[data-pc-collection]').innerHTML = SPIRITS.map(spirit => {
       const owned = state?.ownedIds.includes(spirit.id), equipped = state?.equippedId === spirit.id;
-      return `<div class="pc-specimen">${spriteMarkup(spirit.id, spirit.name, false)}<strong>${escape(spirit.name)}</strong><span>출석·미션 EXP +${SPIRIT_BONUS_PERCENT}%</span><button type="button" data-pc-spirit="${spirit.id}" ${pending || !state || equipped ? 'disabled' : ''}>${equipped ? '함께하는 중' : owned ? '함께하기' : `꿀방울 ${state?.cost || SPIRIT_HONEY_COST}개로 해금`}</button></div>`;
+      return `<div class="pc-specimen">${spriteMarkup(spirit.id, spirit.name, false)}<strong>${escape(spirit.name)}</strong><span>출석·미션 EXP +${SPIRIT_BONUS_PERCENT}%</span><button type="button" data-pc-spirit="${spirit.id}" ${pending || !state || equipped || !owned ? 'disabled' : ''}>${equipped ? '함께하는 중' : owned ? '함께하기' : '신규 해금 종료'}</button></div>`;
     }).join('');
     drawAvatar();
   }
@@ -116,11 +116,11 @@ export async function mountCharacterCard(root, profile, options) {
     if (!current() || !button || button.disabled || pending || !state) return;
     const id = button.dataset.pcSpirit || null;
     const owned = id === null || state.ownedIds.includes(id);
-    if (!owned && !window.confirm(`${findSpirit(id).name}을 꿀방울 ${state.cost}개로 해금할까요? 현재 ${state.balance}개를 보유하고 있어요.`)) return;
-    pending = true; drawCollection(); status(owned ? '정령과 함께할 준비 중이에요.' : '꿀방울로 정령을 해금하고 있어요.');
+    if (!owned) return;
+    pending = true; drawCollection(); status('정령과 함께할 준비 중이에요.');
     try {
-      state = await api(`/api/rpg/characters/${owned ? 'equip' : 'unlock'}`, { characterId: id, ...(!owned ? { requestId: crypto.randomUUID() } : {}) });
-      status(owned ? (id ? '정령과 함께해요. 다음 출석·생활 미션부터 보너스가 적용돼요.' : '내 일주 캐릭터로 돌아왔어요.') : '해금했어요. 함께하기를 누르면 성장 보너스가 적용돼요.');
+      state = await api('/api/rpg/characters/equip', { characterId: id });
+      status(id ? '정령과 함께해요. 다음 출석·생활 미션부터 보너스가 적용돼요.' : '내 일주 캐릭터로 돌아왔어요.');
       window.dispatchEvent(new CustomEvent('cd:honey-refresh'));
       window.CdHoney?.refresh(false);
       try { localStorage.setItem('cd:honey-refresh', String(Date.now())); } catch { /* Other tabs refresh when storage is available. */ }

@@ -922,12 +922,12 @@ const PROMPT_HUB_COPY_EN: PromptHubCopy = {
   advancedSettings: "Advanced Settings",
   generating: "Computing chart data…",
   honeyBalance: "Honey drops: {count}",
-  honeyRule: "1 honey drop for every 3 check-ins · 1 drop per prompt",
+  honeyRule: "Attendance honey drops are for eligible Ggulggul fortunes",
   honeyNextReward: "{count} more check-in(s) to your next drop",
   honeyAttend: "Check in today",
   honeyAttended: "Checked in today",
-  honeyShortTitle: "You're out of honey drops",
-  honeyShortBody: "Check in to collect drops, or make this one prompt right away for {price}.",
+  honeyShortTitle: "Generate this prompt",
+  honeyShortBody: "Generate this prompt for {price}. Honey drops are only for eligible Ggulggul fortunes.",
   honeyPayOnce: "Generate once for {price}",
   honeyPayReason: "Fortune prompt — 1 generation",
   generateFailed: "We couldn't build the prompt. Please check your inputs.",
@@ -951,9 +951,9 @@ const PROMPT_HUB_COPY_EN: PromptHubCopy = {
   heroMascotAlt: "Yeon flower-piglet mascot — Fortune Prompt Hub",
   gate: {
     title: "Log in to build prompts",
-    lead: "Members build prompts with honey drops — 1 drop for every 3 daily check-ins.",
+    lead: "Members can generate prompts with a one-time payment. Honey drops are for eligible Ggulggul fortunes.",
     benefits: [
-      "1 honey drop for every 3 check-ins",
+      "1 honey drop per daily check-in",
       "Save what you build to your library",
       "Full access to every tool",
       "Free to join — no payment",
@@ -962,7 +962,7 @@ const PROMPT_HUB_COPY_EN: PromptHubCopy = {
     login: "Log in",
     dismiss: "Keep browsing",
     closeAria: "Close",
-    note: "We keep what you typed, and finish generating it right after you log in.",
+    note: "We keep your inputs so you can review the payment option after logging in.",
   },
   library: {
     title: "My library",
@@ -1422,12 +1422,12 @@ const PROMPT_HUB_COPY_KO: PromptHubCopy = {
   advancedSettings: "고급 설정",
   generating: "산출 데이터 계산 중…",
   honeyBalance: "꿀방울 {count}개",
-  honeyRule: "하루 한 번 출석하면 꿀방울 1개 · 프롬프트 1회에 1개",
+  honeyRule: "출석 꿀방울은 꿀꿀운세 지정 상품에서 사용해요",
   honeyNextReward: "다음 꿀방울까지 출석 {count}번",
   honeyAttend: "오늘 출석하기",
   honeyAttended: "오늘 출석 완료",
-  honeyShortTitle: "꿀방울이 부족해요",
-  honeyShortBody: "출석해서 꿀방울을 모으거나, {price}으로 이번 1회를 바로 만들 수 있어요.",
+  honeyShortTitle: "프롬프트 생성 안내",
+  honeyShortBody: "프롬프트는 {price}으로 1회 생성할 수 있어요. 꿀방울은 꿀꿀운세 지정 상품에서 사용해요.",
   honeyPayOnce: "{price}으로 1회 생성",
   honeyPayReason: "운세 프롬프트 1회 생성",
   generateFailed: "프롬프트를 만들지 못했어요. 입력을 확인해 주세요.",
@@ -1451,7 +1451,7 @@ const PROMPT_HUB_COPY_KO: PromptHubCopy = {
   heroMascotAlt: "연이 꽃돼지 마스코트 — 운세 프롬프트 허브",
   gate: {
     title: "로그인하고 프롬프트를 만들어 보세요",
-    lead: "회원은 꿀방울로 프롬프트를 만들어요. 하루 한 번 출석하면 꿀방울 1개가 쌓여요.",
+    lead: "회원은 단건 결제로 프롬프트를 만들 수 있어요. 꿀방울은 꿀꿀운세 지정 상품에서 사용해요.",
     benefits: [
       "하루 한 번 출석하면 꿀방울 1개",
       "만든 프롬프트를 보관함에 저장",
@@ -1462,7 +1462,7 @@ const PROMPT_HUB_COPY_KO: PromptHubCopy = {
     login: "로그인",
     dismiss: "둘러보기 계속",
     closeAria: "닫기",
-    note: "작성하신 입력은 그대로 두었다가, 로그인하면 이어서 생성해 드려요.",
+    note: "작성하신 입력은 유지돼요. 로그인 후 단건 결제 안내를 확인할 수 있어요.",
   },
   library: {
     title: "내 보관함",
@@ -1747,7 +1747,7 @@ async function copyTextToClipboard(text: string) {
   }
 }
 
-// 꿀방울이 없을 때의 대체 결제 키. 가격 정본은 worker/lib/paid-feature-registry.js.
+// 프롬프트 단건 결제 키. 가격 정본은 worker/lib/paid-feature-registry.js.
 const PROMPT_HUB_GENERATE_FEATURE_KEY = "fortune-prompt-hub-generate";
 
 type HoneyState = {
@@ -1848,7 +1848,7 @@ export default function ComprehensivePromptHubPage() {
   const { ensurePaidAccess } = useCoinGate();
   const [honey, setHoney] = useState<HoneyState | null>(null);
   const [honeyBusy, setHoneyBusy] = useState(false);
-  // 꿀방울이 모자라 멈춘 생성. 3,000원 결제는 이 입력 그대로를 1회 만든다.
+  // 결제 안내 중인 생성. 3,000원 결제는 이 입력 그대로를 1회 만든다.
   const [honeyShortfall, setHoneyShortfall] = useState<{ toolId: ToolId; draft: ToolDraft } | null>(null);
 
   useEffect(() => {
@@ -2105,7 +2105,7 @@ export default function ComprehensivePromptHubPage() {
       setLoginGateOpen(true);
       return null;
     }
-    if (response.status === 402 && data?.code === 'INSUFFICIENT_HONEY_DROPS') {
+    if ((response.status === 402 && data?.code === 'INSUFFICIENT_HONEY_DROPS') || data?.code === 'HONEY_GGULGGUL_ONLY') {
       setHoney((prev) => (prev ? { ...prev, balance: Number(data.balance) || 0, attended: Boolean(data.attended), nextRewardIn: Number(data.nextRewardIn) || prev.nextRewardIn } : prev));
       setHoneyShortfall({ toolId, draft });
       return null;
@@ -2152,15 +2152,15 @@ export default function ComprehensivePromptHubPage() {
     generatingRef.current = true;
     setIsGenerating(true);
     try {
-      // ② 로그인 사용자는 서버에서 꿀방울 1개로 만든다. 모자라면 출석·1회 결제 안내가 뜬다.
+      // 로그인 사용자에게 기존 단건 결제 경로를 안내한다.
       if (getAuthState().isAuthenticated) {
-        await runPromptGeneration(toolId, draft);
+        setHoneyShortfall({ toolId, draft });
         return;
       }
 
       // ③ 게스트로 보이는 로그인 사용자를 먼저 걸러낸다.
       if (await confirmAuthenticated()) {
-        await runPromptGeneration(toolId, draft);
+        setHoneyShortfall({ toolId, draft });
         return;
       }
       gateIntentRef.current = "generate";
@@ -2186,7 +2186,7 @@ export default function ComprehensivePromptHubPage() {
     }
   }
 
-  /** 꿀방울이 모자란 그 입력을 3,000원으로 1회 만든다. */
+  /** 확인한 입력을 기존 단건 결제로 1회 만든다. */
   async function payOnceForPrompt() {
     const shortfall = honeyShortfall;
     if (!shortfall || generatingRef.current) return;

@@ -50,7 +50,8 @@
     var widget = document.querySelector('[data-cd-honey-widget]'); if (!widget) return;
     var button = widget.querySelector('[data-cd-honey-attend]');
     text(widget.querySelector('[data-cd-honey-balance]'), state?.guest ? '로그인 후 확인' : state?.error ? '조회 실패' : state ? state.balance + '개' : '확인 중');
-    text(button, busy ? '확인 중…' : state?.guest ? '로그인하고 출석하기' : state?.attended ? '오늘 출석 완료 · 1개 받았어요' : '출석하고 1개 받기');
+    text(button, state?.attended ? '오늘 출석 체크 완료' : '출석 체크 하기');
+    button.setAttribute('aria-busy', String(busy));
     button.disabled = busy || !state || Boolean(state?.attended || state?.error);
     text(widget.querySelector('[data-cd-honey-status]'), state?.error ? '꿀방울을 불러오지 못했어요. 다시 확인해 주세요.' : '');
     widget.querySelector('[data-cd-honey-retry]').hidden = !state?.error;
@@ -78,7 +79,7 @@
   function refreshLabels() {
     if (!catalog) return;
     document.querySelectorAll('button' + selector.split(',').join(',button')).forEach(function (button) {
-      var item = product(keyOf(button)); if (!item) return;
+      var item = product(keyOf(button)); if (!item || item.billingType === 'per_use') return;
       button.dataset.honeyProduct = item.productId;
       var gate = button.closest('.cd-section-gate');
       var owns = gate?.classList.contains('cd-section-gate--unlocked') || root.isTileKeyUnlocked?.(item.featureKey);
@@ -116,7 +117,7 @@
       }
     });
   }
-  async function unlock(button, item) {
+  async function unlock(button, item, use) {
     var pid = profileId(), version = revision;
     if (!pid) { root.alert('출생정보를 프로필로 저장하거나 저장된 내 프로필을 선택해 주세요.'); return false; }
     if (state?.guest) { root.location.assign('/login/?next=' + encodeURIComponent(root.location.pathname + root.location.search)); return false; }
@@ -131,15 +132,15 @@
       state = balanceState; render();
       if (!await confirmUnlock(item)) return false;
       if (revision !== version || pid !== profileId()) return false;
-      var data = await api('/api/honey/unlocks', { productId: item.productId, profileId: pid, requestId: requests.get(key) });
+      var data = await api('/api/honey/unlocks', { productId: item.productId, profileId: pid, requestId: use ? use.requestId : requests.get(key), input: use ? use.input : undefined });
       if (revision !== version || pid !== profileId()) return false;
       if (data.unlocked !== true || data.featureKey !== item.featureKey) throw Error('해금 결과를 다시 확인해 주세요.');
       state = data.honey; render();
-      root._cdFinalizeUnlockState?.(item.featureKey, data);
+      if (!use) root._cdFinalizeUnlockState?.(item.featureKey, data);
       root.dispatchEvent(new CustomEvent('cd:honey-updated', { detail: { featureKey: item.featureKey, profileId: pid } }));
       try { localStorage.setItem('cd:honey-refresh', String(Date.now())); } catch (_) {}
       requests.delete(key);
-      return true;
+      return use ? data : true;
     } catch (error) {
       if (version === revision) {
         if (error.status === 401) root.location.assign('/login/?next=' + encodeURIComponent(root.location.pathname + root.location.search));
@@ -213,6 +214,6 @@
   document.addEventListener('cd:profile-card-published', invalidate);
   root.addEventListener('storage', function (event) { if (event.key === 'cd:honey-refresh') void refresh(false); });
   root.addEventListener('focus', function () { void refresh(false); });
-  root.CdHoney = { refresh: refresh, refreshLabels: refreshLabels, getProduct: product };
+  root.CdHoney = { unlockUse: async function (button, featureKey, input, requestId) { await getCatalog(); var item = product(featureKey); if (!item || item.serviceScope !== 'GGULGGUL' || item.billingType !== 'per_use') return false; return unlock(button, item, { input: input, requestId: requestId }); }, getCatalog: getCatalog, refresh: refresh, refreshLabels: refreshLabels, getProduct: product };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true }); else boot();
 })(window);

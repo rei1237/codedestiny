@@ -1,3 +1,4 @@
+import { readHoneyUseReceipt } from './honey-per-use.js';
 // 회당 결제 라우트 — 서버측 결제 증빙 검증(공용).
 //
 // 대상: /api/nakshatra/compat(₩10,000) · /api/nakshatra-premium/muhurta(₩5,000)
@@ -112,6 +113,10 @@ export async function verifyPerUsePayment(env, { userId, featureKey, coinPrice =
 
   try {
     await connectDb(env);
+    if (/(?:\||:)hny[a-z0-9]+$/.test(rid)) {
+      const honey = await readHoneyUseReceipt(env, { userId: uid, featureKey: key, profileId, requestId: rid });
+      return honey ? { proven: true, source: 'honey', reason: 'HONEY_PER_USE', transactionId: honey._id, inputHash: honey.inputHash } : { proven: false, source: '', reason: 'HONEY_RECEIPT_NOT_FOUND' };
+    }
 
     // 1) 단건결제
     // 🔴 transactionId 는 **가산 필드**다. 생성이 실패했을 때 환불(failServiceExecution)의

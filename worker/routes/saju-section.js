@@ -1,3 +1,4 @@
+import { honeyUseInputHash } from '../lib/honey-per-use.js';
 import { createHash } from "node:crypto";
 import { getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
 import { isDbUnavailableError, HttpError, json, methodNotAllowed, readJson } from "../lib/http.js";
@@ -59,7 +60,7 @@ function compatPartnerBirth(body) {
 
 // 회당 결제 궁합의 결제 확인과 증빙 claim. 문제가 없으면 null, 아니면 그대로 돌려줄 응답(402·409·503)이다.
 // pair 는 이번 결제로 여는 두 사람의 입력 — 같은 결제로 pair 만 바꾸면 claim 이 409 를 낸다.
-async function provePerUseCompat(env, { userId, featureKey, requestId, profileId, accessMethod, kind, pair }) {
+async function provePerUseCompat(env, { userId, featureKey, requestId, profileId, accessMethod, kind, pair, honeyInput }) {
   const method = String(accessMethod || "").trim().toLowerCase();
   const proofInput = { userId, featureKey, coinPrice: Number(FEATURE_KEY_PRICE_TABLE[featureKey]?.cost) || 0, requestId, profileId };
   let proof;
@@ -80,6 +81,7 @@ async function provePerUseCompat(env, { userId, featureKey, requestId, profileId
       amountKRW: pricing.amountKRW, coinPrice: pricing.coinPrice,
     }, { status: 402 });
   }
+  if (proof.source === "honey" && proof.inputHash !== honeyUseInputHash(featureKey, honeyInput)) return json({ ok: false, reason: "HONEY_REQUEST_MISMATCH", message: "꿀방울로 연 상대 정보와 일치하지 않아요." }, { status: 409 });
   if (proof.source !== "admin") {
     const evidenceId = proof.transactionId || `${proof.source || "per-use"}-use:${userId}:${featureKey}:${requestId}`;
     const pairHash = createHash("sha256").update(JSON.stringify(pair)).digest("hex").slice(0, 32);
@@ -140,7 +142,7 @@ async function handleSukuyoCompat(env, auth, body, featureKey) {
   const report = buildSajuSectionHtml({ featureKey, birth, gender: userGender, partnerGender: partner.gender, lang, place: body?.place, sukuyo });
 
   const denied = await provePerUseCompat(env, {
-    userId, featureKey, requestId, profileId, accessMethod: body?.accessMethod, kind: "sukuyo-compat",
+    userId, featureKey, requestId, profileId, accessMethod: body?.accessMethod, kind: "sukuyo-compat", honeyInput: body.partner,
     pair: { my: report.myMansionIdx, partner: report.partnerMansionIdx, partnerGender: partner.gender, userGender },
   });
   if (denied) return denied;

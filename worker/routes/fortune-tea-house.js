@@ -1,4 +1,4 @@
-import { HONEY_LETTER_COST, TAROT_ALBUM_UNLOCK_COST } from '../lib/honey-unlock-catalog.js';
+import { HONEY_LETTER_COST, TAROT_ALBUM_UNLOCK_COST, isHoneySpendProduct, HONEY_SCOPE_MESSAGE } from '../lib/honey-unlock-catalog.js';
 import { canonicalTeaSaju, withTeaSajuLongitude } from "../lib/tea-saju-facts.js";
 import { TEA_SAJU_SPECIALIST_VERSION, TEA_SAJU_SPECIALIST_TARGET, TEA_SAJU_SPECIALIST_SECTIONS, TEA_SAJU_SPECIALIST_RULES, isTeaSajuSpecialist, specialistCheckpointGroups, hasSajuHealthPrediction } from "../lib/tea-saju-specialist.js";
 import { buildTeaSajuMonthlyRows } from "../lib/tea-saju-monthly.js";
@@ -5371,6 +5371,7 @@ async function handleTarotAlbumUnlock(request, env) {
     });
   }
 
+  if (!isHoneySpendProduct('tea-tarot-album')) return honeyAlbumError('HONEY_GGULGGUL_ONLY', 403, { message: HONEY_SCOPE_MESSAGE });
   const current = honeyStatePayload(existingWallet).balance;
   if (current < TAROT_ALBUM_UNLOCK_COST) {
     return honeyAlbumError("INSUFFICIENT_TEA_HOUSE_HONEY_DROPS", 402, {
@@ -5684,6 +5685,12 @@ async function handleHoneyLetter(request, env, path) {
     });
   }
 
+  // Previously charged deliveries may finish or refund; new deductions are limited to the catalogue.
+  const priorWallet = await wallets.findOne({ userId, serviceScope: FORTUNE_TEA_HOUSE_SCOPE });
+  const priorReceipt = priorWallet?.honeyLetterSpends?.[createHash("sha256").update(resultId).digest("hex")];
+  if (!isHoneySpendProduct('tea-honey-letter') && priorReceipt?.status !== 'charged' && resultDoc.honeyLetterDelivery?.status !== 'refund_pending') {
+    return honeyLetterError('HONEY_GGULGGUL_ONLY', 403, { message: HONEY_SCOPE_MESSAGE });
+  }
   const token = randomUUID();
   const lockQuery = { userId, resultId, "honeyLetterLock.token": token };
   const walletQuery = { userId, serviceScope: FORTUNE_TEA_HOUSE_SCOPE };
@@ -5731,6 +5738,7 @@ async function handleHoneyLetter(request, env, path) {
     if (receipt?.status !== "charged" && honeyStatePayload(wallet).balance < HONEY_LETTER_COST) {
       return honeyLetterError("INSUFFICIENT_TEA_HOUSE_HONEY_DROPS", 402, { required: HONEY_LETTER_COST, current: honeyStatePayload(wallet).balance });
     }
+    if ((!draft || draft.status === "refunded") && !isHoneySpendProduct('tea-honey-letter')) return unavailable();
     if (!draft || draft.status === "refunded") {
       generating = !draft?.letter;
       const letter = draft?.letter || await generateHoneyLetter(lockedDoc, env);
@@ -5745,6 +5753,7 @@ async function handleHoneyLetter(request, env, path) {
     if (confirmed?.honeyLetterDelivery?.receiptToken !== draft.receiptToken ||
         confirmed?.honeyLetterDelivery?.letter?.body !== draft.letter.body) return unavailable();
 
+    if (receipt?.status !== "charged" && !isHoneySpendProduct('tea-honey-letter')) return honeyLetterError('HONEY_GGULGGUL_ONLY', 403, { message: HONEY_SCOPE_MESSAGE });
     if (receipt?.status !== "charged") {
       const charged = unwrapUpdatedDoc(await wallets.findOneAndUpdate(
         { ...walletQuery, balance: { $gte: HONEY_LETTER_COST }, [`${receiptPath}.status`]: { $ne: "charged" } },

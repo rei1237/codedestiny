@@ -1,4 +1,5 @@
 import { jest } from '@jest/globals';
+jest.unstable_mockModule('../../worker/lib/db.js', () => ({ connectDb: async () => {}, withMongoRetry: async (_env, run) => run() }));
 jest.unstable_mockModule('../../worker/lib/models.js', () => ({ ProfileCard: {} }));
 jest.unstable_mockModule('../../worker/lib/content-unlocks.js', () => ({ findActivePaidContentUnlock: jest.fn(), grantPermanentUnlock: jest.fn(), invalidateAccessReadCaches: jest.fn() }));
 jest.unstable_mockModule('../../worker/lib/honey-wallet.js', () => ({ HONEY_SCOPE: 'FORTUNE_TEA_HOUSE', honeyCollections: jest.fn(), honeyAttendanceStatus: jest.fn(), withHoneyTransaction: jest.fn() }));
@@ -25,7 +26,7 @@ function fixture(balance = 60) {
     findProfile: async ({ userId, profileId }) => userId === 'owner' && ['one', 'same-birth', 'different'].includes(profileId)
       ? { gender: 'FEMALE', birth: { year: 1990, month: 5, day: profileId === 'different' ? 2 : 1 } } : null,
     ledgers: {
-      findOne: async ({ _id }) => state.ledgers.find(row => row._id === _id),
+      findOne: async query => state.ledgers.find(row => Object.entries(query).every(([key,value]) => row[key] === value)),
       insertOne: async row => { if (state.ledgers.some(item => item._id === row._id)) throw Object.assign(Error('duplicate'), { code: 11000 }); state.ledgers.push(row); },
     },
     wallets: { updateOne: async (query, update) => {
@@ -39,10 +40,11 @@ function fixture(balance = 60) {
 }
 
 test('정본의 6개·30개 개별 상품은 모두 출생 기반이며 유료 상품은 전환에서 제외한다', () => {
-  expect(HONEY_UNLOCK_PRODUCTS).toHaveLength(22);
+  expect(HONEY_UNLOCK_PRODUCTS).toHaveLength(24);
   expect(HONEY_UNLOCK_PRODUCTS.filter(p => p.honeyCost === 6)).toHaveLength(2);
   for (const p of HONEY_UNLOCK_PRODUCTS) {
-    expect(isBirthScopedUnlockFeatureKey(p.featureKey)).toBe(true);
+    expect(p.serviceScope).toBe('GGULGGUL');
+    expect(isBirthScopedUnlockFeatureKey(p.featureKey)).toBe(p.billingType === 'birth_unlock');
     expect(p.cashPriceKRW / 1000 * 6).toBe(p.honeyCost);
     expect(p.cashCost * 100).toBe(p.cashPriceKRW);
   }
@@ -81,4 +83,48 @@ test('기존 구매 권리가 있으면 잔액이 없어도 추가 차감하지 
   const f = fixture(0); f.store.findUnlock = async () => ({ source: 'PAID', active: true });
   expect((await f.run()).spent).toBe(0);
   expect(f.read().ledgers).toHaveLength(0);
+});
+
+
+test('꿀꿀 기본 상품만 허용하며 영냥이와 별도 상담은 제외한다', async () => {
+  const f = fixture(999);
+  for (const productId of ['yeongnyangi-mackerel', 'fortune-tea-house-tarot-consultation', 'neo-operation-room', 'tarot-reunion-reading']) {
+    await expect(f.run({ productId })).rejects.toMatchObject({ status: 400 });
+  }
+  expect(HONEY_UNLOCK_PRODUCTS.filter(p=>p.billingType==='per_use').map(p=>p.productId)).toEqual(['compat-sukuyo-compatibility','tarot-myeongri-three-card']);
+});
+const pairInput = { date:'1990-05-01',calType:'solar',hour:12,minute:0,gender:'F' };
+test('궁합 꿀방울은 같은 요청에 한 번만 차감하고 상대 변경·타계정 재사용을 거부한다', async () => {
+  const f = fixture(90);
+  const args = {productId:'compat-sukuyo-compatibility',requestId:'sukuyo-paid:compat-sukuyo-compatibility|one|hnyabcdef',input:pairInput};
+  const results = await Promise.all([f.run(args),f.run(args)]);
+  expect(results.map(r=>r.spent)).toEqual([30,0]); expect(f.read().balance).toBe(60); expect(f.read().grants).toEqual([]);
+  await expect(f.run({...args,input:{...pairInput,date:'1990-05-02'}})).rejects.toMatchObject({status:409});
+  await expect(f.run({...args,profileId:'foreign',requestId:args.requestId.replace('|one|','|foreign|')})).rejects.toMatchObject({status:403});
+  await expect(f.run({...args,userId:'other'})).rejects.toMatchObject({status:403});
+});
+test('회당 꿀방울 잔액 부족·원장 오류는 차감하지 않으며 타로도 영구 권리를 만들지 않는다', async () => {
+  const short=fixture(29);
+  await expect(short.run({productId:'compat-sukuyo-compatibility',requestId:'sukuyo-paid:compat-sukuyo-compatibility|one|hnyabcdef',input:pairInput})).rejects.toMatchObject({status:402});
+  expect(short.read()).toEqual({balance:29,grants:[],ledgers:[]});
+  const f=fixture(60);
+  const input={cat:'love',cards:JSON.stringify([{id:'1',rev:false},{id:'2',rev:true},{id:'3',rev:false}])};
+  expect((await f.run({productId:'tarot-myeongri-three-card',requestId:'tarot-myeongri-three-card:hnyabcdef',input})).spent).toBe(30);
+  expect((await f.run({productId:'tarot-myeongri-three-card',requestId:'tarot-myeongri-three-card:hnyabcdef',input})).spent).toBe(0);
+  expect(f.read().grants).toEqual([]);
+});
+
+test('실제 꿀방울 원장 writer와 reader가 동일 증빙을 읽고 다른 계정·프로필·상품은 거절한다', async () => {
+  const f = fixture(60);
+  const requestId = 'sukuyo-paid:compat-sukuyo-compatibility|one|hnyroundtrip1';
+  const featureKey = 'compat-sukuyo-compatibility';
+  await f.run({ productId: featureKey, requestId, input: pairInput });
+  const { honeyCollections } = await import('../../worker/lib/honey-wallet.js');
+  honeyCollections.mockReturnValue(f.store);
+  const { readHoneyUseReceipt } = await import('../../worker/lib/honey-per-use.js');
+  const query = { userId:'owner', featureKey, profileId:'one', requestId };
+  expect(await readHoneyUseReceipt({}, query)).toMatchObject({ amount:30, inputHash:expect.any(String) });
+  for (const change of [{userId:'other'}, {profileId:'different'}, {featureKey:'premium-sukuyo-compat-extra'}]) {
+    expect(await readHoneyUseReceipt({}, {...query,...change})).toBeFalsy();
+  }
 });

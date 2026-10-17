@@ -86,6 +86,14 @@ let clientRoles = null;
     } catch (error) {
       check(false, `${CLIENT} 자리 휠 블록 평가 실패: ${error.message}`);
     }
+    // Every pair, including swapped participants, uses the same canonical relation.
+    for (let a = 0; a < 27; a++) for (let b = 0; b < 27; b++) {
+      const d = (b - a + 27) % 27;
+      const client = sandbox.syBuildRelationDirection(d), server = relationFromForwardDistance(d);
+      const reverse = sandbox.syBuildRelationDirection((a - b + 27) % 27);
+      check(client.relationType === server.relationType && client.personARole === server.aRole && client.personBRole === server.bRole, `pair ${a}/${b} parity`);
+      check(client.personARole === reverse.personBRole && client.personBRole === reverse.personARole, `pair ${a}/${b} reversal`);
+    }
     // 관계 해설 장·전생 서사 표는 서버 궁합 생성기에 있다 — 같은 샌드박스에 이어 올려 클라 자리 휠 위에서 돌린다.
     const chapterStart = compatSource.indexOf(CHAPTER_START);
     const chapterEnd = compatSource.indexOf(CHAPTER_END);

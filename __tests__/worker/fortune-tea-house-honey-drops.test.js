@@ -396,148 +396,57 @@ function billingGatePayload(featureKey, requestId) {
   };
 }
 
-describe("honey letter interrupted delivery", () => {
-  const send = (resultId, env = { NODE_ENV: "test", FORTUNE_TEA_HOUSE_HONEY_LETTER_TEST_TEXT: longHoneyLetter() }, key = "resume-letter") => handleFortuneTeaHouseRoutes(new Request(
-    `https://example.com/api/fortune-tea-house/results/${encodeURIComponent(resultId)}/honey-letter`,
-    { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ idempotencyKey: key }) },
-  ), env);
-
-  test.each(["before", "after"])("final save response lost %s write retains delivery without another spend", async (when) => {
-    const resultId = await seedReadyResult({ balance: 20 });
-    const results = collection("fortune_tea_house_results");
-    const original = results.updateOne.bind(results);
+async function seedChargedLetter(balance = 10) {
+  const resultId = await seedReadyResult({ balance });
+  const key = require('node:crypto').createHash('sha256').update(resultId).digest('hex');
+  const draft = { status: 'pending', receiptToken: 'legacy-token', idempotencyKey: 'legacy-key',
+    spendLedgerId: `spend:${USER_ID}:${resultId}:legacy-token`, letter: { title: '연이의 꿀편지', body: longHoneyLetter().trim() } };
+  await collection('fortune_tea_house_results').updateOne({ resultId }, { $set: { honeyLetterDelivery: draft } });
+  await collection('fortune_tea_house_honey_wallets').updateOne({ userId: USER_ID }, { $set: {
+    [`honeyLetterSpends.${key}`]: { status: 'charged', token: draft.receiptToken, spendLedgerId: draft.spendLedgerId }
+  } });
+  return resultId;
+}
+const sendLegacyLetter = resultId => handleFortuneTeaHouseRoutes(new Request(
+  `https://example.com/api/fortune-tea-house/results/${encodeURIComponent(resultId)}/honey-letter`,
+  { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ idempotencyKey: 'resume-letter' }) }), {});
+describe('previously charged honey letter delivery', () => {
+  test.each(['before', 'after'])('lost final save %s write retries without a new deduction or generation', async when => {
+    const resultId = await seedChargedLetter();
+    const results = collection('fortune_tea_house_results'), save = results.updateOne.bind(results);
     let fail = true;
-    jest.spyOn(results, "updateOne").mockImplementation(async (query, update, options) => {
-      if (fail && update?.$set?.honeyLetter) {
-        fail = false;
-        if (when === "after") await original(query, update, options);
-        throw new Error("MOCK_SAVE_RESPONSE_LOST");
-      }
-      return original(query, update, options);
+    jest.spyOn(results, 'updateOne').mockImplementation(async (q, u, o) => {
+      if (fail && u?.$set?.honeyLetter) { fail = false; if (when === 'after') await save(q,u,o); throw Error('lost response'); }
+      return save(q,u,o);
     });
-    const first = await readJson(await send(resultId));
-    expect(first.status).toBe(503);
-    expect(first.payload.errorCode).toBe("RESULT_STORAGE_UNAVAILABLE");
-    const second = await readJson(await send(resultId, {}, "different-client-key"));
-    expect(second.payload.success).toBe(true);
-    expect(second.payload.honeyLetter.body).toBe(longHoneyLetter().trim());
-    expect(collection("fortune_tea_house_honey_wallets").all()[0].balance).toBe(10);
-    expect(collection("fortune_tea_house_honey_ledgers").all().filter(row => row.type === "refund")).toHaveLength(0);
+    expect((await sendLegacyLetter(resultId)).status).toBe(503);
+    const response = await readJson(await sendLegacyLetter(resultId));
+    expect(response.payload.honeyLetter.body).toBe(longHoneyLetter().trim());
+    expect(collection('fortune_tea_house_honey_wallets').all()[0].balance).toBe(10);
+    expect(callGeminiTextMock).not.toHaveBeenCalled();
+    expect((await readJson(await sendLegacyLetter(resultId))).payload.spent).toBe(0);
   });
-
-  test("wallet debit response lost resumes the saved letter without a second debit", async () => {
-    const resultId = await seedReadyResult({ balance: 20 });
-    const wallets = collection("fortune_tea_house_honey_wallets");
-    const original = wallets.findOneAndUpdate.bind(wallets);
-    jest.spyOn(wallets, "findOneAndUpdate").mockImplementationOnce(async (...args) => {
-      await original(...args);
-      throw new Error("MOCK_DEBIT_RESPONSE_LOST");
-    });
-    const first = await readJson(await send(resultId));
-    expect(first.status).toBe(503);
-    expect(first.payload.errorCode).toBe("RESULT_STORAGE_UNAVAILABLE");
-    const second = await readJson(await send(resultId, {}, "different-client-key"));
-    expect(second.payload.success).toBe(true);
-    expect(wallets.all()[0].balance).toBe(10);
-    expect(collection("fortune_tea_house_honey_ledgers").all().filter(row => row.type === "spend")).toHaveLength(1);
-  });
-
-  test("expired owned lease resumes while an active lease blocks duplicate generation", async () => {
-    const resultId = await seedReadyResult();
-    const results = collection("fortune_tea_house_results");
-    await results.updateOne({ resultId }, { $set: { honeyLetterLock: { token: "old", expiresAt: new Date(Date.now() + 120000) } } });
-    expect((await send(resultId)).status).toBe(409);
-    await results.updateOne({ resultId }, { $set: { "honeyLetterLock.expiresAt": new Date(0) } });
-    expect((await readJson(await send(resultId))).payload.success).toBe(true);
-    expect(collection("fortune_tea_house_honey_wallets").all()[0].balance).toBe(0);
-  });
-
-  test("draft confirmation failure spends nothing and reuses the generated prose", async () => {
-    const resultId = await seedReadyResult();
-    const results = collection("fortune_tea_house_results");
-    const original = results.findOne.bind(results);
-    let fail = true;
-    jest.spyOn(results, "findOne").mockImplementation(async query => {
-      if (query["honeyLetterLock.token"] && fail) { fail = false; throw new Error("MOCK_DRAFT_READ_LOST"); }
-      return original(query);
-    });
-    expect((await send(resultId)).status).toBe(503);
-    expect(collection("fortune_tea_house_honey_wallets").all()[0].balance).toBe(10);
-    expect((await readJson(await send(resultId))).payload.success).toBe(true);
-  });
-
-  test("refund response loss completes once, then a new attempt can reuse the draft", async () => {
-    const resultId = await seedReadyResult();
-    const results = collection("fortune_tea_house_results");
-    const wallets = collection("fortune_tea_house_honey_wallets");
+  test('confirmed save failure refunds the old debit once and prevents a new purchase', async () => {
+    const resultId = await seedChargedLetter(0), results = collection('fortune_tea_house_results');
     const save = results.updateOne.bind(results);
-    let failSave = true;
-    jest.spyOn(results, "updateOne").mockImplementation(async (q, u, o) => {
-      if (u?.$set?.honeyLetter && failSave) { failSave = false; return { matchedCount: 1, modifiedCount: 0 }; }
-      return save(q, u, o);
-    });
-    const refund = wallets.updateOne.bind(wallets);
-    let failRefund = true;
-    jest.spyOn(wallets, "updateOne").mockImplementation(async (q, u, o) => {
-      const written = await refund(q, u, o);
-      if (u?.$inc?.balance === 10 && failRefund) { failRefund = false; throw new Error("MOCK_REFUND_RESPONSE_LOST"); }
-      return written;
-    });
-    expect((await send(resultId)).status).toBe(503);
-    expect(wallets.all()[0].balance).toBe(10);
-    expect((await send(resultId)).status).toBe(500);
-    expect(wallets.all()[0].balance).toBe(10);
-    expect((await readJson(await send(resultId))).payload.success).toBe(true);
-    expect(wallets.all()[0].balance).toBe(0);
-    expect(collection("fortune_tea_house_honey_ledgers").all().filter(row => row.type === "refund")).toHaveLength(1);
+    jest.spyOn(results,'updateOne').mockImplementation((q,u,o) => u?.$set?.honeyLetter ? { matchedCount: 1, modifiedCount: 0 } : save(q,u,o));
+    expect((await sendLegacyLetter(resultId)).status).toBe(500);
+    expect(collection('fortune_tea_house_honey_wallets').all()[0].balance).toBe(10);
+    expect((await sendLegacyLetter(resultId)).status).toBe(403);
+    expect(collection('fortune_tea_house_honey_ledgers').all().filter(row=>row.type==='refund')).toHaveLength(1);
   });
-
-  test("another account cannot resume or read the draft", async () => {
-    const resultId = await seedReadyResult();
-    authState = { userId: "another-user" };
-    expect((await send(resultId)).status).toBe(404);
-    expect(collection("fortune_tea_house_honey_wallets").all()[0].balance).toBe(10);
+  test('another account cannot resume the existing draft', async () => {
+    const resultId = await seedChargedLetter(); authState = { userId: 'another-user' };
+    expect((await sendLegacyLetter(resultId)).status).toBe(404);
   });
-
-  test.each(["before", "after"])("spend ledger response lost %s write resumes without a refund", async when => {
-    const resultId = await seedReadyResult();
-    const ledgers = collection("fortune_tea_house_honey_ledgers");
-    const original = ledgers.updateOne.bind(ledgers);
-    jest.spyOn(ledgers, "updateOne").mockImplementationOnce(async (...args) => {
-      if (when === "after") await original(...args);
-      throw new Error("MOCK_LEDGER_LOST");
-    });
-    expect((await send(resultId)).status).toBe(503);
-    const detail = await readJson(await handleFortuneTeaHouseRoutes(new Request(
-      `https://example.com/api/fortune-tea-house/results/${encodeURIComponent(resultId)}`), {}));
-    expect(detail.payload.result.honeyLetterPending).toBe(true);
-    expect(detail.payload.result.honeyLetter).toBeUndefined();
-    expect((await readJson(await send(resultId))).payload.success).toBe(true);
-    expect(collection("fortune_tea_house_honey_wallets").all()[0].balance).toBe(0);
-    expect(ledgers.all().filter(row => row.type === "spend")).toHaveLength(1);
-    expect(ledgers.all().filter(row => row.type === "refund")).toHaveLength(0);
-  });
-
-  test("parallel requests spend once and a replaced lease cannot overwrite delivery", async () => {
-    const resultId = await seedReadyResult({ balance: 20 });
-    const replies = await Promise.all([send(resultId), send(resultId)]);
-    expect(replies.map(response => response.status).sort()).toEqual([200, 409]);
-    expect(collection("fortune_tea_house_honey_wallets").all()[0].balance).toBe(10);
-    const results = collection("fortune_tea_house_results");
-    expect((await results.findOne({ resultId })).honeyLetterLock).toBeUndefined();
-  });
-
-  test("a stale generator losing its lease cannot charge or clear the new lock", async () => {
-    const resultId = await seedReadyResult();
-    const results = collection("fortune_tea_house_results");
-    const original = results.updateOne.bind(results);
-    jest.spyOn(results, "updateOne").mockImplementation(async (q, u, o) => {
-      if (u?.$set?.honeyLetterDelivery) await original({ resultId }, { $set: { "honeyLetterLock.token": "new-owner" } });
-      return original(q, u, o);
-    });
-    expect((await send(resultId)).status).toBe(503);
-    expect(collection("fortune_tea_house_honey_wallets").all()[0].balance).toBe(10);
-    expect((await results.findOne({ resultId })).honeyLetterLock.token).toBe("new-owner");
+  test('new album unlock is blocked while previously unlocked albums remain available', async () => {
+    await seedReadyResult({ balance: 30 });
+    const send = () => handleFortuneTeaHouseRoutes(new Request('https://example.com/api/fortune-tea-house/honey-drops/tarot-album/unlock',
+      { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' }), {});
+    expect((await send()).status).toBe(403);
+    await collection('fortune_tea_house_honey_wallets').updateOne({ userId: USER_ID }, { $set: { tarotAlbumUnlocked: true } });
+    expect((await readJson(await send())).payload.spent).toBe(0);
+    expect(collection('fortune_tea_house_honey_wallets').all()[0].balance).toBe(30);
   });
 });
 
@@ -672,39 +581,18 @@ describe("fortune tea house honey drops", () => {
     const { status, payload } = await readJson(response);
     const wallet = await collection("fortune_tea_house_honey_wallets").findOne({ userId: USER_ID, serviceScope: SERVICE_SCOPE });
 
-    expect(status).toBe(402);
-    expect(payload.errorCode).toBe("INSUFFICIENT_TEA_HOUSE_HONEY_DROPS");
+    expect(status).toBe(403);
+    expect(payload.errorCode).toBe("HONEY_GGULGGUL_ONLY");
     expect(wallet.balance).toBe(4);
     expect(collection("fortune_tea_house_honey_ledgers").all().filter((row) => row.type === "spend")).toHaveLength(0);
   });
 
-  test("꿀방울 10개로 연이의 꿀편지를 한 번만 생성하고 재요청은 재사용한다", async () => {
-    const resultId = await seedReadyResult({ balance: 10 });
-    const env = { NODE_ENV: "test", FORTUNE_TEA_HOUSE_HONEY_LETTER_TEST_TEXT: longHoneyLetter() };
-    const first = await handleFortuneTeaHouseRoutes(new Request("https://example.com/api/fortune-tea-house/results/honey-letter", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ resultId, idempotencyKey: "letter-once" }),
-    }), env);
-    const second = await handleFortuneTeaHouseRoutes(new Request(`https://example.com/api/fortune-tea-house/results/${encodeURIComponent(resultId)}/honey-letter`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ idempotencyKey: "letter-once" }),
-    }), env);
-
-    const firstPayload = await first.json();
-    const secondPayload = await second.json();
-    const wallet = await collection("fortune_tea_house_honey_wallets").findOne({ userId: USER_ID, serviceScope: SERVICE_SCOPE });
-    const spendLedgers = collection("fortune_tea_house_honey_ledgers").all().filter((row) => row.type === "spend");
-
-    expect(firstPayload.success).toBe(true);
-    expect(firstPayload.spent).toBe(10);
-    expect(firstPayload.honeyLetter.body.length).toBeGreaterThanOrEqual(800);
-    expect(secondPayload.success).toBe(true);
-    expect(secondPayload.spent).toBe(0);
-    expect(secondPayload.alreadyApplied).toBe(true);
-    expect(wallet.balance).toBe(0);
-    expect(spendLedgers).toHaveLength(1);
+  test('new letter requests never deduct even with enough balance', async () => {
+    const resultId = await seedReadyResult({ balance: 30 });
+    expect((await sendLegacyLetter(resultId)).status).toBe(403);
+    expect((await sendLegacyLetter(resultId)).status).toBe(403);
+    expect(collection('fortune_tea_house_honey_wallets').all()[0].balance).toBe(30);
+    expect(callGeminiTextMock).not.toHaveBeenCalled();
   });
 
   test("운명의 찻집 외부 scope 결과에는 꿀방울을 사용할 수 없다", async () => {
@@ -731,38 +619,13 @@ describe("fortune tea house honey drops", () => {
     const { status, payload } = await readJson(response);
     const wallet = await collection("fortune_tea_house_honey_wallets").findOne({ userId: USER_ID, serviceScope: SERVICE_SCOPE });
 
-    expect(status).toBe(503);
-    expect(payload.errorCode).toBe("YEONI_HONEY_LETTER_GENERATION_FAILED");
+    expect(status).toBe(403);
+    expect(payload.errorCode).toBe("HONEY_GGULGGUL_ONLY");
     expect(wallet.balance).toBe(10);
     expect(collection("fortune_tea_house_honey_ledgers").all().filter((row) => row.type === "spend")).toHaveLength(0);
   });
 
-  test("꿀편지 저장 실패 시 차감한 꿀방울을 환급한다", async () => {
-    const resultId = await seedReadyResult({ balance: 10 });
-    const results = collection("fortune_tea_house_results");
-    const updateOne = results.updateOne.bind(results);
-    results.updateOne = async (query, update, options) => {
-      if (update?.$set?.honeyLetter) return { matchedCount: 1, modifiedCount: 0, upsertedCount: 0 };
-      return updateOne(query, update, options);
-    };
 
-    const response = await handleFortuneTeaHouseRoutes(new Request(`https://example.com/api/fortune-tea-house/results/${encodeURIComponent(resultId)}/honey-letter`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ idempotencyKey: "store-fails" }),
-    }), { NODE_ENV: "test", FORTUNE_TEA_HOUSE_HONEY_LETTER_TEST_TEXT: longHoneyLetter() });
-    const { status, payload } = await readJson(response);
-    const wallet = await collection("fortune_tea_house_honey_wallets").findOne({ userId: USER_ID, serviceScope: SERVICE_SCOPE });
-    const ledgers = collection("fortune_tea_house_honey_ledgers").all();
-    const resultDoc = await results.findOne({ userId: USER_ID, resultId });
-
-    expect(status).toBe(500);
-    expect(payload.errorCode).toBe("YEONI_HONEY_LETTER_SAVE_FAILED");
-    expect(wallet.balance).toBe(10);
-    expect(ledgers.filter((row) => row.type === "spend")).toHaveLength(1);
-    expect(ledgers.filter((row) => row.type === "refund")).toHaveLength(1);
-    expect(resultDoc.honeyLetter).toBeUndefined();
-  });
 });
 
 

@@ -101,14 +101,12 @@ export async function readArchiveCard(env, userId, profileId) {
  */
 export async function upsertPaidResultArchive(env, {
   userId, executionKey, featureKey, reportType, reportId, requestId, transactionId = "",
-  profileId = "", metadata = {}, archive,
+  profileId = "", metadata = {}, archive, preserveOriginal = false,
 }) {
   const now = new Date();
   const rid = String(requestId || "").slice(0, 120);
   const txId = archiveText(transactionId, 120);
-  const doc = await withMongoRetry(env, () => ServiceExecutionTransaction.findOneAndUpdate(
-    { userId, executionKey },
-    {
+  const update = {
       $setOnInsert: {
         userId,
         executionKey,
@@ -133,8 +131,10 @@ export async function upsertPaidResultArchive(env, {
         sourceTransactionId: txId,
         metadata: { ...metadata, featureKey, reportType, requestId: rid, profileId, archive },
       },
-    },
-    { upsert: true, returnDocument: "after" },
+    };
+  if (preserveOriginal) { Object.assign(update.$setOnInsert, update.$set); delete update.$set; }
+  const doc = await withMongoRetry(env, () => ServiceExecutionTransaction.findOneAndUpdate(
+    { userId, executionKey }, update, { upsert: true, returnDocument: "after" },
   ).lean());
   return doc;
 }

@@ -557,6 +557,12 @@ describe("sukuyo compatibility (per use)", () => {
   });
   const paidBy = (transactionId) => verifyPerUsePayment.mockResolvedValue({ proven: true, source: "coin", reason: "", transactionId });
 
+  test('꿀방울 증빙으로 같은 상대만 열고 다른 상대에게 재사용하지 못한다', async () => {
+    const { honeyUseInputHash } = await import('../../worker/lib/honey-per-use.js');
+    verifyPerUsePayment.mockResolvedValue({proven:true,source:'honey',transactionId:'honey-receipt',inputHash:honeyUseInputHash(BASE,PARTNER)});
+    expect((await request(compat(BASE))).status).toBe(200);
+    expect((await request(compat(BASE,{partner:{...PARTNER,date:'1992-03-17'}}))).status).toBe(409);
+  });
   test("without this request's payment there is no body, only registry pricing", async () => {
     const result = await request(compat(BASE, { unlocked: true, passActive: true }));
     const { pricing } = getBillingFeaturePricing({ featureKey: BASE });

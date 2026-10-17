@@ -160,14 +160,10 @@
 
 /* Approved Sukuyo reading house. Keep these tokens and overrides out of Ziwei. */
 #sukuyoModalOverlay.fr-sukuyo {
-  --fr-bg: #24081a; --fr-surface: #3a0e28; --fr-ink: #fff1f7;
-  --fr-muted: #dbb3c4; --fr-accent: #f4bed1; --fr-rule: #6a3f55;
-  --sy-gold: #ead089; left: 0 !important; right: 0 !important;
+  --fr-bg: var(--cd-sukuyo-night); --fr-surface: var(--cd-sukuyo-surface); --fr-ink: var(--cd-sukuyo-pearl);
+  --fr-muted: var(--cd-sukuyo-silver); --fr-accent: var(--cd-sukuyo-gold); --fr-rule: var(--cd-sukuyo-rule);
+  --sy-gold: var(--fr-accent); left: 0 !important; right: 0 !important;
   width: 100% !important; max-width: none !important; transform: none !important;
-}
-:is(html,body).neo-mode #sukuyoModalOverlay.fr-sukuyo {
-  --fr-bg: #0a0818; --fr-surface: #13102a; --fr-ink: #f4eeff;
-  --fr-muted: #c8bada; --fr-accent: #c4b5fd; --fr-rule: #514562; --sy-gold: #e8d5a3;
 }
 #sukuyoModalOverlay.fr-sukuyo #sukuyoModalSheet { background: var(--fr-bg) !important; color: var(--fr-ink); }
 #sukuyoModalOverlay.fr-sukuyo .modal-content-inner-wide { padding: 0 !important; max-width: none !important; }
@@ -255,6 +251,33 @@ body:has(#sukuyoModalOverlay.fr-sukuyo[aria-hidden="false"]) #cdMobileBottomNav 
 /* Ziwei star atlas: one chart, twelve visible palaces, no animation dependency. */
 #ziweiModalOverlay.fr-ziwei { --fr-bg:#0b121b; --fr-surface:#141e2b; --fr-ink:#f4efdf; --fr-muted:#bdc6cf; --fr-accent:#e0c58c; --fr-rule:#394351; }
 body:has(#ziweiModalOverlay[aria-hidden="false"]) #cdMobileBottomNav { display:none !important; }
+/* Explicit, Sukuyo-only disclosure controls. */
+.fr-sukuyo .fr-disclosure { border: 1px solid var(--fr-rule) !important; border-radius: var(--cd-r-control) !important; margin: 12px 0 !important; background: var(--fr-surface) !important; }
+.fr-sukuyo .fr-disclosure > summary { min-height: 64px; padding: 16px; gap: 12px; }
+.fr-sukuyo .fr-disclosure > summary:focus-visible { outline: 2px solid var(--fr-accent); outline-offset: 3px; }
+.fr-sukuyo .fr-disclosure > summary:hover { color: var(--fr-accent); }
+.fr-sukuyo .sy-disclosure-copy { display: grid; gap: 5px; flex: 1; }
+.fr-sukuyo .sy-disclosure-hint { color: var(--fr-muted); font-size: 12px; font-weight: 400; }
+.fr-sukuyo .sy-disclosure-action { color: var(--fr-accent); font-size: 13px; white-space: nowrap; }
+.fr-sukuyo .fr-disclosure > summary::after { margin-left: 0; }
+.fr-sukuyo .fr-disclosure-body { padding: 0 16px 20px; }
+.fr-sukuyo .fr-reading-item:has(> .fr-disclosure) { padding: 0; margin: 12px 0; border: 0; }
+.fr-sukuyo #syHouseAnimal .sy-guardian-stage { max-width: 260px; margin-inline: auto; }
+.fr-sukuyo #syHouseAnimal .sy-guardian-card::before, .fr-sukuyo #syHouseAnimal .sy-guardian-card::after { display: none; }
+.fr-sukuyo #syHouseAnimal * { animation: none !important; }
+.fr-sukuyo #syHouseCompatibility { border: 1px solid var(--fr-rule); border-radius: var(--cd-r-card); background: var(--fr-surface); padding: 20px; scroll-margin-top: 24px; }
+.fr-sukuyo #syHouseCompatibility .sy-crest-band { display: none; }
+.fr-sukuyo #syHouseCompatibility :is(.sy-compat-title,.sy-compat-lede) { color: var(--fr-ink); }
+.fr-sukuyo .sy-free-compat { padding-block: 20px; color: var(--fr-ink); line-height: 1.8; }
+.fr-sukuyo .sy-free-compat h4 { font-family: var(--font-display); font-size: var(--cd-t-section); color: var(--fr-accent); }
+.fr-sukuyo .sy-free-compat p { margin: 12px 0; }
+.fr-sukuyo .sy-free-compat button, .fr-sukuyo .sy-archive-status button { min-height: 44px; padding: 10px 16px; border: 1px solid var(--fr-accent); border-radius: var(--cd-r-control); color: var(--fr-bg); background: var(--fr-accent); cursor: pointer; }
+.fr-sukuyo .sy-archive-status { padding: 16px; margin-top: 20px; border-top: 1px solid var(--fr-rule); color: var(--fr-ink); line-height: 1.7; }
+.fr-sukuyo .sy-archive-status a { display: inline-block; padding: 10px 0; min-height: 44px; }
+.fr-sukuyo #sy3Loading { color: var(--fr-muted) !important; }
+.fr-sukuyo .sy-house-deeper, .fr-sukuyo .sy-house-tools { content-visibility: auto; contain-intrinsic-size: auto 500px; }
+@media (prefers-reduced-motion: reduce) { .fr-sukuyo *, .fr-sukuyo *::before, .fr-sukuyo *::after { animation: none !important; scroll-behavior: auto !important; } }
+
 /* Ziwei disclosures read as tappable cards: a round chevron button shows closed (outline, down) vs open (filled, up). */
 #ziweiModalOverlay .fr-disclosure { margin: 12px 0 !important; border: 1px solid var(--fr-rule) !important; border-radius: 14px !important; background: var(--fr-surface) !important; overflow: hidden; }
 #ziweiModalOverlay .fr-disclosure > summary { position: relative; min-height: 56px; padding: 14px 64px 14px 18px; transition: background 150ms; }
@@ -826,3 +849,5 @@ body:has(#astroModalOverlay[aria-hidden="false"]) #cdMobileBottomNav { display:n
   #ziweiModalOverlay .fr-compat-table-wrap :is(th,td) { padding:10px 4px; font-size:14px !important; }
   #ziweiModalOverlay .fr-compat-chapter { padding-block:24px; }
 }
+
+#sukuyoModalOverlay .sy-free-compat [data-honey-use] { display:block; margin-top:12px; background:transparent; color:var(--fr-text); border:1px solid var(--fr-rule); }

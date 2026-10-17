@@ -1,3 +1,4 @@
+import { honeyUseInputHash } from '../lib/honey-per-use.js';
 // 숙요 유료 결과(기본 궁합 · 정밀 궁합 · 본성 심화 해석 · 극T 관계 회로 확장)의 보관함 저장.
 //
 // 이 결과들은 브라우저가 계산해 그리고 서버는 결제만 안다. 그래서 모달을 닫으면 결과가 사라졌다.
@@ -198,6 +199,11 @@ export async function handleSukuyoResultArchive(request, env, featureSlug) {
   if (proof?.proven === null) return fail(503, "PAYMENT_CHECK_UNAVAILABLE", "결제 확인이 잠시 지연되고 있습니다.");
   if (proof?.proven !== true) return fail(403, "PAYMENT_NOT_VERIFIED", "결제가 확인되지 않아 저장하지 않았습니다.");
 
+  if (proof.source === 'honey' && proof.inputHash !== honeyUseInputHash(spec.featureKey, {
+    date: `${partner.y}-${String(partner.m).padStart(2,'0')}-${String(partner.d).padStart(2,'0')}`,
+    calType: partner.cal, hour: Number(String(partner.time || '12:00').split(':')[0]),
+    minute: Number(String(partner.time || '12:00').split(':')[1]), gender: partner.gender,
+  })) return fail(409, 'HONEY_REQUEST_MISMATCH', '꿀방울로 연 상대 정보와 일치하지 않아요.');
   await connectDb(env);
   const { cardName, birthKey } = await readArchiveCard(env, auth.userId, profileId);
 
@@ -223,6 +229,7 @@ export async function handleSukuyoResultArchive(request, env, featureSlug) {
   };
 
   const doc = await upsertPaidResultArchive(env, {
+    preserveOriginal: true,
     userId: auth.userId,
     executionKey,
     featureKey: spec.featureKey,

@@ -1054,7 +1054,7 @@ export default function TeaHouseResultSheet({
                   {/* 편지는 문단 분할 없이 원문 개행 그대로 (white-space: pre-line) */}
                   <p>{honeyLetter.body}</p>
                 </article>
-              ) : readOnly ? null : (
+              ) : !result.honeyLetterPending ? <p>꿀방울은 꿀꿀운세 지정 상품에서 사용할 수 있어요. 이미 받은 꿀편지는 이곳에서 다시 읽을 수 있어요.</p> : readOnly ? null : (
                 <div className={styles.honeyLetterCta}>
                   <p>
                     

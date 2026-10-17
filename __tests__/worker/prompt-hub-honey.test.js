@@ -134,24 +134,12 @@ test("당일 구정책 0개만 한 번 보충하고 과거 날짜는 그대로 �
 });
 
 describe("프롬프트 생성", () => {
-  test("꿀방울 1개를 쓰고 같은 요청은 다시 받되 다른 입력은 막는다", async () => {
-    wallets.push({ userId: owner, serviceScope: "FORTUNE_TEA_HOUSE", balance: 1 });
-    const first = await generate(input());
-    expect(first.status).toBe(200);
-    expect(first.data.paidWith).toBe("honey");
-    expect(first.data.prompt).toContain("올해 일 흐름");
-    expect((await honeyAttendanceStatus({}, owner)).balance).toBe(0);
-    const replay = await generate(input());
-    expect(replay.data.replayed).toBe(true);
-    const mismatch = await generate(input({ fields: [{ id: "question", label: "질문", value: "다른 질문" }] }));
-    expect(mismatch.status).toBe(409);
-  });
-
-  test("꿀방울이 없으면 402 와 3,000원 대체 결제 안내를 준다", async () => {
+  test("프롬프트 신규 꿀방울 사용은 잔액과 관계없이 거절한다", async () => {
+    wallets.push({ userId: owner, serviceScope: "FORTUNE_TEA_HOUSE", balance: 10 });
     const { status, data } = await generate(input());
-    expect(status).toBe(402);
-    expect(data.code).toBe("INSUFFICIENT_HONEY_DROPS");
-    expect(data.pricing.amountKRW).toBe(3000);
+    expect(status).toBe(403);
+    expect(data.code).toBe("HONEY_GGULGGUL_ONLY");
+    expect((await honeyAttendanceStatus({}, owner)).balance).toBe(10);
   });
 
   test("결제 증빙이 있을 때만 결제 경로로 만든다", async () => {

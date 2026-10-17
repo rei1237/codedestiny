@@ -25,11 +25,16 @@ const entries = [
   ['vedic_basic_reading', '베다 기본 해석', '베다', 30, '출생 차트로 읽는 성향과 생활의 리듬', 'cdHomeVedicEntry'],
 ];
 
-export const HONEY_UNLOCK_PRODUCTS = Object.freeze(entries.map(([featureKey, title, group, honeyCost, description, action]) => {
+const perUseEntries = [
+  ['compat-sukuyo-compatibility', '숙요 궁합 상세', '숙요', null, '두 사람의 관계 패턴과 구체적인 행동 조언', 'cdHomeSukuyoEntry'],
+  ['tarot-myeongri-three-card', '기본 타로 세 장 해석', '타로', null, '선택한 세 장의 흐름과 실천 조언', 'openTarotModal'],
+];
+export const HONEY_UNLOCK_PRODUCTS = Object.freeze(entries.concat(perUseEntries).map(([featureKey, title, group, honeyCost, description, action]) => {
   const { pricing } = getBillingFeaturePricing({ featureKey });
   // The two Saju reports follow the approved 5,000 KRW / 30-drop pricing proportion.
   // This is a product pricing rule, never a redeemable cash value of the reward.
   return Object.freeze({ productId: featureKey, featureKey, title, group,
+    serviceScope: 'GGULGGUL', billingType: perUseEntries.some(row => row[0] === featureKey) ? 'per_use' : 'birth_unlock',
     honeyCost: honeyCost ?? Math.ceil(pricing.amountKRW / 1000) * 6, description, action,
     cashPriceKRW: pricing.amountKRW, cashCost: pricing.cost });
 }));
@@ -41,3 +46,6 @@ export function getHoneyUnlockProduct(value) {
   return byKey.get(String(value || '').replace(/^unlock\./, '')) || null;
 }
 
+
+export const HONEY_SCOPE_MESSAGE = '꿀방울은 꿀꿀운세의 지정된 기본 운세 상품에서만 사용할 수 있어요.';
+export function isHoneySpendProduct(featureKey) { return getHoneyUnlockProduct(featureKey)?.serviceScope === 'GGULGGUL'; }

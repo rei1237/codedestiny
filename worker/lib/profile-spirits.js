@@ -1,3 +1,4 @@
+import { isHoneySpendProduct, HONEY_SCOPE_MESSAGE } from './honey-unlock-catalog.js';
 import { mongoose, mongoTransactionOptions, withMongoRetry } from './db.js';
 import { scopeConnection } from './db-scope-connection.js';
 import { createHttpError } from './http.js';
@@ -45,6 +46,7 @@ export async function unlockProfileSpirit(env, userId, { characterId, requestId 
         }
         const state = cleanState(await states.findOne({ _id: uid }, { session }));
         if (state.ownedIds.includes(characterId)) return;
+        if (!isHoneySpendProduct('profile-spirit')) throw createHttpError(403, HONEY_SCOPE_MESSAGE, { code: 'HONEY_GGULGGUL_ONLY' });
         const wallet = unwrap(await wallets.findOneAndUpdate(
           { userId: uid, serviceScope: HONEY_SCOPE, balance: { $gte: SPIRIT_HONEY_COST } },
           { $inc: { balance: -SPIRIT_HONEY_COST, totalSpent: SPIRIT_HONEY_COST }, $set: { updatedAt: now } },

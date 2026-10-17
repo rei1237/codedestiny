@@ -141,7 +141,7 @@ test("같은 카드·같은 상대 입력을 다시 저장하면 1건만 남고,
   await save(payload());
   await save(payload({ sections: [{ title: "인연 요약", body: "다시 본 결과" }] }));
   expect(store.executions).toHaveLength(1);
-  expect(store.executions[0].metadata.archive.result.sections[0].body).toBe("다시 본 결과");
+  expect(store.executions[0].metadata.archive.result.sections[0].body).toBe("서로 끌리지만 속도를 맞춰야 합니다.");
 
   await save(payload({ partner: { y: "1993", m: "3", d: "4", time: "12:00", cal: "solar", gender: "M" } }));
   expect(store.executions).toHaveLength(2);
@@ -253,4 +253,16 @@ test("해금 행이 없으면 극T 결과는 저장하지 않는다", async () =
   expect(response.status).toBe(403);
   expect(findActivePaidContentUnlock).toHaveBeenCalledWith(expect.objectContaining({ featureKey: "sukuyo-extreme-t-relationship" }));
   expect(store.executions).toHaveLength(0);
+});
+
+
+test('꿀방울 증빙은 같은 상대만 저장하고 재시도는 원문을 보존한다', async () => {
+  const { honeyUseInputHash } = await import('../../worker/lib/honey-per-use.js');
+  const body = payload();
+  const p = body.partner;
+  const inputHash = honeyUseInputHash('compat-sukuyo-compatibility', { date:`${p.y}-${String(p.m).padStart(2,'0')}-${String(p.d).padStart(2,'0')}`,calType:p.cal,hour:Number(p.time.split(':')[0]),minute:Number(p.time.split(':')[1]),gender:p.gender });
+  verifyPerUsePayment.mockResolvedValue({proven:true,source:'honey',transactionId:'honey-receipt',inputHash});
+  expect((await save(body)).status).toBe(200);
+  expect((await save({...body,partner:{...p,d:'14'}})).status).toBe(409);
+  expect(store.executions).toHaveLength(1);
 });
