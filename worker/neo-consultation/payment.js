@@ -1,16 +1,21 @@
-import { NEO_EMAIL_FEATURE, neoError, neoUnitPrice } from '../../lib/neo-consultation/contract.js';
-import { FEATURE_KEY_PRICE_TABLE } from '../lib/paid-feature-registry.js';
+import { NEO_EMAIL_FEATURE, neoError, neoUnitPrice, neoTotal, neoQuoteItems, neoReadingMode, validateNeoInput } from '../../lib/neo-consultation/contract.js';
+import { KRW_PER_COIN } from '../lib/billing-policy.js';
 
 /** 저장된 서버 견적으로만 수량 가격을 계산한다. 프런트 body.quantity/amount는 받지 않는다. */
 export function priceNeoOrder(product, row, userId, quoteId) {
   if (product.featureKey !== NEO_EMAIL_FEATURE) return product;
   const quote = row?.quote;
   if (!row || row.userId !== String(userId) || !quote || quote.id !== quoteId || row.cancellationRequestedAt || !['draft','preparing','pending'].includes(row.state)) throw neoError('NEO_QUOTE_INVALID', '상담 질문과 가격을 다시 확인해 주세요.', 409);
+  const modern = quote.pricingVersion === 2;
+  if (modern) validateNeoInput(row);
+  const validPrice = modern
+    ? quote.totalKRW === neoTotal(row.questions) && JSON.stringify(quote.items) === JSON.stringify(neoQuoteItems(row.questions))
+    : row.questions.every(q => neoReadingMode(q) === 'ziwei') && quote.unitKRW === neoUnitPrice() && quote.totalKRW === quote.quantity * quote.unitKRW;
   if (quote.quantity !== row.questions.length || quote.quantity < 1 || quote.quantity > 10
-    || quote.unitKRW !== neoUnitPrice() || quote.totalKRW !== quote.quantity * quote.unitKRW
+    || !validPrice
     || JSON.stringify(quote.questions) !== JSON.stringify(row.questions)) throw neoError('NEO_QUOTE_INVALID', '상담 질문과 가격을 다시 확인해 주세요.', 409);
-  return { ...product, priceKRW: quote.totalKRW, priceCoins: FEATURE_KEY_PRICE_TABLE[NEO_EMAIL_FEATURE].cost * quote.quantity,
-    monthlyCost: 0, consultationSnapshot: { consultationId: row.id, quoteId: quote.id, quantity: quote.quantity, unitKRW: quote.unitKRW, totalKRW: quote.totalKRW } };
+  return { ...product, priceKRW: quote.totalKRW, priceCoins: quote.totalKRW / KRW_PER_COIN,
+    monthlyCost: 0, consultationSnapshot: { consultationId: row.id, quoteId: quote.id, quantity: quote.quantity, unitKRW: quote.unitKRW, totalKRW: quote.totalKRW, ...(modern ? { pricingVersion: 2, items: structuredClone(quote.items) } : {}) } };
 }
 
 /** 판매 여부는 레지스트리에서 판정하고 기존 결제 코어의 준비 경로를 사용한다. */

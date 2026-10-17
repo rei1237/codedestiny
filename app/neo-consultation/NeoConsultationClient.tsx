@@ -4,27 +4,26 @@ import Link from "next/link";
 import Image from "next/image";
 import { LazyMotion, domAnimation, m, useReducedMotion } from "framer-motion";
 import { useAuthStore } from "@/app/_lib/auth-store";
-import { NEO_EMAIL_PORTRAIT, NEO_EMAIL_SALE_ENABLED, NEO_LIMITS, NEO_STATUS_LABELS, hasMultipleQuestions, neoMoney, neoTotal, neoUnitPrice, validateNeoInput } from "@/lib/neo-consultation/contract";
+import { NEO_EMAIL_PORTRAIT, NEO_EMAIL_SALE_ENABLED, NEO_LIMITS, NEO_STATUS_LABELS, hasMultipleQuestions, neoMoney, neoReadingLabel, neoQuestionPrice, neoSajuAddonPrice, neoBirthLabel, neoTotal, neoUnitPrice, validateNeoInput } from "@/lib/neo-consultation/contract";
 import { PUBLIC_RECORD_PATH } from "@/lib/seo/public-record-copy.mjs";
 import { maskBirthDateInput } from "@/lib/birthDateInput";
 import { neoCall } from "./api";
 import { openNeoCheckout } from "./checkout";
 import { NEO_POLICY } from "@/lib/neo-consultation/policy";
 import { SUPPORT_MAILTO } from "@/lib/site-policy-config";
-import type { NeoInput, NeoOrder } from "./types";
+import type { NeoInput, NeoOrder, NeoReadingMode } from "./types";
 import styles from "./neo.module.css";
 
 const statusLabel = (state: string) => (NEO_STATUS_LABELS as Record<string,string>)[state] || state;
 export default function NeoConsultationClient() {
   const auth = useAuthStore();
   const reducedMotion = useReducedMotion();
-  const [questions, setQuestions] = useState([""]);
+  const [questions, setQuestions] = useState<{text: string; readingMode: NeoReadingMode}[]>([{text: "", readingMode: "ziwei"}]);
   const [context, setContext] = useState("");
   const [email, setEmail] = useState("");
   const [date, setDate] = useState("");
   const [calendar, setCalendar] = useState("solar");
   const [leapMonth, setLeapMonth] = useState(false);
-  const [timeUnknown, setTimeUnknown] = useState(true);
   const [time, setTime] = useState("");
   const [consent, setConsent] = useState(false);
   const [step, setStep] = useState(0);
@@ -70,7 +69,7 @@ export default function NeoConsultationClient() {
     document.addEventListener("visibilitychange", refresh);
     return () => { active = false; window.removeEventListener("pageshow", refresh); window.removeEventListener("popstate", refresh); document.removeEventListener("visibilitychange", refresh); };
   }, [canSubmit, signedIn, ownerKey]);
-  const input = (): NeoInput => ({ questions, context, email, consent, birth: date ? { date, calendar, leapMonth, timeUnknown, time: timeUnknown ? null : time } : null });
+  const input = (): NeoInput => ({ questions, context, email, consent, birth: date ? { date, calendar, leapMonth, timeUnknown: false, time } : null });
   const run = async (task: () => Promise<void>) => {
     if (inFlight.current) return;
     inFlight.current = true;
@@ -79,7 +78,7 @@ export default function NeoConsultationClient() {
   };
   const next = () => {
     setError("");
-    if (questions.some(q => !q.trim() || hasMultipleQuestions(q))) { setError("각 질문란에 한 가지 질문을 적어 주세요. 여러 질문은 추가 버튼으로 나눠 주세요."); return; }
+    if (questions.some(q => !q.text.trim() || hasMultipleQuestions(q.text))) { setError("각 질문란에 한 가지 질문을 적어 주세요. 여러 질문은 추가 버튼으로 나눠 주세요."); return; }
     if (step === 1) {
       try { validateNeoInput(input()); } catch (e) { setError((e as Error).message); return; }
     }
@@ -137,7 +136,7 @@ export default function NeoConsultationClient() {
         <figcaption><p>고민을 읽는 깊이,<br />다음 한 걸음의 명료함.</p><small>네오를 표현한 캐릭터 일러스트</small></figcaption>
       </m.figure>
     </header>
-    <div className={styles.serviceLine}><p>질문 하나에 집중하는 상담</p><p>네오 직접 검수</p><p>질문당 {neoMoney(neoUnitPrice())} · 이메일 답변</p></div>
+    <div className={styles.serviceLine}><p>질문 하나에 집중하는 상담</p><p>네오 직접 검수</p><p>자미두수 질문당 {neoMoney(neoUnitPrice())} · 사주 추가 +{neoMoney(neoSajuAddonPrice())}</p></div>
     <section className={styles.evidence} aria-labelledby="neo-evidence">
       <h2 id="neo-evidence">기록은 원문으로 확인하세요</h2>
       <p>공개한 분석과 이후의 기록을 함께 확인하세요. 당시 해석과 실제 결과를 구분해 읽을 수 있습니다.</p>
@@ -145,7 +144,7 @@ export default function NeoConsultationClient() {
       <p className={styles.small}>과거 분석 사례이며, 특정 사건의 예측이나 같은 결과를 보장하지 않습니다.</p>
     </section>
     <section className={styles.formSection} id="neo-form" aria-labelledby="neo-form-title">
-      <div className={styles.formIntro}><h2 id="neo-form-title" ref={heading} tabIndex={-1}>{["질문을 하나씩 적어 주세요","답변받을 정보를 알려 주세요","질문과 금액을 확인해 주세요"][step]}</h2><p>질문 1개 {neoMoney(neoUnitPrice())} · 단건 결제<br />한 가지 선택이나 고민을 질문 하나에 담아 주세요.</p><ol className={styles.steps}>{["질문 작성","정보 입력","최종 확인"].map((s,i) => <li key={s} aria-current={step === i ? "step" : undefined}>{s}</li>)}</ol></div>
+      <div className={styles.formIntro}><h2 id="neo-form-title" ref={heading} tabIndex={-1}>{["질문을 하나씩 적어 주세요","답변받을 정보를 알려 주세요","질문과 금액을 확인해 주세요"][step]}</h2><p>자미두수 질문당 {neoMoney(neoUnitPrice())}<br />자미두수 + 사주 질문당 {neoMoney(neoQuestionPrice({readingMode: "ziwei_saju"}))}<br />사주 풀이 추가 시 질문당 {neoMoney(neoSajuAddonPrice())} 추가 · 단건 결제<br />한 가지 선택이나 고민을 질문 하나에 담아 주세요.</p><ol className={styles.steps}>{["질문 작성","정보 입력","최종 확인"].map((s,i) => <li key={s} aria-current={step === i ? "step" : undefined}>{s}</li>)}</ol></div>
       <div className={styles.form} aria-busy={busy}>
         {error && <p className={styles.error} role="alert">{error}</p>}
         {!order && <>
@@ -154,21 +153,20 @@ export default function NeoConsultationClient() {
             <textarea id="neo-context" maxLength={NEO_LIMITS.context} value={context} onChange={e => setContext(e.target.value)} placeholder="지금 처한 상황과 고민의 배경을 알려 주세요." rows={4} />
             <p className={styles.small}>상황 설명은 해석을 돕는 배경입니다. 답변받을 질문은 아래에 따로 추가해 주세요.</p>
             {questions.map((q,i) => <div className={styles.question} key={i}>
-              <div className={styles.questionHeading}><label htmlFor={"neo-q-" + i}>질문 {i+1}</label><span>{neoMoney(neoUnitPrice())}</span>{questions.length > 1 && <button type="button" aria-label={"질문 " + (i+1) + " 삭제"} onClick={() => setQuestions(questions.filter((_,n) => n !== i))}>삭제</button>}</div>
-              <textarea id={"neo-q-" + i} value={q} maxLength={NEO_LIMITS.question} rows={3} onChange={e => setQuestions(questions.map((text,n) => n === i ? e.target.value : text))} aria-describedby={"neo-q-hint-" + i} placeholder="예: 지금 직장을 옮기는 선택에서 무엇을 먼저 살펴봐야 할까요?" />
-              <p id={"neo-q-hint-" + i} className={hasMultipleQuestions(q) ? styles.error : styles.small}>{hasMultipleQuestions(q) ? "여러 질문은 질문 추가 버튼으로 나눠 주세요." : q.length + " / 1,000자 · 한 질문란에는 한 가지 주제"}</p>
+              <div className={styles.questionHeading}><label htmlFor={"neo-q-" + i}>질문 {i+1}</label><span>{neoMoney(neoQuestionPrice(q))}</span>{questions.length > 1 && <button type="button" aria-label={"질문 " + (i+1) + " 삭제"} onClick={() => setQuestions(questions.filter((_,n) => n !== i))}>삭제</button>}</div>
+              <textarea id={"neo-q-" + i} value={q.text} maxLength={NEO_LIMITS.question} rows={3} onChange={e => setQuestions(questions.map((item,n) => n === i ? {...item, text: e.target.value} : item))} aria-describedby={"neo-q-hint-" + i} placeholder="예: 지금 직장을 옮기는 선택에서 무엇을 먼저 살펴봐야 할까요?" />
+              <fieldset className={styles.readingOptions}><legend>질문 {i+1} 풀이 방식</legend>{(["ziwei","ziwei_saju"] as const).map(mode => <label key={mode} className={styles.readingOption}><input type="radio" name={"neo-mode-"+i} value={mode} checked={q.readingMode === mode} onChange={() => setQuestions(questions.map((item,n) => n === i ? {...item, readingMode: mode} : item))} /><span>{neoReadingLabel({readingMode: mode})}<strong>{neoMoney(neoQuestionPrice({readingMode: mode}))}</strong></span></label>)}</fieldset>
+              <p id={"neo-q-hint-" + i} className={hasMultipleQuestions(q.text) ? styles.error : styles.small}>{hasMultipleQuestions(q.text) ? "여러 질문은 질문 추가 버튼으로 나눠 주세요." : q.text.length + " / 1,000자 · 한 질문란에는 한 가지 주제"}</p>
             </div>)}
-            <button className={styles.secondary} disabled={questions.length >= NEO_LIMITS.questions} onClick={() => { setQuestions([...questions,""]); requestAnimationFrame(() => document.getElementById("neo-q-" + questions.length)?.focus()); }}>질문 추가하기 · +{neoMoney(neoUnitPrice())}</button>
+            <button className={styles.secondary} disabled={questions.length >= NEO_LIMITS.questions} onClick={() => { setQuestions([...questions,{text: "", readingMode: "ziwei"}]); requestAnimationFrame(() => document.getElementById("neo-q-" + questions.length)?.focus()); }}>질문 추가하기 · +{neoMoney(neoUnitPrice())}</button>
           </>}
           {step === 1 && <>
             <label htmlFor="neo-email">회신 이메일</label><input id="neo-email" type="email" autoComplete="email" maxLength={254} value={email} onChange={e => setEmail(e.target.value)} required />
-            <fieldset><legend>출생정보 <span>선택</span></legend><p className={styles.small}>고민 해석에 필요한 경우에만 적어 주세요. 시간 모름은 그대로 전달합니다.</p>
-              <label htmlFor="neo-birth">생년월일</label><input id="neo-birth" type="text" inputMode="numeric" placeholder="YYYY-MM-DD" maxLength={10} value={date} onChange={e => setDate(maskBirthDateInput(e.target.value))} />
-              {date && <><label htmlFor="neo-calendar">달력 구분</label><select id="neo-calendar" value={calendar} onChange={e => setCalendar(e.target.value)}><option value="solar">양력</option><option value="lunar">음력</option></select>
-                {calendar === "lunar" && <label className={styles.check}><input type="checkbox" checked={leapMonth} onChange={e => setLeapMonth(e.target.checked)} />윤달이에요</label>}
-                <label className={styles.check}><input type="checkbox" checked={timeUnknown} onChange={e => setTimeUnknown(e.target.checked)} />출생시간을 몰라요</label>
-                {!timeUnknown && <><label htmlFor="neo-time">출생시간</label><input id="neo-time" type="time" value={time} onChange={e => setTime(e.target.value)} /></>}
-              </>}
+            <fieldset><legend>출생정보 <span>필수</span></legend><p id="neo-birth-help" className={styles.small}>풀이에 필요한 생년월일과 출생시간을 정확하게 입력해 주세요. 모든 질문에 같은 출생정보를 사용합니다.</p>
+              <label htmlFor="neo-birth">생년월일</label><input id="neo-birth" type="text" inputMode="numeric" placeholder="YYYY-MM-DD" maxLength={10} value={date} onChange={e => setDate(maskBirthDateInput(e.target.value))} required aria-describedby="neo-birth-help" />
+              <label htmlFor="neo-calendar">달력 구분</label><select id="neo-calendar" value={calendar} onChange={e => setCalendar(e.target.value)}><option value="solar">양력</option><option value="lunar">음력</option></select>
+              {calendar === "lunar" && <label className={styles.check}><input type="checkbox" checked={leapMonth} onChange={e => setLeapMonth(e.target.checked)} />윤달이에요</label>}
+              <label htmlFor="neo-time">출생시간</label><input id="neo-time" type="time" value={time} onChange={e => setTime(e.target.value)} required aria-describedby="neo-time-help" /><p id="neo-time-help" className={styles.small}>오전·오후와 시·분을 확인해 주세요. 출생시간을 입력해야 결제할 수 있어요.</p>
             </fieldset>
             <p className={styles.small}>{NEO_POLICY.delivery} {NEO_POLICY.capacity}</p>
             <p className={styles.small}>{NEO_POLICY.refund}</p>
@@ -176,13 +174,13 @@ export default function NeoConsultationClient() {
             <label className={styles.check}><input type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)} />답변 기한·취소 및 환불 안내를 확인하고, 상담과 회신을 위한 개인정보 수집·이용에 동의합니다.</label>
             <p className={styles.small}><Link href="/privacy/">개인정보처리방침</Link> · <a href={SUPPORT_MAILTO}>취소·환불 및 미수신 문의</a></p>
           </>}
-          {step === 2 && <><ol className={styles.summary}>{questions.map((q,i) => <li key={i}><p>{q}</p><span>{neoMoney(neoUnitPrice())}</span></li>)}</ol><p>회신 이메일: {email}</p><p>네오가 직접 검수한 질문별 답변을 한 통의 이메일로 전합니다.</p><p className={styles.small}>한 질문에 여러 독립 질문이 포함되면 정정을 요청할 수 있습니다. 추가 과금은 자동으로 진행하지 않습니다.</p></>}
-          <div className={styles.total} aria-live="polite"><span>질문 {questions.length}개</span><strong>{neoMoney(neoTotal(questions.length))}</strong></div>
-          <div className={styles.actions}>{step > 0 && <button className={styles.secondary} disabled={busy} onClick={() => setStep(step-1)}>이전</button>}{step < 2 ? <button className={styles.primary} onClick={next}>다음</button> : <button className={styles.primary} disabled={busy || !canSubmit || !signedIn} onClick={prepare}>{busy ? "주문 확인 중" : mock ? "모의 결제로 상담 신청하기" : canSubmit ? '카드로 결제하고 상담 신청하기' : "판매 준비 중"}</button>}</div>
+          {step === 2 && <><ol className={styles.summary}>{questions.map((q,i) => <li key={i}><p>{q.text}</p><span>{neoReadingLabel(q)} · {neoMoney(neoQuestionPrice(q))}</span></li>)}</ol><p>출생정보: {neoBirthLabel(input().birth)}</p><p>회신 이메일: {email}</p><p className={styles.small}>결제가 확인되면 자동으로 상담이 접수됩니다.</p><p>네오가 직접 검수한 질문별 답변을 한 통의 이메일로 전합니다.</p><p className={styles.small}>한 질문에 여러 독립 질문이 포함되면 정정을 요청할 수 있습니다. 추가 과금은 자동으로 진행하지 않습니다.</p></>}
+          <div className={styles.total} aria-live="polite"><span>질문 {questions.length}개</span><strong>{neoMoney(neoTotal(questions))}</strong></div>
+          <div className={styles.actions}>{step > 0 && <button className={styles.secondary} disabled={busy} onClick={() => setStep(step-1)}>이전</button>}{step < 2 ? <button className={styles.primary} onClick={next}>다음</button> : <button className={styles.primary} disabled={busy || !canSubmit || !signedIn} onClick={prepare}>{busy ? "주문 확인 중" : mock ? "모의 결제로 상담 신청하기" : canSubmit ? `총 ${neoMoney(neoTotal(questions))} 결제하고 상담 신청하기` : "판매 준비 중"}</button>}</div>
           {!signedIn && step === 2 && <p>상담 신청에는 <Link href="/login?next=%2Fneo-consultation%2F">로그인</Link>이 필요합니다.</p>}
         </>}
-        {order && <><h3>{statusLabel(order.state)}</h3><p>주문번호 {order.id}</p><p>질문 {order.questions.length}개 · {neoMoney(order.quote?.totalKRW || neoTotal(order.questions.length))}</p>
-          {order.payment?.status === "paid" && ["retry","unknown"].includes(order.deliveryStatus?.receipt || "") && <p role="status">결제는 완료됐어요. 접수 메일 전달을 확인하고 있어요. 다시 결제하지 않아도 됩니다.</p>}
+        {order && <><h3>{statusLabel(order.state)}</h3><p>주문번호 {order.id}</p><p>질문 {order.questions.length}개 · {neoMoney(order.quote?.totalKRW || neoTotal(order.questions))}</p>
+          {order.payment?.status === "paid" && ["pending","sending","retry","unknown"].includes(order.deliveryStatus?.receipt || "") && <p role="status">결제는 완료됐어요. 접수 메일 전달을 확인하고 있어요. 다시 결제하지 않아도 됩니다.</p>}
           {order.payment?.status === "paid" && ["retry","unknown"].includes(order.deliveryStatus?.answer || "") && <p role="status">답변 메일 전달을 확인하고 있어요. 주문과 검수한 답변은 안전하게 보관됩니다.</p>}
           {order.state === "pending" && <p role="status">결제 완료 여부를 확인하고 있어요. 새 주문을 만들지 말고 같은 주문에서 확인해 주세요.</p>}
           {order.state === 'payment_failed' && <p role="status">결제 실패가 확인됐습니다. 같은 주문에서 다시 확인하거나 결제창을 열어 주세요.</p>}
@@ -193,7 +191,7 @@ export default function NeoConsultationClient() {
           {order.payment?.status === 'paid' && !order.cancellationRequestedAt && !order.deliveries.length && <button className={styles.secondary} disabled={busy} onClick={() => run(async () => setOrder((await neoCall('/'+order.id+'/cancel',{version:order.version})).order))}>취소·전액 환불 요청하기</button>}
           {order.cancellationRequestedAt && <p role="status">취소·환불 요청이 접수되어 답변 발송을 중지했습니다. 담당자가 결제 상태를 확인해 환불을 처리합니다. <a href={SUPPORT_MAILTO}>문의하기</a></p>}
           {order.questions.filter(q => q.correction).map(q => <div className={styles.question} key={q.id}><p>{q.correction}</p><label htmlFor={"correct-" + q.id}>질문 정정</label><textarea id={"correct-" + q.id} maxLength={1000} value={correction[q.id] ?? q.text} onChange={e => setCorrection({ ...correction, [q.id]: e.target.value })} /><button className={styles.primary} disabled={busy} onClick={() => run(async () => setOrder((await neoCall("/" + order.id + "/correction", { version: order.version, questionId: q.id, text: correction[q.id] ?? q.text })).order))}>정정한 질문 보내기</button></div>)}
-          {order.deliveries.length > 0 && <article className={styles.answer}><h3>네오 검수 완료 · 나의 답변</h3>{order.deliveries[order.deliveries.length-1].questions.map(q => <section key={q.id}><h4>{q.text}</h4><p>{q.answer}</p></section>)}</article>}
+          {order.deliveries.length > 0 && <article className={styles.answer}><h3>네오 검수 완료 · 나의 답변</h3>{order.deliveries[order.deliveries.length-1].questions.map(q => <section key={q.id}><h4>{q.text}</h4><p className={styles.small}>{neoReadingLabel(q)}</p><p>{q.answer}</p></section>)}</article>}
         </>}
       </div>
     </section>

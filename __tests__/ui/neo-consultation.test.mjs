@@ -7,11 +7,11 @@ import { resolveProduct } from '../../worker/payments/catalog.js';
 import { assertFeatureEnabled } from '../../worker/lib/billing-feature-registry.js';
 import { handleNeoConsultations, handleNeoRuntimeRequest } from '../../worker/routes/neo-consultations.js';
 import { priceNeoOrder } from '../../worker/neo-consultation/payment.js';
-import { neoMailAdapter } from '../../worker/neo-consultation/mail.js';
+import { buildNeoEmail, neoMailAdapter } from '../../worker/neo-consultation/mail.js';
 import { renderNeoEmailHomeEntry } from '../../lib/brand/neo-email-home-entry.mjs';
 
 const admin = { id: 'neo-test-admin' }, user = 'test-owner';
-const input = (count = 1) => ({ questions: Array.from({length:count},(_,i) => '이번 선택에서 고려할 점 ' + (i+1)), context: '현재 상황', email: 'customer@example.invalid', consent: true });
+const input = (count = 1) => ({ questions: Array.from({length:count},(_,i) => '이번 선택에서 고려할 점 ' + (i+1)), context: '현재 상황', email: 'customer@example.invalid', consent: true, birth: {date:'1990-04-20',calendar:'solar',leapMonth:false,timeUnknown:false,time:'12:30'} });
 async function pending(mock, count = 1) {
   let row = await mock.service.create(user,input(count));
   row = await mock.service.quote(user,row.id,row.version);
@@ -82,13 +82,13 @@ test('질문 1/2/3개는 서버 견적으로 10000/20000/30000원, 단건 전용
     assert.equal((await m.payments.read(row.payment.id)).amountKRW,n*10000);
   }
 });
-test('복수·빈·초과 질문, 동의·헤더 삽입 거절; 음력 윤달·시간 미상 보존', () => {
+test('복수·빈·초과 질문, 동의·헤더 삽입 거절; 음력 윤달 보존·출생시간 필수', () => {
   for (const questions of [[],[''],Array(11).fill('질문'),['a'.repeat(1001)],['1. 이직\n2. 연애'],['이직? 연애?']]) assert.throws(() => validateNeoInput({...input(),questions}));
   assert.throws(() => validateNeoInput({...input(),consent:false}));
   assert.throws(() => validateNeoInput({...input(),email:'a@example.com\r\nBcc:evil@example.com'}));
-  const b = { date:'1990-04-20',calendar:'lunar',leapMonth:true,timeUnknown:true,time:'12:00' };
-  assert.deepEqual(validateNeoInput({...input(),birth:b}).birth,{...b,time:null});
-  assert.equal(validateNeoInput(input()).birth,null);
+  const b = { date:'1990-04-20',calendar:'lunar',leapMonth:true,timeUnknown:false,time:'12:00' };
+  assert.deepEqual(validateNeoInput({...input(),birth:b}).birth,b);
+  for (const birth of [null, {...b,timeUnknown:true}, {...b,time:''}, {...b,time:'24:00'}, {...b,date:'1990-13-01'}, {...b,calendar:'solar',date:'1990-02-30'}]) assert.throws(() => validateNeoInput({...input(),birth}));
 });
 test('수량·가격·소유자·견적 스냅샷 변조는 거절', async () => {
   const m = createNeoMock(); const row = await pending(m,2);
@@ -232,4 +232,76 @@ test('동시에 결제 준비를 요청해도 같은 견적의 결제는 한 건
   assert.equal((await m.pay(resumed.id)).state,'received');
   assert.equal((await m.service.acceptPayment(resumed.id)).state,'received');
   assert.equal((await m.repository.get(resumed.id)).mailJobs.length,1);
+});
+
+
+test('질문별 기본·사주 추가·혼합·최대 수량을 서버 견적과 결제 스냅샷에 고정한다', async () => {
+  for (const modes of [['ziwei'], ['ziwei_saju'], ['ziwei','ziwei_saju'], Array(10).fill('ziwei_saju')]) {
+    const m = createNeoMock();
+    let row = await m.service.create(user,{...input(modes.length),questions:modes.map((readingMode,i)=>({text:'선택 기준 '+i,readingMode,amountKRW:1}))});
+    row = await m.service.quote(user,row.id,row.version);
+    const expected = modes.reduce((sum,mode)=>sum+(mode==='ziwei'?10000:20000),0);
+    assert.equal(row.quote.totalKRW,expected);
+    const stored=await m.repository.get(row.id);
+    const product=priceNeoOrder(resolveProduct({featureKey:NEO_EMAIL_FEATURE}),stored,user,row.quote.id);
+    assert.equal(product.priceKRW,expected); assert.equal(product.priceCoins,expected/100);
+    assert.deepEqual(product.consultationSnapshot.items,row.quote.items);
+    row = await m.service.prepare(user,row.id,row.quote.id);
+    assert.equal((await m.payments.read(row.payment.id)).amountKRW,expected);
+    assert.deepEqual((await m.service.get(user,row.id)).questions.map(q=>q.readingMode),modes);
+    const altered=structuredClone(stored); altered.quote.items[0].unitKRW=1;
+    assert.throws(()=>priceNeoOrder(resolveProduct({featureKey:NEO_EMAIL_FEATURE}),altered,user,row.quote.id));
+  }
+  assert.throws(()=>validateNeoInput({...input(),questions:[{text:'선택',readingMode:'unknown'}]}),e=>e.code==='READING_MODE_INVALID');
+});
+
+test('새 신청은 출생정보 없이는 생성 불가, 기존 준비 주문과 정정은 보존한다',async()=>{
+  const m=createNeoMock();
+  await rejects(m.service.create(user,{...input(),birth:null}),'BIRTH_REQUIRED');
+  let row=await pending(m);
+  const stored=await m.repository.get(row.id);
+  stored.birth=null; delete stored.quote.pricingVersion; delete stored.quote.items;
+  stored.questions=stored.questions.map(({readingMode,...q})=>q);
+  stored.quote.questions=structuredClone(stored.questions);
+  await m.repository.compareAndSwap(row.id,stored.version,{...stored,version:stored.version+1});
+  assert.equal((await m.service.prepare(user,row.id,row.quote.id)).quote.totalKRW,10000);
+  await m.pay(row.id);
+  row=await m.service.adminGet(admin,row.id);
+  row=await m.service.requestCorrection(admin,row.id,'q1','질문을 정리해 주세요.',row.version);
+  row=await m.service.correct(user,row.id,'q1','이직 선택 기준',row.version);
+  assert.equal(row.birth,null); assert.equal(row.quote.totalKRW,10000);
+});
+
+test('사주 추가 답변은 두 풀이 확인 없이는 검수와 발송을 차단한다',async()=>{
+  const m=createNeoMock();
+  let row=await m.service.create(user,{...input(),questions:[{text:'선택 기준',readingMode:'ziwei_saju'}]});
+  row=await m.service.quote(user,row.id,row.version);row=await m.service.prepare(user,row.id,row.quote.id);await m.pay(row.id);
+  row=await m.service.adminGet(admin,row.id);
+  row=await m.service.editAnswer(admin,row.id,'q1','자미두수와 사주에서 살펴볼 선택의 기준입니다.',row.version);
+  await rejects(m.service.review(admin,row.id,'q1',row.version),'COMBINED_REVIEW_REQUIRED');
+  await rejects(m.service.enqueueAnswer(admin,row.id,row.version),'REVIEW_REQUIRED');
+  row=await m.service.review(admin,row.id,'q1',row.version,true);
+  row=await m.service.enqueueAnswer(admin,row.id,row.version);
+  await m.service.deliver(row.id,row.mailJobs.at(-1).key);
+  assert.match(m.mails[0].message.text,/자미두수 \+ 사주/);
+  row=await m.service.adminGet(admin,row.id);
+  row=await m.service.editAnswer(admin,row.id,'q1','수정된 풀이',row.version);
+  await rejects(m.service.enqueueAnswer(admin,row.id,row.version),'REVIEW_REQUIRED');
+  await rejects(m.service.update(user,row.id,input(),row.version),'ORDER_LOCKED');
+});
+
+test('회사 접수 메일에 결제된 질문·옵션·금액·출생정보를 포함하고 제목은 비식별로 유지한다',async()=>{
+  const m=createNeoMock();
+  let row=await m.service.create(user,{...input(),context:'<script>상황</script>',questions:[{text:'선택의 기준',readingMode:'ziwei_saju'}]});
+  row=await m.service.quote(user,row.id,row.version);row=await m.service.prepare(user,row.id,row.quote.id);
+  assert.equal((await m.repository.get(row.id)).mailJobs.length,0);
+  await m.pay(row.id); row=await m.repository.get(row.id);
+  const message=buildNeoEmail(row,row.mailJobs[0],'admin@code-destiny.com');
+  assert.equal(message.to,'admin@code-destiny.com');
+  for(const fragment of ['선택의 기준','자미두수 + 사주','20,000원','1990-04-20','12:30','customer@example.invalid','상황','/admin/neo-consultations/']) assert.ok(message.text.includes(fragment),fragment);
+  assert.ok(!message.html.includes('<script>'));assert.doesNotMatch(message.subject,/1990|customer|선택의 기준/);
+  m.setMailOutcome('failed');await m.service.deliver(row.id,row.mailJobs[0].key);
+  m.setMailOutcome('sent');await m.service.deliver(row.id,row.mailJobs[0].key);
+  await m.service.deliver(row.id,row.mailJobs[0].key);
+  assert.equal(m.mails.length,2);assert.equal(m.mails[0].idempotencyKey,m.mails[1].idempotencyKey);assert.equal(m.paymentRows.size,1);
 });
