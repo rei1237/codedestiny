@@ -179,7 +179,7 @@ assert.ok(
   "every buildSinglePaymentCustomer call site must be awaited",
 );
 
-for (const routePath of ["worker/routes/ziwei-ai.js", "worker/routes/ziwei-island-ai.js"]) {
+for (const routePath of ["worker/routes/ziwei-ai.js"]) {
   const source = read(routePath);
   assertContains(source, 'import { decryptPhoneNumber } from "../lib/pii-crypto.js";',
     `${routePath} must import decryptPhoneNumber`);

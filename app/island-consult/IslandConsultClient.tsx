@@ -754,7 +754,7 @@ export default function IslandConsultClient() {
       if (!record) return;
       setPendingConsult(true);
       if (data.retryable === false) { setError("상담 내역 확인이 필요해요. 저장된 부분은 아래에서 읽을 수 있어요."); return; }
-      await generate(record.idempotencyKey, record.payload, record.extra || {});
+      setNotice("새 AI 생성은 종료되었어요. 저장된 내용은 그대로 읽을 수 있어요. 미완료 구매는 고객지원에 문의해 주세요.");
     } catch (err) {
       if (active()) { setError(err instanceof Error ? err.message : "상담을 다시 불러오지 못했어요."); setNotice(""); }
     } finally { if (active()) busyRef.current = false; }
@@ -965,6 +965,17 @@ export default function IslandConsultClient() {
     );
   }
 
+  if (!result) return (
+    <main className="ic-root"><style>{CSS}</style><section className="ic-report">
+      <h1>운명의 섬이 무료 탐험으로 바뀌었어요</h1>
+      <p>캐릭터와 열두 궁을 여행하며 성향과 시기별 이야기를 바로 읽어보세요. 새 AI 상담과 리포트 구매는 종료되었어요.</p>
+      <a className="ic-back-btn" href="/destiny-island.html">무료로 섬 탐험하기</a>
+      <a className="ic-back-btn" href="/records/">기존 구매 기록 보기</a>
+      {error && <p role="alert">{error}</p>}
+      {reportUnlocked && report && renderReportSection(palace || PALACES[0])}
+    </section></main>
+  );
+
   return (
     <div className="ic-root">
       <style>{CSS}</style>
@@ -975,8 +986,8 @@ export default function IslandConsultClient() {
         </div>
         <div className="ic-head__content">
           <p className="ic-eyebrow">紫微斗數 · 운명의 섬</p>
-          <h1 className="ic-title">12궁 심층 상담</h1>
-          <p className="ic-sub">궁의 문을 열면, 연이와 네오가 그 자리의 별과 사화·대운을 지금 고민에 맞춰 깊이 읽어드려요.</p>
+          <h1 className="ic-title">기존 12궁 상담 다시 보기</h1>
+          <p className="ic-sub">과거에 저장된 상담을 그대로 읽는 화면이에요. 새로운 이야기는 무료 섬에서 만나보세요.</p>
           <div className="ic-guides" aria-label={copy.guidesAria}><span><span className="ic-guide__avatar"><Image src={YEON_AV} alt="" width={30} height={30} unoptimized /></span><b>연이</b> 마음의 결을 살펴요</span><span><span className="ic-guide__avatar ic-guide__avatar--neo"><Image src={NEO_AV} alt="" width={30} height={30} unoptimized /></span><b>네오</b> 다음 수를 짚어요</span></div>
         </div>
       </header>
@@ -984,7 +995,7 @@ export default function IslandConsultClient() {
       {pendingConsult && <div className="ic-result" role="status">
         <p>{notice || "생성 중인 상담을 보존하고 있어요."}</p>
         {error && <p className="ic-err" role="alert">{error}</p>}
-        <button type="button" className="ic-back-btn" onClick={() => void recoverConsult()}>이어서 생성하기</button>
+        <button type="button" className="ic-back-btn" onClick={() => void recoverConsult()}>저장된 내용 새로 확인</button>
       </div>}
       {phase === "hub" && (
         <ul className="ic-grid" aria-label={copy.palaceGridAria}>
@@ -1099,7 +1110,7 @@ export default function IslandConsultClient() {
           })}
           <div className="ic-result__foot">
             <button type="button" className="ic-back-btn" onClick={saveConsultPdf} disabled={consultPdfBusy || pendingConsult}>{consultPdfBusy ? "PDF 만드는 중…" : "📄 PDF로 소장하기"}</button>
-            <button type="button" className="ic-back-btn" disabled={pendingConsult} onClick={() => { setResult(null); setPhase("hub"); setPalace(null); }}>다른 궁도 상담하기</button>
+            <button type="button" className="ic-back-btn" disabled={pendingConsult} onClick={() => { setResult(null); setPhase("hub"); setPalace(null); }}>무료 섬 탐험으로</button>
             <a className="ic-back" href="/ziwei-ai/" onClick={() => rememberZiweiAiPreset(result.palaceKey, form.question)}>명반 전체로 더 묻기 · 전문가 상담</a>
             <a className="ic-back" href="/destiny-island">← 운명의 섬으로</a>
           </div>
