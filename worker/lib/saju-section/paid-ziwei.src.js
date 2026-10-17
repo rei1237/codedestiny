@@ -497,6 +497,67 @@ function zwDeepBrTag(strength) {
   return '<span title="'+zwStrengthShortMeaning(strength)+'" style="color:#fde68a;border:1px solid rgba(253,230,138,0.35);border-radius:999px;padding:1px 7px;font-size:0.72rem;font-weight:800;">'+glyph+'</span>';
 }
 
+// ── 상징 보조층(ziwei_symbolic_layer) 생성기 — js/saju-engine.js 최상위 선언 원문 ──
+/* ── 상징 보조층 확장 (ziwei_symbolic_layer) ── */
+function buildZwSymbolicDeepHtml(ctx) {
+  try {
+    if (!ctx || !ctx.ming) return '';
+    var mingProf = zwStarProfile(ctx.ming.star) || null;
+    var shenProf = ZW_STAR_CORE_PROFILE[ctx.shen && ctx.shen.star] || null;
+    var html = '<div data-cd-marker="ziwei-symbolic-deep-v20260711" style="margin-top:12px;">';
+    html += zwDeepSectionHead('인장 서사 — 상징을 생활 언어로 풀기', '위 인장 카드들이 왜 당신의 명반에서 나왔는지, 그리고 일상에서 어떻게 쓰는지 이어서 설명합니다.', '#fde68a');
+
+    var sealRows = [
+      { icon: '☀️', title: '본명 인장 · ' + (ctx.ming.god || '-'), accent: '#fde68a',
+        origin: '명궁('+(ctx.ming.palaceName || '-')+')의 주성 '+(ctx.ming.star || '공궁')+'에서 길어 올린 상징입니다.',
+        meaning: mingProf ? mingProf.essence + ' — ' + mingProf.self : '공궁 명궁은 정해진 얼굴이 없는 대신, 어떤 상징이든 배울 수 있는 그릇을 뜻합니다.',
+        use: mingProf ? '중요한 결정을 앞둔 날, 이 인장의 언어로 자문하세요 — "지금 나는 ' + mingProf.essence + '답게 움직이고 있는가?"' : '결정을 앞둔 날에는 기준 문장을 먼저 적고 움직이세요.' },
+      { icon: '🏛️', title: '현실축 인장 · ' + ((ctx.shen && ctx.shen.god) || '-'), accent: '#93c5fd',
+        origin: '신궁/현실축('+((ctx.shen && ctx.shen.palaceName) || '-')+')의 '+((ctx.shen && ctx.shen.star) || '공궁')+'에서 나온 상징입니다. 본명 인장이 "타고난 나"라면, 이 인장은 "세상이 쓰는 나"입니다.',
+        meaning: shenProf ? shenProf.work : '현실 무대에서의 역할은 고정돼 있지 않으니, 지금 맡은 자리의 규칙을 먼저 익히는 것이 유리합니다.',
+        use: '일이 풀리지 않을 때는 본명 인장이 아니라 이 인장의 방식으로 접근을 바꿔 보세요. 기질과 역할은 다른 도구입니다.' },
+      { icon: '🔥', title: '사화 인장 · ' + ((ctx.sihua && ctx.sihua.name) || '-'), accent: '#c4b5fd',
+        origin: (ctx.sihua && ctx.sihua.basis) ? ctx.sihua.basis : '태어난 해의 천간이 명반에 새긴 흐름의 인장입니다.',
+        meaning: '사화는 별에 계절을 입힙니다. 같은 재능도 사화의 방향에 따라 돈이 되기도, 숙제가 되기도 합니다.',
+        use: '올해 계획을 세울 때 이 인장이 가리키는 영역(위 사화 근거 궁)을 첫 페이지에 두세요.' },
+      { icon: '🌑', title: '그림자 인장 · ' + ((ctx.shadow && ctx.shadow.name) || '-'), accent: '#fca5a5',
+        origin: (ctx.shadow && ctx.shadow.basis) ? ctx.shadow.basis : '명반에서 가장 어두워지기 쉬운 지점을 표시한 인장입니다.',
+        meaning: mingProf ? '그림자는 결함이 아니라 과용된 장점입니다. 당신의 경우 — ' + mingProf.shadow : '그림자는 결함이 아니라 과용된 장점입니다.',
+        use: '컨디션이 무너진 날, 이 인장이 켜졌는지 먼저 확인하세요. 그림자를 이름으로 부르는 순간 절반은 힘을 잃습니다.' }
+    ];
+    sealRows.forEach(function(row){
+      html += '<div style="background:rgba(2,6,23,0.36);border:1px solid '+row.accent+'30;border-radius:10px;padding:10px 12px;margin-bottom:8px;">'
+        +'<div style="color:'+row.accent+';font-weight:900;font-size:0.86rem;margin-bottom:5px;">'+row.icon+' '+zwDeepEsc(row.title)+'</div>'
+        +'<div style="font-size:0.79rem;color:#cbd5e1;line-height:1.72;margin-bottom:3px;"><b style="color:#e2e8f0;">유래:</b> '+zwDeepEsc(row.origin)+'</div>'
+        +'<div style="font-size:0.79rem;color:#cbd5e1;line-height:1.72;margin-bottom:3px;"><b style="color:#e2e8f0;">의미:</b> '+zwDeepEsc(row.meaning)+'</div>'
+        +'<div style="font-size:0.79rem;color:#d1fae5;line-height:1.72;"><b>활용:</b> '+zwDeepEsc(row.use)+'</div>'
+      +'</div>';
+    });
+
+    if (mingProf) {
+      html += '<div style="background:linear-gradient(120deg,rgba(250,204,21,0.08),rgba(248,113,113,0.08));border:1px solid rgba(250,204,21,0.22);border-radius:10px;padding:10px 12px;margin-bottom:8px;">'
+        +'<div style="color:#fde68a;font-weight:900;font-size:0.85rem;margin-bottom:5px;">⚖️ 빛과 그림자의 긴장</div>'
+        +'<div style="font-size:0.8rem;color:#e2e8f0;line-height:1.75;">본명 인장('+zwDeepEsc(ctx.ming.god || '-')+')과 그림자 인장('+zwDeepEsc((ctx.shadow && ctx.shadow.name) || '-')+')은 같은 에너지의 앞뒷면입니다. '
+        +zwDeepEsc(mingProf.essence)+'의 힘이 지나치게 당겨지면 "'+zwDeepEsc(mingProf.shadow)+'"의 형태로 뒤집힙니다. 그래서 이 명반의 균형추는 단순합니다 — '
+        +zwDeepEsc(mingProf.advice)+'</div>'
+      +'</div>';
+    }
+
+    var domains = Array.isArray(ctx.domains) ? ctx.domains.slice() : [];
+    if (domains.length) {
+      domains.sort(function(a, b){ return (b.score || 0) - (a.score || 0); });
+      var top = domains[0], low = domains[domains.length - 1];
+      html += '<div style="background:rgba(2,6,23,0.34);border:1px solid rgba(196,181,253,0.2);border-radius:10px;padding:10px 12px;">'
+        +'<div style="color:#c4b5fd;font-weight:900;font-size:0.85rem;margin-bottom:5px;">🧭 생활 적용 가이드</div>'
+        +'<div style="font-size:0.8rem;color:#e2e8f0;line-height:1.75;margin-bottom:4px;"><b style="color:#86efac;">순풍 영역 — '+zwDeepEsc(top.label)+'('+(top.score || 0)+'):</b> '+zwDeepEsc(top.good || '')+' 이번 분기의 새로운 시도는 이 영역에 먼저 배정하세요.</div>'
+        +'<div style="font-size:0.8rem;color:#e2e8f0;line-height:1.75;"><b style="color:#fca5a5;">역풍 영역 — '+zwDeepEsc(low.label)+'('+(low.score || 0)+'):</b> '+zwDeepEsc(low.care || '')+' 이 영역은 확장보다 점검 주기를 짧게 가져가는 것이 상징의 처방입니다.</div>'
+      +'</div>';
+    }
+    html += '</div>';
+    return html;
+  } catch (_symErr) { return ''; }
+}
+
 function renderZiweiPaidBodies(idx, pName, stars, pd, opts) {
       opts = opts || {};
       var clickOnly = !!opts.clickOnly;

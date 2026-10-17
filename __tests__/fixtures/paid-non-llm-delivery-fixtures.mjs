@@ -266,13 +266,12 @@ export const PAID_NON_LLM_DELIVERY_FIXTURES = Object.freeze([
     cta: { file: "js/saju-engine.js", marker: "zwBasicPaidGateHtml('ziwei_twelve_palaces', 50," },
     consumer: { file: "worker/lib/saju-section/paid-ziwei.src.js", marker: "ziwei_twelve_palaces: sec2," },
   },
-  sameSurface(
-    "ziwei_symbolic_layer",
-    "unlock",
-    "js/saju-engine.js",
-    "zwBasicPaidGateHtml('ziwei_symbolic_layer', 50,",
-    "buildZwSymbolicDeepHtml({",
-  ),
+  {
+    featureKey: "ziwei_symbolic_layer",
+    billingType: "unlock",
+    cta: { file: "js/saju-engine.js", marker: "zwBasicPaidGateHtml('ziwei_symbolic_layer', 50," },
+    consumer: { file: "worker/lib/saju-section/paid-ziwei.src.js", marker: "ziwei_symbolic_layer: sec_olympus_ziwei," },
+  },
   sameSurface(
     "ziwei_life_yearly_flow",
     "unlock",

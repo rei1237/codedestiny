@@ -250,7 +250,7 @@ test("점성술 상담 심화 분석 4종과 봉인된 별의 방 4종 생성기
 });
 
 // 자미두수 명반 상세 유료 장(출생 단위 해금). 명반 계산·무료 미리보기·잠금 카드는 브라우저에 남고, 유료 본문 생성기는 서버(paid-ziwei.src.js)로 옮겼다.
-const ZIWEI_SERVER_KEYS = ["ziwei_decade_luck", "ziwei_twelve_palaces", "ziwei_love_deep"];
+const ZIWEI_SERVER_KEYS = ["ziwei_decade_luck", "ziwei_twelve_palaces", "ziwei_love_deep", "ziwei_symbolic_layer"];
 test("자미두수 유료 장 생성기와 본문 문장이 브라우저 경로에 없다", () => {
   const FORBIDDEN = [
     // 대한 운세(ziwei_decade_luck): 12대한 타임라인과 1년운 안쪽 10년 대한 표.
@@ -262,6 +262,9 @@ test("자미두수 유료 장 생성기와 본문 문장이 브라우저 경로�
     // 부부궁 심화 상담(ziwei_love_deep): 인연 별 그림 장, 연애 상담 장, 부부궁 정밀 카드.
     "buildZwSpouseDeepHtml", "ZW_BAD_STAR_EFFECT", "zwDeepBrTag", "loveDeepOracle", "healingAffirmation", "redFlagScenario", "marriageTimingCounselHtml",
     "ziwei-love-counsel-summary-v20260615-step2", "경계선 3종(연락·약속·사적 거리)을 문장으로 합의하고", "갈등 유형별 대화 스크립트",
+    // 상징 보조층(ziwei_symbolic_layer): 본명·현실축·사화·그림자 인장 장과 인장 서사.
+    "buildZwSymbolicDeepHtml", "olympusSealMergedHtml", "zwFlowSealCard", "zwFlowSealSummaryChip", "natalShadowSeal",
+    "ziwei-olympus-guardian-v20260606", "인장 서사 — 상징을 생활 언어로 풀기", "에서 길어 올린 상징입니다.",
   ];
   const offenders = [];
   for (const rel of browserServedFiles()) {

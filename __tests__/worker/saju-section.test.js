@@ -1202,7 +1202,7 @@ describe("animal-destiny-unlock", () => {
 
 // 자미두수 차트 상세 해금(출생 단위, 50코인). 서버가 해금된 프로필의 출생으로 명반을 다시 세워 본문을 그린다 —
 // 화면이 보낸 명반·궁 번호는 받지 않는다. 대한 운세는 대한 타임라인(html)과 운세 흐름 안쪽 대한 표(decadeHtml) 두 칸이다.
-const ZIWEI_KEYS = ["ziwei_decade_luck", "ziwei_twelve_palaces", "ziwei_love_deep"];
+const ZIWEI_KEYS = ["ziwei_decade_luck", "ziwei_twelve_palaces", "ziwei_love_deep", "ziwei_symbolic_layer"];
 const ziweiBody = (result) => ({ html: result.html, decadeHtml: result.decadeHtml });
 describe.each(ZIWEI_KEYS)("%s", (featureKey) => {
   const ZW = { ...INPUT, featureKey };
