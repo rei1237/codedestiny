@@ -3190,118 +3190,238 @@
           "featureKey": "love-secret-ai-consultation",
           "title": "연애 비책",
           "hook": "명식으로 나의 연애 방식부터 상대·타이밍·실천까지 읽는 28개 주제",
+          "chaptersLabel": "연이와 서한비가 나눠 쓰는 연애 비책 28장",
+          "masters": [
+            {
+              "key": "yeoniLove",
+              "name": "연이",
+              "epithet": "연애 비책 공동 마스터 · 마음의 장",
+              "signature": "어떤 마음이든 먼저 들려주세요. 끝까지 듣고, 오늘 해 볼 한 걸음까지 같이 찾아 드릴게요.",
+              "role": "마음부터 듣는 연애 상담가",
+              "part": "핵심 연애운과 질문의 답 · 나의 연애 성향 — 장점·약점·심리 · 썸 전략·대화·매력·실천",
+              "basis": "일간과 오행 분포, 조후로 본 감정의 온도, 십성으로 본 애착과 표현 방식",
+              "principles": [
+                "마음을 먼저 듣고, 판단은 그다음에 해요",
+                "누구를 탓하는 말로 위로하지 않아요",
+                "그대로 보낼 수 있는 문장과 이번 주의 한 걸음으로 맺어요"
+              ],
+              "avatar": "/images/master-profiles/avatars/yeoni-love.webp",
+              "portrait": "/images/master-profiles/yeoni-love-portrait.webp",
+              "portraitSrcSet": "/images/master-profiles/yeoni-love-portrait-360.webp 360w, /images/master-profiles/yeoni-love-portrait.webp 600w"
+            },
+            {
+              "key": "hanbiLove",
+              "name": "서한비",
+              "epithet": "연애 비책 공동 마스터 · 관계의 장",
+              "signature": "엇갈림은 누구의 잘못이 아니라 관계에 쌓인 빚입니다. 언제, 어떻게 갚을지 정확히 셈해 드리겠습니다.",
+              "role": "두 사람 사이의 거리를 재는 사람",
+              "part": "상대·궁합·이상형 · 갈등·바람기·재회·자기 보호 · 대운·올해·좋은 날짜·결혼운",
+              "basis": "일지 관계와 배우자궁, 실제로 성립한 합·충·형·파·해, 계산된 대운·세운·일진. 상대 명식이 있으면 두 분을 나란히 놓고 읽습니다.",
+              "principles": [
+                "상대의 마음을 단정하지 않고, 조건으로 말씀드립니다",
+                "계산되지 않은 날짜는 쓰지 않습니다",
+                "지켜야 할 선과 물러설 자리를 먼저 정해 드립니다"
+              ],
+              "avatar": "/images/master-profiles/avatars/hanbi-love.webp",
+              "portrait": "/images/master-profiles/hanbi-love-portrait.webp",
+              "portraitSrcSet": "/images/master-profiles/hanbi-love-portrait-360.webp 360w, /images/master-profiles/hanbi-love-portrait.webp 600w"
+            }
+          ],
           "chapters": [
             {
               "title": "현재 관계의 자리와 질문의 핵심",
-              "detail": "핵심 연애운과 질문의 답"
+              "detail": "핵심 연애운과 질문의 답",
+              "master": "yeoniLove",
+              "gain": "적어 주신 질문에 첫 문장부터 답하고, 지금 관계가 선 자리를 짚어 드려요"
             },
             {
               "title": "핵심 연애운 — 명식이 사랑에서 그리는 큰 결",
-              "detail": "핵심 연애운과 질문의 답"
+              "detail": "핵심 연애운과 질문의 답",
+              "master": "yeoniLove",
+              "gain": "대운·세운·격국에 걸어 지금 연애운의 기회와 위험 구간을 함께 봐요"
             },
             {
               "title": "오행과 조후로 보는 감정의 온도",
-              "detail": "핵심 연애운과 질문의 답"
+              "detail": "핵심 연애운과 질문의 답",
+              "master": "yeoniLove",
+              "gain": "감정의 온도와 습도가 연애에서 어떻게 드러나는지 쉬운 말로 알게 돼요"
             },
             {
               "title": "나의 명식이 사랑에서 반복하는 방식",
-              "detail": "나의 연애 성향"
+              "detail": "나의 연애 성향 — 장점·약점·심리",
+              "master": "yeoniLove",
+              "gain": "자꾸 같은 선택을 하게 되는 습관과 관계 패턴을 일간에서 찾아 드려요"
             },
             {
               "title": "십성으로 보는 애착과 표현 방식",
-              "detail": "나의 연애 성향"
+              "detail": "나의 연애 성향 — 장점·약점·심리",
+              "master": "yeoniLove",
+              "gain": "내 애착 유형과 표현 방식, 불안이 올라오는 순간을 알아차리게 돼요"
             },
             {
               "title": "연애 장점 — 상대가 먼저 알아보는 힘",
-              "detail": "나의 연애 성향"
+              "detail": "나의 연애 성향 — 장점·약점·심리",
+              "master": "yeoniLove",
+              "gain": "상대가 먼저 알아보는 매력과 나도 몰랐던 숨은 장점을 명식 근거로 받아요"
             },
             {
               "title": "연애 약점 — 반복해서 걸려 넘어지는 자리",
-              "detail": "나의 연애 성향"
+              "detail": "나의 연애 성향 — 장점·약점·심리",
+              "master": "yeoniLove",
+              "gain": "자주 걸려 넘어지는 자리와 오해받는 이유를, 탓하지 않고 원인으로 풀어 드려요"
             },
             {
               "title": "애정 표현 스타일과 연애 심리",
-              "detail": "나의 연애 성향"
+              "detail": "나의 연애 성향 — 장점·약점·심리",
+              "master": "yeoniLove",
+              "gain": "내가 사랑을 표현하는 방식과 사랑이 어렵게 느껴지는 이유를 함께 알게 돼요"
             },
             {
               "title": "상대의 기운과 감정 거리감",
-              "detail": "상대·궁합·이상형"
+              "detail": "상대·궁합·이상형",
+              "master": "hanbiLove",
+              "gain": "상대 명식이 있으면 그 결로, 없으면 배우자궁으로만 거리감을 짚어 드립니다"
             },
             {
               "title": "두 사람 사이 끌림이 살아나는 조건",
-              "detail": "상대·궁합·이상형"
+              "detail": "상대·궁합·이상형",
+              "master": "hanbiLove",
+              "gain": "끌림이 다시 살아나는 조건을 일지 관계와 용신으로 정리해 드립니다"
             },
             {
               "title": "속궁합과 친밀감 리듬",
-              "detail": "상대·궁합·이상형"
+              "detail": "상대·궁합·이상형",
+              "master": "hanbiLove",
+              "gain": "감정 온도와 친밀감의 속도가 맞는 리듬을 품위 있게 짚어 드립니다"
             },
             {
               "title": "이상형 분석 — 내 명식이 끌리는 사람",
-              "detail": "상대·궁합·이상형"
+              "detail": "상대·궁합·이상형",
+              "master": "hanbiLove",
+              "gain": "잘 맞는 연인상·배우자상과 피해야 할 유형을 나눠 말씀드립니다"
             },
             {
               "title": "상대가 원하는 연애 스타일",
-              "detail": "상대·궁합·이상형"
+              "detail": "상대·궁합·이상형",
+              "master": "hanbiLove",
+              "gain": "어떤 사람이 당신에게 끌리고, 그 사람이 바라는 연애가 무엇인지 말씀드립니다"
             },
             {
               "title": "갈등의 뿌리와 회복 방식",
-              "detail": "갈등·바람기·재회·자기 보호"
+              "detail": "갈등·바람기·재회·자기 보호",
+              "master": "hanbiLove",
+              "gain": "실제로 성립한 충·형만 근거로 갈등의 뿌리와 피해야 할 말을 짚어 드립니다"
             },
             {
               "title": "바람기와 마음이 흩어지는 조건",
-              "detail": "갈등·바람기·재회·자기 보호"
+              "detail": "갈등·바람기·재회·자기 보호",
+              "master": "hanbiLove",
+              "gain": "마음이 흔들리기 쉬운 조건과 시기를 판단이 아닌 조건으로 정리해 드립니다"
             },
             {
               "title": "재회 가능성과 그 조건",
-              "detail": "갈등·바람기·재회·자기 보호"
+              "detail": "갈등·바람기·재회·자기 보호",
+              "master": "hanbiLove",
+              "gain": "재회를 확률이 아니라 조건과 시기로 셈해 드립니다"
             },
             {
               "title": "피해야 할 선택과 자기 보호",
-              "detail": "갈등·바람기·재회·자기 보호"
+              "detail": "갈등·바람기·재회·자기 보호",
+              "master": "hanbiLove",
+              "gain": "지켜야 할 경계와 물러설 자리를 먼저 정해 드립니다"
             },
             {
               "title": "연락/고백/재회/관계 진전 타이밍",
-              "detail": "대운·올해·좋은 날짜·결혼운"
+              "detail": "대운·올해·좋은 날짜·결혼운",
+              "master": "hanbiLove",
+              "gain": "지금 밀지 기다릴지를 계산된 세운·대운·일진에 걸어 정해 드립니다"
             },
             {
               "title": "올해 연애운 — 좋은 달과 조심할 달",
-              "detail": "대운·올해·좋은 날짜·결혼운"
+              "detail": "대운·올해·좋은 날짜·결혼운",
+              "master": "hanbiLove",
+              "gain": "올해 좋은 달과 조심할 달을 이름 붙여, 소개팅·고백의 결을 나눠 드립니다"
             },
             {
               "title": "좋은 날짜 — 계산된 일진으로 고른 날",
-              "detail": "대운·올해·좋은 날짜·결혼운"
+              "detail": "대운·올해·좋은 날짜·결혼운",
+              "master": "hanbiLove",
+              "gain": "계산된 일진에서 고른 날짜 세 개 이상을 간지와 근거와 함께 드립니다"
             },
             {
               "title": "결혼운과 인연이 굳어지는 시기",
-              "detail": "대운·올해·좋은 날짜·결혼운"
+              "detail": "대운·올해·좋은 날짜·결혼운",
+              "master": "hanbiLove",
+              "gain": "결혼 적기와 배우자상, 결혼 뒤의 모습을 대운과 배우자궁으로 말씀드립니다"
             },
             {
               "title": "30일 관계 흐름 처방",
-              "detail": "대운·올해·좋은 날짜·결혼운"
+              "detail": "대운·올해·좋은 날짜·결혼운",
+              "master": "hanbiLove",
+              "gain": "앞으로 30일을 주 단위로 나눠, 관계의 온도를 조율하는 흐름을 드립니다"
             },
             {
               "title": "썸에서 확신으로 가는 전략",
-              "detail": "썸 전략·대화·매력·실천"
+              "detail": "썸 전략·대화·매력·실천",
+              "master": "yeoniLove",
+              "gain": "다가가는 법, 연락 빈도, 고백 타이밍, 데이트 전략을 순서대로 좁혀 드려요"
             },
             {
               "title": "관계 단계별 실행 비책",
-              "detail": "썸 전략·대화·매력·실천"
+              "detail": "썸 전략·대화·매력·실천",
+              "master": "yeoniLove",
+              "gain": "지금이 썸·연애·재회·정리 중 어디인지 먼저 짚고, 그 단계의 실행안을 드려요"
             },
             {
               "title": "상대에게 다가가는 대화 문장",
-              "detail": "썸 전략·대화·매력·실천"
+              "detail": "썸 전략·대화·매력·실천",
+              "master": "yeoniLove",
+              "gain": "그대로 보낼 수 있는 문장과 하지 말아야 할 말을 함께 받아요"
             },
             {
               "title": "매력적으로 보이는 방법 — 이미지·말투·스타일",
-              "detail": "썸 전략·대화·매력·실천"
+              "detail": "썸 전략·대화·매력·실천",
+              "master": "yeoniLove",
+              "gain": "용신 색과 개운 방향에 맞춘 말투·이미지·스타일 방향을 받아요"
             },
             {
               "title": "7일 실천 가이드",
-              "detail": "썸 전략·대화·매력·실천"
+              "detail": "썸 전략·대화·매력·실천",
+              "master": "yeoniLove",
+              "gain": "1일차부터 7일차까지, 날마다 해 볼 행동 하나씩을 근거와 함께 받아요"
             },
             {
               "title": "마지막 상담사의 한마디",
-              "detail": "썸 전략·대화·매력·실천"
+              "detail": "썸 전략·대화·매력·실천",
+              "master": "yeoniLove",
+              "gain": "편지처럼 맺으며, 오늘 붙잡을 태도 하나와 행동 하나를 남겨 드려요"
+            }
+          ],
+          "outcomes": [
+            {
+              "title": "연애 성공 체크리스트",
+              "text": "실천 비책마다 오늘·이번 주 같은 시기와 근거가 붙어요. 해낸 항목에 체크하면 이 기기에서 상담별로 기억해요.",
+              "evidence": "app/love-secret-ai/result/LoveSecretChecklist.tsx"
+            },
+            {
+              "title": "7일 실천 가이드",
+              "text": "1일차부터 7일차까지 날마다 해 볼 행동을 체크리스트로 받아요.",
+              "evidence": "app/love-secret-ai/result/LoveSecretChecklist.tsx"
+            },
+            {
+              "title": "좋은 날짜와 시기",
+              "text": "계산된 일진에서 고른 날짜와 올해 좋은 달·조심할 달을 한 카드에 모아 봐요.",
+              "evidence": "app/love-secret-ai/result/love-secret-sections.ts"
+            },
+            {
+              "title": "그대로 보낼 수 있는 대화 문장",
+              "text": "따옴표로 정리한 문장과 하지 말아야 할 말을 관계 전략 카드에서 바로 꺼내 써요.",
+              "evidence": "app/love-secret-ai/result/love-secret-sections.ts"
+            },
+            {
+              "title": "PDF 상담 리포트",
+              "text": "받은 상담 전체를 PDF로 저장해 두고 필요할 때 다시 읽어요.",
+              "evidence": "app/love-secret-ai/result/LoveSecretAiResultClient.tsx"
             }
           ],
           "notice": "이 안내의 목차는 현재 상담이 다루는 28개 주제를 읽기 쉽게 줄여 쓴 것입니다. 실제 화면은 받은 내용을 주제별로 묶어 표시합니다. 예시 대화는 가상 예시 프로필로 생성한 실제 AI 결과를 고치지 않고 발췌한 것으로 고객 결과·후기가 아니며, 결과는 입력에 따라 달라집니다. 상대 정보가 없으면 상대 명식을 계산한 궁합으로 해석하지 않습니다. 날짜 안내는 관계의 성공을 보장하지 않습니다. 10년 경력 상담사·명리학자가 만든 AI 해설 서비스이며, 사람이 결과마다 직접 집필·감수하는 상담이 아닙니다.",
@@ -4849,6 +4969,302 @@
           "궁금한 주제"
         ]
       },
+      "crafted": [
+        {
+          "id": "new-year-expert",
+          "featureKey": "new-year-ai-consultation",
+          "title": "신년운세 전문가 상담",
+          "hook": "명식 위에 올해의 세운을 겹쳐, 열두 달 어디에 힘을 쓸지 짚어 주는 작전 브리핑",
+          "chaptersLabel": "네오의 신년 작전 브리핑 목차",
+          "masters": [
+            {
+              "key": "neoNewYear",
+              "name": "네오",
+              "epithet": "신년운세 마스터",
+              "signature": "올해 판세, 내가 먼저 읽어 주지. 넌 움직이기만 하면 된다.",
+              "role": "한 해의 판세를 짜는 운명 사령관",
+              "part": "질문과 타고난 성향 · 올해의 총운 · 재물과 직업 · 애정과 대인관계 · 1월~12월 월별 흐름 · 건강과 개운법 — 여섯 장 전부",
+              "basis": "네 명식의 격국·용신·조후, 대운 위에 올해 세운이 닿는 자리, 달마다 바뀌는 월별 흐름",
+              "principles": [
+                "듣기 좋은 말보다 쓸 수 있는 말",
+                "단정 대신 조건으로 말한다",
+                "깎아내리지 않는다"
+              ],
+              "avatar": "/images/master-profiles/avatars/neo-new-year.webp",
+              "portrait": "/images/master-profiles/neo-new-year-portrait.webp",
+              "portraitSrcSet": "/images/master-profiles/neo-new-year-portrait-360.webp 360w, /images/master-profiles/neo-new-year-portrait.webp 600w"
+            }
+          ],
+          "chapters": [
+            {
+              "title": "질문과 타고난 성향",
+              "detail": "판세 브리핑",
+              "gain": "네 질문의 결론부터 말하고, 타고난 기질과 지금의 마음을 짚는다"
+            },
+            {
+              "title": "올해의 총운",
+              "detail": "판세 브리핑",
+              "gain": "올해 세운이 네 일간을 돕는지 누르는지 판정하고, 학업·성장까지 본다"
+            },
+            {
+              "title": "재물과 직업",
+              "detail": "분야별 작전",
+              "gain": "돈이 모이는 달과 새는 달을 월 숫자로 짚고, 투자·이직의 판단 기준을 준다"
+            },
+            {
+              "title": "애정과 대인관계",
+              "detail": "분야별 작전",
+              "gain": "귀인이 나타날 자리와 인연이 가까워지는 달, 구설을 피하는 법을 짚는다"
+            },
+            {
+              "title": "1월~12월 월별 흐름",
+              "detail": "열두 달 작전표",
+              "gain": "열두 달을 하나도 빼지 않고, 달마다 월주 간지와 핵심 키워드를 단다"
+            },
+            {
+              "title": "1월",
+              "detail": "열두 달 작전표",
+              "gain": "1월의 월주 간지와 키워드, 기회·주의·정비 판정에 맞춘 작전을 준다"
+            },
+            {
+              "title": "2월",
+              "detail": "열두 달 작전표",
+              "gain": "2월의 월주 간지와 키워드, 기회·주의·정비 판정에 맞춘 작전을 준다"
+            },
+            {
+              "title": "3월",
+              "detail": "열두 달 작전표",
+              "gain": "3월의 월주 간지와 키워드, 기회·주의·정비 판정에 맞춘 작전을 준다"
+            },
+            {
+              "title": "4월",
+              "detail": "열두 달 작전표",
+              "gain": "4월의 월주 간지와 키워드, 기회·주의·정비 판정에 맞춘 작전을 준다"
+            },
+            {
+              "title": "5월",
+              "detail": "열두 달 작전표",
+              "gain": "5월의 월주 간지와 키워드, 기회·주의·정비 판정에 맞춘 작전을 준다"
+            },
+            {
+              "title": "6월",
+              "detail": "열두 달 작전표",
+              "gain": "6월의 월주 간지와 키워드, 기회·주의·정비 판정에 맞춘 작전을 준다"
+            },
+            {
+              "title": "7월",
+              "detail": "열두 달 작전표",
+              "gain": "7월의 월주 간지와 키워드, 기회·주의·정비 판정에 맞춘 작전을 준다"
+            },
+            {
+              "title": "8월",
+              "detail": "열두 달 작전표",
+              "gain": "8월의 월주 간지와 키워드, 기회·주의·정비 판정에 맞춘 작전을 준다"
+            },
+            {
+              "title": "9월",
+              "detail": "열두 달 작전표",
+              "gain": "9월의 월주 간지와 키워드, 기회·주의·정비 판정에 맞춘 작전을 준다"
+            },
+            {
+              "title": "10월",
+              "detail": "열두 달 작전표",
+              "gain": "10월의 월주 간지와 키워드, 기회·주의·정비 판정에 맞춘 작전을 준다"
+            },
+            {
+              "title": "11월",
+              "detail": "열두 달 작전표",
+              "gain": "11월의 월주 간지와 키워드, 기회·주의·정비 판정에 맞춘 작전을 준다"
+            },
+            {
+              "title": "12월",
+              "detail": "열두 달 작전표",
+              "gain": "12월의 월주 간지와 키워드, 기회·주의·정비 판정에 맞춘 작전을 준다"
+            },
+            {
+              "title": "건강과 개운법",
+              "detail": "몸의 리듬과 개운",
+              "gain": "몸이 먼저 지치는 자리를 짚고, 색·방향·생활 리듬·마음가짐 개운법을 준다"
+            }
+          ],
+          "outcomes": [
+            {
+              "title": "12개월 운세 캘린더",
+              "text": "분기 요약과 달마다 기회·주의·정비 판정. 달을 누르면 그달의 총운·재물·애정·직업·건강과 조언이 열린다.",
+              "evidence": "app/new-year-ai-consultation/NewYearAiClient.tsx"
+            },
+            {
+              "title": "열두 통의 월별 편지",
+              "text": "달마다 간지와 키워드를 제목으로 단 편지를 한 통씩 펼쳐 읽는다.",
+              "evidence": "app/new-year-ai-consultation/NewYearAiClient.tsx"
+            },
+            {
+              "title": "분야별 상담 카드",
+              "text": "성향·총운·재물과 직업·애정과 관계·건강과 개운을 카드로 나눠, 필요한 것부터 펼쳐 본다.",
+              "evidence": "app/new-year-ai-consultation/NewYearAiClient.tsx"
+            },
+            {
+              "title": "PDF와 공유 카드",
+              "text": "상담 전체를 PDF로 저장하고, 올해 판세를 공유 카드 이미지로 만든다.",
+              "evidence": "app/new-year-ai-consultation/NewYearAiClient.tsx"
+            }
+          ],
+          "notice": "선택한 연도의 명식·세운·월별 흐름을 읽는 AI 상담입니다. 이름 또는 닉네임, 성별, 생년월일, 출생시간, 양력·음력, 상담 연도, 집중 흐름을 입력합니다. 질문은 최대 1,000자이며, 직접 질문의 주제는 2자 이상 적어야 합니다. 상담 연도는 올해, 내년, 다른 연도 중에서 고를 수 있습니다. 실제 생성은 질문과 성향, 총운, 재물·직업, 애정·관계, 1~12월, 건강·개운의 6부분입니다. 화면에서는 질문 답변, 원국, 다섯 분야, 월별 달력과 편지로 보여 드립니다. 결과 PDF와 상담 기록을 지원합니다. 진행 중인 부분 상담과 완성된 상담은 구분해 표시합니다. 출생시간 미상 등 자료의 한계는 해석에서도 그대로 유지합니다. 건강 해석은 진단이나 처방이 아닙니다. 색과 방향은 전통적 상징으로 참고하는 것이며, 성과를 보장하지 않습니다. 예시는 가상 예시 프로필로 생성한 실제 AI 결과를 고치지 않고 발췌한 것으로 고객 결과·후기가 아니며, 결과는 입력에 따라 달라집니다. 이미지는 분위기 연출입니다. 실제 사람이 실시간으로 하는 1:1 상담이 아닙니다. 종합 사주, 인생의 책, 다른 연도의 새 상담은 별도입니다. 현재 이용권·월정석·단건 결제 조건은 결제 창에서 확인합니다.",
+          "panels": [
+            {
+              "id": "01-a-year-you-can-read-month-by-month",
+              "title": "새로운 한 해, 어디에 힘을 쓸까요?",
+              "alt": "새로운 한 해, 무엇을 준비하고 어디서 쉬어갈까요?",
+              "src": "/feature-details/crafted/new-year-expert/01-a-year-you-can-read-month-by-month.webp",
+              "width": 1080,
+              "height": 1440,
+              "text": "새로운 한 해,\n어디에 힘을 쓸까요?\n\n해가 바뀌어도 고민은 이어지죠.\n나의 명식과 선택한 연도의 흐름을\n겹쳐 읽으며, 일과 관계의 선택을\n열두 달의 계획으로 풀어보세요.\n\n신년운세 전문가 상담 · AI 해설",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/new-year-expert/01-a-year-you-can-read-month-by-month-540.webp",
+                  "width": 540
+                }
+              ]
+            },
+            {
+              "id": "02-select-a-year-and-a-question",
+              "title": "올해도 내년도, 살펴볼 연도부터 고르세요.",
+              "alt": "올해도 내년도, 살펴볼 연도부터 고르세요.",
+              "src": "/feature-details/crafted/new-year-expert/02-select-a-year-and-a-question.webp",
+              "width": 1080,
+              "height": 1440,
+              "text": "올해도 내년도,\n살펴볼 연도부터 고르세요.\n상담 연도 선택\n\n올해·내년 또는 다른 연도를\n직접 입력해 살펴볼 수 있어요.\n\n더 깊게 볼 흐름 선택\n\n일·돈·관계 등 관심 주제를 골라요.\n\n궁금한 선택을 질문으로\n\n현재 상황과 비교할 선택을 적으면\n그 질문에 먼저 답해요.\n\n질문은 최대 1,000자.\n직접 질문 주제는 2자 이상 입력해요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/new-year-expert/02-select-a-year-and-a-question-540.webp",
+                  "width": 540
+                }
+              ]
+            },
+            {
+              "id": "03-your-chart-and-the-year",
+              "title": "타고난 바탕과 올해의 변화를 나눠 읽어요.",
+              "alt": "타고난 바탕과 올해의 변화를 나눠 읽어요.",
+              "src": "/feature-details/crafted/new-year-expert/03-your-chart-and-the-year.webp",
+              "width": 1080,
+              "height": 1440,
+              "text": "타고난 바탕과\n올해의 변화를 나눠 읽어요.\n타고난 성향과 지금의 마음\n\n일간·태어난 계절·오행의 근거로\n강점과 반복되는 부담을 살펴요.\n\n올해의 총운\n\n선택한 연도의 기운이\n내 명식과 만나는 조건을 풀어요.\n\n사주 원국을 함께 확인\n\n해설의 출발점이 된 명식과\n제공된 핵심 자료를 읽어요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/new-year-expert/03-your-chart-and-the-year-540.webp",
+                  "width": 540
+                }
+              ]
+            },
+            {
+              "id": "04-work-and-relationships",
+              "title": "돈과 일, 마음과 관계를 각각 살펴요.",
+              "alt": "돈과 일, 마음과 관계를 각각 살펴요.",
+              "src": "/feature-details/crafted/new-year-expert/04-work-and-relationships.webp",
+              "width": 1080,
+              "height": 1440,
+              "text": "돈과 일, 마음과 관계를\n각각 살펴요.\n재물과 직업\n\n재물·수입, 직업·이직의 흐름을\n역할과 선택의 조건으로 풀어요.\n\n애정과 대인관계\n\n연애·재회, 가족·관계의 흐름에서\n표현과 거리의 조절을 살펴요.\n\n학업과 성장\n\n올해 총운 안에서 배움과\n성장에 힘을 쓰는 방향을 읽어요.\n\n입력하지 않은 개인사나 상대 마음을\n사실처럼 단정하는 상담이 아니에요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/new-year-expert/04-work-and-relationships-540.webp",
+                  "width": 540
+                }
+              ]
+            },
+            {
+              "id": "05-twelve-months-with-different-emphases",
+              "title": "열두 달을 펼치면, 힘을 쓸 자리가 보여요.",
+              "alt": "열두 달을 펼치면, 힘을 쓸 자리가 보여요.",
+              "src": "/feature-details/crafted/new-year-expert/05-twelve-months-with-different-emphases.webp",
+              "width": 1080,
+              "height": 1440,
+              "text": "열두 달을 펼치면,\n힘을 쓸 자리가 보여요.\n1월\n2월\n3월\n4월\n5월\n6월\n7월\n8월\n9월\n10월\n11월\n12월\n\n월별 달력과 각 달의 편지를 통해\n그 달의 간지·핵심 키워드와\n기회·주의·정비의 흐름을 읽어요.\n\n그림은 목차 안내예요.\n특정 달의 길흉을 미리 정한 예시는 아니에요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/new-year-expert/05-twelve-months-with-different-emphases-540.webp",
+                  "width": 540
+                }
+              ]
+            },
+            {
+              "id": "06-the-monthly-letter",
+              "title": "같은 조언을 열두 번, 반복하지 않도록.",
+              "alt": "같은 조언을 열두 번, 반복하지 않도록.",
+              "src": "/feature-details/crafted/new-year-expert/06-the-monthly-letter.webp",
+              "width": 1080,
+              "height": 1440,
+              "text": "같은 조언을 열두 번,\n반복하지 않도록.\n달마다 다른 근거\n\n계산된 월의 간지와 십성,\n두드러지는 생활 영역을 짚어요.\n\n달마다 다른 확인\n\n움직일지 정리할지 살피며\n그 달에 해볼 행동을 읽어요.\n\n시기는 계획의 참고로\n\n계약·재회·합격의 확정 날짜나\n성공 확률을 제공하지 않아요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/new-year-expert/06-the-monthly-letter-540.webp",
+                  "width": 540
+                }
+              ]
+            },
+            {
+              "id": "07-health-and-everyday-renewal",
+              "title": "몸과 마음의 리듬도, 한 해의 계획 안에.",
+              "alt": "몸과 마음의 리듬도, 한 해의 계획 안에.",
+              "src": "/feature-details/crafted/new-year-expert/07-health-and-everyday-renewal.webp",
+              "width": 1080,
+              "height": 1440,
+              "text": "몸과 마음의 리듬도,\n한 해의 계획 안에.\n\n건강과 개운법에서는 오행의 쏠림을\n전통적 관점에서 읽고,\n휴식·생활 습관·마음가짐을 살펴요.\n\n색이나 방향은 상징적 참고.\n성과를 보장하는 방법이나\n의학적 진단·처방으로\n받아들이지 말아주세요.\n\n불편한 증상은 의료진에게 확인해요.\n해석을 이유로 필요한 진료를 미루지 않아요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/new-year-expert/07-health-and-everyday-renewal-540.webp",
+                  "width": 540
+                }
+              ]
+            },
+            {
+              "id": "08-an-annual-question-in-action",
+              "title": "계획을 세울 때, 확인할 조건을 남겨요.",
+              "alt": "가상 예시 프로필로 재생성한 실제 신년운세 AI 결과 「재물과 직업」 장에서 직무와 성장 가능성을 확인하는 원문 두 문장 발췌.",
+              "src": "/feature-details/crafted/new-year-expert/08-an-annual-question-in-action.webp",
+              "width": 1080,
+              "height": 1440,
+              "text": "계획을 세울 때,\n확인할 조건을 남겨요.\n\n실제 AI 결과 원문 발췌 · 가상 예시 프로필\n\n특히 6월과 7월은 정관(正官)과 편관(偏官)이 연이어 들어오면서, 조직 내에서의 당신의 역할이 명확해지고 중요한 제안을 받을 가능성이 높습니다. 이때는 단순히 연봉만을 기준으로 삼기보다는, 당신의 역량을 최대한 발휘할 수 있는 직무와 성장 가능성을 함께 고려하는 것이 중요합니다.\n\n가상 프로필로 생성한 실제 결과 중\n「재물과 직업」 장 · 선택의 기준.\n고객 결과나 후기가 아니에요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/new-year-expert/08-an-annual-question-in-action-540.webp",
+                  "width": 540
+                }
+              ]
+            },
+            {
+              "id": "09-read-save-and-return",
+              "title": "분야별로 읽고, PDF로 다시 펼쳐보세요.",
+              "alt": "분야별로 읽고, PDF로 다시 펼쳐보세요.",
+              "src": "/feature-details/crafted/new-year-expert/09-read-save-and-return.webp",
+              "width": 1080,
+              "height": 1440,
+              "text": "분야별로 읽고,\nPDF로 다시 펼쳐보세요.\n질문 답변과 다섯 분야\n\n성향·총운·재물직업·애정관계·건강\n\n별도로 펼치는 열두 달\n\n달력과 월별 편지로 이동해요.\n\n결과 PDF와 상담 기록\n\n저장한 상담을 다시 읽고\n필요한 계획을 정리해요.\n\n생성 중 일부 분야만 보이는 상태와\n완료된 전체 상담을 구분해 주세요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/new-year-expert/09-read-save-and-return-540.webp",
+                  "width": 540
+                }
+              ]
+            },
+            {
+              "id": "10-check-the-input-before-you-start",
+              "title": "한 해를 단정하기보다, 선택을 준비하는 상담.",
+              "alt": "한 해를 단정하기보다, 선택을 준비하는 상담.",
+              "src": "/feature-details/crafted/new-year-expert/10-check-the-input-before-you-start.webp",
+              "width": 1080,
+              "height": 1440,
+              "text": "한 해를 단정하기보다,\n선택을 준비하는 상담.\n\n생년월일·출생시간·양력 또는 음력,\n성별과 상담 연도를 확인해 주세요.\n시간을 모르면 관련 해석에 한계가 있어요.\n\nAI가 작성하는 상담이며 실제 인물의\n실시간 일대일 상담이 아니에요.\n종합 사주·인생책·다른 연도 상담은 별도예요.\n현재 이용 조건은 결제창에서 확인해요.",
+              "variants": [
+                {
+                  "src": "/feature-details/crafted/new-year-expert/10-check-the-input-before-you-start-540.webp",
+                  "width": 540
+                }
+              ]
+            }
+          ],
+          "priceKRW": 30000
+        }
+      ],
       "imageWidth": 1672,
       "imageHeight": 941,
       "heroVariants": [
@@ -5075,74 +5491,132 @@
           "title": "인생의 책",
           "hook": "명식의 근거로 나의 이야기를 열 장의 책으로 엮는 상담",
           "chaptersLabel": "받게 될 인생의 책 목차",
+          "masters": [
+            {
+              "key": "yunLifeBook",
+              "name": "윤달",
+              "epithet": "인생의 책 화자",
+              "signature": "어디 보자, 첫 장부터 이야깃거리가 많은 분이네요. 근거 하나하나 짚으면서 읽어 드릴게요.",
+              "role": "인생 소설을 읽어 주는 화자",
+              "part": "타고난 사주의 원형부터 대운으로 보는 인생의 큰 장면, 인생의 책 마지막 문장까지 열 개의 장 전부",
+              "basis": "일간과 월지·지장간, 오행 분포와 조후, 십성의 연결, 대운의 흐름과 가까운 세운",
+              "principles": [
+                "근거 없는 문장은 쓰지 않아요",
+                "결말을 단정하지 않아요",
+                "다음 장의 첫 문장은 당신 몫으로 남겨요"
+              ],
+              "avatar": "/images/master-profiles/avatars/yun-life-book.webp",
+              "portrait": "/images/master-profiles/yun-life-book-portrait.webp",
+              "portraitSrcSet": "/images/master-profiles/yun-life-book-portrait-360.webp 360w, /images/master-profiles/yun-life-book-portrait.webp 600w"
+            }
+          ],
           "chapters": [
             {
               "title": "명식과 오행·십성 분포",
-              "detail": "책을 펼치기 전 나의 기본 명식"
+              "detail": "책을 펼치기 전",
+              "gain": "책을 펼치기 전에, 내 명식과 오행·십성 분포를 한눈에 보게 돼요"
             },
             {
               "title": "핵심 요약",
-              "detail": "한 줄 요약 · 인생의 주제 · 가장 강한 기운 · 보완점"
+              "detail": "책을 펼치기 전",
+              "gain": "한 줄 요약과 삶의 주제, 가장 강한 기운과 보완할 균형을 먼저 받아요"
             },
             {
               "title": "타고난 사주의 원형",
-              "detail": "1장"
+              "detail": "열 개의 장",
+              "gain": "일간과 월지, 오행 분포로 읽은 타고난 성정의 원형을 이야기로 받아요"
             },
             {
               "title": "성격과 내면의 작동 방식",
-              "detail": "2장"
+              "detail": "열 개의 장",
+              "gain": "마음이 스스로를 지키고 회복하는 방식을 알게 돼요"
             },
             {
               "title": "재능과 일의 방향",
-              "detail": "3장"
+              "detail": "열 개의 장",
+              "gain": "재능이 살아나는 자리와 닳기 쉬운 자리를 구분하게 돼요"
             },
             {
               "title": "사랑과 인연",
-              "detail": "4장"
+              "detail": "열 개의 장",
+              "gain": "사랑에서 자꾸 되풀이되는 끌림과 거리감의 이유를 알게 돼요"
             },
             {
               "title": "재물과 현실 기반",
-              "detail": "5장"
+              "detail": "열 개의 장",
+              "gain": "돈이 들어오고 나가는 내 리듬을 재성의 강약으로 읽게 돼요"
             },
             {
               "title": "인간관계와 가족의 장",
-              "detail": "6장"
+              "detail": "열 개의 장",
+              "gain": "가족 안에서 맡아 온 역할과 짊어진 책임의 이유를 한 문장으로 갖게 돼요"
             },
             {
               "title": "건강과 조후의 균형",
-              "detail": "7장"
+              "detail": "열 개의 장",
+              "gain": "몸이 먼저 반응하는 지점을 월령과 조후로 알아 두게 돼요"
             },
             {
               "title": "대운으로 보는 인생의 큰 장면",
-              "detail": "8장"
+              "detail": "열 개의 장",
+              "gain": "인생의 큰 장면이 바뀌는 시기를 대운의 흐름으로 짚어 봐요"
             },
             {
               "title": "가까운 시기의 세운 조언",
-              "detail": "9장"
+              "detail": "열 개의 장",
+              "gain": "가까운 시기에 붙잡을 기회와 조심할 결을 받아요"
             },
             {
               "title": "인생의 책 마지막 문장",
-              "detail": "10장"
+              "detail": "열 개의 장",
+              "gain": "앞선 아홉 장을 내 이야기 하나로 매듭짓는 문장을 받아요"
             },
             {
               "title": "일간과 월지가 여는 중심 기질",
-              "detail": "명식의 깊은 판독 1"
+              "detail": "명식의 깊은 판독",
+              "gain": "일간과 월지, 계절의 균형을 근거로 중심 기질을 한 번 더 깊이 읽어요"
             },
             {
               "title": "오행과 조후가 청하는 보완",
-              "detail": "명식의 깊은 판독 2"
+              "detail": "명식의 깊은 판독",
+              "gain": "오행과 조후, 용신으로 무엇을 채우면 좋을지 조언을 받아요"
             },
             {
               "title": "십성으로 읽는 관계와 일의 방식",
-              "detail": "명식의 깊은 판독 3"
+              "detail": "명식의 깊은 판독",
+              "gain": "십성의 배치로 관계와 일을 대하는 방식을 다시 짚어 봐요"
             },
             {
               "title": "대운과 세운이 비추는 선택의 시기",
-              "detail": "명식의 깊은 판독 4"
+              "detail": "명식의 깊은 판독",
+              "gain": "대운과 세운, 합충 관계로 선택이 몰리는 시기를 짚어 봐요"
             },
             {
               "title": "마지막 문장",
-              "detail": "책을 덮으며 건네는 마무리 메시지"
+              "detail": "책을 덮으며",
+              "gain": "책을 덮으며 건네는 세 문장 이내의 마무리 말을 받아요"
+            }
+          ],
+          "outcomes": [
+            {
+              "title": "차례가 있는 디지털 책",
+              "text": "차례에서 원하는 장으로 바로 넘어가고, 한 장씩 넘기며 읽어요.",
+              "evidence": "app/life-book-ai/result/LifeBookAiResultClient.tsx"
+            },
+            {
+              "title": "맨 앞의 핵심 요약",
+              "text": "한 줄 요약과 가장 강한 기운, 보완점을 책을 펼치자마자 먼저 받아요.",
+              "evidence": "app/life-book-ai/result/LifeBookAiResultClient.tsx"
+            },
+            {
+              "title": "장마다 꽂는 책갈피",
+              "text": "마음에 남는 장에 책갈피를 꽂아 두면 이 기기에서 기억해 둬요.",
+              "evidence": "app/life-book-ai/result/_components/ResultActionDock.tsx"
+            },
+            {
+              "title": "봉인해 간직하는 PDF",
+              "text": "마지막 장까지 읽고 나면 책을 PDF로 봉인해 간직해요.",
+              "evidence": "app/life-book-ai/result/LifeBookAiResultClient.tsx"
             }
           ],
           "notice": "책과 서재 이미지는 디지털 리포트를 표현한 삽화이며 실물 배송 상품이 아닙니다. 예시 문장은 가상 예시 프로필로 생성한 실제 AI 결과를 고치지 않고 발췌한 것으로 고객 결과·후기가 아니며, 결과는 입력에 따라 달라집니다. 요약·조언·심화 해석은 결과에 포함된 경우 표시됩니다. 제작자의 과거 직접 1:1 상담 후기는 이 디지털 상품의 구매 후기가 아닙니다. 가격과 결제 조건은 기존 화면에서 확인해 주세요.",

@@ -13,10 +13,29 @@ const craftedCatalog = JSON.parse(fs.readFileSync(path.join(root, 'content/produ
 let resolvePricing;
 // Same resolver as the page's start price, so a card never disagrees with the checkout.
 const priceKRWFor = featureKey => (resolvePricing ||= loadTsModule('lib/payment/server-feature-pricing.ts').resolveServerFeaturePricing)({ featureKey })?.amountKRW;
+let masterSource;
+// Master copy is read from master-profiles.ts, never copied into a manifest; unknown keys fail the build.
+export function craftedMasters(manifest) {
+  if (!manifest.masters) return undefined;
+  const { masterProfiles, masterAvatars } = (masterSource ||= loadTsModule('components/fortune/master-profiles.ts'));
+  const masters = manifest.masters.map(key => {
+    const profile = Object.hasOwn(masterProfiles, key) ? masterProfiles[key] : undefined;
+    const row = label => profile?.dossier?.find(item => item.label === label)?.text;
+    const part = row('이 상담에서 맡는 부분');
+    if (!profile?.epithet || !profile.signature || !part || !Object.hasOwn(masterAvatars, key)) throw new Error(`Unknown crafted master: ${key}`);
+    const { name, epithet, signature, role, principles, portrait, portraitSrcSet } = profile;
+    return { key, name, epithet, signature, role, part, basis: row('읽는 근거'), principles, avatar: masterAvatars[key], portrait, portraitSrcSet };
+  });
+  for (const chapter of manifest.chapters || []) {
+    if (chapter.master !== undefined && !manifest.masters.includes(chapter.master)) throw new Error(`Chapter master is not a product master: ${chapter.master}`);
+  }
+  return masters;
+}
 function craftedIntroductions(slug) {
   return (craftedCatalog.introductions[slug] || []).map(id => {
     if (!/^[a-z0-9-]+$/.test(id)) throw new Error('Invalid crafted product ID');
-    const manifest = JSON.parse(fs.readFileSync(path.join(root, 'content/product-details', id, 'manifest.json'), 'utf8'));
+    const file = JSON.parse(fs.readFileSync(path.join(root, 'content/product-details', id, 'manifest.json'), 'utf8'));
+    const manifest = file.masters ? { ...file, masters: craftedMasters(file) } : file;
     const priceKRW = priceKRWFor(manifest.featureKey);
     return priceKRW ? { ...manifest, priceKRW } : manifest;
   });

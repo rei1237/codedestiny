@@ -18,7 +18,7 @@ const degraded = () => json({
 // (worker/routes/fortune.js PERSISTENT_UNLOCK_ALIAS_MAP)을 거꾸로 읽은 것이다.
 // 출생 기반 별칭은 같은 출생 정보(또는 옛 계정 단위 행)로만, 옛 묶음 키·계정 단위 키(rpgCharacter)는 계정 단위 구매 기록으로 인정한다.
 const BIRTH_ALIAS_KEYS = Object.freeze({ rpt_energyCoordCard: ["travelDestiny"], rpt_healthReportCard: ["healthReport"] });
-const BUNDLE_ALIAS_KEYS = Object.freeze({ rpt_energyCoordCard: ["allPaidSaju"], rpt_healthReportCard: ["allPaidSaju"], rpt_skillTreeCard: ["allPaidSaju", "rpgCharacter"] });
+const BUNDLE_ALIAS_KEYS = Object.freeze({ rpt_energyCoordCard: ["allPaidSaju"], rpt_healthReportCard: ["allPaidSaju"], rpt_skillTreeCard: ["allPaidSaju", "rpgCharacter"], rpt_secretHouseEntryCard: ["allPaidSaju", "secretHouseEpisodes"] });
 
 const astronomyFailed = () => json({
   ok: false, reason: "TEMPORARY_UNAVAILABLE", retryable: true, message: "풀이를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
@@ -140,7 +140,7 @@ async function handleSukuyoCompat(env, auth, body, featureKey) {
 // 사주 종합(section_summary)·대운 풀이(section_daewun)·퀀텀 명리 엔진(rpt_quantumCard)·극T 관계 회로(sukuyo-extreme-t-relationship)·
 // 숙요 인연 도감(sukuyo-relationship-encyclopedia)·숙요 본성 심화 해석(sukuyo-nature-deep-dive)·에너지 원정 리포트(rpt_energyCoordCard)
 // ·요주의 빌런 블랙리스트(rpt_villainCard)·명리 헬스 리포트(rpt_healthReportCard)·나의 매력 클래스(rpt_specialCharmCard)
-// ·인생 스킬 트리(rpt_skillTreeCard)·숙요 기본/정밀 궁합(회당 결제, 위 handleSukuyoCompat) 본문 읽기. 결제·해금 쓰기는 하지 않는다
+// ·인생 스킬 트리(rpt_skillTreeCard)·시크릿 하우스 에피소드(rpt_secretHouseEntryCard)·숙요 기본/정밀 궁합(회당 결제, 위 handleSukuyoCompat) 본문 읽기. 결제·해금 쓰기는 하지 않는다
 // (궁합의 이용권 결제 확정·증빙 claim 은 정본 verifyPerUsePayment·claimRequestBillingEvidence 가 한다).
 // 저장 프로필이 있으면 그 카드의 출생 정보로만 계산하고, 없으면 계정 단위 옛 해금(USER 행)만 인정한다.
 export async function handleSajuSection(request, env = {}) {
@@ -222,7 +222,7 @@ export async function handleSajuSection(request, env = {}) {
     const result = buildSajuSectionHtml({
       featureKey, birth, gender: gender === "M" ? "M" : "F",
       name: body?.name, mode: body?.mode === "neo" ? "neo" : "pig", lang: typeof body?.lang === "string" ? body.lang.slice(0, 8) : "ko",
-      place: body?.place, jongDecision: body?.jongDecision, daewun: body?.daewun, encyclopedia: body?.encyclopedia, energy: body?.energy, sukuyo,
+      place: body?.place, jongDecision: body?.jongDecision, daewun: body?.daewun, encyclopedia: body?.encyclopedia, energy: body?.energy, sukuyo, house: body?.house,
     });
     return json({ ok: true, unlocked: true, featureKey, ...result });
   } catch (error) {

@@ -59,12 +59,13 @@ jest.unstable_mockModule("../../worker/lib/billing-evidence-claim.js", () => ({
   evidenceClaimErrorBody: (result) => ({ ok: false, reason: result.code, code: result.code, message: result.message, error: { code: result.code, message: result.message } }),
 }));
 
-let handleSajuSection, buildSajuSectionHtml, resolvePaidContentUnlockTarget, getBillingFeaturePricing;
+let handleSajuSection, buildSajuSectionHtml, resolvePaidContentUnlockTarget, getBillingFeaturePricing, buildAnimalDestinyReading;
 beforeAll(async () => {
   ({ handleSajuSection } = await import("../../worker/routes/saju-section.js"));
   ({ buildSajuSectionHtml } = await import("../../worker/lib/saju-section/report.js"));
   ({ resolvePaidContentUnlockTarget } = await import("../../worker/lib/content-unlocks.js"));
   ({ getBillingFeaturePricing } = await import("../../worker/lib/billing-feature-registry.js"));
+  ({ buildAnimalDestinyReading } = await import("../../worker/lib/saju-section/animal-destiny.js"));
 });
 // HEAD 클라이언트 엔진(js/saju-engine.js)이 같은 입력으로 그린 HTML 의 sha256 — 서버 이전이 문구·계산을 바꾸지 않았다는 근거.
 const PARITY = JSON.parse(readFileSync("__tests__/fixtures/saju-section-client-parity.json", "utf8"));
@@ -140,7 +141,7 @@ test("only the saju section keys are served", async () => {
   expect(findOne).not.toHaveBeenCalled();
 });
 
-test.each(["section_summary", "section_daewun", "rpt_quantumCard", "sukuyo-extreme-t-relationship", "sukuyo-relationship-encyclopedia", "sukuyo-nature-deep-dive", "rpt_energyCoordCard", "rpt_villainCard", "rpt_healthReportCard", "rpt_specialCharmCard", "rpt_skillTreeCard"])("unowned %s returns registry pricing without HTML", async (featureKey) => {
+test.each(["section_summary", "section_daewun", "rpt_quantumCard", "sukuyo-extreme-t-relationship", "sukuyo-relationship-encyclopedia", "sukuyo-nature-deep-dive", "rpt_energyCoordCard", "rpt_villainCard", "rpt_healthReportCard", "rpt_specialCharmCard", "rpt_skillTreeCard", "rpt_secretHouseEntryCard", "animal-destiny-unlock"])("unowned %s returns registry pricing without HTML", async (featureKey) => {
   const result = await request({ ...INPUT, featureKey, daewun: DAEWUN, unlocked: true, passActive: true });
   const { pricing } = getBillingFeaturePricing({ featureKey });
   expect(result).toEqual({ status: 402, body: expect.objectContaining({ featureKey, amountKRW: pricing.amountKRW, coinPrice: pricing.coinPrice }) });
@@ -1022,5 +1023,179 @@ describe("rpt_skillTreeCard", () => {
       gender: c.gender, name: c.name, mode: "pig", place: c.place, jongDecision: c.jong, now: new Date(PARITY.now),
     }).html;
     expect(sha256(html)).toBe(PARITY.skill[id]);
+  });
+});
+
+describe("rpt_secretHouseEntryCard", () => {
+  const PLAY = PARITY.secretHouse[2];
+  const HOUSE = { ...INPUT, featureKey: "rpt_secretHouseEntryCard", house: { stem: PLAY.stem, branch: "子", history: PLAY.history.slice(0, 5) } };
+  const expected = (birth, house) => buildSajuSectionHtml({ featureKey: "rpt_secretHouseEntryCard", birth, house }).house;
+  const CHAR_STEMS = [["tree", "甲"], ["fire", "丙"], ["soil", "戊"], ["gold", "庚"], ["water", "壬"]];
+  // 반응 대사는 줄 목록에서 무작위로 고른다 — 비교하는 동안만 고정한다.
+  beforeEach(() => { jest.spyOn(Math, "random").mockReturnValue(0); });
+  afterEach(() => { Math.random.mockRestore(); });
+
+  test("a BIRTH grant replays the choices with the stored birth's day branch; it opens nothing else", async () => {
+    grant({}, "rpt_secretHouseEntryCard");
+    const result = await request({ ...HOUSE, birth: { date: "2001-01-01", hour: 3, minute: 0 } });
+    expect(result.status).toBe(200);
+    expect(result.body).toMatchObject({ ok: true, unlocked: true, featureKey: "rpt_secretHouseEntryCard" });
+    expect(result.body.house).toEqual(expected(CARD_BIRTH, { stem: PLAY.stem, history: HOUSE.house.history }));
+    expect(result.body.house).toMatchObject({ userStem: PLAY.stem, ended: false });
+    expect(result.body.house.scene.choices.length).toBeGreaterThan(0);
+    expect(result.body.house.reaction.html).toContain("sh-img:");
+    expect((await request({ ...HOUSE, featureKey: "rpt_skillTreeCard" })).status).toBe(402);
+  });
+
+  test("the result card comes only after the final scene, for a real cast member", async () => {
+    grant({}, "rpt_secretHouseEntryCard");
+    const done = await request({ ...HOUSE, house: { stem: PLAY.stem, history: PLAY.history, finalCharId: PLAY.finalCharId } });
+    expect(done.status).toBe(200);
+    expect(done.body.house.ended).toBe(true);
+    const finalStem = Object.fromEntries(CHAR_STEMS)[PLAY.finalCharId];
+    expect(done.body.house.result).toMatchObject({ finalCharId: PLAY.finalCharId, total: done.body.house.totals[finalStem] });
+    expect(done.body.house.result.html.length).toBeGreaterThan(1000);
+    for (const house of [
+      { stem: PLAY.stem, history: PLAY.history.slice(0, 3), finalCharId: PLAY.finalCharId },
+      { stem: PLAY.stem, history: PLAY.history, finalCharId: "constructor" },
+      { stem: PLAY.stem, history: ["Z"] },
+      { stem: PLAY.stem, history: "AAAA" },
+      { stem: "子", history: [] },
+    ]) {
+      const bad = await request({ ...HOUSE, house });
+      expect(bad.status).toBe(400);
+      expect(bad.body.house).toBeUndefined();
+    }
+  });
+
+  test("a legacy account grant without a saved profile uses the page's day branch", async () => {
+    grant({ scope: "USER", profileId: "__user__" }, "rpt_secretHouseEntryCard");
+    const { profileId: _omit, ...account } = HOUSE;
+    const result = await request(account);
+    expect(result.status).toBe(200);
+    expect(result.body.house).toEqual(expected({}, HOUSE.house));
+  });
+
+  test("another profile's or another birth's grant does not open the episodes", async () => {
+    expect((await request(HOUSE)).status).toBe(402);
+    grant({ scope: "PROFILE", profileId: "p2" }, "rpt_secretHouseEntryCard");
+    expect((await request(HOUSE)).status).toBe(402);
+    grant({}, "rpt_secretHouseEntryCard");
+    const other = await request({ ...HOUSE, profileId: "p3" });
+    expect(other.status).toBe(402);
+    expect(other.body).toMatchObject({ reason: "PAYMENT_REQUIRED", coinPrice: getBillingFeaturePricing({ featureKey: "rpt_secretHouseEntryCard" }).pricing.coinPrice });
+    expect(other.body.house).toBeUndefined();
+  });
+
+  // /api/fortune/balance 가 입장권을 여는 옛 상품: allPaidSaju(계정 묶음), secretHouseEpisodes(계정 단위 에피소드 키).
+  test.each([
+    ["unlockedFeatures array", () => users.push({ _id: TEST_USER_ID, unlockedFeatures: ["allPaidSaju"] })],
+    ["coin deduct history", () => histories.push({ userId: TEST_USER_ID, kind: "deduct", featureKey: "allPaidSaju" })],
+    ["secretHouseEpisodes paidFeatures", () => users.push({ _id: TEST_USER_ID, paidFeatures: ["secretHouseEpisodes"] })],
+    ["secretHouseEpisodes deduct history", () => histories.push({ userId: TEST_USER_ID, kind: "deduct", featureKey: "secretHouseEpisodes" })],
+    ["secretHouseEpisodes account entitlement", () => grant({ scope: "USER", profileId: "__user__" }, "secretHouseEpisodes")],
+  ])("a legacy bundle or episode purchase (%s) opens the episodes", async (_label, seed) => {
+    seed();
+    expect((await request(HOUSE)).status).toBe(200);
+    const { profileId: _omit, ...account } = HOUSE;
+    expect((await request(account)).status).toBe(200);
+  });
+
+  test("other bundles or refunds are not evidence", async () => {
+    users.push({ _id: TEST_USER_ID, unlockedFeatures: ["healthReport", "rpgCharacter"] });
+    histories.push({ userId: TEST_USER_ID, kind: "refund", featureKey: "secretHouseEpisodes" });
+    histories.push({ userId: OTHER_USER_ID, kind: "deduct", featureKey: "secretHouseEpisodes" });
+    expect((await request(HOUSE)).status).toBe(402);
+  });
+
+  test("a DB failure stays retryable instead of prompting purchase", async () => {
+    grant({}, "rpt_secretHouseEntryCard");
+    connectDb.mockRejectedValue(new Error("private database connection information"));
+    const result = await request(HOUSE);
+    expect(result.status).toBe(503);
+    expect(result.body).toMatchObject({ reason: "TEMPORARY_UNAVAILABLE", retryable: true });
+  });
+
+  // PARITY.secretHouse: HEAD secret-house_real.html 메인 스크립트를 vm 에서 같은 선택 글자로 끝까지 밟아
+  // 장면(대사·선택지·1위)·반응 카드·캐릭터별 점수·엔딩 카드를 모은 기록의 sha256(Math.random 0 고정).
+  test.each(PARITY.secretHouse.map((c, i) => [i, c.stem, c.branch, c]))("server episode equals the HEAD client engine: #%s %s%s", (_i, _stem, _branch, c) => {
+    const steps = [];
+    let last;
+    for (let k = 0; k <= c.history.length; k++) {
+      last = expected({}, { stem: c.stem, branch: c.branch, history: c.history.slice(0, k), finalCharId: k === c.history.length ? c.finalCharId : undefined });
+      if (k > 0) Object.assign(steps[k - 1], { lbl: c.history[k - 1], rxn: last.reaction.html, border: last.reaction.border });
+      const s = last.scene;
+      steps.push({ view: { id: s.id, badge: s.badge, sit: s.sit, type: s.type, beats: s.beats, choices: s.choices.map((x) => [x.lbl, x.txt]), top: last.topCharId } });
+    }
+    const record = {
+      stem: c.stem, branch: c.branch, history: c.history, finalCharId: c.finalCharId, steps,
+      totals: Object.fromEntries(CHAR_STEMS.map(([id, stem]) => [id, last.totals[stem]])),
+      result: { html: last.result.html, border: last.result.border, endingType: last.result.endingType, endingReason: last.result.endingReason, title: last.result.title },
+    };
+    expect(sha256(JSON.stringify(record))).toBe(c.sha256);
+  });
+});
+
+describe("animal-destiny-unlock", () => {
+  const ANIMAL = { profileId: "p1", featureKey: "animal-destiny-unlock", birth: { date: "2001-01-01", calType: "solar", timeKnown: true, hour: 3, minute: 0 } };
+  const expected = (birth) => buildSajuSectionHtml({ featureKey: "animal-destiny-unlock", birth }).animal;
+
+  test("a BIRTH grant reads the stored profile birth, not the body's; it opens nothing else", async () => {
+    grant({}, "animal-destiny-unlock");
+    const result = await request(ANIMAL);
+    expect(result.status).toBe(200);
+    expect(result.body).toMatchObject({ ok: true, unlocked: true, featureKey: "animal-destiny-unlock" });
+    expect(result.body.animal).toEqual(expected(CARD_BIRTH));
+    expect(result.body.animal.animalId).toBe(PARITY.animal["solar-m-1990"].animalId);
+    expect(result.body.animal.sections.length).toBeGreaterThanOrEqual(8);
+    expect(result.body.animal.dex).toHaveLength(12);
+    expect(result.body.html).toBeUndefined();
+    expect((await request({ ...ANIMAL, featureKey: "rpt_skillTreeCard" })).status).toBe(402);
+  });
+
+  test("a legacy account grant without a saved profile reads the page's birth", async () => {
+    grant({ scope: "USER", profileId: "__user__" }, "animal-destiny-unlock");
+    const { profileId: _omit, ...account } = ANIMAL;
+    const result = await request(account);
+    expect(result.status).toBe(200);
+    expect(result.body.animal).toEqual(expected({ calendarDate: "2001-01-01", calType: "solar", timeKnown: true, hour: 3, minute: 0 }));
+    const bad = await request({ ...account, birth: { date: "2001-13-45", calType: "solar", timeKnown: false } });
+    expect(bad.status).toBe(400);
+    expect(bad.body.animal).toBeUndefined();
+  });
+
+  test("another profile's or another birth's grant does not open the reading", async () => {
+    expect((await request(ANIMAL)).status).toBe(402);
+    grant({ scope: "PROFILE", profileId: "p2" }, "animal-destiny-unlock");
+    expect((await request(ANIMAL)).status).toBe(402);
+    grant({}, "animal-destiny-unlock");
+    const other = await request({ ...ANIMAL, profileId: "p3" });
+    expect(other.status).toBe(402);
+    expect(other.body).toMatchObject({ reason: "PAYMENT_REQUIRED", coinPrice: getBillingFeaturePricing({ featureKey: "animal-destiny-unlock" }).pricing.coinPrice });
+    expect(other.body.animal).toBeUndefined();
+  });
+
+  test("a DB failure stays retryable instead of prompting purchase", async () => {
+    grant({}, "animal-destiny-unlock");
+    connectDb.mockRejectedValue(new Error("private database connection information"));
+    const result = await request(ANIMAL);
+    expect(result.status).toBe(503);
+    expect(result.body).toMatchObject({ reason: "TEMPORARY_UNAVAILABLE", retryable: true });
+    expect(result.body.animal).toBeUndefined();
+  });
+
+  // PARITY.animal: HEAD 클라이언트(store.calculate → AnimalResultScreen 의 resolveTwelveGrowthAnimalResult·buildTwelveAnimalSections·
+  // buildDetailedInterpretation·도감)를 같은 출생으로 돌린 { animalId, stageKey, result, sections, detailed, dex } 의 sha256.
+  test.each(PARITY.cases.map((c) => [c.id, c]))("server reading equals the HEAD client output: %s", (id, c) => {
+    const animal = expected({ calendarDate: c.date, calType: c.calType, hour: c.hour, minute: c.minute, timeKnown: c.timeKnown !== false });
+    expect(animal.animalId).toBe(PARITY.animal[id].animalId);
+    expect(sha256(JSON.stringify(animal))).toBe(PARITY.animal[id].sha256);
+  });
+
+  // PARITY.animalStages: 일지만 바꾼 합성 원국으로 12운성(동물) 전부를 한 번씩 밟는다.
+  test.each(PARITY.animalStages.map((s) => [s.stageKey, s]))("every stage animal equals the HEAD client output: %s", (_key, s) => {
+    const reading = buildAnimalDestinyReading(s.pillars, false);
+    expect(reading).toMatchObject({ animalId: s.animalId, stageKey: s.stageKey });
+    expect(sha256(JSON.stringify(reading))).toBe(s.sha256);
   });
 });

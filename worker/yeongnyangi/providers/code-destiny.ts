@@ -89,8 +89,10 @@ export class CodeDestinyProvider implements LLMProvider {
       durationMs:Date.now()-startedAt,maxOutputTokens:cap,status:'status' in response?response.status:null};
     if (!response.ok || response.isMock || !response.text) {
       const code='error' in response ? String(response.error) : '';
-      console.warn('[yeongnyangi-provider]',JSON.stringify({code:code.replace(/[^A-Za-z0-9_]/g,'').slice(0,80),status:'status' in response?response.status:null}));
-      throw new FortuneError(/timeout|deadline/i.test(code)?'FORTUNE_PROVIDER_TIMEOUT':'FORTUNE_PROVIDER_FAILED',502);
+      // Spend-cap and billing outages travel as the audit detail so the hold alert names the cause.
+      const outage='providerCode' in response?String(response.providerCode||''):'';
+      console.warn('[yeongnyangi-provider]',JSON.stringify({code:code.replace(/[^A-Za-z0-9_]/g,'').slice(0,80),status:'status' in response?response.status:null,...(outage?{outage}:{})}));
+      throw new FortuneError(/timeout|deadline/i.test(code)?'FORTUNE_PROVIDER_TIMEOUT':'FORTUNE_PROVIDER_FAILED',502,outage||undefined);
     }
     if(response.truncated || /^(MAX_TOKENS|LENGTH)$/i.test(response.finishReason || ''))throw new FortuneError('CHAPTER_TRUNCATED',502);
     return {result:response.text,provider:response.provider || 'gemini',model:response.model || this.model || 'gemini-2.5-flash'};

@@ -163,3 +163,88 @@ test("영냥이 귀인 문구와 현실 체크는 문장 역할·테마 토큰�
   const realityCheck = paid.slice(paid.indexOf("function generateNeoFactPunch("), paid.indexOf("function getDaewunBranchEvidence("));
   assert.doesNotMatch(realityCheck, /#e53935|#FF6B6B|#ff9800|#FFA726|#9c27b0|#CE93D8|#e65100|#FF8A65/);
 });
+
+test("시크릿 하우스 에피소드 엔진과 엔딩 문장이 브라우저 경로에 없다", () => {
+  // 장면 표·호감 가중치·반응 대사·엔딩 판정과 결과 카드 문장. 출연진 프로필과 첫 케미(calcBase)는 무료로 남는다.
+  const FORBIDDEN = [
+    "const ED=", "SCENE_DATA", "soloDelta", "RXN_BY_EL", "SAJU_MENT", "ENDING_COPY", "calculateEnding", "CHARACTER_STORY_VOICE",
+    "resolveDynamicScene", "getCompatDynamics",
+    "한강 새벽 피크닉", "봄비가 내리던 날처럼", "박하늘은 감정 카드를 오래 쥐고", "과합(달콤하지만 부담)", "최상위 호감 + 고궁합",
+  ];
+  const files = [...new Set(["secret-house_real.html", ...browserServedFiles()])];
+  assert.ok(files.includes("public/secret-house_real.html"), "시크릿 하우스 미러를 못 봤다");
+  const offenders = [];
+  for (const rel of files) {
+    const source = stripComments(read(rel));
+    for (const needle of FORBIDDEN) if (source.includes(needle)) offenders.push(`${rel} → ${needle}`);
+  }
+  assert.deepEqual(offenders, [], "브라우저 파일에 시크릿 하우스 유료 엔진이 남아 있다:\n  " + offenders.join("\n  "));
+  const paid = read("worker/lib/saju-section/paid-secret-house.src.js");
+  for (const name of ["handleChoice(choice,btn,scene)", "buildResult()", "calculateEnding(targetChar)"]) {
+    assert.ok(paid.includes("function " + name + "{"), `${name} 정본이 서버에 없다`);
+  }
+  const page = stripComments(read("secret-house_real.html"));
+  assert.match(page, /const HOUSE_ENDPOINT='\/api\/saju\/section';/, "시크릿 하우스가 서버 걸음을 요청하지 않는다");
+  assert.match(page, /const HOUSE_FEATURE='rpt_secretHouseEntryCard';/, "시크릿 하우스 해금 키가 다르다");
+  assert.match(page, /history:G\.picks\.slice\(\)/, "시크릿 하우스는 고른 글자만 보내야 한다");
+});
+
+test("십이운성 동물점 결과 문장·상세 탭·심층 리포트가 브라우저 번들 경로에 없다", () => {
+  // 대표 동물·네 기둥 운성·도감 이름은 무료로 남고, 결과 카드 문장(STAGE_SEEDS)·10개 탭·심층 리포트는 서버만 만든다.
+  const FORBIDDEN = [
+    "STAGE_SEEDS", "ensureSummaryLength", "TWELVE_GROWTH_ANIMAL_RESULT_TEXT_TRANSLATIONS", "ANIMAL_INTERPRETATION_TEXT_TRANSLATIONS", "STAGE_KEYWORDS",
+    "function resolveTwelveGrowthAnimalResult(", "function buildTwelveAnimalSections(", "function buildDetailedInterpretation(",
+    "새벽의 싹을 여는 탐험형", "오늘은 과한 예측보다 작은 실행을 반복해 리듬을 확인하세요", "본능적으로 선택하는 방식과 가까운 관계에서 드러나는 결", "이별의 순간에는",
+  ];
+  const files = [...browserServedFiles()];
+  for (const rel of ["app", "components", "lib", "src"]) {
+    if (!fs.existsSync(path.join(root, rel))) continue;
+    (function walk(dir) {
+      for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+        const full = path.join(dir, entry.name);
+        if (entry.isDirectory()) walk(full);
+        else if (/\.(ts|tsx|js|mjs)$/.test(entry.name)) files.push(path.relative(root, full).split(path.sep).join("/"));
+      }
+    })(path.join(root, rel));
+  }
+  assert.ok(files.includes("app/saju/animal-destiny/components/AnimalResultScreen.tsx"), "동물점 결과 화면을 못 봤다");
+  const offenders = [];
+  for (const rel of files) {
+    const source = stripComments(read(rel));
+    for (const needle of FORBIDDEN) if (source.includes(needle)) offenders.push(`${rel} → ${needle}`);
+  }
+  assert.deepEqual(offenders, [], "브라우저 파일에 동물점 유료 문장이 남아 있다:\n  " + offenders.join("\n  "));
+  const paid = read("worker/lib/saju-section/paid-animal.src.js");
+  for (const name of ["resolveTwelveGrowthAnimalResult(", "buildTwelveAnimalSections(", "buildDetailedInterpretation("]) {
+    assert.ok(paid.includes("function " + name), `${name} 정본이 서버에 없다`);
+  }
+  const loader = read("app/saju/animal-destiny/lib/paidReading.ts");
+  assert.match(loader, /const FEATURE_KEY = "animal-destiny-unlock";/, "동물점 해금 키가 다르다");
+  assert.match(loader, /authFetch\("\/api\/saju\/section"/, "동물점이 서버 풀이를 요청하지 않는다");
+});
+
+test("점성술 상담 심화 분석 4종과 봉인된 별의 방 4종 생성기가 브라우저 경로에 없다", () => {
+  // 무료 차트·요약과 잠금 게이트는 남고, 네 심화 본문은 /api/astro/section 이 출생 단위 해금을 확인한 뒤 만든다.
+  const FORBIDDEN = [
+    "_astroCounselJobScores", "_astroCounselCareer(", "_astroCounselPlanetRow", "_astroCounselRelationship(", "roleLens",
+    "차트의 직업 신호가 이 역할에서 비교적 안정적으로", "astro-counsel-job-list\">", "관계는 혼자 완성한 성향을 비추는 거울입니다",
+    "_astroCounselDeepPanel", "_astroCounselChip(", "_astroCounselPlacementLine", "일과 역할: 사회에 남길 별의 이름", "커리어가 흘러가는 통로", "7하우스 룰러의 생활화",
+  ];
+  const offenders = [];
+  for (const rel of browserServedFiles()) {
+    const source = stripComments(read(rel));
+    for (const needle of FORBIDDEN) if (source.includes(needle)) offenders.push(`${rel} → ${needle}`);
+  }
+  assert.deepEqual(offenders, [], "브라우저 파일에 점성술 심화 분석 생성기가 남아 있다:\n  " + offenders.join("\n  "));
+  const paid = read("worker/lib/astro-section/paid-counsel.src.js");
+  for (const name of ["_astroCounselJobScores(", "_astroCounselCareer(", "_astroCounselPlanetRow(", "_astroCounselRelationship(", "_astroCounselDeepBodies("]) {
+    assert.ok(paid.includes("function " + name), `${name} 정본이 서버에 없다`);
+  }
+  const stellar = read("worker/lib/astro-section/paid-stellar.src.js");
+  for (const name of ["_astroCounselDeepPanel(", "_astroCounselChip(", "_astroCounselPlacementLine(", "_astroCounselStellarBodies("]) {
+    assert.ok(stellar.includes("function " + name), `${name} 정본이 서버에 없다`);
+  }
+  const loader = read("js/core/astro/section-client.js");
+  assert.match(loader, /var ENDPOINT = '\/api\/astro\/section';/, "점성술 심화 분석이 서버 본문을 요청하지 않는다");
+  assert.match(read("index.html"), /<script defer src="\/js\/core\/astro\/section-client\.js"><\/script>/, "점성술 본문 배달 스크립트가 빠졌다");
+});

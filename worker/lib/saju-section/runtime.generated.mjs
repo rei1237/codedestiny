@@ -18916,3 +18916,2630 @@ var EL_ORGAN  = { wood: '간·담', fire: '심장·소장', earth: '비·위', m
     }
   };
 }
+
+// secret-house_real.html 에피소드 엔진(rpt_secretHouseEntryCard). ctx.document 는 반응·결과 HTML 을 받아 두는 껍데기다.
+// 타자 효과·장면 효과·저장소의 일지 읽기는 페이지 몫이라 빈 함수로 둔다(일지는 secret-house.js 가 G.userDayBranch 에 넣는다).
+export function createSecretHouseRuntime(ctx) {
+  const document = ctx.document;
+  const setTimeout = function () {};
+  const IMG = { tree: 'sh-img:tree', fire: 'sh-img:fire', soil: 'sh-img:soil', gold: 'sh-img:gold', water: 'sh-img:water' };
+  function stopSceneTyping() {}
+  function playSceneEffect() {}
+  function resolveAutoBranchFromSaju() { return ''; }
+// 시크릿 하우스(rpt_secretHouseEntryCard) 유료 에피소드 엔진 정본. 브라우저로 내려가지 않는다. secret-house_real.html 메인 스크립트의
+// 장면 대본(SCENE_DATA)·선택지 효과표(ED)·캐릭터 반응·관계 판정·엔딩 계산·결과 카드를 선언 순서 그대로 옮겼다(바뀐 글자 없음).
+// 화면 쪽(입력·출연진 소개·타자 효과·화면 전환·공유)은 페이지에 남고, 이 파일은 scripts/extract-saju-section-runtime.mjs 가
+// createSecretHouseRuntime(ctx) 안에 붙인다. document 는 결과 HTML 을 받아 두는 껍데기, IMG 는 페이지가 자기 이미지로 바꾸는 자리표시다.
+const STEMS={
+  '甲':{kr:'갑목',el:'목',yin:false,emoji:'🌳',t:'진취·열정·리더십',d:'강한 나무처럼 진취적이고 리더십이 강합니다. 새로운 시작을 향한 열정과 직진하는 용기가 넘칩니다.'},
+  '乙':{kr:'을목',el:'목',yin:true,emoji:'🌿',t:'유연·섬세·친화력',d:'유연한 풀처럼 적응력이 뛰어나고 섬세합니다. 부드러운 카리스마로 상대의 마음을 얻는 매력이 있습니다.'},
+  '丙':{kr:'병화',el:'화',yin:false,emoji:'☀️',t:'열정·밝음·카리스마',d:'태양처럼 밝고 강렬합니다. 어디서든 중심이 되는 존재감과 상대를 빠져들게 만드는 에너지가 있습니다.'},
+  '丁':{kr:'정화',el:'화',yin:true,emoji:'🕯️',t:'감성·따뜻함·직관',d:'촛불처럼 따뜻하고 감성적입니다. 깊은 내면의 빛으로 사람들의 마음을 포근하게 감싸 안습니다.'},
+  '戊':{kr:'무토',el:'토',yin:false,emoji:'🏔️',t:'안정·신뢰·포용력',d:'산처럼 듬직하고 신뢰감이 넘칩니다. 넓은 포용력으로 모든 것을 받아들이는 깊이 있는 사람입니다.'},
+  '己':{kr:'기토',el:'토',yin:true,emoji:'🌾',t:'현실·지혜·실용성',d:'비옥한 대지처럼 풍요롭고 현실적입니다. 삶의 지혜와 실용적인 감각으로 주변을 이롭게 합니다.'},
+  '庚':{kr:'경금',el:'금',yin:false,emoji:'⚔️',t:'결단·의리·냉철함',d:'단단한 금속처럼 결단력이 있고 의리를 중시합니다. 차갑게 보이지만 깊은 내면엔 뜨거운 충성심이 있습니다.'},
+  '辛':{kr:'신금',el:'금',yin:true,emoji:'💎',t:'완벽·심미·정교함',d:'세공된 보석처럼 섬세하고 아름답습니다. 높은 심미안과 완벽주의적 성향으로 최고만을 추구합니다.'},
+  '壬':{kr:'임수',el:'수',yin:false,emoji:'🌊',t:'지성·깊이·철학',d:'대양처럼 깊고 넓은 사고를 지닙니다. 지적이고 철학적이며 모든 것을 담아내는 무한한 포용력이 있습니다.'},
+  '癸':{kr:'계수',el:'수',yin:true,emoji:'🌧️',t:'감수성·신비·직관',d:'이슬처럼 섬세하고 신비롭습니다. 뛰어난 감수성과 날카로운 직관으로 상대의 마음을 꿰뚫어 봅니다.'}
+};
+const EC={목:'#6fcf97',화:'#ff7b6e',토:'#d4a96a',금:'#a8c4d8',수:'#5da9c8'};
+const GEN={목:'화',화:'토',토:'금',금:'수',수:'목'};
+const RES={목:'토',화:'금',토:'수',금:'목',수:'화'};
+const HARM={'甲':'己','己':'甲','乙':'庚','庚':'乙','丙':'辛','辛':'丙','丁':'壬','壬':'丁','戊':'癸','癸':'戊'};
+const HARM_EL={'甲己':'토','乙庚':'금','丙辛':'수','丁壬':'목','戊癸':'화'};
+const CHARS=[
+  {id:'tree',imgKey:'tree',name:'박하늘',stem:'甲',dayBranch:'未',el:'목',age:28,job:'스타트업 대표',cardCls:'card-tree',
+   traits:['리더십','열정','솔직함','추진력','다정함'],
+   love_style:'먼저 다가와서 솔직하게 마음을 표현하는 스타일. 좋아하면 티를 팍팍 냅니다.',
+   ideal_type:'자신의 꿈이 있고, 그 꿈을 응원해줄 수 있는 사람. 감정에 솔직한 사람.',
+   habit:'대화할 때 상대 눈을 똑바로 바라보는 버릇. 웃을 때 눈 꼬리가 올라감.',
+   likes:['새벽 한강','직접 내린 핸드드립 커피','오래된 소품 샵','무계획 드라이브'],
+   dislikes:['빙빙 돌려 말하는 것','작별 인사','흐지부지한 결말'],
+   weakness:'좋아하는 사람 앞에서 평소보다 훨씬 더 솔직해져버림. 감추려 해도 눈빛이 말해버림.',
+   mbti:'ENFJ',
+   charm:'먼저 손 내미는 용기와 따뜻한 눈빛. 당신이 힘들어 보이면 아무 말 없이 옆에 앉아줍니다.',
+   charm_moment:'어제 "아메리카노 좋아해요"라고 무심코 했던 말을 기억하고, 오늘 아침 직접 내린 커피를 들고 찾아옵니다.',
+  catch:'당신이라는 봄을 기다려왔습니다',
+  tips:['한강 새벽 피크닉','스페셜티 커피 투어','등산 후 막걸리'],elemLabel:'목(木)',
+  sajuRole:'갑목 일간 설정 · 직진형 리더. 좋아하면 먼저 문을 열고 관계를 성장시키는 타입.'},
+  {id:'fire',imgKey:'fire',name:'이준서',stem:'丙',dayBranch:'子',el:'화',age:30,job:'뮤지션·싱어송라이터',cardCls:'card-fire',
+   traits:['열정','카리스마','즉흥적','자유로움','감성'],
+   love_style:'처음엔 장난스럽게 다가오다가 어느 순간 진지해지는 스타일. 사랑에 올인합니다.',
+   ideal_type:'함께 새로운 경험을 두려워하지 않는 사람. 나의 음악을 들어줄 수 있는 사람.',
+   habit:'생각에 잠기면 무의식적으로 손가락으로 리듬을 탐. 마음에 드는 사람 앞에서 더 크게 웃음.',
+   likes:['라이브 클럽','루프탑에서 보는 야경','길거리 음식','즉흥 여행'],
+   dislikes:['틀에 박힌 일상','계획된 로맨스','혼자 있는 새벽'],
+   weakness:'좋아하는 사람 앞에서 갑자기 음악 이야기만 늘어놓음. 설레면 더 장난을 침.',
+   mbti:'ESFP',
+   charm:'눈 맞추면 세상이 멈추는 눈빛. 당신만을 위한 즉흥 멜로디를 기타로 연주해줍니다.',
+   charm_moment:'이유도 설명 없이 기타를 들고 와 당신 앞에 앉습니다. 한 소절 연주하다 멈추고 — "이 노래 제목이 아직 없어요. 당신이 지어줄래요?"',
+  catch:'당신 옆에서라면 불꽃도 시원합니다',
+  tips:['인디 라이브 공연','루프탑 바','새벽 즉흥 드라이브'],elemLabel:'화(火)',
+  sajuRole:'병화 일간 설정 · 무대형 매력. 감정 온도를 빠르게 올리는 직관형 로맨티스트.'},
+  {id:'soil',imgKey:'soil',name:'황도윤',stem:'戊',dayBranch:'戌',el:'토',age:32,job:'건축가',cardCls:'card-soil',
+   traits:['안정감','신중함','책임감','관찰력','자상함'],
+   love_style:'말보다 행동으로 마음을 표현. 상대가 말하지 않은 것도 먼저 알아챕니다.',
+   ideal_type:'소소한 일상을 소중히 여기는 사람. 함께 있을 때 편안함을 느낄 수 있는 사람.',
+   habit:'대화 중 상대의 표정을 자세히 관찰하는 버릇. 좋아하는 사람에게는 더 조용해짐.',
+   likes:['건축 드로잉','전통 찻집','골목 산책','손으로 만드는 것들'],
+   dislikes:['큰 소리','서두르는 것','빈말'],
+   weakness:'좋아하는 감정을 표현하는 데 시간이 걸림. 하지만 한번 마음을 정하면 절대 바뀌지 않음.',
+   mbti:'ISFJ',
+   charm:'언제나 그 자리에 있어주는 든든함. 당신이 무심코 한 말을 오래 기억합니다.',
+   charm_moment:'산책 중 당신이 "이런 골목이 좋아요"라고 했던 것을 기억해, 그 골목의 작은 카페를 미리 찾아두고 조용히 안내합니다.',
+  catch:'당신의 모든 순간을 기억하고 싶습니다',
+  tips:['미술관 데이트','숨은 카페 찾기','저녁 골목 산책'],elemLabel:'토(土)',
+  sajuRole:'무토 일간 설정 · 안정형 수호자. 느리지만 확실하게 신뢰를 쌓는 장기전 강자.'},
+  {id:'gold',imgKey:'gold',name:'강시우',stem:'庚',dayBranch:'卯',el:'금',age:29,job:'외과 의사',cardCls:'card-gold',
+   traits:['냉철함','의리','섬세함','완벽주의','은근한 다정함'],
+   love_style:'겉으론 차가워 보이지만 뒤에서 조용히 챙기는 스타일. 표현이 서툴지만 행동이 다 말해줌.',
+   ideal_type:'자기 자신을 소중히 여길 줄 아는 사람. 나의 침묵을 이해해줄 수 있는 사람.',
+   habit:'긴장하면 손목 시계를 무의식적으로 매만짐. 웃을 때 입꼬리가 한쪽만 올라감.',
+   likes:['심야 병원 드라이브','고급 서점','재즈 바','혼자 보는 새벽 야경'],
+   dislikes:['감정 과잉 표현','거짓말','자신을 배려하지 않는 사람'],
+   weakness:'도움을 받는 것을 싫어함. 좋아하는 사람에게 더 무뚝뚝해지는 역설적인 성격.',
+   mbti:'ISTJ',
+   charm:'무뚝뚝한 척 먼저 챙겨주는 손. 당신이 아픈 것을 모른 척할 수가 없습니다.',
+   charm_moment:'당신이 두통을 호소하자, 30분 뒤 아무 말 없이 진통제와 따뜻한 물 한 잔을 방 앞에 두고 사라집니다. 메모 한 줄 — "2알."',
+  catch:'논리적이지 않은데 당신은 계속 생각납니다',
+  tips:['야경 드라이브','파인다이닝','재즈 바 투어'],elemLabel:'금(金)',
+  sajuRole:'경금 일간 설정 · 절제형 카리스마. 말수는 적지만 결정적 순간에 진심을 증명하는 타입.'},
+  {id:'water',imgKey:'water',name:'윤재현',stem:'壬',dayBranch:'巳',el:'수',age:31,job:'소설가',cardCls:'card-water',
+   traits:['지성','신비로움','감수성','직관력','깊은 공감'],
+   love_style:'상대의 이야기를 끝까지 듣는 스타일. 당신을 세상에서 가장 특별한 존재로 느끼게 해줍니다.',
+   ideal_type:'자신만의 이야기가 있는 사람. 함께 침묵을 즐길 수 있는 사람.',
+   habit:'대화 후 인상적인 순간을 노트에 적어두는 버릇. 눈을 자주 감고 생각에 잠김.',
+   likes:['독립 서점','파도 소리','심야 글쓰기','비 오는 날 창가'],
+   dislikes:['얕은 대화','시끄러운 공간','성급한 판단'],
+   weakness:'좋아하는 사람을 글 속에 녹여내버림. 당신도 어느새 그의 소설 속 인물이 되어 있을지 모릅니다.',
+   mbti:'INFJ',
+   charm:'눈만 봐도 이야기가 담긴 사람. 당신의 감정을 누구보다 먼저 알아챕니다.',
+   charm_moment:'저녁 산책 후 당신에게 노트 한 장을 접어 건넵니다. 펼쳐보면 — 오늘 당신의 모습을 담은 짧은 시.',
+  catch:'당신은 내 다음 소설의 주인공입니다',
+  tips:['독립 서점 투어','심야 해변 산책','비 오는 날 카페'],elemLabel:'수(水)',
+  sajuRole:'임수 일간 설정 · 몰입형 감성가. 감정의 결을 깊게 읽고 천천히 집착형 애정을 키우는 타입.'}
+];
+const ED={
+  목:{甲:14,丙:9,戊:-5,庚:-8,壬:10},
+  화:{甲:9,丙:15,戊:10,庚:-8,壬:-5},
+  토:{甲:-5,丙:10,戊:15,庚:10,壬:-8},
+  금:{甲:-8,丙:-5,戊:10,庚:15,壬:10},
+  수:{甲:10,丙:-8,戊:-5,庚:10,壬:15}
+};
+const SCENE_DATA=[
+  {id:'D1_M',day:1,phase:'Morning',badge:'Day 1 · Morning · 자기소개',mood:'dawn',type:'intro',sit:'첫인상 자기소개 라운드',text:'현관 조명이 천천히 밝아지고, 다섯 남자가 한 사람씩 이름을 말합니다.\n짧은 인사 사이로 목울대가 움직이고 손끝이 머뭇거립니다.\n첫 장면은 늘 짧지만, 이상하게 오래 남습니다.',nextSceneId:'D1_A',choices:[
+    {lbl:'A',el:'목',txt:'먼저 인사를 건넨다. "오늘 잘 부탁해요."',targetChar:'tree',momentTag:'first_eye'},
+    {lbl:'B',el:'화',txt:'장난스럽게 분위기를 띄운다.',targetChar:'fire'},
+    {lbl:'C',el:'토',txt:'조용히 짐을 들어주며 배려한다.',targetChar:'soil'},
+    {lbl:'D',el:'금',txt:'차분하게 이름을 확인하고 기억한다.',targetChar:'gold'},
+    {lbl:'E',el:'수',txt:'창가에서 눈빛으로만 인사한다.',targetChar:'water'}
+  ]},
+  {id:'D1_A',day:1,phase:'Afternoon',badge:'Day 1 · Afternoon',mood:'warm',type:'normal',sit:'점심 준비 미션',text:'부엌엔 칼 부딪히는 소리와 버터 향이 번집니다.\n누군가는 농담으로 긴장을 풀고, 누군가는 말없이 당신 앞 접시를 먼저 채웁니다.\n작은 선택 하나가, 오늘의 호감도 순위를 뒤집습니다.',nextSceneId:'D1_N',choices:[
+    {lbl:'A',el:'화',txt:'디저트를 제안하며 주도한다.',targetChar:'fire'},
+    {lbl:'B',el:'토',txt:'재료 정리와 뒷정리를 맡는다.',targetChar:'soil'},
+    {lbl:'C',el:'목',txt:'요리 아이디어를 내며 팀을 묶는다.',targetChar:'tree'},
+    {lbl:'D',el:'금',txt:'칼질과 플레이팅을 완성도 있게 처리한다.',targetChar:'gold'},
+    {lbl:'E',el:'수',txt:'분위기를 살피며 필요한 순간만 돕는다.',targetChar:'water'}
+  ]},
+  {id:'D1_N',day:1,phase:'Night',badge:'Day 1 · Night',mood:'romance',type:'normal',sit:'옥상 야경 시간',text:'옥상 난간 너머로 도시의 불빛이 흔들립니다.\n당신 곁에 선 사람의 숨이 바람보다 먼저 닿습니다.\n오늘 밤, 당신은 어떤 온도로 대답할까요?',nextSceneId:'D2_M',choices:[
+    {lbl:'A',el:'수',txt:'말없이 같은 방향을 바라본다.',setFlags:['nightBond']},
+    {lbl:'B',el:'화',txt:'솔직하게 "오늘 즐거웠어요"라고 말한다.',setFlags:['boldOpen'],effect:'petal'},
+    {lbl:'C',el:'금',txt:'짧은 칭찬만 남기고 물러난다.'},
+    {lbl:'D',el:'목',txt:'내일 함께하고 싶은 미션을 먼저 제안한다.'},
+    {lbl:'E',el:'토',txt:'따뜻한 차를 건네고 먼저 들어간다.'}
+  ]},
+
+  {id:'D2_M',day:2,phase:'Morning',badge:'Day 2 · Morning',mood:'dawn',type:'normal',sit:'테라스 브런치',text:'테라스의 유리잔에 햇빛이 부서지고, 빈 옆자리가 하나씩 채워집니다.\n누가 당신의 아침 첫 시선을 가져갈지, 모두가 은근히 기다립니다.',nextSceneId:'D2_A',choices:[
+    {lbl:'A',el:'목',txt:'먼저 화제를 꺼내 대화를 이끈다.',targetChar:'tree'},
+    {lbl:'B',el:'화',txt:'웃긴 에피소드로 분위기를 깨운다.',targetChar:'fire'},
+    {lbl:'C',el:'토',txt:'상대의 접시를 먼저 챙겨준다.',targetChar:'soil'},
+    {lbl:'D',el:'금',txt:'조용히 상대의 취향을 메모한다.',targetChar:'gold'},
+    {lbl:'E',el:'수',txt:'천천히 이야기를 들어주며 맞장구친다.',targetChar:'water'}
+  ]},
+  {id:'D2_A',day:2,phase:'Afternoon',badge:'Day 2 · Afternoon · 프로필 이벤트',mood:'warm',type:'profileEvent',sit:'1:1 미니데이트 자기 어필',text:'한 사람씩 당신 앞에 앉아, 사랑할 때의 자신을 고백합니다.\n짧은 어필인데도 심장에 밑줄이 그어집니다.\n오늘은 리액션 하나가 관계의 판을 바꿉니다.',nextSceneId:'D2_N',choices:[
+    {lbl:'A',el:'목',txt:'박하늘과 함께 정면 돌파로 밀어붙인다. [Route A]',setFlags:['routeA'],targetChar:'tree'},
+    {lbl:'B',el:'토',txt:'황도윤과 함께 느리지만 확실하게 쌓아간다. [Route B]',setFlags:['routeB'],targetChar:'soil'},
+    {lbl:'C',el:'수',txt:'윤재현과 함께 흐름을 읽으며 타이밍을 잡는다. [Route C]',setFlags:['routeC'],targetChar:'water'},
+    {lbl:'D',el:'금',txt:'강시우와 계산된 호흡으로 빈틈을 줄인다.',targetChar:'gold'},
+    {lbl:'E',el:'화',txt:'이준서와 즉흥 텐션으로 분위기를 흔든다.',targetChar:'fire'}
+  ]},
+  {id:'D2_N',day:2,phase:'Night',badge:'Day 2 · Night',mood:'romance',type:'charm',sit:'진실 게임',text:'MC: "오늘 밤, 가장 마음이 가는 사람 한 명만 말해 주세요."\n조명이 한 톤 낮아지고, 당신의 이름표 위로 시선이 모입니다.\n대답은 짧을수록, 더 크게 남습니다.',nextSceneId:'D3_M',choices:[
+    {lbl:'A',el:'화',txt:'잠깐 숨을 고른 뒤, 이름을 정확히 말한다.',setFlags:['publicConfess'],effect:'petal',momentTag:'heartbeat_peak'},
+    {lbl:'B',el:'금',txt:'직접 이름 대신 "눈이 자꾸 가는 사람이 있다"고 답한다.'},
+    {lbl:'C',el:'수',txt:'웃으며 "아직 확신은 없어요"라고 선을 긋는다.'},
+    {lbl:'D',el:'목',txt:'"왜 그 사람이 신경 쓰이는지" 이유까지 솔직히 덧붙인다.'},
+    {lbl:'E',el:'토',txt:'장난으로 넘기되, 마지막에 짧게 진심을 남긴다.'}
+  ]},
+
+  {id:'D3_M',day:3,phase:'Morning',badge:'Day 3 · Morning',mood:'mystic',type:'jealousy',sit:'복도에서 스친 대화',text:'복도 끝에서 그와 다른 출연자가 낮은 목소리로 얘기합니다.\n귓가에 걸린 건 "어젯밤 얘기, 오해는 없었으면 해"라는 수상한 단서.\n사실보다 먼저 심장이 반응하는 아침입니다.',nextSceneId:'D3_A',choices:[
+    {lbl:'A',el:'수',txt:'지금은 개입하지 않고, 맥락을 더 지켜본다.',setFlags:['sawWhisper']},
+    {lbl:'B',el:'금',txt:'그의 표정과 말투를 조용히 체크해 둔다.'},
+    {lbl:'C',el:'화',txt:'자리로 가서 "나중에 우리도 얘기하자"고 먼저 말한다.',effect:'shake'},
+    {lbl:'D',el:'목',txt:'친한 출연자에게 상황을 조심스럽게 물어본다.'},
+    {lbl:'E',el:'토',txt:'감정 메모를 남기고, 섣부른 판단을 미룬다.'}
+  ]},
+  {id:'D3_A',day:3,phase:'Afternoon',badge:'Day 3 · Afternoon',mood:'warm',type:'normal',sit:'도시락 데이트 매칭',text:'도시락 매칭 카드가 뒤집히는 순간, 모두가 미묘하게 숨을 고릅니다.\n오늘의 자리 선택이 내일의 감정을 예고합니다.',nextSceneId:'D3_N',choices:[
+    {lbl:'A',el:'목',txt:'박하늘 옆에 앉는다.',targetChar:'tree'},
+    {lbl:'B',el:'화',txt:'이준서 옆에 앉는다.',targetChar:'fire'},
+    {lbl:'C',el:'토',txt:'황도윤 옆에 앉는다.',targetChar:'soil'},
+    {lbl:'D',el:'금',txt:'강시우 옆에 앉는다.',targetChar:'gold'},
+    {lbl:'E',el:'수',txt:'윤재현 옆에 앉는다.',targetChar:'water'}
+  ]},
+  {id:'D3_N',day:3,phase:'Night',badge:'Day 3 · Night · 갈등',mood:'tension',type:'conflict',sit:'오해와 갈등 이벤트 (강제 발생)',text:'저녁 인터뷰가 끝난 뒤, 그가 다른 출연자와 길게 대화하는 장면이 잡힙니다.\n가까이서 들린 말은 "오늘은 이 얘기를 끝내고 싶어".\n확신 없는 밤일수록, 선택의 타이밍은 더 잔인하게 선명해집니다.',nextSceneId:'D4_M',dynamic:true,choices:[]},
+
+  {id:'D4_M',day:4,phase:'Morning',badge:'Day 4 · Morning',mood:'mystic',type:'normal',sit:'밤의 여파',text:'아침 식탁 위에 숟가락 소리만 얇게 떠다닙니다.\n어젯밤의 장면을 모두 봤지만, 누구도 먼저 이름을 부르지 않습니다.\n오늘은 감정보다, 말의 순서가 관계를 정합니다.',nextSceneId:'D4_A',choices:[
+    {lbl:'A',el:'토',txt:'메모로 질문을 정리해, 감정 섞지 않고 대화할 준비를 한다.'},
+    {lbl:'B',el:'수',txt:'한 템포 쉬고, 감정이 가라앉은 뒤 대화를 잡는다.'},
+    {lbl:'C',el:'화',txt:'불편했던 지점을 바로 짚고 선을 분명히 한다.',effect:'shake'},
+    {lbl:'D',el:'목',txt:'분위기를 부드럽게 풀고 핵심 질문으로 들어간다.'},
+    {lbl:'E',el:'금',txt:'상대의 말이 끝날 때까지 끊지 않고 관찰한다.'}
+  ]},
+  {id:'D4_A',day:4,phase:'Afternoon',badge:'Day 4 · Afternoon · 직진',mood:'romance',type:'charm',sit:'직진 어필 단독 이벤트',text:'오후, 호감도 1위 남성이 먼저 당신을 불러 세웁니다.\n카메라 사각지대 복도 끝, 두 사람의 그림자만 겹칩니다.\n짧은 대화 하나가 엔딩의 장르를 바꿀 수 있습니다.',nextSceneId:'D4_N',dynamic:true,choices:[
+    {lbl:'A',el:'화',txt:'눈을 맞추며 마음을 열어본다.',effect:'petal',setFlags:['openedHeart'],momentTag:'solo_appeal'},
+    {lbl:'B',el:'수',txt:'끝까지 듣고 천천히 대답한다.'},
+    {lbl:'C',el:'금',txt:'감정은 숨기고 핵심만 묻는다.'},
+    {lbl:'D',el:'목',txt:'나도 솔직하게 내 마음을 말한다.',setFlags:['mutualSpark'],effect:'petal'},
+    {lbl:'E',el:'토',txt:'지금은 확답 대신 시간을 달라고 한다.'}
+  ]},
+  {id:'D4_N',day:4,phase:'Night',badge:'Day 4 · Night · 분기',mood:'mystic',type:'normal',sit:'루트별 깊은 대화',text:'같은 밤, 서로 다른 대화가 동시에 흘러갑니다.\n어떤 눈빛은 붙잡고, 어떤 침묵은 보내줘야 합니다.\n당신의 선택은 최종 선택 전 마지막 히든 카드를 뒤집습니다.',nextSceneId:'D5_M',dynamic:true,choices:[
+    {lbl:'A',el:'목',txt:'후회 없게 마음을 먼저 보여주기로 한다.'},
+    {lbl:'B',el:'토',txt:'속도보다 신뢰를 우선으로 합의한다.'},
+    {lbl:'C',el:'수',txt:'좋아함보다 "지속 가능성"을 먼저 확인한다.'}
+  ]},
+
+  {id:'D5_M',day:5,phase:'Morning',badge:'Day 5 · Morning',mood:'dawn',type:'normal',sit:'마지막 아침',text:'마지막 아침, 다섯 남자의 표정이 전부 다릅니다.\n누군가는 담담하고, 누군가는 이미 답을 정한 얼굴입니다.\n당신도 이제 마지막 선택 카드를 손끝에 올립니다.',nextSceneId:'D5_A',choices:[
+    {lbl:'A',el:'목',txt:'가장 끌리는 사람에게 먼저 인사를 건넨다.'},
+    {lbl:'B',el:'금',txt:'끝까지 상황을 지켜본 뒤 움직인다.'},
+    {lbl:'C',el:'수',txt:'마음을 일기에 적어 정리한다.'}
+  ]},
+  {id:'D5_A',day:5,phase:'Afternoon',badge:'Day 5 · Afternoon',mood:'warm',type:'normal',sit:'최종 선택 전 마지막 대화',text:'최종 선택 전, 단 한 번 더 진심을 확인할 시간이 주어집니다.\n오늘의 한마디는 고백이 될 수도, 작별이 될 수도 있습니다.',nextSceneId:'D5_N',choices:[
+    {lbl:'A',el:'화',txt:'후회 없이 감정을 전한다.',effect:'petal'},
+    {lbl:'B',el:'토',txt:'천천히 시작하자고 제안한다.'},
+    {lbl:'C',el:'금',txt:'끝까지 진심을 증명해 달라고 말한다.'},
+    {lbl:'D',el:'수',txt:'오해의 순간에 대한 해명을 직접 듣는다.',setFlags:['clearedMisunderstanding']}
+  ]},
+  {id:'D5_N',day:5,phase:'Night',badge:'Day 5 · Night · Final Choice',mood:'romance',type:'final',sit:'최종 선택의 밤',text:'이제 마지막 선택만 남았습니다.\n당신의 사주와 4박 5일의 선택들이 어떤 엔딩 카드를 부를까요?',choices:[]}
+];
+const CHUNG_STEM={'甲':'庚','庚':'甲','乙':'辛','辛':'乙','丙':'壬','壬':'丙','丁':'癸','癸':'丁'};
+const REL_TONE={
+  harmony:{label:'합(自然 끌림)',desc:'말하지 않아도 호흡이 맞아, 가까워질수록 편안해지는 조합.'},
+  overfit:{label:'과합(달콤하지만 부담)',desc:'너무 잘 맞아 경계가 흐려지기 쉬운 구간. 달콤하지만 숨 고르기가 필요합니다.'},
+  yuanjin:{label:'원진(애증 집착)',desc:'끌림과 예민함이 함께 오는 패턴. 애틋하지만 오해 관리가 핵심입니다.'},
+  clash:{label:'충(초반 티격태격)',desc:'초반엔 부딪혀도 텐션이 케미로 바뀔 수 있는 조합.'},
+  smooth:{label:'완만(안정 전개)',desc:'큰 파도 없이 서서히 깊어지는 안정형 조합.'}
+};
+const ENDING_COPY={
+  tree:{
+    true:'봄비가 내리던 날처럼, 두 사람의 기운은 서로를 자라게 하는 목(木)의 인연으로 합을 이뤘습니다.',
+    sweet:'서로의 생활 루틴 안으로 자연스럽게 스며든 안정적인 연애가 시작됩니다.',
+    growth:'완벽하진 않지만, 함께 성장하기로 합의한 건강한 관계 엔딩입니다.',
+    normal:'서툴지만 단단한 시작입니다. 천천히 같은 계절을 걷게 될 거예요.',
+    bittersweet:'좋아하지만 타이밍이 엇갈렸습니다. 다만 다음 계절의 가능성은 남았습니다.',
+    bad:'성장의 속도가 달라 잠시 엇갈렸습니다. 그러나 뿌리는 아직 살아 있습니다.',
+    hidden:'비밀의 선택이 잠긴 문을 열었습니다. 누구도 몰랐던 진심이 밤새 피어났습니다.'
+  },
+  fire:{
+    true:'불꽃은 서로의 심장에 닿아 환한 합으로 번졌고, 운명의 온도는 최고치에 도달했습니다.',
+    sweet:'뜨겁지만 무리하지 않는 속도로, 설렘이 일상으로 안착한 연애가 시작됩니다.',
+    growth:'강한 감정 뒤에 필요한 대화를 배웠고, 더 성숙한 사이로 진입합니다.',
+    normal:'온도는 충분히 따뜻합니다. 작은 용기가 다음 장면을 만듭니다.',
+    bittersweet:'감정은 진했지만 타이밍이 맞지 않았습니다. 그래서 더 오래 기억되는 밤이 됐습니다.',
+    bad:'타이밍이 반 박자 어긋났습니다. 뜨거웠지만 오래 붙잡지는 못했습니다.',
+    hidden:'모두가 등을 돌린 순간, 단 하나의 비밀 선택이 두 사람의 불꽃을 다시 점화했습니다.'
+  },
+  soil:{
+    true:'대지처럼 안정된 합으로 두 사람의 관계가 뿌리내렸습니다. 오래 갈 인연입니다.',
+    sweet:'서로의 페이스를 존중하며, 잔잔하지만 단단한 데이트가 이어집니다.',
+    growth:'느린 대화가 쌓여 관계의 체력이 생겼고, 현실적인 커플로 자리 잡습니다.',
+    normal:'조용하지만 신뢰로운 시작. 시간이 흐를수록 진심이 또렷해집니다.',
+    bittersweet:'마음은 있었지만 서로의 현실 속도가 달랐습니다. 잠시 멈춘 엔딩입니다.',
+    bad:'안정을 원했던 마음이 너무 조심스러워 기회를 놓쳤습니다.',
+    hidden:'숨겨진 선택으로 닫혔던 마음이 열렸고, 예상치 못한 반전 로맨스가 시작됐습니다.'
+  },
+  gold:{
+    true:'차갑던 표면 아래 숨은 진심이 드러났고, 강한 결속의 합으로 이어졌습니다.',
+    sweet:'말은 짧아도 행동은 분명했습니다. 서로를 아끼는 방식이 같은 엔딩입니다.',
+    growth:'오해를 논리적으로 풀어내며, 믿을 수 있는 관계로 업그레이드됩니다.',
+    normal:'선명한 확신까지는 아니지만, 서로를 더 알고 싶은 마음이 남았습니다.',
+    bittersweet:'서로를 이해했지만 시점이 어긋났습니다. 그래서 더 조심스럽게 멀어졌습니다.',
+    bad:'오해의 균열이 끝내 메워지지 못했습니다. 단단함이 때로는 벽이 되었습니다.',
+    hidden:'치명적인 순간에 택한 비밀 루트가 금(金)의 결을 뒤집어 운명을 바꿨습니다.'
+  },
+  water:{
+    true:'깊은 물결이 같은 달빛을 비추며 두 사람의 감정은 고요한 합으로 완성됐습니다.',
+    sweet:'편안한 대화가 끊기지 않는 관계로 연결되며, 감정의 호흡이 안정됩니다.',
+    growth:'상처를 말로 정리해낸 끝에, 더 깊고 건강한 친밀감을 얻게 됩니다.',
+    normal:'아직은 잔잔한 파도지만, 다시 만날 여백이 분명히 남아 있습니다.',
+    bittersweet:'감정은 닿았지만 현실의 파도는 거셌습니다. 여운이 길게 남는 엔딩입니다.',
+    bad:'말하지 못한 감정이 저류가 되어 멀어졌습니다. 다음 계절이 필요합니다.',
+    hidden:'아무도 모르는 선택지에서 진심이 먼저 도착했습니다. 반전의 밤이었습니다.'
+  }
+};
+let G={
+  userStem:null,
+  userDayBranch:null,
+  si:0,
+  currentSceneId:'',
+  nextSceneId:'',
+  aff:{甲:0,丙:0,戊:0,庚:0,壬:0},
+  baseAff:{},
+  history:[],
+  finalChar:null,
+  selStem:null,
+  flags:{routeA:false,routeB:false,routeC:false,hiddenDoor:false,sawWhisper:false,openedHeart:false,mutualSpark:false,clearedMisunderstanding:false,nightBond:false,publicConfess:false},
+  moments:{heart:null,misunderstanding:null},
+  endingType:'normal',
+  endingReason:''
+};
+let rxnPending=false;
+const CHARACTER_STORY_VOICE={
+  tree:{
+    gaze:'박하늘은 사람들 사이에서도 늘 먼저 길을 내는 사람처럼 움직입니다. 그런데 당신 앞에서는 그 직진이 조금 느려지고, 눈빛부터 허락을 구합니다.',
+    truth:'박하늘은 감정 카드를 오래 쥐고 있다가 당신 쪽으로 살짝 기울입니다. "나는 애매한 엔딩 싫어요. 그래서 오늘은 숨기지 않을래요."',
+    conflict:'박하늘은 복도 끝에서 걸음을 멈춥니다. 설명보다 먼저 다가오던 사람이 처음으로 한 박자 기다리자, 그 침묵이 오히려 더 크게 흔들립니다.',
+    appeal:'그는 손에 쥔 커피를 내려놓고 말합니다. "내가 너무 앞서갔다면 멈출게요. 그래도 마음만큼은 뒤로 숨기고 싶지 않아요."',
+    routeA:'그 밤, 박하늘은 당신의 솔직함을 정면으로 받아냅니다. 두 사람은 서두르지 않기로 하면서도, 마음을 숨기지 않는 약속 하나만은 또렷하게 남깁니다.',
+    routeB:'그 밤, 박하늘은 처음으로 앞서 걷던 속도를 낮춥니다. 당신이 편해지는 박자를 기다리는 일이 사랑의 다른 이름이라는 걸 배웁니다.',
+    routeC:'그 밤, 박하늘은 대답 대신 오래 눈을 맞춥니다. 말보다 먼저 달려가던 감정이 당신의 선택을 기다리며 조금 더 깊어집니다.',
+    final:'마지막 아침의 박하늘은 평소처럼 먼저 웃지만, 오늘의 웃음은 부탁에 가깝습니다. 선택받고 싶은 사람이 아니라 함께 자라고 싶은 사람의 얼굴입니다.'
+  },
+  fire:{
+    gaze:'이준서는 웃음으로 공기를 밝히는 사람입니다. 그런데 당신이 시선을 들면, 장난처럼 튀던 말들이 이상하게 낮은 음으로 가라앉습니다.',
+    truth:'이준서는 기타 피크 대신 감정 카드를 손끝으로 튕깁니다. "오늘 밤 제목은 아직 없어요. 네 이름을 넣어도 되는지 묻고 싶어서."',
+    conflict:'이준서는 다른 출연자 앞에서 환하게 웃고 있었지만, 당신을 발견한 순간 박자를 놓칩니다. 무대 위 사람처럼 보이던 그가 처음으로 가사를 잃습니다.',
+    appeal:'그는 빈 라운지의 기타 줄을 한 번 울리고 말합니다. "장난처럼 시작했는데, 너한테만은 가볍게 들리고 싶지 않아."',
+    routeA:'그 밤, 이준서는 뜨거운 고백을 노래처럼 밀어붙이지 않습니다. 대신 당신이 숨을 고를 때까지 마지막 코드를 누른 채 기다립니다.',
+    routeB:'그 밤, 이준서는 즉흥을 멈추고 약속을 배웁니다. 설렘은 폭죽이 아니라 오래 꺼지지 않는 작은 불빛으로 남습니다.',
+    routeC:'그 밤, 이준서는 말끝마다 웃음을 숨깁니다. 진심이 들킬까 봐 장난을 치던 사람이, 이제는 장난으로도 숨기지 못합니다.',
+    final:'마지막 아침의 이준서는 가장 조용한 멜로디를 흥얼거립니다. 누구에게도 들려주지 않았던 후렴이 당신이 지나갈 때만 완성됩니다.'
+  },
+  soil:{
+    gaze:'황도윤은 늘 한 걸음 뒤에서 사람을 살피는 사람입니다. 당신이 불편해하기 전 컵을 옮기고, 말이 막히기 전 조용히 자리를 내어줍니다.',
+    truth:'황도윤은 감정 카드를 테이블 위에 반듯하게 놓습니다. "천천히여도 괜찮다면, 저는 오래 가는 쪽으로 마음이 갑니다."',
+    conflict:'황도윤은 변명보다 먼저 당신의 표정을 봅니다. 단단한 사람이라 믿었던 그가 흔들리는 순간, 말하지 않은 진심이 더 선명해집니다.',
+    appeal:'그는 접어둔 골목 지도를 건넵니다. "급하게 답하지 않아도 돼요. 다만 당신이 걷고 싶은 길을, 저도 같이 알고 싶어요."',
+    routeA:'그 밤, 황도윤은 당신의 빠른 진심을 조심스레 받아 안습니다. 속도는 다르지만 같은 방향을 보겠다는 약속이 두 사람 사이에 놓입니다.',
+    routeB:'그 밤, 황도윤은 가장 편안한 침묵으로 고백합니다. 큰말 없이도 오래 남는 사랑이 있다는 걸, 당신은 그의 온도로 알게 됩니다.',
+    routeC:'그 밤, 황도윤은 당신의 망설임을 재촉하지 않습니다. 대신 내일도 같은 자리에 있겠다는 단단한 약속만 남깁니다.',
+    final:'마지막 아침의 황도윤은 당신 몫의 의자를 먼저 빼 둡니다. 사소한 배려 하나가 이 집에서 가장 긴 고백처럼 느껴집니다.'
+  },
+  gold:{
+    gaze:'강시우는 감정을 쉽게 흘리지 않는 사람입니다. 하지만 당신이 가까이 오면 손목시계를 만지는 손끝이 아주 잠깐, 평소의 냉정함을 배반합니다.',
+    truth:'강시우는 감정 카드를 보지 않고 당신을 봅니다. "말로 설명하면 부족할 것 같아서요. 그래도 오늘은 말해야겠네요. 신경 쓰입니다."',
+    conflict:'강시우는 무심한 표정으로 서 있지만, 당신이 돌아서는 순간 손목시계를 거칠게 잠급니다. 차가운 침묵 아래 진심이 날카롭게 떨립니다.',
+    appeal:'그는 짧게 숨을 고르고 말합니다. "틀릴까 봐 늦었습니다. 하지만 늦었다고 해서 마음이 가벼웠던 건 아닙니다."',
+    routeA:'그 밤, 강시우는 당신의 솔직함 앞에서 방어를 내려놓습니다. 정확한 선택들 사이로 처음 보는 다정함이 아주 조용히 새어 나옵니다.',
+    routeB:'그 밤, 강시우는 증명하듯 곁에 남습니다. 말보다 행동이 먼저 도착하는 사람의 사랑이 당신의 불안을 천천히 가라앉힙니다.',
+    routeC:'그 밤, 강시우는 대답을 서두르지 않습니다. 대신 오해의 빈칸을 하나씩 지우며, 두 사람이 다시 믿을 수 있는 규칙을 만듭니다.',
+    final:'마지막 아침의 강시우는 아무렇지 않은 척 따뜻한 물을 놓고 갑니다. 쪽지 한 줄도 없지만, 그 무심함이 오늘은 가장 선명한 고백입니다.'
+  },
+  water:{
+    gaze:'윤재현은 사람을 바라볼 때 마치 숨겨진 카드를 읽듯 천천히 읽습니다. 당신의 침묵까지 듣는 듯한 눈빛 때문에, 아무 말도 하지 않았는데 속내가 들킨 것 같습니다.',
+    truth:'윤재현은 감정 카드 뒷면에 짧은 장면을 적어 건넵니다. "오늘 가장 오래 남은 건, 네가 아무 말 없이 웃던 순간."',
+    conflict:'윤재현은 다른 사람과 낮게 이야기하다가 당신을 보고 말을 삼킵니다. 숨긴 것이 아니라 아껴둔 단서라는 걸 알기까지, 밤은 조금 길어집니다.',
+    appeal:'그는 접힌 노트를 당신에게 건넵니다. "네가 불안했던 장면까지, 나는 함부로 넘기고 싶지 않아. 다음 선택을 같이 뒤집어도 될까."',
+    routeA:'그 밤, 윤재현은 당신의 솔직함을 오래 바라봅니다. 감정은 파도처럼 밀려오지만, 두 사람은 서로의 해안을 무너뜨리지 않는 법을 배웁니다.',
+    routeB:'그 밤, 윤재현은 약속을 시처럼 말하지 않습니다. 대신 정확하고 낮은 목소리로, 내일도 당신의 편에 서겠다고 말합니다.',
+    routeC:'그 밤, 윤재현은 침묵 속에 감춰둔 마음을 마침내 선택으로 꺼냅니다. 오래 눌러둔 고백이 당신의 이름 앞에서 천천히 열립니다.',
+    final:'마지막 아침의 윤재현은 노트를 덮지 못합니다. 결말을 쓰는 사람처럼 보였던 그가, 오늘은 당신의 선택을 기다리는 한 사람입니다.'
+  }
+};
+const STEM_ALIAS_MAP={
+  갑:'甲',을:'乙',병:'丙',정:'丁',무:'戊',기:'己',경:'庚',신:'辛',임:'壬',계:'癸',
+  갑목:'甲',을목:'乙',병화:'丙',정화:'丁',무토:'戊',기토:'己',경금:'庚',신금:'辛',임수:'壬',계수:'癸'
+};
+const BRANCH_ALIAS_MAP={
+  자:'子',축:'丑',인:'寅',묘:'卯',진:'辰',사:'巳',오:'午',미:'未',신:'申',유:'酉',술:'戌',해:'亥',
+  子:'子',丑:'丑',寅:'寅',卯:'卯',辰:'辰',巳:'巳',午:'午',未:'未',申:'申',酉:'酉',戌:'戌',亥:'亥'
+};
+const YUANJIN_BRANCH_MAP={
+  '子':'未','未':'子',
+  '丑':'午','午':'丑',
+  '寅':'巳','巳':'寅',
+  '卯':'辰','辰':'卯',
+  '申':'亥','亥':'申',
+  '酉':'戌','戌':'酉'
+};
+function normalizeStemValue(raw){
+  if(raw==null)return '';
+  const s=String(raw).trim();
+  if(STEMS[s])return s;
+  const c=s.charAt(0);
+  if(STEMS[c])return c;
+  const ko=s.toLowerCase().replace(/[\s()\-_/]/g,'');
+  return STEM_ALIAS_MAP[ko]||'';
+}
+function normalizeBranchValue(raw){
+  if(raw==null)return '';
+  const s=String(raw).trim();
+  if(BRANCH_ALIAS_MAP[s])return BRANCH_ALIAS_MAP[s];
+  const c=s.charAt(0);
+  if(BRANCH_ALIAS_MAP[c])return BRANCH_ALIAS_MAP[c];
+  const ko=s.toLowerCase().replace(/[\s()\-_/]/g,'');
+  return BRANCH_ALIAS_MAP[ko]||'';
+}
+function calcBase(uStem){
+  const us=STEMS[uStem];const res={};
+  CHARS.forEach(c=>{
+    const cs=STEMS[c.stem];let score=0,rels=[];
+    if(HARM[uStem]===c.stem){
+      const key=[uStem,c.stem].sort().join('');const hel=HARM_EL[key]||'';
+      score+=35;rels.push({type:'운명 케미',score:35,desc:`${us.kr}(${uStem})과 ${cs.kr}(${c.stem})은 첫 장면부터 강하게 끌리는 케미를 보여줍니다.`});
+    } else if(GEN[us.el]===cs.el){
+      score+=20;rels.push({type:'완벽 호흡',score:20,desc:`당신의 리듬과 상대의 템포가 자연스럽게 맞아떨어집니다.`});
+    } else if(GEN[cs.el]===us.el){
+      score+=15;rels.push({type:'안정 시너지',score:15,desc:`상대가 당신의 감정선을 안정적으로 받쳐주는 흐름입니다.`});
+    } else if(us.el===cs.el){
+      if(us.yin!==cs.yin){score+=12;rels.push({type:'반전 매력',score:12,desc:'다른 결이 만나 오히려 서로를 더 빛나게 합니다.'});}
+      else{score+=8;rels.push({type:'동질 공감',score:8,desc:'비슷한 결로 서로의 마음을 빠르게 읽어냅니다.'});}
+    } else if(RES[us.el]===cs.el){
+      score+=5;rels.push({type:'주도 밸런스',score:5,desc:'리드와 팔로우가 분명해 관계의 균형을 잡기 쉽습니다.'});
+    } else if(RES[cs.el]===us.el){
+      score-=5;rels.push({type:'온도 차이',score:-5,desc:'감정 템포 차이가 커서 오해가 생기기 쉬운 구간입니다.'});
+    }
+    if(us.yin!==cs.yin) score+=3;
+    res[c.stem]={score,rels};
+  });
+  return res;
+}
+function applyChoice(el){const d=ED[el];CHARS.forEach(c=>{G.aff[c.stem]=(G.aff[c.stem]||0)+(d[c.stem]||0);});}
+function getTotal(stem){return(G.baseAff[stem]?.score||0)+(G.aff[stem]||0);}
+function getMaxTotal(){return Math.max(...CHARS.map(c=>getTotal(c.stem)));}
+const SCENE_MAP=Object.fromEntries(SCENE_DATA.map(s=>[s.id,s]));
+const SCENE_ORDER=SCENE_DATA.map(s=>s.id);
+const CHAR_BY_ID=Object.fromEntries(CHARS.map(c=>[c.id,c]));
+function getSceneLeadLine(scene,topChar){
+  const topName=(topChar&&topChar.name)||'그 사람';
+  if(scene.type==='conflict')return '웃음이 멎은 뒤, 공기부터 먼저 긴장으로 굳어갑니다.';
+  if(scene.type==='charm')return topName+'의 시선이 당신에게 고정되고, 장면의 초점이 천천히 좁혀집니다.';
+  if(scene.type==='final')return '모든 밤이 지나고, 이제 남은 건 단 하나의 고백뿐입니다.';
+  return '같은 공간인데도 사람마다 심장 박동이 다르게 울립니다.';
+}
+function getSceneTurnLine(scene,topChar){
+  const topName=(topChar&&topChar.name)||'상대';
+  if(scene.type==='conflict')return '카드 하나만 잘못 뒤집어도 관계의 판이 바뀌는 밤, 지금은 감정보다 타이밍이 중요합니다.';
+  if(scene.type==='charm')return topName+'은 숨을 고른 뒤 진심을 꺼내고, 당신의 표정 하나를 기다립니다.';
+  if(scene.type==='final')return '망설임은 마지막 장면에서 가장 큰 소음이 됩니다. 이번에는 피할 수 없습니다.';
+  return '타이밍이 어긋나면 오해가 되고, 맞아떨어지면 인연이 됩니다.';
+}
+function getSceneResolveLine(scene,topChar){
+  const topName=(topChar&&topChar.name)||'그 사람';
+  if(scene.type==='final')return '결말은 아직 비어 있습니다. 지금의 선택이 마지막 장르를 완성합니다.';
+  if(scene.type==='conflict')return '이제 당신의 선택이 오해를 풀 힌트가 될지, 더 위험한 베팅이 될지 결정합니다.';
+  if(scene.type==='charm')return topName+'의 눈빛이 떠나지 않습니다. 대답 하나로 두 사람의 속도가 정해집니다.';
+  return '심장은 이미 한 박자 앞서 있습니다. 이제 선택으로 다음 장면을 여세요.';
+}
+function hasFinalConsonant(text){
+  const chars=String(text||'').trim();
+  const code=chars.charCodeAt(chars.length-1);
+  return code>=0xac00&&code<=0xd7a3 ? ((code-0xac00)%28)>0 : false;
+}
+function withJosa(text,withFinal,withoutFinal){
+  return String(text||'')+(hasFinalConsonant(text)?withFinal:withoutFinal);
+}
+function getCharacterStoryVoice(char){
+  return CHARACTER_STORY_VOICE[(char&&char.id)||'']||CHARACTER_STORY_VOICE.soil;
+}
+function buildCharacterSceneLine(scene,topChar,dynamics){
+  const voice=getCharacterStoryVoice(topChar);
+  if(scene.id==='D1_M')return voice.gaze;
+  if(scene.id==='D2_N')return `${topChar.name}의 말은 고백보다 낮고, 농담보다 깊습니다. ${dynamics.label}의 떨림이 모닥불 사이로 번지며, 당신의 이름이 오늘 밤 가장 위험한 대답이 됩니다.`;
+  if(scene.id==='D3_N')return `${withJosa(topChar.name,'은','는')} 쉽게 변명하지 않습니다. 그래서 이 밤은 더 아프고, 당신이 먼저 고르는 선택지가 두 사람의 거리를 다시 정합니다.`;
+  if(scene.id==='D4_A')return `${topChar.name}의 고백은 그의 방식 그대로 다가옵니다. 당신은 이제 설렘이 아니라, 그 사람을 믿어도 되는지에 대답해야 합니다.`;
+  if(scene.id==='D4_N')return `${withJosa(topChar.name,'과','와')} 당신 사이의 밤은 ${dynamics.label}처럼 선명합니다. 오늘의 대화는 결론보다 깊은 곳에서, 서로가 사랑을 견디는 방식을 확인합니다.`;
+  if(scene.type==='profileEvent')return `${topChar.name}의 차례가 오자 방의 소음이 잠깐 낮아집니다. ${topChar.love_style} 그 고백은 자기소개가 아니라, 당신에게 건네는 첫 번째 시그널처럼 느껴집니다.`;
+  if(scene.type==='jealousy')return `${topChar.name}의 이름이 마음속에서 먼저 흔들립니다. ${dynamics.label}의 끌림은 달콤하지만, 확신이 늦어지는 순간 불안도 같은 속도로 자랍니다.`;
+  if(scene.type==='conflict')return voice.conflict;
+  if(scene.type==='charm')return voice.appeal;
+  if(scene.type==='final')return voice.final;
+  if(scene.day===5)return voice.final;
+  return `${withJosa(topChar.name,'은','는')} 작은 장면까지 놓치지 않습니다. ${topChar.charm} 그래서 이 순간은 단순한 미션이 아니라, 두 사람이 서로를 알아보는 조용한 신호가 됩니다.`;
+}
+function buildSceneStoryArc(scene){
+  const paragraphs=String(scene.text||'')
+    .replace(/\r\n?/g,'\n')
+    .replace(/\n{3,}/g,'\n\n')
+    .split('\n')
+    .map(line=>line.trim())
+    .filter(Boolean);
+  const topChar=getTopChar();
+  const dynamics=getCompatDynamics(G.userStem,topChar.stem,getTotal(topChar.stem));
+  const place=scene.sit
+    ? `${scene.sit}의 공기가 낮고 은밀하게 고입니다.`
+    : getSceneLeadLine(scene,topChar);
+  const sceneText=paragraphs.join('\n')||getSceneTurnLine(scene,topChar);
+  const characterLine=buildCharacterSceneLine(scene,topChar,dynamics);
+  const closing=scene.type==='final'
+    ? getSceneResolveLine(scene,topChar)
+    : `${withJosa(topChar.name,'과','와')} 당신 사이에 남은 것은 ${dynamics.desc} 다음 선택은 사건을 정리하는 버튼이 아니라, 엔딩 카드를 바꾸는 한 수가 됩니다.`;
+  const beats=[place,sceneText,characterLine,closing]
+    .map(line=>String(line||'').trim())
+    .filter(Boolean);
+  const dedup=[];
+  beats.forEach((line)=>{
+    if(!dedup.length||dedup[dedup.length-1]!==line)dedup.push(line);
+  });
+  return dedup.slice(0,4).map((text)=>({
+    text,
+  }));
+}
+function getUserElement(){
+  return STEMS[G.userStem] ? STEMS[G.userStem].el : '토';
+}
+function getTopChar(){
+  return [...CHARS].sort((a,b)=>getTotal(b.stem)-getTotal(a.stem))[0]||CHARS[0];
+}
+function getCharByStem(stem){
+  return CHARS.find(c=>c.stem===stem)||null;
+}
+function isYuanjinLike(userDayBranch,targetDayBranch){
+  if(!userDayBranch||!targetDayBranch)return false;
+  return YUANJIN_BRANCH_MAP[userDayBranch]===targetDayBranch;
+}
+function getCompatDynamics(userStem,targetStem,totalScore){
+  const targetChar=getCharByStem(targetStem);
+  const userDayBranch=normalizeBranchValue(G.userDayBranch||resolveAutoBranchFromSaju());
+  const targetDayBranch=normalizeBranchValue(targetChar&&targetChar.dayBranch);
+  const harmony=HARM[userStem]===targetStem;
+  const clash=CHUNG_STEM[userStem]===targetStem;
+  const yuanjin=isYuanjinLike(userDayBranch,targetDayBranch);
+  const overfit=harmony&&Number(totalScore||0)>=95;
+  if(overfit)return {type:'overfit',...REL_TONE.overfit};
+  if(yuanjin)return {type:'yuanjin',...REL_TONE.yuanjin};
+  if(clash)return {type:'clash',...REL_TONE.clash};
+  if(harmony)return {type:'harmony',...REL_TONE.harmony};
+  return {type:'smooth',...REL_TONE.smooth};
+}
+function getConflictChoicesByUserStem(dynamics){
+  const el=getUserElement();
+  const base=[];
+  if(el==='화'){
+    base.push({lbl:'A',el:'화',txt:(dynamics&&dynamics.type==='clash')?'(충 대응) 목소리를 낮추고 "방금 장면, 내 입장도 들어줘"라고 먼저 말한다.':'대화가 끝난 뒤 "내가 흔들린 포인트를 말해도 될까?"라고 조심스럽게 묻는다.',effect:'shake',setFlags:['boldOpen']});
+    base.push({lbl:'B',el:'목',txt:'표정은 지키되 "우리 둘이 따로 정리하자"고 약속만 잡는다.'});
+  }else if(el==='수'){
+    base.push({lbl:'A',el:'수',txt:(dynamics&&dynamics.type==='yuanjin')?'(원진 대응) 지금 결론은 미루고, 오늘은 거리를 두며 감정의 온도를 낮춘다.':'즉답을 피하고 메모로 마음을 정리한 뒤, 내일 대화를 요청한다.',setFlags:['nightBond']});
+    base.push({lbl:'B',el:'금',txt:'개입은 늦추고 흐름을 끝까지 본 뒤 핵심만 묻는다.'});
+  }else if(el==='금'){
+    base.push({lbl:'A',el:'금',txt:'"내가 본 장면만 보면 오해할 수 있었다"고 사실부터 정리한다.'});
+    base.push({lbl:'B',el:'토',txt:'감정 표현은 줄이고 상황 설명을 먼저 요청한다.'});
+  }else if(el==='목'){
+    base.push({lbl:'A',el:'목',txt:'당황해도 "네 입장을 먼저 듣고 싶어"라고 진심으로 묻는다.'});
+    base.push({lbl:'B',el:'화',txt:'먼저 분위기를 누그러뜨리고 본론 대화를 유도한다.'});
+  }else{
+    base.push({lbl:'A',el:'토',txt:'섣부른 해석을 멈추고 사실 관계부터 맞춘다.'});
+    base.push({lbl:'B',el:'수',txt:'오늘 결론은 미루고 감정이 가라앉은 뒤 대화한다.'});
+  }
+  base.push({lbl:'C',el:'토',txt:'지금은 결론을 보류하고 "내일 오전 1:1 대화"를 제안한다.',setFlags:['clearedMisunderstanding']});
+  if(G.flags.sawWhisper){
+    base.push({lbl:'H',el:'수',txt:'(숨겨진 선택) 대화 전에 그가 남긴 메모를 확인해 맥락부터 붙잡는다.',setFlags:['hiddenDoor'],requiredFlag:'sawWhisper',effect:'mystic'});
+  }
+  return base;
+}
+function resolveDynamicScene(scene){
+  if(!scene||!scene.dynamic)return scene;
+  const copy={...scene,choices:Array.isArray(scene.choices)?scene.choices.map(c=>({...c})):[]};
+  if(scene.id==='D2_N'){
+    const top=getTopChar();
+    const dynamics=getCompatDynamics(G.userStem,top.stem,getTotal(top.stem));
+    const voice=getCharacterStoryVoice(top);
+    copy.text='모닥불 앞, 출연진이 각자의 감정 카드를 공개합니다.\n'+voice.truth+'\n'+withJosa(top.name,'과','와')+' 당신 사이에는 '+dynamics.label+'의 떨림이 번지고, 짧은 침묵마다 숨겨둔 마음이 조금씩 드러납니다.';
+  }
+  if(scene.id==='D3_N'){
+    const top=getTopChar();
+    const dynamics=getCompatDynamics(G.userStem,top.stem,getTotal(top.stem));
+    const voice=getCharacterStoryVoice(top);
+    copy.text='라운지 끝에서 '+withJosa(top.name,'이','가')+' 다른 출연자와 진지하게 대화합니다.\n'+voice.conflict+'\n'+dynamics.label+'의 감정선은 가까울수록 예민해지고, 오늘 밤 당신이 고르는 말이 오해의 결을 바꿉니다.';
+    copy.choices=getConflictChoicesByUserStem(dynamics);
+  }
+  if(scene.id==='D4_A'){
+    const top=getTopChar();
+    const voice=getCharacterStoryVoice(top);
+    const dynamics=getCompatDynamics(G.userStem,top.stem,getTotal(top.stem));
+    copy.sit='직진 어필 · '+top.name+' 단독 이벤트';
+    copy.text=voice.appeal+'\n'+top.name+'의 시선이 당신에게 고정됩니다.\n'+dynamics.label+'의 끌림은 이제 숨길 수 없는 장면이 되고, 대답 하나가 마지막 밤의 방향을 정합니다.';
+    copy.type='charm';
+    copy.choices=(copy.choices||[]).map(ch=>{
+      const next={...ch,targetChar:top.id};
+      if(ch.lbl==='A')next.soloDelta=18;
+      else if(ch.lbl==='B')next.soloDelta=10;
+      else if(ch.lbl==='C')next.soloDelta=-8;
+      else if(ch.lbl==='D')next.soloDelta=14;
+      else if(ch.lbl==='E')next.soloDelta=-14;
+      else next.soloDelta=0;
+      return next;
+    });
+  }
+  if(scene.id==='D4_N'){
+    const top=getTopChar();
+    const dynamics=getCompatDynamics(G.userStem,top.stem,getTotal(top.stem));
+    const voice=getCharacterStoryVoice(top);
+    const tail='\n'+withJosa(top.name,'과','와')+' 당신 사이에는 '+dynamics.label+'의 결이 남아, 다정함과 불안이 같은 테이블에 앉습니다.';
+    if(G.flags.routeA) copy.text=voice.routeA+tail;
+    else if(G.flags.routeB) copy.text=voice.routeB+tail;
+    else if(G.flags.routeC) copy.text=voice.routeC+tail;
+    else copy.text='서로의 입장을 확인한 뒤에도 밤은 쉽게 끝나지 않습니다. '+top.name+'은 마지막까지 당신의 표정을 읽고, 당신은 그의 침묵 속에서 진심의 방향을 찾습니다.'+tail;
+  }
+  return copy;
+}
+function handleChoice(choice,btn,scene){
+  if(rxnPending)return;rxnPending=true;
+  stopSceneTyping();
+  document.querySelectorAll('.choice-btn').forEach(b=>{b.disabled=true;b.style.opacity='.38';});
+  btn.style.opacity='1';btn.classList.add('picked');
+  if(scene.id==='D4_A'){
+    const soloTarget=(choice.targetChar&&CHAR_BY_ID[choice.targetChar])?CHAR_BY_ID[choice.targetChar]:getTopChar();
+    const soloDelta=Number(choice.soloDelta||0);
+    G.aff[soloTarget.stem]=(G.aff[soloTarget.stem]||0)+soloDelta;
+  }else if(scene.id==='D5_M'&&choice.lbl==='A'){
+    applyChoice(choice.el);
+    const topTarget=getTopChar();
+    // Day 5 Morning A: ensure the current top-ranked character's affection increases.
+    G.aff[topTarget.stem]=(G.aff[topTarget.stem]||0)+12;
+  }else{
+    applyChoice(choice.el);
+    if(choice.targetChar&&CHAR_BY_ID[choice.targetChar]){
+      const tg=CHAR_BY_ID[choice.targetChar];
+      G.aff[tg.stem]=(G.aff[tg.stem]||0)+10;
+    }
+  }
+  if(Array.isArray(choice.setFlags)){
+    choice.setFlags.forEach(f=>{G.flags[f]=true;});
+  }
+  if(choice.momentTag){
+    G.moments.heart=choice.momentTag;
+  }
+  if(scene.id==='D3_N'){
+    G.moments.misunderstanding=choice.lbl==='H'?'secret_reveal':'misread_glance';
+  }
+  playSceneEffect(choice.effect);
+  G.nextSceneId=choice.nextSceneId||scene.nextSceneId||'';
+  G.history.push({sceneId:scene.id,choice:choice});
+  showRxn(choice,scene);
+}
+const RXN_BY_EL={
+  목:{lines:[
+    "그 당찬 표정, 이상하게 계속 눈에 남아요.",
+    "당신은 망설일 때도 앞으로 가네요. 그게 좋아요.",
+    "이상하죠, 자꾸 당신 반응부터 확인하게 돼요.",
+    "당신 같은 사람을 오래 기다린 기분이에요.",
+    "솔직하게 와줘서 고마워요. 나도 솔직해질게요, 많이 신경 쓰여요."
+  ],char:'tree'},
+  화:{lines:[
+    "방금 말, 생각보다 더 깊게 들어왔어요.",
+    "당신 옆에 있으면 심장이 한 박자 빨라져요.",
+    "이런 설렘은 오랜만이에요. 나도 당황했어요.",
+    "먼저 솔직해줘서 고마워요. 나도 이제 숨기지 않을래요.",
+    "당신과 있으면 이상하게 더 나답게 웃게 돼요."
+  ],char:'fire'},
+  토:{lines:[
+    "당신은 이상하게 사람을 안심시키는 재주가 있네요.",
+    "함께 있으면 마음이 급해지지 않아요. 그게 참 좋아요.",
+    "방금 그 배려, 오래 기억할 것 같아요.",
+    "당신 곁의 공기는 조용한데 따뜻해요.",
+    "말하지 않은 마음까지 알아봐줘서 고마워요."
+  ],char:'soil'},
+  금:{lines:[
+    "말보다 행동으로 보여주네요. 그 점이 닮았어요.",
+    "결정이 빠른 사람, 흔치 않아서 더 눈에 띄어요.",
+    "차분한데 디테일이 살아 있네요. 꽤 인상적이에요.",
+    "솔직히 말하면, 이런 순간이 싫지 않아요.",
+    "처음엔 무심했는데... 지금은 다르게 보여요."
+  ],char:'gold'},
+  수:{lines:[
+    "그 깊은 눈빛, 말보다 많은 걸 들려주네요.",
+    "조용한데 진심이 선명해요. 오래 숨겨둔 장면처럼.",
+    "당신이 질문할 때마다 마음이 한 칸씩 열려요.",
+    "당신이라면 내 긴 이야기도 끝까지 들어줄 것 같아요.",
+    "오늘 밤은, 당신 때문에 다음 장면이 궁금해졌어요."
+  ],char:'water'}
+};
+const SAJU_MENT={
+  목:(u,c)=>`당신의 ${u.kr} 기운에서 느껴지는 진취성이 제 ${c.kr} 기운과 만나 새로운 성장을 만들어냅니다.`,
+  화:(u,c)=>`당신에게서 뿜어져 나오는 화(火)의 에너지가 제 ${c.el} 기운을 더욱 빛나게 합니다.`,
+  토:(u,c)=>`대지처럼 포근한 토(土)의 기운이 우리 사이에 깊은 안정감을 만들어줍니다.`,
+  금:(u,c)=>`금(金)처럼 단단하고 결단력 있는 면이 느껴져요. 그 의지가 매력적입니다.`,
+  수:(u,c)=>`수(水)처럼 깊고 유연한 당신과 함께라면 어떤 상황도 헤쳐나갈 수 있을 것 같아요.`
+};
+function showRxn(choice,scene){
+  const rxnInfo=RXN_BY_EL[choice.el];
+  const rChar=(choice.targetChar&&CHAR_BY_ID[choice.targetChar])?CHAR_BY_ID[choice.targetChar]:CHARS.find(c=>c.id===rxnInfo.char);
+  const col=EC[rChar.el];
+  const us=STEMS[G.userStem];const cs=STEMS[rChar.stem];
+  const speech=rxnInfo.lines[Math.floor(Math.random()*rxnInfo.lines.length)];
+  const saju=SAJU_MENT[choice.el](us,cs);
+  const dynamics=getCompatDynamics(G.userStem,rChar.stem,getTotal(rChar.stem));
+  const card=document.getElementById('rxnCard');
+  card.style.border=`1px solid ${col}33`;
+  document.getElementById('rxnContent').innerHTML=`
+    <div class="rxn-img-wrap">
+      <img class="rxn-img" src="${IMG[rChar.imgKey]}" alt="${rChar.name}">
+      <div class="rxn-img-overlay"></div>
+      <div class="rxn-char-name" style="color:${col}">${rChar.name} <span style="font-size:11px;font-weight:400;color:var(--muted)">${STEMS[rChar.stem].kr}</span></div>
+    </div>
+    <div class="rxn-body">
+      <div class="serif" style="font-size:15px;line-height:1.9;color:var(--moon);margin-bottom:14px">"${speech}"</div>
+      <div style="font-size:11px;color:${col};padding:10px 12px;border-radius:10px;background:${col}0e;border:1px solid ${col}1e;line-height:1.75">${saju}<br><span style="color:var(--muted)">관계 키워드: ${dynamics.label}</span></div>
+    </div>`;
+  document.getElementById('rxnOverlay').classList.add('show');
+}
+function calculateCompatScore(userStem,targetStem){
+  const us=STEMS[userStem]||{};
+  const ts=STEMS[targetStem]||{};
+  const targetChar=getCharByStem(targetStem);
+  const userDayBranch=normalizeBranchValue(G.userDayBranch||resolveAutoBranchFromSaju());
+  const targetDayBranch=normalizeBranchValue(targetChar&&targetChar.dayBranch);
+  let score=0;
+  const reasons=[];
+  const flags={harmony:false,clash:false,yuanjin:false,overfit:false};
+  if(HARM[userStem]===targetStem){
+    flags.harmony=true;
+    score+=40;
+    reasons.push('강한 첫인상 케미');
+  }
+  if(CHUNG_STEM[userStem]===targetStem){
+    flags.clash=true;
+    score-=28;
+    reasons.push('감정 템포 충돌');
+  }
+  if(us.el&&ts.el&&us.el===ts.el){
+    score+=11;
+    reasons.push('유사 스타일 공감');
+  }
+  if(us.el&&ts.el&&GEN[us.el]===ts.el){
+    score+=14;
+    reasons.push('자연스러운 호흡');
+  }
+  if(us.el&&ts.el&&RES[us.el]===ts.el){
+    score-=10;
+    reasons.push('극 관계');
+  }
+  const yuanjin=isYuanjinLike(userDayBranch,targetDayBranch);
+  if(yuanjin){
+    flags.yuanjin=true;
+    score-=12;
+    reasons.push('일지 원진 패턴');
+  }
+  if(flags.harmony&&score>=45){
+    flags.overfit=true;
+    reasons.push('과몰입 부담 가능성');
+  }
+  return {score,reasons,flags};
+}
+function calculateEnding(targetChar){
+  const total=getTotal(targetChar.stem);
+  const compat=calculateCompatScore(G.userStem,targetChar.stem);
+  const hiddenCond=Boolean(G.flags.hiddenDoor&&G.moments.misunderstanding==='secret_reveal');
+  let type='normal';
+  let reason='';
+  if(hiddenCond){
+    type='hidden';
+    reason='갈등 구간의 숨겨진 선택을 활성화함';
+  }else if(total>=96&&compat.score>=34&&(G.flags.openedHeart||G.flags.mutualSpark)&&!compat.flags.overfit&&G.flags.clearedMisunderstanding){
+    type='true';
+    reason='최상위 호감 + 고궁합 + 오해 해소 + 감정 개방';
+  }else if(total>=86&&compat.score>=20&&!compat.flags.overfit&&(G.flags.openedHeart||G.flags.mutualSpark)){
+    type='sweet';
+    reason='호감 우세 + 감정 개방으로 안정적인 연애 시작';
+  }else if(total>=78&&compat.score>=8&&(G.flags.clearedMisunderstanding||G.flags.nightBond)){
+    type='growth';
+    reason='갈등을 대화로 해결해 성장형 관계로 전환';
+  }else if((total>=64&&total<78&&compat.score>-8)||(compat.flags.overfit&&(G.flags.clearedMisunderstanding||G.flags.nightBond))){
+    type='normal';
+    reason='호감은 충분하며 속도 조절 단계';
+  }else if((total>=56&&compat.score<=6)||compat.flags.yuanjin||compat.flags.clash){
+    type='bittersweet';
+    reason='끌림은 남지만 갈등/현실 변수로 여운을 남김';
+  }else if(compat.flags.overfit&&!(G.flags.clearedMisunderstanding||G.flags.nightBond)){
+    type='normal';
+    reason='합은 강하지만 과몰입 부담으로 속도 조절 필요';
+  }else if(total<55||compat.score<=-16){
+    type='bad';
+    reason='호감도 부족 또는 궁합 불리';
+  }
+  return {type,total,compatScore:compat.score,compatReasons:compat.reasons,reason};
+}
+function summarizeHeartMoment(){
+  const m=G.moments.heart||'';
+  if(m==='heartbeat_peak')return '진실 게임에서 시선을 피하지 못했던 순간';
+  if(m==='solo_appeal')return 'Day 4 오후, 단독 직진 어필이 터진 순간';
+  if(m==='first_eye')return '첫날 아침, 가장 먼저 눈이 마주친 순간';
+  return '사소한 배려가 설렘으로 바뀌던 밤';
+}
+function summarizeMisunderstanding(){
+  const m=G.moments.misunderstanding||'';
+  if(m==='secret_reveal')return '오해의 밤, 숨겨진 메모를 확인해 진실을 먼저 알게 된 순간';
+  if(m==='misread_glance')return '다른 출연자와 다정한 장면을 목격하고 마음이 무너진 순간';
+  return '갈등의 기류를 버티며 감정을 추슬렀던 순간';
+}
+function updateEndingOgMeta(endingType,charName,total){
+  const labelMap={true:'True Ending',sweet:'Sweet Ending',growth:'Growth Ending',normal:'Normal Ending',bittersweet:'Bittersweet Ending',bad:'Bad Ending',hidden:'Hidden Ending'};
+  const label=labelMap[endingType]||'Ending';
+  const title='시크릿 하우스 ✦ '+label;
+  const desc='나의 최종 인연은 '+charName+' · 궁합 '+total+'pt';
+  document.title=title;
+  const map={
+    'meta[property="og:title"]':title,
+    'meta[property="og:description"]':desc,
+    'meta[property="og:url"]':'https://code-destiny.com/secret-house_real.html',
+    'meta[name="twitter:card"]':'summary_large_image'
+  };
+  Object.keys(map).forEach(sel=>{
+    const el=document.querySelector(sel);
+    if(!el)return;
+    if(el.hasAttribute('content'))el.setAttribute('content',map[sel]);
+  });
+}
+function buildResult(){
+  const c=G.finalChar;const col=EC[c.el];
+  const us=STEMS[G.userStem];const cs=STEMS[c.stem];
+  const ending=calculateEnding(c);
+  G.endingType=ending.type;
+  G.endingReason=ending.reason;
+  const tot=ending.total;
+  const temp=Math.min(99,Math.max(24,Math.round((tot/170)*100)));
+  const endingLabel={true:'True Ending',sweet:'Sweet Ending',growth:'Growth Ending',normal:'Normal Ending',bittersweet:'Bittersweet Ending',bad:'Bad Ending',hidden:'Hidden Ending'}[ending.type]||'Ending';
+  const endingTone={true:'운명 확정',sweet:'달콤한 시작',growth:'성장형 로맨스',normal:'풋풋한 시작',bittersweet:'여운의 밤',bad:'엇갈린 인연',hidden:'반전의 밤'}[ending.type]||'운명의 흐름';
+  const endingCopy=(ENDING_COPY[c.id]&&ENDING_COPY[c.id][ending.type])||ENDING_COPY[c.id].normal;
+  const b=G.baseAff[c.stem];const rel=b?.rels[0];
+  let compatTxt='';
+  const dynamics=getCompatDynamics(G.userStem,c.stem,ending.total);
+  if(HARM[G.userStem]===c.stem){
+    compatTxt=`당신의 <strong style="color:${col}">${us.kr}(${G.userStem})</strong>과 ${c.name}의 <strong style="color:${col}">${cs.kr}(${c.stem})</strong>은 ${dynamics.label} 흐름입니다. 빠르게 친밀해지지만, 너무 맞으면 속도 조절이 필요할 수 있습니다.`;
+  } else if(rel){
+    compatTxt=`당신과 ${c.name}의 현재 관계는 <strong style="color:${col}">${rel.type}</strong> 흐름입니다. ${rel.desc}`;
+  } else {
+    compatTxt=`당신의 <strong style="color:${col}">${us.kr}</strong>과 ${c.name}의 <strong style="color:${col}">${cs.kr}</strong>은 서로의 다름이 매력이 되는 관계입니다. 노력과 선택이 운명을 만들어냅니다.`;
+  }
+  if(dynamics.type==='yuanjin'){
+    compatTxt+=`<br><br><span style="color:var(--muted)">이번 조합은 <strong style="color:${col}">원진(끌리지만 애증)</strong> 성향이 있어, 감정 확인 대화를 자주 해주는 것이 중요합니다.</span>`;
+  }
+  if(dynamics.type==='clash'){
+    compatTxt+=`<br><br><span style="color:var(--muted)">초반에는 <strong style="color:${col}">충(티격태격)</strong>처럼 보일 수 있지만, 갈등을 잘 넘기면 텐션이 케미로 바뀝니다.</span>`;
+  }
+  updateEndingOgMeta(ending.type,c.name,tot);
+  const resEl=document.getElementById('resCard');
+  resEl.style.border=`1px solid ${col}33`;
+  resEl.innerHTML=`
+    <div class="res-head">
+      <img class="res-head-img" src="${IMG[c.imgKey]}" alt="${c.name}">
+      <div class="res-head-overlay"></div>
+      <div class="res-head-content">
+        <div class="label" style="color:${col};margin-bottom:6px">✦ ${endingLabel}</div>
+        <div class="serif" style="font-size:22px;font-weight:700;margin-bottom:2px">${c.name}</div>
+        <div style="font-size:11px;color:${col};margin-bottom:10px">${cs.kr} · ${c.job}</div>
+        <div style="padding:7px 14px;border-radius:100px;background:rgba(0,0,0,.4);backdrop-filter:blur(8px);display:inline-block;font-size:11px;color:var(--muted)">궁합 점수 <strong style="color:${col}">${tot}pt</strong></div>
+      </div>
+    </div>
+    <div class="res-body" style="padding-top:20px">
+      <div class="res-sec">
+        <div class="res-sec-t">관계 흐름 해석 · ${dynamics.label}</div>
+        <div class="res-sec-txt serif">${compatTxt}<br><br><span style="font-size:11px;color:var(--muted)">판정 근거: ${ending.compatReasons.length?ending.compatReasons.join(' · '):'중립 흐름'}</span></div>
+      </div>
+      <div class="res-sec">
+        <div class="res-sec-t">엔딩 톤 · ${endingTone}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <span style="font-size:11px;color:var(--muted)">❄️ 냉랭</span>
+          <span style="font-size:20px;font-weight:700;color:${col}">${temp}°C</span>
+          <span style="font-size:11px;color:var(--muted)">뜨거움 🔥</span>
+        </div>
+        <div class="temp-track"><div class="temp-fill" id="tempFill" style="width:0%"></div></div>
+      </div>
+      <div class="res-sec">
+        <div class="res-sec-t">플레이 기록 요약</div>
+        <div class="ending-polaroid-wrap">
+          <div class="ending-polaroid" style="--r:-2deg">
+            <img src="${IMG[c.imgKey]}" alt="heart-moment">
+            <div class="cap">가장 설렜던 순간<br><strong>${summarizeHeartMoment()}</strong></div>
+          </div>
+          <div class="ending-polaroid" style="--r:1.8deg">
+            <img src="${IMG[getTopChar().imgKey]}" alt="misunderstanding-moment">
+            <div class="cap">치명적인 오해의 순간<br><strong>${summarizeMisunderstanding()}</strong></div>
+          </div>
+        </div>
+      </div>
+      <div class="res-sec">
+        <div class="res-sec-t">추천 데이트 코스</div>
+        <div>${c.tips.map(t=>`<div class="date-tip"><span style="color:${col};font-size:14px">✦</span>${t}</div>`).join('')}</div>
+      </div>
+      <div style="padding:14px 16px;border-radius:14px;background:${col}0e;border:1px solid ${col}1e;text-align:center;margin-bottom:16px">
+        <div class="serif" style="font-size:13px;font-style:italic;color:${col};line-height:1.8">"${c.catch}"</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:4px">— ${c.name}</div>
+      </div>
+      <div style="padding:14px 16px;border-radius:14px;background:${ending.type==='bad'?'rgba(148,163,184,.12)':ending.type==='hidden'?'rgba(192,132,252,.12)':ending.type==='bittersweet'?'rgba(125,211,252,.10)':'rgba(242,167,195,.08)'};border:1px solid ${ending.type==='bad'?'rgba(148,163,184,.24)':ending.type==='hidden'?'rgba(192,132,252,.28)':ending.type==='bittersweet'?'rgba(125,211,252,.24)':'rgba(242,167,195,.24)'};text-align:center;font-size:12px;line-height:1.8;color:var(--muted)">
+        ${endingCopy}<br><span style="font-size:10px;color:var(--muted)">분기 사유: ${ending.reason||'누적 선택 흐름'}</span>
+      </div>
+    </div>`;
+  setTimeout(()=>{const f=document.getElementById('tempFill');if(f)f.style.width=temp+'%';},600);
+}
+
+  return {
+    get G() { return G; }, set G(value) { G = value; },
+    get rxnPending() { return rxnPending; }, set rxnPending(value) { rxnPending = value; },
+    STEMS: STEMS, CHARS: CHARS, SCENE_MAP: SCENE_MAP, SCENE_ORDER: SCENE_ORDER, CHAR_BY_ID: CHAR_BY_ID,
+    calcBase: calcBase, getTotal: getTotal, getMaxTotal: getMaxTotal, getTopChar: getTopChar, calculateEnding: calculateEnding,
+    resolveDynamicScene: resolveDynamicScene, buildSceneStoryArc: buildSceneStoryArc, handleChoice: handleChoice, buildResult: buildResult,
+  };
+}
+
+// 십이운성 동물점(animal-destiny-unlock). 관리자 CMS 오버라이드는 빌드 때 페이지에 굳는 값이라 서버에서는 기본 시드를 쓴다.
+export function createAnimalDestinyRuntime() {
+  const cmsRecordRow = function (ns, key, recordKey, fallback) { return fallback; };
+  // ── components/fortune/animal-twelve/animalTwelveData.ts ──
+const ANIMAL_TWELVE_DATA_TEXT_TRANSLATIONS = {
+    ko: {
+        "animalTwelveData.001": "별빛 숲에서 돋아나는 첫 숨",
+        "animalTwelveData.002": "아직 작지만 보호받는 복으로 새 길을 여는 순한 성장형",
+        "animalTwelveData.003": "달빛 물결에 반짝이는 감응",
+        "animalTwelveData.004": "감정과 매력이 물처럼 움직이며 사람의 시선을 끄는 인기형",
+        "animalTwelveData.005": "리본을 매고 무대에 오르는 관대",
+        "animalTwelveData.006": "자기다움을 갖추고 사회적 존재감을 키워 가는 성장 스타형",
+        "animalTwelveData.007": "별길을 지키며 신뢰를 쌓는 건록",
+        "animalTwelveData.008": "스스로의 실력으로 기반을 세우고 오래가는 성과를 만드는 독립형",
+        "animalTwelveData.009": "태양 왕관을 쓴 절정의 제왕",
+        "animalTwelveData.010": "에너지가 가장 크게 피어나는 자리에서 판을 만들고 이끄는 리더형",
+        "animalTwelveData.011": "낡은 별빛을 지혜로 바꾸는 쇠",
+        "animalTwelveData.012": "경험을 정리해 복잡한 흐름을 안정시키는 차분한 조율형",
+        "animalTwelveData.013": "구름 이불 속에서 회복하는 병",
+        "animalTwelveData.014": "섬세한 감정 안테나로 지친 마음을 알아보고 회복을 설계하는 케어형",
+        "animalTwelveData.015": "고치를 벗고 전환을 여는 사",
+        "animalTwelveData.016": "끝맺음과 내려놓음을 통해 다음 세계의 문을 여는 직감형",
+        "animalTwelveData.017": "보물을 품고 조용히 쌓는 묘",
+        "animalTwelveData.018": "작은 자원과 마음의 기록을 모아 큰 안정으로 바꾸는 축적형",
+        "animalTwelveData.019": "밤의 문턱에서 다시 태어나는 절",
+        "animalTwelveData.020": "끊어야 할 것을 알아보고 새 가능성을 향해 판을 바꾸는 리셋형",
+        "animalTwelveData.021": "별알 속에서 미래를 품는 태",
+        "animalTwelveData.022": "아직 보이지 않는 씨앗을 먼저 상상하고 가능성을 부화시키는 준비형",
+        "animalTwelveData.023": "품 안에서 복을 기르는 양 기운",
+        "animalTwelveData.024": "보호와 돌봄 속에서 신뢰, 안정감, 관계복을 차근차근 키우는 Code:Destiny 마스코트",
+    },
+};
+function animalTwelveDataText(key) {
+    return ANIMAL_TWELVE_DATA_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+}
+const STAGE_SEQUENCE = [
+    "jangsaeng",
+    "mogyok",
+    "gwandae",
+    "geonrok",
+    "jewang",
+    "soe",
+    "byeong",
+    "sa",
+    "myo",
+    "jeol",
+    "tae",
+    "yang",
+];
+const STAGE_KEY_TO_LABEL = {
+    jangsaeng: "장생",
+    mogyok: "목욕",
+    gwandae: "관대",
+    geonrok: "건록",
+    jewang: "제왕",
+    soe: "쇠",
+    byeong: "병",
+    sa: "사",
+    myo: "묘",
+    jeol: "절",
+    tae: "태",
+    yang: "양",
+};
+const STAGE_KEY_TO_HANJA = {
+    jangsaeng: "長生",
+    mogyok: "沐浴",
+    gwandae: "冠帶",
+    geonrok: "建祿",
+    jewang: "帝旺",
+    soe: "衰",
+    byeong: "病",
+    sa: "死",
+    myo: "墓",
+    jeol: "絶",
+    tae: "胎",
+    yang: "養",
+};
+const STAGE_LABEL_TO_KEY = {
+    장생: "jangsaeng",
+    목욕: "mogyok",
+    관대: "gwandae",
+    건록: "geonrok",
+    제왕: "jewang",
+    쇠: "soe",
+    병: "byeong",
+    사: "sa",
+    묘: "myo",
+    절: "jeol",
+    태: "tae",
+    양: "yang",
+};
+const STAGE_KEY_TO_ID = {
+    jangsaeng: "cheetah",
+    mogyok: "monkey",
+    gwandae: "black-panther",
+    geonrok: "koala",
+    jewang: "tiger",
+    soe: "raccoon",
+    byeong: "rhino",
+    sa: "elephant",
+    myo: "sheep",
+    jeol: "pegasus",
+    tae: "wolf",
+    yang: "fawn",
+};
+const animalCollection = Object.freeze([
+    { name: "새싹 사슴", emoji: "🦌", energy: "장생" },
+    { name: "달빛 고양이", emoji: "🐈", energy: "목욕" },
+    { name: "리본 여우", emoji: "🦊", energy: "관대" },
+    { name: "별빛 강아지", emoji: "🐶", energy: "건록" },
+    { name: "태양 사자", emoji: "🦁", energy: "제왕" },
+    { name: "현자 부엉이", emoji: "🦉", energy: "쇠" },
+    { name: "구름 토끼", emoji: "🐰", energy: "병" },
+    { name: "신비 나비", emoji: "🦋", energy: "사" },
+    { name: "보물 햄스터", emoji: "🐹", energy: "묘" },
+    { name: "밤하늘 흑고양이", emoji: "🐈‍⬛", energy: "절" },
+    { name: "꿈알 병아리", emoji: "🐣", energy: "태" },
+    { name: "솜구름 아기양", emoji: "🐑", energy: "양" },
+]);
+const BASE = {
+    jangsaeng: {
+        animalName: "새싹 사슴",
+        title: animalTwelveDataText("animalTwelveData.001"),
+        subtitle: animalTwelveDataText("animalTwelveData.002"),
+        keywords: ["탄생", "성장", "순수함", "보호복", "새 기회"],
+        symbolItems: ["별씨앗", "새싹뿔", "아침 이슬", "숲 연꽃"],
+        colors: { primary: "#9bd8b0", secondary: "#fff3b3", accent: "#d4a84f", background: "#f7fff3" },
+        energyScores: { charm: 80, drive: 72, recovery: 87, money: 68, love: 82, intuition: 78 },
+        strengths: ["새 환경을 맑게 받아들이는 힘", "사람을 안심시키는 순도", "작은 기회를 크게 키우는 성장성"],
+        weaknesses: ["초반 의욕 과속", "루틴이 약할 때 흔들림", "낯선 평가에 쉽게 위축"],
+        attractionPoint: "처음 만난 순간 마음을 누그러뜨리는 맑은 눈빛",
+        weakPoint: "충분히 자라기 전에 결론을 내리려는 조급함",
+        workStyle: "작은 성공을 안전하게 반복하며 실력을 키우는 방식",
+        goodFields: ["교육", "온보딩/케어", "브랜드 신사업", "콘텐츠 기획"],
+        avoidFields: ["성과만 재촉하는 조직", "피드백이 거칠게 전달되는 환경"],
+        moneyFlow: "새로운 제안, 소개, 첫 프로젝트에서 운이 붙는 편",
+        spendingPattern: "기분이 열릴 때 선물형 소비가 늘어남",
+        bestFit: "성장을 기다려 주면서 방향은 잡아주는 사람",
+    },
+    mogyok: {
+        animalName: "달빛 고양이",
+        title: animalTwelveDataText("animalTwelveData.003"),
+        subtitle: animalTwelveDataText("animalTwelveData.004"),
+        keywords: ["매력", "감수성", "인기", "변화", "예술성"],
+        symbolItems: ["달 조각", "연꽃 물방울", "비단 꼬리", "향기 별카드"],
+        colors: { primary: "#c6a8ff", secondary: "#ffd4ec", accent: "#f4cb6a", background: "#fff4ff" },
+        energyScores: { charm: 93, drive: 69, recovery: 74, money: 71, love: 91, intuition: 90 },
+        strengths: ["감정을 읽는 섬세함", "분위기를 아름답게 바꾸는 감각", "사람을 끌어당기는 자연스러운 매력"],
+        weaknesses: ["감정 기복", "호감 확인에 에너지 소모", "분위기에 휩쓸리는 선택"],
+        attractionPoint: "달빛처럼 부드럽게 스며드는 신비로운 매력",
+        weakPoint: "마음 확인을 반복하다 스스로를 지치게 하는 패턴",
+        workStyle: "감각과 피드백을 빠르게 순환시키며 결과물을 빛내는 방식",
+        goodFields: ["디자인", "브랜딩", "콘텐츠", "심리케어"],
+        avoidFields: ["감정 표현이 금지된 문화", "기계적 루틴만 요구하는 업무"],
+        moneyFlow: "감각형 프로젝트와 관계 기반 협업에서 수익화",
+        spendingPattern: "미감, 향기, 분위기를 위한 소비가 커짐",
+        bestFit: "다정하면서도 감정의 경계가 건강한 사람",
+    },
+    gwandae: {
+        animalName: "리본 여우",
+        title: animalTwelveDataText("animalTwelveData.005"),
+        subtitle: animalTwelveDataText("animalTwelveData.006"),
+        keywords: ["성장", "자존감", "표현력", "사회성", "무대운"],
+        symbolItems: ["금실 리본", "여우 가면", "초승 랜턴", "자수 망토"],
+        colors: { primary: "#ffb296", secondary: "#e8c8ff", accent: "#e2ab3d", background: "#fff8f4" },
+        energyScores: { charm: 88, drive: 82, recovery: 71, money: 76, love: 84, intuition: 74 },
+        strengths: ["사회적 센스", "자기 이미지를 성장시키는 힘", "사람 앞에서 빛나는 표현력"],
+        weaknesses: ["평판 의식 과다", "비교 스트레스", "완벽한 이미지 집착"],
+        attractionPoint: "사람을 자신의 무대로 초대하는 밝고 영리한 기운",
+        weakPoint: "상대의 인정에 기대며 진짜 욕구를 숨기는 순간",
+        workStyle: "보여 주고 피드백받으며 빠르게 업그레이드",
+        goodFields: ["PR", "마케팅", "커뮤니티", "교육/강연"],
+        avoidFields: ["고립형 작업만 반복", "성과 공유가 차단된 환경"],
+        moneyFlow: "평판과 네트워크가 확장될수록 수입 통로가 넓어짐",
+        spendingPattern: "자기관리와 이미지 투자 비중이 커짐",
+        bestFit: "응원과 현실 조언을 함께 건네는 사람",
+    },
+    geonrok: {
+        animalName: "별빛 강아지",
+        title: animalTwelveDataText("animalTwelveData.007"),
+        subtitle: animalTwelveDataText("animalTwelveData.008"),
+        keywords: ["성실함", "실력", "책임감", "기반", "신뢰"],
+        symbolItems: ["수호 목걸이", "별발자국", "청금 망토", "약속 종"],
+        colors: { primary: "#5269b8", secondary: "#fff4d8", accent: "#d19a35", background: "#f6f8ff" },
+        energyScores: { charm: 74, drive: 88, recovery: 80, money: 86, love: 72, intuition: 70 },
+        strengths: ["꾸준한 실행력", "신뢰를 잃지 않는 태도", "실무를 끝까지 완성하는 힘"],
+        weaknesses: ["변화 저항", "과책임", "감정 표현의 절약"],
+        attractionPoint: "말보다 행동으로 보여주는 든든함",
+        weakPoint: "모든 짐을 혼자 지며 도움 요청을 늦추는 습관",
+        workStyle: "명확한 기준과 루틴으로 성과를 차곡차곡 누적",
+        goodFields: ["개발", "운영", "재무", "프로젝트 매니지먼트"],
+        avoidFields: ["우선순위가 수시로 바뀌는 조직", "책임 기준이 불분명한 팀"],
+        moneyFlow: "장기 프로젝트와 신뢰 기반 계약에서 안정적으로 커짐",
+        spendingPattern: "필요 기반 소비가 강하고 불필요 지출을 잘 억제함",
+        bestFit: "성실함을 알아보고 부담을 나눠 주는 파트너",
+    },
+    jewang: {
+        animalName: "태양 사자",
+        title: animalTwelveDataText("animalTwelveData.009"),
+        subtitle: animalTwelveDataText("animalTwelveData.010"),
+        keywords: ["절정", "카리스마", "주도성", "확장", "결단"],
+        symbolItems: ["태양 왕관", "금빛 망토", "황금 사자문", "불꽃 별가루"],
+        colors: { primary: "#f0b23f", secondary: "#ffdfa8", accent: "#e05c37", background: "#fff9ee" },
+        energyScores: { charm: 90, drive: 95, recovery: 69, money: 84, love: 81, intuition: 72 },
+        strengths: ["강한 추진력", "사람을 모으는 리더십", "결정의 순간을 놓치지 않는 감각"],
+        weaknesses: ["통제 욕구", "휴식 부족", "고집"],
+        attractionPoint: "공간의 중심을 밝히는 크고 당당한 존재감",
+        weakPoint: "혼자 버티며 약한 모습을 숨기는 리더 모드",
+        workStyle: "목표를 크게 잡고 빠른 의사결정으로 판을 움직임",
+        goodFields: ["사업개발", "리더 포지션", "브랜드 디렉팅", "전략"],
+        avoidFields: ["권한이 없는 리더 역할", "책임만 크고 자원은 없는 환경"],
+        moneyFlow: "큰 규모의 선택과 영향력 있는 자리에서 수익이 커짐",
+        spendingPattern: "성과 보상형 소비",
+        bestFit: "존중을 잃지 않으면서 솔직하게 피드백하는 파트너",
+    },
+    soe: {
+        animalName: "현자 부엉이",
+        title: animalTwelveDataText("animalTwelveData.011"),
+        subtitle: animalTwelveDataText("animalTwelveData.012"),
+        keywords: ["성숙", "정리", "판단력", "경험", "내실"],
+        symbolItems: ["별자리 서책", "청동 안경", "은빛 깃털", "고요한 등불"],
+        colors: { primary: "#6f5d89", secondary: "#efe3d2", accent: "#b48a52", background: "#f9f7ff" },
+        energyScores: { charm: 71, drive: 70, recovery: 86, money: 82, love: 67, intuition: 88 },
+        strengths: ["판단의 정확도", "복잡한 것을 정리하는 능력", "노하우를 자산으로 바꾸는 힘"],
+        weaknesses: ["지나친 신중함", "낙관 부족", "감정 표현 감소"],
+        attractionPoint: "말 한마디에도 신뢰를 주는 깊이 있는 태도",
+        weakPoint: "가능성보다 위험을 먼저 보며 마음을 닫는 습관",
+        workStyle: "리스크를 먼저 구조화한 뒤 안정적으로 실행",
+        goodFields: ["데이터 분석", "재무/법무", "품질관리", "코칭"],
+        avoidFields: ["근거 없는 낙관만 강요되는 조직", "단기성과만 추적하는 문화"],
+        moneyFlow: "관리형 수익과 장기 안정형 포트폴리오에 강함",
+        spendingPattern: "효율과 지속성을 먼저 보는 지출",
+        bestFit: "정서 표현을 먼저 열어 주고 속도를 맞춰 주는 사람",
+    },
+    byeong: {
+        animalName: "구름 토끼",
+        title: animalTwelveDataText("animalTwelveData.013"),
+        subtitle: animalTwelveDataText("animalTwelveData.014"),
+        keywords: ["예민함", "회복", "섬세함", "돌봄", "감정 감지"],
+        symbolItems: ["구름 이불", "은방울", "별물방울", "달빛 처방전"],
+        colors: { primary: "#f3c7d8", secondary: "#cde8ff", accent: "#d8a64d", background: "#fff8fc" },
+        energyScores: { charm: 79, drive: 61, recovery: 92, money: 66, love: 86, intuition: 91 },
+        strengths: ["상처를 빨리 감지하는 공감력", "회복 루틴을 만드는 능력", "작은 신호를 놓치지 않는 세밀함"],
+        weaknesses: ["에너지 소진", "감정 과부하", "불안 루프"],
+        attractionPoint: "조용히 곁을 지켜 주는 다정하고 포근한 돌봄",
+        weakPoint: "상대의 감정을 전부 떠안아 내 몸의 신호를 놓치는 태도",
+        workStyle: "사람의 컨디션과 리듬을 살피며 성과를 조율",
+        goodFields: ["상담", "케어 서비스", "UX 리서치", "콘텐츠 큐레이션"],
+        avoidFields: ["감정노동 과부하", "휴식 없이 교대되는 환경"],
+        moneyFlow: "신뢰받는 돌봄과 디테일 능력에서 발생",
+        spendingPattern: "감정 보상 소비 주의",
+        bestFit: "감정을 존중하고 회복 시간을 보장해 주는 사람",
+    },
+    sa: {
+        animalName: "신비 나비",
+        title: animalTwelveDataText("animalTwelveData.015"),
+        subtitle: animalTwelveDataText("animalTwelveData.016"),
+        keywords: ["전환", "직감", "내려놓음", "영감", "재탄생"],
+        symbolItems: ["영혼 날개", "자정 별가루", "은빛 부적", "비밀문"],
+        colors: { primary: "#8f76d9", secondary: "#d9efff", accent: "#c6cad6", background: "#f8f7ff" },
+        energyScores: { charm: 84, drive: 66, recovery: 78, money: 65, love: 75, intuition: 95 },
+        strengths: ["변화의 징후를 먼저 감지하는 힘", "직감적 선택", "낡은 의미를 새롭게 해석하는 관점"],
+        weaknesses: ["정착 지연", "일관성 흔들림", "과감한 단절"],
+        attractionPoint: "말로 설명하기 어려운 신비로운 감정선과 영감",
+        weakPoint: "정서적 거리두기가 갑자기 깊어지는 순간",
+        workStyle: "전환 시점마다 방향을 재정렬하고 새 콘셉트를 여는 방식",
+        goodFields: ["콘셉트 개발", "아트", "브랜드 리빌드", "전환기 프로젝트"],
+        avoidFields: ["반복만 강요되는 환경", "창의성이 억압되는 문화"],
+        moneyFlow: "리브랜딩과 재해석 역량에서 수익화",
+        spendingPattern: "감정 전환기 충동 소비 주의",
+        bestFit: "자유를 존중하면서도 약속은 지키는 사람",
+    },
+    myo: {
+        animalName: "보물 햄스터",
+        title: animalTwelveDataText("animalTwelveData.017"),
+        subtitle: animalTwelveDataText("animalTwelveData.018"),
+        keywords: ["축적", "저장", "내면", "비밀", "관리"],
+        symbolItems: ["복주머니", "비밀 금고", "미니 별화폐", "집중 초롱"],
+        colors: { primary: "#cfb18f", secondary: "#eadbff", accent: "#d7a53e", background: "#fffaf2" },
+        energyScores: { charm: 72, drive: 74, recovery: 83, money: 93, love: 70, intuition: 76 },
+        strengths: ["자원을 허투루 쓰지 않는 관리력", "축적 감각", "한 가지를 오래 붙드는 집중력"],
+        weaknesses: ["지나친 보수성", "기회 지연", "감정 표현 최소화"],
+        attractionPoint: "살림과 미래를 함께 챙기는 조용한 안정감",
+        weakPoint: "마음까지 깊숙이 보관해 표현이 늦어지는 태도",
+        workStyle: "장기 목표를 작게 분해해 꾸준히 달성",
+        goodFields: ["재무", "구매", "운영", "자산관리"],
+        avoidFields: ["리스크가 과도한 투기형 조직", "계획 없는 즉흥 환경"],
+        moneyFlow: "축적형 시스템을 만들 때 가장 강력하게 커짐",
+        spendingPattern: "필요성 검증 후 구매",
+        bestFit: "안정과 성장의 균형을 이해하는 사람",
+    },
+    jeol: {
+        animalName: "밤하늘 흑고양이",
+        title: animalTwelveDataText("animalTwelveData.019"),
+        subtitle: animalTwelveDataText("animalTwelveData.020"),
+        keywords: ["리셋", "독립", "전환", "새 가능성", "경계"],
+        symbolItems: ["초승달 망토", "별자리 고리", "검은 장갑", "금빛 눈동자"],
+        colors: { primary: "#2a2741", secondary: "#8c7ed3", accent: "#d8b55a", background: "#f5f3ff" },
+        energyScores: { charm: 87, drive: 77, recovery: 74, money: 71, love: 68, intuition: 89 },
+        strengths: ["결단적 리셋", "혼자 서는 독립성", "건강한 경계를 긋는 힘"],
+        weaknesses: ["차단이 빠름", "고립 루프", "감정 냉각"],
+        attractionPoint: "가까이 갈수록 궁금해지는 미스터리와 자립의 아우라",
+        weakPoint: "도움이 필요한 순간에도 혼자 해결하려는 지연",
+        workStyle: "불필요한 것을 걷어내고 핵심만 남기는 방식",
+        goodFields: ["전략 리빌드", "브랜드 개편", "문제 해결", "보안/리스크 관리"],
+        avoidFields: ["경계 없는 업무", "감정 착취형 조직"],
+        moneyFlow: "구조조정, 비용절감, 리빌드 프로젝트에서 강함",
+        spendingPattern: "스트레스성 단절 소비 주의",
+        bestFit: "경계를 존중하고 신뢰를 천천히 쌓는 사람",
+    },
+    tae: {
+        animalName: "꿈알 병아리",
+        title: animalTwelveDataText("animalTwelveData.021"),
+        subtitle: animalTwelveDataText("animalTwelveData.022"),
+        keywords: ["가능성", "상상", "준비", "미래", "실험"],
+        symbolItems: ["별알", "민트 깃털", "꿈지도", "새벽 램프"],
+        colors: { primary: "#fbe98d", secondary: "#c8f2d3", accent: "#e1b74c", background: "#fffef2" },
+        energyScores: { charm: 85, drive: 70, recovery: 81, money: 69, love: 83, intuition: 88 },
+        strengths: ["미래를 먼저 그리는 상상력", "학습 민첩성", "가능성을 구조로 바꾸는 설계력"],
+        weaknesses: ["시작 대비 완주 약함", "선택 피로", "현실 타임라인 지연"],
+        attractionPoint: "맑은 호기심과 함께 있으면 설레는 미래 비전",
+        weakPoint: "계획과 상상만 늘어나 현실 착수가 늦어지는 패턴",
+        workStyle: "탐색, 실험, 검증의 순환으로 가능성을 현실화",
+        goodFields: ["기획", "R&D", "교육", "프로토타입 개발"],
+        avoidFields: ["실험이 금지된 조직", "장기 비전이 없는 업무"],
+        moneyFlow: "새 아이디어를 서비스나 교육 자산으로 전환할 때 발생",
+        spendingPattern: "학습과 경험형 소비가 큼",
+        bestFit: "아이디어를 현실의 일정표로 옮겨 주는 사람",
+    },
+    yang: {
+        animalName: "솜구름 아기양",
+        title: animalTwelveDataText("animalTwelveData.023"),
+        subtitle: animalTwelveDataText("animalTwelveData.024"),
+        keywords: ["양육", "보호", "돌봄", "안정 성장", "관계복"],
+        symbolItems: ["솜구름 방울", "보호 담요", "연꽃 풀밭", "행운 양털"],
+        colors: { primary: "#ffd6e2", secondary: "#fff1cf", accent: "#cfa64a", background: "#fffaf7" },
+        energyScores: { charm: 94, drive: 76, recovery: 88, money: 80, love: 95, intuition: 82 },
+        strengths: ["사람을 안심시키는 온기", "관계복을 키우는 돌봄", "현실을 부드럽게 조율하는 힘"],
+        weaknesses: ["거절 어려움", "과배려", "결정 지연"],
+        attractionPoint: "품에 안기는 듯한 포근한 보호 에너지",
+        weakPoint: "모두를 돌보다 내 리듬을 놓치는 습관",
+        workStyle: "사람과 시스템을 부드럽게 연결하며 안정적으로 성장",
+        goodFields: ["서비스 운영", "브랜드 커뮤니티", "교육/상담", "라이프스타일 케어"],
+        avoidFields: ["갈등을 조장하는 문화", "돌봄을 당연하게 소비하는 관계 구조"],
+        moneyFlow: "신뢰 기반 반복 수익과 돌봄형 서비스에서 강함",
+        spendingPattern: "사람을 챙기기 위한 지출이 늘어남",
+        bestFit: "다정함을 당연하게 소비하지 않고 함께 돌려주는 사람",
+    },
+};
+function paragraphsForPersonality(stageKey, animalName, strengths, weaknesses) {
+    const stageLabel = STAGE_KEY_TO_LABEL[stageKey];
+    return [
+        `${stageLabel}의 흐름은 한 시점의 성격 고정값이 아니라, 에너지가 어떻게 자라고 소모되는지 보여주는 움직이는 지도입니다. ${animalName} 타입은 그 지도에서 자신만의 템포를 만들 때 가장 큰 장점을 드러냅니다.`,
+        `당신의 기본 기질은 ${strengths[0]}과 ${strengths[1]}이 결합된 형태로 나타나기 쉽습니다. 그래서 사람들은 당신을 처음 만났을 때 '편안한데 인상 깊다' 혹은 '부드럽지만 기준이 있다'고 느낄 가능성이 큽니다.`,
+        `삶의 반복 패턴은 대개 '도움이 되는 역할을 맡는다 -> 책임이 커진다 -> 감정 에너지를 다시 정리한다'의 사이클로 흐릅니다. 이 흐름을 이해하면 불필요한 자책이 줄고, 성장 속도는 더 안정됩니다.`,
+        `스트레스를 받을 때는 ${weaknesses[0]}과 ${weaknesses[1]}이 강화될 수 있습니다. 이때는 성격을 고치려 하기보다, 리듬을 회복할 수 있는 루틴을 먼저 만드는 것이 훨씬 실전적입니다.`,
+        `혼자 있을 때의 당신은 겉으로 보이는 모습보다 훨씬 섬세하고 계산적입니다. 그래서 조용히 계획을 세우는 시간은 단순 휴식이 아니라, 다음 도약을 위한 운의 충전 구간에 가깝습니다.`,
+        `주변 사람이 느끼는 첫인상과 진짜 내면 사이에는 온도 차가 있을 수 있습니다. 그 간격을 줄이는 가장 좋은 방법은 감정을 설명하는 짧은 문장을 갖는 것입니다.`,
+        `결국 ${animalName} 타입의 핵심은 '나를 지키면서도 세상과 연결되는 방식'을 찾는 데 있습니다. 그 방식이 정리되는 순간, 같은 재능도 훨씬 큰 결과로 이어집니다.`,
+    ];
+}
+function paragraphsForLove(stageKey, animalName, attractionPoint, weakPoint) {
+    const stageLabel = STAGE_KEY_TO_LABEL[stageKey];
+    return [
+        `${animalName} 타입의 연애는 ${stageLabel} 기운의 영향을 받아 감정의 온도와 타이밍이 중요하게 작동합니다. 누군가를 좋아하게 되면 관계의 방향을 빨리 읽고 싶어 하는 편입니다.`,
+        `당신의 강한 매력 포인트는 ${attractionPoint}입니다. 특히 상대가 지쳐 있을수록 당신의 공감 방식이 관계의 안정 장치처럼 작동할 수 있습니다.`,
+        `끌리는 상대는 보통 말의 결이 따뜻하고, 약속을 지키며, 감정 표현을 회피하지 않는 사람입니다. 반대로 애매함이 길어지면 관계 피로가 빠르게 올라갈 수 있습니다.`,
+        `연애에서 반복되는 실수는 ${weakPoint}으로 요약됩니다. 이를 줄이려면 감정 확인 질문과 관계 경계 설정을 동시에 훈련하는 것이 좋습니다.`,
+        `오래 가는 관계를 위해서는 '문제를 늦게 크게 다루기'보다 '작게 자주 정리하기'가 유효합니다. 하루를 마무리할 때 5분만 서로의 감정을 점검해도 큰 차이를 만듭니다.`,
+    ];
+}
+function createProfile(stageKey) {
+    // 관리자 CMS(운세 콘텐츠 → 십이운성 동물 해설)의 해당 단계 행을 기본값 위에 얹는다.
+    const base = cmsRecordRow("saju-animal", "stage", stageKey, BASE[stageKey]);
+    const isGeonrokDog = stageKey === "geonrok";
+    const personalitySummary = isGeonrokDog
+        ? "당신의 운명 동물은 별빛 강아지입니다. 명리학에서 건록(建祿)은 스스로의 힘으로 관록을 얻고 재물을 쌓는 가장 안정적이고 독립적인 에너지입니다."
+        : `${base.animalName} 타입은 ${base.keywords.slice(0, 2).join("과 ")}의 힘이 동시에 작동하는 구조입니다.`;
+    const personalityParagraphs = isGeonrokDog
+        ? [
+            "건록(建祿)의 기운을 타고난 '별빛 강아지' 타입은 땅에 단단히 뿌리를 내린 거목처럼 흔들림 없는 줏대와 책임감으로 자신만의 세계를 구축하는 사주입니다. 겉으로는 온화하고 사람과 잘 융화되는 듯 보이나, 내면에는 칼날 같은 자기 객관화와 타협하지 않는 프로페셔널한 실력이 자리 잡고 있습니다.",
+            "이 사주는 요행을 바라지 않습니다. 자신이 쏟은 땀방울만큼만 거두려 하는 정직함이 오히려 가장 큰 무기가 됩니다. '도움이 되는 역할을 맡는다 -> 완벽하게 책임진다 -> 조직과 타인의 절대적 신뢰를 얻는다'의 패턴이 평생의 운을 관통합니다.",
+            "다만, 완벽주의적 성향 탓에 모든 짐을 홀로 짊어지려는 과책임(過責任)의 늪에 빠지기 쉬우니, 때로는 타인에게 기대는 법을 배우는 것이 운의 숨통을 틔우는 개운법(開運法)이 됩니다.",
+        ]
+        : paragraphsForPersonality(stageKey, base.animalName, base.strengths, base.weaknesses);
+    return {
+        stageKey,
+        stageLabel: STAGE_KEY_TO_LABEL[stageKey],
+        animalName: base.animalName,
+        title: base.title,
+        subtitle: base.subtitle,
+        keywords: [...base.keywords],
+        colors: { ...base.colors },
+        symbolItems: [...base.symbolItems],
+        energyScores: { ...base.energyScores },
+        personality: {
+            summary: personalitySummary,
+            strengths: [...base.strengths],
+            weaknesses: [...base.weaknesses],
+            hiddenPattern: `겉으로는 차분해 보여도 내면에서는 '더 나은 선택'을 계속 계산하는 패턴이 있습니다.`,
+            advice: `성과를 내는 힘은 이미 충분하니, 감정 회복 루틴과 경계 설정을 함께 운영해 보세요.`,
+            paragraphs: personalityParagraphs,
+        },
+        love: {
+            style: `${base.animalName}형 연애는 진심이 빠르게 드러나는 편입니다.`,
+            attractionPoint: base.attractionPoint,
+            weakPoint: base.weakPoint,
+            advice: `호감의 속도와 관계의 안정 속도를 분리하면 사랑이 더 오래갑니다.`,
+            paragraphs: paragraphsForLove(stageKey, base.animalName, base.attractionPoint, base.weakPoint),
+        },
+        relationship: {
+            friends: `친구 관계에서는 ${base.strengths[0]} 덕분에 자연스럽게 신뢰를 얻습니다.`,
+            work: `${base.workStyle}이 업무 관계에서 강점으로 작동합니다.`,
+            family: `가족에게는 표현보다 행동으로 애정을 보이는 편입니다.`,
+            caution: `지나친 책임 떠안기를 줄이고 도움 요청을 습관화하세요.`,
+            bestFit: base.bestFit,
+        },
+        career: {
+            workStyle: base.workStyle,
+            goodFields: [...base.goodFields],
+            avoidFields: [...base.avoidFields],
+            growthAdvice: `핵심 과업 1개를 끝까지 완주하는 루틴을 유지하면 성과가 안정적으로 커집니다.`,
+            moneyBoostCondition: base.moneyFlow,
+        },
+        money: {
+            moneyFlow: base.moneyFlow,
+            spendingPattern: base.spendingPattern,
+            savingAdvice: `주간 예산을 고정하고 즉흥 지출은 24시간 보류 규칙을 적용해 보세요.`,
+            habitTip: `돈의 흐름을 감정 상태와 함께 기록하면 누수 원인이 더 선명해집니다.`,
+        },
+        daily: {
+            message: `${base.animalName}의 오늘 운세: 감정의 리듬을 먼저 맞추면 일이 더 부드럽게 풀립니다.`,
+            luckyAction: `${base.symbolItems[0]} 모티브를 떠올리며 오늘의 핵심 할 일 1개를 먼저 끝내기`,
+            caution: `${base.weaknesses[0]}이 강해지는 순간에는 속도를 10% 늦추기`,
+            luckyColor: base.colors.primary,
+            luckyItem: base.symbolItems[1],
+        },
+    };
+}
+const ANIMAL_TWELVE_PROFILES = STAGE_SEQUENCE.reduce((acc, stageKey) => {
+    acc[stageKey] = createProfile(stageKey);
+    return acc;
+}, {});
+function relationByOffset(stageKey, offset) {
+    const index = STAGE_SEQUENCE.indexOf(stageKey);
+    return STAGE_SEQUENCE[(index + offset + STAGE_SEQUENCE.length) % STAGE_SEQUENCE.length];
+}
+function toLegacyAnimalData(stageKey) {
+    const profile = ANIMAL_TWELVE_PROFILES[stageKey];
+    const id = STAGE_KEY_TO_ID[stageKey];
+    const best = relationByOffset(stageKey, 1);
+    const good = relationByOffset(stageKey, 2);
+    const challenging = relationByOffset(stageKey, 5);
+    const worst = relationByOffset(stageKey, 6);
+    const mkComp = (targetKey, score, reason) => ({
+        animal_id: STAGE_KEY_TO_ID[targetKey],
+        reason,
+        compatibility_score: score,
+        clash_point: "감정 온도와 의사결정 속도 조율이 필요합니다.",
+        conversation_style: "감정 확인 후 일정/역할을 합의하는 대화가 잘 맞습니다.",
+        romance_score: Math.min(99, score + 3),
+        friend_score: Math.min(99, score + 1),
+        work_score: Math.max(40, score - 2),
+        maintenance_tip: "좋은 흐름일수록 정기 점검 대화를 유지해 주세요.",
+    });
+    return {
+        id,
+        stageKey: profile.stageKey,
+        stageLabel: profile.stageLabel,
+        animalName: profile.animalName,
+        titleLine: profile.title,
+        subtitleLine: profile.subtitle,
+        keywords: profile.keywords,
+        palette: profile.colors,
+        symbolItems: profile.symbolItems,
+        energyScores: profile.energyScores,
+        profile,
+        saju_stage: profile.stageLabel,
+        stage_hanja: STAGE_KEY_TO_HANJA[stageKey],
+        animal_ko: profile.animalName,
+        animal_en: profile.title,
+        title: profile.title,
+        short_copy: profile.subtitle,
+        description: profile.personality.paragraphs.slice(0, 3),
+        personality: {
+            summary: profile.personality.summary,
+            strengths: profile.personality.strengths,
+            weaknesses: profile.personality.weaknesses,
+            hidden_side: profile.personality.hiddenPattern,
+            stress_behavior: profile.personality.paragraphs[3] || profile.personality.hiddenPattern,
+            growth_direction: profile.personality.advice,
+        },
+        love: {
+            style: profile.love.style,
+            attraction_point: profile.love.attractionPoint,
+            weakness_in_love: profile.love.weakPoint,
+            best_date_mood: "달빛 산책 후 따뜻한 대화",
+            advice: profile.love.advice,
+            approach_style: profile.love.paragraphs[0] || profile.love.style,
+            attractive_type: profile.relationship.bestFit,
+            recurring_pattern: profile.love.weakPoint,
+            breakup_recovery: "충분한 감정 정리 후 관계를 복기하는 편입니다.",
+            long_term_tip: profile.love.advice,
+        },
+        career: {
+            talent: profile.career.workStyle,
+            recommended_fields: profile.career.goodFields,
+            work_style: profile.career.workStyle,
+            money_style: profile.money.moneyFlow,
+            advice: profile.career.growthAdvice,
+            good_work_method: profile.career.workStyle,
+            bad_work_environment: profile.career.avoidFields.join(", "),
+            earning_method: profile.career.moneyBoostCondition,
+            aptitude_check: profile.career.goodFields.slice(0, 2).join(", "),
+        },
+        wealth: {
+            spending_style: profile.money.spendingPattern,
+            saving_style: profile.money.savingAdvice,
+            impulse_buy_risk: "감정 기복이 큰 날에 즉흥 결제가 늘어날 수 있습니다.",
+            investment_sense: "정보를 수집한 뒤 천천히 결정할 때 강합니다.",
+            monetization_strategy: profile.money.moneyFlow,
+        },
+        human_relations: {
+            friend_relations: profile.relationship.friends,
+            family_relations: profile.relationship.family,
+            social_relations: profile.relationship.work,
+            first_impression: profile.title,
+            connection_traits: profile.relationship.bestFit,
+        },
+        today: {
+            caution: profile.daily.caution,
+            action: profile.daily.luckyAction,
+            lucky_behavior: profile.daily.luckyAction,
+            emotion_management: profile.personality.hiddenPattern,
+            support_message: profile.daily.message,
+        },
+        luck_essentials: {
+            food: "따뜻한 허브티",
+            item: profile.daily.luckyItem,
+            color: profile.daily.luckyColor,
+            place: "별빛이 보이는 산책길",
+        },
+        compatibility: {
+            best: mkComp(best, 92, `${ANIMAL_TWELVE_PROFILES[best].animalName}와는 감정 박자가 빠르게 맞습니다.`),
+            good: mkComp(good, 84, `${ANIMAL_TWELVE_PROFILES[good].animalName}와는 역할 분담 시 시너지가 큽니다.`),
+            challenging: mkComp(challenging, 61, `${ANIMAL_TWELVE_PROFILES[challenging].animalName}와는 페이스 차이를 조율해야 합니다.`),
+            worst: mkComp(worst, 48, `${ANIMAL_TWELVE_PROFILES[worst].animalName}와는 경계와 약속 합의가 먼저 필요합니다.`),
+        },
+        game_stats: {
+            power: profile.energyScores.drive,
+            charm: profile.energyScores.charm,
+            logic: Math.round((profile.energyScores.money + profile.energyScores.intuition) / 2),
+            luck: Math.round((profile.energyScores.recovery + profile.energyScores.intuition) / 2),
+            social: Math.round((profile.energyScores.love + profile.energyScores.charm) / 2),
+        },
+        tamagotchi: {
+            favorite_food: "달빛 푸딩",
+            growth_message: `${profile.animalName}의 리듬을 지키면 오늘 운이 더 선명해집니다.`,
+            care_tip: profile.daily.luckyAction,
+            mood_when_happy: "눈동자 주변에 별가루가 반짝입니다.",
+            mood_when_tired: "꼬리와 어깨가 조금 내려가며 휴식 신호를 보냅니다.",
+        },
+        share_card: {
+            badge: profile.title,
+            headline: `${profile.animalName} 운명 카드`,
+            quote: profile.daily.message,
+            hashtags: ["#십이운성동물점", `#${profile.animalName.replace(/\s+/g, "")}`, "#CodeDestiny"],
+        },
+        compatibilityStory: {
+            bestMatchStage: STAGE_KEY_TO_LABEL[best],
+            cautionMatchStage: STAGE_KEY_TO_LABEL[worst],
+            narrative: `${profile.stageLabel}의 당신은 ${STAGE_KEY_TO_LABEL[best]} 기운과 만나면 따뜻한 확장, ${STAGE_KEY_TO_LABEL[worst]} 기운과 만나면 경계 조율이 중요합니다.`,
+        },
+    };
+}
+const ANIMAL_DESTINY_DATA = STAGE_SEQUENCE.reduce((acc, stageKey) => {
+    const id = STAGE_KEY_TO_ID[stageKey];
+    acc[id] = toLegacyAnimalData(stageKey);
+    return acc;
+}, {});
+const ANIMAL_DESTINY_LIST = STAGE_SEQUENCE.map((stageKey) => ANIMAL_DESTINY_DATA[STAGE_KEY_TO_ID[stageKey]]);
+function getProfileByStageKey(stageKey) {
+    return ANIMAL_TWELVE_PROFILES[stageKey] || null;
+}
+function getProfileByStageLabel(stageLabel) {
+    if (!stageLabel)
+        return null;
+    const key = STAGE_LABEL_TO_KEY[stageLabel];
+    return key ? ANIMAL_TWELVE_PROFILES[key] : null;
+}
+const __cmsAnimalTwelveBase = BASE;
+  // ── app/saju/animal-destiny/lib/twelveStages.ts ──
+const STEM_KO_LIST = ["갑", "을", "병", "정", "무", "기", "경", "신", "임", "계"];
+const BRANCH_KO_LIST = ["자", "축", "인", "묘", "진", "사", "오", "미", "신", "유", "술", "해"];
+const TWELVE_STAGES_TEXT_TRANSLATIONS = {
+    ko: {
+        invalidStemBranch: "잘못된 천간/지지 입력입니다.",
+    },
+    en: {
+        invalidStemBranch: "Invalid heavenly stem or earthly branch input.",
+    },
+    ja: {
+        invalidStemBranch: "天干または地支の入力が正しくありません。",
+    },
+};
+const STEM_HAN_TO_KO = {
+    甲: "갑",
+    乙: "을",
+    丙: "병",
+    丁: "정",
+    戊: "무",
+    己: "기",
+    庚: "경",
+    辛: "신",
+    壬: "임",
+    癸: "계",
+};
+const BRANCH_HAN_TO_KO = {
+    子: "자",
+    丑: "축",
+    寅: "인",
+    卯: "묘",
+    辰: "진",
+    巳: "사",
+    午: "오",
+    未: "미",
+    申: "신",
+    酉: "유",
+    戌: "술",
+    亥: "해",
+};
+const TWELVE_STAGE_TABLE = {
+    갑: { 해: "장생", 자: "목욕", 축: "관대", 인: "건록", 묘: "제왕", 진: "쇠", 사: "병", 오: "사", 미: "묘", 신: "절", 유: "태", 술: "양" },
+    을: { 오: "장생", 사: "목욕", 진: "관대", 묘: "건록", 인: "제왕", 축: "쇠", 자: "병", 해: "사", 술: "묘", 유: "절", 신: "태", 미: "양" },
+    병: { 인: "장생", 묘: "목욕", 진: "관대", 사: "건록", 오: "제왕", 미: "쇠", 신: "병", 유: "사", 술: "묘", 해: "절", 자: "태", 축: "양" },
+    정: { 유: "장생", 신: "목욕", 미: "관대", 오: "건록", 사: "제왕", 진: "쇠", 묘: "병", 인: "사", 축: "묘", 자: "절", 해: "태", 술: "양" },
+    무: { 인: "장생", 묘: "목욕", 진: "관대", 사: "건록", 오: "제왕", 미: "쇠", 신: "병", 유: "사", 술: "묘", 해: "절", 자: "태", 축: "양" },
+    기: { 유: "장생", 신: "목욕", 미: "관대", 오: "건록", 사: "제왕", 진: "쇠", 묘: "병", 인: "사", 축: "묘", 자: "절", 해: "태", 술: "양" },
+    경: { 사: "장생", 오: "목욕", 미: "관대", 신: "건록", 유: "제왕", 술: "쇠", 해: "병", 자: "사", 축: "묘", 인: "절", 묘: "태", 진: "양" },
+    신: { 자: "장생", 해: "목욕", 술: "관대", 유: "건록", 신: "제왕", 미: "쇠", 오: "병", 사: "사", 진: "묘", 묘: "절", 인: "태", 축: "양" },
+    임: { 신: "장생", 유: "목욕", 술: "관대", 해: "건록", 자: "제왕", 축: "쇠", 인: "병", 묘: "사", 진: "묘", 사: "절", 오: "태", 미: "양" },
+    계: { 묘: "장생", 인: "목욕", 축: "관대", 자: "건록", 해: "제왕", 술: "쇠", 유: "병", 신: "사", 미: "묘", 오: "절", 사: "태", 진: "양" },
+};
+const STAGE_ALIAS_MAP = {
+    jangsaeng: "장생",
+    mogyok: "목욕",
+    gwandae: "관대",
+    geonrok: "건록",
+    jewang: "제왕",
+    soe: "쇠",
+    byeong: "병",
+    sa: "사",
+    myo: "묘",
+    jeol: "절",
+    tae: "태",
+    yang: "양",
+    "長生": "장생",
+    "沐浴": "목욕",
+    "冠帶": "관대",
+    "建祿": "건록",
+    "帝旺": "제왕",
+    "衰": "쇠",
+    "病": "병",
+    "死": "사",
+    "墓": "묘",
+    "絶": "절",
+    "胎": "태",
+    "養": "양",
+    "양육": "양",
+};
+function pickChar(source, list) {
+    for (let i = 0; i < source.length; i += 1) {
+        const ch = source[i];
+        if (list.includes(ch))
+            return ch;
+    }
+    return "";
+}
+function toRecord(value) {
+    return value && typeof value === "object" ? value : {};
+}
+function toStageResult(pillar, stage, source) {
+    const stageKey = STAGE_LABEL_TO_KEY[stage] || "jangsaeng";
+    return {
+        key: stageKey,
+        labelKo: stage,
+        hanja: STAGE_KEY_TO_HANJA[stageKey],
+        pillar,
+        source,
+    };
+}
+function normalizeStem(value) {
+    const raw = String(value || "").trim();
+    if (!raw)
+        return null;
+    const han = pickChar(raw, Object.keys(STEM_HAN_TO_KO));
+    if (han)
+        return STEM_HAN_TO_KO[han];
+    const ko = pickChar(raw, STEM_KO_LIST);
+    if (ko)
+        return ko;
+    return null;
+}
+function normalizeBranch(value) {
+    const raw = String(value || "").trim();
+    if (!raw)
+        return null;
+    const han = pickChar(raw, Object.keys(BRANCH_HAN_TO_KO));
+    if (han)
+        return BRANCH_HAN_TO_KO[han];
+    const ko = pickChar(raw, BRANCH_KO_LIST);
+    if (ko)
+        return ko;
+    return null;
+}
+function normalizeTwelveStage(value) {
+    const raw = String(value || "").trim();
+    if (!raw)
+        return null;
+    if (Object.values(STAGE_KEY_TO_LABEL).includes(raw)) {
+        return raw;
+    }
+    const compact = raw
+        .toLowerCase()
+        .replace(/\s+/g, "")
+        .replace(/[_-]/g, "");
+    const aliasHit = STAGE_ALIAS_MAP[raw] || STAGE_ALIAS_MAP[compact];
+    if (aliasHit)
+        return aliasHit;
+    const hanCandidate = pickChar(raw, ["長", "沐", "冠", "建", "帝", "衰", "病", "死", "墓", "絶", "胎", "養"]);
+    if (hanCandidate) {
+        const exact = STAGE_ALIAS_MAP[raw.replace(/\s+/g, "")];
+        if (exact)
+            return exact;
+    }
+    return null;
+}
+function extractStemFromPillar(pillar) {
+    const p = toRecord(pillar);
+    return (normalizeStem(p.stem) ||
+        normalizeStem(p.gan) ||
+        normalizeStem(p.g) ||
+        normalizeStem(p.heavenlyStem) ||
+        normalizeStem(p.dayMaster) ||
+        normalizeStem(p.ganji) ||
+        normalizeStem(p.pillar));
+}
+function extractBranchFromPillar(pillar) {
+    const p = toRecord(pillar);
+    return (normalizeBranch(p.branch) ||
+        normalizeBranch(p.zhi) ||
+        normalizeBranch(p.z) ||
+        normalizeBranch(p.earthlyBranch) ||
+        normalizeBranch(p.ganji) ||
+        normalizeBranch(p.pillar));
+}
+function pickPillar(source, key) {
+    const pillars = toRecord(source.pillars);
+    const fourPillars = toRecord(source.fourPillars);
+    const shortMap = {
+        year: "y",
+        month: "m",
+        day: "d",
+        hour: "h",
+    };
+    return pillars[key] || pillars[shortMap[key]] || fourPillars[key] || source[key];
+}
+function extractDayStem(source) {
+    const dayMaster = toRecord(source.dayMaster);
+    const fromDayPillar = extractStemFromPillar(pickPillar(source, "day"));
+    return (normalizeStem(dayMaster.stem) ||
+        normalizeStem(source.dayMasterGanKr) ||
+        normalizeStem(source.dayMaster) ||
+        normalizeStem(source.dayStem) ||
+        fromDayPillar);
+}
+function extractExistingPillarStages(source) {
+    const out = {};
+    const direct = toRecord(source.twelveStage || source.twelveStages || source.twelveFortune || source.twelveFortunes);
+    ["year", "month", "day", "hour"].forEach((pillar) => {
+        const stage = normalizeTwelveStage(direct[pillar]);
+        if (stage)
+            out[pillar] = stage;
+    });
+    const list = Array.isArray(source.twelveStages) ? source.twelveStages : [];
+    list.forEach((item) => {
+        const row = toRecord(item);
+        const pillarRaw = String(row.pillar || row.type || row.position || "").toLowerCase();
+        const stage = normalizeTwelveStage(row.stage || row.label || row.value || row.name);
+        if (!stage)
+            return;
+        if (pillarRaw.includes("year") || pillarRaw.includes("연"))
+            out.year = stage;
+        if (pillarRaw.includes("month") || pillarRaw.includes("월"))
+            out.month = stage;
+        if (pillarRaw.includes("day") || pillarRaw.includes("일"))
+            out.day = stage;
+        if (pillarRaw.includes("hour") || pillarRaw.includes("시"))
+            out.hour = stage;
+    });
+    ["year", "month", "day", "hour"].forEach((pillar) => {
+        const pillarObj = toRecord(pickPillar(source, pillar));
+        const stage = normalizeTwelveStage(pillarObj.twelveStage || pillarObj.twelveFortune || pillarObj.stage || pillarObj.lifeStage);
+        if (stage)
+            out[pillar] = stage;
+    });
+    return out;
+}
+function selectRepresentativeStage(stages) {
+    if (stages.day)
+        return stages.day;
+    if (stages.month)
+        return stages.month;
+    const values = [stages.year, stages.month, stages.day, stages.hour].filter(Boolean);
+    if (!values.length)
+        return undefined;
+    const counter = new Map();
+    values.forEach((stage) => {
+        counter.set(stage, (counter.get(stage) || 0) + 1);
+    });
+    let winner;
+    let maxCount = 0;
+    counter.forEach((count, stage) => {
+        if (count > maxCount) {
+            winner = stage;
+            maxCount = count;
+        }
+    });
+    return winner || values[0];
+}
+function validateTwelveStageInput(dayStem, branch) {
+    const stem = normalizeStem(dayStem);
+    const normalizedBranch = normalizeBranch(branch);
+    if (!stem || !normalizedBranch) {
+        return {
+            ok: false,
+            error: TWELVE_STAGES_TEXT_TRANSLATIONS.ko.invalidStemBranch,
+        };
+    }
+    return {
+        ok: true,
+        dayStem: stem,
+        branch: normalizedBranch,
+    };
+}
+function getTwelveStage(dayStem, branch) {
+    const validated = validateTwelveStageInput(dayStem, branch);
+    if (!validated.ok)
+        return null;
+    return TWELVE_STAGE_TABLE[validated.dayStem][validated.branch];
+}
+function getTwelveStagesForPillars(sajuResult) {
+    const source = toRecord(sajuResult);
+    const existing = extractExistingPillarStages(source);
+    const dayStem = extractDayStem(source);
+    const yearBranch = extractBranchFromPillar(pickPillar(source, "year"));
+    const monthBranch = extractBranchFromPillar(pickPillar(source, "month"));
+    const dayBranch = extractBranchFromPillar(pickPillar(source, "day"));
+    const hourBranch = extractBranchFromPillar(pickPillar(source, "hour"));
+    const computed = {
+        year: dayStem && yearBranch ? getTwelveStage(dayStem, yearBranch) || undefined : undefined,
+        month: dayStem && monthBranch ? getTwelveStage(dayStem, monthBranch) || undefined : undefined,
+        day: dayStem && dayBranch ? getTwelveStage(dayStem, dayBranch) || undefined : undefined,
+        hour: dayStem && hourBranch ? getTwelveStage(dayStem, hourBranch) || undefined : undefined,
+    };
+    const merged = {
+        year: existing.year || computed.year,
+        month: existing.month || computed.month,
+        day: existing.day || computed.day,
+        hour: existing.hour || computed.hour,
+    };
+    const stageResults = ["year", "month", "day", "hour"]
+        .map((pillar) => {
+        const stage = merged[pillar];
+        if (!stage)
+            return null;
+        const sourceType = existing[pillar] ? "saju-engine" : "local-fallback";
+        return toStageResult(pillar, stage, sourceType);
+    })
+        .filter(Boolean);
+    return {
+        primary: selectRepresentativeStage(merged),
+        year: merged.year,
+        month: merged.month,
+        day: merged.day,
+        hour: merged.hour,
+        stageResults,
+    };
+}
+function getPrimaryAnimalStage(sajuResult) {
+    const stages = getTwelveStagesForPillars(sajuResult);
+    return stages.primary || null;
+}
+function getNormalizedSajuCore(sajuResult) {
+    const source = toRecord(sajuResult);
+    return {
+        dayStem: extractDayStem(source),
+        yearBranch: extractBranchFromPillar(pickPillar(source, "year")),
+        monthBranch: extractBranchFromPillar(pickPillar(source, "month")),
+        dayBranch: extractBranchFromPillar(pickPillar(source, "day")),
+        hourBranch: extractBranchFromPillar(pickPillar(source, "hour")),
+    };
+}
+function getFourPillarStageItems(sajuResult) {
+    const source = toRecord(sajuResult);
+    const pillarStages = getTwelveStagesForPillars(sajuResult);
+    const yearPillar = pickPillar(source, "year");
+    const monthPillar = pickPillar(source, "month");
+    const dayPillar = pickPillar(source, "day");
+    const hourPillar = pickPillar(source, "hour");
+    return {
+        year: {
+            pillar: "year",
+            stem: extractStemFromPillar(yearPillar),
+            branch: extractBranchFromPillar(yearPillar),
+            stage: pillarStages.year,
+        },
+        month: {
+            pillar: "month",
+            stem: extractStemFromPillar(monthPillar),
+            branch: extractBranchFromPillar(monthPillar),
+            stage: pillarStages.month,
+        },
+        day: {
+            pillar: "day",
+            stem: extractStemFromPillar(dayPillar),
+            branch: extractBranchFromPillar(dayPillar),
+            stage: pillarStages.day || pillarStages.primary,
+        },
+        hour: {
+            pillar: "hour",
+            stem: extractStemFromPillar(hourPillar),
+            branch: extractBranchFromPillar(hourPillar),
+            stage: pillarStages.hour,
+        },
+    };
+}
+const __TWELVE_STAGE_TESTING__ = {
+    STEM_KO_LIST,
+    BRANCH_KO_LIST,
+    TWELVE_STAGE_TABLE,
+};
+  // ── app/saju/animal-destiny/lib/animalMapping.ts ──
+const STAGE_TO_ANIMAL = {
+    장생: "cheetah",
+    목욕: "monkey",
+    관대: "black-panther",
+    건록: "koala",
+    제왕: "tiger",
+    쇠: "raccoon",
+    병: "rhino",
+    사: "elephant",
+    묘: "sheep",
+    절: "pegasus",
+    태: "wolf",
+    양: "fawn",
+};
+const ANIMAL_COMPATIBILITY_MAPPING_TEXT_TRANSLATIONS = {
+    ko: {
+        overall: "종합 궁합",
+        emotionCommunication: "감정 및 소통 궁합",
+        valueLifestyle: "가치관 및 생활 패턴",
+        practicalAdvice: "사주 고수의 실전 조언",
+    },
+};
+function animalCompatibilityMappingText(key) {
+    return ANIMAL_COMPATIBILITY_MAPPING_TEXT_TRANSLATIONS.ko[key];
+}
+function relationByDistance(distance) {
+    if (distance <= 1)
+        return { relationType: "환상", baseScore: 92 };
+    if (distance <= 2)
+        return { relationType: "좋음", baseScore: 82 };
+    if (distance <= 4)
+        return { relationType: "긴장", baseScore: 62 };
+    return { relationType: "주의", baseScore: 48 };
+}
+function stageDistance(myStageKey, partnerStageKey) {
+    const myIndex = STAGE_SEQUENCE.indexOf(myStageKey);
+    const partnerIndex = STAGE_SEQUENCE.indexOf(partnerStageKey);
+    if (myIndex < 0 || partnerIndex < 0)
+        return 6;
+    const direct = Math.abs(myIndex - partnerIndex);
+    return Math.min(direct, 12 - direct);
+}
+function relationSummary(myAnimal, partnerAnimal, distance) {
+    if (distance <= 1) {
+        return `${myAnimal}와 ${partnerAnimal}는 감정 박자가 비슷해 빠르게 친밀해지는 조합입니다.`;
+    }
+    if (distance <= 2) {
+        return `${myAnimal}와 ${partnerAnimal}는 서로의 장점을 보완하며 성장하는 조합입니다.`;
+    }
+    if (distance <= 4) {
+        return `${myAnimal}와 ${partnerAnimal}는 매력은 크지만 생활 리듬 조율이 필요한 조합입니다.`;
+    }
+    return `${myAnimal}와 ${partnerAnimal}는 표현 방식 차이가 커 경계와 합의가 중요한 조합입니다.`;
+}
+function buildDefaultBreakdown(myAnimal, partnerAnimal, relationType) {
+    const relationLine = relationType === "환상"
+        ? "서로의 리듬이 빠르게 동기화되는 조합"
+        : relationType === "좋음"
+            ? "역할을 나누면 장점이 크게 증폭되는 조합"
+            : relationType === "긴장"
+                ? "매력은 크지만 조율이 필요한 조합"
+                : "차이를 합의로 관리해야 안정되는 조합";
+    return {
+        overall: {
+            title: animalCompatibilityMappingText("overall"),
+            body: [
+                `${myAnimal}와 ${partnerAnimal}는 ${relationLine}입니다. 사주 궁합의 본질은 감정의 강약보다 에너지 운용 방식의 합에 있습니다.`,
+                "처음의 끌림이 강할수록 관계 설계를 생략하기 쉽지만, 장기적으로는 생활 루틴과 갈등 복구 방식의 합의가 궁합 점수를 좌우합니다.",
+            ],
+        },
+        emotionCommunication: {
+            title: animalCompatibilityMappingText("emotionCommunication"),
+            body: [
+                "감정의 온도와 표현 속도가 다를 수 있어, 오해는 대개 의도보다 전달 방식에서 발생합니다.",
+                "감정 해석보다 사실 확인을 먼저 하고, 감정은 짧고 명료한 문장으로 확인하는 습관이 관계 피로를 줄입니다.",
+            ],
+        },
+        valueLifestyle: {
+            title: animalCompatibilityMappingText("valueLifestyle"),
+            body: [
+                "생활 리듬, 휴식 방식, 돈과 시간의 우선순위에서 차이가 드러날 가능성이 큽니다.",
+                "루틴을 강요하기보다 각자의 회복 방식과 일상 템포를 존중하면, 다른 성향이 갈등이 아니라 시너지로 바뀝니다.",
+            ],
+        },
+        practicalAdvice: {
+            title: animalCompatibilityMappingText("practicalAdvice"),
+            body: [
+                "관계의 핵심은 감정 토론의 길이가 아니라 점검의 주기입니다.",
+                "월 1회 고정된 타이밍에 감정 온도, 생활 합의, 다음 한 달의 역할 분담을 함께 점검하면 궁합의 안정도가 눈에 띄게 올라갑니다.",
+                "갈등이 발생한 주간에는 승패를 가르기보다 재발 방지 규칙 1개를 남기는 방식이 가장 실전적입니다.",
+            ],
+        },
+    };
+}
+function getAnimalByStage(stage) {
+    if (!stage)
+        return null;
+    return STAGE_TO_ANIMAL[stage] || null;
+}
+function getAnimalBySajuResult(sajuResult) {
+    const primaryStage = getPrimaryAnimalStage(sajuResult);
+    return {
+        primaryStage,
+        animalId: getAnimalByStage(primaryStage),
+    };
+}
+function getAnimalDisplayData(animalId) {
+    if (!animalId)
+        return null;
+    return ANIMAL_DESTINY_DATA[animalId] || null;
+}
+function getAnimalCompatibility(animalId) {
+    const data = getAnimalDisplayData(animalId);
+    return data ? data.compatibility : null;
+}
+function calculateAnimalCompatibility(myAnimalId, partnerAnimalId) {
+    const my = ANIMAL_DESTINY_DATA[myAnimalId];
+    const partner = ANIMAL_DESTINY_DATA[partnerAnimalId];
+    const myStageKey = STAGE_LABEL_TO_KEY[my.stageLabel || my.saju_stage];
+    const partnerStageKey = STAGE_LABEL_TO_KEY[partner.stageLabel || partner.saju_stage];
+    if (!myStageKey || !partnerStageKey) {
+        return {
+            score: 66,
+            relationType: "좋음",
+            summary: `${my.animal_ko}와 ${partner.animal_ko}는 대화를 자주 할수록 안정감이 올라갑니다.`,
+            goodPoints: ["따뜻한 공감", "역할 보완"],
+            clashPoints: ["속도 차이", "표현 온도 차이"],
+            tips: ["주 1회 감정 점검 대화를 해보세요."],
+            breakdown: buildDefaultBreakdown(my.animal_ko, partner.animal_ko, "좋음"),
+        };
+    }
+    const isDogButterflyPair = (myStageKey === "geonrok" && partnerStageKey === "sa") ||
+        (myStageKey === "sa" && partnerStageKey === "geonrok");
+    if (isDogButterflyPair) {
+        return {
+            score: 78,
+            relationType: "좋음",
+            summary: "현실에 뿌리내린 나무와 보이지 않는 세계를 유영하는 나비의 만남. 서로가 가지지 못한 세계를 열어주는 매력적인 궁합입니다.",
+            goodPoints: [
+                "현실 안정과 정서 영감의 상호 보완",
+                "역할 분리 시 관계 효율이 빠르게 상승",
+                "생활 기반과 감정 기반의 균형 가능성",
+            ],
+            clashPoints: [
+                "현실 중심 대화와 감정 중심 대화의 주파수 차이",
+                "생활 템포 강요 시 관계 피로 누적",
+                "모호한 표현이 반복되면 오해 증폭",
+            ],
+            tips: [
+                "건록은 감정에 이유를 묻기보다 공감부터 시작하세요.",
+                "사는 모호한 표현보다 명확한 언어로 마음을 전하세요.",
+                "월 1회 감정 온도 점검 티타임을 고정 루틴으로 운영하세요.",
+            ],
+            breakdown: {
+                overall: {
+                    title: animalCompatibilityMappingText("overall"),
+                    body: [
+                        "명리학적으로 건록(建祿)의 현실적인 에너지와 사(死)의 정신적이고 직관적인 에너지가 만난 구조입니다.",
+                        "별빛 강아지(건록)가 관계의 뼈대를 세우고 현실적인 안정을 책임진다면, 신비 나비(사)는 메마르기 쉬운 강아지의 내면에 정신적인 영감과 쉼터를 제공합니다.",
+                        "생활의 궤적은 다르지만, 다름이 서로에게 독이 아닌 약이 되는 상호 보완의 인연입니다.",
+                    ],
+                },
+                emotionCommunication: {
+                    title: animalCompatibilityMappingText("emotionCommunication"),
+                    body: [
+                        "별빛 강아지는 행동과 결과로 애정을 증명하려 하고, 신비 나비는 언어 이면의 감정과 분위기로 소통하려 합니다.",
+                        "강아지 입장에서는 나비의 생각이 뜬구름 잡는 것처럼 보일 수 있고, 나비는 강아지가 너무 현실적이라고 느낄 수 있습니다.",
+                        "소통의 주파수를 맞추기 위해서는 강아지는 나비의 감정에 이유를 묻지 말고 공감해 주어야 하며, 나비는 강아지에게 모호한 표현 대신 명확한 언어로 마음을 전달해야 합니다.",
+                    ],
+                },
+                valueLifestyle: {
+                    title: animalCompatibilityMappingText("valueLifestyle"),
+                    body: [
+                        "루틴과 규칙을 중시하는 별빛 강아지의 곁에서 신비 나비는 안정감을 느낍니다.",
+                        "다만 생활 리듬에 있어 강아지가 자신의 템포를 나비에게 강요하기 시작하면 관계에 균열이 생깁니다.",
+                        "나비에게는 혼자만의 정신적 동굴에서 에너지를 충전할 고요한 시간이 반드시 필요함을 인정해야 합니다.",
+                    ],
+                },
+                practicalAdvice: {
+                    title: animalCompatibilityMappingText("practicalAdvice"),
+                    body: [
+                        "이 궁합의 핵심은 '적당한 거리감'과 '역할의 분리'입니다.",
+                        "모든 것을 함께 하려 하기보다, 현실적인 결정(재무, 계획)은 건록인 별빛 강아지가 주도하고, 관계의 분위기와 정서적인 방향성은 사(死)인 신비 나비가 이끌도록 하세요.",
+                        "한 달에 한 번, 서로의 감정 온도를 점검하는 티타임을 가지는 것만으로도 이 인연은 오래도록 단단하게 이어질 것입니다.",
+                    ],
+                },
+            },
+        };
+    }
+    const distance = stageDistance(myStageKey, partnerStageKey);
+    const relation = relationByDistance(distance);
+    const score = relation.baseScore;
+    const myKeywords = my.keywords || [];
+    const partnerKeywords = partner.keywords || [];
+    const goodPoints = [
+        `${myKeywords[0] || "안정"}과 ${partnerKeywords[0] || "균형"}의 상호 보완`,
+        `${myKeywords[1] || "배려"}을(를) 통해 신뢰를 쌓는 흐름`,
+        `${partnerKeywords[1] || "실행"}이(가) 관계의 추진력을 높임`,
+    ];
+    const clashPoints = [
+        "중요한 결정을 내릴 때 속도 차이가 발생할 수 있음",
+        "감정 표현 방식이 달라 오해가 생길 수 있음",
+        "서로의 휴식 방식이 달라 피로 누적 가능성",
+    ];
+    return {
+        score,
+        relationType: relation.relationType,
+        summary: relationSummary(my.animal_ko, partner.animal_ko, distance),
+        goodPoints,
+        clashPoints,
+        tips: [
+            `${STAGE_KEY_TO_LABEL[myStageKey]}-${STAGE_KEY_TO_LABEL[partnerStageKey]} 조합은 경계와 기대치를 먼저 합의할수록 장기 안정성이 높아집니다.`,
+            "갈등이 생기면 감정 해석보다 사실 확인을 먼저 해보세요.",
+            "한 달에 한 번, 관계 목표를 함께 업데이트해 보세요.",
+        ],
+        breakdown: buildDefaultBreakdown(my.animal_ko, partner.animal_ko, relation.relationType),
+    };
+}
+  // ── paid twelve-stage animal reading ──
+// 십이운성 동물점(animal-destiny-unlock) 유료 본문 — 서버 전용 사본.
+// app/saju/animal-destiny/lib/twelveGrowthAnimalResults.ts 와 animalInterpretation.ts 에서 타입만 지우고 옮겼다(문장·계산은 그대로).
+// 브라우저 번들·공개 미러에는 두지 않는다. scripts/extract-saju-section-runtime.mjs 가 createAnimalDestinyRuntime 으로 묶는다.
+// cmsRecordRow(관리자 CMS 오버라이드)는 런타임에서 기본 시드를 그대로 돌려주는 함수로 둔다.
+
+// ── twelveGrowthAnimalResults.ts ──
+const TWELVE_GROWTH_ANIMAL_RESULT_TEXT_TRANSLATIONS = {
+    ko: {
+        "section.core": "핵심 성향",
+        "section.strengthWeakness": "강점과 약점",
+        "section.loveRelations": "연애와 인간관계",
+        "section.workMoney": "일과 재물 감각",
+        "section.lifePattern": "반복 패턴",
+        "section.misunderstanding": "자주 생기는 오해",
+        "section.stress": "스트레스 패턴",
+        "section.today": "오늘의 실전 조언",
+        "section.compatible": "나와 잘 맞는 동반 에너지",
+        "section.mission": "성장 미션",
+    },
+    en: {
+        "section.core": "Core Tendency",
+        "section.strengthWeakness": "Strengths and Shadows",
+        "section.loveRelations": "Love and Relationships",
+        "section.workMoney": "Work and Wealth Sense",
+        "section.lifePattern": "Repeating Pattern",
+        "section.misunderstanding": "Common Misunderstanding",
+        "section.stress": "Stress Pattern",
+        "section.today": "Today's Practical Guidance",
+        "section.compatible": "Companion Energy That Fits You",
+        "section.mission": "Growth Mission",
+    },
+    ja: {
+        "section.core": "核心の性質",
+        "section.strengthWeakness": "強みと弱み",
+        "section.loveRelations": "恋愛と人間関係",
+        "section.workMoney": "仕事と金運感覚",
+        "section.lifePattern": "繰り返すパターン",
+        "section.misunderstanding": "起こりやすい誤解",
+        "section.stress": "ストレスの傾向",
+        "section.today": "今日の実践アドバイス",
+        "section.compatible": "相性のよい伴走エネルギー",
+        "section.mission": "成長ミッション",
+    },
+    "zh-CN": {
+        "section.core": "核心倾向",
+        "section.strengthWeakness": "优势与弱点",
+        "section.loveRelations": "恋爱与人际关系",
+        "section.workMoney": "事业与财富感知",
+        "section.lifePattern": "反复出现的模式",
+        "section.misunderstanding": "常见误解",
+        "section.stress": "压力模式",
+        "section.today": "今日实用建议",
+        "section.compatible": "与你契合的同行能量",
+        "section.mission": "成长课题",
+    },
+    "zh-TW": {
+        "section.core": "核心傾向",
+        "section.strengthWeakness": "優勢與弱點",
+        "section.loveRelations": "戀愛與人際關係",
+        "section.workMoney": "事業與財富感知",
+        "section.lifePattern": "反覆出現的模式",
+        "section.misunderstanding": "常見誤解",
+        "section.stress": "壓力模式",
+        "section.today": "今日實用建議",
+        "section.compatible": "與你契合的同行能量",
+        "section.mission": "成長課題",
+    },
+};
+function twelveGrowthAnimalResultText(key, locale = "ko") {
+    const table = TWELVE_GROWTH_ANIMAL_RESULT_TEXT_TRANSLATIONS[locale] || TWELVE_GROWTH_ANIMAL_RESULT_TEXT_TRANSLATIONS.en;
+    return table[key] || TWELVE_GROWTH_ANIMAL_RESULT_TEXT_TRANSLATIONS.en[key] || "Translation pending";
+}
+const STAGE_SEEDS = {
+    jangsaeng: {
+        animalTitle: "새벽의 싹을 여는 탐험형",
+        keywords: ["시작운", "회복탄성", "관계개방", "호기심", "성장리듬"],
+        elementTags: ["목기", "새싹", "봄빛"],
+        identityLine: "새로운 판을 열 때 가장 살아나는 개척형 에너지",
+        energySummary: "장생은 생명의 맥이 처음 힘을 얻는 구간이라, 낯선 환경에서도 배우며 자라는 힘이 빠르게 활성화됩니다.",
+        outerFace: "외부에서는 첫인상이 부드럽고 경계가 낮아, 사람을 편하게 만드는 분위기로 읽히기 쉽습니다.",
+        innerMotive: "내면에서는 누구보다 단단한 자립 욕구가 있어, 스스로 선택한 길에서 성장을 증명하려는 의지가 분명합니다.",
+        strengths: "시작 속도와 회복력이 좋아 실패를 경험으로 전환하는 능력이 뛰어납니다. 관계에서도 먼저 문을 열어 팀 분위기를 살리고, 초반 동력을 만들 때 강합니다.",
+        shadows: "가능성이 보이면 한 번에 너무 많은 일을 벌려 체력과 집중이 분산될 수 있습니다. 기대가 큰 만큼 작은 지연에도 조급함이 올라와 리듬이 흔들릴 수 있습니다.",
+        love: "연애에서는 설렘을 빠르게 느끼지만, 마음이 깊어질수록 안정 루틴을 확인하고 싶어 합니다. 상대와의 성장 방향이 맞는지 점검할 때 관계 만족도가 크게 올라갑니다.",
+        workMoney: "일과 재물에서는 신사업, 신규 프로젝트, 초기 세팅 구간에서 성과가 납니다. 작은 성취를 반복해 신뢰를 쌓을수록 수익이 길게 붙는 구조입니다.",
+        relationships: "인간관계는 넓게 시작해 깊게 추리는 편이 유리합니다. 따뜻한 사람이라는 평판을 지키되, 에너지 소모가 큰 약속은 선별해야 균형이 유지됩니다.",
+        stressPattern: "스트레스가 쌓이면 해야 할 일을 늘리는 방식으로 불안을 상쇄하려 합니다. 일정이 과밀해질수록 감정 회복이 늦어져 피로가 누적됩니다.",
+        recoveryGuide: "하루 계획을 세 개 핵심 목표로 줄이고, 완료 기록을 눈에 보이게 남기면 회복이 빨라집니다. 산책과 수면 리듬 고정이 특히 효과적입니다.",
+        todayAction: "오늘은 새로운 한 가지를 시도하되, 끝낼 기준을 먼저 적어두세요. 시작의 에너지를 완주의 경험으로 연결하는 것이 핵심입니다.",
+        growthMission: "이번 주 미션은 매일 20분, 한 가지 역량만 집중 강화하는 루틴을 만드는 것입니다. 지속성이 쌓이면 운의 체감이 즉시 달라집니다.",
+        compatibleEnergy: "건록·양 기운처럼 현실 루틴을 잡아주는 에너지와 잘 맞습니다.",
+        cautionEnergy: "절 기운처럼 급격한 단절 성향과는 속도 조율이 필요합니다.",
+    },
+    mogyok: {
+        animalTitle: "감정 파동을 읽는 공감형",
+        keywords: ["감수성", "표현력", "매력발산", "관계센스", "분위기"],
+        elementTags: ["수기", "물결", "달빛"],
+        identityLine: "감정의 흐름을 읽고 분위기를 바꾸는 감각형 에너지",
+        energySummary: "목욕은 에너지가 외부와 처음 강하게 접촉하는 구간이라 감정 반응이 빠르고 표현력이 풍부해집니다.",
+        outerFace: "바깥에서는 세련된 감각과 부드러운 소통으로 기억되며, 대화의 온도를 자연스럽게 조절하는 사람으로 보입니다.",
+        innerMotive: "내면에서는 진짜로 이해받고 싶은 욕구가 강해, 관계의 진정성을 매우 중요하게 여깁니다.",
+        strengths: "미세한 감정 변화 포착 능력이 뛰어나 갈등 완충 역할을 잘합니다. 콘텐츠, 브랜딩, 관계 설계처럼 사람의 마음을 다루는 장면에서 탁월합니다.",
+        shadows: "상대 반응을 과하게 읽어 스스로 지치는 패턴이 생길 수 있습니다. 기분이 흔들리는 날에는 집중이 분산되고 결정이 늦어질 수 있습니다.",
+        love: "연애에서는 교감의 밀도가 중요합니다. 표현이 풍부한 관계에서 행복감이 높고, 감정을 설명하지 않는 관계에서는 빠르게 피로를 느낍니다.",
+        workMoney: "일과 재물은 감각 자본을 수익으로 전환할 때 확장됩니다. 취향 큐레이션, 관계형 서비스, 기획 제안에서 돈의 흐름이 열리기 쉽습니다.",
+        relationships: "사람 사이의 온도 차를 조율하는 능력이 강하지만, 모두를 만족시키려 하면 소진이 빨라집니다. 핵심 관계와 일반 관계의 경계를 분리해야 합니다.",
+        stressPattern: "스트레스 시 감정 과해석 루프가 발생해 작은 신호도 위협으로 느껴질 수 있습니다.",
+        recoveryGuide: "디지털 자극을 줄이고, 감정을 단어 세 개로만 기록해 보세요. 감정 명확화가 회복 속도를 크게 올립니다.",
+        todayAction: "오늘은 마음에 걸린 한 대화를 미루지 말고 짧게 정리하세요. 정돈된 표현이 운의 막힘을 풀어줍니다.",
+        growthMission: "이번 주 미션은 공감과 경계를 함께 연습하는 것입니다. 친절한 거절 문장을 미리 준비해 두세요.",
+        compatibleEnergy: "장생·태 기운처럼 가능성을 열어주는 에너지와 창의적 시너지가 큽니다.",
+        cautionEnergy: "쇠 기운처럼 지나치게 분석적인 흐름과는 감정 해석 충돌이 날 수 있습니다.",
+    },
+    gwandae: {
+        animalTitle: "무대 감각이 강한 성장형",
+        keywords: ["표현성", "도전력", "존재감", "성장욕", "사회성"],
+        elementTags: ["화기", "리본", "빛무대"],
+        identityLine: "보여주고 증명하며 성장하는 사회 확장형 에너지",
+        energySummary: "관대는 사회적 역할을 입는 구간이라 자존감과 성취 동기가 동시에 커집니다.",
+        outerFace: "외부에서는 당당하고 밝은 인상으로 읽히며, 도전 상황에서 오히려 활력이 살아납니다.",
+        innerMotive: "내면에서는 인정 욕구보다 자기완성 욕구가 더 크며, 기준 높은 결과물을 만들고 싶어 합니다.",
+        strengths: "새로운 책임을 기회로 바꾸는 능력이 좋고, 피드백을 성장 재료로 쓰는 속도가 빠릅니다. 협업 장면에서 분위기를 끌어올리는 힘도 강합니다.",
+        shadows: "비교가 심해지면 자기평가가 급격히 흔들릴 수 있습니다. 이미지 유지에 에너지를 과도하게 쓰면 본질 과제가 밀릴 수 있습니다.",
+        love: "연애에서는 존중과 응원이 핵심입니다. 서로의 목표를 지지하는 관계일수록 애정이 깊어지고, 반복 비난이 있는 관계에서는 빠르게 마음을 닫습니다.",
+        workMoney: "일과 재물은 퍼포먼스가 보이는 구조에서 상승합니다. 발표, 기획, 브랜딩, 교육처럼 영향력을 만드는 포지션과 궁합이 좋습니다.",
+        relationships: "인맥 확장 능력이 좋지만 깊이 관리가 중요합니다. 중요한 관계는 정기적으로 안부를 점검해야 연결의 질이 유지됩니다.",
+        stressPattern: "성과가 멈추면 자기비난이 올라오고 과도한 일정으로 보상하려는 패턴이 나타납니다.",
+        recoveryGuide: "성과 지표를 외부 반응이 아닌 실행 지표로 바꾸면 회복이 빨라집니다. 매일 마감 체크리스트 3개가 효과적입니다.",
+        todayAction: "오늘은 남의 반응보다 내 기준 한 가지를 끝내는 데 집중하세요.",
+        growthMission: "이번 주 미션은 비교를 줄이고 축적을 늘리는 것, 즉 지난주 대비 개선점 한 줄 기록입니다.",
+        compatibleEnergy: "제왕·건록 기운과 만나면 추진력과 완성도가 함께 올라갑니다.",
+        cautionEnergy: "병 기운과 만날 때는 속도 차를 배려하지 않으면 피로가 누적됩니다.",
+    },
+    geonrok: {
+        animalTitle: "현실을 세우는 신뢰형",
+        keywords: ["자립", "실무력", "책임감", "축적", "안정성"],
+        elementTags: ["토기", "별발자국", "기반"],
+        identityLine: "실력과 책임으로 신뢰를 축적하는 기반 설계형 에너지",
+        energySummary: "건록은 스스로의 힘으로 자리를 세우는 구간이라, 꾸준함이 곧 경쟁력이 됩니다.",
+        outerFace: "외부에서는 묵직하고 믿을 수 있는 사람으로 보이며, 중요한 순간에 흔들리지 않는 인상을 남깁니다.",
+        innerMotive: "내면에서는 안정된 기반을 만들고 싶어 하며, 오래 가는 구조를 설계할 때 만족감이 큽니다.",
+        strengths: "실행 지속력, 기준 설정, 품질 관리 능력이 강합니다. 중장기 과제를 끝까지 밀어붙여 결과를 만들고, 팀에서 신뢰의 중심축이 됩니다.",
+        shadows: "모든 책임을 홀로 감당하려는 습관이 생기면 피로가 누적됩니다. 변화가 필요한 순간에도 익숙한 방식에 머물 가능성이 있습니다.",
+        love: "연애에서는 말보다 행동으로 마음을 보여주는 편입니다. 약속의 일관성이 높은 관계에서 신뢰가 깊어지고, 불확실성이 반복되면 거리감이 커집니다.",
+        workMoney: "일과 재물은 누적형 구조에서 강합니다. 운영, 개발, 재무, 프로젝트 관리처럼 기준과 프로세스가 중요한 분야에서 수익 안정성이 높아집니다.",
+        relationships: "관계에서도 책임감이 장점이지만, 과도한 보호자 역할은 피해야 합니다. 상호성 있는 관계를 선택해야 에너지 균형이 맞습니다.",
+        stressPattern: "스트레스가 쌓이면 감정을 미루고 업무로만 버티는 패턴이 나타납니다.",
+        recoveryGuide: "해야 할 일보다 내려놓을 일을 먼저 정리해 보세요. 휴식 시간을 일정에 고정하면 성과와 컨디션이 함께 회복됩니다.",
+        todayAction: "오늘은 미뤄둔 한 가지 구조 정리를 끝내세요. 정돈이 곧 운의 가속 장치가 됩니다.",
+        growthMission: "이번 주 미션은 도움 요청 한 번 하기입니다. 협업은 약점이 아니라 확장 기술입니다.",
+        compatibleEnergy: "장생·관대 기운이 더해지면 안정과 확장이 균형을 이룹니다.",
+        cautionEnergy: "사 기운과는 현실/감정 관점 차이를 명확한 대화로 조율해야 합니다.",
+    },
+    jewang: {
+        animalTitle: "판을 여는 중심 리더형",
+        keywords: ["주도력", "카리스마", "결정력", "확장", "영향력"],
+        elementTags: ["화기", "태양", "황금문"],
+        identityLine: "중심에 서서 방향을 결정하는 고출력 에너지",
+        energySummary: "제왕은 에너지가 정점에 가까운 구간이라 추진력과 결정력이 크게 강화됩니다.",
+        outerFace: "바깥에서는 자신감 있고 선명한 리더로 인식되며, 위기 상황에서 특히 존재감이 커집니다.",
+        innerMotive: "내면에서는 성취를 통해 의미를 만들고 싶어 하며, 결과에 대한 책임을 스스로 지려는 의지가 강합니다.",
+        strengths: "대담한 선택과 빠른 실행이 강점입니다. 팀의 사기를 끌어올리고 복잡한 상황을 단순한 목표로 정렬하는 능력이 뛰어납니다.",
+        shadows: "통제 강도가 높아지면 관계 유연성이 떨어질 수 있습니다. 휴식을 미루는 습관이 장기전에서 컨디션 저하를 부를 수 있습니다.",
+        love: "연애에서는 확신 있는 표현과 보호 본능이 두드러집니다. 다만 주도권 균형을 맞추지 않으면 상대가 부담을 느낄 수 있습니다.",
+        workMoney: "일과 재물은 큰 판을 다룰수록 강해집니다. 전략, 사업개발, 리더십 포지션에서 영향력이 곧 수익으로 연결됩니다.",
+        relationships: "사람을 이끄는 능력이 크지만, 경청의 여백을 두면 신뢰 밀도가 더 높아집니다.",
+        stressPattern: "막히는 상황에서 더 강하게 밀어붙여 소진이 심해지는 패턴이 있습니다.",
+        recoveryGuide: "결정권을 일부 위임하고 회복 시간을 확보하면 오히려 성과가 안정됩니다.",
+        todayAction: "오늘은 중요한 결정 한 가지에 기준 세 줄을 명확히 적어 실행하세요.",
+        growthMission: "이번 주 미션은 리더십의 속도 조절입니다. 빠른 결정과 느린 점검을 함께 운용하세요.",
+        compatibleEnergy: "건록·쇠 기운과 만나면 실행력과 안정성이 함께 올라갑니다.",
+        cautionEnergy: "태 기운과는 속도 차를 무시하면 방향 합의가 어려워질 수 있습니다.",
+    },
+    soe: {
+        animalTitle: "내실을 다지는 전략형",
+        keywords: ["성숙", "분석", "정리", "내공", "안정"],
+        elementTags: ["금기", "서고", "등불"],
+        identityLine: "경험을 체계로 바꾸는 구조화 에너지",
+        energySummary: "쇠는 확장 후 균형을 재정비하는 구간이라 판단력과 관리 능력이 날카로워집니다.",
+        outerFace: "외부에서는 차분하고 믿을 만한 전문가로 보이며, 감정보다 근거 중심으로 소통하는 경향이 있습니다.",
+        innerMotive: "내면에서는 흔들리지 않는 기반을 만들고 싶어 하며, 시행착오를 시스템으로 바꾸는 데 강한 만족을 느낍니다.",
+        strengths: "리스크를 예측하고 사전에 정리하는 능력이 탁월합니다. 복잡한 정보에서 핵심을 뽑아 실행 가능한 계획으로 바꾸는 역량이 큽니다.",
+        shadows: "과도한 신중함이 기회를 늦출 수 있습니다. 감정 표현이 줄어들면 차갑다는 오해를 받을 수 있습니다.",
+        love: "연애에서는 신뢰와 일관성을 우선합니다. 감정이 안정될수록 깊게 헌신하지만, 불확실한 관계에는 오래 머물지 않습니다.",
+        workMoney: "일과 재물은 분석과 관리 역량에서 안정적으로 확장됩니다. 데이터, 재무, 운영, 품질 관리 분야에서 장기 수익성이 높습니다.",
+        relationships: "관계는 넓기보다 깊게 가져가는 편이 맞습니다. 핵심 인연과의 정기적 대화가 정서적 안전망이 됩니다.",
+        stressPattern: "스트레스 시 최악의 시나리오를 반복 계산해 피로가 심해질 수 있습니다.",
+        recoveryGuide: "생각을 문서로 꺼내 우선순위를 재배열하면 불안이 줄어듭니다. 몸을 쓰는 루틴을 병행하면 효과가 큽니다.",
+        todayAction: "오늘은 걱정 목록을 실행 목록으로 바꾸는 정리 15분을 해보세요.",
+        growthMission: "이번 주 미션은 완벽보다 진척입니다. 80점 실행을 한 번 더 만드는 데 집중하세요.",
+        compatibleEnergy: "건록·묘 기운과 만나면 안정적 축적 구조가 강해집니다.",
+        cautionEnergy: "목욕 기운과는 감정 언어와 논리 언어의 간극 조율이 필요합니다.",
+    },
+    byeong: {
+        animalTitle: "회복을 설계하는 섬세형",
+        keywords: ["예민함", "돌봄", "치유", "감지력", "배려"],
+        elementTags: ["수기", "구름", "은방울"],
+        identityLine: "미세한 변화까지 읽어내는 감각 회복형 에너지",
+        energySummary: "병은 에너지 소모를 인식하고 회복을 설계해야 하는 구간이라 섬세함과 관찰력이 강화됩니다.",
+        outerFace: "외부에서는 다정하고 배려 깊은 사람으로 보이며, 타인의 감정 신호를 빠르게 읽어 대응합니다.",
+        innerMotive: "내면에서는 안전한 관계와 안정적 리듬을 갈망하며, 소란보다 고요한 환경에서 힘이 살아납니다.",
+        strengths: "공감력과 케어 능력이 탁월해 사람 중심 업무에서 신뢰를 받습니다. 디테일 감지력이 좋아 품질과 만족도를 끌어올립니다.",
+        shadows: "타인의 감정을 과도하게 받아들여 소진될 수 있습니다. 경계를 놓치면 스스로의 회복 순서가 뒤로 밀립니다.",
+        love: "연애에서는 정서적 안전감이 중요합니다. 작은 배려가 꾸준히 이어질 때 애정이 깊어지고, 감정 무시가 반복되면 급격히 위축됩니다.",
+        workMoney: "일과 재물은 돌봄과 신뢰 기반 서비스에서 상승합니다. 고객 이해, UX 리서치, 상담형 업무에서 강점을 발휘합니다.",
+        relationships: "관계는 따뜻하지만 선택적이어야 건강합니다. 모든 관계를 책임지려 하기보다 핵심 인연 중심으로 에너지를 배분하세요.",
+        stressPattern: "스트레스 시 수면과 식사 리듬이 무너지고 감정 피로가 신체 피로로 이어지기 쉽습니다.",
+        recoveryGuide: "감정 분리를 위한 짧은 루틴이 필요합니다. 산책, 물 섭취, 기록 3단계를 고정하면 회복력이 올라갑니다.",
+        todayAction: "오늘은 나를 위한 작은 회복 행동을 먼저 실행하세요.",
+        growthMission: "이번 주 미션은 관계 경계 한 줄 선언입니다. 배려와 자기보호를 동시에 훈련하세요.",
+        compatibleEnergy: "양·장생 기운과 함께하면 정서 안정과 회복이 빨라집니다.",
+        cautionEnergy: "제왕 기운과는 속도 압박이 커질 수 있어 휴식 합의가 필요합니다.",
+    },
+    sa: {
+        animalTitle: "전환의 문을 여는 직감형",
+        keywords: ["변환", "직관", "재정렬", "통찰", "전환"],
+        elementTags: ["수기", "나비", "별가루"],
+        identityLine: "끝과 시작의 경계에서 방향을 재정렬하는 변환 에너지",
+        energySummary: "사는 낡은 패턴을 정리하고 새로운 흐름으로 옮겨가는 구간이라 직감과 통찰이 날카롭게 작동합니다.",
+        outerFace: "외부에서는 신비롭고 깊이 있는 인상으로 읽히며, 변화의 징후를 빠르게 포착하는 사람으로 보입니다.",
+        innerMotive: "내면에서는 본질에 맞는 삶을 살고 싶어 하며, 의미 없는 반복을 견디지 못하는 경향이 있습니다.",
+        strengths: "전환 타이밍 감지가 탁월해 리빌드 국면에서 강합니다. 복잡한 상황의 본질을 짚어 방향 전환점을 제시할 수 있습니다.",
+        shadows: "급격한 단절로 관계와 기회를 동시에 잃을 수 있습니다. 정착 전에 다음 가능성으로 이동하려는 패턴을 경계해야 합니다.",
+        love: "연애에서는 깊은 교감과 정신적 연결을 중요하게 여깁니다. 관계의 의미가 사라지면 빠르게 거리를 둘 수 있습니다.",
+        workMoney: "일과 재물은 변화 프로젝트, 컨셉 전환, 리브랜딩 국면에서 성과가 큽니다. 문제를 재정의하는 능력이 수익으로 이어집니다.",
+        relationships: "관계는 많기보다 결이 맞는 사람 중심이 유리합니다. 감정 거리를 설명하는 대화가 신뢰 유지에 필요합니다.",
+        stressPattern: "스트레스 시 모든 것을 끊고 싶어지는 단절 충동이 올라옵니다.",
+        recoveryGuide: "결정 유예 시간을 두고 24시간 후 다시 판단하세요. 단절 대신 재배치를 선택하면 손실이 줄어듭니다.",
+        todayAction: "오늘은 정리할 것 하나, 이어갈 것 하나를 명확히 선택하세요.",
+        growthMission: "이번 주 미션은 전환의 언어화입니다. 왜 바꾸는지 한 문장으로 설명해 보세요.",
+        compatibleEnergy: "절·태 기운과 만나면 변환 아이디어가 빠르게 현실화됩니다.",
+        cautionEnergy: "건록 기운과는 안정/전환 우선순위를 조율해야 갈등을 줄일 수 있습니다.",
+    },
+    myo: {
+        animalTitle: "자원을 모으는 축적형",
+        keywords: ["저장력", "집중", "내면정리", "현실감각", "지속"],
+        elementTags: ["토기", "보관함", "씨앗"],
+        identityLine: "작은 자원을 모아 큰 안정으로 바꾸는 축적 에너지",
+        energySummary: "묘는 에너지를 내부에 축적해 다음 사이클을 준비하는 구간이라 관리 능력과 집중력이 상승합니다.",
+        outerFace: "외부에서는 조용하지만 단단한 인상으로 보이며, 허술함 없는 태도로 신뢰를 얻습니다.",
+        innerMotive: "내면에서는 미래 불확실성을 줄이고 싶은 욕구가 강해, 계획과 준비를 통해 안전감을 확보하려 합니다.",
+        strengths: "자원 관리, 루틴 유지, 장기 축적 능력이 탁월합니다. 작은 개선을 꾸준히 이어 큰 차이를 만드는 스타일입니다.",
+        shadows: "안정 지향이 강해 기회를 지나치게 늦게 잡을 수 있습니다. 감정을 보류하는 습관이 관계 거리감을 만들 수 있습니다.",
+        love: "연애에서는 신뢰와 생활 합이 중요합니다. 천천히 깊어지는 관계에 강하고, 즉흥적 변동이 큰 관계에는 피로를 느낍니다.",
+        workMoney: "일과 재물은 예산 관리, 운영, 구매, 자산 설계에서 장점이 큽니다. 장기 복리형 구조를 만들 때 가장 강합니다.",
+        relationships: "관계는 선택과 집중이 유리합니다. 소수와 깊게 연결될 때 정서 안정과 성과가 함께 올라갑니다.",
+        stressPattern: "스트레스 시 더 움츠러들며 결정 유예가 길어질 수 있습니다.",
+        recoveryGuide: "작은 실행을 먼저 만들면 정체감이 풀립니다. 15분 단위 행동으로 다시 흐름을 켜세요.",
+        todayAction: "오늘은 미뤄둔 한 가지 정리 과제를 끝내고 체크 표시를 남기세요.",
+        growthMission: "이번 주 미션은 안전과 도전의 비율 조정입니다. 익숙한 일 8, 새로운 일 2의 비율을 시도하세요.",
+        compatibleEnergy: "쇠·건록 기운과 만나면 현실 기반 성장 속도가 빨라집니다.",
+        cautionEnergy: "목욕 기운과는 소비/표현 리듬 차이를 조율해야 균형이 맞습니다.",
+    },
+    jeol: {
+        animalTitle: "리셋을 실행하는 독립형",
+        keywords: ["단절정리", "독립성", "경계", "재시작", "전환"],
+        elementTags: ["금기", "초승", "검은빛"],
+        identityLine: "불필요를 끊고 본질만 남기는 리셋 에너지",
+        energySummary: "절은 한 사이클을 정리하고 새 출발을 준비하는 구간이라 결단과 경계 설정 능력이 강조됩니다.",
+        outerFace: "외부에서는 단호하고 자립적인 사람으로 보이며, 결정 순간에 망설임이 적다는 인상을 줍니다.",
+        innerMotive: "내면에서는 간결한 삶과 분명한 기준을 원합니다. 에너지 낭비를 줄여 본질에 집중하려는 욕구가 강합니다.",
+        strengths: "정리와 우선순위 설정이 뛰어나 복잡한 문제를 빠르게 간소화합니다. 불필요한 비용과 시간 낭비를 줄이는 데 강합니다.",
+        shadows: "관계를 너무 빠르게 끊어 고립으로 이어질 수 있습니다. 도움이 필요할 때도 홀로 버티는 습관을 경계해야 합니다.",
+        love: "연애에서는 경계 존중과 신뢰가 핵심입니다. 감정 밀도가 높아도 자유와 독립성이 보장될 때 관계가 오래갑니다.",
+        workMoney: "일과 재물은 구조조정, 전략 재설계, 리스크 관리에서 강합니다. 낭비를 줄이는 능력이 곧 수익 개선으로 이어집니다.",
+        relationships: "관계는 적어도 선명해야 합니다. 약속과 경계가 명확한 사람과 장기적 신뢰를 만들기 쉽습니다.",
+        stressPattern: "스트레스 시 감정과 연결을 한꺼번에 차단하는 경향이 있습니다.",
+        recoveryGuide: "완전 단절 대신 선택적 거리두기를 쓰세요. 하루 한 번 안전한 사람과 짧게 연결하면 회복이 빨라집니다.",
+        todayAction: "오늘은 내려놓을 것 하나를 결정하고, 남길 기준을 한 줄로 정리하세요.",
+        growthMission: "이번 주 미션은 경계의 유연성입니다. 단호함 안에 대화의 창구를 남겨두세요.",
+        compatibleEnergy: "사·태 기운과 만나면 전환 아이디어가 빠르게 실행됩니다.",
+        cautionEnergy: "장생 기운과는 속도 차로 오해가 생길 수 있어 설명이 필요합니다.",
+    },
+    tae: {
+        animalTitle: "미래를 품는 가능성형",
+        keywords: ["잠재력", "실험", "학습민첩", "상상력", "준비"],
+        elementTags: ["목기", "새알", "여명"],
+        identityLine: "아직 형태 없는 가능성을 현실로 번역하는 탐색 에너지",
+        energySummary: "태는 에너지가 새로운 생을 준비하는 구간이라 호기심과 학습 탄성이 크게 올라갑니다.",
+        outerFace: "외부에서는 신선하고 유연한 사람으로 보이며, 아이디어를 빠르게 제시하는 인상을 줍니다.",
+        innerMotive: "내면에서는 더 나은 미래 시나리오를 만들고 싶어 하며, 낡은 방식보다 실험적 접근을 선호합니다.",
+        strengths: "학습 속도와 개념 연결력이 뛰어나 변화가 빠른 분야에서 강합니다. 가능성을 구조로 바꾸는 초기 설계에 재능이 있습니다.",
+        shadows: "탐색이 길어져 실행 마감이 늦어질 수 있습니다. 선택지가 많을수록 결정 피로가 누적될 수 있습니다.",
+        love: "연애에서는 대화의 새로움과 지적 자극이 중요합니다. 함께 성장하는 감각이 있을 때 애정이 깊어집니다.",
+        workMoney: "일과 재물은 기획, 실험, 프로토타입, 학습 콘텐츠 영역에서 확장됩니다. 아이디어를 빠르게 검증할수록 수익화 가능성이 높아집니다.",
+        relationships: "관계는 유연하되 핵심 가치가 맞아야 오래갑니다. 약속의 형태를 구체화하면 오해를 줄일 수 있습니다.",
+        stressPattern: "스트레스 시 계획만 늘고 실행이 멈추는 패턴이 나타납니다.",
+        recoveryGuide: "작은 실행 단위를 설정해 즉시 착수하세요. 시작 후 10분이 지나면 흐름이 붙기 쉽습니다.",
+        todayAction: "오늘은 아이디어 하나를 바로 테스트 가능한 형태로 바꿔보세요.",
+        growthMission: "이번 주 미션은 실행 우선입니다. 완성보다 검증을 먼저 진행하세요.",
+        compatibleEnergy: "장생·목욕 기운과 만나면 창의적 확장이 커집니다.",
+        cautionEnergy: "쇠 기운과는 검증 속도와 기준의 균형을 맞춰야 합니다.",
+    },
+    yang: {
+        animalTitle: "복을 길러내는 보호형",
+        keywords: ["돌봄", "보호", "애정", "현실감각", "관계복"],
+        elementTags: ["토기", "꽃빛", "풍요"],
+        identityLine: "사람과 시스템을 함께 돌보며 복을 키우는 양육 에너지",
+        energySummary: "양은 에너지를 보살피고 키우는 구간이라 보호 본능, 관계 감각, 현실 조율력이 높아집니다.",
+        outerFace: "외부에서는 다정하고 안정적인 사람으로 인식되며, 함께 있으면 마음이 편해진다는 평가를 받기 쉽습니다.",
+        innerMotive: "내면에서는 소중한 것을 오래 지키고 싶어 하며, 관계와 생활 기반을 균형 있게 성장시키려 합니다.",
+        strengths: "사람을 편안하게 만들고 협업을 지속시키는 힘이 큽니다. 감정과 현실을 동시에 살피는 균형 감각이 뛰어납니다.",
+        shadows: "거절을 미루다 과부하가 올 수 있습니다. 모두를 챙기려는 습관이 자기 회복 시간을 줄일 수 있습니다.",
+        love: "연애에서는 안정감과 배려가 큰 장점입니다. 따뜻함을 당연하게 소비하지 않는 관계에서 가장 아름답게 빛납니다.",
+        workMoney: "일과 재물은 신뢰 기반 반복 구조에서 강합니다. 커뮤니티, 서비스 운영, 교육/상담형 업무에서 장기 수익성이 좋습니다.",
+        relationships: "관계는 폭보다 밀도가 중요합니다. 감정 노동의 한계를 미리 공유하면 오래 건강하게 연결됩니다.",
+        stressPattern: "스트레스 시 타인을 먼저 챙기다 본인 신호를 놓치는 패턴이 나타납니다.",
+        recoveryGuide: "하루 첫 20분을 나를 위한 루틴으로 고정하세요. 자기돌봄을 선행할수록 관계도 안정됩니다.",
+        todayAction: "오늘은 내 컨디션을 먼저 점검하고, 가능한 약속만 선택하세요.",
+        growthMission: "이번 주 미션은 친절한 경계입니다. 배려와 거절을 동시에 말하는 연습을 해보세요.",
+        compatibleEnergy: "병·장생 기운과 만나면 회복과 성장의 균형이 좋아집니다.",
+        cautionEnergy: "제왕 기운과는 주도권 배분을 합의하지 않으면 피로가 누적됩니다.",
+    },
+};
+function makeSummary(seed, animal) {
+    return [
+        `${animal.animal_ko}의 ${seed.identityLine}입니다.`,
+        `${seed.energySummary} ${seed.outerFace}`,
+        `${seed.innerMotive}`,
+        `${seed.strengths}`,
+        `${seed.shadows}`,
+    ].join(" ");
+}
+function ensureSummaryLength(summary) {
+    if (summary.length >= 250 && summary.length <= 400)
+        return summary;
+    if (summary.length < 250) {
+        return `${summary} 오늘은 과한 예측보다 작은 실행을 반복해 리듬을 확인하세요. 리듬이 맞는 순간, 운의 체감은 예상보다 빠르게 선명해집니다.`;
+    }
+    return `${summary.slice(0, 392)}...`;
+}
+function resolveTwelveGrowthAnimalResult(animal) {
+    const stageKey = animal.stageKey;
+    const stageName = STAGE_KEY_TO_LABEL[stageKey];
+    // 관리자 CMS 오버라이드를 기본 시드 위에 얹는다(폴백 우선).
+    const seed = cmsRecordRow("saju-animal", "stage-result", stageKey, STAGE_SEEDS[stageKey]);
+    const summary = ensureSummaryLength(makeSummary(seed, animal));
+    return {
+        stageKey,
+        stageName,
+        animalName: animal.animal_ko,
+        animalTitle: seed.animalTitle,
+        summary,
+        keywords: seed.keywords,
+        elementTags: seed.elementTags,
+        personality: `${seed.energySummary} ${seed.outerFace} ${seed.innerMotive}`,
+        strengths: seed.strengths,
+        shadows: seed.shadows,
+        love: seed.love,
+        workMoney: seed.workMoney,
+        relationships: seed.relationships,
+        stressPattern: seed.stressPattern,
+        recoveryGuide: seed.recoveryGuide,
+        todayAction: seed.todayAction,
+        growthMission: seed.growthMission,
+        compatibleEnergy: seed.compatibleEnergy,
+        cautionEnergy: seed.cautionEnergy,
+    };
+}
+function buildTwelveAnimalSections(result, locale = "ko") {
+    return [
+        {
+            key: "core",
+            label: twelveGrowthAnimalResultText("section.core", locale),
+            content: [
+                `${result.animalName}(${result.stageName})의 한 줄 정체성은 ${result.animalTitle}입니다.`,
+                `${result.personality}`,
+                `겉으로 보이는 모습은 상황 판단이 빠르고 결이 분명하지만, 실제 동기는 관계와 성과의 균형을 오래 유지하려는 데 있습니다.`,
+                `즉, 순간의 감정이나 유행보다 나에게 맞는 리듬을 찾는 과정에서 실력이 자랍니다.`,
+            ].join(" "),
+        },
+        {
+            key: "strengthWeakness",
+            label: twelveGrowthAnimalResultText("section.strengthWeakness", locale),
+            content: [
+                `강점은 ${result.strengths}`,
+                `주의점은 ${result.shadows}`,
+                `이 조합은 재능 자체보다 운용 방식이 결과를 가르는 타입이므로, 장점이 살아나는 환경을 의식적으로 선택하는 것이 중요합니다.`,
+                `특히 피로가 누적될 때 약점이 확대되므로 일정과 관계를 동시에 정리하는 습관이 필요합니다.`,
+            ].join(" "),
+        },
+        {
+            key: "loveRelations",
+            label: twelveGrowthAnimalResultText("section.loveRelations", locale),
+            content: [
+                `${result.love}`,
+                `${result.relationships}`,
+                `관계 거리감은 상대를 밀어내기 위한 것이 아니라 에너지 품질을 지키기 위한 장치라는 점을 기억하세요.`,
+                `대화에서는 감정 해석보다 사실 확인 한 줄을 먼저 두면 오해가 크게 줄어듭니다.`,
+            ].join(" "),
+        },
+        {
+            key: "workMoney",
+            label: twelveGrowthAnimalResultText("section.workMoney", locale),
+            content: [
+                `${result.workMoney}`,
+                `이 운성은 단기 성과보다 누적 설계에서 강점을 보이므로, 한 번에 크게 벌기보다 재현 가능한 수익 구조를 만드는 접근이 유리합니다.`,
+                `일의 우선순위를 명확히 하고 반복 가능한 프로세스를 쌓을수록 재물의 변동성이 줄어듭니다.`,
+                `결국 당신의 돈 감각은 선택의 화려함보다 기준의 일관성에서 완성됩니다.`,
+            ].join(" "),
+        },
+        {
+            key: "lifePattern",
+            label: twelveGrowthAnimalResultText("section.lifePattern", locale),
+            content: [
+                `${result.stageName} 기운은 같은 장면을 반복해서 만나게 하는 대신, 그 장면을 다루는 실력을 조금씩 깊게 만듭니다.`,
+                `당신에게 자주 반복되는 흐름은 "끌림을 느낀다 → 역할을 맡는다 → 기준을 다시 세운다 → 나에게 맞는 거리로 조정한다"에 가깝습니다.`,
+                `운이 막힌 것처럼 느껴질 때는 재능이 부족한 것이 아니라, 관계와 일의 기준이 동시에 흐려졌다는 신호일 가능성이 큽니다.`,
+                `이때 가장 좋은 선택은 새로운 일을 더 얹는 것이 아니라, 이미 시작한 일 중 남길 것과 내려놓을 것을 먼저 구분하는 것입니다.`,
+            ].join(" "),
+        },
+        {
+            key: "misunderstanding",
+            label: twelveGrowthAnimalResultText("section.misunderstanding", locale),
+            content: [
+                `${result.animalName} 타입은 속마음보다 태도가 먼저 읽히는 순간이 많아, 실제 의도와 다르게 받아들여질 수 있습니다.`,
+                `강점이 강하게 나올 때는 ${result.strengths} 흐름이 매력으로 보이지만, 피로가 쌓이면 같은 에너지가 ${result.shadows} 모습으로 비칠 수 있습니다.`,
+                `관계에서는 "내가 원하는 속도", "상대가 감당할 수 있는 속도", "관계가 오래 가는 속도"를 분리해서 말하는 것이 중요합니다.`,
+                `짧은 확인 문장 하나가 큰 오해를 막습니다. 오늘은 감정보다 먼저 사실과 요청을 한 문장씩 나누어 전해 보세요.`,
+            ].join(" "),
+        },
+        {
+            key: "stress",
+            label: twelveGrowthAnimalResultText("section.stress", locale),
+            content: [
+                `${result.stressPattern}`,
+                `${result.recoveryGuide}`,
+                `스트레스는 의지 부족의 문제가 아니라 리듬 손실의 신호에 가깝습니다.`,
+                `회복 루틴을 감정에 맡기지 말고 시간표로 고정하면, 컨디션과 성과가 함께 안정됩니다.`,
+            ].join(" "),
+        },
+        {
+            key: "today",
+            label: twelveGrowthAnimalResultText("section.today", locale),
+            content: [
+                `${result.todayAction}`,
+                `오늘의 포인트는 큰 결심이 아니라 작은 실행의 연속입니다.`,
+                `해야 할 일을 세 가지로 줄이고, 끝낸 항목을 즉시 표시해 성취 신호를 뇌에 남기세요.`,
+                `이 간단한 루틴이 오늘의 운을 체감 가능한 결과로 바꿉니다.`,
+            ].join(" "),
+        },
+        {
+            key: "compatible",
+            label: twelveGrowthAnimalResultText("section.compatible", locale),
+            content: [
+                `${result.compatibleEnergy}`,
+                `${result.cautionEnergy}`,
+                `궁합의 핵심은 누가 더 우세한지가 아니라, 서로 다른 리듬을 어떻게 합의하는가에 있습니다.`,
+                `좋은 조합도 방치하면 멀어지고, 어려운 조합도 규칙을 세우면 오래 갑니다.`,
+            ].join(" "),
+        },
+        {
+            key: "mission",
+            label: twelveGrowthAnimalResultText("section.mission", locale),
+            content: [
+                `${result.growthMission}`,
+                `미션은 완벽하게 해내는 과제가 아니라, 운의 방향을 바꾸는 작고 반복 가능한 행동이어야 합니다.`,
+                `이번 주에는 결과보다 기록에 집중해 보세요. 기록은 감정 기복을 줄이고 성장 속도를 안정화합니다.`,
+                `당신의 십이운성은 이미 가능성을 보여주고 있고, 남은 것은 꾸준한 실행뿐입니다.`,
+            ].join(" "),
+        },
+    ];
+}
+function getAllTwelveGrowthResults(source) {
+    return Object.values(source).map((animal) => resolveTwelveGrowthAnimalResult(animal));
+}
+
+// ── animalInterpretation.ts ──
+const ANIMAL_INTERPRETATION_TEXT_TRANSLATIONS = {
+    ko: {
+        pillars: {
+            year: { label: "연주", meaning: "사회적 첫인상, 바깥 이미지, 어린 시절의 분위기, 넓은 인간관계" },
+            month: { label: "월주", meaning: "직업성, 사회생활, 실무 능력, 현실 감각, 성장 환경" },
+            day: { label: "일주", meaning: "나의 본질, 연애 방식, 배우자궁, 친밀한 관계" },
+            hour: { label: "시주", meaning: "잠재력, 미래 방향, 창의성, 후반부 운, 깊은 욕망" },
+        },
+    },
+    en: {
+        pillars: {
+            year: { label: "Year pillar", meaning: "social first impression, outer image, childhood atmosphere, wider relationships" },
+            month: { label: "Month pillar", meaning: "career nature, social life, practical ability, realism, growth environment" },
+            day: { label: "Day pillar", meaning: "core self, love style, spouse palace, intimate relationships" },
+            hour: { label: "Hour pillar", meaning: "potential, future direction, creativity, later-life fortune, deep desire" },
+        },
+    },
+    ja: {
+        pillars: {
+            year: { label: "年柱", meaning: "社会的な第一印象、外側のイメージ、幼少期の雰囲気、広い人間関係" },
+            month: { label: "月柱", meaning: "職業性、社会生活、実務能力、現実感覚、成長環境" },
+            day: { label: "日柱", meaning: "自分の本質、恋愛スタイル、配偶者宮、親密な関係" },
+            hour: { label: "時柱", meaning: "潜在力、未来の方向、創造性、後半運、深い欲求" },
+        },
+    },
+};
+const PILLAR_INFO = {
+    year: ANIMAL_INTERPRETATION_TEXT_TRANSLATIONS.ko.pillars.year,
+    month: ANIMAL_INTERPRETATION_TEXT_TRANSLATIONS.ko.pillars.month,
+    day: ANIMAL_INTERPRETATION_TEXT_TRANSLATIONS.ko.pillars.day,
+    hour: ANIMAL_INTERPRETATION_TEXT_TRANSLATIONS.ko.pillars.hour,
+};
+const STAGE_KEYWORDS = {
+    장생: ["시작", "호기심", "생명력"],
+    목욕: ["감성", "표현", "매력"],
+    관대: ["성장", "도전", "사회성"],
+    건록: ["자립", "실력", "책임"],
+    제왕: ["주도성", "카리스마", "확장"],
+    쇠: ["성숙", "절제", "안정"],
+    병: ["예민함", "관찰", "회복"],
+    사: ["정리", "통찰", "전환"],
+    묘: ["축적", "내면", "관리"],
+    절: ["리셋", "독립", "새출발"],
+    태: ["가능성", "상상력", "유연성"],
+    양: ["보호", "준비", "돌봄"],
+};
+function k(stage) {
+    if (!stage)
+        return ["균형", "관찰", "정리"];
+    return STAGE_KEYWORDS[stage];
+}
+function stageName(stage) {
+    return stage || "미상";
+}
+function buildDetailedInterpretation(args) {
+    const { animal, pillars } = args;
+    const year = pillars.year.stage;
+    const month = pillars.month.stage;
+    const day = pillars.day.stage || animal.saju_stage;
+    const hour = pillars.hour.stage;
+    const dayKw = k(day);
+    const monthKw = k(month);
+    const yearKw = k(year);
+    const hourKw = k(hour);
+    const personality = `
+    십이운성 ${stageName(day)}의 기운을 품은 ${animal.animal_ko}은(는) ${animal.personality.summary}
+    일주 핵심 키워드는 ${dayKw.join(", ")}로, 본능적으로 선택하는 방식과 가까운 관계에서 드러나는 결을 보여줍니다.
+    이 동물의 가장 큰 매력은 ${animal.personality.strengths.join(", ")}입니다.
+    하지만 ${animal.personality.weaknesses.join(", ")}와 같은 면모가 있어 때로는 스스로를 힘들게 하기도 합니다.
+    스트레스를 받을 때는 ${animal.personality.stress_behavior} 모습을 보이기도 하지만,
+    결국 ${animal.personality.growth_direction} 방향으로 나아갈 때 가장 큰 운의 문이 열립니다.
+    ${animal.personality.hidden_side}
+  `;
+    const love = `
+    사랑 앞에서 당신은 ${animal.love.style}.
+    일주의 ${dayKw[0]} 기운은 호감이 생겼을 때 마음을 여는 속도를, 연주의 ${yearKw[0]} 기운은 처음 보이는 매력의 분위기를 함께 만듭니다.
+    상대방은 당신의 ${animal.love.attraction_point}에 깊은 매력을 느낍니다.
+    연애를 시작하면 주로 ${animal.love.approach_style} 방식으로 다가가며, ${animal.love.attractive_type} 유형의 사람에게 강하게 끌리는 경향이 있습니다.
+    관계가 깊어질수록 ${animal.love.recurring_pattern} 패턴이 반복될 수 있으니 주의가 필요합니다.
+    이별의 순간에는 ${animal.love.breakup_recovery} 태도를 보이며, ${animal.love.long_term_tip}을 기억한다면 사랑의 결실을 오래도록 맺을 수 있습니다.
+  `;
+    const career = `
+    당신은 ${animal.career.good_work_method} 방식으로 일할 때 최고의 효율을 냅니다.
+    월주 ${stageName(month)}의 ${monthKw.join(", ")} 기운은 사회생활에서 성과가 나는 방식과 책임을 감당하는 리듬을 보여줍니다.
+    ${animal.career.talent} 재능을 타고났으며, 특히 ${animal.career.recommended_fields.join(", ")} 분야에서 두각을 나타낼 가능성이 높습니다.
+    반면 ${animal.career.bad_work_environment} 환경은 당신의 에너지를 뺏으니 피하는 것이 좋습니다.
+    ${animal.career.earning_method} 방식으로 부를 쌓는 것이 유리하며, ${animal.career.aptitude_check} 성향을 잘 활용해 보세요.
+  `;
+    const wealth = `
+    재물에 있어서는 ${animal.wealth.spending_style}.
+    월주의 ${monthKw[1]} 기운은 돈이 붙는 환경을, 시주의 ${hourKw[1]} 기운은 장기적으로 키워야 할 수익 감각을 비춥니다.
+    돈을 모을 때는 ${animal.wealth.saving_style} 전략이 가장 잘 맞습니다.
+    ${animal.wealth.impulse_buy_risk} 위험이 있으니 자산 관리에 유의해야 하며, ${animal.wealth.investment_sense} 감각을 타고났습니다.
+    장기적으로는 ${animal.wealth.monetization_strategy}을 통해 안정적인 수익 구조를 만드는 것을 추천합니다.
+  `;
+    const relationship = `
+    사회생활에서는 ${animal.human_relations.first_impression} 인상을 남깁니다.
+    연주 ${stageName(year)}의 ${yearKw.join(", ")} 기운은 넓은 인간관계에서 처음 읽히는 이미지와 평판의 색을 보여줍니다.
+    친구들 사이에서는 ${animal.human_relations.friend_relations}, 가족들에게는 ${animal.human_relations.family_relations} 모습을 보입니다.
+    ${animal.human_relations.social_relations} 관계 패턴을 가지고 있으며, ${animal.human_relations.connection_traits} 특징을 가진 인연이 당신의 곁에 오래 머물게 됩니다.
+  `;
+    const today = `
+    오늘은 ${animal.today.support_message}
+    오늘의 운은 일주의 ${dayKw[2]}과 시주의 ${hourKw[2]}을 함께 살릴 때 가장 부드럽게 열립니다.
+    ${animal.today.action} 일은 과감히 밀어붙여도 좋지만, ${animal.today.caution} 점은 꼭 염두에 두세요.
+    행운을 부르는 행동은 ${animal.today.lucky_behavior}이며, ${animal.today.emotion_management}을 통해 평온한 하루를 보낼 수 있습니다.
+  `;
+    const growthMissions = [
+        `일주 ${stageName(day)}의 에너지를 활용해 ${animal.personality.growth_direction}을(를) 위한 작은 습관을 오늘부터 시작해 보세요.`,
+        `월주 ${stageName(month)}의 기운은 당신의 사회적 성취를 돕습니다. ${animal.career.advice}`,
+        `연주 ${stageName(year)}의 ${yearKw[0]}과 시주 ${stageName(hour)}의 ${hourKw[0]}을 연결해, 현재 당신의 흐름에 맞는 ${animal.today.lucky_behavior}을 실천해 보세요.`,
+    ];
+    return {
+        personality,
+        love,
+        career,
+        wealth,
+        relationship,
+        today,
+        growthMissions,
+    };
+}
+
+  return {
+    STAGE_KEY_TO_LABEL: STAGE_KEY_TO_LABEL, ANIMAL_DESTINY_LIST: ANIMAL_DESTINY_LIST,
+    normalizeStem: normalizeStem, normalizeBranch: normalizeBranch,
+    getTwelveStagesForPillars: getTwelveStagesForPillars, getFourPillarStageItems: getFourPillarStageItems,
+    getAnimalBySajuResult: getAnimalBySajuResult, getAnimalDisplayData: getAnimalDisplayData,
+    resolveTwelveGrowthAnimalResult: resolveTwelveGrowthAnimalResult, buildTwelveAnimalSections: buildTwelveAnimalSections,
+    buildDetailedInterpretation: buildDetailedInterpretation,
+  };
+}

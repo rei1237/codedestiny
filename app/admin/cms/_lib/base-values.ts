@@ -123,13 +123,10 @@ const loaders: Record<string, Loader> = {
   },
 
   "saju-animal": async () => {
-    const [twelve, results] = await Promise.all([
-      import("@/components/fortune/animal-twelve/animalTwelveData"),
-      import("@/app/saju/animal-destiny/lib/twelveGrowthAnimalResults"),
-    ]);
+    // 결과 리포트(stage-result) 문장은 유료라 서버(worker/lib/saju-section/paid-animal.src.js)로 옮겨 브라우저 번들에서 뺐다.
+    const twelve = await import("@/components/fortune/animal-twelve/animalTwelveData");
     return [
       asRecordEntry("stage", "동물 캐릭터 카드", "12단계", twelve.__cmsAnimalTwelveBase as Record<string, unknown>),
-      asRecordEntry("stage-result", "결과 리포트", "12단계", results.__cmsStageSeeds as Record<string, unknown>),
     ];
   },
 

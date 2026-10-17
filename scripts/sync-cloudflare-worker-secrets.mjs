@@ -242,6 +242,8 @@ const SECRET_KEYS = [
   "GEMINIF_API_KEY",
   "PEXELS_API_KEY",
   "GEMINI_MODEL",
+  // Gemini 추정 월 지출 경보 기준(USD). 미설정이면 경보를 끈다(worker/lib/llm-usage-meter.js).
+  "GEMINI_MONTHLY_BUDGET_USD",
   "LIFEBOOK_GEMINI_MODEL",
   "LOVE_SECRET_GEMINI_MODEL",
   "SUKUYO_GEMINI_MODEL",

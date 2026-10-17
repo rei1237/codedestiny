@@ -83,7 +83,11 @@ test('output truncation is never accepted as a complete paid chapter',async()=>{
 });
 test('timeout and provider failure remain distinct recoverable errors',async()=>{
  setResponse({ok:false,error:'LLM_TIMEOUT'});await assert.rejects(provider.generate(request),e=>e.code==='FORTUNE_PROVIDER_TIMEOUT');
- setResponse({ok:false,error:'UNAVAILABLE'});await assert.rejects(provider.generate(request),e=>e.code==='FORTUNE_PROVIDER_FAILED');
+ setResponse({ok:false,error:'UNAVAILABLE'});await assert.rejects(provider.generate(request),e=>e.code==='FORTUNE_PROVIDER_FAILED'&&e.detail===undefined);
+});
+test('spend-cap outage keeps the failure code and names the cause in the audit detail',async()=>{
+ setResponse({ok:false,error:'LLM_INPUT_TOKEN_COUNT_UNAVAILABLE',status:429,providerCode:'GEMINI_SPEND_CAP'});
+ await assert.rejects(provider.generate(request),e=>e.code==='FORTUNE_PROVIDER_FAILED'&&e.detail==='GEMINI_SPEND_CAP');
 });
 
 test('chapter receipt distinguishes measured, estimated and unavailable tokens without retaining text',async()=>{

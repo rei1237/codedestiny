@@ -2074,6 +2074,16 @@ const app = {
       ctx.waitUntil(monitorPaidNarratives(env).catch(() => {
         console.error('[paid-narrative-monitor] failed');
       }));
+      // Gemini 지출 한도 알림의 재발송 백스톱과 복구 추정 알림. 생성·환불 흐름은 건드리지 않는다.
+      const { checkProviderRecovery } = await import("./lib/provider-outage-alert.js");
+      ctx.waitUntil(checkProviderRecovery(env).catch(() => {
+        console.error('[provider-outage] recovery check failed');
+      }));
+      // Gemini 추정 지출이 월 예산(GEMINI_MONTHLY_BUDGET_USD)의 50·80·95%를 넘으면 1회씩 알린다.
+      const { checkLlmBudget } = await import("./lib/llm-usage-meter.js");
+      ctx.waitUntil(checkLlmBudget(env).catch(() => {
+        console.error('[llm-budget] check failed');
+      }));
       return;
     }
 

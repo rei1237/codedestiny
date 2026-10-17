@@ -24,11 +24,65 @@ const craftedPanels = detail => (detail?.panels || []).filter(panel => safeImage
 const won = value => Number(value) > 0 ? `${Number(value).toLocaleString('ko-KR')}원` : '';
 const chevron = '<svg class="craftedCardChevron" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
+// 생성기가 master-profiles.ts 에서 붙인 마스터만 그린다 — 원본 manifest 의 키 문자열은 건너뛴다.
+const craftedMasters = detail => (Array.isArray(detail.masters) ? detail.masters : []).filter(master => /^[A-Za-z]+$/.test(master?.key || '') && master.name && safeImage(master.avatar));
+const masterAvatar = (master, size) => `<img src="${escape(safeImage(master.avatar))}" alt="" width="${size}" height="${size}" loading="eager" decoding="async">`;
+// 마스터마다 CSS 가 고유 포인트 색을 고른다. 키는 위 필터에서 영문자만 통과한다.
+const masterAttr = master => master ? ` data-master="${master.key}"` : '';
+
+// 권위는 꾸민 이력이 아니라 무엇을 근거로 읽고, 무엇을 맡는지에서 나온다(상품 페이지 소개장과 같은 행).
+function renderMasters(masters) {
+  if (!masters.length) return '';
+  const pair = masters.length === 2;
+  const row = (label, text, className = '') => text ? `<div${className ? ` class="${className}"` : ''}><dt>${label}</dt><dd>${escape(text)}</dd></div>` : '';
+  return `<section class="craftedMasters${pair ? ' craftedMastersPair' : ''}"><p class="craftedMastersLead">${pair ? '두 마스터가 부를 나눠 씁니다' : '이 상담을 쓰는 마스터'}</p><ul>${masters.map(master => `<li class="craftedMaster"${masterAttr(master)}><div class="craftedMasterHead">${masterAvatar(master, 128)}<div><p class="craftedMasterEpithet">${escape(master.epithet)}</p><p class="craftedMasterName"><strong>${escape(master.name)}</strong></p>${master.role ? `<p class="craftedMasterRole">${escape(master.role)}</p>` : ''}</div></div>${master.signature ? `<blockquote>${escape(master.signature)}</blockquote>` : ''}${master.basis || master.part ? `<dl class="craftedMasterDossier">${row('읽는 근거', master.basis)}${row('맡는 부분', master.part, 'craftedMasterPart')}</dl>` : ''}</li>`).join('')}</ul></section>`;
+}
+
+// 초상은 목차·산출물 뒤에만 그린다 — 첫 화면에 새로 붙는 이미지는 128px 아바타뿐이어야 한다.
+const portraitSrcSet = value => {
+  const entries = String(value || '').split(',').map(entry => entry.trim().split(/\s+/)).filter(entry => entry.length === 2 && safeImage(entry[0]) && /^\d+w$/.test(entry[1]));
+  return entries.length ? ` srcset="${escape(entries.map(entry => `${safeImage(entry[0])} ${entry[1]}`).join(', '))}" sizes="96px"` : '';
+};
+function renderPrinciples(masters) {
+  const notes = masters.filter(master => Array.isArray(master.principles) && master.principles.some(Boolean));
+  if (!notes.length) return '';
+  return `<section class="craftedPrinciples"><p class="craftedPrinciplesTitle">${notes.length === 2 ? '두 마스터가 지키는 원칙' : '마스터가 지키는 원칙'}</p><ul>${notes.map(master => `<li class="craftedPrinciple"${masterAttr(master)}>${safeImage(master.portrait) ? `<img src="${escape(safeImage(master.portrait))}"${portraitSrcSet(master.portraitSrcSet)} alt="" width="600" height="720" loading="lazy" decoding="async">` : ''}<div><p class="craftedPrincipleName"><strong>${escape(master.name)}</strong>${escape(master.epithet)}</p><ul>${master.principles.filter(Boolean).map(item => `<li>${escape(item)}</li>`).join('')}</ul></div></li>`).join('')}</ul></section>`;
+}
+
+// 같은 detail 이 이어지는 장끼리 묶는다. 묶음 소제목이 기존의 장별 보조 줄을 대신한다.
+function chapterGroups(chapters) {
+  const groups = [];
+  chapters.forEach((chapter, index) => {
+    const last = groups[groups.length - 1];
+    if (last && last.detail === (chapter.detail || '') && last.master === (chapter.master || '')) last.items.push(chapter);
+    else groups.push({ detail: chapter.detail || '', master: chapter.master || '', start: index + 1, items: [chapter] });
+  });
+  return groups;
+}
+
 /** The real report contents, as text, ahead of the illustrated pages. */
-function renderChapters(detail) {
+function renderChapters(detail, masters) {
   const chapters = (Array.isArray(detail.chapters) ? detail.chapters : []).filter(item => item?.title);
   if (!chapters.length) return '';
-  return `<section class="craftedChapters"><p class="craftedChaptersTitle">${escape(detail.chaptersLabel || '받게 될 상담지 목차')}<span>${chapters.length}개</span></p><ol>${chapters.map(item => `<li><strong>${escape(item.title)}</strong>${item.detail ? `<span>${escape(item.detail)}</span>` : ''}</li>`).join('')}</ol></section>`;
+  const title = `<p class="craftedChaptersTitle">${escape(detail.chaptersLabel || '받게 될 상담지 목차')}<span>${chapters.length}개</span></p>`;
+  if (!masters.length && !chapters.some(item => item.gain || item.master)) return `<section class="craftedChapters">${title}<ol>${chapters.map(item => `<li><strong>${escape(item.title)}</strong>${item.detail ? `<span>${escape(item.detail)}</span>` : ''}</li>`).join('')}</ol></section>`;
+  const raw = chapterGroups(chapters);
+  const groups = raw.map(group => {
+    const master = masters.find(item => item.key === group.master);
+    const chip = master ? `<span class="craftedChapterMaster">${masterAvatar(master, 24)}${escape(master.name)}</span>` : '';
+    const heading = group.detail || chip ? `<p class="craftedChapterGroupTitle">${group.detail ? `<span>${escape(group.detail)}</span>` : ''}${chip}</p>` : '';
+    return `<div class="craftedChapterGroup"${masterAttr(master)}>${heading}<ol${group.start > 1 ? ` start="${group.start}"` : ''}>${group.items.map(item => `<li><strong>${escape(item.title)}</strong>${item.gain ? `<span>${escape(item.gain)}</span>` : ''}</li>`).join('')}</ol></div>`;
+  });
+  // 긴 목차는 첫 묶음만 펼쳐 둔다. 나머지도 SSR 텍스트로 남아 검색·보조기기가 그대로 읽는다.
+  const folded = chapters.length >= 28 && groups.length > 1;
+  const rest = chapters.length - raw[0].items.length;
+  return `<section class="craftedChapters craftedChaptersGrouped">${title}${folded ? `${groups[0]}<details class="craftedChaptersMore"><summary>나머지 ${rest}개 장 펼쳐 보기</summary>${groups.slice(1).join('')}</details>` : groups.join('')}</section>`;
+}
+
+function renderOutcomes(detail) {
+  const outcomes = (Array.isArray(detail.outcomes) ? detail.outcomes : []).filter(item => item?.title && item.text);
+  if (!outcomes.length) return '';
+  return `<section class="craftedOutcomes"><p class="craftedOutcomesTitle">받고 나면 손에 남는 것</p><ul>${outcomes.map(item => `<li><strong>${escape(item.title)}</strong><p>${escape(item.text)}</p></li>`).join('')}</ul></section>`;
 }
 
 // 소개 생성기가 남긴 540w 변형이 있으면 원본(1080w)과 함께 내려, 540px 칸을 1x 로 보는 화면은 절반 크기만 받는다.
@@ -43,7 +97,8 @@ function panelSources(panel) {
 export function renderCraftedDetail(detail, { eager = true } = {}) {
   const panels = craftedPanels(detail);
   if (!panels.length) return '';
-  return `<div class="craftedDetail">${renderChapters(detail)}<div aria-hidden="true">${panels.map((panel, index) => `<img src="${escape(safeImage(panel.src))}"${panelSources(panel)} alt="" width="${Number(panel.width) || 1080}" height="${Number(panel.height) || 1440}" loading="${index || !eager ? 'lazy' : 'eager'}" decoding="async"${index || !eager ? '' : ' fetchpriority="high" data-lcp-candidate="1"'}>`).join('')}</div><p class="craftedDetailNotice">${escape(detail.notice)}</p><details class="craftedDetailTranscript"><summary>상세 안내를 글로 읽기</summary>${panels.map(panel => `<section><h3>${escape(panel.title)}</h3><p>${escape(transcriptBody(panel))}</p></section>`).join('')}</details></div>`;
+  const masters = craftedMasters(detail);
+  return `<div class="craftedDetail">${renderMasters(masters)}${renderChapters(detail, masters)}${renderOutcomes(detail)}${renderPrinciples(masters)}<div aria-hidden="true">${panels.map((panel, index) => `<img src="${escape(safeImage(panel.src))}"${panelSources(panel)} alt="" width="${Number(panel.width) || 1080}" height="${Number(panel.height) || 1440}" loading="${index || !eager ? 'lazy' : 'eager'}" decoding="async"${index || !eager ? '' : ' fetchpriority="high" data-lcp-candidate="1"'}>`).join('')}</div><p class="craftedDetailNotice">${escape(detail.notice)}</p><details class="craftedDetailTranscript"><summary>상세 안내를 글로 읽기</summary>${panels.map(panel => `<section><h3>${escape(panel.title)}</h3><p>${escape(transcriptBody(panel))}</p></section>`).join('')}</details></div>`;
 }
 
 export function revealCraftedTranscript(event) {

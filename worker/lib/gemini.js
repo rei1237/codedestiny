@@ -5,6 +5,7 @@ import {
   createGeminiContextCache as createLLMContextCache,
   deleteGeminiContextCache as deleteLLMContextCache,
 } from "../../lib/llm-client.ts";
+import { geminiOutageCode } from "../../lib/gemini-provider-errors.mjs";
 import { getAmbientAiLocale } from "./ai-locale-context.js";
 import { getPaidGenerationContext, capturePaidGenerationRaw } from "./paid-generation-context.js";
 
@@ -26,11 +27,14 @@ function normalizeProvider(provider) {
 }
 
 function toFailure(error, fallbackError = "llm_failed") {
+  // countTokens 단계 실패는 code 가 LLM_INPUT_TOKEN_COUNT_UNAVAILABLE 이라 한도 원인을 따로 싣는다.
+  const providerCode = geminiOutageCode(error);
   return {
     ok: false,
     error: clean(error?.code || fallbackError),
     status: Number(error?.status || 0) || null,
     message: clean(error?.message || error || fallbackError, 500),
+    ...(providerCode ? { providerCode } : {}),
   };
 }
 

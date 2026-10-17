@@ -343,6 +343,16 @@ window.openSecretHouseRoute = function() {
   if (/^[甲乙丙丁戊己庚辛壬癸]$/.test(stem)) {
     target += '?dayStem=' + encodeURIComponent(stem);
   }
+  // 에피소드 본문은 서버가 이 프로필의 구매 기록을 확인한 뒤 배달한다 — 지금 보고 있는 프로필을 넘긴다.
+  var houseProfileId = '';
+  try {
+    houseProfileId = typeof window.cdBirthScopeCurrentProfileId === 'function' ? String(window.cdBirthScopeCurrentProfileId() || '').trim() : '';
+  } catch (_eProfile) {
+    houseProfileId = '';
+  }
+  if (houseProfileId) {
+    target += (target.indexOf('?') >= 0 ? '&' : '?') + 'profileId=' + encodeURIComponent(houseProfileId);
+  }
   try {
     window.location.assign(target);
   } catch (e) {
