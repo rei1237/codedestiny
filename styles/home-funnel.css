@@ -1260,6 +1260,7 @@ html.neo-mode #cdHomeFunnel .cdh-scene-art #honeypigLogo{box-shadow:none!importa
   #cdHomeFunnel .cdh-hero::before{background:linear-gradient(90deg,color-mix(in srgb,var(--cdh-bg) 80%,transparent) 0%,color-mix(in srgb,var(--cdh-bg) 62%,transparent) 58%,color-mix(in srgb,var(--cdh-bg) 30%,transparent) 100%)}
   #cdHomeFunnel .cdh-hero::after{inset:6px;border-radius:calc(var(--cd-r-card,20px) - 6px)}
 }.cdh-honey{
+  position:relative;
   display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,260px);align-items:center;gap:24px 40px;
   margin:12px clamp(18px,3vw,40px) 28px;padding:clamp(24px,3vw,40px);
   border:1px solid var(--cdh-line);border-radius:var(--cd-r-section);
@@ -1296,3 +1297,7 @@ html.neo-mode #cdHomeFunnel .cdh-scene-art #honeypigLogo{box-shadow:none!importa
   .cdh-honey__wallet{justify-content:flex-start;margin-bottom:4px}
   .cdh-honey__wallet>img{width:64px;height:64px}
 }
+
+/* Bounded, non-interactive collection layer; motion is started only after a credit. */
+.cdh-honey__collection{position:absolute;inset:0;z-index:2;overflow:hidden;border-radius:inherit;pointer-events:none}
+.cdh-honey__collection>img{position:absolute;top:0;left:0;width:32px;height:32px;object-fit:contain}
