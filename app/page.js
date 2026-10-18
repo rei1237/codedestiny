@@ -68,10 +68,10 @@ export const metadata = {
 // 두 상담가의 역할과 실제 진입을 한 링크로 묶는다.
 // /ggulggul/ 은 Next RSC 페이로드가 없는 정적 셸이라 next/link 대신 <a> 로 연다(external).
 const CARDS = [
-  { key: "yeoni", className: "yeoniCard", art: "yeoni", name: "꽃돼지 연이", href: service.appEntryPath, external: true, tag: "나의 흐름을 두루 살펴요", hint: "종합 운세 · 무료 사주" },
-  { key: "yn", className: "ynCard", art: "yeongnyangi", name: "영냥이", href: YEONGNYANGI.path, tag: "한 가지 고민을 깊이 읽어요", hint: `질문 상담 · ${YEONGNYANGI_STARTER_PRICE}부터`, night: true },
+  { key: "yeoni", className: "yeoniCard", art: "yeoni", name: "꿀꿀 운세", href: service.appEntryPath, external: true, tag: "종합 운세", hint: "대표 상담 · 무료 사주" },
+  { key: "yn", className: "ynCard", art: "yeongnyangi", name: "운세보는 영냥이", href: YEONGNYANGI.path, tag: "질문 하나를 깊게", hint: `${YEONGNYANGI_STARTER_PRICE}부터`, night: true },
 ];
-const CARD_ART_SIZES = "(min-width: 960px) 200px, (min-width: 641px) 280px, 44vw";
+const CARD_ART_SIZES = "(min-width: 800px) 306px, (min-width: 641px) 38vw, 42vw";
 const RESULT_EXAMPLE = getSignProfile("rat");
 const HOME_FAQS = [
   { question: "꿀꿀 운세와 꿀꿀운세, 코드 데스티니는 어떤 관계인가요?", answer: brandCopy("aliases") },
@@ -103,9 +103,8 @@ export default function HomePage() {
 
       <main className={styles.stage}>
         <div className={styles.head}>
-          <h1 id="homeCardTitle" className={styles.title}>오늘의 나를 읽는 시간</h1>
-          <p className={styles.lead}>사주부터 별자리까지, 꿀꿀 운세에서.<br />연이와 영냥이, 누구와 시작할까요?</p>
-          <a className={styles.browseLink} href="#homeServices">분야부터 골라보기 <span aria-hidden="true">↓</span></a>
+          <h1 id="homeCardTitle" className={styles.title}>어떤 카드를 뽑을까요?</h1>
+          <p className={styles.lead}><Link href="/about/#author">{founder.byline}</Link></p>
         </div>
 
         {/* 카드 제목(h2)의 링크를 카드 크기로 늘려 카드 전체가 한 링크다. 설명 두 줄은 aria-describedby 로 읽힌다. */}
@@ -113,6 +112,7 @@ export default function HomePage() {
           {CARDS.map((card, index) => {
             const linkProps = { href: card.href, className: styles.cardLink, "aria-label": `${card.name} ${card.key === "yeoni" ? "운세 골라보기" : "상담 시작하기"}`, "aria-describedby": `${card.key}CardTag ${card.key}CardHint`, ...discoveryTracking(card.key === "yeoni" ? "ggulggul" : "yeongnyangi", "primary") };
             return <li key={card.key} className={`${styles.card} ${styles[card.className]}`} data-yn-night={card.night ? "" : undefined}>
+              <span className={styles.cardNumeral} aria-hidden="true">{index === 0 ? "I" : "II"}</span>
               <picture className={styles.cardArt}>
                 <source type="image/avif" srcSet={`${ART}/root-card-${card.art}-360.avif${CARD_ART_REV} 360w, ${ART}/root-card-${card.art}-600.avif${CARD_ART_REV} 600w`} sizes={CARD_ART_SIZES} />
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -124,10 +124,12 @@ export default function HomePage() {
               </h2>
               <p id={`${card.key}CardTag`} className={styles.cardTag}>{card.tag}</p>
               <p id={`${card.key}CardHint`} className={styles.cardHint}>{card.hint}</p>
-              <span className={styles.cardAction} aria-hidden="true">{card.key === "yeoni" ? "운세 골라보기" : "상담 시작하기"}<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 12h15m-6-6 6 6-6 6" /></svg></span></div>
+              <span className={styles.cardAction} aria-hidden="true">카드 선택하기<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 12h15m-6-6 6 6-6 6" /></svg></span></div>
+              <span className={styles.cardFoil} aria-hidden="true" />
             </li>;
           })}
         </ul>
+        <a className={styles.browseLink} href="#homeServices">분야부터 골라보기 <span aria-hidden="true">↓</span></a>
         <div className={styles.discovery}>
           <section className={styles.section} aria-labelledby="homeServices">
             <div className={styles.sectionHeading}><h2 id="homeServices">어떤 운세가 궁금하세요?</h2><p>익숙한 사주부터 새로운 별의 이야기까지.</p></div>
