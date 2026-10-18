@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-18
-next: "복구 HEAD 9c139bc3c8dbe5ac6548a3811d93d15b3232ba6c의 PR CI 39092174340와 AI Locale Gate 39092174318 통과 후 보안 변경을 통합한다. 공유 main 변경86개를 보존한다."
+next: "복구 HEAD 37ea6b16b01905990045268898cf265afe0113d4의 full_ci 39093078311 통과 후 보안 변경을 통합한다. 공유 main 변경86개를 보존한다."
 ---
 
 # 보안 조사·수정 전달 재개
@@ -72,6 +72,13 @@ Git 전체 이력 secret scan은 메모리 할당 실패로 미완료. 부분 �
 - 두 번째 복구: `2f1406d77`에서 공통 브랜드 문구의 ggulggul 설명을144/160으로 줄이고 sync:public·sitemap 생성기로 미러·원장을 갱신했다. 영냥이156/160, 생성 영어150·일본어136·중국어122·번체122/160도 확인했다. 공통 import로 원장 signature486개·lastmod 값5개가 바뀌었다(생성기 갱신 카운트6개). JSON 전후 비교로 확인했고 수동 편집하지 않았다.
 - `9c139bc3c8dbe5ac6548a3811d93d15b3232ba6c`: 이미지 디코딩만 기다리던 읽기집 검사를 같은 투명 배경 조건까지 제한 시간 안에서 기다리도록 했다. 이미지 수 하한과 엄격한 색상 단언을 유지했다. 로컬 일반 검사4화면은 수정 전후 통과. CSS 적용을1.2초 지연시킨 mock은 기존 검사 실패/수정 검사 통과, 불투명 상태 고정 mock은 수정 검사도 timeout 실패. CI 실패의 정확한 브라우저 타이밍은 관측하지 못했으므로 실제 화면 결함을 확정하지 않는다.
 - 두 커밋 모두 별도 검증 후 main에 push 완료. 변경 파일 lint exit0(기존 no-var warning1), check:pre-push 통과. SEO public inventory13/13, guide CTA19, JS graph296소스122참조, CSS mirror45/45 통과. 최신 [PR CI39092174340](https://github.com/rei1237/codedestiny/actions/runs/39092174340), [AI Locale39092174318](https://github.com/rei1237/codedestiny/actions/runs/39092174318), [Secret Scan39092174305](https://github.com/rei1237/codedestiny/actions/runs/39092174305)은 진행 중. 사용자가 지정한 선행조건이므로 성공 전에 보안 변경을 합치지 않는다.
+
+### 후속 복구와 전체 CI 재확인
+
+- `9c139bc3c` 실행의 읽기집 검사는 통과했다. Build는 다음 설명 `/naming-ai/`의 폭168/160, Static guards는 모바일 기능 목록의 옛 `/astrology/cosmic`·`/vedic/jyotish` 주소에서 실패했다. AI Locale39092174318·Secret Scan39092174305는 success. Critical checks는 경로 분류상 skipped였으며 통과로 세지 않는다.
+- `c08a62dbe070445d8b4fdaf8f93636e3160e64a5`: 작명 메타 설명148/160, 무료 초안·별도 유료 상세 작명서 구분 유지. 소스1개와 sitemap 생성물5개. 관련 Node5/5·ESLint·check:pre-push 통과. 관련 변경44파일의 설명225개를 AST로 살펴보고 메타 출력 연결을 확인했다. 본문 문구나 사용하지 않는 번역·공통 함수에서 조정되는 설명은 수정하지 않았다.
+- `37ea6b16b01905990045268898cf265afe0113d4`: 모바일 목록의 현재 진입을 `/astrology/`·`/vedic/`로 맞추고 기존 Worker 301 정보는 문서에 보존. 검사기를 수정하지 않았다. entry104행90경로32action, 가격 불일치0, 하단 메뉴7shell12언어, doc-freshness·check:pre-push 통과.
+- 복구만 main push 완료. 문서 변경 경로의 skip으로 복구 판정을 대신하지 않도록 공식 `workflow_dispatch full_ci=true` 실행 [39093078311](https://github.com/rei1237/codedestiny/actions/runs/39093078311). 전체 lane 성공 전 보안 merge 금지. 공유 main은 같은 HEAD·다른 변경86개이며 파일·index·브랜치 포인터를 변경하지 않았다.
 
 ### 복사할 재개 지시
 
