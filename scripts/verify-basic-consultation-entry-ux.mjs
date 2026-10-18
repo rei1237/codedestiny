@@ -4,6 +4,7 @@ import { createServer } from 'node:http';
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { resolve, extname } from 'node:path';
 import assert from 'node:assert/strict';
+import { HONEY_UNLOCK_PRODUCTS } from '../worker/lib/honey-unlock-catalog.js';
 
 const root = process.cwd();
 const iphone = process.argv.includes('--iphone');
@@ -46,6 +47,7 @@ try {
     if (url.pathname.startsWith('/api/')) {
       requests.push({path:url.pathname,method:route.request().method()});
       // Result entry requires a verified session; this response is a local fixture only.
+      if (url.pathname === '/api/honey/catalog') return route.fulfill({json:{ok:true,products:HONEY_UNLOCK_PRODUCTS,otherUses:[]}});
       if (url.pathname === '/api/auth/me') return route.fulfill({json:{ok:true,user:{id:'ux-fixture-owner'},authenticated:true}});
       const payload = url.pathname === '/api/billing/features'
         ? {legacyFeatureTable:targets.map(t=>({featureKey:t.key+'_ai_prompt_generator',amountKRW:5000,cost:50}))}
@@ -56,7 +58,7 @@ try {
   });
   await context.addInitScript(() => sessionStorage.setItem('privacyAgreed','true'));
   const page = await context.newPage();
-  page.on('pageerror', error => { errors.push(error.message.replace(/^Error: (?=google_translate_script_failed$)/,'')); console.error('Browser error: '+error.message); });
+  page.on('pageerror', error => { errors.push(error.message.replace(/^Error: (?=google_translate_script_failed$)/,'')); console.error('Browser error: '+error.stack); });
   if (iphone) page.on('console', message => { if (message.type()==='error') console.error('WebKit console: '+message.text()); });
   page.on('dialog', dialog => { console.log('Dismissed fixture dialog: '+dialog.message()); return dialog.dismiss(); });
   await page.goto(origin, {waitUntil:'domcontentloaded'});
@@ -92,6 +94,9 @@ try {
       throw error;
     });
     if (target.key !== 'vedic') assert.equal(await card.evaluate(el=>el.closest('[id$="ModalOverlay"]')?.parentElement===document.body),true,'modal must escape hidden intake: '+target.key);
+    const masterName={ziwei:'무성',sukuyo:'서한비',astrology:'윤달',vedic:'윤달'}[target.key];
+    assert.ok((await card.locator('.fc-entry__name').textContent()).includes(masterName));
+    assert.ok((await card.locator('.fc-entry__lead').textContent()).includes(masterName));
     await card.locator('[data-fc-price]').filter({hasText:'5,000원'}).waitFor();
     for (const width of (iphone ? [320,375,390,430,844] : [360,390,430,1440])) {
       await page.setViewportSize({width,height:iphone && width===844 ? 390 : 900});
@@ -100,7 +105,7 @@ try {
       await card.locator('img').scrollIntoViewIfNeeded();
       await page.waitForFunction(({selector,width})=>{
         const img=document.querySelector(selector+' img');
-        return img?.complete && img.naturalWidth>0 && img.currentSrc.includes('/images/feature-details/') && img.getBoundingClientRect().height>100 && getComputedStyle(img).visibility==='visible' && getComputedStyle(img).opacity==='1';
+        return img?.complete && img.naturalWidth>0 && img.currentSrc.includes('/images/master-profiles/') && img.getBoundingClientRect().height>100 && getComputedStyle(img).visibility==='visible' && getComputedStyle(img).opacity==='1';
       },{selector:target.card,width}).catch(async error=>{
         console.error(await card.locator('img').evaluate(img=>({src:img.currentSrc,complete:img.complete,naturalWidth:img.naturalWidth,innerWidth:window.innerWidth,viewport:window.visualViewport?.width})));
         throw error;

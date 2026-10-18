@@ -543,6 +543,7 @@
     if (!setUp('ziwei', area) || !data) return;
     var hero = node('section', 'fr-hero');
     hero.appendChild(node('p', 'fr-brand', '紫微斗數 / MY STAR ATLAS'));
+    if (window.CodeDestinyConsultationUI) hero.insertAdjacentHTML('beforeend', window.CodeDestinyConsultationUI.guide('ziwei'));
     hero.appendChild(node('h2', 'fr-title', t('myRecord')));
     var facts = node('dl', 'fr-facts');
     [[19, data.meng, 20], [21, data.shen, 22], [23, data.juInfo, 24]].forEach(function (item) {
@@ -841,6 +842,7 @@
     var hero = node('section', 'fr-hero astro-house-hero');
     hero.appendChild(emblem('astro'));
     hero.appendChild(node('p', 'fr-brand', 'WESTERN ASTROLOGY / MY BIRTH CHART'));
+    if (window.CodeDestinyConsultationUI) hero.insertAdjacentHTML('beforeend', window.CodeDestinyConsultationUI.guide('astrology'));
     hero.appendChild(node('h2', 'fr-title', t('myRecord')));
     var facts = node('dl', 'fr-facts');
     var big3 = root.querySelector('#astroBig3Snapshot');

@@ -92,3 +92,8 @@
   .fortune-consultation .fc-form__body { padding-inline: 32px; }
   .fortune-consultation .fc-report { margin-inline: 32px; }
 }
+
+.fc-master-guide {display:flex;align-items:flex-start;gap:12px;margin-block:16px;font-size:.9rem;line-height:1.8;}
+.fc-master-guide img {flex:0 0 48px;width:48px;height:48px;border-radius:50%;object-fit:cover;}
+.fc-master-guide p {margin:0;min-width:0;overflow-wrap:anywhere;}
+.fc-master-guide strong {display:block;margin-bottom:4px;}
