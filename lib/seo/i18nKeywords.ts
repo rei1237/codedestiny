@@ -467,9 +467,9 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
       mainKeyword: "宿曜 相性",
       relatedKeywords: ["27宿", "栄親", "業胎", "安壊"],
       valuePoints: [
-  "生年月日・出生時刻・当時の時間帯を使います。相性では相手の情報も入力します。時刻不明なら仮の時刻による参考結果で、宿の境界では結果が変わることがあります。",
-  "27宿。道具が示す暦と計算の前提を確認します。",
-  "命・業胎・栄親・友衰・安壊・危成。それぞれ異なる関わり方を表します。"
+  "結果が違うときは、宿名だけでなく入力した日付・暦・時刻の条件を並べて確認します。",
+  "相性の名称を結論にせず、連絡の頻度や一人で過ごす時間など、二人で相談できる問いに置き換えます。",
+  "自分から見た関係と相手から見た関係を分けて読み、実際の会話と合わない部分は決めつけずに残します。"
 ],
       cta: { label: "宿曜を見る", href: "/ja/?action=openSukuyoModal" },
       internalLinks: [
@@ -477,6 +477,10 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
         { href: "/ja/today", label: "今日の流れを見る" },
       ],
       faq: [
+  {
+    "question": "宿曜のサイトによって本命宿が違うのはなぜですか？",
+    "answer": "旧暦の日付表を使う方式と、月の位置を計算する方式では、前提が異なることがあります。まず両方の画面で生年月日、暦の区分、時刻や時間帯の扱いを確認してください。27宿の名前をナクシャトラの名前に置き換えるだけでは、同じ条件の比較にはなりません。不明な入力を変えて好みの結果に合わせるのではなく、採用方式と入力条件を記録して比べましょう。"
+  },
   {
     "question": "宿曜は恋愛だけに使いますか？",
     "answer": "恋愛だけでなく、家族、友人、同僚との感情の流れを見る時にも役立ちます。"
@@ -529,9 +533,9 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
       mainKeyword: "宿曜相性",
       relatedKeywords: ["27宿", "荣亲关系", "业胎关系", "安坏关系"],
       valuePoints: [
-  "使用出生日期、时间及当时的时区；配对时也需对方资料。不知道时间时，结果基于默认时间，仅供参考，在月宿边界附近可能变化。",
-  "27宿。先确认工具显示的历法与计算前提。",
-  "命、业胎、荣亲、友衰、安坏、危成，分别描述不同的相处模式。"
+  "结果不同时，先并排核对输入的日期、历法以及时间设置，不只比较宿名。",
+  "把关系名称转化为可讨论的问题，例如联系频率、独处时间和意见不同时的表达方式。",
+  "分别阅读自己与对方的角色；解读与真实交流不符时，保留疑问，不用标签替对方下结论。"
 ],
       cta: { label: "查看宿曜", href: "/zh/?action=openSukuyoModal" },
       internalLinks: [
@@ -539,6 +543,10 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
         { href: "/zh/today", label: "查看今日流向" },
       ],
       faq: [
+  {
+    "question": "为什么不同宿曜网站算出的本命宿不一样？",
+    "answer": "使用农历日期表与计算月亮位置的方式，前提可能不同。请先核对两边的出生日期、历法，以及出生时间和时区的处理方式。把27宿名称直接换成吠陀月宿名称，并不等于采用相同条件计算。记录各工具说明的方式和输入条件；不要调整未知资料来迎合想要的结果。"
+  },
   {
     "question": "宿曜只适合看恋爱吗？",
     "answer": "不只恋爱，也可以用于理解家人、朋友、同事之间的情绪流向。"
@@ -591,9 +599,9 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
       mainKeyword: "宿曜相性",
       relatedKeywords: ["27宿", "榮親關係", "業胎關係", "安壞關係"],
       valuePoints: [
-  "使用出生日期、時間及當時的時區；配對時也需對方資料。不知道時間時，結果基於預設時間，僅供參考，在月宿邊界附近可能變化。",
-  "27宿。先確認工具顯示的曆法與計算前提。",
-  "命、業胎、榮親、友衰、安壞、危成，分別描述不同的相處模式。"
+  "結果不同時，先並排核對輸入的日期、曆法與時間設定，不只比較宿名。",
+  "把關係名稱轉化為能一起討論的問題，例如聯絡頻率、獨處時間，以及意見不同時的表達方式。",
+  "分別閱讀自己與對方的角色；解讀與真實互動不符時，保留疑問，不用標籤替對方下結論。"
 ],
       cta: { label: "查看宿曜", href: "/zh-tw/?action=openSukuyoModal" },
       internalLinks: [
@@ -601,6 +609,10 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
         { href: "/zh-tw/today", label: "查看今日流向" },
       ],
       faq: [
+  {
+    "question": "為什麼不同宿曜網站算出的本命宿不一樣？",
+    "answer": "使用農曆日期表與計算月亮位置的方式，前提可能不同。請先核對兩邊的出生日期、曆法，以及出生時間和時區的處理方式。把27宿名稱直接換成吠陀月宿名稱，並不等於採用相同條件計算。記錄各工具說明的方式與輸入條件；不要調整未知資料來迎合想要的結果。"
+  },
   {
     "question": "宿曜只適合看戀愛嗎？",
     "answer": "不只戀愛，也可以用來理解家人、朋友、同事之間的情緒流向。"
@@ -653,9 +665,9 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
       mainKeyword: "sukuyo compatibility",
       relatedKeywords: ["27 mansions", "eishin", "gyoutai", "ankai"],
       valuePoints: [
-  "Birth date, birth time and the time zone at birth; add the other person’s details for compatibility. An unknown time uses a default, so the birth star may change near a boundary.",
-  "27 birth stars. Confirm the calendar and calculation convention shown by the tool.",
-  "Mei, Gyotai, Eishin, Yusui, Ankai and Kisei describe different relationship patterns."
+  "When results differ, compare the entered date, calendar and time settings side by side before comparing mansion names.",
+  "Turn a relationship label into a question you can discuss: how often to keep in touch, when to allow space, or how to handle disagreement.",
+  "Read each person’s role separately. If an interpretation conflicts with your actual conversations, keep that uncertainty rather than deciding what the other person feels."
 ],
       cta: { label: "Open Sukuyo", href: "/en/?action=openSukuyoModal" },
       internalLinks: [
@@ -663,6 +675,10 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
         { href: "/en/today", label: "Check Today’s Flow" },
       ],
       faq: [
+  {
+    "question": "Why do different Sukuyo calculators give different birth stars?",
+    "answer": "A lunar-calendar date table and a calculation based on the Moon’s position can use different conventions. Compare the birth date, calendar and treatment of time and time zone on both screens. Replacing a Sukuyo mansion name with a Vedic nakshatra name does not make the calculations equivalent. Keep a record of the stated method and inputs instead of changing unknown details to obtain a preferred result."
+  },
   {
     "question": "Is Sukuyo only for romance?",
     "answer": "No. It can also help with family, friendship, and team relationships."

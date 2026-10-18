@@ -4000,5 +4000,48 @@
       "productionPromotion": "not executed"
     },
     "productionBaselineSha": "63ae9564903a789e867295a1c444520b3881c353"
+  },
+  "changeCompanion20261018": {
+    "status": "implemented-and-locally-verified",
+    "requestedAt": "2026-10-18",
+    "request": "현재 상태 SEO 최적화 및 이후 변경 시 SEO 동반 최적화",
+    "paths": [
+      "/ja/sukuyo/",
+      "/zh/sukuyo/",
+      "/zh-tw/sukuyo/",
+      "/en/sukuyo/"
+    ],
+    "changes": [
+      "기본 표와 동일한 요점 문구를 입력 대조·대화 적용·해석 한계 안내로 교체",
+      "계산기별 본명숙 차이 FAQ를 4언어에 보완; 화면과 JSON-LD의 기존 단일 데이터 소스 유지",
+      "CLAUDE와 SEO 상세 규칙에 변경 동반 SEO 점검 기준 반영"
+    ],
+    "preserved": [
+      "title/description/URL/canonical/hreflang/index 정책",
+      "기존 제목 실험",
+      "계산·결제·인증·API·DB 로직"
+    ],
+    "health": {
+      "observedAt": "2026-10-18",
+      "landings": 28,
+      "sitemapUrls": 1022,
+      "issues": 0
+    },
+    "searchMetrics": {
+      "freshObservation": false,
+      "note": "GSC/Naver 과거 관측값을 현재 실적으로 갱신하지 않음"
+    },
+    "validation": {
+      "internationalHubTests": 4,
+      "checkFast": "passed",
+      "jestSuites": 420,
+      "jestTests": 6674
+    },
+    "productionDeployed": false,
+    "remaining": [
+      "신규 수정의 운영 반영 후 언어별 화면 확인",
+      "CMP 게시·광고 실동작 검증 및 다국어 전체 감수",
+      "검색 실적은 기존 비교 기간 유지하여 후속 관측"
+    ]
   }
 }
