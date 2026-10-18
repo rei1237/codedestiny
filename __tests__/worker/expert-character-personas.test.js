@@ -19,7 +19,7 @@ beforeEach(() => cmsPromptText.mockClear());
 
 test("관리자 오버라이드가 있어도 페르소나는 그 뒤에 붙는다", async () => {
   for (const [key, header] of [
-    ["yun", "[상담자 페르소나 — 윤달]"], ["musung", "[상담자 페르소나 — 무성]"], ["hanbi", "[상담자 페르소나 — 서한비]"], ["yeoni", "[상담자 페르소나 — 연이]"],
+    ["yun", "[상담자 페르소나 — 윤달]"], ["yunVedic", "[상담자 페르소나 — 윤달 · 베다점]"], ["musung", "[상담자 페르소나 — 무성]"], ["hanbi", "[상담자 페르소나 — 서한비]"], ["yeoni", "[상담자 페르소나 — 연이]"],
     ["yeoniLove", "[상담자 페르소나 — 연이 · 연애 비책]"], ["hanbiLove", "[상담자 페르소나 — 서한비 · 연애 비책]"],
     ["neoNewYear", "[상담자 페르소나 — 네오 · 신년운세]"], ["yunLifeBook", "[상담자 페르소나 — 윤달 · 인생의 책]"],
   ]) {
@@ -123,4 +123,17 @@ describe("말투 이탈 검사", () => {
     expect(personas.yunLifeBookRegisterDrift("일간이 갑목이라 곧게 자라려는 힘이 커요. 서른 무렵 대운이 바뀌며 책장이 한 장 넘어갔어요. 다음 장은 사람을 모으는 이야기예요.")).toEqual([]);
     expect(personas.yunLifeBookRegisterDrift("10하우스에 태양이 있어요. 하늘배가 당신을 기다려요. 강새벽도 그랬죠.")).toEqual(["lore:강새벽", "lore:하우스", "lore:하늘배"]);
   });
+});
+
+test('basic feature mapping is server-owned and preserves route instructions', async () => {
+  for (const [feature, key] of Object.entries(personas.BASIC_FORTUNE_PERSONA_KEYS)) {
+    const text = await personas.appendBasicFortunePersona({}, feature, 'JSON 계약과 계산 근거');
+    expect(text.startsWith('JSON 계약과 계산 근거\n\n')).toBe(true);
+    expect(text.endsWith(personas.getDefaultExpertPersona(key))).toBe(true);
+    expect(text).toContain('최고 수준 전문가');
+  }
+  expect(await personas.appendBasicFortunePersona({}, 'unknown', 'BASE')).toBe('BASE');
+  expect(personas.YUN_VEDIC_PERSONA_KO).toContain('다정한 해요체');
+  expect(personas.YUN_VEDIC_PERSONA_KO).toContain('라그나·라시·바바·나크샤트라·다샤');
+  expect(personas.YUN_VEDIC_PERSONA_KO).toContain('섞지 않습니다');
 });

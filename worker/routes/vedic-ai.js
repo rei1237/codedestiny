@@ -1,3 +1,4 @@
+import { appendExpertPersona } from '../lib/expert-character-personas.js';
 import { jsonSchemaFromExample } from "../lib/json-text-repair.js";
 import { normalizeNarrativeBody } from '../lib/paid-narrative-candidate.js';
 import { salvageTruncatedJsonObject } from '../../lib/llm-text.js';
@@ -1435,7 +1436,7 @@ async function generateVedicGroup(env, input, chart, group, context, repairLines
   const groupBaseTokens = modelConfig.maxOutputTokens ?? VEDIC_GROUP_MAX_OUTPUT_TOKENS;
   try {
     const result = await callGeminiJsonWithRetry(env, buildGroupPrompt(input, chart, group, repairLines), {
-      systemPrompt: await cmsPromptText(env, "vedic-ai", SYSTEM_PROMPT),
+      systemPrompt: await appendExpertPersona(env, "yunVedic", await cmsPromptText(env, "vedic-ai", SYSTEM_PROMPT)),
       taskType: "fortune",
       // 재작성 웨이브는 온도를 낮춰 부른다 — 오버라이드가 있어도 그 관계는 유지한다.
       temperature: repairLines.length

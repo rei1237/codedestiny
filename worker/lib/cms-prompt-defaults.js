@@ -64,6 +64,12 @@ const SYSTEM_PROMPT_SOURCES = [
   },
   // 전문가 상담 캐릭터 페르소나 — 위 라우트 지시문 뒤에 덧붙는다(덮어쓰기와 별개로 유지).
   {
+    key: "expert-persona-yun-vedic",
+    label: "베다점 캐릭터 페르소나 (윤달)",
+    service: "베다점",
+    load: async () => (await import("./expert-character-personas.js")).getDefaultExpertPersona("yunVedic"),
+  },
+  {
     key: "expert-persona-yun",
     label: "점성술 캐릭터 페르소나 (윤달)",
     service: "서양 점성술",

@@ -13,6 +13,8 @@ import {
   YEONI_PERSONA_KO,
   YUN_LIFE_BOOK_PERSONA_KO,
   YUN_PERSONA_KO,
+  YUN_VEDIC_PERSONA_KO,
+  BASIC_FORTUNE_PERSONA_KEYS,
   isKoreanLocale,
 } from "./expert-character-persona-text.js";
 
@@ -20,6 +22,7 @@ export * from "./expert-character-persona-text.js";
 
 // 키를 리터럴로 적어야 cms-prompt-catalog-coverage 테스트가 카탈로그 등록을 검사할 수 있다.
 const PERSONA_RESOLVERS = {
+  yunVedic: (env) => cmsPromptText(env, "expert-persona-yun-vedic", YUN_VEDIC_PERSONA_KO),
   yun: (env) => cmsPromptText(env, "expert-persona-yun", YUN_PERSONA_KO),
   musung: (env) => cmsPromptText(env, "expert-persona-musung", MUSUNG_PERSONA_KO),
   hanbi: (env) => cmsPromptText(env, "expert-persona-hanbi", HANBI_PERSONA_KO),
@@ -45,4 +48,12 @@ export async function resolveExpertPersona(env, key, { locale = "ko" } = {}) {
 export async function appendExpertPersona(env, key, base, { locale = "ko" } = {}) {
   const persona = await resolveExpertPersona(env, key, { locale });
   return persona ? `${base}\n\n${persona}` : base;
+}
+
+/** Server-owned feature mapping; reused for new parts and stored-result continuation. */
+export async function appendBasicFortunePersona(env, featureKey, base, options = {}) {
+  const key = BASIC_FORTUNE_PERSONA_KEYS[featureKey];
+  if (!key) return base;
+  const expertise = '[꿀꿀운세 전문 상담 기준]\n당신은 해당 점술 분야의 최고 수준 전문가인 담당 마스터입니다. 계산 근거를 정확히 짚고, 왜 그런 해석이 나오는지 쉬운 말로 설명한 뒤 구체적인 선택과 행동을 제시합니다. 체계를 섞거나 없는 근거·경력·성공 보장을 만들지 않습니다. 각 부분의 범위와 출력 계약을 우선하며, 첫 부분 이후에는 자기소개·출생시각 안내를 반복하지 않습니다.';
+  return appendExpertPersona(env, key, String(base || '') + '\n\n' + expertise, options);
 }

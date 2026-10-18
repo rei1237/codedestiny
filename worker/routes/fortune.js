@@ -1,3 +1,4 @@
+import { appendBasicFortunePersona } from '../lib/expert-character-personas.js';
 import {validateSajuNatalPayload} from "../lib/saju-correction.js";
 import { deliverFeatureQuestion, readFeatureQuestionRequest } from '../lib/feature-question-delivery.js';
 import { deliverGuardianPaid } from '../lib/guardian-paid-delivery.js';
@@ -5456,6 +5457,7 @@ async function runFeatureAiConsultation(env, {
   // 요청 시작 기준 예산. 호출부가 인증·결제에 쓴 시간만큼 생성 시간이 줄어든다.
   deadlineAt = Date.now() + FEATURE_AI_LLM_BUDGET_MS,
 } = {}) {
+  const resolvedSystemPrompt = await appendBasicFortunePersona(env, SUKUYO_AI_PROMPT_FEATURE_KEY, await cmsPromptText(env, "feature-ai-result", systemPrompt));
   let finalAi = null;
   let finalText = "";
   for (let attempt = 0; attempt < 2; attempt += 1) {
@@ -5472,7 +5474,7 @@ async function runFeatureAiConsultation(env, {
       repairReason: attempt > 0 ? "이전 응답이 중간에 끊겼거나 비었습니다. 처음부터 끝까지 완결해 주세요." : "",
     });
     const ai = await callGeminiText(env, prompt, {
-      systemPrompt: await cmsPromptText(env, "feature-ai-result", systemPrompt),
+      systemPrompt: resolvedSystemPrompt,
       taskType: "fortune",
       temperature: attempt > 0 ? 0.5 : 0.56,
       // 단일 질문 상담(약 9개 섹션) 기준 상한 — 잘리면 아래 이어쓰기 repair 가 덧붙인다.
@@ -5497,7 +5499,7 @@ async function runFeatureAiConsultation(env, {
       const repairTimeoutMs = featureAiCallTimeoutMs(deadlineAt, FEATURE_AI_REPAIR_TIMEOUT_MS, 0);
       if (repairTimeoutMs > 0) {
         const repairAi = await callGeminiText(env, buildFeatureAiCompletionRepairPrompt(text), {
-          systemPrompt,
+          systemPrompt: resolvedSystemPrompt,
           taskType: "fortune",
           temperature: 0.42,
           maxOutputTokens: ai.truncated ? 6000 : 4000,

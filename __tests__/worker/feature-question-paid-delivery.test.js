@@ -26,6 +26,7 @@ const model={findOne:filter=>{if(lost){lost=false;return query(null);}return que
   let doc=docs.find(doc=>matches(doc,filter));if(!doc&&options.upsert){doc={...clone(update.$setOnInsert),_id:'record'};docs.push(doc);}if(doc)patch(doc,update.$set||{});return query(doc||null);
  },updateOne:async(filter,update)=>{const doc=docs.find(doc=>matches(doc,filter));if(doc)patch(doc,update.$set||{});return {modifiedCount:doc?1:0};}};
 beforeAll(async()=>{
+ jest.unstable_mockModule('../../worker/lib/cms-prompts.js',()=>({cmsPromptText:async(_env,_key,fallback)=>fallback}));
  const db=await import('../../worker/lib/db.js'),auth=await import('../../worker/lib/auth.js'),models=await import('../../worker/lib/models.js'),gemini=await import('../../worker/lib/gemini.js');
  jest.unstable_mockModule('../../worker/lib/db.js',()=>({...db,connectDb:async()=>{},withMongoRetry:async(_env,fn)=>fn()}));
  jest.unstable_mockModule('../../worker/lib/auth.js',()=>({...auth,requireAuth:async()=>({userId})}));
@@ -159,4 +160,15 @@ test('sukuyo paid facts drop the date-seeded daily signal',async()=>{
  kind='Sukuyo';await post({...original(),basicResult:{planet:'Sun',daily:{overall:78,insight:'오늘 돈을 다루는 습관을 점검하세요.'}}});
  const prompt=provider.mock.calls[0][1];
  expect(prompt).toContain('"path":"chart.basicResult.planet"');expect(prompt).not.toMatch(/daily|돈을 다루는/);
+});
+
+test.each([['Ziwei','무성'],['Sukuyo','서한비'],['Astrology','윤달'],['Vedic','윤달 · 베다점']])('%s sends its master voice to every actual generation and resumed part',async(type,name)=>{
+ kind=type;await start();await finish();
+ expect(provider).toHaveBeenCalledTimes(10);
+ for(const call of provider.mock.calls){
+  expect(call[2].systemPrompt).toContain('[상담자 페르소나 — '+name+']');
+  expect(call[2].systemPrompt).toContain('각 점술 체계를 섞지 말고');
+  expect(call[2].systemPrompt).toContain('말투');
+ }
+ expect(refund).not.toHaveBeenCalled();
 });

@@ -1,3 +1,4 @@
+import { appendBasicFortunePersona } from './expert-character-personas.js';
 import { narrativePriorDigest, normalizeNarrativeBody, parseNarrativeResponse } from './paid-narrative-candidate.js';
 import { jsonSchemaFromExample } from './json-text-repair.js';
 import { createHash } from 'node:crypto';
@@ -100,7 +101,7 @@ export function featureQuestionNarrativeAdapter(env, featureKey) {
     }),
     produce: async (task, state) => {
       const ai = await callGeminiText(env, `${state.prompt}\n\n[고정 계산 근거]\n${JSON.stringify(state.facts)}\n${state.asOf ? `[기준일] ${state.asOf}. 올해는 ${state.asOf.slice(0, 4)}년, 내년은 ${Number(state.asOf.slice(0, 4)) + 1}년입니다.\n` : ''}[이번 부분: ${task.id}] ${task.prompt || task.title}${narrativePriorDigest(state, task)}\nJSON {"claims":[{"factId":"fact-1","value":"해당 근거의 원래 값"}],"body":"상담 본문"}만 출력하세요. claims에는 실제 사용하는 계산 근거를 1~5개만 정확하게 복사합니다. 계산값 전체 요약을 부분마다 다시 쓰지 않습니다. 본문은 공백 제외 최소 ${task.minChars}자, 목표 2800~3200자입니다. 이 부분에 해당하는 근거와 구체적 생활 사례·반대 조건·행동을 각각 다른 문단으로 쓰고 마지막 문장을 완결합니다. 다른 부분은 쓰지 않습니다.`, {
-        systemPrompt: state.systemPrompt, timeoutMs: 45000, maxOutputTokens: 9500,
+        systemPrompt: await appendBasicFortunePersona(env, featureKey, state.systemPrompt, { locale: state.locale }), timeoutMs: 45000, maxOutputTokens: 9500,
         thinkingBudget: 0, responseMimeType: 'application/json', fallbackToWorkersAI: false,
         responseSchema: questionResponseSchema,
       });
