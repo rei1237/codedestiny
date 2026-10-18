@@ -203,9 +203,10 @@ test("결제마다 보낸 requestId 로 증빙을 찾고(이용권 대체 소비
   expect(store.executions[0].idempotencyKey).toBe(PAY_1);
 });
 
-test("결제 1건 = 기록 1건 — 같은 requestId 는 상대가 달라도 갱신, 다른 결제는 새 기록이다", async () => {
+test("결제 1건 = 원본 1건 — 같은 requestId 로 다른 상대를 저장하면 거부한다", async () => {
   await save(payload({ requestId: PAY_1 }));
-  await save(payload({ requestId: PAY_1, partner: { y: "1993", m: "3", d: "4", time: "12:00", cal: "solar", gender: "M" } }));
+  expect((await save(payload({ requestId: PAY_1, partner: { y: "1993", m: "3", d: "4", time: "12:00", cal: "solar", gender: "M" } }))).status).toBe(409);
+  expect(store.executions[0].metadata.archive.payload.partner.y).toBe('1992');
   expect(store.executions).toHaveLength(1);
 
   await save(payload({ requestId: PAY_2 }));

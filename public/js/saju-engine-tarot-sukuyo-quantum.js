@@ -6105,6 +6105,7 @@ function syOpenPaidSukuyoFeature(feature, onGranted, resume) {
   if (!cost || !featureKey || typeof window._cdOpenPaidServiceGate !== 'function') return false;
   var profileId = syResolveCurrentProfileIdForPaidGate();
   var inFlightKey = featureKey + '|' + String(profileId || '');
+  var ownerScope = syPaidFeatureUserScope();
   var startedAt = Number(_sySukuyoPaidGateInFlight[inFlightKey] || 0);
   // 형제 가드들과 같은 계약 — 시간으로 자기치유한다(락이 새도 45초 뒤엔 다시 열린다).
   if (startedAt && (Date.now() - startedAt) < SY_SUKUYO_PAID_GATE_TTL_MS) return true;
@@ -6132,8 +6133,15 @@ function syOpenPaidSukuyoFeature(feature, onGranted, resume) {
     gateOptions.resume = resume;
   }
   window._cdOpenPaidServiceGate(gateOptions).then(function(result) {
-    if (syIsPaidGateGranted(result)) syRememberPaidGateAccess(featureKey, profileId, result, config.perPayment === true ? requestId : '');
-    if (syIsPaidGateGranted(result) && typeof onGranted === 'function') onGranted(result);
+    if (ownerScope !== syPaidFeatureUserScope() || profileId !== syResolveCurrentProfileIdForPaidGate()) return false;
+    // 복구 영수증으로 열린 경우 게이트가 돌려준 원래 requestId를 사용한다.
+    // 새로 만든 후보 ID로 덮으면 이미 차감한 결제를 서버에서 찾을 수 없다.
+    var payload = result && result.payload || {};
+    var data = payload.data || payload;
+    var settledRequestId = String((result && result.requestId) || data.requestId || (data.consume && data.consume.requestId) || (data.accessGrant && data.accessGrant.requestId) || requestId);
+    if (resume && resume.args && config.perPayment === true) resume = Object.assign({}, resume, { args: Object.assign({}, resume.args, { requestId: settledRequestId, profileId: profileId }) });
+    if (syIsPaidGateGranted(result)) syRememberPaidGateAccess(featureKey, profileId, result, config.perPayment === true ? settledRequestId : '');
+    if (syIsPaidGateGranted(result) && typeof onGranted === 'function') return onGranted(result, resume);
   }).catch(function(error) {
     var message = error && error.message ? String(error.message) : '결제 확인에 실패했습니다. 잠시 후 다시 시도해 주세요.';
     window.alert(message);
@@ -6192,6 +6200,8 @@ function syPaidGateAccessMethod(result) {
   var data = payload.data && typeof payload.data === 'object' ? payload.data : payload;
   var status = String(gate.status || '').toLowerCase();
   var accessType = String(data.accessType || payload.accessType || '').toLowerCase();
+  var evidence = [gate, payload, data, data.consume, data.accessGrant, data.accessDecision, payload.consume, payload.accessGrant];
+  if (evidence.some(function (row) { return row && (row.freeBySubscription === true || ['pass', 'membership_pass', 'pass_applied'].indexOf(String(row.accessMethod || row.accessType || row.paymentMode || '').toLowerCase()) !== -1); })) return 'pass';
   if (payload.__cdOptimisticPass === true || data.__cdOptimisticPass === true) return 'pass';
   if (status === 'pass' || status === 'pass_applied' || accessType === 'membership_pass' || accessType === 'pass_applied') return 'pass';
   return '';
@@ -6204,6 +6214,7 @@ function syRememberPaidGateAccess(featureKey, profileId, result, requestId) {
       profileId: String(profileId || ''),
       accessMethod: syPaidGateAccessMethod(result),
       requestId: String(requestId || ''),
+      ownerScope: syPaidFeatureUserScope(),
       at: Date.now()
     };
   } catch (_) {}
@@ -6212,6 +6223,7 @@ function syRememberPaidGateAccess(featureKey, profileId, result, requestId) {
 function syRecentPaidGateAccess(featureKey) {
   var row = _syPaidGateAccess[String(featureKey || '')];
   if (!row || (Date.now() - Number(row.at || 0)) > SY_PAID_GATE_ACCESS_TTL_MS) return null;
+  if (row.ownerScope !== syPaidFeatureUserScope() || row.profileId !== syResolveCurrentProfileIdForPaidGate()) return null;
   return row;
 }
 
@@ -6357,8 +6369,8 @@ function sySaveSukuyoResultArchive(featureSlug, payload, attempt) {
         if (payload.ownerScope !== syPaidFeatureUserScope()) return;
         // 400·401·404·413 은 다시 보내도 같다. 403(기록이 아직 안 씀)·503·5xx 는 다시 본다.
         if (res && res.ok && payload.onState) payload.onState('saved');
-        if (res && !res.ok && [400,401,404,413].indexOf(res.status) !== -1 && payload.onState) payload.onState('failed');
-        if (!res || res.ok || res.status === 400 || res.status === 401 || res.status === 404 || res.status === 413) {
+        if (res && !res.ok && [400,401,404,409,413].indexOf(res.status) !== -1 && payload.onState) payload.onState('failed');
+        if (!res || res.ok || res.status === 400 || res.status === 401 || res.status === 404 || res.status === 409 || res.status === 413) {
           if (res && !res.ok) { try { console.warn('[sukuyo-archive] 저장 거절', featureSlug, res.status); } catch (_) {} }
           return;
         }
@@ -13308,10 +13320,14 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
   function syRunCompatResume(descriptor, grant) {
     var args = (descriptor && descriptor.args && typeof descriptor.args === 'object') ? descriptor.args : {};
     if (!args.y || !args.m || !args.d) return false;
+    var owner = syPaidFeatureUserScope();
     return syWaitForCompatForm(SY_COMPAT_FORM_WAIT_MS).then(function(ready) {
+      if (owner !== syPaidFeatureUserScope() || (args.profileId && args.profileId !== syResolveCurrentProfileIdForPaidGate())) return false;
       // 폼이 끝내 안 뜨면 false — 호출부(destiny-profile 의 복귀 처리)가 '지금 열기' 카드를 그린다.
       if (!ready || typeof window._triggerSynergyCheckCore !== 'function') return false;
       syResumeCompatGateAccess(SY_PAID_FEATURES.compatibility.key, args, grant);
+      var access = syRecentPaidGateAccess(SY_PAID_FEATURES.compatibility.key);
+      if (access) access.resume = descriptor;
       sySetCompatFieldValue('sy3BirthY', args.y);
       sySetCompatFieldValue('sy3BirthM', args.m);
       sySetCompatFieldValue('sy3BirthD', args.d);
@@ -13320,8 +13336,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       sySetCompatFieldValue('sy3PartnerGender', args.gender || 'OTHER');
       // 🔴 게이트를 다시 타는 window.triggerSynergyCheck 가 아니라 코어를 직접 부른다(재결제 방지).
       var myIdx = parseInt(args.myIdx, 10);
-      window._triggerSynergyCheckCore(isFinite(myIdx) ? myIdx : 0, String(args.myMansionName || ''));
-      return true;
+      return Promise.resolve(window._triggerSynergyCheckCore(isFinite(myIdx) ? myIdx : 0, String(args.myMansionName || ''))).then(function (shown) { return shown === true; });
     });
   }
 
@@ -13471,11 +13486,11 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
   })();
 
   /* 결제는 됐는데 본문을 못 받은(5xx·네트워크) 궁합 결제의 requestId. 다시 열기는 게이트를 건너뛰고
-     같은 결제로 서버에 다시 묻는다 — 일시 장애 때문에 또 결제하게 하지 않는다. 402·409 는 새 결제가 맞다. */
+     같은 결제로 서버에 다시 묻는다. 402도 기록 지연일 수 있어 새 결제로 자동 전환하지 않는다. */
   var _syCompatUndelivered = Object.create(null);
   function syCompatRetryable(error) {
     var status = Number(error && error.status) || 0;
-    return !status || status >= 500;
+    return !status || status === 402 || status >= 500;
   }
   function syCompatPendingRetry(featureKey) {
     var pending = _syCompatUndelivered[featureKey];
@@ -13483,6 +13498,20 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     if (!pending || !access || access.requestId !== pending) return false;
     delete _syCompatUndelivered[featureKey];
     return true;
+  }
+
+  function syOfferCompatRetry(host, access) {
+    if (!host || !host.isConnected || !access || !access.resume || access.ownerScope !== syPaidFeatureUserScope()
+      || access.profileId !== syResolveCurrentProfileIdForPaidGate()) return;
+    var button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'sy-moon-btn';
+    button.textContent = '같은 결제로 결과 다시 불러오기';
+    button.addEventListener('click', function () {
+      if (window._sy3Running) return;
+      syRunCompatResume(access.resume, { accessMethod: access.accessMethod });
+    });
+    host.appendChild(button);
   }
 
   // The free path calculates facts only. It never enters the paid section client or archive.
@@ -13567,23 +13596,24 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
   };
   window.openSukuyoCompatDetail = function(myIdx, myMansionName) {
       if (syCompatPendingRetry(SY_PAID_FEATURES.compatibility.key)) {
-        window._triggerSynergyCheckCore(myIdx, myMansionName);
-        return;
+        var pending = syRecentPaidGateAccess(SY_PAID_FEATURES.compatibility.key);
+        return syRunCompatResume(pending.resume, { accessMethod: pending.accessMethod });
       }
+      try { syCompatPreviewInput(); } catch (error) { window.alert(error.message); return; }
       // 결제 전에 폼 상태를 서술자로 굳혀 둔다 — 복귀 페이지는 이 값 없이는 재현할 수 없다.
       var resume = syBuildCompatResumeDescriptor(myIdx, myMansionName);
-      if (syRequirePaidSukuyoFeature(SY_PAID_FEATURES.compatibility, function() {
-        syRunCompatResume(resume, null);
+      if (syRequirePaidSukuyoFeature(SY_PAID_FEATURES.compatibility, function(grant, capturedResume) {
+        return syRunCompatResume(capturedResume || resume, grant);
       }, resume)) {
         return;
       }
   };
   window._triggerSynergyCheckCore = function(myIdx, myMansionName) {
       // ── 모바일 더블탭 / 중복 실행 방어 ──
-      if (window._sy3Running) return;
+      if (window._sy3Running) return false;
       window._sy3Running = true;
       // 12초 안전망: 탭 비활성화·예외 탈출 등으로 플래그가 永久 잠기는 것 방지
-      var _sy3Guard = setTimeout(function(){ window._sy3Running = false; }, 12000);
+      var _sy3Guard = null; // 실제 요청이 끝날 때 해제한다. 느린 요청 중 두 번째 실행을 허용하지 않는다.
 
       if(!document.getElementById('sy3BirthY')) { clearTimeout(_sy3Guard); window._sy3Running = false; return; }
       myIdx = parseInt(myIdx, 10);
@@ -13619,6 +13649,10 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       // loader가 화면에 그려지기 전에 메인 스레드를 블로킹 → 반응이 없어 보이는 프리징 원인
       // void loader.offsetWidth도 레이아웃 강제일 뿐 페인트 강제가 아니므로 제거
       // setTimeout(50ms) ≈ 3프레임(60fps) 여유 → 모든 모바일 브라우저에서 안정적
+      const compatBaseAccess = syRecentPaidGateAccess(SY_PAID_FEATURES.compatibility.key);
+      const deliveryOwner = syPaidFeatureUserScope() + '|' + syResolveCurrentProfileIdForPaidGate();
+      return new Promise(function (resolveDelivery) {
+      var delivered = false;
       setTimeout(async function() {
         const ld = loader;
         const rd = resDiv;
@@ -13634,17 +13668,16 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           //    이 파일에는 궁합 생성기·본문 문장이 없다 — 받은 HTML 을 그리고 화면 동작만 붙인다.
           const compatPartnerInput = { date: dateStr, calType: calType, hour: h, minute: min, gender: partnerGender };
           // 게이트가 기억한 이번 결제(requestId·카드). 보관함 저장이 이 기록을 지우므로 먼저 굳힌다.
-          const compatBaseAccess = syRecentPaidGateAccess(SY_PAID_FEATURES.compatibility.key);
           // 사주 계산 스냅샷이 없을 때(숙요 화면만 연 경우) 쓸 내 출생 순간 — 프로필이 있으면 서버는 카드만 쓴다.
           const compatSelf = syNatureDeepDiveFallbackBirth(null) || {};
           const compatSelfInput = { birth: compatSelf.birth, place: compatSelf.place, gender: window.GENDER };
           const sectionClient = window.CdSajuSectionClient;
-          const deliveryOwner = syPaidFeatureUserScope() + '|' + syResolveCurrentProfileIdForPaidGate();
           let data;
           try {
             if (!sectionClient || typeof sectionClient.loadSukuyoCompat !== 'function') throw new Error('궁합 풀이를 불러오지 못했어요. 새로고침 후 다시 열어 주세요.');
             data = await sectionClient.loadSukuyoCompat(Object.assign({ featureKey: SY_PAID_FEATURES.compatibility.key, access: compatBaseAccess, partner: compatPartnerInput }, compatSelfInput));
           } catch (loadErr) {
+            if (!rd.isConnected || deliveryOwner !== syPaidFeatureUserScope() + '|' + syResolveCurrentProfileIdForPaidGate()) return;
             if (compatBaseAccess && compatBaseAccess.requestId && syCompatRetryable(loadErr)) {
               _syCompatUndelivered[SY_PAID_FEATURES.compatibility.key] = compatBaseAccess.requestId;
             }
@@ -13912,6 +13945,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             } catch(_e) {}
           }, 60);
 
+          delivered = true;
           window._sy3Running = false;
 
         } catch(err) {
@@ -13929,8 +13963,14 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           if (resDiv) { resDiv.style.display = 'block'; resDiv.innerHTML = '<div style="color:#ff6b81;padding:20px;text-align:center;font-family:sans-serif;">궁합 분석 중 오류가 발생했습니다.<br><br>다시 시도해 주세요.</div>'; }
           clearTimeout(_sy3Guard);
           window._sy3Running = false;
+        } finally {
+          window._sy3Running = false;
+          clearTimeout(_sy3Guard);
+          if (!delivered) syOfferCompatRetry(resDiv, compatBaseAccess);
+          resolveDelivery(delivered);
         }
       }, 50); // setTimeout(50ms) — loader 실제 페인트 보장 후 계산 시작
+      });
   }
 
 /* 퀀텀 명리 엔진 — 잠금/대기 스텁.

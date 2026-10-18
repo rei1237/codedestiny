@@ -259,5 +259,8 @@ export async function handleSukuyoResultArchive(request, env, featureSlug) {
     },
   });
 
+  if (perUse?.perPayment && archiveSignature(doc?.metadata?.archive?.payload?.partner || {}) !== archiveSignature(partner)) {
+    return fail(409, "PAYMENT_RESULT_MISMATCH", "이 결제로 저장한 상대 정보와 일치하지 않습니다. 보관함에서 기존 결과를 확인해 주세요.");
+  }
   return json({ ok: true, recordId: String(doc?._id || ""), executionKey });
 }
