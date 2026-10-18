@@ -3,7 +3,7 @@
 
 /* ── 화투 이미지 경로 헬퍼 ── */
 function hwatuImg(month, index) {
-    return '/sudda/hwatu/' + month + '_' + index + '.webp';
+    return '/sudda/hwatu/thumbs/' + month + '_' + index + '.webp';
 }
 
 const TAZZA_SYSTEM = {
@@ -108,7 +108,7 @@ const hwatuStyles = `
 .smoke-layer {
     position: absolute; width: 100%; height: 100%; pointer-events: none;
     background: url('https://raw.githubusercontent.com/Toss/tossface/main/dist/svg/u1F4A8.svg') center/cover no-repeat;
-    opacity: 0.05; filter: blur(8px); animation: smokeDrift 20s infinite alternate;
+    opacity: 0.035;
 }
 @keyframes smokeDrift { 0% { transform: translateY(0) scale(1); } 100% { transform: translateY(-20px) scale(1.1); } }
 
@@ -135,6 +135,19 @@ const hwatuStyles = `
     transform-style: preserve-3d; opacity: 0;
 }
 
+#hwatuModalOverlay{--hwatu-gold:#d4af37;--hwatu-paper:#f5ebd6;--hwatu-ink:#152019}
+#hwatuModeToggle{flex-wrap:wrap;max-width:100%;border-radius:12px!important}
+#hwatuModeToggle button{min-height:44px;flex:1 1 42%;white-space:nowrap}
+.hwatu-sound-toggle{display:block;margin:0 auto 20px;min-height:44px;border:1px solid var(--hwatu-gold);background:transparent;color:var(--hwatu-gold);padding:8px 18px;border-radius:6px;font:inherit;cursor:pointer}
+.hwatu-deck-card{transition:transform .45s ease,opacity .2s ease}
+.hwatu-deck-card.picked{outline:3px solid var(--hwatu-gold)}
+#hwatuModalOverlay button:focus-visible{outline:3px solid var(--hwatu-gold);outline-offset:4px}
+.hwatu-three-result{display:grid;gap:20px;text-align:left;margin-top:24px}
+.hwatu-three-result article{display:grid;grid-template-columns:80px 1fr;gap:16px;align-items:start;border-top:1px solid var(--hwatu-gold);padding-top:20px}
+.hwatu-three-result img{width:80px;height:120px;object-fit:contain;border-radius:5px}
+.hwatu-three-result h4{margin:0 0 8px;color:var(--hwatu-gold)}
+.hwatu-three-result p{margin:0;line-height:1.8;color:var(--hwatu-paper)}
+@media(prefers-reduced-motion:reduce){#hwatuModalOverlay *,#hwatuModalOverlay *::before{animation:none!important;transition:none!important}}
 /* 선택된 카드 Reveal Area */
 .reveal-area {
     display: none; justify-content: center; gap: 20px;
@@ -632,8 +645,17 @@ function injectHwatuHTML() {
                 <button id="modeBtnSeotda" onclick="switchHwatuMode('seotda')" style="padding:10px 22px;background:#d4af37;color:#1a202c;font-weight:bold;font-family:inherit;font-size:0.95rem;border:none;cursor:pointer;transition:0.3s;">🃏 섯다 운세</button>
                 <button id="modeBtnTraditional" onclick="switchHwatuMode('traditional')" style="padding:10px 22px;background:transparent;color:#d4af37;font-weight:bold;font-family:inherit;font-size:0.95rem;border:none;cursor:pointer;transition:0.3s;">🎴 운수 떼기</button>
                 <button id="modeBtnLifeCard" onclick="switchHwatuMode('lifecard')" style="padding:10px 22px;background:transparent;color:#d4af37;font-weight:bold;font-family:inherit;font-size:0.95rem;border:none;cursor:pointer;transition:0.3s;">🂡 인생 패 테스트</button>
+                <button id="modeBtnThreeCard" onclick="switchHwatuMode('threecard')" style="padding:10px 18px;background:transparent;color:#d4af37;font:inherit;border:none;cursor:pointer;">세 패의 조언</button>
             </div>
 
+            <button type="button" id="hwatuSoundToggle" class="hwatu-sound-toggle" aria-pressed="true" onclick="toggleHwatuSound()">소리 켜짐</button>
+            <section id="threeCardModeContainer" style="display:none" aria-labelledby="threeCardTitle">
+                <h3 id="threeCardTitle">세 패로 읽는 오늘의 판</h3>
+                <p class="tazza-sub">“첫 패는 지금, 둘째는 조심할 것, 셋째는 네가 둘 수 있는 수요.”</p>
+                <p>꽃패의 상징으로 읽는 창작 운세입니다. 하루 이용 횟수를 함께 사용해요.</p>
+                <button type="button" class="btn-hwatu" onclick="drawHwatuThreeCards()">세 장 펼치기</button>
+                <div id="hwatuThreeResult" class="hwatu-three-result" aria-live="polite"></div>
+            </section>
             <!-- 섯다 모드 -->
             <div id="seotdaModeContainer">
             <div class="hwatu-category-container" id="hwatuCategoryBox">
@@ -765,33 +787,57 @@ function injectHwatuHTML() {
     loadGSAP(() => {});
 }
 
-// 오디오 합성: 셔플 착착 소리
-function playClackSound(freq=150) {
-    try {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        if(audioCtx.state === 'suspended') audioCtx.resume();
-        const osc = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-        const filter = audioCtx.createBiquadFilter();
-        
-        osc.connect(filter);
-        filter.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-        
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.04);
-        
-        filter.type = 'highpass';
-        filter.frequency.value = 800;
-        
-        gainNode.gain.setValueAtTime(0.8, audioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.04);
-        
-        osc.start(audioCtx.currentTime);
-        osc.stop(audioCtx.currentTime + 0.04);
-    } catch(e) {}
+// One audio engine and one cancellable lifecycle for this overlay.
+let hwatuAudio = null;
+let hwatuSoundEnabled = true;
+let hwatuSequence = 0;
+const hwatuTimers = new Set();
+function scheduleHwatu(callback, delay) {
+    const sequence = hwatuSequence;
+    const id = window.setTimeout(() => {
+        hwatuTimers.delete(id);
+        if(sequence === hwatuSequence) callback();
+    }, delay);
+    hwatuTimers.add(id);
+    return id;
 }
+function cancelHwatuSequence() {
+    hwatuSequence++;
+    hwatuTimers.forEach(id => window.clearTimeout(id));
+    hwatuTimers.clear();
+    const overlay = document.getElementById('hwatuModalOverlay');
+    if(overlay && window.gsap) window.gsap.killTweensOf(overlay.querySelectorAll('*'));
+    if(overlay) overlay.querySelectorAll('.tazza-multi-popup').forEach(node => { node.style.opacity = '0'; });
+    if(typeof _tradState !== 'undefined') _tradState = null;
+}
+async function playClackSound(freq=150) {
+    if(!hwatuSoundEnabled) return;
+    const sequence = hwatuSequence;
+    try {
+        const Audio = window.AudioContext || window.webkitAudioContext;
+        if(!Audio) return;
+        if(!hwatuAudio || hwatuAudio.state === 'closed') hwatuAudio = new Audio();
+        if(hwatuAudio.state === 'suspended') await hwatuAudio.resume();
+        if(sequence !== hwatuSequence || !hwatuSoundEnabled) return;
+        const osc=hwatuAudio.createOscillator(), gain=hwatuAudio.createGain();
+        osc.type='triangle';
+        osc.frequency.setValueAtTime(freq,hwatuAudio.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(45,hwatuAudio.currentTime+.055);
+        gain.gain.setValueAtTime(.12,hwatuAudio.currentTime);
+        gain.gain.exponentialRampToValueAtTime(.001,hwatuAudio.currentTime+.055);
+        osc.connect(gain);gain.connect(hwatuAudio.destination);
+        osc.onended=()=>{osc.disconnect();gain.disconnect();};
+        osc.start();osc.stop(hwatuAudio.currentTime+.06);
+    } catch (_) { /* Sound is optional; the card game remains available. */ }
+}
+window.toggleHwatuSound=function(){
+    hwatuSoundEnabled=!hwatuSoundEnabled;
+    const button=document.getElementById('hwatuSoundToggle');
+    button.textContent=hwatuSoundEnabled?'소리 켜짐':'소리 꺼짐';
+    button.setAttribute('aria-pressed',String(hwatuSoundEnabled));
+    if(hwatuSoundEnabled) playClackSound();
+    else if(hwatuAudio && hwatuAudio.state==='running') hwatuAudio.suspend().catch(()=>{});
+};
 
 const getTodayDateStr = () => {
     const d = new Date(); return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
@@ -883,7 +929,7 @@ window.setHwatuCategory = function(cat, btnParam) {
     // 카테고리 클릭 시 사운드
     if(typeof playClackSound === 'function') {
         playClackSound(200); 
-        setTimeout(() => playClackSound(250), 100);
+        scheduleHwatu(() => playClackSound(250), 100);
     }
 
     let quote = "";
@@ -1008,17 +1054,22 @@ window.openHwatuTraditionalMode = function() {
     window.openHwatuModal('traditional');
 };
 
-window.closeHwatuModal = function() { document.getElementById('hwatuModalOverlay').style.display = 'none'; };
+window.closeHwatuModal = function() {
+    cancelHwatuSequence();
+    document.getElementById('hwatuModalOverlay').style.display = 'none';
+    if(hwatuAudio && hwatuAudio.state==='running') hwatuAudio.suspend().catch(()=>{});
+};
 
 // 시퀀스 상태 변수
 let selectedCards = 0;
 let drawData = null;
 
 window.startShuffleSequence = function() {
+    cancelHwatuSequence();
     let stats = checkDailyLimit();
     if(stats.count >= 10) {
         let warn = document.getElementById('hwatuWarnMsg');
-        warn.innerText = "너 너무 많이 했어! 손모가지 날아간다! 오늘은 판 접으쇼!";
+        warn.innerText = "오늘은 열 판을 다 봤소. 뽑은 패를 곱씹어보고, 내일 다시 오쇼.";
         warn.style.color = "#ef4444";
         warn.style.display = 'block'; return;
     }
@@ -1054,7 +1105,7 @@ window.startShuffleSequence = function() {
         gsap.to('#tcLeft', { left: 10, opacity: 1, duration: 0.6, ease: "back.out(1.2)", delay: 0.2 });
         gsap.to('#tcRight', { right: 10, opacity: 1, duration: 0.6, ease: "back.out(1.2)", delay: 0.3 });
 
-        setTimeout(() => {
+        scheduleHwatu(() => {
             gsap.to('#tcTop', { top: -150, opacity: 0, duration: 0.5 });
             gsap.to('#tcBottom', { bottom: -150, opacity: 0, duration: 0.5 });
             gsap.to('#tcLeft', { left: -350, opacity: 0, duration: 0.5 });
@@ -1063,100 +1114,46 @@ window.startShuffleSequence = function() {
     }
     // ----------------------------------------- //
 
-    // GSAP 셔플 애니메이션 (속도를 위해 24장 사용)
     const area = document.getElementById('shuffleArea');
-    const NUM_CARDS = 24;
-    
-    let deckDOMs = [];
-    for(let i=0; i<NUM_CARDS; i++){
-        let c = document.createElement('div');
-        c.className = 'hwatu-deck-card';
-        area.appendChild(c);
-        deckDOMs.push(c);
+    const deckDOMs=[];
+    const reduced=window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    for(let i=0;i<12;i++){
+        const card=document.createElement('button');
+        card.type='button';card.className='hwatu-deck-card';card.disabled=true;
+        card.setAttribute('aria-label',(i+1)+'번째 패 선택');
+        card.style.opacity='1';
+        card.style.transform='translate('+((i%3-1)*9)+'px,'+(-i*2)+'px) rotate('+((i%2?1:-1)*8)+'deg)';
+        area.appendChild(card);deckDOMs.push(card);
     }
-
-    if(window.gsap) {
-        // 1. 카드가 모임
-        gsap.to(deckDOMs, { opacity: 1, duration: 0.2, stagger: 0.01 });
-        // 2. 셔플 (진동 & 위아래 이동)착착 소리
-        gsap.to(deckDOMs, {
-            y: () => (Math.random() - 0.5) * 80,
-            x: () => (Math.random() - 0.5) * 30,
-            rotation: () => (Math.random() - 0.5) * 45,
-            duration: 0.1, yoyo: true, repeat: 18, delay: 0.3,
-            onStart: () => {
-                let clacks = 0;
-                let iv = setInterval(() => { playClackSound(150 + Math.random()*50); clacks++; if(clacks>15) clearInterval(iv); }, 60);
-            }
-        });
-        // 3. 슬로우 모션 공중 체공
-        gsap.to(deckDOMs, {
-            y: -150, x: () => (Math.random() - 0.5) * 50, rotation: () => (Math.random() - 0.5) * 180, scale: 1.1,
-            duration: 1.2, delay: 2.2, ease: "power2.out"
-        });
-        // 4. 바닥으로 모이기 후 부채꼴 스프레드
-        gsap.to(deckDOMs, {
-            y: 0, x: 0, scale: 1, rotation: 0, duration: 0.4, delay: 3.5,
-            onComplete: () => { spreadCards(deckDOMs); }
-        });
-    } else {
-        // Fallback
-        setTimeout(() => spreadCards(deckDOMs), 1000);
-    }
+    playClackSound(180);
+    if(!reduced) scheduleHwatu(()=>playClackSound(220),220);
+    scheduleHwatu(()=>spreadCards(deckDOMs),reduced?0:550);
 };
 
 function spreadCards(deckDOMs) {
-    playClackSound(100);
-    
-    // 부채꼴 회전 계산
-    const startAngle = -75;
-    const endAngle = 75;
-    const step = (endAngle - startAngle) / (deckDOMs.length - 1);
-    const radius = 220; // 부채꼴 반지름
-    
-    gsap.to(deckDOMs, {
-        rotation: (i) => startAngle + (step * i),
-        x: (i) => Math.sin((startAngle + (step * i)) * Math.PI / 180) * radius,
-        y: (i) => -Math.cos((startAngle + (step * i)) * Math.PI / 180) * radius + radius - 50,
-        duration: 0.8, ease: "back.out(1.2)",
-        onComplete: () => {
-            // 패 세팅 완료! User chooses 2 cards
-            drawData = determineJokbo();
-            selectedCards = 0;
-            deckDOMs.forEach(c => {
-                c.onclick = () => onCardSelected(c, deckDOMs);
-            });
-            let warn = document.getElementById('hwatuWarnMsg');
-            warn.innerText = "조심스럽게 2장의 패를 뽑으쇼.";
-            warn.style.color = "#d4af37";
-            warn.style.display = 'block';
-        }
+    drawData=determineJokbo();selectedCards=0;
+    const spacing=Math.min(66,(document.getElementById('shuffleArea').clientWidth-24)/6);
+    deckDOMs.forEach((card,i)=>{
+        const column=i%6,row=Math.floor(i/6);
+        card.style.width='44px';card.style.height='70px';card.style.left='calc(50% - 22px)';card.style.top='calc(50% - 35px)';
+        card.style.transform='translate('+((column-2.5)*spacing)+'px,'+(row*108-70)+'px) rotate('+((column-2.5)*2)+'deg)';
+        card.disabled=false;card.onclick=()=>onCardSelected(card,deckDOMs);
     });
+    const warn=document.getElementById('hwatuWarnMsg');
+    warn.innerText='마음이 가는 패 두 장을 고르쇼.';warn.style.color='#d4af37';warn.style.display='block';
 }
 
-function onCardSelected(cardEl, deckDOMs) {
-    if(cardEl.classList.contains('picked')) return;
-    cardEl.classList.add('picked');
-    playClackSound(250);
-    
-    // 선택된 카드를 위로 살짝 띄우기
-    gsap.to(cardEl, { y: cardEl._gsap.y - 30, scale: 1.2, duration: 0.2, boxShadow: "0 0 15px #d4af37" });
-    
-    selectedCards++;
-    if(selectedCards === 2) {
-        // 덱 카드 클릭 비활성화
-        deckDOMs.forEach(c => c.onclick = null);
-        document.getElementById('hwatuWarnMsg').style.display = 'none';
-        
-        let stats = checkDailyLimit(); stats.count++;
-        localStorage.setItem('hwatuStats', JSON.stringify(stats));
-        document.getElementById('hwatuLimitText').innerText = 10 - stats.count;
-        
-        // 셔플 영역 서서히 사라지고 리빌 영역 등장
-        gsap.to(document.getElementById('shuffleArea'), { opacity: 0, duration: 0.6, delay: 0.5, onComplete: () => {
-            document.getElementById('shuffleArea').style.display = 'none';
-            showReveal();
-        }});
+function onCardSelected(cardEl,deckDOMs){
+    if(selectedCards>=2 || cardEl.classList.contains('picked'))return;
+    cardEl.classList.add('picked');cardEl.disabled=true;cardEl.setAttribute('aria-pressed','true');
+    cardEl.style.transform+=' translateY(-25px)';playClackSound(250);selectedCards++;
+    document.getElementById('hwatuWarnMsg').innerText='한 장 더 골라보쇼.';
+    if(selectedCards===2){
+        deckDOMs.forEach(card=>{card.onclick=null;card.disabled=true;});
+        document.getElementById('hwatuWarnMsg').style.display='none';
+        const stats=checkDailyLimit();stats.count++;localStorage.setItem('hwatuStats',JSON.stringify(stats));
+        document.getElementById('hwatuLimitText').innerText=Math.max(0,10-stats.count);
+        scheduleHwatu(()=>{document.getElementById('shuffleArea').style.display='none';showReveal();},250);
     }
 }
 
@@ -1186,10 +1183,10 @@ function showReveal() {
     }
     document.getElementById('hCard2Text').innerText = card2.label || card2.name;
 
-    setTimeout(() => { document.getElementById('hCard1').classList.add('flipped'); playClackSound(); }, 200);
-    setTimeout(() => { document.getElementById('hCard2').classList.add('flipped'); playClackSound(); }, 900);
+    scheduleHwatu(() => { document.getElementById('hCard1').classList.add('flipped'); playClackSound(); }, 200);
+    scheduleHwatu(() => { document.getElementById('hCard2').classList.add('flipped'); playClackSound(); }, 900);
 
-    setTimeout(() => {
+    scheduleHwatu(() => {
         document.getElementById('jokboName').innerText = "【 " + jokbo + " 】";
         let charHTML = `
             <div style="display:flex;align-items:center;margin-bottom:20px;background:rgba(0,0,0,0.4);padding:15px;border-radius:10px;border-left:4px solid #d4af37;">
@@ -1776,7 +1773,7 @@ window.shareHwatuLifeCard = function() {
     anchor.style.display = 'none';
     document.body.appendChild(anchor);
     anchor.click();
-    setTimeout(function() {
+    scheduleHwatu(function() {
         if(anchor && anchor.parentNode) anchor.parentNode.removeChild(anchor);
         alert('카카오 공유를 시도했습니다. 실행되지 않으면 아래 메시지를 복사해서 공유해주쇼.\n\n' + text);
     }, 380);
@@ -1789,8 +1786,20 @@ window.shareHwatuLifeCard = function() {
 window._hwatuMode = 'seotda'; // 'seotda' | 'traditional' | 'lifecard'
 
 window.switchHwatuMode = function(mode, autoStartTraditional) {
+    const wasTraditionalRunning=!!_tradState;
+    cancelHwatuSequence();
+    if(wasTraditionalRunning){
+        document.getElementById('tradGameBoard').style.display='none';
+        document.getElementById('tradStartBtn').style.display='block';
+    }
     if (typeof autoStartTraditional === 'undefined') autoStartTraditional = false;
     window._hwatuMode = mode;
+    const three=document.getElementById('threeCardModeContainer');
+    if(three) three.style.display=mode==='threecard'?'':'none';
+    document.querySelectorAll('#hwatuModeToggle button').forEach(button=>button.setAttribute('aria-pressed',String(button.id===({seotda:'modeBtnSeotda',traditional:'modeBtnTraditional',lifecard:'modeBtnLifeCard',threecard:'modeBtnThreeCard'}[mode]))));
+    const threeButton=document.getElementById('modeBtnThreeCard');
+    if(threeButton){threeButton.style.background=mode==='threecard'?'#d4af37':'transparent';threeButton.style.color=mode==='threecard'?'#1a202c':'#d4af37';}
+    if(mode==='seotda'){const btn=document.getElementById('startShuffleBtn');btn.style.display='block';btn.disabled=false;}
     const isSeotda = mode === 'seotda';
     const isTraditional = mode === 'traditional';
     const isLifeCard = mode === 'lifecard';
@@ -1825,7 +1834,7 @@ window.switchHwatuMode = function(mode, autoStartTraditional) {
     }
 
     if((isTraditional || isLifeCard) && typeof traditionalBox?.scrollIntoView === 'function') {
-        setTimeout(function() {
+        scheduleHwatu(function() {
             if(isTraditional) traditionalBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
             if(isLifeCard && lifeCardBox && typeof lifeCardBox.scrollIntoView === 'function') {
                 lifeCardBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1835,7 +1844,7 @@ window.switchHwatuMode = function(mode, autoStartTraditional) {
 
     // 기본 동작은 수동 시작(버튼 클릭)이며, 명시적으로 true를 넘긴 경우에만 자동 시작
     if (isTraditional && autoStartTraditional && !_tradState) {
-        setTimeout(function() {
+        scheduleHwatu(function() {
             if (window._hwatuMode === 'traditional' && !_tradState) {
                 startTraditionalGame();
             }
@@ -2045,6 +2054,9 @@ function _renderTradBoard() {
     });
 }
 
+function _markTradSelection(){
+    document.querySelectorAll('#tradStackGrid [data-card-id]').forEach(node=>node.classList.toggle('selected-card',!!_tradState && node.dataset.cardId===String(_tradState.selected)));
+}
 function _countVisibleMonthPairs(stacks) {
     const visible = [].concat.apply([], stacks).filter(c => c.status === 'visible');
     const freq = {};
@@ -2089,7 +2101,7 @@ function _runAutoTraditionalFlow() {
         if(_tradState.removedCount >= 48) {
             document.getElementById('tradSelectionHint').textContent = '🎊 전패 정리 완료! 대길 흐름으로 마무리하오.';
             _renderTradBoard();
-            setTimeout(_showTradResult, 420);
+            scheduleHwatu(_showTradResult, 420);
             return;
         }
 
@@ -2099,7 +2111,7 @@ function _runAutoTraditionalFlow() {
         if(!pair) {
             document.getElementById('tradSelectionHint').textContent = '더 이상 맞는 월이 없어 여기서 흐름이 멈췄소.';
             _renderTradBoard();
-            setTimeout(_showTradResult, 350);
+            scheduleHwatu(_showTradResult, 350);
             return;
         }
 
@@ -2108,15 +2120,15 @@ function _runAutoTraditionalFlow() {
 
         _tradState.selected = first.id;
         document.getElementById('tradSelectionHint').textContent = `${first.month}월 기운 포착... 짝을 확인 중.`;
-        _renderTradBoard();
+        _markTradSelection();
 
-        setTimeout(() => {
+        scheduleHwatu(() => {
             if(!_tradState) return;
             _tradState.selected = second.id;
-            _renderTradBoard();
+            _markTradSelection();
             playClackSound(220);
 
-            setTimeout(() => {
+            scheduleHwatu(() => {
                 if(!_tradState) return;
                 first.status = 'removed';
                 second.status = 'removed';
@@ -2125,7 +2137,7 @@ function _runAutoTraditionalFlow() {
                 document.getElementById('tradSelectionHint').textContent = `✨ ${first.month}월 짝 제거 (+2장)`;
                 _autoFlip();
                 _renderTradBoard();
-                setTimeout(step, 230);
+                scheduleHwatu(step, 230);
             }, 170);
         }, 170);
     };
@@ -2163,12 +2175,12 @@ function _onTradCardClick(cardId) {
             document.getElementById('tradSelectionHint').textContent = '✨ 맞췄소! +2장 제거';
 
             // 플래시 효과 후 Auto-Flip
-            setTimeout(() => {
+            scheduleHwatu(() => {
                 _autoFlip();
                 _renderTradBoard();
                 // 클리어 체크
                 if(_tradState.removedCount >= 48) {
-                    setTimeout(_showTradResult, 500);
+                    scheduleHwatu(_showTradResult, 500);
                 } else {
                     document.getElementById('tradSelectionHint').textContent = '같은 월의 패를 맞춰 모두 제거하시오!';
                 }
@@ -2427,8 +2439,8 @@ function _showTradResult() {
 
     // 완료 사운드
     playClackSound(300);
-    setTimeout(()=>playClackSound(400), 150);
-    setTimeout(()=>playClackSound(500), 300);
+    scheduleHwatu(()=>playClackSound(400), 150);
+    scheduleHwatu(()=>playClackSound(500), 300);
 
     _tradState = null;
 }
@@ -2436,3 +2448,29 @@ function _showTradResult() {
 
 
 
+
+// Three-card editorial spread uses the same physical deck and daily allowance.
+const HWATU_THREE_ADVICE = {
+  1:['새 판을 차분히 준비할 때요.','시작부터 너무 큰 패를 걸지는 마쇼.','미뤄둔 일 하나의 첫 단계를 적어보쇼.'],
+  2:['기다리던 마음이 조금씩 움직이는 때요.','대답을 서두르면 상대의 속도를 놓치기 쉽소.','답을 재촉하기보다 안부 한마디만 건네보쇼.'],
+  3:['사람들 사이에서 네 색이 드러나는 때요.','박수에 취해 약속을 늘리지는 마쇼.','오늘 보여줄 강점 하나만 골라 집중하쇼.'],
+  4:['예상 밖의 제안에 눈이 가는 판이오.','반짝이는 말 뒤의 조건을 놓치지 마쇼.','새 제안은 조건부터 글로 확인하쇼.'],
+  5:['갈고닦은 솜씨를 꺼낼 때요.','완벽한 때만 기다리다 손을 묶지 마쇼.','작게 완성한 결과 하나를 보여주쇼.'],
+  6:['가진 자원을 돌아볼 만한 판이오.','풍성해 보인다고 지출부터 늘리지 마쇼.','지금 쓰는 돈과 시간을 한 줄씩 적어보쇼.'],
+  7:['혼자보다 손발을 맞출 때 길이 보이오.','정 때문에 네 몫까지 내주지는 마쇼.','함께하는 사람과 역할 하나를 분명히 정하쇼.'],
+  8:['한발 떨어져 판 전체를 볼 때요.','남의 평가가 네 기준을 대신하게 두지 마쇼.','오늘 끝낼 목표를 한 가지로 줄여보쇼.'],
+  9:['쌓아온 것을 다듬어 마칠 때요.','끝없는 수정으로 마침표를 미루지 마쇼.','완료 기준을 정하고 작은 일 하나를 끝내쇼.'],
+  10:['노력의 흔적을 챙겨볼 때요.','남의 결실과 비교하느라 네 몫을 잊지 마쇼.','이번 주 잘한 일 세 가지를 적어보쇼.'],
+  11:['익숙한 수를 바꿔볼 여지가 있소.','답답하다고 전부 뒤집을 필요는 없소.','작은 습관 하나만 다른 방식으로 해보쇼.'],
+  12:['잠깐 판을 고르며 숨을 돌릴 때요.','힘든 날의 판단을 인생 전체로 넓히지 마쇼.','급하지 않은 결정 하나는 내일로 미뤄보쇼.']
+};
+window.drawHwatuThreeCards=function(){
+    const box=document.getElementById('hwatuThreeResult'),stats=checkDailyLimit();
+    if(stats.count>=10){box.textContent='오늘은 열 판을 다 봤소. 내일 다시 오쇼.';return;}
+    const cards=_shuffle(TAZZA_SYSTEM.DECK.slice()).slice(0,3);
+    stats.count++;localStorage.setItem('hwatuStats',JSON.stringify(stats));
+    document.getElementById('hwatuLimitText').innerText=Math.max(0,10-stats.count);
+    const roles=['지금의 판','조심할 수','오늘의 한 수'];
+    box.innerHTML=cards.map((card,i)=>'<article data-card="'+card.month+'_'+card.idx+'"><img src="'+card.img+'" alt="'+card.name+'" width="80" height="120" decoding="async"><div><h4>'+roles[i]+' · '+MONTH_SYMBOLS[card.month].name+'</h4><p>'+HWATU_THREE_ADVICE[card.month][i]+'</p></div></article>').join('');
+    playClackSound(180);
+};

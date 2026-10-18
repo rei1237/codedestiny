@@ -1154,6 +1154,15 @@
         display: none !important;
       }
     }
+    .omikuji-art{margin:24px 0 18px;overflow:hidden;border-radius:12px;background:var(--shrine-paper-deep)}
+    .omikuji-art img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover}
+    .ritual-steps{display:flex;justify-content:center;gap:28px;flex-wrap:wrap;padding:0;list-style-position:inside;font-size:14px;color:var(--ink-brown)}
+    .omikuji-options{grid-column:1/-1;border-top:1px solid var(--shrine-gold);padding-top:12px}
+    .omikuji-options summary{min-height:44px;cursor:pointer;font-weight:700;display:flex;align-items:center;justify-content:space-between;color:var(--shrine-red-dark)}
+    .omikuji-options summary small{font-weight:400}
+    .omikuji-draw-art{width:min(100%,520px);height:auto;border-radius:12px;animation:canister-float 1.6s ease-in-out infinite}
+    .pill:focus-visible,summary:focus-visible{outline:3px solid var(--shrine-red-dark);outline-offset:4px}
+    @media(prefers-reduced-motion:reduce){.omikuji-draw-art{animation:none}}
   </style>
 <link rel="preconnect" href="https://assets.code-destiny.com" crossorigin>
 <style data-cd-r2-static-fonts>
@@ -1192,33 +1201,13 @@ button,input,select,textarea{font-family:var(--font-body)!important}
           <span class="date" id="today-label"></span>
         </div>
         <div class="intro-body">
-          <p class="intro-kicker">Code:Destiny Shrine</p>
           <h1 class="intro-title">이모이 오미쿠지</h1>
-          <p class="intro-sub">오늘의 마음을 이모지 부적으로 뽑아보는 감성 제비</p>
+          <p class="intro-sub">마음을 담아 제비를 뽑고, 오늘의 운세 종이를 펼쳐보세요.</p>
 
-          <div class="hero-scenery" aria-hidden="true">
-            <svg class="hero-torii" viewBox="0 0 760 140" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="70" y="16" width="620" height="22" rx="8" fill="#D7493D" />
-              <rect x="94" y="42" width="572" height="14" rx="6" fill="#C7352E" />
-              <rect x="156" y="56" width="26" height="74" rx="6" fill="#C7352E" />
-              <rect x="578" y="56" width="26" height="74" rx="6" fill="#C7352E" />
-              <rect x="278" y="62" width="204" height="13" rx="5" fill="#C7352E" />
-            </svg>
-            <div class="intro-omamori">
-              <strong>御守 EMO-i 🤖</strong>
-              <p>신사의 등불 아래서<br/>오늘의 마음을 귀엽고 정확하게 읽어드립니다.</p>
-            </div>
-          </div>
-
-          <div class="intro-chip-row" aria-hidden="true">
-            <span class="intro-chip">🌸 오미쿠지 종이 감성</span>
-            <span class="intro-chip">🧿 이모지 부적 저장</span>
-            <span class="intro-chip">⛩️ 신사 몰입형 UX</span>
-            <span class="intro-chip">✨ 질문 맞춤 리딩</span>
-          </div>
-
-          <div class="emoi-note">이모이는 단순한 오미쿠지가 아니라, 당신의 마음을 어루만지는 힐링의 시간입니다. 부드러운 위로의 말과 따뜻한 응원으로 오늘 하루를 위로하고 힘을 드립니다.</div>
-          <button class="btn btn-main" id="btn-start" aria-label="오미쿠지 뽑으러 가기">오미쿠지 뽑으러 가기 ⛩️</button>
+          <figure class="omikuji-art"><img src="/fuctionassets/오미쿠지.webp?v=20261019" alt="나무 제비통에서 나온 막대와 펼쳐진 오미쿠지 종이" width="1280" height="720" fetchpriority="high" decoding="async"></figure>
+          <ol class="ritual-steps" aria-label="오미쿠지 이용 순서"><li>마음 고르기</li><li>제비 뽑기</li><li>운세 펼치기</li></ol>
+          <p class="emoi-note">대길부터 작은 길까지, 뽑힌 종이에서 오늘의 흐름과 해볼 만한 행동을 읽어보세요. 결과는 마음을 돌아보기 위한 상징적 해석이에요.</p>
+          <button class="btn btn-main" id="btn-start" aria-label="오미쿠지 뽑으러 가기">마음 고르고 제비 뽑기</button>
         </div>
       </div>
     </section>
@@ -1227,7 +1216,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
       <div class="paper-card">
         <div class="paper-head">
           <span class="badge">願いごと / 오늘의 마음</span>
-          <span class="date">신사 신청서</span>
+          <span class="date">마음 준비하기</span>
         </div>
         <div class="form-body">
           <span class="form-stamp">🔖 願いごと / 오늘의 마음</span>
@@ -1239,7 +1228,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
           <div class="form-grid">
             <fieldset class="field">
               <legend>1. 카테고리 선택</legend>
-              <small>오늘 가장 궁금한 방향을 오마모리 버튼으로 골라주세요.</small>
+              <small>오늘 살펴보고 싶은 주제를 하나 골라주세요.</small>
               <div class="pill-grid" data-group="category" aria-label="카테고리 선택 버튼">
                 <button class="pill" type="button" data-value="연애">💗 연애</button>
                 <button class="pill" type="button" data-value="재물">💰 재물</button>
@@ -1268,12 +1257,11 @@ button,input,select,textarea{font-family:var(--font-body)!important}
 
             <div class="field">
               <label for="question-input">3. 고민/질문 입력</label>
-              <small>당신의 문장을 그대로 읽어, 오늘의 제비 답변을 연결합니다.</small>
+              <small>고민을 짧게 적어주세요. 선택한 주제와 함께 해석에 반영해요.</small>
               <textarea id="question-input" class="question" maxlength="220" aria-label="고민 또는 질문 입력" placeholder="지금 마음에 걸리는 질문을 적어주세요. 예: 그 사람이 나를 어떻게 생각할까?"></textarea>
             </div>
 
-            <fieldset class="field">
-              <legend>4. 원하는 답변 톤 선택</legend>
+            <details class="omikuji-options"><summary>말투와 부적 꾸미기 <small>선택 사항</small></summary><div class="form-grid"><fieldset class="field"><legend>원하는 말투</legend>
               <small>같은 결과라도 말투의 결이 달라집니다.</small>
               <div class="pill-grid" data-group="tone" aria-label="응답 톤 선택 버튼">
                 <button class="pill" type="button" data-value="귀엽게">🐣 귀엽게</button>
@@ -1286,7 +1274,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
             </fieldset>
 
             <fieldset class="field">
-              <legend>5. 이모지 테마 선택</legend>
+              <legend>부적 분위기</legend>
               <small>결과 종이와 이모지 부적 분위기를 함께 정합니다.</small>
               <div class="pill-grid" data-group="emojiTheme" aria-label="이모지 테마 선택 버튼">
                 <button class="pill" type="button" data-value="벚꽃">🌸 벚꽃</button>
@@ -1299,11 +1287,10 @@ button,input,select,textarea{font-family:var(--font-body)!important}
                 <button class="pill" type="button" data-value="로봇">🤖 로봇 신사</button>
               </div>
             </fieldset>
-          </div>
-
+          </div></details></div>
           <div id="form-error" class="err" role="alert">소원을 적어야 제비를 뽑을 수 있어요 🎋</div>
           <div style="margin-top: 12px;">
-            <button class="btn btn-main" id="btn-generate" aria-label="제비 뽑기">제비 뽑기 🎴</button>
+            <button class="btn btn-main" id="btn-generate" aria-label="제비 뽑기">제비통 흔들어 뽑기</button>
           </div>
         </div>
       </div>
@@ -1317,10 +1304,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
         </div>
         <div class="loading-body">
           <div>
-            <div class="loading-canister" aria-hidden="true">
-              <div class="loading-stick"></div>
-            </div>
-            <div class="loading-emoji-cloud" aria-hidden="true">🌸 ⛩️ 🎴 ✨ 🧧 🍀 💗</div>
+            <img class="omikuji-draw-art" src="/fuctionassets/오미쿠지.webp?v=20261019" alt="" width="640" height="360">
             <p class="loading-message" id="loading-message">신사에 오늘의 마음을 전하는 중... ⛩️</p>
             <div class="loading-progress" aria-hidden="true"><div></div></div>
           </div>
@@ -2417,6 +2401,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
       buttons.forEach((button) => {
         const selected = button.dataset.value === value;
         button.dataset.selected = selected ? 'true' : 'false';
+        button.setAttribute('aria-pressed', String(selected));
       });
 
       if (group === 'category') state.category = value;
@@ -2672,9 +2657,9 @@ button,input,select,textarea{font-family:var(--font-body)!important}
 
       const loadingMessages = [
         '신사에 오늘의 마음을 전하는 중... ⛩️',
-        '이모이가 종이 제비를 흔드는 중... 🎴',
-        '질문에 맞는 이모지 부적을 고르는 중... 🧿',
-        '오늘의 오미쿠지를 펼치는 중... 🌸',
+        '제비통을 흔들고 있어요.',
+        '나온 제비를 조심히 꺼내고 있어요.',
+        '오늘의 운세 종이를 펼치고 있어요.',
       ];
 
       state.isLoading = true;
