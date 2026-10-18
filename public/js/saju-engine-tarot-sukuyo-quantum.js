@@ -8931,7 +8931,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       var _introSymbol = syReadingOverrideByIndex(sData.mansionIdx, 'symbolLine');
       var _introArchetype = syEnsureSentenceEnding(String(_introTr.desc || _introTr.core || '').trim());
       html += `<div class="sy-card sy-intro-card sy-master-intro">
-        <img class="sy-master-art" src="/images/master-profiles/hanbi-sukuyo-reading.webp" width="1200" height="800" alt="" aria-hidden="true" decoding="async">
+        <img class="sy-master-art" src="/images/master-profiles/hanbi-sukuyo-reading.webp" width="1200" height="800" alt="달빛 아래 장부를 펼쳐 본명숙을 읽어 주는 서한비" decoding="async">
         <div class="sy-master-reading">
         <div class="sy-intro-head">
           <span class="sy-intro-icon" aria-hidden="true">${syCanonicalMoonSvg({elongationAngle:180}, '달 장식')}</span>

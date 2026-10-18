@@ -9,8 +9,9 @@ import { HttpError } from '../../worker/lib/http.js';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import ts from 'typescript';
+import { BSON } from 'mongodb';
 let delivery, readRequest, refund, consume;
-let docs,provider,revoked,userId,fault,lost,external,kind,mode,builtExtra;
+let docs,provider,revoked,userId,fault,lost,external,kind,mode,builtExtra,bsonRoundTrip;
 const owner='64b7f2a1c3d4e5f601234567',clone=value=>structuredClone(value);
 const get=(doc,key)=>key.split('.').reduce((value,key)=>value?.[key],doc);
 function matches(doc,filter){return Object.entries(filter).every(([key,value])=>{
@@ -18,7 +19,7 @@ function matches(doc,filter){return Object.entries(filter).every(([key,value])=>
  if(value&&typeof value==='object'&&!(value instanceof Date)){if('$exists'in value)return Boolean(actual!==undefined)===value.$exists;if('$in'in value)return value.$in.includes(actual);if('$gt'in value)return new Date(actual)>new Date(value.$gt);}
  return value===null?actual==null:JSON.stringify(actual)===JSON.stringify(value);
 });}
-const query=value=>({lean:async()=>clone(value),select(){return this;},sort(){return this;}});
+const query=value=>({lean:async()=>bsonRoundTrip&&value ? BSON.deserialize(BSON.serialize(value,{ignoreUndefined:false})) : clone(value),select(){return this;},sort(){return this;}});
 function patch(doc,fields){for(const[key,value]of Object.entries(fields)){const keys=key.split('.'),end=keys.pop();let target=doc;for(const part of keys)target=target[part]??={};target[end]=clone(value);}}
 const model={findOne:filter=>{if(lost){lost=false;return query(null);}return query(docs.find(doc=>matches(doc,filter))||null);},
  findOneAndUpdate:(filter,update,options={})=>{
@@ -35,7 +36,7 @@ beforeAll(async()=>{
  jest.unstable_mockModule('../../worker/lib/gemini.js',()=>({...gemini,callGeminiText:(...args)=>provider(...args)}));
  ({deliverFeatureQuestion:delivery,readFeatureQuestionRequest:readRequest}=await import('../../worker/lib/feature-question-delivery.js'));
 });
-beforeEach(()=>{docs=[];builtExtra={};revoked=false;userId=owner;fault=null;lost=false;kind='Astrology';mode='pass';
+beforeEach(()=>{docs=[];bsonRoundTrip=false;builtExtra={};revoked=false;userId=owner;fault=null;lost=false;kind='Astrology';mode='pass';
  provider=jest.fn(async(_env,prompt,options)=>{expect(options.timeoutMs).toBeLessThanOrEqual(45000);expect(options.fallbackToWorkersAI).toBe(false);
   const evidenceHash=prompt.match(/evidenceHash":"([a-f0-9]{64})/)?.[1],label=prompt.match(/\[이번 부분: (part-\d+)\]/)[1];
   return {ok:true,provider:'gemini',text:JSON.stringify({evidenceHash,claims:[{factId:'fact-1',value:'Sun'}],body:Array.from({length:45},(_,i)=>`${label} ${i}번째 사례는 생활의 리듬과 각자의 반응을 함께 살펴보며 적용 조건을 확인합니다. ${label} ${i}번째 선택에서는 관찰된 행동과 휴식의 차이를 바탕으로 일상을 조정할 수 있습니다.`).join('\n\n')})};
@@ -151,6 +152,26 @@ test('calculated facts never carry birth input',async()=>{
  const {questionFacts}=await import('../../worker/lib/feature-question-delivery.js');
  const rows=questionFacts({user:{birthYear:1990,gender:'M'},vedicResult:{profile:{birth:{year:1990,lat:37.5}},lagna:{sign:'Pisces'}},mingGong:'戌'});
  expect(rows.map(row=>row.path)).toEqual(['chart.vedicResult.lagna.sign','chart.mingGong']);
+});
+
+test.each(['Astrology','Ziwei'])('%s completes through BSON serialization with absent optional fields',async type=>{
+ kind=type;bsonRoundTrip=true;builtExtra={compatibilityHint:undefined};
+ expect((await start()).status).toBe(202);
+ expect((await finish()).status).toBe(200);
+ const count=provider.mock.calls.length;
+ expect((await resume()).status).toBe(200);
+ expect(provider).toHaveBeenCalledTimes(count);expect(refund).not.toHaveBeenCalled();
+});
+
+test('live defects are removed before punctuation and persistence',async()=>{
+ const good=provider.getMockImplementation();
+ provider.mockImplementationOnce(async(...args)=>{const response=await good(...args),value=JSON.parse(response.text);
+  value.body+='\n\n달의 근거(fact-71, fact-74)를 확인해요.\n\n첫째, 매일 아침 거울을 보며 자신에게.\n\n예를 들어, 상대방의 고민을 들어줄 때';
+  return {...response,text:JSON.stringify(value)};
+ });
+ await start();const body=docs[0].metadata.paidNarrative.parts['part-1'];
+ expect(body).toContain('달의 근거를 확인해요.');
+ expect(body).not.toMatch(/fact-\d+|자신에게\.|들어줄 때/);
 });
 test('vedic paid facts lead with the computed house rulers',async()=>{
  kind='Vedic';builtExtra={houseRulers:{화성:'2H·9H',달:'5H'}};await start();

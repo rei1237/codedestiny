@@ -15,6 +15,7 @@
     },
     sukuyo: {
       image: '/images/master-profiles/hanbi-sukuyo-reading.webp',
+      master: '서한비', avatar: 'hanbi', freeLead: '본명숙에 담긴 강점과 마음이 지치는 순간을 함께 살펴보겠습니다. 상대의 마음을 단정하기보다, 당신에게 편안한 관계의 간격을 읽어 드릴게요.',
       name: '서한비의 숙요점 라이트 상담', title: '마음의 리듬을 읽고,<br>인연의 간격을 찾다',
       lead: '서한비입니다. 지금 마음에 남은 질문 하나를 들려주세요. 본명숙의 성향과 관계의 리듬을 짚고, 오늘 해 볼 수 있는 작은 행동을 함께 찾아드릴게요.',
       basis: '계산된 본명숙과 숙요 성향',
@@ -31,7 +32,7 @@
       difference: '무료 차트에서 확인한 배치가 일과 관계에서 어떻게 드러날 수 있는지, 질문을 중심으로 풀어드립니다.',
       topics: ['겉과 속의 성향', '일과 관계의 패턴', '선택의 실마리'],
       examples: ['하고 싶은 일과 주변의 기대가 달라 고민이에요. 제 차트에서 어떤 강점을 먼저 살려볼 수 있을까요?', '연애에서 자꾸 같은 갈등을 겪어요. 제 감정 표현과 관계 패턴을 함께 읽어주세요.'],
-      alt: '남색 두루마기에 접부채를 든 점성술 마스터 윤달'
+      alt: '별과 달을 배경으로 남색 옷을 입은 점성술 마스터 윤달'
     },
     vedic: {
       image: '/images/master-profiles/yun-astrology-portrait.webp', master: '윤달', avatar: 'yun', freeLead: '이곳에서는 베다 점성술의 라시·나크샤트라·다샤로 읽어요. 타고난 기질과 지금의 시기를 나누어, 준비할 조건을 함께 살펴볼게요.',
@@ -41,14 +42,17 @@
       difference: '무료 차트의 별자리와 시기 정보를 질문에 연결해, 준비할 일과 살펴볼 선택을 함께 정리합니다.',
       topics: ['나의 기본 기질', '시간의 큰 흐름', '지금의 준비'],
       examples: ['진로를 바꾸고 싶은데 준비가 충분한지 고민이에요. 지금의 다샤 흐름과 제 성향을 함께 봐주세요.', '관계에서 비슷한 감정이 반복돼요. 제 나크샤트라의 성향과 대화에서 살펴볼 점이 궁금해요.'],
-      alt: '접부채를 들고 별의 흐름을 안내하는 베다점 마스터 윤달'
+      alt: '별과 달을 배경으로 남색 옷을 입은 베다점 마스터 윤달'
     }
   };
 
   function guide(service) {
     var item = services[service];
     if (!item || !item.master) return '';
-    return '<div class="fc-master-guide" data-fc-master="'+item.avatar+'"><img src="/images/master-profiles/avatars/'+item.avatar+'.webp" width="48" height="48" alt=""><p><strong>'+item.master+'</strong>'+item.freeLead+'</p></div>';
+    var labels = {ziwei:'자미두수',sukuyo:'숙요점',astrology:'서양 점성술',vedic:'베다점'};
+    return '<section class="fc-master-reading" data-fc-master="'+item.avatar+'" aria-label="'+item.master+'의 '+labels[service]+' 해설">'
+      + '<img class="fc-master-reading__portrait" src="'+item.image+'" width="600" height="720" decoding="async" alt="'+item.alt+'">'
+      + '<div class="fc-master-reading__copy"><h3>'+item.master+'의 <br>'+labels[service]+' 해설</h3><p>'+item.freeLead+'</p><p class="fc-master-reading__basis">'+item.basis+'</p></div></section>';
   }
 
   function refreshPrices(service) {

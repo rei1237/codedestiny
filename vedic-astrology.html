@@ -6283,7 +6283,6 @@ function renderResult(){
   const moonSignKr=rashiShort(moonPos.sign);
   const dashaMonthsLeft=Math.max(0,Math.ceil((maha.end-now)/(1000*60*60*24*30.4375)));
   const masterReadingHtml=`
-  ${window.CodeDestinyConsultationUI ? window.CodeDestinyConsultationUI.guide('vedic') : ''}
   <div class="reveal reveal-delay-2" style="margin:14px 0 16px">
     <div class="section-head section-head-kr" style="margin-bottom:10px">🔱 명반의 첫 계시</div>
     <div class="sage-text" style="margin-bottom:12px">
@@ -6639,6 +6638,7 @@ function renderResult(){
   </div>
 
   <!-- HERO -->
+  ${window.CodeDestinyConsultationUI ? window.CodeDestinyConsultationUI.guide('vedic') : ''}
   <div style="background:linear-gradient(135deg,rgba(124,58,237,0.25),rgba(6,182,212,0.12));border:1px solid rgba(139,92,246,0.3);border-radius:20px;padding:20px;margin-bottom:16px;text-align:center" class="reveal">
     <div class="hero-name">${chart.f.name}</div>
     <div class="hero-sub" style="margin:6px 0">
