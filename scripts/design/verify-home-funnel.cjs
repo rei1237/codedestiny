@@ -34,6 +34,7 @@ async function assertEssentials(page, label) {
     ['mini games link', '.cdh-links a[href="/mini-games/"]'],
     ['yeoni consultation door', '#fortuneGatewayEntry'],
     ['neo letter consultation', '#cdhNeoLetterSlot .cdh-neo-letter'],
+    ['yeongnyangi main banner', '#cdhYeongnyangiSlot .cd-soulcat-entry .cd-soulcat-entry__cta'],
     ['music video', '#cdhMoonlightMv'],
     ['moonlight story toggle', '.cdh-story__toggle'],
   ];
@@ -76,9 +77,9 @@ async function assertEssentials(page, label) {
       await page.waitForTimeout(250);
       await assertEssentials(page, `${width}px first visit`);
 
-      // 강약: 초융합 시그니처 → 대표 상담 → 무료로 먼저 → 1:1 상담 → 질문 카테고리 → 이용권 → 뮤직비디오 → 모든 운세 버튼 → 링크 → 달빛 이야기. DOM 순서와 화면 순서가 같다.
+      // 강약: 초융합 시그니처 → 대표 상담 → 무료로 먼저 → 1:1 상담 → 영냥이 배너 → 질문 카테고리 → 이용권 → 뮤직비디오 → 모든 운세 버튼 → 링크 → 달빛 이야기. DOM 순서와 화면 순서가 같다.
       const order = await page.evaluate(() => {
-        const nodes = [document.getElementById('cdhFusionSignature'), document.getElementById('cdSignatureConsult'), document.getElementById('cdQuickServices'), document.querySelector('.cdh-consult'), document.getElementById('cdConcernPick'), document.getElementById('cdhPass'), document.getElementById('cdhMoonlightMv'), document.querySelector('.cdh-all-cta'), document.querySelector('.cdh-links'), document.querySelector('.cdh-story')];
+        const nodes = [document.getElementById('cdhFusionSignature'), document.getElementById('cdSignatureConsult'), document.getElementById('cdQuickServices'), document.querySelector('.cdh-consult'), document.getElementById('cdhYeongnyangiSlot'), document.getElementById('cdConcernPick'), document.getElementById('cdhPass'), document.getElementById('cdhMoonlightMv'), document.querySelector('.cdh-all-cta'), document.querySelector('.cdh-links'), document.querySelector('.cdh-story')];
         return {
           dom: nodes.every((node, index) => index === 0 || Boolean(nodes[index - 1].compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING)),
           visual: nodes.map((node) => node.getBoundingClientRect().top + scrollY),

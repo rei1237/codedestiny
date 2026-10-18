@@ -31,6 +31,13 @@ vars.quick = `<section id="cdQuickServices" class="cdh-free__grid" aria-labelled
 const chatPrice = Number(FEATURE_KEY_PRICE_TABLE['fortune-chat-consultation']?.amountKRW);
 if (chatPrice !== 5000) throw new Error('Yeoni chat home door copy says 1회 5,000원; registry amount changed: ' + chatPrice);
 vars.neoEmailConsultation = renderNeoEmailHomeEntry();
+// 영냥이 메인 배너(2026-10-18 복구) — 생선 등급 가격은 registry 값을 그대로 쓴다.
+for (const fish of ['mackerel', 'salmon', 'flounder', 'tuna']) {
+  const featureKey = `yeongnyangi-saju-${fish}`;
+  const price = FEATURE_KEY_PRICE_TABLE[featureKey]?.amountKRW;
+  if (!Number.isSafeInteger(price) || price <= 0) throw new Error(`Missing Yeongnyangi home price: ${featureKey}`);
+  vars[`yeongnyangi${fish[0].toUpperCase()}${fish.slice(1)}Price`] = price.toLocaleString('ko-KR');
+}
 
 // 초융합 운세 시그니처 띠 — 히어로 바로 뒤. 다섯 마스터 · 여섯 체계 · 영역별 8장을 한 장면으로 보여 준다.
 // 마스터 배정은 components/fortune/master-profiles.ts productMasters.fusion(결과 화면 화자)과 같다.
