@@ -747,7 +747,7 @@ test('같은 검색 DOM을 이동하고 뒤로 오면 지역·스크롤을 복�
   assert.equal(root.dataset.cdRegion, 'book');
 });
 
-test('지역 이미지 오류는 초상·최종 숨김으로 종료하고 선택과 텍스트를 보존한다', async () => {
+test('지역 이미지 오류는 초상 또는 공용 장식·최종 숨김으로 종료하고 선택과 텍스트를 보존한다', async () => {
   const { doc, window, panel } = await bootAllFortunes();
   const button = doc.querySelector('[data-region="tea"]');
   const img = button.querySelector('img');
@@ -758,8 +758,15 @@ test('지역 이미지 오류는 초상·최종 숨김으로 종료하고 선택
   const finalSrc = img.src; img.dispatchEvent(new window.Event('error')); assert.equal(img.src, finalSrc);
   button.click(); assert.ok(names(panel).includes('운명의 찻집'));
   assert.ok(button.textContent.includes('연이의 운명 찻집'));
-  const all = doc.querySelector('[data-region="all"] img'); all.dispatchEvent(new window.Event('error'));
-  assert.equal(all.hidden, true);
+  for (const region of ['all', 'archive']) {
+    const fallback = doc.querySelector('[data-region="' + region + '"] img');
+    fallback.dispatchEvent(new window.Event('error'));
+    assert.ok(fallback.src.endsWith('/images/home/finder-moon.svg'));
+    assert.equal(fallback.hidden, false);
+    fallback.dispatchEvent(new window.Event('error'));
+    assert.equal(fallback.hidden, true);
+    assert.ok(fallback.parentElement.textContent.trim());
+  }
   const service = panel.querySelector('.fortune-gateway__rec img');
   service.dispatchEvent(new window.Event('error'));
   service.dispatchEvent(new window.Event('error'));

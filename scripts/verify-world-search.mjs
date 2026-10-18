@@ -103,6 +103,14 @@ try {
       await expect(finder.locator('[data-region="tea"] img')).toBeHidden();
       await finder.locator('[data-region="tea"]').click();
       await expect(finder.locator('[data-cd-region-intro]')).toContainText('연이의 운명 찻집');
+      const archiveImage=finder.locator('[data-region="archive"] img');
+      await archiveImage.evaluate(image=>image.dispatchEvent(new Event('error')));
+      await expect(archiveImage).toHaveAttribute('src','/images/home/finder-moon.svg');
+      await archiveImage.evaluate(image=>image.decode());
+      await archiveImage.evaluate(image=>image.dispatchEvent(new Event('error')));
+      await expect(archiveImage).toBeHidden();
+      await finder.locator('[data-region="archive"]').click();
+      await expect(finder.locator('[data-cd-region-intro]')).toContainText('발견의 기록실');
       await finder.locator('[data-cd-finder-reset]').click();
       await finder.locator('[data-region="book"]').focus(); await page.keyboard.press('Enter');
       await expect(finder.locator('[data-region="book"]')).toHaveAttribute('aria-pressed','true');

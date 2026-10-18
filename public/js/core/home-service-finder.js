@@ -85,9 +85,9 @@
     image.decoding = "async";
     image.addEventListener("error", function () {
       image.removeAttribute("srcset");
-      if (!image.dataset.cdFallback && region.portrait) {
+      if (!image.dataset.cdFallback) {
         image.dataset.cdFallback = "1";
-        image.src = "/images/master-profiles/" + region.portrait + ".webp";
+        image.src = region.portrait ? "/images/master-profiles/" + region.portrait + ".webp" : DEFAULT_SERVICE_IMAGE;
       } else {
         image.hidden = true;
       }

@@ -30,7 +30,7 @@
 
 기존 상품 이미지와 전담 초상을 우선한다. 승인된 `GGULGGUL_MASTER_ASSETS_WEBP.zip`의 그림은 지역 탐색에만 추가했다. 기능 그림은 장식으로 사용하며 계산 도표로 설명하지 않는다. 지역 이름과 소개는 HTML 텍스트다.
 
-`scripts/design/build-world-search-assets.mjs <압축을 푼 폴더>`가 320/960px WebP 16개를 생성한다. `public/images/home/world-search/provenance.json`에 원본 해시와 변환 정보를 기록한다. 이미지에는 반응형 크기, 명시 크기, 지연 로딩을 지정하며 실패 시 기존 초상으로 한 번 대체한 후 그림만 숨긴다. 지역 이름과 버튼은 남는다.
+`scripts/design/build-world-search-assets.mjs <압축을 푼 폴더>`가 320/960px WebP 16개를 생성한다. `public/images/home/world-search/provenance.json`에 원본 해시와 변환 정보를 기록한다. 이미지에는 반응형 크기, 명시 크기, 지연 로딩을 지정하며 실패 시 기존 초상 또는 공용 달 문양으로 한 번 대체한 후 그림만 숨긴다. 지역 이름과 버튼은 남는다.
 
 `i18n/authored/worldSearch-01.json`의 25개 키를 기존 12개 언어 사전에 공식 병합기로 반영했다. 기존 두 테마 토큰을 사용한다.
 
