@@ -1,13 +1,36 @@
 ---
 status: active
 updated: 2026-10-18
-next: "P1-A 운세 프롬프트 꿀방울 1개 사용 복원, P1-B 연이 상담 1건 조회에 perUseSource 노출을 먼저 끝낸다. P2 항목은 그 뒤 개별 확인."
+next: "honey-followups-20261018-153856 워크트리에서 「재개 순서」대로 P1-A(프롬프트 꿀방울 1개 복원) → P1-B(연이 상담 1건 조회 perUseSource 노출) 진행. P2는 그 뒤 개별 확인."
 ---
 
 # 꿀방울 후속 작업 인수인계 (2026-10-18)
 
 연이 상담 꿀방울 30개·영냥이 배너 복원·네오 가격 v3 작업(main `96d5372bd`, 커밋 `e46e33467`·`1e0dbd3b4`·`7e94e07b5`)을 마친 뒤 남은 문제다.
 **P1 두 건은 사용자가 "반드시 수정"으로 지정했다.** P2는 확인 후 처리한다.
+
+- 작업 경로(이 작업 전용으로 만들어 둔 워크트리, 바로 사용): `D:\Development\codedestiny-worktrees\honey-followups-20261018-153856`
+- 문서 절대 경로: `D:\Development\codedestiny-worktrees\honey-followups-20261018-153856\docs\handoff\2026-10-18-honey-followups.md`
+- 브랜치: `wt/honey-followups-20261018-153856` (`origin/main` 추적)
+- 기준 원격 SHA: `c1160ec0e` (워크트리 생성 시점 origin/main). 이 문서를 갱신한 커밋은 `git log -1 --format=%h -- docs/handoff/2026-10-18-honey-followups.md`로 확인한다.
+- 마지막 코드 커밋(앞 작업): `e46e33467` (연이 상담 히어로 높이 수정). 이 문서 범위의 코드 변경은 아직 없다.
+- push: 앞 작업 전부 main에 push 완료. P1-A·P1-B는 미착수.
+
+## 재개 순서
+
+1. 작업 경로로 이동해 최신화하고 깨끗한지 확인한다.
+   ```powershell
+   Set-Location -LiteralPath 'D:\Development\codedestiny-worktrees\honey-followups-20261018-153856'
+   git status --short
+   git pull --ff-only
+   git log -1 --format='%h %s'
+   ```
+   워크트리가 사라졌으면 `D:\Development\code-destiny`에서 `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/create-safe-worktree.ps1 -Slug 'honey-followups'`로 새로 만든다(공유 main 체크아웃에서 직접 편집하지 않는다).
+2. P1-A부터 아래 「P1-A」 절의 수정·검증 순서대로 진행한다. 첫 행동: `git show 9336b44a0 --stat`으로 되돌릴 프롬프트 관련 범위를 확인하고 `worker/lib/honey-wallet.js` `spendPromptHubHoney`의 `HONEY_GGULGGUL_ONLY` 차단을 전용 허용 검사로 바꾼다.
+3. P1-B를 「P1-B」 절대로 진행한다.
+4. 둘 다 끝나면 최신 origin/main을 merge → `npm run check:pre-push` → `git push origin HEAD:main`.
+5. P2는 항목별로 확인만 하고, 결정이 필요한 것(찻집 토큰)은 사용자에게 묻는다.
+6. 끝나면 이 문서를 `status: done`으로 닫고 워크트리를 정리한다(「작업 규칙」의 정리 순서).
 
 ## 작업 규칙
 
