@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-18
-next: "복구 커밋 f0b3e7c5dc985460e2d81218a49643215e20e08a의 PR CI 39091146895와 AI Locale Gate 39091146847 통과 후 보안 변경을 통합한다. 공유 main 변경86개를 보존한다."
+next: "복구 HEAD 9c139bc3c8dbe5ac6548a3811d93d15b3232ba6c의 PR CI 39092174340와 AI Locale Gate 39092174318 통과 후 보안 변경을 통합한다. 공유 main 변경86개를 보존한다."
 ---
 
 # 보안 조사·수정 전달 재개
@@ -67,8 +67,11 @@ Git 전체 이력 secret scan은 메모리 할당 실패로 미완료. 부분 �
 - `952a76208506e42943526c24d328cefe2abaed4d`의 의도한 `/saju` 경로·2026-10-18 실제 콘텐츠 수정일에 테스트를 맞췄다. 원고는 같은 커밋에서 `/saju/basic/`→`/saju/` 링크 한 곳만 바뀐 것을 확인하고 AI 검토 해시·기록을 갱신했다. 인간 검토·광고 허용 상태는 그대로다.
 - AI 원장의 불일치는 `c70354de9`에서 없어진 `ziwei-island-ai.js`의 import·호출 2건이었다. 실제 라우트는 기존 결과 재열람만 제공하므로 호출이 없음을 확인하고 기존 생성기로 갱신했다. 검사기·ignore·예외는 변경하지 않았다.
 - 로컬 복구 검증: 관련 Node20/20, AI inventory62파일150근거, browser/provider locale mock(12로케일), 변경 파일 ESLint exit0(기존 CommonJS warning5), `git diff --check`, `check:pre-push` 모두 통과. 홈페이지 설명은 빌드 검사기의 동일 폭 함수로150/160, 나머지6개 변경된 체계 소개 설명도134~153/160. sitemap 생성1022URL·원장1개 갱신. check:fast 계획은critical이며, 가용 물리 메모리 약63MiB여서 전체 로컬 검사를 반복하지 않고 공식 CI 전체 lane으로 검증한다.
-- 복구 [PR CI39091146895](https://github.com/rei1237/codedestiny/actions/runs/39091146895), [AI Locale39091146847](https://github.com/rei1237/codedestiny/actions/runs/39091146847), [Secret Scan39091146863](https://github.com/rei1237/codedestiny/actions/runs/39091146863): 시작 확인, 완료 전. 사용자가 지정한 선행조건이므로 복구 CI 성공 전에 보안 변경을 합치지 않는다.
+- 첫 복구 [PR CI39091146895](https://github.com/rei1237/codedestiny/actions/runs/39091146895): failure. Node3381개·Critical checks·Typecheck/lint는 통과했지만, 앞선 실패 뒤에 가려져 있던 `/ggulggul/` 메타 설명 폭169/160과 `verify:sukuyo-reading-house`의 이미지 배경 즉시 판정에서 실패했다. [AI Locale39091146847](https://github.com/rei1237/codedestiny/actions/runs/39091146847), [Secret Scan39091146863](https://github.com/rei1237/codedestiny/actions/runs/39091146863)은 success.
 - 보안 브랜치로 돌아와 통합 전 재검증: Jest9suite254테스트 통과(request boundaries/payment body/AI buckets/OAuth/exp/payment context/webhook/replay/palm), worker-security-guards, security-hardening530소스, payment-freeze, guard-wiring 모두 통과. 보안 소스와 원격 후속 변경의 중복 수정은 없고 merge-tree는 생성 sitemap 원장에서만 충돌한다.
+- 두 번째 복구: `2f1406d77`에서 공통 브랜드 문구의 ggulggul 설명을144/160으로 줄이고 sync:public·sitemap 생성기로 미러·원장을 갱신했다. 영냥이156/160, 생성 영어150·일본어136·중국어122·번체122/160도 확인했다. 공통 import로 원장 signature486개·lastmod 값5개가 바뀌었다(생성기 갱신 카운트6개). JSON 전후 비교로 확인했고 수동 편집하지 않았다.
+- `9c139bc3c8dbe5ac6548a3811d93d15b3232ba6c`: 이미지 디코딩만 기다리던 읽기집 검사를 같은 투명 배경 조건까지 제한 시간 안에서 기다리도록 했다. 이미지 수 하한과 엄격한 색상 단언을 유지했다. 로컬 일반 검사4화면은 수정 전후 통과. CSS 적용을1.2초 지연시킨 mock은 기존 검사 실패/수정 검사 통과, 불투명 상태 고정 mock은 수정 검사도 timeout 실패. CI 실패의 정확한 브라우저 타이밍은 관측하지 못했으므로 실제 화면 결함을 확정하지 않는다.
+- 두 커밋 모두 별도 검증 후 main에 push 완료. 변경 파일 lint exit0(기존 no-var warning1), check:pre-push 통과. SEO public inventory13/13, guide CTA19, JS graph296소스122참조, CSS mirror45/45 통과. 최신 [PR CI39092174340](https://github.com/rei1237/codedestiny/actions/runs/39092174340), [AI Locale39092174318](https://github.com/rei1237/codedestiny/actions/runs/39092174318), [Secret Scan39092174305](https://github.com/rei1237/codedestiny/actions/runs/39092174305)은 진행 중. 사용자가 지정한 선행조건이므로 성공 전에 보안 변경을 합치지 않는다.
 
 ### 복사할 재개 지시
 
