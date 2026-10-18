@@ -65,13 +65,13 @@ export const metadata = {
   },
 };
 
-// 두 장의 카드. 글자는 이름 + 두 줄뿐이다.
+// 두 상담가의 역할과 실제 진입을 한 링크로 묶는다.
 // /ggulggul/ 은 Next RSC 페이로드가 없는 정적 셸이라 next/link 대신 <a> 로 연다(external).
 const CARDS = [
-  { key: "yeoni", className: "yeoniCard", art: "yeoni", numeral: "I", name: service.name, href: service.appEntryPath, external: true, tag: "종합 운세", hint: "대표 상담 · 무료 사주" },
-  { key: "yn", className: "ynCard", art: "yeongnyangi", numeral: "II", name: YEONGNYANGI.serviceName, href: YEONGNYANGI.path, tag: "질문 하나를 깊게", hint: `${YEONGNYANGI_STARTER_PRICE}부터`, night: true },
+  { key: "yeoni", className: "yeoniCard", art: "yeoni", name: "꽃돼지 연이", href: service.appEntryPath, external: true, tag: "나의 흐름을 두루 살펴요", hint: "종합 운세 · 무료 사주" },
+  { key: "yn", className: "ynCard", art: "yeongnyangi", name: "영냥이", href: YEONGNYANGI.path, tag: "한 가지 고민을 깊이 읽어요", hint: `질문 상담 · ${YEONGNYANGI_STARTER_PRICE}부터`, night: true },
 ];
-const CARD_ART_SIZES = "(min-width: 641px) 280px, 44vw";
+const CARD_ART_SIZES = "(min-width: 960px) 200px, (min-width: 641px) 280px, 44vw";
 const RESULT_EXAMPLE = getSignProfile("rat");
 const HOME_FAQS = [
   { question: "꿀꿀 운세와 꿀꿀운세, 코드 데스티니는 어떤 관계인가요?", answer: brandCopy("aliases") },
@@ -103,9 +103,9 @@ export default function HomePage() {
 
       <main className={styles.stage}>
         <div className={styles.head}>
-          <h1 id="homeCardTitle" className={styles.title}>꿀꿀 운세, 오늘의 나를 읽는 시간</h1>
-          <p className={styles.lead}>사주·타로부터 숙요점·베다점·별자리까지.<br />꽃돼지 연이와 영냥이가 내 고민에 맞는 길을 안내해요.</p>
-          <p className={styles.byline}><Link href="/about/#author">{FOOTER_BYLINE}</Link></p>
+          <h1 id="homeCardTitle" className={styles.title}>오늘의 나를 읽는 시간</h1>
+          <p className={styles.lead}>사주부터 별자리까지, 꿀꿀 운세에서.<br />연이와 영냥이, 누구와 시작할까요?</p>
+          <a className={styles.browseLink} href="#homeServices">분야부터 골라보기 <span aria-hidden="true">↓</span></a>
         </div>
 
         {/* 카드 제목(h2)의 링크를 카드 크기로 늘려 카드 전체가 한 링크다. 설명 두 줄은 aria-describedby 로 읽힌다. */}
@@ -113,28 +113,36 @@ export default function HomePage() {
           {CARDS.map((card, index) => {
             const linkProps = { href: card.href, className: styles.cardLink, "aria-label": `${card.name} ${card.key === "yeoni" ? "운세 골라보기" : "상담 시작하기"}`, "aria-describedby": `${card.key}CardTag ${card.key}CardHint`, ...discoveryTracking(card.key === "yeoni" ? "ggulggul" : "yeongnyangi", "primary") };
             return <li key={card.key} className={`${styles.card} ${styles[card.className]}`} data-yn-night={card.night ? "" : undefined}>
-              <span className={styles.cardNumeral} aria-hidden="true">{card.numeral}</span>
               <picture className={styles.cardArt}>
                 <source type="image/avif" srcSet={`${ART}/root-card-${card.art}-360.avif${CARD_ART_REV} 360w, ${ART}/root-card-${card.art}-600.avif${CARD_ART_REV} 600w`} sizes={CARD_ART_SIZES} />
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={`${ART}/root-card-${card.art}-360.webp${CARD_ART_REV}`} srcSet={`${ART}/root-card-${card.art}-360.webp${CARD_ART_REV} 360w, ${ART}/root-card-${card.art}-600.webp${CARD_ART_REV} 600w`} sizes={CARD_ART_SIZES} width={360} height={480} alt="" decoding="async" fetchPriority={index === 0 ? "high" : undefined} />
               </picture>
-              <h2 className={styles.cardName}>
+              <div className={styles.cardCopy}><h2 className={styles.cardName}>
                 {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
                 {card.external ? <a {...linkProps}>{card.name}</a> : <Link {...linkProps}>{card.name}</Link>}
               </h2>
               <p id={`${card.key}CardTag`} className={styles.cardTag}>{card.tag}</p>
               <p id={`${card.key}CardHint`} className={styles.cardHint}>{card.hint}</p>
-              <span className={styles.cardAction} aria-hidden="true">{card.key === "yeoni" ? "운세 골라보기" : "영냥이 상담 시작하기"}</span>
+              <span className={styles.cardAction} aria-hidden="true">{card.key === "yeoni" ? "운세 골라보기" : "상담 시작하기"}<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 12h15m-6-6 6 6-6 6" /></svg></span></div>
             </li>;
           })}
         </ul>
         <div className={styles.discovery}>
           <section className={styles.section} aria-labelledby="homeServices">
-            <div className={styles.sectionHeading}><h2 id="homeServices">어떤 운세가 궁금하세요?</h2><p>하나의 답보다 다양한 관점이 필요할 때, 내게 맞는 체계부터 골라보세요.</p></div>
+            <div className={styles.sectionHeading}><h2 id="homeServices">어떤 운세가 궁금하세요?</h2><p>익숙한 사주부터 새로운 별의 이야기까지.</p></div>
             <ul className={styles.serviceList}>
               {HOME_CATEGORIES.map(item => <li key={item.key}>
-                <Link href={item.href} {...discoveryTracking(item.key)}><h3>{item.title}</h3><p>{item.description}</p><svg className={styles.linkArrow} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6" /></svg></Link>
+                <Link href={item.href} {...discoveryTracking(item.key)}>
+                  <span className={styles.methodDoor}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img className={styles.doorFrame} src={`${ART}/tarot-door-v1-400.webp`} width={400} height={600} alt="" loading="lazy" decoding="async" />
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img className={styles.methodArt} src={item.image} width={80} height={80} alt="" loading="lazy" decoding="async" />
+                  </span>
+                  <div className={styles.methodCopy}><h3>{item.title}</h3><p>{item.description}</p></div>
+                  <svg className={styles.linkArrow} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6" /></svg>
+                </Link>
               </li>)}
             </ul>
             <nav className={styles.quickLinks} aria-label="바로 확인하는 운세">
@@ -148,6 +156,18 @@ export default function HomePage() {
             <ul className={styles.concernList}>{HOME_CONCERNS.map(item => <li key={item.title}>
               <Link href={item.href} {...discoveryTracking(item.key, "related")}><h3>{item.title}</h3><p>{item.description}</p></Link>
             </li>)}</ul>
+            <div className={styles.advisers}>
+              <Link href="/fortune-tea-house/" {...discoveryTracking("tea", "related")}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={`${ART}/yeoni-hanbok-240.webp`} width={240} height={360} alt="" loading="lazy" decoding="async" />
+                <span><strong>연이의 운명의 찻집</strong><span>마음을 정리하는 다정한 편지</span><b>연이에게 이야기하기 <span aria-hidden="true">→</span></b></span>
+              </Link>
+              <Link href="/neo-operation-room/" {...discoveryTracking("neo", "related")}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={`${ART}/neo-human-240.webp`} width={240} height={360} alt="" loading="lazy" decoding="async" />
+                <span><strong>네오의 팩폭 전략실</strong><span>복잡한 고민을 실행할 전략으로</span><b>네오와 전략 세우기 <span aria-hidden="true">→</span></b></span>
+              </Link>
+            </div>
           </section>
           <section className={`${styles.section} ${styles.readingSection}`} aria-labelledby="homeExample">
             <div className={styles.sectionHeading}><h2 id="homeExample">결과를 읽고, 작은 행동으로</h2><p>기질 설명과 현실적인 조언을 함께 읽어보세요. 아래는 공개 쥐띠 운세에 쓰이는 해설의 일부예요.</p></div>
@@ -161,6 +181,7 @@ export default function HomePage() {
               <div><dt>타로와 고민 상담</dt><dd>타로는 질문과 카드의 상징을 통해 마음과 선택지를 읽어요. 영냥이 질문 상담과 운명의 찻집, 네오의 팩폭 전략실에서는 내 상황을 정리하고 실천할 조언을 찾아갈 수 있어요.</dd></div>
             </dl>
             <p className={styles.methodLink}>여러 체계를 함께 읽는 방식은 <Link href="/fusion-fortune/">초융합 운세 안내</Link>에서 확인할 수 있어요.</p>
+            <p className={styles.byline}><Link href="/about/#author">{FOOTER_BYLINE}</Link></p>
           </section>
           <section className={styles.section} aria-labelledby="homeFaq">
             <div className={styles.sectionHeading}><h2 id="homeFaq">시작하기 전에 궁금한 점</h2><p>꿀꿀 운세의 공식 홈페이지는 code-destiny.com이에요. CODE DESTINY(코드 데스티니)가 운영해요.</p></div>
