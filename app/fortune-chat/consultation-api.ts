@@ -16,6 +16,8 @@ export type ChatConsultation = Omit<FortuneRecord, "accessMethod"> & {
   persona: ChatPersona;
   paidFeatureKey: string;
   paymentRequestId: string;
+  /** PER_USE 로 열린 상담의 증빙 종류(honey·payment …). 열린 상담 머리 배지에만 쓴다. */
+  perUseSource?: string;
 };
 
 export type ChatConsultationSummary = {

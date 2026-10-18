@@ -72,6 +72,8 @@ async function present(env, userId, row) {
     persona: row.persona,
     paidFeatureKey: row.featureKey,
     paymentRequestId: chatPaymentRequestId(String(row._id)),
+    // 결제 수단은 이 상담 화면에만 알린다. presentFortune 은 공유·기록 라이브러리도 쓰므로 거기에 넣지 않는다.
+    perUseSource: row.perUseSource || '',
     ...(paid || row.state !== 'CREATED' ? {} : { freeTrialAvailable: false }),
   };
 }

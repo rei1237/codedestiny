@@ -77,8 +77,12 @@ Cloudflare Workers는 런타임에 파일을 읽을 수 없으므로, 이 문서
 
 ## 운세 프롬프트 허브 — 꿀방울과 대체 결제
 
-2026-10-12 사용자 승인. 프롬프트 1회 생성 = 꿀방울 1개이며, 꿀방울은 출석 3회마다 1개 지급된다
+2026-10-12 사용자 승인. 프롬프트 1회 생성 = 꿀방울 1개이며, 꿀방울은 현재 코드 기준 출석 하루 1개 지급된다(`HONEY_ATTENDANCE_EVERY = 1`)
 (찻집과 같은 지갑 `fortune_tea_house_honey_wallets`). 꿀방울이 없을 때만 아래 단건 결제로 1회 생성한다.
+
+2026-10-18 사용자 후속 결정: 같은 날 숙요 작업의 "종합 프롬프트 신규 꿀방울 사용 차단"을 **프롬프트에 한해** 되돌려 1회 = 꿀방울 1개를 복원한다.
+꿀편지·타로 앨범·프로필 정령 차단은 유지한다. 서버는 홈 사용처 24상품 목록(`HONEY_UNLOCK_PRODUCTS`)에 프롬프트를 넣지 않고
+`isHoneyPromptHubSpend()` 전용 판정으로만 허용한다. 3,000원 단건 결제(`fortune-prompt-hub-generate`, cost 30)는 그대로다.
 조립 템플릿은 서버(`lib/fortune/prompt-hub-template.js`)에만 있고 `POST /api/fortune/prompt-hub/generate` 가 차감 후 내려준다.
 
 | 상품 | featureKey | 가격(KRW) | cost(코인) | 비고 |

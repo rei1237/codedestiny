@@ -45,6 +45,12 @@ test('flag off still reads and continues a consultation already started',async()
   expect(response.status).toBe(200);expect(resume).toHaveBeenCalledWith({},userId,id);
   expect((await handleFortuneChatRoutes(request(`/${id}/generate`,'POST',{}),{})).status).toBe(202);
 });
+test('reading one consultation reports how it was opened',async()=>{
+  for(const [perUseSource,expected] of [['honey','honey'],['payment','payment'],[undefined,'']]){
+    resume.mockResolvedValueOnce({...chatRow,perUseSource});
+    expect((await (await handleFortuneChatRoutes(request(`/${id}`),on)).json()).consultation.perUseSource).toBe(expected);
+  }
+});
 test('create passes the persona as a server option and reports no new free use for unpaid rows',async()=>{
   const response=await handleFortuneChatRoutes(request('','POST',{persona:'neo',question:'이직해도 될까요?',fishId:'salmon',questionDecision:decision}),on);
   expect(response.status).toBe(201);

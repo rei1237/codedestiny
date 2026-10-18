@@ -240,3 +240,11 @@ test("Yeoni opens with thirty honey drops beside the pass and per-use checkout",
   assert.match(panel, /data-consultation-honey /);
   assert.match(read("app/fortune-chat/consultation-api.ts"), /"\/api\/honey\/attendance"/);
 });
+
+test("an open consultation shows when it was opened with honey drops", () => {
+  const room = read("app/fortune-chat/ConsultationRoom.tsx");
+  const start = room.indexOf('id="consultation-current"');
+  const kicker = room.slice(start, room.indexOf("</p>", start));
+  assert.match(kicker, /row\.perUseSource === "honey" && <span className=\{styles\.accessBadge\} data-access="honey">꿀방울로 연 상담<\/span>/);
+  assert.match(read("app/fortune-chat/consultation-api.ts"), /paymentRequestId: string;[\s\S]*?perUseSource\?: string;/);
+});

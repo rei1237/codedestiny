@@ -521,7 +521,10 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
 
         {row && (
           <section className={styles.panel} aria-labelledby="consultation-current">
-            <p className={styles.kicker} id="consultation-current">{DOMAINS.find((d) => d.id === row.product?.systems?.[0])?.label || "운명 상담"} · {stateLabel(row.state, row.errorCode)}</p>
+            <p className={styles.kicker} id="consultation-current">
+              {row.perUseSource === "honey" && <span className={styles.accessBadge} data-access="honey">꿀방울로 연 상담</span>}
+              {DOMAINS.find((d) => d.id === row.product?.systems?.[0])?.label || "운명 상담"} · {stateLabel(row.state, row.errorCode)}
+            </p>
             {!writing && !row.chapters?.length && DOMAINS.some((d) => d.id === rowDomain) && <DomainArt persona={row.persona} domain={rowDomain as ChatDomain} />}
             {row.consultation?.question && !row.chapters?.length && <blockquote className={styles.question}>{row.consultation.question}</blockquote>}
 

@@ -49,3 +49,6 @@ export function getHoneyUnlockProduct(value) {
 
 export const HONEY_SCOPE_MESSAGE = '꿀방울은 꿀꿀운세의 지정된 기본 운세 상품에서만 사용할 수 있어요.';
 export function isHoneySpendProduct(featureKey) { return getHoneyUnlockProduct(featureKey)?.serviceScope === 'GGULGGUL'; }
+// 운세 프롬프트 1회 생성은 HONEY_UNLOCK_PRODUCTS(홈 사용처 24상품) 밖에서 꿀방울 1개만 허용한다. 3,000원 단건 결제는 그대로다.
+export const HONEY_PROMPT_HUB_FEATURE_KEY = 'fortune-prompt-hub-generate';
+export function isHoneyPromptHubSpend(featureKey) { return String(featureKey || '') === HONEY_PROMPT_HUB_FEATURE_KEY; }
