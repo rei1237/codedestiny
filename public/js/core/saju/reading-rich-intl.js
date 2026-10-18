@@ -192,7 +192,7 @@
       family: {same:['A cycle of energy like your own, so the wish to decide and stand alone tends to grow. Competition with colleagues can grow too, so setting shares first helps.', 'Peers cycle: independence and competition issues increase. Set shares and rules for shared resources first.'], drain:['A cycle of pouring what is inside out, so expressing, making and teaching tend to go well. A lot of energy leaves, so plan recovery time as well.', 'Output cycle: expression and production grow. Raise output but set a standard for managing drain.'], wealth:['A cycle when practical results and money catch the eye. It is a good time to widen the work, and writing down the range you can handle in numbers steadies the mind.', 'Wealth cycle: results and finance issues grow. Fix the ceiling of expansion in numbers.'], control:['A cycle in which duty and roles get heavier. Chances of recognition come along with bigger burdens, so sort what to take on from what to put down.', 'Authority cycle: duty and evaluation pressure grow. Separate roles to accept from roles to decline.'], parent:['A cycle when learning and help arrive. Studying, gaining qualifications or meeting a good adviser comes easily, so turn what you receive into small actions.', 'Resource cycle: learning and support arrive. Schedule turning input into action.']},
       noRel: ['No place directly combines or clashes with the characters in your chart.', 'No direct combination or clash with the chart.'],
       tone: {open:['The flow reads as smooth. Try the things you have prepared on a small scale first. The score is a reference for comparison and does not promise a result.', 'An easier band on the assessment. Run prepared work at small scale. The score does not guarantee results.'], even:['It reads as an ordinary flow that neither pushes nor pulls hard. Keep going with what you do and just check the direction now and then. The score is a reference for comparison and does not promise a result.', 'A middle band on the assessment. Keep ongoing work and check the direction. The score does not guarantee results.'], care:['It reads as a flow that needs adjusting. Lower the speed and tidy roles and schedules, and the same period becomes much easier. Please do not make big decisions on the score alone.', 'An adjustment band on the assessment. Tidy schedules and roles and keep options open. Do not conclude from the score alone.']},
-      free: '※ Everything up to here is free. The full ten-year flow, the details of each annual cycle and the comprehensive reading continue in Premium below.'},
+      continueReading: 'After reviewing your current period and year, select a period in the chart below to explore its annual details.'},
 
     /* ── daily ── */
     da: {
@@ -385,7 +385,7 @@
       family: {same:['自分と同じ気の運なので、自分で決めて自分で立ちたい気持ちが強まりやすい時期です。同僚との競争も増えやすいので、先に取り分を決めておくと助けになります。', '比劫の運：自立と競争の課題が増える。共有資源の取り分とルールを先に決める。'], drain:['内側のものを外へ注ぎ出す運なので、表現する・作る・教えることがうまくいきやすい時期です。多くの気が出ていくので、回復の時間も計画してください。', '食傷の運：表現と生産が増える。出力を上げつつ、消耗管理の基準を持つ。'], wealth:['現実的な成果とお金が目に入る運です。仕事を広げるのに良い時期で、扱える範囲を数字で書き出すと気持ちが安定します。', '財星の運：成果と財務の課題が増える。拡大の上限を数字で決める。'], control:['責任と役割が重くなる運です。認められる機会は、より大きな負担と一緒に来るので、引き受けることと手放すことを分けてください。', '官星の運：責任と評価の圧力が増える。受ける役割と断る役割を分ける。'], parent:['学びと助けが届く運です。勉強・資格取得・良い相談相手との出会いが得やすいので、受け取ったものを小さな行動に変えてください。', '印星の運：学びと支援が届く。インプットを行動に変える予定を入れる。']},
       noRel: ['あなたの命式の文字と直接合や衝になる場所はありません。', '命式との直接の合・衝はなし。'],
       tone: {open:['順調な流れと読みます。準備してきたことを、まず小さな規模で試してみてください。スコアは比較のための参考で、結果を約束するものではありません。', '判定上は楽な帯。準備したことを小規模で動かす。スコアは結果を保証しない。'], even:['強く押すことも引くこともない、普通の流れと読みます。今していることを続けながら、ときどき方向だけ確かめてください。スコアは比較のための参考で、結果を約束するものではありません。', '判定上は中間の帯。進行中のことを続け、方向を確認する。スコアは結果を保証しない。'], care:['調整が必要な流れと読みます。速度を落とし、役割とスケジュールを整えると、同じ時期がずっと楽になります。スコアだけで大きな決断はしないでください。', '判定上は調整の帯。スケジュールと役割を整え、選択肢を残す。スコアだけで結論しない。']},
-      free: '※ ここまではすべて無料です。十年運の全体の流れ、各歳運の詳細、総合的な解釈は、下のプレミアムで続きます。'},
+      continueReading: '今の大運と今年の流れを確認したら、下の大運表から時期を選び、年ごとの変化を続けてお読みください。'},
 
     /* ── daily ── */
     da: {
@@ -577,7 +577,7 @@
       family: {same:['与自己相同的能量之运，想自己拿主意、自己站稳的心往往会增强。与同事的竞争也可能增多，先定好分成会有帮助。', '比劫运：自立与竞争的议题增多。先为共享资源定好分成与规则。'], drain:['把内在向外倾注的运势，表达、创作、教学往往顺利。很多能量会流出，也请规划恢复的时间。', '食伤运：表达与产出增多。提高输出，同时设定管理耗损的标准。'], wealth:['现实成果与金钱引人注目的运势。适合拓展工作，把能承担的范围写成数字，心会更稳。', '财星运：成果与财务议题增多。用数字定下扩张上限。'], control:['责任与角色变重的运势。获得认可的机会会和更大的负担一同到来，分清哪些要接、哪些要放下。', '官星运：责任与评价压力增大。区分要接受的角色与要拒绝的角色。'], parent:['学习与帮助到来的运势。学习、考取资格或遇到好顾问都比较容易，把收到的东西变成小小的行动。', '印星运：学习与支持到来。排好把输入转为行动的计划。']},
       noRel: ['没有任何位置与你命盘中的字直接相合或相冲。', '与命盘没有直接的合或冲。'],
       tone: {open:['读作顺畅的运势。先小规模尝试你准备好的事。分数是比较用的参考，并不承诺结果。', '判断上属较轻松的区间。把准备好的事小规模推进。分数不保证结果。'], even:['读作既不用力推也不用力拉的一般运势。继续做手头的事，不时确认方向即可。分数是比较用的参考，并不承诺结果。', '判断上属中间区间。保持进行中的事，确认方向。分数不保证结果。'], care:['读作需要调整的运势。放慢速度，理顺角色与日程，同一段时期会轻松得多。请不要只凭分数做重大决定。', '判断上属调整区间。理顺日程与角色，保留选择余地。不要只凭分数下结论。']},
-      free: '※ 到这里为止都是免费的。完整的十年运势、各个流年的详细内容与综合解读，将在下方的会员内容中继续。'},
+      continueReading: '看过当前大运和今年的走势后，可在下方大运表中选择时期，继续了解逐年的变化。'},
 
     /* ── daily ── */
     da: {
@@ -769,7 +769,7 @@
       family: {same:['與自己相同的能量之運，想自己拿主意、自己站穩的心往往會增強。與同事的競爭也可能增多，先定好分成會有幫助。', '比劫運：自立與競爭的議題增多。先為共享資源定好分成與規則。'], drain:['把內在向外傾注的運勢，表達、創作、教學往往順利。很多能量會流出，也請規劃恢復的時間。', '食傷運：表達與產出增多。提高輸出，同時設定管理耗損的標準。'], wealth:['現實成果與金錢引人注目的運勢。適合拓展工作，把能承擔的範圍寫成數字，心會更穩。', '財星運：成果與財務議題增多。用數字定下擴張上限。'], control:['責任與角色變重的運勢。獲得認可的機會會和更大的負擔一同到來，分清哪些要接、哪些要放下。', '官星運：責任與評價壓力增大。區分要接受的角色與要拒絕的角色。'], parent:['學習與幫助到來的運勢。學習、考取證照或遇到好顧問都比較容易，把收到的東西變成小小的行動。', '印星運：學習與支持到來。排好把輸入轉為行動的計畫。']},
       noRel: ['沒有任何位置與你命盤中的字直接相合或相沖。', '與命盤沒有直接的合或沖。'],
       tone: {open:['讀作順暢的運勢。先小規模嘗試你準備好的事。分數是比較用的參考，並不承諾結果。', '判斷上屬較輕鬆的區間。把準備好的事小規模推進。分數不保證結果。'], even:['讀作既不用力推也不用力拉的一般運勢。繼續做手頭的事，不時確認方向即可。分數是比較用的參考，並不承諾結果。', '判斷上屬中間區間。保持進行中的事，確認方向。分數不保證結果。'], care:['讀作需要調整的運勢。放慢速度，理順角色與行程，同一段時期會輕鬆得多。請不要只憑分數做重大決定。', '判斷上屬調整區間。理順行程與角色，保留選擇餘地。不要只憑分數下結論。']},
-      free: '※ 到這裡為止都是免費的。完整的十年運勢、各個流年的詳細內容與綜合解讀，將在下方的會員內容中繼續。'},
+      continueReading: '看過當前大運和今年的走勢後，可在下方大運表中選擇時期，繼續了解逐年的變化。'},
 
     /* ── daily ── */
     da: {
@@ -1002,7 +1002,7 @@
         return section(title, body, 'saju-rich__lead saju-flow saju-flow--' + (year ? 'year' : 'period'));
       }).join('');
       if (!html) return '';
-      return wrap(mode, html + '<p class="saju-rich__note">' + esc(f.free) + '</p>', facts);
+      return wrap(mode, html + '<p class="saju-rich__note">' + esc(f.continueReading) + '</p>', facts);
     }
 
     /* ── daily ── */

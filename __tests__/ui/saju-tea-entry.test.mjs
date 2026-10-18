@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import {JSDOM} from 'jsdom';
 import {writeSajuTeaDraft,readSajuTeaDraft,TEA_SAJU_URL,TEA_SAJU_DRAFT_KEY,teaSajuEntryMarkup} from '../../js/core/saju/tea-entry.mjs';
 const storage = () => { const map = new Map(); return {getItem:k=>map.get(k),setItem:(k,v)=>map.set(k,v),removeItem:k=>map.delete(k)}; };
 test('handoff is one-use, owner-bound and carries no birth information in the URL',()=>{
@@ -21,15 +22,18 @@ test('expired, corrupt and guest profile references cannot restore another accou
  writeSajuTeaDraft(s,{question:'guest'},100);assert.equal(readSajuTeaDraft(s,'logged-in',101),null);
  assert.doesNotThrow(()=>writeSajuTeaDraft({setItem(){throw Error('blocked')}},{}));
 });
-test('joint scene has one purchase entry and the current-year preview is outside the gate',()=>{
+test('joint scene has one purchase entry and current cycles belong to the paid report',()=>{
  const html=teaSajuEntryMarkup();
  assert.equal((html.match(/data-tea-saju-open/g)||[]).length,1);
  assert.match(html,/연이의 해석과 네오의 전략/);
  assert.doesNotMatch(html,/15,000|10000|15000/);
  const index=fs.readFileSync('index.html','utf8');
- const section=index.slice(index.indexOf('id="daewunCard"'));
- assert.ok(section.indexOf('id="currentSeasonCard"')>0);
- assert.ok(section.indexOf('id="currentSeasonCard"')<section.indexOf('id="daewunGate"'));
+ const doc=new JSDOM(index).window.document;
+ const season=doc.getElementById('currentSeasonCard');
+ assert.equal(season.closest('.cd-section-gate__body').parentElement.id,'daewunGate');
+ assert.equal(doc.querySelectorAll('#currentSeasonCard').length,1);
+ assert.equal(season.querySelector('.sec-tier-badge--free'),null);
+ assert.doesNotMatch(season.textContent,/무료|FREE/);
 });
 import ts from 'typescript';
 const source=fs.readFileSync('src/features/fortune-tea-house/FortuneTeaHousePage.tsx','utf8');

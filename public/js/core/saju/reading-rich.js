@@ -679,7 +679,7 @@
       return stemArt(r.g,year?'올해 세운 천간의 물상':'현재 대운 천간의 물상')+section(title, body, 'saju-rich__lead saju-flow saju-flow--' + (year ? 'year' : 'period'));
     }).join('');
     if (!html) return '';
-    return wrap(mode, '<p class="saju-rich__note">대운은 약 10년의 큰 배경, 세운은 그 안에서 해마다 달라지는 흐름이에요. 같은 시기라도 내 명식의 균형과 선택에 따라 체감은 달라질 수 있어요.</p>' + html + '<p class="saju-rich__note">' + esc('여기까지는 기본 해설입니다. 전체 대운표와 연도별 상세는 아래 대운 분석 리포트에서 이어집니다. 내 고민을 질문하는 찻집 AI 상담은 별도 서비스예요.') + '</p>', facts);
+    return wrap(mode, '<p class="saju-rich__note">대운은 약 10년의 큰 배경, 세운은 그 안에서 해마다 달라지는 흐름이에요. 같은 시기라도 내 명식의 균형과 선택에 따라 체감은 달라질 수 있어요.</p>' + html + '<p class="saju-rich__note">' + esc('현재 대운과 올해의 흐름을 살펴봤다면, 아래 대운표에서 시기를 선택해 연도별 변화를 이어 읽어보세요. 내 고민을 질문하는 찻집 AI 상담은 별도 서비스예요.') + '</p>', facts);
   }
 
   /* ── 오늘 · 이달 ── 엔진 analyzeFortuneGZ 결과(setDaily)를 그린다. 옛 TSADVICE 를 명령조 없이 다시 썼다. [연이, 영냥이] */

@@ -131,3 +131,12 @@ test('ja / zh-CN / zh-TW carry their own full tables (same shape and placeholder
   assert.notEqual(JSON.stringify(copy['zh-TW']),JSON.stringify(copy['zh-CN']));
   assert.match(copy['zh-TW'].fam.drain,/傷/);assert.match(copy['zh-CN'].fam.drain,/伤/);
 });
+
+test('current cycles continue within the paid report in every supported locale',()=>{
+ const facts=factsOf(charts[0],{flow});
+ for(const lang of LOCALES){
+  const html=intl.forLang(lang).flow(facts,'pig');
+  assert.doesNotMatch(html,/Everything up to here is free|ここまではすべて無料|到这里为止都是免费的|到這裡為止都是免費的/);
+  assert.ok(html.includes(intl.copy[['en','ja','zh-CN','zh-TW'].includes(lang)?lang:'en'].fl.continueReading));
+ }
+});

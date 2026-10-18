@@ -25137,6 +25137,7 @@ function renderDaewun(bazi){
     window.__cdLastDaewunBazi=bazi;
     if(_cdSajuGateUnlocked('section_daewun')){
       document.getElementById('dwGrid').innerHTML=h||'<p style="font-size:.83rem;color:#999">대운 데이터 없음</p>';
+      renderCurrentSeasonSummary(bazi);
       renderLifeGraph(bazi);
       requestAnimationFrame(function(){ setTimeout(function(){ renderLifeGraph(window.__cdLastDaewunBazi||bazi); }, 160); });
     }
@@ -25151,15 +25152,19 @@ function renderDaewun(bazi){
   }
 }
 
-// ── 무료 진입 후크: "지금 내 시기 · 올해의 나" 요약 ──────────────────────
-// 현재 대운 1칸 + 올해 세운만 무료로 노출한다. 전체 10년 대운표/연운 상세/종합
-// 풀이는 유료(section_daewun·section_summary)로 유지되므로 여기서 렌더하지 않는다.
+// ── 유료 대운 리포트의 첫 장: 현재 대운과 올해 세운 ──────────────────────
+// 기존 section_daewun 해금 판정으로 전체 대운표·연도별 상세와 함께 표시한다.
 // 계산은 renderDaewun이 채운 window.G_DAEWUN과 세운 산출(showDwDetail 패턴)을 재사용.
 function renderCurrentSeasonSummary(bazi){
   try{
     var card=document.getElementById('currentSeasonCard');
     var box=document.getElementById('currentSeasonSummary');
     if(!card||!box)return;
+    if(!_cdSajuGateUnlocked('section_daewun')){
+      box.innerHTML='';card.style.display='none';
+      if(window.SajuReadingPresentation)window.SajuReadingPresentation.setFlow([]);
+      return;
+    }
     var dw=Array.isArray(window.G_DAEWUN)?window.G_DAEWUN:[];
     var age=CURRENT_AGE||0;
     // 현재 소속 대운 = 시작나이 <= 현재나이 중 시작나이가 가장 큰 칸
@@ -25211,7 +25216,7 @@ function renderCurrentSeasonSummary(bazi){
         '</div>');
     }
     if(!parts.length)return;
-    parts.push('<div style="font-size:.8rem;color:#999;line-height:1.6;padding:2px 2px 0">※ 여기까지는 무료입니다. 10년 대운의 전체 흐름·연도별 세운 상세·종합 풀이는 아래 프리미엄에서 이어집니다.</div>');
+    parts.push('<div style="font-size:.8rem;color:#999;line-height:1.6;padding:2px 2px 0">현재 대운과 올해의 흐름을 살펴봤다면, 아래 대운표에서 시기를 선택해 연도별 변화를 이어 읽어보세요.</div>');
     box.innerHTML=parts.join('');
     card.style.display='block';
     // 풍부한 판(reading-rich.js)은 이미 계산한 평가·합충만 받아 그린다. 재계산하지 않는다.
