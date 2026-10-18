@@ -52,12 +52,12 @@ test('actual legacy core retries a delayed pass result with the same receipt, re
   const dom = new JSDOM('<div id="sy3Result"></div><div id="sy3Loading"></div>' + Object.entries({sy3BirthY:'1992',sy3BirthM:'3',sy3BirthD:'4',sy3BirthTime:'12:00',sy3CalType:'solar',sy3PartnerGender:'M'}).map(([id,value])=>`<input id="${id}" value="${value}">`).join(''));
   const access = {profileId:'card-a',requestId:'sukuyo-paid:compat-sukuyo-compatibility|card-a|abc12345',accessMethod:'pass',ownerScope:'user-a',resume:{args:{y:'1992',m:'3',d:'4',profileId:'card-a',requestId:'paid'}}};
   const requests=[], archives=[];
-  let fail=true;
+  let fail=true, owner='user-a';
   const win = {CdSajuSectionClient:{loadSukuyoCompat:async opts=>{requests.push(opts);if(fail) throw Object.assign(new Error('기록 지연'),{status:402});return {html:'<section><h4>인연 해석</h4><p>서로의 속도를 살펴보세요.</p></section>',lastCompat:{},glowColor:'#ffffff',temperature:70};}}};
   const ctx=fixture(['syCanonicalEsc','syCompatRetryable','syOfferCompatRetry'],{
     window:win,document:dom.window.document,setTimeout,clearTimeout,console,_sajuQuantumText:()=>'',syHanbiGuide:()=>'',
     SY_PAID_FEATURES:{compatibility:{key:'compat-sukuyo-compatibility'},compatibilityPrecision:{key:'premium-sukuyo-compat-extra'}},SY_AI_TARGETS:[],
-    _syCompatUndelivered:{},syRecentPaidGateAccess:()=>access,syPaidFeatureUserScope:()=> 'user-a',syResolveCurrentProfileIdForPaidGate:()=> 'card-a',
+    _syCompatUndelivered:{},syRecentPaidGateAccess:()=>access,syPaidFeatureUserScope:()=>owner,syResolveCurrentProfileIdForPaidGate:()=> 'card-a',
     syNatureDeepDiveFallbackBirth:()=>({}),syPaidPriceLabel:()=> '기존 가격',syBuildSukuyoPromptQuickQuestionsHtml:()=>'',
     syBuildPromptQuickQuestionsHtml:()=>'',syBuildCompatResumeDescriptor:()=>access.resume,
     syArchiveFactsFromCompat:()=>({}),syArchiveSectionsFrom:()=>[],sySaveSukuyoResultArchive:(_slug,payload)=>{archives.push(payload);payload.onState('saved');},
@@ -66,7 +66,9 @@ test('actual legacy core retries a delayed pass result with the same receipt, re
   let core;
   function visit(node){if(ts.isBinaryExpression(node)&&node.left.getText(ast)==='window._triggerSynergyCheckCore')core=node;ts.forEachChild(node,visit);}
   visit(ast);assert.ok(core);vm.runInContext(core.getText(ast),ctx);
-  assert.equal(await win._triggerSynergyCheckCore(1,'각숙'),false);
+  const first=win._triggerSynergyCheckCore(1,'각숙');
+  assert.equal(win._triggerSynergyCheckCore(1,'각숙'),false,'double click must not start another request');
+  assert.equal(await first,false);
   assert.match(dom.window.document.getElementById('sy3Result').textContent,/같은 결제로/);
   fail=false;
   assert.equal(await win._triggerSynergyCheckCore(1,'각숙'),true);
@@ -74,6 +76,16 @@ test('actual legacy core retries a delayed pass result with the same receipt, re
   assert.equal(requests[0].access.requestId,requests[1].access.requestId);
   assert.equal(requests[1].access.accessMethod,'pass');
   assert.match(dom.window.document.getElementById('sy3Result').textContent,/서로의 속도/);
+  let respond;
+  win.CdSajuSectionClient.loadSukuyoCompat=()=>new Promise(resolve=>{respond=resolve;});
+  const stale=win._triggerSynergyCheckCore(1,'각숙');
+  while(!respond) await new Promise(resolve=>setTimeout(resolve,10));
+  owner='user-b';
+  respond({html:'<p>다른 계정에 보이면 안 되는 결과</p>',lastCompat:{}});
+  assert.equal(await stale,false);
+  assert.equal(archives.length,1,'late response after account switch must not archive');
+  assert.doesNotMatch(dom.window.document.getElementById('sy3Result').textContent,/다른 계정에 보이면/);
+  assert.equal(dom.window.document.querySelectorAll('.sy-moon-btn').length,0,'old owner must not get a retry button');
   dom.window.close();
 });
 test('mobile resume awaits the actual result and reports failure without consuming recovery', async () => {
