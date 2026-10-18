@@ -9,6 +9,7 @@ import { callGeminiText } from './gemini.js';
 import { runPaidNarrativeDelivery } from './paid-narrative-delivery.js';
 import { normalizeNarrativeEndings } from './narrative-format.js';
 import { countPaidReportBodyChars, dropRepeatedReportSentences, hasRepeatedReportPassage } from './paid-report-quality.js';
+import { cleanQuestionBody, questionEditorialContext } from './feature-question-quality.js';
 
 const hash = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const questionResponseSchema = jsonSchemaFromExample({ claims: [{ factId: '', value: '' }], body: '' });
@@ -59,7 +60,7 @@ export async function deliverFeatureQuestion(request, env, auth, supplied, { fea
         const { built, factsInput } = await prepare(original);
         const facts = questionFacts(factsInput);
         if (!facts.length) throw Object.assign(Error('상담의 계산 근거가 필요합니다.'), { status: 422, code: 'MISSING_CALCULATED_FACTS' });
-        return { built, facts, paymentProof: proof,
+        return { built: JSON.parse(JSON.stringify(built)), facts, paymentProof: proof,
           prompt: String(built.generatedPrompt || built.prompt || ''),
           systemPrompt: '각 점술 체계를 섞지 말고 제공된 계산값만 해설합니다. 시기 정보가 없으면 날짜를 지어내지 않습니다. 확률이나 타인의 마음을 단정하지 않고 근거와 반대 조건, 실행 가능한 선택을 제시합니다. 호칭은 처음부터 끝까지 \'당신\'으로 통일하고 HTML 태그를 쓰지 않습니다.',
           asOf: referenceDate(), minBodyChars: 20000,
@@ -87,21 +88,22 @@ export function featureQuestionNarrativeAdapter(env, featureKey) {
     reportType: 'featureQuestionConsultation',
     // A 10-part consultation under its floor read as an unfinished answer (B6, B7).
     repairShortParts: true,
-    render: state => ({
+    // Persist the JSON shape, not undefined fields that BSON turns into null.
+    render: state => JSON.parse(JSON.stringify({
       resultText: state.tasks.filter(task => state.parts[task.id]).map(task => `## ${task.title}\n\n${state.parts[task.id]}`).join('\n\n'),
       title: state.built.title, prompt: state.built.prompt, generatedPrompt: state.built.generatedPrompt || state.built.prompt,
       summaryIntent: state.built.summaryIntent || '', analysisAngles: state.built.analysisAngles || [],
       recommendedFollowUpQuestions: state.built.recommendedFollowUpQuestions || [],
       caution: state.built.caution, questionType: state.built.questionType,
-      compatibilityUsed: Boolean(state.built.compatibilityUsed), compatibilityHint: state.built.compatibilityHint,
+      compatibilityUsed: Boolean(state.built.compatibilityUsed), compatibilityHint: state.built.compatibilityHint || '',
       featureKey, requestId: state.body.requestId, locale: state.locale,
-      chargedCoins: state.paymentProof?.chargedCoins || 0, balanceAfter: state.paymentProof?.balanceAfter,
+      chargedCoins: state.paymentProof?.chargedCoins || 0, balanceAfter: state.paymentProof?.balanceAfter ?? null,
       paymentRetainedForRetry: true, resumeInputs: state.body,
       sections: state.tasks.filter(task => state.parts[task.id]).map(task => ({ key: task.id, title: task.title, body: state.parts[task.id] })),
-    }),
+    })),
     produce: async (task, state) => {
       const ai = await callGeminiText(env, `${state.prompt}\n\n[고정 계산 근거]\n${JSON.stringify(state.facts)}\n${state.asOf ? `[기준일] ${state.asOf}. 올해는 ${state.asOf.slice(0, 4)}년, 내년은 ${Number(state.asOf.slice(0, 4)) + 1}년입니다.\n` : ''}[이번 부분: ${task.id}] ${task.prompt || task.title}${narrativePriorDigest(state, task)}\nJSON {"claims":[{"factId":"fact-1","value":"해당 근거의 원래 값"}],"body":"상담 본문"}만 출력하세요. claims에는 실제 사용하는 계산 근거를 1~5개만 정확하게 복사합니다. 계산값 전체 요약을 부분마다 다시 쓰지 않습니다. 본문은 공백 제외 최소 ${task.minChars}자, 목표 2800~3200자입니다. 이 부분에 해당하는 근거와 구체적 생활 사례·반대 조건·행동을 각각 다른 문단으로 쓰고 마지막 문장을 완결합니다. 다른 부분은 쓰지 않습니다.`, {
-        systemPrompt: await appendBasicFortunePersona(env, featureKey, state.systemPrompt, { locale: state.locale }), timeoutMs: 45000, maxOutputTokens: 9500,
+        systemPrompt: await appendBasicFortunePersona(env, featureKey, state.systemPrompt + questionEditorialContext(state, task), { locale: state.locale }), timeoutMs: 45000, maxOutputTokens: 9500,
         thinkingBudget: 0, responseMimeType: 'application/json', fallbackToWorkersAI: false,
         responseSchema: questionResponseSchema,
       });
@@ -116,7 +118,7 @@ export function featureQuestionNarrativeAdapter(env, featureKey) {
       if (typeof parsed.body !== 'string' || !parsed.body.trim()) return null;
       // A paragraph cut after a comma is unfinished: keep its finished sentences so the
       // engine's length check repairs it instead of closing it with a period (",.").
-      parsed.body = dropRepeatedReportSentences(parsed.body.split(/\n\s*\n/u)
+      parsed.body = dropRepeatedReportSentences(cleanQuestionBody(parsed.body, state).split(/\n\s*\n/u)
         .map(text => /[,，、]\s*$/u.test(text.trim()) ? normalizeNarrativeBody(text) : text).filter(text => text.trim()).join('\n\n'));
       if (!countPaidReportBodyChars(parsed.body) || hasRepeatedReportPassage(parsed.body)) return null;
       parsed.body = normalizeNarrativeEndings(parsed.body, state.locale);
