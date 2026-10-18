@@ -1,6 +1,6 @@
 # 애플리케이션 보안 조사 — 2026-10-18
 
-상태: 아래 범위의 보안 수정·분할 회귀 검증 및 main CI 복구 완료, 보안 통합 트리 검증 완료·원격 전달 대기. 전수 동적 감사·운영 안전성 인증 문서가 아니다.
+상태: 아래 범위의 보안 수정·main 통합·push, CI required 및 유료 흐름 검증 완료. 전수 동적 감사·운영 안전성 인증 문서가 아니다.
 
 - 기준 SHA: `f11871f4cf9e344ad5c9484e81cc32351b5ebc3c`
 - 격리: `wt/security-audit-20261018-20261018-015620`
@@ -17,7 +17,7 @@
 - [x] 본문 크기·호출 제한 오류·로그 중첩 후보 재현
 - [x] OAuth 브라우저 바인딩 재현·수정, 확인된 경계 결함 수정
 - [x] check:fast 실행 및 중단 기록, 계획의 개별 검사·전체 shard 수행, check:pre-push, 커밋
-- [ ] main 통합·push·정확한 SHA CI (복구된 main과 통합·로컬 검증 완료, 원격 전달 대기)
+- [x] main 통합·push·정확한 SHA CI required (`e41141536`, 아래 전달 결과)
 
 ## 변하지 않는 계약
 
@@ -143,7 +143,7 @@ PR CI/Secret Scan/AI Locale workflow의 permissions와 실행 조건을 읽었�
 - DOMPurify3.4.11. https://github.com/cure53/DOMPurify/security/advisories/GHSA-c2j3-45gr-mqc4 는3.4.12 수정, 특정 CUSTOM_ELEMENT_HANDLING+afterSanitizeElements hook 조합이 필요. 현재 앱에서 해당 hook/직접 DOMPurify 사용을 찾지 못해 도달 가능한 XSS로 확정하지 않았다. transitive jsPDF/browser bundle 경로 추가 확인 및 허용된 의존성 갱신 절차 필요. 수정 금지 package-lock은 변경하지 않았다.
 - mongoose9.3.0/mongodb7.1.0/react18.3.1/esbuild0.25.4/wrangler4.85.0을 lockfile에서 확인. 모든 버전의 모든 advisory를 완주한 것은 아니다. `npm audit fix --force`나 ignore 확대 없음.
 
-## 4. 검증 기록
+## 4. 초기 격리 조사 검증 기록 (main 전달 전)
 
 검증은 `scripts/run-mock-tests.mjs`/check:fast의 network guard, 합성 fixture를 사용했다. 별도 운영 환경 파일을 로드하지 않았다.
 
@@ -193,7 +193,7 @@ PR CI/Secret Scan/AI Locale workflow의 permissions와 실행 조건을 읽었�
 - [PR CI](https://github.com/rei1237/codedestiny/actions/runs/39053081775): **in_progress**. Risk tier/Typecheck and lint/Build Pages and Worker success, Static guards in_progress, Critical checks **skipped**. CI required 성공 확인 없음.
 - [Secret Scan](https://github.com/rei1237/codedestiny/actions/runs/39053081881): success. 이 사실을 로컬 전체 이력 완료/운영 키 폐기 증거로 확대하지 않는다.
 - 공유 main HEAD와 다른 변경86개는 시작 때와 동일. 원격의 후속3커밋을 작업 트리에 합치지 않았다. `git merge-tree --write-tree HEAD origin/main`은 충돌 없이 계산됐으나 실제 merge/push/통합 검증의 대체물이 아니다.
-- 로컬 보안 커밋은 미push이므로 해당 SHA의 GitHub CI 실행/통과 증거가 없다. 관측한 원격 배포 workflow는 다른 세션의 작업이며 이 보안 수정의 운영 적용이 아니다.
+- 이 초기 기록 시점에는 로컬 보안 커밋이 미push였다. 이후 main 전달과 정확한 SHA의 GitHub CI 증거는 6절에 기록했다. 관측한 원격 배포 workflow는 다른 세션의 작업이며 이 보안 수정의 운영 적용이 아니다.
 
 ## 5. 운영 승인 대상 실행안
 
@@ -205,3 +205,37 @@ PR CI/Secret Scan/AI Locale workflow의 permissions와 실행 조건을 읽었�
 4. **인프라**: 실제 CSP/CORS/CDN private response policy·프록시 신뢰 경계·관리자/Worker 직접 endpoint 공개 범위 읽기 전용 확인 → report-only CSP 검증안과 구체적 allowlist를 준비 → 승인 후 변경. 기존 정상 결제/OAuth 외부 스크립트가 깨지는 강제 CSP를 즉석 배포하지 않는다.
 
 보안 통합 트리에서 Jest9suite254테스트, worker-security-guards, security-hardening530소스, payment-freeze, guard-wiring341검사 배선·27개 배포 게이트를 확인했다. 사이트맵은 최신 main 원장을 기준으로 생성했으며1022URL을 유지했다. 원격 전달 SHA의 CI 확인은 별도 완료 기준이다. 공유 checkout의 다른 변경86개는 그대로 보존하며, 로컬·CI 결과를 운영 안전성으로 확대하지 않는다.
+
+## 6. main 복구·보안 통합 전달 결과
+
+사용자가 main CI 직접 복구를 요청한 뒤, 보안 변경은 복구 CI 성공 후에만 통합했다. 시작 HEAD774038cdf16995d4917dc7920064d7cb9ebc8633을 확인했고 공유 checkout의 파일·index·stash·로컬 main 포인터를 변경하지 않았다.
+
+| 복구 커밋 | 실제 수정과 확인 |
+|---|---|
+| f0b3e7c5d | 사주 경로·베다 수정일 기대값, 링크만 바뀐 원고의 검토 해시, 제거된 AI 호출 목록을 실제 소스에 맞춤. 홈페이지 메타 폭150/160. 원고의 인간 검토·광고 허용 상태 유지. |
+| 2f1406d77 | ggulggul 설명144/160. sync:public·sitemap 생성기로 미러·원장 갱신. |
+| 9c139bc3c | 읽기집 검사에서 이미지 디코딩과 같은 투명 배경 조건이 준비될 때까지 제한 시간 안에서 기다림. 기존/수정 검사 비교와 지연/고정 불투명 mock으로 판정 강도 유지 확인. |
+| c08a62dbe | 작명 설명148/160. 무료 초안과 별도 유료 상세 작명서 구분 유지. |
+| 37ea6b16b | 모바일 목록의 점성술·베다점 진입을 현재 canonical로 갱신. 옛 Worker301 정보 보존. |
+| 1fb2c4ae1 | public/famous/index.html의 정책 링크2개를 canonical로 수정. 실제 빌드 링크 검사 함수로 전2실패·후0 확인. |
+| e53c065cf | app/guides/page.js에서 휴먼 디자인 가이드 연결. 서버 렌더링과 사이트맵으로 ggulggul→guides→human-design/guide 2홉 확인. |
+
+복구 SHA **e53c065cf5463b65fbbedc969edc2da6a8c97ca3**의 [PR CI39095183552](https://github.com/rei1237/codedestiny/actions/runs/39095183552)와 AI Locale·Secret Scan 성공을 확인한 뒤, 보안 브랜치에 원격 main을 merge했다. 유일한 충돌은 생성 원장 config/sitemap-lastmod.json이었다. 최신 main 원장을 채택하고 생성기로1022URL·원장3개를 갱신했다. 정책·원장을 수동 합성하지 않았다.
+
+보안 통합 **15765bd83c85ae012a86d41f168d844f8ce30cbb**의 로컬 targeted9suite254테스트·보안/동결/배선·check:pre-push가 통과했고 정상 fast-forward push했다. 원격 Critical checks는420suite6664테스트, 빌드·타입/lint·Paid Flow·Gift integrity가 통과했다. 정적 검사는 로컬 요청에 운영 callback을 섞은 OAuth fixture가 첫 응답에서 state를 찾다가 실패했다. 이 실패를 성공으로 바꾸거나 숨기지 않았다.
+
+다른 세션이 이 보안 SHA를 포함한96d5372bd7e6dd68f172db19868dbc33256781ec와 문서fd4143e15fbe330bd8bd054f1fc5683827a4302f를 전달했다. 보안 소스·회귀 파일은 변경 없이 유지된 것을 비교했고, 후속 main의 Critical checks420suite6671테스트·빌드·타입/lint와 Paid Flow 재실행도 success였다. 경합 push는 non-fast-forward로 거절됐고, 후속 문서를 merge하여 보존했다. force-push는 사용하지 않았다.
+
+**d91d6a2d8**은 scripts/verify-auth-public-origin.mjs만 보완했다. 로컬 callback의 기존 localhost frontend 계약, 운영 callback/별칭 호스트의 정확한 시작 URL 이동, 잘못된 호스트에서 쿠키 미발급, host-only HttpOnly 쿠키와 state 해시 일치를 검사한다. 공급자 네트워크 호출 없이 handler를 직접 실행한다. 기존 local refresh 검사의 loopback Mongo 연결 거절 로그는 있었지만 검사는 exit0이며 운영 DB에는 연결하지 않았다. ESLint·인증2suite29테스트·check:pre-push도 통과했다. 인증 런타임 코드를 덧대지 않았다.
+
+OAuth 검증 보완 전달 SHA **e32dae2fa5b3f8aad7412a526d6d6e348879cad8**:
+
+- [PR CI39097257553](https://github.com/rei1237/codedestiny/actions/runs/39097257553): CI required·Static guards·Typecheck/lint·Build Pages and Worker success. Critical checks는 경로 분류상 skipped이며 동일 런타임인 직전96d의 성공과 구분한다.
+- [AI Locale39097257417](https://github.com/rei1237/codedestiny/actions/runs/39097257417), [Secret Scan39097257476](https://github.com/rei1237/codedestiny/actions/runs/39097257476): success. 후자는 fetch-depth0의 Git 이력 자동 검사이며, 과거 로컬 스캔의 메모리 실패와 별개다. 운영 키 폐기나 수동 유출 조사를 완료했다는 뜻은 아니다.
+- [Paid Flow39097257429](https://github.com/rei1237/codedestiny/actions/runs/39097257429): 20분 timeout으로 cancelled. 남은 프로세스는 test:node와 두 브라우저 fixture였고, Paid 잡에는 Chromium 설치가 없었다.
+
+변경 범위는 worker/index.js, worker/lib/{http,request-body,security/index}.js, worker/payments/{index,errors,gift-routes}.js, worker/routes/{auth,palm}.js, 관련 회귀3파일, 정적 라우트 조사 스크립트·증거 문서와 생성 sitemap이다. CI 복구는 위 표의 메타·목록·검증 fixture에 한정했다. 원격의 별도 기능 변경과 공유 main의 기존86변경은 보존했다. 이 전달에 운영 승격·실 LLM/결제·운영 DB 쓰기·키 회전은 포함되지 않는다.
+
+후속 CI 복구 **3a1b3f9e4007d5749c24f95abc4868ca64af8c9a**는 Paid Flow의 non-critical 경로에 Chromium 설치를 추가하고 두 브라우저 fixture가 launch 실패에도 서버를 닫도록 했다. 20분 제한·검사 목록·단언은 유지했다. 정상 브라우저2검사는11.4초에 통과했고, Chromium 부재를 강제하면 두 검사 모두 오류 exit1로1.1초 안에 종료했다. YAML 구조·guard-wiring·check:pre-push 통과. Paid Flow39098889158은89가드/92.8초 success, AI Locale39098889047·Secret Scan39098889088 success. PR CI39098889228의 Critical checks420suite6671테스트·Build Pages and Worker·Typecheck/lint success, Static guards·CI required도 success.
+
+대기 중 다른 세션이 추가한 홈 스타일 f0cd52449a4189b1b9878f0c096742e71cf6a337도 ff-only로 보존했다. 보안/인증/CI 복구 파일과 겹치지 않았으며 공유 main checkout은 그대로 두었다. 후속 PR CI39099289896은 홈5경로의 sitemap 원장 signature 드리프트로 실패했다. e411415364b5e3485617fcfd9ca9e453433307c2에서 생성기로 원장 한 파일만 갱신했다. 1022URL·날짜와 홈 스타일을 유지했고 sitemap:check·check:pre-push 통과 후 복구만 push했다. [Paid Flow39099289792](https://github.com/rei1237/codedestiny/actions/runs/39099289792)는 Chromium 설치 단계와 npm test를 포함해90개 항목을772.9초에 모두 통과했다. [복구 SHA PR CI39100150363](https://github.com/rei1237/codedestiny/actions/runs/39100150363)는 Static guards·Typecheck/lint·CI required success. Build·Critical은 원장만 변경한 경로 분류상 skipped이며3a1b3f9e4의 전체 실행 성공과 구분한다. Secret Scan39100150310도 success. 이 결과를 확인한 뒤 완료 문서만 전달한다.
