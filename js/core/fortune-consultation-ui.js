@@ -14,14 +14,14 @@
       alt: '별 지도를 펼쳐 상담하는 자미두수 해석가'
     },
     sukuyo: {
-      image: '/images/feature-details/sukuyo-hero-v2.webp',
-      name: '숙요점 달빛 상담', title: '마음의 리듬을 읽고,<br>인연의 간격을 찾다',
-      lead: '나의 본명숙이 비추는 성향과 관계의 리듬. 반복되는 마음의 패턴을 살피고, 지금 필요한 한 걸음을 찾아요.',
+      image: '/images/master-profiles/hanbi-sukuyo-reading.webp',
+      name: '서한비의 숙요점 라이트 상담', title: '마음의 리듬을 읽고,<br>인연의 간격을 찾다',
+      lead: '서한비입니다. 지금 마음에 남은 질문 하나를 들려주세요. 본명숙의 성향과 관계의 리듬을 짚고, 오늘 해 볼 수 있는 작은 행동을 함께 찾아드릴게요.',
       basis: '계산된 본명숙과 숙요 성향',
       difference: '무료 숙요 프로필의 성향 설명에서 한 걸음 더 나아가, 내가 겪는 상황에 맞춰 상담합니다.',
       topics: ['반복되는 마음', '관계의 속도', '나에게 맞는 선택'],
       examples: ['가까운 사람에게 마음을 쏟다가 지치는 일이 반복돼요. 제 성향과 편안한 관계의 간격을 봐주세요.', '새로운 일을 시작하려는데 마음이 자주 흔들려요. 제 강점을 살릴 방법을 알고 싶어요.'],
-      alt: '달과 별의 흐름을 살피는 숙요 해석가'
+      alt: '달빛 아래 장부를 펼쳐 설명하는 숙요점 마스터 서한비'
     },
     astrology: {
       image: '/images/feature-details/astrology-ai-hero-v2.webp',

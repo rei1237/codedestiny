@@ -126,11 +126,12 @@
       var title = hero.querySelector('.sy-intro-title');
       if (title) title.textContent = data.mansion;
       var badges = node('div', 'fr-tags');
+      var heroBody = hero.querySelector('.sy-master-reading') || hero;
       if (data.displayIndex) badges.appendChild(node('span', '', data.displayIndex + ' / 27'));
       // Animal symbols belong in the optional drawer, not the natal facts.
-      hero.appendChild(badges);
-      hero.appendChild(node('p', 'fr-caption', '라히리 항성 달 황경을 27등분한 서비스 기준이에요. 전통 음력 날짜표 방식과 결과가 다를 수 있어요.'));
-      if (window._astroBirth && (window._astroBirth.unknownHour || window._astroBirth.timeDefault)) hero.appendChild(node('p', 'fr-caption', '출생 시각 미상으로 정오를 적용했어요. 숙의 경계일에는 실제 출생 시각에 따라 본명숙이 달라질 수 있어요.'));
+      heroBody.appendChild(badges);
+      heroBody.appendChild(node('p', 'fr-caption', '라히리 항성 달 황경을 27등분한 서비스 기준이에요. 전통 음력 날짜표 방식과 결과가 다를 수 있어요.'));
+      if (window._astroBirth && (window._astroBirth.unknownHour || window._astroBirth.timeDefault)) heroBody.appendChild(node('p', 'fr-caption', '출생 시각 미상으로 정오를 적용했어요. 숙의 경계일에는 실제 출생 시각에 따라 본명숙이 달라질 수 있어요.'));
     }
     var reading = syReadingBody(data.traits, labels, true); reading.id = 'syHouseNatal';
     if (hero) hero.after(reading); else root.appendChild(reading);

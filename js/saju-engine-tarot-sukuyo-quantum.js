@@ -6016,6 +6016,10 @@ function syRenderWheelCard(wheelState, compatInfo) {
   return rendered;
 }
 
+function syHanbiGuide(message) {
+  return '<div class="sy-master-voice"><img src="/images/master-profiles/avatars/hanbi.webp" width="48" height="48" alt="" loading="lazy"><p><strong>서한비</strong>' + syCanonicalEsc(message) + '</p></div>';
+}
+
 function syCanonicalEsc(value) {
   return String(value == null ? '' : value)
     .replace(/&/g, '&amp;')
@@ -8171,6 +8175,7 @@ function syRenderSukuyoNatureDeepDiveLockCard(feature) {
     +   '<span class="sy-paid-status" data-sy-nature-deep-dive-status-pill>6종 카드 잠금</span>'
     + '</div>'
     + '<div data-crafted-static-offer="sukuyo-nature-deep-dive"></div>'
+    + syHanbiGuide('겉으로 드러나는 강점과 그 뒤에서 지치는 마음을 함께 읽어 드릴게요. 당신에게 맞는 관계의 간격과 일상의 작은 습관을 살펴보세요.')
     + '<p class="sy-nature-lock-copy">본명숙의 천성·이면·인연·수호 문장까지 6개 탭으로 풀어내는 심화 해설과, 달빛 성향·관계 해석·연애 성향·돈 습관 및 일 성향·감정 리듬 카드를 한 번에 엽니다.</p>'
     + '<div class="sy-nature-lock-chip-wrap">'
     +   teaserLabels.map(function(label) {
@@ -8325,6 +8330,15 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         @media (hover: hover) { .sy-card:hover { transform: translateY(-3px); border-color:rgba(248,250,252,0.36); box-shadow:0 22px 58px rgba(2,6,23,0.52), 0 0 28px rgba(219,234,254,0.14); } }
         .sy-intro-card { animation:syIntroFade 0.7s ease both; }
         .sy-intro-head { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+        .sy-intro-card.sy-master-intro { display:grid; grid-template-columns:minmax(0,0.9fr) minmax(0,1.1fr); gap:22px; align-items:center; border:1px solid rgba(219,234,254,.3); }
+        .sy-master-art { display:block; width:100%; height:auto; aspect-ratio:3/2; border-radius:12px; }
+        .sy-master-reading { min-width:0; }
+        .sy-master-reading .sy-intro-title { overflow-wrap:anywhere; }
+        .sy-master-voice { display:flex; align-items:center; gap:12px; margin:16px 0; color:#e2e8f0; line-height:1.75; }
+        .sy-master-voice img { width:48px; height:48px; flex:0 0 48px; border-radius:50%; object-fit:cover; }
+        .sy-master-voice p { margin:0; min-width:0; }
+        .sy-master-voice strong { display:block; color:#f8e7b7; }
+        @media(max-width:600px) { .sy-intro-card.sy-master-intro { grid-template-columns:minmax(0,1fr); gap:16px; } }
         .sy-intro-icon { flex:0 0 auto; width:46px; height:46px; display:flex; align-items:center; justify-content:center; font-size:1.5rem; border-radius:999px; background:radial-gradient(circle at 34% 30%, rgba(255,255,255,0.22), rgba(191,219,254,0.1) 60%, transparent 100%); border:1px solid rgba(219,234,254,0.3); box-shadow:0 0 20px rgba(219,234,254,0.14); }
         .sy-intro-eyebrow { margin:0; font-size:0.72rem; letter-spacing:0.14em; color:#a5b4fc; }
         .sy-intro-title { margin:3px 0 0; font-size:1.16rem; color:#f1f5ff; font-weight:600; line-height:1.4; }
@@ -8916,16 +8930,19 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       var _introTr = sData.traits || {};
       var _introSymbol = syReadingOverrideByIndex(sData.mansionIdx, 'symbolLine');
       var _introArchetype = syEnsureSentenceEnding(String(_introTr.desc || _introTr.core || '').trim());
-      html += `<div class="sy-card sy-intro-card" style="border-left-color:#e5edff;">
+      html += `<div class="sy-card sy-intro-card sy-master-intro">
+        <img class="sy-master-art" src="/images/master-profiles/hanbi-sukuyo-reading.webp" width="1200" height="800" alt="" aria-hidden="true" decoding="async">
+        <div class="sy-master-reading">
         <div class="sy-intro-head">
-          <span class="sy-intro-icon" aria-hidden="true">${syCanonicalEsc(sData.icon || '🌙')}</span>
+          <span class="sy-intro-icon" aria-hidden="true">${syCanonicalMoonSvg({elongationAngle:180}, '달 장식')}</span>
           <div>
-            <p class="sy-intro-eyebrow">당신의 본명숙</p>
             <h4 class="sy-intro-title">당신은 <b>${syCanonicalEsc(sData.mansion || '')}</b> 입니다</h4>
           </div>
         </div>
+        ${syHanbiGuide('서한비입니다. 달이 머문 자리에서 당신의 성향을 읽어 드릴게요. 강점과 마음이 지치는 순간을 함께 살펴보겠습니다.')}
         ${_introSymbol ? `<p class="sy-intro-symbol">${syCanonicalEsc(_introSymbol)}</p>` : ''}
         <p class="sy-intro-archetype">${syCanonicalEsc(_introArchetype)}</p>
+        </div>
       </div>`;
 
       if (window._syLastCompat && window._syLastCompat.myIdx !== sData.mansionIdx) {
@@ -13038,7 +13055,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         var bonusPrompt = String(payload.generatedPrompt || payload.prompt || '').trim();
         if (result && result.ok && (resultText || bonusPrompt)) {
           if (resultText && answerEl) {
-            answerEl.innerHTML = (window._cdRenderConsultAnswerHtml
+            answerEl.innerHTML = syHanbiGuide('질문에 담긴 마음을 본명숙의 흐름과 함께 살펴보았습니다.') + (window._cdRenderConsultAnswerHtml
               ? window._cdRenderConsultAnswerHtml(resultText)
               : '<p style="color:#ede9fe;white-space:pre-wrap;">' + resultText.replace(/[<>&]/g, '') + '</p>');
             answerEl.style.display = 'block';
@@ -13834,7 +13851,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
                 <div data-sy-ai-status style="margin-top:8px;font-size:0.76rem;color:#ddd6fe;"></div>
               </div>`;
 
-          rd.innerHTML = data.html;
+          rd.innerHTML = syHanbiGuide('두 분이 다가가는 속도와 거리를 나란히 놓아 보겠습니다. 관계의 이름보다, 함께 바꿀 수 있는 습관에 마음을 두세요.') + data.html;
           // 관계 미니맵은 무료 카드다 — 서버 본문의 자리표시에 화면이 그린다.
           var compatMiniMapHost = rd.querySelector('[data-sy-compat-minimap]');
           if (compatMiniMapHost) {

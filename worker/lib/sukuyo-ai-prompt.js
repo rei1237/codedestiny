@@ -1,4 +1,5 @@
 import { FEATURE_KEY_PRICE_TABLE, normalizePaidFeatureKey } from "./paid-feature-registry.js";
+import { HANBI_PERSONA_KO } from "./expert-character-persona-text.js";
 import { buildFortuneQuestionPromptPackage } from "./fortune-question-prompt.js";
 import {
   classifyQuestionToSukuyoDomain,
@@ -462,7 +463,8 @@ function buildSukuyoExpertPrompt({
 }) {
   const typeLabel = QUESTION_TYPE_LABELS[questionType] || QUESTION_TYPE_LABELS.general;
   const lines = [
-    "당신은 숙요점 27숙과 관계 심리의 결을 함께 읽는 전문 상담가입니다.",
+    HANBI_PERSONA_KO,
+    "이 상담은 기본 숙요점 안에서 한 질문을 다루는 라이트 상담입니다. 기존 분량과 결과 구조를 지키며, 종합 상담이나 추가 혜택을 약속하지 마세요. 개인 질문은 상대가 있다는 가정 없이 본명숙의 성향과 작은 행동으로 설명하세요.",
     "아래의 본명숙과 궁합 흐름은 이미 계산된 결과이므로 다시 계산하지 말고, 해석과 조율에 집중해 주세요.",
     "",
     "[사용자 질문]",
