@@ -1,10 +1,28 @@
 ---
-status: blocked
+status: done
 updated: 2026-10-18
-next: "CI 39120446145의 최종 결과를 확인하고 성공한 경우 기존 승인으로 production 릴리스를 진행한다. 현재는 CI 실행 중이며 실패 판정이 아니다."
+next: "운영 배포·양쪽 SHA·무료 화면 반영 확인 완료. 881px 화면의 기존 여부 미확인 가로 잘림은 별도 UI 작업으로 조사한다. 중복 배포하지 않는다."
 ---
 
-# 숙요점 서한비·궁합 복구 운영 승격 대기
+# 숙요점 서한비·궁합 복구 운영 승격 완료
+
+## 2026-10-18 재개 실측
+
+- 재개 시 로컬 HEAD: `55e700588279161440b6b391303227e191c6f17c` (인수인계 문서만 추가, 아직 원격 미전달).
+- 원격 main과 CI `39120446145`의 SHA: `ed7d5c2243dfa96ae41555b448b7d2c7280f56da`. CI completed/success, `CI required` 포함 전체 필수 lane 성공.
+- 기존 승인으로 `gh workflow run "Release Cloudflare Pages and Worker" --ref main -f mode=production` 실행: https://github.com/rei1237/codedestiny/actions/runs/39123545114
+- 릴리스 고정 SHA: `ed7d5c2243dfa96ae41555b448b7d2c7280f56da`. 배포 전 운영 Pages·Worker 모두 `1ec16191abfc0b45bdf6ff1b4e02da26d23a0d2b`.
+- `npm run check:pre-push`: exit 0 (home registry, public mirror, sitemap 1022 URLs, llms.txt, SEO entity 62 profiles).
+- 공식 production 릴리스 `39123545114`: completed/success. `release` 잡 성공.
+- `npm run verify:deployed-sha -- --sha=ed7d5c2243dfa96ae41555b448b7d2c7280f56da --origin=https://code-destiny.com --attempts=1`: exit 0. `/version.json`과 `/api/version` 모두 전체 SHA `ed7d5c2243dfa96ae41555b448b7d2c7280f56da` 일치.
+- 공개 서한비 이미지 HTTP 200, image/webp, SHA-256 `DACB1796AFFAB3DAAF8AEA5D91CE829CEA36917AB5C713B1C61F729B429E6C21`로 로컬 원본과 일치.
+- 실제 화면이 로드한 `/js/saju-engine-tarot-sukuyo-quantum.js?v=build-32c8496999de`: HTTP 200, 신규 이미지 경로와 서한비 안내 문구 확인. 버전 없는 URL은 구 응답이어서 실제 DOM의 script src를 기준으로 재검증했다.
+- 사용자 로그인 후 `/ggulggul/?action=cdHomeSukuyoEntry`를 새로고침해 무료 본명숙·성격 해설, 신규 서한비 이미지, “서한비입니다. 달이 머문 자리에서 당신의 성향을 읽어 드릴게요.”를 확인했다. 이미지 naturalWidth/Height 1200×800, complete=true.
+- 화면 증거: `C:\Users\user\.codex\visualizations\2026\10\18\01a14ec6-8f0b-7e32-b229-c26e577b4ccc\sukuyo-production.png`.
+- 별도 확인 사항: 실제 viewport 881px에서 본명숙 카드 left=120/right=1080/width=960으로 오른쪽이 잘린다. 배포 전부터 있던 현상인지는 미확인. 이번 배포 검증 범위에서 UI 코드는 수정하지 않았다.
+- 실결제·유료 LLM·이용권 차감·운영 DB 수선은 수행하지 않았다. 다른 세션의 `.claude/skills/fire-your-seo-agency/`는 보존했다.
+
+아래는 최초 인수인계 당시 기록이다. CI 대기 상태는 위 재개 실측으로 대체한다.
 
 ## 재개 위치와 게이트
 
