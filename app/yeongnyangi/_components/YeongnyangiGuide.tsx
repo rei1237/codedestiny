@@ -19,7 +19,11 @@ const single=(domain:DomainId,fish:string)=>{const p=products.find(item=>item.re
 const tierRows=TIERS.map(tier=>{const items=DOMAINS.map(domain=>single(domain,tier));const prices=[...new Set(items.map(p=>p.priceKRW))];if(prices.length!==1)throw new Error(`영냥이 ${tier} 가격이 체계마다 다르다: ${prices.join(',')}`);return {tier,name:packages[tier].name,price:prices[0],depth:questionScopes[tier],followups:FOLLOWUP_LIMITS[tier]};});
 export const LOWEST_PRICE=won(tierRows[0].price);
 const SYSTEMS=DOMAINS.map(domain=>systemNames[domain]).join(', ');
-const tarotSample=resultSamples.find(sample=>sample.id==='yn-tarot')!;
+const tarotExcerpts=(()=>{
+ const excerpts=resultSamples.find(sample=>sample.id==='yn-tarot')?.excerpts;
+ if(!excerpts||excerpts.length<4)throw new Error('Yeongnyangi tarot sample requires four source excerpts.');
+ return excerpts;
+})();
 
 export const YEONGNYANGI_FAQS=[
  {question:'사주 보는 고양이 영냥이는 어떤 서비스인가요?',answer:`영냥이는 꿀꿀운세(CODE DESTINY)가 운영하는 유료 운세 상담 캐릭터예요. ${SYSTEMS} 중 하나를 골라 한 가지 고민을 챕터로 나눠 읽어 줘요. "사주보는고양이"처럼 붙여 써서 찾아도 같은 서비스예요.`},
@@ -45,9 +49,9 @@ export default function YeongnyangiGuide(){
    <p className={styles.note}>가상 프로필로 생성한 영냥이 타로·연어 샘플에서 발췌했어요. 전체 샘플은 약 3.5만 자이며 아래는 그 일부예요. 실제 고객 후기가 아니며 현재 상품의 보장 분량을 뜻하지 않아요.</p>
    <blockquote className={styles.sample}>
     <h3>카드가 보여주는 마음의 흐름</h3>
-    <p>{tarotSample.excerpts[0]}</p>
-    <h3>현실의 조건과 다음 행동</h3><p>{tarotSample.excerpts[2]}</p>
-    <details><summary>영냥이의 해석 더 읽기</summary><p>{tarotSample.excerpts[1]}</p><p>{tarotSample.excerpts[3]}</p><a href="https://claude.ai/artifact/PtPUfhaiHM37ebpxtr4nQV" target="_blank" rel="noopener noreferrer">가상 프로필 상담 원문 모음 읽기 (새 창)</a></details>
+    <p>{tarotExcerpts[0]}</p>
+    <h3>현실의 조건과 다음 행동</h3><p>{tarotExcerpts[2]}</p>
+    <details><summary>영냥이의 해석 더 읽기</summary><p>{tarotExcerpts[1]}</p><p>{tarotExcerpts[3]}</p><a href="https://claude.ai/artifact/PtPUfhaiHM37ebpxtr4nQV" target="_blank" rel="noopener noreferrer">가상 프로필 상담 원문 모음 읽기 (새 창)</a></details>
    </blockquote>
    <p><a href="/yeongnyangi/fortune/?domain=tarot">타로 상담 구성 보기</a> · <a href="/consultation-samples/">다른 상담 결과 예시 보기</a></p>
    <SampleExposure targetId="yn-example" itemId={single('tarot','salmon').cdFeatureKey}/>

@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-19
-next: "QA lint·검색 제목 폭·신점 문구 검사 수정이 포함된 최신 main CI를 확인한다. 통과하면 이 기록을 done으로 닫는다."
+next: "상담 원문 배열의 타입 검사 수정이 포함된 최신 main CI를 확인한다. 통과하면 이 기록을 done으로 닫는다."
 ---
 
 # 영냥이 선택 회귀 및 상담 안내
@@ -9,6 +9,7 @@ next: "QA lint·검색 제목 폭·신점 문구 검사 수정이 포함된 최�
 - 작업 디렉터리: `D:\Development\code-destiny`
 - 기능 변경 커밋: `f0d183b062d227aaa58d626d25259b4df0dbc1bc` (main push 완료).
 - 최초 CI: https://github.com/rei1237/codedestiny/actions/runs/39147516224 — QA 스크립트의 `module` 변수명 규칙 위반, 인연의 서 검색 제목 폭 61/60 초과, 이전 신점 소개 문구를 기대하던 정적 검사 실패를 확인했다.
+- 두 번째 CI: https://github.com/rei1237/codedestiny/actions/runs/39148303601 에서 lint 이후 타입 검사가 실행되며 `tarotSample.excerpts`의 optional 타입 오류 4곳을 확인했다. 원문 4개가 있는지 검증한 뒤 확정된 배열을 렌더하도록 수정했다. 원문과 화면 출력은 유지한다.
 - 후속 수정: 변수명을 `catalogModule`로 변경, 검색 제목을 20개 챕터를 유지하면서 폭 47로 단축, 정적 검사를 요청한 별의 기운·프라슈나/호라리 설명에 맞췄다. 계산·결제 동작 변경은 없다.
 - 작업 워크트리와 wt 브랜치, 임시 로그를 정리했다. 이 문서와 후속 CI 수정은 별도 커밋으로 전달한다.
 
@@ -40,6 +41,8 @@ gh run list --workflow pr-ci.yml --branch main -L 1 --json status,conclusion,hea
 ```
 
 최신 실행이 실패라면 해당 실행의 `gh run view <id> --log-failed`로 실패만 조사한다. 통과라면 이 문서의 상태를 done으로 닫고 작업 목표를 완료한다. 다른 세션의 `.claude/skills/fire-your-seo-agency/`는 보존한다.
+
+- 타입 오류 후속 검증: `npm run typecheck` 전체 통과(exit 0), 해당 Guide eslint 통과, 상담 예시·영냥이 문구 테스트 10/10 통과.
 
 ## 요구사항 재대조
 
