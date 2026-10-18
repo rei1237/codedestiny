@@ -19,9 +19,9 @@ type MiniGame = {
 };
 
 const GAMES: ReadonlyArray<MiniGame> = [
-  { slug: "destiny-poker", name: "데스티니 포커", href: "/destiny-poker", desc: "신들과 벌이는 운명의 카드 대결", badge: "무료" },
-  { slug: "fortune-fish", name: "포춘텔러 물고기", href: "/fortune-teller-fish", desc: "물고기 리딩과 행운 부적 보관함", badge: "무료" },
-  { slug: "omikuji", name: "이모이 오미쿠지", href: "/emoi_omikuji_v2", desc: "오늘의 마음을 읽는 감성 신탁", badge: "무료" },
+  { slug: "destiny-poker", name: "데스티니 포커", href: "/destiny-poker", desc: "네 마스터와 포커 · 왕 카드로 읽는 운세", badge: "무료" },
+  { slug: "fortune-fish", name: "포춘 피쉬", href: "/fortune-teller-fish", desc: "금붕어의 몸짓으로 읽는 오늘의 흐름", badge: "무료" },
+  { slug: "omikuji", name: "이모이 오미쿠지", href: "/emoi_omikuji_v2", desc: "제비통에서 뽑아 펼치는 오늘의 운세", badge: "무료" },
   { slug: "blood-type", name: "혈액형 테스트", href: "/blood-type-app", desc: "혈액형별 성향·궁합·코칭", badge: "무료" },
   { slug: "destiny-island", name: "운명의 섬", href: "/destiny-island", desc: "자미두수 명반이 섬이 되는 인터랙티브 맵", badge: "무료" },
   { slug: "secret-house", name: "시크릿 하우스", href: "/secret-house_real", desc: "내 일간으로 시작하는 선택형 연애 스토리", badge: "무료" },
@@ -34,9 +34,9 @@ const SITE = "https://code-destiny.com";
 
 const META = {
   path: "/mini-games",
-  title: "미니 운세 게임 10종 | 데스티니 포커·오미쿠지·사주 FPTI 모음",
+  title: "미니 운세 게임 9종 | 데스티니 포커·오미쿠지·사주 FPTI 모음",
   description:
-    "데스티니 포커, 이모이 오미쿠지, 운세 다마고치, 화투 인생 패, 사주 FPTI 등 짧게 해 보는 운세 게임 10종을 한곳에 모았습니다. 대부분 무료로 바로 시작합니다.",
+    "데스티니 포커, 이모이 오미쿠지, 화투 인생 패, 사주 FPTI 등 짧게 해 보는 운세 게임 9종을 한곳에 모았습니다. 대부분 무료로 바로 시작합니다.",
   keywords: ["미니 운세 게임", "운세 게임", "무료 운세 게임", "데스티니 포커", "오미쿠지", "사주 FPTI", "화투 운세"],
   featureList: GAMES.map((game) => game.name),
   applicationCategory: "GameApplication",
@@ -73,7 +73,7 @@ export default function MiniGamesPage() {
         <p className={styles.eyebrow}>꿀꿀 운세</p>
         <h1 className={styles.title}>미니 운세 게임</h1>
         <p className={styles.lead}>
-          카드 한 장, 질문 몇 개로 짧게 해 보는 운세 게임 10종입니다. 카드를 누르면 바로 시작합니다.
+          카드 한 장, 질문 몇 개로 짧게 해 보는 운세 게임 9종입니다. 카드를 누르면 바로 시작합니다.
         </p>
       </header>
 
@@ -83,8 +83,8 @@ export default function MiniGamesPage() {
             <a className={styles.card} href={game.href}>
               <span className={styles.thumb}>
                 <img
-                  src={`/images/mini-games/${game.slug}-320.webp`}
-                  srcSet={`/images/mini-games/${game.slug}-320.webp 320w, /images/mini-games/${game.slug}-480.webp 480w`}
+                  src={`/images/mini-games/${game.slug}-320.webp?v=20261019`}
+                  srcSet={`/images/mini-games/${game.slug}-320.webp?v=20261019 320w, /images/mini-games/${game.slug}-480.webp?v=20261019 480w`}
                   sizes="(min-width: 960px) 240px, (min-width: 640px) 30vw, 46vw"
                   width={480}
                   height={300}
@@ -123,7 +123,7 @@ export default function MiniGamesPage() {
         <h2 id="miniGamesGuideTitle">미니 운세 게임은 이렇게 다릅니다</h2>
         <h3>한 가지 상징으로 보는 짧은 운세</h3>
         <p>
-          여기 모은 게임은 저마다 하나의 상징 체계를 씁니다. 데스티니 포커와 포춘텔러 물고기는 카드와 물고기의 움직임을,
+          여기 모은 게임은 저마다 하나의 상징 체계를 씁니다. 데스티니 포커와 포춘 피쉬는 카드와 물고기의 움직임을,
           이모이 오미쿠지는 일본 신사의 제비뽑기를 씁니다. 화투 인생 패는 일곱 개의 질문으로 화투 그림 속 나의 패를
           찾아 주고, 운명의 섬은 자미두수 명반을 지도처럼 펼쳐 보여 줍니다. 사주 FPTI는 오행과 십성을 네 개의 축으로 나눠 성향을 읽고, 혈액형 테스트와
           심리테스트는 몇 가지 질문에 대한 답으로 결과를 만듭니다. 한 판이 몇 분이면 끝나도록 만들어 처음 방문해도 바로
