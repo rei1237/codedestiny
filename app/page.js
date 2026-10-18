@@ -10,6 +10,7 @@ import { founder } from "../lib/brand/founder";
 import { HOME_CATEGORIES, HOME_CONCERNS } from "../lib/seo/home-discovery.mjs";
 import { getSignProfile } from "../lib/fortune/sign-profiles";
 import LegacyHomeEntry from "./components/LegacyHomeEntry";
+import HomeCardDeck from "./components/HomeCardDeck";
 import LocalizedServiceSummary from "./components/LocalizedServiceSummary";
 import { products as YEONGNYANGI_PRODUCTS } from "../worker/yeongnyangi/payments/catalog";
 import "./yeongnyangi/night-tokens.css";
@@ -108,10 +109,10 @@ export default function HomePage() {
         </div>
 
         {/* 카드 제목(h2)의 링크를 카드 크기로 늘려 카드 전체가 한 링크다. 설명 두 줄은 aria-describedby 로 읽힌다. */}
-        <ul className={styles.deck} aria-labelledby="homeCardTitle">
+        <HomeCardDeck className={styles.deck}>
           {CARDS.map((card, index) => {
             const linkProps = { href: card.href, className: styles.cardLink, "aria-label": `${card.name} ${card.key === "yeoni" ? "운세 골라보기" : "상담 시작하기"}`, "aria-describedby": `${card.key}CardTag ${card.key}CardHint`, ...discoveryTracking(card.key === "yeoni" ? "ggulggul" : "yeongnyangi", "primary") };
-            return <li key={card.key} className={`${styles.card} ${styles[card.className]}`} data-yn-night={card.night ? "" : undefined}>
+            return <li key={card.key} data-home-card={card.key} className={`${styles.card} ${styles[card.className]}`} data-yn-night={card.night ? "" : undefined}>
               <span className={styles.cardNumeral} aria-hidden="true">{index === 0 ? "I" : "II"}</span>
               <picture className={styles.cardArt}>
                 <source type="image/avif" srcSet={`${ART}/root-card-${card.art}-360.avif${CARD_ART_REV} 360w, ${ART}/root-card-${card.art}-600.avif${CARD_ART_REV} 600w`} sizes={CARD_ART_SIZES} />
@@ -128,7 +129,7 @@ export default function HomePage() {
               <span className={styles.cardFoil} aria-hidden="true" />
             </li>;
           })}
-        </ul>
+        </HomeCardDeck>
         <a className={styles.browseLink} href="#homeServices">분야부터 골라보기 <span aria-hidden="true">↓</span></a>
         <div className={styles.discovery}>
           <section className={styles.section} aria-labelledby="homeServices">
