@@ -75,6 +75,10 @@ export default function HighValueHubPage() {
             </Link>
           ))}
         </div>
+        <p>
+          휴먼 디자인을 처음 접한다면 <Link href="/human-design/guide/">타입·권위와 바디그래프 안내</Link>에서
+          해석의 기준과 무료 차트·유료 리포트의 차이를 확인하세요.
+        </p>
       </section>
 
       <section className="cd-card-grid">
