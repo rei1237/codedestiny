@@ -1,7 +1,7 @@
 ---
 status: blocked
 updated: 2026-10-18
-next: "현재 origin/main CI와 공유 main 상태를 확인하고, 아래 보안 커밋을 검증된 최신 main에 안전하게 통합한다. 실패한 main 위로 push하지 않는다."
+next: "origin/main 34d3447ed0234c4bd03d2ac3069726e171996e6b의 CI required·AI Locale 실패 복구 여부부터 확인한다. green 이후 sitemap 원장을 생성기로 병합하고 보안 변경을 검증·통합한다. 실패한 main 위로 push하지 않는다."
 ---
 
 # 보안 조사·수정 전달 재개
@@ -45,8 +45,22 @@ Git 전체 이력 secret scan은 메모리 할당 실패로 미완료. 부분 �
 5. 탈퇴 access token 결제 경로, 실기기 OAuth/cookie, 실제 Mongo index·트랜잭션·CSP/CDN, 전체 비밀 이력/공급망 미검증을 남은 작업으로 유지한다.
 6. 전달 완료 후 이 문서를 done으로 닫고 자기 temporary 파일·junction·worktree·머지된 wt branch만 정리한다.
 
-## 복사할 재개 지시
+## 2026-10-18 재개 확인: main 실패 지속
+
+- 요청한 시작 HEAD `774038cdf16995d4917dc7920064d7cb9ebc8633` 일치, 작업 트리 clean 확인. 이번 재개에서는 보안 코드 변경·실제 merge·push·운영 행위를 하지 않았다.
+- `git fetch origin main` 후 정확한 원격 SHA는 `34d3447ed0234c4bd03d2ac3069726e171996e6b`.
+- [PR CI 39054796742](https://github.com/rei1237/codedestiny/actions/runs/39054796742): **failure**. `CI required`, `Static guards`, `Build Pages and Worker` 실패. Risk tier·Typecheck and lint·Critical checks는 success.
+- Static guards: 3381개 중3378통과·3실패. 사주 직행 링크 기대값(`/saju/basic` → `/?action=cdOneStepFreeSajuEntry`), `why-saju-results-differ-between-services` 원고 검토 해시 불일치, `sukuyo-landing-scope.test.mjs`의 베다 페이지 dateModified 기대값(`2026-10-12`)과 실제(`2026-10-18`) 불일치.
+- Build: `verify-adsense-readiness.mjs`에서 홈페이지 meta description 표시 폭180이 상한160을 초과. 홈페이지·SEO 소스 변경 커밋 `952a76208506e42943526c24d328cefe2abaed4d`가 관련되며, 해당 변경의 최초 실패 여부까지는 재실행하지 않았다. 이 보안 작업의 커밋은 원격에 없으므로 위 실패는 보안 수정의 원격 검증 결과가 아니다.
+- [AI Locale Gate 39054796839](https://github.com/rei1237/codedestiny/actions/runs/39054796839): **failure**, `audit-ai-locale-calls.mjs:59`의 `LLM call inventory changed`. [Secret Scan 39054796735](https://github.com/rei1237/codedestiny/actions/runs/39054796735): success.
+- 공유 main은 `3be4b029d2e3438831b2f5b440b74c149041cd93`, 다른 세션 변경86개. 파일·index·stash·브랜치 포인터를 변경하지 않았다.
+- `git merge-tree --write-tree HEAD origin/main`: **config/sitemap-lastmod.json 충돌**. 이전 원격에 대한 무충돌 기록은 현재 원격에 적용되지 않는다. 실제 merge 미실행. main 복구 후 소스를 합치고 `npm run sitemap:generate`로 원장을 생성해야 하며 원장을 손으로 편집하지 않는다.
+- `npm run check:fast -- --plan --base=f11871f4cf9e344ad5c9484e81cc32351b5ebc3c`: exit0, 17파일·critical. 계획 확인이며 검사 실행 통과를 뜻하지 않는다. 기존 전체 테스트 증거는 위 이전 실행 기록이며 이번에 반복하지 않았다.
+- 사용자 요청 및 전달 규칙에 따라 실패한 main 위로 push하지 않는다. 이번 문서 갱신만 로컬 커밋하고 보안 워크트리·junction·미전달 커밋을 보존한다. `status: blocked` 유지. CI 복구와 안전한 공유 main 통합이 끝나기 전에는 done이나 정리 완료로 바꾸지 않는다.
+- 이번 문서 검증: `git diff --check` exit0, `npm run verify:handoff-contract` 222개 문서 통과, `npm run verify:doc-freshness` 통과. 공유 main 최종 재확인도 같은 HEAD·변경86개. 코드 변경이 없고 원격 CI가 차단 상태이므로 전체 코드 검사·check:pre-push는 반복하지 않았다.
+
+### 복사할 재개 지시
 
 ```text
-D:\Development\codedestiny-worktrees\security-audit-20261018-20261018-015620에서 D:\Development\codedestiny-worktrees\security-audit-20261018-20261018-015620\docs\handoff\2026-10-18-security-audit.md를 읽고, 코드 커밋 aee5d23dee1b71b965338dafbd243eda4d15321b와 후속 문서 커밋을 확인하라. 공유 main의 다른 변경을 보존하면서 현재 origin/main의 정확한 SHA와 CI 실패 원인 확인부터 시작하고, 실패한 main 위에 push하지 말고 검증 결과를 확인한 뒤 안전한 통합·전달을 이어서 진행하라.
+D:\Development\codedestiny-worktrees\security-audit-20261018-20261018-015620에서 D:\Development\codedestiny-worktrees\security-audit-20261018-20261018-015620\docs\handoff\2026-10-18-security-audit.md를 읽고, 재개 기준 774038cdf16995d4917dc7920064d7cb9ebc8633과 이후 문서 커밋을 확인하라. 먼저 git fetch origin main 후 정확한 원격 SHA의 CI required와 AI Locale Gate 복구 여부를 확인하라. 실패한 main 위로 push하지 않는다. green 이후 공유 main의 다른 변경86개를 보존하면서 sitemap 생성기 충돌 해결, 보안 통합 검사, check:pre-push, 안전한 main push를 진행하라.
 ```
