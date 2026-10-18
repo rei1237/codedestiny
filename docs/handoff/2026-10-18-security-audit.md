@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-18
-next: "복구 HEAD 1fb2c4ae1430c055622e3a5b9879058b08d462e1의 full_ci 39093487128 통과 후 보안 변경을 통합한다. 공유 main 변경86개를 보존한다."
+next: "복구 HEAD e53c065cf5463b65fbbedc969edc2da6a8c97ca3의 PR CI 39095183552 통과 후 보안 변경을 통합한다. 공유 main 변경86개를 보존한다."
 ---
 
 # 보안 조사·수정 전달 재개
@@ -82,6 +82,9 @@ Git 전체 이력 secret scan은 메모리 할당 실패로 미완료. 부분 �
 
 - 후속 Build39092921412는 메타 설명 검사를 통과한 뒤 `famous/index.html`의 정책 링크2개가 옛 redirect 주소인 문제로 실패했다. `1fb2c4ae1430c055622e3a5b9879058b08d462e1`에서 독립 정적 소스 `public/famous/index.html`의 두 링크를 `/privacy/`·`/terms/`로 변경했다. 정책 본문·동작 변경 없음. 실제 postbuild의 `redirectingLinks` 함수로 수정 전2실패·후0건, sitemap 원장 갱신0개, check:pre-push 통과.
 - 최신 복구 SHA의 AI Locale39093466314·Secret Scan39093466309 success. 자동 PR CI39093466321은 빌드·Critical checks를 경로상 skip하므로 전체 CI [39093487128](https://github.com/rei1237/codedestiny/actions/runs/39093487128)를 별도 요청했다. 아직 시작 전이던 옛 SHA의 수동39093078311은 새 복구로 대체되어 취소했고 성공으로 세지 않는다. 기존 자동 CI는 취소하지 않았다. 37ea6b16b의 자동39093078254는 Static guards·CI required success, 빌드 등은 skipped.
+
+- 1fb2c4ae의 자동39093466321은 CI required·Static guards·Typecheck/lint success, Build·Critical skipped. 전체39093487128은 Critical checks의 Jest418suite6637테스트와 Typecheck/lint success였으나 Build의 후속 `verify:internal-link-depth`에서 `/human-design/guide`가3홉(상한2홉)으로 실패했다. 앞서 실패한 메타·canonical 링크 검사는 통과했다.
+- `e53c065cf5463b65fbbedc969edc2da6a8c97ca3`: `app/guides/page.js`에 가이드 링크를 연결하고 sitemap5개 생성물 갱신. 실제 서버 렌더링에서 색인 대상 `/ggulggul/ → /guides/ → /human-design/guide/` 2홉 확인, ESLint·guide CTA19·check:pre-push 통과. 개인 차트 도구의 noindex·무료/유료 범위 유지. 최신 자동 [PR CI39095183552](https://github.com/rei1237/codedestiny/actions/runs/39095183552)는 standard라 빌드도 실행하며, 별도 중복 수동 실행은 요청하지 않았다. 보안 통합은 아직 미실행.
 
 ### 복사할 재개 지시
 
