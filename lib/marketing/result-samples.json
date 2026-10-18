@@ -10,12 +10,12 @@
       "서로 다른 여섯 체계의 관점을 함께 살펴보는 리포트입니다. 각 체계의 근거와 해석을 구분해 읽고, 내 고민에 필요한 방향을 찾아보세요."
     ],
     "image": "/assets/yeongnyangi/reading-art/insight.webp",
-    "visual": "/images/feature-details/fusion-fortune-hero-v2.webp",
+    "visual": "/images/home/fusion-signature-masters-1200.webp",
     "kind": "structure",
     "source": "FusionValuePreview",
     "slug": "fusion-fortune",
     "master": "여섯 체계의 해석을 잇는 초융합",
-    "visualAlt": "여섯 체계의 지도를 펼쳐 읽는 초융합 상담",
+    "visualAlt": "별의 지도 아래 함께 모인 초융합 운세의 상담 마스터들",
     "guide": {
       "audience": "한 가지 관점으로 정리되지 않는 일·돈·관계의 고민을 여러 근거와 함께 비교하고 싶은 분께 맞아요.",
       "preparation": "출생 날짜·시간·장소와 지금 결정할 질문을 준비해 주세요. 모르는 정보는 모름으로 남기며, 시간과 장소에 의존하는 해석의 한계를 함께 읽어요.",
@@ -467,8 +467,8 @@
     "kind": "result",
     "source": "Y1",
     "master": "영냥이",
-    "visual": "/assets/yeongnyangi/original/hero-800.webp",
-    "visualAlt": "초승달 모자를 쓰고 상담을 안내하는 영냥이"
+    "visual": "/assets/yeongnyangi/readings/saju-v5.webp",
+    "visualAlt": "명식 두루마리와 목·화·토·금·수의 소재를 펼쳐 놓은 영냥이"
   },
   {
     "id": "yn-tarot",
@@ -484,8 +484,8 @@
     "kind": "result",
     "source": "T",
     "master": "영냥이",
-    "visual": "/assets/yeongnyangi/original/hero-800.webp",
-    "visualAlt": "초승달 모자를 쓰고 상담을 안내하는 영냥이"
+    "visual": "/assets/yeongnyangi/readings/tarot-v5.webp",
+    "visualAlt": "서로 다른 타로 카드를 펼쳐 질문을 살피는 영냥이"
   },
   {
     "id": "yn-ziwei",
@@ -502,8 +502,8 @@
     "kind": "result",
     "source": "Z",
     "master": "영냥이",
-    "visual": "/assets/yeongnyangi/original/hero-800.webp",
-    "visualAlt": "초승달 모자를 쓰고 상담을 안내하는 영냥이"
+    "visual": "/assets/yeongnyangi/readings/ziwei-v5.webp",
+    "visualAlt": "궁과 별의 연결을 상징하는 금빛 천구를 살펴보는 영냥이"
   },
   {
     "id": "yn-astrology",
@@ -520,7 +520,87 @@
     "kind": "result",
     "source": "A",
     "master": "영냥이",
-    "visual": "/assets/yeongnyangi/original/hero-800.webp",
-    "visualAlt": "초승달 모자를 쓰고 상담을 안내하는 영냥이"
+    "visual": "/assets/yeongnyangi/readings/astrology-v5.webp",
+    "visualAlt": "황도 원판과 행성 궤도 앞에서 출생 차트를 살피는 영냥이"
+  },
+  {
+    "id": "yn-vedic",
+    "title": "영냥이 베다점",
+    "group": "영냥이 상담",
+    "href": "/yeongnyangi/fortune/?domain=vedic",
+    "question": "지금은 힘을 모을 때일까, 움직일 때일까?",
+    "receives": "행성의 배치 · 시기의 주기 · 선택의 흐름",
+    "excerpts": [],
+    "kind": "structure",
+    "source": "product-offers",
+    "master": "영냥이",
+    "visual": "/assets/yeongnyangi/readings/vedic-v5.webp",
+    "visualAlt": "천문 관측 도구와 별의 주기가 담긴 책을 살피는 영냥이",
+    "guide": {
+      "audience": "베다점의 행성 배치와 주기를 바탕으로, 지금 지나는 시기와 선택의 방향을 살펴봐.",
+      "preparation": "출생 정보와 지금 궁금한 질문을 준비해 줘.",
+      "outline": [
+        {
+          "title": "행성의 배치",
+          "text": "출생 시점의 행성 배치를 베다점의 기준으로 살펴봐."
+        },
+        {
+          "title": "시기의 주기",
+          "text": "지금 지나는 주기를 읽고, 준비와 실행의 흐름을 생각해 봐."
+        },
+        {
+          "title": "선택의 흐름",
+          "text": "해석을 현실의 조건과 함께 놓고 다음 행동을 정리해 봐."
+        }
+      ],
+      "delivery": "삽화는 상담의 주제를 표현하며 개인의 계산 결과가 아니야.",
+      "examples": [
+        {
+          "title": "질문을 준비하는 방법",
+          "text": "움직이고 싶은 이유와 아직 준비가 필요한 부분을 나눠 적어 봐. 시기의 해석을 실제 선택 조건과 함께 살펴보는 데 도움이 돼.",
+          "kind": "editorial"
+        }
+      ]
+    }
+  },
+  {
+    "id": "yn-sukuyo",
+    "title": "영냥이 숙요점",
+    "group": "영냥이 상담",
+    "href": "/yeongnyangi/fortune/?domain=sukuyo",
+    "question": "가까워지고 싶은 마음, 어떤 거리가 편안할까?",
+    "receives": "태어난 날의 숙 · 관계의 성향 · 거리와 리듬",
+    "excerpts": [],
+    "kind": "structure",
+    "source": "product-offers",
+    "master": "영냥이",
+    "visual": "/assets/yeongnyangi/readings/sukuyo-v5.webp",
+    "visualAlt": "달빛 아래 두 별 사이의 거리를 바라보는 영냥이",
+    "guide": {
+      "audience": "태어난 날의 숙을 바탕으로 성향과 관계의 리듬을 읽고, 서로에게 편안한 거리를 생각해 봐.",
+      "preparation": "출생 정보와 지금 궁금한 질문을 준비해 줘.",
+      "outline": [
+        {
+          "title": "태어난 날의 숙",
+          "text": "태어난 날에 해당하는 숙의 특징을 살펴봐."
+        },
+        {
+          "title": "관계의 성향",
+          "text": "가까워지는 방식과 반복되는 관계의 패턴을 돌아봐."
+        },
+        {
+          "title": "거리와 리듬",
+          "text": "상대의 마음을 단정하지 않고 서로에게 편안한 속도를 생각해 봐."
+        }
+      ],
+      "delivery": "삽화는 상담의 주제를 표현하며 개인의 계산 결과가 아니야.",
+      "examples": [
+        {
+          "title": "질문을 준비하는 방법",
+          "text": "가까워지고 싶은 순간과 혼자 쉬고 싶은 순간을 떠올려 봐. 관계를 단정하기보다 서로의 속도를 이해하는 질문으로 시작해 봐.",
+          "kind": "editorial"
+        }
+      ]
+    }
   }
 ]
