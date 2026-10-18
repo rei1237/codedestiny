@@ -9,6 +9,9 @@ export const HONEY_SCOPE = "FORTUNE_TEA_HOUSE";
 // 출석 N번마다 1방울. 출석 횟수는 누적이라 연속이 끊겨도 다음 지급까지 남은 수는 유지된다.
 export const HONEY_ATTENDANCE_EVERY = 1;
 export const PROMPT_HUB_HONEY_COST = 1;
+// 연이 운명 상담 1회 = 꿀방울 30개. 기본 사주 리포트와 같은 승인 비율(5,000원 : 30방울)이며 현금 가치가 아니다.
+export const FORTUNE_CHAT_HONEY_COST = 30;
+export const fortuneChatHoneyLedgerId = (userId, requestId) => `fortune-chat:${userId}:fc-${requestId}`;
 
 export const kstDay = (now = new Date()) => new Date(now.getTime() + 9 * 3600000).toISOString().slice(0, 10);
 const failure = (status, code, extra = {}) => createHttpError(status, code, { code, ...extra });
@@ -155,6 +158,54 @@ export async function spendPromptHubHoney(env, userId, { requestId, inputHash, t
     replayed = true;
   }
   return { replayed, ...await honeyAttendanceStatus(env, uid, now) };
+}
+
+/**
+ * 연이 상담 한 건에 꿀방울 30개를 쓴다. 호출자의 트랜잭션 안에서만 부르며, 상담 연결과 함께 커밋되거나 함께 되돌아간다.
+ * 상담마다 영수증은 하나라 같은 상담의 재시도는 다시 차감하지 않는다.
+ */
+export async function debitFortuneChatHoney(userId, { requestId, featureKey }, session, now = new Date()) {
+  const uid = String(userId), _id = fortuneChatHoneyLedgerId(uid, requestId);
+  const { wallets, ledgers } = collections();
+  const existing = await ledgers.findOne({ _id }, { session });
+  if (existing) {
+    if (existing.refundedAt) throw failure(409, "HONEY_ALREADY_RESTORED");
+    return { ledgerId: _id, replayed: true };
+  }
+  const wallet = unwrap(await wallets.findOneAndUpdate(
+    { userId: uid, serviceScope: HONEY_SCOPE, balance: { $gte: FORTUNE_CHAT_HONEY_COST } },
+    { $inc: { balance: -FORTUNE_CHAT_HONEY_COST, totalSpent: FORTUNE_CHAT_HONEY_COST }, $set: { updatedAt: now } },
+    { returnDocument: "after", session },
+  ));
+  if (!wallet) throw failure(402, "INSUFFICIENT_HONEY_DROPS", { required: FORTUNE_CHAT_HONEY_COST });
+  await ledgers.insertOne({
+    _id, userId: uid, type: "spend", amount: FORTUNE_CHAT_HONEY_COST, reason: "FORTUNE_CHAT_HONEY_SPEND",
+    serviceScope: HONEY_SCOPE, featureKey, requestId: `fc-${requestId}`, idempotencyKey: _id, createdAt: now,
+    metadata: { source: "fortune-chat" },
+  }, { session });
+  return { ledgerId: _id, replayed: false };
+}
+
+/** 아무것도 전하지 못한 연이 상담의 꿀방울을 한 번만 돌려준다. 이미 돌려준 영수증이면 false. */
+export async function refundFortuneChatHoney(userId, spendLedgerId, session, now = new Date()) {
+  const uid = String(userId), refundId = `refund:${spendLedgerId}`;
+  const { wallets, ledgers } = collections();
+  const spent = unwrap(await ledgers.findOneAndUpdate(
+    { _id: String(spendLedgerId || ''), userId: uid, type: "spend", refundedAt: { $exists: false } },
+    { $set: { refundedAt: now } },
+    { returnDocument: "after", session },
+  ));
+  if (!spent) return false;
+  const amount = count(spent.amount);
+  const credited = await wallets.updateOne({ userId: uid, serviceScope: HONEY_SCOPE },
+    { $inc: { balance: amount, totalSpent: -amount }, $set: { updatedAt: now } }, { session });
+  if (!credited.modifiedCount) throw failure(409, "HONEY_WALLET_MISSING");
+  await ledgers.insertOne({
+    _id: refundId, userId: uid, type: "refund", amount, reason: "FORTUNE_CHAT_HONEY_REFUND",
+    serviceScope: HONEY_SCOPE, featureKey: spent.featureKey, idempotencyKey: refundId, createdAt: now,
+    metadata: { source: "fortune-chat", spendLedgerId: spent._id },
+  }, { session });
+  return true;
 }
 
 /**

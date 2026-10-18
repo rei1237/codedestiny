@@ -15,4 +15,4 @@ export const chatPaymentRequestId = id => `fc-${id}`;
 export const chatCardClaim = id => `card:fc-${id}`;
 export const chatPassClaim = id => `access:pass:fc-${id}`;
 // Durable record a per-use consultation is pinned to; `point` covers coin, moonlight-stone and pass receipts.
-export const PER_USE_SOURCES = Object.freeze(['payment','point','ledger','admin']);
+export const PER_USE_SOURCES = Object.freeze(['payment','point','ledger','admin','honey']);

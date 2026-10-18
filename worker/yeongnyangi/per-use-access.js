@@ -16,7 +16,8 @@ export { PER_USE_SOURCES } from './access-methods.js';
 const paidStatuses = ['paid','success','fulfilled'];
 // What the buyer chose on the consultation screen. Only `pass` lets the server spend pass quota
 // (payment-gating: pass coverage only on an explicit pass command); `checkout` follows a payment window.
-export const CHAT_ACCESS_CHOICES = Object.freeze(['pass','checkout']);
+// `honey` spends 30 drops, only after no existing evidence was found (repository.js attachChatHoney).
+export const CHAT_ACCESS_CHOICES = Object.freeze(['pass','checkout','honey']);
 const readOptions = { retries: 1, retryOnOperationTimeout: true, retryAdmissionOnOverload: true };
 
 const failure = (status, code, payload = {}) => {
@@ -61,12 +62,20 @@ export async function findPerUseEvidence(row, owner, session = null, commitMarke
       ...(commitMarker ? { claimRequestId: id, commitMarker } : {}) });
   }
   if (source === 'admin') return read(User, { _id: owner, role: { $regex: /^admin$/i } }, false);
+  if (source === 'honey') {
+    const { honeyCollections } = await import('../lib/honey-wallet.js');
+    const { ledgers } = honeyCollections(), options = session ? { session } : {};
+    const filter = { _id: String(row.perUseEvidenceId || ''), userId: String(owner), type: 'spend', featureKey: row.featureKey,
+      refundedAt: { $exists: false } };
+    const found = mark ? await ledgers.findOneAndUpdate(filter, mark, { ...options, returnDocument: 'after' }) : await ledgers.findOne(filter, options);
+    return (found && Object.prototype.hasOwnProperty.call(found, 'value') ? found.value : found) || null;
+  }
   return null;
 }
 
 // A card payment window for this consultation that has not failed yet can still approve; spending a pass or
 // the free use meanwhile would charge twice. Same rule as the Yeongnyangi funding claim (payment-funding.js).
-async function assertNoOpenCheckout(env, owner, rid, featureKey) {
+export async function assertNoOpenCheckout(env, owner, rid, featureKey) {
   const open = await withMongoRetry(env, () => Payment.findOne({ userId: owner, requestId: rid, paymentType: 'digital_content',
     $nor: [{ status: 'failed', failureStage: 'pg-retry-check', failureCode: { $in: ['PG_PAYMENT_FAILED','PG_PAYMENT_CANCELLED'] } }] }).select('_id').lean(), readOptions);
   if (open) throw failure(409, 'PG_PAYMENT_NOT_PAID', { paidFeatureKey: featureKey, paymentRequestId: rid });

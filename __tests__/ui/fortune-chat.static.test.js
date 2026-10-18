@@ -226,3 +226,17 @@ test("personal saju keeps the solo product and joint consultation is an explicit
   assert.doesNotMatch(client, /opensTeaSaju|fortune-tea-house-saju-consultation/);
   assert.match(room, /href=\{TEA_SAJU_URL\}/);
 });
+
+test("Yeoni opens with thirty honey drops beside the pass and per-use checkout", () => {
+  // 2026-10-18: 꿀방울 30개로도 연이 상담을 연다. 이용권·1회 결제는 그대로이고 네오에는 꿀방울 카드가 없다.
+  const room = read("app/fortune-chat/ConsultationRoom.tsx");
+  const panel = read("app/fortune-chat/ConsultationAccessPanel.tsx");
+  const payHoney = room.slice(room.indexOf("const payHoney = async"), room.indexOf("const attendHoney"));
+  assert.match(payHoney, /row\.persona !== "yeoni" \|\| !canOfferHoney\(row, honey\?\.balance\)/);
+  assert.match(payHoney, /consultationApi\.activate\(id, "honey"\)/);
+  assert.match(room, /showHoney=\{row\.persona === "yeoni"\}/);
+  assert.match(room, /guardCheckout\(\(\) => readWithEvidence\(id\)/);
+  assert.match(panel, /data-consultation-pay/);
+  assert.match(panel, /data-consultation-honey /);
+  assert.match(read("app/fortune-chat/consultation-api.ts"), /"\/api\/honey\/attendance"/);
+});

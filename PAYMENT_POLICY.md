@@ -85,6 +85,19 @@ Cloudflare Workers는 런타임에 파일을 읽을 수 없으므로, 이 문서
 |------|-----------|-----------|-----------|------|
 | 운세 프롬프트 1회 생성 | `fortune-prompt-hub-generate` | 3,000원 | 30 | 단건 · 꿀방울 대체 · Play `cd_content_tier_01` |
 
+## 연이 운명 상담 — 꿀방울 30개로 열기 (2026-10-18)
+
+2026-10-18 사용자 승인. 연이 단독 운명 상담(`/fortune-chat`, `fortune-chat-consultation` 1회 5,000원)은 이용권·단건 결제에 더해
+**꿀방울 30개**로도 1건을 열 수 있다(30방울 = 5,000원 1회와 같은 값으로 본다). 같은 지갑(`fortune_tea_house_honey_wallets`)에서 차감하며,
+출석 보상은 현재 코드 기준 하루 1개(`HONEY_ATTENDANCE_EVERY = 1`)다.
+
+- 정본: 차감·환불 `worker/lib/honey-wallet.js`(`FORTUNE_CHAT_HONEY_COST`, ledger `fortune-chat:<uid>:fc-<id>`), 연결 `worker/yeongnyangi/repository.js` `attachChatHoney`.
+- 연이 기본 상담 키에만 쓴다. 질문 티어·네오·공동 상담에는 꿀방울을 쓰지 않는다(409 `HONEY_NOT_AVAILABLE`).
+- 이미 있는 증빙(카드 결제·코인·월정석·이용권·과거 무료 1회)이 먼저다. 그 증빙으로 열리면 꿀방울을 차감하지 않고, 결제창이 열린 상담은 꿀방울로 열지 않는다.
+- 잔액이 모자라면 402 `INSUFFICIENT_HONEY_DROPS`, 재시도는 같은 ledger 로 한 번만 차감된다.
+- 답을 전달하기 전에 생성이 최종 실패한 경우에만 30방울을 한 번 돌려준다(`HONEY_RESTORED`). 전달된 상담은 돌려주지 않는다.
+- 꿀방울 해금 카탈로그(`HONEY_UNLOCK_PRODUCTS`)에는 넣지 않는다 — 상담 1건 접근이지 콘텐츠 영구 해금이 아니다.
+
 ## 접근 무결성 (2026-10-16)
 
 운명 찻집 상담도 [결제 플로우 문서](docs/payment-policy-flow.md)의 "유료 접근 무결성 원칙"을 따른다. 결제 증빙 1건은 상담 1건(claim 주인 `fortune-tea-house:<attemptId>`)에만 쓰이고, 이용권은 이번 요청에서 실제로 차감된 경우에만 상담을 연다. 최종 생성 실패 시 이용권 차감은 `refundPassCoverage`로 되돌린다.
