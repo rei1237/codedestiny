@@ -59,7 +59,7 @@ const __lazyActionLoaders = {
   runCompat: () => __ensureSajuCoreScripts(),
   openPhysiognomyApp: () => __loadScriptOnce('AnalysisEngine.js?v=h96b7981840e2').then(() => __loadScriptOnce('PhysiognomyUI.js?v=h249f3790ba4b')),
   openPastLifeFaceApp: () => __loadScriptOnce('AnalysisEngine.js?v=h96b7981840e2').then(() => __loadScriptOnce('PastLifeFaceUI.js?v=he6a7b41ecbbb')),
-  openHwatuModal: () => __loadScriptOnce('HwatuFortune.js?v=h7c6f7751f293'),
+  openHwatuModal: () => __loadScriptOnce('HwatuFortune.js?v=haecc3241c877'),
   openMbtiModal: () => __loadScriptOnce('js/astral-soul.js'),
   openKemetModal: () => __loadScriptOnce('/js/oracle-kcg.js?v=build-0ec1914725f2'),
   openDreamModal: () => __loadScriptOnce('/js/dream-ledger.js?v=build-cf48ab7e8047'),
