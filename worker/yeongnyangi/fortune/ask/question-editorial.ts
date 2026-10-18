@@ -19,7 +19,7 @@ export const questionEditorial:Record<AskCategory,{theme:Theme;answer:string;foc
  family:{theme:'relations',answer:'가족을 아끼면서 내 몫을 지키는 방법',focus:'가족의 기대와 자신의 부담 사이에서 질문한 갈등에 답한다. 가족 구성과 과거를 지어내지 않고 역할 분담·돈·연락 중 관련된 합의와 말하기 예시를 제시한다.'},
  move:{theme:'timing',answer:'이사와 이동, 지금 바꿔도 될 조건',focus:'이사·해외 이동의 목적·후보·시기를 주어진 범위에서 비교한다. 일·주거비·생활 기반과 계산 가능한 시기 흐름을 구분한다.'},
  timing:{theme:'timing',answer:'지금과 다음 시기, 달라지는 과제',focus:'사용자가 지정한 기간 또는 시기 전환만 다룬다. 현재와 다음의 근거·과제·준비를 비교하고 계산되지 않은 월별·날짜별 사건은 만들지 않는다.'},
- other:{theme:'self',answer:'이번 고민에서 먼저 풀어볼 선택',focus:'질문의 핵심 결정을 먼저 짚는다. 질문하지 않은 연애·재물·직업 총론으로 확장하지 않고 주어진 사실과 선택지를 연결한다.'},
+ other:{theme:'self',answer:'이번 고민에서 먼저 풀어볼 선택',focus:'질문에 담긴 독립 고민을 구분하고 우선순위를 먼저 밝히며 고민마다 중복 없이 직접 답한다. 질문하지 않은 연애·재물·직업 총론으로 확장하지 않고 주어진 사실과 선택지를 연결한다.'},
 };
 
 export const foundationGuide:Record<DomainId,{title:string;instruction:string}>={

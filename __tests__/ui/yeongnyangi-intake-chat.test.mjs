@@ -21,11 +21,11 @@ test('scope steps follow existing product policy and conditional inputs',()=>{
  assert.equal(p.intakeStepValid('period',value({horizon:'transition'})),false);
 });
 test('scope confirmation preserves server contract and blocks unsupported combinations',()=>{
- for(const [patch,fish] of [[{},'mackerel'],[{category:'career',options:'취업 준비',constraints:'없음',period:'올해'},'salmon'],[{target:'pair',relationshipType:'family'},'flounder'],[{horizon:'transition',period:'현재와 다음 대운'},'tuna']]){
+ for(const [patch,fish] of [[{},'mackerel'],[{category:'other'},'mackerel'],[{category:'career',options:'취업 준비',constraints:'없음',period:'올해'},'salmon'],[{target:'pair',relationshipType:'family'},'flounder'],[{horizon:'transition',period:'현재와 다음 대운'},'tuna']]){
   const v=value(patch);assert.equal(p.intakeStepValid('scope',v),true);
   assert.equal(p.assertQuestionOrder({domain:v.domain,fishId:fish,readingKind:'single'},{...v.decision,confirmed:true},v.question).fish,fish);
  }
- for(const v of [value({target:'pair',horizon:'transition'}),value({horizon:'transition',period:'다음 시기'},'tarot'),value({category:'other'})])assert.equal(p.intakeStepValid('scope',v),false);
+ for(const v of [value({target:'pair',horizon:'transition'}),value({horizon:'transition',period:'다음 시기'},'tarot')])assert.equal(p.intakeStepValid('scope',v),false);
 });
 test('restored or edited cursors cannot skip required fields or invalid profiles',()=>{
  const v=value({situation:''});

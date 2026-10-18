@@ -122,3 +122,21 @@ test('D5: a ziwei job change reads career palaces without the business basis; ot
   assert.ok(sel('money').includes('businessBasis'),`expanded=${expanded}`);
  }
 });
+test('composite questions pass the scope gate and get a ranked, non-repeating layout in every tier',()=>{
+ const q='이직할지, 돈 관리를 어떻게 할지, 부모님과의 관계를 어떻게 풀지 다 고민이에요.';
+ const decision=d({category:'other'});
+ assert.deepEqual(p.recommendQuestion('saju',decision,q).missing,[]);
+ assert.equal(p.assertQuestionOrder({domain:'saju',fishId:'mackerel',readingKind:'single'},decision,q).fish,'mackerel');
+ for(const [fish,count] of [['mackerel',6],['salmon',11],['flounder',15],['tuna',24]]){
+  const rows=p.questionManifest('saju',fish,decision,undefined,q);
+  assert.equal(rows.length,count);
+  assert.deepEqual(rows.slice(0,3).map(r=>r.layoutRole),['foundation','foundation','answer']);
+  assert.equal(rows.at(-1).layoutRole,'synthesis');assert.equal(new Set(rows.map(r=>r.id)).size,rows.length);
+  assert.match(rows[2].sections[0].instruction,/우선순위.*먼저 답한다/);assert.match(rows.at(-1).sections.find(s=>s.id==='action').instruction,/가장 먼저 할 일 1개/);
+  for(const row of rows.slice(3,-1))assert.match(row.focus,/다시 쓰지 않고/);
+  // Untouched areas come first; asked areas only fill the tier's remaining chapters.
+  const bonus=rows.filter(r=>r.layoutRole==='bonus');
+  if(fish==='salmon')assert.doesNotMatch(bonus[0].sections[0].instruction,/재물|일과 적성|가족/);
+  if(fish==='flounder')assert.match(bonus.slice(0,2).map(r=>r.title).join(' '),/건강 리듬.*연애와 인연|연애와 인연.*건강 리듬/);
+ }
+});
