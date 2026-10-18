@@ -128,6 +128,38 @@ export default function HomePage() {
             </li>;
           })}
         </ul>
+        {/* 둘러보기 세 진입점. /ggulggul/ 정적 홈의 하단 버튼과 같은 지류·금박 틀을 쓴다. 정적 페이지는 next/link 대신 <a>. */}
+        <nav className={styles.explore} aria-label="더 둘러보기">
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+          <a className={styles.exploreBtn} href={service.appEntryPath}>
+            <span className={styles.exploreIcon} aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"><path d="M12 6.5C9.6 5 6.8 4.7 4 5.5v12c2.8-.8 5.6-.5 8 1 2.4-1.5 5.2-1.8 8-1v-12c-2.8-.8-5.6-.5-8 1Zm0 0v12" /></svg></span>
+            <span className={styles.exploreName}>모든 운세 보기</span>
+            <svg className={styles.exploreArrow} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" /></svg>
+          </a>
+          <Link className={`${styles.exploreBtn} ${styles.exploreGame}`} href="/mini-games/">
+            <span className={styles.exploreIcon} aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"><rect x="4.2" y="5.4" width="8.6" height="12.6" rx="1.6" transform="rotate(-14 8.5 11.7)" /><rect x="10.6" y="5" width="8.6" height="12.6" rx="1.6" transform="rotate(9 14.9 11.3)" /><path d="M15.9 9.2a2.3 2.3 0 1 0 1.3 3.6 1.9 1.9 0 1 1-1.3-3.6z" /></svg></span>
+            <span className={styles.exploreCopy}><span className={styles.exploreName}>미니 운세 게임</span><small>포커·오미쿠지·FPTI 등 여러 게임</small></span>
+            <span className={styles.explorePlay} aria-hidden="true"><svg viewBox="0 0 10 10"><path d="M2 1l7 4-7 4z" fill="currentColor" /></svg>PLAY</span>
+          </Link>
+          <details className={styles.exploreStory}>
+            <summary className={styles.exploreBtn}>
+              <span className={styles.exploreBacks} aria-hidden="true">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/images/fortune-tea-house/moonlight-tarot-card-back.webp" width={120} height={180} alt="" loading="lazy" decoding="async" />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/images/fortune-tea-house/moonlight-tarot-card-back.webp" width={120} height={180} alt="" loading="lazy" decoding="async" />
+              </span>
+              <span className={styles.exploreCopy}><strong className={styles.exploreName}>달빛 이야기</strong><small>노벨과 음악</small></span>
+              <span className={styles.exploreChev} aria-hidden="true" />
+            </summary>
+            <div className={styles.exploreSpread}>
+              {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+              <a href="/codedestiny-novel.html">영냥이 노벨</a>
+              {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+              <a href="/music/">달빛 음악</a>
+            </div>
+          </details>
+        </nav>
         <div className={styles.discovery}>
           <section className={styles.section} aria-labelledby="homeServices">
             <div className={styles.sectionHeading}><h2 id="homeServices">어떤 운세가 궁금하세요?</h2><p>익숙한 사주부터 새로운 별의 이야기까지.</p></div>

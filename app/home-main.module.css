@@ -76,6 +76,84 @@
 .cardHint { margin-top: 4px !important; margin-bottom: 16px !important; font-size: 0.75rem; line-height: 1.5; color: var(--hm-card-muted); }
 .cardAction { display: flex; align-items: center; justify-content: space-between; gap: 4px; min-height: 44px; margin-top: auto; padding-inline: 10px; border-radius: var(--cd-r-control); background: var(--hm-action-bg); color: var(--hm-action-ink); font-size: 0.8125rem; font-weight: 700; }
 .cardAction svg { flex: none; }
+/* 둘러보기 세 버튼 — 달빛 예화 지류 결 + 금박 테두리. 색은 --cd-* 토큰에서 읽어 네오 테마를 따른다. */
+.explore {
+  --hm-paper-1: color-mix(in oklab, var(--cd-bg) 82%, white);
+  --hm-paper-2: color-mix(in oklab, var(--cd-bg) 90%, var(--cd-yehwa-line) 10%);
+  --hm-foil: linear-gradient(135deg, var(--cd-yehwa-line-2) 0%, var(--cd-yehwa-line) 30%, var(--cd-yehwa-line-deep) 55%, var(--cd-yehwa-line-2) 80%, var(--cd-yehwa-line) 100%);
+  --hm-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .33 0 0 0 0 .2 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+  width: 100%;
+  max-width: 440px;
+  margin: 36px auto 0;
+}
+.exploreBtn, .exploreStory { width: 100%; }
+.exploreBtn {
+  position: relative; overflow: hidden; isolation: isolate; box-sizing: border-box;
+  display: flex; align-items: center; gap: 20px; min-height: 88px; padding: 16px 26px;
+  border: 1px solid transparent; border-radius: 24px;
+  background: var(--hm-grain) padding-box, linear-gradient(180deg, var(--hm-paper-1), var(--hm-paper-2)) padding-box, var(--hm-foil) border-box;
+  background-origin: border-box;
+  box-shadow: inset 0 1px 0 color-mix(in oklab, white 70%, transparent), 0 10px 22px -18px color-mix(in oklab, var(--cd-text) 45%, transparent);
+  color: var(--cd-text); font-family: var(--font-serif); font-size: 1.25rem; font-weight: 600; line-height: 1.4; text-align: left; text-decoration: none;
+  cursor: pointer; list-style: none; transition: box-shadow 0.2s ease;
+}
+.exploreBtn::-webkit-details-marker { display: none; }
+.exploreBtn::after { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: linear-gradient(105deg, transparent 35%, rgba(255, 244, 214, 0.5) 50%, transparent 65%); transform: translateX(-120%); }
+.exploreBtn:focus-visible { outline: 3px solid var(--cd-text); outline-offset: 4px; }
+.exploreIcon { display: inline-grid; place-items: center; flex: none; width: 46px; height: 46px; border: 1px solid color-mix(in oklab, var(--cd-yehwa-line-deep) 55%, transparent); border-radius: 14px; background: radial-gradient(circle at 35% 30%, color-mix(in oklab, var(--hm-paper-1) 80%, white), var(--hm-paper-2)); color: var(--hm-gold-ink); }
+.exploreIcon svg { width: 26px; height: 26px; }
+.exploreName { font: inherit; }
+.exploreArrow { flex: none; width: 22px; height: 22px; margin-left: auto; transition: transform 0.2s ease; }
+.exploreCopy { display: grid; gap: 3px; min-width: 0; }
+.exploreCopy small { font-family: var(--font-body); font-size: 0.8125rem; font-weight: 400; line-height: 1.5; opacity: 0.85; }
+/* 미니 운세 게임: 밤하늘 게임 패널 + PLAY 배지. 두 테마 모두 어두운 판이라 글자는 고정색이다. */
+.exploreGame {
+  color: #fdf6f0;
+  background:
+    radial-gradient(circle at 30% 9%, rgba(255, 255, 255, 0.9) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 58% 91%, rgba(255, 244, 214, 0.8) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 84% 12%, rgba(255, 255, 255, 0.7) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 12% 0%, rgba(168, 130, 255, 0.35), transparent 55%) padding-box,
+    var(--hm-grain) padding-box, linear-gradient(135deg, #2a2040 0%, #3a2a55 100%) padding-box, var(--hm-foil) border-box;
+  background-origin: border-box;
+  box-shadow: inset 0 1px 0 rgba(232, 213, 163, 0.25), 0 14px 28px -16px rgba(42, 32, 64, 0.75);
+}
+.exploreGame .exploreIcon { color: #f3e3b8; border-color: rgba(232, 213, 163, 0.6); background: radial-gradient(circle at 35% 30%, #4a3a72, #2a2040); box-shadow: 0 0 16px -2px rgba(232, 213, 163, 0.5); }
+.exploreGame .exploreIcon rect { transform-box: fill-box; transform-origin: center; transition: transform 0.25s ease; }
+.exploreGame .exploreCopy small { color: #e4d8c4; opacity: 1; }
+.exploreName { white-space: nowrap; }
+.explorePlay { display: inline-flex; align-items: center; justify-content: center; gap: 5px; flex: none; margin-left: auto; width: 36px; height: 36px; border-radius: 999px; background: linear-gradient(135deg, #f3e3b8, #c9a46a); color: #2a2040; font: 800 0 / 1 system-ui, sans-serif; box-shadow: 0 0 14px -2px rgba(232, 213, 163, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.6); transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.explorePlay svg { width: 12px; height: 12px; margin-left: 2px; }
+.exploreGame:active { transform: translateY(1px); }
+.exploreBacks { position: relative; flex: none; width: 46px; height: 46px; border: 1px solid color-mix(in oklab, var(--cd-yehwa-line-deep) 55%, transparent); border-radius: 14px; background: radial-gradient(circle at 35% 30%, color-mix(in oklab, var(--hm-paper-1) 80%, white), var(--hm-paper-2)); box-shadow: 0 0 14px -2px rgba(232, 213, 163, 0.55); }
+.exploreBacks img { position: absolute; top: 1px; left: 10px; width: 27px; height: 41px; border-radius: 4px; object-fit: cover; box-shadow: 0 3px 7px -3px rgba(64, 42, 56, 0.4); }
+.exploreBacks img:first-child { transform: translateX(-5px) rotate(-10deg); }
+.exploreBacks img:last-child { transform: translateX(5px) rotate(8deg); }
+.exploreChev { flex: none; width: 10px; height: 10px; margin: 0 3px 4px auto; border-right: 1.5px solid var(--hm-gold-ink); border-bottom: 1.5px solid var(--hm-gold-ink); transform: rotate(45deg); transition: transform 0.2s ease; }
+.exploreStory[open] .exploreChev { transform: rotate(225deg); }
+.exploreSpread { display: grid; gap: 8px; padding: 14px 4px 0; }
+.exploreSpread a { display: flex; align-items: center; min-height: 48px; padding-inline: 20px; border: 1px solid var(--hm-gold-line); border-radius: 16px; color: var(--cd-text); text-decoration: none; }
+.exploreSpread a:focus-visible { outline: 3px solid var(--cd-text); outline-offset: 3px; }
+@media (hover: hover) {
+  .exploreBtn:hover, .exploreStory[open] .exploreBtn { box-shadow: inset 0 1px 0 color-mix(in oklab, white 70%, transparent), 0 16px 30px -18px color-mix(in oklab, var(--cd-yehwa-line-deep) 70%, transparent); }
+  .exploreBtn:hover::after, .exploreStory[open] .exploreBtn::after { transform: translateX(120%); transition: transform 0.9s ease; }
+  .exploreBtn:hover .exploreArrow { transform: translateX(4px); }
+  .exploreGame:hover .exploreIcon rect:first-child { transform: rotate(-12deg) translateX(-1px); }
+  .exploreGame:hover .exploreIcon rect:last-child { transform: rotate(12deg) translateX(1px); }
+  .exploreGame:hover .explorePlay { transform: scale(1.06); box-shadow: 0 0 20px 0 rgba(232, 213, 163, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.6); }
+}
+@media (min-width: 641px) {
+  .explorePlay { width: auto; height: auto; padding: 7px 12px 7px 10px; font-size: 0.75rem; letter-spacing: 0.12em; }
+  .explorePlay svg { width: 9px; height: 9px; margin-left: 0; }
+}
+@media (max-width: 640px) { .exploreBtn { padding-inline: 20px; gap: 16px; } }
+@media (prefers-reduced-motion: reduce) {
+  .exploreBtn, .exploreArrow, .exploreChev, .explorePlay, .exploreGame .exploreIcon rect { transition: none; }
+  .exploreBtn::after { display: none; }
+}
 .discovery { width: 100%; max-width: 1040px; margin-top: 12px; }
 .section { padding-block: 36px; border-top: 1px solid var(--cd-line); }
 .section:first-child { border: 0; padding-top: 12px; }
