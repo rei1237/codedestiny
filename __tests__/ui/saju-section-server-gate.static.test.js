@@ -150,7 +150,7 @@ test("브라우저는 본문을 서버에만 묻는다", () => {
   assert.match(read("js/core/saju/reportDashboard.js"), /case 'specialCharmCard':[\s\S]{0,400}CdSajuSectionClient\.loadCard\('rpt_specialCharmCard'\)/, "나의 매력 클래스 열기가 서버 로더를 거치지 않는다");
   assert.match(client, /rpt_skillTreeCard: \{[\s\S]{0,120}area: 'skillTreeBody'/, "인생 스킬 트리가 서버 본문을 요청하지 않는다");
   assert.match(read("js/core/saju/reportDashboard.js"), /case 'skillTreeCard':[\s\S]{0,400}CdSajuSectionClient\.loadCard\('rpt_skillTreeCard'\)/, "인생 스킬 트리 열기가 서버 로더를 거치지 않는다");
-  assert.match(read("index.html"), /<script defer src="\/js\/core\/saju\/section-client\.js"><\/script>/, "index.html 이 본문 로더를 싣지 않는다");
+  assert.match(read("index.html"), /<script defer src="\/js\/core\/saju\/section-client\.js\?v=build-[a-f0-9]{12}"><\/script>/, "index.html 이 본문 로더를 싣지 않는다");
 });
 
 test("영냥이 귀인 문구와 현실 체크는 문장 역할·테마 토큰을 지킨다", () => {
