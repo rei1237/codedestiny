@@ -32,7 +32,7 @@ import {
   signAuthToken,
   JWT_ISSUER,
 } from "../lib/auth.js";
-import { getRequestMeta, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson, redirect } from "../lib/http.js";
+import { cookieValue, getRequestMeta, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson, redirect } from "../lib/http.js";
 import { EMAIL_MARKETING_CONSENT_VERSION } from "../../lib/marketing/email-marketing.mjs";
 import { buildConfigErrorBody, evaluateFeatureKeyHealth } from "../lib/key-health.js";
 import { buildProfilePolicySnapshot } from "../lib/profile-limits.js";
@@ -1438,7 +1438,7 @@ async function signSocialState(payload, env) {
 }
 
 async function verifySocialState(token, env) {
-  const payload = await verifyJwt(token, getAccessTokenSecret(env), { issuer: JWT_ISSUER });
+  const payload = await verifyJwt(token, getAccessTokenSecret(env), { issuer: JWT_ISSUER, requireExp: true });
   if (!payload || payload.purpose !== "social-oauth-state") {
     throw new Error("invalid_oauth_state");
   }
@@ -4344,6 +4344,12 @@ async function handleOAuthStart(request, env, provider) {
     }
 
     const url = new URL(request.url);
+    // Issue the host-only binding cookie on the callback host, including www/API aliases.
+    // The destination comes from the server's provider configuration, never a query parameter.
+    const callbackOrigin = new URL(cfg.redirectUri).origin;
+    if (url.origin !== callbackOrigin) {
+      return redirect(`${callbackOrigin}${url.pathname}${url.search}`);
+    }
     const mode = sanitizeOAuthMode(url.searchParams.get("mode"));
     let phoneConsentUserId = "";
     if (mode === PHONE_CONSENT_MODE) {
@@ -4382,8 +4388,12 @@ async function handleOAuthStart(request, env, provider) {
       referralSource: url.searchParams.get("referralSource") || url.searchParams.get("via"),
     });
     const frontendBase = getOAuthFrontendBaseUrl(request, env);
+    const bindingCookieName = `cd_oauth_browser_${provider}`;
+    const existingBinding = cookieValue(request, bindingCookieName);
+    const browserBinding = /^[a-f0-9]{64}$/.test(existingBinding) ? existingBinding : randomBytes(32).toString("hex");
     const stateToken = await signSocialState({
       provider,
+      browserBindingHash: createHash("sha256").update(browserBinding).digest("hex"),
       nextPath,
       frontendBase,
       appRedirect,
@@ -4413,7 +4423,11 @@ async function handleOAuthStart(request, env, provider) {
       if (provider === "naver") params.set("auth_type", "reprompt");
     }
 
-    return redirect(`${cfg.authorizationEndpoint}?${params.toString()}`);
+    const response = redirect(`${cfg.authorizationEndpoint}?${params.toString()}`);
+    response.headers.append("Set-Cookie", buildCookieValue(bindingCookieName, browserBinding, {
+      httpOnly: true, secure: resolveCookieSecure(request, env), sameSite: "Lax", maxAge: 600,
+    }));
+    return response;
   } catch (error) {
     logAuthDiagnostic(request, env, "/api/auth/oauth/start", provider, "oauth_start_failed", error);
     return json({
@@ -4624,6 +4638,13 @@ async function handleOAuthCallback(request, env, provider) {
       logKakaoCallbackMarker(request, provider, "stateValid", { stateValid: false });
       logExchangeFailed("provider_mismatch");
       return buildOAuthFailureRedirect(frontendBase, provider, "provider_mismatch");
+    }
+    const browserBinding = cookieValue(request, `cd_oauth_browser_${provider}`);
+    const expectedBinding = String(statePayload.browserBindingHash || "");
+    if (!/^[a-f0-9]{64}$/.test(browserBinding) || !/^[a-f0-9]{64}$/.test(expectedBinding)
+      || !timingSafeEqual(Buffer.from(createHash("sha256").update(browserBinding).digest("hex")), Buffer.from(expectedBinding))) {
+      logExchangeFailed("oauth_browser_mismatch");
+      return buildOAuthFailureRedirect(frontendBase, provider, "oauth_browser_mismatch");
     }
     logKakaoCallbackMarker(request, provider, "stateValid", { stateValid: true });
 

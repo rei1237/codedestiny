@@ -13,6 +13,7 @@ import {
   visionToSideAnalysis,
 } from "../lib/palm-vision.js";
 import { palmCopy } from "../lib/palm-locale-copy.js";
+import { readBoundedText } from "../lib/request-body.js";
 
 const { analyzePalmHandInput, applySafetyExpressionFilter } = palmMapEngine;
 const { buildBothHandsComparison } = bothHandsComparisonLib;
@@ -53,22 +54,16 @@ function hasImage(sideData) {
 
 /**
  * 본문 크기 상한을 건 JSON 리더.
- * 공용 readJson 은 무제한 request.text() 라 이 라우트(이미지 2장)에는 쓰지 않는다.
+ * 이미지 2장의 기존 72 MiB 상한을 공용 JSON 상한과 별도로 유지한다.
  */
 async function readJsonWithLimit(request, maxBytes) {
   const copy = palmCopy();
-  const declared = Number(request.headers.get("Content-Length") || 0);
-  if (Number.isFinite(declared) && declared > maxBytes) {
-    throw createHttpError(413, copy.imageTooLarge, {
-      code: "IMAGE_TOO_LARGE",
-    });
-  }
-
-  const text = await request.text();
-  if (text.length > maxBytes) {
-    throw createHttpError(413, copy.imageTooLarge, {
-      code: "IMAGE_TOO_LARGE",
-    });
+  let text;
+  try {
+    text = await readBoundedText(request, maxBytes);
+  } catch (error) {
+    if (error?.code !== "REQUEST_BODY_TOO_LARGE") throw error;
+    throw createHttpError(413, copy.imageTooLarge, { code: "IMAGE_TOO_LARGE" });
   }
   if (!text.trim()) return {};
 

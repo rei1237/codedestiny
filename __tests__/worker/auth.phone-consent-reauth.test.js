@@ -235,16 +235,20 @@ describe("추가 동의 시작", () => {
 
 describe("추가 동의 콜백", () => {
   const CALLBACK_ORIGIN = "https://code-destiny.com";
+  const browserCookies = new Map();
 
   /** start 가 발급한 state 를 그대로 받아 콜백 요청을 만든다(서명 검증을 우회하지 않는다). */
   async function stateFromStart(provider = "kakao") {
     const response = await callStart(provider, "?mode=phone-consent");
-    return new URL(response.headers.get("location")).searchParams.get("state");
+    const state = new URL(response.headers.get("location")).searchParams.get("state");
+    browserCookies.set(state, (response.headers.get('set-cookie') || '').split(';')[0]);
+    return state;
   }
 
-  async function callCallback(state, { code = "auth-code-1", provider = "kakao" } = {}) {
+  async function callCallback(state, { code = "auth-code-1", provider = "kakao", cookie = browserCookies.get(state) || '' } = {}) {
     const request = new Request(
       `${CALLBACK_ORIGIN}/api/auth/oauth/${provider}/callback?code=${code}&state=${encodeURIComponent(state)}`,
+      { headers: { Cookie: cookie } },
     );
     return authRoutes.__authTestUtils.handleOAuthCallback(request, BASE_ENV, provider);
   }
@@ -286,6 +290,15 @@ describe("추가 동의 콜백", () => {
     expect(update.$set.phoneNumber).not.toBe(PROVIDER_PHONE);
     expect(update.$set.phoneSource).toBe("social");
     expect(update.$set["legalConsents.phoneAcceptedAt"]).toBeInstanceOf(Date);
+  });
+
+  test.each(['', 'cd_oauth_browser_kakao=' + 'b'.repeat(64)])('다른 브라우저의 state로 공급자 교환이나 저장을 시작하지 않는다: %s', async cookie => {
+    const state = await stateFromStart();
+    stubProvider();
+    const response = await callCallback(state, { cookie });
+    expect(response.status).toBe(302);
+    expect(global.fetch).not.toHaveBeenCalled();
+    expect(mockCollectionFindOneAndUpdate).not.toHaveBeenCalled();
   });
 
   // 🔴 이게 없으면 남의 카카오 계정으로 로그인해 내 계정에 그 번호를 붙일 수 있다.
@@ -336,5 +349,32 @@ describe("추가 동의 콜백", () => {
 
     const response = await callCallback(state);
     expect(response.headers.get("set-cookie")).toBeNull();
+  });
+});
+
+describe('OAuth browser binding issuance', () => {
+  test.each(['google', 'naver', 'kakao'])('%s binds ordinary login to an HttpOnly browser cookie without requiring login', async provider => {
+    const response = await callStart(provider, '?appRedirect=com.codedestiny.app%3A%2F%2Fauth%2Fcallback', { token: '' });
+    expect(response.status).toBe(302);
+    const cookie = response.headers.get('set-cookie');
+    expect(cookie).toContain('HttpOnly');
+    expect(cookie).toContain('Secure');
+    expect(cookie).toContain('SameSite=Lax');
+    expect(cookie).toContain('Max-Age=600');
+    expect(cookie).not.toContain('Domain=');
+    const state = new URL(response.headers.get('location')).searchParams.get('state');
+    const payload = JSON.parse(Buffer.from(state.split('.')[1], 'base64url').toString());
+    expect(payload.browserBindingHash).toMatch(/^[a-f0-9]{64}$/);
+    expect(payload.browserBindingHash).not.toBe(cookie.split(';')[0].split('=')[1]);
+    expect(payload.provider).toBe(provider);
+    expect(payload.appRedirect).toBe('com.codedestiny.app://auth/callback');
+  });
+  test('configured callback host receives start before a host-only cookie is issued', async () => {
+    const response = await authRoutes.__authTestUtils.handleOAuthStart(
+      startRequest('google', '?next=%2Frecords%2F'),
+      { ...BASE_ENV, GOOGLE_OAUTH_CALLBACK: 'https://api.code-destiny.com/api/auth/oauth/google/callback' }, 'google',
+    );
+    expect(response.headers.get('location')).toBe('https://api.code-destiny.com/api/auth/oauth/google/start?next=%2Frecords%2F');
+    expect(response.headers.get('set-cookie')).toBeNull();
   });
 });

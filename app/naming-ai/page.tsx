@@ -15,7 +15,7 @@ import { buildKrwOffer } from "@/lib/seo/paid-offer";
 const PAGE_PATH = "/naming-ai/";
 const PAGE_TITLE = "이름 추천·무료 초안·사주 작명 | 꿀꿀 운세";
 const PAGE_DESCRIPTION =
-  "아기 이름과 개명 후보를 찾고 있나요? 성씨와 원하는 분위기로 무료 이름 초안을 살펴보세요. 사주·한자 뜻·소리오행·수리 4격을 검토하는 상세 작명서는 별도 유료 서비스입니다.";
+  "성씨와 원하는 분위기로 아기 이름·개명 후보의 무료 초안을 살펴보세요. 사주·한자 뜻·소리오행·수리 4격을 검토하는 상세 작명서는 별도 유료 서비스입니다.";
 const namingOffer = buildKrwOffer("premium-naming-prompt", PAGE_PATH);
 const namingPriceLabel = namingOffer ? `${Number(namingOffer.price).toLocaleString("ko-KR")}원` : "결제 화면에 표시된 금액";
 

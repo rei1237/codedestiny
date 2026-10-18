@@ -1,3 +1,5 @@
+import { readBoundedText } from "./request-body.js";
+
 export class HttpError extends Error {
   constructor(status, message, payload = {}) {
     super(message);
@@ -43,7 +45,15 @@ export function redirect(location, status = 302) {
 }
 
 export async function readJson(request) {
-  const text = await request.text();
+  let text;
+  try {
+    text = await readBoundedText(request);
+  } catch (error) {
+    if (error?.code === "REQUEST_BODY_TOO_LARGE") {
+      throw createHttpError(413, "Request body is too large.", { code: "PAYLOAD_TOO_LARGE" });
+    }
+    throw error;
+  }
   if (!text.trim()) return {};
 
   try {
