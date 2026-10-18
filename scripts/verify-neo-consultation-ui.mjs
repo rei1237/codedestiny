@@ -95,14 +95,16 @@ try {
     await page.getByLabel('질문 1',{exact:true}).fill('직장을 옮기기 전에 고려할 점은 무엇인가요?');
     await page.getByRole('button',{name:'질문 추가하기',exact:false}).click();
     await page.getByLabel('질문 2',{exact:true}).fill('관계에서 반복되는 패턴을 어떻게 바꾸면 좋을까요?');
-    await page.getByRole('group',{name:'질문 2 풀이 방식'}).getByRole('radio',{name:/자미두수 \+ 사주/}).check();
-    assert.ok(await page.getByText('30,000원',{exact:true}).isVisible());
+    await page.getByRole('group',{name:'질문 2 풀이 구성'}).getByRole('checkbox',{name:/자미두수 추가/}).check();
+    await page.getByRole('group',{name:'질문 2 풀이 구성'}).getByRole('checkbox',{name:/원국·자미두수 명반 해석 추가/}).check();
+    assert.ok(await page.getByText('50,000원',{exact:true}).isVisible());
     if(width===360){const capture=resolve(out,'options-360.png');await page.locator('#neo-form').screenshot({path:capture});captures.push(capture);}
     await page.getByRole('button',{name:'질문 2 삭제'}).click();
     assert.equal(await page.locator('textarea[id^="neo-q-"]').count(),1);
     await page.getByRole('button',{name:'질문 추가하기',exact:false}).click();
     await page.getByLabel('질문 2',{exact:true}).fill('관계에서 반복되는 패턴을 어떻게 바꾸면 좋을까요?');
-    await page.getByRole('group',{name:'질문 2 풀이 방식'}).getByRole('radio',{name:/자미두수 \+ 사주/}).check();
+    await page.getByRole('group',{name:'질문 2 풀이 구성'}).getByRole('checkbox',{name:/자미두수 추가/}).check();
+    await page.getByRole('group',{name:'질문 2 풀이 구성'}).getByRole('checkbox',{name:/원국·자미두수 명반 해석 추가/}).check();
     await page.getByRole('button',{name:'다음',exact:true}).click();
     await page.getByLabel('회신 이메일').fill('browser@example.invalid');
     await page.getByRole('button',{name:'다음',exact:true}).click();
@@ -163,6 +165,7 @@ try {
   await page.getByRole('button',{name:'답변 저장하기',exact:true}).nth(1).click();
   await expect(page.getByRole('button',{name:'직접 검수 완료',exact:true}).nth(1)).toBeDisabled();
   await page.getByLabel('질문 2에 자미두수와 사주 풀이가 모두 포함됐는지 확인했습니다.').check();
+  await page.getByLabel('질문 2에 사주 원국·자미두수 명반 해석이 포함됐는지 확인했습니다.').check();
   await page.getByRole('button',{name:'직접 검수 완료',exact:true}).nth(1).click();
   await page.getByRole('button',{name:'검수한 답변 발송 예약',exact:true}).click();
   await expect(page.getByRole('button',{name:'예약 메일 전달하기',exact:true})).toHaveCount(2);
@@ -171,7 +174,7 @@ try {
   assert.match(mock.mails[0].message.text,/1990-04-20/);
   assert.match(mock.mails[0].message.text,/2022년 봄/);
   assert.match(mock.mails[0].message.text,/서른 살 무렵/);
-  assert.match(mock.mails[0].message.text,/자미두수 \+ 사주/);
+  assert.match(mock.mails[0].message.text,/사주 \+ 자미두수 · 사주 원국·자미두수 명반 해석/);
   await page.getByRole('button',{name:'예약 메일 전달하기',exact:true}).last().click();
   await page.getByRole('heading',{name:'답변 발송 완료',exact:true}).waitFor();
   for(const width of [390,1280]){

@@ -61,23 +61,26 @@ test('신규 상품만 비동기 제공 영수증을 사용한다', () => {
 });
 
 
-test('혼합 풀이 3만원을 실제 주문 스냅샷에 저장하고 승인 검증 뒤 한 번만 접수한다', async () => {
+test.each([
+  ['v2 자미두수 혼합 3만원',2,[{id:'q1',text:'이직의 기준',readingMode:'ziwei'},{id:'q2',text:'관계의 기준',readingMode:'ziwei_saju'}],30000],
+  ['v3 사주 기본 + 자미두수·원국명반 5만원',3,[{id:'q1',text:'이직의 기준',readingMode:'saju',chartReading:false},{id:'q2',text:'관계의 기준',readingMode:'saju_ziwei',chartReading:true}],50000],
+])('%s을 실제 주문 스냅샷에 저장하고 승인 검증 뒤 한 번만 접수한다', async (_label,pricingVersion,questions,total) => {
   const db=makeFakePaymentDb(), repository=createNeoRepository(db);
-  const questions=[{id:'q1',text:'이직의 기준',readingMode:'ziwei'},{id:'q2',text:'관계의 기준',readingMode:'ziwei_saju'}];
   const items=neoQuoteItems(questions);
   const row={id:'neo-mixed',userId,version:1,state:'preparing',capacityDay:'2026-10-17',email:'x@example.invalid',consent:true,
     birth:{date:'1990-04-20',calendar:'solar',leapMonth:false,timeUnknown:false,time:'12:30'},questions,deliveries:[],mailJobs:[],payment:null,
-    quote:{id:'mixed-quote',pricingVersion:2,unitKRW:null,quantity:2,totalKRW:30000,questions,items}};
+    quote:{id:'mixed-quote',pricingVersion,unitKRW:null,quantity:2,totalKRW:total,questions,items}};
   await repository.insert(row);
   const product=await resolveNeoOrderProduct(db,resolveProduct({featureKey:NEO_EMAIL_FEATURE}),userId,row.id,row.quote.id);
   const created=await createOrder(db,{userId,product,idempotencyKey:row.quote.id,requestId:row.id});
-  expect(created.paymentAmount).toBe(30000); expect(created.expectedChargedPoints).toBe(300);
+  expect(created.paymentAmount).toBe(total); expect(created.expectedChargedPoints).toBe(total/100);
   expect(created.pricingSnapshot.consultation.items).toEqual(items);
+  expect(created.pricingSnapshot.consultation.pricingVersion).toBe(pricingVersion);
   await repository.compareAndSwap(row.id,1,{...row,version:2,state:'pending',payment:{id:'mixed-payment',status:'pending'}});
   const payment={merchantUid:'mixed-payment',userId,featureKey:NEO_EMAIL_FEATURE,requestId:row.id,status:'paid',paymentAmount:20000,pricingSnapshot:{consultation:product.consultationSnapshot}};
   await expect(acceptNeoConfirmedPayment(db,payment)).rejects.toMatchObject({code:'PAYMENT_MISMATCH'});
   expect((await repository.get(row.id)).mailJobs).toHaveLength(0);
-  payment.paymentAmount=30000;
+  payment.paymentAmount=total;
   await acceptNeoConfirmedPayment(db,payment); await acceptNeoConfirmedPayment(db,payment);
   const stored=await repository.get(row.id);
   expect(stored.state).toBe('received');expect(stored.mailJobs).toHaveLength(1);

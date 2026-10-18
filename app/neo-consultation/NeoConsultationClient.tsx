@@ -4,21 +4,23 @@ import Link from "next/link";
 import Image from "next/image";
 import { LazyMotion, domAnimation, m, useReducedMotion } from "framer-motion";
 import { useAuthStore } from "@/app/_lib/auth-store";
-import { NEO_EMAIL_PORTRAIT, NEO_EMAIL_SALE_ENABLED, NEO_LIMITS, NEO_STATUS_LABELS, hasMultipleQuestions, neoMoney, neoReadingLabel, neoQuestionPrice, neoSajuAddonPrice, neoBirthLabel, neoTotal, neoUnitPrice, validateNeoInput } from "@/lib/neo-consultation/contract";
+import { NEO_EMAIL_PORTRAIT, NEO_EMAIL_SALE_ENABLED, NEO_LIMITS, NEO_STATUS_LABELS, hasMultipleQuestions, neoMoney, neoReadingLabel, neoQuestionPrice, neoZiweiAddonPrice, neoChartAddonPrice, neoChartLabel, neoBirthLabel, neoTotal, neoUnitPrice, validateNeoInput } from "@/lib/neo-consultation/contract";
 import { PUBLIC_RECORD_PATH } from "@/lib/seo/public-record-copy.mjs";
 import { maskBirthDateInput } from "@/lib/birthDateInput";
 import { neoCall } from "./api";
 import { openNeoCheckout } from "./checkout";
 import { NEO_POLICY } from "@/lib/neo-consultation/policy";
 import { SUPPORT_MAILTO } from "@/lib/site-policy-config";
-import type { NeoInput, NeoOrder, NeoReadingMode } from "./types";
+import type { NeoDraftQuestion, NeoInput, NeoOrder } from "./types";
+
+const NEO_MAX_QUESTION_PRICE = neoQuestionPrice({ readingMode: "saju_ziwei", chartReading: true });
 import styles from "./neo.module.css";
 
 const statusLabel = (state: string) => (NEO_STATUS_LABELS as Record<string,string>)[state] || state;
 export default function NeoConsultationClient() {
   const auth = useAuthStore();
   const reducedMotion = useReducedMotion();
-  const [questions, setQuestions] = useState<{text: string; readingMode: NeoReadingMode}[]>([{text: "", readingMode: "ziwei"}]);
+  const [questions, setQuestions] = useState<NeoDraftQuestion[]>([{text: "", readingMode: "saju", chartReading: false}]);
   const [goodPeriod, setGoodPeriod] = useState("");
   const [difficultPeriod, setDifficultPeriod] = useState("");
   const [context, setContext] = useState("");
@@ -138,7 +140,7 @@ export default function NeoConsultationClient() {
         <figcaption><p>고민을 읽는 깊이,<br />다음 한 걸음의 명료함.</p><small>네오를 표현한 캐릭터 일러스트</small></figcaption>
       </m.figure>
     </header>
-    <div className={styles.serviceLine}><p>질문 하나에 집중하는 상담</p><p>네오 직접 검수</p><p>자미두수 질문당 {neoMoney(neoUnitPrice())} · 사주 추가 +{neoMoney(neoSajuAddonPrice())}</p></div>
+    <div className={styles.serviceLine}><p>질문 하나에 집중하는 상담</p><p>네오 직접 검수</p><p>사주 질문당 {neoMoney(neoUnitPrice())} · 자미두수 +{neoMoney(neoZiweiAddonPrice())} · 원국·명반 +{neoMoney(neoChartAddonPrice())}</p></div>
     <section className={styles.evidence} aria-labelledby="neo-evidence">
       <h2 id="neo-evidence">기록은 원문으로 확인하세요</h2>
       <p>공개한 분석과 이후의 기록을 함께 확인하세요. 당시 해석과 실제 결과를 구분해 읽을 수 있습니다.</p>
@@ -146,7 +148,7 @@ export default function NeoConsultationClient() {
       <p className={styles.small}>과거 분석 사례이며, 특정 사건의 예측이나 같은 결과를 보장하지 않습니다.</p>
     </section>
     <section className={styles.formSection} id="neo-form" aria-labelledby="neo-form-title">
-      <div className={styles.formIntro}><p className={styles.letterMark}>NEO · PRIVATE CORRESPONDENCE</p><h2 id="neo-form-title" ref={heading} tabIndex={-1}>{["질문을 하나씩 적어 주세요","답변받을 정보를 알려 주세요","질문과 금액을 확인해 주세요"][step]}</h2><p>자미두수 질문당 {neoMoney(neoUnitPrice())}<br />자미두수 + 사주 질문당 {neoMoney(neoQuestionPrice({readingMode: "ziwei_saju"}))}<br />사주 풀이 추가 시 질문당 {neoMoney(neoSajuAddonPrice())} 추가 · 단건 결제<br />한 가지 선택이나 고민을 질문 하나에 담아 주세요.</p><ol className={styles.steps}>{["질문 작성","정보 입력","최종 확인"].map((s,i) => <li key={s} aria-current={step === i ? "step" : undefined}>{s}</li>)}</ol></div>
+      <div className={styles.formIntro}><p className={styles.letterMark}>NEO · PRIVATE CORRESPONDENCE</p><h2 id="neo-form-title" ref={heading} tabIndex={-1}>{["질문을 하나씩 적어 주세요","답변받을 정보를 알려 주세요","질문과 금액을 확인해 주세요"][step]}</h2><p>사주 질문당 {neoMoney(neoUnitPrice())}<br />자미두수 추가 시 +{neoMoney(neoZiweiAddonPrice())}<br />사주 원국·자미두수 명반 해석 추가 시 +{neoMoney(neoChartAddonPrice())}<br />질문당 최대 {neoMoney(NEO_MAX_QUESTION_PRICE)} · 단건 결제<br />한 가지 선택이나 고민을 질문 하나에 담아 주세요.</p><ol className={styles.steps}>{["질문 작성","정보 입력","최종 확인"].map((s,i) => <li key={s} aria-current={step === i ? "step" : undefined}>{s}</li>)}</ol></div>
       <div className={styles.form} aria-busy={busy}>
         {error && <p className={styles.error} role="alert">{error}</p>}
         {!order && <>
@@ -159,10 +161,10 @@ export default function NeoConsultationClient() {
             {questions.map((q,i) => <div className={styles.question} key={i}>
               <div className={styles.questionHeading}><label htmlFor={"neo-q-" + i}>질문 {i+1}</label><span>{neoMoney(neoQuestionPrice(q))}</span>{questions.length > 1 && <button type="button" aria-label={"질문 " + (i+1) + " 삭제"} onClick={() => setQuestions(questions.filter((_,n) => n !== i))}>삭제</button>}</div>
               <textarea id={"neo-q-" + i} value={q.text} maxLength={NEO_LIMITS.question} rows={3} onChange={e => setQuestions(questions.map((item,n) => n === i ? {...item, text: e.target.value} : item))} aria-describedby={"neo-q-hint-" + i} placeholder="예: 지금 직장을 옮기는 선택에서 무엇을 먼저 살펴봐야 할까요?" />
-              <fieldset className={styles.readingOptions}><legend>질문 {i+1} 풀이 방식</legend>{(["ziwei","ziwei_saju"] as const).map(mode => <label key={mode} className={styles.readingOption}><input type="radio" name={"neo-mode-"+i} value={mode} checked={q.readingMode === mode} onChange={() => setQuestions(questions.map((item,n) => n === i ? {...item, readingMode: mode} : item))} /><span>{neoReadingLabel({readingMode: mode})}<strong>{neoMoney(neoQuestionPrice({readingMode: mode}))}</strong></span></label>)}</fieldset>
+              <fieldset className={styles.readingOptions}><legend>질문 {i+1} 풀이 구성</legend><p className={styles.readingBase}><span>사주 풀이 · 기본 포함</span><strong>{neoMoney(neoUnitPrice())}</strong></p><label className={styles.readingOption}><input type="checkbox" checked={q.readingMode === "saju_ziwei"} onChange={e => setQuestions(questions.map((item,n) => n === i ? {...item, readingMode: e.target.checked ? "saju_ziwei" : "saju"} : item))} /><span>자미두수 추가<strong>+{neoMoney(neoZiweiAddonPrice())}</strong></span></label><label className={styles.readingOption}><input type="checkbox" checked={q.chartReading} onChange={e => setQuestions(questions.map((item,n) => n === i ? {...item, chartReading: e.target.checked} : item))} /><span>{neoChartLabel(q)} 추가<strong>+{neoMoney(neoChartAddonPrice())}</strong></span></label></fieldset>
               <p id={"neo-q-hint-" + i} className={hasMultipleQuestions(q.text) ? styles.error : styles.small}>{hasMultipleQuestions(q.text) ? "여러 질문은 질문 추가 버튼으로 나눠 주세요." : q.text.length + " / 1,000자 · 한 질문란에는 한 가지 주제"}</p>
             </div>)}
-            <button className={styles.secondary} disabled={questions.length >= NEO_LIMITS.questions} onClick={() => { setQuestions([...questions,{text: "", readingMode: "ziwei"}]); requestAnimationFrame(() => document.getElementById("neo-q-" + questions.length)?.focus()); }}>질문 추가하기 · +{neoMoney(neoUnitPrice())}</button>
+            <button className={styles.secondary} disabled={questions.length >= NEO_LIMITS.questions} onClick={() => { setQuestions([...questions,{text: "", readingMode: "saju", chartReading: false}]); requestAnimationFrame(() => document.getElementById("neo-q-" + questions.length)?.focus()); }}>질문 추가하기 · +{neoMoney(neoUnitPrice())}</button>
           </>}
           {step === 1 && <>
             <label htmlFor="neo-email">회신 이메일</label><input id="neo-email" type="email" autoComplete="email" maxLength={254} value={email} onChange={e => setEmail(e.target.value)} required />
