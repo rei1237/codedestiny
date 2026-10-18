@@ -272,7 +272,7 @@ function normalizeTags(article) {
 }
 
 function resolveServiceLink(categoryLabel) {
-  if (categoryLabel === "사주") return "/saju/basic";
+  if (categoryLabel === "사주") return "/saju";
   if (categoryLabel === "자미두수") return "/ziwei";
   if (categoryLabel === "숙요점") return "/compatibility";
   if (categoryLabel === "타로") return "/tarot";

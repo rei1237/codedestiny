@@ -20,7 +20,6 @@ const DIST = process.argv.find((arg) => arg.startsWith("--dist="))?.slice(7) || 
 const PAGES = [
   { path: "/", file: "index.html", hreflang: false },
   { path: "/ggulggul/", file: "ggulggul/index.html", hreflang: true },
-  { path: "/kkul-kkul-unse/", file: "kkul-kkul-unse/index.html", hreflang: false },
   { path: "/about/", file: "about/index.html", hreflang: true },
   { path: "/faq/", file: "faq/index.html", hreflang: true },
 ];

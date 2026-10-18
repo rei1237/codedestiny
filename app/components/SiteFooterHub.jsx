@@ -36,7 +36,7 @@ export const SEO_LINK_GROUPS = [
   {
     title: siteFooterHubText("siteFooter.001"),
     links: [
-      { href: "/kkul-kkul-unse/", text: "꿀꿀 운세 브랜드 안내" },
+      { href: "/", text: "꿀꿀 운세 브랜드 안내" },
       { href: "/saju/", text: "무료 사주풀이 보기" },
       { href: "/manse/", text: "꿀꿀 만세력 확인하기" },
       { href: "/today/", text: "오늘의 운세 확인하기" },
@@ -50,9 +50,7 @@ export const SEO_LINK_GROUPS = [
       { href: "/fortune/monthly/", text: "이번 달 별자리·띠 운세" },
       { href: "/compatibility/", text: "사주 궁합 분석하기" },
       { href: "/consultations/", text: "프리미엄 운세 리포트" },
-      { href: "/saju/basic/", text: "사주 만세력 기본 해석" },
       { href: "/ziwei/chart/", text: "자미두수 12궁 명반" },
-      { href: "/astrology/cosmic/", text: "점성술 코즈믹 차트" },
       { href: "/saju/sibyl/", text: "시빌라 시스템" },
       { href: "/life-book-ai/", text: "인생의 책" },
       { href: "/love-secret-ai/", text: "연애 비책 AI 상담" },
@@ -86,7 +84,7 @@ export const SEO_LINK_GROUPS = [
   {
     title: siteFooterHubText("siteFooter.003"),
     links: [
-      // 색인 가능한 정본 허브로 보낸다. 예전에는 /ziwei/chart·/oracle/sukuyo 처럼
+      // 색인 가능한 정본 허브로 보낸다. 예전에는 일부 인터랙티브 라우트처럼
       // noindex,nofollow 인 인터랙티브 라우트만 가리켜서, 전 페이지 푸터의 링크 자산이
       // 색인되지 않는 화면에서 끊겼고 정작 허브는 유입 링크가 0이었다.
       // 각 허브 페이지가 자체 CTA 로 인터랙티브 화면까지 이어 준다.

@@ -219,7 +219,7 @@ export default function SajuGuidePage() {
       <nav className="cd-chip-wrap" aria-label="사주 가이드 관련 링크">
         <Link href="/saju" className="cd-chip">사주 서비스</Link>
         <Link href="/manse" className="cd-chip">무료 만세력으로 명식 세우기</Link>
-        <Link href="/saju/basic" className="cd-chip">기본 사주 보기</Link>
+        <Link href="/saju" className="cd-chip">기본 사주 보기</Link>
         <Link href="/compatibility" className="cd-chip">궁합 보기</Link>
         <Link href="/disclaimer" className="cd-chip">면책 고지</Link>
         <Link href="/editorial-policy" className="cd-chip">콘텐츠 제작 원칙</Link>

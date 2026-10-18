@@ -147,7 +147,7 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
         {/* 히어로 — 연이가 브랜드를 든다 */}
         <header className="mt-6 flex items-start gap-4 sm:gap-6">
           <div className="min-w-0 flex-1">
-            <p className={`text-xs font-bold tracking-wider ${ACCENT}`}>{vm.rangeLabel}</p>
+            <time dateTime={vm.dateKey.length === 7 ? `${vm.dateKey}-01` : vm.dateKey} data-cd-fortune-range-marker className={`text-xs font-bold tracking-wider ${ACCENT}`}>{vm.rangeLabel}</time>
             <h1 className="mt-3 break-keep text-3xl font-black leading-tight sm:text-4xl">
               <span aria-hidden="true" className="mr-2">{profile.symbol}</span>
               {`${profile.nameKo} ${locale === "ko" ? PERIOD_TITLE[period] : currentPeriodLabel} ${copy.fortune}`}
@@ -252,6 +252,17 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
             </ul>
           </div>
         </section>
+
+        {locale === "ko" && <section aria-labelledby="personal-reading-heading" className={tomorrowStyles.guide}>
+          <h2 id="personal-reading-heading">같은 {profile.nameKo}라도 나는 어떤 흐름일까요?</h2>
+          <p>위 내용은 같은 {kindLabel}에 공통으로 적용하는 {currentPeriodLabel} 운세예요.
+            개인의 오행과 기질은 생년월일로 사주 명식을 세워 확인할 수 있어요.
+            실제 고민을 묻고 싶다면 별도 유료 영냥이 상담의 범위를 살펴보세요.</p>
+          <div className={tomorrowStyles.jumpLinks}>
+            <Link href="/saju/" data-cd-cross-sell={`/fortune/${period}/${profile.id}/`} data-cd-cta-placement="next_step" data-cd-target-service="saju">나의 사주 기본 결과 보기</Link>
+            <Link href="/yeongnyangi/" data-cd-cross-sell={`/fortune/${period}/${profile.id}/`} data-cd-cta-placement="next_step" data-cd-target-service="yeongnyangi">영냥이에게 질문하는 방법</Link>
+          </div>
+        </section>}
 
         {/* 주간 전용 — 요일별 지도 */}
         {vm.weekDays && (

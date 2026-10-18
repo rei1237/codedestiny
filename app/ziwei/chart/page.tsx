@@ -66,10 +66,13 @@ export default function ZiweiChartPage() {
   return (
     <main className="relative min-h-[100dvh] bg-[#030712] text-slate-100">
       <RouteMetadataLocaleSync entries={ZIWEI_CHART_METADATA_COPY} />
-      <h1 className="sr-only">
-        심화 자미두수 상담으로 보는 내 인생의 12궁
-      </h1>
-      <section className="sr-only" aria-label="심화 자미두수 상담 안내">
+      <header className="mx-auto max-w-3xl px-4 pb-6 pt-20 md:px-6">
+        <h1 className="break-keep font-[family-name:var(--font-serif)] text-3xl leading-snug [text-wrap:balance] md:text-4xl">자미두수 심화 상담</h1>
+        <p className="mt-4 max-w-[68ch] break-keep leading-8 text-slate-300">명반의 12궁·사화·대한을 함께 읽는 심화 상담입니다. 생년월일·출생시간·성별과 궁금한 주제를 입력하세요. 유료 이용 조건은 진행 화면에서 확인할 수 있습니다. 기본 명반부터 보고 싶다면 <Link href="/ziwei/" className="underline underline-offset-4">자미두수 명반 안내</Link>에서 시작하세요.</p>
+        <a href="#ziwei-chart-input" data-cd-cross-sell="/ziwei/chart/" data-cd-cta-placement="primary" data-cd-target-service="ziwei" className="mt-4 inline-flex min-h-12 items-center rounded-[var(--cd-r-control)] border border-slate-400 px-5 font-semibold underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4">심화 상담 입력하기</a>
+      </header>
+      <details className="mx-auto mb-6 max-w-3xl space-y-4 break-keep px-4 leading-8 text-slate-300 md:px-6">
+        <summary className="min-h-11 cursor-pointer py-2 font-semibold text-slate-100 focus-visible:outline focus-visible:outline-2">12궁과 심화 해설에서 확인할 내용</summary>
         <p>
           자미두수 명반은 한 사람의 삶을 열두 궁으로 펼쳐, 성향과 관계, 일, 재물, 건강, 이동, 배우자와 가족의 흐름을 입체적으로 살핍니다.
           명궁과 신궁은 삶을 바라보는 기본 방향을 잡아 주고, 각 궁에 놓인 별들은 어떤 영역에서 강하게 빛나고 어디에서 조심스러운 조율이 필요한지 알려 줍니다.
@@ -143,10 +146,10 @@ export default function ZiweiChartPage() {
           심화 해석은 열두 궁을 따로 읽고 끝내지 않습니다. 사화가 어느 궁에 떨어지는지, 대한이 지날 때 어떤 궁이 앞으로 나오는지를
           함께 보아야 같은 배치가 시기마다 다르게 작동하는 이유가 드러납니다.
         </p>
-      </section>
+      </details>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ZIWEI_FAQ_JSON_LD }} />
       {/* 도구 첫 화면(입력 폼)이 min-h-[100dvh] 라, 자리를 비워 두면 아래 서버 본문이 먼저 그려졌다가 도구가 붙을 때 한 화면만큼 밀린다(CLS). 같은 높이를 서버 HTML 에 미리 잡는다. */}
-      <div className="min-h-[100dvh]">
+      <div id="ziwei-chart-input" className="min-h-[100dvh] scroll-mt-20">
         <ZiweiChartClientLoader />
       </div>
       <section className="mx-auto w-full max-w-3xl break-keep px-4 pb-8 md:px-6" aria-labelledby="ziwei-chart-guide-title">

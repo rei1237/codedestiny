@@ -52,7 +52,7 @@ try {
   const context=await browser.newContext({javaScriptEnabled:false});
   await context.route('**/*',route=>new URL(route.request().url()).origin===origin?route.continue():route.abort());
   const page=await context.newPage();
-  for(const path of ['/','/en/','/ja/','/zh/','/zh-tw/','/sukuyo/','/insights/fusion/','/insights/sukuyo-compatibility-guide/','/kkul-kkul-unse/']) {
+  for(const path of ['/','/en/','/ja/','/zh/','/zh-tw/','/sukuyo/','/insights/fusion/','/insights/sukuyo-compatibility-guide/']) {
     const response=await page.goto(origin+path,{waitUntil:'domcontentloaded'});
     const meta=await page.evaluate(()=>({title:document.title,language:document.documentElement.lang,canonical:document.querySelector('link[rel="canonical"]')?.href,description:document.querySelector('meta[name="description"]')?.content,robots:document.querySelector('meta[name="robots"]')?.content,h1:[...document.querySelectorAll('h1')].filter(e=>!e.closest('[hidden]')).map(e=>e.textContent),schemas:[...document.querySelectorAll('script[type="application/ld+json"]')].map(e=>JSON.parse(e.textContent))}));
     assert.equal(response.status(),200);

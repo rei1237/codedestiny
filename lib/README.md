@@ -59,7 +59,7 @@ export const SITE_ORIGIN = "https://code-destiny.com";
 // 사이트맵 생성용 모든 URL 목록
 export const SITE_URLS = [
   "/",
-  "/saju/basic",
+  "/saju",
   "/tarot/mingri",
   "/ziwei/chart",
   // ... (전체 라우트)

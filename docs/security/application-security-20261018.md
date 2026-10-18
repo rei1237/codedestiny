@@ -1,11 +1,11 @@
 # 애플리케이션 보안 조사 — 2026-10-18
 
-상태: 아래 범위의 로컬 수정·분할 회귀 검증 완료, main 전달 차단. 전수 동적 감사·운영 안전성 인증 문서가 아니다.
+상태: 아래 범위의 보안 수정·분할 회귀 검증 및 main CI 복구 완료, 보안 통합 트리 검증 완료·원격 전달 대기. 전수 동적 감사·운영 안전성 인증 문서가 아니다.
 
 - 기준 SHA: `f11871f4cf9e344ad5c9484e81cc32351b5ebc3c`
 - 격리: `wt/security-audit-20261018-20261018-015620`
 - 공유 main: 다른 세션 변경 86항목, 기준 원격보다 323커밋 이전. 수정·stash·reset·통합하지 않는다.
-- 전달 차단: 기준 SHA AI Locale Gate39051090837 실패. 최종 조회 최신 main `2d55a5bd8e7d73487c7ff58f7f2a2a6c07e8fca3`도39053081824에서 같은 `LLM call inventory changed` 실패(audit-ai-locale-calls.mjs:59). 실패 위 push 금지.
+- 전달 기반: 초기 AI Locale·main CI 실패는 후속 복구로 해소했다. 복구 SHA `e53c065cf5463b65fbbedc969edc2da6a8c97ca3`의 PR CI39095183552·AI Locale39095183605·Secret Scan39095183563 success를 확인한 뒤 보안 통합을 진행했다. 실패한 main 위로 보안 변경을 push하지 않았다.
 - 승인 범위: 로컬/mock 보안 조사·수정·검증·작은 커밋·안전한 main 전달. 운영 배포·DB·시크릿 변경·외부 발송 제외.
 
 ## 진행 기록
@@ -17,7 +17,7 @@
 - [x] 본문 크기·호출 제한 오류·로그 중첩 후보 재현
 - [x] OAuth 브라우저 바인딩 재현·수정, 확인된 경계 결함 수정
 - [x] check:fast 실행 및 중단 기록, 계획의 개별 검사·전체 shard 수행, check:pre-push, 커밋
-- [ ] main 통합·push·정확한 SHA CI (현재 외부 차단)
+- [ ] main 통합·push·정확한 SHA CI (복구된 main과 통합·로컬 검증 완료, 원격 전달 대기)
 
 ## 변하지 않는 계약
 
@@ -184,7 +184,7 @@ PR CI/Secret Scan/AI Locale workflow의 permissions와 실행 조건을 읽었�
 - `39c3bc4ab8e555a4a4cbb7e8f502736d5505465f` 실제 payment/coin-gate/palm 진입점 및 회귀
 - `aee5d23dee1b71b965338dafbd243eda4d15321b` OAuth 브라우저 결합 및 회귀
 
-세 커밋 모두 아직 origin/main에 push하지 않았다.
+다음은 초기 조사 시점의 전달 차단 기록이다. 이후 복구·통합 결과는 이 문서 처음과 인수인계 문서의 최신 기록을 우선한다.
 
 최종 원격 확인(2026-10-18 KST, 반복 polling 없음):
 
@@ -204,4 +204,4 @@ PR CI/Secret Scan/AI Locale workflow의 permissions와 실행 조건을 읽었�
 3. **DB index/TTL**: 결제 event/claim/idempotency unique 및 보존용 TTL의 현재 정의를 읽기 전용으로 비교 → 중복 데이터·구매보존 영향 분석 → 별도 승인 후 적용. mock 통과만으로 운영 index가 있다고 선언하지 않는다. 중복 정리/TTL은 이 작업에서 실행하지 않았다.
 4. **인프라**: 실제 CSP/CORS/CDN private response policy·프록시 신뢰 경계·관리자/Worker 직접 endpoint 공개 범위 읽기 전용 확인 → report-only CSP 검증안과 구체적 allowlist를 준비 → 승인 후 변경. 기존 정상 결제/OAuth 외부 스크립트가 깨지는 강제 CSP를 즉석 배포하지 않는다.
 
-완료 기준 중 main 통합·push·정확한 SHA CI는 외부 main 실패와 공유 체크아웃 동시 변경이 해소되어야 한다. 로컬 수정 및 테스트 결과를 운영 안전성으로 확대하지 않는다.
+보안 통합 트리에서 Jest9suite254테스트, worker-security-guards, security-hardening530소스, payment-freeze, guard-wiring341검사 배선·27개 배포 게이트를 확인했다. 사이트맵은 최신 main 원장을 기준으로 생성했으며1022URL을 유지했다. 원격 전달 SHA의 CI 확인은 별도 완료 기준이다. 공유 checkout의 다른 변경86개는 그대로 보존하며, 로컬·CI 결과를 운영 안전성으로 확대하지 않는다.

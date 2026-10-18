@@ -7,6 +7,7 @@ import { createHash } from 'node:crypto';
 import { mkdir } from 'node:fs/promises';
 import { tmpdir, freemem } from 'node:os';
 import { buildSajuSectionHtml } from '../worker/lib/saju-section/report.js';
+import { HONEY_UNLOCK_PRODUCTS } from '../worker/lib/honey-unlock-catalog.js';
 
 const root = process.cwd();
 const server = createServer(async (req, res) => {
@@ -31,6 +32,8 @@ const server = createServer(async (req, res) => {
     sectionRequests.push({ case: activeCase, featureKey: payload.featureKey, status, message: payload.message });
     res.writeHead(status, {'content-type':'application/json'}); res.end(JSON.stringify(payload)); return;
   }
+  if (pathname === '/api/honey/catalog') { res.writeHead(200, {'content-type':'application/json'}); res.end(JSON.stringify({ok:true,products:HONEY_UNLOCK_PRODUCTS,otherUses:[]})); return; }
+  if (pathname === '/api/honey/attendance') { res.writeHead(200, {'content-type':'application/json'}); res.end(JSON.stringify({ok:true,balance:0,attended:false})); return; }
   if (pathname.startsWith('/api/')) { res.writeHead(200, {'content-type':'application/json'}); res.end('{"ok":true,"unlocks":[],"profiles":[]}'); return; }
   const file = resolve(root, '.' + (pathname === '/' ? '/index.html' : pathname));
   if (!file.startsWith(root + '/') && !file.startsWith(root + '\\')) { res.writeHead(403); res.end(); return; }
@@ -320,6 +323,8 @@ try {
     await daewunButton.click();
   }
   await page.waitForFunction(() => document.querySelectorAll('#dwGrid .dw-item').length > 0, undefined, {timeout:10000});
+  await page.locator('#dwGrid .dw-item').first().scrollIntoViewIfNeeded();
+  await settleScroll(page);
   await page.locator('#dwGrid .dw-item').first().click();
   await page.locator('#dwDetail .saju-cycle-guide').waitFor({state:'visible'});
   assert.equal(await page.locator('#yearList .year-row').count(), 10, 'paid cycle supplies all ten annual readings');

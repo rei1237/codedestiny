@@ -239,7 +239,7 @@ export default function HealthReportGuidePage() {
         <Link href="/saju/five-elements" className="cd-chip">오행 가이드</Link>
         <Link href="/saju/guide" className="cd-chip">사주 기본 가이드</Link>
         <Link href="/disclaimer" className="cd-chip">면책 고지</Link>
-        <Link href="/privacy-policy" className="cd-chip">개인정보처리방침</Link>
+        <Link href="/privacy/" className="cd-chip">개인정보처리방침</Link>
         <Link href="/editorial-policy" className="cd-chip">콘텐츠 제작 원칙</Link>
       </nav>
     </main>

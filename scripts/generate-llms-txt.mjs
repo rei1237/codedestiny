@@ -57,7 +57,7 @@ const SECTIONS = [
   },
   {
     heading: "브랜드",
-    paths: ["/kkul-kkul-unse"],
+    paths: ["/"],
   },
 ];
 
@@ -124,7 +124,7 @@ for (const section of SECTIONS) {
   }
   for (const path of section.paths) {
     const profile = profileFor(path);
-    lines.push(`- [${profile.title}](${siteBaseUrl}${path}/): ${profile.topicSummary}`);
+    lines.push(`- [${profile.title}](${siteBaseUrl}${path === "/" ? "/" : `${path}/`}): ${profile.topicSummary}`);
   }
   lines.push("");
 }

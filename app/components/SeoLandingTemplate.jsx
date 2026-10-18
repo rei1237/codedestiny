@@ -43,7 +43,6 @@ const DEFAULT_RELATED_LABELS = {
   "/manse": "무료 만세력 사주 분석",
   "/saju": "무료 사주팔자 분석",
   "/saju/monthly/2026-09": "2026년 9월 일간별 운세",
-  "/saju/basic": "사주 만세력 기본 해석",
   "/saju/compatibility": "사주 궁합 해석",
   "/compatibility": "궁합 보기",
   "/tarot": "무료 타로 카드 리딩",
@@ -64,6 +63,17 @@ const DEFAULT_RELATED_LABELS = {
   "/consultations": "프리미엄 운세 리포트",
   "/guides": "운세 인사이트 가이드",
   "/insights": "운세 인사이트 아카이브",
+};
+
+const RELATED_SERVICE_TARGETS = {
+  "/saju": "saju", "/saju/guide": "saju", "/saju/compatibility": "saju", "/saju/monthly/2026-09": "saju",
+  "/manse": "manse", "/today": "zodiac",
+  "/tarot": "tarot", "/tarot/reunion": "tarot", "/tarot/mindscan": "tarot", "/tarot/guide": "tarot",
+  "/ziwei": "ziwei", "/ziwei/chart": "ziwei", "/ziwei/guide": "ziwei",
+  "/sukuyo": "sukuyo", "/sukuyo/compatibility": "sukuyo", "/sukuyo/guide": "sukuyo",
+  "/vedic": "vedic", "/vedic/guide": "vedic", "/vedic-ai": "vedic",
+  "/astrology": "astrology", "/astrology/guide": "astrology", "/astrology-ai": "astrology",
+  "/naming-ai": "naming", "/yeongnyangi": "yeongnyangi", "/yeongnyangi/1000-won-fortune": "yeongnyangi",
 };
 
 const SEO_LANDING_TEMPLATE_COPY = {
@@ -439,7 +449,9 @@ export default function SeoLandingTemplate({ page, hero = null, services = null 
             {nextStep.lead}{" "}
             <Link
               href={nextStep.href}
-              data-cd-cross-sell={page?.path || ""}
+              data-cd-cross-sell={`${page.path}/`}
+              data-cd-cta-placement="next_step"
+              data-cd-target-service="yeongnyangi"
               className={`rounded-[4px] font-semibold text-[var(--cd-accent)] underline underline-offset-4 transition-colors duration-200 hover:text-[var(--cd-text)] ${FOCUS_RING}`}
             >
               {nextStep.label}
@@ -470,13 +482,16 @@ export default function SeoLandingTemplate({ page, hero = null, services = null 
               {topicProfile.topicSummary}
             </p>
           ) : null}
-          {/* 이 템플릿은 서버 컴포넌트라 onClick 을 달 수 없다. 대신 컨테이너에 표식만 남기고
+          {/* 이 템플릿은 서버 컴포넌트라 onClick 을 달 수 없다. 대신 링크에 표식만 남기고
               js/core/analytics.js 의 위임 리스너가 cross_sell_click 을 쏜다. */}
-          <ul className="mt-6 grid gap-x-12 sm:grid-cols-2" data-cd-cross-sell={page?.path || ""}>
+          <ul className="mt-6 grid gap-x-12 sm:grid-cols-2">
             {relatedServices.map((item) => (
               <li key={item.href} className="border-b border-[var(--cd-border)]">
                 <Link
                   href={item.href}
+                  data-cd-cross-sell={`${page.path.replace(/\/$/, "")}/`}
+                  data-cd-cta-placement="related"
+                  data-cd-target-service={RELATED_SERVICE_TARGETS[item.href.replace(/\/$/, "")]}
                   className={`group flex min-h-[3.75rem] items-center justify-between gap-4 py-4 text-[0.95rem] font-semibold text-[var(--cd-text)] transition-colors duration-200 hover:text-[var(--cd-accent)] ${FOCUS_RING}`}
                 >
                   <span className="min-w-0 break-keep">{item.label}</span>

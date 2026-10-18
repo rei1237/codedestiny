@@ -138,3 +138,15 @@ test('missing static locale editions fall back to an existing English page', asy
     assert.equal(response.headers.get('Location'),'https://code-destiny.test/en/contact/');
   }
 });
+
+
+test('Yeti and other crawlers can fetch every language independently of edge country', async () => {
+  for (const agent of ['Yeti/1.1 (+http://naver.me/spd)', 'Googlebot', 'bingbot', 'OAI-SearchBot', 'facebookexternalhit']) {
+    for (const country of ['KR', 'US', 'JP']) for (const path of ['/', '/saju/', '/zh-tw/sukuyo/']) {
+      const response = await edge().fetch(visit(path, country, { headers: { 'User-Agent': agent } }), asset);
+      assert.equal(response.status, 200, agent + country + path);
+      assert.equal(response.headers.get('Location'), null);
+      assert.equal(response.headers.get('Set-Cookie'), null);
+    }
+  }
+});

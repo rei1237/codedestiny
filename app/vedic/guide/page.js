@@ -217,7 +217,7 @@ export default function VedicGuidePage() {
 
       <nav className="cd-chip-wrap" aria-label="베다 점성술 가이드 관련 링크">
         <Link href="/vedic" className="cd-chip">베다 점성술 서비스</Link>
-        <Link href="/vedic/jyotish" className="cd-chip">조티시 차트</Link>
+        <Link href="/vedic" className="cd-chip">조티시 차트</Link>
         <Link href="/insights/vedic" className="cd-chip">베다 인사이트</Link>
         <Link href="/disclaimer" className="cd-chip">면책 고지</Link>
         <Link href="/editorial-policy" className="cd-chip">콘텐츠 제작 원칙</Link>

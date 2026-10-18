@@ -62,7 +62,7 @@ console.log("\n[1] 결제 가드가 실제로 PortOne 경로를 막는가 (jsdom
 
 const guardSource = await fs.readFile(path.join(ROOT, "scripts", "app-payment-guard.js"), "utf8");
 const dom = new JSDOM("<!doctype html><html><head></head><body></body></html>", {
-  url: "https://code-destiny.com/saju/basic/",
+  url: "https://code-destiny.com/saju/",
   runScripts: "outside-only",
 });
 const { window } = dom;
@@ -141,7 +141,7 @@ check("/points 링크 클릭이 차단됨 (preventDefault)", clickEvent.defaultP
 // 수정 불가), 앱에서는 사실과 다르고 Play 정책에도 걸리므로 가드가 걷어내야 한다.
 // 가드는 설치 시점의 alert를 감싸므로, alert를 먼저 갈아끼운 새 창에서 확인한다.
 const alertDom = new JSDOM("<!doctype html><html><head></head><body></body></html>", {
-  url: "https://code-destiny.com/saju/basic/",
+  url: "https://code-destiny.com/saju/",
   runScripts: "outside-only",
 });
 let captured = "";
@@ -538,7 +538,7 @@ if (DIST) {
       ["index.html", "루트 진입점"],
       [YEONGNYANGI_HOME_PATH, "영냥이 앱 첫 화면"],
       [LEGACY_SHELL_PATH, "꿀꿀운세(기존 연이/네오 셸)"],
-      [path.join("saju", "basic", "index.html"), "/saju/basic (앱 탭 — /insights 링크 있던 곳)"],
+      [path.join("saju", "basic", "index.html"), "/saju (앱 탭 — /insights 링크 있던 곳)"],
       [path.join("en", "today", "index.html"), "/en/today (로케일 페이지 — /en/insights 링크 있던 곳)"],
     ];
 

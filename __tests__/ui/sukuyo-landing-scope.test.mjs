@@ -35,7 +35,7 @@ test('vedic comparison example survives page composition alongside the existing 
   const sections = SEO_LANDING_PAGES.vedic.sections;
   const comparison = sections.find(section => section.heading.includes('왜 별자리가 다를까요'));
   assert.ok(comparison, 'the comparison must not be overwritten by a second sections property');
-  assert.equal(SEO_LANDING_PAGES.vedic.dateModified, '2026-10-12', 'older shared intro updates must not replace the actual content revision');
+  assert.equal(SEO_LANDING_PAGES.vedic.dateModified, '2026-10-18', 'the composed page must retain the latest actual content revision, including the shared intro');
   assert.ok(comparison.paragraphs.some(text => text.includes('125도') && text.includes('101도')));
   assert.ok(sections.some(section => section.heading.includes('빔쇼타리 다샤')));
   assert.ok(sections.some(section => section.heading.includes('계산 예시')));

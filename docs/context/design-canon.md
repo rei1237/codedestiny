@@ -57,7 +57,7 @@
 | 정적 셸(꽃돼지 `/ggulggul/`, 로케일) | `index.html` 정본 → `npm run sync:public` 으로 미러 생성 | `index.html` |
 
 - 신규 화면은 몰입형이다. 전역 헤더·푸터를 붙이지 않는다([design-and-ui](design-and-ui.md) 20행).
-- 루트 `/` 는 두 브랜드 메인이다(2026-10-16 사용자 결정, 같은 날 "직관성"으로 단순화). 화면은 워드마크 → h1 "어떤 카드를 뽑을까요?" → 전문성 한 줄(`founder.byline`) → 타로 카드 두 장 → 최소 푸터뿐이다. 카드를 누르면 안내 패널 없이 바로 이동한다: I 꿀꿀 운세(`/ggulggul/`, 연이 "해", `--cd-*`) / II 운세보는 영냥이(`/yeongnyangi/`, 영냥이 "달", `data-yn-night` 로 `--yn-*`). JS 가 없다. 금색 이중 테두리·로마 숫자는 CSS 이고 그림에는 글자·테두리가 없다. 원본 `app/page.js` + `app/home-main.module.css`, 카드 그림 출처 `docs/design/root-home-art.json` `cards`(v2).
+- 루트 `/`는 꿀꿀 운세의 종합 운세 대표 홈이다(2026-10-18 승인 계획). 기존 연이·영냥이 두 타로 카드와 직접 진입을 유지하고, 브랜드 설명 → 두 카드 → 8개 분야 탐색 → 고민별 입구 → 공개 결과 예시 → 체계 차이 → 이용 FAQ 순서로 보강한다. I 꽃돼지 앱(`/ggulggul/`, 연이 `--cd-*`), II 영냥이 상담(`/yeongnyangi/`, `--yn-*`)의 그림·색상은 유지한다. 공개 내용과 링크는 서버 HTML에 있으며 계산·결제는 각 앱에서 수행한다. 원본은 `app/page.js`·`app/home-main.module.css`·`lib/seo/home-discovery.mjs`, 카드 그림 정본은 `docs/design/root-home-art.json`이다.
 - 모바일 공용 래퍼는 인체공학만 다룬다: 탭 44px, 입력 16px, 가로 넘침 없음, safe-area(19행).
 - 대비: 본문 4.5:1, 큰 글씨·UI 3:1, 반투명 표면은 합성색으로 잰다. 고칠 때 색상 계열은 두고 명도·채도만 바꾼다. 배경만 바꾸는 반쪽 오버라이드는 금지(15·30·75행).
 

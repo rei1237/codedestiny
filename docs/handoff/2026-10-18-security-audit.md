@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-18
-next: "복구 HEAD e53c065cf5463b65fbbedc969edc2da6a8c97ca3의 PR CI 39095183552 통과 후 보안 변경을 통합한다. 공유 main 변경86개를 보존한다."
+next: "main 복구 CI 통과. 보안 통합 트리의 targeted 검사·커밋·check:pre-push 후 main에 전달하고 해당 SHA의 CI를 확인한다. 공유 변경86개를 보존한다."
 ---
 
 # 보안 조사·수정 전달 재개
@@ -12,7 +12,7 @@ next: "복구 HEAD e53c065cf5463b65fbbedc969edc2da6a8c97ca3의 PR CI 39095183552
 - 기준 원격 SHA: `f11871f4cf9e344ad5c9484e81cc32351b5ebc3c`
 - 마지막 코드 커밋: `aee5d23dee1b71b965338dafbd243eda4d15321b`
 - 조사 증거 커밋: `7dc368b6e`(이 인수인계와 후속 검증 기록은 이후 문서 커밋)
-- push/통합/운영 배포: 미실행. 작업 브랜치·PR 추가 생성 금지.
+- 전달: 아래 초기 기록 이후 main CI 복구 완료, 보안 통합 검증 중. 운영 배포 미실행. 작업 브랜치·PR 추가 생성 금지.
 
 ## 차단 및 보존
 
@@ -85,6 +85,12 @@ Git 전체 이력 secret scan은 메모리 할당 실패로 미완료. 부분 �
 
 - 1fb2c4ae의 자동39093466321은 CI required·Static guards·Typecheck/lint success, Build·Critical skipped. 전체39093487128은 Critical checks의 Jest418suite6637테스트와 Typecheck/lint success였으나 Build의 후속 `verify:internal-link-depth`에서 `/human-design/guide`가3홉(상한2홉)으로 실패했다. 앞서 실패한 메타·canonical 링크 검사는 통과했다.
 - `e53c065cf5463b65fbbedc969edc2da6a8c97ca3`: `app/guides/page.js`에 가이드 링크를 연결하고 sitemap5개 생성물 갱신. 실제 서버 렌더링에서 색인 대상 `/ggulggul/ → /guides/ → /human-design/guide/` 2홉 확인, ESLint·guide CTA19·check:pre-push 통과. 개인 차트 도구의 noindex·무료/유료 범위 유지. 최신 자동 [PR CI39095183552](https://github.com/rei1237/codedestiny/actions/runs/39095183552)는 standard라 빌드도 실행하며, 별도 중복 수동 실행은 요청하지 않았다. 보안 통합은 아직 미실행.
+
+### main 복구 확정 및 보안 통합
+
+- 복구 원격 `e53c065cf5463b65fbbedc969edc2da6a8c97ca3`: PR CI39095183552의 CI required·Static guards·Build Pages and Worker·Typecheck/lint success. Critical checks는 이번 경로 분류상 skipped, 직전 전체39093487128의 고위험 Jest418suite6637테스트 성공과 구분한다. AI Locale39095183605·Secret Scan39095183563 success. fetch 후 원격 SHA 동일 확인.
+- 성공 확인 뒤 기존 보안 브랜치에서 `git merge --no-commit origin/main` 실행. 충돌은 `config/sitemap-lastmod.json` 한 곳. 원격 원장을 채택하고 기존 생성기로1022URL·원장3개를 재생성했다. 보안 소스의 동시 수정은 없으며, 원격 대비 통합 변경은 보안·회귀·조사 문서와 생성 sitemap21파일이다.
+- 공유 main checkout의 HEAD3be4b029d2e3438831b2f5b440b74c149041cd93·다른 변경86개는 보존했다. 원격 전달은 전용 워크트리의 통합 HEAD를 fast-forward push하고 force-push하지 않는다.
 
 ### 복사할 재개 지시
 

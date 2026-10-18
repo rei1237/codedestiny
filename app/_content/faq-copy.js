@@ -49,7 +49,7 @@ export const FAQS_DEFAULT = [
   },
   {
     question: "공식 사이트와 표기는 어디에서 확인하나요?",
-    answer: `공식 서비스명은 ${BRAND_FACTS.service.name}이고 공식 홈페이지는 ${BRAND_FACTS.service.homeUrl}입니다. 붙여 쓴 ${BRAND_FACTS.service.alternateNames[0]}도 같은 서비스이며, 운영자는 ${BRAND_FACTS.operator.name}(${BRAND_FACTS.operator.nameKo})입니다. 이전 이름과 공식 주소는 공식 사이트 안내(/kkul-kkul-unse/)에서 확인할 수 있습니다.`,
+    answer: `공식 서비스명은 ${BRAND_FACTS.service.name}이고 공식 홈페이지는 ${BRAND_FACTS.service.homeUrl}입니다. 붙여 쓴 ${BRAND_FACTS.service.alternateNames[0]}도 같은 서비스이며, 운영자는 ${BRAND_FACTS.operator.name}(${BRAND_FACTS.operator.nameKo})입니다. 이전 이름과 공식 주소는 공식 사이트 안내(/)에서 확인할 수 있습니다.`,
   },
   {
     question: "문의나 오류 신고는 어디로 하나요?",

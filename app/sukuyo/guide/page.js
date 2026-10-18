@@ -189,7 +189,7 @@ export default function SukuyoGuidePage() {
       <nav className="cd-chip-wrap" aria-label="숙요점 가이드 관련 링크">
         <Link href="/sukuyo" className="cd-chip">숙요점 서비스</Link>
         <Link href="/sukuyo/compatibility" className="cd-chip">숙요 궁합</Link>
-        <Link href="/oracle/sukuyo" className="cd-chip">숙요 오라클</Link>
+        <Link href="/sukuyo" className="cd-chip">숙요 오라클</Link>
         <Link href="/insights/sukuyo" className="cd-chip">숙요 인사이트</Link>
         <Link href="/disclaimer" className="cd-chip">면책 고지</Link>
         <Link href="/editorial-policy" className="cd-chip">콘텐츠 제작 원칙</Link>

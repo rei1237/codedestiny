@@ -243,17 +243,17 @@
         "symbol": "../../lib/gemini-model-policy.js"
       },
       {
-        "line": 27,
+        "line": 29,
         "kind": "import-or-injected-call",
         "symbol": "./gemini.js"
       },
       {
-        "line": 28,
+        "line": 30,
         "kind": "import-or-injected-call",
         "symbol": "./structured-consultation.js"
       },
       {
-        "line": 840,
+        "line": 858,
         "kind": "call",
         "symbol": "callGeminiJsonWithRetry"
       }
@@ -653,22 +653,22 @@
     "file": "worker/routes/fortune-tea-house.js",
     "matches": [
       {
-        "line": 23,
+        "line": 25,
         "kind": "import-or-injected-call",
         "symbol": "../lib/gemini.js"
       },
       {
-        "line": 4375,
+        "line": 4400,
         "kind": "call",
         "symbol": "callGeminiText"
       },
       {
-        "line": 5552,
+        "line": 5590,
         "kind": "call",
         "symbol": "callGeminiText"
       },
       {
-        "line": 5849,
+        "line": 5895,
         "kind": "call",
         "symbol": "callGeminiText"
       }
@@ -1011,21 +1011,6 @@
         "line": 257,
         "kind": "call",
         "symbol": "callGeminiText"
-      }
-    ]
-  },
-  {
-    "file": "worker/routes/ziwei-island-ai.js",
-    "matches": [
-      {
-        "line": 22,
-        "kind": "import-or-injected-call",
-        "symbol": "../lib/structured-consultation.js"
-      },
-      {
-        "line": 579,
-        "kind": "call",
-        "symbol": "callGeminiJsonWithRetry"
       }
     ]
   },

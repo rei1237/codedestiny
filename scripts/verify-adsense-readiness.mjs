@@ -10,6 +10,7 @@ import { MIN_SELF_CONSENT_AGE } from "../worker/lib/validation.js";
 import { blocksEntireSite } from "./lib/robots-groups.mjs";
 import { getIndexedCelebritySlugs } from "../lib/famous-saju/celebrity-editorial.js";
 import { getPublishedProfile } from "../lib/famous-saju/profile-publication.js";
+import { verifyFortuneBuildDates, resolveFortuneBuildDateContext } from "./lib/fortune-date-contract.mjs";
 
 const rootDir = fileURLToPath(new URL("..", import.meta.url));
 // 나이 고지 마커는 정책 상수에서 파생한다. 문구를 그대로 박아두면 정책이 바뀔 때
@@ -1953,8 +1954,12 @@ verifyPublicFeatureMetadataSource();
 trace("fortune runtime policy language");
 verifyFortuneRuntimePolicyLanguage();
 
+const fortuneDateContext = resolveFortuneBuildDateContext({ rootDir });
 for (const baseDir of ["out", "dist"]) {
   resetOutputCaches();
+  trace(`${baseDir}: fortune title/H1/time/Article dates`);
+  const fortuneDates = verifyFortuneBuildDates({ rootDir, outputDir: baseDir, dateContext: fortuneDateContext });
+  assert(fortuneDates.ok, `${baseDir}: fortune dates disagree (daily ${fortuneDates.businessDate} from ${fortuneDates.dailySource}; range ${fortuneDates.rangeBusinessDate} KST): ${fortuneDates.failures.join('; ')}`);
   trace(`${baseDir}: no generated static AdSense units`);
   verifyNoGeneratedStaticAdUnits(baseDir);
   trace(`${baseDir}: indexable public routes`);

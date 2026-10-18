@@ -62,8 +62,15 @@ try {
     for (const width of [360,390,430,1280]) {
       await page.setViewportSize({width,height:900});
       await page.locator('.cdh-honey').scrollIntoViewIfNeeded();
-      await page.waitForFunction(()=>Array.from(document.querySelectorAll('.cdh-honey img')).every(img=>img.complete && img.naturalWidth));
-      assert.ok(await page.locator('.cdh-honey img').evaluateAll(images=>images.length>=2 && images.every(img=>getComputedStyle(img).backgroundColor==='rgba(0, 0, 0, 0)')));
+      // Image decoding does not guarantee that the async shell CSS has settled.
+      // Wait for the same strict visual condition; missing CSS still times out.
+      await page.waitForFunction(() => {
+        const images = Array.from(document.querySelectorAll('.cdh-honey img'));
+        return images.length >= 2 && images.every(img => img.complete && img.naturalWidth
+          && getComputedStyle(img).backgroundColor === 'rgba(0, 0, 0, 0)');
+      });
+      const imageBackgrounds = await page.locator('.cdh-honey img').evaluateAll(images => images.map(img => getComputedStyle(img).backgroundColor));
+      assert.ok(imageBackgrounds.length >= 2 && imageBackgrounds.every(color => color === 'rgba(0, 0, 0, 0)'), `Honey image backgrounds: ${JSON.stringify(imageBackgrounds)}`);
       await page.locator('.cdh-honey').screenshot({path:path.join(output,`honey-${width}.png`)});
     }
     await page.locator('[data-cd-sheet-open="cdHoneySheet"]').click();

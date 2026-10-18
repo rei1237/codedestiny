@@ -328,7 +328,7 @@ async function checkPages() {
     if (former.length) fail("route " + route + " shows a former brand name in title/og:site_name: " + former.join(", "));
   }
 
-  const routes = ["/", "/ggulggul/", "/login", "/saju/basic", "/fortune-tea-house", "/app", "/app/store", "/lock-screen-fortune"];
+  const routes = ["/", "/ggulggul/", "/login", "/saju", "/fortune-tea-house", "/app", "/app/store", "/lock-screen-fortune"];
   for (const route of routes) {
     try {
       const nav = await gotoSettled(route);

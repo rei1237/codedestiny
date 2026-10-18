@@ -74,7 +74,7 @@ export default function AboutPage() {
           {BUSINESS_IDENTITY.companyName}, 대표는 {BUSINESS_IDENTITY.representative}입니다. 공식 홈페이지는 {service.homeUrl},
           상담 앱 입구는 {service.siteUrl}{service.appEntryPath}입니다.
         </p>
-        <p><Link href="/kkul-kkul-unse/">공식 주소·표기 안내</Link></p>
+        <p><Link href="/">공식 주소·표기 안내</Link></p>
       </section>
 
       <section className="cd-card" id="about-purpose">

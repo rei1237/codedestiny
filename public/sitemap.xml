@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://code-destiny.com/</loc>
-    <lastmod>2026-10-17</lastmod>
+    <lastmod>2026-10-18</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.00</priority>
   </url>
@@ -51,12 +51,6 @@
     <lastmod>2026-10-17</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.95</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/astrology/cosmic/</loc>
-    <lastmod>2026-10-17</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.92</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/astrology/guide/</loc>
@@ -140,7 +134,7 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/destiny-compass/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/destiny-compass/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/destiny-compass/" />
-    <lastmod>2026-10-17</lastmod>
+    <lastmod>2026-10-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.90</priority>
   </url>
@@ -1260,7 +1254,7 @@
     <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh/fortune/weekly/" />
     <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh-tw/fortune/weekly/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/weekly/" />
-    <lastmod>2026-10-17</lastmod>
+    <lastmod>2026-10-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.86</priority>
   </url>
@@ -1832,7 +1826,7 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/yeongnyangi/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/yeongnyangi/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/yeongnyangi/" />
-    <lastmod>2026-10-17</lastmod>
+    <lastmod>2026-10-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.90</priority>
   </url>
@@ -1882,13 +1876,13 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune-tea-house/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/fortune-tea-house/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune-tea-house/" />
-    <lastmod>2026-10-17</lastmod>
+    <lastmod>2026-10-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.86</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/fortune/</loc>
-    <lastmod>2026-10-15</lastmod>
+    <lastmod>2026-10-17</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.90</priority>
   </url>
@@ -2194,7 +2188,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/fortune/prompt-hub/</loc>
-    <lastmod>2026-10-17</lastmod>
+    <lastmod>2026-10-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.70</priority>
   </url>
@@ -2806,7 +2800,7 @@
     <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh/fortune/weekly/" />
     <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh-tw/fortune/weekly/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/weekly/" />
-    <lastmod>2026-10-17</lastmod>
+    <lastmod>2026-10-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.90</priority>
   </url>
@@ -3118,7 +3112,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/guides/</loc>
-    <lastmod>2026-10-17</lastmod>
+    <lastmod>2026-10-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.84</priority>
   </url>
@@ -5534,7 +5528,7 @@
     <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh/fortune/weekly/" />
     <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh-tw/fortune/weekly/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/weekly/" />
-    <lastmod>2026-10-17</lastmod>
+    <lastmod>2026-10-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.86</priority>
   </url>
@@ -6112,7 +6106,7 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/yeongnyangi/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/yeongnyangi/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/yeongnyangi/" />
-    <lastmod>2026-10-17</lastmod>
+    <lastmod>2026-10-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.90</priority>
   </url>
@@ -6138,12 +6132,6 @@
     <loc>https://code-destiny.com/karma-destiny-ai/</loc>
     <lastmod>2026-10-17</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/kkul-kkul-unse/</loc>
-    <lastmod>2026-10-16</lastmod>
-    <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
@@ -6370,7 +6358,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/naming-ai/</loc>
-    <lastmod>2026-10-17</lastmod>
+    <lastmod>2026-10-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.86</priority>
   </url>
@@ -6403,12 +6391,6 @@
     <lastmod>2026-10-17</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.86</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/oracle/sukuyo/</loc>
-    <lastmod>2026-10-17</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.93</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/physiognomy/</loc>
@@ -6503,12 +6485,6 @@
     <lastmod>2026-10-17</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.90</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/saju/basic/</loc>
-    <lastmod>2026-10-17</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.95</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/saju/compatibility/</loc>
@@ -7295,12 +7271,6 @@
     <priority>0.80</priority>
   </url>
   <url>
-    <loc>https://code-destiny.com/vedic/jyotish/</loc>
-    <lastmod>2026-10-17</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.93</priority>
-  </url>
-  <url>
     <loc>https://code-destiny.com/world/</loc>
     <lastmod>2026-10-17</lastmod>
     <changefreq>monthly</changefreq>
@@ -7308,7 +7278,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/yeon-star-hug/</loc>
-    <lastmod>2026-10-16</lastmod>
+    <lastmod>2026-10-17</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>
@@ -7326,7 +7296,7 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/yeongnyangi/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/yeongnyangi/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/yeongnyangi/" />
-    <lastmod>2026-10-17</lastmod>
+    <lastmod>2026-10-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.90</priority>
   </url>
@@ -8310,7 +8280,7 @@
     <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh/fortune/weekly/" />
     <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh-tw/fortune/weekly/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/weekly/" />
-    <lastmod>2026-10-17</lastmod>
+    <lastmod>2026-10-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.86</priority>
   </url>
@@ -8850,7 +8820,7 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/yeongnyangi/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/yeongnyangi/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/yeongnyangi/" />
-    <lastmod>2026-10-17</lastmod>
+    <lastmod>2026-10-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.90</priority>
   </url>
@@ -9942,7 +9912,7 @@
     <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh/fortune/weekly/" />
     <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh-tw/fortune/weekly/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/weekly/" />
-    <lastmod>2026-10-17</lastmod>
+    <lastmod>2026-10-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.86</priority>
   </url>
@@ -10514,7 +10484,7 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/yeongnyangi/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/yeongnyangi/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/yeongnyangi/" />
-    <lastmod>2026-10-17</lastmod>
+    <lastmod>2026-10-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.90</priority>
   </url>
