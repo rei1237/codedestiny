@@ -23,8 +23,9 @@ test('hat story: six houses, reveal, skip, errors, stale requests, keyboard and 
  const tokens=`:root{--yn-ivory:#f8efe4;--yn-deep:#17121e;--yn-surface:#251c2d;--yn-gold:#e5c788;--yn-muted:#c8b8ce;--yn-line:#67516b;--yn-radius:18px;--font-body:Arial,sans-serif}body{margin:0;background:#17121e}*{box-sizing:border-box}`;
  const server=createServer((req,res)=>{if(req.url==='/app.js'){res.setHeader('Content-Type','text/javascript');res.end(js);}else if(req.url.startsWith('/assets/yeongnyangi/hat/')){res.setHeader('Content-Type',req.url.endsWith('.png')?'image/png':'image/webp');res.end(readFileSync(resolve('public',req.url.slice(1))));}else{res.setHeader('Content-Type','text/html; charset=utf-8');res.end(`<html lang="ko"><meta name="viewport" content="width=device-width, initial-scale=1"><style>${tokens}${css}</style><div id="root"></div><script src="/app.js"></script></html>`);}});
  await new Promise(r=>server.listen(0,'127.0.0.1',r));
- const origin=`http://127.0.0.1:${server.address().port}`,browser=await chromium.launch({headless:true});
+ const origin=`http://127.0.0.1:${server.address().port}`;let browser;
  try{
+  browser=await chromium.launch({headless:true});
   const page=await browser.newPage({reducedMotion:'reduce'}),errors=[];
   page.on('pageerror',e=>errors.push(e.message));
   await page.route('**/*',route=>route.request().url().startsWith(origin)?route.continue():route.abort());
@@ -71,5 +72,5 @@ test('hat story: six houses, reveal, skip, errors, stale requests, keyboard and 
   await start();await page.evaluate(()=>window.requests[0].resolve({result:{...window.fixture('moon-library'),usedCount:0}}));await story.getByRole('button',{name:'배정 다시 시도하기'}).waitFor();assert.equal(await page.locator('[data-reveal="true"]').count(),0);
   await page.emulateMedia({reducedMotion:'no-preference'});await start();assert.equal(await story.getAttribute('data-speaking'),'true');await dialogue.click();assert.match(await dialogue.innerText(),/오랜만이구나/);await page.waitForTimeout(90);assert.match(await dialogue.innerText(),/오랜만이구나/);assert.equal(await story.getAttribute('data-speaking'),'false');await dialogue.click();assert.match(await dialogue.getAttribute('aria-label'),/영냥이는 잠시/);
   assert.deepEqual(errors,[]);
- }finally{await browser.close();await new Promise(r=>server.close(r));}
+ }finally{try{await browser?.close();}finally{await new Promise(r=>server.close(r));}}
 });

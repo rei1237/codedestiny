@@ -19,8 +19,9 @@ test('daily tarot: illustrated entry preserves attendance gate, reveal and day s
   else if(req.url.startsWith('/assets/yeongnyangi/')){res.setHeader('Content-Type',req.url.endsWith('.avif')?'image/avif':req.url.endsWith('.png')?'image/png':'image/webp');try{res.end(readFileSync(resolve('public',req.url.slice(1))));}catch{res.statusCode=404;res.end();}}
   else{res.setHeader('Content-Type','text/html; charset=utf-8');res.end(`<html lang="ko"><meta name="viewport" content="width=device-width, initial-scale=1"><style>body{margin:0;background:#17121e;color:#f8efe4;font-family:Arial,sans-serif}*{box-sizing:border-box}${room}${css}</style><div id="root" class="ynOriginal"></div><script src="/app.js"></script></html>`);}
  });
- await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin=`http://127.0.0.1:${server.address().port}`,browser=await chromium.launch({headless:true});
+ await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin=`http://127.0.0.1:${server.address().port}`;let browser;
  try{
+  browser=await chromium.launch({headless:true});
   const page=await browser.newPage({reducedMotion:'reduce'}),errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.route('**/*',r=>r.request().url().startsWith(origin)?r.continue():r.abort());
   for(const width of [360,390,430,1280]){
@@ -40,5 +41,5 @@ test('daily tarot: illustrated entry preserves attendance gate, reveal and day s
   }
   await page.goto(`${origin}?guest`);await page.getByRole('button',{name:'로그인하고 출석하기'}).waitFor();assert.equal(await page.locator('.daily-tarot-flip').count(),0);
   assert.deepEqual(errors,[]);
- }finally{await browser.close();await new Promise(r=>server.close(r));}
+ }finally{try{await browser?.close();}finally{await new Promise(r=>server.close(r));}}
 });
