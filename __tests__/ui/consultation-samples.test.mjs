@@ -50,7 +50,7 @@ test('current fusion, separate codex editions and tea source boundary are explic
   assert.ok(byId('fusion').examples.every(example=>example.kind==='editorial'));
   assert.ok(byId('yeoni').examples.every(example=>example.kind==='editorial'));
   const codex=JSON.stringify(byId('codex'));
-  assert.match(codex,/개인판/); assert.match(codex,/궁합판/); assert.match(codex,/각 판 20장/);
+  assert.match(codex,/개인판/); assert.match(codex,/궁합판/); assert.match(codex,/각 판 20개 챕터/); assert.match(codex,/총 5만 자/);
   assert.match(byId('love-secret').examples[1].text,/피해야 할 대화 문장/,'negative source example must retain its context');
 });
 

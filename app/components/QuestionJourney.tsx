@@ -52,7 +52,7 @@ export default function QuestionJourney({source='home'}:{source?:string}){
    </div>
   </details>
   <div id="question-reading" aria-live="polite">{selected&&<QuestionOffer key={selected.id} q={selected} source={source}/>}</div>
-  <nav className={styles.explore} aria-label="다른 상담 탐색"><a href="/yeongnyangi/fortune/">내 고민 직접 적기</a><a href="/ggulggul/">꿀꿀운세 홈</a></nav>
+  <nav className={styles.explore} aria-label="다른 상담 탐색"><a href="/yeongnyangi/fortune/?flow=legacy">전체 운세 고르기</a><a href="/yeongnyangi/fortune/?mode=spirit">영냥 신점</a><a href="/yeongnyangi/room/">영냥이의 방</a></nav>
  </section>;
 }
 export function FreeQuestionNext({category,source}:{category:string;source:string}){

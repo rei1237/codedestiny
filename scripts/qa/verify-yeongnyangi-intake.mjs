@@ -34,12 +34,15 @@ const base='http://127.0.0.1:'+server.address().port;
 
 
 
-const b=await build({stdin:{contents:"export {products} from './worker/yeongnyangi/payments/catalog';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false});
+const b=await build({stdin:{contents:"export {products,systemNames} from './worker/yeongnyangi/payments/catalog';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false});
 const m=new Module(path.resolve('mock-products.cjs'));m._compile(b.outputFiles[0].text,m.id);
 const products=m.exports.products.map(p=>({...p,available:true}));
 
 browser=await chromium.launch({headless:true});
 const errors=[],requests=[],profileWrites=[];let guest=false,failProfile=true;
+let releaseCatalog,catalogRequested;
+const delayedCatalog=new Promise(resolve=>{releaseCatalog=resolve;});
+const catalogStarted=new Promise(resolve=>{catalogRequested=resolve;});
 const context=await browser.newContext({viewport:{width:1440,height:1000},reducedMotion:'reduce'});
 await context.addInitScript(()=>localStorage.setItem('fortune_auth_user',JSON.stringify({_id:'intake-mock',id:'intake-mock',name:'테스트'})));
 const profile={id:'mock-profile',profileId:'mock-profile',name:'테스트 손님',gender:'F',birthDate:'1994-05-16',birth:{year:1994,month:5,day:16,hour:10,minute:30,timeUnknown:false,calType:'solar'},location:{label:'서울',tz:'Asia/Seoul',lat:37.56,lng:126.97}};
@@ -49,7 +52,7 @@ await context.route('**/*',async route=>{
  if(u.pathname==='/login/')return route.fulfill({contentType:'text/html',body:'<p>Mock login</p>'});
  if(u.pathname.startsWith('/api/')){
   let data={ok:true},status=200;
-  if(u.pathname.endsWith('/products'))data={products};
+  if(u.pathname.endsWith('/products')){catalogRequested();await delayedCatalog;data={products};}
   else if(u.pathname.endsWith('/profiles')){
    if(route.request().method()==='POST'){const body=route.request().postDataJSON();profileWrites.push(body);if(failProfile){failProfile=false;status=503;data={ok:false,message:'테스트 프로필 저장 오류'};}else data={ok:true,profile:{...body.profile,birthDate:'1994-05-16'}};}
    else if(guest){status=401;data={ok:false};}
@@ -65,7 +68,30 @@ const page=await context.newPage();
 page.on('pageerror',e=>errors.push(e.message));
 await page.goto(base+'/yeongnyangi/fortune/',{waitUntil:'domcontentloaded',timeout:180000});
 const chat=page.getByRole('region',{name:'영냥이와 상담 준비'});
+await catalogStarted;
+assert.equal(await page.getByRole('group',{name:'운세 종류',exact:true}).count(),0,'loading must never flash a selectable legacy screen');
+releaseCatalog();
 await chat.waitFor({timeout:180000});
+assert.equal(await chat.getByRole('link',{name:'영냥 신점',exact:true}).getAttribute('href'),'/yeongnyangi/fortune/?mode=spirit');
+await chat.getByRole('button',{name:'전체 운세 고르기',exact:true}).click();
+await page.getByRole('group',{name:'운세 종류',exact:true}).waitFor();
+for(const domain of ['saju','ziwei','sukuyo','vedic','astrology','tarot','fusion']){
+ await page.goto(base+'/yeongnyangi/fortune/?domain='+domain,{waitUntil:'domcontentloaded'});
+ const selector=page.getByRole('group',{name:'운세 종류',exact:true});await selector.waitFor();
+ assert.equal(await chat.count(),0,domain+' entry must retain the selected fortune after catalog loading');
+ const expected=domain==='fusion'?'복합 운세':m.exports.systemNames[domain];
+ assert.equal((await selector.locator('[aria-pressed=true]').innerText()).replace(/\s/g,''),expected.replace(/\s/g,''));
+ await selector.getByRole('button',{name:'타로',exact:true}).click();
+ assert.equal(await selector.getByRole('button',{name:'타로',exact:true}).getAttribute('aria-pressed'),'true');
+}
+await page.evaluate(()=>sessionStorage.setItem('yeongnyangi:consultation-login-draft',JSON.stringify({path:'/yeongnyangi/fortune/?domain=tarot',productId:'tarot_mackerel',consultationKind:'spread',questionDecision:{version:'question-consultation-20261007',category:'self',target:'self',horizon:'current',situation:'',options:'',constraints:'',period:'',confirmed:false},editScope:true,savedAt:Date.now()})));
+await page.goto(base+'/yeongnyangi/fortune/?domain=tarot',{waitUntil:'domcontentloaded'});
+await page.getByRole('group',{name:'운세 종류',exact:true}).waitFor();
+assert.equal(await chat.count(),0,'old question draft must not override explicit fortune selection');
+await page.evaluate(()=>sessionStorage.removeItem('yeongnyangi:consultation-login-draft'));
+await page.goto(base+'/yeongnyangi/fortune/?domain=tarot&flow=question',{waitUntil:'domcontentloaded'});await chat.waitFor();
+await page.goto(base+'/yeongnyangi/fortune/',{waitUntil:'domcontentloaded'});await chat.waitFor();
+console.log('Entry regression PASS: delayed catalog, seven explicit fortune entries, persistent choice, question flow, spirit entry.');
 
 await page.setViewportSize({width:390,height:844});
 
@@ -154,6 +180,7 @@ await chat.getByRole('button',{name:'답장 보내기',exact:true}).click();
 assert.equal(await chat.getByRole('textbox').inputValue(),'');
 await page.setViewportSize({width:390,height:520});
 await chat.getByRole('textbox').focus();
+await page.waitForFunction(()=>document.querySelector('section[aria-label="영냥이와 상담 준비"]').getBoundingClientRect().bottom<=innerHeight);
 
 const sendBox=await chat.getByRole('button',{name:'답장 보내기',exact:true}).boundingBox();
 assert.ok(sendBox.y+sendBox.height<=520,JSON.stringify(sendBox));

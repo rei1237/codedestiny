@@ -126,12 +126,15 @@
   scrollbar-width: thin;
   scrollbar-color: var(--yn-violet) transparent;
 }
-.tabs button {
+.tabs button, .tabs a {
   flex-shrink: 0;
   background: var(--yn-night);
   color: var(--yn-muted);
   border-color: var(--yn-line);
 }
+.tabs a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 16px; border: 1px solid var(--yn-line); border-radius: var(--yn-btn-radius); font: inherit; text-decoration: none; }
+.tabs a:hover { background: var(--yn-raised); color: var(--yn-ivory); }
+.tabs a:focus-visible { outline: 2px solid var(--yn-gold); outline-offset: 3px; }
 .tabs button[aria-pressed="true"] {
   background: var(--yn-raised);
   color: var(--yn-ivory);

@@ -12,9 +12,9 @@ import ImmersiveRelatedLinks from "../components/ImmersiveRelatedLinks";
 import { buildKrwOffer } from "@/lib/seo/paid-offer";
 
 const PAGE_PATH = "/master-love-codex/";
-const PAGE_TITLE = "사주 연애 리포트 · 자미두수 융합 20장 | 마스터 인연의 서";
+const PAGE_TITLE = "사주 연애 리포트 · 20개 챕터의 인연 해석서 | 마스터 인연의 서";
 const PAGE_DESCRIPTION =
-  "내 다음 연애는 언제 시작될까? 사주와 자미두수로 연애 성향·끌림·갈등·결혼운을 20장으로 읽는 연애 리포트입니다.";
+  "내 다음 연애는 언제 시작될까? 사주와 자미두수로 연애 성향·끌림·갈등·결혼운을 20개 챕터, 총 5만 자 목표의 한 권으로 읽는 연애 리포트입니다.";
 
 export const metadata: Metadata = {
   title: PAGE_TITLE,
@@ -161,13 +161,13 @@ export default function MasterLoveCodexPageRoute() {
       <MasterLoveCodexRouteClient />
       <ResultSamples ids={["codex"]}/>
       <ServiceIntroSection label="마스터 인연의 서 안내">
-        <h1><span>사주 연애 리포트 — 자미두수와 함께 읽는 스무 장의 연애 전략서</span>내 다음 연애는 언제 시작될까?</h1>
+        <h1><span>사주 연애 리포트 — 자미두수와 함께 읽는 20개 챕터의 연애 전략서</span>내 다음 연애는 언제 시작될까?</h1>
         <p>
           마스터 인연의 서는 Code Destiny가 제공하는 최상위 프리미엄 상담입니다. 사주 명식(일간과
           십성, 오행의 균형과 조후, 대운과 세운의 흐름)과 자미두수 명반(명궁·부부궁·복덕궁을 비롯한
           열두 궁과 생년사화, 삼방사정)을 한자리에 펼쳐 두고, 두 체계를 서로 맞춰 가며 당신이 사랑에서
           반복하는 방식을 스무 장에 걸쳐 읽어 내려갑니다. 짧은 요약이나 몇 줄의 총평이 아니라,
-          한 권의 책으로 읽는 경험을 목표로 만들어졌습니다.
+          총 5만 자를 목표로 한 권의 책처럼 구성합니다. 20개 챕터는 페이지 수가 아닌 목차의 수이며, 실제 글 길이와 PDF 페이지 수는 생성 결과와 편집에 따라 달라집니다.
         </p>
         <p>
           이야기를 들려주는 사람은 연애 고수입니다. 신비의 도서관에서 당신을 맞이한 뒤, 아직 아무도
