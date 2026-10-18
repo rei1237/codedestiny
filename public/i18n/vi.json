@@ -2020,6 +2020,33 @@
       "miniGamesAria": "Xem tất cả trò chơi vận mệnh mini",
       "miniGamesAlt": "Ảnh đại diện trò chơi vận mệnh mini",
       "otherTitle": "Thêm quẻ bói thú vị"
+    },
+    "worldSearch": {
+      "heading": "Theo điều bạn tò mò",
+      "hint": "Chọn một nơi và tìm bài luận giải cho câu hỏi của bạn.",
+      "allName": "Tất cả",
+      "teaName": "Trà quán Định mệnh của Yeoni",
+      "strategyName": "Phòng Chiến lược của Neo",
+      "starsName": "Cung điện Sao của Musung",
+      "moonName": "Vườn Trăng của Seo Hanbi",
+      "skyName": "Đài thiên văn của Yundal",
+      "bookName": "Thư viện Nhân duyên",
+      "archiveName": "Kho lưu trữ Khám phá",
+      "teaIntro": "Thư giãn bên tách trà và mở ra những câu hỏi trong lòng.",
+      "strategyIntro": "Nhìn lại các lựa chọn lặp lại và tìm bước tiếp theo. Neo và Yeongnyangi là cùng một nhân vật, mang linh hồn sư tử trắng.",
+      "starsIntro": "Theo các sao và mười hai cung trong lá số Tử Vi để khám phá nhịp sống.",
+      "moonIntro": "Khám phá nhịp độ, khoảng cách và những câu hỏi trong các mối quan hệ.",
+      "skyIntro": "Theo dòng chảy của sao và thời gian để hiểu bản thân.",
+      "bookIntro": "Đọc những khuôn mẫu lặp lại trong tình yêu và mở chương tiếp theo của nhân duyên.",
+      "archiveIntro": "Tìm khám phá mới giữa các công cụ và câu chuyện giúp hiểu bản thân.",
+      "master_yeoni": "Yeoni",
+      "master_neo": "Neo",
+      "master_musung": "Musung",
+      "master_hanbi": "Seo Hanbi",
+      "master_yun": "Yundal",
+      "master_master": "Bậc thầy",
+      "summaryAll": "{count} dịch vụ",
+      "summaryFiltered": "{count} dịch vụ phù hợp"
     }
   },
   "terms": {

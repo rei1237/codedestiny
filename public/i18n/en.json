@@ -2020,6 +2020,33 @@
       "miniGamesAria": "View all mini fortune games",
       "miniGamesAlt": "Mini fortune games cover image",
       "otherTitle": "More fun readings"
+    },
+    "worldSearch": {
+      "heading": "Follow your curiosity",
+      "hint": "Choose a place and find a reading for your questions.",
+      "allName": "All places",
+      "teaName": "Yeoni’s Destiny Tea House",
+      "strategyName": "Neo’s Strategy Room",
+      "starsName": "Musung’s Palace of Stars",
+      "moonName": "Seo Hanbi’s Moonlit Garden",
+      "skyName": "Yundal’s Observatory",
+      "bookName": "Library of Connections",
+      "archiveName": "Archive of Discoveries",
+      "teaIntro": "Take a quiet tea break and unfold the questions on your mind.",
+      "strategyIntro": "Explore recurring choices and your next move. Neo and Yeongnyangi are the same character, with the soul of a white lion.",
+      "starsIntro": "Follow the stars and twelve palaces of a Ziwei chart to explore life’s patterns.",
+      "moonIntro": "Explore the pace and distance between people, and the questions in your relationships.",
+      "skyIntro": "Follow the stars and the passage of time to understand yourself.",
+      "bookIntro": "Read recurring patterns in love and open the next chapter of connection.",
+      "archiveIntro": "Find fresh discoveries among tools and stories for understanding yourself.",
+      "master_yeoni": "Yeoni",
+      "master_neo": "Neo",
+      "master_musung": "Musung",
+      "master_hanbi": "Seo Hanbi",
+      "master_yun": "Yundal",
+      "master_master": "Master",
+      "summaryAll": "{count} services",
+      "summaryFiltered": "{count} matching services"
     }
   },
   "terms": {

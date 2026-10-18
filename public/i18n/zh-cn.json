@@ -2020,6 +2020,33 @@
       "miniGamesAria": "查看迷你运势游戏合集",
       "miniGamesAlt": "迷你运势游戏封面图",
       "otherTitle": "更多有趣的运势"
+    },
+    "worldSearch": {
+      "heading": "走向心之所向",
+      "hint": "选择一个地方，寻找适合此刻疑问的解读。",
+      "allName": "全部",
+      "teaName": "延伊的命运茶馆",
+      "strategyName": "尼奥的策略室",
+      "starsName": "武星的星之宫殿",
+      "moonName": "徐寒雨的月光花园",
+      "skyName": "闰月的天文台",
+      "bookName": "缘分书斋",
+      "archiveName": "发现档案室",
+      "teaIntro": "像喝杯茶一样稍作休息，展开心中未解的问题。",
+      "strategyIntro": "审视反复出现的选择，寻找下一步。尼奥与灵喵是拥有白狮灵魂的同一人物。",
+      "starsIntro": "沿着紫微命盘的星曜与十二宫，观察人生的轨迹。",
+      "moonIntro": "探索彼此靠近的速度、距离，以及关系中积累的问题。",
+      "skyIntro": "沿着星辰与时间的流动，寻找理解自己的道路。",
+      "bookIntro": "阅读爱情中反复出现的模式，翻开缘分的下一章。",
+      "archiveIntro": "在认识自己的工具与故事之间，寻找新的发现。",
+      "master_yeoni": "延伊",
+      "master_neo": "尼奥",
+      "master_musung": "武星",
+      "master_hanbi": "徐寒雨",
+      "master_yun": "闰月",
+      "master_master": "大师",
+      "summaryAll": "全部 {count} 项服务",
+      "summaryFiltered": "符合条件的服务 {count} 项"
     }
   },
   "terms": {

@@ -1869,6 +1869,33 @@
       "miniGamesAria": "미니 운세 게임 모음 보기",
       "miniGamesAlt": "미니 운세 게임 대표 이미지",
       "otherTitle": "다른 재밌는 운세"
+    },
+    "worldSearch": {
+      "heading": "마음이 닿는 공간으로",
+      "hint": "장소를 골라, 나에게 필요한 운세를 만나보세요.",
+      "allName": "전체",
+      "teaName": "연이의 운명 찻집",
+      "strategyName": "네오의 전략실",
+      "starsName": "무성의 별의 궁전",
+      "moonName": "서한비의 달빛 정원",
+      "skyName": "윤달의 천문대",
+      "bookName": "인연의 서재",
+      "archiveName": "발견의 기록실",
+      "teaIntro": "차 한 잔의 여유로, 마음에 남은 질문을 펼쳐 보세요.",
+      "strategyIntro": "반복되는 선택을 살피고 다음 한 수를 찾아보세요. 백사자의 영혼을 지닌 네오와 영냥이는 같은 인물이에요.",
+      "starsIntro": "명반의 별과 열두 궁을 따라, 삶의 흐름을 살펴보세요.",
+      "moonIntro": "서로 다가가는 속도와 거리, 관계에 쌓인 질문을 만나보세요.",
+      "skyIntro": "별과 시간의 흐름을 따라, 나를 이해하는 길을 찾아보세요.",
+      "bookIntro": "사랑에서 반복되는 패턴을 읽고, 인연의 다음 장을 펼쳐 보세요.",
+      "archiveIntro": "나를 알아가는 도구와 이야기 사이에서 새로운 발견을 찾아보세요.",
+      "master_yeoni": "연이",
+      "master_neo": "네오",
+      "master_musung": "무성",
+      "master_hanbi": "서한비",
+      "master_yun": "윤달",
+      "master_master": "마스터",
+      "summaryAll": "전체 서비스 {count}개",
+      "summaryFiltered": "조건에 맞는 서비스 {count}개"
     }
   },
   "footer": {
