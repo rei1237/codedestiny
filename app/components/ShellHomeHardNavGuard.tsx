@@ -29,6 +29,9 @@ export default function ShellHomeHardNavGuard() {
       if (!(target instanceof Element)) return;
       const anchor = target.closest("a[href]");
       if (!(anchor instanceof HTMLAnchorElement)) return;
+      // The hydrated tarot deck performs its own hard navigation after drawing
+      // the card, and also owns cancelled touch gestures. Do not race it.
+      if (anchor.closest("[data-home-card-motion] [data-home-card]")) return;
       if (anchor.hasAttribute("download")) return;
       const anchorTarget = anchor.getAttribute("target");
       if (anchorTarget && anchorTarget !== "_self") return;
