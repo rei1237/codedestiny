@@ -1,7 +1,7 @@
 ---
-status: blocked
+status: active
 updated: 2026-10-18
-next: "origin/main 34d3447ed0234c4bd03d2ac3069726e171996e6b의 CI required·AI Locale 실패 복구 여부부터 확인한다. green 이후 sitemap 원장을 생성기로 병합하고 보안 변경을 검증·통합한다. 실패한 main 위로 push하지 않는다."
+next: "복구 커밋 f0b3e7c5dc985460e2d81218a49643215e20e08a의 PR CI 39091146895와 AI Locale Gate 39091146847 통과 후 보안 변경을 통합한다. 공유 main 변경86개를 보존한다."
 ---
 
 # 보안 조사·수정 전달 재개
@@ -58,6 +58,17 @@ Git 전체 이력 secret scan은 메모리 할당 실패로 미완료. 부분 �
 - `npm run check:fast -- --plan --base=f11871f4cf9e344ad5c9484e81cc32351b5ebc3c`: exit0, 17파일·critical. 계획 확인이며 검사 실행 통과를 뜻하지 않는다. 기존 전체 테스트 증거는 위 이전 실행 기록이며 이번에 반복하지 않았다.
 - 사용자 요청 및 전달 규칙에 따라 실패한 main 위로 push하지 않는다. 이번 문서 갱신만 로컬 커밋하고 보안 워크트리·junction·미전달 커밋을 보존한다. `status: blocked` 유지. CI 복구와 안전한 공유 main 통합이 끝나기 전에는 done이나 정리 완료로 바꾸지 않는다.
 - 이번 문서 검증: `git diff --check` exit0, `npm run verify:handoff-contract` 222개 문서 통과, `npm run verify:doc-freshness` 통과. 공유 main 최종 재확인도 같은 HEAD·변경86개. 코드 변경이 없고 원격 CI가 차단 상태이므로 전체 코드 검사·check:pre-push는 반복하지 않았다.
+
+## 2026-10-18 CI 직접 복구 요청
+
+- 사용자 요청: main 실패 원인부터 직접 수정하고, 복구 수정만 검증·push한 뒤 CI 통과 후 보안 변경을 통합·검증·push한다.
+- 공유 main을 변경하지 않기 위해 기존 보안 브랜치 `7c29465a1bbbd9d6738534d69f8ba165766af149`를 보존하고 같은 전용 워크트리를 원격 main에서 detached checkout하여 복구만 분리했다. 새 브랜치·PR·워크트리는 만들지 않았다.
+- 복구 커밋 `f0b3e7c5dc985460e2d81218a49643215e20e08a`를 `git push origin HEAD:refs/heads/main`으로 전달했다. 10파일: 메타 설명, 경로·수정일 테스트, AI 호출 원장, AI 편집 검토 기록, 생성 sitemap 원장·미러. 보안 커밋은 아직 합치지 않았다.
+- `952a76208506e42943526c24d328cefe2abaed4d`의 의도한 `/saju` 경로·2026-10-18 실제 콘텐츠 수정일에 테스트를 맞췄다. 원고는 같은 커밋에서 `/saju/basic/`→`/saju/` 링크 한 곳만 바뀐 것을 확인하고 AI 검토 해시·기록을 갱신했다. 인간 검토·광고 허용 상태는 그대로다.
+- AI 원장의 불일치는 `c70354de9`에서 없어진 `ziwei-island-ai.js`의 import·호출 2건이었다. 실제 라우트는 기존 결과 재열람만 제공하므로 호출이 없음을 확인하고 기존 생성기로 갱신했다. 검사기·ignore·예외는 변경하지 않았다.
+- 로컬 복구 검증: 관련 Node20/20, AI inventory62파일150근거, browser/provider locale mock(12로케일), 변경 파일 ESLint exit0(기존 CommonJS warning5), `git diff --check`, `check:pre-push` 모두 통과. 홈페이지 설명은 빌드 검사기의 동일 폭 함수로150/160, 나머지6개 변경된 체계 소개 설명도134~153/160. sitemap 생성1022URL·원장1개 갱신. check:fast 계획은critical이며, 가용 물리 메모리 약63MiB여서 전체 로컬 검사를 반복하지 않고 공식 CI 전체 lane으로 검증한다.
+- 복구 [PR CI39091146895](https://github.com/rei1237/codedestiny/actions/runs/39091146895), [AI Locale39091146847](https://github.com/rei1237/codedestiny/actions/runs/39091146847), [Secret Scan39091146863](https://github.com/rei1237/codedestiny/actions/runs/39091146863): 시작 확인, 완료 전. 사용자가 지정한 선행조건이므로 복구 CI 성공 전에 보안 변경을 합치지 않는다.
+- 보안 브랜치로 돌아와 통합 전 재검증: Jest9suite254테스트 통과(request boundaries/payment body/AI buckets/OAuth/exp/payment context/webhook/replay/palm), worker-security-guards, security-hardening530소스, payment-freeze, guard-wiring 모두 통과. 보안 소스와 원격 후속 변경의 중복 수정은 없고 merge-tree는 생성 sitemap 원장에서만 충돌한다.
 
 ### 복사할 재개 지시
 
