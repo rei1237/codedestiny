@@ -83,10 +83,14 @@ for (const entry of [
   if (action) assert.ok(sourceEntry.includes(`action: "${action}"`), `서비스 레지스트리 직접 실행 액션이 없습니다: ${id} -> ${action}`);
 }
 
-// 모든 운세 시트 맨 위에서 대표 상담 덱으로 돌아가는 한 줄 링크.
+// 전체 검색은 검색 → 지역 탐색 → 대표 상담 복귀 링크 → 기존 필터 순서다.
 const afRoot = template.indexOf('id="cdAllFortunesRoot"');
+const afSearch = template.indexOf('id="cdAllFortunesSearch"');
+const afExplore = template.indexOf('data-cd-explore');
 const afLink = template.indexOf('data-cd-af-signature');
-assert.ok(afRoot > 0 && afLink > afRoot && afLink < template.indexOf('id="cdAllFortunesSearch"'), 'signature link heads the all-fortunes sheet');
+const afFilters = template.indexOf('id="cdAllFortunesMethodTitle"');
+assert.ok(afRoot > 0 && afSearch > afRoot && afExplore > afSearch && afLink > afExplore && afFilters > afLink, 'search and exploration precede the preserved signature link and filters');
+assert.match(template.slice(afRoot, afSearch), /^id="cdAllFortunesRoot">\s*<div class="cd-af__search" role="search">\s*<input type="search"\s*$/, 'search is the first content element');
 assert.ok(template.includes('href="/ggulggul/#cdSignatureConsult" data-cd-af-signature'), 'signature link points at the home deck');
 
 console.log("[home-direct-feature-links] PASS");
