@@ -44,7 +44,7 @@ await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 const origin = `http://127.0.0.1:${server.address().port}`;
 const browser = await chromium.launch({headless:true});
 const sectionRequests=[];let activeCase='nature';
-const out=resolve(root,'.impeccable/review');await mkdir(out,{recursive:true});
+const out=resolve(process.env.CD_SAJU_NATURE_EVIDENCE_DIR || resolve(root,'.impeccable/review'));await mkdir(out,{recursive:true});
 try {
 for(const width of [360,390,430,1440]){
  const context=await browser.newContext({viewport:{width,height:1000},reducedMotion:'reduce'});
@@ -85,6 +85,22 @@ for(const width of [360,390,430,1440]){
  assert.ok(await page.locator('#dwGrid .saju-nature-thumb').count()>0);
  await shot('#dwDetail','daewun');
  await shot('#summaryArea','summary');
+ const chapters=page.locator('#summaryArea .saju-summary-chapter');
+ assert.equal(await chapters.count(),16,'all delivered summary chapters');
+ assert.equal(await page.locator('#summaryArea [data-summary-art]').count(),16,'one illustration per chapter');
+ for (let i=0;i<await chapters.count();i++) {
+  const chapter=chapters.nth(i),art=chapter.locator('.saju-summary-chapter__body > [data-summary-art]');
+  assert.equal(await art.count(),1,'chapter '+i+' owns its illustration');
+  await art.scrollIntoViewIfNeeded();
+  await art.locator('img').evaluateAll(imgs=>Promise.all(imgs.map(async image=>{image.loading='eager';try{await image.decode();}catch(error){throw new Error(image.getAttribute('src')+': '+error.message);}})));
+  assert.equal(await art.locator('img').evaluate(image=>image.complete&&image.naturalWidth>0),true);
+  assert.equal(await chapter.evaluate(el=>el.scrollWidth>el.clientWidth+1),false,'chapter '+i+' overflow');
+ }
+ for(const key of ['chongpyeong','eokbu','yeonae','olhae'])await shot('#sajuSummaryChapter-'+key,'summary-'+key);
+ const first=chapters.first();await first.locator('.saju-summary-toggle').click();
+ assert.equal(await first.locator('[data-summary-art]').isVisible(),false,'collapsed chapter hides its image');
+ await first.locator('.saju-summary-toggle').click();
+ assert.equal(await first.locator('[data-summary-art]').isVisible(),true,'expanded chapter restores its image');
  await page.evaluate(()=>document.body.classList.add('neo-mode'));
  await shot('#sajuIljuRich','ilju-dark');await shot('#dwDetail','daewun-dark');
  const after=await page.evaluate(()=>JSON.stringify({p:G_PILLARS,power:G_POWER,n:G_NATAL,dw:G_DAEWUN}));

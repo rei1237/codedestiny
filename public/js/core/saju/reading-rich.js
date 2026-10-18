@@ -119,11 +119,23 @@
       // Stable chapter IDs also work with saved reports. Pictures illustrate the
       // topic, never infer another element, verdict, or future event.
       report.querySelectorAll('[data-summary-art]').forEach(function(node){ node.remove(); });
+      cover.remove(); // Each summary chapter owns its image; avoid a duplicate cover.
       var pictures = [
+        ['chongpyeong', stemArt(stem)],
         ['johu', seasonArt(pillars && pillars.m && pillars.m.j)],
+        ['eokbu', natureFigure('gyeong', 'metal', '힘을 받치고 다듬는 균형', '원석을 다듬듯 나를 돕는 힘과 부담을 함께 살펴보세요. 강약의 균형을 표현한 상징 이미지입니다.')],
+        ['wollyeong', seasonArt(pillars && pillars.m && pillars.m.j, '월령의 계절')],
+        ['ohaeng', natureFigure('spring', 'wood', '서로 다른 기운이 이루는 풍경', '나무와 물, 햇빛과 땅이 함께 풍경을 이루듯 오행의 분포를 읽습니다. 특정 오행의 우세를 뜻하지 않는 상징 이미지입니다.')],
+        ['sipseong', natureFigure('summer', 'fire', '서로 연결되어 드러나는 역할', '숲의 가지들이 다른 자리를 채우듯 십성이 맡는 역할을 살펴보세요. 십성의 관계를 표현한 상징 이미지입니다.')],
+        ['seonggyeok', natureFigure('im', 'water', '내면의 깊이와 마음의 흐름', '수면 아래의 깊이를 살피듯 반복되는 감정과 선택을 돌아보세요. 성격을 이해하기 위한 상징 이미지입니다.')],
         ['jinro', natureFigure('gap', 'wood', '나의 방향을 세우는 일', '곧게 자라는 나무처럼, 강점을 펼칠 환경을 살펴보세요. 진로를 이해하기 위한 상징 이미지입니다.')],
         ['yeonae', natureFigure('eul', 'wood', '서로의 속도를 존중하는 관계', '서로 다른 방향으로 피어나는 꽃처럼, 가까운 사이에도 각자의 리듬이 있습니다. 관계를 표현한 상징 이미지입니다.')],
+        ['sinsal', natureFigure('jeong', 'fire', '특별한 신호를 차분히 읽는 빛', '등불로 한 부분을 비추듯 신살은 원국과 함께 읽는 보조 단서입니다. 길흉을 확정하는 그림이 아닙니다.')],
+        ['geongang', natureFigure('gye', 'water', '쉬고 회복하는 일상의 리듬', '풀잎의 이슬처럼 작은 휴식과 생활 습관을 돌아보세요. 회복을 표현한 상징이며 건강 상태를 진단하지 않습니다.')],
         ['jaemul', natureFigure('gi', 'earth', '차곡차곡 가꾸는 삶의 기반', '흙을 돌보듯 수입과 지출의 습관을 살펴보세요. 재물의 축적을 표현한 상징 이미지입니다.')],
+        ['guiin', natureFigure('gap', 'wood', '함께 기대고 자라는 관계', '나무 그늘처럼 서로의 힘이 되는 관계를 살펴보세요. 특정 인물의 등장을 예고하지 않는 상징 이미지입니다.')],
+        ['gaeun', natureFigure('byeong', 'fire', '일상에 작은 변화를 비추는 빛', '햇살이 하루를 밝히듯 지금 바꿀 수 있는 습관부터 골라보세요. 운의 결과를 보장하지 않는 실천의 상징입니다.')],
+        ['olhae', natureFigure('autumn', 'metal', '시기의 변화를 준비하는 풍경', '계절의 전환처럼 올해와 내년의 계산 근거를 비교합니다. 특정 계절의 길흉을 예고하는 그림이 아닙니다.')],
         ['jeollyak', natureFigure('mu', 'earth', '멀리 바라보고, 한 걸음씩', '산길을 걷듯 지금 실천할 수 있는 작은 선택부터 정리해 보세요. 삶의 방향을 표현한 상징 이미지입니다.')]
       ];
       pictures.forEach(function(item){
@@ -133,7 +145,8 @@
         art.className = 'saju-reading saju-nature-insert saju-summary-art';
         art.setAttribute('data-summary-art', item[0]);
         art.innerHTML = item[1];
-        chapter.before(art);
+        var body = chapter.querySelector('.saju-summary-chapter__body');
+        if (body) body.prepend(art);
       });
       report.querySelectorAll('.saju-summary-illustration').forEach(function(node){ node.remove(); });
       return;

@@ -23,10 +23,20 @@ test('delivered summary art preserves chapters and stays unique on repeat decora
   const pillars={d:{g:'甲'},m:{j:'巳'}};
   const decorate=()=>dom.window.SajuReadingRich.decorateDelivered(host,null,pillars);
   decorate(); decorate();
-  assert.equal(host.querySelectorAll('.saju-nature-cover').length,1);
-  assert.equal(host.querySelectorAll('[data-summary-art]').length,5);
+  assert.equal(host.querySelectorAll('.saju-nature-cover').length,0);
+  assert.equal(host.querySelectorAll('[data-summary-art]').length,chapters.length);
+  for (const chapter of host.querySelectorAll('.saju-summary-chapter')) {
+    const art=chapter.querySelector('.saju-summary-chapter__body > [data-summary-art]');
+    assert.ok(art,chapter.id+' must own its illustration inside the collapsible body');
+    assert.equal(art.dataset.summaryArt,chapter.id.replace('sajuSummaryChapter-',''));
+    for (const image of art.querySelectorAll('img')) {
+      assert.ok(readFileSync('public'+image.getAttribute('src')).length>0);
+      assert.equal(image.getAttribute('loading'),'lazy');
+      assert.ok(image.getAttribute('alt'));
+    }
+  }
   assert.match(host.querySelector('[data-summary-art="johu"] img').src,/summer-960/);
-  assert.deepEqual([...host.querySelectorAll('.saju-summary-chapter')].map(node=>node.outerHTML),chapters);
+  assert.deepEqual([...host.querySelectorAll('.saju-summary-chapter')].map(node=>{const clone=node.cloneNode(true);clone.querySelectorAll('[data-summary-art]').forEach(art=>art.remove());return clone.outerHTML;}),chapters);
   host.innerHTML='<div data-cd-summary-fallback="1">불러오는 중</div>';
   decorate();
   assert.equal(host.querySelectorAll('img').length,0);
