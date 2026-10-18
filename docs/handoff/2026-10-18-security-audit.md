@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-18
-next: "복구 HEAD 37ea6b16b01905990045268898cf265afe0113d4의 full_ci 39093078311 통과 후 보안 변경을 통합한다. 공유 main 변경86개를 보존한다."
+next: "복구 HEAD 1fb2c4ae1430c055622e3a5b9879058b08d462e1의 full_ci 39093487128 통과 후 보안 변경을 통합한다. 공유 main 변경86개를 보존한다."
 ---
 
 # 보안 조사·수정 전달 재개
@@ -79,6 +79,9 @@ Git 전체 이력 secret scan은 메모리 할당 실패로 미완료. 부분 �
 - `c08a62dbe070445d8b4fdaf8f93636e3160e64a5`: 작명 메타 설명148/160, 무료 초안·별도 유료 상세 작명서 구분 유지. 소스1개와 sitemap 생성물5개. 관련 Node5/5·ESLint·check:pre-push 통과. 관련 변경44파일의 설명225개를 AST로 살펴보고 메타 출력 연결을 확인했다. 본문 문구나 사용하지 않는 번역·공통 함수에서 조정되는 설명은 수정하지 않았다.
 - `37ea6b16b01905990045268898cf265afe0113d4`: 모바일 목록의 현재 진입을 `/astrology/`·`/vedic/`로 맞추고 기존 Worker 301 정보는 문서에 보존. 검사기를 수정하지 않았다. entry104행90경로32action, 가격 불일치0, 하단 메뉴7shell12언어, doc-freshness·check:pre-push 통과.
 - 복구만 main push 완료. 문서 변경 경로의 skip으로 복구 판정을 대신하지 않도록 공식 `workflow_dispatch full_ci=true` 실행 [39093078311](https://github.com/rei1237/codedestiny/actions/runs/39093078311). 전체 lane 성공 전 보안 merge 금지. 공유 main은 같은 HEAD·다른 변경86개이며 파일·index·브랜치 포인터를 변경하지 않았다.
+
+- 후속 Build39092921412는 메타 설명 검사를 통과한 뒤 `famous/index.html`의 정책 링크2개가 옛 redirect 주소인 문제로 실패했다. `1fb2c4ae1430c055622e3a5b9879058b08d462e1`에서 독립 정적 소스 `public/famous/index.html`의 두 링크를 `/privacy/`·`/terms/`로 변경했다. 정책 본문·동작 변경 없음. 실제 postbuild의 `redirectingLinks` 함수로 수정 전2실패·후0건, sitemap 원장 갱신0개, check:pre-push 통과.
+- 최신 복구 SHA의 AI Locale39093466314·Secret Scan39093466309 success. 자동 PR CI39093466321은 빌드·Critical checks를 경로상 skip하므로 전체 CI [39093487128](https://github.com/rei1237/codedestiny/actions/runs/39093487128)를 별도 요청했다. 아직 시작 전이던 옛 SHA의 수동39093078311은 새 복구로 대체되어 취소했고 성공으로 세지 않는다. 기존 자동 CI는 취소하지 않았다. 37ea6b16b의 자동39093078254는 Static guards·CI required success, 빌드 등은 skipped.
 
 ### 복사할 재개 지시
 
