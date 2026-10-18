@@ -12,7 +12,7 @@ import ImmersiveRelatedLinks from "../components/ImmersiveRelatedLinks";
 import { buildKrwOffer } from "@/lib/seo/paid-offer";
 
 const PAGE_PATH = "/master-love-codex/";
-const PAGE_TITLE = "사주 연애 리포트 · 20개 챕터의 인연 해석서 | 마스터 인연의 서";
+const PAGE_TITLE = "사주 연애 리포트 · 20개 챕터 | 마스터 인연의 서";
 const PAGE_DESCRIPTION =
   "내 다음 연애는 언제 시작될까? 사주와 자미두수로 연애 성향·끌림·갈등·결혼운을 20개 챕터, 총 5만 자 목표의 한 권으로 읽는 연애 리포트입니다.";
 

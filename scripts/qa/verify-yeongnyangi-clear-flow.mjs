@@ -36,8 +36,8 @@ try {
     }));
   }}]});
   const catalog=await build({stdin:{contents:"export {products} from './worker/yeongnyangi/payments/catalog';",resolveDir:root,loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false});
-  const module=new Module(path.join(temp,'catalog.cjs'));module._compile(catalog.outputFiles[0].text,module.id);
-  const products=module.exports.products.map(product=>({...product,available:true}));
+  const catalogModule=new Module(path.join(temp,'catalog.cjs'));catalogModule._compile(catalog.outputFiles[0].text,catalogModule.id);
+  const products=catalogModule.exports.products.map(product=>({...product,available:true}));
   server=createServer((req,res)=>{
     const pathname=new URL(req.url,'http://127.0.0.1').pathname;
     const file=pathname==='/fixture.js'||pathname==='/fixture.css'?path.join(temp,pathname.slice(1)):(/^\/(assets|icons|images|feature-details)\//.test(pathname))?path.resolve(root,'public',`.${pathname}`):null;
