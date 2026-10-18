@@ -13612,6 +13612,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     syFreeCompatPending = { key: key, promise: promise }; return promise;
   };
   window.openSukuyoCompatDetail = function(myIdx, myMansionName) {
+      if (window._sy3Running) return;
       if (syCompatPendingRetry(SY_PAID_FEATURES.compatibility.key)) {
         var pending = syRecentPaidGateAccess(SY_PAID_FEATURES.compatibility.key);
         return syRunCompatResume(pending.resume, { accessMethod: pending.accessMethod });

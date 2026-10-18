@@ -48,6 +48,15 @@ test('payment access is isolated from another account or profile',()=>{
   owner='user-a';profile='card-b';assert.equal(ctx.syRecentPaidGateAccess('compat'),null);
 });
 
+test('an in-flight result never reopens the purchase gate even after its gate timer expires',()=>{
+  const ctx=vm.createContext({window:{_sy3Running:true}});
+  let handler;
+  function visit(node){if(ts.isBinaryExpression(node)&&node.left.getText(ast)==='window.openSukuyoCompatDetail')handler=node;ts.forEachChild(node,visit);}
+  visit(ast);assert.ok(handler);vm.runInContext(handler.getText(ast),ctx);
+  // No payment dependencies are installed: reaching one would throw and fail the test.
+  assert.equal(ctx.window.openSukuyoCompatDetail(1,'각숙'),undefined);
+});
+
 test('actual legacy core retries a delayed pass result with the same receipt, renders and archives once', async () => {
   const dom = new JSDOM('<div id="sy3Result"></div><div id="sy3Loading"></div>' + Object.entries({sy3BirthY:'1992',sy3BirthM:'3',sy3BirthD:'4',sy3BirthTime:'12:00',sy3CalType:'solar',sy3PartnerGender:'M'}).map(([id,value])=>`<input id="${id}" value="${value}">`).join(''));
   const access = {profileId:'card-a',requestId:'sukuyo-paid:compat-sukuyo-compatibility|card-a|abc12345',accessMethod:'pass',ownerScope:'user-a',resume:{args:{y:'1992',m:'3',d:'4',profileId:'card-a',requestId:'paid'}}};
