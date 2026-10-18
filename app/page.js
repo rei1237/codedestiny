@@ -23,7 +23,7 @@ const YEONGNYANGI = characters.find((character) => character.key === "yeongnyang
 // 영냥이 상담의 시작 가격은 결제 카탈로그(고등어)에서 읽는다.
 const YEONGNYANGI_STARTER_PRICE = `${YEONGNYANGI_PRODUCTS.find((product) => product.id === "saju_mackerel").priceKRW.toLocaleString("ko-KR")}원`;
 const HOME_TITLE = `${service.name} | 사주·타로·별자리 운세 – 코드 데스티니`;
-const HOME_DESCRIPTION = `꽃돼지 연이와 사주보는 고양이 영냥이를 만나는 ${service.name}. 사주·타로·숙요점·베다점·자미두수·작명·점성술과 오늘·내일 별자리 운세를 한곳에서 살펴보고, 내 고민에 맞는 상담을 시작하세요.`;
+const HOME_DESCRIPTION = `꽃돼지 연이와 사주보는 고양이 영냥이를 만나는 ${service.name}. 사주·타로·숙요점·베다점과 오늘·내일 별자리 운세를 살펴보고, 내 고민에 맞는 상담을 시작하세요.`;
 const HOME_IMAGE = "https://code-destiny.com/icons/moonlight-garden-v1-512.png";
 const ART = "/images/home/illustrated";
 // 카드 그림은 같은 파일명으로 다시 그려 왔고 정적 이미지는 7일 캐시된다(public/_headers).
