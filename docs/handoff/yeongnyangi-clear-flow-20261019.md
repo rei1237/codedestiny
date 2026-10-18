@@ -1,7 +1,7 @@
 ---
-status: active
+status: done
 updated: 2026-10-19
-next: "상담 원문 배열의 타입 검사 수정이 포함된 최신 main CI를 확인한다. 통과하면 이 기록을 done으로 닫는다."
+next: "완료. 운영 승격은 별도 요청이 있을 때 진행한다."
 ---
 
 # 영냥이 선택 회귀 및 상담 안내
@@ -40,7 +40,7 @@ git log -1 --format='%H %s'
 gh run list --workflow pr-ci.yml --branch main -L 1 --json status,conclusion,headSha,url
 ```
 
-최신 실행이 실패라면 해당 실행의 `gh run view <id> --log-failed`로 실패만 조사한다. 통과라면 이 문서의 상태를 done으로 닫고 작업 목표를 완료한다. 다른 세션의 `.claude/skills/fire-your-seo-agency/`는 보존한다.
+최종 기능 커밋의 공식 CI를 통과해 이 기록을 done으로 닫았다. 다른 세션의 `.claude/skills/fire-your-seo-agency/`는 보존한다.
 
 - 타입 오류 후속 검증: `npm run typecheck` 전체 통과(exit 0), 해당 Guide eslint 통과, 상담 예시·영냥이 문구 테스트 10/10 통과.
 
@@ -49,4 +49,12 @@ gh run list --workflow pr-ci.yml --branch main -L 1 --json status,conclusion,hea
 - 현재 main 소스에서 카탈로그 전 로딩 처리, 명시적 운세 선택과 이전 질문 초안 분리, 운세 카테고리의 영냥 신점 링크를 확인했다. QA는 지연 카탈로그·7개 운세·이전 초안 덮어쓰기를 직접 검증한다.
 - 보존한 targeted QA 보고서는 360/390px 홈·운세 선택에서 넘침 0, 이미지 누락 0, 신점 Enter 이동과 프라슈나/호라리 설명 펼치기 PASS를 기록한다. 실제 상담 해석·행동 조언 두 문단이 기본 노출된다.
 - 개인판·궁합판 worker 메타데이터의 totalCharTarget은 각각 50,000이다. 초융합 상수는 오마카세 44개 챕터, 목표 상한 126,360자다. 안내 문구가 해당 원본과 일치한다.
-- 기능 변경의 파일 목록에 서버·결제·인증·DB 파일은 없다. 추가 필수 구현은 없으며 남은 전달 확인은 수정 후 공식 CI다.
+- 기능 변경의 파일 목록에 서버·결제·인증·DB 파일은 없다. 추가 필수 구현은 없으며 수정 후 공식 CI도 통과했다.
+
+## 최종 완료 근거
+
+- 최종 기능 커밋: `4d1c80b1d8296de5cc74476c6275cbb517b2bdb7`, main push 완료.
+- 공식 CI: https://github.com/rei1237/codedestiny/actions/runs/39148811159 — completed / success. Typecheck and lint, Static guards, Build Pages and Worker, CI required 모두 success. Critical checks는 이번 수정의 위험도 분류에 따라 skipped이며 전체 aggregate가 성공했다.
+- 최종 main의 홈·영냥 신점 선택·설명 targeted mock 캡처 4개 PASS. 보존 경로: `C:\Users\user\.codex\visualizations\2026\10\18\01a14fdd-9cba-73e3-8b43-3a3cb285c2bc\yeongnyangi\verified-main`.
+- `npm run verify:detail-first-entry` PASS: 7개 상품 × 360/390/430/1280px, 상세 열기·닫기·포커스 복원·상담 이동·뒤로가기 28개 경우 확인, 결제 호출 없음.
+- 개발 변경과 main 전달은 완료했다. 실제 운영 승격과 실결제·실 LLM 검증은 실행하지 않았다.
