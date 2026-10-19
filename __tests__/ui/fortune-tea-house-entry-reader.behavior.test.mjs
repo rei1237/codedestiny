@@ -16,11 +16,16 @@ const entranceSource=await readFile(new URL('../../app/fortune-chat/Consultation
 const entranceAst=ts.createSourceFile('ConsultationEntrance.tsx',entranceSource,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
 const entranceComponent=entranceAst.statements.find(node=>ts.isFunctionDeclaration(node)&&node.name?.text==='ConsultationEntrance');
 assert.ok(entranceComponent);
-const entranceBuilt=await transform(`export function create(React){const world={},styles={};${entranceComponent.getText(entranceAst).replace('export default ','')}return ConsultationEntrance;}`,{loader:'tsx',format:'esm',jsx:'transform'});
+const welcomeSource=await readFile(new URL('../../app/fortune-chat/YeoniWelcome.tsx',import.meta.url),'utf8');
+const welcomeAst=ts.createSourceFile('YeoniWelcome.tsx',welcomeSource,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
+const welcomeComponent=welcomeAst.statements.find(node=>ts.isFunctionDeclaration(node)&&node.name?.text==='YeoniWelcome');
+assert.ok(welcomeComponent);
+// Render the real welcome markup; only replace Next's image transport.
+const entranceBuilt=await transform(`export function create(React){const styles={},Image=({priority,...props})=>React.createElement('img',props);${welcomeComponent.getText(welcomeAst).replace('export default ','')}${entranceComponent.getText(entranceAst).replace('export default ','')}return ConsultationEntrance;}`,{loader:'tsx',format:'esm',jsx:'transform'});
 const {create}=await import('data:text/javascript;base64,'+Buffer.from(entranceBuilt.code).toString('base64'));
 const ConsultationEntrance=create(React);
 function render(state,props={}){let native=0,saved=0,chat=0;const element=check(React,state===undefined?React.useState:()=>[state,()=>{}],React.useEffect,recordService,()=>{native++;return React.createElement('h1',null,'New consultation');},({resultId})=>{saved++;return React.createElement('h1',null,resultId);},()=>{chat++;return React.createElement('h1',null,'Question consultation');},teaHouseSurface,YEONI_TEA_HOUSE,ConsultationEntrance,props);return {html:renderToStaticMarkup(element),native,saved,chat};}
-test('SSR has one real service heading without mounting generation or a saved reader',()=>{const r=render();assert.equal((r.html.match(/<h1\b/g)||[]).length,1);assert.match(r.html,/달빛 찻집/);assert.match(r.html,/aria-busy="true"/);assert.equal(r.native,0);assert.equal(r.saved,0);});
+test('SSR has one real service heading without mounting generation or a saved reader',()=>{const r=render();assert.equal((r.html.match(/<h1\b/g)||[]).length,1);assert.match(r.html,/<h1 id="yeoni-welcome-title">마음에 남은 이야기,/);assert.match(r.html,/salon-welcome-v1.webp/);assert.match(r.html,/aria-busy="true"/);assert.equal(r.native,0);assert.equal(r.saved,0);});
 test('resolved saved ID mounts only the saved result reader',()=>{const r=render('?resultId=owned-saved-fixture');assert.equal(r.native,0);assert.equal(r.saved,1);assert.equal(r.chat,0);assert.ok(r.html.includes('owned-saved-fixture'));});
 test('resolved new entry mounts the existing consultation scene',()=>{const r=render('');assert.equal(r.native,1);assert.equal(r.saved,0);});
 test('letter entry and old checkout URL mount only the shared chat',()=>{for(const [query,props] of [['?counsel=letter',{}],['?session=saved',{}],['?paymentId=paid',{legacyChat:true}]]){const r=render(query,props);assert.equal(r.chat,1);assert.equal(r.native,0);assert.equal(r.saved,0);}});
