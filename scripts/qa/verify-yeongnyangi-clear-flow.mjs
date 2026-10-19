@@ -25,6 +25,7 @@ try {
     import QuestionSkyConsultation from './app/yeongnyangi/_components/QuestionSkyConsultation';
     import Layout from './app/yeongnyangi/layout';
     import './app/yeongnyangi/night-tokens.css';
+    import './styles/theme-tokens.css';
     const params=new URLSearchParams(location.search);
     const surface=params.get('surface')||(params.get('mode')==='spirit'?'prashna':'home');
     createRoot(document.getElementById('root')).render(<Layout>{surface==='home'?<Home guide={<Guide/>}/>:surface==='prashna'?<QuestionSkyConsultation mode="prashna-v1"/>:<Consultation/>}</Layout>);
@@ -81,6 +82,25 @@ try {
       await page.screenshot({path:file,fullPage:true});
       await page.screenshot({path:path.join(output,`${surface}-${width}-viewport.png`)});
       evidence.push({surface,width,...geometry,file});
+      if(surface==='home'){
+        const entry=page.locator('#questions');
+        await entry.screenshot({path:path.join(output,`question-entry-${width}.png`)});
+        const choices=entry.getByRole('button',{name:/그 사람의 말과 행동/});
+        await choices.focus();await page.keyboard.press('Enter');
+        const reading=page.locator('#question-reading');
+        await reading.getByRole('link',{name:'이 질문으로 상담 준비하기'}).waitFor();
+        assert.equal(await choices.getAttribute('aria-pressed'),'true');
+        assert.ok(await reading.evaluate(el=>Boolean(el.compareDocumentPosition(document.querySelector('#questions > details'))&Node.DOCUMENT_POSITION_FOLLOWING)),'Selected offer precedes the question finder');
+        await reading.screenshot({path:path.join(output,`question-offer-${width}.png`)});
+        const finder=entry.locator('details').first();await finder.locator('summary').click();
+        await entry.locator('#concern-search').fill('존재하지않는검색어검증');
+        assert.equal(await entry.getByText('같은 표현의 고민이 아직 없어요.',{exact:false}).count(),1);
+        await entry.locator('#concern-search').fill('이직');
+        assert.ok(await entry.locator('#concern-search').inputValue()==='이직');
+        await finder.locator('summary').click();
+        assert.equal(await entry.getByRole('link',{name:'내 고민 직접 적기',exact:false}).getAttribute('href'),'/yeongnyangi/fortune/');
+        keyboardEvidence.push({surface,width,questionSelect:'PASS',offerBeforeFinder:'PASS',searchEmptyState:'PASS',directQuestionHref:'PASS'});
+      }
       if(targeted){
         if(surface==='home'){
           const sample=page.locator('#yn-example');
