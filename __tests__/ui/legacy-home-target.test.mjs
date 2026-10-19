@@ -78,14 +78,14 @@ test("brand home stays put for plain visits, campaign links and its own anchors"
   assert.deepEqual(homeRedirects("", "#homeCardTitle", { anchors: ["homeCardTitle"] }), []);
 });
 
-test("app anchors and installs that still start at / move on to the app home", () => {
+test("app anchors preserve their destination while installed apps keep the chooser", () => {
   assert.deepEqual(homeRedirects("?utm_source=google&utm_campaign=free-fortune", "#readings"), ["/ggulggul/?utm_source=google&utm_campaign=free-fortune#readings"]);
-  assert.deepEqual(homeRedirects("", "", { standalone: true }), ["/ggulggul/"]);
+  assert.deepEqual(homeRedirects("", "", { standalone: true }), []);
 });
 
-test("the mobile app bundle has no brand home and opens the app home", () => {
-  assert.deepEqual(homeRedirects("", "", { appBuild: true }), ["/ggulggul/"]);
-  assert.deepEqual(homeRedirects("?utm_source=app", "", { appBuild: true }), ["/ggulggul/?utm_source=app"]);
+test("the mobile app bundle starts on the service chooser", () => {
+  assert.deepEqual(homeRedirects("", "", { appBuild: true }), []);
+  assert.deepEqual(homeRedirects("?utm_source=app", "", { appBuild: true }), []);
 });
 
 test("home component preserves question guides and their campaign attribution", () => {
@@ -109,4 +109,11 @@ test("static shell entries use document navigation instead of Next RSC prefetch"
   assert.match(homeSource, /href: service\.appEntryPath, external: true\b/);
   assert.match(homeSource, /card\.external \? <a \{\.\.\.linkProps\}>/);
   assert.doesNotMatch(homeSource, /<Link\b[^>]*\bhref="\/ggulggul\//, "/ggulggul/ has no Next RSC payload; it needs a full document navigation");
+});
+
+test("installed launch settings point to the two-service home", () => {
+  const manifest = JSON.parse(readFileSync(new URL("../../manifest.json", import.meta.url), "utf8"));
+  assert.equal(manifest.start_url, "/");
+  const nativeConfig = readFileSync(new URL("../../apps/mobile/capacitor.config.ts", import.meta.url), "utf8");
+  assert.ok(nativeConfig.includes('appStartPath: "/index.html"'));
 });

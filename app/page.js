@@ -12,7 +12,6 @@ import { getSignProfile } from "../lib/fortune/sign-profiles";
 import LegacyHomeEntry from "./components/LegacyHomeEntry";
 import HomeCardDeck from "./components/HomeCardDeck";
 import LocalizedServiceSummary from "./components/LocalizedServiceSummary";
-import { products as YEONGNYANGI_PRODUCTS } from "../worker/yeongnyangi/payments/catalog";
 import "./yeongnyangi/night-tokens.css";
 import styles from "./home-main.module.css";
 
@@ -21,8 +20,6 @@ import styles from "./home-main.module.css";
 // 두 캐릭터 카드의 직접 진입을 유지하고, 아래에 공개 HTML 서비스 탐색을 제공한다.
 const { service, characters } = BRAND_FACTS;
 const YEONGNYANGI = characters.find((character) => character.key === "yeongnyangi");
-// 영냥이 상담의 시작 가격은 결제 카탈로그(고등어)에서 읽는다.
-const YEONGNYANGI_STARTER_PRICE = `${YEONGNYANGI_PRODUCTS.find((product) => product.id === "saju_mackerel").priceKRW.toLocaleString("ko-KR")}원`;
 const HOME_TITLE = `${service.name} | 사주·타로·별자리 운세 – 코드 데스티니`;
 const HOME_DESCRIPTION = `꽃돼지 연이와 사주보는 고양이 영냥이를 만나는 ${service.name}. 사주·타로·숙요점·베다점과 오늘·내일 별자리 운세를 살펴보고, 내 고민에 맞는 상담을 시작하세요.`;
 const HOME_IMAGE = "https://code-destiny.com/icons/moonlight-garden-v1-512.png";
@@ -69,8 +66,8 @@ export const metadata = {
 // 두 상담가의 역할과 실제 진입을 한 링크로 묶는다.
 // /ggulggul/ 은 Next RSC 페이로드가 없는 정적 셸이라 next/link 대신 <a> 로 연다(external).
 const CARDS = [
-  { key: "yeoni", className: "yeoniCard", art: "yeoni", name: "꿀꿀 운세", href: service.appEntryPath, external: true, tag: "종합 운세", hint: "대표 상담 · 무료 사주" },
-  { key: "yn", className: "ynCard", art: "yeongnyangi", name: "운세보는 영냥이", href: YEONGNYANGI.path, tag: "질문 하나를 깊게", hint: `${YEONGNYANGI_STARTER_PRICE}부터`, night: true },
+  { key: "yeoni", className: "yeoniCard", art: "yeoni", name: "꿀꿀 운세", href: service.appEntryPath, external: true, tag: "무료 운세부터", hint: "고급 심층 리포트까지" },
+  { key: "yn", className: "ynCard", art: "yeongnyangi", name: "운세보는 영냥이", href: YEONGNYANGI.path, tag: "간단한 질문부터", hint: "세밀한 오마카세 상담까지", night: true },
 ];
 const CARD_ART_SIZES = "(min-width: 800px) 306px, (min-width: 641px) 38vw, 42vw";
 const RESULT_EXAMPLE = getSignProfile("rat");
@@ -104,7 +101,7 @@ export default function HomePage() {
 
       <main className={styles.stage}>
         <div className={styles.head}>
-          <h1 id="homeCardTitle" className={styles.title}>어떤 카드를 뽑을까요?</h1>
+          <h1 id="homeCardTitle" className={styles.title}>어떤 운세를 만나볼까요?</h1>
           <p className={styles.lead}><Link href="/about/#author">{founder.byline}</Link></p>
         </div>
 
