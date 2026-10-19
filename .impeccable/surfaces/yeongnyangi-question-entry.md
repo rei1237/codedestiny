@@ -17,3 +17,10 @@ Mode: Operate — 내 고민을 적거나 가까운 질문을 골라 상담 범�
 - Impeccable detector: findings []. 수정 파일 ESLint 오류 없음(기존 a/img 경고 유지).
 - check:fast는 로컬 sandbox loopback 제한으로 전체 paid-gate-suite의 계산 fixture 검증 실패. UI fixture는 loopback 허용 환경에서 통과. 전체 판정은 공식 GitHub CI를 따른다.
 - Finish: ship — mock UI/독립 시각 검토 범위. 운영 릴리스와 실제 사이트 확인은 별도 증거로 보고한다.
+
+## 2026-10-19 생선과 발자국
+- 사용자가 요청한 귀여움을 첫 질문의 환영 장면에 집중한다. 홈 직접 입력 CTA의 금색 생선과 캐릭터 아래 두 발자국, IntakeChat 첫 장면의 생선과 발자국을 같은 1.5px 선으로 표현한다.
+- 기존 남색·금색 토큰과 투명 배경 캐릭터를 유지한다. 장식은 접근성 트리와 포인터 대상에서 제외하고 애니메이션·추가 이미지 요청 없이 표시한다.
+- 질문 목록·입력·단계 전환·가격·결제·인증·API·DB는 변경하지 않는다. 공개 본문·제목·내부 링크·색인 정책도 유지하며 sitemap은 생성기로 갱신한다.
+- mock 12개 캡처와 기존 키보드/선택/입력 검증 PASS. 독립 시각 검토에서 360/390/430/1440px의 홈 질문 영역 및 실제 질문 입력 화면 8개 캡처 PASS. 글자·입력·전송 가림 없음.
+- Impeccable detector findings []. 최종 CI 및 운영 확인은 릴리스 증거로 별도 기록한다.

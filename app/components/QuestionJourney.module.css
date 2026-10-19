@@ -40,7 +40,13 @@
 .intro { display: grid; grid-template-columns: minmax(0, 1fr) 144px; gap: var(--cd-sp-lg); align-items: center; }
 .entry h2 { font-family: var(--font-serif, serif); font-size: clamp(1.75rem, 3.6vw, 2.5rem); font-weight: 600; line-height: 1.45; letter-spacing: -.035em; margin-bottom: var(--cd-sp-md); }
 .entry .intro p { font-size: var(--yn-t-body); line-height: 1.8; margin: 0; word-break: keep-all; }
-.mascot { width: 100%; height: auto; pointer-events: none; }
+.mascotScene { position: relative; padding-bottom: 24px; }
+.mascot { display: block; width: 100%; height: auto; pointer-events: none; }
+.pawTrail { position: absolute; right: 4px; bottom: 0; display: flex; align-items: center; gap: 10px; color: var(--qj-accent); pointer-events: none; }
+.pawTrail svg { fill: color-mix(in srgb, var(--qj-accent) 12%, transparent); }
+.pawTrail svg:first-child { transform: rotate(-28deg); opacity: .5; }
+.pawTrail svg:last-child { transform: translateY(-5px) rotate(-12deg); opacity: .75; }
+.write .fish { fill: color-mix(in srgb, var(--qj-accent) 8%, transparent); transform: rotate(-12deg); }
 .entry a.write { display: flex; align-items: center; gap: var(--cd-sp-md); width: 100%; padding: var(--cd-sp-lg); margin: var(--cd-sp-lg) 0 var(--cd-sp-xl); border: 1px solid color-mix(in srgb, var(--qj-accent) 65%, transparent); border-radius: var(--cd-r-control); background: var(--qj-surface); color: var(--qj-text); text-decoration: none; }
 .write > span { flex: 1; }
 .write strong { display: block; font-size: var(--yn-t-card); font-weight: 600; }

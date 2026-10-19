@@ -1,6 +1,6 @@
 'use client';
 import {useEffect,useRef,useState} from 'react';
-import {ArrowRight,Check,ChevronDown,PenLine} from 'lucide-react';
+import {ArrowRight,Check,ChevronDown,Fish,PawPrint} from 'lucide-react';
 import {trackEvent} from '@/lib/analytics';
 import {getQuestionGuide,questionGuides,concernGuides,concernGroups,filterConcerns,anythingConsultationHref,questionScopeEntry,questionCheckoutHref,questionGuideHref,QUESTION_VERSION,freeQuestionMap,type QuestionGuide} from '@/lib/fortune/question-journey';
 import {FOLLOWUP_LIMITS} from '@/worker/yeongnyangi/fortune/ask/question-policy';
@@ -33,9 +33,9 @@ export default function QuestionJourney({source='home'}:{source?:string}){
  function choose(q:QuestionGuide){setSelected(q);record('question_select',source,q);}
  const buttons=(rows:QuestionGuide[])=>rows.map(q=><button type="button" key={q.id} aria-pressed={selected?.id===q.id} aria-controls="question-reading" onClick={()=>choose(q)}><span className={styles.questionText}><small>{q.group}</small><span>{q.question}</span></span>{selected?.id===q.id?<Check size={18} aria-hidden="true"/>:<ArrowRight size={18} aria-hidden="true"/>}</button>);
  return <section id="questions" className={`${styles.journey} ${styles.entry}`} aria-label="고민으로 시작하기">
-  <div className={styles.intro}><div><h2>지금 마음에 걸리는<br/>질문은?</h2><p>가까운 질문을 고르거나 직접 적어주세요.<br/>상담 범위와 가격은 시작 전에 확인해요.</p></div><img className={styles.mascot} src="/assets/yeongnyangi/original/hero-480.webp" srcSet="/assets/yeongnyangi/original/hero-480.webp 480w, /assets/yeongnyangi/original/hero-800.webp 800w" sizes="(max-width: 560px) 80px, 144px" width="800" height="800" alt="달빛 모자를 쓰고 상담을 기다리는 흰 고양이 영냥이" loading="lazy" decoding="async"/></div>
+  <div className={styles.intro}><div><h2>지금 마음에 걸리는<br/>질문은?</h2><p>가까운 질문을 고르거나 직접 적어주세요.<br/>상담 범위와 가격은 시작 전에 확인해요.</p></div><div className={styles.mascotScene}><img className={styles.mascot} src="/assets/yeongnyangi/original/hero-480.webp" srcSet="/assets/yeongnyangi/original/hero-480.webp 480w, /assets/yeongnyangi/original/hero-800.webp 800w" sizes="(max-width: 560px) 80px, 144px" width="800" height="800" alt="달빛 모자를 쓰고 상담을 기다리는 흰 고양이 영냥이" loading="lazy" decoding="async"/><span className={styles.pawTrail} aria-hidden="true"><PawPrint size={19} strokeWidth={1.5}/><PawPrint size={23} strokeWidth={1.5}/></span></div></div>
   <Exposure event="question_topics_view" source={source}/>
-  <a className={styles.write} href="/yeongnyangi/fortune/"><PenLine size={21} aria-hidden="true"/><span><strong>내 고민 직접 적기</strong><small>정리되지 않은 마음도 괜찮아요.</small></span><ArrowRight size={20} aria-hidden="true"/></a>
+  <a className={styles.write} href="/yeongnyangi/fortune/"><Fish className={styles.fish} size={28} strokeWidth={1.5} aria-hidden="true"/><span><strong>내 고민 직접 적기</strong><small>정리되지 않은 마음도 괜찮아요.</small></span><ArrowRight size={20} aria-hidden="true"/></a>
   <div className={styles.choiceHeading}><h3>이런 고민이 있나요?</h3><span>질문을 고르면 상담 내용을 볼 수 있어요</span></div>
   <div className={styles.choices}>{buttons(questionGuides)}</div>
   <div id="question-reading" aria-live="polite">{selected&&<QuestionOffer key={selected.id} q={selected} source={source}/>}</div>

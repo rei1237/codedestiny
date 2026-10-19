@@ -1,6 +1,6 @@
 'use client';
 import {useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState,type ReactNode} from 'react';
-import {ArrowLeft,ArrowUp,ChevronDown} from 'lucide-react';
+import {ArrowLeft,ArrowUp,ChevronDown,Fish,PawPrint} from 'lucide-react';
 import {questionCandidate,questionTopic,questionTopics,recommendQuestion,FOLLOWUP_LIMITS,type QuestionDecision} from '@/worker/yeongnyangi/fortune/ask/question-policy';
 import QuestionFishPicker from './QuestionFishPicker';
 import {products,systemNames} from '@/worker/yeongnyangi/payments/catalog';
@@ -84,7 +84,7 @@ export default function IntakeChat({value,onChange,confirmed,onConfirm,onEdit,st
     <div className={styles.cat}><img src="/assets/yeongnyangi/profiles/welcome.webp" alt="" width={36} height={36}/><div className={styles.catBubble}>{prompt(id)}</div></div>
     <div className={styles.reply}><p>{scopeSteps.includes(id as IntakeStep)?intakeAnswer(id as IntakeStep,value)||'건너뛰었어요':preparation.find(p=>p.id===id)?.answer||'확인했어요'}</p><button type="button" disabled={busy} onClick={()=>edit(id)}>수정</button></div>
    </div>)}
-   {index===0&&<figure className={styles.pose} aria-hidden="true"><img src="/assets/yeongnyangi/original/hero-480.webp" alt="" width={480} height={480} decoding="async"/></figure>}
+   {index===0&&<figure className={styles.pose} aria-hidden="true"><Fish className={styles.welcomeFish} size={30} strokeWidth={1.5}/><img src="/assets/yeongnyangi/original/hero-480.webp" alt="" width={480} height={480} decoding="async"/><span className={styles.pawTrail}><PawPrint size={19} strokeWidth={1.5}/><PawPrint size={23} strokeWidth={1.5}/></span></figure>}
    <div className={styles.current}><img src="/assets/yeongnyangi/profiles/welcome.webp" alt="" width={36} height={36}/><div><span className={styles.name}>영냥이</span>{typing?<p className={`${styles.catBubble} ${styles.typing}`} aria-hidden="true"><i/><i/><i/></p>:<p key={active} className={styles.catBubble}>{activePrompt}</p>}</div></div>
    <div className={styles.srOnly} role="status" aria-live="polite" aria-atomic="true">{typing?'':activePrompt}</div>
    {!typing&&active==='scope'&&<div className={styles.summary}><h2>상담 내용 확인</h2><p>추천 이유: {plan.reason}</p>
