@@ -391,11 +391,11 @@ test('D7 mackerel question chapters get distinct tasks and scenes; layout chapte
   assert.ok(captured,chapter.id);return JSON.parse(captured.domainRules);
  };
  const mackerel=await prepareFortune(env,'d7-mackerel',{...body,productId:'saju_mackerel',questionDecision:{...base,category:'self'},question:'거절할 때 어떻게 말할까?'});
- assert.equal(mackerel.snapshot.manifest.length,6);
+ assert.equal(mackerel.snapshot.manifest.length,8);
  const rules=[];for(const chapter of mackerel.snapshot.manifest)rules.push(await capture(chapter,mackerel.snapshot.analysis));
- assert.equal(new Set(rules.map(r=>r.narrativeTask)).size,6);
+ assert.equal(new Set(rules.map(r=>r.narrativeTask)).size,8);
  assert.ok(rules.every(r=>!r.narrativeTask.startsWith('이번 장의 고유 질문')));
- assert.equal(new Set(rules.map(r=>r.exampleScene)).size,6);assert.ok(rules.every(r=>r.exampleScene));
+ assert.equal(new Set(rules.map(r=>r.exampleScene)).size,8);assert.ok(rules.every(r=>r.exampleScene));
  const salmon=await prepareFortune(env,'d7-salmon',{...body,productId:'saju_salmon',questionDecision:{...base,category:'money'},question:'재물 관리에서 무엇을 준비할까?'});
  const claim='2027년에는 옮기기보다 준비를 다지는 편이 유리합니다.';
  const previous=[{summary:'요약',example:'',topics:[],blocks:[{id:'meaning',title:'답',paragraphs:[claim+' 다른 문장입니다.',claim]}]}];

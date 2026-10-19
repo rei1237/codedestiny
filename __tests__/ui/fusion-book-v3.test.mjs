@@ -39,8 +39,8 @@ test('legacy v2 manifest and budget remain unchanged; only the new initial budge
   assert.equal(JSON.stringify(old),before);
   assert.equal(old.length,m.CONSULTATION_CHAPTERS[product.fishId]-1);
   assert.ok(old.every(c=>c.consultationLayout==='fusion-book-v2'));
-  const legacy=m.consultationBudget(product.fishId,m.CONSULTATION_BUDGET_VERSION),fresh=m.consultationBudget(product.fishId);
-  assert.deepEqual(fresh.initial,legacy.initial.map(n=>n*1.3));
+  const legacy=m.consultationBudget(product.fishId,'consultation-chapters-20261010'),fresh=m.consultationBudget(product.fishId);
+  assert.deepEqual(fresh.total,legacy.initial.map((n,i)=>(n*1.3+legacy.followup[i]*legacy.followups)*1.25));
   assert.deepEqual(fresh.followup,legacy.followup);assert.equal(fresh.followups,legacy.followups);
  }
 });

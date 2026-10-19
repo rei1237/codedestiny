@@ -1,5 +1,6 @@
+import {expandConsultationManifest} from '../consultation-expansion';
 import {questionEditorial,foundationGuide} from './question-editorial';
-import {layoutTargets,layoutMinimum,CONSULTATION_CHAPTERS} from '../consultation-budget';
+import {consultationBudget,layoutTargets,layoutMinimum,CONSULTATION_CHAPTERS} from '../consultation-budget';
 import {questionOutlines,bonusAreas,lifeRows,tunaRoadmapRow,timingUnits,currentFlowGuide,timingSelectors,BONUS_TITLE,type LayoutStep,type LayoutTopic} from '../consultation-layout';
 import {questionFoundationEvidence} from '../reading-v6';
 import {FortuneError,type DomainId} from '../shared/contracts';
@@ -188,7 +189,7 @@ export function questionManifest(domain:DomainId,fish:QuestionFish,d:QuestionDec
  const targets=layoutTargets(groups.map(group=>group.weight),fish);
  const foundation=questionFoundationEvidence(domain);
  const timing=timingSelectors[domain]||[];
- return groups.map((group,ordinal)=>{
+ return expandConsultationManifest(groups.map((group,ordinal)=>{
   const targetChars=targets[ordinal];
   if(!group.sections.some(x=>x.id==='evidence'))group.sections.push(section('evidence','이 해석의 근거','이 장의 해석을 뒷받침하는 실제 근거와 쉬운 뜻을 연결하고 상충 신호와 한계를 설명한다.'));
   const plannedSections=group.sections.map(x=>({...x,minimumChars:0,targetChars:targetChars.map(n=>Math.ceil(n/group.sections.length)) as [number,number]}));
@@ -200,7 +201,7 @@ export function questionManifest(domain:DomainId,fish:QuestionFish,d:QuestionDec
    periodScope:'저장된 실제 시기 근거의 해상도만 사용한다. 출생 배치·원국·카드는 사건 예측 근거와 구분한다.',
    minimumChars:layoutMinimum(targetChars),targetChars,outputBudgetVersion:CONCISE_READING_VERSION,outputTokens:Math.max(8192,conciseOutputTokens({targetChars,sections:plannedSections})),sections:plannedSections,
   };
- });
+ }),fish,undefined,consultationBudget(fish).initial);
 }
 const QUESTION_EXTRAS={mackerel:0,salmon:2,flounder:4,tuna:12} as const;
 

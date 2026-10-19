@@ -127,7 +127,7 @@ test('composite questions pass the scope gate and get a ranked, non-repeating la
  const decision=d({category:'other'});
  assert.deepEqual(p.recommendQuestion('saju',decision,q).missing,[]);
  assert.equal(p.assertQuestionOrder({domain:'saju',fishId:'mackerel',readingKind:'single'},decision,q).fish,'mackerel');
- for(const [fish,count] of [['mackerel',6],['salmon',11],['flounder',15],['tuna',24]]){
+ for(const [fish,count] of [['mackerel',8],['salmon',14],['flounder',19],['tuna',30]]){
   const rows=p.questionManifest('saju',fish,decision,undefined,q);
   assert.equal(rows.length,count);
   assert.deepEqual(rows.slice(0,3).map(r=>r.layoutRole),['foundation','foundation','answer']);

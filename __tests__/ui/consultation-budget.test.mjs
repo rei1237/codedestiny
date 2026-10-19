@@ -5,7 +5,7 @@ import {build} from 'esbuild';
 import {createRequire} from 'node:module';
 import {getYeongnyangiSpread} from '../../lib/tarot/yeongnyangi-spread-catalog.mjs';
 const require=createRequire(import.meta.url),Module=require('node:module');
-const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/fortune/consultation-budget';export * from './worker/yeongnyangi/fortune/ask/question-policy';export * from './worker/yeongnyangi/fortune/consultation-layout';export {readingManifest} from './worker/yeongnyangi/fortune/reading-manifest';export {v6ReadingPolicies,READING_V5_VERSION,QUESTION_LAYOUT_VERSION,FUSION_LAYOUT_VERSION} from './worker/yeongnyangi/fortune/reading-policy';export {products} from './worker/yeongnyangi/payments/catalog';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false});
+const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/fortune/consultation-budget';export * from './worker/yeongnyangi/fortune/consultation-expansion';export * from './worker/yeongnyangi/fortune/ask/question-policy';export * from './worker/yeongnyangi/fortune/consultation-layout';export {readingManifest} from './worker/yeongnyangi/fortune/reading-manifest';export {v6ReadingPolicies,READING_V5_VERSION,QUESTION_LAYOUT_VERSION,FUSION_LAYOUT_VERSION} from './worker/yeongnyangi/fortune/reading-policy';export {products} from './worker/yeongnyangi/payments/catalog';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false});
 const budgetModule=new Module('budget.cjs');budgetModule.paths=Module._nodeModulePaths(process.cwd());budgetModule._compile(built.outputFiles[0].text,'budget.cjs');const m=budgetModule.exports;
 const decision={version:m.QUESTION_POLICY_VERSION,category:'money',target:'self',horizon:'current',period:'내년',situation:'수입을 늘리고 싶어요',options:'현재 일을 발전시키기',constraints:'시간',confirmed:true};
 
@@ -21,7 +21,7 @@ test('D7 budget: initial is chapters × per-chapter target and every followup ha
  for(const tier of Object.keys(m.CONSULTATION_FOLLOWUPS)){
   const budget=m.consultationBudget(tier,m.CONSULTATION_BUDGET_VERSION);
   assert.equal(budget.version,m.CONSULTATION_BUDGET_VERSION);
-  assert.deepEqual(budget.initial,INITIAL[tier]);
+  assert.deepEqual(budget.initial,INITIAL[tier].map((n,i)=>n*1.25+budget.followup[i]*budget.followups*.25));
   assert.deepEqual(budget.followup,tier==='mackerel'?[0,0]:['assorted','omakase'].includes(tier)?[2400,3000]:[2000,2600]);
   for(const i of [0,1])assert.equal(budget.total[i],budget.initial[i]+budget.followups*budget.followup[i]);
  }
@@ -38,14 +38,14 @@ test('every system opens with nature and current flow, then strengths, then the 
  for(const domain of ['saju','ziwei','sukuyo','vedic','astrology','tarot'])for(const tier of ['mackerel','salmon','flounder','tuna']){
   const spread=domain==='tarot'?getYeongnyangiSpread('yn_money_flow_seven'):undefined;
   const rows=m.questionManifest(domain,tier,decision,spread,QUESTION);
-  assert.equal(rows.length,m.CONSULTATION_CHAPTERS[tier],domain+' '+tier);
+  assert.equal(rows.length,m.EXPANDED_CHAPTERS[tier],domain+' '+tier);
   assert.deepEqual(rows.slice(0,3).map(row=>row.layoutRole),['foundation','foundation','answer']);
   assert.match(rows[0].title,domain==='tarot'?/카드.*마음/:/바탕/);
   for(const id of ['nature','empathy','current-flow'])assert.ok(rows[0].sections.some(s=>s.id===id),id);
   assert.match(rows[1].title,/강점/);assert.ok(rows[2].title.includes('내년 내 재물운'));
   assert.equal(rows.at(-1).layoutRole,'synthesis');
   assert.equal(new Set(rows.map(row=>row.id)).size,rows.length);
-  assert.ok(sum(rows,0)>=INITIAL[tier][0]&&sum(rows,1)<=INITIAL[tier][1],`${domain} ${tier} ${sum(rows,0)}~${sum(rows,1)}`);
+  assert.ok(sum(rows,0)>=m.consultationBudget(tier).initial[0]&&sum(rows,1)<=m.consultationBudget(tier).initial[1],`${domain} ${tier} ${sum(rows,0)}~${sum(rows,1)}`);
   for(const row of rows){
    assert.equal(row.consultationLayout,m.QUESTION_LAYOUT_VERSION);
    assert.equal(row.minimumChars,Math.ceil(row.targetChars[0]*.55));
@@ -121,7 +121,7 @@ test('D9 screens show the initial reading as A4 pages: low end floored, high end
  const {readFileSync}=await import('node:fs');
  assert.equal(m.A4_CHARS_PER_PAGE,1800);
  assert.equal(m.A4_PAGE_NOTE,'A4 1장은 약 1,800자 기준');
- const pages={mackerel:[5,6],salmon:[12,16],flounder:[17,22],tuna:[28,36],assorted:[32,42],omakase:[42,54]};
+ const pages={mackerel:[6,8],salmon:[15,21],flounder:[22,28],tuna:[36,48],assorted:[42,55],omakase:[54,71]};
  for(const [tier,range] of Object.entries(pages)){
   assert.deepEqual(m.a4Pages(m.consultationBudget(tier,m.CONSULTATION_BUDGET_VERSION).initial),range,tier);
   assert.equal(m.a4Label(m.consultationBudget(tier,m.CONSULTATION_BUDGET_VERSION).initial),`A4 약 ${range[0]}~${range[1]}장`,tier);
@@ -131,5 +131,18 @@ test('D9 screens show the initial reading as A4 pages: low end floored, high end
  for(const file of ['app/yeongnyangi/1000-won-fortune/page.tsx','app/yeongnyangi/_components/Consultation.tsx','app/yeongnyangi/_lib/consultation-locale-copy.ts']){
   const source=readFileSync(file,'utf8');
   assert.doesNotMatch(source,/\}자 (이상|목표)|자 목표 · 본문/,file);
+ }
+});
+
+test('2026-10-19 total grows by one quarter while saved v3 budgets remain stable',()=>{
+ for(const [tier,initial] of Object.entries({assorted:[76440,98280],omakase:[98280,126360]})){
+  const old=m.consultationBudget(tier,'fusion-book-budget-20261014');
+  assert.equal(old.version,'fusion-book-budget-20261014');assert.deepEqual(old.initial,initial);
+  const next=m.consultationBudget(tier);assert.deepEqual(next.total,old.total.map(n=>n*1.25));
+  assert.deepEqual(next.followup,old.followup);assert.equal(next.followups,old.followups);
+ }
+ for(const tier of ['mackerel','salmon','flounder','tuna']){
+  const old=m.consultationBudget(tier,'consultation-chapters-20261010'),next=m.consultationBudget(tier);
+  assert.deepEqual(next.total,old.total.map(n=>n*1.25));
  }
 });

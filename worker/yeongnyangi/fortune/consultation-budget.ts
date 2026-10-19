@@ -1,3 +1,4 @@
+import {EXPANDED_CHAPTERS,expandConsultationManifest} from './consultation-expansion';
 import {FUSION_BOOK_VERSION,FUSION_BOOK_BUDGET_VERSION,FUSION_BOOK_TARGETS,fusionBookManifest,isFusionBookLayout} from './fusion-book';
 import type {PackageId} from './shared/contracts';
 import type {ChapterSpec} from './book-contracts';
@@ -6,7 +7,7 @@ import {v6ReadingPolicies} from './reading-policy';
 import {fusionManifestV2} from './reading-manifest';
 import {CONCISE_READING_VERSION,conciseOutputTokens} from './concise-reading';
 
-export const CONSULTATION_BUDGET_VERSION='consultation-split-20261010';
+export const CONSULTATION_BUDGET_VERSION='consultation-expanded-20261019';
 export const LEGACY_CONSULTATION_BUDGET_VERSION='consultation-total-20261008';
 export const CONSULTATION_FOLLOWUPS={mackerel:0,salmon:1,flounder:2,tuna:6,assorted:5,omakase:7} as const;
 // D7: length comes from the chapter count. One call writes about 1,600~2,400 chars, so per-chapter targets stay there.
@@ -29,11 +30,14 @@ export const a4Label=(chars:readonly [number,number])=>{const [low,high]=a4Pages
 /** initial = chapters × per-chapter target; every followup answer has its own fixed target. */
 export function consultationBudget(tier:PackageId,version=FUSION_BOOK_BUDGET_VERSION){
  const followups=CONSULTATION_FOLLOWUPS[tier];
- const premium=version===FUSION_BOOK_BUDGET_VERSION&&(tier==='assorted'||tier==='omakase');
- const initial=(premium?[...FUSION_BOOK_TARGETS[tier as keyof typeof FUSION_BOOK_TARGETS]]:CONSULTATION_CHAPTER_TARGETS[tier].map(chars=>chars*CONSULTATION_CHAPTERS[tier])) as [number,number];
+ const premium=[FUSION_BOOK_BUDGET_VERSION,'fusion-book-budget-20261014'].includes(version)&&(tier==='assorted'||tier==='omakase');
+ const expanded=version===CONSULTATION_BUDGET_VERSION||version===FUSION_BOOK_BUDGET_VERSION;
+ let initial=(premium?[...FUSION_BOOK_TARGETS[tier as keyof typeof FUSION_BOOK_TARGETS]]:CONSULTATION_CHAPTER_TARGETS[tier].map(chars=>chars*CONSULTATION_CHAPTERS[tier]*(expanded?1.25:1))) as [number,number];
+ if(premium&&!expanded)initial=initial.map(chars=>chars/1.25) as [number,number];
  const followup=(followups?[...CONSULTATION_FOLLOWUP_TARGETS[['assorted','omakase'].includes(tier)?'fusion':'single']]:[0,0]) as [number,number];
+ if(expanded)initial=initial.map((chars,i)=>chars+followup[i]*followups*.25) as [number,number];
  const total=initial.map((chars,i)=>chars+followup[i]*followups) as [number,number];
- return {version:premium?FUSION_BOOK_BUDGET_VERSION:CONSULTATION_BUDGET_VERSION,total,initial,followup,followups};
+ return {version:expanded?(premium?FUSION_BOOK_BUDGET_VERSION:CONSULTATION_BUDGET_VERSION):version,total,initial,followup,followups};
 }
 /** Snapshots before 2026-10-10 split the historical full-reading target: 20% to followups, the rest to the first reading. */
 export function legacyConsultationBudget(tier:PackageId){
@@ -72,7 +76,8 @@ export function allocateConsultationBudget(rows:ChapterSpec[],tier:PackageId):Ch
   const premium=rows[0].consultationLayout===FUSION_BOOK_VERSION;
   const initial=consultationBudget(tier).initial;
   const targets=premium?weights.map(w=>initial.map((chars,i)=>(i?Math.floor:Math.ceil)(chars*w/sum)) as [number,number]):layoutTargets(weights,tier);
-  return ordered.map((row,i)=>scaled(row,targets[i],layoutMinimum(targets[i],FUSION_LAYOUT_MINIMUM_RATIO)));
+  const planned=ordered.map((row,i)=>scaled(row,targets[i],layoutMinimum(targets[i],FUSION_LAYOUT_MINIMUM_RATIO)));
+  return premium?expandConsultationManifest(planned,tier,EXPANDED_CHAPTERS[tier]-(rows.some(row=>row.key==='prevention')?0:1),initial):planned;
  }
  const budget=legacyConsultationBudget(tier);
  const sums=[0,1].map(i=>rows.reduce((sum,row)=>sum+row.targetChars![i],0));

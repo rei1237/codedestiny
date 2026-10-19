@@ -4,11 +4,12 @@ import type {DomainId} from './shared/contracts';
 import {fusionManifestV2} from './reading-manifest';
 import {lifeRows} from './consultation-layout';
 
-export const FUSION_BOOK_VERSION='fusion-book-v3';
-export const FUSION_BOOK_BUDGET_VERSION='fusion-book-budget-20261014';
-export const FUSION_BOOK_CHAPTERS={assorted:30,omakase:44} as const;
-export const FUSION_BOOK_TARGETS={assorted:[76440,98280],omakase:[98280,126360]} as const;
-export const isFusionBookLayout=(version?:string)=>version==='fusion-book-v2'||version===FUSION_BOOK_VERSION;
+export const FUSION_BOOK_VERSION='fusion-book-v4';
+export const FUSION_BOOK_BUDGET_VERSION='fusion-book-budget-20261019';
+export const FUSION_BOOK_CHAPTERS={assorted:35,omakase:45} as const;
+export const FUSION_BOOK_TARGETS={assorted:[95550,122850],omakase:[122850,157950]} as const;
+export const isFusionBookLayout=(version?:string)=>version==='fusion-book-v2'||version==='fusion-book-v3'||version===FUSION_BOOK_VERSION;
+export const isPremiumFusionBookLayout=(version?:string)=>version==='fusion-book-v3'||version===FUSION_BOOK_VERSION;
 export const DIRECT_FUSION_ANSWER='질문의 첫 문장에 바로 답한다. 선택 질문이면 우선 권고를 하나 고르고, 가능성 질문이면 현재 근거가 지지하는 방향을 먼저 말한다. 시기 질문이면 계산된 기간만 답한다. 알 수 없는 사실은 무엇을 판단할 수 없는지 명확히 밝힌 뒤 가능한 행동을 제시한다. 질문을 되풀이하거나 일반적인 성격 설명으로 시작하지 않는다. 결론 → 실제 근거 → 지금 할 행동 → 확인 기준과 판단을 바꿀 조건 순서로 쓴다. 여러 질문은 원래 질문 ID별로 빠짐없이 각각 답한다. 확신을 꾸미거나 결과를 보장하지 않는다.';
 const names:Record<DomainId,string>={saju:'사주',ziwei:'자미두수',sukuyo:'숙요점',vedic:'베다점',astrology:'서양점성술',tarot:'타로'};
 const applications:Record<DomainId,{title:string;focus:string;selectors:string[]}>= {

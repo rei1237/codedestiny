@@ -41,7 +41,7 @@ for(const productId of ids)test(`${productId}: engine -> snapshot -> every promp
  assert.deepEqual(Object.keys(snapshot.analysis.contexts).sort(),[...product.systems].sort());
  for(const system of product.systems){const c=snapshot.analysis.contexts[system];assert.equal(c.domain,system);assert.ok(c.engineVersion);assert.ok(c.facts.length);assert.ok(c.facts.every(f=>f.id.startsWith(system+'.')));}
  // fusion-book-v3: 30/44 chapters; prevention stands in for the life row '주의 시기' and synthesis stays last.
- assert.equal(snapshot.manifest.length,productId==='fusion_all'?44:30);
+ assert.equal(snapshot.manifest.length,productId==='fusion_all'?45:35);
  assert.equal(snapshot.manifest.at(-3).key,'prevention');
  assert.deepEqual(snapshot.manifest.slice(-2).map(chapter=>chapter.layoutRole),['synthesis','synthesis']);
  assert.equal(product.manifestVersion,'destiny-book-v5');
