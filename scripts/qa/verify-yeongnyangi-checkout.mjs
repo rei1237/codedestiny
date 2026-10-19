@@ -15,7 +15,7 @@ try{
   b.onLoad({filter:/.*/,namespace:'mock-next'},args=>({loader:'tsx',resolveDir:process.cwd(),contents:args.path.endsWith('navigation')?"export const usePathname=()=>location.pathname;export const useSearchParams=()=>new URLSearchParams(location.search);export const useRouter=()=>({push:()=>{},replace:()=>{},refresh:()=>{}});":"import React from 'react';export default function Component(p){return React.createElement('"+(args.path.endsWith('image')?'img':'a')+"',p)}"}));
   b.onLoad({filter:/app[\\/]_lib[\\/]billing-client\.ts$/},args=>({loader:'ts',contents:fs.readFileSync(args.path,'utf8').replace('export async function runPaidAccessGate(','async function fixtureOriginalGate(').replace('export async function fetchPaymentEligibility(','async function fixtureOriginalEligibility(')+`
   export async function runPaidAccessGate(input:any){(window as any).__payments.push(input);return {ok:false,status:402,error:{code:'PAYMENT_CANCELLED',message:'취소'}};}
-  export async function fetchPaymentEligibility(){if((window as any).__failEligibility)return {ok:false};return {ok:true,data:{pass:{tier:'family',hasActivePass:true,canUse:true},monthly:{balance:10000,canUse:true}}};}` }));
+  export async function fetchPaymentEligibility(){await new Promise(resolve=>setTimeout(resolve,600));if((window as any).__failEligibility)return {ok:false};return {ok:true,data:{pass:{tier:(window as any).__noFamily?'none':'family',hasActivePass:!(window as any).__noFamily,canUse:!(window as any).__noFamily},monthly:{balance:10000,canUse:true}}};}` }));
  }}]});
  const compiled=await build({stdin:{contents:"export {products} from './worker/yeongnyangi/payments/catalog';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'esm',write:false});
  const {products}=await import('data:text/javascript;base64,'+Buffer.from(compiled.outputFiles[0].text).toString('base64'));
@@ -51,8 +51,11 @@ try{
   await page.getByRole('button',{name:'상담과 결제 확인하기'}).click();
   await page.getByRole('heading',{name:'마음을 맡길 준비'}).waitFor();
   assert.equal(requests.length,0,'opening checkout must not create or fund an order');
-  const family=page.getByRole('radio',{name:/패밀리 이용권/});await family.check();
-  const pay=page.getByRole('button',{name:'이용권으로 상담 시작하기'});await pay.waitFor();
+  assert.equal(await page.getByRole('button',{name:'이용권 확인 중',exact:true}).isDisabled(),true,'pending benefits cannot open a direct payment');
+  const family=page.getByRole('radio',{name:/패밀리 이용권/});await family.waitFor();assert.equal(await family.isChecked(),true,'eligible Family is selected automatically');
+  const pay=page.getByRole('button',{name:'상담 시작하기',exact:true});await pay.waitFor();
+  await page.locator('img[src="/assets/yeongnyangi/checkout-moonblue.webp"]').evaluate(img=>img.decode());
+  assert.equal(await page.evaluate(()=>window.__payments.length),0,'auto-selection must not consume a pass');
   await page.screenshot({path:path.join(output,`checkout-${width}.png`),fullPage:true});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'no horizontal overflow');
   assert.ok((await pay.boundingBox()).height>=44);
@@ -64,7 +67,7 @@ try{
   await page.reload();await page.getByRole('heading',{name:'마음을 맡길 준비'}).waitFor();
   await page.getByText('질문 수정하기',{exact:true}).click();
   assert.equal(await page.locator('textarea').first().inputValue(),'마음을 어떻게 표현하면 좋을까요?');
-  assert.equal(await family.isChecked(),true,'restore the chosen payment method');
+  await family.waitFor();assert.equal(await family.isChecked(),true,'restore or automatically select an eligible pass');
   if(width===390){
    await page.locator('textarea').first().fill('새로운 관계에서 내 마음을 어떻게 표현할까요?');
    await pay.click();await page.getByText('결제를 취소했어요. 상담 내용은 그대로 남아 있어요.').waitFor();
@@ -73,29 +76,31 @@ try{
    assert.equal(await page.getByRole('radio',{name:/월정석.*사용.*보유/}).count(),0,'mackerel keeps its moonstone exclusion');
    await page.getByText('상담 방식·깊이 변경하기',{exact:true}).click();await page.locator('input[value=salmon]').check();
    await page.getByRole('radio',{name:/월정석.*사용.*보유/}).check();
-   await page.getByRole('button',{name:'월정석으로 상담 시작하기'}).focus();await page.keyboard.press('Enter');
+   await page.getByRole('button',{name:'상담 시작하기',exact:true}).focus();await page.keyboard.press('Enter');
    await page.waitForFunction(()=>window.__payments.at(-1)?.paymentMode==='MOONLIGHT_STONE');
    await page.getByRole('radio',{name:/단건 결제/}).check();await page.getByRole('button',{name:'결제하고 상담 시작하기'}).click();
    await page.waitForFunction(()=>window.__payments.at(-1)?.allowedPaymentModes[0]==='direct');
-   await page.locator('input[value=mackerel]').check();
+   await page.reload();await page.getByRole('radio',{name:/패밀리 이용권/}).waitFor();
+   assert.equal(await page.getByRole('radio',{name:/단건 결제/}).isChecked(),true,'explicit direct preference survives reload despite available Family');
+   await page.getByText('상담 방식·깊이 변경하기',{exact:true}).click();await page.locator('input[value=mackerel]').check();
    const before=requests.length;missingProfile=true;await page.reload();await page.getByRole('heading',{name:'마음을 맡길 준비'}).waitFor();
    await page.getByRole('button',{name:'새 프로필 만들기',exact:true}).waitFor();
-   assert.equal(await page.getByRole('button',{name:'결제하고 상담 시작하기'}).isDisabled(),true);assert.equal(requests.length,before);
+   await family.waitFor();assert.equal(await pay.isDisabled(),true);assert.equal(requests.length,before);
    missingProfile=false;await page.reload();await page.getByRole('heading',{name:'마음을 맡길 준비'}).waitFor();
-   await page.evaluate(()=>window.__failEligibility=true);await page.getByRole('radio',{name:/패밀리 이용권/}).waitFor();
-   await page.getByRole('button',{name:'결제하고 상담 시작하기'}).click();await page.getByText('결제를 취소했어요. 상담 내용은 그대로 남아 있어요.').waitFor();
+   await page.getByRole('radio',{name:/패밀리 이용권/}).waitFor();await page.evaluate(()=>window.__failEligibility=true);
+   await pay.click();await page.getByText('결제를 취소했어요. 상담 내용은 그대로 남아 있어요.').waitFor();
    await page.getByRole('button',{name:'보유 혜택 다시 확인하기'}).click();await page.getByText(/보유 혜택을 모두 확인하지 못했어요/).waitFor();
    assert.equal(await page.getByText('사용 가능한 패밀리 이용권이 없어요.').count(),0);
-   await page.evaluate(()=>window.__failEligibility=false);hasPacks=true;
+   await page.evaluate(()=>{window.__failEligibility=false;window.__noFamily=true;sessionStorage.removeItem('yeongnyangi:checkout-method');});hasPacks=true;
    await page.getByRole('button',{name:'다시 확인하기',exact:true}).click();
-   await page.getByRole('radio',{name:/고등어 5회 이용권/}).check();await page.getByRole('button',{name:'이용권으로 상담 시작하기'}).click();
-   await page.getByText('이용권 적용 상태를 확인하지 못했어요. 같은 상담에서 다시 확인해 주세요.',{exact:true}).waitFor();assert.equal(await page.getByRole('button',{name:'이용권으로 상담 시작하기'}).isEnabled(),true);
+   await page.getByRole('radio',{name:/고등어 5회 이용권/}).waitFor();assert.equal(await page.getByRole('radio',{name:/고등어 5회 이용권/}).isChecked(),true,'applicable pack is selected when Family is unavailable');await page.getByRole('button',{name:'상담 시작하기',exact:true}).click();
+   await page.getByText('이용권 적용 상태를 확인하지 못했어요. 같은 상담에서 다시 확인해 주세요.',{exact:true}).waitFor();assert.equal(await page.getByRole('button',{name:'상담 시작하기',exact:true}).isEnabled(),true);
    assert.equal(await page.evaluate(()=>document.activeElement?.getAttribute('role')),'status','failed payment moves focus to recovery');
    await page.screenshot({path:path.join(output,'checkout-error-390.png'),fullPage:true});
    await page.getByText('질문의 주제와 범위 확인',{exact:true}).click();await page.getByLabel(/^주제/).selectOption('career');
-   assert.equal(await page.getByRole('button',{name:'이용권으로 상담 시작하기'}).isDisabled(),true);
+   assert.equal(await page.getByRole('button',{name:'상담 시작하기',exact:true}).isDisabled(),true);
    await page.getByLabel('비교할 선택지 또는 준비 목표').fill('지금 회사와 새 회사');await page.getByLabel('꼭 지켜야 할 조건').fill('없음');await page.getByLabel('살펴볼 기간',{exact:true}).fill('올해 안');
-   assert.equal(await page.getByRole('button',{name:'이용권으로 상담 시작하기'}).isEnabled(),true);
+   assert.equal(await page.getByRole('button',{name:'상담 시작하기',exact:true}).isEnabled(),true);
    guest=true;await page.evaluate(()=>{sessionStorage.setItem('test-guest','1');localStorage.clear();});await page.reload();
    await page.getByRole('button',{name:'로그인하고 이어가기',exact:true}).click();await page.waitForURL('**/login**');
    const draft=await page.evaluate(()=>JSON.parse(sessionStorage.getItem('yeongnyangi:consultation-login-draft')));assert.equal(draft.chatStep,'checkout');assert.ok(draft.question.includes('새로운 관계'));
