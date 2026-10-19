@@ -2020,6 +2020,33 @@
       "miniGamesAria": "Voir tous les mini-jeux divinatoires",
       "miniGamesAlt": "Image de couverture des mini-jeux divinatoires",
       "otherTitle": "Autres lectures amusantes"
+    },
+    "worldSearch": {
+      "heading": "Suivez votre curiosité",
+      "hint": "Choisissez un lieu et trouvez une lecture pour vos questions.",
+      "allName": "Tous les lieux",
+      "teaName": "Maison de Thé du Destin de Yeoni",
+      "strategyName": "Salle de Stratégie de Neo",
+      "starsName": "Palais des Étoiles de Musung",
+      "moonName": "Jardin de Lune de Seo Hanbi",
+      "skyName": "Observatoire de Yundal",
+      "bookName": "Bibliothèque des Liens",
+      "archiveName": "Archives des Découvertes",
+      "teaIntro": "Faites une pause autour d’un thé et ouvrez les questions qui vous habitent.",
+      "strategyIntro": "Explorez vos choix récurrents et votre prochain pas. Neo et Yeongnyangi sont le même personnage, doté de l’âme d’un lion blanc.",
+      "starsIntro": "Parcourez les étoiles et les douze palais d’un thème Ziwei pour explorer les cycles de la vie.",
+      "moonIntro": "Explorez le rythme, la distance et les questions de vos relations.",
+      "skyIntro": "Suivez les étoiles et le passage du temps pour mieux vous comprendre.",
+      "bookIntro": "Lisez les schémas récurrents en amour et ouvrez le prochain chapitre de vos liens.",
+      "archiveIntro": "Faites de nouvelles découvertes parmi les outils et les récits pour mieux vous connaître.",
+      "master_yeoni": "Yeoni",
+      "master_neo": "Neo",
+      "master_musung": "Musung",
+      "master_hanbi": "Seo Hanbi",
+      "master_yun": "Yundal",
+      "master_master": "Maître",
+      "summaryAll": "{count} services",
+      "summaryFiltered": "{count} services correspondants"
     }
   },
   "terms": {

@@ -26,6 +26,114 @@
      resolveCollectionImageSrc 로 R2 에서 받는다). 로컬 경로가 404 면 R2 원본으로 한 번 물러난다. */
   var R2_ASSET_BASE = "https://assets.code-destiny.com/";
 
+  // 탐색 장소는 담당자 배정이 아니다. 상품 계약과 분리한 표시 전용 분류.
+  var REGIONS = [
+    { id: "all", name: "전체", art: "world" },
+    { id: "tea", name: "연이의 운명 찻집", art: "yeoni", portrait: "yeoni-teahouse-portrait", intro: "차 한 잔의 여유로, 마음에 남은 질문을 펼쳐 보세요." },
+    { id: "strategy", name: "네오의 전략실", art: "neo", portrait: "neo-strategy-portrait", intro: "반복되는 선택을 살피고 다음 한 수를 찾아보세요. 백사자의 영혼을 지닌 네오와 영냥이는 같은 인물이에요." },
+    { id: "stars", name: "무성의 별의 궁전", art: "musung", portrait: "musung-ziwei-portrait", intro: "명반의 별과 열두 궁을 따라, 삶의 흐름을 살펴보세요." },
+    { id: "moon", name: "서한비의 달빛 정원", art: "hanbi", portrait: "hanbi-sukuyo-portrait", intro: "서로 다가가는 속도와 거리, 관계에 쌓인 질문을 만나보세요." },
+    { id: "sky", name: "윤달의 천문대", art: "yun", portrait: "yun-astrology-portrait", intro: "별과 시간의 흐름을 따라, 나를 이해하는 길을 찾아보세요." },
+    { id: "book", name: "인연의 서재", art: "master", portrait: "master-love-portrait", intro: "사랑에서 반복되는 패턴을 읽고, 인연의 다음 장을 펼쳐 보세요." },
+    { id: "archive", name: "발견의 기록실", art: "archive", intro: "나를 알아가는 도구와 이야기 사이에서 새로운 발견을 찾아보세요." }
+  ];
+  var REGION_BY_METHOD = { tarot: "tea", saju: "strategy", ziwei: "stars", sukuyo: "moon", astrology: "sky", vedic: "sky" };
+  var REGION_BY_COLLECTION = { tarotCollection: "tea", cosmicCollection: "sky" };
+  var REGION_BY_ID = {
+    "master-love-codex": ["book"], "fortune-tea-house": ["tea"], "fortune-chat": ["tea", "strategy"],
+    "love-secret-ai": ["tea", "moon"], "life-book-ai": ["sky"], "palm-reading": ["tea"],
+    "fusion-fortune": ["strategy", "tea", "moon", "sky", "stars"],
+    "human-design": ["archive"], maya: ["archive"], music: ["archive"], novel: ["archive"], points: ["archive"],
+    "luck-sync-diary": ["archive"]
+  };
+  var MASTER_NAMES = { yeoni: "연이", neo: "네오", musung: "무성", hanbi: "서한비", yun: "윤달", master: "마스터" };
+  // 확인된 상품·프로필만 이름표를 표시한다. 체계나 지역만으로 담당자를 추정하지 않는다.
+  var SERVICE_MASTERS = {
+    "master-love-codex": ["master"], "fortune-tea-house": ["yeoni"], "fortune-chat": ["yeoni", "neo"],
+    "love-secret-ai": ["yeoni", "hanbi"], "neo-operation-room": ["neo"], "new-year-ai": ["neo"],
+    "life-book-ai": ["yun"], "palm-reading": ["yeoni"], ziwei: ["musung"], sukuyo: ["hanbi"],
+    astrology: ["yun"], vedic: ["yun"], "fusion-fortune": ["neo", "yeoni", "hanbi", "yun", "musung"]
+  };
+  function regionById(id) { return REGIONS.find(function (region) { return region.id === id; }) || REGIONS[0]; }
+  function regionsOf(item) {
+    if (REGION_BY_ID[item.id]) return REGION_BY_ID[item.id];
+    var regions = (item.methods || []).map(function (method) { return REGION_BY_METHOD[method]; }).filter(Boolean);
+    if (!regions.length && REGION_BY_COLLECTION[item.sourceCollection]) regions.push(REGION_BY_COLLECTION[item.sourceCollection]);
+    return regions.length ? regions : ["archive"];
+  }
+  function worldText(node, key, fallback, vars) {
+    var fullKey = "home.worldSearch." + key;
+    node.setAttribute("data-cd-trans", "");
+    node.setAttribute("data-key", fullKey);
+    node.setAttribute("data-cd-origin-text", vars ? fallback.replace(/\{(\w+)\}/g, function (token, name) {
+      return vars[name] === undefined ? token : vars[name];
+    }) : fallback);
+    node.classList.add("notranslate");
+    if (vars) node.setAttribute("data-cd-vars", JSON.stringify(vars));
+    node.textContent = translate(fullKey, fallback, vars);
+  }
+  function regionImage(region, large) {
+    var image = document.createElement("img");
+    var base = "/images/home/world-search/" + region.art;
+    image.src = base + "-" + (large ? "960" : "320") + ".webp";
+    image.srcset = base + "-320.webp 320w, " + base + "-960.webp 960w";
+    image.sizes = large ? "(max-width: 759px) 100vw, 360px" : "(max-width: 759px) 148px, 240px";
+    image.width = 960;
+    image.height = 640;
+    image.alt = ""; // 장소명과 소개는 인접한 번역 가능한 HTML에 있다.
+    image.loading = "lazy";
+    image.decoding = "async";
+    image.addEventListener("error", function () {
+      image.removeAttribute("srcset");
+      if (!image.dataset.cdFallback) {
+        image.dataset.cdFallback = "1";
+        image.src = region.portrait ? "/images/master-profiles/" + region.portrait + ".webp" : DEFAULT_SERVICE_IMAGE;
+      } else {
+        image.hidden = true;
+      }
+    });
+    return image;
+  }
+  function mountRegions(root) {
+    var rail = root.querySelector("[data-cd-regions]");
+    if (!rail || rail.children.length) return;
+    REGIONS.forEach(function (region) {
+      var button = document.createElement("button");
+      button.type = "button";
+      button.className = "cd-af__region";
+      button.setAttribute("data-region", region.id);
+      button.setAttribute("aria-pressed", region.id === "all" ? "true" : "false");
+      button.appendChild(regionImage(region, false));
+      var name = document.createElement("span");
+      worldText(name, region.id + "Name", region.name);
+      button.appendChild(name);
+      rail.appendChild(button);
+    });
+  }
+  function renderRegion(root, current) {
+    var explore = root.querySelector("[data-cd-explore]");
+    if (!explore) return;
+    explore.hidden = !!norm(current.query);
+    var region = regionById(current.region);
+    root.querySelectorAll("[data-region]").forEach(function (button) {
+      button.setAttribute("aria-pressed", String(button.getAttribute("data-region") === region.id));
+    });
+    var intro = root.querySelector("[data-cd-region-intro]");
+    intro.hidden = region.id === "all" || explore.hidden;
+    if (intro.hidden || intro.dataset.regionIntro === region.id) return;
+    intro.dataset.regionIntro = region.id;
+    intro.textContent = "";
+    intro.appendChild(regionImage(region, true));
+    var copy = document.createElement("div");
+    var title = document.createElement("h3");
+    worldText(title, region.id + "Name", region.name);
+    var desc = document.createElement("p");
+    worldText(desc, region.id + "Intro", region.intro);
+    copy.appendChild(title);
+    copy.appendChild(desc);
+    intro.appendChild(copy);
+  }
+
   var PURPOSE_LABEL = {
     love: { label: "연애", emoji: "❤️" },
     money: { label: "재물", emoji: "💰" },
@@ -178,6 +286,7 @@
   /* 모바일은 닫힌 컬렉션의 카드를 DOM 에서 떼어 collection.__cdLazyCards 에만 둔다
      (index.html prepareCollectionLazyMounts) — TILE_SELECTOR 의 #inputPage 조상 조건은
      떼어낸(부모 없는) 카드에는 성립하지 않으므로, 클래스만으로 다시 판정해 더한다. */
+  var lazySources = new WeakMap();
   function lazyCollectionCards() {
     var out = [];
     var collections = document.querySelectorAll(".feat-collection, .tarot-collection");
@@ -185,6 +294,7 @@
       var lazyCards = collections[c].__cdLazyCards || [];
       for (var d = 0; d < lazyCards.length; d += 1) {
         if (lazyCards[d].isConnected) continue;
+        lazySources.set(lazyCards[d], collections[c]);
         out.push(lazyCards[d]);
       }
     }
@@ -337,12 +447,14 @@
 
       var desc = String((metaEl && metaEl.textContent) || "").trim();
       var price = String((priceEl && priceEl.textContent) || "").trim();
+      var sourceCollection = el.__cdCollection || lazySources.get(el) || el.closest(".feat-collection[id], .tarot-collection[id]");
       out.push({
         name: name,
         desc: desc,
         href: href || "",
         action: action,
         collection: collection,
+        sourceCollection: sourceCollection ? sourceCollection.id : "",
         price: price,
         buckets: price ? bucketsOf(price) : [],
         featureKey: featureKey,
@@ -385,6 +497,7 @@
     var variants = queryVariants(query);
 
     return ensureCatalogue().filter(function (item) {
+      if (state.region && state.region !== "all" && regionsOf(item).indexOf(state.region) === -1) return false;
       /* 태그가 없는 스크래핑 항목은 축 필터를 만족시킬 방법이 없다 —
          필터가 하나라도 켜지면 후보에서 빠지고, 순수 검색일 때만 나온다. */
       if (needsTags && !item.tagged && !(wantsEtc && !purposes.length && !buckets.length)) return false;
@@ -424,11 +537,12 @@
     return node;
   }
 
-  function appendServiceImage(parent, item, className) {
+  function appendServiceImage(parent, item, className, worldSearch) {
     var media = document.createElement("span");
     media.className = className;
     var image = document.createElement("img");
     var master = masterImage(item);
+    if (worldSearch && !SERVICE_MASTERS[item.id] && METHOD_HUB_IDS.indexOf(item.id) === -1) master = "";
     image.src = item.image || master || featureTileImage(item) || methodHubImage(item) || DEFAULT_SERVICE_IMAGE;
     image.alt = item.imageAlt || (item.name ? item.name + " 대표 이미지" : "운세 서비스 대표 이미지");
     if (master && !item.image) media.className += " is-master";
@@ -443,7 +557,10 @@
     ].filter(function (src) { return src && src !== path; });
     image.addEventListener("error", function () {
       var next = fallbacks.shift();
-      if (!next) return;
+      if (!next) {
+        if (worldSearch) image.hidden = true;
+        return;
+      }
       image.dataset.cdFallback = "1";
       image.src = next;
     });
@@ -451,9 +568,10 @@
     parent.appendChild(media);
   }
 
-  function translate(key, fallback) {
+  function translate(key, fallback, vars) {
     try {
-      return window.cdTranslate ? window.cdTranslate(key, null, fallback) : fallback;
+      var result = window.cdTranslate ? window.cdTranslate(key, vars || null, fallback) : fallback;
+      return vars ? result.replace(/\{(\w+)\}/g, function (token, name) { return vars[name] === undefined ? token : vars[name]; }) : result;
     } catch (_) {
       return fallback;
     }
@@ -512,10 +630,10 @@
       : list.slice(0, 6);
     visibleList.forEach(function (item) {
       var node = openerNode(item, "fortune-gateway__rec");
-      appendServiceImage(node, item, "fortune-gateway__rec-media");
+      appendServiceImage(node, item, "fortune-gateway__rec-media", opts.showAll);
       /* 질문 우선 카드: 제목은 고객 질문, 상품명은 아래 작은 줄로 내린다.
          상품명([data-pvw-title])은 미리보기 시트 제목이라 그대로 남긴다. */
-      if (item.question) {
+      if (item.question && !opts.showAll) {
         node.classList.add("fortune-gateway__rec--q");
         var q = document.createElement("span");
         q.className = "fortune-gateway__rec-q";
@@ -558,7 +676,29 @@
         node.appendChild(desc);
       }
       // 질문 카드는 질문 → 설명 → 상품명(배지) 순서다.
-      if (item.question) node.appendChild(name);
+      if (item.question && !opts.showAll) node.appendChild(name);
+
+      if (opts.showAll && item.question) {
+        var question = document.createElement("span");
+        question.className = "cd-af__question";
+        question.setAttribute("data-cd-trans", "");
+        question.setAttribute("data-key", "home.svcQuestion." + item.id);
+        question.setAttribute("data-cd-origin-text", item.question);
+        question.classList.add("notranslate");
+        question.textContent = translate("home.svcQuestion." + item.id, item.question);
+        node.appendChild(question);
+      }
+      if (opts.showAll && SERVICE_MASTERS[item.id]) {
+        var masters = document.createElement("span");
+        masters.className = "cd-af__masters";
+        SERVICE_MASTERS[item.id].forEach(function (key, index) {
+          if (index) masters.appendChild(document.createTextNode(" · "));
+          var label = document.createElement("span");
+          worldText(label, "master_" + key, MASTER_NAMES[key]);
+          masters.appendChild(label);
+        });
+        node.appendChild(masters);
+      }
 
       var foot = document.createElement("span");
       foot.className = "fortune-gateway__rec-foot";
@@ -614,13 +754,15 @@
         query: input ? input.value : "",
         purposes: config.purposeAttr ? pressedValues(root, config.purposeAttr, config.chipSelector) : [],
         methods: config.methodAttr ? pressedValues(root, config.methodAttr, config.filterChipSelector) : [],
-        buckets: config.priceAttr ? pressedValues(root, config.priceAttr, config.filterChipSelector) : []
+        buckets: config.priceAttr ? pressedValues(root, config.priceAttr, config.filterChipSelector) : [],
+        region: config.showAll ? (root.getAttribute("data-cd-region") || "all") : "all"
       };
     }
 
     function render() {
       var current = state();
-      var active = current.query || current.purposes.length || current.methods.length || current.buckets.length;
+      var active = current.query || current.purposes.length || current.methods.length || current.buckets.length || current.region !== "all";
+      if (config.showAll) renderRegion(root, current);
       if (clearButton) clearButton.hidden = !current.query;
       if (resetButton) resetButton.hidden = !active;
       if (filterCount && filterPanel) {
@@ -635,16 +777,21 @@
         return;
       }
       /* 아무것도 고르지 않은 상태 = 기본 목록. 필터를 켰다가 모두 끄면 이리로 되돌아온다. */
-      var list = active ? filterServices(current) : (config.showAll ? CURATED : DEFAULT_PICKS);
+      // 전체 검색을 열고 조작할 때만 색인을 갱신한다. 새로 분리·추가된 타일도 누락하지 않는다.
+      if (config.showAll) catalogue = null;
+      var list = active || config.showAll ? filterServices(current) : DEFAULT_PICKS;
       renderRichResults(panel, list, current, renderOpts);
       if (summary) summary.textContent = active
         ? '조건에 맞는 서비스 ' + list.length + '개'
         : '전체 서비스 ' + list.length + '개';
+      if (summary && config.showAll) worldText(summary, active ? "summaryFiltered" : "summaryAll",
+        active ? "조건에 맞는 서비스 {count}개" : "전체 서비스 {count}개", { count: list.length });
       if (config.onRender) config.onRender(current);
     }
 
     function resetAll() {
       if (input) input.value = '';
+      if (config.showAll) root.setAttribute("data-cd-region", "all");
       var pressed = root.querySelectorAll('[aria-pressed="true"]');
       Array.prototype.forEach.call(pressed, function (chip) { chip.setAttribute('aria-pressed', 'false'); });
       if (progressive) progressive.hidden = false;
@@ -687,6 +834,7 @@
     if (input) {
       var timer = 0;
       input.addEventListener("input", function () {
+        if (config.showAll) root.setAttribute("data-cd-region", "all");
         window.clearTimeout(timer);
         timer = window.setTimeout(render, 120);
       });
@@ -703,6 +851,13 @@
       });
     }
     if (resetButton) resetButton.addEventListener('click', resetAll);
+    if (config.showAll) root.querySelectorAll("[data-region]").forEach(function (button) {
+      button.addEventListener("click", function () {
+        root.setAttribute("data-cd-region", button.getAttribute("data-region"));
+        if (input) input.value = "";
+        render();
+      });
+    });
 
     /* 첫 렌더로 기본 목록을 깐다. 이건 사용자 행동의 결과가 아니므로 aria-live 를 잠깐 떼어,
        스크린리더가 페이지 로드 직후 6개를 읽어 내려가지 않게 한다. 이후 렌더는 그대로 알린다. */
@@ -754,6 +909,7 @@
   function afApplySaved(root, saved) {
     var input = document.getElementById("cdAllFortunesSearch");
     if (input && typeof saved.query === "string") input.value = saved.query;
+    root.setAttribute("data-cd-region", norm(saved.query) ? "all" : regionById(saved.region).id);
     var wanted = { "data-purpose": saved.purposes || [], "data-method": saved.methods || [] };
     Object.keys(wanted).forEach(function (attr) {
       var chips = root.querySelectorAll("[" + attr + "]");
@@ -786,6 +942,7 @@
     if (allFortunes) return allFortunes;
     var root = document.getElementById("cdAllFortunesRoot");
     if (!root) return null;
+    mountRegions(root);
     var saved = afRead();
     if (saved) afApplySaved(root, saved);
     var api = mount({
@@ -800,7 +957,7 @@
       showAll: true,
       emptyState: afEmptyState,
       onRender: function (current) {
-        afWrite({ query: current.query, purposes: current.purposes, methods: current.methods });
+        afWrite({ query: current.query, purposes: current.purposes, methods: current.methods, region: current.region });
       }
     });
     root.addEventListener("click", function (event) {

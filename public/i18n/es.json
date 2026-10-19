@@ -2020,6 +2020,33 @@
       "miniGamesAria": "Ver todos los minijuegos de fortuna",
       "miniGamesAlt": "Imagen de portada de los minijuegos de fortuna",
       "otherTitle": "Más lecturas divertidas"
+    },
+    "worldSearch": {
+      "heading": "Sigue tu curiosidad",
+      "hint": "Elige un lugar y encuentra una lectura para tus preguntas.",
+      "allName": "Todos",
+      "teaName": "Casa de Té del Destino de Yeoni",
+      "strategyName": "Sala de Estrategia de Neo",
+      "starsName": "Palacio de las Estrellas de Musung",
+      "moonName": "Jardín Lunar de Seo Hanbi",
+      "skyName": "Observatorio de Yundal",
+      "bookName": "Biblioteca de los Vínculos",
+      "archiveName": "Archivo de Descubrimientos",
+      "teaIntro": "Haz una pausa con una taza de té y despliega las preguntas que llevas dentro.",
+      "strategyIntro": "Explora tus decisiones recurrentes y tu próximo paso. Neo y Yeongnyangi son el mismo personaje, con alma de león blanco.",
+      "starsIntro": "Recorre las estrellas y los doce palacios de una carta Ziwei para explorar los patrones de la vida.",
+      "moonIntro": "Explora el ritmo, la distancia y las preguntas de tus relaciones.",
+      "skyIntro": "Sigue las estrellas y el paso del tiempo para comprenderte.",
+      "bookIntro": "Lee los patrones que se repiten en el amor y abre el siguiente capítulo de tus vínculos.",
+      "archiveIntro": "Encuentra nuevos descubrimientos entre herramientas e historias para conocerte.",
+      "master_yeoni": "Yeoni",
+      "master_neo": "Neo",
+      "master_musung": "Musung",
+      "master_hanbi": "Seo Hanbi",
+      "master_yun": "Yundal",
+      "master_master": "Maestro",
+      "summaryAll": "{count} servicios",
+      "summaryFiltered": "{count} servicios coincidentes"
     }
   },
   "terms": {

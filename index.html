@@ -9144,12 +9144,19 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
       <div class="cd-sheet__body">
         <!-- 모든 운세 검색 블록: 모바일에서는 home-service-finder.js 가 '모든 운세' 개요 패널 맨 위로 옮긴다. -->
         <div class="cd-af" id="cdAllFortunesRoot">
-          <!-- 강약: 모든 운세 목록에서도 대표 상담 덱으로 돌아가는 길은 한 줄(텍스트 링크)로 둔다. -->
-          <a class="cd-af__signature" href="/ggulggul/#cdSignatureConsult" data-cd-af-signature><span data-cd-trans="home.gardenCopy.allSignatureLink">대표 상담 여섯 장 보기</span><span aria-hidden="true">→</span></a>
           <div class="cd-af__search" role="search">
             <input type="search" id="cdAllFortunesSearch" class="cd-af__input" placeholder="이직, 재회, 궁합처럼 찾아보세요" autocomplete="off" aria-label="모든 운세 검색" data-cd-trans-attr="aria-label:home.gardenCopy.allSearchLabel,placeholder:home.gardenCopy.allSearchPlaceholder">
             <button type="button" class="cd-af__clear" data-cd-search-clear aria-label="검색어 지우기" data-cd-trans-attr="aria-label:home.gardenCopy.allClear" hidden><span aria-hidden="true">×</span></button>
           </div>
+          <section class="cd-af__explore" data-cd-explore aria-labelledby="cdAllFortunesExploreTitle">
+            <div class="cd-af__explore-heading">
+              <h2 id="cdAllFortunesExploreTitle" data-cd-trans="home.worldSearch.heading">마음이 닿는 공간으로</h2>
+              <p data-cd-trans="home.worldSearch.hint">장소를 골라, 나에게 필요한 운세를 만나보세요.</p>
+            </div>
+            <div class="cd-af__regions" data-cd-regions role="group" aria-labelledby="cdAllFortunesExploreTitle"></div>
+            <div class="cd-af__region-intro" data-cd-region-intro hidden></div>
+          </section>
+          <a class="cd-af__signature" href="/ggulggul/#cdSignatureConsult" data-cd-af-signature><span data-cd-trans="home.gardenCopy.allSignatureLink">대표 상담 여섯 장 보기</span><span aria-hidden="true">→</span></a>
           <div class="cd-af__group">
             <span class="cd-af__label" id="cdAllFortunesMethodTitle" data-cd-trans="shell.fortuneGatewayFilters.fortuneGatewayFilterRow.kx2ok">방식</span>
             <div class="cd-af__chips" role="group" aria-labelledby="cdAllFortunesMethodTitle">
@@ -12641,10 +12648,12 @@ html[data-cd-lang]:not([data-cd-lang="ko"]) #cdPickWhyJosa{display:none}
         moon.setAttribute('aria-hidden', 'true');
         var persona = document.createElement('img');
         persona.className = 'cd-afy-hero__persona';
-        persona.src = neo ? '/images/fortune-chat/persona/neo-read.webp' : '/images/fortune-chat/persona/yeoni-read.webp';
+        persona.src = neo ? '/images/master-profiles/neo-strategy-portrait.webp' : '/images/fortune-chat/persona/yeoni-read.webp';
         persona.alt = '';
-        persona.width = neo ? 314 : 264;
-        persona.height = neo ? 314 : 372;
+        persona.width = neo ? 600 : 264;
+        persona.height = neo ? 720 : 372;
+        persona.loading = 'lazy';
+        persona.addEventListener('error', function(){ persona.hidden = true; }, { once: true });
         persona.decoding = 'async';
         var copy = document.createElement('div');
         copy.className = 'cd-afy-hero__copy';
@@ -12671,9 +12680,14 @@ html[data-cd-lang]:not([data-cd-lang="ko"]) #cdPickWhyJosa{display:none}
         var panel = document.getElementById('cdMobileFortuneOverview');
         if (!panel) return;
         panel.textContent = '';
-        panel.appendChild(buildOverviewHero());
         // 검색·방식·고민 블록(js/core/home-service-finder.js) — 데스크톱 시트와 같은 노드를 옮겨 단다.
         if (window.CodeDestinyAllFortunes) window.CodeDestinyAllFortunes.attach(panel);
+        var explore = panel.querySelector('[data-cd-explore]');
+        if (explore) {
+          var previousHero = explore.querySelector('.cd-afy-hero');
+          if (previousHero) previousHero.remove();
+          explore.prepend(buildOverviewHero());
+        }
 
         var favSection = buildPinSection('★ 즐겨찾기', readIdList(FAVORITES_KEY));
         if (favSection) panel.appendChild(favSection);

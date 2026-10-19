@@ -6702,6 +6702,57 @@ html.neo-mode #cdHomeFunnel .cdh-scene-art #honeypigLogo{box-shadow:none!importa
 /* Bounded, non-interactive collection layer; motion is started only after a credit. */
 .cdh-honey__collection{position:absolute;inset:0;z-index:2;overflow:hidden;border-radius:inherit;pointer-events:none}
 .cdh-honey__collection>img{background-color:transparent!important;position:absolute;top:0;left:0;width:32px;height:32px;object-fit:contain}
+/* All-readings world exploration. These rules never style the main home or other finders. */
+#cdAllFortunes .cd-sheet__body,html body #cdMobileFortuneOverview{padding-top:0}
+#cdAllFortunesRoot{gap:20px;--cd-af-surface:var(--cd-surface,#fffaf7)}
+#cdAllFortunesRoot .cd-af__search{position:sticky;top:0;z-index:3;padding:8px 0;background:var(--cd-af-surface);border-radius:14px}
+#cdAllFortunesRoot .cd-af__clear{top:10px}
+#cdAllFortunesRoot .cd-af__explore{display:grid;gap:24px;min-width:0;padding:12px 0 24px;border-bottom:1px solid color-mix(in srgb,var(--cd-gold) 40%,var(--cd-af-line))}
+#cdAllFortunesRoot [hidden]{display:none!important}
+#cdAllFortunesRoot .cd-af__explore-heading h2{margin:0;color:var(--cd-af-ink);font:700 clamp(1.5rem,2.6vw,2rem)/1.5 "CodeDestinySerifKR",var(--font-premium,serif);text-wrap:balance;letter-spacing:-.025em}
+#cdAllFortunesRoot .cd-af__explore-heading p{margin:6px 0 0;color:var(--cd-af-muted);font-size:.9rem;line-height:1.6}
+#cdAllFortunesRoot .cd-af__regions{display:grid;grid-auto-flow:column;grid-auto-columns:152px;gap:16px;overflow-x:auto;padding:4px 4px 16px;scroll-snap-type:x proximity;scrollbar-width:thin;scrollbar-color:var(--cd-af-accent) transparent}
+#cdAllFortunesRoot .cd-af__region{position:relative;display:flex;flex-direction:column;gap:0;min-width:0;min-height:44px;padding:5px;overflow:hidden;border:2px solid color-mix(in srgb,var(--cd-gold) 40%,var(--cd-af-line));border-radius:80px 80px 16px 16px;background:var(--cd-af-field);color:var(--cd-af-ink);font:inherit;text-align:center;scroll-snap-align:start;cursor:pointer;box-shadow:var(--cd-shade-1);transition:transform .22s ease-out,border-color .22s ease-out}
+#cdAllFortunesRoot .cd-af__region img{display:block;width:100%;height:auto;aspect-ratio:4/5;object-fit:cover;border-radius:72px 72px 10px 10px;background:var(--cd-af-surface)}
+#cdAllFortunesRoot .cd-af__region:has(img[hidden]){border-radius:var(--cd-r-md)}
+#cdAllFortunesRoot .cd-af__region>span{display:flex;align-items:center;justify-content:center;flex:1;min-height:64px;padding:12px 6px;font:700 .9rem/1.5 "CodeDestinySerifKR",var(--font-premium,serif);word-break:keep-all;overflow-wrap:anywhere;border-radius:8px}
+#cdAllFortunesRoot .cd-af__region[aria-pressed=true]{border-color:var(--cd-af-accent)}
+#cdAllFortunesRoot .cd-af__region[aria-pressed=true]>span{background:var(--cd-af-accent);color:var(--cd-af-on-accent);text-decoration:underline;text-underline-offset:4px}
+#cdAllFortunesRoot .cd-af__region:hover{border-color:var(--cd-af-accent);transform:translateY(-3px)}
+#cdAllFortunesRoot :is(button,a,input):focus-visible{outline:3px solid var(--cd-af-accent);outline-offset:3px}
+#cdAllFortunesRoot .cd-af__region-intro{display:grid;grid-template-columns:minmax(0,1fr);overflow:hidden;border:1px solid color-mix(in srgb,var(--cd-gold) 50%,var(--cd-af-line));border-radius:var(--cd-r-section);background:var(--cd-af-field);box-shadow:var(--cd-shade-2)}
+#cdAllFortunesRoot .cd-af__region-intro>img{display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:cover;max-height:260px}
+#cdAllFortunesRoot .cd-af__region-intro>div{align-self:center;padding:clamp(24px,4vw,48px)}
+#cdAllFortunesRoot .cd-af__region-intro>div:before{content:"";display:block;width:64px;height:1px;margin-bottom:20px;background:var(--cd-af-accent)}
+#cdAllFortunesRoot .cd-af__region-intro h3{margin:0;font:700 clamp(1.4rem,2.8vw,2rem)/1.5 "CodeDestinySerifKR",var(--font-premium,serif);color:var(--cd-af-ink);word-break:keep-all;overflow-wrap:anywhere}
+#cdAllFortunesRoot .cd-af__region-intro p{margin:8px 0 0;color:var(--cd-af-muted);font-size:.94rem;line-height:1.75;max-width:42ch;word-break:keep-all;overflow-wrap:anywhere}
+#cdAllFortunesRoot .fortune-gateway__recs-grid{grid-template-columns:minmax(0,1fr);gap:16px}
+#cdAllFortunesRoot .fortune-gateway__rec{display:flex;flex-direction:column;gap:12px;padding:20px;min-width:0;background:var(--cd-af-field);border-color:color-mix(in srgb,var(--cd-gold) 32%,var(--cd-af-line));color:var(--cd-af-ink);text-align:left;box-shadow:var(--cd-shade-1)}
+#cdAllFortunesRoot .fortune-gateway__rec-media{width:100%;aspect-ratio:16/9;max-height:200px;flex:none}
+#cdAllFortunesRoot .fortune-gateway__rec-media img{width:100%;height:100%;object-fit:cover}
+#cdAllFortunesRoot .fortune-gateway__rec-name{font-size:1.06rem;line-height:1.5;white-space:normal;color:var(--cd-af-ink);word-break:keep-all;overflow-wrap:anywhere}
+#cdAllFortunesRoot .fortune-gateway__rec-desc{display:block;overflow:visible;color:var(--cd-af-muted);font-size:.9rem;line-height:1.65;word-break:keep-all;overflow-wrap:anywhere}
+#cdAllFortunesRoot .cd-af__question{color:var(--cd-af-muted);font-size:.84rem;line-height:1.6;word-break:keep-all;overflow-wrap:anywhere}
+#cdAllFortunesRoot .cd-af__masters{color:var(--cd-af-ink);font-size:.82rem;line-height:1.6}
+#cdAllFortunesRoot .fortune-gateway__rec-foot{flex-wrap:wrap;gap:8px;margin-top:auto;padding-top:12px;border-top:1px solid var(--cd-af-line);min-height:44px}
+#cdAllFortunesRoot :is(.fortune-gateway__rec-price,.fortune-gateway__rec-go){font-size:.88rem;color:var(--cd-af-accent)}
+#cdAllFortunesRoot[data-cd-af-host=sheet] .cd-afy-hero{display:none}
+#cdAllFortunesRoot[data-cd-af-host=overview]{padding:0 2px 8px}
+#cdAllFortunesRoot .cd-afy-hero{margin-bottom:0}
+#cdAllFortunesRoot ::selection{background:var(--cd-af-accent);color:var(--cd-af-on-accent)}
+#cdAllFortunesRoot input{caret-color:var(--cd-af-accent)}
+@media(min-width:760px){
+  #cdAllFortunesRoot .cd-af__regions{grid-auto-flow:row;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-columns:auto;overflow:visible}
+  #cdAllFortunesRoot .cd-af__region-intro{grid-template-columns:minmax(0,1fr) minmax(0,1.4fr)}
+  #cdAllFortunesRoot .cd-af__region-intro>img{height:100%;max-height:280px}
+  #cdAllFortunesRoot .fortune-gateway__recs-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(min-width:1200px){
+  #cdAllFortunes{width:min(1180px,calc(100vw - 64px))}
+  #cdAllFortunesRoot .cd-af__regions{grid-template-columns:repeat(8,minmax(0,1fr));gap:12px}
+  #cdAllFortunesRoot .fortune-gateway__recs-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(prefers-reduced-motion:reduce){#cdAllFortunesRoot .cd-af__region{transition:none}#cdAllFortunesRoot .cd-af__region:hover{transform:none}}
 </style>
 <link rel="stylesheet" href="/styles/home-mv.css?v=build-7215ceea7805">
 <link rel="stylesheet" href="/styles/concern-first-home.css?v=build-8d8d4826e2f9">
@@ -10462,12 +10513,19 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
       <div class="cd-sheet__body">
         <!-- 모든 운세 검색 블록: 모바일에서는 home-service-finder.js 가 '모든 운세' 개요 패널 맨 위로 옮긴다. -->
         <div class="cd-af" id="cdAllFortunesRoot">
-          <!-- 강약: 모든 운세 목록에서도 대표 상담 덱으로 돌아가는 길은 한 줄(텍스트 링크)로 둔다. -->
-          <a class="cd-af__signature" href="/ggulggul/#cdSignatureConsult" data-cd-af-signature><span data-cd-trans="home.gardenCopy.allSignatureLink">대표 상담 여섯 장 보기</span><span aria-hidden="true">→</span></a>
           <div class="cd-af__search" role="search">
             <input type="search" id="cdAllFortunesSearch" class="cd-af__input" placeholder="이직, 재회, 궁합처럼 찾아보세요" autocomplete="off" aria-label="모든 운세 검색" data-cd-trans-attr="aria-label:home.gardenCopy.allSearchLabel,placeholder:home.gardenCopy.allSearchPlaceholder">
             <button type="button" class="cd-af__clear" data-cd-search-clear aria-label="검색어 지우기" data-cd-trans-attr="aria-label:home.gardenCopy.allClear" hidden><span aria-hidden="true">×</span></button>
           </div>
+          <section class="cd-af__explore" data-cd-explore aria-labelledby="cdAllFortunesExploreTitle">
+            <div class="cd-af__explore-heading">
+              <h2 id="cdAllFortunesExploreTitle" data-cd-trans="home.worldSearch.heading">마음이 닿는 공간으로</h2>
+              <p data-cd-trans="home.worldSearch.hint">장소를 골라, 나에게 필요한 운세를 만나보세요.</p>
+            </div>
+            <div class="cd-af__regions" data-cd-regions role="group" aria-labelledby="cdAllFortunesExploreTitle"></div>
+            <div class="cd-af__region-intro" data-cd-region-intro hidden></div>
+          </section>
+          <a class="cd-af__signature" href="/ggulggul/#cdSignatureConsult" data-cd-af-signature><span data-cd-trans="home.gardenCopy.allSignatureLink">대표 상담 여섯 장 보기</span><span aria-hidden="true">→</span></a>
           <div class="cd-af__group">
             <span class="cd-af__label" id="cdAllFortunesMethodTitle" data-cd-trans="shell.fortuneGatewayFilters.fortuneGatewayFilterRow.kx2ok">방식</span>
             <div class="cd-af__chips" role="group" aria-labelledby="cdAllFortunesMethodTitle">
@@ -13953,10 +14011,12 @@ html[data-cd-lang]:not([data-cd-lang="ko"]) #cdPickWhyJosa{display:none}
         moon.setAttribute('aria-hidden', 'true');
         var persona = document.createElement('img');
         persona.className = 'cd-afy-hero__persona';
-        persona.src = neo ? '/images/fortune-chat/persona/neo-read.webp' : '/images/fortune-chat/persona/yeoni-read.webp';
+        persona.src = neo ? '/images/master-profiles/neo-strategy-portrait.webp' : '/images/fortune-chat/persona/yeoni-read.webp';
         persona.alt = '';
-        persona.width = neo ? 314 : 264;
-        persona.height = neo ? 314 : 372;
+        persona.width = neo ? 600 : 264;
+        persona.height = neo ? 720 : 372;
+        persona.loading = 'lazy';
+        persona.addEventListener('error', function(){ persona.hidden = true; }, { once: true });
         persona.decoding = 'async';
         var copy = document.createElement('div');
         copy.className = 'cd-afy-hero__copy';
@@ -13983,9 +14043,14 @@ html[data-cd-lang]:not([data-cd-lang="ko"]) #cdPickWhyJosa{display:none}
         var panel = document.getElementById('cdMobileFortuneOverview');
         if (!panel) return;
         panel.textContent = '';
-        panel.appendChild(buildOverviewHero());
         // 검색·방식·고민 블록(js/core/home-service-finder.js) — 데스크톱 시트와 같은 노드를 옮겨 단다.
         if (window.CodeDestinyAllFortunes) window.CodeDestinyAllFortunes.attach(panel);
+        var explore = panel.querySelector('[data-cd-explore]');
+        if (explore) {
+          var previousHero = explore.querySelector('.cd-afy-hero');
+          if (previousHero) previousHero.remove();
+          explore.prepend(buildOverviewHero());
+        }
 
         var favSection = buildPinSection('★ 즐겨찾기', readIdList(FAVORITES_KEY));
         if (favSection) panel.appendChild(favSection);

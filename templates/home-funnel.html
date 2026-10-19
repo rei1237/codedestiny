@@ -71,12 +71,19 @@
       <div class="cd-sheet__body">
         <!-- 모든 운세 검색 블록: 모바일에서는 home-service-finder.js 가 '모든 운세' 개요 패널 맨 위로 옮긴다. -->
         <div class="cd-af" id="cdAllFortunesRoot">
-          <!-- 강약: 모든 운세 목록에서도 대표 상담 덱으로 돌아가는 길은 한 줄(텍스트 링크)로 둔다. -->
-          <a class="cd-af__signature" href="/ggulggul/#cdSignatureConsult" data-cd-af-signature><span data-cd-trans="home.gardenCopy.allSignatureLink">대표 상담 여섯 장 보기</span><span aria-hidden="true">→</span></a>
           <div class="cd-af__search" role="search">
             <input type="search" id="cdAllFortunesSearch" class="cd-af__input" placeholder="이직, 재회, 궁합처럼 찾아보세요" autocomplete="off" aria-label="모든 운세 검색" data-cd-trans-attr="aria-label:home.gardenCopy.allSearchLabel,placeholder:home.gardenCopy.allSearchPlaceholder">
             <button type="button" class="cd-af__clear" data-cd-search-clear aria-label="검색어 지우기" data-cd-trans-attr="aria-label:home.gardenCopy.allClear" hidden><span aria-hidden="true">×</span></button>
           </div>
+          <section class="cd-af__explore" data-cd-explore aria-labelledby="cdAllFortunesExploreTitle">
+            <div class="cd-af__explore-heading">
+              <h2 id="cdAllFortunesExploreTitle" data-cd-trans="home.worldSearch.heading">마음이 닿는 공간으로</h2>
+              <p data-cd-trans="home.worldSearch.hint">장소를 골라, 나에게 필요한 운세를 만나보세요.</p>
+            </div>
+            <div class="cd-af__regions" data-cd-regions role="group" aria-labelledby="cdAllFortunesExploreTitle"></div>
+            <div class="cd-af__region-intro" data-cd-region-intro hidden></div>
+          </section>
+          <a class="cd-af__signature" href="/ggulggul/#cdSignatureConsult" data-cd-af-signature><span data-cd-trans="home.gardenCopy.allSignatureLink">대표 상담 여섯 장 보기</span><span aria-hidden="true">→</span></a>
           <div class="cd-af__group">
             <span class="cd-af__label" id="cdAllFortunesMethodTitle" data-cd-trans="shell.fortuneGatewayFilters.fortuneGatewayFilterRow.kx2ok">방식</span>
             <div class="cd-af__chips" role="group" aria-labelledby="cdAllFortunesMethodTitle">

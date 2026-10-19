@@ -25,8 +25,9 @@ try {
     import QuestionSkyConsultation from './app/yeongnyangi/_components/QuestionSkyConsultation';
     import Layout from './app/yeongnyangi/layout';
     import './app/yeongnyangi/night-tokens.css';
+    import './styles/theme-tokens.css';
     const params=new URLSearchParams(location.search);
-    const surface=params.get('surface')||(params.get('mode')==='spirit'?'prashna':'home');
+    const surface=params.get('surface')||(params.get('mode')==='spirit'?'prashna':location.pathname.includes('/fortune/')?'consultation':'home');
     createRoot(document.getElementById('root')).render(<Layout>{surface==='home'?<Home guide={<Guide/>}/>:surface==='prashna'?<QuestionSkyConsultation mode="prashna-v1"/>:<Consultation/>}</Layout>);
   `,resolveDir:root,loader:'tsx'},bundle:true,external:['/assets/*','/icons/*'],outfile:path.join(temp,'fixture.js'),platform:'browser',jsx:'automatic',define:{'process.env':'{}','process.env.NODE_ENV':'"development"'},plugins:[{name:'mock-next',setup(b){
     b.onResolve({filter:/^next\/(navigation|image|link)$/},args=>({path:args.path,namespace:'mock-next'}));
@@ -81,6 +82,29 @@ try {
       await page.screenshot({path:file,fullPage:true});
       await page.screenshot({path:path.join(output,`${surface}-${width}-viewport.png`)});
       evidence.push({surface,width,...geometry,file});
+      if(surface==='home'){
+        const entry=page.locator('#questions');
+        await entry.screenshot({path:path.join(output,`question-entry-${width}.png`)});
+        const choices=entry.getByRole('button',{name:/그 사람의 말과 행동/});
+        await choices.focus();await page.keyboard.press('Enter');
+        const reading=page.locator('#question-reading');
+        await reading.getByRole('link',{name:'이 질문으로 상담 준비하기'}).waitFor();
+        assert.equal(await choices.getAttribute('aria-pressed'),'true');
+        assert.ok(await reading.evaluate(el=>Boolean(el.compareDocumentPosition(document.querySelector('#questions > details'))&Node.DOCUMENT_POSITION_FOLLOWING)),'Selected offer precedes the question finder');
+        await reading.screenshot({path:path.join(output,`question-offer-${width}.png`)});
+        const finder=entry.locator('details').first();await finder.locator('summary').click();
+        await entry.locator('#concern-search').fill('존재하지않는검색어검증');
+        assert.equal(await entry.getByText('같은 표현의 고민이 아직 없어요.',{exact:false}).count(),1);
+        await entry.locator('#concern-search').fill('이직');
+        assert.ok(await entry.locator('#concern-search').inputValue()==='이직');
+        await finder.locator('summary').click();
+        const form=entry.getByRole('form',{name:'내 고민 직접 적기'}),field=form.getByRole('textbox');
+        assert.equal(await form.getByRole('button',{name:'이 고민으로 상담 준비하기'}).isDisabled(),true);
+        await field.fill('   ');
+        assert.equal(await form.getByRole('button',{name:'이 고민으로 상담 준비하기'}).isDisabled(),true);
+        await field.fill('');
+        keyboardEvidence.push({surface,width,questionSelect:'PASS',offerBeforeFinder:'PASS',searchEmptyState:'PASS',emptyQuestionBlocked:'PASS'});
+      }
       if(targeted){
         if(surface==='home'){
           const sample=page.locator('#yn-example');
@@ -131,6 +155,28 @@ try {
       }
     }
   }
+  // Exercise the real home → consultation draft bridge without sending a question
+  // to the server. A storage error must leave the user's text on the home page.
+  await page.goto(base+'/yeongnyangi/',{waitUntil:'networkidle'});
+  const homeForm=page.getByRole('form',{name:'내 고민 직접 적기'}),homeField=homeForm.getByRole('textbox');
+  const privateQuestion='이직을 고민하고 있어요.\n지금의 선택을 어떻게 정리하면 좋을까요?';
+  await homeField.fill(privateQuestion);
+  await page.evaluate(()=>{window.originalStorageSetItem=Storage.prototype.setItem;Storage.prototype.setItem=function(){throw new DOMException('Blocked for test','SecurityError');};});
+  await homeForm.getByRole('button',{name:'이 고민으로 상담 준비하기'}).click();
+  await homeForm.getByRole('alert').waitFor();
+  assert.equal(await homeField.inputValue(),privateQuestion,'Storage failure preserves the question');
+  assert.equal(new URL(page.url()).pathname,'/yeongnyangi/');
+  await page.evaluate(()=>{Storage.prototype.setItem=window.originalStorageSetItem;delete window.originalStorageSetItem;});
+  await homeForm.getByRole('button',{name:'이 고민으로 상담 준비하기'}).click();
+  await page.waitForURL('**/yeongnyangi/fortune/?flow=question');
+  const transferred=page.getByRole('region',{name:'영냥이와 상담 준비'}).getByRole('textbox');
+  await transferred.waitFor();
+  assert.equal(await transferred.inputValue(),privateQuestion,'The exact home question reaches the first consultation step');
+  assert.equal(new URL(page.url()).search,'?flow=question','Private question stays out of the URL');
+  await transferred.fill(privateQuestion+' 수정');
+  await page.reload({waitUntil:'networkidle'});
+  assert.equal(await transferred.inputValue(),privateQuestion+' 수정','Existing consultation draft retains subsequent edits');
+  keyboardEvidence.push({surface:'home-to-consultation',storageFailurePreservesInput:'PASS',privateQuestionTransfer:'PASS',urlContainsNoQuestion:'PASS',editedDraftReload:'PASS'});
   assert.deepEqual(errors,[],'React runtime errors');
   const report={result:'PASS',mode:'mock loopback only; no generation, payment, DB or external traffic',evidence,keyboardEvidence,blockedExternalHosts:[...new Set(blocked)],errors};
   fs.writeFileSync(path.join(output,'report.json'),JSON.stringify(report,null,2));

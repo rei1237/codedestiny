@@ -2020,6 +2020,33 @@
       "miniGamesAria": "Alle Mini-Orakelspiele ansehen",
       "miniGamesAlt": "Titelbild der Mini-Orakelspiele",
       "otherTitle": "Weitere unterhaltsame Deutungen"
+    },
+    "worldSearch": {
+      "heading": "Folge deiner Neugier",
+      "hint": "Wähle einen Ort und finde eine Deutung für deine Fragen.",
+      "allName": "Alle Orte",
+      "teaName": "Yeonis Schicksals-Teehaus",
+      "strategyName": "Neos Strategiezimmer",
+      "starsName": "Musungs Sternenpalast",
+      "moonName": "Seo Hanbis Mondgarten",
+      "skyName": "Yundals Sternwarte",
+      "bookName": "Bibliothek der Verbindungen",
+      "archiveName": "Archiv der Entdeckungen",
+      "teaIntro": "Nimm dir eine Teepause und öffne die Fragen, die dich bewegen.",
+      "strategyIntro": "Betrachte wiederkehrende Entscheidungen und deinen nächsten Schritt. Neo und Yeongnyangi sind dieselbe Figur mit der Seele eines weißen Löwen.",
+      "starsIntro": "Folge den Sternen und zwölf Palästen eines Ziwei-Horoskops und erkunde die Muster des Lebens.",
+      "moonIntro": "Erkunde Tempo, Abstand und offene Fragen in deinen Beziehungen.",
+      "skyIntro": "Folge den Sternen und dem Lauf der Zeit, um dich besser zu verstehen.",
+      "bookIntro": "Lies wiederkehrende Muster in der Liebe und öffne das nächste Kapitel deiner Verbindungen.",
+      "archiveIntro": "Entdecke Neues zwischen Werkzeugen und Geschichten zur Selbsterkenntnis.",
+      "master_yeoni": "Yeoni",
+      "master_neo": "Neo",
+      "master_musung": "Musung",
+      "master_hanbi": "Seo Hanbi",
+      "master_yun": "Yundal",
+      "master_master": "Meister",
+      "summaryAll": "{count} Angebote",
+      "summaryFiltered": "{count} passende Angebote"
     }
   },
   "terms": {

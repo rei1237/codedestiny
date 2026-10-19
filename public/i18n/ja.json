@@ -2020,6 +2020,33 @@
       "miniGamesAria": "ミニ占いゲーム一覧を見る",
       "miniGamesAlt": "ミニ占いゲームの代表画像",
       "otherTitle": "ほかの楽しい占い"
+    },
+    "worldSearch": {
+      "heading": "心が向かう場所へ",
+      "hint": "場所を選んで、今のあなたに合う占いを探しましょう。",
+      "allName": "すべて",
+      "teaName": "ヨニの運命茶屋",
+      "strategyName": "ネオの戦略室",
+      "starsName": "ムソンの星の宮殿",
+      "moonName": "ソ・ハンビの月明かりの庭",
+      "skyName": "ユンダルの天文台",
+      "bookName": "縁の書斎",
+      "archiveName": "発見の記録室",
+      "teaIntro": "お茶を飲むようにひと息ついて、心に残る問いを開いてみましょう。",
+      "strategyIntro": "繰り返す選択を見つめ、次の一手を探しましょう。ネオとヨンニャンイは白獅子の魂を持つ同一人物です。",
+      "starsIntro": "紫微斗数の星と十二宮をたどり、人生の流れを見つめましょう。",
+      "moonIntro": "近づく速さや距離、人間関係に積もった問いを見つめましょう。",
+      "skyIntro": "星と時の流れをたどり、自分を知る道を探しましょう。",
+      "bookIntro": "恋愛で繰り返すパターンを読み、縁の次の章を開きましょう。",
+      "archiveIntro": "自分を知る道具や物語の中で、新しい発見を探しましょう。",
+      "master_yeoni": "ヨニ",
+      "master_neo": "ネオ",
+      "master_musung": "ムソン",
+      "master_hanbi": "ソ・ハンビ",
+      "master_yun": "ユンダル",
+      "master_master": "マスター",
+      "summaryAll": "全{count}件",
+      "summaryFiltered": "条件に合うサービス {count}件"
     }
   },
   "terms": {

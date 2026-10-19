@@ -618,7 +618,7 @@ test("모든 운세의 '기타' 방식은 레지스트리 밖 컬렉션 타일�
 test("모든 운세는 결과가 없으면 빈 상태와 초기화를 보이고, 초기화하면 전체 목록으로 돌아온다", async () => {
   const { window, doc, panel, input, search } = await bootAllFortunes();
   const all = names(panel).length;
-  assert.equal(all, window.__cdServiceRegistry.length, "아무것도 고르지 않았는데 전체 목록이 아니다");
+  assert.equal(all, window.__cdServiceRegistry.length + 1, "전체 목록에서 DOM 수집 항목이 빠졌다");
   assert.equal((await search("없는운세쿼리zz")).length, 0);
   const reset = panel.querySelector(".cd-af__empty .cd-af__empty-reset");
   assert.ok(reset, "빈 상태 초기화 버튼이 없다");
@@ -638,4 +638,167 @@ test("모든 운세는 sessionStorage 에 남긴 검색어·칩을 다시 열 �
   const saved = JSON.parse(window.sessionStorage.getItem("cd.allFortunes.v1"));
   assert.deepEqual(saved.purposes, [], "칩을 끈 상태가 저장되지 않았다");
   assert.equal(saved.query, "타로");
+});
+
+test('세계관 지역은 검색 아래에 있고 상품명·설명·담당자·가격 순서로 읽는다', async () => {
+  const { doc, panel } = await bootAllFortunes();
+  const root = doc.getElementById('cdAllFortunesRoot');
+  assert.ok(root.firstElementChild.matches('[role="search"]'));
+  assert.equal(root.querySelectorAll('[data-region]').length, 8);
+  assert.ok(names(panel).includes('따뜻한 태양 회복 타로'));
+  const card = panel.querySelector('a[href="/love-secret-ai/"]');
+  const order = [...card.children].map(node => node.className.split(' ')[0]);
+  assert.ok(order.indexOf('fortune-gateway__rec-name') < order.indexOf('fortune-gateway__rec-desc'));
+  assert.ok(order.indexOf('fortune-gateway__rec-desc') < order.indexOf('cd-af__masters'));
+  assert.ok(order.indexOf('cd-af__masters') < order.indexOf('fortune-gateway__rec-foot'));
+  assert.equal(card.querySelector('.cd-af__masters').textContent, '연이 · 서한비');
+});
+
+test('지역과 방식·고민을 교차 적용하고 검색하면 전체 지역으로 돌아간다', async () => {
+  const { doc, panel, search, window } = await bootAllFortunes();
+  const root = doc.getElementById('cdAllFortunesRoot');
+  root.querySelector('[data-region="tea"]').click();
+  assert.ok(names(panel).includes('운명의 찻집'));
+  assert.ok(!names(panel).includes('인생의 책'));
+  assert.equal(root.querySelector('[data-cd-region-intro]').hidden, false);
+  root.querySelector('[data-method="tarot"]').click();
+  root.querySelector('[data-purpose="love"]').click();
+  assert.ok(names(panel).length > 0);
+  await search('재회');
+  assert.equal(root.dataset.cdRegion, 'all');
+  assert.equal(root.querySelector('[data-cd-explore]').hidden, true);
+  assert.equal(root.querySelector('[data-method="tarot"]').getAttribute('aria-pressed'), 'true');
+  assert.equal(root.querySelector('[data-purpose="love"]').getAttribute('aria-pressed'), 'true');
+  assert.equal(JSON.parse(window.sessionStorage.getItem('cd.allFortunes.v1')).region, 'all');
+  root.querySelector('[data-cd-search-clear]').click();
+  assert.equal(root.querySelector('[data-cd-explore]').hidden, false);
+  assert.equal(root.querySelector('[data-region="all"]').getAttribute('aria-pressed'), 'true');
+  root.querySelector('[data-cd-finder-reset]').click();
+  assert.equal(root.querySelector('[data-method="tarot"]').getAttribute('aria-pressed'), 'false');
+  assert.ok(names(panel).includes('따뜻한 태양 회복 타로'));
+});
+
+test('공동 상담은 여러 지역에서 찾되 휴먼디자인에 마스터를 임의 배정하지 않는다', async () => {
+  const { doc, panel, window } = await bootAllFortunes();
+  for (const region of ['strategy','tea','moon','sky','stars']) {
+    doc.querySelector(`[data-region="${region}"]`).click();
+    const fusion = [...panel.querySelectorAll('.fortune-gateway__rec')].find(card => card.textContent.includes('초융합 심층 리딩'));
+    assert.ok(fusion, region);
+    assert.equal(fusion.querySelector('.cd-af__masters').textContent, '네오 · 연이 · 서한비 · 윤달 · 무성');
+  }
+  assert.ok(window.CodeDestinyAllFortunes.filter({region:'book'}).some(item => item.id==='master-love-codex'));
+  assert.ok(window.CodeDestinyAllFortunes.filter({region:'sky'}).some(item => item.id==='life-book-ai'));
+  doc.querySelector('[data-region="archive"]').click();
+  const hd = [...panel.querySelectorAll('.fortune-gateway__rec')].find(card => card.textContent.includes('휴먼 디자인'));
+  assert.ok(hd);
+  assert.equal(hd.querySelector('.cd-af__masters'), null);
+  assert.ok(!hd.querySelector('img').src.includes('/master-profiles/'));
+});
+
+test('늦게 분리된 컬렉션 카드도 소속 지역과 전체 검색에 남고 중복되지 않는다', async () => {
+  const { doc, panel, search, window } = await bootAllFortunes();
+  const collection = doc.createElement('div');
+  collection.id = 'tarotCollection'; collection.className = 'tarot-collection';
+  const card = doc.createElement('a'); card.className = 'tarot-tile'; card.href = '/tarot/late-detached/';
+  card.innerHTML = '<span class="tarot-tile__title">늦은 달의 카드</span><span class="tarot-tile__desc">기다림</span>';
+  collection.__cdLazyCards = [card, card];
+  doc.getElementById('inputPage').appendChild(collection);
+  doc.querySelector('[data-region="tea"]').click();
+  assert.equal(names(panel).filter(name => name==='늦은 달의 카드').length, 1);
+  assert.equal(card.isConnected, false);
+  assert.ok((await search('늦은 달')).includes('늦은 달의 카드'));
+  assert.equal(window.CodeDestinyAllFortunes.filter({query:'늦은 달'})[0].sourceCollection, 'tarotCollection');
+  assert.equal(card.isConnected, false);
+});
+
+test('지역 상태는 기존 세션 키로 복원되고 오래된 값·검색 상태와 호환된다', async () => {
+  const { doc, panel, window } = await bootAllFortunes({region:'sky',query:'',methods:['vedic'],purposes:[]});
+  assert.equal(doc.querySelector('[data-region="sky"]').getAttribute('aria-pressed'), 'true');
+  assert.ok(names(panel).includes('베다점'));
+  assert.equal(JSON.parse(window.sessionStorage.getItem('cd.allFortunes.v1')).region, 'sky');
+  const old = await bootAllFortunes({query:'',methods:[],purposes:[]});
+  assert.equal(old.doc.getElementById('cdAllFortunesRoot').dataset.cdRegion, 'all');
+  const invalid = await bootAllFortunes({region:'unknown'});
+  assert.equal(invalid.doc.getElementById('cdAllFortunesRoot').dataset.cdRegion, 'all');
+  const searched = await bootAllFortunes({region:'tea',query:'베다'});
+  assert.equal(searched.doc.getElementById('cdAllFortunesRoot').dataset.cdRegion, 'all');
+  assert.ok(names(searched.panel).includes('베다점'));
+});
+
+test('같은 검색 DOM을 이동하고 뒤로 오면 지역·스크롤을 복원한다', async () => {
+  const { doc, window, panel } = await bootAllFortunes();
+  window.requestAnimationFrame = fn => fn();
+  const root = doc.getElementById('cdAllFortunesRoot');
+  const mobile = doc.createElement('div'); mobile.id = 'cdMobileFortuneOverview'; doc.body.appendChild(mobile);
+  window.CodeDestinyAllFortunes.attach(mobile);
+  root.querySelector('[data-region="book"]').click();
+  mobile.scrollTop = 210;
+  panel.querySelector('.fortune-gateway__rec').addEventListener('click', e => e.preventDefault());
+  panel.querySelector('.fortune-gateway__rec').click();
+  const saved = JSON.parse(window.sessionStorage.getItem('cd.allFortunes.v1'));
+  assert.equal(saved.scrollTop, 210); assert.equal(saved.region, 'book');
+  window.CodeDestinyAllFortunes.attach(doc.querySelector('#cdAllFortunes .cd-sheet__body'));
+  let reopened = 0;
+  window.cdOpenAllFortunes = () => { reopened++; window.CodeDestinyAllFortunes.attach(mobile); };
+  const event = new window.Event('pageshow'); Object.defineProperty(event,'persisted',{value:true});
+  mobile.scrollTop = 0; window.dispatchEvent(event);
+  assert.equal(reopened, 1); assert.equal(mobile.scrollTop, 210);
+  assert.equal(doc.querySelectorAll('#cdAllFortunesRoot').length, 1);
+  assert.equal(root.dataset.cdRegion, 'book');
+});
+
+test('지역 이미지 오류는 초상 또는 공용 장식·최종 숨김으로 종료하고 선택과 텍스트를 보존한다', async () => {
+  const { doc, window, panel } = await bootAllFortunes();
+  const button = doc.querySelector('[data-region="tea"]');
+  const img = button.querySelector('img');
+  assert.equal(img.loading, 'lazy'); assert.equal(img.width, 960); assert.equal(img.height, 640);
+  img.dispatchEvent(new window.Event('error'));
+  assert.ok(img.src.endsWith('/yeoni-teahouse-portrait.webp')); assert.equal(img.hasAttribute('srcset'), false);
+  img.dispatchEvent(new window.Event('error')); assert.equal(img.hidden, true);
+  const finalSrc = img.src; img.dispatchEvent(new window.Event('error')); assert.equal(img.src, finalSrc);
+  button.click(); assert.ok(names(panel).includes('운명의 찻집'));
+  assert.ok(button.textContent.includes('연이의 운명 찻집'));
+  for (const region of ['all', 'archive']) {
+    const fallback = doc.querySelector('[data-region="' + region + '"] img');
+    fallback.dispatchEvent(new window.Event('error'));
+    assert.ok(fallback.src.endsWith('/images/home/finder-moon.svg'));
+    assert.equal(fallback.hidden, false);
+    fallback.dispatchEvent(new window.Event('error'));
+    assert.equal(fallback.hidden, true);
+    assert.ok(fallback.parentElement.textContent.trim());
+  }
+  const service = panel.querySelector('.fortune-gateway__rec img');
+  service.dispatchEvent(new window.Event('error'));
+  service.dispatchEvent(new window.Event('error'));
+  assert.equal(service.hidden, true);
+});
+
+test('세계관 표시가 무료·유료 진입 계약이나 가격을 바꾸지 않는다', async () => {
+  const { panel, window } = await bootAllFortunes();
+  for (const item of window.__cdServiceRegistry) {
+    const card = [...panel.querySelectorAll('.fortune-gateway__rec')].find(node => node.querySelector('[data-pvw-title]').textContent===item.name);
+    assert.ok(card, item.id);
+    assert.equal(card.querySelector('.fortune-gateway__rec-price').textContent, item.price || '');
+    assert.equal(card.hasAttribute('data-coin-cost'), false);
+    assert.equal(card.hasAttribute('data-per-use-price'), false);
+    if(item.action) assert.equal(card.getAttribute('data-action'), item.action);
+    if(item.href) assert.equal(card.getAttribute('href'), item.href);
+  }
+  const hd = [...panel.querySelectorAll('.fortune-gateway__rec')].find(node=>node.textContent.includes('휴먼 디자인'));
+  assert.equal(hd.getAttribute('data-pvw-free'),'1');
+  assert.equal(hd.hasAttribute('data-feature-key'),false);
+});
+
+test('지역·담당자·개수 문구는 12개 사전과 한국어 복원 원문을 유지한다', async () => {
+  const authored = JSON.parse(fs.readFileSync(path.join(root,'i18n/authored/worldSearch-01.json'),'utf8'));
+  for(const locale of ['ko','en','ja','zh-cn','zh-tw','vi','hi','es','fr','de','nl','ms']) {
+    const dict=JSON.parse(fs.readFileSync(path.join(root,'public/i18n',locale+'.json'),'utf8'));
+    for(const key of Object.keys(authored)) assert.ok(dict.home.worldSearch[key.split('.').at(-1)], locale+': '+key);
+  }
+  const { doc, window } = await bootAllFortunes();
+  window.cdTranslate=(key,vars,fallback)=>key==='home.worldSearch.skyIntro'?'Explore the stars.':fallback;
+  doc.querySelector('[data-region="sky"]').click();
+  const text=doc.querySelector('[data-key="home.worldSearch.skyIntro"]');
+  assert.equal(text.textContent,'Explore the stars.');
+  assert.ok(text.dataset.cdOriginText.includes('별과 시간'));
 });

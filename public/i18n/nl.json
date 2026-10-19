@@ -2020,6 +2020,33 @@
       "miniGamesAria": "Alle mini-waarzegspellen bekijken",
       "miniGamesAlt": "Omslagafbeelding van de mini-waarzegspellen",
       "otherTitle": "Meer leuke lezingen"
+    },
+    "worldSearch": {
+      "heading": "Volg je nieuwsgierigheid",
+      "hint": "Kies een plek en vind een duiding voor je vragen.",
+      "allName": "Alle plekken",
+      "teaName": "Yeoni’s Theehuis van het Lot",
+      "strategyName": "Neo’s Strategiekamer",
+      "starsName": "Musungs Sterrenpaleis",
+      "moonName": "Seo Hanbi’s Maantuin",
+      "skyName": "Yundals Sterrenwacht",
+      "bookName": "Bibliotheek van Verbindingen",
+      "archiveName": "Archief van Ontdekkingen",
+      "teaIntro": "Neem een theepauze en ontvouw de vragen die je bezighouden.",
+      "strategyIntro": "Verken terugkerende keuzes en je volgende stap. Neo en Yeongnyangi zijn hetzelfde personage, met de ziel van een witte leeuw.",
+      "starsIntro": "Volg de sterren en twaalf paleizen van een Ziwei-horoscoop om levenspatronen te verkennen.",
+      "moonIntro": "Verken het tempo, de afstand en de vragen in je relaties.",
+      "skyIntro": "Volg de sterren en het verstrijken van de tijd om jezelf te begrijpen.",
+      "bookIntro": "Lees terugkerende patronen in de liefde en open het volgende hoofdstuk van verbinding.",
+      "archiveIntro": "Vind nieuwe ontdekkingen tussen hulpmiddelen en verhalen om jezelf te leren kennen.",
+      "master_yeoni": "Yeoni",
+      "master_neo": "Neo",
+      "master_musung": "Musung",
+      "master_hanbi": "Seo Hanbi",
+      "master_yun": "Yundal",
+      "master_master": "Meester",
+      "summaryAll": "{count} diensten",
+      "summaryFiltered": "{count} passende diensten"
     }
   },
   "terms": {

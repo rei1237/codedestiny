@@ -2020,6 +2020,33 @@
       "miniGamesAria": "Lihat semua permainan tilikan mini",
       "miniGamesAlt": "Imej utama permainan tilikan mini",
       "otherTitle": "Lebih banyak bacaan menarik"
+    },
+    "worldSearch": {
+      "heading": "Ikuti rasa ingin tahu anda",
+      "hint": "Pilih tempat dan cari bacaan untuk soalan anda.",
+      "allName": "Semua tempat",
+      "teaName": "Rumah Teh Takdir Yeoni",
+      "strategyName": "Bilik Strategi Neo",
+      "starsName": "Istana Bintang Musung",
+      "moonName": "Taman Cahaya Bulan Seo Hanbi",
+      "skyName": "Balai Cerap Yundal",
+      "bookName": "Perpustakaan Hubungan",
+      "archiveName": "Arkib Penemuan",
+      "teaIntro": "Berehat dengan secawan teh dan buka persoalan di hati anda.",
+      "strategyIntro": "Teliti pilihan yang berulang dan langkah seterusnya. Neo dan Yeongnyangi ialah watak yang sama, dengan jiwa singa putih.",
+      "starsIntro": "Ikuti bintang dan dua belas istana carta Ziwei untuk meneroka corak kehidupan.",
+      "moonIntro": "Terokai rentak, jarak dan persoalan dalam hubungan anda.",
+      "skyIntro": "Ikuti bintang dan perjalanan masa untuk memahami diri sendiri.",
+      "bookIntro": "Baca corak cinta yang berulang dan buka bab hubungan seterusnya.",
+      "archiveIntro": "Temui penemuan baharu antara alat dan cerita untuk mengenali diri.",
+      "master_yeoni": "Yeoni",
+      "master_neo": "Neo",
+      "master_musung": "Musung",
+      "master_hanbi": "Seo Hanbi",
+      "master_yun": "Yundal",
+      "master_master": "Master",
+      "summaryAll": "{count} perkhidmatan",
+      "summaryFiltered": "{count} perkhidmatan sepadan"
     }
   },
   "terms": {

@@ -31,8 +31,13 @@
 .chat .reply p { background: var(--yn-gold); color: var(--yn-deep); padding: 12px 18px; border-radius: 18px 4px 18px 18px; margin: 0; text-align: left; white-space: pre-wrap; }
 .chat .reply button { border: 0; background: none; color: var(--yn-muted); padding: 4px 10px; font-size: 13px; }
 /* 첫 질문에서만 기존 투명 배경 영냥이 원본을 보여준다. */
-.chat .pose { display: flex; justify-content: center; margin: 8px auto 20px; }
+.chat .pose { position: relative; display: flex; justify-content: center; width: 240px; max-width: 100%; margin: 8px auto 20px; pointer-events: none; }
 .chat .pose img { display: block; width: 144px; height: 144px; max-width: 100%; object-fit: contain; }
+.chat .welcomeFish { position: absolute; left: 8px; top: 38px; color: var(--yn-gold); fill: color-mix(in srgb, var(--yn-gold) 8%, transparent); transform: rotate(-18deg); }
+.chat .pawTrail { position: absolute; right: 6px; bottom: 8px; display: flex; align-items: center; gap: 10px; color: var(--yn-gold); }
+.chat .pawTrail svg { fill: color-mix(in srgb, var(--yn-gold) 12%, transparent); }
+.chat .pawTrail svg:first-child { transform: rotate(-28deg); opacity: .5; }
+.chat .pawTrail svg:last-child { transform: translateY(-12px) rotate(-12deg); opacity: .75; }
 .chat .current { display: flex; align-items: flex-start; gap: 10px; }
 .chat .current > div { min-width: 0; flex: 1; }
 .chat .current .catBubble { max-width: 100%; animation: ynRise 160ms ease-out; }
