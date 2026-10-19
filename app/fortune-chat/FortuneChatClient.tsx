@@ -1,4 +1,7 @@
 "use client";
+import Link from "next/link";
+import salon from "./yeoni-salon.module.css";
+import YeoniWelcome from "./YeoniWelcome";
 
 import { readPendingTurn, readRecentTurns, recentTurnsOf, requestGuardianTurn, type RecentTurn } from "./paid-turn-recovery";
 
@@ -697,17 +700,20 @@ export default function FortuneChatClient() {
     ? { label: "이어서 물어볼까요?", items: followUps }
     : { label: "이런 질문은 어떠세요?", items: SUGGESTED_QUESTIONS[topic] || [] };
 
-  return <main className={styles.room} data-character={character}>
-    <header className={styles.header}>
+  return <main className={`${styles.room} ${character === "yeoni" ? salon.room : ""}`} data-character={character}>
+    <header className={`${styles.header} ${salon.header}`}>
       <button className={styles.backButton} type="button" onClick={() => router.back()} aria-label={copy.backAria}>←</button>
       <div className={styles.brand}>
         <PersonaAvatar persona={character} mood="greet" size="sm" decorative />
         <div><strong>{CHARACTER_LABEL[character]} 운명 상담</strong><span>{character === "neo" ? "판세부터 정리해 드릴게요" : "작은 마음부터 천천히 살펴봐요"}</span></div>
       </div>
       <button className={styles.resetButton} type="button" aria-label={copy.newChatAria} onClick={startNewChat}>새 상담</button>
+      <Link className={salon.headerLink} href="/records/" prefetch={false}>지난 상담</Link>
+      <Link className={salon.headerLink} href="/fortune-tea-house/" prefetch={false}>찻집</Link>
     </header>
 
-    <div className={styles.timeline} ref={timelineRef} aria-live="polite" aria-relevant="additions">
+    <div className={`${styles.timeline} ${salon.timeline}`} ref={timelineRef} aria-live="polite" aria-relevant="additions">
+      {character === "yeoni" ? <YeoniWelcome compact /> : (
       <section className={styles.welcomeCard} aria-labelledby="fortuneChatWelcomeTitle">
         <div>
           <PriceBadge featureKey={PAID_FEATURE_KEY} prefix="연이 단독 상담 · 1회 " className={styles.priceBadge} />
@@ -716,6 +722,7 @@ export default function FortuneChatClient() {
         </div>
         <PersonaAvatar persona={character} mood="greet" size="lg" decorative />
       </section>
+      )}
       {getCurrentLoadingLocale() === "ko" && <details className={styles.birthPanel}>
         <summary>상담 구성과 이용 방법 자세히 보기</summary>
         <p>질문 하나를 중심으로 현재 흐름, 반복되는 패턴과 지금 해볼 일을 정리해요. 출생정보를 입력하고 질문을 보내면 상담과 결제 안내를 이어갈 수 있어요.</p>

@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { TEA_SAJU_URL } from "@/js/core/saju/tea-entry.mjs";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import Image from "next/image";
@@ -21,6 +22,9 @@ import { DOMAIN_ART, EMPTY_ROWS, MOMENT_ART, poseFor, refreshRow, showRow, TAROT
 import { PersonaAvatar } from "./PersonaAvatar";
 import base from "./fortune-chat.module.css";
 import styles from "./consultation.module.css";
+import salon from "./yeoni-salon.module.css";
+import YeoniWelcome from "./YeoniWelcome";
+import ConsultationIntake from "./ConsultationIntake";
 
 // 표시와 결제 선검사는 서버와 동일한 가격 등록소를 사용한다.
 const PRICE = resolveServerFeaturePricing({ featureKey: "fortune-chat-consultation" });
@@ -51,7 +55,6 @@ const DOMAINS: { id: ChatDomain; label: string }[] = [
   { id: "astrology", label: "서양 점성술" },
   { id: "tarot", label: "타로" },
 ];
-const SUGGESTIONS = ["올해 이직해도 괜찮을까요?", "지금 관계를 이어가도 될까요?", "요즘 돈 흐름은 어떤가요?", "올해 가장 조심할 시기는 언제예요?"];
 const STATE_LABEL: Record<string, string> = {
   CREATED: "열기 전", PAID: "준비 중", GENERATING: "쓰는 중", PARTIAL: "이어 쓰는 중", COMPLETED: "완료", REFUNDED: "환불됨",
 };
@@ -120,7 +123,6 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
   const [question, setQuestion] = useState("");
   const [tarotKind, setTarotKind] = useState<ChatTarotKind>("choice");
   const tarot = domain === "tarot";
-  const kind = TAROT_KINDS.find((k) => k.id === tarotKind) || TAROT_KINDS[0];
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -417,73 +419,25 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
   const writing = !!row?.paid && row.state !== "COMPLETED" && row.state !== "REFUNDED";
   const held = writing && HELD.includes(row?.errorCode || "");
   const rowDomain = row?.product?.systems?.[0];
-  // 단계 표시: 아직 끝나지 않은 첫 단계가 지금 단계다. 분야는 늘 하나가 골라져 있다.
-  const steps = [
-    { id: "consultation-domain", label: "분야", done: true },
-    ...(tarot ? [] : [{ id: "consultation-profile", label: "명식", done: !!profileId && !guest }]),
-    { id: "consultation-question", label: "질문", done: !!question.trim() },
-    { id: "consultation-open", label: "열기", done: false },
-  ];
-  const currentStep = steps.findIndex((s) => !s.done);
-
   return (
-    <main className={`${base.room}${persona === "neo" ? ` ${styles.starlight}` : ""}`} data-consultation-room data-persona={persona}>
-      <header className={base.header}>
+    <main className={`${base.room}${persona === "neo" ? ` ${styles.starlight}` : ` ${salon.room}`}`} data-consultation-room data-persona={persona}>
+      <header className={`${base.header} ${salon.header}`}>
         <button type="button" className={`${base.backButton} ${styles.backButton}`} aria-label="뒤로" onClick={() => (row ? startNew() : window.history.back())}>←</button>
         <div className={base.brand}>
           <PersonaAvatar persona={persona} mood={poseFor(row, { failed: !!error, drafting: !!question.trim() })} size="sm" decorative />
           <div><strong>{world.title}</strong><span>{world.sub}</span></div>
         </div>
+        <Link className={salon.headerLink} href="/records/" prefetch={false}>지난 상담</Link>
+        <Link className={salon.headerLink} href="/fortune-tea-house/" prefetch={false}>찻집</Link>
       </header>
 
-      <div className={base.timeline}>
-        {!row && <section className={styles.introduction} aria-labelledby="yeoni-consultation-title">
-          {/* 꽃과 달빛 — 달빛 정원 배경과 연꽃·달 장식은 꾸밈이고, 뜻은 글이 전한다. */}
-          <div className={styles.heroScene} aria-hidden="true">
-            <Image src="/images/home/illustrated/yeoni-moon-garden-1280.webp" alt="" fill priority sizes="(max-width: 760px) 100vw, 760px" className={styles.heroBackdrop} />
-            <Image src="/images/fortune-tea-house/moonlight-lotus-ornament-360.webp" alt="" width={360} height={360} className={styles.heroOrnament} />
-          </div>
-          <div className={styles.heroAvatar}><PersonaAvatar persona="yeoni" mood="greet" size="lg" decorative /></div>
-          <div className={styles.heroCopy}>
-            <p className={styles.heroKicker}>꽃과 달빛 상담실</p>
-            <h1 id="yeoni-consultation-title">마음에 걸린 질문 하나,<br />연이와 차근차근 풀어요</h1>
-            <p>궁금한 이야기를 적고, 해석에 사용할 운세와 프로필을 골라 주세요. 연이가 근거와 함께 지금 해볼 일을 정리해 드려요.</p>
-            <ul className={styles.heroWays} aria-label="상담을 여는 방법">
-              <li><span className={styles.honeyDrop} aria-hidden="true" />꿀방울 {HONEY_COST}개</li>
-              <li>이용권</li>
-              <li><PriceBadge featureKey="fortune-chat-consultation" fallbackLabel="5,000원" prefix="연이 단독 상담 · 1회 " className={base.priceBadge} /></li>
-            </ul>
-            <p className={styles.muted}>상담을 준비한 뒤 꿀방울·이용권·결제 중 하나로 열어요. AI가 작성하는 상담입니다.</p>
-          </div>
-          <details className={styles.methodDetails}>
-            <summary>상담 구성과 이용 방법 자세히 보기</summary>
-            <p>사주·자미두수·숙요·베다점·서양 점성술·타로 중 하나를 선택해요. 각 체계의 근거를 섞지 않고, 질문에 맞는 흐름과 선택을 살펴봐요.</p>
-            <ol><li>궁금한 질문 하나와 사용할 프로필을 골라요. 타로는 출생정보가 필요하지 않아요.</li><li>준비된 상담과 가격을 확인한 뒤 결제 수단을 선택해요.</li><li>완성된 상담은 지난 상담에서 다시 읽을 수 있어요.</li></ol>
-            <p>연이·네오 공동 사주 상담은 별도 상품으로, 이 상담에서 자동으로 전환되지 않아요.</p>
-          </details>
-        </section>}
-        {!row && (
-          <>
-            <ol className={styles.steps} aria-label="상담 준비 단계">
-              {steps.map((s, i) => (
-                <li key={s.id} data-done={s.done || undefined} aria-current={i === currentStep ? "step" : undefined}>
-                  <a href={`#${s.id}`}><b aria-hidden="true">{i + 1}</b>{s.label}</a>
-                </li>
-              ))}
-            </ol>
-            <section className={styles.panel} aria-labelledby="consultation-domain">
-              <h2 id="consultation-domain" className={styles.sectionTitle}>어떤 운세로 볼까요?</h2>
-              <div className={`${base.chips} ${styles.chipWrap}`}>
-                {DOMAINS.map((d) => <button key={d.id} type="button" aria-pressed={domain === d.id} onClick={() => setDomain(d.id)}>{d.label}</button>)}
-              </div>
-              <details className={styles.methodDetails}><summary>선택한 상담의 분위기 보기</summary><DomainArt persona={persona} domain={domain} /></details>
-              {tarot && <p className={styles.muted}>타로는 생년월일 없이 지금의 고민과 카드로 읽어요.</p>}
-            </section>
-
-            {!tarot && (
-              <section className={styles.panel} aria-labelledby="consultation-profile">
-                <h2 id="consultation-profile" className={styles.sectionTitle}>누구의 명식으로 볼까요?</h2>
-                {guest ? (
+      <div className={`${base.timeline} ${salon.timeline}`}>
+        {!row && <>
+          <YeoniWelcome />
+          <ConsultationIntake question={question} onQuestion={setQuestion} domain={domain} onDomain={setDomain}
+            tarotKind={tarotKind} onTarotKind={setTarotKind} guest={guest} busy={busy} enabled={enabled}
+            ready={guest || tarot || !!profileId} profileName={profiles.find((p) => profileKey(p) === profileId)?.name || ""}
+            onCreate={() => void create()} profile={<>{guest ? (
                   <div className={styles.actions}><button type="button" onClick={toLogin}>로그인하고 상담 시작하기</button></div>
                 ) : profilesLoading && !profiles.length ? (
                   <p className={styles.muted} role="status">프로필을 불러오는 중이에요.</p>
@@ -496,31 +450,15 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
                     </select>
                     <button type="button" className={styles.linkButton} onClick={() => setAddingProfile(true)}>새 프로필</button>
                   </div>
-                )}
-              </section>
-            )}
-
-            <section className={styles.panel} aria-labelledby="consultation-question">
-              <h2 id="consultation-question" className={styles.sectionTitle}>{tarot ? "어떤 고민을 카드로 볼까요?" : "무엇이 궁금한가요?"}</h2>
-              <div className={`${base.chips} ${styles.chipWrap}`}>
-                {tarot
-                  ? TAROT_KINDS.map((k) => <button key={k.id} type="button" aria-pressed={tarotKind === k.id} onClick={() => setTarotKind(k.id)}>{k.label}</button>)
-                  : SUGGESTIONS.map((s) => <button key={s} type="button" aria-pressed={question === s} onClick={() => setQuestion(s)}>{s}</button>)}
-              </div>
-              <textarea className={styles.textarea} rows={3} maxLength={QUESTION_MAX} value={question} onChange={(e) => setQuestion(e.target.value)}
-                placeholder={tarot ? kind.prompt : world.placeholder} aria-labelledby="consultation-question" />
-              <div className={styles.actions} id="consultation-open">
-                <button type="button" disabled={busy || !question.trim() || (!guest && !tarot && !profileId) || enabled === false} onClick={() => void create()}>
-                  {busy ? "상담을 준비하는 중…" : guest ? "로그인하고 상담 시작하기" : "상담 준비하기"}
-                </button>
-              </div>
-              {enabled === false && <p className={styles.muted}>새 상담 열기가 잠시 멈췄어요. 이미 시작한 상담은 아래 기록에서 이어 볼 수 있어요.</p>}
-            </section>
-          </>
-        )}
+                )}</>} />
+          <details className={salon.support}><summary>상담 구성과 이용 방법</summary>
+            <p>사주·자미두수·숙요·베다점·서양 점성술·타로 중 하나로 질문을 살펴요. 각 체계의 근거를 섞지 않고 현재의 흐름과 현실적인 행동 조언을 정리해요.</p>
+            <p>준비된 상담을 확인한 뒤 이용권·월정석·단건 결제 등 사용 가능한 이용 방법을 선택해요. 완성된 상담은 지난 상담에서 다시 읽을 수 있어요.</p>
+          </details>
+        </>}
 
         {row && (
-          <section className={styles.panel} aria-labelledby="consultation-current">
+          <section className={`${styles.panel} ${salon.readingPanel}`} aria-labelledby="consultation-current">
             <p className={styles.kicker} id="consultation-current">
               {row.perUseSource === "honey" && <span className={styles.accessBadge} data-access="honey">꿀방울로 연 상담</span>}
               {DOMAINS.find((d) => d.id === row.product?.systems?.[0])?.label || "운명 상담"} · {stateLabel(row.state, row.errorCode)}
