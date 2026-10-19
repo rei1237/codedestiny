@@ -13,7 +13,7 @@ import { buildKrwOffer } from "@/lib/seo/paid-offer";
 const PAGE_PATH = "/karma-destiny-ai/";
 const PAGE_TITLE = "네오와 서한비의 붉은 실 | 운명의 업 전문가 상담";
 const PAGE_DESCRIPTION =
-  "네오와 서한비의 붉은 실 상담실에서 되풀이되는 관계의 매듭을 살펴보세요. 사주·자미두수·서양 점성술·베다·숙요로 타고난 성향, 관계의 초기 신호와 경계, 인연을 풀어갈 행동을 정리합니다.";
+  "네오와 서한비의 붉은 실. 사주·자미두수·점성술·베다·숙요로 타고난 성향과 반복되는 관계를 살피고, 경계의 말과 인연을 풀어갈 행동을 정리합니다.";
 
 export const metadata: Metadata = {
   title: PAGE_TITLE,
