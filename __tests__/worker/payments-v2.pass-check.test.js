@@ -796,3 +796,33 @@ describe('영냥이 Family 이용권 상담 회귀',()=>{
   expect(result.response.status).toBe(402);expect(user.profileSubscription.monthlySpendCoin).toBe(spent);
  });
 });
+
+
+describe('영냥이 패밀리 실제 결제 라우트',()=>{
+ const products=listProducts().filter(p=>p.featureKey.startsWith('yeongnyangi-')&&p.familyPassOnly);
+ test.each(products.map(p=>[p.featureKey,p]))('%s: prepares, funds, and replays exactly once',async(key,product)=>{
+  const db=makeFakePaymentDb();const pass=activePass('family');const id='c'.repeat(64);
+  seedUser(db,pass);db.rows.push({_id:id,userId:USER,featureKey:key,amountKRW:product.priceKRW,state:'CREATED',paymentId:null,accessMethod:null,paymentClaimOrderId:''});
+  const body={featureKey:key,requestId:'yn-'+id,paymentMode:'MEMBERSHIP_PASS'};
+  const first=await postPassCheck(db,body);expect(first.response.status).toBe(200);
+  const row=db.rows.find(r=>r._id===id);expect(row.state).toBe('PAID');expect(row.accessMethod).toBe('FAMILY');expect(row.passEvidenceId).toBeTruthy();
+  expect((await postPassCheck(db,body)).response.status).toBe(200);
+  expect(db.rows.find(r=>String(r._id)===USER).profileSubscription.monthlySpendCoin).toBe(product.priceCoins);
+ });
+ test.each(['standard','premium','vvip'])('%s cannot fund a Family-only consultation',async tier=>{
+  const db=makeFakePaymentDb(),product=products[0],id='d'.repeat(64);seedUser(db,activePass(tier));
+  db.rows.push({_id:id,userId:USER,featureKey:product.featureKey,amountKRW:product.priceKRW,state:'CREATED',paymentId:null});
+  expect((await postPassCheck(db,{featureKey:product.featureKey,requestId:'yn-'+id})).response.status).toBe(402);
+  expect(db.rows.find(r=>r._id===id).state).toBe('CREATED');
+ });
+});
+
+
+test('영냥이 Family CAS conflict cannot report a paid consultation without a receipt',async()=>{
+ const db=makeFakePaymentDb(),product=listProducts().find(p=>p.featureKey==='yeongnyangi-saju-mackerel'),id='e'.repeat(64);
+ seedUser(db,activePass('family'));db.rows.push({_id:id,userId:USER,featureKey:product.featureKey,amountKRW:product.priceKRW,state:'CREATED',paymentId:null,accessMethod:null,paymentClaimOrderId:''});
+ const write=db.findOneAndUpdate;db.findOneAndUpdate=async(Model,...args)=>Model.modelName==='User'?null:write(Model,...args);
+ const result=await postPassCheck(db,{featureKey:product.featureKey,requestId:'yn-'+id});
+ expect(result.response.status).toBe(402);expect(db.rows.find(r=>r._id===id).state).toBe('CREATED');
+ expect(db.rows.find(r=>String(r._id)===USER).profileSubscription.monthlySpendCoin||0).toBe(0);
+});

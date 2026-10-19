@@ -251,7 +251,10 @@ async function consumeYeongnyangiFamily({user,entitlement,userId,featureKey,requ
       coinCost:Number(meta.coinCost ?? cost),cycleKey:meta.passCycleKey || coverage.cycleKey,
       budgetCoin:meta.passBudgetCoin ?? coverage.budgetCoin}};
   });
-  if(!result)return {covered:false,reason:'pass_access_conflict',replayed:false,coverage};
+  // The payment route serializes coverage, not the outer covered flag. A failed
+  // debit must not retain the earlier eligibility verdict as a paid receipt.
+  if(!result)return {covered:false,reason:'pass_access_conflict',replayed:false,
+    coverage:{...coverage,covered:false,reason:'pass_access_conflict'}};
   invalidatePassUsageReadCaches(userId);
   return {covered:true,reason:'',replayed:Boolean(existing),coverage:withPersistedPassUsage(result.coverage,result.user),user:result.user};
 }
