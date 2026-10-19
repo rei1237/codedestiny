@@ -1,7 +1,7 @@
 ---
-status: blocked
+status: done
 updated: 2026-10-19
-next: "main 3383e30a3의 CI 39212582127 성공을 확인한 뒤 원격 SHA 재확인, main push, CI 1회 확인과 워크트리 정리를 수행한다."
+next: "구현과 main 통합 완료. main push 후 CI 결과는 최종 보고에서 확인한다. 운영 승격은 별도 요청 범위다."
 ---
 
 # 모바일 계정 헤더
@@ -26,15 +26,12 @@ next: "main 3383e30a3의 CI 39212582127 성공을 확인한 뒤 원격 SHA 재�
 - `npm run check:pre-push` 종료 코드 0: 서비스 레지스트리, 정적 미러 재생성 일치, 사이트맵, llms.txt, SEO entity 62 profiles 통과.
 - `npm run verify:handoff-contract` 통과. main의 자체 임시 캡처·검증 스크립트 13개는 제거했고 최종 캡처는 visualizations에 보존.
 
-## 전달 차단 근거
+## 이전 전달 차단 기록
 - 확인한 main SHA: `613d0dd5b08b76854b6d0b7e05ea973d776ac717`.
 - CI: https://github.com/rei1237/codedestiny/actions/runs/39209678366
 - Static guards / Verify mobile journeys 실패: `360px: browser back left body scroll locked`. CI required도 실패.
 - 사용자 저장소 규칙에 따라 실패 main 위 push 금지. 이번 헤더 변경은 이 CI에 포함되지 않았다. 운영 승격은 하지 않는다.
 - main은 시작 SHA 이후 다른 변경이 진행됐으므로 통합 시 generated shell과 CSS 충돌을 확인하고 다른 세션 변경을 유지한다.
-
-## 재개
-`D:/Development/codedestiny-worktrees/mobile-account-20261019-121010`에서 `D:/Development/codedestiny-worktrees/mobile-account-20261019-121010/docs/handoff/mobile-account-header.md`를 읽고 코드 커밋 `a7e0f4767218f9800d86da2d0c6020cb9ea82ee8`과 최신 main CI를 확인한다. 선행 실패가 해결되면 main 통합 → 필요한 정적 미러 재생성 → check:pre-push → 원격 SHA 확인 → main push → CI 1회 확인. 완료 시 이 문서를 done으로 닫고 자기 워크트리만 정리한다. 미통합 커밋이 있어 현재 워크트리는 보존한다.
 
 ## 2026-10-19 재개 검증
 - 요청된 53bc92a93 확인 후 최신 origin/main 3383e30a3을 병합: 7a25a9adc, 충돌 없음.
@@ -42,3 +39,9 @@ next: "main 3383e30a3의 CI 39212582127 성공을 확인한 뒤 원격 SHA 재�
 - 선행 CI 39212582127은 Risk tier, Critical checks, Typecheck and lint, Build Pages and Worker 성공이나 Static guards 실행 중. 복구 성공은 아직 미확인이며 push 보류.
 - 이번 인수인계 갱신 커밋까지 main에 fast-forward 통합한다. 다른 세션 미추적 파일 2개는 보존한다.
 - 다음: 원격 main 및 https://github.com/rei1237/codedestiny/actions/runs/39212582127 성공 확인 후 main에서 check:pre-push, git push origin main, 새 CI 1회 확인. 완료 시 status done 및 자기 워크트리 정리.
+
+## 완료 확인
+- 선행 main 3383e30a3의 CI 39212582127이 completed/success임을 GitHub에서 직접 확인했다. 기존 mobile-journeys 차단은 해소됐다.
+- 헤더 코드와 생성 미러는 main 028b3c6f1까지 fast-forward 통합 완료. push 직전 원격 main도 3383e30a3임을 확인했다.
+- 이번 완료 기록을 포함해 main에서 check:pre-push 후 push한다. 신규 CI 결과는 최종 보고에서 별도로 명시하며, 성공 전 성공으로 간주하지 않는다.
+- 워크트리의 모든 커밋은 main에 통합됐으므로 push 후 node_modules 정션을 먼저 해제하고 해당 워크트리와 브랜치를 정리한다.
