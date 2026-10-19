@@ -14,6 +14,21 @@ const consultationSamples = JSON.parse(fs.readFileSync(path.join(root, 'lib/mark
 let resolvePricing;
 // Same resolver as the page's start price, so a card never disagrees with the checkout.
 const priceKRWFor = featureKey => (resolvePricing ||= loadTsModule('lib/payment/server-feature-pricing.ts').resolveServerFeaturePricing)({ featureKey })?.amountKRW;
+
+// Product choices shown before entry; amounts are always resolved from billing.
+const discoveryOptions = {
+  'destiny-compass': [
+    ['destiny-compass-crossroads', '갈림길 기운 비교'],
+    ['destiny-compass-life-voyage', '삶의 항로 안내'],
+    ['destiny-compass-future-sim', '미래 시뮬레이션'],
+    ['destiny-compass-deep-report', '운명의 지도 심층 리포트'],
+  ],
+  'master-love-codex': [['master-love-codex', '개인 리딩'], ['master-love-codex-compat', '궁합 리딩']],
+  'tarot-prompt-maker': [
+    ['tarot-prompt-maker', '카드 1~4장'], ['tarot-prompt-maker-standard', '카드 5~7장'],
+    ['tarot-prompt-maker-deep', '카드 8~10장'], ['tarot-prompt-maker-master', '카드 11~14장'],
+  ],
+};
 let masterSource;
 // Master copy is read from master-profiles.ts, never copied into a manifest; unknown keys fail the build.
 export function craftedMasters(manifest) {
@@ -207,6 +222,14 @@ export function buildVisualDetails(html, book) {
       ...verified[record.slug],
     };
     const final = items[record.slug];
+    if (discoveryOptions[record.slug]) {
+      final.priceOptions = discoveryOptions[record.slug].map(([featureKey, label]) => {
+        const amountKRW = priceKRWFor(featureKey);
+        if (!(amountKRW > 0)) throw new Error(`Missing discovery option price: ${featureKey}`);
+        return { featureKey, label, amountKRW };
+      });
+      final.freeEntry = record.slug === 'destiny-compass';
+    }
     const consultation = consultationSamples.find(item => item.slug === record.slug && item.guide);
     if (consultation) final.consultationGuide = consultation.guide;
     const crafted = craftedIntroductions(record.slug);

@@ -2,6 +2,7 @@
 import { buildFortuneJsonLd, generatePageMetadata } from "../../lib/generate-page-metadata";
 import { founder } from "../../lib/brand/founder";
 import styles from "./page.module.css";
+import { PSYCHOTESTS } from "../../lib/psychotest-catalog";
 
 /*
  * 미니 운세 게임 모음 (2026-10-17 "직관성").
@@ -27,7 +28,7 @@ const GAMES: ReadonlyArray<MiniGame> = [
   { slug: "secret-house", name: "시크릿 하우스", href: "/secret-house_real", desc: "내 일간으로 시작하는 선택형 연애 스토리", badge: "무료" },
   { slug: "hwatu-life", name: "화투 인생 패", href: "/oracle/hwatu-life/", desc: "7문항으로 찾는 나의 인생 패", badge: "무료" },
   { slug: "saju-fpti", name: "사주 FPTI", href: "/saju-fpti/", desc: "오행·십성 4축으로 보는 성향", badge: "무료" },
-  { slug: "psychotest", name: "심리테스트", href: "/psychotest/", desc: "성격·연애·직장 테마 14종", badge: "1회 3,000원" },
+  { slug: "psychotest", name: "심리테스트", href: "/psychotest/", desc: `성격·연애·직장 테마 ${PSYCHOTESTS.length}종`, badge: "무료" },
 ];
 
 const SITE = "https://code-destiny.com";
@@ -94,11 +95,9 @@ export default function MiniGamesPage() {
                 />
               </span>
               <span className={styles.body}>
-                <span className={game.badge === "무료" ? styles.badge : `${styles.badge} ${styles.badgePaid}`}>
-                  {game.badge}
-                </span>
                 <h2 className={styles.name}>{game.name}</h2>
                 <span className={styles.desc}>{game.desc}</span>
+                <span className={styles.badge}>{game.badge}</span>
               </span>
             </a>
           </li>

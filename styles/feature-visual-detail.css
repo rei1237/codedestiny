@@ -316,3 +316,6 @@ html.cd-detail-open{scrollbar-gutter:auto;overflow:hidden!important}
 .fortuneEditionChoices{display:flex;gap:8px;max-width:880px;margin:16px auto;padding:0 20px}
 .fortuneEditionChoices button{flex:1;min-height:44px;padding:12px;border:1px solid var(--fd-line);border-radius:var(--cd-r-control,12px);background:transparent;color:var(--fd-gold);font:inherit;font-weight:600}
 .fortuneEditionChoices button[aria-pressed=true]{border-color:var(--cd-cta-hairline,rgba(234,208,137,.55));background:var(--cd-cta-primary-bg,#3a0e28);color:var(--cd-cta-primary-ink,#fff1f7)}
+
+/* Product-specific choices: readable amounts, no image overlays. */
+.fortunePriceOptions dl{margin:0;display:grid;gap:12px}.fortunePriceOptions dl>div{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 16px;padding-block:12px;border-bottom:1px solid var(--fortune-line)}.fortunePriceOptions dt{color:var(--fortune-ink);font-size:var(--cd-t-body);line-height:1.6}.fortunePriceOptions dd{margin:0;color:var(--fortune-ink);font-size:var(--cd-t-card);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}

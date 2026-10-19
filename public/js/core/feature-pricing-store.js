@@ -71,8 +71,8 @@
   function seedFromMarkup(root) {
     var scope = root && root.querySelectorAll ? root : document;
     if (!scope || !scope.querySelectorAll) return cache;
-    scope.querySelectorAll('[data-feature-key][data-coin-cost],[data-feature-key][data-price-krw]').forEach(function (tile) {
-      var featureKey = String(tile.getAttribute('data-feature-key') || '').trim();
+    scope.querySelectorAll('[data-feature-key][data-coin-cost],[data-feature-key][data-price-krw],[data-cd-price-key][data-price-krw]:not([data-cd-price-reason])').forEach(function (tile) {
+      var featureKey = String(tile.getAttribute('data-cd-price-key') || tile.getAttribute('data-feature-key') || '').trim();
       if (!featureKey || cache[featureKey]) return;
       var coinPrice = numberValue(tile.getAttribute('data-coin-cost') || tile.getAttribute('data-tile-lock-cost'));
       var amountKRW = numberValue(tile.getAttribute('data-price-krw') || tile.getAttribute('data-payment-amount-krw'));
@@ -114,6 +114,27 @@
     return cache;
   }
 
+  // Only presentation labels are refreshed. These markers never grant access or open checkout.
+  function refreshDisplayPrices() {
+    document.querySelectorAll('.tarot-tile__coin-badge[data-cd-price-key][data-price-krw]').forEach(function (badge) {
+      if (typeof badge.textContent !== 'string') return;
+      var key = badge.getAttribute('data-cd-price-key');
+      var entry = !badge.getAttribute('data-cd-price-reason') && cache[key];
+      var amount = entry ? entry.amountKRW : numberValue(badge.getAttribute('data-price-krw'));
+      var end = numberValue(badge.getAttribute('data-price-krw-to'));
+      var endEntry = !badge.getAttribute('data-cd-price-reason-to') && cache[badge.getAttribute('data-cd-price-key-to')];
+      if (endEntry) end = endEntry.amountKRW;
+      if (!(amount > 0)) return;
+      var amounts = end > 0 ? [amount, end] : [amount];
+      var index = 0;
+      var next = badge.textContent.replace(/\d{1,3}(?:[,.\s]\d{3})+|\d{4,}/g, function (match) {
+        var separator = /\d([,.\s])\d{3}/.exec(match);
+        return amounts[Math.min(index++, amounts.length - 1)].toLocaleString('en-US').replace(/,/g, separator ? separator[1] : ',');
+      });
+      if (next !== badge.textContent) badge.textContent = next;
+    });
+  }
+
   function load() {
     if (catalogPromise) {
       window.__cdMobileFortuneTrace && window.__cdMobileFortuneTrace.record('pricing:dedupe', { source: 'worker-registry' });
@@ -128,6 +149,7 @@
       return response.json();
     }).then(function (payload) {
       indexCatalog(payload);
+      refreshDisplayPrices();
       window.__cdMobileFortuneTrace && window.__cdMobileFortuneTrace.record('pricing:catalog-loaded', {
         entryCount: Object.keys(cache).length,
         source: 'worker-registry'
@@ -143,6 +165,7 @@
     cache: cache,
     load: load,
     seedFromMarkup: seedFromMarkup,
+    refreshDisplayPrices: refreshDisplayPrices,
     get: function (featureKey) {
       seedFromMarkup(document);
       return withCurrentLocaleLabel(cache[String(featureKey || '').trim()] || null);
@@ -163,4 +186,5 @@
       catalogPromise = null;
     }
   };
+  if (window.addEventListener) window.addEventListener('cd:locale-ready', refreshDisplayPrices);
 })(window);

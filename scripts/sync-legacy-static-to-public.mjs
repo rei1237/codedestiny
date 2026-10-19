@@ -2,6 +2,7 @@ import { brandCopy } from '../lib/seo/brand-copy.mjs';
 import { BRAND_FACTS } from '../lib/brand/brand-facts.mjs';
 import { localizeHubLinks } from '../lib/i18n/localized-hub-links.mjs';
 import { syncSajuReadingPrices } from './lib/sync-saju-reading-prices.mjs';
+import './sync-flower-price-copy.mjs';
 /**
  * Copies root static assets → public/ (Cloudflare / static hosting).
  * 사주 엔진은 js/saju-engine.js + tarot-sukuyo-quantum + core/saju/reportDashboard + continuation 순서로 index.html에 로드됨.

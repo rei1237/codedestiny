@@ -306,6 +306,7 @@
 .psy-test-copy>p:first-child { display:flex; justify-content:space-between; gap:8px; font-size:12px; color:#d1b9c7; }
 .psy-test h2 { font-size:21px; line-height:1.4; font-weight:600; margin:12px 0 8px; word-break:keep-all; }
 .psy-test .psy-description { color:#d5c2cd; font-size:14px; line-height:1.7; min-height:48px; }
+.psy-card-price { display:block; margin-top:16px; padding-top:12px; border-top:1px solid var(--border-color); font-size:var(--cd-t-body); font-weight:700; color:var(--text-primary); }
 .psy-card-action { display:flex; justify-content:space-between; margin-top:18px; padding-bottom:14px; border-bottom:1px solid #5c4554; color:#edbdce; font-size:13px; }
 .psy-editorial { margin-top:72px; padding-top:32px; border-top:1px solid #5c4554; max-width:720px; }
 .psy-editorial h2 { font-size:23px; font-weight:500; }
@@ -335,12 +336,15 @@
  .psy-test-copy>p:first-child { display:block; font-size:11px; }
  .psy-test-copy>p:first-child span { display:block; margin-top:5px; }
  .psy-filter { gap:6px; }
- .psy-filter button { padding:8px 13px; font-size:13px; }
+ .psy-filter button { min-height:44px; padding:8px 13px; font-size:13px; }
  .psy-intro-layout { grid-template-columns:1fr; gap:28px; min-height:auto; padding-top:24px; }
  .psy-intro-art { max-height:270px; object-fit:cover; }
  .psy-facts { gap:28px; }
 }
 @media(prefers-reduced-motion:reduce) { .psy-experience *,.psy-experience *::before,.psy-experience *::after { animation:none !important; transition:none !important; scroll-behavior:auto !important; } }
+@media(max-width:360px) {
+ .psy-featured { grid-template-columns:1fr; }
+}
 
 .psy-featured h2,.psy-description { word-break:keep-all; }
 .psy-companion { display:flex; align-items:center; gap:12px; margin-bottom:24px; color:#ddc6d3; font-size:12px; line-height:1.7; }

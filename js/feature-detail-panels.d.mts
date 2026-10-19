@@ -1,4 +1,6 @@
 export type VisualDetail = {
+  priceOptions?: { featureKey: string; label: string; amountKRW: number }[];
+  freeEntry?: boolean;
   consultationGuide?: import('./consultation-sample-guide.mjs').ConsultationSampleGuide;
   crafted?: CraftedDetail[];
   slug: string; title: string; href: string; featureKey: string; featureKeyTo?: string; accessType: string;

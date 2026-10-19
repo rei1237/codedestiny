@@ -2903,9 +2903,12 @@ function __cdHydrateCollectionImagesChunked(collection, forceHydrateAll) {
     // 이 속성을 읽는 다른 코드가 있어 첫 후보는 그대로 노출한다.
     if (chain.length) img.setAttribute('data-cd-img-fallback-src', chain[0]);
     else img.removeAttribute('data-cd-img-fallback-src');
-    if (skeleton) {
-      img.addEventListener('load', function() { skeleton.remove(); }, { once: true });
-    }
+    var revealImage = function() {
+      if (placeholder) placeholder.style.display = 'none';
+      if (skeleton) skeleton.remove();
+    };
+    img.addEventListener('load', revealImage, { once: true });
+    if (img.complete && img.naturalWidth > 0) revealImage();
     if (img.dataset && img.dataset.cdCollectionFallbackBound === '1') return;
     if (img.dataset) img.dataset.cdCollectionFallbackBound = '1';
     img.addEventListener('error', function() {
@@ -2958,6 +2961,7 @@ function __cdHydrateCollectionImagesChunked(collection, forceHydrateAll) {
 
     var existingImg = wrap.querySelector('img.tarot-tile__img');
     if (existingImg) {
+      if (existingImg.complete && existingImg.naturalWidth > 0 && placeholder) placeholder.style.display = 'none';
       var existingSrc = existingImg.getAttribute('src') || src;
       var resolvedExistingSrc = resolveCollectionImageSrc(existingSrc);
       // 마크업에 박혀 있는 정적 <img> 도 같은 리사이즈 경로를 태운다 — 이쪽이 오히려 원본(80~200KB)을

@@ -1497,6 +1497,19 @@
           "양력·음력"
         ]
       },
+      "priceOptions": [
+        {
+          "featureKey": "master-love-codex",
+          "label": "개인 리딩",
+          "amountKRW": 30000
+        },
+        {
+          "featureKey": "master-love-codex-compat",
+          "label": "궁합 리딩",
+          "amountKRW": 50000
+        }
+      ],
+      "freeEntry": false,
       "consultationGuide": {
         "audience": "현재 한 가지 연애 고민을 넘어, 사랑에서 되풀이하는 패턴과 오래 함께할 관계의 조건을 알고 싶은 분께 맞아요.",
         "preparation": "개인판은 본인 출생 정보를, 궁합판은 본인과 상대의 출생 정보를 준비해 주세요. 두 판은 각각 선택하는 별도 상품이에요.",
@@ -4936,6 +4949,29 @@
         "trustNotes": [],
         "faq": []
       },
+      "priceOptions": [
+        {
+          "featureKey": "destiny-compass-crossroads",
+          "label": "갈림길 기운 비교",
+          "amountKRW": 7000
+        },
+        {
+          "featureKey": "destiny-compass-life-voyage",
+          "label": "삶의 항로 안내",
+          "amountKRW": 7000
+        },
+        {
+          "featureKey": "destiny-compass-future-sim",
+          "label": "미래 시뮬레이션",
+          "amountKRW": 7000
+        },
+        {
+          "featureKey": "destiny-compass-deep-report",
+          "label": "운명의 지도 심층 리포트",
+          "amountKRW": 7000
+        }
+      ],
+      "freeEntry": true,
       "theme": "navy",
       "imageWidth": 1200,
       "imageHeight": 675,
@@ -10218,6 +10254,29 @@
           }
         ]
       },
+      "priceOptions": [
+        {
+          "featureKey": "tarot-prompt-maker",
+          "label": "카드 1~4장",
+          "amountKRW": 5000
+        },
+        {
+          "featureKey": "tarot-prompt-maker-standard",
+          "label": "카드 5~7장",
+          "amountKRW": 5000
+        },
+        {
+          "featureKey": "tarot-prompt-maker-deep",
+          "label": "카드 8~10장",
+          "amountKRW": 10000
+        },
+        {
+          "featureKey": "tarot-prompt-maker-master",
+          "label": "카드 11~14장",
+          "amountKRW": 10000
+        }
+      ],
+      "freeEntry": false,
       "theme": "burgundy",
       "imageWidth": 1200,
       "imageHeight": 675,

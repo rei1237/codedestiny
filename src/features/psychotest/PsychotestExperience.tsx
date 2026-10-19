@@ -24,7 +24,7 @@ export default function PsychotestExperience({ testId }: { testId?: string }) {
       <section aria-label="심리테스트 고르기">
         <div className="psy-filter" role="group" aria-label="테스트 주제">{CATEGORIES.map(item => <button key={item} aria-pressed={category === item} onClick={() => setCategory(item)}>{item}</button>)}</div>
         <p className="psy-count" aria-live="polite">{category === "전체" ? "지금, 궁금한 나를 만나보세요" : `${category}에 관한 작은 발견`} <span>{tests.length}개</span></p>
-        <div className="psy-grid">{tests.map(test => <Link key={test.id} href={`/psychotest/${test.id}/`} className="psy-test"><TestArtwork id={test.id}/><div className="psy-test-copy"><p>{test.categories.join(" · ")}<span>{test.time} · 무료</span></p><h2>{test.name}</h2><p className="psy-description">{test.desc}</p><span className="psy-card-action">테스트 만나보기 <span aria-hidden="true">↗</span></span></div></Link>)}</div>
+        <div className="psy-grid">{tests.map(test => <Link key={test.id} href={`/psychotest/${test.id}/`} className="psy-test"><TestArtwork id={test.id}/><div className="psy-test-copy"><p>{test.categories.join(" · ")}<span>{test.time}</span></p><h2>{test.name}</h2><p className="psy-description">{test.desc}</p><span className="psy-card-price">무료</span><span className="psy-card-action">테스트 만나보기 <span aria-hidden="true">↗</span></span></div></Link>)}</div>
       </section>
       <aside className="psy-editorial"><h2>결과는 꼬리표보다, 대화의 시작.</h2><p>지금의 기분이나 상황에 따라 답은 달라질 수 있어요. 나와 닮은 설명과 다른 설명을 함께 살펴보세요. 이 테스트는 자기이해를 위한 콘텐츠이며, 임상 심리검사나 진단을 대신하지 않습니다.</p><Link href="/methodology/">콘텐츠 해석 기준 보기 ↗</Link></aside>
     </div>

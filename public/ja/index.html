@@ -50,7 +50,7 @@
      그 자리에서 else 가지로 떨어져 경계 없는 렌더러로 조용히 강등된다. 실패가 눈에 안 보이는 종류다. -->
       <script src="/js/core/payment-service.js?v=build-86f76b083b39"></script>
       <script src="/js/mobile-fortune-entry-trace.js?v=build-5eda90ea694b" defer></script>
-      <script src="/js/core/feature-pricing-store.js?v=build-c6b4bb5efcdf" defer></script>
+      <script src="/js/core/feature-pricing-store.js?v=build-36b64c437b99" defer></script>
 <!-- 앱(Capacitor) 판별 정본. checkout-entry 와 셸 인라인이 진입 분기에서 읽으므로 그보다 먼저 둔다.
      🔴 defer 금지 — 아래 부팅 게이트(cd-early-runtime-class-hoist)가 파싱 시점에 isApp() 을 부른다. -->
       <script src="/js/core/app-context.js?v=build-bcd47d1d364b"></script>
@@ -968,7 +968,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 <meta property="og:description" content="韓国式四柱推命の命式、宿曜の本命宿と相性、紫微斗数の十二宮を日本語で。占術ごとの見方と必要な入力を確認し、今の悩みに合う占いを選べます。">
 <meta property="og:url" content="https://code-destiny.com/ja/">
 <meta property="og:locale" content="ja_JP">
-<meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-ja.png?v=build-1820b60d09b5">
+<meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-ja.png?v=build-67baa6acc500">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="꿀꿀운세 HONEY FORTUNE — 花豚ヨニのカメオとサービス紹介を収めた CODE DESTINY の名刺カード">
@@ -977,7 +977,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="四柱推命・宿曜・タロット占い｜꿀꿀 운세">
 <meta name="twitter:description" content="韓国式四柱推命の命式、宿曜の本命宿と相性、紫微斗数の十二宮を日本語で。占術ごとの見方と必要な入力を確認し、今の悩みに合う占いを選べます。">
-<meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-ja.png?v=build-1820b60d09b5">
+<meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-ja.png?v=build-67baa6acc500">
 <meta name="twitter:image:alt" content="꿀꿀운세 HONEY FORTUNE — 花豚ヨニのカメオとサービス紹介を収めた CODE DESTINY の名刺カード">
 <script type="application/ld+json">
 {
@@ -1140,7 +1140,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
     {
       "@type": "ImageObject",
       "@id": "https://code-destiny.com/#primaryimage",
-      "url": "https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-1820b60d09b5",
+      "url": "https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-67baa6acc500",
       "width": 1200,
       "height": 630
     },
@@ -1608,6 +1608,13 @@ body.neo-mode .logo-area p{color:rgba(200,170,255,0.7);font-size:.9rem;margin-to
 .tarot-tile__coin-badge--compat{top:36px;background:rgba(45,20,8,.9);border-color:rgba(251,191,36,.55);color:#fde68a;box-shadow:0 3px 12px rgba(0,0,0,.55),0 0 0 1px rgba(180,120,30,.14)}
 .tarot-tile__coin-badge--compat::before{background:radial-gradient(circle at 33% 28%,#fff7da 0%,#fbbf24 52%,#b45309 100%);border-color:rgba(251,191,36,.58);box-shadow:0 0 7px rgba(245,158,11,.55),inset 0 1px 2px rgba(255,255,220,.45)}
 .tarot-tile__coin-badge--lock{background:rgba(10,5,30,.84);border-color:rgba(170,130,255,.52);color:#f1edff;box-shadow:0 2px 10px rgba(0,0,0,.48),0 0 0 1px rgba(160,100,255,.1)}
+/* Prices are body content, separate from image labels and payment gates. */
+#inputPage .tarot-tile__body .cd-card-pricing{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px;margin-top:auto;padding-top:12px;min-width:0;width:100%}
+#inputPage .tarot-tile__body .cd-card-pricing .tarot-tile__coin-badge{position:static!important;inset:auto!important;transform:none!important;display:block!important;flex:1 1 100%;width:auto!important;max-width:100%!important;min-width:0;height:auto!important;padding:8px 10px!important;border:1px solid var(--cd-border)!important;border-radius:var(--cd-r-sm)!important;background:var(--cd-surface)!important;color:var(--cd-text)!important;font:700 var(--cd-t-body)/1.6 var(--font-body)!important;font-variant-numeric:tabular-nums;letter-spacing:0!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;word-break:keep-all;overflow-wrap:anywhere;box-shadow:none!important;backdrop-filter:none!important;text-shadow:none!important}
+#inputPage .tarot-tile__body .cd-card-pricing .tarot-tile__coin-badge::before{content:none!important}
+#inputPage .tarot-tile__body:has(>.cd-card-pricing){display:flex;flex-direction:column;height:auto!important;min-height:0}
+#premiumVvipCollection .feat-collection__subtitle,#premiumVvipCollection .feat-collection__lede{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;-webkit-line-clamp:unset!important;max-height:none!important}
+
 .tarot-tile__lock-icon{position:absolute;bottom:8px;right:8px;z-index:5;width:28px;height:28px;border-radius:50%;background:rgba(10,5,30,.85);border:1.5px solid rgba(180,130,255,.45);display:none;align-items:center;justify-content:center;font-size:.85rem;line-height:1;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);box-shadow:0 2px 8px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.08);pointer-events:none}
 .tarot-tile--tileLocked .tarot-tile__lock-icon{display:flex}
 .prem-card>div:first-child *{pointer-events:none}
@@ -2954,7 +2961,7 @@ body.neo-mode .pf-showcase{--pf-title-color:#fff7dd;--pf-sub-color:rgba(233,224,
   .feature-card-grid .tarot-tile,
   .feature-card-grid .prem-card{min-height:132px!important;border-radius:12px!important}
   .feature-card-grid .tarot-tile__desc{display:none!important}
-  .feature-card-grid .tarot-tile__coin-badge{font-size:.63rem!important;line-height:1.15!important}
+  .feature-card-grid .tarot-tile__img-wrap .tarot-tile__coin-badge{font-size:.63rem!important;line-height:1.15!important}
   .tile-pvw-overlay{touch-action:pan-y}
   /* 상세 시트의 높이·여백·글자 크기는 styles/feature-marketing-detail.css 한 곳이 정한다.
      여기서 !important 로 .8rem·14px 여백을 덮어쓰던 규칙은 본문을 좁고 작게 만들어 지웠다. */
@@ -3023,7 +3030,7 @@ body.neo-mode .pf-showcase{--pf-title-color:#fff7dd;--pf-sub-color:rgba(233,224,
   .feature-card-grid .fc-div-line,
   .feature-card-grid .fc-div-gem{pointer-events:none!important}
   .cd-mobile-hub__card.MobileCompactCard strong,
-  .cd-mobile-hub__card[data-component="MobileCompactCard"] strong{max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cd-mobile-hub__card[data-component="MobileCompactCard"] strong{max-width:100%;white-space:normal;overflow:visible;text-overflow:clip}
   .cd-mobile-hub__card.MobileCompactCard span,
   .cd-mobile-hub__card[data-component="MobileCompactCard"] span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .MobilePassCard,
@@ -3070,9 +3077,9 @@ body.neo-mode .pf-showcase{--pf-title-color:#fff7dd;--pf-sub-color:rgba(233,224,
   .feature-card-grid .lovebible-tile__desc,
   .feature-card-grid .prem-card .tarot-tile__desc{display:none!important}
   .feature-card-grid .tarot-tile__badge,
-  .feature-card-grid .tarot-tile__coin-badge{min-height:18px!important;padding:2px 6px!important;border-radius:999px!important;font-size:var(--cd-card-badge-size,.58rem)!important;line-height:1.1!important;letter-spacing:0!important}
+  .feature-card-grid .tarot-tile__img-wrap .tarot-tile__coin-badge{min-height:18px!important;padding:2px 6px!important;border-radius:999px!important;font-size:var(--cd-card-badge-size,.58rem)!important;line-height:1.1!important;letter-spacing:0!important}
   .feature-card-grid .tarot-tile__badge{top:5px!important;left:5px!important;right:auto!important}
-  .feature-card-grid .tarot-tile__coin-badge{right:5px!important;bottom:5px!important;max-width:calc(100% - 10px)!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+  .feature-card-grid .tarot-tile__img-wrap .tarot-tile__coin-badge{right:5px!important;bottom:5px!important;max-width:calc(100% - 10px)!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
   .feature-card-grid .pvc-prem-points,
   .feature-card-grid .pvc-prem-meta,
   .feature-card-grid .lifebook-tile__meta,
@@ -5232,7 +5239,7 @@ body.cd-overlay-shell-open #langWrap{opacity:0;visibility:hidden;pointer-events:
 
   /* ── 최종 대비 수정 라운드 2 ── */
   /* VVIP 히어로 카드: 가격 배지를 이미지 위 소형 오버레이로 (심볼 가림 없음) */
-  #premiumVvipCollection#premiumVvipCollection .tarot-tile__coin-badge{width:auto!important;height:auto!important;min-width:0!important;max-width:88%!important;top:8px!important;left:8px!important;right:auto!important;bottom:auto!important;transform:none!important;padding:4px 10px!important;border-radius:999px!important;font-size:10px!important;line-height:1.2!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;background:rgba(10,7,22,.88)!important;border:1px solid rgba(244,208,117,.5)!important;color:#f4e9c8!important}
+  #premiumVvipCollection#premiumVvipCollection .tarot-tile__img-wrap .tarot-tile__coin-badge{width:auto!important;height:auto!important;min-width:0!important;max-width:88%!important;top:8px!important;left:8px!important;right:auto!important;bottom:auto!important;transform:none!important;padding:4px 10px!important;border-radius:999px!important;font-size:10px!important;line-height:1.2!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;background:rgba(10,7,22,.88)!important;border:1px solid rgba(244,208,117,.5)!important;color:#f4e9c8!important}
   /* 심볼 폴백은 이미지가 아직 안 붙었을 때만 — 가드가 없으면 이 !important 가 하이드레이션의
      인라인 display:none 을 이겨, 불투명한 플레이스홀더가 실제 이미지를 덮어 빈 판처럼 보인다. */
   #premiumVvipCollection#premiumVvipCollection .tarot-tile__img-wrap:not(:has(img.tarot-tile__img)) .tarot-tile__img-placeholder{display:flex!important;align-items:center!important;justify-content:center!important}
@@ -6354,7 +6361,7 @@ html.neo-mode .cdh,body.neo-mode .cdh{--cdh-glass-line:color-mix(in srgb,var(--c
 #cdHomeFunnel .cd-sig--deck .cd-sig__realm{display:block;margin-bottom:4px;color:var(--cdh-muted);font:700 var(--cd-t-caption)/1.4 var(--font-body);letter-spacing:.24em}
 #cdHomeFunnel .cd-sig--deck .cd-sig__title{font-family:var(--cdh-serif)}
 #cdHomeFunnel .cd-sig--deck .cd-sig__grid{display:grid;grid-auto-flow:column;grid-template-columns:none;grid-auto-columns:min(72vw,280px);gap:14px;width:100%;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;padding:6px 2px 16px;scrollbar-width:thin}
-#cdHomeFunnel .cd-sig--deck .cd-sig-card{position:relative;overflow:hidden;overflow:clip;display:flex;flex-direction:column;aspect-ratio:2/3;width:100%;min-width:0;padding:10px;border:1px solid var(--cdh-glass-line);border-radius:18px;background:var(--cdh-glass-bg);color:var(--cdh-ink);box-shadow:inset 0 0 0 5px var(--cdh-glass-bg),inset 0 0 0 6px color-mix(in srgb,var(--tarot-hue) 55%,transparent),0 18px 34px -26px color-mix(in srgb,var(--tarot-hue) 70%,var(--cdh-ink));scroll-snap-align:start;transform:none}
+#cdHomeFunnel .cd-sig--deck .cd-sig-card{position:relative;overflow:hidden;overflow:clip;display:flex;flex-direction:column;width:100%;min-width:0;padding:10px;border:1px solid var(--cdh-glass-line);border-radius:18px;background:var(--cdh-glass-bg);color:var(--cdh-ink);box-shadow:0 12px 28px -22px color-mix(in srgb,var(--tarot-hue) 55%,var(--cdh-ink));scroll-snap-align:start;transform:none}
 #cdHomeFunnel .cd-sig--deck .cd-sig-card:hover{border-color:var(--cdh-gold)}
 #cdHomeFunnel .cd-sig--deck .cd-sig-card:focus-visible{outline:3px solid var(--cdh-accent);outline-offset:4px}
 #cdHomeFunnel .cd-sig--deck .cd-sig-card__top{display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:6px 8px 8px}
@@ -6367,7 +6374,7 @@ html.neo-mode .cdh,body.neo-mode .cdh{--cdh-glass-line:color-mix(in srgb,var(--c
 #cdHomeFunnel .cd-sig--deck .cd-sig-card__q{color:var(--cdh-ink);font-size:var(--cd-t-body);line-height:1.55}
 #cdHomeFunnel .cd-sig--deck .cd-sig-card__desc{display:none}
 #cdHomeFunnel .cd-sig--deck .cd-sig-card__report{margin-top:auto;padding-block:8px;border-block:1px solid var(--cdh-glass-line);font-size:var(--cd-t-caption);line-height:1.5;gap:1px}
-#cdHomeFunnel .cd-sig--deck .cd-sig-card__price{align-self:center;margin-top:2px;font-size:var(--cd-t-body);font-weight:700}
+#cdHomeFunnel .cd-sig--deck .cd-sig-card__price{align-self:stretch;margin-top:8px;padding:10px 8px;border:1px solid var(--cdh-glass-line);border-radius:var(--cd-r-sm);background:var(--cdh-surface);color:var(--cdh-ink);font-size:var(--cd-t-card);font-weight:700;line-height:1.5;font-variant-numeric:tabular-nums}
 #cdHomeFunnel .cd-sig--deck .cd-sig-card__meta{justify-content:center;text-align:center;font-size:var(--cd-t-caption)}
 #cdHomeFunnel .cd-sig--deck .cd-sig-card__cta{display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;margin-top:2px;padding:6px 8px;border:0;border-radius:0;background:transparent;box-shadow:none;color:var(--cdh-ink);font:700 var(--cd-t-body)/1.4 var(--font-body)}
 #cdHomeFunnel .cd-sig--deck .cd-sig-card__cta::before{content:none}
@@ -6805,7 +6812,8 @@ html.neo-mode #cdHomeFunnel .cdh-scene-art #honeypigLogo{box-shadow:none!importa
 #cdAllFortunesRoot .cd-af__question{color:var(--cd-af-muted);font-size:.84rem;line-height:1.6;word-break:keep-all;overflow-wrap:anywhere}
 #cdAllFortunesRoot .cd-af__masters{color:var(--cd-af-ink);font-size:.82rem;line-height:1.6}
 #cdAllFortunesRoot .fortune-gateway__rec-foot{flex-wrap:wrap;gap:8px;margin-top:auto;padding-top:12px;border-top:1px solid var(--cd-af-line);min-height:44px}
-#cdAllFortunesRoot :is(.fortune-gateway__rec-price,.fortune-gateway__rec-go){font-size:.88rem;color:var(--cd-af-accent)}
+#cdAllFortunesRoot :is(.fortune-gateway__rec-price,.fortune-gateway__rec-go){font-size:var(--cd-t-body);color:var(--cd-af-accent);font-style:normal;line-height:1.6;white-space:normal;overflow-wrap:anywhere}
+#cdAllFortunesRoot .fortune-gateway__rec-price{font-weight:700;font-variant-numeric:tabular-nums}
 #cdAllFortunesRoot[data-cd-af-host=sheet] .cd-afy-hero{display:none}
 #cdAllFortunesRoot[data-cd-af-host=overview]{padding:0 2px 8px}
 #cdAllFortunesRoot .cd-afy-hero{margin-bottom:0}
@@ -8446,7 +8454,6 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
       .honey-membership-mini--active .honey-membership-mini__hero{border:1px solid rgba(201,168,76,.38);background:radial-gradient(circle at 28% 12%,rgba(201,168,76,.18),transparent 34%),linear-gradient(140deg,rgba(74,111,165,.18),rgba(15,16,53,.72));box-shadow:inset 0 1px 0 rgba(240,238,232,.14),0 16px 36px rgba(4,5,18,.38),0 0 24px rgba(201,168,76,.13)}
       .honey-membership-mini--active .honey-membership-mini__hero-cta{background:linear-gradient(135deg,#E8DFC8,#C9A84C);color:#0A0B1A}
       .honey-membership-mini--active .honey-membership-mini__status{color:#E8DFC8}
-      .membership-free-hint{display:inline-flex;align-items:center;margin-top:7px;padding:4px 8px;border-radius:999px;border:1px solid rgba(255,220,143,.45);background:rgba(49,30,12,.68);color:#ffe8b7;font-size:.67rem;font-weight:800;letter-spacing:.01em}
       .membership-recap-cta{position:relative;margin:14px 16px 16px;padding:22px 18px;border-radius:24px;border:1px solid rgba(245,219,154,.34);background:radial-gradient(circle at 10% 8%,rgba(255,236,184,.22),transparent 24%),radial-gradient(circle at 78% 6%,rgba(204,174,255,.24),transparent 30%),radial-gradient(circle at 90% 78%,rgba(91,132,214,.2),transparent 28%),linear-gradient(142deg,#070816 0%,#15113f 48%,#2a1765 100%);box-shadow:0 26px 62px rgba(4,5,18,.6),0 0 34px rgba(201,168,76,.16),0 0 0 1px rgba(240,238,232,.04),inset 0 1px 0 rgba(240,238,232,.16);overflow:hidden}
       .membership-recap-cta::before{content:'';position:absolute;inset:0;background:linear-gradient(118deg,rgba(240,238,232,.14),transparent 16%,transparent 54%,rgba(245,219,154,.14) 70%,transparent),radial-gradient(1px 1px at 18% 18%,rgba(255,248,226,.74),transparent),radial-gradient(1.4px 1.4px at 68% 24%,rgba(245,219,154,.72),transparent),radial-gradient(1px 1px at 86% 62%,rgba(204,174,255,.62),transparent),repeating-linear-gradient(135deg,rgba(240,238,232,.028) 0 1px,transparent 1px 18px);opacity:.92;pointer-events:none}
       .membership-recap-cta::after{content:'';position:absolute;inset:1px;border-radius:23px;border:1px solid rgba(245,219,154,.34);box-shadow:inset 0 0 0 1px rgba(240,238,232,.04),inset 0 0 42px rgba(201,168,76,.1),0 0 30px rgba(189,155,255,.12);pointer-events:none}
@@ -15285,30 +15292,6 @@ html[data-cd-lang]:not([data-cd-lang="ko"]) #cdPickWhyJosa{display:none}
           }
         }
 
-        function applyMembershipHintsToTiles(){
-          var tiles = host.closest('#inputPage') ? document.querySelectorAll('#inputPage .tarot-tile') : [];
-          if (!tiles || !tiles.length) return;
-          for (var i = 0; i < tiles.length; i += 1) {
-            var tile = tiles[i];
-            if (!(tile instanceof Element)) continue;
-            if (tile.querySelector('.membership-free-hint')) continue;
-            var badge = tile.querySelector('.tarot-tile__coin-badge');
-            if (!badge) continue;
-            var txt = String(badge.textContent || '');
-            var coin = parseMembershipPriceText(txt);
-            if (!Number.isFinite(coin) || coin <= 0 || coin > 100) continue;
-            var text = '';
-            if (coin <= 30) text = '달빛 이용권 이용 시 무료 가능';
-            else if (coin <= 50) text = '중간 꿀단지 이상 무료 가능';
-            else text = '큰 꿀단지 무료 가능';
-            var hint = document.createElement('span');
-            hint.className = 'membership-free-hint';
-            hint.textContent = text;
-            var body = tile.querySelector('.tarot-tile__body');
-            if (body) body.appendChild(hint);
-          }
-        }
-
         document.addEventListener('click', function(event){
           var toggle = event.target instanceof Element ? event.target.closest('[data-membership-toggle]') : null;
           if (toggle) {
@@ -15341,7 +15324,7 @@ html[data-cd-lang]:not([data-cd-lang="ko"]) #cdPickWhyJosa{display:none}
 
         syncMembershipStatus();
         setMembershipExpanded(false);
-        applyMembershipHintsToTiles();
+
         }
         if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initMembership, { once: true });
         else initMembership();
@@ -16397,11 +16380,12 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                   <div class="tarot-tile__img-wrap" data-img-src="/feature-details/assets/physiognomy-320.webp" data-img-alt="전문가 동물 관상 — 셀카로 보는 얼굴형 관상 분석" data-cd-trans-attr="data-img-alt:home.tiles.animalFaceAlt">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🎭</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--beta" data-cd-trans data-key="home.tiles.animalFaceBadge">얼굴 분석</span>
-                        <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.animalFacePrice">무료 · 궁합 5,000원</span>
+
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.animalFaceTitle">🎭 전문가 동물 관상</span>
                     <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.animalFaceDesc">셀카로 보는 관상 분석</span>
+                  <div class="cd-card-pricing"><span data-cd-price-key="physiognomy-compatibility" class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.animalFacePrice" data-price-krw="5000">무료 · 궁합 5,000원</span></div>
                   </div>
                 </button>
 
@@ -16412,11 +16396,12 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                   <div class="tarot-tile__img-wrap tarot-tile__img-wrap--moongate" data-img-alt="전생 관상 — 달빛 아래 전생의 문 앞에 선 실루엣" data-cd-trans-attr="data-img-alt:home.tiles.pastLifeFaceAlt">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🌘</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--beta" data-cd-trans data-key="home.tiles.pastLifeFaceBadge">전생 리딩</span>
-                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.pastLifeFacePrice">무료 · 인연 궁합 5,000원</span>
+
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.pastLifeFaceTitle">🌘 전생 관상</span>
                     <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.pastLifeFaceDesc">당신의 얼굴에 남은 전생의 흔적을 찾아보세요</span>
+                  <div class="cd-card-pricing"><span data-cd-price-key="physiognomy-pastlife-compatibility" class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.pastLifeFacePrice" data-price-krw="5000">무료 · 인연 궁합 5,000원</span></div>
                   </div>
                 </button>
 
@@ -16429,11 +16414,12 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                         aria-label="MBTI 동물 궁합 시작" data-cd-trans-attr="aria-label:home.tiles.animalMbtiAria">
                   <div class="tarot-tile__img-wrap" data-img-src="/feature-details/assets/mbti-animal-compat-320.webp" data-img-alt="MBTI 동물 궁합 — 16가지 토템 연애 궁합" data-cd-trans-attr="data-img-alt:home.tiles.animalMbtiAlt">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🎭</span></div>
-                    <span class="tarot-tile__coin-badge">1회 3,000원</span>
+
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.animalMbtiTitle">🦁 MBTI 동물 궁합</span>
                     <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.animalMbtiDesc">16가지 토템 궁합</span>
+                  <div class="cd-card-pricing"><span data-cd-price-key="mbti-animal-compat" class="tarot-tile__coin-badge" data-price-krw="3000">1회 3,000원</span></div>
                   </div>
                 </button>
 
@@ -16445,11 +16431,12 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                   <div class="tarot-tile__img-wrap" data-img-src="/feature-details/assets/animal-totem-320.webp" data-img-alt="애니멀 토템 리딩 — 수호 동물 메시지" data-cd-trans-attr="data-img-alt:home.tiles.animalTotemAlt">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🎭</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--totem" data-cd-trans data-key="home.tiles.animalTotemBadge">토템 리딩</span>
-                        <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.animalTotemPrice">5,000원</span>
+
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.animalTotemTitle">🧸 애니멀 토템</span>
                     <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.animalTotemDesc">수호 동물 카드 리딩</span>
+                  <div class="cd-card-pricing"><span data-cd-price-key="animal-totem-basic" class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.animalTotemPrice" data-price-krw="5000">5,000원</span></div>
                   </div>
                 </button>
 
@@ -16464,11 +16451,12 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                   <div class="tarot-tile__img-wrap" data-img-src="/feature-details/assets/saju-guardian-320.webp" data-img-alt="사주 가디언 소환진 — 일주·월지·시지로 여는 60갑자 수호 인장" data-cd-trans-attr="data-img-alt:home.tiles.sajuGuardianAlt">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🔮</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--totem" data-cd-trans data-key="home.tiles.sajuGuardianBadge">수호 인장</span>
-                    <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.sajuGuardianPricePrice5000Price7000">영구 해금 7,000원</span>
+
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.sajuGuardianTitle">🔮 사주 가디언 소환진</span>
                     <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.sajuGuardianDesc">일주·월지·시지 수호 리딩</span>
+                  <div class="cd-card-pricing"><span data-cd-price-key="saju-guardian-unlock" class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.sajuGuardianPricePrice5000Price7000" data-price-krw="7000">영구 해금 7,000원</span></div>
                   </div>
                 </button>
 
@@ -16477,11 +16465,12 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                   <div class="tarot-tile__img-wrap" data-img-src="/feature-details/assets/palm-reading-320.webp" data-img-alt="손금 지도 - 손바닥 운명 패턴 분석" data-cd-trans-attr="data-img-alt:home.tiles.palmMapAlt">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🎭</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new" data-cd-trans data-key="home.tiles.palmMapBadge">손바닥 보기</span>
-                    <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.palmMapMeta">전문가 손금 · 동양 수상학 · 운명 지도</span>
+
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.palmMapTitle">🖐 손금 지도</span>
                     <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.palmMapDesc">손바닥에 새겨진 사랑, 재물, 직업의 흐름을 읽어보세요.</span>
+                  <div class="cd-card-pricing"><span class="tarot-tile__coin-badge" data-cd-price-key="palm-reading-general" data-cd-trans data-key="home.tiles.price10000" data-price-krw="10000">1회 10,000원</span></div>
                   </div>
                 </a>
               </div><!-- /feat-collection__grid -->
@@ -16531,24 +16520,26 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
               <div class="tarot-tile__img-wrap" data-img-src="/feature-details/assets/neville-meditation-320.webp" data-img-alt="네빌 명상 실습 — 상상 창조 집중 가이드" data-cd-trans-attr="data-img-alt:home.tiles.nevillePracticeAlt">
                 <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" alt="네빌 명상 실습 — 상상 창조 집중 가이드" data-cd-trans-attr="alt:home.tiles.nevillePracticeImgAlt" src="/feature-details/assets/neville-meditation-320.webp" srcset="/feature-details/assets/neville-meditation-320.webp 320w, /feature-details/assets/neville-meditation-480.webp 480w, /feature-details/assets/neville-meditation-960.webp 960w" sizes="(max-width: 768px) 180px, 480px">
                 <span class="tarot-tile__badge tarot-tile__badge--healing">MEDITATION</span>
-                <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price5000">1회 5,000원</span>
+
               </div>
               <div class="tarot-tile__body">
                 <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.nevillePracticeTitle">🧘 네빌 명상 실습</span>
                 <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.nevillePracticeDesc">상상 창조 집중 가이드</span>
-              </div>
+              <div class="cd-card-pricing"><span data-cd-price-key="neville-meditation" class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price5000" data-price-krw="5000">1회 5,000원</span></div>
+                  </div>
             </a>
 
             <a class="tarot-tile tarot-tile--meditation" href="/yoga-guru.html" data-action="openYogaGuru" data-coin-cost="50" data-feature-key="yoga-guru-per-use" aria-label="인도 명상 요가 코스 시작하기" data-cd-trans-attr="aria-label:home.tiles.divyaYogaAria">
               <div class="tarot-tile__img-wrap" data-img-src="/feature-details/assets/yoga-guru-320.webp" data-img-alt="Divya Yoga - 인도 감성 맞춤 요가 코스" data-cd-trans-attr="data-img-alt:home.tiles.divyaYogaAlt">
                 <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" alt="Divya Yoga - 인도 감성 맞춤 요가 코스" data-cd-trans-attr="alt:home.tiles.divyaYogaImgAlt" src="/feature-details/assets/yoga-guru-320.webp" srcset="/feature-details/assets/yoga-guru-320.webp 320w, /feature-details/assets/yoga-guru-480.webp 480w, /feature-details/assets/yoga-guru-960.webp 960w" sizes="(max-width: 768px) 180px, 480px">
                 <span class="tarot-tile__badge tarot-tile__badge--healing" data-cd-trans="home.badges.yogaGuru">YOGA GURU</span>
-                <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price5000">1회 5,000원</span>
+
               </div>
               <div class="tarot-tile__body">
                 <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.divyaYogaTitle">&#x1FAB7; Divya Yoga</span>
                 <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.divyaYogaDesc">맞춤 명상 요가 루틴</span>
-              </div>
+              <div class="cd-card-pricing"><span data-cd-price-key="yoga-guru-per-use" class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price5000" data-price-krw="5000">1회 5,000원</span></div>
+                  </div>
             </a>
 
             <!-- [기능 연결부] R=VD 코스믹 소울 명상 → /cosmic-soul-meditation.html -->
@@ -16556,12 +16547,13 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
               <div class="tarot-tile__img-wrap" data-img-src="/feature-details/assets/cosmic-soul-meditation-320.webp" data-img-alt="R=VD 코스믹 소울 명상 — 현실 렌더링 프로토콜" data-cd-trans-attr="data-img-alt:home.tiles.cosmicSoulMeditationAlt">
                 <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" alt="R=VD 코스믹 소울 명상 — 현실 렌더링 프로토콜" data-cd-trans-attr="alt:home.tiles.cosmicSoulMeditationImgAlt" src="/feature-details/assets/cosmic-soul-meditation-320.webp" srcset="/feature-details/assets/cosmic-soul-meditation-320.webp 320w, /feature-details/assets/cosmic-soul-meditation-480.webp 480w, /feature-details/assets/cosmic-soul-meditation-960.webp 960w" sizes="(max-width: 768px) 180px, 480px">
                 <span class="tarot-tile__badge tarot-tile__badge--healing">R=VD</span>
-                <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.cosmicSoulPrice">30분 5,000원 · 60분 10,000원</span>
+
               </div>
               <div class="tarot-tile__body">
                 <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.cosmicSoulMeditationTitle">🌌 코스믹 소울 명상</span>
                 <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.cosmicSoulMeditationDesc">현실 렌더링 30·60분 프로토콜</span>
-              </div>
+              <div class="cd-card-pricing"><span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.cosmicSoulPrice" data-cd-price-key="cosmic-soul-meditation" data-cd-price-key-to="cosmic-soul-meditation" data-cd-price-reason="openCosmicSoulMeditation 30분 코스" data-cd-price-reason-to="openCosmicSoulMeditation 60분 코스" data-price-krw="5000" data-price-krw-to="10000">30분 5,000원 · 60분 10,000원</span></div>
+                  </div>
             </a>
           </div>
         </div><!-- /meditation-collection -->
@@ -16723,12 +16715,13 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
               <div class="tarot-tile__img-wrap" data-img-src="/feature-details/assets/tarot-love-relationship-320.webp" data-img-alt="우리는 무슨 사이? — 6카드 관계 리딩" data-cd-trans-attr="data-img-alt:home.tiles.tarotLoveAlt">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🎭</span></div>
                 <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
-                <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price5000">1회 5,000원</span>
+
               </div>
               <div class="tarot-tile__body">
                 <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.tarotLoveTitle">💕 우리는 무슨 사이?</span>
                 <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.tarotLoveDesc">말과 행동 사이의 온도</span>
-              </div>
+              <div class="cd-card-pricing"><span data-cd-price-key="tarot-love-relationship" class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price5000" data-price-krw="5000">1회 5,000원</span></div>
+                  </div>
             </a>
 
             <!-- [기능 연결부] 힐링 타로 → /tarot/healing 직접 이동 (무료 페이지) -->
@@ -16738,12 +16731,13 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
               <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/healing.webp" data-img-alt="따뜻한 태양 회복 타로 — 4카드 마음 회복 리딩" data-cd-trans-attr="data-img-alt:home.tiles.tarotHealingAlt">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🎭</span></div>
                 <span class="tarot-tile__badge tarot-tile__badge--healing">HEALING</span>
-                <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.freeBadge">무료</span>
+
               </div>
               <div class="tarot-tile__body">
                 <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.tarotHealingTitle">☀ 따뜻한 태양 회복 타로</span>
                 <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.tarotHealingDesc">마음이 지친 자리와 오늘의 빛</span>
-              </div>
+              <div class="cd-card-pricing"><span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.freeBadge">무료</span></div>
+                  </div>
             </a>
 
             <!-- [기능 연결부] 자기 기준 회복 타로 → openTarotSelfEsteemModal() -->
@@ -16754,12 +16748,13 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
               <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/jajongam.webp" data-img-alt="자기 기준 회복 타로 — 다시 내 편에 서는 5카드 리딩" data-cd-trans-attr="data-img-alt:home.tiles.tarotSelfEsteemAlt">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🎭</span></div>
                 <span class="tarot-tile__badge tarot-tile__badge--levelup" data-cd-trans="home.badges.selfUp">SELF UP</span>
-                <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.freeBadge">무료</span>
+
               </div>
               <div class="tarot-tile__body">
                 <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.tarotSelfEsteemTitle">✨ 자기 기준 회복 타로</span>
                 <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.tarotSelfEsteemDesc">타인의 시선에서 내 마음의 중심으로</span>
-              </div>
+              <div class="cd-card-pricing"><span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.freeBadge">무료</span></div>
+                  </div>
             </a>
 
             <!-- [기능 연결부] 재회운 타로 → openTarotReunionModal() -->
@@ -16771,12 +16766,13 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
               <div class="tarot-tile__img-wrap" data-img-src="/feature-details/assets/tarot-reunion-320.webp" data-img-alt="별 헤는 밤바다 관계 회복 타로 — 5카드 스프레드" data-cd-trans-attr="data-img-alt:home.tiles.tarotReunionAlt">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🎭</span></div>
                 <span class="tarot-tile__badge tarot-tile__badge--reunion" data-cd-trans data-key="home.tiles.relationshipRecoveryBadge">관계 회복</span>
-                <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price5000">1회 5,000원</span>
+
               </div>
               <div class="tarot-tile__body">
                 <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.tarotReunionTitle">🌊 재회운 등대 타로</span>
                 <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.tarotReunionDesc">남은 온기와 안전한 거리</span>
-              </div>
+              <div class="cd-card-pricing"><span data-cd-price-key="tarot-reunion-reading" class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price5000" data-price-krw="5000">1회 5,000원</span></div>
+                  </div>
             </a>
 
             <!-- [기능 연결부] 타로 프롬프트 라이브러리 → /tarot/prompt-maker 직접 이동 -->
@@ -16786,12 +16782,13 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
               <div class="tarot-tile__img-wrap" data-img-src="/feature-details/assets/tarot-prompt-maker-320.webp" data-img-alt="타로 리딩 문장 아틀리에 대표 이미지" data-cd-trans-attr="data-img-alt:home.tiles.tarotPromptMakerAlt">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🎭</span></div>
                 <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
-                <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.promptMakerPrice">카드 수에 따라 5,000~10,000원</span>
+
               </div>
               <div class="tarot-tile__body">
                 <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.tarotPromptMakerTitle">💘 타로 프롬프트 라이브러리</span>
                 <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.tarotPromptMakerDesc">스프레드 선택 · 카드 열기 · 리딩 문장 완성</span>
-              </div>
+              <div class="cd-card-pricing"><span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.promptMakerPrice" data-cd-price-key="tarot-prompt-maker" data-cd-price-key-to="tarot-prompt-maker-master" data-price-krw="5000" data-price-krw-to="10000">카드 수에 따라 5,000~10,000원</span></div>
+                  </div>
             </a>
 
             <!-- [기능 연결부] 십이지신 천운 타로 → openTarotYearFortuneModal() -->
@@ -16803,12 +16800,13 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
               <div class="tarot-tile__img-wrap" data-img-src="/feature-details/assets/tarot-year-fortune-320.webp" data-img-alt="십이지신 천운 타로 — 재물, 관계, 일의 12개월 월운" data-cd-trans-attr="data-img-alt:home.tiles.tarotYearAlt">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🎭</span></div>
                 <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
-                <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price10000">1회 10,000원</span>
+
               </div>
               <div class="tarot-tile__body">
                 <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.tarotYearTitle">🐉 십이지신 천운 타로</span>
                 <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.tarotYearDesc">열두 달의 수호 월운</span>
-              </div>
+              <div class="cd-card-pricing"><span data-cd-price-key="tarot-year-fortune" class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price10000" data-price-krw="10000">1회 10,000원</span></div>
+                  </div>
             </a>
 
             <a class="tarot-tile tarot-tile--numerology" href="/tarot/numerology/"
@@ -16816,12 +16814,13 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
               <div class="tarot-tile__img-wrap" data-img-src="/feature-details/assets/tarot-numerology-320.webp" data-img-alt="수비학 타로 — 생명수와 오늘수, 질문수가 만나는 5카드 리딩" data-cd-trans-attr="data-img-alt:home.tiles.tarotNumerologyAlt">
                 <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" alt="수비학 타로 — 생명수와 오늘수, 질문수가 만나는 5카드 리딩" data-cd-trans-attr="alt:home.tiles.tarotNumerologyImgAlt" src="/feature-details/assets/tarot-numerology-320.webp" srcset="/feature-details/assets/tarot-numerology-320.webp 320w, /feature-details/assets/tarot-numerology-480.webp 480w, /feature-details/assets/tarot-numerology-960.webp 960w" sizes="(max-width: 768px) 180px, 480px">
                 <span class="tarot-tile__badge tarot-tile__badge--new">NUMEROLOGY</span>
-                <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price5000">1회 5,000원</span>
+
               </div>
               <div class="tarot-tile__body">
                 <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.tarotNumerologyTitle">🔢 수비학 타로</span>
                 <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.tarotNumerologyDesc">생명수·오늘수 5카드 리딩</span>
-              </div>
+              <div class="cd-card-pricing"><span data-cd-price-key="tarot-numerology-reading" class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price5000" data-price-krw="5000">1회 5,000원</span></div>
+                  </div>
             </a>
 
             <a class="tarot-tile tarot-tile--ijik" href="/tarot-ijik.html"
@@ -16834,12 +16833,13 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
               <div class="tarot-tile__img-wrap" data-img-src="/feature-details/assets/tarot-ijik-320.webp" data-img-alt="이직 운명의 카드 — 일의 문턱을 읽는 7카드 커리어 리딩" data-cd-trans-attr="data-img-alt:home.tiles.tarotCareerMoveAlt">
                 <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" alt="이직 운명의 카드 — 일의 문턱을 읽는 7카드 커리어 리딩" data-cd-trans-attr="alt:home.tiles.tarotCareerMoveImgAlt" src="/feature-details/assets/tarot-ijik-320.webp" srcset="/feature-details/assets/tarot-ijik-320.webp 320w, /feature-details/assets/tarot-ijik-480.webp 480w, /feature-details/assets/tarot-ijik-960.webp 960w" sizes="(max-width: 768px) 180px, 480px">
                 <span class="tarot-tile__badge tarot-tile__badge--new">CAREER</span>
-                <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price5000">1회 5,000원</span>
+
               </div>
               <div class="tarot-tile__body">
                 <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.tarotCareerMoveTitle">💼 이직 운명의 카드</span>
                 <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.tarotCareerMoveDesc">남길 기준과 옮길 방향 7카드</span>
-              </div>
+              <div class="cd-card-pricing"><span data-cd-price-key="tarot-ijik" class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price5000" data-price-krw="5000">1회 5,000원</span></div>
+                  </div>
             </a>
 
             <!-- [기능 연결부] 말과 행동 사이 타로 → /tarot/mindscan -->
@@ -16848,12 +16848,13 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
               <div class="tarot-tile__img-wrap" data-img-src="/feature-details/assets/tarot-mindscan-320.webp" data-img-alt="말과 행동 사이 — 마음의 온도를 읽는 10카드 관계 리딩" data-cd-trans-attr="data-img-alt:home.tiles.tarotMindscanAlt">
                 <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" alt="말과 행동 사이 — 마음의 온도를 읽는 10카드 관계 리딩" data-cd-trans-attr="alt:home.tiles.tarotMindscanImgAlt" src="/feature-details/assets/tarot-mindscan-320.webp" srcset="/feature-details/assets/tarot-mindscan-320.webp 320w, /feature-details/assets/tarot-mindscan-480.webp 480w, /feature-details/assets/tarot-mindscan-960.webp 960w" sizes="(max-width: 768px) 180px, 480px">
                 <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
-                <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price5000">1회 5,000원</span>
+
               </div>
               <div class="tarot-tile__body">
                 <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.tarotMindscanTitle">🔮 말과 행동 사이</span>
                 <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.tarotMindscanDesc">마음의 온도 10카드</span>
-              </div>
+              <div class="cd-card-pricing"><span data-cd-price-key="tarot-mindscan" class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price5000" data-price-krw="5000">1회 5,000원</span></div>
+                  </div>
             </a>
 
             <!-- [기능 연결부] 원석 소울 타로 → /tarot/crystal-soul -->
@@ -16862,12 +16863,13 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
               <div class="tarot-tile__img-wrap" data-img-src="/feature-details/assets/tarot-crystal-soul-320.webp" data-img-alt="원석 소울 타로 — 크리스탈 에너지 리딩" data-cd-trans-attr="data-img-alt:home.tiles.tarotCrystalSoulAlt">
                 <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" alt="원석 소울 타로 — 크리스탈 에너지 리딩" data-cd-trans-attr="alt:home.tiles.tarotCrystalSoulImgAlt" src="/feature-details/assets/tarot-crystal-soul-320.webp" srcset="/feature-details/assets/tarot-crystal-soul-320.webp 320w, /feature-details/assets/tarot-crystal-soul-480.webp 480w, /feature-details/assets/tarot-crystal-soul-960.webp 960w" sizes="(max-width: 768px) 180px, 480px">
                 <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
-                <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price5000">1회 5,000원</span>
+
               </div>
               <div class="tarot-tile__body">
                 <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.tarotCrystalSoulTitle">💎 원석 소울 타로</span>
                 <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.tarotCrystalSoulDesc">크리스탈 에너지 리딩</span>
-              </div>
+              <div class="cd-card-pricing"><span data-cd-price-key="tarot-crystal-soul-reading" class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price5000" data-price-krw="5000">1회 5,000원</span></div>
+                  </div>
             </a>
 
             <!-- [기능 연결부] 천체의 선율 → /celestial-harmony.html -->
@@ -16879,12 +16881,13 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
               <div class="tarot-tile__img-wrap" data-img-src="/feature-details/assets/tarot-celestial-harmony-320.webp" data-img-alt="천체의 선율 — 11행성 코즈믹 타로 리딩" data-cd-trans-attr="data-img-alt:home.tiles.celestialHarmonyAlt">
                 <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" alt="천체의 선율 — 11행성 코즈믹 타로 리딩" data-cd-trans-attr="alt:home.tiles.celestialHarmonyImgAlt" src="/feature-details/assets/tarot-celestial-harmony-320.webp" srcset="/feature-details/assets/tarot-celestial-harmony-320.webp 320w, /feature-details/assets/tarot-celestial-harmony-480.webp 480w, /feature-details/assets/tarot-celestial-harmony-960.webp 960w" sizes="(max-width: 768px) 180px, 480px">
                 <span class="tarot-tile__badge tarot-tile__badge--new">CELESTIAL</span>
-                <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price10000">1회 10,000원</span>
+
               </div>
               <div class="tarot-tile__body">
                 <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.celestialHarmonyTitle">✨ 천체의 선율</span>
                 <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.celestialHarmonyDesc">11행성의 목소리를 엮는 타로</span>
-              </div>
+              <div class="cd-card-pricing"><span data-cd-price-key="tarot-celestial-harmony" class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price10000" data-price-krw="10000">1회 10,000원</span></div>
+                  </div>
             </a>
 
             <!-- [기능 연결부] 명리학 타로 → openTarotModal() -->
@@ -16894,12 +16897,13 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                     aria-label="명리학 타로 리딩 시작" data-cd-trans-attr="aria-label:home.tiles.sajuTarotAria">
               <div class="tarot-tile__img-wrap" data-img-src="/feature-details/assets/tarot-320.webp" data-img-alt="명리학 타로 — 78장 유니버설 덱 명리 타로 리딩" data-cd-trans-attr="data-img-alt:home.tiles.sajuTarotAlt">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🎭</span></div>
-                <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.freeBadge">무료</span>
+
               </div>
               <div class="tarot-tile__body">
                 <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.sajuTarotTitle">🔮 명리학 타로</span>
                 <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.sajuTarotDesc">카드와 십성으로 읽는 선택 기준</span>
-              </div>
+              <div class="cd-card-pricing"><span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.freeBadge">무료</span></div>
+                  </div>
             </button>
 
           </div>
@@ -16949,11 +16953,12 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                         aria-label="화투점 시작" data-cd-trans-attr="aria-label:home.tiles.hwatuAria">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/tazza.webp" data-img-alt="타짜들의 화투점 — 한국 전통 화투패 12달 운세" data-cd-trans-attr="data-img-alt:home.tiles.hwatuAlt">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🎭</span></div>
-                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.freeBadge">무료</span>
+
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.hwatuTitle">🎴 타짜들의 화투점</span>
                     <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.hwatuDesc">12달 화투패 운세</span>
+                  <div class="cd-card-pricing"><span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.freeBadge">무료</span></div>
                   </div>
                 </a>
 
@@ -16965,11 +16970,12 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                         aria-label="이집트 신탁 시작" data-cd-trans-attr="aria-label:home.tiles.egyptOracleAria">
                   <div class="tarot-tile__img-wrap" data-img-src="/feature-details/assets/kemet-oracle-320.webp" data-img-alt="고대 이집트 신탁 — 케멧 오라클" data-cd-trans-attr="data-img-alt:home.tiles.egyptOracleAlt">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🦁</span></div>
-                    <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price3000">1회 3,000원</span>
+
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.egyptOracleTitle">𓂀 이집트 신탁</span>
                     <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.egyptOracleDesc">케멧 오라클 운세</span>
+                  <div class="cd-card-pricing"><span data-cd-price-key="openKemetModal" class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price3000" data-price-krw="3000">1회 3,000원</span></div>
                   </div>
                 </button>
 
@@ -16982,11 +16988,12 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                   <div class="tarot-tile__img-wrap" data-img-src="/feature-details/assets/ifa-oracle-320.webp" data-img-alt="IFA 오라클 - 요루바 256 오두 신탁" data-cd-trans-attr="data-img-alt:home.tiles.ifaOracleAlt">
                     <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" alt="IFA 오라클 - 요루바 256 오두 신탁" data-cd-trans-attr="alt:home.tiles.ifaOracleImgAlt" src="/feature-details/assets/ifa-oracle-320.webp" srcset="/feature-details/assets/ifa-oracle-320.webp 320w, /feature-details/assets/ifa-oracle-480.webp 480w, /feature-details/assets/ifa-oracle-960.webp 960w" sizes="(max-width: 768px) 180px, 480px">
                     <span class="tarot-tile__badge tarot-tile__badge--new">IFA</span>
-                    <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price3000">1회 3,000원</span>
+
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.ifaOracleTitle">🪬 IFÀ 오라클</span>
                     <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.ifaOracleDesc">요루바 256 오두 신탁</span>
+                  <div class="cd-card-pricing"><span data-cd-price-key="ifa-oracle" class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price3000" data-price-krw="3000">1회 3,000원</span></div>
                   </div>
                 </a>
 
@@ -16998,11 +17005,12 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                         aria-label="주역 거북점 시작" data-cd-trans-attr="aria-label:home.tiles.ichingTurtleAria">
                   <div class="tarot-tile__img-wrap" data-img-src="/feature-details/assets/juyuk-turtle-320.webp" data-img-alt="주역 64괘 거북점 — 3000년 지혜" data-cd-trans-attr="data-img-alt:home.tiles.ichingTurtleAlt">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🐲</span></div>
-                    <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price3000">1회 3,000원</span>
+
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.ichingTurtleTitle">☯️ 주역 거북점</span>
                     <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.ichingTurtleDesc">64괘 · 3000년 지혜</span>
+                  <div class="cd-card-pricing"><span data-cd-price-key="openJuyukModal" class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price3000" data-price-krw="3000">1회 3,000원</span></div>
                   </div>
                 </a>
 
@@ -17012,11 +17020,12 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                   <div class="tarot-tile__img-wrap" data-img-src="/feature-details/assets/maya-320.webp" data-img-alt="마야점 - 금빛 달력판과 밤하늘의 시간 문양" data-cd-trans-attr="data-img-alt:home.tiles.mayaAlt">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">◉</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
-                    <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price5000">1회 5,000원</span>
+
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.mayaTitle">마야점</span>
                     <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.mayaDesc">시간의 문양으로 읽는 오늘의 흐름</span>
+                  <div class="cd-card-pricing"><span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.basicFreeBadge">기본 무료</span><span class="tarot-tile__coin-badge" data-cd-price-key="maya-prompt-generator" data-cd-trans data-key="home.tiles.price5000" data-price-krw="5000">1회 5,000원</span></div>
                   </div>
                 </a>
 
@@ -17031,11 +17040,12 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                   <div class="tarot-tile__img-wrap" data-img-src="/feature-details/assets/stonehenge-runes-320.webp" data-img-alt="스톤헨지 룬 오라클 — 고대 룬 상징 리딩" data-cd-trans-attr="data-img-alt:home.tiles.runeOracleAlt">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🐟</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
-                    <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price3000">1회 3,000원</span>
+
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.runeOracleTitle">ᚠ 스톤헨지 룬 오라클</span>
                     <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.runeOracleDesc">고대 룬 상징 리딩</span>
+                  <div class="cd-card-pricing"><span data-cd-price-key="stonehenge-runes-triad" class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price3000" data-price-krw="3000">1회 3,000원</span></div>
                   </div>
                 </a>
 
@@ -17048,25 +17058,27 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                   <div class="tarot-tile__img-wrap" data-img-src="/feature-details/assets/geomancy-oracle-320.webp" data-img-alt="지오맨시 흙점 — 모래와 점으로 읽는 대지의 신탁" data-cd-trans-attr="data-img-alt:home.tiles.geomancyAlt">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🐟</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
-                    <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price5000">1회 5,000원</span>
+
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.geomancyTitle">⟁ 지오맨시 흙점</span>
                     <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.geomancyDesc">대지의 징후 16행 신탁</span>
+                  <div class="cd-card-pricing"><span data-cd-price-key="openGeomancyOracle" class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price5000" data-price-krw="5000">1회 5,000원</span></div>
                   </div>
                 </a>
 
                 <!-- 핀란드 주석점 -->
                 <a class="tarot-tile tarot-tile--sikojen-fc" href="/oracle/sikojen-povailu/"
                    aria-label="핀란드 주석점 시작" data-cd-trans-attr="aria-label:home.tiles.sikojenAria">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-1820b60d09b5" data-img-alt="핀란드 돼지 주석점 — 연이와 주석 그림자 의식" data-cd-trans-attr="data-img-alt:home.tiles.sikojenAlt">
+                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-67baa6acc500" data-img-alt="핀란드 돼지 주석점 — 연이와 주석 그림자 의식" data-cd-trans-attr="data-img-alt:home.tiles.sikojenAlt">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🐷</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
-                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.freeBadge">무료</span>
+
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.sikojenTitle">🐷 핀란드 돼지 주석점</span>
                     <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.sikojenDesc">연이와 주석 그림자로 보는 귀여운 새해 신탁</span>
+                  <div class="cd-card-pricing"><span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.freeBadge">무료</span></div>
                   </div>
                 </a>
 
@@ -17080,11 +17092,12 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                   <div class="tarot-tile__img-wrap" data-img-src="/feature-details/assets/royal-tea-oracle-320.webp" data-img-alt="영국 홍차점 — 찻잎 문양으로 읽는 타세오그래피" data-cd-trans-attr="data-img-alt:home.tiles.royalTeaAlt">
                 <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">紫</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
-                    <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price3000">1회 3,000원</span>
+
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.royalTeaTitle">🫖 영국 홍차점</span>
                     <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.royalTeaDesc">왕실 타세오그래피 찻잎 리딩</span>
+                  <div class="cd-card-pricing"><span data-cd-price-key="royal-tea-oracle" class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price3000" data-price-krw="3000">1회 3,000원</span></div>
                   </div>
                 </a>
 
@@ -17136,12 +17149,12 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                         aria-label="서양 점성술 기본 출생차트 시작" data-cd-trans-attr="aria-label:home.tiles.westernAstrologyAria">
                   <div class="tarot-tile__img-wrap" data-img-src="/feature-details/assets/astrology-320.webp" data-img-alt="서양 점성술 기본 출생차트 — 태양 별자리·달 별자리·상승궁" data-cd-trans-attr="data-img-alt:home.tiles.westernAstrologyAlt">
                 <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">💕</span></div>
-                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.basicFreeBadge">기본 무료</span>
-                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--compat" data-cd-trans data-key="home.tiles.compatibilityPrice">궁합 5,000원</span>
+
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.westernAstrologyTitle">✨ 서양 점성술 기본 차트</span>
                     <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.westernAstrologyDesc">기본 출생차트 무료 · 시너스트리 궁합 5,000원</span>
+                  <div class="cd-card-pricing"><span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.basicFreeBadge">기본 무료</span><span data-cd-price-key="compat-astro-synastry" class="tarot-tile__coin-badge tarot-tile__coin-badge--compat" data-cd-trans data-key="home.tiles.compatibilityPrice" data-price-krw="5000">궁합 5,000원</span></div>
                   </div>
                 </a>
 
@@ -17153,12 +17166,12 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                   <div class="tarot-tile__img-wrap" data-img-src="/feature-details/assets/ziwei-320.webp" data-img-alt="자미두수 — 12궁 명반 운명 분석" data-cd-trans-attr="data-img-alt:home.tiles.ziweiBasicAlt">
                 <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">💕</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
-                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.basicFreeBadge">기본 무료</span>
-                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--compat" data-cd-trans data-key="home.tiles.compatibilityPrice">궁합 5,000원</span>
+
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.ziweiBasicTitle">🌌 자미두수(紫微斗數)</span>
                     <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.ziweiBasicDesc">기본 명반 무료 · 궁합은 선택 확장 5,000원</span>
+                  <div class="cd-card-pricing"><span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.basicFreeBadge">기본 무료</span><span data-cd-price-key="compat-ziwei-compatibility" class="tarot-tile__coin-badge tarot-tile__coin-badge--compat" data-cd-trans data-key="home.tiles.compatibilityPrice" data-price-krw="5000">궁합 5,000원</span></div>
                   </div>
                 </a>
 
@@ -17169,11 +17182,12 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                   <div class="tarot-tile__img-wrap" data-img-src="/feature-details/assets/ziwei-320.webp" data-img-alt="자미두수 심화 분석 — 12궁 인생 전략" data-cd-trans-attr="data-img-alt:home.tiles.ziweiAdvancedAlt">
                 <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">紫</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--ziwei" data-cd-trans="home.badges.advanced">심화</span>
-                    <span class="tarot-tile__coin-badge" data-cd-trans="shell.tarotTile.tarotTileImgWrap.k1dw3t0h">명반 무료 · 전문가 상담 유료</span>
+
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.ziweiAdvancedTitle">🌟 자미두수 심화</span>
                     <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.ziweiAdvancedDesc">12궁 인생 전략 · 명궁 심화 분석</span>
+                  <div class="cd-card-pricing"><span data-cd-price-key="ziwei-ai-consultation" class="tarot-tile__coin-badge" data-price-krw="30000">명반 무료 · 전문가 상담 30,000원</span></div>
                   </div>
                 </a>
 
@@ -17183,12 +17197,12 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                         aria-label="베다 점성술 보기" data-cd-trans-attr="aria-label:home.tiles.vedicAstrologyAria">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/veda.webp" data-img-alt="베다 점성술 — Jyotish 별자리·낙샤트라·다샤" data-cd-trans-attr="data-img-alt:home.tiles.vedicAstrologyAlt">
                 <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">💕</span></div>
-                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.basicFreeBadge">기본 무료</span>
-                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--compat" data-cd-trans data-key="home.tiles.compatibilityPrice">궁합 5,000원</span>
+
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.vedicAstrologyTitle">🪐 베다 점성술</span>
                     <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.vedicAstrologyDesc">명반 무료 · 해석 5,000원 · 궁합 5,000원</span>
+                  <div class="cd-card-pricing"><span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.basicFreeBadge">기본 무료</span><span data-cd-price-key="vedic-compatibility-per-use" class="tarot-tile__coin-badge tarot-tile__coin-badge--compat" data-cd-trans data-key="home.tiles.compatibilityPrice" data-price-krw="5000">궁합 5,000원</span></div>
                   </div>
                 </a>
 
@@ -17202,11 +17216,12 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                   <div class="tarot-tile__img-wrap" data-img-src="/feature-details/assets/olympus-oracle-320.webp" data-img-alt="올림푸스 별자리 신탁 — 12 신의 신탁으로 보는 나의 별자리" data-cd-trans-attr="data-img-alt:home.tiles.olympusOracleAlt">
                 <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">☀️</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
-                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--lock" data-cd-trans data-key="home.tiles.unlock1000Price5000">🔒 해금 5,000원</span>
+
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.olympusOracleTitle">⚡ 올림푸스 신탁</span>
                     <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.olympusOracleDesc">12신 · 별자리 운명 판독</span>
+                  <div class="cd-card-pricing"><span data-cd-price-key="olympus-fc" class="tarot-tile__coin-badge tarot-tile__coin-badge--lock" data-cd-trans data-key="home.tiles.unlock1000Price5000" data-price-krw="5000">🔒 해금 5,000원</span></div>
                   </div>
                 </button>
 
@@ -17264,11 +17279,12 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                   <div class="tarot-tile__img-wrap" data-img-src="/feature-details/assets/destiny-flower-320.webp" data-img-alt="운명의 꽃 — 사주·점성술·자미두수·숙요 통합" data-cd-trans-attr="data-img-alt:home.tiles.destinyFlowerAlt">
                 <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🐲</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--bloom">BLOOM</span>
-                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--lock">🔒 해금 5,000원</span>
+
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.destinyFlowerTitle">🌸 운명의 꽃</span>
                     <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.destinyFlowerDesc">사주·점성술·자미두수·숙요 네 갈래 꽃</span>
+                  <div class="cd-card-pricing"><span data-cd-price-key="flower-fc" class="tarot-tile__coin-badge tarot-tile__coin-badge--lock" data-price-krw="5000">🔒 해금 5,000원</span></div>
                   </div>
                 </button>
 
@@ -17282,11 +17298,12 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                   <div class="tarot-tile__img-wrap" data-img-src="/feature-details/assets/dream-320.webp" data-img-alt="드림 타로 — 꿈의 잔향을 전문가 상담 문장으로 봉인" data-cd-trans-attr="data-img-alt:home.tiles.dreamTarotAlt">
                 <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🔮</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
-                    <span class="tarot-tile__coin-badge">1회 3,000원</span>
+
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.dreamTarotTitle">🌙 드림 타로</span>
                     <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.dreamTarotDesc">꿈 문장 AI 프롬프트</span>
+                  <div class="cd-card-pricing"><span data-cd-price-key="dream-prompt-generator" class="tarot-tile__coin-badge" data-price-krw="3000">1회 3,000원</span></div>
                   </div>
                 </button>
 
@@ -17297,11 +17314,12 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                   <div class="tarot-tile__img-wrap" data-img-src="/feature-details/assets/dream-psycho-analysis-320.webp" data-img-alt="정신분석 해몽 — 프로이트 관점의 보고서" data-cd-trans-attr="data-img-alt:home.tiles.psychoDreamAlt">
                 <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🔮</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
-                    <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price5000">1회 5,000원</span>
+
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.psychoDreamTitle">🕯️ 정신분석 해몽</span>
                     <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.psychoDreamDesc">Freud · British Study</span>
+                  <div class="cd-card-pricing"><span data-cd-price-key="dream-psycho-analysis" class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price5000" data-price-krw="5000">1회 5,000원</span></div>
                   </div>
                 </button>
 
@@ -17350,14 +17368,14 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                      12로케일 전부가 필요해 붙이지 않는다(인생의 나침반 카드와 같은 선례). -->
                 <a class="tarot-tile prem-card tarot-tile--human-design pvc-prem-card"
                         href="/human-design/"
-                        data-feature-key="human-design-chart"
+                        data-cd-price-free="true"
                         data-service-detail-href="/human-design/"
                         data-cd-marker="human-design-free-chart-v20260823"
                         aria-label="휴먼 디자인 — 출생 데이터로 계산하는 나의 에너지 설계도" data-cd-trans-attr="aria-label:shell.premiumVvipCollection.featCollectionGrid.k1elk76z.ariaLabel">
                   <div class="tarot-tile__img-wrap" data-img-src="/feature-details/assets/human-design-320.webp" data-img-alt="휴먼 디자인 — 바디그래프와 타입·권위·프로파일 패널이 함께 놓인 어두운 보랏빛 인터페이스">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">◈</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new" data-cd-trans="shell.tarotTile.tarotTileImgWrap.krpmzd9">NEW · 휴먼 디자인</span>
-                    <span class="tarot-tile__coin-badge" data-cd-trans="shell.tarotTile.tarotTileImgWrap.khdfree1">무료 공개</span>
+
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans="shell.tarotTile.tarotTileBody.kyx3hb8">휴먼 디자인</span>
@@ -17372,6 +17390,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                       <span class="pvc-meta-badge" data-cd-trans="shell.tarotTileBody.pvcPremMeta.kznzdv9">AI 개인 해석</span>
                       <span class="pvc-meta-badge pvc-meta-badge--cta" data-cd-trans="shell.tarotTileBody.pvcPremMeta.k1pwdig4">내 설계도 보기</span>
                     </div>
+                  <div class="cd-card-pricing"><span class="tarot-tile__coin-badge" data-cd-trans="shell.tarotTile.tarotTileImgWrap.khdfree1">무료 공개</span></div>
                   </div>
                 </a>
 
@@ -17382,7 +17401,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                   <div class="tarot-tile__img-wrap" data-img-src="/images/destiny-island/home-card-480.webp" data-img-alt="자미두수 운명의 섬 — 열두 궁의 구역이 불을 밝힌 밤바다 위 섬 일러스트">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">島</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new" data-cd-trans="shell.tarotTile.tarotTileImgWrap.k1r8338q">NEW · 운명의 섬</span>
-                    <span class="tarot-tile__coin-badge" data-cd-trans="shell.tarotTile.tarotTileImgWrap.k18zdwwf">무료 공개</span>
+
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans="shell.tarotTile.tarotTileBody.k1nhxtvn">자미두수 운명의 섬</span>
@@ -17397,6 +17416,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                       <span class="pvc-meta-badge" data-cd-trans="shell.tarotTileBody.pvcPremMeta.ksdpj4c">일일 퀘스트</span>
                       <span class="pvc-meta-badge pvc-meta-badge--cta" data-cd-trans="shell.tarotTileBody.pvcPremMeta.k1u01klw">섬으로 입장</span>
                     </div>
+                  <div class="cd-card-pricing"><span class="tarot-tile__coin-badge" data-cd-trans="shell.tarotTile.tarotTileImgWrap.k18zdwwf">무료 공개</span></div>
                   </div>
                 </a>
 
@@ -17408,7 +17428,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                   <div class="tarot-tile__img-wrap" data-img-src="/feature-details/assets/destiny-compass-320.webp" data-img-alt="인생의 나침반 — 네오와 연이가 사주·자미두수로 나아갈 방향을 잡아주는 길잡이">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">羅</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new" data-cd-trans="shell.tarotTile.tarotTileImgWrap.kg12w8e">신규 · 인생의 나침반</span>
-                    <span class="tarot-tile__coin-badge" data-cd-trans="shell.tarotTile.tarotTileImgWrap.n110000">기본 무료 · 심화 1회 5,000원</span>
+
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans="shell.tarotTile.tarotTileBody.k1ovtqnv">인생의 나침반</span>
@@ -17423,6 +17443,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                       <span class="pvc-meta-badge" data-cd-trans="shell.tarotTileBody.pvcPremMeta.k1gd6g4k">방향 설계</span>
                       <span class="pvc-meta-badge pvc-meta-badge--cta" data-cd-trans="shell.tarotTileBody.pvcPremMeta.km02jru">길 찾기</span>
                     </div>
+                  <div class="cd-card-pricing"><span data-cd-price-key="destiny-compass-life-voyage" class="tarot-tile__coin-badge" data-cd-trans="shell.tarotTile.tarotTileImgWrap.n110000Price7000" data-price-krw="7000">기본 무료 · 심화 1회 7,000원</span></div>
                   </div>
                 </a>
 
@@ -17434,7 +17455,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                     <img class="tarot-tile__img" src="/images/nakshatra/moonlight-library-480.webp" srcset="/images/nakshatra/moonlight-library-480.webp 480w, /images/nakshatra/moonlight-library-960.webp 960w, /images/nakshatra/moonlight-library-1672.webp 1672w" sizes="(max-width: 768px) calc(100vw - 48px), 560px" width="1672" height="941" loading="lazy" decoding="async" alt="달빛 서고의 인도 아치와 일본 천문 병풍">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">✦</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new" data-cd-trans="shell.tarotTile.tarotTileImgWrap.ktgbfsy">NEW · 결정판</span>
-                    <span class="tarot-tile__coin-badge" data-cd-trans="shell.tarotTile.tarotTileImgWrap.k18zdwwf2">무료 공개</span>
+
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans="shell.tarotTile.tarotTileBody.kntw327">나크샤트라 결정판</span>
@@ -17449,6 +17470,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                       <span class="pvc-meta-badge" data-cd-trans="shell.tarotTileBody.pvcPremMeta.k10vo8">파다</span>
                       <span class="pvc-meta-badge pvc-meta-badge--cta" data-cd-trans="shell.tarotTileBody.pvcPremMeta.k1vfalgf">무료로 확인</span>
                     </div>
+                  <div class="cd-card-pricing"><span class="tarot-tile__coin-badge" data-cd-price-key="nakshatra-basic-reading" data-cd-trans data-key="home.tiles.price3000" data-price-krw="3000">1회 3,000원</span></div>
                   </div>
                 </a>
 
@@ -17462,7 +17484,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                   <div class="tarot-tile__img-wrap" data-img-src="/images/feature-details/life-fortune-report-480.webp" data-img-alt="인생 총운 전문가 상담 대표 이미지">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">命</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">LIFE FORTUNE</span>
-                    <span class="tarot-tile__coin-badge" data-cd-trans="shell.tarotTile.tarotTileImgWrap.n30000">전문가 상담 · 30,000원</span>
+
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans="shell.tarotTile.tarotTileBody.k18jn96d">인생 총운 전문가 상담</span>
@@ -17477,6 +17499,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                       <span class="pvc-meta-badge" data-cd-trans="shell.tarotTileBody.pvcPremMeta.k12z88tv">PDF 저장</span>
                       <span class="pvc-meta-badge pvc-meta-badge--cta" data-cd-trans="shell.tarotTileBody.pvcPremMeta.k16eekng">이용권 확인</span>
                     </div>
+                  <div class="cd-card-pricing"><span data-cd-price-key="life-fortune-ai-consultation" class="tarot-tile__coin-badge" data-cd-trans="shell.tarotTile.tarotTileImgWrap.n30000" data-price-krw="30000">전문가 상담 · 30,000원</span></div>
                   </div>
                 </a>
 
@@ -17490,7 +17513,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                   <div class="tarot-tile__img-wrap" data-img-src="/feature-details/assets/sukuyo-compatibility-ai-320.webp" data-img-alt="숙요점 궁합 전문가 상담 대표 이미지">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">*</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">SUKUYO</span>
-                    <span class="tarot-tile__coin-badge" data-cd-trans="shell.tarotTile.tarotTileImgWrap.n300002">전문가 상담 · 30,000원</span>
+
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans="shell.tarotTile.tarotTileBody.ksb1e44">숙요점 궁합 전문가 상담</span>
@@ -17505,6 +17528,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                       <span class="pvc-meta-badge" data-cd-trans="shell.tarotTileBody.pvcPremMeta.k1tna4h3">전문가 상담</span>
                       <span class="pvc-meta-badge pvc-meta-badge--cta" data-cd-trans="shell.tarotTileBody.pvcPremMeta.k1cco6tp">바로 시작</span>
                     </div>
+                  <div class="cd-card-pricing"><span data-cd-price-key="sukuyo-compatibility-ai" class="tarot-tile__coin-badge" data-cd-trans="shell.tarotTile.tarotTileImgWrap.n300002" data-price-krw="30000">전문가 상담 · 30,000원</span></div>
                   </div>
                 </a>
 
@@ -17519,7 +17543,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                 <div class="tarot-tile__img-wrap" data-img-src="/feature-details/assets/ziwei-ai-320.webp" data-img-alt="자미두수 전문가 상담 대표 이미지">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">紫</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">ZIWEI</span>
-                    <span class="tarot-tile__coin-badge" data-cd-trans="shell.tarotTile.tarotTileImgWrap.n300003">전문가 상담 · 30,000원</span>
+
                 </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans="shell.tarotTile.tarotTileBody.kdyem8n">자미두수 전문가 상담</span>
@@ -17534,6 +17558,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                       <span class="pvc-meta-badge" data-cd-trans="shell.tarotTileBody.pvcPremMeta.k1tna4h32">전문가 상담</span>
                       <span class="pvc-meta-badge pvc-meta-badge--cta" data-cd-trans="shell.tarotTileBody.pvcPremMeta.k1ty8wv6">상담 받기</span>
                     </div>
+                  <div class="cd-card-pricing"><span data-cd-price-key="ziwei-ai-consultation" class="tarot-tile__coin-badge" data-cd-trans="shell.tarotTile.tarotTileImgWrap.n300003" data-price-krw="30000">전문가 상담 · 30,000원</span></div>
                   </div>
                 </button>
 
@@ -17548,7 +17573,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                 <div class="tarot-tile__img-wrap" data-img-src="/feature-details/assets/astrology-ai-320.webp" data-img-alt="점성술 전문가 상담 대표 이미지">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">☯️</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">ASTRO</span>
-                    <span class="tarot-tile__coin-badge" data-cd-trans="shell.tarotTile.tarotTileImgWrap.n300004">전문가 상담 · 30,000원</span>
+
                 </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans="shell.tarotTile.tarotTileBody.k1jaids8">점성술 전문가 상담</span>
@@ -17563,6 +17588,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                       <span class="pvc-meta-badge" data-cd-trans="shell.tarotTileBody.pvcPremMeta.k96vaab">화면 상담</span>
                       <span class="pvc-meta-badge pvc-meta-badge--cta" data-cd-trans="shell.tarotTileBody.pvcPremMeta.k6skteu">네이탈 차트로 상담 받기</span>
                     </div>
+                  <div class="cd-card-pricing"><span data-cd-price-key="astrology-ai-consultation" class="tarot-tile__coin-badge" data-cd-trans="shell.tarotTile.tarotTileImgWrap.n300004" data-price-krw="30000">전문가 상담 · 30,000원</span></div>
                   </div>
                 </button>
 
@@ -17575,7 +17601,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                 <div class="tarot-tile__img-wrap" data-img-src="/feature-details/assets/vedic-ai-320.webp" data-img-alt="베다점 전문가 상담 대표 이미지">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">✦</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">VEDIC</span>
-                    <span class="tarot-tile__coin-badge" data-cd-trans="shell.tarotTile.tarotTileImgWrap.n300005">전문가 상담 · 30,000원</span>
+
                 </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans="shell.tarotTile.tarotTileBody.kdriwl7">베다점 전문가 상담</span>
@@ -17590,6 +17616,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                       <span class="pvc-meta-badge" data-cd-trans="shell.tarotTileBody.pvcPremMeta.kv9f8rk">즉시 상담</span>
                       <span class="pvc-meta-badge pvc-meta-badge--cta" data-cd-trans="shell.tarotTileBody.pvcPremMeta.kn1803y">베다점 상담 받기</span>
                     </div>
+                  <div class="cd-card-pricing"><span data-cd-price-key="vedic-ai-consultation" class="tarot-tile__coin-badge" data-cd-trans="shell.tarotTile.tarotTileImgWrap.n300005" data-price-krw="30000">전문가 상담 · 30,000원</span></div>
                   </div>
                 </a>
 
@@ -17601,7 +17628,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                 <div class="tarot-tile__img-wrap" data-cd-marker="karma-destiny-home-static-image-v20260703" data-img-src="/feature-details/assets/karma-destiny-ai-320.webp" data-img-alt="운명의 업 대표 이미지">
                     <img class="tarot-tile__img is-loaded" alt="운명의 업 대표 이미지" width="200" height="150" loading="lazy" decoding="async" fetchpriority="low" data-cd-trans-attr="alt:shell.tarotTile.tarotTileImgWrap.k1scb7d8.alt" src="/feature-details/assets/karma-destiny-ai-320.webp" srcset="/feature-details/assets/karma-destiny-ai-320.webp 320w, /feature-details/assets/karma-destiny-ai-480.webp 480w, /feature-details/assets/karma-destiny-ai-960.webp 960w">
                     <span class="tarot-tile__badge tarot-tile__badge--new" data-cd-trans="shell.tarotTile.tarotTileImgWrap.k1tna4h3">전문가 상담</span>
-                    <span class="tarot-tile__coin-badge" data-cd-trans="shell.tarotTile.tarotTileImgWrap.n300006">전문가 상담 · 30,000원</span>
+
                 </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.soulKarmaTitle">운명의 업</span>
@@ -17616,6 +17643,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                       <span class="pvc-meta-badge" data-cd-trans data-key="home.premiumArchive.total12Meta">전문가 상담</span>
                       <span class="pvc-meta-badge pvc-meta-badge--cta" data-cd-trans data-key="home.premiumArchive.soulCtaMeta">운명의 업 상담 받기</span>
                     </div>
+                  <div class="cd-card-pricing"><span data-cd-price-key="karma-destiny-ai-consultation" class="tarot-tile__coin-badge" data-cd-trans="shell.tarotTile.tarotTileImgWrap.n300006" data-price-krw="30000">전문가 상담 · 30,000원</span></div>
                   </div>
                 </a>
 
@@ -17627,7 +17655,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                   <div class="tarot-tile__img-wrap" data-img-src="/feature-details/assets/naming-ai-320.webp" data-img-alt="사주 맞춤 작명 대표 이미지">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">名</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NAMING</span>
-                    <span class="tarot-tile__coin-badge" data-cd-trans="shell.tarotTile.tarotTileImgWrap.n300007">전문가 작명 · 30,000원</span>
+
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans="shell.tarotTile.tarotTileBody.k3baulf">훈민정음 작명소</span>
@@ -17642,6 +17670,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                       <span class="pvc-meta-badge" data-cd-trans="shell.tarotTileBody.pvcPremMeta.k1tna4h33">전문가 상담</span>
                       <span class="pvc-meta-badge pvc-meta-badge--cta" data-cd-trans="shell.tarotTileBody.pvcPremMeta.n30000">30,000원 기준</span>
                     </div>
+                  <div class="cd-card-pricing"><span data-cd-price-key="premium-naming-prompt" class="tarot-tile__coin-badge" data-cd-trans="shell.tarotTile.tarotTileImgWrap.n300007" data-price-krw="30000">전문가 작명 · 30,000원</span></div>
                   </div>
                 </a>
               </div>
@@ -17691,6 +17720,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans data-key="home.simpleHome.miniGames">미니 운세 게임</span>
                     <span class="tarot-tile__desc" data-cd-trans data-key="home.simpleHome.miniGamesDesc">포커·오미쿠지·FPTI 등 10종</span>
+                  <div class="cd-card-pricing"><span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.freeBadge">무료</span></div>
                   </div>
                 </a>
 
@@ -17703,11 +17733,12 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                        data-img-alt="AI 반려동물 사주 대표 이미지" data-cd-trans-attr="data-img-alt:home.tiles.petSajuAlt">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🐾</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
-                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.freeBadge">무료</span>
+
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.petSajuTitle">🐾 AI 반려동물 사주</span>
                     <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.petSajuDesc">우리 아이 오행과 궁합</span>
+                  <div class="cd-card-pricing"><span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.freeBadge">무료</span></div>
                   </div>
                 </a>
 
@@ -17720,17 +17751,19 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">💕 LOVE CODE</span>
                     <span class="tarot-tile__desc" data-cd-trans="shell.tarotTile.tarotTileBody.k1ruvdto">사주 연애 시뮬레이션</span>
+                  <div class="cd-card-pricing"><span class="tarot-tile__coin-badge" data-cd-price-key="love-code" data-price-krw="7000">7,000원</span></div>
                   </div>
                 </a>
 
                 <a class="tarot-tile tarot-tile--animal-cycle" href="/saju/animal-destiny/" data-action="openAnimalDestinyRoute" data-feature-key="animal-destiny-unlock" data-tile-lock-key="animal-destiny-unlock" data-tile-lock-cost="70" data-coin-cost="70" data-price-krw="7000" data-fallback-href="/saju/animal-destiny/" aria-label="십이운성 동물점 시작" data-cd-trans-attr="aria-label:shell.miscCollection.featCollectionGrid.k1u4tnr8.ariaLabel">
                   <div class="tarot-tile__img-wrap" data-img-src="/images/feature-details/animal-guardian-unlock-480.webp" data-img-alt="십이운성 동물점 대표 이미지">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">獸</span></div>
-                    <span class="tarot-tile__coin-badge">1회 7,000원</span>
+
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans="shell.tarotTile.tarotTileBody.kzo1yhl">獸 십이운성 동물점</span>
                     <span class="tarot-tile__desc" data-cd-trans="shell.tarotTile.tarotTileBody.kstndh6">운명 동물 도감</span>
+                  <div class="cd-card-pricing"><span data-cd-price-key="animal-destiny-unlock" class="tarot-tile__coin-badge" data-price-krw="7000">1회 7,000원</span></div>
                   </div>
                 </a>
 
@@ -17741,19 +17774,21 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans="shell.tarotTile.tarotTileBody.klifgdg">緣 인연의 장소</span>
                     <span class="tarot-tile__desc" data-cd-trans="shell.tarotTile.tarotTileBody.kir1rde">장소와 타이밍</span>
+                    <div class="cd-card-pricing"><span class="tarot-tile__coin-badge" data-cd-price-key="destiny_meeting_place" data-price-krw="7000">7,000원</span></div>
                   </div>
                 </a>
 
-                <a class="tarot-tile tarot-tile--psychotest" href="/ja/psychotest/" data-action="openPsychotestHub" data-fallback-href="/psychotest/" data-feature-key="psychotest-reading" data-coin-cost="30" data-price-krw="3000" aria-label="심리테스트 시작" data-cd-trans-attr="aria-label:home.tiles.psychotestHubAria">
+                <a class="tarot-tile tarot-tile--psychotest" href="/ja/psychotest/" data-action="openPsychotestHub" data-fallback-href="/psychotest/" data-cd-price-free="true" aria-label="심리테스트 시작" data-cd-trans-attr="aria-label:home.tiles.psychotestHubAria">
                   <div class="tarot-tile__img-wrap" data-img-src="/feature-details/assets/psychotest-320.webp" data-img-alt="심리테스트 대표 이미지" data-cd-trans-attr="data-img-alt:home.tiles.psychotestHubAlt">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🧠</span></div>
                     <img class="tarot-tile__img" src="/feature-details/assets/psychotest-320.webp" alt="심리테스트 대표 이미지" width="200" height="150" loading="lazy" decoding="async" data-cd-trans-attr="alt:home.tiles.psychotestHubImgAlt">
                     <span class="tarot-tile__badge tarot-tile__badge--new">PSYCHO</span>
-                    <span class="tarot-tile__coin-badge">테스트 1회 3,000원</span>
+
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.psychotestHubTitle">🧠 심리테스트 허브</span>
                     <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.psychotestHubDesc">22종 무료 테스트</span>
+                  <div class="cd-card-pricing"><span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.freeBadge">무료</span></div>
                   </div>
                 </a>
 
@@ -17762,11 +17797,12 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🌸</span></div>
                     <img class="tarot-tile__img" src="/fuctionassets/연이의 마음 별자리.webp" alt="연이의 마음 별자리 대표 이미지" width="200" height="150" loading="lazy" decoding="async" data-cd-trans-attr="alt:home.tiles.yeonStarHugTileImgAlt">
                     <span class="tarot-tile__badge tarot-tile__badge--new">HUG</span>
-                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.freeBadge">무료</span>
+
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.yeonStarHugTileTitle">🌸 연이의 마음 별자리</span>
                     <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.yeonStarHugTileDesc">오늘 마음을 꼭 안아줄게</span>
+                  <div class="cd-card-pricing"><span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.freeBadge">무료</span></div>
                   </div>
                 </a>
 
@@ -17775,13 +17811,14 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">✨</span></div>
                     <img class="tarot-tile__img" alt="최애운명 대표 이미지" width="200" height="150" loading="lazy" decoding="async" data-cd-trans-attr="alt:home.tiles.favoriteDestinyImgAlt" src="/feature-details/assets/bias-destiny-320.webp" srcset="/feature-details/assets/bias-destiny-320.webp 320w, /feature-details/assets/bias-destiny-480.webp 480w, /feature-details/assets/bias-destiny-960.webp 960w" sizes="(max-width: 768px) 180px, 480px">
                     <span class="tarot-tile__badge tarot-tile__badge--new">FANDESTINY</span>
-                    <span class="tarot-tile__coin-badge">1회 5,000원</span>
+
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.favoriteDestinyTitle">✨ 최애운명</span>
                     <span class="tarot-tile__desc" data-cd-trans data-key="home.tiles.favoriteDestinyDesc">포토카드 무드 리딩</span>
+                  <div class="cd-card-pricing"><span data-cd-price-key="destiny-bias-analyze" class="tarot-tile__coin-badge" data-price-krw="5000">1회 5,000원</span></div>
                   </div>
-                </a>
+</a>
               </div>
             </div>
 
@@ -20440,7 +20477,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
 <script data-cd-lazy-src="/js/core/saju/basicFortunePresentation.js?v=build-6891fb41d4aa" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-ba2380db1771" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script defer src="/js/core/index-inline-runtime.js?v=build-db5f439b88ea" data-cd-saju-prompt-marker="saju-ai-consultation-flow-v20260706 saju-ai-calibration-v20260706 saju-ai-llm-result-v20260625 sukuyo-guardian-drawing-v20260625 sukuyo-pastlife-v2-20260621" data-cd-kemet-ai-prompt-marker="kemet-ai-prompt-generator-v20260619"></script>
+<script defer src="/js/core/index-inline-runtime.js?v=build-b25ba03ac3bb" data-cd-saju-prompt-marker="saju-ai-consultation-flow-v20260706 saju-ai-calibration-v20260706 saju-ai-llm-result-v20260625 sukuyo-guardian-drawing-v20260625 sukuyo-pastlife-v2-20260621" data-cd-kemet-ai-prompt-marker="kemet-ai-prompt-generator-v20260619"></script>
 <script defer src="/js/pwa-install-prompt.js?v=build-1c2525b7d8f2"></script>
 <script data-cd-lazy-src="/js/admin-flower.js" data-cd-mobile-delay="2"></script>
 <div class="share-toast" id="shareToast"></div>
@@ -20560,7 +20597,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
     if (!shareUrl) return Promise.reject(new Error('share_url_missing'));
     // 지금 보고 있는 언어의 셸·미리보기 카드로 공유한다(js/share.js). 아직 안 실렸으면 서버 URL 그대로.
     if (typeof window.cdLocalizeShareUrl === 'function') shareUrl = window.cdLocalizeShareUrl(shareUrl);
-    var shareImageUrl = 'https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-1820b60d09b5';
+    var shareImageUrl = 'https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-67baa6acc500';
     if (typeof window.cdLocalizeShareImage === 'function') shareImageUrl = window.cdLocalizeShareImage(shareImageUrl);
     renderShareUrl(shareUrl, tr('kakaoReferral.rewardReady', '초대 링크가 준비됐어요. 친구 가입 완료 시 추천 보상이 지급됩니다.'));
     return loadKakaoSdk(payload.kakaoJavascriptKey).then(function(ok){
@@ -33894,7 +33931,7 @@ function updateBadge() {
 <!-- jsPDF removed from initial bundle; load on demand only if a feature requires it -->
 <script data-cd-noncritical-src="/js/sibyl-system.js?v=build-1969477b5929" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
 <script src="/js/cd-lazy-feature-loader.js" defer></script>
-<script type="module" src="/js/app.js?v=build-28028ba863d4"></script>
+<script type="module" src="/js/app.js?v=build-175cd442fc30"></script>
 <!-- Feature Preview Panel v2 -->
 <template id="tilePvwOverlayTemplate" data-component="MobileFeatureBottomSheetTemplate">
 <div id="tilePvwOverlay" class="tile-pvw-overlay cd-detail-overlay MobileFeatureBottomSheet" data-cd-detail-overlay="" data-component="MobileFeatureBottomSheet" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="tilePvwTitle" data-marker="main-overlay-dedupe-v20260625 mobile-feature-bottom-sheet-v20260701 feature-marketing-detail-v20260702">
@@ -34318,7 +34355,7 @@ function updateBadge() {
 (function(){
   'use strict';
   var D={
-    '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-1820b60d09b5',fallbackCta:'운명 카드 만들기'},
+    '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-67baa6acc500',fallbackCta:'운명 카드 만들기'},
     gotoZiweiPremium:{cat:'프리미엄 · 자미두수 전문가 상담',fallbackTitle:'자미두수 전문가 상담',tagline:'명궁·신궁·12궁·사화·대운·세운 흐름을 바탕으로 지금의 질문에 답합니다.',feats:['입력은 무료 — 상담 생성 버튼을 누를 때 30,000원 단건 결제 또는 이용권·월정석 확인','결제 확인이 끝나면 상담문이 바로 생성','명궁·재백·관록·부부·질액궁을 질문에 맞춰 연결 해석','상담 결과를 화면에서 바로 확인하고 추가 질문 이어가기'],cost:'30,000원 · 전문가 상담',ct:'paid',img:'/fuctionassets/jamipremiun.webp',fallbackCta:'자미두수 상담 받기'},
     '/neo-operation-room':{cat:'프리미엄 · 운명 작전실',fallbackTitle:'네오의 팩폭 운명 작전실',tagline:'사주·자미두수·베다점·점성술의 지도를 한 장의 전략처럼 펼쳐, 지금 밀리는 전선과 다시 잡아야 할 기준을 또렷하게 짚습니다.',feats:['30,000원 상담 이용권 확인','결제 완료 후 네오의 작전실로 바로 이동','사주와 별자리 흐름을 함께 비추는 종합 상담','현재 고민에 맞춘 선택 기준과 다음 행동 정리'],cost:'30,000원 · 전문가 상담',ct:'paid',img:'https://assets.code-destiny.com/DestinyWar/%EB%84%A4%EC%98%A4%EC%9D%98%20%ED%8C%A9%ED%8F%AD%20%EC%9A%B4%EB%AA%85%20%EC%9E%91%EC%A0%84%EC%8B%A4.webp',fallbackCta:'작전실 열기'},
     openNamingPromptModal:{cat:'작명 · 전문가 상담',fallbackTitle:'훈민정음 작명소',tagline:'생년월일시와 원하는 이름 조건을 바탕으로 용신·소리오행·한자 의미·수리 풀이를 종합해 전문가가 직접 이름을 짓고, 그 결과를 만든 프롬프트 원문까지 함께 드립니다.',feats:['입력과 무료 초안 추천은 무료로 열립니다','프리미엄 작명 시작 시 30,000원 단건 결제 또는 이용권·월정석 확인이 진행됩니다','사주 보완, 인명용 한자, 소리오행, 자원오행, 원형이정 수리를 종합한 완성형 결과 제공','결제 검증 후 전문가 작명 결과와 PDF 저장, 생성에 사용된 프롬프트 원문까지 다시 확인할 수 있습니다'],cost:'30,000원 · 이용권/월정석 가능',ct:'paid',img:'/fuctionassets/naming.webp',fallbackCta:'작명 시작하기'},
@@ -34363,7 +34400,7 @@ function updateBadge() {
     openRuneOracle:{cat:'스톤헨지 · 룬 오라클',fallbackTitle:'ᚠ 스톤헨지 룬 오라클',tagline:'바이킹 전사들이 전투 전날 뽑았던 그 룬 — 오늘 내린 결정이 맞는지 룬 문자가 답합니다',feats:['고대 퓨사크 24룬 완전 정통 해석','정방향·역방향 모든 상황 적용','지금 직면한 결정에 룬이 구체적으로 답함','켈트 전통 스톤헨지 의식 감성 비주얼'],cost:'5,000원',ct:'paid',img:'/fuctionassets/rune.webp'},
     openGeomancyOracle:{cat:'지오맨시 · 흙점',fallbackTitle:'⟁ 지오맨시 흙점',tagline:'아라비아 왕국의 재상들이 국가 대사를 결정할 때 쓴 대지의 신탁 — 16행 점이 오늘 방향을 알려줍니다',feats:['중동·아프리카 4000년 전통 흙점 완전 분석','16개 점 패턴으로 보는 오늘 내가 해야 할 것','돈·사랑·진로 중 지금 집중해야 할 방향 파악','감성적 사막 아트 비주얼 리딩'],cost:'5,000원',ct:'paid',img:'/fuctionassets/geomancy.webp'},
     openRoyalTeaOracle:{cat:'영국 홍차점 · 타세오그래피',fallbackTitle:'🫖 영국 홍차점',tagline:'빅토리아 여왕도 중요한 결정 전에 찻잎의 징조를 살폈습니다 — 왕실의 찻잎 문양이 오늘의 운명을 전합니다',feats:['영국 왕실 전통 타세오그래피 의식 완전 체험','찻잎 형태 20가지 상징 심층 해독 & 적용','오늘 내가 반드시 알아야 할 운명의 메시지','빅토리아 시대 감성 왕실 리포트'],cost:'3,000원',ct:'paid',img:'/fuctionassets/london.webp'},
-    '/oracle/sikojen-povailu':{cat:'핀란드 주석점 · 북유럽 새해 의식',fallbackTitle:'🐷 핀란드 돼지 주석점',tagline:'작은 돼지 연이가 반짝이는 주석 그림자를 따라 올해의 행운, 사랑, 돈의 징조를 부드럽게 전해줍니다.',feats:['녹은 주석이 물에 닿는 순간 피어나는 새해 징조 리딩','귀여운 돼지 연이와 함께 고르는 금전·연애·행운 주머니','주석 형상과 그림자 메시지로 보는 겉운과 속마음의 흐름','결과를 예쁜 의식 카드처럼 확인하고 바로 공유 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-1820b60d09b5'},
+    '/oracle/sikojen-povailu':{cat:'핀란드 주석점 · 북유럽 새해 의식',fallbackTitle:'🐷 핀란드 돼지 주석점',tagline:'작은 돼지 연이가 반짝이는 주석 그림자를 따라 올해의 행운, 사랑, 돈의 징조를 부드럽게 전해줍니다.',feats:['녹은 주석이 물에 닿는 순간 피어나는 새해 징조 리딩','귀여운 돼지 연이와 함께 고르는 금전·연애·행운 주머니','주석 형상과 그림자 메시지로 보는 겉운과 속마음의 흐름','결과를 예쁜 의식 카드처럼 확인하고 바로 공유 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-67baa6acc500'},
     '/destiny-poker.html':{cat:'데스티니 포커',fallbackTitle:'🃏 데스티니 포커',tagline:'달빛 카드 살롱에서 마스터와 포커를 즐기고, 왕 카드가 전하는 오늘의 한 수를 읽어보세요.',feats:['네 마스터와 겨루는 세븐 카드 포커','아몬·이슈타르·타나토스·메타트론','왕 카드와 두 장의 트럼프로 읽는 창작 운세','문양과 숫자에서 찾는 작은 실천'],cost:'✨ 무료',ct:'free',img:'/assets/destiny-poker/card-salon-v1.webp'},
     openLoveSimulation:{cat:'사주 · 연애 시뮬레이션',fallbackTitle:'💕 LOVE CODE',tagline:'사주 오행으로 두 사람의 관계 결을 살피고 가상 데이트에서 선택의 흐름을 경험합니다.',feats:['사주 8글자 기반 연애 페르소나 자동 생성','오행 궁합으로 찾는 상성과 주의할 관계 패턴','일간별 실시간 채팅으로 연애 케미 직접 체험','8가지 데이트 코스에서 선택에 따라 달라지는 이야기'],cost:'회당 5,000원',ct:'paid',img:'/fuctionassets/love code.webp'},
     openAstroModal:{cat:'점성술 · 기본 출생차트',fallbackTitle:'✨ 서양 점성술 기본 출생차트',tagline:'태양 별자리·달 별자리·상승궁과 MC로 나를 이해하는 5분 기본 리딩입니다.',feats:['출생 정보 신뢰도와 계산 기준 표시','태양 별자리·달 별자리·상승궁 3축 통합 해석','MC·10하우스·6하우스 기반 역할 조건','상대 차트 교차 분석은 시너스트리 궁합으로 확장'],cost:'✨ 기본 무료 · 시너스트리 궁합 3,000원',ct:'free',img:'/fuctionassets/jumsung.webp'},
@@ -38308,7 +38345,7 @@ function updateBadge() {
         tile.setAttribute('data-price-krw',String(pricing.amountKRW||0));
         tile.setAttribute('data-payment-amount-krw',String(pricing.amountKRW||0));
         tile.setAttribute('data-cd-price-source','billing-features');
-        if(badge&&!badge.classList.contains('tarot-tile__coin-badge--free'))badge.textContent=pricing.displayPrice;
+        if(badge&&!badge.hasAttribute('data-cd-price-key')&&!badge.classList.contains('tarot-tile__coin-badge--free'))badge.textContent=pricing.displayPrice;
       }else if(_hasPaidPreviewSignal(tile)){
         tile.setAttribute('data-cd-pricing-state','missing');
         if(badge&&!badge.classList.contains('tarot-tile__coin-badge--free'))badge.textContent=_pvwTr('preview.priceUnknown','가격 확인 필요');
@@ -40809,7 +40846,7 @@ html.neo-mode .tile-pvw-hero-gradient,body.neo-mode .tile-pvw-hero-gradient{back
 .tile-pvw-hero-cost{flex:0 0 auto;align-self:center;min-height:26px;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tile-pvw-hero-cat{background:rgba(60,24,48,.82);border-color:rgba(234,208,137,.5);color:#fff8dc;backdrop-filter:none;-webkit-backdrop-filter:none}
 /* 가격은 금액이 주인공 — 조금 더 크고 진하게, 골드 테두리로 한 단계 위계를 준다 */
-.tile-pvw-hero-cost{background:var(--cd-price-bg);border-color:rgba(234,208,137,.62);color:var(--cd-price-text);font-size:.72rem;letter-spacing:0;backdrop-filter:none;-webkit-backdrop-filter:none}
+.tile-pvw-hero-cost{background:var(--cd-price-bg);border-color:rgba(234,208,137,.62);color:var(--cd-price-text);font-size:var(--cd-t-body);line-height:1.6;letter-spacing:0;backdrop-filter:none;-webkit-backdrop-filter:none}
 .tile-pvw-hero-cost--free{border-color:rgba(110,231,183,.55);color:#d1fae5}
 html.neo-mode .tile-pvw-hero-cat,body.neo-mode .tile-pvw-hero-cat{background:rgba(9,7,24,.84);border-color:rgba(196,181,253,.46);color:#e9e2ff}
 
