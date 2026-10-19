@@ -1,0 +1,37 @@
+---
+status: blocked
+updated: 2026-10-19
+next: "선행 main CI의 mobile-journeys 실패 해결을 확인하고 헤더 변경을 main에 통합, pre-push와 push 후 CI 확인, 워크트리 정리를 수행한다."
+---
+
+# 모바일 계정 헤더
+
+- 작업 디렉터리: `D:/Development/codedestiny-worktrees/mobile-account-20261019-121010`
+- 브랜치: `wt/mobile-account-20261019-121010`
+- 시작 SHA: `c0d99edcbeb3ee19b360fcdb9beaae79bf464ca9`
+- 헤더 코드 커밋: `a7e0f4767218f9800d86da2d0c6020cb9ea82ee8` (`fix(ui): prevent mobile account header overlap`).
+- 요청: 모바일 헤더 겹침 해결, 가능한 한 줄 유지, 내 계정 핑크 강조.
+- 변경: `styles/home-funnel.css`의 640px 이하 헤더 그리드 최소 콘텐츠 너비, 간격과 토글 폭; 359px 이하 압축; 회원 버튼 #b53660/흰 글자/44px 높이.
+- 정적 생성: `npm run sync:public`으로 CSS 미러 1개와 HTML 셸 7개에 인라인 반영. 루트 index.html은 생성기 캐시 해시만 바뀜. 총 10개 변경 파일은 기계 비교로 헤더 블록과 build 해시 외 변경 없음을 확인.
+- 기존 main 미추적 `.claude/skills/fire-your-seo-agency/`, `docs/handoff/ggulggul-master-repair-release.md`는 이 작업 소유가 아니다. 보존.
+- 결제/인증/API/DB 로직과 이용권·월정석·단건 결제 정책 변경 없음. SEO 본문/메타/색인 정책 변경 없음(이미지 URL 캐시 키만 생성기가 갱신).
+
+## 검증
+- git diff --check 통과.
+- PostCSS 구문 파싱, CSS 미러 및 7개 셸 헤더 블록 일치 통과.
+- 스크립트와 외부 요청을 차단한 실제 헤더 HTML/CSS 렌더: 320/360/390/430/768/1440px × 밝은/어두운 테마 × guest/member 24조합, 겹침·가로 넘침 없음. 모바일 회원 버튼 핑크/흰색 및 높이 44px 확인. 이는 헤더 렌더 검증이며 실제 로그인/계정 시트 런타임 검증을 대신하지 않는다.
+- 캡처: `C:/Users/user/.codex/visualizations/2026/10/19/01a15222-8abc-76d1-bc3f-c99e1eda4c06/mobile-account-light.png`, `mobile-account-dark.png`.
+- Impeccable detector 실행 완료: 기존 CSS의 폰트 크기 advisory 및 기존 width transition 경고 포함. 새 전역 디자인 변경 없음.
+- `npm run check:fast` 종료 코드 0: 결제/인증 가드 90/90, 타입 검사, 사이트맵 1022 URL 일치, Node 테스트 3412/3412 통과. 실 LLM/실결제 호출 없이 mock guard 적용.
+- `npm run check:pre-push` 종료 코드 0: 서비스 레지스트리, 정적 미러 재생성 일치, 사이트맵, llms.txt, SEO entity 62 profiles 통과.
+- `npm run verify:handoff-contract` 통과. main의 자체 임시 캡처·검증 스크립트 13개는 제거했고 최종 캡처는 visualizations에 보존.
+
+## 전달 차단 근거
+- 확인한 main SHA: `613d0dd5b08b76854b6d0b7e05ea973d776ac717`.
+- CI: https://github.com/rei1237/codedestiny/actions/runs/39209678366
+- Static guards / Verify mobile journeys 실패: `360px: browser back left body scroll locked`. CI required도 실패.
+- 사용자 저장소 규칙에 따라 실패 main 위 push 금지. 이번 헤더 변경은 이 CI에 포함되지 않았다. 운영 승격은 하지 않는다.
+- main은 시작 SHA 이후 다른 변경이 진행됐으므로 통합 시 generated shell과 CSS 충돌을 확인하고 다른 세션 변경을 유지한다.
+
+## 재개
+`D:/Development/codedestiny-worktrees/mobile-account-20261019-121010`에서 `D:/Development/codedestiny-worktrees/mobile-account-20261019-121010/docs/handoff/mobile-account-header.md`를 읽고 코드 커밋 `a7e0f4767218f9800d86da2d0c6020cb9ea82ee8`과 최신 main CI를 확인한다. 선행 실패가 해결되면 main 통합 → 필요한 정적 미러 재생성 → check:pre-push → 원격 SHA 확인 → main push → CI 1회 확인. 완료 시 이 문서를 done으로 닫고 자기 워크트리만 정리한다. 미통합 커밋이 있어 현재 워크트리는 보존한다.
