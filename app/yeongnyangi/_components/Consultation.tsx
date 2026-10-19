@@ -1,5 +1,6 @@
 "use client";
 import {getQuestionGuide,questionScopeEntry} from "@/lib/fortune/question-journey";
+import {CONSULTATION_DRAFT_KEY as loginDraftKey} from '@/lib/fortune/question-entry';
 import IntakeChat,{type PreparationStep} from './IntakeChat';
 import {emptyIntakeDecision,intakeFish,type IntakeValue} from '../_lib/intake-chat';
 import {PREVENTION_TITLE} from '@/worker/lib/fortune-prevention.js';
@@ -57,7 +58,6 @@ import CraftedProductDisclosure from '@/app/components/CraftedProductDisclosure'
 import {localizedTarotQuestionFeatures} from '../_lib/tarot-plan-locales';
 import {tarotSpreadCopyFor} from '../_lib/tarot-spread-locales';
 import {localizedTarotSpread} from '../_lib/tarot-spread-catalog-locales';
-const loginDraftKey='yeongnyangi:consultation-login-draft';
 const hasReviews=visibleReviews().length>0;
 // Every locale opens tarot on the question-first spread order.
 const defaultKind=(domainId:string)=>domainId==='tarot'?consultationKinds.tarot.find(k=>k.id===TAROT_SPREAD_KIND)!:consultationKinds[domainId][0];
