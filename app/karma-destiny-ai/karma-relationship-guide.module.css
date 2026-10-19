@@ -1,0 +1,19 @@
+.fields { min-width: 0; padding: 24px 0 0; margin: 24px 0; border: 0; border-top: 1px solid #795764; }
+.fields legend { padding: 0 12px 0 0; color: #f5dfd8; font-size: 20px; font-weight: 700; }
+.fields > p, .guide > p { color: #d4c2c6; font-size: 14px; line-height: 1.8; margin: 8px 0 20px; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.grid label { display: grid; gap: 8px; min-width: 0; color: #f5dfd8; font-size: 14px; }
+.wide { grid-column: 1 / -1; }
+.grid input, .grid textarea { box-sizing: border-box; width: 100%; min-width: 0; min-height: 46px; border: 1px solid #80646d; border-radius: 8px; padding: 12px; background: #201c25; color: #fff2ec; font: inherit; font-size: 16px; line-height: 1.6; caret-color: #f2b9bc; }
+.grid textarea { resize: vertical; }
+.grid input::placeholder, .grid textarea::placeholder { color: #bfaeb5; opacity: 1; }
+.grid input:focus-visible, .grid textarea:focus-visible { outline: 2px solid #f0c27c; outline-offset: 3px; }
+.fields:disabled { opacity: .7; }
+.guide { text-align: left; padding-bottom: 16px; }
+.guide > img { display: block; width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: cover; border-radius: 10px; margin-bottom: 24px; }
+.guide h3 { margin: 0; color: #f5dfd8; font-size: clamp(21px, 2.4vw, 26px); line-height: 1.45; word-break: keep-all; }
+.guide ol { list-style: none; padding: 0; margin: 24px 0 0; border-top: 1px solid #795764; }
+.guide li { padding: 16px 0; border-bottom: 1px solid #59424d; }
+.guide strong { display: block; color: #f2b9bc; font-size: 16px; }
+.guide li p { margin: 6px 0 0; color: #d4c2c6; font-size: 14px; line-height: 1.8; }
+@media (max-width: 480px) { .grid { grid-template-columns: 1fr; } }

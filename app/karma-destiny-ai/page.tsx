@@ -13,7 +13,7 @@ import { buildKrwOffer } from "@/lib/seo/paid-offer";
 const PAGE_PATH = "/karma-destiny-ai/";
 const PAGE_TITLE = "네오와 서한비의 붉은 실 | 운명의 업 전문가 상담";
 const PAGE_DESCRIPTION =
-  "네오와 서한비의 붉은 실 상담실에서 반복되는 선택과 관계의 매듭을 살펴보세요. 사주·자미두수·숙요·점성술·베다의 근거를 바탕으로 현실적인 행동을 정리합니다.";
+  "네오와 서한비의 붉은 실 상담실에서 되풀이되는 관계의 매듭을 살펴보세요. 사주·자미두수·서양 점성술·베다·숙요로 타고난 성향, 관계의 초기 신호와 경계, 인연을 풀어갈 행동을 정리합니다.";
 
 export const metadata: Metadata = {
   title: PAGE_TITLE,
@@ -40,6 +40,10 @@ export const metadata: Metadata = {
 };
 
 const karmaFaqItems = [
+  {
+    question: "특정 상대와 되풀이되는 나쁜 관계도 살펴볼 수 있나요?",
+    answer: "상대의 별칭과 관계, 반복되는 장면, 나와 상대의 반응을 선택 입력할 수 있습니다. 본인의 계산된 성향과 보고한 상황을 연결해 반복 고리, 초기 신호, 경계의 말과 거리 조절 기준을 살핍니다. 상대의 속마음이나 전생의 빚을 단정하거나 상대 명식 없이 궁합을 계산하지 않습니다.",
+  },
   {
     question: "운명의 업 전문가 상담은 무엇을 봐주나요?",
     answer:

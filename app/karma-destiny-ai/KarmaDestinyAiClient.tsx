@@ -1,9 +1,10 @@
 "use client";
 import ConsultationMasterIntro, { masterPreparationLabel } from "@/app/components/ConsultationMasterIntro";
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
+import { KarmaRelationshipFields, KarmaRelationshipGuide, emptyRelationshipContext, type RelationshipContext } from "./KarmaRelationshipGuide";
 
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
-import { CalendarDays, Clock3, Download, Loader2, MapPin, Maximize2, Send, Sparkles, WalletCards, X } from "lucide-react";
+import { CalendarDays, Download, Loader2, MapPin, Maximize2, Send, Sparkles, WalletCards, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import {
   beginPaidFeatureGateCheck,
@@ -51,6 +52,7 @@ type ConsultationForm = {
   birthPlace: BirthPlace;
   focusArea: FocusAreaType;
   question: string;
+  relationshipContext: RelationshipContext;
 };
 
 type ChatMessage = {
@@ -1815,6 +1817,7 @@ const defaultForm = (): ConsultationForm => ({
   },
   focusArea: "overall",
   question: "",
+  relationshipContext: emptyRelationshipContext(),
 });
 
 function applyProfileSeedToForm(form: ConsultationForm, profile: AiPrefillSeed): ConsultationForm {
@@ -1883,6 +1886,7 @@ function buildConsultationPayload(form: ConsultationForm) {
     timezone: birthPlace.timezone,
     focusArea: form.focusArea,
     question: form.question.trim(),
+    ...(Object.values(form.relationshipContext).some(value => value.trim()) ? { relationshipContext: form.relationshipContext } : {}),
     locale: detectLocale(),
     birthInfo: {
       name: form.name.trim(),
@@ -2269,6 +2273,7 @@ function KarmaResultModal({
 
 export default function KarmaDestinyAiPage() {
   const copy = useKarmaDestinyCopy();
+  const locale = getCurrentLoadingLocale();
   const [form, setForm] = useState<ConsultationForm>(() => buildInitialForm());
   const [status, setStatus] = useState<FlowStatus>("idle");
   const [notice, setNotice] = useState("");
@@ -2362,6 +2367,11 @@ export default function KarmaDestinyAiPage() {
     const target = event.target;
     const value = target instanceof HTMLInputElement && target.type === "checkbox" ? target.checked : target.value;
     setForm((prev) => ({ ...prev, [field]: value } as ConsultationForm));
+    resetAttempt();
+  };
+
+  const updateRelationshipContext = (relationshipContext: RelationshipContext) => {
+    setForm(current => ({ ...current, relationshipContext }));
     resetAttempt();
   };
 
@@ -2724,6 +2734,7 @@ export default function KarmaDestinyAiPage() {
               {FOCUS_AREA_OPTIONS.map((option) => <option key={option.value} value={option.value}>{copy.focusAreaLabel[option.value]}</option>)}
             </select>
           </label>
+          <KarmaRelationshipFields value={form.relationshipContext} onChange={updateRelationshipContext} locale={locale} disabled={isBusy} />
           <label className="kdai-topic">
             {copy.questionLabel}
             <textarea
@@ -2808,11 +2819,7 @@ export default function KarmaDestinyAiPage() {
 
           <div className="kdai-messages">
             {messages.length === 0 ? (
-              <div className="kdai-empty">
-                <div className="kdai-karma-ring" aria-hidden="true"><Clock3 size={28} /></div>
-                <p>{copy.emptyStateTitle}</p>
-                <span>{copy.emptyStateDesc}</span>
-              </div>
+              <KarmaRelationshipGuide locale={locale} />
             ) : messages.map((message, index) => (
               <article key={`${message.role}-${index}`} className={`kdai-message kdai-message--${message.role}`}>
                 <span>{message.role === "assistant" ? copy.assistantRoleLabel : copy.userRoleLabel}</span>
@@ -3367,48 +3374,6 @@ export default function KarmaDestinyAiPage() {
           gap: 12px;
           overflow: auto;
           padding-right: 4px;
-        }
-
-        .kdai-empty {
-          position: relative;
-          display: grid;
-          place-content: center;
-          min-height: 360px;
-          text-align: center;
-          color: rgba(249, 240, 220, .72);
-        }
-
-        .kdai-karma-ring {
-          position: relative;
-          display: grid;
-          place-items: center;
-          width: 94px;
-          aspect-ratio: 1;
-          margin: 0 auto 12px;
-          border: 1px solid rgba(239, 204, 137, .38);
-          border-radius: 50%;
-          color: #f1cd7c;
-          background:
-            conic-gradient(from 0deg, rgba(239, 204, 137, .24), transparent 24%, rgba(190, 18, 60, .22), transparent 68%, rgba(244, 114, 182, .18)),
-            rgba(255, 252, 243, .04);
-          box-shadow: inset 0 0 0 12px rgba(255, 255, 255, .025), 0 0 30px rgba(248, 208, 111, .16);
-          animation: kdaiSlowTurn 18s linear infinite;
-        }
-
-        .kdai-karma-ring svg {
-          color: #f1cd7c;
-          animation: kdaiReverseTurn 18s linear infinite;
-        }
-
-        .kdai-empty p {
-          margin: 0 0 8px;
-          color: #f1cd7c;
-          font-size: 18px;
-          font-weight: 900;
-        }
-
-        .kdai-empty span {
-          font-size: 14px;
         }
 
         .kdai-message {
