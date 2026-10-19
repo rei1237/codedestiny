@@ -121,6 +121,18 @@ function canGoBackToPreviousScreen(paymentReturn: boolean): boolean {
   }
 }
 
+function returnToPreviousScreen(event: MouseEvent<HTMLAnchorElement>, paymentReturn = false): void {
+  if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || !canGoBackToPreviousScreen(paymentReturn)) return;
+  event.preventDefault();
+  window.history.back();
+}
+
+function saveQuestionEdit(reading: FortuneRecord | null): void {
+  if (!reading?.consultation?.questionDecision) return;
+  try { sessionStorage.setItem('yeongnyangi:consultation-login-draft', JSON.stringify({path:FISH_CHOOSER_PATH,savedAt:Date.now(),productId:reading.productId,profileId:reading.profileId,question:reading.consultation.question,questionDecision:reading.consultation.questionDecision,editScope:true,locale:reading.locale})); }
+  catch { /* The question form remains usable without local storage. */ }
+}
+
 /** SoulCat 모드(requestId 없음)의 결정론적 requestId 재료. 서버 idempotency 키는 120자 상한만 있고
  * charset 제약은 없다 — 이 정리는 가독성용이지 정확성 요건이 아니다. */
 function stableSlug(value: string): string {
@@ -141,8 +153,9 @@ function SavedConsultationCheckout({requestId,featureKey}:{requestId:string;feat
   if(!catalog.products.some(product=>product.cdFeatureKey===featureKey&&product.available))throw new Error('현재 이 상담을 준비할 수 없어요. 잠시 후 다시 확인해 주세요.');setRecord(fortune);
  }).catch(e=>{if(active){if(e instanceof FortuneApiError&&e.status===401)redirectToLogin();else setError(e.message);}});return()=>{active=false;};},[requestId,featureKey,revision]);
  const product=products.find(item=>item.cdFeatureKey===featureKey);
- return <main className={styles.page} data-yn-night><nav className={styles.nav}><a href="/yeongnyangi/">영냥이로 돌아가기</a><a href="/yeongnyangi/library/">내 상담 기록</a></nav>
+ return <main className={styles.page} data-yn-night><nav className={styles.nav}><a href="/yeongnyangi/" onClick={event=>returnToPreviousScreen(event)}>영냥이로 돌아가기</a><a href="/yeongnyangi/library/">내 상담 기록</a></nav>
   {error?<p role="alert">{error} <button type="button" onClick={()=>setRevision(n=>n+1)}>다시 확인하기</button></p>:record&&product?<YeongnyangiCheckout draft={{product,question:record.consultation?.question||product.name,chapters:record.manifest.length,ready:true,onPrepare:async()=>{const next=await fortuneApi<{fortune:FortuneRecord}>(`requests/${requestId}`);return next.fortune;},children:<p>준비한 상담 내용으로 이어갑니다. 결제를 취소해도 같은 상담에서 다시 확인할 수 있어요.</p>}}/>:<p role="status">상담 내용을 확인하고 있어요.</p>}
+  {record&&<a href={FISH_CHOOSER_PATH} className={styles.back} onClick={()=>saveQuestionEdit(record)}>질문 조건 수정하기</a>}
  </main>;
 }
 function PreparedCheckoutClient() {
@@ -325,9 +338,7 @@ function PreparedCheckoutClient() {
   const leaveHref = isSoulCatMode ? params.returnTo : DEFAULT_RETURN_TO;
   const chooseHref = isSoulCatMode ? params.returnTo : FISH_CHOOSER_PATH;
   const leaveToPreviousScreen = (event: MouseEvent<HTMLAnchorElement>) => {
-    if (isSoulCatMode || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || !canGoBackToPreviousScreen(params.paymentReturn)) return;
-    event.preventDefault();
-    window.history.back();
+    if (!isSoulCatMode) returnToPreviousScreen(event, params.paymentReturn);
   };
 
   const showTierDepth = Boolean(reading?.manifest?.some(isConciseReading) && product && readingTierDepth(product.fishId,lang));
@@ -407,8 +418,7 @@ function PreparedCheckoutClient() {
                 {gate.phase === "confirming" ? <p role="status">{gate.message}</p> : null}
               </div>
               <a href={chooseHref} className={styles.back} onClick={()=>{
-                if(isSoulCatMode||!reading?.consultation?.questionDecision)return;
-                try{sessionStorage.setItem('yeongnyangi:consultation-login-draft',JSON.stringify({path:FISH_CHOOSER_PATH,savedAt:Date.now(),productId:reading.productId,profileId:reading.profileId,question:reading.consultation.question,questionDecision:reading.consultation.questionDecision,editScope:true,locale:reading.locale}));}catch{/* The question form remains usable without local storage. */}
+                if(!isSoulCatMode)saveQuestionEdit(reading);
               }}>{!isSoulCatMode&&lang==='ko'?'질문 조건 수정하기':copy.reselect}</a>
               <p className={styles.security}>
                 <a href={policyHrefs.terms}>{copy.legalTerms}</a> · <a href={policyHrefs.refund}>{copy.legalRefund}</a> · <a href={policyHrefs.support}>{copy.legalSupport}</a>
