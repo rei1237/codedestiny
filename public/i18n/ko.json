@@ -228,7 +228,7 @@
         "title": "VVIP 운명 서고",
         "subtitle": "당신의 별자리와 사주, 인연의 기록을 한 권의 비밀 문서로 엮어드립니다.",
         "lede": "가볍게 스쳐 보는 운세가 아니라, 삶·사랑·돈·관계·전환점을 깊게 펼쳐 읽는 프리미엄 해석 컬렉션입니다.",
-        "featureline": "자미두수 · 숙요점 · 점성술 · 베다점 · 운명의 업",
+        "featureline": "전문가 상담 · 초융합 운세",
         "aria": "VVIP 운명 서고 열기"
       },
       "misc": {
@@ -327,8 +327,8 @@
       "psychoDreamDesc": "Freud · British Study",
       "sukuyoPremiumTitle": "숙요점 프리미엄 궁합",
       "astroReportTitle": "점성술 전문가 상담",
-      "soulKarmaTitle": "운명의 업",
-      "soulKarmaDesc": "반복되는 삶의 패턴과 지금 풀어야 할 운명의 매듭을 읽습니다.",
+      "soulKarmaTitle": "네오와 서한비의 붉은 실",
+      "soulKarmaDesc": "네오와 서한비가 반복되는 선택과 관계의 매듭을 함께 읽습니다.",
       "psychotestHubTitle": "🧠 심리테스트 허브",
       "psychotestHubDesc": "22종 무료 테스트",
       "aiOmikujiTitle": "🤖 전문가 이모이 오미쿠지",
@@ -447,7 +447,7 @@
       "dreamTarotAlt": "드림 타로 — 꿈의 잔향을 전문가 상담 문장으로 봉인",
       "psychoDreamAria": "정신분석 해몽 시작",
       "psychoDreamAlt": "정신분석 해몽 — 프로이트 관점의 보고서",
-      "soulKarmaAria": "운명의 업 상세 보기",
+      "soulKarmaAria": "네오와 서한비의 붉은 실 · 운명의 업 상담 상세 보기",
       "psychotestHubAria": "심리테스트 시작",
       "psychotestHubAlt": "심리테스트 대표 이미지",
       "psychotestHubImgAlt": "심리테스트 대표 이미지",
@@ -767,7 +767,7 @@
       "soulPoint1": "사주·베다점·서양 점성술 통합 상담",
       "soulPoint2": "반복되는 관계·돈·가족·선택 패턴 해석",
       "soulPoint3": "화면에서 바로 받는 해방 방향과 행동 전략",
-      "soulCtaMeta": "운명의 업 상담 받기"
+      "soulCtaMeta": "붉은 실 상담 받기"
     },
     "passFooter": {
       "aria": "이용권 하단 안내",
@@ -1896,6 +1896,11 @@
       "master_master": "마스터",
       "summaryAll": "전체 서비스 {count}개",
       "summaryFiltered": "조건에 맞는 서비스 {count}개"
+    },
+    "masterArchive": {
+      "fusionTitle": "초융합 운세",
+      "fusionDesc": "다섯 마스터가 여섯 체계를 교차해 삶의 흐름과 다음 선택을 읽습니다.",
+      "fusionPrice": "전문가 상담 · 50,000원"
     }
   },
   "footer": {
@@ -4411,7 +4416,7 @@
         "k11zwfx7": "네이탈 차트와 현재 행성의 흐름을 바탕으로, 지금 가장 궁금한 질문에 답합니다.",
         "k18rbd8l": "태어난 순간의 명반이 하나의 섬으로 태어납니다. 12궁 건물을 돌아보며 연이·네오와 함께 오늘의 흐름을 만나보세요.",
         "k1934dgw": "명식과 대운·세운의 결을 따라 삶, 일, 재물, 관계의 큰 흐름을 깊게 펼칩니다.",
-        "k1eszqn1": "라그나와 나크샤트라, 행성의 흐름으로 지금의 질문을 차분히 풀어드립니다.",
+        "k1eszqn1": "윤달이 라그나·나크샤트라·다샤를 삶의 언어로 풀어드립니다.",
         "k1hprjge": "명궁, 신궁, 12궁과 사화의 흐름을 지금의 질문에 맞춰 풀어드립니다.",
         "k1nhxtvn": "자미두수 운명의 섬",
         "k1ruvdto": "사주 연애 시뮬레이션",
@@ -4451,7 +4456,7 @@
         "ksb1e44": "숙요점 궁합 전문가 상담",
         "kdyem8n": "자미두수 전문가 상담",
         "k1jaids8": "점성술 전문가 상담",
-        "kdriwl7": "베다점 전문가 상담",
+        "kdriwl7": "윤달의 베다점 상담",
         "k1ncgm2q": "사주와 오행, 소리와 한자의 뜻을 엮어 전문가가 직접 이름을 짓고, 그 프롬프트 원문까지 함께 드립니다.",
         "kyx3hb8": "휴먼 디자인",
         "k1o6s45i": "나를 설계한 에너지 지도. 출생 순간의 천체와 88° 이전의 또 다른 나를 함께 계산해, 타입·전략·권위·프로파일이 어디서 나왔는지까지 보여 드립니다."

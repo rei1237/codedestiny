@@ -273,7 +273,7 @@
     },
     {
       "slug": "karma-destiny-ai",
-      "title": "운명의 업",
+      "title": "네오와 서한비의 붉은 실",
       "href": "/karma-destiny-ai/",
       "featureKey": "karma-destiny-ai-consultation",
       "accessType": "unknown",
@@ -1324,7 +1324,7 @@
     },
     {
       "slug": "vedic-ai",
-      "title": "베다점 전문가 상담",
+      "title": "윤달의 베다점 상담",
       "href": "/vedic-ai",
       "featureKey": "vedic-ai-consultation",
       "accessType": "paid",
@@ -6100,7 +6100,7 @@
     },
     "karma-destiny-ai": {
       "slug": "karma-destiny-ai",
-      "title": "운명의 업",
+      "title": "네오와 서한비의 붉은 실",
       "href": "/karma-destiny-ai/",
       "featureKey": "karma-destiny-ai-consultation",
       "featureKeyTo": "",
@@ -6132,7 +6132,7 @@
       ],
       "contents": [
         {
-          "title": "운명의 핵심 주제 · 근원 · 현재 삶의 흐름"
+          "title": "네오와 서한비의 붉은 실"
         },
         {
           "title": "업의 핵심 과제 · 인간관계의 업 · 사랑의 업"
@@ -6176,8 +6176,8 @@
         ]
       },
       "theme": "navy",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/karma-destiny-ai-480.webp",
@@ -11467,7 +11467,7 @@
     },
     "vedic-ai": {
       "slug": "vedic-ai",
-      "title": "베다점 전문가 상담",
+      "title": "윤달의 베다점 상담",
       "href": "/vedic-ai",
       "featureKey": "vedic-ai-consultation",
       "featureKeyTo": "",
@@ -11530,8 +11530,8 @@
       },
       "imageAlt": "베다점 전문가 상담의 천문 관측 장면을 담은 오리지널 일러스트",
       "theme": "saffron",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/vedic-ai-480.webp",

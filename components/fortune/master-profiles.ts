@@ -134,6 +134,13 @@ export const masterAvatars = {
 
 /** 대표 상담 히어로 마스터 띠 — 짧은 역할과 캐릭터 말투 한 줄. 긴 소개는 위 masterProfiles 가 맡는다. */
 export const productMasters = {
+  karma: [
+    { name: "네오", role: "반복되는 선택과 행동의 방향", avatar: masterAvatars.neo, line: "같은 매듭이라면, 이번에는 다른 선택을 찾아보자." },
+    { name: "서한비", role: "관계의 거리와 마음의 매듭", avatar: masterAvatars.hanbi, line: "이어진 마음과 놓아도 되는 마음을 천천히 살펴드릴게요." },
+  ],
+  vedic: [
+    { name: "윤달", role: "베다점 · 별의 자리와 시기의 흐름", avatar: masterAvatars.yun, line: "지금 지나가는 별의 계절을, 당신의 일상과 함께 읽어볼게요." },
+  ],
   love: [
     { name: "연이", role: "마음을 먼저 듣는 연애 상담가", avatar: masterAvatars.yeoniLove, line: "설레는 마음도, 서운한 마음도 먼저 들려주세요. 끝까지 들을게요." },
     { name: "서한비", role: "두 사람 사이의 거리를 재는 사람", avatar: masterAvatars.hanbiLove, line: "두 분 사이의 거리는 제가 재어 드릴게요. 서두르지 않되, 흐려 두지도 않겠습니다." },

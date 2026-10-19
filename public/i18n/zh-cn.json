@@ -283,7 +283,7 @@
         "title": "VVIP命运书库",
         "subtitle": "将你的星盘、八字与缘分记录汇成一份秘密文档。",
         "lede": "不只是轻轻看过的运势，而是深入展开人生、爱情、金钱、关系与转折点的高级解读合集。",
-        "featureline": "紫微斗数 · 宿曜 · 占星 · 吠陀 · 灵魂业力",
+        "featureline": "专家咨询 · 超融合运势",
         "aria": "打开 VVIP 命运档案"
       },
       "misc": {
@@ -388,7 +388,7 @@
       "astroReportDesc": "将土星、交点、行运与宫位流向叠加在太阳、月亮、上升上读取转折点。",
       "vedicPremiumTitle": "吠陀高级PDF",
       "vedicPremiumDesc": "展开拉格纳与纳克沙特拉所诉说的灵魂方向。",
-      "soulKarmaTitle": "命运之业",
+      "soulKarmaTitle": "尼奥与徐韩妃的红线",
       "soulKarmaDesc": "你从何处而来，又为了化解什么来到此生？",
       "psychotestHubTitle": "🧠 心理测试中心",
       "psychotestHubDesc": "22种免费测试",
@@ -2047,6 +2047,11 @@
       "master_master": "大师",
       "summaryAll": "全部 {count} 项服务",
       "summaryFiltered": "符合条件的服务 {count} 项"
+    },
+    "masterArchive": {
+      "fusionTitle": "超融合运势",
+      "fusionDesc": "五位导师交叉解读六种体系，梳理人生走向与下一步选择。",
+      "fusionPrice": "专家咨询 · 50,000韩元"
     }
   },
   "terms": {
@@ -7509,7 +7514,7 @@
         "ksb1e44": "宿曜合婚专家咨询",
         "kdyem8n": "紫微斗数专家咨询",
         "k1jaids8": "占星专家咨询",
-        "kdriwl7": "吠陀占星专家咨询",
+        "kdriwl7": "润月的吠陀占星咨询",
         "k1ncgm2q": "专家将命盘与五行、字音与汉字之义编织在一起亲自取名，并连同提示词原文一并奉上。",
         "kyx3hb8": "人类图",
         "k1o6s45i": "设计出你的能量地图。我们同时计算出生当下的天体与 88° 之前的另一个你，连你的类型、策略、权威与人生角色从何而来都一并呈现。"

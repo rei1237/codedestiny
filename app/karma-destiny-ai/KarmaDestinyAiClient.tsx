@@ -1,8 +1,9 @@
 "use client";
+import ConsultationMasterIntro, { masterPreparationLabel } from "@/app/components/ConsultationMasterIntro";
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
-import { CalendarDays, Clock3, Download, Loader2, MapPin, Maximize2, Moon, Send, Sparkles, WalletCards, X } from "lucide-react";
+import { CalendarDays, Clock3, Download, Loader2, MapPin, Maximize2, Send, Sparkles, WalletCards, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import {
   beginPaidFeatureGateCheck,
@@ -2593,21 +2594,13 @@ export default function KarmaDestinyAiPage() {
 
   return (
     <main className={`kdai-page ${polish.page}`} data-karma-destiny-ai="v20260629">
-      <section className="kdai-hero" aria-label={copy.heroAriaLabel}>
-        <div className="kdai-hero__copy">
-          <div className="kdai-kicker"><Moon size={16} /> Karma · Saju · Astrology · Vedic Reading</div>
-          <h2>{copy.heroTitle}</h2>
-          <p>{copy.heroDescription}</p>
-          <div className="kdai-status" data-status={status}>
-            {isBusy ? <Loader2 size={16} className="kdai-spin" /> : <Sparkles size={16} />}
-            <span>{statusText}</span>
-          </div>
-          {accessType && <p className="kdai-access">{copy.accessTypeLabelPrefix}{accessType}</p>}
-          <a className={polish.heroCta} href="#karma-destiny-consultation">
-            운명의 패턴 해석 준비하기
-          </a>
+      <ConsultationMasterIntro kind="karma" label={copy.heroTitle} lead={copy.heroDescription} actionHref="#karma-destiny-consultation">
+        <div className="kdai-status" data-status={status} role="status">
+          {isBusy ? <Loader2 size={16} className="kdai-spin" /> : <Sparkles size={16} />}
+          <span>{statusText}</span>
         </div>
-      </section>
+        {accessType && <p className="kdai-access">{copy.accessTypeLabelPrefix}{accessType}</p>}
+      </ConsultationMasterIntro>
 
       <ExpertValueCards
         theme="karma"
@@ -2634,7 +2627,7 @@ export default function KarmaDestinyAiPage() {
         </div>
       </section>
 
-      {getCurrentLoadingLocale() === "ko" && <div style={{width:"100%",maxWidth:540,margin:"24px auto",position:"relative",zIndex:1,textAlign:"left",color:"#463a31",background:"#eee7dc",borderRadius:12}}><CraftedProductDisclosure featureKey="karma-destiny-ai-consultation" summaryLabel="운명의 업 상담 상세 안내" /></div>}
+      {getCurrentLoadingLocale() === "ko" && <div style={{width:"100%",maxWidth:540,margin:"24px auto",position:"relative",zIndex:1,textAlign:"left",color:"#463a31",background:"#eee7dc",borderRadius:12}}><CraftedProductDisclosure featureKey="karma-destiny-ai-consultation" summaryLabel="붉은 실 · 운명의 업 상담 상세 안내" /></div>}
       <section className="kdai-workspace">
         <form id="karma-destiny-consultation" className="kdai-form kdai-panel" onSubmit={handleSubmit}>
           <div className="kdai-panel-title kdai-panel-title--split">
@@ -2860,7 +2853,7 @@ export default function KarmaDestinyAiPage() {
         <ExpertStickyCta
           theme="karma"
           targetId="karma-destiny-consultation"
-          label="상담 정보 입력하기"
+          label={masterPreparationLabel(getCurrentLoadingLocale())}
           price={<PriceBadge featureKey="karma-destiny-ai-consultation" prefix="" />}
         />
       )}
@@ -3149,6 +3142,7 @@ export default function KarmaDestinyAiPage() {
           background: rgba(255, 252, 243, .09);
           color: #fff7df;
           font: inherit;
+          font-size: 16px;
           outline: none;
           transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
         }

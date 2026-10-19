@@ -283,7 +283,7 @@
         "title": "VVIP नियति अभिलेख",
         "subtitle": "आपके तारे, साजू और संबंधों की कथा एक गुप्त दस्तावेज़ में संजोई जाती है।",
         "lede": "जीवन, प्रेम, धन, संबंध और मोड़ को गहराई से खोलने वाला प्रीमियम व्याख्या संग्रह।",
-        "featureline": "ज़ी वेई · सुकुयो · ज्योतिष · वैदिक · आत्म कर्म",
+        "featureline": "विशेषज्ञ परामर्श · संयुक्त विश्लेषण",
         "aria": "वीवीआईपी डेस्टिनी आर्काइव खोलें"
       },
       "misc": {
@@ -388,7 +388,7 @@
       "astroReportDesc": "सूर्य, चंद्र और लग्न पर शनि, नोड, ट्रांज़िट और भाव प्रवाह रखकर मोड़ पढ़ता है।",
       "vedicPremiumTitle": "वैदिक प्रीमियम PDF",
       "vedicPremiumDesc": "लग्न और नक्षत्र द्वारा कही गई आत्मा की दिशा खोलता है।",
-      "soulKarmaTitle": "आत्म कर्म",
+      "soulKarmaTitle": "नियो और सियो हानबी का लाल धागा",
       "soulKarmaDesc": "आप कहाँ से आए, और इस जीवन में क्या सुलझाने पहुँचे?",
       "psychotestHubTitle": "🧠 मनोवैज्ञानिक टेस्ट हब",
       "psychotestHubDesc": "22 मुफ़्त क्विज़",
@@ -2047,6 +2047,11 @@
       "master_master": "मास्टर",
       "summaryAll": "{count} सेवाएँ",
       "summaryFiltered": "{count} मेल खाती सेवाएँ"
+    },
+    "masterArchive": {
+      "fusionTitle": "संयुक्त भाग्य विश्लेषण",
+      "fusionDesc": "पाँच मार्गदर्शक छह परंपराओं से जीवन की दिशा और अगले विकल्पों को समझते हैं।",
+      "fusionPrice": "विशेषज्ञ परामर्श · 50,000 KRW"
     }
   },
   "terms": {
@@ -7375,7 +7380,7 @@
         "ksb1e44": "विशेषज्ञ परामर्श: नक्षत्र अनुकूलता",
         "kdyem8n": "विशेषज्ञ परामर्श: ज़ी वेई दोउ शू",
         "k1jaids8": "विशेषज्ञ परामर्श: ज्योतिष",
-        "kdriwl7": "विशेषज्ञ परामर्श: वैदिक ज्योतिष",
+        "kdriwl7": "युन-दल का वैदिक परामर्श",
         "k1ncgm2q": "विशेषज्ञ जन्म चार्ट, पंच तत्व, ध्वनि और प्रत्येक अक्षर के अर्थ को बुनकर स्वयं नाम रखते हैं — और मूल प्रॉम्प्ट भी साथ देते हैं।",
         "kyx3hb8": "Human Design",
         "k1o6s45i": "The energy map you were designed from. We calculate the sky at your birth alongside the other you from 88° earlier, and show where your type, strategy, authority and profile actually come from."

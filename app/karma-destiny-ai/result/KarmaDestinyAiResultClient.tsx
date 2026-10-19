@@ -1,5 +1,6 @@
 "use client";
 
+import ConsultationMasterIntro from "@/app/components/ConsultationMasterIntro";
 import Link from "next/link";
 import { authFetch } from "@/app/_lib/auth-client";
 import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
@@ -1165,6 +1166,8 @@ function KarmaDestinyResultInner() {
   return (
     <main className="kdai-result-page">
       {notice && <div className="kdai-toast">{notice}</div>}
+
+      <ConsultationMasterIntro kind="karma" compact />
 
       {isGenerating && (
         <ObservatoryLoader

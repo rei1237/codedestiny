@@ -1,4 +1,5 @@
 "use client";
+import ConsultationMasterIntro from "@/app/components/ConsultationMasterIntro";
 import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
 import { cleanTopics, reportAdviceTopics } from "@/js/recommendations-context.mjs";
 import PaidResultImageGuide from "@/components/fortune/PaidResultImageGuide";
@@ -204,6 +205,7 @@ export default function VedicAiResultClient() {
 
   return (
     <main className={styles.shell} data-vedic-ai-page="result-route-v20260704">
+      <ConsultationMasterIntro kind="vedic" compact />
       <section className={styles.resultPanel}>
         {consultation.status !== "completed" && <div className={styles.resumeStatus} role="status"><h2>{COPY.resumeTitle}</h2><p>{COPY.resumeBody}</p><button type="button" className={styles.resultListItem} onClick={() => setResumeEpoch(value => value + 1)}>{COPY.resumeButton}</button></div>}
         <div className={styles.chatList}>

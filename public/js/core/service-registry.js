@@ -257,15 +257,15 @@ window.__cdServiceRegistry = [
   },
   {
     id: "karma-destiny-ai",
-    name: "운명의 업",
+    name: "네오와 서한비의 붉은 실",
     question: "나는 왜 비슷한 사람에게 계속 끌릴까?",
-    desc: "지금의 흐름을 만든 업의 흐름을 읽는 상담",
+    desc: "네오와 서한비가 반복되는 선택과 관계의 매듭을 읽는 상담",
     href: "/karma-destiny-ai/",
     featureKey: "karma-destiny-ai-consultation",
     price: "30,000원",
     purposes: ["life", "self"],
     methods: ["vedic", "ai"],
-    keys: "업 카르마 전생 인과",
+    keys: "운명의업 붉은실 네오 서한비 카르마 전생 인과",
   },
   {
     id: "saju-guardian",

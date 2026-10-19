@@ -102,7 +102,7 @@ test('restored hero artwork, catalog reuse, and collection previews stay in sync
   const wrappers = [...fragment.querySelectorAll('.tarot-tile__img-wrap')];
   let mappedCards = 0;
 
-  assert.equal(wrappers.length, 57);
+  assert.equal(wrappers.length, 58);
   for (const wrapper of wrappers) {
     const tile = wrapper.closest('.tarot-tile');
     const attr = name => tile?.getAttribute(name);
@@ -140,7 +140,7 @@ test('restored hero artwork, catalog reuse, and collection previews stay in sync
     const staticImage = wrapper.querySelector('img');
     if (staticImage) assert.equal(staticImage.getAttribute('src'), expected, `${slug}: static and deferred previews differ`);
   }
-  assert.equal(mappedCards, 47);
+  assert.equal(mappedCards, 48);
   assert.equal(wrappers.length - mappedCards, 10);
 
   const restored = {

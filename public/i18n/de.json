@@ -283,7 +283,7 @@
         "title": "VVIP-Schicksalsarchiv",
         "subtitle": "Deine Sterne, dein Saju und deine Bindungen werden zu einem geheimen Dokument.",
         "lede": "Eine Premiumkollektion, die Leben, Liebe, Geld, Beziehungen und Wendepunkte tief auslegt.",
-        "featureline": "Zi Wei · Sukuyo · Astrologie · Vedisch · Seelenkarma",
+        "featureline": "Expertenberatung · Fusionsdeutung",
         "aria": "Öffnen Sie das VVIP Destiny-Archiv"
       },
       "misc": {
@@ -388,7 +388,7 @@
       "astroReportDesc": "Liest Wendepunkte durch Saturn, Knoten, Transite und Häuserfluss über Sonne, Mond und Aszendent.",
       "vedicPremiumTitle": "Vedisches Premium PDF",
       "vedicPremiumDesc": "Öffnet die Seelenrichtung, die Lagna und Nakshatra aussprechen.",
-      "soulKarmaTitle": "Seelenkarma",
+      "soulKarmaTitle": "Der rote Faden von Neo und Seo Hanbi",
       "soulKarmaDesc": "Woher kommst du, und was bist du in diesem Leben gekommen zu lösen?",
       "psychotestHubTitle": "🧠 Psychotest-Hub",
       "psychotestHubDesc": "22 kostenlose Tests",
@@ -2047,6 +2047,11 @@
       "master_master": "Meister",
       "summaryAll": "{count} Angebote",
       "summaryFiltered": "{count} passende Angebote"
+    },
+    "masterArchive": {
+      "fusionTitle": "Fusionsdeutung",
+      "fusionDesc": "Fünf Meister verbinden sechs Traditionen, um Lebensmuster und nächste Entscheidungen zu betrachten.",
+      "fusionPrice": "Expertenberatung · 50,000 KRW"
     }
   },
   "terms": {
@@ -7509,7 +7514,7 @@
         "ksb1e44": "Expertenberatung: Sukuyo-Partnerschaftsanalyse",
         "kdyem8n": "Expertenberatung: Zi Wei Dou Shu",
         "k1jaids8": "Expertenberatung: Astrologie",
-        "kdriwl7": "Expertenberatung: vedische Astrologie",
+        "kdriwl7": "Vedische Beratung mit Yun-dal",
         "k1ncgm2q": "Eine Fachperson vergibt den Namen, indem sie Geburtsdiagramm, Fünf Elemente, Klang und Zeichenbedeutung verwebt – und übergibt Ihnen zusätzlich den ursprünglichen Prompt.",
         "kyx3hb8": "Human Design",
         "k1o6s45i": "The energy map you were designed from. We calculate the sky at your birth alongside the other you from 88° earlier, and show where your type, strategy, authority and profile actually come from."

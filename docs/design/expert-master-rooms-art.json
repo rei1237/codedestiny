@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-20",
+  "tool": "built-in image_gen",
+  "variants": [480, 768, 1536],
+  "format": "WebP, proportional resize, quality 86",
+  "assets": [
+    {
+      "name": "karma-red-thread",
+      "source": "exec-ff83923e-88d5-422f-9d1f-7f5ae63597ff.png",
+      "references": ["public/images/master-profiles/neo-strategy-portrait.webp", "public/images/master-profiles/hanbi-sukuyo-portrait.webp"],
+      "output": "public/images/expert-consulting/karma-red-thread-1536.webp",
+      "prompt": "Create a premium Korean fantasy editorial illustration for Code Destiny's 'Red Thread' karma consultation. Use the two attached portraits as identity references, preserve these exact adult characters: Neo is silver-haired blue-eyed male in navy military formalwear and white cape with restrained gold detail; Seo Hanbi is long black-haired female in indigo coat dress with a closed antique ledger. Landscape 3:2 composition, waist-up duo together at a dark walnut consulting table in a moonlit archive. A delicate crimson silk thread links several open notebook pages and their gently poised hands, representing recurring relationship patterns and considered choices, not binding their bodies. Neo is focused and pragmatic, Hanbi calm and perceptive. Both equally visible with clean faces in central safe area for responsive crop. Hand-painted polished manhwa fantasy illustration, same style as references, refined burgundy-indigo palette, soft moonlight, tactile paper and fabric. No text, no Korean glyphs, no lettering, no logos, no watermark, no decorative borders. This is final website artwork, not a UI mockup."
+    },
+    {
+      "name": "yun-vedic",
+      "source": "exec-3dd46d2f-cf48-4724-b3cd-529e48e5b5ed.png",
+      "references": ["public/images/master-profiles/yun-astrology-portrait.webp"],
+      "output": "public/images/expert-consulting/yun-vedic-1536.webp",
+      "prompt": "Use case: stylized-concept. Create final premium website artwork for Yun-dal's Vedic Jyotish consultation. The attached image is an identity and style reference. Preserve exactly this adult male fantasy counselor: violet-black swept hair loosely tied at nape, gentle confident smile, navy traditional long coat decorated with subtle moon patterns, ivory standing-collar undergarment, silver crescent earring and antique pendant. Landscape 3:2 waist-up composition, Yun-dal clearly central, welcoming the reader across a polished wood desk, one relaxed hand beside an open astronomical notebook. Setting: moonlit scholarly observatory with finely carved stone arches, a small brass celestial instrument and a tasteful circular star map in the background suggesting Vedic nakshatras and planetary periods. Elegant teal-indigo shadows and muted brass highlights. Hand-painted polished Korean manhwa fantasy illustration matching reference, tactile fabric and paper, quiet intelligent warmth. Keep face and torso within central safe crop, no UI, no text of any language, no pseudo writing, no logos or watermark, no borders. Avoid unrelated religious icons or western zodiac glyphs; this is a master counselor portrait, not an astronomical diagram."
+    }
+  ]
+}

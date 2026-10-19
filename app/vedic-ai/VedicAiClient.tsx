@@ -1,4 +1,5 @@
 "use client";
+import ConsultationMasterIntro, { masterPreparationLabel } from "@/app/components/ConsultationMasterIntro";
 import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
 import { cleanTopics, reportAdviceTopics } from "@/js/recommendations-context.mjs";
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
@@ -3313,28 +3314,9 @@ export default function VedicAiClient() {
 
   return (
     <main className={styles.shell} data-vedic-ai-page="direct-route-v20260627">
-      <section className={styles.hero}>
-        <div className={styles.starLayer} aria-hidden="true" />
-        <div className={styles.heroInner}>
-          <div className={styles.copy}>
-            <span className={styles.eyebrow}><Sparkles size={16} /> Jyotish · Vedic Star Counsel</span>
-            <h2>{copy.heroTitle}</h2>
-            <p>{copy.heroLead}</p>
-            <div className={styles.heroMeta}>
-              <span>{copy.heroPrice}</span>
-              <span>{copy.heroDashaBadge}</span>
-            </div>
-            <a className={styles.heroCta} href="#vedic-consultation-form">나의 별빛 상담 열기</a>
-          </div>
-          <div className={styles.mandalaStage} aria-hidden="true">
-            <div className={styles.templeInstrument}>
-              <span className={styles.instrumentMoon} />
-              <span className={styles.instrumentHalo} />
-              <span className={styles.instrumentCaption}>NAKSHATRA</span>
-            </div>
-          </div>
-        </div>
-      </section>
+      <ConsultationMasterIntro kind="vedic" label={copy.heroTitle} lead={copy.heroLead} actionHref="#vedic-consultation-form">
+        <PriceBadge featureKey="vedic-ai-consultation" prefix={copy.pricePrefix} />
+      </ConsultationMasterIntro>
 
       <ExpertValueCards
         theme="vedic"
@@ -3350,7 +3332,7 @@ export default function VedicAiClient() {
           {!consultation && detectLocale() === "ko" && <CraftedProductDisclosure featureKey="vedic-ai-consultation" />}
           <div className={`${styles.panelHeader} flex-wrap`}>
             <span className="min-w-0 flex-1"><Star size={18} /> {copy.formPanelHeading}</span>
-            <strong>Vedic AI</strong>
+            <strong>{getCurrentLoadingLocale() === "ko" ? "마스터 윤달" : "Yun-dal"}</strong>
             <button
               type="button"
               onClick={loadFormFromProfileCard}
@@ -3547,7 +3529,7 @@ export default function VedicAiClient() {
         <ExpertStickyCta
           theme="vedic"
           targetId="vedic-consultation-form"
-          label="별빛 상담 준비하기"
+          label={masterPreparationLabel(getCurrentLoadingLocale())}
           price={<PriceBadge featureKey="vedic-ai-consultation" prefix="" />}
         />
       )}

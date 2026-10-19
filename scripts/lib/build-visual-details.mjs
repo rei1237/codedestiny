@@ -67,6 +67,18 @@ function writeJsonAtomic(destination, value, spacing = 0) {
   }
 }
 
+// Readers may retain the previous image on Windows. Publish a complete new file,
+// just as JSON above, rather than truncating an image currently being displayed.
+async function writeImageAtomic(pipeline, destination) {
+  const temporary = `${destination}.${process.pid}.tmp`;
+  try {
+    await pipeline.toFile(temporary);
+    fs.renameSync(temporary, destination);
+  } finally {
+    if (fs.existsSync(temporary)) fs.unlinkSync(temporary);
+  }
+}
+
 // Explicit review gate. New registry entries stay source-inventory-only until
 // their destination and product copy have been checked against shipped source.
 const REVIEWED_FEATURES = new Set([
@@ -151,7 +163,7 @@ async function craftedVariant(src, width, written) {
   const output = source.replace(/\.webp$/, `-${width}.webp`);
   written.add(output);
   if (!fs.existsSync(output) || fs.statSync(output).mtimeMs < fs.statSync(source).mtimeMs) {
-    await sharp(source).resize({ width, withoutEnlargement: true }).webp({ quality: 78 }).toFile(output);
+    await writeImageAtomic(sharp(source).resize({ width, withoutEnlargement: true }).webp({ quality: 78 }), output);
   }
   return src.replace(/\.webp$/, `-${width}.webp`);
 }
@@ -289,7 +301,7 @@ export async function writeVisualDetails(html, book) {
         const publicRoot = path.resolve(root, 'public') + path.sep;
         if (!catalogSource.startsWith(publicRoot)) throw new Error('Catalog image outside public');
         const catalogName = `${slug}-catalog-320.webp`;
-        await sharp(catalogSource).resize(320, 180, { fit: 'cover' }).webp({ quality: 76 }).toFile(path.join(directory, 'assets', catalogName));
+        await writeImageAtomic(sharp(catalogSource).resize(320, 180, { fit: 'cover' }).webp({ quality: 76 }), path.join(directory, 'assets', catalogName));
         writtenAssets.add(catalogName);
         item.catalogImage = `/feature-details/assets/${catalogName}`;
         data.index.find(entry => entry.slug === slug).catalogImage = item.catalogImage;
@@ -310,18 +322,18 @@ export async function writeVisualDetails(html, book) {
         for (const width of [...new Set([Math.min(480, meta.width), Math.min(960, meta.width)])]) {
           const name = `${stem}-${width}.webp`;
           if (!writtenAssets.has(name)) {
-            await sharp(source).resize({ width, withoutEnlargement: true }).webp({ quality: ['book', 'letter'].includes(item.material) ? 70 : 78 }).toFile(path.join(directory, 'assets', name));
+            await writeImageAtomic(sharp(source).resize({ width, withoutEnlargement: true }).webp({ quality: ['book', 'letter'].includes(item.material) ? 70 : 78 }), path.join(directory, 'assets', name));
             writtenAssets.add(name);
           }
           item.heroVariants.push({ src: `/feature-details/assets/${name}`, width });
         }
         item.image = item.heroVariants[item.heroVariants.length - 1].src;
         const cardName = `${stem}-320.webp`;
-        await sharp(source).resize(320, 180, resizeOptions).webp({ quality: 76 }).toFile(path.join(directory, 'assets', cardName));
+        await writeImageAtomic(sharp(source).resize(320, 180, resizeOptions).webp({ quality: 76 }), path.join(directory, 'assets', cardName));
         writtenAssets.add(cardName);
         item.cardImage = `/feature-details/assets/${cardName}`;
         const ogName = `${stem}-og.webp`;
-        await sharp(source).resize(1200, 630, resizeOptions).webp({ quality: 78 }).toFile(path.join(directory, 'assets', ogName));
+        await writeImageAtomic(sharp(source).resize(1200, 630, resizeOptions).webp({ quality: 78 }), path.join(directory, 'assets', ogName));
         writtenAssets.add(ogName);
         item.ogImage = `/feature-details/assets/${ogName}`;
         if (['book', 'letter'].includes(item.material)) {

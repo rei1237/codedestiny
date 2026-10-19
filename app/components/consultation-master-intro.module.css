@@ -1,0 +1,21 @@
+.room { --pe-ink: #f6eee9; --pe-muted: #d6c2bc; display: grid; grid-template-columns: 1.05fr 1fr; overflow: hidden; width: 100%; margin: 0 auto 28px; color: var(--pe-ink); background: #22171d; border: 1px solid #58434b; border-radius: 16px; }
+.room[data-master-room="vedic"] { --pe-muted: #bfcfda; background: #102630; border-color: #395361; }
+.art { display: block; width: 100%; height: 100%; min-height: 360px; object-fit: cover; object-position: center; }
+.copy { padding: clamp(22px, 3vw, 42px); align-self: center; min-width: 0; }
+.eyebrow { margin: 0 0 12px; color: var(--pe-muted); font-size: 13px; letter-spacing: .04em; }
+.copy h2 { margin: 0; font-size: clamp(27px, 3vw, 40px); line-height: 1.3; letter-spacing: -.035em; word-break: keep-all; }
+.lead { margin: 16px 0 24px; color: var(--pe-muted); font-size: 16px; line-height: 1.8; word-break: keep-all; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 20px; }
+.masters { display: grid; gap: 18px; padding: 20px 0 0; margin: 0; list-style: none; border-top: 1px solid #6e5c63; }
+.masters li { display: flex; gap: 12px; min-width: 0; }
+.masters img { flex: none; width: 48px; height: 48px; border-radius: 50%; }
+.masters strong { display: block; font-size: 16px; }
+.masters span { display: block; margin-top: 3px; color: var(--pe-muted); font-size: 13px; }
+.masters p { margin: 7px 0 0; font-size: 14px; line-height: 1.7; word-break: keep-all; }
+.actions a { display: inline-flex; align-items: center; justify-content: center; min-height: 46px; padding: 12px 18px; border: 1px solid #bda5a5; border-radius: 8px; color: #241820; background: #f4e7df; font-size: 15px; font-weight: 700; }
+.actions a:focus-visible { outline: 3px solid #f5c779; outline-offset: 4px; }
+.room[data-compact] { grid-template-columns: 160px 1fr; max-width: 1200px; }
+.room[data-compact] .art { min-height: 110px; height: 130px; }
+.room[data-compact] .copy { padding: 20px; }
+.room[data-compact] h2 { font-size: clamp(20px, 3vw, 27px); }
+@media(max-width:960px) { .room { grid-template-columns: 1fr; } .art { height: auto; min-height: 0; aspect-ratio: 3 / 2; } .room[data-compact] { grid-template-columns: 96px 1fr; } .room[data-compact] .art { height: 100%; object-position: center; } .room[data-compact] .copy { padding: 16px; } .actions { align-items: stretch; } .actions a { width: 100%; } }

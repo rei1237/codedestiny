@@ -55,7 +55,7 @@ const ROWS = [
   ["tarot-ijik", "tarot-ijik.html", /const IJIK_COIN_COST = (\d+);/g],
   ["neville-meditation", "neville-meditation.html", /var cost = (\d+);\s*\/\/[^\n]*\n\s*var paid = await _consumeMeditationCoin/g],
   ["yoga-guru-per-use", "yoga-guru.html", /const sessionCost = (\d+);/g],
-  ["maya-prompt-generator", "index.html", /href="\/maya\/"[\s\S]*?data-key="home\.tiles\.price\d+">1회 ([\d,]+)원/g, "krw"],
+  ["maya-prompt-generator", "index.html", /data-cd-price-key="maya-prompt-generator"[^>]*>1회 ([\d,]+)원/g, "krw"],
   ["ziwei_decade_luck", "js/saju-engine.js", /zwBasicPaidGateHtml\('ziwei_decade_luck', (\d+),/g],
   ["ziwei_love_deep", "js/saju-engine.js", /zwBasicPaidGateHtml\('ziwei_love_deep', (\d+),/g],
   ["ziwei_twelve_palaces", "js/saju-engine.js", /zwBasicPaidGateHtml\('ziwei_twelve_palaces', (\d+),/g],

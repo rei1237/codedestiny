@@ -9,6 +9,18 @@ import { renderFeatureDetailPanels } from '../../js/feature-detail-panels.mjs';
 const read = file => readFileSync(new URL(`../../${file}`, import.meta.url), 'utf8');
 const document = new JSDOM(read('index.html').replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '')).window.document;
 
+test('VVIP contains expert consultations and fusion while exploratory cards stay discoverable', () => {
+  const archive = document.querySelector('#premiumVvipCollection');
+  for (const cls of ['human-design', 'ziwei-island', 'destiny-compass', 'nakshatra-codex']) {
+    assert.equal(archive.querySelector(`.tarot-tile--${cls}`), null);
+    assert.ok(document.querySelector(`#cosmicCollection .tarot-tile--${cls}`));
+  }
+  assert.ok(archive.querySelector('[data-cd-price-key="fusion-fortune-consultation"]'));
+  for (const tile of archive.querySelectorAll('.tarot-tile')) {
+    assert.doesNotMatch(tile.querySelector('.cd-card-pricing').textContent, /무료/);
+  }
+});
+
 test('detail choices show every canonical option and retain the free basic entry', () => {
   assert.equal(renderFeatureDetailPanels(null), '');
   assert.equal(renderFeatureDetailPanels({verification:'source-inventory-only'}), '');
