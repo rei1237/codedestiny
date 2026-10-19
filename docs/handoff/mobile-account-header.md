@@ -1,7 +1,7 @@
 ---
 status: blocked
 updated: 2026-10-19
-next: "선행 main CI의 mobile-journeys 실패 해결을 확인하고 헤더 변경을 main에 통합, pre-push와 push 후 CI 확인, 워크트리 정리를 수행한다."
+next: "main 3383e30a3의 CI 39212582127 성공을 확인한 뒤 원격 SHA 재확인, main push, CI 1회 확인과 워크트리 정리를 수행한다."
 ---
 
 # 모바일 계정 헤더
@@ -35,3 +35,10 @@ next: "선행 main CI의 mobile-journeys 실패 해결을 확인하고 헤더 �
 
 ## 재개
 `D:/Development/codedestiny-worktrees/mobile-account-20261019-121010`에서 `D:/Development/codedestiny-worktrees/mobile-account-20261019-121010/docs/handoff/mobile-account-header.md`를 읽고 코드 커밋 `a7e0f4767218f9800d86da2d0c6020cb9ea82ee8`과 최신 main CI를 확인한다. 선행 실패가 해결되면 main 통합 → 필요한 정적 미러 재생성 → check:pre-push → 원격 SHA 확인 → main push → CI 1회 확인. 완료 시 이 문서를 done으로 닫고 자기 워크트리만 정리한다. 미통합 커밋이 있어 현재 워크트리는 보존한다.
+
+## 2026-10-19 재개 검증
+- 요청된 53bc92a93 확인 후 최신 origin/main 3383e30a3을 병합: 7a25a9adc, 충돌 없음.
+- 생성기 캐시 키 재동기화 커밋: 186e532d1. 병합 후 check:pre-push 종료 코드 0, git diff --check 통과.
+- 선행 CI 39212582127은 Risk tier, Critical checks, Typecheck and lint, Build Pages and Worker 성공이나 Static guards 실행 중. 복구 성공은 아직 미확인이며 push 보류.
+- 이번 인수인계 갱신 커밋까지 main에 fast-forward 통합한다. 다른 세션 미추적 파일 2개는 보존한다.
+- 다음: 원격 main 및 https://github.com/rei1237/codedestiny/actions/runs/39212582127 성공 확인 후 main에서 check:pre-push, git push origin main, 새 CI 1회 확인. 완료 시 status done 및 자기 워크트리 정리.
