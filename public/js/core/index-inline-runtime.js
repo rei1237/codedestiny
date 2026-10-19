@@ -1908,7 +1908,7 @@ var __cdLazyActionLoaders = {
   openDreamModal: function() { return __cdLoadScriptOnce('/js/dream-ledger.js?v=build-cf48ab7e8047'); },
   openPsychoDreamModal: function() { return __cdLoadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-f7656ba31ff5'); },
   openOlympusOracleModal: function() { return __cdLoadScriptOnce('/js/olympus-oracle.js'); },
-  openHwatuModal: function() { return __cdLoadScriptOnce('/HwatuFortune.js?v=h7c6f7751f293'); },
+  openHwatuModal: function() { return __cdLoadScriptOnce('/HwatuFortune.js?v=haecc3241c877'); },
   openJuyukModal: function() { return __cdLoadScriptOnce('/js/iching-engine.js?v=build-1bd57ce11c0e').then(function() { return __cdLoadScriptOnce('/js/iching-modal.js?v=build-ceb2b1b1a0eb'); }); },
   openRuneOracle: function() { window.location.assign('/oracle/rune/'); return Promise.resolve(true); },
   openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-b7d07cb6850b').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-4cb9efbdfb11'); }); },
@@ -2283,11 +2283,11 @@ function __cdEnsureSajuCoreLoaded() {
     '/js/core/korean-calendar.js?v=build-370c38a7da44',
     '/js/core/kasi-calendar-service.js?v=build-99c5568a4710',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
-    '/js/saju-engine.js?v=build-cad2bd9644d5',
+    '/js/saju-engine.js?v=build-aefb458735e9',
       '/js/core/saju/extremeTResult.js?v=build-5f0576c62518',
       /* 숙요 정본(Swiss 항성 달 황경). quantum.js 의 calcSukuyoData 가 이것 없이는 수(宿)를 내지 않는다. */
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-32c8496999de',
+      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-cedc00b98014',
     '/js/core/saju/basicFortunePresentation.js?v=build-6891fb41d4aa',
     '/js/core/saju/modalProfileState.js?v=build-70bc2c91ff63',
     '/js/core/saju/reportDashboard.js?v=build-8c7056e339b7',
@@ -9024,9 +9024,9 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
      * 중국 표준시 기준 음력이 섞여 자미두수 명반이 하루 밀린다). 로컬 파일이라 CDN 보다 안전하다. */
     '/js/core/korean-calendar.js?v=build-370c38a7da44',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
-      '/js/saju-engine.js?v=build-cad2bd9644d5',
+      '/js/saju-engine.js?v=build-aefb458735e9',
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-32c8496999de'
+      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-cedc00b98014'
   ];
 
   /* 🔴 예전에는 이 체인 앞에 lunar-javascript CDN 대기가 있었고, 그것이 reject 되면 생년월일

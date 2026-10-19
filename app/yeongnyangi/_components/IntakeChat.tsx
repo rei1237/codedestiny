@@ -10,8 +10,6 @@ import styles from './intake-chat.module.css';
 import ChatInputBar,{IntakeComposerContext} from './ChatInputBar';
 import CraftedProductDisclosure from '@/app/components/CraftedProductDisclosure';
 
-// 질문 단계마다 영냥이가 짓는 전신 포즈(360×300, 흰 바탕 WebP). 글자가 없는 moods 에셋만 쓴다.
-const poseByStep:Record<string,string>={question:'ponder',situation:'side-sit',options:'abacus',constraints:'blanket',period:'wink',category:'sparkle',target:'sparkle',horizon:'sparkle',relationshipType:'sparkle',domain:'sparkle',scope:'heart',review:'beam'};
 export type PreparationStep={id:string;prompt:string;answer:string;content:ReactNode;valid:boolean;pending?:boolean};
 type Props={value:IntakeValue;onChange:(next:IntakeValue)=>void;confirmed:boolean;onConfirm:()=>void;onEdit:()=>void;step:string;onStep:(step:string)=>void;voice:VoiceStyle;onLegacy:()=>void;preparation:PreparationStep[];review:ReactNode;busy:boolean};
 export default function IntakeChat({value,onChange,confirmed,onConfirm,onEdit,step,onStep,voice,onLegacy,preparation,review,busy}:Props){
@@ -77,7 +75,7 @@ export default function IntakeChat({value,onChange,confirmed,onConfirm,onEdit,st
   <header className={styles.header}>
    {index>0?<button type="button" aria-label="이전 답변으로 돌아가기" disabled={busy} onClick={()=>edit(steps[index-1])}><ArrowLeft size={20}/></button>:<a href="/yeongnyangi/" aria-label="영냥이 홈으로"><ArrowLeft size={20}/></a>}
    <img src="/assets/yeongnyangi/profiles/welcome.webp" alt="" width={44} height={44}/>
-   <div><h1>영냥이와 상담 준비</h1><p>{confirmed?'상담 정보 확인':'고민을 들려주세요'}</p></div>
+   <div><h1>영냥이에게 질문하기</h1><p>{active==='review'?'상담 내용 확인':confirmed?'상담에 필요한 정보':active==='question'?'마음에 남은 질문 하나부터':'질문과 상담 범위 정리'}</p></div>
   </header>
   <div className={styles.stage}>
   <div className={styles.transcript} ref={scroll} onScroll={e=>{const el=e.currentTarget;follow.current=el.scrollHeight-el.scrollTop-el.clientHeight<90;setAtBottom(follow.current);}}>
@@ -86,7 +84,7 @@ export default function IntakeChat({value,onChange,confirmed,onConfirm,onEdit,st
     <div className={styles.cat}><img src="/assets/yeongnyangi/profiles/welcome.webp" alt="" width={36} height={36}/><div className={styles.catBubble}>{prompt(id)}</div></div>
     <div className={styles.reply}><p>{scopeSteps.includes(id as IntakeStep)?intakeAnswer(id as IntakeStep,value)||'건너뛰었어요':preparation.find(p=>p.id===id)?.answer||'확인했어요'}</p><button type="button" disabled={busy} onClick={()=>edit(id)}>수정</button></div>
    </div>)}
-   <figure className={styles.pose} aria-hidden="true"><img src={`/assets/yeongnyangi/moods/${poseByStep[active]||'wave'}.webp`} alt="" width={360} height={300} decoding="async"/></figure>
+   {index===0&&<figure className={styles.pose} aria-hidden="true"><img src="/assets/yeongnyangi/original/hero-480.webp" alt="" width={480} height={480} decoding="async"/></figure>}
    <div className={styles.current}><img src="/assets/yeongnyangi/profiles/welcome.webp" alt="" width={36} height={36}/><div><span className={styles.name}>영냥이</span>{typing?<p className={`${styles.catBubble} ${styles.typing}`} aria-hidden="true"><i/><i/><i/></p>:<p key={active} className={styles.catBubble}>{activePrompt}</p>}</div></div>
    <div className={styles.srOnly} role="status" aria-live="polite" aria-atomic="true">{typing?'':activePrompt}</div>
    {!typing&&active==='scope'&&<div className={styles.summary}><h2>상담 내용 확인</h2><p>추천 이유: {plan.reason}</p>
@@ -98,7 +96,7 @@ export default function IntakeChat({value,onChange,confirmed,onConfirm,onEdit,st
   </div>
   {!atBottom&&<button className={styles.latest} type="button" onClick={()=>{follow.current=true;setAtBottom(true);scroll.current?.scrollTo({top:scroll.current.scrollHeight,behavior:'instant'});}}><ChevronDown size={16}/>최근 대화</button>}
   </div>
-  {active!=='review'&&<div className={styles.composer}>
+  {active!=='review'&&<div className={`${styles.composer} ${active==='question'?styles.openingComposer:''}`}>
    <div ref={setSlot}/>
    {scopeStep==='category'&&<>{questionCandidate(value.question)&&<p className={styles.help}>질문을 보면 ‘{questionTopics.find(t=>t.id===questionCandidate(value.question))?.label}’ 주제가 가까워 보여요. 직접 골라 주세요.</p>}{choices(questionTopics.map(t=>({value:t.id,label:t.label})),value.decision.category,category=>update({category:category as QuestionDecision['category'],...(category==='compatibility'?{target:'pair'}:{})}))}</>}
    {scopeStep==='target'&&choices([{value:'self',label:'내 생각·행동·선택'},{value:'pair',label:'두 사람의 궁합·관계 구조'}],value.decision.target,target=>update({target:target as QuestionDecision['target']}))}
@@ -114,7 +112,7 @@ export default function IntakeChat({value,onChange,confirmed,onConfirm,onEdit,st
     <ChatInputBar label={activePrompt} sendLabel="답장 보내기" disabled={!valid||busy} onSend={next}><textarea ref={field} rows={1} maxLength={max} value={text} onChange={e=>setText(e.target.value)} placeholder="영냥이에게 답장하기…" aria-describedby="intake-send-hint" onKeyDown={e=>{if(e.key!=='Enter'||e.nativeEvent.isComposing||e.keyCode===229)return;if(!(e.ctrlKey||e.metaKey)&&(e.shiftKey||touch))return;e.preventDefault();if(valid&&!busy)next();}}/></ChatInputBar>
     <span id="intake-send-hint" className={styles.srOnly}>{touch?'보내기 버튼으로 답장을 보내요.':'Enter로 보내고 Shift+Enter로 줄을 바꿔요.'}</span>
    </>:claims>0?null:<button className={styles.send} type="button" disabled={!valid||busy} onClick={next}>{active==='scope'?'범위·가격 확인하고 계속하기':'선택 확인하고 계속하기'}<ArrowUp size={18}/></button>}
-   {index===0&&<button type="button" className={styles.legacy} onClick={onLegacy}>질문 없이 전체 성향 리포트 고르기</button>}
+   {index===0&&<nav className={styles.entryLinks} aria-label="다른 운세 선택"><button type="button" className={styles.legacy} onClick={onLegacy}>전체 운세 고르기</button><a href="/yeongnyangi/fortune/?mode=spirit">영냥 신점</a></nav>}
   </div>}
  </section></IntakeComposerContext.Provider>;
 }

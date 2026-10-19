@@ -1,0 +1,93 @@
+{
+  "date": "2026-10-19",
+  "tool": "built-in image_gen",
+  "style": {
+    "hwatu": "Tazza-inspired noir; retain incumbent cast and ban in-image Korean",
+    "poker": "Code Destiny moonlit card salon",
+    "star": "existing Yeoni flower-pig identity",
+    "omikuji": "wooden fortune cylinder, stick and paper"
+  },
+  "assets": [
+    {
+      "key": "fish",
+      "input": "C:\\Users\\user\\.codex\\generated_images\\01a14fe0-4f42-7a62-a033-512be7b5fafa\\exec-6412f0fd-c699-485b-9fae-bc5c67af115f.png",
+      "outputs": [
+        "public/assets/fortune-fish/fortune-fish-cover-v1.webp",
+        "public/fuctionassets/fortuneteller fish.webp"
+      ],
+      "prompt": "Use case: stylized-concept. Create a premium playful website game cover, landscape 16:9. One adorable rounded orange goldfish with large black eyes and flowing coral fins swims in a shallow turquoise pond, seen three-quarter overhead, a clear curved wake makes its movement readable. A few quiet ripples and warm ivory pool edge. Hand-painted gouache with tactile fine paper grain, restrained sea-glass teal, cream, coral. Fish centered fully visible with generous margins, visually legible at 320px. No letters, no words, no text of any language, no Korean, no logos, no watermark, no UI, no cards or fortune trinkets."
+    },
+    {
+      "key": "omikuji",
+      "input": "C:\\Users\\user\\.codex\\generated_images\\01a14fe0-4f42-7a62-a033-512be7b5fafa\\exec-3357b9c4-34b0-4df2-b771-440156ae75fa.png",
+      "outputs": [
+        "public/fuctionassets/오미쿠지.webp",
+        "public/images/feature-details/omikuji-hero-v2.webp"
+      ],
+      "prompt": "Use case: stylized-concept. Create a refined Japanese omikuji fortune-drawing game cover, landscape 16:9. Close-up of an authentic wooden hexagonal omikuji shaking cylinder tilted gently on a shrine wooden counter, one slender bamboo fortune stick emerges from its small hole. Beside it a long narrow blank white folded fortune paper unrolls; soft red torii and tied white paper fortunes on a rope in the distant out of focus background. Warm washi-paper painterly illustration, vermilion red, honey wood, ivory, muted cherry blossoms. Tangible objects, elegant spacious composition, central objects safe for thumbnail crops. Must clearly show fortune-stick drawing, NOT an omamori pouch. No writing anywhere, no characters, no glyphs, no Korean, no Japanese text, no English, no logos, no watermark, no UI."
+    },
+    {
+      "key": "hwatuNoir",
+      "input": "C:\\Users\\user\\.codex\\generated_images\\01a14fe0-4f42-7a62-a033-512be7b5fafa\\exec-3fa713f5-d023-42ff-8f62-9d0989374a2c.png",
+      "outputs": [
+        "public/fuctionassets/tazza.webp"
+      ],
+      "prompt": "Use case: precise-object-edit. Recreate this Korean hwatu fortune game cover maintaining its Tazza-inspired Korean gambling-film noir atmosphere and ensemble composition: five fictional Korean adult card sharks around a dark green felt hwatu table, the elderly witty master, young confident male player, elegant composed female player, stern heavy-set rival and quiet shrewd observer, tense knowing expressions, hands handling authentic small red-backed flower cards. Warm amber hanging lanterns, narrow old Korean backstreet card room at night, charcoal shadows with deep red accents, premium cinematic manhwa painting. Preserve their recognizable styling from reference but improve anatomy and hand clarity. Remove ALL typography, signs, captions, speech bubbles, slogans and lettering. No Korean, no Japanese, no English, no visible writing anywhere, no logo, no watermark. Keep focus on characters and flower cards, not cash. Landscape 16:9, heads and hands clear within center safe area."
+    },
+    {
+      "key": "star",
+      "input": "C:\\Users\\user\\.codex\\generated_images\\01a14fe0-4f42-7a62-a033-512be7b5fafa\\exec-5bad4e25-2ba2-449f-9d23-24ea754bdab8.png",
+      "outputs": [
+        "public/fuctionassets/연이의 마음 별자리.webp"
+      ],
+      "prompt": "Use case: stylized-concept. Landscape 16:9 illustration for Yeoni's heart constellation. Use the attached image ONLY as identity reference: same little pink flower pig with large pink lotus on forehead and lavender scarf, gentle round face. Yeoni sitting on a cream window seat holding a small luminous star lovingly in both hooves; a delicate constellation of connected golden pinpoints curls above her like a heart, rose-plum night sky through window, a cup of tea nearby. Soft hand-painted watercolor, rose, cream, champagne gold. Full character in central safe area, visually conveys emotional comfort through starlight. No text of any language, no letters, no Korean, no logos, no labels, no watermark."
+    },
+    {
+      "key": "poker",
+      "input": "C:\\Users\\user\\.codex\\generated_images\\01a14fe0-4f42-7a62-a033-512be7b5fafa\\exec-098a691c-1854-44ff-a7c0-cf6b06eb06f0.png",
+      "outputs": [
+        "public/assets/destiny-poker/card-salon-v1.webp"
+      ],
+      "prompt": "Use case: stylized-concept. A premium original fantasy visual novel illustration for Code Destiny's moonlit card salon. Painterly refined anime art, plum-black velvet, rose accents, champagne-gold filigree, warm soft moonlight, sophisticated and welcoming. No writing, no text, no letters, no Korean, no labels, no watermark. Landscape 16:9 cover. An inviting intimate round plum-velvet card table seen from player's seat in a moonlit garden pavilion. Four face-up ivory playing cards with unmistakable HEART, DIAMOND, CLUB and SPADE suit shapes (symbols only, no numbers or letters), a fan of ornate crescent-moon-backed cards, a small gold crown centerpiece. Moonflower vines frame tall arched window, no people. Cards are focal point, not a gambling casino, no chips or money. Central safe crop."
+    },
+    {
+      "key": "amon",
+      "input": "C:\\Users\\user\\.codex\\generated_images\\01a14fe0-4f42-7a62-a033-512be7b5fafa\\exec-b97ca1d0-54e4-4be2-a1f3-de7ea8ea0537.png",
+      "outputs": [
+        "public/fuctionassets/destinyporker/greedyman.webp"
+      ],
+      "prompt": "Use case: stylized-concept. A premium original fantasy visual novel illustration for Code Destiny's moonlit card salon. Painterly refined anime art, plum-black velvet, rose accents, champagne-gold filigree, warm soft moonlight, sophisticated and welcoming. No writing, no text, no letters, no Korean, no labels, no watermark. Portrait 3:4, chest up, one fictional male fortune-card master Amon: elegant adult with deep chestnut swept back hair, amber eyes, subtle smile, dark green velvet jacket with champagne gold embroidery and a jewel brooch. Seated across a card table offering one diamond-marked playing card toward viewer. Wealth and thoughtful stewardship motif, no cash, no chips, no sinister face. Entire face and shoulders inside frame, room around head."
+    },
+    {
+      "key": "ishtar",
+      "input": "C:\\Users\\user\\.codex\\generated_images\\01a14fe0-4f42-7a62-a033-512be7b5fafa\\exec-ec164005-21a7-4751-aad6-08bdbeabab31.png",
+      "outputs": [
+        "public/fuctionassets/destinyporker/pokergirl.webp"
+      ],
+      "prompt": "Use case: stylized-concept. A premium original fantasy visual novel illustration for Code Destiny's moonlit card salon. Painterly refined anime art, plum-black velvet, rose accents, champagne-gold filigree, warm soft moonlight, sophisticated and welcoming. No writing, no text, no letters, no Korean, no labels, no watermark. Portrait 3:4, chest up, one fictional female fortune-card master Ishtar: elegant adult woman with long flowing rose-brown hair, warm eyes, fine pearl hair ornament, modest rose velvet gown with gold floral embroidery. Seated across a card table holding a fan of ivory heart-marked playing cards. Kind perceptive confident gaze, love and relationships motif. Entire face and shoulders inside frame, room around head."
+    },
+    {
+      "key": "thanatos",
+      "input": "C:\\Users\\user\\.codex\\generated_images\\01a14fe0-4f42-7a62-a033-512be7b5fafa\\exec-5807ee51-f2d9-4cde-a900-a73c33ed5aef.png",
+      "outputs": [
+        "public/fuctionassets/destinyporker/pokerwarrior.webp"
+      ],
+      "prompt": "Use case: stylized-concept. A premium original fantasy visual novel illustration for Code Destiny's moonlit card salon. Painterly refined anime art, plum-black velvet, rose accents, champagne-gold filigree, warm soft moonlight, sophisticated and welcoming. No writing, no text, no letters, no Korean, no labels, no watermark. Portrait 3:4, chest up, one fictional male fortune-card master Thanatos: elegant adult man with blue-black hair, calm kind eyes, midnight plum coat with subtle silver botanical embroidery, a pale moon brooch. Seated across card table setting down a club-marked ivory playing card. Rest, recovery and rhythm motif, not death or horror, no weapons, no skulls. Entire face and shoulders inside frame, room around head."
+    },
+    {
+      "key": "metatron",
+      "input": "C:\\Users\\user\\.codex\\generated_images\\01a14fe0-4f42-7a62-a033-512be7b5fafa\\exec-f096976f-d4b7-4a51-a90f-0d123c76badb.png",
+      "outputs": [
+        "public/fuctionassets/destinyporker/pokergod.webp"
+      ],
+      "prompt": "Use case: stylized-concept. A premium original fantasy visual novel illustration for Code Destiny's moonlit card salon. Painterly refined anime art, plum-black velvet, rose accents, champagne-gold filigree, warm soft moonlight, sophisticated and welcoming. No writing, no text, no letters, no Korean, no labels, no watermark. Portrait 3:4, chest up, one fictional androgynous adult fortune-card master Metatron: luminous silver hair, thoughtful violet eyes, ivory and dark violet tailored robe with champagne gold geometric embroidery, small floating constellation lines behind. Seated across a card table with one ivory spade-marked playing card held lightly between fingers, wisdom and clear judgment motif. Entire face and shoulders inside frame, room around head."
+    }
+  ],
+  "hwatuCardDerivatives": {
+    "source": "public/sudda/hwatu/*.webp",
+    "output": "public/sudda/hwatu/thumbs/*.webp",
+    "width": 240,
+    "originalBytes": 3926818,
+    "optimizedBytes": 450822
+  }
+}

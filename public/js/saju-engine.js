@@ -7627,6 +7627,7 @@ function _cdMountQuestionRecovery(kind, options) {
   function stop(event) {
     var source = event && event.detail && event.detail.source;
     if (source === 'subscription-sync' || source === 'membership-cache') return;
+    if (owner && owner === _cdQuestionOwner()) return;
     stopped = true;
     window.removeEventListener('pageshow', onPageShow);
     window.removeEventListener('focus', recover);
@@ -7697,10 +7698,11 @@ function _cdRetryTransientPost(fetchFn, opts) {
   var maxAttempts = Math.max(1, o.maxAttempts || 3);
   var baseDelayMs = o.baseDelayMs || 900;
   var waves = 0;
-  var cancelled = false;
+  var cancelled = false, requestOwner = _cdQuestionOwner();
   function cancel(event) {
     var source = event && event.detail && event.detail.source;
     if (source === 'subscription-sync' || source === 'membership-cache') return;
+    if (requestOwner && requestOwner === _cdQuestionOwner()) return;
     cancelled = true;
   }
   if (typeof window !== 'undefined' && window.addEventListener) window.addEventListener('cd:auth-changed', cancel);

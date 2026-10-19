@@ -45,5 +45,6 @@ test('fish tier copy remains separate from fortune copy',()=>{
 test('spirit entry copy stays in the dedicated question-sky copy module',()=>{
  const source=fs.readFileSync('app/yeongnyangi/_lib/question-sky-copy.ts','utf8');
  assert.match(source,/entry:\{kicker:/);
- assert.match(source,/질문이 떠오른 순간의 기운과 인연의 흐름/);
+ assert.match(source,/질문한 순간의 별의 기운을 영냥이가 읽어드려요/);
+ assert.match(source,/프라슈나와 호라리는 질문한 시각과 장소의 별 배치를 읽는 질문 점성술/);
 });

@@ -4,17 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<link rel="stylesheet" href="/styles/fortune-consultation-entry.css?v=build-000000000000">
+<link rel="stylesheet" href="/styles/fortune-consultation-entry.css?v=build-0ef0b8407d64">
 <script src="/js/core/feature-pricing-store.js"></script>
-<script src="/js/core/fortune-consultation-ui.js?v=build-000000000000"></script>
+<script src="/js/core/fortune-consultation-ui.js?v=build-d4ec73418565"></script>
 <link rel="stylesheet" href="/styles/saju-reading.css">
 <script defer src="/js/prompt-hub-honey.js"></script>
 <title>베다 점성술 — 별들의 지도</title>
-<script src="/js/core/standalone-ai-locale.js?v=20260909-1"></script>
-<script src="/js/core/pass-verdict.js?v=build-5b64e839f591"></script>
-<script src="/js/core/checkout-entry.js?v=build-5b64e839f591"></script>
-<script src="/js/core/payment-service.js?v=build-payment-service-v1"></script>
-<script src="/js/destiny-profile.js?v=build-10bbdd66b0e5"></script>
+<script src="/js/core/standalone-ai-locale.js?v=build-f8479810eaec"></script>
+<script src="/js/core/pass-verdict.js?v=build-6300332e3d54"></script>
+<script src="/js/core/checkout-entry.js?v=build-86ae123c8ac0"></script>
+<script src="/js/core/payment-service.js?v=build-86f76b083b39"></script>
+<script src="/js/destiny-profile.js?v=build-64d10352de32"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css" onerror="this.remove()">
 <style>
 /* ── 오프라인 폴백 폰트 스택 ─────────────────────────────
@@ -6283,7 +6283,6 @@ function renderResult(){
   const moonSignKr=rashiShort(moonPos.sign);
   const dashaMonthsLeft=Math.max(0,Math.ceil((maha.end-now)/(1000*60*60*24*30.4375)));
   const masterReadingHtml=`
-  ${window.CodeDestinyConsultationUI ? window.CodeDestinyConsultationUI.guide('vedic') : ''}
   <div class="reveal reveal-delay-2" style="margin:14px 0 16px">
     <div class="section-head section-head-kr" style="margin-bottom:10px">🔱 명반의 첫 계시</div>
     <div class="sage-text" style="margin-bottom:12px">
@@ -6639,6 +6638,7 @@ function renderResult(){
   </div>
 
   <!-- HERO -->
+  ${window.CodeDestinyConsultationUI ? window.CodeDestinyConsultationUI.guide('vedic') : ''}
   <div style="background:linear-gradient(135deg,rgba(124,58,237,0.25),rgba(6,182,212,0.12));border:1px solid rgba(139,92,246,0.3);border-radius:20px;padding:20px;margin-bottom:16px;text-align:center" class="reveal">
     <div class="hero-name">${chart.f.name}</div>
     <div class="hero-sub" style="margin:6px 0">

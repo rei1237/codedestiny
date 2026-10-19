@@ -94,6 +94,12 @@
 .sample p:last-child {
   margin-bottom: 0;
 }
+.guide summary { min-height: 44px; padding: 12px 0; cursor: pointer; color: var(--yn-gold); }
+.guide summary:focus-visible { outline: 2px solid var(--yn-gold); outline-offset: 4px; }
+.volume { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 16px; padding: 20px 0; }
+.volume strong { color: var(--yn-gold); font-family: 'Yeongnyangi Myeongjo', serif; font-size: 24px; }
+.faq > details { border-bottom: 1px solid var(--yn-line); }
+.sample details p { margin-top: 14px; }
 .tableWrap {
   overflow-x: auto;
 }

@@ -1,6 +1,5 @@
 "use client";
 import Image from "next/image";
-import ResultSamples from "@/app/components/ResultSamples";
 import QuestionJourney from "@/app/components/QuestionJourney";
 import NightHero from "../_components/NightHero";
 import SessionControls from "./SessionControls";
@@ -9,7 +8,7 @@ import {useReadingLanguage} from '../_lib/use-reading-language';
 import LocalizedFortuneHome from '../_components/LocalizedFortuneHome';
 import {LocaleSwitcher} from '@/app/components/LocaleSwitcher';
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ArrowRight, Bookmark, ChevronRight, House, KeyRound, Moon, PawPrint, X } from "lucide-react";
 import { ggulggulFortuneHref, loginHref, socialLoginHref, type SocialProvider } from "./service-links";
 
@@ -47,7 +46,7 @@ function Art({
   );
 }
 
-export default function FortuneHome({offers}:{offers:ProductOffers}) {
+export default function FortuneHome({offers,guide}:{offers:ProductOffers;guide?:ReactNode}) {
   const {siteLocale}=useReadingLanguage();
   const [panel, setPanel] = useState<Panel>(null);
   const [authMode, setAuthMode] = useState<"login" | "signup">("login");
@@ -129,6 +128,7 @@ export default function FortuneHome({offers}:{offers:ProductOffers}) {
         <main>
           <NightHero/>
           <QuestionJourney source="home"/>
+          {guide}
           <div className="main-content">
             <section className="ggulggul-bridge" aria-labelledby="ggulggul-title">
               <Moon className="ggulggul-bridge__moon" size={28} strokeWidth={1} aria-hidden="true" />
@@ -160,7 +160,6 @@ export default function FortuneHome({offers}:{offers:ProductOffers}) {
                 </div>
               </div>
             </section>
-            <div id="yn-result-samples"><ResultSamples ids={["yn-saju"]} prefix="yn-home-sample"/></div>
           </div>
         </main>
       </div>

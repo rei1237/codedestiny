@@ -23,8 +23,8 @@ function MasterLoveCodexShell() {
           {/* 서버 HTML 의 H1 은 page.tsx 의 ServiceIntroSection 이 소유한다. */}
           <h2 className={styles.landingHeroTitle}>마스터 인연의 서</h2>
           <p className={styles.landingHeroEnglish}>MASTER LOVE CODEX</p>
-          <p className={styles.landingLead}>사주 명식과 자미두수 명반을 함께 읽어, 사랑에서 반복되는 패턴과 관계의 흐름을 20장으로 정리합니다.</p>
-          <p className={styles.landingEdition}>20장 · 5막</p>
+          <p className={styles.landingLead}>사주 명식과 자미두수 명반을 함께 읽어, 사랑에서 반복되는 패턴과 관계의 흐름을 20개 챕터·총 5만 자 목표의 한 권으로 정리합니다.</p>
+          <p className={styles.landingEdition}>20개 챕터 · 5막 · PDF 소장</p>
           <span className={`${styles.cta} ${styles.heroChoose} ${styles.loadingAction}`} aria-live="polite">리딩 준비 중</span>
         </div>
         <figure className={styles.landingPortrait}>

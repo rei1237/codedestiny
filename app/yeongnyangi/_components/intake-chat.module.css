@@ -13,7 +13,7 @@
 .chat button:disabled { opacity: .5; cursor: not-allowed; }
 .chat :is(button,a,input,select,textarea):focus-visible { outline: 2px solid var(--yn-gold); outline-offset: 3px; }
 .chat .header { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--yn-line); background: var(--yn-deep); flex-shrink: 0; }
-.chat .header h1 { font: inherit; font-size: var(--yn-t-section); font-weight: 700; line-height: 1.35; margin: 0; }
+.chat .header h1 { font-family: 'Yeongnyangi Myeongjo', serif; font-size: var(--yn-t-section); font-weight: 700; line-height: 1.35; margin: 0; }
 .chat .header p { margin: 0; color: var(--yn-muted); font-size: 13px; }
 .chat .header > :is(button,a) { display: grid; place-items: center; min-width: 44px; background: none; border: 0; color: var(--yn-ivory); }
 .chat .header img, .chat .current img, .chat .cat img { object-fit: contain; flex-shrink: 0; border-radius: 30%; }
@@ -22,7 +22,7 @@
 .chat .stage { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .chat .stage:has([data-crafted-product-disclosure][open]) .latest { visibility: hidden; }
 .chat .transcript { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 20px 24px 32px; scrollbar-color: var(--yn-line) var(--yn-night); overflow-wrap: anywhere; }
-.chat .notice { text-align: center; font-size: 12px; color: var(--yn-muted); margin: 0 0 28px; }
+.chat .notice { text-align: center; font-size: 12px; color: var(--yn-muted); margin: 0 0 20px; }
 .chat .turn { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; animation: ynRise 160ms ease-out; }
 .chat .cat { display: flex; align-items: flex-start; gap: 10px; }
 .chat .cat .catBubble { max-width: calc(88% - 46px); }
@@ -30,9 +30,9 @@
 .chat .reply { align-self: flex-end; max-width: 88%; text-align: right; }
 .chat .reply p { background: var(--yn-gold); color: var(--yn-deep); padding: 12px 18px; border-radius: 18px 4px 18px 18px; margin: 0; text-align: left; white-space: pre-wrap; }
 .chat .reply button { border: 0; background: none; color: var(--yn-muted); padding: 4px 10px; font-size: 13px; }
-/* 질문 단계별 전신 포즈. 흰 바탕 WebP 라서 아이보리 타일 위에서 multiply 로 합성한다(moods/README.md). */
-.chat .pose { display: flex; justify-content: center; margin: 0 0 14px; padding: 8px; border-radius: 20px; background: var(--yn-ivory); }
-.chat .pose img { display: block; width: auto; height: 104px; max-width: 100%; object-fit: contain; mix-blend-mode: multiply; }
+/* 첫 질문에서만 기존 투명 배경 영냥이 원본을 보여준다. */
+.chat .pose { display: flex; justify-content: center; margin: 8px auto 20px; }
+.chat .pose img { display: block; width: 144px; height: 144px; max-width: 100%; object-fit: contain; }
 .chat .current { display: flex; align-items: flex-start; gap: 10px; }
 .chat .current > div { min-width: 0; flex: 1; }
 .chat .current .catBubble { max-width: 100%; animation: ynRise 160ms ease-out; }
@@ -88,6 +88,11 @@
 .chat .send { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 48px; border: 1px solid var(--yn-line); border-radius: var(--yn-btn-radius); background: var(--yn-night); color: var(--yn-ivory); padding: 10px 16px; font-weight: 700 !important; }
 .chat .send:hover:not(:disabled) { background: var(--yn-raised); }
 .chat .legacy { display: block; margin: 6px auto 0; padding: 4px 8px; color: var(--yn-muted); border: 0; background: none; font-size: 13px !important; }
+.chat .entryLinks { display: flex; justify-content: center; flex-wrap: wrap; gap: 4px 20px; margin-top: 8px; }
+.chat .entryLinks .legacy { margin: 0; }
+.chat .entryLinks a { display: flex; align-items: center; padding: 4px 8px; color: var(--yn-muted); font-size: 13px; text-underline-offset: 4px; }
+.chat .openingComposer .inputBar { border-radius: var(--yn-radius); padding: 10px 8px 10px 18px; }
+.chat .openingComposer textarea { min-height: 80px; }
 .chat .summary, .chat .preparation { margin: 20px 0 0 46px; min-width: 0; }
 .chat .summary h2 { font-size: 18px; }
 .chat .summary > strong { font-size: 26px; color: var(--yn-gold); font-variant-numeric: tabular-nums; }

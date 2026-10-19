@@ -1195,6 +1195,16 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
       console.log("[sync-legacy-static-to-public] Updated root index.html cache keys");
     }
   }
+  // The standalone Vedic result uses the same master UI assets as the shell.
+  // A fixed placeholder key kept the old guide cached after a release.
+  for (const page of ['vedic-astrology.html']) {
+    const sourcePath = resolve(rootDir, page);
+    if (!existsSync(sourcePath)) continue;
+    const source = readFileSync(sourcePath, 'utf8');
+    const stamped = restampAssetCacheRefs(source, page, buildTimestamp, assetKeys);
+    if (stamped !== source) writeFileSyncWithRetry(sourcePath, Buffer.from(stamped, 'utf8'));
+    writeFileSyncWithRetry(resolve(publicDir, page), Buffer.from(stamped, 'utf8'));
+  }
 }
 
 /**
