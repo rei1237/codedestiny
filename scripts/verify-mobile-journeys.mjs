@@ -81,6 +81,11 @@ async function verifyStaticMobileJourney() {
       });
       check(dispatched, `${viewport.width}px: tarot mobile launcher is missing`);
       await page.waitForFunction(() => Boolean(window.__cdMobileNav), undefined, { timeout: 15000 });
+      // The backstack API can be ready before the deferred open action runs.
+      // Start the return journey only once the feature is actually open and
+      // owns the scroll lock; otherwise a pending opener can run after Back.
+      await page.locator('#tarotModalOverlay').waitFor({ state: 'visible', timeout: 15000 });
+      await page.waitForFunction(() => document.body.style.overflow === 'hidden', undefined, { timeout: 15000 });
 
       const layout = await page.evaluate(() => {
         const nav = document.querySelector("#cdMobileBottomNav");
