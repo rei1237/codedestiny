@@ -1,11 +1,13 @@
 "use client";
+import CheckoutClient from '@/app/checkout/CheckoutClient';
+import QuestionCheckout from './QuestionCheckout';
 import {getQuestionGuide,questionScopeEntry} from "@/lib/fortune/question-journey";
 import {CONSULTATION_DRAFT_KEY as loginDraftKey} from '@/lib/fortune/question-entry';
-import IntakeChat,{type PreparationStep} from './IntakeChat';
+import {type PreparationStep} from './IntakeChat';
 import {emptyIntakeDecision,intakeFish,type IntakeValue} from '../_lib/intake-chat';
 import {PREVENTION_TITLE} from '@/worker/lib/fortune-prevention.js';
 import {consultationBudget,fusionPremiumManifest,a4Label,A4_PAGE_NOTE} from '@/worker/yeongnyangi/fortune/consultation-budget';
-import {QUESTION_POLICY_VERSION,questionTopics,questionDecision,questionManifest,questionScopes,FOLLOWUP_LIMITS,type QuestionDecision,type QuestionFish} from '@/worker/yeongnyangi/fortune/ask/question-policy';
+import {questionCandidate,recommendQuestion,QUESTION_POLICY_VERSION,questionTopics,questionDecision,questionManifest,questionScopes,FOLLOWUP_LIMITS,type QuestionDecision,type QuestionFish} from '@/worker/yeongnyangi/fortune/ask/question-policy';
 import RelationshipJourney from './RelationshipJourney';
 import {additionalKindDescription} from '../_lib/consultation-kind-copy';
 import {relationshipCopyFor} from '../_lib/relationship-locales';
@@ -92,7 +94,7 @@ export default function Consultation(){
  const partnerProfile=profiles.find(p=>profileKey(p)===partnerId);
  const selectedProfile=profiles.find(p=>(p.profileId||p.id)===profileId);
  const lock=useRef(false);
- const consultationAttemptId=useRef('');
+ const consultationAttemptId=useRef(''),preparationKey=useRef('');
  const viewedProduct=useRef('');
  const restoredDraft=useRef<{profileId?:string;partnerId?:string;extraTime?:string;extraPlace?:string;timeUnknown?:boolean}|null>(null);
  const product=products.find(p=>p.id===productId)!;
@@ -203,6 +205,7 @@ export default function Consultation(){
     if(['question','people','engine','consultation'].includes(draft.relationshipStage))setRelationshipStage(draft.relationshipStage);
     if(typeof draft.participants?.self==='string'&&typeof draft.participants?.partner==='string')setParticipants({self:draft.participants.self.slice(0,40),partner:draft.participants.partner.slice(0,40)});
     if(typeof draft.consultationAttemptId==='string')consultationAttemptId.current=draft.consultationAttemptId;
+    if(typeof draft.preparationKey==='string')preparationKey.current=draft.preparationKey;
     if(typeof draft.extraTime==='string')setExtraTime(draft.extraTime);
     if(typeof draft.extraPlace==='string')setExtraPlace(draft.extraPlace);
     if(draft.topicId==='general'||Object.hasOwn(topicCatalog,draft.topicId))setTopicId(draft.topicId);
@@ -229,17 +232,17 @@ export default function Consultation(){
  },[profileId,profiles,profileState.loading,profileState.select]);
  useEffect(()=>{
   if(!ready||(!relationshipStage&&!relationship))return;
-  try{sessionStorage.setItem(loginDraftKey,JSON.stringify({accountId:readDestinyProfileAccountId(),path:window.location.pathname+window.location.search,locale,productId,consultationKind:kind.id,profileId,topicId,question,partnerId,extraTime,extraPlace,timeUnknown,relationshipStage,relationshipQuestionId,participants,voiceStyle,consultationAttemptId:consultationAttemptId.current,savedAt:Date.now()}));}catch{/* Optional draft; paid snapshots remain on the server. */}
+  try{sessionStorage.setItem(loginDraftKey,JSON.stringify({accountId:readDestinyProfileAccountId(),path:window.location.pathname+window.location.search,locale,productId,consultationKind:kind.id,profileId,topicId,question,partnerId,extraTime,extraPlace,timeUnknown,relationshipStage,relationshipQuestionId,participants,voiceStyle,consultationAttemptId:consultationAttemptId.current,preparationKey:preparationKey.current,savedAt:Date.now()}));}catch{/* Optional draft; paid snapshots remain on the server. */}
  },[ready,relationship,relationshipStage,relationshipQuestionId,participants,voiceStyle,locale,productId,kind.id,profileId,topicId,question,partnerId,extraTime,extraPlace,timeUnknown]);
  useEffect(()=>{
   if(!ready||!questionMode||siteLocale!=='ko'||domain==='fusion')return;
-  try{sessionStorage.setItem(loginDraftKey,JSON.stringify({accountId:readDestinyProfileAccountId(),path:window.location.pathname+window.location.search,locale,productId,consultationKind:kind.id,profileId,topicId,question,partnerId,extraTime,extraPlace,timeUnknown,voiceStyle,tarotPlan,participants,questionDecision:decision||scopeDraft,editScope:!decision,intakeDomain:domain,chatStep,consultationAttemptId:consultationAttemptId.current,savedAt:Date.now()}));}catch{/* Optional draft: unavailable storage does not prevent preparation. */}
+  try{sessionStorage.setItem(loginDraftKey,JSON.stringify({accountId:readDestinyProfileAccountId(),path:window.location.pathname+window.location.search,locale,productId,consultationKind:kind.id,profileId,topicId,question,partnerId,extraTime,extraPlace,timeUnknown,voiceStyle,tarotPlan,participants,questionDecision:decision||scopeDraft,editScope:!decision,intakeDomain:domain,chatStep,consultationAttemptId:consultationAttemptId.current,preparationKey:preparationKey.current,savedAt:Date.now()}));}catch{/* Optional draft: unavailable storage does not prevent preparation. */}
  },[ready,questionMode,siteLocale,domain,locale,productId,kind.id,profileId,topicId,question,partnerId,extraTime,extraPlace,timeUnknown,voiceStyle,tarotPlan,participants,decision,scopeDraft,chatStep]);
  function loginWithDraft(){
-  try{sessionStorage.setItem(loginDraftKey,JSON.stringify({accountId:readDestinyProfileAccountId(),path:window.location.pathname+window.location.search,locale,productId,consultationKind:kind.id,profileId,topicId,question,partnerId,extraTime,extraPlace,timeUnknown,relationshipStage,relationshipQuestionId,participants,voiceStyle,tarotPlan,...(questionMode?{questionDecision:decision||scopeDraft,editScope:!decision,intakeDomain:domain,chatStep}:{}),consultationAttemptId:consultationAttemptId.current,savedAt:Date.now()}));}catch{/* Optional pre-login draft only; paid input is stored on the server. */}
+  try{sessionStorage.setItem(loginDraftKey,JSON.stringify({accountId:readDestinyProfileAccountId(),path:window.location.pathname+window.location.search,locale,productId,consultationKind:kind.id,profileId,topicId,question,partnerId,extraTime,extraPlace,timeUnknown,relationshipStage,relationshipQuestionId,participants,voiceStyle,tarotPlan,...(questionMode?{questionDecision:decision||scopeDraft,editScope:!decision,intakeDomain:domain,chatStep}:{}),consultationAttemptId:consultationAttemptId.current,preparationKey:preparationKey.current,savedAt:Date.now()}));}catch{/* Optional pre-login draft only; paid input is stored on the server. */}
   loginForCurrentPage();
  }
- async function prepare(){
+ async function prepare(inline=false){
   if(lock.current)return;
   trackEvent('purchase_attempt',{item_id:product.cdFeatureKey,value:product.priceKRW,currency:product.currency,login_required:guest,service:'yeongnyangi'});
   if(guest){loginWithDraft();return;}
@@ -253,11 +256,15 @@ export default function Consultation(){
     if(!response.ok||found.fallback)throw new Error(inputCopy.geocodeError);
     birthPlace={name:found.name,latitude:found.lat,longitude:found.lng,timezone:found.timezone};
    }
+   const inputKey=JSON.stringify([productId,kind.id,profileId,partnerId,question,decision,topicId,locale,voiceStyle,birthPlace,extraTime,timeUnknown,jongReply,participants,tarotPlan]);
+   if(preparationKey.current&&preparationKey.current!==inputKey)consultationAttemptId.current='';
+   preparationKey.current=inputKey;
    if(!consultationAttemptId.current)consultationAttemptId.current=crypto.randomUUID();
-   try{const draft=JSON.parse(sessionStorage.getItem(loginDraftKey)||'null');if(draft)sessionStorage.setItem(loginDraftKey,JSON.stringify({...draft,consultationAttemptId:consultationAttemptId.current}));}catch{/* Optional intent restoration. */}
+   try{const draft=JSON.parse(sessionStorage.getItem(loginDraftKey)||'null');if(draft)sessionStorage.setItem(loginDraftKey,JSON.stringify({...draft,consultationAttemptId:consultationAttemptId.current,preparationKey:preparationKey.current}));}catch{/* Optional intent restoration. */}
    const data=await fortuneApi<{fortune:FortuneRecord}>('requests',{...(questionActive?{questionDecision:decision}:{}),...(relationshipQuestionId?{relationshipQuestionId}:{}),...(locale==='ko'&&voiceStyle==='honorific'?{voiceStyle}:{}),...((relationship||relationshipStage)&&tarotOnly?{participants}:{}),locale,...browserReadingContext(siteLocale),consultationAttemptId:consultationAttemptId.current,birthDetails:{birthTime:extraTime,birthPlace},productId,consultationKind:kind.id,profileId,topicId:kind.id==='ask'?topicId:kind.topic,question:kind.question||kind.partner&&relationshipQuestionId?question:'',timezone:Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Seoul',timeUnknown,...(jongCheck&&jongReply.best&&jongReply.worst?{jongCheck:{best:jongReply.best,worst:jongReply.worst,bestYears:jongCheck.best.map(y=>y.year),worstYears:jongCheck.worst.map(y=>y.year)}}:{}),...(kind.partner&&partnerId?{partnerProfileId:partnerId}:{}),...(tarotSpread?{tarotSpreadId:tarotSpread.id,tarotInputs:plannedInputs(tarotPlan,tarotSpread)}:{})});
-   try{sessionStorage.removeItem(loginDraftKey);}catch{/* The server snapshot now owns the consultation input. */}
+   if(!inline)try{sessionStorage.removeItem(loginDraftKey);}catch{/* The server snapshot now owns the consultation input. */}
    trackEvent('consultation_start',{item_id:product.cdFeatureKey,service:'yeongnyangi'});
+   if(inline)return data.fortune;
    consultationAttemptId.current='';
    // A v3 tarot order is not payable until the buyer picks cards on the result page (AWAITING_DRAW).
    window.location.assign(data.fortune.paid||data.fortune.state==='AWAITING_DRAW'?resultPath(data.fortune.id,siteLocale):checkoutPath(data.fortune,siteLocale));
@@ -274,7 +281,7 @@ export default function Consultation(){
   const intake:IntakeValue={domain:domain as DomainId,question,decision:decision||scopeDraft||emptyIntakeDecision(),fish:questionFish,domainFixed};
   const prep:PreparationStep[]=[];
   if(!tarotOnly){
-   prep.push({id:'profile',pending:profileState.loading,prompt:voiceStyle==='honorific'?'누구의 흐름을 살펴볼까요? 저장된 프로필을 확인해 주세요.':'누구의 흐름을 살펴볼까? 저장된 프로필이 있으면 다시 적지 않아도 돼.',answer:selectedProfile?.name||'프로필 확인',valid:!guest&&!profileState.loading&&Boolean(selectedProfile),content:<ProfilePicker state={profileState} locale={siteLocale} conversational voice={voiceStyle} onLogin={loginWithDraft}/>});
+   prep.push({id:'profile',pending:profileState.loading,prompt:voiceStyle==='honorific'?'누구의 흐름을 살펴볼까요? 저장된 프로필을 확인해 주세요.':'누구의 흐름을 살펴볼까? 저장된 프로필이 있으면 다시 적지 않아도 돼.',answer:selectedProfile?.name||'프로필 확인',valid:!guest&&!profileState.loading&&Boolean(selectedProfile),content:<ProfilePicker state={profileState} locale={siteLocale} voice={voiceStyle} onLogin={loginWithDraft}/>});
    if(selectedProfile?.birth?.timeUnknown)prep.push({id:'birth-time',prompt:voiceStyle==='honorific'?'태어난 시간을 보충해 주실 수 있나요?':'태어난 시간을 보충해 줄 수 있어?',answer:timeUnknown?'시간 미상':extraTime||'시간 미상',valid:!needsTime||Boolean(extraTime&&!timeUnknown),content:<div className={styles.form}><label>{inputCopy.timeSupplement}<input type="time" value={extraTime} disabled={timeUnknown} onChange={e=>setExtraTime(e.target.value)}/></label><label><input type="checkbox" checked={timeUnknown} onChange={e=>setTimeUnknown(e.target.checked)}/>{inputCopy.timeUnknown}</label><p>{needsTime?inputCopy.timeRequired:inputCopy.supplementSaved}</p></div>});
    if(selectedProfile&&!selectedProfile.location?.label)prep.push({id:'birth-place',prompt:voiceStyle==='honorific'?'지역을 확인해 주실래요?':'지역도 확인해 줄래?',answer:extraPlace||'지역 보충 없이 진행',valid:!needsPlace||Boolean(extraPlace.trim()||currentLocation),content:<div className={styles.form}><CurrentLocationButton key={profileId} locale={siteLocale} translation={readingLocationCopy(siteLocale)} disabled={busy} onLocation={value=>{setCurrentLocation(value);setExtraPlace(value.name);}}/><label>{inputCopy.placeSupplement}<input maxLength={120} value={extraPlace} onChange={e=>{setExtraPlace(e.target.value);setCurrentLocation(null);}} placeholder={inputCopy.placePlaceholder}/></label><p>{needsPlace?inputCopy.placeRequired:inputCopy.supplementSaved}</p></div>});
    if(kind.partner)prep.push({id:'partner',prompt:voiceStyle==='honorific'?'함께 비교할 상대의 프로필도 골라주세요.':'함께 비교할 상대의 프로필도 골라줘.',answer:partnerProfile?.name||'',valid:Boolean(partnerId)&&!missing.includes(inputCopy.partnerDetails),content:<div className={styles.form}><label>{inputCopy.partner}<select value={partnerId} onChange={e=>setPartnerId(e.target.value)}><option value="">{inputCopy.partnerSelect}</option>{profiles.filter(p=>profileKey(p)!==profileId).map(p=><option key={profileKey(p)} value={profileKey(p)}>{p.name}</option>)}</select></label>{missing.includes(inputCopy.partnerDetails)&&<p role="alert">{inputCopy.partnerDetails}</p>}</div>});
@@ -285,34 +292,28 @@ export default function Consultation(){
     </section>}</>});
   }
   else {
-   prep.push({id:'tarot',prompt:voiceStyle==='honorific'?'질문에 맞는 카드 배치를 확인해 볼까요?':'질문에 맞는 카드 배치를 함께 골라볼까?',answer:tarotSpreadView?.title||'타로 준비',valid:Boolean(tarotSpread&&tierAllowsSpread(product.fishId,tarotSpread)),content:<><TarotSpreadPlanner conversational panel="spread" locale={siteLocale} question={question} onQuestion={value=>{setQuestion(value);setDecision(undefined);setChatStep('question');}} plan={tarotPlan} onPlan={plan=>{setTarotPlan(plan);setTierNotice('');}} tier={product.fishId} purposeMode={questionActive} disabled={busy} notice={tierNotice}
+   prep.push({id:'tarot',prompt:voiceStyle==='honorific'?'질문에 맞는 카드 배치를 확인해 볼까요?':'질문에 맞는 카드 배치를 함께 골라볼까?',answer:tarotSpreadView?.title||'타로 준비',valid:Boolean(tarotSpread&&tierAllowsSpread(product.fishId,tarotSpread)),content:<><TarotSpreadPlanner panel="spread" locale={siteLocale} question={question} onQuestion={value=>{setQuestion(value);setDecision(undefined);setChatStep('question');}} plan={tarotPlan} onPlan={plan=>{setTarotPlan(plan);setTierNotice('');}} tier={product.fishId} purposeMode={questionActive} disabled={busy} notice={tierNotice}
     onTier={(fishId,cards)=>{const next=choices.find(item=>item.fishId===fishId);if(next){setQuestionFish(next.fishId as QuestionFish);setProductId(next.id);setTierNotice(tarotSpreadCopy.tierRaised(fishName(fishId,siteLocale),cards));}}}/></>});
    for(const input of (tarotSpread?.requiredInputs||[])){
     if(!['options','period','relationStatus'].includes(input))continue;
     const panel=input as 'options'|'period'|'relationStatus';
     if(panel==='period'&&(intake.decision.period.trim()||localizedTarotQuestionFeatures(question,siteLocale).period))continue;
     const labels={options:'비교할 두 가지 선택지',period:'살펴볼 기간',relationStatus:'두 사람의 현재 관계'};
-    prep.push({id:'tarot-'+panel,prompt:labels[panel]+'도 알려주세요. 아직 정하지 않았다면 그대로 넘어가도 괜찮아요.',answer:panel==='options'?[tarotPlan.options.a,tarotPlan.options.b].filter(Boolean).join(' / '):panel==='period'?(tarotPlan.period?tarotPeriods[tarotPlan.period]:''):(tarotPlan.relationStatus?tarotRelationStatuses[tarotPlan.relationStatus]:''),valid:true,content:<TarotSpreadPlanner conversational panel={panel} locale={siteLocale} question={question} onQuestion={setQuestion} plan={tarotPlan} onPlan={setTarotPlan} tier={product.fishId} purposeMode disabled={busy} onTier={()=>{}}/>});
+    prep.push({id:'tarot-'+panel,prompt:labels[panel]+'도 알려주세요. 아직 정하지 않았다면 그대로 넘어가도 괜찮아요.',answer:panel==='options'?[tarotPlan.options.a,tarotPlan.options.b].filter(Boolean).join(' / '):panel==='period'?(tarotPlan.period?tarotPeriods[tarotPlan.period]:''):(tarotPlan.relationStatus?tarotRelationStatuses[tarotPlan.relationStatus]:''),valid:true,content:<TarotSpreadPlanner panel={panel} locale={siteLocale} question={question} onQuestion={setQuestion} plan={tarotPlan} onPlan={setTarotPlan} tier={product.fishId} purposeMode disabled={busy} onTier={()=>{}}/>});
    }
    if(relationship)prep.push({id:'participants',prompt:voiceStyle==='honorific'?'두 사람을 어떻게 불러드릴까요?':'두 사람을 어떻게 부르면 될까?',answer:participants.self+' · '+participants.partner,valid:Boolean(participants.self.trim()&&participants.partner.trim()),content:<div className={styles.form}><label>{relationshipCopy.self}<input maxLength={40} value={participants.self} onChange={e=>setParticipants({...participants,self:e.target.value})}/></label><label>{relationshipCopy.partner}<input maxLength={40} value={participants.partner} onChange={e=>setParticipants({...participants,partner:e.target.value})}/></label><p>{relationshipCopy.symbolism}</p></div>});
   }
   prep.push({id:'language',prompt:voiceStyle==='honorific'?'결과를 어떤 언어로 읽으시겠어요?':'결과는 어떤 언어로 읽고 싶어?',answer:readingLanguageNames[locale],valid:true,content:<ReadingLanguageSelect locale={locale} siteLocale={siteLocale} fallback={fallback} disabled={busy||kind.koOnly} onChange={value=>{setLocale(value);setError('');}}/>});
-  return <IntakeChat value={intake} confirmed={Boolean(decision)} step={chatStep} onStep={step=>{setChatStep(step);if(step!=='review')consultationAttemptId.current='';}} voice={voiceStyle} busy={busy}
-   onChange={next=>{setQuestionFish(next.fish);setProductId(next.domain+'_'+intakeFish(next));setDomain(next.domain);setQuestion(next.question);setScopeDraft({...next.decision,confirmed:false});setDecision(undefined);setError('');}}
-   onEdit={()=>{setScopeDraft(intake.decision);setDecision(undefined);consultationAttemptId.current='';setError('');}}
-   onConfirm={()=>{const d={...intake.decision,confirmed:true};setDecision(d);setScopeDraft(d);const fish=intakeFish(intake);setQuestionFish(fish);setProductId(intake.domain+'_'+fish);setKindId(intake.domain==='tarot'?TAROT_SPREAD_KIND:d.target==='pair'?'compatibility':'ask');setTopicId(d.category);setRelationshipStage('');consultationAttemptId.current='';}}
-   onLegacy={()=>setQuestionMode(false)} preparation={prep.map(item=>({...item,pending:item.pending||Boolean(restoredDraft.current)}))}
-   review={<><h2>상담 내용 확인</h2><p>{question}</p><p>{systemNames[intake.domain]} · {tarotOnly?tarotSpreadView?.title:selectedProfile?.name}{partnerProfile?' · '+partnerProfile.name:''}</p><p>기본 상담 + 추가 질문 {FOLLOWUP_LIMITS[product.fishId as QuestionFish]}회</p><div className={styles.checkoutSection}><div className={styles.checkoutTotal}><span>{tierLabel(product)} · {ui.payment}</span><strong><LaunchPlannedPrice className={styles.totalPlanned} amount={plannedTotal}/>{plannedTotal!==null&&<span className={styles.srOnly}>, 체험가 </span>}{price(product.priceKRW)}</strong></div>
-   <p>{ui.afterPayment}</p><p>{askCopy.language}: <b lang={locale}>{readingLanguageNames[locale]}</b> · {ui.languageHint}</p><p>{ui.priceHint}</p>
-   <p>{ui.about} {ui.limits}</p>
-   {missing.length>0&&<ul className={styles.inputHints}>{missing.map(message=><li key={message}>{message}</li>)}</ul>}
-   <button className={styles.checkoutButton} disabled={busy||(!guest&&(!ready||missing.length>0||!available.some(p=>p.id===productId)))} onClick={()=>void prepare()}>{busy?inputCopy.busy:guest?inputCopy.loginContinue:inputCopy.checkout}<ArrowRight size={18} aria-hidden="true"/></button>
-   {!ready&&<p role="status">{inputCopy.catalogLoading}</p>}
-   {catalogError&&<p role="alert">{siteLocale==='ko'?catalogError:inputCopy.unavailable}</p>}
-   {ready&&!catalogError&&!available.some(p=>p.id===productId)&&<p>{inputCopy.unavailable}</p>}
-   {error&&<p role="alert">{error}</p>}
-   <a className={styles.libraryLink} href={`/yeongnyangi/library/?lang=${siteLocale}`}>{ui.library}</a>
-   </div></>}/>;
+  const plan=recommendQuestion(intake.domain,intake.decision,question);
+  const confirmIntake=(next:IntakeValue)=>{const d={...next.decision,confirmed:true};setDecision(d);setScopeDraft(d);const fish=intakeFish(next);setQuestionFish(fish);setProductId(next.domain+'_'+fish);setDomain(next.domain);setKindId(next.domain==='tarot'?TAROT_SPREAD_KIND:d.target==='pair'?'compatibility':'ask');setTopicId(d.category);setRelationshipStage('');consultationAttemptId.current='';setError('');};
+  return <QuestionCheckout value={intake} open={chatStep==='checkout'} busy={busy}
+   onChange={next=>{setQuestion(next.question);setQuestionFish(next.fish);setScopeDraft(next.decision);if(chatStep==='checkout')confirmIntake(next);else setDecision(undefined);}}
+   onOpen={()=>{const category=questionCandidate(question)||intake.decision.category;confirmIntake({...intake,decision:{...intake.decision,category,situation:intake.decision.situation||question.slice(0,600)}});setChatStep('checkout');}}
+   preparation={prep.map(item=>({...item,pending:item.pending||Boolean(restoredDraft.current)}))}
+   checkout={children=><CheckoutClient draft={{product,question,chapters:previewCount,ready:ready&&!guest&&!missing.length&&!plan.missing.length&&!plan.unsupported&&available.some(p=>p.id===productId)&&!prep.some(item=>!item.valid||item.pending),onLogin:loginWithDraft,onPrepare:()=>prepare(true),children:<>{children}
+    {(missing.length>0||plan.missing.length>0)&&<ul className={styles.inputHints}>{[...missing,...plan.missing].map(message=><li key={message}>{message}</li>)}</ul>}
+    {plan.unsupported&&<p role="alert">{plan.unsupported}</p>}{catalogError&&<p role="alert">{catalogError}</p>}{error&&<p role="alert">{error}</p>}
+   </>}}/>}/>;
  }
 
  if(relationshipStage&&relationshipStage!=='consultation')return <RelationshipJourney locale={siteLocale} stage={relationshipStage} setStage={setRelationshipStage} questionId={relationshipQuestionId} onQuestion={(id,text)=>{setRelationshipQuestionId(id);setQuestion(text);}} participants={participants} onParticipants={setParticipants} profileState={profileState} partnerId={partnerId} onPartner={setPartnerId} onEngine={chooseRelationshipEngine}/>;

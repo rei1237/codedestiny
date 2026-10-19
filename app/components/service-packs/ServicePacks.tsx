@@ -345,7 +345,7 @@ export function ServicePackCheckout({requestId,featureKey,locale,disabled,onBusy
    const result=await consumeServicePack(fundingId,selected);setApplied(result.remainingUses);
    await new Promise(resolve=>setTimeout(resolve,1200));callbacks.current.onPaid();
   }catch(error){loginIfNeeded(error);setFailed(true);}
-  finally{lock.current=false;}
+  finally{lock.current=false;setBusy(false);callbacks.current.onBusyChange(false);}
  };
  const usable=quote?.status==='available'?quote.candidates.filter(pack=>pack.available&&pack.remainingUses>0):[];
  const summary=<CheckoutPassSummary locale={locale} flower={flower} pack={usable.find(pack=>pack.entitlementId===selected)||usable[0]} applied={applied}/>;
