@@ -58,7 +58,16 @@ const styles = (fs.existsSync(compiledCssPath) ? fs.readFileSync(compiledCssPath
   + fs.readFileSync('styles/static-policy.css', 'utf8');
 fs.mkdirSync('public/styles', { recursive: true });
 fs.mkdirSync('public/js', { recursive: true });
-fs.writeFileSync('public/styles/static-policy.css', styles);
+// Replace the mirrored source atomically; overwriting it immediately after the
+// copy can fail on Windows and leave the public stylesheet incomplete.
+const publicCssPath = 'public/styles/static-policy.css';
+const temporaryCssPath = `${publicCssPath}.${process.pid}.tmp`;
+try {
+  fs.writeFileSync(temporaryCssPath, styles);
+  fs.renameSync(temporaryCssPath, publicCssPath);
+} finally {
+  if (fs.existsSync(temporaryCssPath)) fs.unlinkSync(temporaryCssPath);
+}
 for (const file of ['service-intro.css', 'service-intro-fonts.css']) {
   fs.copyFileSync(`app/about/${file}`, `public/styles/${file}`);
 }
