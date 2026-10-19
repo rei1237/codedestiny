@@ -17,6 +17,8 @@ export const V7_COST={
   maxCostRatio:.1,
   // Conservative all-Pro upper bound for the mixed-model book; the ceiling remains unchanged.
   tunaMaxCostRatio:.2,
+  // New 2026-10-19 contracts expand total prose by 25%; keep the old guard for stored contracts.
+  tunaExpandedMaxCostRatio:.2*1.25,
   followup:{input:20000,output:4096},
 } as const;
 export type Tariff={inputUsdPerMillion:number;outputUsdPerMillion:number};

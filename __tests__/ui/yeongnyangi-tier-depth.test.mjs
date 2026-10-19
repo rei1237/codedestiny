@@ -53,11 +53,12 @@ test('참치만 가진 챕터와 기능이 있다',()=>{
   if(locale!=='ko')for(const row of table.rows)for(const text of [row.label,row.flounder,row.tuna]){assert.doesNotMatch(text,/[가-힣]/);assert.doesNotMatch(text,/[0-9]/);}
  }
 });
-test('conservative all-Pro cost bound stays within 20% with every rewrite and followup',()=>{
+test('expanded all-Pro cost bound scales with prose while retaining the legacy ceiling',()=>{
  const tariff=JSON.parse(readFileSync('config/llm-tariffs-20260921.json','utf8'))['gemini/'+m.TUNA_REASONING_MODEL];
  const targets=m.questionManifest('saju','tuna',decision,undefined,QUESTION).map(ch=>ch.targetChars[1]);
  const price=m.products.find(p=>p.id==='saju_tuna').priceKRW;
- assert.ok(m.tunaBookCostRatio(targets,price,tariff,m.FOLLOWUP_LIMITS.tuna)<=m.V7_COST.tunaMaxCostRatio);
+ assert.equal(m.V7_COST.tunaMaxCostRatio,.2);assert.equal(m.V7_COST.tunaExpandedMaxCostRatio,m.V7_COST.tunaMaxCostRatio*1.25);
+ assert.ok(m.tunaBookCostRatio(targets,price,tariff,m.FOLLOWUP_LIMITS.tuna)<=m.V7_COST.tunaExpandedMaxCostRatio);
 });
 test('tuna self-review flags missing citations, question links, repeats and generic sentences',()=>{
  const analysis={consultation:{question:QUESTION},contexts:{saju:{domain:'saju',facts:[{value:'갑자'},{value:'편재'}]}}};

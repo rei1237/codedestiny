@@ -45,7 +45,7 @@ const built = await build({ stdin: { contents: `
   export {chapterOutputTokenBudget,CHAPTER_THINKING_BUDGET} from './worker/yeongnyangi/providers/code-destiny';
   export {questionManifest,FOLLOWUP_LIMITS,QUESTION_POLICY_VERSION} from './worker/yeongnyangi/fortune/ask/question-policy';
   export {TUNA_REASONING_MODEL,TUNA_REVIEW_MAX_REWRITES} from './worker/yeongnyangi/fortune/tuna-quality';
-  export {tunaBookCostRatio} from './worker/yeongnyangi/fortune/reading-v7-cost';
+  export {tunaBookCostRatio,V7_COST} from './worker/yeongnyangi/fortune/reading-v7-cost';
 `, resolveDir: root, loader: 'ts' }, bundle: true, platform: 'node', format: 'cjs', write: false });
 const Module = createRequire(import.meta.url)('node:module');
 const loaded = new Module(path.join(root, 'yeongnyangi-cost-plan.cjs'));
@@ -143,7 +143,7 @@ const fishCosts = ['mackerel','salmon','flounder','tuna'].map(fishId=>{
   const pro=runtime.products.filter(product=>product.fishId==='tuna').map(tunaProCost),worst=pro.reduce((left,right)=>left.llmCostKRW>=right.llmCostKRW?left:right);
   const cost=round(worst.llmCostKRW+assumptions['operations-per-consultation-krw']);
   return {...base,basis:`Conservative all-Pro upper bound, not the actual mixed-model bill: tunaBookCostRatio on gemini/${runtime.TUNA_REASONING_MODEL}: retry factor, ${runtime.TUNA_REVIEW_MAX_REWRITES} self-review rewrites, ${runtime.FOLLOWUP_LIMITS.tuna} followups, plus the operations provision`,
-    costRatioByProduct:pro,fullRecoveryPerChapterKRW:cost,firstAttemptSuccessKRW:cost,hypotheticalOneBookRetryKRW:cost,legacyFlashScenario:flash};
+    costCeilingRatio:runtime.V7_COST.tunaExpandedMaxCostRatio,costRatioByProduct:pro,fullRecoveryPerChapterKRW:cost,firstAttemptSuccessKRW:cost,hypotheticalOneBookRetryKRW:cost,legacyFlashScenario:flash};
 });
 const fishPackCandidates = [['mackerel',19900,25],['salmon',11900,5],['flounder',19900,5],['tuna',39900,5]].map(([fishId,priceKRW,consultations])=>{
   const costs=fishCosts.find(cost=>cost.fishId===fishId);

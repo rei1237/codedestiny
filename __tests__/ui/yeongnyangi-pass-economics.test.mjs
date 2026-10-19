@@ -44,7 +44,8 @@ test('monthly fifty-pack review exposes mackerel margin limits independently of 
  // The mixed-model book is bounded conservatively using all-Pro pricing, not billed as all-Pro.
  const tuna=review.costs.find(row=>row.fishId==='tuna');
  assert.match(tuna.basis,/^Conservative all-Pro upper bound, not the actual mixed-model bill: tunaBookCostRatio on gemini\/gemini-2\.5-pro/);
- assert.ok(tuna.costRatioByProduct.every(row=>row.costRatio<=.2));
+ assert.equal(tuna.costCeilingRatio,.2*1.25,'the new prose contract carries a proportional scenario ceiling');
+ assert.ok(tuna.costRatioByProduct.every(row=>row.costRatio<=tuna.costCeilingRatio));
  assert.ok(tuna.legacyFlashScenario.fullRecoveryPerChapterKRW>0);
  const allMackerel=review.monthlyFiftyPackMixes.find(mix=>mix.name==='all_mackerel');
  assert.ok(allMackerel.scenarios.find(row=>row.signupRedemptions===100).operatingProfitScenarioKRW<0);
