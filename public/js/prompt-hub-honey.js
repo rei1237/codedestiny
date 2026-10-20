@@ -50,7 +50,7 @@
   function render() {
     var widget = document.querySelector('[data-cd-honey-widget]'); if (!widget) return;
     var button = widget.querySelector('[data-cd-honey-attend]');
-    text(widget.querySelector('[data-cd-honey-balance]'), state?.guest ? '로그인 후 확인' : state?.error ? '조회 실패' : state ? state.balance + '개' : '확인 중');
+    text(widget.querySelector('[data-cd-honey-balance]'), state?.guest ? '로그인 후 확인' : state?.error ? '조회 실패' : state ? state.balance.toLocaleString('ko-KR') + '개' : '확인 중');
     text(button, state?.attended ? '오늘 출석 체크 완료' : '출석 체크 하기');
     button.setAttribute('aria-busy', String(busy));
     button.disabled = busy || !state || Boolean(state?.attended || state?.error);
@@ -58,6 +58,10 @@
     widget.querySelector('[data-cd-honey-retry]').hidden = !state?.error;
   }
   var collectionAnimations = [], collectionLayer, collectionTimer;
+  function announceCollection(amount) {
+    var status = document.querySelector('[data-cd-honey-status]');
+    text(status, '꿀방울 ' + amount.toLocaleString('ko-KR') + '개를 모았어요! 현재 ' + state.balance.toLocaleString('ko-KR') + '개예요.');
+  }
   function clearCollection() {
     clearTimeout(collectionTimer);
     collectionAnimations.forEach(function (animation) { animation.cancel(); });
@@ -104,7 +108,7 @@
     catch (error) { if (version === revision) state = error.status === 401 ? { guest: true } : { error: true }; }
     finally { if (version === revision) { busy = false; render(); scheduleMidnight(); } }
     // Optional presentation must never turn a successful credit into an error state.
-    if (collected && version === revision) { try { celebrateCollection(); } catch (_) { clearCollection(); } }
+    if (collected && version === revision) { announceCollection(state.balance - previousBalance); try { celebrateCollection(); } catch (_) { clearCollection(); } }
   }
   function scheduleMidnight() {
     clearTimeout(midnightTimer);

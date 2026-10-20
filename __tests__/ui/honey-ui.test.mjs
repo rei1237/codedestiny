@@ -122,7 +122,7 @@ test('attendance copy stays actionable until the server confirms today, then sho
   try {
     await app.win.CdHoney.refresh(true);
     assert.equal(app.win.document.querySelector('[data-cd-honey-balance]').textContent, '8개');
-    assert.equal(app.win.document.querySelector('[data-cd-honey-status]').textContent, '');
+    assert.match(app.win.document.querySelector('[data-cd-honey-status]').textContent, /꿀방울 1개를 모았어요! 현재 8개/);
     assert.equal(app.win.document.querySelector('.cdh-honey__collection'), null);
   } finally { app.close(); }
  });
@@ -160,4 +160,15 @@ test('per-use confirmation explains each request and cancellation never unlocks'
   assert.equal(await pending,false);
   assert.equal(app.calls(),before+1); // Only the read-only balance refresh.
  } finally { app.close(); }
+});
+
+test('reduced motion still announces credit; no credit and failed requests never claim a reward', async () => {
+  for (const [mode, options, credited] of [['ok', { reducedMotion: true }, true], ['ok', { noCredit: true }, false], ['error', {}, false]]) {
+    const app = await setup(mode, options);
+    try {
+      await app.win.CdHoney.refresh(true);
+      assert.equal(app.win.document.querySelector('[data-cd-honey-status]').textContent.includes('1개를 모았어요'), credited);
+      assert.equal(app.animations.length, 0);
+    } finally { app.close(); }
+  }
 });
