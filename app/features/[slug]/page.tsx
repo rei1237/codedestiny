@@ -35,7 +35,7 @@ export default async function FeatureIntroduction({ params }: { params: Promise<
   if (!detail) notFound();
   const price = resolveServerFeaturePricing({ featureKey: detail.featureKey })?.amountKRW;
   const upper = detail.featureKeyTo ? resolveServerFeaturePricing({ featureKey: detail.featureKeyTo })?.amountKRW : null;
-  const priceLabel = detail.accessType === 'free' ? '무료' : price ? `${price.toLocaleString('ko-KR')}원${upper && upper > price ? ` ~ ${upper.toLocaleString('ko-KR')}원` : ''}` : '시작 화면에서 이용 조건 확인';
+  const priceLabel = detail.accessType === 'free' ? '무료' : price ? `${price.toLocaleString('ko-KR')}원${detail.priceFrom ? '부터' : upper && upper > price ? ` ~ ${upper.toLocaleString('ko-KR')}원` : ''}` : '시작 화면에서 이용 조건 확인';
   return <main className="featureIntroductionPage">
     <div className="mx-auto max-w-[960px]">
       <nav aria-label="기능 소개 탐색" className="featureIntroductionNav">
@@ -44,7 +44,7 @@ export default async function FeatureIntroduction({ params }: { params: Promise<
       </nav>
       <h1 className="featureIntroductionTitle">{detail.title}</h1>
       <div dangerouslySetInnerHTML={{ __html: renderFeatureDetailPanels(detail, { headingLevel: 2, startPriceLabel: priceLabel }) }} />
-      <FeatureIntroductionActions detail={{ featureKey: detail.featureKey, featureKeyTo: detail.featureKeyTo, accessType: detail.accessType, href: detail.href, ctaLabel: detail.ctaLabel }} />
+      <FeatureIntroductionActions detail={{ featureKey: detail.featureKey, featureKeyTo: detail.featureKeyTo, priceFrom: detail.priceFrom, accessType: detail.accessType, href: detail.href, ctaLabel: detail.ctaLabel }} />
       <DeferredShareWidget title={detail.title} description={detail.description} path={`/features/${detail.slug}/`} image={detail.ogImage || detail.image || undefined} contentType="software" />
     </div>
   </main>;

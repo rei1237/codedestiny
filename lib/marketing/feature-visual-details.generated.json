@@ -2055,7 +2055,8 @@
       "title": "운명의 찻집",
       "href": "/fortune-tea-house/",
       "featureKey": "fortune-tea-house-tarot-consultation",
-      "featureKeyTo": "",
+      "featureKeyTo": "fortune-tea-house-saju-joint-consultation",
+      "priceFrom": true,
       "accessType": "unknown",
       "image": "/feature-details/assets/fortune-tea-house-960.webp",
       "aliases": [

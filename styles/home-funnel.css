@@ -1083,6 +1083,26 @@ html.neo-mode .cdh,body.neo-mode .cdh{--cdh-glass-line:color-mix(in srgb,var(--c
 #cdHomeFunnel .cdh-consult>.cdh-slot{display:flex;min-width:0}
 #cdHomeFunnel .cdh-consult>.cdh-slot>section{flex:1;width:100%;min-width:0;margin:0}
 #cdHomeFunnel .cdh-consult .cdh-neo-letter{grid-template-columns:minmax(0,1fr) minmax(0,.62fr);gap:24px;padding:36px}
+/* 상담 장면은 장식용 컷아웃이 아닌 전체 폭의 사진으로 보여 준다. */
+#cdHomeFunnel #fortuneGatewayEntry{padding:0}
+#cdHomeFunnel #fortuneGatewayEntry .fortune-gateway__entry-shell{gap:20px;padding:0;border:0;border-radius:0;background:none;box-shadow:none}
+#cdHomeFunnel #fortuneGatewayEntry :is(.fortune-gateway__flora,.fortune-gateway__eyebrow,.fortune-gateway__door-kicker,.fortune-gateway__door-halo,.cd-yehwa-sparkle,.cd-yehwa-seal){display:none}
+#cdHomeFunnel #fortuneGatewayEntry .fortune-gateway__entry-shell::before,#cdHomeFunnel #fortuneGatewayEntry .fortune-gateway__entry-shell::after,#cdHomeFunnel #fortuneGatewayEntry .fortune-gateway__door::before,#cdHomeFunnel #fortuneGatewayEntry .fortune-gateway__door-art::after{content:none}
+#cdHomeFunnel #fortuneGatewayEntry .fortune-gateway__entry-copy h2{margin:0 0 10px;color:var(--cdh-ink);font-size:clamp(24px,2.4vw,30px);line-height:1.4}
+#cdHomeFunnel #fortuneGatewayEntry .fortune-gateway__entry-copy>p{color:var(--cdh-muted);font-size:14px;line-height:1.75}
+#cdHomeFunnel #fortuneGatewayEntry .fortune-gateway__door{display:grid;grid-template-columns:minmax(0,1fr);gap:0;min-height:0;padding:0 24px 24px;border:1px solid var(--cdh-line);border-radius:20px;background:var(--cdh-card);box-shadow:none;transform:none}
+#cdHomeFunnel #fortuneGatewayEntry .fortune-gateway__door>*{grid-area:auto;justify-self:stretch;min-width:0}
+#cdHomeFunnel #fortuneGatewayEntry .fortune-gateway__door-art{position:relative;inset:auto;z-index:auto;display:block;width:calc(100% + 48px);height:auto;aspect-ratio:3/2;margin:0 -24px 24px;overflow:hidden}
+#cdHomeFunnel #fortuneGatewayEntry .fortune-gateway__door-art img{display:block;width:100%;height:100%;object-fit:cover;object-position:60% 45%;filter:none;animation:none;transform:none}
+#cdHomeFunnel #fortuneGatewayEntry .fortune-gateway__door-title{margin:0 0 10px;color:var(--cdh-ink);font:700 24px/1.4 var(--cdh-serif)}
+#cdHomeFunnel #fortuneGatewayEntry .fortune-gateway__door-desc{max-width:44ch;color:var(--cdh-muted);font-size:14px;line-height:1.8}
+#cdHomeFunnel #fortuneGatewayEntry .fortune-gateway__door-meta{margin:18px 0}
+#cdHomeFunnel #fortuneGatewayEntry .fortune-gateway__door-meta b{padding:0;border:0;border-radius:0;background:none;color:var(--cdh-ink);font-size:15px;font-weight:600}
+#cdHomeFunnel #fortuneGatewayEntry .fortune-gateway__door-go{display:flex;justify-content:space-between;align-items:center;min-height:48px;margin:0;padding:12px 18px;border-radius:12px;background:var(--cdh-accent);color:var(--cdh-card);font-size:14px;line-height:1.6}
+#cdHomeFunnel #fortuneGatewayEntry .fortune-gateway__door-go em{color:inherit}
+#cdHomeFunnel #fortuneGatewayEntry .fortune-gateway__door:focus-visible{outline:3px solid var(--cdh-accent);outline-offset:4px}
+#cdHomeFunnel #fortuneGatewayEntry .fortune-gateway__door:hover{border-color:var(--cdh-accent)}
+#cdHomeFunnel #fortuneGatewayEntry .fortune-gateway__entry-note{margin:0;color:var(--cdh-muted);font-size:12px;line-height:1.75;text-align:center}
 @media(max-width:1100px){#cdHomeFunnel .cdh-consult{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:640px){#cdHomeFunnel .cdh-consult{margin:28px 16px 0}#cdHomeFunnel .cdh-consult .cdh-neo-letter{grid-template-columns:1fr;padding:30px 22px}}
 /* 이용권 — 영냥이 전용 세트는 접어 둔다. */

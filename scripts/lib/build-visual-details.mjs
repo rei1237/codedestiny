@@ -182,7 +182,7 @@ export function buildVisualDetails(html, book) {
       slug: item.id, title: item.name, description: item.desc,
       href: item.href || `/index.html?action=${encodeURIComponent(item.action)}`,
       visualHref: item.visualHref || item.href,
-      featureKey: item.featureKey, featureKeyTo: item.featureKeyTo, action: item.action, aliases: item.aliases, accessType: item.price === '무료' ? 'free' : undefined,
+      featureKey: item.featureKey, featureKeyTo: item.featureKeyTo, priceFrom: item.priceFrom, action: item.action, aliases: item.aliases, accessType: item.price === '무료' ? 'free' : undefined,
     })),
     ...react.map(item => ({ ...item, href: item.launchRoute })),
     ...Object.entries(verified).filter(([,item]) => item.sourceAction).map(([slug,item]) => ({ slug, title:item.title, href:item.href, action:item.sourceAction })),
@@ -203,7 +203,7 @@ export function buildVisualDetails(html, book) {
     const aliases = [...new Set(candidates)];
     const group = detailGroup(source, copy);
     const record = {
-      slug: source.slug, title: source.title, href: source.href, featureKey: source.featureKey || copy.featureId || '', featureKeyTo: source.featureKeyTo || '',
+      slug: source.slug, title: source.title, href: source.href, featureKey: source.featureKey || copy.featureId || '', featureKeyTo: source.featureKeyTo || '', ...(source.priceFrom ? { priceFrom: true } : {}),
       accessType: source.accessType || 'unknown', image: image.split('?')[0], aliases, category: group,
     };
     const panels = [];

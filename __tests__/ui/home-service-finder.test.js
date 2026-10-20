@@ -213,9 +213,9 @@ test("범위 가격 항목은 걸치는 가격대 칩에 모두 나온다", asyn
   assert.ok(inChip("vvip", "마스터 인연의 서"), "30,000원~50,000원 항목이 프리미엄에서 빠졌다");
   assert.ok(!inChip("premium", "마스터 인연의 서"), "범위 밖의 1만원대에 섞였다");
   assert.ok(!inChip("mid", "마스터 인연의 서"), "범위 밖의 3천원대에 섞였다");
-  // 찻집 대표 상품인 3카드 타로의 시작 가격 5,000원으로 분류한다.
+  // 찻집은 3카드 타로부터 공동 사주 상담까지 실제 5,000~15,000원 범위를 분류한다.
   assert.ok(inChip("high", "운명의 찻집"));
-  assert.ok(!inChip("premium", "운명의 찻집"));
+  assert.ok(inChip("premium", "운명의 찻집"));
   assert.ok(!inChip("vvip", "운명의 찻집"));
   assert.ok(!inChip("mid", "애니멀 토템"));
   assert.ok(inChip("high", "애니멀 토템"));
@@ -368,6 +368,19 @@ test("상품명은 띄어쓰기와 관계없이 검색되며 고민·가격 필�
       assert.deepEqual(await search(window, doc, query), [name]);
     }
     doc.querySelector('[data-cd-finder-reset]').click();
+  }
+  window.close();
+});
+
+test("찻집은 시작 가격으로 표시하고 실제 가격 범위의 필터에도 남는다", async () => {
+  const { doc, window } = await boot();
+  for (const bucket of ["high", "premium"]) {
+    doc.querySelector(`[data-price="${bucket}"]`).click();
+    assert.deepEqual(await search(window, doc, "운명의 찻집"), ["운명의 찻집"]);
+    const card = doc.querySelector("#fortuneGatewayRecs .fortune-gateway__rec");
+    assert.equal(card.querySelector(".fortune-gateway__rec-price").textContent, "5,000원부터");
+    assert.equal(card.getAttribute("data-price-from"), "true");
+    doc.querySelector("[data-cd-finder-reset]").click();
   }
   window.close();
 });
@@ -795,7 +808,7 @@ test('세계관 표시가 무료·유료 진입 계약이나 가격을 바꾸지
   for (const item of window.__cdServiceRegistry) {
     const card = [...panel.querySelectorAll('.fortune-gateway__rec')].find(node => node.querySelector('[data-pvw-title]').textContent===item.name);
     assert.ok(card, item.id);
-    assert.equal(card.querySelector('.fortune-gateway__rec-price').textContent, item.price || '');
+    assert.equal(card.querySelector('.fortune-gateway__rec-price').textContent, item.priceFrom ? item.price.split('~')[0] + '부터' : item.price || '');
     assert.equal(card.hasAttribute('data-coin-cost'), false);
     assert.equal(card.hasAttribute('data-per-use-price'), false);
     if(item.action) assert.equal(card.getAttribute('data-action'), item.action);

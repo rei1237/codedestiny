@@ -237,6 +237,7 @@
       aliases: item.aliases || [],
       collection: "",
       price: item.price || "",
+      priceFrom: !!item.priceFrom,
       buckets: bucketsOf(item.price),
       featureKey: item.featureKey || "",
       paid: isPaidItem(item.featureKey, item.price),
@@ -539,6 +540,7 @@
           (js/core/saju/reportDashboard.js 가 같은 조합을 쓴다).
        🔴 무료 항목에는 featureKey 를 싣지 않는다 — 시트가 카탈로그 가격을 찾아내면
           그 무료 기능을 '유료'로 프레이밍한다(index.html 의 _resolvePreviewData 주석). */
+    if (item.priceFrom) node.setAttribute("data-price-from", "true");
     if (item.paid) {
       if (item.featureKey) node.setAttribute("data-feature-key", item.featureKey);
       node.setAttribute("data-pvw-paid", "1");
@@ -716,7 +718,7 @@
       foot.className = "fortune-gateway__rec-foot";
       var price = document.createElement("i");
       price.className = "fortune-gateway__rec-price";
-      price.textContent = item.price;
+      price.textContent = item.priceFrom ? translate("home.simple.priceFrom", "{amount}원부터", { amount: item.price.split("원")[0] }) : item.price;
       var go = document.createElement("em");
       go.className = "fortune-gateway__rec-go";
       go.setAttribute("data-cd-trans", "");
