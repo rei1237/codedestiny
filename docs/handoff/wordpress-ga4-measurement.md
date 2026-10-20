@@ -81,3 +81,22 @@ WordPress 초안 88/91/95는 저장·상태 확인 완료. 이후 본문 수정�
 - 기존 별도 deploy-base-guard 7 / llm-generation-resilience 1275 / analysis-basis-contract 96 검사 통과.
 - 운영 GA 실제 수집, 완전한 원장 대조, 실제 관리자 저장·배포·CI는 미완료/미실행이다. 로컬 성공을 운영 검증으로 확대하지 않는다.
 - 로그는 저장소 밖 비공개 시각화 폴더에 보존. 임시 미리보기 서버·파일 정리 완료.
+# 2026-10-21 후속 검증
+
+투명 영냥이 관리자 자산 및 재현 가능한 격리 통합 검증 스크립트를 추가했다. 실제 UI에서 생성·증빙·완료·되돌림·재완료를 확인했고, 실제 HQ 라우트 + 메모리 DB 검사에서 120 XP·레벨 2·레벨업 확인·업적을 검증했다. 완료 직후 업적 미갱신을 발견해 기존 업적 동기화를 연결했다.
+
+GA4는 동일 속성·확장 기간에서 거래 대조를 계속했다. 추가 승인 거래의 GA 미표시를 확인했으나 동의·테스트·환경 조건이 불완전하여 전체 누락률은 미확정이다. 거래별 금액·시각·식별 정보는 저장소 밖 비공개 감사 기록에만 보존한다.
+
+운영 배포 금지 요청을 유지한다. 이번 수정도 분리 브랜치에 보관하며 main 병합·push·운영 DB 쓰기·구매 보충 송신은 하지 않는다.
+
+검증 환경 기록: 첫 check:fast의 임시 Git fixture 생성이 샌드박스 `.git/config` 쓰기 권한으로 실패했다. 해당 실행을 중단하고 절대경로 mock-network-guard, LLM_DRY_RUN=true, WORKERS_AI_ENABLED=false를 유지한 로컬 권한 실행으로 재검증했다. deploy-base-guard·llm-generation-resilience·analysis-basis-contract는 재실행에서 통과했다. 이는 운영 배포 검증이 아니다.
+
+통합 재현: `node scripts/preview-admin-guild.mjs --verify`.
+화면 재현: `node scripts/preview-admin-guild.mjs` 후 `http://127.0.0.1:4321/admin/`.
+브라우저 화면은 메모리 DB를 사용하며 프로세스 종료 시 테스트 기록이 사라진다. 검증 종료 후 서버·탭·자체 임시 번들은 정리했다.
+
+추가 측정 수정: `app/points/PointsClient.tsx`의 단건 결제 서버 확인 성공 경로에는 기존 `trackConfirmedPurchase` 호출이 빠져 있었다(정기결제 경로에는 존재). 성공 응답 뒤 기존 함수를 호출하도록 연결했다. `purchase-analytics.test.mjs`가 실제 콜백을 추출·실행해 HTTP 실패·미승인·지급 대기·확정·복구 중복을 검증하며 16/16 통과했다. 동의 기본값·구매 판정·중복 방지·결제 처리는 바꾸지 않았다. 관측된 고객 거래와 이 경로의 인과관계는 미확정이고, 과거 거래 재송신은 하지 않았다.
+
+운영 공개 확인: `/points/`가 지연 로드하는 `/_next/static/chunks/8363.d6e6109c918e1c7c.js`에서도 단건 confirm 성공 뒤 추적 호출이 없고 subscription confirm에는 존재함을 확인했다. 공개 HTML과 webpack 매니페스트의 실제 참조를 따라 소스만 읽었으며 실행하지 않았다.
+
+후속 최종 검증: check:fast exit 0 — paid gate 90/90, Node 3452/3452, Jest 424 suites·6738/6738, lint·typecheck·sitemap drift·Worker dry-run 포함. 별도 실제 HQ route 격리 검증 및 payment-freeze 통과. 원장 대조의 동의·식별·실제 결제 진입 경로는 미확인으로 남는다. 운영 배포·실제 GA 수집·CI 성공을 의미하지 않는다.
