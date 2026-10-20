@@ -2,97 +2,86 @@
   "id": "sukuyo-compatibility-expert",
   "featureKey": "sukuyo-compatibility-ai",
   "title": "숙요점 궁합 전문가 상담",
-  "notice": "두 사람의 출생 정보와 숙요점 계산 자료를 바탕으로 AI가 작성하는 궁합 상담입니다. 본명숙과 27숙 관계·거리·각자의 자리를 근거로 총평, 두 별의 본질, 해석 근거, 끌림, 감정 방향, 대화법, 관계 단계, 갈등, 주의 패턴, 카르마, 성장, 빛나는 순간, 다섯 관계 영역, 시간에 따른 변화, 마지막 편지의 열다섯 챕터를 구성합니다. 여섯 지표는 서비스 내부 참고값이며 결혼·재회 확률이나 객관적 관계 등급이 아닙니다. 상대의 실제 속마음을 확인한 결과가 아니며, 카르마와 전생 서사는 상징적 해석입니다. 만남 직후·1년·3년·5년 이후의 설명은 선택과 관계 변화에 따른 시나리오이며 날짜별 사건을 보장하지 않습니다. 완료 결과는 챕터별로 읽고 PDF로 저장할 수 있습니다. 출생시간을 모르면 미상으로 선택하며 제공된 정보에 따라 해석 범위가 달라집니다. 기본 숙요 궁합, 정밀 확장, 인연 레이더, 질문 AI 상담은 별도 상품입니다. 예시는 이해를 돕기 위한 가상 편집이며 실제 응답이나 고객 후기가 아닙니다. 서한비는 상담을 안내하는 캐릭터이며 상담 본문은 AI가 작성합니다. 현재 결제 조건을 확인해 주세요.",
+  "notice": "삽화 속 마스터는 상담을 안내하는 캐릭터이며, 상담 내용은 AI가 생성합니다. 사람이 결과마다 직접 작성하는 상담이 아닙니다. 소개 문장은 풀이 방식을 설명하는 편집 예시이며 고객의 실제 결과·후기가 아닙니다. 실제 내용은 입력 정보와 생성된 결과에 따라 달라집니다. 미래나 상대의 마음을 확정하지 않습니다. 제작자의 과거 직접 1:1 상담 후기는 이 디지털 상품의 구매 후기가 아닙니다.",
   "panels": [
     {
-      "id": "01-two-ways-of-loving",
-      "title": "두 달집 사이의 거리를, 서한비가 재어 드려요.",
-      "alt": "두 달집 사이의 거리를, 서한비가 재어 드려요.",
-      "src": "/feature-details/crafted/sukuyo-compatibility-expert/01-two-ways-of-loving.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "두 달집 사이의 거리를,\n서한비가 재어 드려요.\n\n한 사람은 대답을 기다리고,\n한 사람은 생각할 시간이 필요할 때.\n두 사람의 달이 머문 자리로 읽어요.\n\n숙요점 궁합 전문가 AI 상담 · 서한비\n두 사람의 관계를 잇는 열다섯 챕터."
+      "id": "editorial-1",
+      "title": "두 사람 사이의 거리, 서한비가 함께 살핍니다.",
+      "text": "끌리는 이유와 부딪히는 순간을 함께 읽고, 관계를 지켜 갈 선택을 정리합니다.",
+      "src": "/images/consultation-editorial/hanbi.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": "숙요점 궁합 전문가 상담 마스터 상담 삽화",
+      "variants": [
+        {
+          "src": "/images/consultation-editorial/hanbi-768.webp",
+          "width": 768
+        }
+      ]
     },
     {
-      "id": "02-the-mansions-and-their-distance",
-      "title": "끌림을 설명하는 별, 관계를 선택하는 두 사람.",
-      "alt": "끌림을 설명하는 별, 관계를 선택하는 두 사람.",
-      "src": "/feature-details/crafted/sukuyo-compatibility-expert/02-the-mansions-and-their-distance.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "끌림을 설명하는 별,\n관계를 선택하는 두 사람.\n각자의 본명숙\n\n출생 정보를 바탕으로 읽는\n성향과 감정 처리 방식이에요.\n\n두 숙의 관계와 거리\n\n27숙 안에서 맺는 관계 유형과\n각자의 자리를 함께 살펴요.\n\n계산 자료에서 상담으로\n\nAI가 해석 근거를 풀어 쓰고\n관계에서 시도할 행동을 제안해요.\n\n숙요의 거리는 관계 분류를 뜻해요.\n실제 거주 거리나 마음의 크기가 아니에요."
+      "id": "editorial-2",
+      "title": "어떤 근거로 풀어 주나요?",
+      "text": "태어난 날의 달의 자리인 27숙과 두 사람의 숙요 관계를 바탕으로 해석합니다. 상대의 속마음을 확정하지 않고, 관계에서 드러날 수 있는 반응과 조건을 설명합니다.",
+      "src": "/images/consultation-editorial/hanbi.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": "",
+      "variants": [
+        {
+          "src": "/images/consultation-editorial/hanbi-768.webp",
+          "width": 768
+        }
+      ]
     },
     {
-      "id": "03-the-first-three-chapters",
-      "title": "먼저 두 사람을 읽고, 해석의 근거를 확인해요.",
-      "alt": "먼저 두 사람을 읽고, 해석의 근거를 확인해요.",
-      "src": "/feature-details/crafted/sukuyo-compatibility-expert/03-the-first-three-chapters.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "먼저 두 사람을 읽고,\n해석의 근거를 확인해요.\n01 종합 궁합 총평\n\n관계의 강점과 취약한 조건을\n같은 무게로 살펴요.\n\n02 두 별의 본질\n\n기질·감정·사고·관계·사랑에서\n각자의 익숙한 방식을 읽어요.\n\n03 해석 근거와 영향 요인\n\n판단을 뒷받침하는 계산 자료와\n힘을 더하거나 약하게 하는 조건."
+      "id": "editorial-3",
+      "title": "상담에서 읽게 될 내용",
+      "text": "끌림과 갈등의 패턴, 서로 편안해지는 거리와 대화의 방향을 읽습니다.",
+      "src": "/images/consultation-editorial/hanbi.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": "",
+      "variants": [
+        {
+          "src": "/images/consultation-editorial/hanbi-768.webp",
+          "width": 768
+        }
+      ]
     },
     {
-      "id": "04-attraction-and-conversation",
-      "title": "끌림 다음에 필요한 것, 서로에게 통하는 대화.",
-      "alt": "끌림 다음에 필요한 것, 서로에게 통하는 대화.",
-      "src": "/feature-details/crafted/sukuyo-compatibility-expert/04-attraction-and-conversation.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "끌림 다음에 필요한 것,\n서로에게 통하는 대화.\n04 끌림의 구조\n\n인상·감정·가치관·대화 등에서\n무엇에 마음이 움직이는지 읽어요.\n\n05 감정의 방향성\n\n표현하고 기다리는 방식이\n서로 어떻게 다른지 살펴요.\n\n06 대화법과 관계 유지 전략\n\n감정 표현·거리 조절·신뢰를\n실제 대화와 행동으로 연결해요.\n\n상대의 속마음을 확인한 사실이 아닌,\n계산 자료에 기초한 해석이에요."
+      "id": "editorial-4",
+      "title": "풀이를 일상으로 가져오는 방법",
+      "text": "편집 예시 · 실제 개인 결과가 아닙니다.\n\n지금의 패턴을 알아차리는 것부터 시작해 보세요. 같은 상황에서 어떤 선택을 반복했는지 적고, 다음에는 바꿔 볼 행동을 하나 정해 보는 방식으로 풀이를 일상에 연결할 수 있습니다.",
+      "src": "/images/consultation-editorial/hanbi.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": "",
+      "variants": [
+        {
+          "src": "/images/consultation-editorial/hanbi-768.webp",
+          "width": 768
+        }
+      ]
     },
     {
-      "id": "05-when-the-rhythm-breaks",
-      "title": "어긋나는 순간에도, 다시 맞출 방법은 있어요.",
-      "alt": "어긋나는 순간에도, 다시 맞출 방법은 있어요.",
-      "src": "/feature-details/crafted/sukuyo-compatibility-expert/05-when-the-rhythm-breaks.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "어긋나는 순간에도,\n다시 맞출 방법은 있어요.\n07 관계 에너지의 단계\n\n만남·가까워짐·안정·권태·갈등·\n화해·장기 관계의 일곱 장면.\n\n08 갈등의 파문과 위기\n\n반복되는 갈등의 상황과 원인,\n각자의 반응과 해결 대사를 읽어요.\n\n09 조심해야 할 패턴\n\n오해가 쌓이는 조건마다\n예방 방법과 대안 행동을 붙여요.\n\n갈등의 책임을 한 사람에게 몰거나\n이별을 확정하는 기준으로 쓰지 마세요."
-    },
-    {
-      "id": "06-what-this-connection-can-teach",
-      "title": "오래 남는 인연은, 서로를 어떻게 바꿀까요?",
-      "alt": "오래 남는 인연은, 서로를 어떻게 바꿀까요?",
-      "src": "/feature-details/crafted/sukuyo-compatibility-expert/06-what-this-connection-can-teach.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "오래 남는 인연은,\n서로를 어떻게 바꿀까요?\n10 카르마 분석\n\n관계에서 배우는 과제와 의미를\n숙요의 상징으로 풀어 읽어요.\n\n11 서로를 성장시키는 방식\n\n각자에게 가능한 변화와\n그 변화가 일어날 조건을 살펴요.\n\n12 가장 빛나는 순간\n\n두 사람의 강점이 살아나는\n상황과 함께할 활동을 그려봐요.\n\n카르마와 전생 이야기는 상징적 서사예요.\n실제 과거 생애를 확인한 결과가 아니에요."
-    },
-    {
-      "id": "07-life-together-and-time",
-      "title": "연애의 바깥에서도, 함께 살아갈 방식을 읽어요.",
-      "alt": "연애의 바깥에서도, 함께 살아갈 방식을 읽어요.",
-      "src": "/feature-details/crafted/sukuyo-compatibility-expert/07-life-together-and-time.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "연애의 바깥에서도,\n함께 살아갈 방식을 읽어요.\n13 관계 영역별 궁합\n\n결혼·동거·사업·친구·직장 동료.\n다섯 관계에서의 조건과 행동.\n\n14 시간에 따른 변화\n\n만남 직후·1년·3년·5년 이후를\n성장과 갈등의 두 시나리오로 읽어요.\n\n15 달빛이 전하는 한마디\n\n앞의 해석을 모아\n두 사람에게 건네는 마지막 편지.\n\n시간 구간은 관계를 생각하는 틀이에요.\n그 시점의 사건을 보장하지 않아요."
-    },
-    {
-      "id": "08-a-conversation-to-try",
-      "title": "기다림을 오해하기 전에, 시간을 함께 정해보세요.",
-      "alt": "기다림을 오해하기 전에, 시간을 함께 정해보세요.",
-      "src": "/feature-details/crafted/sukuyo-compatibility-expert/08-a-conversation-to-try.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "기다림을 오해하기 전에,\n시간을 함께 정해보세요.\n\n이해를 돕기 위한 예시 · 가상 편집\n\n“나는 답이 없으면 불안해져.\n지금 생각할 시간이 필요하다면\n오늘 저녁에 다시 이야기할까?”\n\n재촉과 침묵 사이에서\n서로 지킬 수 있는 약속 하나를\n정해보는 방식이에요.\n\n실제 AI 응답이나 고객 후기가 아니에요."
-    },
-    {
-      "id": "09-read-the-chapters-not-just-the-score",
-      "title": "숫자는 참고로, 이야기는 챕터와 PDF로.",
-      "alt": "숫자는 참고로, 이야기는 챕터와 PDF로.",
-      "src": "/feature-details/crafted/sukuyo-compatibility-expert/09-read-the-chapters-not-just-the-score.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "숫자는 참고로,\n이야기는 챕터와 PDF로.\n관계 지표와 27숙 배치\n\n운명·조화·감정·성장·안정과 종합.\n여섯 지표로 해석의 입구를 살펴요.\n\n챕터별 상담 본문\n\n열다섯 챕터를 오가며\n궁금한 부분을 다시 읽을 수 있어요.\n\nPDF 저장\n\n완료된 상담 결과를\n문서로 저장해 차분히 살펴보세요.\n\n지표는 내부 참고값이에요.\n결혼·재회 성공률이나 객관적 등급이 아니에요."
-    },
-    {
-      "id": "10-prepare-two-birthdays",
-      "title": "정답인 인연을 고르기보다, 우리를 이해하는 시간.",
-      "alt": "정답인 인연을 고르기보다, 우리를 이해하는 시간.",
-      "src": "/feature-details/crafted/sukuyo-compatibility-expert/10-prepare-two-birthdays.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "정답인 인연을 고르기보다,\n우리를 이해하는 시간.\n\n두 사람의 생년월일을 준비해요.\n이름·성별·달력과 아는 출생시간을\n입력 화면에서 확인해 주세요.\n\n시간을 모르면 미상으로 선택할 수 있어요.\n현재 결제 조건을 확인한 뒤\n기존 ‘두 사람의 인연 읽기’로 이어가세요."
+      "id": "editorial-5",
+      "title": "상담을 준비해 주세요",
+      "text": "두 사람의 출생 정보와 현재 관계, 가장 궁금한 장면을 준비해 주세요.\n\n이용권·월정석·단건 결제의 적용 여부와 금액은 기존 결제 화면에서 확인해 주세요.",
+      "src": "/images/consultation-editorial/hanbi.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": "",
+      "variants": [
+        {
+          "src": "/images/consultation-editorial/hanbi-768.webp",
+          "width": 768
+        }
+      ]
     }
+  ],
+  "layout": "editorial",
+  "masters": [
+    "hanbi"
   ]
 }

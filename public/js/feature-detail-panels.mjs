@@ -28,16 +28,16 @@ const chevron = '<svg class="craftedCardChevron" viewBox="0 0 24 24" width="20" 
 
 // 생성기가 master-profiles.ts 에서 붙인 마스터만 그린다 — 원본 manifest 의 키 문자열은 건너뛴다.
 const craftedMasters = detail => (Array.isArray(detail.masters) ? detail.masters : []).filter(master => /^[A-Za-z]+$/.test(master?.key || '') && master.name && safeImage(master.avatar));
-const masterAvatar = (master, size) => `<img src="${escape(safeImage(master.avatar))}" alt="" width="${size}" height="${size}" loading="eager" decoding="async">`;
+const masterAvatar = (master, size, eager = true) => `<img src="${escape(safeImage(master.avatar))}" alt="" width="${size}" height="${size}" loading="${eager ? 'eager' : 'lazy'}" decoding="async">`;
 // 마스터마다 CSS 가 고유 포인트 색을 고른다. 키는 위 필터에서 영문자만 통과한다.
 const masterAttr = master => master ? ` data-master="${master.key}"` : '';
 
 // 권위는 꾸민 이력이 아니라 무엇을 근거로 읽고, 무엇을 맡는지에서 나온다(상품 페이지 소개장과 같은 행).
-function renderMasters(masters) {
+function renderMasters(masters, eager = true) {
   if (!masters.length) return '';
   const pair = masters.length === 2;
   const row = (label, text, className = '') => text ? `<div${className ? ` class="${className}"` : ''}><dt>${label}</dt><dd>${escape(text)}</dd></div>` : '';
-  return `<section class="craftedMasters${pair ? ' craftedMastersPair' : ''}"><p class="craftedMastersLead">${pair ? '두 마스터가 부를 나눠 씁니다' : '이 상담을 쓰는 마스터'}</p><ul>${masters.map(master => `<li class="craftedMaster"${masterAttr(master)}><div class="craftedMasterHead">${masterAvatar(master, 128)}<div><p class="craftedMasterEpithet">${escape(master.epithet)}</p><p class="craftedMasterName"><strong>${escape(master.name)}</strong></p>${master.role ? `<p class="craftedMasterRole">${escape(master.role)}</p>` : ''}</div></div>${master.signature ? `<blockquote>${escape(master.signature)}</blockquote>` : ''}${master.basis || master.part ? `<dl class="craftedMasterDossier">${row('읽는 근거', master.basis)}${row('맡는 부분', master.part, 'craftedMasterPart')}</dl>` : ''}</li>`).join('')}</ul></section>`;
+  return `<section class="craftedMasters${pair ? ' craftedMastersPair' : ''}"><p class="craftedMastersLead">${pair ? '두 마스터가 부를 나눠 씁니다' : '이 상담을 쓰는 마스터'}</p><ul>${masters.map(master => `<li class="craftedMaster"${masterAttr(master)}><div class="craftedMasterHead">${masterAvatar(master, 128, eager)}<div><p class="craftedMasterEpithet">${escape(master.epithet)}</p><p class="craftedMasterName"><strong>${escape(master.name)}</strong></p>${master.role ? `<p class="craftedMasterRole">${escape(master.role)}</p>` : ''}</div></div>${master.signature ? `<blockquote>${escape(master.signature)}</blockquote>` : ''}${master.basis || master.part ? `<dl class="craftedMasterDossier">${row('읽는 근거', master.basis)}${row('맡는 부분', master.part, 'craftedMasterPart')}</dl>` : ''}</li>`).join('')}</ul></section>`;
 }
 
 // 초상은 목차·산출물 뒤에만 그린다 — 첫 화면에 새로 붙는 이미지는 128px 아바타뿐이어야 한다.
@@ -97,12 +97,24 @@ function panelSources(panel) {
 
 /** Keep the full essay available as text, without duplicate image-alt narration. */
 export function renderCraftedDetail(detail, { eager = true } = {}) {
+  if (detail.layout === 'editorial') return renderEditorialDetail(detail, { eager });
   const basic = renderBasicFortuneDetail(detail);
   if (basic) return basic;
   const panels = craftedPanels(detail);
   if (!panels.length) return '';
   const masters = craftedMasters(detail);
   return `<div class="craftedDetail">${renderMasters(masters)}${renderChapters(detail, masters)}${renderOutcomes(detail)}${renderPrinciples(masters)}<div aria-hidden="true">${panels.map((panel, index) => `<img src="${escape(safeImage(panel.src))}"${panelSources(panel)} alt="" width="${Number(panel.width) || 1080}" height="${Number(panel.height) || 1440}" loading="${index || !eager ? 'lazy' : 'eager'}" decoding="async"${index || !eager ? '' : ' fetchpriority="high" data-lcp-candidate="1"'}>`).join('')}</div><p class="craftedDetailNotice">${escape(detail.notice)}</p><details class="craftedDetailTranscript"><summary>상세 안내를 글로 읽기</summary>${panels.map(panel => `<section><h3>${escape(panel.title)}</h3><p>${escape(transcriptBody(panel))}</p></section>`).join('')}</details></div>`;
+}
+
+/** Text stays readable when artwork fails; only opted-in products use this layout. */
+function renderEditorialDetail(detail, { eager }) {
+  const panels = craftedPanels(detail);
+  if (!panels.length) return '';
+  const masters = craftedMasters(detail);
+  const art = (panel, first = false) => `<img src="${escape(safeImage(panel.src))}"${panelSources(panel)} alt="${escape(panel.alt || '')}" width="${Number(panel.width) || 1536}" height="${Number(panel.height) || 1024}" loading="${first && eager ? 'eager' : 'lazy'}" decoding="async"${first && eager ? ' fetchpriority="high" data-lcp-candidate="1"' : ''}>`;
+  const [hero, ...sections] = panels;
+  const introduction = masters.length ? `<section class="craftedEditorialMasters"><h3>이 상담을 읽어 주는 마스터</h3><ul>${masters.map(master => `<li class="craftedMaster"${masterAttr(master)}><div class="craftedEditorialMasterHead">${masterAvatar(master, 64, false)}<div><strong>${escape(master.name)}</strong><p>${escape(master.role || master.part)}</p></div></div><p class="craftedEditorialMasterVoice">${escape(master.signature)}</p>${master.basis || master.part ? `<details class="craftedEditorialMasterNotes"><summary>${escape(master.name)}의 풀이 방식</summary><dl class="craftedMasterDossier"><div><dt>읽는 근거</dt><dd>${escape(master.basis)}</dd></div><div class="craftedMasterPart"><dt>맡는 부분</dt><dd>${escape(master.part)}</dd></div></dl></details>` : ''}</li>`).join('')}</ul></section>` : '';
+  return `<article class="craftedDetail craftedEditorial"><header>${art(hero, true)}<div class="craftedEditorialCopy"><h3>${escape(hero.title)}</h3><p>${escape(hero.text)}</p></div></header>${introduction}${sections.map(panel => `<section class="craftedEditorialSection">${panel.showImage ? art(panel) : ''}<h3>${escape(panel.title)}</h3><p>${escape(panel.text)}</p></section>`).join('')}${renderChapters(detail, masters)}${renderOutcomes(detail)}${renderPrinciples(masters)}<p class="craftedDetailNotice">${escape(detail.notice)}</p></article>`;
 }
 
 export function revealCraftedTranscript(event) {
@@ -142,6 +154,7 @@ function renderSample(detail, heading) {
 }
 
 function craftedMeta(item) {
+  if (item.layout === 'editorial') return [item.chapters?.length ? `목차 ${item.chapters.length}개` : '', '마스터 소개 · 풀이 안내', won(item.priceKRW)].filter(Boolean).join(' · ');
   return [item.chapters?.length ? `목차 ${item.chapters.length}개` : '', `그림 안내 ${craftedPanels(item).length}장`, won(item.priceKRW)].filter(Boolean).join(' · ');
 }
 

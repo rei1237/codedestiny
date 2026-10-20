@@ -26,6 +26,13 @@ test('paid introductions keep an honest sample in the authored essay or before t
       detail.crafted.forEach((essay, index) => {
         assert.ok(essay.panels.some(panel => /(?:편집 예시|가상(?: 활용)? 예시)/.test(panel.text)), `${essay.id}: illustrative sample is labeled`);
         assert.match(essays[index].querySelector('.craftedDetailNotice').textContent, /예시/);
+        if (essay.layout === 'editorial') {
+          assert.equal(essays[index].querySelectorAll(':scope > header > img').length, 1);
+          assert.equal(essays[index].querySelector('.craftedDetailTranscript'), null);
+          for (const panel of essay.panels) assert.ok(essays[index].textContent.includes(panel.title));
+          assert.equal(essays[index].querySelectorAll('.craftedMaster').length, essay.masters.length);
+          return;
+        }
         assert.equal(essays[index].querySelectorAll(':scope > div[aria-hidden] img').length, essay.panels.length);
         assert.ok([...essays[index].querySelectorAll('img')].every(image => image.getAttribute('alt') === ''), 'full transcript avoids duplicate alt narration');
         for (const panel of essay.panels) assert.ok(essays[index].querySelector('.craftedDetailTranscript').textContent.includes(panel.title));
@@ -69,7 +76,7 @@ test('representative introductions open as product cards with real chapters, unc
   cards.forEach((card, index) => {
     assert.equal(card.querySelector('summary strong').textContent, detail.crafted[index].title.split(' · ')[1]);
     const price = getBillingFeaturePricing({featureKey:detail.crafted[index].featureKey}).pricing.amountKRW.toLocaleString('ko-KR') + '원';
-    assert.match(card.querySelector('.craftedCardMeta').textContent, new RegExp(`그림 안내 \\d+장 · ${price}$`));
+    assert.match(card.querySelector('.craftedCardMeta').textContent, new RegExp(`마스터 소개 · 풀이 안내 · ${price}$`));
     assert.ok([...card.querySelectorAll('.craftedDetail img')].every(image => image.getAttribute('loading') === 'lazy'));
   });
   assert.ok(fragment.querySelector('.consultation-guide') && fragment.querySelector('.fortuneBenefits'), 'shared readable guide and existing benefits remain available');
@@ -80,7 +87,7 @@ test('representative introductions open as product cards with real chapters, unc
   assert.equal(single.querySelector('.craftedChapters b'), null);
   assert.equal(single.querySelector('.craftedEditionsLead').textContent, '목차 2개 · 그림 안내 1장');
   const plain = JSON.parse(fs.readFileSync('public/feature-details/astrology-ai.json', 'utf8'));
-  const art = JSDOM.fragment(renderFeatureDetailPanels(plain)).querySelector('.featureDetailHero .featureDetailArt');
+  const art = JSDOM.fragment(renderFeatureDetailPanels(plain)).querySelector('.featureDetailHero .featureDetailArt, .featureDetailHero .craftedHeroArt');
   assert.equal(`${art.getAttribute('width')}x${art.getAttribute('height')}`, `${plain.imageWidth}x${plain.imageHeight}`);
   const artRules = fs.readFileSync('styles/feature-visual-detail.css', 'utf8').match(/\.featureDetailArt\{[^}]*\}/g);
   assert.ok(artRules.every(rule => !/aspect-ratio|object-fit|object-position|height:100%/.test(rule)), 'non-authored hero keeps its own ratio');
@@ -297,13 +304,13 @@ test('authored premium introductions retain founder provenance and complete port
   const founder = loadTsModule('lib/brand/founder.ts').founder;
   for (const [slug, material] of [['life-book-ai', 'book'], ['love-secret-ai', 'letter']]) {
     const detail = JSON.parse(fs.readFileSync(`public/feature-details/${slug}.json`, 'utf8'));
-    assert.equal(detail.material, material);
+    assert.equal(detail.crafted[0].layout, 'editorial');
     assert.deepEqual(detail.founder, { credential: founder.credential, method: founder.method });
     const fragment = JSDOM.fragment(renderFeatureDetailPanels(detail));
-    const portraits = [...fragment.querySelectorAll('.craftedDetail > div[aria-hidden] img')];
-    assert.equal(portraits.length,10);
-    assert.ok(portraits.every(image => Number(image.getAttribute('height')) > Number(image.getAttribute('width'))));
-    assert.match(fragment.querySelector('.craftedDetailTranscript').textContent, /10년 경력/);
+    const portraits = [...fragment.querySelectorAll('.craftedEditorial > header > img')];
+    assert.equal(portraits.length,1);
+    assert.ok(portraits.every(image => Number(image.getAttribute('width')) > Number(image.getAttribute('height'))));
+    assert.ok(fragment.querySelector('.craftedEditorialSection'));
     assert.match(fragment.querySelector('.craftedDetail').textContent, /AI/);
     assert.match(fragment.querySelector('.craftedDetail').textContent, /사람이 결과마다 직접/);
   }

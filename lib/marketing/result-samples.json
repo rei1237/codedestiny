@@ -10,15 +10,15 @@
       "서로 다른 여섯 체계의 관점을 함께 살펴보는 리포트입니다. 각 체계의 근거와 해석을 구분해 읽고, 내 고민에 필요한 방향을 찾아보세요."
     ],
     "image": "/assets/yeongnyangi/reading-art/insight.webp",
-    "visual": "/images/home/fusion-signature-masters-1200.webp",
+    "visual": "/images/consultation-editorial/fusion.webp",
     "kind": "structure",
     "source": "FusionValuePreview",
     "slug": "fusion-fortune",
-    "master": "여섯 체계의 해석을 잇는 초융합",
+    "master": "네오 · 연이 · 서한비 · 윤달 · 무성",
     "visualAlt": "별의 지도 아래 함께 모인 초융합 운세의 상담 마스터들",
     "guide": {
       "audience": "한 가지 관점으로 정리되지 않는 일·돈·관계의 고민을 여러 근거와 함께 비교하고 싶은 분께 맞아요.",
-      "preparation": "출생 날짜·시간·장소와 지금 결정할 질문을 준비해 주세요. 모르는 정보는 모름으로 남기며, 시간과 장소에 의존하는 해석의 한계를 함께 읽어요.",
+      "preparation": "출생 날짜·정확한 시간·출생지와 지금 결정할 질문을 준비해 주세요. 현재 상황과 생각하는 기간을 함께 적으면 질문의 초점을 잡는 데 도움이 됩니다.",
       "outline": [
         {
           "title": "질문과 핵심 요약",
@@ -26,27 +26,27 @@
         },
         {
           "title": "1장 · 사주",
-          "text": "오행과 십성, 대운·세운을 바탕으로 기질과 시기의 흐름을 읽어요."
+          "text": "네오의 해석입니다. 오행과 십성, 대운·세운을 바탕으로 기질과 시기의 흐름을 읽어요."
         },
         {
           "title": "2장 · 자미두수",
-          "text": "명궁과 삶의 영역에 놓인 별을 바탕으로 일과 관계의 조건을 살펴요."
+          "text": "무성의 해석입니다. 명궁과 삶의 영역에 놓인 별을 바탕으로 일과 관계의 조건을 살펴요."
         },
         {
           "title": "3장 · 베다점",
-          "text": "행성 배치와 주기를 바탕으로 지금 지나는 시기의 의미를 읽어요."
+          "text": "윤달의 해석입니다. 행성 배치와 주기를 바탕으로 지금 지나는 시기의 의미를 읽어요."
         },
         {
           "title": "4장 · 숙요점",
-          "text": "별자리의 성향과 관계의 리듬을 숙요점의 관점으로 살펴요."
+          "text": "서한비의 해석입니다. 별자리의 성향과 관계의 리듬을 숙요점의 관점으로 살펴요."
         },
         {
           "title": "5장 · 서양 점성술",
-          "text": "행성과 하우스, 애스펙트를 바탕으로 심리와 선택의 패턴을 읽어요."
+          "text": "윤달의 해석입니다. 행성과 하우스, 애스펙트를 바탕으로 심리와 선택의 패턴을 읽어요."
         },
         {
           "title": "6장 · 타로",
-          "text": "펼친 카드와 질문의 맥락을 함께 읽고 현재의 선택지를 살펴요."
+          "text": "연이의 해석입니다. 펼친 카드와 질문의 맥락을 함께 읽고 현재의 선택지를 살펴요."
         },
         {
           "title": "공통점과 차이점",
@@ -55,6 +55,10 @@
         {
           "title": "종합 해석과 시기·행동",
           "text": "각 관점을 내 질문에 연결하고, 움직일 조건과 준비할 일을 정리해요."
+        },
+        {
+          "title": "삶의 영역별 해석",
+          "text": "성향·시기·연애·결혼·재물·일·생활 리듬·관계는 담당 마스터의 목소리로 읽어요. 생성된 결과에 포함된 분야별 해석을 확인할 수 있어요."
         },
         {
           "title": "최종 판단과 마무리",
@@ -81,9 +85,9 @@
       ]
     },
     "comparisonContents": [
-      "여섯 체계의 독립 해석",
-      "공통점과 차이점",
-      "시기·행동과 최종 판단"
+      "다섯 마스터의 여섯 체계 해석",
+      "같은 주제·시기의 근거 비교",
+      "분야별 해석과 행동·최종 판단"
     ]
   },
   {
@@ -97,7 +101,7 @@
       "사주 명식과 자미두수 명반을 함께 읽으며, 사랑에서 반복하는 패턴과 관계의 방향을 살펴봅니다."
     ],
     "image": "/assets/mascot/yeoni-moonstone-reward-v1-320.webp",
-    "visual": "/images/feature-details/master-love-codex-hero-v3.webp",
+    "visual": "/images/consultation-editorial/master.webp",
     "kind": "structure",
     "source": "master-love-codex existing introduction",
     "slug": "master-love-codex",
@@ -156,7 +160,7 @@
     "title": "연애 비책",
     "group": "대표 상담",
     "href": "/love-secret-ai/",
-    "visual": "/images/home/love-secret-masters-v1-1200.webp",
+    "visual": "/images/consultation-editorial/love.webp",
     "visualSrcset": "/images/feature-details/love-secret-ai-hero-v2-600.webp 600w, /images/feature-details/love-secret-ai-hero-v2.webp 1200w",
     "question": "고백할까, 조금 더 기다릴까?",
     "receives": "관계 진단 · 대화 예시 · 7일 실천 가이드",
@@ -223,7 +227,7 @@
     "title": "신년운세",
     "group": "대표 상담",
     "href": "/new-year-ai-consultation/",
-    "visual": "/images/home/new-year-neo-v1-1200.webp",
+    "visual": "/images/consultation-editorial/year.webp",
     "visualSrcset": "/images/feature-details/new-year-ai-hero-v3-600.webp 600w, /images/feature-details/new-year-ai-hero-v3-1200.webp 1200w",
     "question": "새해에는 이직과 부업 중 무엇을 준비할까?",
     "receives": "한 해의 흐름 · 12개월 변화 · 현실적인 준비",
@@ -293,7 +297,7 @@
     "title": "네오의 팩폭 전략실",
     "master": "네오",
     "href": "/neo-operation-room/",
-    "visual": "/images/feature-details/neo-operation-room-hero-v2-textless.webp",
+    "visual": "/images/consultation-editorial/neo.webp",
     "visualAlt": "전략실에서 다음 행동을 짚어주는 네오",
     "question": "생각은 충분히 했는데, 무엇부터 바꿔야 할까요?",
     "receives": "현실 진단 · 반복되는 선택 · 계산 근거 · 실행 전략",
@@ -346,7 +350,7 @@
     "title": "연이의 운명 찻집",
     "master": "연이",
     "href": "/fortune-tea-house/",
-    "visual": "/images/home/yeoni-tea-together-v1-1200.webp",
+    "visual": "/images/consultation-editorial/yeoni.webp",
     "visualAlt": "따뜻한 차와 함께 고민을 듣는 연이와 꽃돼지",
     "question": "마음이 복잡할 때, 어떤 선택부터 살펴볼까요?",
     "receives": "선택한 상담 방식 · 고민의 흐름 · 현실적인 기준 · 작은 실천",
@@ -403,7 +407,7 @@
     "title": "인생의 책",
     "master": "윤달",
     "href": "/life-book-ai/",
-    "visual": "/images/home/life-book-yun-v2-1200.webp",
+    "visual": "/images/consultation-editorial/life.webp",
     "visualAlt": "인생의 책을 펼쳐 삶의 흐름을 안내하는 윤달",
     "question": "내 삶에서 자꾸 되풀이되는 장면은 어디에서 올까요?",
     "receives": "10개 장의 인생 서사 · 대운과 세운 · 핵심 판독 4편 · PDF",

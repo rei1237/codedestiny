@@ -72,7 +72,7 @@ test('대표 상담 상세의 마스터는 master-profiles 에서 읽어 붙이�
     }
   }
   assert.throws(() => craftedMasters({ masters: ['nobodyLove'] }), /Unknown crafted master/);
-  assert.throws(() => craftedMasters({ masters: ['master'] }), /Unknown crafted master/, '대표 상담 전용 프로필만 쓴다');
+  assert.equal(craftedMasters({ masters: ['master'] })[0].name, masterProfiles.master.name, '기존 인연의 서 프로필도 정본에서 읽는다');
   assert.throws(() => craftedMasters({ masters: ['yeoniLove'], chapters: [{ title: 't', master: 'hanbiLove' }] }), /Chapter master/);
 });
 
@@ -81,16 +81,16 @@ const render = detail => JSDOM.fragment(renderCraftedDetail(detail, { eager: fal
 
 test('마스터 섹션은 목차 앞에 서고, 연애 비책은 두 마스터를 나란히 둔다', () => {
   const love = render(craftedOf('love-secret-ai'));
-  assert.ok(love.firstElementChild.matches('.craftedMasters.craftedMastersPair'));
-  assert.equal(love.querySelector('.craftedMastersLead').textContent, '두 마스터가 부를 나눠 씁니다');
+  assert.ok(love.firstElementChild.matches('header'));
+  assert.ok(love.querySelector('header + .craftedEditorialMasters'));
   assert.deepEqual([...love.querySelectorAll('.craftedMaster strong')].map(node => node.textContent), ['연이', '서한비']);
   for (const image of love.querySelectorAll('.craftedMaster img')) {
-    assert.deepEqual([image.getAttribute('width'), image.getAttribute('height'), image.getAttribute('loading'), image.getAttribute('alt')], ['128', '128', 'eager', '']);
+    assert.deepEqual([image.getAttribute('width'), image.getAttribute('height'), image.getAttribute('loading'), image.getAttribute('alt')], ['64', '64', 'lazy', '']);
     assert.equal(image.hasAttribute('fetchpriority'), false, '아바타는 상세 그림의 LCP 자리를 뺏지 않는다');
   }
   const neo = render(craftedOf('new-year-ai'));
   assert.equal(neo.querySelectorAll('.craftedMaster').length, 1);
-  assert.equal(neo.querySelector('.craftedMastersLead').textContent, '이 상담을 쓰는 마스터');
+  assert.equal(neo.querySelector('.craftedEditorialMasters > h3').textContent, '이 상담을 읽어 주는 마스터');
   assert.match(neo.querySelector('.craftedMasterPart').textContent, /여섯 장 전부/);
   assert.deepEqual([...neo.querySelectorAll('.craftedMasterDossier dt')].map(node => node.textContent), ['읽는 근거', '맡는 부분']);
 });
@@ -111,7 +111,8 @@ test('마스터마다 포인트 색 자리를 달고, 원칙과 초상은 산출
       assert.equal(image.hasAttribute('fetchpriority'), false);
     }
     const eager = [...new Set([...node.querySelectorAll('img[loading="eager"]')].map(image => image.getAttribute('src')))];
-    assert.deepEqual(eager, detail.masters.map(master => master.avatar), `${slug}: 첫 화면에 새로 붙는 이미지는 아바타뿐`);
+    const chapterAvatars = [...new Set(detail.chapters.filter(chapter => chapter.master).map(chapter => detail.masters.find(master => master.key === chapter.master).avatar))];
+    assert.deepEqual(eager, chapterAvatars, `${slug}: 접힌 소개는 lazy, 기존 목차 칩은 유지`);
   }
   const forged = render({ notice: 'n', masters: [{ key: 'x" onmouseover="y', name: 'n', avatar: '/a.webp' }], panels: [{ title: 'p', text: 'p', src: '/p.webp' }] });
   assert.equal(forged.querySelector('.craftedMasters'), null, '영문자 키만 data-master 로 나간다');
@@ -137,10 +138,12 @@ test('묶음 목차는 번호를 이어 가고, 28장 목록은 첫 묶음만 �
 });
 
 test('원본 manifest 의 마스터 키는 그리지 않고, 산출물 카드는 이스케이프해 목차 뒤에 둔다', () => {
-  const raw = render(JSON.parse(fs.readFileSync('public/feature-details/crafted/love-secret/manifest.json', 'utf8')));
+  const raw = render(JSON.parse(fs.readFileSync('content/product-details/love-secret/manifest.json', 'utf8')));
   assert.equal(raw.querySelector('.craftedMasters'), null);
   assert.equal(raw.querySelector('.craftedChapterMaster'), null);
   assert.ok(raw.querySelector('.craftedChaptersGrouped'));
+  const published = render(JSON.parse(fs.readFileSync('public/feature-details/crafted/love-secret/manifest.json', 'utf8')));
+  assert.equal(published.querySelectorAll('.craftedMaster').length, 2, '개별 페이지도 공개 manifest의 마스터를 읽는다');
   const detail = render({ notice: '예시', chapters: [{ title: '첫 장', gain: '<b>얻는 것</b>' }], outcomes: [{ title: '<i>체크리스트</i>', text: '이번 주 할 일', evidence: 'x.tsx' }, { title: '빈 카드' }], panels: [{ title: 'p', text: 'p', src: '/p.webp' }] });
   assert.ok(detail.querySelector('.craftedChapters + .craftedOutcomes'));
   assert.equal(detail.querySelector('.craftedOutcomesTitle').textContent, '받고 나면 손에 남는 것');

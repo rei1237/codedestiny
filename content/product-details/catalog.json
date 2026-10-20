@@ -192,6 +192,21 @@
     ],
     "olympus-oracle": [
       "olympus-oracle"
+    ],
+    "astrology-ai": [
+      "astrology-expert"
+    ],
+    "ziwei-ai": [
+      "ziwei-expert"
+    ],
+    "vedic-ai": [
+      "vedic-expert"
+    ],
+    "sukuyo-compatibility-ai": [
+      "sukuyo-compatibility-expert"
+    ],
+    "karma-destiny-ai": [
+      "karma-destiny"
     ]
   },
   "variants": {

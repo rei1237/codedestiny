@@ -37,10 +37,10 @@ export function craftedMasters(manifest) {
   const masters = manifest.masters.map(key => {
     const profile = Object.hasOwn(masterProfiles, key) ? masterProfiles[key] : undefined;
     const row = label => profile?.dossier?.find(item => item.label === label)?.text;
-    const part = row('이 상담에서 맡는 부분');
-    if (!profile?.epithet || !profile.signature || !part || !Object.hasOwn(masterAvatars, key)) throw new Error(`Unknown crafted master: ${key}`);
+    const part = manifest.masterRoles?.[key] || row('이 상담에서 맡는 부분') || profile?.approach;
+    if (!profile || !part || !Object.hasOwn(masterAvatars, key)) throw new Error(`Unknown crafted master: ${key}`);
     const { name, epithet, signature, role, principles, portrait, portraitSrcSet } = profile;
-    return { key, name, epithet, signature, role, part, basis: row('읽는 근거'), principles, avatar: masterAvatars[key], portrait, portraitSrcSet };
+    return { key, name, epithet: manifest.masterRoles?.[key] || epithet || role, signature: manifest.masterIntroductions?.[key] || signature || profile.description, role: manifest.masterRoles?.[key] || role, part, basis: manifest.masterBasis?.[key] || row('읽는 근거') || profile.approach, principles, avatar: masterAvatars[key], portrait, portraitSrcSet };
   });
   for (const chapter of manifest.chapters || []) {
     if (chapter.master !== undefined && !manifest.masters.includes(chapter.master)) throw new Error(`Chapter master is not a product master: ${chapter.master}`);
@@ -249,6 +249,18 @@ export function buildVisualDetails(html, book) {
     if (['book', 'letter'].includes(final.material)) {
       final.founder = { credential: founder.credential, method: founder.method };
     }
+    const editorial = crafted.find(item => item.layout === 'editorial');
+    if (editorial) {
+      final.image = editorial.panels[0].src;
+      final.imageAlt = editorial.panels[0].alt;
+      final.headline = editorial.panels[0].title;
+      final.description = editorial.panels[0].text;
+      // These editions show a consultation scene, not the previous book/letter object.
+      delete final.material;
+    }
+    if (['book', 'letter'].includes(final.material)) {
+      final.founder = { credential: founder.credential, method: founder.method };
+    }
     // These inline wrappers are source evidence, never browser asset requests.
     if (['destiny-flower', 'astrology-flower', 'ziwei-flower', 'sukuyo-flower'].includes(record.slug)) {
       final.evidence = [...new Set(['js/core/index-inline-runtime.js', ...final.evidence])];
@@ -375,6 +387,8 @@ export async function writeVisualDetails(html, book) {
   for (const name of fs.readdirSync(path.join(directory, 'assets'))) {
     if (writtenAssets.has(name)) continue;
     const stem = GENERATED_ASSET_PATTERN.exec(name)?.[1];
+    // Existing route metadata and saved links may still reference the previous OG/cover.
+    if (data.items[stem]?.crafted?.some(item => item.layout === 'editorial')) continue;
     const catalogStem = stem?.endsWith('-catalog') ? stem.slice(0, -'-catalog'.length) : '';
     if (!stem || !(knownSlugs.has(stem) || knownSlugs.has(catalogStem) || stem.startsWith(SHARED_ASSET_PREFIX))) continue;
     fs.unlinkSync(path.join(directory, 'assets', name));
@@ -383,7 +397,12 @@ export async function writeVisualDetails(html, book) {
   for (const id of fs.existsSync(CRAFTED_DIRECTORY) ? fs.readdirSync(CRAFTED_DIRECTORY) : []) {
     const file = path.join(CRAFTED_DIRECTORY, id, 'manifest.json');
     if (!fs.existsSync(file)) continue;
-    const manifest = JSON.parse(fs.readFileSync(file, 'utf8'));
+    const authoredFile = path.join(root, 'content/product-details', id, 'manifest.json');
+    const authored = fs.existsSync(authoredFile) ? JSON.parse(fs.readFileSync(authoredFile, 'utf8')) : null;
+    // Editorial editions publish from the authored source, including resolved master identities.
+    const manifest = authored?.layout === 'editorial'
+      ? { ...authored, masters: craftedMasters(authored) }
+      : JSON.parse(fs.readFileSync(file, 'utf8'));
     for (const panel of manifest.panels || []) {
       if (CRAFTED_PANEL_SOURCE.test(panel.src || '') && Number(panel.width) > 540) panel.variants = [{ src: await craftedVariant(panel.src, 540, writtenCrafted), width: 540 }];
     }
@@ -392,6 +411,8 @@ export async function writeVisualDetails(html, book) {
   for (const id of fs.existsSync(CRAFTED_DIRECTORY) ? fs.readdirSync(CRAFTED_DIRECTORY) : []) {
     const folder = path.join(CRAFTED_DIRECTORY, id);
     if (!fs.statSync(folder).isDirectory()) continue;
+    const source = path.join(root, 'content/product-details', id, 'manifest.json');
+    if (fs.existsSync(source) && JSON.parse(fs.readFileSync(source, 'utf8')).layout === 'editorial') continue;
     for (const name of fs.readdirSync(folder)) {
       if (CRAFTED_VARIANT_PATTERN.test(name) && !writtenCrafted.has(path.join(folder, name))) fs.unlinkSync(path.join(folder, name));
     }

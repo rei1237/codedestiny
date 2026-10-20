@@ -2,157 +2,147 @@
   "id": "fusion-fortune",
   "featureKey": "fusion-fortune-consultation",
   "title": "초융합 운세",
-  "notice": "결과의 여섯 체계별 해석과 종합·시기·행동 구조를 안내합니다. 받은 내용이 있는 항목부터 표시되며, 근거 비교는 같은 주제와 시기에 비교 가능한 자료가 있을 때 구성됩니다. 도식과 상담 문장은 이해를 돕기 위한 편집 예시로 실제 고객 결과가 아닙니다. 체계 간 일치나 화면의 수치는 성공 확률 또는 정확도 인증이 아닙니다. 결과 문장은 AI가 작성하며, 여섯 명의 사람이 직접 상담하는 상품이 아닙니다.",
+  "notice": "삽화 속 마스터는 상담을 안내하는 캐릭터이며, 상담 내용은 AI가 생성합니다. 사람이 결과마다 직접 작성하는 상담이 아닙니다. 소개 문장은 풀이 방식을 설명하는 편집 예시이며 고객의 실제 결과·후기가 아닙니다. 실제 내용은 입력 정보와 생성된 결과에 따라 달라집니다. 미래나 상대의 마음을 확정하지 않습니다. 제작자의 과거 직접 1:1 상담 후기는 이 디지털 상품의 구매 후기가 아닙니다.",
   "panels": [
     {
-      "id": "01-crossroads",
-      "title": "옮겨야 할까, 조금 더 버텨야 할까.",
-      "alt": "달빛이 드는 방의 공식 수정구 삽화와 선택의 갈림길에서 시작하는 초융합 상담.",
-      "src": "/feature-details/crafted/fusion-fortune/01-crossroads.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "옮겨야 할까,\n조금 더 버텨야 할까.\n\n한 가지 해석만으로는\n정리되지 않는 질문이 있습니다.\n\n초융합 운세\n여섯 관점을 지나, 나의 선택으로.",
+      "id": "editorial-1",
+      "title": "여섯 관점이 만나, 하나의 선택이 또렷해집니다.",
+      "text": "사주·자미두수·베다점·숙요점·서양점성술·타로를 각각 읽고, 같은 질문을 향한 근거를 비교합니다. 다섯 마스터의 해석을 지나 지금 할 수 있는 선택으로 이어지는 초융합 상담입니다.",
+      "src": "/images/consultation-editorial/fusion.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": "초융합 운세 마스터 상담 삽화",
       "variants": [
         {
-          "src": "/feature-details/crafted/fusion-fortune/01-crossroads-540.webp",
-          "width": 540
+          "src": "/images/consultation-editorial/fusion-768.webp",
+          "width": 768
         }
       ]
     },
     {
-      "id": "02-one-question",
-      "title": "답을 모으기 전에, 질문의 초점을 맞춥니다.",
-      "alt": "현재 상황, 결정할 선택, 확인할 조건을 구분하는 질문 노트.",
-      "src": "/feature-details/crafted/fusion-fortune/02-one-question.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "답을 모으기 전에,\n질문의 초점을 맞춥니다.\n이직이 좋을까요?\n조금 더 구체적으로 물어보면.\n지금의 상황\n\n일은 익숙하지만, 역할이 좁아졌어요.\n\n결정할 선택\n\n남아서 협의할지, 다른 곳을 볼지.\n\n확인할 조건\n\n성장·생활 리듬·준비할 시간을.\n\n질문을 정리하는 편집 예시입니다.\n나의 실제 상황으로 바꾸어 적어 주세요.",
+      "id": "editorial-2",
+      "title": "어떤 근거로 풀어 주나요?",
+      "text": "먼저 각 체계가 말하는 것을 독립적으로 읽습니다. 그다음 같은 주제와 시기에 해당하는 근거를 나란히 놓고, 함께 가리키는 방향과 서로 다른 해석을 살핍니다.\n\n종합 판단은 시기·관계·심리·일의 영역에 맞는 근거를 고려합니다. 의견이 모인 개수를 확률이나 적중률로 바꾸지 않습니다.",
+      "src": "/images/consultation-editorial/fusion.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": "",
       "variants": [
         {
-          "src": "/feature-details/crafted/fusion-fortune/02-one-question-540.webp",
-          "width": 540
+          "src": "/images/consultation-editorial/fusion-768.webp",
+          "width": 768
         }
       ]
     },
     {
-      "id": "03-different-lenses",
-      "title": "여섯 관점, 서로 다른 근거.",
-      "alt": "사주·자미두수·베다점·숙요점·서양점성술·타로 각각의 해석 관점.",
-      "src": "/feature-details/crafted/fusion-fortune/03-different-lenses.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "여섯 관점,\n서로 다른 근거.\n사주\n기질과 큰 시기 흐름\n자미두수\n명반의 궁과 삶의 영역\n베다점성술\n행성과 주기로 읽는 시기\n숙요점\n본명숙으로 보는 관계의 리듬\n서양점성술\n출생 차트와 심리·선택의 패턴\n타로\n지금 질문을 비추는 여섯 자리",
+      "id": "editorial-3",
+      "title": "상담에서 읽게 될 내용",
+      "text": "체계별 풀이와 종합 해석, 선택의 조건과 행동 조언을 읽습니다. 성향·시기·연애·결혼·재물·일·생활 리듬·관계의 분야별 해석은 생성된 결과에 따라 함께 제공됩니다.",
+      "src": "/images/consultation-editorial/fusion.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": "",
       "variants": [
         {
-          "src": "/feature-details/crafted/fusion-fortune/03-different-lenses-540.webp",
-          "width": 540
+          "src": "/images/consultation-editorial/fusion-768.webp",
+          "width": 768
         }
       ]
     },
     {
-      "id": "04-reading-order",
-      "title": "먼저 각각 읽고, 그다음 함께 생각합니다.",
-      "alt": "도입과 핵심 요약에서 여섯 독립 해석, 종합 해석으로 이어지는 실제 결과 순서.",
-      "src": "/feature-details/crafted/fusion-fortune/04-reading-order.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "먼저 각각 읽고,\n그다음 함께 생각합니다.\n\n실제 결과의 읽기 순서 · 앞부분\n\n01\n도입과 핵심 요약\n\n질문의 자리와 주요 흐름을 먼저.\n\n02\n여섯 체계의 개별 해석\n\n사주 · 자미두수 · 베다점\n숙요점 · 서양점성술 · 타로\n\n03\n종합 해석\n\n각 관점의 뜻을 질문에 맞춰 연결.\n\n본문과 핵심 포인트를 읽고,\n궁금한 체계의 장으로 다시 돌아갑니다.",
+      "id": "editorial-4",
+      "title": "풀이를 일상으로 가져오는 방법",
+      "text": "편집 예시 · 실제 개인 결과가 아닙니다.\n\n시기의 흐름은 움직임을 지지하더라도, 일의 조건이 아직 분명하지 않다면 준비하며 확인하는 선택이 필요할 수 있습니다. 근거가 다른 이유를 살핀 뒤, 제안의 역할과 생활 조건부터 확인해 보세요.",
+      "src": "/images/consultation-editorial/fusion.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": "",
       "variants": [
         {
-          "src": "/feature-details/crafted/fusion-fortune/04-reading-order-540.webp",
-          "width": 540
+          "src": "/images/consultation-editorial/fusion-768.webp",
+          "width": 768
         }
       ]
     },
     {
-      "id": "05-from-reading-to-action",
-      "title": "읽은 뒤에는, 행동이 남도록.",
-      "alt": "시기와 행동, 근거 비교, 최종 판단, 마지막 메시지의 실제 결과 항목.",
-      "src": "/feature-details/crafted/fusion-fortune/05-from-reading-to-action.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "읽은 뒤에는,\n행동이 남도록.\n\n실제 결과의 읽기 순서 · 뒷부분\n\n시기와 행동\n\n실천할 일과 주의할 반복 패턴.\n\n함께 가리키는 흐름과 차이\n\n같은 주제·시기의 근거를 비교.\n\n최종 판단\n\n판단 이유와 할 일, 피할 선택.\n\n마지막 메시지\n\n다시 일상으로 가져갈 관점.\n\n생성 중이거나 이전 저장본이면\n아직 없는 항목은 표시되지 않습니다.",
+      "id": "editorial-5",
+      "title": "상담을 준비해 주세요",
+      "text": "출생 정보와 지금 고민하는 선택을 준비해 주세요. 질문에는 현재 상황과 생각하는 기간을 함께 적으면 좋습니다.\n\n이용권·월정석·단건 결제의 적용 여부와 금액은 기존 결제 화면에서 확인해 주세요.",
+      "src": "/images/consultation-editorial/fusion.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": "",
       "variants": [
         {
-          "src": "/feature-details/crafted/fusion-fortune/05-from-reading-to-action-540.webp",
-          "width": 540
-        }
-      ]
-    },
-    {
-      "id": "06-difference-is-information",
-      "title": "다른 해석에도, 살펴볼 이유가.",
-      "alt": "같은 이직 질문에 확장과 준비의 두 관점이 나올 때 조건부 행동으로 연결하는 가상 사례.",
-      "src": "/feature-details/crafted/fusion-fortune/06-difference-is-information.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "다른 해석에도,\n살펴볼 이유가.\n\n근거를 비교하는 편집 예시\n\n한 관점은 확장을\n\n새 역할을 탐색할 여지가 보입니다.\n\n다른 관점은 준비를\n\n생활 기반을 먼저 점검해 보세요.\n\n질문에 맞춰 연결하면\n\n당장 떠날지 단정하기보다,\n지원 준비와 현재 조건 협상을\n함께 진행해 볼 수 있습니다.\n\n가상 해석으로 만든 예시입니다.\n일치 개수가 성공 확률은 아닙니다.",
-      "variants": [
-        {
-          "src": "/feature-details/crafted/fusion-fortune/06-difference-is-information-540.webp",
-          "width": 540
-        }
-      ]
-    },
-    {
-      "id": "07-six-positions",
-      "title": "카드 이름보다, 그 자리가 묻는 것을.",
-      "alt": "현재 상황, 내면, 장애물, 외부 영향, 선택, 다음 행동의 여섯 타로 자리 도식.",
-      "src": "/feature-details/crafted/fusion-fortune/07-six-positions.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "카드 이름보다,\n그 자리가 묻는 것을.\n\n이번 상담에 펼쳐진 여섯 장을\n각 자리의 의미와 함께 읽습니다.\n\n현재 상황\n어디에 서 있나\n내면\n무엇을 바라나\n장애물\n무엇이 걸리나\n외부 영향\n어떤 조건인가\n선택\n무엇을 고르나\n다음 행동\n무엇부터 하나\n\n실제 카드가 아닌 자리 안내 도식입니다.\n6장 자료가 있는 결과에서 뒤집어 봐요.",
-      "variants": [
-        {
-          "src": "/feature-details/crafted/fusion-fortune/07-six-positions-540.webp",
-          "width": 540
-        }
-      ]
-    },
-    {
-      "id": "08-prepare-your-story",
-      "title": "출생 정보와 지금의 이야기.",
-      "alt": "필수 출생 정보와 상담 주제, 선택 질문 및 성별·별칭 입력을 구분한다.",
-      "src": "/feature-details/crafted/fusion-fortune/08-prepare-your-story.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "출생 정보와\n지금의 이야기.\n먼저 확인할 정보\n\n생년월일 · 정확한 출생 시각\n출생지 · 양력 또는 음력\n\n지금 살펴볼 주제\n\n삶의 전반 · 연애와 관계\n일과 돈 · 마음과 회복\n\n더해 줄 나의 이야기\n\n고민과 질문 · 별칭 · 성별.\n모두 선택해서 더할 수 있어요.\n\n새 상담에는 정확한 생시·출생지가 필요해요.\n짐작해서 채우기보다 기록을 확인해요.",
-      "variants": [
-        {
-          "src": "/feature-details/crafted/fusion-fortune/08-prepare-your-story-540.webp",
-          "width": 540
-        }
-      ]
-    },
-    {
-      "id": "09-return-to-the-evidence",
-      "title": "결정이 흔들릴 때, 근거부터 다시 펼쳐요.",
-      "alt": "완성 결과의 차례 이동과 최근 상담 다시 열기, PDF 저장 안내.",
-      "src": "/feature-details/crafted/fusion-fortune/09-return-to-the-evidence.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "결정이 흔들릴 때,\n근거부터 다시 펼쳐요.\n1\n질문의 핵심으로\n\n차례에서 필요한 장으로 이동해요.\n\n2\n판단의 이유로\n\n체계별 해석과 다른 관점을 대조해요.\n\n3\n작은 실행으로\n\n지금 할 일 하나를 골라 기록해요.\n\n완성된 상담을 다시 열거나,\nPDF로 저장해 읽을 수 있습니다.\n\n생성 중에는 완성된 부분부터 보입니다.",
-      "variants": [
-        {
-          "src": "/feature-details/crafted/fusion-fortune/09-return-to-the-evidence-540.webp",
-          "width": 540
-        }
-      ]
-    },
-    {
-      "id": "10-your-own-choice",
-      "title": "선택의 이유를, 나의 말로 정리해요.",
-      "alt": "공식 수정구 삽화와 AI 해설의 범위 및 사용자의 판단을 존중하는 마지막 메시지.",
-      "src": "/feature-details/crafted/fusion-fortune/10-your-own-choice.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "선택의 이유를,\n나의 말로 정리해요.\n\n같은 흐름에는 근거를 더하고,\n다른 해석에는 조건을 살펴요.\n\n결정은 지금의 정보와 현실을 함께.\n상담은 그 선택을 정리하는 도구입니다.\n\n사주 엔진은 10년 경력 명리학자가\n설계·자문했습니다. 결과 문장은 AI가\n작성하며, 사람 6명의 직접 상담은 아닙니다.\n\n초융합 운세\n나를 이해하는 관점에서, 다음 한 걸음까지.",
-      "variants": [
-        {
-          "src": "/feature-details/crafted/fusion-fortune/10-your-own-choice-540.webp",
-          "width": 540
+          "src": "/images/consultation-editorial/fusion-768.webp",
+          "width": 768
         }
       ]
     }
-  ]
+  ],
+  "layout": "editorial",
+  "masters": [
+    {
+      "key": "neo",
+      "name": "네오",
+      "epithet": "사주 · 재물 · 직업과 일 · 시기와 행동 전략",
+      "signature": "반복되는 선택을 짚고, 실행할 행동을 정리하는 운명 전략론. 네오는 막연한 위로보다 지금 바꿀 수 있는 지점을 먼저 찾습니다.",
+      "role": "사주 · 재물 · 직업과 일 · 시기와 행동 전략",
+      "part": "사주 · 재물 · 직업과 일 · 시기와 행동 전략",
+      "basis": "선택한 사주·자미두수·베다점·점성술의 근거를 바탕으로 판세를 읽습니다. 직설적으로 짚되, 당신을 깎아내리지 않고 다음 행동을 함께 정리합니다.",
+      "avatar": "/images/master-profiles/avatars/neo.webp",
+      "portrait": "/images/master-profiles/neo-strategy-portrait.webp"
+    },
+    {
+      "key": "yeoni",
+      "name": "연이",
+      "epithet": "타로 · 연애",
+      "signature": "마음을 먼저 듣고, 흐름의 근거와 작은 실천을 함께 전하는 운명 찻집 마스터예요. 쉽게 꺼내지 못했던 이야기도 천천히 들려주세요.",
+      "role": "타로 · 연애",
+      "part": "타로 · 연애",
+      "basis": "사주는 삶의 흐름을, 타로는 지금의 선택을, 숙요점은 관계의 거리감을 살펴봐요. 따뜻한 차 한 잔처럼 마음을 보듬으며, 오늘 할 수 있는 작은 행동을 함께 찾아요.",
+      "avatar": "/images/master-profiles/avatars/yeoni.webp",
+      "portrait": "/images/master-profiles/yeoni-teahouse-portrait.webp"
+    },
+    {
+      "key": "hanbi",
+      "name": "서한비",
+      "epithet": "숙요 · 결혼과 배우자 · 인간관계",
+      "signature": "두 사람의 달이 머문 자리를 나란히 놓고, 서로 다가가는 속도와 거리를 재는 숙요점 상담가예요. 반복되는 엇갈림을 누구의 잘못으로 보기보다, 관계에 쌓이는 습관으로 읽어요.",
+      "role": "숙요 · 결혼과 배우자 · 인간관계",
+      "part": "숙요 · 결혼과 배우자 · 인간관계",
+      "basis": "쌓인 엇갈림을 장부처럼 하나씩 셈하고, 두 분이 함께 갚아 갈 수 있는 작은 약속을 찾아요. 서두르지 않고, 두 분 사이의 거리를 차분히 재어 드립니다.",
+      "avatar": "/images/master-profiles/avatars/hanbi.webp",
+      "portrait": "/images/master-profiles/hanbi-sukuyo-portrait.webp"
+    },
+    {
+      "key": "yun",
+      "name": "윤달",
+      "epithet": "베다점 · 서양 점성술 · 인생의 시기 · 생활 리듬",
+      "signature": "누구에게나 태어난 시각부터 묻는 점성술사예요. 분까지 맞추면 상승궁과 열두 하우스가 또렷해지고, 태양·달과 함께 기질의 중심을 정확히 잡을 수 있어요.",
+      "role": "베다점 · 서양 점성술 · 인생의 시기 · 생활 리듬",
+      "part": "베다점 · 서양 점성술 · 인생의 시기 · 생활 리듬",
+      "basis": "행성·사인·하우스·애스펙트의 근거를 먼저 보여 드리고, 비유는 쉽게 하나만 곁들여요. 생시를 모르면 상승궁 해석의 한계부터 말씀드리고, 읽을 수 있는 하늘부터 차근차근 풀어 드려요.",
+      "avatar": "/images/master-profiles/avatars/yun.webp",
+      "portrait": "/images/master-profiles/yun-astrology-portrait.webp"
+    },
+    {
+      "key": "musung",
+      "name": "무성",
+      "epithet": "자미두수 · 타고난 성향",
+      "signature": "명반에서 막힌 자리(화기·化忌)를 먼저 짚고, 그 자리를 풀어 갈 길(화록·化祿)을 처방하는 자미두수 판결자입니다.",
+      "role": "자미두수 · 타고난 성향",
+      "part": "자미두수 · 타고난 성향",
+      "basis": "짧고 분명한 판결로 시작해, 처방은 오늘 해 볼 수 있는 구체적인 행동으로 이어 드려요. 명궁과 열두 궁, 대운의 근거를 함께 보여 드리고, 미래를 단정하지 않습니다.",
+      "avatar": "/images/master-profiles/avatars/musung.webp",
+      "portrait": "/images/master-profiles/musung-ziwei-portrait.webp"
+    }
+  ],
+  "masterRoles": {
+    "neo": "사주 · 재물 · 직업과 일 · 시기와 행동 전략",
+    "yeoni": "타로 · 연애",
+    "hanbi": "숙요 · 결혼과 배우자 · 인간관계",
+    "yun": "베다점 · 서양 점성술 · 인생의 시기 · 생활 리듬",
+    "musung": "자미두수 · 타고난 성향"
+  }
 }

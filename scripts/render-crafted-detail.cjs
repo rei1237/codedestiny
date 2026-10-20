@@ -5,6 +5,8 @@ const root = process.cwd(), id = process.argv[2];
 if (!/^[a-z0-9-]+$/.test(id || ''))
     throw Error('Pass an authored product ID');
 const source = path.join(root, 'content/product-details', id), output = path.join(root, 'public/feature-details/crafted', id), review = path.join(root, 'docs/product-details/verification', id);
+if (JSON.parse(fs.readFileSync(path.join(source, 'manifest.json'))).layout === 'editorial')
+    throw Error('Editorial editions use manifest.json and npm run sync:marketing-copy; do not render legacy panels.cjs.');
 const authored = require(path.join(source, 'panels.cjs'));
 const book = Array.isArray(authored) ? { id, featureKey: 'section_summary', title: '종합 사주 풀이', panels: authored, notice: JSON.parse(fs.readFileSync(path.join(source, 'manifest.json'))).notice } : authored;
 fs.mkdirSync(output, { recursive: true });

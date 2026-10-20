@@ -2,127 +2,96 @@
   "id": "chat-neo",
   "featureKey": "fortune-chat-consultation",
   "title": "네오와 나누는 대화형 운명 상담",
-  "notice": "현재 대화형 상담 화면의 네오 모드입니다. 연이와 같은 1회 유료 답변 상품을 사용하며 말투가 달라집니다. 별도 상품인 네오의 팩폭 작전실의 브리핑·수정 명령서·특전은 여기에 포함되지 않습니다. 질문마다 선택한 한 체계의 근거를 사용하고 최근 대화 일부를 참고합니다. 추천 질문의 새 답변도 전송 시 이용 조건을 다시 확인합니다. 안내 속 대화와 작전 노트는 이해를 돕기 위한 편집 예시이며 실제 고객 결과가 아닙니다. 네오는 AI 상담 캐릭터입니다.",
+  "notice": "삽화 속 마스터는 상담을 안내하는 캐릭터이며, 상담 내용은 AI가 생성합니다. 사람이 결과마다 직접 작성하는 상담이 아닙니다. 소개 문장은 풀이 방식을 설명하는 편집 예시이며 고객의 실제 결과·후기가 아닙니다. 실제 내용은 입력 정보와 생성된 결과에 따라 달라집니다. 미래나 상대의 마음을 확정하지 않습니다. 제작자의 과거 직접 1:1 상담 후기는 이 디지털 상품의 구매 후기가 아닙니다.",
   "panels": [
     {
-      "id": "01-what-is-your-question",
-      "title": "계속 망설이는 일, 한 문장으로 가져와라.",
-      "alt": "빈 전략판 앞의 공식 백사자 네오와 한 질문의 대화형 상담 표지.",
-      "src": "/feature-details/crafted/chat-neo/01-what-is-your-question.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "계속 망설이는 일,\n한 문장으로 가져와라.\n\n무엇이 걸리는지부터 짚고,\n판단의 근거와 다음 행동을 정리한다.\n\n네오와 나누는 대화형 운명 상담",
+      "id": "editorial-1",
+      "title": "네오와 함께, 다음 선택을 정리해라.",
+      "text": "복잡한 고민을 선택 가능한 문제로 나누고 지금 움직일 방향을 찾습니다.",
+      "src": "/images/consultation-editorial/neo.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": "네오와 나누는 대화형 운명 상담 마스터 상담 삽화",
       "variants": [
         {
-          "src": "/feature-details/crafted/chat-neo/01-what-is-your-question-540.webp",
-          "width": 540
+          "src": "/images/consultation-editorial/neo-768.webp",
+          "width": 768
         }
       ]
     },
     {
-      "id": "02-turn-worry-into-a-question",
-      "title": "“답답하다”에서 멈추면, 바꿀 자리도 흐려진다.",
-      "alt": "추상적인 고민을 지금 고를 선택과 반복행동, 확인할 사실로 구체화하는 설명.",
-      "src": "/feature-details/crafted/chat-neo/02-turn-worry-into-a-question.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "“답답하다”에서 멈추면,\n바꿀 자리도 흐려진다.\n지금 고를 것\n\n계속할지, 멈출지, 먼저 물어볼지.\n\n자꾸 반복한 것\n\n답을 재촉했는지, 말을 삼켰는지.\n\n아직 모르는 것\n\n상대의 일정인지, 내 준비 상태인지.\n\n고민을 적거나 주제를 선택하면,\n그 질문에서 상담을 시작한다.\n\n추천 질문은 참고안이다.\n누르기 전에는 네 질문으로 보내지 않는다.",
+      "id": "editorial-2",
+      "title": "어떤 근거로 풀어 주나요?",
+      "text": "선택한 상담 방식의 근거와 실제 질문을 연결합니다. 모욕하거나 결과를 보장하지 않고 실행 가능한 조언을 전합니다.",
+      "src": "/images/consultation-editorial/neo.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": "",
       "variants": [
         {
-          "src": "/feature-details/crafted/chat-neo/02-turn-worry-into-a-question-540.webp",
-          "width": 540
+          "src": "/images/consultation-editorial/neo-768.webp",
+          "width": 768
         }
       ]
     },
     {
-      "id": "03-check-the-basis",
-      "title": "말투가 세다고, 근거가 늘진 않는다.",
-      "alt": "한 체계만 선택하는 계약과 여섯 체계의 구분, 상대 마음과 결과 보장 금지 안내.",
-      "src": "/feature-details/crafted/chat-neo/03-check-the-basis.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "말투가 세다고,\n근거가 늘진 않는다.\n사주 · 자미두수\n명식의 기질과 명반의 삶의 영역.\n숙요점 · 타로\n본명숙의 성향, 질문에 맞는 카드 상징.\n베다점 · 서양 점성술\n각 체계의 출생 배치와 해석 근거.\n\n한 답변은 네가 선택한 한 체계로 읽는다.\n여섯 가지를 모두 섞는 상담이 아니다.\n\n직설적인 말투가 상대의 속마음이나\n미래를 확정해 주지는 않는다.",
+      "id": "editorial-3",
+      "title": "상담에서 읽게 될 내용",
+      "text": "현재 판세와 주의할 패턴, 다음 행동의 기준을 읽습니다.",
+      "src": "/images/consultation-editorial/neo.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": "",
       "variants": [
         {
-          "src": "/feature-details/crafted/chat-neo/03-check-the-basis-540.webp",
-          "width": 540
+          "src": "/images/consultation-editorial/neo-768.webp",
+          "width": 768
         }
       ]
     },
     {
-      "id": "04-read-the-whole-answer",
-      "title": "판단만 듣지 말고, 그 뒤의 이유까지 열어라.",
-      "alt": "현재 채팅 답변의 세 말풍선과 펼친본문, 조건부 주의패턴·행동·근거 항목.",
-      "src": "/feature-details/crafted/chat-neo/04-read-the-whole-answer.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "판단만 듣지 말고,\n그 뒤의 이유까지 열어라.\n첫 답변의 자세히 보기\n\n현재 마음, 핵심 해석,\n고민 주제에 맞춘 조언을 읽는다.\n\n조심해서 볼 반복 패턴\n\n같은 선택으로 돌아가는 지점.\n그 내용이 있으면 따로 표시된다.\n\n지금 해볼 한 가지\n\n실행할 행동과 읽은 근거.\n기분보다 무엇을 할지 남겨라.\n\n긴 설명은 각 말풍선의\n‘자세히 보기’를 열어 확인한다.",
+      "id": "editorial-4",
+      "title": "풀이를 일상으로 가져오는 방법",
+      "text": "편집 예시 · 실제 개인 결과가 아닙니다.\n\n지금의 패턴을 알아차리는 것부터 시작해 보세요. 같은 상황에서 어떤 선택을 반복했는지 적고, 다음에는 바꿔 볼 행동을 하나 정해 보는 방식으로 풀이를 일상에 연결할 수 있습니다.",
+      "src": "/images/consultation-editorial/neo.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": "",
       "variants": [
         {
-          "src": "/feature-details/crafted/chat-neo/04-read-the-whole-answer-540.webp",
-          "width": 540
+          "src": "/images/consultation-editorial/neo-768.webp",
+          "width": 768
         }
       ]
     },
     {
-      "id": "05-a-better-decision",
-      "title": "선택을 미루는 이유가, 정보 부족만은 아닐 수 있다.",
-      "alt": "계속 비교만 하는 상황에서 결정기준과 기한을 정하는 네오의 가상 조언.",
-      "src": "/feature-details/crafted/chat-neo/05-a-better-decision.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "선택을 미루는 이유가,\n정보 부족만은\n아닐 수 있다.\n\n이해를 돕기 위한 편집 예시\n\n비교할 때마다 기준이 바뀐다면,\n자료를 더 모아도 끝이 없다.\n\n지킬 조건 세 가지부터 적어라.\n후보를 그 조건으로 다시 보고,\n판단을 끝낼 날짜를 정해.\n\n실제 명식·카드·고객 결과가 아닌\n네오의 설명 방식을 보여주는 예시다.",
+      "id": "editorial-5",
+      "title": "상담을 준비해 주세요",
+      "text": "상담에서 요청하는 정보와 현재의 선택지를 준비해 주세요.\n\n이용권·월정석·단건 결제의 적용 여부와 금액은 기존 결제 화면에서 확인해 주세요.",
+      "src": "/images/consultation-editorial/neo.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": "",
       "variants": [
         {
-          "src": "/feature-details/crafted/chat-neo/05-a-better-decision-540.webp",
-          "width": 540
+          "src": "/images/consultation-editorial/neo-768.webp",
+          "width": 768
         }
       ]
-    },
+    }
+  ],
+  "layout": "editorial",
+  "masters": [
     {
-      "id": "06-continue-with-context",
-      "title": "이어서 물을수록, 더 구체적인 질문으로.",
-      "alt": "최근 일부 대화를 이어받되 추천질문 전송은 새 답변의 조건 확인이라는 안내.",
-      "src": "/feature-details/crafted/chat-neo/06-continue-with-context.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "이어서 물을수록,\n더 구체적인 질문으로.\n\n“조건을 정했는데, 하나가 충돌해.”\n\n“무엇을 지킬 때 무엇을 잃는지 적어봐.”\n\n최근 대화 일부를 참고해\n이어지는 질문의 맥락을 읽는다.\n\n추천 질문과 답변은 다르다\n\n추천 문장을 누르면 입력창에 담긴다.\n보내기 전에 고칠 수 있다.\n\n위 대화는 편집 예시다.\n새로 전송하면 이용 조건을 다시 확인한다.\n무제한 이어 묻기를 약속하는 상품은 아니다.",
-      "variants": [
-        {
-          "src": "/feature-details/crafted/chat-neo/06-continue-with-context-540.webp",
-          "width": 540
-        }
-      ]
-    },
-    {
-      "id": "07-check-your-inputs",
-      "title": "정보는 정확하게, 모르는 값은 아는 척 말고.",
-      "alt": "기존대화의 필수 생년월일, 달력 기준, 선택시간·성별·주제·체계 안내.",
-      "src": "/feature-details/crafted/chat-neo/07-check-your-inputs.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "정보는 정확하게,\n모르는 값은 아는 척 말고.\n생년월일 · 양력 또는 음력\n현재 대화 화면의 공통 입력이다.\n타로를 선택해도 날짜 입력은 필요하다.\n시간과 성별\n시간을 모르면 비워둔다.\n성별은 선택 입력이다.\n고민과 상담 체계\n기본 선택이 질문에 맞는지 확인하고,\n원하는 한 체계를 골라라.\n\n계산 근거가 부족하다는 안내가 나오면\n입력과 선택 범위를 먼저 확인한다.\n가격과 이용 가능 여부는 화면이 안내한다.",
-      "variants": [
-        {
-          "src": "/feature-details/crafted/chat-neo/07-check-your-inputs-540.webp",
-          "width": 540
-        }
-      ]
-    },
-    {
-      "id": "08-a-conversation-not-a-command-book",
-      "title": "이번에는 한 번의 대화. 작전실과는 구분해라.",
-      "alt": "백사자 네오와 대화형답변·별도작전실·초융합상품 구분, AI캐릭터 안내.",
-      "src": "/feature-details/crafted/chat-neo/08-a-conversation-not-a-command-book.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "이번에는 한 번의 대화.\n작전실과는 구분해라.\n\n여기서는 질문에 대한 답변을 읽는다.\n‘네오의 팩폭 작전실’의 브리핑과\n수정 명령서는 별도 상품이다.\n\n초융합 등 연결된 상담도 별도로 확인해라.\n연이로 바꿔도 같은 결제 상품을 사용한다.\n\n네오는 AI 상담 캐릭터다.\n사람이 직접 답하는 상담은 아니다.",
-      "variants": [
-        {
-          "src": "/feature-details/crafted/chat-neo/08-a-conversation-not-a-command-book-540.webp",
-          "width": 540
-        }
-      ]
+      "key": "neo",
+      "name": "네오",
+      "epithet": "백사자의 영혼을 가진 운명 마스터",
+      "signature": "반복되는 선택을 짚고, 실행할 행동을 정리하는 운명 전략론. 네오는 막연한 위로보다 지금 바꿀 수 있는 지점을 먼저 찾습니다.",
+      "role": "백사자의 영혼을 가진 운명 마스터",
+      "part": "선택한 사주·자미두수·베다점·점성술의 근거를 바탕으로 판세를 읽습니다. 직설적으로 짚되, 당신을 깎아내리지 않고 다음 행동을 함께 정리합니다.",
+      "basis": "선택한 사주·자미두수·베다점·점성술의 근거를 바탕으로 판세를 읽습니다. 직설적으로 짚되, 당신을 깎아내리지 않고 다음 행동을 함께 정리합니다.",
+      "avatar": "/images/master-profiles/avatars/neo.webp",
+      "portrait": "/images/master-profiles/neo-strategy-portrait.webp"
     }
   ]
 }

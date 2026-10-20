@@ -5,8 +5,40 @@
   "hook": "명식으로 나의 연애 방식부터 상대·타이밍·실천까지 읽는 28개 주제",
   "chaptersLabel": "연이와 서한비가 나눠 쓰는 연애 비책 28장",
   "masters": [
-    "yeoniLove",
-    "hanbiLove"
+    {
+      "key": "yeoniLove",
+      "name": "연이",
+      "epithet": "연애 비책 공동 마스터 · 마음의 장",
+      "signature": "어떤 마음이든 먼저 들려주세요. 끝까지 듣고, 오늘 해 볼 한 걸음까지 같이 찾아 드릴게요.",
+      "role": "마음부터 듣는 연애 상담가",
+      "part": "핵심 연애운과 질문의 답 · 나의 연애 성향 — 장점·약점·심리 · 썸 전략·대화·매력·실천",
+      "basis": "일간과 오행 분포, 조후로 본 감정의 온도, 십성으로 본 애착과 표현 방식",
+      "principles": [
+        "마음을 먼저 듣고, 판단은 그다음에 해요",
+        "누구를 탓하는 말로 위로하지 않아요",
+        "그대로 보낼 수 있는 문장과 이번 주의 한 걸음으로 맺어요"
+      ],
+      "avatar": "/images/master-profiles/avatars/yeoni-love.webp",
+      "portrait": "/images/master-profiles/yeoni-love-portrait.webp",
+      "portraitSrcSet": "/images/master-profiles/yeoni-love-portrait-360.webp 360w, /images/master-profiles/yeoni-love-portrait.webp 600w"
+    },
+    {
+      "key": "hanbiLove",
+      "name": "서한비",
+      "epithet": "연애 비책 공동 마스터 · 관계의 장",
+      "signature": "엇갈림은 누구의 잘못이 아니라 관계에 쌓인 빚입니다. 언제, 어떻게 갚을지 정확히 셈해 드리겠습니다.",
+      "role": "두 사람 사이의 거리를 재는 사람",
+      "part": "상대·궁합·이상형 · 갈등·바람기·재회·자기 보호 · 대운·올해·좋은 날짜·결혼운",
+      "basis": "일지 관계와 배우자궁, 실제로 성립한 합·충·형·파·해, 계산된 대운·세운·일진. 상대 명식이 있으면 두 분을 나란히 놓고 읽습니다.",
+      "principles": [
+        "상대의 마음을 단정하지 않고, 조건으로 말씀드립니다",
+        "계산되지 않은 날짜는 쓰지 않습니다",
+        "지켜야 할 선과 물러설 자리를 먼저 정해 드립니다"
+      ],
+      "avatar": "/images/master-profiles/avatars/hanbi-love.webp",
+      "portrait": "/images/master-profiles/hanbi-love-portrait.webp",
+      "portraitSrcSet": "/images/master-profiles/hanbi-love-portrait-360.webp 360w, /images/master-profiles/hanbi-love-portrait.webp 600w"
+    }
   ],
   "chapters": [
     {
@@ -205,157 +237,83 @@
       "evidence": "app/love-secret-ai/result/LoveSecretAiResultClient.tsx"
     }
   ],
-  "notice": "이 안내의 목차는 현재 상담이 다루는 28개 주제를 읽기 쉽게 줄여 쓴 것입니다. 실제 화면은 받은 내용을 주제별로 묶어 표시합니다. 예시 대화는 가상 예시 프로필로 생성한 실제 AI 결과를 고치지 않고 발췌한 것으로 고객 결과·후기가 아니며, 결과는 입력에 따라 달라집니다. 상대 정보가 없으면 상대 명식을 계산한 궁합으로 해석하지 않습니다. 날짜 안내는 관계의 성공을 보장하지 않습니다. 10년 경력 상담사·명리학자가 만든 AI 해설 서비스이며, 사람이 결과마다 직접 집필·감수하는 상담이 아닙니다.",
+  "notice": "삽화 속 마스터는 상담을 안내하는 캐릭터이며, 상담 내용은 AI가 생성합니다. 사람이 결과마다 직접 작성하는 상담이 아닙니다. 소개 문장은 풀이 방식을 설명하는 편집 예시이며 고객의 실제 결과·후기가 아닙니다. 실제 내용은 입력 정보와 생성된 결과에 따라 달라집니다. 미래나 상대의 마음을 확정하지 않습니다. 제작자의 과거 직접 1:1 상담 후기는 이 디지털 상품의 구매 후기가 아닙니다.",
   "panels": [
     {
-      "id": "01-unsent-letter",
-      "title": "보낼까, 말까. 그 문장 앞에서 오래 멈췄다면.",
-      "alt": "편지를 고르는 인물의 공식 연애 비책 삽화와 관계에서 다음 대화를 고민하는 표지.",
-      "src": "/feature-details/crafted/love-secret/01-unsent-letter.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "보낼까, 말까.\n그 문장 앞에서 오래 멈췄다면.\n\n상대의 답을 상상하기 전에,\n지금 관계와 내 마음부터 정리해요.\n\n연애 비책\n마음을 읽고, 다음 말을 고르는 상담.",
+      "id": "editorial-1",
+      "title": "마음은 연이가 듣고, 관계의 거리는 서한비가 짚습니다.",
+      "text": "나의 연애 방식에서 상대와의 거리, 갈등과 시기까지 두 마스터가 나누어 읽는 연애 비책입니다.",
+      "src": "/images/consultation-editorial/love.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": "연애 비책 마스터 상담 삽화",
       "variants": [
         {
-          "src": "/feature-details/crafted/love-secret/01-unsent-letter-540.webp",
-          "width": 540
+          "src": "/images/consultation-editorial/love-768.webp",
+          "width": 768
         }
       ]
     },
     {
-      "id": "02-your-question",
-      "title": "연애운이 어떤지보다, 지금 무엇이 고민인지.",
-      "alt": "현재 관계와 사용자의 질문을 사주 근거와 연결해 다음 대화와 행동을 정리하는 구조.",
-      "src": "/feature-details/crafted/love-secret/02-your-question.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "연애운이 어떤지보다,\n지금 무엇이 고민인지.\n연락은 이어지는데,\n나만 가까워지고 싶은 걸까요?\n지금의 상황과 질문\n\n관계 단계와 마음의 거리를 적어요.\n\n사주에서 읽는 반복\n\n기질·표현 방식·시기의 배경을 봐요.\n\n내가 선택할 다음 행동\n\n대화·간격·지켜야 할 선을 정리해요.\n\n오행은 기운의 분포, 조후는 계절의 균형.\n용어보다 일상에서 체감하는 모습으로.",
+      "id": "editorial-2",
+      "title": "어떤 근거로 풀어 주나요?",
+      "text": "연이는 명식에서 감정의 결과 연애 습관을 읽습니다. 서한비는 상대와의 관계, 갈등과 재회의 조건, 다가갈 시기를 살핍니다. 상대 명식이 없는 경우 실제 두 사람의 궁합처럼 설명하지 않습니다.",
+      "src": "/images/consultation-editorial/love.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": "",
       "variants": [
         {
-          "src": "/feature-details/crafted/love-secret/02-your-question-540.webp",
-          "width": 540
+          "src": "/images/consultation-editorial/love-768.webp",
+          "width": 768
         }
       ]
     },
     {
-      "id": "03-my-love-pattern",
-      "title": "먼저 나를 읽어요. 사랑에서 반복되는 방식.",
-      "alt": "관계의 핵심과 나의 기질에 관한 실제 8개 주제를 짧은 목차로 정리한다.",
-      "src": "/feature-details/crafted/love-secret/03-my-love-pattern.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "먼저 나를 읽어요.\n사랑에서 반복되는 방식.\n\n리포트 주제를 짧게 풀어 쓴 안내 · 1–8\n\n현재 관계의 자리와 질문의 핵심\n명식이 그리는 핵심 연애운\n오행·조후로 보는 감정의 온도\n사랑에서 반복하는 나의 방식\n십성으로 보는 애착과 표현\n상대가 알아보는 나의 장점\n반복해서 걸리는 연애의 약점\n애정 표현 스타일과 연애 심리\n\n십성은 관계에서 맡는 역할을 보는 관점.\n장점과 조정할 습관을 함께 읽습니다.",
+      "id": "editorial-3",
+      "title": "상담에서 읽게 될 내용",
+      "text": "현재 질문의 답부터 연애 성향·관계의 조건·시기·실천까지 이어지는 상담을 읽습니다.",
+      "src": "/images/consultation-editorial/love.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": "",
       "variants": [
         {
-          "src": "/feature-details/crafted/love-secret/03-my-love-pattern-540.webp",
-          "width": 540
+          "src": "/images/consultation-editorial/love-768.webp",
+          "width": 768
         }
       ]
     },
     {
-      "id": "04-the-other-person",
-      "title": "상대의 마음이 궁금해도, 확인할 수 있는 것부터.",
-      "alt": "상대의 거리감, 끌림, 친밀감, 이상형, 선호하는 관계의 다섯 주제와 상대 정보 유무의 차이.",
-      "src": "/feature-details/crafted/love-secret/04-the-other-person.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "상대의 마음이 궁금해도,\n확인할 수 있는 것부터.\n\n상대·궁합·이상형 · 주제 9–13\n\n상대의 기운과 감정 거리감\n두 사람 사이 끌림이 살아나는 조건\n속궁합과 친밀감 리듬\n내 명식이 끌리는 이상형\n상대가 원하는 연애 스타일\n\n상대 정보가 있으면 두 명식을 함께.\n없으면 본인 명식과 관찰한 신호를.\n\n속궁합은 친밀감의 속도와 정서적 리듬.\n상대의 마음을 사실로 확정하지 않아요.",
+      "id": "editorial-4",
+      "title": "풀이를 일상으로 가져오는 방법",
+      "text": "편집 예시 · 실제 개인 결과가 아닙니다.\n\n지금의 패턴을 알아차리는 것부터 시작해 보세요. 같은 상황에서 어떤 선택을 반복했는지 적고, 다음에는 바꿔 볼 행동을 하나 정해 보는 방식으로 풀이를 일상에 연결할 수 있습니다.",
+      "src": "/images/consultation-editorial/love.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": "",
       "variants": [
         {
-          "src": "/feature-details/crafted/love-secret/04-the-other-person-540.webp",
-          "width": 540
+          "src": "/images/consultation-editorial/love-768.webp",
+          "width": 768
         }
       ]
     },
     {
-      "id": "05-protect-my-heart",
-      "title": "붙잡는 방법만큼, 나를 지키는 기준도.",
-      "alt": "갈등, 흔들림, 재회, 자기 보호의 네 주제와 압박 대신 서로의 경계를 존중하는 방향.",
-      "src": "/feature-details/crafted/love-secret/05-protect-my-heart.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "붙잡는 방법만큼,\n나를 지키는 기준도.\n\n갈등과 회복 · 주제 14–17\n\n갈등의 뿌리와 회복 방식\n\n반복되는 다툼의 조건을 살펴요.\n\n바람기와 마음이 흩어지는 조건\n\n누군가를 낙인찍는 해석은 피해요.\n\n재회 가능성과 그 조건\n\n돌아올 확률보다 필요한 변화를.\n\n피해야 할 선택과 자기 보호\n\n지켜야 할 선과 물러설 지점을.\n\n반복 연락이나 감시로 답을 얻기보다,\n상대가 밝힌 의사와 경계를 존중해요.",
+      "id": "editorial-5",
+      "title": "상담을 준비해 주세요",
+      "text": "나의 출생 정보와 관계의 상황을 준비해 주세요. 상대 정보는 알고 있는 범위에서 입력합니다.\n\n이용권·월정석·단건 결제의 적용 여부와 금액은 기존 결제 화면에서 확인해 주세요.",
+      "src": "/images/consultation-editorial/love.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": "",
       "variants": [
         {
-          "src": "/feature-details/crafted/love-secret/05-protect-my-heart-540.webp",
-          "width": 540
-        }
-      ]
-    },
-    {
-      "id": "06-time-to-talk",
-      "title": "언제 다가갈지, 어떤 마음으로 말할지.",
-      "alt": "타이밍, 올해의 흐름, 계산된 날짜, 결혼과 동행, 30일 흐름의 다섯 주제.",
-      "src": "/feature-details/crafted/love-secret/06-time-to-talk.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "언제 다가갈지,\n어떤 마음으로 말할지.\n\n시간의 흐름 · 주제 18–22\n\n연락·고백·재회·관계 진전 타이밍\n\n올해 연애운 — 좋은 달과 조심할 달\n\n좋은 날짜 — 계산된 일진으로 고른 날\n\n결혼운과 인연이 굳어지는 시기\n\n30일 관계 흐름 처방\n\n일진은 날짜마다 달라지는 기운.\n다가갈 때와 태도를 살피는 참고예요.\n\n좋은 날짜가 상대의 동의나\n관계의 성공을 대신하지는 않습니다.",
-      "variants": [
-        {
-          "src": "/feature-details/crafted/love-secret/06-time-to-talk-540.webp",
-          "width": 540
-        }
-      ]
-    },
-    {
-      "id": "07-small-actions",
-      "title": "막연한 조언에서, 오늘 할 수 있는 행동으로.",
-      "alt": "썸 전략, 단계별 행동, 대화 문장, 표현과 스타일, 7일 실천, 마지막 메시지의 여섯 주제.",
-      "src": "/feature-details/crafted/love-secret/07-small-actions.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "막연한 조언에서,\n오늘 할 수 있는 행동으로.\n\n전략과 실천 · 주제 23–28\n\n썸에서 확신으로 가는 전략\n관계 단계별 실행 비책\n상대에게 다가가는 대화 문장\n매력적으로 보이는 방법\n이미지·말투·스타일\n7일 실천 가이드\n마지막 상담사의 한마디\n\n모든 단계를 한꺼번에 밀어붙이기보다,\n지금 관계에 맞는 행동부터 골라요.",
-      "variants": [
-        {
-          "src": "/feature-details/crafted/love-secret/07-small-actions-540.webp",
-          "width": 540
-        }
-      ]
-    },
-    {
-      "id": "08-draft-message",
-      "title": "답을 재촉하기 전에, 내 뜻부터 선명하게.",
-      "alt": "가상 예시 프로필로 생성한 실제 연애 비책 AI 결과 「상대에게 다가가는 대화 문장」 장에서, 다음 만남을 제안하는 문장과 피해야 할 문장을 고치지 않고 발췌.",
-      "src": "/feature-details/crafted/love-secret/08-draft-message.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "답을 재촉하기 전에,\n내 뜻부터 선명하게.\n\n실제 AI 결과 원문 발췌 · 가상 예시 프로필\n\n상대에게 다가가는 대화 문장:\n\n\"너랑 같이 있으면 시간이 정말 빨리 가는 것 같아. 다음 주말에도 같이 맛있는 거 먹으러 갈까?\"\n\n…\n\n피해야 할 대화 문장:\n\n\"우리 관계는 대체 뭐야? 언제쯤 사귈 수 있는 거야?\"\n\n가상 프로필로 생성한 실제 결과 중\n「상대에게 다가가는 대화 문장」 장.\n고객 결과나 후기가 아닙니다.",
-      "variants": [
-        {
-          "src": "/feature-details/crafted/love-secret/08-draft-message-540.webp",
-          "width": 540
-        }
-      ]
-    },
-    {
-      "id": "09-use-the-report",
-      "title": "읽고 끝내지 않도록, 작은 실천을 눈앞에.",
-      "alt": "결과의 한 줄 요약, 깊이 읽기, 실천 체크리스트 및 7일 가이드와 PDF 저장의 읽기 안내.",
-      "src": "/feature-details/crafted/love-secret/09-use-the-report.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "읽고 끝내지 않도록,\n작은 실천을 눈앞에.\n한눈에\n\n한 줄 진단과 핵심 키워드.\n\n깊이\n\n기질과 관계 전략을 한 장씩 읽기.\n\n일상에서\n\n실천 체크리스트와 7일 가이드.\n\nPDF로 저장해 다시 읽어요.\n\n날짜 카드와 체크리스트는\n해당 내용이 결과에 있을 때 표시됩니다.",
-      "variants": [
-        {
-          "src": "/feature-details/crafted/love-secret/09-use-the-report-540.webp",
-          "width": 540
-        }
-      ]
-    },
-    {
-      "id": "10-start-with-now",
-      "title": "누군가의 정답보다, 지금의 나에게 필요한 말.",
-      "alt": "편지와 함께 현재 관계, 궁금한 질문, 출생 정보를 준비하도록 안내하고 AI 해설임을 밝힌다.",
-      "src": "/feature-details/crafted/love-secret/10-start-with-now.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "누군가의 정답보다,\n지금의 나에게 필요한 말.\n\n지금의 관계 단계와 고민,\n궁금한 질문을 먼저 적어 주세요.\n\n본인의 출생 정보를 준비하고,\n상대 정보는 아는 만큼 입력해요.\n모르는 시간은 모름으로 선택해요.\n\n10년 경력 상담사·명리학자가 만든\n서비스이며, 결과 문장은 AI가 씁니다.\n\n연애 비책\n다음 대화가 조금 더 나다울 수 있도록.",
-      "variants": [
-        {
-          "src": "/feature-details/crafted/love-secret/10-start-with-now-540.webp",
-          "width": 540
+          "src": "/images/consultation-editorial/love-768.webp",
+          "width": 768
         }
       ]
     }
-  ]
+  ],
+  "layout": "editorial"
 }
