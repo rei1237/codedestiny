@@ -1,5 +1,7 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
+import Image from "next/image";
+import { Mail, RefreshCw, FileCheck2, Send, Inbox, ArrowRight } from "lucide-react";
 import { adminFetch } from "../_lib/admin-api";
 import { NEO_EMAIL_SALE_ENABLED, NEO_STATUS_LABELS, neoMoney, neoChartLabel, neoChartReading, neoCombinedMode, neoReadingLabel, neoReviewReady } from "@/lib/neo-consultation/contract";
 import type { NeoOrder } from "@/app/neo-consultation/types";
@@ -17,9 +19,12 @@ export default function NeoConsultationAdmin() {
   const [manualConfirmed, setManualConfirmed] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [loadingList, setLoadingList] = useState(true);
   const load = useCallback(async () => {
+    setLoadingList(true);
     try { setOrders((await adminFetch<{ orders: NeoOrder[] }>("/api/admin/neo-consultations")).orders); }
     catch (e) { setError((e as Error).message); }
+    finally { setLoadingList(false); }
   }, []);
   useEffect(() => { void load(); }, [load]);
   const select = async (id: string) => {
@@ -40,11 +45,28 @@ export default function NeoConsultationAdmin() {
   const dirty = order?.questions.some(q => answers[q.id] !== undefined && answers[q.id] !== (q.answer || ""));
   const ready = paid && !dirty && order?.questions.every(neoReviewReady);
   return <main className={styles.page}>
-    <h1>네오 이메일 상담</h1><p>접수 내용을 읽고 내부 시스템에서 답변을 작성·검수한 뒤 직접 이메일로 보내 주세요. 새 주문의 답변 본문은 이 서비스에 입력하거나 저장하지 않습니다.</p>
+    <header className={styles.hero}>
+      <div className={styles.heroCopy}>
+        <h1>네오 이메일 상담</h1>
+        <p className={styles.lead}>한 통의 질문을 읽고,<br />명확한 답변으로 마무리하세요.</p>
+        <p>접수 내용을 읽고 내부 시스템에서 답변을 작성·검수한 뒤 직접 이메일로 보내 주세요. 새 주문의 답변 본문은 이 서비스에 입력하거나 저장하지 않습니다.</p>
+        <a className={styles.jump} href="#neo-intake"><Inbox size={17} aria-hidden="true" />접수 목록 확인<ArrowRight size={16} aria-hidden="true" /></a>
+      </div>
+      <figure className={styles.heroArt}>
+        <Image src="/images/service-introductions/neo-consultation-640.webp" width={640} height={427} sizes="(max-width:760px) 100vw, 480px" alt="네오가 별빛 서재에서 상담 편지를 검토하는 장면" />
+        <figcaption>네오의 서재 · 접수부터 전달 기록까지</figcaption>
+      </figure>
+    </header>
+    <ol className={styles.workflow} aria-label="상담 처리 순서">
+      <li><Inbox aria-hidden="true" size={20} /><div><strong>접수 확인</strong><span>질문·결제·회신 주소 확인</span></div></li>
+      <li><FileCheck2 aria-hidden="true" size={20} /><div><strong>답변 작성·검수</strong><span>선택한 풀이 범위까지 확인</span></div></li>
+      <li><Send aria-hidden="true" size={20} /><div><strong>이메일 전달</strong><span>실제 발송 후 완료 이력 기록</span></div></li>
+    </ol>
     <p className={styles.notice}>{NEO_EMAIL_SALE_ENABLED ? '보통 24시간 이내, 늦어도 결제 후 3일 이내 답변을 보내 주세요. 새 주문의 접수 정보는 발송 완료를 기록한 뒤 7일 후 삭제됩니다.' : '판매·실제 발송 차단 상태입니다. 로컬 mock에서만 주문 흐름을 검증합니다.'}</p>
     {error && <p role="alert" className={styles.error}>{error}</p>}
-    <button disabled={busy} onClick={load}>접수 목록 새로고침</button>
-    <div className={styles.layout}><aside aria-label="접수 목록">{orders.length === 0 && <p>접수된 상담이 없습니다.</p>}{orders.map(row => <button key={row.id} onClick={() => select(row.id)} disabled={busy} aria-pressed={row.id === order?.id}>{row.questions[0].text}<small>{label(row.state)} · 질문 {row.questions.length}개</small></button>)}</aside>
+    <div id="neo-intake" className={styles.intakeHeading}><div><h2>접수 목록</h2><p>{loadingList ? "접수 내용을 불러오는 중" : `조회된 상담 ${orders.length}건 · 선택하면 상세 내용이 열립니다.`}</p></div><button disabled={busy || loadingList} onClick={load}><RefreshCw size={16} aria-hidden="true" />{loadingList ? "불러오는 중" : "접수 목록 새로고침"}</button></div>
+    <div className={styles.layout}><aside aria-label="접수 목록" aria-busy={loadingList}>{!loadingList && !error && orders.length === 0 && <p className={styles.listEmpty}>접수된 상담이 없습니다.<br />새 상담이 접수되면 이곳에서 확인할 수 있어요.</p>}{orders.map(row => <button key={row.id} onClick={() => select(row.id)} disabled={busy} aria-pressed={row.id === order?.id}><span className={styles.orderTitle}>{row.questions[0].text}</span><small>{label(row.state)} · 질문 {row.questions.length}개</small><span className={styles.orderHint}>{row.id === order?.id ? "선택한 상담" : "상담 내용 확인"}<ArrowRight size={14} aria-hidden="true" /></span></button>)}</aside>
+      {!order && <section className={styles.empty} aria-label="상담 선택 안내"><Mail size={32} aria-hidden="true" /><h2>{busy ? "상담 내용을 확인하고 있어요" : "검토할 상담을 선택하세요"}</h2><p>접수 목록에서 질문을 고르면 회신 이메일과 상담 범위를 확인할 수 있습니다.</p><p className={styles.emptyNote}>결제·취소 상태를 확인한 후 답변 작업을 시작하세요.</p></section>}
       {order && <article><h2>{label(order.state)}</h2><p>주문번호 {order.id}</p><p>결제 주문번호 {order.payment?.id || '미발급'}</p>{order.cancellationRequestedAt && <p className={styles.notice}>취소·전액 환불 요청이 접수되었습니다. 답변 발송은 중지됩니다. <a href="/admin/orders/">결제 주문 관리</a>에서 위 결제 주문번호로 확인하고 환불 처리해 주세요.</p>}<dl><dt>회신 이메일</dt><dd>{order.email}</dd><dt>결제</dt><dd>{order.payment?.status || "미결제"} · {neoMoney(order.quote?.totalKRW || 0)}</dd><dt>상황</dt><dd>{order.context || "없음"}</dd><dt>특별히 좋았던 시기</dt><dd style={{whiteSpace:"pre-wrap"}}>{order.goodPeriod || "입력하지 않음"}</dd><dt>힘들었던 시기</dt><dd style={{whiteSpace:"pre-wrap"}}>{order.difficultPeriod || "입력하지 않음"}</dd><dt>출생정보</dt><dd>{order.birth ? [order.birth.date, order.birth.calendar === "lunar" ? "음력" : "양력", order.birth.leapMonth ? "윤달" : "평달", order.birth.timeUnknown ? "시간 모름" : order.birth.time].join(" / ") : "입력하지 않음"}</dd></dl>
         {order.questions.map((q,i) => <section key={q.id} className={styles.question}><h3>질문 {i+1}. {q.text}</h3><p>{neoReadingLabel(q)} · {neoMoney(order.quote?.items?.find(item => item.questionId === q.id)?.unitKRW ?? order.quote?.unitKRW ?? 0)}</p>
           {q.correction && <p className={styles.notice}>정정 요청: {q.correction}</p>}
