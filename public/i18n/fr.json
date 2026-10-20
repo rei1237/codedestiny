@@ -288,9 +288,9 @@
       },
       "misc": {
         "title": "Collection autres divinations",
-        "subtitle": "Explorez tout, des tests psychologiques aux mini-jeux divinatoires",
-        "lede": "Tests psychologiques, saju animal, simulation amoureuse, destin favori et dix mini-jeux divinatoires réunis dans une seule collection.",
-        "featureline": "Mini-jeux divinatoires · Hub psychologie · Saju animal IA · LOVE CODE · Destin favori",
+        "subtitle": "Explorez votre personnalité et votre destinée",
+        "lede": "Tests de personnalité · Saju animal IA · Affinités",
+        "featureline": "Tests de personnalité · Saju animal IA · Affinités",
         "aria": "Ouvrir une autre collection de divination"
       },
       "openHint": "Appuyez pour ouvrir"

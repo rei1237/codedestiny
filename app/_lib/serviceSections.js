@@ -9,7 +9,6 @@ const SERVICE_SECTION_DEFINITIONS = [
       { href: "/love-secret-ai", fallbackTitle: "연애 비책 전문가 상담", fallbackDesc: "명리학 기반 1:1 연애 상담 · 30,000원" },
       { href: "/master-love-codex", fallbackTitle: "마스터 인연의 서", fallbackDesc: "사주×자미두수 융합 20장 연애 전략서 · 개인 1회 30,000원 / 상대와의 궁합 50,000원" },
       { href: "/naming-ai", fallbackTitle: "훈민정음 작명소", fallbackDesc: "사주 맞춤 프리미엄 전문가 작명 · 30,000원" },
-      { href: "/saju/love-simulation", fallbackTitle: "LOVE CODE", fallbackDesc: "사주 연애 시뮬레이션 · 이용할 때마다 5,000원", isStaticCanonical: true },
       { href: "/saju/destiny-bias", fallbackTitle: "최애운명", fallbackDesc: "내 최애와 나의 케미 포토카드 · 단건 결제 5,000원" },
       { href: "/saju/animal-destiny", aliases: ["/saju/animal-test"], fallbackTitle: "십이운성 동물점", fallbackDesc: "사주 속 십이운성으로 깨어나는 나만의 수호 동물 · 해금 5,000원", isStaticCanonical: true },
       { href: "/saju/destiny-meeting-place", fallbackTitle: "사주로 보는 인연의 장소", fallbackDesc: "인연 장소·도시·타이밍 독립 분석 · 1회 5,000원", isStaticCanonical: true },
@@ -60,7 +59,6 @@ const SERVICE_SECTION_DEFINITIONS = [
       { href: "/oracle/rune", fallbackTitle: "스톤헨지 룬 오라클", fallbackDesc: "고대 룬 상징 리딩" },
       { href: "/geomancy-oracle-v4.html", fallbackTitle: "지오맨시 흙점", fallbackDesc: "대지의 징후 16행 신탁" },
       { href: "/royal-tea-oracle.html", fallbackTitle: "타세오그래피 찻잎 점", fallbackDesc: "런던 로열 컵 문양 리딩" },
-      { href: "/destiny-poker.html", fallbackTitle: "데스티니 포커", fallbackDesc: "신들과 벌이는 운명의 카드 대결" },
       { href: "/dream/tarot", fallbackTitle: "드림 타로", fallbackDesc: "꿈 문장 AI 프롬프트" },
       { href: "/dream/psycho", fallbackTitle: "정신분석 해몽", fallbackDesc: "프로이트 관점 해석" },
     ],
@@ -69,7 +67,6 @@ const SERVICE_SECTION_DEFINITIONS = [
     id: "special",
     fallbackTitle: "특별 콘텐츠",
     items: [
-      { href: "/secret-house_real.html", fallbackTitle: "나는 솔로 시크릿 하우스", fallbackDesc: "자동 일간 캐치 연애 시뮬" },
       { href: "/animal/physio", fallbackTitle: "전문가 동물 관상", fallbackDesc: "셀카 얼굴형 분석" },
       { href: "/animal/mbti", fallbackTitle: "MBTI 동물 궁합", fallbackDesc: "16유형 케미 분석" },
       { href: "/animal/totem", fallbackTitle: "애니멀 토템", fallbackDesc: "수호 동물 메시지" },

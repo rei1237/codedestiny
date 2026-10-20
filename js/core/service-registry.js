@@ -147,18 +147,6 @@ window.__cdServiceRegistry = [
     keys: "마인드스캔 속마음 겉말 관계 간격 타로",
   },
   {
-    id: "love-simulation",
-    name: "LOVE CODE 연애 시뮬레이션",
-    question: "우리 둘, 어디서 자꾸 부딪힐까?",
-    desc: "궁합을 표가 아니라 장면으로 겪어 보는 LOVE CODE",
-    action: "openLoveSimulation",
-    featureKey: "love-code",
-    price: "7,000원",
-    purposes: ["love", "compatibility"],
-    methods: ["saju", "ai"],
-    keys: "연애 시뮬레이션 러브코드 궁합 캐릭터 장면",
-  },
-  {
     id: "nakshatra-compat",
     name: "동서 통합 궁합",
     question: "그 사람과 나, 어떤 궁합일까?",

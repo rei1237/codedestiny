@@ -85,7 +85,6 @@ const QUESTION_CATEGORIES = [
   ] },
   { id: 'marriage', label: '결혼', chip: '결혼할 사람', img: '/images/home-questions/marriage', questions: [
     { id: 'marriagePartner', href: '/yeongnyangi/?question=partner#questions', key: 'yeongnyangi-saju-mackerel', master: 'yeongnyangi', t: '나는 어떤 사람과 결혼하게 될까?', b: '영냥이 · 사주', price: 'from5000' },
-    { id: 'marriageClash', href: '/saju/love-simulation/', key: 'love-code', master: 'neo', t: '우리 둘, 어디서 자꾸 부딪힐까?', b: '사주 · LOVE CODE 연애 시뮬레이션', price: 'w7000' },
     { id: 'marriageDate', href: '/nakshatra/muhurta/', key: 'nakshatra-muhurta', master: 'yun', t: '이 일, 언제 하면 좋을까?', b: '인도 점성술 · 택일 무후르타', price: 'w7000' },
   ] },
   { id: 'money', label: '돈', chip: '돈이 풀리는 때', img: '/assets/yeongnyangi/scenes/wealth', questions: [

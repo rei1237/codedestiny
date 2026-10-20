@@ -285,7 +285,8 @@ var REPORT_CARDS = [
     normalized.push(loveCodeCard);
   }
 
-  REPORT_CARDS = normalized;
+  // 선택형 콘텐츠는 신규 탐색에서 잠시 제외한다. 기존 결과/구매 데이터는 유지한다.
+  REPORT_CARDS = normalized.filter(function(card) { return card.id !== 'secretHouse' && card.id !== 'love-code'; });
 })();
 
 /* 카드마다 명시적으로 한 카테고리를 갖는다. 기존 id/CTA/잠금 계약은 바꾸지 않는다. */

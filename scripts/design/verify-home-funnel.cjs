@@ -1,5 +1,5 @@
 // Local-only visual and interaction verification for the simplified home (2026-10-17 "직관성").
-// 홈 흐름: 짧은 히어로 → 대표 상담 덱 Ⅰ–Ⅵ → 무료로 먼저(6장) → 1:1 상담(연이·네오) → 이용권 → 뮤직비디오 → "모든 운세 보기" 버튼 → 미니 게임 링크 → 달빛 이야기(노벨·음악 카드) → 푸터.
+// 홈 흐름: 짧은 히어로 → 대표 상담 덱 Ⅰ–Ⅵ → 무료로 먼저(6장) → 1:1 상담(연이·네오) → 이용권 → 뮤직비디오 → "모든 운세 보기" 버튼 → 달빛 이야기(노벨·음악 카드) → 푸터.
 const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -24,6 +24,7 @@ function contrast(foreground, background) {
 
 // 첫 방문에 보여야 하는 것은 이것뿐이다. 접힌 곳(details)에 들어가 있으면 안 된다.
 async function assertEssentials(page, label) {
+  assert.equal(await page.locator('a[href="/mini-games/"], a[href="/saju/love-simulation/"], a[href*="secret-house_real"]').count(), 0, label + ': paused content has no home entry');
   const essentials = [
     ['hero CTA', '.cdh-primary'],
     ['signature deck', '#cdSignatureConsult'],

@@ -81,42 +81,29 @@ function createPlayerDom({ hash = "", failManifest = false, bookmark = null, end
   return { dom, errors };
 }
 
-async function verifyDualEndingChoice() {
-  const { dom, errors } = createPlayerDom({ endingChoice: "reality" });
+async function verifyLinearEnding() {
+  const { dom, errors } = createPlayerDom({ endingChoice: "destiny" });
   try {
     const win = dom.window;
-    await waitFor(() => win.__NOVEL_READY === true, "dual-ending manifest");
-    const ep50 = win.EPISODES.findIndex((episode) => episode.id === "ep-50");
+    await waitFor(() => win.__NOVEL_READY === true, "linear manifest");
+    assert.ok(!win.EPISODES.some(episode => episode.branch === "destiny"));
+    const ep50 = win.EPISODES.findIndex(episode => episode.id === "ep-50");
     await win.ensureEpisodeLoaded(ep50);
-    const choiceBeat = win.EPISODES[ep50].beats.find((beat) => beat.choice);
-    assert.ok(choiceBeat?.choice, "EP.50 final choice is missing");
-    win.renderChoice(choiceBeat.choice);
-    const buttons = Array.from(win.document.querySelectorAll("#choicePanel .choiceBtn"));
-    assert.deepEqual(buttons.map((button) => button.textContent), ["현실로 돌아간다", "운세 세계에 남는다"]);
-    assert.equal(buttons[0].getAttribute("aria-pressed"), "true", "the saved ending choice was not restored");
-    buttons[1].click();
-    await waitFor(() => win.EPISODES[win.S.ep]?.id === "ep-51s", "destiny-ending navigation");
-    assert.equal(win.localStorage.getItem("cd.novelEnding.v1"), "destiny");
-    assert.equal(win.EPISODES[win.S.ep].branch, "destiny");
-
-    const destinyEnd = win.EPISODES.findIndex((episode) => episode.id === "ep-53s");
-    await win.ensureEpisodeLoaded(destinyEnd);
-    win.endStory(win.EPISODES[destinyEnd]);
-    const otherEnding = win.document.querySelector("#choicePanel .choiceBtn");
-    assert.equal(otherEnding?.textContent, "현실 세계 엔딩 보기");
-    otherEnding.click();
-    await waitFor(() => win.EPISODES[win.S.ep]?.id === "ep-51", "other-ending navigation");
-    assert.equal(win.EPISODES[win.S.ep].branch, "reality");
-
-    const nativeSetItem = win.localStorage.setItem.bind(win.localStorage);
-    Object.defineProperty(win.localStorage, "setItem", { configurable: true, value() { throw new Error("blocked"); } });
-    win.rememberEndingChoice("destiny");
-    assert.equal(win.readEndingChoice(), "destiny", "blocked storage did not keep the in-memory choice");
-    Object.defineProperty(win.localStorage, "setItem", { configurable: true, value: nativeSetItem });
-    assert.deepEqual(errors, [], "dual-ending choice emitted runtime errors");
-  } finally {
-    dom.window.close();
-  }
+    assert.ok(win.EPISODES[ep50].beats.every(beat => !beat.choice));
+    win.S.ep = ep50;
+    await win.nextEpisode();
+    assert.equal(win.EPISODES[win.S.ep].id, "ep-51");
+    for (const id of ["ep-51s", "ep-52s", "ep-53s"]) {
+      assert.equal(win.EPISODES[win.resolveSavedEpisode({ episodeId: id, rev: 2 })].id, id.slice(0, -1));
+    }
+    const finalIndex = win.EPISODES.findIndex(episode => episode.id === "ep-53");
+    await win.ensureEpisodeLoaded(finalIndex);
+    win.endStory(win.EPISODES[finalIndex]);
+    assert.equal(win.document.querySelectorAll(".choiceBtn").length, 0);
+    assert.equal(win.curBeat.end, true);
+    assert.equal(win.localStorage.getItem("cd.novelEnding.v1"), "destiny", "old history is preserved, never used for branching");
+    assert.deepEqual(errors, [], "linear reading emitted runtime errors");
+  } finally { dom.window.close(); }
 }
 
 async function verifyDirectStart() {
@@ -747,7 +734,7 @@ async function verifyNeoReturnAndCover() {
   } finally { dom.window.close(); }
 }
 await verifyNeoReturnAndCover();
-await verifyDualEndingChoice();
+await verifyLinearEnding();
 await verifyMobileAssetsAndCache();
 await verifyExpandedBookmarks();
 await verifySilentTrack();

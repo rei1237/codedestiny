@@ -678,6 +678,10 @@ async function serveGuardianShareCard(request, env, ctx, url, shareId) {
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    // Temporarily remove play-only entry points from the fortune service.
+    if (/^\/(?:mini-games|destiny-poker|secret-house_real|saju\/love-simulation)(?:\.html|\/index\.html)?\/?$/.test(url.pathname)) {
+      return new Response(null, { status: 302, headers: { Location: new URL('/ggulggul/', url).toString(), 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex' } });
+    }
     if (/^\/tadagochi(?:\.html)?\/?$/.test(url.pathname)) {
       return Response.redirect(new URL('/ggulggul/#dpMasterCard', url), 301);
     }

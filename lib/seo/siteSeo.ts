@@ -366,6 +366,11 @@ export const publicSeoPages: Record<string, PublicSeoPage> = {
 };
 
 export const noindexPathPrefixes = [
+  // 선택형/놀이형 콘텐츠 임시 비노출 (기존 결과는 보존).
+  "/saju/love-simulation",
+  "/secret-house_real",
+  "/destiny-poker",
+  "/mini-games",
   // 날짜별 보관 화면은 재방문 도구다. 기간별 정본과 반복되는 360개 URL은 검색에서 제외한다.
   "/fortune/date",
   '/neo-operation-room/strategy-books',

@@ -190,6 +190,9 @@ const privateNoindexRoutes = [
 ];
 
 const xRobotsNoindexHeaderPatterns = [
+  // Temporarily paused choice-based content must stay out of search.
+  "/mini-games", "/mini-games/*", "/destiny-poker", "/destiny-poker/*", "/destiny-poker.html",
+  "/saju/love-simulation", "/saju/love-simulation/*", "/secret-house_real", "/secret-house_real/*",
   "/fortune/date",
   "/fortune/date/*",
   '/neo-operation-room/strategy-books',

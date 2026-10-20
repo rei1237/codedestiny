@@ -32,6 +32,7 @@ const LOVE_SIMULATION_PAGE_TEXT_TRANSLATIONS = {
 const loveSimulationPageCopy = LOVE_SIMULATION_PAGE_TEXT_TRANSLATIONS.ko;
 
 export const metadata = {
+  robots: { index: false, follow: true },
   title: loveSimulationPageCopy.title,
   description: loveSimulationPageCopy.description,
   keywords: loveSimulationPageCopy.keywords,

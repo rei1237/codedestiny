@@ -288,9 +288,9 @@
       },
       "misc": {
         "title": "Colección de otras adivinaciones",
-        "subtitle": "Explora desde tests psicológicos hasta minijuegos de fortuna",
-        "lede": "Tests psicológicos, saju de mascotas, una simulación romántica, el destino favorito y diez minijuegos de fortuna reunidos en una colección.",
-        "featureline": "Minijuegos de fortuna · Hub psicológico · Saju de mascotas IA · LOVE CODE · Destino favorito",
+        "subtitle": "Explora tu personalidad y fortuna",
+        "lede": "Tests de personalidad · Saju de mascotas con IA · Afinidad",
+        "featureline": "Tests de personalidad · Saju de mascotas con IA · Afinidad",
         "aria": "Abrir otra colección de adivinación"
       },
       "openHint": "Toque para abrir"

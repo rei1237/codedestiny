@@ -582,7 +582,6 @@ body.novel-playing #nebula{display:none}
     <div class="dlg" id="dlg" role="button" tabindex="0" aria-label="대사 진행">
       <div class="spk"><i id="spkIcon">연</i><b id="spkName">연이</b></div>
       <div class="body" id="dlgBody"></div>
-      <div class="choicePanel" id="choicePanel" role="group" aria-label="결말 선택"></div>
       <svg class="leaf" viewBox="0 0 24 24" fill="none" stroke="#e9c46a" stroke-width="1.4"><path d="M12 3c5 3 7 7 7 11a7 7 0 0 1-14 0c0-4 2-8 7-11Z" fill="rgba(233,196,106,.12)"/><path d="M12 6v12"/></svg>
       <span class="next">다음 ▾</span>
     </div>
@@ -1307,21 +1306,7 @@ function flushCard(){
   return true;
 }
 function curBeats(){return EPISODES[S.ep].beats;}
-var ENDING_CHOICE_KEY="cd.novelEnding.v1",_endingChoice=null;
-function readEndingChoice(){try{_endingChoice=localStorage.getItem(ENDING_CHOICE_KEY)||_endingChoice;}catch(e){}return _endingChoice;}
-function rememberEndingChoice(id){_endingChoice=id;try{localStorage.setItem(ENDING_CHOICE_KEY,id);}catch(e){}}
 function episodeIndexById(id){for(var i=0;i<EPISODES.length;i++)if(EPISODES[i].id===id)return i;return -1;}
-function renderChoice(choice){
-  var panel=document.getElementById("choicePanel");panel.replaceChildren();panel.classList.add("on");panel.classList.toggle("one",choice.options.length===1);
-  var remembered=readEndingChoice();
-  choice.options.forEach(function(option){var button=document.createElement("button");button.type="button";button.className="choiceBtn";button.textContent=option.label;
-    button.setAttribute("aria-pressed",remembered===option.id?"true":"false");if(remembered===option.id)button.title="지난 선택";
-    button.addEventListener("click",function(event){event.stopPropagation();rememberEndingChoice(option.id);var target=episodeIndexById(option.target);if(target<0){toast("선택한 결말을 찾지 못했어요");return;}
-      panel.classList.remove("on");ensureEpisodeLoaded(target).then(function(){S.bi=0;enterEpisode(target,true);}).catch(showNovelDataError);});panel.appendChild(button);});
-  setTimeout(function(){var first=panel.querySelector("button");if(first)first.focus();},0);
-}
-function hideChoice(){var panel=document.getElementById("choicePanel");panel.classList.remove("on","one");panel.replaceChildren();}
-
 function runBeat(){
   var beats=curBeats();
   if(S.bi>=beats.length){nextEpisode();return;}
@@ -1374,8 +1359,7 @@ function endStory(episode){
   S.save={ep:0,bi:0};
   dlg.dataset.done="true";
   curBeat={end:true};
-  var other=episode&&episode.branch==="reality"?{id:"destiny",label:"운세 세계 엔딩 보기",target:"ep-51s"}:{id:"reality",label:"현실 세계 엔딩 보기",target:"ep-51"};
-  renderChoice({options:[other]});
+  // One published ending; there is no alternate-ending selection.
 }
 
 /* --- 임의 지점 점프(지속상태 무손실 복원): 목차/뒤로가기용 --- */
@@ -1706,7 +1690,6 @@ var NAME={yeon:"연이",neo:"네오",mu:"무성",geo:"거울 속 연이",moka:"�
 function speakerName(s,ep,bi){return s==="neo"&&neoFormAt(ep,bi)!=="human"?"영냥이":(NAME[s]||"");}
 function speakerIcon(s,ep,bi){return s==="neo"&&neoFormAt(ep,bi)!=="human"?"냥":(ICON[s]||"달");}
 function showDialogue(b){
-  hideChoice();
   document.getElementById("player").dataset.shot=b.shot||"medium";
   clearTimeout(typeTimer);
   var spk=b.s||"n";
@@ -1739,7 +1722,6 @@ function scheduleSkipStep(){clearTimeout(_skipTimer);_skipTimer=setTimeout(doSki
 function finishType(){
   clearTimeout(typeTimer);shownLen=fullText.length;dlgBody.textContent=fullText;
   dlg.dataset.typing="false";dlg.dataset.done="true";S.typing=false;
-  if(curBeat&&curBeat.choice){S.auto=false;S.skip=false;clearTimeout(autoT);clearTimeout(_skipTimer);renderChoice(curBeat.choice);return;}
   if(S.auto)scheduleAuto();
   if(S.skip&&!_inSkipStep)scheduleSkipStep();
 }
@@ -1748,7 +1730,6 @@ function advance(){
   if(flushCard())return; /* 챕터 카드 중 클릭 시 beat0을 스킵하지 않고 실행 */
   if(curBeat&&curBeat.end){backToMain();return;}
   if(S.typing){finishType();return;}
-  if(curBeat&&curBeat.choice)return;
   S.bi++;runBeat();
 }
 function doSkipStep(){
@@ -2267,6 +2248,8 @@ function initNovelData(){
     return response.json();
   }).then(function(manifest){
     if(!manifest||!Array.isArray(manifest.episodes)||!manifest.episodes.length)throw new Error("invalid manifest");
+    // A fixed reading order, independent of previous reader selections.
+    manifest.episodes=manifest.episodes.filter(function(episode){return !episode.branch||episode.branch==="reality";});
     NOVEL_MANIFEST=manifest;EPISODES=manifest.episodes.map(episodeMeta);return manifest;
   });
   return NOVEL_DATA_READY;
@@ -2280,6 +2263,10 @@ function legacyBeatId(save){
 /* rev 가 있는 저장은 개편 뒤의 것이라 episodeId 로만 찾는다 — 얼린 옛 범위는 rev 없는 옛 저장 전용이다.
    저장 rev 와 화 rev 가 다르면 그 화를 다시 쓴 것이라 같은 ID 라도 다른 문장이다 → 화의 처음. */
 function resolveSavedEpisode(save){
+  // Old alternate-ending bookmarks resume at the corresponding published chapter.
+  if(save&&/^ep-5[123]s$/.test(save.episodeId||"")){
+    var published=episodeIndexById(save.episodeId.slice(0,-1));if(published>=0)return published;
+  }
   var old=save&&save.rev?null:legacyBeatId(save);
   if(old&&NOVEL_MANIFEST){var parts=old.split(":"),pos=Number(parts[1]);
     for(var j=0;j<NOVEL_MANIFEST.episodes.length;j++){var ranges=NOVEL_MANIFEST.episodes[j].legacyRanges||[];
@@ -2311,6 +2298,13 @@ function ensureEpisodeLoaded(index){
       if(!response.ok)throw new Error("episode HTTP "+response.status);return response.json();
     }).then(function(chunk){
       if(!chunk||chunk.id!==episode.id||chunk.sourceHash!==NOVEL_MANIFEST.sourceHash||!Array.isArray(chunk.beats))throw new Error("invalid episode chunk "+episode.id);
+      // Keep the archived manuscript intact; the reader exposes narrative only.
+      chunk.beats=chunk.beats.map(function(beat){
+        if(!beat.choice)return beat;
+        var narrative=Object.assign({},beat);delete narrative.choice;
+        narrative.t="[ 스물세 번째 카드 · 두 사람은 현실로 돌아간다 ]";
+        return narrative;
+      });
       retainEpisode(index,chunk);preloadFirstBg(index);return chunk;
     }).finally(function(){delete NOVEL_EPISODE_LOADS[index];});
     return NOVEL_EPISODE_LOADS[index];

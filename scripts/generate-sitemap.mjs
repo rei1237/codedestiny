@@ -69,6 +69,7 @@ const LEDGER_CHECK_LABEL = "config/sitemap-lastmod.json";
 // 확장자가 있는 경로는 normalizeSitemapPath 가 후행 슬래시를 붙이지 않아
 // noindexPathPrefixes(startsWith prefix + "/")로 걸러지지 않는다. 정확 일치로 제외한다.
 const excludedExactSitemapPaths = new Set([
+  "/secret-house_real.html", "/destiny-poker.html",
   // Retired presentations redirect to their canonical category or home.
   "/kkul-kkul-unse/", "/saju/basic/", "/oracle/sukuyo/", "/vedic/jyotish/", "/astrology/cosmic/",
   "/ifa-oracle.html",
@@ -77,6 +78,11 @@ const excludedExactSitemapPaths = new Set([
 // public/_headers 의 X-Robots-Tag: noindex 정책과 동기화 유지할 것.
 // noindex 경로를 사이트맵에 넣으면 GSC/네이버에서 "제출된 URL에 noindex" 오류가 난다.
 const noindexPathPrefixes = [
+  // 선택형/놀이형 콘텐츠 임시 비노출 (기존 결과는 보존).
+  "/saju/love-simulation",
+  "/secret-house_real",
+  "/destiny-poker",
+  "/mini-games",
   // 날짜별 보관 화면은 재방문 도구다. 기간별 정본과 반복되는 360개 URL은 검색에서 제외한다.
   "/fortune/date",
   '/neo-operation-room/strategy-books',
