@@ -35,7 +35,7 @@
       alt: '별과 달을 배경으로 남색 옷을 입은 점성술 마스터 윤달'
     },
     vedic: {
-      image: '/images/master-profiles/yun-astrology-portrait.webp', master: '윤달', avatar: 'yun', freeLead: '이곳에서는 베다 점성술의 라시·나크샤트라·다샤로 읽어요. 타고난 기질과 지금의 시기를 나누어, 준비할 조건을 함께 살펴볼게요.',
+      image: '/images/master-profiles/yun-astrology-portrait.webp', master: '윤달', avatar: 'yun', freeLead: '윤달이에요. 라시는 별자리의 기질, 나크샤트라는 달이 머문 자리의 성향, 다샤는 시기의 흐름을 보여줘요. 베다 점성술의 근거를 하나씩 짚고, 지금 준비할 일을 함께 살펴볼게요.',
       name: '윤달의 베다 점성술 상담', title: '타고난 별의 결,<br>지금의 시간을 읽다',
       lead: '윤달이에요. 베다 점성술의 라시와 나크샤트라가 비추는 기질, 다샤가 보여주는 긴 시간의 흐름. 지금의 고민에 맞춰 내 삶의 리듬을 살펴요.',
       basis: '라시 · 나크샤트라 · 계산된 다샤 흐름',

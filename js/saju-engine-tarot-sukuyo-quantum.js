@@ -3270,7 +3270,7 @@ function _runStartTarotReading() {
     var resultEl = document.getElementById('tarotResultContainer');
     if (resultEl) resultEl.classList.remove('is-empty');
     var interpretation = '<b style="color:#ead089;font-size:1.02em">🌙 명리학 타로 한 장 리딩</b><br>' +
-      '<span style="opacity:0.9;color:#e3b4c6;line-height:1.85;">지금 필요한 선택을 차분히 정리해 드릴게요.</span><br><br>' +
+      '<span style="opacity:0.9;color:#e3b4c6;line-height:1.85;">연이예요. 카드의 상징과 십성의 흐름을 차례로 읽고, 오늘 해 볼 작은 선택을 함께 찾아드릴게요.</span><br><br>' +
       buildMyeongriTarotReadingHtml(reading, '오늘');
     streamRitualHtmlTyped(interpretation, 'destinyFortune', function() {
       if (token !== tarotLifecycleToken) return;

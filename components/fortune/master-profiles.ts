@@ -44,9 +44,9 @@ export const masterProfiles = {
     sheet: `${base}/yeoni-palm-profile.webp`, sheetWidth: 1536, sheetHeight: 1024, theme: "yeoniPalm",
   },
   yun: {
-    name: "윤달", role: "생시부터 묻는 점성술사 · 서양 점성술",
+    name: "윤달", role: "생시부터 묻는 점성술사 · 서양 점성술·베다점",
     description: "누구에게나 태어난 시각부터 묻는 점성술사예요. 분까지 맞추면 상승궁과 열두 하우스가 또렷해지고, 태양·달과 함께 기질의 중심을 정확히 잡을 수 있어요.",
-    approach: "행성·사인·하우스·애스펙트의 근거를 먼저 보여 드리고, 비유는 쉽게 하나만 곁들여요. 생시를 모르면 상승궁 해석의 한계부터 말씀드리고, 읽을 수 있는 하늘부터 차근차근 풀어 드려요.",
+    approach: "서양 점성술은 행성·사인·하우스·애스펙트로, 베다점은 라시·나크샤트라·다샤로 읽어요. 두 체계의 근거를 구분하고, 비유는 쉽게 하나만 곁들여요. 생시를 모르면 상승궁 해석의 한계부터 말씀드리고, 읽을 수 있는 하늘부터 차근차근 풀어 드려요.",
     portrait: `${base}/yun-astrology-portrait.webp`, portraitAlt: "남색 두루마기에 은빛 초승달 귀걸이를 하고 접부채를 든 점성술사 윤달",
     sheet: `${base}/yun-astrology-profile.webp`, sheetWidth: 1536, sheetHeight: 1024, theme: "yun",
   },

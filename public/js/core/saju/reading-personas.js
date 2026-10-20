@@ -6,7 +6,7 @@
   var copy = {
     ko: {
       yeon: '연이', neo: '영냥이', garden: '연이의 달빛 사주', room: '영냥이의 별빛 다락방',
-      same: '당신의 기질과 삶의 흐름을 차분히 읽습니다. 원하는 상담자를 선택해 주세요.',
+      same: '기본 사주는 연이와 영냥이가 함께 맡아요. 같은 계산 근거를 바탕으로, 원하는 마스터의 해설을 골라 읽어보세요.',
       compareNeo: '영냥이 상담으로 전환하기', compareYeon: '연이 상담으로 전환하기',
       observe: '연이가 발견한 단서', life: '생활에서 만나는 모습', practice: '오늘의 작은 실천', diagnosis: '영냥이가 짚은 핵심', basis: '계산 근거', action: '행동 기준',
       element: '오행의 분포', temperament: '타고난 기질', ten: '십성으로 읽는 역할', climate: '조후 · 계절의 감각', strength: '억부 · 힘을 쓰는 방식', flow: '현재 흐름', letter: '편지',
