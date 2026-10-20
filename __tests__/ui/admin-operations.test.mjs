@@ -1,0 +1,10 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { operationsAdvisors, isActiveOperationsQuest, questKeeper } from '../../lib/admin-operations.mjs';
+const now = Date.parse('2026-10-21T03:00:00Z');
+const sample = () => ({ period: { fromDate: '2026-10-20', toDate: '2026-10-20' }, lastSync: '2026-10-21T02:50:00Z', alerts: [], metrics: { revenue: { orders: 0, refundedKRW: 0 }, traffic: { status: 'connected', engagedSessions: 3 }, delivery: { awaitingDelivery: 0 } } });
+test('fresh zero orders offers an investigation, without promising sales', () => { const a=operationsAdvisors(sample(),now); assert.equal(a[2].art,'yeongnyangiSad'); assert.equal(a[1].mission,'conversion'); });
+test('unknown or stale observations never imply zero orders', () => { for(const lastSync of [null,'bad','2026-10-19T00:00:00Z']) { const d=sample();d.lastSync=lastSync;assert.equal(operationsAdvisors(d,now)[1].mission,'measurement');assert.notEqual(operationsAdvisors(d,now)[2].art,'yeongnyangiSad'); } });
+test('delivery takes priority; refunds do not erase purchases', () => { const d=sample();d.metrics.revenue.orders=1;d.metrics.revenue.refundedKRW=5000;d.metrics.delivery.awaitingDelivery=2;const a=operationsAdvisors(d,now);assert.equal(a[1].mission,'delivery');assert.notEqual(a[2].art,'yeongnyangiSad'); });
+test('unknown traffic is not zero visitors',()=>{const d=sample();d.metrics.traffic.status='integration_pending';assert.equal(operationsAdvisors(d,now)[2].mission,'measurement');});
+test('legacy campaign tasks remain archived, custom and WordPress tasks active',()=>{assert.equal(isActiveOperationsQuest({origin:'campaign',channel:'threads_existing_worker'}),false);assert.equal(isActiveOperationsQuest({origin:'custom',channel:'custom'}),true);assert.equal(isActiveOperationsQuest({origin:'campaign',channel:'wordpress'}),true);assert.equal(questKeeper({kind:'analysis'}),'영냥이');});

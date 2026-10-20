@@ -1,0 +1,52 @@
+{
+  "siteId": 258025862,
+  "checked": "2026-10-21",
+  "posts": [
+    {
+      "file": "01-reading-order.html",
+      "title": "자미두수 명반 보는 법: 실제 화면으로 확인하는 읽기 순서",
+      "id": 88,
+      "status": "draft_verified",
+      "editorUrl": "https://ggulggulinsights.wordpress.com/wp-admin/post.php?post=88&action=edit",
+      "publicUrl": null,
+      "updated": "2026-10-21",
+      "nextReview": "2026-10-28",
+      "category": "자미두수",
+      "publicize": false,
+      "publicizeEvidence": "Jetpack Social: no connected accounts; saved via UI draft only",
+      "slugApplied": false,
+      "tagsApplied": false
+    },
+    {
+      "file": "02-career-questions.html",
+      "title": "자미두수로 직업 고민을 정리할 때 확인할 질문",
+      "id": 91,
+      "status": "draft_verified",
+      "editorUrl": "https://ggulggulinsights.wordpress.com/wp-admin/post.php?post=91&action=edit",
+      "publicUrl": null,
+      "updated": "2026-10-21",
+      "nextReview": "2026-10-28",
+      "category": "자미두수",
+      "publicize": false,
+      "publicizeEvidence": "Jetpack Social: no connected accounts; saved via UI draft only",
+      "slugApplied": false,
+      "tagsApplied": false
+    },
+    {
+      "file": "03-input-checklist.html",
+      "title": "자미두수 명반 계산 결과가 다를 때 확인할 입력 조건",
+      "id": 95,
+      "status": "draft_verified",
+      "editorUrl": "https://ggulggulinsights.wordpress.com/wp-admin/post.php?post=95&action=edit",
+      "publicUrl": null,
+      "updated": "2026-10-21",
+      "nextReview": "2026-10-28",
+      "category": "자미두수",
+      "publicize": false,
+      "publicizeEvidence": "Jetpack Social: no connected accounts; saved via UI draft only",
+      "slugApplied": false,
+      "tagsApplied": false,
+      "preview": "WordPress mobile editor: title, body, ten-row table and consultation link verified"
+    }
+  ]
+}

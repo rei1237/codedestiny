@@ -3441,6 +3441,8 @@ export default function PointsPage() {
         throw error;
       }
 
+        // 기존 분석 동의·승인 상태·금액·거래번호 검증과 중복 방지 규칙을 재사용한다.
+        trackConfirmedPurchase(payload);
         // 🔴 서버가 확정을 검증한 뒤에만 /api/me/access-state 의 60초 스냅샷을 강제 무효화한다.
         //    안 하면 방금 결제한 기능이 최대 60초간 잠긴 채로 보인다. 실패 갈래는 위에서 throw 로 빠졌다.
         //    결과를 기다리지 않는다 — 화면 잠금 해제는 로컬 스냅샷이 판정한다(결제 게이팅 1번).

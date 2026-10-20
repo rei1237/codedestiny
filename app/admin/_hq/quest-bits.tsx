@@ -3,6 +3,7 @@
 // 퀘스트를 여러 화면(홈·퀘스트·데모)에서 같은 모양으로 보여 주는 작은 부품.
 
 import Link from "next/link";
+import { questKeeper } from "@/lib/admin-operations.mjs";
 import { ChevronRight, Clock3 } from "lucide-react";
 import { StatusBadge } from "./components";
 import { formatDateKey, formatXp } from "./format";
@@ -44,7 +45,7 @@ export function QuestRow({ quest, onOpen, showDate = true }: { quest: Quest; onO
     <span className="flex items-start gap-3">
       <span className="min-w-0 flex-1">
         <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px]">
-          <span className="cd-hq-quiet">{quest.kindGame} · {quest.kindLabel}</span>
+          <span className="cd-hq-quiet">{questKeeper(quest)} 담당 · {quest.kindLabel}</span>
           <span className="cd-hq-quiet">{quest.channelLabel}{quest.language && quest.language !== "ko" ? ` · ${quest.language.toUpperCase()}` : ""}</span>
         </span>
         <span className="mt-0.5 block text-[14px] font-semibold leading-snug text-[var(--cd-adm-ink)]">{quest.title}</span>

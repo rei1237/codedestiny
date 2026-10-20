@@ -3,7 +3,8 @@
 // 별빛 퀘스트 · 마케팅 일정. 같은 퀘스트 목록을 리스트·주간·월간·칸반 네 가지로 본다.
 // 🔴 끌어 옮기기(드래그) 대신 드로어의 "상태 이동" 버튼을 쓴다 — 터치·키보드에서도 같은 동작.
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { isActiveOperationsQuest, RETIRED_MARKETING_CHANNELS } from "@/lib/admin-operations.mjs";
 import { CalendarDays, ChevronLeft, ChevronRight, Columns3, List, Rows3 } from "lucide-react";
 import { ADMIN_INPUT, adminButton, adminChip } from "../../_components/ui";
 import { HQ_ART } from "../art";
@@ -66,7 +67,11 @@ export interface QuestsViewProps {
 }
 
 export default function QuestsView(props: QuestsViewProps) {
-  const { items, meta, bundles, today, view, onViewChange, anchor, onAnchorChange, filters, onFiltersChange, onOpen, rangeNote, onClearRange } = props;
+  const { items: allItems, meta, bundles: allBundles, today, view, onViewChange, anchor, onAnchorChange, filters, onFiltersChange, onOpen, rangeNote, onClearRange } = props;
+  const [showArchive, setShowArchive] = useState(false);
+  const archive = showArchive || RETIRED_MARKETING_CHANNELS.includes(filters.channel);
+  const items = useMemo(() => allItems.filter(q => archive ? !isActiveOperationsQuest(q) : isActiveOperationsQuest(q)), [allItems, archive]);
+  const bundles = archive ? [] : allBundles.filter(b => b.quests.every(item => items.some(q => q.id === item.id)));
   const filtered = useMemo(() => applyQuestFilters(items, filters), [items, filters]);
   const counts = useMemo(() => {
     const open = items.filter((quest) => ["scheduled", "in_progress", "review"].includes(quest.status));
@@ -85,6 +90,7 @@ export default function QuestsView(props: QuestsViewProps) {
 
   return (
     <div className="space-y-4">
+      <div className="cd-ops-tabs" role="group" aria-label="운영 기록 범위"><button aria-pressed={!archive} onClick={() => { setShowArchive(false); onFiltersChange(EMPTY_FILTERS); }}>현재 퀘스트</button><button aria-pressed={archive} onClick={() => { setShowArchive(true); onFiltersChange(EMPTY_FILTERS); }}>이전 SNS 기록</button></div>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         <SummaryChip label="오늘 남은 작업" value={counts.today} />
         <SummaryChip label="기한 경과" value={counts.overdue} tone={counts.overdue ? "err" : undefined} onClick={() => set({ overdue: !filters.overdue })} pressed={filters.overdue} />
@@ -147,7 +153,7 @@ export default function QuestsView(props: QuestsViewProps) {
         ) : null}
         <div className="p-3 sm:p-4" role="tabpanel">
           {!items.length ? (
-            <EmptyState art={HQ_ART.yeoniLibrary} title="아직 불러온 퀘스트가 없습니다" body="연결 상태 화면에서 '캠페인 일정 가져오기'를 실행하면 4주 캠페인 퀘스트가 생깁니다." />
+            <EmptyState art={HQ_ART.yeoniLibrary} title="아직 불러온 퀘스트가 없습니다" body="작업 추가에서 목표를 정하거나 운영 길드의 마스터에게 다음 퀘스트를 받아 보세요." />
           ) : !filtered.length ? (
             <EmptyState title="조건에 맞는 퀘스트가 없습니다" body="필터를 바꾸거나 해제해 보세요." action={<button type="button" className={adminButton("neutral")} onClick={() => onFiltersChange(EMPTY_FILTERS)}>필터 해제</button>} />
           ) : view === "list" ? (

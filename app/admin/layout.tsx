@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 // 🔴 styles/ 에 두지 않는다 — sync:public 이 public/styles/ 로 미러하면서 정적 셸의
 //    build-<hash> 캐시 키를 통째로 갱신한다(실측 19개 파일). Next 가 번들하므로 미러는 불필요하다.
 import "./admin-yehwa.css";
+import "./operations-guild.css";
 
 import AdminShell from "./_components/AdminShell";
 

@@ -1,0 +1,12 @@
+import React from 'react';
+import {createRoot} from 'react-dom/client';
+import Shell from '../../../app/admin/_components/AdminShell';
+import Home from '../../../app/admin/page';
+import Quests from '../../../app/admin/quests/page';
+import Growth from '../../../app/admin/growth/page';
+import Workshop from '../../../app/admin/wordpress/page';
+import '../../../app/admin/admin-yehwa.css';
+import '../../../app/admin/operations-guild.css';
+sessionStorage.setItem('flower_admin_token','LOCAL_GUILD_FIXTURE_ONLY.'+'0'.repeat(64));
+const Page=location.pathname.includes('/quests')?Quests:location.pathname.includes('/growth')?Growth:location.pathname.includes('/wordpress')?Workshop:Home;
+createRoot(document.getElementById('root')!).render(<><div style={{background:'#372b10',color:'#fff',padding:12,fontFamily:'system-ui'}}>격리 검증 · 메모리 DB · 가상 퀘스트/XP · 운영 API·GA4·결제 송신 없음</div><Shell><Page/></Shell></>);

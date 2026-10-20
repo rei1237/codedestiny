@@ -24,8 +24,10 @@ test('Yeongnyangi home entry keeps its original artwork and background without S
 });
 test('Yeongnyangi primary entry keeps both destinations and localized service appeal copy',()=>{
  const {entry}=homeEntry(readFileSync('index.html','utf8'));
- assert.match(entry,/href="\/yeongnyangi\/\?utm_source=code_destiny&utm_medium=referral&utm_campaign=yeongnyangi_home&utm_content=hero"/);
- assert.match(entry,/href="\/yeongnyangi\/room\/\?utm_source=code_destiny&utm_medium=referral&utm_campaign=yeongnyangi_home&utm_content=free#daily"/);
+ assert.match(entry,/href="\/yeongnyangi\/"/);
+ assert.match(entry,/href="\/yeongnyangi\/room\/#daily"/);
+ assert.doesNotMatch(entry,/utm_(source|medium|campaign|content)=/);
+ for(const placement of ['home_hero','home_daily'])assert.ok(entry.includes(`data-cd-portal-placement="${placement}"`));
  assert.doesNotMatch(entry,/Family 이용권|단건 결제\(카드·카카오페이 등\)/);
  for(const fish of ['mackerel','salmon','flounder','tuna'])assert.match(entry,new RegExp(`data-yeongnyangi-price="${fish}"`));
  const authored=JSON.parse(readFileSync('i18n/authored/homeYeongnyangiEntry-01.json','utf8'));

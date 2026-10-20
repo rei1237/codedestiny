@@ -4,6 +4,7 @@
 // 🔴 Threads 는 기존 자동화 기록을 읽기만 한다 — 이 화면 어디에도 발행(/run)을 부르는 버튼이 없다.
 // 🔴 XP 는 서버가 증빙·완료 검증 뒤에 계산한다. 여기서는 예상치를 보여 줄 뿐 값을 보내지 않는다.
 
+import { isActiveOperationsQuest } from "@/lib/admin-operations.mjs";
 import { useEffect, useState } from "react";
 import { ExternalLink, FileText, Link2, ShieldCheck } from "lucide-react";
 import { ADMIN_INPUT, adminButton } from "../../_components/ui";
@@ -54,6 +55,7 @@ export interface QuestDetailViewProps {
 
 export default function QuestDetailView({ detail, busy = false, notice, onTransition, onAddEvidence, onSetTarget, onOpenRelated }: QuestDetailViewProps) {
   const { quest, evidence, meta } = detail;
+  const retired = !isActiveOperationsQuest(quest);
   const [pendingTo, setPendingTo] = useState<string | null>(null);
   const [reason, setReason] = useState("");
   const manualTypes = Object.entries(meta.evidenceTypes).filter(([, spec]) => spec.manual);
@@ -87,6 +89,7 @@ export default function QuestDetailView({ detail, busy = false, notice, onTransi
 
   return (
     <div className="space-y-5 text-sm">
+      {retired ? <HqNotice tone="info">이전 SNS 캠페인의 보관 기록입니다. 증빙과 이력은 보존하며 현재 운영 퀘스트로 진행하지 않습니다.</HqNotice> : null}
       {notice ? <HqNotice tone={notice.tone}>{notice.text}</HqNotice> : null}
 
       <section aria-label="요약" className="space-y-2">
@@ -132,7 +135,7 @@ export default function QuestDetailView({ detail, busy = false, notice, onTransi
         ) : null}
       </section>
 
-      {quest.status !== "archived" ? (
+      {!retired && quest.status !== "archived" ? (
         <section aria-labelledby="quest-move" className="space-y-2">
           <h3 id="quest-move" className="text-[13px] font-semibold text-[var(--cd-adm-ink)]">상태 이동</h3>
           {autoOnly ? (
@@ -198,7 +201,7 @@ export default function QuestDetailView({ detail, busy = false, notice, onTransi
           </ul>
         ) : <p className="cd-hq-quiet text-[13px]">아직 등록된 증빙이 없습니다.</p>}
 
-        {!autoOnly && quest.status !== "archived" ? (
+        {!autoOnly && !retired && quest.status !== "archived" ? (
           <form className="cd-hq-panel2 space-y-2 rounded-[var(--cd-adm-radius)] p-3" onSubmit={submitEvidence}>
             <p className="text-[13px] font-semibold text-[var(--cd-adm-ink)]">증빙 추가</p>
             <label className="block text-[12px]">
@@ -227,7 +230,7 @@ export default function QuestDetailView({ detail, busy = false, notice, onTransi
         ) : null}
       </section>
 
-      {quest.status !== "archived" ? (
+      {!retired && quest.status !== "archived" ? (
         <section aria-labelledby="quest-target" className="space-y-2">
           <h3 id="quest-target" className="text-[13px] font-semibold text-[var(--cd-adm-ink)]">작업 목표 시각</h3>
           <p className="cd-hq-quiet text-[12px]">내 작업 계획용입니다. 실제 예약·발행 시각은 바뀌지 않습니다.</p>
