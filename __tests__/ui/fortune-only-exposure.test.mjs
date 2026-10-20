@@ -7,6 +7,18 @@ const { JSDOM } = createRequire(import.meta.url)('jsdom');
 const source = fs.readFileSync('public/_worker.js', 'utf8');
 const worker = (await import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'))).default;
 const paused = ['/mini-games', '/destiny-poker', '/secret-house_real', '/saju/love-simulation'];
+test('paused content headers cover every entry within the Pages rule limit', () => {
+  for (const file of ['_headers', 'public/_headers']) {
+    const text = fs.readFileSync(file, 'utf8');
+    const rules = [...text.matchAll(/^(\/\S*)\r?\n((?:[ \t]+[^\r\n]+\r?\n?)*)/gm)];
+    assert.ok(rules.length <= 100, file + ': ' + rules.length);
+    for (const path of paused) for (const suffix of ['', '/', '.html', '/index.html']) {
+      assert.ok(rules.some(([, pattern, headers]) =>
+        (pattern === path + suffix || (pattern.endsWith('*') && (path + suffix).startsWith(pattern.slice(0, -1)))) &&
+        /X-Robots-Tag: noindex/.test(headers)), file + ': ' + path + suffix);
+    }
+  }
+});
 test('paused content is absent from published sitemaps and poker HTML is noindex', () => {
   for (const file of ['sitemap.xml', 'public/sitemap.xml', 'sitemap-ko.xml', 'public/sitemap-ko.xml']) {
     const xml = fs.readFileSync(file, 'utf8');
