@@ -1,17 +1,17 @@
 ---
-status: blocked
+status: active
 updated: 2026-10-21
-next: "기존 main CI 실패를 담당 변경에서 해결한 뒤 최신 main을 통합하고 이 워크트리 변경을 main에 전달한다."
+next: "main push 완료. 최신 main CI 결과를 확인하고 성공 시 이 문서를 done으로 닫는다. 운영 배포는 별도 승인."
 ---
 
 # 꿀방울 개수·획득 안내·다크 가독성·연이 튜토리얼
 
-- 작업 디렉터리: D:\Development\code-destiny\.codex-worktrees\honey-guide-20261021-011220
+- 현재 작업 디렉터리: D:\Development\code-destiny (기존 워크트리는 main 통합 후 정리)
 - 브랜치: wt/honey-guide-20261021-011220
 - 구현 커밋: 0b271e17bccf8233a2c0037e4da3cc935c36d0f3
 - 사이트맵 원장 커밋: 3b6c2d5c2 (이 문서 커밋 직전 HEAD)
-- push/운영 배포 없음. 원본 main의 다른 세션 미커밋 변경을 보존했다.
-- 차단: 기존 main 3d6f120190114e1c5bfe3ac8dae4a3606d3038c0의 Static guards 및 CI required 실패. https://github.com/rei1237/codedestiny/actions/runs/39455017301
+- main 통합 및 push 완료: 4b791bb3f9c88553d66dba1d6d621d9a5768bd07. 운영 배포 없음. 다른 세션 파일 보존.
+- 기존 CI 차단 해소: 재실행 성공 및 최신 c351378436d0f290cfc2b88c75c232c6b0d5fc73 CI 성공 확인 후 통합. 사이트맵 원장 충돌은 최신 main 기준 공식 생성기로 해결.
 
 ## 변경
 - js/prompt-hub-honey.js: 잔량 숫자 구분+개, 서버 잔량 증가 확인 후 실제 증가분·현재 잔량을 role=status 영역에 안내. 기존 꿀방울 이동 모션과 reduced-motion 유지.
@@ -38,3 +38,9 @@ next: "기존 main CI 실패를 담당 변경에서 해결한 뒤 최신 main을
 2. 최신 main 통합 후 변경 충돌만 해결하고 sync:public/sitemap:generate 필요 여부 확인, 관련 테스트와 check:fast 재실행.
 3. 검증 커밋을 main에 통합, check:pre-push 후 main push. 최종 공식 CI를 한 번 확인. 운영 배포는 별도 승인.
 4. 완료 시 이 문서 status: done, node_modules 정션 해제 후 자기 워크트리와 병합 브랜치 정리.
+
+## 2026-10-21 재개 결과
+- 최신 main 통합 후 honey-ui 10/10, sync:public, sitemap:generate, check:pre-push 통과.
+- check:fast 계획은 templates/home-funnel.html 미분류로 critical 승격. 로컬 공통 전체 검사는 중복 전체 검사 금지 전달 흐름에 따라 종료하여 미완료로 기록; 공식 main CI가 최종 게이트.
+- 인수인계 갱신 커밋까지 push 후 최신 main CI를 최종 1회 확인한다. 진행 중이면 성공으로 보고하지 않는다.
+- 남은 작업은 CI 확인 및 문서 완료 처리뿐. 새 이미지 생성/제품 재수정/운영 배포는 필요하지 않다.
