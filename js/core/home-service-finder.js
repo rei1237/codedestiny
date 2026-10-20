@@ -234,6 +234,7 @@
       href: item.href || "",
       action: item.action || "",
       dedupeHref: item.dedupeHref || "",
+      aliases: item.aliases || [],
       collection: "",
       price: item.price || "",
       buckets: bucketsOf(item.price),
@@ -416,6 +417,15 @@
     lazyCollectionCards().forEach(function (card) {
       if (card.matches(TILE_CLASS_SELECTOR)) nodes.push(card);
     });
+    // 같은 목적지의 링크 미리보기보다 기능 액션이 있는 원본을 남긴다.
+    // 서로 다른 액션끼리는 기존 식별자 판정을 유지한다.
+    var actionPaths = Object.create(null);
+    nodes.forEach(function (tile) {
+      if (tile.closest("[data-cd-finder-results]")) return;
+      if (!tile.getAttribute("data-action") && !tile.getAttribute("data-feature-key")) return;
+      var path = normHref(tile.getAttribute("href"));
+      if (path) actionPaths[path] = 1;
+    });
     for (var i = 0; i < nodes.length; i += 1) {
       var el = nodes[i];
       if (el.closest("[data-cd-finder-results]")) continue;
@@ -436,6 +446,7 @@
       if (!href && !action && !collection) continue;
 
       var featureKey = el.getAttribute("data-feature-key") || "";
+      if (!action && !featureKey && actionPaths[normHref(href)]) continue;
       if (isDuplicate(knownKeys, action, featureKey, href, collection)) continue;
       registerKeys(knownKeys, action, featureKey, href, collection);
 
@@ -475,6 +486,11 @@
     var known = Object.create(null);
     CURATED.forEach(function (item) {
       registerKeys(known, item.action, item.featureKey, item.dedupeHref || item.href, item.collection);
+      // 레지스트리가 선언한 같은 기능의 진입만 합친다. 같은 주소의 별도 명반 액션은 유지한다.
+      item.aliases.forEach(function (alias) {
+        if (alias.charAt(0) !== "/") registerKeys(known, alias, "", "", "");
+        else if (alias.indexOf("?") === -1) registerKeys(known, "", "", alias, "");
+      });
     });
     catalogue = CURATED.concat(scrapeTiles(known));
     return catalogue;

@@ -4515,7 +4515,7 @@
       "output": "public/images/service-introductions/yeon-star-hug.webp",
       "prompt": "Use case: stylized-concept. Create one finished landscape 3:2 premium Korean painterly manhwa illustration for a fortune service introduction.\nFeature: 연이의 마음 별자리 (yeon-star-hug). Actual feature evidence: 오늘의 별빛 흐름과 네 감정을 겹쳐, 연이가 가장 다정한 문장으로 마음을 포근하게 안아주는 힐링 별자리예요. / 점성술 신호 + 현재 감정을 엮은 맞춤 위로 메시지 / 연이 스프라이트 애니메이션으로 살아있는 몰입감 / 타임라인 결과와 스토리/정사각 카드 즉시 저장 / 무료로 가볍게 시작하는 하루 감정 리셋 루틴\nScene: 꽃돼지 연이가 작은 별빛을 품에 안고 부드러운 별자리 곁에서 사용자의 감정을 위로한다. 다정한 치유 장면, 점술 도구 나열 금지.\nThe attached references are character identity references, in order: yeoniPig. Preserve each face, hair, age, clothing and illustration style precisely. Show these counselors actively doing the feature, not a generic portrait. No extra counselor.\nUse a distinct composition specific to this feature. Large readable central subject and tools, safe center 75 percent for mobile cropping. Sophisticated detailed illustration, tactile materials, natural light, cohesive with a Korean illustrated fortune anthology. Not photorealistic. No UI, writing, letters, numbers, logos, watermark, collage or multiple panels. No promises, horror, diagnosis or guaranteed outcome. Any symbolic chart is decorative, not an actual user result.",
       "status": "reviewed",
-      "alt": "꽃돼지 연이의 연이의 마음 별자리 상담 장면",
+      "alt": "꽃돼지 연이가 마음 별자리를 살펴보는 상담 장면",
       "source": "exec-07e80057-ce30-48f5-a24a-8164e764c89c.png",
       "composition": {
         "aspectRatio": "3:2",

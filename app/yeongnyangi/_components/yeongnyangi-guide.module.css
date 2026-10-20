@@ -105,9 +105,12 @@
 }
 .tableWrap table {
   width: 100%;
-  min-width: 480px;
+  table-layout: fixed;
   border-collapse: collapse;
 }
+.tableWrap th:first-child { width: 32%; }
+.tableWrap th:nth-child(2) { width: 21%; }
+.tableWrap td { overflow-wrap: anywhere; }
 .tableWrap caption {
   text-align: left;
   color: var(--yn-muted);
@@ -116,11 +119,20 @@
 }
 .tableWrap th,
 .tableWrap td {
-  padding: 10px 12px;
+  padding: 18px clamp(8px, 2vw, 14px);
   border-bottom: 1px solid var(--yn-line);
   text-align: left;
   vertical-align: top;
 }
+.tableWrap tbody th {
+  color: var(--yn-gold);
+  font-family: "Yeongnyangi Myeongjo", serif;
+  font-size: clamp(1rem, 3vw, 1.25rem);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.tableWrap tbody tr:nth-child(odd) { background: var(--yn-night); }
 .tierName {
   display: block;
   margin-top: 2px;

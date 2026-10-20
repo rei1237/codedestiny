@@ -733,7 +733,7 @@
 @media (max-width: 480px) { .kindChoices button { flex: 1 1 140px; } }
 
 .selectionHeading { margin:28px 0 8px; font-size:1.3rem; }
-.fishPrice { font-size:1.2rem; font-variant-numeric:tabular-nums; }
+.fishes .fishPrice { display:flex; flex-wrap:wrap; align-items:baseline; gap:6px 10px; width:100%; margin-block:4px; padding-block:10px; border-block:1px solid var(--yn-line); color:var(--yn-gold); font:600 1.3rem/1.5 var(--font-serif,serif); font-variant-numeric:tabular-nums; }
 .fishScope { display:flex; flex-wrap:wrap; justify-content:space-between; gap:8px; }
 .fishScope b { font-weight:700; color:var(--yn-ivory); }
 .orderTools { margin:12px 0; padding:0; color:var(--yn-muted); }

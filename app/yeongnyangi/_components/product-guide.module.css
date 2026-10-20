@@ -9,6 +9,7 @@
 .tiers {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;scroll-margin-top:24px}
 .tiers button {display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;min-width:0;min-height:64px;border:1px solid var(--yn-line);border-radius:12px;background:var(--yn-surface);color:var(--yn-ivory);padding:14px;font:inherit;cursor:pointer;text-align:left}
 .tiers button span {display:block;font-size:14px}
+.tiers button > span:first-of-type {margin-top:8px;padding-top:10px;border-top:1px solid var(--yn-line);width:100%;color:var(--yn-gold);font:600 1.3rem/1.5 var(--serif);font-variant-numeric:tabular-nums}
 .tiers button[aria-pressed=true] {background:var(--yn-raised);color:var(--yn-ivory);border-color:var(--yn-gold)}
 .tiers .tierDepth {font-size:14px;line-height:1.6;margin-top:8px}
 .chapters {padding-left:24px;margin:16px 0}

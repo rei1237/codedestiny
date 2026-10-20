@@ -687,7 +687,8 @@
       "aliases": [
         "psychotest",
         "/psychotest/",
-        "/psychotest"
+        "/psychotest",
+        "openPsychotestHub"
       ],
       "catalogImage": "/feature-details/assets/psychotest-catalog-320.webp",
       "category": "상징·마음",
@@ -7648,7 +7649,8 @@
       "aliases": [
         "psychotest",
         "/psychotest/",
-        "/psychotest"
+        "/psychotest",
+        "openPsychotestHub"
       ],
       "category": "상징·마음",
       "headline": "무심코 고른 답에 내가 숨어 있을까요?",

@@ -607,6 +607,7 @@ window.__cdServiceRegistry = [
     question: "나는 지금 어떤 상태일까?",
     desc: "나를 알아가는 가벼운 심리 탐구",
     href: "/psychotest/",
+    aliases: ["openPsychotestHub"],
 
     price: "무료",
     purposes: ["self", "etc"],

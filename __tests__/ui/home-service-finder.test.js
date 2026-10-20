@@ -518,6 +518,30 @@ test("목적지를 공유하되 다른 화면을 여는 타일은 남는다", as
   );
 });
 
+for (const lazy of [false, true]) {
+  test(`같은 기능의 링크와 액션 별칭은 한 장만 남는다 (${lazy ? "접힌 컬렉션" : "DOM"})`, async () => {
+    const tiles = [
+      '<a class="moon-preview-card" href="/yeon-star-hug/"><strong>연이의 마음 별자리</strong></a>',
+      '<a class="tarot-tile" href="/yeon-star-hug/" data-action="openYeonStarHug"><span class="tarot-tile__title">🌸 연이의 마음 별자리</span></a>',
+      '<a class="tarot-tile" href="/psychotest/" data-action="openPsychotestHub"><span class="tarot-tile__title">🧠 심리테스트 허브</span></a>',
+      '<a class="tarot-tile" href="/ziwei/chart/"><span class="tarot-tile__title">별칭 명반 안내</span></a>',
+    ];
+    const { doc, window } = await boot(lazy ? ['<div class="feat-collection" id="aliasCollection"></div>'] : tiles);
+    if (lazy) {
+      const collection = doc.getElementById("aliasCollection");
+      collection.__cdLazyCards = tiles.map(html => {
+        const template = doc.createElement("template");
+        template.innerHTML = html;
+        return template.content.firstElementChild;
+      });
+    }
+    assert.deepEqual(await search(window, doc, "마음 별자리"), ["🌸 연이의 마음 별자리"]);
+    assert.deepEqual(await search(window, doc, "심리테스트"), ["심리테스트"]);
+    assert.deepEqual(await search(window, doc, "별칭 명반 안내"), []);
+    window.close();
+  });
+}
+
 // 회귀 배경(2026-09-12 실측): 모바일은 닫힌 컬렉션 카드를 DOM 에서 떼어
 // collection.__cdLazyCards 에만 둔다(index.html prepareCollectionLazyMounts). scrapeTiles 가
 // 연결된 DOM 만 훑어서 이 카드들이 검색에서 통째로 빠졌다("사주" 390:7건/1280:10건).
