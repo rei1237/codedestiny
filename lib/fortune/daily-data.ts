@@ -11,6 +11,8 @@
  */
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import { getCmsEntriesSnapshot } from "../cms/build-text";
+import { applyDailyProse } from "./daily-cms.mjs";
 // 🔴 주 시작일·달 1일 규칙은 scripts/fortune-build-data.mjs 가 패키지를 만들 때 쓴 것과
 //    **같은 함수**여야 한다. 폴백 경로에서 규칙이 갈리면 없는 파일을 찾아 빌드가 죽는다.
 import { kstYmdPreviousDay, kstWeekStartYmd, kstMonthStartYmd } from "@/scripts/lib/fortune-date.mjs";
@@ -198,6 +200,7 @@ function loadDailyPackageForResolvedDate(date: string): DailyPackage {
     throw new Error(`[fortune] 일일 패키지가 손상됐거나 날짜가 어긋납니다: ${file}`);
   }
 
+  parsed = applyDailyProse(parsed, getCmsEntriesSnapshot()["daily-fortune"]) as DailyPackage;
   cache.set(date, parsed);
   return parsed;
 }

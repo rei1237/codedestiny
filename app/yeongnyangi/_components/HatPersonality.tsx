@@ -15,7 +15,7 @@ export default function HatPersonality({result}:{result:HatResult}){
   <section><h4>가까운 사람 앞에서는</h4><p>{story.relationship}</p></section>
   <section><h4>일하고, 고르고, 돈을 쓸 때는</h4><p>{story.work}</p></section>
   <details className={styles.secret}><summary>모자의 비밀 쪽지 펼치기</summary><p>{story.secret}</p></details>
-  <section className={styles.firstNight}><h4>기숙사에서의 첫 저녁, 너는?</h4><p>이야기 속 작은 선택을 해봐. 배정 결과는 그대로야.</p><div className={styles.choices}>{story.choices.map((option,index)=><button type="button" key={option.label} aria-pressed={choice===index} onClick={()=>setChoice(index)}>{option.label}</button>)}</div><p className={styles.reply} role="status" aria-live="polite">{choice!==null?`모자: “${story.choices[choice].reply}”`:'마음이 가는 쪽을 골라봐. 모자가 할 말이 더 있대.'}</p></section>
+  <section className={styles.firstNight}><h4>기숙사에서의 첫 저녁, 너는?</h4><p>이야기 속 작은 선택을 해봐. 배정 결과는 그대로야.</p><div className={styles.choices}>{story.choices.map((option,index)=><button type="button" key={option.label} aria-pressed={choice===index} onClick={()=>setChoice(index)}>{option.label}</button>)}</div><p className={styles.reply} role="status" aria-live="polite">{choice!==null?<>모자: “<span>{story.choices[choice].reply}</span>”</>:'마음이 가는 쪽을 골라봐. 모자가 할 말이 더 있대.'}</p></section>
   <p className={styles.keepsake}><strong>모자가 이야기 속에서 건네는 입학 선물</strong>{story.keepsake}</p>
  </div>;
 }

@@ -1,8 +1,9 @@
 import type {HatHouseId} from './hat-houses';
+import {cmsStaticCopy} from '../cms/build-text';
 
 type HouseStory={nickname:string;arrival:string;temperament:string;relationship:string;work:string;secret:string;keepsake:string;choices:readonly {label:string;reply:string}[]};
 /** Fictional portraits of the assigned traits. Choices never change the server assignment. */
-export const hatPersonality:Record<HatHouseId,HouseStory>={
+export const hatPersonalityDefaults:Record<HatHouseId,HouseStory>={
  'moon-library':{
   nickname:'머릿속에 작은 도서관을 품은 사람',
   arrival:'문을 열자 빈 의자가 먼저 뒤로 물러나고, 책 한 권이 네 앞에 펼쳐지는구나. 제목은 「그런데 왜?」. 걱정 마라. 이곳에서는 질문이 많다고 책을 덮어 버리는 법이 없다.',
@@ -64,3 +65,5 @@ export const hatPersonality:Record<HatHouseId,HouseStory>={
   choices:[{label:'새싹 옆에 작은 이름표를 꽂는다',reply:'이름을 알아 주는 마음이 다정하구나. 이름표를 하나 더 만들어 네 자리에도 놓아라. 온실에서 너만 빠질 수는 없지.'},{label:'내 찻잔부터 따뜻하게 채운다',reply:'그 순서가 마음에 드는군. 네 손이 따뜻해진 뒤에 누군가의 잔을 건네도 늦지 않다. 오늘 첫 잔은 네 것이다.'}],
  },
 };
+
+export const hatPersonality = Object.fromEntries(Object.entries(hatPersonalityDefaults).map(([key, story]) => [key, cmsStaticCopy("hat-reading", key, story)])) as Record<HatHouseId,HouseStory>;

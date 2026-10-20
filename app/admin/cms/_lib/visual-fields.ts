@@ -25,6 +25,9 @@ export function replaceVisualField(fields: Fields, path: string[], value: string
 }
 
 export function previewPath(ns: string, key: string): string {
+  if (ns === "fortune-sign") return `/fortune/today/${encodeURIComponent(key)}/`;
+  if (ns === "daily-fortune") return "/fortune/today/aries/";
+  if (ns === "hat-reading") return "/yeongnyangi/#sorting-hat";
   if (ns === "feature-detail") return `/features/${encodeURIComponent(key)}/`;
   if (ns === "light-novel") return `/stories/${encodeURIComponent(key)}/`;
   if (ns === "page-copy" && key === "about") return "/about/";

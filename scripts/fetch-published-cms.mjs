@@ -1,8 +1,9 @@
 // Release-only refresh, explicitly requested from the CMS. No production calls in
 // local development or ordinary checks. Failure stops release instead of erasing copy.
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, writeFileSync, readdirSync, readFileSync, existsSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { listBuildNamespaceIds } from "../lib/cms/registry.mjs";
+import { applyDailyProse } from "../lib/fortune/daily-cms.mjs";
 
 export function splitPublishedCms(payload) {
   if (payload?.ok !== true || payload.version !== 1 || !payload.entries || typeof payload.entries !== "object" || Array.isArray(payload.entries)) {
@@ -33,6 +34,17 @@ async function main() {
     const target = resolve(file);
     mkdirSync(dirname(target), { recursive: true });
     writeFileSync(target, JSON.stringify(value, null, 2) + "\n");
+  }
+  // prebuild generated these packages before the release snapshot was fetched.
+  // Keep server source pristine: daily-data applies the same snapshot at render.
+  for (const directory of ["public/fortune/data"]) {
+    if (!existsSync(directory)) continue;
+    for (const file of readdirSync(directory).filter((name) => /^daily-\d{4}-\d{2}-\d{2}\.json$/.test(name))) {
+      const path = resolve(directory, file);
+      const original = JSON.parse(readFileSync(resolve("fortune/data", file), "utf8"));
+      const patched = applyDailyProse(original, data.entries["daily-fortune"]);
+      if (patched !== original) writeFileSync(path, JSON.stringify(patched, null, 2), "utf8");
+    }
   }
   console.log(`[cms-release] loaded ${Object.keys(data.entries).length} public namespaces, ${Object.keys(data.episodes).length} novel episodes`);
 }

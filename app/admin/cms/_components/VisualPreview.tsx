@@ -31,6 +31,8 @@ export default function VisualPreview({ ns, entryKey, base, value, onChange }: {
   const [input, setInput] = useState("");
   const [problem, setProblem] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [allCopy, setAllCopy] = useState(ns === "daily-fortune" || ns === "hat-reading");
+  const [query, setQuery] = useState("");
   const fields = useMemo(() => visualFields(value), [value]);
   const active = choices.find((field) => fieldId(field) === selected);
   const baseFields = useMemo(() => visualFields(base), [base]);
@@ -154,9 +156,9 @@ export default function VisualPreview({ ns, entryKey, base, value, onChange }: {
   }, [selecting, ns]);
 
   useEffect(() => {
-    attach();
+    if (!allCopy) attach();
     return () => cleanup.current();
-  }, [attach]);
+  }, [attach, allCopy]);
 
   const apply = () => {
     if (!active) return;
@@ -186,6 +188,7 @@ export default function VisualPreview({ ns, entryKey, base, value, onChange }: {
   return <section className={`${ADMIN_CARD} space-y-3 rounded-lg p-3`} aria-label="화면에서 편집">
     <div className="flex flex-wrap items-center gap-2">
       <h3 className="mr-auto font-semibold">화면에서 편집</h3>
+      <button type="button" className={adminButton(allCopy ? "primary" : "neutral")} aria-pressed={allCopy} onClick={() => setAllCopy(!allCopy)}>{allCopy ? "실제 페이지 보기" : "전체 문장 보기"}</button>
       <button type="button" className={adminButton()} onClick={() => setMobile(!mobile)}>{mobile ? "PC 화면 보기" : "모바일 화면 보기"}</button>
       <button type="button" className={adminButton(selecting ? "primary" : "neutral")} aria-pressed={selecting} onClick={() => setSelecting(!selecting)}>{selecting ? "문구 선택 중" : "화면 이동 중"}</button>
     </div>
@@ -198,13 +201,26 @@ export default function VisualPreview({ ns, entryKey, base, value, onChange }: {
       <input aria-label="미리보기 페이지 주소" className={`${ADMIN_INPUT} min-w-0 flex-1`} value={address} onChange={(event) => setAddress(event.target.value)} />
       <button type="submit" className={adminButton()}>페이지 열기</button>
     </form>
-    <p className="text-sm text-slate-300" role="status">{message}</p>
-    <p className="text-xs text-slate-400">현재 화면에서 연결된 위치 {count}개 · 편집 가능한 항목 {fields.length}개. 같은 원본을 쓰는 다른 화면에도 변경이 적용됩니다.</p>
-    <div className="overflow-x-auto rounded-lg border border-slate-700 bg-white">
+    <p className="text-sm text-slate-300" role="status">{allCopy && !active ? "수정할 문장을 선택하세요." : message}</p>
+    <p className="text-xs text-slate-400">{allCopy ? "" : `현재 화면에서 연결된 위치 ${count}개 · `}편집 가능한 항목 {fields.length}개. 같은 원본을 쓰는 다른 화면에도 변경이 적용됩니다.</p>
+    {allCopy ? <div className="space-y-3">
+      <p className="text-sm text-slate-300">현재 결과에 나오지 않은 문장도 모두 표시합니다. 바꿀 문장을 누르세요. 날짜나 결과에 따라 같은 원본을 쓰는 화면에 함께 반영됩니다.</p>
+      <input className={ADMIN_INPUT} aria-label="결과 문장 검색" placeholder="수정할 문장 검색" value={query} onChange={(event) => setQuery(event.target.value)} />
+      <div className="max-h-[600px] overflow-y-auto divide-y divide-slate-700" aria-label="전체 결과 문장">
+        {fields.filter((field) => !field.image && field.value.includes(query)).map((field) => <button
+          type="button" key={fieldId(field)} aria-pressed={selected === fieldId(field)}
+          className="block w-full whitespace-pre-wrap px-3 py-4 text-left text-base leading-relaxed hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-400"
+          onClick={() => { setChoices([field]); setSelected(fieldId(field)); setInput(field.value); setProblem(""); setMessage("선택한 문장을 아래에서 수정하세요."); }}>
+          {field.value}
+        </button>)}
+        {!fields.some((field) => !field.image && field.value.includes(query)) ? <p className="p-3 text-sm text-slate-400">검색한 문장이 없습니다.</p> : null}
+      </div>
+    </div> : null}
+    {!allCopy ? <div className="overflow-x-auto rounded-lg border border-slate-700 bg-white">
       <iframe key={revision} ref={frame} src={path} onLoad={attach} title="콘텐츠 실제 화면 미리보기"
         sandbox="allow-scripts allow-same-origin" className="mx-auto block h-[600px] border-0"
         style={{ width: mobile ? 390 : 1024, maxWidth: mobile ? "100%" : undefined }} />
-    </div>
+    </div> : null}
     {choices.length > 1 ? <label className="block text-sm">수정할 항목
       <select className={ADMIN_INPUT} value={selected} onChange={(event) => {
         setSelected(event.target.value);

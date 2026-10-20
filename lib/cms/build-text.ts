@@ -11,6 +11,7 @@
 // 값의 출처는 scripts/fetch-content-overrides.mjs 가 빌드 직전에 쓴 cms.generated.json 이다.
 // 런타임 조회가 아니므로 이 함수는 동기이고 비용이 없다.
 import generated from "../../app/_content/cms.generated.json";
+import { applyStaticCopy } from "./static-copy.mjs";
 
 type CmsFields = Record<string, unknown>;
 type CmsNamespaceEntries = Record<string, CmsFields>;
@@ -145,4 +146,9 @@ export function hasCmsEntry(ns: string, key: string): boolean {
 /** 바닐라 셸(js/core/cms-static.js)이 받아 갈 build 채널 전체 스냅샷. */
 export function getCmsEntriesSnapshot(): Record<string, CmsNamespaceEntries> {
   return entries;
+}
+
+/** Fixed prose trees only; unknown paths and non-text patches are ignored. */
+export function cmsStaticCopy<T>(ns: string, key: string, fallback: T): T {
+  return applyStaticCopy(fallback, entries?.[ns]?.[key]?.record) as T;
 }

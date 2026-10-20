@@ -49,6 +49,30 @@ function asRecordEntry(key: string, label: string, hint: string, table: Record<s
 }
 
 const loaders: Record<string, Loader> = {
+  "fortune-sign": async () => {
+    const [{ SIGN_PROFILE_DEFAULTS, signProfileProse }, { staticCopyRecord }] = await Promise.all([
+      import("@/lib/fortune/sign-profiles"), import("@/lib/cms/static-copy.mjs"),
+    ]);
+    return SIGN_PROFILE_DEFAULTS.map((profile) => ({key: profile.id, label: profile.nameKo,
+      hint: "성향·강점·주의점·생활 조언·질문과 답변", fields: {record: staticCopyRecord(signProfileProse(profile))},
+    }));
+  },
+  "daily-fortune": async () => {
+    const { dailyProseDefaults } = await import("@/lib/fortune/daily-cms.mjs");
+    const labels: Record<string, string> = {love: "연애", money: "재물", health: "건강", work: "일", advice: "조언", overall: "별자리 총운", planet: "별자리 흐름"};
+    return Object.entries(dailyProseDefaults()).map(([key, record]) => ({
+      key, label: labels[key] || key, hint: "날짜별로 선택되는 공통 문장 · 전체 문장 보기에서 모두 편집", fields: { record },
+    }));
+  },
+  "hat-reading": async () => {
+    const [{ hatPersonalityDefaults }, { hatHouses }, { staticCopyRecord }] = await Promise.all([
+      import("@/lib/yeongnyangi/hat-personality"), import("@/lib/yeongnyangi/hat-houses"), import("@/lib/cms/static-copy.mjs"),
+    ]);
+    return Object.entries(hatPersonalityDefaults).map(([key, story]) => ({
+      key, label: hatHouses.find((house) => house.id === key)?.name || key,
+      hint: "성향·관계·일·선택 대사", fields: { record: staticCopyRecord(story) },
+    }));
+  },
   "feature-detail": async () => {
     const [{ default: catalog }, { detailCopyRecord }] = await Promise.all([
       import("@/lib/marketing/feature-visual-details.generated.json"),
