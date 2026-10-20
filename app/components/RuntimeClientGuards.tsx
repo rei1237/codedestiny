@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
+import AnalyticsConsent from "./AnalyticsConsent";
 
 const DeferredAdsense = dynamic(() => import("./DeferredAdsense"), {
   ssr: false,
@@ -82,6 +83,7 @@ export default function RuntimeClientGuards() {
 
   return (
     <>
+      <AnalyticsConsent />
       <LocaleRuntimeBridge />
       <OfflineOverlay />
       {mountAdsense ? <DeferredAdsense /> : null}

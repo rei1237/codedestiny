@@ -1,0 +1,37 @@
+.banner {
+  position: fixed;
+  z-index: 100260;
+  inset-inline: 16px;
+  bottom: calc(100px + env(safe-area-inset-bottom, 0px));
+  max-width: 640px;
+  max-height: 55dvh;
+  overflow-y: auto;
+  margin-inline: auto;
+  padding: 20px;
+  border: 1px solid var(--cd-card-border-strong, #d9afc1);
+  border-radius: var(--cd-r-card, 20px);
+  background: var(--cd-bg, #fff7fb);
+  color: var(--cd-text, #3c1830);
+  box-shadow: var(--cd-elev-2, 0 14px 30px rgba(60, 24, 48, .18));
+  font-family: var(--font-body, sans-serif);
+}
+.banner h2 { margin: 0 0 8px; font-size: 18px; line-height: 1.5; color: inherit; }
+.banner p { margin: 0 0 16px; font-size: 14px; line-height: 1.7; color: inherit; word-break: keep-all; }
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.actions button, .reopen {
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid currentColor;
+  border-radius: var(--cd-r-control, 12px);
+  background: var(--cd-bg, #fff7fb);
+  color: var(--cd-text, #3c1830);
+  font: inherit;
+  cursor: pointer;
+}
+.actions a { padding: 10px 4px; color: inherit; text-decoration: underline; text-underline-offset: 3px; font-size: 14px; }
+.actions button:hover, .reopen:hover { text-decoration: underline; text-underline-offset: 3px; }
+.actions :focus-visible, .reopen:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+.reopen { position: fixed; z-index: 80; left: 12px; bottom: calc(100px + env(safe-area-inset-bottom, 0px)); font-size: 12px; }
+@media (min-width: 769px) {
+  .banner, .reopen { bottom: 20px; }
+}
