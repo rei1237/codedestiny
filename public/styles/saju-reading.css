@@ -1,5 +1,5 @@
 /* Owned by the static saju surface, never by the shared mobile wrapper. */
-#resultPage #letterBox,#resultPage .saju-reading,#sajuReadingHeader,.saju-input-modes,.saju-static-offer,#modalBody .saju-reading,#tsModal .modal-box,#tsGrid,#iljuCard,#resultPage .saju-nature-report {
+#resultPage #letterBox,#resultPage .saju-reading,#sajuReadingHeader,.saju-input-modes,.saju-static-offer,#modalBody .saju-reading,#tsModal .modal-box,#tsGrid,#iljuCard,#resultPage .saju-nature-report,#resultPage .cd-section-gate {
   --reading-ink:#30383b;--reading-muted:#596168;--reading-accent:#a52c60;--reading-paper:#f8faf9;--reading-line:#dce3e1;
   --reading-card:#fff;--reading-gold:#c9a25e;--reading-on-accent:#fff;
   --reading-el-wood:#17766b;--reading-el-fire:#c24732;--reading-el-earth:#a87925;--reading-el-metal:#8196a5;--reading-el-water:#285e94;
@@ -7,7 +7,7 @@
 #resultPage #letterBox,#resultPage .saju-reading,#sajuReadingHeader,.saju-input-modes,.saju-static-offer,#modalBody .saju-reading {
   color:var(--reading-ink);background:var(--reading-paper);font-family:var(--font-body, "CodeDestinyBody", sans-serif);
 }
-body.neo-mode #resultPage #letterBox,body.neo-mode #resultPage .saju-reading,body.neo-mode #sajuReadingHeader,body.neo-mode .saju-input-modes,body.neo-mode .saju-static-offer,body.neo-mode #modalBody .saju-reading,body.neo-mode #tsModal .modal-box,body.neo-mode #tsGrid,body.neo-mode #iljuCard,body.neo-mode #resultPage .saju-nature-report {
+body.neo-mode #resultPage #letterBox,body.neo-mode #resultPage .saju-reading,body.neo-mode #sajuReadingHeader,body.neo-mode .saju-input-modes,body.neo-mode .saju-static-offer,body.neo-mode #modalBody .saju-reading,body.neo-mode #tsModal .modal-box,body.neo-mode #tsGrid,body.neo-mode #iljuCard,body.neo-mode #resultPage .saju-nature-report,body.neo-mode #resultPage .cd-section-gate {
   --reading-ink:#f4eafa;--reading-muted:#d6c7e5;--reading-accent:#e8c985;--reading-paper:#21182f;--reading-line:#685277;
   --reading-card:#2a2040;--reading-gold:#e8c985;--reading-on-accent:#21182f;
   --reading-el-wood:#8bd4ba;--reading-el-fire:#f29b85;--reading-el-earth:#dfbd73;--reading-el-metal:#dce4ed;--reading-el-water:#9ac7ef;
@@ -373,3 +373,18 @@ body.neo-mode #modalBody .saju-reading > h3 {padding-right:44px;}
 .cd-section-gate[data-honey-gate]>.cd-section-gate__overlay{position:relative;inset:auto;width:100%;padding:24px 20px;gap:12px;background:transparent;backdrop-filter:none;-webkit-backdrop-filter:none;border:0;text-align:left;align-items:stretch}
 .cd-section-gate[data-honey-gate] .cd-section-gate__icon{display:none}.cd-section-gate[data-honey-gate] .cd-section-gate__title{font-size:1.1rem!important;font-weight:700;text-shadow:none;letter-spacing:0}.cd-section-gate[data-honey-gate] .cd-section-gate__desc{font-size:.9rem!important;line-height:1.7;max-width:none!important;display:block;overflow:visible;-webkit-line-clamp:unset!important;text-shadow:none}.cd-section-gate[data-honey-gate] .cd-section-gate__badge{display:block;padding:0;border:0;background:none;box-shadow:none;font-size:.74rem;letter-spacing:0;text-transform:none;color:inherit;opacity:.8}.cd-section-gate[data-honey-gate] .cd-section-gate__badge:before{display:none}
 .cd-honey-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;width:100%;margin-top:8px}.cd-honey-options>button{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;min-width:0;min-height:64px;width:100%;max-width:none;margin:0;padding:12px 8px!important;border-radius:8px;font-size:.82rem!important;line-height:1.4;cursor:pointer;box-shadow:none!important;transform:none!important;background:#e9d8b1;color:#282033;border:1px solid #e9d8b1}.cd-honey-options>button.cd-honey-option{background:transparent;color:inherit;border-color:currentColor}.cd-honey-options>button strong{font-size:1rem;font-weight:700}.cd-honey-options>button:focus-visible{outline:3px solid #c5b5ff;outline-offset:3px}.cd-honey-options>button:disabled{cursor:wait;opacity:.65}.cd-honey-options>button[hidden]{display:none}.cd-honey-options:has(>button[hidden]){grid-template-columns:1fr}
+
+/* 사주 잠금 안내는 본문과 같은 읽기 표면을 사용한다. 권한·inert 판정은 기존 컨트롤러가 소유한다. */
+#resultPage .cd-section-gate:not(.cd-section-gate--unlocked){min-height:0;max-height:none;height:auto;margin-top:20px;border:1px solid var(--reading-line);border-radius:16px;background:var(--reading-paper);box-shadow:none;overflow:hidden}
+#resultPage .cd-section-gate:not(.cd-section-gate--unlocked)>.cd-section-gate__body{display:none}
+#resultPage .cd-section-gate:not(.cd-section-gate--unlocked)>.cd-section-gate__overlay{position:relative;inset:auto;align-items:flex-start;gap:12px;padding:24px;text-align:left;border:0;background:transparent;backdrop-filter:none;-webkit-backdrop-filter:none}
+#resultPage .cd-section-gate__icon{display:none}
+#resultPage .cd-section-gate .cd-section-gate__title{margin:0;max-width:none;color:var(--reading-ink)!important;font-family:var(--font-serif,serif);font-size:1.1rem;font-weight:700;line-height:1.55;letter-spacing:0;text-shadow:none}
+#resultPage .cd-section-gate :is(.cd-section-gate__desc,.cd-section-gate__birth-scope-note){display:block;margin:0;max-width:60ch;color:var(--reading-muted)!important;font-size:.95rem;line-height:1.75;opacity:1;text-shadow:none;overflow:visible;-webkit-line-clamp:unset;word-break:keep-all;overflow-wrap:anywhere}
+#resultPage .cd-section-gate .cd-section-gate__birth-scope-note{padding-top:12px;border-top:1px solid var(--reading-line)}
+#resultPage .cd-section-gate .cd-section-gate__btn{width:auto;max-width:100%;min-height:48px;margin-top:6px;padding:12px 22px;border:1px solid var(--reading-accent);border-radius:10px;background:var(--reading-accent);color:var(--reading-on-accent);font-size:1rem;font-weight:600;line-height:1.5;letter-spacing:0;box-shadow:none;transform:none;filter:none}
+#resultPage .cd-section-gate .cd-section-gate__btn:hover:not(:disabled){text-decoration:underline;text-underline-offset:4px}
+#resultPage .cd-section-gate .cd-section-gate__btn:focus-visible{outline:3px solid var(--reading-accent);outline-offset:4px}
+#resultPage .cd-section-gate .cd-section-gate__btn:disabled{opacity:.7;cursor:wait}
+#resultPage .cd-section-gate--error{border-color:var(--reading-accent)}
+@media(max-width:600px){#resultPage .cd-section-gate:not(.cd-section-gate--unlocked)>.cd-section-gate__overlay{padding:22px 18px}#resultPage .cd-section-gate .cd-section-gate__btn{width:100%}}

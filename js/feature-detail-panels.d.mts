@@ -3,7 +3,7 @@ export type VisualDetail = {
   freeEntry?: boolean;
   consultationGuide?: import('./consultation-sample-guide.mjs').ConsultationSampleGuide;
   crafted?: CraftedDetail[];
-  slug: string; title: string; href: string; featureKey: string; featureKeyTo?: string; accessType: string;
+  slug: string; title: string; href: string; featureKey: string; featureKeyTo?: string; priceFrom?: boolean; accessType: string;
   image: string; headline: string; description: string; ctaLabel: string; verification: string; category?: string;
   aliases: string[]; evidence: string[];
   journey?: { questions: string[]; trustNotes: string[]; faq: { q: string; a: string }[] };

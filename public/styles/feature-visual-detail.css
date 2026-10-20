@@ -233,7 +233,17 @@ html.neo-mode,body.neo-mode,html[data-cd-theme="neo"]{--fd-paper:#0d1325;--fd-ra
 #tilePvwOverlay.pvw-visual .tile-pvw-content{padding:0!important}
 #tilePvwOverlay.pvw-visual #tilePvwTitle{margin:0;padding:20px 64px 18px 22px;color:var(--fd-ink);font:700 20px/1.4 var(--font-serif,Georgia,serif);letter-spacing:-.02em}
 #tilePvwOverlay.pvw-visual .tile-pvw-close{position:absolute;z-index:3;margin:0;top:8px;right:10px;left:auto;min-width:44px;min-height:44px;border-color:var(--fd-line);background:var(--fd-paper);color:var(--fd-ink);-webkit-backdrop-filter:none;backdrop-filter:none}
-#tilePvwOverlay.pvw-visual #tilePvwPaywall{margin:24px}
+#tilePvwOverlay.pvw-visual #tilePvwPriceSec{margin:32px 24px 0;padding:24px 0;border:0;border-top:1px solid var(--fd-line);border-radius:0;background:none}
+#tilePvwOverlay.pvw-visual #tilePvwPaywall{display:flex;align-items:flex-start;gap:14px;margin:0;padding:0;border:0;border-radius:0;background:none;color:var(--fd-ink)}
+#tilePvwOverlay.pvw-visual .tile-pvw-paywall-icon{display:none}
+#tilePvwOverlay.pvw-visual .tile-pvw-paywall-body{min-width:0}
+#tilePvwOverlay.pvw-visual .tile-pvw-paywall-title{display:block;margin:0;color:var(--fd-ink);font:700 1.1rem/1.5 var(--font-serif,serif);word-break:keep-all;overflow-wrap:anywhere}
+#tilePvwOverlay.pvw-visual .tile-pvw-paywall-desc{display:block;margin-top:8px;color:var(--fd-text);font-size:.95rem;line-height:1.75;word-break:keep-all;overflow-wrap:anywhere}
+#tilePvwOverlay.pvw-visual .tile-pvw-assure{margin:0 24px 28px;padding:20px 0 0;border-top:1px solid var(--fd-line-soft);color:var(--fd-text)}
+#tilePvwOverlay.pvw-visual .tile-pvw-assure-title{margin:0 0 8px;color:var(--fd-ink);font-size:.95rem;font-weight:700;line-height:1.6}
+#tilePvwOverlay.pvw-visual .tile-pvw-assure .tile-pvw-paywall-note{margin:0;padding:0;border:0;color:var(--fd-quiet);font-size:.875rem;line-height:1.75;word-break:keep-all;overflow-wrap:anywhere}
+#tilePvwOverlay.pvw-visual .tile-pvw-assure-link{display:inline-flex;align-items:center;min-height:44px;margin-top:4px;color:var(--fd-gold);font-size:.875rem;font-weight:600;text-decoration:underline;text-underline-offset:4px}
+#tilePvwOverlay.pvw-visual .tile-pvw-assure-link:focus-visible{outline:2px solid var(--fd-gold);outline-offset:3px}
 /* 모바일 셸·공통 시트가 바 배경·선을 !important 로 잡아 두어 같은 수단으로만 표면색에 맞출 수 있다. */
 #tilePvwOverlay.pvw-visual .tile-pvw-cta-sticky{background:var(--fd-paper)!important;border-top:1px solid var(--fd-line)!important;--cd-detail-muted:var(--fd-quiet)}
 /* 상세가 대신하는 레거시 섹션. JS 도 인라인으로 숨긴다 — 지연 로드되는 이 시트가 첫 열림보다 늦으면 레거시가 비치기 때문. */
