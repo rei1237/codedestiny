@@ -684,7 +684,7 @@ function isPublicSitemapPath(pathname) {
   const normalized = normalizeSitemapPath(pathname);
   if (staticCanonicalAliasPaths.has(normalized.replace(/\/+$/, ""))) return false;
   if (excludedExactSitemapPaths.has(normalized)) return false;
-  if (noindexPathPrefixes.some((prefix) => normalized === `${prefix}/` || normalized.startsWith(`${prefix}/`))) return false;
+  if (noindexPathPrefixes.some((prefix) => normalized === prefix || normalized.startsWith(`${prefix}/`))) return false;
   if (privateRoutePatterns.some((pattern) => pattern.test(normalized))) return false;
   return isLiveRoute(normalized);
 }

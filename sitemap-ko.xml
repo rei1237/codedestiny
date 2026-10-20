@@ -139,12 +139,6 @@
     <priority>0.90</priority>
   </url>
   <url>
-    <loc>https://code-destiny.com/destiny-poker</loc>
-    <lastmod>2026-10-18</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.60</priority>
-  </url>
-  <url>
     <loc>https://code-destiny.com/disclaimer/</loc>
     <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/disclaimer/" />
     <xhtml:link rel="alternate" hreflang="ko-KR" href="https://code-destiny.com/disclaimer/" />
