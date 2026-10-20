@@ -281,8 +281,15 @@ const SECURITY_DB_OPERATION_OPTIONS = Object.freeze({
   admissionTimeoutMS: SECURITY_DB_ADMISSION_TIMEOUT_MS,
 });
 
-function withSecurityDbOperation(env, operation) {
-  return withMongoRetry(env, operation, SECURITY_DB_OPERATION_OPTIONS);
+// Admin entry cold connections measured 1.28–1.73s in production.
+// Only its required counter gets 3s; telemetry and all other guards retain 1s.
+const ADMIN_ENTRY_RATE_LIMIT_DB_OPTIONS = Object.freeze({
+  ...SECURITY_DB_OPERATION_OPTIONS,
+  attemptTimeoutMS: 3000,
+});
+
+function withSecurityDbOperation(env, operation, options = SECURITY_DB_OPERATION_OPTIONS) {
+  return withMongoRetry(env, operation, options);
 }
 
 function withSecurityDbTimeout(promise) {
@@ -376,7 +383,9 @@ export async function enforceRateLimit({
         },
       },
       { upsert: true, new: true, setDefaultsOnInsert: true },
-    ).lean());
+    ).lean(), endpoint === "admin:/entry/password"
+      ? ADMIN_ENTRY_RATE_LIMIT_DB_OPTIONS
+      : SECURITY_DB_OPERATION_OPTIONS);
     const count = Number(doc?.score);
     if (!doc || !Number.isSafeInteger(count) || count < 1) throw new Error("INVALID_RATE_LIMIT_COUNTER");
     if (count <= Number(limit || 60)) return { ok: true, count };
