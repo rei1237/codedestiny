@@ -39,9 +39,14 @@
   }
 
   // 형식이 깨진 오버라이드가 배포되는 사고를 막는다 — 실제 ID 는 항상 "G-" 로 시작한다.
-  if (!/^G-[A-Z0-9]+$/i.test(measurementId)) {
+  // Preview/staging/localhost must never fall back to the production property.
+  // A separately configured, distinct test property is still supported.
+  var productionOrigin = global.location.origin === "https://code-destiny.com";
+  var blockedProductionProperty = !productionOrigin && measurementId.toUpperCase() === DEFAULT_MEASUREMENT_ID;
+  if (!/^G-[A-Z0-9]+$/i.test(measurementId) || blockedProductionProperty) {
     global.cdTrack = noop;
     global.cdSyncConsent = noop;
+    global.cdTrackConfirmedPurchase = function () { return false; };
     if (global.cdAnalyticsReady) global.cdAnalyticsReady();
     return;
   }
