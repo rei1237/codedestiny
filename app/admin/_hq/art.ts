@@ -12,7 +12,7 @@ export interface HqArtItem {
 const ART = "/assets/admin-hq";
 
 export const HQ_ART = {
-  yeongnyangiSad: { src: "/assets/yeongnyangi/expressions/tear.webp", alt: "아쉬워하는 영냥이", width: 176, height: 176 },
+  yeongnyangiSad: { src: "/assets/admin-hq/yeongnyangi-sad-transparent.webp", alt: "아쉬워하는 영냥이", width: 176, height: 176 },
   /** 장식 — 글자는 히어로 그라디언트가 대비를 지킨다. */
   background: { src: `${ART}/guild-observatory-bg.webp`, alt: "", width: 1920, height: 640 },
   yeongnyangiGuide: { src: `${ART}/yeongnyangi-guide-avatar.webp`, alt: "안내하는 영냥이", width: 176, height: 176 },

@@ -47,7 +47,7 @@ import {
 } from "../ops-hq/revenue-facts.js";
 import { readTraffic } from "../ops-hq/traffic.js";
 import { ga4Readiness } from "../ops-hq/ga4-connector.js";
-import { readAchievements } from "../ops-hq/achievements.js";
+import { readAchievements, syncAchievements } from "../ops-hq/achievements.js";
 import { buildSuggestions } from "../ops-hq/suggestions.js";
 import { readSettings, setRevenueSince, updateSettings } from "../ops-hq/settings.js";
 import { CAMPAIGN_PLAN, readConnections, runOpsHqSync } from "../ops-hq/sync.js";
@@ -331,7 +331,9 @@ async function handleQuestDetail(questId, cols) {
 
 async function refreshTaskXp(cols, actor, now) {
   await syncTaskXp(cols, { now, actor, reason: "quest_transition" });
-  return recomputeXpState(cols, { now });
+  const xp = await recomputeXpState(cols, { now });
+  await syncAchievements(cols, { now });
+  return xp;
 }
 
 async function handleTransition(questId, request, cols, actor) {
