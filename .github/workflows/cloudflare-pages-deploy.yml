@@ -38,6 +38,10 @@ on:
           - preview
           - rollback
         default: preview
+      bootstrap_cms:
+        description: "화면 CMS 최초 설치 전용: 아직 운영 Worker에 build-bundle API가 없을 때만 발행본 조회를 건너뜁니다. 기존 CMS 발행본이 있으면 사용하지 마세요."
+        type: boolean
+        default: false
       pages_deployment_id:
         description: "rollback 전용: 되돌릴 Pages 배포 ID"
         type: string
@@ -268,6 +272,7 @@ jobs:
       # 🔴 이 잡에는 workflow_dispatch 만 도달한다(gate 가 push·schedule 을 스테이징으로 보낸다).
       # 그래서 모드는 사람이 고른 값 하나뿐이고, 다른 이벤트에서 값이 새어 들어올 자리가 없다.
       RELEASE_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || '' }}
+      CD_CMS_REFRESH: ${{ inputs.bootstrap_cms != true && 'true' || 'false' }}
       # 🔴 deploy-safe 는 "HEAD 가 이미 라이브면 아무것도 하지 않는다"로 자기중단한다. 청크 이름만
       # 바뀌는 무의미한 재배포가 전환 틈새 404 를 만들기 때문이고, 그 판단은 **커밋이 같으면
       # 산출물도 같다**는 전제 위에 있다. 운세는 그 전제가 깨지는 유일한 축이다 — 날짜가 빌드

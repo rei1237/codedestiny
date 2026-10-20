@@ -4890,6 +4890,11 @@ async function handleAdminReviewDelete(path, request, env) {
 
 async function handleSiteDeploy(request, env) {
   await authorizeAdminRequest(request, env);
+  const body = await readJson(request);
+  const mode = body?.mode || "preview";
+  if (!["preview", "production"].includes(mode)) {
+    throw createHttpError(400, "지원하지 않는 사이트 반영 방식입니다.", { code: "VALIDATION_ERROR" });
+  }
 
   const token = String(getEnv(env, "GITHUB_DEPLOY_TOKEN") || "").trim();
   if (!token) {
@@ -4910,7 +4915,7 @@ async function handleSiteDeploy(request, env) {
         "user-agent": "code-destiny-worker",
         "x-github-api-version": "2022-11-28",
       },
-      body: JSON.stringify({ ref: "main" }),
+      body: JSON.stringify({ ref: "main", inputs: { mode, allow_redeploy: true } }),
     });
   } catch (e) {
     throw createHttpError(502, "GitHub 배포 트리거 요청에 실패했습니다.", { code: "DEPLOY_DISPATCH_FAILED" });
@@ -4920,7 +4925,7 @@ async function handleSiteDeploy(request, env) {
     throw createHttpError(502, `GitHub 배포 트리거가 거부되었습니다. (status ${response.status})`, { code: "DEPLOY_DISPATCH_FAILED" });
   }
 
-  return json({ ok: true, repo, workflow, triggeredAt: new Date().toISOString() });
+  return json({ ok: true, repo, workflow, mode, triggeredAt: new Date().toISOString() });
 }
 
 export async function handleAdminRoutes(request, env) {
