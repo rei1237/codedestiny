@@ -154,7 +154,8 @@ function collectConsumedNamespaces() {
    scripts/fetch-content-overrides.mjs 가 별도 파일로 뽑고, 각자 전용 병합 지점이 읽는다.
      light-novel  -> scripts/apply-vn-overrides.mjs 가 VN 원본 HTML 을 패치
      famous-saju  -> lib/famous-saju/celebrity-data.ts 가 overrides.generated.json 병합 */
-const PIPELINE_CONSUMED = new Set(["light-novel", "famous-saju"]);
+// feature-detail -> scripts/lib/build-visual-details.mjs applies display-only overrides.
+const PIPELINE_CONSUMED = new Set(["light-novel", "famous-saju", "feature-detail"]);
 
 const consumedNamespaces = collectConsumedNamespaces();
 for (const entry of CMS_NAMESPACES) {

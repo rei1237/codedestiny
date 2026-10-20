@@ -49,6 +49,18 @@ function asRecordEntry(key: string, label: string, hint: string, table: Record<s
 }
 
 const loaders: Record<string, Loader> = {
+  "feature-detail": async () => {
+    const [{ default: catalog }, { detailCopyRecord }] = await Promise.all([
+      import("@/lib/marketing/feature-visual-details.generated.json"),
+      import("@/lib/cms/detail-copy.mjs"),
+    ]);
+    return Object.values(catalog.items).filter((item) => item.verification === "verified").map((item) => ({
+      key: item.slug,
+      label: item.title,
+      hint: `/features/${item.slug}/`,
+      fields: { record: detailCopyRecord(item) },
+    }));
+  },
   "prompt.system": async () => {
     const data = await adminFetch<{ defaults?: Record<string, { label?: string; service?: string; fields?: Record<string, unknown> }> }>(
       "/api/admin/cms/defaults?ns=prompt.system",

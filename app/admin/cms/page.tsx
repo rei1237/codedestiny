@@ -26,6 +26,7 @@ import FieldEditor, { type CmsFieldDef } from "./_components/FieldEditor";
 import RevisionPanel, { type CmsRevision } from "./_components/RevisionPanel";
 import BeatsEditor from "./_components/BeatsEditor";
 import RecordEditor from "./_components/RecordEditor";
+import VisualPreview from "./_components/VisualPreview";
 
 type Fields = Record<string, unknown>;
 
@@ -92,7 +93,8 @@ function equalFields(a: Fields, b: Fields): boolean {
 }
 
 export default function AdminCmsPage() {
-  const [activeNs, setActiveNs] = useState<string>(NAMESPACES[0]?.ns || "");
+  const [activeNs, setActiveNs] = useState<string>("feature-detail");
+  const [visualMode, setVisualMode] = useState(true);
   const [baseEntries, setBaseEntries] = useState<CmsBaseEntry[]>([]);
   const [baseLoading, setBaseLoading] = useState(false);
   const [overrides, setOverrides] = useState<Record<string, CmsEntryItem>>({});
@@ -106,6 +108,7 @@ export default function AdminCmsPage() {
   const [error, setError] = useState("");
   const [stale, setStale] = useState(false);
   const [deploying, setDeploying] = useState(false);
+  const [deploymentUrl, setDeploymentUrl] = useState("");
 
   const namespace = useMemo(() => (getCmsNamespace(activeNs) as unknown as CmsNamespaceDef | null), [activeNs]);
   const channel = namespace ? CMS_CHANNELS[namespace.channel] : null;
@@ -269,7 +272,7 @@ export default function AdminCmsPage() {
         setMessage(status === "published"
           ? (namespace.channel === "runtime"
             ? "발행했습니다. 다음 요청부터 바로 적용됩니다."
-            : "발행했습니다. 상단 '사이트 반영'을 눌러야 실제 사이트에 나타납니다.")
+            : "발행했습니다. 배포 검증 후 상단 '운영에 반영'을 눌러야 실제 사이트에 나타납니다.")
           : `${CMS_STATUS_LABELS[status] || status} 상태로 저장했습니다.`);
       }
     } catch (caught) {
@@ -291,6 +294,9 @@ export default function AdminCmsPage() {
     } catch { /* 용량 초과 등은 무시 — 서버 자동저장이 본선이다 */ }
 
     cancelPendingAutoSave();
+    // Visual edits stay in the browser until explicit publication. Saving a draft over
+    // a published CmsEntry would otherwise remove it from the next public build.
+    if (visualMode) return cancelPendingAutoSave;
     autoSaveTimer.current = setTimeout(() => {
       // 발행본은 자동저장하지 않는다. 자동으로 임시저장으로 되돌리면 사이트에서 문구가 사라진다.
       if (savedStatus === "published") return;
@@ -300,7 +306,7 @@ export default function AdminCmsPage() {
     }, AUTOSAVE_DELAY_MS);
 
     return cancelPendingAutoSave;
-  }, [draft, dirty, selectedKey, activeNs, save, savedStatus, cancelPendingAutoSave]);
+  }, [draft, dirty, selectedKey, activeNs, save, savedStatus, cancelPendingAutoSave, visualMode]);
 
   // ── 기타 동작 ──────────────────────────────────────────────────────────────
   const revertToBase = useCallback(async () => {
@@ -361,12 +367,16 @@ export default function AdminCmsPage() {
     setMessage("새 항목입니다. 내용을 입력하고 저장하세요.");
   }, []);
 
-  const triggerSiteDeploy = useCallback(async () => {
+  const triggerSiteDeploy = useCallback(async (mode: "preview" | "production") => {
+    if (mode === "production" && !window.confirm("발행된 콘텐츠와 현재 main 코드를 운영 서비스에 배포합니다. 아직 발행하지 않은 브라우저 초안은 포함되지 않습니다. 운영에 반영할까요?")) return;
     setDeploying(true);
     try {
-      await adminFetch("/api/admin/site-deploy", { method: "POST" });
+      const result = await adminFetch<{ repo?: string; workflow?: string }>("/api/admin/site-deploy", { method: "POST", body: { mode } });
+      if (/^[\w.-]+\/[\w.-]+$/.test(result.repo || "") && /^[\w.-]+\.ya?ml$/.test(result.workflow || "")) {
+        setDeploymentUrl(`https://github.com/${result.repo}/actions/workflows/${result.workflow}`);
+      }
       const time = new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
-      setMessage(`사이트 반영을 시작했습니다 (${time}). 빌드 완료까지 수 분 걸리며, 발행된 항목만 반영됩니다.`);
+      setMessage(`${mode === "production" ? "운영 반영" : "배포 검증"}을 요청했습니다 (${time}). 발행된 항목만 포함됩니다. 요청 접수는 배포 완료가 아니며 GitHub Actions 결과를 확인해 주세요.`);
     } catch (caught) {
       const code = caught instanceof AdminApiError ? caught.code : "";
       setError(code === "DEPLOY_TOKEN_MISSING"
@@ -497,14 +507,22 @@ export default function AdminCmsPage() {
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
+                <button type="button" onClick={() => setVisualMode((previous) => !previous)} className={buttonClass(visualMode ? "primary" : "neutral")} aria-pressed={visualMode}>
+                  {visualMode ? "화면 편집 모드" : "항목 편집 모드"}
+                </button>
                 <button type="button" onClick={() => { void loadOverrides(activeNs); }} className={buttonClass()} aria-label="목록 새로고침">
                   <RefreshCw className="h-4 w-4" />
                 </button>
                 {namespace?.channel === "build" ? (
-                  <button type="button" onClick={() => { void triggerSiteDeploy(); }} disabled={deploying} className={buttonClass("success")}>
-                    <RefreshCw className={`h-4 w-4 ${deploying ? "animate-spin" : ""}`} />
-                    사이트 반영
+                  <>
+                  <button type="button" onClick={() => { void triggerSiteDeploy("preview"); }} disabled={deploying} className={buttonClass()}>
+                    배포 검증
                   </button>
+                  <button type="button" onClick={() => { void triggerSiteDeploy("production"); }} disabled={deploying} className={buttonClass("success")}>
+                    <RefreshCw className={`h-4 w-4 ${deploying ? "animate-spin" : ""}`} />
+                    운영에 반영
+                  </button>
+                  </>
                 ) : null}
               </div>
             </div>
@@ -516,6 +534,7 @@ export default function AdminCmsPage() {
               </p>
             ) : null}
             {message ? <p className="mt-2 text-xs text-sky-200">{message}</p> : null}
+            {deploymentUrl ? <a className="mt-2 inline-flex min-h-11 items-center text-sm text-sky-200 underline" href={deploymentUrl} target="_blank" rel="noopener noreferrer">배포 진행 상태 확인</a> : null}
             {error ? <p className="mt-2 text-xs text-rose-300">{error}</p> : null}
           </div>
 
@@ -524,15 +543,21 @@ export default function AdminCmsPage() {
               <p>왼쪽 목록에서 편집할 콘텐츠를 선택하세요.</p>
               <p className="mt-3 max-w-xl text-xs leading-5 text-slate-500">
                 {CMS_CHANNELS.runtime.label} 그룹(AI 프롬프트·버튼 문구)은 발행하면 다음 요청부터 바로 적용됩니다.
-                {" "}{CMS_CHANNELS.build.label} 그룹(운세 해설·라이트 노벨·페이지 문구·FAQ·유명인 사주·SEO)은 발행 후 &quot;사이트 반영&quot;으로 재빌드해야 노출됩니다.
+                {" "}{CMS_CHANNELS.build.label} 그룹(운세 해설·라이트 노벨·페이지 문구·FAQ·유명인 사주)은 발행 후 &quot;운영에 반영&quot;으로 재빌드해야 노출됩니다.
               </p>
             </div>
           ) : (
             <div className="mx-auto max-w-4xl space-y-5 p-4 pb-24">
               <p className={`${ADMIN_CARD} rounded-lg px-3 py-2 text-xs leading-5 text-slate-400`}>
-                {channel?.hint}
+                {visualMode ? `화면 편집 초안은 이 브라우저에 보관됩니다. ${namespace.channel === "build" ? "검토 후 ‘발행’하고 ‘운영에 반영’을 눌러 주세요." : "‘발행’을 누르면 다음 요청부터 바로 적용됩니다."}` : channel?.hint}
               </p>
+              {visualMode && namespace.channel === "build" ? (
+                <VisualPreview key={`${activeNs}:${selectedKey}`} ns={activeNs} entryKey={selectedKey}
+                  base={effectiveBaseFields} value={draft} onChange={setDraft} />
+              ) : null}
 
+              <details open={!visualMode}>
+                <summary className="min-h-11 cursor-pointer py-3 text-sm text-slate-300">전체 원본 항목 편집</summary>
               {isRecordEditor ? (
                 <RecordEditor
                   value={(draft.record as Record<string, Record<string, string>>) || {}}
@@ -574,13 +599,20 @@ export default function AdminCmsPage() {
                 ))
               )}
 
+              </details>
               <div className="flex flex-wrap gap-2 border-t border-slate-800 pt-4">
-                <button type="button" onClick={() => { void save("draft"); }} disabled={saving} className={buttonClass()}>
-                  임시저장
+                <button type="button" onClick={() => {
+                  if (!visualMode) { void save("draft"); return; }
+                  try {
+                    window.localStorage.setItem(`${LOCAL_DRAFT_PREFIX}${entryId(activeNs, selectedKey)}`, JSON.stringify(draft));
+                    setMessage("이 브라우저에 초안을 저장했습니다. 서비스 발행본은 바뀌지 않았습니다.");
+                  } catch { setError("브라우저 저장 공간이 부족해 초안을 저장하지 못했습니다."); }
+                }} disabled={saving} className={buttonClass()}>
+                  {visualMode ? "브라우저에 초안 저장" : "임시저장"}
                 </button>
-                <button type="button" onClick={() => { void save("review"); }} disabled={saving} className={buttonClass()}>
+                {!visualMode ? <button type="button" onClick={() => { void save("review"); }} disabled={saving} className={buttonClass()}>
                   검수 요청
-                </button>
+                </button> : null}
                 <button type="button" onClick={() => { void save("published"); }} disabled={saving} className={buttonClass("primary")}>
                   <Send className="h-4 w-4" />
                   발행

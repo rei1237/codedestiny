@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 import { loadTsModule } from './load-ts-module.mjs';
 import { extractObjectLiteral } from './feature-marketing-extract.mjs';
+import { applyDetailCopy } from '../../lib/cms/detail-copy.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const cleanPath = value => String(value || '').replace(/\/+$/, '');
@@ -433,12 +434,22 @@ export async function writeVisualDetails(html, book) {
       if (CRAFTED_VARIANT_PATTERN.test(name) && !writtenCrafted.has(path.join(folder, name))) fs.unlinkSync(path.join(folder, name));
     }
   }
-  const published = [...new Map(data.index.filter(item => item.verification === 'verified').map(item => [item.slug, item])).values()];
+  const cmsFile = path.join(root, 'app/_content/cms.generated.json');
+  const detailOverrides = fs.existsSync(cmsFile) ? JSON.parse(fs.readFileSync(cmsFile, 'utf8')).entries?.['feature-detail'] || {} : {};
   for (const item of Object.values(data.items)) {
     if (item.verification !== 'verified') continue;
     item.related = (item.relatedProducts || []).map(slug => data.items[slug]).filter(other => other?.verification === 'verified' && other.slug !== item.slug).slice(0, 4).map(other => ({ slug: other.slug, title: other.title, hook: other.journey?.questions?.[0] || other.headline, image: other.cardImage || other.image }));
-    writeJsonAtomic(path.join(directory, `${item.slug}.json`), item);
+    const edited = applyDetailCopy(item, detailOverrides[item.slug]?.record);
+    data.items[item.slug] = edited;
+    writeJsonAtomic(path.join(directory, `${item.slug}.json`), edited);
   }
+  data.index = data.index.map(item => {
+    const detail = data.items[item.slug];
+    return detail && detailOverrides[item.slug]?.record
+      ? { ...item, title: detail.title, description: detail.journey?.questions?.[0] || detail.description }
+      : item;
+  });
+  const published = [...new Map(data.index.filter(item => item.verification === 'verified').map(item => [item.slug, item])).values()];
   writeJsonAtomic(path.join(directory, 'catalog.json'), published);
   writeJsonAtomic(path.join(root, 'lib/marketing/feature-visual-details.generated.json'), data, 2);
   console.log(`[sync:visual-details] ${data.index.length} unique features; ${published.length} reviewed introductions published`);
