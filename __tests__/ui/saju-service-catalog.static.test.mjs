@@ -28,7 +28,8 @@ function routeExists(href) {
 test("every saju-method registry service is in the /saju/#services catalog with the same href", () => {
   const byRegistryId = new Map(SAJU_SERVICE_ITEMS.flatMap((item) => item.registryIds.map((id) => [id, item])));
   const saju = loadRegistry().filter((entry) => Array.from(entry.methods || []).includes("saju"));
-  assert.ok(saju.length >= 18, `saju registry entries: ${saju.length}`);
+  assert.ok(saju.length >= 17, `saju registry entries: ${saju.length}`);
+  assert.ok(!SAJU_SERVICE_ITEMS.some(item => item.featureKey === 'love-code'));
   for (const entry of saju) {
     const item = byRegistryId.get(entry.id);
     assert.ok(item, `${entry.id} 가 사주 모아보기에 없다`);

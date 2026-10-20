@@ -109,7 +109,7 @@ test('restored hero artwork, catalog reuse, and collection previews stay in sync
   const wrappers = [...fragment.querySelectorAll('.tarot-tile__img-wrap')];
   let mappedCards = 0;
 
-  assert.equal(wrappers.length, 58);
+  assert.equal(wrappers.length, 56);
   for (const wrapper of wrappers) {
     const tile = wrapper.closest('.tarot-tile');
     const attr = name => tile?.getAttribute(name);
@@ -147,8 +147,8 @@ test('restored hero artwork, catalog reuse, and collection previews stay in sync
     const staticImage = wrapper.querySelector('img');
     if (staticImage) assert.equal(staticImage.getAttribute('src'), expected, `${slug}: static and deferred previews differ`);
   }
-  assert.equal(mappedCards, 48);
-  assert.equal(wrappers.length - mappedCards, 10);
+  assert.equal(mappedCards, 47);
+  assert.equal(wrappers.length - mappedCards, 9);
 
   const restored = {
     'fortune-tea-house': '/images/fortune-tea-house/premium-tea-house-desktop.webp',
@@ -226,7 +226,7 @@ test('published visual introductions have proven sources, real assets, and disti
   const generated = JSON.parse(fs.readFileSync('lib/marketing/feature-visual-details.generated.json', 'utf8'));
   assert.equal(generated.index.length, 76);
   assert.equal(new Set(generated.index.map(item => item.slug)).size, generated.index.length);
-  assert.equal(catalog.length, 74);
+  assert.equal(catalog.length, 73);
   assert.equal(new Set(catalog.map(item => item.slug)).size, catalog.length);
   const artworkHashes = new Set();
   for (const entry of catalog) {
@@ -268,7 +268,7 @@ test('published visual introductions have proven sources, real assets, and disti
   assert.equal(face.href, '/animal/physio');
   assert.equal(face.ctaLabel, '무료로 동물 관상 보기');
 
-  assert.deepEqual(Object.values(generated.items).filter(item => item.verification !== 'verified').map(item => item.slug).sort(), ['points', 'saju-animal']);
+  assert.deepEqual(Object.values(generated.items).filter(item => item.verification !== 'verified').map(item => item.slug).sort(), ['love-code', 'points', 'saju-animal']);
 });
 
 test('shared renderer escapes text and rejects unsafe image URLs and unverified content', () => {
@@ -356,6 +356,11 @@ test('every priced marketing introduction resolves to a published or inline edit
   const inline = Object.values(extractObjectLiteral(shell, 'FEATURE_VISUAL_DETAILS')).filter(item => item.inlineAliases);
   for (const [key, item] of Object.entries(copy)) {
     if (!FEATURE_KEY_PRICE_TABLE[item.featureId]) continue;
+    // Paused content keeps its authored copy, but must not be a published product.
+    if (item.featureId === 'love-code') {
+      assert.ok(!catalog.some(entry => entry.featureKey === 'love-code'));
+      continue;
+    }
     assert.ok(catalog.some(entry=>entry.featureKey===item.featureId || entry.aliases.includes(key)) || inline.some(entry=>entry.inlineAliases.includes(key) || entry.inlineAliases.includes(item.featureId)), key+': paid introduction missing');
   }
 });
