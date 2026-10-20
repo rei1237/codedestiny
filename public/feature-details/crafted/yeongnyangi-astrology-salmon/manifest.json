@@ -7,17 +7,26 @@
     {
       "id": "01-how-to-use-your-effort",
       "title": "애쓰고 있는데, 준비는 왜 제자리일까요?",
-      "alt": "공식점성술영냥이와시험준비방식점검을묻는표지.",
-      "src": "/feature-details/crafted/yeongnyangi-astrology-salmon/01-how-to-use-your-effort.webp",
-      "width": 1080,
-      "height": 1440,
+      "alt": "마법사 고양이 영냥이가 원형 출생차트와 행성 배치를 살피는 장면",
+      "src": "/images/service-introductions/yeongnyangi-astrology.webp",
+      "width": 1536,
+      "height": 1024,
       "text": "애쓰고 있는데,\n준비는 왜 제자리일까요?\n\n노력의 양만 늘리기 전에,\n나에게 맞는 준비의 조건을 살펴봐요.\n\n영냥이 서양 점성술 · 연어",
       "variants": [
         {
-          "src": "/feature-details/crafted/yeongnyangi-astrology-salmon/01-how-to-use-your-effort-540.webp",
-          "width": 540
+          "src": "/images/service-introductions/yeongnyangi-astrology-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-astrology-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-astrology-960.webp",
+          "width": 960
         }
-      ]
+      ],
+      "textBelowImage": true
     },
     {
       "id": "02-look-at-the-process",

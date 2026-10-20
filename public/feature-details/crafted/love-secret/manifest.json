@@ -243,16 +243,25 @@
       "id": "editorial-1",
       "title": "마음은 연이가 듣고, 관계의 거리는 서한비가 짚습니다.",
       "text": "나의 연애 방식에서 상대와의 거리, 갈등과 시기까지 두 마스터가 나누어 읽는 연애 비책입니다.",
-      "src": "/images/consultation-editorial/love.webp",
+      "src": "/images/service-introductions/love-secret-ai.webp",
       "width": 1536,
       "height": 1024,
-      "alt": "연애 비책 마스터 상담 삽화",
+      "alt": "연이·서한비의 연애 비책 상담 장면",
       "variants": [
         {
-          "src": "/images/consultation-editorial/love-768.webp",
-          "width": 768
+          "src": "/images/service-introductions/love-secret-ai-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/love-secret-ai-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/love-secret-ai-960.webp",
+          "width": 960
         }
-      ]
+      ],
+      "textBelowImage": true
     },
     {
       "id": "editorial-2",

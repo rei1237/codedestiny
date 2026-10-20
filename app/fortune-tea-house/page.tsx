@@ -25,10 +25,10 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/images/fortune-tea-house/renewal/yeoni-tea-welcome.webp",
-        width: 1440,
-        height: 960,
-        alt: "따뜻한 찻집에서 꽃돼지 연이가 차를 건네는 장면",
+        url: "/images/service-introductions/fortune-tea-house.webp",
+        width: 1536,
+        height: 1024,
+        alt: "따뜻한 찻집에서 카드를 펼쳐 마음의 이야기를 듣는 연이",
       },
     ],
   },

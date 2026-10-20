@@ -7,17 +7,26 @@
     {
       "id": "01-bridge",
       "title": "같은 마음인데, 왜 자꾸 엇갈릴까요.",
-      "alt": "달빛 아래 다리에 앉은 공식 영냥이. 두 사람 사이의 차이를 이해하는 사주 광어 상담.",
-      "src": "/feature-details/crafted/yeongnyangi-saju-flounder/01-bridge.webp",
-      "width": 1080,
-      "height": 1440,
+      "alt": "마법사 고양이 영냥이가 네 기둥과 다섯 원소를 살피는 장면",
+      "src": "/images/service-introductions/yeongnyangi-saju.webp",
+      "width": 1536,
+      "height": 1024,
       "text": "같은 마음인데,\n왜 자꾸 엇갈릴까요.\n\n가까울수록 놓치기 쉬운\n두 사람의 속도와 표현을 살펴요.\n\n영냥이 사주 · 광어\n관계를 함께 읽는 질문 상담.",
       "variants": [
         {
-          "src": "/feature-details/crafted/yeongnyangi-saju-flounder/01-bridge-540.webp",
-          "width": 540
+          "src": "/images/service-introductions/yeongnyangi-saju-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-saju-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-saju-960.webp",
+          "width": 960
         }
-      ]
+      ],
+      "textBelowImage": true
     },
     {
       "id": "02-translation",

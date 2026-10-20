@@ -8,6 +8,7 @@ import { getBillingFeaturePricing } from '../../worker/lib/billing-feature-regis
 const catalog = JSON.parse(fs.readFileSync('public/feature-details/catalog.json', 'utf8'));
 const sharedHero = '/feature-details/assets/feature-detail-shared-hero-v1-960.webp';
 const shell = fs.readFileSync('index.html', 'utf8');
+const introductionArt = JSON.parse(fs.readFileSync('lib/marketing/service-introduction-art.json','utf8'));
 
 test('paid introductions keep an honest sample in the authored essay or before the legacy outline', () => {
   let checked = 0;
@@ -33,8 +34,15 @@ test('paid introductions keep an honest sample in the authored essay or before t
           assert.equal(essays[index].querySelectorAll('.craftedMaster').length, essay.masters.length);
           return;
         }
-        assert.equal(essays[index].querySelectorAll(':scope > div[aria-hidden] img').length, essay.panels.length);
-        assert.ok([...essays[index].querySelectorAll('img')].every(image => image.getAttribute('alt') === ''), 'full transcript avoids duplicate alt narration');
+        const sceneCover=essay.panels.some(panel=>panel.textBelowImage);
+        const images=[...essays[index].querySelectorAll(sceneCover ? ':scope > div > img' : ':scope > div[aria-hidden] img')];
+        assert.equal(images.length, essay.panels.length);
+        images.forEach((image,i)=>assert.equal(image.getAttribute('alt'),essay.panels[i].textBelowImage ? essay.panels[i].alt : ''));
+        if(sceneCover){
+          const copy=essays[index].querySelector('.craftedCoverCopy');
+          assert.ok(copy.textContent.includes(essay.panels[0].title));
+          assert.equal(copy.querySelector('p').textContent, essays[index].querySelector('.craftedDetailTranscript section p').textContent);
+        }
         for (const panel of essay.panels) assert.ok(essays[index].querySelector('.craftedDetailTranscript').textContent.includes(panel.title));
       });
       assert.ok(article.querySelector('[data-fortune-hero-action]'), 'existing conversion slot is preserved');
@@ -120,11 +128,11 @@ test('restored hero artwork, catalog reuse, and collection previews stay in sync
     let slug = '';
     let expected = '';
     if (attr('data-feature-key') === 'life-fortune-ai-consultation') {
-      slug = 'life-fortune-report';
-      expected = '/images/feature-details/life-fortune-report-480.webp';
+      slug = 'life-fortune-ai';
+      expected = introductionArt[slug].cardImage;
     } else if (attr('data-feature-key') === 'animal-destiny-unlock') {
-      slug = 'animal-guardian-unlock';
-      expected = '/images/feature-details/animal-guardian-unlock-480.webp';
+      slug = 'animal-destiny';
+      expected = introductionArt[slug].cardImage;
     } else {
       let detail = null;
       for (const candidate of candidates) {
@@ -133,10 +141,10 @@ test('restored hero artwork, catalog reuse, and collection previews stay in sync
       }
       if (detail) {
         slug = detail.slug;
-        expected = detail.slug === 'nakshatra' ? '/images/nakshatra/moonlight-library-480.webp' : detail.cardImage || detail.image;
+        expected = introductionArt[detail.slug]?.cardImage || detail.cardImage || detail.image;
         if (detail.slug === 'nakshatra') {
           const img = wrapper.querySelector('img');
-          assert.match(img?.getAttribute('srcset') || '', /1672w/);
+          assert.match(img?.getAttribute('srcset') || '', /640w/);
           assert.ok(img?.getAttribute('sizes'));
         }
       }
@@ -156,15 +164,14 @@ test('restored hero artwork, catalog reuse, and collection previews stay in sync
     'neo-operation-room': '/images/feature-details/neo-operation-room-hero-v2-textless.webp',
     omikuji: '/fuctionassets/오미쿠지.webp',
   };
-  for (const [slug, image] of Object.entries(restored)) {
-    assert.equal(authored[slug].image, image);
-    const heroVersion = ['fortune-tea-house', 'master-love-codex'].includes(slug) ? 'v3' : 'v2';
-    assert.match(authored[slug].catalogImage, new RegExp(`${slug}-hero-${heroVersion}\\.webp$`));
+  for (const slug of Object.keys(restored)) {
+    assert.equal(generated.items[slug].image, `/feature-details/assets/${slug}-960.webp`);
+    assert.ok(fs.existsSync(`public${introductionArt[slug].image}`));
     assert.equal(generated.items[slug].catalogImage, `/feature-details/assets/${slug}-catalog-320.webp`);
     assert.ok(fs.existsSync(`public${generated.items[slug].catalogImage}`));
   }
-  assert.equal(marketing['/fortune-tea-house/'].outlineImage, restored['fortune-tea-house']);
-  assert.equal(authored['fortune-chat'].image, '/images/fortune-tea-house/yeon-peony-crown.webp');
+  assert.equal(marketing['/fortune-tea-house/'].outlineImage, introductionArt['fortune-tea-house'].image);
+  assert.equal(authored['fortune-chat'].image, introductionArt['fortune-chat'].image);
   assert.match(authored.novel.image, /novel-hero-v2\.webp$/);
   assert.match(authored.music.image, /music-hero-v2\.webp$/);
 
@@ -173,9 +180,9 @@ test('restored hero artwork, catalog reuse, and collection previews stay in sync
     'love-secret-ai': '/images/expert-consulting/love-letter-paper-20260923.webp',
     'new-year-ai': '/images/feature-details/new-year-ai-hero-v3.webp',
   };
-  for (const [slug, image] of Object.entries(upgraded)) {
+  for (const slug of Object.keys(upgraded)) {
     const detail = authored[slug];
-    assert.equal(detail.image, image, `${slug}: authored hero does not match the approved slot`);
+    assert.equal(generated.items[slug].image, `/feature-details/assets/${slug}-960.webp`);
     assert.ok(detail.contents.length >= 5 && detail.contents.every(item => item.detail), `${slug}: outline is incomplete`);
     assert.ok(detail.storySections?.length, `${slug}: supporting editorial story is missing`);
     assert.equal(detail.journey?.questions?.length, 3, `${slug}: journey questions are incomplete`);
@@ -196,12 +203,13 @@ test('restored hero artwork, catalog reuse, and collection previews stay in sync
     'new-year-ai': '/images/home/new-year-neo-v1-1200.webp',
     'life-book-ai': '/images/home/life-book-yun-v2-1200.webp',
   };
-  assert.deepEqual(signatureSources, signatureArtwork);
-  for (const [id, source] of Object.entries(signatureArtwork)) {
+  const expectedSignature=Object.fromEntries(Object.keys(signatureArtwork).map(id=>[id,introductionArt[id].image.replace('.webp','-640.webp')]));
+  assert.deepEqual(signatureSources, expectedSignature);
+  for (const [id, source] of Object.entries(expectedSignature)) {
     assert.ok(fs.existsSync(`public${source}`), `${id}: referenced signature artwork is missing`);
   }
   const masterAssets = fs.readFileSync('src/features/master-love-codex/data/assets.ts', 'utf8');
-  assert.match(masterAssets, /humanHero:\s*"\/images\/feature-details\/master-love-codex-hero-v3\.webp"/);
+  assert.match(masterAssets, /humanHero:\s*"\/images\/service-introductions\/master-love-codex-960\.webp"/);
   assert.match(masterAssets, /cover:\s*"\/feature-details\/assets\/master-love-codex-960\.webp"/);
   assert.ok(fs.existsSync('public/feature-details/assets/master-love-codex-960.webp'));
   // 2026-10-17: 라이트 노벨·달빛 음악은 '달빛 이야기' 한 묶음(details)에 타로 카드 두 장으로 들어갔다.
@@ -246,8 +254,8 @@ test('published visual introductions have proven sources, real assets, and disti
     for (const variant of detail.heroVariants || []) assert.ok(fs.statSync(`public${variant.src}`).size <= 180000);
     const rendered = renderFeatureDetailPanels(detail);
     if (detail.crafted?.length) {
-      for (const essay of detail.crafted) for (const panel of essay.panels) {
-        assert.ok(rendered.includes('src="' + panel.src + '"'), entry.slug + ': authored artwork missing');
+      for (const essay of detail.crafted) for (const [index,panel] of essay.panels.entries()) {
+        if(essay.layout!=='editorial'||index===0||panel.showImage)assert.ok(rendered.includes('src="' + panel.src + '"'), entry.slug + ': authored artwork missing');
         assert.ok(fs.statSync('public' + panel.src).size > 0, panel.src);
         assert.ok(rendered.includes(panel.title), panel.title);
       }

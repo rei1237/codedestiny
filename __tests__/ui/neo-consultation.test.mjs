@@ -263,10 +263,10 @@ test('CI node suite discovers this test; runtime cannot import mock or open sale
   const config = readFileSync(new URL('../../scripts/lib/mock-test-config.mjs',import.meta.url),'utf8');
   assert.ok(config.includes('__tests__/ui/*.test.mjs'));
 });
-test('네오 편지 안내는 기존 인간형 네오와 서버 가격·답변 기한을 안내한다', () => {
+test('네오 편지 안내는 상담 장면과 서버 가격·답변 기한을 안내한다', () => {
   const html = renderNeoEmailHomeEntry();
   assert.match(html,/href="\/neo-consultation\/"/);
-  assert.match(html,/neo-strategy-portrait\.webp/);
+  assert.match(html,/service-introductions\/neo-consultation-640\.webp/);
   assert.match(html,/사주 질문당 10,000원/);
   assert.match(html,/자미두수 추가 \+10,000원/);
   assert.match(html,/원국·명반 해석 추가 \+20,000원/);

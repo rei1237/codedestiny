@@ -2910,10 +2910,10 @@
   box-shadow: 0 24px 60px rgba(4, 6, 18, .5), 0 0 0 4px rgba(185, 198, 238, .06);
 }
 
-/* 서한비 얼굴은 원본 오른쪽 위(≈76% 22%) — 모바일 크롭에서도 얼굴이 남게 잡는다. */
+/* 얼굴과 관계 도구를 함께 보여 주는 3:2 상담 장면. */
 .hanbiKeyArtImage {
   object-fit: cover;
-  object-position: 74% 24%;
+  object-position: center;
 }
 
 .hanbiHeroStage {

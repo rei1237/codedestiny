@@ -50,6 +50,7 @@
         "/love-secret-ai/",
         "/love-secret-ai"
       ],
+      "catalogImage": "/feature-details/assets/love-secret-ai-catalog-320.webp",
       "category": "관계·궁합",
       "description": "나는 사랑할 때 어떤 패턴을 반복하나요?",
       "verification": "verified",
@@ -68,6 +69,7 @@
         "/fortune-chat/",
         "/fortune-chat"
       ],
+      "catalogImage": "/feature-details/assets/fortune-chat-catalog-320.webp",
       "category": "사주·심층 상담",
       "description": "제 상황에서는 어느 쪽이 나을까요?",
       "verification": "verified",
@@ -86,6 +88,7 @@
         "/index.html?action=openTarotLoveModal",
         "/index.html?action=openTarotLoveModal/"
       ],
+      "catalogImage": "/feature-details/assets/tarot-love-relationship-catalog-320.webp",
       "category": "타로·신탁",
       "description": "말과 행동이 다를 때, 관계를 어떻게 읽을까요?",
       "verification": "verified",
@@ -105,6 +108,7 @@
         "/index.html?action=openTarotReunionModal",
         "/index.html?action=openTarotReunionModal/"
       ],
+      "catalogImage": "/feature-details/assets/tarot-reunion-catalog-320.webp",
       "category": "타로·신탁",
       "description": "상대에게 아직 마음이 남아 있을까요?",
       "verification": "verified",
@@ -122,6 +126,7 @@
         "/tarot/mindscan/",
         "/tarot/mindscan"
       ],
+      "catalogImage": "/feature-details/assets/tarot-mindscan-catalog-320.webp",
       "category": "타로·신탁",
       "description": "상대의 말과 마음은 얼마나 벌어져 있나요?",
       "verification": "verified",
@@ -139,6 +144,7 @@
         "/nakshatra/compat/",
         "/nakshatra/compat"
       ],
+      "catalogImage": "/feature-details/assets/nakshatra-compat-catalog-320.webp",
       "category": "관계·궁합",
       "description": "두 체계는 이 관계를 같게 보나요?",
       "verification": "verified",
@@ -176,6 +182,7 @@
         "/destiny-compass/",
         "/destiny-compass"
       ],
+      "catalogImage": "/feature-details/assets/destiny-compass-catalog-320.webp",
       "category": "사주·심층 상담",
       "description": "지금 방향을 바꿔도 될까요?",
       "verification": "verified",
@@ -194,6 +201,7 @@
         "/saju/sibyl/",
         "/saju/sibyl"
       ],
+      "catalogImage": "/feature-details/assets/saju-sibyl-catalog-320.webp",
       "category": "사주·심층 상담",
       "description": "올해 무엇을 먼저 대비해야 하나요?",
       "verification": "verified",
@@ -212,6 +220,7 @@
         "/new-year-ai-consultation/",
         "/new-year-ai-consultation"
       ],
+      "catalogImage": "/feature-details/assets/new-year-ai-catalog-320.webp",
       "category": "오늘·시기",
       "description": "올해 무엇을 먼저 준비해야 할까요?",
       "verification": "verified",
@@ -229,6 +238,7 @@
         "/tarot-ijik.html",
         "/tarot-ijik.html/"
       ],
+      "catalogImage": "/feature-details/assets/tarot-ijik-catalog-320.webp",
       "category": "타로·신탁",
       "description": "지금 옮기는 것이 맞나요?",
       "verification": "verified",
@@ -247,6 +257,7 @@
         "/life-book-ai/",
         "/life-book-ai"
       ],
+      "catalogImage": "/feature-details/assets/life-book-ai-catalog-320.webp",
       "category": "사주·심층 상담",
       "description": "내 인생의 큰 줄기는 어떻게 이어져 왔을까요?",
       "verification": "verified",
@@ -265,6 +276,7 @@
         "/karma-destiny-ai/",
         "/karma-destiny-ai"
       ],
+      "catalogImage": "/feature-details/assets/karma-destiny-ai-catalog-320.webp",
       "category": "사주·심층 상담",
       "description": "왜 비슷한 사람에게 계속 끌릴까요?",
       "verification": "verified",
@@ -285,6 +297,7 @@
         "/index.html?action=openSajuGuardianPage/",
         "openSajuAnimalPage"
       ],
+      "catalogImage": "/feature-details/assets/saju-guardian-catalog-320.webp",
       "category": "사주·심층 상담",
       "description": "내 일주의 가디언은 어떤 모습인가요?",
       "verification": "verified",
@@ -304,6 +317,7 @@
         "/naming-ai",
         "openNamingPromptModal"
       ],
+      "catalogImage": "/feature-details/assets/naming-ai-catalog-320.webp",
       "category": "사주·심층 상담",
       "description": "이 이름이 우리 아이 사주와 맞나요?",
       "verification": "verified",
@@ -322,6 +336,7 @@
         "/fusion-fortune/",
         "/fusion-fortune"
       ],
+      "catalogImage": "/feature-details/assets/fusion-fortune-catalog-320.webp",
       "category": "사주·심층 상담",
       "description": "여러 운세가 서로 다른 말을 하는데 무엇을 따라야 할까요?",
       "verification": "verified",
@@ -340,6 +355,7 @@
         "/index.html?action=openTarotYearFortuneModal",
         "/index.html?action=openTarotYearFortuneModal/"
       ],
+      "catalogImage": "/feature-details/assets/tarot-year-fortune-catalog-320.webp",
       "category": "타로·신탁",
       "description": "올해 가장 조심해야 할 시기는 언제인가요?",
       "verification": "verified",
@@ -358,6 +374,7 @@
         "/celestial-harmony.html/",
         "openCelestialHarmony"
       ],
+      "catalogImage": "/feature-details/assets/tarot-celestial-harmony-catalog-320.webp",
       "category": "타로·신탁",
       "description": "지금 나를 가장 흔드는 축은 무엇인가요?",
       "verification": "verified",
@@ -375,6 +392,7 @@
         "/nakshatra/muhurta/",
         "/nakshatra/muhurta"
       ],
+      "catalogImage": "/feature-details/assets/nakshatra-muhurta-catalog-320.webp",
       "category": "별자리·동양 점성",
       "description": "이 일에 가장 좋은 날은 언제인가요?",
       "verification": "verified",
@@ -393,6 +411,7 @@
         "/?action=cdOneStepFreeSajuEntry",
         "/?action=cdOneStepFreeSajuEntry/"
       ],
+      "catalogImage": "/feature-details/assets/saju-catalog-320.webp",
       "category": "사주·심층 상담",
       "description": "나는 왜 비슷한 선택을 반복할까요?",
       "verification": "verified",
@@ -414,6 +433,7 @@
         "/index.html?action=openTarotModal",
         "/index.html?action=openTarotModal/"
       ],
+      "catalogImage": "/feature-details/assets/tarot-catalog-320.webp",
       "category": "타로·신탁",
       "description": "지금 마음에 걸리는 질문이 있나요?",
       "verification": "verified",
@@ -435,6 +455,7 @@
         "/ziwei/chart/",
         "/ziwei/chart"
       ],
+      "catalogImage": "/feature-details/assets/ziwei-catalog-320.webp",
       "category": "사주·심층 상담",
       "description": "관계와 일에서 나는 왜 다른 모습일까요?",
       "verification": "verified",
@@ -455,6 +476,7 @@
         "openSukuyoModal",
         "/index.html?action=openSukuyoModal"
       ],
+      "catalogImage": "/feature-details/assets/sukuyo-catalog-320.webp",
       "category": "사주·심층 상담",
       "description": "이 사람과는 어떤 거리의 인연인가요?",
       "verification": "verified",
@@ -476,6 +498,7 @@
         "/index.html?action=navigateToVedic",
         "/index.html?action=navigateToVedic/"
       ],
+      "catalogImage": "/feature-details/assets/vedic-catalog-320.webp",
       "category": "별자리·동양 점성",
       "description": "내 삶은 지금 어떤 리듬을 지나고 있을까요?",
       "verification": "verified",
@@ -497,6 +520,7 @@
         "/index.html?action=openAstroModal",
         "/index.html?action=openAstroModal/"
       ],
+      "catalogImage": "/feature-details/assets/astrology-catalog-320.webp",
       "category": "별자리·동양 점성",
       "description": "겉으로 보이는 나와 속마음은 왜 다를까요?",
       "verification": "verified",
@@ -515,6 +539,7 @@
         "/human-design/",
         "/human-design"
       ],
+      "catalogImage": "/feature-details/assets/human-design-catalog-320.webp",
       "category": "별자리·동양 점성",
       "description": "저는 어떤 타입인가요?",
       "verification": "verified",
@@ -533,6 +558,7 @@
         "/nakshatra/",
         "/nakshatra"
       ],
+      "catalogImage": "/feature-details/assets/nakshatra-catalog-320.webp",
       "category": "별자리·동양 점성",
       "description": "제 나크샤트라는 무엇인가요?",
       "verification": "verified",
@@ -550,6 +576,7 @@
         "/maya/",
         "/maya"
       ],
+      "catalogImage": "/feature-details/assets/maya-catalog-320.webp",
       "category": "별자리·동양 점성",
       "description": "오늘은 어떤 기운의 날인가요?",
       "verification": "verified",
@@ -568,6 +595,7 @@
         "/today/",
         "/today"
       ],
+      "catalogImage": "/feature-details/assets/daily-fortune-catalog-320.webp",
       "category": "오늘·시기",
       "description": "세 체계가 오늘을 어떻게 보나요?",
       "verification": "verified",
@@ -586,6 +614,7 @@
         "/today/",
         "/today"
       ],
+      "catalogImage": "/feature-details/assets/today-hub-catalog-320.webp",
       "category": "오늘·시기",
       "description": "세 체계가 오늘을 어떻게 보나요?",
       "verification": "verified",
@@ -603,6 +632,7 @@
         "/palm-reading/",
         "/palm-reading"
       ],
+      "catalogImage": "/feature-details/assets/palm-reading-catalog-320.webp",
       "category": "상징·마음",
       "description": "내 손금에서 가장 뚜렷한 선은 무엇인가요?",
       "verification": "verified",
@@ -621,6 +651,7 @@
         "/physiognomy/",
         "/physiognomy"
       ],
+      "catalogImage": "/feature-details/assets/physiognomy-catalog-320.webp",
       "category": "상징·마음",
       "description": "제 인상은 어떻게 읽히나요?",
       "verification": "verified",
@@ -640,6 +671,7 @@
         "/dream/",
         "/dream"
       ],
+      "catalogImage": "/feature-details/assets/dream-catalog-320.webp",
       "category": "상징·마음",
       "description": "이 꿈은 무슨 의미인가요?",
       "verification": "verified",
@@ -657,6 +689,7 @@
         "/psychotest/",
         "/psychotest"
       ],
+      "catalogImage": "/feature-details/assets/psychotest-catalog-320.webp",
       "category": "상징·마음",
       "description": "저는 어떤 성향인가요?",
       "verification": "verified",
@@ -674,6 +707,7 @@
         "/manse/",
         "/manse"
       ],
+      "catalogImage": "/feature-details/assets/manse-catalog-320.webp",
       "category": "사주·심층 상담",
       "description": "제 사주 여덟 글자는 무엇인가요?",
       "verification": "verified",
@@ -691,6 +725,7 @@
         "/insights/famous-saju/",
         "/insights/famous-saju"
       ],
+      "catalogImage": "/feature-details/assets/famous-saju-catalog-320.webp",
       "category": "사주·심층 상담",
       "description": "이 배치는 어떤 삶으로 나타나나요?",
       "verification": "verified",
@@ -709,6 +744,7 @@
         "/saju/animal-destiny",
         "openAnimalDestinyRoute"
       ],
+      "catalogImage": "/feature-details/assets/animal-destiny-catalog-320.webp",
       "category": "상징·마음",
       "description": "나의 수호 동물은 무엇인가요?",
       "verification": "verified",
@@ -727,6 +763,7 @@
         "/index.html?action=openKemetModal",
         "/index.html?action=openKemetModal/"
       ],
+      "catalogImage": "/feature-details/assets/kemet-oracle-catalog-320.webp",
       "category": "타로·신탁",
       "description": "이 상황은 어디서 와서 어디로 가나요?",
       "verification": "verified",
@@ -745,6 +782,7 @@
         "/ifa-oracle.html/",
         "openIfaOracle"
       ],
+      "catalogImage": "/feature-details/assets/ifa-oracle-catalog-320.webp",
       "category": "타로·신탁",
       "description": "지금 이 일을 진행해도 될까요?",
       "verification": "verified",
@@ -763,6 +801,7 @@
         "/oracle/juyuk/",
         "/oracle/juyuk"
       ],
+      "catalogImage": "/feature-details/assets/juyuk-turtle-catalog-320.webp",
       "category": "타로·신탁",
       "description": "이 일은 지금 밀어붙여도 될까요?",
       "verification": "verified",
@@ -781,6 +820,7 @@
         "/neville-meditation.html/",
         "openNevilleMeditationPage"
       ],
+      "catalogImage": "/feature-details/assets/neville-meditation-catalog-320.webp",
       "category": "휴식·콘텐츠",
       "description": "SATS 는 어떤 순서로 하나요?",
       "verification": "verified",
@@ -800,6 +840,7 @@
         "/yoga-guru.html/",
         "openYogaGuru"
       ],
+      "catalogImage": "/feature-details/assets/yoga-guru-catalog-320.webp",
       "category": "휴식·콘텐츠",
       "description": "오늘은 어떤 순서로 하면 좋을까요?",
       "verification": "verified",
@@ -818,6 +859,7 @@
         "/tarot/numerology/",
         "/tarot/numerology"
       ],
+      "catalogImage": "/feature-details/assets/tarot-numerology-catalog-320.webp",
       "category": "타로·신탁",
       "description": "오늘 나에게 필요한 태도는 무엇인가요?",
       "verification": "verified",
@@ -836,6 +878,7 @@
         "/index.html?action=openPsychoDreamModal",
         "/index.html?action=openPsychoDreamModal/"
       ],
+      "catalogImage": "/feature-details/assets/dream-psycho-analysis-catalog-320.webp",
       "category": "상징·마음",
       "description": "그 꿈은 왜 오래 마음에 남을까요?",
       "verification": "verified",
@@ -855,6 +898,7 @@
         "/index.html?action=openAnimalTotemModal",
         "/index.html?action=openAnimalTotemModal/"
       ],
+      "catalogImage": "/feature-details/assets/animal-totem-catalog-320.webp",
       "category": "상징·마음",
       "description": "지금 내 마음에서 먼저 살펴야 할 것은 무엇인가요?",
       "verification": "verified",
@@ -873,6 +917,7 @@
         "/index.html?action=openMbtiModal",
         "/index.html?action=openMbtiModal/"
       ],
+      "catalogImage": "/feature-details/assets/mbti-animal-compat-catalog-320.webp",
       "category": "관계·궁합",
       "description": "우리 조합은 어떤가요?",
       "verification": "verified",
@@ -891,6 +936,7 @@
         "/tarot/crystal-soul/",
         "/tarot/crystal-soul"
       ],
+      "catalogImage": "/feature-details/assets/tarot-crystal-soul-catalog-320.webp",
       "category": "타로·신탁",
       "description": "지금 나에게 흐르는 기운은 어떤 결인가요?",
       "verification": "verified",
@@ -909,6 +955,7 @@
         "/index.html?action=openRoyalTeaOracle",
         "/index.html?action=openRoyalTeaOracle/"
       ],
+      "catalogImage": "/feature-details/assets/royal-tea-oracle-catalog-320.webp",
       "category": "타로·신탁",
       "description": "앞으로 두어 주 사이에 무엇이 움직이나요?",
       "verification": "verified",
@@ -927,6 +974,7 @@
         "/index.html?action=openGeomancyOracle",
         "/index.html?action=openGeomancyOracle/"
       ],
+      "catalogImage": "/feature-details/assets/geomancy-oracle-catalog-320.webp",
       "category": "타로·신탁",
       "description": "이 일의 형세는 유리한가요, 불리한가요?",
       "verification": "verified",
@@ -946,6 +994,7 @@
         "/index.html?action=openRuneOracle",
         "/index.html?action=openRuneOracle/"
       ],
+      "catalogImage": "/feature-details/assets/stonehenge-runes-catalog-320.webp",
       "category": "타로·신탁",
       "description": "이 흐름은 어디서 시작됐나요?",
       "verification": "verified",
@@ -964,6 +1013,7 @@
         "/diary/",
         "/diary"
       ],
+      "catalogImage": "/feature-details/assets/luck-sync-diary-catalog-320.webp",
       "category": "오늘·시기",
       "description": "이번 달 흐름은 어땠나요?",
       "verification": "verified",
@@ -1031,6 +1081,7 @@
         "/index.html?action=openSukuyoModal",
         "/index.html?action=openSukuyoModal/"
       ],
+      "catalogImage": "/feature-details/assets/sukyo-catalog-320.webp",
       "category": "사주·심층 상담",
       "description": "우리는 왜 끌리고, 왜 자꾸 엇갈릴까요?",
       "verification": "verified",
@@ -1048,6 +1099,7 @@
         "/tarot/prompt-maker",
         "/tarot/prompt-maker/"
       ],
+      "catalogImage": "/feature-details/assets/tarot-prompt-maker-catalog-320.webp",
       "category": "타로·신탁",
       "description": "이 상황에는 어떤 스프레드가 맞나요?",
       "verification": "verified",
@@ -1065,6 +1117,7 @@
         "/animal/physio",
         "/animal/physio/"
       ],
+      "catalogImage": "/feature-details/assets/face-reading-catalog-320.webp",
       "category": "상징·마음",
       "description": "얼굴형과 표정, 전체 분위기를 친근한 동물의 언어로 바라봅니다. 가볍게 웃고, 내가 전하는 인상도 한 번 돌아보세요.",
       "verification": "verified",
@@ -1083,6 +1136,7 @@
         "/saju/destiny-bias",
         "/saju/destiny-bias/"
       ],
+      "catalogImage": "/feature-details/assets/bias-destiny-catalog-320.webp",
       "category": "사주·심층 상담",
       "description": "최애와 나는 어떤 결로 닮았나요?",
       "verification": "verified",
@@ -1094,12 +1148,13 @@
       "href": "/index.html?action=openLoveSimulation",
       "featureKey": "love-code",
       "accessType": "paid",
-      "image": "/feature-details/assets/love-simulation-320.webp",
+      "image": "/images/service-introductions/love-code.webp",
       "aliases": [
         "love-code",
         "/index.html?action=openLoveSimulation",
         "/index.html?action=openLoveSimulation/"
       ],
+      "catalogImage": "/images/service-introductions/love-code-320.webp",
       "category": "관계·궁합",
       "description": "이 사람과 있으면 왜 유독 긴장이 올라갈까요?",
       "verification": "source-inventory-only"
@@ -1128,12 +1183,13 @@
       "href": "/saju-guardian",
       "featureKey": "",
       "accessType": "free",
-      "image": "/fuctionassets/Who%20am%20I%20with%20saju.webp",
+      "image": "/images/service-introductions/saju-animal.webp",
       "aliases": [
         "saju-animal",
         "/saju-guardian",
         "/saju-guardian/"
       ],
+      "catalogImage": "/images/service-introductions/saju-animal-320.webp",
       "category": "상징·마음",
       "description": "십이운성 동물점이 아닌, 생년월일의 일주와 오행 기운으로 지금 나를 지키는 가디언 상징을 카드형으로 안내합니다.",
       "verification": "source-inventory-only"
@@ -1151,6 +1207,7 @@
         "/saju/destiny-meeting-place",
         "/saju/destiny-meeting-place/"
       ],
+      "catalogImage": "/feature-details/assets/destiny-meeting-place-catalog-320.webp",
       "category": "관계·궁합",
       "description": "나는 어떤 자리에서 인연이 열리나요?",
       "verification": "verified",
@@ -1170,6 +1227,7 @@
         "/ziwei-ai/",
         "gotoZiweiPremium"
       ],
+      "catalogImage": "/feature-details/assets/ziwei-ai-catalog-320.webp",
       "category": "사주·심층 상담",
       "description": "지금 이직해도 괜찮을까요?",
       "verification": "verified",
@@ -1188,6 +1246,7 @@
         "/index.html?action=openDestinyFlowerStudio",
         "/index.html?action=openDestinyFlowerStudio/"
       ],
+      "catalogImage": "/feature-details/assets/destiny-flower-catalog-320.webp",
       "category": "사주·심층 상담",
       "description": "내 기운은 어떤 색에 가까울까요?",
       "verification": "verified",
@@ -1206,6 +1265,7 @@
         "/index.html?action=openAstrologyFlowerStudio",
         "/index.html?action=openAstrologyFlowerStudio/"
       ],
+      "catalogImage": "/feature-details/assets/astrology-flower-catalog-320.webp",
       "category": "별자리·동양 점성",
       "description": "출생차트를 감각적으로 이해하고 싶어요.",
       "verification": "verified",
@@ -1224,6 +1284,7 @@
         "/index.html?action=openJamidusuFlowerStudio",
         "/index.html?action=openJamidusuFlowerStudio/"
       ],
+      "catalogImage": "/feature-details/assets/ziwei-flower-catalog-320.webp",
       "category": "사주·심층 상담",
       "description": "별의 성향을 이미지로 보고 싶어요.",
       "verification": "verified",
@@ -1242,6 +1303,7 @@
         "/index.html?action=openSukuyoFlowerStudio",
         "/index.html?action=openSukuyoFlowerStudio/"
       ],
+      "catalogImage": "/feature-details/assets/sukuyo-flower-catalog-320.webp",
       "category": "사주·심층 상담",
       "description": "내 본명숙은 어떤 꽃을 닮았을까요?",
       "verification": "verified",
@@ -1260,6 +1322,7 @@
         "/cosmic-soul-meditation.html",
         "/cosmic-soul-meditation.html/"
       ],
+      "catalogImage": "/feature-details/assets/cosmic-soul-meditation-catalog-320.webp",
       "category": "휴식·콘텐츠",
       "description": "머릿속을 잠시 정돈하고 싶어요.",
       "verification": "verified",
@@ -1278,6 +1341,7 @@
         "/index.html?action=openOlympusOracleModal",
         "/index.html?action=openOlympusOracleModal/"
       ],
+      "catalogImage": "/feature-details/assets/olympus-oracle-catalog-320.webp",
       "category": "타로·신탁",
       "description": "별자리를 이야기로 읽고 싶어요.",
       "verification": "verified",
@@ -1296,6 +1360,7 @@
         "/sukuyo-compatibility-ai/",
         "/sukuyo-compatibility-ai"
       ],
+      "catalogImage": "/feature-details/assets/sukuyo-compatibility-ai-catalog-320.webp",
       "category": "관계·궁합",
       "description": "왜 같은 말에도 다르게 반응할까요?",
       "verification": "verified",
@@ -1314,6 +1379,7 @@
         "/astrology-ai",
         "/astrology-ai/"
       ],
+      "catalogImage": "/feature-details/assets/astrology-ai-catalog-320.webp",
       "category": "별자리·동양 점성",
       "description": "왜 마음과 상황이 따로 놀까요?",
       "verification": "verified",
@@ -1332,6 +1398,7 @@
         "/vedic-ai",
         "/vedic-ai/"
       ],
+      "catalogImage": "/feature-details/assets/vedic-ai-catalog-320.webp",
       "category": "별자리·동양 점성",
       "description": "지금 내린 결정이 장기 흐름과 맞을까요?",
       "verification": "verified",
@@ -1350,6 +1417,7 @@
         "/nakshatra/ai",
         "/nakshatra/ai/"
       ],
+      "catalogImage": "/feature-details/assets/nakshatra-ai-catalog-320.webp",
       "category": "별자리·동양 점성",
       "description": "나는 원래 어떤 사람일까요?",
       "verification": "verified",
@@ -1367,6 +1435,7 @@
         "/nakshatra/vvip",
         "/nakshatra/vvip/"
       ],
+      "catalogImage": "/feature-details/assets/nakshatra-vvip-codex-catalog-320.webp",
       "category": "별자리·동양 점성",
       "description": "27수 전체에서 내 자리는 어디인가요?",
       "verification": "verified",
@@ -1400,7 +1469,7 @@
       ],
       "verification": "verified",
       "catalogImage": "/feature-details/assets/master-love-codex-catalog-320.webp",
-      "imageAlt": "마스터 인연의 서 · 개인 마스터 상담 삽화",
+      "imageAlt": "마스터의 마스터 인연의 서 상담 장면",
       "theme": "rose",
       "edition": "본인편 미리보기 · 궁합편은 시작 화면에서 별도 선택",
       "benefits": [
@@ -1651,16 +1720,25 @@
               "id": "editorial-1",
               "title": "사랑의 반복을 읽는, 나만의 인연의 서.",
               "text": "인연의 서 마스터가 사주와 자미두수의 관점에서 사랑의 패턴과 관계의 선택을 짚습니다.",
-              "src": "/images/consultation-editorial/master.webp",
+              "src": "/images/service-introductions/master-love-codex.webp",
               "width": 1536,
               "height": 1024,
-              "alt": "마스터 인연의 서 · 개인 마스터 상담 삽화",
+              "alt": "마스터의 마스터 인연의 서 상담 장면",
               "variants": [
                 {
-                  "src": "/images/consultation-editorial/master-768.webp",
-                  "width": 768
+                  "src": "/images/service-introductions/master-love-codex-320.webp",
+                  "width": 320
+                },
+                {
+                  "src": "/images/service-introductions/master-love-codex-640.webp",
+                  "width": 640
+                },
+                {
+                  "src": "/images/service-introductions/master-love-codex-960.webp",
+                  "width": 960
                 }
-              ]
+              ],
+              "textBelowImage": true
             },
             {
               "id": "editorial-2",
@@ -1737,7 +1815,12 @@
               "portrait": "/images/master-profiles/master-love-portrait.webp"
             }
           ],
-          "priceKRW": 30000
+          "priceKRW": 30000,
+          "cover": {
+            "src": "/images/service-introductions/master-love-codex-320.webp",
+            "width": 320,
+            "height": 213
+          }
         },
         {
           "id": "master-love-codex-compat",
@@ -1834,16 +1917,25 @@
               "id": "editorial-1",
               "title": "두 사람의 이야기를 나란히 펼치는 인연의 서.",
               "text": "인연의 서 마스터가 두 사람의 기질과 관계에서 맞물리는 지점을 함께 읽습니다.",
-              "src": "/images/consultation-editorial/master.webp",
+              "src": "/images/service-introductions/master-love-codex.webp",
               "width": 1536,
               "height": 1024,
-              "alt": "마스터 인연의 서 · 궁합 마스터 상담 삽화",
+              "alt": "마스터의 마스터 인연의 서 상담 장면",
               "variants": [
                 {
-                  "src": "/images/consultation-editorial/master-768.webp",
-                  "width": 768
+                  "src": "/images/service-introductions/master-love-codex-320.webp",
+                  "width": 320
+                },
+                {
+                  "src": "/images/service-introductions/master-love-codex-640.webp",
+                  "width": 640
+                },
+                {
+                  "src": "/images/service-introductions/master-love-codex-960.webp",
+                  "width": 960
                 }
-              ]
+              ],
+              "textBelowImage": true
             },
             {
               "id": "editorial-2",
@@ -1920,7 +2012,12 @@
               "portrait": "/images/master-profiles/master-love-portrait.webp"
             }
           ],
-          "priceKRW": 50000
+          "priceKRW": 50000,
+          "cover": {
+            "src": "/images/service-introductions/master-love-codex-320.webp",
+            "width": 320,
+            "height": 213
+          }
         }
       ],
       "imageWidth": 1536,
@@ -2011,7 +2108,7 @@
         "action": "전하고 싶은 말을 한 문장만 적어두세요.",
         "note": "풀이의 문체와 구성을 보여주는 예시입니다. 실제 카드·입력 정보에 따라 내용이 달라집니다."
       },
-      "imageAlt": "운명의 찻집 · 사주 상담 마스터 상담 삽화",
+      "imageAlt": "연이의 운명의 찻집 상담 장면",
       "journey": {
         "questions": [
           "이 마음을 어떻게 정리하면 좋을까요?",
@@ -2124,16 +2221,25 @@
               "id": "editorial-1",
               "title": "마음을 먼저 듣는, 연이의 사주 상담.",
               "text": "쉽게 꺼내지 못한 마음도 천천히 들려주세요. 따뜻한 차 한 잔처럼 이야기를 듣고, 지금의 흐름을 함께 살펴봅니다.",
-              "src": "/images/consultation-editorial/yeoni.webp",
+              "src": "/images/service-introductions/tea-saju.webp",
               "width": 1536,
               "height": 1024,
-              "alt": "운명의 찻집 · 사주 상담 마스터 상담 삽화",
+              "alt": "연이의 연이 사주 상담 상담 장면",
               "variants": [
                 {
-                  "src": "/images/consultation-editorial/yeoni-768.webp",
-                  "width": 768
+                  "src": "/images/service-introductions/tea-saju-320.webp",
+                  "width": 320
+                },
+                {
+                  "src": "/images/service-introductions/tea-saju-640.webp",
+                  "width": 640
+                },
+                {
+                  "src": "/images/service-introductions/tea-saju-960.webp",
+                  "width": 960
                 }
-              ]
+              ],
+              "textBelowImage": true
             },
             {
               "id": "editorial-2",
@@ -2210,7 +2316,12 @@
               "portrait": "/images/master-profiles/yeoni-teahouse-portrait.webp"
             }
           ],
-          "priceKRW": 10000
+          "priceKRW": 10000,
+          "cover": {
+            "src": "/images/service-introductions/tea-saju-320.webp",
+            "width": 320,
+            "height": 213
+          }
         },
         {
           "id": "tea-saju-compat",
@@ -2274,16 +2385,25 @@
               "id": "editorial-1",
               "title": "마음을 먼저 듣는, 연이의 사주 궁합 상담.",
               "text": "쉽게 꺼내지 못한 마음도 천천히 들려주세요. 따뜻한 차 한 잔처럼 이야기를 듣고, 지금의 흐름을 함께 살펴봅니다.",
-              "src": "/images/consultation-editorial/yeoni.webp",
+              "src": "/images/service-introductions/tea-saju-compat.webp",
               "width": 1536,
               "height": 1024,
-              "alt": "운명의 찻집 · 두 사람 사주 궁합 마스터 상담 삽화",
+              "alt": "연이의 연이 사주 궁합 상담 장면",
               "variants": [
                 {
-                  "src": "/images/consultation-editorial/yeoni-768.webp",
-                  "width": 768
+                  "src": "/images/service-introductions/tea-saju-compat-320.webp",
+                  "width": 320
+                },
+                {
+                  "src": "/images/service-introductions/tea-saju-compat-640.webp",
+                  "width": 640
+                },
+                {
+                  "src": "/images/service-introductions/tea-saju-compat-960.webp",
+                  "width": 960
                 }
-              ]
+              ],
+              "textBelowImage": true
             },
             {
               "id": "editorial-2",
@@ -2360,7 +2480,12 @@
               "portrait": "/images/master-profiles/yeoni-teahouse-portrait.webp"
             }
           ],
-          "priceKRW": 10000
+          "priceKRW": 10000,
+          "cover": {
+            "src": "/images/service-introductions/tea-saju-compat-320.webp",
+            "width": 320,
+            "height": 213
+          }
         },
         {
           "id": "tea-sukuyo",
@@ -2416,16 +2541,25 @@
               "id": "editorial-1",
               "title": "마음을 먼저 듣는, 연이의 숙요 궁합 상담.",
               "text": "쉽게 꺼내지 못한 마음도 천천히 들려주세요. 따뜻한 차 한 잔처럼 이야기를 듣고, 지금의 흐름을 함께 살펴봅니다.",
-              "src": "/images/consultation-editorial/yeoni.webp",
+              "src": "/images/service-introductions/tea-sukuyo.webp",
               "width": 1536,
               "height": 1024,
-              "alt": "운명의 찻집 · 숙요 궁합 마스터 상담 삽화",
+              "alt": "연이의 연이 숙요점 상담 상담 장면",
               "variants": [
                 {
-                  "src": "/images/consultation-editorial/yeoni-768.webp",
-                  "width": 768
+                  "src": "/images/service-introductions/tea-sukuyo-320.webp",
+                  "width": 320
+                },
+                {
+                  "src": "/images/service-introductions/tea-sukuyo-640.webp",
+                  "width": 640
+                },
+                {
+                  "src": "/images/service-introductions/tea-sukuyo-960.webp",
+                  "width": 960
                 }
-              ]
+              ],
+              "textBelowImage": true
             },
             {
               "id": "editorial-2",
@@ -2502,7 +2636,12 @@
               "portrait": "/images/master-profiles/yeoni-teahouse-portrait.webp"
             }
           ],
-          "priceKRW": 10000
+          "priceKRW": 10000,
+          "cover": {
+            "src": "/images/service-introductions/tea-sukuyo-320.webp",
+            "width": 320,
+            "height": 213
+          }
         },
         {
           "id": "tea-tarot-three",
@@ -2554,16 +2693,25 @@
               "id": "editorial-1",
               "title": "마음을 먼저 듣는, 연이의 타로 세 장 상담.",
               "text": "쉽게 꺼내지 못한 마음도 천천히 들려주세요. 따뜻한 차 한 잔처럼 이야기를 듣고, 지금의 흐름을 함께 살펴봅니다.",
-              "src": "/images/consultation-editorial/yeoni.webp",
+              "src": "/images/service-introductions/tea-tarot.webp",
               "width": 1536,
               "height": 1024,
-              "alt": "운명의 찻집 · 타로 3장 마스터 상담 삽화",
+              "alt": "연이의 연이 타로 상담 상담 장면",
               "variants": [
                 {
-                  "src": "/images/consultation-editorial/yeoni-768.webp",
-                  "width": 768
+                  "src": "/images/service-introductions/tea-tarot-320.webp",
+                  "width": 320
+                },
+                {
+                  "src": "/images/service-introductions/tea-tarot-640.webp",
+                  "width": 640
+                },
+                {
+                  "src": "/images/service-introductions/tea-tarot-960.webp",
+                  "width": 960
                 }
-              ]
+              ],
+              "textBelowImage": true
             },
             {
               "id": "editorial-2",
@@ -2640,7 +2788,12 @@
               "portrait": "/images/master-profiles/yeoni-teahouse-portrait.webp"
             }
           ],
-          "priceKRW": 5000
+          "priceKRW": 5000,
+          "cover": {
+            "src": "/images/service-introductions/tea-tarot-320.webp",
+            "width": 320,
+            "height": 213
+          }
         },
         {
           "id": "tea-tarot-five",
@@ -2692,16 +2845,25 @@
               "id": "editorial-1",
               "title": "마음을 먼저 듣는, 연이의 타로 다섯 장 상담.",
               "text": "쉽게 꺼내지 못한 마음도 천천히 들려주세요. 따뜻한 차 한 잔처럼 이야기를 듣고, 지금의 흐름을 함께 살펴봅니다.",
-              "src": "/images/consultation-editorial/yeoni.webp",
+              "src": "/images/service-introductions/tea-tarot.webp",
               "width": 1536,
               "height": 1024,
-              "alt": "운명의 찻집 · 타로 5장 마스터 상담 삽화",
+              "alt": "연이의 연이 타로 상담 상담 장면",
               "variants": [
                 {
-                  "src": "/images/consultation-editorial/yeoni-768.webp",
-                  "width": 768
+                  "src": "/images/service-introductions/tea-tarot-320.webp",
+                  "width": 320
+                },
+                {
+                  "src": "/images/service-introductions/tea-tarot-640.webp",
+                  "width": 640
+                },
+                {
+                  "src": "/images/service-introductions/tea-tarot-960.webp",
+                  "width": 960
                 }
-              ]
+              ],
+              "textBelowImage": true
             },
             {
               "id": "editorial-2",
@@ -2778,7 +2940,12 @@
               "portrait": "/images/master-profiles/yeoni-teahouse-portrait.webp"
             }
           ],
-          "priceKRW": 7000
+          "priceKRW": 7000,
+          "cover": {
+            "src": "/images/service-introductions/tea-tarot-320.webp",
+            "width": 320,
+            "height": 213
+          }
         }
       ],
       "theme": "navy",
@@ -2823,7 +2990,7 @@
         "scripts/test-mobile-platform-journeys.mjs"
       ],
       "verification": "verified",
-      "imageAlt": "연애 비책 마스터 상담 삽화",
+      "imageAlt": "연이·서한비의 연애 비책 상담 장면",
       "theme": "burgundy",
       "edition": "6부 28개 섹션 · 궁합과 시기 · 7일 실천 비책",
       "benefits": [
@@ -3204,16 +3371,25 @@
               "id": "editorial-1",
               "title": "마음은 연이가 듣고, 관계의 거리는 서한비가 짚습니다.",
               "text": "나의 연애 방식에서 상대와의 거리, 갈등과 시기까지 두 마스터가 나누어 읽는 연애 비책입니다.",
-              "src": "/images/consultation-editorial/love.webp",
+              "src": "/images/service-introductions/love-secret-ai.webp",
               "width": 1536,
               "height": 1024,
-              "alt": "연애 비책 마스터 상담 삽화",
+              "alt": "연이·서한비의 연애 비책 상담 장면",
               "variants": [
                 {
-                  "src": "/images/consultation-editorial/love-768.webp",
-                  "width": 768
+                  "src": "/images/service-introductions/love-secret-ai-320.webp",
+                  "width": 320
+                },
+                {
+                  "src": "/images/service-introductions/love-secret-ai-640.webp",
+                  "width": 640
+                },
+                {
+                  "src": "/images/service-introductions/love-secret-ai-960.webp",
+                  "width": 960
                 }
-              ]
+              ],
+              "textBelowImage": true
             },
             {
               "id": "editorial-2",
@@ -3284,6 +3460,7 @@
         "credential": "10년 경력 운세 상담사·명리학자가 만든 서비스",
         "method": "현장 상담 경험을 서비스에 담았습니다. 각 체계의 계산 결과를 바탕으로 AI가 해설하며, 상담사가 결과마다 직접 답하는 방식은 아닙니다."
       },
+      "catalogImage": "/feature-details/assets/love-secret-ai-catalog-320.webp",
       "imageWidth": 1536,
       "imageHeight": 1024,
       "heroVariants": [
@@ -3325,7 +3502,7 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
-      "imageAlt": "새 상담실 · 연이의 운명 상담 마스터 상담 삽화",
+      "imageAlt": "연이·네오의 대화형 운명 상담 상담 장면",
       "benefits": [
         "상담 주제 선택",
         "연이와 네오의 시선",
@@ -3375,16 +3552,25 @@
               "id": "editorial-1",
               "title": "마음을 먼저 듣는, 연이의 대화 상담.",
               "text": "쉽게 꺼내지 못한 마음도 천천히 들려주세요. 따뜻한 차 한 잔처럼 이야기를 듣고, 지금의 흐름을 함께 살펴봅니다.",
-              "src": "/images/consultation-editorial/chat.webp",
+              "src": "/images/service-introductions/fortune-chat.webp",
               "width": 1536,
               "height": 1024,
-              "alt": "새 상담실 · 연이의 운명 상담 마스터 상담 삽화",
+              "alt": "연이·네오의 대화형 운명 상담 상담 장면",
               "variants": [
                 {
-                  "src": "/images/consultation-editorial/chat-768.webp",
-                  "width": 768
+                  "src": "/images/service-introductions/fortune-chat-320.webp",
+                  "width": 320
+                },
+                {
+                  "src": "/images/service-introductions/fortune-chat-640.webp",
+                  "width": 640
+                },
+                {
+                  "src": "/images/service-introductions/fortune-chat-960.webp",
+                  "width": 960
                 }
-              ]
+              ],
+              "textBelowImage": true
             },
             {
               "id": "editorial-2",
@@ -3461,7 +3647,12 @@
               "portrait": "/images/master-profiles/yeoni-teahouse-portrait.webp"
             }
           ],
-          "priceKRW": 5000
+          "priceKRW": 5000,
+          "cover": {
+            "src": "/images/service-introductions/fortune-chat-320.webp",
+            "width": 320,
+            "height": 213
+          }
         },
         {
           "id": "chat-engine-neo",
@@ -3473,16 +3664,25 @@
               "id": "editorial-1",
               "title": "네오와 함께, 다음 선택을 정리해라.",
               "text": "복잡한 고민을 선택 가능한 문제로 나누고 지금 움직일 방향을 찾습니다.",
-              "src": "/images/consultation-editorial/neo.webp",
+              "src": "/images/service-introductions/fortune-chat.webp",
               "width": 1536,
               "height": 1024,
-              "alt": "새 상담실 · 네오의 별빛 전략실 마스터 상담 삽화",
+              "alt": "연이·네오의 대화형 운명 상담 상담 장면",
               "variants": [
                 {
-                  "src": "/images/consultation-editorial/neo-768.webp",
-                  "width": 768
+                  "src": "/images/service-introductions/fortune-chat-320.webp",
+                  "width": 320
+                },
+                {
+                  "src": "/images/service-introductions/fortune-chat-640.webp",
+                  "width": 640
+                },
+                {
+                  "src": "/images/service-introductions/fortune-chat-960.webp",
+                  "width": 960
                 }
-              ]
+              ],
+              "textBelowImage": true
             },
             {
               "id": "editorial-2",
@@ -3559,9 +3759,15 @@
               "portrait": "/images/master-profiles/neo-strategy-portrait.webp"
             }
           ],
-          "priceKRW": 5000
+          "priceKRW": 5000,
+          "cover": {
+            "src": "/images/service-introductions/fortune-chat-320.webp",
+            "width": 320,
+            "height": 213
+          }
         }
       ],
+      "catalogImage": "/feature-details/assets/fortune-chat-catalog-320.webp",
       "theme": "navy",
       "imageWidth": 1536,
       "imageHeight": 1024,
@@ -3613,7 +3819,7 @@
         "trustNotes": [],
         "faq": []
       },
-      "imageAlt": "우리는 무슨 사이?의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "우리는 무슨 사이?의 핵심 도구와 이용 장면을 담은 일러스트",
       "benefits": [
         "지금 관계의 온도",
         "엇갈리는 마음의 지점",
@@ -3643,9 +3849,10 @@
         "action": "내가 원하는 연락의 리듬을 부드럽게 말해보세요.",
         "note": "풀이의 문체와 구성을 보여주는 예시입니다. 실제 카드·입력 정보에 따라 내용이 달라집니다."
       },
+      "catalogImage": "/feature-details/assets/tarot-love-relationship-catalog-320.webp",
       "theme": "burgundy",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/tarot-love-relationship-480.webp",
@@ -3686,7 +3893,7 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
-      "imageAlt": "재회운 타로의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "재회운 타로의 핵심 도구와 이용 장면을 담은 일러스트",
       "benefits": [
         "지금 두 사람의 거리",
         "다섯 자리의 관계 흐름",
@@ -3734,9 +3941,10 @@
           }
         ]
       },
+      "catalogImage": "/feature-details/assets/tarot-reunion-catalog-320.webp",
       "theme": "burgundy",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/tarot-reunion-480.webp",
@@ -3775,7 +3983,7 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
-      "imageAlt": "말과 행동 사이 타로의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "말과 행동 사이 타로의 핵심 도구와 이용 장면을 담은 일러스트",
       "benefits": [
         "표현과 감정의 간격",
         "망설임의 배경",
@@ -3823,9 +4031,10 @@
           }
         ]
       },
+      "catalogImage": "/feature-details/assets/tarot-mindscan-catalog-320.webp",
       "theme": "burgundy",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/tarot-mindscan-480.webp",
@@ -3865,7 +4074,7 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
-      "imageAlt": "동서 통합 궁합의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "동서 통합 궁합의 핵심 도구와 이용 장면을 담은 일러스트",
       "benefits": [
         "아쉬타쿠타 여덟 항목",
         "숙요의 관계와 거리",
@@ -3910,9 +4119,10 @@
           }
         ]
       },
+      "catalogImage": "/feature-details/assets/nakshatra-compat-catalog-320.webp",
       "theme": "rose",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/nakshatra-compat-480.webp",
@@ -3983,7 +4193,7 @@
         "action": "오늘 끝낼 수 있는 일 하나에 시간을 정해라.",
         "note": "풀이의 문체와 구성을 보여주는 예시입니다. 실제 카드·입력 정보에 따라 내용이 달라집니다."
       },
-      "imageAlt": "네오의 팩폭 작전실 마스터 상담 삽화",
+      "imageAlt": "네오의 네오의 팩폭 작전실 상담 장면",
       "journey": {
         "questions": [
           "여러 고민 중 무엇부터 손대야 할까요?",
@@ -4110,16 +4320,25 @@
               "id": "editorial-1",
               "title": "위로 다음의 한 수, 네오와 정리해라.",
               "text": "막연한 불안 대신 지금 바꿀 수 있는 지점을 찾습니다. 네오는 직설적으로 짚되 당신을 깎아내리지 않습니다.",
-              "src": "/images/consultation-editorial/neo.webp",
+              "src": "/images/service-introductions/neo-operation-room.webp",
               "width": 1536,
               "height": 1024,
-              "alt": "네오의 팩폭 작전실 마스터 상담 삽화",
+              "alt": "네오의 네오의 팩폭 작전실 상담 장면",
               "variants": [
                 {
-                  "src": "/images/consultation-editorial/neo-768.webp",
-                  "width": 768
+                  "src": "/images/service-introductions/neo-operation-room-320.webp",
+                  "width": 320
+                },
+                {
+                  "src": "/images/service-introductions/neo-operation-room-640.webp",
+                  "width": 640
+                },
+                {
+                  "src": "/images/service-introductions/neo-operation-room-960.webp",
+                  "width": 960
                 }
-              ]
+              ],
+              "textBelowImage": true
             },
             {
               "id": "editorial-2",
@@ -4241,7 +4460,7 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
-      "imageAlt": "운명의 나침반의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "운명의 나침반의 핵심 도구와 이용 장면을 담은 일러스트",
       "benefits": [
         "현재 고민의 좌표",
         "네 체계에서 찾은 단서",
@@ -4306,9 +4525,10 @@
         }
       ],
       "freeEntry": true,
+      "catalogImage": "/feature-details/assets/destiny-compass-catalog-320.webp",
       "theme": "navy",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/destiny-compass-480.webp",
@@ -4348,7 +4568,7 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
-      "imageAlt": "사주의 네 기둥과 시간 궤도를 관측하는 분석실",
+      "imageAlt": "시빌라 연간 대비 리포트의 핵심 도구와 이용 장면을 담은 일러스트",
       "benefits": [
         "선택 연도의 주의 시기",
         "타고난 장점과 그림자",
@@ -4387,9 +4607,10 @@
         "trustNotes": [],
         "faq": []
       },
+      "catalogImage": "/feature-details/assets/saju-sibyl-catalog-320.webp",
       "theme": "navy",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/saju-sibyl-480.webp",
@@ -4429,7 +4650,7 @@
         "scripts/test-mobile-platform-journeys.mjs"
       ],
       "verification": "verified",
-      "imageAlt": "신년운세 전문가 상담 마스터 상담 삽화",
+      "imageAlt": "네오의 신년운세 상담 장면",
       "theme": "burgundy",
       "edition": "5개 분야 · 1월부터 12월까지 · 선택한 해의 세운 리포트",
       "benefits": [
@@ -4708,16 +4929,25 @@
               "id": "editorial-1",
               "title": "올해의 판세를 읽고, 나의 작전을 세웁니다.",
               "text": "네오가 한 해의 흐름을 짚고, 힘을 쓸 때와 숨을 고를 때를 현실적인 전략으로 정리합니다.",
-              "src": "/images/consultation-editorial/year.webp",
+              "src": "/images/service-introductions/new-year-ai.webp",
               "width": 1536,
               "height": 1024,
-              "alt": "신년운세 전문가 상담 마스터 상담 삽화",
+              "alt": "네오의 신년운세 상담 장면",
               "variants": [
                 {
-                  "src": "/images/consultation-editorial/year-768.webp",
-                  "width": 768
+                  "src": "/images/service-introductions/new-year-ai-320.webp",
+                  "width": 320
+                },
+                {
+                  "src": "/images/service-introductions/new-year-ai-640.webp",
+                  "width": 640
+                },
+                {
+                  "src": "/images/service-introductions/new-year-ai-960.webp",
+                  "width": 960
                 }
-              ]
+              ],
+              "textBelowImage": true
             },
             {
               "id": "editorial-2",
@@ -4784,6 +5014,7 @@
           "priceKRW": 30000
         }
       ],
+      "catalogImage": "/feature-details/assets/new-year-ai-catalog-320.webp",
       "imageWidth": 1536,
       "imageHeight": 1024,
       "heroVariants": [
@@ -4824,7 +5055,7 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
-      "imageAlt": "이직 운명의 카드의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "이직 운명의 카드의 핵심 도구와 이용 장면을 담은 일러스트",
       "benefits": [
         "현직에 남는 흐름",
         "이직 앞의 가능성과 변수",
@@ -4872,9 +5103,10 @@
           }
         ]
       },
+      "catalogImage": "/feature-details/assets/tarot-ijik-catalog-320.webp",
       "theme": "burgundy",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/tarot-ijik-480.webp",
@@ -4914,7 +5146,7 @@
         "scripts/test-mobile-platform-journeys.mjs"
       ],
       "verification": "verified",
-      "imageAlt": "인생의 책 마스터 상담 삽화",
+      "imageAlt": "윤달의 인생의 책 상담 장면",
       "theme": "emerald",
       "edition": "10장 인생 서사 · 명식 깊은 판독 4편 · 마지막 문장",
       "benefits": [
@@ -5187,16 +5419,25 @@
               "id": "editorial-1",
               "title": "당신의 인생을 읽고, 다음 장을 함께 생각합니다.",
               "text": "윤달이 삶의 기질과 반복되는 선택을 책처럼 풀어 드립니다. 이미 정해진 결말보다 앞으로 써 갈 방향을 살핍니다.",
-              "src": "/images/consultation-editorial/life.webp",
+              "src": "/images/service-introductions/life-book-ai.webp",
               "width": 1536,
               "height": 1024,
-              "alt": "인생의 책 마스터 상담 삽화",
+              "alt": "윤달의 인생의 책 상담 장면",
               "variants": [
                 {
-                  "src": "/images/consultation-editorial/life-768.webp",
-                  "width": 768
+                  "src": "/images/service-introductions/life-book-ai-320.webp",
+                  "width": 320
+                },
+                {
+                  "src": "/images/service-introductions/life-book-ai-640.webp",
+                  "width": 640
+                },
+                {
+                  "src": "/images/service-introductions/life-book-ai-960.webp",
+                  "width": 960
                 }
-              ]
+              ],
+              "textBelowImage": true
             },
             {
               "id": "editorial-2",
@@ -5267,6 +5508,7 @@
         "credential": "10년 경력 운세 상담사·명리학자가 만든 서비스",
         "method": "현장 상담 경험을 서비스에 담았습니다. 각 체계의 계산 결과를 바탕으로 AI가 해설하며, 상담사가 결과마다 직접 답하는 방식은 아닙니다."
       },
+      "catalogImage": "/feature-details/assets/life-book-ai-catalog-320.webp",
       "imageWidth": 1536,
       "imageHeight": 1024,
       "heroVariants": [
@@ -5308,7 +5550,7 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
-      "imageAlt": "운명의 업 전문가 상담 마스터 상담 삽화",
+      "imageAlt": "네오·서한비의 네오와 서한비의 붉은 실 상담 장면",
       "benefits": [
         "반복되는 감정의 주제",
         "인연을 보는 상징",
@@ -5371,16 +5613,25 @@
               "id": "editorial-1",
               "title": "반복되는 매듭을, 다른 선택으로 풀어 봅니다.",
               "text": "네오와 서한비가 선택의 습관과 관계의 매듭을 함께 살핍니다. 업이라는 말을 피할 수 없는 벌이 아니라, 돌아보고 바꿀 수 있는 패턴으로 읽습니다.",
-              "src": "/images/consultation-editorial/karma.webp",
+              "src": "/images/service-introductions/karma-destiny-ai.webp",
               "width": 1536,
               "height": 1024,
-              "alt": "운명의 업 전문가 상담 마스터 상담 삽화",
+              "alt": "네오·서한비의 네오와 서한비의 붉은 실 상담 장면",
               "variants": [
                 {
-                  "src": "/images/consultation-editorial/karma-768.webp",
-                  "width": 768
+                  "src": "/images/service-introductions/karma-destiny-ai-320.webp",
+                  "width": 320
+                },
+                {
+                  "src": "/images/service-introductions/karma-destiny-ai-640.webp",
+                  "width": 640
+                },
+                {
+                  "src": "/images/service-introductions/karma-destiny-ai-960.webp",
+                  "width": 960
                 }
-              ]
+              ],
+              "textBelowImage": true
             },
             {
               "id": "editorial-2",
@@ -5471,6 +5722,7 @@
           "priceKRW": 30000
         }
       ],
+      "catalogImage": "/feature-details/assets/karma-destiny-ai-catalog-320.webp",
       "theme": "navy",
       "imageWidth": 1536,
       "imageHeight": 1024,
@@ -5544,7 +5796,7 @@
           "title": "부적 주머니와 실전 가이드"
         }
       ],
-      "imageAlt": "사주 가디언 소환진의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "사주 가디언 소환진의 핵심 도구와 이용 장면을 담은 일러스트",
       "journey": {
         "questions": [
           "내 일주의 가디언은 어떤 모습인가요?",
@@ -5563,9 +5815,10 @@
           }
         ]
       },
+      "catalogImage": "/feature-details/assets/saju-guardian-catalog-320.webp",
       "theme": "navy",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/saju-guardian-480.webp",
@@ -5612,7 +5865,7 @@
         "action": "마음에 남은 후보를 성과 함께 소리 내어 읽고, 뜻과 사용 편의성을 나란히 적어보세요.",
         "note": "결과의 문체와 구성을 보여주는 가상의 편집 예시입니다. 실제 고객 결과가 아니며, 선택한 구성과 입력에 따라 내용이 달라집니다."
       },
-      "imageAlt": "전문가 작명소의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "전문가 작명소의 핵심 도구와 이용 장면을 담은 일러스트",
       "benefits": [
         "사주와 이름의 조화",
         "이름 후보와 의미",
@@ -5661,9 +5914,10 @@
           }
         ]
       },
+      "catalogImage": "/feature-details/assets/naming-ai-catalog-320.webp",
       "theme": "navy",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/naming-ai-480.webp",
@@ -5703,7 +5957,7 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
-      "imageAlt": "초융합 운세 마스터 상담 삽화",
+      "imageAlt": "네오·연이·서한비·윤달·무성의 초융합 심층 리딩 상담 장면",
       "benefits": [
         "체계별 나의 모습",
         "겹쳐 보이는 기질",
@@ -5838,16 +6092,25 @@
               "id": "editorial-1",
               "title": "여섯 관점이 만나, 하나의 선택이 또렷해집니다.",
               "text": "사주·자미두수·베다점·숙요점·서양점성술·타로를 각각 읽고, 같은 질문을 향한 근거를 비교합니다. 다섯 마스터의 해석을 지나 지금 할 수 있는 선택으로 이어지는 초융합 상담입니다.",
-              "src": "/images/consultation-editorial/fusion.webp",
+              "src": "/images/service-introductions/fusion-fortune.webp",
               "width": 1536,
               "height": 1024,
-              "alt": "초융합 운세 마스터 상담 삽화",
+              "alt": "네오·연이·서한비·윤달·무성의 초융합 심층 리딩 상담 장면",
               "variants": [
                 {
-                  "src": "/images/consultation-editorial/fusion-768.webp",
-                  "width": 768
+                  "src": "/images/service-introductions/fusion-fortune-320.webp",
+                  "width": 320
+                },
+                {
+                  "src": "/images/service-introductions/fusion-fortune-640.webp",
+                  "width": 640
+                },
+                {
+                  "src": "/images/service-introductions/fusion-fortune-960.webp",
+                  "width": 960
                 }
-              ]
+              ],
+              "textBelowImage": true
             },
             {
               "id": "editorial-2",
@@ -5978,6 +6241,7 @@
           "priceKRW": 50000
         }
       ],
+      "catalogImage": "/feature-details/assets/fusion-fortune-catalog-320.webp",
       "theme": "navy",
       "imageWidth": 1536,
       "imageHeight": 1024,
@@ -6043,7 +6307,7 @@
           "title": "이어 보기"
         }
       ],
-      "imageAlt": "십이지신 천운 타로의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "십이지신 천운 타로의 핵심 도구와 이용 장면을 담은 일러스트",
       "sample": {
         "title": "한 달의 메시지",
         "text": "마음이 바빠지는 시기에는 계획을 늘리기 쉽습니다. 이번 달의 질문은 얼마나 많이 해낼지보다, 무엇을 끝까지 가져갈지에 가까워요.",
@@ -6068,9 +6332,10 @@
           }
         ]
       },
+      "catalogImage": "/feature-details/assets/tarot-year-fortune-catalog-320.webp",
       "theme": "burgundy",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/tarot-year-fortune-480.webp",
@@ -6133,7 +6398,7 @@
           "title": "다시 불러오기"
         }
       ],
-      "imageAlt": "천체의 선율의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "천체의 선율의 핵심 도구와 이용 장면을 담은 일러스트",
       "sample": {
         "title": "서로 다른 힘의 조화",
         "text": "앞으로 나아가고 싶은 마음과 안전하게 머물고 싶은 마음이 함께 움직일 수 있어요. 어느 한쪽을 지우기보다 두 마음이 원하는 조건을 들어보세요.",
@@ -6158,9 +6423,10 @@
           }
         ]
       },
+      "catalogImage": "/feature-details/assets/tarot-celestial-harmony-catalog-320.webp",
       "theme": "burgundy",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/tarot-celestial-harmony-480.webp",
@@ -6205,7 +6471,7 @@
         "action": "후보 날짜 옆에 준비물과 참석 가능 여부를 적어 실제로 가능한 날을 좁혀보세요.",
         "note": "결과의 문체와 구성을 보여주는 가상의 편집 예시입니다. 실제 고객 결과가 아니며, 선택한 구성과 입력에 따라 내용이 달라집니다."
       },
-      "imageAlt": "택일 무후르타의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "택일 무후르타의 핵심 도구와 이용 장면을 담은 일러스트",
       "benefits": [
         "시작할 일의 주제",
         "후보 날짜의 흐름",
@@ -6257,16 +6523,26 @@
             {
               "id": "01-choose-a-day",
               "title": "시작할 일을 정했다면, 날짜를 살펴볼 차례.",
-              "src": "/feature-details/crafted/nakshatra-muhurta/01-choose-a-day.webp",
-              "width": 1080,
-              "height": 1440,
+              "src": "/images/service-introductions/nakshatra-muhurta.webp",
+              "width": 1536,
+              "height": 1024,
               "text": "시작할 일을 정했다면,\n날짜를 살펴볼 차례.\n목적\n시작일\n후보일\n나크샤트라 택일\n\n무후르타는 목적에 맞는 날을 살피는\n전통의 해석 방법입니다.\n내 별자리와 조회할 날짜의 흐름을\n나란히 비교해봅니다.",
+              "alt": "택일 무후르타의 핵심 도구와 이용 장면을 담은 일러스트",
               "variants": [
                 {
-                  "src": "/feature-details/crafted/nakshatra-muhurta/01-choose-a-day-540.webp",
-                  "width": 540
+                  "src": "/images/service-introductions/nakshatra-muhurta-320.webp",
+                  "width": 320
+                },
+                {
+                  "src": "/images/service-introductions/nakshatra-muhurta-640.webp",
+                  "width": 640
+                },
+                {
+                  "src": "/images/service-introductions/nakshatra-muhurta-960.webp",
+                  "width": 960
                 }
-              ]
+              ],
+              "textBelowImage": true
             },
             {
               "id": "02-what-are-you-starting",
@@ -6370,9 +6646,10 @@
           "priceKRW": 7000
         }
       ],
+      "catalogImage": "/feature-details/assets/nakshatra-muhurta-catalog-320.webp",
       "theme": "indigo",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/nakshatra-muhurta-480.webp",
@@ -6429,10 +6706,11 @@
         "관계와 일의 성향"
       ],
       "contents": [],
-      "imageAlt": "사주 정밀 분석의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "꽃돼지 연이의 사주 정밀 분석 상담 장면",
+      "catalogImage": "/feature-details/assets/saju-catalog-320.webp",
       "theme": "navy",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/saju-480.webp",
@@ -6491,10 +6769,11 @@
         "마음에 남는 조언"
       ],
       "contents": [],
-      "imageAlt": "타로의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "타로 리딩의 핵심 도구와 이용 장면을 담은 일러스트",
+      "catalogImage": "/feature-details/assets/tarot-catalog-320.webp",
       "theme": "burgundy",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/tarot-480.webp",
@@ -6552,10 +6831,11 @@
         "명반을 읽는 실마리"
       ],
       "contents": [],
-      "imageAlt": "심화 자미두수 12궁 상담의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "무성이 열두 궁 명반의 별자리를 금빛 깃털로 짚는 장면",
+      "catalogImage": "/feature-details/assets/ziwei-catalog-320.webp",
       "theme": "navy",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/ziwei-480.webp",
@@ -6629,7 +6909,7 @@
           "title": "빛과 현실 · 두 사람의 자리"
         }
       ],
-      "imageAlt": "숙요점의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "서한비가 두 달 자리 사이의 관계 거리를 살피는 장면",
       "journey": {
         "questions": [
           "이 사람과는 어떤 거리의 인연인가요?",
@@ -6652,9 +6932,10 @@
           }
         ]
       },
+      "catalogImage": "/feature-details/assets/sukuyo-catalog-320.webp",
       "theme": "navy",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/sukuyo-480.webp",
@@ -6712,10 +6993,11 @@
         "삶의 주제와 흐름"
       ],
       "contents": [],
-      "imageAlt": "베다 점성술 분석의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "윤달이 베다점의 마름모 차트와 달의 자리를 살피는 장면",
+      "catalogImage": "/feature-details/assets/vedic-catalog-320.webp",
       "theme": "indigo",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/vedic-480.webp",
@@ -6773,10 +7055,11 @@
         "차트가 잇는 관계"
       ],
       "contents": [],
-      "imageAlt": "서양 점성술 차트 분석의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "윤달이 서양 점성술의 원형 출생차트와 행성 배치를 살피는 장면",
+      "catalogImage": "/feature-details/assets/astrology-catalog-320.webp",
       "theme": "indigo",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/astrology-480.webp",
@@ -6848,7 +7131,7 @@
           "title": "PDF로 저장"
         }
       ],
-      "imageAlt": "휴먼 디자인의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "휴먼 디자인의 핵심 도구와 이용 장면을 담은 일러스트",
       "journey": {
         "questions": [
           "저는 어떤 타입인가요?",
@@ -6858,9 +7141,10 @@
         "trustNotes": [],
         "faq": []
       },
+      "catalogImage": "/feature-details/assets/human-design-catalog-320.webp",
       "theme": "indigo",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/human-design-480.webp",
@@ -6907,7 +7191,7 @@
         "일상 속 성향의 단서"
       ],
       "contents": [],
-      "imageAlt": "나크샤트라 결정판의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "나크샤트라 결정판의 핵심 도구와 이용 장면을 담은 일러스트",
       "journey": {
         "questions": [
           "제 나크샤트라는 무엇인가요?",
@@ -6923,9 +7207,10 @@
         "action": "중요한 선택 앞에서 내가 빠르게 반응하는지, 시간을 두고 정리하는지 먼저 적어보세요.",
         "note": "풀이의 문체와 구성을 보여주는 가상의 편집 예시입니다. 실제 입력 정보에 따라 내용이 달라집니다."
       },
+      "catalogImage": "/feature-details/assets/nakshatra-catalog-320.webp",
       "theme": "indigo",
-      "imageWidth": 1672,
-      "imageHeight": 941,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/nakshatra-480.webp",
@@ -6971,7 +7256,7 @@
         "삶의 리듬"
       ],
       "contents": [],
-      "imageAlt": "마야점의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "마야점의 핵심 도구와 이용 장면을 담은 일러스트",
       "journey": {
         "questions": [
           "오늘은 어떤 기운의 날인가요?",
@@ -6981,9 +7266,10 @@
         "trustNotes": [],
         "faq": []
       },
+      "catalogImage": "/feature-details/assets/maya-catalog-320.webp",
       "theme": "indigo",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/maya-480.webp",
@@ -7036,7 +7322,7 @@
         "작은 행동 힌트"
       ],
       "contents": [],
-      "imageAlt": "오늘의 운세의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "오늘의 운세의 핵심 도구와 이용 장면을 담은 일러스트",
       "journey": {
         "questions": [
           "세 체계가 오늘을 어떻게 보나요?",
@@ -7046,9 +7332,10 @@
         "trustNotes": [],
         "faq": []
       },
+      "catalogImage": "/feature-details/assets/daily-fortune-catalog-320.webp",
       "theme": "saffron",
-      "imageWidth": 1280,
-      "imageHeight": 853,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/daily-fortune-480.webp",
@@ -7101,7 +7388,7 @@
         "나에게 맞는 시작"
       ],
       "contents": [],
-      "imageAlt": "오늘의 운세 허브의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "오늘의 운세 허브의 핵심 도구와 이용 장면을 담은 일러스트",
       "journey": {
         "questions": [
           "세 체계가 오늘을 어떻게 보나요?",
@@ -7111,9 +7398,10 @@
         "trustNotes": [],
         "faq": []
       },
+      "catalogImage": "/feature-details/assets/today-hub-catalog-320.webp",
       "theme": "saffron",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/today-hub-480.webp",
@@ -7181,7 +7469,7 @@
           "title": "결과 확인"
         }
       ],
-      "imageAlt": "햇살 드는 정원 창가에서 펼친 손바닥의 선을 짚어 보는 손금 상담가 연이의 오리지널 일러스트",
+      "imageAlt": "분홍 머리의 인간 연이가 펼친 손바닥의 손금을 함께 살피는 장면",
       "journey": {
         "questions": [
           "내 손금에서 가장 뚜렷한 선은 무엇인가요?",
@@ -7204,9 +7492,10 @@
           }
         ]
       },
+      "catalogImage": "/feature-details/assets/palm-reading-catalog-320.webp",
       "theme": "emerald",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/palm-reading-480.webp",
@@ -7253,7 +7542,7 @@
         "자기표현의 힌트"
       ],
       "contents": [],
-      "imageAlt": "관상의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "관상의 핵심 도구와 이용 장면을 담은 일러스트",
       "journey": {
         "questions": [
           "제 인상은 어떻게 읽히나요?",
@@ -7263,9 +7552,10 @@
         "trustNotes": [],
         "faq": []
       },
+      "catalogImage": "/feature-details/assets/physiognomy-catalog-320.webp",
       "theme": "emerald",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/physiognomy-480.webp",
@@ -7319,7 +7609,7 @@
         "마음에 남은 질문"
       ],
       "contents": [],
-      "imageAlt": "꿈해몽의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "꿈해몽의 핵심 도구와 이용 장면을 담은 일러스트",
       "journey": {
         "questions": [
           "이 꿈은 무슨 의미인가요?",
@@ -7329,9 +7619,10 @@
         "trustNotes": [],
         "faq": []
       },
+      "catalogImage": "/feature-details/assets/dream-catalog-320.webp",
       "theme": "emerald",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/dream-480.webp",
@@ -7383,7 +7674,7 @@
         "나를 돌아볼 힌트"
       ],
       "contents": [],
-      "imageAlt": "심리테스트의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "심리테스트의 핵심 도구와 이용 장면을 담은 일러스트",
       "journey": {
         "questions": [
           "저는 어떤 성향인가요?",
@@ -7393,9 +7684,10 @@
         "trustNotes": [],
         "faq": []
       },
+      "catalogImage": "/feature-details/assets/psychotest-catalog-320.webp",
       "theme": "emerald",
-      "imageWidth": 1200,
-      "imageHeight": 800,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/psychotest-480.webp",
@@ -7441,7 +7733,7 @@
         "운의 시간축"
       ],
       "contents": [],
-      "imageAlt": "만세력의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "만세력의 핵심 도구와 이용 장면을 담은 일러스트",
       "journey": {
         "questions": [
           "제 사주 여덟 글자는 무엇인가요?",
@@ -7451,9 +7743,10 @@
         "trustNotes": [],
         "faq": []
       },
+      "catalogImage": "/feature-details/assets/manse-catalog-320.webp",
       "theme": "navy",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/manse-480.webp",
@@ -7499,7 +7792,7 @@
         "사주를 읽는 예시"
       ],
       "contents": [],
-      "imageAlt": "유명인 사주의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "유명인 사주의 핵심 도구와 이용 장면을 담은 일러스트",
       "journey": {
         "questions": [
           "이 배치는 어떤 삶으로 나타나나요?",
@@ -7509,9 +7802,10 @@
         "trustNotes": [],
         "faq": []
       },
+      "catalogImage": "/feature-details/assets/famous-saju-catalog-320.webp",
       "theme": "navy",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/famous-saju-480.webp",
@@ -7574,7 +7868,7 @@
           "title": "결과 카드 저장"
         }
       ],
-      "imageAlt": "운명의 동물 도감의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "운명의 동물 도감의 핵심 도구와 이용 장면을 담은 일러스트",
       "journey": {
         "questions": [
           "나의 수호 동물은 무엇인가요?",
@@ -7603,17 +7897,26 @@
             {
               "id": "01-your-own-pace",
               "title": "남의 속도를 따라가다, 내 강점을 놓쳤다면.",
-              "alt": "남의 속도를 따라가다, 내 강점을 놓쳤다면.",
-              "src": "/feature-details/crafted/animal-destiny/01-your-own-pace.webp",
-              "width": 1080,
-              "height": 1440,
+              "alt": "운명의 동물 도감의 핵심 도구와 이용 장면을 담은 일러스트",
+              "src": "/images/service-introductions/animal-destiny.webp",
+              "width": 1536,
+              "height": 1024,
               "text": "남의 속도를 따라가다,\n내 강점을 놓쳤다면.\n\n사주의 십이운성을 동물의 언어로 풀어\n나답게 힘을 쓰는 방식을 살펴보세요.\n\n십이운성 동물점 · 운명의 동물 도감",
               "variants": [
                 {
-                  "src": "/feature-details/crafted/animal-destiny/01-your-own-pace-540.webp",
-                  "width": 540
+                  "src": "/images/service-introductions/animal-destiny-320.webp",
+                  "width": 320
+                },
+                {
+                  "src": "/images/service-introductions/animal-destiny-640.webp",
+                  "width": 640
+                },
+                {
+                  "src": "/images/service-introductions/animal-destiny-960.webp",
+                  "width": 960
                 }
-              ]
+              ],
+              "textBelowImage": true
             },
             {
               "id": "02-energy-not-rank",
@@ -7724,9 +8027,10 @@
           "priceKRW": 7000
         }
       ],
+      "catalogImage": "/feature-details/assets/animal-destiny-catalog-320.webp",
       "theme": "emerald",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/animal-destiny-480.webp",
@@ -7795,7 +8099,7 @@
           "title": "세 신의 합 정리"
         }
       ],
-      "imageAlt": "이집트 신탁의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "이집트 신탁의 핵심 도구와 이용 장면을 담은 일러스트",
       "journey": {
         "questions": [
           "이 상황은 어디서 와서 어디로 가나요?",
@@ -7814,9 +8118,10 @@
           }
         ]
       },
+      "catalogImage": "/feature-details/assets/kemet-oracle-catalog-320.webp",
       "theme": "burgundy",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/kemet-oracle-480.webp",
@@ -7885,7 +8190,7 @@
           "title": "저장하기"
         }
       ],
-      "imageAlt": "IFÀ 오라클의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "IFÀ 오라클의 핵심 도구와 이용 장면을 담은 일러스트",
       "journey": {
         "questions": [
           "지금 이 일을 진행해도 될까요?",
@@ -7904,9 +8209,10 @@
           }
         ]
       },
+      "catalogImage": "/feature-details/assets/ifa-oracle-catalog-320.webp",
       "theme": "burgundy",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/ifa-oracle-480.webp",
@@ -7975,7 +8281,7 @@
           "title": "오늘의 태도 정리"
         }
       ],
-      "imageAlt": "주역 거북점의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "주역 거북점의 핵심 도구와 이용 장면을 담은 일러스트",
       "journey": {
         "questions": [
           "이 일은 지금 밀어붙여도 될까요?",
@@ -7994,9 +8300,10 @@
           }
         ]
       },
+      "catalogImage": "/feature-details/assets/juyuk-turtle-catalog-320.webp",
       "theme": "burgundy",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/juyuk-turtle-480.webp",
@@ -8065,7 +8372,7 @@
           "title": "확정 및 귀환"
         }
       ],
-      "imageAlt": "네빌 명상 실습의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "네빌 명상 실습의 핵심 도구와 이용 장면을 담은 일러스트",
       "journey": {
         "questions": [
           "SATS 는 어떤 순서로 하나요?",
@@ -8088,9 +8395,10 @@
           }
         ]
       },
+      "catalogImage": "/feature-details/assets/neville-meditation-catalog-320.webp",
       "theme": "navy",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/neville-meditation-480.webp",
@@ -8160,7 +8468,7 @@
           "title": "마무리 만트라로 종료"
         }
       ],
-      "imageAlt": "Divya Yoga의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "Divya Yoga의 핵심 도구와 이용 장면을 담은 일러스트",
       "journey": {
         "questions": [
           "오늘은 어떤 순서로 하면 좋을까요?",
@@ -8183,9 +8491,10 @@
           }
         ]
       },
+      "catalogImage": "/feature-details/assets/yoga-guru-catalog-320.webp",
       "theme": "navy",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/yoga-guru-480.webp",
@@ -8248,7 +8557,7 @@
           "title": "다시 보기와 공유"
         }
       ],
-      "imageAlt": "수비학 타로의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "수비학 타로의 핵심 도구와 이용 장면을 담은 일러스트",
       "sample": {
         "title": "숫자에서 카드로",
         "text": "반복되는 리듬을 알아차리는 것만으로도 다른 선택의 여유가 생깁니다. 익숙하게 대답하기 전에, 지금의 내가 정말 원하는 것이 같은지 물어보세요.",
@@ -8264,9 +8573,10 @@
         "trustNotes": [],
         "faq": []
       },
+      "catalogImage": "/feature-details/assets/tarot-numerology-catalog-320.webp",
       "theme": "burgundy",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/tarot-numerology-480.webp",
@@ -8338,16 +8648,17 @@
           "title": "현실 조언"
         }
       ],
-      "imageAlt": "정신분석 해몽의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "정신분석 해몽의 핵심 도구와 이용 장면을 담은 일러스트",
       "sample": {
         "title": "꿈에 남은 감정",
         "text": "꿈속에서 길을 잃었다면 장소의 모양만큼 그때의 감정도 중요합니다. 두려웠는지, 오히려 자유로웠는지에 따라 지금의 마음과 연결되는 질문이 달라집니다.",
         "action": "꿈속에서 가장 강했던 감정부터 적어보세요.",
         "note": "풀이의 문체와 구성을 보여주는 예시입니다. 실제 카드·입력 정보에 따라 내용이 달라집니다."
       },
+      "catalogImage": "/feature-details/assets/dream-psycho-analysis-catalog-320.webp",
       "theme": "emerald",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/dream-psycho-analysis-480.webp",
@@ -8411,7 +8722,7 @@
           "title": "실천 플랜 및 저장"
         }
       ],
-      "imageAlt": "애니멀 토템의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "애니멀 토템의 핵심 도구와 이용 장면을 담은 일러스트",
       "sample": {
         "title": "동물이 건네는 질문",
         "text": "늘 주변을 먼저 살피는 섬세함은 선물이지만, 내 필요를 뒤로 미루게 할 수도 있어요. 타인을 돌보는 마음을 오늘은 나에게도 조금 나누어보세요.",
@@ -8437,17 +8748,26 @@
             {
               "id": "01-a-place-for-your-mood",
               "title": "무슨 일인지 몰라도, 마음은 먼저 무거울 때.",
-              "alt": "무슨 일인지 몰라도, 마음은 먼저 무거울 때.",
-              "src": "/feature-details/crafted/animal-totem-basic/01-a-place-for-your-mood.webp",
-              "width": 1080,
-              "height": 1440,
+              "alt": "애니멀 토템의 핵심 도구와 이용 장면을 담은 일러스트",
+              "src": "/images/service-introductions/animal-totem.webp",
+              "width": 1536,
+              "height": 1024,
               "text": "무슨 일인지 몰라도,\n마음은 먼저 무거울 때.\n\n수호 동물의 상징을 빌려\n지금의 마음에 말을 붙여보세요.\n\n애니멀 토템 · 기본 리딩",
               "variants": [
                 {
-                  "src": "/feature-details/crafted/animal-totem-basic/01-a-place-for-your-mood-540.webp",
-                  "width": 540
+                  "src": "/images/service-introductions/animal-totem-320.webp",
+                  "width": 320
+                },
+                {
+                  "src": "/images/service-introductions/animal-totem-640.webp",
+                  "width": 640
+                },
+                {
+                  "src": "/images/service-introductions/animal-totem-960.webp",
+                  "width": 960
                 }
-              ]
+              ],
+              "textBelowImage": true
             },
             {
               "id": "02-one-or-three",
@@ -8557,9 +8877,9 @@
           ],
           "priceKRW": 5000,
           "cover": {
-            "src": "/feature-details/crafted/animal-totem-basic/01-a-place-for-your-mood-144.webp",
-            "width": 144,
-            "height": 192
+            "src": "/images/service-introductions/animal-totem-320.webp",
+            "width": 320,
+            "height": 213
           }
         },
         {
@@ -8571,17 +8891,26 @@
             {
               "id": "01-a-divided-heart",
               "title": "머리로는 아는데, 마음은 따라오지 않을 때.",
-              "alt": "머리로는 아는데, 마음은 따라오지 않을 때.",
-              "src": "/feature-details/crafted/animal-totem-deep/01-a-divided-heart.webp",
-              "width": 1080,
-              "height": 1440,
+              "alt": "애니멀 토템의 핵심 도구와 이용 장면을 담은 일러스트",
+              "src": "/images/service-introductions/animal-totem.webp",
+              "width": 1536,
+              "height": 1024,
               "text": "머리로는 아는데,\n마음은 따라오지 않을 때.\n\n다섯 동물의 자리에서\n나를 당기는 서로 다른 마음을 읽어요.\n\n애니멀 토템 · 별자리 다섯 동물",
               "variants": [
                 {
-                  "src": "/feature-details/crafted/animal-totem-deep/01-a-divided-heart-540.webp",
-                  "width": 540
+                  "src": "/images/service-introductions/animal-totem-320.webp",
+                  "width": 320
+                },
+                {
+                  "src": "/images/service-introductions/animal-totem-640.webp",
+                  "width": 640
+                },
+                {
+                  "src": "/images/service-introductions/animal-totem-960.webp",
+                  "width": 960
                 }
-              ]
+              ],
+              "textBelowImage": true
             },
             {
               "id": "02-two-voices",
@@ -8691,15 +9020,16 @@
           ],
           "priceKRW": 5000,
           "cover": {
-            "src": "/feature-details/crafted/animal-totem-deep/01-a-divided-heart-144.webp",
-            "width": 144,
-            "height": 192
+            "src": "/images/service-introductions/animal-totem-320.webp",
+            "width": 320,
+            "height": 213
           }
         }
       ],
+      "catalogImage": "/feature-details/assets/animal-totem-catalog-320.webp",
       "theme": "emerald",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/animal-totem-480.webp",
@@ -8752,7 +9082,7 @@
         "소통을 위한 힌트"
       ],
       "contents": [],
-      "imageAlt": "MBTI 동물 궁합의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "MBTI 동물 궁합의 핵심 도구와 이용 장면을 담은 일러스트",
       "journey": {
         "questions": [
           "우리 조합은 어떤가요?",
@@ -8762,9 +9092,10 @@
         "trustNotes": [],
         "faq": []
       },
+      "catalogImage": "/feature-details/assets/mbti-animal-compat-catalog-320.webp",
       "theme": "rose",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/mbti-animal-compat-480.webp",
@@ -8827,7 +9158,7 @@
           "title": "질문문 복사와 공유"
         }
       ],
-      "imageAlt": "원석 소울 타로의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "원석 소울 타로의 핵심 도구와 이용 장면을 담은 일러스트",
       "sample": {
         "title": "가려진 빛",
         "text": "빛나려 애쓰는 동안 지친 마음을 못 볼 때가 있어요. 오늘의 질문은 더 강해지는 방법보다, 내가 편안하게 머물 수 있는 자리에 가까워요.",
@@ -8852,9 +9183,10 @@
           }
         ]
       },
+      "catalogImage": "/feature-details/assets/tarot-crystal-soul-catalog-320.webp",
       "theme": "burgundy",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/tarot-crystal-soul-480.webp",
@@ -8917,7 +9249,7 @@
           "title": "공유하기"
         }
       ],
-      "imageAlt": "영국 홍차점의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "영국 홍차점의 핵심 도구와 이용 장면을 담은 일러스트",
       "sample": {
         "title": "찻잔의 작은 형상",
         "text": "잔에 남은 모양을 하나의 답으로 고정할 필요는 없습니다. 그 상징을 보며 떠오른 사람이나 장면이 지금 내 마음의 질문을 알려줄 수 있어요.",
@@ -8942,9 +9274,10 @@
           }
         ]
       },
+      "catalogImage": "/feature-details/assets/royal-tea-oracle-catalog-320.webp",
       "theme": "burgundy",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/royal-tea-oracle-480.webp",
@@ -9007,7 +9340,7 @@
           "title": "AI 종합 풀이"
         }
       ],
-      "imageAlt": "지오맨시 흙점의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "지오맨시 흙점의 핵심 도구와 이용 장면을 담은 일러스트",
       "sample": {
         "title": "점들이 가리키는 방향",
         "text": "답을 서두르기 전에 질문의 범위를 좁혀보세요. 바꿀 수 있는 조건과 기다려야 하는 조건이 나뉘면 지금의 행동도 더 선명해집니다.",
@@ -9032,9 +9365,10 @@
           }
         ]
       },
+      "catalogImage": "/feature-details/assets/geomancy-oracle-catalog-320.webp",
       "theme": "burgundy",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/geomancy-oracle-480.webp",
@@ -9098,7 +9432,7 @@
           "title": "공유하기"
         }
       ],
-      "imageAlt": "스톤헨지 룬의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "스톤헨지 룬의 핵심 도구와 이용 장면을 담은 일러스트",
       "sample": {
         "title": "지난 길이 남긴 것",
         "text": "지나온 경험은 앞으로의 선택을 돕지만 모든 길이 반복되지는 않습니다. 과거에 필요했던 태도가 지금도 필요한지 차분히 살펴보세요.",
@@ -9123,9 +9457,10 @@
           }
         ]
       },
+      "catalogImage": "/feature-details/assets/stonehenge-runes-catalog-320.webp",
       "theme": "burgundy",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/stonehenge-runes-480.webp",
@@ -9172,7 +9507,7 @@
         "운세와 일상의 대조"
       ],
       "contents": [],
-      "imageAlt": "운기 다이어리와 플래너의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "운기 다이어리와 플래너의 핵심 도구와 이용 장면을 담은 일러스트",
       "journey": {
         "questions": [
           "이번 달 흐름은 어땠나요?",
@@ -9182,9 +9517,10 @@
         "trustNotes": [],
         "faq": []
       },
+      "catalogImage": "/feature-details/assets/luck-sync-diary-catalog-320.webp",
       "theme": "saffron",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/luck-sync-diary-480.webp",
@@ -9454,10 +9790,11 @@
           "title": "빛과 현실 · 두 사람의 자리"
         }
       ],
-      "imageAlt": "숙요 인연 레이더의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "숙요 인연 레이더의 핵심 도구와 이용 장면을 담은 일러스트",
+      "catalogImage": "/feature-details/assets/sukyo-catalog-320.webp",
       "theme": "navy",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/sukyo-480.webp",
@@ -9525,7 +9862,7 @@
         "action": "지금 내 행동에 관한 질문을 덧붙여보세요.",
         "note": "풀이의 문체와 구성을 보여주는 예시입니다. 실제 카드·입력 정보에 따라 내용이 달라집니다."
       },
-      "imageAlt": "타로 오라클 상담의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "타로 오라클 상담의 핵심 도구와 이용 장면을 담은 일러스트",
       "journey": {
         "questions": [
           "이 상황에는 어떤 스프레드가 맞나요?",
@@ -9567,9 +9904,10 @@
         }
       ],
       "freeEntry": false,
+      "catalogImage": "/feature-details/assets/tarot-prompt-maker-catalog-320.webp",
       "theme": "burgundy",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/tarot-prompt-maker-480.webp",
@@ -9615,15 +9953,16 @@
         "자기표현의 힌트"
       ],
       "contents": [],
-      "imageAlt": "전문가 동물 관상의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "전문가 동물 관상의 핵심 도구와 이용 장면을 담은 일러스트",
       "journey": {
         "questions": [],
         "trustNotes": [],
         "faq": []
       },
+      "catalogImage": "/feature-details/assets/face-reading-catalog-320.webp",
       "theme": "navy",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/face-reading-480.webp",
@@ -9676,7 +10015,7 @@
         "나만의 포토카드"
       ],
       "contents": [],
-      "imageAlt": "최애운명의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "최애운명의 핵심 도구와 이용 장면을 담은 일러스트",
       "journey": {
         "questions": [
           "최애와 나는 어떤 결로 닮았나요?",
@@ -9699,9 +10038,10 @@
           }
         ]
       },
+      "catalogImage": "/feature-details/assets/bias-destiny-catalog-320.webp",
       "theme": "navy",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/bias-destiny-480.webp",
@@ -9723,7 +10063,7 @@
       "featureKey": "love-code",
       "featureKeyTo": "",
       "accessType": "paid",
-      "image": "/feature-details/assets/love-simulation-320.webp",
+      "image": "/images/service-introductions/love-code.webp",
       "aliases": [
         "love-code",
         "/index.html?action=openLoveSimulation",
@@ -9794,6 +10134,8 @@
         "index.html:FEATURE_MARKETING_COPY:openLoveSimulation"
       ],
       "verification": "source-inventory-only",
+      "imageAlt": "러브 코드의 핵심 도구와 이용 장면을 담은 일러스트",
+      "catalogImage": "/images/service-introductions/love-code-320.webp",
       "benefits": [
         "Final Code 판정과 등급",
         "선택으로 바뀌는 데이트 결과",
@@ -9895,10 +10237,10 @@
       },
       "contents": [],
       "catalogImage": "/feature-details/assets/omikuji-catalog-320.webp",
-      "imageAlt": "이모이 오미쿠지의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "이모이 오미쿠지의 핵심 도구와 이용 장면을 담은 일러스트",
       "theme": "burgundy",
-      "imageWidth": 1280,
-      "imageHeight": 720,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/omikuji-480.webp",
@@ -9920,7 +10262,7 @@
       "featureKey": "",
       "featureKeyTo": "",
       "accessType": "free",
-      "image": "/fuctionassets/Who%20am%20I%20with%20saju.webp",
+      "image": "/images/service-introductions/saju-animal.webp",
       "aliases": [
         "saju-animal",
         "/saju-guardian",
@@ -9935,6 +10277,8 @@
         "js/core/service-registry.js"
       ],
       "verification": "source-inventory-only",
+      "imageAlt": "사주 가디언 아트의 핵심 도구와 이용 장면을 담은 일러스트",
+      "catalogImage": "/images/service-introductions/saju-animal-320.webp",
       "benefits": [],
       "contents": [],
       "theme": "emerald",
@@ -10000,7 +10344,7 @@
           "title": "AI 질문 문장 카드"
         }
       ],
-      "imageAlt": "사주로 보는 인연의 장소의 주제를 담은 오리지널 일러스트",
+      "imageAlt": "사주로 보는 인연의 장소의 핵심 도구와 이용 장면을 담은 일러스트",
       "journey": {
         "questions": [
           "나는 어떤 자리에서 인연이 열리나요?",
@@ -10023,9 +10367,10 @@
           }
         ]
       },
+      "catalogImage": "/feature-details/assets/destiny-meeting-place-catalog-320.webp",
       "theme": "rose",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/destiny-meeting-place-480.webp",
@@ -10095,7 +10440,7 @@
         "action": "도움을 요청할 수 있는 일을 하나 골라보세요.",
         "note": "풀이의 문체와 구성을 보여주는 예시입니다. 실제 카드·입력 정보에 따라 내용이 달라집니다."
       },
-      "imageAlt": "자미두수 별궁 전문가 상담 마스터 상담 삽화",
+      "imageAlt": "무성의 자미두수 전문가 상담 상담 장면",
       "journey": {
         "questions": [
           "지금 이직해도 괜찮을까요?",
@@ -10129,16 +10474,25 @@
               "id": "editorial-1",
               "title": "막힌 별의 자리에서, 풀어 갈 길을 찾습니다.",
               "text": "무성의 자미두수 상담은 명반의 여러 자리를 살피고, 지금 힘이 걸리는 지점부터 짚습니다. 분명한 해석 뒤에는 오늘 해 볼 수 있는 처방을 남깁니다.",
-              "src": "/images/consultation-editorial/musung.webp",
+              "src": "/images/service-introductions/ziwei-ai.webp",
               "width": 1536,
               "height": 1024,
-              "alt": "자미두수 별궁 전문가 상담 마스터 상담 삽화",
+              "alt": "무성의 자미두수 전문가 상담 상담 장면",
               "variants": [
                 {
-                  "src": "/images/consultation-editorial/musung-768.webp",
-                  "width": 768
+                  "src": "/images/service-introductions/ziwei-ai-320.webp",
+                  "width": 320
+                },
+                {
+                  "src": "/images/service-introductions/ziwei-ai-640.webp",
+                  "width": 640
+                },
+                {
+                  "src": "/images/service-introductions/ziwei-ai-960.webp",
+                  "width": 960
                 }
-              ]
+              ],
+              "textBelowImage": true
             },
             {
               "id": "editorial-2",
@@ -10218,6 +10572,7 @@
           "priceKRW": 30000
         }
       ],
+      "catalogImage": "/feature-details/assets/ziwei-ai-catalog-320.webp",
       "theme": "navy",
       "imageWidth": 1536,
       "imageHeight": 1024,
@@ -10291,10 +10646,11 @@
         "trustNotes": [],
         "faq": []
       },
-      "imageAlt": "운명의 꽃 아틀리에의 주제를 담은 오리지널 판타지 일러스트",
+      "imageAlt": "운명의 꽃 아틀리에의 핵심 도구와 이용 장면을 담은 일러스트",
       "theme": "emerald",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "catalogImage": "/feature-details/assets/destiny-flower-catalog-320.webp",
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/destiny-flower-480.webp",
@@ -10365,10 +10721,11 @@
         "trustNotes": [],
         "faq": []
       },
-      "imageAlt": "점성술 꽃의 주제를 담은 오리지널 판타지 일러스트",
+      "imageAlt": "점성술 꽃의 핵심 도구와 이용 장면을 담은 일러스트",
       "theme": "emerald",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "catalogImage": "/feature-details/assets/astrology-flower-catalog-320.webp",
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/astrology-flower-480.webp",
@@ -10439,10 +10796,11 @@
         "trustNotes": [],
         "faq": []
       },
-      "imageAlt": "자미두수 꽃의 주제를 담은 오리지널 판타지 일러스트",
+      "imageAlt": "자미두수 꽃의 핵심 도구와 이용 장면을 담은 일러스트",
       "theme": "emerald",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "catalogImage": "/feature-details/assets/ziwei-flower-catalog-320.webp",
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/ziwei-flower-480.webp",
@@ -10513,10 +10871,11 @@
         "trustNotes": [],
         "faq": []
       },
-      "imageAlt": "숙요 꽃의 주제를 담은 오리지널 판타지 일러스트",
+      "imageAlt": "숙요 꽃의 핵심 도구와 이용 장면을 담은 일러스트",
       "theme": "emerald",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "catalogImage": "/feature-details/assets/sukuyo-flower-catalog-320.webp",
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/sukuyo-flower-480.webp",
@@ -10591,10 +10950,11 @@
         "trustNotes": [],
         "faq": []
       },
-      "imageAlt": "코스믹 소울 명상의 주제를 담은 오리지널 판타지 일러스트",
+      "imageAlt": "코스믹 소울 명상의 핵심 도구와 이용 장면을 담은 일러스트",
       "theme": "indigo",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "catalogImage": "/feature-details/assets/cosmic-soul-meditation-catalog-320.webp",
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/cosmic-soul-meditation-480.webp",
@@ -10665,7 +11025,7 @@
         "trustNotes": [],
         "faq": []
       },
-      "imageAlt": "올림푸스 신탁의 주제를 담은 오리지널 판타지 일러스트",
+      "imageAlt": "올림푸스 신탁의 핵심 도구와 이용 장면을 담은 일러스트",
       "theme": "indigo",
       "crafted": [
         {
@@ -10677,16 +11037,26 @@
             {
               "id": "01-your-myth",
               "title": "내 안의 여러 모습, 어떤 신화를 닮았을까?",
-              "src": "/feature-details/crafted/olympus-oracle/01-your-myth.webp",
-              "width": 1080,
-              "height": 1440,
+              "src": "/images/service-introductions/olympus-oracle.webp",
+              "width": 1536,
+              "height": 1024,
               "text": "내 안의 여러 모습,\n어떤 신화를 닮았을까?\n\n올림푸스 신탁\n\n겉으로 드러나는 나와 혼자 있을 때의 나.\n별자리와 신화의 언어로\n서로 다른 모습을 만나보세요.",
+              "alt": "올림푸스 신탁의 핵심 도구와 이용 장면을 담은 일러스트",
               "variants": [
                 {
-                  "src": "/feature-details/crafted/olympus-oracle/01-your-myth-540.webp",
-                  "width": 540
+                  "src": "/images/service-introductions/olympus-oracle-320.webp",
+                  "width": 320
+                },
+                {
+                  "src": "/images/service-introductions/olympus-oracle-640.webp",
+                  "width": 640
+                },
+                {
+                  "src": "/images/service-introductions/olympus-oracle-960.webp",
+                  "width": 960
                 }
-              ]
+              ],
+              "textBelowImage": true
             },
             {
               "id": "02-eight-placements",
@@ -10818,8 +11188,9 @@
           "priceKRW": 5000
         }
       ],
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "catalogImage": "/feature-details/assets/olympus-oracle-catalog-320.webp",
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/olympus-oracle-480.webp",
@@ -10894,7 +11265,7 @@
         "trustNotes": [],
         "faq": []
       },
-      "imageAlt": "숙요점 궁합 전문가 상담 마스터 상담 삽화",
+      "imageAlt": "서한비의 숙요점 궁합 전문가 상담 상담 장면",
       "theme": "indigo",
       "crafted": [
         {
@@ -10907,16 +11278,25 @@
               "id": "editorial-1",
               "title": "두 사람 사이의 거리, 서한비가 함께 살핍니다.",
               "text": "끌리는 이유와 부딪히는 순간을 함께 읽고, 관계를 지켜 갈 선택을 정리합니다.",
-              "src": "/images/consultation-editorial/hanbi.webp",
+              "src": "/images/service-introductions/sukuyo-compatibility-ai.webp",
               "width": 1536,
               "height": 1024,
-              "alt": "숙요점 궁합 전문가 상담 마스터 상담 삽화",
+              "alt": "서한비의 숙요점 궁합 전문가 상담 상담 장면",
               "variants": [
                 {
-                  "src": "/images/consultation-editorial/hanbi-768.webp",
-                  "width": 768
+                  "src": "/images/service-introductions/sukuyo-compatibility-ai-320.webp",
+                  "width": 320
+                },
+                {
+                  "src": "/images/service-introductions/sukuyo-compatibility-ai-640.webp",
+                  "width": 640
+                },
+                {
+                  "src": "/images/service-introductions/sukuyo-compatibility-ai-960.webp",
+                  "width": 960
                 }
-              ]
+              ],
+              "textBelowImage": true
             },
             {
               "id": "editorial-2",
@@ -10996,6 +11376,7 @@
           "priceKRW": 30000
         }
       ],
+      "catalogImage": "/feature-details/assets/sukuyo-compatibility-ai-catalog-320.webp",
       "imageWidth": 1536,
       "imageHeight": 1024,
       "heroVariants": [
@@ -11075,7 +11456,7 @@
         "trustNotes": [],
         "faq": []
       },
-      "imageAlt": "서양 점성술 전문가 AI 상담 마스터 상담 삽화",
+      "imageAlt": "윤달의 점성술 전문가 상담 상담 장면",
       "theme": "indigo",
       "crafted": [
         {
@@ -11088,16 +11469,25 @@
               "id": "editorial-1",
               "title": "윤달과 함께, 나를 움직이는 하늘을 읽어요.",
               "text": "태어난 순간의 차트에서 성향과 관계, 지금의 선택을 살펴봅니다. 윤달은 낯선 별의 언어를 일상에서 알아볼 수 있는 이야기로 풀어 드립니다.",
-              "src": "/images/consultation-editorial/yun.webp",
+              "src": "/images/service-introductions/astrology-ai.webp",
               "width": 1536,
               "height": 1024,
-              "alt": "서양 점성술 전문가 AI 상담 마스터 상담 삽화",
+              "alt": "윤달의 점성술 전문가 상담 상담 장면",
               "variants": [
                 {
-                  "src": "/images/consultation-editorial/yun-768.webp",
-                  "width": 768
+                  "src": "/images/service-introductions/astrology-ai-320.webp",
+                  "width": 320
+                },
+                {
+                  "src": "/images/service-introductions/astrology-ai-640.webp",
+                  "width": 640
+                },
+                {
+                  "src": "/images/service-introductions/astrology-ai-960.webp",
+                  "width": 960
                 }
-              ]
+              ],
+              "textBelowImage": true
             },
             {
               "id": "editorial-2",
@@ -11177,6 +11567,7 @@
           "priceKRW": 30000
         }
       ],
+      "catalogImage": "/feature-details/assets/astrology-ai-catalog-320.webp",
       "imageWidth": 1536,
       "imageHeight": 1024,
       "heroVariants": [
@@ -11256,7 +11647,7 @@
         "trustNotes": [],
         "faq": []
       },
-      "imageAlt": "베다점 전문가 상담 마스터 상담 삽화",
+      "imageAlt": "윤달의 윤달의 베다점 상담 상담 장면",
       "theme": "saffron",
       "crafted": [
         {
@@ -11269,16 +11660,25 @@
               "id": "editorial-1",
               "title": "윤달이 읽어 드리는, 지금 지나가는 별의 계절.",
               "text": "베다점의 출생 차트와 시기 흐름을 따라, 나의 기질과 선택의 방향을 살핍니다.",
-              "src": "/images/consultation-editorial/vedic.webp",
+              "src": "/images/service-introductions/vedic-ai.webp",
               "width": 1536,
               "height": 1024,
-              "alt": "베다점 전문가 상담 마스터 상담 삽화",
+              "alt": "윤달의 윤달의 베다점 상담 상담 장면",
               "variants": [
                 {
-                  "src": "/images/consultation-editorial/vedic-768.webp",
-                  "width": 768
+                  "src": "/images/service-introductions/vedic-ai-320.webp",
+                  "width": 320
+                },
+                {
+                  "src": "/images/service-introductions/vedic-ai-640.webp",
+                  "width": 640
+                },
+                {
+                  "src": "/images/service-introductions/vedic-ai-960.webp",
+                  "width": 960
                 }
-              ]
+              ],
+              "textBelowImage": true
             },
             {
               "id": "editorial-2",
@@ -11367,6 +11767,7 @@
           "priceKRW": 30000
         }
       ],
+      "catalogImage": "/feature-details/assets/vedic-ai-catalog-320.webp",
       "imageWidth": 1536,
       "imageHeight": 1024,
       "heroVariants": [
@@ -11446,10 +11847,11 @@
         "trustNotes": [],
         "faq": []
       },
-      "imageAlt": "숙요·나크샤트라 통합 상담의 천문 관측 장면을 담은 오리지널 일러스트",
+      "imageAlt": "숙요·나크샤트라 통합 상담의 핵심 도구와 이용 장면을 담은 일러스트",
       "theme": "indigo",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "catalogImage": "/feature-details/assets/nakshatra-ai-catalog-320.webp",
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/nakshatra-ai-480.webp",
@@ -11526,10 +11928,11 @@
         "trustNotes": [],
         "faq": []
       },
-      "imageAlt": "나크샤트라 VVIP 코덱스의 천문 관측 장면을 담은 오리지널 일러스트",
+      "imageAlt": "나크샤트라 VVIP 코덱스의 핵심 도구와 이용 장면을 담은 일러스트",
       "theme": "indigo",
-      "imageWidth": 1200,
-      "imageHeight": 675,
+      "catalogImage": "/feature-details/assets/nakshatra-vvip-codex-catalog-320.webp",
+      "imageWidth": 1536,
+      "imageHeight": 1024,
       "heroVariants": [
         {
           "src": "/feature-details/assets/nakshatra-vvip-codex-480.webp",

@@ -5,8 +5,8 @@ import { productMasters } from "@/components/fortune/master-profiles";
 import styles from "./consultation-master-intro.module.css";
 
 const rooms = {
-  karma: { title: "네오와 서한비의 붉은 실", label: "운명의 업 · 공동 마스터 상담", image: "karma-red-thread-karmic", alt: "얽힌 붉은 실에 묶인 채 서로 등을 돌린 네오와 서한비", lead: "반복되는 선택과 관계의 매듭을 살피고, 지금 바꿀 수 있는 한 걸음을 찾습니다." },
-  vedic: { title: "윤달의 베다점 상담실", label: "베다점 전문가 상담 · 마스터 윤달", image: "yun-vedic", alt: "달빛 관측실에서 별의 기록을 펼쳐 안내하는 윤달", lead: "라그나·나크샤트라·다샤를 삶의 언어로 풀어, 지금 지나가는 시기와 선택의 방향을 읽습니다." },
+  karma: { title: "네오와 서한비의 붉은 실", label: "운명의 업 · 공동 마스터 상담", image: "karma-destiny-ai", alt: "네오와 서한비가 반복되는 관계를 상징하는 붉은 실의 매듭을 살피는 상담", lead: "반복되는 선택과 관계의 매듭을 살피고, 지금 바꿀 수 있는 한 걸음을 찾습니다." },
+  vedic: { title: "윤달의 베다점 상담실", label: "베다점 전문가 상담 · 마스터 윤달", image: "vedic-ai", alt: "윤달이 베다 차트와 달의 별자리, 시기의 흐름을 살피는 상담", lead: "라그나·나크샤트라·다샤를 삶의 언어로 풀어, 지금 지나가는 시기와 선택의 방향을 읽습니다." },
 };
 
 const translated: Record<LoadingLocale, [string, string, string]> = {
@@ -41,7 +41,7 @@ export default function ConsultationMasterIntro({ kind, compact = false, childre
   const copy = translated[locale];
   const title = copy[kind === "karma" ? 0 : 1];
   return <section className={styles.room} data-master-room={kind} data-compact={compact || undefined} aria-label={title}>
-    <img className={styles.art} src={`/images/expert-consulting/${room.image}-768.webp`} srcSet={`/images/expert-consulting/${room.image}-768.webp 768w, /images/expert-consulting/${room.image}-1536.webp 1536w`} sizes={compact ? "160px" : "(max-width: 960px) 100vw, 52vw"} width={1536} height={1024} alt={isKo ? room.alt : title} decoding="async" />
+    <img className={styles.art} src={`/images/service-introductions/${room.image}-640.webp`} srcSet={`/images/service-introductions/${room.image}-640.webp 640w, /images/service-introductions/${room.image}.webp 1536w`} sizes={compact ? "160px" : "(max-width: 960px) 100vw, 52vw"} width={1536} height={1024} alt={isKo ? room.alt : title} decoding="async" />
     <div className={styles.copy}>
       <p className={styles.eyebrow}>{isKo ? room.label : label || (kind === "karma" ? "Neo · Seo Hanbi" : "Yun-dal")}</p>
       <h2>{title}</h2>

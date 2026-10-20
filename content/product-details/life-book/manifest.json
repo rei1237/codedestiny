@@ -122,16 +122,25 @@
       "id": "editorial-1",
       "title": "당신의 인생을 읽고, 다음 장을 함께 생각합니다.",
       "text": "윤달이 삶의 기질과 반복되는 선택을 책처럼 풀어 드립니다. 이미 정해진 결말보다 앞으로 써 갈 방향을 살핍니다.",
-      "src": "/images/consultation-editorial/life.webp",
+      "src": "/images/service-introductions/life-book-ai.webp",
       "width": 1536,
       "height": 1024,
-      "alt": "인생의 책 마스터 상담 삽화",
+      "alt": "윤달의 인생의 책 상담 장면",
       "variants": [
         {
-          "src": "/images/consultation-editorial/life-768.webp",
-          "width": 768
+          "src": "/images/service-introductions/life-book-ai-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/life-book-ai-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/life-book-ai-960.webp",
+          "width": 960
         }
-      ]
+      ],
+      "textBelowImage": true
     },
     {
       "id": "editorial-2",

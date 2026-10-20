@@ -26,9 +26,9 @@ const errors = [];
 const notes = [];
 const fail = (msg) => errors.push(msg);
 
-/* 홈 검색 카드 이미지는 같은 기능을 여는 홈 타일에서 런타임에 빌리고(home-service-finder.js
-   featureTileImage), 타일이 없으면 달 이미지(DEFAULT_SERVICE_IMAGE)를 쓴다. 항목별 정적 이미지
-   매핑은 서비스와 맞지 않는 그림·폐기된 이용권 그림을 띄워 2026-09-11 에 폐지했다. */
+/* 기능별 검수 원화 정본을 우선 사용한다. 등록되지 않은 서비스는 같은 기능의
+   홈 타일에서 파생하며, 임의 정적 경로가 레지스트리에 다시 들어오면 실패한다. */
+const INTRODUCTION_ART = JSON.parse(readFileSync(resolve(ROOT, "lib/marketing/service-introduction-art.json"), "utf8"));
 const FINDER_FILE = resolve(ROOT, "js/core/home-service-finder.js");
 const DEFAULT_IMAGE = (readFileSync(FINDER_FILE, "utf8").match(/DEFAULT_SERVICE_IMAGE\s*=\s*"([^"]+)"/) || [])[1];
 if (!DEFAULT_IMAGE) fail("홈 검색 공통 이미지 DEFAULT_SERVICE_IMAGE 를 찾지 못했다");
@@ -151,7 +151,11 @@ for (const item of registry) {
     else for (const r of item.roles) if (!ROLES.has(r)) fail(`${at}: 알 수 없는 role "${r}"`);
   }
 
-  if (item.image) fail(`${at}: 항목별 이미지(${item.image})를 넣지 않는다 — 카드 이미지는 같은 기능의 홈 타일에서 런타임에 파생`);
+  const artwork = INTRODUCTION_ART[item.id];
+  if (artwork) {
+    if (item.image !== artwork.cardImage || item.imageAlt !== artwork.alt) fail(`${at}: 기능 소개 이미지 정본과 경로/대체텍스트가 다르다`);
+    if (!existsSync(resolve(ROOT, "public", "." + artwork.cardImage))) fail(`${at}: 기능 소개 이미지 파일이 없다`);
+  } else if (item.image) fail(`${at}: 검수 정본에 없는 임의 이미지 ${item.image}`);
 
   const price = readPrice(item.price);
   if (!price) {

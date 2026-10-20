@@ -17,16 +17,17 @@ const groups = {
 const numerals = ['Ⅰ', 'Ⅱ', 'Ⅲ', 'Ⅳ', 'Ⅴ', 'Ⅵ'];
 // 대표 카드는 홈 덱(templates/home-funnel.html)과 같은 그림을 쓴다.
 const deckArt: Record<string, [string, string?]> = {
-  neo: ['/images/feature-details/neo-operation-room-hero-v1.webp'],
-  tea: ['/images/home/yeoni-tea-together-v1-1200.webp'],
-  codex: ['/images/feature-details/master-love-codex-hero-v3.webp'],
-  'love-secret': ['/images/home/love-secret-masters-v1-600.webp', '/images/home/love-secret-masters-v1-1200.webp'],
-  'new-year': ['/images/home/new-year-neo-v1-600.webp', '/images/home/new-year-neo-v1-1200.webp'],
-  'life-book': ['/images/home/life-book-yun-v2-600.webp', '/images/home/life-book-yun-v2-1200.webp'],
+  neo: ['/images/service-introductions/neo-operation-room-640.webp'],
+  tea: ['/images/service-introductions/fortune-tea-house-640.webp'],
+  codex: ['/images/service-introductions/master-love-codex-640.webp'],
+  'love-secret': ['/images/service-introductions/love-secret-ai-640.webp'],
+  'new-year': ['/images/service-introductions/new-year-ai-640.webp'],
+  'life-book': ['/images/service-introductions/life-book-ai-640.webp'],
 };
 const artwork: Record<string, string> = {
   ziwei: 'ziwei-ai', astrology: 'astrology-ai', vedic: 'vedic-ai',
   'sukuyo-compat': 'sukuyo-compatibility-ai', 'legacy-naming': 'naming-ai',
+  karma: 'karma-destiny-ai', fusion: 'fusion-fortune',
 };
 
 export default function ConsultationHub({ children }: { children?: ReactNode }) {
@@ -66,7 +67,7 @@ export default function ConsultationHub({ children }: { children?: ReactNode }) 
   };
   const renderRow = (id: string) => {
     const { service, name, description } = describe(id);
-    const image = artwork[id] ? `/feature-details/assets/${artwork[id]}-480.webp` : service.image;
+    const image = artwork[id] ? `/images/service-introductions/${artwork[id]}-320.webp` : service.image;
     return <article key={id} className={styles.row} data-service={id}>
       <img src={image} alt="" width="64" height="64" loading="lazy" decoding="async" />
       <div className={styles.rowBody}>

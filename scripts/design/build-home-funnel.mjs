@@ -7,6 +7,7 @@ import { renderNeoEmailHomeEntry } from '../../lib/brand/neo-email-home-entry.mj
 
 const original = readFileSync('index.html', 'utf8');
 const vars = {};
+const introductionArt = JSON.parse(readFileSync('lib/marketing/service-introduction-art.json', 'utf8'));
 
 // 2026-10-17 "직관성": 홈은 대표 상담 덱·무료 여섯 체계·1:1 상담·이용권·뮤직비디오를 조립한다. 예전 홈 섹션(고민 칩·탐색기·오늘 허브 등)은
 // 모두 생성 영역 안에만 있었으므로 영역을 갈아끼우면 함께 빠진다 — 기능 페이지와 URL 은 그대로다.
@@ -25,7 +26,7 @@ const FREE_CARDS = [
   if (service?.price !== '무료 시작' || !service.action) throw new Error('Free home card must retain its catalog free entry: ' + card.id);
   return { attrs: '', ...card, action: service.action };
 });
-vars.quick = `<section id="cdQuickServices" class="cdh-free__grid" aria-labelledby="cdhFreeTitle" data-cd-funnel-section="quick_services" data-marker="cd-quick-services-free-v20261017b">${FREE_CARDS.map(card => `<a class="cdh-free-card" ${card.attrs}href="/?action=${card.action}" data-action="${card.action}" data-cd-service-id="${card.id}"><span class="cdh-free-card__medal" aria-hidden="true"><img src="/images/home/illustrated/method-${card.id}-160.webp" width="160" height="160" alt="" loading="lazy" decoding="async"></span><span class="cdh-free-card__copy"><strong data-cd-trans="home.simpleHome.${card.key}">${card.title}</strong><small data-cd-trans="home.simpleHome.${card.key}Note">${card.noteKo}</small></span><span class="cdh-free-card__seal" data-cd-trans="home.simpleHome.freeBadge">무료</span></a>`).join('')}</section>`;
+vars.quick = `<section id="cdQuickServices" class="cdh-free__grid" aria-labelledby="cdhFreeTitle" data-cd-funnel-section="quick_services" data-marker="cd-quick-services-free-v20261017b">${FREE_CARDS.map(card => `<a class="cdh-free-card" ${card.attrs}href="/?action=${card.action}" data-action="${card.action}" data-cd-service-id="${card.id}"><span class="cdh-free-card__medal" aria-hidden="true"><img src="/images/service-introductions/${card.id}-320.webp" width="160" height="160" alt="" loading="lazy" decoding="async"></span><span class="cdh-free-card__copy"><strong data-cd-trans="home.simpleHome.${card.key}">${card.title}</strong><small data-cd-trans="home.simpleHome.${card.key}Note">${card.noteKo}</small></span><span class="cdh-free-card__seal" data-cd-trans="home.simpleHome.freeBadge">무료</span></a>`).join('')}</section>`;
 
 // 1:1 상담 — 연이 대화 상담(1회 5,000원)과 네오 이메일 상담. e76391603 에서 홈에서 빠졌던 두 입구를 다시 둔다.
 const chatPrice = Number(FEATURE_KEY_PRICE_TABLE['fortune-chat-consultation']?.amountKRW);
@@ -54,7 +55,7 @@ const FUSION_MASTERS = [
 const FUSION_SYSTEMS = ['사주', '자미두수', '숙요', '베다', '점성술', '타로'];
 const FUSION_AREAS = ['타고난 성향', '인생의 시기', '연애', '결혼', '재물', '직업', '건강', '인간관계'];
 vars.fusionSignature = `<section class="cdh-fusion-sig" id="cdhFusionSignature" data-cd-funnel-section="fusion_signature" data-marker="cdh-fusion-signature-v20261017" aria-labelledby="cdhFusionSigTitle" lang="ko">
-  <a class="cdh-fusion-sig__art" href="/fusion-fortune/?from=home_signature" tabindex="-1" aria-hidden="true" data-cd-service-id="fusion-fortune"><img src="/images/home/fusion-signature-masters-1200.webp" srcset="/images/home/fusion-signature-masters-600.webp 600w, /images/home/fusion-signature-masters-1200.webp 1200w" sizes="(max-width: 860px) calc(100vw - 32px), 640px" width="1200" height="800" loading="lazy" decoding="async" alt=""></a>
+  <a class="cdh-fusion-sig__art" href="/fusion-fortune/?from=home_signature" tabindex="-1" aria-hidden="true" data-cd-service-id="fusion-fortune"><img src="/images/service-introductions/fusion-fortune-960.webp" srcset="/images/service-introductions/fusion-fortune-640.webp 640w, /images/service-introductions/fusion-fortune-960.webp 960w" sizes="(max-width: 860px) calc(100vw - 32px), 640px" width="1200" height="800" loading="lazy" decoding="async" alt=""></a>
   <div class="cdh-fusion-sig__body">
     <p class="cdh-fusion-sig__eyebrow">CODE DESTINY SIGNATURE</p>
     <h2 class="cdh-fusion-sig__title" id="cdhFusionSigTitle">초융합 운세</h2>
@@ -216,6 +217,13 @@ const signatureProducts = [
     cta: '인생의 책 펼치기',
   },
 ];
+for (const product of signatureProducts) {
+  const art = introductionArt[product.id];
+  if (!art) throw new Error(`Missing introduction artwork: ${product.id}`);
+  product.image = art.image.replace('.webp', '-640.webp');
+  product.imageSrcset = `${art.cardImage} 320w, ${product.image} 640w, ${art.image} 1536w`;
+  product.imageAlt = art.alt;
+}
 const signaturePrice = (featureKey, suffix = '') => {
   const amount = FEATURE_KEY_PRICE_TABLE[featureKey]?.amountKRW;
   if (!Number.isSafeInteger(amount) || amount <= 0) throw new Error(`Missing signature consultation price: ${featureKey}`);

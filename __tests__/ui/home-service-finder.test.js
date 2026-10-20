@@ -310,18 +310,17 @@ test("기본 목록은 홈 상단 두 섹션의 카드와 겹치지 않는다", 
   );
 });
 
-// 2026-10-17: 모든 운세 결과 카드는 실제 마스터 초상을 먼저 쓴다(전담 상품은 id, 나머지는 첫 체계).
-// 상담이 아닌 항목(포인트·음악·노벨)만 예전처럼 같은 기능의 홈 타일 그림을 빌린다.
-test("결과 카드는 마스터 초상을 쓰고, 상담이 아닌 항목만 홈 타일 그림을 빌린다", async () => {
+// Function scenes take precedence over a shared master portrait.
+test("결과 카드는 기능 전용 장면을 쓰고 누락된 기능만 같은 홈 타일 그림을 빌린다", async () => {
   const first = await boot();
   const shown = names(first.doc.getElementById("fortuneGatewayRecs"));
   assert.ok(shown.length > 0, "기본 목록이 비어 대조가 공회전한다(fail-open)");
   for (const card of first.doc.querySelectorAll("#fortuneGatewayRecs .fortune-gateway__rec-media")) {
-    assert.match(card.querySelector("img").getAttribute("src"), /^\/images\/master-profiles\/[a-z-]+(?:-360)?\.webp$/, "기본 목록 카드가 마스터 초상이 아니다");
-    assert.ok(card.classList.contains("is-master"));
+    assert.match(card.querySelector("img").getAttribute("src"), /^\/images\/service-introductions\/[a-z-]+-320\.webp$/, "기능 전용 이미지가 아니다");
+    assert.ok(!card.classList.contains("is-master"), "장면에 초상 전용 크롭을 적용하면 안 된다");
   }
   // 초상이 깨지면 달 이미지로 물러난다(R2 원본은 /fuctionassets/ 만 있다).
-  const portrait = first.doc.querySelector("#fortuneGatewayRecs .is-master img");
+  const portrait = first.doc.querySelector("#fortuneGatewayRecs img");
   portrait.dispatchEvent(new first.doc.defaultView.Event("error"));
   assert.equal(portrait.getAttribute("src"), "/images/home/finder-moon.svg", "깨진 초상이 달 이미지로 물러나지 않았다");
 
@@ -346,12 +345,7 @@ test("결과 카드는 마스터 초상을 쓰고, 상담이 아닌 항목만 �
   assert.equal(img.getAttribute("src"), "/images/home/finder-moon.svg", "R2 도 실패했는데 달 이미지로 떨어지지 않았다");
 });
 
-// 체계별 마스터: 사주 네오 · 타로 연이 · 자미두수 무성 · 숙요 서한비 · 베다·점성술 윤달.
-const METHOD_HUB_MASTERS = {
-  saju: "neo-strategy-portrait", tarot: "yeoni-teahouse-portrait", ziwei: "musung-ziwei-portrait",
-  sukuyo: "hanbi-sukuyo-portrait", vedic: "yun-astrology-portrait", astrology: "yun-astrology-portrait",
-};
-test("체계 허브 6종은 체계를 맡은 마스터 초상을 쓴다", async () => {
+test("체계 허브 6종은 서로 다른 기능 전용 장면을 쓴다", async () => {
   const { doc, window } = await boot();
   const hubs = window.__cdServiceRegistry.filter((i) => METHOD_HUB_IDS.includes(i.id));
   assert.equal(hubs.length, METHOD_HUB_IDS.length, "체계 허브가 레지스트리에 없다(fail-open)");
@@ -359,9 +353,8 @@ test("체계 허브 6종은 체계를 맡은 마스터 초상을 쓴다", async 
     assert.ok((await search(window, doc, hub.name)).includes(hub.name), `${hub.name}: 검색 결과가 없다`);
     const card = Array.from(doc.querySelectorAll("#fortuneGatewayRecs .fortune-gateway__rec"))
       .find((item) => item.querySelector(".fortune-gateway__rec-name").firstChild.textContent.trim() === hub.name);
-    const key = METHOD_HUB_MASTERS[hub.id];
-    assert.equal(card?.querySelector(".fortune-gateway__rec-media img")?.getAttribute("src"), `/images/master-profiles/${key}.webp`, `${hub.name}: 체계 마스터 초상이 아니다`);
-    assert.ok(fs.existsSync(path.join(root, "public/images/master-profiles", `${key}.webp`)), `${key}: 초상 파일이 없다`);
+    assert.equal(card?.querySelector(".fortune-gateway__rec-media img")?.getAttribute("src"), `/images/service-introductions/${hub.id}-320.webp`, `${hub.name}: 기능 이미지가 아니다`);
+    assert.ok(fs.existsSync(path.join(root, "public/images/service-introductions", `${hub.id}-320.webp`)), `${hub.id}: 이미지 파일이 없다`);
   }
   window.close();
 });
@@ -379,24 +372,24 @@ test("상품명은 띄어쓰기와 관계없이 검색되며 고민·가격 필�
   window.close();
 });
 
-test("모바일의 분리된 결과 페이지가 있어도 마운트하지 않고 마스터 초상을 쓴다", async () => {
+test("모바일의 분리된 결과 페이지를 마운트하지 않고 기능 이미지를 쓴다", async () => {
   const { doc, window } = await boot();
   const result = doc.createElement("article");
   result.innerHTML = sliceById(shell, "resultPage");
   window.__cdMobileHomeLazyMount = { peek: (id) => id === "resultPage" ? result : null };
-  for (const [name, key] of [["인생의 책", "yun-life-book-portrait-360"], ["연애 비책", "yeoni-love-portrait-360"]]) {
+  for (const [name, key] of [["인생의 책", "life-book-ai"], ["연애 비책", "love-secret-ai"]]) {
     assert.deepEqual(await search(window, doc, name), [name]);
-    assert.equal(doc.querySelector('#fortuneGatewayRecs img').getAttribute('src'), `/images/master-profiles/${key}.webp`);
+    assert.equal(doc.querySelector('#fortuneGatewayRecs img').getAttribute('src'), `/images/service-introductions/${key}-320.webp`);
     assert.equal(result.isConnected, false);
   }
   window.close();
 });
 
-test("연애 비책·인생의 책·신년운세는 각 상품의 전담 마스터 초상을 쓴다", async () => {
+test("연애 비책·인생의 책·신년운세는 각 상품의 전용 상담 장면을 쓴다", async () => {
   const expected = new Map([
-    ["연애 비책", "/images/master-profiles/yeoni-love-portrait-360.webp"],
-    ["인생의 책", "/images/master-profiles/yun-life-book-portrait-360.webp"],
-    ["신년운세", "/images/master-profiles/neo-new-year-portrait-360.webp"],
+    ["연애 비책", "/images/service-introductions/love-secret-ai-320.webp"],
+    ["인생의 책", "/images/service-introductions/life-book-ai-320.webp"],
+    ["신년운세", "/images/service-introductions/new-year-ai-320.webp"],
   ]);
 
   for (const [name, image] of expected) {

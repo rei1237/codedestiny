@@ -7,17 +7,26 @@
     {
       "id": "01-before-the-next-season",
       "title": "다음 흐름이 오기 전, 무엇을 준비할까요?",
-      "alt": "공식베다영냥이와현재다음다샤전환준비표지.",
-      "src": "/feature-details/crafted/yeongnyangi-vedic-tuna/01-before-the-next-season.webp",
-      "width": 1080,
-      "height": 1440,
+      "alt": "마법사 고양이 영냥이가 마름모로 나뉜 베다 차트를 살피는 장면",
+      "src": "/images/service-introductions/yeongnyangi-vedic.webp",
+      "width": 1536,
+      "height": 1024,
       "text": "다음 흐름이 오기 전,\n무엇을 준비할까요?\n\n지금의 과제와 다음 시기를 잇는,\n베다 다샤의 긴 호흡을 읽습니다.\n\n영냥이 베다점 · 참치",
       "variants": [
         {
-          "src": "/feature-details/crafted/yeongnyangi-vedic-tuna/01-before-the-next-season-540.webp",
-          "width": 540
+          "src": "/images/service-introductions/yeongnyangi-vedic-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-vedic-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-vedic-960.webp",
+          "width": 960
         }
-      ]
+      ],
+      "textBelowImage": true
     },
     {
       "id": "02-two-scales-of-time",

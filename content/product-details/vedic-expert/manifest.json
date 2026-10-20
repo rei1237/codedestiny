@@ -8,16 +8,25 @@
       "id": "editorial-1",
       "title": "윤달이 읽어 드리는, 지금 지나가는 별의 계절.",
       "text": "베다점의 출생 차트와 시기 흐름을 따라, 나의 기질과 선택의 방향을 살핍니다.",
-      "src": "/images/consultation-editorial/vedic.webp",
+      "src": "/images/service-introductions/vedic-ai.webp",
       "width": 1536,
       "height": 1024,
-      "alt": "베다점 전문가 상담 마스터 상담 삽화",
+      "alt": "윤달의 윤달의 베다점 상담 상담 장면",
       "variants": [
         {
-          "src": "/images/consultation-editorial/vedic-768.webp",
-          "width": 768
+          "src": "/images/service-introductions/vedic-ai-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/vedic-ai-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/vedic-ai-960.webp",
+          "width": 960
         }
-      ]
+      ],
+      "textBelowImage": true
     },
     {
       "id": "editorial-2",

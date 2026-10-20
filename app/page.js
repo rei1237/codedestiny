@@ -136,9 +136,7 @@ export default function HomePage() {
                 <Link href={item.href} {...discoveryTracking(item.key)}>
                   <span className={styles.methodDoor}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img className={styles.doorFrame} src={`${ART}/tarot-door-v1-400.webp`} width={400} height={600} alt="" loading="lazy" decoding="async" />
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img className={styles.methodArt} src={item.image} width={80} height={80} alt="" loading="lazy" decoding="async" />
+                    <img className={styles.methodArt} src={item.image} width={320} height={213} alt="" loading="lazy" decoding="async" />
                   </span>
                   <div className={styles.methodCopy}><h3>{item.title}</h3><p>{item.description}</p></div>
                   <svg className={styles.linkArrow} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6" /></svg>

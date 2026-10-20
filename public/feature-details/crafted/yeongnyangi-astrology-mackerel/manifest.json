@@ -7,17 +7,26 @@
     {
       "id": "01-more-than-one-sign",
       "title": "괜찮다고 말한 뒤, 왜 마음이 남을까요?",
-      "alt": "공식점성술영냥이와겉으로말한답내면반응의차이를묻는표지.",
-      "src": "/feature-details/crafted/yeongnyangi-astrology-mackerel/01-more-than-one-sign.webp",
-      "width": 1080,
-      "height": 1440,
+      "alt": "마법사 고양이 영냥이가 원형 출생차트와 행성 배치를 살피는 장면",
+      "src": "/images/service-introductions/yeongnyangi-astrology.webp",
+      "width": 1536,
+      "height": 1024,
       "text": "괜찮다고 말한 뒤,\n왜 마음이 남을까요?\n\n겉으로 보이는 나와 마음속 반응을,\n출생 차트의 여러 자리에서 읽어요.\n\n영냥이 서양 점성술 · 고등어",
       "variants": [
         {
-          "src": "/feature-details/crafted/yeongnyangi-astrology-mackerel/01-more-than-one-sign-540.webp",
-          "width": 540
+          "src": "/images/service-introductions/yeongnyangi-astrology-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-astrology-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-astrology-960.webp",
+          "width": 960
         }
-      ]
+      ],
+      "textBelowImage": true
     },
     {
       "id": "02-three-ways-of-being-me",

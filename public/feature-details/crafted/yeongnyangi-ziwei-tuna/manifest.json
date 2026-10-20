@@ -7,17 +7,26 @@
     {
       "id": "01-next-chapter",
       "title": "잘해온 방식이, 다음 시기에도 나를 도울까요?",
-      "alt": "망원경을 든 공식 영냥이와 다음 시기를 준비하는 자미두수 참치 표지.",
-      "src": "/feature-details/crafted/yeongnyangi-ziwei-tuna/01-next-chapter.webp",
-      "width": 1080,
-      "height": 1440,
+      "alt": "마법사 고양이 영냥이가 사각 열두 궁 명반의 별을 짚는 장면",
+      "src": "/images/service-introductions/yeongnyangi-ziwei.webp",
+      "width": 1536,
+      "height": 1024,
       "text": "잘해온 방식이,\n다음 시기에도\n나를 도울까요?\n\n현재 대한과 다음 대한을 나란히 놓고,\n이어갈 강점과 바꿀 준비를 읽어요.\n\n영냥이 자미두수 · 참치",
       "variants": [
         {
-          "src": "/feature-details/crafted/yeongnyangi-ziwei-tuna/01-next-chapter-540.webp",
-          "width": 540
+          "src": "/images/service-introductions/yeongnyangi-ziwei-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-ziwei-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-ziwei-960.webp",
+          "width": 960
         }
-      ]
+      ],
+      "textBelowImage": true
     },
     {
       "id": "02-three-different-times",

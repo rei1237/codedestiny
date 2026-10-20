@@ -7,11 +7,26 @@
     {
       "id": "01-a-place-to-use-your-talent",
       "title": "내 재능을, 어디에서 쓸 수 있을까요?",
-      "alt": "공식베다영냥이와재능을실제역할로연결하는진로질문표지.",
-      "src": "/feature-details/crafted/yeongnyangi-vedic-salmon/01-a-place-to-use-your-talent.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "내 재능을,\n어디에서 쓸 수 있을까요?\n\n강점과 일의 조건을 연결해,\n지금 준비할 방향을 살펴봅니다.\n\n영냥이 베다점 · 연어"
+      "alt": "마법사 고양이 영냥이가 마름모로 나뉜 베다 차트를 살피는 장면",
+      "src": "/images/service-introductions/yeongnyangi-vedic.webp",
+      "width": 1536,
+      "height": 1024,
+      "text": "내 재능을,\n어디에서 쓸 수 있을까요?\n\n강점과 일의 조건을 연결해,\n지금 준비할 방향을 살펴봅니다.\n\n영냥이 베다점 · 연어",
+      "variants": [
+        {
+          "src": "/images/service-introductions/yeongnyangi-vedic-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-vedic-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-vedic-960.webp",
+          "width": 960
+        }
+      ],
+      "textBelowImage": true
     },
     {
       "id": "02-look-at-the-work-itself",

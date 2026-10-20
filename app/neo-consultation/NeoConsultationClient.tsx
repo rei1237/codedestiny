@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { LazyMotion, domAnimation, m, useReducedMotion } from "framer-motion";
 import { useAuthStore } from "@/app/_lib/auth-store";
-import { NEO_EMAIL_PORTRAIT, NEO_EMAIL_SALE_ENABLED, NEO_LIMITS, NEO_STATUS_LABELS, hasMultipleQuestions, neoMoney, neoReadingLabel, neoQuestionPrice, neoZiweiAddonPrice, neoChartAddonPrice, neoChartLabel, neoBirthLabel, neoTotal, neoUnitPrice, validateNeoInput } from "@/lib/neo-consultation/contract";
+import { NEO_EMAIL_SALE_ENABLED, NEO_LIMITS, NEO_STATUS_LABELS, hasMultipleQuestions, neoMoney, neoReadingLabel, neoQuestionPrice, neoZiweiAddonPrice, neoChartAddonPrice, neoChartLabel, neoBirthLabel, neoTotal, neoUnitPrice, validateNeoInput } from "@/lib/neo-consultation/contract";
 import { PUBLIC_RECORD_PATH } from "@/lib/seo/public-record-copy.mjs";
 import { maskBirthDateInput } from "@/lib/birthDateInput";
 import { neoCall } from "./api";
@@ -127,7 +127,7 @@ export default function NeoConsultationClient() {
   return <LazyMotion features={domAnimation}><main className={styles.page}>
     <nav className={styles.nav}><Link href="/">Code Destiny</Link><a href="#neo-form">질문 작성하기</a></nav>
     <header className={styles.hero}>
-      <picture className={styles.heroArt} aria-hidden="true"><source media="(max-width:760px)" srcSet="/images/neo-consultation/moonlight-garden-768.webp" /><Image src="/images/neo-consultation/moonlight-garden-1536.webp" width={1536} height={1024} alt="" loading="eager" /></picture>
+      <picture className={styles.heroArt} aria-hidden="true"><source media="(max-width:760px)" srcSet="/images/service-introductions/neo-consultation-640.webp" /><Image src="/images/service-introductions/neo-consultation.webp" width={1536} height={1024} alt="" loading="eager" /></picture>
       <m.div className={styles.heroCopy} initial={{ y: reducedMotion ? 0 : 16 }} animate={{ y: 0 }} transition={{ duration: .85, ease: [.16,1,.3,1] }}>
         <h1>네오에게<br /><span>물어봐</span></h1>
         <p className={styles.lead}>마음은 깊게 읽고,<br />선택은 선명하게.</p>
@@ -136,7 +136,7 @@ export default function NeoConsultationClient() {
         <p className={styles.notice}>{mock ? "MOCK 미리보기 · 실제 결제와 이메일 발송이 없습니다." : canSubmit ? NEO_POLICY.delivery : "판매 준비 중 · 질문 작성 화면을 먼저 살펴보세요."}</p>
       </m.div>
       <m.figure className={styles.portrait} initial={{ y: reducedMotion ? 0 : 24 }} animate={{ y: 0 }} transition={{ duration: 1.1, ease: [.16,1,.3,1] }}>
-        <div className={styles.portraitFrame}><Image src={NEO_EMAIL_PORTRAIT} width={600} height={720} alt="은빛 머리와 푸른 눈의 인간형 네오 캐릭터" priority /></div>
+        <div className={styles.portraitFrame}><Image src="/images/service-introductions/neo-consultation-640.webp" width={640} height={427} alt="네오가 사주와 자미두수 자료를 살피며 상담 편지를 검토하는 장면" priority /></div>
         <figcaption><p>고민을 읽는 깊이,<br />다음 한 걸음의 명료함.</p><small>네오를 표현한 캐릭터 일러스트</small></figcaption>
       </m.figure>
     </header>

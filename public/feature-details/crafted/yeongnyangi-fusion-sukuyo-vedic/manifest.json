@@ -7,17 +7,26 @@
     {
       "id": "01-close-to-others-far-from-rest",
       "title": "사람들과 가까워질수록, 쉴 자리가 줄어든다면.",
-      "alt": "공식융합영냥이와관계회복리듬의고민표지.",
-      "src": "/feature-details/crafted/yeongnyangi-fusion-sukuyo-vedic/01-close-to-others-far-from-rest.webp",
-      "width": 1080,
-      "height": 1440,
+      "alt": "마법사 고양이 영냥이가 두 달의 관계와 베다 차트를 함께 읽는 장면",
+      "src": "/images/service-introductions/yeongnyangi-fusion-sukuyo-vedic.webp",
+      "width": 1536,
+      "height": 1024,
       "text": "사람들과 가까워질수록,\n쉴 자리가 줄어든다면.\n\n관계에서 맡는 역할과 마음의 리듬을\n숙요·베다의 다른 언어로 읽어요.\n\n영냥이 모둠 · 숙요와 베다",
       "variants": [
         {
-          "src": "/feature-details/crafted/yeongnyangi-fusion-sukuyo-vedic/01-close-to-others-far-from-rest-540.webp",
-          "width": 540
+          "src": "/images/service-introductions/yeongnyangi-fusion-sukuyo-vedic-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-fusion-sukuyo-vedic-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-fusion-sukuyo-vedic-960.webp",
+          "width": 960
         }
-      ]
+      ],
+      "textBelowImage": true
     },
     {
       "id": "02-the-calendar-full-of-yes",

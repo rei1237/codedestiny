@@ -1,4 +1,6 @@
 "use client";
+
+import introductionArt from "@/lib/marketing/service-introduction-art.json";
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
 import { adviceTopics } from "@/js/recommendations-context.mjs";
@@ -962,7 +964,7 @@ export default function ZiweiAiPage() {
   // 무성 — 본문·워커 요청이 한국어 고정이라 대사도 ko. enabled 를 끄면 기존 12궁 헤더·시길만 남는다.
   // 깃털은 시간이 아니라 실제 단계를 따른다: 확인·결제 중 먹색 → 생성 중 잿빛 → 완성 금빛.
   const musungOn = isExpertCharacterEnabled("musung");
-  const musungHero = getExpertCharacter("musung").hero;
+  const musungHero = { ...getExpertCharacter("musung").hero, src: introductionArt["ziwei-ai"].cardImage.replace("-320", "-960"), alt: introductionArt["ziwei-ai"].alt };
   const musungGreet = getExpertLine("musung", "hero");
   const musungLoading = getExpertLine("musung", phase === "reading" ? "loading.stream" : "loading.request");
   const musungEmpty = getExpertLine("musung", "empty");
@@ -1652,8 +1654,8 @@ export default function ZiweiAiPage() {
         /* 무성 — 12궁 궤도 대신 키아트 배너(점성술 윤달과 같은 구성). 얼굴이 62%/28% 근처라 그쪽으로 맞춘다. */
         .ziweiHero.isMusung{display:block;min-height:0}
         .ziweiHero.isMusung::before,.ziweiHero.isMusung::after{content:none}
-        .musungHeroArt{position:relative;width:100%;aspect-ratio:21/9;max-height:480px;overflow:hidden}
-        .musungHeroArt img{object-fit:cover;object-position:62% 30%}
+        .musungHeroArt{position:relative;width:100%;aspect-ratio:3/2;max-width:960px;margin-inline:auto;overflow:hidden}
+        .musungHeroArt img{object-fit:cover;object-position:center}
         .musungHeroArt::after{content:"";position:absolute;inset:auto 0 0;height:42%;background:linear-gradient(0deg,#0a0c18,transparent);pointer-events:none}
         .ziweiHero.isMusung .heroCopy{padding:4px 40px 18px}
         .musungHeroStage{position:relative;z-index:2;max-width:620px;margin:0 40px 40px}
@@ -1662,7 +1664,7 @@ export default function ZiweiAiPage() {
         .musungClose{justify-self:end;width:min(100%,520px)}
         @media(max-width:980px){.workspace{grid-template-columns:1fr}.consultForm{position:static}.summaryGrid,.scoreGrid,.chartDataGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.palaceGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.resultPane{min-height:520px}.emptyState,.loadingState{min-height:430px}}
         @media(max-width:620px){.ziweiAiShell{padding:10px}.ziweiHero{min-height:248px}.heroCopy{padding:calc(env(safe-area-inset-top,0px) + 54px) 20px 44px}.heroConstellation{right:-86px;top:48%;width:252px;opacity:.45}.heroConstellation i{transform:translate(-50%,-50%) rotate(var(--angle)) translateY(-112px)}.heroConstellation b{width:58px;font-size:27px}.heroBackdropText{right:-10%;bottom:14%;font-size:76px}.fieldRow,.summaryGrid,.chartDataGrid{grid-template-columns:1fr}.palaceGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.palaceBoard{padding:10px}.resultToolbar{align-items:stretch;flex-direction:column}.resultToolbar button{width:100%}.resultCover{padding:18px}.resultCover h2{font-size:24px}.resultPane{min-height:420px;padding:12px}.emptyState,.loadingState{min-height:340px}.palaceSigil{width:138px}.palaceSigil span{transform:rotate(calc(var(--i,0)*30deg)) translateY(-58px)}}
-        @media(max-width:620px){.musungHeroArt{aspect-ratio:16/10;max-height:none}.ziweiHero.isMusung .heroCopy{padding:2px 18px 14px}.musungHeroStage{margin:0 18px 26px}}
+        @media(max-width:620px){.musungHeroArt{aspect-ratio:3/2;max-height:none}.ziweiHero.isMusung .heroCopy{padding:2px 18px 14px}.musungHeroStage{margin:0 18px 26px}}
       `}</style>
     </main>
   );

@@ -21,8 +21,8 @@ const novelBackground = (fileName: string) => novelAsset(`background/${fileName}
 export const masterLoveCodexAssets = {
   /** 입장·프롤로그에 쓰는 책 이미지. 배포되는 public 실물과 같은 출처에서 읽는다. */
   cover: "/feature-details/assets/master-love-codex-960.webp",
-  /** 라이트노벨의 서한비와 같은 인간형 안내 이미지 — 동물형 표현은 은유로만 남긴다. */
-  humanHero: "/images/feature-details/master-love-codex-hero-v3.webp",
+  /** 인연의 서 마스터가 사주와 열두 궁을 함께 살피는 기능 소개 장면. */
+  humanHero: "/images/service-introductions/master-love-codex-960.webp",
   backgrounds: {
     library: novelBackground("신비의 도서관.webp"),
     libraryDeep: novelBackground("신비의 도서관2.webp"),

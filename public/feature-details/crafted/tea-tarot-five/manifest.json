@@ -48,16 +48,25 @@
       "id": "editorial-1",
       "title": "마음을 먼저 듣는, 연이의 타로 다섯 장 상담.",
       "text": "쉽게 꺼내지 못한 마음도 천천히 들려주세요. 따뜻한 차 한 잔처럼 이야기를 듣고, 지금의 흐름을 함께 살펴봅니다.",
-      "src": "/images/consultation-editorial/yeoni.webp",
+      "src": "/images/service-introductions/tea-tarot.webp",
       "width": 1536,
       "height": 1024,
-      "alt": "운명의 찻집 · 타로 5장 마스터 상담 삽화",
+      "alt": "연이의 연이 타로 상담 상담 장면",
       "variants": [
         {
-          "src": "/images/consultation-editorial/yeoni-768.webp",
-          "width": 768
+          "src": "/images/service-introductions/tea-tarot-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/tea-tarot-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/tea-tarot-960.webp",
+          "width": 960
         }
-      ]
+      ],
+      "textBelowImage": true
     },
     {
       "id": "editorial-2",

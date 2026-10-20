@@ -7,11 +7,26 @@
     {
       "id": "01-the-conversation-between-us",
       "title": "대화는 이어지는데, 왜 자꾸 엇갈릴까요?",
-      "alt": "공식타로영냥이와관계대화의엇갈림을묻는표지.",
-      "src": "/feature-details/crafted/yeongnyangi-tarot-flounder/01-the-conversation-between-us.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "대화는 이어지는데,\n왜 자꾸 엇갈릴까요?\n\n내 기대와 드러난 태도를 나눠 읽고,\n서로 조율할 지점을 찾아봐요.\n\n영냥이 타로 · 광어"
+      "alt": "마법사 고양이 영냥이가 펼친 타로 카드의 흐름을 읽는 장면",
+      "src": "/images/service-introductions/yeongnyangi-tarot.webp",
+      "width": 1536,
+      "height": 1024,
+      "text": "대화는 이어지는데,\n왜 자꾸 엇갈릴까요?\n\n내 기대와 드러난 태도를 나눠 읽고,\n서로 조율할 지점을 찾아봐요.\n\n영냥이 타로 · 광어",
+      "variants": [
+        {
+          "src": "/images/service-introductions/yeongnyangi-tarot-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-tarot-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-tarot-960.webp",
+          "width": 960
+        }
+      ],
+      "textBelowImage": true
     },
     {
       "id": "02-expectation-is-not-evidence",

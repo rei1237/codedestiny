@@ -110,9 +110,8 @@
 .page h3 { margin: 0; font-size: 1rem; line-height: 1.5; font-weight: 700; color: var(--cd-text); }
 .serviceList { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 20px; }
 .serviceList a { position: relative; display: flex; flex-direction: column; align-items: center; gap: 10px; height: 100%; box-sizing: border-box; padding: 0 0 12px; text-decoration: none; text-align: center; }
-.methodDoor { position: relative; display: block; width: 100%; max-width: 180px; aspect-ratio: 2 / 3; }
-.doorFrame { display: block; width: 100%; height: 100%; object-fit: contain; }
-.methodArt { position: absolute; top: 39%; left: 25%; width: 50%; height: auto; aspect-ratio: 1; object-fit: contain; transition: transform var(--cd-dur-emph) var(--cd-ease-out); }
+.methodDoor { position: relative; display: block; width: 100%; max-width: 320px; aspect-ratio: 3 / 2; overflow: hidden; border: 1px solid var(--hm-gold-line); border-radius: var(--cd-r-md); }
+.methodArt { display: block; width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: contain; transition: transform var(--cd-dur-emph) var(--cd-ease-out); }
 .methodCopy { width: 100%; max-width: 23ch; }
 .serviceList p, .concernList p { margin-top: 4px; color: var(--cd-text-muted); font-size: 0.875rem; line-height: 1.65; }
 .linkArrow { color: var(--hm-gold-ink); margin-top: auto; }

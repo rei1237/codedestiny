@@ -1,0 +1,427 @@
+{
+  "reviewedBy": "visual-checker",
+  "reviewType": "rendered-screenshot-only",
+  "viewports": [
+    360,
+    390,
+    1440
+  ],
+  "criteria": [
+    "담당자와 상담 도구의 동시 식별",
+    "크롭과 깨진 이미지",
+    "HTML 텍스트 가독성",
+    "기능 간 장면 구별"
+  ],
+  "reviews": [
+    {
+      "screenshot": "build-cache/service-introduction-review/1440-astrology-search.png",
+      "status": "pass",
+      "reason": "기능별 장면, 담당자, 제목과 설명, CTA가 읽히며 이미지 깨짐이나 텍스트 잘림이 없습니다."
+    },
+    {
+      "screenshot": "build-cache/service-introduction-review/1440-consultations-entry.png",
+      "status": "pass",
+      "reason": "신규 기능 장면의 담당자와 상담 도구가 함께 보이며 이미지 깨짐과 주요 크롭 손실이 없습니다."
+    },
+    {
+      "screenshot": "build-cache/service-introduction-review/1440-home-entry.png",
+      "status": "pass",
+      "reason": "재검수: 문틀 장식이 제거되고 3:2 신규 장면이 크게 표시됩니다. 캐릭터와 기능별 도구를 식별할 수 있으며 모바일 첫 두 카드와 데스크톱 기능 그리드에서 깨짐이 없습니다."
+    },
+    {
+      "screenshot": "build-cache/service-introduction-review/1440-life-book-ai-search.png",
+      "status": "pass",
+      "reason": "기능별 장면, 담당자, 제목과 설명, CTA가 읽히며 이미지 깨짐이나 텍스트 잘림이 없습니다."
+    },
+    {
+      "screenshot": "build-cache/service-introduction-review/1440-palm-detail.png",
+      "status": "pass",
+      "reason": "인간 연이의 분홍 웨이브 머리와 꽃 장식, 꽃무늬 크림 의상 및 펼친 손바닥을 동시에 식별할 수 있습니다. 손금 상담 행동과 HTML 설명이 함께 전달됩니다."
+    },
+    {
+      "screenshot": "build-cache/service-introduction-review/1440-palm-reading-entry.png",
+      "status": "pass",
+      "reason": "인간 연이의 분홍 웨이브 머리와 꽃 장식, 꽃무늬 크림 의상 및 펼친 손바닥을 동시에 식별할 수 있습니다. 손금 상담 행동과 HTML 설명이 함께 전달됩니다."
+    },
+    {
+      "screenshot": "build-cache/service-introduction-review/1440-palm-reading-search.png",
+      "status": "pass",
+      "reason": "인간 연이의 분홍 웨이브 머리와 꽃 장식, 꽃무늬 크림 의상 및 펼친 손바닥을 동시에 식별할 수 있습니다. 손금 상담 행동과 HTML 설명이 함께 전달됩니다."
+    },
+    {
+      "screenshot": "build-cache/service-introduction-review/1440-sukuyo-search.png",
+      "status": "pass",
+      "reason": "기능별 장면, 담당자, 제목과 설명, CTA가 읽히며 이미지 깨짐이나 텍스트 잘림이 없습니다."
+    },
+    {
+      "screenshot": "build-cache/service-introduction-review/1440-vedic-search.png",
+      "status": "pass",
+      "reason": "기능별 장면, 담당자, 제목과 설명, CTA가 읽히며 이미지 깨짐이나 텍스트 잘림이 없습니다."
+    },
+    {
+      "screenshot": "build-cache/service-introduction-review/1440-ziwei-ai-entry.png",
+      "status": "pass",
+      "reason": "신규 기능 장면의 담당자와 상담 도구가 함께 보이며 이미지 깨짐과 주요 크롭 손실이 없습니다."
+    },
+    {
+      "screenshot": "build-cache/service-introduction-review/1440-ziwei-search.png",
+      "status": "pass",
+      "reason": "기능별 장면, 담당자, 제목과 설명, CTA가 읽히며 이미지 깨짐이나 텍스트 잘림이 없습니다."
+    },
+    {
+      "screenshot": "build-cache/service-introduction-review/360-astrology-ai-entry.png",
+      "status": "pass",
+      "reason": "신규 기능 장면의 담당자와 상담 도구가 함께 보이며 이미지 깨짐과 주요 크롭 손실이 없습니다."
+    },
+    {
+      "screenshot": "build-cache/service-introduction-review/360-astrology-search.png",
+      "status": "pass",
+      "reason": "기능별 장면, 담당자, 제목과 설명, CTA가 읽히며 이미지 깨짐이나 텍스트 잘림이 없습니다."
+    },
+    {
+      "screenshot": "build-cache/service-introduction-review/360-consultations-entry.png",
+      "status": "pass",
+      "reason": "신규 기능 장면의 담당자와 상담 도구가 함께 보이며 이미지 깨짐과 주요 크롭 손실이 없습니다."
+    },
+    {
+      "screenshot": "build-cache/service-introduction-review/360-home-entry.png",
+      "status": "pass",
+      "reason": "재검수: 문틀 장식이 제거되고 3:2 신규 장면이 크게 표시됩니다. 캐릭터와 기능별 도구를 식별할 수 있으며 모바일 첫 두 카드와 데스크톱 기능 그리드에서 깨짐이 없습니다."
+    },
+    {
+      "screenshot": "build-cache/service-introduction-review/360-life-book-ai-search.png",
+      "status": "pass",
+      "reason": "기능별 장면, 담당자, 제목과 설명, CTA가 읽히며 이미지 깨짐이나 텍스트 잘림이 없습니다."
+    },
+    {
+      "screenshot": "build-cache/service-introduction-review/360-neo-consultation-entry.png",
+      "status": "pass",
+      "reason": "재검수: 기존 단독 초상 대신 네오가 편지와 서류를 읽고 작성하는 신규 장면으로 교체되었습니다. 모바일 전경 카드에서도 얼굴과 편지를 함께 식별합니다."
+    },
+    {
+      "screenshot": "build-cache/service-introduction-review/360-palm-detail.png",
+      "status": "pass",
+      "reason": "인간 연이의 분홍 웨이브 머리와 꽃 장식, 꽃무늬 크림 의상 및 펼친 손바닥을 동시에 식별할 수 있습니다. 손금 상담 행동과 HTML 설명이 함께 전달됩니다."
+    },
+    {
+      "screenshot": "build-cache/service-introduction-review/360-palm-reading-entry.png",
+      "status": "pass",
+      "reason": "인간 연이의 분홍 웨이브 머리와 꽃 장식, 꽃무늬 크림 의상 및 펼친 손바닥을 동시에 식별할 수 있습니다. 손금 상담 행동과 HTML 설명이 함께 전달됩니다."
+    },
+    {
+      "screenshot": "build-cache/service-introduction-review/360-palm-reading-search.png",
+      "status": "pass",
+      "reason": "인간 연이의 분홍 웨이브 머리와 꽃 장식, 꽃무늬 크림 의상 및 펼친 손바닥을 동시에 식별할 수 있습니다. 손금 상담 행동과 HTML 설명이 함께 전달됩니다."
+    },
+    {
+      "screenshot": "build-cache/service-introduction-review/360-sukuyo-compatibility-ai-entry.png",
+      "status": "pass",
+      "reason": "신규 기능 장면의 담당자와 상담 도구가 함께 보이며 이미지 깨짐과 주요 크롭 손실이 없습니다."
+    },
+    {
+      "screenshot": "build-cache/service-introduction-review/360-sukuyo-search.png",
+      "status": "pass",
+      "reason": "기능별 장면, 담당자, 제목과 설명, CTA가 읽히며 이미지 깨짐이나 텍스트 잘림이 없습니다."
+    },
+    {
+      "screenshot": "build-cache/service-introduction-review/360-vedic-ai-entry.png",
+      "status": "pass",
+      "reason": "신규 기능 장면의 담당자와 상담 도구가 함께 보이며 이미지 깨짐과 주요 크롭 손실이 없습니다."
+    },
+    {
+      "screenshot": "build-cache/service-introduction-review/360-vedic-search.png",
+      "status": "pass",
+      "reason": "기능별 장면, 담당자, 제목과 설명, CTA가 읽히며 이미지 깨짐이나 텍스트 잘림이 없습니다."
+    },
+    {
+      "screenshot": "build-cache/service-introduction-review/360-ziwei-ai-entry.png",
+      "status": "pass",
+      "reason": "신규 기능 장면의 담당자와 상담 도구가 함께 보이며 이미지 깨짐과 주요 크롭 손실이 없습니다."
+    },
+    {
+      "screenshot": "build-cache/service-introduction-review/360-ziwei-search.png",
+      "status": "pass",
+      "reason": "기능별 장면, 담당자, 제목과 설명, CTA가 읽히며 이미지 깨짐이나 텍스트 잘림이 없습니다."
+    },
+    {
+      "screenshot": "build-cache/service-introduction-review/390-astrology-ai-entry.png",
+      "status": "pass",
+      "reason": "신규 기능 장면의 담당자와 상담 도구가 함께 보이며 이미지 깨짐과 주요 크롭 손실이 없습니다."
+    },
+    {
+      "screenshot": "build-cache/service-introduction-review/390-astrology-search.png",
+      "status": "pass",
+      "reason": "기능별 장면, 담당자, 제목과 설명, CTA가 읽히며 이미지 깨짐이나 텍스트 잘림이 없습니다."
+    },
+    {
+      "screenshot": "build-cache/service-introduction-review/390-consultations-entry.png",
+      "status": "pass",
+      "reason": "신규 기능 장면의 담당자와 상담 도구가 함께 보이며 이미지 깨짐과 주요 크롭 손실이 없습니다."
+    },
+    {
+      "screenshot": "build-cache/service-introduction-review/390-home-entry.png",
+      "status": "pass",
+      "reason": "재검수: 문틀 장식이 제거되고 3:2 신규 장면이 크게 표시됩니다. 캐릭터와 기능별 도구를 식별할 수 있으며 모바일 첫 두 카드와 데스크톱 기능 그리드에서 깨짐이 없습니다."
+    },
+    {
+      "screenshot": "build-cache/service-introduction-review/390-life-book-ai-search.png",
+      "status": "pass",
+      "reason": "기능별 장면, 담당자, 제목과 설명, CTA가 읽히며 이미지 깨짐이나 텍스트 잘림이 없습니다."
+    },
+    {
+      "screenshot": "build-cache/service-introduction-review/390-neo-consultation-entry.png",
+      "status": "pass",
+      "reason": "재검수: 기존 단독 초상 대신 네오가 편지와 서류를 읽고 작성하는 신규 장면으로 교체되었습니다. 모바일 전경 카드에서도 얼굴과 편지를 함께 식별합니다."
+    },
+    {
+      "screenshot": "build-cache/service-introduction-review/390-palm-detail.png",
+      "status": "pass",
+      "reason": "인간 연이의 분홍 웨이브 머리와 꽃 장식, 꽃무늬 크림 의상 및 펼친 손바닥을 동시에 식별할 수 있습니다. 손금 상담 행동과 HTML 설명이 함께 전달됩니다."
+    },
+    {
+      "screenshot": "build-cache/service-introduction-review/390-palm-reading-entry.png",
+      "status": "pass",
+      "reason": "인간 연이의 분홍 웨이브 머리와 꽃 장식, 꽃무늬 크림 의상 및 펼친 손바닥을 동시에 식별할 수 있습니다. 손금 상담 행동과 HTML 설명이 함께 전달됩니다."
+    },
+    {
+      "screenshot": "build-cache/service-introduction-review/390-palm-reading-search.png",
+      "status": "pass",
+      "reason": "인간 연이의 분홍 웨이브 머리와 꽃 장식, 꽃무늬 크림 의상 및 펼친 손바닥을 동시에 식별할 수 있습니다. 손금 상담 행동과 HTML 설명이 함께 전달됩니다."
+    },
+    {
+      "screenshot": "build-cache/service-introduction-review/390-sukuyo-compatibility-ai-entry.png",
+      "status": "pass",
+      "reason": "신규 기능 장면의 담당자와 상담 도구가 함께 보이며 이미지 깨짐과 주요 크롭 손실이 없습니다."
+    },
+    {
+      "screenshot": "build-cache/service-introduction-review/390-sukuyo-search.png",
+      "status": "pass",
+      "reason": "기능별 장면, 담당자, 제목과 설명, CTA가 읽히며 이미지 깨짐이나 텍스트 잘림이 없습니다."
+    },
+    {
+      "screenshot": "build-cache/service-introduction-review/390-vedic-ai-entry.png",
+      "status": "pass",
+      "reason": "신규 기능 장면의 담당자와 상담 도구가 함께 보이며 이미지 깨짐과 주요 크롭 손실이 없습니다."
+    },
+    {
+      "screenshot": "build-cache/service-introduction-review/390-vedic-search.png",
+      "status": "pass",
+      "reason": "기능별 장면, 담당자, 제목과 설명, CTA가 읽히며 이미지 깨짐이나 텍스트 잘림이 없습니다."
+    },
+    {
+      "screenshot": "build-cache/service-introduction-review/390-ziwei-ai-entry.png",
+      "status": "pass",
+      "reason": "신규 기능 장면의 담당자와 상담 도구가 함께 보이며 이미지 깨짐과 주요 크롭 손실이 없습니다."
+    },
+    {
+      "screenshot": "build-cache/service-introduction-review/390-ziwei-search.png",
+      "status": "pass",
+      "reason": "기능별 장면, 담당자, 제목과 설명, CTA가 읽히며 이미지 깨짐이나 텍스트 잘림이 없습니다."
+    },
+    {
+      "screenshot": "C:/Users/user/.codex/visualizations/2026/10/20/01a158d5-bbd7-7fb1-9132-e632b2b5d7aa/service-introduction-review/1440-entry-master-love-hero.png",
+      "status": "pass",
+      "reason": "서한비와 사각 명반 및 관계 상징을 함께 식별합니다. 제목과 설명 영역과 겹치지 않으며 이미지 깨짐이 없습니다."
+    },
+    {
+      "screenshot": "C:/Users/user/.codex/visualizations/2026/10/20/01a158d5-bbd7-7fb1-9132-e632b2b5d7aa/service-introduction-review/1440-entry-neo-astrology.png",
+      "status": "pass",
+      "reason": "네오의 외형을 유지하며 사주 사계절·오행, 자미 사각 명반, 베다 마름모 명반, 서양 원형 차트 장면이 구별됩니다. 좁은 카드에서도 얼굴과 도구가 함께 보입니다."
+    },
+    {
+      "screenshot": "C:/Users/user/.codex/visualizations/2026/10/20/01a158d5-bbd7-7fb1-9132-e632b2b5d7aa/service-introduction-review/1440-entry-neo-saju.png",
+      "status": "pass",
+      "reason": "네오의 외형을 유지하며 사주 사계절·오행, 자미 사각 명반, 베다 마름모 명반, 서양 원형 차트 장면이 구별됩니다. 좁은 카드에서도 얼굴과 도구가 함께 보입니다."
+    },
+    {
+      "screenshot": "C:/Users/user/.codex/visualizations/2026/10/20/01a158d5-bbd7-7fb1-9132-e632b2b5d7aa/service-introduction-review/1440-entry-neo-vedic.png",
+      "status": "pass",
+      "reason": "네오의 외형을 유지하며 사주 사계절·오행, 자미 사각 명반, 베다 마름모 명반, 서양 원형 차트 장면이 구별됩니다. 좁은 카드에서도 얼굴과 도구가 함께 보입니다."
+    },
+    {
+      "screenshot": "C:/Users/user/.codex/visualizations/2026/10/20/01a158d5-bbd7-7fb1-9132-e632b2b5d7aa/service-introduction-review/1440-entry-neo-ziwei.png",
+      "status": "pass",
+      "reason": "네오의 외형을 유지하며 사주 사계절·오행, 자미 사각 명반, 베다 마름모 명반, 서양 원형 차트 장면이 구별됩니다. 좁은 카드에서도 얼굴과 도구가 함께 보입니다."
+    },
+    {
+      "screenshot": "C:/Users/user/.codex/visualizations/2026/10/20/01a158d5-bbd7-7fb1-9132-e632b2b5d7aa/service-introduction-review/1440-entry-tea-hero.png",
+      "status": "pass",
+      "reason": "인간 연이의 외형과 상담 장면이 명확합니다. 사주·타로·숙요 도구가 구별되며 공동 상담에서는 연이와 네오가 함께 보입니다. 이미지 깨짐과 핵심 피사체 잘림이 없습니다."
+    },
+    {
+      "screenshot": "C:/Users/user/.codex/visualizations/2026/10/20/01a158d5-bbd7-7fb1-9132-e632b2b5d7aa/service-introduction-review/1440-entry-tea-joint.png",
+      "status": "pass",
+      "reason": "인간 연이의 외형과 상담 장면이 명확합니다. 사주·타로·숙요 도구가 구별되며 공동 상담에서는 연이와 네오가 함께 보입니다. 이미지 깨짐과 핵심 피사체 잘림이 없습니다."
+    },
+    {
+      "screenshot": "C:/Users/user/.codex/visualizations/2026/10/20/01a158d5-bbd7-7fb1-9132-e632b2b5d7aa/service-introduction-review/1440-entry-tea-preview.png",
+      "status": "pass",
+      "reason": "인간 연이의 외형과 상담 장면이 명확합니다. 사주·타로·숙요 도구가 구별되며 공동 상담에서는 연이와 네오가 함께 보입니다. 이미지 깨짐과 핵심 피사체 잘림이 없습니다."
+    },
+    {
+      "screenshot": "C:/Users/user/.codex/visualizations/2026/10/20/01a158d5-bbd7-7fb1-9132-e632b2b5d7aa/service-introduction-review/1440-entry-tea-saju.png",
+      "status": "pass",
+      "reason": "인간 연이의 외형과 상담 장면이 명확합니다. 사주·타로·숙요 도구가 구별되며 공동 상담에서는 연이와 네오가 함께 보입니다. 이미지 깨짐과 핵심 피사체 잘림이 없습니다."
+    },
+    {
+      "screenshot": "C:/Users/user/.codex/visualizations/2026/10/20/01a158d5-bbd7-7fb1-9132-e632b2b5d7aa/service-introduction-review/1440-entry-tea-sukuyo.png",
+      "status": "pass",
+      "reason": "인간 연이의 외형과 상담 장면이 명확합니다. 사주·타로·숙요 도구가 구별되며 공동 상담에서는 연이와 네오가 함께 보입니다. 이미지 깨짐과 핵심 피사체 잘림이 없습니다."
+    },
+    {
+      "screenshot": "C:/Users/user/.codex/visualizations/2026/10/20/01a158d5-bbd7-7fb1-9132-e632b2b5d7aa/service-introduction-review/1440-entry-tea-tarot.png",
+      "status": "pass",
+      "reason": "인간 연이의 외형과 상담 장면이 명확합니다. 사주·타로·숙요 도구가 구별되며 공동 상담에서는 연이와 네오가 함께 보입니다. 이미지 깨짐과 핵심 피사체 잘림이 없습니다."
+    },
+    {
+      "screenshot": "C:/Users/user/.codex/visualizations/2026/10/20/01a158d5-bbd7-7fb1-9132-e632b2b5d7aa/service-introduction-review/360-entry-master-love-hero.png",
+      "status": "pass",
+      "reason": "서한비와 사각 명반 및 관계 상징을 함께 식별합니다. 제목과 설명 영역과 겹치지 않으며 이미지 깨짐이 없습니다."
+    },
+    {
+      "screenshot": "C:/Users/user/.codex/visualizations/2026/10/20/01a158d5-bbd7-7fb1-9132-e632b2b5d7aa/service-introduction-review/360-entry-neo-astrology.png",
+      "status": "pass",
+      "reason": "네오의 외형을 유지하며 사주 사계절·오행, 자미 사각 명반, 베다 마름모 명반, 서양 원형 차트 장면이 구별됩니다. 좁은 카드에서도 얼굴과 도구가 함께 보입니다."
+    },
+    {
+      "screenshot": "C:/Users/user/.codex/visualizations/2026/10/20/01a158d5-bbd7-7fb1-9132-e632b2b5d7aa/service-introduction-review/360-entry-neo-saju.png",
+      "status": "pass",
+      "reason": "네오의 외형을 유지하며 사주 사계절·오행, 자미 사각 명반, 베다 마름모 명반, 서양 원형 차트 장면이 구별됩니다. 좁은 카드에서도 얼굴과 도구가 함께 보입니다."
+    },
+    {
+      "screenshot": "C:/Users/user/.codex/visualizations/2026/10/20/01a158d5-bbd7-7fb1-9132-e632b2b5d7aa/service-introduction-review/360-entry-neo-vedic.png",
+      "status": "pass",
+      "reason": "네오의 외형을 유지하며 사주 사계절·오행, 자미 사각 명반, 베다 마름모 명반, 서양 원형 차트 장면이 구별됩니다. 좁은 카드에서도 얼굴과 도구가 함께 보입니다."
+    },
+    {
+      "screenshot": "C:/Users/user/.codex/visualizations/2026/10/20/01a158d5-bbd7-7fb1-9132-e632b2b5d7aa/service-introduction-review/360-entry-neo-ziwei.png",
+      "status": "pass",
+      "reason": "네오의 외형을 유지하며 사주 사계절·오행, 자미 사각 명반, 베다 마름모 명반, 서양 원형 차트 장면이 구별됩니다. 좁은 카드에서도 얼굴과 도구가 함께 보입니다."
+    },
+    {
+      "screenshot": "C:/Users/user/.codex/visualizations/2026/10/20/01a158d5-bbd7-7fb1-9132-e632b2b5d7aa/service-introduction-review/360-entry-tea-hero.png",
+      "status": "pass",
+      "reason": "인간 연이의 외형과 상담 장면이 명확합니다. 사주·타로·숙요 도구가 구별되며 공동 상담에서는 연이와 네오가 함께 보입니다. 이미지 깨짐과 핵심 피사체 잘림이 없습니다."
+    },
+    {
+      "screenshot": "C:/Users/user/.codex/visualizations/2026/10/20/01a158d5-bbd7-7fb1-9132-e632b2b5d7aa/service-introduction-review/360-entry-tea-joint.png",
+      "status": "pass",
+      "reason": "인간 연이의 외형과 상담 장면이 명확합니다. 사주·타로·숙요 도구가 구별되며 공동 상담에서는 연이와 네오가 함께 보입니다. 이미지 깨짐과 핵심 피사체 잘림이 없습니다."
+    },
+    {
+      "screenshot": "C:/Users/user/.codex/visualizations/2026/10/20/01a158d5-bbd7-7fb1-9132-e632b2b5d7aa/service-introduction-review/360-entry-tea-preview.png",
+      "status": "pass",
+      "reason": "인간 연이의 외형과 상담 장면이 명확합니다. 사주·타로·숙요 도구가 구별되며 공동 상담에서는 연이와 네오가 함께 보입니다. 이미지 깨짐과 핵심 피사체 잘림이 없습니다."
+    },
+    {
+      "screenshot": "C:/Users/user/.codex/visualizations/2026/10/20/01a158d5-bbd7-7fb1-9132-e632b2b5d7aa/service-introduction-review/360-entry-tea-saju.png",
+      "status": "pass",
+      "reason": "인간 연이의 외형과 상담 장면이 명확합니다. 사주·타로·숙요 도구가 구별되며 공동 상담에서는 연이와 네오가 함께 보입니다. 이미지 깨짐과 핵심 피사체 잘림이 없습니다."
+    },
+    {
+      "screenshot": "C:/Users/user/.codex/visualizations/2026/10/20/01a158d5-bbd7-7fb1-9132-e632b2b5d7aa/service-introduction-review/360-entry-tea-sukuyo.png",
+      "status": "pass",
+      "reason": "인간 연이의 외형과 상담 장면이 명확합니다. 사주·타로·숙요 도구가 구별되며 공동 상담에서는 연이와 네오가 함께 보입니다. 이미지 깨짐과 핵심 피사체 잘림이 없습니다."
+    },
+    {
+      "screenshot": "C:/Users/user/.codex/visualizations/2026/10/20/01a158d5-bbd7-7fb1-9132-e632b2b5d7aa/service-introduction-review/360-entry-tea-tarot.png",
+      "status": "pass",
+      "reason": "인간 연이의 외형과 상담 장면이 명확합니다. 사주·타로·숙요 도구가 구별되며 공동 상담에서는 연이와 네오가 함께 보입니다. 이미지 깨짐과 핵심 피사체 잘림이 없습니다."
+    },
+    {
+      "screenshot": "C:/Users/user/.codex/visualizations/2026/10/20/01a158d5-bbd7-7fb1-9132-e632b2b5d7aa/service-introduction-review/390-entry-master-love-hero.png",
+      "status": "pass",
+      "reason": "서한비와 사각 명반 및 관계 상징을 함께 식별합니다. 제목과 설명 영역과 겹치지 않으며 이미지 깨짐이 없습니다."
+    },
+    {
+      "screenshot": "C:/Users/user/.codex/visualizations/2026/10/20/01a158d5-bbd7-7fb1-9132-e632b2b5d7aa/service-introduction-review/390-entry-neo-astrology.png",
+      "status": "pass",
+      "reason": "네오의 외형을 유지하며 사주 사계절·오행, 자미 사각 명반, 베다 마름모 명반, 서양 원형 차트 장면이 구별됩니다. 좁은 카드에서도 얼굴과 도구가 함께 보입니다."
+    },
+    {
+      "screenshot": "C:/Users/user/.codex/visualizations/2026/10/20/01a158d5-bbd7-7fb1-9132-e632b2b5d7aa/service-introduction-review/390-entry-neo-saju.png",
+      "status": "pass",
+      "reason": "네오의 외형을 유지하며 사주 사계절·오행, 자미 사각 명반, 베다 마름모 명반, 서양 원형 차트 장면이 구별됩니다. 좁은 카드에서도 얼굴과 도구가 함께 보입니다."
+    },
+    {
+      "screenshot": "C:/Users/user/.codex/visualizations/2026/10/20/01a158d5-bbd7-7fb1-9132-e632b2b5d7aa/service-introduction-review/390-entry-neo-vedic.png",
+      "status": "pass",
+      "reason": "네오의 외형을 유지하며 사주 사계절·오행, 자미 사각 명반, 베다 마름모 명반, 서양 원형 차트 장면이 구별됩니다. 좁은 카드에서도 얼굴과 도구가 함께 보입니다."
+    },
+    {
+      "screenshot": "C:/Users/user/.codex/visualizations/2026/10/20/01a158d5-bbd7-7fb1-9132-e632b2b5d7aa/service-introduction-review/390-entry-neo-ziwei.png",
+      "status": "pass",
+      "reason": "네오의 외형을 유지하며 사주 사계절·오행, 자미 사각 명반, 베다 마름모 명반, 서양 원형 차트 장면이 구별됩니다. 좁은 카드에서도 얼굴과 도구가 함께 보입니다."
+    },
+    {
+      "screenshot": "C:/Users/user/.codex/visualizations/2026/10/20/01a158d5-bbd7-7fb1-9132-e632b2b5d7aa/service-introduction-review/390-entry-tea-hero.png",
+      "status": "pass",
+      "reason": "인간 연이의 외형과 상담 장면이 명확합니다. 사주·타로·숙요 도구가 구별되며 공동 상담에서는 연이와 네오가 함께 보입니다. 이미지 깨짐과 핵심 피사체 잘림이 없습니다."
+    },
+    {
+      "screenshot": "C:/Users/user/.codex/visualizations/2026/10/20/01a158d5-bbd7-7fb1-9132-e632b2b5d7aa/service-introduction-review/390-entry-tea-joint.png",
+      "status": "pass",
+      "reason": "인간 연이의 외형과 상담 장면이 명확합니다. 사주·타로·숙요 도구가 구별되며 공동 상담에서는 연이와 네오가 함께 보입니다. 이미지 깨짐과 핵심 피사체 잘림이 없습니다."
+    },
+    {
+      "screenshot": "C:/Users/user/.codex/visualizations/2026/10/20/01a158d5-bbd7-7fb1-9132-e632b2b5d7aa/service-introduction-review/390-entry-tea-preview.png",
+      "status": "pass",
+      "reason": "인간 연이의 외형과 상담 장면이 명확합니다. 사주·타로·숙요 도구가 구별되며 공동 상담에서는 연이와 네오가 함께 보입니다. 이미지 깨짐과 핵심 피사체 잘림이 없습니다."
+    },
+    {
+      "screenshot": "C:/Users/user/.codex/visualizations/2026/10/20/01a158d5-bbd7-7fb1-9132-e632b2b5d7aa/service-introduction-review/390-entry-tea-saju.png",
+      "status": "pass",
+      "reason": "인간 연이의 외형과 상담 장면이 명확합니다. 사주·타로·숙요 도구가 구별되며 공동 상담에서는 연이와 네오가 함께 보입니다. 이미지 깨짐과 핵심 피사체 잘림이 없습니다."
+    },
+    {
+      "screenshot": "C:/Users/user/.codex/visualizations/2026/10/20/01a158d5-bbd7-7fb1-9132-e632b2b5d7aa/service-introduction-review/390-entry-tea-sukuyo.png",
+      "status": "pass",
+      "reason": "인간 연이의 외형과 상담 장면이 명확합니다. 사주·타로·숙요 도구가 구별되며 공동 상담에서는 연이와 네오가 함께 보입니다. 이미지 깨짐과 핵심 피사체 잘림이 없습니다."
+    },
+    {
+      "screenshot": "C:/Users/user/.codex/visualizations/2026/10/20/01a158d5-bbd7-7fb1-9132-e632b2b5d7aa/service-introduction-review/390-entry-tea-tarot.png",
+      "status": "pass",
+      "reason": "인간 연이의 외형과 상담 장면이 명확합니다. 사주·타로·숙요 도구가 구별되며 공동 상담에서는 연이와 네오가 함께 보입니다. 이미지 깨짐과 핵심 피사체 잘림이 없습니다."
+    },
+    {
+      "screenshot": "build-cache/service-introduction-review/1440-neo-consultation-entry.png",
+      "status": "pass",
+      "reason": "네오가 편지를 읽고 작성하는 신규 장면이 배경 및 전경에 보입니다. 제목, 설명, CTA와 기능 장면이 함께 읽힙니다."
+    }
+  ],
+  "nonBlockingObservations": [
+    {
+      "screenshots": [
+        "1440-ziwei-ai-entry.png",
+        "390-astrology-ai-entry.png"
+      ],
+      "note": "기존 큰 제목에서 상담이 상/담으로 줄바꿈됩니다. 기능 이미지 식별에는 영향이 없습니다."
+    },
+    {
+      "screenshots": [
+        "390-palm-reading-entry.png",
+        "360-palm-reading-entry.png"
+      ],
+      "note": "상단 기본 화면 배지가 PALM DESTINY 장식과 일부 겹칩니다. 손금 이미지와 본문은 읽힙니다."
+    },
+    {
+      "screenshots": [
+        "360-neo-consultation-entry.png",
+        "390-neo-consultation-entry.png",
+        "1440-neo-consultation-entry.png"
+      ],
+      "note": "로컬 개발환경의 1 Issue 배지가 표시됩니다. 이미지 표시 오류는 관찰하지 않았으며 런타임 경고 원인 확인은 별도 검증 범위입니다."
+    }
+  ],
+  "limitations": [
+    "스크린샷 시각 검수이며 버튼 동작, 계산, 결제, SEO 또는 네트워크 성능 검증을 대신하지 않습니다.",
+    "1440 tea 사주·타로·숙요 캡처는 이미지 행을 포함하나 하단 설명은 뷰포트 밖입니다. 모바일 대응 캡처에서 설명과 장면을 함께 확인했습니다."
+  ],
+  "imageReviewPreserved": "service-introduction-review.json의 103개 원화 pass는 수정하지 않았습니다.",
+  "summary": {
+    "reviewedScreenshots": 75,
+    "imageBlockingFindings": 0,
+    "status": "pass",
+    "additionalInternalScreenshots": 33
+  }
+}

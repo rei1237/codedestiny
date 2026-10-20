@@ -7,17 +7,26 @@
     {
       "id": "01-a-portrait-with-many-sides",
       "title": "혼자이고 싶다가도, 함께이고 싶은 마음.",
-      "alt": "공식점성술영냥이와공존하는욕구를담은출생차트심화표지.",
-      "src": "/feature-details/crafted/yeongnyangi-astrology-tuna/01-a-portrait-with-many-sides.webp",
-      "width": 1080,
-      "height": 1440,
+      "alt": "마법사 고양이 영냥이가 원형 출생차트와 행성 배치를 살피는 장면",
+      "src": "/images/service-introductions/yeongnyangi-astrology.webp",
+      "width": 1536,
+      "height": 1024,
       "text": "혼자이고 싶다가도,\n함께이고 싶은 마음.\n\n서로 다른 나의 모습들을,\n한 장의 출생 차트 안에서 연결해요.\n\n영냥이 서양 점성술 · 참치",
       "variants": [
         {
-          "src": "/feature-details/crafted/yeongnyangi-astrology-tuna/01-a-portrait-with-many-sides-540.webp",
-          "width": 540
+          "src": "/images/service-introductions/yeongnyangi-astrology-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-astrology-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-astrology-960.webp",
+          "width": 960
         }
-      ]
+      ],
+      "textBelowImage": true
     },
     {
       "id": "02-two-wishes-can-coexist",

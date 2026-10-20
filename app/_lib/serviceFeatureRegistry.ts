@@ -1,4 +1,5 @@
 import { lookupServerCoinPrice } from "./serviceCoinPrice";
+import introductionArt from "@/lib/marketing/service-introduction-art.json";
 
 
 // 가격 조회만 필요한 클라이언트는 ./serviceCoinPrice 를 직접 import 할 것.
@@ -4118,10 +4119,12 @@ function resolveServiceFeatureCopy(copyKey: keyof typeof SERVICE_FEATURE_TRANSLA
 function materializeServiceFeature(feature: ServiceFeatureDefinition, locale?: string | null): ServiceFeature {
   const { copyKey, ...baseFeature } = feature;
   const copy = resolveServiceFeatureCopy(copyKey, locale);
+  const art = (introductionArt as Record<string, { image: string; alt: string }>)[baseFeature.slug];
 
   return withServerPrice({
     ...baseFeature,
     ...copy,
+    ...(art ? { image: art.image, heroImageAlt: normalizeServiceFeatureLocale(locale) === "ko" ? art.alt : copy.heroImageAlt } : {}),
     premiumOptions: copy.premiumOptions ? [...copy.premiumOptions] : [],
   });
 }

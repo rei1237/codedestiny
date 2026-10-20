@@ -1128,7 +1128,7 @@ type HeartSymbol = {
   whisper: string;
 };
 
-const HERO_IMAGE = "/fuctionassets/연이의 마음 별자리.webp?v=20261019";
+const HERO_IMAGE = "/images/service-introductions/yeon-star-hug-960.webp";
 const SPRITE_SHEET =
   "/fuctionassets/%EC%97%B0%EC%9D%B4%20%EC%BA%90%EB%A6%AD%ED%84%B0%20%EC%8A%A4%ED%94%84%EB%9D%BC%EC%9D%B4%ED%8A%B8%20%EC%8B%9C%ED%8A%B8.webp";
 const SPRITE_CELL_SIZE = 362;

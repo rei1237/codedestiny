@@ -93,16 +93,25 @@
       "id": "editorial-1",
       "title": "두 사람의 이야기를 나란히 펼치는 인연의 서.",
       "text": "인연의 서 마스터가 두 사람의 기질과 관계에서 맞물리는 지점을 함께 읽습니다.",
-      "src": "/images/consultation-editorial/master.webp",
+      "src": "/images/service-introductions/master-love-codex.webp",
       "width": 1536,
       "height": 1024,
-      "alt": "마스터 인연의 서 · 궁합 마스터 상담 삽화",
+      "alt": "마스터의 마스터 인연의 서 상담 장면",
       "variants": [
         {
-          "src": "/images/consultation-editorial/master-768.webp",
-          "width": 768
+          "src": "/images/service-introductions/master-love-codex-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/master-love-codex-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/master-love-codex-960.webp",
+          "width": 960
         }
-      ]
+      ],
+      "textBelowImage": true
     },
     {
       "id": "editorial-2",

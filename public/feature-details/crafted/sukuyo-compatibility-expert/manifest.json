@@ -8,16 +8,25 @@
       "id": "editorial-1",
       "title": "두 사람 사이의 거리, 서한비가 함께 살핍니다.",
       "text": "끌리는 이유와 부딪히는 순간을 함께 읽고, 관계를 지켜 갈 선택을 정리합니다.",
-      "src": "/images/consultation-editorial/hanbi.webp",
+      "src": "/images/service-introductions/sukuyo-compatibility-ai.webp",
       "width": 1536,
       "height": 1024,
-      "alt": "숙요점 궁합 전문가 상담 마스터 상담 삽화",
+      "alt": "서한비의 숙요점 궁합 전문가 상담 상담 장면",
       "variants": [
         {
-          "src": "/images/consultation-editorial/hanbi-768.webp",
-          "width": 768
+          "src": "/images/service-introductions/sukuyo-compatibility-ai-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/sukuyo-compatibility-ai-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/sukuyo-compatibility-ai-960.webp",
+          "width": 960
         }
-      ]
+      ],
+      "textBelowImage": true
     },
     {
       "id": "editorial-2",

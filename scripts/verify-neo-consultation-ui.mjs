@@ -38,7 +38,7 @@ const server = createServer(async(req,res)=>{
   try {
     const origin='http://127.0.0.1:'+server.address().port;
     const path=new URL(req.url,origin).pathname;
-    if(/^\/images\/neo-consultation\/moonlit-letter-(640|1280)\.webp$/.test(path) || path===NEO_EMAIL_PORTRAIT || /^\/images\/neo-consultation\/moonlight-garden-(768|1536)\.webp$/.test(path)){res.setHeader('content-type','image/webp');res.end(await readFile(resolve(root,'public',path.slice(1))));return;}
+    if(/^\/images\/neo-consultation\/moonlit-letter-(640|1280)\.webp$/.test(path) || path===NEO_EMAIL_PORTRAIT || /^\/images\/service-introductions\/neo-consultation(?:-640)?\.webp$/.test(path)){res.setHeader('content-type','image/webp');res.end(await readFile(resolve(root,'public',path.slice(1))));return;}
     if(path==='/home-preview/'){
       res.setHeader('content-type','text/html');
       res.end('<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>body{margin:0;padding:20px;background:#f6eff5}.cdh{max-width:1000px;margin:auto}*{box-sizing:border-box}</style><style>'+tokens+await readFile(resolve(root,'styles/home-funnel.css'),'utf8')+'</style><div class="cdh">'+renderNeoEmailHomeEntry()+'</div></html>');return;
@@ -72,7 +72,7 @@ try {
     await page.getByText('MOCK 미리보기',{exact:false}).waitFor();
     const background = page.locator('header picture img');
     await background.evaluate(img=>img.decode());
-    assert.ok((await background.evaluate(img=>img.currentSrc)).endsWith('moonlight-garden-'+(width<=760?'768':'1536')+'.webp'));
+    assert.ok((await background.evaluate(img=>img.currentSrc)).endsWith('neo-consultation'+(width<=760?'-640':'')+'.webp'));
     const contrast = await page.evaluate(() => {
       const luminance = color => {
         const values = color.match(/[\d.]+/g).slice(0,3).map(Number).map(v => { v /= 255; return v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; });
@@ -86,8 +86,8 @@ try {
       return [ratio(luminance(form.color),luminance(form.backgroundColor)),ratio(luminance(input.color),luminance(input.backgroundColor)),ratio(luminance(hint.color),luminance(form.backgroundColor)),ratio(luminance(button.color),luminance(button.backgroundColor))];
     });
     assert.ok(contrast.every(value => value >= 4.5), 'form and primary button text contrast must be at least 4.5:1');
-    await expect(page.locator('img[src="'+NEO_EMAIL_PORTRAIT+'"]')).toBeVisible();
-    assert.equal(await page.locator('img[src="'+NEO_EMAIL_PORTRAIT+'"]').evaluate(img=>img.naturalWidth),600);
+    await expect(page.getByRole('img',{name:'네오가 사주와 자미두수 자료를 살피며 상담 편지를 검토하는 장면'})).toBeVisible();
+    assert.equal(await page.getByRole('img',{name:'네오가 사주와 자미두수 자료를 살피며 상담 편지를 검토하는 장면'}).evaluate(img=>img.naturalWidth),640);
     await expect(page.getByRole('img',{name:'달빛이 드는 서재의 편지와 은빛 만년필'})).toBeVisible();
     await expect(page.getByRole('link',{name:/operator@example.invalid/})).toHaveAttribute('href','mailto:operator@example.invalid');
     assert.equal(await page.getByText('BLUE MOON',{exact:true}).count(),0);
@@ -188,7 +188,7 @@ try {
     await page.locator('figure img').waitFor();
     // Resizing <picture> can replace an in-flight image and reject decode().
     // Wait for the selected source and loaded pixels; broken assets still fail.
-    await expect(page.locator('picture img')).toHaveJSProperty('currentSrc',base+'/images/neo-consultation/moonlight-garden-'+(width<=640?'768':'1536')+'.webp');
+    await expect(page.locator('picture img')).toHaveJSProperty('currentSrc',base+'/images/service-introductions/neo-consultation'+(width<=640?'-640':'')+'.webp');
     await expect.poll(()=>page.evaluate(()=>[...document.images].every(img=>img.complete && img.naturalWidth>0))).toBe(true);
     await page.evaluate(async()=>{await Promise.all([...document.images].map(img=>img.decode()));});
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);

@@ -1959,7 +1959,7 @@ export default function AstrologyAiClient() {
   const progressPercent = phase === "idle" ? 8 : Math.round(((activeStep + 1) / copy.progressSteps.length) * 100);
   // 윤달 — enabled 를 끄면 기존 Moon 궤도 헤더와 문구만 남는다.
   const yunOn = isExpertCharacterEnabled("yun");
-  const yunHero = getExpertCharacter("yun").hero;
+  const yunHero = { ...getExpertCharacter("yun").hero, src: "/images/service-introductions/astrology-ai-960.webp", alt: "윤달이 서양 점성술 출생차트의 행성과 하우스를 짚는 상담 장면" };
   const yunGreet = getExpertLine("yun", "hero", locale);
   const yunBirth = getExpertLine("yun", form.birthTimeUnknown ? "birth.unknown" : form.birthTime ? "birth.known" : "hero.sub", locale);
   // 시간 기반 가짜 진행 없이 실제 단계만 본다: 근거가 오기 전은 계산, 온 뒤는 상담 생성.
@@ -1977,14 +1977,14 @@ export default function AstrologyAiClient() {
           <div className="space-y-6">
             <header className="overflow-hidden rounded-lg border border-white/10 bg-[#0b1027]/[0.82] p-6 shadow-2xl shadow-black/30 ring-1 ring-white/[0.03] backdrop-blur sm:p-8">
               {yunOn && (
-                <div className="relative -mx-6 -mt-6 mb-6 aspect-[16/9] overflow-hidden sm:-mx-8 sm:-mt-8 lg:aspect-[21/9]">
+                <div className="relative -mx-6 -mt-6 mb-6 aspect-[3/2] overflow-hidden sm:-mx-8 sm:-mt-8">
                   <Image
                     src={yunHero.src}
                     alt={yunHero.alt}
                     fill
                     priority
                     sizes="(min-width: 1280px) 830px, (min-width: 1024px) 64vw, 100vw"
-                    className="object-cover object-[72%_22%]"
+                    className="object-cover object-center"
                     unoptimized
                   />
                   <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-[#0b1027] to-transparent" aria-hidden="true" />

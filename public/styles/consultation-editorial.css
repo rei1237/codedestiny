@@ -1,4 +1,6 @@
 /* Opt-in edition: the illustration is decoration; the reading is always live text. */
+.craftedDetail .craftedCoverCopy { padding: 24px; }
+.craftedDetail .craftedCoverCopy p { white-space: pre-line; line-height: 1.8; }
 .craftedDetail.craftedEditorial {
   background: #f7f3eb;
   color: #202d3c;

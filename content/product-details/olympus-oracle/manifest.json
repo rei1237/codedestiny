@@ -7,10 +7,26 @@
     {
       "id": "01-your-myth",
       "title": "내 안의 여러 모습, 어떤 신화를 닮았을까?",
-      "src": "/feature-details/crafted/olympus-oracle/01-your-myth.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "내 안의 여러 모습,\n어떤 신화를 닮았을까?\n\n올림푸스 신탁\n\n겉으로 드러나는 나와 혼자 있을 때의 나.\n별자리와 신화의 언어로\n서로 다른 모습을 만나보세요."
+      "src": "/images/service-introductions/olympus-oracle.webp",
+      "width": 1536,
+      "height": 1024,
+      "text": "내 안의 여러 모습,\n어떤 신화를 닮았을까?\n\n올림푸스 신탁\n\n겉으로 드러나는 나와 혼자 있을 때의 나.\n별자리와 신화의 언어로\n서로 다른 모습을 만나보세요.",
+      "alt": "올림푸스 신탁의 핵심 도구와 이용 장면을 담은 일러스트",
+      "variants": [
+        {
+          "src": "/images/service-introductions/olympus-oracle-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/olympus-oracle-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/olympus-oracle-960.webp",
+          "width": 960
+        }
+      ],
+      "textBelowImage": true
     },
     {
       "id": "02-eight-placements",

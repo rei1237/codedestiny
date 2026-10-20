@@ -11,6 +11,7 @@ const root = fileURLToPath(new URL('../../', import.meta.url));
 const cleanPath = value => String(value || '').replace(/\/+$/, '');
 const craftedCatalog = JSON.parse(fs.readFileSync(path.join(root, 'content/product-details/catalog.json'), 'utf8'));
 const consultationSamples = JSON.parse(fs.readFileSync(path.join(root, 'lib/marketing/result-samples.json'), 'utf8'));
+const introductionArt = JSON.parse(fs.readFileSync(path.join(root, 'lib/marketing/service-introduction-art.json'), 'utf8'));
 let resolvePricing;
 // Same resolver as the page's start price, so a card never disagrees with the checkout.
 const priceKRWFor = featureKey => (resolvePricing ||= loadTsModule('lib/payment/server-feature-pricing.ts').resolveServerFeaturePricing)({ featureKey })?.amountKRW;
@@ -258,6 +259,15 @@ export function buildVisualDetails(html, book) {
       // These editions show a consultation scene, not the previous book/letter object.
       delete final.material;
     }
+    // One function-specific scene across the shell and React catalogue.
+    // Character profile originals and result/report illustrations remain separate.
+    const art = introductionArt[record.slug];
+    if (art) {
+      final.image = art.image;
+      final.imageAlt = art.alt;
+      final.catalogImage = art.cardImage;
+      delete final.material;
+    }
     if (['book', 'letter'].includes(final.material)) {
       final.founder = { credential: founder.credential, method: founder.method };
     }
@@ -374,7 +384,10 @@ export async function writeVisualDetails(html, book) {
         }
         // A single edition renders open without a card, so it needs no cover.
         const cover = panels[0];
-        if (item.crafted.length > 1 && cover && CRAFTED_PANEL_SOURCE.test(cover.src)) {
+        if (item.crafted.length > 1 && cover?.src.startsWith('/images/service-introductions/')) {
+          const thumb = [...(cover.variants || [])].sort((a,b) => a.width - b.width)[0];
+          if (thumb) essay.cover = { src: thumb.src, width: thumb.width, height: Math.round(thumb.width * cover.height / cover.width) };
+        } else if (item.crafted.length > 1 && cover && CRAFTED_PANEL_SOURCE.test(cover.src)) {
           essay.cover = { src: await craftedVariant(cover.src, 144, writtenCrafted), width: 144, height: Math.round(144 * (Number(cover.height) || 1440) / (Number(cover.width) || 1080)) };
         }
       }
@@ -403,6 +416,9 @@ export async function writeVisualDetails(html, book) {
     const manifest = authored?.layout === 'editorial'
       ? { ...authored, masters: craftedMasters(authored) }
       : JSON.parse(fs.readFileSync(file, 'utf8'));
+    if (authored?.panels?.[0]?.src?.startsWith('/images/service-introductions/')) {
+      manifest.panels[0] = { ...authored.panels[0] };
+    }
     for (const panel of manifest.panels || []) {
       if (CRAFTED_PANEL_SOURCE.test(panel.src || '') && Number(panel.width) > 540) panel.variants = [{ src: await craftedVariant(panel.src, 540, writtenCrafted), width: 540 }];
     }

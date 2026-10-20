@@ -107,7 +107,7 @@ export default function CodexLanding({ hasSeenPrologue, chapterCount, onEnter, o
         <figure className={styles.landingPortrait}>
           <CodexArtwork
             src={masterLoveCodexAssets.humanHero}
-            alt={locale === "ko" ? "달빛 아래 인연의 지도를 펼쳐 보는 서한비" : "Seo Hanbi unfolding a moonlit map of love"}
+            alt={locale === "ko" ? "사주와 자미두수 열두 궁을 함께 살피는 인연의 서 마스터" : "The Master comparing four pillars and the twelve-palace relationship chart"}
             width={1200}
             height={675}
             sizes="(max-width: 767px) 100vw, 600px"
@@ -115,7 +115,7 @@ export default function CodexLanding({ hasSeenPrologue, chapterCount, onEnter, o
             priority
           />
           <figcaption className={styles.landingPortraitCaption}>
-            <strong>{locale === "ko" ? "인연의 서를 읽어주는 서한비" : "Seo Hanbi, your Love Codex guide"}</strong>
+            <strong>{locale === "ko" ? "인연의 서를 읽어주는 마스터" : "The Master, your Love Codex guide"}</strong>
             <span>{locale === "ko" ? "달빛 아래, 당신의 인연 지도를 함께 펼쳐봐요." : "Unfold your map of love together under the moonlight."}</span>
           </figcaption>
         </figure>

@@ -7,11 +7,26 @@
     {
       "id": "01-different-relationships-different-me",
       "title": "누구와 있느냐에 따라, 왜 다른 내가 될까요?",
-      "alt": "공식숙요영냥이와관계별달라지는역할을묻는심화표지.",
-      "src": "/feature-details/crafted/yeongnyangi-sukuyo-tuna/01-different-relationships-different-me.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "누구와 있느냐에 따라,\n왜 다른 내가 될까요?\n\n편안함과 긴장, 협력과 소모의 차이를\n본명숙의 관계 지도에서 읽어요.\n\n영냥이 숙요 · 참치"
+      "alt": "마법사 고양이 영냥이가 두 달 자리의 관계 거리를 살피는 장면",
+      "src": "/images/service-introductions/yeongnyangi-sukuyo.webp",
+      "width": 1536,
+      "height": 1024,
+      "text": "누구와 있느냐에 따라,\n왜 다른 내가 될까요?\n\n편안함과 긴장, 협력과 소모의 차이를\n본명숙의 관계 지도에서 읽어요.\n\n영냥이 숙요 · 참치",
+      "variants": [
+        {
+          "src": "/images/service-introductions/yeongnyangi-sukuyo-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-sukuyo-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-sukuyo-960.webp",
+          "width": 960
+        }
+      ],
+      "textBelowImage": true
     },
     {
       "id": "02-the-same-person-in-two-rooms",

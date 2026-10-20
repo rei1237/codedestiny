@@ -7,11 +7,26 @@
     {
       "id": "01-small-question",
       "title": "별일 아닌데, 왜 자꾸 마음에 남을까?",
-      "alt": "차를 마시며 이야기를 기다리는 공식 영냥이와 일상의 작은 질문을 꺼내는 표지.",
-      "src": "/feature-details/crafted/yeongnyangi-saju-mackerel/01-small-question.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "별일 아닌데,\n왜 자꾸 마음에 남을까?\n\n부탁 하나, 답장 한 줄에도\n내 마음의 습관이 드러날 때.\n\n영냥이 사주 · 고등어\n작은 질문에서 시작하는 사주 이야기."
+      "alt": "마법사 고양이 영냥이가 네 기둥과 다섯 원소를 살피는 장면",
+      "src": "/images/service-introductions/yeongnyangi-saju.webp",
+      "width": 1536,
+      "height": 1024,
+      "text": "별일 아닌데,\n왜 자꾸 마음에 남을까?\n\n부탁 하나, 답장 한 줄에도\n내 마음의 습관이 드러날 때.\n\n영냥이 사주 · 고등어\n작은 질문에서 시작하는 사주 이야기.",
+      "variants": [
+        {
+          "src": "/images/service-introductions/yeongnyangi-saju-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-saju-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-saju-960.webp",
+          "width": 960
+        }
+      ],
+      "textBelowImage": true
     },
     {
       "id": "02-moment",

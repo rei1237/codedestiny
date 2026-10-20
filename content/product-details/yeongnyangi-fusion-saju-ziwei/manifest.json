@@ -7,11 +7,26 @@
     {
       "id": "01-more-responsibility-less-room",
       "title": "인정받을수록, 내 자리가 좁아진다면.",
-      "alt": "공식융합영냥이와일의책임자율성갈등을묻는표지.",
-      "src": "/feature-details/crafted/yeongnyangi-fusion-saju-ziwei/01-more-responsibility-less-room.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "인정받을수록,\n내 자리가 좁아진다면.\n\n일을 대하는 기질과 역할의 구조를\n사주·자미두수 두 시선으로 읽어요.\n\n영냥이 모둠 · 사주와 자미두수"
+      "alt": "마법사 고양이 영냥이가 사주 기둥과 열두 궁 명반을 비교하는 장면",
+      "src": "/images/service-introductions/yeongnyangi-fusion-saju-ziwei.webp",
+      "width": 1536,
+      "height": 1024,
+      "text": "인정받을수록,\n내 자리가 좁아진다면.\n\n일을 대하는 기질과 역할의 구조를\n사주·자미두수 두 시선으로 읽어요.\n\n영냥이 모둠 · 사주와 자미두수",
+      "variants": [
+        {
+          "src": "/images/service-introductions/yeongnyangi-fusion-saju-ziwei-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-fusion-saju-ziwei-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-fusion-saju-ziwei-960.webp",
+          "width": 960
+        }
+      ],
+      "textBelowImage": true
     },
     {
       "id": "02-the-role-around-the-person",

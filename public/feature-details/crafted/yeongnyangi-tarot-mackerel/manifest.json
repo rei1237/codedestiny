@@ -7,17 +7,26 @@
     {
       "id": "01-one-small-opening",
       "title": "움직이고 싶은데, 시작이 막막하다면.",
-      "alt": "공식타로영냥이와막힌일상에서첫행동을찾는표지.",
-      "src": "/feature-details/crafted/yeongnyangi-tarot-mackerel/01-one-small-opening.webp",
-      "width": 1080,
-      "height": 1440,
+      "alt": "마법사 고양이 영냥이가 펼친 타로 카드의 흐름을 읽는 장면",
+      "src": "/images/service-introductions/yeongnyangi-tarot.webp",
+      "width": 1536,
+      "height": 1024,
       "text": "움직이고 싶은데,\n시작이 막막하다면.\n\n지금의 매듭과 이미 가진 자원을 읽고,\n다음 한 걸음을 찾아봐요.\n\n영냥이 타로 · 고등어",
       "variants": [
         {
-          "src": "/feature-details/crafted/yeongnyangi-tarot-mackerel/01-one-small-opening-540.webp",
-          "width": 540
+          "src": "/images/service-introductions/yeongnyangi-tarot-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-tarot-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-tarot-960.webp",
+          "width": 960
         }
-      ]
+      ],
+      "textBelowImage": true
     },
     {
       "id": "02-name-the-knot",

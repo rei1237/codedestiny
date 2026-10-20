@@ -7,11 +7,26 @@
     {
       "id": "01-when-everything-is-connected",
       "title": "하나를 바꾸려는데, 모든 일이 얽혀 있다면.",
-      "alt": "공식타로영냥이와복합고민의중심을찾는표지.",
-      "src": "/feature-details/crafted/yeongnyangi-tarot-tuna/01-when-everything-is-connected.webp",
-      "width": 1080,
-      "height": 1440,
-      "text": "하나를 바꾸려는데,\n모든 일이 얽혀 있다면.\n\n눈앞의 갈등과 주변 조건을 나누고,\n먼저 풀어볼 순서를 찾아봐요.\n\n영냥이 타로 · 참치"
+      "alt": "마법사 고양이 영냥이가 펼친 타로 카드의 흐름을 읽는 장면",
+      "src": "/images/service-introductions/yeongnyangi-tarot.webp",
+      "width": 1536,
+      "height": 1024,
+      "text": "하나를 바꾸려는데,\n모든 일이 얽혀 있다면.\n\n눈앞의 갈등과 주변 조건을 나누고,\n먼저 풀어볼 순서를 찾아봐요.\n\n영냥이 타로 · 참치",
+      "variants": [
+        {
+          "src": "/images/service-introductions/yeongnyangi-tarot-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-tarot-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-tarot-960.webp",
+          "width": 960
+        }
+      ],
+      "textBelowImage": true
     },
     {
       "id": "02-find-the-center",

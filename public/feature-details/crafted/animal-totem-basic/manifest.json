@@ -7,17 +7,26 @@
     {
       "id": "01-a-place-for-your-mood",
       "title": "무슨 일인지 몰라도, 마음은 먼저 무거울 때.",
-      "alt": "무슨 일인지 몰라도, 마음은 먼저 무거울 때.",
-      "src": "/feature-details/crafted/animal-totem-basic/01-a-place-for-your-mood.webp",
-      "width": 1080,
-      "height": 1440,
+      "alt": "애니멀 토템의 핵심 도구와 이용 장면을 담은 일러스트",
+      "src": "/images/service-introductions/animal-totem.webp",
+      "width": 1536,
+      "height": 1024,
       "text": "무슨 일인지 몰라도,\n마음은 먼저 무거울 때.\n\n수호 동물의 상징을 빌려\n지금의 마음에 말을 붙여보세요.\n\n애니멀 토템 · 기본 리딩",
       "variants": [
         {
-          "src": "/feature-details/crafted/animal-totem-basic/01-a-place-for-your-mood-540.webp",
-          "width": 540
+          "src": "/images/service-introductions/animal-totem-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/animal-totem-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/animal-totem-960.webp",
+          "width": 960
         }
-      ]
+      ],
+      "textBelowImage": true
     },
     {
       "id": "02-one-or-three",

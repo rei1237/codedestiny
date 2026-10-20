@@ -7,17 +7,26 @@
     {
       "id": "01-where-you-stand",
       "title": "같은 나인데, 왜 자리마다 달라질까요?",
-      "alt": "별지도를 펼친 공식 영냥이와 자미두수 고등어의 자기이해 질문.",
-      "src": "/feature-details/crafted/yeongnyangi-ziwei-mackerel/01-where-you-stand.webp",
-      "width": 1080,
-      "height": 1440,
+      "alt": "마법사 고양이 영냥이가 사각 열두 궁 명반의 별을 짚는 장면",
+      "src": "/images/service-introductions/yeongnyangi-ziwei.webp",
+      "width": 1536,
+      "height": 1024,
       "text": "같은 나인데,\n왜 자리마다\n달라질까요?\n\n사람 앞에서는 단단한데,\n혼자 돌아오면 흔들리는 마음.\n\n영냥이 자미두수 · 고등어",
       "variants": [
         {
-          "src": "/feature-details/crafted/yeongnyangi-ziwei-mackerel/01-where-you-stand-540.webp",
-          "width": 540
+          "src": "/images/service-introductions/yeongnyangi-ziwei-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-ziwei-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-ziwei-960.webp",
+          "width": 960
         }
-      ]
+      ],
+      "textBelowImage": true
     },
     {
       "id": "02-a-small-role",

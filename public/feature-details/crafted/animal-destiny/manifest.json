@@ -7,17 +7,26 @@
     {
       "id": "01-your-own-pace",
       "title": "남의 속도를 따라가다, 내 강점을 놓쳤다면.",
-      "alt": "남의 속도를 따라가다, 내 강점을 놓쳤다면.",
-      "src": "/feature-details/crafted/animal-destiny/01-your-own-pace.webp",
-      "width": 1080,
-      "height": 1440,
+      "alt": "운명의 동물 도감의 핵심 도구와 이용 장면을 담은 일러스트",
+      "src": "/images/service-introductions/animal-destiny.webp",
+      "width": 1536,
+      "height": 1024,
       "text": "남의 속도를 따라가다,\n내 강점을 놓쳤다면.\n\n사주의 십이운성을 동물의 언어로 풀어\n나답게 힘을 쓰는 방식을 살펴보세요.\n\n십이운성 동물점 · 운명의 동물 도감",
       "variants": [
         {
-          "src": "/feature-details/crafted/animal-destiny/01-your-own-pace-540.webp",
-          "width": 540
+          "src": "/images/service-introductions/animal-destiny-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/animal-destiny-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/animal-destiny-960.webp",
+          "width": 960
         }
-      ]
+      ],
+      "textBelowImage": true
     },
     {
       "id": "02-energy-not-rank",

@@ -7,17 +7,26 @@
     {
       "id": "01-outside-and-inside",
       "title": "잘 지내 보이는 나, 마음속 나는 어떨까요?",
-      "alt": "베다차트책앞의공식영냥이와겉모습과내면의리듬을묻는표지.",
-      "src": "/feature-details/crafted/yeongnyangi-vedic-mackerel/01-outside-and-inside.webp",
-      "width": 1080,
-      "height": 1440,
+      "alt": "마법사 고양이 영냥이가 마름모로 나뉜 베다 차트를 살피는 장면",
+      "src": "/images/service-introductions/yeongnyangi-vedic.webp",
+      "width": 1536,
+      "height": 1024,
       "text": "잘 지내 보이는 나,\n마음속 나는 어떨까요?\n\n밖으로 드러나는 태도와\n마음이 쉬는 방식을 함께 살펴요.\n\n영냥이 베다점 · 고등어",
       "variants": [
         {
-          "src": "/feature-details/crafted/yeongnyangi-vedic-mackerel/01-outside-and-inside-540.webp",
-          "width": 540
+          "src": "/images/service-introductions/yeongnyangi-vedic-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-vedic-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-vedic-960.webp",
+          "width": 960
         }
-      ]
+      ],
+      "textBelowImage": true
     },
     {
       "id": "02-after-a-good-day",

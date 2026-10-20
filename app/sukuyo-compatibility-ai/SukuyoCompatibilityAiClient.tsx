@@ -1273,7 +1273,7 @@ export default function SukuyoCompatibilityAiClient() {
   const copy = getSukuyoCompatCopy(locale);
   // 서한비 — enabled 를 끄면 기존 예화 씬과 문구만 남는다.
   const hanbiOn = isExpertCharacterEnabled("hanbi");
-  const hanbiHero = getExpertCharacter("hanbi").hero;
+  const hanbiHero = { ...getExpertCharacter("hanbi").hero, src: "/images/service-introductions/sukuyo-compatibility-ai-960.webp", alt: "서한비가 두 사람의 달 자리와 관계의 거리를 비교하는 숙요점 상담 장면" };
   const hanbiGreet = getExpertLine("hanbi", "hero", locale);
   const hanbiEmpty = getExpertLine("hanbi", "empty", locale);
   const hanbiError = getExpertLine("hanbi", "error", locale);

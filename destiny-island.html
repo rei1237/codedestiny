@@ -585,8 +585,8 @@ button:focus-visible,select:focus-visible{outline:3px solid var(--gold);outline-
   <div class="gate-card">
     <div class="gate-hero">
       <picture>
-        <source media="(max-width: 640px)" srcset="/images/destiny-island/exploration-map-v3.webp" />
-        <img id="gateHeroImg" src="/images/destiny-island/exploration-map-v3.webp" srcset="/images/destiny-island/exploration-map-v3.webp 1x" alt="열두 궁의 구역이 불을 밝힌 밤바다 위 운명의 섬" fetchpriority="high" />
+        <source media="(max-width: 640px)" srcset="/images/service-introductions/destiny-island-640.webp" />
+        <img id="gateHeroImg" src="/images/service-introductions/destiny-island-960.webp" width="1536" height="1024" alt="열두 궁의 구역이 불을 밝힌 밤바다 위 운명의 섬" fetchpriority="high" />
       </picture>
     </div>
       <div class="gate-companions" aria-label="운명의 섬 안내자">
@@ -2467,7 +2467,7 @@ function renderGatePicker(){
 seedStars();
 applyPhase();
 setInterval(applyPhase,60*1000);
-$("gateHeroImg").src=ISLAND_ART;
+$("gateHeroImg").src="/images/service-introductions/destiny-island-960.webp";
 renderGatePicker();
 syncBgmToggle();
 })();

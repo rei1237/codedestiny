@@ -93,16 +93,25 @@
       "id": "editorial-1",
       "title": "사랑의 반복을 읽는, 나만의 인연의 서.",
       "text": "인연의 서 마스터가 사주와 자미두수의 관점에서 사랑의 패턴과 관계의 선택을 짚습니다.",
-      "src": "/images/consultation-editorial/master.webp",
+      "src": "/images/service-introductions/master-love-codex.webp",
       "width": 1536,
       "height": 1024,
-      "alt": "마스터 인연의 서 · 개인 마스터 상담 삽화",
+      "alt": "마스터의 마스터 인연의 서 상담 장면",
       "variants": [
         {
-          "src": "/images/consultation-editorial/master-768.webp",
-          "width": 768
+          "src": "/images/service-introductions/master-love-codex-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/master-love-codex-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/master-love-codex-960.webp",
+          "width": 960
         }
-      ]
+      ],
+      "textBelowImage": true
     },
     {
       "id": "editorial-2",

@@ -105,7 +105,7 @@
             "title": "주요 근거와 차트 원본"
           }
         ],
-        "outlineImage": "/images/feature-details/astrology-ai-hero-v2.webp",
+        "outlineImage": "/images/service-introductions/astrology-ai.webp",
         "painPoints": [
           "별자리 운세는 봐도 내 얘기 같지 않을 때",
           "태양·달·상승궁이 무슨 뜻인지 모를 때",
@@ -271,7 +271,7 @@
             "title": "다시 불러오기"
           }
         ],
-        "outlineImage": "/images/Celestial Harmony.webp",
+        "outlineImage": "/images/service-introductions/tarot-celestial-harmony.webp",
         "painPoints": [
           "한 장 리딩으로는 답이 부족할 때",
           "여러 고민이 얽혀 어디부터 봐야 할지 모를 때",
@@ -569,7 +569,7 @@
             "title": "PDF로 저장"
           }
         ],
-        "outlineImage": "/images/feature-details/destiny-compass-hero-v2.webp",
+        "outlineImage": "/images/service-introductions/destiny-compass.webp",
         "painPoints": [
           "선택지는 있는데 기준이 없을 때",
           "방향은 정했지만 시점이 불안할 때",
@@ -650,7 +650,7 @@
             "title": "PDF로 저장"
           }
         ],
-        "outlineImage": "/images/feature-details/destiny-compass-hero-v2.webp",
+        "outlineImage": "/images/service-introductions/destiny-compass.webp",
         "painPoints": [
           "선택지는 있는데 기준이 없을 때",
           "방향은 정했지만 시점이 불안할 때",
@@ -820,7 +820,7 @@
             "title": "상담 기록 다시 보기"
           }
         ],
-        "outlineImage": "/images/feature-details/fortune-chat-hero-v2.webp",
+        "outlineImage": "/images/service-introductions/fortune-chat.webp",
         "painPoints": [
           "선택 앞에서 생각이 복잡할 때",
           "답과 함께 이유도 듣고 싶을 때",
@@ -896,7 +896,7 @@
             "title": "결과 확인 및 저장"
           }
         ],
-        "outlineImage": "/images/fortune-tea-house/premium-tea-house-desktop.webp",
+        "outlineImage": "/images/service-introductions/fortune-tea-house.webp",
         "painPoints": [
           "속마음을 어디에도 꺼내기 어려울 때",
           "결론보다 먼저 정리가 필요할 때",
@@ -1021,7 +1021,7 @@
             "title": "융합 — 교차 검증과 12개월 시기·행동 지침"
           }
         ],
-        "outlineImage": "/images/feature-details/fusion-fortune-hero-v2.webp",
+        "outlineImage": "/images/service-introductions/fusion-fortune.webp",
         "painPoints": [
           "체계마다 말이 달라서 무엇을 믿어야 할지 모르겠을 때",
           "여기저기서 본 해석이 조각조각 남아 정리가 안 될 때",
@@ -1144,7 +1144,7 @@
             "title": "PDF로 저장"
           }
         ],
-        "outlineImage": "/images/feature-details/human-design-hero-v2.webp",
+        "outlineImage": "/images/service-introductions/human-design.webp",
         "painPoints": [
           "늘 애쓰는데 자꾸 지칠 때",
           "결정을 어떻게 내려야 할지 모를 때",
@@ -1253,7 +1253,7 @@
             "title": "저장하기"
           }
         ],
-        "outlineImage": "/images/feature-details/ifa-oracle-hero-v2.webp",
+        "outlineImage": "/images/service-introductions/ifa-oracle.webp",
         "painPoints": [
           "익숙한 방식의 조언이 더 이상 와닿지 않을 때",
           "내가 놓치고 있는 금기가 있는지 궁금할 때",
@@ -1450,7 +1450,7 @@
             "title": "빛과 현실 · 두 사람의 자리"
           }
         ],
-        "outlineImage": "/fuctionassets/sukyo.webp",
+        "outlineImage": "/images/service-introductions/sukuyo.webp",
         "painPoints": [
           "상대와 어떤 거리를 두어야 할지 모르겠을 때",
           "끌리는데 자꾸 부딪히는 이유가 궁금할 때",
@@ -1647,7 +1647,7 @@
             "title": "다섯 관점의 종합 결론 · 핵심 문장 · 최종 편지"
           }
         ],
-        "outlineImage": "/images/expert-consulting/karma-red-thread-karmic-1536.webp",
+        "outlineImage": "/images/service-introductions/karma-destiny-ai.webp",
         "painPoints": [
           "비슷한 사람에게 계속 끌려 같은 결말을 볼 때",
           "노력해도 특정 영역만 늘 막힐 때",
@@ -1784,7 +1784,7 @@
             "title": "핵심 판독 4편과 마지막 문장"
           }
         ],
-        "outlineImage": "/feature-details/assets/life-book-ai-960.webp",
+        "outlineImage": "/images/service-introductions/life-book-ai.webp",
         "painPoints": [
           "내 인생이 어디로 흘러가는지 큰 그림이 궁금할 때",
           "같은 굴레가 반복되는 이유를 알고 싶을 때",
@@ -1921,7 +1921,7 @@
             "title": "썸 전략·대화·매력·실천"
           }
         ],
-        "outlineImage": "/feature-details/assets/love-secret-ai-960.webp",
+        "outlineImage": "/images/service-introductions/love-secret-ai.webp",
         "painPoints": [
           "상대의 진심이 도무지 잡히지 않을 때",
           "밀당의 타이밍을 번번이 놓칠 때",
@@ -2207,7 +2207,7 @@
             "title": "일본 숙요"
           }
         ],
-        "outlineImage": "/images/expert-consulting/vedic-nakshatra-temple.webp",
+        "outlineImage": "/images/service-introductions/nakshatra-compat.webp",
         "painPoints": [
           "궁합 결과마다 말이 달라 혼란스러울 때",
           "점수만 보고는 무엇을 조심할지 모를 때",
@@ -2315,7 +2315,7 @@
             "title": "일본 숙요"
           }
         ],
-        "outlineImage": "/images/expert-consulting/vedic-nakshatra-temple.webp",
+        "outlineImage": "/images/service-introductions/nakshatra-compat.webp",
         "painPoints": [
           "궁합 결과마다 말이 달라 혼란스러울 때",
           "점수만 보고는 무엇을 조심할지 모를 때",
@@ -2427,7 +2427,7 @@
             "title": "60일 전체 표"
           }
         ],
-        "outlineImage": "/images/feature-details/nakshatra-muhurta-hero-v2.webp",
+        "outlineImage": "/images/service-introductions/nakshatra-muhurta.webp",
         "painPoints": [
           "날짜를 정해야 하는데 기준이 없을 때",
           "한 체계만 보고 정하기 불안할 때",
@@ -2545,7 +2545,7 @@
             "title": "60일 전체 표"
           }
         ],
-        "outlineImage": "/images/feature-details/nakshatra-muhurta-hero-v2.webp",
+        "outlineImage": "/images/service-introductions/nakshatra-muhurta.webp",
         "painPoints": [
           "날짜를 정해야 하는데 기준이 없을 때",
           "한 체계만 보고 정하기 불안할 때",
@@ -2814,7 +2814,7 @@
             "title": "빛과 현실 · 두 사람의 자리"
           }
         ],
-        "outlineImage": "/fuctionassets/sukyo.webp",
+        "outlineImage": "/images/service-introductions/sukuyo.webp",
         "painPoints": [
           "상대와 어떤 거리를 두어야 할지 모르겠을 때",
           "끌리는데 자꾸 부딪히는 이유가 궁금할 때",
@@ -2946,7 +2946,7 @@
             "title": "빛과 현실 · 두 사람의 자리"
           }
         ],
-        "outlineImage": "/fuctionassets/sukyo.webp",
+        "outlineImage": "/images/service-introductions/sukuyo.webp",
         "painPoints": [
           "상대와 어떤 거리를 두어야 할지 모르겠을 때",
           "끌리는데 자꾸 부딪히는 이유가 궁금할 때",
@@ -3075,7 +3075,7 @@
             "title": "결과 확인"
           }
         ],
-        "outlineImage": "/feature-details/assets/palm-reading-960.webp",
+        "outlineImage": "/images/service-introductions/palm-reading.webp",
         "painPoints": [
           "손금을 봐도 어느 선이 무엇인지 모를 때",
           "책마다 설명이 달라 기준을 잡기 어려울 때",
@@ -3576,7 +3576,7 @@
             "title": "AI 질문 문장 카드"
           }
         ],
-        "outlineImage": "/feature-details/assets/destiny-meeting-place-960.webp",
+        "outlineImage": "/images/service-introductions/destiny-meeting-place.webp",
         "painPoints": [
           "어디서 사람을 만나야 할지 감이 안 잡힐 때",
           "언제 움직여야 할지 시기를 정하고 싶을 때",
@@ -3969,7 +3969,7 @@
             "title": "공유하고 이어 묻기"
           }
         ],
-        "outlineImage": "/fuctionassets/taromove.webp",
+        "outlineImage": "/images/service-introductions/tarot-ijik.webp",
         "painPoints": [
           "옮기고 싶은데 확신이 서지 않을 때",
           "지금이 시기인지 모르겠을 때",
@@ -4114,7 +4114,7 @@
             "title": "질문문 복사와 공유"
           }
         ],
-        "outlineImage": "/fuctionassets/stonetaro.webp",
+        "outlineImage": "/images/service-introductions/tarot-crystal-soul.webp",
         "painPoints": [
           "무엇부터 물어야 할지 막막할 때",
           "기분은 무거운데 이유를 못 짚을 때",
@@ -4232,7 +4232,7 @@
             "title": "질문문 복사와 공유"
           }
         ],
-        "outlineImage": "/fuctionassets/stonetaro.webp",
+        "outlineImage": "/images/service-introductions/tarot-crystal-soul.webp",
         "painPoints": [
           "무엇부터 물어야 할지 막막할 때",
           "기분은 무거운데 이유를 못 짚을 때",
@@ -4350,7 +4350,7 @@
             "title": "저장과 공유"
           }
         ],
-        "outlineImage": "/fuctionassets/mindscantaro.webp",
+        "outlineImage": "/images/service-introductions/tarot-mindscan.webp",
         "painPoints": [
           "말은 다정한데 행동이 다르게 느껴질 때",
           "먼저 연락해도 되는지 망설여질 때",
@@ -4468,7 +4468,7 @@
             "title": "저장과 공유"
           }
         ],
-        "outlineImage": "/fuctionassets/mindscantaro.webp",
+        "outlineImage": "/images/service-introductions/tarot-mindscan.webp",
         "painPoints": [
           "말은 다정한데 행동이 다르게 느껴질 때",
           "먼저 연락해도 되는지 망설여질 때",
@@ -4556,7 +4556,7 @@
             "title": "다시 보기와 공유"
           }
         ],
-        "outlineImage": "/images/feature-details/tarot-numerology-hero-v2.webp",
+        "outlineImage": "/images/service-introductions/tarot-numerology.webp",
         "painPoints": [
           "카드 한 장으로는 이야기가 끊길 때",
           "오늘 흐름을 조금 더 근거 있게 보고 싶을 때",
@@ -4664,7 +4664,7 @@
             "title": "질문문 복사"
           }
         ],
-        "outlineImage": "/feature-details/assets/tarot-prompt-maker-960.webp",
+        "outlineImage": "/images/service-introductions/tarot-prompt-maker.webp",
         "painPoints": [
           "무엇을 물어야 할지부터 막막할 때",
           "리딩 결과가 늘 두루뭉술하게 끝날 때",
@@ -4783,7 +4783,7 @@
             "title": "질문문 복사"
           }
         ],
-        "outlineImage": "/feature-details/assets/tarot-prompt-maker-960.webp",
+        "outlineImage": "/images/service-introductions/tarot-prompt-maker.webp",
         "painPoints": [
           "무엇을 물어야 할지부터 막막할 때",
           "리딩 결과가 늘 두루뭉술하게 끝날 때",
@@ -4968,7 +4968,7 @@
             "title": "질문에 대한 답과 처방"
           }
         ],
-        "outlineImage": "/feature-details/assets/ziwei-ai-960.webp",
+        "outlineImage": "/images/service-introductions/ziwei-ai.webp",
         "painPoints": [
           "명반을 봐도 어느 궁이 중요한지 모를 때",
           "해석이 짧아 궁금한 게 남을 때",
@@ -5295,7 +5295,7 @@
             "title": "주요 근거와 차트 원본"
           }
         ],
-        "outlineImage": "/images/feature-details/astrology-ai-hero-v2.webp",
+        "outlineImage": "/images/service-introductions/astrology-ai.webp",
         "painPoints": [
           "별자리 운세는 봐도 내 얘기 같지 않을 때",
           "태양·달·상승궁이 무슨 뜻인지 모를 때",
@@ -5480,7 +5480,7 @@
             "title": "빛과 현실 · 두 사람의 자리"
           }
         ],
-        "outlineImage": "/fuctionassets/sukyo.webp",
+        "outlineImage": "/images/service-introductions/sukuyo.webp",
         "painPoints": [
           "상대와 어떤 거리를 두어야 할지 모르겠을 때",
           "끌리는데 자꾸 부딪히는 이유가 궁금할 때",
@@ -5887,7 +5887,7 @@
             "title": "PDF로 저장"
           }
         ],
-        "outlineImage": "/images/feature-details/destiny-compass-hero-v2.webp",
+        "outlineImage": "/images/service-introductions/destiny-compass.webp",
         "painPoints": [
           "선택지는 있는데 기준이 없을 때",
           "방향은 정했지만 시점이 불안할 때",
@@ -6004,7 +6004,7 @@
             "title": "AI 질문 문장 카드"
           }
         ],
-        "outlineImage": "/feature-details/assets/destiny-meeting-place-960.webp",
+        "outlineImage": "/images/service-introductions/destiny-meeting-place.webp",
         "painPoints": [
           "어디서 사람을 만나야 할지 감이 안 잡힐 때",
           "언제 움직여야 할지 시기를 정하고 싶을 때",
@@ -6104,7 +6104,7 @@
             "title": "현실 조언"
           }
         ],
-        "outlineImage": "/feature-details/assets/dream-psycho-analysis-960.webp",
+        "outlineImage": "/images/service-introductions/dream-psycho-analysis.webp",
         "painPoints": [
           "인상 깊은 꿈이 계속 마음에 남을 때",
           "꿈속 장면이 지금 감정과 어떻게 닿는지 알고 싶을 때",
@@ -6339,7 +6339,7 @@
             "title": "상담 기록 다시 보기"
           }
         ],
-        "outlineImage": "/images/feature-details/fortune-chat-hero-v2.webp",
+        "outlineImage": "/images/service-introductions/fortune-chat.webp",
         "painPoints": [
           "선택 앞에서 생각이 복잡할 때",
           "답과 함께 이유도 듣고 싶을 때",
@@ -6415,7 +6415,7 @@
             "title": "결과 확인 및 저장"
           }
         ],
-        "outlineImage": "/images/fortune-tea-house/premium-tea-house-desktop.webp",
+        "outlineImage": "/images/service-introductions/fortune-tea-house.webp",
         "painPoints": [
           "속마음을 어디에도 꺼내기 어려울 때",
           "결론보다 먼저 정리가 필요할 때",
@@ -6540,7 +6540,7 @@
             "title": "융합 — 교차 검증과 12개월 시기·행동 지침"
           }
         ],
-        "outlineImage": "/images/feature-details/fusion-fortune-hero-v2.webp",
+        "outlineImage": "/images/service-introductions/fusion-fortune.webp",
         "painPoints": [
           "체계마다 말이 달라서 무엇을 믿어야 할지 모르겠을 때",
           "여기저기서 본 해석이 조각조각 남아 정리가 안 될 때",
@@ -6697,7 +6697,7 @@
             "title": "주요 근거와 차트 원본"
           }
         ],
-        "outlineImage": "/images/feature-details/astrology-ai-hero-v2.webp",
+        "outlineImage": "/images/service-introductions/astrology-ai.webp",
         "painPoints": [
           "별자리 운세는 봐도 내 얘기 같지 않을 때",
           "태양·달·상승궁이 무슨 뜻인지 모를 때",
@@ -6831,7 +6831,7 @@
             "title": "저장과 다시 보기"
           }
         ],
-        "outlineImage": "/fuctionassets/sukyo_premium.webp",
+        "outlineImage": "/images/service-introductions/sukuyo-compatibility-ai.webp",
         "painPoints": [
           "상대와의 거리감이 자주 흔들릴 때",
           "끌리지만 부딪히는 이유가 궁금할 때",
@@ -6983,7 +6983,7 @@
             "title": "질문에 대한 답과 처방"
           }
         ],
-        "outlineImage": "/feature-details/assets/ziwei-ai-960.webp",
+        "outlineImage": "/images/service-introductions/ziwei-ai.webp",
         "painPoints": [
           "명반을 봐도 어느 궁이 중요한지 모를 때",
           "해석이 짧아 궁금한 게 남을 때",
@@ -7097,7 +7097,7 @@
             "title": "PDF로 저장"
           }
         ],
-        "outlineImage": "/images/feature-details/human-design-hero-v2.webp",
+        "outlineImage": "/images/service-introductions/human-design.webp",
         "painPoints": [
           "늘 애쓰는데 자꾸 지칠 때",
           "결정을 어떻게 내려야 할지 모를 때",
@@ -7206,7 +7206,7 @@
             "title": "저장하기"
           }
         ],
-        "outlineImage": "/images/feature-details/ifa-oracle-hero-v2.webp",
+        "outlineImage": "/images/service-introductions/ifa-oracle.webp",
         "painPoints": [
           "익숙한 방식의 조언이 더 이상 와닿지 않을 때",
           "내가 놓치고 있는 금기가 있는지 궁금할 때",
@@ -7315,7 +7315,7 @@
             "title": "다섯 관점의 종합 결론 · 핵심 문장 · 최종 편지"
           }
         ],
-        "outlineImage": "/images/expert-consulting/karma-red-thread-karmic-1536.webp",
+        "outlineImage": "/images/service-introductions/karma-destiny-ai.webp",
         "painPoints": [
           "비슷한 사람에게 계속 끌려 같은 결말을 볼 때",
           "노력해도 특정 영역만 늘 막힐 때",
@@ -7452,7 +7452,7 @@
             "title": "핵심 판독 4편과 마지막 문장"
           }
         ],
-        "outlineImage": "/feature-details/assets/life-book-ai-960.webp",
+        "outlineImage": "/images/service-introductions/life-book-ai.webp",
         "painPoints": [
           "내 인생이 어디로 흘러가는지 큰 그림이 궁금할 때",
           "같은 굴레가 반복되는 이유를 알고 싶을 때",
@@ -7862,7 +7862,7 @@
             "title": "썸 전략·대화·매력·실천"
           }
         ],
-        "outlineImage": "/feature-details/assets/love-secret-ai-960.webp",
+        "outlineImage": "/images/service-introductions/love-secret-ai.webp",
         "painPoints": [
           "상대의 진심이 도무지 잡히지 않을 때",
           "밀당의 타이밍을 번번이 놓칠 때",
@@ -8048,7 +8048,7 @@
             "title": "V 해독과 봉인"
           }
         ],
-        "outlineImage": "/feature-details/assets/master-love-codex-960.webp",
+        "outlineImage": "/images/service-introductions/master-love-codex.webp",
         "painPoints": [
           "연애가 매번 비슷한 방식으로 끝날 때",
           "내가 어떤 사람에게 약한지 모를 때",
@@ -8386,7 +8386,7 @@
             "title": "사용 설명서와 마지막 문장"
           }
         ],
-        "outlineImage": "/images/feature-details/nakshatra-ai-hero-v2.webp",
+        "outlineImage": "/images/service-introductions/nakshatra-ai.webp",
         "painPoints": [
           "내 타고난 결이 무엇인지 궁금할 때",
           "지금이 움직일 때인지 참을 때인지 모를 때",
@@ -8522,7 +8522,7 @@
             "title": "일본 숙요"
           }
         ],
-        "outlineImage": "/images/expert-consulting/vedic-nakshatra-temple.webp",
+        "outlineImage": "/images/service-introductions/nakshatra-compat.webp",
         "painPoints": [
           "궁합 결과마다 말이 달라 혼란스러울 때",
           "점수만 보고는 무엇을 조심할지 모를 때",
@@ -8634,7 +8634,7 @@
             "title": "60일 전체 표"
           }
         ],
-        "outlineImage": "/images/feature-details/nakshatra-muhurta-hero-v2.webp",
+        "outlineImage": "/images/service-introductions/nakshatra-muhurta.webp",
         "painPoints": [
           "날짜를 정해야 하는데 기준이 없을 때",
           "한 체계만 보고 정하기 불안할 때",
@@ -8755,7 +8755,7 @@
             "title": "제5장 · 다샤 인생지도"
           }
         ],
-        "outlineImage": "/images/feature-details/nakshatra-vvip-codex-hero-v2.webp",
+        "outlineImage": "/images/service-introductions/nakshatra-vvip-codex.webp",
         "painPoints": [
           "단편적인 해석을 여러 번 봐도 정리가 안 될 때",
           "27수 전체 구조를 이해하고 싶을 때",
@@ -9019,7 +9019,7 @@
             "title": "확정 및 귀환"
           }
         ],
-        "outlineImage": "/images/feature-details/neville-meditation-hero-v2.webp",
+        "outlineImage": "/images/service-introductions/neville-meditation.webp",
         "painPoints": [
           "혼자 하면 중간에 흐름이 끊길 때",
           "SATS 를 언제 얼마나 해야 하는지 모를 때",
@@ -9144,7 +9144,7 @@
             "title": "건강과 개운법"
           }
         ],
-        "outlineImage": "/images/feature-details/new-year-ai-hero-v2.webp",
+        "outlineImage": "/images/service-introductions/new-year-ai.webp",
         "painPoints": [
           "올 한 해 무엇을 준비해야 할지 막막할 때",
           "재물·이직·연애의 결정적 시기를 알고 싶을 때",
@@ -9279,7 +9279,7 @@
             "title": "실천 플랜 및 저장"
           }
         ],
-        "outlineImage": "/feature-details/assets/animal-totem-960.webp",
+        "outlineImage": "/images/service-introductions/animal-totem.webp",
         "previewText": "동물 이름만 알려 주는 결과가 아니라, 지금의 질문과 선택한 의식에 맞춰 카드 사이의 흐름과 현실적인 행동을 함께 정리합니다.",
         "receives": [
           {
@@ -9459,7 +9459,7 @@
             "title": "다시 불러오기"
           }
         ],
-        "outlineImage": "/images/Celestial Harmony.webp",
+        "outlineImage": "/images/service-introductions/tarot-celestial-harmony.webp",
         "painPoints": [
           "한 장 리딩으로는 답이 부족할 때",
           "여러 고민이 얽혀 어디부터 봐야 할지 모를 때",
@@ -9804,7 +9804,7 @@
             "title": "AI 종합 풀이"
           }
         ],
-        "outlineImage": "/feature-details/assets/geomancy-oracle-960.webp",
+        "outlineImage": "/images/service-introductions/geomancy-oracle.webp",
         "painPoints": [
           "이 조건이 나에게 유리한지 불리한지 셈해 보고 싶을 때",
           "막연한 느낌 말고 구조가 있는 답이 필요할 때",
@@ -9923,7 +9923,7 @@
             "title": "저장하기"
           }
         ],
-        "outlineImage": "/images/feature-details/ifa-oracle-hero-v2.webp",
+        "outlineImage": "/images/service-introductions/ifa-oracle.webp",
         "painPoints": [
           "익숙한 방식의 조언이 더 이상 와닿지 않을 때",
           "내가 놓치고 있는 금기가 있는지 궁금할 때",
@@ -10074,7 +10074,7 @@
             "title": "오늘의 태도 정리"
           }
         ],
-        "outlineImage": "/feature-details/assets/juyuk-turtle-960.webp",
+        "outlineImage": "/images/service-introductions/juyuk-turtle.webp",
         "painPoints": [
           "지금 밀어붙여야 할지 기다려야 할지 모를 때",
           "일이 어느 단계에 와 있는지 가늠하고 싶을 때",
@@ -10192,7 +10192,7 @@
             "title": "세 신의 합 정리"
           }
         ],
-        "outlineImage": "/feature-details/assets/kemet-oracle-960.webp",
+        "outlineImage": "/images/service-introductions/kemet-oracle.webp",
         "painPoints": [
           "운에 맡기기보다 내 손으로 고르고 싶을 때",
           "질문의 결에 맞는 답을 듣고 싶을 때",
@@ -10527,7 +10527,7 @@
             "title": "피해야 할 이름과 기준 원문"
           }
         ],
-        "outlineImage": "/images/feature-details/naming-ai-hero-v2.webp",
+        "outlineImage": "/images/service-introductions/naming-ai.webp",
         "painPoints": [
           "작명소마다 기준이 달라 무엇을 믿을지 모를 때",
           "한자 뜻은 좋은데 사주와 맞는지 모를 때",
@@ -10676,7 +10676,7 @@
             "title": "확정 및 귀환"
           }
         ],
-        "outlineImage": "/images/feature-details/neville-meditation-hero-v2.webp",
+        "outlineImage": "/images/service-introductions/neville-meditation.webp",
         "painPoints": [
           "혼자 하면 중간에 흐름이 끊길 때",
           "SATS 를 언제 얼마나 해야 하는지 모를 때",
@@ -10844,7 +10844,7 @@
             "title": "현실 조언"
           }
         ],
-        "outlineImage": "/feature-details/assets/dream-psycho-analysis-960.webp",
+        "outlineImage": "/images/service-introductions/dream-psycho-analysis.webp",
         "painPoints": [
           "인상 깊은 꿈이 계속 마음에 남을 때",
           "꿈속 장면이 지금 감정과 어떻게 닿는지 알고 싶을 때",
@@ -10962,7 +10962,7 @@
             "title": "공유하기"
           }
         ],
-        "outlineImage": "/feature-details/assets/royal-tea-oracle-960.webp",
+        "outlineImage": "/images/service-introductions/royal-tea-oracle.webp",
         "painPoints": [
           "석 달 안쪽의 가까운 흐름이 궁금할 때",
           "물음의 영역을 정해 차분히 들여다보고 싶을 때",
@@ -11080,7 +11080,7 @@
             "title": "공유하기"
           }
         ],
-        "outlineImage": "/feature-details/assets/stonehenge-runes-960.webp",
+        "outlineImage": "/images/service-introductions/stonehenge-runes.webp",
         "painPoints": [
           "과거의 선택이 지금까지 이어지는지 궁금할 때",
           "지금 서 있는 자리를 한 발 떨어져 보고 싶을 때",
@@ -11198,7 +11198,7 @@
             "title": "부적 주머니와 실전 가이드"
           }
         ],
-        "outlineImage": "/images/feature-details/saju-guardian-hero-v2.webp",
+        "outlineImage": "/images/service-introductions/saju-guardian.webp",
         "painPoints": [
           "사주 풀이가 글자만 빽빽해 와닿지 않을 때",
           "내 명식을 캐릭터로 간직하고 싶을 때",
@@ -11316,7 +11316,7 @@
             "title": "부적 주머니와 실전 가이드"
           }
         ],
-        "outlineImage": "/images/feature-details/saju-guardian-hero-v2.webp",
+        "outlineImage": "/images/service-introductions/saju-guardian.webp",
         "painPoints": [
           "사주 풀이가 글자만 빽빽해 와닿지 않을 때",
           "내 명식을 캐릭터로 간직하고 싶을 때",
@@ -11515,7 +11515,7 @@
             "title": "빛과 현실 · 두 사람의 자리"
           }
         ],
-        "outlineImage": "/fuctionassets/sukyo.webp",
+        "outlineImage": "/images/service-introductions/sukuyo.webp",
         "painPoints": [
           "상대와 어떤 거리를 두어야 할지 모르겠을 때",
           "끌리는데 자꾸 부딪히는 이유가 궁금할 때",
@@ -11599,7 +11599,7 @@
             "title": "공유"
           }
         ],
-        "outlineImage": "/fuctionassets/tarolove.webp",
+        "outlineImage": "/images/service-introductions/tarot-love-relationship.webp",
         "painPoints": [
           "상대의 말과 행동이 다르게 느껴질 때",
           "연락을 이어가도 되는지 망설여질 때",
@@ -11717,7 +11717,7 @@
             "title": "준비할 말과 이레 루틴"
           }
         ],
-        "outlineImage": "/fuctionassets/reunion.webp",
+        "outlineImage": "/images/service-introductions/tarot-reunion.webp",
         "painPoints": [
           "연락하고 싶은데 먼저 보내도 될지 망설여질 때",
           "상대에게 마음이 남아 있는지 확인하고 싶을 때",
@@ -11837,7 +11837,7 @@
             "title": "이어 보기"
           }
         ],
-        "outlineImage": "/fuctionassets/12animals.webp",
+        "outlineImage": "/images/service-introductions/tarot-year-fortune.webp",
         "painPoints": [
           "올해의 큰 흐름을 한 번에 정리하고 싶을 때",
           "중요한 일을 어느 달에 둘지 가늠하고 싶을 때",
@@ -11964,7 +11964,7 @@
             "title": "마무리 만트라로 종료"
           }
         ],
-        "outlineImage": "/images/feature-details/yoga-guru-hero-v2.webp",
+        "outlineImage": "/images/service-introductions/yoga-guru.webp",
         "painPoints": [
           "영상마다 순서가 달라 무엇부터 할지 모를 때",
           "오늘 몸 상태에 맞는 길이로 하고 싶을 때",
@@ -12142,7 +12142,7 @@
             "title": "결과 확인"
           }
         ],
-        "outlineImage": "/feature-details/assets/palm-reading-960.webp",
+        "outlineImage": "/images/service-introductions/palm-reading.webp",
         "painPoints": [
           "손금을 봐도 어느 선이 무엇인지 모를 때",
           "책마다 설명이 달라 기준을 잡기 어려울 때",
@@ -12295,7 +12295,7 @@
             "title": "피해야 할 이름과 기준 원문"
           }
         ],
-        "outlineImage": "/images/feature-details/naming-ai-hero-v2.webp",
+        "outlineImage": "/images/service-introductions/naming-ai.webp",
         "painPoints": [
           "작명소마다 기준이 달라 무엇을 믿을지 모를 때",
           "한자 뜻은 좋은데 사주와 맞는지 모를 때",
@@ -13946,7 +13946,7 @@
             "title": "저장과 다시 보기"
           }
         ],
-        "outlineImage": "/fuctionassets/sukyo_premium.webp",
+        "outlineImage": "/images/service-introductions/sukuyo-compatibility-ai.webp",
         "painPoints": [
           "상대와의 거리감이 자주 흔들릴 때",
           "끌리지만 부딪히는 이유가 궁금할 때",
@@ -14088,7 +14088,7 @@
             "title": "다시 불러오기"
           }
         ],
-        "outlineImage": "/images/Celestial Harmony.webp",
+        "outlineImage": "/images/service-introductions/tarot-celestial-harmony.webp",
         "painPoints": [
           "한 장 리딩으로는 답이 부족할 때",
           "여러 고민이 얽혀 어디부터 봐야 할지 모를 때",
@@ -14206,7 +14206,7 @@
             "title": "질문문 복사와 공유"
           }
         ],
-        "outlineImage": "/fuctionassets/stonetaro.webp",
+        "outlineImage": "/images/service-introductions/tarot-crystal-soul.webp",
         "painPoints": [
           "무엇부터 물어야 할지 막막할 때",
           "기분은 무거운데 이유를 못 짚을 때",
@@ -14324,7 +14324,7 @@
             "title": "공유하고 이어 묻기"
           }
         ],
-        "outlineImage": "/fuctionassets/taromove.webp",
+        "outlineImage": "/images/service-introductions/tarot-ijik.webp",
         "painPoints": [
           "옮기고 싶은데 확신이 서지 않을 때",
           "지금이 시기인지 모르겠을 때",
@@ -14407,7 +14407,7 @@
             "title": "공유"
           }
         ],
-        "outlineImage": "/fuctionassets/tarolove.webp",
+        "outlineImage": "/images/service-introductions/tarot-love-relationship.webp",
         "painPoints": [
           "상대의 말과 행동이 다르게 느껴질 때",
           "연락을 이어가도 되는지 망설여질 때",
@@ -14525,7 +14525,7 @@
             "title": "저장과 공유"
           }
         ],
-        "outlineImage": "/fuctionassets/mindscantaro.webp",
+        "outlineImage": "/images/service-introductions/tarot-mindscan.webp",
         "painPoints": [
           "말은 다정한데 행동이 다르게 느껴질 때",
           "먼저 연락해도 되는지 망설여질 때",
@@ -14613,7 +14613,7 @@
             "title": "다시 보기와 공유"
           }
         ],
-        "outlineImage": "/images/feature-details/tarot-numerology-hero-v2.webp",
+        "outlineImage": "/images/service-introductions/tarot-numerology.webp",
         "painPoints": [
           "카드 한 장으로는 이야기가 끊길 때",
           "오늘 흐름을 조금 더 근거 있게 보고 싶을 때",
@@ -14721,7 +14721,7 @@
             "title": "질문문 복사"
           }
         ],
-        "outlineImage": "/feature-details/assets/tarot-prompt-maker-960.webp",
+        "outlineImage": "/images/service-introductions/tarot-prompt-maker.webp",
         "painPoints": [
           "무엇을 물어야 할지부터 막막할 때",
           "리딩 결과가 늘 두루뭉술하게 끝날 때",
@@ -14839,7 +14839,7 @@
             "title": "준비할 말과 이레 루틴"
           }
         ],
-        "outlineImage": "/fuctionassets/reunion.webp",
+        "outlineImage": "/images/service-introductions/tarot-reunion.webp",
         "painPoints": [
           "연락하고 싶은데 먼저 보내도 될지 망설여질 때",
           "상대에게 마음이 남아 있는지 확인하고 싶을 때",
@@ -14959,7 +14959,7 @@
             "title": "이어 보기"
           }
         ],
-        "outlineImage": "/fuctionassets/12animals.webp",
+        "outlineImage": "/images/service-introductions/tarot-year-fortune.webp",
         "painPoints": [
           "올해의 큰 흐름을 한 번에 정리하고 싶을 때",
           "중요한 일을 어느 달에 둘지 가늠하고 싶을 때",
@@ -15087,7 +15087,7 @@
             "title": "해석 근거 흐름"
           }
         ],
-        "outlineImage": "/feature-details/assets/vedic-960.webp",
+        "outlineImage": "/images/service-introductions/vedic-ai.webp",
         "painPoints": [
           "서양 점성술과 무엇이 다른지 모를 때",
           "지금이 어떤 시기인지 알고 싶을 때",
@@ -15234,7 +15234,7 @@
             "title": "마무리 만트라로 종료"
           }
         ],
-        "outlineImage": "/images/feature-details/yoga-guru-hero-v2.webp",
+        "outlineImage": "/images/service-introductions/yoga-guru.webp",
         "painPoints": [
           "영상마다 순서가 달라 무엇부터 할지 모를 때",
           "오늘 몸 상태에 맞는 길이로 하고 싶을 때",
@@ -15379,7 +15379,7 @@
             "title": "질문에 대한 답과 처방"
           }
         ],
-        "outlineImage": "/feature-details/assets/ziwei-ai-960.webp",
+        "outlineImage": "/images/service-introductions/ziwei-ai.webp",
         "painPoints": [
           "명반을 봐도 어느 궁이 중요한지 모를 때",
           "해석이 짧아 궁금한 게 남을 때",

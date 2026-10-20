@@ -27,7 +27,7 @@ const FEATURE_KEY = "destiny_meeting_place";
 const FEATURE_PRICING = resolveServerFeaturePricing({ featureKey: FEATURE_KEY });
 const FEATURE_COST = FEATURE_PRICING?.cost ?? 0;
 const FEATURE_AMOUNT_KRW = FEATURE_PRICING?.amountKRW ?? 0;
-const HERO_IMAGE = "/fuctionassets/%EC%82%AC%EC%A3%BC%EB%A1%9C%EB%B3%B4%EB%8A%94%20%EC%9D%B8%EC%97%B0%EC%9D%98%20%EC%9E%A5%EC%86%8C.webp";
+const HERO_IMAGE = "/images/service-introductions/destiny-meeting-place-960.webp";
 const PREFILL_KEY = "cd.destinyMeetingPlace.prefill.v1";
 const HERO_HIGHLIGHT_CLASS: Record<"place" | "time" | "mood", string> = {
   place: "text-[#ffdca7]",

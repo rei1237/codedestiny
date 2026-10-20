@@ -7,17 +7,26 @@
     {
       "id": "01-one-life-six-lenses",
       "title": "삶이 한꺼번에 움직일 때, 질문의 중심을 찾아요.",
-      "alt": "삶이 한꺼번에 움직일 때, 질문의 중심을 찾아요.",
-      "src": "/feature-details/crafted/yeongnyangi-fusion-all/01-one-life-six-lenses.webp",
-      "width": 1080,
-      "height": 1440,
+      "alt": "마법사 고양이 영냥이가 사주·자미두수·숙요·베다·점성술·타로 도구를 함께 살피는 장면",
+      "src": "/images/service-introductions/yeongnyangi-fusion-all.webp",
+      "width": 1536,
+      "height": 1024,
       "text": "삶이 한꺼번에 움직일 때,\n질문의 중심을 찾아요.\n\n일·관계·생활이 얽힌 한 가지 고민을\n여섯 체계로 차근차근 풀어드려요.\n\n영냥이 전체 오마카세 · 개인 상담",
       "variants": [
         {
-          "src": "/feature-details/crafted/yeongnyangi-fusion-all/01-one-life-six-lenses-540.webp",
-          "width": 540
+          "src": "/images/service-introductions/yeongnyangi-fusion-all-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-fusion-all-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-fusion-all-960.webp",
+          "width": 960
         }
-      ]
+      ],
+      "textBelowImage": true
     },
     {
       "id": "02-a-move-is-not-one-choice",

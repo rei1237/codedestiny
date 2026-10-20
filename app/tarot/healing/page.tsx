@@ -37,7 +37,7 @@ const TAROT_HEALING_METADATA_COPY = {
 const META = {
   path: "/tarot/healing",
   ...TAROT_HEALING_METADATA_COPY.ko,
-  image: "https://code-destiny.com/fuctionassets/healing.webp",
+  image: "https://code-destiny.com/images/service-introductions/tarot-healing.webp",
   applicationCategory: "EntertainmentApplication",
 } as const;
 

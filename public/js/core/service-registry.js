@@ -54,6 +54,8 @@ window.__cdServiceRegistryMeta = {
 window.__cdServiceRegistry = [
   /* ── 연애 · 인연 ─────────────────────────────────────────────── */
   {
+    image: "/images/service-introductions/master-love-codex-320.webp",
+    imageAlt: "마스터의 마스터 인연의 서 상담 장면",
     id: "master-love-codex",
     name: "마스터 인연의 서",
     question: "내 다음 연애는 언제 시작될까?",
@@ -69,6 +71,8 @@ window.__cdServiceRegistry = [
     roles: ["recommended"],
   },
   {
+    image: "/images/service-introductions/fortune-tea-house-320.webp",
+    imageAlt: "연이의 운명의 찻집 상담 장면",
     id: "fortune-tea-house",
     name: "운명의 찻집",
     question: "이 마음, 어떻게 정리하면 좋을까?",
@@ -83,13 +87,14 @@ window.__cdServiceRegistry = [
     roles: ["recommended"],
   },
   {
+    image: "/images/service-introductions/love-secret-ai-320.webp",
     id: "love-secret-ai",
     name: "연애 비책",
     question: "지금 우리 연애, 어디쯤 와 있을까?",
     desc: "지금 연애의 흐름과 마음을 짚는 AI 상담",
     href: "/love-secret-ai/",
     featureKey: "love-secret-ai-consultation",
-    imageAlt: "봉인된 연애 비책 편지와 봉투",
+    imageAlt: "연이·서한비의 연애 비책 상담 장면",
     price: "30,000원",
     purposes: ["love"],
     methods: ["ai"],
@@ -98,6 +103,8 @@ window.__cdServiceRegistry = [
     roles: ["recommended"],
   },
   {
+    image: "/images/service-introductions/fortune-chat-320.webp",
+    imageAlt: "연이·네오의 대화형 운명 상담 상담 장면",
     id: "fortune-chat",
     name: "대화형 운명 상담",
     question: "내 상황에서는 어느 쪽이 나을까?",
@@ -111,6 +118,8 @@ window.__cdServiceRegistry = [
   },
 
   {
+    image: "/images/service-introductions/tarot-love-relationship-320.webp",
+    imageAlt: "우리는 무슨 사이?의 핵심 도구와 이용 장면을 담은 일러스트",
     id: "tarot-love-relationship",
     name: "우리는 무슨 사이?",
     question: "우리는 지금 어떤 사이일까?",
@@ -123,6 +132,8 @@ window.__cdServiceRegistry = [
     keys: "관계 타로 우리는 무슨 사이 썸 상대 마음",
   },
   {
+    image: "/images/service-introductions/tarot-reunion-320.webp",
+    imageAlt: "재회운 타로의 핵심 도구와 이용 장면을 담은 일러스트",
     id: "tarot-reunion",
     name: "재회운 타로",
     question: "우리, 다시 만날 수 있을까?",
@@ -135,6 +146,8 @@ window.__cdServiceRegistry = [
     keys: "재회 이별 헤어짐 연락 타로",
   },
   {
+    image: "/images/service-introductions/tarot-mindscan-320.webp",
+    imageAlt: "말과 행동 사이 타로의 핵심 도구와 이용 장면을 담은 일러스트",
     id: "tarot-mindscan",
     name: "말과 행동 사이 타로",
     question: "그 사람의 말과 행동, 왜 다를까?",
@@ -147,6 +160,8 @@ window.__cdServiceRegistry = [
     keys: "마인드스캔 속마음 겉말 관계 간격 타로",
   },
   {
+    image: "/images/service-introductions/nakshatra-compat-320.webp",
+    imageAlt: "동서 통합 궁합의 핵심 도구와 이용 장면을 담은 일러스트",
     id: "nakshatra-compat",
     name: "동서 통합 궁합",
     question: "그 사람과 나, 어떤 궁합일까?",
@@ -161,6 +176,8 @@ window.__cdServiceRegistry = [
 
   /* ── 재물 · 직업 ─────────────────────────────────────────────── */
   {
+    image: "/images/service-introductions/neo-operation-room-320.webp",
+    imageAlt: "네오의 네오의 팩폭 작전실 상담 장면",
     id: "neo-operation-room",
     name: "팩폭 전략소",
     question: "여러 고민 중 무엇부터 손대야 할까?",
@@ -175,6 +192,8 @@ window.__cdServiceRegistry = [
     roles: ["recommended"],
   },
   {
+    image: "/images/service-introductions/destiny-compass-320.webp",
+    imageAlt: "운명의 나침반의 핵심 도구와 이용 장면을 담은 일러스트",
     id: "destiny-compass",
     name: "운명의 나침반",
     question: "지금 방향을 바꿔도 될까?",
@@ -187,6 +206,8 @@ window.__cdServiceRegistry = [
     keys: "나침반 방향 선택 갈림길 진로",
   },
   {
+    image: "/images/service-introductions/saju-sibyl-320.webp",
+    imageAlt: "시빌라 연간 대비 리포트의 핵심 도구와 이용 장면을 담은 일러스트",
     id: "saju-sibyl",
     name: "시빌라 연간 대비 리포트",
     question: "올해 무엇을 미리 준비하면 좋을까?",
@@ -199,13 +220,14 @@ window.__cdServiceRegistry = [
     keys: "사이빌 시빌 ai 상담 심층 사주",
   },
   {
+    image: "/images/service-introductions/new-year-ai-320.webp",
     id: "new-year-ai",
     name: "신년운세",
     question: "올해 나에게 가장 중요한 일은 뭘까?",
     desc: "새해의 큰 흐름과 기회를 미리 보는 운세",
     href: "/new-year-ai-consultation/",
     featureKey: "new-year-ai-consultation",
-    imageAlt: "사계절을 지나 열두 달의 흐름이 펼쳐지는 신년운세 두루마리",
+    imageAlt: "네오의 신년운세 상담 장면",
     price: "30,000원",
     purposes: ["career", "money", "life"],
     methods: ["saju", "ai"],
@@ -215,6 +237,8 @@ window.__cdServiceRegistry = [
   },
 
   {
+    image: "/images/service-introductions/tarot-ijik-320.webp",
+    imageAlt: "이직 운명의 카드의 핵심 도구와 이용 장면을 담은 일러스트",
     id: "tarot-ijik",
     name: "이직 운명의 카드",
     question: "지금 이직해도 괜찮을까?",
@@ -229,13 +253,14 @@ window.__cdServiceRegistry = [
 
   /* ── 인생 · 나 자신 ──────────────────────────────────────────── */
   {
+    image: "/images/service-introductions/life-book-ai-320.webp",
     id: "life-book-ai",
     name: "인생의 책",
     question: "내 인생의 황금기는 언제일까?",
     desc: "삶의 이야기를 한 권의 책으로 엮는 리딩",
     href: "/life-book-ai/",
     featureKey: "life-book-ai-consultation",
-    imageAlt: "녹색 천으로 제본한 인생의 책 표지",
+    imageAlt: "윤달의 인생의 책 상담 장면",
     price: "30,000원",
     purposes: ["life", "self"],
     methods: ["saju", "ai"],
@@ -244,6 +269,8 @@ window.__cdServiceRegistry = [
     roles: ["recommended"],
   },
   {
+    image: "/images/service-introductions/karma-destiny-ai-320.webp",
+    imageAlt: "네오·서한비의 네오와 서한비의 붉은 실 상담 장면",
     id: "karma-destiny-ai",
     name: "네오와 서한비의 붉은 실",
     question: "나는 왜 비슷한 사람에게 계속 끌릴까?",
@@ -256,6 +283,8 @@ window.__cdServiceRegistry = [
     keys: "운명의업 붉은실 네오 서한비 카르마 전생 인과",
   },
   {
+    image: "/images/service-introductions/saju-guardian-320.webp",
+    imageAlt: "사주 가디언 소환진의 핵심 도구와 이용 장면을 담은 일러스트",
     id: "saju-guardian",
     name: "사주 가디언 소환진",
     question: "나를 지켜주는 기운은 어떤 모습일까?",
@@ -269,6 +298,8 @@ window.__cdServiceRegistry = [
     badge: "영구 해금",
   },
   {
+    image: "/images/service-introductions/naming-ai-320.webp",
+    imageAlt: "전문가 작명소의 핵심 도구와 이용 장면을 담은 일러스트",
     id: "naming-ai",
     name: "전문가 작명소",
     question: "이 이름, 우리 아이와 잘 맞을까?",
@@ -281,6 +312,8 @@ window.__cdServiceRegistry = [
     keys: "작명 이름 개명 훈민정음 사주",
   },
   {
+    image: "/images/service-introductions/fusion-fortune-320.webp",
+    imageAlt: "네오·연이·서한비·윤달·무성의 초융합 심층 리딩 상담 장면",
     id: "fusion-fortune",
     name: "초융합 심층 리딩",
     question: "운세마다 말이 다를 때, 무엇을 따를까?",
@@ -295,6 +328,8 @@ window.__cdServiceRegistry = [
   },
 
   {
+    image: "/images/service-introductions/tarot-year-fortune-320.webp",
+    imageAlt: "십이지신 천운 타로의 핵심 도구와 이용 장면을 담은 일러스트",
     id: "tarot-year-fortune",
     name: "십이지신 천운 타로",
     question: "올해 열두 달, 언제 기회가 올까?",
@@ -307,6 +342,8 @@ window.__cdServiceRegistry = [
     keys: "연간 타로 한 해 일년 열두달 신년",
   },
   {
+    image: "/images/service-introductions/tarot-celestial-harmony-320.webp",
+    imageAlt: "천체의 선율의 핵심 도구와 이용 장면을 담은 일러스트",
     id: "tarot-celestial-harmony",
     name: "천체의 선율",
     question: "지금 나를 가장 흔드는 건 뭘까?",
@@ -319,6 +356,8 @@ window.__cdServiceRegistry = [
     keys: "천체의 선율 행성 코즈믹 점성 타로",
   },
   {
+    image: "/images/service-introductions/nakshatra-muhurta-320.webp",
+    imageAlt: "택일 무후르타의 핵심 도구와 이용 장면을 담은 일러스트",
     id: "nakshatra-muhurta",
     name: "택일 무후르타",
     question: "이 일, 언제 하면 좋을까?",
@@ -333,6 +372,8 @@ window.__cdServiceRegistry = [
 
   /* ── 운세 체계 허브 (무료 진입) ──────────────────────────────── */
   {
+    image: "/images/service-introductions/saju-320.webp",
+    imageAlt: "꽃돼지 연이의 사주 정밀 분석 상담 장면",
     id: "saju",
     quickHref: "/?action=cdOneStepFreeSajuEntry",
     name: "사주",
@@ -347,6 +388,8 @@ window.__cdServiceRegistry = [
     roles: ["quick"],
   },
   {
+    image: "/images/service-introductions/tarot-320.webp",
+    imageAlt: "타로 리딩의 핵심 도구와 이용 장면을 담은 일러스트",
     id: "tarot",
     quickHref: "/?action=cdHomeTarotEntry",
     name: "타로",
@@ -363,6 +406,8 @@ window.__cdServiceRegistry = [
     roles: ["quick"],
   },
   {
+    image: "/images/service-introductions/ziwei-320.webp",
+    imageAlt: "무성이 열두 궁 명반의 별자리를 금빛 깃털로 짚는 장면",
     id: "ziwei",
     quickHref: "/?action=cdHomeZiweiEntry",
     name: "자미두수",
@@ -378,6 +423,8 @@ window.__cdServiceRegistry = [
     roles: ["quick"],
   },
   {
+    image: "/images/service-introductions/sukuyo-320.webp",
+    imageAlt: "서한비가 두 달 자리 사이의 관계 거리를 살피는 장면",
     id: "sukuyo",
     quickHref: "/?action=cdHomeSukuyoEntry",
     name: "숙요점",
@@ -394,6 +441,8 @@ window.__cdServiceRegistry = [
     roles: ["quick"],
   },
   {
+    image: "/images/service-introductions/vedic-320.webp",
+    imageAlt: "윤달이 베다점의 마름모 차트와 달의 자리를 살피는 장면",
     id: "vedic",
     quickHref: "/?action=cdHomeVedicEntry",
     name: "베다점",
@@ -409,6 +458,8 @@ window.__cdServiceRegistry = [
     roles: ["quick"],
   },
   {
+    image: "/images/service-introductions/astrology-320.webp",
+    imageAlt: "윤달이 서양 점성술의 원형 출생차트와 행성 배치를 살피는 장면",
     id: "astrology",
     quickHref: "/?action=cdHomeAstroEntry",
     name: "점성술",
@@ -424,6 +475,8 @@ window.__cdServiceRegistry = [
     roles: ["quick"],
   },
   {
+    image: "/images/service-introductions/human-design-320.webp",
+    imageAlt: "휴먼 디자인의 핵심 도구와 이용 장면을 담은 일러스트",
     id: "human-design",
     name: "휴먼 디자인",
     question: "나는 어떻게 결정해야 덜 지칠까?",
@@ -441,6 +494,8 @@ window.__cdServiceRegistry = [
     // verify:home-service-registry 가 roles 선언과 셸 배치를 1:1 로 대조한다.
   },
   {
+    image: "/images/service-introductions/nakshatra-320.webp",
+    imageAlt: "나크샤트라 결정판의 핵심 도구와 이용 장면을 담은 일러스트",
     id: "nakshatra",
     name: "나크샤트라 결정판",
     question: "나의 타고난 결은 어느 별에서 왔을까?",
@@ -454,6 +509,8 @@ window.__cdServiceRegistry = [
     badge: "티저",
   },
   {
+    image: "/images/service-introductions/maya-320.webp",
+    imageAlt: "마야점의 핵심 도구와 이용 장면을 담은 일러스트",
     id: "maya",
     name: "마야점",
     question: "오늘은 어떤 기운의 날일까?",
@@ -467,6 +524,8 @@ window.__cdServiceRegistry = [
 
   /* ── 오늘 ────────────────────────────────────────────────────── */
   {
+    image: "/images/service-introductions/daily-fortune-320.webp",
+    imageAlt: "오늘의 운세의 핵심 도구와 이용 장면을 담은 일러스트",
     id: "daily-fortune",
     name: "오늘의 운세",
     question: "오늘, 무엇부터 하면 좋을까?",
@@ -481,6 +540,8 @@ window.__cdServiceRegistry = [
     badge: "티저",
   },
   {
+    image: "/images/service-introductions/today-hub-320.webp",
+    imageAlt: "오늘의 운세 허브의 핵심 도구와 이용 장면을 담은 일러스트",
     id: "today-hub",
     name: "오늘의 운세 허브",
     question: "오늘, 무엇부터 하면 좋을까?",
@@ -496,6 +557,8 @@ window.__cdServiceRegistry = [
 
   /* ── 나를 아는 도구 ─────────────────────────────────────────── */
   {
+    image: "/images/service-introductions/palm-reading-320.webp",
+    imageAlt: "분홍 머리의 인간 연이가 펼친 손바닥의 손금을 함께 살피는 장면",
     id: "palm-reading",
     name: "손금",
     question: "내 손금에서 가장 뚜렷한 길은 뭘까?",
@@ -507,6 +570,8 @@ window.__cdServiceRegistry = [
     keys: "손금 수상 손바닥",
   },
   {
+    image: "/images/service-introductions/physiognomy-320.webp",
+    imageAlt: "관상의 핵심 도구와 이용 장면을 담은 일러스트",
     id: "physiognomy",
     name: "관상",
     question: "내 인상은 사람들에게 어떻게 읽힐까?",
@@ -519,6 +584,8 @@ window.__cdServiceRegistry = [
     keys: "관상 얼굴 인상 face",
   },
   {
+    image: "/images/service-introductions/dream-320.webp",
+    imageAlt: "꿈해몽의 핵심 도구와 이용 장면을 담은 일러스트",
     id: "dream",
     name: "꿈해몽",
     question: "이 꿈은 무슨 뜻일까?",
@@ -533,6 +600,8 @@ window.__cdServiceRegistry = [
     badge: "티저",
   },
   {
+    image: "/images/service-introductions/psychotest-320.webp",
+    imageAlt: "심리테스트의 핵심 도구와 이용 장면을 담은 일러스트",
     id: "psychotest",
     name: "심리테스트",
     question: "나는 지금 어떤 상태일까?",
@@ -546,6 +615,8 @@ window.__cdServiceRegistry = [
     badge: "무료",
   },
   {
+    image: "/images/service-introductions/manse-320.webp",
+    imageAlt: "만세력의 핵심 도구와 이용 장면을 담은 일러스트",
     id: "manse",
     name: "만세력",
     question: "내 사주 여덟 글자는 무엇일까?",
@@ -558,6 +629,8 @@ window.__cdServiceRegistry = [
     badge: "만세력",
   },
   {
+    image: "/images/service-introductions/famous-saju-320.webp",
+    imageAlt: "유명인 사주의 핵심 도구와 이용 장면을 담은 일러스트",
     id: "famous-saju",
     name: "유명인 사주",
     question: "같은 사주라도 삶은 왜 다를까?",
@@ -571,6 +644,8 @@ window.__cdServiceRegistry = [
   },
 
   {
+    image: "/images/service-introductions/animal-destiny-320.webp",
+    imageAlt: "운명의 동물 도감의 핵심 도구와 이용 장면을 담은 일러스트",
     id: "animal-destiny",
     name: "십이운성 동물점",
     question: "남들이 모르는 내 강점은 뭘까?",
@@ -586,6 +661,8 @@ window.__cdServiceRegistry = [
 
   /* ── 신탁·오라클·기타 유료 체험 ──────────────────────────────── */
   {
+    image: "/images/service-introductions/kemet-oracle-320.webp",
+    imageAlt: "이집트 신탁의 핵심 도구와 이용 장면을 담은 일러스트",
     id: "kemet-oracle",
     name: "이집트 신탁",
     question: "이 상황은 어디로 흘러갈까?",
@@ -598,6 +675,8 @@ window.__cdServiceRegistry = [
     keys: "이집트 신탁 케멧 오라클",
   },
   {
+    image: "/images/service-introductions/ifa-oracle-320.webp",
+    imageAlt: "IFÀ 오라클의 핵심 도구와 이용 장면을 담은 일러스트",
     id: "ifa-oracle",
     name: "IFÀ 오라클",
     question: "이 일, 지금 진행해도 될까?",
@@ -610,6 +689,8 @@ window.__cdServiceRegistry = [
     keys: "이파 오라클 요루바 신탁",
   },
   {
+    image: "/images/service-introductions/juyuk-turtle-320.webp",
+    imageAlt: "주역 거북점의 핵심 도구와 이용 장면을 담은 일러스트",
     id: "juyuk-turtle",
     name: "주역 거북점",
     question: "지금은 나아갈 때일까, 물러설 때일까?",
@@ -622,6 +703,8 @@ window.__cdServiceRegistry = [
     keys: "주역 64괘 거북점 역경",
   },
   {
+    image: "/images/service-introductions/neville-meditation-320.webp",
+    imageAlt: "네빌 명상 실습의 핵심 도구와 이용 장면을 담은 일러스트",
     id: "neville-meditation",
     name: "네빌 명상 실습",
     question: "원하는 장면을 어떻게 그려야 할까?",
@@ -634,6 +717,8 @@ window.__cdServiceRegistry = [
     keys: "네빌 명상 상상 창조 확언",
   },
   {
+    image: "/images/service-introductions/yoga-guru-320.webp",
+    imageAlt: "Divya Yoga의 핵심 도구와 이용 장면을 담은 일러스트",
     id: "yoga-guru",
     name: "Divya Yoga",
     question: "오늘 나에게 맞는 루틴은 뭘까?",
@@ -646,6 +731,8 @@ window.__cdServiceRegistry = [
     keys: "요가 명상 인도 divya yoga",
   },
   {
+    image: "/images/service-introductions/tarot-numerology-320.webp",
+    imageAlt: "수비학 타로의 핵심 도구와 이용 장면을 담은 일러스트",
     id: "tarot-numerology",
     name: "수비학 타로",
     question: "오늘 나에게 필요한 태도는 뭘까?",
@@ -658,6 +745,8 @@ window.__cdServiceRegistry = [
     keys: "수비학 넘버롤로지 생명수 오늘수",
   },
   {
+    image: "/images/service-introductions/dream-psycho-analysis-320.webp",
+    imageAlt: "정신분석 해몽의 핵심 도구와 이용 장면을 담은 일러스트",
     id: "dream-psycho-analysis",
     name: "정신분석 해몽",
     question: "이 꿈은 내 마음의 무엇을 보여줄까?",
@@ -670,6 +759,8 @@ window.__cdServiceRegistry = [
     keys: "정신분석 해몽 프로이트 꿈 심리",
   },
   {
+    image: "/images/service-introductions/animal-totem-320.webp",
+    imageAlt: "애니멀 토템의 핵심 도구와 이용 장면을 담은 일러스트",
     id: "animal-totem",
     name: "애니멀 토템",
     question: "지금 내 마음에서 먼저 살펴야 할 건?",
@@ -682,6 +773,8 @@ window.__cdServiceRegistry = [
     keys: "애니멀 토템 수호동물 동물카드",
   },
   {
+    image: "/images/service-introductions/mbti-animal-compat-320.webp",
+    imageAlt: "MBTI 동물 궁합의 핵심 도구와 이용 장면을 담은 일러스트",
     id: "mbti-animal-compat",
     name: "MBTI 동물 궁합",
     question: "우리 MBTI 조합은 어떤 궁합일까?",
@@ -695,6 +788,8 @@ window.__cdServiceRegistry = [
   },
 
   {
+    image: "/images/service-introductions/tarot-crystal-soul-320.webp",
+    imageAlt: "원석 소울 타로의 핵심 도구와 이용 장면을 담은 일러스트",
     id: "tarot-crystal-soul",
     name: "원석 소울 타로",
     question: "내가 못 보고 있는 내 모습은 뭘까?",
@@ -707,6 +802,8 @@ window.__cdServiceRegistry = [
     keys: "원석 크리스탈 소울 보석 타로",
   },
   {
+    image: "/images/service-introductions/royal-tea-oracle-320.webp",
+    imageAlt: "영국 홍차점의 핵심 도구와 이용 장면을 담은 일러스트",
     id: "royal-tea-oracle",
     name: "영국 홍차점",
     question: "앞으로 석 달, 무엇이 움직일까?",
@@ -719,6 +816,8 @@ window.__cdServiceRegistry = [
     keys: "홍차 찻잎 티리딩 영국 홍차점 오라클",
   },
   {
+    image: "/images/service-introductions/geomancy-oracle-320.webp",
+    imageAlt: "지오맨시 흙점의 핵심 도구와 이용 장면을 담은 일러스트",
     id: "geomancy-oracle",
     name: "지오맨시 흙점",
     question: "이 일의 형세는 유리할까, 불리할까?",
@@ -731,6 +830,8 @@ window.__cdServiceRegistry = [
     keys: "지오맨시 흙점 방패 차트 도형 오라클",
   },
   {
+    image: "/images/service-introductions/stonehenge-runes-320.webp",
+    imageAlt: "스톤헨지 룬의 핵심 도구와 이용 장면을 담은 일러스트",
     id: "stonehenge-runes",
     name: "스톤헨지 룬",
     question: "나는 지금 어느 지점에 서 있을까?",
@@ -745,6 +846,8 @@ window.__cdServiceRegistry = [
 
   /* ── 그 밖의 진입점 ─────────────────────────────────────────── */
   {
+    image: "/images/service-introductions/luck-sync-diary-320.webp",
+    imageAlt: "운기 다이어리와 플래너의 핵심 도구와 이용 장면을 담은 일러스트",
     id: "luck-sync-diary",
     name: "운기 다이어리와 플래너",
     question: "이번 달 흐름, 기록과 얼마나 맞았을까?",

@@ -61,16 +61,25 @@
       "id": "editorial-1",
       "title": "위로 다음의 한 수, 네오와 정리해라.",
       "text": "막연한 불안 대신 지금 바꿀 수 있는 지점을 찾습니다. 네오는 직설적으로 짚되 당신을 깎아내리지 않습니다.",
-      "src": "/images/consultation-editorial/neo.webp",
+      "src": "/images/service-introductions/neo-operation-room.webp",
       "width": 1536,
       "height": 1024,
-      "alt": "네오의 팩폭 작전실 마스터 상담 삽화",
+      "alt": "네오의 네오의 팩폭 작전실 상담 장면",
       "variants": [
         {
-          "src": "/images/consultation-editorial/neo-768.webp",
-          "width": 768
+          "src": "/images/service-introductions/neo-operation-room-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/neo-operation-room-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/neo-operation-room-960.webp",
+          "width": 960
         }
-      ]
+      ],
+      "textBelowImage": true
     },
     {
       "id": "editorial-2",
