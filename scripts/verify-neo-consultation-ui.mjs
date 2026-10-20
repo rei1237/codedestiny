@@ -157,25 +157,17 @@ try {
   }
   await page.goto(base+'/admin/neo-consultations/');
   await page.getByRole('button',{name:/직장을 옮기기/}).click();
-  await page.getByLabel('질문 1 답변',{exact:true}).fill('이직의 조건을 나눠 살펴보세요.\n보상과 업무 환경을 각각 확인하고 선택 기준을 정하세요.');
-  await page.getByRole('button',{name:'답변 저장하기',exact:true}).nth(0).click();
-  await page.getByRole('button',{name:'직접 검수 완료',exact:true}).nth(0).click();
-  assert.equal(await page.getByRole('button',{name:'검수한 답변 발송 예약',exact:true}).isEnabled(),false);
-  await page.getByLabel('질문 2 답변',{exact:true}).fill('상대에게 맞추기 전에 내가 지킬 경계를 정하세요.');
-  await page.getByRole('button',{name:'답변 저장하기',exact:true}).nth(1).click();
-  await expect(page.getByRole('button',{name:'직접 검수 완료',exact:true}).nth(1)).toBeDisabled();
-  await page.getByLabel('질문 2에 자미두수와 사주 풀이가 모두 포함됐는지 확인했습니다.').check();
-  await page.getByLabel('질문 2에 사주 원국·자미두수 명반 해석이 포함됐는지 확인했습니다.').check();
-  await page.getByRole('button',{name:'직접 검수 완료',exact:true}).nth(1).click();
-  await page.getByRole('button',{name:'검수한 답변 발송 예약',exact:true}).click();
-  await expect(page.getByRole('button',{name:'예약 메일 전달하기',exact:true})).toHaveCount(2);
-  await page.getByRole('button',{name:'예약 메일 전달하기',exact:true}).first().click();
-  await expect(page.getByRole('button',{name:'예약 메일 전달하기',exact:true})).toHaveCount(1);
+  await expect(page.getByLabel('질문 1 답변',{exact:true})).toHaveCount(0);
+  await expect(page.getByRole('button',{name:'답변 저장하기',exact:true})).toHaveCount(0);
+  await expect(page.getByRole('button',{name:'이메일 발송 완료 기록하기'})).toBeDisabled();
+  await page.getByRole('button',{name:'예약 메일 전달하기',exact:true}).click();
+  await expect(page.getByRole('button',{name:'예약 메일 전달하기',exact:true})).toHaveCount(0);
   assert.match(mock.mails[0].message.text,/1990-04-20/);
   assert.match(mock.mails[0].message.text,/2022년 봄/);
   assert.match(mock.mails[0].message.text,/서른 살 무렵/);
   assert.match(mock.mails[0].message.text,/사주 \+ 자미두수 · 사주 원국·자미두수 명반 해석/);
-  await page.getByRole('button',{name:'예약 메일 전달하기',exact:true}).last().click();
+  await page.getByRole('checkbox',{name:/모든 질문과 선택한/}).check();
+  await page.getByRole('button',{name:'이메일 발송 완료 기록하기'}).click();
   await page.getByRole('heading',{name:'답변 발송 완료',exact:true}).waitFor();
   for(const width of [390,1280]){
     await page.setViewportSize({width,height:900});
@@ -185,7 +177,8 @@ try {
   await page.goto(base+'/neo-consultation/');
   await page.getByRole('button',{name:'구매 기록 확인하기'}).click();
   await page.getByRole('button',{name:/직장을 옮기기.*답변 발송 완료/}).click();
-  await page.getByRole('heading',{name:'네오 검수 완료 · 나의 답변'}).waitFor();
+  await expect(page.getByText('답변 이메일 발송이 기록됐어요.',{exact:false})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'네오 검수 완료 · 나의 답변'})).toHaveCount(0);
   await page.goto(base+'/home-preview/');
   for(const width of [360,390,430,1280]){
     await page.setViewportSize({width,height:900});
@@ -211,7 +204,7 @@ try {
   await page.emulateMedia({reducedMotion:'reduce'});
   await page.getByRole('button',{name:'다음',exact:true}).focus();
   assert.ok(await page.getByRole('button',{name:'다음',exact:true}).evaluate(el=>el===document.activeElement && parseFloat(getComputedStyle(el).minHeight)>=48));
-  assert.equal(mock.paymentRows.size,1);assert.equal(mock.mails.length,2);
+  assert.equal(mock.paymentRows.size,1);assert.equal(mock.mails.length,1);
   assert.deepEqual(errors,[]);
   await writeFile(resolve(out,'result.json'),JSON.stringify({passed:true,captures,externalRequestsAllowed:false,paymentCount:mock.paymentRows.size,mailCount:mock.mails.length},null,2));
   console.log(JSON.stringify({passed:true,captures,paymentCount:mock.paymentRows.size,mailCount:mock.mails.length},null,2));

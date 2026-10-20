@@ -27,7 +27,8 @@ export async function handleNeoConsultations(request, { service, userId, admin, 
     }
     if (request.method !== 'POST') return json({ code: 'METHOD_NOT_ALLOWED' }, 405);
     if (adminRoute) {
-      if (action === 'answer') order = await service.editAnswer(admin,id,body.questionId,body.answer,body.version);
+      if (action === 'complete-manual-delivery') order = await service.completeManualDelivery(admin,id,body.version,body.confirmed === true);
+      else if (action === 'answer') order = await service.editAnswer(admin,id,body.questionId,body.answer,body.version);
       else if (action === 'review') order = await service.review(admin,id,body.questionId,body.version,body.combinedReadingConfirmed === true,body.chartReadingConfirmed === true);
       else if (action === 'correction') order = await service.requestCorrection(admin,id,body.questionId,body.message,body.version);
       else if (action === 'send') order = await service.enqueueAnswer(admin,id,body.version,body.resend === true);

@@ -3,7 +3,7 @@ import NeoConsultationClient from "./NeoConsultationClient";
 
 export const metadata: Metadata = {
   title: "네오에게 물어봐 | Code Destiny",
-  description: "고민을 질문 하나씩 정리하고, 네오가 직접 검수한 이메일 답변을 받아보세요.",
+  description: "네오가 접수 내용을 읽고 내부 시스템으로 작성·검수해 전하는 이메일 해석 서비스입니다. 실시간·대면 상담은 제공하지 않습니다.",
   robots: { index: false, follow: false },
 };
 export default function NeoConsultationPage() { return <NeoConsultationClient />; }

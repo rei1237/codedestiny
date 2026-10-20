@@ -12,8 +12,16 @@ import { renderNeoEmailHomeEntry } from '../../lib/brand/neo-email-home-entry.mj
 
 const admin = { id: 'neo-test-admin' }, user = 'test-owner';
 const input = (count = 1) => ({ questions: Array.from({length:count},(_,i) => '이번 선택에서 고려할 점 ' + (i+1)), context: '현재 상황', email: 'customer@example.invalid', consent: true, birth: {date:'1990-04-20',calendar:'solar',leapMonth:false,timeUnknown:false,time:'12:30'} });
-async function pending(mock, count = 1) {
+// 기존 저장형 주문의 호환성 검사는 과거 주문 형태를 명시적으로 재현한다.
+async function legacyOrder(mock, row) {
+  const stored = await mock.repository.get(row.id);
+  delete stored.deliveryMode;
+  await mock.repository.compareAndSwap(row.id, stored.version, stored);
+  return mock.service.get(user, row.id);
+}
+async function pending(mock, count = 1, legacy = true) {
   let row = await mock.service.create(user,input(count));
+  if (legacy) row = await legacyOrder(mock, row);
   row = await mock.service.quote(user,row.id,row.version);
   return mock.service.prepare(user,row.id,row.quote.id);
 }
@@ -28,6 +36,57 @@ async function reviewed(mock, count = 1) {
   return row;
 }
 const rejects = (promise, code) => assert.rejects(promise, e => e.code === code);
+
+test('새 접수는 답변 본문 저장·자동 발송 없이 수동 이메일 전달 이력만 기록한다', async () => {
+  const m = createNeoMock();
+  let row = await pending(m, 1, false);
+  assert.equal(row.deliveryMode, 'manual_email');
+  await rejects(m.service.completeManualDelivery(admin,row.id,row.version,true),'PAYMENT_REQUIRED');
+  row = await m.pay(row.id);
+  await rejects(m.service.editAnswer(admin,row.id,'q1','저장하면 안 되는 답변',row.version),'MANUAL_EMAIL_ONLY');
+  await rejects(m.service.review(admin,row.id,'q1',row.version),'MANUAL_EMAIL_ONLY');
+  await rejects(m.service.enqueueAnswer(admin,row.id,row.version),'MANUAL_EMAIL_ONLY');
+  await rejects(m.service.completeManualDelivery({},row.id,row.version,true),'ADMIN_REQUIRED');
+  await rejects(m.service.completeManualDelivery(admin,row.id,row.version,false),'DELIVERY_CONFIRMATION_REQUIRED');
+  row = await m.service.requestCorrection(admin,row.id,'q1','한 가지 질문으로 정리해 주세요.',row.version);
+  await rejects(m.service.completeManualDelivery(admin,row.id,row.version,true),'DELIVERY_CONFIRMATION_REQUIRED');
+  row = await m.service.correct(user,row.id,'q1','이직 전에 무엇을 확인할까요',row.version);
+  const response = await handleNeoConsultations(new Request('https://example.invalid/api/admin/neo-consultations/'+row.id+'/complete-manual-delivery',{
+    method:'POST',body:JSON.stringify({version:row.version,confirmed:true,answer:'저장하면 안 되는 답변'}),
+  }),{service:m.service,admin});
+  assert.equal(response.status,200);
+  row = (await response.json()).order;
+  assert.equal(row.state,'sent');
+  assert.equal(row.manualDelivery.by,admin.id);
+  assert.equal(row.deliveries.length,0);
+  assert.equal(row.mailJobs.some(j=>j.kind==='answer'),false);
+  assert.doesNotMatch(JSON.stringify(await m.repository.get(row.id)),/저장하면 안 되는 답변/);
+  assert.equal(m.mails.length,0);
+  const repeated = await m.service.completeManualDelivery(admin,row.id,row.version,true);
+  assert.equal(repeated.version,row.version);
+  await rejects(m.service.requestCancellation(user,row.id,row.version),'DELIVERY_CHECK_REQUIRED');
+  await rejects(m.service.requestCorrection(admin,row.id,'q1','변경 요청',row.version),'ORDER_LOCKED');
+  await rejects(m.service.correct(user,row.id,'q1','변경 질문',row.version),'ORDER_LOCKED');
+  m.setNow('2026-10-24T04:00:00.000Z');
+  await m.service.purgeExpiredContent(row.id);
+  const stored = await m.repository.get(row.id);
+  assert.equal(stored.email,'');
+  assert.equal(stored.questions[0].text,'');
+  assert.equal(stored.payment.status,'paid');
+  assert.equal(stored.manualDelivery.sentAt,row.manualDelivery.sentAt);
+});
+
+test('수동 발송 기록도 취소 요청·환불·오래된 주문 버전을 우회할 수 없다', async () => {
+  for (const state of ['cancellation_requested','refunded','stale']) {
+    const m=createNeoMock(); let row=await pending(m,1,false);
+    row=await m.pay(row.id);
+    if (state==='cancellation_requested') row=await m.service.requestCancellation(user,row.id,row.version);
+    if (state==='refunded') m.paymentRows.get(row.payment.id).status='refunded';
+    await rejects(m.service.completeManualDelivery(admin,row.id,state==='stale'?row.version-1:row.version,true),
+      state==='stale'?'STALE_ORDER':'PAYMENT_REQUIRED');
+    assert.equal((await m.repository.get(row.id)).manualDelivery,undefined);
+  }
+});
 
 test('메일·PG 설정이 없으면 판매 정본이 활성화되어도 운영 접수는 닫힌다',async()=>{
   const response=await handleNeoRuntimeRequest(new Request('https://example.invalid/api/neo-consultations/status'),{});
@@ -295,6 +354,7 @@ test('새 신청은 출생정보 없이는 생성 불가, 기존 준비 주문�
 test('자미두수·원국명반 추가 답변은 각 풀이 확인 없이는 검수와 발송을 차단한다',async()=>{
   const m=createNeoMock();
   let row=await m.service.create(user,{...input(),questions:[{text:'선택 기준',readingMode:'saju_ziwei',chartReading:true}]});
+  row=await legacyOrder(m,row);
   row=await m.service.quote(user,row.id,row.version);row=await m.service.prepare(user,row.id,row.quote.id);await m.pay(row.id);
   row=await m.service.adminGet(admin,row.id);
   row=await m.service.editAnswer(admin,row.id,'q1','자미두수와 사주에서 살펴볼 선택의 기준입니다.',row.version);

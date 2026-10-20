@@ -10,6 +10,8 @@ export type NeoOrder = {
   payment: null | { id: string; status: string };
   deliveryStatus?: { receipt: string; answer: string };
   cancellationRequestedAt?: string;
+  deliveryMode?: 'manual_email';
+  manualDelivery?: { by: string; sentAt: string };
   contentDeletedAt?: string;
   deliveries: { key: string; questions: NeoQuestion[]; sentAt: string }[];
   mailJobs?: { key: string; kind: string; state: string; attempt: number }[];

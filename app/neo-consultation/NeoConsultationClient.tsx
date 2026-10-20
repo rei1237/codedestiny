@@ -131,7 +131,7 @@ export default function NeoConsultationClient() {
       <m.div className={styles.heroCopy} initial={{ y: reducedMotion ? 0 : 16 }} animate={{ y: 0 }} transition={{ duration: .85, ease: [.16,1,.3,1] }}>
         <h1>네오에게<br /><span>물어봐</span></h1>
         <p className={styles.lead}>마음은 깊게 읽고,<br />선택은 선명하게.</p>
-        <p className={styles.heroDescription}>혼자 맴돌던 고민을 질문 하나씩 정리해 보세요.<br />네오가 맥락을 살피고, AI 분석을 보조로 활용해<br className={styles.desktopBreak} /> 직접 검수한 답변을 이메일로 전합니다.</p>
+        <p className={styles.heroDescription}>{NEO_POLICY.service}</p>
         <a className={styles.primary} href="#neo-form">나의 질문 정리하기 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6" /></svg></a>
         <p className={styles.notice}>{mock ? "MOCK 미리보기 · 실제 결제와 이메일 발송이 없습니다." : canSubmit ? NEO_POLICY.delivery : "판매 준비 중 · 질문 작성 화면을 먼저 살펴보세요."}</p>
       </m.div>
@@ -140,7 +140,7 @@ export default function NeoConsultationClient() {
         <figcaption><p>고민을 읽는 깊이,<br />다음 한 걸음의 명료함.</p><small>네오를 표현한 캐릭터 일러스트</small></figcaption>
       </m.figure>
     </header>
-    <div className={styles.serviceLine}><p>질문 하나에 집중하는 상담</p><p>네오 직접 검수</p><p>사주 질문당 {neoMoney(neoUnitPrice())} · 자미두수 +{neoMoney(neoZiweiAddonPrice())} · 원국·명반 +{neoMoney(neoChartAddonPrice())}</p></div>
+    <div className={styles.serviceLine}><p>질문 하나에 집중하는 이메일 해석</p><p>네오 직접 검수</p><p>사주 질문당 {neoMoney(neoUnitPrice())} · 자미두수 +{neoMoney(neoZiweiAddonPrice())} · 원국·명반 +{neoMoney(neoChartAddonPrice())}</p></div>
     <section className={styles.evidence} aria-labelledby="neo-evidence">
       <h2 id="neo-evidence">기록은 원문으로 확인하세요</h2>
       <p>공개한 분석과 이후의 기록을 함께 확인하세요. 당시 해석과 실제 결과를 구분해 읽을 수 있습니다.</p>
@@ -174,13 +174,14 @@ export default function NeoConsultationClient() {
               {calendar === "lunar" && <label className={styles.check}><input type="checkbox" checked={leapMonth} onChange={e => setLeapMonth(e.target.checked)} />윤달이에요</label>}
               <label htmlFor="neo-time">출생시간</label><input id="neo-time" type="time" value={time} onChange={e => setTime(e.target.value)} required aria-describedby="neo-time-help" /><p id="neo-time-help" className={styles.small}>오전·오후와 시·분을 확인해 주세요. 출생시간을 입력해야 결제할 수 있어요.</p>
             </fieldset>
+            <p className={styles.small}>{NEO_POLICY.service}</p>
             <p className={styles.small}>{NEO_POLICY.delivery} {NEO_POLICY.capacity}</p>
             <p className={styles.small}>{NEO_POLICY.refund}</p>
             <p className={styles.small}>{NEO_POLICY.privacy}</p>
             <label className={styles.check}><input type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)} />답변 기한·취소 및 환불 안내를 확인하고, 상담과 회신을 위한 개인정보 수집·이용에 동의합니다.</label>
             <p className={styles.small}><Link href="/privacy/">개인정보처리방침</Link> · <a href={SUPPORT_MAILTO}>취소·환불 및 미수신 문의</a></p>
           </>}
-          {step === 2 && <>{goodPeriod && <p className={styles.periodSummary}>특별히 좋았던 시기: {goodPeriod}</p>}{difficultPeriod && <p className={styles.periodSummary}>힘들었던 시기: {difficultPeriod}</p>}<ol className={styles.summary}>{questions.map((q,i) => <li key={i}><p>{q.text}</p><span>{neoReadingLabel(q)} · {neoMoney(neoQuestionPrice(q))}</span></li>)}</ol><p>출생정보: {neoBirthLabel(input().birth)}</p><p>회신 이메일: {email}</p><p className={styles.small}>결제가 확인되면 자동으로 상담이 접수됩니다.</p><p>네오가 직접 검수한 질문별 답변을 한 통의 이메일로 전합니다.</p><p className={styles.small}>한 질문에 여러 독립 질문이 포함되면 정정을 요청할 수 있습니다. 추가 과금은 자동으로 진행하지 않습니다.</p></>}
+          {step === 2 && <>{goodPeriod && <p className={styles.periodSummary}>특별히 좋았던 시기: {goodPeriod}</p>}{difficultPeriod && <p className={styles.periodSummary}>힘들었던 시기: {difficultPeriod}</p>}<ol className={styles.summary}>{questions.map((q,i) => <li key={i}><p>{q.text}</p><span>{neoReadingLabel(q)} · {neoMoney(neoQuestionPrice(q))}</span></li>)}</ol><p>출생정보: {neoBirthLabel(input().birth)}</p><p>회신 이메일: {email}</p><p className={styles.small}>결제가 확인되면 자동으로 상담이 접수됩니다.</p><p>{NEO_POLICY.service} 답변 본문은 서비스 서버에 저장하지 않으니 이메일에서 확인해 주세요.</p><p className={styles.small}>한 질문에 여러 독립 질문이 포함되면 정정을 요청할 수 있습니다. 추가 과금은 자동으로 진행하지 않습니다.</p></>}
           <div className={styles.total} aria-live="polite"><span>질문 {questions.length}개</span><strong>{neoMoney(neoTotal(questions))}</strong></div>
           <div className={styles.actions}>{step > 0 && <button className={styles.secondary} disabled={busy} onClick={() => setStep(step-1)}>이전</button>}{step < 2 ? <button className={styles.primary} onClick={next}>다음</button> : <button className={styles.primary} disabled={busy || !canSubmit || !signedIn} onClick={prepare}>{busy ? "주문 확인 중" : mock ? "모의 결제로 상담 신청하기" : canSubmit ? `총 ${neoMoney(neoTotal(questions))} 결제하고 상담 신청하기` : "판매 준비 중"}</button>}</div>
           {!signedIn && step === 2 && <p>상담 신청에는 <Link href="/login?next=%2Fneo-consultation%2F">로그인</Link>이 필요합니다.</p>}
@@ -193,14 +194,15 @@ export default function NeoConsultationClient() {
           {["cancelled","refunded"].includes(order.state) && <p role="status">이 주문의 결제는 종료됐어요. 추가 결제나 답변 발송은 진행하지 않습니다.</p>}
           {["draft","preparing","pending","payment_failed"].includes(order.state) && <button className={styles.primary} disabled={busy || !canSubmit} onClick={resume}>같은 주문 이어서 확인하기</button>}
           <button disabled={busy} className={styles.secondary} onClick={() => run(async () => setOrder((await neoCall("/" + order.id)).order))}>접수 상태 확인하기</button>
-          {order.contentDeletedAt && <p>상담 본문의 보관 기간이 끝났습니다. 받으신 이메일에서 답변을 확인해 주세요.</p>}
-          {order.payment?.status === 'paid' && !order.cancellationRequestedAt && !order.deliveries.length && <button className={styles.secondary} disabled={busy} onClick={() => run(async () => setOrder((await neoCall('/'+order.id+'/cancel',{version:order.version})).order))}>취소·전액 환불 요청하기</button>}
+          {order.deliveryMode === "manual_email" && <p>{order.manualDelivery ? "답변 이메일 발송이 기록됐어요. 받으신 이메일에서 확인해 주세요." : "결제가 확인되고 취소되지 않은 주문은 네오가 내용을 검토한 뒤 내부 시스템으로 답변을 작성·검수해 이메일로 전합니다."} 답변 본문은 서비스 서버에 저장하지 않습니다.</p>}
+          {order.contentDeletedAt && <p>{order.deliveryMode === "manual_email" ? "접수 정보" : "상담 본문"}의 보관 기간이 끝났습니다. 답변을 받으셨다면 이메일에서 확인해 주세요.</p>}
+          {order.payment?.status === 'paid' && !order.cancellationRequestedAt && !order.deliveries.length && !order.manualDelivery && <button className={styles.secondary} disabled={busy} onClick={() => run(async () => setOrder((await neoCall('/'+order.id+'/cancel',{version:order.version})).order))}>취소·전액 환불 요청하기</button>}
           {order.cancellationRequestedAt && <p role="status">취소·환불 요청이 접수되어 답변 발송을 중지했습니다. 담당자가 결제 상태를 확인해 환불을 처리합니다. <a href={SUPPORT_MAILTO}>문의하기</a></p>}
           {order.questions.filter(q => q.correction).map(q => <div className={styles.question} key={q.id}><p>{q.correction}</p><label htmlFor={"correct-" + q.id}>질문 정정</label><textarea id={"correct-" + q.id} maxLength={1000} value={correction[q.id] ?? q.text} onChange={e => setCorrection({ ...correction, [q.id]: e.target.value })} /><button className={styles.primary} disabled={busy} onClick={() => run(async () => setOrder((await neoCall("/" + order.id + "/correction", { version: order.version, questionId: q.id, text: correction[q.id] ?? q.text })).order))}>정정한 질문 보내기</button></div>)}
           {order.deliveries.length > 0 && <article className={styles.answer}><h3>네오 검수 완료 · 나의 답변</h3>{order.deliveries[order.deliveries.length-1].questions.map(q => <section key={q.id}><h4>{q.text}</h4><p className={styles.small}>{neoReadingLabel(q)}</p><p>{q.answer}</p></section>)}</article>}
         </>}
       </div>
     </section>
-    <section className={styles.records}><h2>나의 이메일 상담</h2><p>최초 답변 발송 후 7일 동안 추가 결제 없이 다시 확인할 수 있어요. 이후에는 받으신 이메일에서 보관해 주세요.</p><button className={styles.secondary} disabled={busy || !signedIn || !canSubmit} onClick={loadHistory}>구매 기록 확인하기</button>{history.map(row => <button className={styles.historyItem} key={row.id} onClick={() => { setOrder(row); document.getElementById("neo-form")?.scrollIntoView(); }}>{row.questions[0].text || '보관 기간이 지난 상담'} · {statusLabel(row.state)}</button>)}</section>
+    <section className={styles.records}><h2>나의 이메일 상담</h2><p>새 신청은 접수·전달 상태만 확인할 수 있어요. 답변은 받으신 이메일에서 확인하고 보관해 주세요. 기존 신청의 답변은 신청 당시 보관 기간 동안 확인할 수 있어요.</p><button className={styles.secondary} disabled={busy || !signedIn || !canSubmit} onClick={loadHistory}>구매 기록 확인하기</button>{history.map(row => <button className={styles.historyItem} key={row.id} onClick={() => { setOrder(row); document.getElementById("neo-form")?.scrollIntoView(); }}>{row.questions[0].text || '보관 기간이 지난 상담'} · {statusLabel(row.state)}</button>)}</section>
   </main></LazyMotion>;
 }

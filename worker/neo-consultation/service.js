@@ -6,6 +6,9 @@ const fail = (code, message, status = 409) => { throw neoError(code, message, st
 const paid = row => row.payment?.status === 'paid';
 const requirePaid = row => { if (!paid(row) || row.payment.blocked || row.cancellationRequestedAt) fail('PAYMENT_REQUIRED', '결제 또는 취소 요청 상태를 먼저 확인해 주세요.'); };
 const requireAdmin = admin => { if (!admin?.id) fail('ADMIN_REQUIRED', '관리자 로그인이 필요합니다.', 403); };
+const requireStoredDelivery = row => {
+  if (row.deliveryMode === 'manual_email') fail('MANUAL_EMAIL_ONLY', '이 주문은 외부 이메일로 전달합니다. 서비스에 답변을 저장하지 않습니다.');
+};
 const publicRow = row => {
   const result = copy(row);
   delete result.userId;
@@ -81,7 +84,7 @@ export function createNeoService({ repository, payments, sendMail, operatorEmail
     async create(userId, input) {
       if (!userId) fail('UNAUTHORIZED', '로그인이 필요합니다.', 401);
       const valid = validateNeoInput(input);
-      const row = { id: id(), userId, ...valid, version: 1, state: 'draft', payment: null, quote: null, mailJobs: [], deliveries: [], createdAt: now(), updatedAt: now() };
+      const row = { id: id(), userId, ...valid, deliveryMode: 'manual_email', version: 1, state: 'draft', payment: null, quote: null, mailJobs: [], deliveries: [], createdAt: now(), updatedAt: now() };
       await repository.insert(row);
       return publicRow(row);
     },
@@ -144,6 +147,7 @@ export function createNeoService({ repository, payments, sendMail, operatorEmail
       assertVersion(row,version);
       if (row.cancellationRequestedAt) return publicRow(row);
       requirePaid(row);
+      if (row.manualDelivery) fail('DELIVERY_CHECK_REQUIRED', '답변 이메일 발송이 기록된 주문입니다. 주문번호로 고객센터에 문의해 주세요.');
       if (row.mailJobs.some(j => j.kind === 'answer' && ['sending','unknown','sent'].includes(j.state)))
         fail('DELIVERY_CHECK_REQUIRED','발송 여부 확인이 필요합니다. 고객센터에 주문번호로 취소·환불을 요청해 주세요.');
       row.cancellationRequestedAt = now();
@@ -157,10 +161,23 @@ export function createNeoService({ repository, payments, sendMail, operatorEmail
     },
     async adminList(admin) { requireAdmin(admin); return repository.list(); },
     async adminGet(admin, orderId) { requireAdmin(admin); return syncPayment(await read(orderId)); },
+    async completeManualDelivery(admin, orderId, version, confirmed) {
+      requireAdmin(admin);
+      const row = await syncPayment(await read(orderId));
+      requirePaid(row); assertVersion(row, version);
+      if (row.deliveryMode !== 'manual_email') fail('LEGACY_DELIVERY', '기존 주문의 발송 절차를 이용해 주세요.');
+      if (row.manualDelivery) return row;
+      if (confirmed !== true || row.questions.some(q => q.correction)) fail('DELIVERY_CONFIRMATION_REQUIRED', '질문 정정을 마치고, 모든 선택 풀이의 검수와 실제 이메일 발송을 확인해 주세요.');
+      row.manualDelivery = { by: admin.id, sentAt: now() };
+      row.state = 'sent';
+      row.contentDeleteAfter = new Date(Date.parse(now()) + 7 * 86400000).toISOString();
+      return save(row, row.version);
+    },
     async editAnswer(admin, orderId, questionId, answer, version) {
       requireAdmin(admin);
       const row = await syncPayment(await read(orderId));
       requirePaid(row); assertVersion(row, version);
+      requireStoredDelivery(row);
       if (row.mailJobs.some(j => j.kind === 'answer' && ['pending','retry','sending','unknown'].includes(j.state))) fail('DELIVERY_PENDING', '기존 발송 결과를 확인한 뒤 수정해 주세요.');
       if (typeof answer !== 'string' || answer.length > NEO_LIMITS.answer) fail('ANSWER_LENGTH', '답변은 30,000자 이내로 작성해 주세요.');
       const q = question(row, questionId);
@@ -172,6 +189,7 @@ export function createNeoService({ repository, payments, sendMail, operatorEmail
       requireAdmin(admin);
       const row = await syncPayment(await read(orderId));
       requirePaid(row); assertVersion(row, version);
+      if (row.manualDelivery) fail('ORDER_LOCKED', '이메일 전달을 완료한 주문의 질문은 변경할 수 없어요.');
       if (row.mailJobs.some(j => j.kind === 'answer' && ['pending','retry','sending','unknown'].includes(j.state))) fail('DELIVERY_PENDING', '발송 결과를 먼저 확인해 주세요.');
       if (!String(message || '').trim() || message.length > 1000) fail('CORRECTION_REQUIRED', '정정할 내용을 1,000자 이내로 알려 주세요.');
       const q = question(row, questionId);
@@ -181,6 +199,7 @@ export function createNeoService({ repository, payments, sendMail, operatorEmail
     async correct(userId, orderId, questionId, text, version) {
       const row = await syncPayment(await own(orderId, userId));
       requirePaid(row); assertVersion(row, version);
+      if (row.manualDelivery) fail('ORDER_LOCKED', '이메일 전달을 완료한 주문의 질문은 변경할 수 없어요.');
       const q = question(row, questionId);
       if (!q.correction) fail('CORRECTION_NOT_REQUESTED', '정정 요청된 질문만 수정할 수 있어요.');
       const valid = validateNeoInput({ ...row, questions: [{ text, readingMode: neoReadingMode(q), chartReading: q.chartReading }] }, { requireBirth: false, allowLegacyModes: true });
@@ -193,6 +212,7 @@ export function createNeoService({ repository, payments, sendMail, operatorEmail
       requireAdmin(admin);
       const row = await syncPayment(await read(orderId));
       requirePaid(row); assertVersion(row, version);
+      requireStoredDelivery(row);
       const q = question(row, questionId);
       if (!q.answer || q.correction) fail('ANSWER_REQUIRED', '정정 요청을 해결하고 답변을 입력해 주세요.');
       if (neoCombinedMode(q) && combinedReadingConfirmed !== true) fail('COMBINED_REVIEW_REQUIRED', '자미두수와 사주 풀이가 모두 포함됐는지 확인해 주세요.');
@@ -205,6 +225,7 @@ export function createNeoService({ repository, payments, sendMail, operatorEmail
       requireAdmin(admin);
       const row = await syncPayment(await read(orderId));
       requirePaid(row); assertVersion(row, version);
+      requireStoredDelivery(row);
       if (!row.questions.every(neoReviewReady)) fail('REVIEW_REQUIRED', '모든 질문의 답변을 네오가 검수한 뒤 보낼 수 있어요.');
       if (row.mailJobs.some(j => j.kind === 'answer' && ['pending','sending','unknown','retry'].includes(j.state))) fail('DELIVERY_PENDING', '이미 예약된 발송을 확인해 주세요.');
       const answerKey = row.questions.map(q => q.answerVersion).join('-');
@@ -218,6 +239,7 @@ export function createNeoService({ repository, payments, sendMail, operatorEmail
     async deliver(orderId, jobKey) {
       let row = await syncPayment(await read(orderId));
       const job = row.mailJobs.find(j => j.key === jobKey);
+      if (job?.kind === 'answer') requireStoredDelivery(row);
       if (job?.kind !== 'cancellation') requirePaid(row);
       else if (!row.cancellationRequestedAt) fail('CANCELLATION_REQUIRED','취소 요청을 확인해 주세요.');
       if (!job || !['pending','retry'].includes(job.state)) return row;
