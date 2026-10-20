@@ -20,7 +20,7 @@ const shims = {
   '@/app/_lib/auth-store': 'export const useAuthStore=()=>({isAuthenticated:true});',
   '@/app/_lib/auth-client': 'export const authFetch=(path,options)=>fetch(path,options);',
   './checkout': 'export const openNeoCheckout=()=>{throw new Error("REAL_CHECKOUT_BLOCKED_IN_MOCK")};',
-  '@/lib/site-policy-config': 'export const SUPPORT_MAILTO="mailto:operator@example.invalid";',
+  '@/lib/site-policy-config': 'export const SUPPORT_EMAIL="operator@example.invalid";export const SUPPORT_MAILTO="mailto:operator@example.invalid";',
   '../_lib/admin-api': 'export async function adminFetch(path,options){const r=await fetch(path,options);const b=await r.json();if(!r.ok)throw new Error(b.message);return b}',
 };
 await build({
@@ -38,7 +38,7 @@ const server = createServer(async(req,res)=>{
   try {
     const origin='http://127.0.0.1:'+server.address().port;
     const path=new URL(req.url,origin).pathname;
-    if(path===NEO_EMAIL_PORTRAIT || /^\/images\/neo-consultation\/moonlight-garden-(768|1536)\.webp$/.test(path)){res.setHeader('content-type','image/webp');res.end(await readFile(resolve(root,'public',path.slice(1))));return;}
+    if(/^\/images\/neo-consultation\/moonlit-letter-(640|1280)\.webp$/.test(path) || path===NEO_EMAIL_PORTRAIT || /^\/images\/neo-consultation\/moonlight-garden-(768|1536)\.webp$/.test(path)){res.setHeader('content-type','image/webp');res.end(await readFile(resolve(root,'public',path.slice(1))));return;}
     if(path==='/home-preview/'){
       res.setHeader('content-type','text/html');
       res.end('<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>body{margin:0;padding:20px;background:#f6eff5}.cdh{max-width:1000px;margin:auto}*{box-sizing:border-box}</style><style>'+tokens+await readFile(resolve(root,'styles/home-funnel.css'),'utf8')+'</style><div class="cdh">'+renderNeoEmailHomeEntry()+'</div></html>');return;
@@ -70,7 +70,7 @@ try {
     await page.setViewportSize({width,height:900});
     await page.goto(base+'/neo-consultation/');
     await page.getByText('MOCK 미리보기',{exact:false}).waitFor();
-    const background = page.locator('picture img');
+    const background = page.locator('header picture img');
     await background.evaluate(img=>img.decode());
     assert.ok((await background.evaluate(img=>img.currentSrc)).endsWith('moonlight-garden-'+(width<=760?'768':'1536')+'.webp'));
     const contrast = await page.evaluate(() => {
@@ -88,6 +88,8 @@ try {
     assert.ok(contrast.every(value => value >= 4.5), 'form and primary button text contrast must be at least 4.5:1');
     await expect(page.locator('img[src="'+NEO_EMAIL_PORTRAIT+'"]')).toBeVisible();
     assert.equal(await page.locator('img[src="'+NEO_EMAIL_PORTRAIT+'"]').evaluate(img=>img.naturalWidth),600);
+    await expect(page.getByRole('img',{name:'달빛이 드는 서재의 편지와 은빛 만년필'})).toBeVisible();
+    await expect(page.getByRole('link',{name:/operator@example.invalid/})).toHaveAttribute('href','mailto:operator@example.invalid');
     assert.equal(await page.getByText('BLUE MOON',{exact:true}).count(),0);
     await page.locator('details').filter({hasText:'지나온 시기도'}).locator('summary').click();
     await page.locator('#neo-good-period').fill('2022년 봄, 일을 시작했어요.');
@@ -177,6 +179,7 @@ try {
   await page.goto(base+'/neo-consultation/');
   await page.getByRole('button',{name:'구매 기록 확인하기'}).click();
   await page.getByRole('button',{name:/직장을 옮기기.*답변 발송 완료/}).click();
+  await expect(page.getByText(/주문번호/)).toHaveCount(0);
   await expect(page.getByText('답변 이메일 발송이 기록됐어요.',{exact:false})).toBeVisible();
   await expect(page.getByRole('heading',{name:'네오 검수 완료 · 나의 답변'})).toHaveCount(0);
   await page.goto(base+'/home-preview/');

@@ -147,9 +147,9 @@ export function createNeoService({ repository, payments, sendMail, operatorEmail
       assertVersion(row,version);
       if (row.cancellationRequestedAt) return publicRow(row);
       requirePaid(row);
-      if (row.manualDelivery) fail('DELIVERY_CHECK_REQUIRED', '답변 이메일 발송이 기록된 주문입니다. 주문번호로 고객센터에 문의해 주세요.');
+      if (row.manualDelivery) fail('DELIVERY_CHECK_REQUIRED', '답변 이메일 발송이 기록된 주문입니다. 회사 이메일로 문의해 주세요.');
       if (row.mailJobs.some(j => j.kind === 'answer' && ['sending','unknown','sent'].includes(j.state)))
-        fail('DELIVERY_CHECK_REQUIRED','발송 여부 확인이 필요합니다. 고객센터에 주문번호로 취소·환불을 요청해 주세요.');
+        fail('DELIVERY_CHECK_REQUIRED','발송 여부 확인이 필요합니다. 회사 이메일로 취소·환불을 요청해 주세요.');
       row.cancellationRequestedAt = now();
       row.state = 'cancellation_requested';
       row.mailJobs.push({key:row.id+':cancellation',kind:'cancellation',state:'pending',attempt:0});
