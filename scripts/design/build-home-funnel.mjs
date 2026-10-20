@@ -2,11 +2,28 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 import { CURRENT_PASS_PLANS } from '../../lib/payment/pass-policy.js';
 import { listServicePackPlans } from '../../worker/payments/service-pack-policy.js';
-import { FEATURE_KEY_PRICE_TABLE } from '../../worker/lib/paid-feature-registry.js';
+import { FEATURE_KEY_PRICE_TABLE, UNLOCK_PRODUCT_BY_FEATURE_KEY } from '../../worker/lib/paid-feature-registry.js';
 import { renderNeoEmailHomeEntry } from '../../lib/brand/neo-email-home-entry.mjs';
 
 const original = readFileSync('index.html', 'utf8');
 const vars = {};
+
+// 가벼운 체험만 선별한다. 유료 표시는 서버 상품 정본에서 생성한다.
+const LIGHT_FORTUNES = [
+  { name: '포춘 피쉬', href: '/fortune-teller-fish', image: '/images/mini-games/fortune-fish-320.webp', desc: '작은 금붕어의 몸짓으로 오늘의 기분 읽기' },
+  { name: '오미쿠지', href: '/emoi_omikuji_v2', image: '/images/mini-games/omikuji-320.webp', desc: '제비통에서 꺼내 보는 오늘의 한 장' },
+  { name: '심리테스트', href: '/psychotest/', image: '/images/mini-games/psychotest-320.webp', desc: '나는 어떤 타입일까? 친구와 성향 비교하기' },
+  { name: '영국 홍차점', href: '/oracle/royal-tea/', image: '/images/service-introductions/royal-tea-oracle-320.webp', desc: '찻잎이 남긴 모양에서 찾는 오늘의 힌트', key: 'royal-tea-oracle' },
+  { name: '운명의 꽃', href: '/flower/', image: '/images/service-introductions/destiny-flower-320.webp', desc: '나의 기질을 닮은 꽃과 색을 카드에 담기', key: 'flower-fc' },
+  { name: '최애운명', href: '/saju/destiny-bias/', image: '/images/service-introductions/bias-destiny-320.webp', desc: '최애와 나의 케미를 포토카드로 만나기', key: 'destiny-bias-analyze' },
+];
+vars.lightFortunes = LIGHT_FORTUNES.map(item => {
+  const product = item.key && (FEATURE_KEY_PRICE_TABLE[item.key] || UNLOCK_PRODUCT_BY_FEATURE_KEY[item.key]);
+  if (item.key && (!Number.isSafeInteger(product?.amountKRW) || product.amountKRW <= 0)) throw new Error('Missing light fortune price: ' + item.key);
+  const price = product ? (product.accessModel === 'unlock' ? '해금 ' : '1회 ') + product.amountKRW.toLocaleString('ko-KR') + '원' : '무료';
+  return '<a class="cdh-light__item" href="' + item.href + '"><img src="' + item.image + '" width="160" height="100" loading="lazy" decoding="async" alt=""><span class="cdh-light__copy"><strong>' + item.name + '</strong><span>' + item.desc + '</span><small' + (item.key ? ' data-cd-price-key="' + item.key + '" data-price-krw="' + product.amountKRW + '"' : ' data-cd-price-free="true"') + '>' + price + '</small></span></a>';
+}).join('');
+
 const introductionArt = JSON.parse(readFileSync('lib/marketing/service-introduction-art.json', 'utf8'));
 
 // 2026-10-17 "직관성": 홈은 대표 상담 덱·무료 여섯 체계·1:1 상담·이용권·뮤직비디오를 조립한다. 예전 홈 섹션(고민 칩·탐색기·오늘 허브 등)은
