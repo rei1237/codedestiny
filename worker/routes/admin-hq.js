@@ -36,7 +36,7 @@ import {
   syncPlanQuests,
   transitionQuest,
 } from "../ops-hq/quests.js";
-import { readThreadsStatus } from "../ops-hq/threads-status.js";
+import { isActiveOperationsQuest } from "../../lib/admin-operations.mjs";
 import {
   EXCLUDE_REASON_LABELS,
   HOLD_REASON_LABELS,
@@ -177,17 +177,13 @@ async function handleSummary(request, env, cols) {
     readConnections(cols, { now }),
     cols.ledger.find({ occurredAt: { $gte: kstDateTime(period.fromDate, "00:00"), $lt: kstDateTime(addDaysKey(period.toDate, 1), "00:00") } }, { projection: { delta: 1, sourceType: 1, occurredAt: 1 } }).toArray(),
   ]);
-  let threadsToday = null;
-  let threadsError = null;
-  try {
-    threadsToday = (await readThreadsStatus(env, [period.today], { now }))[period.today] || null;
-  } catch (error) {
-    threadsError = String(error?.message || error).slice(0, 160);
-  }
+  const threadsToday = null;
+  const threadsError = null;
+  // Threads is retired. Historical records remain available; the home no longer scans its jobs.
   let funnel = null;
   try { funnel = await readFunnel(env, period.fromDate, period.toDate); } catch { funnel = null; }
 
-  const manual = presented.filter((quest) => quest.kind !== "auto_publish_check");
+  const manual = presented.filter(isActiveOperationsQuest);
   const open = manual.filter((quest) => OPEN.has(quest.status));
   const todayQuests = open.filter((quest) => quest.overdue || quest.dueDate <= period.today).sort(sortForToday);
   const upcoming = open.filter((quest) => !quest.overdue && quest.dueDate > period.today && quest.dueDate <= addDaysKey(period.today, 3)).sort(sortForToday);
@@ -212,14 +208,15 @@ async function handleSummary(request, env, cols) {
   const awaitingDelivery = (revenue.held.delivery_pending || 0) + (revenue.held.delivery_unknown || 0);
   const deliveryCounts = { orders: revenue.orders, awaitingDelivery, delivered: revenue.orders - awaitingDelivery, held: revenue.held };
 
+  const activeConnections = connections.filter(row => row.id !== "threads" && !row.id.startsWith("plan:"));
   const revenueForSuggestions = { held: held.held, period: `${period.fromDate}~${period.toDate}` };
   const suggestions = buildSuggestions({
     today: period.today,
     revenue: revenueForSuggestions,
-    quests: presented,
+    quests: manual,
     threadsToday,
     traffic,
-    syncStates: connections.map((row) => ({ _id: row.id, label: row.label, lastError: row.lastError, status: row.status })),
+    syncStates: activeConnections.map((row) => ({ _id: row.id, label: row.label, lastError: row.lastError, status: row.status })),
   });
 
   const alerts = [];
@@ -227,9 +224,11 @@ async function handleSummary(request, env, cols) {
   if (undelivered) alerts.push({ id: "undelivered", tone: "err", label: "결제 후 미제공", count: undelivered, href: "/admin/orders/?queue=undelivered" });
   if (held.recoveryAlerts) alerts.push({ id: "recovery", tone: "err", label: "복구 대기(미제공 알림 발송됨)", count: held.recoveryAlerts, href: "/admin/orders/?queue=undelivered" });
   if (held.held.refund_unknown) alerts.push({ id: "refund_check", tone: "warn", label: "확인할 환불", count: held.held.refund_unknown, href: "/admin/orders/?queue=refund_check" });
-  const broken = connections.filter((row) => row.status === "error");
+  const broken = activeConnections.filter((row) => row.status === "error");
   if (broken.length) alerts.push({ id: "sync_error", tone: "warn", label: "연동 장애", count: broken.length, href: "/admin/connections/" });
-  if (threadsToday?.attention) alerts.push({ id: "threads", tone: "warn", label: "Threads 자동 발행 확인 필요", count: threadsToday.jobs.filter((job) => ["needs_check", "failed", "missed"].includes(job.state)).length, href: "/admin/quests/?channel=threads_existing_worker" });
+
+  const revenueConnection = connections.find(row => row.id === "revenue");
+  if (revenueConnection?.status !== "ok") alerts.push({ id: "source_revenue", tone: "warn", label: "결제 집계 최신성 확인 필요", count: 1, href: "/admin/connections/" });
 
   const lastSync = connections.map((row) => row.lastSuccessAt).filter(Boolean).sort().at(-1) || null;
   return json({

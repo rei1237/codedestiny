@@ -26,6 +26,7 @@ export function questIdFor(occurrenceKey) {
 }
 
 export const CHANNELS = Object.freeze({
+  wordpress: { label: "WordPress", domains: ["ggulggulinsights.wordpress.com"] },
   naver_blog: { label: "네이버 블로그", domains: ["blog.naver.com"] },
   tiktok: { label: "TikTok", domains: ["tiktok.com"] },
   youtube_shorts: { label: "YouTube Shorts", domains: ["youtube.com", "youtu.be"] },
@@ -527,7 +528,7 @@ export async function createCustomQuest(cols, { body, actor, now = new Date() })
     parentId: null,
     kind,
     contentId: null,
-    channel: "custom",
+    channel: body?.channel === "wordpress" ? "wordpress" : "custom",
     language: "ko",
     title,
     topic: cleanText(body?.note, 300) || title,

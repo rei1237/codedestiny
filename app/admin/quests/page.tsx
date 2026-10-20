@@ -3,12 +3,13 @@
 // /admin/quests — 별빛 퀘스트 · 마케팅 일정.
 // 주소 쿼리(view·channel·language·kind·status·filter=overdue·id·from·to·date)로 상태를 남겨 새로고침·공유에도 같은 화면을 연다.
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Plus, RefreshCw } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { Plus } from "lucide-react";
+import { OPERATIONS_MISSIONS } from "@/lib/admin-operations.mjs";
 import AdminErrorState from "../_components/AdminErrorState";
 import { ADMIN_INPUT, adminButton } from "../_components/ui";
 import { adminFetch } from "../_lib/admin-api";
-import { Drawer, HqNotice, HqPageHeader, LoadingBlock, StatusBadge } from "../_hq/components";
+import { Drawer, HqNotice, HqPageHeader, LoadingBlock } from "../_hq/components";
 import { formatDateKey, kstToday } from "../_hq/format";
 import { describeHqError, readQuery, useHqResource, writeQuery } from "../_hq/useHqResource";
 import QuestDetailView from "../_hq/views/QuestDetailView";
@@ -37,6 +38,7 @@ export default function AdminQuestsPage() {
 
   useEffect(() => {
     const query = readQuery();
+    if (Object.hasOwn(OPERATIONS_MISSIONS, query.get("mission") || "")) setComposerOpen(true);
     const v = query.get("view") || "";
     if (VIEWS.has(v)) setView(v as QuestViewMode);
     setFilters({
@@ -81,41 +83,21 @@ export default function AdminQuestsPage() {
     list.setData((current) => current ? { ...current, items: current.items.map((item) => (item.id === quest.id ? quest : item)) } : current);
   }, [list]);
 
-  const [syncing, setSyncing] = useState(false);
-  const [syncNotice, setSyncNotice] = useState<{ tone: Tone; text: string } | null>(null);
-  const runPlanSync = async () => {
-    setSyncing(true);
-    setSyncNotice(null);
-    try {
-      const result = await adminFetch<{ counts?: Record<string, number> }>("/api/admin/hq/quests/sync", { method: "POST", body: {} });
-      const counts = result?.counts || {};
-      setSyncNotice({ tone: "ok", text: `캠페인 일정을 다시 맞췄습니다. 새로 생김 ${counts.created ?? 0} · 바뀜 ${counts.updated ?? 0} · 빠짐 ${counts.archived ?? 0} · 그대로 ${counts.unchanged ?? 0}` });
-      list.reload();
-    } catch (caught) {
-      setSyncNotice({ tone: "err", text: describeHqError(caught, "캠페인 일정을 맞추지 못했습니다.").message });
-    } finally {
-      setSyncing(false);
-    }
-  };
-
   return (
     <div className="cd-hq-page space-y-4">
       <HqPageHeader
         game="별빛 퀘스트"
-        label="마케팅 일정"
-        description={list.data ? `${list.data.meta.campaign.title} · ${formatDateKey(list.data.meta.campaign.period.start)} ~ ${formatDateKey(list.data.meta.campaign.period.end)} · 계획 ${list.data.meta.campaign.planVersion}` : "캠페인 작업·증빙·발행 확인"}
+        label="운영 퀘스트 게시판"
+        description="WordPress 편집·검색 관측·결제와 결과 제공을 한 걸음씩 기록합니다."
         actions={(
           <>
-            <button type="button" className={adminButton("neutral", { size: "sm" })} onClick={runPlanSync} disabled={syncing}>
-              <RefreshCw aria-hidden="true" size={14} className={syncing ? "animate-spin motion-reduce:animate-none" : undefined} /> 원본 일정 다시 맞추기
-            </button>
+
             <button type="button" className={adminButton("primary", { size: "sm" })} onClick={() => setComposerOpen(true)}>
               <Plus aria-hidden="true" size={14} /> 작업 추가
             </button>
           </>
         )}
       />
-      {syncNotice ? <HqNotice tone={syncNotice.tone}>{syncNotice.text}</HqNotice> : null}
 
       {list.error && !list.data ? (
         <AdminErrorState view={list.error} onRetry={list.reload} retrying={list.loading} />
@@ -145,9 +127,7 @@ export default function AdminQuestsPage() {
       <QuestDrawer id={openId} onClose={onClose} onOpen={onOpen} onChanged={patchListItem} />
       <QuestComposer
         open={composerOpen}
-        onClose={() => setComposerOpen(false)}
-        campaignId={list.data?.meta.campaign.id || null}
-        channels={list.data?.meta.channels || {}}
+        onClose={() => { setComposerOpen(false); writeQuery({ mission: null }); }}
         onCreated={(quest) => { setComposerOpen(false); list.reload(); onOpen(quest.id); }}
       />
     </div>
@@ -257,132 +237,40 @@ function QuestDrawer({ id, onClose, onOpen, onChanged }: { id: string | null; on
   );
 }
 
-interface DraftResult {
-  saved: false;
-  draft: { date: string; time: string; channel: string; channelLabel: string; language: string; topic: string; text: string };
-  conflicts: { id: string; title: string; plannedTime: string | null; gapMinutes: number | null; severity: "same_slot" | "same_day" }[];
-  notes: string[];
-}
 
-const CUSTOM_KINDS: [string, string][] = [
-  ["improvement", "상세 개선·문제 해결"],
-  ["analysis", "캠페인 분석"],
-  ["copy", "원고 작성"],
-  ["production", "원본 제작"],
-];
-
-function QuestComposer({ open, onClose, campaignId, channels, onCreated }: { open: boolean; onClose: () => void; campaignId: string | null; channels: Record<string, string>; onCreated: (quest: Quest) => void }) {
-  const [kind, setKind] = useState("improvement");
+function QuestComposer({ open, onClose, onCreated }: { open: boolean; onClose: () => void; onCreated: (quest: Quest) => void }) {
+  const [kind, setKind] = useState("copy");
   const [title, setTitle] = useState("");
   const [date, setDate] = useState(kstToday());
-  const [time, setTime] = useState("18:00");
-  const [channel, setChannel] = useState("");
-  const [language, setLanguage] = useState("ko");
-  const [text, setText] = useState("");
-  const [draft, setDraft] = useState<DraftResult | null>(null);
+  const [channel, setChannel] = useState("wordpress");
+  const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
-  const [notice, setNotice] = useState<{ tone: Tone; text: string } | null>(null);
-  const draftChannels = useMemo(() => Object.entries(channels).filter(([key]) => !["production", "internal_review", "custom"].includes(key)), [channels]);
-
-  useEffect(() => { if (open) { setNotice(null); setDraft(null); } }, [open]);
-
-  const checkDraft = async () => {
-    if (!channel) { setNotice({ tone: "warn", text: "충돌을 확인할 채널을 골라 주세요." }); return; }
-    setBusy(true);
-    setNotice(null);
-    try {
-      setDraft(await adminFetch<DraftResult>("/api/admin/hq/draft", { method: "POST", body: { date, time, channel, language, topic: title, text } }));
-    } catch (caught) {
-      setNotice({ tone: "err", text: describeHqError(caught, "일정 초안을 확인하지 못했습니다.").message });
-    } finally {
-      setBusy(false);
-    }
-  };
-
+  const [error, setError] = useState("");
+  useEffect(() => {
+    if (!open) return;
+    setError("");
+    const key = readQuery().get("mission") || "";
+    const mission = Object.hasOwn(OPERATIONS_MISSIONS, key) ? OPERATIONS_MISSIONS[key as keyof typeof OPERATIONS_MISSIONS] : null;
+    if (mission) { setTitle(mission.title); setKind(mission.kind); setNote(mission.note); setChannel(["editorial", "discovery"].includes(key) ? "wordpress" : "custom"); }
+  }, [open]);
   const create = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setBusy(true);
-    setNotice(null);
+    event.preventDefault(); setBusy(true); setError("");
     try {
-      const result = await adminFetch<{ quest: Quest }>("/api/admin/hq/quests", { method: "POST", body: { kind, title, date, time, campaignId, note: draft?.draft.text || text || undefined } });
-      setTitle("");
-      setText("");
-      onCreated(result.quest);
-    } catch (caught) {
-      setNotice({ tone: "err", text: describeHqError(caught, "작업을 추가하지 못했습니다.").message });
-    } finally {
-      setBusy(false);
-    }
+      const result = await adminFetch<{ quest: Quest }>("/api/admin/hq/quests", { method: "POST", body: { kind, title, date, channel, note, campaignId: null } });
+      setTitle(""); setNote(""); writeQuery({ mission: null }); onCreated(result.quest);
+    } catch (caught) { setError(describeHqError(caught, "퀘스트를 추가하지 못했습니다.").message); }
+    finally { setBusy(false); }
   };
-
-  return (
-    <Drawer open={open} onClose={onClose} title="작업 추가" subtitle="캠페인 밖의 개선·분석 작업이나 새 일정 초안을 남깁니다">
-      <form className="space-y-3 text-sm" onSubmit={create}>
-        {notice ? <HqNotice tone={notice.tone}>{notice.text}</HqNotice> : null}
-        <label className="block text-[12px]">
-          <span className="cd-hq-quiet">작업 종류</span>
-          <select className={`${ADMIN_INPUT} mt-1 min-h-[44px] w-full`} value={kind} onChange={(event) => setKind(event.target.value)}>
-            {CUSTOM_KINDS.map(([key, label]) => <option key={key} value={key}>{label}</option>)}
-          </select>
-        </label>
-        <label className="block text-[12px]">
-          <span className="cd-hq-quiet">제목(필수)</span>
-          <input className={`${ADMIN_INPUT} mt-1 min-h-[44px] w-full`} value={title} onChange={(event) => setTitle(event.target.value)} maxLength={120} required />
-        </label>
-        <div className="grid grid-cols-2 gap-2">
-          <label className="block text-[12px]">
-            <span className="cd-hq-quiet">날짜</span>
-            <input type="date" className={`${ADMIN_INPUT} mt-1 min-h-[44px] w-full`} value={date} onChange={(event) => setDate(event.target.value)} required />
-          </label>
-          <label className="block text-[12px]">
-            <span className="cd-hq-quiet">시각(KST)</span>
-            <input type="time" className={`${ADMIN_INPUT} mt-1 min-h-[44px] w-full`} value={time} onChange={(event) => setTime(event.target.value)} />
-          </label>
-        </div>
-
-        <fieldset className="cd-hq-panel2 space-y-2 rounded-[var(--cd-adm-radius)] p-3">
-          <legend className="px-1 text-[13px] font-semibold text-[var(--cd-adm-ink)]">발행 일정 초안(선택)</legend>
-          <p className="cd-hq-quiet text-[12px]">같은 날 같은 채널 일정과 겹치는지 확인합니다. 초안은 저장되거나 발행되지 않습니다.</p>
-          <div className="grid grid-cols-2 gap-2">
-            <label className="block text-[12px]">
-              <span className="cd-hq-quiet">채널</span>
-              <select className={`${ADMIN_INPUT} mt-1 min-h-[44px] w-full`} value={channel} onChange={(event) => setChannel(event.target.value)}>
-                <option value="">선택</option>
-                {draftChannels.map(([key, label]) => <option key={key} value={key}>{label}</option>)}
-              </select>
-            </label>
-            <label className="block text-[12px]">
-              <span className="cd-hq-quiet">언어</span>
-              <select className={`${ADMIN_INPUT} mt-1 min-h-[44px] w-full`} value={language} onChange={(event) => setLanguage(event.target.value)}>
-                <option value="ko">한국어</option><option value="en">영어</option><option value="ja">일본어</option>
-              </select>
-            </label>
-          </div>
-          <label className="block text-[12px]">
-            <span className="cd-hq-quiet">본문 초안</span>
-            <textarea className={`${ADMIN_INPUT} mt-1 min-h-[96px] w-full`} value={text} onChange={(event) => setText(event.target.value)} maxLength={4000} />
-          </label>
-          <button type="button" className={adminButton("neutral", { size: "sm" })} onClick={checkDraft} disabled={busy}>일정 충돌 확인</button>
-          {draft ? (
-            <div className="space-y-1.5 text-[13px]" aria-live="polite">
-              {draft.conflicts.length ? (
-                <ul className="space-y-1">
-                  {draft.conflicts.map((item) => (
-                    <li key={item.id} className="flex flex-wrap items-center gap-2">
-                      <StatusBadge tone={item.severity === "same_slot" ? "warn" : "info"} label={item.severity === "same_slot" ? "90분 안 겹침" : "같은 날"} />
-                      <span className="text-[var(--cd-adm-ink)]">{item.plannedTime || ""} {item.title}</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : <p><StatusBadge tone="ok" label="겹치는 일정 없음" /></p>}
-              {draft.notes.map((note) => <p key={note} className="cd-hq-quiet text-[12px]">{note}</p>)}
-              {draft.draft.text && draft.draft.text !== text ? <p className="whitespace-pre-wrap rounded bg-[var(--cd-adm-field)] p-2 text-[var(--cd-adm-ink)]">{draft.draft.text}</p> : null}
-            </div>
-          ) : null}
-        </fieldset>
-
-        <button type="submit" className={`${adminButton("primary")} w-full`} disabled={busy || !title.trim()}>퀘스트로 추가</button>
-      </form>
-    </Drawer>
-  );
+  return <Drawer open={open} onClose={onClose} title="퀘스트 받기" subtitle="목표를 정하고, 완료 근거를 남겨 레벨을 올려요">
+    <form className="cd-ops-composer" onSubmit={create}>
+      {error && <HqNotice tone="err">{error}</HqNotice>}
+      <label>담당 작업<select className={ADMIN_INPUT} value={kind} onChange={e => setKind(e.target.value)}><option value="copy">연이 · 원고 검토</option><option value="production">연이 · 자료 제작</option><option value="analysis">영냥이 · 관측·분석</option><option value="improvement">네오 · 운영 개선</option></select></label>
+      <label>작업 공간<select className={ADMIN_INPUT} value={channel} onChange={e => setChannel(e.target.value)}><option value="wordpress">WordPress</option><option value="custom">서비스 운영</option></select></label>
+      <label>퀘스트 제목<input className={ADMIN_INPUT} value={title} onChange={e => setTitle(e.target.value)} maxLength={120} required /></label>
+      <label>목표 날짜 · KST<input type="date" className={ADMIN_INPUT} value={date} onChange={e => setDate(e.target.value)} required /></label>
+      <label>완료할 일<textarea className={ADMIN_INPUT} value={note} onChange={e => setNote(e.target.value)} maxLength={4000} rows={5} /></label>
+      <p className="cd-hq-quiet text-sm">작업 기록만 추가합니다. 글 발행·결제·환불은 실행하지 않습니다. 고객 정보는 기록하지 마세요.</p>
+      <button className={adminButton("primary")} disabled={busy || !title.trim()}>{busy ? "퀘스트 저장 중" : "이 퀘스트 시작하기"}</button>
+    </form>
+  </Drawer>;
 }

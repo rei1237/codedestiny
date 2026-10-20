@@ -4,7 +4,9 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ArrowRight, BellRing, CalendarRange, Coins, Radio, RefreshCw, Sparkles, Trophy } from "lucide-react";
+import { ArrowRight, BellRing, CalendarRange, Coins, RefreshCw, Sparkles, Trophy } from "lucide-react";
+import OperationsGuild from "../OperationsGuild";
+import { isActiveOperationsQuest } from "@/lib/admin-operations.mjs";
 import { adminButton, adminChip } from "../../_components/ui";
 import { HQ_ART } from "../art";
 import { SvgBarChart, SvgLineChart } from "../charts";
@@ -22,7 +24,7 @@ import {
 } from "../components";
 import { changeRate, formatAgo, formatDateKey, formatKRW, formatNumber, formatRate, formatXp } from "../format";
 import { QuestRow } from "../quest-bits";
-import type { HqSummary, Tone } from "../types";
+import type { HqSummary } from "../types";
 
 export const HOME_RANGES = [
   { id: "today", label: "오늘" },
@@ -31,18 +33,6 @@ export const HOME_RANGES = [
   { id: "28d", label: "최근 28일" },
   { id: "campaign", label: "캠페인 기간" },
 ] as const;
-
-const THREADS_TONE: Record<string, Tone> = {
-  confirmed: "ok",
-  needs_check: "warn",
-  running: "info",
-  retrying: "warn",
-  failed: "err",
-  waiting: "muted",
-  missed: "err",
-  reserved: "info",
-  disabled: "muted",
-};
 
 const SOURCE_LABEL: Record<string, string> = { task: "작업", revenue: "매출", traffic: "참여" };
 
@@ -68,6 +58,9 @@ export default function HomeView({ data, range, onRangeChange, onRefresh, refres
   const heldCount = Object.values(revenue.held || {}).reduce((sum, value) => sum + value, 0);
   const campaignPct = campaign.total ? Math.round((campaign.done / campaign.total) * 100) : 0;
   const funnel = metrics.funnel;
+  const focus = data.focus.filter(isActiveOperationsQuest);
+  const upcoming = data.upcoming.filter(isActiveOperationsQuest);
+  const alerts = data.alerts.filter((alert) => alert.id !== "threads");
 
   return (
     <div className="cd-hq-page space-y-4">
@@ -78,9 +71,8 @@ export default function HomeView({ data, range, onRangeChange, onRefresh, refres
           <div className="flex min-w-0 items-center gap-4">
             <RankEmblem tier={xp.rankTier} size={64} />
             <div className="min-w-0 flex-1">
-              <p className="cd-adm-brand cd-hq-quiet text-[13px]">CODE DESTINY · 별빛 운영본부</p>
               <h1 id="hq-hero-title" className="text-xl font-bold leading-tight text-[var(--cd-adm-ink)] sm:text-2xl">
-                운영 홈 <span className="cd-hq-num">Lv {xp.level}</span> <span className="text-base font-semibold">{xp.title}</span>
+                별빛 운영 길드 <span className="cd-hq-num">Lv {xp.level}</span> <span className="block text-base font-semibold sm:inline">{xp.title}</span>
               </h1>
               <div className="mt-2 max-w-md"><XpBar state={xp} /></div>
               <p className="cd-hq-quiet mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 text-[12px]">
@@ -111,12 +103,14 @@ export default function HomeView({ data, range, onRangeChange, onRefresh, refres
         </div>
       </section>
 
+      <OperationsGuild data={data} />
+
       {/* 최우선 알림 */}
       <section aria-labelledby="hq-alerts-title" className="space-y-2">
         <h2 id="hq-alerts-title" className="sr-only">최우선 알림</h2>
-        {data.alerts.length ? (
+        {alerts.length ? (
           <ul className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-            {data.alerts.map((alert) => (
+            {alerts.map((alert) => (
               <li key={alert.id}>
                 <Link href={alert.href} className="cd-hq-row flex items-center justify-between gap-3 px-3 py-2.5">
                   <span className="flex min-w-0 items-center gap-2">
@@ -140,36 +134,20 @@ export default function HomeView({ data, range, onRangeChange, onRefresh, refres
             title="오늘의 핵심 퀘스트"
             game="별빛 퀘스트"
             hair
-            action={<Link href="/admin/quests/" className={adminButton("neutral", { size: "sm" })}>마케팅 일정 전체 <ArrowRight aria-hidden="true" size={14} /></Link>}
+            action={<Link href="/admin/quests/" className={adminButton("neutral", { size: "sm" })}>퀘스트 게시판 <ArrowRight aria-hidden="true" size={14} /></Link>}
           >
-            {data.focus.length ? (
+            {focus.length ? (
               <ul className="space-y-2">
-                {data.focus.map((quest) => <li key={quest.id}><QuestRow quest={quest} /></li>)}
+                {focus.map((quest) => <li key={quest.id}><QuestRow quest={quest} /></li>)}
               </ul>
             ) : (
-              <EmptyState art={HQ_ART.yeongnyangiGuide} title="오늘 남은 핵심 퀘스트가 없어요" body="캠페인 일정이 비었거나 모두 끝냈습니다. 다가오는 일정을 확인해 보세요." />
+              <EmptyState art={HQ_ART.yeongnyangiGuide} title="다음 한 걸음을 골라 주세요" body="위의 마스터에게 퀘스트를 받아 시작해요. 이전 SNS 일정은 기록 보관함에서 확인할 수 있어요." />
             )}
-            {data.bundles.length ? (
-              <div className="mt-4">
-                <h3 className="text-[13px] font-semibold text-[var(--cd-adm-ink)]">짧게 끝낼 업무 묶음</h3>
-                <ul className="mt-2 grid gap-2 sm:grid-cols-3">
-                  {data.bundles.map((bundle) => (
-                    <li key={bundle.minutes} className="cd-hq-panel2 rounded-[var(--cd-adm-radius)] p-3 text-[13px]">
-                      <p className="flex items-baseline justify-between gap-2">
-                        <span className="font-semibold text-[var(--cd-adm-ink)]">{bundle.minutes}분</span>
-                        <span className="cd-hq-num cd-hq-tone-accent">{formatXp(bundle.xp, { signed: true })}</span>
-                      </p>
-                      <p className="cd-hq-quiet mt-1">{bundle.quests.length ? bundle.quests.map((item) => item.title).join(" · ") : "맞는 작업 없음"}</p>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
-            {data.upcoming.length ? (
+            {upcoming.length ? (
               <div className="mt-4">
                 <h3 className="text-[13px] font-semibold text-[var(--cd-adm-ink)]">곧 마감</h3>
                 <ul className="mt-2 space-y-2">
-                  {data.upcoming.slice(0, 4).map((quest) => <li key={quest.id}><QuestRow quest={quest} /></li>)}
+                  {upcoming.slice(0, 4).map((quest) => <li key={quest.id}><QuestRow quest={quest} /></li>)}
                 </ul>
               </div>
             ) : null}
@@ -210,7 +188,7 @@ export default function HomeView({ data, range, onRangeChange, onRefresh, refres
             {funnel && Object.keys(funnel).length ? (
               <div className="mt-4">
                 <h3 className="text-[13px] font-semibold text-[var(--cd-adm-ink)]">결제창 퍼널</h3>
-                <FunnelList funnel={funnel} paid={revenue.orders} />
+                <FunnelList funnel={funnel} paid={revenue.orders} /><p className="cd-hq-quiet mt-2 text-xs">행동 이벤트 횟수와 서버의 고유 결제 건수입니다. 동일 사용자의 여정으로 연결되지 않아 구매율로 계산하지 않습니다.</p>
               </div>
             ) : null}
           </HqPanel>
@@ -259,7 +237,7 @@ export default function HomeView({ data, range, onRangeChange, onRefresh, refres
 
           {/* 캠페인 + Threads */}
           <div className="grid gap-4 md:grid-cols-2">
-            <HqPanel title="캠페인 진행" game="4주 원정">
+            <details className="cd-ops-archive"><summary>이전 캠페인 기록</summary>
               <p className="text-sm font-semibold text-[var(--cd-adm-ink)]">{campaign.title}</p>
               <p className="cd-hq-quiet cd-hq-num text-[12px]">{formatDateKey(campaign.period.start)} ~ {formatDateKey(campaign.period.end)} · 계획 {campaign.planVersion}</p>
               <div className="mt-3 cd-hq-xpbar" role="progressbar" aria-label="캠페인 퀘스트 완료율" aria-valuemin={0} aria-valuemax={campaign.total} aria-valuenow={campaign.done} aria-valuetext={`${campaignPct}%`}>
@@ -267,52 +245,17 @@ export default function HomeView({ data, range, onRangeChange, onRefresh, refres
               </div>
               <p className="cd-hq-num mt-2 text-sm text-[var(--cd-adm-ink)]">완료 {formatNumber(campaign.done)} / {formatNumber(campaign.total)} ({campaignPct}%)</p>
               <p className="cd-hq-quiet cd-hq-num text-[12px]">자동 발행 확인 {formatNumber(campaign.autoConfirmed)} / {formatNumber(campaign.autoTotal)}</p>
-            </HqPanel>
-            <HqPanel
-              title="오늘의 Threads 자동 발행"
-              game="네오의 관제"
-              action={<Link href="/admin/quests/?channel=threads_existing_worker" className={adminButton("neutral", { size: "sm" })}>상세</Link>}
-            >
-              {data.threadsError ? (
-                <p className="text-sm"><StatusBadge tone="err" label="상태 조회 실패" /> <span className="cd-hq-quiet">{data.threadsError}</span></p>
-              ) : data.threadsToday?.jobs?.length ? (
-                <ul className="space-y-1.5">
-                  {data.threadsToday.jobs.map((job) => (
-                    <li key={`${job.type}-${job.time}`} className="flex items-center justify-between gap-2 text-[13px]">
-                      <span className="min-w-0 text-[var(--cd-adm-ink)]"><span className="cd-hq-num">{job.time}</span> · {job.label}</span>
-                      <StatusBadge tone={THREADS_TONE[job.state] || "muted"} label={job.stateLabel} title={job.note} />
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="cd-hq-quiet text-sm">오늘 예정된 자동 발행이 없습니다.</p>
-              )}
-              <p className="cd-hq-quiet mt-3 flex items-center gap-1.5 text-[12px]"><Radio aria-hidden="true" size={12} /> 기록을 읽기만 합니다. 이 화면에서 발행을 실행하지 않습니다.</p>
+            </details>
+            <HqPanel title="이번 원정의 목적" game="WordPress">
+              <p className="text-sm">질문에 답하는 원문 → 검색 발견 → 상담 이동 → 확인된 결제.</p>
+              <p className="cd-hq-quiet mt-3 text-sm">발행 수보다 독자에게 도움이 되는 한 편을 완성해요. 공개·예약은 WordPress에서 직접 결정합니다.</p>
+              <Link href="/admin/wordpress/" className={`${adminButton("primary")} mt-3`}>편집 원정 이어가기 <ArrowRight size={16} aria-hidden="true" /></Link>
             </HqPanel>
           </div>
         </div>
 
         {/* 보조 열 */}
         <aside className="space-y-4 lg:col-span-4" aria-label="안내와 기록">
-          <HqPanel title="영냥이의 제안" game="길잡이">
-            {data.suggestions.length ? (
-              <ul className="space-y-3">
-                {data.suggestions.map((item) => (
-                  <li key={item.id} className="cd-hq-panel2 rounded-[var(--cd-adm-radius)] p-3">
-                    <KeeperLine art={HQ_ART.yeongnyangiGuide} name="영냥이">
-                      <p className="flex flex-wrap items-center gap-2 font-semibold"><StatusBadge tone={item.tone} label={item.tone === "err" ? "먼저" : item.tone === "warn" ? "확인" : "제안"} /> {item.title}</p>
-                      <p className="cd-hq-quiet mt-1 text-[13px]">{item.body}</p>
-                      <p className="cd-hq-quiet mt-1 text-[11px]">근거: {item.evidence.source}{item.evidence.period ? ` · ${item.evidence.period}` : ""}{item.evidence.count != null ? ` · ${formatNumber(item.evidence.count)}건` : ""}</p>
-                      <Link href={item.action.href} className={`${adminButton("neutral", { size: "sm" })} mt-2`}>{item.action.label}</Link>
-                    </KeeperLine>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <KeeperLine art={HQ_ART.yeongnyangiGuide} name="영냥이">지금은 따로 드릴 말이 없어요. 오늘 퀘스트부터 차근차근!</KeeperLine>
-            )}
-          </HqPanel>
-
           <HqPanel title="최근 XP 변동" game="별빛 원장" action={<Link href="/admin/growth/" className={adminButton("neutral", { size: "sm" })}>전체</Link>}>
             {data.recentXp.length ? (
               <ul className="space-y-2">
@@ -365,7 +308,7 @@ export function FunnelList({ funnel, paid }: { funnel: Record<string, number>; p
         <li key={row.key} className="flex items-center justify-between gap-2 text-[13px]">
           <span className="text-[var(--cd-adm-ink)]">{row.label}</span>
           <span className="cd-hq-num cd-hq-quiet">
-            {formatNumber(row.count)}{first ? ` / ${formatNumber(first)} (${Math.round((row.count / first) * 1000) / 10}%)` : ""}
+            {formatNumber(row.count)}{row.key === "paid" ? "건" : "회"}
           </span>
         </li>
       ))}

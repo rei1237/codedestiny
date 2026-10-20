@@ -69,8 +69,9 @@ export const ADMIN_NAV_GROUPS: { id: AdminNavGroup; game: string; label: string;
 
 /** 좌측 네비의 단일 정본. 기존 11개 항목은 예전 순서 그대로 두어 롤백 시 그 순서가 돌아온다. */
 export const ADMIN_NAV: AdminNavItem[] = [
+  { href: "/admin/wordpress", label: "WordPress 작업실", game: "연이의 편집 원정", Icon: FileText, hint: "원고 검토·검색 점검·초안 편집", group: "hq", hqOnly: true },
   { href: "/admin", label: "운영 홈", game: "별빛 운영본부", Icon: Compass, hint: "오늘의 퀘스트·알림·지표", group: "hq", hqOnly: true },
-  { href: "/admin/quests", label: "마케팅 일정", game: "별빛 퀘스트", Icon: ScrollText, hint: "캠페인 작업·증빙·발행 확인", group: "hq", hqOnly: true },
+  { href: "/admin/quests", label: "퀘스트 게시판", game: "별빛 퀘스트", Icon: ScrollText, hint: "WordPress·관측·운영 작업과 완료 증빙", group: "hq", hqOnly: true },
   { href: "/admin/growth", label: "성과와 XP", game: "성장 기록", Icon: TrendingUp, hint: "운영 XP·레벨·업적·지표", group: "hq", hqOnly: true },
   { href: "/admin/manage", label: "전체 관리 메뉴", game: "관리 허브", Icon: LayoutGrid, hint: "기존 관리 기능 모음", group: "hq", hqOnly: true, navHidden: true },
   { href: "/admin/recommendations", label: "생활 추천", Icon: LayoutList, hint: "승인 전 상품·공식 링크 검수", group: "workshop" },
@@ -137,7 +138,7 @@ function NavLink({ item, active, collapsed }: { item: AdminNavItem; active: bool
 }
 
 // 운영본부 신규 화면만 셸이 여백을 준다. 기존 관리 화면은 각자 여백·전폭 레이아웃을 가지므로 건드리지 않는다.
-const HQ_PADDED_ROUTES = new Set(["/admin", "/admin/quests", "/admin/growth", "/admin/connections", "/admin/manage", "/admin/hq-demo"]);
+const HQ_PADDED_ROUTES = new Set(["/admin", "/admin/wordpress", "/admin/quests", "/admin/growth", "/admin/connections", "/admin/manage", "/admin/hq-demo"]);
 
 function ShellFrame({ pathname, children }: { pathname: string; children: React.ReactNode }) {
   const { mode, localClassic, serverDisabled, setLocalClassic } = useAdminUiMode();
@@ -248,7 +249,7 @@ function ShellFrame({ pathname, children }: { pathname: string; children: React.
                 <span className="cd-adm-brand min-w-0 flex-1 truncate">Code Destiny 관리자</span>
               )
             )}
-            {hq ? (
+          {hq ? (
               <button
                 type="button"
                 onClick={toggleCollapsed}
@@ -286,7 +287,7 @@ function ShellFrame({ pathname, children }: { pathname: string; children: React.
         </nav>
 
         <div className={`min-w-0${HQ_PADDED_ROUTES.has(pathname) ? " px-4 pt-4 lg:px-6 lg:pt-6" : ""}${hq ? " pb-[calc(64px+env(safe-area-inset-bottom))] lg:pb-0" : ""}`}>
-          {hq && pathname !== "/admin/hq-demo" ? (
+          {hq && pathname !== "/admin" && pathname !== "/admin/hq-demo" ? (
             <div className={HQ_PADDED_ROUTES.has(pathname) ? "" : "px-4 pt-4 lg:px-6 lg:pt-6"}><AdminTaskReminder /></div>
           ) : null}
           {children}
