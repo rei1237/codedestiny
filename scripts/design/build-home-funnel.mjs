@@ -10,8 +10,8 @@ const vars = {};
 
 // 가벼운 체험만 선별한다. 유료 표시는 서버 상품 정본에서 생성한다.
 const LIGHT_FORTUNES = [
-  { name: '포춘 피쉬', href: '/fortune-teller-fish', image: '/images/mini-games/fortune-fish-320.webp', desc: '작은 금붕어의 몸짓으로 오늘의 기분 읽기' },
-  { name: '오미쿠지', href: '/emoi_omikuji_v2', image: '/images/mini-games/omikuji-320.webp', desc: '제비통에서 꺼내 보는 오늘의 한 장' },
+  { name: '포춘 피쉬', href: '/fortune-teller-fish.html', image: '/images/mini-games/fortune-fish-320.webp', desc: '작은 금붕어의 몸짓으로 오늘의 기분 읽기' },
+  { name: '오미쿠지', href: '/emoi_omikuji_v2.html', image: '/images/mini-games/omikuji-320.webp', desc: '제비통에서 꺼내 보는 오늘의 한 장' },
   { name: '심리테스트', href: '/psychotest/', image: '/images/mini-games/psychotest-320.webp', desc: '나는 어떤 타입일까? 친구와 성향 비교하기' },
   { name: '영국 홍차점', href: '/oracle/royal-tea/', image: '/images/service-introductions/royal-tea-oracle-320.webp', desc: '찻잎이 남긴 모양에서 찾는 오늘의 힌트', key: 'royal-tea-oracle' },
   { name: '운명의 꽃', href: '/flower/', image: '/images/service-introductions/destiny-flower-320.webp', desc: '나의 기질을 닮은 꽃과 색을 카드에 담기', key: 'flower-fc' },
