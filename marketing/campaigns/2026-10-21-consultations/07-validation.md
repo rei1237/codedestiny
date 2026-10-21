@@ -2,7 +2,7 @@
 
 ## 완료한 로컬 확인
 
-- `node --test __tests__/ui/consultation-discovery.test.mjs __tests__/ui/consultation-samples.test.mjs __tests__/ui/feature-detail-preview.test.mjs __tests__/ui/feature-detail-panels-legacy-output.test.mjs __tests__/ui/purchase-analytics.test.mjs`: 33/33 통과. 예시 노출 기준 50%와 추적값에서 질문 제외를 포함한다.
+- `node --test __tests__/ui/consultation-discovery.test.mjs __tests__/ui/consultation-samples.test.mjs __tests__/ui/feature-detail-preview.test.mjs __tests__/ui/feature-detail-panels-legacy-output.test.mjs __tests__/ui/purchase-analytics.test.mjs`: 최초 33/33 통과 후 기존 home_section_click의 질문 키 전달 검사 1개를 추가해 개별 통과했다. 예시 노출 기준 50%와 추적값에서 질문 제외를 포함한다.
 - `node scripts/qa/verify-consultation-conversion.mjs`: 360·390·430·1280px에서 실제 CodexLanding과 공통 고민 선택 마크업 확인. 가로 넘침 없음, 개인·궁합 상세 펼치기와 정본 가격 표시 통과.
 - `node scripts/verify-neo-consultation-ui.mjs`: 네 가지 폭에서 실제 컴포넌트의 mock 상담 흐름 통과. mock 결제·mock 메일만 사용했다.
 - `node scripts/verify-master-love-codex-payment-recovery.mjs`: 네 가지 폭에서 503 복구·저장 완료·새로고침 재열람 통과. 추가 checkout 호출 0.
@@ -12,7 +12,9 @@
 
 ## 공식 게이트
 
-`check:fast -- --plan`은 공유 계측 파일 때문에 전체 critical 검사로 승격했다. 로컬 실행 결과와 커밋 뒤 `check:pre-push`, main CI 상태는 STATUS.md에 기록한다. 로컬 검사나 스크린샷은 운영 배포의 증거가 아니다.
+`check:fast -- --plan`은 공유 계측 파일 때문에 90개 critical 검사로 승격했다. whitespace와 문서 신선도는 통과했으나 첫 npm test가 약 15분 동안 결과를 반환하지 않아 이 세션의 검사 프로세스만 종료했다. 전체 check:fast는 미완료이며 통과로 기록하지 않는다. 관련 검사와 mock 화면 검증은 위에 별도 기록했다.
+
+`npm run check:pre-push`는 커밋 ff8457715의 깨끗한 트리에서 통과했다. 홈 레지스트리 56개, public 생성 미러, 사이트맵 1019 URL, llms.txt, SEO 엔티티 62개를 확인했다. 기존 main 9866e1959의 취소된 CI 집계 작업만 재실행해 success를 확인했다. 새 커밋의 공식 CI는 push 후 별도로 확인한다. 로컬 검사나 스크린샷은 운영 배포의 증거가 아니다.
 
 최초 제한 환경에서 브라우저 localhost 접근이 거부되어 브라우저 검사는 승인된 로컬 실행 환경에서 다시 수행했다. 실 LLM·실결제·운영 DB·외부 메일로 폴백하지 않았다.
 
