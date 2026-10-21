@@ -25,7 +25,16 @@ test('paid introductions keep an honest sample in the authored essay or before t
       const essays = [...fragment.querySelectorAll('.craftedDetail')];
       assert.equal(essays.length, detail.crafted.length, `${entry.slug}: every authored edition must be available`);
       detail.crafted.forEach((essay, index) => {
+        const resultPanels = essay.panels.filter(panel => panel.sampleKind === 'result');
+        if (resultPanels.length) {
+          for (const panel of resultPanels) {
+            assert.match(panel.text, /가상 프로필|가상 입력/, essay.id + ': generated input is disclosed');
+            assert.ok(panel.sourceUrl.startsWith('https://claude.ai/artifact/'), essay.id + ': reviewed source is retained');
+            assert.ok(essays[index].querySelector('[data-example-kind="result"]'), essay.id + ': result kind is rendered');
+          }
+        } else {
         assert.ok(essay.panels.some(panel => /(?:편집 예시|가상(?: 활용)? 예시)/.test(panel.text)), `${essay.id}: illustrative sample is labeled`);
+        }
         assert.match(essays[index].querySelector('.craftedDetailNotice').textContent, /예시/);
         if (essay.layout === 'editorial') {
           assert.equal(essays[index].querySelectorAll(':scope > header > img').length, 1);

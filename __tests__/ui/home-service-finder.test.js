@@ -254,7 +254,7 @@ test("질문이 있는 카드는 질문 → 설명 → 상품명 순서로 그�
   assert.ok(card, "궁합 결과에 마스터 인연의 서가 없다");
   const q = card.querySelector(".fortune-gateway__rec-q");
   assert.ok(q && card.classList.contains("fortune-gateway__rec--q"), "질문 줄이 없다");
-  assert.equal(q.textContent, "내 다음 연애는 언제 시작될까?");
+  assert.equal(q.textContent, "사람은 바뀌는데, 연애의 고민은 왜 비슷할까?");
   assert.equal(q.getAttribute("data-key"), "home.svcQuestion.master-love-codex");
   const order = Array.from(card.children).map((n) => n.className.split(" ")[0]);
   const at = (c) => order.indexOf(c);
