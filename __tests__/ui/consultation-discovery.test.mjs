@@ -26,7 +26,7 @@ test('discovery clicks reuse the existing home section event with public concern
   w.document.querySelector('a').click();
   const observed=events.filter(event=>event.name==='home_section_click');
   assert.equal(observed.length,1);
-  assert.deepEqual(JSON.parse(JSON.stringify(observed[0].payload)),{section:'concern_pick',destination:'/master-love-codex/',question_id:'love-pattern'});
+  assert.deepEqual(JSON.parse(JSON.stringify(observed[0].payload)),{section:'consultation_discovery',destination:'/master-love-codex/',question_id:'love-pattern'});
   dom.window.close();
 });
 
