@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ko">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>영냥이 30초 시험편 · 녹음 전 화면 검수</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#171322;color:#fcf6ea;font-family:system-ui,"Malgun Gothic",sans-serif}main{max-width:1440px;margin:auto;padding:24px}
+.stage{aspect-ratio:16/9;position:relative;overflow:hidden;background:radial-gradient(ellipse at 76% 70%,#4b3158 0,transparent 50%),#211b30;border:1px solid #796585;border-radius:12px}
+.brand{position:absolute;left:7%;top:8%;font-size:clamp(13px,1.8vw,26px);letter-spacing:.08em;color:#decba2}.brand small{display:block;font-size:.65em;letter-spacing:0;margin-top:8px;color:#c8bbd4}
+.copy{position:absolute;left:7%;top:25%;width:55%;z-index:2}.copy p{font-size:clamp(13px,1.6vw,24px);color:#d4c1e0}.copy h1{font-size:clamp(26px,4.4vw,62px);line-height:1.38;letter-spacing:-.04em;white-space:pre-line;margin:0;font-weight:650}
+.character{position:absolute;right:1%;bottom:13%;width:39%;height:70%;object-fit:contain}.subtitle{position:absolute;left:7%;right:7%;bottom:5%;font-size:clamp(14px,2.1vw,30px);line-height:1.5;text-align:center;background:#161220e6;padding:12px 20px;border-radius:5px;min-height:3em}
+.review{position:absolute;right:3%;top:5%;font-size:clamp(10px,1vw,15px);color:#ddc8e6}
+.controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:20px 0}button{border:1px solid #cdb8df;background:#392b4b;color:#fff;border-radius:6px;padding:12px 18px;font:inherit;min-height:44px;cursor:pointer}button:focus-visible{outline:3px solid #efd5a0;outline-offset:3px}
+.notes{color:#d5cadf;line-height:1.8;font-size:15px;max-width:850px}.states{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.states figure{margin:0;background:#292033;border:1px solid #5f4e70;border-radius:8px;padding:12px}.states img{width:100%;height:auto}.states figcaption{text-align:center;line-height:1.7}.capture main{max-width:none;padding:0}.capture .stage{border:0;border-radius:0;width:100vw;height:100vh}.capture .controls,.capture .notes,.capture .states{display:none}
+@media(max-width:600px){main{padding:12px}.subtitle{padding:6px 10px}.states{gap:6px}.states figure{padding:4px}.states figcaption{font-size:12px}}
+</style>
+<main>
+<section class="stage" aria-label="30초 화면 구성 미리보기">
+ <div class="brand">영냥이의 질문 노트<small>Code Destiny · 꿀꿀 운세</small></div>
+ <div class="review">녹음 전 화면 시안 · 무음</div>
+ <div class="copy"><p id="eyebrow">오늘의 질문</p><h1 id="title">사람은 바뀌는데,<br>연애는 왜 비슷할까?</h1></div>
+ <img class="character" src="assets/idle-candidate.png" alt="책을 안고 앉은 시크하고 귀여운 영냥이 시안">
+ <div class="subtitle" id="subtitle">사람은 바뀌는데, 연애는 늘 비슷한 장면에서 끝나나요?</div>
+</section>
+<div class="controls"><button id="play" type="button">30초 화면 구성 재생</button><button id="reset" type="button">처음으로</button><output id="time">0 / 30초</output></div>
+<p class="notes">위 화면은 사용자 요청으로 포즈를 바꾸고 시크하면서 귀여운 표정을 담은 무음 구성 시안입니다. 마이크·웹캠에 접근하지 않습니다. 실제 본인 음성에 맞춘 입 전환·자막은 녹음 후 검증합니다. 아래는 생성한 표정 후보로, 같은 크기의 셀만 그대로 추출했습니다. 원화 일치와 전환 시 흔들림은 아직 승인되지 않았습니다.</p>
+<div class="states"><figure><img src="assets/idle-candidate.png" alt="대기 표정 후보"><figcaption>대기 후보</figcaption></figure><figure><img src="assets/talk-candidate.png" alt="말하기 표정 후보"><figcaption>말하기 후보</figcaption></figure><figure><img src="assets/blink-candidate.png" alt="눈감기 표정 후보"><figcaption>눈감기 후보</figcaption></figure></div>
+</main>
+<script>
+const scenes=[
+ {at:0,heading:'사람은 바뀌는데,\n연애는 왜 비슷할까?',label:'오늘의 질문',caption:'사람은 바뀌는데, 연애는 늘 비슷한 장면에서 끝나나요?'},
+ {at:5,heading:'늦은 답장\n참기 → 멀어지기',label:'이해를 돕는 생활 장면 · 편집 예시',caption:'답장이 늦으면 괜찮은 척하고, 서운함은 혼자 오래 정리하게 되죠.'},
+ {at:12,heading:'말하지 못한 요청을\n한 문장으로.',label:'오늘 해볼 일',caption:'상대의 마음을 추측하기 전에, 내가 말하지 못한 요청을 적어보세요.'},
+ {at:17,heading:'“약속이 바뀌면\n미리 알려줬으면 해.”',label:'요청을 전하는 문장 · 편집 예시',caption:'상대가 답할 수 있는 구체적인 부탁으로 바꿔보세요.'},
+ {at:21,heading:'인연의 서,\n실제 예시부터 읽기',label:'해석 안내: 인연의 서 마스터 · 진행: 영냥이',caption:'마스터가 어떤 방식으로 풀어주는지, 결과 예시부터 확인해 보세요.'}
+];
+let started=0,frame;const $=id=>document.getElementById(id);
+function render(t){const s=[...scenes].reverse().find(s=>t>=s.at)||scenes[0];$('title').textContent=s.heading;$('eyebrow').textContent=s.label;$('subtitle').textContent=s.caption;$('time').textContent=Math.floor(t)+' / 30초';}
+function tick(now){const elapsed=Math.min(30,(now-started)/1000);render(elapsed);if(elapsed<30)frame=requestAnimationFrame(tick);}
+$('play').onclick=()=>{cancelAnimationFrame(frame);started=performance.now();frame=requestAnimationFrame(tick);};
+$('reset').onclick=()=>{cancelAnimationFrame(frame);render(0);};
+if(new URLSearchParams(location.search).get('capture')==='1')document.documentElement.classList.add('capture');
+window.startLayoutPreview=()=>{$('play').click();};
+</script>
+</html>

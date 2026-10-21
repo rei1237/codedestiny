@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="ko">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>영냥이 영상 썸네일 시안</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#211b30;color:#fff5e7;font-family:system-ui,"Malgun Gothic",sans-serif}.frame{width:1280px;height:720px;position:relative;overflow:hidden;background:radial-gradient(ellipse at 78% 70%,#6b4671,transparent 62%),#211b30;padding:64px 72px}.brand{font-size:24px;color:#dcc5a3;margin:0 0 44px}.headline{font-size:76px;letter-spacing:-4px;line-height:1.25;margin:0;position:relative;z-index:2;font-weight:800}.headline em{font-style:normal;color:#edb9be}.character{position:absolute;right:-4px;bottom:-34px;width:580px;height:580px;object-fit:contain}.note{position:absolute;left:76px;bottom:86px;border-left:3px solid #d8bb8c;padding-left:20px;font-size:28px;line-height:1.65;color:#dbccdf}.note strong{color:#fff1db;font-weight:500}.draft{position:absolute;right:36px;top:28px;font-size:16px;color:#d6c2db}
+</style>
+<main class="frame">
+ <p class="brand">영냥이의 질문 노트</p>
+ <h1 class="headline">사람은 바뀌는데<br><em>왜 늘 같은 끝일까</em></h1>
+ <p class="note">괜찮은 척 → 혼자 멀어지기<br><strong>반복되는 내 반응부터</strong></p>
+ <img class="character" src="assets/idle-candidate.png" alt="작은 책을 안고 앉은 영냥이">
+ <span class="draft">썸네일 시안</span>
+</main>
+<script>
+if(new URLSearchParams(location.search).get('topic')==='neo'){
+ document.querySelector('.headline').innerHTML='운세는 들었는데<br><em>결정은 그대로?</em>';
+ document.querySelector('.note').innerHTML='“퇴사해도 될까요?” 다음에<br><strong>덧붙여야 할 질문</strong>';
+}
+</script>
+</html>
