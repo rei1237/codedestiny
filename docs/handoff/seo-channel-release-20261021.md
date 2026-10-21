@@ -1,7 +1,11 @@
-# SEO 추가 개선·영냥이 채널·운영 승격
-
+---
 status: active
 updated: 2026-10-21
+next: 최신 main CI 통과 확인 후 이미 승인된 이번 1회 운영 배포 실행
+---
+
+# SEO 추가 개선·영냥이 채널·운영 승격
+
 workdir: D:\Development\code-destiny
 last_verified_code_commit: 6c404b03d
 
@@ -22,7 +26,7 @@ last_verified_code_commit: 6c404b03d
 
 ## 남은 작업
 
-1. main 원격 SHA와 해당 SHA의 CI 결과를 한 번 확인한다. 이전 65070e253 CI 39607443518은 마지막 조회에서 Static guards 진행 중, 다른 네 작업은 성공이었다. 추가 SEO main 전달 후에는 반드시 최신 SHA 기준으로 확인한다.
+1. main 원격 SHA와 해당 SHA의 CI 결과를 한 번 확인한다. f8a2f511 CI 39611392621은 문서 frontmatter 누락과 검색 설명 표시 폭 169 초과로 실패했다. 두 원인을 수정했으므로 수정 커밋의 CI를 기준으로 판단한다.
 2. 실패면 실패 로그만 읽어 원인을 처리한다. 다른 세션의 원인이라면 그 위에 푸시하지 않는다. 진행 중이면 반복 폴링하지 않는다.
 3. CI 성공과 대상 SHA가 확인되면 이미 승인된 이번 운영 승격을 실행한다: gh workflow run "Release Cloudflare Pages and Worker" --ref main -f mode=production
 4. 실행 URL을 전달한다. 저장소 지침대로 배포 런을 반복 폴링하지 않는다. dispatch만으로 운영 완료·Pages/Worker SHA 일치를 주장하지 않는다.
