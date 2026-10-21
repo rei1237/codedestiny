@@ -1,6 +1,8 @@
 'use client';
 
 import {useEffect, useRef, type ReactNode} from 'react';
+import {trackEvent} from '@/lib/analytics';
+import {observeConsultationSamples} from '@/js/consultation-sample-exposure.mjs';
 
 /** Keep the consultation copy usable when an illustration fails to load. */
 export default function SampleSurface({children}: {children: ReactNode}) {
@@ -14,6 +16,7 @@ export default function SampleSurface({children}: {children: ReactNode}) {
     root.current?.querySelectorAll('img').forEach(image => {
       if (image.complete && !image.naturalWidth) hideFailedImage(image);
     });
+    return observeConsultationSamples(root.current, trackEvent);
   }, []);
   return <div ref={root} onErrorCapture={event => {
     if (event.target instanceof HTMLImageElement) hideFailedImage(event.target);

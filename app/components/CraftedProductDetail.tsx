@@ -1,5 +1,7 @@
 'use client';
-import {memo} from 'react';
+import {memo, useEffect, useRef} from 'react';
+import {trackEvent} from '@/lib/analytics';
+import {observeConsultationSamples} from '@/js/consultation-sample-exposure.mjs';
 import {renderCraftedDetail} from '@/js/feature-detail-panels.mjs';
 import {masterProfiles, masterAvatars} from '@/components/fortune/master-profiles';
 import type {MasterProfileData} from '@/components/fortune/MasterProfile';
@@ -11,6 +13,8 @@ type Detail = Parameters<typeof renderCraftedDetail>[0];
 /** Authored artwork and its full text share the same display-only manifest.
  *  Always mounted inside a closed <details>, so no panel may claim eager/high fetch priority. */
 function CraftedProductDetail({detail}:{detail:Detail}) {
+ const root = useRef<HTMLDivElement>(null);
+ useEffect(() => observeConsultationSamples(root.current, trackEvent), [detail]);
  const resolved = detail.layout === 'editorial' ? {...detail, masters: (detail.masters || []).map(key => {
   if (typeof key !== 'string') return key;
   const profile: MasterProfileData = masterProfiles[key as keyof typeof masterProfiles];
@@ -21,7 +25,7 @@ function CraftedProductDetail({detail}:{detail:Detail}) {
    basis:detail.masterBasis?.[key] || row('읽는 근거') || profile.approach,
    avatar:masterAvatars[key as keyof typeof masterAvatars]};
  })} : detail;
- return <div className={styles.detail} onErrorCapture={event=>{
+ return <div ref={root} className={styles.detail} onErrorCapture={event=>{
   if(event.target instanceof HTMLImageElement){
    const transcript=event.currentTarget.querySelector<HTMLDetailsElement>('.craftedDetailTranscript');
    if(transcript)transcript.open=true;

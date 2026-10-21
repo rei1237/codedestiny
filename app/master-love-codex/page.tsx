@@ -161,7 +161,7 @@ export default function MasterLoveCodexPageRoute() {
       <MasterLoveCodexRouteClient />
       <ResultSamples ids={["codex"]}/>
       <ServiceIntroSection label="마스터 인연의 서 안내">
-        <h1><span>사주 연애 리포트 — 자미두수와 함께 읽는 20개 챕터의 연애 전략서</span>내 다음 연애는 언제 시작될까?</h1>
+        <h1><span>사주와 자미두수로 읽는 연애 리포트</span>사람은 바뀌는데, 연애의 고민은 왜 비슷할까?</h1>
         <p>
           마스터 인연의 서는 Code Destiny가 제공하는 최상위 프리미엄 상담입니다. 사주 명식(일간과
           십성, 오행의 균형과 조후, 대운과 세운의 흐름)과 자미두수 명반(명궁·부부궁·복덕궁을 비롯한

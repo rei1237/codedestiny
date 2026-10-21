@@ -61,7 +61,9 @@ test('generated feature introductions use the same guide and retain conversion a
     const doc=JSDOM.fragment(renderFeatureDetailPanels(detail,{conversionPrompt:true}));
     assert.equal(doc.querySelectorAll('.consultation-guide').length,1,item.id);
     assert.ok(doc.querySelector('[data-fortune-hero-action]'));
-    assert.equal(doc.querySelectorAll('[data-example-kind]').length,3);
+    assert.equal(doc.querySelectorAll('.consultation-guide [data-example-kind]').length,3);
+    const guide = doc.querySelector('.consultation-guide');
+    assert.ok(guide.querySelector('.consultation-guide__reading').compareDocumentPosition(guide.querySelector('.consultation-guide__outline')) & 4, 'sample appears before the full outline');
   }
 });
 

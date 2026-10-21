@@ -169,11 +169,11 @@
       if (analyticsStorageState() !== 'granted') { global.sessionStorage.removeItem(key); return null; }
       var allowed = /^(threads_[0-9]{8}_(saju|ziwei|vedic|numerology)|threads_queue_t[0-9]{2}_v1)$/;
       // growth-20261012-v2: 4주 캠페인(블로그·YouTube·TikTok·X). 원고 ID(B01_ko)는 공개 코드라 함께 둔다.
-      var allowedV2 = /^growth_20261012_(naver_blog|youtube|tiktok|x)$/;
+      var allowedV2 = /^growth_(20261012_(naver_blog|youtube|tiktok|x)|20261021_(naver_blog|youtube))$/;
       var contentV2 = /^(W[0-9]{2}-)?[A-Z][A-Z0-9-]{1,10}_(ko|en|ja)$/;
       var query = new URLSearchParams(global.location.search);
       var campaign = query.get('utm_source') === 'threads' && /^(social|organic_social)$/.test(query.get('utm_medium') || '') ? query.get('utm_campaign') : '';
-      var campaignV2 = query.get('utm_campaign') === 'growth_20261012' && query.get('utm_medium') === 'social' ? 'growth_20261012_' + (query.get('utm_source') || '') : '';
+      var campaignV2 = /^(growth_20261012|growth_20261021)$/.test(query.get('utm_campaign') || '') && query.get('utm_medium') === 'social' ? query.get('utm_campaign') + '_' + (query.get('utm_source') || '') : '';
       if (allowed.test(campaign || '')) global.sessionStorage.setItem(key, JSON.stringify({campaignId:campaign,until:Date.now()+1800000}));
       else if (allowedV2.test(campaignV2)) {
         var content = query.get('utm_content') || '';

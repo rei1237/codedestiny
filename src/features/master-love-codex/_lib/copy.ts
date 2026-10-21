@@ -531,7 +531,7 @@ const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>
     navAriaLabel: "화면 이동",
 
     heroDescription: (chapterCount) =>
-      `사주 명식과 자미두수 명반을 함께 읽어, 사랑에서 반복되는 패턴과 관계의 흐름을 ${chapterCount}장으로 정리합니다.`,
+      `좋아하는 마음은 있는데, 표현과 거리는 자꾸 어긋나나요? 사주와 자미두수로 끌림·갈등·회복의 패턴을 읽고, 다음 관계에서 바꿔 볼 행동을 ${chapterCount}장에 담습니다.`,
     starRatingAriaLabel: "별점 5점",
     expertReportSuffix: (chapterCount) => `전문 상담 수준의 ${chapterCount}장 리포트`,
     coverImageAlt: "신비의 도서관에서 펼쳐지는 연애 전략서",

@@ -130,7 +130,7 @@ export default function NeoConsultationClient() {
       <picture className={styles.heroArt} aria-hidden="true"><source media="(max-width:760px)" srcSet="/images/service-introductions/neo-consultation-640.webp" /><Image src="/images/service-introductions/neo-consultation.webp" width={1536} height={1024} alt="" loading="eager" /></picture>
       <m.div className={styles.heroCopy} initial={{ y: reducedMotion ? 0 : 16 }} animate={{ y: 0 }} transition={{ duration: .85, ease: [.16,1,.3,1] }}>
         <h1>네오에게<br /><span>물어봐</span></h1>
-        <p className={styles.lead}>마음은 깊게 읽고,<br />선택은 선명하게.</p>
+        <p className={styles.lead}>검색한 답으로는<br />정리되지 않는 사정이 있죠.</p>
         <p className={styles.heroDescription}>{NEO_POLICY.service}</p>
         <a className={styles.primary} href="#neo-form">나의 질문 정리하기 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6" /></svg></a>
         <p className={styles.notice}>{mock ? "MOCK 미리보기 · 실제 결제와 이메일 발송이 없습니다." : canSubmit ? NEO_POLICY.delivery : "판매 준비 중 · 질문 작성 화면을 먼저 살펴보세요."}</p>
@@ -141,6 +141,17 @@ export default function NeoConsultationClient() {
       </m.figure>
     </header>
     <div className={styles.serviceLine}><p>질문 하나에 집중하는 이메일 해석</p><p>네오 직접 검수</p><p>사주 질문당 {neoMoney(neoUnitPrice())} · 자미두수 +{neoMoney(neoZiweiAddonPrice())} · 원국·명반 +{neoMoney(neoChartAddonPrice())}</p></div>
+    <section className={styles.evidence} aria-labelledby="neo-question-guide">
+      <h2 id="neo-question-guide">답이 필요한 선택과, 쉽게 설명되지 않는 사정까지</h2>
+      <p>계속할지 그만둘지, 먼저 말을 꺼낼지 기다릴지. 이미 찾아본 답과 달랐던 현실을 함께 적어 주세요. 네오가 질문과 상황을 읽고, 선택한 사주·자미두수의 근거를 살펴 답변을 작성·검수합니다.</p>
+      <details><summary>질문은 이렇게 정리해 보세요</summary>
+        <p>질문 작성 예시 · 실제 고객 사연이나 상담 결과가 아닙니다.</p>
+        <blockquote>이직 제안을 받았지만 업무 범위가 아직 불분명해요. 현재 직장의 안정성과 새 역할에서의 성장 중 무엇을 기준으로 판단하면 좋을까요?</blockquote>
+        <p>결정할 일, 확인한 사실, 아직 모르는 조건을 나누면 질문이 선명해집니다. 출생정보는 아래 전용 입력란에 적어 주세요.</p>
+      </details>
+      <p>AI가 생성한 해설을 바로 읽는 상담과 제공 방식이 달라요. 답변은 이메일로 전달되며, 새 신청의 답변 본문은 서비스 서버에 보관하지 않습니다. 받은 이메일을 보관해 주세요.</p>
+      <a href="#neo-form">내 상황과 질문 작성하기</a>
+    </section>
     <section className={styles.evidence} aria-labelledby="neo-evidence">
       <h2 id="neo-evidence">기록은 원문으로 확인하세요</h2>
       <p>공개한 분석과 이후의 기록을 함께 확인하세요. 당시 해석과 실제 결과를 구분해 읽을 수 있습니다.</p>

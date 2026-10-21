@@ -17,6 +17,8 @@ import { masterProfiles } from "@/components/fortune/master-profiles";
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { PriceBadge } from "@/app/components/PriceBadge";
 import { trackEvent } from "@/lib/analytics";
+import resultSamples from "@/lib/marketing/result-samples.json";
+import SampleSurface from "@/app/components/SampleSurface";
 import Link from "next/link";
 import { ArrowDownRight, Check, ChevronLeft, Home } from "lucide-react";
 import CodexShell from "./CodexShell";
@@ -120,6 +122,20 @@ export default function CodexLanding({ hasSeenPrologue, chapterCount, onEnter, o
           </figcaption>
         </figure>
       </div>
+
+      {locale === "ko" && <SampleSurface><section className={styles.section} aria-label="인연의 서 결과 미리 읽기" data-consultation-item="master-love-codex">
+        <div className={styles.measure}>
+          <h2 className={styles.chapterTitle}>먼저, 실제 결과의 한 대목을 읽어보세요.</h2>
+          <p className={styles.landingLead}>가상 프로필로 생성한 AI 결과 원문 발췌입니다. 실제 고객 후기나 모든 사람에게 적용되는 해석이 아닙니다.</p>
+          {resultSamples.find(item => item.id === "codex")?.guide?.examples.filter(example => example.kind === "result").map(example => (
+            <div key={example.title} className="mt-6" data-example-kind="result">
+              <h3 className={styles.chapterTitle}>{example.title}</h3>
+              <blockquote className={styles.landingLead}>{example.text}</blockquote>
+            </div>
+          ))}
+          <a className={styles.detailReturn} href={`#${SAMPLE_ID}`} onClick={openSample}>개인판·궁합판의 구성과 출처 확인하기</a>
+        </div>
+      </section></SampleSurface>}
 
       {locale === "ko" && <MasterProfile profile={masterProfiles.master} />}
 

@@ -65,11 +65,11 @@
  },
  "detail/fortune-tea-house.json": {
   "input": "dffb170ba55c0961",
-  "output": "206de5ed539f67eb"
+  "output": "d71806d05f12cc54"
  },
  "detail/fusion-fortune.json": {
   "input": "3c9c275ae9fd0419",
-  "output": "5dcc30624eba60bf"
+  "output": "91b76ab0f926477f"
  },
  "detail/geomancy-oracle.json": {
   "input": "960b3e815beeeead",
@@ -97,11 +97,11 @@
  },
  "detail/life-book-ai.json": {
   "input": "5b67670e4e361640",
-  "output": "afd8345cd753ec14"
+  "output": "2f8a90c760701f05"
  },
  "detail/love-secret-ai.json": {
   "input": "3c5ed101592a729d",
-  "output": "1690cb437499bc94"
+  "output": "e372d8239abdd198"
  },
  "detail/love-simulation.json": {
   "input": "ecd29f629663e340",
@@ -116,8 +116,8 @@
   "output": "5b6293ee45ae666a"
  },
  "detail/master-love-codex.json": {
-  "input": "f75b75b7d2b6116c",
-  "output": "6087dff56e3316a8"
+  "input": "495e6712018153d4",
+  "output": "49d77afcc6181be4"
  },
  "detail/maya.json": {
   "input": "d2ec8296572ce4d1",
@@ -157,7 +157,7 @@
  },
  "detail/neo-operation-room.json": {
   "input": "b42d56f9f246b28f",
-  "output": "69dfdcb390204fe4"
+  "output": "942fa5c9873d0ab6"
  },
  "detail/neville-meditation.json": {
   "input": "1561f41de827f69d",
@@ -165,7 +165,7 @@
  },
  "detail/new-year-ai.json": {
   "input": "2d0e7b0c52ba4c18",
-  "output": "ba84f6a415060039"
+  "output": "6014ad89c99cfe8c"
  },
  "detail/novel.json": {
   "input": "e42d5dcdf71f2034",
@@ -496,12 +496,12 @@
   "output": "ab214013503862ea"
  },
  "crafted/master-love-codex": {
-  "input": "4eb1ffb3556c8915",
-  "output": "a638c46b8e176613"
+  "input": "4394b55fd20123c3",
+  "output": "f3a7f3279952d1fe"
  },
  "crafted/master-love-codex-compat": {
-  "input": "68d0a26b09147a3b",
-  "output": "2512f10872a70806"
+  "input": "591a7ab51a6046da",
+  "output": "349a1f5a2d3f2567"
  },
  "crafted/maya-prompt": {
   "input": "724ada3f12e1ed8b",

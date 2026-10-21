@@ -115,6 +115,7 @@
 /public/js/chunks/extra-fortune.chunk.js
 /public/js/chunks/saju-analysis.chunk.js
 /public/js/compat-llm-prompts.js
+/public/js/consultation-sample-exposure.mjs
 /public/js/consultation-sample-guide.d.mts
 /public/js/consultation-sample-guide.mjs
 /public/js/core/access-store.js

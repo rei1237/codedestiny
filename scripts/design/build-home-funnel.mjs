@@ -4,9 +4,11 @@ import { CURRENT_PASS_PLANS } from '../../lib/payment/pass-policy.js';
 import { listServicePackPlans } from '../../worker/payments/service-pack-policy.js';
 import { FEATURE_KEY_PRICE_TABLE, UNLOCK_PRODUCT_BY_FEATURE_KEY } from '../../worker/lib/paid-feature-registry.js';
 import { renderNeoEmailHomeEntry } from '../../lib/brand/neo-email-home-entry.mjs';
+import { renderConsultationDiscovery } from '../../lib/marketing/consultation-discovery.mjs';
 
 const original = readFileSync('index.html', 'utf8');
 const vars = {};
+vars.consultationDiscovery = renderConsultationDiscovery();
 
 // 가벼운 체험만 선별한다. 유료 표시는 서버 상품 정본에서 생성한다.
 const LIGHT_FORTUNES = [
@@ -186,7 +188,7 @@ const signatureProducts = [
     className: 'master',
     href: '/master-love-codex/',
     title: '마스터 인연의 서',
-    question: '내 다음 연애는 언제 시작될까?',
+    question: '사람은 바뀌는데, 연애의 고민은 왜 비슷할까?',
     image: '/images/feature-details/master-love-codex-hero-v3.webp',
     imageAlt: '달빛 아래 인연의 지도를 펼쳐 보는 마스터 인연의 서',
     featureKey: 'master-love-codex',

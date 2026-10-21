@@ -11,6 +11,7 @@ import { HOME_CATEGORIES, HOME_CONCERNS } from "../lib/seo/home-discovery.mjs";
 import { getSignProfile } from "../lib/fortune/sign-profiles";
 import LegacyHomeEntry from "./components/LegacyHomeEntry";
 import HomeCardDeck from "./components/HomeCardDeck";
+import ConsultationDiscovery from "./components/ConsultationDiscovery";
 import LocalizedServiceSummary from "./components/LocalizedServiceSummary";
 import "./yeongnyangi/night-tokens.css";
 import styles from "./home-main.module.css";
@@ -128,6 +129,7 @@ export default function HomePage() {
           })}
         </HomeCardDeck>
         <a className={styles.browseLink} href="#homeServices">분야부터 골라보기 <span aria-hidden="true">↓</span></a>
+        <ConsultationDiscovery />
         <div className={styles.discovery}>
           <section className={styles.section} aria-labelledby="homeServices">
             <div className={styles.sectionHeading}><h2 id="homeServices">어떤 운세가 궁금하세요?</h2><p>익숙한 사주부터 새로운 별의 이야기까지.</p></div>

@@ -1,5 +1,6 @@
 import { loadFeatureDetail, preloadFeatureDetail, renderFeatureDetailPanels, loadInlineCraftedDetail, revealCraftedTranscript } from './feature-detail-panels.mjs';
 import { shareIntroductionFromButton } from './feature-introduction-share.mjs';
+import { observeConsultationSamples } from './consultation-sample-exposure.mjs';
 const revisions = new WeakMap();
 const actionCleanups = new WeakMap();
 const legacyCleanups = new WeakMap();
@@ -66,6 +67,8 @@ export async function mountFeatureDetailPreview(overlay, keys, inlineDetail) {
       return;
     }
     host.innerHTML = renderFeatureDetailPanels(detail, { conversionPrompt: true });
+    host.dataset.consultationItem = detail.featureKey || detail.slug || '';
+    const stopSamples = observeConsultationSamples(host.parentElement, (name, params) => window.cdTrack?.(name, params));
     host.addEventListener('error', revealCraftedTranscript, true);
     host.removeAttribute('aria-busy');
     const source = overlay.querySelector('#tilePvwCtaBtn');
@@ -78,7 +81,7 @@ export async function mountFeatureDetailPreview(overlay, keys, inlineDetail) {
     let sync = () => {};
     let visibility = null;
     const observer = new MutationObserver(() => { if (overlay.classList.contains('pvw-open')) sync(); else cleanup(); });
-    const cleanup = () => { observer.disconnect(); visibility?.disconnect(); footer?.classList.remove('fortuneCtaAtTop'); document.documentElement.classList.remove('cd-detail-open'); };
+    const cleanup = () => { observer.disconnect(); visibility?.disconnect(); stopSamples(); footer?.classList.remove('fortuneCtaAtTop'); document.documentElement.classList.remove('cd-detail-open'); };
     observer.observe(overlay, { attributes: true, attributeFilter: ['class'] });
     actionCleanups.set(overlay, cleanup);
     if (source && slot) {

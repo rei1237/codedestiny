@@ -12,9 +12,9 @@ export function renderConsultationSampleGuide(guide, {headingLevel = 3, title = 
     (example.kind === 'result' ? '가상 프로필의 입력·AI 결과 원문 발췌 · 실제 고객 후기 아님' : '이해를 돕기 위한 편집 예시 · 실제 생성 결과 아님') +
     '</p><blockquote>' + paragraphs(example.text) + '</blockquote>' + sourceLink(example) + '</section>';
   return '<section class="consultation-guide" aria-label="' + escape(title) + '"><' + heading + '>' + escape(title) + '</' + heading + '><p>' + escape(guide.audience) + '</p>' +
-    '<dl class="consultation-guide__outline">' + guide.outline.map(row => '<div><dt>' + escape(row.title) + '</dt><dd>' + escape(row.text) + '</dd></div>').join('') + '</dl>' +
-    '<div class="consultation-guide__prepare"><' + sub + '>상담 전에 준비해 주세요</' + sub + '><p>' + escape(guide.preparation) + '</p></div>' +
     '<div class="consultation-guide__reading">' + exampleHtml(guide.examples[0]) +
     (guide.examples.length > 1 ? '<details class="consultation-guide__more"><summary>예시 더 읽기 <span>해석과 행동까지</span></summary>' + guide.examples.slice(1).map(exampleHtml).join('') + '</details>' : '') +
-    '</div><p class="consultation-guide__delivery">' + escape(guide.delivery) + '</p></section>';
+    '</div><details class="consultation-guide__more"><summary>상담에 담기는 내용 펼쳐보기</summary><dl class="consultation-guide__outline">' + guide.outline.map(row => '<div><dt>' + escape(row.title) + '</dt><dd>' + escape(row.text) + '</dd></div>').join('') + '</dl></details>' +
+    '<div class="consultation-guide__prepare"><' + sub + '>상담 전에 준비해 주세요</' + sub + '><p>' + escape(guide.preparation) + '</p></div>' +
+    '<p class="consultation-guide__delivery">' + escape(guide.delivery) + '</p></section>';
 }
