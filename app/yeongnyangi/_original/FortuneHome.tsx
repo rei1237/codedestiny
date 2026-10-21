@@ -2,6 +2,7 @@
 import Image from "next/image";
 import QuestionJourney from "@/app/components/QuestionJourney";
 import NightHero from "../_components/NightHero";
+import HeavenLightCinema from "../_components/HeavenLightCinema";
 import SessionControls from "./SessionControls";
 import type {ProductOffers} from '../_components/ProductGuide';
 import {useReadingLanguage} from '../_lib/use-reading-language';
@@ -128,6 +129,7 @@ export default function FortuneHome({offers,guide}:{offers:ProductOffers;guide?:
         <main>
           <NightHero/>
           <QuestionJourney source="home"/>
+          <HeavenLightCinema/>
           {guide}
           <div className="main-content">
             <section className="ggulggul-bridge" aria-labelledby="ggulggul-title">
