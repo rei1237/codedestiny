@@ -2096,3 +2096,5 @@ async function subscribeEmailHome() {
 }
 window.subscribeEmail = subscribeEmail;
 window.subscribeEmailHome = subscribeEmailHome;
+// isCriticalOperationInProgress 가 이제 있다. 이걸 기다리며 막혀 있던 PWA 설치·업데이트 안내(js/pwa-lifecycle.js)가 다시 판단한다.
+try { window.dispatchEvent(new Event('cd:share-ready')); } catch (_) {}

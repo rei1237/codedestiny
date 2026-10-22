@@ -141,6 +141,8 @@
   document.addEventListener('click',function(e){if(e.target.closest('[data-cd-app-install],[data-pwa-install]')){e.preventDefault();install();}});
   document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'){check();presentUpdate();maybeInstall();}});
   window.addEventListener('cd:critical-operation-state',function(){if(!safe()){hideBanner();closeDialog();}else {presentUpdate();maybeInstall();}});
+  // 모바일은 share.js 가 기능 탭·45초 뒤에야 실린다. 실린 순간 다시 판단해야 다음 탭까지 안내가 밀리지 않는다.
+  window.addEventListener('cd:share-ready',function(){presentUpdate();maybeInstall();});
   if('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message',function(e){
     if(e.data?.type!=='CD_CHECK_SAFE' || !e.ports[0])return;
     var ready=safe();if(ready)lockUntil=Date.now()+7000;e.ports[0].postMessage({safe:ready});
