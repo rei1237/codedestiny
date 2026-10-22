@@ -4,7 +4,7 @@ import {fusionIntroductionArt} from '../_lib/introduction-art';
 import QuestionCheckout from './QuestionCheckout';
 import {getQuestionGuide,questionScopeEntry} from "@/lib/fortune/question-journey";
 import {CONSULTATION_DRAFT_KEY as loginDraftKey} from '@/lib/fortune/question-entry';
-import {type PreparationStep} from './IntakeChat';
+import {type PreparationStep} from './QuestionCheckout';
 import {emptyIntakeDecision,intakeFish,type IntakeValue} from '../_lib/intake-chat';
 import {PREVENTION_TITLE} from '@/worker/lib/fortune-prevention.js';
 import {consultationBudget,fusionPremiumManifest,a4Label,A4_PAGE_NOTE} from '@/worker/yeongnyangi/fortune/consultation-budget';

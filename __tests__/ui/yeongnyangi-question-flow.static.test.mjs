@@ -40,13 +40,12 @@ test('the ask period picker only rewrites the question text and previews the sam
 });
 
 test('question choices stay short: entry topics filter examples and tiers compare by scope (2026-10-12)',()=>{
- const intake=read('app/yeongnyangi/_components/IntakeChat.tsx');
+ const checkout=read('app/yeongnyangi/_components/QuestionCheckout.tsx');
  const form=read('app/yeongnyangi/_components/Consultation.tsx');
- // A concern entry (?category=) shows only its own examples; otherwise six first, the rest behind "더 보기".
- assert.match(intake,/allExamples\.filter\(t=>exampleGroup\(t\.id\)===exampleGroup\(entryCategory\)\)[^;]*\.slice\(0,4\)/);
- assert.match(intake,/moreExamples\?allExamples:allExamples\.slice\(0,6\)/);
+ // A concern entry (?category=) presets the topic. The example filter lived only in the unused IntakeChat (removed 2026-10-23).
+ assert.match(form,/questionTopics\.find\(t=>t\.id===params\.get\('category'\)\)/);
  // The recommendation is advisory; the selected fish travels through the shared radio picker.
- assert.match(intake,/<QuestionFishPicker[^>]*selected=\{intakeFish\(value\)\}[^>]*recommended=\{plan.fish\}/);
+ assert.match(checkout,/<QuestionFishPicker[^>]*selected=\{value\.fish\|\|recommendQuestion\(/);
  const picker=read('app/yeongnyangi/_components/QuestionFishPicker.tsx');
  assert.match(picker,/type="radio"/);assert.match(picker,/questionScopes\[fish\]/);assert.match(picker,/product.priceKRW/);
  // Equal-depth copy stays; each Korean tier card adds its question scope line.

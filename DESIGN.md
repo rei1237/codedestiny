@@ -381,7 +381,7 @@ App Router 에는 표면 계열이 셋 있고, 서로 대체재가 아니다. �
 
 ### 영냥이 대화형 상담 준비 (2026-10-09)
 
-`app/yeongnyangi/_components/IntakeChat.tsx`와 `intake-chat.module.css`는 영냥이의 독립 밤 팔레트 `--yn-*`를 그대로 사용하는 메신저형 상담 준비 화면이다. 상담가의 질문은 어두운 표면, 사용자가 확정한 답변은 금빛 말풍선으로 구분한다. 기존 `public/assets/yeongnyangi/profiles/welcome.webp`를 작은 상담가 이미지로 재사용하며 새 이미지는 만들지 않는다.
+`intake-chat.module.css`(답장 바 `ChatInputBar.tsx`, 대화형 프로필 `ProfileChatFields.tsx`·`ProfileForm.tsx`가 사용)는 영냥이의 독립 밤 팔레트 `--yn-*`를 그대로 사용하는 메신저형 상담 준비 화면이다. 상담가의 질문은 어두운 표면, 사용자가 확정한 답변은 금빛 말풍선으로 구분한다. 기존 `public/assets/yeongnyangi/profiles/welcome.webp`를 작은 상담가 이미지로 재사용하며 새 이미지는 만들지 않는다. 단계 전체를 대화로 묻던 `IntakeChat.tsx`는 화면에 연결되지 않아 2026-10-23 삭제했다. 질문형 상담 입력은 `Consultation.tsx`가 맡고, 아래 입력 바·말풍선 규칙은 남은 대화형 조각에 그대로 적용한다.
 
 폭은 최대 760px이고, 헤더·스크롤 대화 내역·하단 답장 영역으로 나눈다. 600px 이하에서는 외곽 좌우 테두리와 반경을 없앤다. 대화 내역과 답장 영역의 스크롤을 분리하고 `visualViewport` 높이에 맞춰 화면을 조절한다. 전송·선택 버튼은 최소 44px, 입력 글자는 16px, 키보드 포커스는 금빛 윤곽선으로 표시한다. 기존 전역 요소 스타일이 침범하지 않도록 구성 요소 규칙은 `.chat` 아래에 한정한다.
 

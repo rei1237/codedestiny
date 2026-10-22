@@ -3,10 +3,10 @@ import {useEffect,useRef,type ReactNode} from 'react';
 import {questionCandidate,questionTopics,questionNeedsDecisionDetails,recommendQuestion,type QuestionDecision} from '@/worker/yeongnyangi/fortune/ask/question-policy';
 import {systemNames} from '@/worker/yeongnyangi/payments/catalog';
 import type {IntakeValue} from '../_lib/intake-chat';
-import type {PreparationStep} from './IntakeChat';
 import QuestionFishPicker from './QuestionFishPicker';
 import styles from './question-checkout.module.css';
 
+export type PreparationStep={id:string;prompt:string;answer:string;content:ReactNode;valid:boolean;pending?:boolean};
 type Props={value:IntakeValue;open:boolean;busy:boolean;onChange:(value:IntakeValue)=>void;onOpen:()=>void;preparation:PreparationStep[];checkout:(children:ReactNode)=>ReactNode};
 export default function QuestionCheckout({value,open,busy,onChange,onOpen,preparation,checkout}:Props){
  const heading=useRef<HTMLDivElement>(null);

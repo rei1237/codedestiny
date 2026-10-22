@@ -163,6 +163,12 @@ function isStaticShellHref(href: string) {
   return href === "/";
 }
 
+// "홈"은 하단 탭과 같은 서비스 홈으로 보낸다. 한국어 서비스 홈은 /ggulggul/ 이고(lib/i18n/routes I18N_ROUTE_MAP.home),
+// 브랜드 첫 화면(/)은 로고가 맡는다. 다른 언어는 번역 셸이 곧 서비스 홈이라 그대로 둔다.
+function headerNavHref(href: string, locale: Locale) {
+  return href === "/" && locale === "ko" ? "/ggulggul/" : getLocalizedPublicHref(href, locale);
+}
+
 function useDesktopHeaderControls() {
   const [enabled, setEnabled] = useState(false);
 
@@ -202,7 +208,6 @@ export default function GlobalHeader() {
           <a
             href={getLocalizedPublicHref("/", publicRouteLocale)}
             className={styles.brand}
-            aria-label={copy.nav["/"]}
           >
             <Image className={styles.brandImage} src="/icons/moonlight-garden-v1-512.webp" alt="" width={512} height={512} sizes="42px" />
             <span className={styles.brandText}>
@@ -214,7 +219,7 @@ export default function GlobalHeader() {
           <nav className={styles.mainNav} aria-label={copy.mainNav}>
             {headerNavItems.map((item) => {
               const label = copy.nav[item.href] || item.href;
-              const href = getLocalizedPublicHref(item.href, publicRouteLocale);
+              const href = headerNavHref(item.href, publicRouteLocale);
               return isStaticShellHref(item.href) ? (
                 <a key={item.href} href={href} className={styles.navLink}>
                   {label}
@@ -264,7 +269,7 @@ export default function GlobalHeader() {
           <div className={styles.mobileLinks}>
             {headerNavItems.filter((item) => item.href === "/").map((item) => {
               const label = copy.nav[item.href] || item.href;
-              const href = getLocalizedPublicHref(item.href, publicRouteLocale);
+              const href = headerNavHref(item.href, publicRouteLocale);
               return isStaticShellHref(item.href) ? (
                 <a key={`m-${item.href}`} href={href} onClick={() => setMenuOpen(false)} className={styles.navLink}>
                   {label}

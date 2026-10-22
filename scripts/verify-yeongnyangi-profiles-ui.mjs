@@ -6,7 +6,7 @@ import {chromium} from '@playwright/test';
 const origin=process.env.YN_UI_ORIGIN;
 assert.ok(origin&&/^http:\/\/127\.0\.0\.1:\d+$/.test(origin),'Set YN_UI_ORIGIN to the local mock dev server');
 const baseline=process.argv.includes('--baseline');
-// /fortune/ 은 기본이 질문형 대화(IntakeChat)다. 이 스크립트는 상품·프로필 선택 화면(flow=legacy)을 검사한다.
+// /fortune/ 은 기본이 질문형 상담이다. 이 스크립트는 상품·프로필 선택 화면(flow=legacy)을 검사한다.
 const route=path=>path==='fortune'?'fortune/?flow=legacy':`${path}/`;
 const output='build-cache/yeongnyangi-profiles-ui';
 mkdirSync(output,{recursive:true});

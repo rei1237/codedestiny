@@ -2950,7 +2950,8 @@ export default function NewYearAiConsultationPage() {
           display: grid;
           gap: 7px;
           color: var(--nyai-text);
-          font-size: var(--nyai-label-size, 0.78rem);
+          /* 입력 라벨은 도움말(14px)보다 작으면 위계가 뒤집힌다. 굵기·밝은 색으로 구분하고 크기는 같게 둔다. */
+          font-size: 0.875rem;
           font-weight: 700;
         }
 

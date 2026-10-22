@@ -1,7 +1,7 @@
 # 영냥이 대화형 상담 준비
 
-Primary target: app/yeongnyangi/_components/IntakeChat.tsx
-Related targets: app/yeongnyangi/_components/Consultation.tsx
+Primary target: app/yeongnyangi/_components/Consultation.tsx (IntakeChat.tsx는 화면에 연결되지 않아 2026-10-23 삭제)
+Related targets: app/yeongnyangi/_components/ChatInputBar.tsx, ProfileChatFields.tsx
 Mode: Operate. 한국어 질문형 상담의 고민 입력부터 결제 직전까지.
 
 ## Direction contract

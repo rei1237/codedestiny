@@ -3,7 +3,7 @@ import {createContext,type ReactNode,type MouseEvent} from 'react';
 import {ArrowUp} from 'lucide-react';
 import styles from './intake-chat.module.css';
 
-/** IntakeChat 하단 답장 영역의 슬롯. 대화 안의 단계가 자기 입력 UI를 이 슬롯에 포털로 그린다. */
+/** 대화형 화면의 하단 답장 슬롯. 대화 안의 단계가 자기 입력 UI를 이 슬롯에 포털로 그린다. 공급자가 없으면 제자리에 그린다. */
 export type IntakeComposer={slot:HTMLElement|null;follow:()=>void;claim:(on:boolean)=>void};
 export const IntakeComposerContext=createContext<IntakeComposer|null>(null);
 
