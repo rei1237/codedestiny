@@ -174,6 +174,12 @@ export default function SiteFooterHub() {
               {link.text}
             </a>
           ))}
+          {/* 동의 배너를 다시 연다(AnalyticsConsent 가 data-cd-cookie-settings 클릭을 받는다). 앱은 웹 배너를 쓰지 않는다. */}
+          {!IS_APP_BUILD && (
+            <button type="button" data-cd-cookie-settings className={`${styles.sfhPolicyLink} ${styles.sfhPolicyLinkQuiet} ${styles.sfhCookieButton}`}>
+              쿠키 설정
+            </button>
+          )}
         </nav>
 
         <p className={styles.sfhNotice} data-cd-trans="footer.disclaimerNote">{FOOTER_NOTICE}</p>

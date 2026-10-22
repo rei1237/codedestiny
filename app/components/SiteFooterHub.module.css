@@ -101,6 +101,15 @@
   font-size: 0.75rem;
 }
 
+/* "쿠키 설정"은 이동이 아니라 동의 배너를 여는 버튼이다. 모양만 옆 링크와 같게 둔다. */
+.sfhCookieButton {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  cursor: pointer;
+}
+
 .sfhBreak {
   flex-basis: 100%;
   height: 0;

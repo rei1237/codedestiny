@@ -107,6 +107,12 @@ export default function LocaleFooterHub({ locale }) {
               {copy.policyLabels[href]}
             </a>
           ))}
+          {/* 동의 배너를 다시 연다(AnalyticsConsent 가 data-cd-cookie-settings 클릭을 받는다). 앱은 웹 배너를 쓰지 않는다. */}
+          {!IS_APP_BUILD && (
+            <button type="button" data-cd-cookie-settings className={`${styles.sfhPolicyLink} ${styles.sfhPolicyLinkQuiet} ${styles.sfhCookieButton}`}>
+              {copy.cookieSettingsLabel}
+            </button>
+          )}
         </nav>
 
         <p className={styles.sfhNotice}>{copy.notice}</p>

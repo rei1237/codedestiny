@@ -33,7 +33,7 @@
 .banner h2 { margin: 0; font: 700 20px/1.6 var(--font-serif, serif); color: var(--ac-ink); word-break: keep-all; text-wrap: balance; }
 .banner p { margin: 0 0 20px; font-size: 14px; line-height: 1.8; color: var(--ac-muted); word-break: keep-all; }
 .actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-.actions button, .reopen {
+.actions button {
   min-height: 48px;
   padding: 12px;
   border: 1px solid var(--ac-gold, var(--cd-neo-letter-gold));
@@ -45,15 +45,14 @@
   transition: background-color 180ms ease, border-color 180ms ease;
 }
 .actions a { grid-column: 1 / -1; justify-self: center; display: inline-flex; align-items: center; min-height: 44px; padding: 6px 4px; color: var(--ac-muted); text-decoration: underline; text-underline-offset: 4px; font-size: 12px; }
-.actions :focus-visible, .reopen:focus-visible { outline: 2px solid var(--ac-gold, var(--cd-neo-letter-gold)); outline-offset: 3px; }
+.actions :focus-visible, .banner:focus-visible { outline: 2px solid var(--ac-gold, var(--cd-neo-letter-gold)); outline-offset: 3px; }
 .banner .error { margin: 12px 0 0; padding-top: 12px; border-top: 1px solid var(--ac-line); color: var(--ac-ink); }
 .banner ::selection { background: var(--ac-gold); color: var(--ac-night); }
-.reopen { position: fixed; z-index: 80; left: 12px; bottom: calc(100px + env(safe-area-inset-bottom, 0px)); min-height: 44px; padding: 8px 14px; border-radius: var(--cd-r-pill, 999px); font-size: 12px; box-shadow: 0 4px 14px var(--cd-neo-letter-shadow); }
 @media (hover: hover) {
-  .actions button:hover, .reopen:hover { background: var(--cd-neo-letter-blue); }
+  .actions button:hover { background: var(--cd-neo-letter-blue); }
   .actions a:hover { color: var(--ac-ink); }
 }
-.actions button:active, .reopen:active { background: var(--cd-neo-letter-blue-hover); }
+.actions button:active { background: var(--cd-neo-letter-blue-hover); }
 @media (max-width: 400px) {
   .banner { padding: 22px; }
   .banner h2 { font-size: 18px; }
@@ -63,8 +62,8 @@
 }
 @media (min-width: 769px) {
   .banner { inset-inline: auto 24px; }
-  .banner, .reopen { bottom: 24px; }
+  .banner { bottom: 24px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .actions button, .reopen { transition: none; }
+  .actions button { transition: none; }
 }

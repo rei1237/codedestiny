@@ -17,6 +17,7 @@ import ConsultationDiscovery from "./components/ConsultationDiscovery";
 import LocalizedServiceSummary from "./components/LocalizedServiceSummary";
 import "./yeongnyangi/night-tokens.css";
 import styles from "./home-main.module.css";
+import { IS_APP_BUILD } from "../lib/app-build-target";
 
 // `/` 는 꿀꿀 운세의 공식 대표 홈이다(2026-10-15). 상담 앱 입구는 /ggulggul/ 이고,
 // 기능 쿼리가 붙은 `/` 요청은 워커가 앱으로 보낸다(public/_worker.js 루트 분기).
@@ -227,6 +228,7 @@ export default function HomePage() {
         {/* 둘째 줄(작게): dist/index.html 도 scripts/verify-adsense-readiness.mjs 의 신뢰 링크 8종 검사 대상이다. */}
         <nav className={`${styles.footerNav} ${styles.footerQuiet}`} aria-label="안내 페이지">
           {FOOTER_TRUST_LINKS.map(link => <Link key={link.href} href={link.href}>{link.text}</Link>)}
+          {!IS_APP_BUILD && <button type="button" data-cd-cookie-settings className={styles.footerButton}>쿠키 설정</button>}
         </nav>
         <p className={styles.business}>
           <span>상호 {BUSINESS_IDENTITY.companyName}</span><span>대표 {BUSINESS_IDENTITY.representative}</span><span>사업자등록번호 {BUSINESS_IDENTITY.registrationNumber}</span>

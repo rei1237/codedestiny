@@ -55,7 +55,8 @@ test('a distinct explicit test property works; production config remains singula
 
 test('actual Next consent UI: default denied, reject/accept/revoke, persistence and late tag initialization', async () => {
   for (const path of ['/', '/yeongnyangi/', '/points/']) {
-    const dom = new JSDOM('<div id="root"></div>', { url: `https://code-destiny.com${path}`, runScripts: 'outside-only' });
+    // Reopening is a footer button outside the banner (SiteFooterHub, LocaleFooterHub, app/page.js).
+    const dom = new JSDOM('<div id="root"></div><button type="button" data-cd-cookie-settings>쿠키 설정</button>', { url: `https://code-destiny.com${path}`, runScripts: 'outside-only' });
     const w = dom.window;
     globalThis.window = w; globalThis.document = w.document; globalThis.location = w.location;
     globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -73,7 +74,11 @@ test('actual Next consent UI: default denied, reject/accept/revoke, persistence 
       await click('필수만 사용');
       assert.equal(calls(w).at(-1)[2].analytics_storage, 'denied');
       assert.match(w.document.cookie, /cd_cookie_consent=essential/);
-      await click('쿠키 설정'); await click('분석 쿠키 동의');
+      // Nothing stays floating over sticky CTAs once a choice is made.
+      assert.equal(w.document.querySelector('#root').childElementCount, 0);
+      await click('쿠키 설정');
+      assert.equal(w.document.activeElement, w.document.querySelector('section'));
+      await click('분석 쿠키 동의');
       assert.equal(calls(w).at(-1)[2].analytics_storage, 'granted');
       assert.equal(w.localStorage.getItem('cd_cookie_consent'), 'accepted');
       // Remount represents a new Next entry and must retain the choice, not add config/pageview.

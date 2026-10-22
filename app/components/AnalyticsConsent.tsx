@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import styles from "./AnalyticsConsent.module.css";
 
@@ -24,14 +24,34 @@ export default function AnalyticsConsent() {
   const [ready, setReady] = useState(false);
   const [open, setOpen] = useState(false);
   const [error, setError] = useState(false);
+  const panel = useRef<HTMLElement>(null);
+  const requested = useRef(false);
   const excluded = /^\/(admin|gift|ggulggul)(\/|$)/.test(pathname);
 
   useEffect(() => {
     // Preserve the native-app consent policy. This banner is for web visitors.
     if ((window as ConsentWindow).__cdAppContext?.isApp?.()) return;
     setReady(true);
-    setOpen(!savedChoice());
-  }, [pathname]);
+    setOpen(!excluded && !savedChoice());
+  }, [pathname, excluded]);
+
+  // Reopening lives in the footers ("쿠키 설정", data-cd-cookie-settings), not a floating pill that covered sticky CTAs.
+  // The footers stay server components, so the click is picked up here by delegation.
+  useEffect(() => {
+    const reopen = (event: MouseEvent) => {
+      if (!(event.target as Element | null)?.closest?.("[data-cd-cookie-settings]")) return;
+      requested.current = true;
+      setOpen(true);
+    };
+    document.addEventListener("click", reopen);
+    return () => document.removeEventListener("click", reopen);
+  }, []);
+
+  useEffect(() => {
+    if (!open || !requested.current) return;
+    requested.current = false;
+    panel.current?.focus();
+  }, [open]);
 
   function choose(value: Choice) {
     try {
@@ -46,10 +66,9 @@ export default function AnalyticsConsent() {
     } catch { setError(true); }
   }
 
-  if (!ready || excluded) return null;
-  if (!open) return <button type="button" className={styles.reopen} onClick={() => setOpen(true)}>쿠키 설정</button>;
+  if (!ready || !open) return null;
   return (
-    <section className={styles.banner} aria-labelledby="analytics-consent-title">
+    <section ref={panel} tabIndex={-1} className={styles.banner} aria-labelledby="analytics-consent-title">
       <div className={styles.heading}>
         <span className={styles.ornament} aria-hidden="true" />
         <h2 id="analytics-consent-title">방문 분석 쿠키를 선택해 주세요</h2>

@@ -158,13 +158,15 @@
 .footerNav a { display: inline-flex; align-items: center; min-height: 44px; font-size: 0.8125rem; color: var(--cd-text); text-decoration: none; }
 .footerNav .footerStrong { font-weight: 800; }
 .footerQuiet a { font-size: 0.75rem; color: var(--cd-text-muted); }
+/* "쿠키 설정"은 동의 배너를 여는 버튼이다(AnalyticsConsent). 모양은 옆 링크와 같다. */
+.footerButton { display: inline-flex; align-items: center; min-height: 44px; padding: 0; border: 0; background: none; font-family: inherit; font-size: 0.75rem; color: var(--cd-text-muted); cursor: pointer; }
 .business { display: flex; flex-wrap: wrap; justify-content: center; gap: 0 12px; max-width: 72ch; }
 .notice { max-width: 60ch; text-wrap: balance; }
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
   .deck:not([data-selecting]) .card:hover:not([data-hovered]):not([data-pressed]):not([data-selected]) { transform: translateY(-12px) rotate(0) scale(1.025); }
   .card:hover .cardFoil::after { opacity: 1; }
   .card:hover .cardAction svg { transform: translateX(3px); }
-  .serviceList a:hover h3, .concernList a:hover h3, .footerNav a:hover { text-decoration: underline; text-underline-offset: 0.25em; }
+  .serviceList a:hover h3, .concernList a:hover h3, .footerNav a:hover, .footerButton:hover { text-decoration: underline; text-underline-offset: 0.25em; }
   .serviceList a:hover .methodArt { transform: translateY(-4px); }
   .advisers a:hover b { text-decoration: underline; text-underline-offset: 0.25em; }
 }

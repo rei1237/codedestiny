@@ -146,6 +146,8 @@ export type SiteFooterHubCopy = {
   linkLabels: Record<string, string>;
   policyLabels: Record<string, string>;
   policyNavAriaLabel: string;
+  /** 동의 배너를 다시 여는 푸터 버튼. */
+  cookieSettingsLabel: string;
   /**
    * 같은 언어 목적지로 보내는 링크. 로케일 페이지에서 한국어 허브로만 나가면 그 언어의
    * 내부 링크 그래프가 생기지 않는다. 경로는 `lib/i18n/routes.ts` 의 `I18N_ROUTE_MAP` 에서 온다.
@@ -263,6 +265,7 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
       "/advertising-policy/": "광고 정책",
     },
     policyNavAriaLabel: "정책 및 안내 링크",
+    cookieSettingsLabel: "쿠키 설정",
     localeNavTitle: "한국어 바로가기",
     localeNavLabels: {
         home: "홈",
@@ -373,6 +376,7 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
       "/advertising-policy/": "広告ポリシー",
     },
     policyNavAriaLabel: "ポリシー・案内リンク",
+    cookieSettingsLabel: "Cookie設定",
     localeNavTitle: "日本語のページ",
     localeNavLabels: {
         home: "ホーム",
@@ -484,6 +488,7 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
       "/advertising-policy/": "广告政策",
     },
     policyNavAriaLabel: "政策与指南链接",
+    cookieSettingsLabel: "Cookie 设置",
     localeNavTitle: "简体中文页面",
     localeNavLabels: {
         home: "首页",
@@ -594,6 +599,7 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
       "/advertising-policy/": "廣告政策",
     },
     policyNavAriaLabel: "政策與指南連結",
+    cookieSettingsLabel: "Cookie 設定",
     localeNavTitle: "繁體中文頁面",
     localeNavLabels: {
         home: "首頁",
@@ -704,6 +710,7 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
       "/advertising-policy/": "Advertising Policy",
     },
     policyNavAriaLabel: "Policy and information links",
+    cookieSettingsLabel: "Cookie settings",
     localeNavTitle: "Pages in English",
     localeNavLabels: {
         home: "Home",
