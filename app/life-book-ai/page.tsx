@@ -68,6 +68,7 @@ export default function LifeBookAiPage() {
       <LifeBookAiRouteClient />
       <ResultSamples ids={['life-book']}/>
       <ServiceIntroSection label="인생의 책 전문가 상담 안내">
+        {/* 문서 H1은 이 서버 영역의 하나뿐이다. 위 상담 화면은 클라이언트에서 그려져 서버 HTML(verify:seo-heading-integrity)에 없고, 그 화면 제목을 h1로 올리면 하이드레이션 뒤 H1이 2개가 된다(verify:hydrated-h1-integrity). 그래서 화면 제목은 h2로 둔다. */}
         <h1><span>인생 총운 — 사주로 보는 평생 운세 리포트</span>내 인생의 황금기는 언제일까?</h1>
         <p>
           인생의 책은 한 사람의 명식에 오래 흐르는 계절과 기질을 따라 삶의 큰 장면을 천천히 펼쳐 봅니다.

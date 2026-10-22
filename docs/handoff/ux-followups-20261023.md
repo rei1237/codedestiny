@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-23
-next: "17 — 인생의 책 페이지에 OG·twitter·JSON-LD가 없다"
+next: "21 — 문서 스냅숏에 옛 이름 "사랑의 비밀"이 남아 있다"
 ---
 
 # 꿀꿀운세 UX 진단·개선 — 후속 과제
@@ -94,11 +94,11 @@ next: "17 — 인생의 책 페이지에 OG·twitter·JSON-LD가 없다"
 
 ### B. SEO
 
-- [ ] **17. 인생의 책 페이지에 OG·JSON-LD가 없다**
+- [x] **17. 인생의 책 페이지에 OG·JSON-LD가 없다** — 끝: `b2010ce21`. openGraph·twitter, Service(서버 가격표 Offer 30,000원)·Breadcrumb JSON-LD. 화면에 FAQ가 없어 FAQPage는 일부러 뺐다. 개발 서버 HTML로 확인.
   - 위치: `app/life-book-ai/page.tsx:6`.
   - 할 일: `app/love-secret-ai/page.tsx`를 본뜬다. openGraph·twitter, `lib/structured-data`의 `buildServiceJsonLd`·`buildFaqPageJsonLd`·`buildBreadcrumbJsonLd`를 쓴다.
   - 엔티티: `lib/seo/entity-registry.mjs:433-441`.
-- [ ] **19. 대표 상세 H1 위치의 이유를 기록한다** (코드 변경 없음)
+- [x] **19. 대표 상세 H1 위치의 이유를 기록한다** (코드 변경 없음) — 끝: 세 대표 상세 page.tsx의 H1 바로 위에 이유 주석을 달았다(이 커밋).
   - 클라이언트가 `ssr:false`이고 `verify-seo-heading-integrity`가 H1 하나를 요구한다. 그래서 문서 H1이 하단 서버 영역에 있다. 이 이유를 해당 page 파일 주석이나 DESIGN 문서에 남긴다.
 - [ ] **21. 문서 스냅숏에 옛 이름 "사랑의 비밀"이 남아 있다**
   - `docs/seo/PAGE_INVENTORY.md`는 `scripts/seo-build-inventory.mjs`로 다시 만든다.
@@ -191,3 +191,4 @@ next: "17 — 인생의 책 페이지에 OG·twitter·JSON-LD가 없다"
 - **H14.** `js/saju-engine.js:5632` "30,000원" 주석을 다시 확인한다.
 - **H15.** 개발 서버 `/today/`가 500을 낸다. 워크트리에 `fortune/data/daily-*.json`이 없어서다(`npm run fortune:build-data`). 환경 문제로 보이지만 운영 영향은 확인하지 않았다.
 - **H16.** 신년운세 대기 화면의 진행 단계와 `READING_STAGES` 라벨이 한 단계 어긋난다(단계 'opening'이 켜져 있을 때 라벨은 '올해의 총운을 읽는 중'). 32번 작업 중 발견, 고치지 않았다.
+- **H17. `verify-mobile-runtime-readiness.mjs`의 "bottom navigation covers main slots"가 main에서도 실패한다**: 가드는 홈 탭 `href="/"`를 요구하지만 `046369a96`부터 `/ggulggul/`이다. 가드 갱신이 필요한지 앱 홈 정책과 함께 확인한다.

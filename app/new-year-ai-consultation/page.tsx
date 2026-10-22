@@ -110,6 +110,7 @@ export default function NewYearAiConsultationPage() {
             <NewYearAiRouteClient />
       <ResultSamples ids={["new-year"]}/>
             <ServiceIntroSection label="신년운세 전문가 상담 안내">
+        {/* 문서 H1은 이 서버 영역의 하나뿐이다. 위 상담 화면은 클라이언트에서 그려져 서버 HTML(verify:seo-heading-integrity)에 없고, 그 화면 제목을 h1로 올리면 하이드레이션 뒤 H1이 2개가 된다(verify:hydrated-h1-integrity). 그래서 화면 제목은 h2로 둔다. */}
         <h1><span>신년운세 보는 곳 — 새해 흐름과 월별 운세 풀이</span>올해 나에게 가장 중요한 일은 뭘까?</h1>
         <p>
           신년운세 전문가 상담은 생년월일로 세운 사주 명식 위에 새해의 간지가 만드는 세운의 흐름을

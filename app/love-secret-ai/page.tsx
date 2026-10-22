@@ -100,6 +100,7 @@ export default function LoveSecretAiPage() {
             <LoveSecretAiRouteClient />
       <ResultSamples ids={["love-secret"]}/>
             <ServiceIntroSection label="연애 비책 전문가 상담 안내">
+        {/* 문서 H1은 이 서버 영역의 하나뿐이다. 위 상담 화면은 클라이언트에서 그려져 서버 HTML(verify:seo-heading-integrity)에 없고, 그 화면 제목을 h1로 올리면 하이드레이션 뒤 H1이 2개가 된다(verify:hydrated-h1-integrity). 그래서 화면 제목은 h2로 둔다. */}
         <h1>짝사랑 운세 — 재회와 연애 마음 리딩</h1>
         <p>
           연애 비책은 생년월일로 세운 사주 명식을 따라 연애에 얽힌 마음의 결을 읽는 전문가 상담입니다.
