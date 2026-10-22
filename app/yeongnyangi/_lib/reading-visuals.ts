@@ -115,7 +115,7 @@ export function sajuFacts(charts:ReadingChart[]){
  const pick=(label:string)=>saju.groups.find(g=>g.label===label&&!g.kind);
  const pillars=(['시주','일주','월주','년주'] as const).map(label=>{
   const g=pick(label);
-  return {label,ganji:g?.items.find(i=>i.label==='천간·지지')?.value || '',tenGod:g?.items.find(i=>i.label==='천간 십성')?.value || ''};
+  return {label,ganji:g?.items.find(i=>i.label==='천간·지지')?.value || '',tenGod:g?.items.find(i=>i.label==='천간 십성')?.value || '',hidden:g?.items.find(i=>i.label==='지장간')?.value || ''};
  });
  const elementGroup=saju.groups.find(g=>g.label.startsWith('오행 분포'));
  const elements:ElementRow[]=(elementGroup?.items || []).map(i=>({label:i.label,value:Number(i.value)})).filter(e=>Number.isFinite(e.value));
