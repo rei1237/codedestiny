@@ -193,3 +193,13 @@
 완료 기록에는 영향 URL, 바꾼 내용과 이유, 유지한 색인 정책, 실행한 검증, 미검증 항목을 적는다. SEO_STATE.json의 현재 실적 관측일·검색 수치를 코드 수정일로 덮지 않는다. 사용자에게 제공되는 실제 품질 개선과 검색순위/CTR 개선은 별도로 보고한다. 운영 배포·계정 제출·아웃리치 발송 권한은 확대하지 않는다.
 
 공식 기준: [Google의 사람 중심 콘텐츠](https://developers.google.com/search/docs/fundamentals/creating-helpful-content), [다국어 사이트 관리](https://developers.google.com/search/docs/specialty/international/managing-multi-regional-sites).
+
+
+### 2026-10-22 D+14 네이버 중간 관찰
+
+- 로그인된 서치어드바이저에서 10/21 갱신 PC+Mobile 최근30일·7일의 웹문서 TOP30 각3페이지를 직접 읽었다. 14일 필터는 없고 집계 시작·종료일도 UI 미표시여서 미확인이다. 30일에는 배포 전 기간이 섞인다.
+- 최근30일 표시 전체 클릭 3.5천→4.3천, 노출78.1만→88.3만, 평균 문서CTR0.4→0.5%. 반올림 값이며 네이버 평균 문서CTR을 합산 클릭/노출 CTR로 바꾸지 않는다.
+- 내일 허브55클릭/5,374노출/1.0%→100/7,686/1.3%; 아이유 원시 ?v= URL38/1,844/2.1%→44/1,879/2.3%. 정국 원시 ?v= URL52/1,038/5.0%, 기준선 미확인. 유명인 전체 합계가 아니다.
+- 최근7일 약900클릭/12.4만노출/평균CTR0.7%, 전주 대비 클릭-16.8%·노출-28.1%. CTR 상승을 유입 증가·제목 단독 효과로 단정하지 않는다.
+- /ggulggul/, /today/, /insights/, /insights/famous-saju/는 TOP30 밖으로 미확인. /kkul-kkul-unse/·/fortune/today/로 대체하지 않는다. 내일 상세 TOP30 부분집합은18개2,278클릭/455,896노출/가중CTR0.500%; 기준선과 동일 URL 집합인지는 미확인이다.
+- 관측 정본: [SEO_STATE.json](../seo/SEO_STATE.json)의 naver20261008.d14Measurement(각기간 원문30행 포함). 읽기 전용 측정만 했고 운영 설정·기능·메타·결제·API·DB·배포 변경 없음. D+14 관찰 완료, 11/07 D+30 자동화 유지.

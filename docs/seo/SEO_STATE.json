@@ -3661,7 +3661,14 @@
         "baselineDays": 30,
         "postChangeCtr": null,
         "dataLagPolicy": "Record exact observed period and report update time; retry if a full post-release 30 days is not yet available.",
-        "lowImpressionsPolicy": "Defer judgment; do not infer a title-only effect."
+        "lowImpressionsPolicy": "Defer judgment; do not infer a title-only effect.",
+        "d14Result": {
+          "status": "measured",
+          "observedAt": "2026-10-22",
+          "reportUpdatedAt": "2026-10-21",
+          "record": "naver20261008.d14Measurement",
+          "kind": "intermediate; no 14-day filter"
+        }
       },
       "remainingIssues": [
         "Home mobile LCP median 11.90s -> 13.33s; desktop today LCP 3.65s -> 4.17s. Do not claim overall performance improvement.",
@@ -3670,6 +3677,670 @@
       ],
       "artifactDirectory": "D:/Development/code-destiny/output/release-20261008-measurement",
       "policies": "No payment execution, paid LLM call, production DB write, schema change or fortune-engine calculation change in this measurement work."
+    },
+    "d14Measurement": {
+      "status": "measured",
+      "milestone": "D+14 intermediate observation",
+      "observedAt": "2026-10-22",
+      "capturedAtUtc": "2026-10-22T07:24:52.031Z",
+      "reportUpdatedAt": "2026-10-21",
+      "calendarUpdateLagDays": 1,
+      "sourceUrl": "https://searchadvisor.naver.com/console/site/report/expose?site=https%3A%2F%2Fcode-destiny.com",
+      "device": "PC + Mobile",
+      "availableWindowsDays": [
+        1,
+        7,
+        30,
+        60,
+        90
+      ],
+      "windowStart": null,
+      "windowEnd": null,
+      "dateBoundaryNote": "UI shows relative windows and update date only; exact inclusive data dates are unconfirmed. No 14-day filter offered. Update lag is not a verified data-end lag.",
+      "baselineReportUpdatedAt": "2026-10-06",
+      "baselineDays": 30,
+      "periods": {
+        "days30": {
+          "selectedLabel": "최근 30일",
+          "containsPreReleaseDays": true,
+          "totalsDisplayed": {
+            "clicks": "4.3천",
+            "impressions": "88.3만",
+            "averageDocumentCtrPercent": 0.5,
+            "rounded": true
+          },
+          "webDocumentsTop30": [
+            {
+              "rank": 1,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/rat/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/rat/",
+              "clicks": 355,
+              "impressions": 43366,
+              "displayedCtrPercent": 0.8
+            },
+            {
+              "rank": 2,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/snake/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/snake/",
+              "clicks": 313,
+              "impressions": 43387,
+              "displayedCtrPercent": 0.7
+            },
+            {
+              "rank": 3,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/tiger/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/tiger/",
+              "clicks": 282,
+              "impressions": 48395,
+              "displayedCtrPercent": 0.6
+            },
+            {
+              "rank": 4,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/pig/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/pig/",
+              "clicks": 192,
+              "impressions": 44431,
+              "displayedCtrPercent": 0.4
+            },
+            {
+              "rank": 5,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/rooster/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/rooster/",
+              "clicks": 165,
+              "impressions": 37265,
+              "displayedCtrPercent": 0.4
+            },
+            {
+              "rank": 6,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/ox/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/ox/",
+              "clicks": 143,
+              "impressions": 21700,
+              "displayedCtrPercent": 0.7
+            },
+            {
+              "rank": 7,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/",
+              "clicks": 100,
+              "impressions": 7686,
+              "displayedCtrPercent": 1.3
+            },
+            {
+              "rank": 8,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/libra/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/libra/",
+              "clicks": 99,
+              "impressions": 26681,
+              "displayedCtrPercent": 0.4
+            },
+            {
+              "rank": 9,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/monkey/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/monkey/",
+              "clicks": 94,
+              "impressions": 16009,
+              "displayedCtrPercent": 0.6
+            },
+            {
+              "rank": 10,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/cancer/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/cancer/",
+              "clicks": 89,
+              "impressions": 20091,
+              "displayedCtrPercent": 0.4
+            },
+            {
+              "rank": 11,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/scorpio/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/scorpio/",
+              "clicks": 87,
+              "impressions": 25502,
+              "displayedCtrPercent": 0.3
+            },
+            {
+              "rank": 12,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/goat/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/goat/",
+              "clicks": 77,
+              "impressions": 18792,
+              "displayedCtrPercent": 0.4
+            },
+            {
+              "rank": 13,
+              "rawUrl": "https://code-destiny.com/naming-ai/",
+              "canonicalGroup": "https://code-destiny.com/naming-ai/",
+              "clicks": 73,
+              "impressions": 3190,
+              "displayedCtrPercent": 2.3
+            },
+            {
+              "rank": 14,
+              "rawUrl": "https://code-destiny.com/fortune/weekly/pisces/",
+              "canonicalGroup": "https://code-destiny.com/fortune/weekly/pisces/",
+              "clicks": 72,
+              "impressions": 13700,
+              "displayedCtrPercent": 0.5
+            },
+            {
+              "rank": 15,
+              "rawUrl": "https://code-destiny.com/ziwei/",
+              "canonicalGroup": "https://code-destiny.com/ziwei/",
+              "clicks": 72,
+              "impressions": 12243,
+              "displayedCtrPercent": 0.6
+            },
+            {
+              "rank": 16,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/aries/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/aries/",
+              "clicks": 68,
+              "impressions": 21762,
+              "displayedCtrPercent": 0.3
+            },
+            {
+              "rank": 17,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/horse/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/horse/",
+              "clicks": 67,
+              "impressions": 2060,
+              "displayedCtrPercent": 3.3
+            },
+            {
+              "rank": 18,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/virgo/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/virgo/",
+              "clicks": 61,
+              "impressions": 18771,
+              "displayedCtrPercent": 0.3
+            },
+            {
+              "rank": 19,
+              "rawUrl": "https://code-destiny.com/kkul-kkul-unse/",
+              "canonicalGroup": "https://code-destiny.com/kkul-kkul-unse/",
+              "clicks": 59,
+              "impressions": 267,
+              "displayedCtrPercent": 22.1
+            },
+            {
+              "rank": 20,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/rabbit/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/rabbit/",
+              "clicks": 55,
+              "impressions": 20193,
+              "displayedCtrPercent": 0.3
+            },
+            {
+              "rank": 21,
+              "rawUrl": "https://code-destiny.com/fortune/monthly/aquarius/",
+              "canonicalGroup": "https://code-destiny.com/fortune/monthly/aquarius/",
+              "clicks": 54,
+              "impressions": 9993,
+              "displayedCtrPercent": 0.5
+            },
+            {
+              "rank": 22,
+              "rawUrl": "https://code-destiny.com/fortune/today/",
+              "canonicalGroup": "https://code-destiny.com/fortune/today/",
+              "clicks": 54,
+              "impressions": 6588,
+              "displayedCtrPercent": 0.8
+            },
+            {
+              "rank": 23,
+              "rawUrl": "https://code-destiny.com/fortune/monthly/virgo/",
+              "canonicalGroup": "https://code-destiny.com/fortune/monthly/virgo/",
+              "clicks": 53,
+              "impressions": 7306,
+              "displayedCtrPercent": 0.7
+            },
+            {
+              "rank": 24,
+              "rawUrl": "https://code-destiny.com/insights/famous-saju/bts-jungkook/?v=22b01d70160c",
+              "canonicalGroup": "https://code-destiny.com/insights/famous-saju/bts-jungkook/",
+              "clicks": 52,
+              "impressions": 1038,
+              "displayedCtrPercent": 5
+            },
+            {
+              "rank": 25,
+              "rawUrl": "https://code-destiny.com/fortune/weekly/goat/",
+              "canonicalGroup": "https://code-destiny.com/fortune/weekly/goat/",
+              "clicks": 50,
+              "impressions": 5566,
+              "displayedCtrPercent": 0.9
+            },
+            {
+              "rank": 26,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/aquarius/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/aquarius/",
+              "clicks": 45,
+              "impressions": 13962,
+              "displayedCtrPercent": 0.3
+            },
+            {
+              "rank": 27,
+              "rawUrl": "https://code-destiny.com/insights/famous-saju/iu/?v=086b7d63fd62",
+              "canonicalGroup": "https://code-destiny.com/insights/famous-saju/iu/",
+              "clicks": 44,
+              "impressions": 1879,
+              "displayedCtrPercent": 2.3
+            },
+            {
+              "rank": 28,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/gemini/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/gemini/",
+              "clicks": 43,
+              "impressions": 17565,
+              "displayedCtrPercent": 0.2
+            },
+            {
+              "rank": 29,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/leo/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/leo/",
+              "clicks": 43,
+              "impressions": 15964,
+              "displayedCtrPercent": 0.3
+            },
+            {
+              "rank": 30,
+              "rawUrl": "https://code-destiny.com/fortune/monthly/rabbit/",
+              "canonicalGroup": "https://code-destiny.com/fortune/monthly/rabbit/",
+              "clicks": 43,
+              "impressions": 1721,
+              "displayedCtrPercent": 2.5
+            }
+          ],
+          "tomorrowDetailSubset": {
+            "pages": 18,
+            "clicks": 2278,
+            "impressions": 455896,
+            "weightedCtrPercent": 0.49967536455682876,
+            "scope": "TOP30 subset, membership may differ; not all tomorrow detail pages"
+          }
+        },
+        "days7": {
+          "selectedLabel": "최근 7일",
+          "totalsDisplayed": {
+            "clicks": "9.0백",
+            "impressions": "12.4만",
+            "averageDocumentCtrPercent": 0.7,
+            "rounded": true
+          },
+          "weekOverWeekDisplayed": {
+            "clickChangePercent": -16.8,
+            "impressionChangePercent": -28.1,
+            "averageCtrChangeLabel": "0.1%"
+          },
+          "webDocumentsTop30": [
+            {
+              "rank": 1,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/rat/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/rat/",
+              "clicks": 108,
+              "impressions": 6809,
+              "displayedCtrPercent": 1.6
+            },
+            {
+              "rank": 2,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/tiger/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/tiger/",
+              "clicks": 60,
+              "impressions": 7513,
+              "displayedCtrPercent": 0.8
+            },
+            {
+              "rank": 3,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/snake/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/snake/",
+              "clicks": 50,
+              "impressions": 2787,
+              "displayedCtrPercent": 1.8
+            },
+            {
+              "rank": 4,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/ox/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/ox/",
+              "clicks": 45,
+              "impressions": 6243,
+              "displayedCtrPercent": 0.7
+            },
+            {
+              "rank": 5,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/rooster/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/rooster/",
+              "clicks": 39,
+              "impressions": 4887,
+              "displayedCtrPercent": 0.8
+            },
+            {
+              "rank": 6,
+              "rawUrl": "https://code-destiny.com/ziwei/",
+              "canonicalGroup": "https://code-destiny.com/ziwei/",
+              "clicks": 36,
+              "impressions": 6867,
+              "displayedCtrPercent": 0.5
+            },
+            {
+              "rank": 7,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/",
+              "clicks": 33,
+              "impressions": 2336,
+              "displayedCtrPercent": 1.4
+            },
+            {
+              "rank": 8,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/monkey/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/monkey/",
+              "clicks": 24,
+              "impressions": 263,
+              "displayedCtrPercent": 9.1
+            },
+            {
+              "rank": 9,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/cancer/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/cancer/",
+              "clicks": 19,
+              "impressions": 4387,
+              "displayedCtrPercent": 0.4
+            },
+            {
+              "rank": 10,
+              "rawUrl": "https://code-destiny.com/naming-ai/",
+              "canonicalGroup": "https://code-destiny.com/naming-ai/",
+              "clicks": 19,
+              "impressions": 996,
+              "displayedCtrPercent": 1.9
+            },
+            {
+              "rank": 11,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/horse/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/horse/",
+              "clicks": 17,
+              "impressions": 570,
+              "displayedCtrPercent": 3
+            },
+            {
+              "rank": 12,
+              "rawUrl": "https://code-destiny.com/fortune/monthly/aquarius/",
+              "canonicalGroup": "https://code-destiny.com/fortune/monthly/aquarius/",
+              "clicks": 16,
+              "impressions": 5891,
+              "displayedCtrPercent": 0.3
+            },
+            {
+              "rank": 13,
+              "rawUrl": "https://code-destiny.com/fortune/weekly/pig/",
+              "canonicalGroup": "https://code-destiny.com/fortune/weekly/pig/",
+              "clicks": 16,
+              "impressions": 1314,
+              "displayedCtrPercent": 1.2
+            },
+            {
+              "rank": 14,
+              "rawUrl": "https://code-destiny.com/fortune/monthly/pisces/",
+              "canonicalGroup": "https://code-destiny.com/fortune/monthly/pisces/",
+              "clicks": 15,
+              "impressions": 5078,
+              "displayedCtrPercent": 0.3
+            },
+            {
+              "rank": 15,
+              "rawUrl": "https://code-destiny.com/fortune/weekly/goat/",
+              "canonicalGroup": "https://code-destiny.com/fortune/weekly/goat/",
+              "clicks": 15,
+              "impressions": 502,
+              "displayedCtrPercent": 3
+            },
+            {
+              "rank": 16,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/aries/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/aries/",
+              "clicks": 13,
+              "impressions": 4963,
+              "displayedCtrPercent": 0.3
+            },
+            {
+              "rank": 17,
+              "rawUrl": "https://code-destiny.com/fortune/monthly/monkey/",
+              "canonicalGroup": "https://code-destiny.com/fortune/monthly/monkey/",
+              "clicks": 13,
+              "impressions": 2415,
+              "displayedCtrPercent": 0.5
+            },
+            {
+              "rank": 18,
+              "rawUrl": "https://code-destiny.com/fortune/monthly/virgo/",
+              "canonicalGroup": "https://code-destiny.com/fortune/monthly/virgo/",
+              "clicks": 13,
+              "impressions": 750,
+              "displayedCtrPercent": 1.7
+            },
+            {
+              "rank": 19,
+              "rawUrl": "https://code-destiny.com/kkul-kkul-unse/",
+              "canonicalGroup": "https://code-destiny.com/kkul-kkul-unse/",
+              "clicks": 13,
+              "impressions": 77,
+              "displayedCtrPercent": 16.9
+            },
+            {
+              "rank": 20,
+              "rawUrl": "https://code-destiny.com/fortune/weekly/tiger/",
+              "canonicalGroup": "https://code-destiny.com/fortune/weekly/tiger/",
+              "clicks": 12,
+              "impressions": 2202,
+              "displayedCtrPercent": 0.5
+            },
+            {
+              "rank": 21,
+              "rawUrl": "https://code-destiny.com/fortune/monthly/rat/",
+              "canonicalGroup": "https://code-destiny.com/fortune/monthly/rat/",
+              "clicks": 12,
+              "impressions": 368,
+              "displayedCtrPercent": 3.3
+            },
+            {
+              "rank": 22,
+              "rawUrl": "https://code-destiny.com/fortune/monthly/scorpio/",
+              "canonicalGroup": "https://code-destiny.com/fortune/monthly/scorpio/",
+              "clicks": 11,
+              "impressions": 1489,
+              "displayedCtrPercent": 0.7
+            },
+            {
+              "rank": 23,
+              "rawUrl": "https://code-destiny.com/fortune/today/",
+              "canonicalGroup": "https://code-destiny.com/fortune/today/",
+              "clicks": 11,
+              "impressions": 1355,
+              "displayedCtrPercent": 0.8
+            },
+            {
+              "rank": 24,
+              "rawUrl": "https://code-destiny.com/fortune/weekly/pisces/",
+              "canonicalGroup": "https://code-destiny.com/fortune/weekly/pisces/",
+              "clicks": 11,
+              "impressions": 1270,
+              "displayedCtrPercent": 0.9
+            },
+            {
+              "rank": 25,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/pig/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/pig/",
+              "clicks": 10,
+              "impressions": 623,
+              "displayedCtrPercent": 1.6
+            },
+            {
+              "rank": 26,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/dog/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/dog/",
+              "clicks": 10,
+              "impressions": 233,
+              "displayedCtrPercent": 4.3
+            },
+            {
+              "rank": 27,
+              "rawUrl": "https://code-destiny.com/fortune/weekly/dog/",
+              "canonicalGroup": "https://code-destiny.com/fortune/weekly/dog/",
+              "clicks": 10,
+              "impressions": 116,
+              "displayedCtrPercent": 8.6
+            },
+            {
+              "rank": 28,
+              "rawUrl": "https://code-destiny.com/fortune/monthly/tiger/",
+              "canonicalGroup": "https://code-destiny.com/fortune/monthly/tiger/",
+              "clicks": 9,
+              "impressions": 1864,
+              "displayedCtrPercent": 0.5
+            },
+            {
+              "rank": 29,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/virgo/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/virgo/",
+              "clicks": 9,
+              "impressions": 1775,
+              "displayedCtrPercent": 0.5
+            },
+            {
+              "rank": 30,
+              "rawUrl": "https://code-destiny.com/yeongnyangi/1000-won-fortune/",
+              "canonicalGroup": "https://code-destiny.com/yeongnyangi/1000-won-fortune/",
+              "clicks": 9,
+              "impressions": 390,
+              "displayedCtrPercent": 2.3
+            }
+          ],
+          "tomorrowDetailSubset": {
+            "pages": 12,
+            "clicks": 404,
+            "impressions": 41053,
+            "weightedCtrPercent": 0.9840937324921443,
+            "scope": "TOP30 subset, membership may differ; not all tomorrow detail pages"
+          }
+        }
+      },
+      "groups": {
+        "home": {
+          "url": "/ggulggul/",
+          "current30": null,
+          "current7": null,
+          "reason": "Not in TOP30; /kkul-kkul-unse/ is a distinct URL and not substituted"
+        },
+        "today": {
+          "url": "/today/",
+          "current30": null,
+          "current7": null,
+          "reason": "Not in TOP30; /fortune/today/ is a distinct URL and not substituted"
+        },
+        "tomorrowHub": {
+          "url": "/fortune/tomorrow/",
+          "baseline30": {
+            "clicks": 55,
+            "impressions": 5374,
+            "displayedCtrPercent": 1
+          },
+          "current30": {
+            "rank": 7,
+            "rawUrl": "https://code-destiny.com/fortune/tomorrow/",
+            "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/",
+            "clicks": 100,
+            "impressions": 7686,
+            "displayedCtrPercent": 1.3
+          },
+          "current7": {
+            "rank": 7,
+            "rawUrl": "https://code-destiny.com/fortune/tomorrow/",
+            "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/",
+            "clicks": 33,
+            "impressions": 2336,
+            "displayedCtrPercent": 1.4
+          }
+        },
+        "tomorrowDetails": {
+          "baselineTop30Subset": {
+            "pages": 18,
+            "clicks": 2103,
+            "impressions": 484641,
+            "ctrPercent": 0.43392944468173344,
+            "note": "전체 내일 운세 합계가 아닌 상위30 URL 중18개"
+          },
+          "current30": {
+            "pages": 18,
+            "clicks": 2278,
+            "impressions": 455896,
+            "weightedCtrPercent": 0.49967536455682876,
+            "scope": "TOP30 subset, membership may differ; not all tomorrow detail pages"
+          },
+          "current7": {
+            "pages": 12,
+            "clicks": 404,
+            "impressions": 41053,
+            "weightedCtrPercent": 0.9840937324921443,
+            "scope": "TOP30 subset, membership may differ; not all tomorrow detail pages"
+          },
+          "matchedCohortVerified": false
+        },
+        "insightsHub": {
+          "url": "/insights/",
+          "current30": null,
+          "current7": null,
+          "reason": "Not in TOP30"
+        },
+        "famousHub": {
+          "url": "/insights/famous-saju/",
+          "current30": null,
+          "current7": null,
+          "reason": "Not in TOP30"
+        },
+        "celebrityDetails": {
+          "iu": {
+            "baseline30": {
+              "rawUrl": "https://code-destiny.com/insights/famous-saju/iu/?v=086b7d63fd62",
+              "clicks": 38,
+              "impressions": 1844,
+              "displayedCtrPercent": 2.1
+            },
+            "current30": {
+              "rank": 27,
+              "rawUrl": "https://code-destiny.com/insights/famous-saju/iu/?v=086b7d63fd62",
+              "canonicalGroup": "https://code-destiny.com/insights/famous-saju/iu/",
+              "clicks": 44,
+              "impressions": 1879,
+              "displayedCtrPercent": 2.3
+            },
+            "current7": null
+          },
+          "jungkook": {
+            "baseline30": null,
+            "current30": {
+              "rank": 24,
+              "rawUrl": "https://code-destiny.com/insights/famous-saju/bts-jungkook/?v=22b01d70160c",
+              "canonicalGroup": "https://code-destiny.com/insights/famous-saju/bts-jungkook/",
+              "clicks": 52,
+              "impressions": 1038,
+              "displayedCtrPercent": 5
+            },
+            "current7": null
+          },
+          "scope": "Two raw URLs present in 30-day TOP30, not the total celebrity traffic. TOP30 absence is unknown, not zero; canonical grouping is syntactic and does not prove all query variants are present."
+        }
+      },
+      "conclusion": "30-day displayed average document CTR and selected URL CTR increased, but recent 7-day clicks/impressions fell week over week. No causal uplift conclusion.",
+      "limitations": [
+        "Rolling 30-day windows overlap and mix pre/post release; not a clean before/after experiment.",
+        "TOP30 limits prevent full home/today/insight/famous group totals and matched detail-cohort verification.",
+        "Average CTR displayed by Naver is the mean of document CTRs, not aggregate clicks divided by aggregate impressions.",
+        "Multiple title/content/function/UI changes and subsequent releases confound attribution.",
+        "Low-exposure URLs such as /kkul-kkul-unse/ and monkey/horse detail samples are not grounds for success claims.",
+        "No keyword position measurement or signup/payment attribution was performed."
+      ],
+      "causalTitleEffect": null,
+      "nextMilestone": "2026-11-07",
+      "readOnlyActionsOnly": true
     }
   },
   "rename20261010": {
