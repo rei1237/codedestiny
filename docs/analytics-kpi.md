@@ -148,7 +148,7 @@ next: "S00 기준선의 동일 KST 기간·동의/테스트 제외·승인일 �
 | 홈 뮤직비디오 재생률 | `home_mv_play` ÷ `home_card_impression`(card=`moonlight_mv`) | `quality` · `source` · 기기 | 홈 중간의 뮤직비디오가 보인 뒤 실제로 재생되는가 |
 | 영냥이 뮤직비디오 열기율 | `yeongnyangi_mv_open` ÷ `yeongnyangi_mv_impression` | 기기 | 영냥이 홈의 타로 카드가 보인 뒤 실제로 눌리는가 |
 | 영냥이 뮤직비디오 재생 성공률 | `yeongnyangi_mv_play` ÷ `yeongnyangi_mv_open` | `quality` · `source` · 기기 | 극장을 연 사람이 영상을 실제로 보기 시작하는가(로딩·자동재생 차단 손실) |
-| 영냥이 뮤직비디오 완주율 | `yeongnyangi_mv_complete` ÷ `yeongnyangi_mv_play` | `quality` · 기기 | 3분 20초를 끝까지 보는가 |
+| 영냥이 뮤직비디오 완주율 | `yeongnyangi_mv_complete` ÷ `yeongnyangi_mv_play` | `quality` · 기기 | 4분 44초를 끝까지 보는가 |
 | 영냥이 뮤직비디오→운세 전환율 | `yeongnyangi_mv_cta` ÷ `yeongnyangi_mv_play` | `placement` · 기기 | 영상을 본 사람이 영냥이에게 운세를 물으러 가는가 |
 | 무료 체험 완주율 | `free_saju_completed` ÷ `free_saju_started` | `signed_in` | 무료 경로에서 이탈이 나는지 |
 | 결제창 도달률 | `checkout_opened` ÷ `free_saju_completed` | `feature_key` | 무료→유료 다리가 작동하는지 |

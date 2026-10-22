@@ -9,21 +9,21 @@ import styles from './heaven-light-cinema.module.css';
 // R2(codedestinyassets) 내용해시 키라 immutable 캐시다. 영상을 바꾸면 새 키로 올리고 여기만 고친다.
 // 원본은 HEAVEN LIGHT MV 무자막 마스터(1080p30)다. 가사는 영상에 굽지 않고 같은 출처의 WebVTT 트랙으로 얹는다.
 const SOURCES={
- '1080p':'https://assets.code-destiny.com/yeongnyangi/mv/heaven-light-1080p-06cecf07eb68.mp4',
- '720p':'https://assets.code-destiny.com/yeongnyangi/mv/heaven-light-720p-f2c4008f5c2d.mp4',
+ '1080p':'https://assets.code-destiny.com/yeongnyangi/mv/heaven-light-1080p-305a70272e79.mp4',
+ '720p':'https://assets.code-destiny.com/yeongnyangi/mv/heaven-light-720p-472420706368.mp4',
 };
 type Quality=keyof typeof SOURCES;
 const ART='/assets/yeongnyangi/mv';
-const LYRICS='/media/mv/heaven-light-ko-v3.vtt';
+const LYRICS='/media/mv/heaven-light-ko-v4.vtt';
 const CARD_SIZES='(max-width: 384px) 78vw, 300px';
 // 챕터 시작(초)은 MV 타임라인의 장 경계를 그 장 첫 컷의 시작 프레임에 맞춘 값이다. 썸네일은 그 챕터 안 대표 장면의 무자막 프레임이다.
 const CHAPTERS=[
  {name:'첫 번째 봄',at:0},
- {name:'이름의 값',at:53.64},
  {name:'피눈물의 달',at:74.71},
  {name:'두 번째 봄',at:96.21},
- {name:'부르는 이름',at:113.74},
- {name:'천량',at:143.31},
+ {name:'다섯 개의 하늘',at:110.81},
+ {name:'부르는 이름',at:197.37},
+ {name:'천량',at:226.91},
 ];
 const clock=(at:number)=>`${Math.floor(at/60)}:${String(Math.floor(at%60)).padStart(2,'0')}`;
 type Connection={saveData?:boolean;effectiveType?:string};
@@ -211,7 +211,7 @@ export default function HeavenLightCinema(){
       <button ref={trigger} type="button" className={styles.cardLink} data-mv-card-trigger="" aria-haspopup="dialog" aria-describedby="hl-mv-line hl-mv-meta">HEAVEN LIGHT<span className={styles.srOnly}> 뮤직비디오 재생</span></button>
      </h2>
      <p id="hl-mv-line" className={styles.line}>괜찮은 척 웃던 너를 지키러,<br/>누군가 시간을 거슬러 왔다.</p>
-     <p id="hl-mv-meta" className={styles.meta}>3분 20초 · 소리가 나와요 · 가사 자막</p>
+     <p id="hl-mv-meta" className={styles.meta}>4분 44초 · 소리가 나와요 · 가사 자막</p>
      <span className={styles.action} aria-hidden="true"><Play size={14} fill="currentColor"/>뮤직비디오 재생</span>
     </div>
     <span className={styles.foil} aria-hidden="true"/>
@@ -235,10 +235,10 @@ export default function HeavenLightCinema(){
       onPlay={()=>setEnded(false)} onEnded={()=>{setEnded(true);if(!tracked.current.complete){tracked.current.complete=true;trackEvent('yeongnyangi_mv_complete');}}}>
       <track kind="subtitles" srcLang="ko" label="한국어 가사" src={LYRICS} default/>
      </video>
-     {state!=='playing'&&<button ref={cover} type="button" className={styles.cover} onClick={()=>start(playSource.current)} aria-busy={state==='loading'} aria-label={state==='error'?'뮤직비디오 다시 시도':'HEAVEN LIGHT 뮤직비디오 재생, 3분 20초, 소리가 나와요'}>
+     {state!=='playing'&&<button ref={cover} type="button" className={styles.cover} onClick={()=>start(playSource.current)} aria-busy={state==='loading'} aria-label={state==='error'?'뮤직비디오 다시 시도':'HEAVEN LIGHT 뮤직비디오 재생, 4분 44초, 소리가 나와요'}>
       <span className={styles.cta} aria-hidden="true">
        <span className={styles.play}><Play size={22} fill="currentColor"/></span>
-       {state==='loading'?'영상을 불러오는 중이에요':state==='error'?'영상을 불러오지 못했어요 · 다시 시도':'3분 20초 · 소리가 나와요'}
+       {state==='loading'?'영상을 불러오는 중이에요':state==='error'?'영상을 불러오지 못했어요 · 다시 시도':'4분 44초 · 소리가 나와요'}
       </span>
      </button>}
      {ended&&<div className={styles.end} role="group" aria-labelledby="hl-mv-end-title">

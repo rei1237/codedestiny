@@ -19,25 +19,25 @@ test('video is an immutable content-hashed R2 key and nothing loads before the c
   for (const url of urls) assert.match(url, /^https:\/\/assets\.code-destiny\.com\/yeongnyangi\/mv\/heaven-light-(1080p|720p)-[0-9a-f]{12}\.mp4$/);
   assert.match(cinema, /<video[^>]*preload="none"/);
   assert.match(cinema, /<video[^>]*playsInline/);
-  assert.match(cinema, /const LYRICS='\/media\/mv\/heaven-light-ko-v3\.vtt'/);
+  assert.match(cinema, /const LYRICS='\/media\/mv\/heaven-light-ko-v4\.vtt'/);
 });
 
-test('lyrics, chapters and the stated length all fit the 3:20 cut', () => {
-  const vtt = read('public/media/mv/heaven-light-ko-v3.vtt').replace(/\r\n/g, '\n');
+test('lyrics, chapters and the stated length all fit the 4:44 cut', () => {
+  const vtt = read('public/media/mv/heaven-light-ko-v4.vtt').replace(/\r\n/g, '\n');
   assert.ok(vtt.startsWith('WEBVTT\n'));
   const seconds = stamp => stamp.split(':').reduce((total, part) => total * 60 + Number(part), 0);
   const cues = [...vtt.matchAll(/^(\d\d:\d\d:\d\d\.\d{3}) --> (\d\d:\d\d:\d\d\.\d{3})$/gm)].map(([, start, end]) => [seconds(start), seconds(end)]);
-  assert.equal(cues.length, 69);
+  assert.equal(cues.length, 106);
   cues.forEach(([start, end], index) => {
     assert.ok(start < end, `cue ${index + 1}`);
     if (index) assert.ok(start >= cues[index - 1][1], `cue ${index + 1} overlaps`);
   });
-  assert.ok(cues.at(-1)[1] <= 200.233);
+  assert.ok(cues.at(-1)[1] <= 283.84);
   const chapters = [...cinema.matchAll(/\{name:'[^']+',at:([\d.]+)\}/g)].map(match => Number(match[1]));
   assert.equal(chapters.length, 6);
-  chapters.forEach((at, index) => assert.ok(index ? at > chapters[index - 1] && at < 200.233 : at === 0, `chapter ${index + 1}`));
-  assert.equal(cinema.match(/3분 20초/g)?.length, 3);
-  assert.ok(!cinema.includes('4분 44초'));
+  chapters.forEach((at, index) => assert.ok(index ? at > chapters[index - 1] && at < 283.84 : at === 0, `chapter ${index + 1}`));
+  assert.equal(cinema.match(/4분 44초/g)?.length, 3);
+  assert.ok(!cinema.includes('3분 20초'));
 });
 
 test('card, poster and chapter art stay inside their byte budgets', () => {
