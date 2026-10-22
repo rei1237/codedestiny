@@ -1,7 +1,7 @@
 ---
-status: active
+status: blocked
 updated: 2026-10-23
-next: "1 — 추가 질문 답변(worker/yeongnyangi/question-followup.ts)에 반복 문장 제거를 붙인다. 답을 ChapterBody로 감싸 pruneRestatements를 그대로 재사용한다"
+next: "5 — 운영 읽기 승인 대기: accessMethod 있음 + 증빙 없음 행 수를 센다(읽기 전용 새 감사 함수 필요, 결과 기록 참고). 그 밖은 사용자 결정 대기 절"
 ---
 
 # 영냥이 상담 중복·정확도 — 후속 과제
@@ -66,7 +66,7 @@ next: "1 — 추가 질문 답변(worker/yeongnyangi/question-followup.ts)에 �
 
 ### P1 — 고객이 보는 중복·정확도
 
-- [ ] **1. 추가 질문 답변에 반복 문장 제거가 없다**
+- [x] **1. 추가 질문 답변에 반복 문장 제거가 없다** (ab2119a83)
   - 현재
     - `worker/yeongnyangi/question-followup.ts:29-83`(`questionConversation`)은 모델 답을 `validateFollowup`(`fortune/ask/conversation.ts:33`)으로 검사한다(`:70`). 그 결과를 그대로 저장한다(`:73`).
     - 프롬프트에는 본편 장의 summary·highlights만 들어간다(`:55`). 반복 금지는 문구 지시뿐이다(`:54`).
@@ -89,7 +89,7 @@ next: "1 — 추가 질문 답변(worker/yeongnyangi/question-followup.ts)에 �
     - 본편 문장을 복사한 답 → 그 문장만 빠지고 단락 3개와 하한은 유지된다.
     - repeatPolicy가 없는 옛 주문 → 답이 바이트 단위로 같다.
     - provider 호출 수는 그대로다.
-- [ ] **2. 본문의 세는 나이 "N세 대운" 표기를 결정적으로 고치지 않는다**
+- [x] **2. 본문의 세는 나이 "N세 대운" 표기를 결정적으로 고치지 않는다** (efa390129)
   - 현재 표기 규칙은 프롬프트에만 있다.
     - `fortune/saju/index.ts:11`
     - `fortune/saju/major-luck.ts:7-8`(`MAJOR_LUCK_AGE_RULE`)
@@ -113,7 +113,7 @@ next: "1 — 추가 질문 답변(worker/yeongnyangi/question-followup.ts)에 �
     - 고치지 않는 경우 3건: label 없는 옛 주문, 간지 불일치, 이미 "만 N세"인 문장
     - 프롬프트가 바뀌지 않으므로 불변성 해시는 그대로여야 한다.
   - 선택: 1번의 추가 질문 답에도 같은 교정을 적용할지 정한다. 지금은 `validateReadingClaims`만 거친다.
-- [ ] **3. 차트 "계산된 시기" 행에 "자료 없음"이 나온다**
+- [x] **3. 차트 "계산된 시기" 행에 "자료 없음"이 나온다** (79ffda868)
   - 위치: `fortune/reading-presentation.ts:91-101`
     - majorLuck은 `[currentCycle, ...cycles]`로, yearlyLuck은 배열 그대로 행을 만든다.
     - 라벨은 `text(r.lord||r.planet||r.ganji||r.pillar||r.year)`다.
@@ -133,7 +133,7 @@ next: "1 — 추가 질문 답변(worker/yeongnyangi/question-followup.ts)에 �
 
 ### P2 — 결제 판정 일관성 (돈 흐름은 바꾸지 않는다)
 
-- [ ] **4. `retry.js`가 자기만의 접근 판정을 쓴다**
+- [x] **4. `retry.js`가 자기만의 접근 판정을 쓴다** (a99288e99)
   - 판정 함수가 세 개다.
     - `worker/yeongnyangi/retry.js:7`: `paymentId || accessMethod==='FAMILY' || passEvidenceId`. MOONLIGHT_STONE·SERVICE_PACK·PER_USE·ACCOUNT_FREE_TRIAL·`moonstoneLedgerId`·`packEntitlementId`를 모른다.
     - `worker/yeongnyangi/access-methods.js:6`: `packEntitlementId`가 없다.
@@ -187,4 +187,9 @@ next: "1 — 추가 질문 답변(worker/yeongnyangi/question-followup.ts)에 �
 
 ## 결과 기록
 
-- (항목을 끝낼 때마다 날짜·SHA·검증을 여기에 적는다)
+- 2026-10-23 (워크트리 wt/yeongnyangi-followups-20261023-060746, base origin/main 7bc87244c, 항목마다 check:fast 통과, LLM 호출·운영 DB 접근 없음)
+  - 1 — ab2119a83: `question-followup.ts`에 `pruneFollowup`. `manifest[0].repeatPolicy`가 `sentence-v1`인 주문의 새 추가 질문 답에만 저장된 장·앞선 답과 겹치는 문장 제거(`pruneRestatements`)를 건다. 옛 주문 답은 바이트 그대로. 분량 안내(budgetGuide) 하한 아래로는 줄이지 않고, 안내가 없으면 완전 중복만 지운다(가정: 추가 질문 답의 바닥은 그 안내의 하한).
+  - 2 — efa390129: `natal-claims.ts`가 "N세(부터 M세까지) (간지) 대운"을 label이 있는 대운 주기의 만 나이 `ageRange`로 바꾼다. 간지 하나·나이 하나·주기 startAge/endAge 일치일 때만 고치고, 다른 사람·세운·이미 만 나이·여러 주기 문장은 그대로 둔다. 불변성 해시 변화 없음.
+  - 3 — 79ffda868: `reading-presentation.ts`가 빈 칸만 채운다. 첫 교운 전 대운 → "대운 시작 전", 날짜 붙은 대운 → 본문 label 제목(다른 언어는 간지·교운 연월), 세운 → 연도 한 칸(타임라인은 그 해 전체), 다샤 start/end → 날짜. 있는 값은 그대로. sitemap lastmod(/fortune-tea-house/ 시그니처) 재생성 포함.
+  - 4 — a99288e99: `retry.js`가 `repository.hasRequestAccess`를 쓴다. 월정석·서비스팩·PER_USE·무료체험 행 재시도가 `attachPayment`를 부르지 않는다는 jest 테스트 추가, 세 테스트 mock을 실제 판정과 맞췄다. `access-methods.js:6`은 그대로 둔다: SERVICE_PACK 기록(`payment-funding.js:48-55`)이 accessMethod·passEvidenceId·packEntitlementId를 함께 써서 실제 판정이 같고, 바꾸면 후기 자격만 넓어질 수 있다.
+  - 5 — 코드 변경 없음. `scripts/audit-library-retention.mjs`는 CLI 뼈대(`--env-file`/`--db`만 받는 읽기 전용 가드, native MongoClient, ownerHash)만 재사용할 수 있다. 감사 함수 본문은 serviceexecutiontransactions 보존 기한용이라 쓸 수 없고, 증빙 판정이 5경로(PER_USE·무료체험·서비스팩·월정석·Family PointHistory, `repository.js:108`)라 native 컬렉션으로 새 함수를 짜야 한다. 운영 읽기는 승인 뒤에만.
