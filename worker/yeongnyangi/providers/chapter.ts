@@ -365,6 +365,7 @@ const QUESTION_MACKEREL_SCENES=[
   '반가운 제안과 걸리는 조건을 함께 받은 순간',
   '하루를 마치며 내일 할 첫 행동을 한 줄 적는 순간',
 ];
+const QUESTION_CORE_SCENE='일·사람·몸의 컨디션이 한꺼번에 신경 쓰이는 평범한 한 주';
 /** Evidence IDs earlier chapters already explained, so a later chapter refers back in a line instead of re-explaining them. */
 function explainedEvidence(previous:ChapterRequest['previous']){
   const ids=[...new Set(previous.flatMap(p=>Array.isArray(p.sources)?p.sources:[]))].filter(id=>typeof id==='string');
@@ -528,7 +529,9 @@ export class StructuredChapterProvider implements FortuneChapterProvider {
     const questionMackerel=input.chapter.consultationLayout===QUESTION_LAYOUT_VERSION&&tier==='mackerel';
     const questionIndex=/^question-(\d+)$/.exec(input.chapter.key||'');
     const originalQuestionIndex=questionIndex?Number(questionIndex[1]):input.chapter.ordinal;
-    const expansion=Boolean(input.chapter.key?.startsWith('expansion-'));
+    // question-core (question-policy.ts) has no question number: like an expansion row it carries its own task.
+    const core=input.chapter.key==='question-core';
+    const expansion=core||Boolean(input.chapter.key?.startsWith('expansion-'));
     const paidScoped=!input.chapter.questionPolicy&&isStructuredReading(input.chapter.version)&&!['tuna','assorted','omakase'].includes(tier);
     const depth = '모든 생선에서 질문과 상담 범위에 필요한 가장 깊은 분석을 제공한다. 실제 근거를 교차 검토하고 반대 신호·원인·판단이 달라지는 조건·생활 장면·선택지·우선 행동을 충분히 설명한다. 근거 수나 문단 수를 가격에 따라 제한하지 않고, 관련 없는 주제나 반복으로 분량을 늘리지 않는다.';
     const sky=input.analysis.consultation?.questionSky;
@@ -629,7 +632,7 @@ export class StructuredChapterProvider implements FortuneChapterProvider {
           '복잡한 생각을 메모 한 장으로 정리하는 순간',
           '예상치 못한 부탁을 받고 바로 대답하지 않는 순간',
           '하루를 마치며 내일 하지 않을 일을 한 줄 적는 순간',
-        ][input.chapter.ordinal]:questionMackerel?(expansion?`'${input.chapter.title}'를 실제 질문 상황에 적용하는 가상의 연습 장면`:QUESTION_MACKEREL_SCENES[originalQuestionIndex]):undefined,
+        ][input.chapter.ordinal]:questionMackerel?(core?QUESTION_CORE_SCENE:expansion?`'${input.chapter.title}'를 실제 질문 상황에 적용하는 가상의 연습 장면`:QUESTION_MACKEREL_SCENES[originalQuestionIndex]):undefined,
         ...(isPremiumFusionBookLayout(input.chapter.consultationLayout)&&input.chapter.layoutRole==='answer'?{directAnswer:DIRECT_FUSION_ANSWER}:{}),
         writingContract:'previousConclusions와 previousExamples는 재사용 금지 목록이다. 기존 문장을 단어만 바꾸어 쓰지 않는다. exampleScene은 가상의 예시 소재이지 실제 경험의 증거가 아니다. 질문과 맞지 않으면 다른 장면을 고른다. 실제 직업이나 동료가 있다고 단정하지 않는다. summary는 이번 장의 고유 질문(chapter.focus)에 대한 답으로 쓰고, previousConclusions·fixedConclusions의 결론 문장을 다시 쓰지 않는다.',
         topic:input.analysis.topicId,
