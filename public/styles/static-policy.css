@@ -390,6 +390,292 @@ html[data-cd-theme=neo] .PolicyGuide_page {
   }
 }
 
+/* app/contact-us/contact.module.css */
+.contact_page {
+  --contact-on-accent: #fffaf7;
+}
+.contact_page .policy-doc__single {
+  max-width: none;
+}
+.contact_page .contact_hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 32px 8px 36px;
+}
+.contact_page .contact_hero h1 {
+  font-size: clamp(1.8rem, 4.5vw, 2.8rem);
+}
+.contact_page .contact_hero p {
+  margin: 16px 0 0;
+  color: var(--pg-muted);
+  line-height: 1.8;
+}
+.contact_mascot {
+  width: 112px;
+  height: 112px;
+  flex-shrink: 0;
+  object-fit: contain;
+  border-radius: 24px;
+}
+.contact_channels {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+.contact_page .contact_chat,
+.contact_page .contact_email {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: clamp(24px, 4vw, 36px);
+  border: 1px solid var(--pg-line);
+  border-radius: 24px;
+  scroll-margin-top: 88px;
+}
+.contact_page .contact_chat {
+  background: var(--pg-surface);
+}
+.contact_page .contact_email {
+  background: var(--pg-card);
+}
+.contact_page .contact_channelIcon {
+  width: 30px;
+  height: 30px;
+  margin-bottom: 20px;
+  color: var(--pg-accent);
+  stroke-width: 1.6;
+}
+.contact_page .contact_channels h2 {
+  font-size: clamp(1.25rem, 2.8vw, 1.6rem);
+  margin: 0;
+}
+.contact_page .contact_channels p {
+  margin: 12px 0 20px;
+  color: var(--pg-muted);
+  font-size: 0.94rem;
+  line-height: 1.8;
+  word-break: keep-all;
+}
+.contact_hours {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin: 0 0 24px;
+  color: var(--pg-ink);
+}
+.contact_hours svg {
+  width: 20px;
+  height: 20px;
+  color: var(--pg-accent);
+  flex-shrink: 0;
+}
+.contact_hours span {
+  display: grid;
+  gap: 2px;
+}
+.contact_hours strong {
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+}
+.contact_hours small {
+  font-size: 0.8rem;
+  color: var(--pg-muted);
+}
+.contact_page .contact_primaryAction,
+.contact_page .contact_secondaryAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 0.94rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background-color 160ms ease, color 160ms ease;
+}
+.contact_page .contact_chat .contact_primaryAction {
+  width: 100%;
+  background: var(--pg-accent);
+  color: var(--contact-on-accent);
+}
+.contact_page .contact_primaryAction:hover {
+  background: color-mix(in srgb, var(--pg-accent) 88%, var(--pg-ink));
+}
+.contact_page .contact_secondaryAction {
+  margin-top: auto;
+  border: 1px solid var(--pg-line);
+  color: var(--pg-accent);
+}
+.contact_page .contact_secondaryAction:hover {
+  background: var(--pg-surface);
+}
+.contact_primaryAction svg,
+.contact_secondaryAction svg,
+.contact_emailAddress svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+.contact_page .contact_caption,
+.contact_page .contact_channels .contact_caption {
+  margin: 14px 0 0;
+  font-size: 0.8rem;
+  line-height: 1.75;
+  color: var(--pg-muted);
+}
+.contact_page .contact_emailAddress {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.contact_page .contact_email .contact_caption {
+  margin: 8px 0 24px;
+}
+.contact_prepare {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 0 8px;
+  margin: 0 0 24px;
+}
+.contact_prepare > svg {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  margin-top: 3px;
+  color: var(--pg-accent);
+}
+.contact_page .contact_prepare h2 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+  font-family: inherit;
+}
+.contact_page .contact_prepare p {
+  margin: 0;
+  max-width: 70ch;
+  color: var(--pg-muted);
+  font-size: 0.88rem;
+  line-height: 1.85;
+}
+.contact_page .contact_prepare .contact_caption {
+  margin-top: 6px;
+}
+.contact_quickLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  padding: 12px 8px 24px;
+  margin-bottom: 32px;
+  border-bottom: 1px solid var(--pg-line);
+}
+.contact_page .contact_quickLinks a {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  min-height: 44px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+.contact_quickLinks svg,
+.contact_sectionHeading svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: var(--pg-accent);
+  stroke-width: 1.6;
+}
+.contact_page .contact_sectionHeading {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.contact_sectionHeading svg {
+  margin-top: 4px;
+}
+.contact_page #contact-form {
+  scroll-margin-top: 88px;
+}
+.contact_page a:focus-visible {
+  outline: 3px solid var(--pg-accent);
+  outline-offset: 4px;
+}
+.contact_page ::selection {
+  background: var(--pg-accent);
+  color: var(--contact-on-accent);
+}
+.contact_srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+@media (max-width: 600px) {
+  .contact_page .contact_hero {
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px 4px 28px;
+  }
+  .contact_page .contact_hero h1 {
+    max-width: 11ch;
+  }
+  .contact_page .contact_hero p {
+    font-size: 0.9rem;
+  }
+  .contact_mascot {
+    width: 72px;
+    height: 72px;
+    border-radius: 18px;
+  }
+  .contact_channels {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .contact_page .contact_chat,
+  .contact_page .contact_email {
+    border-radius: 20px;
+    padding: 24px;
+  }
+  .contact_page .contact_channelIcon {
+    margin-bottom: 14px;
+  }
+  .contact_page .contact_secondaryAction {
+    width: 100%;
+  }
+  .contact_quickLinks {
+    gap: 4px 20px;
+  }
+}
+@media (prefers-color-scheme: dark) {
+  .contact_page {
+    --contact-on-accent: #21182a;
+  }
+}
+html.neo-mode .contact_page,
+html[data-cd-theme=neo] .contact_page {
+  --contact-on-accent: #21182a;
+}
+@media (prefers-reduced-motion: reduce) {
+  .contact_page .contact_primaryAction,
+  .contact_page .contact_secondaryAction {
+    transition: none;
+  }
+}
+
 /* styles/trust-stories.css */
 
 /* app/about/service-intro.css */
