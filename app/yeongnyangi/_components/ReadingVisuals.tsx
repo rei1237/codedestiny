@@ -42,7 +42,7 @@ export function TimingTimeline({rows,locale,focus=[]}:{rows:TimingRow[];locale?:
   <div className={styles.tableWrap}><table className={styles.table}>
    <thead><tr><th scope="col">{copy.periodCol}</th><th scope="col">{copy.rangeCol}</th></tr></thead>
    <tbody>{rows.map(r=><tr key={r.id} data-now={r.now || undefined}><td>{chartTerm(r.label,locale)}{r.now&&<strong className={styles.nowBadge}>{copy.now}</strong>}</td>
-    <td>{r.from!==undefined?`${r.start} – ${r.end}`:copy.noRange}</td></tr>)}</tbody>
+    <td>{r.from===undefined?copy.noRange:r.start===r.end?r.start:`${r.start} – ${r.end}`}</td></tr>)}</tbody>
   </table></div>
  </section>;
 }

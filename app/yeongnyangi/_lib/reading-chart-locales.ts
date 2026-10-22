@@ -38,6 +38,8 @@ const terms:Record<string,readonly string[]>={
  '주기':['周期','週期','Chu kỳ','चक्र','Ciclo','Cycle','Zyklus','Cyclus','Kitaran'],
  '시작':['开始','開始','Bắt đầu','आरंभ','Inicio','Début','Beginn','Begin','Mula'],
  '끝':['结束','結束','Kết thúc','अंत','Fin','Fin','Ende','Einde','Tamat'],
+ '연도':['年份','年份','Năm','वर्ष','Año','Année','Jahr','Jaar','Tahun'],
+ '대운 시작 전':['大运开始前','大運開始前','Trước đại vận đầu tiên','पहली महादशा से पहले','Antes del primer gran ciclo','Avant le premier grand cycle','Vor dem ersten großen Zyklus','Vóór de eerste grote cyclus','Sebelum kitaran besar pertama'],
  '목':['木','木','Mộc','लकड़ी','Madera','Bois','Holz','Hout','Kayu'],
  '화':['火','火','Hỏa','अग्नि','Fuego','Feu','Feuer','Vuur','Api'],
  '토':['土','土','Thổ','पृथ्वी','Tierra','Terre','Erde','Aarde','Tanah'],
