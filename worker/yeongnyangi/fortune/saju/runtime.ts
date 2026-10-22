@@ -21,6 +21,7 @@ import { buildSajuAdvancedFactors } from "../../../lib/saju-ai-prompt.js";
 import { buildLoveShinsal } from "../../../lib/saju-shinsal.js";
 import { BirthProfile } from "../shared/contracts";
 import { kstWall, sexagenaryYearAt } from './sexagenary-year';
+import { cycleTag, withDatedMajorLuck } from './major-luck';
 import { flipStrength, jongCheckYears, resolveJongVerdict, strengthCheckYears, type JongAnswer } from './jong-check';
 
 export function calculateScreenSaju(profile: BirthProfile, now: Date, jongAnswer?: JongAnswer) {
@@ -39,6 +40,7 @@ export function calculateScreenSaju(profile: BirthProfile, now: Date, jongAnswer
     now: new Date(Date.UTC(luckYear + 5, 0, 15)),
   });
   r.yearlyLuck = [...r.yearlyLuck, ...next.yearlyLuck];
+  r.majorLuck = withDatedMajorLuck(r.majorLuck, now);
   // Before this year's 소한 the 子月 that began at last year's 대설 is still in force.
   const terms = nodeTerms(kstYear);
   const clock = (t: { month: number; day: number; hour: number; minute: number }) => ((t.month * 100 + t.day) * 100 + t.hour) * 100 + t.minute;
@@ -110,7 +112,8 @@ export function calculateScreenSaju(profile: BirthProfile, now: Date, jongAnswer
     pillars: p,
     power,
     jong,
-    daewoon: r.majorLuck?.cycles,
+    // A dated tag instead of the counting-age "32세" prefix buildLuckRow adds from startAge.
+    daewoon: r.majorLuck?.cycles?.map((c: any) => c.startDate ? { pillar: c.pillar, heavenlyStem: c.heavenlyStem, earthlyBranch: c.earthlyBranch, label: cycleTag(c) } : c),
     yearlyLuck: r.yearlyLuck,
   });
   return {
