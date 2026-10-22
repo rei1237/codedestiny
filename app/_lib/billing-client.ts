@@ -2593,14 +2593,19 @@ async function runPaidServiceRuntimePayment(input: BillingCoinGateInput, context
     // Preserve server verification and cancellation states across the legacy gate.
     const runtimeError = asRecord(error);
     const status = Number(runtimeError?.status);
+    // 호출부 약 10곳이 message 를 화면에 그대로 띄운다. 한국어 안내만 통과시키고
+    // "Failed to fetch" 같은 런타임 원문은 debugMessage 로만 남긴다(app/_lib/friendly-error.ts 와 같은 규칙).
+    const runtimeMessage = error instanceof Error ? error.message : "";
+    const userFacing = /[가-힣]/.test(runtimeMessage);
     return {
       ok: false,
       status: Number.isInteger(status) && status >= 400 && status <= 599 ? status : 500,
       data: null,
-      message: error instanceof Error ? error.message : billingClientText("billingClient.message.001"),
+      message: userFacing ? runtimeMessage : billingClientText("billingClient.message.001"),
       error: {
         code: toText(runtimeError?.code) || "PAYMENT_RUNTIME_ERROR",
-        message: error instanceof Error ? error.message : billingClientText("billingClient.message.002"),
+        message: userFacing ? runtimeMessage : billingClientText("billingClient.message.002"),
+        ...(runtimeMessage && !userFacing ? { debugMessage: runtimeMessage } : {}),
       },
       raw: {},
     };
