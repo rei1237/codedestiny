@@ -2802,7 +2802,8 @@
     },
     "birthScope": {
       "separatePurchaseRequired": "Tarikh lahir ini memerlukan pembelian berasingan",
-      "saveProfileFirst": "Sila simpan profil sebelum membuat pembelian"
+      "saveProfileFirst": "Sila simpan profil sebelum membuat pembelian",
+      "keepAfterUnlock": "Selepas dibuka, anda boleh melihatnya semula bila-bila masa dengan tarikh lahir ini."
     }
   },
   "auth": {
@@ -5127,10 +5128,10 @@
       "explainBody": "Sepuluh tuhan menggambarkan, sebagai sepuluh aksara, bagaimana huruf lain berkaitan dengan hari anda dilahirkan. Melihat watak yang dikumpulkan dalam carta anda membantu mendedahkan personaliti, bakat dan gaya cinta yang tersembunyi dengan jelas."
     },
     "premiumShowcase": {
-      "aria": "Lihat butiran tafsiran saju premium",
+      "aria": "Bacaan saju berbayar",
       "eyebrow": "ANALISIS PREMIUM",
-      "title": "Dua tafsiran mendalam untuk aliran besar takdir",
-      "subtitle": "Daewun dan tafsiran penuh dibuka secara kekal, ditambah analisis keserasian setiap guna, supaya tekstur kehidupan menjadi lebih jelas.",
+      "title": "Baca carta anda dengan lebih mendalam",
+      "subtitle": "Mulakan dengan bacaan Light untuk memahami sifat semula jadi anda, kemudian ikuti kitaran sepuluh tahun dengan Daewun. Keserasian dibayar setiap kali dilihat.",
       "expand": "Buka kad tafsiran",
       "permanent": "Buka kunci kekal",
       "perUse": "Bayaran setiap guna",
@@ -5141,15 +5142,17 @@
         "point1": "Graf nasib hidup yang divisualisasikan mengikut dekad",
         "point2": "Pembacaan mendalam tentang faktor baik dan tidak baik oleh daewun",
         "point3": "Kedudukan daewun semasa dan strategi teras",
-        "point4": "Sokongan bersepadu, musim dan pertimbangan corak"
+        "point4": "Sokongan bersepadu, musim dan pertimbangan corak",
+        "cta": "Buka analisis Daewun →"
       },
       "summary": {
-        "title": "Bacaan saju penuh",
+        "title": "Bacaan saju Light",
         "desc": "Laporan saju komprehensif kira-kira 20 muka surat A4. Personaliti, kerjaya, cinta, kesihatan, kekayaan, dermawan, dan tindakan bertuah ditafsirkan secara mendalam.",
         "point1": "Personaliti dan bakat semula jadi melalui lapan watak",
         "point2": "Bidang dan strategi kerjaya yang menjanjikan untuk dekad yang akan datang",
         "point3": "Masa cinta dan perkahwinan serta keadaan perhubungan",
-        "point4": "Kekayaan mengalir dan bagaimana wang dikumpulkan"
+        "point4": "Kekayaan mengalir dan bagaimana wang dikumpulkan",
+        "cta": "Buka bacaan Light →"
       },
       "compat": {
         "title": "Analisis keserasian",
@@ -5174,20 +5177,21 @@
     "premiumGates": {
       "daewun": {
         "sectionTitle": "Daewun — sokongan bersepadu, musim dan pertimbangan corak",
-        "title": "Analisis Daewun — kandungan premium",
+        "title": "Buka kunci analisis Daewun",
         "desc": "Bayaran sebanyak 5,000 KRW diperlukan untuk melihat aliran daewun bersepadu dan graf nasib hidup.",
         "notice": "Data carta berangka sahaja tidak dapat menentukan sepenuhnya takdir berlapis seseorang. Sila jadikan bacaan ini sebagai rujukan strategik untuk membaca dan persediaan untuk arus kehidupan.",
         "graphTitle": "Graf nasib hidup (sokongan bersepadu, musim dan corak)"
       },
       "summary": {
         "sectionTitle": "Bacaan saju penuh",
-        "title": "Bacaan saju penuh — kandungan premium",
+        "title": "Buka kunci bacaan saju Light",
         "desc": "Pembayaran sebanyak 5,000 KRW diperlukan untuk melihat bacaan A4 30 halaman yang mendalam tentang keperibadian, kerjaya, cinta, kesihatan, kekayaan, dermawan dan tindakan bertuah."
       },
       "compat": {
         "title": "Analisis keserasian — kandungan premium",
         "desc": "Pembayaran sebanyak 5,000 KRW diperlukan untuk melihat hasil keserasian berasaskan saju untuk cinta, perniagaan dan persahabatan."
-      }
+      },
+      "unlockCta": "Buka kunci dan baca sekarang"
     },
     "compat": {
       "sectionTitle": "Bacaan keserasian (cinta · perniagaan · persahabatan)",
@@ -21326,8 +21330,8 @@
     "sample": "Sample · a fictional chart",
     "sampleNote": "An example of the format, not your personal result.",
     "paidDifference": "The free reading covers temperament and current cycles. These static readings add longer periods and thematic detail, using explanations linked to the calculated chart.",
-    "paidDaeun": "For comparing ten-year periods, chart evidence and annual details.",
-    "paidSummary": "For connecting the day stem, season, elements and Ten Gods across temperament, work and relationships.",
+    "paidDaeun": "Baca aliran hidup yang berubah setiap sepuluh tahun bersama perubahan setiap tahun, dan lihat pilihan yang perlu disediakan sekarang dalam kerja, hubungan dan kewangan.",
+    "paidSummary": "Perangai semula jadi, lima unsur dan Sepuluh Dewa, personaliti dan hubungan, strategi hidup serta panduan untuk tahun ini dan tahun depan, semuanya dalam satu bacaan carta anda.",
     "recovery": "Reopen the chart with the same account and profile and check access. If payment succeeded but access is missing, do not pay again; contact support with the payment record.",
     "inputs": "Uses the birth information and calculations already entered for this chart. Unknown birth time limits time-dependent interpretation.",
     "pricePending": "Checking price",
@@ -21342,7 +21346,7 @@
     "catFree": "Free fortune",
     "today": "Today’s cycle",
     "month": "This month’s cycle",
-    "summaryTitle": "Comprehensive reading",
+    "summaryTitle": "Bacaan saju Light",
     "godTraits": {
       "0": "A preference for self-directed choices",
       "1": "Energy from cooperation and competition",

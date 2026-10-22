@@ -47,6 +47,8 @@ body.neo-mode .saju-reading-switch [aria-pressed="true"] {color:#21182f;}
 .saju-static-offer p {margin:0 0 12px;color:var(--reading-ink);}
 .saju-static-offer summary {min-height:44px;cursor:pointer;color:var(--reading-accent);align-content:center;}
 .saju-static-offer .saju-reading {padding:16px 0;}
+/* 해금되면 본문이 열리므로 결제 전 안내(오퍼)는 접는다. */
+#summaryCard:has(.cd-section-gate--unlocked) .saju-static-offer,#daewunCard:has(.cd-section-gate--unlocked) .saju-static-offer {display:none;}
 /* 꿀꿀운세 → 영냥이 진입 배너 (80204def4 이전 데스크톱 원형 + 모바일 압축판) */
 #cdHomeFunnel .cd-soulcat-entry{position:relative;isolation:isolate;display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,420px);align-items:center;column-gap:36px;min-height:440px;margin:26px 0 34px;padding:44px 52px 40px;box-sizing:border-box;text-align:left;border:1px solid #c9a25e;border-radius:24px;background:#21162e;overflow:hidden;box-shadow:0 18px 46px #24172b3d,inset 0 0 0 1px #f3d49b1f;color:#fff0d9}
 .cd-soulcat-entry::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,#21162ef7 0%,#21162ee0 46%,#21162e40 100%),url('/assets/yeongnyangi/original/room-1440.webp') center 54%/cover no-repeat}

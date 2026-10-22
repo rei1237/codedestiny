@@ -2802,7 +2802,8 @@
     },
     "birthScope": {
       "separatePurchaseRequired": "Voor deze geboortedatum is een aparte aankoop nodig",
-      "saveProfileFirst": "Sla het profiel op voordat je koopt"
+      "saveProfileFirst": "Sla het profiel op voordat je koopt",
+      "keepAfterUnlock": "Na het ontgrendelen kun je het met deze geboortedatum altijd opnieuw bekijken."
     }
   },
   "auth": {
@@ -5127,10 +5128,10 @@
       "explainBody": "De tien goden beschrijven als tien karakters hoe de andere letters verband houden met de dag waarop je werd geboren. Als u ziet welke karakters zich in uw diagram verzamelen, kunt u verborgen persoonlijkheid, talent en liefdesstijl duidelijk onthullen."
     },
     "premiumShowcase": {
-      "aria": "Details van premium saju-duidingen bekijken",
+      "aria": "Betaalde saju-lezingen",
       "eyebrow": "PREMIUMANALYSE",
-      "title": "Twee diepgaande duidingen voor de grote stroom van het lot",
-      "subtitle": "Daewun en de volledige duiding worden permanent ontgrendeld, aangevuld met compatibiliteit per gebruik, zodat de textuur van het leven duidelijker wordt.",
+      "title": "Je kaart dieper lezen",
+      "subtitle": "Begin met de Light-lezing om je aanleg in kaart te brengen en volg daarna je tienjaarscycli met Daewun. Compatibiliteit betaal je per lezing.",
       "expand": "De duidingen openen",
       "permanent": "Permanente ontgrendeling",
       "perUse": "Betaling per gebruik",
@@ -5141,15 +5142,17 @@
         "point1": "Gevisualiseerde grafiek van het levensgeluk per decennium",
         "point2": "Diepgaande analyse van gunstige en ongunstige factoren door daewun",
         "point3": "Huidige daewun-positie en kernstrategie",
-        "point4": "Geïntegreerde ondersteuning, seizoens- en patroonbeoordeling"
+        "point4": "Geïntegreerde ondersteuning, seizoens- en patroonbeoordeling",
+        "cta": "Daewun-analyse openen →"
       },
       "summary": {
-        "title": "Volledige saju-lezing",
+        "title": "Saju-lezing Light",
         "desc": "Een uitgebreid saju-rapport van ongeveer 20 A4-pagina's. Persoonlijkheid, carrière, liefde, gezondheid, rijkdom, weldoeners en gelukkige daden worden diepgaand geïnterpreteerd.",
         "point1": "Aangeboren persoonlijkheid en talent via acht karakters",
         "point2": "Veelbelovende carrièregebieden en strategie voor het komende decennium",
         "point3": "Timing en relatievoorwaarden van liefde en huwelijk",
-        "point4": "Rijkdom stroomt en hoe geld wordt verzameld"
+        "point4": "Rijkdom stroomt en hoe geld wordt verzameld",
+        "cta": "Light-lezing openen →"
       },
       "compat": {
         "title": "Compatibiliteitsanalyse",
@@ -5174,20 +5177,21 @@
     "premiumGates": {
       "daewun": {
         "sectionTitle": "Daewun — geïntegreerde ondersteuning, seizoens- en patroonbeoordeling",
-        "title": "Daewun-analyse — premium inhoud",
+        "title": "Daewun-analyse ontgrendelen",
         "desc": "Er is een betaling van 5.000 KRW vereist om de geïntegreerde daewun-stroom- en levensfortuingrafiek te bekijken.",
         "notice": "Numerieke grafiekgegevens alleen kunnen het gelaagde lot van een persoon niet volledig definiëren. Gebruik deze lezing alstublieft als een strategische referentie voor het lezen en voorbereiden op de stroom van het leven.",
         "graphTitle": "Grafiek van het levensgeluk (geïntegreerde ondersteuning, seizoen en patroon)"
       },
       "summary": {
         "sectionTitle": "Volledige saju-lezing",
-        "title": "Volledige saju-lezing - premiuminhoud",
+        "title": "Saju-lezing Light ontgrendelen",
         "desc": "Een betaling van 5.000 KRW is vereist om de diepgaande A4-lezing van 30 pagina's over persoonlijkheid, carrière, liefde, gezondheid, rijkdom, weldoeners en gelukkige daden te bekijken."
       },
       "compat": {
         "title": "Compatibiliteitsanalyse — premium inhoud",
         "desc": "Er is een betaling van 5.000 KRW vereist om het saju-gebaseerde compatibiliteitsresultaat voor liefde, zaken en vriendschap te bekijken."
-      }
+      },
+      "unlockCta": "Ontgrendelen en direct lezen"
     },
     "compat": {
       "sectionTitle": "Compatibiliteit lezen (liefde · zaken · vriendschap)",
@@ -21326,8 +21330,8 @@
     "sample": "Sample · a fictional chart",
     "sampleNote": "An example of the format, not your personal result.",
     "paidDifference": "The free reading covers temperament and current cycles. These static readings add longer periods and thematic detail, using explanations linked to the calculated chart.",
-    "paidDaeun": "For comparing ten-year periods, chart evidence and annual details.",
-    "paidSummary": "For connecting the day stem, season, elements and Ten Gods across temperament, work and relationships.",
+    "paidDaeun": "Lees hoe je leven elke tien jaar en van jaar tot jaar verandert, en zie welke keuzes je nu kunt voorbereiden voor werk, relaties en geld.",
+    "paidSummary": "Je aanleg, de vijf elementen en de Tien Goden, persoonlijkheid en relaties, levensstrategie en advies voor dit en volgend jaar, samengebracht in één lezing van je kaart.",
     "recovery": "Reopen the chart with the same account and profile and check access. If payment succeeded but access is missing, do not pay again; contact support with the payment record.",
     "inputs": "Uses the birth information and calculations already entered for this chart. Unknown birth time limits time-dependent interpretation.",
     "pricePending": "Checking price",
@@ -21342,7 +21346,7 @@
     "catFree": "Free fortune",
     "today": "Today’s cycle",
     "month": "This month’s cycle",
-    "summaryTitle": "Comprehensive reading",
+    "summaryTitle": "Saju-lezing Light",
     "godTraits": {
       "0": "A preference for self-directed choices",
       "1": "Energy from cooperation and competition",

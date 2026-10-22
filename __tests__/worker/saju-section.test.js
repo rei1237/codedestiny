@@ -275,10 +275,10 @@ test.each(PARITY.renders.map((render) => [render.id, render.mode, render]))("ser
     gender: c.gender, name: c.name, mode, place: c.place, jongDecision: c.jong, now: new Date(PARITY.now),
   };
   const summaryHtml = buildSajuSectionHtml({ ...base, featureKey: "section_summary" }).html;
-  expect(summaryHtml).toContain('aria-label="기본 종합 사주 풀이 목차"');
+  expect(summaryHtml).toContain('aria-label="라이트 사주 풀이 목차"');
   // The approved product rename is display-only. Keep the historical fixture to prove
   // that every remaining byte of the reading and all calculated facts are preserved.
-  const historicalTitleHtml = summaryHtml.replace('aria-label="기본 종합 사주 풀이 목차"', 'aria-label="종합 사주 풀이 목차"');
+  const historicalTitleHtml = summaryHtml.replace('aria-label="라이트 사주 풀이 목차"', 'aria-label="종합 사주 풀이 목차"');
   expect(sha256(withoutExtensions(historicalTitleHtml))).toBe(render.summary);
   const daewun = render.daewun.map(([age, ganzhi]) => [age, ganzhi,
     sha256(withoutExtensions(buildSajuSectionHtml({ ...base, featureKey: "section_daewun", daewun: { age, gan: ganzhi[0], zhi: ganzhi[1] } }).html))]);

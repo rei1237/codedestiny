@@ -1,7 +1,7 @@
 import { getBillingFeaturePricing } from './billing-feature-registry.js';
 // Honey is an alternative unlock method; cash prices remain authoritative in the paid registry.
 const entries = [
-  ['section_summary', '기본 종합 사주 풀이', '기본 사주', null, '타고난 성향·강점·반복되는 패턴과 삶의 큰 흐름', 'cdOneStepFreeSajuEntry'],
+  ['section_summary', '라이트 사주 풀이', '기본 사주', null, '타고난 성향·강점·반복되는 패턴과 삶의 큰 흐름', 'cdOneStepFreeSajuEntry'],
   ['section_daewun', '사주 대운 풀이', '기본 사주', null, '10년 단위 변화와 시기마다 살펴볼 선택', 'cdOneStepFreeSajuEntry'],
   ['rpt_specialCharmCard', '나의 매력 클래스', '재미 사주', 6, '사람에게 자연스럽게 전해지는 나의 매력', 'cdOneStepFreeSajuEntry'],
   ['rpt_skillTreeCard', '인생 스킬 트리', '재미 사주', 6, '강점을 쓰는 방법과 다음 성장 포인트', 'cdOneStepFreeSajuEntry'],

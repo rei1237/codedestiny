@@ -2802,7 +2802,8 @@
     },
     "birthScope": {
       "separatePurchaseRequired": "此出生日期需要单独购买",
-      "saveProfileFirst": "请先保存档案后再购买"
+      "saveProfileFirst": "请先保存档案后再购买",
+      "keepAfterUnlock": "解锁后，可随时用此出生日期再次查看。"
     }
   },
   "auth": {
@@ -5127,29 +5128,31 @@
       "explainBody": "十神以出生之日为中心，用十种角色比喻其他字对你的作用。看清命盘中聚集的十神，能更容易理解隐藏性格、才能与恋爱风格。"
     },
     "premiumShowcase": {
-      "aria": "查看高级八字解析详情",
+      "aria": "付费八字解读介绍",
       "eyebrow": "高级分析",
-      "title": "解读命运大流的深度解析2种组合",
-      "subtitle": "大运与综合永久解锁，再加上单次付费的兼容性分析，人生的纹理更清晰。",
+      "title": "更深入地读懂我的八字",
+      "subtitle": "先用轻量版解读理清你的先天特质，再用大运看到十年走向。八字合盘每次查看单独付费。",
       "expand": "展开解析卡片",
       "permanent": "永久解锁",
       "perUse": "单次付费",
       "compatCta": "查看兼容性 →",
       "daewun": {
-        "title": "大文分析",
+        "title": "大运分析",
         "desc": "十年大运流通过支持强度、季节性平衡和跟随模式进行整合。它显示了何时前进，何时保持稳定。",
         "point1": "按十年可视化的人生财富图",
         "point2": "大文有利不利因素深读",
         "point3": "大文目前的定位和核心战略",
-        "point4": "综合支撑、季节、形态判断"
+        "point4": "综合支撑、季节、形态判断",
+        "cta": "打开大运分析 →"
       },
       "summary": {
-        "title": "完整的 saju 阅读",
+        "title": "轻量版八字解读",
         "desc": "一份大约 20 A4 页的综合 saju 报告。性格、事业、爱情、健康、财富、贵人、吉祥之举都有深入解读。",
         "point1": "通过八个角色表现出与生俱来的个性和才华",
         "point2": "未来十年有前途的职业领域和策略",
         "point3": "爱情和婚姻的时机和关系条件",
-        "point4": "财富流动和资金如何聚集"
+        "point4": "财富流动和资金如何聚集",
+        "cta": "打开轻量版解读 →"
       },
       "compat": {
         "title": "兼容性分析",
@@ -5174,20 +5177,21 @@
     "premiumGates": {
       "daewun": {
         "sectionTitle": "大运 — 抑扶、调候、从格综合判断",
-        "title": "大运分析 — 高级内容",
+        "title": "解锁大运分析",
         "desc": "查看抑扶、调候、从格综合大运流向与人生吉凶图，需要支付5,000韩元。",
         "notice": "仅凭万岁历的数理数据，无法完全界定一个人的立体命运。本分析基于命理倾向，请作为阅读并准备人生流向的策略参考。",
         "graphTitle": "人生吉凶图（抑扶+调候+从格综合）"
       },
       "summary": {
         "sectionTitle": "综合四柱解读",
-        "title": "综合四柱解读 — 高级内容",
+        "title": "解锁轻量版八字解读",
         "desc": "查看约A4 30页的性格、事业、恋爱、健康、财富、贵人与开运深度解读，需要支付5,000韩元。"
       },
       "compat": {
         "title": "合盘分析 — 高级内容",
         "desc": "查看基于四柱的恋爱、事业、朋友合盘分析结果，需要支付5,000韩元。"
-      }
+      },
+      "unlockCta": "解锁后立即查看"
     },
     "compat": {
       "sectionTitle": "查看合盘（恋爱 · 事业 · 朋友）",
@@ -21326,8 +21330,8 @@
     "sample": "Sample · a fictional chart",
     "sampleNote": "An example of the format, not your personal result.",
     "paidDifference": "The free reading covers temperament and current cycles. These static readings add longer periods and thematic detail, using explanations linked to the calculated chart.",
-    "paidDaeun": "For comparing ten-year periods, chart evidence and annual details.",
-    "paidSummary": "For connecting the day stem, season, elements and Ten Gods across temperament, work and relationships.",
+    "paidDaeun": "一起解读每十年变化的人生走向和每年的变化，从事业、人际、财运的解析中看清现在该准备的选择。",
+    "paidSummary": "从先天气质、五行与十神、性格与人际，到人生策略和今明两年的建议，按你的命盘一次整理好。",
     "recovery": "Reopen the chart with the same account and profile and check access. If payment succeeded but access is missing, do not pay again; contact support with the payment record.",
     "inputs": "Uses the birth information and calculations already entered for this chart. Unknown birth time limits time-dependent interpretation.",
     "pricePending": "Checking price",
@@ -21342,7 +21346,7 @@
     "catFree": "Free fortune",
     "today": "Today’s cycle",
     "month": "This month’s cycle",
-    "summaryTitle": "Comprehensive reading",
+    "summaryTitle": "轻量版八字解读",
     "godTraits": {
       "0": "A preference for self-directed choices",
       "1": "Energy from cooperation and competition",

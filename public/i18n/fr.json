@@ -2802,7 +2802,8 @@
     },
     "birthScope": {
       "separatePurchaseRequired": "Cette date de naissance nécessite un achat séparé",
-      "saveProfileFirst": "Veuillez enregistrer le profil avant l'achat"
+      "saveProfileFirst": "Veuillez enregistrer le profil avant l'achat",
+      "keepAfterUnlock": "Une fois débloqué, vous pouvez le revoir à tout moment avec cette date de naissance."
     }
   },
   "auth": {
@@ -5127,10 +5128,10 @@
       "explainBody": "Les dix dieux décrivent, sous forme de dix caractères, comment les autres lettres se rapportent au jour de votre naissance. Voir quels personnages se rassemblent dans votre thème aide à révéler clairement la personnalité, le talent et le style amoureux cachés."
     },
     "premiumShowcase": {
-      "aria": "Voir les détails des interprétations saju premium",
+      "aria": "Lectures saju payantes",
       "eyebrow": "ANALYSE PREMIUM",
-      "title": "Deux lectures approfondies pour le grand flux du destin",
-      "subtitle": "Le daewun et la lecture complète se déverrouillent définitivement, avec l’analyse de compatibilité à l’usage, pour rendre la texture de la vie plus nette.",
+      "title": "Lire votre thème plus en profondeur",
+      "subtitle": "Commencez par la lecture Light pour cerner votre nature, puis suivez vos cycles de dix ans avec Daewun. La compatibilité se paie à chaque lecture.",
       "expand": "Ouvrir les lectures",
       "permanent": "Déverrouillage permanent",
       "perUse": "Paiement à l’usage",
@@ -5141,15 +5142,17 @@
         "point1": "Graphique de fortune de vie visualisé par décennie",
         "point2": "Lecture approfondie des facteurs favorables et défavorables par Daewun",
         "point3": "Position actuelle du Daewun et stratégie de base",
-        "point4": "Support intégré, saison et jugement de modèle"
+        "point4": "Support intégré, saison et jugement de modèle",
+        "cta": "Ouvrir l'analyse Daewun →"
       },
       "summary": {
-        "title": "Lecture complète du saju",
+        "title": "Lecture saju Light",
         "desc": "Un rapport saju complet d'environ 20 pages A4. La personnalité, la carrière, l'amour, la santé, la richesse, les bienfaiteurs et les actions chanceuses sont interprétés en profondeur.",
         "point1": "Personnalité innée et talent à travers huit personnages",
         "point2": "Domaines de carrière prometteurs et stratégie pour la prochaine décennie",
         "point3": "Calendrier de l'amour et du mariage et conditions relationnelles",
-        "point4": "Flux de richesse et comment l'argent s'accumule"
+        "point4": "Flux de richesse et comment l'argent s'accumule",
+        "cta": "Ouvrir la lecture Light →"
       },
       "compat": {
         "title": "Analyse de compatibilité",
@@ -5174,20 +5177,21 @@
     "premiumGates": {
       "daewun": {
         "sectionTitle": "Daewun — support intégré, saison et jugement de modèle",
-        "title": "Analyse Daewun — contenu premium",
+        "title": "Débloquer l'analyse Daewun",
         "desc": "Un paiement de 5 000 KRW est requis pour afficher le graphique intégré du flux de Daewun et de la fortune de la vie.",
         "notice": "Les données numériques des graphiques ne peuvent à elles seules définir pleinement le destin d’une personne. Veuillez utiliser cette lecture comme référence stratégique pour lire et vous préparer au flux de la vie.",
         "graphTitle": "Graphique de fortune de vie (support, saison et modèle intégrés)"
       },
       "summary": {
         "sectionTitle": "Lecture complète du saju",
-        "title": "Lecture complète du saju — contenu premium",
+        "title": "Débloquer la lecture saju Light",
         "desc": "Un paiement de 5 000 KRW est requis pour visualiser la lecture approfondie A4 de 30 pages sur la personnalité, la carrière, l'amour, la santé, la richesse, les bienfaiteurs et les actions chanceuses."
       },
       "compat": {
         "title": "Analyse de compatibilité — contenu premium",
         "desc": "Un paiement de 5 000 KRW est requis pour afficher le résultat de compatibilité basé sur saju pour l'amour, les affaires et l'amitié."
-      }
+      },
+      "unlockCta": "Débloquer et lire maintenant"
     },
     "compat": {
       "sectionTitle": "Lecture de compatibilité (amour · affaires · amitié)",
@@ -21326,8 +21330,8 @@
     "sample": "Sample · a fictional chart",
     "sampleNote": "An example of the format, not your personal result.",
     "paidDifference": "The free reading covers temperament and current cycles. These static readings add longer periods and thematic detail, using explanations linked to the calculated chart.",
-    "paidDaeun": "For comparing ten-year periods, chart evidence and annual details.",
-    "paidSummary": "For connecting the day stem, season, elements and Ten Gods across temperament, work and relationships.",
+    "paidDaeun": "Lisez comment votre vie évolue tous les dix ans et d'une année à l'autre, et voyez quels choix préparer dès maintenant pour le travail, les relations et l'argent.",
+    "paidSummary": "Votre tempérament, les cinq éléments et les Dix Dieux, votre personnalité et vos relations, votre stratégie de vie et des conseils pour cette année et la suivante, réunis en une seule lecture de votre thème.",
     "recovery": "Reopen the chart with the same account and profile and check access. If payment succeeded but access is missing, do not pay again; contact support with the payment record.",
     "inputs": "Uses the birth information and calculations already entered for this chart. Unknown birth time limits time-dependent interpretation.",
     "pricePending": "Checking price",
@@ -21342,7 +21346,7 @@
     "catFree": "Free fortune",
     "today": "Today’s cycle",
     "month": "This month’s cycle",
-    "summaryTitle": "Comprehensive reading",
+    "summaryTitle": "Lecture saju Light",
     "godTraits": {
       "0": "A preference for self-directed choices",
       "1": "Energy from cooperation and competition",

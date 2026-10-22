@@ -62,6 +62,6 @@ const focused = {
 export function renderBasicFortuneDetail(detail) {
   const pair = keys[detail?.id]; if (!pair) return '';
   const [group, key] = pair, copy = { ...groups[group], ...focused[key] };
-  const title = key === 'section_summary' ? '기본 종합 사주 풀이' : detail.title;
+  const title = key === 'section_summary' ? '라이트 사주 풀이' : detail.title;
   return `<section class="craftedDetail basic-fortune-detail"><p class="basic-fortune-detail__eyebrow">${escape(title)}</p><h3>${copy.hook}</h3><p>${copy.note}</p><h4>이 해석에서 얻는 답</h4><ol>${copy.answers.map(text => `<li>${text}</li>`).join('')}</ol><figure><figcaption>계산 근거 미리보기</figcaption><p>${copy.basis}</p><small>해석의 구성 예시입니다. 실제 내용은 입력한 출생정보와 선택한 콘텐츠에 따라 달라져요.</small></figure><button type="button" class="cd-section-gate__btn" data-cd-basic-detail-go="${escape(key)}">해금 방법 확인하기</button></section>`;
 }

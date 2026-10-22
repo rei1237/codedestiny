@@ -2802,7 +2802,8 @@
     },
     "birthScope": {
       "separatePurchaseRequired": "इस जन्मतिथि के लिए अलग से खरीदना होगा",
-      "saveProfileFirst": "कृपया खरीदने से पहले प्रोफ़ाइल सहेजें"
+      "saveProfileFirst": "कृपया खरीदने से पहले प्रोफ़ाइल सहेजें",
+      "keepAfterUnlock": "अनलॉक करने के बाद, इस जन्मतिथि से इसे कभी भी फिर से देख सकते हैं।"
     }
   },
   "auth": {
@@ -5127,10 +5128,10 @@
       "explainBody": "दस देवता, दस अक्षरों के रूप में वर्णन करते हैं कि अन्य अक्षर आपके जन्म के दिन से कैसे संबंधित हैं। यह देखने से कि आपके चार्ट में कौन से पात्र एकत्रित होते हैं, छिपे हुए व्यक्तित्व, प्रतिभा और प्रेम शैली को स्पष्ट रूप से प्रकट करने में मदद मिलती है।"
     },
     "premiumShowcase": {
-      "aria": "प्रीमियम साजू व्याख्याओं का विवरण देखें",
+      "aria": "सशुल्क साजू रीडिंग की जानकारी",
       "eyebrow": "प्रीमियम विश्लेषण",
-      "title": "भाग्य के बड़े प्रवाह के लिए दो गहन व्याख्याएँ",
-      "subtitle": "दाएवुन और पूर्ण व्याख्या स्थायी रूप से अनलॉक होती हैं, साथ में प्रति-उपयोग अनुकूलता जुड़ती है, जिससे जीवन की बनावट स्पष्ट होती है।",
+      "title": "अपना साजू चार्ट और गहराई से पढ़ें",
+      "subtitle": "पहले लाइट रीडिंग से अपना स्वभाव समझें, फिर डेवुन से दस साल का प्रवाह देखें। अनुकूलता हर बार देखने पर अलग से भुगतान होती है।",
       "expand": "व्याख्या कार्ड खोलें",
       "permanent": "स्थायी अनलॉक",
       "perUse": "प्रति उपयोग भुगतान",
@@ -5141,15 +5142,17 @@
         "point1": "दशक के अनुसार विज़ुअलाइज़्ड जीवन भाग्य ग्राफ़",
         "point2": "डेवुन द्वारा अनुकूल और प्रतिकूल कारकों का गहन अध्ययन",
         "point3": "वर्तमान डेवुन स्थिति और मुख्य रणनीति",
-        "point4": "एकीकृत समर्थन, सीज़न और पैटर्न निर्णय"
+        "point4": "एकीकृत समर्थन, सीज़न और पैटर्न निर्णय",
+        "cta": "डेवुन विश्लेषण खोलें →"
       },
       "summary": {
-        "title": "पूरा साजू पढ़ना",
+        "title": "लाइट साजू रीडिंग",
         "desc": "लगभग 20 ए4 पृष्ठों की एक व्यापक साजू रिपोर्ट। व्यक्तित्व, करियर, प्रेम, स्वास्थ्य, धन, परोपकारी और भाग्यशाली कार्यों की गहराई से व्याख्या की गई है।",
         "point1": "आठ पात्रों के माध्यम से सहज व्यक्तित्व और प्रतिभा",
         "point2": "अगले दशक के लिए आशाजनक कैरियर क्षेत्र और रणनीति",
         "point3": "प्रेम और विवाह का समय और रिश्ते की स्थितियाँ",
-        "point4": "धन का प्रवाह और धन कैसे एकत्रित होता है"
+        "point4": "धन का प्रवाह और धन कैसे एकत्रित होता है",
+        "cta": "लाइट रीडिंग खोलें →"
       },
       "compat": {
         "title": "अनुकूलता विश्लेषण",
@@ -5174,20 +5177,21 @@
     "premiumGates": {
       "daewun": {
         "sectionTitle": "डेवुन - एकीकृत समर्थन, सीज़न और पैटर्न निर्णय",
-        "title": "डेवुन विश्लेषण - प्रीमियम सामग्री",
+        "title": "डेवुन विश्लेषण अनलॉक करें",
         "desc": "एकीकृत डेवुन प्रवाह और जीवन भाग्य ग्राफ देखने के लिए 5,000 KRW का भुगतान आवश्यक है।",
         "notice": "संख्यात्मक चार्ट डेटा अकेले किसी व्यक्ति की स्तरित नियति को पूरी तरह से परिभाषित नहीं कर सकता है। कृपया इस पाठन को पढ़ने और जीवन के प्रवाह की तैयारी के लिए एक रणनीतिक संदर्भ के रूप में उपयोग करें।",
         "graphTitle": "जीवन भाग्य ग्राफ (एकीकृत समर्थन, मौसम और पैटर्न)"
       },
       "summary": {
         "sectionTitle": "पूरा साजू पढ़ना",
-        "title": "पूर्ण साजू पढ़ना - प्रीमियम सामग्री",
+        "title": "लाइट साजू रीडिंग अनलॉक करें",
         "desc": "व्यक्तित्व, करियर, प्रेम, स्वास्थ्य, धन, परोपकारी और भाग्यशाली कार्यों की गहन A4 30 पेज की रीडिंग देखने के लिए 5,000 KRW का भुगतान आवश्यक है।"
       },
       "compat": {
         "title": "संगतता विश्लेषण - प्रीमियम सामग्री",
         "desc": "प्यार, व्यापार और दोस्ती के लिए साजू-आधारित अनुकूलता परिणाम देखने के लिए 5,000 KRW का भुगतान आवश्यक है।"
-      }
+      },
+      "unlockCta": "अनलॉक करें और अभी पढ़ें"
     },
     "compat": {
       "sectionTitle": "अनुकूलता पढ़ना (प्रेम · व्यापार · दोस्ती)",
@@ -21326,8 +21330,8 @@
     "sample": "Sample · a fictional chart",
     "sampleNote": "An example of the format, not your personal result.",
     "paidDifference": "The free reading covers temperament and current cycles. These static readings add longer periods and thematic detail, using explanations linked to the calculated chart.",
-    "paidDaeun": "For comparing ten-year periods, chart evidence and annual details.",
-    "paidSummary": "For connecting the day stem, season, elements and Ten Gods across temperament, work and relationships.",
+    "paidDaeun": "हर दस साल में बदलते जीवन-प्रवाह और हर साल के बदलावों को साथ पढ़ें, और काम, रिश्तों व धन की व्याख्या से देखें कि अभी किन फ़ैसलों की तैयारी करनी है।",
+    "paidSummary": "आपका स्वभाव, पंचतत्व और दस देव, व्यक्तित्व और रिश्ते, जीवन की रणनीति, और इस साल व अगले साल के सुझाव, सब कुछ आपके चार्ट से एक ही रीडिंग में।",
     "recovery": "Reopen the chart with the same account and profile and check access. If payment succeeded but access is missing, do not pay again; contact support with the payment record.",
     "inputs": "Uses the birth information and calculations already entered for this chart. Unknown birth time limits time-dependent interpretation.",
     "pricePending": "Checking price",
@@ -21342,7 +21346,7 @@
     "catFree": "Free fortune",
     "today": "Today’s cycle",
     "month": "This month’s cycle",
-    "summaryTitle": "Comprehensive reading",
+    "summaryTitle": "लाइट साजू रीडिंग",
     "godTraits": {
       "0": "A preference for self-directed choices",
       "1": "Energy from cooperation and competition",

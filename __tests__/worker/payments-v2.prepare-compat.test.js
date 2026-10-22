@@ -73,7 +73,7 @@ const LEGACY_PREPARE_ORDER_KEYS = [
 
 test.each([
   ["section_daewun", "사주 대운 분석"],
-  ["section_summary", "기본 종합 사주 풀이"],
+  ["section_summary", "라이트 사주 풀이"],
 ])("사주 %s 주문명은 공통 버튼 문구 대신 상품명을 사용한다", async (featureKey, expectedName) => {
   const db = makeFakePaymentDb({ profileCards: [testCard("p1", { userId: USER })] });
   seedUser(db);

@@ -2802,7 +2802,8 @@
     },
     "birthScope": {
       "separatePurchaseRequired": "Ngày sinh này cần được mua riêng",
-      "saveProfileFirst": "Vui lòng lưu hồ sơ trước khi mua"
+      "saveProfileFirst": "Vui lòng lưu hồ sơ trước khi mua",
+      "keepAfterUnlock": "Sau khi mở khóa, bạn có thể xem lại bất cứ lúc nào với ngày sinh này."
     }
   },
   "auth": {
@@ -5127,10 +5128,10 @@
       "explainBody": "Mười vị thần mô tả, bằng mười ký tự, các chữ cái khác liên quan đến ngày bạn được sinh ra như thế nào. Việc xem những nhân vật nào tụ tập trong biểu đồ của bạn giúp bộc lộ rõ ​​ràng tính cách, tài năng và phong cách tình yêu tiềm ẩn."
     },
     "premiumShowcase": {
-      "aria": "Xem chi tiết các luận giải saju cao cấp",
+      "aria": "Giới thiệu các bản luận giải saju trả phí",
       "eyebrow": "PHÂN TÍCH CAO CẤP",
-      "title": "Hai luận giải chuyên sâu cho dòng chảy lớn của vận mệnh",
-      "subtitle": "Daewun và luận giải tổng hợp mở khóa vĩnh viễn, cùng phân tích tương thích theo lần, để kết cấu cuộc đời trở nên rõ ràng hơn.",
+      "title": "Đọc lá số của bạn sâu hơn",
+      "subtitle": "Hãy bắt đầu với bản Light để nắm rõ bản tính của bạn, rồi theo dõi dòng chảy mười năm cùng Daewun. Phần hợp tuổi được tính phí theo mỗi lần xem.",
       "expand": "Mở thẻ luận giải",
       "permanent": "Mở khóa vĩnh viễn",
       "perUse": "Thanh toán theo lần",
@@ -5141,15 +5142,17 @@
         "point1": "Biểu đồ vận mệnh cuộc đời trực quan theo thập kỷ",
         "point2": "Đọc sâu các yếu tố thuận lợi và bất lợi của daewun",
         "point3": "Vị trí daewun hiện tại và chiến lược cốt lõi",
-        "point4": "Hỗ trợ tích hợp, đánh giá theo mùa và theo mẫu"
+        "point4": "Hỗ trợ tích hợp, đánh giá theo mùa và theo mẫu",
+        "cta": "Mở phân tích Daewun →"
       },
       "summary": {
-        "title": "Đọc saju đầy đủ",
+        "title": "Luận giải saju bản Light",
         "desc": "Một báo cáo saju toàn diện khoảng 20 trang A4. Tính cách, sự nghiệp, tình duyên, sức khỏe, phú quý, ân nhân, việc làm may mắn đều được diễn giải sâu sắc.",
         "point1": "Tính cách và tài năng bẩm sinh qua tám nhân vật",
         "point2": "Lĩnh vực nghề nghiệp và chiến lược đầy hứa hẹn trong thập kỷ tới",
         "point3": "Tình yêu, thời điểm kết hôn và điều kiện quan hệ",
-        "point4": "Dòng chảy của cải và cách thu thập tiền"
+        "point4": "Dòng chảy của cải và cách thu thập tiền",
+        "cta": "Mở bản Light →"
       },
       "compat": {
         "title": "Phân tích khả năng tương thích",
@@ -5174,20 +5177,21 @@
     "premiumGates": {
       "daewun": {
         "sectionTitle": "Daewun — hỗ trợ tổng hợp, đánh giá theo mùa và theo mẫu",
-        "title": "Phân tích Daewun — nội dung cao cấp",
+        "title": "Mở khóa phân tích Daewun",
         "desc": "Cần thanh toán 5.000 KRW để xem biểu đồ vận may và dòng chảy daewun tích hợp.",
         "notice": "Chỉ dữ liệu biểu đồ số không thể xác định đầy đủ số phận của một người. Hãy sử dụng bài đọc này như một tài liệu tham khảo chiến lược để đọc và chuẩn bị cho dòng chảy của cuộc sống.",
         "graphTitle": "Biểu đồ vận mệnh cuộc đời (hỗ trợ, mùa và mô hình tích hợp)"
       },
       "summary": {
         "sectionTitle": "Đọc saju đầy đủ",
-        "title": "Đọc saju đầy đủ — nội dung cao cấp",
+        "title": "Mở khóa luận giải saju bản Light",
         "desc": "Cần thanh toán 5.000 KRW để xem bài đọc chuyên sâu A4 30 trang về tính cách, sự nghiệp, tình yêu, sức khỏe, sự giàu có, ân nhân và những hành động may mắn."
       },
       "compat": {
         "title": "Phân tích khả năng tương thích — nội dung cao cấp",
         "desc": "Cần phải thanh toán 5.000 KRW để xem kết quả về khả năng tương thích dựa trên saju đối với tình yêu, công việc và tình bạn."
-      }
+      },
+      "unlockCta": "Mở khóa và xem ngay"
     },
     "compat": {
       "sectionTitle": "Đọc tương thích (tình yêu · kinh doanh · tình bạn)",
@@ -21326,8 +21330,8 @@
     "sample": "Sample · a fictional chart",
     "sampleNote": "An example of the format, not your personal result.",
     "paidDifference": "The free reading covers temperament and current cycles. These static readings add longer periods and thematic detail, using explanations linked to the calculated chart.",
-    "paidDaeun": "For comparing ten-year periods, chart evidence and annual details.",
-    "paidSummary": "For connecting the day stem, season, elements and Ten Gods across temperament, work and relationships.",
+    "paidDaeun": "Cùng đọc dòng chảy cuộc đời thay đổi mỗi mười năm và những biến chuyển từng năm, rồi xem những lựa chọn cần chuẩn bị ngay từ bây giờ trong công việc, các mối quan hệ và tài chính.",
+    "paidSummary": "Khí chất bẩm sinh, ngũ hành và thập thần, tính cách và các mối quan hệ, chiến lược sống cùng lời khuyên cho năm nay và năm sau, gói gọn trong một bản luận giải theo lá số của bạn.",
     "recovery": "Reopen the chart with the same account and profile and check access. If payment succeeded but access is missing, do not pay again; contact support with the payment record.",
     "inputs": "Uses the birth information and calculations already entered for this chart. Unknown birth time limits time-dependent interpretation.",
     "pricePending": "Checking price",
@@ -21342,7 +21346,7 @@
     "catFree": "Free fortune",
     "today": "Today’s cycle",
     "month": "This month’s cycle",
-    "summaryTitle": "Comprehensive reading",
+    "summaryTitle": "Luận giải saju bản Light",
     "godTraits": {
       "0": "A preference for self-directed choices",
       "1": "Energy from cooperation and competition",

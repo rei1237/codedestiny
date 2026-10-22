@@ -93,7 +93,7 @@ export function legacyOrderDetailEnvelope(order) {
    빠지면 "200 인데 화면만 비는" 부류가 되므로 **초집합**으로 항상 전부 내보낸다. */
 const SAJU_SECTION_PAYMENT_NAMES = Object.freeze({
   section_daewun: "사주 대운 분석",
-  section_summary: "기본 종합 사주 풀이",
+  section_summary: "라이트 사주 풀이",
 });
 
 export function toLegacyPrepareOrder(order, { config = {}, customer = null, pricing = null, body = {}, foreignCard = null } = {}) {

@@ -110,7 +110,7 @@
     var key = keyOf(body);
     if (!opts.force && summary.key === key) {
       if (summary.state === 'loading') {
-        if (!el.firstChild) show(el, statusNode('종합 풀이를 불러오고 있어요.'));
+        if (!el.firstChild) show(el, statusNode('라이트 사주 풀이를 불러오고 있어요.'));
         return false;
       }
       if (summary.state === 'done' && hasBody(el)) return true;
@@ -122,7 +122,7 @@
     var mine = ++seq;
     summary = { key: key, state: 'loading', seq: mine, failedAt: 0 };
     // 같은 사람의 화면 모드 전환이면 새 본문이 올 때까지 기존 본문을 둔다.
-    if (!hasBody(el)) show(el, statusNode('종합 풀이를 불러오고 있어요.'));
+    if (!hasBody(el)) show(el, statusNode('라이트 사주 풀이를 불러오고 있어요.'));
     function current() { return summary.seq === mine && keyOf(requestBody('section_summary')) === key; }
     function fail(text) {
       if (!current()) return;

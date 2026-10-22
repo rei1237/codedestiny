@@ -2802,7 +2802,8 @@
     },
     "birthScope": {
       "separatePurchaseRequired": "この生年月日は別途購入が必要です",
-      "saveProfileFirst": "プロフィールを保存してから購入してください"
+      "saveProfileFirst": "プロフィールを保存してから購入してください",
+      "keepAfterUnlock": "ロックを解除すると、この生年月日でいつでも見直せます。"
     }
   },
   "auth": {
@@ -5127,29 +5128,31 @@
       "explainBody": "十神は、生まれた日の自分を基準に、他の文字がどんな役割を持つかを十のキャラクターで表したものです。多く集まる十神を見ると、隠れた性格・才能・恋愛スタイルが読みやすくなります。"
     },
     "premiumShowcase": {
-      "aria": "プレミアム四柱推命解釈の詳細を見る",
+      "aria": "有料の四柱推命鑑定のご案内",
       "eyebrow": "プレミアム分析",
-      "title": "運命の大きな流れを読む深層解釈2種セット",
-      "subtitle": "大運・総合の永久解放に、都度課金の互換性分析まで加わり、人生の輪郭がはっきりします。",
+      "title": "自分の命式をもっと深く読む",
+      "subtitle": "まずライト鑑定で生まれ持った気質を整理し、大運で10年の流れまでつなげてみてください。相性はご覧になるたびにお支払いいただきます。",
       "expand": "解釈カードを開く",
       "permanent": "永久ロック解除",
       "perUse": "都度課金",
       "compatCta": "互換性を見る →",
       "daewun": {
-        "title": "大雲分析",
+        "title": "大運分析",
         "desc": "10 年間の大雲フローは、サポートの強さ、季節バランス、および次のパターンを通じて統合されています。いつ前進すべきか、いつ安定すべきかを示します。",
         "point1": "十年ごとに視覚化された人生運勢グラフ",
         "point2": "大雲による有利な要因と不利な要因の深読み",
         "point3": "現在の大雲の立場と核心戦略",
-        "point4": "統合サポート、シーズン、パターン判断"
+        "point4": "統合サポート、シーズン、パターン判断",
+        "cta": "大運分析を開く →"
       },
       "summary": {
-        "title": "サジュ全文読み",
+        "title": "ライト四柱推命鑑定",
         "desc": "A4 約 20 ページの包括的なサジュ レポート。性格、キャリア、愛、健康、富、恩人、そして幸運な行動を深く解釈します。",
         "point1": "8 つのキャラクターを通じて生来の性格と才能",
         "point2": "今後 10 年間の有望なキャリア分野と戦略",
         "point3": "恋愛と結婚のタイミングと関係条件",
-        "point4": "富の流れとお金の集まり方"
+        "point4": "富の流れとお金の集まり方",
+        "cta": "ライト鑑定を開く →"
       },
       "compat": {
         "title": "互換性分析",
@@ -5174,20 +5177,21 @@
     "premiumGates": {
       "daewun": {
         "sectionTitle": "大運 — 抑扶・調候・従格の統合判断",
-        "title": "大運分析 — プレミアムコンテンツ",
+        "title": "大運分析のロック解除",
         "desc": "抑扶・調候・従格を統合した大運の流れと人生吉凶グラフを見るには、5,000ウォンの決済が必要です。",
         "notice": "万歳暦の数理データだけで一人の立体的な運命を完全に説明するには限界があります。本分析は命理学的傾向に基づく参考資料としてご利用ください。",
         "graphTitle": "人生吉凶グラフ（抑扶・調候・従格統合）"
       },
       "summary": {
         "sectionTitle": "総合四柱推命解釈",
-        "title": "総合四柱推命解釈 — プレミアムコンテンツ",
+        "title": "ライト四柱推命鑑定のロック解除",
         "desc": "性格・進路・恋愛・健康・財運・貴人・開運法の深層解釈を見るには、5,000ウォンの決済が必要です。"
       },
       "compat": {
         "title": "相性分析 — プレミアムコンテンツ",
         "desc": "恋愛・事業・友人相性を四柱推命で分析した結果を見るには、5,000ウォンの決済が必要です。"
-      }
+      },
+      "unlockCta": "ロックを解除してすぐ見る"
     },
     "compat": {
       "sectionTitle": "相性を見る（恋愛・事業・友人）",
@@ -21326,8 +21330,8 @@
     "sample": "Sample · a fictional chart",
     "sampleNote": "An example of the format, not your personal result.",
     "paidDifference": "The free reading covers temperament and current cycles. These static readings add longer periods and thematic detail, using explanations linked to the calculated chart.",
-    "paidDaeun": "For comparing ten-year periods, chart evidence and annual details.",
-    "paidSummary": "For connecting the day stem, season, elements and Ten Gods across temperament, work and relationships.",
+    "paidDaeun": "10年ごとに変わる人生の流れと、毎年の変化をあわせて読みます。仕事・人間関係・金運の解説から、今準備しておきたい選択を確かめてください。",
+    "paidSummary": "生まれ持った気質、五行と十星、性格と人間関係、人生の戦略、今年と来年の処方まで、あなたの命式でまとめてお伝えします。",
     "recovery": "Reopen the chart with the same account and profile and check access. If payment succeeded but access is missing, do not pay again; contact support with the payment record.",
     "inputs": "Uses the birth information and calculations already entered for this chart. Unknown birth time limits time-dependent interpretation.",
     "pricePending": "Checking price",
@@ -21342,7 +21346,7 @@
     "catFree": "Free fortune",
     "today": "Today’s cycle",
     "month": "This month’s cycle",
-    "summaryTitle": "Comprehensive reading",
+    "summaryTitle": "ライト四柱推命鑑定",
     "godTraits": {
       "0": "A preference for self-directed choices",
       "1": "Energy from cooperation and competition",

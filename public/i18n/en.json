@@ -2802,7 +2802,8 @@
     },
     "birthScope": {
       "separatePurchaseRequired": "This birth date requires a separate purchase",
-      "saveProfileFirst": "Please save this profile before purchasing"
+      "saveProfileFirst": "Please save this profile before purchasing",
+      "keepAfterUnlock": "Once unlocked, you can reopen it anytime with this birth date."
     }
   },
   "auth": {
@@ -5127,10 +5128,10 @@
       "explainBody": "The ten gods describe, as ten characters, how the other letters relate to the day you were born. Seeing which characters gather in your chart helps reveal hidden personality, talent, and love style clearly."
     },
     "premiumShowcase": {
-      "aria": "View details for premium saju interpretations",
+      "aria": "Paid saju readings",
       "eyebrow": "PREMIUM ANALYSIS",
-      "title": "Two deep readings for the larger flow of destiny",
-      "subtitle": "Daewun and the full reading unlock permanently, with per-use compatibility added, so the texture of life becomes clearer.",
+      "title": "Read your chart in more depth",
+      "subtitle": "Start with the Light reading to map your nature, then follow your ten-year cycles with Daewun. Compatibility is paid per reading.",
       "expand": "Open the readings",
       "permanent": "Permanent unlock",
       "perUse": "Per-use payment",
@@ -5141,15 +5142,17 @@
         "point1": "Visualized life fortune graph by decade",
         "point2": "Deep reading of favorable and unfavorable factors by daewun",
         "point3": "Current daewun position and core strategy",
-        "point4": "Integrated support, season, and pattern judgment"
+        "point4": "Integrated support, season, and pattern judgment",
+        "cta": "Open Daewun analysis →"
       },
       "summary": {
-        "title": "Full saju reading",
+        "title": "Light saju reading",
         "desc": "A comprehensive saju report of about 20 A4 pages. Personality, career, love, health, wealth, benefactors, and lucky actions are interpreted in depth.",
         "point1": "Innate personality and talent through eight characters",
         "point2": "Promising career fields and strategy for the next decade",
         "point3": "Love and marriage timing and relationship conditions",
-        "point4": "Wealth flow and how money gathers"
+        "point4": "Wealth flow and how money gathers",
+        "cta": "Open the Light reading →"
       },
       "compat": {
         "title": "Compatibility analysis",
@@ -5174,20 +5177,21 @@
     "premiumGates": {
       "daewun": {
         "sectionTitle": "Daewun — integrated support, season, and pattern judgment",
-        "title": "Daewun analysis — premium content",
+        "title": "Unlock Daewun analysis",
         "desc": "Payment of 5,000 KRW is required to view the integrated daewun flow and life fortune graph.",
         "notice": "Numerical chart data alone cannot fully define a person’s layered destiny. Please use this reading as a strategic reference for reading and preparing for the flow of life.",
         "graphTitle": "Life fortune graph (integrated support, season, and pattern)"
       },
       "summary": {
         "sectionTitle": "Full saju reading",
-        "title": "Full saju reading — premium content",
+        "title": "Unlock the Light saju reading",
         "desc": "Payment of 5,000 KRW is required to view the in-depth A4 30-page reading of personality, career, love, health, wealth, benefactors, and lucky actions."
       },
       "compat": {
         "title": "Compatibility analysis — premium content",
         "desc": "Payment of 5,000 KRW is required to view the saju-based compatibility result for love, business, and friendship."
-      }
+      },
+      "unlockCta": "Unlock and read now"
     },
     "compat": {
       "sectionTitle": "Compatibility reading (love · business · friendship)",
@@ -21326,8 +21330,8 @@
     "sample": "Sample · a fictional chart",
     "sampleNote": "An example of the format, not your personal result.",
     "paidDifference": "The free reading covers temperament and current cycles. These static readings add longer periods and thematic detail, using explanations linked to the calculated chart.",
-    "paidDaeun": "For comparing ten-year periods, chart evidence and annual details.",
-    "paidSummary": "For connecting the day stem, season, elements and Ten Gods across temperament, work and relationships.",
+    "paidDaeun": "Read how life shifts every ten years and from year to year, and see which choices to prepare for now in work, relationships and money.",
+    "paidSummary": "Your temperament, elements and Ten Gods, personality and relationships, life strategy, and guidance for this year and next, gathered into one reading of your chart.",
     "recovery": "Reopen the chart with the same account and profile and check access. If payment succeeded but access is missing, do not pay again; contact support with the payment record.",
     "inputs": "Uses the birth information and calculations already entered for this chart. Unknown birth time limits time-dependent interpretation.",
     "pricePending": "Checking price",
@@ -21342,7 +21346,7 @@
     "catFree": "Free fortune",
     "today": "Today’s cycle",
     "month": "This month’s cycle",
-    "summaryTitle": "Comprehensive reading",
+    "summaryTitle": "Light saju reading",
     "godTraits": {
       "0": "A preference for self-directed choices",
       "1": "Energy from cooperation and competition",

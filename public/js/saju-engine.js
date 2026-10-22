@@ -5629,9 +5629,9 @@ async function calculate(run){
       try { resultPageEl.scrollIntoView({ behavior: 'instant', block: 'start' }); }
       catch (e) { window.scrollTo(0, 0); }
     }
-    // 🔴 종합 풀이(section_summary)는 30,000원 유료다. 미해금이면 본문을 아예 만들지 않는다 —
+    // 🔴 라이트 사주 풀이(section_summary)는 유료다(가격 정본: worker/lib/paid-feature-registry.js). 미해금이면 본문을 아예 만들지 않는다 —
     // 예전에는 결제 여부와 무관하게 #summaryArea 를 채우고 CSS blur 만 씌워서, 개발자도구로
-    // 클래스 하나만 지우면 A4 20페이지 분량이 그대로 보였다. 해금 시 재렌더는 index.html 의
+    // 클래스 하나만 지우면 본문 전체가 그대로 보였다. 해금 시 재렌더는 index.html 의
     // applySectionGates 가 아래 __cdLastSummaryArgs 로 수행한다(renderLifeGraph 재호출과 같은 패턴).
     // 서버 본문 요청 입력(js/core/saju/section-client.js). 출생 정보·출생지·종격 검증 답만 담는다.
     window.__cdSajuSectionInput={birth:{date:bd,calType:calType,hour:hour,minute:minute,timeKnown:!_birthTimeUnknown},gender:GENDER,name:USER_NAME,
