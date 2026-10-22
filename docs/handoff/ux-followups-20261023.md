@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-23
-next: "21 — 문서 스냅숏에 옛 이름 "사랑의 비밀"이 남아 있다"
+next: "1 — verify-home-funnel의 낡은 단언"
 ---
 
 # 꿀꿀운세 UX 진단·개선 — 후속 과제
@@ -100,7 +100,7 @@ next: "21 — 문서 스냅숏에 옛 이름 "사랑의 비밀"이 남아 있다
   - 엔티티: `lib/seo/entity-registry.mjs:433-441`.
 - [x] **19. 대표 상세 H1 위치의 이유를 기록한다** (코드 변경 없음) — 끝: 세 대표 상세 page.tsx의 H1 바로 위에 이유 주석을 달았다(이 커밋).
   - 클라이언트가 `ssr:false`이고 `verify-seo-heading-integrity`가 H1 하나를 요구한다. 그래서 문서 H1이 하단 서버 영역에 있다. 이 이유를 해당 page 파일 주석이나 DESIGN 문서에 남긴다.
-- [ ] **21. 문서 스냅숏에 옛 이름 "사랑의 비밀"이 남아 있다**
+- [x] **21. 문서 스냅숏에 옛 이름 "사랑의 비밀"이 남아 있다** — 끝: 결정으로 닫음(코드 변경 없음). 운영 소스(app·lib·js·templates·worker·i18n·config·index.html)에는 옛 이름이 0건이다. 남은 4곳(PAGE_INVENTORY 2026-09-08, 같은 날 handoff, adsense 기준선, seo-url-inventory 2026-10-18)은 날짜가 박힌 스냅숏이라 당시 값을 고치지 않는다. PAGE_INVENTORY는 다음 dist 전수 재생성 때 바뀐다.
   - `docs/seo/PAGE_INVENTORY.md`는 `scripts/seo-build-inventory.mjs`로 다시 만든다.
   - adsense 기준선, seo-url-inventory, `expert-consulting-premium-ux-2026-09-08.md`도 확인한다.
 

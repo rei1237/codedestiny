@@ -32,7 +32,8 @@ async function assertEssentials(page, label) {
     ['free first', '#cdQuickServices'],
     ['pass', '#cdhPass .cdh-pass__btn'],
     ['all fortunes button', '.cdh-all-cta__btn'],
-    ['mini games link', '.cdh-links a[href="/mini-games/"]'],
+    // 미니게임은 쉬는 중이다(b8f2fcb7a). 마지막 줄은 "작은 운세 한 모금" 접힘이고, 접힘 버튼(summary)이 보이면 된다.
+    ['light fortunes fold', '#cdhLightFortunes > summary'],
     ['yeoni consultation door', '#fortuneGatewayEntry'],
     ['neo letter consultation', '#cdhNeoLetterSlot .cdh-neo-letter'],
     ['yeongnyangi main banner', '#cdhYeongnyangiSlot .cd-soulcat-entry .cd-soulcat-entry__cta'],
@@ -116,27 +117,31 @@ async function assertEssentials(page, label) {
       assert.equal(await page.locator('#cdConcernPanelLove').isVisible(), false, `${width}px previous panel closes`);
       assert.equal(await page.locator('#cdConcernPanelFuture [data-cd-question="futureCross"]').getAttribute('data-cd-price-key'), 'fusion-fortune-consultation', `${width}px cross-check question leads to fusion fortune`);
       assert.equal(await page.locator('#cdConcernPick .cd-concern__q-link img').first().evaluate((img) => getComputedStyle(img).backgroundColor) !== 'rgb(229, 229, 229)', true, `${width}px question avatar has no grey box`);
-      assert.equal(await page.locator('.cdh-links a').count(), 1, `${width}px the closing link row keeps only mini games`);
+      assert.equal(await page.locator('#cdhLightFortunes').evaluate((node) => node.open), false, `${width}px light fortunes start folded`);
+      assert.ok(await page.locator('#cdhLightFortunes .cdh-light__list a').count() > 0, `${width}px light fortunes fold holds its links`);
       assert.equal(await page.locator('#fortuneGatewayEntry').count(), 1, `${width}px one Yeoni consultation door`);
       assert.match(await page.locator('#fortuneGatewayEntry').textContent(), /5,000원/, `${width}px Yeoni door states 5,000원`);
       assert.deepEqual(await page.locator('#cdQuickServices .cdh-free-card').evaluateAll((cards) => cards.map((card) => card.dataset.cdServiceId)), ['saju', 'tarot', 'ziwei', 'sukuyo', 'vedic', 'astrology'], `${width}px free cards keep the method order`);
       assert.equal(await page.locator('#cdQuickServices .cdh-free-card img').first().evaluate((img) => getComputedStyle(img).backgroundColor), 'rgba(0, 0, 0, 0)', `${width}px free card icon has no grey box`);
-      // 달빛 이야기: 접혀 있다가 열면 노벨·음악 카드 두 장이 한 줄로 펼쳐진다.
+      // 달빛 이야기: 접혀 있다가 열면 노벨·음악 카드 두 장이 펼쳐진다.
       assert.equal(await page.locator('.cdh-story__card').first().isVisible(), false, `${width}px story cards start folded`);
       await page.locator('.cdh-story__toggle').click();
       const story = await page.locator('.cdh-story__card').evaluateAll((cards) => cards.map((card) => ({ href: card.getAttribute('href'), top: Math.round(card.getBoundingClientRect().top), visible: card.getBoundingClientRect().width > 0 })));
       assert.deepEqual(story.map((card) => card.href), ['/codedestiny-novel.html', '/music/'], `${width}px story holds novel and music`);
-      assert.ok(story.every((card) => card.visible) && Math.abs(story[0].top - story[1].top) < 40, `${width}px story cards open side by side`);
+      // 640px 이하는 한 줄에 한 장씩 쌓는다(styles/home-funnel.css .cdh-story__spread).
+      const sideBySide = width > 640;
+      assert.ok(story.every((card) => card.visible) && (Math.abs(story[0].top - story[1].top) < 40) === sideBySide, `${width}px story cards open ${sideBySide ? 'side by side' : 'stacked'}`);
       await page.locator('.cdh-story__toggle').click();
 
       // 대표 상담 덱: 700 미만 2열, 이상 3열 격자(가로 스크롤·위치 점 없음). 대표 상담 3종이 첫 줄이고, 라벨은 텍스트 링크다.
       assert.equal(await page.locator('#cdSigGrid .cd-sig-card').count(), 6, `${width}px deck has six cards`);
       assert.equal(await page.locator('#cdSignatureConsult .cd-sig-card__img').count(), 6, `${width}px each card carries its visual`);
       assert.deepEqual(await page.locator('#cdSigGrid .cd-sig-card').evaluateAll((cards) => cards.slice(0, 3).map((card) => card.dataset.cdServiceId)), ['love-secret-ai', 'new-year-ai', 'life-book-ai'], `${width}px the three signature consultations lead the deck`);
-      const grid = await page.locator('#cdSigGrid').evaluate((node) => { const cs = getComputedStyle(node); const card = node.querySelector('.cd-sig-card').getBoundingClientRect(); return { flow: cs.gridAutoFlow, overflowX: cs.overflowX, cols: cs.gridTemplateColumns.split(' ').length, ratio: card.height / card.width, top: card.top }; });
+      const grid = await page.locator('#cdSigGrid').evaluate((node) => { const cs = getComputedStyle(node); const cols = cs.gridTemplateColumns.split(' ').length; const row = [...node.querySelectorAll('.cd-sig-card')].slice(0, cols).map((card) => card.getBoundingClientRect()); return { flow: cs.gridAutoFlow, overflowX: cs.overflowX, cols, heights: row.map((r) => Math.round(r.height)), top: row[0].top }; });
       assert.ok(grid.flow.startsWith('row') && grid.overflowX === 'visible', `${width}px deck is a grid, not a carousel (${grid.flow}, ${grid.overflowX})`);
       assert.equal(grid.cols, width < 700 ? 2 : 3, `${width}px deck shows ${width < 700 ? 2 : 3} columns`);
-      assert.ok(grid.ratio >= 1.49, `${width}px deck card keeps a tarot (2:3) silhouette (${grid.ratio.toFixed(2)})`);
+      // 카드 높이는 내용이 정한다(f75f35c88에서 2:3 고정을 뗐다). 같은 줄의 카드는 높이가 같아야 가격·라벨 줄이 맞는다.
+      assert.ok(Math.max(...grid.heights) - Math.min(...grid.heights) <= 1, `${width}px first deck row cards share one height (${grid.heights.join(', ')})`);
       assert.equal(await page.locator('.cd-sig__dots, [data-cd-sig-dot]').count(), 0, `${width}px deck has no position dots`);
       // 첫 화면에서 덱의 첫 줄이 보이기 시작한다.
       assert.ok(grid.top < height, `${width}px first deck card starts inside the first viewport (${Math.round(grid.top)} < ${height})`);
@@ -147,7 +152,8 @@ async function assertEssentials(page, label) {
         const parse = (c) => { const n = (c.match(/-?[0-9.]+/g) || []).map(Number); if (n.length < 3) return { r: 0, g: 0, b: 0, a: 0 }; const k = c.startsWith('color(') ? 255 : 1; return { r: n[0] * k, g: n[1] * k, b: n[2] * k, a: n.length > 3 ? n[3] : 1 }; };
         const lum = ({ r, g, b }) => [r, g, b].map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }).reduce((sum, v, i) => sum + v * [0.2126, 0.7152, 0.0722][i], 0);
         const backdrop = (node) => { for (let el = node; el; el = el.parentElement) { const c = parse(getComputedStyle(el).backgroundColor); if (c.a >= 0.5) return c; } return { r: 255, g: 255, b: 255, a: 1 }; };
-        const filled = (el) => { const cs = getComputedStyle(el); if (/gradient/.test(cs.backgroundImage)) return true; const c = parse(cs.backgroundColor); if (c.a < 0.5) return false; const [hi, lo] = [lum(c), lum(backdrop(el.parentElement))].sort((x, y) => y - x); return (hi + 0.05) / (lo + 0.05) >= 1.5; };
+        // 그라디언트는 맨 위 층(버튼 면)의 색이 배경과 구분될 때만 채움이다. 하단 종이 질감 버튼(f0cd52449)은 면이 아이보리이고, 금박은 그 아래 테두리 층이다.
+        const filled = (el) => { const cs = getComputedStyle(el); const back = lum(backdrop(el.parentElement)); const strong = (c) => { if (c.a < 0.5) return false; const [hi, lo] = [lum(c), back].sort((x, y) => y - x); return (hi + 0.05) / (lo + 0.05) >= 1.5; }; const face = (cs.backgroundImage.match(/(?:repeating-)?(?:linear|radial|conic)-gradient\((?:[^()]|\([^()]*\))*\)/) || [''])[0]; return (face.match(/(?:rgba?|color)\([^)]*\)/g) || []).some((stop) => strong(parse(stop))) || strong(parse(cs.backgroundColor)); };
         // 상단 바·고정 유틸리티(언어 선택 등)는 콘텐츠 CTA가 아니다.
         const fixedAncestor = (node) => { if (node.closest('.cdh-top')) return true; for (let el = node; el; el = el.parentElement) { if (/fixed|sticky/.test(getComputedStyle(el).position)) return true; } return false; };
         const ctas = (root) => [...root.querySelectorAll('a,button')].filter((el) => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 && r.height <= 72 && getComputedStyle(el).visibility !== 'hidden' && !fixedAncestor(el); });
