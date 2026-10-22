@@ -13,6 +13,7 @@ import {deliveryRefundPending} from './terminal-refund-policy.js';
 import { correctedFortune } from "./reading-correction.js";
 import { storedChapterDraft, canResumeStoredChapter } from './stored-chapter.js';
 import {conciseReadingManifest} from './fortune/concise-reading';
+import {withRepeatPolicy} from './fortune/reading-restatement';
 import { assertSajuPillarClaims } from "../lib/saju-correction.js";
 import { SAJU_ENGINE_VERSION, SAJU_POLICY_VERSION } from "../../lib/korean-calendar/index.js";
 import {normalizeGrowthAttribution} from '../../lib/marketing/growth-attribution.mjs';
@@ -317,7 +318,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
     birthTimeKnown:product.systems.every(system=>system==='tarot'||Boolean(normalized[system].personA?.birthTime)),
     ...(partner?{partnerTimeKnown:product.systems.every(system=>Boolean(normalized[system].personB?.birthTime))}:{}),
   }) : undefined;
-  manifest=conciseReadingManifest(manifest);
+  manifest=withRepeatPolicy(conciseReadingManifest(manifest));
   return createRequest(env,userId,id,{profileId:body.profileId,productId:product.id,featureKey:product.cdFeatureKey,
     amountKRW:product.priceKRW,fingerprint,...(persona?{persona}:{}),
     ...(askEvidence?{generationCheckpoint:{version:'ask-generation-v1',evidence:askEvidence}}:{}),
@@ -397,7 +398,7 @@ async function prepareQuestionSky(env:Record<string,unknown>,userId:string,body:
   const context=calculated.context;
   calculated.publicData.evidenceVersion=QUESTION_SKY_TWO_STAGE_VERSION;
   context.facts.push({id:`${context.domain}.question-calculation`,label:'프라슈나 계산 근거',value:{method:'Lahiri sidereal / Whole Sign',chart:calculated.chart,judgements:calculated.audit,limits:['위계는 본궁·고양·손상·추락만 산출','실제 감정·소재지·사건 시기의 관측 아님']}});
-  const manifest=conciseReadingManifest(questionSkyTwoStageManifest(context));
+  const manifest=withRepeatPolicy(conciseReadingManifest(questionSkyTwoStageManifest(context)));
   const consultation=createConsultation(input.question,input.topic,clock,manifest);
   // The question is displayed once in the result shell. The generated prose
   // receives it as context but never creates a second question-answer heading.
