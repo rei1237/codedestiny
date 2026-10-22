@@ -11,6 +11,7 @@ const terms:Record<string,readonly string[]>={
  '일주':['日柱','日柱','Trụ ngày','दिन स्तंभ','Pilar del día','Pilier du jour','Tagessäule','Dagpijler','Tiang hari'],
  '시주':['时柱','時柱','Trụ giờ','घंटा स्तंभ','Pilar de la hora','Pilier de l’heure','Stundensäule','Uurpijler','Tiang waktu'],
  '천간·지지':['天干与地支','天干與地支','Thiên can và địa chi','स्वर्गीय तना और पृथ्वी शाखा','Tronco celeste y rama terrestre','Tronc céleste et branche terrestre','Himmelsstamm und Erdzweig','Hemelse stam en aardse tak','Batang langit dan cabang bumi'],
+ '지장간':['藏干','藏干','Tàng can','छिपे तने','Troncos ocultos','Troncs cachés','Verborgene Stämme','Verborgen stammen','Batang tersembunyi'],
  '천간 십성':['天干十神','天干十神','Thập thần của thiên can','तने के दस संबंध','Diez relaciones del tronco','Dix relations du tronc','Zehn Beziehungen des Stamms','Tien relaties van de stam','Sepuluh hubungan batang'],
  '주성':['主星','主星','Chính tinh','मुख्य तारे','Estrellas principales','Étoiles principales','Hauptsterne','Hoofdsterren','Bintang utama'],
  '보조성':['辅星','輔星','Phụ tinh','सहायक तारे','Estrellas de apoyo','Étoiles secondaires','Begleitsterne','Ondersteunende sterren','Bintang sokongan'],
@@ -92,7 +93,7 @@ export function nativeVisualCopy(locale:NativeLocale){
  const text=chartText[locale],c=readingScreenLocales[locale],concept=chapterConcepts[locale];
  return {glance:c.contents,glanceCaption:text.related,chapterCol:c.chapter,themeCol:c.questionSection,pointCol:c.intro,keyPoints:c.intro,
   timeline:c.timing,timelineCaption:text.timelineCaption,periodCol:nativeChartTerm('주기',locale)!,rangeCol:c.period,now:text.now,noRange:nativeChartTerm('자료 없음',locale)!,
-  pillars:localizedSystem('saju',locale),pillarRow:nativeChartTerm('천간·지지',locale)!,tenGodRow:nativeChartTerm('천간 십성',locale)!,elements:concept.useful,elementsCaption:text.sourceStored,elementsSurfaceCaption:text.sourceStored,
+  pillars:localizedSystem('saju',locale),pillarRow:nativeChartTerm('천간·지지',locale)!,tenGodRow:nativeChartTerm('천간 십성',locale)!,hiddenRow:nativeChartTerm('지장간',locale)!,elements:concept.useful,elementsCaption:text.sourceStored,elementsSurfaceCaption:text.sourceStored,
   elementCount:(label:string,n:number)=>`${label} ${n}`,says:c.intro,answerTable:c.reason,yearFocus:c.period,yearFocusCaption:c.context,yearLabel:(y:number)=>String(y),
   relative:(n:number)=>`${text.relative}: ${n>0?'+':''}${n}`,themes:{self:concept.base,wealth:concept.wealth,love:concept.love,career:concept.career,relations:concept.relations,timing:concept.timing,cross:concept.structure,action:c.action},
   pillarNames:Object.fromEntries(['시주','일주','월주','년주'].map(key=>[key,nativeChartTerm(key,locale)!]))};

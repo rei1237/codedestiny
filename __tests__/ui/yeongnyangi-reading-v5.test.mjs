@@ -79,6 +79,14 @@ test('presentation excludes raw birth data and does not recalculate missing lega
  assert.ok(!JSON.stringify(charts).includes('1991-02-03'));assert.ok(!JSON.stringify(charts).includes('SECRET_PROMPT'));
  assert.deepEqual(m.readingCharts({contexts:{}},[]),[]);
 });
+test('surface element counts show the hidden stems under each pillar; legacy charts stay as saved',()=>{
+ const five={counts:{wood:2,fire:2,earth:2,metal:2,water:0},countBasis:'surface',hiddenStems:[{pillar:'month',branch:'寅',stems:[{stem:'甲'},{stem:'丙'},{stem:'戊'}]}]};
+ const groups=five=>m.readingCharts({contexts:{saju:{...context,facts:[...context.facts,{id:'saju.fiveElements',label:'fiveElements',value:five}]}}},[chapter])[0].groups;
+ const month=g=>g.find(x=>x.label==='월주').items;
+ assert.deepEqual(month(groups(five)).find(i=>i.label==='지장간'),{label:'지장간',value:'甲·丙·戊'});
+ assert.equal(groups(five).find(x=>x.label==='년주').items.some(i=>i.label==='지장간'),false);
+ assert.equal(month(groups({...five,countBasis:undefined})).some(i=>i.label==='지장간'),false);
+});
 
 test('all 78 saved tarot cards use approved Yeongnyangi art without changing IDs, order or orientation',()=>{
  const cards=m.TAROT_CARDS.map((card,i)=>({...card,cardId:card.code,orientation:i%2?'reversed':'upright',imageUrl:'/old-deck.jpg'}));

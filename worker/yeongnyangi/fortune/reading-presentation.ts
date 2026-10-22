@@ -59,7 +59,9 @@ export function readingCharts(analysis:MasterAnalysis,manifest:ChapterSpec[]):Re
       groups.push({id:`${d}-${groups.length}`,label,items,chapterIds:related.map(s=>s.chapter.id),...extra});
     }
     if(d==='saju'){
-      for(const [key,label] of Object.entries({year:'년주',month:'월주',day:'일주',hour:'시주'}))add('pillars',label,[{label:'천간·지지',value:text(f.pillars?.[key])},{label:'천간 십성',value:text(f.tenGodsByPillar?.[key]?.stemTenGod)}]);
+      // Surface counts leave the hidden stems out, so the board shows them under each pillar instead.
+      const hidden=f.fiveElements?.countBasis==='surface'?Object.fromEntries((f.fiveElements.hiddenStems || []).map((h:any)=>[h.pillar,(h.stems || []).map((s:any)=>s.stem).join('·')])):{};
+      for(const [key,label] of Object.entries({year:'년주',month:'월주',day:'일주',hour:'시주'}))add('pillars',label,[{label:'천간·지지',value:text(f.pillars?.[key])},{label:'천간 십성',value:text(f.tenGodsByPillar?.[key]?.stemTenGod)},...(hidden[key]?[{label:'지장간',value:hidden[key]}]:[])]);
       add('fiveElements',f.fiveElements?.countBasis==='surface'?'오행 분포 · 보이는 글자 기준':'오행 분포 · 월령 가중치 포함',Object.entries(f.fiveElements?.counts || f.fiveElements || {}).filter(([,v])=>typeof v==='number').map(([k,v])=>({label:text(k),value:text(v)})));
       if(f.partnerChart){for(const [key,label] of Object.entries({year:'상대 년주',month:'상대 월주',day:'상대 일주',hour:'상대 시주'}))add('partnerChart',label,[{label:'천간·지지',value:text(f.partnerChart.pillars?.[key])}]);}
     }else if(d==='ziwei'){

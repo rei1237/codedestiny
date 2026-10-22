@@ -67,7 +67,7 @@ export function chartLimitation(value:string,locale?:ReadingLocale):string{
 
 const visualKo={glance:'한눈에 보는 이야기',glanceCaption:'장마다 영냥이가 짚은 핵심이야.',chapterCol:'장',themeCol:'주제',pointCol:'핵심 한 줄',
  keyPoints:'영냥이의 핵심 정리',timeline:'시기의 흐름',timelineCaption:'구매 당시 저장된 계산 기간이야. 금빛 선이 지금이야.',periodCol:'주기',rangeCol:'기간',now:'지금',noRange:'기간 자료 없음',
- pillars:'나의 사주 원국표',pillarRow:'천간·지지',tenGodRow:'천간 십성',elements:'오행의 균형',elementsCaption:'월령 가중치를 포함한 저장된 분포야.',elementsSurfaceCaption:'원국에 보이는 글자만 센 개수야. 지장간과 월령은 본문에서 따로 풀어 줄게.',
+ pillars:'나의 사주 원국표',pillarRow:'천간·지지',tenGodRow:'천간 십성',hiddenRow:'지장간',elements:'오행의 균형',elementsCaption:'월령 가중치를 포함한 저장된 분포야.',elementsSurfaceCaption:'원국에 보이는 글자만 센 개수야. 지장간은 위 표에 따로 적었고 개수에는 넣지 않았어. 월지는 계절의 힘(월령)이라 강약을 볼 때 더 무겁게 봐.',
  elementCount:(label:string,n:number)=>`${label} ${n}`,says:'영냥이의 한마디',answerTable:'답의 근거와 실행',
  yearFocus:'질문한 해',yearFocusCaption:'영냥이는 이 해의 기운으로 답했어.',yearLabel:(y:number)=>`${y}년`,
  relative:(n:number)=>['재작년','작년','올해','내년','내후년'][n+2] || (n<0?`${-n}년 전`:`${n}년 뒤`),
@@ -76,7 +76,7 @@ const visualKo={glance:'한눈에 보는 이야기',glanceCaption:'장마다 영
 type VisualCopy=typeof visualKo;
 const visualEn:VisualCopy={glance:'Your reading at a glance',glanceCaption:'The key point Yeongnyangi picked from each chapter.',chapterCol:'Ch.',themeCol:'Theme',pointCol:'Key point',
  keyPoints:'Yeongnyangi’s key points',timeline:'Timing at a glance',timelineCaption:'Periods saved from your calculation at purchase. The gold line marks today.',periodCol:'Period',rangeCol:'Range',now:'Now',noRange:'No date range saved',
- pillars:'My four pillars',pillarRow:'Stem and branch',tenGodRow:'Ten Gods of the stem',elements:'Five element balance',elementsCaption:'Saved distribution, weighted by birth month.',elementsSurfaceCaption:'Counts of the visible characters only. Hidden stems and the birth-month season are explained in the reading.',
+ pillars:'My four pillars',pillarRow:'Stem and branch',tenGodRow:'Ten Gods of the stem',hiddenRow:'Hidden stems',elements:'Five element balance',elementsCaption:'Saved distribution, weighted by birth month.',elementsSurfaceCaption:'Counts of the visible characters only. Hidden stems are listed in the table above and not counted. The month branch carries the season, so it weighs more when judging strength.',
  elementCount:(label:string,n:number)=>`${label} ${n}`,says:'A word from Yeongnyangi',answerTable:'Reason, timing and action',
  yearFocus:'The year you asked about',yearFocusCaption:'Yeongnyangi answered with this year’s energy.',yearLabel:(y:number)=>String(y),
  relative:(n:number)=>n===0?'This year':n===1?'Next year':n===-1?'Last year':n<0?`${-n} years ago`:`In ${n} years`,
@@ -84,7 +84,7 @@ const visualEn:VisualCopy={glance:'Your reading at a glance',glanceCaption:'The 
  pillarNames:{'시주':'Hour','일주':'Day','월주':'Month','년주':'Year'}};
 const visualJa:VisualCopy={glance:'ひと目でわかる鑑定',glanceCaption:'各章でヨンニャンイが押さえた要点です。',chapterCol:'章',themeCol:'テーマ',pointCol:'要点',
  keyPoints:'ヨンニャンイの要点まとめ',timeline:'時期の流れ',timelineCaption:'購入時に保存された計算上の期間です。金色の線が現在です。',periodCol:'周期',rangeCol:'期間',now:'現在',noRange:'期間の資料なし',
- pillars:'私の四柱命式',pillarRow:'天干・地支',tenGodRow:'天干の通変星',elements:'五行のバランス',elementsCaption:'月令の重みを含む保存済みの分布です。',elementsSurfaceCaption:'命式に見える文字だけを数えた数です。蔵干と月令は本文で別に説明します。',
+ pillars:'私の四柱命式',pillarRow:'天干・地支',tenGodRow:'天干の通変星',hiddenRow:'蔵干',elements:'五行のバランス',elementsCaption:'月令の重みを含む保存済みの分布です。',elementsSurfaceCaption:'命式に見える文字だけを数えた数です。蔵干は上の表に別に記し、数には含めません。月支は季節の力(月令)なので、強弱を見るときは重く見ます。',
  elementCount:(label:string,n:number)=>`${label} ${n}`,says:'ヨンニャンイのひとこと',answerTable:'答えの根拠と実行',
  yearFocus:'ご質問の年',yearFocusCaption:'ヨンニャンイはこの年の気で答えました。',yearLabel:(y:number)=>`${y}年`,
  relative:(n:number)=>['一昨年','昨年','今年','来年','再来年'][n+2] || (n<0?`${-n}年前`:`${n}年後`),
