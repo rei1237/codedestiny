@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-23
-next: "8 — 결제 게이트 eyebrow에 내부 상태값이 그대로 보이는 문제를 고친다"
+next: "28 — 숙요·휴먼디자인 차트 화면에 추천이 안 뜬다"
 ---
 
 # 꿀꿀운세 UX 진단·개선 — 후속 과제
@@ -19,7 +19,7 @@ next: "8 — 결제 게이트 eyebrow에 내부 상태값이 그대로 보이는
 ## 지금 상태 (다시 하지 않는다)
 
 - 1~7단계 전부 로컬 main에 머지됨(push 안 함). 끝 커밋: `f73dc9337`, `5168c0180`, `a99804b6a`(토스트 이중 낭독·PWA 배너 페르소나), `76e2b6722`(사이트맵 원장).
-- 후속 커밋(워크트리, 머지 대기): `0733811cc`(38·39·40), `32068d4ed`(6), `19bf22269`(41), `ce143af9e`(42). 자세한 내용은 아래 "끝난 것".
+- 후속 커밋: 38·39·40·6·41·42는 로컬 main에 머지됨(`e80edaf15`까지). 워크트리에서 머지 대기: 아래 "끝:" 표시 항목. **머지 전에 `npx tsc --noEmit -p .`를 돌린다**(TS 파일이 여럿 바뀜).
 - 라이트 사주 풀이 결제 직후 열기, 라이트 표기, FAQ 차별점 4문항(`lib/brand/differentiation-faqs.mjs`), 쿠팡 배치 최적화는 끝났다.
 
 ## 작업 규칙
@@ -48,45 +48,45 @@ next: "8 — 결제 게이트 eyebrow에 내부 상태값이 그대로 보이는
 
 ### A. 사용자 화면 결함
 
-- [ ] **8. 결제 게이트 eyebrow에 내부 상태값이 그대로 보인다**
+- [x] **8. 결제 게이트 eyebrow에 내부 상태값이 그대로 보인다** — 끝: `4581f2a7f`. 상태 코드를 사용자 문구로 바꾸고, 모르는 값은 기본 문구로 둔다.
   - 위치: `index.html` 약 L24986 `eyebrowEl.textContent = status`. CSS가 대문자 변환(약 L24782), 기본값은 '달빛 결제 확인'(약 L24807).
   - 할 일: 상태 코드를 사용자 문구로 매핑하고, 모르는 값은 기본 문구로 둔다. 셸 수정이므로 `sync:public` 2회.
-- [ ] **9. 인생의 책 오류가 원문 메시지를 흘린다**
+- [x] **9. 인생의 책 오류가 원문 메시지를 흘린다** — 끝: `4fbf7b9c9`. Error 객체를 넘겨 공용 변환을 탄다.
   - 위치: `app/life-book-ai/LifeBookAiClient.tsx` 약 L1571·L1704·L1742가 문자열을 넘긴다.
   - 할 일: `LifeBookAiResultClient.tsx:1478`처럼 Error 객체를 넘겨 공용 변환을 타게 한다.
-- [ ] **10. `app/_lib/billing-client.ts:2600,2603`이 오류 원문을 보여 준다**
+- [x] **10. `app/_lib/billing-client.ts:2600,2603`이 오류 원문을 보여 준다** — 끝: `70ccb671f`. 런타임 예외 원문을 감추고 동결 매니페스트를 갱신했다(`verify:payment-freeze` 통과).
   - 이 파일은 결제 동결 대상이다(`config/payment-freeze.json`). 고치면 `npm run verify:payment-freeze -- --update`가 필요하다.
   - 이미 `CheckoutClient.tsx:141`에서 완화돼 있다. 동결 해제 비용이 크면 "완화됨, 동결 유지"로 닫는다.
-- [ ] **11. 게이트가 `requestId` 없이 조용히 끝난다**
+- [x] **11. 게이트가 `requestId` 없이 조용히 끝난다** — 끝: `4581f2a7f`에 함께. 조용한 return은 이미 닫힌 게이트에서 나는 의도된 동작이라 안내는 띄우지 않고, 진단용 performance mark만 남겼다.
   - 위치: `index.html` 약 L24945 `_cdUpdatePaidFeatureGate`, 약 L24546 `_cdReleasePaidFeatureGate`가 조용히 return한다.
   - 할 일: 진단 로그를 남기고, 사용자 동작으로 연 게이트라면 재시도 안내를 보인다.
-- [ ] **37. 질문형 단계 입력에 `aria-invalid`가 없다**
+- [x] **37. 질문형 단계 입력에 `aria-invalid`가 없다** — 끝: `46d9ce2ec`.
   - 위치: `app/yeongnyangi/_components/Consultation.tsx` 질문 모드 스테퍼(약 L293-327), 누락 계산 `missing`(약 L146-157). 기본 폼은 `fieldProps`(약 L163)가 이미 있다.
   - 할 일: 같은 `fieldProps` 패턴으로 `aria-invalid`·`aria-describedby`를 단다.
-- [ ] **26. 추천 둘러보기 설명이 "준비하고 있어요"라고 말한다**
+- [x] **26. 추천 둘러보기 설명이 "준비하고 있어요"라고 말한다** — 끝: `9d20ba0ec`.
   - 위치: `app/recommendations/page.tsx:2`, `app/recommendations/[category]/page.tsx:3`, `js/recommendations-copy.mjs`.
   - 할 일: 이미 열린 화면이므로 실제 설명으로 바꾼다.
-- [ ] **34. 빈 보관함 CTA 라벨이 행동을 말하지 않는다**
+- [x] **34. 빈 보관함 CTA 라벨이 행동을 말하지 않는다** — 끝: `3f597ae72`. 12개 언어 `libraryStart` 키.
   - 위치: `app/yeongnyangi/_components/Library.tsx:79-81`, 지금 '상담 구성과 결제 조건 확인하기'.
   - 할 일: 행동 라벨로 바꾸고 12개 언어 문구를 직접 쓴다.
-- [ ] **32. 신년운세 분야 수 표기가 실제와 어긋난다** (재정의)
+- [x] **32. 신년운세 분야 수 표기가 실제와 어긋난다** (재정의) — 끝: `2b358e79f`. `READING_STEPS`로 단계 목록·개수를 한곳에서 만들고, 서버 `NEW_YEAR_AI_SECTIONS`와 순서·수가 같은지 테스트한다.
   - `|| 6` 폴백은 맞다(서버 `NEW_YEAR_AI_SECTIONS`, `worker/routes/new-year-ai.js:77`).
   - 진짜 불일치: 클라이언트 안내 "{DOMAIN_CARDS.length}개 분야"는 5다. 두 값을 공유 상수 하나에서 만든다.
-- [ ] **15. `.cdh-flow` 여백이 어긋난다**
+- [x] **15. `.cdh-flow` 여백이 어긋난다** — 끝: `d65cde7b6`. `#cdHomeFunnel .cdh-flow>…{margin:0}`로 간격을 flow gap 하나가 맡는다.
   - 위치: `styles/home-funnel.css` `.cdh-flow` 약 L80, `.cdh-honey` 약 L1332·L1356.
   - 홈 퍼널 정본은 `templates/home-funnel.html`·`styles/home-funnel.css`다. 생성 스크립트로 `index.html`에 반영한다.
-- [ ] **16. 1536px 이미지를 640px 슬롯에 쓴다**
+- [x] **16. 1536px 이미지를 640px 슬롯에 쓴다** — 끝: `f4afd98fe`. 320·640·960 srcset. 디스커버리는 `/`에만 있다.
   - 위치: `lib/marketing/consultation-discovery.mjs:23`.
   - 할 일: 이미 있는 `master-love-codex-640.webp`를 쓰거나 srcset을 준다. 새 이미지는 만들지 않는다.
-- [ ] **18. `ExpertStickyCta`의 `watchId`가 7곳에 없다**
+- [x] **18. `ExpertStickyCta`의 `watchId`가 7곳에 없다** — 끝: `140d64baf`. karma·vedic에 히어로 CTA id와 `watchId`를 달았다. 나머지 5곳(astrology·island·nakshatra·ziwei·new-year)은 같은 행동의 히어로 CTA가 없어 일부러 달지 않았다.
   - astrology-ai 약 L2198, island-consult 약 L1083, karma-destiny-ai 약 L2861, nakshatra/ai 약 L506, vedic-ai 약 L3529, ziwei-ai 약 L1299.
   - new-year-ai-consultation 약 L2279에는 감시할 히어로 요소가 없다. id를 새로 달지 판단한다.
   - prop 정의: `ExpertConsultationFrame.tsx:35,72-95`.
-- [ ] **20. 다국어 신뢰 FAQ에 차별점 문항이 없다**
+- [x] **20. 다국어 신뢰 FAQ에 차별점 문항이 없다** — 끝: `a8437feec`. ja·en·zh 각 4문항을 직접 번역했다. 다국어 FAQ는 Next 페이지가 이 데이터를 읽으므로 정적 재생성은 필요 없다.
   - 위치: `lib/i18n/public-trust-copy.mjs` ja·en·zh faq 블록(약 L54·L114·L175).
   - 원문: `lib/brand/differentiation-faqs.mjs`. 사실만 직접 번역하고, 유료 번역 스크립트는 쓰지 않는다.
-- [ ] **25. 레거시 추천 화면의 `copy.locale`이 undefined다** — `js/recommendations-legacy.mjs` 약 L40·L65.
-- [ ] **24. 레거시 추천 화면이 60초마다 다시 불러온다** — 같은 파일 약 L88. 필요 없는 폴링이면 멈춘다.
+- [x] **25. 레거시 추천 화면의 `copy.locale`이 undefined다** — `js/recommendations-legacy.mjs` 약 L40·L65. — 끝: `d40edb91b`. `shelf`(언어별 문구)와 `lang`을 쓴다.
+- [x] **24. 레거시 추천 화면이 60초마다 다시 불러온다** — 같은 파일 약 L88. 필요 없는 폴링이면 멈춘다. — 끝: `d40edb91b`. 폴링은 관리자 끄기 스위치라 유지한다. 응답이 같으면 다시 그리지 않고, 숨겨진 탭에서는 건너뛴다. 테스트 추가.
 - [ ] **28. 숙요·휴먼디자인 차트 화면에 추천이 안 뜬다**
   - 원인: `SukuyoCompatibilityAiClient.tsx:1185`, `HumanDesignClient.tsx:719`가 advice 태그를 넘기지 않는다.
 - [ ] **29. 추천 태그 추출이 한국어 정규식뿐이다** — `js/recommendations-context.mjs`.
@@ -190,3 +190,4 @@ next: "8 — 결제 게이트 eyebrow에 내부 상태값이 그대로 보이는
 - **H13.** 토스트 이중 낭독 수정에 스크린리더 테스트가 없다.
 - **H14.** `js/saju-engine.js:5632` "30,000원" 주석을 다시 확인한다.
 - **H15.** 개발 서버 `/today/`가 500을 낸다. 워크트리에 `fortune/data/daily-*.json`이 없어서다(`npm run fortune:build-data`). 환경 문제로 보이지만 운영 영향은 확인하지 않았다.
+- **H16.** 신년운세 대기 화면의 진행 단계와 `READING_STAGES` 라벨이 한 단계 어긋난다(단계 'opening'이 켜져 있을 때 라벨은 '올해의 총운을 읽는 중'). 32번 작업 중 발견, 고치지 않았다.
