@@ -14,7 +14,7 @@ import {fitChapterFacts} from './input-budget';
 import {READING_V6_VERSION,READING_V7_VERSION,QUESTION_SKY_TWO_STAGE_VERSION,QUESTION_LAYOUT_VERSION,hasReadingSections,isStructuredReading,PROMPT_VERSION,readingPolicies} from '../fortune/reading-policy';
 import {sanitizeQuestionSkyBody,validateQuestionSkyTwoStage} from '../fortune/question-sky-reading';
 import {buildV7ChapterPrompt,v7TimeTheme,type V7PromptChapter,type V7Previous} from '../fortune/reading-v7-prompt';
-import {LENGTH_FAILURES,bodyCharacterCount,normalizeSectionParagraphs,splitSectionParagraph,validateReadingQuality} from '../fortune/reading-quality';
+import {LENGTH_FAILURES,SENTENCE_BOUNDARY,bodyCharacterCount,normalizeSectionParagraphs,splitSectionParagraph,validateReadingQuality} from '../fortune/reading-quality';
 import {auditV7Chapter,pruneV7Chapter} from '../fortune/reading-v7-quality';
 import {REPEAT_POLICY,pruneRestatements} from '../fortune/reading-restatement';
 import {selectChapterFacts} from '../fortune/chapter-facts';
@@ -370,6 +370,11 @@ function explainedEvidence(previous:ChapterRequest['previous']){
   const ids=[...new Set(previous.flatMap(p=>Array.isArray(p.sources)?p.sources:[]))].filter(id=>typeof id==='string');
   return ids.length?{rule:'앞 장에서 이미 풀어 쓴 근거 ID다. 이번 장에서 다시 쓸 때는 앞 장 설명을 한 줄로만 짚고, 분량은 이번 장 질문에 새로 더하는 해석에 쓴다.',ids}:undefined;
 }
+/** REPEAT_POLICY: the first sentence of each section in the last 12 chapters. Only summaries were carried, so sections kept opening alike. */
+function previousOpenings(previous:ChapterRequest['previous']){
+  const openings=[...new Set(previous.slice(-12).flatMap(p=>(p.blocks||[]).map(b=>String(b?.paragraphs?.[0]||'').split(SENTENCE_BOUNDARY)[0].trim().slice(0,80))).filter(Boolean))];
+  return openings.length?{rule:'앞 장 소절들의 첫 문장이다. 이번 장의 소절을 이 문장이나 같은 짜임(같은 주어·같은 결론·같은 근거 소개)으로 시작하지 않는다.',openings}:undefined;
+}
 
 const REPAIR_INSTRUCTIONS:Record<string,string>={
   INVALID_CHAPTER_BLOCKS:'blocks는 sectionContract가 있으면 그 id 순서대로 소절마다 하나씩 만든다. 각 block의 title은 구매 언어로 된 비어 있지 않은 소제목, paragraphs는 비어 있지 않은 문단 배열이다. 문단은 각각 500자 이하로 쓰고 긴 소절은 문장 단위로 끊어 여러 문단으로 나눈다. 한 문장이 500자를 넘지 않게 한다. HTML 태그를 쓰지 않는다. analysis·example·advice는 blockContract를 그대로 따른다.',
@@ -641,6 +646,7 @@ export class StructuredChapterProvider implements FortuneChapterProvider {
         previousExamples: input.previous.map((p) => p.example.slice(0, 100)),
         fixedConclusions: fixedConclusions(input.previous),
         explainedEvidence: explainedEvidence(input.previous),
+        ...(input.chapter.repeatPolicy===REPEAT_POLICY?{previousOpenings:previousOpenings(input.previous)}:{}),
         ...(input.chapter.consultationLayout?{previousYearClaims:previousYearClaims(input.previous)}:{}),
         ...(isFusionBookLayout(input.chapter.consultationLayout)?{claimLedger:claimLedger(input.previous)}:{}),
         themes: isStructuredReading(input.chapter.version) ? undefined : input.analysis.themes,
