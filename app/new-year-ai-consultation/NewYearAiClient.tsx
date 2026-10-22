@@ -19,6 +19,7 @@ import {
 import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "@/app/hooks/usePaidResume";
 import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { authFetch } from "@/app/_lib/auth-client";
+import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { PriceBadge } from "@/app/components/PriceBadge";
@@ -1732,7 +1733,7 @@ export default function NewYearAiConsultationPage() {
       if (response.ok && result.ok && result.status === "completed") { applyResult(result); return true; }
       if (!response.ok) setError(result.message || SERVER_ERROR_MESSAGE);
     } catch (caught) {
-      if (isCurrent()) { setError(caught instanceof Error ? caught.message : SERVER_ERROR_MESSAGE); setStatus("error"); }
+      if (isCurrent()) { setError(friendlyErrorMessage(caught, SERVER_ERROR_MESSAGE)); setStatus("error"); }
     } finally { if (isCurrent()) startLockRef.current = false; }
     return false;
   }, [applyResult, captureDeliveryScope, startConsultation]);
@@ -1854,7 +1855,7 @@ export default function NewYearAiConsultationPage() {
       return await startConsultation(payload, idempotencyKey, { billingGate: asRecord(grant?.payload) });
     } catch (caught) {
       if (!isCurrent()) return false;
-      setError(caught instanceof Error ? caught.message : SERVER_ERROR_MESSAGE);
+      setError(friendlyErrorMessage(caught, SERVER_ERROR_MESSAGE));
       setStatus("error");
       return false;
     } finally {
@@ -1870,7 +1871,7 @@ export default function NewYearAiConsultationPage() {
     if (pending) {
       startLockRef.current = true;
       try { await startConsultation(pending.payload, pending.key, pending.access); }
-      catch (caught) { if (!isCurrent()) return; setError(caught instanceof Error ? caught.message : SERVER_ERROR_MESSAGE); setStatus("error"); }
+      catch (caught) { if (!isCurrent()) return; setError(friendlyErrorMessage(caught, SERVER_ERROR_MESSAGE)); setStatus("error"); }
       finally { if (isCurrent()) startLockRef.current = false; }
       return;
     }
@@ -1980,7 +1981,7 @@ export default function NewYearAiConsultationPage() {
             ? PAYMENT_VERIFY_FAILED_MESSAGE
           : message.includes("payment")
             ? PAYMENT_VERIFY_FAILED_MESSAGE
-            : message || SERVER_ERROR_MESSAGE,
+            : friendlyErrorMessage(caught, SERVER_ERROR_MESSAGE),
       );
       setStatus("error");
       failPaidFeatureGateCheck({

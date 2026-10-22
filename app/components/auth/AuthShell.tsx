@@ -650,7 +650,11 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
       // 눌러서 제스처를 다시 만들 링크를 화면에 남긴다(워커 핸드오프 페이지와 같은 방식).
       if (payload.appRedirectUrl) { setAppReturnUrl(payload.appRedirectUrl); window.location.assign(payload.appRedirectUrl); return; }
       redirect(payload.nextPath, payload.user?.role);
-    } catch (reason) { setError(reason instanceof Error ? reason.message : copy.network); }
+    } catch (reason) {
+      const message = reason instanceof Error ? reason.message : "";
+      // 이메일 가입과 같은 판정 — fetch 실패 원문 대신 연결 재시도를 안내한다.
+      setError(!message || /failed to fetch|network|load failed|fetch failed/i.test(message) ? copy.network : message);
+    }
     finally { setBusy(false); }
   };
 

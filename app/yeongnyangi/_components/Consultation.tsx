@@ -30,6 +30,7 @@ import {depthDescriptions,policyForReading} from '@/worker/yeongnyangi/fortune/r
 import {conciseReadingManifest} from '@/worker/yeongnyangi/fortune/concise-reading';
 import {topicCatalog} from '@/worker/yeongnyangi/fortune/topics';
 import {fortuneApi,FortuneApiError,loginForCurrentPage,resultPath,checkoutPath,type FortuneRecord} from '../_lib/api';
+import {friendlyErrorMessage} from '@/app/_lib/friendly-error';
 import ProfilePicker from './ProfilePicker';
 import {profileKey,useProfiles} from '../_lib/use-profiles';
 import styles from '../yeongnyangi.module.css';
@@ -222,7 +223,7 @@ export default function Consultation(){
   fortuneApi<{products:(Product&{available:boolean})[]}>('products').then(catalog=>{
    if(cancelled)return;
    setAvailable(catalog.products.filter(p=>p.available));
-  }).catch(e=>{if(!cancelled)setCatalogError(e.message);}).finally(()=>{if(!cancelled)setReady(true);});
+  }).catch(e=>{if(!cancelled)setCatalogError(friendlyErrorMessage(e,'상담 목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.'));}).finally(()=>{if(!cancelled)setReady(true);});
   return ()=>{cancelled=true;};
  },[]);
  useEffect(()=>{
@@ -269,7 +270,7 @@ export default function Consultation(){
    consultationAttemptId.current='';
    // A v3 tarot order is not payable until the buyer picks cards on the result page (AWAITING_DRAW).
    window.location.assign(data.fortune.paid||data.fortune.state==='AWAITING_DRAW'?resultPath(data.fortune.id,siteLocale):checkoutPath(data.fortune,siteLocale));
-  }catch(e){if(e instanceof FortuneApiError&&e.status===401)loginWithDraft();else setError(siteLocale!=='ko'?inputCopy.consultationError:e instanceof Error?e.message:inputCopy.consultationError);}
+  }catch(e){if(e instanceof FortuneApiError&&e.status===401)loginWithDraft();else setError(siteLocale!=='ko'?inputCopy.consultationError:friendlyErrorMessage(e,inputCopy.consultationError));}
   finally{lock.current=false;setBusy(false);}
  }
  function chooseDomain(next:string){const first=defaultKind(next);setKindId(first.id);setTopicId('general');setQuestion('');setDomain(next);setProductId(products.find(p=>next==='fusion'?p.readingKind!=='single':p.domain===next&&p.readingKind==='single')!.id);setPartnerId('');setError('');}

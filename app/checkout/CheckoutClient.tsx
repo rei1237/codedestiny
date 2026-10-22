@@ -45,6 +45,7 @@ import {isConciseReading} from '@/worker/yeongnyangi/fortune/concise-reading';
 import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLocale } from "@/constants/loadingMessages";
 import { getCheckoutCopy, resolveCheckoutPolicyHrefs } from "./checkout-copy";
 import {fortuneApi,FortuneApiError,resultPath,type FortuneRecord} from '../yeongnyangi/_lib/api';
+import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 import { paymentAllianceCopy } from "./payment-alliance-copy";
 import styles from "./checkout.module.css";
 import MoonstoneDiscountBalance from "./MoonstoneDiscountBalance";
@@ -135,6 +136,15 @@ function saveQuestionEdit(reading: FortuneRecord | null): void {
 
 /** SoulCat 모드(requestId 없음)의 결정론적 requestId 재료. 서버 idempotency 키는 120자 상한만 있고
  * charset 제약은 없다 — 이 정리는 가독성용이지 정확성 요건이 아니다. */
+// 결제 화면 오류 문구. 한국어 화면은 공용 규칙(한국어 안내만 통과, "Failed to fetch" 같은 원문은 숨김)을 따르고,
+// 다른 언어 화면은 서버의 한국어 문구 대신 그 언어 안내를 쓴다. ownMessages 는 이 화면이 직접 던진 안내다.
+function checkoutErrorText(caught: unknown, fallback: string, lang: string, ownMessages: string[] = []): string {
+  const text = caught instanceof Error ? caught.message : typeof caught === "string" ? caught : "";
+  if (text && ownMessages.includes(text)) return text;
+  if (lang !== "ko") return fallback;
+  return friendlyErrorMessage(typeof caught === "string" ? new Error(caught) : caught, fallback);
+}
+
 function stableSlug(value: string): string {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "default";
 }
@@ -151,7 +161,7 @@ function SavedConsultationCheckout({requestId,featureKey}:{requestId:string;feat
   if(!active)return;if(fortune.product.cdFeatureKey!==featureKey)throw new Error('상담 상품을 확인해 주세요.');
   if(fortune.paid){window.location.replace(resultPath(fortune.id,'ko'));return;}
   if(!catalog.products.some(product=>product.cdFeatureKey===featureKey&&product.available))throw new Error('현재 이 상담을 준비할 수 없어요. 잠시 후 다시 확인해 주세요.');setRecord(fortune);
- }).catch(e=>{if(active){if(e instanceof FortuneApiError&&e.status===401)redirectToLogin();else setError(e.message);}});return()=>{active=false;};},[requestId,featureKey,revision]);
+ }).catch(e=>{if(active){if(e instanceof FortuneApiError&&e.status===401)redirectToLogin();else setError(friendlyErrorMessage(e,'주문을 확인하지 못했어요. 잠시 후 다시 확인해 주세요.'));}});return()=>{active=false;};},[requestId,featureKey,revision]);
  const product=products.find(item=>item.cdFeatureKey===featureKey);
  return <main className={styles.page} data-yn-night><nav className={styles.nav}><a href="/yeongnyangi/" onClick={event=>returnToPreviousScreen(event)}>영냥이로 돌아가기</a><a href="/yeongnyangi/library/">내 상담 기록</a></nav>
   {error?<p role="alert">{error} <button type="button" onClick={()=>setRevision(n=>n+1)}>다시 확인하기</button></p>:record&&product?<YeongnyangiCheckout draft={{product,question:record.consultation?.question||product.name,chapters:record.manifest.length,ready:true,onPrepare:async()=>{const next=await fortuneApi<{fortune:FortuneRecord}>(`requests/${requestId}`);return next.fortune;},children:<p>준비한 상담 내용으로 이어갑니다. 결제를 취소해도 같은 상담에서 다시 확인할 수 있어요.</p>}}/>:<p role="status">상담 내용을 확인하고 있어요.</p>}
@@ -279,9 +289,9 @@ function PreparedCheckoutClient() {
       if(record.fortune.paid){window.location.replace(params.returnTo);return;}
       setReading(record.fortune);
       setAvailable(catalog.products.some(p=>p.cdFeatureKey===params.featureKey&&p.available));
-    }).catch(e=>{if(active)setGate({phase:'error',message:e.message});}).finally(()=>{if(active)setChecked(true);});
+    }).catch(e=>{if(active)setGate({phase:'error',message:checkoutErrorText(e,copy.errPaymentUnknown,lang,[copy.errProductMismatch])});}).finally(()=>{if(active)setChecked(true);});
     return ()=>{active=false;};
-  },[isSoulCatMode,signedIn,params,copy]);
+  },[isSoulCatMode,signedIn,params,copy,lang]);
 
   const startPayment = useCallback(async (paymentMode:'DIRECT_KRW'|'MEMBERSHIP_PASS'|'MOONLIGHT_STONE'='DIRECT_KRW') => {
     if (!pricing || !available || paymentLock.current || packLock.current) return;
@@ -324,14 +334,14 @@ function PreparedCheckoutClient() {
       if (code === "AUTH_REQUIRED" || code === "UNAUTHORIZED" || result.status === 401) {redirectToLogin();return;}
       if (code === "PAYMENT_CANCELLED" || code === "PG_PAYMENT_CANCELLED") {setGate({ phase: "cancelled" });return;}
       if (["PG_PAYMENT_NOT_PAID","PG_UNAVAILABLE","GRANT_PENDING","PENDING_CONFIRMATION"].includes(code)) {
-        setGate({phase:"confirming",message:String(result.error?.message || result.message || copy.errPaymentUnknown)});return;
+        setGate({phase:"confirming",message:checkoutErrorText(String(result.error?.message || result.message || ""),copy.errPaymentUnknown,lang)});return;
       }
-      setGate({phase:"error",message:String(result.error?.message || result.message || copy.errPaymentFailed)});
+      setGate({phase:"error",message:checkoutErrorText(String(result.error?.message || result.message || ""),copy.errPaymentFailed,lang)});
     } catch(error) {
       if(error instanceof FortuneApiError && error.status===401){redirectToLogin();return;}
-      setGate({phase:'error',message:error instanceof Error?error.message:copy.errPaymentUnknown});
+      setGate({phase:'error',message:checkoutErrorText(error,copy.errPaymentUnknown,lang)});
     } finally { paymentLock.current=false; }
-  }, [pricing, available, buildResume, params, copy, isSoulCatMode, productName, moonstoneInput]);
+  }, [pricing, available, buildResume, params, copy, lang, isSoulCatMode, productName, moonstoneInput]);
 
   // CD 내부 모드의 returnTo 는 결제 "성공" 뒤 이동 주소(미결제면 "0 / N개 챕터 저장됨" 결과 화면)라 결제를 그만두고 나가는 링크에 쓰지 않는다.
   // SoulCat 모드의 returnTo 는 진짜 직전 화면이라 그대로 쓴다.

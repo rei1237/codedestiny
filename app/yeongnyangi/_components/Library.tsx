@@ -8,6 +8,7 @@ import {localizedSystem,localizedTier,localizedKind,consultationLocaleCopy} from
 import {readingArtwork} from './ReadingIdentity';
 import {useCallback,useEffect,useRef,useState} from 'react';
 import {fortuneApi,FortuneApiError,loginForCurrentPage,resultPath,type FortuneSummary,type FortunePage} from '../_lib/api';
+import {friendlyErrorMessage} from '@/app/_lib/friendly-error';
 import {readDestinyProfileAccountId} from '@/app/_lib/profile-card-storage';
 import {subscribeAuth} from '@/app/_lib/auth-store';
 import styles from '../yeongnyangi.module.css';
@@ -41,7 +42,7 @@ export default function Library(){
    if(!current())return;
    if(reason instanceof FortuneApiError&&reason.status===401)setNeedsLogin(true);
    retryAt.current=Date.now()+(reason instanceof FortuneApiError?reason.retryAfterSeconds*1000:0);
-   setError(reason instanceof FortuneApiError&&reason.code==='REQUEST_TIMEOUT'?'응답이 늦어지고 있어요. 잠시 후 다시 불러와 주세요.':reason instanceof Error?reason.message:'상담 기록을 불러오지 못했어요. 다시 시도해 주세요.');
+   setError(reason instanceof FortuneApiError&&reason.code==='REQUEST_TIMEOUT'?'응답이 늦어지고 있어요. 잠시 후 다시 불러와 주세요.':friendlyErrorMessage(reason,'상담 기록을 불러오지 못했어요. 다시 시도해 주세요.'));
   }finally{if(version===revision.current){active.current=null;setLoading(false);}}
  },[]);
  useEffect(()=>{
@@ -70,7 +71,7 @@ export default function Library(){
   try{await fortuneApi(`requests/${row.id}/generate`,{});window.location.assign(`${resultPath(row.id,locale)}&source=library`);}
   catch(reason){
    if(reason instanceof FortuneApiError&&reason.status===401){loginForCurrentPage();return;}
-   setRecoverError({id:row.id,message:locale!=='ko'||!(reason instanceof Error)?stateCopy.generateFailed:reason.message});setRecovering('');void load();
+   setRecoverError({id:row.id,message:locale!=='ko'?stateCopy.generateFailed:friendlyErrorMessage(reason,stateCopy.generateFailed)});setRecovering('');void load();
   }
  }
  const scene=needsLogin?'login':rows?.length||error?'hero':'signup',[art,artWidth,artHeight]=ART[scene];

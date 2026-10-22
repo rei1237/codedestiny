@@ -4,6 +4,7 @@ import { RecommendationResult } from "@/app/components/recommendations/Recommend
 import {useCallback,useEffect,useRef,useState} from 'react';
 import {PawPrint,RefreshCw} from 'lucide-react';
 import {fortuneApi,FortuneApiError,loginForCurrentPage,checkoutPath,type FortuneRecord} from '../_lib/api';
+import {friendlyErrorMessage} from '@/app/_lib/friendly-error';
 import {chromeCopy} from '../_lib/chrome-copy';
 import {resolveCheckoutPolicyHrefs} from '@/app/checkout/checkout-copy';
 import {readingCopy} from '../_lib/reading-copy';
@@ -97,7 +98,7 @@ export default function Result(){
   try{
     const {fortune}=await fortuneApi<{fortune:FortuneRecord}>(`requests/${id}/generate`,{});
     if(mounted.current)setRow(sameRequest(fortune,id));
-  }catch(e){if(e instanceof FortuneApiError&&e.status===401)loginForCurrentPage();else if(mounted.current)setError(row?.locale&&row.locale!=='ko'?resultStateCopy(row.locale).generateFailed:e instanceof Error?e.message:resultStateCopy().generateFailed);}
+  }catch(e){if(e instanceof FortuneApiError&&e.status===401)loginForCurrentPage();else if(mounted.current)setError(row?.locale&&row.locale!=='ko'?resultStateCopy(row.locale).generateFailed:friendlyErrorMessage(e,resultStateCopy().generateFailed));}
   finally{lock.current=false;if(mounted.current)setBusy(false);}
  }
  useEffect(()=>{
@@ -117,14 +118,14 @@ export default function Result(){
      try{fortune=sameRequest((await fortuneApi<{fortune:FortuneRecord}>(`requests/${id}/activate`,{})).fortune,id);}
      catch(e){
       if(e instanceof FortuneApiError&&(e.status===401||e.code==='RECOVERY_ID_MISMATCH'))throw e;
-      if(e instanceof FortuneApiError&&e.status!==402&&!e.retryable&&e.code!=='PAYMENT_ATTACH_CONFLICT')notice=fortune.locale&&fortune.locale!=='ko'?resultStateCopy(fortune.locale).paymentRequired:e.message;
+      if(e instanceof FortuneApiError&&e.status!==402&&!e.retryable&&e.code!=='PAYMENT_ATTACH_CONFLICT')notice=fortune.locale&&fortune.locale!=='ko'?resultStateCopy(fortune.locale).paymentRequired:friendlyErrorMessage(e,resultStateCopy().paymentRequired);
      }
     }
     if(!cancelled){setRow(fortune);setError(notice);}
    }catch(e){
     if(cancelled)return;
     if(e instanceof FortuneApiError&&e.status===401){loginForCurrentPage();return;}
-    setError(siteLanguage.current==='ko'&&e instanceof Error?e.message:resultStateCopy(siteLanguage.current).loadFailed);
+    setError(siteLanguage.current==='ko'?friendlyErrorMessage(e,resultStateCopy().loadFailed):resultStateCopy(siteLanguage.current).loadFailed);
     if(attempt<3 && (!(e instanceof FortuneApiError)||e.retryable))timer=setTimeout(()=>void load(attempt+1),Math.max(2000*2**attempt,e instanceof FortuneApiError?e.retryAfterSeconds*1000:0));
    }
   }
