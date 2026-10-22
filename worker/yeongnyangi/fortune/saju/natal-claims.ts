@@ -50,6 +50,12 @@ const BUNDLED=new RegExp(`${ELEMENT_WORD}(?:\\s*\\([木火土金水]\\))?\\s*(?:
 const COUNT_SKIP=/지장간|숨은|숨어|숨겨|월령|가중|대운|세운|운에서|합치면|합쳐|포함|더하면/u,COUNT_CONTEXT=/오행|기운|글자|원국|사주|명식|[木火土金水]/u;
 // '눈에 보이는 여덟 글자' names the count basis; its 보이 is not a hedge.
 const VISIBLE_BASIS=/(?:눈에\s*)?보이는\s*(?:여덟\s*|여섯\s*)?글자/gu;
+// A dated 대운 (major-luck.ts label) is spoken in 만 나이. '32세부터 41세까지 庚午 대운' uses the engine's counting age
+// (startAge·endAge); with one ganji that names a labeled cycle and its exact counting age, the span becomes that cycle's
+// ageRange. Several cycles, another person, 세운 and a sentence already in 만 나이 stay as written.
+const spokenGanji=()=>new RegExp(`(?<![가-힣])${GANJI}(?=대운|(?:이야|이에요|예요|이라|이|가|은|는|을|를|과|와|의|야|라|로|으로|에)?(?![가-힣]))`,'gu');
+const AGE_UNIT='세(?=$|[^가-힣]|부터|까지|에|의|는|가|이|를|로|쯤|무렵|대운)';
+const countingAge=()=>new RegExp(`(\\d+)\\s*${AGE_UNIT}(?:\\s*(?:부터|에서)\\s*(\\d+)\\s*${AGE_UNIT}(?:\\s*까지)?|\\s*[~～–-]\\s*(\\d+)\\s*${AGE_UNIT}(?:\\s*까지)?)?(?=(\\s*(?:${GANJI}\\s*)?대운)?)`,'gu');
 const unsupportedPunishment=()=>new RegExp(`(?<![丑축])(${BRANCH_PAIR}(?:\\s*\\(${BRANCH_PAIR}\\))?\\s*)(${PUNISH_WORD})(\\s*\\((?:${BRANCH_PAIR}\\s*)?${PUNISH_WORD}\\))?(?:${PARTICLE.slice(0,-1)}|([의도만에인])|(?![가-힣]))`,'gu');
 
 const hanja=(ganji:string)=>[HANJA_STEMS[KO_STEMS.indexOf(ganji[0])]||ganji[0],...(ganji.length>1?[HANJA_BRANCHES[KO_BRANCHES.indexOf(ganji[1])]||ganji[1]]:[])].join('');
@@ -67,7 +73,7 @@ const stemWithElement=(stem:string,sample:string)=>{
 };
 
 export interface NatalFacts {pillars?:Record<string,string|null>;dayMaster?:unknown;strength?:{isStrong?:unknown};
-  majorLuck?:{currentCycle?:{pillar?:unknown}|null}|null;fiveElements?:{countBasis?:unknown;counts?:Record<string,unknown>}|null;
+  majorLuck?:{currentCycle?:{pillar?:unknown}|null;cycles?:{pillar?:unknown;startAge?:unknown;endAge?:unknown;startAgeMan?:unknown;ageRange?:unknown;label?:unknown}[]|null}|null;fiveElements?:{countBasis?:unknown;counts?:Record<string,unknown>}|null;
   tenGodsByPillar?:Record<string,{stemTenGod?:unknown;branchTenGods?:unknown;primaryHiddenTenGod?:unknown}|null>|null}
 function computedTenGods(facts:NatalFacts,key:string,position:'branch'|'pillar'):string[]{
   const t=facts.tenGodsByPillar?.[key];
@@ -103,6 +109,8 @@ export function correctNatalClaims(body:ChapterBody,facts:NatalFacts,locale='ko'
   const hasOx=[...Object.values(pillars),facts.majorLuck?.currentCycle?.pillar].some(p=>typeof p==='string'&&p[1]==='丑');
   // Only counts made from the visible characters; an older weighted distribution (total 9) is not checked.
   const counts=facts.fiveElements?.countBasis==='surface'?facts.fiveElements.counts:undefined;
+  const cycles=facts.majorLuck?.cycles;
+  const dated=Array.isArray(cycles)?cycles.filter(c=>typeof c?.label==='string'&&typeof c.pillar==='string'&&typeof c.ageRange==='string'):[];
   let replaced=0,dropped=0,countContext=false;
   const sentence=(s:string)=>{
     let drop=false;
@@ -130,6 +138,17 @@ export function correctNatalClaims(body:ChapterBody,facts:NatalFacts,locale='ko'
       replaced++;
       return lead+(/[刑殺]/u.test(word)?'破':'파')+(gloss||'').replace(/형살|형/u,'파').replace(/刑殺|刑/u,'破')+refit(particle,'파')+(kept||'');
     });
+    if(dated.length&&next.includes('대운')&&!/세운|만\s*\d/u.test(next)&&!OTHER_PERSON.test(next)){
+      // Only a real sexagenary pair counts, so '정신' (丁申) never reads as a second cycle.
+      const named=[...new Set([...next.matchAll(spokenGanji())].map(m=>hanja(m[0])).filter(g=>HANJA_STEMS.indexOf(g[0])%2===HANJA_BRANCHES.indexOf(g[1])%2))];
+      const ages=[...next.matchAll(countingAge())],cycle=named.length===1&&ages.length===1?dated.find(c=>c.pillar===named[0]):undefined;
+      const [age]=ages,end=age?.[2]||age?.[3];
+      if(cycle&&Number(age[1])===cycle.startAge&&(!end||Number(end)===cycle.endAge)){
+        // A span or a '32세 (庚午) 대운' takes the whole range; a bare start ('32세에 들어오는') takes the start age.
+        const fixed=end||age[4]!==undefined?cycle.ageRange as string:`만 ${cycle.startAgeMan}세`;
+        next=next.slice(0,age.index)+fixed+next.slice(age.index!+age[0].length);replaced++;
+      }
+    }
     if(counts&&countContext&&!COUNT_SKIP.test(next)&&!HEDGED.test(next.replace(VISIBLE_BASIS,''))&&!OTHER_PERSON.test(next))next=next.replace(elementCount(),(whole,word:string,mid:string,found:string,offset:number,text:string)=>{
       const truth=counts[ELEMENT_KEY[word]];
       if(typeof truth!=='number'||BUNDLED.test(text.slice(0,offset)))return whole;

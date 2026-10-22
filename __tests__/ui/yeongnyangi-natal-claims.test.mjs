@@ -98,3 +98,16 @@ test('an element count about the reader is the visible-character count; hidden s
  assert.deepEqual([r.replaced,r.dropped],[2,1]);
  assert.equal(run(['네 사주에는 목 기운이 두 개야.'],{...facts,fiveElements:{counts:{wood:3}}}).replaced,0);
 });
+
+test('a counting-age 대운 span becomes the labeled cycle\'s 만 나이; old orders, mismatches and 만 나이 stay',()=>{
+ // The engine counts 대운 age by calendar year (startAge 32 = 만 31세 at the 교운일, major-luck.ts).
+ const cycle=(pillar,index)=>({index,pillar,startAge:22+index*10,endAge:31+index*10,startAgeMan:21+index*10,ageRange:`만 ${21+index*10}~${30+index*10}세`,label:`${pillar} 대운 · 무렵부터`});
+ const dated={...facts,majorLuck:{cycles:[{index:0,startAge:1,endAge:11},cycle('庚午',1),cycle('辛未',2)]}};
+ const r=run(['너는 32세부터 41세까지 庚午 대운을 지나.','32세 경오 대운이 시작돼.','42세에 들어오는 辛未 대운은 정리의 시기야.'],dated);
+ assert.deepEqual(r.body.blocks[0].paragraphs,['너는 만 31~40세 庚午 대운을 지나.','만 31~40세 경오 대운이 시작돼.','만 41세에 들어오는 辛未 대운은 정리의 시기야.']);
+ assert.equal(r.replaced,3);
+ const text=['너는 32세부터 41세까지 庚午 대운을 지나.'];
+ assert.equal(run(text,{...facts,majorLuck:{cycles:dated.majorLuck.cycles.map(({label,...c})=>c)}}).body.blocks[0].paragraphs[0],text[0]);
+ const kept=['너는 32세부터 41세까지 辛未 대운을 지나.','만 31세에 庚午 대운이 시작돼.','庚午 대운과 辛未 대운은 32세와 42세에 와.','상대는 32세부터 庚午 대운이야.','32세 세운과 庚午 대운이 겹쳐.'];
+ assert.deepEqual(run(kept,dated).body.blocks[0].paragraphs,kept);
+});
