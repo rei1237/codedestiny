@@ -57,7 +57,7 @@ export function ElementDistribution({elements,locale}:{elements:ElementRow[];loc
  </li>)}</ul>;
 }
 
-export function SajuBoard({pillars,elements,locale}:{pillars:{label:string;ganji:string;tenGod:string}[];elements:ElementRow[];locale?:ReadingLocale}){
+export function SajuBoard({pillars,elements,surface,locale}:{pillars:{label:string;ganji:string;tenGod:string}[];elements:ElementRow[];surface?:boolean;locale?:ReadingLocale}){
  const copy=visualCopy(locale);
  return <section className={styles.panel} aria-labelledby="reading-saju-board">
   <div className={styles.panelHead}><h3 id="reading-saju-board" className={styles.panelTitle}><ElementIcon element="토" size={20}/>{copy.pillars}</h3>
@@ -67,7 +67,7 @@ export function SajuBoard({pillars,elements,locale}:{pillars:{label:string;ganji
    <tbody><tr><th scope="row">{copy.pillarRow}</th>{pillars.map(p=><td key={p.label} className={styles.ganji} lang="zh-Hant">{p.ganji}</td>)}</tr>
     <tr><th scope="row">{copy.tenGodRow}</th>{pillars.map(p=><td key={p.label}>{chartTerm(p.tenGod,locale)}</td>)}</tr></tbody>
   </table></div>}
-  {elements.length>0&&<><h4 className={styles.subTitle}>{copy.elements}</h4><p className={styles.caption}>{copy.elementsCaption}</p>
+  {elements.length>0&&<><h4 className={styles.subTitle}>{copy.elements}</h4><p className={styles.caption}>{surface?copy.elementsSurfaceCaption:copy.elementsCaption}</p>
    <ElementDistribution elements={elements} locale={locale}/></>}
  </section>;
 }

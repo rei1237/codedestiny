@@ -87,3 +87,14 @@ test('chapter prose correction applies the stored saju facts on both delivery pa
  const out=correctChapterProse(body(['네 일주는 庚申이야. 오늘은 쉬어.']),input);
  assert.equal(out.blocks[0].paragraphs[0],'네 일주는 癸未야. 오늘은 쉬어.');
 });
+
+test('an element count about the reader is the visible-character count; hidden stems, bundles, partners and weighted counts stay',()=>{
+ // 丁丑 壬寅 癸未 戊午 counted by visible characters: 목 1 · 화 2 · 토 3 · 금 0 · 수 2.
+ const counted={...facts,fiveElements:{countBasis:'surface',counts:{wood:1,fire:2,earth:3,metal:0,water:2}}};
+ const kept=['지장간까지 보면 목이 세 개야.','목과 화가 두 개씩 있어.','상대 사주는 토가 네 개야.'];
+ const r=run(['네 사주에는 목 기운이 두 개라 시작이 빨라. 눈에 보이는 글자 중 토(土)가 4개로 가장 많아. 금이 한 개 있어 정리를 잘해. 수가 두 개야.',...kept],counted);
+ assert.equal(r.body.blocks[0].paragraphs[0],'네 사주에는 목 기운이 한 개라 시작이 빨라. 눈에 보이는 글자 중 토(土)가 3개로 가장 많아. 수가 두 개야.');
+ assert.deepEqual(r.body.blocks[0].paragraphs.slice(1),kept);
+ assert.deepEqual([r.replaced,r.dropped],[2,1]);
+ assert.equal(run(['네 사주에는 목 기운이 두 개야.'],{...facts,fiveElements:{counts:{wood:3}}}).replaced,0);
+});

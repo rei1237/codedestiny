@@ -7,6 +7,7 @@ const built=await build({stdin:{contents:"export {chartCopy,chartTerm,chartLimit
 const {chartCopy,chartTerm,chartLimitation,consultationInputCopy,resultStateCopy,readingCopy,askPhase5Copy,jongCheckCopy}=await import('data:text/javascript;base64,'+Buffer.from(built.outputFiles[0].text).toString('base64'));
 test('chart display translates known evidence while retaining saved source values',()=>{
  assert.equal(chartTerm('오행 분포 · 월령 가중치 포함','en'),'Five elements · adjusted for birth month');
+ assert.equal(chartTerm('오행 분포 · 보이는 글자 기준','ja'),'五行の分布・見える文字のみ');
  assert.equal(chartTerm('계산된 시기 · 태양','en'),'Calculated period · Sun');
  assert.equal(chartTerm('1하우스','ja'),'1 ハウス');
  assert.equal(chartTerm('금성','ko'),'금성');

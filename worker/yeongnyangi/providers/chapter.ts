@@ -122,7 +122,7 @@ export function correctChapterProse(v: ChapterBody, input: ChapterRequest): Chap
   if(addressed.count){v=addressed.body;console.log('[yeongnyangi-persona-address]',JSON.stringify({chapter:input.chapter.ordinal,count:addressed.count}));}
   // The reader's own pillars, day master and strength are stored facts; a contradicting claim is fixed here, not regenerated.
   const sajuFact=(label:string)=>input.analysis.contexts?.saju?.facts.find(f=>f.label===label)?.value as any;
-  const natal=correctNatalClaims(v,{pillars:sajuFact('pillars'),dayMaster:sajuFact('dayMaster'),strength:sajuFact('strengthHeuristic'),majorLuck:sajuFact('majorLuck'),tenGodsByPillar:sajuFact('tenGodsByPillar')},input.locale||'ko');
+  const natal=correctNatalClaims(v,{pillars:sajuFact('pillars'),dayMaster:sajuFact('dayMaster'),strength:sajuFact('strengthHeuristic'),majorLuck:sajuFact('majorLuck'),tenGodsByPillar:sajuFact('tenGodsByPillar'),fiveElements:sajuFact('fiveElements')},input.locale||'ko');
   if(natal.replaced||natal.dropped){v=natal.body;console.log('[yeongnyangi-natal-correction]',JSON.stringify({chapter:input.chapter.ordinal,replaced:natal.replaced,dropped:natal.dropped}));}
   // A 삼합·대궁 pair or a year's 유년사화 is fixed by the palace order and the year's stem (fortune/ziwei/claims.ts).
   const ziwei=input.analysis.contexts?.ziwei?correctZiweiClaims(v,input.locale||'ko',input.chapter.questionPolicy?input.analysis.contexts.ziwei.facts.find(f=>f.label==='fourTransformations')?.value as Record<string,string>:undefined,input.voiceStyle!=='banmal'):{body:v,replaced:0,dropped:0};

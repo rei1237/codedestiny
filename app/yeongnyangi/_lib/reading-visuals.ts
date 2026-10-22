@@ -120,5 +120,5 @@ export function sajuFacts(charts:ReadingChart[]){
  const elementGroup=saju.groups.find(g=>g.label.startsWith('오행 분포'));
  const elements:ElementRow[]=(elementGroup?.items || []).map(i=>({label:i.label,value:Number(i.value)})).filter(e=>Number.isFinite(e.value));
  if(!pillars.some(p=>p.ganji)&&!elements.length)return null;
- return {pillars,elements};
+ return {pillars,elements,surface:elementGroup?.label.endsWith('보이는 글자 기준')===true};
 }

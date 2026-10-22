@@ -22,6 +22,7 @@ import { buildLoveShinsal } from "../../../lib/saju-shinsal.js";
 import { BirthProfile } from "../shared/contracts";
 import { kstWall, sexagenaryYearAt } from './sexagenary-year';
 import { cycleTag, withDatedMajorLuck } from './major-luck';
+import { surfaceElements } from './element-counts';
 import { flipStrength, jongCheckYears, resolveJongVerdict, strengthCheckYears, type JongAnswer } from './jong-check';
 
 export function calculateScreenSaju(profile: BirthProfile, now: Date, jongAnswer?: JongAnswer) {
@@ -120,7 +121,7 @@ export function calculateScreenSaju(profile: BirthProfile, now: Date, jongAnswer
     ...r,
     monthlyLuck,
     seasonalBalance: johu,
-    fiveElements: natal,
+    fiveElements: surfaceElements(p, natal.dominant),
     strength: power,
     usefulGod: power?.yongshin,
     advancedFactors: advanced,
