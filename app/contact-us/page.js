@@ -4,13 +4,15 @@ import { generatePageMetadata } from "../../lib/generate-page-metadata";
 import { BUSINESS_IDENTITY, SUPPORT_EMAIL, SUPPORT_MAILTO } from "../../lib/site-policy-config";
 import ContactForm from "./ContactForm";
 
+const SUPPORT_CHANNEL_URL = "https://ooel6.channel.io/home";
+
 const CONTACT_US_PAGE_TEXT_TRANSLATIONS = {
   ko: {
     title: "Contact Us | 문의하기 — 꿀꿀 운세",
     replyMeta: "Contact Us · 보통 영업일 기준 1~3일 내 회신",
     replyTiming: "문의는 보통 영업일 기준 1~3일 내 회신합니다. 문의 내용과 확인 절차에 따라 더 걸릴 수 있습니다.",
     generalInquiry: " — 서비스 이용 방법, 오류 신고, 결과가 보이지 않는 문제를 접수합니다.",
-    description: "꿀꿀운세 문의 페이지입니다. 이메일 및 문의 폼으로 서비스 관련 문의를 접수할 수 있습니다.",
+    description: "꿀꿀운세 문의 페이지입니다. 채널톡, 이메일 및 문의 폼으로 서비스 관련 문의를 접수할 수 있습니다.",
     keywords: ["Contact Us", "문의하기", "고객지원", "꿀꿀운세 문의"],
   },
   en: {
@@ -57,6 +59,17 @@ export default function ContactUsPage() {
       <div className="policy-doc__single">
         <div className="policy-doc__body">
           <div className="policy-embed-body">
+            <section className="policy-embed-section" id="support-chat">
+              <h2 className="policy-embed-heading">채널톡 문의</h2>
+              <p>
+                채널톡에 문의를 남기면 같은 대화에서 답변을 확인할 수 있습니다.
+                응대 시간은 한국 시간 기준 평일 13:00~18:00이며, 주말은 휴무입니다.
+                운영시간 밖에 남긴 문의는 다음 운영시간에 순서대로 확인합니다.
+              </p>
+              <a className="policy-doc__toc-link" href={SUPPORT_CHANNEL_URL} target="_blank" rel="noopener noreferrer">
+                채널톡으로 문의하기 (새 창)
+              </a>
+            </section>
             <section className="policy-embed-section" id="support-contact">
               <h2 className="policy-embed-heading">이메일 문의</h2>
               <p>
@@ -92,7 +105,7 @@ export default function ContactUsPage() {
                 </li>
               </ul>
               <p>
-                회신은 보내주신 메일 주소로만 드립니다. 영업일 기준 3일이 지나도 회신이 없으면 스팸함을 확인하신 뒤 다시 보내주세요.
+                이메일 문의의 회신은 보내주신 메일 주소로 드립니다. 영업일 기준 3일이 지나도 회신이 없으면 스팸함을 확인하신 뒤 다시 보내주세요.
               </p>
             </section>
 

@@ -5,7 +5,7 @@ import ContactUsPage from "../contact-us/page";
 const CONTACT_PAGE_TEXT_TRANSLATIONS = {
   ko: {
     title: "Contact | 문의하기 — 꿀꿀 운세",
-    description: "꿀꿀운세 고객지원 페이지입니다. 서비스 이용, 결제 내역 확인, 개인정보 관련 요청을 이메일 문의 폼으로 접수하고 문의 유형별 안내를 확인하세요.",
+    description: "꿀꿀운세 고객지원 페이지입니다. 서비스 이용, 결제 내역 확인, 개인정보 관련 요청을 채널톡 또는 이메일 문의 폼으로 접수하고 문의 유형별 안내를 확인하세요.",
     keywords: ["Contact", "문의하기", "꿀꿀운세"],
   },
   en: {
