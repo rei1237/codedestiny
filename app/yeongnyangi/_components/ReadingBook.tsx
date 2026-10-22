@@ -87,7 +87,7 @@ export default function ReadingBook({row}:{row:FortuneRecord}){
     {readingBodyBlocks(chapter).map((block,b)=><section key={block.id || b}>{block.title&&<h3>{block.title}</h3>}{block.id?scene(index,block.id):null}<BlockChartHints block={block} charts={row.charts} locale={row.locale}/>{block.paragraphs.map((text,i)=><p key={i}>{text}</p>)}</section>)}
     {chapter.example&&<section><h3>{copy.example}</h3>{scene(index)}<p>{chapter.example}</p></section>}{chapter.advice&&(index>0||!!firstAnswer)&&<section><h3>{copy.next}</h3><p>{chapter.advice}</p></section>}
     {index===timingAt&&timingLate&&<TimingTimeline rows={timing} focus={focus} locale={row.locale}/>}
-    {visual&&index===0&&saju&&<SajuBoard pillars={saju.pillars} elements={saju.elements} locale={row.locale}/>}
+    {visual&&index===0&&saju&&<SajuBoard pillars={saju.pillars} elements={saju.elements} surface={saju.surface} locale={row.locale}/>}
     {visual&&chapter.persona?<MascotBubble expression={expressionFor(row.manifest[index].theme,index)} text={chapter.persona} locale={row.locale}/>:<blockquote>{chapter.persona}</blockquote>}<a href="#reading-progress">{copy.top}</a>
    </article>{index===0&&row.tarotSpread&&spreadMap&&<TarotSpreadResult spread={row.tarotSpread} locale={row.locale} cards={spreadMap}/>}{breaks.has(index)&&<Interlude art={breaks.get(index)!}/>}</Fragment>)}
   </div>

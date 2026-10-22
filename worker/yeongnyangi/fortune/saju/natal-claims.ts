@@ -40,6 +40,16 @@ const PILLAR_GANJI=`(?:\\s*(?:[${HANJA_STEMS}]?[${HANJA_BRANCHES}][木火土金�
 const PILLAR_LINK='(?:\\s*(?:속에는|속에|속의|안에|에는|에 있는|에서|에|의|:))?';
 const pillarTenGod=()=>new RegExp(`(?<![가-힣])(${Object.keys(PILLAR_POSITION).join('|')})(${PILLAR_GANJI}${PILLAR_LINK}${PILLAR_GANJI}\\s*)(${TEN_GOD_ITEM}(?:${TEN_GOD_JOINER}${TEN_GOD_ITEM})*)(?:${PARTICLE.slice(0,-1)}|([의도만에인])|(?![가-힣]))`,'gu');
 const BRANCH_PAIR='(?:戌\\s*[-·]?\\s*未|未\\s*[-·]?\\s*戌|술미|미술)',PUNISH_WORD='(?:형살|형|刑殺|刑)';
+// '목이 세 개' must be the visible-character count (fiveElements.counts, countBasis 'surface'). A sentence that also
+// talks about 지장간·월령·운 or adds elements together counts something else and is left alone; a claimed count for an
+// element the chart does not have is dropped.
+const ELEMENT_KEY:Record<string,string>={목:'wood',木:'wood',화:'fire',火:'fire',토:'earth',土:'earth',금:'metal',金:'metal',수:'water',水:'water'};
+const ELEMENT_WORD='[목화토금수木火土金水]',COUNT_WORDS=['','한','두','세','네','다섯','여섯','일곱','여덟','아홉'];
+const elementCount=()=>new RegExp(`(?<![가-힣]|의\\s)(${ELEMENT_WORD})((?:\\s*\\([木火土金水]\\))?(?:\\s*(?:기운|오행))?(?:이|가|은|는|도|만)?\\s*)(\\d+|${COUNT_WORDS.slice(1).join('|')})(?=\\s*(?:개|글자))`,'gu');
+const BUNDLED=new RegExp(`${ELEMENT_WORD}(?:\\s*\\([木火土金水]\\))?\\s*(?:과|와|,|·|및|이랑|랑)\\s*$`,'u');
+const COUNT_SKIP=/지장간|숨은|숨어|숨겨|월령|가중|대운|세운|운에서|합치면|합쳐|포함|더하면/u,COUNT_CONTEXT=/오행|기운|글자|원국|사주|명식|[木火土金水]/u;
+// '눈에 보이는 여덟 글자' names the count basis; its 보이 is not a hedge.
+const VISIBLE_BASIS=/(?:눈에\s*)?보이는\s*(?:여덟\s*|여섯\s*)?글자/gu;
 const unsupportedPunishment=()=>new RegExp(`(?<![丑축])(${BRANCH_PAIR}(?:\\s*\\(${BRANCH_PAIR}\\))?\\s*)(${PUNISH_WORD})(\\s*\\((?:${BRANCH_PAIR}\\s*)?${PUNISH_WORD}\\))?(?:${PARTICLE.slice(0,-1)}|([의도만에인])|(?![가-힣]))`,'gu');
 
 const hanja=(ganji:string)=>[HANJA_STEMS[KO_STEMS.indexOf(ganji[0])]||ganji[0],...(ganji.length>1?[HANJA_BRANCHES[KO_BRANCHES.indexOf(ganji[1])]||ganji[1]]:[])].join('');
@@ -57,7 +67,7 @@ const stemWithElement=(stem:string,sample:string)=>{
 };
 
 export interface NatalFacts {pillars?:Record<string,string|null>;dayMaster?:unknown;strength?:{isStrong?:unknown};
-  majorLuck?:{currentCycle?:{pillar?:unknown}|null}|null;
+  majorLuck?:{currentCycle?:{pillar?:unknown}|null}|null;fiveElements?:{countBasis?:unknown;counts?:Record<string,unknown>}|null;
   tenGodsByPillar?:Record<string,{stemTenGod?:unknown;branchTenGods?:unknown;primaryHiddenTenGod?:unknown}|null>|null}
 function computedTenGods(facts:NatalFacts,key:string,position:'branch'|'pillar'):string[]{
   const t=facts.tenGodsByPillar?.[key];
@@ -91,7 +101,9 @@ export function correctNatalClaims(body:ChapterBody,facts:NatalFacts,locale='ko'
   const namesSeason=(text:string,name:string)=>[...text.matchAll(new RegExp(SEASON_WORD,'gu'))].some(m=>m[1]===name);
   // A 丑 year further down the yearly list does not complete this year's 형; a sentence naming 丑 is skipped below.
   const hasOx=[...Object.values(pillars),facts.majorLuck?.currentCycle?.pillar].some(p=>typeof p==='string'&&p[1]==='丑');
-  let replaced=0,dropped=0;
+  // Only counts made from the visible characters; an older weighted distribution (total 9) is not checked.
+  const counts=facts.fiveElements?.countBasis==='surface'?facts.fiveElements.counts:undefined;
+  let replaced=0,dropped=0,countContext=false;
   const sentence=(s:string)=>{
     let drop=false;
     let next=s.replace(pillarClaim(),(whole,lead:string,name:string,mid:string,found:string,paren?:string,inner?:string,particle?:string)=>{
@@ -118,6 +130,15 @@ export function correctNatalClaims(body:ChapterBody,facts:NatalFacts,locale='ko'
       replaced++;
       return lead+(/[刑殺]/u.test(word)?'破':'파')+(gloss||'').replace(/형살|형/u,'파').replace(/刑殺|刑/u,'破')+refit(particle,'파')+(kept||'');
     });
+    if(counts&&countContext&&!COUNT_SKIP.test(next)&&!HEDGED.test(next.replace(VISIBLE_BASIS,''))&&!OTHER_PERSON.test(next))next=next.replace(elementCount(),(whole,word:string,mid:string,found:string,offset:number,text:string)=>{
+      const truth=counts[ELEMENT_KEY[word]];
+      if(typeof truth!=='number'||BUNDLED.test(text.slice(0,offset)))return whole;
+      const claimed=/\d/u.test(found)?Number(found):COUNT_WORDS.indexOf(found);
+      if(claimed===truth)return whole;
+      if(truth===0){drop=true;return whole;}
+      replaced++;
+      return word+mid+(/\d/u.test(found)||truth>=COUNT_WORDS.length?String(truth):COUNT_WORDS[truth]);
+    });
     if(!drop&&isStrong!==undefined&&!(/신강/u.test(next)&&/신약/u.test(next))&&!HEDGED.test(next)&&!OTHER_PERSON.test(next)){
       const claim=next.match(STRENGTH);
       if(claim&&(claim[1]==='강')!==isStrong)drop=true;
@@ -133,6 +154,8 @@ export function correctNatalClaims(body:ChapterBody,facts:NatalFacts,locale='ko'
   const fix=(value:unknown)=>{
     if(typeof value!=='string'||!value)return value;
     const before={replaced,dropped};
+    // The paragraph, not the sentence, says whether a bare '금이 한 개' is about the chart.
+    countContext=COUNT_CONTEXT.test(value);
     // Keep each sentence's own separator so paragraph line breaks survive a dropped sentence.
     const next=value.split(/(?<=[.!?。？！])(?=\s)/u).map(sentence).join('').replace(/^\s+/u,'').trim();
     // Never blank a field to pass: an emptied string stays as written for the guard to see.
