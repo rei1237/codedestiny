@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-23
-next: "1 — verify-home-funnel의 낡은 단언"
+next: "7 — sync:public이 두 번 돌아야 수렴한다"
 ---
 
 # 꿀꿀운세 UX 진단·개선 — 후속 과제
@@ -106,14 +106,14 @@ next: "1 — verify-home-funnel의 낡은 단언"
 
 ### C. 검증 도구·코드 정리
 
-- [ ] **1. `verify-home-funnel`의 낡은 단언**
+- [x] **1. `verify-home-funnel`의 낡은 단언** — 끝: `355d56fa9` 미니게임 링크 단언을 가벼운 운세 접힘(#cdhLightFortunes)으로, 스토리 카드 나란히/쌓임을 640px 경계로, filled 판정을 맨 위 그라디언트 층만으로, 카드 2:3 비율 단언을 첫 줄 높이 일치로 바꿨다. 8개 폭 모두 exit 0
   - 위치: `scripts/design/verify-home-funnel.cjs` L27(미니게임), L119(`.cdh-links a`는 1개가 아니라 6개), L129(스토리 카드). "all fortunes outline"·"closing link row"도 낡았다. 타로 비율은 1.35다.
   - `.cdh-primary` strict-mode 오류(3개 일치)는 `.cdh-hero .cdh-primary`로 좁힌다.
-- [ ] **2. 정원 검증기에 쿠키 동의 사전 설정이 없다**
+- [x] **2. 정원 검증기에 쿠키 동의 사전 설정이 없다** — 끝: `1ba639c30` 쿠키 동의 배너가 하단 카드를 가려서 생긴 실패. 검사 시작 때 `cd_cookie_consent=essential` 쿠키를 넣는다. exit 0
   - `scripts/design/verify-consultations-garden.mjs:29`의 `newPage()` 앞에 넣는다: `await context.addCookies([{ name: 'cd_cookie_consent', value: 'essential', url: origin }]);`
-- [ ] **3. 프리미엄 진입 검증기의 `payment` 정규식이 너무 넓다**
+- [x] **3. 프리미엄 진입 검증기의 `payment` 정규식이 너무 넓다** — 끝: `b7d4e46a9` 출생 프로필 지급 대기 조회(GET `/api/payments/birth-profile-pending`)는 읽기 전용이라 결제 요청 목록에서 뺐다. 12/12 PASS. 첫 실행 때 1280px에서 pageerror "Invalid or unexpected token"이 한 번 났지만 재현되지 않았다(개발 서버 일시 오류로 봄)
   - 이 정규식이 `GET /api/payments/birth-profile-pending`(`js/destiny-profile.js:4596`)까지 잡는다. 메서드·경로로 제외한다(약 L92).
-- [ ] **5. no-fallback 카운트 증가**
+- [x] **5. no-fallback 카운트 증가** — 끝: 결정으로 닫음 + A 기준선만 135→103으로 내려 개선을 고정했다. B의 +43은 이번 세션 이전(2026-07-27 기준선 `8e01ece64` 이후)부터 쌓였고, 세션 시작점 `2d75cef0a` 대비 증가는 0이다. 출처: `js/inline/saju-core-bootstrap.js` +20, `index.html` +19, `js/core/home-funnel.js` +2, `js/saju-engine.js` +1, `__tests__/ui/seo-locale-init.test.mjs` +1. 고치려면 번역이 필요해서 일괄 번역 때 처리한다. `--update`는 B까지 224로 올려 증가를 덮으므로 쓰지 않았다(기준선은 손으로 고침). 래칫은 의도적으로 경고 전용이다
   - `scripts/verify-i18n-no-fallback.mjs`(기준선 `i18n/no-fallback-baseline.json`): 지금 A 103(기준 135), B 224(기준 181).
   - 이번 세션 이전부터 있었고 경고만 난다. 원인을 확인한 뒤 기준선을 갱신할지 코드를 고칠지 정한다.
 - [ ] **7. `sync:public`이 두 번 돌아야 수렴한다**
