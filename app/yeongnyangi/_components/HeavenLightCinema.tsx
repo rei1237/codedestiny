@@ -263,7 +263,7 @@ export default function HeavenLightCinema(){
       {CHAPTERS.map((item,index)=><li key={item.name}>
        <button type="button" className={styles.chapter} aria-current={state==='playing'&&chapter===index?'time':undefined} onClick={()=>seek(index)}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        {opened&&<img src={`${ART}/heaven-light-ch${index+1}-320.webp`} width={320} height={180} alt="" loading="lazy" decoding="async"/>}
+        {opened&&<img src={`${ART}/heaven-light-v4-ch${index+1}-320.webp`} width={320} height={180} alt="" loading="lazy" decoding="async"/>}
         <span className={styles.chapterName}><small>{index+1}장 · {clock(item.at)}</small>{item.name}</span>
        </button>
       </li>)}

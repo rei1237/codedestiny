@@ -47,7 +47,9 @@ test('card, poster and chapter art stay inside their byte budgets', () => {
     'card-360.avif': 50, 'card-360.webp': 50, 'card-600.avif': 60, 'card-600.webp': 95,
     'poster-640.webp': 180, 'poster-960.webp': 180, 'poster-1440.webp': 180,
   };
-  for (let chapter = 1; chapter <= 6; chapter++) budgets[`ch${chapter}-320.webp`] = 12;
+  // Chapter art is renamed per cut: same-name files stay cached at the edge for up to 7 days.
+  assert.ok(cinema.includes('/heaven-light-v4-ch${index+1}-320.webp'));
+  for (let chapter = 1; chapter <= 6; chapter++) budgets[`v4-ch${chapter}-320.webp`] = 12;
   for (const [name, limit] of Object.entries(budgets)) assert.ok(bytes(`${art}-${name}`) <= limit * 1024, `${name} > ${limit} KiB`);
 });
 
