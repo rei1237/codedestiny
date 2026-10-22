@@ -3,7 +3,7 @@
   "note": "사이트맵 lastmod 원장. scripts/lib/sitemap-lastmod.mjs 가 라우트별 소스 서명을 계산해 다시 쓴다. 손으로 고치지 말고 npm run sitemap:generate 로 갱신할 것.",
   "routes": {
     "/": {
-      "signature": "a243592683095f60",
+      "signature": "d0f6a39e2d9f57f3",
       "lastmod": "2026-10-22"
     },
     "/about/": {
@@ -579,7 +579,7 @@
       "lastmod": "2026-10-20"
     },
     "/en/yeongnyangi/": {
-      "signature": "de2e1b7db8905a21",
+      "signature": "2f8e70d678c8eded",
       "lastmod": "2026-10-22"
     },
     "/en/ziwei/": {
@@ -587,11 +587,11 @@
       "lastmod": "2026-10-20"
     },
     "/faq/": {
-      "signature": "db253c80914bac45",
-      "lastmod": "2026-10-20"
+      "signature": "a770a3ae51b064c3",
+      "lastmod": "2026-10-22"
     },
     "/fortune-tea-house/": {
-      "signature": "84aa5576d1fbb2d6",
+      "signature": "55cd1e657c6cfe67",
       "lastmod": "2026-10-22"
     },
     "/fortune/": {
@@ -1579,7 +1579,7 @@
       "lastmod": "2026-10-20"
     },
     "/ja/yeongnyangi/": {
-      "signature": "de2e1b7db8905a21",
+      "signature": "2f8e70d678c8eded",
       "lastmod": "2026-10-22"
     },
     "/ja/ziwei/": {
@@ -1587,15 +1587,15 @@
       "lastmod": "2026-10-20"
     },
     "/karma-destiny-ai/": {
-      "signature": "4184388aa2c2673a",
+      "signature": "ece7f54fbff58540",
       "lastmod": "2026-10-22"
     },
     "/life-book-ai/": {
-      "signature": "535db50527e1aa7b",
+      "signature": "6bad113a381d568a",
       "lastmod": "2026-10-22"
     },
     "/love-secret-ai/": {
-      "signature": "3f98a1d54fc71cb3",
+      "signature": "b1cd4b9a2b84fc11",
       "lastmod": "2026-10-22"
     },
     "/love/": {
@@ -1739,11 +1739,11 @@
       "lastmod": "2026-10-22"
     },
     "/neo-operation-room/": {
-      "signature": "fc6717fa77572b19",
+      "signature": "a6ba7c9db064ffcf",
       "lastmod": "2026-10-22"
     },
     "/new-year-ai-consultation/": {
-      "signature": "0acc89bc84b546a6",
+      "signature": "f669e4992cc3eb7d",
       "lastmod": "2026-10-22"
     },
     "/oracle/hwatu-life/": {
@@ -1799,7 +1799,7 @@
       "lastmod": "2026-10-20"
     },
     "/saju/destiny-bias/": {
-      "signature": "659a4cfd051d8760",
+      "signature": "31e6f11d2ff76bd0",
       "lastmod": "2026-10-22"
     },
     "/saju/destiny-meeting-place/": {
@@ -2163,7 +2163,7 @@
       "lastmod": "2026-10-20"
     },
     "/sukuyo-compatibility-ai/": {
-      "signature": "5a8b4701385147d3",
+      "signature": "948b816e792e8383",
       "lastmod": "2026-10-22"
     },
     "/sukuyo/": {
@@ -2235,7 +2235,7 @@
       "lastmod": "2026-10-23"
     },
     "/vedic-ai/": {
-      "signature": "3c0b74a48261eba4",
+      "signature": "d1d973a3591deb23",
       "lastmod": "2026-10-22"
     },
     "/vedic/": {
@@ -2255,11 +2255,11 @@
       "lastmod": "2026-10-20"
     },
     "/yeongnyangi/": {
-      "signature": "ffa3d798998df9da",
+      "signature": "3156702cd97a16f0",
       "lastmod": "2026-10-22"
     },
     "/yeongnyangi/1000-won-fortune/": {
-      "signature": "78ae04959f5d7f73",
+      "signature": "87f863bf6360a4b2",
       "lastmod": "2026-10-22"
     },
     "/zh-tw/": {
@@ -2731,7 +2731,7 @@
       "lastmod": "2026-10-20"
     },
     "/zh-tw/yeongnyangi/": {
-      "signature": "de2e1b7db8905a21",
+      "signature": "2f8e70d678c8eded",
       "lastmod": "2026-10-22"
     },
     "/zh-tw/ziwei/": {
@@ -3239,7 +3239,7 @@
       "lastmod": "2026-10-20"
     },
     "/zh/yeongnyangi/": {
-      "signature": "de2e1b7db8905a21",
+      "signature": "2f8e70d678c8eded",
       "lastmod": "2026-10-22"
     },
     "/zh/ziwei/": {
@@ -3247,7 +3247,7 @@
       "lastmod": "2026-10-20"
     },
     "/ziwei-ai/": {
-      "signature": "8e2339633555b70f",
+      "signature": "3c61cd8b5dd948ba",
       "lastmod": "2026-10-22"
     },
     "/ziwei/": {
