@@ -19,7 +19,7 @@ export async function mountRecommendation(host, input, anchor = null) {
   const copy = recommendationCopy(document.documentElement.lang || 'ko');
   // 이 어댑터는 꿀꿀 셸 화면에만 붙는다. 제목은 영냥이가 아니라 연이 서가로 부른다.
   const lang = document.documentElement.lang || 'ko', shelf = affiliateCopy(lang === 'zh' ? 'zh-CN' : lang);
-  let context = normalizeContext(input), closed = false, impressed = false, cleanupObserver = () => {};
+  let context = normalizeContext(input), closed = false, impressed = false, cleanupObserver = () => {}, lastKey = '';
   const section = document.createElement('section'), top = document.createElement('p');
   section.className = 'cd-recommendations'; section.dataset.recommendationBlock = 'true';
   top.className = 'cd-recommendations-disclosure'; top.textContent = copy.disclosure;
@@ -29,15 +29,20 @@ export async function mountRecommendation(host, input, anchor = null) {
   async function render() {
     current?.abort(); current = new AbortController();
     try {
-      const response = await fetch((window.CODE_DESTINY_API_BASE_URL || '') + '/api/recommendations?' + browser.recommendationQuery(context), { signal: current.signal, credentials: 'omit', referrerPolicy: 'no-referrer', cache: 'no-store' });
+      const query = browser.recommendationQuery(context);
+      const response = await fetch((window.CODE_DESTINY_API_BASE_URL || '') + '/api/recommendations?' + query, { signal: current.signal, credentials: 'omit', referrerPolicy: 'no-referrer', cache: 'no-store' });
       if (!response.ok) throw new Error('Catalogue unavailable');
       const data = await response.json();
       if (cancelled) return;
+      // 1분 갱신은 관리자 끄기 스위치를 반영하려는 것이다. 응답이 같으면 읽고 있는 카드를 다시 그리지 않는다.
+      const key = query + JSON.stringify(data);
+      if (key === lastKey && section.isConnected) return;
+      lastKey = key;
       if (closed || !host.isConnected || !data.enabled) { section.remove(); top.remove(); return; }
       const choose = serviceRule(context.service)?.explicitInterest || (context.service.startsWith('pet-') && !context.species);
       if (!data.products?.length && !choose) { section.remove(); top.remove(); return; }
       cleanupObserver(); section.replaceChildren();
-      const disclosure = data.products.some(p => p.providerId === 'aliexpress') ? affiliateCopy(copy.locale).genericDisclosure + (data.products.some(p => !p.providerId || p.providerId === 'coupang') ? ' ' + copy.disclosure : '') : copy.disclosure;
+      const disclosure = data.products.some(p => p.providerId === 'aliexpress') ? shelf.genericDisclosure + (data.products.some(p => !p.providerId || p.providerId === 'coupang') ? ' ' + copy.disclosure : '') : copy.disclosure;
       top.textContent = disclosure;
       node('h2', shelf.yeoniTitle, section); node('p', copy.ad + ' · ' + disclosure, section);
       if (context.practiceTags.length) node('p', shelf.resultLead, section).className = 'cd-recommendations-lead';
@@ -62,7 +67,7 @@ export async function mountRecommendation(host, input, anchor = null) {
         if (validImageUrl(p.imageUrl)) { const image = node('img', '', article); image.referrerPolicy = 'no-referrer'; image.loading = 'lazy'; image.alt = p.title; image.src = p.imageUrl; image.width = 240; image.height = 180; image.onerror = () => { image.remove(); node('p', copy.image, article); }; }
         node('h3', p.title, article); node('p', p.reason, article);
         if (p.book?.author) node('p', [p.book.author, p.book.publisher, p.book.edition, p.book.language, p.book.format].filter(Boolean).join(' · '), article);
-        if (p.book?.perspective) node('p', bookPerspectiveLabel(p.book.perspective, copy.locale), article);
+        if (p.book?.perspective) node('p', bookPerspectiveLabel(p.book.perspective, lang), article);
         (p.attributes || []).forEach(a => node('p', a, article));
         if (p.price != null) node('p', new Intl.NumberFormat(undefined, { style: 'currency', currency: p.currency || 'KRW' }).format(p.price) + ' · ' + new Date(p.priceVerifiedAt).toLocaleString(), article);
         if (validateAffiliateUrl(p.affiliateUrl, p.providerId)) {
@@ -85,7 +90,7 @@ export async function mountRecommendation(host, input, anchor = null) {
   if (!document.querySelector('link[data-recommendation-styles]')) {
     const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = '/styles/recommendations.css'; css.dataset.recommendationStyles = 'true'; document.head.append(css);
   }
-  const timer = setInterval(() => { if (!host.isConnected) cleanup(); else void render(); }, 60000);
+  const timer = setInterval(() => { if (!host.isConnected) cleanup(); else if (!document.hidden) void render(); }, 60000);
   function cleanup() { closed = true; current?.abort(); clearInterval(timer); cleanupObserver(); section.remove(); top.remove(); mounted.delete(host); }
   mounted.set(host, () => { cancelled = true; cleanup(); });
   await render();

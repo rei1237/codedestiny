@@ -170,3 +170,28 @@ test('legacy results cap cards, retain result actions and hide failed requests',
   assert.equal(save.textContent,'결과 저장');
  } finally {for(const k of names){if(saved[k]===undefined)delete globalThis[k];else globalThis[k]=saved[k];}dom.window.close();}
 });
+
+test('legacy refresh keeps the cards a reader is looking at when nothing changed', async () => {
+ const { JSDOM } = await import('jsdom');
+ const dom = new JSDOM('<html lang="ko"><body><main><button id="save">결과 저장</button></main></body></html>', {url:'http://localhost/',pretendToBeVisual:true});
+ const names=['window','document','sessionStorage','location','fetch','setInterval','clearInterval'];
+ const saved=Object.fromEntries(names.map(k=>[k,globalThis[k]]));
+ try {
+  for(const k of ['window','document','sessionStorage','location'])globalThis[k]=k==='window'?dom.window:dom.window[k];
+  let tick;globalThis.setInterval=fn=>{tick=fn;return 0;};globalThis.clearInterval=()=>{};
+  let calls=0,enabled=true;
+  const products=[{id:'a',category:'books',title:'검증 도서',reason:'기록 실천',affiliateUrl:'https://link.coupang.com/a/FixtureOnly',price:null}];
+  globalThis.fetch=async()=>{calls++;return {ok:true,json:async()=>({enabled,products})};};
+  const { mountRecommendation }=await import('../../js/recommendations-legacy.mjs');
+  const host=document.querySelector('main');
+  await mountRecommendation(host,{service:'rpt_healthReportCard',source:'result',interests:['rest']},document.querySelector('#save'));
+  const card=host.querySelector('article');
+  assert.ok(card);
+  tick();await new Promise(r=>setTimeout(r,20));
+  assert.equal(calls,2);
+  assert.equal(host.querySelector('article'),card);
+  // 관리자가 끄면 다음 갱신에서 사라진다.
+  enabled=false;tick();await new Promise(r=>setTimeout(r,20));
+  assert.equal(host.querySelectorAll('[data-recommendation-block]').length,0);
+ } finally {for(const k of names){if(saved[k]===undefined)delete globalThis[k];else globalThis[k]=saved[k];}dom.window.close();}
+});
