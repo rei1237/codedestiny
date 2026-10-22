@@ -507,6 +507,15 @@ const DOMAIN_CARDS: Array<{ key: string; label: string; marker: string; glyph: s
   { key: "health", label: "건강과 개운법", marker: "건강과 개운법", glyph: "身", hint: "오행의 쏠림과 실생활 개운법" },
 ];
 const DEFAULT_DOMAIN_KEY = DOMAIN_CARDS[0].key;
+// 대기 화면의 진행 단계. 서버 NEW_YEAR_AI_SECTIONS와 같은 순서·같은 수다 — 열두 달 흐름(monthly)은
+// 결과에서 분야 카드가 아니라 월별 편지로 보이지만 생성·저장 단위로는 한 섹션이다.
+// 안내 문구의 "N개 분야"와 저장 진행 "x/N"의 폴백이 모두 이 길이를 써서 5와 6이 섞이지 않는다.
+const READING_STEPS: Array<{ key: string; label: string; glyph: string }> = [
+  ...DOMAIN_CARDS.filter((card) => card.key !== "health"),
+  { key: "monthly", label: "1월~12월 월별 흐름", glyph: "月" },
+  ...DOMAIN_CARDS.filter((card) => card.key === "health"),
+];
+const READING_SECTION_TOTAL = READING_STEPS.length;
 // 구버전 조립본에는 분야 마커가 없고 6개 카테고리 소제목만 있다. 그 소제목을 새 분야로 흡수해
 // 이미 결제된 과거 상담도 같은 네 장 카드로 열린다.
 const LEGACY_CATEGORY_DOMAIN: Record<string, string> = {
@@ -733,7 +742,7 @@ function ReadingProgressPanel({ percent }: { percent: number }) {
         <i style={{ width: `${rounded}%` }} />
       </div>
       <ol className="nyai-progress-steps">
-        {DOMAIN_CARDS.map((card, index) => {
+        {READING_STEPS.map((card, index) => {
           const startsAt = READING_STAGES[index + 1]?.at ?? READING_STAGES[READING_STAGES.length - 1].at;
           const endsAt = READING_STAGES[index + 2]?.at ?? READING_STAGES[READING_STAGES.length - 1].at;
           const done = percent >= endsAt;
@@ -747,7 +756,7 @@ function ReadingProgressPanel({ percent }: { percent: number }) {
         })}
       </ol>
       {/* 화면이 숨으면 생성을 멈추고, 다시 열면 서버의 진행 중 상담(pendingSessionId)부터 이어 간다. */}
-      <p className="nyai-progress-note">{DOMAIN_CARDS.length}개 분야를 읽고 있어 잠시 시간이 걸립니다. 다른 앱으로 옮기거나 창을 닫으면 잠시 멈추고, 다시 열면 저장된 분야부터 이어 갑니다. 다시 결제되지 않습니다.</p>
+      <p className="nyai-progress-note">{READING_SECTION_TOTAL}개 분야를 읽고 있어 잠시 시간이 걸립니다. 다른 앱으로 옮기거나 창을 닫으면 잠시 멈추고, 다시 열면 저장된 분야부터 이어 갑니다. 다시 결제되지 않습니다.</p>
     </div>
   );
 }
@@ -845,6 +854,7 @@ export const __newYearAiParserTestUtils = {
   classifySections,
   buildDomainBodies,
   DOMAIN_CARDS,
+  READING_STEPS,
 };
 
 function buildBillingGateInput(paymentPayload: Record<string, unknown>, idempotencyKey: string) {
@@ -1663,7 +1673,7 @@ export default function NewYearAiConsultationPage() {
     setAccessType(result.accessType || "");
     setMessages(Array.isArray(result.messages) ? result.messages : []);
     setServerSections(Array.isArray(result.sections) ? result.sections : []);
-    setReadingProgress(result.status && result.status !== "completed" ? Math.round(100 * (result.progress?.completed || 0) / (result.progress?.total || 6)) : 100);
+    setReadingProgress(result.status && result.status !== "completed" ? Math.round(100 * (result.progress?.completed || 0) / (result.progress?.total || READING_SECTION_TOTAL)) : 100);
     setSajuProfile(result.sajuProfile || null);
     setMonthlyFlow(Array.isArray(result.monthlyFlow) ? result.monthlyFlow : []);
     setTargetYearInfo(result.targetYear || null);
@@ -1714,7 +1724,7 @@ export default function NewYearAiConsultationPage() {
         applyResult(result); pendingGenerationRef.current = null; return true;
       }
       applyResult(result);
-      setNotice(`저장된 분야 ${result.progress?.completed || 0}/${result.progress?.total || 6} · 이어서 준비하고 있습니다.`);
+      setNotice(`저장된 분야 ${result.progress?.completed || 0}/${result.progress?.total || READING_SECTION_TOTAL} · 이어서 준비하고 있습니다.`);
     }
     setStatus("ready");
     return false;

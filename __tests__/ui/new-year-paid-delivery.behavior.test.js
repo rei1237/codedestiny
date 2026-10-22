@@ -185,7 +185,7 @@ test('실제 신년 화면은 부분 결과를 완료로 오인하지 않고 결
   function visit(node) { if (ts.isVariableDeclaration(node) && node.name.getText(ast) === 'startConsultation') callback = node.initializer.arguments[0]; ts.forEachChild(node, visit); }
   visit(ast); assert.ok(callback);
   const requests = [], states = [], pendingGenerationRef = { current: null };
-  const ctx = vm.createContext({ document: { hidden: false }, captureDeliveryScope: () => () => true,
+  const ctx = vm.createContext({ document: { hidden: false }, captureDeliveryScope: () => () => true, READING_SECTION_TOTAL: 6,
     setStatus() {}, setNotice() {}, pendingGenerationRef, applyResult: result => states.push(result.status),
     postJson: async (_path, payload, key) => {
       requests.push({ payload, key });
@@ -297,4 +297,23 @@ for (const accessType of ['pass', 'subscription', 'paid']) test(accessType + ': 
   assert.equal(f.calls, 6);
   assert.equal(f.charges, 1);
   assert.equal(f.refunds, 0);
+});
+
+test('대기 화면 진행 단계는 서버 생성 섹션과 같은 순서·같은 수다', () => {
+  const declarations = (file, kind, names) => {
+    const ast = ts.createSourceFile(file, fs.readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true, kind);
+    return names.map(name => {
+      const row = ast.statements.filter(ts.isVariableStatement).flatMap(statement => [...statement.declarationList.declarations]).find(node => node.name.getText(ast) === name);
+      assert.ok(row, name);
+      return `var ${row.getText(ast)};`;
+    }).join('\n');
+  };
+  const ctx = vm.createContext({});
+  vm.runInContext(ts.transpileModule(declarations('app/new-year-ai-consultation/NewYearAiClient.tsx', ts.ScriptKind.TSX, ['DOMAIN_CARDS', 'READING_STEPS', 'READING_SECTION_TOTAL']), { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText, ctx);
+  vm.runInContext(declarations('worker/routes/new-year-ai.js', ts.ScriptKind.JS, ['NEW_YEAR_AI_SECTIONS']), ctx);
+  assert.deepEqual(ctx.READING_STEPS.map(step => step.key), ctx.NEW_YEAR_AI_SECTIONS.map(section => section.key));
+  assert.equal(ctx.READING_SECTION_TOTAL, ctx.NEW_YEAR_AI_SECTIONS.length);
+  const source = fs.readFileSync('app/new-year-ai-consultation/NewYearAiClient.tsx', 'utf8');
+  assert.doesNotMatch(source, /progress\?\.total \|\| \d/);
+  assert.doesNotMatch(source, /DOMAIN_CARDS\.length\}개 분야/);
 });
