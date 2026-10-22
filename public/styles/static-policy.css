@@ -91,7 +91,7 @@
 .PolicyGuide_reassurance {
   margin: 12px 0 0;
   color: var(--pg-accent);
-  font-size: 0.82rem;
+  font-size: 0.875rem;
   font-weight: 750;
 }
 .PolicyGuide_pig {
@@ -330,9 +330,6 @@ html[data-cd-theme=neo] .PolicyGuide_page {
   }
   .PolicyGuide_description {
     font-size: 0.88rem;
-  }
-  .PolicyGuide_reassurance {
-    font-size: 0.76rem;
   }
   .PolicyGuide_pig {
     width: 88px;

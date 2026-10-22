@@ -40,7 +40,7 @@
 .stage { display: grid; justify-items: center; gap: 24px; padding-block: 20px 32px; }
 .head { display: grid; justify-items: center; gap: 12px; text-align: center; }
 .page .title { font-size: clamp(1.7rem, 6.6vw, 3rem); line-height: 1.35; letter-spacing: -0.02em; }
-.lead { max-width: 52ch; color: var(--hm-gold-ink); font-size: clamp(.75rem, 2.5vw, .9375rem); line-height: 1.75; }
+.lead { max-width: 52ch; color: var(--hm-gold-ink); font-size: clamp(.875rem, 2.5vw, .9375rem); line-height: 1.75; }
 .lead a { display: inline-flex; align-items: center; min-height: 44px; text-decoration-thickness: 1px; }
 .browseLink { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; font-size: 0.875rem; text-decoration-thickness: 1px; }
 .byline { margin-top: 16px !important; font-size: 0.875rem; font-weight: 600; color: var(--hm-gold-ink); }

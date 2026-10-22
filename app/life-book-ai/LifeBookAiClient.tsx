@@ -1824,7 +1824,7 @@ export default function LifeBookAiClient() {
                     className={`rounded-2xl border px-4 py-3 text-left transition ${form.mode === value ? "border-amber-200 bg-amber-200/15" : "border-amber-100/15 bg-[#14271e] hover:border-amber-200/45"}`}
                   >
                     <span className={`block text-sm font-semibold ${form.mode === value ? "text-amber-100" : "text-[#f4dfbd]"}`}>{copy.modeOptions[value].label}</span>
-                    <span className="mt-1 block text-xs leading-5 text-[#e7d2b5]">{copy.modeOptions[value].desc}</span>
+                    <span className="mt-1 block text-sm leading-6 text-[#e7d2b5]">{copy.modeOptions[value].desc}</span>
                   </button>
                 ))}
               </div>
@@ -1889,7 +1889,7 @@ export default function LifeBookAiClient() {
                   {FOCUS_AREA_VALUES.map((value) => (
                     <button key={value} type="button" onClick={() => updateField("focusArea", value)} className={`rounded-2xl border p-3 text-left transition hover:-translate-y-0.5 ${form.focusArea === value ? "border-amber-200/55 bg-amber-100/15 shadow-lg shadow-amber-200/10" : "border-amber-100/15 bg-[#0b1020aa]"}`}>
                       <span className="block text-sm font-semibold text-amber-50">{copy.focusLabel[value]}</span>
-                      <span className="mt-1 block text-xs leading-5 text-[#d8c6a7]">{copy.focusHint[value]}</span>
+                      <span className="mt-1 block text-sm leading-6 text-[#d8c6a7]">{copy.focusHint[value]}</span>
                     </button>
                   ))}
                 </div>

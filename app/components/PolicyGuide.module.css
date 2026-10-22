@@ -96,7 +96,7 @@
 .reassurance {
   margin: 12px 0 0;
   color: var(--pg-accent);
-  font-size: 0.82rem;
+  font-size: 0.875rem;
   font-weight: 750;
 }
 
@@ -369,9 +369,6 @@
     font-size: 0.88rem;
   }
 
-  .reassurance {
-    font-size: 0.76rem;
-  }
 
   .pig {
     width: 88px;

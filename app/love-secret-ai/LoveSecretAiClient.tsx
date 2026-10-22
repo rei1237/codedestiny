@@ -2812,7 +2812,7 @@ function LoveSecretPromiseCard() {
           </li>
         ))}
       </ul>
-      <p className="mt-5 border-t border-[var(--ls-line)] pt-4 text-xs leading-6 text-[var(--ls-text-muted)]">
+      <p className="mt-5 border-t border-[var(--ls-line)] pt-4 text-sm leading-6 text-[var(--ls-text-muted)]">
         {copy.promiseCardFooter}
       </p>
     </section>

@@ -1192,7 +1192,7 @@ const NYAI_SEASON_CSS = `
   display: block;
   margin-top: 8px;
   color: var(--nyai-text-dim);
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.45;
 }
 
@@ -3072,7 +3072,8 @@ export default function NewYearAiConsultationPage() {
         }
 
         .nyai-question-head span {
-          font-size: var(--nyai-label-size, 0.78rem);
+          font-size: 0.875rem;
+          line-height: 1.6;
           color: var(--nyai-text-dim);
         }
 
