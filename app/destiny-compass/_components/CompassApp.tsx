@@ -5,6 +5,7 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePaidResume, type PaidResumeGrant } from "@/app/hooks/usePaidResume";
+import { useBackNavigation } from "@/app/hooks/useBackNavigation";
 import { useCompassSession, type CompassStep } from "../_hooks/useCompassSession";
 import { JourneyHub } from "./JourneyHub";
 import { SavedCompassReport } from "./SavedCompassReport";
@@ -21,6 +22,18 @@ import { ProcessingScene } from "./ProcessingScene";
 import { DIRECTION_TO_REGION, regionByKey } from "./mapRegions";
 import { useDestinyCompassCopy } from "../_lib/copy";
 import map from "./map.module.css";
+
+// 브라우저 뒤로가기는 화면에서 본 바로 앞 단계로 돌아간다. 잎 화면은 각 화면의 '돌아가기'와 같은 곳(결과)으로 간다.
+const COMPASS_PREVIOUS_STEP: Partial<Record<CompassStep, CompassStep>> = {
+  map: "hub",
+  reveal: "map",
+  result: "reveal",
+  crossroad: "result",
+  futureSim: "result",
+  voyage: "result",
+  today: "result",
+  arrival: "today",
+};
 
 export function CompassApp({ start = "hub" }: { start?: CompassStep } = {}) {
   const copy = useDestinyCompassCopy();
@@ -105,6 +118,20 @@ export function CompassApp({ start = "hub" }: { start?: CompassStep } = {}) {
     },
     [clearResumeMarks, s],
   );
+
+  const previousStep = savedReportId ? undefined : COMPASS_PREVIOUS_STEP[s.step];
+  useBackNavigation({
+    scope: "wizard",
+    // 처리 중에는 뒤로가기를 받아 두기만 한다(결과 계산이 끝나면 이어서 받는다).
+    enabled: Boolean(previousStep) || (!savedReportId && s.step === "processing"),
+    isLocked: s.step === "processing",
+    canGoBack: Boolean(previousStep),
+    onBack: () => {
+      if (!previousStep) return false;
+      goStep(previousStep);
+      return true;
+    },
+  });
 
   if (savedReportId) return <SavedCompassReport reportId={savedReportId} />;
 

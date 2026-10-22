@@ -2601,7 +2601,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
           method: "POST", credentials: "include", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ append: true, mode: "fusion_deep_reading", paymentStatus: "completed", generationStatus: "completed", messages: [{ id: `fusion-${payload.requestId || Date.now()}`, speaker: "assistant", kind: "fusion_result", text: streamResult.openingMessage, detail: streamResult.executiveSummary, result: streamResult }] }),
         }, { retryOn401: true, apiBase });
-        window.setTimeout(() => { if (scope.isCurrent()) window.location.assign(`/fortune-chat?session=${encodeURIComponent(fortuneChatSessionId)}`); }, 300);
+        window.setTimeout(() => { if (scope.isCurrent()) window.location.replace(`/fortune-chat?session=${encodeURIComponent(fortuneChatSessionId)}`); }, 300);
       }
       // 결과를 받았으면 이 결제는 소진됐다. 다음 상담은 새로 결제한다.
       rememberPaidRequest("");

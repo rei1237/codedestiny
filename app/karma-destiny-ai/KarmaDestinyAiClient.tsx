@@ -2302,7 +2302,7 @@ export default function KarmaDestinyAiPage() {
       try {
         const response = await authFetch("/api/karma-destiny-ai/result");
         const pending = await response.json().catch(() => ({}));
-        if (isCurrent() && response.ok && pending.sessionId && ["generating", "partial", "delivery_pending"].includes(pending.status)) window.location.assign(`/karma-destiny-ai/result?sessionId=${encodeURIComponent(pending.sessionId)}`);
+        if (isCurrent() && response.ok && pending.sessionId && ["generating", "partial", "delivery_pending"].includes(pending.status)) window.location.replace(`/karma-destiny-ai/result?sessionId=${encodeURIComponent(pending.sessionId)}`);
       } catch { /* The saved report remains available for the next lifecycle event. */ }
     };
     void restore(); window.addEventListener("online", restore); document.addEventListener("visibilitychange", restore);
@@ -2424,7 +2424,8 @@ export default function KarmaDestinyAiPage() {
       setError("");
       setStatus("reading");
       const target = `/karma-destiny-ai/result?sessionId=${encodeURIComponent(result.sessionId)}${result.status === "completed" ? "" : "&pending=1"}`;
-      window.location.assign(target);
+      // 결과에서 뒤로가기가 이미 쓴 입력 화면으로 돌아가지 않게 히스토리를 바꿔 넣는다.
+      window.location.replace(target);
       return result.status === "completed";
     }
     if (result.ok && result.status === "generating") {

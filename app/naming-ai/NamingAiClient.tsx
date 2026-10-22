@@ -2185,7 +2185,7 @@ export default function NamingAiClient() {
     void authFetch("/api/naming-prompt/result/pending").then(async response => {
       const data = await response.json();
       if (alive && !busyRef.current && !retryRef.current && response.status === 202 && data.executionId) {
-        window.location.assign(`/naming-ai/result?executionId=${encodeURIComponent(data.executionId)}`);
+        window.location.replace(`/naming-ai/result?executionId=${encodeURIComponent(data.executionId)}`);
       }
     }).catch(() => {});
     return () => { alive = false; };
@@ -2277,7 +2277,8 @@ export default function NamingAiClient() {
     // 결과 페이지가 원래 실행 ID로 저장된 장 이후를 이어 생성한다.
     stashNamingRetryPayload(executionId, { input, inputHash, access });
     retryRef.current = null;
-    window.location.assign(`/naming-ai/result?executionId=${encodeURIComponent(executionId)}`);
+    // 결과에서 뒤로가기가 이미 쓴 입력 화면으로 돌아가지 않게 히스토리를 바꿔 넣는다.
+    window.location.replace(`/naming-ai/result?executionId=${encodeURIComponent(executionId)}`);
     return genRes.status === 200 || genRes.status === 201;
   }
 

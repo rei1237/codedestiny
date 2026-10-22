@@ -1100,7 +1100,7 @@ export default function NeoOperationRoomPage() {
       if (document.visibilityState === "hidden" || !navigator.onLine) return;
       const response = await authFetch("/api/neo-operation-room/result").catch(() => null);
       const data = await response?.json().catch(() => null);
-      if (isCurrent() && response?.status === 202 && data?.sessionId) window.location.assign(`/neo-operation-room/result?attemptId=${encodeURIComponent(data.sessionId)}`);
+      if (isCurrent() && response?.status === 202 && data?.sessionId) window.location.replace(`/neo-operation-room/result?attemptId=${encodeURIComponent(data.sessionId)}`);
     };
     void recover();
     window.addEventListener("online", recover);

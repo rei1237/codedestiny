@@ -49,7 +49,7 @@ export default function CodexProductIntroduction({ onEnter, onReplayPrologue, ha
   const cta = mode === 'solo' ? '나의 연애 이야기 시작하기' : '두 사람의 이야기 시작하기';
   const action = <div className="fortuneAction"><p>{mode === 'solo' ? '본인편' : '궁합편'} · <PriceBadge featureKey={billing.featureKey} className="fortunePlanPrice" /></p><button type="button" onClick={() => onEnter(mode)}>{cta}</button></div>;
   return <div className="featureIntroductionPage">
-    <nav className="featureIntroductionNav" aria-label="마스터 인연의 서 탐색"><button type="button" onClick={() => window.history.back()}>뒤로가기</button><a href="/">홈으로</a></nav>
+    <nav className="featureIntroductionNav" aria-label="마스터 인연의 서 탐색"><button type="button" onClick={() => (window.history.length > 1 ? window.history.back() : window.location.assign("/"))}>뒤로가기</button><a href="/">홈으로</a></nav>
     <p className="featureIntroductionTitle">마스터 인연의 서</p>
     <div className="fortuneEditionChoices" role="group" aria-label="읽을 편 선택">{(['solo','compat'] as const).map(value => <button key={value} type="button" aria-pressed={mode === value} onClick={() => setMode(value)}>{value === 'solo' ? '본인편 · 나의 패턴' : '궁합편 · 두 사람'}</button>)}</div>
     <div ref={host} dangerouslySetInnerHTML={markup} />

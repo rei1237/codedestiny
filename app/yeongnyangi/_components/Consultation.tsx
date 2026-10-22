@@ -22,6 +22,7 @@ import {readingFeatures} from './ReadingIdentity';
 import CurrentLocationButton,{type CurrentLocation} from '@/app/components/CurrentLocationButton';
 import {readingLocationCopy} from '../_lib/current-location-copy';
 import {useEffect,useRef,useState} from 'react';
+import {useBackNavigation} from '@/app/hooks/useBackNavigation';
 import {readDestinyProfileAccountId} from '@/app/_lib/profile-card-storage';
 import {authFetch} from '@/app/_lib/auth-client';
 import {ArrowRight,Moon,Sparkles} from 'lucide-react';
@@ -284,6 +285,9 @@ export default function Consultation(){
  function chooseKind(id:string){const next=consultationKinds[domain].find(k=>k.id===id)!;setKindId(id);if(next.koOnly)setLocale('ko');setPartnerId('');setError('');if(!supportsKind(product,next))setProductId(products.find(p=>consultationDomain(p)===domain&&supportsKind(p,next))!.id);}
  function chooseRelationshipEngine(next:DomainId){const tarotKind=relationshipQuestionId==='contact'?'contact':relationshipQuestionId==='reunion'?'reunion':['feelings','flirting'].includes(relationshipQuestionId)?'feelings':'compatibility';setDomain(next);setKindId(next==='tarot'?tarotKind:'compatibility');setProductId(next+'_mackerel');setTopicId('relationship');setRelationshipStage('consultation');setError('');}
 
+ // 상담·결제 확인 단계에서 브라우저 뒤로가기는 질문 입력으로 돌아간다. 결제를 준비하는 동안에는 받아 두기만 한다.
+ const questionCheckoutOpen=ready&&questionMode&&siteLocale==='ko'&&domain!=='fusion'&&chatStep==='checkout';
+ useBackNavigation({scope:'wizard',enabled:questionCheckoutOpen,isLocked:busy,canGoBack:questionCheckoutOpen,onBack:()=>{setChatStep('question');return true;}});
  // Do not expose the legacy selector while the entry and catalog are still loading.
  if(!ready)return <p className={styles.loading} role="status">{inputCopy.catalogLoading}</p>;
  if(questionMode&&siteLocale==='ko'&&domain!=='fusion'){

@@ -42,6 +42,7 @@ export type BackHandlerRegistration = {
 type BackNavigationContextValue = {
   registerBackHandler: (registration: BackHandlerRegistration) => () => void;
   ensureTransientBackGuard: () => void;
+  releaseTransientBackGuard: () => void;
 };
 
 export const BackNavigationContext = createContext<BackNavigationContextValue | null>(null);
@@ -151,7 +152,14 @@ export default function NavigationProvider({ children }: { children: React.React
   }, []);
 
   const ensureTransientBackGuard = useCallback(() => {
+    staleTransientPathRef.current = null;
     ensureGuardState(toPathKey(pathRef.current), "transient");
+  }, []);
+
+  // 단계형 흐름이 첫 단계로 돌아오면(뒤로가기·이전 버튼 모두) 가드 엔트리가 하나 남는다.
+  // 임시 표면을 버튼으로 닫았을 때처럼, 다음 뒤로가기 때 한 칸 더 내려 준다(onPopState).
+  const releaseTransientBackGuard = useCallback(() => {
+    staleTransientPathRef.current = toPathKey(pathRef.current);
   }, []);
 
   const fallbackHistoryBack = useCallback(
@@ -408,8 +416,9 @@ export default function NavigationProvider({ children }: { children: React.React
     return {
       registerBackHandler,
       ensureTransientBackGuard,
+      releaseTransientBackGuard,
     };
-  }, [ensureTransientBackGuard, registerBackHandler]);
+  }, [ensureTransientBackGuard, registerBackHandler, releaseTransientBackGuard]);
 
   return (
     <BackNavigationContext.Provider value={contextValue}>

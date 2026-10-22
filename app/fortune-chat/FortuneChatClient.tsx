@@ -285,6 +285,11 @@ export default function FortuneChatClient() {
   const apiBase = getApiBaseUrl();
   const router = useRouter();
   const params = useSearchParams();
+  // 새 탭·공유 링크로 바로 들어와 돌아갈 곳이 없으면 이 방의 입구인 찻집으로 보낸다.
+  const leaveRoom = useCallback(() => {
+    if (window.history.length <= 1) router.push("/fortune-tea-house/");
+    else router.back();
+  }, [router]);
   const { ensurePaidAccess, isPaying } = useCoinGate();
   const { seed: profileSeed, seedVersion, reload: reloadProfileSeed } = useAiProfileSeed();
   // 상담자는 연이 하나다. 예전 링크의 `?character=neo` 나 네오로 저장된 세션도 연이로 연다(대화 기록은 그대로).
@@ -702,7 +707,7 @@ export default function FortuneChatClient() {
 
   return <main className={`${styles.room} ${character === "yeoni" ? salon.room : ""}`} data-character={character}>
     <header className={`${styles.header} ${salon.header}`}>
-      <button className={styles.backButton} type="button" onClick={() => router.back()} aria-label={copy.backAria}>←</button>
+      <button className={styles.backButton} type="button" onClick={leaveRoom} aria-label={copy.backAria}>←</button>
       <div className={styles.brand}>
         <PersonaAvatar persona={character} mood="greet" size="sm" decorative />
         <div><strong>{CHARACTER_LABEL[character]} 운명 상담</strong><span>{character === "neo" ? "판세부터 정리해 드릴게요" : "작은 마음부터 천천히 살펴봐요"}</span></div>

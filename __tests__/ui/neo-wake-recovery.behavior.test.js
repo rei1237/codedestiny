@@ -47,7 +47,7 @@ test('actual neo input-page recover effect redirects an abandoned pending sessio
   });
   const assigned = [];
   const context = {
-    window: { ...surface('window:'), location: { assign: url => assigned.push(url) } },
+    window: { ...surface('window:'), location: { replace: url => assigned.push(url) } },
     document: { ...surface('document:'), visibilityState: 'visible' },
     navigator: { onLine: true },
     captureOwner: () => () => true,

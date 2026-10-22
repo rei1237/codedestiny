@@ -34,6 +34,7 @@ export function useBackNavigation(options: UseBackNavigationOptions) {
   const context = useContext(BackNavigationContext);
   const optionsRef = useRef(options);
   const handlerIdRef = useRef(`cd-back-${Math.random().toString(36).slice(2, 11)}`);
+  const wizardArmedRef = useRef(false);
 
   optionsRef.current = options;
 
@@ -64,10 +65,20 @@ export function useBackNavigation(options: UseBackNavigationOptions) {
     if (!context) return;
     const scope = options.scope || "analysis";
     if (scope === "analysis") return;
-    if (resolveMaybe(options.enabled, true)) {
+    const enabled = resolveMaybe(options.enabled, true);
+    if (enabled) {
       context.ensureTransientBackGuard();
+    } else if (scope === "wizard" && wizardArmedRef.current) {
+      // 첫 단계로 돌아왔다. 남은 가드는 다음 뒤로가기가 걷고 그대로 이전 화면으로 간다.
+      context.releaseTransientBackGuard();
     }
+    wizardArmedRef.current = scope === "wizard" && enabled;
   }, [context, options.enabled, options.scope]);
+
+  // 단계 중간에 흐름이 화면에서 빠져도(다른 입력 방식으로 전환 등) 같은 이유로 가드를 걷는다.
+  useEffect(() => () => {
+    if (wizardArmedRef.current) context?.releaseTransientBackGuard();
+  }, [context]);
 }
 
 export default useBackNavigation;

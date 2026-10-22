@@ -72,7 +72,8 @@ export default function CodexLanding({ hasSeenPrologue, chapterCount, onEnter, o
   return (
     <CodexShell ariaLabel={copy.entryAriaLabel(soloTitle)}>
       <nav className="flex items-center justify-between px-[var(--codex-gutter)] pt-6" aria-label={copy.navAriaLabel}>
-        <button type="button" onClick={() => window.history.back()} className={`${styles.quiet} inline-flex items-center gap-1`}>
+        {/* 새 탭·공유 링크로 바로 들어와 돌아갈 곳이 없으면 옆의 홈과 같은 곳으로 보낸다. */}
+        <button type="button" onClick={() => (window.history.length > 1 ? window.history.back() : window.location.assign("/"))} className={`${styles.quiet} inline-flex items-center gap-1`}>
           <ChevronLeft className="h-3.5 w-3.5" aria-hidden="true" />
           {copy.backButton}
         </button>

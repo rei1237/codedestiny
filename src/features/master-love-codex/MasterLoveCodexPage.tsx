@@ -16,6 +16,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
+import { useBackNavigation } from "@/app/hooks/useBackNavigation";
 import { authFetch } from "@/app/_lib/auth-client";
 import { usePaidResume, packPaidResumeArg, unpackPaidResumeArg, type PaidResumeArgs, type PaidResumeGrant } from "@/app/hooks/usePaidResume";
 import {
@@ -301,6 +302,19 @@ export default function MasterLoveCodexPage() {
   function skipPrologue() {
     setPhase("birth");
   }
+
+  // 프롤로그·입력 화면에서 브라우저 뒤로가기는 랜딩으로 돌아간다. 결제 확인 중에는 받아 두기만 한다.
+  const paymentBusy = phase === "checking" || phase === "payment";
+  useBackNavigation({
+    scope: "wizard",
+    enabled: phase === "prologue" || phase === "birth" || paymentBusy,
+    isLocked: paymentBusy,
+    canGoBack: phase === "prologue" || phase === "birth",
+    onBack: () => {
+      setPhase("landing");
+      return true;
+    },
+  });
 
   const runBatches = useCallback(async (startSessionId: string, startToken: string, seed: SessionPayload) => {
     setPhase("generating");

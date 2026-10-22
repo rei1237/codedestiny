@@ -422,7 +422,7 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
   return (
     <main className={`${base.room}${persona === "neo" ? ` ${styles.starlight}` : ` ${salon.room}`}`} data-consultation-room data-persona={persona}>
       <header className={`${base.header} ${salon.header}`}>
-        <button type="button" className={`${base.backButton} ${styles.backButton}`} aria-label="뒤로" onClick={() => (row ? startNew() : window.history.back())}>←</button>
+        <button type="button" className={`${base.backButton} ${styles.backButton}`} aria-label="뒤로" onClick={() => (row ? startNew() : window.history.length > 1 ? window.history.back() : window.location.assign("/fortune-tea-house/"))}>←</button>
         <div className={base.brand}>
           <PersonaAvatar persona={persona} mood={poseFor(row, { failed: !!error, drafting: !!question.trim() })} size="sm" decorative />
           <div><strong>{world.title}</strong><span>{world.sub}</span></div>
