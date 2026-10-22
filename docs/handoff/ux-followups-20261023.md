@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-23
-next: "28 — 숙요·휴먼디자인 차트 화면에 추천이 안 뜬다"
+next: "17 — 인생의 책 페이지에 OG·twitter·JSON-LD가 없다"
 ---
 
 # 꿀꿀운세 UX 진단·개선 — 후속 과제
@@ -87,10 +87,10 @@ next: "28 — 숙요·휴먼디자인 차트 화면에 추천이 안 뜬다"
   - 원문: `lib/brand/differentiation-faqs.mjs`. 사실만 직접 번역하고, 유료 번역 스크립트는 쓰지 않는다.
 - [x] **25. 레거시 추천 화면의 `copy.locale`이 undefined다** — `js/recommendations-legacy.mjs` 약 L40·L65. — 끝: `d40edb91b`. `shelf`(언어별 문구)와 `lang`을 쓴다.
 - [x] **24. 레거시 추천 화면이 60초마다 다시 불러온다** — 같은 파일 약 L88. 필요 없는 폴링이면 멈춘다. — 끝: `d40edb91b`. 폴링은 관리자 끄기 스위치라 유지한다. 응답이 같으면 다시 그리지 않고, 숨겨진 탭에서는 건너뛴다. 테스트 추가.
-- [ ] **28. 숙요·휴먼디자인 차트 화면에 추천이 안 뜬다**
+- [x] **28. 숙요·휴먼디자인 차트 화면에 추천이 안 뜬다** — 끝: `f0601b77b`. 숙요 궁합은 소통 장 행동 목록·금기 장 예방 목록 줄만, 무료 휴먼디자인 차트는 내 권위와 정의된 센터의 실천 문장만 읽는다. 테스트 추가.
   - 원인: `SukuyoCompatibilityAiClient.tsx:1185`, `HumanDesignClient.tsx:719`가 advice 태그를 넘기지 않는다.
-- [ ] **29. 추천 태그 추출이 한국어 정규식뿐이다** — `js/recommendations-context.mjs`.
-- [ ] **30. `neo` 브랜드가 꿀꿀 팔레트로 매핑된다** — `js/affiliate-presentation.mjs:7`.
+- [x] **29. 추천 태그 추출이 한국어 정규식뿐이다** — `js/recommendations-context.mjs`. — 끝: 결정으로 닫음(코드 변경 없음). 운영 카탈로그는 쿠팡(국내 배송·한국어 제목) 32개뿐이고 알리 6개는 전부 draft·한국어 제목이다. 외국어 패턴을 넣으면 해외 이용자에게 국내 전용 상품이 뜬다. 검수된 비한국어 카탈로그가 생기면 다시 연다.
+- [x] **30. `neo` 브랜드가 꿀꿀 팔레트로 매핑된다** — `js/affiliate-presentation.mjs:7`. — 끝: 결정으로 닫음(코드 변경 없음). 네오는 꿀꿀 운세의 상담자이고, 추천 화면은 브랜드 2개(영냥이·꿀꿀)만 둔다(`docs/design/affiliate-surfaces.md`, `affiliate-tokens.css` 주석, `affiliate-presentation.test.mjs`가 neo→ggulggul을 고정).
 
 ### B. SEO
 
