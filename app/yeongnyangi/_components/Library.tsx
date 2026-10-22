@@ -75,14 +75,16 @@ export default function Library(){
   }
  }
  const scene=needsLogin?'login':rows?.length||error?'hero':'signup',[art,artWidth,artHeight]=ART[scene];
+ // 빈 보관함은 안내 바로 아래에서 첫 상담으로 데려간다. 같은 링크를 목록 아래에 한 번 더 두지 않는다.
+ const empty=rows?.length===0&&!error,startHref=`/yeongnyangi/fortune/?lang=${locale}`;
  return <section className={styles.consultation}><header className={styles.spiritIntro}><img className={scene==='signup'?styles.libraryFade:undefined} src={art} width={artWidth} height={artHeight} alt=""/><div className={styles.libraryIntro}><h1>{copy.library}</h1>
-  {needsLogin?<div role="alert"><p>{copy.loginHint}</p><button onClick={loginForCurrentPage}>{copy.login}</button></div>:rows===null&&loading?<p role="status">{copy.loading}</p>:rows?.length===0&&!error&&<p>{copy.empty}</p>}</div></header>
+  {needsLogin?<div role="alert"><p>{copy.loginHint}</p><button onClick={loginForCurrentPage}>{copy.login}</button></div>:rows===null&&loading?<p role="status">{copy.loading}</p>:empty&&<><p>{copy.empty}</p><a className={styles.primaryAction} href={startHref}>{consultationLocaleCopy(locale).start}</a></>}</div></header>
   <OrderLookup locale={locale}/>
   <div className={styles.library}>{rows?.map(row=><div key={row.id} className={styles.libraryItem}><a href={`${resultPath(row.id,locale)}&source=library`}><img src={row.product?readingArtwork(row.product):ART.hero[0]} width={120} height={80} loading="lazy" alt=""/><div><h2>{!row.product?(row.kindLabel||copy.library):locale==='ko'?`${row.kindLabel||row.product.name} · ${row.product.fishName}`:`${row.consultationKind?localizedKind(row.consultationKind,locale):localizedSystem(row.product.readingKind==='single'?row.product.domain:'fusion',locale)} · ${localizedTier(row.product.fishId,locale)}`}</h2>{row.participants&&<p>{row.participants.self} · {row.participants.partner}</p>}<p>{new Date(row.createdAt).toLocaleDateString(locale)} · {row.state==='REFUNDED'?copy.refunded:row.state==='COMPLETED'?copy.view:row.paid?row.recovering?copy.recoveringItems(row.completedChapters||0,row.totalChapters||row.product?.chapterCount||0):copy.continue:copy.checkout}</p><p>{copy.language}: {readingLanguageNames[row.locale || 'ko']}</p></div></a>
    {row.canRetry&&<button className={styles.retryButton} disabled={Boolean(recovering)} onClick={()=>void recover(row)}>{recovering===row.id?stateCopy.recovering:copy.recovery}</button>}
    {recoverError?.id===row.id&&<p role="alert">{recoverError.message}</p>}</div>)}</div>
   {cursor&&!error&&<button disabled={loading} onClick={()=>void load(cursor)}>{loading?copy.loading:copy.more}</button>}
   {error&&!needsLogin&&<div role="alert"><p>{locale==='ko'?error:stateCopy.loadFailed}</p><button disabled={loading} onClick={retry}>{loading?copy.loading:copy.retry}</button></div>}
-  <a href={`/yeongnyangi/fortune/?lang=${locale}`}>{consultationLocaleCopy(locale).start}</a>
+  {!empty&&<a href={startHref}>{consultationLocaleCopy(locale).start}</a>}
  </section>;
 }

@@ -163,7 +163,7 @@ function SavedConsultationCheckout({requestId,featureKey}:{requestId:string;feat
   if(!catalog.products.some(product=>product.cdFeatureKey===featureKey&&product.available))throw new Error('현재 이 상담을 준비할 수 없어요. 잠시 후 다시 확인해 주세요.');setRecord(fortune);
  }).catch(e=>{if(active){if(e instanceof FortuneApiError&&e.status===401)redirectToLogin();else setError(friendlyErrorMessage(e,'주문을 확인하지 못했어요. 잠시 후 다시 확인해 주세요.'));}});return()=>{active=false;};},[requestId,featureKey,revision]);
  const product=products.find(item=>item.cdFeatureKey===featureKey);
- return <main className={styles.page} data-yn-night><nav className={styles.nav}><a href="/yeongnyangi/" onClick={event=>returnToPreviousScreen(event)}>영냥이로 돌아가기</a><a href="/yeongnyangi/library/">내 상담 기록</a></nav>
+ return <main className={styles.page} data-yn-night><nav className={styles.nav}><a href="/yeongnyangi/" onClick={event=>returnToPreviousScreen(event)}>영냥이로 돌아가기</a><a href="/yeongnyangi/library/">영냥이 보관함</a></nav>
   {error?<p role="alert">{error} <button type="button" onClick={()=>setRevision(n=>n+1)}>다시 확인하기</button></p>:record&&product?<YeongnyangiCheckout draft={{product,question:record.consultation?.question||product.name,chapters:record.manifest.length,ready:true,onPrepare:async()=>{const next=await fortuneApi<{fortune:FortuneRecord}>(`requests/${requestId}`);return next.fortune;},children:<p>준비한 상담 내용으로 이어갑니다. 결제를 취소해도 같은 상담에서 다시 확인할 수 있어요.</p>}}/>:<p role="status">상담 내용을 확인하고 있어요.</p>}
   {record&&<a href={FISH_CHOOSER_PATH} className={styles.back} onClick={()=>saveQuestionEdit(record)}>질문 조건 수정하기</a>}
  </main>;

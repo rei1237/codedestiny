@@ -18,7 +18,7 @@ export const questionSkyCopy={
       freeSummary:'전통 서양 호라리 계산과 외부 AI 상담 프롬프트',freePrice:'무료 · 프롬프트 제공',freeSubmit:'무료 호라리 프롬프트 만들기',
       submit:'결제 내용 확인하기',busy:'질문 순간의 결을 살피는 중',preparing:'상담 준비 상태를 확인하고 있어요.',unavailable:'지금은 상담 준비 중이에요. 결제는 진행되지 않아요.',
       validation:'질문 한 가지와 질문이 떠오른 도시·시각을 확인해 주세요.',initialError:'상담을 준비하지 못했어요. 잠시 후 다시 시도해 주세요.',availabilityError:'상담 준비 상태를 확인하지 못했어요. 잠시 후 다시 열어 주세요.',
-      imageAlt:'부채와 방울을 든 한복 차림의 영냥이',navigation:'상담 이동',library:'내 상담 기록',other:'다른 상담 고르기',
+      imageAlt:'부채와 방울을 든 한복 차림의 영냥이',navigation:'상담 이동',library:'영냥이 보관함',other:'다른 상담 고르기',
       relationships:['그 밖의 관계','나 자신의 선택','알아가는 사이','연인','헤어진 사이','친구','가족','동료'],
     },
     result:{
@@ -26,7 +26,7 @@ export const questionSkyCopy={
       answerLabel:'핵심 답변',saving:'질문의 결을 살피는 중',deepening:'심화 답을 정리하는 중',complete:'모든 이야기를 저장했어.',awaiting:'첫 답을 마쳤어. 아래에서 한 번 더 깊게 물어볼 수 있어.',
       progress:'이야기 저장과 최종 확인 진행률',followupTitle:'한 번 더 깊게 물어볼래?',followupDescription:'첫 답에서 갈라진 지점 하나를 골라 더 구체적으로 살펴볼 수 있어.',followupPlaceholder:'심화해서 알고 싶은 한 가지를 적어줘.',followupSubmit:'심화 질문 보내기',followupBusy:'심화 답을 준비하는 중',followupUsed:'이번 상담에 포함된 심화 질문을 모두 사용했어.',
       finalTitle:'영냥이의 마무리',share:'익명 요약 공유하기',shareDone:'공유 창에서 선택한 동작을 마쳤어요.',shareCopied:'익명 소개를 복사했어요.',shareCancelled:'공유를 취소했어요.',shareError:'공유를 마치지 못했어요. 아래 상담 공유에서 문구를 복사할 수 있어요.',
-      noticeNavigation:'다음 상담',library:'내 상담 기록',newReading:'새 상담 시작하기',moodAlt:'상담의 흐름을 살피는 영냥이',
+      noticeNavigation:'다음 상담',library:'영냥이 보관함',newReading:'새 상담 시작하기',moodAlt:'상담의 흐름을 살피는 영냥이',
       errors:{FOLLOWUP_INPUT_INVALID:'심화 질문은 5자 이상 600자 이하의 한 가지 질문으로 적어 주세요.',FOLLOWUP_NOT_AVAILABLE:'지금은 심화 질문을 받을 수 없어요. 첫 결과를 다시 확인해 주세요.',FOLLOWUP_ALREADY_USED:'이번 상담에 포함된 심화 질문은 이미 사용했어요.'},
     },
   },

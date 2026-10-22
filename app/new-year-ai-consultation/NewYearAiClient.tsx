@@ -449,7 +449,7 @@ async function pollNewYearResult(sessionId: string, isCurrent = () => true): Pro
     if (!response.ok) throw new Error(payload.message || LLM_ERROR_MESSAGE);
     return payload;
   }
-  throw new Error("상담 생성이 평소보다 오래 걸리고 있습니다. 페이지를 닫지 말고 잠시 후 다시 시도해 주세요.");
+  throw new Error("상담 생성이 평소보다 오래 걸리고 있습니다. 저장된 분야는 그대로 남아 있으니 잠시 후 다시 시도해 주세요. 다시 결제되지 않습니다.");
 }
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -746,7 +746,8 @@ function ReadingProgressPanel({ percent }: { percent: number }) {
           );
         })}
       </ol>
-      <p className="nyai-progress-note">창을 닫지 마세요. 네 분야를 동시에 읽고 있어 잠시 시간이 걸립니다.</p>
+      {/* 화면이 숨으면 생성을 멈추고, 다시 열면 서버의 진행 중 상담(pendingSessionId)부터 이어 간다. */}
+      <p className="nyai-progress-note">{DOMAIN_CARDS.length}개 분야를 읽고 있어 잠시 시간이 걸립니다. 다른 앱으로 옮기거나 창을 닫으면 잠시 멈추고, 다시 열면 저장된 분야부터 이어 갑니다. 다시 결제되지 않습니다.</p>
     </div>
   );
 }

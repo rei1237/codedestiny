@@ -68,6 +68,7 @@ const defaultKind=(domainId:string)=>domainId==='tarot'?consultationKinds.tarot.
 export default function Consultation(){
  const [relationshipStage,setRelationshipStage]=useState(''),[relationshipQuestionId,setRelationshipQuestionId]=useState('');
  const [participants,setParticipants]=useState({self:'',partner:''});
+ const [touched,setTouched]=useState<Record<string,boolean>>({});
  const {locale,setLocale,siteLocale,fallback}=useReadingLanguage();
  const ui=consultationLocaleCopy(siteLocale),tarotSpreadCopy=tarotSpreadCopyFor(siteLocale);
  const relationshipCopy=relationshipCopyFor(siteLocale),relationshipAdvice=relationshipMethodCopy(siteLocale).advice;
@@ -155,6 +156,12 @@ export default function Consultation(){
  ]:[];
  if(kind.question&&!question.trim()&&!guest)missing.push(askCopy.required);
  if(relationship&&tarotOnly&&(!participants.self.trim()||!participants.partner.trim()))missing.push(relationshipCopy.namesRequired);
+ // 비어 있는 필수 칸은 손댄 뒤에만 그 칸 바로 아래에 알린다(aria-invalid). 결제 버튼 위 요약 목록은 해당 칸으로 데려간다.
+ const fieldMessages:Record<string,string>={time:inputCopy.timeRequired,place:inputCopy.placeRequired,partner:missing.includes(inputCopy.partnerDetails)?inputCopy.partnerDetails:inputCopy.partnerRequired,question:askCopy.required};
+ const fieldError=(field:string)=>touched[field]&&missing.includes(fieldMessages[field])?fieldMessages[field]:'';
+ const fieldProps=(field:string)=>({id:`consultation-${field}`,onBlur:()=>setTouched(prev=>prev[field]?prev:{...prev,[field]:true}),'aria-invalid':fieldError(field)?true as const:undefined,'aria-describedby':fieldError(field)?`consultation-${field}-error`:undefined});
+ const fieldNote=(field:string)=>fieldError(field)&&<small id={`consultation-${field}-error`} className={styles.fieldError}>{fieldError(field)}</small>;
+ const goToField=(field:string)=>{setTouched(prev=>({...prev,[field]:true}));const target=document.getElementById(`consultation-${field}`)||document.getElementById(`consultation-${field}-unknown`);target?.scrollIntoView({block:'center'});target?.focus({preventScroll:true});};
  useEffect(()=>{if(restoredDraft.current)return;setExtraTime('');setExtraPlace('');setCurrentLocation(null);setTimeUnknown(false);setError('');},[profileId]);
  useEffect(()=>{
   if(!jongKey)return;
@@ -312,7 +319,7 @@ export default function Consultation(){
    onChange={next=>{setQuestion(next.question);setQuestionFish(next.fish);setScopeDraft(next.decision);if(chatStep==='checkout')confirmIntake(next);else setDecision(undefined);}}
    onOpen={()=>{const category=questionCandidate(question)||intake.decision.category;confirmIntake({...intake,decision:{...intake.decision,category,situation:intake.decision.situation||question.slice(0,600)}});setChatStep('checkout');}}
    preparation={prep.map(item=>({...item,pending:item.pending||Boolean(restoredDraft.current)}))}
-   checkout={children=><CheckoutClient draft={{product,question,chapters:previewCount,ready:ready&&!guest&&!missing.length&&!plan.missing.length&&!plan.unsupported&&available.some(p=>p.id===productId)&&!prep.some(item=>!item.valid||item.pending),onLogin:loginWithDraft,onPrepare:()=>prepare(true),children:<>{children}
+   checkout={children=><CheckoutClient draft={{product,question,chapters:previewCount,hint:[...missing,...plan.missing][0],ready:ready&&!guest&&!missing.length&&!plan.missing.length&&!plan.unsupported&&available.some(p=>p.id===productId)&&!prep.some(item=>!item.valid||item.pending),onLogin:loginWithDraft,onPrepare:()=>prepare(true),children:<>{children}
     {(missing.length>0||plan.missing.length>0)&&<ul className={styles.inputHints}>{[...missing,...plan.missing].map(message=><li key={message}>{message}</li>)}</ul>}
     {plan.unsupported&&<p role="alert">{plan.unsupported}</p>}{catalogError&&<p role="alert">{catalogError}</p>}{error&&<p role="alert">{error}</p>}
    </>}}/>}/>;
@@ -349,11 +356,11 @@ export default function Consultation(){
     onTier={(fishId,cards)=>{const next=choices.find(item=>item.fishId===fishId);if(next){setProductId(next.id);setTierNotice(tarotSpreadCopy.tierRaised(fishName(fishId,siteLocale),cards));}}}/></>:tarotOnly?<section className={styles.questionIntro} lang={siteLocale}><h2>{inputCopy.tarotHeading}</h2><p>{inputCopy.tarotIntro}</p>{guest&&<p>{inputCopy.loginHint}</p>}</section>:<>
     <ProfilePicker state={profileState} locale={siteLocale}/>
     {!guest&&selectedProfile&&<div className={styles.birthDetails}>
-    <label><input type="checkbox" checked={timeUnknown} onChange={e=>setTimeUnknown(e.target.checked)}/> {inputCopy.timeUnknown}</label>
-    {selectedProfile?.birth?.timeUnknown&&<label>{inputCopy.timeSupplement}<input type="time" value={extraTime} onChange={e=>setExtraTime(e.target.value)}/></label>}
-    {selectedProfile&&!selectedProfile.location?.label&&<><CurrentLocationButton key={profileId} locale={siteLocale} translation={readingLocationCopy(siteLocale)} disabled={busy} onLocation={value=>{setCurrentLocation(value);setExtraPlace(value.name);}}/>{currentLocation&&<p role="status">{inputCopy.currentLocation} {currentLocation.timezone}</p>}<label>{inputCopy.placeSupplement}<input value={extraPlace} onChange={e=>{setExtraPlace(e.target.value);setCurrentLocation(null);}} placeholder={inputCopy.placePlaceholder} maxLength={120}/></label></>}
+    <label><input id="consultation-time-unknown" type="checkbox" checked={timeUnknown} onChange={e=>setTimeUnknown(e.target.checked)}/> {inputCopy.timeUnknown}</label>
+    {selectedProfile?.birth?.timeUnknown&&<label>{inputCopy.timeSupplement}<input type="time" {...fieldProps('time')} value={extraTime} onChange={e=>setExtraTime(e.target.value)}/>{fieldNote('time')}</label>}
+    {selectedProfile&&!selectedProfile.location?.label&&<><CurrentLocationButton key={profileId} locale={siteLocale} translation={readingLocationCopy(siteLocale)} disabled={busy} onLocation={value=>{setCurrentLocation(value);setExtraPlace(value.name);}}/>{currentLocation&&<p role="status">{inputCopy.currentLocation} {currentLocation.timezone}</p>}<label>{inputCopy.placeSupplement}<input {...fieldProps('place')} value={extraPlace} onChange={e=>{setExtraPlace(e.target.value);setCurrentLocation(null);}} placeholder={inputCopy.placePlaceholder} maxLength={120}/>{fieldNote('place')}</label></>}
     {(selectedProfile?.birth?.timeUnknown||!selectedProfile.location?.label)&&<p>{inputCopy.supplementSaved}</p>}
-    {kind.partner&&<label>{inputCopy.partner}<select value={partnerId} onChange={e=>setPartnerId(e.target.value)}><option value="">{inputCopy.partnerSelect}</option>{profiles.filter(p=>(p.profileId||p.id)!==profileId).map(p=><option key={p.profileId||p.id} value={p.profileId||p.id}>{p.name}</option>)}</select></label>}
+    {kind.partner&&<label>{inputCopy.partner}<select {...fieldProps('partner')} value={partnerId} onChange={e=>setPartnerId(e.target.value)}><option value="">{inputCopy.partnerSelect}</option>{profiles.filter(p=>(p.profileId||p.id)!==profileId).map(p=><option key={p.profileId||p.id} value={p.profileId||p.id}>{p.name}</option>)}</select>{fieldNote('partner')}</label>}
     </div>}
     {jongCheck&&<section className={styles.jongCheck} aria-label={jongCopy.heading} lang={siteLocale}><h2>{jongCopy.heading}</h2><p>{jongCheck.kind==='strength'?jongCopy.strengthIntro:jongCopy.intro}</p>
     {(['best','worst'] as const).map(side=><fieldset key={side} disabled={busy}><legend>{jongCopy[side]}</legend><p className={styles.jongYears}>{jongCheck[side].map((y,i)=><span key={y.year}>{i>0&&' · '}<span className={styles.jongYear}>{jongCopy.year(y.year,y.ganji)}</span></span>)}</p>
@@ -363,7 +370,7 @@ export default function Consultation(){
    </>}
    {!questionActive&&!tarotSpread&&(kind.question||kind.partner&&relationshipQuestionId)&&<section className={styles.questionSection} aria-label={askCopy.heading} lang={siteLocale}><figure className={styles.questionPose} aria-hidden="true"><img src={`/assets/yeongnyangi/moods/${tarotOnly?'sparkle':'ponder'}.webp`} alt="" width={360} height={300} decoding="async"/></figure><h2>{tarotOnly?inputCopy.tarotHeading:askCopy.heading}</h2><p>{askCopy.intro}</p>
    {kind.id==='ask'&&<><label htmlFor="consultation-topic">{askCopy.topic}</label><select id="consultation-topic" value={topicId} onChange={e=>{setTopicId(e.target.value);trackEvent('concern_selected',{service:'yeongnyangi',domain,topic_id:e.target.value});}}><option value="general">{askCopy.general}</option>{Object.keys(topicCatalog).map(id=><option value={id} key={id}>{askCopy.topics[id as keyof typeof topicCatalog]}</option>)}</select></>}
-   <label htmlFor="consultation-question">{askCopy.question}</label><textarea id="consultation-question" rows={4} maxLength={1000} value={question} onChange={e=>setQuestion(e.target.value)} placeholder={siteLocale==='ko'?tarotSpec?.prompt||askCopy.placeholder:askCopy.placeholder}/>
+   <label htmlFor="consultation-question">{askCopy.question}</label><textarea {...fieldProps('question')} rows={4} maxLength={1000} value={question} onChange={e=>setQuestion(e.target.value)} placeholder={siteLocale==='ko'?tarotSpec?.prompt||askCopy.placeholder:askCopy.placeholder}/>{fieldNote('question')}
    {kind.id==='ask'&&siteLocale==='ko'&&<AskPeriodPicker question={question} onQuestion={setQuestion} disabled={busy}/>}
    </section>}
   {!questionActive&&<><h2 className={styles.selectionHeading} lang={siteLocale}>{ui.depth}</h2>
@@ -383,7 +390,7 @@ export default function Consultation(){
    <div className={styles.checkoutSection}><div className={styles.checkoutTotal}><span>{tierLabel(product)} · {ui.payment}</span><strong><LaunchPlannedPrice className={styles.totalPlanned} amount={plannedTotal}/>{plannedTotal!==null&&<span className={styles.srOnly}>, 체험가 </span>}{price(product.priceKRW)}</strong></div>
    <p>{ui.afterPayment}</p><p>{askCopy.language}: <b lang={locale}>{readingLanguageNames[locale]}</b> · {ui.languageHint}</p><p>{ui.priceHint}</p>
    <p>{ui.about} {ui.limits}</p>
-   {missing.length>0&&<ul className={styles.inputHints}>{missing.map(message=><li key={message}>{message}</li>)}</ul>}
+   {missing.length>0&&<ul className={styles.inputHints}>{missing.map(message=>{const field=Object.keys(fieldMessages).find(key=>fieldMessages[key]===message);return <li key={message}>{field?<button type="button" onClick={()=>goToField(field)}>{message}</button>:message}</li>;})}</ul>}
    <button className={styles.checkoutButton} disabled={busy||(!guest&&(!ready||missing.length>0||!available.some(p=>p.id===productId)))} onClick={()=>void prepare()}>{busy?inputCopy.busy:guest?inputCopy.loginContinue:inputCopy.checkout}<ArrowRight size={18} aria-hidden="true"/></button>
    {!ready&&<p role="status">{inputCopy.catalogLoading}</p>}
    {catalogError&&<p role="alert">{siteLocale==='ko'?catalogError:inputCopy.unavailable}</p>}

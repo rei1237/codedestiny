@@ -71,7 +71,7 @@
   .summary {position:static;padding:22px 18px;order:0;border-radius:16px}
   .details {order:1}
   .action {position:fixed;bottom:0;left:0;right:0;z-index:30;background:#101e36;border-top:1px solid #38516c;padding:12px max(18px,env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left));display:grid;grid-template-columns:minmax(0,1fr) minmax(170px,1.3fr);gap:6px 12px;box-shadow:0 -8px 28px #030a172b}
-  .action>p {grid-column:1/-1;margin:0;font-size:.75rem}
+  .action>p {grid-column:1/-1;margin:0;font-size:.875rem}
   .total {display:block;margin:0;align-self:center}
   .total span {display:block;font-size:.75rem}
   .total strong {font-size:1.25rem}

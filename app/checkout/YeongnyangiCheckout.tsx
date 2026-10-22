@@ -13,7 +13,7 @@ import {resolveCheckoutPolicyHrefs} from './checkout-copy';
 import type {Product} from '@/worker/yeongnyangi/payments/catalog';
 import styles from './yeongnyangi-checkout.module.css';
 
-export type ConsultationCheckoutDraft={product:Product;question:string;chapters:number;children:ReactNode;ready:boolean;onLogin?:()=>void;onPrepare:()=>Promise<FortuneRecord|undefined>};
+export type ConsultationCheckoutDraft={product:Product;question:string;chapters:number;children:ReactNode;ready:boolean;hint?:string;onLogin?:()=>void;onPrepare:()=>Promise<FortuneRecord|undefined>};
 type Method='family'|'stones'|'direct'|`pack:${string}`;
 const won=(value:number)=>value.toLocaleString('ko-KR')+'원';
 async function readCheckoutPacks(){
@@ -131,10 +131,10 @@ export default function YeongnyangiCheckout({draft}:{draft:ConsultationCheckoutD
      <label className={styles.choice}><input type="radio" name="yn-method" checked={method==='direct'} onChange={()=>choose('direct')}/><span><strong>단건 결제</strong><small>이번 상담 한 번 · {native?'Google Play에서 금액 확인':won(pricing?.amountKRW||draft.product.priceKRW)}</small></span></label>
      {method==='direct'&&!native&&pricing&&!pricing.monthlyExcluded&&pricing.monthlyCreditMultiplier===1&&<details><summary>월정석으로 일부 할인받기</summary><MoonstoneDiscountBalance signedIn={signedIn} userId={owner} maxDiscountStones={Math.floor((pricing.amountKRW-1000)/(pricing.amountKRW/pricing.membershipCreditCost))} selected={quantity} onUse={setDiscount}/><label>사용할 월정석<input type="number" min={0} step={1} max={Math.floor((pricing.amountKRW-1000)/(pricing.amountKRW/pricing.membershipCreditCost))} value={discount} onChange={event=>setDiscount(event.target.value)}/></label><p>단건 결제 잔액은 1,000원 이상이어야 해요.</p></details>}
     </fieldset>
-    <div className={styles.action}><p>{checking?'보유 이용권을 확인하고 있어요.':signedIn&&!draft.ready?'상담 정보를 먼저 확인해 주세요.':deduction}</p><div className={styles.total}><span>추가 결제 금액</span><strong>{checking?'확인 중':method==='direct'?(native?'Google Play':validDiscount?won(amount):'수량 확인 필요'):won(0)}</strong></div><button type="button" className={styles.pay} disabled={busy||checking||signedIn&&(!draft.ready||!selectedValid)} onClick={()=>void pay()}>{busy?'상담 준비 중':checking?'이용권 확인 중':!signedIn?'로그인하고 이어가기':method==='direct'?'결제하고 상담 시작하기':'상담 시작하기'}</button></div>
+    <div className={styles.action}><p>{checking?'보유 이용권을 확인하고 있어요.':signedIn&&!draft.ready?draft.hint||'상담 정보를 먼저 확인해 주세요.':deduction}</p><div className={styles.total}><span>추가 결제 금액</span><strong>{checking?'확인 중':method==='direct'?(native?'Google Play':validDiscount?won(amount):'수량 확인 필요'):won(0)}</strong></div><button type="button" className={styles.pay} disabled={busy||checking||signedIn&&(!draft.ready||!selectedValid)} onClick={()=>void pay()}>{busy?'상담 준비 중':checking?'이용권 확인 중':!signedIn?'로그인하고 이어가기':method==='direct'?'결제하고 상담 시작하기':'상담 시작하기'}</button></div>
     <p ref={feedback} tabIndex={-1} className={styles.feedback} role="status">{message}</p>
     {message&&!busy&&signedIn&&<button type="button" onClick={()=>setRevision(value=>value+1)}>보유 혜택 다시 확인하기</button>}
-    <p className={styles.legal}>결제 전 필요한 정보를 모두 확인해요. 저장된 결과는 내 상담 기록에서 다시 볼 수 있어요.</p>
+    <p className={styles.legal}>결제 전 필요한 정보를 모두 확인해요. 저장된 결과는 영냥이 보관함에서 다시 볼 수 있어요.</p>
     <p className={styles.legal}><a href={policyHrefs.terms}>이용약관</a> · <a href={policyHrefs.refund}>환불 안내</a> · <a href={policyHrefs.support}>문의하기</a></p>
    </aside>
   </div>

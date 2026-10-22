@@ -40,7 +40,7 @@ export default function ConcernGuide({id,copy,tiers,recommended,startHref}:{id:C
   </section>
   <p>{copy.limit}</p>
   <h2>결제 후에는</h2>
-  <p>결과는 웹에서 읽고 내 상담 기록에서 다시 열어요. 생성 시간은 분량과 대기 상태에 따라 달라져요. 지연되거나 실패하면 같은 주문의 진행 상황을 먼저 확인해 주세요. 다시 결제하지 않아도 돼요.</p>
+  <p>결과는 웹에서 읽고 영냥이 보관함에서 다시 열어요. 생성 시간은 분량과 대기 상태에 따라 달라져요. 지연되거나 실패하면 같은 주문의 진행 상황을 먼저 확인해 주세요. 다시 결제하지 않아도 돼요.</p>
   <p>해결되지 않으면 <a href="/contact/">문의하기</a>로 알려 주세요. 환불은 <a href="/refund-policy/">환불 정책</a>을 따라요.</p>
   <a href="/yeongnyangi/library/">이미 구매한 상담 확인하기 →</a>
   <div className={styles.offer}><p><strong>{from}원부터</strong> · 로그인 후 결제창에서 적용 수단과 총액을 확인해요.</p><a className={styles.cta} href={startHref} onClick={start}>질문으로 시작하기</a></div>

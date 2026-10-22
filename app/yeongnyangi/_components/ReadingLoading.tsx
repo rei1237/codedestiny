@@ -11,6 +11,8 @@ export default function ReadingLoading({stage='fetching',saved=0,total=0,product
  const copy=readingCopy(locale),stateCopy=resultStateCopy(locale);
  const ko=!locale||locale==='ko';
  const title=stage==='fetching'?copy.loading:stage==='verifying'?copy.reviewing:ko?'영냥이가 네 질문의 흐름을 읽고 있어.':copy.generating;
+ // 한국어 생성 제목은 영냥이 말투라 서버 이어쓰기 안내가 빠진다. 기다리는 동안 나가도 된다는 사실을 따로 알린다.
+ const leaveHint=stage==='generating'&&title!==copy.generating?copy.generating:'';
  const domain=product?.readingKind==='single'?product.domain:'fusion';
  return <div className={[styles.loading,compact?styles.compact:'',paused?styles.paused:''].join(' ')} data-reading-stage={stage} data-reading-domain={domain}>
   <div className={styles.scene} aria-hidden="true">
@@ -19,6 +21,7 @@ export default function ReadingLoading({stage='fetching',saved=0,total=0,product
   </div>
   <div className={styles.copy}>
    <div role="status" aria-live="polite" aria-atomic="true"><p className={styles.title}>{title}</p>{total>0&&<p className={styles.detail}>{stateCopy.saved(saved,total)}</p>}</div>
+   {leaveHint&&<p className={styles.detail}>{leaveHint}</p>}
    <button type="button" className={styles.pause} aria-pressed={paused} onClick={()=>setPaused(value=>!value)}>{ko?(paused?'효과 다시 재생':'효과 멈추기'):(paused?'Resume animation':'Pause animation')}</button>
   </div>
  </div>;

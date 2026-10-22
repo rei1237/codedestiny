@@ -93,6 +93,17 @@ export default function Result(){
  const requestId=useRef('');
  const payChecks=useRef(0),[payWatching,setPayWatching]=useState(true);
  useEffect(()=>{if(row){trackFortuneDelivery(row);trackFortuneView(row,new URLSearchParams(window.location.search).get('source')||'direct');}},[row]);
+ // 다른 탭에 있는 동안 생성이 끝나면 탭 제목으로 알리고, 돌아오면 원래 제목으로 되돌린다.
+ const lastState=useRef('');
+ useEffect(()=>{
+  const previous=lastState.current;lastState.current=row?.state||'';
+  if(!row||row.state!=='COMPLETED'||!previous||previous==='COMPLETED'||!document.hidden)return;
+  const original=document.title;
+  document.title=`✓ ${resultStateCopy(row.locale).result} · ${original}`;
+  const restore=()=>{if(!document.hidden){document.title=original;document.removeEventListener('visibilitychange',restore);}};
+  document.addEventListener('visibilitychange',restore);
+  return ()=>{document.removeEventListener('visibilitychange',restore);document.title=original;};
+ },[row]);
  async function generate(id:string){
   if(lock.current)return;lock.current=true;setBusy(true);setError('');
   try{

@@ -301,6 +301,11 @@
 .page .libraryLink { display:inline-flex; align-items:center; min-height:44px; margin-top:4px; color:var(--yn-muted); font-size:var(--yn-t-body); text-decoration:underline; text-underline-offset:4px; }
 .page .libraryLink:hover { color:var(--yn-ivory); }
 .inputHints { padding-left:20px; font-size:.85rem; color:var(--yn-muted); line-height:1.8; }
+/* 요약 목록 항목 = 해당 칸으로 이동하는 텍스트 링크. 칸 옆 오류는 손댄 뒤에만 보인다. */
+.page .inputHints button { min-height:44px; padding:0; border:0; background:none; color:inherit; font-weight:500; text-align:left; text-decoration:underline; text-underline-offset:4px; }
+.page .inputHints button:not([aria-pressed]):not(.retryButton):hover:not(:disabled) { background:none; color:var(--yn-ivory); transform:none; }
+.page input[aria-invalid="true"],.page select[aria-invalid="true"],.page textarea[aria-invalid="true"] { border-color:#e7a3ad; }
+.fieldError { display:block; margin:6px 0 0; color:#ffd2c9; font-size:.875rem; font-weight:500; line-height:1.5; }
 .jongCheck { border-top:1px solid var(--yn-line); padding:22px 0 8px; }
 .jongCheck h2 { font-size:1.18rem; color:var(--yn-ivory); margin:0 0 10px; }
 .jongCheck fieldset { border:0; padding:0; margin:18px 0 0; min-width:0; }
@@ -565,6 +570,7 @@
 .spiritIntro h1 { word-break:keep-all; font-size:clamp(1.6rem,4vw,2.35rem); line-height:1.45; text-wrap:balance; margin:0 0 16px; }
 .libraryIntro { word-break:keep-all; }
 .libraryIntro button { margin-top:16px; }
+.libraryIntro .primaryAction { margin-top:8px; }
 /* signup.webp 는 아래가 일직선으로 잘린 장면이라 바닥만 배경으로 흐린다. */
 .libraryFade { -webkit-mask-image:linear-gradient(to bottom,#000 86%,transparent); mask-image:linear-gradient(to bottom,#000 86%,transparent); }
 .spirit p { max-width:70ch; overflow-wrap:anywhere; }

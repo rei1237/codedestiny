@@ -30,7 +30,7 @@ export default function FishCatalog({fusionOnly=false,layout='grid'}:{fusionOnly
     <p>{p.readingKind==='single'?questionScopes[p.fishId as QuestionFish]:fusionDescription(p)||depthDescriptions[p.fishId]}</p><b>{p.available?'이 상담 선택하기 →':'지금은 상담을 잠시 쉬고 있어'}</b>
    </a>)}</div>
    {items.some(p=>!p.available)&&<p role="status">지금은 상담 연결을 확인하고 있어. 결제는 진행되지 않아. <button type="button" className="catalog-retry" onClick={()=>setAttempt(n=>n+1)}>상담 가능 여부 다시 확인하기</button></p>}
-   {fusionOnly&&<p className="catalog-delivery">프로필과 질문 확인 → Family 또는 단건 결제 → 내 상담 기록에서 이어 읽기. 이용 확인 후에는 완성된 챕터부터 펼쳐줄게.</p>}
+   {fusionOnly&&<p className="catalog-delivery">프로필과 질문 확인 → Family 또는 단건 결제 → 영냥이 보관함에서 이어 읽기. 이용 확인 후에는 완성된 챕터부터 펼쳐줄게.</p>}
   </>}
  </section>;
 }
