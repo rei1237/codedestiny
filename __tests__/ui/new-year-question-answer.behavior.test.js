@@ -62,6 +62,7 @@ async function submit({ failAccessOnce = false, generationError = false, denied 
     buildConsultationPayload: () => ({ question: '이직해도 될까요?' }),
     buildBillingGateInput: () => ({}), primePaymentEligibility: async () => {},
     setError: () => {}, setNotice: () => {}, setStatus: () => {},
+    friendlyErrorMessage: (caught, fallback) => fallback,
     beginPaidFeatureGateCheck: () => {}, completePaidFeatureGateCheck: () => {},
     failPaidFeatureGateCheck: event => calls.failed.push(event),
     FEATURE_KEY: 'new-year-ai-consultation', SERVER_ERROR_MESSAGE: 'server',
