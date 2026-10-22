@@ -88,11 +88,13 @@ function selectedFacts(context:DomainContext,chapter:ChapterSpec) {
    value={...data,periods:data.periods.filter(p=>typeof p.startDate==='string'&&p.startDate>asOf).slice(0,2)};
   }
   if(!chapter.questionPolicy&&f.label==='majorLuck'&&context.domain==='saju'&&value&&typeof value==='object'){
-   const data=value as {currentCycle?:{index:number};cycles?:{index:number}[];direction?:string};
+   const data=value as {currentCycle?:{index:number};cycles?:{index:number}[];direction?:string;ageRule?:string;daeunNumber?:number;transition?:unknown};
+   // Dated charts (saju/major-luck.ts) keep the naming rule, 대운수 and this year's 교운 with every projection.
+   const head={direction:data.direction,...(data.ageRule?{ageRule:data.ageRule,daeunNumber:data.daeunNumber,...(data.transition?{transition:data.transition}:{})}:{})};
    const next=chapter.key==='next'||chapter.version===READING_V6_VERSION&&chapter.key==='preparation';
    // 4: 10년 주기 장은 지금의 10년과 다음 10년을 함께 읽는다.
    const compare=chapter.version===READING_V6_VERSION&&['alternatives','limits'].includes(chapter.key||'')||chapter.key==='life-decade';
-   value=chapter.counsel?.cycleIndexes?{direction:data.direction,cycles:data.cycles?.filter(c=>chapter.counsel!.cycleIndexes!.includes(c.index))}:next||compare?{direction:data.direction,...(compare?{currentCycle:data.currentCycle}:{}),cycles:data.currentCycle?data.cycles?.filter(c=>c.index>data.currentCycle!.index).slice(0,1):[],limitation:data.currentCycle?undefined:'현재 주기를 확인할 수 없어 다음 전환을 특정하지 않는다.'}:{direction:data.direction,currentCycle:data.currentCycle};
+   value=chapter.counsel?.cycleIndexes?{...head,cycles:data.cycles?.filter(c=>chapter.counsel!.cycleIndexes!.includes(c.index))}:next||compare?{...head,...(compare?{currentCycle:data.currentCycle}:{}),cycles:data.currentCycle?data.cycles?.filter(c=>c.index>data.currentCycle!.index).slice(0,1):[],limitation:data.currentCycle?undefined:'현재 주기를 확인할 수 없어 다음 전환을 특정하지 않는다.'}:{...head,currentCycle:data.currentCycle};
   }
   if(!chapter.questionPolicy&&context.domain==='saju'&&['yearlyLuck','monthlyLuck','luckOverlap'].includes(f.label)){
    const yearly=context.facts.find(x=>x.label==='yearlyLuck')?.value,first=Array.isArray(yearly)?yearly[0]?.year:undefined;

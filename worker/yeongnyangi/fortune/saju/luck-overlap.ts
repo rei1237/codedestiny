@@ -8,7 +8,10 @@ type Row=Record<string,any>;
 type Hit={type:string;label:string;pillars:string[];pillarLabels?:string[];values?:string[];branches?:string[]};
 export const LUCK_OVERLAP_RULE='대운과 세운·월운이 만나는 관계만 계산했다. 세 지지가 모여야 하는 형·삼합·방합은 대운·세운(월운)·원국 지지를 합쳐 셋이 모두 있을 때만 성립한다. 관계가 비어 있으면 계산된 겹침 관계가 없다는 뜻이다. 운과 원국의 관계는 각 행의 natalInteractions에 따로 있다.';
 
-function cycleFor(cycles:Row[],year:number){return cycles.find(c=>Number(c.startYear)<=year&&year<=Number(c.endYear)&&c.pillar);}
+function cycleFor(cycles:Row[],year:number,date?:string){
+ // A month that starts after this year's 교운일 belongs to the new 대운 (saju/major-luck.ts dates); older rows have years only.
+ return date&&cycles.some(c=>c.startDate)?cycles.find(c=>(c.startDate||'')<=date&&date<=c.endDate&&c.pillar):cycles.find(c=>Number(c.startYear)<=year&&year<=Number(c.endYear)&&c.pillar);
+}
 function relations(pillar:string,luckLabel:string,cycle:Row,pillarDetails:Row){
  const details={...pillarDetails,major:{label:'대운',pillar:cycle.pillar,heavenlyStem:cycle.heavenlyStem,earthlyBranch:cycle.earthlyBranch}};
  const all=buildLuckNatalInteractions(pillar,details,{includeGroups:true}) as Record<string,Hit[]>;
@@ -27,7 +30,8 @@ export function buildLuckOverlap(facts:{label:string;value:unknown}[]){
   return cycle?[{year:r.year,pillar:r.pillar,majorLuckPillar:cycle.pillar,relations:relations(r.pillar,'세운',cycle,pillarDetails)}]:[];
  });
  const months=(Array.isArray(value('monthlyLuck'))?value('monthlyLuck') as Row[]:[]).flatMap(r=>{
-  const year=Number(r.start?.year),cycle=Number.isInteger(year)&&r.pillar?cycleFor(cycles,year):undefined;
+  const year=Number(r.start?.year),date=Number.isInteger(year)?`${year}-${String(r.start.month).padStart(2,'0')}-${String(r.start.day).padStart(2,'0')}`:undefined;
+  const cycle=Number.isInteger(year)&&r.pillar?cycleFor(cycles,year,date):undefined;
   return cycle?[{year,month:r.start.month,pillar:r.pillar,majorLuckPillar:cycle.pillar,relations:relations(r.pillar,'월운',cycle,pillarDetails)}]:[];
  });
  return years.length||months.length?{rule:LUCK_OVERLAP_RULE,years,months}:undefined;
