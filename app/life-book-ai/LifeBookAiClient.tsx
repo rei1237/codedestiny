@@ -1568,7 +1568,7 @@ export default function LifeBookAiClient() {
       return await runGeneration(payload, requestId, access);
     } catch (err) {
       if (!isCurrent()) return false;
-      const message = friendlyErrorMessage(err instanceof Error ? err.message : SERVER_ERROR_MESSAGE, SERVER_ERROR_MESSAGE);
+      const message = friendlyErrorMessage(err, SERVER_ERROR_MESSAGE);
       setRefunded((err as { refunded?: boolean })?.refunded === true);
       setError(message);
       setStatus("error");
@@ -1696,12 +1696,10 @@ export default function LifeBookAiClient() {
     } catch (err) {
       if (!isCurrent()) return false;
       // 🔴 개발자 문구가 화면에 뜨지 않게 마지막 안전망을 통과시킨다(한글 없는 메시지는 콘솔로만 간다).
-      const raw = err instanceof TypeError
+      // Error 객체를 그대로 넘긴다. 문자열을 넘기면 늘 폴백이 돼 결제 취소·네트워크 안내까지 "서버 오류"로 바뀌었다.
+      const message = err instanceof TypeError
         ? NETWORK_ERROR_MESSAGE
-        : err instanceof Error
-          ? err.message
-          : SERVER_ERROR_MESSAGE;
-      const message = friendlyErrorMessage(raw, SERVER_ERROR_MESSAGE);
+        : friendlyErrorMessage(err, SERVER_ERROR_MESSAGE);
       const paymentCancelled = message === PAYMENT_CANCELLED_MESSAGE;
       setRefunded((err as { refunded?: boolean })?.refunded === true);
       setError(message);
@@ -1739,7 +1737,7 @@ export default function LifeBookAiClient() {
       await runGeneration(stashed.payload, stashed.requestId, stashed.access);
     } catch (err) {
       if (!isCurrent()) return false;
-      const message = friendlyErrorMessage(err instanceof Error ? err.message : SERVER_ERROR_MESSAGE, SERVER_ERROR_MESSAGE);
+      const message = friendlyErrorMessage(err, SERVER_ERROR_MESSAGE);
       setError(message);
       setStatus("error");
     } finally {
