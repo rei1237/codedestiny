@@ -1365,7 +1365,9 @@ html.neo-mode #cdHomeFunnel .cdh-scene-art #honeypigLogo{box-shadow:none!importa
 #cdHoneySheet :is(summary,a,button):focus-visible{outline:3px solid var(--cd-accent);outline-offset:4px}
 @media(max-width:480px){.cd-honey-use{align-items:stretch;flex-direction:column;gap:8px}.cd-honey-use a{align-self:flex-start}.cd-honey-guide__steps{margin-bottom:24px}}
 @media(max-width:760px){.cdh-honey{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;padding:16px;margin-inline:16px}.cdh-honey__story{min-width:0;gap:10px}.cdh-honey__yeoni{width:42px;height:48px}.cdh-honey__actions{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}.cdh-honey__wallet{grid-column:1/-1}.cdh-honey__balance{display:flex;align-items:baseline;gap:10px;margin:0}.cdh-honey__wallet>img{width:22px;height:26px}.cdh-honey__balance strong{font-size:18px}.cdh-honey__actions .cdh-primary{width:100%;min-width:0}.cdh-honey__uses{padding-inline:14px}}
-.cdh-flow>.cdh-honey{margin-block:0}
+/* .cdh-flow가 좌우 패딩과 grid gap으로 여백을 정한다. 흐름 밖에서 쓰던 자식 마진이 그 위에 더해져
+   390px에서 왼쪽 시작점이 16·32·40px, 블록 사이가 28·44·56px로 갈렸다. 흐름 안에서는 자식 마진을 지운다. */
+#cdHomeFunnel .cdh-flow>:is(.cdh-free,.cdh-honey,.cdh-consult,.cdh-all-cta,.cdh-links,.cdh-story),#cdHomeFunnel .cdh-flow>.cdh-slot>.cdh-fusion-sig{margin:0}
 
 /* Bounded, non-interactive collection layer; motion is started only after a credit. */
 .cdh-honey__collection{position:absolute;inset:0;z-index:2;overflow:hidden;border-radius:inherit;pointer-events:none}
