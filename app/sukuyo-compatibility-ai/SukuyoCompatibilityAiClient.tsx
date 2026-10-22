@@ -1,6 +1,7 @@
 "use client";
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
+import { sukuyoCompatAdviceTopics } from "@/js/recommendations-context.mjs";
 import ReviewRewardBanner from "@/app/components/ReviewRewardBanner";
 
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
@@ -1182,7 +1183,7 @@ function CompatResultModal({ result, onClose, onDownloadError, basis = null, com
             />
           </div>
         </section>
-        {completed && <RecommendationResult service="sukuyo-compatibility-ai"/>}
+        {completed && <RecommendationResult service="sukuyo-compatibility-ai" practiceTags={sukuyoCompatAdviceTopics(result.sections)}/>}
       </div>
 
       {/* PDF 저장용 전체 렌더 — 화면 밖에 배치해 html2canvas 캡처에만 사용 */}

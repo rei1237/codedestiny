@@ -19,6 +19,7 @@
 //    AdSense 렌더 텍스트 게이트 대상이 되면서 "남의 결과"를 내 결과처럼 보이게 한다.
 
 import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
+import { humanDesignChartAdviceTopics } from "@/js/recommendations-context.mjs";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -716,7 +717,7 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
         )}
       </div>
 
-      {chart && !loading && !error && <RecommendationResult service="human-design-chart" locale={locale}/>}
+      {chart && !loading && !error && <RecommendationResult service="human-design-chart" locale={locale} practiceTags={humanDesignChartAdviceTopics(guide)}/>}
       {chart && selection && (
         <DetailSheet chart={chart} locale={locale} selection={selection} onClose={() => setSelection(null)} />
       )}

@@ -74,6 +74,16 @@ export function neoAdviceTopics(briefing, refined) {
 export function fusionAdviceTopics(result) {
   return adviceTopics([...(Array.isArray(result?.finalVerdict?.doNow) ? result.finalVerdict.doNow : []), ...(Array.isArray(result?.timingAndAction?.luckyActions) ? result.timingAndAction.luckyActions : [])]);
 }
+// 숙요 궁합 본문은 장마다 1,000자를 넘는다. "오늘부터 해볼 행동" 번호 목록(소통 장)과 예방·대안 목록(금기 장) 줄만 읽는다.
+export function sukuyoCompatAdviceTopics(sections) {
+  const items = key => (typeof sections?.[key]?.body === 'string' ? sections[key].body.split('\n') : []).filter(line => /^\s*(?:\d+\.|-)\s/.test(line));
+  return adviceTopics([...items('communication').slice(-8), ...items('caution').slice(0, 8)]);
+}
+// 무료 차트 화면은 내 권위의 실천 문장과 정의된 센터의 실천 문장만 읽는다. 모든 센터를 읽으면 누구에게나 같은 태그가 붙는다.
+export function humanDesignChartAdviceTopics(guide) {
+  const centers = Array.isArray(guide?.centers) ? guide.centers.filter(c => c?.state === 'defined').slice(0, 9).map(c => c.action) : [];
+  return adviceTopics([guide?.authority?.action, ...centers]);
+}
 export function humanDesignAdviceTopics(chapters) {
   if (!Array.isArray(chapters)) return [];
   return adviceTopics(chapters.filter(c => c?.key === 'practicalGuide').flatMap(c => (Array.isArray(c.blocks) ? c.blocks : []).filter(b => b?.kind === 'steps').flatMap(b => (Array.isArray(b.items) ? b.items : []).map(i => i?.text))));

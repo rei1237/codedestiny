@@ -99,6 +99,17 @@ test('fusion and human design inspect only explicit action fields', async()=>{
  assert.deepEqual(fusionAdviceTopics({finalVerdict:{doNow:'invalid'}}),[]);
 });
 
+test('sukuyo compatibility and the free human design chart read only their action lists', async()=>{
+ const {sukuyoCompatAdviceTopics,humanDesignChartAdviceTopics}=await import('../../js/recommendations-context.mjs');
+ const filler='두 사람의 대화 흐름을 길게 풀어 쓴 문단이에요. '.repeat(60);
+ assert.deepEqual(sukuyoCompatAdviceTopics({communication:{body:filler+'\n집중 시간을 확보하세요.\n1. 저녁마다 그날의 감정을 짧게 기록해 보세요.'},overview:{body:'1. 예산을 세워 보세요.'}}),['journaling']);
+ assert.deepEqual(sukuyoCompatAdviceTopics({caution:{body:'- 거절할 때 나의 기준을 먼저 말하세요.'}}),['boundaries']);
+ assert.deepEqual(sukuyoCompatAdviceTopics(null),[]);
+ const guide={authority:{action:'날짜별 느낌을 일기에 기록해 보세요.'},centers:[{state:'defined',action:'집중 시간을 확보하세요.'},{state:'open',action:'예산을 세워 보세요.'}]};
+ assert.deepEqual(humanDesignChartAdviceTopics(guide).sort(),['focus','journaling']);
+ assert.deepEqual(humanDesignChartAdviceTopics(null),[]);
+});
+
 test('result pair adds action coverage or a practical companion without changing browse order',()=>{
  const book=product('focus-book','focus');
  const duplicate=product('focus-book-two','focus',{order:101});
