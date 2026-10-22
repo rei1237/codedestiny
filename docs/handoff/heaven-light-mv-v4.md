@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-10-22
-next: "사용자의 운영 배포 승인을 받은 뒤 Release Cloudflare Pages and Worker 워크플로를 mode=production 으로 실행하고 verify-deployed-sha·verify:staging 으로 확인"
+updated: 2026-10-23
+next: "챕터 썸네일 개명 커밋을 Release Cloudflare Pages and Worker 워크플로(mode=production)로 운영에 배포하고(승인 받음) verify-deployed-sha 로 확인한 뒤 status 를 done 으로 바꾼다"
 ---
 
 # HEAVEN LIGHT MV v4 — 원곡 전체 4:44, 빛이 퍼지는 재연출
@@ -14,14 +14,15 @@ next: "사용자의 운영 배포 승인을 받은 뒤 Release Cloudflare Pages 
 
 ## 지금 상태
 
-- 렌더, qc, 확인 B, 사이트 반영, R2 업로드까지 끝났다. 남은 것은 운영 배포 승인이다.
+- 렌더, qc, 확인 B, 사이트 반영, R2 업로드, 운영 배포(b2df07631, verify-deployed-sha PASS)까지 끝났다. 남은 것은 챕터 썸네일 개명 커밋의 운영 배포다.
 - 최종본: `D:\헤븐라이트_MV_2026-10-19\06_OUTPUT_v4\final\` (283.84초, 8515프레임). qc 전 게이트 통과.
 - R2 새 키 `heaven-light-1080p-305a70272e79.mp4`, `heaven-light-720p-472420706368.mp4`는 둘 다 r2_verify ALL PASS (283.83초).
 - 이미지 생성은 누계 215장(상한 239)이다.
 - 챕터 시각은 컷 첫 프레임에 맞췄다: 74.71 · 96.21 · 110.81 · 197.37 · 226.91. MP4 메타데이터(config.py)는 기획값 그대로다.
 - 포스터는 v3 키 아트(POSTER.png)를 유지했다. SS03 끝 프레임은 3장 썸네일과 겹치고 손만 보이는 장면이라 카드 문구와 덜 맞는다.
 - **정본 기획:** `D:\헤븐라이트_MV_2026-10-19\00_HANDOFF_v4_KO.md`. 이야기, 빛 사다리, 106큐 샷 맵, 컷 감사, 프롬프트, 구현, 출시가 다 들어 있다. 이 문서는 요약이다.
-- 운영에는 아직 v3(200초)가 나가 있고, 1:04에 귀 3개 PR04가 있다. v4 운영 배포로 사라진다.
+- b2df07631로 운영의 영상·VTT·챕터·문구는 v4가 됐다. 귀 3개 PR04가 든 v3 영상은 더 이상 참조되지 않는다.
+- 챕터 썸네일은 같은 이름(`heaven-light-ch{n}-320.webp`)으로 바꿔서 엣지 캐시가 v3 그림을 계속 냈다. 그래서 `heaven-light-v4-ch{n}-320.webp`로 이름을 바꿨다.
 
 ## 남은 작업
 
@@ -37,8 +38,8 @@ next: "사용자의 운영 배포 승인을 받은 뒤 Release Cloudflare Pages 
 - [x] 최종 렌더와 `qc.py`
 - [x] 확인 B
 - [x] 사이트: 새 R2 키, VTT 106큐, 챕터 6개, "4분 44초" ×3, 테스트 갱신
-- [ ] 출시. R2 업로드·검증, main 커밋·push, 스테이징까지 했다. 운영 배포는 매번 따로 승인을 받는다
-- 후속: 운영 배포 뒤 v3 R2 객체 2개(`heaven-light-1080p-06cecf07eb68.mp4`, `heaven-light-720p-f2c4008f5c2d.mp4`)도 v1 2개와 함께 고아가 된다. 지우려면 요청을 받아야 한다.
+- [ ] 출시. R2 업로드·검증, main 커밋·push, 스테이징, 운영 배포(b2df07631)까지 했다. 썸네일 개명 커밋의 운영 배포가 남았다(승인 받음). 운영 배포는 매번 따로 승인을 받는다
+- 후속: v3 R2 객체 2개(`heaven-light-1080p-06cecf07eb68.mp4`, `heaven-light-720p-f2c4008f5c2d.mp4`)는 v1 2개와 함께 고아가 됐다. 지우려면 요청을 받아야 한다.
 - **완료 판정:**
   - check_shotlist `--final` 오류 0
   - qc 통과
@@ -69,6 +70,10 @@ next: "사용자의 운영 배포 승인을 받은 뒤 Release Cloudflare Pages 
 **인물**
 - 연B 한복은 코러스2에만 나온다.
 - 두 번째 봄 현실의 인간 네오는 반사나 그림자로만 보여 준다.
+
+**사이트 자산**
+- `/assets/*`는 `max-age=604800`이라 같은 이름으로 바꾸면 엣지가 최대 7일 동안 옛 파일을 낸다.
+- 컷이 바뀌면 파일 이름도 바꾼다. 캐시 퍼지 토큰은 GitHub 시크릿에만 있다.
 
 ## 검증
 
