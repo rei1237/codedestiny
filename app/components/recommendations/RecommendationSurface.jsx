@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { RECOMMENDATIONS_RELEASED, RESULT_PRODUCT_LIMIT, normalizeContext, validateAffiliateUrl, validImageUrl } from '@/js/recommendations-core.mjs';
+import { CATEGORIES, RECOMMENDATIONS_RELEASED, RESULT_PRODUCT_LIMIT, normalizeContext, validateAffiliateUrl, validImageUrl } from '@/js/recommendations-core.mjs';
 import { recommendationCopy } from '@/js/recommendations-copy.mjs';
 import { observeRecommendation, trackRecommendation, rememberRecommendationContext, recommendationQuery } from '@/js/recommendations-browser.mjs';
 import { detectLocale, normalizeLocale } from '@/lib/i18n/dictionary';
@@ -24,28 +24,31 @@ export function useCopy(locale) {
   }, [locale]);
   return { ...recommendationCopy(lang), ...affiliateCopy(lang), locale: lang };
 }
-export function ProductCard({ product, copy, preview = false, onClick = () => {}, onExclude = null }) {
+export function ProductCard({ product, copy, preview = false, onClick = () => {}, onExclude = null, terms = true }) {
   const [failed, setFailed] = useState(false);
   const provider = affiliatePresentation(product.providerId);
   const merchant = provider.label || copy[provider.labelKey];
   const merchantCopy = value => product.providerId === 'aliexpress' ? value.replace(/쿠팡|Coupang|coupang/g, 'AliExpress') : value;
   const actionable = !preview && !provider.previewOnly && validateAffiliateUrl(product.affiliateUrl, product.providerId);
   const PlaceholderIcon = product.category === 'books' ? BookOpen : ShoppingBag;
+  // 가격을 확인하지 못한 상품은 가격 줄 대신 CTA 하나가 "현재 가격 확인"을 맡는다. 화살표는 아이콘이 이미 그린다.
+  const priced = product.price != null;
+  const ctaLabel = (product.linkType === 'search' ? copy.search : merchantCopy(priced ? copy.view : copy.price)).replace(/s*↗$/, '');
   return <article className={styles.product} data-affiliate-provider={product.providerId || 'coupang'}>
     <div className={styles.image}>{validImageUrl(product.imageUrl) && !failed
       ? <img src={product.imageUrl} alt={product.title} width="320" height="240" loading="lazy" referrerPolicy="no-referrer" onError={() => setFailed(true)}/>
-      : <span className={styles.placeholder}><PlaceholderIcon size={40} strokeWidth={1} aria-hidden="true"/><span>{preview ? copy.previewImage || copy.image : copy.image}</span></span>}</div>
+      : <span className={styles.placeholder}><PlaceholderIcon size={40} strokeWidth={1} aria-hidden="true"/><span>{preview ? copy.previewImage || copy.image : copy.categories?.[CATEGORIES.indexOf(product.category)] || copy.image}</span></span>}</div>
     <div className={styles.productText}>
       <span className={styles.label}>{merchant || 'Coupang'} · {copy.ad}</span>
       <h3>{product.title}</h3>
+      {product.reason && <p className={styles.reason}>{product.reason}</p>}
       {product.book?.author && <p>{[product.book.author, product.book.publisher, product.book.edition, product.book.language, product.book.format].filter(Boolean).join(" · ")}</p>}
       {product.book?.perspective && <p>{bookPerspectiveLabel(product.book.perspective, copy.locale)}</p>}
       {product.genericCollection && <p>{copy.generic}</p>}
       {product.attributes?.length > 0 && <ul>{product.attributes.map(a => <li key={a}>{a}</li>)}</ul>}
-      <p>{product.reason}</p>
-      <p className={styles.price}>{product.price == null ? (provider.previewOnly ? copy.pendingLink : merchantCopy(copy.price)) : <>{new Intl.NumberFormat(undefined, { style: 'currency', currency: product.currency || 'KRW' }).format(product.price)} <small>{product.priceVerifiedAt && new Date(product.priceVerifiedAt).toLocaleString()}</small></>}</p>
-      {actionable ? <a className={styles.button} href={product.affiliateUrl} target="_blank" rel="sponsored noopener" referrerPolicy="no-referrer" onClick={onClick}>{product.linkType === 'search' ? copy.search : merchantCopy(copy.view)}<ArrowUpRight size={16} aria-hidden="true"/></a> : <button className={styles.button} disabled>{copy.pendingLink || copy.preview}</button>}
-      <small className={styles.merchantTerms}>{copy.partnerTerms}</small>
+      {(priced || provider.previewOnly) && <p className={styles.price}>{!priced ? copy.pendingLink : <>{new Intl.NumberFormat(undefined, { style: 'currency', currency: product.currency || 'KRW' }).format(product.price)} <small>{product.priceVerifiedAt && new Date(product.priceVerifiedAt).toLocaleString()}</small></>}</p>}
+      {actionable ? <a className={styles.button} href={product.affiliateUrl} target="_blank" rel="sponsored noopener" referrerPolicy="no-referrer" onClick={onClick}>{ctaLabel}<ArrowUpRight size={16} aria-hidden="true"/></a> : <button className={styles.button} disabled>{copy.pendingLink || copy.preview}</button>}
+      {terms && <small className={styles.merchantTerms}>{copy.partnerTerms}</small>}
       {onExclude && <button className={styles.exclude} onClick={onExclude}>{copy.exclude}</button>}
     </div>
   </article>;
@@ -94,7 +97,9 @@ export function RecommendationResult({ service, species = '', groupId = '', loca
   return <section ref={host} className={styles.surface} data-brand={brand} data-affiliate-brand={uiBrand} data-yn-night aria-label={title} data-recommendation-block>
     {top && createPortal(<p className={styles.disclosure} data-affiliate-brand={uiBrand} data-yn-night>{preview || data.products.some(p => p.providerId === 'aliexpress') ? c.genericDisclosure + (data.products.some(p => !p.providerId || p.providerId === 'coupang') ? ' ' + c.disclosure : '') : c.disclosure}</p>, top)}
     <h2>{title}</h2><p className={styles.disclosure}>{preview || data.products.some(p => p.providerId === 'aliexpress') ? c.genericDisclosure + (data.products.some(p => !p.providerId || p.providerId === 'coupang') ? ' ' + c.disclosure : '') : c.disclosure}</p>
-    <div className={styles.products}>{data.products.slice(0, RESULT_PRODUCT_LIMIT).map(p => <ProductCard key={p.id} product={p} copy={c} preview={preview} onClick={() => { if (!preview) trackRecommendation('click', context, 'result', p.id, getApiBaseUrl()); }}/>)}</div>
+    {context.practiceTags.length > 0 && <p className={styles.resultLead}>{c.resultLead}</p>}
+    <div className={styles.products}>{data.products.slice(0, RESULT_PRODUCT_LIMIT).map(p => <ProductCard key={p.id} product={p} copy={c} preview={preview} terms={false} onClick={() => { if (!preview) trackRecommendation('click', context, 'result', p.id, getApiBaseUrl()); }}/>)}</div>
+    <p className={styles.merchantTerms}>{c.partnerTerms}</p>
     <div className={styles.actions}>{!preview && <a href={affiliateBrowsePath(brand)} onClick={() => { rememberRecommendationContext(context); trackRecommendation('more', context, 'result', '', getApiBaseUrl()); }}>{c.more}</a>}<button onClick={() => { setDismissed(true); if (!preview) trackRecommendation('dismiss', context, 'result', '', getApiBaseUrl()); }}>{c.dismiss}</button></div>
   </section>;
 }

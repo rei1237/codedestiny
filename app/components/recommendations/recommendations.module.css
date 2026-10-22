@@ -33,6 +33,7 @@
 .button:disabled{border-color:var(--rec-line,var(--cd-border));color:var(--rec-muted,var(--cd-text));cursor:default;background:transparent;font-weight:400}
 .button:not(:disabled):hover{background:var(--rec-raised)}.preview{font-size:13px;padding:4px 0;color:var(--rec-muted)}
 .merchantTerms{display:block;font-size:12px;line-height:1.65;color:var(--rec-muted,var(--cd-text));margin-top:12px}
+.product .reason{color:var(--rec-ink,var(--cd-text));margin:0 0 8px}.resultLead{font-size:15px;color:var(--rec-muted,var(--cd-text));margin:-4px 0 24px}
 .guide{display:flex;gap:24px;align-items:flex-start;margin:48px 0 28px;padding:28px 0;border-block:1px solid var(--rec-line)}.guide>svg{flex-shrink:0;color:var(--rec-accent);margin-top:4px}.guide h2{font-family:var(--font-display),serif;font-size:1.35rem;margin:0 0 16px;line-height:1.5}.guide p{max-width:68ch;color:var(--rec-muted);font-size:14px;margin:8px 0}
 .exclude{min-height:44px;padding:10px 0;color:var(--rec-muted,var(--cd-text));text-decoration:underline;text-underline-offset:4px;font-size:13px}
 .page :focus-visible,.surface :focus-visible{outline:3px solid var(--rec-accent);outline-offset:4px}

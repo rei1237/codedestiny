@@ -144,6 +144,8 @@ test('legacy results cap cards, retain result actions and hide failed requests',
   assert.equal(save.nextElementSibling?.dataset.recommendationBlock,'true');
   assert.ok(host.firstElementChild.classList.contains('cd-recommendations-disclosure'));
   assert.ok(host.textContent.includes('건강기능식품 정보 따로 살펴보기'));
+  assert.equal(host.querySelector('.cd-recommendations h2')?.textContent,'연이의 작은 추천 서가');
+  assert.equal(host.querySelector('.cd-recommendations-lead'),null);
   const advice=document.createElement('ul');advice.id='iljuAdviceList';advice.innerHTML='<li>집중 시간을 확보하세요.</li>';host.prepend(advice);
   let requested;
   globalThis.fetch=async url=>{requested=new URL(url,'http://localhost');return {ok:true,json:async()=>({enabled:true,products:requested.searchParams.has('topic')?products:[]})};};
@@ -152,6 +154,12 @@ test('legacy results cap cards, retain result actions and hide failed requests',
   assert.equal(requested.searchParams.get('service'),'legacy-saju');
   assert.equal(requested.searchParams.has('advice'),false);
   assert.equal(host.querySelectorAll('article').length,2);
+  // 실천 조언에서 고른 추천은 그 사실을 한 줄로 알리고, 가격 미확인 카드는 CTA 하나가 가격 확인을 맡는다.
+  assert.equal(host.querySelector('.cd-recommendations-lead')?.textContent,'풀이의 실천 조언에 맞춰 골랐어요.');
+  const cta=host.querySelector('article a');
+  assert.equal(cta.className,'cd-recommendations-cta');
+  assert.equal(cta.textContent,'쿠팡에서 현재 가격 확인 ↗');
+  assert.equal(host.querySelector('article').textContent.split('현재 가격 확인').length,2);
   assert.equal(save.nextElementSibling?.dataset.recommendationBlock,'true');
   advice.innerHTML='<li>상대방은 일기를 기록하세요.</li>';
   await mountSajuRecommendation(host,save);

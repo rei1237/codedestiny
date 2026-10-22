@@ -17,6 +17,8 @@ export async function mountRecommendation(host, input, anchor = null) {
   const [{ recommendationCopy }, browser] = await Promise.all([import('./recommendations-copy.mjs'), import('./recommendations-browser.mjs')]);
   if (cancelled || !host.isConnected) return;
   const copy = recommendationCopy(document.documentElement.lang || 'ko');
+  // 이 어댑터는 꿀꿀 셸 화면에만 붙는다. 제목은 영냥이가 아니라 연이 서가로 부른다.
+  const lang = document.documentElement.lang || 'ko', shelf = affiliateCopy(lang === 'zh' ? 'zh-CN' : lang);
   let context = normalizeContext(input), closed = false, impressed = false, cleanupObserver = () => {};
   const section = document.createElement('section'), top = document.createElement('p');
   section.className = 'cd-recommendations'; section.dataset.recommendationBlock = 'true';
@@ -37,7 +39,8 @@ export async function mountRecommendation(host, input, anchor = null) {
       cleanupObserver(); section.replaceChildren();
       const disclosure = data.products.some(p => p.providerId === 'aliexpress') ? affiliateCopy(copy.locale).genericDisclosure + (data.products.some(p => !p.providerId || p.providerId === 'coupang') ? ' ' + copy.disclosure : '') : copy.disclosure;
       top.textContent = disclosure;
-      node('h2', copy.title, section); node('p', copy.ad + ' · ' + disclosure, section);
+      node('h2', shelf.yeoniTitle, section); node('p', copy.ad + ' · ' + disclosure, section);
+      if (context.practiceTags.length) node('p', shelf.resultLead, section).className = 'cd-recommendations-lead';
       if (choose) {
         const label = node('label', context.service.startsWith('pet-') ? copy.species : copy.purpose, section);
         const select = node('select', '', label);
@@ -61,9 +64,11 @@ export async function mountRecommendation(host, input, anchor = null) {
         if (p.book?.author) node('p', [p.book.author, p.book.publisher, p.book.edition, p.book.language, p.book.format].filter(Boolean).join(' · '), article);
         if (p.book?.perspective) node('p', bookPerspectiveLabel(p.book.perspective, copy.locale), article);
         (p.attributes || []).forEach(a => node('p', a, article));
-        node('p', p.price == null ? merchantCopy(copy.price) : new Intl.NumberFormat(undefined, { style: 'currency', currency: p.currency || 'KRW' }).format(p.price) + ' · ' + new Date(p.priceVerifiedAt).toLocaleString(), article);
+        if (p.price != null) node('p', new Intl.NumberFormat(undefined, { style: 'currency', currency: p.currency || 'KRW' }).format(p.price) + ' · ' + new Date(p.priceVerifiedAt).toLocaleString(), article);
         if (validateAffiliateUrl(p.affiliateUrl, p.providerId)) {
-          const link = node('a', p.linkType === 'search' ? copy.search : merchantCopy(copy.view), article);
+          // 가격을 확인하지 못한 상품은 가격 줄 대신 CTA 하나가 "현재 가격 확인"을 맡는다.
+          const link = node('a', p.linkType === 'search' ? copy.search : merchantCopy(p.price == null ? copy.price + ' ↗' : copy.view), article);
+          link.className = 'cd-recommendations-cta';
           link.href = p.affiliateUrl; link.target = '_blank'; link.rel = 'sponsored noopener'; link.referrerPolicy = 'no-referrer';
           link.addEventListener('click', () => track('click', p.id));
         }
