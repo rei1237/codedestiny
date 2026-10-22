@@ -1,14 +1,14 @@
 ---
-status: awaiting-approval
+status: done
 updated: 2026-10-22
 ---
-# 네이버 D+14 읽기 경로 개선 — sitemap 추적본 승인 대기
+# 네이버 D+14 읽기 경로 개선 — sitemap 추적본 승인 반영
 
 ## 요청과 완료 범위
 사용자 요청: 돼지띠·뱀띠 내일 운세 수집·색인 상태 확인과 본문 개선, 기존 제목 실험 유지, 자미두수·유명인·인사이트 내부 링크 최적화.
 
 작업 디렉터리: D:\Development\code-destiny
-소스 커밋: 90f6a3d7eb3a9081ebae3b9c7298ddf55990d3e1 (main, 미푸시)
+소스 커밋: 90f6a3d7eb3a9081ebae3b9c7298ddf55990d3e1 (main)
 시작 시 로컬 main d19405da6942419a2b81b139c384d2ac09079708은 다른 세션의 문서 커밋이며 보존했다. 마지막 확인 원격 main c63a2eac1cf91a1cd724b13081758448a56445c3의 CI는 success.
 
 - 네이버 URL 검사·색인 상태: pig, snake 모두200·수집허용/완료·색인허용/완료. 최종 업데이트 표시 각각1시간 전/8시간 전. 절대 시각 미추정. 수집 요청 미제출.
@@ -35,10 +35,10 @@ updated: 2026-10-22
 - sitemap.xml, sitemap-ko.xml, sitemap-en.xml, sitemap-ja.xml, sitemap-zh.xml, sitemap-zh-tw.xml
 - public/ 아래 위6개 XML 미러
 
-질문 도구로 "생성된 추적본 함께 커밋 / 산출물 제외하고 전달 보류"를 요청했으며 아직 답변 없음. 승인 없이 생성추적본 커밋 또는 검증 우회 금지. 소스커밋만 현재 상태로 push하면 committed-tree 동기화 검사에 맞지 않으므로 push도 보류했다.
+2026-10-22 사용자가 '생성된 추적본 함께 커밋'으로 승인했다. 생성 추적본 13개를 3d05b5cf2에 별도 커밋했다. URL·색인 정책 변경이나 XML 직접 편집은 없다.
 
-승인 후: 상태/원격 main SHA/CI 확인 → 생성추적본만 명시적 stage·별도commit → 본 문서 status done 갱신commit → npm run check:pre-push → git push origin main → 최종보고 직전 CI1회 확인. 운영배포는 하지 않는다. 사용자 불승인 시 소스/생성추적본을 보존하고 전달대기 상태 유지.
+승인 대기는 해소되었다. 최종 전달은 check:pre-push 통과 후 main push이며, 실제 main CI 상태는 대화 최종 보고에 기록한다. 운영 배포는 이번 작업에 포함하지 않는다.
 
 다른 세션의 .claude/skills/fire-your-seo-agency/ 및 docs/handoff/ggulggul-master-repair-release.md는 읽거나 stage/삭제하지 않았다. 워크트리/임시브랜치 없음.
 
-재개: D:\Development\code-destiny에서 이 문서와 소스커밋90f6a3d7eb3a9081ebae3b9c7298ddf55990d3e1을 확인하고, 사용자의 sitemap 추적본 포함 승인 여부에 따라 위 전달 절차를 진행한다.
+구현과 생성 추적본 승인 반영 완료. 별도 재개 작업 없음.
