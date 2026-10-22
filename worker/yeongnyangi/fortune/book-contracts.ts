@@ -25,6 +25,8 @@ export interface ChapterSpec {
   counsel?: {version:string;focus:string;cycleIndexes?:number[]};
   preventionVersion?: string;
   outputBudgetVersion?: string;
+  // REPEAT_POLICY (reading-restatement.ts): non-v7 chapters of orders prepared from 2026-10-23 drop repeated sentences.
+  repeatPolicy?: string;
   sections?: ReadingSectionSpec[];
   version?: string;
   key?: string;

@@ -16,6 +16,7 @@ import {sanitizeQuestionSkyBody,validateQuestionSkyTwoStage} from '../fortune/qu
 import {buildV7ChapterPrompt,v7TimeTheme,type V7PromptChapter,type V7Previous} from '../fortune/reading-v7-prompt';
 import {LENGTH_FAILURES,bodyCharacterCount,normalizeSectionParagraphs,splitSectionParagraph,validateReadingQuality} from '../fortune/reading-quality';
 import {auditV7Chapter,pruneV7Chapter} from '../fortune/reading-v7-quality';
+import {REPEAT_POLICY,pruneRestatements} from '../fortune/reading-restatement';
 import {selectChapterFacts} from '../fortune/chapter-facts';
 import {astrologyPromptValue} from '../fortune/astrology/derived';
 import {hasPrevention,allowsPreventionBalance,preventionTierRule,PREVENTION_RULES,PREVENTION_VERSION} from '../fortune/prevention';
@@ -78,15 +79,23 @@ export function personaPrompt(id?: ChatPersona, voiceStyle?: VoiceStyle): string
 const PERSONA_NAMES: Record<ChatPersona, string> = { yeoni: "연이", neo: "네오" };
 /** Deterministic prose fixes shared by validateChapter and deliverChapter: internal keys (incl. tarot positions), then the chat voice's address. */
 // v7 editorial prune, shared by validateChapter and the lenient deliverChapter path. Measures only; never rejects.
+// Non-v7 chapters with REPEAT_POLICY get the sentence-level repeat prune instead (fortune/reading-restatement.ts).
 export function pruneV7Overlap(v:ChapterBody,input:ChapterRequest,path?:'fallback'):ChapterBody{
   const chapter=input.chapter as V7PromptChapter;
-  if(input.chapter.version!==READING_V7_VERSION||!Array.isArray(chapter.owns)||!Array.isArray(chapter.refs))return v;
+  if(input.chapter.version!==READING_V7_VERSION)return input.chapter.repeatPolicy===REPEAT_POLICY?pruneRepeats(v,input,path||'final'):v;
+  if(!Array.isArray(chapter.owns)||!Array.isArray(chapter.refs))return v;
   const audit=auditV7Chapter({body:v,chapter,previous:input.previous as V7Previous[],
     askFirstChapter:Boolean(input.ask && input.chapter.ordinal===0)});
   if(!audit.code)return v;
   const pruned=pruneV7Chapter(v,audit);
   console.log('[yeongnyangi-v7-audit]',JSON.stringify({chapter:input.chapter.ordinal,...(path?{path}:{}),detail:audit.detail,
     sentences:pruned.removed,chars:pruned.chars,topics:audit.topics.length,restored:pruned.restored,remaining:bodyCharacterCount(pruned.body)}));
+  return pruned.body;
+}
+function pruneRepeats(v:ChapterBody,input:ChapterRequest,path:'precheck'|'final'|'fallback'):ChapterBody{
+  const pruned=pruneRestatements(v,input.previous,input.chapter,{exactOnly:path==='precheck'});
+  if(pruned.exact||pruned.near||pruned.previous||pruned.kept)console.log('[yeongnyangi-restatement]',JSON.stringify({chapter:input.chapter.ordinal,path,
+    exact:pruned.exact,near:pruned.near,previous:pruned.previous,chars:pruned.chars,kept:pruned.kept,remaining:bodyCharacterCount(pruned.body)}));
   return pruned.body;
 }
 
@@ -233,6 +242,8 @@ export function validateChapter(
   v=correctQuestionTiming(v,input);
   // Section targets may exceed the paragraph cap: split at sentence ends before any check reads the blocks.
   if(hasReadingSections(input.chapter.version))v=normalizeSectionParagraphs(v);
+  // A sentence copied inside the chapter or from an earlier one is dropped before the duplicate check can fail it.
+  if(input.chapter.repeatPolicy===REPEAT_POLICY&&input.chapter.version!==READING_V7_VERSION)v=pruneRepeats(v,input,'precheck');
   // The chapter's own evidence, before the ask packet widens what a citation may point at.
   const chapterFactIds = new Set(
     Object.values(input.analysis.contexts).filter(c=>!input.chapter.systems||input.chapter.systems.includes(c.domain)).flatMap((c) =>
