@@ -50,14 +50,17 @@ export default function AnalyticsConsent() {
   if (!open) return <button type="button" className={styles.reopen} onClick={() => setOpen(true)}>쿠키 설정</button>;
   return (
     <section className={styles.banner} aria-labelledby="analytics-consent-title">
-      <h2 id="analytics-consent-title">방문 분석 쿠키를 선택해 주세요</h2>
+      <div className={styles.heading}>
+        <span className={styles.ornament} aria-hidden="true" />
+        <h2 id="analytics-consent-title">방문 분석 쿠키를 선택해 주세요</h2>
+      </div>
       <p>로그인·결제에 필요한 필수 쿠키를 사용해요. 동의하면 방문과 구매 흐름을 분석하는 쿠키도 사용해요. 필수만 선택해도 서비스를 이용할 수 있어요.</p>
       <div className={styles.actions}>
         <button type="button" onClick={() => choose("essential")}>필수만 사용</button>
         <button type="button" onClick={() => choose("accepted")}>분석 쿠키 동의</button>
         <a href="/privacy-policy/">개인정보 처리방침</a>
       </div>
-      {error ? <p role="alert">선택을 저장하지 못했어요. 브라우저의 쿠키 허용 설정을 확인한 뒤 다시 선택해 주세요.</p> : null}
+      {error ? <p className={styles.error} role="alert">선택을 저장하지 못했어요. 브라우저의 쿠키 허용 설정을 확인한 뒤 다시 선택해 주세요.</p> : null}
     </section>
   );
 }
