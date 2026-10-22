@@ -25,6 +25,7 @@ import { markerAttrs } from "@/lib/fortune/i18n-marker";
 import { fortuneLocaleSegment, FORTUNE_COPY, getLocalizedPeriodReading, langBoxText, getLocalizedProfile, periodLabel as localizedPeriodLabel, sajuInsightText, type FortuneLocale } from "@/lib/fortune/localization";
 import YeoniPortrait, { moodForScore } from "../YeoniPortrait";
 import { tomorrowReadingCopy } from "@/lib/i18n/fortune-hub-copy.mjs";
+import { TOMORROW_PREPARATION_DETAILS } from "@/lib/i18n/search-reading-paths.mjs";
 import tomorrowStyles from "../tomorrow.module.css";
 
 const SCORE_AXES = [
@@ -119,6 +120,9 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
   const { profile, entry, period, score } = vm;
   const copy = FORTUNE_COPY[locale];
   const tomorrowCopy = tomorrowReadingCopy[locale];
+  const preparationDetails = locale === "ko" && period === "tomorrow"
+    ? TOMORROW_PREPARATION_DETAILS.ko[vm.profile.id as keyof typeof TOMORROW_PREPARATION_DETAILS.ko]
+    : undefined;
   const preparationReading = getLocalizedPeriodReading(profile, period, locale, getPeriodReading(profile.id, period, profile.reading));
   const currentPeriodLabel = localizedPeriodLabel(period, locale);
   const kindLabel = profile.kind === "zodiac" ? copy.zodiac : copy.animal;
@@ -252,6 +256,15 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
             </ul>
           </div>
         </section>
+
+        {preparationDetails && <section aria-labelledby="tomorrow-practice-heading" className={tomorrowStyles.guide}>
+          <h2 id="tomorrow-practice-heading">{preparationDetails.heading}</h2>
+          {preparationDetails.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+          <nav className={tomorrowStyles.jumpLinks}>
+            <a href="#facts-heading">{tomorrowCopy.evidence}</a>
+            <a href="#score-heading">{tomorrowCopy.scores}</a>
+          </nav>
+        </section>}
 
         {locale === "ko" && <section aria-labelledby="personal-reading-heading" className={tomorrowStyles.guide}>
           <h2 id="personal-reading-heading">같은 {profile.nameKo}라도 나는 어떤 흐름일까요?</h2>

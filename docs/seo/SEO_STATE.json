@@ -4341,6 +4341,32 @@
       "causalTitleEffect": null,
       "nextMilestone": "2026-11-07",
       "readOnlyActionsOnly": true
+    },
+    "d14IndexInspection": {
+      "observedAt": "2026-10-22",
+      "source": "Naver Search Advisor URL inspection and index status UI",
+      "pages": [
+        {
+          "path": "/fortune/tomorrow/pig/",
+          "httpStatus": 200,
+          "crawlAllowed": true,
+          "crawled": true,
+          "indexAllowed": true,
+          "indexed": true,
+          "lastUpdateDisplayed": "1시간 전"
+        },
+        {
+          "path": "/fortune/tomorrow/snake/",
+          "httpStatus": 200,
+          "crawlAllowed": true,
+          "crawled": true,
+          "indexAllowed": true,
+          "indexed": true,
+          "lastUpdateDisplayed": "8시간 전"
+        }
+      ],
+      "note": "Relative last-update labels only; exact timestamp not inferred. Current indexing succeeds; cause of earlier impression decline remains unconfirmed. No collection request submitted.",
+      "implementation": "Korean pig/snake tomorrow preparation guide and ziwei/insights/celebrity editorial navigation; existing title experiment, metadata and index policy preserved."
     }
   },
   "rename20261010": {

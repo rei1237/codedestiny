@@ -11,6 +11,7 @@ import { buildBreadcrumbJsonLd, buildWebPageJsonLd } from "../../lib/structured-
 import { publishedCelebritySajuSeeds } from "../../lib/famous-saju/celebrity-saju-service";
 import { getCelebrityEditorial } from "../../lib/famous-saju/celebrity-editorial";
 import { INSIGHT_DISCOVERY_COPY } from "./discovery-copy.mjs";
+import { SEARCH_READING_PATHS } from "../../lib/i18n/search-reading-paths.mjs";
 import { getPexelsSectionImage, resolvePexelsInsightImageRequest } from "../../lib/server/pexels";
 
 const discoveryCopy = INSIGHT_DISCOVERY_COPY.ko;
@@ -198,6 +199,13 @@ export default async function InsightsPage() {
         🔴 H1 은 이 하나뿐이어야 한다 — InsightsCosmicClient 의 제목은 h2 다.
       */}
       <header className="moon-container moon-hero"><div><a href="/ggulggul/">꿀꿀운세</a><h1>운세 인사이트</h1><p>내 사주를 이해하는 달빛 지식 서재</p></div><Image src="/images/feature-details/fusion-fortune-hero-v2.webp" width={640} height={420} alt="" priority /></header>
+      <section className="moon-container cd-guide-index" aria-labelledby="insight-reading-next">
+        <h2 id="insight-reading-next" className="cd-guide-index__title">{SEARCH_READING_PATHS.ko.heading}</h2>
+        <p className="cd-guide-index__lede">{SEARCH_READING_PATHS.ko.lead}</p>
+        <ul className="cd-guide-index__grid">
+          {SEARCH_READING_PATHS.ko.links.map((link) => <li key={link.href}><a className="cd-guide-index__link" href={link.href}>{link.label}</a></li>)}
+        </ul>
+      </section>
       <InsightsCosmicRouteClient
         initialItems={initialItems}
         initialAllItems={initialAllItems}

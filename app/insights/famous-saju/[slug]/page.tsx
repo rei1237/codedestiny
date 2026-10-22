@@ -11,6 +11,7 @@ import { getCelebrityEditorial } from "../../../../lib/famous-saju/celebrity-edi
 import { buildCelebrityMultiSystem, type MultiSystemRow } from "../../../../lib/famous-saju/celebrity-multi-system";
 import { buildAuthorPersonJsonLd } from "../../../../lib/structured-data";
 import { truncateToDisplayWidth } from "../../../../lib/seo";
+import { SEARCH_READING_PATHS } from "../../../../lib/i18n/search-reading-paths.mjs";
 
 type PageParams = { slug: string };
 type PageProps = { params: Promise<PageParams> };
@@ -660,8 +661,12 @@ function CelebritySajuCTA({ cta }: { cta: CelebritySajuMagazineResult["cta"] }) 
       <p className="mt-3 text-sm leading-7 text-[#242139]">{cta.description}</p>
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
         <Link href="/?action=cdOneStepFreeSajuEntry" className="rounded-lg border border-violet-300 bg-violet-500/20 px-4 py-3 text-center text-sm font-semibold text-[#242139] transition hover:bg-violet-500/30">{cta.buttonText}</Link>
-        <Link href="/insights/famous-saju" className="rounded-lg border border-violet-300/20 px-4 py-3 text-center text-sm font-semibold text-[#242139] transition hover:border-violet-200/60">다른 유명인 보기</Link>
+        <Link href="/insights/famous-saju/" className="rounded-lg border border-violet-300/20 px-4 py-3 text-center text-sm font-semibold text-[#242139] transition hover:border-violet-200/60">다른 유명인 보기</Link>
       </div>
+      <p className="mt-5 text-sm leading-7 text-[#242139]">{SEARCH_READING_PATHS.ko.lead}</p>
+      <ul className="mt-3 space-y-2">
+        {SEARCH_READING_PATHS.ko.links.map((link) => <li key={link.href}><Link href={link.href} className="inline-block py-2 text-sm underline underline-offset-4">{link.label}</Link></li>)}
+      </ul>
     </section>
   );
 }
