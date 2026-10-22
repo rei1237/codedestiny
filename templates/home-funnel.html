@@ -135,14 +135,6 @@
     </div>
   </section>
 
-  <section class="cdh-honey" data-cd-honey-widget aria-labelledby="cdHoneyTitle">
-    <div class="cdh-honey__story">
-      <img class="cdh-honey__yeoni" src="/images/fortune-tea-house/flower-pig-honey-hug.webp" width="361" height="411" loading="lazy" decoding="async" alt="꿀방울을 품에 안고 웃는 꽃돼지 연이">
-      <div class="cdh-honey__intro"><h2 id="cdHoneyTitle">출석으로 모으는 꿀방울</h2><p class="cdh-honey__hint">매일 출석하고, 꿀꿀운세 기본 해석에 사용해요.</p></div>
-    </div>
-    <div class="cdh-honey__actions"><div class="cdh-honey__wallet"><img src="/images/fortune-tea-house/honey-drop-jewel-v1.webp" width="192" height="192" loading="lazy" decoding="async" alt=""><p class="cdh-honey__balance"><span>내가 모은 꿀방울</span><strong data-cd-honey-balance>확인 중</strong></p></div><button type="button" class="cdh-primary" data-cd-honey-attend disabled>출석 체크 하기</button><button type="button" class="cdh-honey__uses" data-cd-sheet-open="cdHoneySheet" aria-haspopup="dialog" aria-controls="cdHoneySheet">사용처 보기</button></div>
-    <p data-cd-honey-status role="status" aria-live="polite"></p><button type="button" data-cd-honey-retry hidden>다시 확인하기</button>
-  </section>
   <dialog class="cd-sheet" id="cdHoneySheet" data-cd-sheet aria-labelledby="cdHoneySheetTitle"><div class="cd-sheet__panel"><div class="cd-sheet__head"><h2 id="cdHoneySheetTitle">꿀방울, 어디에 쓸 수 있나요?</h2><button type="button" class="cd-sheet__close" data-cd-sheet-close aria-label="꿀방울 사용처 닫기">×</button></div><div class="cd-sheet__body">
     <span class="cd-honey-eligible">꿀방울 사용 가능처</span><p class="cd-honey-guide__lead">출석으로 모은 꿀방울로 <strong>꿀꿀운세의 지정된 기본 해석</strong>을 열 수 있어요. 아래에서 운세별 상품과 필요한 개수를 확인해 보세요.</p>
     <p class="cd-honey-guide__balance" data-cd-honey-sheet-state role="status"></p>
@@ -158,13 +150,21 @@
 
   <div id="cdhCookieSlot"></div>
   <div class="cdh-flow">
-  {{consultationDiscovery}}
-  <div class="cdh-slot" id="cdhFusionSignatureSlot">{{fusionSignature}}</div>
+<!-- 강약(2026-10-23): 히어로 바로 아래 대표 상담 덱, 그다음 초융합 띠 → 무료 → 꿀방울 출석. 고민별 디스커버리는 덱과 겹쳐 브랜드 홈(/)에만 둔다. -->
 <div class="cdh-slot" id="cdhFeatured"><div id="cdhSignatureSlot">{{signature}}</div></div>
+  <div class="cdh-slot" id="cdhFusionSignatureSlot">{{fusionSignature}}</div>
 <section class="cdh-free" aria-labelledby="cdhFreeTitle">
   <h2 class="cdh-free__title" id="cdhFreeTitle" data-cd-trans="home.simpleHome.freeTitle">무료로 먼저</h2>
   <div class="cdh-slot" id="cdhQuickSlot">{{quick}}</div>
 </section>
+  <section class="cdh-honey" data-cd-honey-widget aria-labelledby="cdHoneyTitle">
+    <div class="cdh-honey__story">
+      <img class="cdh-honey__yeoni" src="/images/fortune-tea-house/flower-pig-honey-hug.webp" width="361" height="411" loading="lazy" decoding="async" alt="꿀방울을 품에 안고 웃는 꽃돼지 연이">
+      <div class="cdh-honey__intro"><h2 id="cdHoneyTitle">출석으로 모으는 꿀방울</h2><p class="cdh-honey__hint">매일 출석하고, 꿀꿀운세 기본 해석에 사용해요.</p></div>
+    </div>
+    <div class="cdh-honey__actions"><div class="cdh-honey__wallet"><img src="/images/fortune-tea-house/honey-drop-jewel-v1.webp" width="192" height="192" loading="lazy" decoding="async" alt=""><p class="cdh-honey__balance"><span>내가 모은 꿀방울</span><strong data-cd-honey-balance>확인 중</strong></p></div><button type="button" class="cdh-primary" data-cd-honey-attend disabled>출석 체크 하기</button><button type="button" class="cdh-honey__uses" data-cd-sheet-open="cdHoneySheet" aria-haspopup="dialog" aria-controls="cdHoneySheet">사용처 보기</button></div>
+    <p data-cd-honey-status role="status" aria-live="polite"></p><button type="button" data-cd-honey-retry hidden>다시 확인하기</button>
+  </section>
 <div class="cdh-consult" role="group" aria-label="1:1 상담" data-cd-trans-attr="aria-label:home.simpleHome.consultTitle">
 <!-- 1:1 상담 두 입구(2026-10-17 복구): 연이 대화 상담 1회 5,000원(빌더가 가격표와 대조)·네오 이메일 상담. -->
 <div class="cdh-slot" id="cdhGatewaySlot"><section class="fortune-gateway" id="fortuneGatewayEntry" data-fortune-gateway-entry aria-labelledby="fortuneGatewayTitle">

@@ -9,15 +9,15 @@ const home = read("index.html");
 const registry = read("js/core/service-registry.js");
 const template = read("templates/home-funnel.html");
 
-// 2026-10-17 "직관성" + 같은 날 고급화: 초융합 시그니처 띠 → 대표 상담 덱 → 무료로 먼저(여섯 장) → 1:1 상담(연이·네오) → 질문 카테고리 → 이용권 → 뮤직비디오 → 모든 운세 버튼 → 작은 운세 모음 → 달빛 이야기.
-const flow = ['id="cdhFusionSignatureSlot"', 'id="cdhFeatured"', 'id="cdhQuickSlot"', 'class="cdh-consult"', 'id="cdhYeongnyangiSlot"', 'id="cdhQuestionSlot"', 'id="cdhPass"', 'id="cdhMoonlightMv"', 'data-action="cdOpenAllFortunes"', 'id="cdhLightFortunes"', 'class="cdh-story"'];
+// 2026-10-23 강약: 대표 상담 덱 → 초융합 시그니처 띠 → 무료로 먼저(여섯 장) → 꿀방울 출석 → 1:1 상담(연이·네오) → 질문 카테고리 → 이용권 → 뮤직비디오 → 모든 운세 버튼 → 작은 운세 모음 → 달빛 이야기.
+const flow = ['id="cdhFeatured"', 'id="cdhFusionSignatureSlot"', 'id="cdhQuickSlot"', 'data-cd-honey-widget', 'class="cdh-consult"', 'id="cdhYeongnyangiSlot"', 'id="cdhQuestionSlot"', 'id="cdhPass"', 'id="cdhMoonlightMv"', 'data-action="cdOpenAllFortunes"', 'id="cdhLightFortunes"', 'class="cdh-story"'];
 for (let i = 1; i < flow.length; i += 1) {
   const prev = template.indexOf(flow[i - 1]);
   const next = template.indexOf(flow[i]);
   assert.ok(prev >= 0 && next > prev, `${flow[i - 1]} 가 ${flow[i]} 보다 먼저 와야 합니다`);
 }
 // 나머지 입구는 홈에 펼치지 않고 모든 운세 시트 하나로 연다.
-for (const gone of ['id="cdhMore"', 'id="cdhServices"', 'id="cdhConcern"', 'id="cdhTodaySlot"', 'id="cdhFlowerTitle"', 'data-cdh-chemi', '{{fusionRecommendation}}', '{{lightRecommendations}}']) {
+for (const gone of ['id="cdhMore"', 'id="cdhServices"', 'id="cdhConcern"', 'id="cdhTodaySlot"', 'id="cdhFlowerTitle"', 'data-cdh-chemi', '{{fusionRecommendation}}', '{{lightRecommendations}}', '{{consultationDiscovery}}']) {
   assert.ok(!template.includes(gone), `${gone} 는 홈 흐름에서 빠졌습니다`);
 }
 
@@ -57,9 +57,10 @@ assert.ok(signatureSection, '대표 운명 상담 섹션을 찾지 못했습니�
 assert.match(signatureSection, /class="cd-sig__samples-link" href="\/consultation-samples\/"/, 'representative consultations expose the complete sample guide');
 assert.deepEqual(
   [...signatureSection.matchAll(/data-cd-service-id="([^"]+)"/g)].map((match) => match[1]),
-  ['neo-operation-room', 'fortune-tea-house', 'master-love-codex', 'love-secret-ai', 'new-year-ai', 'life-book-ai'],
-  '네오와 연이를 최상단에 둔 대표 상담 여섯 상품을 한 번씩만 노출합니다',
+  ['love-secret-ai', 'new-year-ai', 'life-book-ai', 'neo-operation-room', 'fortune-tea-house', 'master-love-codex'],
+  '대표 상담 3종(연애 비책·신년운세·인생의 책)을 첫 줄에 두고 여섯 상품을 한 번씩만 노출합니다',
 );
+assert.doesNotMatch(signatureSection, /cd-sig__dots|data-cd-sig-dot/, '덱은 격자라 위치 점이 없습니다');
 assert.equal((signatureSection.match(/class="cd-sig-card__img"/g) || []).length, 6, '대표 상담 여섯 장 모두 전용 이미지가 있어야 합니다');
 assert.equal((signatureSection.match(/class="cd-sig-card__price"/g) || []).length, 6, '대표 상담 여섯 장 모두 원화 가격을 보여줘야 합니다');
 assert.equal((signatureSection.match(/class="cd-sig-card__cta"/g) || []).length, 6, '대표 상담 여섯 장 모두 상품별 CTA 가 있어야 합니다');

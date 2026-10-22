@@ -621,13 +621,15 @@ html.neo-mode .cdh-hero { --cdh-scene-image: url('/images/home/illustrated/yeoni
 #cdHomeFunnel .cdh-scene-button::after { content:none; }
 #cdHomeFunnel .cdh-scene-button span { font:inherit; }
 .cdh-scene-button svg { width:26px; height:26px; flex:none; fill:none; stroke:var(--cd-yehwa-line-deep); stroke-width:1.35; stroke-linecap:round; stroke-linejoin:round; }
-.cdh-scene-button.cdh-primary svg { stroke:var(--cd-yehwa-line); }
+.cdh-scene-button.cdh-primary svg { stroke:currentColor; }
 .cdh-scene-button svg.cdh-scene-button__arrow { width:20px; height:20px; }
 #cdHomeFunnel .cdh-scene-button--catalog { background:var(--cdh-bg); color:var(--cdh-ink); }
 #cdHomeFunnel .cdh-scene-actions a:hover { transform:translateY(-2px); border-color:var(--cdh-gold); }
 #cdHomeFunnel .cdh-scene-actions a:focus-visible { outline:3px solid var(--cdh-accent); outline-offset:4px; }
-#cdHomeFunnel .cdh-scene-copy .cdh-primary { background: var(--cd-cta-primary-bg); color: var(--cd-cta-primary-ink); }
-html.neo-mode #cdHomeFunnel .cdh-scene-copy .cdh-primary { background: var(--cd-cta-primary-bg); color: var(--cd-cta-primary-ink); }
+/* 히어로 CTA 는 Brand 등급(DESIGN.md Button Tiers) — 골드 pill 56px. 딥 플럼은 셸·계정 CTA 전용이다. */
+#cdHomeFunnel .cdh-scene-copy .cdh-primary { min-height: var(--cd-btn-h-lg); padding: 14px 30px; border-color: var(--cd-cta-hairline); border-radius: var(--cd-r-pill); background: var(--cd-cta); color: var(--cd-cta-text); }
+html.neo-mode #cdHomeFunnel .cdh-scene-copy .cdh-primary { background: var(--cd-cta); color: var(--cd-cta-text); }
+#cdHomeFunnel .cdh-scene-copy .cdh-primary::before { border-radius: var(--cd-r-pill); }
 .cdh-scene-art { position: relative; align-self: end; justify-self: end; width: 100%; max-width: 240px; aspect-ratio: 1; }
 #cdHomeFunnel .cdh-scene-art img { width: 100%; height: auto; aspect-ratio: 1; object-fit: contain; border: 0; box-shadow: none; background: none; }
 /* 라이트·다크 모두 연이만 보인다(네오 페르소나 제거). */
@@ -874,7 +876,7 @@ html.neo-mode #cdHomeFunnel{--cdh-moon-art:url('/images/home/illustrated/moon-fl
 .cdh-moonstone-guide::before{top:auto;bottom:8px;opacity:.5}
 .cdh-moonstone-guide>div{position:relative;z-index:1}
 .cdh-moonstone-guide__amount{font-size:var(--cd-t-section)}
-#cdHomeFunnel .cdh-scene-button{border-color:var(--cdh-gold);box-shadow:inset 0 0 0 3px var(--cd-cta-primary-bg),inset 0 0 0 4px color-mix(in srgb,var(--cdh-gold) 35%,transparent)}
+#cdHomeFunnel .cdh-scene-button{border-color:var(--cdh-gold);box-shadow:var(--cd-shade-2)}
 #cdHomeFunnel .cdh-scene-button--catalog{box-shadow:inset 0 0 0 3px var(--cdh-card),inset 0 0 0 4px color-mix(in srgb,var(--cdh-gold) 35%,transparent)}
 @media(max-width:640px){.cdh-all-fortunes::before{width:130px;height:190px;background-size:150px auto}.cdh-all-fortunes__head{padding-right:48px;min-height:0}.cdh-method::after{width:48px;height:54px;opacity:.62}.cdh-all-fortunes__head p{max-width:27ch}.cdh-moonstone-guide::before{width:150px;height:230px;background-size:170px auto}.cdh .cdh-moonstone-guide__join{width:100%}}
 
@@ -900,7 +902,8 @@ html.neo-mode #cdHomeFunnel{--cdh-moon-art:url('/images/home/illustrated/moon-fl
 .cdh .cdh-pass__group{margin:4px 0 0;color:var(--cdh-ink);font-size:1rem;font-weight:800}
 @media(max-width:640px){.cdh-mypass{margin:10px 12px 0;padding:14px 16px}}
 /* 2026-10-16 대표 상담 = 타로 카드 덱(DESIGN.md "Tarot Card"). 세로 2:3 카드 틀의 창에 기존 16:9 그림을 자르지 않고 넣는다.
- * 카드 전체가 링크 하나이고 안의 라벨은 3차(텍스트)다 — 이 단의 채움 CTA 는 히어로 "대표 상담 고르기" 하나뿐이다.
+ * 카드 전체가 링크 하나이고 안의 라벨은 3차(텍스트 링크)다 — 첫 화면의 채움 CTA 는 히어로 "대표 상담 고르기" 하나뿐이다.
+ * 2026-10-23 캐러셀을 걷고 모바일 2열 → 700px 3열 격자로 펼친다. 대표 상담 3종이 첫 줄(Ⅰ–Ⅲ)이다.
  * 유리: 기본은 불투명에 가까운 92% 표면, blur 는 데스크톱 hover 기기에서만(.cd-mobile-lite 제외). 대비는 합성색으로 잰다. */
 .cdh{--cdh-glass-bg:color-mix(in srgb,var(--cdh-card) 92%,transparent);--cdh-glass-line:color-mix(in srgb,var(--cdh-gold) 55%,transparent);--cdh-glass-blur:14px;--cdh-serif:"CodeDestinySerifKR",var(--font-premium,"Nanum Myeongjo","Gowun Batang",serif)}
 html.neo-mode .cdh,body.neo-mode .cdh{--cdh-glass-line:color-mix(in srgb,var(--cdh-gold) 42%,transparent)}
@@ -913,8 +916,9 @@ html.neo-mode .cdh,body.neo-mode .cdh{--cdh-glass-line:color-mix(in srgb,var(--c
 :is(html,body).neo-mode #cdHomeFunnel .cd-sig--deck .cd-sig-card{--tarot-ink:color-mix(in srgb,var(--tarot-hue) 45%,var(--cdh-ink))}
 #cdHomeFunnel .cd-sig--deck .cd-sig__realm{display:block;margin-bottom:4px;color:var(--cdh-muted);font:700 var(--cd-t-caption)/1.4 var(--font-body);letter-spacing:.24em}
 #cdHomeFunnel .cd-sig--deck .cd-sig__title{font-family:var(--cdh-serif)}
-#cdHomeFunnel .cd-sig--deck .cd-sig__grid{display:grid;grid-auto-flow:column;grid-template-columns:none;grid-auto-columns:min(72vw,280px);gap:14px;width:100%;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;padding:6px 2px 16px;scrollbar-width:thin}
-#cdHomeFunnel .cd-sig--deck .cd-sig-card{position:relative;overflow:hidden;overflow:clip;display:flex;flex-direction:column;width:100%;min-width:0;padding:10px;border:1px solid var(--cdh-glass-line);border-radius:18px;background:var(--cdh-glass-bg);color:var(--cdh-ink);box-shadow:0 12px 28px -22px color-mix(in srgb,var(--tarot-hue) 55%,var(--cdh-ink));scroll-snap-align:start;transform:none}
+#cdHomeFunnel .cd-sig--deck .cd-sig__grid{display:grid;grid-auto-flow:row;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;width:100%;overflow:visible;padding:6px 0 4px}
+@media(min-width:700px){#cdHomeFunnel .cd-sig--deck .cd-sig__grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}}
+#cdHomeFunnel .cd-sig--deck .cd-sig-card{position:relative;overflow:hidden;overflow:clip;display:flex;flex-direction:column;width:100%;min-width:0;padding:10px;border:1px solid var(--cdh-glass-line);border-radius:18px;background:var(--cdh-glass-bg);color:var(--cdh-ink);box-shadow:0 12px 28px -22px color-mix(in srgb,var(--tarot-hue) 55%,var(--cdh-ink));transform:none}
 #cdHomeFunnel .cd-sig--deck .cd-sig-card:hover{border-color:var(--cdh-gold)}
 #cdHomeFunnel .cd-sig--deck .cd-sig-card:focus-visible{outline:3px solid var(--cdh-accent);outline-offset:4px}
 #cdHomeFunnel .cd-sig--deck .cd-sig-card__top{display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:6px 8px 8px}
@@ -930,11 +934,11 @@ html.neo-mode .cdh,body.neo-mode .cdh{--cdh-glass-line:color-mix(in srgb,var(--c
 #cdHomeFunnel .cd-sig--deck .cd-sig-card__price{align-self:stretch;display:flex;align-items:center;justify-content:center;gap:14px;margin-top:auto;padding:18px 0 12px;border:0;border-radius:0;background:transparent;color:var(--cdh-ink);font:600 clamp(1.2rem,2vw,1.45rem)/1.5 var(--cdh-serif);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 #cdHomeFunnel .cd-sig--deck .cd-sig-card__price::before,#cdHomeFunnel .cd-sig--deck .cd-sig-card__price::after{content:"";flex:1;max-width:36px;height:1px;background:var(--cdh-glass-line)}
 #cdHomeFunnel .cd-sig--deck .cd-sig-card__meta{justify-content:center;text-align:center;font-size:var(--cd-t-caption)}
-#cdHomeFunnel .cd-sig--deck .cd-sig-card__cta{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;margin-top:2px;padding:12px 16px;border:1px solid var(--cdh-glass-line);border-radius:var(--cd-r-control);background:var(--cdh-ink);box-shadow:var(--cd-shade-1);color:var(--cdh-bg);font:600 var(--cd-t-body)/1.5 var(--font-body)}
+#cdHomeFunnel .cd-sig--deck .cd-sig-card__cta{display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;margin-top:0;padding:8px 4px;border:0;border-radius:0;background:transparent;box-shadow:none;color:var(--tarot-ink,var(--tarot-hue));font:700 var(--cd-t-body)/1.45 var(--font-body);text-align:center}
 #cdHomeFunnel .cd-sig--deck .cd-sig-card__cta::before{content:none}
-#cdHomeFunnel .cd-sig--deck .cd-sig-card__cta>span{flex:0 1 auto;text-decoration:none}
+#cdHomeFunnel .cd-sig--deck .cd-sig-card__cta>span{flex:0 1 auto;text-decoration:underline;text-decoration-color:color-mix(in srgb,currentColor 35%,transparent);text-underline-offset:4px}
 #cdHomeFunnel .cd-sig--deck .cd-sig-card__cta i{color:inherit;font-style:normal}
-#cdHomeFunnel .cd-sig--deck .cd-sig-card:is(:hover,:focus-visible) .cd-sig-card__cta{background:var(--cdh-muted)}
+#cdHomeFunnel .cd-sig--deck .cd-sig-card:is(:hover,:focus-visible) .cd-sig-card__cta>span{text-decoration-color:currentColor}
 /* 덱 안 마스터 칩 — 사진 경계에 걸치던 음수 여백을 풀고, 카드 가운데 한 줄로 작게 둔다. */
 #cdHomeFunnel .cd-sig--deck .cd-sig-card__masters{justify-content:center;align-items:center;margin-top:0}
 #cdHomeFunnel .cd-sig--deck .cd-sig-card__avatars img{width:32px;height:32px}
@@ -948,6 +952,19 @@ html.neo-mode .cdh,body.neo-mode .cdh{--cdh-glass-line:color-mix(in srgb,var(--c
   #cdHomeFunnel .cd-sig--deck .cd-sig-card__report span{display:inline}
   #cdHomeFunnel .cd-sig--deck .cd-sig-card__report span+span::before{content:" · "}
   #cdHomeFunnel .cd-sig--deck .cd-sig-card__body{gap:4px;padding-top:8px}
+}
+/* 2열(700px 미만) 카드는 폭이 150px 안팎이다 — 틀·숫자·가격을 줄이고 글은 본문 크기 아래로 내리지 않는다. */
+@media(max-width:699px){
+  #cdHomeFunnel .cd-sig--deck .cd-sig-card{padding:7px;border-radius:14px}
+  #cdHomeFunnel .cd-sig--deck .cd-sig-card__top{padding:2px 4px 6px}
+  #cdHomeFunnel .cd-sig--deck .cd-sig-card__numeral{font-size:1.1rem}
+  #cdHomeFunnel .cd-sig--deck .cd-sig-card__media{border-radius:9px 9px 3px 3px}
+  #cdHomeFunnel .cd-sig--deck .cd-sig-card__body{padding:8px 2px 0}
+  #cdHomeFunnel .cd-sig--deck .cd-sig-card__title{font-size:1rem}
+  #cdHomeFunnel .cd-sig--deck .cd-sig-card__q{line-height:1.5;word-break:keep-all}
+  #cdHomeFunnel .cd-sig--deck .cd-sig-card__price{gap:6px;padding:10px 0 2px;font-size:1.05rem;white-space:nowrap}
+  #cdHomeFunnel .cd-sig--deck .cd-sig-card__price::before,#cdHomeFunnel .cd-sig--deck .cd-sig-card__price::after{max-width:14px}
+  #cdHomeFunnel .cd-sig--deck .cd-sig-card__cta{word-break:keep-all}
 }
 /* 결과 미리보기는 덱 아래 Secondary(라인) — 채움을 덱 밖으로 빼지 않는다. */
 #cdHomeFunnel .cd-sig--deck .cd-sig__samples-link{border-color:var(--cdh-glass-line);background:var(--cdh-glass-bg);color:var(--cdh-ink)!important;box-shadow:none}
@@ -993,7 +1010,7 @@ html.neo-mode .cdh,body.neo-mode .cdh{--cdh-glass-line:color-mix(in srgb,var(--c
 #cdHomeFunnel .cdh-pass-block .cdh-moonstone-guide__join::before{content:none}
 #cdHomeFunnel .cdh-pass-block .cdh-moonstone-guide__join:hover{background:color-mix(in srgb,var(--cdh-accent) 8%,transparent)}
 /* 히어로 Brand CTA는 한 줄로 둔다. 모바일은 화살표가 숨으므로 그 몫의 오른쪽 여백을 거둔다. 320px대만 줄바꿈 허용. */
-@media(max-width:640px){#cdHomeFunnel .cdh-scene-actions .cdh-primary.cdh-scene-button{gap:8px;padding:12px 16px 12px 14px;white-space:nowrap}}
+@media(max-width:640px){#cdHomeFunnel .cdh-scene-actions .cdh-primary.cdh-scene-button{gap:8px;min-height:var(--cd-btn-h-lg);padding:12px 22px 12px 18px;white-space:nowrap}}
 @media(max-width:359px){#cdHomeFunnel .cdh-scene-actions .cdh-primary.cdh-scene-button{white-space:normal}}
 /* 사주 타일은 무료 사주를 바로 시작한다. 사주 기능 전체는 이 3차 링크로 /saju/#services 에 모은다. */
 #cdHomeFunnel .cdh-saju-all{margin:4px 40px 0}
@@ -1041,12 +1058,6 @@ html.neo-mode .cdh,body.neo-mode .cdh{--cdh-glass-line:color-mix(in srgb,var(--c
   #cdHomeFunnel .cdh-hero--compact h1{margin-top:6px;font-size:clamp(23px,6.4vw,27px)}
   #cdHomeFunnel .cdh-hero__byline{font-size:13px}
 }
-/* 덱 위치 점 — 가로 스크롤(모바일·태블릿)에서만. 격자로 펼쳐지는 데스크톱은 숨긴다. */
-#cdHomeFunnel .cd-sig__dots{display:flex;justify-content:center;gap:8px;margin:4px 0 0}
-#cdHomeFunnel .cd-sig__dot{width:6px;height:6px;border-radius:3px;background:var(--cdh-line);transition:width .2s ease,background-color .2s ease}
-#cdHomeFunnel .cd-sig__dot.is-active{width:18px;background:var(--cdh-accent)}
-@media(min-width:1024px){#cdHomeFunnel .cd-sig__dots{display:none}}
-@media(prefers-reduced-motion:reduce){#cdHomeFunnel .cd-sig__dot{transition:none}}
 /* 무료로 먼저 — 여섯 체계(사주·타로·자미두수·숙요점·베다점·점성술). 금빛 링 메달리온 + 세리프 이름 + '무료' 인장.
  * 아이콘 뒤 회색 칸은 전역 img{background-color:#e5e5e5} 때문이라 여기서 지운다. 데스크톱 3×2, 640px 이하 2×3 세로 카드. */
 #cdHomeFunnel .cdh-free{margin:clamp(32px,4vw,48px) 40px 0}
@@ -1211,7 +1222,7 @@ html body:has(#cdHomeFunnel) #inputPage{padding-bottom:0!important}
 #cdHomeFunnel .cdh-fusion-sig__art img{display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:cover;background:none;transition:transform .6s ease}
 #cdHomeFunnel .cdh-fusion-sig__art:hover img{transform:scale(1.03)}
 #cdHomeFunnel .cdh-fusion-sig__body{display:grid;gap:14px;min-width:0}
-#cdHomeFunnel .cdh-fusion-sig__eyebrow{color:var(--cdh-gold);font-family:CodeDestinySerifLatin,Georgia,serif;font-size:.72rem;font-weight:800;letter-spacing:.22em}
+#cdHomeFunnel .cdh-fusion-sig__eyebrow{color:var(--cdh-gold);font-family:var(--font-body);font-size:var(--cd-t-caption);font-weight:800;letter-spacing:.06em}
 #cdHomeFunnel .cdh-fusion-sig__title{font-family:"CodeDestinySerifKR",var(--font-premium,serif);font-size:clamp(1.8rem,3.2vw,2.6rem)}
 #cdHomeFunnel .cdh-fusion-sig__lead{color:var(--cdh-muted);line-height:1.75}
 #cdHomeFunnel .cdh-fusion-sig__masters{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:0;padding:0;list-style:none}
@@ -1354,6 +1365,7 @@ html.neo-mode #cdHomeFunnel .cdh-scene-art #honeypigLogo{box-shadow:none!importa
 #cdHoneySheet :is(summary,a,button):focus-visible{outline:3px solid var(--cd-accent);outline-offset:4px}
 @media(max-width:480px){.cd-honey-use{align-items:stretch;flex-direction:column;gap:8px}.cd-honey-use a{align-self:flex-start}.cd-honey-guide__steps{margin-bottom:24px}}
 @media(max-width:760px){.cdh-honey{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;padding:16px;margin-inline:16px}.cdh-honey__story{min-width:0;gap:10px}.cdh-honey__yeoni{width:42px;height:48px}.cdh-honey__actions{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}.cdh-honey__wallet{grid-column:1/-1}.cdh-honey__balance{display:flex;align-items:baseline;gap:10px;margin:0}.cdh-honey__wallet>img{width:22px;height:26px}.cdh-honey__balance strong{font-size:18px}.cdh-honey__actions .cdh-primary{width:100%;min-width:0}.cdh-honey__uses{padding-inline:14px}}
+.cdh-flow>.cdh-honey{margin-block:0}
 
 /* Bounded, non-interactive collection layer; motion is started only after a credit. */
 .cdh-honey__collection{position:absolute;inset:0;z-index:2;overflow:hidden;border-radius:inherit;pointer-events:none}

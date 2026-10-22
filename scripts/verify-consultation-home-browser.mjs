@@ -22,10 +22,10 @@ for (const channel of ['chrome', 'msedge']) {
       await page.waitForFunction(() => typeof window.__cdOpenGarden === 'function', { timeout: 60000 });
       await page.evaluate(() => document.fonts.ready);
       const main = page.locator('#cdHomeFunnel');
-      // 홈: 히어로 버튼 하나 → 초융합 시그니처 → 대표 상담 덱 → 무료로 먼저 → 1:1 상담 → 영냥이 배너 → 질문 카테고리 → 이용권 → 뮤직비디오 → 모든 운세 보기 → 링크 → 달빛 이야기.
-      assert.equal(await main.locator('.cdh-primary').getAttribute('href'), '#cdSignatureConsult');
+      // 홈: 히어로 버튼 하나 → 대표 상담 덱 → 초융합 시그니처 → 무료로 먼저 → 꿀방울 → 1:1 상담 → 영냥이 배너 → 질문 카테고리 → 이용권 → 뮤직비디오 → 모든 운세 보기 → 링크 → 달빛 이야기.
+      assert.equal(await main.locator('.cdh-hero .cdh-primary').getAttribute('href'), '#cdSignatureConsult');
       assert.equal(await page.locator('#cdhMore').count(), 0, 'no folded catalog on home');
-      const order = await page.evaluate(() => ['#cdhFusionSignature','#cdSignatureConsult','#cdQuickServices','.cdh-consult','#cdhYeongnyangiSlot','#cdConcernPick','#cdhPass','#cdhMoonlightMv','.cdh-all-cta','.cdh-links','.cdh-story'].map(sel => document.querySelector(sel).getBoundingClientRect().top + scrollY));
+      const order = await page.evaluate(() => ['#cdSignatureConsult','#cdhFusionSignature','#cdQuickServices','.cdh-honey','.cdh-consult','#cdhYeongnyangiSlot','#cdConcernPick','#cdhPass','#cdhMoonlightMv','.cdh-all-cta','.cdh-links','.cdh-story'].map(sel => document.querySelector(sel).getBoundingClientRect().top + scrollY));
       assert(order.every((top,i) => i===0 || top>order[i-1]), JSON.stringify(order));
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
       assert(overflow <= 0, 'home overflow: '+width+' / '+overflow);
@@ -54,7 +54,7 @@ for (const channel of ['chrome', 'msedge']) {
         await page.evaluate(() => { document.documentElement.classList.add('neo-mode'); document.body.classList.add('neo-mode'); window.scrollTo(0,0); });
         await page.screenshot({ path: output + '/' + channel + '-dark-' + width + '.png' });
       }
-      const primary = main.locator('.cdh-primary');
+      const primary = main.locator('.cdh-hero .cdh-primary');
       await primary.focus();
       assert(await primary.evaluate(el => el === document.activeElement && el.getBoundingClientRect().height >= 44));
       rows.push({ channel, width, dpr, overflow, order, search: true });

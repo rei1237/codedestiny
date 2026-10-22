@@ -205,22 +205,6 @@
     window.setTimeout(clearPortalOverlay, 2500);
   }
 
-  // 대표 상담 덱의 위치 점 — 모바일 가로 스크롤에서 가장 많이 보이는 카드의 점을 켠다. 격자(데스크톱)에서는 CSS 가 점을 숨긴다.
-  (function syncDeckDots() {
-    var viewport = document.getElementById('cdSigViewport');
-    var dots = home.querySelectorAll('[data-cd-sig-dot]');
-    if (!viewport || !dots.length || typeof window.IntersectionObserver !== 'function') return;
-    var cards = Array.prototype.slice.call(viewport.querySelectorAll('.cd-sig-card'));
-    var ratios = cards.map(function () { return 0; });
-    var observer = new window.IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) { ratios[cards.indexOf(entry.target)] = entry.intersectionRatio; });
-      var best = 0;
-      for (var i = 1; i < ratios.length; i += 1) if (ratios[i] > ratios[best]) best = i;
-      for (var j = 0; j < dots.length; j += 1) dots[j].classList.toggle('is-active', j === best);
-    }, { root: viewport, threshold: [0, 0.25, 0.5, 0.75, 1] });
-    cards.forEach(function (card) { observer.observe(card); });
-  })();
-
   document.addEventListener('click', function (event) {
     var target = event.target instanceof Element ? event.target : null;
     if (!target) return;

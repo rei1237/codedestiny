@@ -4,11 +4,9 @@ import { CURRENT_PASS_PLANS } from '../../lib/payment/pass-policy.js';
 import { listServicePackPlans } from '../../worker/payments/service-pack-policy.js';
 import { FEATURE_KEY_PRICE_TABLE, UNLOCK_PRODUCT_BY_FEATURE_KEY } from '../../worker/lib/paid-feature-registry.js';
 import { renderNeoEmailHomeEntry } from '../../lib/brand/neo-email-home-entry.mjs';
-import { renderConsultationDiscovery } from '../../lib/marketing/consultation-discovery.mjs';
 
 const original = readFileSync('index.html', 'utf8');
 const vars = {};
-vars.consultationDiscovery = renderConsultationDiscovery();
 
 // 가벼운 체험만 선별한다. 유료 표시는 서버 상품 정본에서 생성한다.
 const LIGHT_FORTUNES = [
@@ -59,7 +57,7 @@ for (const fish of ['mackerel', 'salmon', 'flounder', 'tuna']) {
   vars[`yeongnyangi${fish[0].toUpperCase()}${fish.slice(1)}Price`] = price.toLocaleString('ko-KR');
 }
 
-// 초융합 운세 시그니처 띠 — 히어로 바로 뒤. 다섯 마스터 · 여섯 체계 · 영역별 8장을 한 장면으로 보여 준다.
+// 초융합 운세 시그니처 띠 — 대표 상담 덱 바로 뒤. 다섯 마스터 · 여섯 체계 · 영역별 8장을 한 장면으로 보여 준다.
 // 마스터 배정은 components/fortune/master-profiles.ts productMasters.fusion(결과 화면 화자)과 같다.
 const fusionPrice = Number(FEATURE_KEY_PRICE_TABLE['fusion-fortune-consultation']?.amountKRW);
 if (fusionPrice !== 50000) throw new Error('Fusion signature band copy says 50,000원; registry amount changed: ' + fusionPrice);
@@ -76,7 +74,7 @@ const FUSION_AREAS = ['타고난 성향', '인생의 시기', '연애', '결혼'
 vars.fusionSignature = `<section class="cdh-fusion-sig" id="cdhFusionSignature" data-cd-funnel-section="fusion_signature" data-marker="cdh-fusion-signature-v20261017" aria-labelledby="cdhFusionSigTitle" lang="ko">
   <a class="cdh-fusion-sig__art" href="/fusion-fortune/?from=home_signature" tabindex="-1" aria-hidden="true" data-cd-service-id="fusion-fortune"><img src="/images/service-introductions/fusion-fortune-960.webp" srcset="/images/service-introductions/fusion-fortune-640.webp 640w, /images/service-introductions/fusion-fortune-960.webp 960w" sizes="(max-width: 860px) calc(100vw - 32px), 640px" width="1200" height="800" loading="lazy" decoding="async" alt=""></a>
   <div class="cdh-fusion-sig__body">
-    <p class="cdh-fusion-sig__eyebrow">CODE DESTINY SIGNATURE</p>
+    <p class="cdh-fusion-sig__eyebrow">여섯 체계 종합 상담</p>
     <h2 class="cdh-fusion-sig__title" id="cdhFusionSigTitle">초융합 운세</h2>
     <p class="cdh-fusion-sig__lead">다섯 마스터가 여섯 체계로 교차해 읽는 한 권. 타고난 성향부터 시기·연애·결혼·재물까지 영역별로 짚어 드려요.</p>
     <ul class="cdh-fusion-sig__masters" role="list">${FUSION_MASTERS.map(master => `<li><img src="/images/master-profiles/avatars/${master.avatar}.webp" width="44" height="44" alt="" loading="lazy" decoding="async"><span><b>${master.name}</b><small>${master.role}</small></span></li>`).join('')}</ul>
@@ -158,44 +156,8 @@ ${QUESTION_CATEGORIES.map((category, index) => `    <div class="cd-concern__pane
   </section>
 </section>`;
 
+// 덱 순서가 곧 강약이다. 대표 상담 3종(연애 비책·신년운세·인생의 책)을 Ⅰ–Ⅲ 첫 줄에 두고, 네오·연이·마스터 상담이 뒤를 잇는다.
 const signatureProducts = [
-  {
-    id: 'neo-operation-room',
-    className: 'neo',
-    href: '/neo-operation-room/',
-    title: '네오의 팩폭 전략실',
-    question: '고민은 충분히 했다. 이제 무엇부터 바꿀까?',
-    image: '/images/feature-details/neo-operation-room-hero-v2-textless.webp',
-    imageAlt: '달빛 전략실에서 선택의 판세를 정리하는 네오',
-    featureKey: 'neo-operation-room-consultation',
-    master: { caption: '마스터', names: '네오', avatars: ['neo'] },
-    cta: '전략실 입장하기',
-  },
-  {
-    id: 'fortune-tea-house',
-    className: 'tea',
-    href: '/fortune-tea-house/',
-    title: '연이의 운명 찻집',
-    question: '재회부터 사업까지, 어떤 선택이 고민인가요?',
-    image: '/images/home/yeoni-tea-together-v1-1200.webp',
-    imageAlt: '한복 입은 연이와 꽃돼지가 함께 차를 건네는 운명의 찻집',
-    featureKey: 'fortune-tea-house-tarot-consultation',
-    master: { caption: '마스터', names: '연이', avatars: ['yeoni'] },
-    cta: '운명 찻집 들어가기',
-  },
-  {
-    id: 'master-love-codex',
-    className: 'master',
-    href: '/master-love-codex/',
-    title: '마스터 인연의 서',
-    question: '사람은 바뀌는데, 연애의 고민은 왜 비슷할까?',
-    image: '/images/feature-details/master-love-codex-hero-v3.webp',
-    imageAlt: '달빛 아래 인연의 지도를 펼쳐 보는 마스터 인연의 서',
-    featureKey: 'master-love-codex',
-    master: { caption: '인연의 서', names: '마스터', avatars: ['master'] },
-    priceSuffix: '~',
-    cta: '인연의 서 펼치기',
-  },
   {
     id: 'love-secret-ai',
     className: 'love',
@@ -235,6 +197,43 @@ const signatureProducts = [
     master: { caption: '마스터', names: '윤달', avatars: ['yun-life-book'] },
     cta: '인생의 책 펼치기',
   },
+  {
+    id: 'neo-operation-room',
+    className: 'neo',
+    href: '/neo-operation-room/',
+    title: '네오의 팩폭 전략실',
+    question: '고민은 충분히 했다. 이제 무엇부터 바꿀까?',
+    image: '/images/feature-details/neo-operation-room-hero-v2-textless.webp',
+    imageAlt: '달빛 전략실에서 선택의 판세를 정리하는 네오',
+    featureKey: 'neo-operation-room-consultation',
+    master: { caption: '마스터', names: '네오', avatars: ['neo'] },
+    cta: '전략실 입장하기',
+  },
+  {
+    id: 'fortune-tea-house',
+    className: 'tea',
+    href: '/fortune-tea-house/',
+    title: '연이의 운명 찻집',
+    question: '재회부터 사업까지, 어떤 선택이 고민인가요?',
+    image: '/images/home/yeoni-tea-together-v1-1200.webp',
+    imageAlt: '한복 입은 연이와 꽃돼지가 함께 차를 건네는 운명의 찻집',
+    featureKey: 'fortune-tea-house-tarot-consultation',
+    master: { caption: '마스터', names: '연이', avatars: ['yeoni'] },
+    cta: '운명 찻집 들어가기',
+  },
+  {
+    id: 'master-love-codex',
+    className: 'master',
+    href: '/master-love-codex/',
+    title: '마스터 인연의 서',
+    question: '사람은 바뀌는데, 연애의 고민은 왜 비슷할까?',
+    image: '/images/feature-details/master-love-codex-hero-v3.webp',
+    imageAlt: '달빛 아래 인연의 지도를 펼쳐 보는 마스터 인연의 서',
+    featureKey: 'master-love-codex',
+    master: { caption: '인연의 서', names: '마스터', avatars: ['master'] },
+    priceSuffix: '~',
+    cta: '인연의 서 펼치기',
+  },
 ];
 for (const product of signatureProducts) {
   const art = introductionArt[product.id];
@@ -256,8 +255,7 @@ const signatureMaster = ({ caption, names, avatars }) => `<span class="cd-sig-ca
 const TAROT_NUMERALS = ['Ⅰ', 'Ⅱ', 'Ⅲ', 'Ⅳ', 'Ⅴ', 'Ⅵ'];
 vars.signature = `<section data-cd-funnel-section="signature_consult" class="cd-sig cd-sig--curated cd-sig--deck" id="cdSignatureConsult" data-marker="cd-signature-consult-v20261016" aria-labelledby="cdSignatureTitle" lang="ko">
   <div class="cd-sig__head"><h2 class="cd-sig__title" id="cdSignatureTitle">대표 상담 여섯 장</h2><p class="cd-sig__sub">카드 한 장이 상담 하나예요. 지금 필요한 한 장을 골라보세요.</p></div>
-  <div class="cd-sig__viewport" id="cdSigViewport"><div class="cd-sig__grid" id="cdSigGrid">${signatureProducts.map((product, index) => `<a class="cd-sig-card cd-sig-card--${product.className}" data-cd-service-id="${product.id}" href="${product.href}" aria-label="${product.title} — ${product.cta}" data-pvw-paid="true"${product.priceSuffix === '부터' ? ' data-price-from="true"' : ''}><span class="cd-yehwa-seal" aria-hidden="true"></span><span class="cd-sig-card__top"><span class="cd-sig-card__numeral" aria-hidden="true">${TAROT_NUMERALS[index]}</span></span><span class="cd-sig-card__media"><img class="cd-sig-card__img" width="1200" height="675" loading="lazy" decoding="async" src="${product.image}"${product.imageSrcset ? ` srcset="${product.imageSrcset}"` : ''} sizes="(max-width: 1023px) min(72vw, 280px), 360px" alt="${product.imageAlt}"></span><span class="cd-sig-card__body">${signatureMaster(product.master)}<span class="cd-sig-card__title">${product.title}</span><span class="cd-sig-card__q">${product.question}</span><span class="cd-sig-card__price">${signaturePrice(product.featureKey, product.priceSuffix)}</span><span class="cd-sig-card__cta"><span>${product.cta}</span> <i aria-hidden="true">→</i></span></span></a>`).join('')}</div></div>
-  <p class="cd-sig__dots" aria-hidden="true">${signatureProducts.map((product, index) => `<span class="cd-sig__dot" data-cd-sig-dot="${index}"></span>`).join('')}</p>
+  <div class="cd-sig__viewport" id="cdSigViewport"><div class="cd-sig__grid" id="cdSigGrid">${signatureProducts.map((product, index) => `<a class="cd-sig-card cd-sig-card--${product.className}" data-cd-service-id="${product.id}" href="${product.href}" aria-label="${product.title} — ${product.cta}" data-pvw-paid="true"${product.priceSuffix === '부터' ? ' data-price-from="true"' : ''}><span class="cd-yehwa-seal" aria-hidden="true"></span><span class="cd-sig-card__top"><span class="cd-sig-card__numeral" aria-hidden="true">${TAROT_NUMERALS[index]}</span></span><span class="cd-sig-card__media"><img class="cd-sig-card__img" width="1200" height="675" loading="lazy" decoding="async" src="${product.image}"${product.imageSrcset ? ` srcset="${product.imageSrcset}"` : ''} sizes="(max-width: 699px) 44vw, (max-width: 1023px) 30vw, 360px" alt="${product.imageAlt}"></span><span class="cd-sig-card__body">${signatureMaster(product.master)}<span class="cd-sig-card__title">${product.title}</span><span class="cd-sig-card__q">${product.question}</span><span class="cd-sig-card__price">${signaturePrice(product.featureKey, product.priceSuffix)}</span><span class="cd-sig-card__cta"><span>${product.cta}</span> <i aria-hidden="true">→</i></span></span></a>`).join('')}</div></div>
   <a class="cd-sig__samples-link" href="/consultation-samples/"><span>상담별 구성과 예시 보기</span><span class="cd-yehwa-spray cd-sig__samples-motif" aria-hidden="true"></span></a>
 </section>`;
 

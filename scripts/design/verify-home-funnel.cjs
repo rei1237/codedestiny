@@ -1,5 +1,5 @@
 // Local-only visual and interaction verification for the simplified home (2026-10-17 "직관성").
-// 홈 흐름: 짧은 히어로 → 대표 상담 덱 Ⅰ–Ⅵ → 무료로 먼저(6장) → 1:1 상담(연이·네오) → 이용권 → 뮤직비디오 → "모든 운세 보기" 버튼 → 달빛 이야기(노벨·음악 카드) → 푸터.
+// 홈 흐름: 짧은 히어로(골드 Brand CTA) → 대표 상담 덱 Ⅰ–Ⅵ(2열/3열 격자) → 초융합 띠 → 무료로 먼저(6장) → 꿀방울 출석 → 1:1 상담(연이·네오) → 이용권 → 뮤직비디오 → "모든 운세 보기" 버튼 → 달빛 이야기(노벨·음악 카드) → 푸터.
 const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -26,7 +26,7 @@ function contrast(foreground, background) {
 async function assertEssentials(page, label) {
   assert.equal(await page.locator('a[href="/mini-games/"], a[href="/saju/love-simulation/"], a[href*="secret-house_real"]').count(), 0, label + ': paused content has no home entry');
   const essentials = [
-    ['hero CTA', '.cdh-primary'],
+    ['hero CTA', '.cdh-hero .cdh-primary'],
     ['signature deck', '#cdSignatureConsult'],
     ['sample guide', '#cdSignatureConsult .cd-sig__samples-link[href="/consultation-samples/"]'],
     ['free first', '#cdQuickServices'],
@@ -78,15 +78,15 @@ async function assertEssentials(page, label) {
       await page.waitForTimeout(250);
       await assertEssentials(page, `${width}px first visit`);
 
-      // 강약: 초융합 시그니처 → 대표 상담 → 무료로 먼저 → 1:1 상담 → 영냥이 배너 → 질문 카테고리 → 이용권 → 뮤직비디오 → 모든 운세 버튼 → 링크 → 달빛 이야기. DOM 순서와 화면 순서가 같다.
+      // 강약: 대표 상담 → 초융합 시그니처 → 무료로 먼저 → 꿀방울 → 1:1 상담 → 영냥이 배너 → 질문 카테고리 → 이용권 → 뮤직비디오 → 모든 운세 버튼 → 링크 → 달빛 이야기. DOM 순서와 화면 순서가 같다.
       const order = await page.evaluate(() => {
-        const nodes = [document.getElementById('cdhFusionSignature'), document.getElementById('cdSignatureConsult'), document.getElementById('cdQuickServices'), document.querySelector('.cdh-consult'), document.getElementById('cdhYeongnyangiSlot'), document.getElementById('cdConcernPick'), document.getElementById('cdhPass'), document.getElementById('cdhMoonlightMv'), document.querySelector('.cdh-all-cta'), document.querySelector('.cdh-links'), document.querySelector('.cdh-story')];
+        const nodes = [document.getElementById('cdSignatureConsult'), document.getElementById('cdhFusionSignature'), document.getElementById('cdQuickServices'), document.querySelector('.cdh-honey'), document.querySelector('.cdh-consult'), document.getElementById('cdhYeongnyangiSlot'), document.getElementById('cdConcernPick'), document.getElementById('cdhPass'), document.getElementById('cdhMoonlightMv'), document.querySelector('.cdh-all-cta'), document.querySelector('.cdh-links'), document.querySelector('.cdh-story')];
         return {
           dom: nodes.every((node, index) => index === 0 || Boolean(nodes[index - 1].compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING)),
           visual: nodes.map((node) => node.getBoundingClientRect().top + scrollY),
         };
       });
-      assert.ok(order.dom, `${width}px home flow keeps fusion → signature → free → consult → questions → pass → MV → all fortunes → links → story in DOM`);
+      assert.ok(order.dom, `${width}px home flow keeps signature → fusion → free → honey → consult → questions → pass → MV → all fortunes → links → story in DOM`);
       assert.ok(order.visual.every((top, index) => index === 0 || top > order.visual[index - 1]), `${width}px home flow keeps the same visual order (${order.visual.map(Math.round).join(' < ')})`);
 
       // 걷어낸 블록은 홈 마크업에 다시 생기지 않는다. 기능 페이지와 URL은 그대로다.
@@ -99,7 +99,8 @@ async function assertEssentials(page, label) {
       }
 
       assert.match(await page.locator('#cdhTitle').innerText(), /명리학자/, `${width}px hero states who designed the consultations`);
-      assert.equal(await page.locator('.cdh-primary').getAttribute('href'), '#cdSignatureConsult', `${width}px hero CTA leads to the deck`);
+      assert.equal(await page.locator('.cdh-hero .cdh-primary').getAttribute('href'), '#cdSignatureConsult', `${width}px hero CTA leads to the deck`);
+      assert.match(await page.locator('.cdh-hero .cdh-primary').evaluate((node) => getComputedStyle(node).backgroundImage), /gradient/, `${width}px hero CTA is the gold Brand pill`);
       assert.equal(await page.locator('#cdQuickServices .cdh-free-card').count(), 6, `${width}px free first offers the six methods`);
       assert.equal(await page.locator('#cdQuickServices .cdh-free-card').first().getAttribute('data-cdh-free'), '', `${width}px the first free card opens the one-step saju`);
       // 초융합 시그니처 띠: 다섯 마스터 · 50,000원 · 초융합 페이지로.
@@ -128,22 +129,18 @@ async function assertEssentials(page, label) {
       assert.ok(story.every((card) => card.visible) && Math.abs(story[0].top - story[1].top) < 40, `${width}px story cards open side by side`);
       await page.locator('.cdh-story__toggle').click();
 
-      // 대표 상담 덱: 1024 미만은 가로 한 줄 scroll-snap(카드 6장)과 위치 점, 이상은 3열 두 줄. 카드는 2:3 이상으로 세로가 길다.
+      // 대표 상담 덱: 700 미만 2열, 이상 3열 격자(가로 스크롤·위치 점 없음). 대표 상담 3종이 첫 줄이고, 라벨은 텍스트 링크다.
       assert.equal(await page.locator('#cdSigGrid .cd-sig-card').count(), 6, `${width}px deck has six cards`);
       assert.equal(await page.locator('#cdSignatureConsult .cd-sig-card__img').count(), 6, `${width}px each card carries its visual`);
-      assert.equal(await page.locator('#cdSignatureConsult [data-cd-service-id]').first().getAttribute('data-cd-service-id'), 'neo-operation-room', 'Neo leads the representative consultations');
-      assert.equal(await page.locator('#cdSignatureConsult [data-cd-service-id]').nth(1).getAttribute('data-cd-service-id'), 'fortune-tea-house', 'Yeoni tea house follows Neo');
-      const grid = await page.locator('#cdSigGrid').evaluate((node) => { const cs = getComputedStyle(node); const card = node.querySelector('.cd-sig-card').getBoundingClientRect(); return { flow: cs.gridAutoFlow, snap: cs.scrollSnapType, cols: cs.gridTemplateColumns.split(' ').length, ratio: card.height / card.width }; });
-      if (width < 1024) assert.ok(grid.flow.startsWith('column') && grid.snap.startsWith('x'), `${width}px deck is one snapping row (${grid.flow}, ${grid.snap})`);
-      else assert.equal(grid.cols, 3, `${width}px deck shows three columns`);
+      assert.deepEqual(await page.locator('#cdSigGrid .cd-sig-card').evaluateAll((cards) => cards.slice(0, 3).map((card) => card.dataset.cdServiceId)), ['love-secret-ai', 'new-year-ai', 'life-book-ai'], `${width}px the three signature consultations lead the deck`);
+      const grid = await page.locator('#cdSigGrid').evaluate((node) => { const cs = getComputedStyle(node); const card = node.querySelector('.cd-sig-card').getBoundingClientRect(); return { flow: cs.gridAutoFlow, overflowX: cs.overflowX, cols: cs.gridTemplateColumns.split(' ').length, ratio: card.height / card.width, top: card.top }; });
+      assert.ok(grid.flow.startsWith('row') && grid.overflowX === 'visible', `${width}px deck is a grid, not a carousel (${grid.flow}, ${grid.overflowX})`);
+      assert.equal(grid.cols, width < 700 ? 2 : 3, `${width}px deck shows ${width < 700 ? 2 : 3} columns`);
       assert.ok(grid.ratio >= 1.49, `${width}px deck card keeps a tarot (2:3) silhouette (${grid.ratio.toFixed(2)})`);
-      assert.equal(await page.locator('.cd-sig__dots').isVisible(), width < 1024, `${width}px deck position dots only on the scrolling row`);
-      if (width < 1024) {
-        assert.equal(await page.locator('.cd-sig__dots [data-cd-sig-dot]').count(), 6, `${width}px one dot per card`);
-        // 모바일 첫 화면에서 덱의 첫 카드가 보이기 시작한다.
-        const firstCardTop = await page.locator('#cdSigGrid .cd-sig-card').first().evaluate((card) => card.getBoundingClientRect().top);
-        assert.ok(firstCardTop < height, `${width}px first deck card starts inside the first viewport (${Math.round(firstCardTop)} < ${height})`);
-      }
+      assert.equal(await page.locator('.cd-sig__dots, [data-cd-sig-dot]').count(), 0, `${width}px deck has no position dots`);
+      // 첫 화면에서 덱의 첫 줄이 보이기 시작한다.
+      assert.ok(grid.top < height, `${width}px first deck card starts inside the first viewport (${Math.round(grid.top)} < ${height})`);
+      assert.equal(await page.locator('#cdSigGrid .cd-sig-card__cta').evaluateAll((labels) => labels.filter((label) => getComputedStyle(label).backgroundColor !== 'rgba(0, 0, 0, 0)').length), 0, `${width}px deck labels stay text links`);
 
       // 채움 CTA = 배경과 대비 1.5 이상인 불투명 채움이나 그라디언트를 가진 버튼 크기(72px 이하) 요소.
       const fills = await page.evaluate(() => {
@@ -258,10 +255,10 @@ async function assertEssentials(page, label) {
       await page.evaluate(() => { document.documentElement.classList.remove('neo-mode'); document.body.classList.remove('neo-mode'); });
 
       if (width === 390) {
-        const neoImage = page.locator('.cd-sig-card--neo .cd-sig-card__img');
-        await neoImage.scrollIntoViewIfNeeded();
-        await page.waitForFunction(() => document.querySelector('.cd-sig-card--neo .cd-sig-card__img')?.naturalWidth > 0);
-        assert.ok(await neoImage.evaluate((image) => image.naturalWidth > 0), 'deck card image loads from the local CDN fixture');
+        const leadImage = page.locator('.cd-sig-card--love .cd-sig-card__img');
+        await leadImage.scrollIntoViewIfNeeded();
+        await page.waitForFunction(() => document.querySelector('.cd-sig-card--love .cd-sig-card__img')?.naturalWidth > 0);
+        assert.ok(await leadImage.evaluate((image) => image.naturalWidth > 0), 'deck card image loads from the local CDN fixture');
       }
 
       assert.deepEqual(errors, [], `${width}px raises no page errors`);
