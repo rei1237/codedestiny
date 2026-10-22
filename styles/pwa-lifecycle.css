@@ -1,6 +1,6 @@
 /* Installation banner keeps its existing presentation. */
 .cd-moon-install{font-family:Pretendard,sans-serif;color:#242139;background:#fffdf8;border:1px solid #b3935b;box-shadow:0 12px 36px #24213926;font-size:16px;line-height:1.75;position:fixed;bottom:calc(var(--cd-mobile-nav-h, env(safe-area-inset-bottom, 0px)) + 12px);left:16px;right:16px;max-width:650px;margin:auto;z-index:1000;border-radius:18px;padding:12px;display:flex;align-items:center;gap:10px}
-.cd-moon-install img{object-fit:contain;border-radius:12px}.cd-moon-install strong{font-size:15px}.cd-moon-install p{font-size:13px;margin:0}.cd-moon-install div{flex:1;min-width:0}
+.cd-moon-install img{object-fit:contain;border-radius:12px}.cd-moon-install strong{font-size:15px}.cd-moon-install p{font-size:14px;margin:0}.cd-moon-install div{flex:1;min-width:0}
 .cd-moon-install button{font:inherit;min-height:44px;padding:8px 12px;border:1px solid #b9afc6;border-radius:12px;background:#ede7f5;color:#242139;cursor:pointer}.cd-moon-install button:focus-visible{outline:3px solid #635080;outline-offset:3px}
 
 /* A self-contained paper palette: this dialog also opens outside themed routes. */

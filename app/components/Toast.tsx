@@ -83,7 +83,6 @@ function SingleToast({
 
   return (
     <div
-      role="alert"
       style={{
         minWidth: 280,
         maxWidth: 390,
@@ -93,7 +92,7 @@ function SingleToast({
       }}
       className={`flex items-start gap-3 rounded-2xl border bg-gradient-to-r backdrop-blur-xl px-4 py-3.5 shadow-[0_20px_56px_rgba(0,0,0,0.6)] ${GRADIENTS[item.type]}`}
     >
-      <span className="mt-0.5 shrink-0 text-sm font-bold text-white leading-none">
+      <span aria-hidden="true" className="mt-0.5 shrink-0 text-sm font-bold text-white leading-none">
         {ICONS[item.type]}
       </span>
       <p className="flex-1 text-sm font-medium leading-relaxed text-white/95">{item.message}</p>
@@ -134,17 +133,20 @@ export function ToastProvider() {
   // SSR 하이드레이션 방지 — 클라이언트에서만 포털로 렌더
   if (!mounted) return null;
 
+  const render = (items: ToastItem[]) => items.map((item) => (
+    <div key={item.id} className="pointer-events-auto">
+      <SingleToast item={item} onRemove={remove} />
+    </div>
+  ));
+  const errors = toasts.filter((t) => t.type === "error");
+  const notices = toasts.filter((t) => t.type !== "error");
+
+  // 라이브 영역은 한 겹만 둔다. 토스트마다 role="alert"를 또 달면 같은 말을 두 번 읽는다.
+  // 오류만 바로 끊고 읽고, 나머지는 읽던 말을 마친 뒤 읽는다.
   return createPortal(
-    <div
-      aria-live="polite"
-      aria-atomic="false"
-      className="pointer-events-none fixed right-4 top-[62px] z-[9999] flex flex-col items-end gap-2.5"
-    >
-      {toasts.map((item) => (
-        <div key={item.id} className="pointer-events-auto">
-          <SingleToast item={item} onRemove={remove} />
-        </div>
-      ))}
+    <div className="pointer-events-none fixed right-4 top-[62px] z-[9999] flex flex-col items-end">
+      <div aria-live="assertive" aria-atomic="false" className="flex flex-col items-end gap-2.5">{render(errors)}</div>
+      <div aria-live="polite" aria-atomic="false" className={`flex flex-col items-end gap-2.5${errors.length && notices.length ? " mt-2.5" : ""}`}>{render(notices)}</div>
     </div>,
     document.body,
   );

@@ -41,8 +41,8 @@
     hideBanner(); lastFocus=document.activeElement;
     dialog=document.createElement('dialog'); dialog.className='cd-moon-letter'; dialog.setAttribute('aria-labelledby','cdMoonTitle');
     var art=document.createElement('div'); art.className='cd-moon-letter__art';
-    var img=document.createElement('img'); img.src='/assets/yeongnyangi/original/hero-800.webp'; img.width=100; img.height=100; img.alt=''; art.appendChild(img);
-    var label=document.createElement('p'); label.textContent='영냥이의 달빛 편지'; art.appendChild(label); dialog.appendChild(art);
+    var img=document.createElement('img'); img.src='/icons/moonlight-garden-v1-192.png'; img.width=192; img.height=192; img.alt=''; art.appendChild(img);
+    var label=document.createElement('p'); label.textContent='꿀꿀운세의 편지'; art.appendChild(label); dialog.appendChild(art);
     var h=document.createElement('h2'); h.id='cdMoonTitle'; h.textContent=title; dialog.appendChild(h);
     dialog.addEventListener('cancel',function(e){e.preventDefault(); if(pending) deferUpdate(); else closeDialog();});
     document.body.appendChild(dialog); dialog.showModal(); return dialog;
@@ -76,8 +76,8 @@
     if (read(sessionStorage,'cd.pwa.shown') || Number(read(localStorage,'cd.pwa.snooze'))>Date.now()) return;
     if (!promptEvent && !/iPhone|iPad|iPod|KAKAOTALK|Instagram|FBAN|FBAV/i.test(navigator.userAgent)) return;
     banner=document.createElement('aside'); banner.className='cd-moon-install';banner.setAttribute('aria-label','앱 설치 안내');
-    var img=document.createElement('img');img.src='/assets/yeongnyangi/original/hero-800.webp';img.width=48;img.height=48;img.alt='';banner.appendChild(img);
-    var text=document.createElement('div');var title=document.createElement('strong');title.textContent='꿀꿀운세를 홈 화면에';text.appendChild(title);var desc=document.createElement('p');desc.textContent='달빛 이야기를 더 가깝게 만나세요';text.appendChild(desc);banner.appendChild(text);
+    var img=document.createElement('img');img.src='/icons/moonlight-garden-v1-192.png';img.width=48;img.height=48;img.alt='';banner.appendChild(img);
+    var text=document.createElement('div');var title=document.createElement('strong');title.textContent='꿀꿀운세를 홈 화면에';text.appendChild(title);var desc=document.createElement('p');desc.textContent='아이콘을 눌러 바로 운세를 볼 수 있어요';text.appendChild(desc);banner.appendChild(text);
     banner.appendChild(button(promptEvent?'설치':'추가 방법',install));var close=button('닫기',function(){deferInstall(policy.closeDays);});close.setAttribute('aria-label','설치 안내 닫기');banner.appendChild(close);
     document.body.appendChild(banner);write(sessionStorage,'cd.pwa.shown','1');track('pwa_install_impression');
   }
