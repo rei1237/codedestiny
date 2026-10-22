@@ -1,7 +1,7 @@
 ---
-status: active
+status: done
 updated: 2026-10-23
-next: "챕터 썸네일 개명 커밋을 Release Cloudflare Pages and Worker 워크플로(mode=production)로 운영에 배포하고(승인 받음) verify-deployed-sha 로 확인한 뒤 status 를 done 으로 바꾼다"
+next: "완료(b2df07631 v4 출시, 0faf7bccb 챕터 썸네일 개명, 둘 다 운영 verify-deployed-sha PASS). 남은 것은 v1·v3 R2 고아 객체 정리뿐이고 요청이 있을 때만 한다."
 ---
 
 # HEAVEN LIGHT MV v4 — 원곡 전체 4:44, 빛이 퍼지는 재연출
@@ -14,7 +14,7 @@ next: "챕터 썸네일 개명 커밋을 Release Cloudflare Pages and Worker 워
 
 ## 지금 상태
 
-- 렌더, qc, 확인 B, 사이트 반영, R2 업로드, 운영 배포(b2df07631, verify-deployed-sha PASS)까지 끝났다. 남은 것은 챕터 썸네일 개명 커밋의 운영 배포다.
+- 렌더, qc, 확인 B, 사이트 반영, R2 업로드, 운영 배포(b2df07631), 썸네일 개명 재배포(0faf7bccb)까지 끝났다. 둘 다 verify-deployed-sha PASS다.
 - 최종본: `D:\헤븐라이트_MV_2026-10-19\06_OUTPUT_v4\final\` (283.84초, 8515프레임). qc 전 게이트 통과.
 - R2 새 키 `heaven-light-1080p-305a70272e79.mp4`, `heaven-light-720p-472420706368.mp4`는 둘 다 r2_verify ALL PASS (283.83초).
 - 이미지 생성은 누계 215장(상한 239)이다.
@@ -38,7 +38,7 @@ next: "챕터 썸네일 개명 커밋을 Release Cloudflare Pages and Worker 워
 - [x] 최종 렌더와 `qc.py`
 - [x] 확인 B
 - [x] 사이트: 새 R2 키, VTT 106큐, 챕터 6개, "4분 44초" ×3, 테스트 갱신
-- [ ] 출시. R2 업로드·검증, main 커밋·push, 스테이징, 운영 배포(b2df07631)까지 했다. 썸네일 개명 커밋의 운영 배포가 남았다(승인 받음). 운영 배포는 매번 따로 승인을 받는다
+- [x] 출시: R2 업로드·검증, main push, 스테이징, 운영 배포(b2df07631, 0faf7bccb). 운영의 v4 썸네일 6장은 로컬 파일과 바이트 단위로 같다. 운영 배포는 매번 따로 승인을 받는다
 - 후속: v3 R2 객체 2개(`heaven-light-1080p-06cecf07eb68.mp4`, `heaven-light-720p-f2c4008f5c2d.mp4`)는 v1 2개와 함께 고아가 됐다. 지우려면 요청을 받아야 한다.
 - **완료 판정:**
   - check_shotlist `--final` 오류 0
