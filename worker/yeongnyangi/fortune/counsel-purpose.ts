@@ -8,12 +8,13 @@ import {withV7Sections,type ChapterSpecV7} from './reading-v7';
 
 export const COUNSEL_VERSION='purpose-counsel-v1';
 export const isMajorQuestion=(text:string)=>/대운|大運|大运|daewoon|daeun|(?:decade|major)\s*(?:luck|cycle)/iu.test(text);
-type Cycle={index:number;startYear:number;endYear:number;startAge?:number;endAge?:number;pillar:string;isCurrent?:boolean};
+type Cycle={index:number;startYear:number;endYear:number;startAge?:number;endAge?:number;startAgeMan?:number;endAgeMan?:number;startDate?:string;pillar:string;isCurrent?:boolean};
 
 /** Per-question scope: an unrelated dated question must not trim a lifetime question. */
 export function questionCycles(text:string,asOf:string,cycles:Cycle[]):Cycle[]{
   const year=Number(asOf.slice(0,4));
-  const current=cycles.find(c=>c.startYear<=year&&c.endYear>=year);
+  // Dated cycles (saju/major-luck.ts) mark the current one by the 교운일; older stored rows only carry years.
+  const current=cycles.find(c=>c.startDate&&c.isCurrent)||cycles.find(c=>c.startYear<=year&&c.endYear>=year);
   const namedPattern=/([갑을병정무기경신임계][자축인묘진사오미신유술해]|[甲乙丙丁戊己庚辛壬癸][子丑寅卯辰巳午未申酉戌亥])\s*대운/gu;
   const named=[...text.matchAll(namedPattern)].map(m=>m[1]);
   const ranges=resolveAskPeriods(text.replace(namedPattern,''),asOf,resolveQuestionYears);
@@ -26,7 +27,7 @@ export function questionCycles(text:string,asOf:string,cycles:Cycle[]):Cycle[]{
   }
   if(/전체|평생|과거.*미래|all|lifetime/iu.test(text))return cycles;
   const ages=[...text.matchAll(/(\d{1,3})\s*(세|대)/gu)];
-  if(ages.length){const start=Math.min(...ages.map(m=>Number(m[1]))),end=Math.max(...ages.map(m=>Number(m[1])+(m[2]==='대'?9:0)));return cycles.filter(c=>c.startAge!==undefined&&c.endAge!==undefined&&c.endAge>=start&&c.startAge<=end);}
+  if(ages.length){const start=Math.min(...ages.map(m=>Number(m[1]))),end=Math.max(...ages.map(m=>Number(m[1])+(m[2]==='대'?9:0)));return cycles.filter(c=>{const from=c.startAgeMan??c.startAge,to=c.endAgeMan??c.endAge;return from!==undefined&&to!==undefined&&to>=start&&from<=end;});}
   if(/현재|지금|이번|다음|current|next/iu.test(text))return cycles.filter(c=>
     (/현재|지금|이번|current/iu.test(text)&&c===current)||(/다음|next/iu.test(text)&&c===(current?cycles.find(x=>x.index===current.index+1):cycles.find(x=>x.startYear>year))));
   return cycles;
@@ -54,7 +55,7 @@ const PURPOSES:Record<string,string>={
   timing:'실제 계산된 시기별 변화와 준비를 비교한다. 날짜의 해상도를 높이거나 사건을 확정하지 않는다.',
 };
 export const PLAIN_COUNSEL='생활에서 느낄 변화와 질문의 답을 먼저 말하고 실제 근거→쉬운 뜻→선택과 행동으로 잇는다. 전문 용어는 꼭 필요한 것만 첫 등장에 짧게 풀고 한 문장에 여러 용어를 나열하지 않는다. 낯선 한자와 내부 키를 본문에 노출하지 않는다. 같은 설명을 장마다 반복하지 않는다. 장면은 예시이며 실제 경험으로 단정하지 않는다. 체계마다 고유 근거와 한계를 유지하고 퓨전에서는 공통점과 상충점을 구분한다.';
-export const SAJU_CYCLE_GUIDE='각 배정 대운을 빠짐없이 시기 요약→원국과 비교→연애·건강·재물·직업→행동 순서로 설명한다. 지장간·투간·투출·개고·도충은 계산된 성립 조건과 해당 기간만 사용한다. 도충의 반대 글자를 원국에 추가하지 않는다. 개고의 강도·열린 십성·유불리와 완화 조건을 구분하고 횡재나 파국으로 단정하지 않는다. 원국의 격국·종격·강약·용신 판정은 고정하고 운에서 돕거나 부담을 주는 조건만 비교한다. 억부 우선·조후 보완 정책을 유지하고 원국의 한난과 조습 및 운의 오행을 대조하되 새 점수나 용신을 만들지 않는다. 존재하지 않는 작용을 억지로 설명하지 않는다. 과거는 돌아볼 패턴, 미래는 조건과 선택이며 현재·다음 대운은 준비를 더 구체화한다. 세운은 해당 대운과 겹치는 제공 연도만 읽는다.';
+export const SAJU_CYCLE_GUIDE='각 배정 대운을 빠짐없이 시기 요약→원국과 비교→연애·건강·재물·직업→행동 순서로 설명한다. 지장간·투간·투출·개고·도충은 계산된 성립 조건과 해당 기간만 사용한다. 도충의 반대 글자를 원국에 추가하지 않는다. 개고의 강도·열린 십성·유불리와 완화 조건을 구분하고 횡재나 파국으로 단정하지 않는다. 원국의 격국·종격·강약·용신 판정은 고정하고 운에서 돕거나 부담을 주는 조건만 비교한다. 억부 우선·조후 보완 정책을 유지하고 원국의 한난과 조습 및 운의 오행을 대조하되 새 점수나 용신을 만들지 않는다. 존재하지 않는 작용을 억지로 설명하지 않는다. 과거는 돌아볼 패턴, 미래는 조건과 선택이며 현재·다음 대운은 준비를 더 구체화한다. 세운은 해당 대운과 겹치는 제공 연도만 읽는다. 대운 이름은 각 주기의 label(간지 대운 · YYYY년 M월 무렵부터 (만 N세, 대운수 N))을 그대로 쓰고, 세는 나이로 "N세 대운"이라 부르지 않는다. transition이 있으면 올해 대운이 바뀌는 시점으로 밝힌다.';
 export function purposeGuide(kind:string,topic:string){return PURPOSES[kind]||PURPOSES[topic]||'선택한 상담의 질문과 기존 전용 해석 계약을 우선하고, 그 목적에 맞는 근거·선택·행동으로 답한다.';}
 
 /** Keep the purchased chapter count/budget. Reuse the native renderer and section IDs. */
@@ -77,7 +78,10 @@ export function counselManifest(manifest:ChapterSpec[],context:DomainContext|und
       systems:[...new Set([...(c.systems||[]),'saju' as const])],
       focus:SAJU_CYCLE_GUIDE,excludes:[],periodScope:'배정된 대운과 그 안의 계산된 세운만 읽는다.',
       factSelectors:{...c.factSelectors,saju:['pillars','dayMaster','tenGodsByPillar','seasonalBalance','healthBasis','strengthHeuristic','usefulGod','jong','advancedFactors','majorLuck']},
-      sections:c.sections?.map(s=>({...s,instruction:`${s.instruction} ${labels.join(', ')} 각 주기의 원국 비교와 연애·건강·재물·직업을 역할에 맞게 설명한다.`}))};
+      // Each comparison is asked once: the same four topics in every section wrote the same paragraph per section.
+      sections:c.sections?.map((s,i,all)=>({...s,instruction:[s.instruction,`${labels.join(', ')} 주기를 다룬다.`,
+        i===0?'각 주기와 원국의 비교는 이 소절에서 한다.':'',i===all.length-1?'각 주기의 연애·건강·재물·직업은 이 소절에서 한 번씩만 정리한다.':'',
+        i>0&&i<all.length-1?'다른 소절에서 쓴 비교와 주제를 반복하지 않는다.':''].filter(Boolean).join(' ')}))};
     if(v7){const chapter=next as ChapterSpecV7;
       next=withV7Sections({...chapter,owns:chapter.owns.filter(p=>!p.startsWith('majorLuck')).concat(assigned.map(x=>`majorLuck.cycle${x.index}`)),
         refs:[...new Set([...chapter.refs,'advancedFactors','strengthHeuristic','seasonalBalance','healthBasis','usefulGod','jong'])],

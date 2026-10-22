@@ -82,6 +82,20 @@ test('bonus chapters cover areas outside the question topic; tuna adds twelve li
   }
  }
 });
+test('one question still reads aptitude, love and health once; the core chapter takes an expansion row',()=>{
+ const core=(domain,tier,category)=>m.questionManifest(domain,tier,asked(category),undefined,QUESTION).filter(row=>row.key==='question-core').map(row=>row.sections.map(s=>s.id));
+ assert.deepEqual(core('saju','mackerel','money'),[['core-work','core-love','core-health','evidence']]);
+ assert.deepEqual(core('saju','salmon','job_change'),[['core-love','core-health','evidence']]);
+ // Flounder's fixed bonus chapters already read work and health for a money question.
+ assert.deepEqual(core('saju','flounder','money'),[['core-love','evidence']]);
+ assert.deepEqual(core('saju','flounder','love'),[]);
+ for(const [domain,tier] of [['saju','tuna'],['tarot','mackerel'],['sukuyo','salmon']])assert.deepEqual(core(domain,tier,'money'),[],domain+' '+tier);
+ const rows=m.questionManifest('saju','mackerel',asked('money'),undefined,QUESTION);
+ assert.equal(rows.at(-1).key,'question-5');
+ assert.ok(rows.find(row=>row.key==='question-core').factSelectors.saju.includes('healthBasis'));
+ assert.ok(m.questionManifest('saju','mackerel',decision,undefined,QUESTION,false)[0].sections.some(s=>s.id==='core'));
+ assert.ok(!m.questionManifest('tarot','mackerel',decision,undefined,QUESTION,false)[0].sections.some(s=>s.id==='core'));
+});
 test('fusion books give every system its own foundation and expert chapter, then the question outline, life comparison and synthesis',()=>{
  for(const product of m.products.filter(p=>p.readingKind!=='single')){
   const rows=m.fusionConsultationManifest(product,'love');

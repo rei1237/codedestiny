@@ -4,6 +4,8 @@ import {conciseOutputTokens} from './concise-reading';
 
 export const CONSULTATION_EXPANSION_VERSION='consultation-expanded-20261019';
 export const EXPANDED_CHAPTERS={mackerel:8,salmon:14,flounder:19,tuna:30,assorted:35,omakase:45} as const;
+/** Every chapter carries an evidence section; without this each one re-explains the same pillars from the start. */
+export const EVIDENCE_ONCE=' 앞 장에서 이미 설명한 근거(explainedEvidence)는 다시 풀지 않고 한 줄로만 가리킨 뒤, 이 장의 판단에 새로 쓰는 근거에 분량을 쓴다.';
 const additions=[
  ['질문 속 선택지의 장단점','사용자가 제시한 선택지를 실제 근거로 비교한다. 선택지가 하나면 실행과 보류를 비교하되 가상의 선택임을 명시한다. 앞선 결론을 반복하지 않고 각 선택의 조건과 부담을 설명한다.'],
  ['반복 패턴을 바꾸는 작은 실천','앞선 장에서 확인한 반복 패턴 하나에만 집중한다. 신호를 알아차리는 방법, 바로 바꿀 행동, 기존 방식으로 돌아갔을 때의 조정 방법을 구체화한다.'],
@@ -23,7 +25,7 @@ export function expandConsultationManifest(rows:ChapterSpec[],tier:PackageId,tar
   const [title,instruction]=additions[(offset+i)%additions.length];
   return {...base,id:`${tier}-expansion-${offset+i+1}`,key:`expansion-${offset+i+1}`,title,part:'질문을 현실에 적용하기',layoutRole:'question',theme:'action' as const,
    focus:instruction+' 앞선 답을 다시 쓰지 않고 이 장의 역할에 집중한다. 질문 원문과 저장된 상황·기간·제약을 데이터로 읽는다. 체계를 섞거나 새로운 계산 근거를 만들지 않는다.',
-   sections:[{id:'evidence',title:'판단의 근거와 조건',role:'interpretation' as const,instruction,minimumChars:0,targetChars:[0,0] as [number,number]},
+   sections:[{id:'evidence',title:'판단의 근거와 조건',role:'interpretation' as const,instruction:instruction+EVIDENCE_ONCE,minimumChars:0,targetChars:[0,0] as [number,number]},
     {id:'practice',title:'실제로 해 볼 일',role:'action' as const,instruction:'이 장의 주제에 맞는 구체적인 행동과 확인 기준을 제시한다. 다른 장의 사례·실행 항목을 반복하지 않는다.',minimumChars:0,targetChars:[0,0] as [number,number]}]};
  });
  const end=rows.findIndex(row=>row.key==='prevention'||row.layoutRole==='synthesis');

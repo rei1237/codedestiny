@@ -98,7 +98,7 @@ export const tunaRoadmapRow:LayoutStep={key:'tuna-roadmap',title:'앞으로 12�
  s('tuna-roadmap-actions','구간별 실행 처방','12개월을 2~4개 구간으로 나눠 구간마다 사용자의 질문과 연결된 우선할 행동·줄일 행동·점검 기준을 짝지어 제시한다.')]};
 /** Current-flow guidance added to every foundation chapter (D7: basics always include the current period). */
 export const currentFlowGuide:Record<DomainId,string>={
- saju:'저장된 현재 대운과 올해 세운이 원국과 만나는 방식을 쉬운 말로 설명한다. 대운이 바뀌는 해가 근거에 있으면 함께 밝힌다.',
+ saju:'저장된 현재 대운과 올해 세운이 원국과 만나는 방식을 쉬운 말로 설명한다. 대운이 바뀌는 해가 근거에 있으면 함께 밝힌다. 대운은 label(간지 대운 · YYYY년 M월 무렵부터 (만 N세, 대운수 N))로 부르고 세는 나이로 "N세 대운"이라 쓰지 않는다.',
  ziwei:'저장된 현재 대한과 올해 유년이 명궁·사화와 만나는 방식을 설명한다. 생년·대한·유년의 사화를 혼동하지 않는다.',
  vedic:'저장된 현재 마하다샤와 안타르다샤가 라그나·달과 어떻게 연결되는지 설명한다. 사주의 대운 용어를 쓰지 않는다.',
  astrology:'계산된 트랜짓·프로그레션 근거가 있을 때만 현재 흐름을 설명한다. 없으면 출생 배치로 시기를 예측하지 않고, 지금 고민에 성향이 드러나는 방식을 설명한다.',

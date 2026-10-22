@@ -14,8 +14,9 @@ import {fitChapterFacts} from './input-budget';
 import {READING_V6_VERSION,READING_V7_VERSION,QUESTION_SKY_TWO_STAGE_VERSION,QUESTION_LAYOUT_VERSION,hasReadingSections,isStructuredReading,PROMPT_VERSION,readingPolicies} from '../fortune/reading-policy';
 import {sanitizeQuestionSkyBody,validateQuestionSkyTwoStage} from '../fortune/question-sky-reading';
 import {buildV7ChapterPrompt,v7TimeTheme,type V7PromptChapter,type V7Previous} from '../fortune/reading-v7-prompt';
-import {LENGTH_FAILURES,bodyCharacterCount,normalizeSectionParagraphs,splitSectionParagraph,validateReadingQuality} from '../fortune/reading-quality';
+import {LENGTH_FAILURES,SENTENCE_BOUNDARY,bodyCharacterCount,normalizeSectionParagraphs,splitSectionParagraph,validateReadingQuality} from '../fortune/reading-quality';
 import {auditV7Chapter,pruneV7Chapter} from '../fortune/reading-v7-quality';
+import {REPEAT_POLICY,pruneRestatements} from '../fortune/reading-restatement';
 import {selectChapterFacts} from '../fortune/chapter-facts';
 import {astrologyPromptValue} from '../fortune/astrology/derived';
 import {hasPrevention,allowsPreventionBalance,preventionTierRule,PREVENTION_RULES,PREVENTION_VERSION} from '../fortune/prevention';
@@ -78,15 +79,23 @@ export function personaPrompt(id?: ChatPersona, voiceStyle?: VoiceStyle): string
 const PERSONA_NAMES: Record<ChatPersona, string> = { yeoni: "연이", neo: "네오" };
 /** Deterministic prose fixes shared by validateChapter and deliverChapter: internal keys (incl. tarot positions), then the chat voice's address. */
 // v7 editorial prune, shared by validateChapter and the lenient deliverChapter path. Measures only; never rejects.
+// Non-v7 chapters with REPEAT_POLICY get the sentence-level repeat prune instead (fortune/reading-restatement.ts).
 export function pruneV7Overlap(v:ChapterBody,input:ChapterRequest,path?:'fallback'):ChapterBody{
   const chapter=input.chapter as V7PromptChapter;
-  if(input.chapter.version!==READING_V7_VERSION||!Array.isArray(chapter.owns)||!Array.isArray(chapter.refs))return v;
+  if(input.chapter.version!==READING_V7_VERSION)return input.chapter.repeatPolicy===REPEAT_POLICY?pruneRepeats(v,input,path||'final'):v;
+  if(!Array.isArray(chapter.owns)||!Array.isArray(chapter.refs))return v;
   const audit=auditV7Chapter({body:v,chapter,previous:input.previous as V7Previous[],
     askFirstChapter:Boolean(input.ask && input.chapter.ordinal===0)});
   if(!audit.code)return v;
   const pruned=pruneV7Chapter(v,audit);
   console.log('[yeongnyangi-v7-audit]',JSON.stringify({chapter:input.chapter.ordinal,...(path?{path}:{}),detail:audit.detail,
     sentences:pruned.removed,chars:pruned.chars,topics:audit.topics.length,restored:pruned.restored,remaining:bodyCharacterCount(pruned.body)}));
+  return pruned.body;
+}
+function pruneRepeats(v:ChapterBody,input:ChapterRequest,path:'precheck'|'final'|'fallback'):ChapterBody{
+  const pruned=pruneRestatements(v,input.previous,input.chapter,{exactOnly:path==='precheck'});
+  if(pruned.exact||pruned.near||pruned.previous||pruned.kept)console.log('[yeongnyangi-restatement]',JSON.stringify({chapter:input.chapter.ordinal,path,
+    exact:pruned.exact,near:pruned.near,previous:pruned.previous,chars:pruned.chars,kept:pruned.kept,remaining:bodyCharacterCount(pruned.body)}));
   return pruned.body;
 }
 
@@ -113,7 +122,7 @@ export function correctChapterProse(v: ChapterBody, input: ChapterRequest): Chap
   if(addressed.count){v=addressed.body;console.log('[yeongnyangi-persona-address]',JSON.stringify({chapter:input.chapter.ordinal,count:addressed.count}));}
   // The reader's own pillars, day master and strength are stored facts; a contradicting claim is fixed here, not regenerated.
   const sajuFact=(label:string)=>input.analysis.contexts?.saju?.facts.find(f=>f.label===label)?.value as any;
-  const natal=correctNatalClaims(v,{pillars:sajuFact('pillars'),dayMaster:sajuFact('dayMaster'),strength:sajuFact('strengthHeuristic'),majorLuck:sajuFact('majorLuck'),tenGodsByPillar:sajuFact('tenGodsByPillar')},input.locale||'ko');
+  const natal=correctNatalClaims(v,{pillars:sajuFact('pillars'),dayMaster:sajuFact('dayMaster'),strength:sajuFact('strengthHeuristic'),majorLuck:sajuFact('majorLuck'),tenGodsByPillar:sajuFact('tenGodsByPillar'),fiveElements:sajuFact('fiveElements')},input.locale||'ko');
   if(natal.replaced||natal.dropped){v=natal.body;console.log('[yeongnyangi-natal-correction]',JSON.stringify({chapter:input.chapter.ordinal,replaced:natal.replaced,dropped:natal.dropped}));}
   // A 삼합·대궁 pair or a year's 유년사화 is fixed by the palace order and the year's stem (fortune/ziwei/claims.ts).
   const ziwei=input.analysis.contexts?.ziwei?correctZiweiClaims(v,input.locale||'ko',input.chapter.questionPolicy?input.analysis.contexts.ziwei.facts.find(f=>f.label==='fourTransformations')?.value as Record<string,string>:undefined,input.voiceStyle!=='banmal'):{body:v,replaced:0,dropped:0};
@@ -233,6 +242,8 @@ export function validateChapter(
   v=correctQuestionTiming(v,input);
   // Section targets may exceed the paragraph cap: split at sentence ends before any check reads the blocks.
   if(hasReadingSections(input.chapter.version))v=normalizeSectionParagraphs(v);
+  // A sentence copied inside the chapter or from an earlier one is dropped before the duplicate check can fail it.
+  if(input.chapter.repeatPolicy===REPEAT_POLICY&&input.chapter.version!==READING_V7_VERSION)v=pruneRepeats(v,input,'precheck');
   // The chapter's own evidence, before the ask packet widens what a citation may point at.
   const chapterFactIds = new Set(
     Object.values(input.analysis.contexts).filter(c=>!input.chapter.systems||input.chapter.systems.includes(c.domain)).flatMap((c) =>
@@ -354,10 +365,16 @@ const QUESTION_MACKEREL_SCENES=[
   '반가운 제안과 걸리는 조건을 함께 받은 순간',
   '하루를 마치며 내일 할 첫 행동을 한 줄 적는 순간',
 ];
+const QUESTION_CORE_SCENE='일·사람·몸의 컨디션이 한꺼번에 신경 쓰이는 평범한 한 주';
 /** Evidence IDs earlier chapters already explained, so a later chapter refers back in a line instead of re-explaining them. */
 function explainedEvidence(previous:ChapterRequest['previous']){
   const ids=[...new Set(previous.flatMap(p=>Array.isArray(p.sources)?p.sources:[]))].filter(id=>typeof id==='string');
   return ids.length?{rule:'앞 장에서 이미 풀어 쓴 근거 ID다. 이번 장에서 다시 쓸 때는 앞 장 설명을 한 줄로만 짚고, 분량은 이번 장 질문에 새로 더하는 해석에 쓴다.',ids}:undefined;
+}
+/** REPEAT_POLICY: the first sentence of each section in the last 12 chapters. Only summaries were carried, so sections kept opening alike. */
+function previousOpenings(previous:ChapterRequest['previous']){
+  const openings=[...new Set(previous.slice(-12).flatMap(p=>(p.blocks||[]).map(b=>String(b?.paragraphs?.[0]||'').split(SENTENCE_BOUNDARY)[0].trim().slice(0,80))).filter(Boolean))];
+  return openings.length?{rule:'앞 장 소절들의 첫 문장이다. 이번 장의 소절을 이 문장이나 같은 짜임(같은 주어·같은 결론·같은 근거 소개)으로 시작하지 않는다.',openings}:undefined;
 }
 
 const REPAIR_INSTRUCTIONS:Record<string,string>={
@@ -512,7 +529,9 @@ export class StructuredChapterProvider implements FortuneChapterProvider {
     const questionMackerel=input.chapter.consultationLayout===QUESTION_LAYOUT_VERSION&&tier==='mackerel';
     const questionIndex=/^question-(\d+)$/.exec(input.chapter.key||'');
     const originalQuestionIndex=questionIndex?Number(questionIndex[1]):input.chapter.ordinal;
-    const expansion=Boolean(input.chapter.key?.startsWith('expansion-'));
+    // question-core (question-policy.ts) has no question number: like an expansion row it carries its own task.
+    const core=input.chapter.key==='question-core';
+    const expansion=core||Boolean(input.chapter.key?.startsWith('expansion-'));
     const paidScoped=!input.chapter.questionPolicy&&isStructuredReading(input.chapter.version)&&!['tuna','assorted','omakase'].includes(tier);
     const depth = '모든 생선에서 질문과 상담 범위에 필요한 가장 깊은 분석을 제공한다. 실제 근거를 교차 검토하고 반대 신호·원인·판단이 달라지는 조건·생활 장면·선택지·우선 행동을 충분히 설명한다. 근거 수나 문단 수를 가격에 따라 제한하지 않고, 관련 없는 주제나 반복으로 분량을 늘리지 않는다.';
     const sky=input.analysis.consultation?.questionSky;
@@ -613,7 +632,7 @@ export class StructuredChapterProvider implements FortuneChapterProvider {
           '복잡한 생각을 메모 한 장으로 정리하는 순간',
           '예상치 못한 부탁을 받고 바로 대답하지 않는 순간',
           '하루를 마치며 내일 하지 않을 일을 한 줄 적는 순간',
-        ][input.chapter.ordinal]:questionMackerel?(expansion?`'${input.chapter.title}'를 실제 질문 상황에 적용하는 가상의 연습 장면`:QUESTION_MACKEREL_SCENES[originalQuestionIndex]):undefined,
+        ][input.chapter.ordinal]:questionMackerel?(core?QUESTION_CORE_SCENE:expansion?`'${input.chapter.title}'를 실제 질문 상황에 적용하는 가상의 연습 장면`:QUESTION_MACKEREL_SCENES[originalQuestionIndex]):undefined,
         ...(isPremiumFusionBookLayout(input.chapter.consultationLayout)&&input.chapter.layoutRole==='answer'?{directAnswer:DIRECT_FUSION_ANSWER}:{}),
         writingContract:'previousConclusions와 previousExamples는 재사용 금지 목록이다. 기존 문장을 단어만 바꾸어 쓰지 않는다. exampleScene은 가상의 예시 소재이지 실제 경험의 증거가 아니다. 질문과 맞지 않으면 다른 장면을 고른다. 실제 직업이나 동료가 있다고 단정하지 않는다. summary는 이번 장의 고유 질문(chapter.focus)에 대한 답으로 쓰고, previousConclusions·fixedConclusions의 결론 문장을 다시 쓰지 않는다.',
         topic:input.analysis.topicId,
@@ -630,6 +649,7 @@ export class StructuredChapterProvider implements FortuneChapterProvider {
         previousExamples: input.previous.map((p) => p.example.slice(0, 100)),
         fixedConclusions: fixedConclusions(input.previous),
         explainedEvidence: explainedEvidence(input.previous),
+        ...(input.chapter.repeatPolicy===REPEAT_POLICY?{previousOpenings:previousOpenings(input.previous)}:{}),
         ...(input.chapter.consultationLayout?{previousYearClaims:previousYearClaims(input.previous)}:{}),
         ...(isFusionBookLayout(input.chapter.consultationLayout)?{claimLedger:claimLedger(input.previous)}:{}),
         themes: isStructuredReading(input.chapter.version) ? undefined : input.analysis.themes,

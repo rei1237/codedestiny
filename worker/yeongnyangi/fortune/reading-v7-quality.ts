@@ -101,9 +101,9 @@ const HOUSE_EXTRA:Record<string,(house:number)=>string[]>={
 };
 const HOUSE_TERM=/(\d{1,2})\s*번?\s*하우스/gu;
 
-const NORM=(s:string)=>s.normalize('NFC').replace(/\s+/g,' ').trim();
+export const NORM=(s:string)=>s.normalize('NFC').replace(/\s+/g,' ').trim();
 const GRAM_SOURCE=(s:string)=>s.normalize('NFC').replace(/[^\p{L}\p{N}]/gu,'');
-function gramsOf(text:string,cache:Map<string,Set<string>>):Set<string>{
+export function gramsOf(text:string,cache:Map<string,Set<string>>):Set<string>{
   const found=cache.get(text);
   if(found)return found;
   const clean=GRAM_SOURCE(text);
@@ -111,7 +111,7 @@ function gramsOf(text:string,cache:Map<string,Set<string>>):Set<string>{
   cache.set(text,result);
   return result;
 }
-const dice=(left:Set<string>,right:Set<string>)=>{
+export const dice=(left:Set<string>,right:Set<string>)=>{
   if(!left.size||!right.size)return 0;
   let shared=0;for(const gram of left)if(right.has(gram))shared++;
   return 2*shared/(left.size+right.size);
