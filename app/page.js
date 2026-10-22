@@ -7,6 +7,7 @@ import { BRAND_FACTS } from "../lib/brand/brand-facts.mjs";
 import { FOOTER_BYLINE, FOOTER_LINKS, FOOTER_NOTICE, FOOTER_TRUST_LINKS } from "../lib/brand/site-footer";
 import { BUSINESS_IDENTITY } from "../lib/site-policy-config";
 import { founder } from "../lib/brand/founder";
+import { HOME_DIFFERENTIATION_FAQ } from "../lib/brand/differentiation-faqs.mjs";
 import { HOME_CATEGORIES, HOME_CONCERNS } from "../lib/seo/home-discovery.mjs";
 import { getSignProfile } from "../lib/fortune/sign-profiles";
 import LegacyHomeEntry from "./components/LegacyHomeEntry";
@@ -83,6 +84,7 @@ const SIGNATURE_ART = "/images/service-introductions";
 const RESULT_EXAMPLE = getSignProfile("rat");
 const HOME_FAQS = [
   { question: "꿀꿀 운세와 꿀꿀운세, 코드 데스티니는 어떤 관계인가요?", answer: brandCopy("aliases") },
+  HOME_DIFFERENTIATION_FAQ,
   { question: "꽃돼지 연이와 영냥이는 어떻게 다른가요?", answer: "꽃돼지 연이의 앱에서는 사주·타로·자미두수 등 원하는 도구를 골라 이용해요. 운세보는 영냥이는 사주보는 고양이 상담 서비스로, 구체적인 질문과 상황을 바탕으로 고민을 풀어가요. 같은 운영자가 제공하며, 이용 범위와 결제 조건은 각 서비스에서 안내해요." },
   { question: "어디까지 무료로 이용할 수 있나요?", answer: "기본 사주·만세력·타로와 공개 별자리·띠별 운세를 무료로 시작할 수 있어요. 심층 리포트와 AI 상담은 별도 유료 상품이 있으며, 이용권·월정석·단건 결제의 적용 여부와 금액은 각 상품의 결제 전 안내를 확인해 주세요." },
   { question: "태어난 시간을 몰라도 볼 수 있나요?", answer: "사주는 출생 시간 모름을 선택해 시주를 제외하고 살펴볼 수 있어요. 자미두수 명반과 점성술의 상승궁 등은 출생 시간에 따라 달라지므로 해당 도구의 입력 안내를 확인해 주세요. 시간이 필요 없는 질문형 타로도 선택할 수 있어요." },
@@ -211,7 +213,7 @@ export default function HomePage() {
           </section>
           <section className={styles.section} aria-labelledby="homeFaq">
             <div className={styles.sectionHeading}><h2 id="homeFaq">시작하기 전에 궁금한 점</h2><p>꿀꿀 운세의 공식 홈페이지는 code-destiny.com이에요. CODE DESTINY(코드 데스티니)가 운영해요.</p></div>
-            <div className={styles.faqList}>{HOME_FAQS.map(item => <details key={item.question}><summary>{item.question}</summary><p>{item.answer}</p></details>)}</div>
+            <div className={styles.faqList}>{HOME_FAQS.map(item => <details key={item.question}><summary>{item.question}</summary><p>{item.answer}{item.link && <> <Link href={item.link.href}>{item.link.label}</Link></>}</p></details>)}</div>
             <details className={styles.history} data-brand-history=""><summary>이전 서비스 이름 안내</summary><p>{BRAND_FACTS.historyKo} 같은 계정으로 이전 구매 내역과 저장된 결과를 확인할 수 있어요.</p></details>
             <nav className={styles.quickLinks} aria-label="상담 방식과 이용 안내"><Link href="/about/">운영자와 해석 방식</Link><Link href="/editorial-policy/">콘텐츠 편집 원칙</Link><Link href="/faq/">전체 이용 안내</Link></nav>
           </section>

@@ -7,6 +7,7 @@ import { serializeJsonLd } from "../../lib/seo/json-ld.mjs";
 import { publicSeoPages } from "../../lib/seo/siteSeo";
 import { cmsQaList } from "../../lib/cms/build-text";
 import { FAQS_DEFAULT } from "../_content/faq-copy";
+import { PUBLIC_RECORD_PATH } from "../../lib/seo/public-record-copy.mjs";
 import { getEditorNote } from "../_content/editor-notes";
 import EditorNote from "../components/EditorNote";
 
@@ -52,6 +53,8 @@ export default function FaqPage() {
       </section>
 
       <nav className="cd-chip-wrap" aria-label="FAQ 관련 문서">
+        <Link href="/fusion-fortune/" className="cd-chip">초융합 운세</Link>
+        <Link href={PUBLIC_RECORD_PATH} className="cd-chip">대통령 사주 공개 분석 기록</Link>
         <Link href="/" className="cd-chip">공식 사이트 안내</Link>
         <Link href="/about" className="cd-chip">서비스 소개</Link>
         <Link href="/methodology" className="cd-chip">운세 콘텐츠 방법론</Link>

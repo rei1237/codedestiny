@@ -1,8 +1,10 @@
 // /faq 문항. 페이지와 관리자 CMS 화면이 함께 읽는 순수 데이터 모듈이다.
 import { BRAND_FACTS } from "../../lib/brand/brand-facts.mjs";
 import { founder } from "../../lib/brand/founder";
+import { DIFFERENTIATION_FAQS } from "../../lib/brand/differentiation-faqs.mjs";
 
 export const FAQS_DEFAULT = [
+  ...DIFFERENTIATION_FAQS,
   {
     question: "꿀꿀 운세의 기본 운세 기능은 무료인가요?",
     answer: "사주, 타로, 오늘의 운세 등 주요 기능은 무료로 시작할 수 있습니다. 일부 심층 리포트나 PDF 상품은 별도 이용권 또는 결제가 필요할 수 있습니다.",
