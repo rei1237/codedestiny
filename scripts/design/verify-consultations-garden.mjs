@@ -26,6 +26,8 @@ try {
       }
       return route.continue();
     });
+    // 쿠키 동의 배너가 하단 카드와 버튼을 가리지 않게, 필수만 고른 방문자로 시작한다(값은 AnalyticsConsent.tsx와 같다).
+    await context.addCookies([{ name: 'cd_cookie_consent', value: 'essential', url: origin }]);
     const page = await context.newPage();
     page.on('pageerror', error => errors.push(error.message));
     await page.goto(origin + '/consultations/', { waitUntil: 'networkidle', timeout: 180000 });
