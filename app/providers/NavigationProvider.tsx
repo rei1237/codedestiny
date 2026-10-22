@@ -9,14 +9,17 @@ import {
   logPaidAttemptEvent,
 } from "@/app/_lib/paid-attempt-session";
 import { trackEvent } from "@/lib/analytics";
+import appContext from "@/js/core/app-context.js";
 import {
   attemptAppExit,
   createPopstateDebouncer,
   ensureGuardState,
+  isTransientBaseState,
   rearmGuardState,
   resolveBackPolicy,
   type BackPolicy,
 } from "@/lib/navigation/backHandler";
+import { installTransientBackHost } from "@/lib/navigation/transientBack";
 
 /**
  * Back handlers are evaluated from the most local transient surface outward.
@@ -57,6 +60,26 @@ function getAnalysisFallbackPath(pathname: string) {
   return `/${localeMatch[1]}/saju`;
 }
 
+// 웹 브라우저의 첫 화면에서 뒤로가기는 검색 결과 등 이전 사이트로 돌아가는 정상 이탈이다.
+// "한 번 더 누르면 종료" 가드는 뒤로가기가 곧 종료인 앱·홈 화면 설치(standalone)에서만 건다.
+function usesMainExitGuard() {
+  if (typeof window === "undefined") return false;
+  if (appContext.isApp()) return true;
+  try {
+    return Boolean(
+      window.matchMedia?.("(display-mode: standalone)")?.matches
+      || (window.navigator as Navigator & { standalone?: boolean }).standalone === true,
+    );
+  } catch (e) {
+    return false;
+  }
+}
+
+function resolveRuntimeBackPolicy(pathKey: string): BackPolicy {
+  const policy = resolveBackPolicy(pathKey);
+  return policy.kind === "main" && !usesMainExitGuard() ? { kind: "none" } : policy;
+}
+
 const SCOPE_PRIORITY: Record<BackHandlerScope, number> = {
   overlay: 300,
   wizard: 200,
@@ -91,6 +114,8 @@ export default function NavigationProvider({ children }: { children: React.React
   const hideToastTimerRef = useRef<number | null>(null);
   const popDebounceRef = useRef(createPopstateDebouncer(170));
   const analysisDepthByPathRef = useRef<Record<string, number>>({});
+  const transientDismissersRef = useRef<Set<() => void>>(new Set());
+  const staleTransientPathRef = useRef<string | null>(null);
 
   const [exitToastVisible, setExitToastVisible] = useState(false);
   const [exitToastMessage, setExitToastMessage] = useState("한 번 더 누르면 종료됩니다");
@@ -173,12 +198,15 @@ export default function NavigationProvider({ children }: { children: React.React
     // (pathRef 는 useRef(pathname) 으로 시작하므로 마운트 시에는 같다).
     if (pathRef.current !== pathname) {
       trackEvent("page_view", { page_path: pathname });
+      // 이전 화면에서 연 임시 표면(결제 선택창 등)을 새 화면 위에 남기지 않는다.
+      transientDismissersRef.current.forEach((dismiss) => dismiss());
+      staleTransientPathRef.current = null;
     }
     pathRef.current = pathname;
     routeChangedAtRef.current = Date.now();
 
     const pathKey = toPathKey(pathname);
-    const policy = resolveBackPolicy(pathKey);
+    const policy = resolveRuntimeBackPolicy(pathKey);
 
     if (policy.kind !== "none") {
       ensureGuardState(pathKey, policy.kind);
@@ -291,8 +319,15 @@ export default function NavigationProvider({ children }: { children: React.React
       const activeHandler = pickActiveBackHandler(handlersRef.current);
       const policy = activeHandler && activeHandler.scope !== "analysis"
         ? { kind: "transient" as const }
-        : resolveBackPolicy(pathKey);
-      if (policy.kind === "none") return;
+        : resolveRuntimeBackPolicy(pathKey);
+      if (policy.kind === "none") {
+        // 버튼으로 닫힌 임시 표면의 가드에서 한 칸 내려온 것뿐이면, 이 뒤로가기가 하려던 이동을 마저 한다.
+        if (staleTransientPathRef.current === pathKey && isTransientBaseState(pathKey)) {
+          staleTransientPathRef.current = null;
+          window.history.back();
+        }
+        return;
+      }
 
       if (!popDebounceRef.current()) {
         rearmGuardState(pathKey, policy.kind);
@@ -320,6 +355,48 @@ export default function NavigationProvider({ children }: { children: React.React
       window.removeEventListener("popstate", onPopState);
     };
   }, [hideExitToast, router, showExitToast]);
+
+  useEffect(() => {
+    let seq = 0;
+    return installTransientBackHost((surface) => {
+      seq += 1;
+      const pathKey = toPathKey(pathRef.current);
+      let released = false;
+      let closingByBack = false;
+      const dismiss = () => {
+        if (!released) surface.dismiss();
+      };
+      const unregister = registerBackHandler({
+        id: `transient-surface-${seq}`,
+        scope: "overlay",
+        enabled: () => !released,
+        isLocked: () => Boolean(surface.isLocked?.()),
+        canGoBack: () => true,
+        onBack: () => {
+          closingByBack = true;
+          const stillOpen = surface.onBack();
+          closingByBack = false;
+          if (stillOpen) return false;
+          // 열 때 이 라우트의 가드를 transient 기준 엔트리로 바꿔 두었으므로, 닫혔으면 되돌린다.
+          const basePolicy = resolveRuntimeBackPolicy(pathKey);
+          if (basePolicy.kind !== "none") rearmGuardState(pathKey, basePolicy.kind);
+          return true;
+        },
+      });
+      transientDismissersRef.current.add(dismiss);
+      staleTransientPathRef.current = null;
+      ensureGuardState(pathKey, "transient");
+      return () => {
+        if (released) return;
+        released = true;
+        unregister();
+        transientDismissersRef.current.delete(dismiss);
+        // 버튼·선택으로 닫혔으면 가드 엔트리가 남는다. 여기서 바로 걷으면(history.back) 이어지는
+        // 결제창·상점 이동과 경합하므로, 다음 뒤로가기 때 한 칸 더 내려 준다(onPopState).
+        if (!closingByBack) staleTransientPathRef.current = pathKey;
+      };
+    });
+  }, [registerBackHandler]);
 
   useEffect(() => {
     return () => {

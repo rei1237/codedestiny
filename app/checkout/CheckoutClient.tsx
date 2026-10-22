@@ -101,7 +101,7 @@ function redirectToLogin(): void {
   if (typeof window === "undefined") return;
   const { pathname, search } = window.location;
   const next = encodeURIComponent(`${pathname}${search || ""}`);
-  window.location.assign(`/login?next=${next}&returnTo=${next}&redirect=${next}`);
+  window.location.replace(`/login?next=${next}&returnTo=${next}&redirect=${next}`);
 }
 
 /** 결제를 안 하고 나갈 때 브라우저 뒤로가기가 "이전 화면"인지 판정한다. 같은 출처 영냥이 화면(상담 폼 등)에서 넘어왔을 때만 참이다.
@@ -149,7 +149,7 @@ function SavedConsultationCheckout({requestId,featureKey}:{requestId:string;feat
  const [record,setRecord]=useState<FortuneRecord|null>(null),[error,setError]=useState(''),[revision,setRevision]=useState(0);
  useEffect(()=>{let active=true;setError('');void Promise.all([fortuneApi<{fortune:FortuneRecord}>(`requests/${requestId}`),fortuneApi<{products:{cdFeatureKey:string;available:boolean}[]}>('products')]).then(([{fortune},catalog])=>{
   if(!active)return;if(fortune.product.cdFeatureKey!==featureKey)throw new Error('상담 상품을 확인해 주세요.');
-  if(fortune.paid){window.location.assign(resultPath(fortune.id,'ko'));return;}
+  if(fortune.paid){window.location.replace(resultPath(fortune.id,'ko'));return;}
   if(!catalog.products.some(product=>product.cdFeatureKey===featureKey&&product.available))throw new Error('현재 이 상담을 준비할 수 없어요. 잠시 후 다시 확인해 주세요.');setRecord(fortune);
  }).catch(e=>{if(active){if(e instanceof FortuneApiError&&e.status===401)redirectToLogin();else setError(e.message);}});return()=>{active=false;};},[requestId,featureKey,revision]);
  const product=products.find(item=>item.cdFeatureKey===featureKey);
@@ -234,7 +234,7 @@ function PreparedCheckoutClient() {
   // 모바일 PG 복귀: 문서가 새로 열리므로 결제 전 굳혀 둔 returnTo 로 돌아간다(게이트를 다시 타지 않는다).
   const buildResume = usePaidResume(RESUME_KIND, (args) => {
     const target = resolveReturnTo(typeof args.returnTo === "string" ? args.returnTo : null);
-    window.location.assign(target);
+    window.location.replace(target);
     return true;
   });
 
@@ -276,7 +276,7 @@ function PreparedCheckoutClient() {
     Promise.all([fortuneApi<{fortune:FortuneRecord}>(`requests/${params.requestId}`),fortuneApi<{products:{cdFeatureKey:string;available:boolean}[]}>('products')]).then(([record,catalog])=>{
       if(!active)return;
       if(record.fortune.product.cdFeatureKey!==params.featureKey)throw new Error(copy.errProductMismatch);
-      if(record.fortune.paid){window.location.assign(params.returnTo);return;}
+      if(record.fortune.paid){window.location.replace(params.returnTo);return;}
       setReading(record.fortune);
       setAvailable(catalog.products.some(p=>p.cdFeatureKey===params.featureKey&&p.available));
     }).catch(e=>{if(active)setGate({phase:'error',message:e.message});}).finally(()=>{if(active)setChecked(true);});
@@ -297,7 +297,7 @@ function PreparedCheckoutClient() {
       if (!isSoulCatMode) {
         // Read only: activate can consume Family before a payment method is chosen.
         const {fortune}=await fortuneApi<{fortune:FortuneRecord}>(`requests/${params.requestId}`);
-        if(fortune.paid){window.location.assign(params.returnTo);return;}
+        if(fortune.paid){window.location.replace(params.returnTo);return;}
       }
       const requestId = isSoulCatMode
         ? `yn-soulcat-${params.featureKey}-${stableSlug(params.returnTo)}`
@@ -319,7 +319,7 @@ function PreparedCheckoutClient() {
       });
       const code = String(result.error?.code || "").toUpperCase();
       if (result.ok || code==='FORTUNE_ALREADY_PAID') {
-        setGate({ phase: "paid" });window.location.assign(params.returnTo);return;
+        setGate({ phase: "paid" });window.location.replace(params.returnTo);return;
       }
       if (code === "AUTH_REQUIRED" || code === "UNAUTHORIZED" || result.status === 401) {redirectToLogin();return;}
       if (code === "PAYMENT_CANCELLED" || code === "PG_PAYMENT_CANCELLED") {setGate({ phase: "cancelled" });return;}
@@ -383,7 +383,7 @@ function PreparedCheckoutClient() {
               {!isSoulCatMode && checked && signedIn && available && <ServicePackCheckout requestId={params.requestId} featureKey={pricing.featureKey} locale={lang}
                 disabled={gate.phase === "paying" || gate.phase === "paid"}
                 onBusyChange={busy=>{packLock.current=busy;setPackBusy(busy);}}
-                onPaid={()=>{setGate({phase:"paid"});window.location.assign(params.returnTo);}} />}
+                onPaid={()=>{setGate({phase:"paid"});window.location.replace(params.returnTo);}} />}
 
                 <button type="button" disabled={!authSettled||!signedIn||!checked||!available||packBusy||gate.phase==='paying'||gate.phase==='paid'} onClick={()=>void startPayment('MEMBERSHIP_PASS')}>{lang==='ko'?'보유 패밀리 꿀단지 적용하기':'Use existing Family Honey Jar'}</button>
                 {!pricing.monthlyExcluded&&<button type="button" disabled={!authSettled||!signedIn||!checked||!available||packBusy||gate.phase==='paying'||gate.phase==='paid'} onClick={()=>void startPayment('MOONLIGHT_STONE')}>{lang==='ko'?`보유 월정석 ${pricing.membershipCreditCost.toLocaleString('ko-KR')}개 사용`:alliance.moonstones(pricing.membershipCreditCost.toLocaleString(intlLocale))}</button>}

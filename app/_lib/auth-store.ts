@@ -783,7 +783,7 @@ export function handleSessionInvalidated(options: { redirect?: boolean } = {}) {
     try {
       const { pathname, search } = window.location;
       const nextParam = encodeURIComponent(`${pathname}${search || ""}`);
-      window.location.assign(`/login?next=${nextParam}&returnTo=${nextParam}&redirect=${nextParam}`);
+      window.location.replace(`/login?next=${nextParam}&returnTo=${nextParam}&redirect=${nextParam}`);
     } catch (e) {
       // best-effort
     }

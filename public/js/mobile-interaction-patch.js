@@ -1266,7 +1266,7 @@
 
   function ensureMobileBackstackRuntime() {
     if (window.__cdMobileNav) return;
-    loadScript('/js/mobile-backstack-navigation.js?v=build-4be731e5fdc4').catch(function(err) {
+    loadScript('/js/mobile-backstack-navigation.js?v=build-b37b8179fcdb').catch(function(err) {
       console.error('[mobile-interaction-patch] mobile backstack load failed:', err);
     });
   }
@@ -2581,6 +2581,14 @@
       clearTapFeedback();
       scheduleOverlayLifecycleGuard(40);
     }, { passive: true });
+
+    // 뒤로가기 런타임을 첫 data-action 까지 미루면, 그 전에 연 미리보기·결제창·시트에서 뒤로가기가
+    // 곧바로 사이트 이탈이 된다. 부팅 직후 무거운 구간은 피해 유휴 시간에 싣는다.
+    if (typeof window.requestIdleCallback === 'function') {
+      window.requestIdleCallback(ensureMobileBackstackRuntime, { timeout: 2000 });
+    } else {
+      window.setTimeout(ensureMobileBackstackRuntime, 600);
+    }
   }
 
   if (document.readyState === 'loading') {

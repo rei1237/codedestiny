@@ -43,7 +43,7 @@ export default function YeongnyangiCheckout({draft}:{draft:ConsultationCheckoutD
  const buildResume=usePaidResume('yeongnyangi-checkout',args=>{
   const target=typeof args.returnTo==='string'?args.returnTo:'';
   if(!/^\/yeongnyangi\/result\/\?id=[a-f0-9]{64}(?:&lang=[a-z-]+)?$/.test(target))return false;
-  window.location.assign(target);return true;
+  window.location.replace(target);return true;
  });
  useEffect(()=>{
   let active=true;setMethod('direct');setDiscount('0');setMessage('');
@@ -86,16 +86,16 @@ export default function YeongnyangiCheckout({draft}:{draft:ConsultationCheckoutD
    const row=await draft.onPrepare();if(!row)return;
    if(account.current!==startedOwner)throw new Error('로그인 계정이 변경됐어요. 상담 내용을 다시 확인해 주세요.');
    const returnTo=resultPath(row.id,'ko');
-   if(row.paid||row.state==='AWAITING_DRAW'){window.location.assign(returnTo);return;}
+   if(row.paid||row.state==='AWAITING_DRAW'){window.location.replace(returnTo);return;}
    if(native&&method==='direct'){window.location.assign(checkoutPath(row,'ko'));return;}
    if(row.product.cdFeatureKey!==pricing.featureKey)throw new Error('상담 상품이 변경됐어요. 내용을 다시 확인해 주세요.');
    const requestId=`yn-${row.id}`;
    if(selectedPack){
     setMessage('이용권을 확인하고 있어요.');
     const quote=await quoteServicePack(requestId,pricing.featureKey);
-    if(['paid','used'].includes(quote.status)){window.location.assign(returnTo);return;}
+    if(['paid','used'].includes(quote.status)){window.location.replace(returnTo);return;}
     if(quote.status!=='available'||!quote.candidates.some(pack=>pack.entitlementId===selectedPack.entitlementId&&pack.available))throw new Error('이용권 상태가 변경됐어요. 보유 혜택을 다시 확인해 주세요.');
-    await consumeServicePack(requestId,selectedPack.entitlementId);window.location.assign(returnTo);return;
+    await consumeServicePack(requestId,selectedPack.entitlementId);window.location.replace(returnTo);return;
    }
    setMessage(method==='direct'?'결제 창을 준비하고 있어요.':'선택한 혜택을 적용하고 있어요.');
    const result=await runPaidAccessGate({featureKey:pricing.featureKey,reason:draft.product.name,requestId,cost:pricing.cost,amountKRW:pricing.amountKRW,
@@ -103,7 +103,7 @@ export default function YeongnyangiCheckout({draft}:{draft:ConsultationCheckoutD
     allowedPaymentModes:method==='family'?['pass']:method==='stones'?['monthly']:['direct'],
     membershipCreditCost:pricing.membershipCreditCost,moonstoneQuantity:method==='direct'?quantity:0,disablePassFirst:method!=='family',passStorePlan:'family',resume:buildResume({returnTo})});
    const code=String(result.error?.code||'');
-   if(result.ok||code==='FORTUNE_ALREADY_PAID'){window.location.assign(returnTo);return;}
+   if(result.ok||code==='FORTUNE_ALREADY_PAID'){window.location.replace(returnTo);return;}
    if(['AUTH_REQUIRED','UNAUTHORIZED'].includes(code)){loginForCurrentPage();return;}
    setMessage(['PAYMENT_CANCELLED','PG_PAYMENT_CANCELLED'].includes(code)?'결제를 취소했어요. 상담 내용은 그대로 남아 있어요.':result.error?.message||result.message||'결제 상태를 확인하지 못했어요. 같은 상담에서 다시 확인해 주세요.');
   }catch(error){if(error instanceof ServicePackError&&error.status===401){loginForCurrentPage();return;}setMessage(error instanceof ServicePackError?'이용권 적용 상태를 확인하지 못했어요. 같은 상담에서 다시 확인해 주세요.':error instanceof Error?error.message:'상담 준비 중 문제가 생겼어요. 다시 시도해 주세요.');}

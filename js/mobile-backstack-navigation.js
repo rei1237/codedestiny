@@ -416,6 +416,32 @@
     return false;
   }
 
+  // 웹 브라우저의 첫 화면 뒤로가기는 이전 사이트(검색 결과 등)로 돌아가는 정상 이탈이다.
+  // "한 번 더 누르면 종료" 토스트는 뒤로가기가 곧 종료인 앱·홈 화면 설치(standalone)에서만 쓴다.
+  function usesMainExitGuard() {
+    try {
+      var appContext = window.__cdAppContext;
+      if (appContext && typeof appContext.isApp === 'function' && appContext.isApp()) return true;
+      if (typeof window.matchMedia === 'function' && window.matchMedia('(display-mode: standalone)').matches) return true;
+      return !!(window.navigator && window.navigator.standalone === true);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function leaveToPreviousPage() {
+    try {
+      if (window.history.length > 1) {
+        state.allowNativeBackOnce = true;
+        // 더 돌아갈 기록이 없으면 popstate 가 오지 않는다 — 플래그가 남아 다음 뒤로가기를 삼키지 않게 푼다.
+        setTimeout(function () { state.allowNativeBackOnce = false; }, 1000);
+        window.history.back();
+        return true;
+      }
+    } catch (_) {}
+    return false;
+  }
+
   function handleMainBack() {
     var t = now();
     try {
@@ -428,6 +454,12 @@
         return;
       }
     } catch (_) {}
+
+    if (!usesMainExitGuard()) {
+      state.firstMainBackAt = 0;
+      if (!leaveToPreviousPage()) rearmGuardState();
+      return;
+    }
 
     if (t - state.firstMainBackAt <= MAIN_DOUBLE_BACK_MS) {
       state.firstMainBackAt = 0;
@@ -559,7 +591,44 @@
     });
   }
 
-  function onPopState() {
+  // 표면(main/saju/feature)과 따로 떠 있는 임시 창. 열 때 기록을 쌓지 않으므로 여기서 먼저 닫지 않으면
+  // 뒤로가기가 창은 그대로 둔 채 홈 종료 처리나 표면 전환으로 넘어간다.
+  // 위에 뜨는 것부터 본다: 결제 선택창 → 셸 시트 → 타일 미리보기. 돌려주는 값은 그 창을 닫는 함수다.
+  function findTopTransientSurface() {
+    try {
+      // 결제 선택창: 2단계면 1단계로, 1단계면 [취소](checkout-entry 의 세 렌더러 공용 버튼 계약).
+      // 고른 뒤 잠긴 동안에도 이번 뒤로가기는 결제창이 소비한다 — 처리 중에 표면이 바뀌면 안 된다.
+      var checkoutEntry = window.__cdCheckoutEntry;
+      if (checkoutEntry && typeof checkoutEntry.hasOpenPaymentChoiceModal === 'function'
+        && typeof checkoutEntry.stepBackOpenPaymentChoice === 'function'
+        && checkoutEntry.hasOpenPaymentChoiceModal()) {
+        return function () { checkoutEntry.stepBackOpenPaymentChoice(); };
+      }
+    } catch (_) {}
+    try {
+      var sheet = document.querySelector('dialog[data-cd-sheet][open]');
+      var sheets = window.CodeDestinyShellSheet;
+      if (sheet && sheets && typeof sheets.close === 'function') {
+        return function () { sheets.close(sheet.id); };
+      }
+    } catch (_) {}
+    try {
+      var preview = document.getElementById('tilePvwOverlay');
+      if (preview && preview.classList.contains('pvw-open') && typeof window._cdCloseTilePreview === 'function') {
+        return function () { window._cdCloseTilePreview(); };
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  function closeTopTransientSurface() {
+    var close = findTopTransientSurface();
+    if (!close) return false;
+    try { close(); } catch (_) {}
+    return true;
+  }
+
+  function onPopState(event) {
     if (!isMobileRuntime()) return;
 
     if (state.allowNativeBackOnce) {
@@ -574,6 +643,12 @@
     }
     state.lastPopAt = t;
 
+    // 자기 popstate 리스너로 먼저 닫힌 창(전체 운세 컬렉션)이 이번 뒤로가기를 이미 썼다.
+    if ((event && event.__cdBackConsumed) || closeTopTransientSurface()) {
+      rearmGuardState();
+      return;
+    }
+
     handleSurfaceBack();
   }
 
@@ -587,6 +662,8 @@
       markFeature: function (name) { setSurface('feature', name || 'feature'); },
       markSajuMain: function () { setSurface('saju', 'saju'); },
       markSajuFeature: function (name) { setSurface('saju-feature', name || 'saju-feature'); },
+      // 전체 운세 컬렉션은 자기 popstate 로 닫힌다. 그 위에 임시 창이 떠 있으면 이번 뒤로가기는 그 창 몫이다.
+      hasTopTransientSurface: function () { return !!findTopTransientSurface(); },
       getState: function () {
         return {
           surface: state.surface,

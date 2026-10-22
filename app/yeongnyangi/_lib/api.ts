@@ -50,7 +50,7 @@ export async function fortuneApi<T>(path:string,body?:object,options:{signal?:Ab
 }
 export function loginForCurrentPage(){
  const next=encodeURIComponent(window.location.pathname+window.location.search);
- window.location.assign(`/login/?next=${next}&returnTo=${next}`);
+ window.location.replace(`/login/?next=${next}&returnTo=${next}`);
 }
 export function resultPath(id:string,locale?:ReadingLocale){return `/yeongnyangi/result/?id=${encodeURIComponent(id)}${locale?`&lang=${locale}`:''}`;}
 // URL lang controls the surrounding UI; the persisted row locale controls the reading itself.

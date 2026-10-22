@@ -31,6 +31,7 @@ import passVerdict from "@/js/core/pass-verdict.js";
 import appContext from "@/js/core/app-context.js";
 import checkoutEntry, { type PaidResumeDescriptor } from "@/js/core/checkout-entry.js";
 import bundledPaymentService from "@/js/core/payment-service.js";
+import { openTransientBackSurface } from "@/lib/navigation/transientBack";
 
 // 🔴 payment-service.js 는 classic script(window.CodeDestinyPaymentService)와 webpack import 두 경로로
 // 로드돼 **인스턴스가 둘**이다. 각 인스턴스는 자기만의 paymentWindowRenderer / commandInFlight 클로저를
@@ -1338,6 +1339,8 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
     let settled = false;
     // 세 렌더러가 공유하는 결제창 락 토큰(checkout-entry 소유). append 직후 획득, close 에서 해제.
     let sharedChoiceLockToken: ReturnType<typeof checkoutEntry.acquirePaymentChoiceLock> = null;
+    // 뒤로가기 연결(NavigationProvider). append 뒤 등록, close 에서 해제.
+    let releaseBackSurface: (() => void) | null = null;
     const modal = document.createElement("div");
     modal.className = "cd-direct-payment-modal is-open";
     modal.dataset.cdReactPaymentChoice = "1";
@@ -1383,6 +1386,8 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
         checkoutEntry.releasePaymentChoiceLock(sharedChoiceLockToken);
         sharedChoiceLockToken = null;
       }
+      releaseBackSurface?.();
+      releaseBackSurface = null;
       // 🔴 'direct' 로 닫힐 때만 고른 결제수단을 남긴다(셸 close() 와 같은 계약). 다른 경로로
       // 닫혔는데 값이 남으면 다음 결제가 엉뚱한 수단으로 열린다.
       if (mode !== "direct") checkoutEntry.clearSelectedDirectPayMethod();
@@ -1658,6 +1663,16 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
       });
     sharedChoiceLockToken = checkoutEntry.acquirePaymentChoiceLock("react");
     if (sharedChoiceLockToken) checkoutEntry.attachPaymentChoiceNode(sharedChoiceLockToken, modal);
+    // 뒤로가기 = 2단계면 [뒤로], 1단계면 [취소](셸·독립 정적과 같은 버튼 계약). 라우트가 바뀌면 취소로 닫는다.
+    if (!settled) {
+      releaseBackSurface = openTransientBackSurface({
+        onBack: () => {
+          checkoutEntry.stepBackOpenPaymentChoice(modal);
+          return modal.isConnected;
+        },
+        dismiss: () => close("cancel"),
+      });
+    }
     // 퍼널 시작점. 여기부터 checkout_option_click / checkout_dismissed 까지가 한 세션이다.
     checkoutEntry.trackCheckoutEvent("checkout_opened", {
       renderer: "react",
