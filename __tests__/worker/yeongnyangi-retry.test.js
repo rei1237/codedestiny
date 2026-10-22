@@ -1,6 +1,9 @@
 import {jest} from '@jest/globals';
+import {ACCESS_METHODS} from '../../worker/yeongnyangi/access-methods.js';
+// Mirrors repository.requestAccessMethod: any stored method or evidence field counts as access.
 const read=jest.fn(),attach=jest.fn(),resume=jest.fn(),resumeHeld=jest.fn(),canHold=jest.fn(),enqueue=jest.fn();
-jest.unstable_mockModule('../../worker/yeongnyangi/repository.js',()=>({readRequest:read,attachPayment:attach,resumeRequest:resume,resumeHeldByUser:resumeHeld,userCanRetryHold:canHold}));
+jest.unstable_mockModule('../../worker/yeongnyangi/repository.js',()=>({readRequest:read,attachPayment:attach,resumeRequest:resume,resumeHeldByUser:resumeHeld,userCanRetryHold:canHold,
+ hasRequestAccess:row=>Boolean(row?.paymentId||row?.passEvidenceId||row?.moonstoneLedgerId||row?.packEntitlementId||ACCESS_METHODS.includes(row?.accessMethod))}));
 jest.unstable_mockModule('../../worker/yeongnyangi/queue.js',()=>({enqueueConsultation:enqueue}));
 jest.unstable_mockModule('../../worker/lib/portone.js',()=>({resolveChargeAmountKRW:(_env,amount)=>amount}));
 let retryFortune;
@@ -64,4 +67,9 @@ test('a concurrent completion rereads without queueing or charging',async()=>{
 test('foreign or missing result cannot attach or resume',async()=>{
  read.mockRejectedValue({status:404});
  await expect(retryFortune(env,'foreign',id)).rejects.toMatchObject({status:404});expect(attach).not.toHaveBeenCalled();expect(resume).not.toHaveBeenCalled();
+});
+test.each([['MOONLIGHT_STONE',{moonstoneLedgerId:'ledger'}],['SERVICE_PACK',{passEvidenceId:'use',packEntitlementId:'pack'}],['PER_USE',{}],['ACCOUNT_FREE_TRIAL',{}]])('a %s request resumes without entering the payment path',async(accessMethod,evidence)=>{
+ read.mockResolvedValue({...row(),paymentId:null,accessMethod,...evidence});
+ await retryFortune(env,'owner',id);
+ expect(attach).not.toHaveBeenCalled();expect(resume).toHaveBeenCalledWith(env,'owner',id);
 });

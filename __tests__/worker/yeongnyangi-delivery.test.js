@@ -1,8 +1,10 @@
 import {jest} from '@jest/globals';
+import {ACCESS_METHODS} from '../../worker/yeongnyangi/access-methods.js';
 
 const readRequest=jest.fn(),escalateStopped=jest.fn(),enqueueConsultation=jest.fn();
 jest.unstable_mockModule('../../worker/yeongnyangi/repository.js',()=>({
- readRequest,escalateStopped,hasRequestAccess:row=>Boolean(row.paymentId||row.accessMethod==='FAMILY'||row.passEvidenceId),
+ readRequest,escalateStopped,// Mirrors repository.requestAccessMethod.
+ hasRequestAccess:row=>Boolean(row?.paymentId||row?.passEvidenceId||row?.moonstoneLedgerId||row?.packEntitlementId||ACCESS_METHODS.includes(row?.accessMethod)),
 }));
 jest.unstable_mockModule('../../worker/yeongnyangi/queue.js',()=>({enqueueConsultation}));
 jest.unstable_mockModule('../../worker/yeongnyangi/service.ts',()=>({providerReady:()=>true}));
