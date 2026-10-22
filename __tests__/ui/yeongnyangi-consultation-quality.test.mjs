@@ -241,9 +241,9 @@ test('astrology question chapters are told up front that a birth chart cannot ra
 test('later chapters receive the question chapter answers as settled conclusions',async()=>{
  const decision={version:m.QUESTION_POLICY_VERSION,category:'job_change',target:'self',horizon:'current',situation:'이직 고민',options:'남기 / 옮기기',period:'2026년 4분기부터 2027년 상반기',constraints:'',confirmed:true};
  const [,chapter]=m.questionManifest('saju','salmon',decision,undefined,'이직할까?');
- const sent=async previous=>{let request;
+ const sent=async(previous,row=chapter)=>{let request;
   const provider=new m.StructuredChapterProvider({generate:async r=>{request=r;return {result:{},provider:'mock',model:'fixture'};}});
-  await provider.generateChapter({chapter,analysis:{contexts:{saju:contexts.saju},question:'이직할까?',themes:[],signals:[]},previous});
+  await provider.generateChapter({chapter:row,analysis:{contexts:{saju:contexts.saju},question:'이직할까?',themes:[],signals:[]},previous});
   return JSON.parse(request.domainRules);};
  // T: Q1 said the move is the better side, ch4 later said staying matters more.
  const q1={summary:'이직 준비 쪽이 더 긍정적이야.',example:'',topics:[],questionAnswers:[{questionId:'Q1',answer:'이직 준비 쪽이 더 긍정적이야. 다만 수입 공백은 줄여야 해.',reason:'',timing:'',action:''}]};
@@ -257,4 +257,8 @@ test('later chapters receive the question chapter answers as settled conclusions
  assert.deepEqual(explained.ids,['saju.pillars','saju.dayMaster']);
  assert.match(explained.rule,/한 줄로만 짚고/);
  assert.equal((await sent([{summary:'s',example:'',topics:[]}])).explainedEvidence,undefined);
+ // REPEAT_POLICY: section openings of earlier chapters are carried so the next sections do not open alike.
+ const opened=[{summary:'s',example:'',topics:[],blocks:[{paragraphs:['첫 문장은 이렇게 시작해. 둘째 문장이야.']},{paragraphs:['']}]}];
+ assert.deepEqual((await sent(opened,{...chapter,repeatPolicy:'sentence-v1'})).previousOpenings.openings,['첫 문장은 이렇게 시작해.']);
+ assert.equal((await sent(opened)).previousOpenings,undefined);
 });

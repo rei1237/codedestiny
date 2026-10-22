@@ -77,7 +77,10 @@ export function counselManifest(manifest:ChapterSpec[],context:DomainContext|und
       systems:[...new Set([...(c.systems||[]),'saju' as const])],
       focus:SAJU_CYCLE_GUIDE,excludes:[],periodScope:'배정된 대운과 그 안의 계산된 세운만 읽는다.',
       factSelectors:{...c.factSelectors,saju:['pillars','dayMaster','tenGodsByPillar','seasonalBalance','healthBasis','strengthHeuristic','usefulGod','jong','advancedFactors','majorLuck']},
-      sections:c.sections?.map(s=>({...s,instruction:`${s.instruction} ${labels.join(', ')} 각 주기의 원국 비교와 연애·건강·재물·직업을 역할에 맞게 설명한다.`}))};
+      // Each comparison is asked once: the same four topics in every section wrote the same paragraph per section.
+      sections:c.sections?.map((s,i,all)=>({...s,instruction:[s.instruction,`${labels.join(', ')} 주기를 다룬다.`,
+        i===0?'각 주기와 원국의 비교는 이 소절에서 한다.':'',i===all.length-1?'각 주기의 연애·건강·재물·직업은 이 소절에서 한 번씩만 정리한다.':'',
+        i>0&&i<all.length-1?'다른 소절에서 쓴 비교와 주제를 반복하지 않는다.':''].filter(Boolean).join(' ')}))};
     if(v7){const chapter=next as ChapterSpecV7;
       next=withV7Sections({...chapter,owns:chapter.owns.filter(p=>!p.startsWith('majorLuck')).concat(assigned.map(x=>`majorLuck.cycle${x.index}`)),
         refs:[...new Set([...chapter.refs,'advancedFactors','strengthHeuristic','seasonalBalance','healthBasis','usefulGod','jong'])],

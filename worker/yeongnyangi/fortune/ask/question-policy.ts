@@ -1,4 +1,4 @@
-import {expandConsultationManifest} from '../consultation-expansion';
+import {EVIDENCE_ONCE,expandConsultationManifest} from '../consultation-expansion';
 import {questionEditorial,foundationGuide} from './question-editorial';
 import {consultationBudget,layoutTargets,layoutMinimum,CONSULTATION_CHAPTERS} from '../consultation-budget';
 import {questionOutlines,bonusAreas,lifeRows,tunaRoadmapRow,timingUnits,currentFlowGuide,timingSelectors,BONUS_TITLE,type LayoutStep,type LayoutTopic} from '../consultation-layout';
@@ -160,7 +160,7 @@ export function questionManifest(domain:DomainId,fish:QuestionFish,d:QuestionDec
   const size=Math.ceil(cards.length/Math.max(1,Math.min(Math.ceil(cards.length/2),slots-1)));
   for(let i=0;i<cards.length;i+=size){const part=cards.slice(i,i+size);middle.push({title:part.map(x=>x.title).join(' · '),role:'question',theme:editorial.theme,weight:part.length/2,sections:part});}
  }else if(composite)middle.push(...compositeSteps);
- else middle.push({title:subject+' · 판단의 근거와 달라지는 조건',role:'question',theme:editorial.theme,weight:1,sections:[section('evidence','그렇게 읽는 이유','실제 계산 근거와 쉬운 뜻을 연결한다. 상충 신호와 기간의 한계를 구분한다.'),section('pattern','판단을 바꾸는 조건','앞 장의 성격 설명을 반복하지 않는다. 질문에 대한 답을 뒷받침하거나 제한하는 실제 근거를 비교하고 어떤 현실 조건에서 판단이 달라지는지 설명한다.')]});
+ else middle.push({title:subject+' · 판단의 근거와 달라지는 조건',role:'question',theme:editorial.theme,weight:1,sections:[section('evidence','그렇게 읽는 이유','실제 계산 근거와 쉬운 뜻을 연결한다. 상충 신호와 기간의 한계를 구분한다.'+EVIDENCE_ONCE),section('pattern','판단을 바꾸는 조건','앞 장의 성격 설명을 반복하지 않는다. 질문에 대한 답을 뒷받침하거나 제한하는 실제 근거를 비교하고 어떤 현실 조건에서 판단이 달라지는지 설명한다.')]});
  if(!composite)middle.push({title:(d.period||'현재')+' · 기회와 주의 조건',role:'question',theme:editorial.theme,weight:1,sections:[section('opportunity','활용할 기회','질문과 기간에 해당하는 실제 근거를 설명하고 기회를 활용하기 위한 조건을 제시한다. 근거 없는 월별 예측이나 날짜는 만들지 않는다.'),section('caution','부담과 조정할 부분','상충하는 신호와 제약을 짚고 무엇을 조정하면 달라질 수 있는지 설명한다.')]});
  if(!composite)for(const step of questionOutlines[topic])middle.push(fromStep(step,subject+' · '+step.title,'question'));
  groups.push(...middle.slice(0,slots));
@@ -191,7 +191,7 @@ export function questionManifest(domain:DomainId,fish:QuestionFish,d:QuestionDec
  const timing=timingSelectors[domain]||[];
  return expandConsultationManifest(groups.map((group,ordinal)=>{
   const targetChars=targets[ordinal];
-  if(!group.sections.some(x=>x.id==='evidence'))group.sections.push(section('evidence','이 해석의 근거','이 장의 해석을 뒷받침하는 실제 근거와 쉬운 뜻을 연결하고 상충 신호와 한계를 설명한다.'));
+  if(!group.sections.some(x=>x.id==='evidence'))group.sections.push(section('evidence','이 해석의 근거','이 장에서 새로 쓰는 근거만 실제 계산값과 쉬운 뜻으로 연결하고 상충 신호와 한계를 설명한다.'+EVIDENCE_ONCE));
   const plannedSections=group.sections.map(x=>({...x,minimumChars:0,targetChars:targetChars.map(n=>Math.ceil(n/group.sections.length)) as [number,number]}));
   const selected=group.role==='foundation'?[...foundation,...selectors[domain],...(ordinal===0?timing:[])]:['bonus','life'].includes(group.role)||group.timing?[...selectors[domain],...timing]:selectors[domain];
   const roleFocus=group.role==='foundation'?basics.instruction:group.role==='bonus'?'질문 밖의 영역을 다루는 보너스 장이다. 질문에 대한 답을 반복하지 않는다.':group.role==='life'?'질문을 넘어 삶 전체를 살피는 장이다. 기본 장과 질문 장의 설명을 반복하지 않는다.':editorial.focus;
