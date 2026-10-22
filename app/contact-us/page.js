@@ -56,7 +56,7 @@ export default function ContactUsPage() {
         <div>
           <h1>무엇을 도와드릴까요?</h1>
           <p>서비스 이용부터 결과 확인까지,<br />궁금한 점을 편하게 남겨주세요.</p>
-          <p className={styles.caption}>꽃돼지가 길을 안내할게요.</p>
+          <p className={styles.caption}>Contact Us · 꽃돼지가 길을 안내할게요.</p>
         </div>
         <Image src="/icons/app-logo-512.webp" alt="연꽃을 쓴 꿀꿀운세 꽃돼지" width={512} height={512} sizes="(max-width: 600px) 72px, 112px" className={styles.mascot} priority />
       </header>
