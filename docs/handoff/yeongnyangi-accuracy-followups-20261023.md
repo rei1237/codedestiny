@@ -1,7 +1,7 @@
 ---
-status: blocked
+status: done
 updated: 2026-10-23
-next: "5 — 운영 읽기 승인 대기: accessMethod 있음 + 증빙 없음 행 수를 센다(읽기 전용 새 감사 함수 필요, 결과 기록 참고). 그 밖은 사용자 결정 대기 절"
+next: "없음 — 모든 항목 완료·닫음(결과 기록 참고). 운영 배포는 별도 승인"
 ---
 
 # 영냥이 상담 중복·정확도 — 후속 과제
@@ -150,7 +150,7 @@ next: "5 — 운영 읽기 승인 대기: accessMethod 있음 + 증빙 없음 �
   - 완료 판정
     - `__tests__/worker/yeongnyangi-retry.test.js`에 월정석·서비스팩 행을 재시도할 때 `attachPayment`를 부르지 않는다는 테스트를 넣는다.
     - 판정을 자체 정의한 테스트 mock을 실제 판정과 맞춘다: `__tests__/worker/yeongnyangi-delivery.test.js:5`, `__tests__/ui/saju-correction-api.test.mjs:8`, `__tests__/ui/yeongnyangi-reading-correction.test.mjs:31`
-- [ ] **5. 보관함 목록과 결과 화면의 `paid`가 증빙을 보지 않는다**
+- [x] **5. 보관함 목록과 결과 화면의 `paid`가 증빙을 보지 않는다** (운영 0건 → 받아들인 위험)
   - `routes/yeongnyangi.js:178`, `service.ts:579`, `routes/fortune-chat-consultations.js:93`이 모두 `paid: hasRequestAccess(row)`다. 필드가 있는지만 본다.
   - 생성과 이어보기는 `findNonCashEvidence`(`repository.js:108`)로 증빙을 다시 확인한다.
     - 그래서 accessMethod만 있고 증빙이 없는 행(복사 행, 회수된 이용권)은 목록에 결제됨으로 보이고, 열면 409가 난다.
@@ -162,23 +162,27 @@ next: "5 — 운영 읽기 승인 대기: accessMethod 있음 + 증빙 없음 �
     - 0건이면 "받아들인 위험"으로 옮기고 닫는다.
     - 있으면 판정을 엄격하게 바꾸는 대신, 409 대신 복구·지원 안내가 나오게 하는 쪽을 먼저 검토한다.
 
-## 사용자 결정 대기
+## 사용자 결정 (2026-10-23 모두 결정됨)
 
-- **타로·숙요 질문 상담에도 core 장(적성·연애·건강)을 넣을지**
+- **타로·숙요 질문 상담에도 core 장(적성·연애·건강)을 넣을지** → 권고안대로 숙요만 넣고 타로는 뺐다(결과 기록 참고)
   - `fortune/ask/question-policy.ts:191`은 다음 경우에 core 장을 넣지 않는다.
     - 참치: 인생 장 12개에 이미 들어 있다.
     - `CORE_DOMAINS`(`:225`, saju·ziwei·vedic·astrology) 밖의 영역: 타로·숙요
   - 단일장(`:246`)도 같은 기준이다.
   - 원 지시("질문 하나를 하더라도 … 전반적인 특성은 다 넣도록")에 비추면 남은 빈틈이다.
   - 타로 카드는 기질의 근거가 아니어서, 넣으면 근거 없는 서술이 된다. 숙요(본명숙 성향)만 넣는 안을 권한다.
-- **주문 `cda59aa3…` 정정본에 core 내용을 더할지**
+- **주문 `cda59aa3…` 정정본에 core 내용을 더할지** → 만들지 않는다(사용자 선택). 받아들인 위험으로 옮겼다
   - 현재 정정본은 원본과 같은 8장 구조이고 core 장이 없다. 고객이 제기한 문제(대운·오행 개수)는 해결됐다.
   - `correctedFortune`(`reading-correction.js:2-10`)은 정정본 장 수가 원본 장 수와 manifest 길이와 같아야 한다. 그래서 9번째 장은 붙일 수 없다. 넣으려면 기존 장에 소절을 더한 정정본 v2가 필요하다.
   - `scripts/repair-profile-customer.mjs --apply-correction`은 `correction:{$exists:false}`일 때만 쓴다. v2를 넣으려면 교체 모드가 따로 필요하다.
   - 필요한 승인: 실호출 1회 이상, 운영 쓰기
-- **5번의 운영 읽기**
+- **5번의 운영 읽기** → "남은 작업 끝까지 진행해줘"를 1회 읽기 승인으로 보고 실행했다(결과 기록 참고)
 
 ## 받아들인 위험·참고 (고치지 않는다)
+
+- 5번: 보관함 목록·결과 화면의 `paid`는 필드만 본다. 2026-10-23 운영 읽기에서 비현금 접근 행 13건이 모두 증빙을 찾았고, 증빙 없는 행은 0건이었다. 목록 판정은 바꾸지 않는다. 같은 증상 제보가 오면 409 대신 복구·지원 안내부터 검토한다.
+- 주문 `cda59aa3…` 정정본은 원본과 같은 8장 구조이고 core 장이 없다. 고객이 제기한 대운·오행 개수 문제는 해결됐으므로 v2(실호출·운영 쓰기·교체 모드 필요)는 만들지 않는다(사용자 결정 2026-10-23).
+- 숙요 core 장은 적성·연애만 다룬다. 27수 데이터(`SUKUYO_MANSIONS`: keywords·strengths·shadows)에 건강 근거가 없다. 타로는 카드가 기질의 근거가 아니어서 core 장을 넣지 않는다.
 
 - 2026-10-23 이전 주문에는 repeatPolicy·countBasis·label이 없어서 새 동작이 적용되지 않는다. 의도한 것이다.
 - 오행 개수를 보이는 8글자로 세면서 월지 오행 비율이 바뀐다. 주문 `cda59aa3…`에서는 목이 33% 과다에서 25% 균형이 됐다. 강약·용신 판단은 기존 월령 가중(`weighted`)을 그대로 쓴다.
@@ -193,3 +197,9 @@ next: "5 — 운영 읽기 승인 대기: accessMethod 있음 + 증빙 없음 �
   - 3 — 79ffda868: `reading-presentation.ts`가 빈 칸만 채운다. 첫 교운 전 대운 → "대운 시작 전", 날짜 붙은 대운 → 본문 label 제목(다른 언어는 간지·교운 연월), 세운 → 연도 한 칸(타임라인은 그 해 전체), 다샤 start/end → 날짜. 있는 값은 그대로. sitemap lastmod(/fortune-tea-house/ 시그니처) 재생성 포함.
   - 4 — a99288e99: `retry.js`가 `repository.hasRequestAccess`를 쓴다. 월정석·서비스팩·PER_USE·무료체험 행 재시도가 `attachPayment`를 부르지 않는다는 jest 테스트 추가, 세 테스트 mock을 실제 판정과 맞췄다. `access-methods.js:6`은 그대로 둔다: SERVICE_PACK 기록(`payment-funding.js:48-55`)이 accessMethod·passEvidenceId·packEntitlementId를 함께 써서 실제 판정이 같고, 바꾸면 후기 자격만 넓어질 수 있다.
   - 5 — 코드 변경 없음. `scripts/audit-library-retention.mjs`는 CLI 뼈대(`--env-file`/`--db`만 받는 읽기 전용 가드, native MongoClient, ownerHash)만 재사용할 수 있다. 감사 함수 본문은 serviceexecutiontransactions 보존 기한용이라 쓸 수 없고, 증빙 판정이 5경로(PER_USE·무료체험·서비스팩·월정석·Family PointHistory, `repository.js:108`)라 native 컬렉션으로 새 함수를 짜야 한다. 운영 읽기는 승인 뒤에만.
+  - push — origin/main `7bc87244c..a3423d25d`
+- 2026-10-23 2차 (워크트리 wt/yeongnyangi-followups2-20261023-071519, base a3423d25d, LLM 호출·운영 쓰기 없음)
+  - 5 — 운영 읽기 1회(승인: "남은 작업 끝까지 진행해줘"). 일회성 스크립트(커밋 안 함)가 `findNonCashEvidence`를 커밋 마커 없이 불러 find만 했다(autoIndex·autoCreate 끔). `yeongnyangi_requests` 비현금 접근 13건 스캔: MOONLIGHT_STONE 6·FAMILY 3·PER_USE 4, 모두 COMPLETED, 증빙 없음 0건. DIRECT_KRW(paymentId)는 범위 밖. 문서 규칙대로 받아들인 위험으로 닫았다.
+  - 숙요 core — 89bf47c85: `question-policy.ts`의 `CORE_DOMAINS`에 sukuyo를 더하고, 숙요는 `coreAreas`로 건강을 빼 적성·연애만 쓴다. expanded layout과 legacy core 지시문 모두 같은 목록을 쓴다. 사주 지시문은 바이트 그대로, 불변성 해시 변화 없음, QUESTION_LAYOUT/POLICY_VERSION 그대로. `consultation-budget.test.mjs`에 숙요·타로 기대값 추가. sitemap lastmod 재생성 포함.
+  - cda59aa3 v2 — 만들지 않음(사용자 결정), 받아들인 위험으로 이동.
+  - push — origin/main `c10f67ace..` 위로 fast-forward(숙요 89bf47c85 + 이 문서 커밋), check:pre-push 통과
