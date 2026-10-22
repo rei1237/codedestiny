@@ -74,6 +74,8 @@
 .island { --expert-accent: #b79cf0; --expert-line: rgba(183, 156, 240, .28); --expert-surface: #241b4d; --expert-text: #f6f1ff; --expert-muted: rgba(235, 227, 255, .8); }
 .yeoni { --expert-accent: #b31955; --expert-line: rgba(179, 25, 85, .24); --expert-surface: #fff3f8; --expert-text: #4e1730; --expert-muted: rgba(78, 23, 48, .74); }
 .neo { --expert-accent: #c4b5fd; --expert-line: rgba(196, 181, 253, .24); --expert-surface: #13102a; --expert-text: #f6f1ff; --expert-muted: rgba(226, 218, 255, .78); }
+/* 신년운세 — 화면 제출 버튼(.nyai-primary #e4c274)과 칠흑·버건디 바탕에 맞춘다. */
+.newYear { --expert-accent: #e4c274; --expert-line: rgba(228, 194, 116, .26); --expert-surface: #1c0c12; --expert-text: #fff3db; --expert-muted: rgba(242, 230, 216, .78); }
 /* 캐릭터 전문가 상담 — 윤달(점성술)·무성(자미두수). 기존 .astrology/.ziwei 는 롤백용으로 남긴다. */
 .yun { --expert-accent: #cdbcf2; --expert-line: rgba(205, 188, 242, .28); --expert-surface: #0c1230; --expert-text: #f6f1ff; --expert-muted: rgba(226, 222, 255, .8); }
 .musung { --expert-accent: #e9c46a; --expert-line: rgba(200, 196, 188, .26); --expert-surface: #14121f; --expert-text: #fff7e2; --expert-muted: rgba(232, 226, 210, .8); }

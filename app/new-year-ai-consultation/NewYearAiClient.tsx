@@ -23,6 +23,7 @@ import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { PriceBadge } from "@/app/components/PriceBadge";
+import { ExpertStickyCta } from "@/app/components/expert-consulting/ExpertConsultationFrame";
 import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
 import AiResultProse from "@/components/fortune/AiResultProse";
 import { readDevPreviewState } from "@/lib/dev-preview/core";
@@ -2130,7 +2131,7 @@ export default function NewYearAiConsultationPage() {
 
       {getCurrentLoadingLocale() === "ko" && <div style={{ width: "100%", maxWidth: 540, margin: "24px auto" }}><CraftedProductDisclosure featureKey={FEATURE_KEY} /></div>}
       <section className="nyai-workspace">
-        <form className="nyai-form nyai-panel" onSubmit={handleSubmit}>
+        <form id="new-year-form" className="nyai-form nyai-panel" onSubmit={handleSubmit}>
           <div className="nyai-form-title">
             <CalendarDays size={18} />
             <h2>새해 상담에 필요한 정보를 알려주세요</h2>
@@ -2273,6 +2274,8 @@ export default function NewYearAiConsultationPage() {
             <span>{isBusy ? statusText : "신년운세 전문가 상담 받기"}</span>
           </button>
         </form>
+        {/* 다른 대표 상담 두 곳과 같은 규칙 — 폼이 아직 아래에 있을 때만, 제출 버튼과 같은 라벨로 뜬다. 폼(.nyai-panel)은 backdrop-filter 라 fixed 기준 상자가 되므로 폼 밖에 둔다. */}
+        {!isBusy && <ExpertStickyCta theme="newYear" targetId="new-year-form" label="신년운세 전문가 상담 받기" price={<PriceBadge featureKey="new-year-ai-consultation" prefix="상담 이용 가격 " />} />}
 
         <section className="nyai-chat nyai-panel" aria-live="polite">
           <div className="nyai-chat-head">

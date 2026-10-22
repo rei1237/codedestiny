@@ -1767,7 +1767,7 @@ export default function LifeBookAiClient() {
               {copy.heroBadges.map((badge) => <li key={badge}>{badge}</li>)}
             </ul>
             <div className={intro.actions}>
-              <a href="#life-book-form" className={intro.start}>
+              <a href="#life-book-form" id="life-book-hero-start" className={intro.start}>
                 <BookOpen className="h-5 w-5" aria-hidden="true" />
                 {copy.openCta(form.mode)}
               </a>
@@ -1929,7 +1929,7 @@ export default function LifeBookAiClient() {
                 </div>
               )}
             </form>
-            <ExpertStickyCta theme="lifeBook" targetId="life-book-form" label="인생의 책 펼치기" price={<PriceBadge featureKey={MODE_FEATURE_KEY[form.mode || "lifeBook"]} prefix="상담 이용 가격 " />} />
+            <ExpertStickyCta theme="lifeBook" targetId="life-book-form" watchId="life-book-hero-start" label={copy.openCta(form.mode || "lifeBook")} price={<PriceBadge featureKey={MODE_FEATURE_KEY[form.mode || "lifeBook"]} prefix="상담 이용 가격 " />} />
 
             {!isBusy && status !== "completed" && (
               <section className="rounded-lg border border-amber-200/20 bg-[#20362a] p-4 shadow-2xl shadow-black/20  sm:p-5">

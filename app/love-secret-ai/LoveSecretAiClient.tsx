@@ -353,7 +353,7 @@ const LOVE_SECRET_CLIENT_COPY: Partial<Record<LoadingLocale, LoveSecretClientCop
     heroTitle: "연애 비책 AI",
     heroSubtitle: "당신만을 위한 연애 컨설턴트",
     heroDescription: "사주 명식과 연애 심리를 함께 읽어, 오늘 무엇을 하고 무엇을 미뤄야 하는지까지 짚어 드립니다.",
-    heroStartCta: "상담 시작하기",
+    heroStartCta: "연애 비책 시작하기",
     progressGeneratingSrLabel: "상담 생성 진행률",
     progressFormSrLabel: "입력 진행률",
     stepLabelFormat: (step, title) => `${step}단계 · ${title}`,
@@ -1599,6 +1599,8 @@ const FOCUS_AREAS_KO: Array<{ value: FocusArea; label: string; desc: string }> =
 const FOCUS_VALUES: FocusArea[] = FOCUS_AREAS_KO.map((item) => item.value);
 
 const FORM_ANCHOR_ID = "love-secret-form";
+// 히어로 시작 버튼 — 고정 CTA 와 같은 행동이라, 이 버튼이 보이는 동안은 고정 CTA 를 숨긴다.
+const HERO_START_ID = "love-secret-hero-start";
 
 /**
  * 입력 스텝.
@@ -2483,7 +2485,7 @@ export default function LoveSecretAiPage() {
             )}
           </aside>
         </div>
-          <ExpertStickyCta theme="love" targetId={FORM_ANCHOR_ID} label="연애 비책 펼치기" price={<PriceBadge featureKey="love-secret-ai-consultation" prefix="상담 이용 가격 " />} />
+          <ExpertStickyCta theme="love" targetId={FORM_ANCHOR_ID} watchId={HERO_START_ID} label={copy.heroStartCta} price={<PriceBadge featureKey="love-secret-ai-consultation" prefix="상담 이용 가격 " />} />
       </section>
       {/* 소개용 공동 마스터 프로필 — 상담 진행·결과 안내 중에는 내리고, 사전이 없는 다른 로케일에는 띄우지 않는다. */}
       {copy === LOVE_SECRET_CLIENT_COPY.ko && !busy && !resultUrl && <MasterProfileGroup id={LOVE_MASTERS_ANCHOR_ID}
@@ -2513,7 +2515,7 @@ function LoveSecretHero({ onStart, busy, mastersHref }: { onStart: () => void; b
           {copy.heroPromises.map((item) => <li key={item}>{item}</li>)}
         </ul>
         <div className={intro.actions}>
-          <button type="button" onClick={onStart} disabled={busy} className={intro.start}>
+          <button type="button" id={HERO_START_ID} onClick={onStart} disabled={busy} className={intro.start}>
             <MessageCircleHeart className="h-5 w-5" aria-hidden="true" />
             {copy.heroStartCta}
           </button>
