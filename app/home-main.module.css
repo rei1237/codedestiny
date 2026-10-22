@@ -101,6 +101,21 @@
   100% { transform: translateY(-28px) rotateX(3deg) rotate(0) scale(1.045); }
 }
 @keyframes dealCard { from { transform: translateY(24px) rotate(0) scale(.96); } to { transform: rotate(var(--hm-card-angle)); } }
+/* 대표 상담 3종 — 입구 카드 아래 한 줄. 카드 전체가 한 링크이고 채움 버튼은 첫 장 하나뿐이다(DESIGN.md 버튼 위계). */
+.signature { width: 100%; max-width: 1040px; padding-top: 12px; }
+.signatureHeading { max-width: 66ch; margin-bottom: 16px; }
+.signatureHeading h2 { font-size: clamp(1.25rem, 4.5vw, 1.75rem); line-height: 1.4; }
+.signatureHeading p { margin-top: 8px; color: var(--cd-text-muted); font-size: 0.9375rem; }
+.signatureList { display: grid; gap: 12px; }
+.signatureCard { display: grid; grid-template-columns: minmax(0, 38%) minmax(0, 1fr); gap: 14px; align-items: start; height: 100%; box-sizing: border-box; padding: 12px; border: 1px solid var(--hm-gold-line); border-radius: var(--cd-r-md); background: var(--cd-surface); text-decoration: none; transition: border-color var(--cd-dur-emph) var(--cd-ease-out); }
+.signatureArt { display: block; width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: cover; border-radius: var(--cd-r-sm); }
+.signatureCopy { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-width: 0; height: 100%; }
+.signatureMaster { color: var(--hm-gold-ink); font-size: 0.75rem; font-weight: 700; }
+.signatureQuestion { color: var(--cd-text-muted); font-size: 0.875rem; line-height: 1.6; word-break: keep-all; }
+.signaturePrice { margin-top: 2px; color: var(--cd-text); font-size: 0.9375rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.signaturePrimary, .signatureLink { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; margin-top: auto; font-size: 0.875rem; font-weight: 700; white-space: nowrap; }
+.signaturePrimary { padding: 0 20px; border: 1px solid var(--cd-cta-hairline); border-radius: var(--cd-r-pill); background: var(--cd-cta); color: var(--cd-cta-text); }
+.signatureLink { color: var(--cd-text); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.25em; }
 .discovery { width: 100%; max-width: 1040px; margin-top: 12px; }
 .section { padding-block: 36px; border-top: 1px solid var(--cd-line); }
 .section:first-child { border: 0; padding-top: 12px; }
@@ -159,6 +174,7 @@
   .deck[data-selecting] .card:not([data-selected]), .deck .card, .deck .card:hover, .deck .card:active, .deck .card:has(.cardLink:focus-visible) { transform: rotate(var(--hm-card-angle)); opacity: 1; }
   .card:hover { outline: 2px solid var(--hm-card-edge); outline-offset: 3px; }
   .cardArt img, .serviceList a:hover .methodArt, .card:hover .cardAction svg { transform: none; }
+  .signatureCard:hover { border-color: var(--hm-gold-ink); }
 }
 @media (min-width: 641px) {
   .page { --hm-gutter: 32px; --hm-floral: url('/images/home/illustrated/moon-floral-light-1280.webp'); }
@@ -170,6 +186,8 @@
   .serviceList { grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: 28px; }
   .concernList { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 36px; }
   .advisers { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 36px; }
+  .signatureList { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+  .signatureCard { grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 14px; }
   .advisers img { width: 112px; height: 168px; }
   .section { padding-block: 48px; }
   .readingSection { display: grid; grid-template-columns: 1fr 1.25fr; gap: 32px; align-items: start; }

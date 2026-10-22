@@ -74,7 +74,7 @@ const ko = {
   navigation: '상담 종류', signature: '대표 상담', others: '다른 상담',
   signatureTitle: '대표 상담 여섯 장', signatureLead: '처음이라면 이 여섯 장 가운데 마음이 가는 한 장을 펼쳐 보세요.',
   othersTitle: '다른 상담도 있어요', othersLead: '보고 싶은 방식이나 주제가 이미 정해져 있다면 여기서 골라보세요.',
-  firstAction: '첫 장 펼치기', open: '살펴보기', namingAction: '작명소 살펴보기', personal: '개인판', compatibility: '궁합판',
+  firstAction: '{name} 시작하기', open: '살펴보기', namingAction: '작명소 살펴보기', personal: '개인판', compatibility: '궁합판',
 };
 type HubCopy = typeof ko;
 const en: HubCopy = {
@@ -82,12 +82,12 @@ const en: HubCopy = {
   navigation: 'Consultation categories', signature: 'Signature', others: 'More readings',
   signatureTitle: 'Six signature readings', signatureLead: 'New here? Open whichever of these six cards speaks to you.',
   othersTitle: 'More readings to explore', othersLead: 'If you already know the tradition or topic you want, choose it here.',
-  firstAction: 'Open the first card', open: 'Explore', namingAction: 'Explore naming studio', personal: 'Personal', compatibility: 'Compatibility',
+  firstAction: 'Start {name}', open: 'Explore', namingAction: 'Explore naming studio', personal: 'Personal', compatibility: 'Compatibility',
 };
 const copies: Record<string, HubCopy> = {
   ko, en,
-  ja: { title: '今、どんな話を紐解きましょうか？', lead: '心に残る悩みから人生を深く読む物語まで。自分に合う相談を選んでください。', navigation: '相談の種類', signature: '代表相談', others: 'ほかの相談', signatureTitle: '代表相談の六枚', signatureLead: '初めてなら、六枚の中から気になる一枚を開いてみてください。', othersTitle: 'ほかの相談もあります', othersLead: '見たい占術やテーマが決まっているなら、こちらから選べます。', firstAction: '最初の一枚を開く', open: '見てみる', namingAction: '命名所を見る', personal: '個人版', compatibility: '相性版' },
-  'zh-CN': { title: '现在，想聊聊什么呢？', lead: '从心中的烦恼到人生的深层故事，选择适合自己的咨询。', navigation: '咨询分类', signature: '代表咨询', others: '其他咨询', signatureTitle: '六张代表咨询', signatureLead: '第一次来的话，从这六张里翻开最吸引你的一张吧。', othersTitle: '还有其他咨询', othersLead: '如果已经想好占卜方式或主题，可以在这里选择。', firstAction: '翻开第一张', open: '查看', namingAction: '了解起名所', personal: '个人版', compatibility: '合盘版' },
-  'zh-TW': { title: '現在，想聊聊什麼呢？', lead: '從心中的煩惱到人生的深層故事，選擇適合自己的諮詢。', navigation: '諮詢分類', signature: '代表諮詢', others: '其他諮詢', signatureTitle: '六張代表諮詢', signatureLead: '第一次來的話，從這六張裡翻開最吸引你的一張吧。', othersTitle: '還有其他諮詢', othersLead: '如果已經想好占卜方式或主題，可以在這裡選擇。', firstAction: '翻開第一張', open: '查看', namingAction: '了解命名所', personal: '個人版', compatibility: '合盤版' },
+  ja: { title: '今、どんな話を紐解きましょうか？', lead: '心に残る悩みから人生を深く読む物語まで。自分に合う相談を選んでください。', navigation: '相談の種類', signature: '代表相談', others: 'ほかの相談', signatureTitle: '代表相談の六枚', signatureLead: '初めてなら、六枚の中から気になる一枚を開いてみてください。', othersTitle: 'ほかの相談もあります', othersLead: '見たい占術やテーマが決まっているなら、こちらから選べます。', firstAction: '{name}を始める', open: '見てみる', namingAction: '命名所を見る', personal: '個人版', compatibility: '相性版' },
+  'zh-CN': { title: '现在，想聊聊什么呢？', lead: '从心中的烦恼到人生的深层故事，选择适合自己的咨询。', navigation: '咨询分类', signature: '代表咨询', others: '其他咨询', signatureTitle: '六张代表咨询', signatureLead: '第一次来的话，从这六张里翻开最吸引你的一张吧。', othersTitle: '还有其他咨询', othersLead: '如果已经想好占卜方式或主题，可以在这里选择。', firstAction: '开始{name}', open: '查看', namingAction: '了解起名所', personal: '个人版', compatibility: '合盘版' },
+  'zh-TW': { title: '現在，想聊聊什麼呢？', lead: '從心中的煩惱到人生的深層故事，選擇適合自己的諮詢。', navigation: '諮詢分類', signature: '代表諮詢', others: '其他諮詢', signatureTitle: '六張代表諮詢', signatureLead: '第一次來的話，從這六張裡翻開最吸引你的一張吧。', othersTitle: '還有其他諮詢', othersLead: '如果已經想好占卜方式或主題，可以在這裡選擇。', firstAction: '開始{name}', open: '查看', namingAction: '了解命名所', personal: '個人版', compatibility: '合盤版' },
 };
 export const consultationCopy = (locale: string): HubCopy => copies[locale] || en;

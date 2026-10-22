@@ -8,8 +8,8 @@ const origin = process.env.CONSULTATIONS_TEST_ORIGIN || 'http://127.0.0.1:16772'
 assert.match(origin, /^http:\/\/(127\.0\.0\.1|localhost):\d+$/);
 const out = path.resolve(process.env.CONSULTATIONS_TEST_OUTPUT || 'build-cache/consultations-garden');
 fs.mkdirSync(out, { recursive: true });
-// 강약: 대표 상담 여섯 장(홈 덱 순서) → 다른 상담 일곱 개.
-const expected = ['neo','tea','codex','love-secret','new-year','life-book','ziwei','astrology','vedic','sukuyo-compat','legacy-naming','karma','fusion'];
+// 강약: 대표 상담 여섯 장(홈 덱 순서 — 대표 3종이 먼저) → 다른 상담 일곱 개.
+const expected = ['love-secret','new-year','life-book','neo','tea','codex','ziwei','astrology','vedic','sukuyo-compat','legacy-naming','karma','fusion'];
 const browser = await chromium.launch({ headless: true });
 const evidence = [];
 const axeSource = fs.readFileSync('node_modules/axe-core/axe.min.js', 'utf8');
@@ -41,8 +41,9 @@ try {
     assert.equal(new URL(page.url()).hash, '#others');
     assert.equal(await page.locator('#others').evaluate(n => Math.round(n.getBoundingClientRect().top)), 24);
     assert.equal(await page.locator('#others #experts [data-service="ziwei"]').count(), 1, 'legacy #experts anchor lands on the other readings');
-    // 채움 행동은 첫 장 하나뿐이다.
-    assert.equal(await page.locator('#signature [data-service="neo"] a').evaluate(n => [...n.querySelectorAll('span')].some(s => getComputedStyle(s).backgroundColor === 'rgb(181, 54, 96)')), true);
+    // 채움 행동은 첫 장(연애 비책) 하나뿐이고, 라벨이 상품 이름을 말한다.
+    assert.match(await page.locator('#signature [data-service="love-secret"] a').innerText(), /연애 비책 시작하기/);
+    assert.equal(await page.locator('#signature [data-service="love-secret"] a').evaluate(n => [...n.querySelectorAll('span')].some(s => getComputedStyle(s).backgroundColor === 'rgb(181, 54, 96)')), true);
     assert.equal(await page.locator('main').evaluate(m => [...m.querySelectorAll('a, a span')].filter(n => getComputedStyle(n).backgroundColor === 'rgb(181, 54, 96)').length), 1);
     for (const details of await page.locator('main details').all()) {
       await details.locator('summary').click();
@@ -67,7 +68,7 @@ try {
     await page.evaluate(() => scrollTo(0, 0));
     await page.screenshot({ path: path.join(out, `consultations-${width}.png`), fullPage: true });
     await page.screenshot({ path: path.join(out, `consultations-${width}-first.png`) });
-    const firstCta = await page.locator('[data-service="neo"] a').boundingBox();
+    const firstCta = await page.locator('[data-service="love-secret"] a').boundingBox();
     const navBox = await page.locator('nav.cd-mnav').boundingBox();
     assert.ok(firstCta.y + firstCta.height < navBox.y, JSON.stringify({width, firstCta, navBox}));
     assert.equal(audit.overflow, false);

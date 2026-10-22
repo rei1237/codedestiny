@@ -9,9 +9,10 @@ import { consultationCopy, expertCopy, hubTranslations } from './consultation-co
 import styles from './consultations.module.css';
 
 // Presentation order only. Storage adapters, hrefs and price keys stay authoritative.
-// 강약: 홈 덱과 같은 대표 상담 여섯 장이 위, 나머지 일곱 개는 압축 목록으로 아래.
+// 강약: 홈 덱과 같은 순서 — 대표 상담 3종(연애 비책·신년운세·인생의 책)이 첫 줄, 캐릭터 상담 셋이 뒤,
+// 나머지 일곱 개는 압축 목록으로 아래.
 const groups = {
-  signature: ['neo', 'tea', 'codex', 'love-secret', 'new-year', 'life-book'],
+  signature: ['love-secret', 'new-year', 'life-book', 'neo', 'tea', 'codex'],
   others: ['ziwei', 'astrology', 'vedic', 'sukuyo-compat', 'legacy-naming', 'karma', 'fusion'],
 } as const;
 const numerals = ['Ⅰ', 'Ⅱ', 'Ⅲ', 'Ⅳ', 'Ⅴ', 'Ⅵ'];
@@ -59,7 +60,7 @@ export default function ConsultationHub({ children }: { children?: ReactNode }) 
           <span className={styles.prices}>{prices(id, service.featureKey)}</span>
           {/* 이 화면의 채움 행동은 첫 장 하나뿐이다. 나머지 다섯 장은 텍스트 라벨. */}
           <span className={index === 0 ? styles.primary : styles.tertiary}>
-            {index === 0 ? copy.firstAction : copy.open}<ArrowUpRight size={15} aria-hidden="true" />
+            {index === 0 ? copy.firstAction.replace('{name}', name) : copy.open}<ArrowUpRight size={15} aria-hidden="true" />
           </span>
         </div>
       </a>

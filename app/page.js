@@ -11,6 +11,7 @@ import { HOME_CATEGORIES, HOME_CONCERNS } from "../lib/seo/home-discovery.mjs";
 import { getSignProfile } from "../lib/fortune/sign-profiles";
 import LegacyHomeEntry from "./components/LegacyHomeEntry";
 import HomeCardDeck from "./components/HomeCardDeck";
+import { PriceBadge } from "./components/PriceBadge";
 import ConsultationDiscovery from "./components/ConsultationDiscovery";
 import LocalizedServiceSummary from "./components/LocalizedServiceSummary";
 import "./yeongnyangi/night-tokens.css";
@@ -71,6 +72,14 @@ const CARDS = [
   { key: "yn", className: "ynCard", art: "yeongnyangi", name: "운세보는 영냥이", href: YEONGNYANGI.path, tag: "간단한 질문부터", hint: "세밀한 오마카세 상담까지", night: true },
 ];
 const CARD_ART_SIZES = "(min-width: 800px) 306px, (min-width: 641px) 38vw, 42vw";
+// 강약(2026-10-23): 대표 상담 3종을 두 입구 카드 바로 아래 한 줄로 둔다. 채움 버튼은 첫 장 하나뿐이다.
+// 그림·질문은 /ggulggul/ 대표 덱(scripts/design/build-home-funnel.mjs)과 같고, 가격은 서버 정본(PriceBadge)이 말한다.
+const SIGNATURE_CONSULTATIONS = [
+  { key: "love-secret", title: "연애 비책", master: "연이 · 서한비", href: "/love-secret-ai/", art: "love-secret-ai", featureKey: "love-secret-ai-consultation", question: "마음부터 들려주세요. 두 분 사이의 거리는 서한비가 재어 드릴게요.", action: "연애 비책 시작하기" },
+  { key: "new-year", title: "신년운세", master: "네오", href: "/new-year-ai-consultation/", art: "new-year-ai", featureKey: "new-year-ai-consultation", question: "올해 판세는 내가 먼저 읽는다. 어디서 밀고, 언제 멈출까?", action: "신년운세 받기" },
+  { key: "life-book", title: "인생의 책", master: "윤달", href: "/life-book-ai/", art: "life-book-ai", featureKey: "life-book-ai-consultation", question: "당신의 인생, 첫 장부터 읽어 드릴게요.", action: "인생의 책 펼치기" },
+];
+const SIGNATURE_ART = "/images/service-introductions";
 const RESULT_EXAMPLE = getSignProfile("rat");
 const HOME_FAQS = [
   { question: "꿀꿀 운세와 꿀꿀운세, 코드 데스티니는 어떤 관계인가요?", answer: brandCopy("aliases") },
@@ -129,6 +138,23 @@ export default function HomePage() {
           })}
         </HomeCardDeck>
         <a className={styles.browseLink} href="#homeServices">분야부터 골라보기 <span aria-hidden="true">↓</span></a>
+        {/* 카드 전체가 한 링크다. 클릭 귀속은 /ggulggul/ 덱과 같은 섹션 키(signature_consult)로 남는다(js/core/analytics.js). */}
+        <section className={styles.signature} aria-labelledby="homeSignature" data-cd-funnel-section="signature_consult">
+          <div className={styles.signatureHeading}><h2 id="homeSignature">대표 상담</h2><p>연애·한 해·인생, 큰 질문 하나를 마스터가 깊게 읽어 드려요.</p></div>
+          <ul className={styles.signatureList}>{SIGNATURE_CONSULTATIONS.map((item, index) => <li key={item.key} data-home-signature={item.key}>
+            <Link href={item.href} className={styles.signatureCard}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img className={styles.signatureArt} src={`${SIGNATURE_ART}/${item.art}-640.webp`} srcSet={`${SIGNATURE_ART}/${item.art}-320.webp 320w, ${SIGNATURE_ART}/${item.art}-640.webp 640w`} sizes="(min-width: 641px) 320px, 38vw" width={640} height={427} alt="" loading="lazy" decoding="async" />
+              <div className={styles.signatureCopy}>
+                <span className={styles.signatureMaster}>{item.master}</span>
+                <h3>{item.title}</h3>
+                <p className={styles.signatureQuestion}>{item.question}</p>
+                <PriceBadge featureKey={item.featureKey} className={styles.signaturePrice} />
+                <span className={index === 0 ? styles.signaturePrimary : styles.signatureLink}>{item.action}<span aria-hidden="true">→</span></span>
+              </div>
+            </Link>
+          </li>)}</ul>
+        </section>
         <ConsultationDiscovery />
         <div className={styles.discovery}>
           <section className={styles.section} aria-labelledby="homeServices">
