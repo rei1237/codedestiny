@@ -27,7 +27,7 @@ const masterNames: Record<string, string> = { "네오": "Neo", "서한비": "Seo
 export const masterPreparationLabel = (locale: LoadingLocale) => translated[locale][2];
 
 /** Presentation only: input, payment and delivered reading data stay with each route. */
-export default function ConsultationMasterIntro({ kind, compact = false, children, lead, label, actionHref }: { kind: keyof typeof rooms; compact?: boolean; children?: ReactNode; lead?: string; label?: string; actionHref?: string }) {
+export default function ConsultationMasterIntro({ kind, compact = false, children, lead, label, actionHref, actionId }: { kind: keyof typeof rooms; compact?: boolean; children?: ReactNode; lead?: string; label?: string; actionHref?: string; actionId?: string }) {
   const [locale, setLocale] = useState<LoadingLocale>("ko");
   useEffect(() => {
     const sync = () => setLocale(getCurrentLoadingLocale());
@@ -46,7 +46,7 @@ export default function ConsultationMasterIntro({ kind, compact = false, childre
       <p className={styles.eyebrow}>{isKo ? room.label : label || (kind === "karma" ? "Neo · Seo Hanbi" : "Yun-dal")}</p>
       <h2>{title}</h2>
       {!compact && <><p className={styles.lead}>{isKo ? room.lead : lead}</p><ul className={styles.masters} aria-label={isKo ? "이 상담의 마스터" : title}>{productMasters[kind].map(master => <li key={master.name}><img src={master.avatar} width={48} height={48} alt="" /><div><strong>{isKo ? master.name : (masterNames[master.name] || master.name)}</strong>{isKo && <><span>{master.role}</span><p>“{master.line}”</p></>}</div></li>)}</ul></>}
-      {(children || actionHref) && <div className={styles.actions}>{actionHref && <a href={actionHref}>{copy[2]}</a>}{children}</div>}
+      {(children || actionHref) && <div className={styles.actions}>{actionHref && <a id={actionId} href={actionHref}>{copy[2]}</a>}{children}</div>}
     </div>
   </section>;
 }

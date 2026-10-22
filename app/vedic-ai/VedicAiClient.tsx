@@ -3314,7 +3314,7 @@ export default function VedicAiClient() {
 
   return (
     <main className={styles.shell} data-vedic-ai-page="direct-route-v20260627">
-      <ConsultationMasterIntro kind="vedic" label={copy.heroTitle} lead={copy.heroLead} actionHref="#vedic-consultation-form">
+      <ConsultationMasterIntro kind="vedic" label={copy.heroTitle} lead={copy.heroLead} actionHref="#vedic-consultation-form" actionId="vedic-hero-start">
         <PriceBadge featureKey="vedic-ai-consultation" prefix={copy.pricePrefix} />
       </ConsultationMasterIntro>
 
@@ -3529,6 +3529,7 @@ export default function VedicAiClient() {
         <ExpertStickyCta
           theme="vedic"
           targetId="vedic-consultation-form"
+          watchId="vedic-hero-start"
           label={masterPreparationLabel(getCurrentLoadingLocale())}
           price={<PriceBadge featureKey="vedic-ai-consultation" prefix="" />}
         />

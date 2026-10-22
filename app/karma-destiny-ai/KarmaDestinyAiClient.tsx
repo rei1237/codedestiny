@@ -2605,7 +2605,7 @@ export default function KarmaDestinyAiPage() {
 
   return (
     <main className={`kdai-page ${polish.page}`} data-karma-destiny-ai="v20260629">
-      <ConsultationMasterIntro kind="karma" label={copy.heroTitle} lead={copy.heroDescription} actionHref="#karma-destiny-consultation">
+      <ConsultationMasterIntro kind="karma" label={copy.heroTitle} lead={copy.heroDescription} actionHref="#karma-destiny-consultation" actionId="karma-hero-start">
         <div className="kdai-status" data-status={status} role="status">
           {isBusy ? <Loader2 size={16} className="kdai-spin" /> : <Sparkles size={16} />}
           <span>{statusText}</span>
@@ -2861,6 +2861,7 @@ export default function KarmaDestinyAiPage() {
         <ExpertStickyCta
           theme="karma"
           targetId="karma-destiny-consultation"
+          watchId="karma-hero-start"
           label={masterPreparationLabel(getCurrentLoadingLocale())}
           price={<PriceBadge featureKey="karma-destiny-ai-consultation" prefix="" />}
         />
