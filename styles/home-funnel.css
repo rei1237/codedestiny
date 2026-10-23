@@ -1423,6 +1423,45 @@ html.neo-mode #cdHomeFunnel .cdh-scene-art #honeypigLogo{box-shadow:none!importa
 /* Bounded, non-interactive collection layer; motion is started only after a credit. */
 .cdh-honey__collection{position:absolute;inset:0;z-index:2;overflow:hidden;border-radius:inherit;pointer-events:none}
 .cdh-honey__collection>img{background-color:transparent!important;position:absolute;top:0;left:0;width:32px;height:32px;object-fit:contain}
+/* 연이 찻집 도장 달력: 5일 연속 도장판 + 이번 달 출석 달력. 색은 --cdh-* 토큰만 쓴다. */
+.cdh-honey__chip{flex:none;padding:2px 10px;border:1px solid color-mix(in srgb,var(--cdh-gold) 40%,transparent);border-radius:999px;background:var(--cdh-gold-soft);color:var(--cdh-gold);font-size:12px;font-weight:700;line-height:1.6;white-space:nowrap}
+.cdh-honey__chip[hidden]{display:none}
+.cdh-cal{position:relative;max-width:480px;margin:4px auto 16px;padding:16px;border:1px solid var(--cdh-line);border-radius:var(--cd-r-card,20px);background:linear-gradient(180deg,color-mix(in srgb,var(--cdh-gold-soft) 72%,var(--cdh-card)),var(--cdh-card) 70%);overflow:hidden}
+.cdh-cal[hidden]{display:none}
+.cdh-cal::before{content:'';position:absolute;top:-16px;right:-20px;width:150px;height:150px;background:url('/images/fortune-tea-house/moonlight-lotus-ornament-360.webp') center/contain no-repeat;opacity:.26;pointer-events:none}
+.cdh-cal>*{position:relative}
+.cdh-cal img{background-color:transparent!important;display:block;object-fit:contain}
+.cdh-cal__head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.cdh-cal__head strong{font-size:15px;font-weight:750;letter-spacing:-.02em;color:var(--cdh-ink)}
+.cdh-cal__streak{padding:2px 10px;border:1px solid color-mix(in srgb,var(--cdh-gold) 40%,transparent);border-radius:999px;background:var(--cdh-gold-soft);color:var(--cdh-gold);font-size:12px;font-weight:700;line-height:1.6}
+.cdh-cal__board{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin:14px 0 0;padding:0;list-style:none}
+.cdh-cal__slot{display:grid;justify-items:center;gap:2px;padding:8px 2px 6px;border:1.5px dashed var(--cdh-line);border-radius:14px;background:color-mix(in srgb,var(--cdh-card) 82%,transparent)}
+.cdh-cal__slot img{width:100%;max-width:40px;height:auto;aspect-ratio:1;filter:grayscale(1);opacity:.32}
+.cdh-cal__slot-label{font-size:11px;font-weight:700;color:var(--cdh-muted);line-height:1.4}
+.cdh-cal__slot.is-filled{border-style:solid;border-color:color-mix(in srgb,var(--cdh-gold) 45%,transparent);background:var(--cdh-gold-soft)}
+.cdh-cal__slot.is-filled img{filter:none;opacity:1}
+.cdh-cal__slot.is-filled .cdh-cal__slot-label{color:var(--cdh-gold)}
+.cdh-cal__slot.is-bonus{border-color:color-mix(in srgb,var(--cdh-gold) 55%,transparent)}
+.cdh-cal__slot.is-bonus img{opacity:.6;filter:grayscale(.35)}
+.cdh-cal__slot.is-bonus .cdh-cal__slot-label{color:var(--cdh-gold);font-weight:800}
+.cdh-cal__note{display:flex;align-items:center;gap:10px;margin:12px 0 14px;padding:8px 12px 8px 8px;border-radius:14px;background:color-mix(in srgb,var(--cdh-surface) 55%,var(--cdh-card))}
+.cdh-cal__pig{flex:none;width:40px;height:40px}
+.cdh-cal__note p{margin:0;color:var(--cdh-ink);font-size:13px;line-height:1.55;word-break:keep-all;overflow-wrap:anywhere}
+.cdh-cal__week,.cdh-cal__grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.cdh-cal__week{margin-bottom:4px;text-align:center;font-size:11px;font-weight:650;color:var(--cdh-muted)}
+.cdh-cal__week .is-sun{color:var(--cdh-accent)}
+.cdh-cal__grid{margin:0;padding:0;list-style:none}
+.cdh-cal__day{position:relative;display:flex;align-items:flex-end;justify-content:center;min-height:46px;padding-bottom:4px;border:1px solid transparent;border-radius:12px;background:color-mix(in srgb,var(--cdh-card) 72%,transparent)}
+.cdh-cal__day.is-blank{background:none}
+.cdh-cal__num{position:absolute;top:3px;left:6px;font-size:10.5px;font-weight:650;line-height:1.2;color:var(--cdh-muted);font-variant-numeric:tabular-nums}
+.cdh-cal__day img{width:24px;height:24px}
+.cdh-cal__day.is-future .cdh-cal__num{opacity:.5}
+.cdh-cal__day.is-stamped{background:var(--cdh-gold-soft);border-color:color-mix(in srgb,var(--cdh-gold) 32%,transparent)}
+.cdh-cal__day.is-stamped .cdh-cal__num{color:var(--cdh-gold)}
+.cdh-cal__day.is-bonus{box-shadow:0 0 0 1.5px color-mix(in srgb,var(--cdh-gold) 60%,transparent)}
+.cdh-cal__day.is-today{outline:2px solid var(--cdh-accent);outline-offset:-1px}
+.cdh-cal__day.is-today .cdh-cal__num{color:var(--cdh-accent);font-weight:800}
+@media(max-width:380px){.cdh-cal{padding:12px}.cdh-cal__board{gap:4px}.cdh-cal__day{min-height:42px}.cdh-cal__day img{width:20px;height:20px}}
 /* All-readings world exploration. These rules never style the main home or other finders. */
 #cdAllFortunes .cd-sheet__body,html body #cdMobileFortuneOverview{padding-top:0;scroll-padding-block-start:80px}
 #cdAllFortunesRoot{gap:20px;--cd-af-surface:var(--cd-surface,#fffaf7)}

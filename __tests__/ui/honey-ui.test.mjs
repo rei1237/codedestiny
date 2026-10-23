@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import { JSDOM } from 'jsdom';
 import { HONEY_UNLOCK_PRODUCTS } from '../../worker/lib/honey-unlock-catalog.js';
 const source = fs.readFileSync(new URL('../../js/prompt-hub-honey.js', import.meta.url), 'utf8');
-const widget = '<section class="cdh-honey" data-cd-honey-widget><img class="cdh-honey__yeoni"><div class="cdh-honey__wallet"><img src="/images/fortune-tea-house/honey-drop-jewel-v1.webp"></div><strong data-cd-honey-balance></strong><button data-cd-honey-attend></button><p data-cd-honey-status></p><button data-cd-honey-retry hidden>retry</button></section>';
+const widget = '<section class="cdh-honey" data-cd-honey-widget><img class="cdh-honey__yeoni"><div class="cdh-honey__wallet"><img src="/images/fortune-tea-house/honey-drop-jewel-v1.webp"></div><strong data-cd-honey-balance></strong><button data-cd-honey-attend></button><p data-cd-honey-status></p><button data-cd-honey-retry hidden>retry</button><span data-cd-honey-streak hidden></span><div data-cd-honey-calendar hidden></div></section>';
 const tick = () => new Promise(resolve => setTimeout(resolve, 40));
 async function setup(mode = 'ok', options = {}) {
   const dom = new JSDOM('<body>' + widget, { url: 'https://example.test/', runScripts: 'outside-only', pretendToBeVisual: true });
@@ -40,7 +40,7 @@ async function setup(mode = 'ok', options = {}) {
     attendanceCalls++;
     if (status === 'pending') return new Promise(resolve => { finish = resolve; });
     if (status !== 'ok') return { ok: false, status: status === 'guest' ? 401 : 503, payload: {} };
-    return { ok: true, payload: { ok: true, balance: init.method === 'POST' && !options.noCredit ? 8 : 7, attended: init.method === 'POST' } };
+    return { ok: true, payload: { ok: true, balance: init.method === 'POST' && !options.noCredit ? 8 : 7, attended: init.method === 'POST', ...options.payload } };
   };
   win.eval(source); await tick();
   return { win, animations, requests, setLocale, close: () => { observers.forEach(observer => observer.disconnect()); win.close(); }, status: value => { status = value; }, calls: () => attendanceCalls, finish: value => finish(value) };
@@ -56,6 +56,33 @@ test('guest attendance remains visible; failure is not a zero balance and retry 
     assert.equal(doc.querySelector('[data-cd-honey-retry]').hidden, false);
     app.status('ok'); doc.querySelector('[data-cd-honey-retry]').click(); await tick();
     assert.equal(doc.querySelector('[data-cd-honey-balance]').textContent, '7개');
+  } finally { app.close(); }
+});
+test('calendar stamps attended days, marks today and celebrates the 5-day bonus', async () => {
+  const monthDays = [20, 21, 22, 23, 24].map(d => ({ day: `2026-10-${d}`, bonus: d === 24 }));
+  const app = await setup('ok', { payload: { day: '2026-10-24', attended: true, streak: 5, streakEvery: 5, streakBonus: 4, nextBonusIn: 5, monthDays } });
+  try {
+    const doc = app.win.document, box = doc.querySelector('[data-cd-honey-calendar]');
+    assert.equal(box.hidden, false);
+    assert.equal(box.querySelectorAll('.cdh-cal__day.is-blank').length, 4, 'Oct 2026 starts on Thursday');
+    assert.equal(box.querySelectorAll('.cdh-cal__day:not(.is-blank)').length, 31);
+    assert.equal(box.querySelectorAll('.cdh-cal__day.is-stamped').length, 5);
+    assert.equal(box.querySelector('.cdh-cal__day.is-today').getAttribute('aria-label'), '10월 24일 출석 완료, 연속 보너스 지급');
+    assert.equal(box.querySelectorAll('.cdh-cal__slot.is-filled').length, 5);
+    assert.match(box.querySelector('.cdh-cal__note').textContent, /5일 연속 달성! 보너스 4개를 더해 오늘 5개/);
+    const chip = doc.querySelector('[data-cd-honey-streak]');
+    assert.equal(chip.hidden, false);
+    assert.equal(chip.textContent, '연속 5일');
+  } finally { app.close(); }
+});
+test('calendar stays hidden for guests and shows the way to the next bonus before attending', async () => {
+  const guest = await setup('guest');
+  try { assert.equal(guest.win.document.querySelector('[data-cd-honey-calendar]').hidden, true); } finally { guest.close(); }
+  const app = await setup('ok', { payload: { day: '2026-10-24', attended: false, streak: 3, streakEvery: 5, streakBonus: 4, nextBonusIn: 2, monthDays: [] } });
+  try {
+    const box = app.win.document.querySelector('[data-cd-honey-calendar]');
+    assert.equal(box.querySelectorAll('.cdh-cal__slot.is-filled').length, 3);
+    assert.match(box.querySelector('.cdh-cal__note').textContent, /오늘 출석하면 연속 4일째! 2일 더 출석하면 보너스 \+4개/);
   } finally { app.close(); }
 });
 test('all product button adapters preserve cash handlers and show server honey prices', async () => {

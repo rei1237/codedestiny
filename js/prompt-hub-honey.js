@@ -70,11 +70,72 @@
     button.disabled = busy || !state || Boolean(state?.attended || state?.error);
     text(widget.querySelector('[data-cd-honey-status]'), state?.error ? tr("balanceError", "꿀방울을 불러오지 못했어요. 다시 확인해 주세요.") : '');
     widget.querySelector('[data-cd-honey-retry]').hidden = !state?.error;
+    renderCalendar(widget);
+  }
+  var IMG = '/images/fortune-tea-house/';
+  function icon(file, size) { var img = document.createElement('img'); img.src = IMG + file; img.alt = ''; img.width = size; img.height = size; img.loading = 'lazy'; img.decoding = 'async'; return img; }
+  // 연이 찻집 도장 달력. 날짜·연속일·보너스는 모두 서버 응답(KST)만 쓰고, 칸 계산은 UTC 날짜로 해서 기기 시간대와 무관하다.
+  function renderCalendar(widget) {
+    var box = widget.querySelector('[data-cd-honey-calendar]'), chip = widget.querySelector('[data-cd-honey-streak]');
+    var ready = Boolean(state && state.day && !state.guest && !state.error);
+    if (box) box.hidden = !ready;
+    if (chip) { chip.hidden = !(ready && state.streak > 0); text(chip, ready ? '연속 ' + state.streak + '일' : ''); }
+    if (!box || !ready) return;
+    var days = Array.isArray(state.monthDays) ? state.monthDays : [];
+    var every = state.streakEvery || 5, bonusAmount = state.streakBonus || 4, streak = state.streak || 0;
+    var signature = [state.day, streak, state.attended, every, bonusAmount, days.map(function (d) { return d.day + (d.bonus ? '*' : ''); }).join()].join('|');
+    if (box.dataset.signature === signature) return;
+    box.dataset.signature = signature;
+    var parts = state.day.split('-').map(Number), year = parts[0], month = parts[1], today = parts[2];
+    var first = new Date(Date.UTC(year, month - 1, 1)).getUTCDay(), total = new Date(Date.UTC(year, month, 0)).getUTCDate();
+    var marked = {}; days.forEach(function (d) { marked[d.day] = d; });
+    var bonusDay = Boolean(state.attended && streak > 0 && streak % every === 0);
+    // 도장판: 오늘 출석 전에 막 한 바퀴를 채웠다면 새 판에서 시작한다.
+    var filled = streak > 0 && (state.attended || streak % every !== 0) ? ((streak - 1) % every) + 1 : 0;
+
+    var head = node('div', '', 'cdh-cal__head');
+    head.append(node('strong', month + '월 출석 달력'), node('span', streak > 0 ? '연속 ' + streak + '일' : '오늘부터 시작해요', 'cdh-cal__streak'));
+
+    var board = node('ol', '', 'cdh-cal__board');
+    board.setAttribute('aria-label', every + '일 연속 도장판');
+    for (var s = 1; s <= every; s++) {
+      var slot = node('li', '', 'cdh-cal__slot' + (s <= filled ? ' is-filled' : '') + (s === every ? ' is-bonus' : ''));
+      slot.setAttribute('aria-label', s + '일째 ' + (s <= filled ? '도장 완료' : '도장 전') + (s === every ? ', 보너스 꿀방울 ' + bonusAmount + '개' : ''));
+      slot.append(icon(s === every ? 'honey-jar-bonus-v1.webp' : 'honey-drop-jewel-v1.webp', 44), node('span', s === every ? '+' + bonusAmount : s + '일', 'cdh-cal__slot-label'));
+      board.append(slot);
+    }
+
+    var note = node('div', '', 'cdh-cal__note');
+    var message = bonusDay ? streak + '일 연속 달성! 보너스 ' + bonusAmount + '개를 더해 오늘 ' + (bonusAmount + 1) + '개를 받았어요.'
+      : state.attended ? '연속 ' + streak + '일째예요. ' + state.nextBonusIn + '일 더 출석하면 보너스 꿀방울 +' + bonusAmount + '개!'
+      : state.nextBonusIn === 1 ? '오늘 출석하면 보너스 꿀방울 +' + bonusAmount + '개를 받아요!'
+      : streak > 0 ? '오늘 출석하면 연속 ' + (streak + 1) + '일째! ' + state.nextBonusIn + '일 더 출석하면 보너스 +' + bonusAmount + '개예요.'
+      : '오늘 출석하면 연속 1일째! ' + every + '일 연속이면 꿀방울 +' + bonusAmount + '개 보너스예요.';
+    note.append(icon(bonusDay ? 'flower-pig-cheer.webp' : 'flower-pig-tea.webp', 40), node('p', message));
+    note.firstChild.className = 'cdh-cal__pig';
+
+    var week = node('div', '', 'cdh-cal__week'); week.setAttribute('aria-hidden', 'true');
+    ['일', '월', '화', '수', '목', '금', '토'].forEach(function (name, i) { week.append(node('span', name, i === 0 ? 'is-sun' : '')); });
+
+    var grid = node('ol', '', 'cdh-cal__grid');
+    for (var blank = 0; blank < first; blank++) grid.append(node('li', '', 'cdh-cal__day is-blank'));
+    for (var d = 1; d <= total; d++) {
+      var key = year + '-' + String(month).padStart(2, '0') + '-' + String(d).padStart(2, '0'), hit = marked[key];
+      var cell = node('li', '', 'cdh-cal__day' + (hit ? ' is-stamped' : '') + (hit && hit.bonus ? ' is-bonus' : '') + (d === today ? ' is-today' : '') + (d > today ? ' is-future' : ''));
+      var label = month + '월 ' + d + '일' + (hit ? ' 출석 완료' + (hit.bonus ? ', 연속 보너스 지급' : '') : d === today ? ' 오늘' : '');
+      cell.setAttribute('aria-label', label);
+      if (d === today) cell.setAttribute('aria-current', 'date');
+      cell.append(node('span', String(d), 'cdh-cal__num'));
+      if (hit) cell.append(icon(hit.bonus ? 'honey-jar-bonus-v1.webp' : 'honey-drop-jewel-v1.webp', 28));
+      grid.append(cell);
+    }
+    box.replaceChildren(head, board, note, week, grid);
   }
   var collectionAnimations = [], collectionLayer, collectionTimer;
   function announceCollection(amount) {
     var status = document.querySelector('[data-cd-honey-status]');
-    text(status, tr("collected", "꿀방울 {amount}개를 모았어요! 현재 {balance}개예요.", { amount: number(amount), balance: number(state.balance) }));
+    var bonus = state.bonus > 0 ? tr("collectedBonus", "{days}일 연속 보너스 {bonus}개 포함! ", { days: number(state.streak), bonus: number(state.bonus) }) : '';
+    text(status, bonus + tr("collected", "꿀방울 {amount}개를 모았어요! 현재 {balance}개예요.", { amount: number(amount), balance: number(state.balance) }));
   }
   function clearCollection() {
     clearTimeout(collectionTimer);

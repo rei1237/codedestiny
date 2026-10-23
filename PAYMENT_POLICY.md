@@ -97,7 +97,7 @@ Cloudflare Workers는 런타임에 파일을 읽을 수 없으므로, 이 문서
 
 2026-10-18 사용자 승인. 연이 단독 운명 상담(`/fortune-chat`, `fortune-chat-consultation` 1회 5,000원)은 이용권·단건 결제에 더해
 **꿀방울 30개**로도 1건을 열 수 있다(30방울 = 5,000원 1회와 같은 값으로 본다). 같은 지갑(`fortune_tea_house_honey_wallets`)에서 차감하며,
-출석 보상은 현재 코드 기준 하루 1개(`HONEY_ATTENDANCE_EVERY = 1`)다.
+출석 보상은 현재 코드 기준 하루 1개(`HONEY_ATTENDANCE_EVERY = 1`)이고, KST 기준 5일 연속 출석(5·10·15…일째)마다 보너스 4개를 더해 그날 총 5개다(`HONEY_STREAK_EVERY = 5`, `HONEY_STREAK_BONUS = 4`). 하루라도 빠지면 1일째부터 다시 센다.
 
 - 정본: 차감·환불 `worker/lib/honey-wallet.js`(`FORTUNE_CHAT_HONEY_COST`, ledger `fortune-chat:<uid>:fc-<id>`), 연결 `worker/yeongnyangi/repository.js` `attachChatHoney`.
 - 연이 기본 상담 키에만 쓴다. 질문 티어·네오·공동 상담에는 꿀방울을 쓰지 않는다(409 `HONEY_NOT_AVAILABLE`).
