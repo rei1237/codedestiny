@@ -1,7 +1,7 @@
 ---
 status: done
 updated: 2026-10-23
-next: "없음 — 모든 항목 완료·닫음(결과 기록 참고). 운영 배포는 별도 승인"
+next: "없음 — 모든 항목 완료·닫음, 운영 반영 99da0ed57(결과 기록 참고)"
 ---
 
 # 영냥이 상담 중복·정확도 — 후속 과제
@@ -19,7 +19,7 @@ next: "없음 — 모든 항목 완료·닫음(결과 기록 참고). 운영 배
 
 ## 지금 상태 (다시 하지 않는다)
 
-- 원 작업 커밋 `43adcc577..8cfe5f0d8`(8개)이 origin/main에 있고, 운영 Pages·Worker는 `406f1e4a2`다(릴리스 run 39847925828 성공).
+- 원 작업 커밋 `43adcc577..8cfe5f0d8`(8개)과 후속 1~5·숙요 core(`ab2119a83..99da0ed57`)가 origin/main에 있고, 운영 Pages·Worker는 `99da0ed57`다(2026-10-23 운영 릴리스 run 39882578653 성공).
 - 주문 `cda59aa3…`: 입력은 여성이고 순행 경오(대운수 1)가 맞다. 계해는 남성으로 계산한 값이다. 정정본은 2026-10-23 운영 보관함에 반영해 확인했다. 되돌릴 때는 `$unset correction`(별도 승인).
 - 정정본 검수본(고객 데이터 포함, 커밋 금지): `D:\영냥이_정정본검수_2026-10-23\`
 
@@ -203,3 +203,4 @@ next: "없음 — 모든 항목 완료·닫음(결과 기록 참고). 운영 배
   - 숙요 core — 89bf47c85: `question-policy.ts`의 `CORE_DOMAINS`에 sukuyo를 더하고, 숙요는 `coreAreas`로 건강을 빼 적성·연애만 쓴다. expanded layout과 legacy core 지시문 모두 같은 목록을 쓴다. 사주 지시문은 바이트 그대로, 불변성 해시 변화 없음, QUESTION_LAYOUT/POLICY_VERSION 그대로. `consultation-budget.test.mjs`에 숙요·타로 기대값 추가. sitemap lastmod 재생성 포함.
   - cda59aa3 v2 — 만들지 않음(사용자 결정), 받아들인 위험으로 이동.
   - push — origin/main `c10f67ace..` 위로 fast-forward(숙요 89bf47c85 + 이 문서 커밋), check:pre-push 통과
+  - 운영 배포 — 릴리스 run 39882578653(mode=production, 99da0ed57) 성공. 사전 확인: 같은 커밋 PR CI·Main drift watchdog 통과
