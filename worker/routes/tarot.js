@@ -1717,6 +1717,11 @@ async function handleLoveTarotDelivery(request, env, body) {
 async function handleMindscanDelivery(request, env, body) {
   const spec = { featureKey: MINDSCAN_FEATURE_KEY, minCost: MINDSCAN_MIN_COST, codePrefix: "MINDSCAN",
     reason: "마인드스캔 타로 리딩", authMessage: "로그인 후 리딩을 확인할 수 있습니다.", retryHint: "기존 결제 요청으로 다시 시도해 주세요." };
+  // 🔴 질문은 클라이언트가 보내는 유일한 입력이다(카드는 서버 draw 가 정한다). 비어 있으면 seed 가 400 으로 끝내는데,
+  //    그건 증빙 확인(이용권 차감) 뒤라 못 여는 요청에 한도만 깎인다 — 같은 400 을 그 앞에서 낸다.
+  if (request.method === "POST" && !body.resumeResultId && !asText(body.question)) {
+    throw createHttpError(400, "질문과 카드 5쌍을 확인해 주세요.", { reason: "INVALID_INPUT" });
+  }
   const initial = request.method === "POST" && !body.resumeResultId ? await verifyTarotPerUseAccess(request, env, body, { ...spec, drawFeatureKey: MINDSCAN_FEATURE_KEY }) : null;
   if (initial && !initial.ok) return json({ ok: false, code: initial.code, reason: initial.reason || "", message: initial.message,
     retryable: ![401, 403].includes(initial.status) }, { status: initial.status || 402 });

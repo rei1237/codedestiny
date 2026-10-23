@@ -174,6 +174,14 @@ describe("/mindscan", () => {
     expect(mindscanBuilt).toBe(0);
   });
 
+  test("질문이 비면 400 이고 증빙 조회(이용권 차감) 앞에서 끝난다", async () => {
+    proofResult = { proven: true, source: "pass", reason: "" };
+    const res = await handleTarotRoutes(post("/mindscan", { ...MINDSCAN_BODY, question: "  " }), {});
+    expect(res.status).toBe(400);
+    expect(verifyCalls).toHaveLength(0);
+    expect(mindscanBuilt).toBe(0);
+  });
+
   test("증빙 조회에 tarot-mindscan 과 requestId 를 넘긴다", async () => {
     await handleTarotRoutes(post("/mindscan", MINDSCAN_BODY), {});
     expect(verifyCalls).toHaveLength(1);
