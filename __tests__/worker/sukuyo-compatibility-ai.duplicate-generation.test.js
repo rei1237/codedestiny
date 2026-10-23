@@ -305,6 +305,17 @@ for (const index of [0, 1, 2, 3]) test(`취소·환불 저장소 ${index}은 재
   expect((await runWave()).status).toBe(402); expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(1); expect(store.docs[0].status).toBe("partial");
 });
 
+// 입력만으로 닫히는 계산 실패(음력 1990-03 은 29일까지)는 이용권 정산(차감) 앞에서 끝나야 한다.
+test("계산이 안 되는 입력은 이용권 정산 호출 없이 422 로 끝난다", async () => {
+  const { settlePerUseAccessDecision } = await import("../../worker/lib/nakshatra-paid-access.js");
+  const settledBefore = settlePerUseAccessDecision.mock.calls.length;
+  const response = await handleSukuyoCompatibilityAiRoutes(startRequest(KEY, { personB: { ...SAMPLE_BODY.personB, birthDate: "1990-03-30", calendarType: "lunar" } }), ENV);
+  expect(response.status).toBe(422);
+  expect((await response.json()).reason).toBe("CALCULATION_FAILED");
+  expect(settlePerUseAccessDecision.mock.calls.length).toBe(settledBefore);
+  expect(store.docs).toHaveLength(0);
+});
+
 afterEach(() => { expect(blockedFetch).not.toHaveBeenCalled(); });
 afterAll(() => { blockedFetch.mockRestore(); });
 

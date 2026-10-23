@@ -1935,6 +1935,9 @@ async function handleStart(request, env, recoveryAuth = null) {
     if (existingStatus === "generation_failed") return json({ ok: false, reason: "LLM_FAILED" }, { status: 409 });
     const accessHash = await inputHash(normalized);
     if (existing?.inputHash && existing.inputHash !== accessHash) return json({ ok: false, reason: "REQUEST_CONFLICT", message: "기존 상담과 입력이 달라요. 저장된 상담에서 이어서 시도해 주세요." }, { status: 409 });
+    // 🔴 입력만으로 정해지는 숙요 계산은 결제·이용권 차감(resolveStartAccess) 앞에서 끝낸다.
+    //    계산이 안 되는 입력(실재하지 않는 음력 날짜 등)이 차감 뒤 422 로 막히면 돈·한도만 빠진다.
+    const calculation = existing?.llmMeta?.calculation || await calculateSukuyo(normalized, env, request.url);
     logSukyoAi("[Sukyo AI LLM Access Check Start]", {
       route: "/api/sukuyo-compatibility-ai/generate",
       requestId: idempotencyKey,
@@ -1967,21 +1970,6 @@ async function handleStart(request, env, recoveryAuth = null) {
       accessGranted: true,
       accessType: access.accessType,
     });
-    let calculation;
-    try {
-      calculation = existing?.llmMeta?.calculation || await calculateSukuyo(normalized, env, request.url);
-    } catch (calcError) {
-      // 아직 시드가 없다 — 뒤집을 문서가 없으므로 기존과 동일하게 환급 후 전파한다.
-      const restored = await restorePrepaidAccessOnFailure(env, auth, access, calcError).catch(() => false);
-      await releaseEvidence();
-      logSukyoAi("[Sukyo AI LLM Refund Or Restore]", {
-        route: "/api/sukuyo-compatibility-ai/generate",
-        requestId: idempotencyKey,
-        consultationType: normalized.consultationType,
-        restored,
-      }, restored ? null : calcError, env);
-      throw calcError;
-    }
     const now = new Date();
     const storedPersonB = normalized.consultationType === "personal" ? {
       name: "",
