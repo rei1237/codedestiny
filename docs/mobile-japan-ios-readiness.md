@@ -1,7 +1,7 @@
 ---
-status: in-progress
+status: blocked
 updated: 2026-10-24
-next: Android 앱 번들·기기 검증, iOS Mac 검증과 승인 자산 연결
+next: 최신 Android 산출물 검증, main CI 복구 후 전달, iOS Mac/StoreKit 검증
 ---
 
 # 일본 결제·Android·iPhone 앱 준비
@@ -19,9 +19,9 @@ next: Android 앱 번들·기기 검증, iOS Mac 검증과 승인 자산 연결
 | 구매 내역 | /points/history/ → 기존 /api/payments/me?view=history | 같은 서버 계정의 내역 |
 | Android 새 구매 | Google Play → 서버 검증 → 기존 권한 지급 | 실결제·Console 설정은 별도 |
 | iPhone 새 구매 | 준비 중 안내, Google Play·웹 PG로 우회하지 않음 | StoreKit 상품·서버 영수증 검증 미구현, 출시 차단 |
-| 부적 | /app/talismans/ | 승인 이미지가 없으므로 실제 상품 이미지 준비 중 |
+| 부적 | /app/talismans/ | 승인 v2 15장, 화면 맞춤과 홈·잠금·둘 다 적용 흐름 구현 |
 
-앱 후처리는 웹 결제 화면 /points/와 /premium-unlock/를 제거한다. /points/history/, /insights/, /famous-saju/는 보존한다. 관리자 UI는 기존 정책대로 앱에서 제외한다.
+앱 후처리는 웹 결제 화면 /points/와 /premium-unlock/를 제거한다. /points/history/, /insights/, /insights/famous-saju/는 보존한다. 관리자 UI는 기존 정책대로 앱에서 제외한다.
 
 ## 일본 Google Play 편의점 현금 결제
 
@@ -39,19 +39,21 @@ Google Play의 일본 지원 결제수단이다. 앱이 편의점 버튼을 직�
 
 ## 부적과 원본
 
-캐릭터는 영냥이, 연이(꽃돼지) 두 정체성이다. 선택 장면은 영냥이·연꽃 속 연이·찻집의 연이 세 가지다. 학업·재물·연애·연락·취업/합격·평온·행운과 잠금/홈 구성을 구분한다. 최초 시안 3장에 이어 학업·재물·연애·연락·합격 15개 PNG를 직접 파일·해시 검증했다. 14장은 941×1672, contact-flower-pig는 940×1672이며 서로 다른 PNG 15개다. 원본 시각 검토도 수행했지만 실제 기기 적용과 사용자 최종 승인은 아니다. 원래 이미지 채팅에서 영냥이 표정·이미지 안 설명 수정 요청이 이어져 최종 자산 등록은 보류했다. 현 카탈로그의 1440×2560 최소 규격에도 못 미치므로 확대본을 고해상도 원본으로 등록하지 않는다.
+사용자가 v2 15장과 앱의 홈·잠금화면 설정 연결을 승인했다. 캐릭터는 영냥이와 연이(꽃돼지) 두 정체성이고, 장면은 영냥이·연꽃 속 연이·찻집의 연이 세 가지다. 학업·재물·연애·연락·취업/합격 다섯 주제마다 세 장면을 제공한다.
 
-승인 후 public/assets/talismans/catalog.json에 다음 데이터를 등록한다.
+승인 출처는 `C:\Users\user\Documents\Codex\2026-10-24\x20-2\outputs\talismans-v2`와 `talisman-collection-v2-manifest.json`이다. `public/assets/talismans/originals/`에 원본 바이트를 그대로 복사했고 카탈로그에 실제 크기와 SHA-256을 등록했다. 14장은 941×1672, contact-flower-pig는 940×1672다. 15개 원본의 한글 제목·키워드와 영냥이 표정을 시각 담당이 확인했다. 일본어 UI에서도 그림 속 글자는 한국어임을 안내한다. 4K 원본이라고 표시하지 않는다.
 
-- id, scene, category, composition, approval=approved
-- /assets/talismans/originals/ 아래 PNG 경로
-- 실제 width, height, SHA-256. 최소 1440×2560, 최대 4096×8192, 25MP·16MiB 이내
+- 선택: 세 장면 × 다섯 주제, 홈·잠금·둘 다, 그림 크기와 위아래 위치.
+- 원본 저장: PNG 헤더·실제 크기·SHA-256 검증 후 원본 바이트 그대로 저장한다. 최적화·중복 제거는 원본 폴더를 제외한다.
+- 맞춤 이미지: 전체 원본을 비율대로 축소하고 밤 배경 여백을 더한 별도 PNG다. 원본을 자르거나 늘리거나 픽셀 이상 확대하지 않는다. 미리보기와 출력은 같은 `wallpaperFit` 계산을 사용한다.
+- 시계·위젯·아이콘은 위치 예시이며 출력에 합성하지 않는다. 실제 기기의 배치는 확인이 필요하다. 원본·맞춤 출력 픽셀 크기를 함께 표시한다.
+- 원본 허용 범위: 720×1280 이상, 4096×8192 이하, 25MP·16MiB 이하. 맞춤 캔버스는 최대 2160×4096으로 제한한다.
 
-사용자 동작 전에 원본의 크기·PNG 헤더·SHA-256을 검증한다. 모바일 이미지 최적화·중복 제거는 이 원본 경로를 건드리지 않는다. 가이드와 시계는 화면에만 표시하며 저장 원본에 합성하지 않는다.
+Android는 사용자가 적용 버튼을 눌렀을 때만 `WallpaperManager.setStream`을 호출한다. 홈은 FLAG_SYSTEM, 잠금은 FLAG_LOCK, 둘 다는 두 플래그를 사용한다. 일반 권한 SET_WALLPAPER만 추가하며 사진 읽기·저장소 전체 권한은 요청하지 않는다. 기기 지원·관리 정책을 먼저 확인하고 양의 wallpaper ID가 반환된 경우에만 적용 응답으로 처리한다. 별도 시스템 선택 화면에서 돌아왔을 때는 적용 여부를 단정하지 않는다. 저장은 ACTION_CREATE_DOCUMENT, 공유는 FileProvider와 시스템 chooser를 사용한다.
 
-Android: ACTION_CREATE_DOCUMENT로 사용자가 저장 위치를 선택한다. 공유는 FileProvider + 시스템 chooser, 배경화면은 WallpaperManager의 시스템 선택 화면을 연다. 저장소 전체/사진 읽기 권한이나 자동 적용은 없다. 시스템 화면을 열었다는 결과와 실제 저장 완료를 구분한다.
+iPhone은 저장 동작에서 사진 추가 전용 권한을 요청한다. 저장 성공 후 대상별 설정 안내를 연다. 홈은 기존 배경화면의 홈 화면 사용자화, 잠금은 새로운 배경화면 추가 뒤 홈 화면을 별도 선택, 둘 다는 한 쌍으로 설정하도록 안내한다. 사진 저장을 배경화면 적용 완료로 표시하지 않는다. 비공개 자동 적용 API는 사용하지 않는다.
 
-iPhone: 저장 버튼에서만 사진 추가 권한을 요청하며 PNG 데이터를 그대로 저장한다. 공유는 시스템 공유 화면이다. 설정 → 배경화면 → 새로운 배경화면 추가에서 사용자가 사진을 선택한다. 자동 배경화면 적용 기능은 없다.
+공식 근거: [Android WallpaperManager](https://developer.android.com/reference/android/app/WallpaperManager), [iPhone 배경화면 변경](https://support.apple.com/ko-kr/102638).
 
 ## iOS 빌드와 출시 게이트
 
@@ -77,10 +79,40 @@ xcodebuild -project ios/App/App.xcodeproj -scheme App -destination 'generic/plat
 
 ## 검증 기록
 
-서버 모의 결제 94개, 앱 복귀/API/기록 보존 26개, 승인 카탈로그·원본 검증 8개, iOS CORS 1개 통과. TypeScript와 변경 UI lint 통과. Android :app:compileDebugJavaWithJavac 성공(2m39s, 68 tasks); APK/AAB·실기기 완료를 뜻하지 않는다.
+- 모의 서버 결제 94개, 앱 복귀/API/기록 보존 검사 26개(후속 메뉴 검사 1개 추가), iOS CORS 1개가 통과했다.
+- 최신 v2 카탈로그·실제 원본 해시·맞춤 계산·앱 메뉴 검사 22개 통과. `npm run typecheck` 통과. 변경 UI ESLint는 오류 0, 정적 다중 페이지 링크·원본 img 관련 경고 6개다.
+- 최신 Android `:app:compileDebugJavaWithJavac`: BUILD SUCCESSFUL, 24s, 68 tasks. APK/AAB·실기기 완료를 뜻하지 않는다.
+- Worker dry build 통과. 정책·가격 검사는 코드 레지스트리 대조이며 일본 Play Console의 실제 JPY 판매 가격을 증명하지 않는다.
+- 정적 앱 React #418 원인은 앱 헤더의 인라인 API 초기화였다. 외부 브릿지로 옮긴 뒤 실제 Next 출력+수정 후처리의 부적·상점에서 pageerror 0을 확인했다. 후속 v2 전체 `npm run build:mobile:app`도 통과했다. Next 1843개 페이지 생성, 앱 HTML 1850개 가드·결제 차단·기존 기록/읽기 경로 보존을 확인했다.
+- `check:fast -- --plan`은 critical. 전체 실행은 90개 중 87개 통과 뒤 메모리 부족 등으로 실패했다. 두 정적 가드는 수정 후 개별 통과했지만 전체 Jest/공식 게이트 통과로 보고하지 않는다.
+- origin/main a62384f3057afa885375feb1b9aac5fa35c821c7의 CI required·Static guards·paid-flow-gates 실패를 확인하여 그 위로 병합·push하지 않았다. 최종 전달 전 현재 결과를 한 번 재확인한다.
 
-정적 앱 React #418은 앱 헤더에 추가하던 인라인 API 초기화가 원인이었다. 초기화를 외부 브릿지로 옮긴 뒤 실제 Next 출력+수정 후처리의 부적·상점 두 화면에서 pageerror 0을 확인했다. 전체 앱 재생성과 산출물 검증은 진행 중이다.
+최종 v2 화면: 한국어 360/390/430px Android 모의·1280px 웹, 일본어 390px Android 모의, 한국어 390px iOS 모의의 6개 조건에서 넘침/실행 오류/44px 미만 조작 0개. 15장 선택 및 해시, 맞춤 PNG 크기, 홈/잠금/둘 다 전달, 원본 저장 해시, chooser 복귀·취소·미지원·사진 권한 안내가 통과했다. 시각 담당은 캡처와 맞춤 출력에 blocker 0, 제한된 ship 판정. 네이티브 시스템 응답은 mock이며 실기기 성공으로 확대하지 않는다. 공통 오프라인 화면은 연결이 끊기면 조작을 막으며 다시 연결하면 복귀한다.
 
-check:fast 전체 실행은 90개 중 87개 통과 뒤 메모리 부족 등으로 실패했다. 두 정적 가드 문제는 수정 후 개별 통과했지만 전체 Jest/전체 게이트 통과로 보고하지 않는다. 원격 main a62384f3057afa885375feb1b9aac5fa35c821c7의 CI required·Static guards·paid-flow-gates 실패를 확인하여 그 위로 병합·push하지 않았다.
+남은 확인: Android 실기기의 저장·권한·홈/잠금/둘 다 적용과 하단 문구, 일본 Play 계정/상품·지연 승인/취소, 같은 계정의 웹↔Android↔iPhone 구매 내역과 보관함 재열람, Mac iOS 빌드·StoreKit. 연결된 adb 기기는 없었다. 운영 TTL 인덱스 변경, 실결제, 배포, 스토어 업로드는 실행하지 않았다.
 
-남은 확인: 부적 시안 사용자 승인, 실제 PNG 저장·공유 취소·권한 거부·배경화면 선택, 일본 Play 계정/상품, 같은 계정의 웹↔Android↔iPhone 구매 내역과 보관함 재열람, Mac iOS 빌드와 StoreKit.
+
+## 실행 명령과 증거
+
+- `npm run test:jest -- __tests__/worker/app-store.google-billing.test.js`: 94 passed.
+- `node --test __tests__/ui/talisman-catalog.test.js __tests__/ui/talisman-wallpaper-fit.test.js __tests__/release/mobile-account-content.test.js`: 22 passed.
+- `node --test __tests__/ui/app-shell-locale-hydration.test.js`: 1 passed. 일본어 상점은 정적 한국어와 초기 렌더를 맞춘 뒤 즉시 선택 언어를 반영하고 언어 변경 이벤트도 처리한다.
+- `npm run typecheck`: 통과(최종 부적·native 연결 소스). 후속 언어 수정은 hook 회귀 검사와 해당 파일 ESLint 통과.
+- `npx eslint app/app/talismans/TalismanStudio.tsx app/app/talismans/catalog.ts app/app/talismans/wallpaper-fit.ts`: 오류0, 기존 다중 페이지 링크/원본 img 경고6.
+- `npm run build:mobile:app`: 최종 32bdae18207a0ca2fdf56802e3fc85ef1aadf97e 산출물 통과. 일본어 상점 초기 문구 불일치를 수정한 뒤 한국어/일본어 상점 모두 pageerror0, 신규 구매 차단·구매내역 링크를 확인했다. 부적6조건도 최종 산출물에서 다시 통과했다.
+- `npx cap sync android`, `npx cap sync ios`: 최종 32bdae182 산출물로 두 플랫폼 동기화 통과. iOS 동기화는 Xcode 컴파일을 뜻하지 않는다.
+- `gradlew.bat :app:compileDebugJavaWithJavac`: 최신 Java 코드 24초 BUILD SUCCESSFUL.
+- `npm run verify:entry-encoding -- --strict-core`: 통과.
+
+증거 보존 위치: `D:\Development\code-destiny\output\mobile-japan-ios-20261024-033316\evidence`. 승인 v2 원본→앱 15개 해시·해상도는 `talismans-v2-source-evidence.json`에 기록했다. 캡처의 시각 검토와 native 모의 검사는 실제 기기의 배경화면 변경 증거가 아니다.
+
+전달 직전 한 번 다시 확인한 origin/main은 a62384f3057afa885375feb1b9aac5fa35c821c7이며 [CI required](https://github.com/rei1237/codedestiny/actions/runs/40014072839/job/120626899788)가 여전히 failure다. 이 작업의 변경은 아직 원격에 없다. 병합·push·공식 CI·배포 완료로 표시하지 않는다.
+
+실출시 전에 운영 PurchaseIntent TTL 인덱스가 30일 설정과 일치하는지 승인된 운영 절차로 확인해야 한다. 모델 코드 수정만으로 기존 운영 인덱스의 변경을 증명하지 않는다.
+
+
+## Android 설치 후보
+
+최종 소스 32bdae18207a0ca2fdf56802e3fc85ef1aadf97e로 APK/AAB 생성 중이다. 로컬 후보 버전은 versionCode 52 / versionName 1.0.52이며 기존 서명 설정을 사용한다. Play Console의 최신 버전 번호·앱 서명과 대조한 번호는 아니므로 제출 가능 판정으로 쓰지 않는다. 앱 삭제나 데이터 초기화를 통한 설치 우회는 하지 않았다.
+
+앱의 원시 웹 자산은 약 738.8MiB/11641파일이다. 실제 다운로드 크기는 로컬 AAB 파일 크기와 다르며 Console 또는 bundletool에서 별도 측정해야 한다. [Google Play 공식 크기 기준](https://support.google.com/googleplay/android-developer/answer/9859372?hl=en-GB)은 압축 다운로드 기준으로 base module 500MB다. 현재 작업에서는 Console 업로드·심사를 수행하지 않았다.
