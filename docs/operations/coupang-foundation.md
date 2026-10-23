@@ -59,6 +59,21 @@ React 공통 진입점은 RecommendationResult, 정적 셸은 mountRecommendatio
 더 엄격한 쿠팡 정책이 확인되면 그 기준을 우선한다.
 수동 카탈로그는 500개까지로 제한한다. 신규 상품 수를 채우기 위한 예시는 운영 DB에 넣지 않는다.
 
+2026-10-24 사용자 결정: 2026-10-16 스냅숏의 쿠팡 상품 32개는 이미지 주소·사용 근거만 입력한다.
+입력 시트의 price·priceVerifiedAt는 비워두고 기존 "현재 가격 확인" CTA를 사용한다.
+기존 24시간 가격 표시 정책은 바꾸지 않으며 자동 가격 갱신이나 쿠팡 API를 활성화하지 않는다.
+
+
+## 채널 ID 확인 (2026-10-24)
+
+- 사용자 위임으로 공식 포털의 계정 `AF7837486`에서 사이트 전용 `codedestiny` 채널을 생성했다. 기존 `NEO910220`은 그대로 유지했다.
+- [공식 FAQ](https://partners.coupang.com/#help/faq)의 채널아이디 안내는 링크 생성 시 채널을 선택하여 채널별 실적을 구분하도록 설명한다. 실제 [간편 링크 화면](https://partners.coupang.com/#affiliate/ws/link-to-any-page)에서 `채널 아이디: codedestiny`를 확인하고 아래 원문을 발급받았다.
+- 입력: `https://www.coupang.com/vp/products/9766996432?itemId=29233265751` (카탈로그 스냅숏의 기존 상품·옵션 식별자).
+- 발급 원문: `https://link.coupang.com/a/h5GqddrRu0`.
+- 발급 URL에는 `subId` 쿼리가 없다. 기존 단축 링크 검증·원문 보존 경로로 처리한다. `/re/AFFSDP`의 subId 쿼리 형식은 이번에 확인하지 않았으므로 허용 키를 추가하지 않는다. 기존 링크에 임의 파라미터를 붙이지 않는다.
+- 증거: `D:/codedestiny-qa/coupang-ctr-20261023/coupang-channel-created.png`, `coupang-channel-link.png`. 원문 호환성은 네트워크 없는 단위 검사로 확인한다.
+- 공식 UI에서 선택·발급된 사실만 확인했다. 실제 클릭·주문·수익 귀속은 미검증이다. 운영 DB와 기존 32개 상품 URL은 변경하지 않았고, API·실제 제휴 클릭·push·배포도 수행하지 않았다. 운영 반영은 별도 요청 후 검수해야 한다.
+
 ## 분야별 필요한 자료
 
 | 분야 | 승인 후 제공할 자료 |
