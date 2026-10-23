@@ -1360,6 +1360,19 @@ function buildOAuthDuplicateCallbackResponse(safeFrontendBase, nextPath, appRedi
   return redirect(buildOAuthFrontendUrl(safeFrontendBase, nextPath));
 }
 
+const OAUTH_REASON_SLUG_RE = /^[a-z][a-z0-9_]{0,63}$/;
+
+// 콜백 실패 사유를 URL(social_error)에 실어도 되는 형태로 줄인다. 우리가 던진 슬러그만 그대로 두고,
+// 드라이버·네트워크 원문(컬렉션·호스트·이메일이 섞일 수 있다)은 앱 describeSocialError 가 구분하는
+// 범주 단어로만 남긴다. 원문은 호출부에서 로그로만 남는다.
+function toOAuthFailureReason(error) {
+  const message = String(error?.message || "").trim();
+  if (OAUTH_REASON_SLUG_RE.test(message)) return message;
+  if (/database|temporarily unavailable|timeout/i.test(message)) return "oauth_database_unavailable";
+  if (/duplicate|already|E11000/i.test(message)) return "oauth_duplicate";
+  return "oauth_callback_failed";
+}
+
 function buildOAuthFailureRedirect(frontendBase, provider, reason) {
   const loginUrl = new URL("/login", buildOAuthFrontendUrl(frontendBase, "/"));
   loginUrl.searchParams.set("authError", provider || "oauth");
@@ -4855,9 +4868,10 @@ async function handleOAuthCallback(request, env, provider) {
     // 앱 플로우는 웹 /login 에러 페이지로 보내지 않는다. 커스텀탭에 갇히는 대신 앱으로 되돌린다.
     // 특히 아이솔레이트가 갈려 위 dedup 을 통과한 둘째 콜백은 code 가 이미 소진돼 여기로 오는데,
     // 그때 첫 콜백은 이미 로그인을 끝냈으므로 앱으로 돌아가면 정상 상태다.
-    const appFailureTarget = buildAppOAuthRedirect(appOAuthRedirect, { social_error: reason });
+    const redirectReason = toOAuthFailureReason(error);
+    const appFailureTarget = buildAppOAuthRedirect(appOAuthRedirect, { social_error: redirectReason });
     if (appFailureTarget) return buildAppOAuthHandoffResponse(appFailureTarget);
-    return buildOAuthFailureRedirect(frontendBase, provider, reason);
+    return buildOAuthFailureRedirect(frontendBase, provider, redirectReason);
   }
 }
 
