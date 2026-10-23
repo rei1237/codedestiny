@@ -463,6 +463,43 @@ const MODULE_IMPORT_CACHE_KEY_FILES = [
   ["js", "core", "saju", "basicFortunePresentation.js"],
 ];
 
+/** 다른 자산을 `?v=` 로 싣는 루트 로더 파일. 셸은 이 파일들의 내용 해시를 키로 문다. */
+const ROOT_LOADER_RESTAMP_FILES = [
+  ...MODULE_IMPORT_CACHE_KEY_FILES.map((parts) => parts.join("/")),
+  "js/mobile-interaction-patch.js",
+  "js/core/uiBindings.js",
+  "js/core/index-inline-runtime.js",
+];
+
+/**
+ * 루트 로더 파일의 `?v=` 를 셸·미러보다 **먼저**, 더 바뀌지 않을 때까지 다시 쓴다.
+ *
+ * 🔴 키는 내용 해시라 사슬을 탄다 — mobile-backstack-navigation.js 가 바뀌면 patch 안의 참조가
+ *    바뀌고, 그래서 patch 의 해시가 바뀌고, 그래서 셸의 patch 참조가 바뀐다(app.js → init.js →
+ *    bootstrapDestinyFlower.js 도 같다). 예전에는 셸을 먼저 찍고 루트 로더를 맨 끝에 다시 써서
+ *    셸이 patch 의 **옛** 해시를 물었고, sync:public 을 두 번 돌려야 수렴했다(2026-10-23 재현).
+ *    루트 bare 자산 키도 이 파일들 안에 있으므로 먼저 맞춘다.
+ */
+function restampRootLoaderFiles(fallbackKey) {
+  syncRootAssetCacheKeys();
+  for (let pass = 1; pass <= 8; pass += 1) {
+    const keys = createAssetCacheKeys(rootDir);
+    const changed = [];
+    for (const rel of ROOT_LOADER_RESTAMP_FILES) {
+      const abs = resolve(rootDir, rel);
+      if (!existsSync(abs)) continue;
+      const source = readFileSync(abs, "utf8");
+      const stamped = restampAssetCacheRefs(source, rel, fallbackKey, keys);
+      if (stamped === source) continue;
+      writeFileSync(abs, stamped);
+      changed.push(rel);
+    }
+    if (!changed.length) return;
+    console.log(`[sync-legacy-static-to-public] Updated root loader cache keys (pass ${pass}): ${changed.join(", ")}`);
+  }
+  throw new Error("[sync-legacy-static-to-public] 루트 로더 캐시 키가 8회 안에 수렴하지 않았습니다. `?v=` 참조 순환을 확인하세요.");
+}
+
 // 로케일 랜딩 셸(/ja, /zh, /en)의 head 를 해당 언어로 현지화한다.
 // 본문은 런타임에 cd-lang-native.js 가 /i18n/{lang}.json 사전으로 번역하고
 // (경로 프리픽스 자동 감지), head 메타는 여기서 빌드 타임에 교체한다.
@@ -878,6 +915,11 @@ function cpSyncWithRetry(sourcePath, destinationPath, options) {
   }
 }
 
+// 캐시 키는 자산별 내용 해시로 찍는다(scripts/lib/asset-cache-keys.mjs).
+// buildTimestamp 는 레포에 파일이 없는 참조(이미지·외부 URL)에만 쓰는 대비값이다.
+const buildTimestamp = resolveDeterministicCacheKey();
+restampRootLoaderFiles(buildTimestamp);
+
 for (const target of staticTargets) {
   const sourcePath = resolve(rootDir, target);
   const destinationPath = resolve(publicDir, target);
@@ -1008,9 +1050,7 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
     console.log("[sync-legacy-static-to-public] Stripped legacy public-only blocks from canonical shell");
   }
 
-  // 캐시 키는 자산별 내용 해시로 찍는다(scripts/lib/asset-cache-keys.mjs).
-  // buildTimestamp 는 레포에 파일이 없는 참조(이미지·외부 URL)에만 쓰는 대비값이다.
-  const buildTimestamp = resolveDeterministicCacheKey();
+  // 루트 로더는 restampRootLoaderFiles 가 이미 수렴시켰으니 여기서 새로 계산한 키가 최종값이다.
   const assetKeys = createAssetCacheKeys(rootDir);
   const cacheBustedIndexHtml = restampAssetCacheRefs(baseIndexHtml, "index.html", buildTimestamp, assetKeys);
   if (cacheBustedIndexHtml !== baseIndexHtml) {
@@ -1128,63 +1168,7 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
     `[sync-legacy-static-to-public] Locale landing pages: /${localeLandingDirs.join(", /")}/index.html`,
   );
 
-  // Sync back the auto cache-busted versions to root to maintain consistency for verification
-  const rootInlineRuntimePath = resolve(rootDir, "js", "core", "index-inline-runtime.js");
-  if (existsSync(rootInlineRuntimePath)) {
-    let rootRuntimeJs = readFileSync(rootInlineRuntimePath, "utf8");
-    const bustedRootRuntimeJs = restampAssetCacheRefs(
-      rootRuntimeJs,
-      "js/core/index-inline-runtime.js",
-      buildTimestamp,
-      assetKeys,
-    );
-    if (bustedRootRuntimeJs !== rootRuntimeJs) {
-      writeFileSync(rootInlineRuntimePath, bustedRootRuntimeJs);
-      console.log("[sync-legacy-static-to-public] Updated root index-inline-runtime.js cache keys");
-    }
-  }
-
-  const rootUiBindingsPath = resolve(rootDir, "js", "core", "uiBindings.js");
-  if (existsSync(rootUiBindingsPath)) {
-    const rootUiBindingsJs = readFileSync(rootUiBindingsPath, "utf8");
-    const bustedRootUiBindingsJs = restampAssetCacheRefs(
-      rootUiBindingsJs,
-      "js/core/uiBindings.js",
-      buildTimestamp,
-      assetKeys,
-    );
-    if (bustedRootUiBindingsJs !== rootUiBindingsJs) {
-      writeFileSync(rootUiBindingsPath, bustedRootUiBindingsJs);
-      console.log("[sync-legacy-static-to-public] Updated root uiBindings.js PDF/runtime loader cache keys");
-    }
-  }
-
-  const rootMobilePatchPath = resolve(rootDir, "js", "mobile-interaction-patch.js");
-  if (existsSync(rootMobilePatchPath)) {
-    const rootMobilePatchJs = readFileSync(rootMobilePatchPath, "utf8");
-    const bustedRootMobilePatchJs = restampAssetCacheRefs(
-      rootMobilePatchJs,
-      "js/mobile-interaction-patch.js",
-      buildTimestamp,
-      assetKeys,
-    );
-    if (bustedRootMobilePatchJs !== rootMobilePatchJs) {
-      writeFileSync(rootMobilePatchPath, bustedRootMobilePatchJs);
-      console.log("[sync-legacy-static-to-public] Updated root mobile-interaction-patch.js loader cache keys");
-    }
-  }
-
-  for (const parts of MODULE_IMPORT_CACHE_KEY_FILES) {
-    const rootModulePath = resolve(rootDir, ...parts);
-    if (!existsSync(rootModulePath)) continue;
-    const rootModuleJs = readFileSync(rootModulePath, "utf8");
-    const bustedRootModuleJs = restampAssetCacheRefs(rootModuleJs, parts.join("/"), buildTimestamp, assetKeys);
-    if (bustedRootModuleJs !== rootModuleJs) {
-      writeFileSync(rootModulePath, bustedRootModuleJs);
-      console.log(`[sync-legacy-static-to-public] Updated root ${parts.join("/")} module import cache keys`);
-    }
-  }
-
+  // 루트 로더(런타임·uiBindings·patch·모듈)는 restampRootLoaderFiles 가 맨 앞에서 맞췄다.
   if (existsSync(rootIndexPath)) {
     let rootHtml = readFileSync(rootIndexPath, "utf8");
     const bustedRootHtml = restampAssetCacheRefs(rootHtml, "index.html", buildTimestamp, assetKeys);
@@ -1214,8 +1198,10 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
  * 🔴 반드시 다른 모든 캐시버스트 **뒤에** 돌아야 한다. 예전엔 위쪽이 무차별 치환
  * (`replace(/\?v=[a-zA-Z0-9_-]+/g, buildTimestamp)`)이라 index-inline-runtime.js 의
  * `/HwatuFortune.js?v=` 까지 덮어써서, 먼저 돌면 그 값이 되돌아갔다. 지금은
- * restampAssetCacheRefs 가 bare 참조를 `keep` 으로 분류해 건드리지 않지만(소유권이
- * 여기 있다는 뜻), 순서 의존을 되살리지 않도록 뒤에 두는 계약은 그대로 지킨다.
+ * restampAssetCacheRefs 가 bare 참조(앞 `/` 가 붙은 것 포함)를 `keep` 으로 분류해 건드리지
+ * 않지만(소유권이 여기 있다는 뜻), 순서 의존을 되살리지 않도록 뒤에 두는 계약은 그대로 지킨다.
+ * restampRootLoaderFiles 가 맨 앞에서 한 번 더 부른다 — 이 키가 로더 파일 내용에 들어가므로
+ * 셸이 로더 해시를 묻기 전에 맞아 있어야 한다. 여기 끝의 호출은 그 뒤로 바뀐 것이 없으면 그대로 통과한다.
  *
  * 이 자산들이 디렉터리 없는 bare 파일명이라는 점이 2026-08-08 전생 관상 장애의 원인이었다.
  */

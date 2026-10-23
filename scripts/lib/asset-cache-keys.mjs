@@ -34,6 +34,7 @@
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { posix, resolve } from "node:path";
+import { ROOT_BARE_CACHE_ASSETS } from "./root-asset-cache-keys.mjs";
 
 /**
  * 내용 해시를 계산할 수 있어야 하는 확장자. 이 확장자인데 레포에서 파일을 못 찾으면
@@ -101,6 +102,9 @@ function classifyRef(refPath, fromRel) {
 
   if (refPath.startsWith("/")) {
     const rel = refPath.slice(1);
+    // `/HwatuFortune.js` 처럼 앞에 `/` 만 붙은 루트 bare 자산도 syncRootAssetCacheKeys 소유다.
+    // 여기서 내용 해시로 덮으면 그쪽이 `h…` 로 되돌려 매 실행 두 번씩 다시 쓰였다.
+    if (ROOT_BARE_CACHE_ASSETS.includes(rel)) return { kind: "bare" };
     // 웹 루트는 배포 시 public/ 이지만 레포 정본은 루트다. 루트를 먼저 본다.
     return { kind: "path", candidates: [rel, posix.join("public", rel)] };
   }
