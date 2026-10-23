@@ -107,3 +107,11 @@ await scenario('overseas already paid domestic pack can still be recovered',{ove
 
 for(const gift of [false,true])await scenario('retired catalog keeps original order '+(gift?'GIFT':'SELF'),{gift,planRemoved:true},async({resume,sdk})=>{assert.equal(await resume(),!gift);assert.equal(sdk.length,1);assert.equal(sdk[0].paymentId,'original-order');});
 await scenario('retired server rejection never opens payment',{planRemoved:true,retiredRejected:true},async({resume,sdk})=>{await assert.rejects(resume(),e=>e.code==='PRODUCT_SALE_ENDED');assert.equal(sdk.length,0);});
+
+test('explicit null expiry parses while absent and malformed expiry fail closed',()=>{
+ assert.equal(api.parsePackPlans({plans:[{...catalog,validityDays:null}]})[0].validityDays,null);
+ for(const validityDays of [undefined,0,-1,'30'])assert.throws(()=>api.parsePackPlans({plans:[{...catalog,validityDays}]}));
+ const pack={...catalog,entitlementId:'pack',orderId:'order',remainingUses:7,expiresAt:null,status:'granted',available:true,unavailableReason:''};
+ assert.equal(api.parseOwnedPacks([pack])[0].expiresAt,null);
+ for(const expiresAt of [undefined,'broken'])assert.throws(()=>api.parseOwnedPacks([{...pack,expiresAt}]));
+});

@@ -14,10 +14,10 @@ export function usePackGiftCopy(){
  return {locale,copy:servicePackCopy(locale)};
 }
 export default function ServicePackGiftDetails({gift,owned}:{gift:GiftView;owned?:OwnedServicePack}){
- const {locale,copy}=usePackGiftCopy();if(!isServicePackGift(gift))return null;
+ const {copy}=usePackGiftCopy();if(!isServicePackGift(gift))return null;
  const product=gift.product,src=SERVICE_PACK_IMAGES[product.fishId];
  return <div className="service-pack-gift-detail">{src&&<Image src={src} width={240} height={240} sizes="240px" alt="" loading="lazy" style={{display:'block',width:'min(100%, 240px)',height:'auto',margin:'0 auto'}}/>}
  <p>{packText(copy.giftTotal,{total:product.totalUses})}</p>
- {owned?<><p>{packText(copy.remaining,{total:owned.totalUses,remaining:owned.remainingUses})}</p><p>{packText(copy.expires,{date:new Intl.DateTimeFormat(locale,{dateStyle:'medium'}).format(new Date(owned.expiresAt))})}</p></>:<p>{packText(copy.giftUsagePeriod,{days:product.validityDays})}</p>}
+ {owned?<><p>{packText(copy.remaining,{total:owned.totalUses,remaining:owned.remainingUses})}</p><p>{copy.validity}</p></>:<p>{copy.giftUsagePeriod}</p>}
  </div>;
 }

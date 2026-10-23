@@ -70,18 +70,18 @@
     "ms": "Set {fish} {total} penggunaan"
   },
   "home.passCopy.packScope": {
-    "ko": "{fish} 상담 전용 · {days}일 · 총 {total}회",
-    "en": "{fish} consultations only · {days} days · {total} uses",
-    "ja": "{fish}の相談専用 · {days}日 · 全{total}回",
-    "zh-CN": "仅限{fish}咨询 · {days}天 · 共{total}次",
-    "zh-TW": "僅限{fish}諮詢 · {days}天 · 共{total}次",
-    "vi": "Chỉ tư vấn {fish} · {days} ngày · {total} lượt",
-    "hi": "केवल {fish} परामर्श · {days} दिन · {total} उपयोग",
-    "es": "Solo consultas {fish} · {days} días · {total} usos",
-    "fr": "Consultations {fish} uniquement · {days} jours · {total} utilisations",
-    "de": "Nur {fish}-Beratungen · {days} Tage · {total} Nutzungen",
-    "nl": "Alleen {fish}-consulten · {days} dagen · {total} keer",
-    "ms": "Konsultasi {fish} sahaja · {days} hari · {total} penggunaan"
+    "ko": "{fish} 상담 전용 · 사용 기한 없음 · 총 {total}회",
+    "en": "{fish} consultations only · No usage expiry · {total} uses",
+    "ja": "{fish}の相談専用 · 利用期限なし · 全{total}回",
+    "zh-CN": "仅限{fish}咨询 · 无使用期限 · 共{total}次",
+    "zh-TW": "僅限{fish}諮詢 · 無使用期限 · 共{total}次",
+    "vi": "Chỉ tư vấn {fish} · Không có hạn sử dụng · {total} lượt",
+    "hi": "केवल {fish} परामर्श · उपयोग की समय सीमा नहीं · {total} उपयोग",
+    "es": "Solo consultas {fish} · Sin caducidad de uso · {total} usos",
+    "fr": "Consultations {fish} uniquement · Sans limite de durée · {total} utilisations",
+    "de": "Nur {fish}-Beratungen · Keine Nutzungsfrist · {total} Nutzungen",
+    "nl": "Alleen {fish}-consulten · Geen gebruikstermijn · {total} keer",
+    "ms": "Konsultasi {fish} sahaja · Tiada had tempoh penggunaan · {total} penggunaan"
   },
   "home.passCopy.packRemaining": {
     "ko": "{total}회 중 {remaining}회 남음",
@@ -236,5 +236,19 @@
     "de": "Jede Nutzung eines Yeongnyangi-Pakets öffnet eine Beratung derselben Fischstufe, getrennt von den Blumenschwein-Pässen.",
     "nl": "Elke beurt van een Yeongnyangi-pakket opent één consult van dezelfde vissoort, los van de Bloemvarken-passen.",
     "ms": "Setiap penggunaan pek Yeongnyangi membuka satu konsultasi ikan yang sama, berasingan daripada pas Babi Bunga."
+  },
+  "home.passCopy.packNoExpiry": {
+    "ko": "사용 기한 없음",
+    "en": "No usage expiry",
+    "ja": "利用期限なし",
+    "zh-CN": "无使用期限",
+    "zh-TW": "無使用期限",
+    "vi": "Không có hạn sử dụng",
+    "hi": "उपयोग की समय सीमा नहीं",
+    "es": "Sin caducidad de uso",
+    "fr": "Sans limite de durée",
+    "de": "Keine Nutzungsfrist",
+    "nl": "Geen gebruikstermijn",
+    "ms": "Tiada had tempoh penggunaan"
   }
 }

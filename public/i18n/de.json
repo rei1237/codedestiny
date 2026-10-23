@@ -1977,7 +1977,7 @@
       "packPass": "Yeongnyangi-Pass",
       "packTitle": "Yeongnyangi-Beratungspässe",
       "packName": "{fish}-Set mit {total} Nutzungen",
-      "packScope": "Nur {fish}-Beratungen · {days} Tage · {total} Nutzungen",
+      "packScope": "Nur {fish}-Beratungen · Keine Nutzungsfrist · {total} Nutzungen",
       "packRemaining": "{remaining} von {total} Nutzungen übrig",
       "packExpires": "Bis {date}",
       "packOthers": "+{count} weitere Pakete",
@@ -1988,7 +1988,8 @@
       "fishTuna": "Thunfisch",
       "packPerUse": "Eine Deutung zu KRW {amount} pro Nutzung",
       "budgetLeft": "Noch KRW {amount} verfügbar",
-      "packNote": "Jede Nutzung eines Yeongnyangi-Pakets öffnet eine Beratung derselben Fischstufe, getrennt von den Blumenschwein-Pässen."
+      "packNote": "Jede Nutzung eines Yeongnyangi-Pakets öffnet eine Beratung derselben Fischstufe, getrennt von den Blumenschwein-Pässen.",
+      "packNoExpiry": "Keine Nutzungsfrist"
     },
     "simpleHome": {
       "tagline": "Beratung auf Grundlage des Myeongri",

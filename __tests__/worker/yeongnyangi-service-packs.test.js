@@ -36,7 +36,7 @@ const consume=(f,right,requestId=RID)=>consumeServicePack(f.db,{userId:USER,requ
 const terminal=f=>Object.assign(f.row,{state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED',leaseUntil:null,leaseToken:''});
 const restore=f=>restoreFailedServicePackUse(f.db,{userId:USER,requestId:RID});
 test('production catalog exposes approved offers and refuses unknown sales before DB work',async()=>{
- expect(Object.keys(SERVICE_PACK_PLANS)).toHaveLength(16);
+ expect(Object.keys(SERVICE_PACK_PLANS)).toHaveLength(20);
  expect(()=>resolveServicePackProduct(PLAN)).toThrow();
  const routes=createServicePackRoutes({prepareOrder:()=>{throw Error('must not reach purchase')}});
  const catalog=await (await routes['GET /service-packs/catalog'].handle()).json();
@@ -102,19 +102,19 @@ test('pack and moonstone race allows exactly one successful funding method',asyn
  const remaining=f.db.rows.find(r=>r.type==='service_pack').remainingUses;
  expect(Number(remaining===12)+Number(f.user.profileSubscription.membershipCreditBalance===0)).toBe(1);
 });
-test('wallet and quote show exact purchase expiry and do not consume',async()=>{
+test('wallet and quote expose no usage expiry and do not consume',async()=>{
  const f=fixture(),right=await purchase(f),wallet=await listOwnedServicePacks(f.db,{userId:USER}),quote=await quoteServicePack(f.db,{userId:USER,requestId:RID});
  expect(wallet.packs).toHaveLength(1);expect(wallet.packs[0].expiresAt).toEqual(right.expiresAt);
  expect(quote.candidates[0].entitlementId).toBe(String(right._id));
  expect(quote.candidates[0].remainingUses).toBe(13);
  expect(f.db.rows.find(r=>r.type==='service_pack').remainingUses).toBe(13);
 });
-test.each(['expired','empty','other-owner'])('%s entitlement fails without a reservation or debit',async state=>{
+test.each(['empty','other-owner'])('%s entitlement fails without a reservation or debit',async state=>{
  const f=fixture(),right=await purchase(f),current=f.db.rows.find(r=>r.type==='service_pack');
  if(state==='expired')current.expiresAt=new Date(0);
  if(state==='empty')current.remainingUses=0;
  if(state==='other-owner')current.userId=OTHER;
- await expect(consume(f,right)).rejects.toMatchObject({code:state==='expired'?'SERVICE_PACK_EXPIRED':state==='empty'?'SERVICE_PACK_EXHAUSTED':'SERVICE_PACK_NOT_COVERED'});
+ await expect(consume(f,right)).rejects.toMatchObject({code:state==='empty'?'SERVICE_PACK_EXHAUSTED':'SERVICE_PACK_NOT_COVERED'});
  expect(f.row.state).toBe('CREATED');expect(f.row.paymentClaimOrderId).toBe('');
 });
 test('zero-result restoration is atomic, permanent and does not change expiry or subscription',async()=>{
@@ -281,9 +281,9 @@ test.each(['cancellationReviewRequired','yeongnyangiRefundPending','right-revoke
 });
 
 const approvedFish=[['mackerel',5000,20000],['salmon',10000,40000],['flounder',15000,60000],['tuna',30000,120000]];
-test.each(approvedFish)('%s catalog fixes approved 2026-10-11 five-use price and 30-day duration',(fish,unit,packPrice)=>{
-  const offer=resolveServicePackProduct('yeongnyangi-pack-'+fish+'-small-v4');
-  expect(offer.packSnapshot).toMatchObject({fishId:fish,unitPriceKRW:unit,totalUses:5,priceKRW:packPrice,validityDays:30,policyVersion:'yeongnyangi-pack-20261011-premium-repricing'});
+test.each(approvedFish)('%s catalog fixes approved 2026-10-11 five-use price with no usage expiry',(fish,unit,packPrice)=>{
+  const offer=resolveServicePackProduct('yeongnyangi-pack-'+fish+'-small-v5');
+  expect(offer.packSnapshot).toMatchObject({fishId:fish,unitPriceKRW:unit,totalUses:5,priceKRW:packPrice,validityDays:null,policyVersion:'yeongnyangi-pack-20261024-no-expiry'});
   expect(packPrice).toBe(unit*5*80/100);
   expect(offer.allowedPaymentMethods).toEqual(['DIRECT_KRW']);
   const right={type:'service_pack',status:'granted',packSnapshot:offer.packSnapshot,remainingUses:5,expiresAt:new Date('2099-01-01')};
@@ -293,11 +293,11 @@ test.each(approvedFish)('%s catalog fixes approved 2026-10-11 five-use price and
   for(const suffix of ['saju-ziwei','sukuyo-vedic','astrology-tarot','all'])expect(servicePackCoverage(right,'yeongnyangi-fusion-'+suffix,suffix==='all'?70000:50000).covered).toBe(false);
 });
 test.each(approvedFish.flatMap(([fish])=>approvedFish.map(([target,price])=>[fish,target,price])))('%s pack quote/consume only serves %s when identical',async(fish,target,amount)=>{
- const f=fixture(),offer=resolveServicePackProduct('yeongnyangi-pack-'+fish+'-small-v4');
+ const f=fixture(),offer=resolveServicePackProduct('yeongnyangi-pack-'+fish+'-small-v5');
  const order=await createServicePackOrder(f.db,{userId:USER,product:offer,idempotencyKey:'approved',env:{}});
  await __paymentsContextTestUtils.settleVerifiedOrder(f.db,{},{order,pg:{pgTransactionId:'mock-approved',paidAt:new Date(),summary:{mock:true}}});
  const right=f.db.rows.find(r=>r.type==='service_pack');
- expect(Math.round((new Date(right.expiresAt)-new Date(right.grantedAt))/86400000)).toBe(30);
+ expect(right.expiresAt).toBeNull();
  Object.assign(f.row,{featureKey:'yeongnyangi-saju-'+target,amountKRW:amount});
  const quote=await quoteServicePack(f.db,{userId:USER,requestId:RID});
  expect(quote.candidates).toHaveLength(fish===target?1:0);
@@ -325,4 +325,20 @@ test('a pack bought before the 2026-10-11 price rise keeps covering its own fish
  expect(servicePackCoverage(right,'yeongnyangi-saju-salmon',10000).covered).toBe(false);
  // A snapshot priced above the current consultation is never honoured blindly.
  expect(servicePackCoverage({...right,packSnapshot:{...legacy,unitPriceKRW:12000}},'yeongnyangi-saju-mackerel',5000).covered).toBe(false);
+});
+
+test.each([null,new Date(0),new Date('2026-01-01')])('historical expiry %s does not block funded remaining uses',async expiresAt=>{
+ const f=fixture(),right=await purchase(f),current=f.db.rows.find(r=>r.type==='service_pack');
+ current.expiresAt=expiresAt;
+ const now=new Date('2126-10-24');
+ const wallet=await listOwnedServicePacks(f.db,{userId:USER,now});
+ expect(wallet.packs[0]).toMatchObject({available:true,expiresAt:null,remainingUses:13});
+ expect((await quoteServicePack(f.db,{userId:USER,requestId:RID,now})).candidates).toHaveLength(1);
+ const args={userId:USER,requestId:RID,entitlementId:String(right._id),now};
+ expect((await consumeServicePack(f.db,args)).remainingUses).toBe(12);
+ expect((await consumeServicePack(f.db,args)).replayed).toBe(true);
+ expect(current.expiresAt).toEqual(expiresAt);
+});
+test.each([undefined,0,-1,'30',NaN])('invalid duration %s cannot become a non-expiring offer',validityDays=>{
+ expect(()=>resolveServicePackProduct(PLAN,{[PLAN]:{...fixturePlans[PLAN],validityDays}})).toThrow();
 });

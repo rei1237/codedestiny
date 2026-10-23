@@ -1977,7 +1977,7 @@
       "packPass": "灵猫专用咨询券",
       "packTitle": "灵猫专用咨询券",
       "packName": "{fish}套餐 {total}次",
-      "packScope": "仅限{fish}咨询 · {days}天 · 共{total}次",
+      "packScope": "仅限{fish}咨询 · 无使用期限 · 共{total}次",
       "packRemaining": "共{total}次，剩余{remaining}次",
       "packExpires": "有效至{date}",
       "packOthers": "另有{count}个套装",
@@ -1988,7 +1988,8 @@
       "fishTuna": "金枪鱼",
       "packPerUse": "每次可用于{amount}韩元的咨询",
       "budgetLeft": "剩余额度{amount}韩元",
-      "packNote": "灵猫套装每次用于同一鱼种的一次咨询，与花猪使用券分别适用。"
+      "packNote": "灵猫套装每次用于同一鱼种的一次咨询，与花猪使用券分别适用。",
+      "packNoExpiry": "无使用期限"
     },
     "simpleHome": {
       "tagline": "基于命理学的运势咨询",

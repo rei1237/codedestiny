@@ -6,8 +6,8 @@ import {readConsultationContext,type ConsultationContext} from './consultation-c
 
 export const PACK_FISH_IDS=['mackerel','salmon','flounder','tuna'] as const;
 export type PackFishId=typeof PACK_FISH_IDS[number];
-export type ServicePackPlan={planId:string;label:string;fishId:PackFishId;policyVersion:string;priceKRW:number;totalUses:number;validityDays:number;unitPriceKRW:number;eligibleFeatureKeys:string[];autoRenew:false};
-export type OwnedServicePack={entitlementId:string;orderId:string;planId:string;label:string;fishId:PackFishId;totalUses:number;remainingUses:number;eligibleFeatureKeys:string[];expiresAt:string;status:'granted'|'refunded';available:boolean;unavailableReason:string};
+export type ServicePackPlan={planId:string;label:string;fishId:PackFishId;policyVersion:string;priceKRW:number;totalUses:number;validityDays:number|null;unitPriceKRW:number;eligibleFeatureKeys:string[];autoRenew:false};
+export type OwnedServicePack={entitlementId:string;orderId:string;planId:string;label:string;fishId:PackFishId;totalUses:number;remainingUses:number;eligibleFeatureKeys:string[];expiresAt:string|null;status:'granted'|'refunded';available:boolean;unavailableReason:string};
 export type PackQuote={ok:true;requestId:string;featureKey:string;accessMethod:string|null;status:'available'|'processing'|'used'|'restored'|'unavailable'|'paid';candidates:OwnedServicePack[];existingUse:null|{evidenceId:string;entitlementId:string;remainingUses:number}};
 export type PackGiftDraft={senderName:string;recipientName:string;giftMessage:string};
 export type PackPurchaseType='SELF'|'GIFT';
@@ -22,7 +22,7 @@ export function parsePackPlans(payload:{plans?:unknown}):ServicePackPlan[]{
  const ids=new Set<string>();
  return payload.plans.map(plan=>{
   if(!plan||!text(plan.planId)||ids.has(plan.planId)||!text(plan.label)||!fish(plan.fishId)||!text(plan.policyVersion)
-   ||!positive(plan.priceKRW)||!positive(plan.totalUses)||!positive(plan.validityDays)||!positive(plan.unitPriceKRW)
+   ||!positive(plan.priceKRW)||!positive(plan.totalUses)||(plan.validityDays!==null&&!positive(plan.validityDays))||!positive(plan.unitPriceKRW)
    ||plan.autoRenew!==false||!Array.isArray(plan.eligibleFeatureKeys)||!plan.eligibleFeatureKeys.length||!plan.eligibleFeatureKeys.every(text))throw new ServicePackError('INVALID_CATALOG');
   ids.add(plan.planId);return plan as ServicePackPlan;
  });
@@ -32,7 +32,7 @@ export function parseOwnedPacks(packs:unknown):OwnedServicePack[]{
  return packs.map(pack=>{
   if(!pack||!text(pack.entitlementId)||!text(pack.orderId)||!text(pack.planId)||!text(pack.label)||!fish(pack.fishId)
    ||!positive(pack.totalUses)||!Number.isSafeInteger(pack.remainingUses)||pack.remainingUses<0||pack.remainingUses>pack.totalUses
-   ||!Number.isFinite(Date.parse(pack.expiresAt))||!['granted','refunded'].includes(pack.status)||typeof pack.available!=='boolean'
+   ||(pack.expiresAt!==null&&!Number.isFinite(Date.parse(pack.expiresAt)))||!['granted','refunded'].includes(pack.status)||typeof pack.available!=='boolean'
    ||!Array.isArray(pack.eligibleFeatureKeys)||!pack.eligibleFeatureKeys.every(text))throw new ServicePackError('INVALID_WALLET');
   return pack as OwnedServicePack;
  });

@@ -55,6 +55,16 @@ try {
   if (!baseline) {
     const honeyDetails = page.locator('.cdh-honey__details');
     assert.equal(await honeyDetails.evaluate(element => element.open), false);
+    // Attendance lives in the My profile sheet. Exercise its real entry instead
+    // of clicking the deliberately hidden home placeholder.
+    await page.evaluate(async () => {
+      await window.__cdEnsureDestinyProfileLoaded();
+      window.dpOpenList();
+    });
+    await page.locator('#dpMasterCardHost .cdh-honey').waitFor({state:'visible'});
+    assert.equal(await honeyDetails.evaluate(element => element.open), true);
+    await honeyDetails.locator('summary').click();
+    assert.equal(await honeyDetails.evaluate(element => element.open), false);
     await honeyDetails.locator('summary').click();
     const attendance=page.locator('[data-cd-honey-attend]');
     await attendance.waitFor();
@@ -89,6 +99,8 @@ try {
     const firstGroup=page.locator('#cdHoneySheet .cd-honey-use-group').first();
     await firstGroup.locator('summary').focus();await page.keyboard.press('Enter');assert.equal(await firstGroup.getAttribute('open'),'');
     await page.locator('#cdHoneySheet [data-cd-sheet-close]').click();
+    await page.locator('#dpListSheet [data-action="dpCloseList"]').click();
+    assert.equal(await page.locator('[data-cd-honey-widget]').evaluate(element => element.hidden), true);
     await page.setViewportSize({width:390,height:844});
   }
   await page.evaluate(async profile => {

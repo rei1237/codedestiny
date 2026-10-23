@@ -9804,6 +9804,7 @@
   /* 홈의 큰 카드는 상시 노출하지 않고 마이 시트 안에서만 보여 준다. DOM 을 복제하면
      레벨 이벤트와 프로필 메뉴 바인딩이 두 벌로 갈라지므로, 폼과 같은 대여 패턴을 쓴다. */
   var _dpMasterCardHomeAnchor = null;
+  var _dpAttendanceHomeAnchor = null;
 
   function _dpBorrowMasterCardIntoSheet(sheet) {
     if (_dpMasterCardHomeAnchor) return true;
@@ -9812,10 +9813,27 @@
     if (!card || !host || !card.parentNode) return false;
     _dpMasterCardHomeAnchor = { parent: card.parentNode, next: card.nextSibling };
     host.appendChild(card);
+    // Keep one live attendance widget: its controller and request state stay intact.
+    var attendance = document.querySelector('[data-cd-honey-widget]');
+    if (attendance && attendance.parentNode) {
+      _dpAttendanceHomeAnchor = { parent: attendance.parentNode, next: attendance.nextSibling };
+      host.appendChild(attendance);
+      attendance.hidden = false;
+      var details = attendance.querySelector('details');
+      if (details) details.open = true;
+    }
     return true;
   }
 
   function _dpReturnMasterCardHome() {
+    var attendanceAnchor = _dpAttendanceHomeAnchor;
+    var attendance = document.querySelector('[data-cd-honey-widget]');
+    if (attendanceAnchor && attendance) {
+      attendance.hidden = true;
+      var attendanceBefore = attendanceAnchor.next && attendanceAnchor.next.parentNode === attendanceAnchor.parent ? attendanceAnchor.next : null;
+      attendanceAnchor.parent.insertBefore(attendance, attendanceBefore);
+    }
+    _dpAttendanceHomeAnchor = null;
     var anchor = _dpMasterCardHomeAnchor;
     if (!anchor) return;
     _dpMasterCardHomeAnchor = null;

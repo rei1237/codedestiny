@@ -54,6 +54,7 @@ async function boot(options) {
     // 셸과 같은 구조: 프로필 카드와 폼은 한 패널 안에 있고, 폼은 패널이 열리기 전까지 감춰진다.
     '<div class="dp-destiny-panel" id="dpDestinyPanel">',
     '<div id="dpMasterCard"></div>',
+    '<section class="cdh cdh-honey" data-cd-honey-widget hidden><details><summary>출석</summary><button data-cd-honey-attend>출석 체크 하기</button></details></section>',
     sliceById(shell, "destinyCardForm"),
     "</div>",
     "</main>",
@@ -95,6 +96,28 @@ async function boot(options) {
 
 const nextFrame = (window) =>
   new Promise((resolve) => window.requestAnimationFrame(() => resolve()));
+
+test("출석은 마이 프로필에서 같은 노드로 열리고 시트가 제거돼도 보존된다", async () => {
+  const { window, doc } = await boot();
+  const attendance = doc.querySelector('[data-cd-honey-widget]');
+  const home = attendance.parentNode;
+  let clicks = 0;
+  attendance.querySelector('button').addEventListener('click', () => clicks++);
+  for (let i = 0; i < 2; i++) {
+    window.dpOpenList();
+    assert.equal(attendance.parentNode.id, 'dpMasterCardHost');
+    assert.equal(attendance.hidden, false);
+    assert.equal(attendance.querySelector('details').open, true);
+    attendance.querySelector('button').click();
+    window.dpCloseList();
+    await new Promise(resolve => setTimeout(resolve, 320));
+    assert.equal(attendance.parentNode, home);
+    assert.equal(attendance.hidden, true);
+    assert.equal(doc.querySelectorAll('[data-cd-honey-widget]').length, 1);
+  }
+  assert.equal(clicks, 2);
+  window.close();
+});
 
 test("시트 마크업에 폼을 받을 자리가 있다", () => {
   const template = sliceById(shell, "dpListSheetTemplate");

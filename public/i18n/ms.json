@@ -1977,7 +1977,7 @@
       "packPass": "Pas Yeongnyangi",
       "packTitle": "Pas konsultasi Yeongnyangi",
       "packName": "Set {fish} {total} penggunaan",
-      "packScope": "Konsultasi {fish} sahaja · {days} hari · {total} penggunaan",
+      "packScope": "Konsultasi {fish} sahaja · Tiada had tempoh penggunaan · {total} penggunaan",
       "packRemaining": "Baki {remaining} daripada {total} penggunaan",
       "packExpires": "Sehingga {date}",
       "packOthers": "+{count} pek lagi",
@@ -1988,7 +1988,8 @@
       "fishTuna": "Tuna",
       "packPerUse": "Satu bacaan KRW {amount} setiap penggunaan",
       "budgetLeft": "Baki KRW {amount}",
-      "packNote": "Setiap penggunaan pek Yeongnyangi membuka satu konsultasi ikan yang sama, berasingan daripada pas Babi Bunga."
+      "packNote": "Setiap penggunaan pek Yeongnyangi membuka satu konsultasi ikan yang sama, berasingan daripada pas Babi Bunga.",
+      "packNoExpiry": "Tiada had tempoh penggunaan"
     },
     "simpleHome": {
       "tagline": "Perundingan berasaskan Myeongri",

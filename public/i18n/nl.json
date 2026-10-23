@@ -1977,7 +1977,7 @@
       "packPass": "Yeongnyangi-pas",
       "packTitle": "Yeongnyangi-consultatiepassen",
       "packName": "{fish}-set van {total} keer",
-      "packScope": "Alleen {fish}-consulten · {days} dagen · {total} keer",
+      "packScope": "Alleen {fish}-consulten · Geen gebruikstermijn · {total} keer",
       "packRemaining": "{remaining} van {total} beurten over",
       "packExpires": "Tot {date}",
       "packOthers": "+{count} pakketten meer",
@@ -1988,7 +1988,8 @@
       "fishTuna": "Tonijn",
       "packPerUse": "Eén consult van KRW {amount} per keer",
       "budgetLeft": "Nog KRW {amount} over",
-      "packNote": "Elke beurt van een Yeongnyangi-pakket opent één consult van dezelfde vissoort, los van de Bloemvarken-passen."
+      "packNote": "Elke beurt van een Yeongnyangi-pakket opent één consult van dezelfde vissoort, los van de Bloemvarken-passen.",
+      "packNoExpiry": "Geen gebruikstermijn"
     },
     "simpleHome": {
       "tagline": "Consulten gebaseerd op Myeongri",

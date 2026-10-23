@@ -272,8 +272,7 @@
   }
   function renderMyPass() {
     if (!myPass || !myPassList) return;
-    var packs = myPassPacks.filter(function (pack) { return pack && pack.available && Number(pack.remainingUses) > 0; })
-      .sort(function (a, b) { return Date.parse(a.expiresAt) - Date.parse(b.expiresAt); });
+    var packs = myPassPacks.filter(function (pack) { return pack && pack.available && Number(pack.remainingUses) > 0; });
     var signature = JSON.stringify([myPassFlower, packs, typeof window.cdGetCurrentLanguage === 'function' ? window.cdGetCurrentLanguage() : 'ko']);
     if (signature === myPassSignature) return;
     myPassSignature = signature;
@@ -310,8 +309,7 @@
         packItem.appendChild(name);
       }
       packItem.appendChild(myPassNode('span', 'cdh-mypass__line', 'home.passCopy.packRemaining', { total: String(first.totalUses), remaining: String(first.remainingUses) }, first.totalUses + '회 중 ' + first.remainingUses + '회 남음'));
-      var until = myPassDate(first.expiresAt);
-      if (until) packItem.appendChild(myPassNode('span', 'cdh-mypass__line cdh-mypass__line--muted', 'home.passCopy.packExpires', { date: until }, until + '까지'));
+      packItem.appendChild(myPassNode('span', 'cdh-mypass__line cdh-mypass__line--muted', 'home.passCopy.packNoExpiry', null, '사용 기한 없음'));
       if (packs.length > 1) packItem.appendChild(myPassNode('span', 'cdh-mypass__line cdh-mypass__line--muted', 'home.passCopy.packOthers', { count: String(packs.length - 1) }, '외 ' + (packs.length - 1) + '개 세트 보유'));
       myPassList.appendChild(packItem);
     }
