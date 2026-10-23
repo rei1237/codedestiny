@@ -21,6 +21,8 @@ const modules = Promise.all([
   import('../../__tests__/fixtures/fake-payment-db.mjs'),
   import('../../worker/lib/saju-ai-prompt.js'),
   import('../../worker/lib/ziwei-ai-prompt.js'),
+  import('../../worker/lib/pass-restore-snapshot.js'),
+  import('../../worker/lib/feature-question-delivery.js'),
 ]);
 const USER = '64b000000000000000000001';
 
@@ -51,7 +53,7 @@ for (const [name, core] of [
 }
 
 async function fixture({ spent = 0, tier = 'vvip', counterMissing = false } = {}) {
-  const [policy, entitlement, pass, { makeFakePaymentDb }] = await modules;
+  const [policy, entitlement, pass, { makeFakePaymentDb }, , , { buildPassRestoreSnapshot }, { missingCalculatedFactsResponse }] = await modules;
   const db = makeFakePaymentDb();
   const expiresAt = new Date(Date.now() + 86400000);
   const profileSubscription = {
@@ -69,6 +71,7 @@ async function fixture({ spent = 0, tier = 'vvip', counterMissing = false } = {}
     resolveCanonicalEntitlement: entitlement.resolveCanonicalEntitlement,
     hasConsumedPassFeature: (user, featureKey, requestId) => pass.hasConsumedPassFeature(user, featureKey, requestId, db),
     passDenialCode: pass.passDenialCode,
+    buildPassRestoreSnapshot, missingCalculatedFactsResponse,
     consumePassForFeature: input => pass.consumePassForFeature({ ...input, db }),
     connectDb: async () => {},
     User: { findById: userId => ({ select: () => ({ lean: async () => {
@@ -195,7 +198,7 @@ async function routeFixture(name) {
   assert.ok(declaration);
   vm.runInContext(declaration.getText(ast), f.context);
   const request = new Request('https://code-destiny.test/api/fortune/fixture', { method: 'POST', body: JSON.stringify({
-    ...input.body, requestId: input.requestId, question: '이직을 준비하려면 어떻게 할까요?', sajuResult: {}, chartResult: {},
+    ...input.body, requestId: input.requestId, question: '이직을 준비하려면 어떻게 할까요?', sajuResult: {}, chartResult: { palace: { name: '명궁' } },
   }) });
   const response = await f.context[name](request, input.auth, {});
   return { response, f, generated };
