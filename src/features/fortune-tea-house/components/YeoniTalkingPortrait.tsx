@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useState, type CSSProperties } from "react";
 import { useSpritePlaybackGate } from "@/src/hooks/useSpritePlaybackGate";
 import styles from "./YeoniTalkingPortrait.module.css";
 
@@ -18,6 +18,9 @@ export default function YeoniTalkingPortrait({ talking = false, speechKey, class
   const [failed, setFailed] = useState(false);
   const [tick, setTick] = useState(0);
   const [greeting, setGreeting] = useState(false);
+  // Stable callbacks keep next/image's ref from assigning src again on every tick.
+  const handleLoad = useCallback(() => setLoaded(true), []);
+  const handleError = useCallback(() => setFailed(true), []);
 
   useEffect(() => {
     if (speechKey === undefined || !loaded) return;
@@ -39,8 +42,8 @@ export default function YeoniTalkingPortrait({ talking = false, speechKey, class
     <source media="(max-width: 768px)" srcSet="/images/fortune-tea-house/yeoni-talk-v1-768.webp" />
     <Image src="/images/fortune-tea-house/yeoni-talk-v1-1280.webp" width={1280} height={1280} alt="" unoptimized loading="eager"
       className={`${styles.sheet} ${animated ? styles.expression : ""}`}
-      onLoad={animated ? undefined : async event => { try { await event.currentTarget.decode(); setLoaded(true); } catch { setFailed(true); } }}
-      onError={() => setFailed(true)} />
+      onLoad={animated ? undefined : handleLoad}
+      onError={handleError} />
   </picture>;
 
   return <span ref={gate.ref} className={`${styles.portrait} ${className}`} data-yeoni-talk-frame={frame} data-ready={loaded && !failed} data-blink={blink} style={position} aria-hidden="true">
