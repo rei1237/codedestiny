@@ -1349,6 +1349,15 @@ html.neo-mode #cdHomeFunnel .cdh-scene-art #honeypigLogo{box-shadow:none!importa
   #cdHomeFunnel .cdh-hero::before{background:linear-gradient(90deg,color-mix(in srgb,var(--cdh-bg) 80%,transparent) 0%,color-mix(in srgb,var(--cdh-bg) 62%,transparent) 58%,color-mix(in srgb,var(--cdh-bg) 30%,transparent) 100%)}
   #cdHomeFunnel .cdh-hero::after{inset:6px;border-radius:calc(var(--cd-r-card,20px) - 6px)}
 }.cdh-honey{position:relative;display:flex;align-items:center;gap:24px;margin:12px clamp(18px,3vw,40px) 22px;padding:18px 24px;border:1px solid var(--cdh-line);border-radius:var(--cd-r-section);background:var(--cdh-card);color:var(--cdh-ink);font-family:var(--font-body);font-size:14px;line-height:1.5;flex-wrap:wrap}
+.cdh-honey[hidden]{display:none!important}
+#dpMasterCardHost .cdh-honey{display:block;width:100%;margin:0;padding:16px;border-radius:var(--cd-r-card);box-sizing:border-box}
+#dpMasterCardHost .cdh-honey__details>summary{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;min-height:48px;padding-block:8px;cursor:pointer;color:var(--cdh-ink)}
+#dpMasterCardHost .cdh-honey__details>summary:focus-visible{outline:2px solid var(--cdh-accent);outline-offset:4px}
+#dpMasterCardHost .cdh-honey__wallet{margin-left:auto}
+#dpMasterCardHost .cdh-honey__story{margin-block:12px;min-width:0}
+#dpMasterCardHost .cdh-honey__actions{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;margin-top:16px}
+#dpMasterCardHost .cdh-honey__actions .cdh-primary{min-width:0;width:100%}
+#dpMasterCardHost .cdh-honey__actions .cdh-primary::after{content:none}
 .cdh-honey__story{display:flex;align-items:center;gap:12px;flex:1;min-width:220px}
 .cdh-honey__yeoni{background-color:transparent!important;flex:none;width:56px;height:64px;object-fit:contain}
 .cdh .cdh-honey h2{font-family:inherit;font-size:16px;line-height:1.4;margin:0 0 5px;font-weight:700;letter-spacing:-.02em}
