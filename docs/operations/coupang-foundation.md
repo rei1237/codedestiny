@@ -74,6 +74,10 @@ React 공통 진입점은 RecommendationResult, 정적 셸은 mountRecommendatio
 - 증거: `D:/codedestiny-qa/coupang-ctr-20261023/coupang-channel-created.png`, `coupang-channel-link.png`. 원문 호환성은 네트워크 없는 단위 검사로 확인한다.
 - 공식 UI에서 선택·발급된 사실만 확인했다. 실제 클릭·주문·수익 귀속은 미검증이다. 운영 DB와 기존 32개 상품 URL은 변경하지 않았고, API·실제 제휴 클릭·push·배포도 수행하지 않았다. 운영 반영은 별도 요청 후 검수해야 한다.
 
+### 채널 운영 반영 (2026-10-24 후속 승인)
+
+기존 32개 중 31개를 공식 codedestiny 링크로 변경하고, 공식 포털에서 링크 생성 제한이 확인된 dune-blue-lapis는 사용자 승인에 따라 비공개로 전환했다. 32개 가격은 빈값이다. 기존 상품 사실 검수일·만료일·이미지·추천 문구·공개 설정을 보존했다. 원본 백업과 단일 트랜잭션 적용 후 운영 DB 재조회로 검증했다. 위의 최초 준비 상태·운영 미반영 기록은 당시 이력이며, 최신 상태는 [채널 전환 기록](affiliate-codedestiny-channel-20261024.md)과 상품별 JSON을 따른다. 쿠팡 API·제휴 클릭·push·배포는 수행하지 않았다. 실제 수익 귀속은 미검증이다.
+
 ## 분야별 필요한 자료
 
 | 분야 | 승인 후 제공할 자료 |
