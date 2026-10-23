@@ -105,10 +105,37 @@ else{
    const masters=page.locator('.cdh-fusion-sig__masters a');
    assert.deepEqual(await masters.evaluateAll(els=>els.map(el=>el.getAttribute('href'))),['/neo-operation-room/','/fortune-tea-house/','/sukuyo-compatibility-ai/','/vedic-ai/','/ziwei-ai/']);
    assert.ok((await masters.evaluateAll(els=>els.map(el=>{const r=el.getBoundingClientRect();return r.height>=44&&r.width>=44}))).every(Boolean),'Fusion master touch targets');
-   assert.equal(await page.locator('.cdh-fusion-sig__chips,.cdh-fusion-sig__eyebrow').count(),0,'Only essential fusion information');
+   assert.equal(await page.locator('.cdh-fusion-sig__chip').count(),14,'Original fusion composition preserved');
+   assert.equal(await page.locator('.cdh-fusion-sig__hint').count(),0,'No added visible navigation hint');
    await masters.first().focus();await page.keyboard.press('Tab');
    assert.equal(await page.evaluate(()=>document.activeElement?.getAttribute('href')),'/fortune-tea-house/');
    await page.locator('#cdhFusionSignature').screenshot({path:path.join(output,'fusion-focus-'+width+'.png')});
+   const neo=page.locator('.cdh-neo-letter');
+   assert.equal(await neo.locator('img').count(),1,'One illustration without a duplicate inset');
+   assert.equal(await neo.locator('a').getAttribute('href'),'/neo-consultation/');
+   const neoDetails=neo.locator('details');
+   assert.equal(await neoDetails.getAttribute('open'),null);
+   await neo.screenshot({path:path.join(output,'neo-entry-'+width+'.png')});
+   await neoDetails.locator('summary').focus();await page.keyboard.press('Enter');
+   assert.equal(await neoDetails.evaluate(el=>el.open),true,'Neo options open by keyboard');
+   if(width===390)await neo.screenshot({path:path.join(output,'neo-entry-open-390.png')});
+   await neoDetails.locator('summary').click();
+   const categories=page.locator('#cdConcernPick [data-cd-concern]');
+   assert.equal(await categories.count(),8);
+   for(const category of await categories.all()){
+    await category.click();const panelId=await category.getAttribute('aria-controls');
+    assert.equal(await category.getAttribute('aria-expanded'),'true');
+    assert.equal(await page.locator('#'+panelId).isVisible(),true);
+    assert.equal(await page.locator('[data-cd-concern-panel]:visible').count(),1);
+   }
+   await page.locator('[data-cd-concern="money"]').click();
+   await page.locator('#cdhOtherFortunes').screenshot({path:path.join(output,'other-fortunes-'+width+'.png')});
+   if(width===390||width===1280){
+    await page.evaluate(()=>{document.documentElement.classList.add('neo-mode');document.body.classList.add('neo-mode');});
+    await neo.screenshot({path:path.join(output,'neo-entry-dark-'+width+'.png')});
+    await page.locator('#cdhOtherFortunes').screenshot({path:path.join(output,'other-fortunes-dark-'+width+'.png')});
+    await page.evaluate(()=>{document.documentElement.classList.remove('neo-mode');document.body.classList.remove('neo-mode');});
+   }
    assert.equal(await page.locator('#cdSigGrid .cd-sig-card:visible').count(),3);
    await page.locator('.cd-sig__more summary').click();assert.equal(await page.locator('#cdSigGrid .cd-sig-card:visible').count(),6);
    await page.locator('.cdh-honey__details summary').click();assert.equal(await page.locator('[data-cd-honey-attend]').isVisible(),true);
@@ -141,12 +168,13 @@ else{
    // Double fixed-pixel text too, using values captured before the root-font change.
    // This is text-resize emulation, not physical-device browser zoom.
    await page.evaluate(()=>{
-    const nodes=[...document.querySelectorAll('.consultation-discovery,.consultation-discovery *,.consultation-methods,.consultation-methods *,#cdhFusionSignature,#cdhFusionSignature *,#questions,#questions *')];
+    const nodes=[...document.querySelectorAll('.consultation-discovery,.consultation-discovery *,.consultation-methods,.consultation-methods *,#cdhFusionSignature,#cdhFusionSignature *,.cdh-neo-letter,.cdh-neo-letter *,#cdhOtherFortunes,#cdhOtherFortunes *,#questions,#questions *')];
     window.__textResize=nodes.map(el=>{const s=getComputedStyle(el);return {el,size:parseFloat(s.fontSize),line:parseFloat(s.lineHeight)}});
    });
    await page.addStyleTag({content:'html{font-size:200%!important}'});
    await page.evaluate(()=>{for(const {el,size,line} of window.__textResize){el.style.setProperty('font-size',size*2+'px','important');if(Number.isFinite(line))el.style.setProperty('line-height',line*2+'px','important');}delete window.__textResize;});
    if(name==='ggulggul')await page.locator('#cdhFusionSignature').screenshot({path:path.join(output,'fusion-text-200.png')});
+   if(name==='ggulggul')for(const [label,selector] of [['neo-entry','.cdh-neo-letter'],['other-fortunes','#cdhOtherFortunes']])await page.locator(selector).screenshot({path:path.join(output,label+'-text-200.png')});
    await page.locator('.consultation-methods').screenshot({path:path.join(output,name+'-methods-text-200.png')});
    await page.screenshot({path:path.join(output,name+'-text-200.png')});
    const overflow=await page.evaluate(()=>({ok:document.documentElement.scrollWidth<=innerWidth+1,items:[...document.querySelectorAll('body *')].filter(el=>{const r=el.getBoundingClientRect();return r.width>0&&(r.right>innerWidth+1||r.left < -1)}).slice(0,15).map(el=>({tag:el.tagName,class:el.className,text:el.textContent.slice(0,60),width:el.getBoundingClientRect().width}))}));

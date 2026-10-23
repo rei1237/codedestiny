@@ -60,20 +60,29 @@ for (const fish of ['mackerel', 'salmon', 'flounder', 'tuna']) {
   vars[`yeongnyangi${fish[0].toUpperCase()}${fish.slice(1)}Price`] = price.toLocaleString('ko-KR');
 }
 
-// 초융합 입구는 핵심 설명·전문가 링크·가격만 노출한다. 상세 체계와 구성은 상품 페이지에서 확인한다.
+// 초융합의 기존 소개·구성은 유지하고, 전문가 초상만 개별 상담 입구로 연결한다.
 // 마스터 배정은 components/fortune/master-profiles.ts productMasters.fusion(결과 화면 화자)과 같다.
 const fusionPrice = Number(FEATURE_KEY_PRICE_TABLE['fusion-fortune-consultation']?.amountKRW);
 if (fusionPrice !== 50000) throw new Error('Fusion signature band copy says 50,000원; registry amount changed: ' + fusionPrice);
 const won = value => Number(value).toLocaleString('ko-KR') + '원';
-const FUSION_MASTERS = ['neo','yeoni','hanbi','yun','musung'].map(id => CONSULTATION_MASTERS.find(master => master.id === id));
+const FUSION_MASTERS = [
+  { id: 'neo', role: '사주 · 재물 · 일' },
+  { id: 'yeoni', role: '타로 · 연애' },
+  { id: 'hanbi', role: '숙요 · 결혼 · 관계' },
+  { id: 'yun', role: '점성술 · 시기 · 건강' },
+  { id: 'musung', role: '자미두수 · 성향' },
+].map(({ id, role }) => ({ ...CONSULTATION_MASTERS.find(master => master.id === id), role }));
+const FUSION_SYSTEMS = ['사주', '자미두수', '숙요', '베다', '점성술', '타로'];
+const FUSION_AREAS = ['타고난 성향', '인생의 시기', '연애', '결혼', '재물', '직업', '건강', '인간관계'];
 vars.fusionSignature = `<section class="cdh-fusion-sig" id="cdhFusionSignature" data-cd-funnel-section="fusion_signature" data-marker="cdh-fusion-signature-v20261017" aria-labelledby="cdhFusionSigTitle" lang="ko">
   <a class="cdh-fusion-sig__art" href="/fusion-fortune/?from=home_signature" tabindex="-1" aria-hidden="true" data-cd-service-id="fusion-fortune"><img src="/images/service-introductions/fusion-fortune-960.webp" srcset="/images/service-introductions/fusion-fortune-640.webp 640w, /images/service-introductions/fusion-fortune-960.webp 960w" sizes="(max-width: 860px) calc(100vw - 32px), 640px" width="1200" height="800" loading="lazy" decoding="async" alt=""></a>
   <div class="cdh-fusion-sig__body">
+    <p class="cdh-fusion-sig__eyebrow">여섯 체계 종합 상담</p>
     <h2 class="cdh-fusion-sig__title" id="cdhFusionSigTitle">초융합 운세</h2>
-    <p class="cdh-fusion-sig__lead">여섯 체계의 풀이를 한 권으로 읽는 AI 종합 리포트예요.</p>
-    <p class="cdh-fusion-sig__hint" id="cdhFusionMasterHint">전문가를 누르면 개별 AI 상담으로 이어져요.</p>
-    <ul class="cdh-fusion-sig__masters" role="list" aria-describedby="cdhFusionMasterHint">${FUSION_MASTERS.map(master => `<li><a href="${master.href}" aria-label="${master.name} · ${master.text} 상담 보기" data-cd-question="${master.id}"><img src="${master.image}" width="44" height="44" alt="" loading="lazy" decoding="async"><b>${master.name}</b></a></li>`).join('')}</ul>
-    <a class="cdh-fusion-sig__cta" href="/fusion-fortune/?from=home_signature" data-cd-service-id="fusion-fortune" data-pvw-paid="true"><span>초융합 구성 보기</span><b>${won(fusionPrice)}</b><i aria-hidden="true">→</i></a>
+    <p class="cdh-fusion-sig__lead">다섯 마스터가 여섯 체계로 교차해 읽는 한 권. 타고난 성향부터 시기·연애·결혼·재물까지 영역별로 짚어 드려요.</p>
+    <ul class="cdh-fusion-sig__masters" role="list">${FUSION_MASTERS.map(master => `<li><a href="${master.href}" aria-label="${master.name}에게 물어보기 · ${master.text}" title="${master.name}에게 물어보기" data-cd-question="${master.id}"><img src="${master.image}" width="44" height="44" alt="" loading="lazy" decoding="async"></a><span><b>${master.name}</b><small>${master.role}</small></span></li>`).join('')}</ul>
+    <div class="cdh-fusion-sig__chips"><p><span class="cdh-fusion-sig__chip-label">여섯 체계</span>${FUSION_SYSTEMS.map(name => `<span class="cdh-fusion-sig__chip">${name}</span>`).join('')}</p><p><span class="cdh-fusion-sig__chip-label">영역별 8장</span>${FUSION_AREAS.map(name => `<span class="cdh-fusion-sig__chip cdh-fusion-sig__chip--area">${name}</span>`).join('')}</p></div>
+    <a class="cdh-fusion-sig__cta" href="/fusion-fortune/?from=home_signature" data-cd-service-id="fusion-fortune" data-pvw-paid="true"><span>초융합 운세 받기</span><b>${won(fusionPrice)}</b><i aria-hidden="true">→</i></a>
   </div>
 </section>`;
 // 다른 재밌는 운세 — 질문 카테고리(2026-10-17 복구). e76391603 에서 빠진 #cdConcernPick 을 데이터로 다시 그린다.
@@ -137,15 +146,15 @@ for (const question of QUESTION_CATEGORIES.flatMap(category => category.question
   if (amount !== Number(question.price.replace(/\D/g, ''))) throw new Error(`Home question ${question.id} says ${question.price}; registry amount for ${question.key} is ${amount}`);
 }
 const capitalize = value => value[0].toUpperCase() + value.slice(1);
-const questionLink = question => `<li class="cd-concern__q"><a class="cd-concern__q-link${question.fusion ? ' cd-concern__q-link--fusion' : ''}" href="${question.href}" data-cd-question="${question.id}"${question.price.startsWith('from') ? ' data-price-from="true"' : ''}${question.key ? ` data-cd-price-key="${question.key}"` : ' data-cd-price-free'}><img class="cd-concern__q-master" src="${QUESTION_MASTER[question.master]}" width="28" height="28" alt="" loading="lazy" decoding="async"><span class="cd-concern__q-text"><strong class="cd-concern__q-title" data-cd-trans="home.concernPick.q.${question.id}.t">${question.t}</strong><span class="cd-concern__q-badge" data-cd-trans="home.concernPick.q.${question.id}.b">${question.b}</span></span><span class="cd-concern__q-price" data-cd-trans="home.concernPick.price.${question.price}">${questionPriceLabel(question.price)}</span></a>${question.alt ? `<a class="cd-concern__q-alt" href="${question.alt.href}" data-cd-question="${question.id}" data-cd-question-alt data-cd-price-free><span data-cd-trans="home.concernPick.altLabel">다른 방식으로</span> <span class="cd-concern__q-alt-name" data-cd-trans="home.concernPick.q.${question.id}.alt">${question.alt.name}</span> <span class="cd-concern__q-price" data-cd-trans="home.concernPick.price.free">무료</span></a>` : ''}</li>`;
+const questionLink = question => `<li class="cd-concern__q"><a class="cd-concern__q-link${question.fusion ? ' cd-concern__q-link--fusion' : ''}" href="${question.href}" data-cd-question="${question.id}"${question.price.startsWith('from') ? ' data-price-from="true"' : ''}${question.key ? ` data-cd-price-key="${question.key}"` : ' data-cd-price-free'}><img class="cd-concern__q-master" src="${QUESTION_MASTER[question.master]}" width="28" height="28" alt="" loading="lazy" decoding="async"><span class="cd-concern__q-text"><strong class="cd-concern__q-title" data-cd-trans="home.concernPick.q.${question.id}.t">${question.t}</strong><span class="cd-concern__q-badge" data-cd-trans="home.concernPick.q.${question.id}.b">${question.b}</span></span><span class="cd-concern__q-price" data-cd-trans="home.concernPick.price.${question.price}">${questionPriceLabel(question.price)}</span><span class="cd-concern__q-go" aria-hidden="true">→</span></a>${question.alt ? `<a class="cd-concern__q-alt" href="${question.alt.href}" data-cd-question="${question.id}" data-cd-question-alt data-cd-price-free><span data-cd-trans="home.concernPick.altLabel">다른 방식으로</span> <span class="cd-concern__q-alt-name" data-cd-trans="home.concernPick.q.${question.id}.alt">${question.alt.name}</span> <span class="cd-concern__q-price" data-cd-trans="home.concernPick.price.free">무료</span></a>` : ''}</li>`;
 vars.questionCategories = `<section class="cdh-other" id="cdhOtherFortunes" aria-labelledby="cdhOtherFortunesTitle" data-marker="cdh-other-fortunes-v20261017">
   <section data-cd-funnel-section="concern_pick" class="cd-concern cdh-qcat" id="cdConcernPick" aria-labelledby="cdhOtherFortunesTitle" data-marker="cd-concern-pick-v20260824">
     <header class="cdh-qcat__head">
       <h2 class="cdh-qcat__title" id="cdhOtherFortunesTitle" data-cd-trans="home.simpleHome.otherTitle">다른 재밌는 운세</h2>
       <p class="cdh-qcat__voice"><img src="/images/master-profiles/avatars/yeoni.webp" width="40" height="40" alt="" loading="lazy" decoding="async"><span><b>연이</b><span data-cd-trans="home.concernPick.title">지금 가장 궁금한 건 무엇인가요?</span></span></p>
     </header>
-    <div class="cd-concern__cards" role="group" aria-labelledby="cdhOtherFortunesTitle">${QUESTION_CATEGORIES.map((category, index) => `<button type="button" class="cd-concern__card" data-cd-concern="${category.id}" aria-expanded="${index === 0}" aria-controls="cdConcernPanel${capitalize(category.id)}"><span class="cd-concern__card-media" aria-hidden="true"><img src="${category.img}-240.webp" srcset="${category.img}-240.webp 240w, ${category.img}-400.webp 400w" sizes="(max-width: 599px) 132px, 240px" alt="" width="960" height="640" loading="lazy" decoding="async"></span><span class="cd-concern__card-label" data-cd-trans="home.concernPick.${category.id}">${category.label}</span><span class="cd-concern__card-desc" data-cd-trans="home.concernPick.chip.${category.id}">${category.chip}</span></button>`).join('')}</div>
-${QUESTION_CATEGORIES.map((category, index) => `    <div class="cd-concern__panel" id="cdConcernPanel${capitalize(category.id)}" data-cd-concern-panel="${category.id}"${index === 0 ? '' : ' hidden'}><ul class="cd-concern__qs">${category.questions.map(questionLink).join('')}</ul></div>`).join('\n')}
+    <div class="cd-concern__cards" role="group" aria-labelledby="cdhOtherFortunesTitle">${QUESTION_CATEGORIES.map((category, index) => `<button type="button" class="cd-concern__card" data-cd-concern="${category.id}" aria-expanded="${index === 0}" aria-controls="cdConcernPanel${capitalize(category.id)}"><span class="cd-concern__card-media" aria-hidden="true"><img src="${category.img}-240.webp" srcset="${category.img}-240.webp 240w, ${category.img}-400.webp 400w" sizes="(max-width: 599px) 48px, 240px" alt="" width="960" height="640" loading="lazy" decoding="async"></span><span class="cd-concern__card-label" data-cd-trans="home.concernPick.${category.id}">${category.label}</span><span class="cd-concern__card-desc" data-cd-trans="home.concernPick.chip.${category.id}">${category.chip}</span></button>`).join('')}</div>
+${QUESTION_CATEGORIES.map((category, index) => `    <div class="cd-concern__panel" id="cdConcernPanel${capitalize(category.id)}" data-cd-concern-panel="${category.id}"${index === 0 ? '' : ' hidden'}><h3 class="cd-concern__panel-title"><span data-cd-trans="home.concernPick.${category.id}">${category.label}</span> · 관련 운세</h3><ul class="cd-concern__qs">${category.questions.map(questionLink).join('')}</ul></div>`).join('\n')}
     <div class="cd-concern__actions"><a class="cd-concern__free" href="#destinyCardForm" data-cd-trans="home.concernPick.freeCta">무료로 먼저 확인하기</a><a class="cd-concern__ask" href="/fortune-chat/?character=yeoni" data-cd-price-key="fortune-chat-consultation"><span data-cd-trans="home.concernPick.ask">직접 물어보기</span> <em class="cd-concern__q-price" data-cd-trans="home.concernPick.price.w5000">${won(chatPrice)}</em></a></div>
   </section>
 </section>`;
