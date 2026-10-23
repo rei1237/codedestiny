@@ -9,8 +9,8 @@
 .cd-talisman-intro > p:last-child { color: var(--yn-muted); font-size: var(--yn-t-body); line-height: 1.7; margin: 14px 0 0; max-width: 36em; }
 .cd-talisman-workspace { display: grid; gap: 30px; }
 .cd-talisman-preview-section { min-width: 0; text-align: center; }
-.cd-talisman-preview { position: relative; width: min(100%, 256px); aspect-ratio: 9 / 19.5; margin: 0 auto; border: 1px solid var(--yn-line); border-radius: 30px; overflow: hidden; background: var(--yn-surface); }
-.cd-talisman-preview > img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.cd-talisman-preview { position: relative; width: min(100%, 256px); aspect-ratio: 9 / 19.5; margin: 0 auto; border: 1px solid var(--yn-line); border-radius: 30px; overflow: hidden; background: var(--yn-deep); }
+.cd-talisman-preview > img { position: absolute; display: block; object-fit: contain; }
 .cd-talisman-empty { position: absolute; inset: 30% 20px 20%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; }
 .cd-talisman-empty > svg { color: var(--yn-gold); flex-shrink: 0; }
 .cd-talisman-empty > strong { font-size: .95rem; font-weight: 500; }
@@ -19,7 +19,8 @@
 .cd-talisman-camera { position: absolute; left: 35%; top: 12px; width: 30%; height: 20px; background: var(--yn-deep); border: 1px solid var(--yn-line); border-radius: 20px; }
 .cd-talisman-clock { position: absolute; inset: 55px 0 auto; font-size: 2.75rem; line-height: 1; font-variant-numeric: tabular-nums; font-weight: 300; }
 .cd-talisman-widgets, .cd-talisman-icons { position: absolute; inset: 110px 28px auto; padding: 10px; border: 1px dashed var(--yn-line); border-radius: 12px; font-size: .7rem; }
-.cd-talisman-icons { top: auto; bottom: 46px; }
+.cd-talisman-icons { inset: 18% 9% 18%; display: grid; grid-template-columns: repeat(4, 1fr); align-content: space-between; gap: 20px 12px; padding: 0; border: 0; }
+.cd-talisman-icons > span { aspect-ratio: 1; border: 1px dashed var(--yn-ivory); border-radius: 9px; background: color-mix(in srgb, var(--yn-deep) 60%, transparent); }
 .cd-talisman-homebar { position: absolute; bottom: 12px; left: 35%; width: 30%; height: 4px; border-radius: 4px; background: var(--yn-muted); }
 .cd-talisman-guide-toggle { display: flex; align-items: center; justify-content: center; gap: 9px; min-height: 44px; margin-top: 12px; font-size: .85rem; }
 .cd-talisman input { accent-color: var(--yn-gold); }
@@ -29,9 +30,16 @@
 .cd-talisman legend { color: var(--yn-gold); font-size: .85rem; margin-bottom: 12px; }
 .cd-talisman-scenes, .cd-talisman-options { display: grid; gap: 8px; }
 .cd-talisman-options { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.cd-talisman-composition { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.cd-talisman-fit-controls { display: grid; gap: 14px; }
+.cd-talisman-fit-controls label { font-size: .85rem; color: var(--yn-muted); }
+.cd-talisman-fit-controls input[type="range"] { display: block; width: 100%; min-height: 44px; margin: 0; }
+.cd-talisman-preview-toggle { display: flex; justify-content: center; gap: 8px; margin-top: 12px; }
+.cd-talisman-preview-toggle button { min-height: 44px; padding: 8px 12px; color: var(--yn-ivory); background: var(--yn-night); border: 1px solid var(--yn-line); border-radius: var(--yn-btn-radius); }
+.cd-talisman-preview-toggle button[aria-pressed="true"] { border-color: var(--yn-gold); color: var(--yn-gold); }
+.cd-talisman-instructions { font-size: .85rem; line-height: 1.7; color: var(--yn-muted); }
+.cd-talisman-instructions summary { min-height: 44px; padding-block: 10px; color: var(--yn-ivory); cursor: pointer; }
 .cd-talisman fieldset label { position: relative; min-width: 0; }
-.cd-talisman fieldset input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.cd-talisman fieldset input[type="radio"] { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
 .cd-talisman fieldset label > span { display: flex; align-items: center; justify-content: center; min-height: 48px; padding: 10px 8px; border: 1px solid var(--yn-line); border-radius: var(--yn-btn-radius); font-size: .85rem; line-height: 1.4; text-align: center; background: var(--yn-night); }
 .cd-talisman-scenes label > span { justify-content: flex-start; padding-inline: 16px; }
 .cd-talisman input:checked + span { border-color: var(--yn-gold); color: var(--yn-gold); background: var(--yn-raised); }

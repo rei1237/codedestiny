@@ -11,12 +11,12 @@ export const categories = [
   { id: "love", ko: "연애", ja: "恋愛" },
   { id: "contact", ko: "연락", ja: "連絡" },
   { id: "career", ko: "취업·합격", ja: "就職・合格" },
-  { id: "peace", ko: "평온", ja: "安らぎ" },
-  { id: "luck", ko: "행운", ja: "幸運" },
+
+
 ] as const;
 export type Scene = typeof scenes[number]["id"];
 export type Category = typeof categories[number]["id"];
-export type Composition = "lock" | "home";
+export type Composition = "lock" | "home" | "shared";
 export type TalismanAsset = {
   id: string; scene: Scene; category: Category; composition: Composition;
   approval: "approved"; src: string; width: number; height: number; sha256: string;
@@ -30,10 +30,10 @@ export function approvedAssets(input: unknown = manifest): TalismanAsset[] {
     typeof asset.id === "string" && /^[a-z0-9-]+$/.test(asset.id) &&
     scenes.some((scene) => scene.id === asset.scene) &&
     categories.some((category) => category.id === asset.category) &&
-    ["lock", "home"].includes(asset.composition) &&
+    ["lock", "home", "shared"].includes(asset.composition) &&
     /^\/assets\/talismans\/originals\/[a-z0-9-]+\.png$/.test(asset.src) &&
-    Number.isInteger(asset.width) && asset.width >= 1440 && asset.width <= 4096 &&
-    Number.isInteger(asset.height) && asset.height >= 2560 && asset.height <= 8192 &&
+    Number.isInteger(asset.width) && asset.width >= 720 && asset.width <= 4096 &&
+    Number.isInteger(asset.height) && asset.height >= 1280 && asset.height <= 8192 &&
     asset.width * asset.height <= 25_000_000 && /^[a-f0-9]{64}$/.test(asset.sha256));
 }
 

@@ -19,17 +19,17 @@ vm.runInNewContext(compiled, {
 });
 const { approvedAssets, verifyOriginal } = exportsObject;
 const asset = {
-  id: "test-only", approval: "approved", scene: "yeoni-teahouse", category: "peace", composition: "lock",
+  id: "test-only", approval: "approved", scene: "yeoni-teahouse", category: "study", composition: "lock",
   src: "/assets/talismans/originals/test-only.png", width: 1440, height: 3120, sha256: "a".repeat(64),
 };
-test("공개 카탈로그에 미승인 시안을 싣지 않는다", () => {
-  assert.equal(approvedAssets().length, 0);
+test("공개 카탈로그는 승인 원본만 허용한다", () => {
+  assert.equal(approvedAssets().length, 15);
   assert.equal(approvedAssets({ version: 1, assets: [{ ...asset, approval: "draft" }] }).length, 0);
   assert.equal(approvedAssets({ version: 1, assets: [asset] }).length, 1);
 });
 for (const override of [
   { src: "https://untrusted.example/art.png" }, { src: "/assets/talismans/originals/../draft.png" },
-  { width: 1080 }, { height: 10000 }, { scene: "third-invented-character" }, { sha256: "" },
+  { width: 719 }, { height: 10000 }, { scene: "third-invented-character" }, { sha256: "" },
 ]) test("원본 경로·캐릭터·해상도·무결성 조건: " + JSON.stringify(override), () => {
   assert.equal(approvedAssets({ version: 1, assets: [{ ...asset, ...override }] }).length, 0);
 });
@@ -40,4 +40,17 @@ test("테스트용 PNG의 원본 해시와 크기를 검증하고 변조를 거�
   await verifyOriginal(bytes, expected);
   await assert.rejects(verifyOriginal(bytes, { ...expected, width: 1441 }), /INVALID_IMAGE/);
   await assert.rejects(verifyOriginal(bytes, { ...expected, sha256: "b".repeat(64) }), /IMAGE_HASH_MISMATCH/);
+});
+
+test("승인된 941x1672 원본은 확대 없이 등록할 수 있다", () => {
+  const actualSize = { ...asset, width: 941, height: 1672 };
+  assert.equal(approvedAssets({ version: 1, assets: [actualSize] }).length, 1);
+});
+
+
+test("승인 v2 15개는 실제 파일의 PNG 크기와 SHA256이 일치한다", async () => {
+  for (const item of approvedAssets()) {
+    const png = fs.readFileSync(path.join(root, "public", item.src));
+    await verifyOriginal(Uint8Array.from(png).buffer, item);
+  }
 });

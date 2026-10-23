@@ -58,7 +58,14 @@ class CodeDestinyNavigationPlugin: CAPPlugin, CAPBridgedPlugin {
 class CodeDestinyWallpaperPlugin: CAPPlugin, CAPBridgedPlugin {
     let identifier = "CodeDestinyWallpaperPlugin"
     let jsName = "CodeDestinyWallpaper"
-    let pluginMethods: [CAPPluginMethod] = [CAPPluginMethod(name: "exportImage", returnType: CAPPluginReturnPromise)]
+    let pluginMethods: [CAPPluginMethod] = [CAPPluginMethod(name: "exportImage", returnType: CAPPluginReturnPromise), CAPPluginMethod(name: "getScreenInfo", returnType: CAPPluginReturnPromise)]
+
+    @objc func getScreenInfo(_ call: CAPPluginCall) {
+        DispatchQueue.main.async {
+            let bounds = (self.bridge?.viewController?.view.window?.windowScene?.screen ?? UIScreen.main).nativeBounds
+            call.resolve(["width": Int(bounds.width), "height": Int(bounds.height)])
+        }
+    }
 
     @objc func exportImage(_ call: CAPPluginCall) {
         guard let action = call.getString("action"), ["save", "share"].contains(action),
@@ -70,7 +77,7 @@ class CodeDestinyWallpaperPlugin: CAPPlugin, CAPBridgedPlugin {
               let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any],
               let width = properties[kCGImagePropertyPixelWidth] as? Int,
               let height = properties[kCGImagePropertyPixelHeight] as? Int,
-              (1440...4096).contains(width), (2560...8192).contains(height), width * height <= 25_000_000
+              (720...4096).contains(width), (1280...8192).contains(height), width * height <= 25_000_000
         else { call.reject("Invalid image export", "INVALID_IMAGE"); return }
 
         if action == "save" {

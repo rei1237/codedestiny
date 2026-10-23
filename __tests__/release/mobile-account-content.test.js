@@ -78,3 +78,18 @@ test("React head의 인라인 순서를 유지하며 앱 브릿지가 API 출처
     assert.equal(build.injectGuardTag(transformed).changed, false);
   } finally { dom.window.close(); }
 });
+
+test("앱 내 정보에서 부적과 읽기 콘텐츠로 이동할 수 있고 언어 변경이 반영된다", async () => {
+  const dom = new JSDOM('<html lang="ko"><body><ul class="cd-sheet__menu my-garden-menu"><li><a href="/points/history/">결제 내역</a></li></ul></body></html>', {url:'https://localhost',runScripts:'outside-only'});
+  try {
+    dom.window.fetch = async () => { throw new Error('network forbidden'); };
+    const source=await fs.readFile(path.join(root,'scripts/app-native-bridge.js'),'utf8');
+    dom.window.eval(source);
+    if(dom.window.document.readyState==='loading') await new Promise(resolve=>dom.window.document.addEventListener('DOMContentLoaded',resolve,{once:true}));
+    for(const [id,href] of [['cdTalismanEntry','/app/talismans/index.html'],['cdInsightsEntry','/insights/index.html'],['cdFamousEntry','/insights/famous-saju/index.html']]) assert.equal(dom.window.document.getElementById(id)?.getAttribute('href'),href);
+    dom.window.document.documentElement.lang='ja';
+    dom.window.dispatchEvent(new dom.window.CustomEvent('cd:locale-ready'));
+    assert.equal(dom.window.document.getElementById('cdFamousEntry').textContent,'有名人の四柱推命');
+    assert.equal(dom.window.document.querySelectorAll('a[href="/points/history/"]').length,1);
+  } finally { dom.window.close(); }
+});

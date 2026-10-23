@@ -1333,18 +1333,27 @@
     // 기존 기록 링크를 바꾸지 않고 같은 메뉴 스타일을 재사용한다.
     var historyLink = document.querySelector('#cdMySheet a[href^="/points/history"]') ||
       document.querySelector('.my-garden-menu a[href^="/points/history"]');
-    if (historyLink && !document.getElementById("cdTalismanEntry")) {
-      var item = document.createElement("li");
-      var link = document.createElement("a");
-      link.id = "cdTalismanEntry";
-      link.href = "/app/talismans/index.html";
-      var syncTalismanLabel = function () {
-        link.textContent = document.documentElement.lang === "ja" ? "月明かりのお守り・壁紙" : "달빛 부적 · 배경화면";
-      };
-      syncTalismanLabel();
-      window.addEventListener("cd:locale-ready", syncTalismanLabel);
-      item.appendChild(link);
-      historyLink.closest("li").insertAdjacentElement("afterend", item);
+    if (historyLink) {
+      var previousItem = historyLink.closest("li");
+      [
+        ["cdTalismanEntry", "/app/talismans/index.html", "달빛 부적 · 배경화면", "月明かりのお守り・壁紙"],
+        ["cdInsightsEntry", "/insights/index.html", "운세 인사이트", "運勢の読みもの"],
+        ["cdFamousEntry", "/insights/famous-saju/index.html", "연예인·인물 사주", "有名人の四柱推命"],
+      ].forEach(function (entry) {
+        if (!previousItem || document.getElementById(entry[0])) return;
+        var item = document.createElement("li");
+        var link = document.createElement("a");
+        link.id = entry[0];
+        link.href = entry[1];
+        var syncLabel = function () {
+          link.textContent = document.documentElement.lang === "ja" ? entry[3] : entry[2];
+        };
+        syncLabel();
+        window.addEventListener("cd:locale-ready", syncLabel);
+        item.appendChild(link);
+        previousItem.insertAdjacentElement("afterend", item);
+        previousItem = item;
+      });
     }
     installAppLocaleBridge();
     installAppUrlListener();

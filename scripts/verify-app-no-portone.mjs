@@ -468,7 +468,7 @@ if (DIST) {
       check(`${label} 웹 결제 진입 제거됨`, !(await exists(path.join(DIST, prefix, "points", "index.html"))));
     }
 
-    for (const route of ["points/history", "insights", "famous-saju", "records", "yeongnyangi/library"]) {
+    for (const route of ["points/history", "insights", "insights/famous-saju", "records", "yeongnyangi/library"]) {
       check(`/${route} 열람 경로 보존됨`, await exists(path.join(DIST, route, "index.html")));
     }
 
@@ -525,9 +525,8 @@ if (DIST) {
     // "가드가 정말 지우는가"를 볼 수 없어 실제 산출물 HTML에 가드를 실행한다.
     // 페이지 자체 스크립트는 돌리지 않는다(1.9MB 인라인 JS라 느리고 불안정) —
     // 정적 앵커만 봐도 충분하고, 동적 생성분은 가드의 MutationObserver가 맡는다.
-    console.log("\n[4] 실제 산출물 페이지에서 프루닝 링크가 사라지는가 (jsdom)");
-    // 로케일 접두사가 붙은 링크(/en/insights/)도 프루닝 대상이다 — 라우트 파일이
-    // LOCALE_PREFIXES 조합으로 지워지므로 접두사가 붙었다고 살려두면 죽은 링크가 된다.
+    console.log("\n[4] 실제 산출물에서 콘텐츠 링크와 앱 진입을 보존하는가 (jsdom)");
+    // 로케일을 포함한 기존 읽기 링크를 결제 가드가 제거하지 않는지 확인한다.
     const PRUNED_HREF_RE = /^(?:\/[a-z]{2}(?:-[a-z]{2})?)?\/(?:insights|famous-saju)(?:\/|\?|#|$)/;
     const countPrunedLinks = (doc) =>
       Array.from(doc.querySelectorAll("a[href]")).filter((anchor) =>
@@ -538,7 +537,7 @@ if (DIST) {
       ["index.html", "루트 진입점"],
       [YEONGNYANGI_HOME_PATH, "영냥이 앱 첫 화면"],
       [LEGACY_SHELL_PATH, "꿀꿀운세(기존 연이/네오 셸)"],
-      [path.join("saju", "basic", "index.html"), "/saju (앱 탭 — /insights 링크 있던 곳)"],
+      [path.join("saju", "index.html"), "/saju (앱 탭 — /insights 링크 있던 곳)"],
       [path.join("en", "today", "index.html"), "/en/today (로케일 페이지 — /en/insights 링크 있던 곳)"],
     ];
 
@@ -576,14 +575,14 @@ if (DIST) {
         check("영냥이 법적 고지와 사업자 정보 보존", Boolean(doc.querySelector('.service-navigation__business') && doc.querySelector('a[href^="/privacy-policy/"]') && doc.querySelector('a[href^="/terms/"]')));
       }
       if (relPath === LEGACY_SHELL_PATH) {
-        // 섹션째 사라져야 한다 — 앵커만 지우면 제목만 남은 빈 카드가 된다.
-        for (const id of ["cd-insights-body", "cd-famous-body", "fsp-grid"]) {
-          check(`홈: #${id} 보존됨`, Boolean(pageWindow.document.getElementById(id)));
+        // 현재 홈은 카드 ID 대신 내 정보 메뉴를 사용한다. 앱의 읽기 진입을 실제 브릿지로 확인한다.
+        pageWindow.eval(await fs.readFile(path.join(ROOT, "scripts", "app-native-bridge.js"), "utf8"));
+        if (pageWindow.document.readyState === "loading") {
+          await new Promise(resolve => pageWindow.document.addEventListener("DOMContentLoaded", resolve, { once: true }));
         }
-        // 과잉 제거 감시 — 섹션 부모를 지우다 홈을 통째로 날리면 안 된다.
-        // (.cd-section-body는 index.html에 2개뿐이고 둘 다 프루닝 대상이라 기준이 못 된다)
-        // 모바일 홈 허브(#cdMobileDestinyHub)는 반응형 리디자인(v20260723)으로 제거됐으므로,
-        // 홈 루트(#inputPage) 또는 슬림 헤더(#cdMobileHeader)가 살아있는지로 '홈 통째 삭제'를 감시한다.
+        for (const [id, href] of [["cdTalismanEntry", "/app/talismans/index.html"], ["cdInsightsEntry", "/insights/index.html"], ["cdFamousEntry", "/insights/famous-saju/index.html"]]) {
+          check(`홈: ${id} 앱 메뉴 진입`, pageWindow.document.getElementById(id)?.getAttribute("href") === href);
+        }
         check(
           "홈: 모바일 홈이 살아있음 (과잉 제거 없음)",
           Boolean(pageWindow.document.getElementById("inputPage") || pageWindow.document.getElementById("cdMobileHeader")),

@@ -5,6 +5,10 @@ import android.app.WallpaperManager;
 import android.content.ClipData;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
+import android.graphics.Rect;
+import android.os.Build;
+import android.util.DisplayMetrics;
+import java.io.ByteArrayInputStream;
 import android.net.Uri;
 import android.util.Base64;
 import androidx.activity.result.ActivityResult;
@@ -22,10 +26,26 @@ import java.io.OutputStream;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/** Original PNG export only. No storage/gallery read permission and no automatic wallpaper change. */
+/** User-initiated PNG export or wallpaper setting. No gallery/storage read permission. */
 @CapacitorPlugin(name = "CodeDestinyWallpaper")
 public class CodeDestinyWallpaperPlugin extends Plugin {
     private final Map<String, File> pendingSaves = new ConcurrentHashMap<>();
+
+    @PluginMethod
+    public void getScreenInfo(PluginCall call) {
+        getActivity().runOnUiThread(() -> {
+            JSObject response = new JSObject();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                Rect bounds = getActivity().getWindowManager().getMaximumWindowMetrics().getBounds();
+                response.put("width", bounds.width()); response.put("height", bounds.height());
+            } else {
+                DisplayMetrics metrics = new DisplayMetrics();
+                getActivity().getWindowManager().getDefaultDisplay().getRealMetrics(metrics);
+                response.put("width", metrics.widthPixels); response.put("height", metrics.heightPixels);
+            }
+            call.resolve(response);
+        });
+    }
 
     @PluginMethod
     public void exportImage(PluginCall call) {
@@ -34,7 +54,7 @@ public class CodeDestinyWallpaperPlugin extends Plugin {
             String action = call.getString("action", "");
             String name = call.getString("fileName", "");
             String encoded = call.getString("base64", "");
-            if (!("save".equals(action) || "share".equals(action) || "wallpaper".equals(action)) ||
+            if (!("save".equals(action) || "share".equals(action) || "wallpaper".equals(action) || "wallpaperPicker".equals(action)) ||
                 !name.matches("[a-z0-9-]{1,100}\\.png") || encoded.length() > 22369624) {
                 call.reject("Invalid image export", "INVALID_IMAGE"); return;
             }
@@ -46,10 +66,26 @@ public class CodeDestinyWallpaperPlugin extends Plugin {
             BitmapFactory.Options bounds = new BitmapFactory.Options();
             bounds.inJustDecodeBounds = true;
             BitmapFactory.decodeByteArray(bytes, 0, bytes.length, bounds);
-            if (!"image/png".equals(bounds.outMimeType) || bounds.outWidth < 1440 || bounds.outWidth > 4096 ||
-                bounds.outHeight < 2560 || bounds.outHeight > 8192 ||
+            if (!"image/png".equals(bounds.outMimeType) || bounds.outWidth < 720 || bounds.outWidth > 4096 ||
+                bounds.outHeight < 1280 || bounds.outHeight > 8192 ||
                 (long) bounds.outWidth * bounds.outHeight > 25000000) {
                 call.reject("Invalid image dimensions", "INVALID_IMAGE"); return;
+            }
+            if ("wallpaper".equals(action)) {
+                String target = call.getString("target", "");
+                if (!("home".equals(target) || "lock".equals(target) || "both".equals(target))) {
+                    call.reject("Choose a wallpaper target", "INVALID_WALLPAPER_TARGET"); return;
+                }
+                WallpaperManager manager = WallpaperManager.getInstance(getContext());
+                if (!manager.isWallpaperSupported()) { call.reject("Wallpaper unsupported", "WALLPAPER_UNSUPPORTED"); return; }
+                if (!manager.isSetWallpaperAllowed()) { call.reject("Wallpaper restricted by device policy", "WALLPAPER_NOT_ALLOWED"); return; }
+                int flags = "home".equals(target) ? WallpaperManager.FLAG_SYSTEM : "lock".equals(target) ? WallpaperManager.FLAG_LOCK : WallpaperManager.FLAG_SYSTEM | WallpaperManager.FLAG_LOCK;
+                try (ByteArrayInputStream input = new ByteArrayInputStream(bytes)) {
+                    int id = manager.setStream(input, new Rect(0, 0, bounds.outWidth, bounds.outHeight), false, flags);
+                    if (id <= 0) throw new java.io.IOException("Wallpaper was not accepted");
+                }
+                resolveStatus(call, "applied");
+                return;
             }
             File directory = new File(getContext().getCacheDir(), "talisman-exports");
             if (!directory.isDirectory() && !directory.mkdirs()) throw new java.io.IOException("Export directory unavailable");
@@ -70,14 +106,19 @@ public class CodeDestinyWallpaperPlugin extends Plugin {
             }
             Uri uri = FileProvider.getUriForFile(getContext(), getContext().getPackageName() + ".fileprovider", file);
             Intent intent;
-            if ("wallpaper".equals(action)) {
+            if ("wallpaperPicker".equals(action)) {
                 intent = WallpaperManager.getInstance(getContext()).getCropAndSetWallpaperIntent(uri);
             } else {
                 intent = new Intent(Intent.ACTION_SEND).setType("image/png").putExtra(Intent.EXTRA_STREAM, uri);
             }
             intent.setClipData(ClipData.newRawUri("Wallpaper", uri));
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            getActivity().startActivity("share".equals(action) ? Intent.createChooser(intent, null) : intent);
+            if ("wallpaperPicker".equals(action)) {
+                pendingSaves.put(call.getCallbackId(), file);
+                startActivityForResult(call, intent, "wallpaperResult");
+                return;
+            }
+            getActivity().startActivity(Intent.createChooser(intent, null));
             // Android chooser completion is not proof that sharing or wallpaper application finished.
             resolveStatus(call, "opened");
         } catch (Exception error) {
@@ -85,6 +126,15 @@ public class CodeDestinyWallpaperPlugin extends Plugin {
             if (file != null) file.delete();
             call.reject("Could not open image export. Save the original and use system wallpaper settings.", "IMAGE_EXPORT_FAILED");
         }
+    }
+
+    @ActivityCallback
+    private void wallpaperResult(PluginCall call, ActivityResult result) {
+        if (call == null) return;
+        File file = pendingSaves.remove(call.getCallbackId());
+        if (file != null) file.delete();
+        // OEM pickers do not reliably report whether the user applied or cancelled.
+        resolveStatus(call, "returned");
     }
 
     @ActivityCallback
