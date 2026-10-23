@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-23
-next: "14 — 신년운세 VM 테스트가 구현 세부에 묶여 있다"
+next: "35 — 관리자·공유 셸의 alert"
 ---
 
 # 꿀꿀운세 UX 진단·개선 — 후속 과제
@@ -124,9 +124,9 @@ next: "14 — 신년운세 VM 테스트가 구현 세부에 묶여 있다"
 - [x] **13. eslint 경고 375개** — 끝: `2dff830f8`. 세 파일 424개 → 0개. `no-var`는 eslint 자동 수정 뒤 남은 12곳(블록마다 재선언된 `raf`·`dx`·`dy`, 콜백이 자기 자신을 읽는 `timer`, 한 줄 다중 선언의 `started`)을 손으로 바꿨다. 쓰지 않는 `catch (_)`는 `catch {}`로(셸 `uiBindings.js`가 이미 쓰는 문법, esbuild는 target 없이 문법을 낮추지 않음). 죽은 `findActionElement`·`withMobileBuild`(+`detectMobileBuildVersion`)를 지웠다. 함수 선언이 const/let보다 먼저 불리는 TDZ는 스크래치 `tdz-scan.cjs`(eslint-scope)로 0건. 뒤로가기 시나리오 10/10, `verify-moon-pwa`·모바일 가드 통과(H17만 기존 실패)
   - 전부 `js/mobile-backstack-navigation.js`와 `js/mobile-interaction-patch.js`에 있고, 315개는 자동 수정이 된다. `pwa-lifecycle.js`에도 49개가 있다.
 - [x] **36. `RecommendationSurface.jsx` eslint 경고** — 39:9 img, 93:169 deps. — 끝: `2b0ef2b3f`. `<img>`는 정적 export(`images.unoptimized`)라 사유를 달아 끔. 노출 effect는 `trackRecommendation`이 읽는 `service`만 의존(렌더마다 새 `context`를 넣으면 구독이 매번 새로 생겨 노출이 중복된다)
-- [ ] **14. 신년운세 VM 테스트가 구현 세부에 묶여 있다**
+- [x] **14. 신년운세 VM 테스트가 구현 세부에 묶여 있다** — 끝: `aabc22897` 파싱 헬퍼·질문 판정을 `app/new-year-ai-consultation/_lib/answer-sections.ts`로 옮김. 테스트는 실제 모듈을 의존성째 싣고 `friendlyErrorMessage`도 실제 함수를 씀. 안 쓰이던 `__newYearAiParserTestUtils` 삭제. `handleSubmit` 추출은 컴포넌트 콜백이라 그대로 둠. 신년운세 테스트 43/43, tsc, `verify-new-year-ai-flow`, `verify-paid-gate-ui-regression` 통과
   - `__tests__/ui/new-year-question-answer.behavior.test.js`가 VM transpile과 `friendlyErrorMessage` 스텁(L65)에 기댄다. 순수 헬퍼를 모듈로 옮긴다.
-- [ ] **27. 레거시 건강 보고서 분기가 죽은 코드다**
+- [x] **27. 레거시 건강 보고서 분기가 죽은 코드다** — 끝: `827396a69` 호출부가 `legacy-saju`·`legacy-tarot`·`pet-*`뿐임을 확인하고 분기 삭제. 테스트는 `legacy-tarot`로 마운트. 추천 테스트 19/19
   - 위치: `js/recommendations-legacy.mjs:53-56`. `__tests__/ui/recommendations.test.mjs`가 이 글자를 검사하므로 함께 고친다.
 - [ ] **35. 관리자·공유 셸의 `alert`**
   - 위치: `index.html` 약 L30539·L30545, 공유 추천 흐름 약 L19257. `_cdShellNotice`를 쓴다.
@@ -195,3 +195,4 @@ next: "14 — 신년운세 VM 테스트가 구현 세부에 묶여 있다"
 - **H18. ko.json `sajuReading`이 인라인 문구보다 전반적으로 낡았다**(H4 포함): "네오"↔"영냥이" 등. ko는 `cdTranslate`가 fallback(인라인)을 돌려줘서 런타임 영향은 없다. 사전을 정본으로 바꿀 때 한꺼번에 맞춘다. 비교: 스크래치 `sr-drift.cjs ko`.
 - **H19. en.json `sajuReading`에 `yeonIntro`·`neoIntro`가 없다**: 인라인 en으로 떨어져 화면은 정상이다. 다른 언어도 같은지 함께 본다.
 - **H20. `syncSajuReadingPrices`가 셸 캐시 키 계산 뒤에 돈다**: 가격이 바뀌는 빌드에서는 키가 한 번 늦을 수 있다. 평소에는 아무것도 바꾸지 않는다(7번 작업 중 발견, 고치지 않음).
+- **H21. 레거시 어댑터의 비반려 관심사 선택도 닿지 않는다**: `js/recommendations-legacy.mjs` `choose`의 `explicitInterest` 갈래(식사 준비·수분·휴식 select)는 `rpt_healthReportCard`에서만 켜지는데 그 서비스로 마운트하는 곳이 없다. `SERVICE_MAP` 규칙은 서버 설정 검증에 쓰이니 남긴다. 범위 밖이라 기록만
