@@ -681,6 +681,23 @@
 		.cd-world-places {
 			grid-template-columns: repeat(2, minmax(0, 1fr));
 		}
+		.cd-world-character:last-child:nth-child(odd) {
+			grid-column: 1 / -1;
+			flex-direction: row;
+			align-items: center;
+			gap: 24px;
+		}
+		.cd-world-character:last-child:nth-child(odd) .cd-world-character-portrait {
+			flex: 0 0 min(46%, 340px);
+		}
+		.cd-world-character:last-child:nth-child(odd) .cd-world-character-header {
+			flex: 0 0 9rem;
+		}
+		.cd-world-character:last-child:nth-child(odd) > p {
+			flex: 1;
+			min-width: 0;
+			padding: 0;
+		}
 	}
 	@media (max-width: 720px) {
 		.cd-world-hero {
