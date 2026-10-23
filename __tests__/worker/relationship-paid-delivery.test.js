@@ -6,7 +6,7 @@ import { jest } from '@jest/globals';
 const timeoutPolicy = jest.requireActual('../../worker/lib/sync-llm-timeout.js');
 jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...timeoutPolicy, PAID_LLM_PARTS_PER_REQUEST: 4 }));
 
-let route, docs, provider, accessMode, revoked, userId, fault, lost, fetchBlock, refunds, closes, executionMetadata, refundOutcome;
+let route, docs, provider, accessMode, revoked, userId, fault, lost, fetchBlock, refunds, closes, executionMetadata, refundOutcome, verifyCalls;
 const user='64b7f2a1c3d4e5f601234567';
 const clone=value=>structuredClone(value);
 const get=(doc,key)=>key.split('.').reduce((value,key)=>value?.[key],doc);
@@ -35,7 +35,7 @@ beforeAll(async()=>{
  const db=await import('../../worker/lib/db.js'),auth=await import('../../worker/lib/auth.js'),models=await import('../../worker/lib/models.js'),structured=await import('../../worker/lib/structured-consultation.js');
  jest.unstable_mockModule('../../worker/lib/db.js',()=>({...db,connectDb:async()=>{}}));
  jest.unstable_mockModule('../../worker/lib/auth.js',()=>({...auth,getOptionalUserFromRequest:async()=>({userId})}));
- jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js',()=>withSettle({verifyPerUsePayment:async()=>({proven:true,source:accessMode,...(accessMode==='pass'?{passRefund:docs.length?undefined:{cycleKey:'2026-10-01',cost:300}}:{transactionId:'original-'+accessMode})})}));
+ jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js',()=>withSettle({verifyPerUsePayment:async()=>(verifyCalls++,{proven:true,source:accessMode,...(accessMode==='pass'?{passRefund:docs.length?undefined:{cycleKey:'2026-10-01',cost:300}}:{transactionId:'original-'+accessMode})})}));
  jest.unstable_mockModule('../../worker/lib/models.js',()=>({...models,RelationshipBoundaryTest:model,
   PaidExecutionRecord:{findOne:()=>query(revoked?{}:null)},Payment:{findOne:()=>query(null)},PointHistory:{findOne:()=>query(null)},MonthlyCreditLedger:{findOne:()=>query(null)},
  }));
@@ -43,7 +43,7 @@ beforeAll(async()=>{
  jest.unstable_mockModule('../../worker/lib/service-execution-task.js',()=>({startServiceExecution:async(_env,_user,input)=>{executionMetadata=input.metadata;return {};},completeServiceExecution:async()=>{expect(docs[0].status).toBe('completed');closes++;},failServiceExecution:async()=>{expect(docs[0].status).toBe('generation_failed');refunds++;return refundOutcome;}}));
  ({handleRelationshipBoundaryTestRoutes:route}=await import('../../worker/routes/relationship-boundary-test.js'));
 });
-beforeEach(()=>{docs=[];accessMode='pass';revoked=false;userId=user;fault=null;lost=false;refunds=0;closes=0;executionMetadata=null;refundOutcome={refundStatus:"refunded"};
+beforeEach(()=>{docs=[];accessMode='pass';revoked=false;userId=user;fault=null;lost=false;refunds=0;closes=0;verifyCalls=0;executionMetadata=null;refundOutcome={refundStatus:"refunded"};
  provider=jest.fn(async(_env,prompt,options)=>{
   expect(options.timeoutMs).toBe(45000);expect(options.attempts).toBe(1);expect(options.fallbackToWorkersAI).toBe(false);
   const evidenceHash=prompt.match(/evidenceHash[":\s]+([a-f0-9]{64})/)[1];
@@ -191,6 +191,13 @@ test.each(['pass','monthly','single'])('%s couple input survives interruption an
  expect(docs[0].sections.map(s=>s.title)).toEqual(['우리 관계의 큰 흐름','끌림과 소통의 결','긴장과 관계의 경계','생활을 나누고 신뢰를 쌓는 법','함께할 미래와 오늘의 선택']);
  expect(docs[0].llmMeta.sectionPrompts).toEqual(prompts);expect(provider).toHaveBeenCalledTimes(11);
  expect((await post(request)).status).toBe(200);expect(provider).toHaveBeenCalledTimes(11);expect(refunds).toBe(0);
+});
+test.each(['pass','monthly','single'])('%s: a chart that cannot be calculated ends before any payment verification or deduction',async mode=>{
+ accessMode=mode;
+ // 음력 12월 31일은 입력 정규화는 통과하지만 달력에 없는 날짜라 명식 계산이 실패한다.
+ const result=await post({...body,targetInfo:{...body.targetInfo,calendarType:'lunar',birthDate:'1990-12-31',isLeapMonth:false}});
+ expect(result.status).toBe(422);expect(await result.json()).toMatchObject({ok:false,reason:'CALCULATION_FAILED'});
+ expect(verifyCalls).toBe(0);expect(provider).not.toHaveBeenCalled();expect(docs).toHaveLength(0);expect(executionMetadata).toBeNull();expect(refunds).toBe(0);
 });
 test('invalid optional self information is rejected before generation',async()=>{
  const result=await post({...body,selfInfo:{birthDate:'invalid'}});expect(result.status).toBe(422);expect(provider).not.toHaveBeenCalled();expect(docs).toHaveLength(0);

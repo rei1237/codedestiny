@@ -225,6 +225,8 @@ async function handleStart(request, env, recoveryAuth = null) {
   if (!supplied.resumeSessionId && supplied.idempotencyKey.length < 12) return json({ ok: false, reason: "INVALID_INPUT" }, { status: 422 });
   return runRelationshipDelivery(env, auth, supplied, {
     normalize,
+    // handlePrepare 와 같은 검증 호출이라 결제 앞 판정과 seed 의 판정이 갈라지지 않는다.
+    precheck: input => calculateLoveSecretAiSaju(input.normalized, { mode: "validate" }),
     verify: (userId, requestId) => verifyPerUsePayment(env, { userId, featureKey: FEATURE_KEY, coinPrice: COST, requestId,
       requireExisting: Boolean(supplied.resumeSessionId || recoveryAuth) }),
     seed: input => {

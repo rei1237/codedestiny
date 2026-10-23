@@ -47,6 +47,11 @@ export async function runRelationshipDelivery(env, auth, supplied, callbacks) {
   const input = callbacks.normalize(body);
   if (!input.ok || typeof body.idempotencyKey !== "string" || body.idempotencyKey.length < 12 || body.idempotencyKey.length > 180) return json({ ok: false, reason: "INVALID_INPUT" }, { status: 422 });
   if (stored?.inputHash && (stored.inputHash !== input.inputHash || ((supplied.targetInfo || supplied.selfInfo) && callbacks.normalize(supplied).inputHash !== stored.inputHash))) return json({ ok: false, reason: "INPUT_MISMATCH" }, { status: 409 });
+  // 입력만으로 정해지는 계산 실패는 결제 확인·이용권 차감(verify) 앞에서 끝낸다. 저장된 풀이를 이어 가는 요청은 seed 를 다시 돌리지 않는다.
+  if (!stored?.llmMeta?.delivery && callbacks.precheck) {
+    try { callbacks.precheck(input); }
+    catch { return json({ ok: false, reason: "CALCULATION_FAILED", message: "사주 계산을 준비하지 못했어요. 입력값을 확인해 주세요." }, { status: 422 }); }
+  }
   const access = await callbacks.verify(userId, body.idempotencyKey);
   if (access.proven === null) throw storageFailure(stored?.id || body.idempotencyKey);
   if (!access.proven) return json({ ok: false, reason: "PAYMENT_REQUIRED" }, { status: 402 });
