@@ -288,6 +288,22 @@ try {
   }
   // Same local mock boundary: verify the actual paid daeun renderer and recovery button.
   assert.equal(await page.locator('#dwGrid .dw-item').count(), 0, 'locked daeun must not contain paid rows');
+  if (!alreadyUnlocked && shell.label === 'mobile') {
+    // Purchase offers belong to the locked state; confirmed access hides them.
+    const initialMode = await page.locator('#sajuReadingHeader [data-saju-mode][aria-pressed="true"]').getAttribute('data-saju-mode');
+    const shots = resolve(tmpdir(), 'cd-saju-moonlight');
+    await mkdir(shots, {recursive:true});
+    for (const width of [360,390,430,1280]) {
+      await page.setViewportSize({width,height:900});
+      for (const mode of ['pig','neo']) {
+        await page.evaluate(mode => document.querySelector('#sajuReadingHeader [data-saju-mode="'+mode+'"]').click(), mode);
+        await page.locator('[data-saju-offer="section_daewun"]').scrollIntoViewIfNeeded();
+        await page.waitForFunction(() => {const img=document.querySelector('[data-saju-offer="section_daewun"] img');return img?.complete && img.naturalWidth>0;});
+        await page.screenshot({path:resolve(shots,'offer-'+mode+'-'+width+'.png')});
+      }
+    }
+    await page.evaluate(mode => document.querySelector('#sajuReadingHeader [data-saju-mode="'+mode+'"]').click(), initialMode);
+  }
   const daeunGrant = await page.evaluate(() => {
     const profileId = String(window.__cdCurrentDestinyProfile?.profileId || window.__cdActiveBirthProfile?.profileId || 'profile-summary-race');
     window.__cdCurrentDestinyProfile = {...window.__cdCurrentDestinyProfile, profileId};
@@ -356,10 +372,8 @@ try {
         // Poll the current DOM node; missing or broken assets still time out.
         await page.waitForFunction(() => {const img=document.querySelector('#sajuReadingHeader img');return img?.complete && img.naturalWidth>0;});
         await page.screenshot({path:resolve(shots,'header-'+mode+'-'+width+'.png')});
-        await page.locator('[data-saju-offer="section_daewun"]').scrollIntoViewIfNeeded();
-        await page.waitForFunction(() => {const img=document.querySelector('[data-saju-offer="section_daewun"] img');return img?.complete && img.naturalWidth>0;});
-        await page.screenshot({path:resolve(shots,'offer-'+mode+'-'+width+'.png')});
       }
+      assert.equal(await page.locator('[data-saju-offer="section_daewun"]').isVisible(),false,'confirmed paid access hides the purchase offer');
       assert.equal(await page.locator('#sajuReadingHeader .saju-reading-compare').count(),0);
       // 모드를 바꾸면 펼친 대운을 서버에서 새 말투로 다시 받는다 — 도착할 때까지 기다린다.
       await page.waitForFunction(word => (document.querySelector('.saju-cycle-guide > p')?.textContent || '').includes(word), mode === 'neo' ? '핵심은' : '살펴볼게요');

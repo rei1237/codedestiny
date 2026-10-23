@@ -50,6 +50,7 @@ try {
     const page = await context.newPage();
     page.on('pageerror', error => errors.push(error.message));
     await page.goto(base + '/ggulggul/', { waitUntil: 'domcontentloaded', timeout: 120000 });
+    await expect(page.locator('.cd-sig__more')).toHaveJSProperty('open', false);
     const cards = page.locator('a[data-cd-service-id][data-pvw-paid]');
     const count = await cards.count();
     assert.ok(count >= 4);
@@ -57,6 +58,10 @@ try {
       const card = cards.nth(i);
       const id = await card.getAttribute('data-cd-service-id');
       const href = await card.getAttribute('href');
+      const disclosure = card.locator('xpath=ancestor::details[1]');
+      if (await disclosure.count() && !await disclosure.evaluate(element => element.open)) {
+        await disclosure.locator('summary').first().click();
+      }
       await card.scrollIntoViewIfNeeded();
       await card.click();
       const dialog = page.locator('#tilePvwOverlay');
