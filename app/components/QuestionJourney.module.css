@@ -38,7 +38,8 @@
   border-color: var(--qj-rule);
   border-radius: var(--cd-r-section);
   padding: clamp(20px, 4vw, 32px);
-  box-shadow: none;
+  background-image:repeating-linear-gradient(105deg,transparent 0 3px,color-mix(in srgb,var(--qj-accent) 2%,transparent) 3px 4px);
+  box-shadow: inset 0 1px color-mix(in srgb,var(--qj-accent) 18%,transparent);
 }
 .entry p { font-size: var(--yn-t-body); line-height: 1.7; }
 .entry .note { font-size: var(--yn-t-caption)!important; }

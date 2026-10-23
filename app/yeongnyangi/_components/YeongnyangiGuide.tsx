@@ -1,4 +1,5 @@
 import PublicRecordLink from '@/app/components/PublicRecordLink';
+import {CONSULTATION_METHOD_FAQS} from '@/lib/brand/consultation-methods.mjs';
 import {products,systemNames,packages,type Product} from '@/worker/yeongnyangi/payments/catalog';
 import {questionScopes,FOLLOWUP_LIMITS} from '@/worker/yeongnyangi/fortune/ask/question-policy';
 import type {DomainId} from '@/worker/yeongnyangi/fortune/shared/contracts';
@@ -26,6 +27,7 @@ const tarotExcerpts=(()=>{
 })();
 
 export const YEONGNYANGI_FAQS=[
+ ...CONSULTATION_METHOD_FAQS,
  {question:'사주 보는 고양이 영냥이는 어떤 서비스인가요?',answer:`영냥이는 꿀꿀운세(CODE DESTINY)가 운영하는 유료 운세 상담 캐릭터예요. ${SYSTEMS} 중 하나를 골라 한 가지 고민을 챕터로 나눠 읽어 줘요. "사주보는고양이"처럼 붙여 써서 찾아도 같은 서비스예요.`},
  {question:'운세보는 영냥이와 꿀꿀 운세는 어떤 관계인가요?',answer:'운세보는 영냥이는 꿀꿀 운세 안의 사주보는 고양이 상담 서비스예요. 운영자는 CODE DESTINY(코드 데스티니)로 같고, 공식 홈페이지는 https://code-destiny.com/, 영냥이 상담 입구는 https://code-destiny.com/yeongnyangi/예요.'},
  {question:'가장 저렴한 상담은 얼마인가요?',answer:`고등어 상담이 ${LOWEST_PRICE}이고, 여섯 체계 모두 같은 가격이에요. 결제창에서 총액과 적용 수단을 한 번 더 확인한 뒤에 결제돼요.`},

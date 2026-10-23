@@ -1,9 +1,10 @@
 // /faq 문항. 페이지와 관리자 CMS 화면이 함께 읽는 순수 데이터 모듈이다.
 import { BRAND_FACTS } from "../../lib/brand/brand-facts.mjs";
-import { founder } from "../../lib/brand/founder";
+import { CONSULTATION_METHOD_FAQS } from "../../lib/brand/consultation-methods.mjs";
 import { DIFFERENTIATION_FAQS } from "../../lib/brand/differentiation-faqs.mjs";
 
 export const FAQS_DEFAULT = [
+  ...CONSULTATION_METHOD_FAQS,
   ...DIFFERENTIATION_FAQS,
   {
     question: "꿀꿀 운세의 기본 운세 기능은 무료인가요?",
@@ -44,10 +45,6 @@ export const FAQS_DEFAULT = [
   {
     question: "태어난 시간을 모르면 어떻게 보나요?",
     answer: "출생 시간을 비워 두고 볼 수 있습니다. 이때는 연·월·일을 기준으로 해석하고, 시주처럼 태어난 시간으로 정해지는 항목은 빼거나 확인할 수 없는 부분으로 남깁니다. 자미두수처럼 시간 비중이 큰 체계는 정확도가 낮아질 수 있으니 임의의 시각을 넣지 않는 편이 정확합니다.",
-  },
-  {
-    question: "사람이 상담하나요, AI가 답하나요?",
-    answer: `${founder.method} 결과는 자기 이해를 돕는 참고 해석입니다.`,
   },
   {
     question: "공식 사이트와 표기는 어디에서 확인하나요?",

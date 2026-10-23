@@ -37,6 +37,8 @@ assert.ok(home.includes('data-marker="cd-concern-pick-v20260824">'), "질문 카
 const fusionBand = home.match(/<section class="cdh-fusion-sig"[\s\S]*?<\/section>/)?.[0] || "";
 assert.match(fusionBand, /href="\/fusion-fortune\/\?from=home_signature"/, "초융합 시그니처 띠는 초융합 페이지로 갑니다");
 assert.equal([...fusionBand.matchAll(/\/images\/master-profiles\/avatars\/(\w+)\.webp/g)].map(m => m[1]).join(','), 'neo,yeoni,hanbi,yun,musung');
+assert.equal([...fusionBand.matchAll(/data-cd-question="(?:neo|yeoni|hanbi|yun|musung)"/g)].length,5,'Each fusion master opens their individual consultation');
+assert.doesNotMatch(fusionBand,/cdh-fusion-sig__(?:chips|eyebrow)/,'Keep the fusion entry concise');
 
 const quickSection = home.match(/id="cdQuickServices"[\s\S]*?<\/section>/)?.[0] || "";
 assert.ok(quickSection, "홈 무료 바로 시작 섹션을 찾지 못했습니다");

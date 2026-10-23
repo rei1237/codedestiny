@@ -3,7 +3,7 @@
   "note": "사이트맵 lastmod 원장. scripts/lib/sitemap-lastmod.mjs 가 라우트별 소스 서명을 계산해 다시 쓴다. 손으로 고치지 말고 npm run sitemap:generate 로 갱신할 것.",
   "routes": {
     "/": {
-      "signature": "45cf5d4064c8bc01",
+      "signature": "8c9a5d5e149b74e2",
       "lastmod": "2026-10-23"
     },
     "/about/": {
@@ -19,7 +19,7 @@
       "lastmod": "2026-10-23"
     },
     "/astrology/": {
-      "signature": "969e011a713ea5e9",
+      "signature": "0f43ca2e4a37e3fe",
       "lastmod": "2026-10-23"
     },
     "/astrology/guide/": {
@@ -43,7 +43,7 @@
       "lastmod": "2026-10-20"
     },
     "/compatibility/": {
-      "signature": "f41210b6f2d84958",
+      "signature": "460b68a5003be4d5",
       "lastmod": "2026-10-23"
     },
     "/consultation-samples/": {
@@ -63,7 +63,7 @@
       "lastmod": "2026-10-23"
     },
     "/dream/": {
-      "signature": "6a333543280a2542",
+      "signature": "27854b258a04f367",
       "lastmod": "2026-10-23"
     },
     "/dream/psycho/": {
@@ -79,7 +79,7 @@
       "lastmod": "2026-10-20"
     },
     "/en/": {
-      "signature": "409b1fc21dbfd604",
+      "signature": "04039134935356a1",
       "lastmod": "2026-10-23"
     },
     "/en/about/": {
@@ -579,7 +579,7 @@
       "lastmod": "2026-10-23"
     },
     "/en/yeongnyangi/": {
-      "signature": "2b17eaa95189ebb7",
+      "signature": "4104b4b7a70b76ca",
       "lastmod": "2026-10-23"
     },
     "/en/ziwei/": {
@@ -587,7 +587,7 @@
       "lastmod": "2026-10-23"
     },
     "/faq/": {
-      "signature": "b0715215f8e9a86a",
+      "signature": "ad18aa16000e862c",
       "lastmod": "2026-10-23"
     },
     "/fortune-tea-house/": {
@@ -1003,7 +1003,7 @@
       "lastmod": "2026-10-23"
     },
     "/ggulggul/": {
-      "signature": "a7207857190e07ba",
+      "signature": "35f64e5cb7841fae",
       "lastmod": "2026-10-23"
     },
     "/guides/": {
@@ -1019,7 +1019,7 @@
       "lastmod": "2026-10-20"
     },
     "/human-design/guide/": {
-      "signature": "fe24a4483f58764d",
+      "signature": "88cc276aa30cf8b3",
       "lastmod": "2026-10-23"
     },
     "/insights/": {
@@ -1075,7 +1075,7 @@
       "lastmod": "2026-10-20"
     },
     "/ja/": {
-      "signature": "409b1fc21dbfd604",
+      "signature": "04039134935356a1",
       "lastmod": "2026-10-23"
     },
     "/ja/about/": {
@@ -1579,7 +1579,7 @@
       "lastmod": "2026-10-23"
     },
     "/ja/yeongnyangi/": {
-      "signature": "2b17eaa95189ebb7",
+      "signature": "4104b4b7a70b76ca",
       "lastmod": "2026-10-23"
     },
     "/ja/ziwei/": {
@@ -1599,11 +1599,11 @@
       "lastmod": "2026-10-23"
     },
     "/love/": {
-      "signature": "adad841a5cecde85",
+      "signature": "ef58ee16fd3ed61d",
       "lastmod": "2026-10-23"
     },
     "/manse/": {
-      "signature": "97fc1633d84ee6cc",
+      "signature": "18c77de5825268d0",
       "lastmod": "2026-10-23"
     },
     "/master-love-codex/": {
@@ -1759,7 +1759,7 @@
       "lastmod": "2026-10-23"
     },
     "/physiognomy/": {
-      "signature": "c04ed5829f6d8c2c",
+      "signature": "2ca98aedc02fda7c",
       "lastmod": "2026-10-23"
     },
     "/privacy/": {
@@ -1783,7 +1783,7 @@
       "lastmod": "2026-10-23"
     },
     "/saju/": {
-      "signature": "06e29ac32f28a38b",
+      "signature": "69883aaf72b5df62",
       "lastmod": "2026-10-23"
     },
     "/saju/animal-destiny/": {
@@ -1791,7 +1791,7 @@
       "lastmod": "2026-10-22"
     },
     "/saju/compatibility/": {
-      "signature": "1aa8624f14fed03b",
+      "signature": "86ab04984fb59daa",
       "lastmod": "2026-10-23"
     },
     "/saju/destiny-anatomy/": {
@@ -2167,7 +2167,7 @@
       "lastmod": "2026-10-23"
     },
     "/sukuyo/": {
-      "signature": "51839b28ae1d1f21",
+      "signature": "631edc3d0ee1f656",
       "lastmod": "2026-10-23"
     },
     "/sukuyo/calendar/": {
@@ -2175,7 +2175,7 @@
       "lastmod": "2026-10-15"
     },
     "/sukuyo/compatibility/": {
-      "signature": "e57d0626efba28ff",
+      "signature": "463ae712b701d9a5",
       "lastmod": "2026-10-23"
     },
     "/sukuyo/guide/": {
@@ -2183,7 +2183,7 @@
       "lastmod": "2026-10-20"
     },
     "/tarot/": {
-      "signature": "1663790d2ecc587c",
+      "signature": "f55708e96fa05468",
       "lastmod": "2026-10-23"
     },
     "/tarot/guide/": {
@@ -2215,7 +2215,7 @@
       "lastmod": "2026-10-23"
     },
     "/tarot/reunion/": {
-      "signature": "aad81d881c3ff7ef",
+      "signature": "cfb8735ff1691873",
       "lastmod": "2026-10-23"
     },
     "/tarot/self-esteem/": {
@@ -2231,7 +2231,7 @@
       "lastmod": "2026-10-23"
     },
     "/today/": {
-      "signature": "207f8fc772236638",
+      "signature": "63255c4939ddb643",
       "lastmod": "2026-10-23"
     },
     "/vedic-ai/": {
@@ -2239,7 +2239,7 @@
       "lastmod": "2026-10-23"
     },
     "/vedic/": {
-      "signature": "a46a98cec5826ab4",
+      "signature": "a92d1207d1d32caf",
       "lastmod": "2026-10-23"
     },
     "/vedic/guide/": {
@@ -2255,7 +2255,7 @@
       "lastmod": "2026-10-20"
     },
     "/yeongnyangi/": {
-      "signature": "22a6e058d64026c4",
+      "signature": "1f08a402a8ac3bfb",
       "lastmod": "2026-10-23"
     },
     "/yeongnyangi/1000-won-fortune/": {
@@ -2263,7 +2263,7 @@
       "lastmod": "2026-10-23"
     },
     "/zh-tw/": {
-      "signature": "409b1fc21dbfd604",
+      "signature": "04039134935356a1",
       "lastmod": "2026-10-23"
     },
     "/zh-tw/astrology/": {
@@ -2731,7 +2731,7 @@
       "lastmod": "2026-10-23"
     },
     "/zh-tw/yeongnyangi/": {
-      "signature": "2b17eaa95189ebb7",
+      "signature": "4104b4b7a70b76ca",
       "lastmod": "2026-10-23"
     },
     "/zh-tw/ziwei/": {
@@ -2739,7 +2739,7 @@
       "lastmod": "2026-10-23"
     },
     "/zh/": {
-      "signature": "409b1fc21dbfd604",
+      "signature": "04039134935356a1",
       "lastmod": "2026-10-23"
     },
     "/zh/about/": {
@@ -3239,7 +3239,7 @@
       "lastmod": "2026-10-23"
     },
     "/zh/yeongnyangi/": {
-      "signature": "2b17eaa95189ebb7",
+      "signature": "4104b4b7a70b76ca",
       "lastmod": "2026-10-23"
     },
     "/zh/ziwei/": {
@@ -3251,7 +3251,7 @@
       "lastmod": "2026-10-23"
     },
     "/ziwei/": {
-      "signature": "ed71fa2459323270",
+      "signature": "fe8668d78dd6565b",
       "lastmod": "2026-10-23"
     },
     "/ziwei/animal-destiny/": {

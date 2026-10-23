@@ -10,6 +10,7 @@ import postcss from 'postcss';
 import tailwindcss from 'tailwindcss';
 import {chromium} from 'playwright';
 import assert from 'node:assert/strict';
+import {CONSULTATION_METHOD_FAQS} from '../../lib/brand/consultation-methods.mjs';
 const root=process.cwd(),baseline=process.argv.includes('--baseline');
 const output=path.resolve(process.env.MOBILE_CLARITY_OUTPUT||'build-cache/mobile-clarity');
 const temp=path.resolve('build-cache/mobile-clarity-fixture'+(baseline?'-before':''));
@@ -60,7 +61,7 @@ else{
  const context=await browser.newContext({reducedMotion:'reduce',serviceWorkers:'block'});
  await context.route('**/*',route=>new URL(route.request().url()).origin===origin?route.continue():route.abort());
  await context.routeWebSocket('**',socket=>socket.close());
- for(const [name,url] of [['root','/'],['ggulggul','/static/index.html'],['yeongnyangi','/yeongnyangi/']])for(const width of [360,390,430,1280]){
+ for(const [name,url] of [['root','/'],['ggulggul','/static/index.html'],['yeongnyangi','/yeongnyangi/']])for(const width of (process.argv.includes('--zoom-only')?[390]:[360,390,430,1280])){
   const page=await context.newPage();const errors=[];page.on('pageerror',e=>{errors.push(e.message);console.error(e.stack);});
   await page.setViewportSize({width,height:844});await page.goto(origin+url,{waitUntil:'networkidle'});
   await page.locator(name==='ggulggul'?'#cdSignatureConsult':name==='root'?'.consultation-discovery':'#questions').waitFor();
@@ -89,6 +90,7 @@ else{
    assert.ok(targets.every(item=>item.height>=44),name+' touch targets '+JSON.stringify(targets));
   }
   if(name==='root'){
+   if(!baseline)assert.equal(await page.locator('.consultation-discovery__masters').count(),0,'Master discovery moved into fusion');
    await page.locator('.consultation-discovery').screenshot({path:path.join(output,'discovery-'+width+'.png')});
    if(!baseline){
     assert.equal(await page.locator('.consultation-discovery__feature').count(),3);
@@ -98,21 +100,61 @@ else{
     await page.locator('.consultation-discovery__more summary').click();assert.equal(await page.locator('.consultation-discovery__other:visible').count(),4);
    }
   }
+  if(name==='ggulggul')await page.locator('#cdhFusionSignature').screenshot({path:path.join(output,'fusion-'+width+'.png')});
   if(name==='ggulggul'&&!baseline){
+   const masters=page.locator('.cdh-fusion-sig__masters a');
+   assert.deepEqual(await masters.evaluateAll(els=>els.map(el=>el.getAttribute('href'))),['/neo-operation-room/','/fortune-tea-house/','/sukuyo-compatibility-ai/','/vedic-ai/','/ziwei-ai/']);
+   assert.ok((await masters.evaluateAll(els=>els.map(el=>{const r=el.getBoundingClientRect();return r.height>=44&&r.width>=44}))).every(Boolean),'Fusion master touch targets');
+   assert.equal(await page.locator('.cdh-fusion-sig__chips,.cdh-fusion-sig__eyebrow').count(),0,'Only essential fusion information');
+   await masters.first().focus();await page.keyboard.press('Tab');
+   assert.equal(await page.evaluate(()=>document.activeElement?.getAttribute('href')),'/fortune-tea-house/');
+   await page.locator('#cdhFusionSignature').screenshot({path:path.join(output,'fusion-focus-'+width+'.png')});
    assert.equal(await page.locator('#cdSigGrid .cd-sig-card:visible').count(),3);
    await page.locator('.cd-sig__more summary').click();assert.equal(await page.locator('#cdSigGrid .cd-sig-card:visible').count(),6);
    await page.locator('.cdh-honey__details summary').click();assert.equal(await page.locator('[data-cd-honey-attend]').isVisible(),true);
   }
   if(name==='yeongnyangi')await page.locator('#questions').screenshot({path:path.join(output,'question-entry-'+width+'.png')});
+  if(!baseline){
+   const guide=page.locator('.consultation-methods');
+   await guide.screenshot({path:path.join(output,name+'-methods-'+width+'.png')});
+   const summary=guide.locator('summary');
+   await summary.focus();await page.keyboard.press('Enter');
+   assert.equal(await guide.locator('details').getAttribute('open'),'');
+   assert.equal(await guide.locator('dl > div').count(),3);
+   assert.deepEqual(await guide.locator('dl a').evaluateAll(els=>els.map(el=>el.getAttribute('href'))),['/yeongnyangi/','/ggulggul/','/neo-consultation/']);
+   await page.keyboard.press('Tab');
+   assert.equal(await page.evaluate(()=>document.activeElement?.getAttribute('href')),'/yeongnyangi/');
+   const dimensions=await guide.locator('a,summary').evaluateAll(els=>els.map(el=>el.getBoundingClientRect().height));
+   assert.ok(dimensions.every(h=>h>=44),'Method guide touch targets');
+   const contrast=await guide.evaluate(el=>{
+    const s=getComputedStyle(el),rgb=c=>c.match(/[\d.]+/g).slice(0,3).map(Number),lum=c=>rgb(c).map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4}).reduce((n,v,i)=>n+v*[.2126,.7152,.0722][i],0),bg=lum(s.backgroundColor);
+    return [...el.querySelectorAll('p,a,summary,dt')].map(node=>{const fg=lum(getComputedStyle(node).color);return (Math.max(fg,bg)+.05)/(Math.min(fg,bg)+.05)});
+   });
+   assert.ok(contrast.every(value=>value>=4.5),'Method guide contrast '+JSON.stringify(contrast));
+   await guide.screenshot({path:path.join(output,name+'-methods-open-'+width+'.png')});
+   if(name==='root'){
+    const faqs=await page.locator('script[type="application/ld+json"]').evaluateAll(els=>els.flatMap(el=>{const data=JSON.parse(el.textContent);return (Array.isArray(data)?data:[data]).filter(item=>item['@type']==='FAQPage').flatMap(item=>item.mainEntity)}));
+    for(const item of CONSULTATION_METHOD_FAQS) assert.ok(faqs.some(q=>q.name===item.question&&q.acceptedAnswer.text===item.answer),'Shared FAQ structured data: '+item.question);
+   }
+  }
   if(!baseline&&width===390){
+   // Double fixed-pixel text too, using values captured before the root-font change.
+   // This is text-resize emulation, not physical-device browser zoom.
+   await page.evaluate(()=>{
+    const nodes=[...document.querySelectorAll('.consultation-discovery,.consultation-discovery *,.consultation-methods,.consultation-methods *,#cdhFusionSignature,#cdhFusionSignature *,#questions,#questions *')];
+    window.__textResize=nodes.map(el=>{const s=getComputedStyle(el);return {el,size:parseFloat(s.fontSize),line:parseFloat(s.lineHeight)}});
+   });
    await page.addStyleTag({content:'html{font-size:200%!important}'});
+   await page.evaluate(()=>{for(const {el,size,line} of window.__textResize){el.style.setProperty('font-size',size*2+'px','important');if(Number.isFinite(line))el.style.setProperty('line-height',line*2+'px','important');}delete window.__textResize;});
+   if(name==='ggulggul')await page.locator('#cdhFusionSignature').screenshot({path:path.join(output,'fusion-text-200.png')});
+   await page.locator('.consultation-methods').screenshot({path:path.join(output,name+'-methods-text-200.png')});
    await page.screenshot({path:path.join(output,name+'-text-200.png')});
    const overflow=await page.evaluate(()=>({ok:document.documentElement.scrollWidth<=innerWidth+1,items:[...document.querySelectorAll('body *')].filter(el=>{const r=el.getBoundingClientRect();return r.width>0&&(r.right>innerWidth+1||r.left < -1)}).slice(0,15).map(el=>({tag:el.tagName,class:el.className,text:el.textContent.slice(0,60),width:el.getBoundingClientRect().width}))}));
    assert.ok(overflow.ok,name+' at 200% text '+JSON.stringify(overflow.items));
   }
   report.push({name,...geometry,accessibility,errors});await page.close();
  }
- fs.writeFileSync(path.join(output,'home-report.json'),JSON.stringify({baseline,mode:'Real page components with loopback transport; not a Next production build',report},null,2));
+ fs.writeFileSync(path.join(output,process.argv.includes('--zoom-only')?'home-zoom-report.json':'home-report.json'),JSON.stringify({baseline,mode:'Real page components with loopback transport; not a Next production build',report},null,2));
  console.log(JSON.stringify({result:'PASS',captures:report.length,output}));
  }finally{await browser?.close();await new Promise(resolve=>server.close(resolve));}
 }

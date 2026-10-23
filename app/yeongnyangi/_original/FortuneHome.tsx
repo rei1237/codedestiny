@@ -2,6 +2,7 @@
 import Image from "next/image";
 import QuestionJourney from "@/app/components/QuestionJourney";
 import NightHero from "../_components/NightHero";
+import ConsultationMethodGuide from "@/app/components/ConsultationMethodGuide";
 import HeavenLightCinema from "../_components/HeavenLightCinema";
 import SessionControls from "./SessionControls";
 import type {ProductOffers} from '../_components/ProductGuide';
@@ -128,6 +129,7 @@ export default function FortuneHome({offers,guide}:{offers:ProductOffers;guide?:
 
         <main>
           <NightHero/>
+          <ConsultationMethodGuide id="yn-consultation-methods"/>
           <QuestionJourney source="home"/>
           {guide}
           <HeavenLightCinema/>

@@ -11,7 +11,7 @@
 }
 .guide > section {
   padding: 32px 0;
-  border-top: 1px solid rgba(233, 199, 141, 0.18);
+  border-top: 1px solid color-mix(in srgb,var(--yn-gold) 25%,transparent);
 }
 .craftedOverview { margin-inline: -20px; }
 .craftedOverview > summary { min-height: 44px; padding: 12px 20px; cursor: pointer; font-size: 18px; }

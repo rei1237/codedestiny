@@ -4,9 +4,12 @@ import { CURRENT_PASS_PLANS } from '../../lib/payment/pass-policy.js';
 import { listServicePackPlans } from '../../worker/payments/service-pack-policy.js';
 import { FEATURE_KEY_PRICE_TABLE, UNLOCK_PRODUCT_BY_FEATURE_KEY } from '../../worker/lib/paid-feature-registry.js';
 import { renderNeoEmailHomeEntry } from '../../lib/brand/neo-email-home-entry.mjs';
+import { CONSULTATION_MASTERS } from '../../lib/marketing/consultation-discovery.mjs';
+import { renderConsultationMethodGuide } from '../../lib/brand/consultation-methods.mjs';
 
 const original = readFileSync('index.html', 'utf8');
 const vars = {};
+vars.consultationMethods = renderConsultationMethodGuide('ggul-consultation-methods');
 
 // 가벼운 체험만 선별한다. 유료 표시는 서버 상품 정본에서 생성한다.
 const LIGHT_FORTUNES = [
@@ -57,29 +60,20 @@ for (const fish of ['mackerel', 'salmon', 'flounder', 'tuna']) {
   vars[`yeongnyangi${fish[0].toUpperCase()}${fish.slice(1)}Price`] = price.toLocaleString('ko-KR');
 }
 
-// 초융합 운세 시그니처 띠 — 대표 상담 덱 바로 뒤. 다섯 마스터 · 여섯 체계 · 영역별 8장을 한 장면으로 보여 준다.
+// 초융합 입구는 핵심 설명·전문가 링크·가격만 노출한다. 상세 체계와 구성은 상품 페이지에서 확인한다.
 // 마스터 배정은 components/fortune/master-profiles.ts productMasters.fusion(결과 화면 화자)과 같다.
 const fusionPrice = Number(FEATURE_KEY_PRICE_TABLE['fusion-fortune-consultation']?.amountKRW);
 if (fusionPrice !== 50000) throw new Error('Fusion signature band copy says 50,000원; registry amount changed: ' + fusionPrice);
 const won = value => Number(value).toLocaleString('ko-KR') + '원';
-const FUSION_MASTERS = [
-  { avatar: 'neo', name: '네오', role: '사주 · 재물 · 일' },
-  { avatar: 'yeoni', name: '연이', role: '타로 · 연애' },
-  { avatar: 'hanbi', name: '서한비', role: '숙요 · 결혼 · 관계' },
-  { avatar: 'yun', name: '윤달', role: '점성술 · 시기 · 건강' },
-  { avatar: 'musung', name: '무성', role: '자미두수 · 성향' },
-];
-const FUSION_SYSTEMS = ['사주', '자미두수', '숙요', '베다', '점성술', '타로'];
-const FUSION_AREAS = ['타고난 성향', '인생의 시기', '연애', '결혼', '재물', '직업', '건강', '인간관계'];
+const FUSION_MASTERS = ['neo','yeoni','hanbi','yun','musung'].map(id => CONSULTATION_MASTERS.find(master => master.id === id));
 vars.fusionSignature = `<section class="cdh-fusion-sig" id="cdhFusionSignature" data-cd-funnel-section="fusion_signature" data-marker="cdh-fusion-signature-v20261017" aria-labelledby="cdhFusionSigTitle" lang="ko">
   <a class="cdh-fusion-sig__art" href="/fusion-fortune/?from=home_signature" tabindex="-1" aria-hidden="true" data-cd-service-id="fusion-fortune"><img src="/images/service-introductions/fusion-fortune-960.webp" srcset="/images/service-introductions/fusion-fortune-640.webp 640w, /images/service-introductions/fusion-fortune-960.webp 960w" sizes="(max-width: 860px) calc(100vw - 32px), 640px" width="1200" height="800" loading="lazy" decoding="async" alt=""></a>
   <div class="cdh-fusion-sig__body">
-    <p class="cdh-fusion-sig__eyebrow">여섯 체계 종합 상담</p>
     <h2 class="cdh-fusion-sig__title" id="cdhFusionSigTitle">초융합 운세</h2>
-    <p class="cdh-fusion-sig__lead">다섯 마스터가 여섯 체계로 교차해 읽는 한 권. 타고난 성향부터 시기·연애·결혼·재물까지 영역별로 짚어 드려요.</p>
-    <ul class="cdh-fusion-sig__masters" role="list">${FUSION_MASTERS.map(master => `<li><img src="/images/master-profiles/avatars/${master.avatar}.webp" width="44" height="44" alt="" loading="lazy" decoding="async"><span><b>${master.name}</b><small>${master.role}</small></span></li>`).join('')}</ul>
-    <div class="cdh-fusion-sig__chips"><p><span class="cdh-fusion-sig__chip-label">여섯 체계</span>${FUSION_SYSTEMS.map(name => `<span class="cdh-fusion-sig__chip">${name}</span>`).join('')}</p><p><span class="cdh-fusion-sig__chip-label">영역별 8장</span>${FUSION_AREAS.map(name => `<span class="cdh-fusion-sig__chip cdh-fusion-sig__chip--area">${name}</span>`).join('')}</p></div>
-    <a class="cdh-fusion-sig__cta" href="/fusion-fortune/?from=home_signature" data-cd-service-id="fusion-fortune" data-pvw-paid="true"><span>초융합 운세 받기</span><b>${won(fusionPrice)}</b><i aria-hidden="true">→</i></a>
+    <p class="cdh-fusion-sig__lead">여섯 체계의 풀이를 한 권으로 읽는 AI 종합 리포트예요.</p>
+    <p class="cdh-fusion-sig__hint" id="cdhFusionMasterHint">전문가를 누르면 개별 AI 상담으로 이어져요.</p>
+    <ul class="cdh-fusion-sig__masters" role="list" aria-describedby="cdhFusionMasterHint">${FUSION_MASTERS.map(master => `<li><a href="${master.href}" aria-label="${master.name} · ${master.text} 상담 보기" data-cd-question="${master.id}"><img src="${master.image}" width="44" height="44" alt="" loading="lazy" decoding="async"><b>${master.name}</b></a></li>`).join('')}</ul>
+    <a class="cdh-fusion-sig__cta" href="/fusion-fortune/?from=home_signature" data-cd-service-id="fusion-fortune" data-pvw-paid="true"><span>초융합 구성 보기</span><b>${won(fusionPrice)}</b><i aria-hidden="true">→</i></a>
   </div>
 </section>`;
 // 다른 재밌는 운세 — 질문 카테고리(2026-10-17 복구). e76391603 에서 빠진 #cdConcernPick 을 데이터로 다시 그린다.
@@ -254,7 +248,7 @@ const signatureMaster = ({ caption, names, avatars }) => `<span class="cd-sig-ca
 // 카드에는 고르는 데 필요한 것만 둔다: 마스터·제목·대표 질문·가격·CTA. 리포트 구성은 각 상담 상세가 보여 준다.
 const TAROT_NUMERALS = ['Ⅰ', 'Ⅱ', 'Ⅲ', 'Ⅳ', 'Ⅴ', 'Ⅵ'];
 vars.signature = `<section data-cd-funnel-section="signature_consult" class="cd-sig cd-sig--curated cd-sig--deck" id="cdSignatureConsult" data-marker="cd-signature-consult-v20261016" aria-labelledby="cdSignatureTitle" lang="ko">
-  <div class="cd-sig__head"><h2 class="cd-sig__title" id="cdSignatureTitle">지금 필요한 상담을 골라보세요</h2><p class="cd-sig__sub">카드 한 장이 상담 하나예요. 지금 필요한 한 장을 골라보세요.</p></div>
+  <div class="cd-sig__head"><h2 class="cd-sig__title" id="cdSignatureTitle">지금 필요한 상담을 골라보세요</h2><p class="cd-sig__sub">같은 풀이 기준으로, 주제에 맞춘 AI 해설을 읽어요. 구성과 예시를 먼저 살펴보세요.</p></div>
   <div class="cd-sig__viewport" id="cdSigViewport"><div class="cd-sig__grid" id="cdSigGrid">${signatureProducts.map((product, index) => `${index === 3 ? '<details class="cd-sig__more"><summary>다른 대표 상담도 살펴보기</summary><div class="cd-sig__more-grid">' : ''}<a class="cd-sig-card cd-sig-card--${product.className}" data-cd-service-id="${product.id}" href="${product.href}" aria-label="${product.title} — ${product.cta}" data-pvw-paid="true"${product.priceSuffix === '부터' ? ' data-price-from="true"' : ''}><span class="cd-yehwa-seal" aria-hidden="true"></span><span class="cd-sig-card__top"><span class="cd-sig-card__numeral" aria-hidden="true">${TAROT_NUMERALS[index]}</span></span><span class="cd-sig-card__media"><img class="cd-sig-card__img" width="1200" height="675" loading="lazy" decoding="async" src="${product.image}"${product.imageSrcset ? ` srcset="${product.imageSrcset}"` : ''} sizes="(max-width: 699px) 44vw, (max-width: 1023px) 30vw, 360px" alt="${product.imageAlt}"></span><span class="cd-sig-card__body">${signatureMaster(product.master)}<span class="cd-sig-card__title">${product.title}</span><span class="cd-sig-card__q">${product.question}</span><span class="cd-sig-card__price">${signaturePrice(product.featureKey, product.priceSuffix)}</span><span class="cd-sig-card__cta"><span>${product.cta}</span> <i aria-hidden="true">→</i></span></span></a>${index === signatureProducts.length - 1 ? '</div></details>' : ''}`).join('')}</div></div>
   <a class="cd-sig__samples-link" href="/consultation-samples/"><span>상담별 구성과 예시 보기</span><span class="cd-yehwa-spray cd-sig__samples-motif" aria-hidden="true"></span></a>
 </section>`;
@@ -321,6 +315,9 @@ if (marker.test(cleaned)) {
 }
 
 // Result samples now live on their own application pages. Do not load their stylesheet on the home shell.
+if (!updated.includes('href="/styles/consultation-method-guide.css"')) {
+  updated = updated.replace('<link rel="stylesheet" href="/styles/home-funnel.css">', '<link rel="stylesheet" href="/styles/home-funnel.css">\n<link rel="stylesheet" href="/styles/consultation-method-guide.css">');
+}
 updated = updated.replace(/\s*<link rel="stylesheet" href="\/styles\/result-samples\.css(?:\?v=[^"]*)?">/g, '');
 
 if (process.argv.includes('--check')) {

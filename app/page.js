@@ -14,6 +14,8 @@ import LegacyHomeEntry from "./components/LegacyHomeEntry";
 import HomeCardDeck from "./components/HomeCardDeck";
 import { PriceBadge } from "./components/PriceBadge";
 import ConsultationDiscovery from "./components/ConsultationDiscovery";
+import ConsultationMethodGuide from "./components/ConsultationMethodGuide";
+import { CONSULTATION_METHOD_FAQS } from "../lib/brand/consultation-methods.mjs";
 import LocalizedServiceSummary from "./components/LocalizedServiceSummary";
 import "./yeongnyangi/night-tokens.css";
 import styles from "./home-main.module.css";
@@ -84,12 +86,12 @@ const SIGNATURE_CONSULTATIONS = [
 const SIGNATURE_ART = "/images/service-introductions";
 const RESULT_EXAMPLE = getSignProfile("rat");
 const HOME_FAQS = [
+  ...CONSULTATION_METHOD_FAQS,
   { question: "꿀꿀 운세와 꿀꿀운세, 코드 데스티니는 어떤 관계인가요?", answer: brandCopy("aliases") },
   HOME_DIFFERENTIATION_FAQ,
   { question: "꽃돼지 연이와 영냥이는 어떻게 다른가요?", answer: "꽃돼지 연이의 앱에서는 사주·타로·자미두수 등 원하는 도구를 골라 이용해요. 운세보는 영냥이는 사주보는 고양이 상담 서비스로, 구체적인 질문과 상황을 바탕으로 고민을 풀어가요. 같은 운영자가 제공하며, 이용 범위와 결제 조건은 각 서비스에서 안내해요." },
   { question: "어디까지 무료로 이용할 수 있나요?", answer: "기본 사주·만세력·타로와 공개 별자리·띠별 운세를 무료로 시작할 수 있어요. 심층 리포트와 AI 상담은 별도 유료 상품이 있으며, 이용권·월정석·단건 결제의 적용 여부와 금액은 각 상품의 결제 전 안내를 확인해 주세요." },
   { question: "태어난 시간을 몰라도 볼 수 있나요?", answer: "사주는 출생 시간 모름을 선택해 시주를 제외하고 살펴볼 수 있어요. 자미두수 명반과 점성술의 상승궁 등은 출생 시간에 따라 달라지므로 해당 도구의 입력 안내를 확인해 주세요. 시간이 필요 없는 질문형 타로도 선택할 수 있어요." },
-  { question: "상담사가 직접 결과를 작성하나요?", answer: founder.method },
   { question: "이전에 구매한 결과는 어디에서 다시 보나요?", answer: "결제한 계정으로 로그인한 뒤 꽃돼지 서비스 결과는 나의 기록 보관함(/records/)에서, 영냥이 상담은 영냥이 상담 기록(/yeongnyangi/library/)에서 다시 열 수 있어요. 문의와 오류 신고는 문의 페이지, 환불 기준은 환불정책에서 확인해 주세요." },
 ];
 
@@ -140,6 +142,7 @@ export default function HomePage() {
             </li>;
           })}
         </HomeCardDeck>
+        <ConsultationMethodGuide id="home-consultation-methods" />
         <a className={styles.browseLink} href="#homeServices">분야부터 골라보기 <span aria-hidden="true">↓</span></a>
         {/* 카드 전체가 한 링크다. 클릭 귀속은 /ggulggul/ 덱과 같은 섹션 키(signature_consult)로 남는다(js/core/analytics.js). */}
         <section className={styles.signature} aria-labelledby="homeSignature" data-cd-funnel-section="signature_consult">

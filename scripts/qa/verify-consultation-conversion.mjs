@@ -49,8 +49,8 @@ try{
  for(const width of [360,390,430,1280]){
   await page.setViewportSize({width,height:900});
   await page.goto(origin+'/discovery/');
-  await page.getByText('마스터로 찾아보기',{exact:false}).click();
-  assert.equal(await page.locator('.consultation-discovery a').count(),13);
+  await page.getByText('다른 상담도 살펴보기',{exact:true}).click();
+  assert.equal(await page.locator('.consultation-discovery a').count(),7);
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
   await page.screenshot({path:path.join(out,'discovery-'+width+'.png'),fullPage:true});
   await page.goto(origin+'/master-love-codex/?lang=ko');

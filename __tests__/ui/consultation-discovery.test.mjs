@@ -16,6 +16,7 @@ test('concern and master links use existing routes and canonical assets', () => 
   assert.equal(dom.window.document.querySelectorAll('.consultation-discovery > .consultation-discovery__concerns a').length,3);
   assert.equal(dom.window.document.querySelectorAll('.consultation-discovery__more a').length,4);
   assert.equal(dom.window.document.querySelector('.consultation-discovery__more').hasAttribute('open'),false);
+  assert.equal(dom.window.document.querySelector('.consultation-discovery__masters'),null,'Master discovery belongs to fusion');
   for(const image of dom.window.document.querySelectorAll('.consultation-discovery__scene img')) assert.ok(existsSync('public'+image.getAttribute('src')));
   assert.ok(!dom.window.document.querySelector('form'),'does not introduce a mandatory intake');
   dom.window.close();
