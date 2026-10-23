@@ -5129,7 +5129,6 @@
     },
     "premiumShowcase": {
       "aria": "Bacaan saju berbayar",
-      "eyebrow": "ANALISIS PREMIUM",
       "title": "Baca carta anda dengan lebih mendalam",
       "subtitle": "Mulakan dengan bacaan Light untuk memahami sifat semula jadi anda, kemudian ikuti kitaran sepuluh tahun dengan Daewun. Keserasian dibayar setiap kali dilihat.",
       "expand": "Buka kad tafsiran",
@@ -5138,20 +5137,10 @@
       "compatCta": "Lihat keserasian →",
       "daewun": {
         "title": "Analisis Daewun",
-        "desc": "Aliran daewun sepuluh tahun disepadukan melalui kekuatan sokongan, keseimbangan bermusim dan corak berikut. Ia menunjukkan bila untuk bergerak ke hadapan dan bila untuk bertahan.",
-        "point1": "Graf nasib hidup yang divisualisasikan mengikut dekad",
-        "point2": "Pembacaan mendalam tentang faktor baik dan tidak baik oleh daewun",
-        "point3": "Kedudukan daewun semasa dan strategi teras",
-        "point4": "Sokongan bersepadu, musim dan pertimbangan corak",
         "cta": "Buka analisis Daewun →"
       },
       "summary": {
         "title": "Bacaan saju Light",
-        "desc": "Laporan saju komprehensif kira-kira 20 muka surat A4. Personaliti, kerjaya, cinta, kesihatan, kekayaan, dermawan, dan tindakan bertuah ditafsirkan secara mendalam.",
-        "point1": "Personaliti dan bakat semula jadi melalui lapan watak",
-        "point2": "Bidang dan strategi kerjaya yang menjanjikan untuk dekad yang akan datang",
-        "point3": "Masa cinta dan perkahwinan serta keadaan perhubungan",
-        "point4": "Kekayaan mengalir dan bagaimana wang dikumpulkan",
         "cta": "Buka bacaan Light →"
       },
       "compat": {
@@ -5176,16 +5165,11 @@
     },
     "premiumGates": {
       "daewun": {
-        "sectionTitle": "Daewun — sokongan bersepadu, musim dan pertimbangan corak",
         "title": "Buka kunci analisis Daewun",
-        "desc": "Bayaran sebanyak 5,000 KRW diperlukan untuk melihat aliran daewun bersepadu dan graf nasib hidup.",
-        "notice": "Data carta berangka sahaja tidak dapat menentukan sepenuhnya takdir berlapis seseorang. Sila jadikan bacaan ini sebagai rujukan strategik untuk membaca dan persediaan untuk arus kehidupan.",
-        "graphTitle": "Graf nasib hidup (sokongan bersepadu, musim dan corak)"
+        "notice": "Data carta berangka sahaja tidak dapat menentukan sepenuhnya takdir berlapis seseorang. Sila jadikan bacaan ini sebagai rujukan strategik untuk membaca dan persediaan untuk arus kehidupan."
       },
       "summary": {
-        "sectionTitle": "Bacaan saju penuh",
-        "title": "Buka kunci bacaan saju Light",
-        "desc": "Pembayaran sebanyak 5,000 KRW diperlukan untuk melihat bacaan A4 30 halaman yang mendalam tentang keperibadian, kerjaya, cinta, kesihatan, kekayaan, dermawan dan tindakan bertuah."
+        "title": "Buka kunci bacaan saju Light"
       },
       "compat": {
         "title": "Analisis keserasian — kandungan premium",
@@ -21347,6 +21331,8 @@
     "today": "Today’s cycle",
     "month": "This month’s cycle",
     "summaryTitle": "Bacaan saju Light",
+    "daeunTitle": "Kitaran sepuluh tahun anda",
+    "graphTitle": "Perbandingan kitaran",
     "godTraits": {
       "0": "A preference for self-directed choices",
       "1": "Energy from cooperation and competition",

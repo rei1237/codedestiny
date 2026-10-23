@@ -5129,7 +5129,6 @@
     },
     "premiumShowcase": {
       "aria": "Lecturas saju de pago",
-      "eyebrow": "ANÁLISIS PRIMA",
       "title": "Lee tu carta con más profundidad",
       "subtitle": "Empieza con la lectura Light para ordenar tu naturaleza y sigue con Daewun para ver tus ciclos de diez años. La compatibilidad se paga en cada consulta.",
       "expand": "Abrir las lecturas",
@@ -5138,20 +5137,10 @@
       "compatCta": "Ver compatibilidad →",
       "daewun": {
         "title": "Análisis de Daeyun",
-        "desc": "El flujo daewun de diez años se integra a través de la fuerza del soporte, el equilibrio estacional y el siguiente patrón. Muestra cuándo avanzar y cuándo mantenerse firme.",
-        "point1": "Gráfico de fortuna de vida visualizado por década",
-        "point2": "Lectura profunda de factores favorables y desfavorables por daewun",
-        "point3": "Posición actual de Daeyun y estrategia central",
-        "point4": "Soporte integrado, temporada y evaluación de patrones",
         "cta": "Abrir el análisis de Daewun →"
       },
       "summary": {
         "title": "Lectura saju Light",
-        "desc": "Un informe saju completo de aproximadamente 30 páginas A4. La personalidad, la carrera, el amor, la salud, la riqueza, los benefactores y las acciones afortunadas se interpretan en profundidad.",
-        "point1": "Personalidad y talento innato a través de ocho personajes",
-        "point2": "Campos profesionales prometedores y estrategia para la próxima década",
-        "point3": "Amor y momento del matrimonio y condiciones de la relación",
-        "point4": "Flujo de riqueza y cómo se acumula el dinero",
         "cta": "Abrir la lectura Light →"
       },
       "compat": {
@@ -5176,16 +5165,11 @@
     },
     "premiumGates": {
       "daewun": {
-        "sectionTitle": "Daewun: soporte integrado, temporada y juicio de patrones",
         "title": "Desbloquear el análisis de Daewun",
-        "desc": "Se requiere el pago de 5000 KRW para ver el gráfico integrado de flujo de daewun y fortuna de vida.",
-        "notice": "Los datos numéricos de los gráficos por sí solos no pueden definir completamente el destino en capas de una persona. Utilice esta lectura como referencia estratégica para leer y prepararse para el fluir de la vida.",
-        "graphTitle": "Gráfico de fortuna de vida (soporte integrado, temporada y patrón)"
+        "notice": "Los datos numéricos de los gráficos por sí solos no pueden definir completamente el destino en capas de una persona. Utilice esta lectura como referencia estratégica para leer y prepararse para el fluir de la vida."
       },
       "summary": {
-        "sectionTitle": "Lectura completa de saju",
-        "title": "Desbloquear la lectura saju Light",
-        "desc": "Se requiere un pago de 5000 KRW para ver la lectura en profundidad de 30 páginas A4 sobre personalidad, carrera, amor, salud, riqueza, benefactores y acciones afortunadas."
+        "title": "Desbloquear la lectura saju Light"
       },
       "compat": {
         "title": "Análisis de compatibilidad: contenido premium",
@@ -21347,6 +21331,8 @@
     "today": "Today’s cycle",
     "month": "This month’s cycle",
     "summaryTitle": "Lectura saju Light",
+    "daeunTitle": "Tus ciclos de diez años",
+    "graphTitle": "Comparación de ciclos",
     "godTraits": {
       "0": "A preference for self-directed choices",
       "1": "Energy from cooperation and competition",

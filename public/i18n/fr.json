@@ -5129,7 +5129,6 @@
     },
     "premiumShowcase": {
       "aria": "Lectures saju payantes",
-      "eyebrow": "ANALYSE PREMIUM",
       "title": "Lire votre thème plus en profondeur",
       "subtitle": "Commencez par la lecture Light pour cerner votre nature, puis suivez vos cycles de dix ans avec Daewun. La compatibilité se paie à chaque lecture.",
       "expand": "Ouvrir les lectures",
@@ -5138,20 +5137,10 @@
       "compatCta": "Voir la compatibilité →",
       "daewun": {
         "title": "Analyse Daewun",
-        "desc": "Le flux daewun sur dix ans est intégré à travers la force de soutien, l'équilibre saisonnier et le modèle suivant. Il montre quand avancer et quand rester stable.",
-        "point1": "Graphique de fortune de vie visualisé par décennie",
-        "point2": "Lecture approfondie des facteurs favorables et défavorables par Daewun",
-        "point3": "Position actuelle du Daewun et stratégie de base",
-        "point4": "Support intégré, saison et jugement de modèle",
         "cta": "Ouvrir l'analyse Daewun →"
       },
       "summary": {
         "title": "Lecture saju Light",
-        "desc": "Un rapport saju complet d'environ 20 pages A4. La personnalité, la carrière, l'amour, la santé, la richesse, les bienfaiteurs et les actions chanceuses sont interprétés en profondeur.",
-        "point1": "Personnalité innée et talent à travers huit personnages",
-        "point2": "Domaines de carrière prometteurs et stratégie pour la prochaine décennie",
-        "point3": "Calendrier de l'amour et du mariage et conditions relationnelles",
-        "point4": "Flux de richesse et comment l'argent s'accumule",
         "cta": "Ouvrir la lecture Light →"
       },
       "compat": {
@@ -5176,16 +5165,11 @@
     },
     "premiumGates": {
       "daewun": {
-        "sectionTitle": "Daewun — support intégré, saison et jugement de modèle",
         "title": "Débloquer l'analyse Daewun",
-        "desc": "Un paiement de 5 000 KRW est requis pour afficher le graphique intégré du flux de Daewun et de la fortune de la vie.",
-        "notice": "Les données numériques des graphiques ne peuvent à elles seules définir pleinement le destin d’une personne. Veuillez utiliser cette lecture comme référence stratégique pour lire et vous préparer au flux de la vie.",
-        "graphTitle": "Graphique de fortune de vie (support, saison et modèle intégrés)"
+        "notice": "Les données numériques des graphiques ne peuvent à elles seules définir pleinement le destin d’une personne. Veuillez utiliser cette lecture comme référence stratégique pour lire et vous préparer au flux de la vie."
       },
       "summary": {
-        "sectionTitle": "Lecture complète du saju",
-        "title": "Débloquer la lecture saju Light",
-        "desc": "Un paiement de 5 000 KRW est requis pour visualiser la lecture approfondie A4 de 30 pages sur la personnalité, la carrière, l'amour, la santé, la richesse, les bienfaiteurs et les actions chanceuses."
+        "title": "Débloquer la lecture saju Light"
       },
       "compat": {
         "title": "Analyse de compatibilité — contenu premium",
@@ -21347,6 +21331,8 @@
     "today": "Today’s cycle",
     "month": "This month’s cycle",
     "summaryTitle": "Lecture saju Light",
+    "daeunTitle": "Vos cycles de dix ans",
+    "graphTitle": "Comparaison des cycles",
     "godTraits": {
       "0": "A preference for self-directed choices",
       "1": "Energy from cooperation and competition",

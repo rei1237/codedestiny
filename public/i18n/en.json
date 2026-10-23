@@ -5129,7 +5129,6 @@
     },
     "premiumShowcase": {
       "aria": "Paid saju readings",
-      "eyebrow": "PREMIUM ANALYSIS",
       "title": "Read your chart in more depth",
       "subtitle": "Start with the Light reading to map your nature, then follow your ten-year cycles with Daewun. Compatibility is paid per reading.",
       "expand": "Open the readings",
@@ -5138,20 +5137,10 @@
       "compatCta": "See compatibility →",
       "daewun": {
         "title": "Daewun analysis",
-        "desc": "The ten-year daewun flow is integrated through support strength, seasonal balance, and following pattern. It shows when to move forward and when to hold steady.",
-        "point1": "Visualized life fortune graph by decade",
-        "point2": "Deep reading of favorable and unfavorable factors by daewun",
-        "point3": "Current daewun position and core strategy",
-        "point4": "Integrated support, season, and pattern judgment",
         "cta": "Open Daewun analysis →"
       },
       "summary": {
         "title": "Light saju reading",
-        "desc": "A comprehensive saju report of about 20 A4 pages. Personality, career, love, health, wealth, benefactors, and lucky actions are interpreted in depth.",
-        "point1": "Innate personality and talent through eight characters",
-        "point2": "Promising career fields and strategy for the next decade",
-        "point3": "Love and marriage timing and relationship conditions",
-        "point4": "Wealth flow and how money gathers",
         "cta": "Open the Light reading →"
       },
       "compat": {
@@ -5176,16 +5165,11 @@
     },
     "premiumGates": {
       "daewun": {
-        "sectionTitle": "Daewun — integrated support, season, and pattern judgment",
         "title": "Unlock Daewun analysis",
-        "desc": "Payment of 5,000 KRW is required to view the integrated daewun flow and life fortune graph.",
-        "notice": "Numerical chart data alone cannot fully define a person’s layered destiny. Please use this reading as a strategic reference for reading and preparing for the flow of life.",
-        "graphTitle": "Life fortune graph (integrated support, season, and pattern)"
+        "notice": "Numerical chart data alone cannot fully define a person’s layered destiny. Please use this reading as a strategic reference for reading and preparing for the flow of life."
       },
       "summary": {
-        "sectionTitle": "Full saju reading",
-        "title": "Unlock the Light saju reading",
-        "desc": "Payment of 5,000 KRW is required to view the in-depth A4 30-page reading of personality, career, love, health, wealth, benefactors, and lucky actions."
+        "title": "Unlock the Light saju reading"
       },
       "compat": {
         "title": "Compatibility analysis — premium content",
@@ -21347,6 +21331,8 @@
     "today": "Today’s cycle",
     "month": "This month’s cycle",
     "summaryTitle": "Light saju reading",
+    "daeunTitle": "Your ten-year cycles",
+    "graphTitle": "Cycle comparison",
     "godTraits": {
       "0": "A preference for self-directed choices",
       "1": "Energy from cooperation and competition",

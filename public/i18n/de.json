@@ -5129,7 +5129,6 @@
     },
     "premiumShowcase": {
       "aria": "Kostenpflichtige Saju-Lesungen",
-      "eyebrow": "PREMIUM-ANALYSE",
       "title": "Ihr Horoskop tiefer lesen",
       "subtitle": "Beginnen Sie mit der Light-Lesung, um Ihre Anlagen zu ordnen, und verfolgen Sie dann mit Daewun Ihre Zehn-Jahres-Zyklen. Kompatibilität wird pro Abfrage bezahlt.",
       "expand": "Deutungen öffnen",
@@ -5138,20 +5137,10 @@
       "compatCta": "Kompatibilität ansehen →",
       "daewun": {
         "title": "Daewun-Analyse",
-        "desc": "Der zehnjährige Daewun-Fluss wird durch die Stärke der Unterstützung, das saisonale Gleichgewicht und das folgende Muster integriert. Es zeigt an, wann man vorwärts gehen und wann man ruhig bleiben sollte.",
-        "point1": "Visualisierte Lebensglücksgrafik nach Jahrzehnten",
-        "point2": "Tiefgründige Lektüre günstiger und ungünstiger Faktoren von daewun",
-        "point3": "Aktuelle Daewun-Position und Kernstrategie",
-        "point4": "Integrierte Unterstützung, Saison- und Musterbeurteilung",
         "cta": "Daewun-Analyse öffnen →"
       },
       "summary": {
         "title": "Saju-Lesung Light",
-        "desc": "Ein umfassender Saju-Bericht mit etwa 20 A4-Seiten. Persönlichkeit, Karriere, Liebe, Gesundheit, Reichtum, Wohltäter und glückliche Taten werden eingehend interpretiert.",
-        "point1": "Angeborene Persönlichkeit und Talent durch acht Charaktere",
-        "point2": "Vielversprechende Berufsfelder und Strategie für das nächste Jahrzehnt",
-        "point3": "Liebes- und Ehezeitpunkt und Beziehungsbedingungen",
-        "point4": "Vermögensfluss und wie Geld zusammenkommt",
         "cta": "Light-Lesung öffnen →"
       },
       "compat": {
@@ -5176,16 +5165,11 @@
     },
     "premiumGates": {
       "daewun": {
-        "sectionTitle": "Daewun – integrierte Unterstützung, Jahreszeit und Musterbeurteilung",
         "title": "Daewun-Analyse freischalten",
-        "desc": "Für die Anzeige des integrierten Daewun-Fluss- und Lebensvermögensdiagramms ist eine Zahlung von 5.000 KRW erforderlich.",
-        "notice": "Numerische Diagrammdaten allein können das vielschichtige Schicksal einer Person nicht vollständig definieren. Bitte nutzen Sie diese Lektüre als strategische Referenz zum Lesen und zur Vorbereitung auf den Fluss des Lebens.",
-        "graphTitle": "Lebensglücksdiagramm (integrierte Unterstützung, Jahreszeit und Muster)"
+        "notice": "Numerische Diagrammdaten allein können das vielschichtige Schicksal einer Person nicht vollständig definieren. Bitte nutzen Sie diese Lektüre als strategische Referenz zum Lesen und zur Vorbereitung auf den Fluss des Lebens."
       },
       "summary": {
-        "sectionTitle": "Vollständige Saju-Lesung",
-        "title": "Saju-Lesung Light freischalten",
-        "desc": "Um die ausführliche 30-seitige Lektüre im A4-Format über Persönlichkeit, Karriere, Liebe, Gesundheit, Reichtum, Wohltäter und glückliche Taten anzusehen, ist eine Zahlung von 5.000 KRW erforderlich."
+        "title": "Saju-Lesung Light freischalten"
       },
       "compat": {
         "title": "Kompatibilitätsanalyse – Premium-Inhalte",
@@ -21347,6 +21331,8 @@
     "today": "Today’s cycle",
     "month": "This month’s cycle",
     "summaryTitle": "Saju-Lesung Light",
+    "daeunTitle": "Ihre Zehnjahreszyklen",
+    "graphTitle": "Zyklen im Vergleich",
     "godTraits": {
       "0": "A preference for self-directed choices",
       "1": "Energy from cooperation and competition",

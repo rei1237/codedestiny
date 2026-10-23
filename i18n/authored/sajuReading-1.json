@@ -1665,6 +1665,34 @@
     "nl": "Saju-lezing Light",
     "ms": "Bacaan saju Light"
   },
+  "sajuReading.daeunTitle": {
+    "ko": "대운 분석 · 지금부터 다음 시기까지",
+    "en": "Your ten-year cycles",
+    "ja": "大運分析 · 今から次の時期まで",
+    "zh-CN": "大运分析 · 从现在到下一阶段",
+    "zh-TW": "大運分析 · 從現在到下一階段",
+    "vi": "Các chu kỳ mười năm của bạn",
+    "hi": "आपके दस-वर्षीय चक्र",
+    "es": "Tus ciclos de diez años",
+    "fr": "Vos cycles de dix ans",
+    "de": "Ihre Zehnjahreszyklen",
+    "nl": "Je cycli van tien jaar",
+    "ms": "Kitaran sepuluh tahun anda"
+  },
+  "sajuReading.graphTitle": {
+    "ko": "대운 흐름 비교",
+    "en": "Cycle comparison",
+    "ja": "大運の流れの比較",
+    "zh-CN": "大运走势对比",
+    "zh-TW": "大運走勢對比",
+    "vi": "So sánh các chu kỳ",
+    "hi": "चक्रों की तुलना",
+    "es": "Comparación de ciclos",
+    "fr": "Comparaison des cycles",
+    "de": "Zyklen im Vergleich",
+    "nl": "Cycli vergeleken",
+    "ms": "Perbandingan kitaran"
+  },
   "sajuReading.godTraits.0": {
     "ko": "스스로 방향을 정하고 싶어 하는 편이야.",
     "en": "A preference for self-directed choices",

@@ -5129,7 +5129,6 @@
     },
     "premiumShowcase": {
       "aria": "Betaalde saju-lezingen",
-      "eyebrow": "PREMIUMANALYSE",
       "title": "Je kaart dieper lezen",
       "subtitle": "Begin met de Light-lezing om je aanleg in kaart te brengen en volg daarna je tienjaarscycli met Daewun. Compatibiliteit betaal je per lezing.",
       "expand": "De duidingen openen",
@@ -5138,20 +5137,10 @@
       "compatCta": "Compatibiliteit bekijken →",
       "daewun": {
         "title": "Daewun-analyse",
-        "desc": "De tienjarige daewun-stroom wordt geïntegreerd door middel van ondersteuningskracht, seizoensevenwicht en het volgende patroon. Het laat zien wanneer we vooruit moeten gaan en wanneer we standvastig moeten blijven.",
-        "point1": "Gevisualiseerde grafiek van het levensgeluk per decennium",
-        "point2": "Diepgaande analyse van gunstige en ongunstige factoren door daewun",
-        "point3": "Huidige daewun-positie en kernstrategie",
-        "point4": "Geïntegreerde ondersteuning, seizoens- en patroonbeoordeling",
         "cta": "Daewun-analyse openen →"
       },
       "summary": {
         "title": "Saju-lezing Light",
-        "desc": "Een uitgebreid saju-rapport van ongeveer 20 A4-pagina's. Persoonlijkheid, carrière, liefde, gezondheid, rijkdom, weldoeners en gelukkige daden worden diepgaand geïnterpreteerd.",
-        "point1": "Aangeboren persoonlijkheid en talent via acht karakters",
-        "point2": "Veelbelovende carrièregebieden en strategie voor het komende decennium",
-        "point3": "Timing en relatievoorwaarden van liefde en huwelijk",
-        "point4": "Rijkdom stroomt en hoe geld wordt verzameld",
         "cta": "Light-lezing openen →"
       },
       "compat": {
@@ -5176,16 +5165,11 @@
     },
     "premiumGates": {
       "daewun": {
-        "sectionTitle": "Daewun — geïntegreerde ondersteuning, seizoens- en patroonbeoordeling",
         "title": "Daewun-analyse ontgrendelen",
-        "desc": "Er is een betaling van 5.000 KRW vereist om de geïntegreerde daewun-stroom- en levensfortuingrafiek te bekijken.",
-        "notice": "Numerieke grafiekgegevens alleen kunnen het gelaagde lot van een persoon niet volledig definiëren. Gebruik deze lezing alstublieft als een strategische referentie voor het lezen en voorbereiden op de stroom van het leven.",
-        "graphTitle": "Grafiek van het levensgeluk (geïntegreerde ondersteuning, seizoen en patroon)"
+        "notice": "Numerieke grafiekgegevens alleen kunnen het gelaagde lot van een persoon niet volledig definiëren. Gebruik deze lezing alstublieft als een strategische referentie voor het lezen en voorbereiden op de stroom van het leven."
       },
       "summary": {
-        "sectionTitle": "Volledige saju-lezing",
-        "title": "Saju-lezing Light ontgrendelen",
-        "desc": "Een betaling van 5.000 KRW is vereist om de diepgaande A4-lezing van 30 pagina's over persoonlijkheid, carrière, liefde, gezondheid, rijkdom, weldoeners en gelukkige daden te bekijken."
+        "title": "Saju-lezing Light ontgrendelen"
       },
       "compat": {
         "title": "Compatibiliteitsanalyse — premium inhoud",
@@ -21347,6 +21331,8 @@
     "today": "Today’s cycle",
     "month": "This month’s cycle",
     "summaryTitle": "Saju-lezing Light",
+    "daeunTitle": "Je cycli van tien jaar",
+    "graphTitle": "Cycli vergeleken",
     "godTraits": {
       "0": "A preference for self-directed choices",
       "1": "Energy from cooperation and competition",

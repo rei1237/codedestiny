@@ -5129,7 +5129,6 @@
     },
     "premiumShowcase": {
       "aria": "Giới thiệu các bản luận giải saju trả phí",
-      "eyebrow": "PHÂN TÍCH CAO CẤP",
       "title": "Đọc lá số của bạn sâu hơn",
       "subtitle": "Hãy bắt đầu với bản Light để nắm rõ bản tính của bạn, rồi theo dõi dòng chảy mười năm cùng Daewun. Phần hợp tuổi được tính phí theo mỗi lần xem.",
       "expand": "Mở thẻ luận giải",
@@ -5138,20 +5137,10 @@
       "compatCta": "Xem khả năng tương thích →",
       "daewun": {
         "title": "Phân tích Daewun",
-        "desc": "Dòng daewun mười năm được tích hợp thông qua sức mạnh hỗ trợ, cân bằng theo mùa và mô hình sau. Nó cho thấy khi nào nên tiến về phía trước và khi nào nên giữ vững.",
-        "point1": "Biểu đồ vận mệnh cuộc đời trực quan theo thập kỷ",
-        "point2": "Đọc sâu các yếu tố thuận lợi và bất lợi của daewun",
-        "point3": "Vị trí daewun hiện tại và chiến lược cốt lõi",
-        "point4": "Hỗ trợ tích hợp, đánh giá theo mùa và theo mẫu",
         "cta": "Mở phân tích Daewun →"
       },
       "summary": {
         "title": "Luận giải saju bản Light",
-        "desc": "Một báo cáo saju toàn diện khoảng 20 trang A4. Tính cách, sự nghiệp, tình duyên, sức khỏe, phú quý, ân nhân, việc làm may mắn đều được diễn giải sâu sắc.",
-        "point1": "Tính cách và tài năng bẩm sinh qua tám nhân vật",
-        "point2": "Lĩnh vực nghề nghiệp và chiến lược đầy hứa hẹn trong thập kỷ tới",
-        "point3": "Tình yêu, thời điểm kết hôn và điều kiện quan hệ",
-        "point4": "Dòng chảy của cải và cách thu thập tiền",
         "cta": "Mở bản Light →"
       },
       "compat": {
@@ -5176,16 +5165,11 @@
     },
     "premiumGates": {
       "daewun": {
-        "sectionTitle": "Daewun — hỗ trợ tổng hợp, đánh giá theo mùa và theo mẫu",
         "title": "Mở khóa phân tích Daewun",
-        "desc": "Cần thanh toán 5.000 KRW để xem biểu đồ vận may và dòng chảy daewun tích hợp.",
-        "notice": "Chỉ dữ liệu biểu đồ số không thể xác định đầy đủ số phận của một người. Hãy sử dụng bài đọc này như một tài liệu tham khảo chiến lược để đọc và chuẩn bị cho dòng chảy của cuộc sống.",
-        "graphTitle": "Biểu đồ vận mệnh cuộc đời (hỗ trợ, mùa và mô hình tích hợp)"
+        "notice": "Chỉ dữ liệu biểu đồ số không thể xác định đầy đủ số phận của một người. Hãy sử dụng bài đọc này như một tài liệu tham khảo chiến lược để đọc và chuẩn bị cho dòng chảy của cuộc sống."
       },
       "summary": {
-        "sectionTitle": "Đọc saju đầy đủ",
-        "title": "Mở khóa luận giải saju bản Light",
-        "desc": "Cần thanh toán 5.000 KRW để xem bài đọc chuyên sâu A4 30 trang về tính cách, sự nghiệp, tình yêu, sức khỏe, sự giàu có, ân nhân và những hành động may mắn."
+        "title": "Mở khóa luận giải saju bản Light"
       },
       "compat": {
         "title": "Phân tích khả năng tương thích — nội dung cao cấp",
@@ -21347,6 +21331,8 @@
     "today": "Today’s cycle",
     "month": "This month’s cycle",
     "summaryTitle": "Luận giải saju bản Light",
+    "daeunTitle": "Các chu kỳ mười năm của bạn",
+    "graphTitle": "So sánh các chu kỳ",
     "godTraits": {
       "0": "A preference for self-directed choices",
       "1": "Energy from cooperation and competition",
