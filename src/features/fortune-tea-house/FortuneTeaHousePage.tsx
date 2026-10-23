@@ -120,6 +120,8 @@ type FortuneTeaHouseConsultApiResponse = {
   honeyDrops?: FortuneTeaHouseHoneyDropsState;
   message?: string;
   paymentRequired?: boolean;
+  /** 이용권 보유자가 막힌 구체 사유(서버 fortune-tea-house.js). 있으면 message 가 그 사유를 설명한다. */
+  passDenial?: { reason?: string };
   featureKey?: string;
   pricing?: Record<string, unknown>;
   accessDecision?: Record<string, unknown>;
@@ -363,7 +365,11 @@ async function runFortuneTeaBillingGate(
     const message = code === "AUTH_REQUIRED" || code === "LOGIN_REQUIRED"
       ? "로그인 후 운명 찻집 상담을 열 수 있어요."
       : gate.error?.message || gate.message || "결제 확인이 완료되지 않았어요. 다시 한 번만 시도해 주세요.";
-    throw buildFortuneTeaPaymentError(code === "PAYMENT_CANCELLED" ? "결제가 취소되었습니다. 필요할 때 다시 진행할 수 있습니다." : message);
+    // 이용권 보유자가 결제 선택을 닫았다면 "왜 결제를 물었는지"(한도 소진 등)를 알려 준다 — 일반 취소 문구만 보이면 이용권이 고장 난 것처럼 읽힌다.
+    const passDenialNotice = payload.passDenial?.reason ? toText(payload.message) : "";
+    throw buildFortuneTeaPaymentError(code === "PAYMENT_CANCELLED"
+      ? (passDenialNotice ? `${passDenialNotice} 결제는 진행되지 않았어요.` : "결제가 취소되었습니다. 필요할 때 다시 진행할 수 있습니다.")
+      : message);
   }
   return {
     featureKey: toText(billingInput.featureKey),
@@ -1333,8 +1339,10 @@ export default function FortuneTeaHousePage() {
           setGenerationProgress((current) => ({
             ...current,
             percent: Math.max(current.percent, 24),
-            label: "가격 확인",
-            message: "상담 가격과 결제 권한을 확인하고 있어요.",
+            label: accessCheck.payload.passDenial?.reason ? "이용권 안내" : "가격 확인",
+            message: accessCheck.payload.passDenial?.reason && toText(accessCheck.payload.message)
+              ? toText(accessCheck.payload.message)
+              : "상담 가격과 결제 권한을 확인하고 있어요.",
           }));
           trackEvent("tea_payment_started", { method: nextQuestionInput.consultationMode });
           const billing = await runFortuneTeaBillingGate(accessCheck.payload, nextQuestionInput, attemptId, buildResume({

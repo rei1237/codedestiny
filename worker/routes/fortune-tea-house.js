@@ -1513,8 +1513,26 @@ function buildFortuneTeaPaymentPayload({ featureKey, pricing = {}, consultReques
   };
 }
 
+// 이용권 보유자가 막힌 사유별 안내. 키는 paid-feature-access 의 passDenialReason / 정산 거절 사유와 같은 어휘다.
+const FORTUNE_TEA_PASS_DENIAL_MESSAGES = {
+  PREMIUM_QUOTA_EXHAUSTED: "이번 달 이용권에 포함된 횟수를 모두 사용했어요. 월정석 또는 단건 결제로 이 상담을 이어서 열 수 있어요.",
+  MONTHLY_PASS_LIMIT_EXCEEDED: "이번 달 이용권 사용 한도를 모두 사용했어요. 월정석 또는 단건 결제로 이 상담을 이어서 열 수 있어요.",
+  PRICE_EXCEEDS_PASS_LIMIT: "이 상담은 보유하신 이용권의 1회 이용 한도를 넘어요. 월정석 또는 단건 결제로 열 수 있어요.",
+  LEGACY_ENTITLEMENT_CONFLICT: "이용권 상태를 하나로 확인하지 못했어요. 우선 월정석 또는 단건 결제로 열 수 있어요.",
+};
+
+function resolveFortuneTeaPassDenialReason(accessDecision) {
+  for (const candidate of [accessDecision?.passDenialReason, accessDecision?.reason]) {
+    const code = cleanText(candidate, 80);
+    if (Object.hasOwn(FORTUNE_TEA_PASS_DENIAL_MESSAGES, code)) return code;
+  }
+  return "";
+}
+
 function buildFortuneTeaPaymentRequiredMessage(accessDecision, status) {
   if (status === 401) return "운명 찻집 상담은 로그인 후 이용권, 월정석, 단건결제로 열 수 있어요.";
+  const passDenialReason = resolveFortuneTeaPassDenialReason(accessDecision);
+  if (passDenialReason) return FORTUNE_TEA_PASS_DENIAL_MESSAGES[passDenialReason];
   // 이용권을 보유했지만 이 상담 가격이 이용권 커버 한도를 넘어 결제가 필요한 경우를 명확히 안내한다.
   if (accessDecision?.pass?.isActive) {
     return "보유하신 이용권으로는 이 상담을 열 수 없어요. 월정석 또는 단건 결제로 이어서 열 수 있어요.";
@@ -1524,10 +1542,21 @@ function buildFortuneTeaPaymentRequiredMessage(accessDecision, status) {
 
 function buildFortuneTeaPaymentRequiredResponse({ featureKey, pricing, accessDecision, consultRequest, status = 402 }) {
   const requestId = readFortuneTeaRequestId({}, consultRequest);
+  const passDenialReason = status === 401 ? "" : resolveFortuneTeaPassDenialReason(accessDecision);
+  if (passDenialReason) {
+    // 고객이 "이용권을 샀는데 안 열린다"고 할 때 서버 로그만으로 사유를 알 수 있게 한다. 개인정보(userId 등)는 싣지 않는다.
+    console.info("[fortune-tea-house] pass denied", JSON.stringify({
+      featureKey: cleanText(featureKey, 120),
+      reason: passDenialReason,
+      tier: cleanText(accessDecision?.pass?.passTier || accessDecision?.licenseTier, 40),
+      passPolicyVersion: cleanText(accessDecision?.pass?.raw?.passPolicyVersion, 60),
+    }));
+  }
   return json({
     ok: false,
     paymentRequired: true,
     message: buildFortuneTeaPaymentRequiredMessage(accessDecision, status),
+    ...(passDenialReason ? { passDenial: { reason: passDenialReason } } : {}),
     featureKey,
     pricing,
     accessDecision,

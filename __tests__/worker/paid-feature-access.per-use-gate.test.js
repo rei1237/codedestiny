@@ -212,3 +212,44 @@ test("④ 출생 기반 키는 계정 단위 Payment 행으로 열리지 않는�
   expect(decision.allowed).toBe(false);
   expect(paymentFind).not.toHaveBeenCalled();
 });
+
+/* ⑤ 이용권 보유자가 막힌 이유. reason 은 PAYMENT_REQUIRED 로 유지하고(기존 소비자 계약),
+   구체 사유는 가산 필드 passDenialReason 으로만 싣는다 — 찻집이 사유별 안내를 만드는 근거다. */
+function seedPassUser(userId, profileSubscription) {
+  const expiresAt = new Date(Date.now() + 10 * 86_400_000);
+  userFindById.mockReturnValue(lean({
+    _id: userId, unlockedFeatures: [], paidFeatures: [], points: 0,
+    profileSubscription: { isActive: true, expiresAt, premiumUseCycleKey: expiresAt.toISOString(), ...profileSubscription },
+  }));
+}
+
+test("⑤ 월 이용 한도를 다 쓴 이용권 보유자는 MONTHLY_PASS_LIMIT_EXCEEDED 사유가 함께 실린다", async () => {
+  const userId = nextUserId();
+  seedPassUser(userId, { tier: "premium", passTier: "premium", monthlySpendCoin: 100000 });
+
+  const decision = await canAccessPaidFeature(userId, "fortune-tea-house-saju-consultation", { env: {} });
+
+  expect(decision.allowed).toBe(false);
+  expect(decision.reason).toBe("PAYMENT_REQUIRED");
+  expect(decision.passDenialReason).toBe("MONTHLY_PASS_LIMIT_EXCEEDED");
+});
+
+test("⑤ 건당 상한(5,000원)을 넘는 상담은 PRICE_EXCEEDS_PASS_LIMIT 사유가 함께 실린다", async () => {
+  const userId = nextUserId();
+  seedPassUser(userId, { tier: "standard", passTier: "standard" });
+
+  const decision = await canAccessPaidFeature(userId, "fortune-tea-house-saju-consultation", { env: {} });
+
+  expect(decision.allowed).toBe(false);
+  expect(decision.passDenialReason).toBe("PRICE_EXCEEDS_PASS_LIMIT");
+});
+
+test("⑤ 이용권이 없는 계정에는 passDenialReason 키 자체가 없다", async () => {
+  const userId = nextUserId();
+  seedUser(userId);
+
+  const decision = await canAccessPaidFeature(userId, "fortune-tea-house-saju-consultation", { env: {} });
+
+  expect(decision.allowed).toBe(false);
+  expect(decision).not.toHaveProperty("passDenialReason");
+});

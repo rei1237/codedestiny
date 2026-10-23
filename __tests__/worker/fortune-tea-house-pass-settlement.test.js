@@ -112,3 +112,67 @@ test("환불된 결과는 같은 요청으로 다시 생성하지 못한다(차�
   expect(settleAt).toBeGreaterThan(source.indexOf("generation = await beginFortuneTeaHouseGeneration({"));
   expect(settleAt).toBeLessThan(source.indexOf("const runGeneration = async () => {"));
 });
+
+// 이용권 보유자가 "샀는데 하나도 안 열린다"고 느끼는 이유 중 하나는 거절 사유가 한 문장으로 뭉개지던 것이다.
+describe("이용권 거절 사유 안내", () => {
+  const builders = ["resolveFortuneTeaPassDenialReason", "buildFortuneTeaPaymentRequiredMessage", "buildFortuneTeaPaymentRequiredResponse"].map((name) => {
+    const node = ast.statements.find((item) => ts.isFunctionDeclaration(item) && item.name?.text === name);
+    if (!node) throw new Error(name);
+    return node.getText(ast);
+  });
+  const messages = ast.statements.find((item) => ts.isVariableStatement(item) && item.declarationList.declarations[0].name.text === "FORTUNE_TEA_PASS_DENIAL_MESSAGES").getText(ast);
+
+  function bootResponse() {
+    const logs = [];
+    const state = {
+      Object,
+      cleanText: (value, max) => String(value || "").trim().slice(0, max),
+      readFortuneTeaRequestId: () => "req-1",
+      buildFortuneTeaPaymentPayload: () => ({ runtimeGate: {} }),
+      json: (body, init) => ({ status: init.status, body }),
+      console: { info: (...args) => logs.push(args) },
+    };
+    vm.createContext(state);
+    vm.runInContext(`${messages}\n${builders.join("\n")}`, state);
+    return { state, logs };
+  }
+  const respond = (state, accessDecision, status) => state.buildFortuneTeaPaymentRequiredResponse({
+    featureKey: "fortune-tea-house-saju-consultation", pricing: { coinPrice: 100 }, accessDecision, consultRequest: {}, ...(status ? { status } : {}),
+  });
+
+  test.each([
+    ["passDenialReason", { reason: "PAYMENT_REQUIRED", passDenialReason: "MONTHLY_PASS_LIMIT_EXCEEDED" }, "MONTHLY_PASS_LIMIT_EXCEEDED", /이용권 사용 한도/],
+    ["passDenialReason", { reason: "PAYMENT_REQUIRED", passDenialReason: "PRICE_EXCEEDS_PASS_LIMIT" }, "PRICE_EXCEEDS_PASS_LIMIT", /1회 이용 한도/],
+    ["정산 거절 reason", { reason: "PREMIUM_QUOTA_EXHAUSTED", pass: { isActive: true } }, "PREMIUM_QUOTA_EXHAUSTED", /포함된 횟수/],
+  ])("%s 로 온 사유는 문구와 passDenial 필드로 나뉜다", (_label, accessDecision, code, text) => {
+    const { state } = bootResponse();
+    const response = respond(state, accessDecision);
+    expect(response.status).toBe(402);
+    expect(response.body.passDenial).toEqual({ reason: code });
+    expect(response.body.message).toMatch(text);
+    expect(response.body.paymentRequired).toBe(true);
+  });
+
+  test("사유를 알 수 없는 이용권 보유자는 기존 안내를 그대로 받고 passDenial 은 없다", () => {
+    const { state } = bootResponse();
+    const response = respond(state, { reason: "PAYMENT_REQUIRED", pass: { isActive: true } });
+    expect(response.body.message).toMatch(/보유하신 이용권으로는/);
+    expect(response.body).not.toHaveProperty("passDenial");
+  });
+
+  test("로그인 필요(401)는 이용권 사유를 붙이지 않는다", () => {
+    const { state } = bootResponse();
+    const response = respond(state, { reason: "LOGIN_REQUIRED", passDenialReason: "MONTHLY_PASS_LIMIT_EXCEEDED" }, 401);
+    expect(response.status).toBe(401);
+    expect(response.body).not.toHaveProperty("passDenial");
+  });
+
+  test("거절 로그에는 상품·사유·등급·정책 버전만 남고 사용자 식별자는 없다", () => {
+    const { state, logs } = bootResponse();
+    respond(state, { reason: "PAYMENT_REQUIRED", userId: "user-secret", passDenialReason: "MONTHLY_PASS_LIMIT_EXCEEDED", pass: { passTier: "premium", raw: { passPolicyVersion: "flower-20260930" } } });
+    expect(logs).toHaveLength(1);
+    const logged = JSON.parse(logs[0][1]);
+    expect(logged).toEqual({ featureKey: "fortune-tea-house-saju-consultation", reason: "MONTHLY_PASS_LIMIT_EXCEEDED", tier: "premium", passPolicyVersion: "flower-20260930" });
+    expect(JSON.stringify(logs)).not.toContain("user-secret");
+  });
+});

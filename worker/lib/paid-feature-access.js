@@ -76,9 +76,19 @@ function buildDecision(input = {}) {
     shouldOpenPayment: input.allowed ? false : input.shouldOpenPayment !== false,
     monthlySubscription: input.monthlySubscription || null,
     pass: input.pass || null,
+    // 가산 필드 — 이용권 보유자가 막힌 구체 사유(reason 은 PAYMENT_REQUIRED 로 유지). 없으면 키 자체를 싣지 않는다.
+    ...(input.passDenialReason ? { passDenialReason: cleanText(input.passDenialReason) } : {}),
   };
   return decision;
 }
+
+// resolveFeatureAccessPolicy 의 거절 사유 중 "이용권은 있는데 이 건을 못 여는 이유"만 화면에 말해 준다.
+const PASS_SPECIFIC_DENIAL_REASONS = new Set([
+  "PREMIUM_QUOTA_EXHAUSTED",
+  "MONTHLY_PASS_LIMIT_EXCEEDED",
+  "PRICE_EXCEEDS_PASS_LIMIT",
+  "LEGACY_ENTITLEMENT_CONFLICT",
+]);
 
 function logPaidAccessDecision(env, decision) {
   if (isProductionRuntime(env)) return;
@@ -318,6 +328,7 @@ function resolveDecisionFromUserDoc(userId, user, spec, hasPurchase) {
     pricing,
     monthlySubscription,
     pass,
+    passDenialReason: PASS_SPECIFIC_DENIAL_REASONS.has(featureAccess.reason) ? featureAccess.reason : "",
   });
 }
 
