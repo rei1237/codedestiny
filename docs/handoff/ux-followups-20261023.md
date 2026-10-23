@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-23
-next: "7 — sync:public이 두 번 돌아야 수렴한다"
+next: "13 — eslint 경고 375개"
 ---
 
 # 꿀꿀운세 UX 진단·개선 — 후속 과제
@@ -116,9 +116,9 @@ next: "7 — sync:public이 두 번 돌아야 수렴한다"
 - [x] **5. no-fallback 카운트 증가** — 끝: 결정으로 닫음 + A 기준선만 135→103으로 내려 개선을 고정했다. B의 +43은 이번 세션 이전(2026-07-27 기준선 `8e01ece64` 이후)부터 쌓였고, 세션 시작점 `2d75cef0a` 대비 증가는 0이다. 출처: `js/inline/saju-core-bootstrap.js` +20, `index.html` +19, `js/core/home-funnel.js` +2, `js/saju-engine.js` +1, `__tests__/ui/seo-locale-init.test.mjs` +1. 고치려면 번역이 필요해서 일괄 번역 때 처리한다. `--update`는 B까지 224로 올려 증가를 덮으므로 쓰지 않았다(기준선은 손으로 고침). 래칫은 의도적으로 경고 전용이다
   - `scripts/verify-i18n-no-fallback.mjs`(기준선 `i18n/no-fallback-baseline.json`): 지금 A 103(기준 135), B 224(기준 181).
   - 이번 세션 이전부터 있었고 경고만 난다. 원인을 확인한 뒤 기준선을 갱신할지 코드를 고칠지 정한다.
-- [ ] **7. `sync:public`이 두 번 돌아야 수렴한다**
+- [x] **7. `sync:public`이 두 번 돌아야 수렴한다** — 끝: `ec8de00c2`. 원인: 셸이 루트 로더(`mobile-interaction-patch.js`·`uiBindings.js`·런타임·모듈)보다 먼저 찍혀 옛 해시를 물었다. `restampRootLoaderFiles`가 맨 앞에서 루트 로더를 고정점까지(최대 8회) 다시 찍고, 그 뒤에 셸 키를 계산한다. `/HwatuFortune.js`처럼 앞에 `/`만 붙은 bare 자산을 내용 해시로 덮어 `build`↔`h` 핑퐁하던 것도 `classifyRef`에서 bare로 분류해 막았다. 확인: 로더 하나를 바꾼 뒤 한 번 돌리면 수렴, 3단 모듈 사슬도 한 번에 수렴
   - `mobile-interaction-patch.js` 핀이 backstack 로더 핀보다 한 단계 늦게 갱신된다. 핀 계산 순서를 고친다.
-- [ ] **12. 2단계에서 남은 i18n 낡은 키** (`public/i18n/*.json`)
+- [x] **12. 2단계에서 남은 i18n 낡은 키** (`public/i18n/*.json`) — 끝: `c123fbbbb`. 참조 없는 `premiumGates`(summary/daewun desc·sectionTitle·graphTitle)·`premiumShowcase`(eyebrow, summary/daewun desc·point1~4) 16개 키를 12개 언어에서 지웠다. `sajuReading.daeunTitle`·`graphTitle`을 12개 언어 사전과 `i18n/authored/sajuReading-1.json`에 손번역으로 채웠다. `i18n:check` 통과(B +43 경고는 5번 기록대로). H6도 이것으로 닫힌다
   - `result.premiumGates.summary.desc`·`daewun.desc`(5,000원, A4 30페이지), premiumShowcase desc, `sectionTitle` "기본 종합 사주 풀이", 쓰지 않는 eyebrow 키.
   - 참조가 없으므로 지우거나 손으로 고친다. `sajuReading.daeunTitle`은 12개 언어 모두에 없다.
 - [ ] **13. eslint 경고 375개**
@@ -192,3 +192,6 @@ next: "7 — sync:public이 두 번 돌아야 수렴한다"
 - **H15.** 개발 서버 `/today/`가 500을 낸다. 워크트리에 `fortune/data/daily-*.json`이 없어서다(`npm run fortune:build-data`). 환경 문제로 보이지만 운영 영향은 확인하지 않았다.
 - **H16.** 신년운세 대기 화면의 진행 단계와 `READING_STAGES` 라벨이 한 단계 어긋난다(단계 'opening'이 켜져 있을 때 라벨은 '올해의 총운을 읽는 중'). 32번 작업 중 발견, 고치지 않았다.
 - **H17. `verify-mobile-runtime-readiness.mjs`의 "bottom navigation covers main slots"가 main에서도 실패한다**: 가드는 홈 탭 `href="/"`를 요구하지만 `046369a96`부터 `/ggulggul/`이다. 가드 갱신이 필요한지 앱 홈 정책과 함께 확인한다.
+- **H18. ko.json `sajuReading`이 인라인 문구보다 전반적으로 낡았다**(H4 포함): "네오"↔"영냥이" 등. ko는 `cdTranslate`가 fallback(인라인)을 돌려줘서 런타임 영향은 없다. 사전을 정본으로 바꿀 때 한꺼번에 맞춘다. 비교: 스크래치 `sr-drift.cjs ko`.
+- **H19. en.json `sajuReading`에 `yeonIntro`·`neoIntro`가 없다**: 인라인 en으로 떨어져 화면은 정상이다. 다른 언어도 같은지 함께 본다.
+- **H20. `syncSajuReadingPrices`가 셸 캐시 키 계산 뒤에 돈다**: 가격이 바뀌는 빌드에서는 키가 한 번 늦을 수 있다. 평소에는 아무것도 바꾸지 않는다(7번 작업 중 발견, 고치지 않음).
