@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-10-23
-next: "A1 — 상품별 노출 이벤트 형식을 정하고 js/recommendations-core.mjs cleanEvent·worker/routes/recommendations.js·노출 호출 3곳에 반영"
+updated: 2026-10-24
+next: "A3 — check:fast 전체 종료 결과 확인 후 커밋·실제 main 워크트리 ff 병합, B1 작성, B2·C 사용자 결정"
 ---
 
 # 쿠팡 추천 — 상품별 CTR과 상품 데이터 (Codex 위임)
@@ -85,7 +85,7 @@ next: "A1 — 상품별 노출 이벤트 형식을 정하고 js/recommendations-
 
 ### A. 23-코드: 상품별 노출과 CTR (Codex가 끝까지)
 
-- [ ] **A1. 상품별 노출을 기록한다**
+- [x] **A1. 상품별 노출을 기록한다**
   - 화면에 실제로 보인 상품마다 노출을 남긴다. 노출 정의(50%·1초·세션당 1회)는 바꾸지 않는다.
   - 결정하고 이 문서에 이유를 적는다. 판단 기준은 전역 600건/분 상한, 본문 1KB, 집계 `_id` 형식이다.
     - (a) 상품마다 이벤트 1건
@@ -94,7 +94,7 @@ next: "A1 — 상품별 노출 이벤트 형식을 정하고 js/recommendations-
   - 기존 섹션 노출(`'block'`)과 상품 노출이 관리자 "자체 노출" 합계에서 이중 집계되지 않게 한다. `EVENT_NAMES`를 늘리면 `cleanEvent`·서버·관리자 화면을 모두 맞춘다.
   - 노출 호출 3곳(Surface·Browse·legacy)을 모두 바꾼다. 미리보기(`previewProducts`)는 지금처럼 기록하지 않는다.
   - 노출 effect 의존성에 렌더마다 새로 만드는 `context`를 넣지 않는다(`RecommendationSurface.jsx:94-96` 주석 참고). 넣으면 노출이 중복 집계된다.
-- [ ] **A2. 관리자 화면에 상품별 표를 만든다**
+- [x] **A2. 관리자 화면에 상품별 표를 만든다**
   - 서버에서 30일치를 상품별로 묶어 돌려준다(Mongo `aggregate` `$group`). 상품별 행이 늘면 원시 행 5000개 상한에 먼저 걸린다.
   - 열: 상품 제목·id, 노출, 클릭, CTR(클릭÷노출). 노출이 0이면 "미확인"으로 표시한다. 서비스·위치 필터를 둔다.
   - "자체 지표" 표시를 유지하고, 공식 리포트 숫자(클릭·주문·수익)와 섞지 않는다.
@@ -147,3 +147,18 @@ next: "A1 — 상품별 노출 이벤트 형식을 정하고 js/recommendations-
 - push는 하지 않는다.
 
 ## 기록
+
+### 2026-10-24 구현·검증 기록
+
+- 사용자가 현재 상태에서 안전하게 진행하도록 승인했다. 지정했던 b9c2bbc88은 현재 main da8f766dd8048929ac8d5fd8e519917953be5f9d의 조상이며, 추천 관련 소스 차이는 없었다. 새 워크트리는 `D:/Development/codedestiny-worktrees/coupang-ctr-20261024-014132`, 브랜치는 `wt/coupang-ctr-20261024-014132`다.
+- 루트는 다른 세션의 `feat/world-cast-page`다. 위의 루트 merge 명령을 그대로 실행하지 않는다. 실제 main 체크아웃은 `C:/Users/user/Documents/Codex/worktrees/mobile-clarity-20261023-122535`이며 다른 세션의 미커밋 파일을 보존한다.
+- A1 결정: (a) 상품마다 이벤트 1건. 결과 최대 2개와 실제로 보인 둘러보기 카드만 전송한다. 기존 1KB 본문·600건/분·day|service|placement|productId|event 키를 유지한다. 묶음 배열의 별도 검증·부분 수락 규칙 없이 카드별 50%·1초 조건을 그대로 적용한다. 한도에 걸리면 누락될 수 있는 자체 참고 지표다.
+- Surface/Browse/legacy는 실제 article을 관찰한다. 표시 세션의 Set으로 같은 상품의 새로고침·필터 재표시를 중복 집계하지 않는다. React effect는 service·상품 ID 목록에 의존하고 매번 생성되는 context에는 의존하지 않는다. 미리보기 통계와 외부 링크는 비활성 상태를 유지한다.
+- impression에 실상품 ID를 요구한다. 기존 block 노출은 추가 수집·자체 노출 합계·CTR 분모에서 제외한다. 과거 클릭은 남기므로 수집 전환 초기 CTR의 한계를 화면에 안내한다.
+- A2: Mongo aggregate가 30일 기록을 서비스·위치·상품으로 먼저 묶고 이벤트별 합계를 반환한다. 원시 5,000행 제한을 제거했다. 관리자 상품 제목·ID/노출/클릭/CTR 표, 서비스·위치 필터, 노출 0의 미확인, 빈 상태를 추가했다. 공식 리포트와 분리한다.
+- 검증: `node --test "__tests__/ui/recommendations*.test.mjs"` 43/43, `npm run test:jest -- --runInBand __tests__/worker/recommendations.test.js` 22/22 통과. 첫 Worker 실행의 승인 fixture 누락 1건을 수정한 뒤 재검증했다.
+- `npm run -s sync:public`, `npm run -s sitemap:generate` 완료. 관리자 noindex 유지, 공개 문구·URL·canonical·robots 변경 없음. 공유 추천 컴포넌트 변경에 따른 sitemap 서명 5개만 갱신했고 날짜는 기존대로다.
+- mock 개발 서버+외부 요청 차단 브라우저: 360/390/430/1280px 가로 넘침 0, 실행 오류 0. 필터 CTR·노출 0·미리보기 전송 0·실제 가시성/중복 방지 통과. 화면·JSON은 `D:/codedestiny-qa/coupang-ctr-20261023/`. 실제 제휴 클릭 없음. 작업 소유 mock 서버 종료 완료.
+- 디자인 detector 결과 `[]`. 기존 PRODUCT/디자인 메타데이터 노후화는 이번 범위 밖이다.
+- `npm run check:fast` 끝까지 통과(종료 코드 0, BLOCKED 없음). paid-gate-suite 90/90, 전체 Node 3,501/3,501, 최종 Jest 424개 스위트·6,757개 테스트 통과. 전체 lint·typecheck·sitemap 일치·Worker dry-run 빌드·인코딩 검사 통과. 검증 뒤 최신 main 반영·ff 병합을 진행한다.
+- 결제 정책·이용권/월정석/단건 결제·인증·DB 스키마는 변경하지 않았다. 추천 이벤트 검증 및 관리자 통계 응답만 요청 범위에서 변경했다. 운영 DB 읽기/쓰기·쿠팡 API·유료 LLM·push·배포는 하지 않았다.

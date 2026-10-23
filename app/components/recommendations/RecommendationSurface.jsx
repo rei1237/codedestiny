@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { CATEGORIES, RECOMMENDATIONS_RELEASED, RESULT_PRODUCT_LIMIT, normalizeContext, validateAffiliateUrl, validImageUrl } from '@/js/recommendations-core.mjs';
 import { recommendationCopy } from '@/js/recommendations-copy.mjs';
-import { observeRecommendation, trackRecommendation, rememberRecommendationContext, recommendationQuery } from '@/js/recommendations-browser.mjs';
+import { observeRecommendationProducts, trackRecommendation, rememberRecommendationContext, recommendationQuery } from '@/js/recommendations-browser.mjs';
 import { detectLocale, normalizeLocale } from '@/lib/i18n/dictionary';
 import { getApiBaseUrl } from '@/app/_lib/api-config';
 import { BookOpen, ArrowUpRight, ShoppingBag } from 'lucide-react';
@@ -34,7 +34,7 @@ export function ProductCard({ product, copy, preview = false, onClick = () => {}
   // 가격을 확인하지 못한 상품은 가격 줄 대신 CTA 하나가 "현재 가격 확인"을 맡는다. 화살표는 아이콘이 이미 그린다.
   const priced = product.price != null;
   const ctaLabel = (product.linkType === 'search' ? copy.search : merchantCopy(priced ? copy.view : copy.price)).replace(/s*↗$/, '');
-  return <article className={styles.product} data-affiliate-provider={product.providerId || 'coupang'}>
+  return <article data-recommendation-product={product.id} className={styles.product} data-affiliate-provider={product.providerId || 'coupang'}>
     <div className={styles.image}>{validImageUrl(product.imageUrl) && !failed
       // eslint-disable-next-line @next/next/no-img-element -- 외부 제휴 이미지. 정적 export(images.unoptimized)라 next/image 이점이 없고 no-referrer·onError 대체가 필요하다
       ? <img src={product.imageUrl} alt={product.title} width="320" height="240" loading="lazy" referrerPolicy="no-referrer" onError={() => setFailed(true)}/>
@@ -93,7 +93,13 @@ export function RecommendationResult({ service, species = '', groupId = '', loca
   }, [shown]);
   // 노출 이벤트는 service만 싣는다. context는 렌더마다 새 객체라 의존성에 넣으면 구독이 매번 새로 생겨 노출이 중복 집계된다.
   const trackedService = context.service;
-  useEffect(() => shown && !preview ? observeRecommendation(host.current, () => trackRecommendation('impression', { service: trackedService }, 'result', '', getApiBaseUrl())) : undefined, [shown, trackedService, preview]);
+  const impressions = useRef({ service: trackedService, seen: new Set() });
+  const productKey = data.products.slice(0, RESULT_PRODUCT_LIMIT).map(p => p.id).join('|');
+  useEffect(() => {
+    if (!shown || preview) return;
+    if (impressions.current.service !== trackedService) impressions.current = { service: trackedService, seen: new Set() };
+    return observeRecommendationProducts(host.current, impressions.current.seen, id => trackRecommendation('impression', { service: trackedService }, 'result', id, getApiBaseUrl()));
+  }, [shown, trackedService, preview, productKey]);
   if (!shown) return null;
   const uiBrand = affiliateBrand(brand);
   const title = uiBrand === 'ggulggul' ? c.yeoniTitle : c.locale === 'ko' ? '영냥이가 고른 오늘의 취향' : c.title;

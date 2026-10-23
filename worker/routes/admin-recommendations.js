@@ -15,10 +15,23 @@ export async function handleAdminRecommendationRoutes(path, request, env) {
       await connectDb(env);
       const from = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
       const [metrics, reports] = await Promise.all([
-        withMongoRetry(env, () => RecommendationMetric.find({ _id: { $gte: from } }).sort({ _id: -1 }).limit(5000).lean()),
+        withMongoRetry(env, () => RecommendationMetric.aggregate([
+          { $match: { _id: { $gte: from } } },
+          // Group before returning: no raw-row cap that silently loses busy products.
+          { $group: {
+            _id: { service: '$service', placement: '$placement', productId: '$productId' },
+            ...Object.fromEntries(['impression', 'click', 'more', 'filter', 'dismiss'].map(event => [event, {
+              $sum: { $cond: [{ $and: [
+                { $eq: ['$event', event] },
+                ...(event === 'impression' ? [{ $ne: ['$productId', 'block'] }] : []),
+              ] }, '$count', 0] },
+            }])),
+          } },
+          { $sort: { '_id.service': 1, '_id.placement': 1, '_id.productId': 1 } },
+        ])),
         withMongoRetry(env, () => RecommendationReport.find({ _id: { $gt: '' } }).sort({ _id: -1 }).limit(100).lean()),
       ]);
-      return json({ metrics, reports: reports.map(r => r.data), source: 'own_events', reportingWindowDays: 30, possiblyTruncated: metrics.length === 5000, serviceProtection: 'existing_analytics' });
+      return json({ metrics: metrics.map(({ _id, ...counts }) => ({ ..._id, ...counts })), reports: reports.map(r => r.data), source: 'own_events', reportingWindowDays: 30, possiblyTruncated: false, serviceProtection: 'existing_analytics' });
     }
     if (request.method !== 'POST') return methodNotAllowed();
     const raw = await request.text();

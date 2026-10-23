@@ -27,7 +27,7 @@ export default function RecommendationsAdmin() {
   const [previewBrand, setPreviewBrand] = useState('yeongnyangi');
   const [previewPartner, setPreviewPartner] = useState('coupang');
   const demoProducts = samples.map((p, i) => ({ ...p, providerId: previewPartner === 'mixed' ? i === 0 ? 'book-partner-preview' : i === 1 ? 'lifestyle-partner-preview' : 'coupang' : 'coupang' }));
-  const [metricService, setMetricService] = useState('');
+  const [metricService, setMetricService] = useState(''), [metricPlacement, setMetricPlacement] = useState('');
   const [selection, setSelection] = useState({ service: 'legacy-saju', species: '', groupId: '', interests: [], practiceTags: [] });
   const [selectionProducts, setSelectionProducts] = useState(null);
   const [report, setReport] = useState({ providerId:'coupang', currency:'KRW', from: '', to: '', clicks: '', orders: '', cancellations: '', commission: '', evidence: '' });
@@ -51,7 +51,18 @@ export default function RecommendationsAdmin() {
   };
   const field = (key, value) => setDraft(d => ({ ...d, [key]: value }));
   const listField = (key, label, options, labels = options) => <fieldset><legend>{label}</legend><div className={styles.checks}>{options.map((v, i) => <label key={v}><input type="checkbox" checked={draft[key].includes(v)} onChange={e => field(key, e.target.checked ? [...draft[key], v] : draft[key].filter(x => x !== v))}/>{labels[i]}</label>)}</div></fieldset>;
-  const sums = Object.fromEntries(['impression', 'click', 'more', 'filter', 'dismiss'].map(event => [event, (metrics?.metrics || []).filter(m => m.event === event && (!metricService || m.service === metricService)).reduce((sum, m) => sum + m.count, 0)]));
+  const filteredMetrics = (metrics?.metrics || []).filter(m => (!metricService || m.service === metricService) && (!metricPlacement || m.placement === metricPlacement));
+  const sums = Object.fromEntries(['impression', 'click', 'more', 'filter', 'dismiss'].map(event => [event, filteredMetrics.reduce((sum, m) => sum + (m[event] || 0), 0)]));
+  const productMetrics = new Map();
+  for (const row of filteredMetrics) {
+    if (row.productId === 'block' || (!row.impression && !row.click)) continue;
+    const total = productMetrics.get(row.productId) || { id: row.productId, impression: 0, click: 0 };
+    total.impression += row.impression || 0;
+    total.click += row.click || 0;
+    productMetrics.set(row.productId, total);
+  }
+  const metricProducts = [...productMetrics.values()].sort((a, b) => b.impression - a.impression || b.click - a.click || a.id.localeCompare(b.id));
+  const productTitles = new Map(products.map(p => [p.id, p.title]));
   return <main className={styles.admin}>
     <h1>생활 추천 관리</h1>
     <p>쿠팡 파트너스 <strong>{PARTNER_ACCOUNT}</strong> · <strong>{RECOMMENDATIONS_RELEASED && settings.enabled ? "전체 공개 ON" : "전체 공개 OFF"}</strong></p>
@@ -119,8 +130,13 @@ export default function RecommendationsAdmin() {
     </section>
     <section className={styles.section}><h2>운영 지표</h2><p>자체 이벤트는 구매·수익이 아닙니다. 아래 자체 집계는 최근 30일 기준이며, 표본이 작을 때 증가 원인이나 승자를 판정하지 않습니다.</p>
       <label>서비스별 조회<select className={ADMIN_INPUT} value={metricService} onChange={e => setMetricService(e.target.value)}><option value="">전체</option>{[...new Set((metrics?.metrics || []).map(m => m.service))].map(s => <option key={s}>{s}</option>)}</select></label>
+      <label>위치별 조회<select className={ADMIN_INPUT} value={metricPlacement} onChange={e => setMetricPlacement(e.target.value)}><option value="">전체</option><option value="result">결과 화면</option><option value="browse">둘러보기</option></select></label>
       {metrics ? <dl className={styles.metrics}>{[['impression','자체 노출'],['click','자체 클릭'],['more','더 보기'],['filter','필터 선택'],['dismiss','추천 접기']].map(([k,label]) => <div key={k}><dt>{label}</dt><dd>{sums[k]}</dd></div>)}</dl> : <p>통계 미확인</p>}
-      {metrics?.possiblyTruncated && <p>조회 한도에 도달해 일부 집계만 표시됩니다.</p>}
+      <h3>상품별 자체 지표</h3>
+      <p>노출은 상품 카드가 50% 이상 1초간 보였을 때 표시 세션당 한 번 집계합니다. 과거 섹션 노출은 제외합니다. 상품별 노출 수집 이전의 클릭도 포함될 수 있어, 전환 초기 CTR은 참고용입니다.</p>
+      {!metrics ? <p>통계 미확인</p> : !metricProducts.length ? <p role="status">선택한 조건에 상품별 노출·클릭 기록이 없습니다.</p> : <div className={styles.metricTableWrap} role="region" aria-label="상품별 자체 지표 표" tabIndex={0}>
+        <table className={styles.metricTable}><caption>최근 30일 · CTR = 클릭 ÷ 노출</caption><thead><tr><th scope="col">상품 제목·ID</th><th scope="col">노출</th><th scope="col">클릭</th><th scope="col">CTR</th></tr></thead><tbody>{metricProducts.map(p => <tr key={p.id}><th scope="row">{productTitles.get(p.id) || '상품명 미확인'}<small>{p.id}</small></th><td>{p.impression.toLocaleString('ko-KR')}</td><td>{p.click.toLocaleString('ko-KR')}</td><td>{p.impression ? (p.click / p.impression * 100).toFixed(2) + '%' : '미확인'}</td></tr>)}</tbody></table>
+      </div>}
       <p>상담 구매·결과 열람·페이지 성능: 기존 분석 대시보드에서 확인 · 이 화면과 자동 대조는 미연결</p>
       <h3>판매처 공식 리포트</h3>{!metrics?.reports?.length && <p>공식 클릭·주문·취소·수익: 미확인</p>}
       {(metrics?.reports || []).map(r => <p key={(r.providerId || "coupang") + (r.currency || "KRW") + r.from + r.to}>{r.from} ~ {r.to} · 클릭 {r.clicks ?? '미확인'} / 주문 {r.orders ?? '미확인'} / 취소 {r.cancellations ?? '미확인'} / 수익 {r.commission ?? r.commissionKRW ?? '미확인'} {r.currency || 'KRW'} · {r.providerId || 'coupang'} 공식 리포트 수동 기록 · 확인 {r.verifiedAt}</p>)}

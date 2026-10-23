@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { PRACTICE_TOPICS, TOPIC_RULES, SYMBOL_COLORS, SYMBOL_MOTIFS } from '@/js/recommendations-context.mjs';
 import { CATEGORIES, CURRENCIES, INTERESTS, normalizeContext } from '@/js/recommendations-core.mjs';
 import { ROSTER_GROUPS } from '@/lib/idol-chemi/data/roster.js';
-import { observeRecommendation, trackRecommendation, readRecommendationContext, recommendationReturnPath } from '@/js/recommendations-browser.mjs';
+import { observeRecommendationProducts, trackRecommendation, readRecommendationContext, recommendationReturnPath } from '@/js/recommendations-browser.mjs';
 import { getApiBaseUrl } from '@/app/_lib/api-config';
 import { useCopy, useCatalogue, ProductCard } from './RecommendationSurface';
 import { ArrowLeft, BookOpen, ArrowDown } from 'lucide-react';
@@ -24,9 +24,15 @@ export default function RecommendationBrowse({ category = '', previewProducts = 
   }, [category, preview, brand]);
   const data = useCatalogue(context, previewProducts);
   const track = (event, product = '') => { if (!preview) trackRecommendation(event, context, 'browse', product, getApiBaseUrl()); };
-  useEffect(() => data.enabled ? observeRecommendation(host.current, () => track('impression')) : undefined, [data.enabled]);
   const change = patch => { setContext(old => ({ ...old, ...patch })); track('filter'); };
   const shownProducts = preview ? data.products.filter(p => (!context.category || p.category === context.category) && !context.exclude.includes(p.id) && (!context.maxPrice || (p.price != null && p.price <= context.maxPrice)) && (!context.interests.length || context.interests.some(i => p.interests?.includes(i))) && (!context.species || p.category !== 'pets' || p.species?.includes(context.species)) && (!context.groupId || p.category !== 'fandom' || !p.groupId || p.groupId === context.groupId)) : data.products;
+  const seen = useRef(new Set());
+  const productKey = shownProducts.map(p => p.id).join('|');
+  const trackedService = context.service;
+  useEffect(() => {
+    if (!data.enabled || preview) return;
+    return observeRecommendationProducts(host.current, seen.current, id => trackRecommendation('impression', { service: trackedService }, 'browse', id, getApiBaseUrl()));
+  }, [data.enabled, preview, trackedService, productKey]);
   const identity = AFFILIATE_BRANDS[uiBrand];
   const title = uiBrand === 'ggulggul' ? c.yeoniTitle : c.title;
   const Container = preview ? 'section' : 'main';

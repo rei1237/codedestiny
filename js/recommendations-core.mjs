@@ -211,6 +211,7 @@ export const EVENT_NAMES = ['impression', 'click', 'more', 'filter', 'dismiss'];
 export function cleanEvent(body) {
   if (!body || Object.keys(body).some(k => !['event', 'service', 'placement', 'productId', 'consent'].includes(k)) || !EVENT_NAMES.includes(body.event) || !serviceRule(body.service) || !['result', 'browse'].includes(body.placement) || body.consent !== true) return null;
   if (body.productId && !validId(body.productId)) return null;
-  if (body.event === 'click' && !body.productId) return null;
+  // Product events require a real id; legacy section impressions are no longer collected.
+  if (['click', 'impression'].includes(body.event) && (!body.productId || body.productId === 'block')) return null;
   return { event: body.event, service: body.service, placement: body.placement, productId: body.productId || 'block' };
 }

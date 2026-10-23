@@ -26,7 +26,7 @@ export async function handleRecommendationRoutes(request, env) {
       if (/bot|crawler|spider|headless/i.test(request.headers.get('User-Agent') || '') || request.headers.get('Purpose') || request.headers.get('Sec-Purpose')?.includes('prefetch')) return new Response(null, { status: 204 });
       if (Number(request.headers.get('Content-Length') || 0) > 1024) return new Response(null, { status: 413 });
       const raw = await request.text();
-      if (raw.length > 1024) return new Response(null, { status: 413 });
+      if (new TextEncoder().encode(raw).byteLength > 1024) return new Response(null, { status: 413 });
       const event = cleanEvent(JSON.parse(raw));
       if (!event) return new Response(null, { status: 400 });
       // Global analytics budget, not a visitor/IP profile. Attribution remains approximate.

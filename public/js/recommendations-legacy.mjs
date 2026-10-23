@@ -19,7 +19,8 @@ export async function mountRecommendation(host, input, anchor = null) {
   const copy = recommendationCopy(document.documentElement.lang || 'ko');
   // 이 어댑터는 꿀꿀 셸 화면에만 붙는다. 제목은 영냥이가 아니라 연이 서가로 부른다.
   const lang = document.documentElement.lang || 'ko', shelf = affiliateCopy(lang === 'zh' ? 'zh-CN' : lang);
-  let context = normalizeContext(input), closed = false, impressed = false, cleanupObserver = () => {}, lastKey = '';
+  let context = normalizeContext(input), closed = false, cleanupObserver = () => {}, lastKey = '';
+  const seen = new Set();
   const section = document.createElement('section'), top = document.createElement('p');
   section.className = 'cd-recommendations'; section.dataset.recommendationBlock = 'true';
   top.className = 'cd-recommendations-disclosure'; top.textContent = copy.disclosure;
@@ -38,6 +39,7 @@ export async function mountRecommendation(host, input, anchor = null) {
       const key = query + JSON.stringify(data);
       if (key === lastKey && section.isConnected) return;
       lastKey = key;
+      cleanupObserver();
       if (closed || !host.isConnected || !data.enabled) { section.remove(); top.remove(); return; }
       const choose = serviceRule(context.service)?.explicitInterest || (context.service.startsWith('pet-') && !context.species);
       if (!data.products?.length && !choose) { section.remove(); top.remove(); return; }
@@ -59,6 +61,7 @@ export async function mountRecommendation(host, input, anchor = null) {
       data.products.slice(0, RESULT_PRODUCT_LIMIT).forEach(p => {
         const merchantCopy = value => p.providerId === 'aliexpress' ? value.replace(/쿠팡|Coupang|coupang/g, 'AliExpress') : value;
         const article = node('article', '', grid);
+        article.dataset.recommendationProduct = p.id;
         if (validImageUrl(p.imageUrl)) { const image = node('img', '', article); image.referrerPolicy = 'no-referrer'; image.loading = 'lazy'; image.alt = p.title; image.src = p.imageUrl; image.width = 240; image.height = 180; image.onerror = () => { image.remove(); node('p', copy.image, article); }; }
         node('h3', p.title, article); node('p', p.reason, article);
         if (p.book?.author) node('p', [p.book.author, p.book.publisher, p.book.edition, p.book.language, p.book.format].filter(Boolean).join(' · '), article);
@@ -79,8 +82,8 @@ export async function mountRecommendation(host, input, anchor = null) {
       dismiss.addEventListener('click', () => { track('dismiss'); cleanup(); });
       if (!top.isConnected) host.prepend(top);
       if (!section.isConnected) { if (anchor?.parentElement === host) anchor.after(section); else host.append(section); }
-      cleanupObserver = browser.observeRecommendation(section, () => { if (!impressed) { impressed = true; track('impression'); } });
-    } catch { section.remove(); top.remove(); }
+      cleanupObserver = browser.observeRecommendationProducts(section, seen, id => track('impression', id));
+    } catch { cleanupObserver(); section.remove(); top.remove(); }
   }
   if (!document.querySelector('link[data-recommendation-styles]')) {
     const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = '/styles/recommendations.css'; css.dataset.recommendationStyles = 'true'; document.head.append(css);
