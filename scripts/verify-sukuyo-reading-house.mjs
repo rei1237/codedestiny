@@ -53,6 +53,9 @@ try {
   page.on('pageerror', error => errors.push(error.message));
   await page.goto('http://127.0.0.1:47831/', { waitUntil: 'domcontentloaded' });
   if (!baseline) {
+    const honeyDetails = page.locator('.cdh-honey__details');
+    assert.equal(await honeyDetails.evaluate(element => element.open), false);
+    await honeyDetails.locator('summary').click();
     const attendance=page.locator('[data-cd-honey-attend]');
     await attendance.waitFor();
     await page.waitForFunction(()=>!document.querySelector('[data-cd-honey-attend]').disabled);
