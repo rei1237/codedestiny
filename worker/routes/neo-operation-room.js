@@ -27,6 +27,7 @@ import { callGeminiText } from "../lib/gemini.js";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import {SYNC_LLM_TIMEOUT_CEILING_MS, PAID_LLM_PARTS_PER_REQUEST } from "../lib/sync-llm-timeout.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
+import { lunarToSolar } from "../../lib/korean-calendar/index.js";
 import { calculateLifeBookAiSaju } from "../lib/life-book-ai-saju.js";
 import { calculateZiweiAiChart, describeBrightness, formatStarWithBrightness } from "../lib/ziwei-ai-chart.js";
 import { calculateVedicAiChart } from "../lib/vedic-ai-chart.js";
@@ -73,6 +74,7 @@ const TITLE = "네오의 팩폭 작전실";
 const LOGIN_REQUIRED_MESSAGE = "작전을 시작하려면 로그인이 필요하다. 로그인하고 다시 앉아라.";
 const PAYMENT_VERIFY_FAILED_MESSAGE = "결제나 이용권 확인이 끝나지 않았다. 권한을 확인한 뒤 다시 시도해라.";
 const INVALID_INPUT_MESSAGE = "작전 정보가 부족하다. 출생정보, 분석 방식, 주제, 강도, 질문을 다시 확인해라.";
+const INVALID_BIRTH_MESSAGE = "없는 생년월일이다. 음력이면 그 해 그 달에 있는 날짜인지, 양력·음력 선택이 맞는지 확인해라.";
 const CALCULATION_ERROR_MESSAGE = "운명의 계산 지도를 펼치는 중 문제가 생겼다. 입력값을 확인하고 다시 시도해라.";
 const LLM_ERROR_MESSAGE = "작전 브리핑 작성에 실패했다. 이용권이나 결제 권한은 보존되니 다시 시도해라.";
 // 🔴 카드 단건 결제가 실제로 환불된 경우에만 쓴다 — 위 LLM_ERROR_MESSAGE 의 "결제 권한은 보존"과
@@ -128,6 +130,24 @@ function isValidDateKey(value) {
   const day = Number(match[3]);
   const date = new Date(Date.UTC(year, month - 1, day));
   return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day && year >= 1900 && year <= 2100;
+}
+
+// 🔴 생년월일이 계산기에서 열리는 날짜인지 본다. 양력 왕복(isValidDateKey)만 쓰면 실재하는 음력 생일
+//    (1962-02-30 등)이 닫히고, 그 해에 없는 음력 날짜(1990-01-30)는 통과해 결제·차감 뒤
+//    calculateMethodSummary 에서 INVALID_LUNAR_DATE 로 터진다. 음력은 계산기가 쓰는 코어 lunarToSolar 로
+//    실재 여부를 본다(1900~2100 음력 전 조합에서 사주 계산기의 통과·거절과 일치함을 전수 대조했다).
+//    계산기를 직접 부르지 않는 것은 normalizeInput 이 요청마다 도는데 명식 계산은 1회여야 해서다.
+function isCalculableBirth(birthInfo) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(birthInfo.birthDate);
+  if (!match) return false;
+  if (birthInfo.calendarType !== "lunar") return isValidDateKey(birthInfo.birthDate);
+  const year = Number(match[1]);
+  if (year < 1900 || year > 2100) return false;
+  try {
+    return Boolean(lunarToSolar(year, Number(match[2]), Number(match[3]), birthInfo.isLeapMonth));
+  } catch {
+    return false;
+  }
 }
 
 function normalizeGender(value) {
@@ -193,7 +213,7 @@ function normalizePartnerBirthInfo(body, selectedMethod, topic) {
   const source = body.partnerBirthInput || body.partnerBirthInfo || body.partner;
   if (!source || typeof source !== "object") return null;
   const partner = normalizeBirthInfo({ birthInput: source });
-  if (!isValidDateKey(partner.birthDate)) return null;
+  if (!isCalculableBirth(partner)) return null;
   if (!partner.gender) return null;
   if (!partner.birthTimeUnknown && !partner.birthTime) return null;
   return withBirthPlace(partner);
@@ -209,7 +229,7 @@ function normalizeInput(body = {}) {
   if (!topic) return { ok: false, message: INVALID_INPUT_MESSAGE };
   if (!INTENSITIES.has(intensity)) return { ok: false, message: INVALID_INPUT_MESSAGE };
   if (question.length < MIN_QUESTION_LENGTH) return { ok: false, message: INVALID_INPUT_MESSAGE };
-  if (!isValidDateKey(birthInfo.birthDate)) return { ok: false, message: INVALID_INPUT_MESSAGE };
+  if (!isCalculableBirth(birthInfo)) return { ok: false, message: INVALID_BIRTH_MESSAGE };
   if (!birthInfo.gender) return { ok: false, message: INVALID_INPUT_MESSAGE };
   if (!birthInfo.birthTimeUnknown && !birthInfo.birthTime) return { ok: false, message: INVALID_INPUT_MESSAGE };
   if ((selectedMethod === "vedic" || selectedMethod === "astrology") && !birthInfo.timezone) {

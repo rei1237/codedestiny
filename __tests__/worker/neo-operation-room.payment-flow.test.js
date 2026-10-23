@@ -288,6 +288,29 @@ describe("궁합 모드 입력 정규화", () => {
     }
   });
 
+  // 🔴 결제 게이트가 먼저 차감하므로 계산이 못 하는 생년월일은 여기서 걸러야 한다. 음력은 양력 왕복으로 보면
+  //    안 된다 — 실재 음력 2/30(1962)·2/29(1961)은 양력 왕복이 깨져도 계산이 열려야 하고, 음력에 없는
+  //    날짜(1990 음력 1/30)는 통과하면 결제 뒤 계산에서 터진다.
+  test("음력은 실재하는 날짜만 받고, 없는 날짜는 본인이면 거절·상대면 버린다", () => {
+    const lunar = (birthDate) => ({ ...soloBody.birthInput, birthDate, calendarType: "lunar", timezone: "Asia/Seoul" });
+    for (const method of ["saju", "ziwei", "vedic"]) {
+      for (const birthDate of ["1962-02-30", "1961-02-29"]) {
+        const result = neoTestUtils.normalizeInput({ ...soloBody, selectedMethod: method, birthInput: lunar(birthDate) });
+        expect(result.ok).toBe(true);
+      }
+      const missing = neoTestUtils.normalizeInput({ ...soloBody, selectedMethod: method, birthInput: lunar("1990-01-30") });
+      expect(missing.ok).toBe(false);
+      expect(missing.message).toContain("없는 생년월일");
+
+      const partnerBody = { ...soloBody, selectedMethod: method, birthInput: { ...soloBody.birthInput, timezone: "Asia/Seoul" }, relationshipStatus: "dating" };
+      const realPartner = neoTestUtils.normalizeInput({ ...partnerBody, partnerBirthInput: lunar("1962-02-30") });
+      expect(realPartner.input.partnerBirthInfo?.birthDate).toBe("1962-02-30");
+      const missingPartner = neoTestUtils.normalizeInput({ ...partnerBody, partnerBirthInput: lunar("1990-01-30") });
+      expect(missingPartner.ok).toBe(true);
+      expect(missingPartner.input).not.toHaveProperty("partnerBirthInfo");
+    }
+  });
+
   test("상대 출생시간 미상은 받아들이고 시각을 비운다", () => {
     const result = neoTestUtils.normalizeInput({
       ...soloBody,

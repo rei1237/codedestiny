@@ -45,6 +45,8 @@ async function loadInputFlow() {
   return loadTsModule("src/features/neo-war-room/data/input-flow.ts", {
     "@/app/_lib/ai-prefill-seed": AI_PREFILL_SEED_STUB,
     "./form-copy": formCopy,
+    // 음력 날짜 실재 여부는 서버와 같은 코어 달력으로 본다(양력 왕복 검사는 실재 음력 2/30 을 잘못 막는다).
+    "@/lib/korean-calendar": pathToFileURL(path.join(root, "lib/korean-calendar/index.js")).href,
   });
 }
 
@@ -139,6 +141,25 @@ test("서버가 버리는 범위 밖 생년월일을 화면이 먼저 막는다"
       errors.some((error) => error.field === "partnerBirthDate"),
       `${birthDate}: 서버 isValidDateKey 가 버리는 값인데 화면이 통과시킨다`,
     );
+  }
+});
+
+test("음력은 그 해에 실재하는 날짜만 통과시키고, 없는 날짜는 결제 전에 막는다", async () => {
+  const { validateNeoWarRoomInput } = await loadInputFlow();
+  const lunar = { calendarType: "lunar" };
+  // 1962-02-30·1961-02-29 는 실재 음력인데 양력 왕복(Date.UTC)으로는 깨지는 날짜다.
+  for (const birthDate of ["1962-02-30", "1961-02-29"]) {
+    const errors = validateNeoWarRoomInput(buildInput({ birth: { ...selfBirth, ...lunar, birthDate } }));
+    assert.deepEqual(errors.filter((error) => error.field === "birthDate"), [], `${birthDate}: 실재하는 음력을 화면이 막는다`);
+  }
+  // 1990 음력 1월은 29일까지고, 음력에는 31일이 없다.
+  for (const birthDate of ["1990-01-30", "1990-12-31"]) {
+    const errors = validateNeoWarRoomInput(buildInput({ birth: { ...selfBirth, ...lunar, birthDate } }));
+    assert.ok(errors.some((error) => error.field === "birthDate"), `${birthDate}: 없는 음력인데 화면이 통과시킨다 — 서버 계산에서 터진다`);
+    const partnerErrors = validateNeoWarRoomInput(
+      buildInput({}, { enabled: true, relationshipStatus: "dating", birth: { ...partnerBirth, ...lunar, birthDate } }),
+    );
+    assert.ok(partnerErrors.some((error) => error.field === "partnerBirthDate"), `${birthDate}: 상대의 없는 음력을 통과시킨다`);
   }
 });
 

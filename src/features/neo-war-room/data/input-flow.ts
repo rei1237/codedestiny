@@ -1,5 +1,6 @@
 import { readAiProfileSeed } from "@/app/_lib/ai-prefill-seed";
 import type { LoadingLocale } from "@/constants/loadingMessages";
+import { lunarToSolar } from "@/lib/korean-calendar";
 import type { NeoWarRoomConsultMode } from "./assets";
 import { NEO_COMPAT_RELATIONSHIP_STATUSES, type NeoCompatRelationshipStatus } from "./form-copy";
 
@@ -8,6 +9,7 @@ type NonKoLocale = Exclude<LoadingLocale, "ko">;
 type NeoValidationMessages = {
   profile: string;
   birthDate: string;
+  birthDateInvalid: string;
   gender: string;
   birthTime: string;
   birthPlace: string;
@@ -17,6 +19,7 @@ type NeoValidationMessages = {
   question: (min: number) => string;
   partnerRelationship: string;
   partnerBirthDate: string;
+  partnerBirthDateInvalid: string;
   partnerGender: string;
   partnerBirthTime: string;
 };
@@ -24,6 +27,7 @@ type NeoValidationMessages = {
 const NEO_VALIDATION_MESSAGES_KO: NeoValidationMessages = {
   profile: "저장된 프로필에 출생정보가 부족하다. 직접 입력으로 작전을 세워라.",
   birthDate: "생년월일이 빠졌다. 운명의 좌표부터 찍어라.",
+  birthDateInvalid: "없는 생년월일이다. 음력이면 그 해 그 달에 있는 날짜인지, 양력·음력 선택이 맞는지 확인해라.",
   gender: "성별을 선택해라. 계산의 기준이 흐려진다.",
   birthTime: "출생시간을 입력하거나 모름으로 표시해라.",
   birthPlace: "베다점과 점성술은 시간대가 필요하다.",
@@ -33,6 +37,7 @@ const NEO_VALIDATION_MESSAGES_KO: NeoValidationMessages = {
   question: (min) => `질문은 최소 ${min}자 이상 적어라. 흐린 질문에는 흐린 답만 온다.`,
   partnerRelationship: "관계 상태를 골라라. 어느 단계인지 알아야 작전이 갈린다.",
   partnerBirthDate: "상대의 생년월일이 빠졌다. 궁합은 두 명반이 다 있어야 선다.",
+  partnerBirthDateInvalid: "상대의 생년월일이 없는 날짜다. 음력이면 그 해 그 달에 있는 날짜인지, 양력·음력 선택이 맞는지 확인해라.",
   partnerGender: "상대의 성별을 선택해라. 명반 계산의 기준이다.",
   partnerBirthTime: "상대의 출생시간을 입력하거나 모름으로 표시해라.",
 };
@@ -40,6 +45,7 @@ const NEO_VALIDATION_MESSAGES_KO: NeoValidationMessages = {
 const NEO_VALIDATION_MESSAGES_EN: NeoValidationMessages = {
   profile: "Your saved profile is missing birth info. Set up the operation with manual entry.",
   birthDate: "Date of birth is missing. Pin down the coordinates of your fate first.",
+  birthDateInvalid: "That date of birth does not exist. For a lunar date, check the day exists in that month and that solar/lunar is set right.",
   gender: "Select a gender. Without it the basis of the calculation goes fuzzy.",
   birthTime: "Enter a time of birth, or mark it as unknown.",
   birthPlace: "Vedic and astrology both need a timezone.",
@@ -49,6 +55,7 @@ const NEO_VALIDATION_MESSAGES_EN: NeoValidationMessages = {
   question: (min) => `Write at least ${min} characters for your question. A vague question only gets a vague answer.`,
   partnerRelationship: "Choose the relationship status. The operation splits on which stage you're in.",
   partnerBirthDate: "Your partner's date of birth is missing. Compatibility needs both charts.",
+  partnerBirthDateInvalid: "Your partner's date of birth does not exist. For a lunar date, check the day exists in that month and that solar/lunar is set right.",
   partnerGender: "Select your partner's gender. It is the basis of the chart calculation.",
   partnerBirthTime: "Enter your partner's time of birth, or mark it as unknown.",
 };
@@ -56,6 +63,7 @@ const NEO_VALIDATION_MESSAGES_EN: NeoValidationMessages = {
 const NEO_VALIDATION_MESSAGES_JA: NeoValidationMessages = {
   profile: "保存されたプロフィールに出生情報が足りない。直接入力で作戦を立てろ。",
   birthDate: "生年月日が抜けている。運命の座標から打ち込め。",
+  birthDateInvalid: "存在しない生年月日だ。旧暦ならその年その月にある日か、新暦・旧暦の選択が合っているか確認しろ。",
   gender: "性別を選択しろ。計算の基準がぶれる。",
   birthTime: "出生時間を入力するか、不明として表示しろ。",
   birthPlace: "ベーダ占星術と西洋占星術にはタイムゾーンが必要だ。",
@@ -65,6 +73,7 @@ const NEO_VALIDATION_MESSAGES_JA: NeoValidationMessages = {
   question: (min) => `質問は最低${min}文字以上書け。曖昧な質問には曖昧な答えしか返らない。`,
   partnerRelationship: "関係の状態を選べ。どの段階かで作戦が変わる。",
   partnerBirthDate: "相手の生年月日が抜けている。相性は二つの命盤が揃って初めて立つ。",
+  partnerBirthDateInvalid: "相手の生年月日は存在しない日付だ。旧暦ならその年その月にある日か、新暦・旧暦の選択が合っているか確認しろ。",
   partnerGender: "相手の性別を選択しろ。命盤計算の基準だ。",
   partnerBirthTime: "相手の出生時間を入力するか、不明として表示しろ。",
 };
@@ -72,6 +81,7 @@ const NEO_VALIDATION_MESSAGES_JA: NeoValidationMessages = {
 const NEO_VALIDATION_MESSAGES_ZH_CN: NeoValidationMessages = {
   profile: "已保存资料缺少出生信息。请用手动输入来制定作战。",
   birthDate: "出生日期缺失。先标出命运的坐标。",
+  birthDateInvalid: "该出生日期不存在。若为农历，请确认当年当月有这一天，以及公历/农历选择无误。",
   gender: "请选择性别，否则计算基准会失准。",
   birthTime: "请输入出生时间，或标记为不详。",
   birthPlace: "吠陀占星与西洋占星都需要时区。",
@@ -81,6 +91,7 @@ const NEO_VALIDATION_MESSAGES_ZH_CN: NeoValidationMessages = {
   question: (min) => `问题至少写${min}个字。模糊的问题只会得到模糊的答案。`,
   partnerRelationship: "请选择关系状态。处于哪个阶段，作战就不同。",
   partnerBirthDate: "对方的出生日期缺失。合盘需要两张命盘齐全。",
+  partnerBirthDateInvalid: "对方的出生日期不存在。若为农历，请确认当年当月有这一天，以及公历/农历选择无误。",
   partnerGender: "请选择对方的性别，这是命盘计算的基准。",
   partnerBirthTime: "请输入对方的出生时间，或标记为不详。",
 };
@@ -88,6 +99,7 @@ const NEO_VALIDATION_MESSAGES_ZH_CN: NeoValidationMessages = {
 const NEO_VALIDATION_MESSAGES_ZH_TW: NeoValidationMessages = {
   profile: "已保存資料缺少出生資訊。請用手動輸入來制定作戰。",
   birthDate: "出生日期缺失。先標出命運的座標。",
+  birthDateInvalid: "該出生日期不存在。若為農曆，請確認當年當月有這一天，以及國曆/農曆選擇無誤。",
   gender: "請選擇性別，否則計算基準會失準。",
   birthTime: "請輸入出生時間，或標記為不詳。",
   birthPlace: "吠陀占星與西洋占星都需要時區。",
@@ -97,6 +109,7 @@ const NEO_VALIDATION_MESSAGES_ZH_TW: NeoValidationMessages = {
   question: (min) => `問題至少寫${min}個字。模糊的問題只會得到模糊的答案。`,
   partnerRelationship: "請選擇關係狀態。處於哪個階段，作戰就不同。",
   partnerBirthDate: "對方的出生日期缺失。合盤需要兩張命盤齊全。",
+  partnerBirthDateInvalid: "對方的出生日期不存在。若為農曆，請確認當年當月有這一天，以及國曆/農曆選擇無誤。",
   partnerGender: "請選擇對方的性別，這是命盤計算的基準。",
   partnerBirthTime: "請輸入對方的出生時間，或標記為不詳。",
 };
@@ -312,6 +325,24 @@ function isPartnerBirthDateUsable(value: string) {
   );
 }
 
+/**
+ * 본인·상대 생년월일이 서버 계산에 쓰일 수 있는 날짜인가. 서버 neo-operation-room.js 의 isCalculableBirth 와
+ * 같은 달력 판정이다. 음력은 양력 왕복(Date.UTC)으로 보면 안 된다 — 실재 음력 2/30 처럼 양력 왕복이 깨지는
+ * 날짜를 잘못 막고, 반대로 음력에 없는 31일은 통과시킨다. 그래서 코어 lunarToSolar 로 실재 여부를 본다.
+ */
+function isBirthDateUsable(value: string, calendarType: NeoWarRoomCalendarType) {
+  if (calendarType !== "lunar") return isPartnerBirthDateUsable(value);
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return false;
+  const year = Number(match[1]);
+  if (year < 1900 || year > 2100) return false;
+  try {
+    return Boolean(lunarToSolar(year, Number(match[2]), Number(match[3]), false));
+  } catch {
+    return false;
+  }
+}
+
 export function validateNeoWarRoomInput(input: NeoWarRoomValidationInput, locale: LoadingLocale = "ko"): NeoWarRoomValidationError[] {
   const errors: NeoWarRoomValidationError[] = [];
   const birth = input.birth;
@@ -323,6 +354,8 @@ export function validateNeoWarRoomInput(input: NeoWarRoomValidationInput, locale
   }
   if (!birth.birthDate) {
     errors.push({ field: "birthDate", message: messages.birthDate });
+  } else if (!isBirthDateUsable(birth.birthDate, birth.calendarType)) {
+    errors.push({ field: "birthDate", message: messages.birthDateInvalid });
   }
   if (!birth.gender) {
     errors.push({ field: "gender", message: messages.gender });
@@ -358,8 +391,11 @@ export function validateNeoWarRoomInput(input: NeoWarRoomValidationInput, locale
     }
     // 🔴 빈 값만 보면 부족하다 — 서버는 1900~2100 범위 밖 날짜도 "상대 없음"으로 조용히 버린다.
     //    서버의 isValidDateKey 와 같은 조건을 여기서 먼저 건다.
-    if (!isPartnerBirthDateUsable(partnerBirth.birthDate)) {
-      errors.push({ field: "partnerBirthDate", message: messages.partnerBirthDate });
+    if (!partnerBirth.birthDate || !isBirthDateUsable(partnerBirth.birthDate, partnerBirth.calendarType)) {
+      errors.push({
+        field: "partnerBirthDate",
+        message: partnerBirth.birthDate ? messages.partnerBirthDateInvalid : messages.partnerBirthDate,
+      });
     }
     if (!partnerBirth.gender) {
       errors.push({ field: "partnerGender", message: messages.partnerGender });
