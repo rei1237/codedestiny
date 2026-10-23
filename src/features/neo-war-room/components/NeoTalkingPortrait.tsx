@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useState, type CSSProperties } from "react";
 import { useSpritePlaybackGate } from "@/src/hooks/useSpritePlaybackGate";
 import styles from "./NeoTalkingPortrait.module.css";
 
@@ -13,6 +13,9 @@ export default function NeoTalkingPortrait({ talking }: { talking: boolean }) {
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
   const [tick, setTick] = useState(0);
+  // next/image already decodes before onLoad; keep its error ref stable per tick.
+  const handleLoad = useCallback(() => setLoaded(true), []);
+  const handleError = useCallback(() => setFailed(true), []);
 
   useEffect(() => {
     if (!gate.canAnimate || !loaded || failed) return;
@@ -28,8 +31,8 @@ export default function NeoTalkingPortrait({ talking }: { talking: boolean }) {
     {!failed && <picture>
       <source media="(max-width: 768px)" srcSet="/neo-operation-room/sprites/neo-talk-v1-768.webp" />
       <Image src="/neo-operation-room/sprites/neo-talk-v1-1280.webp" alt="" width={1280} height={1280} unoptimized loading="eager" className={styles.sheet}
-        onLoad={async event => { try { await event.currentTarget.decode(); setLoaded(true); } catch { setFailed(true); } }}
-        onError={() => setFailed(true)} />
+        onLoad={handleLoad}
+        onError={handleError} />
     </picture>}
   </span>;
 }
