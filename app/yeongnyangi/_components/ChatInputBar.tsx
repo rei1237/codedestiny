@@ -1,11 +1,7 @@
 'use client';
-import {createContext,type ReactNode,type MouseEvent} from 'react';
+import {type ReactNode,type MouseEvent} from 'react';
 import {ArrowUp} from 'lucide-react';
 import styles from './intake-chat.module.css';
-
-/** 대화형 화면의 하단 답장 슬롯. 대화 안의 단계가 자기 입력 UI를 이 슬롯에 포털로 그린다. 공급자가 없으면 제자리에 그린다. */
-export type IntakeComposer={slot:HTMLElement|null;follow:()=>void;claim:(on:boolean)=>void};
-export const IntakeComposerContext=createContext<IntakeComposer|null>(null);
 
 type Send={sendLabel:string;disabled?:boolean;onSend?:(event:MouseEvent<HTMLButtonElement>)=>void;form?:string};
 // onPointerDown 기본 동작을 막아 전송 뒤에도 입력 포커스(모바일 키보드)를 유지한다.

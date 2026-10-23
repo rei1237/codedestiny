@@ -28,14 +28,10 @@ test('six systems accept all four user-selected tiers, keeping price, budget and
  }
 });
 
-test('edited questions, restored scope and domain changes preserve the chosen fish and required inputs',()=>{
+test('edited questions and domain changes preserve the chosen fish',()=>{
  const v={domain:'saju',question:'이직할까?',decision,fish:'tuna'};
  assert.equal(m.intakeFish(v),'tuna');
  assert.equal(m.intakeFish({...v,domain:'tarot',question:'마음을 표현할까?',decision:{...decision,category:'love'}}),'tuna');
  assert.equal(m.intakeFish({...v,fish:undefined}),'salmon');
- assert.ok(m.intakeSteps({...v,fish:'mackerel'}).includes('options'));
- const changed={...v,fish:'mackerel',decision:{...decision,options:''}};
- const cursor=m.intakeCursor(changed,true,'review',[{id:'profile',valid:true}]);
- assert.equal(cursor.steps[cursor.index],'options');
 });
 

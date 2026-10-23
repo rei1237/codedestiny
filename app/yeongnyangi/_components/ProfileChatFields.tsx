@@ -1,21 +1,17 @@
 'use client';
-import {useContext,useEffect,useRef,useState,type ReactNode,type FormEvent,type KeyboardEvent} from 'react';
-import {createPortal} from 'react-dom';
+import {useEffect,useRef,useState,type ReactNode,type FormEvent,type KeyboardEvent} from 'react';
 import styles from './intake-chat.module.css';
-import ChatInputBar,{ChatSendButton,IntakeComposerContext} from './ChatInputBar';
+import ChatInputBar,{ChatSendButton} from './ChatInputBar';
 // input: 입력 바 안의 한 줄 입력, chips: 바 위 칩 줄, note: 보조 문구, answer: 지난 답변 말풍선 문구(없으면 입력값).
 export type ProfileChatField={id:string;prompt:string;input?:ReactNode;chips?:ReactNode;note?:ReactNode;answer?:string};
 export default function ProfileChatFields({fields,formId,onSubmit,busy,error,saveLabel}:{fields:ProfileChatField[];formId:string;onSubmit:(event:FormEvent<HTMLFormElement>)=>void;busy:boolean;error:string;saveLabel:string}){
  const [step,setStep]=useState(0),[answers,setAnswers]=useState<Record<string,string>>({});
  const form=useRef<HTMLFormElement>(null),bottom=useRef<HTMLDivElement>(null);
- const composer=useContext(IntakeComposerContext);
- useEffect(()=>{if(!composer)return;composer.claim(true);return()=>composer.claim(false);},[composer]);
  useEffect(()=>{
-  composer?.follow();
   if(window.matchMedia('(pointer: coarse)').matches)return;
   const active=bottom.current?.querySelector('[data-active="true"]');
   (active?.querySelector<HTMLElement>('input:not([type=hidden]):not(:disabled)')||active?.querySelector<HTMLElement>('button[type=submit]'))?.focus({preventScroll:true});
- },[step,composer]);
+ },[step]);
  function submit(event:FormEvent<HTMLFormElement>){
   event.preventDefault();
   const active=bottom.current?.querySelector<HTMLElement>('[data-active="true"]');
@@ -48,6 +44,6 @@ export default function ProfileChatFields({fields,formId,onSubmit,busy,error,sav
   </div>)}
   <div className={styles.cat}><img src="/assets/yeongnyangi/profiles/welcome.webp" alt="" width={36} height={36}/><p key={step} className={styles.catBubble}>{fields[step].prompt}</p></div>
   <p className={styles.srOnly} role="status">{fields[step].prompt}</p>
-  {composer?.slot?createPortal(composerUi,composer.slot):composerUi}
+  {composerUi}
  </form>;
 }

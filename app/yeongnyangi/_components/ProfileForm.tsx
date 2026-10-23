@@ -54,7 +54,7 @@ export default function ProfileForm({onSaved,locale,conversational=false,voice='
  ];
  const chip=(selected:boolean,label:string,select:()=>void)=><button type="button" key={label} aria-pressed={selected} onClick={select}>{label}</button>;
  const calendars:[string,string][]=[['solar',copy.solar],['lunar',copy.lunar],['lunar_leap',copy.leap]];
- // 대화형은 입력 UI를 하단 답장 슬롯(IntakeComposerContext)에 그린다. form 속성으로 대화 안의 <form> 제출에 묶는다.
+ // 대화형 입력은 form 속성으로 대화 안의 <form> 제출에 묶는다.
  const chatFields:ProfileChatField[]=[
   {id:'name',prompt:fields[0].prompt,input:<input name="name" form={formId} required maxLength={40} autoComplete="nickname" placeholder={copy.name}/>},
   {id:'gender',prompt:fields[1].prompt,chips:<>{([['F',copy.female],['M',copy.male]] as const).map(([value,label])=>chip(gender===value,label,()=>setGender(value)))}<input type="hidden" name="gender" form={formId} value={gender}/></>,answer:gender==='M'?copy.male:copy.female},
