@@ -576,7 +576,6 @@ const DEFAULT_ALLOWED_ORIGINS = [
   "https://code-destiny.com",
   "https://www.code-destiny.com",
   "https://code-destiny.pages.dev",
-  "https://codedestiny.pages.dev",
 ];
 
 const NO_CACHE_CONTROL = "no-store, no-cache, must-revalidate";
@@ -955,7 +954,6 @@ function isFrontendOrigin(upstreamOrigin, env) {
     "https://code-destiny.com",
     "https://www.code-destiny.com",
     "https://code-destiny.pages.dev",
-    "https://codedestiny.pages.dev",
   ].filter(Boolean));
 
   return frontendOrigins.has(upstreamOrigin);
