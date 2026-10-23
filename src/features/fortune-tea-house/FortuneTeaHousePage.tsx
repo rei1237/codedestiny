@@ -26,6 +26,7 @@ import { getAuthState, refreshAuth, useAuthStore } from "@/app/_lib/auth-store";
 import { readFortuneTeaRecovery, saveFortuneTeaRecovery, clearFortuneTeaRecovery, type FortuneTeaRecovery } from "./lib/consultRecovery";
 import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
 import type { FortuneTeaHouseConsultMode, FortuneTeaHouseConsultRequest, FortuneTeaHouseConsultResponse, FortuneTeaHouseHoneyDropsState, FortuneTeaHouseQuestionInput, FortuneTeaTarotSpread } from "./data/consult";
+import { lunarToSolar } from "@/lib/korean-calendar";
 import { KRW_PER_COIN, KRW_PER_MONTHLY_CREDIT } from "@/lib/payment/coin-pricing";
 import { fortuneTeaHouseConsultPricing, getFortuneTeaHouseConsultFeatureKey, resolveFortuneTeaHousePriceKey } from "./data/consultPricing";
 import { isTeaHouseEntryStage } from "./data/entryStory";
@@ -553,16 +554,18 @@ function TeaHouseHistoryLoadingDialog({ onClose }: { onClose: () => void }) {
   );
 }
 
-// 서버는 27숙 천문 계산에 넘기기 전 생년월일을 양력 왕복(Date.UTC)과 1900~2100 범위로만 읽는다
-// (worker/routes/fortune-tea-house.js parseFortuneTeaSukuyoBirthDate). 그 형태가 아니면 본명숙 계산이
-// 조용히 닫히므로, 200코인을 쓰기 전에 같은 규칙으로 되돌린다.
-function isServerReadableSukuyoBirthDate(value?: string) {
-  const match = String(value || "").trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+// 서버는 27숙 천문 계산에 넘기기 전 생년월일을 달력 종류별로 읽는다
+// (worker/routes/fortune-tea-house.js parseFortuneTeaSukuyoBirthDate): 1900~2100 안에서
+// 양력은 Date.UTC 왕복, 음력은 한국 음양력 코어에 실재하는 날짜(윤달 선택 포함)여야 한다.
+// 그 형태가 아니면 본명숙 계산이 닫히므로, 200코인을 쓰기 전에 같은 규칙으로 되돌린다.
+function isServerReadableSukuyoBirthDate(person?: { birthDate?: string; calendarType?: string; isLeapMonth?: boolean }) {
+  const match = String(person?.birthDate || "").trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (!match) return false;
   const year = Number(match[1]);
   const month = Number(match[2]);
   const day = Number(match[3]);
   if (year < 1900 || year > 2100) return false;
+  if (person?.calendarType === "lunar") return Boolean(lunarToSolar(year, month, day, person.isLeapMonth === true));
   const date = new Date(Date.UTC(year, month - 1, day));
   return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
 }
@@ -1214,8 +1217,8 @@ export default function FortuneTeaHousePage() {
       // 숙요점 본명숙은 서버의 천문 계산으로만 열린다 — 화면은 그 계산이 읽을 수 있는 날짜인지만
       // 결제 전에 확인한다. 닫힌 채 보내면 근거 없는 상담문에 200코인이 청구된다.
       if (nextQuestionInput.consultationMode === "sukuyo"
-        && (!isServerReadableSukuyoBirthDate(nextQuestionInput.sukuyo?.user?.birthDate)
-          || !isServerReadableSukuyoBirthDate(nextQuestionInput.sukuyo?.partner?.birthDate))) {
+        && (!isServerReadableSukuyoBirthDate(nextQuestionInput.sukuyo?.user)
+          || !isServerReadableSukuyoBirthDate(nextQuestionInput.sukuyo?.partner))) {
         throw new Error("입력하신 생년월일로는 두 사람의 27숙 본명숙을 계산할 수 없었어요. 음력·양력 선택과 날짜를 다시 확인해 주세요.");
       }
       localPreviewResult = localDraft;

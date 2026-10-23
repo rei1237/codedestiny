@@ -719,24 +719,29 @@ function cleanTextOr(value, fallback, maxLength = 80) {
   return cleanText(value, maxLength) || fallback;
 }
 
-function parseFortuneTeaSukuyoBirthDate(value) {
+// 음력 입력은 양력 달력으로 왕복하지 않는다 — 음력 2월 30일·윤년 아닌 해의 음력 2월 29일처럼
+// 양력에는 없지만 음력에는 실재하는 생일이 걸러진다. 음력의 실재 여부는 코어 lunarToSolar 가 판정한다.
+function parseFortuneTeaSukuyoBirthDate(value, person = {}) {
   const raw = cleanText(value, 20);
   const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (!match) return null;
   const year = Number(match[1]);
   const month = Number(match[2]);
   const day = Number(match[3]);
+  if (year < 1900 || year > 2100) return null;
+  if (person?.calendarType === "lunar") {
+    if (!lunarToSolar(year, month, day, person.isLeapMonth === true)) return null;
+    return { year, month, day, raw };
+  }
   const date = new Date(Date.UTC(year, month - 1, day));
   if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return null;
-  if (year < 1900 || year > 2100) return null;
   return { year, month, day, raw };
 }
 
 function lunarForFortuneTeaSukuyoPerson(person = {}) {
-  const birth = parseFortuneTeaSukuyoBirthDate(person.birthDate);
+  const birth = parseFortuneTeaSukuyoBirthDate(person.birthDate, person);
   if (!birth) throw new Error("INVALID_SUKUYO_BIRTH");
   if (person.calendarType === "lunar") {
-    if (!lunarToSolar(birth.year, birth.month, birth.day, person.isLeapMonth === true)) throw new Error("INVALID_SUKUYO_BIRTH");
     return {
       lunarYear: birth.year,
       lunarMonth: birth.month,
@@ -766,7 +771,7 @@ function calculateFortuneTeaSukuyoPerson(person = {}) {
 async function prepareFortuneTeaSukuyoAstronomy(request, env, requestUrl) {
   if (request?.consultationMode !== "sukuyo" || !request.sukuyo) return;
   for (const person of [request.sukuyo.user, request.sukuyo.partner]) {
-    const birth = parseFortuneTeaSukuyoBirthDate(person?.birthDate);
+    const birth = parseFortuneTeaSukuyoBirthDate(person?.birthDate, person);
     if (!birth) continue;
     const timeMatch = String(person.birthTime || "").match(/^(\d{1,2}):(\d{2})$/);
     const timeUnknown = person.birthTimeUnknown === true || !timeMatch;
@@ -6084,6 +6089,7 @@ async function handleEnsureAccess(request, env) {
   }
   const body = await readJson(request);
   const consultRequest = normalizeRequest(body);
+  assertFortuneTeaInputOpenable(consultRequest);
   const access = await verifyFortuneTeaHouseConsultAccess(request, env, body, consultRequest);
   if (!access.ok) return access.response;
   return json({
@@ -6093,11 +6099,56 @@ async function handleEnsureAccess(request, env) {
   });
 }
 
+// 명식 엔진(lib/korean-calendar/natal.js)이 입력만으로 던지는 코드. 음력에 없는 날짜·없는 윤달·모호한 출생시각 같은
+// 입력 탓 실패라 다시 보내도 같은 결과다.
+const TEA_SAJU_INPUT_ERROR_CODES = new Set([
+  "INVALID_BIRTH_DATE", "INVALID_LUNAR_DATE", "INVALID_CALENDAR_TYPE", "INVALID_BIRTH_TIME",
+  "INVALID_BIRTH_TIMEZONE", "AMBIGUOUS_BIRTH_TIME", "INVALID_BIRTH_PLACE", "CALENDAR_OUT_OF_RANGE",
+]);
+
+// 위 코드로 닫힌 입력은 어댑터가 이미 available:false 로 접은 section 을 갖고 있다. 엔진 예외를 근거 없는 500 으로 두지 않고
+// 그 section 을 초안으로 넘기면 assertSajuCalculationBasis 가 계산 근거 부재 422 로 닫는다.
+// 그 밖의 예외나 어댑터가 열었다고 한 section 과의 불일치는 입력 탓이 아니므로 그대로 올린다.
+function canonicalTeaSajuForConsult(input, section) {
+  try {
+    return canonicalTeaSaju(input, section);
+  } catch (error) {
+    if (TEA_SAJU_INPUT_ERROR_CODES.has(error?.code) && section?.available === false) return section;
+    throw error;
+  }
+}
+
+// tea-v2 사주·사주 궁합의 서버 초안. consult 와 ensure-access 가 같은 판정을 보도록 한 곳에서 만든다.
+function buildTeaV2SajuServerDraft(consultRequest) {
+  if (consultRequest.consultationMode === "saju") {
+    // 요약 문구와 명식이 같은 경도로 계산되도록 경도를 채운 사본을 두 경로에 넘긴다. 해시·저장 요청은 원본 그대로다.
+    const sajuRequest = withTeaSajuLongitude(consultRequest);
+    const section = buildSajuResultSection(buildFortuneTeaSajuSnapshot(sajuRequest), sajuRequest);
+    return { saju: canonicalTeaSajuForConsult(sajuRequest, section) };
+  }
+  if (consultRequest.consultationMode === "sajuCompatibility") {
+    const pair = {};
+    for (const key of ["user", "partner"]) {
+      const person = consultRequest.sajuCompatibility[key];
+      // 최상위 longitude는 사용자 프로필 값이라 상대에게 물려주지 않는다. 사람마다 자기 경도(없으면 표준 자오선)를 쓴다.
+      const personRequest = withTeaSajuLongitude({ ...consultRequest, longitude: undefined, ...person, nickname: person.name });
+      const section = buildSajuResultSection(buildFortuneTeaSajuSnapshotFromParts(withTeaSajuLongitude(person)), personRequest);
+      pair[key] = { ...person, saju: canonicalTeaSajuForConsult(personRequest, section) };
+    }
+    // available 는 두 명식이 모두 열렸을 때만 선다(클라 어댑터와 같은 계약). 서버가 만든 초안에 이 값이 없으면
+    // assertSajuCalculationBasis 가 정상 입력의 궁합까지 계산 근거 부재로 닫는다.
+    const available = pair.user.saju?.available === true && pair.partner.saju?.available === true;
+    return { saju: pair.user.saju, sajuCompatibility: { ...pair, available } };
+  }
+  return null;
+}
+
 // 유료 사주 상담은 클라이언트가 계산한 명식 위에서만 성립한다. 초안이 아예 없거나(직접 API 호출)
 // 음력 변환 실패로 명식이 닫힌 채 올라오면(sajuAdapter 의 3중 catch → available:false) 일간·오행·대운이
 // 전부 빠진 상담문이 100코인 완성본으로 나간다 — 품질 게이트는 "일간·오행·십성·대운" 을 낱말로만 보고
 // LLM 은 근거 없이도 그 낱말을 쓰므로 잡히지 않는다. 생성 전에 fail-closed 로 막는다(원칙 10).
-// 여기서 던지면 기존 생성 실패 경로가 실행 기록 정리와 deferred cancel(예약 해제)까지 이어서 돌려준다.
+// handleConsult 는 증빙 claim·차감 앞에서 먼저 이 검사를 돌리고(예약된 deferred 사용은 그 자리에서 cancel),
+// 생성 안쪽의 같은 호출은 방어선이다. 거기서 던지면 기존 생성 실패 경로가 실행 기록 정리와 deferred cancel 까지 이어서 돌려준다.
 // 사주 궁합도 같은 결함을 공유한다. 화면이 궁합 폼의 '나' 값을 최상위 birthDate 로 복사해 보내므로
 // (QuestionInputScene buildInput) 본인 명식은 draft.saju, 상대 명식은 draft.sajuCompatibility.partner.saju 다.
 // 상대가 닫히면 buildSajuPersonProfile 이 partnerProfile 자체를 빼버려, "두 사람의 결" 이 본인 명식 하나로
@@ -6126,9 +6177,8 @@ function assertSajuCalculationBasis(consultRequest, draft) {
 // 는 fallback.sukuyoCompatibility.available 이 거짓이면 블록째 건너뛴다. 실측 결과 27숙 계산이 닫힌
 // 요청도 200 으로 완주해 completed 로 저장됐고(초안 available:false, LLM 8회), 전달된 본문의
 // 제목·요약·강점·주의는 전부 계산 근거 없는 LLM 창작이었다 — 200코인/₩20,000 짜리 상담문이다.
-// 계산이 닫히는 경로는 실재한다: parseFortuneTeaSukuyoBirthDate 가 양력 왕복으로만 날짜를 보므로
-// 음력 2월 29·30일 같은 실재 음력 생일이 조용히 걸러지고(1940~2010 음력 25,169일 중 92일, 0.37%)
-// prepareFortuneTeaSukuyoAstronomy 가 727행에서 continue 로 건너뛴다.
+// 계산이 닫히는 경로는 실재한다: 음력에 없는 날짜·범위 밖 날짜는 parseFortuneTeaSukuyoBirthDate 가 null 로 돌려
+// prepareFortuneTeaSukuyoAstronomy 가 continue 로 건너뛴다(실재 음력 생일은 음력 규칙으로 판정해 통과시킨다).
 // 가드는 게이트가 보는 것과 같은 값(available)을 본다 — 게이트가 도는 초안만 생성으로 넘긴다.
 // 이 값을 초안으로 위조하지 못하게 막는 쪽은 mergeFortuneTeaSukuyoCompatibility 의 available 고정이다.
 function assertSukuyoCalculationBasis(consultRequest, draft) {
@@ -6138,6 +6188,19 @@ function assertSukuyoCalculationBasis(consultRequest, draft) {
   error.status = 422;
   error.code = "FORTUNE_TEA_HOUSE_SUKUYO_BASIS_MISSING";
   throw error;
+}
+
+// 결제창을 열기 전에 입력만으로 닫히는 상담을 걸러낸다. consult 와 같은 판정을 읽기 전용으로 돌린다
+// (숙요는 천문 계산 없이 두 사람의 생년월일이 읽히는지만 본다). 오래된 화면·직접 호출이 못 여는 입력을 결제로 보내지 못하게 하는 방어선이다.
+function assertFortuneTeaInputOpenable(consultRequest) {
+  if (consultRequest.consultationVersion !== "tea-v2") return;
+  const sajuDraft = buildTeaV2SajuServerDraft(consultRequest);
+  if (sajuDraft) assertSajuCalculationBasis(consultRequest, sajuDraft);
+  if (consultRequest.consultationMode !== "sukuyo") return;
+  const people = [consultRequest.sukuyo?.user, consultRequest.sukuyo?.partner];
+  assertSukuyoCalculationBasis(consultRequest, {
+    sukuyoCompatibility: { available: people.every((person) => Boolean(parseFortuneTeaSukuyoBirthDate(person?.birthDate, person))) },
+  });
 }
 
 // 서버 복구는 저장된 원문 요청을 다시 정규화해 해시를 비교한다. 정규화 기본값이 바뀌어도 같은 요청은
@@ -6167,23 +6230,7 @@ async function handleConsult(request, env, ctx = null, recoveryAuth = null) {
   // New consultations accept questions and birth input, not client-authored calculation facts.
   // Legacy saved requests retain their original compatibility path.
   let serverDraft = consultRequest.consultationVersion === "tea-v2" ? {} : body?.draftResult;
-  if (consultRequest.consultationVersion === "tea-v2" && consultRequest.consultationMode === "saju") {
-    // 요약 문구와 명식이 같은 경도로 계산되도록 경도를 채운 사본을 두 경로에 넘긴다. 해시·저장 요청은 원본 그대로다.
-    const sajuRequest = withTeaSajuLongitude(consultRequest);
-    const section = buildSajuResultSection(buildFortuneTeaSajuSnapshot(sajuRequest), sajuRequest);
-    serverDraft = { saju: canonicalTeaSaju(sajuRequest, section) };
-  }
-  if (consultRequest.consultationVersion === "tea-v2" && consultRequest.consultationMode === "sajuCompatibility") {
-    const pair = {};
-    for (const key of ["user", "partner"]) {
-      const person = consultRequest.sajuCompatibility[key];
-      // 최상위 longitude는 사용자 프로필 값이라 상대에게 물려주지 않는다. 사람마다 자기 경도(없으면 표준 자오선)를 쓴다.
-      const personRequest = withTeaSajuLongitude({ ...consultRequest, longitude: undefined, ...person, nickname: person.name });
-      const section = buildSajuResultSection(buildFortuneTeaSajuSnapshotFromParts(withTeaSajuLongitude(person)), personRequest);
-      pair[key] = { ...person, saju: canonicalTeaSaju(personRequest, section) };
-    }
-    serverDraft = { saju: pair.user.saju, sajuCompatibility: pair };
-  }
+  if (consultRequest.consultationVersion === "tea-v2") serverDraft = buildTeaV2SajuServerDraft(consultRequest) || serverDraft;
   if (consultRequest.consultationMode === "tarot" && consultRequest.consultationVersion === "tea-v2") {
     await connectDb(env);
     const draw = await readTeaDraw(honeyCollections().tarotDrafts, String(access.auth.userId), consultRequest);
@@ -6209,6 +6256,23 @@ async function handleConsult(request, env, ctx = null, recoveryAuth = null) {
   }
   const resultId = buildHoneyResultId(body, consultRequest);
   const requestId = readFortuneTeaRequestId(body, consultRequest);
+  // 입력만으로 정해지는 계산 근거는 증빙 claim·세대 문서·이용권/코인 차감 앞에서 확인한다.
+  // 결과를 낼 수 없는 입력이 차감을 먼저 일으키고 뒤에서 422 가 되는 순서를 만들지 않는다.
+  // 코인 게이트가 유보해 둔 사용(deferredUsage)은 생성 실패 때와 같이 여기서 취소한다.
+  try {
+    assertSajuCalculationBasis(consultRequest, fallback);
+    assertSukuyoCalculationBasis(consultRequest, fallback);
+  } catch (error) {
+    if (access.deferredUsage && access.auth?.userId) {
+      await callFortuneTeaDeferredUsageRoute({
+        request, env, auth: access.auth, path: "cancel", featureKey: access.featureKey, pricing: access.pricing,
+        requestId, resultId, code: cleanText(error?.code, 80), message: cleanText(error?.message, 500),
+      }).catch((cancelError) => {
+        console.warn("[fortune-tea-house/billing-deferred] cancel failed", cancelError);
+      });
+    }
+    throw error;
+  }
   let generation;
   // 결제 증빙 1건 = 상담 결과 1건(resultId). 이용권은 아래 settle 이 이번 결과로 차감하므로 claim 할 ID 가 없다.
   const evidenceIds = access.accessDecision?.claimEvidenceIds;
@@ -6517,4 +6581,8 @@ export const __fortuneTeaHouseTestUtils = {
   normalizeDraftResult,
   normalizeRequest,
   resolveSajuCategoryRule,
+  assertFortuneTeaInputOpenable,
+  assertSajuCalculationBasis,
+  buildTeaV2SajuServerDraft,
+  parseFortuneTeaSukuyoBirthDate,
 };
