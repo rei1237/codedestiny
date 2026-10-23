@@ -23,7 +23,7 @@ import {
   normalizeFusionFinalVerdict,
   normalizeFusionVisualization,
 } from "./fusion-fortune-visual.js";
-import { buildGuardianFortuneContext } from "./guardian-fortune-context.js";
+import { buildGuardianFortuneContext, normalizeGuardianFortuneInput } from "./guardian-fortune-context.js";
 import { buildIntegratedInsight } from "./guardian-fortune-insight.js";
 import { buildFortuneQuestionFocus } from "./fortune-question-focus.js";
 import { createGeminiContextCache, deleteGeminiContextCache, pickGeminiKeys } from "./gemini.js";
@@ -231,15 +231,60 @@ export function selectFusionFortuneTarotSpread(input = {}) {
   };
 }
 
+const fusionGuardianTopic = (normalized) => normalized.topic.includes("연애") || normalized.topic.includes("관계")
+  ? "love"
+  : normalized.topic.includes("일") || normalized.topic.includes("돈")
+    ? "money_work"
+    : normalized.topic.includes("마음") || normalized.topic.includes("회복")
+      ? "mind"
+      : "daily";
+
+// 체계별 계산기에 넘기는 입력. 컨텍스트 빌드와 결제 전 검증이 같은 값을 만들어야 두 판정이 갈라지지 않는다.
+const fusionGuardianInput = (normalized, category, topic) => ({
+  birthDate: normalized.birthDate,
+  birthTime: normalized.birthTime || undefined,
+  birthTimeUnknown: normalized.birthTimeUnknown,
+  birthPlace: normalized.birthPlace,
+  calendarType: normalized.calendarType,
+  gender: normalized.gender === "unspecified" ? "unknown" : normalized.gender,
+  topic,
+  category,
+  locale: normalized.locale,
+  mode: "yeoni",
+  concern: normalized.concern.slice(0, 120) || undefined,
+});
+
+/**
+ * 입력만으로 정해지는 실패를 결제 확인 앞에서 가려낸다. 통과한 입력이 컨텍스트 빌드에서
+ * 입력 때문에 CONTEXT_FAILED 가 되면 결제만 되고 영원히 못 여는 요청이 된다(민감어 고민, 미래 생일,
+ * 달력에 없는 음력 날짜). 읽기 전용이며 계산기를 돌리지 않는다.
+ */
+export function validateFusionFortuneInput(input, { now = new Date(), checkContext = true } = {}) {
+  let normalized;
+  try { normalized = normalizeFusionFortuneInput(input); }
+  catch (error) { return { ok: false, message: error?.message || "입력 정보를 확인해 주세요." }; }
+  if (normalized.contextVersion === 2 && (!normalized.birthTime || normalized.birthTimeUnknown || !normalized.birthPlace || !/^([01]\d|2[0-3]):[0-5]\d$/.test(normalized.birthTime))) {
+    return { ok: false, message: "정밀 풀이에는 태어난 시각과 출생지가 필요해요." };
+  }
+  if (normalized.contextVersion === 2) {
+    const [year, month, day] = normalized.birthDate.split("-").map(Number);
+    const solar = new Date(`${normalized.birthDate}T00:00:00Z`);
+    const dateValid = year >= 1900 && month >= 1 && month <= 12 && day >= 1
+      && (normalized.calendarType === "lunar" ? day <= 30 : Number.isFinite(solar.getTime()) && solar.toISOString().slice(0, 10) === normalized.birthDate);
+    let zoneValid = true;
+    try { new Intl.DateTimeFormat("en", { timeZone: normalized.birthPlace.timezone }).format(new Date()); } catch { zoneValid = false; }
+    if (!dateValid || !zoneValid) return { ok: false, message: !dateValid ? "생년월일을 확인해 주세요." : "출생지를 확인해 주세요." };
+  }
+  if (checkContext) {
+    try { normalizeGuardianFortuneInput(fusionGuardianInput(normalized, "saju", fusionGuardianTopic(normalized)), { now }); }
+    catch (error) { return { ok: false, message: error?.message || "입력 정보를 확인해 주세요." }; }
+  }
+  return { ok: true, normalized };
+}
+
 export async function buildFusionFortuneContext(input, options = {}) {
   const normalized = normalizeFusionFortuneInput(input);
-  const topic = normalized.topic.includes("연애") || normalized.topic.includes("관계")
-    ? "love"
-    : normalized.topic.includes("일") || normalized.topic.includes("돈")
-      ? "money_work"
-      : normalized.topic.includes("마음") || normalized.topic.includes("회복")
-        ? "mind"
-        : "daily";
+  const topic = fusionGuardianTopic(normalized);
   const questionFocus = buildFortuneQuestionFocus({ concern: normalized.concern, topic });
   const systems = {};
   const limitations = [];
@@ -248,19 +293,7 @@ export async function buildFusionFortuneContext(input, options = {}) {
   // only after the corresponding calculator completes successfully.
   const categories = ["saju", "ziwei", "sukuyo", "vedic", "astrology", "tarot"];
   const outcomes = await Promise.all(categories.map(async (category) => {
-    const guardian = await buildGuardianFortuneContext({
-      birthDate: normalized.birthDate,
-      birthTime: normalized.birthTime || undefined,
-      birthTimeUnknown: normalized.birthTimeUnknown,
-      birthPlace: normalized.birthPlace,
-      calendarType: normalized.calendarType,
-      gender: normalized.gender === "unspecified" ? "unknown" : normalized.gender,
-      topic,
-      category,
-      locale: normalized.locale,
-      mode: "yeoni",
-      concern: normalized.concern.slice(0, 120) || undefined,
-    }, {
+    const guardian = await buildGuardianFortuneContext(fusionGuardianInput(normalized, category, topic), {
       ...options,
       fusionExpert: normalized.contextVersion === 2,
       fusionTarot: category === "tarot",
@@ -1475,19 +1508,11 @@ export async function generateFusionFortuneRequest({ input = {}, userId = "", re
   // 🔴 v2 롤백 스위치. 새 요청만 v1 로 내린다 — 이미 시작한 요청(스냅샷·1단계 보관본)은 그 버전 그대로
   //    이어야 입력 신원(fusionInputIdentity 가 reportVersion 을 해시한다)과 저장된 장이 맞는다.
   else if (isDomainFusion(input) && String(env.FUSION_PREMIUM_V2_ENABLED || "").toLowerCase() === "false" && !isDomainFusion(priorResult)) input = { ...input, reportVersion: FUSION_PREMIUM_VERSION };
-  let normalized; try { normalized = normalizeFusionFortuneInput(input); } catch { return { ok: false, status: 400, error: FUSION_FORTUNE_ERROR_CODES.INVALID_INPUT, message: "입력 정보를 확인해 주세요." }; }
-  if (normalized.contextVersion === 2 && (!normalized.birthTime || normalized.birthTimeUnknown || !normalized.birthPlace || !/^([01]\d|2[0-3]):[0-5]\d$/.test(normalized.birthTime))) {
-    return { ok: false, status: 400, error: FUSION_FORTUNE_ERROR_CODES.INVALID_INPUT };
-  }
-  if (normalized.contextVersion === 2) {
-    const [year, month, day] = normalized.birthDate.split("-").map(Number);
-    const solar = new Date(`${normalized.birthDate}T00:00:00Z`);
-    const dateValid = year >= 1900 && month >= 1 && month <= 12 && day >= 1
-      && (normalized.calendarType === "lunar" ? day <= 30 : Number.isFinite(solar.getTime()) && solar.toISOString().slice(0, 10) === normalized.birthDate);
-    let zoneValid = true;
-    try { new Intl.DateTimeFormat("en", { timeZone: normalized.birthPlace.timezone }).format(new Date()); } catch { zoneValid = false; }
-    if (!dateValid || !zoneValid) return { ok: false, status: 400, error: FUSION_FORTUNE_ERROR_CODES.INVALID_INPUT };
-  }
+  // 입력만으로 정해지는 실패는 결제 확인 앞에서 끝낸다 — 결제 뒤 컨텍스트 빌드가 같은 입력으로 CONTEXT_FAILED 를 내면 영원히 못 여는 결제가 된다.
+  // 저장된 계산 스냅샷으로 이어 가는 요청은 계산기 입력을 다시 보지 않는다.
+  const checked = validateFusionFortuneInput(input, { now, checkContext: !priorSnapshot?.context });
+  if (!checked.ok) return { ok: false, status: 400, error: FUSION_FORTUNE_ERROR_CODES.INVALID_INPUT, message: checked.message };
+  const normalized = checked.normalized;
   const safeId = safeRequestId(requestId);
   const identity = await fusionInputIdentity(normalized, safeId);
   if (priorResult?.expertMeta && !fusionCheckpointMatches(priorResult, identity)) {

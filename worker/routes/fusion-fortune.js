@@ -16,6 +16,7 @@ import {
   FUSION_FORTUNE_PAID_FEATURE_KEY,
   FUSION_GENERATION_DEADLINE_MS,
   hasFusionStageOneResult,
+  validateFusionFortuneInput,
 } from "../lib/fusion-fortune.js";
 import {
   getFusionFortuneConsultation,
@@ -456,6 +457,15 @@ export async function handleFusionFortuneRoutes(request, env, ctx = null) {
       return respond({ ok: true, ...status });
     }
 
+    // 결제 창을 열기 전에 클라이언트가 묻는 읽기 전용 검증. 생성 요청이 쓰는 검증과 같은 함수라 두 판정이 갈라지지 않는다.
+    if (method === "POST" && path === "/validate-input") {
+      await requireUserFromRequest(request, env, { allowDbFallback: true });
+      const checked = validateFusionFortuneInput(await readJson(request));
+      return checked.ok
+        ? json({ ok: true })
+        : json({ ok: false, error: FUSION_FORTUNE_ERROR_CODES.INVALID_INPUT, message: checked.message }, { status: 400 });
+    }
+
     if (method === "POST" && path === "/generate") {
       if (!isFusionFortuneMockFlowEnabled(env) && !isFusionFortuneRealLlmAllowed(env)) {
         return respond({ ok: false, status: 503, error: FUSION_FORTUNE_ERROR_CODES.FEATURE_DISABLED, message: "초융합 운세 생성은 아직 준비 중입니다." });
@@ -483,7 +493,7 @@ export async function handleFusionFortuneRoutes(request, env, ctx = null) {
       return await handleFusionFortuneResultRoute(request, env);
     }
 
-    if (["/status", "/generate", "/generate/stream", "/result"].includes(path)) return methodNotAllowed();
+    if (["/status", "/generate", "/generate/stream", "/result", "/validate-input"].includes(path)) return methodNotAllowed();
     return notFound();
   } catch (error) {
     if (error?.code === "RESULT_ACCESS_REVOKED") return json({ ok: false, reason: error.code, retryable: false, resultId: error.resultId, message: error.message }, { status: 403 });

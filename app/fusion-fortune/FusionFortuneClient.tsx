@@ -2483,6 +2483,20 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
       ...(selectedPlace ? { birthPlace: { city: selectedPlace.label, country: selectedPlace.country, latitude: selectedPlace.lat, longitude: selectedPlace.lon, timezone: selectedPlace.tz } } : {}),
     };
     if (!requestId) {
+      // 결제 전에 서버와 같은 규칙으로 입력을 확인한다 — 결제 뒤에 입력 때문에 열리지 않는 일이 없게 한다.
+      // 확인 요청 자체가 실패하면 결제 흐름을 막지 않는다(서버는 결제 확인 앞에서 같은 검증을 다시 한다).
+      try {
+        const check = await authFetch(`${apiBase}/api/fusion-fortune/validate-input`, {
+          method: "POST", credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formRequestBody),
+        }, { retryOn401: true, apiBase });
+        if (check.status === 400) {
+          const payload = await check.json().catch(() => null) as { message?: string } | null;
+          setError(payload?.message || expertCopy.required);
+          return;
+        }
+      } catch { /* 확인하지 못해도 결제는 막지 않는다 */ }
       requestId = `${PAID_FEATURE_KEY}:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
       const gate = await ensurePaidAccess({
         featureKey: PAID_FEATURE_KEY,

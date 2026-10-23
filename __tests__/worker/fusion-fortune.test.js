@@ -17,6 +17,7 @@ import {
   isFusionFortuneRealLlmAllowed,
   selectFusionFortuneTarotSpread,
   validateFusionFortuneGroup,
+  validateFusionFortuneInput,
   validateFusionFortuneResult,
 } from "../../worker/lib/fusion-fortune.js";
 import {
@@ -224,6 +225,33 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
     const result = await generateFusionFortuneRequest({ input, userId: "user", requestId: "unpaid", store: emptyStore(), resolvePaidAccess: unpaidAccess, contextBuilder });
     expect(result).toMatchObject({ ok: false, status: 402, error: "FUSION_FORTUNE_PAYMENT_REQUIRED" });
     expect(result.pricing).toMatchObject({ featureKey: FUSION_FORTUNE_PAID_FEATURE_KEY });
+  });
+
+  it.each([
+    ["a concern the guardian context refuses", { concern: "카드 결제가 걱정돼요" }],
+    ["a birth date in the future", { birthDate: "2999-01-01" }],
+    ["a lunar date the calendar does not have", { calendarType: "lunar", birthDate: "1990-01-30" }],
+  ])("🔴 ends %s with 400 before any payment check, since the context build would fail it after the charge", async (_name, patch) => {
+    const resolvePaidAccess = jest.fn(paidAccess);
+    const builder = jest.fn(contextBuilder);
+    const result = await generateFusionFortuneRequest({ input: { ...input, ...patch }, userId: "user", requestId: "never-opens", store: emptyStore(), resolvePaidAccess, contextBuilder: builder });
+    expect(result).toMatchObject({ ok: false, status: 400, error: "FUSION_FORTUNE_INVALID_INPUT" });
+    expect(result.message).toEqual(expect.any(String));
+    expect(resolvePaidAccess).not.toHaveBeenCalled();
+    expect(builder).not.toHaveBeenCalled();
+  });
+
+  it.each([{ concern: "카드 결제가 걱정돼요" }, { birthDate: "2999-01-01" }])("fails the context build for the same input the check refuses: %j", async (patch) => {
+    const calls = Object.fromEntries(["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"].map(name => [name, 0]));
+    expect(validateFusionFortuneInput({ ...input, ...patch }).ok).toBe(false);
+    expect(await buildFusionFortuneContext({ ...input, ...patch }, { adapters: fusionAdapters(calls) })).toMatchObject({ ok: false, errorCode: "FUSION_FORTUNE_CONTEXT_FAILED" });
+  });
+
+  it.each(["1962-02-30", "1961-02-29"])("lets the real lunar birthday %s through to the payment check although the solar calendar has no such day", async (birthDate) => {
+    const resolvePaidAccess = jest.fn(unpaidAccess);
+    const result = await generateFusionFortuneRequest({ input: { ...input, calendarType: "lunar", birthDate }, userId: "user", requestId: "real-lunar", store: emptyStore(), resolvePaidAccess, contextBuilder });
+    expect(resolvePaidAccess).toHaveBeenCalledTimes(1);
+    expect(result).toMatchObject({ ok: false, status: 402 });
   });
 
   it("🔴 treats an unverifiable payment as retryable 503, never as 402", async () => {

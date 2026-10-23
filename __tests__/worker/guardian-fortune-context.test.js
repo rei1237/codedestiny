@@ -187,6 +187,22 @@ describe("buildGuardianFortuneContext", () => {
     },
   );
 
+  it("judges a lunar birth date by the lunar calendar, not by a solar round trip", () => {
+    const options = { now: new Date("2026-08-02T00:00:00+09:00") };
+    const lunar = (birthDate, extra = {}) => ({ ...fixtures.baseInput, calendarType: "lunar", birthDate, ...extra });
+    // 음력 2/30(1962)·양력에 없는 음력 2/29(1961)는 실재하는 생일이다.
+    expect(contextModule.normalizeGuardianFortuneInput(lunar("1962-02-30"), options).birthDate).toBe("1962-02-30");
+    expect(contextModule.normalizeGuardianFortuneInput(lunar("1961-02-29"), options).birthDate).toBe("1961-02-29");
+    // 음력에 없는 날짜는 사주·자미두수·숙요가 던지므로 계산 앞에서 닫힌다. 타로는 생일을 쓰지 않는다.
+    // 1990 음력 1월은 29일까지다. 31일·13월은 어느 해에도 없다.
+    for (const missing of ["1990-01-30", "1990-12-31", "1990-13-01"]) {
+      expect(() => contextModule.normalizeGuardianFortuneInput(lunar(missing), options)).toThrow(expect.objectContaining({ code: "GUARDIAN_CONTEXT_INVALID_INPUT" }));
+    }
+    expect(contextModule.normalizeGuardianFortuneInput(lunar("1990-01-30", { category: "tarot" }), options).birthDate).toBe("1990-01-30");
+    // 양력은 지금처럼 달력 왕복으로 본다.
+    expect(() => contextModule.normalizeGuardianFortuneInput({ ...fixtures.baseInput, birthDate: "1962-02-30" }, options)).toThrow(expect.objectContaining({ code: "GUARDIAN_CONTEXT_INVALID_INPUT" }));
+  });
+
   it.each([undefined, "", "fusion", "unknown"])("rejects missing or invalid category %s", (category) => {
     expect(() => contextModule.normalizeGuardianFortuneInput({ ...fixtures.baseInput, category })).toThrow(
       expect.objectContaining({ code: "GUARDIAN_CONTEXT_INVALID_INPUT" }),

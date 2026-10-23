@@ -25,6 +25,7 @@ import {
   runGuardianAdapterSafely,
 } from "./guardian-fortune-adapter-utils.js";
 import { buildIntegratedInsight } from "./guardian-fortune-insight.js";
+import { lunarToSolar } from "../../lib/korean-calendar/index.js";
 
 const DEFAULT_LOCALE = "ko-KR";
 
@@ -72,6 +73,22 @@ function normalizeRecentTurns(value) {
   return turns;
 }
 
+/**
+ * 음력 생일은 양력 달력 왕복(isValidDate)으로 판정하지 않는다 — 음력 2/30 처럼 실재하는 날짜가 걸러진다.
+ * 음력이 실제로 있는 날짜인지는 변환기가 정한다. 사주·자미두수·숙요는 없는 날짜에서 던지므로,
+ * 결제 확인 앞에서 같은 변환기로 미리 닫는다. 타로는 생일을 계산에 쓰지 않아 형식만 본다.
+ * 윤달 표시가 그 해에 없는 달이면 사주 런타임이 평달로 읽으므로 평달 존재도 인정한다.
+ */
+function isValidBirthDate(birthDate, calendarType, isLeapMonth, category) {
+  if (calendarType !== "lunar") return isValidDate(birthDate);
+  if (typeof birthDate !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(birthDate)) return false;
+  const [year, month, day] = birthDate.split("-").map(Number);
+  if (month < 1 || month > 12 || day < 1 || day > 30) return false;
+  if (category === "tarot") return true;
+  try { return Boolean(lunarToSolar(year, month, day, isLeapMonth) || (isLeapMonth && lunarToSolar(year, month, day, false))); }
+  catch { return false; }
+}
+
 export function normalizeGuardianFortuneInput(input = {}, options = {}) {
   if (!input || typeof input !== "object" || Array.isArray(input)) throw invalidInput();
   const now = options.now instanceof Date ? options.now : new Date();
@@ -88,7 +105,8 @@ export function normalizeGuardianFortuneInput(input = {}, options = {}) {
   const birthPlace = normalizeBirthPlace(input.birthPlace);
   if (options.requireBirthTime === true && !birthTime) throw invalidInput("생시를 입력해 주세요. 생시를 기준으로 상담 체계별 해석을 정교하게 맞춥니다.");
 
-  if (!isValidDate(birthDate)) throw invalidInput("생년월일을 확인해 주세요.");
+  const isLeapMonth = calendarType === "lunar" && (input.isLeapMonth === true || input.leapMonth === true);
+  if (!isValidBirthDate(birthDate, calendarType, isLeapMonth, category)) throw invalidInput(calendarType === "lunar" ? "음력 생년월일을 확인해 주세요. 그 해 그 달에 없는 날짜예요." : "생년월일을 확인해 주세요.");
   if (birthDate > kstDateKey(now)) throw invalidInput("미래의 생년월일은 입력할 수 없어요.");
   if (birthTime && !isValidTime(birthTime)) throw invalidInput("생시 형식을 확인해 주세요.");
   if (!VALID_CALENDAR_TYPES.has(calendarType)) throw invalidInput("양력 또는 음력을 선택해 주세요.");
@@ -107,7 +125,7 @@ export function normalizeGuardianFortuneInput(input = {}, options = {}) {
     hasBirthTime: Boolean(birthTime),
     calendarType,
     // 윤달은 음력일 때만 뜻이 있다. 사주 어댑터는 이미 읽는데 여기서 버려 평달로 계산됐다.
-    isLeapMonth: calendarType === "lunar" && (input.isLeapMonth === true || input.leapMonth === true),
+    isLeapMonth,
     gender,
     birthPlace,
     hasBirthPlace: Boolean(birthPlace),
