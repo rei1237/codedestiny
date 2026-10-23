@@ -101,7 +101,7 @@ export function getSiteBaseUrl(env) {
   return String(env?.SITE_BASE_URL || env?.AUTH_FRONTEND_BASE_URL || "https://code-destiny.com").replace(/\/+$/, "");
 }
 
-function escapeHtml(value) {
+export function escapeHtml(value) {
   return String(value || "")
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")

@@ -1,7 +1,7 @@
 import { connectDb } from "../lib/db.js";
 import { DailyFortuneSubscription } from "../lib/models.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
-import { sendSingleFortune } from "../lib/daily-fortune-task.js";
+import { escapeHtml, sendSingleFortune } from "../lib/daily-fortune-task.js";
 import { buildSajuSnapshotFromBirth } from "../lib/saju-snapshot-from-birth.js";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -233,14 +233,18 @@ async function handleDailyFortuneUnsubscribe(request, env) {
         <div class="card">
           <div style="font-size: 48px; margin-bottom: 20px;">👋</div>
           <h1>구독이 해지되었습니다</h1>
-          <p>${email} 주소로 발송되던 매일 운세 레터 구독이 정상적으로 해지되었습니다. 그동안 이용해 주셔서 감사합니다.</p>
+          <p>${escapeHtml(email)} 주소로 발송되던 매일 운세 레터 구독이 정상적으로 해지되었습니다. 그동안 이용해 주셔서 감사합니다.</p>
           <a href="https://code-destiny.com" class="btn">홈페이지로 돌아가기</a>
         </div>
       </body>
       </html>
       `,
       {
-        headers: { "Content-Type": "text/html; charset=UTF-8" },
+        headers: {
+          "Content-Type": "text/html; charset=UTF-8",
+          "X-Content-Type-Options": "nosniff",
+          "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'",
+        },
       }
     );
   } catch (error) {
