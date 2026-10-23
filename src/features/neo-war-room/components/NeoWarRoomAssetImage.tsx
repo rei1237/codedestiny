@@ -25,6 +25,7 @@ type NeoWarRoomAssetImageProps = {
    * 🔴 스프라이트 시트에는 주지 말 것 — 배경 크롭 좌표가 어긋난다.
    */
   resizeWidth?: number;
+  responsiveSrcSet?: string;
 };
 
 export default function NeoWarRoomAssetImage({
@@ -42,6 +43,7 @@ export default function NeoWarRoomAssetImage({
   height,
   style,
   resizeWidth,
+  responsiveSrcSet,
 }: NeoWarRoomAssetImageProps) {
   const primarySrc = src || asset?.src || "";
   const primaryAlt = alt ?? asset?.alt ?? "";
@@ -77,6 +79,8 @@ export default function NeoWarRoomAssetImage({
       }}
     >
       {!hasFailedCompletely && activeSrc ? (
+        <picture>
+        {responsiveSrcSet && !useFallback ? <source srcSet={responsiveSrcSet} sizes={sizes} /> : null}
         <Image
           className={imageClassName}
           src={renderedSrc}
@@ -105,6 +109,7 @@ export default function NeoWarRoomAssetImage({
             setFallbackFailed(true);
           }}
         />
+        </picture>
       ) : null}
       {shouldShowPlaceholder ? (
         <span

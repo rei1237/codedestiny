@@ -1,0 +1,15 @@
+{
+  "origin": "https://assets.code-destiny.com/DestinyWar/",
+  "restoredFrom": "b8454e0cc^:src/features/neo-war-room/data/assets.ts",
+  "sourceNames": {
+    "saju": "네오 전략실 사주 이미지.webp",
+    "ziwei": "네오 전략실 자미두수 이미지.webp",
+    "vedic": "네오 전략실 베다점 이미지.webp",
+    "astrology": "네오 전략실 점성술 이미지.webp"
+  },
+  "sourceDimensions": [
+    1055,
+    1491
+  ],
+  "transform": "Proportional resize to widths 320 and 640; no cropping or new artwork; WebP quality 82"
+}
