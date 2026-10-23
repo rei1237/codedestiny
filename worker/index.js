@@ -1,4 +1,5 @@
 import { getEnv } from "./lib/env.js";
+import { isExplicitLocalDevEnv } from "./lib/auth-secret.js";
 // 결제수단 판정 정본. coin-gate 의 갈래를 billing.js 와 같은 규칙으로 정하기 위해 여기서 쓴다
 // (라우터에 별칭 목록을 복제하지 않는다 — 그 복제가 신·구 구현이 갈리던 원인이었다).
 import { PAYMENT_METHODS, resolvePaymentCommandFromBody } from "./lib/payment-service.js";
@@ -383,14 +384,24 @@ function routeMetricNameFromExportName(exportName) {
   );
 }
 
+function timingSafeEqualText(a, b) {
+  const lhs = String(a || "");
+  const rhs = String(b || "");
+  if (lhs.length !== rhs.length) return false;
+  let diff = 0;
+  for (let i = 0; i < lhs.length; i += 1) diff |= lhs.charCodeAt(i) ^ rhs.charCodeAt(i);
+  return diff === 0;
+}
+
 function hasRouteMetricsToken(request, env) {
   const token = String(getEnv(env, "WORKER_ROUTE_METRICS_TOKEN") || "").trim();
-  if (!token) return true;
+  // 토큰이 없으면 닫는다. 명시적 로컬 개발에서만 토큰 없이 연다.
+  if (!token) return isExplicitLocalDevEnv(env);
 
   const headerToken = request.headers.get("x-cd-route-metrics-token") || "";
   const bearer = request.headers.get("authorization") || "";
   const bearerToken = bearer.startsWith("Bearer ") ? bearer.slice(7).trim() : "";
-  return headerToken === token || bearerToken === token;
+  return timingSafeEqualText(headerToken, token) || timingSafeEqualText(bearerToken, token);
 }
 
 function createLazyRouteHandler(modulePath, loadModule, exportName, routeNameOverride) {
