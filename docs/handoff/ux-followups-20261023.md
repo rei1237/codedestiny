@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-23
-next: "39-후속 — IntakeChat 삭제 뒤 남은 미사용 코드"
+next: "머지 — 14·27·35·39-후속을 로컬 main에 ff 머지"
 ---
 
 # 꿀꿀운세 UX 진단·개선 — 후속 과제
@@ -130,7 +130,7 @@ next: "39-후속 — IntakeChat 삭제 뒤 남은 미사용 코드"
   - 위치: `js/recommendations-legacy.mjs:53-56`. `__tests__/ui/recommendations.test.mjs`가 이 글자를 검사하므로 함께 고친다.
 - [x] **35. 관리자·공유 셸의 `alert`** — 끝: `18ddbbb8a` 관리자 해금 실패·완료 2곳은 `_cdShellNotice`, 카카오 공유 실패는 같은 방식(`showToast`, 없을 때만 alert). 셸 관련 UI 테스트 50/50, `verify-paid-gate-ui-regression`·`verify:paid-resume-wiring` 통과
   - 위치: `index.html` 약 L30539·L30545, 공유 추천 흐름 약 L19257. `_cdShellNotice`를 쓴다.
-- [ ] **39-후속(선택). `IntakeChat` 삭제 뒤 남은 미사용 코드**
+- [x] **39-후속(선택). `IntakeChat` 삭제 뒤 남은 미사용 코드** — 끝: `d03f625a5` 단계 함수 5개·`IntakeStep`·`IntakeComposerContext` 삭제, `ProfileChatFields`는 제자리 렌더(기존 동작). 죽은 함수만 보던 `yeongnyangi-intake-chat` 테스트 삭제, fish-choice는 `intakeFish`만. 영냥이 UI 테스트 705/705(첫 병렬 실행에서 `yeongnyangi-reading-v7-prompt` 1건 일시 실패, 단독·재실행 통과)
   - `app/yeongnyangi/_lib/intake-chat.ts`의 `intakeSteps`·`intakeAnswer`·`intakeStepValid`·`intakePrompts`·`intakeCursor`·`IntakeStep`과 그 테스트.
   - 항상 null인 `IntakeComposerContext`.
 
