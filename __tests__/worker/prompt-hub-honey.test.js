@@ -10,6 +10,11 @@ const matches = (row, filter) => Object.entries(filter).every(([key, want]) =>
 function collection(source) {
   return {
     findOne: async (filter) => clone(source().find((row) => matches(row, filter)) || null),
+    find: (filter) => ({
+      toArray: async () => source()
+        .filter((row) => String(row._id) >= filter._id.$gte && String(row._id) <= filter._id.$lte)
+        .map(clone),
+    }),
     findOneAndUpdate: async (filter, update, options = {}) => {
       let row = source().find((item) => matches(item, filter));
       if (!row && options.upsert) {
@@ -111,6 +116,33 @@ describe("꿀방울 출석", () => {
     expect(results.map((r) => r.rewarded)).toEqual([1, 1, 1]);
     expect(results[2].balance).toBe(3);
     expect(results[2].nextRewardIn).toBe(1);
+  });
+
+  test("5일 연속이면 보너스 4개를 더 주고 5일마다 반복한다", async () => {
+    const results = [];
+    for (let day = 1; day <= 10; day++) results.push(await attendHoney({}, owner, new Date(Date.UTC(2026, 9, day, 3))));
+    expect(results.map((r) => r.rewarded)).toEqual([1, 1, 1, 1, 5, 1, 1, 1, 1, 5]);
+    expect(results.map((r) => r.bonus)).toEqual([0, 0, 0, 0, 4, 0, 0, 0, 0, 4]);
+    expect(results[4].streak).toBe(5);
+    expect(results[4].nextBonusIn).toBe(5);
+    expect(results[9].balance).toBe(18);
+    expect(ledgers.find((row) => row.day === "2026-10-05")).toMatchObject({ amount: 5, bonus: 4, reason: "HONEY_ATTENDANCE_STREAK_BONUS" });
+  });
+
+  test("하루라도 빠지면 연속이 1일째부터 다시 시작한다", async () => {
+    for (const day of [1, 2, 3, 5, 6]) await attendHoney({}, owner, new Date(Date.UTC(2026, 9, day, 3)));
+    const sixth = (await honeyAttendanceStatus({}, owner, new Date(Date.UTC(2026, 9, 6, 3))));
+    expect(sixth.streak).toBe(2);
+    expect(sixth.balance).toBe(5);
+    expect((await honeyAttendanceStatus({}, owner, new Date(Date.UTC(2026, 9, 8, 3)))).streak).toBe(0);
+  });
+
+  test("이번 달 출석일과 보너스일을 달력용으로 돌려준다", async () => {
+    for (const day of [1, 2, 3, 4, 5]) await attendHoney({}, owner, new Date(Date.UTC(2026, 9, day, 3)));
+    await attendHoney({}, owner, new Date(Date.UTC(2026, 8, 30, 3)));
+    const status = await honeyAttendanceStatus({}, owner, new Date(Date.UTC(2026, 9, 5, 3)));
+    expect(status.monthDays.map((d) => d.day)).toEqual(["2026-10-01", "2026-10-02", "2026-10-03", "2026-10-04", "2026-10-05"]);
+    expect(status.monthDays.filter((d) => d.bonus).map((d) => d.day)).toEqual(["2026-10-05"]);
   });
 
   test("하루 경계는 KST 자정이다", async () => {

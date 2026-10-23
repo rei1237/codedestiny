@@ -8,6 +8,9 @@ import { createHttpError } from "./http.js";
 export const HONEY_SCOPE = "FORTUNE_TEA_HOUSE";
 // 출석 N번마다 1방울. 출석 횟수는 누적이라 연속이 끊겨도 다음 지급까지 남은 수는 유지된다.
 export const HONEY_ATTENDANCE_EVERY = 1;
+// 연속 출석 N일째마다 평소 1개 외에 보너스를 더한다(5·10·15일째에 그날 총 5개). 하루라도 빠지면 1일째부터 센다.
+export const HONEY_STREAK_EVERY = 5;
+export const HONEY_STREAK_BONUS = 4;
 export const PROMPT_HUB_HONEY_COST = 1;
 // 연이 운명 상담 1회 = 꿀방울 30개. 기본 사주 리포트와 같은 승인 비율(5,000원 : 30방울)이며 현금 가치가 아니다.
 export const FORTUNE_CHAT_HONEY_COST = 30;
@@ -43,8 +46,17 @@ export async function withHoneyTransaction(env, run) {
 const collections = honeyCollections;
 const inTransaction = withHoneyTransaction;
 
-function statePayload(wallet, day, attended) {
+const dayBefore = (day) => kstDay(new Date(Date.parse(`${day}T00:00:00Z`) - 86400000));
+
+// 연속일은 오늘이나 어제 출석했을 때만 살아 있다. 연속 필드가 없던 기존 출석자는 최소 1일로 본다.
+function liveStreak(wallet, day) {
+  const last = wallet?.lastAttendedDay;
+  return last === day || last === dayBefore(day) ? Math.max(1, count(wallet?.attendanceStreak)) : 0;
+}
+
+function statePayload(wallet, day, attended, monthDays = []) {
   const attendanceCount = count(wallet?.attendanceCount);
+  const streak = liveStreak(wallet, day);
   return {
     serviceScope: HONEY_SCOPE,
     day,
@@ -53,6 +65,11 @@ function statePayload(wallet, day, attended) {
     attendanceCount,
     attendanceEvery: HONEY_ATTENDANCE_EVERY,
     nextRewardIn: HONEY_ATTENDANCE_EVERY - (attendanceCount % HONEY_ATTENDANCE_EVERY),
+    streak,
+    streakEvery: HONEY_STREAK_EVERY,
+    streakBonus: HONEY_STREAK_BONUS,
+    nextBonusIn: HONEY_STREAK_EVERY - (streak % HONEY_STREAK_EVERY),
+    monthDays,
     promptCost: PROMPT_HUB_HONEY_COST,
   };
 }
@@ -62,21 +79,28 @@ const attendanceLedgerId = (userId, day) => `attendance:${userId}:${day}`;
 export async function honeyAttendanceStatus(env, userId, now = new Date()) {
   const uid = String(userId), day = kstDay(now);
   const { wallets, ledgers } = collections();
-  const [wallet, attendance] = await withMongoRetry(env, () => Promise.all([
+  const month = day.slice(0, 7);
+  const [wallet, attendance, monthRows] = await withMongoRetry(env, () => Promise.all([
     wallets.findOne({ userId: uid, serviceScope: HONEY_SCOPE }),
     ledgers.findOne({ _id: attendanceLedgerId(uid, day) }, { projection: { _id: 1, amount: 1 } }),
+    // 이번 달 출석 달력: 원장 _id 가 날짜순이라 기본 _id 인덱스 범위 조회로 끝난다.
+    ledgers.find(
+      { _id: { $gte: attendanceLedgerId(uid, `${month}-01`), $lte: attendanceLedgerId(uid, `${month}-31`) } },
+      { projection: { day: 1, amount: 1, bonus: 1 } },
+    ).toArray(),
   ]));
+  const monthDays = monthRows.filter((row) => count(row.amount) >= 1).map((row) => ({ day: row.day, bonus: count(row.bonus) > 0 }));
   // A legacy same-day attendance with zero reward can claim its one-time top-up.
-  return statePayload(wallet, day, attendance && count(attendance.amount) >= 1);
+  return statePayload(wallet, day, attendance && count(attendance.amount) >= 1, monthDays);
 }
 
 export async function attendHoney(env, userId, now = new Date()) {
   const uid = String(userId), day = kstDay(now), _id = attendanceLedgerId(uid, day);
   const { wallets, ledgers } = collections();
-  let rewarded = 0, awarded = false;
+  let rewarded = 0, bonus = 0, awarded = false;
   try {
     await inTransaction(env, async (session) => {
-      rewarded = 0; awarded = false;
+      rewarded = 0; bonus = 0; awarded = false;
       const existing = await ledgers.findOne({ _id }, { session });
       if (existing && count(existing.amount) >= 1) return;
       if (existing) {
@@ -91,33 +115,38 @@ export async function attendHoney(env, userId, now = new Date()) {
         rewarded = 1; awarded = true;
         return;
       }
+      const previous = await wallets.findOne({ userId: uid, serviceScope: HONEY_SCOPE }, { session });
+      // 어제 출석했으면 이어 가고, 아니면 1일째. 연속 필드가 없던 기존 출석자는 어제 출석 시 1일로 이어 받는다.
+      const streak = previous?.lastAttendedDay === dayBefore(day) ? Math.max(1, count(previous.attendanceStreak)) + 1 : 1;
       const wallet = unwrap(await wallets.findOneAndUpdate(
         { userId: uid, serviceScope: HONEY_SCOPE },
-        { $inc: { attendanceCount: 1 }, $set: { lastAttendedDay: day, updatedAt: now }, $setOnInsert: { createdAt: now } },
+        { $inc: { attendanceCount: 1 }, $set: { lastAttendedDay: day, attendanceStreak: streak, updatedAt: now }, $setOnInsert: { createdAt: now } },
         { upsert: true, returnDocument: "after", session },
       ));
       const attendanceCount = count(wallet?.attendanceCount);
-      rewarded = attendanceCount % HONEY_ATTENDANCE_EVERY === 0 ? 1 : 0;
+      const base = attendanceCount % HONEY_ATTENDANCE_EVERY === 0 ? 1 : 0;
+      bonus = streak % HONEY_STREAK_EVERY === 0 ? HONEY_STREAK_BONUS : 0;
+      rewarded = base + bonus;
       if (rewarded) {
         await wallets.updateOne(
           { userId: uid, serviceScope: HONEY_SCOPE },
-          { $inc: { balance: 1, totalEarned: 1 }, $set: { lastEarnedAt: now } },
+          { $inc: { balance: rewarded, totalEarned: rewarded }, $set: { lastEarnedAt: now } },
           { session },
         );
       }
       await ledgers.insertOne({
         _id, userId: uid, type: "attendance", amount: rewarded,
-        reason: rewarded ? "HONEY_ATTENDANCE_REWARD" : "HONEY_ATTENDANCE",
-        serviceScope: HONEY_SCOPE, day, attendanceCount, idempotencyKey: _id, createdAt: now,
+        reason: bonus ? "HONEY_ATTENDANCE_STREAK_BONUS" : rewarded ? "HONEY_ATTENDANCE_REWARD" : "HONEY_ATTENDANCE",
+        serviceScope: HONEY_SCOPE, day, attendanceCount, streak, bonus, idempotencyKey: _id, createdAt: now,
         metadata: { source: "honey-attendance" },
       }, { session });
       awarded = true;
     });
   } catch (error) {
     if (!isDuplicate(error)) throw error;
-    rewarded = 0; awarded = false;
+    rewarded = 0; bonus = 0; awarded = false;
   }
-  return { ...await honeyAttendanceStatus(env, uid, now), awarded, rewarded };
+  return { ...await honeyAttendanceStatus(env, uid, now), awarded, rewarded, bonus };
 }
 
 /**
